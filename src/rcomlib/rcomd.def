@@ -1,0 +1,25 @@
+LIBRARY rcomlibd.dll
+
+EXPORTS
+ 	GetRegistryItem
+	SetRegistryItem
+
+	GetRegistryInt
+	SetRegistryInt
+	GetLocalRegistryInt
+	SetLocalRegistryInt
+	
+	GetRegistryString
+	SetRegistryString
+	GetLocalRegistryString
+	SetLocalRegistryString
+
+	OpenRegister
+	ShowRegister
+	IsRegistered
+	DoRegister
+	GetRegisterResult
+	GetRegisterError
+	RegisterProduct
+
+	CenterDialog

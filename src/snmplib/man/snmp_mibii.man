@@ -1,0 +1,35 @@
+.SH NAME
+snmpInASNParseErrs, snmpInASNParseErrs_Add,
+snmpInBadVersions, snmpInBadVersions_Add,
+.SH SYNOPSIS
+.B cc
+.RI "[ " "flag" " \|.\|.\|. ] " "file" " \|.\|.\|."
+.B \-lsnmp
+.RI "[ " "library" " \|.\|.\|. ]"
+.LP
+.B #include <sys/types.h>
+.br
+.B #include <snmp/snmp.h>
+.LP
+.B "int snmpInASNParseErrs(void);"
+.LP
+.BI "int snmpInASNParseErrs_Add(int " "Num" );
+.LP
+.B "int snmpInBadVersions(void);"
+.LP
+.BI "int snmpInBadVersions_Add(int " "Num" );
+.SH DESCRIPTION
+.B snmpInASNParseErrs(\|)
+and
+.B snmpInBadVersions(\|)
+return the number of ASN parsing errors, and bad SNMP versions,
+encountered by the library.
+.LP
+.B snmpInASNParseErrs_Add(\|)
+and
+.B snmpInBadVersions_Add(\|)
+allow a program to increment the appropriate counter by
+.I Num
+occurances.
+.SH "RETURN VALUES"
+All functions return the (new) total number of errors.

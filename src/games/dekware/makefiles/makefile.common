@@ -1,0 +1,37 @@
+ifndef FINALDEST
+FINALDEST=$(CURDIR)/$(LEVELS)
+export FINALDEST
+endif
+
+ifndef LITERAL_LIBNAME
+LITERAL_LIBNAME=$(DLLNAME)
+endif
+
+#INCLUDEDIRS+= . $(LEVELS)/include
+INCLUDEDIRS+= . $(CURDIR)/$(LEVELS)/include
+
+
+
+ifndef __WINDOWS__
+MKCFLAGS += -D_THREAD_SAFE -D_REENTRANT
+endif
+
+LIBDIRS=. 
+
+MORE_LITERAL_LIBS+=dekware.core
+MORE_LITERAL_LIBS1+=dekware.core
+MORE_LITERAL_LIBS2+=dekware.core
+MORE_LITERAL_LIBS3+=dekware.core
+MORE_LITERAL_LIBS4+=dekware.core
+MORE_LITERAL_LIBS5+=dekware.core
+MORE_LITERAL_LIBS6+=dekware.core
+MORE_LITERAL_LIBS7+=dekware.core
+MORE_LITERAL_LIBS8+=dekware.core
+MORE_LITERAL_LIBS9+=dekware.core
+MORE_LITERAL_LIBSA+=dekware.core
+MORE_LITERAL_LIBSB+=dekware.core
+MORE_LITERAL_LIBSC+=dekware.core
+MORE_LITERAL_LIBSD+=dekware.core
+
+
+$(LEVELS)/makefiles/makefile.common: ;

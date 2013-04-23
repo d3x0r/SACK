@@ -1,0 +1,254 @@
+; NASM macro set to make interfacing to 32-bit programs easier -*- nasm -*-
+
+%ifdef __LINUX__  ;----------------------------------------------------
+
+%imacro proc_entry 1
+global %1:function
+%1:
+%endmacro
+
+%ifdef __LINUX64__
+%define sptr rsp
+%define sbptr rbp
+%define save_si push rsi
+%define save_di push rdi
+%define save_bx push rbx
+%define save_dx push rdx
+%define save_ax push rax
+%define save_cx push rcx
+%define load_si pop rsi
+%define load_di pop rdi
+%define load_ax pop rax
+%define load_bx pop rbx
+%define load_cx pop rcx
+%define load_dx pop rdx
+%define ssize  8
+%define stype  qword
+%else
+%define sptr esp
+%define sbptr ebp
+%define save_si push esi
+%define save_di push edi
+%define save_bx push ebx
+%define save_dx push edx
+%define save_ax push eax
+%define save_cx push ecx
+%define load_si pop esi
+%define load_di pop edi
+%define load_ax pop eax
+%define load_bx pop ebx
+%define load_cx pop ecx
+%define load_dx pop edx
+%define ssize  4
+%define stype  dword
+%endif
+
+%define procname(n) n
+
+%imacro proc 1			; begin a procedure definition
+%push proc
+          global %1:function
+%1:      push sbptr
+          mov sbptr,sptr
+%assign %$arg 8
+%define %$procname %1
+%endmacro
+
+; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+%imacro dllproc 1			; begin a procedure definition
+%push proc
+          global %1:function
+%1:      push sbptr
+          mov sbptr,sptr
+%assign %$arg 8
+%define %$procname %1
+%endmacro
+; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+%imacro mproc 1
+			global %1
+%1:
+%endmacro
+
+%endif
+%ifdef __LCC__  ;---------------------------------------------------------------
+
+%imacro proc_entry 1
+global _%1:function
+_%1:
+%endmacro
+
+%define procname(n) _ %+ n
+
+%imacro proc 1			; begin a procedure definition
+%push proc
+          global _%1
+_%1:      push sbptr
+          mov sbptr,sptr
+%assign %$arg 8
+%define %$procname %1
+%endmacro
+
+; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+%imacro dllproc 1			; begin a procedure definition
+%push proc
+%ifndef __STATIC__
+	export %1
+%endif
+          global _%1
+_%1:      push sbptr
+          mov sbptr,sptr
+%assign %$arg 8
+%define %$procname %1
+%endmacro
+
+; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+%imacro mproc 1
+			global _%1
+_%1:
+%endmacro
+
+%endif ;---------------------------------------------------------------
+
+%ifdef __MSVC__  ;---------------------------------------------------------------
+
+%imacro proc_entry 1
+global _%1:function
+_%1:
+%endmacro
+
+%define procname(n) _ %+ n
+
+%imacro proc 1			; begin a procedure definition
+%push proc
+          global _%1
+_%1:      push sbptr
+          mov sbptr,sptr
+%assign %$arg 8
+%define %$procname %1
+%endmacro
+
+; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+%imacro dllproc 1			; begin a procedure definition
+%push proc
+%ifndef __STATIC__
+	export _%1
+%endif
+          global _%1
+_%1:      push sbptr
+          mov sbptr,sptr
+%assign %$arg 8
+%define %$procname %1
+%endmacro
+
+; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+%imacro mproc 1
+			global _%1
+_%1:
+%endmacro
+
+%endif ;---------------------------------------------------------------
+%ifdef __WATCOM__  ;---------------------------------------------------------------
+
+
+%define sptr esp
+%define sbptr ebp
+%define save_si push esi
+%define save_di push edi
+%define save_bx push ebx
+%define save_dx push edx
+%define save_ax push eax
+%define save_cx push ecx
+%define load_si pop esi
+%define load_di pop edi
+%define load_ax pop eax
+%define load_bx pop ebx
+%define load_cx pop ecx
+%define load_dx pop edx
+%define ssize  4
+%define stype  dword
+
+%imacro proc_entry 1
+global _%1:function
+_%1:
+%endmacro
+
+%define procname(n)  _ %+ n
+
+%imacro proc 1			; begin a procedure definition
+%push proc
+          global _%1
+_%1:     push sbptr
+          mov sbptr,sptr
+%assign %$arg 8
+%define %$procname _%1
+%endmacro
+
+; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+%imacro dllproc 1			; begin a procedure definition
+%push proc
+%ifndef __STATIC__
+	export _%1
+%endif
+          global _%1
+_%1:     push sbptr
+          mov sbptr,sptr
+%assign %$arg 8
+%define %$procname _%1
+%endmacro
+
+; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+%imacro mproc 1
+			global _%1
+_%1:
+%endmacro
+
+%endif ;---------------------------------------------------------------
+
+;%imacro arg 0-1 4		; used with the argument name as a label
+;	  equ %$arg                                                  
+;%assign %$arg %1+%$arg
+;%endmacro
+%imacro arg 1-2 4		; used with the argument name as a label
+	%1  equ %$arg
+%assign %$arg %2+%$arg
+%endmacro
+
+%imacro endp 0
+%ifnctx proc
+%error Mismatched 'endproc'/'proc'
+%else
+	  leave
+	  ret
+__end_%$procname:		; useful for calculating function size
+%pop
+%endif
+%endmacro
+
+%imacro endproc 0
+%ifnctx proc
+%error Mismatched 'endproc'/'proc'
+%else
+	  leave
+	  ret
+__end_%$procname:		; useful for calculating function size
+%pop
+%endif
+%endmacro
+
+%imacro endprocpop 1
+%ifnctx proc
+%error Mismatched 'endproc'/'proc'
+%else
+	  leave
+	  ret %1
+__end_%$procname:		; useful for calculating function size
+%pop
+%endif
+%endmacro

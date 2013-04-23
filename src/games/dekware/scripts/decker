@@ -1,0 +1,346 @@
+/scr common.trig
+/scr hero.trig
+/scr decker.trig #custom overrides on some triggers
+
+
+/decl container casket
+
+/decl wmode  single
+/decl primary light-blade
+/decl secondary light-blade
+
+/decl cloaked false 	#left this way from last rent...
+
+
+/mac `
+	. get %primary
+/endmac
+/mac 1
+	. get %secondary
+/endmac
+/mac 2
+	. wield %primary
+/endmac
+/mac 3
+	. wield %secondary sec
+/endmac
+
+/mac 4
+   /1
+   /3
+/endmac
+
+/mac 5
+	/`
+	/1
+	/2
+	/3
+/endmac
+
+
+/mac s
+   /compare %wmode is dual
+   /if success
+		. she %primary
+		. she %secondary
+   /else
+   . she %primary
+   /endif
+   /cloak
+/endmac
+
+/mac e
+	uncloak
+   compare %wmode is dual
+   if success
+		. draw %primary
+      compare %primary is %secondary 
+      if success
+			. draw 2.%secondary sec
+      else
+     		. draw %secondary sec
+      endif
+   else
+   . draw %primary
+   endif
+/endmac
+
+/mac cloak
+compare %cloaked is true
+if fail
+	. cloak
+	decl cloaked true
+endif
+/endmac
+
+/mac uncloak
+compare %cloaked is true
+if success
+	. uncloak
+	decl cloaked false
+endif
+/endmac
+
+/mac opencloak
+compare %cloaked is true
+if success
+	. uncloak
+endif
+/endmac
+
+/mac closecloak
+/compare %cloaked is true
+/if success
+	. cloak
+/endif
+/endmac
+
+/mac raise
+	. :raises his bushy eyebrows.
+/endmac
+
+/mac panic
+	. :knows no panic.
+/endmac
+
+/mac dual
+	/compare %wmode is dual
+	/if fail
+		/decl wmode dual
+      .remove shield
+      .put shield dragon-sack
+      /compare %primary is %secondary
+      /if success
+			. draw 2.%secondary sec
+      /else
+			. draw %secondary sec
+		/endif
+	/endif
+/endmac
+
+/mac single
+	/compare %wmode is single
+	/if fail
+		/decl wmode single
+      /compare %primary is %secondary
+      /if success
+			. she 2.%secondary
+      /else
+			. she %secondary
+      /endif
+      .get shield dragon-sack
+		.wear shield
+	/endif
+/endmac
+
+/mac r
+.get recall dragon-sack
+.rec recall
+/endmac
+
+
+/dest packdeath
+/mac packdeath
+.put red-belt large-sack
+.put all.scorched large-sack
+.put black-plate large-sack
+.put red-helmet large-sack
+.put skull-shield large-sack
+.put tattered-ribbon large-sack
+.put torn-cloak large-sack
+.put red-bracer large-sack
+.put red-bracer large-sack
+.put black-gauntlets large-sack
+.put black-dragon-boots large-sack
+.put chipped-bardiche large-sack
+.put large-sack dragon-sack
+/endmac
+
+/mac pack
+#/packdeath
+/packbear
+.put all.sword casket
+.put all.nail casket
+.put fang casket
+.put shard casket
+.put claw casket
+.put scythe casket
+
+.put basket dragon
+.put dragon-tooth dragon-sack
+.put dragon-skull dragon-sack
+.put shield dragon
+.put mist dragon
+.put snake dragon
+.put manta dragon
+.put cape dragon
+.put all.scroll dragon
+.put all.potion dragon
+.put all.decanter dragon
+.put all.rod dragon
+.put all.flare dragon
+.put all.helm dragon
+.put bands dragon
+.put armbands dragon
+.put all.pendant dragon
+.put skullcap dragon
+#.put tooth dragon
+.put all.ring dragon
+.put all.guards dragon
+.put all.boots dragon
+/endmac
+
+
+/mac thorn who
+.get thorn bag
+.hold thorn
+.cast 'thorn' %who
+/endmac
+
+/dest axes
+/mac axes
+.remove %primary
+.remove %secondary
+.get axe casket
+.get axe casket
+.put %primary casket
+.put %secondary casket
+/decl primary axe
+/decl secondary axe
+/2
+/3
+/endmac
+
+/dest swords
+/mac swords
+.remove %primary
+.remove %secondary
+.get lion-blade casket
+.get lion-blade casket
+.put %primary casket
+.put %secondary casket
+/decl primary lion-blade
+/decl secondary lion-blade
+/2
+/3
+/endmac
+
+/dest yy
+/mac yy where what
+.%where
+.kill %what
+.flee
+/endmac
+
+/decl helm black-helm
+/decl priorwmode
+
+/mac heal
+/decl priorwmode %wmode
+/compare %wmode is dual
+/if success
+/single
+/endif
+.remove all.guard
+.get all.silver-pendant dragon-sack
+.put all.metal-guard dragon-sack
+.remove %helm
+.remove metal-guards
+.put metal-guards dragon-sack
+.get burnt-guards dragon-sack
+.get skullcap dragon-sack
+.put %helm dragon-sack
+.get dragon-tooth dragon-sack
+.wear all
+/endmac
+
+/mac fight
+.remove dragon-tooth
+/compare %priorwmode is dual
+/if success
+/dual
+/endif
+.remove all.silver-pendant
+.get all.metal-guard dragon-sack
+.get metal-guards dragon-sack
+.put all.silver-pendant dragon-sack
+.remove skullcap
+.get %helm dragon-sack
+.put skullcap dragon-sack
+.put dragon-tooth dragon-sack
+.remove burnt-guards
+.put burnt-guards dragon-sack
+.wear all
+/endmac
+
+/mac laugh
+:lets out a hearty bellowing laugh!
+/endmac
+
+/mac sanc
+.get flare dragon-sack
+.quaff flare
+/endmac
+
+/mac ii
+.cast 'invisibility to animals'
+/endmac
+
+/dest arm
+/macro arm weapon
+.remove %primary
+.remove %secondary
+.get bag casket
+.get %weapon bag
+.get %weapon bag
+.put %primary bag
+.put %secondary bag
+.put bag casket
+/decl primary %weapon
+/decl secondary %weapon
+.wield %primary 
+.she %primary
+.wield %primary
+.she %primary
+/e
+/endmac
+
+/decl rings emerald
+
+/mac marble
+.remove all.%rings
+.get all.marble dragon-sack
+.put all.%rings dragon-sack
+.wear all
+/decl rings marble
+/endmac
+
+/mac emerald
+.remove all.%rings
+.get all.emerald dragon-sack
+.put all.%rings dragon-sack
+.wear all
+/decl rings emerald
+/endmac
+
+/mac silver
+.remove all.%rings
+.get all.silver-ring dragon-sack
+.put all.%rings dragon-sack
+.wear all
+/decl rings silver-ring
+/endmac
+
+/scr bear
+
+
+
+/mac description1
+A tall, rough man, with long tangled hair, and a full bushy beard,
+is here. Twigs and bits of leaves can be seen within the tangled
+mass of hair.  Dusty clothes with many small snags and rips betray 
+that he has certainly wandered far.
+@
+/endmac
+
+

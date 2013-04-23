@@ -1,0 +1,31 @@
+cmake_minimum_required(VERSION 2.8)
+
+PROJECT( unused )
+
+GET_FILENAME_COMPONENT(SACK_SDK_ROOT_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Freedom Collective\\SACK;Install_Dir]" ABSOLUTE CACHE)
+
+include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
+
+include_directories( ${SACK_INCLUDE_DIR} )
+LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
+INSTALL_SACK( bin )
+
+
+PROJECT( cardodds )
+
+set(SOURCES
+  ${FIRST_GCC_PROGRAM_SOURCE}
+   cardodds.c
+  ${LAST_GCC_PROGRAM_SOURCE}
+)
+
+add_executable(${PROJECT_NAME} ${SOURCES} )
+
+string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
+SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+                  COMPILE_DEFINITIONS  "TARGET_LABEL=${TARGET_LABEL}"
+)
+
+target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
+
+

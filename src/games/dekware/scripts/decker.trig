@@ -1,0 +1,492 @@
+/scr folkill.trig
+/decl lastdoor nothing
+
+/trigger dest prompt
+/trigger create prompt <&hit &mana &move>
+/decl skipeatdrink false
+/decl curhit %hit
+/decl curmove %move
+/decl curmana %mana
+/compare %curhit lessthan %maxhit
+/if success
+	/decl lowhit true
+/endif
+/compare %curhit is %maxhit
+/if success
+	/compare %lowhit is true
+   /if success
+   	/sound ding
+      .pemote last scratch slowly fades.
+      /decl lowhit false
+   /endif
+/endif
+/dopending
+/endmac
+
+/mac dopending
+/compare %searching is true
+/if success
+/return
+/endif
+/decl doingany false
+
+/compare %hungry is true
+/if success
+   /decl doingeat true
+   /decl doingany true
+/else
+   /decl doingeat false
+/endif
+
+/compare %thirsty is true
+/if success
+   /decl doingdrink true
+   /decl doingany true
+/else
+   /decl doingdrink false
+/endif
+
+/compare %sober is true
+/if success
+   /decl doingsober true
+   /decl doingany true
+/else
+   /decl doingsober false
+/endif
+
+/compare %doswim is true
+/if success
+   /decl doingswim true
+   /decl doingany true
+/else
+   /decl doingswim false
+/endif
+/compare %dosearch is true
+/if success
+   /decl doingsearch true
+   /decl doingany true
+/else
+   /decl doingsearch false
+/endif
+
+/compare %doingany is true
+/if success
+	/wakeup
+   /compare %doingeat is true
+   /if success
+      /eat
+   /endif
+   /compare %doingdrink is true
+   /if success
+      /drink
+   /endif
+   /compare %doingsober is true
+   /if success
+      /drunk
+   /endif
+   /compare %doingswim is true
+   /if success
+      /swim
+   /endif
+   /compare %dosearch is true
+   /if success
+      /decl dosearch false
+      .search %searchdir
+   /endif
+   /gosleep
+/endif
+
+
+/endmac
+
+
+/trigger dest opendoor
+/trigger create opendoor the &what seems to be closed.
+/decl lastdoor %what
+.say oops, bumped me head on %what.
+. open %what
+/endmac
+
+/trigger dest bashdoor
+/trigger create bashdoor it seems to be locked
+.:roars, "door stuck!"
+.doorbash %lastdoor
+/endmac
+
+
+/trigger destroy lookat
+/trigger create lookat &who looks at you
+/compare %who like ged
+/if success
+/return
+/endif
+/compare %who like horse
+/if fail
+.l %who
+#.say Know anything I need, %who?
+/endif
+/endmac
+/trigger opt lookat anchor
+
+/trigger create stealocoins &who tries to steal gold from &target
+compare %target is A
+if success
+	return
+endif
+compare %target is The
+if success
+	return
+endif
+compare %target is An
+if success
+	return
+endif
+. say hey, %who, did you know that stealing was WRONG?
+.charge %who
+/endmac
+
+/trigger create stealcoins You discover that &who has his hands in your wallet
+. say hey, %who, did you know that stealing was WRONG?
+.charge %who
+/endmac
+
+/trigger create steal &who tries to steal something from &target
+compare %target is A
+if success
+	return
+endif
+compare %target is The
+if success
+	return
+endif
+compare %target is An
+if success
+	return
+endif
+. say hey, %who, did you know that stealing was WRONG?
+.charge %who
+/endmac
+
+/trigger create steal2 &who tried to steal something from you
+. say hey, %who, did you know that stealing was WRONG?
+.charge %who
+/endmac
+
+/trigger destroy smile
+/trigger create smile &who smiles at you
+. smi %who
+/endmac
+
+/trigger create follow &who beckons you 
+. say I follow you, %who, for now.
+. fol %who
+/endmac
+/trigger opt follow anchor
+
+/trigger dest group
+/trigger create group &who starts following you
+. group %who
+/endmac
+
+/trigger dest resneak
+/trigger create resneak you are no longer sneaky
+. sneak
+/endmac
+
+/dest repo
+/mac repo
+. :reports: I have %curhit/%maxhit hp, %curmana/%maxmana mana, %curmove/%maxmove move.
+/endmac
+
+/decl triginval 
+
+/mac testtrig who
+/decl testlist %triginval
+/decl testwho
+/decl result true
+/label top
+/head %testlist %testwho
+/if fail
+	/result %result
+	/return
+/endif
+/compare %who like %testwho
+/if success
+	/decl result false
+/endif
+/goto top
+
+/endmac
+
+
+/trigger create autorefresh &who pants
+.cast 'refresh' %who
+/endmac
+/trigger opt autorefresh anchor
+
+/trigger dest concentrate
+/trigger crea concentrate You lost your concentration
+.thunk me
+/endmac
+
+/decl foodbag bag
+
+/mac eat1
+/setcolor white red
+/fecho YOU ARE HUNGRY!
+/setcolor grey black
+/echo
+/decl hungry false
+/trigger opt hunger enable
+/endmac
+#.cast 'nat'
+#.get %food %foodbag
+#.eat %food
+
+/mac eat2
+.cast 'nat'
+/decl hungry false
+/trigger opt hunger enable
+/endmac
+
+/mac eat
+/eat2
+/endmac
+
+
+/trigger crea drink2 you drink the water.
+/decl thirsty true
+/endmac
+
+/trigger crea unthirst you do not feel thirsty
+/decl thirsty false
+/endmac
+
+/mac drink
+#.drink water
+/decl thirsty false
+/endmac
+
+/dest drunk
+/mac drunk
+/compare %curhit lessthan %maxhit
+	/if success
+		.sip %drink
+		/decl sober false
+	/endif
+/else
+	/decl sober true
+/endif
+/endmac
+
+/trigger dest nograin
+/trigger crea nograin You do not seem to have the 'bottle-.
+.junk bottle
+/endmac
+
+/trigger dest trav
+/trigger crea trav You don't feel as light of foot.
+.cast 'trav'
+/endmac
+
+
+/trigger dest rescsay2
+/trigger creat rescsay2 "rescue"
+/compare %rescsay is true
+/if success
+   .say I'll rescue you, %rescsaywho!
+	/rescue %rescsaywho
+   /decl rescsay false
+/endif
+/endmac
+/trigger opt rescsay2 anchor
+
+
+/trigger dest refdie
+/trigger crea refdie &who suddenly appears on the ground
+.wake %who
+.say bet that hurt, huh, %who?
+.cast 'ref' %who
+/endmac
+
+/trigger dest bear
+/trigger crea bear a huge brown bear bursts into tears.
+/ii
+/endmac
+
+/trigger crea bearflee a huge brown bear hates your guts!
+.cast 'animal f' bear
+/ii
+/endmac
+
+
+/trigger crea bearfol1 a huge brown bear dances &where
+/compare %where is in
+if success
+   return
+endif
+. %where
+.cast 'animal f' bear
+/endmac
+/trigger opt bearfol1 dis
+
+
+/trigger crea decker decker!
+/sound spoon2.wav
+/endmac
+
+/trigger create nofood a *what does not contain *thing
+#/compare %foodin is %food
+#/if success
+	:rummages around in a %what, mumbling about %thing\.s
+#/endif
+/endmac
+
+/trigger create refbarb &who's head is starting to clear.
+.cast 'ref' %who
+/endmac
+
+/trigger create firstslap &who attempts to render first aid to you.
+.bitch %who
+.bitch %who
+.bitch %who
+/endmac
+
+/trigger create nofly you feel lighter than air!
+.:panics and clutches for the ground.
+.walk
+/endmac
+
+# ###################################################################
+# This set of triggers ungroups the group for the leader to 
+# cast 'natures blessing'
+# ###################################################################
+/decl lastungroup
+/decl groupcommand group
+/trigger create namegroup &who HP: (*stat) MV: (*move)
+/decl lastungroup %who
+/compare %who is )
+/if success
+/return
+/endif
+.%groupcommand %who
+/endmac
+/trigger opt namegroup dis
+
+/trigger crea lastungroup &who has been kicked out of Decker's group!
+/compare %who is %lastungroup
+/if success
+/trigger opt lastungroup dis
+/trigger opt groupstart dis
+/trigger opt namegroup dis
+.cast 'nat'
+.group all
+/endif
+/endmac
+/trigger opt lastungroup dis
+
+/trigger create groupstart your group consists of:
+/trigger opt namegroup en
+/trigger opt lastungroup en
+/trigger opt groupstart dis
+/endmac
+/trigger opt groupstart dis
+
+/mac nat
+/trigger opt groupstart en
+/decl groupcommand group
+.group
+/endmac
+
+/mac gref
+/trigger opt groupstart en
+/decl groupcommand cast 'ref'
+.group
+/endmac
+
+###################################################################
+
+/trigger create poison *who succumbs to your poison!
+.say there, %who, trip on THAT.
+/endmac
+/trigger opt poison anchor
+
+/mac triggercheck
+/trigger opt follow
+/trigger opt steal
+/trigger opt steal2
+/trigger opt stealcoins
+/trigger opt stealocoins
+/trigger opt refdie
+/trigger opt autorefresh
+/endmac
+
+/trigger create awayafk Go leave..noone will notice anyways.
+/trigger opt follow dis
+/trigger opt steal dis
+/trigger opt steal2 dis
+/trigger opt stealcoins dis
+/trigger opt stealocoins dis
+/trigger opt refdie dis
+/trigger opt autorefresh dis
+/triggercheck
+/endmac
+/trigger opt awayafk free
+
+/trigger create backafk You return from the world of the living.
+/trigger opt follow en
+/trigger opt steal en
+/trigger opt steal2 en
+/trigger opt stealcoins en
+/trigger opt stealocoins en
+/trigger opt refdie en
+/trigger opt autorefresh en
+/triggercheck
+/endmac
+
+/trigger create ignoresaytext "*anything"
+/endmac
+/trigger opt ignoresaytext anchor consume disable
+
+/mac ignore name
+/decl name2 %name
+/lalign %name2
+/ralign %name2
+/decl trigname ignore %name2
+/collapse %trigname
+/decl trigsay ignore %name2 say
+/collapse %trigsay
+/decl trigooc ignore %name2 ooc
+/collapse %trigooc
+
+/execute /trigger create %trigname %name *anything
+/execute /echo %name did something.
+/execute /endmac
+/execute /trigger opt %trigname anchor consume
+
+/execute /trigger create %trigsay %name says in common:
+/execute /echo %name said something.
+/execute /trigger opt ignoresaytext once
+/execute /endmac
+/execute /trigger opt %trigsay anchor consume
+
+/execute /trigger create %trigooc %name says OOC:
+/execute /echo %name did something ooc.
+/execute /trigger opt ignoresaytext once
+/execute /endmac
+/execute /trigger opt %trigooc anchor consume
+
+/execute /echo Triggers %trigname and %trigsay Created...
+/endmac
+
+#/ignore Osiris
+#/ignore Lia
+
+/trigger create ignoreooc *someone says OOC:
+/trigger opt ignoresaytext once
+/endmac
+/trigger opt ignoreooc anchor consume
+
+/mac ooc what
+/trigger opt ignoreooc %what
+/endmac

@@ -1,0 +1,23 @@
+.SH NAME
+snmp_errstring \- Decode returned SNMP error condition
+.SH SYNOPSIS
+.B cc
+.RI "[ " "flag" " \|.\|.\|. ] " "file" " \|.\|.\|."
+.B \-lsnmp
+.RI "[ " "library" " \|.\|.\|. ]"
+.LP
+.B #include <sys/types.h>
+.br
+.B #include <snmp/snmp.h>
+.LP
+.BI "char *snmp_errstring(int " "errstat" );
+.SH DESCRIPTION
+This function returns a textual description of the error condition in
+the PDU returned by the queried SNMP agent.
+.SH "RETURN VALUE"
+A string containing the error message.
+.SH NOTES
+The error message is stored in the data segment of the library.  Do
+not attempt to 
+.B free(\|)
+ it.

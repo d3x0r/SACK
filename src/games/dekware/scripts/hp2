@@ -1,0 +1,288 @@
+#disable mana (comment these out to use mana tracking with the script
+#mana tracking should be disabled when you do not display mana in your prompt
+#set this to no if you are not displaying mana - yes if you are displaying mana
+#Perhaps this is not needed, or the previous
+#is not needed, but its here for now.
+/decl manatoo no
+
+#The phrases to emote for each hprange
+#range1 is the 'worst' condition - goes up from there
+/decl hprange1em "I am in really bad shape here!"
+/decl hprange2em "I'm about to run for my life!"
+/decl hprange3em "I'm beat and my wounds are large!"
+/decl hprange4em "This is becoming painful.."
+/decl hprange5em "I'm starting to get sore.."
+/decl hprange6em "I have some minor scratches and wounds, don't worry about me."
+/decl hprangepeakem "I am feeling quite healthy."
+/decl hprangeoverem "Damn I feel good!"
+
+#The phrases to emote for each manarange
+/decl manarange1em "I'm very drained mentally."
+/decl manarange2em "I'm drained mentally."
+/decl manarange3em "My mind is weakened."
+/decl manarange4em "I'm still quite charged mentally."
+/decl manarange5em "My mind is slightly weakened."
+/decl manarange6em "My mind is fairly rested."
+/decl manarangepeakem "My mind is rested."
+/decl manarangeoverem "My spirit is bursting with energy!"
+
+#The phrases to emote for each moverange
+/decl moverange1em "I am soooo.. exhausted!"
+/decl moverange2em "I could really use a short rest to catch my breath."
+/decl moverange3em "I think maybe we should start looking for a place to rest."
+/decl moverange4em "My feet are begining to tire, but I can press onwards for a while longer."
+/decl moverange5em "I could manage to jog for a bit, I suppose."
+/decl moverange6em "I'm ready for a sprint."
+/decl moverangepeakem "I am prepared to run."
+/decl moverangeoverem "I am prepared to run!!!"
+
+/decl hprangeout
+
+/mac testhp
+/set hprangebase %maxhit
+/div %hprangebase 6
+/set hprange1 %hprangebase
+/set hprange2 %hprangebase
+/mult %hprange2 2
+/set hprange3 %hprangebase
+/mult %hprange3 3
+/set hprange4 %hprangebase
+/mult %hprange4 4
+/set hprange5 %hprangebase
+/mult %hprange5 5
+/set hprange6 %maxhit
+#I guess this should be done to ensure that you are not reporting non-peak at peak points
+/decr %hprange6 1
+#Ok, hpranges should be set. Onward with comparing them!
+
+/compare %curhit lessthan %hprange1
+	/if success
+	/decl hprangeout %hprange1em
+	/return
+/endif
+
+/compare %curhit lessthan %hprange2
+	/if success
+	/decl hprangeout %hprange2em
+	/return
+/endif
+
+/compare %curhit lessthan %hprange3
+	/if success
+	/decl hprangeout %hprange3em
+	/return
+/endif
+
+/compare %curhit lessthan %hprange4
+	/if success
+	/decl hprangeout %hprange4em
+	/return
+/endif
+
+/compare %curhit lessthan %hprange5
+	/if success
+	/decl hprangeout %hprange5em
+	/return
+/endif
+
+/compare %curhit lessthan %hprange6
+	/if success
+	/decl hprangeout %hprange6em
+	/return
+/endif
+
+/compare %curhit is %maxhit
+	/if success
+	/decl hprangeout %hprangepeakem
+	/return
+/endif
+
+/compare %curhit morethan %maxhit
+	/if success
+	/decl hprangeout %hprangeoverem
+	/return
+/endif
+
+/decl hprangeout "I just don't know how to feel."
+
+/endmac
+
+/decl manarangeout
+
+/mac testmana
+#good, we can get on with the number crunching
+/set manarangebase %maxmana
+/div %manarangebase 6
+/set manarange1 %manarangebase
+/set manarange2 %manarangebase
+/mult %manarange2 2
+/set manarange3 %manarangebase
+/mult %manarange3 3
+/set manarange4 %manarangebase
+/mult %manarange4 4
+/set manarange5 %manarangebase
+/mult %manarange5 5
+/set manarange6 %maxmana
+#I guess this should be done to ensure that you are not reporting non-peak at peak points
+/decr %manarange6 1
+#Ok, manaranges should be set. Onward with comparing them!
+/compare %curmana lessthan %manarange1
+	/if success
+	/decl manarangeout %manarange1em
+	/return
+/endif
+
+/compare %curmana lessthan %manarange2
+	/if success
+	/decl manarangeout %manarange2em
+	/return
+/endif
+
+/compare %curmana lessthan %manarange3
+	/if success
+	/decl manarangeout %manarange3em
+	/return
+/endif
+
+/compare %curmana lessthan %manarange4
+	/if success
+	/decl manarangeout %manarange4em
+	/return
+/endif
+
+/compare %curmana lessthan %manarange5
+	/if success
+	/decl manarangeout %manarange5em
+	/return
+/endif
+
+/compare %curmana lessthan %manarange6
+	/if success
+	/decl manarangeout %manarange6em
+	/return
+/endif
+
+/compare %curmana is %maxmana
+	/if success
+	/decl manarangeout %manarangepeakem
+	/return
+/endif
+
+/compare %curmana morethan %maxmana
+	/if success
+	/decl manarangeout %manarangeoverem
+	/return
+/endif
+
+/endmac
+
+/decl moverangeout
+
+/mac testmove
+#good, we can get on with the number crunching
+/set moverangebase %maxmove
+/div %moverangebase 6
+/set moverange1 %moverangebase
+/set moverange2 %moverangebase
+/mult %moverange2 2
+/set moverange3 %moverangebase
+/mult %moverange3 3
+/set moverange4 %moverangebase
+/mult %moverange4 4
+/set moverange5 %moverangebase
+/mult %moverange5 5
+/set moverange6 %maxmove
+#I guess this should be done to ensure that you are not reporting non-peak at peak points
+/decr %moverange6 1
+#Ok, moveranges should be set. Onward with comparing them!
+/compare %curmove lessthan %moverange1
+	/if success
+	/decl moverangeout %moverange1em
+	/return
+/endif
+
+/compare %curmove lessthan %moverange2
+	/if success
+	/decl moverangeout %moverange2em
+	/return
+/endif
+
+/compare %curmove lessthan %moverange3
+	/if success
+	/decl moverangeout %moverange3em
+	/return
+/endif
+
+/compare %curmove lessthan %moverange4
+	/if success
+	/decl moverangeout %moverange4em
+	/return
+/endif
+
+/compare %curmove lessthan %moverange5
+	/if success
+	/decl moverangeout %moverange5em
+	/return
+/endif
+/echo %curmove lessthan %moverange6 ?
+/compare %curmove lessthan %moverange6
+	/if success
+	/decl moverangeout %moverange6em
+	/return
+/endif
+
+/echo %curmove is %maxmove ?
+/compare %curmove is %maxmove
+	/if success
+	/decl moverangeout %moverangepeakem
+	/return
+/endif
+
+/echo %curmove morethan %maxmove ?
+/compare %curmove morethan %maxmove
+	/if success
+	/decl moverangeout %moverangeoverem
+	/return
+/endif
+/echo dunno what to report....
+/endmac
+
+
+/mac genrepo
+#Have we set maxhit yet?
+/compare %maxhit is 0
+/if success
+	.sc
+	/decl on_pending genrepo
+	/return
+/endif
+
+#good, we can get on with the number crunching
+/testhp
+#MANA
+/compare %manatoo is yes
+/if success
+	/testmana
+/endif
+#MOVE
+/testmove
+
+/compare %manatoo is yes
+/if success
+	.:reports: %hprangeout %manarangeout %moverangeout
+/else
+	.:reports: %hprangeout %moverangeout
+/endif
+
+/endmac
+
+
+/alias create repo2 repo
+/genrepo
+/endmac
+
+/alias create repo1 rep
+/genrepo
+/endmac
+
+	

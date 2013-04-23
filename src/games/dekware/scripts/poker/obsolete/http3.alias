@@ -1,0 +1,94 @@
+
+
+/decl binary_files jpg gif png wav mp3 zip .gz tml htm
+/mac testlist who 
+/decl rescue %binary_files
+/decl testwho
+/decl result false
+/label top
+/head %rescue %testwho
+/if fail
+   /result %result
+   /return
+/endif
+/compare %who like %testwho
+/if success
+   /decl result true
+   /decl rescue # clear the list since we found target in list...
+/endif
+/goto top
+/endmac
+
+
+/mac sendpage file
+/decl ext
+/decl root %file
+/decl result
+/tail %root %ext 3
+/echo file %root : %ext
+/testlist %ext
+/getresult result
+/compare %result is true
+/if success
+/echo %file is binary and just blob sending?
+/loadfile root %file
+#/vars
+/senddata %root
+/else
+#/echo %file is not binary....
+/scr %file
+/endif
+#/destroy %me
+/endmac
+
+/mac process_cgi ...
+/decl vars %...
+/decl varname
+/decl test
+/decl value
+/label top
+/head %vars %test
+/if success
+/compare %test like =
+/if fail
+/ push %varname %test
+/ goto top
+/endif
+/decl test # trash the equal symbol
+/label top2
+/head %vars %test
+/if success
+/compare %test like &
+/if fail
+/push %value %test
+/goto top2
+/endif
+/endif
+/decl in %me %varname %value
+#/echo new variable %varname %value
+/decl varname
+/decl value
+/goto top
+/endif
+/endmac
+
+/macr xxxx
+/if success
+/trigger create test GET /*page HTTP/*version
+/decl p %page
+/collapse %p
+#/vars
+#/execute /sendpage %p
+/endmac
+/trigger opt test anchor consume
+
+/trigger create test2 GET /*page ? *cgi HTTP/*version
+/decl p %page
+/collapse %p
+#/process_cgi %cgi
+#/execute /sendpage %p
+/endmac
+/trigger opt test2 anchor consume
+/endif
+/endmac
+
