@@ -1,0 +1,17 @@
+
+/decl fruitbag bags
+
+/mac packfruit fruitbag
+.put all.strawberry %fruitbag
+.put all.blackberry %fruitbag
+.put all.blackberries %fruitbag
+.put all.pumpkin %fruitbag
+.put all.fruit %fruitbag
+.put all.seed %fruitbag
+.put all.bark %fruitbag
+.put all.leaf %fruitbag
+.put all.flower %fruitbag
+.put all.pine %fruitbag
+.put all.herbs %fruitbag
+.put all.peach %fruitbag
+/endmac

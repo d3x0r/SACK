@@ -1,0 +1,2083 @@
+ 
+-----------------------------------------------------------------------------------
+
+Fundamental Microsoft Jet SQL for Access 2000
+ 
+
+Acey James Bunch
+Microsoft Corporation
+
+
+February 2000
+
+
+Applies To: Microsoft® Access 2000
+
+Summary: This article discusses the basic mechanics of using Jet SQL to work with data 
+in an Access 2000 database. It also delves into using SQL to create and alter a database's structure. If
+ you're new to manipulating data with SQL in an Access database, this article is a great place to start. (21 printed pages)
+
+Download AcFundSQL.exe.
+Contents
+
+Introduction
+SQL Defined
+Using Data Definition Language
+Using Data Manipulation Language
+Using SQL in Access
+One Last Comment
+Additional Resources
+Introduction
+
+This is the first in a series of articles that explain what SQL is and how you can use it in your Microsoft® Access 2000 applications. There are three articles in all: a fundamental, an intermediate, and an advanced article. The articles are designed to progressively show the syntax and methods for using SQL, and to bring out those features of SQL that are new to Access 2000.
+SQL Defined
+
+To really gain the benefit and power of SQL, you must first come to a basic understanding of what it is and how you can use it.
+What Is Structured Query Language?
+
+SQL stands for Structured Query Language and is sometimes pronounced as "sequel." At its simplest, it is the language that is used to extract, manipulate, and structure data that resides in a relational database management system (RDBMS). In other words, to get an answer from your database, you must ask the question in SQL.
+Why and Where Would You Use SQL?
+
+You may not know it, but if you've been using Access, you've also been using SQL. "No!" you may say. "I've never used anything called SQL." That's because Access does such a great job of using it for you. The thing to remember is that for every data-oriented request you make, Access converts it to SQL under the covers.
+
+SQL is used in a variety of places in Access. It is used of course for queries, but it is also used to build reports, populate list and combo boxes, and drive data-entry forms. Because SQL is so prevalent throughout Access, understanding it will greatly improve your ability to take control of all of the programmatic power that Access gives you.
+
+    Note  The particular dialect of SQL discussed in this article applies to version 4.0 of the Microsoft Jet database engine. Although many of the SQL statements will work in other databases, such as Microsoft SQL ServerÃ‚Â™, there are some differences in syntax. To identify the correct SQL syntax, consult the documentation for the database system you are using.
+
+Data Definition Language
+
+Data definition language (DDL) is the SQL language, or terminology, that is used to manage the database objects that contain data. Database objects are tables, indexes, or relationships—anything that has to do with the structure of the database—but not the data itself. Within SQL, certain keywords and clauses are used as the DDL commands for a relational database.
+Data Manipulation Language
+
+Data manipulation language (DML) is the SQL language, or terminology, that is used to manage the data within the database. DML has no effect on the structure of the database; it is only used against the actual data. DML is used to extract, add, modify, and delete information contained in the relational database tables.
+ANSI and Access 2000
+
+ANSI stands for the American National Standards Institute, which is a nationally recognized standards-setting organization that has defined a base standard for SQL. The most recently defined standard is SQL-92, and Access 2000 has added many new features to conform more closely to the standard, although some of the new features are available only when you are using the Jet OLE DB provider. However, Access has also maintained compliance with previous versions to allow for the greatest flexibility. Access also has some extra features not yet defined by the standard that extend the power of SQL.
+
+To understand more about OLE DB and how it fits into the Microsoft Universal Data Access strategy, visit the Universal Data Access Web site at http://www.microsoft.com/data/.
+SQL Coding Conventions
+
+Throughout this article, you will notice a consistent method of SQL coding conventions. As with all coding conventions, the idea is to display the code in such a way as to make it easy to read and understand. This is accomplished by using a mix of white space, new lines, and uppercase keywords. In general, use uppercase for all SQL keywords, and if you must break the line of SQL code, try to do so with a major section of the SQL statement. You'll get a better feel for it after seeing a few examples.
+Poorly formatted SQL code
+
+CREATE TABLE tblCustomers (CustomerID INTEGER NOT NULL,[Last Name] TEXT(50) NOT NULL,
+[First Name] TEXT(50) NOT NULL,Phone TEXT(10),Email TEXT(50))
+
+Well-formatted SQL code
+
+CREATE TABLE tblCustomers 
+    (CustomerID INTEGER NOT NULL,
+    [Last Name] TEXT(50) NOT NULL,
+    [First Name] TEXT(50) NOT NULL,
+    Phone TEXT(10),
+    Email TEXT(50))
+
+Using Data Definition Language
+
+When you are manipulating the structure of a database, there are three primary objects that you will work with: tables, indexes, and relationships.
+
+    * Tables are the database structure that contains the physical data, and they are organized by their columns (or fields) and rows (or records).
+    * Indexes are the database objects that define how the data in the tables is arranged and sorted in memory.
+    * Relationships define how one or more tables relate to one or more other tables.
+
+All three of these database objects form the foundation for all relational databases.
+Creating and Deleting Tables
+
+Tables are the primary building blocks of a relational database. A table contains rows (or records) of data, and each row is organized into a finite number of columns (or fields). To build a new table in Access by using Jet SQL, you must name the table, name the fields, and define the type of data that the fields will contain. Use the CREATE TABLE statement to define the table in SQL. Let's suppose that we are building an invoicing database, so we will start with building the initial customers table.
+
+CREATE TABLE tblCustomers 
+    (CustomerID INTEGER,
+    [Last Name] TEXT(50),
+    [First Name] TEXT(50),
+    Phone TEXT(10),
+    Email TEXT(50))
+
+    Notes
+
+    * If a field name includes a space or some other nonalphanumeric character, you must enclose that field name within square brackets ([ ]).
+    * If you do not declare a length for text fields, they will default to 255 characters. For consistency and code readability, you should always define your field lengths.
+    * For more information about the types of data that can be used in field definitions, type SQL data types in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+
+You can declare a field to be NOT NULL, which means that null values cannot be inserted into that particular field; a value is always required. A null value should not be confused with an empty string or a value of 0, it is simply the database representation of an unknown value.
+
+CREATE TABLE tblCustomers 
+    (CustomerID INTEGER NOT NULL,
+    [Last Name] TEXT(50) NOT NULL,
+    [First Name] TEXT(50) NOT NULL,
+    Phone TEXT(10),
+    Email TEXT(50))
+
+To remove a table from the database, use the DROP TABLE statement.
+
+DROP TABLE tblCustomers
+
+Working with Indexes
+
+An index is an external data structure used to sort or arrange pointers to data in a table. When you apply an index to a table, you are specifying a certain arrangement of the data so that it can be accessed more quickly. However, if you apply too many indexes to a table, you may slow down the performance because there is extra overhead involved in maintaining the index, and because an index can cause locking issues when used in a multiuser environment. Used in the correct context, an index can greatly improve the performance of an application.
+
+To build an index on a table, you must name the index, name the table to build the index on, name the field or fields within the table to use, and name the options you want to use. You use the CREATE INDEX statement to build the index. For example, here's how you would build an index on the customers table in the invoicing database mentioned earlier.
+
+CREATE INDEX idxCustomerID 
+    ON tblCustomers (CustomerID)
+
+Indexed fields can be sorted in one of two ways: ascending (ASC) or descending (DESC). The default order is ascending, and it does not have to be declared. If you use ascending order, the data will be sorted from 1 to 100. If you specify descending order, the data will be sorted from 100 to 1. You should declare the sort order with each field in the index.
+
+CREATE INDEX idxCustomerID 
+    ON tblCustomers (CustomerID DESC)
+
+There are four main options that you can use with an index: PRIMARY, DISALLOW NULL, IGNORE NULL, and UNIQUE. The PRIMARY option designates the index as the primary key for the table. You can have only one primary key index per table, although the primary key index can be declared with more than one field. Use the WITH keyword to declare the index options.
+
+CREATE INDEX idxCustomerID 
+    ON tblCustomers (CustomerID)
+    WITH PRIMARY
+
+To create a primary key index on more than one field, include all of the field names in the field list.
+
+CREATE INDEX idxCustomerName 
+    ON tblCustomers ([Last Name], [First Name])
+    WITH PRIMARY
+
+The DISALLOW NULL option prevents insertion of null data in the field. (This is similar to the NOT NULL declaration used in the CREATE TABLE statement.)
+
+CREATE INDEX idxCustomerEmail 
+    ON tblCustomers (Email)
+    WITH DISALLOW NULL
+
+The IGNORE NULL option causes null data in the table to be ignored for the index. That means that any record that has a null value in the declared field will not be used (or counted) in the index.
+
+CREATE INDEX idxCustomerLastName 
+    ON tblCustomers ([Last Name])
+    WITH IGNORE NULL
+
+In addition to the PRIMARY, DISALLOW NULL, and IGNORE NULL options, you can also declare the index as UNIQUE, which means that only unique, non-repeating values can be inserted in the indexed field.
+
+CREATE UNIQUE INDEX idxCustomerPhone 
+    ON tblCustomers (Phone)
+
+To remove an index from a table, use the DROP INDEX statement.
+
+DROP INDEX idxName
+    ON tblCustomers
+
+Defining Relationships Between Tables
+
+Relationships are the established associations between two or more tables. Relationships are based on common fields from more than one table, often involving primary and foreign keys.
+
+A primary key is the field (or fields) that is used to uniquely identify each record in a table. There are three requirements for a primary key: It cannot be null, it must be unique, and there can be only one defined per table. You can define a primary key either by creating a primary key index after the table is created, or by using the CONSTRAINT clause in the table declaration, as shown in the examples later in this section. A constraint limits (or constrains) the values that are entered in a field. For more information about constraints, see the article "Intermediate Microsoft Jet SQL for Access 2000."
+
+A foreign key is a field (or fields) in one table that references the primary key in another table. The data in the fields from both tables is exactly the same, and the table with the primary key record (the primary table) must have existing records before the table with the foreign key record (the foreign table) has the matching or related records. Like primary keys, you can define foreign keys in the table declaration by using the CONSTRAINT clause.
+
+There are essentially three types of relationships:
+
+    * One-to-one   For every record in the primary table, there is one and only one record in the foreign table.
+    * One-to-many   For every record in the primary table, there are one or more related records in the foreign table.
+    * Many-to-many   For every record in the primary table, there are many related records in the foreign table, and for every record in the foreign table, there are many related records in the primary table.
+
+For example, let's add an invoices table to our invoicing database. Every customer in our customers table can have many invoices in our invoices table—this is a classic one-to-many scenario. We will take the primary key from the customers table and define it as the foreign key in our invoices table, thereby establishing the proper relationship between the tables.
+
+When defining the relationships between tables, you must make the CONSTRAINT declarations at the field level. This means that the constraints are defined within a CREATE TABLE statement. To apply the constraints, use the CONSTRAINT keyword after a field declaration, name the constraint, name the table that it references, and name the field or fields within that table that will make up the matching foreign key.
+
+The following statement assumes that the tblCustomers table has already been built, and that it has a primary key defined on the CustomerID field. The statement now builds the tblInvoices table, defining its primary key on the InvoiceID field. It also builds the one-to-many relationship between the tblCustomers and tblInvoices tables by defining another CustomerID field in the tblInvoices table. This field is defined as a foreign key that references the CustomerID field in the Customers table. Note that the name of each constraint follows the CONSTRAINT keyword.
+
+CREATE TABLE tblInvoices 
+    (InvoiceID INTEGER CONSTRAINT PK_InvoiceID PRIMARY KEY,
+    CustomerID INTEGER NOT NULL CONSTRAINT FK_CustomerID 
+        REFERENCES tblCustomers (CustomerID), 
+    InvoiceDate DATETIME,
+    Amount CURRENCY)
+
+Note that the primary key index (PK_InvoiceID) for the invoices table is declared within the CREATE TABLE statement. To enhance the performance of the primary key, an index is automatically created for it, so there's no need to use a separate CREATE INDEX statement.
+
+Now let's create a shipping table that will contain each customer's shipping address. Let's assume that there will be only one shipping record for each customer record, so we will be establishing a one-to-one relationship.
+
+CREATE TABLE tblShipping 
+    (CustomerID INTEGER CONSTRAINT PK_CustomerID PRIMARY KEY
+        REFERENCES tblCustomers (CustomerID), 
+    Address TEXT(50),
+    City TEXT(50),
+    State TEXT(2),
+    Zip TEXT(10))
+
+Note that the CustomerID field is both the primary key for the shipping table and the foreign key reference to the customers table.
+
+    Note   When you are creating a one-to-one relationship by using DDL statements, the Access user interface may display the relationship as a one-to-many relationship. To correct this problem, after the one-to-one relationship has been created, open the Relationships window by clicking Relationships on the Tools menu. Make sure that the affected tables have been added to the Relationships window, and then double-click the link between the tables to open the Edit Relationships dialog box. Click the Join Type button to open the Join Properties dialog box. You don't have to select an option, just click OK to close the dialog box, and then click OK to close the Edit Relationships dialog box. The one-to-one relationship should now be displayed correctly.
+
+For more information about relationships and how they work, type relationships in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+Using Data Manipulation Language
+
+DML is all about working with the data that is stored in the database tables. Not only is DML used for retrieving the data, it is also used for creating, modifying, and deleting it.
+Retrieving Records
+
+The most basic and most often used SQL statement is the SELECT statement. SELECT statements are the workhorses of all SQL statements, and they are commonly referred to as select queries. You use the SELECT statement to retrieve data from the database tables, and the results are usually returned in a set of records (or rows) made up of any number of fields (or columns). You must designate which table or tables to select from with the FROM clause. The basic structure of a SELECT statement is:
+
+SELECT field list
+    FROM table list
+
+To select all the fields from a table, use an asterisk (*). For example, the following statement selects all the fields and all the records from the customers table:
+
+SELECT *
+    FROM tblCustomers
+
+To limit the fields retrieved by the query, simply use the field names instead. For example:
+
+SELECT [Last Name], Phone
+    FROM tblCustomers
+
+To designate a different name for a field in the result set, use the AS keyword to establish an alias for that field.
+
+SELECT CustomerID AS [Customer Number]
+    FROM tblCustomers
+
+Restricting the Result Set
+
+More often than not, you will not want to retrieve all records from a table. You will want only a subset of those records based on some qualifying criteria. To qualify a SELECT statement, you must use a WHERE clause, which will allow you to specify exactly which records you want to retrieve.
+
+SELECT *
+    FROM tblInvoices
+    WHERE CustomerID = 1
+
+Note the CustomerID = 1 portion of the WHERE clause. A WHERE clause can contain up to 40 such expressions, and they can be joined with the And or Or logical operators. Using more than one expression allows you to further filter out records in the result set.
+
+SELECT *
+    FROM tblInvoices
+    WHERE CustomerID = 1 AND InvoiceDate > #01/01/98#
+
+Note that the date string is enclosed in number signs (#). If you are using a regular string in an expression, you must enclose the string in single quotation marks ('). For example:
+
+SELECT *
+    FROM tblCustomers
+    WHERE [Last Name] = 'White'
+
+If you do not know the whole string value, you can use wildcard characters with the Like operator.
+
+SELECT *
+    FROM tblCustomers
+    WHERE [Last Name] LIKE 'W*'
+
+There are a number of wildcard characters to choose from, and the following table details what they are and what they can be used for.
+Wildcard character 	Description
+* or % 	Zero or more characters
+? or _ (underscore) 	Any single character
+# 	Any single digit (0-9)
+[charlist] 	Any single character in charlist
+[!charlist] 	Any single character not in charlist
+
+    Note   The % and _ (underscore) wildcard characters should be used only through the Jet OLE DB provider and ActiveX® Data Objects (ADO) code. They will be treated as literal characters if they are used though the Access SQL View user interface or Data Access Objects (DAO) code.
+
+For more information about using the Like operator with wildcard characters, type wildcard characters in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+Sorting the Result Set
+
+To specify a particular sort order on one or more fields in the result set, use the optional ORDER BY clause. As explained earlier in the "Working with Indexes" section, records can be sorted in either ascending (ASC) or descending (DESC) order; ascending is the default.
+
+Fields referenced in the ORDER BY clause do not have to be part of the SELECT statement's field list, and sorting can be applied to string, numeric, and date/time values. Always place the ORDER BY clause at the end of the SELECT statement.
+
+SELECT *
+    FROM tblCustomers
+    ORDER BY [Last Name], [First Name] DESC
+
+You can also use the field numbers (or positions) instead of field names in the ORDER BY clause.
+
+SELECT *
+    FROM tblCustomers
+    ORDER BY 2, 3 DESC
+
+For more information about using the ORDER BY clause, type ORDER BY clause in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+Using Aggregate Functions to Work with Values
+
+Aggregate functions are used to calculate statistical and summary information from data in tables. These functions are used in SELECT statements, and all of them take fields or expressions as arguments.
+
+To count the number of records in a result set, use the Count function. Using an asterisk with the Count function causes Null values to be counted as well.
+
+SELECT Count(*) AS [Number of Invoices]
+    FROM tblInvoices
+
+To count only non-Null values, use the Count function with a field name:
+
+SELECT Count(Amount) AS
+    [Number of Valid Invoice Amounts]
+    FROM tblInvoices
+
+To find the average value for a column or expression of numeric data, use the Avg function:
+
+SELECT Avg(Amount) AS [Average Invoice Amount]
+    FROM tblInvoices
+
+To find the total of the values in a column or expression of numeric data, use the Sum function:
+
+SELECT Sum(Amount) AS [Total Invoice Amount]
+    FROM tblInvoices
+
+To find the minimum value for a column or expression, use the Min function:
+
+SELECT Min(Amount) AS [Minimum Invoice Amount]
+    FROM tblInvoices
+
+To find the maximum value for a column or expression, use the Max function:
+
+SELECT Max(Amount) AS [Maximum Invoice Amount]
+    FROM tblInvoices
+
+To find the first value in a column or expression, use the First function:
+
+SELECT First(Amount) AS [First Invoice Amount]
+    FROM tblInvoices
+
+To find the last value in a column or expression, use the Last function:
+
+SELECT Last(Amount) AS [Last Invoice Amount] 
+    FROM tblInvoices
+
+For more information about using the aggregate functions, type SQL aggregate functions in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+Grouping Records in a Result Set
+
+Sometimes there are records in a table that are logically related, as in the case of the invoices table. Since one customer can have many invoices, it could be useful to treat all the invoices for one customer as a group, in order to find statistical and summary information about the group.
+
+The key to grouping records is that one or more fields in each record must contain the same value for every record in the group. In the case of the invoices table, the CustomerID field value is the same for every invoice a particular customer has.
+
+To create a group of records, use the GROUP BY clause with the name of the field or fields you want to group with.
+
+SELECT CustomerID, Count(*) AS [Number of Invoices],
+    Avg(Amount) AS [Average Invoice Amount]
+    FROM tblInvoices
+    GROUP BY CustomerID
+
+Note that the statement will return one record that shows the customer ID, the number of invoices the customer has, and the average invoice amount, for every customer who has an invoice record in the invoices table. Because each customer's invoices are treated as a group, we are able to count the number of invoices, and then determine the average invoice amount.
+
+You can specify a condition at the group level by using the HAVING clause, which is similar to the WHERE clause. For example, the following query returns only those records for each customer whose average invoice amount is less than 100:
+
+SELECT CustomerID, Count(*) AS [Number of Invoices],
+    Avg(Amount) AS [Average Invoice Amount]
+    FROM tblInvoices
+    GROUP BY CustomerID
+    HAVING Avg(Amount) < 100
+
+For more information about using the GROUP BY clause, type GROUP BY clause in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+Inserting Records into a Table
+
+There are essentially two methods for adding records to a table. The first is to add one record at a time; the second is to add many records at a time. In both cases, you use the SQL statement INSERT INTO to accomplish the task. INSERT INTO statements are commonly referred to as append queries.
+
+To add one record to a table, you must use the field list to define which fields to put the data in, and then you must supply the data itself in a value list. To define the value list, use the VALUES clause. For example, the following statement will insert the values "1", "Kelly", and "Jill" into the CustomerID, Last Name, and First Name fields, respectively.
+
+INSERT INTO tblCustomers (CustomerID, [Last Name], [First Name])
+    VALUES (1, 'Kelly', 'Jill')
+
+You can omit the field list, but only if you supply all the values that record can contain.
+
+INSERT INTO tblCustomers
+    VALUES (1, Kelly, 'Jill', '555-1040', 'someone@microsoft.com')
+
+To add many records to a table at one time, use the INSERT INTO statement along with a SELECT statement. When you are inserting records from another table, each value being inserted must be compatible with the type of field that will be receiving the data. For more information about data types and their usage, see "Intermediate Microsoft Jet SQL for Access 2000."
+
+The following INSERT INTO statement inserts all the values in the CustomerID, Last Name, and First Name fields from the tblOldCustomers table into the corresponding fields in the tblCustomers table.
+
+INSERT INTO tblCustomers (CustomerID, [Last Name], [First Name])
+    SELECT CustomerID, [Last Name], [First Name]
+    FROM tblOldCustomers
+
+If the tables are defined exactly alike, you leave can out the field lists.
+
+INSERT INTO tblCustomers
+    SELECT * FROM tblOldCustomers
+
+For more information about using the INSERT INTO statement, type INSERT INTO statement in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+Updating Records in a Table
+
+To modify the data that is currently in a table, you use the UPDATE statement, which is commonly referred to as an update query. The UPDATE statement can modify one or more records and generally takes this form:
+
+UPDATE table name 
+    SET field name = some value
+
+To update all the records in a table, specify the table name, and then use the SET clause to specify the field or fields to be changed.
+
+UPDATE tblCustomers
+    SET Phone = 'None'
+
+In most cases, you will want to qualify the UPDATE statement with a WHERE clause to limit the number of records changed.
+
+UPDATE tblCustomers
+    SET Email = 'None'
+    WHERE [Last Name] = 'Smith'
+
+For more information about using the UPDATE statement, type UPDATE statement in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+Deleting Records from a Table
+
+To delete the data that is currently in a table, you use the DELETE statement, which is commonly referred to as a delete query, also known as truncating a table. The DELETE statement can remove one or more records from a table and generally takes this form:
+
+DELETE FROM table list
+
+The DELETE statement does not remove the table structure, only the data that is currently being held by the table structure. To remove all the records from a table, use the DELETE statement and specify which table or tables you want to delete all the records from.
+
+DELETE FROM tblInvoices
+
+In most cases, you will want to qualify the DELETE statement with a WHERE clause to limit the number of records to be removed.
+
+DELETE FROM tblInvoices
+    WHERE InvoiceID = 3
+
+If you want to remove data only from certain fields in a table, use the UPDATE statement and set those fields equal to NULL, but only if they are nullable fields. For more information about nullable fields, see "Intermediate Microsoft Jet SQL for Access 2000."
+
+UPDATE tblCustomers 
+    SET Email = Null
+
+For more information about using the DELETE statement, type DELETE statement in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+Using SQL in Access
+
+Now that we've had a basic overview of the SQL syntax, let's look at some of the ways we can use it in an Access application. To do this, we'll use the sample database included with this article. Through queries and sample code, the acFundSQL.mdb sample demonstrates the different SQL statements discussed in this article.
+
+    Note   Many of the sample queries used in acFundSQL.mdb depend on certain tables existing and containing data. Because some of the queries in acFundSQL.mdb alter the data or the database structure, you may eventually have difficulty running other queries due to missing or altered data, tables, or indexes. If this problem occurs, open the frmResetTables form and click the Reset Tables button to re-create the tables and their original default data. To manually step through the reset-table process, execute the following queries in the order they are listed:
+
+    Drop Shipping Table
+    Drop Invoices Table
+    Drop Customers Table
+    Create Customers Table
+    Create Invoices Table
+    Create Shipping Table
+    Populate Customers
+    Populate Invoices
+    Populate Shipping
+
+Building Queries
+
+Queries are SQL statements that are saved in an Access database and can be used at any time, either directly from the Access user interface or from the Visual Basic® for Applications (VBA) programming language. You can build queries by using query Design view, which greatly simplifies the building of SQL statements, or you can build queries by entering SQL statements directly in the SQL view window.
+
+As mentioned at the beginning of this article, Access converts all data-oriented tasks in the database into SQL statements. To demonstrate this behavior, let's build a query in query Design view.
+
+   1. Open the acFundSQL.mdb database.
+
+   1. Make sure that the tblCustomers table has been created and that it contains some data.
+   2. In the Database window, click Queries under Objects, and then click New on the Database window toolbar.
+   3. In the New Query dialog box, click Design View, and then click OK.
+   4. In the Show Table dialog box, click tblCustomers, click Add, and then click Close.
+   5. In the tblCustomers field list, click the asterisk (*) and drag it to the first field in the query design grid.
+   6. On the View menu, click SQL View. This opens the SQL view window and displays the SQL syntax that Access is using for this query.
+
+    Note   This query is similar to the Select All Customers query already saved in the acFundSQL database.
+
+Specifying a Data Source
+
+To make a connection to data in the database's tables, Access objects use data source properties. For example, a form has a RecordSource property that connects it to a particular table in the database. Anywhere that a data source is specified, you can use an SQL statement (or a saved query) instead of the name of a table. For example, let's build a new form that connects to the customers table by using an SQL SELECT statement as the data source.
+
+   1. Open the acFundSQL.mdb database and make sure that the tblCustomers table has been created and that it contains some data.
+   2. In the Database window, click Forms under Objects, and then click New on the Database window toolbar
+   3. In the New Form dialog box, click Design View, and then click OK. A blank form is now open in Design view.
+   4. On the View menu, click Properties to open the form's property sheet.
+   5. In the RecordSource property text box, type the following SQL statement:
+
+SELECT * FROM tblCustomers
+
+   6. Press the ENTER key on your keyboard. The field list appears, and it lists all of the available fields from the tblCustomers table.
+   7. Select all of the fields by holding down the SHIFT key and clicking the first and then the last field listed.
+   8. Drag the selected fields to the center of the Detail section on the blank form and then release the mouse button.
+   9. Close the property sheet.
+  10. On the View menu, click Form View, and then use the record selectors at the bottom of the form to scroll through all the records in the tblCustomers table.
+
+Another great place to use an SQL statement is in the RowSource property for a list or combo box. Let's build a simple form with a combo box that uses an SQL SELECT statement as its row source.
+
+   1. Open the acFundSQL.mdb database and make sure that the tblCustomers table has been created and that it contains some data.
+   2. Create a new form and open it in Design view.
+   3. On the View menu, click Toolbox.
+   4. Make sure that the Control Wizards (upper rightmost) button in the toolbox is not pressed in.
+   5. Click the Combo Box button and then click in the center of the blank form's Detail section.
+   6. Make sure that the combo box in the form is selected, and then click Properties on the View menu.
+   7. In the RowSource property text box, type the following SQL statement:
+
+SELECT [Last Name] FROM tblCustomers
+
+   8. Press ENTER, and then close the property sheet.
+   9. On the View menu, click Form View. In the form, click the down arrow next to the combo box. Note that all the last names from the customers table are listed in the combo box.
+
+Using SQL Statements Inline
+
+The process of using SQL statements within VBA code is referred to as using the statements "inline." Although a deep discussion of how to use VBA is outside the scope of this article, it is a straightforward task to execute SQL statements in VBA code.
+
+Suppose we need to run an UPDATE statement from code, and we want to run the code when a user clicks a button on a form.
+
+   1. Open the acFundSQL.mdb database and make sure that the tblCustomers table has been created and that it contains some data.
+   2. Create a new form and open it in Design view.
+   3. On the View menu, click Toolbox.
+   4. Make sure that the Control Wizards (upper rightmost) button in the toolbox is not pressed in.
+   5. Click the Command Button button and then click in the center of the blank form's Detail section.
+   6. Make sure that the command button in the form is selected, and then click Properties on the View menu.
+   7. Click in the following property text boxes and enter the values given:
+
+      Name:   cmdUpdatePhones
+
+      Caption:   Update Phones
+   8. Click the OnClick property text box, click the Build button (Ã‚Â…), and then click Code Builder to open the Visual Basic Editor.
+   9. Type or paste the following lines of code in the cmdUpdatePhones_Click subprocedure:
+
+Dim conDatabase As ADODB.Connection
+Dim strSQL As String
+
+Set conDatabase = CurrentProject.Connection
+
+strSQL = "UPDATE tblCustomers SET Phone = 'None'"
+conDatabase.Execute strSQL
+
+MsgBox "All phones have been set to ""None""."
+
+conDatabase.Close
+Set conDatabase = Nothing
+
+  10. Close the Visual Basic Editor, close the property sheet, and then click Form View on the View menu.
+  11. Click the Update Phones button. You should see a message box that says all the phone numbers have been set to "None." You can verify this by opening the tblCustomers table.
+
+Although using SQL statements inline is great for action queries (that is, append, delete, and update), they are most often used in select queries to build sets of records. Let's suppose that we want to loop through a results-based set to accomplish what the UPDATE statement did. Following a similar procedure for the UPDATE example, use the following code in the cmdSelectPhones_Click subprocedure:
+
+Dim conDatabase As ADODB.Connection
+Dim rstCustomers As ADODB.Recordset
+Dim strSQL As String
+
+Set conDatabase = CurrentProject.Connection
+strSQL = "SELECT Phone FROM tblCustomers"
+
+Set rstCustomers = New Recordset
+rstCustomers.Open strSQL, conDatabase, _
+    adOpenDynamic, adLockOptimistic
+
+With rstCustomers
+    Do While Not .EOF
+    !Phone = "None"
+    .Update
+    .MoveNext
+    Loop
+End With
+
+MsgBox "All phones have been set to ""None""."
+
+rstCustomers.Close
+conDatabase.Close
+
+Set rstCustomers = Nothing
+Set conDatabase = Nothing
+
+In most cases, you will achieve better performance by using the UPDATE statement because it acts on the table as a whole, treating it as a single set of records. However, there may be some situations where you simply must loop through a set of records in order to achieve the results you need.
+One Last Comment
+
+Although it may be difficult to believe, this article has only scratched the surface of the SQL language as it applies to Access. By now you should have a good basic understanding of SQL and how you can use it in your Access 2000 applications. Try out your new skills by using SQL in any RecordSource or RowSource property you can find, and use the resources listed in the next section to further your knowledge of SQL and Access.
+Additional Resources
+Resource 	Description
+Intermediate Microsoft Jet SQL for Access 2000 	This article builds on the fundamental concepts already covered here, and gives a much more detailed picture as to what can be accomplished with Microsoft Jet SQL in Access.
+Advanced Microsoft Jet SQL for Access 2000 	Third in the series of SQL articles, "Advanced Microsoft Jet SQL" builds on the concepts covered in the first two articles, this time focusing on the SQL syntax that is most often used in a multiuser environment.
+Microsoft Jet SQL Reference Help 	This is the definitive source for the SQL language as it applies to Access 2000. It can be found in the Contents section of Microsoft Access 2000 Help.
+Microsoft Access 2000 Help 	An irreplaceable source of Access 2000 programming topics.
+Microsoft Office 2000/Visual Basic Programmer's Guide 	This comprehensive book covers how to use VBA to program Office 2000 applications.
+Microsoft Developer Network, http://msdn.microsoft.com/ 	This Web site always has the latest information for developing solutions with Microsoft platforms and languages.
+MSDN Office Developer Center, http://msdn.microsoft.com/office/default.asp 	This Web site contains the latest information about developing applications with Microsoft Office.
+MSDN Training, http://msdn.microsoft.com/training/ 	Look to Microsoft's MSDN Training courses to provide the soundest techniques for developing Access 2000 applications.
+
+
+-----------------------------------------------------------------------------------
+
+Using ADO vs. DAO
+
+In previous versions of Access, Data Access Objects (DAO) was the
+primary data access method. That has now changed. Although DAO is still
+supported, the new way to access data is with ADO. ADO is part of
+Microsoft's Universal Data Access strategy, which has the basic premise
+of being able to access any kind of data wherever it may exist, whether
+in a database, a directory structure, or some custom type of data
+storage.
+
+ADO is important to a discussion of Microsoft Jet SQL because, as mentioned previously, some of the new SQL statements are available only when using ADO and the Jet OLE DB provider. In this article, and in the sample database that accompanies it, all code is written with ADO. The SQL statements that are not specifically noted as being available only through ADO can be executed in either the Access SQL View user interface or DAO. Although a thorough discussion of ADO is beyond the scope of this article, you can find the latest information at http://www.microsoft.com/data/ado/.
+SQL Coding Conventions
+
+This article uses a consistent method of SQL coding conventions. As with all coding conventions, the idea is to display the code in such a way as to make it easy to read and understand. This is accomplished by using a mix of white space, new lines, and uppercase keywords. In general, use uppercase for all SQL keywords, and if you must break the line of SQL code, try to do so with a major section of the SQL statement. You'll get a better feel for it after seeing a few examples.
+Poorly formatted SQL code
+
+CREATE TABLE tblCustomers (CustomerID INTEGER NOT NULL, [Last Name] 
+TEXT(50) NOT NULL, [First Name] TEXT(50) NOT NULL, Phone TEXT(10), Email 
+TEXT(50))
+
+Well-formatted SQL code
+
+CREATE TABLE tblCustomers (
+...CustomerID INTEGER NOT NULL,
+...[Last Name] TEXT(5) NOT NULL,
+...[First Name] TEXT(50) NOT NULL,
+...Phone TEXT(10),
+...Email TEXT(50))
+
+Intermediate Data Definition Language
+
+The article "Fundamental Microsoft Jet SQL for Access 2000" showed how to build the basic database objects that form a relational database. The following sections of this article discuss intermediate Data Definition Language (DDL) statements that will allow you to enhance and/or modify those basic structures.
+Altering Tables
+
+After you have created and populated a table, you may need to modify the table's design. To do so, use the ALTER TABLE statement. But be forewarned, altering an existing table's structure may cause you to loose some of the data. For example, changing a field's data type can result in data loss or rounding errors, depending on the data types you are using. It can also break other parts of your application that may refer to the changed field. You should always use extra caution before modifying an existing table's structure.
+
+With the ALTER TABLE statement, you can add, remove, or change a column (or field), and you can add or remove a constraint. You can also declare a default value for a field; however, you can alter only one field at a time. Let's suppose that we have an invoicing database, and we want to add a field to the Customers table. To add a field with the ALTER TABLE statement, use the ADD COLUMN clause with the name of the field, its data type, and the size of the data type, if it is required.
+
+ALTER TABLE tblCustomers
+   ADD COLUMN Address TEXT(30)
+
+To change the data type or size of a field, use the ALTER COLUMN clause with the name of the field, the desired data type, and the desired size of the data type, if it is required.
+
+ALTER TABLE tblCustomers
+   ALTER COLUMN Address TEXT(40)
+
+If you want to change the name of a field, you will have to remove the field and then recreate it. To remove a field, use the DROP COLUMN clause with the field name only.
+
+ALTER TABLE tblCustomers
+   DROP COLUMN Address
+
+Note that using this method will eliminate the existing data for the field. If you want to preserve the existing data, you should change the field's name with the table design mode of the Access user interface, or write code to preserve the current data in a temporary table and append it back to the renamed table.
+
+A default value is the value that is entered in a field any time a new record is added to a table and no value is specified for that particular column. To set a default value for a field, use the DEFAULT keyword after declaring the field type in either an ADD COLUMN or ALTER COLUMN clause.
+
+ALTER TABLE tblCustomers
+   ALTER COLUMN Address TEXT(40) DEFAULT Unknown
+
+Notice that the default value is not enclosed in single quotes. If it were, the quotes would also be inserted into the record. The DEFAULT keyword can also be used in a CREATE TABLE statement.
+
+CREATE TABLE tblCustomers (
+   CustomerID INTEGER CONSTRAINT PK_tblCustomers
+      PRIMARY KEY, 
+   [Last Name] TEXT(50) NOT NULL,
+   [First Name] TEXT(50) NOT NULL,
+   Phone TEXT(10),
+   Email TEXT(50),
+   Address TEXT(40) DEFAULT Unknown)
+
+    Note   The DEFAULT statement can be executed only through the Jet OLE DB provider and ADO. It will return an error message if used through the Access SQL View user interface.
+
+The next section discusses how to use constraints with the ALTER TABLE statement. For more information about using the ALTER TABLE statement, type alter table in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+Constraints
+
+The article "Fundamental Microsoft Jet SQL for Access 2000" discusses constraints as the way to establish relationships between tables. Constraints can also be used to establish primary keys and referential integrity, and to restrict values that can be inserted into a field. In general, constraints can be used to preserve the integrity and consistency of the data in your database.
+
+There are two types of constraints: a single-field or field-level constraint, and a multi-field or table-level constraint. Both kinds of constraints can be used in either the CREATE TABLE or the ALTER TABLE statement.
+
+A single-field constraint, also known as a column-level constraint, is declared with the field itself, after the field and data type have been declared. Let's use the Customers table and create a single-field primary key on the CustomerID field. To add the constraint, use the CONSTRAINT keyword with the name of the field.
+
+ALTER TABLE tblCustomers
+   ALTER COLUMN CustomerID INTEGER
+   CONSTRAINT PK_tblCustomers PRIMARY KEY
+
+Notice that the name of the constraint is given. You could use a shortcut for declaring the primary key that leaves off the CONSTRAINT clause entirely.
+
+ALTER TABLE tblCustomers
+   ALTER COLUMN CustomerID INTEGER PRIMARY KEY
+
+However, using the shortcut method will cause Access to randomly generate a name for the constraint, which will make it difficult to reference in code. It is a good idea always to name your constraints.
+
+To drop a constraint, use the DROP CONSTRAINT clause with the ALTER TABLE statement, and supply the name of the constraint.
+
+ALTER TABLE tblCustomers
+   DROP CONSTRAINT PK_tblCustomers
+
+Constraints can also be used to restrict the allowable values for a field. You can restrict values to NOT NULL or UNIQUE, or you can define a check constraint, which is a type of business rule that can be applied to a field. Let's say that you want to restrict (or constrain) the values of the first name and last name fields to be unique, meaning that there should never be a combination of first name and last name that is the same for any two records in the table. Because this is a multi-field constraint, it is declared at the table level, not the field level. Use the ADD CONSTRAINT clause and define a multi-field list.
+
+ALTER TABLE tblCustomers
+   ADD CONSTRAINT CustomerNames UNIQUE
+   ([Last Name], [First Name])
+
+    Note   You probably would not want to limit proper names to unique values in a real application; we do it here only to demonstrate how you can use constraints.
+
+A check constraint is a powerful new SQL feature that allows you to add data validation to a table by creating an expression that can refer to a single field, or multiple fields across one or more tables. Suppose that you want to make sure that the amounts entered in an invoice record are always greater than $0.00. To do so, use a check constraint by declaring the CHECK keyword and your validation expression in the ADD CONSTRAINT clause of an ALTER TABLE statement.
+
+ALTER TABLE tblInvoices
+   ADD CONSTRAINT CheckAmount
+   CHECK (Amount > 0)
+
+    Note   The check constraint statement can only be executed through the Jet OLE DB provider and ADO; it will return an error message if used though the Access SQL View user interface. Also note that to drop a check constraint, you must issue the DROP CONSTRAINT statement through the Jet OLE DB provider and ADO. Also, if you do define a check constraint: (1) it won't show as a validation rule in the Access user interface (UI), (2) you can't define the ValidationText property so that a generic error message will display in the Access UI, and (3) you won't be able to delete the table through the Access UI or from code until you drop the constraint by using a DROP CONSTRAINT statement from ADO.
+
+The expression used to define a check constraint can also refer to more than one field in the same table, or to fields in other tables, and can use any operations that are valid in Microsoft Jet SQL, such as SELECT statements, mathematical operators, and aggregate functions. The expression that defines the check constraint can be no more than 64 characters long.
+
+Let's suppose that you want to check each customer's credit limit before he or she is added to the Customers table. Using an ALTER TABLE statement with the ADD COLUMN and CONSTRAINT clauses, let's create a constraint that will look up the value in the CreditLimit table to verify the customer's credit limit. Use the following SQL statements to create the tblCreditLimit table, add the CustomerLimit field to the tblCustomers table, add the check constraint to the tblCustomers table, and test the check constraint.
+
+CREATE TABLE tblCreditLimit (
+   Limit DOUBLE)
+
+INSERT INTO tblCreditLimit
+   VALUES (100)
+
+ALTER TABLE tblCustomers
+   ADD COLUMN CustomerLimit DOUBLE
+
+ALTER TABLE tblCustomers
+   ADD CONSTRAINT LimitRule
+   CHECK (CustomerLimit <= (SELECT Limit
+      FROM tblCreditLimit))
+
+UPDATE TABLE tblCustomers
+   SET CustomerLimit = 200
+   WHERE CustomerID = 1
+
+Note that when you execute the UPDATE TABLE statement, you receive a message indicating that the update did not succeed because it violated the check constraint. If you update the CustomerLimit field to a value that is equal to or less than 100, the update will succeed.
+Cascading updates and deletions
+
+Constraints can also be used to establish referential integrity between database tables. Having referential integrity means that the data is consistent and uncorrupted. For example, if you deleted a customer record but that customer's shipping record remained in the database, the data would be inconsistent because you now have an orphaned record in the shipping table. Referential integrity is established when you build a relationship between tables. In addition to establishing referential integrity, you can also ensure that the records in the referenced tables stay in sync by using cascading updates and deletes. For example, when the cascading updates and deletes are declared, if you delete the customer record, the customer's shipping record is deleted automatically.
+
+To enable cascading updates and deletions, use the ON UPDATE CASCADE and/or ON DELETE CASCADE keywords in the CONSTRAINT clause of an ALTER TABLE statement. Note that they must be applied to the foreign key.
+
+ALTER TABLE tblShipping
+   ADD CONSTRAINT FK_tblShipping
+   FOREIGN KEY (CustomerID) REFERENCES
+      tblCustomers (CustomerID)
+   ON UPDATE CASCADE
+   ON DELETE CASCADE
+
+Foreign keys
+
+When dealing with foreign keys, the concept of a fast foreign key may be useful. A fast foreign key is a foreign key that has no index. Although this may seem counter-intuitive, there is a valid explanation for it. By default, when a foreign key is defined, an index based on the column(s) in the foreign key is created automatically. In many instances this enhances performance when executing operations that maintain referential integrity. However, if there are many duplicated values in the foreign key field, the foreign key index will affect performance when records are added and deleted from the table. To prevent the automatic creation of indexes on foreign keys, use the NO INDEX keywords in the declaration of the foreign key.
+
+ALTER TABLE tblInvoices
+   ADD CONSTRAINT FK_tblInvoices
+   FOREIGN KEY NO INDEX (CustomerID) REFERENCES
+      tblCustomers (CustomerID)
+   ON UPDATE CASCADE
+   ON DELETE CASCADE
+
+    Note   The fast foreign key statement can only be executed through the Jet OLE DB provider and ADO. It will return an error message if used through the Access SQL View user interface. Also note that to drop a fast foreign key, you must issue the DROP CONSTRAINT statement through the Jet OLE DB provider and ADO.
+
+Another example of a situation where a fast foreign key would be useful is in an order entry database application. Assume that there is a table called CustomerTypes that identifies what type of customers are being tracked, a Customer table, and an Orders table. Assume that there are 10 rows in the CustomerTypes table, 100,000 rows in the Customer table, and 350,000 rows in the Orders table. A good choice for the Customers table would be a fast foreign key that references the primary key in the CustomerTypes table. This is because there is a maximum of 10 unique values out of 100,000 rows. An index here has little value for retrieving data and would be a drag on concurrency and inserts, deletions, and updates in the CustomerType column.
+
+On the other hand, the fast foreign key would probably not be useful when applied to the CustomerID column in the Orders table, because those values are likely to be unique, since each represents a different customer. In this instance having the foreign key indexed in the regular manner is very advantageous because it is used in joins and other lookup criteria.
+
+    Note   Although most of the examples in this section used the ALTER TABLE statement, all of them could have been written with the CREATE TABLE statement.
+
+For more information about the CONSTRAINT clause, type constraints in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+Data Types
+
+In an effort to ease the scaling and transition of Access applications based on the Jet database engine to those based on Microsoft SQL Server or MSDE, the Jet database engine has changed some of its implementation of data types, and added some new data type synonyms. The following sections discuss the primary Jet data types and how they are implemented.
+The TEXT data types
+
+A TEXT data type is a data type that establishes a field that can store text, or a combination of text and numbers (alphanumeric), but whose numbers are not used for calculations. Examples are phone numbers or e-mail addresses. When you create your tables through the Access user interface, you have two basic text types: TEXT and MEMO. But when you use SQL statements such as CREATE TABLE or ALTER TABLE to create your tables, you have many other synonyms of the TEXT and MEMO types to choose from.
+
+In general, text fields can be up to 255 characters, while memo fields can be up to 65,535 characters, but if the memo field does not contain any binary data, then its only limit is the maximum size of the database (approximately 2.14GB or 1,070,000,000 Unicode characters). In addition, unused portions of text fields are not reserved in memory.
+
+Following is a table that lists the basic Jet text data types, various synonyms, and the number of bytes allocated for each.
+Jet Data Type 	Synonyms 	Storage Size
+TEXT 	TEXT, TEXT(n), CHAR, CHAR(n), ALPHANUMERIC, ALPHANUMERIC(n), STRING, STRING(n), VARCHAR, VARCHAR(n), NTEXT(n), NCHAR, NCHAR(n), CHAR VARYING, CHAR VARYING(n), CHARACTER VARYING, CHARACTER VARYING(n), NATIONAL CHAR, NATIONAL CHAR(n), NATIONAL CHARACTER, NATIONAL CHARACTER(n), NATIONAL CHAR VARYING, NATIONAL CHAR VARYING(n), NATIONAL CHARACTER VARYING, NATIONAL CHARACTER VARYING(n) 	Up to 255 characters, 2 bytes per character unless compressed
+MEMO 	LONGTEXT, LONGCHAR, NOTE, NTEXT 	65,535 characters; 2.14 GB if not binary data
+
+The following CREATE TABLE statement shows the variety of TEXT and MEMO data type synonyms that can be used to create a table through the Access SQL View user interface.
+
+CREATE TABLE tblUITextDataTypes (
+   Field1_TEXT TEXT,
+   Field2_TEXT25 TEXT(25),
+   Field3_MEMO MEMO,
+   Field4_CHAR CHAR,
+   Field5_CHAR25 CHAR(25),
+   Field6_LONGTEXT LONGTEXT,
+   Field7_LONGCHAR LONGCHAR,
+   Field8_ALPHA ALPHANUMERIC,
+   Field9_ALPHA25 ALPHANUMERIC(25),
+   Field10_STRING STRING,
+   Field11_STRING25 STRING(25),
+   Field12_VARCHAR VARCHAR,
+   Field13_VARCHAR25 VARCHAR(25),
+   Field14_NOTE NOTE)
+
+If you view the table design of tblUITextDataTypes through the Access user interface, you will see that the MEMO, LONGTEXT, LONGCHAR, and NOTE synonyms result in a MEMO data type. All of the other synonyms result in a TEXT data type. For those TEXT data types that do not have the length declared, the length defaults to 255 characters.
+
+Although the SQL statement above can also be executed through the Jet OLE DB provider and ADO, there are other variations of the TEXT and MEMO data types that can only be executed through the Jet OLE DB provider and ADO.
+
+CREATE TABLE tblCodeTextDataTypes
+   Field1_NTEXT NTEXT,
+   Field2_NTEXT25 NTEXT(25),
+   Field3_NCHAR NCHAR,
+   Field4_NCHAR NCHAR(25),
+   Field5_VARYING CHAR VARYING,
+   Field6_VARYING CHAR VARYING(25),
+   Field7_VARYING CHARACTER VARYING,
+   Field8_VARYING CHARACTER VARYING(25),
+   Field9_NATIONAL NATIONAL CHAR,
+   Field10_NATIONAL NATIONAL CHAR(25),
+   Field11_NATIONAL NATIONAL CHARACTER,
+   Field12_NATIONAL NATIONAL CHARACTER(25),
+   Field13_NATIONAL NATIONAL CHAR VARYING,
+   Field14_NATIONAL NATIONAL CHAR VARYING(25),
+   Field15_NATIONAL NATIONAL CHARACTER VARYING,
+   Field16_NATIONAL NATIONAL CHARACTER VARYING(25))
+
+If you view the table design of tblUITextDataTypes through the Access user interface, you will see that only the NCHAR data type results in a MEMO data type. All of the other data types result in a TEXT data type. For those TEXT data types that do not have the length declared, the length defaults to 255 characters.
+
+    Note   The data types listed in the previous SQL statement can be executed only through the Jet OLE DB provider and ADO. They will result in an error message if used through the Access SQL View user interface. Also note that if you create a field with the TEXT data type through the Jet OLE DB provider and ADO, it will result in a data type of MEMO when you view the table design through the Access user interface.
+
+Unicode compression
+
+With the Microsoft Jet 4.0 database engine, all data for the TEXT data types are now stored in the Unicode 2-byte character representation format. It replaces the Multi-byte Character Set (MBCS) format that was used in previous versions. Although Unicode representation requires more space to store each character, columns with TEXT data types can be defined to automatically compress the data if it is possible to do so.
+
+When you create TEXT data types with SQL, the Unicode compression property defaults to No. To set the Unicode compression property to Yes, use the WITH COMPRESSION (or WITH COMP) keywords at the field-level declaration.
+
+The following CREATE TABLE statement creates a new customers table, this time setting the Unicode compression properties to Yes.
+
+CREATE TABLE tblCompressedCustomers (
+   CustomerID INTEGER CONSTRAINT
+   PK_tblCompCustomers PRIMARY KEY,
+   [Last Name] TEXT(50) WITH COMP NOT NULL,
+   [First Name] TEXT(50) WITH COMPRESSION NOT NULL,
+   Phone TEXT(10),
+   Email TEXT(50),
+   Address TEXT(40) DEFAULT Unknown)
+
+Note that the WITH COMPRESSION and WITH COMP keywords are declared before the NOT NULL keywords. You can also change an existing field's Unicode compression property with an ALTER TABLE statement, like this:
+
+ALTER TABLE tblCustomers
+   ALTER COLUMN [Last Name] TEXT(50) WITH COMPRESSION
+
+    Note   The WITH COMPRESSION and WITH COMP keywords listed in the previous SQL statements can be executed only through the Jet OLE DB provider and ADO. They will result in an error message if used through the Access SQL View user interface.
+
+Which of the data types you choose when declaring your table design depends on the goals of your application. If you know that the application will always be based on the Jet database, use the data types that you are most comfortable with. But if your application may eventually be scaled to an ODBC-compliant database, such as SQL Server or MSDE, use the data types that will make the transition the easiest.
+The NUMERIC data types
+
+A NUMERIC data type establishes a field that can store numbers that can be used in calculations. Typically, what sets one NUMERIC type apart from another is the number of bytes used to store the data, which also affects the precision of the number stored in that field. Many of the Jet SQL data types have synonyms that you can use in declaring the data type. Which one you use depends on if the table will remain in a Jet database or if it will be scaled to a database server, such as Microsoft SQL Server. If it will be scaled, you should use the data type declaration that will make the transition the easiest.
+
+Following is a table that lists the basic Jet NUMERIC data types, various synonyms, and the number of bytes allocated for each.
+Jet Data Type 	Synonyms 	Storage Size
+TINYINT 	INTEGER1, BYTE 	1 byte
+SMALLINT 	SHORT, INTEGER2 	2 bytes
+INTEGER 	LONG, INT, INTEGER4 	4 bytes
+REAL 	SINGLE, FLOAT4, IEEESINGLE 	4 bytes
+FLOAT 	DOUBLE, FLOAT8, IEEEDOUBLE, NUMBER 	8 bytes
+DECIMAL 	NUMERIC, DEC 	17 bytes
+
+The following CREATE TABLE statement shows the variety of NUMERIC data types that can be used to create a table through the Access SQL View user interface.
+
+CREATE TABLE tblUINumericDataTypes (
+   Field1_INT INT,
+   Field2_INTEGER INTEGER,
+   Field3_LONG LONG,
+   Field4_INTEGER1 INTEGER1,
+   Field5_BYTE BYTE,
+   Field6_NUMERIC NUMERIC,
+   Field7_REAL REAL,
+   Field8_SINGLE SINGLE,
+   Field9_FLOAT FLOAT,
+   Field10_FLOAT4 FLOAT4,
+   Field11_FLOAT8 FLOAT8,
+   Field12_DOUBLE DOUBLE,
+   Field13_IEEESINGLE IEEESINGLE,
+   Field14_IEEEDOUBLE IEEEDOUBLE,
+   Field15_NUMBER NUMBER,
+   Field16_SMALLINT SMALLINT,
+   Field17_SHORT SHORT,
+   Field18_INTEGER2 INTEGER2,
+   Field19_INTEGER4 INTEGER4)
+
+Although the SQL statement above can also be executed through the Jet OLE DB provider and ADO, there are other variations of the NUMERIC data type that can only be executed through the Jet OLE DB provider and ADO.
+
+CREATE TABLE tblCodeNumericDataTypes (
+   Field1_TINYINT TINYINT,
+   Field2_DECIMAL DECIMAL,
+   Field3_DEC DECIMAL,
+   Field4_DPRECISION DOUBLE PRECISION)
+
+    Note   The data types listed in the previous SQL statement can be executed only through the Jet OLE DB provider and ADO. They will result in an error message if used through the Access SQL View user interface. Also note that if you create a field with the NUMERIC data type through the Access SQL View, it will result in a DOUBLE data type when you view the table design through the Access user interface. But if you create the NUMERIC data type through the Jet OLE DB provider and ADO, it will result in a data type of DECIMAL when you view the table design through the Access user interface.
+
+With the new DECIMAL data type, you can also set the precision and scale of the number. The precision is the total number of digits that the field can contain, while the scale determines how many of those digits can be to the right of the decimal point. For the precision, the default is 18 and the maximum allowed value is 28. For the scale, the default is 0 and the maximum allowed value is 28.
+
+CREATE TABLE tblDecimalDataTypes (
+   DefaultType DECIMAL,
+   SpecificType DECIMAL(10,5))
+
+The CURRENCY data type
+
+The CURRENCY data type is used to store numeric data that contains up to 15 digits on the left side of the decimal point, and up to 4 digits on the right. It uses 8 bytes of memory for storage, and its only synonym is MONEY.
+
+The following CREATE TABLE statement shows the CURRENCY data type that can be used to create a table through the Access SQL View user interface or through the Jet OLE DB provider and ADO.
+
+CREATE TABLE tblCurrencyDataTypes (
+   Field1_CURRENCY CURRENCY,
+   Field2_MONEY MONEY)
+
+The BOOLEAN data type
+
+The BOOLEAN data types are logical types that result in either True or False values. They use 1 byte of memory for storage, and their synonyms are BIT, LOGICAL, LOGICAL1, and YESNO. A True value is equal to –1 while a False value is equal to 0.
+
+The following CREATE TABLE statement shows the different synonyms that can be used to create the BOOLEAN data type through the Jet OLE DB provider and ADO.
+
+CREATE TABLE tblUIBooleanDataTypes (
+   Field1_BIT BIT,
+   Field2_LOGICAL LOGICAL,
+   Field3_LOGICAL1 LOGICAL1,
+   Field4_YESNO YESNO)
+
+The BINARY data type
+
+The BINARY data type is used to store a small amount of any type of data in its native, binary format. It uses 1 byte of memory for each character stored, and you can optionally specify the number of bytes to be allocated. If the number of bytes is not specified, it defaults to 510 bytes, which is the maximum number of bytes allowed. Its synonyms are BINARY, VARBINARY, and BINARY VARYING. The BINARY data type is not available in the Access user interface.
+
+The following CREATE TABLE statement shows the variety of BINARY data types that can be used to create a table through the Access SQL View user interface.
+
+CREATE TABLE tblUIBinaryDataTypes (
+   Field1_BINARY BINARY,
+   Field2_BINARY250 BINARY(250),
+   Field3_VARBINARY VARBINARY,
+   Field4_VARBINARY250 VARBINARY(250))
+
+Although the SQL statement above can be executed through the Jet OLE DB provider and ADO, there are other synonyms of the binary data type that can only be executed through the Jet OLE DB provider and ADO, like this:
+
+CREATE TABLE tblCodeBinaryDataTypes (
+   Field1_BVARYING BINARY VARYING,
+   Field2_BVARYING250 BINARY VARYING(250))
+
+The OLEOBJECT data types
+
+The OLEOBJECT data types are used to store large binary objects such as Word documents or Excel spreadsheets. The number of bytes is not specified, and the maximum size is 2.14 gigabytes. Its synonyms are IMAGE, LONGBINARY, GENERAL, and OLEOBJECT.
+
+The following CREATE TABLE statement shows the OLEOBJECT data type that can be used to create a table through the Access SQL View user interface or through the Jet OLE DB provider and ADO.
+
+CREATE TABLE tblImageDataTypes (
+   Field1_IMAGE IMAGE,
+   Field2_LONGBINARY LONGBINARY,
+   Field3_GENERAL GENERAL,
+   Field4_OLEOBJECT OLEOBJECT)
+
+The DATETIME data type
+
+The DATETIME data type is used to store date, time, and combination date/time values for the years ranging from 100 to 9999. It uses 8 bytes of memory for storage, and its synonyms are DATE, TIME, DATETIME, and TIMESTAMP.
+
+The following CREATE TABLE statement shows the synonyms of the DATETIME data type that can be used to create a table through the Access SQL View user interface or through the Jet OLE DB provider and ADO.
+
+CREATE TABLE tblDateTimeDataTypes (
+   Field1_DATE DATE,
+   Field2_TIME TIME,
+   Field3_DATETIME DATETIME,
+   Field4_TIMESTAMP TIMESTAMP)
+
+The COUNTER data type
+
+The COUNTER data type is used to store long integer values that automatically increment whenever a new record is inserted into a table. With the COUNTER data type, you can optionally set a seed value and an increment value. The seed value is the starting value that will be entered in the field the first time a new record is inserted into the table. The increment value is the number that is added to the last counter value to establish the next counter value. If the seed and increment values are not specified, both the seed and increment values default to 1. You can have only one COUNTER field in a table, and the synonyms are COUNTER, AUTOINCREMENT, and IDENTITY.
+
+The following CREATE TABLE statements show the synonyms of the COUNTER data type that can be used to create a table through the Access SQL View user interface.
+
+CREATE TABLE tblUICounterDataTypes (
+   Field1 COUNTER,
+   Field2 TEXT(10))
+
+Note that since the seed and increment values were not specified, they each defaulted to 1. Another way to declare a COUNTER data type is to use the AUTOINCREMENT keyword, like this:
+
+CREATE TABLE tblUICounterDataTypes (
+   Field1 AUTOINCREMENT(10,5),
+   Field2 TEXT(10))
+
+This time the seed and increment values were specified. The starting value will be 10, and it will increment by 5. Although the SQL statements above can also be executed through the Jet OLE DB provider and ADO, there is another variation of the counter data type that can only be executed through the Jet OLE DB provider and ADO. The IDENTITY keyword can also be used to declare a COUNTER data type, and it is compatible with the SQL Server IDENTITY data type.
+
+CREATE TABLE tblCodeCounterDataTypes
+   Field1_IDENTITY IDENTITY(10,5),
+   Field2 TEXT(10))
+
+The seed and increment values can be modified with an ALTER TABLE statement, and all new rows inserted after the new seed and increment values will be based on them. However, COUNTER data types are often used in primary keys, which must be unique for every row. If you change the seed and increment values, thus possibly generating duplicate values for the primary key field, an error will occur.
+
+ALTER TABLE tblUICounterDataTypes
+ALTER COLUMN Field1 COUNTER(10,10)
+
+    Note   You cannot use the ALTER TABLE statement to change an existing column's data type to a COUNTER data type if the existing column already contains data.
+
+In previous versions of the Jet database, the seed value would be reset to the maximum available counter value after compacting the database. This is still true in Jet 4.0, as long as the seed and increment values are set to the default of 1. If you specify seed and increment values that are not equal to the default, compacting the database will not reset the seed value.
+
+The @@IDENTITY variable
+
+The @@IDENTITY variable is a global SQL variable that you can use to retrieve the last value used in a COUNTER data type column. You can't specify a table name when retrieving the @@IDENTITY variable. The value returned is always from the last table with a COUNTER field that had a new record added to it from code. Use the SELECT statement to retrieve the @@IDENTITY value.
+
+SELECT @@IDENTITY
+
+To add a value to the @@IDENTITY value, enclose the variable in square brackets.
+
+SELECT [@@IDENTITY] + 1
+
+    Note   The @@IDENTITY variable listed in the previous SQL statements can be executed only through the Jet OLE DB provider and ADO; it will result in a value of 0 if used through the Access SQL View user interface. In addition, the variable is set only when records are inserted through programming code. If a record is inserted through the user interface, either with datasheets, forms, or SQL statements in the Access SQL View window, the @@IDENTITY variable will return 0. For this reason, the value of @@IDENTITY is only accurate immediately after adding a record from code.
+
+For more information about data types, type Jet SQL data types in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+Intermediate Data Manipulation Language
+
+The article "Fundamental Microsoft Jet SQL for Access 2000" showed how to use SQL to retrieve and manage the information stored in a database. In the sections that follow in this article, we discuss intermediate Data Manipulation Language (DML) statements that will allow you to have even greater control over how information can be retrieved and manipulated.
+Predicates
+
+A predicate is an SQL clause that qualifies a SELECT statement, similar to a WHERE clause, except that the predicate is declared before the column list. Predicates can further restrict the set of records you are retrieving, and in some instances filter out any duplicate data that may exist.
+The ALL keyword
+
+The ALL keyword is the default keyword that is used when no predicate is declared in an SQL statement. It simply means that all records will be retrieved that match the qualifying criteria of the SQL statement. Returning to our invoices database example, let's select all records from the customers table:
+
+SELECT *
+   FROM tblCustomers
+
+Notice that although the ALL keyword was not declared, it is the default predicate. We could have written the statement like this:
+
+SELECT ALL *
+   FROM tblCustomers
+
+The DISTINCT keyword
+
+The DISTINCT keyword is used to control how duplicate values in a result set are handled. Based on the column(s) specified in the field list, those rows that have duplicate values in the specified columns are filtered out. If more than one column is specified, it is the combination of all of the columns that is used as the filter. For example, if you query the Customers table for distinct last names, only the unique names will be returned; any duplicate names will result in only one instance of that name in the result set.
+
+SELECT DISTINCT [Last Name]
+   FROM tblCustomers
+
+It is important to note that the result set returned by a query that uses the DISTINCT keyword cannot be updated; it is read-only.
+The DISTINCTROW keyword
+
+The DISTINCTROW keyword is similar to the DISTINCT keyword except that it is based on entire rows, not just individual fields. It is useful only when based on multiple tables, and only when you select fields from some, but not all, of the tables. If you base your query on one table, or select fields from every table, the DISTINCTROW keyword essentially acts as an ALL keyword.
+
+For example, in our invoices database, every customer can have no invoices, or one or more invoices. Let's suppose that we want to find out how many customers have one or more invoices. We will use the DISTINCTROW keyword to determine our list of customers.
+
+SELECT DISTINCTROW [Last Name], [First Name]
+   FROM tblCustomers INNER JOIN tblInvoices
+   ON tblCustomers.CustomerID = tblInvoices.CustomerID
+
+If we had left off the DISTINCTROW keyword, we would have gotten a row returned for every invoice each customer has. (The INNER JOIN statement will be covered in a later section.)
+The TOP keyword
+
+The TOP keyword is used to return a certain number of rows that fall at the top or bottom of a range that is specified by an ORDER BY clause. The ORDER BY clause is used to sort the rows in either ascending or descending order. If there are equal values present, the TOP keyword will return all rows that have the equal value. Let's say that we want to determine the highest three invoice amounts in our invoices database. We'd write a statement like this:
+
+SELECT TOP 3 InvoiceDate, Amount
+   FROM tblInvoices
+   ORDER BY Amount DESC
+
+We can also use the optional PERCENT keyword with the TOP keyword to return a percentage of rows that fall at the top or bottom of a range that is specified by an ORDER BY clause. The code looks like this:
+
+SELECT TOP 25 PERCENT InvoiceDate, Amount
+   FROM tblInvoices
+   ORDER BY Amount DESC
+
+Note that if you do not specify an ORDER BY clause, the TOP keyword will not be helpful: it will return a random sampling of rows.
+
+For more information about predicates, type all, distinct predicates in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+SQL Expressions
+
+An SQL expression is a string that is used as part of an SQL statement that resolves to a single value. You can use any combination of operators, constants, literal values, functions, field names, controls, or properties to build your SQL expressions. The article "Fundamental Microsoft Jet SQL for Access 2000" describes how you can use expressions in WHERE clauses to qualify SQL statements; and in the following sections of this article, we examine different SQL operators that can be used in expressions.
+The IN operator
+
+The IN operator is used to determine if the value of an expression is equal to any of several values in a specified list. If the expression matches a value in the list, the IN operator returns True. If it is not found, the IN operator returns False. Let's suppose that we want to find all shipping addresses that are in the states of Washington and Georgia. Although we could write an SQL statement with a long WHERE clause that uses the AND logical operator, using the IN operator will shorten our statement.
+
+SELECT *
+   FROM tblShipping
+   WHERE State IN ('WA','GA')
+
+By using the NOT logical operator, we can check the opposite of the IN operator. This statement will return all shipping addresses that are not in Washington State:
+
+SELECT *
+   FROM tblShipping
+   WHERE State NOT IN ('WA')
+
+The BETWEEN operator
+
+The BETWEEN operator is used to determine if the value of an expression falls within a specified range of values. If the expression's value falls within the specified range, including both the beginning and ending range values, the BETWEEN operator returns True. If the expression's value does not fall within the range, the BETWEEN operator returns False. Let's suppose that we want to find all invoices that have an amount between $50 and $100 dollars. We'd use the BETWEEN operator in the WHERE clause with the AND keyword that specifies the range.
+
+SELECT *
+   FROM tblInvoices
+   WHERE Amount BETWEEN 50 AND 100
+
+By using the NOT logical operator, we can check the opposite of the BETWEEN operator to find invoice amounts that fall outside that range.
+
+SELECT *
+   FROM tblInvoices
+   WHERE Amount NOT BETWEEN 50 AND 100
+
+Note that the range can be in reverse order and still achieve the same results (BETWEEN 100 AND 50), but many ODBC-compliant databases require that the range follow the begin-value-to-end-value method. If you plan for your application to be scaled or upsized to an ODBC-compliant database, you should always use the begin-value-to-end-value method.
+The LIKE operator
+
+The LIKE operator is used to determine if the value of an expression compares to that of a pattern. A pattern is either a full string value, or a partial string value that also contains one or more wildcard characters. By using the LIKE operator, you can search a field within a result set and find all of the values that match the specified pattern.
+
+SELECT *
+   FROM tblCustomers
+   WHERE [Last Name] LIKE 'Johnson'
+
+To return all customers who have a last name that starts with the letter J, use the asterisk wildcard character.
+
+SELECT *
+   FROM tblCustomers
+   WHERE [Last Name] LIKE 'J*'
+
+By using the NOT logical operator, we can check the opposite of the LIKE operator and filter out all the Johnsons from the list.
+
+SELECT *
+   FROM tblCustomers
+   WHERE [Last Name] NOT LIKE 'Johnson'
+
+There are a variety of wildcard characters that you can use in the LIKE operator patterns, as shown in the following table.
+Wildcard Character 	Description
+* (asterisk) 	Matches any number of characters and can be used anywhere in the pattern string.
+% (percent sign) 	Matches any number of characters and can be used anywhere in the pattern string. (ADO and the Jet OLE DB provider only)
+? (question mark) 	Matches any single character and can be used anywhere in the pattern string.
+_ (underscore) 	Matches any single character and can be used anywhere in the pattern string. (ADO and the Jet OLE DB provider only)
+# (number sign) 	Matches any single digit and can be used anywhere in the pattern string.
+[] (square brackets) 	Matches any single character within the list that is enclosed within brackets, and can be used anywhere in the pattern string.
+! (exclamation point) 	Matches any single character not in the list that is enclosed within the square brackets.
+- (hyphen) 	Matches any one of a range of characters that is enclosed within the square brackets.
+
+    Note   The "%" and "_" wildcard characters in the previous table can be executed only through the Jet OLE DB provider and ADO. They will yield an empty result set if used through the Access SQL View user interface.
+
+For more information about wildcard characters, type wildcard characters in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+The IS NULL operator
+
+A null value is one that indicates missing or unknown data. The IS NULL operator is used to determine if the value of an expression is equal to the null value.
+
+SELECT *
+   FROM tblInvoices
+   WHERE Amount IS NULL
+
+By adding the NOT logical operator, we can check the opposite of the IS NULL operator. In this case, the statement will weed out invoices with missing or unknown amounts.
+
+SELECT *
+   FROM tblInvoices
+   WHERE Amount IS NOT NULL
+
+The SELECT INTO Statement
+
+The SELECT INTO statement, also known as a make-table query, can be used to create a new table from one or more existing tables. The table it produces can be based on any valid SELECT statement. The SELECT INTO statement can be used to archive records, create backup tables, or create new tables in an external database.
+
+When you use the SELECT INTO statement to create a new table, all of the new table's fields inherit the data types from the original tables. However, no other table properties, such as primary keys or indexes, are created in the new table. You can of course add these properties by using the ALTER TABLE statement once the new table has been created.
+
+To create a new table, use the SELECT INTO statement with a field list for the columns you want to include in the table, a name for the new table, and then supply the source of data in the FROM clause.
+
+SELECT *
+   INTO tblNewCustomers
+   FROM tblCustomers
+
+To specify certain fields for the new table, replace the asterisk with the original table's field names in the field list, and use the AS keyword to name the column(s) in the new table.
+
+SELECT [First Name] & ' ' & [Last Name] AS FullName
+   INTO tblNewCustomerNames
+   FROM tblCustomers
+
+To create the new table in an existing external database, use the IN keyword. If the external database does not exist, the SELECT INTO statement will return an error.
+
+SELECT *
+   INTO tblNewCustomers
+   IN 'C:\Customers.mdb'
+   FROM tblCustomers
+
+Subqueries
+
+A subquery is a SELECT statement that is used inside another SELECT, SELECT INTO, INSERT INTO, DELETE, or UPDATE statement. It can help further qualify a result set based on the results of another result set. This is called nesting, and since a subquery is a SELECT statement, you can also nest a subquery inside another subquery. When you use a subquery in an SQL statement, it can be part of a field list, a WHERE clause, or a HAVING clause.
+
+There are three basic forms of subqueries, and each uses a different kind of predicate.
+The IN subquery
+
+The IN subquery is used to check the value of a particular column against a list of values from a column in another table or query. It is limited in that it can return only a single column from the other table. If it returns more than one column, an error is returned. Using the invoices database example, let's write an SQL statement that returns a list of all customers who have invoices.
+
+SELECT *
+   FROM tblCustomers
+   WHERE CustomerID
+   IN (SELECT CustomerID FROM tblInvoices)
+
+Using the NOT logical operator, we can check the opposite of the IN subquery and generate a list of customers who do not have invoices.
+
+SELECT *
+   FROM tblCustomers
+   WHERE CustomerID
+   NOT IN (SELECT CustomerID FROM tblInvoices)
+
+The ANY/SOME/ALL subqueries
+
+The ANY, SOME, and ALL subquery predicates are used to compare records from the main query with multiple rows from the subquery. The ANY and SOME predicates are synonymous and can be used interchangeably.
+
+Use the ANY or SOME predicate when you need to retrieve from the main query the set of records that satisfy the comparison with any of the records in the subquery. Use the predicate just before the opening parenthesis of the subquery.
+
+SELECT *
+   FROM tblCustomers
+   WHERE CustomerID = ANY
+   (SELECT CustomerID FROM tblInvoices)
+
+Notice that the result set returned by the SQL statement above is the same as the one returned by the example with the IN subquery. What makes the ANY and SOME predicates different is that they can also be used with relational operators other than Equals (=), such as Greater Than (>) or Less Than (<).
+
+SELECT *
+   FROM tblCustomers
+   WHERE CustomerID > ANY
+   (SELECT CustomerID FROM tblInvoices)
+
+When you want to retrieve records from the main query that satisfy the comparison with all of the records in the subquery, use the ALL predicate.
+
+SELECT *
+   FROM tblCustomers
+   WHERE CustomerID > ALL
+   (SELECT CustomerID FROM tblInvoices)
+
+The EXISTS subquery
+
+The EXISTS predicate is used in subqueries to check for the existence of values in a result set. In other words, if the subquery does not return any rows, the comparison is False. If it does return one or more rows, the comparison is True.
+
+SELECT *
+   FROM tblCustomers AS A
+   WHERE EXISTS
+   (SELECT * FROM tblInvoices
+   WHERE A.CustomerID = tblInvoices.CustomerID)
+
+Note that in the previous SQL statement an alias is used on the tblCustomers table. This is so that we can later refer to it in the subquery. When a subquery is linked to the main query in this manner, it is called a correlated query.
+
+By using the NOT logical operator, we can check the opposite of the EXISTS subquery to obtain a result set of customers who do not have any invoices.
+
+SELECT *
+   FROM tblCustomers AS A
+   WHERE NOT EXISTS
+   (SELECT * FROM tblInvoices
+   WHERE A.CustomerID = tblInvoices.CustomerID)
+
+For more information about subqueries, type SQL subqueries in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+Joins
+
+In a relational database system like Access, you will often need to extract information from more than one table at a time. This can be accomplished by using an SQL JOIN statement. A JOIN statement enables you to retrieve records from tables that have defined relationships, whether they are one-to-one, one-to-many, or many-to-many.
+INNER JOINs
+
+The INNER JOIN, also known as an equi-join, is the most commonly used type of join. This join is used to retrieve rows from two or more tables by matching a field value that is common between the tables. The fields you join on must have similar data types, and you cannot join on MEMO or OLEOBJECT data types. To build an INNER JOIN statement, use the INNER JOIN keywords in the FROM clause of a SELECT statement. Let's use the INNER JOIN to build a result set of all customers who have invoices, plus the dates and amounts of those invoices.
+
+SELECT [Last Name], InvoiceDate, Amount
+   FROM tblCustomers INNER JOIN tblInvoices
+   ON tblCustomers.CustomerID=tblInvoices.CustomerID
+   ORDER BY InvoiceDate
+
+Notice that the table names are divided by the INNER JOIN keywords and that the relational comparison is after the ON keyword. For the relational comparisons, you can also use the <, >, <=, >=, or <> operators, and you can also use the BETWEEN keyword. Also note that the ID fields from both tables are used only in the relational comparison, they are not part of the final result set.
+
+To further qualify the SELECT statement, we can use a WHERE clause after the join comparison in the ON clause. In the following example, we have narrowed the result set to include only invoices dated after January 1, 1998.
+
+SELECT [Last Name], InvoiceDate, Amount
+   FROM tblCustomers INNER JOIN tblInvoices
+   ON tblCustomers.CustomerID=tblInvoices.CustomerID
+   WHERE tblInvoices.InvoiceDate > #01/01/1998#
+   ORDER BY InvoiceDate
+
+In cases where you need to join more than one table, you can nest the INNER JOIN clauses. In this example, we will build on a previous SELECT statement to create our result set, but we will also include the city and state of each customer by adding the INNER JOIN for the tblShipping table.
+
+SELECT [Last Name], InvoiceDate, Amount, City, State
+   FROM (tblCustomers INNER JOIN tblInvoices
+   ON tblCustomers.CustomerID=tblInvoices.CustomerID)
+      INNER JOIN tblShipping
+      ON tblCustomers.CustomerID=tblShipping.CustomerID
+   ORDER BY InvoiceDate
+
+Note that the first JOIN clause is enclosed in parentheses to keep it logically separated from the second JOIN clause. It is also possible to join a table to itself by using an alias for the second table name in the FROM clause. Let's suppose that we want to find all customer records that have duplicate last names. We do this by creating the alias "A" for the second table and checking for first names that are different.
+
+SELECT tblCustomers.[Last Name],
+   tblCustomers.[First Name]
+   FROM tblCustomers INNER JOIN tblCustomers AS A
+   ON tblCustomers.[Last Name]=A.[Last Name]
+   WHERE tblCustomers.[First Name]<>A.[First Name]
+   ORDER BY tblCustomers.[Last Name]
+
+OUTER JOINs
+
+The OUTER JOIN is used to retrieve records from multiple tables while preserving records from one of the tables, even if there is no matching record in the other table. There are two types of OUTER JOINs that the Jet database engine supports: LEFT OUTER JOINs and RIGHT OUTER JOINs. Think of two tables that are beside each other, a table on the left and a table on the right. The LEFT OUTER JOIN will select all rows in the right table that match the relational comparison criteria, and it will also select all rows from the left table, even if no match exists in the right table. The RIGHT OUTER JOIN is simply the reverse of the LEFT OUTER JOIN; all rows in the right table are preserved instead.
+
+As an example, let's suppose that we want to determine the total amount invoiced to each customer, but if a customer has no invoices, we want to show it by displaying the word "NONE."
+
+SELECT [Last Name] & ', ' &  [First Name] AS Name,
+   IIF(Sum(Amount) IS NULL,'NONE',Sum(Amount)) AS Total
+   FROM tblCustomers LEFT OUTER JOIN tblInvoices
+   ON tblCustomers.CustomerID=tblInvoices.CustomerID
+   GROUP BY [Last Name] & ', ' &  [First Name]
+
+There are a few things going on in the previous SQL statement. The first is the use of the string concatenation operator "&". This operator allows you to join two or more fields together as one string. The second is the immediate if (IIF) statement, which checks to see if the total is null. If it is, the statement returns the word "NONE." If the total is not null, the value is returned. The final thing is the OUTER JOIN clause. Using the LEFT OUTER JOIN preserves the rows in the left table so that we see all customers, even those who do not have invoices.
+
+OUTER JOINs can be nested inside INNER JOINs in a multi-table join, but INNER JOINs cannot be nested inside OUTER JOINs.
+The Cartesian product
+
+A term that often comes up when discussing joins is the Cartesian product. A Cartesian product is defined as "all possible combinations of all rows in all tables." For example, if you were to join two tables without any kind of qualification or join type, you would get a Cartesian product.
+
+SELECT *
+   FROM tblCustomers, tblInvoices
+
+This is not a good thing, especially with tables that contain hundreds or thousands of rows. You should avoid creating Cartesian products by always qualifying your joins.
+The UNION operator
+
+Although the UNION operator, also known as a union query, is not technically a join, it is included here because it does involve combining data from multiple sources of data into one result set, which is similar to some types of joins. The UNION operator is used to splice together data from tables, SELECT statements, or queries, while leaving out any duplicate rows. Both data sources must have the same number of fields, but the fields do not have to be the same data type. Let's suppose that we have an Employees table that has the same structure as the Customers table, and we want to build a list of names and e-mail address by combining both tables.
+
+SELECT [Last Name], [First Name], Email
+   FROM tblCustomers
+UNION
+SELECT [Last Name], [First Name], Email
+   FROM tblEmployees
+
+If we wanted to retrieve all fields from both tables, we could use the TABLE keyword, like this:
+
+TABLE tblCustomers
+UNION
+TABLE tblEmployees
+
+The UNION operator will not display any records that are exact duplicates in both tables, but this can be overridden by using the ALL predicate after the UNION keyword, like this:
+
+SELECT [Last Name], [First Name], Email
+   FROM tblCustomers
+UNION ALL
+SELECT [Last Name], [First Name], Email
+   FROM tblEmployees
+
+The TRANSFORM statement
+
+Although the TRANSFORM statement, also known as a crosstab query, is also not technically considered a join, it is included here because it does involve combining data from multiple sources of data into one result set, which is similar to some types of joins.
+
+A TRANSFORM statement is used to calculate a sum, average, count, or other type of aggregate total on records. It then displays the information in a grid or spreadsheet format with data grouped both vertically (rows) and horizontally (columns). The general form for a TRANSFORM statement is this:
+
+   TRANSFORM aggregating function
+   SELECT statement
+   PIVOT column heading field
+
+Let's suppose that we want to build a datasheet that displays the invoice totals for each customer on a year-by-year basis. The vertical headings will be the customer names, and the horizontal headings will be the years. Let's modify a previous SQL statement to fit the transform statement.
+
+TRANSFORM
+IIF(Sum([Amount]) IS NULL,'NONE',Sum([Amount]))
+   AS Total
+SELECT [Last Name] & ', ' & [First Name] AS Name
+      FROM tblCustomers LEFT JOIN tblInvoices
+      ON tblCustomers.CustomerID=tblInvoices.CustomerID
+      GROUP BY [Last Name] & ', ' & [First Name]
+PIVOT Format(InvoiceDate, 'yyyy')
+   IN ('1996','1997','1998','1999','2000')
+
+Note that the aggregating function is the SUM function, the vertical headings are in the GROUP BY clause of the SELECT statement, and the horizontal headings are determined by the field listed after the PIVOT keyword.
+
+For more information about joins, type SQL joins in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+Using Intermediate SQL in Access
+
+Now that we've had a discussion of the intermediate SQL syntax, let's look at some of the ways we can use it in an Access application.
+Sample Database
+
+Along with this article, there is a sample database called acIntSQL.mdb. Everything in acIntSQL is based on all the previously covered topics, and it demonstrates the different SQL statements discussed through queries and sample code.
+
+Many of the sample queries used in acIntSQL depend on certain tables existing and containing data, or on certain other preexisting database objects. If you are having difficulty running one of the queries due to missing data, open the Reset Tables form and click the Reset Tables button. This will re-create the tables and their original default data. To step through the reset table process manually, execute the following queries in this order:
+
+   1. Drop Table Shipping
+   2. Drop Table Invoices
+   3. Drop Table Customers
+   4. Drop Table CreditLimit
+   5. Create Table Customers
+   6. Create Table Invoices
+   7. Create Table Shipping
+   8. Create Table CreditLimit
+   9. Populate Customers
+  10. Populate Invoices
+  11. Populate Shipping
+  12. Populate CreditLimit
+
+Queries
+
+Queries are SQL statements that are saved in an Access database and therefore can be used at any time, either directly from the Access user interface or from the Visual Basic® for Applications (VBA) programming language. Queries can be built with the Access Query Designer, which is a rich visual tool that greatly simplifies the building of SQL statements. Or you can build queries by entering SQL statements directly in the SQL View window.
+
+As mentioned in the article "Fundamental Microsoft Jet SQL for Access 2000", Access converts all data-oriented tasks in the database into SQL statements. To demonstrate this, let's build a query by using the Access Query Designer.
+
+   1. Open the acIntSQL database.
+
+   1. Make sure that the tblCustomers and tblInvoices tables have been created and that they contain some data.
+   2. Select Queries from the Objects bar in the Database window.
+   3. Click the New button on the Database window toolbar.
+   4. In the New Query dialog box, select Design View and click OK.
+   5. In the Show Table dialog box, select tblCustomers and click Add; next select tblInvoices and click Add; and then click Close.
+   6. In the tblCustomers fields list, select the Last Name field and drag it to the first field in the design grid.
+   7. In the tblInvoices fields list, select the InvoiceDate and Amount fields and drag them to the design grid.
+   8. In the Sort property for the InvoiceDate field in the design grid, select Ascending.
+   9. Select View from the Access menu bar, and then click SQL View. This opens the SQL View window and displays the SQL syntax that Access is using for this query.
+
+    Note   This query is similar to the "Join - Inner" query already saved in the acIntSQL database.
+
+Inline Code
+
+Using SQL statements inline means that you use the SQL statements within the Visual Basic for Applications (VBA) programming language. Although a deep discussion of how to use VBA is outside the scope of this article, it is a simple task to execute SQL statements in code.
+
+In the acIntSQL database, there are two forms that use inline SQL statements that are executed through the Jet OLE DB provider and ADO: The Intermediate DDL Statements form demonstrates the data definition statements, while the Intermediate DML Statements form demonstrates the data manipulation statements.
+Intermediate DDL statements
+
+The acIntSQL database has many examples of SQL statements that you can use to manage your database structure. Some of the Data Definition Language (DDL) statements are saved as data definition queries, while others are used as inline SQL within programming code. Depending on the DDL example you are trying to use, you may have to delete some database objects before executing it. For example, if you are trying to run the Create Currency Data Types query, you will first need to make sure that the Currency Data Types table does not already exist. If it does, the query will return a message stating that the table already exists. Before running any of the DDL examples, check the database object that it is creating or altering to make sure that it is configured so that the statement will execute properly.
+
+In the case of the inline DDL statements, the same advice holds true: Check the database objects that are affected and configure them so that the DDL statements will execute properly.
+
+In general, the inline DDL statements are executed by simply setting an ADO Connection object, and then passing the SQL statement to the Execute method of the Connection object. Following is the code from the Binary Data Types command button on the Intermediate DDL Statements form.
+
+Private Sub cmdBinary_Click()
+   Dim conDatabase As ADODB.Connection
+   Dim SQL As String
+
+   On Error GoTo Error_Handler
+   Set conDatabase = Application.CurrentProject.Connection
+   'NOTE:  Fields 1 through 4 can be created through both 
+   'SQL View and the Jet OLEDB Provider.
+   'Fields 5 and 6 can only be created through the
+   'Jet OLE DB provider.
+
+   SQL = "CREATE TABLE tblCodeBinaryDataTypes (" & _
+      "Field1_BINARY BINARY, " & _
+      "Field2_BINARY250 BINARY(250), " & _
+      "Field3_VARBINARY VARBINARY, " & _
+      "Field4_VARBINARY250 VARBINARY(250), " & _
+      "Field5_BVARYING BINARY VARYING, " & _
+      "Field6_BVARYING250 BINARY VARYING(250))"
+
+   conDatabase.Execute SQL
+      MsgBox "The BINARY data types table has been created!"
+   conDatabase.Close
+   Set conDatabase = Nothing
+Exit Sub
+Error_Handler:
+   MsgBox Err.Description, vbInformation
+End Sub
+
+After executing one of the DDL statements, open the affected database object in design view to see what changes were made. If the DDL statement is affecting relationships between tables, open the Edit Relationships window to view the changes. For example, let's examine the Alter Table w/ Fast Foreign Key command button on the Intermediate DDL Statements form.
+
+   1. Open the acIntSQL database.
+   2. Make sure that the tblCustomers and tblInvoices tables have been created.
+   3. Select Forms from the Objects bar in the Database window.
+   4. Highlight the Intermediate DDL Statements form and then click the Design button on the Database window toolbar.
+   5. In the Intermediate DDL Statements form, right-click the Alter Table w/ Fast Foreign Key command button and then select Build EventÃ‚Â… from the pop-up menu. This will open the VBA development environment and the code window should contain the cmdFastKey_Click sub-procedure.
+   6. Examine the SQL statement that is assigned to the SQL variable.
+
+SQL = "ALTER TABLE tblInvoices " & _
+   "ADD CONSTRAINT FK_tblInvoices " & _
+   "FOREIGN KEY NO INDEX (CustomerID) REFERENCES " & _
+   "tblCustomers (CustomerID) " & _
+   "ON UPDATE CASCADE " & _
+   "ON DELETE CASCADE"
+
+      Note that the DDL statement is altering the tblInvoices table and adding a fast foreign key constraint. It is also establishing data consistency between tblInvoices and tblCustomers with the cascade clauses.
+   7. Close the VBA development environment.
+   8. Close the Intermediate DDL Statements form.
+   9. From the Tools menu, select the RelationshipsÃ‚Â… menu item to open the Relationships window.
+  10. Double-click the relationship link between tblCustomers and tblInvoices to open the Edit Relationships dialog box.
+  11. Note that the cascading update and delete options are not set.
+  12. Close the dialog box.
+  13. While the relationships link is still highlighted, press the Delete key to delete the link.
+  14. Close the Relationships window.
+  15. While the Intermediate DDL Statements is still highlighted in the Database window, click the Open button on the Database window toolbar.
+  16. Click the Alter Table w/ Fast Foreign Key command button to recreate the foreign key relationship.
+  17. Close the Intermediate DDL Statements form.
+  18. Using the steps outlined previously, open the Edit Relationships dialog box on the newly created relationship link.
+  19. Note that the cascading update and delete options are now set.
+
+Intermediate DML statements
+
+The acIntSQL database has many examples of Data Manipulation Language (DML) statements that you can use to retrieve data, and most of them are implemented as queries. The only DML statements that are implemented as inline SQL are found in the Intermediate DML Statements form. The three DML examples in the form deal with using the "_" and "%" wildcard characters with the LIKE clause, and with creating a table in an external database by using a SELECT INTO statement.
+
+Two of the saved queries in the acIntSQL database are DML statements that perform DDL-like actions. These are the SELECT INTO statements that retrieve data from existing tables and then create new tables from that data. With these examples, you will be prompted to delete the target tables if they already exist.
+
+The Create Customers Database command button on the Intermediate DML Statements form presents an interesting use of the SELECT INTO statement. It is a good example of the kinds of things you can do with intermediate SQL statements. Following is the code from the subprocedure of the command button.
+
+Private Sub cmdCreateDB_Click()
+
+   Dim conCatalog As ADOX.Catalog
+   Dim conDatabase As ADODB.Connection
+   Dim SQL As String
+   Dim sDBName As String
+
+   On Error GoTo Error_Handler
+
+   'Initialize objects & variables.
+   Set conDatabase = Application.CurrentProject.Connection
+   Set conCatalog = New ADOX.Catalog
+   sDBName = "C:\Customers.mdb"
+
+   'Create the Customers database.
+   conCatalog.Create "Provider=Microsoft.Jet.OLEDB.4.0;" & _
+                      "Data Source=" & sDBName
+
+   'Run the DML statement to build the Customers table.
+   SQL = "SELECT * INTO tblCustomers IN '" & sDBName & _
+       "'" & "FROM tblCustomers"
+   conDatabase.Execute SQL
+
+   MsgBox "The new CUSTOMERS database has been created " & _
+         "as " & sDBName & ".", vbInformation
+
+   conDatabase.Close
+   Set conDatabase = Nothing
+   Set conCatalog = Nothing
+
+Exit Sub
+
+Error_Handler:
+   MsgBox Err.Description, vbInformation
+End Sub
+
+If the Customers database already exists, the code will return a message stating that the database could not be created. Let's walk through running this code to see what it does.
+
+   1. Check your C: drive to make sure that Customers.mdb does not already exist. If it does, delete it.
+   2. Open the acIntSQL database.
+   3. Make sure that the tblCustomers table has been created and that it contains data.
+   4. Select Forms from the Objects bar in the Database window.
+   5. Highlight the Intermediate DM Statements form and then click the Open button on the Database window toolbar.
+   6. Click the Create Customers Database button to create the new database.
+   7. Switch to Windows Explorer and view the contents of your C: drive. The Customers.mdb database should have been created.
+   8. Double-click the Customers.mdb database to launch another instance of Access.
+   9. Open the tblCustomers table. Note that it contains the same data as tblCustomers in the acIntSQL database.
+
+The code sample for creating the new database uses the ADOX object library to create the Access database through the Jet OLE DB provider. Coverage of the ADOX object library is beyond the scope of this article. For more information about it, search the Access 2000 online Help Contents tab for "Microsoft ActiveX Data Objects (ADO)" and expand the contents until you see "Microsoft ADO Extensions for DDL and Security (ADOX) Programmer's Reference."
+One Last Comment
+
+Although we have shown you how to do many new tasks, we've also shown you many alternative ways of performing the same task. Which method or SQL technique you use should be determined by the needs of your application and your own level of comfort with the SQL syntax.
+
+
+-----------------------------------------------------------------------------------
+
+Advanced Microsoft Jet SQL for Access 2000
+ 
+
+Acey James Bunch
+Microsoft Corporation
+
+February 2000
+
+Applies To: Microsoft® Access 2000
+
+Summary: Third in a series of three articles, Advanced SQL builds on the concepts covered in the Fundamental and Intermediate articles, this time focusing on SQL syntax that is most often found in a multi-user environment. If you've read the previous two articles in an effort to become a well-rounded SQL user, this article will provide the final tools you will need to accomplish your goal. (24 printed pages)
+
+Download AcAdvSQL.exe
+Contents
+
+Introduction
+Advanced SQL Defined
+   The Multiuser Model
+   Jet vs. MSDE
+   SQL Coding Conventions
+Advanced Data Definition Language
+   Views
+   Procedures
+   Managing Security
+   Share-Level Security
+   User-Level Security
+Advanced Data Manipulation Language
+   Transactions
+   With OwnerAccess Statement
+Using Advanced SQL in Access
+   Sample Database
+   Setting the Database Password
+   Using a Procedure
+One Last Comment
+Additional Resources
+Introduction
+
+This is the third in a series of articles that explains what Microsoft® Jet SQL is and how you can use it in your Access 2000 applications. There are three articles in all: a fundamental, an intermediate, and an advanced article. The articles are designed to progressively show the syntax and methods for using Jet SQL, and to demonstrate those features of Jet SQL that are new to Access 2000. For the remainder of this article, all references to Structured Query Language (SQL) are meant to be to SQL statements as they are used in the Microsoft Jet database engine.
+Advanced SQL Defined
+
+As in the previous two articles, Jet SQL features fall into two different categories: Data Definition Language (DDL) and Data Manipulation Language (DML). In this article, we look at the advanced SQL statements that you can use to manage database objects and manipulate the data that they contain.
+
+For advanced DDL, we examine how to use views, procedures, and database security to add more power and control over a database system. We look at much more generic ways to get at the data contained in the tables; and with regard to managing security, we look at ways to establish permissions and access rights to the objects that the database contains.
+
+For advanced DML, we examine syntax that can be used to manage the SQL statements as they are executed, and syntax that will allow special permissions on certain queries.
+
+The advanced DDL statements in this article are presented in the context of a multiuser application, but that is not to say that they can't be used in a single-user application. You could have an application that is deployed on a single workstation, but that is used by multiple people and therefore needs multiuser-style security. When we think of multiuser applications in Access, the definition that usually comes to mind is a database application that is designed to accommodate one or more users at any one time. This means that more than one user can be using the same application, and accessing the same data at the same time. There are a variety of SQL statements that are useful when developing multiuser Access applications, and many of the advanced SQL statements are new to the Jet 4.0 database engine that is included with Access 2000.
+
+It is very important to note that some of the advanced SQL syntax is currently available in code only when using ActiveX® Data Objects (ADO) and the Jet OLE DB provider, and is not currently available through the Access SQL View user interface or through Data Access Objects (DAO). This article points out when a certain SQL statement is available only through the Jet OLE DB provider and ADO.
+The Multiuser Model
+
+Before you use some of the advanced SQL statements, it is helpful to understand exactly what a multiuser database application is and, equally important, what it is not. When you use Access and the Jet database engine to create an application, you are using what is known as a file-server solution. A typical scenario is to split the Access application into two separate .mdb files. One file resides on a networked file server and it contains only the data tables for the application. The other .mdb file resides on users' workstations and it contains all of the other database objects such as forms, macros, modules, and reports. When users request some type of database action, all of the processing is handled locally and the back-end tables are simply linked to the .mdb file on each user's local workstation.
+
+This file-server-based model should not be confused with the client/server-based model. In a client/server-based model, most of the data processing occurs on the database server, not on the local workstation. In addition, client/server database systems like Microsoft SQL ServerÃ‚Â™ provide extra power and data integrity, such as transaction recovery in the case of system failure.
+
+That said, there are many powerful features in Jet SQL that will allow you to administer and maintain multiuser database solutions within the file-server database model.
+Jet vs. MSDE
+
+New to Access 2000 is Microsoft Data Engine (MSDE). MSDE is a true client/server database engine that is compatible with the SQL Server database system. MSDE is included with Office 2000 Professional and Premium Editions, and is also available with the Access 2000 stand-alone edition. Although this paper is focusing on the SQL syntax as it is implemented in the Jet 4.0 database engine, thanks to the stronger ANSI-92 compliance of Jet 4.0, many of the SQL statements are equally compatible and scalable to the SQL syntax implemented by the MSDE, and also by Microsoft SQL Server. If you are using MSDE or thinking about moving an existing application to it, be sure to check the differences between Jet and MSDE SQL syntax.
+SQL Coding Conventions
+
+This article uses a consistent method of SQL coding conventions. As with all coding conventions, the idea is to display the code in such a way as to make it easy to read and understand. This is accomplished by using a mix of white space, new lines, and uppercase keywords. In general, use uppercase for all SQL keywords, and if you must break the line of SQL code, try to do so with a major section of the SQL statement. You'll get a better feel for it after seeing a few examples.
+Poorly formatted SQL code
+
+CREATE TABLE tblCustomers (CustomerID INTEGER NOT NULL, [Last Name] 
+TEXT(50) NOT NULL, [First Name] TEXT(50) NOT NULL, Phone TEXT(10), Email 
+TEXT(50))
+
+Well-formatted SQL code
+
+CREATE TABLE tblCustomers (
+   CustomerID INTEGER NOT NULL,
+   [Last Name] TEXT(5) NOT NULL,
+   [First Name] TEXT(50) NOT NULL,
+   Phone TEXT(10),
+   Email TEXT(50))
+
+Advanced Data Definition Language
+
+For advanced Data Definition Language (DDL), we examine some of the newest additions to the SQL syntax that is implemented in Jet 4.0. These include views, procedures, and the syntax that is used to manage security. This new syntax aligns the Jet SQL implementation more closely to the ANSI-92 specification, and it provides for easier scaling or upsizing to Microsoft SQL Server or Microsoft Data Engine (MSDE).
+Views
+
+An SQL view is a database object that allows you to organize and look at data from one or more tables, and can be referenced as if it were a single, virtual table. It is similar to a Select query in Access in that it is based on a SELECT statement, but it is different because it cannot have parameters. The thing to remember about a view that differentiates it from a table is that it does not store data, it only returns data and may allow you to update data. To create a view, use the CREATE VIEW statement to name the view, define its field list, and associate the view with a SELECT statement.
+
+CREATE VIEW MyCustomersNames (FirstName, LastName)
+   AS SELECT [First Name], [Last Name]
+   FROM tblCustomers
+
+Then you can use the view in other SQL statements as if it were a table.
+
+SELECT *
+   FROM MyCustomersNames
+
+Note, however, that a view can be updated only if the SELECT statement used in it is capable of being updated, and the view name cannot be the same as an existing table name. To drop a view, use the DROP VIEW statement.
+
+DROP VIEW MyCustomersNames
+
+    Note   The CREATE VIEW and DROP VIEW statements can be executed only through the Jet OLE DB provider and ADO. They will return an error message if used through the Access SQL View user interface or DAO. Also note that views created with the CREATE VIEW statement are saved in the database, but are not exposed as saved queries in the Access user interface. You can work with them only in ADO and ADOX programming code.
+
+For more information about views, type create view statement in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+Procedures
+
+A procedure is a database object that you can use to execute an SQL statement that is based on values that are passed to it. These values are often called parameters. You can think of a procedure as an SQL-based function. The procedure allows you to pass in parameters that are then used by the SQL statement, usually as part of a WHERE clause. The benefit is that you can write very generic procedures that can be used in a variety of ways, and they can be called or executed from many different places in your programming code.
+
+In previous versions of Access, you could use either a procedure clause or a parameter query to create SQL statements that use parameters. Although both types of queries are still supported, another syntax you can use is the new CREATE PROCEDURE statement (its synonym is CREATE PROC). The new syntax is more ANSI-92 compliant, and when scaling up to a Microsoft SQL Server database or MSDE, the syntax can be converted more easily.
+
+The basic structure of the procedure is this:
+
+CREATE PROCEDURE ProcedureName
+   (Parameter1 datatype, Parameter2 datatype) AS
+   SQLStatement
+
+Note that the name of the procedure must not be the same as the name of an existing table, the parameters must separated by commas in the parameter list, and the entire parameter list should be enclosed in parentheses. You can have up to 255 parameters in the parameter list, and any of the valid SQL data types can be used. (See the previous article, "Intermediate Microsoft Jet SQL for Access 2000," for a discussion of SQL data types.) The SQL statement itself can be any valid SQL statement that is recognized by the Jet database engine. In addition, you can also use the synonym CREATE PROC to create a new procedure.
+
+Let's use the CREATE PROCEDURE statement with a DATETIME parameter, and follow it with the DELETE statement that will delete all invoices older than 1/1/1999.
+
+CREATE PROCEDURE DeleteInvoices
+   (InvoiceDate DATETIME) AS
+   DELETE FROM tblInvoices
+   WHERE tblInvoices.InvoiceDate < InvoiceDate
+
+Note that because the parameter name is the same as the field name, the field name in the WHERE clause is qualified with the table name. To drop a procedure, use the DROP PROCEDURE statement.
+
+DROP PROCEDURE DeleteInvoices
+
+    Note   The CREATE PROCEDURE and DROP PROCEDURE statements can be executed only through the Jet OLE DB provider and ADO. They will return an error message if used through the Access SQL View user interface or DAO. Also note that procedures created with the CREATE PROCEDURE statement are saved in the database, but are not exposed as saved queries in the Access user interface. You can work with them only in ADO and ADOX programming code.
+
+To run the procedure, use the EXECUTE statement (or the EXEC synonym) and pass the required parameters. If there is more than one parameter, you must separate them with commas.
+
+EXECUTE DeleteInvoices '1/1/1999'
+
+    Note   The EXECUTE statement above can be executed only through the Jet OLE DB provider and ADO. It will return an error message if used through the Access SQL View user interface or DAO.
+
+For more information about procedures, type create procedure statement in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+Managing Security
+
+As mentioned in a previous section, some of the Jet DDL statements are used to set and maintain the access rights and permissions to your database application (or in other words, manage security). Although the Access user interface gives you the ability to manage security for a database, in reality the Jet database engine does all the work.
+
+The Jet database engine provides two modes of security: share-level and user-level. Share-level security involves establishing a password for a database, which is the simplest form of security. Once this kind of security is set, anytime the database is opened the user will be prompted for the password, and all users will use that same password.
+
+A more complex, and also more flexible, form of security is user-level or workgroup-based security. This involves establishing groups and users and giving each one permission to perform specific tasks in a database. Using this form of security will enable each user to have his or her own password and set of permissions to various database objects and activities.
+
+It should be noted that some reference books refer to SQL statements that are used to manage security as Data Control Language (DCL). But since DCL is not a term that is defined by the ANSI standard, we will not refer to any of the Jet SQL syntax by that name.
+Share-Level Security
+
+To set share-level security on a Jet database, use the ALTER DATABASE statement to create, modify, or remove the database password. To use the ALTER DATABASE statement, you must open the database in exclusive mode. The general form of the ALTER DATABASE statement is as follows:
+
+ALTER DATABASE PASSWORD NewPassword OldPassword
+
+To set the database password for the first time, use the ALTER DATABASE statement with the NULL keyword as the OldPassword parameter. Let's suppose that we want to set the database password to "admin."
+
+ALTER DATABASE
+   PASSWORD admin NULL
+
+    Note   The ALTER DATABASE statement can be executed only through the Jet OLE DB provider and ADO. It will return an error message if used through the Access SQL View user interface or DAO.
+
+To change the existing database password, use the ALTER DATABASE statement with the appropriate passwords. Let's change the database password to "administrator."
+
+ALTER DATABASE
+   PASSWORD administrator admin
+
+To remove a database password, use the ALTER DATABASE statement with the NULL keyword as the NewPassword parameter. Let's remove the "administrator" database password.
+
+ALTER DATABASE
+   PASSWORD NULL administrator
+
+For more information about using the ALTER DATABASE statement, type alter database in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+User-Level Security
+
+User-level security is a much more robust way to manage the access rights and permissions of a Jet database, but it is also more complicated than using just a single database password. Setting up user-level security involves establishing user and group accounts, which consist of user names and passwords, and then setting the database object permissions for those accounts. The user and group account information is stored in the workgroup information file, which can be created by using the Access User-Level Security Wizard, and the database object permissions are stored in the system tables of the application's database. Although a thorough discussion of the workgroup information file is outside the scope of this article, you can find more information by typing workgroup in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then clicking Search.
+User and group accounts
+
+Once you have established your workgroup information file and are properly opening your database through it, there are a variety of SQL statements that you can use to manage security. With advanced SQL, you can create, modify, and remove user and group accounts. In addition, you can add users to group accounts. The SQL statements used to manage the user-level accounts are the CREATE, ADD, ALTER, and DROP statements.
+
+Let's suppose that we have an Invoices database that has three tables: tblCustomers, tblShipping, and tblInvoices. We want to set up security on the database for two different departments, billing and shipping, and each department has two employees. The following series of advanced SQL statements demonstrates how to implement our security scheme.
+
+    Note   The USER and GROUP statements can be executed only through the Jet OLE DB provider and ADO. They will return an error message if used through the Access SQL View user interface or DAO.
+
+First we need to create our two groups, Billing and Shipping. Use the CREATE GROUP statement to create a group.
+
+CREATE GROUP Billing
+
+To create more than one group at a time, separate the group names with a comma.
+
+CREATE GROUP Billing, Shipping
+
+To remove one group, use the DROP GROUP statement.
+
+DROP GROUP Billing
+
+To remove more than one group at a time, separate the group names with a comma.
+
+DROP GROUP Billing, Shipping
+
+Although you can create the group accounts with just a name, you should also include the optional argument known as a personal identifier, or PID. The PID is an extra string value that you can pass to the CREATE GROUP and CREATE USER statements. Jet will then combine the PID with the user or group name into a unique key value known as a security identifier, or SID. The SID is the value that Jet uses internally to identify and work with the corresponding user or group account. Specifying a PID when creating a user or group account ensures that the account is unique. Specifying a PID also allows you to re-create an identical account if the workgroup file becomes damaged, or if you need to move the account into another workgroup file. Once an account and its corresponding SID are created, you can never change or alter the PID value used to create it. You can, however, change the passwords for the user accounts.
+
+The PID values you pass to the CREATE GROUP or CREATE USER statement can be 4 to 20 characters long, and they are case-sensitive. You should use PID values that will be difficult for someone else to guess; a combination of numbers and uppercase and lowercase characters is best. To really strengthen your security, you should also use different PIDs for each user and group. To create SID values for our two groups, let's give them their own PID unique values.
+
+CREATE GROUP Billing Gu294JxP1m, Shipping Kl27c5sI9h
+
+Now let's add our users. Tim and Sarah work in the Billing department, and Steve and Mary work in the Shipping department. Before we can add these users to their respective groups, we must first create their user accounts with the CREATE USER statement, passing the user name and password values to it. We will use "pwd" as the password for all users because they are allowed to change their own passwords in the Jet security model.
+
+CREATE USER Tim pwd
+
+To create more than one user account at a time, separate the user account information with commas.
+
+CREATE USER Tim pwd, Sarah pwd, Steve pwd, Mary pwd
+
+Here again, it is better to create the user accounts by using a PID. To use the PID with a CREATE USER statement, list the PID value after the password.
+
+CREATE USER Tim pwd H3sJaZ9k2m
+
+If you need to change a user's password, you can use the ALTER USER statement with the PASSWORD keyword. You must also supply the new and old password. In general, the form of the ALTER USER statement is as follows:
+
+ALTER USER username PASSWORD NewPassword OldPassword
+
+Let's suppose that management has asked you not to use "pwd" as the default password but to use the user names instead. Because you cannot change more than one user's password per statement, you will need to issue four separate ALTER USER statements.
+
+ALTER USER Tim PASSWORD tim pwd
+ALTER USER Sarah PASSWORD sarah pwd
+ALTER USER Steve PASSWORD steve pwd
+ALTER USER Mary PASSWORD mary pwd
+
+To remove a user account, use the DROP USER statement.
+
+DROP USER Tim
+
+To remove more than one user account at a time, separate the user account names with commas.
+
+DROP USER Tim, Sarah, Steve, Mary
+
+Once the Group and User accounts have been created, you can use the ADD USER statement to add particular users to specific groups. Let's add our four users to the appropriate groups. Use the TO keyword with the name of the group in the ADD USER statement.
+
+ADD USER Tim TO Billing
+
+To add more than one user to a group at a time, separate the user account names with commas.
+
+ADD USER Tim, Sarah TO Billing
+ADD USER Steve, Mary TO Shipping
+ADD USER Tim, Sarah, Steve, Mary TO Users
+
+Note that you can only add users to one group at a time. Also note that you must add all users to the default group of Users; if you don't, they will not be able to log in through the Access user interface, because they will not have Read privileges to the Jet system tables that are automatically assigned to the default Users group. If you are adding users through the Access user interface, the users will be automatically included in the default Users group.
+
+To remove a user from a group, use the DROP USER statement with the FROM keyword and specify the group name.
+
+DROP USER Tim FROM Billing
+
+Here again, note that you can remove a user (or users) from only one group at a time.
+
+To remove more than one user from a group at a time, separate the user account names with commas.
+
+DROP USER Tim, Sarah FROM Billing
+DROP USER Steve, Mary FROM Shipping
+DROP USER Tim, Sarah, Steve, Mary FROM Users
+
+Note that removing a user from a group does not remove the user's account, it only removes that user from the group. But removing a user's account will automatically remove that user from any groups that he or she was associated with. To remove a user's account completely, use the DROP USER statement as discussed above.
+
+For more information about user and group accounts, type user accounts in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+Database object permissions
+
+To fully implement the Jet security model, you must establish permissions on database objects for each user or group. There are two kinds of permissions that you can establish: explicit or implicit permissions. Explicit permissions are the privileges you assign or grant to a specific user, while implicit permissions are the privileges that you assign to a group and that are inherited by members of that group. In general, user-level security is simpler to manage if you assign permissions only to groups, and then assign users to the appropriate group.
+
+In advanced SQL, permissions are managed with the GRANT and REVOKE SQL statements.
+
+    Note   The GRANT and REVOKE statements can be executed only through the Jet OLE DB provider and ADO. They will return an error message if used through the Access SQL View user interface or DAO.
+
+The GRANT statement assigns or allows a user or group to perform some type of action with a specified database object, and its general forms are as follows:
+
+GRANT privilege ON TABLE tablename TO grantee
+Or
+GRANT privilege ON OBJECT objectname TO grantee
+Or
+GRANT privilege ON CONTAINER containername TO grantee
+Or
+GRANT privilege ON DATABASE TO grantee
+
+The REVOKE statement removes or disallows a user or group from performing some type of action, and its general forms are as follows:
+
+REVOKE privilege ON TABLE tablename FROM grantee
+Or
+REVOKE privilege ON OBJECT objectname FROM grantee
+Or
+REVOKE privilege ON CONTAINER containername FROM grantee
+Or
+REVOKE privilege ON DATABASE TO grantee
+
+The keywords used with the GRANT and REVOKE statements are as follows:
+
+    * The TABLE keyword is used when granting permissions on one or more tables in a database.
+    * The OBJECT keyword is used to specify any other non-table object within a database. Non-table objects include forms, queries, reports, macros, views, and procedures.
+    * The CONTAINER keyword is used to specify any of the container objects, such as tables, relationships, forms, or reports. Setting permissions on a container object allows you to specify permissions that will be inherited when a new object of that type is created. In earlier versions of Access, you can set user-level permissions on individual modules and the modules container. In Access 2000, you use VBA project password protection to set security for all modules.
+    * When using the DATABASE keyword, the current database is implied so it does not need to be specified.
+
+The grantee can be a user or group account name, or you can use the PUBLIC or ADMIN keywords, with the following caveats.
+
+    * Using PUBLIC will set permissions for the default Users group account so that everyone will get the assigned privileges.
+    * Using ADMIN will set permissions for the default Admin single-user account. In general, you should disable all permissions for the Admin single-user account because it is the default account that is used to open all databases. That is, in an "out-of-the-box" installation of Access, all users are automatically logged on by the default workgroup information file as the Admin user, so any permissions that you grant to the Admin single-user account will be available to all Access users. If you want to establish an administrative account, you should do so explicitly by creating a separate account.
+
+The privileges that you can grant or revoke are summarized in the following table.
+Privilege 	Applies To 	Description
+SELECT 	Tables, Objects, Containers 	Allows a user to read the data and read the design of a specified table, object, or container.
+DELETE 	Tables, Objects, Containers 	Allows a user to delete data from a specified table, object, or container.
+INSERT 	Tables, Objects, Containers 	Allows a user to insert data into a specified table, object, or container.
+UPDATE 	Tables, Objects, Containers 	Allows a user to update data in a specified table, object, or container.
+DROP 	Tables, Objects, Containers 	Allows a user to remove a specified table, object, or container.
+SELECTSECURITY 	Tables, Objects, Containers 	Allows a user to view the permissions for a specified table, object, or container.
+UPDATESECURITY 	Tables, Objects, Containers 	Allows a user to change the permissions for a specified table, object, or container.
+UPDATEIDENTITY 	Tables 	Allows a user to change the values in auto-increment columns.
+CREATE 	Tables, Objects, Containers 	Allows a user to create a new table, object, or container.
+SELECTSCHEMA 	Tables, Objects, Containers 	Allows a user to view the design of a specified table, object, or container.
+SCHEMA 	Tables, Objects, Containers 	Allows a user to modify the design of a specified table, object, or container.
+UPDATEOWNER 	Tables, Objects, Containers 	Allows a user to change the owner of a specified table, object, or container.
+ALL PRIVILEGES 	All 	Allows a user all permissions, including administrative, on a specified table, object, container, or database.
+CREATEDB 	Database 	Allows a user to create a new database.
+EXCLUSIVECONNECT 	Database 	Allows a user to open a database in exclusive mode.
+CONNECT 	Database 	Allows a user to open a database.
+ADMINDB 	Database 	Allows a user to administer a database.
+
+Looking at our invoices database example, let's assign permissions to the Billing and Shipping groups. First we need to give everyone permission to open the database, so we will use the PUBLIC keyword in our GRANT statement. This will allow all members of the Users default group to open the database.
+
+GRANT CONNECT
+   ON DATABASE
+   TO PUBLIC
+
+For the invoices table, let's give read-only permissions to the Shipping group, and all data manipulation permissions to the Billing group.
+
+GRANT SELECT
+   ON TABLE tblInvoices
+   TO Shipping
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+   ON TABLE tblInvoices
+   TO Billing
+
+If you log on to the database as a member of the Shipping group, you will be able to open the Invoices table, but you will not be able to insert, update, or delete any records in it.
+
+If you want to remove permissions, use the REVOKE statement.
+
+REVOKE SELECT
+   ON TABLE tblInvoices
+   FROM Shipping
+
+REVOKE SELECT, INSERT, UPDATE, DELETE
+   ON TABLE tblInvoices
+   FROM Billing
+
+Note that instead of the TO keyword, the REVOKE statement uses the FROM keyword. For more information about the GRANT or REVOKE statements, type GRANT statement or REVOKE statement in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+Advanced Data Manipulation Language
+
+For advanced DML, there are only two SQL concepts to discuss. One is the use of transactions and the other is the use of the owner access option.
+Transactions
+
+A transaction is a logical grouping of work, or a collection of SQL statements, that must be completed successfully as a group or not at all. This logical grouping has a beginning, an ending, and a way to cancel the work, should there be a reason to. For example, let's suppose that you have a series of UPDATE statements that you want to execute, but you want either all or none of them to be applied. If an error occurs with one of them, you do not want any of them to be saved to the database.
+
+In Jet SQL syntax, you would use the BEGIN TRANSACTION statement to start the transaction, and either the COMMIT TRANSACTION statement to save the data, or the ROLLBACK TRANSACTION statement to cancel any changes. Transactions can be nested five levels deep, and you should take care that all transactions are either committed or rolled back.
+
+    Note   The BEGIN, COMMIT, and ROLLBACK TRANSACTION statements above can be executed through the Jet OLE DB provider and ADO. They will return error messages if used though the Access SQL View user interface or DAO. In addition, you should not mix Jet SQL transactions with ADO transaction methods. If you do, you may get unpredictable results.
+
+The following table lists each of the TRANSACTION statement keywords and their synonyms.
+Keywords 	Synonyms 	Description
+BEGIN TRANSACTION 	BEGIN WORK 	Begins the transaction.
+COMMIT TRANSACTION 	COMMIT, COMMIT WORK 	Saves the transaction.
+ROLLBACK TRANSACTION 	ROLLBACK, ROLLBACK WORK 	Cancels the transaction.
+
+Let's suppose that you are cleaning up old data and want to delete all invoices dated before January 1 of a particular year, but you want to add a step that will allow users to cancel before actually deleting them. First, let's issue the BEGIN TRANSACTION statement.
+
+BEGIN TRANSACTION
+
+Now let's issue the DELETE statement.
+
+DELETE FROM tblInvoices
+   WHERE InvoiceDate < #1/1/1999#
+
+If you open the Invoices table, you will notice that the records have not yet been deleted. To cancel the changes before they are committed, issue the ROLLBACK TRANSACTION statement.
+
+ROLLBACK TRANSACTION
+
+To save the changes to the database, issue the COMMIT TRANSACTION statement.
+
+COMMIT TRANSACTION
+
+For more information about transactions, type transaction statement in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+With OwnerAccess Statement
+
+The WITH OWNERACCESS OPTION clause is applied to queries, and it is most often used to present data to users who lack the sufficient permissions to normally access the data in the underlying tables. In other words, you can specify that a certain query is always executed with the permissions of the query owner, not the permissions of the user trying to open the query.
+
+For example, let's say that the shipping department needs to know about customer invoices, but you do not want them to know the invoice amounts. Create a new query specifying all fields except the Amount field. Use the WITH OWNERACCESS OPTION clause at the end of your SELECT statement, and name the query Limited Invoices. Note that this statement can be executed in the Access SQL View user interface.
+
+SELECT InvoiceID, CustomerID, InvoiceDate
+   FROM tblInvoices
+   WITH OWNERACCESS OPTION
+
+Next, make sure that the shipping department has Read permissions on the Limited Invoices query.
+
+GRANT SELECT
+   ON OBJECT [Limited Invoices]
+   TO Shipping
+
+    Note   The GRANT statement above can be executed only through the Jet OLE DB provider and ADO. It will return an error message if used through the Access SQL View user interface or DAO.
+
+If you now log in as a member of the shipping group, you cannot open the Invoices table, but you can run the Limited Invoices query. In addition to permissions for SELECT statements, you can also use the WITH OWNERACCESS OPTION clause with INSERT INTO and SELECT INTO statements.
+
+For more information about the WITH OWNERACCESS OPTION clause, type owneraccess in the Office Assistant or on the Answer Wizard tab in the Microsoft Access Help window, and then click Search.
+Using Advanced SQL in Access
+
+Now that we've had a discussion of the advanced SQL syntax, let's look at some of the ways we can use it in an Access application.
+Sample Database
+
+Along with this article, there is a sample database called acAdvSQL.mdb.
+
+Everything in acAdvSQL is based on all the topics covered in this article, and it demonstrates the different SQL statements discussed through queries and sample code. However, it is important to note that you must first create a workgroup information file for the acAdvSQL database before you can use the user-level security SQL statements.
+
+Many of the sample queries used in acAdvSQL depend on certain tables existing and containing data, or on certain other preexisting database objects. If you are having difficulty running one of the queries due to missing data, open the Reset Tables form and click the Reset Tables button. This will re-create the tables and their original default data. To step through the reset table process manually, execute the following queries in this order:
+
+   1. Drop Table Shipping
+   2. Drop Table Invoices
+   3. Drop Table Customers
+   4. Create Table Customers
+   5. Create Table Invoices
+   6. Create Table Shipping
+   7. Populate Customers
+   8. Populate Invoices
+   9. Populate Shipping
+
+Setting the Database Password
+
+In this example, we create a form that will allow a user to change the database password. Let's say that we are creating a database that needs share-level security. You decide to implement this with Jet's database password capability, but you do not want to show the user interface for database passwords that is currently in Access, because it only allows you to set or remove the database password. By using inline SQL and a custom form, you can enable users to manage their own share-level security.
+
+   1. Create a new Access database and name it Password.mdb.
+   2. Create a new form and call it frmDBPassword.
+   3. Create three text boxes with matching labels and name the text boxes txtOldPwd, txtNewPwd, and txtConfirmPwd, and set all of their InputMask properties to Password.
+   4. Create three command buttons and name them cmdCancel, cmdClear and cmdOK. Once completed, your custom form should look similar to the following (Figure 1):
+
+      Figure 1. Database Password form
+   5. In the Click event of cmdCancel, enter the following code:
+
+DoCmd.Close acForm, "frmDBPassword"
+
+   6. In the Click event of cmdClear, enter the following code:
+
+Dim conDatabase As ADODB.Connection
+Dim SQL As String
+
+On Error GoTo Error_Handler
+
+Set conDatabase = Application.CurrentProject.Connection
+
+'Clear the password only if the old one is given.
+If Not IsNull(txtOldPwd) Then
+SQL = "ALTER DATABASE PASSWORD NULL " & txtOldPwd
+conDatabase.Execute SQL
+MsgBox "The password has been successfully cleared.", _
+       vbInformation
+Else
+MsgBox "Please enter the current (old) password.", vbExclamation
+txtOldPwd.SetFocus
+Exit Sub
+End If
+
+'Close out the form and all object variables.
+conDatabase.Close
+Set conDatabase = Nothing
+DoCmd.Close acForm, "frmDBPassword"
+
+Exit Sub
+Error_Handler:
+MsgBox Err.Description, vbCritical
+
+   7. In the Click event of cmdOK, enter the following code:
+
+Dim conDatabase As ADODB.Connection
+Dim SQL As String
+Dim intCheckPwd As Integer
+
+On Error GoTo Error_Handler
+
+Set conDatabase = Application.CurrentProject.Connection
+
+'Check that the new and confirmed passwords match.
+intCheckPwd = StrComp(txtNewPwd, txtConfirmPwd, vbBinaryCompare)
+
+'Determine if we are changing/clearing the current password
+'or setting a new one.
+If txtOldPwd.Enabled = False And intCheckPwd = 0 Then
+SQL = "ALTER DATABASE PASSWORD " & txtNewPwd & " NULL"
+conDatabase.Execute SQL
+MsgBox "The new password was successfully set.", vbInformation
+
+'Change the current password.
+ElseIf intCheckPwd = 0 Then
+
+'Check that the old password was given.
+If IsNull(txtOldPwd) Then
+MsgBox "Please enter the current (old) password.", _
+       vbInformation
+txtOldPwd.SetFocus
+Exit Sub
+End If
+
+SQL = "ALTER DATABASE PASSWORD " & txtNewPwd & " " & txtOldPwd
+conDatabase.Execute SQL
+MsgBox "The password was successfully changed.", vbInformation
+
+'Password was not confirmed.
+Else
+MsgBox "The password was not confirmed.  Please try again.", _
+       vbExclamation
+txtConfirmPwd = vbNullString
+txtConfirmPwd.SetFocus
+Exit Sub
+End If
+
+'Close out the form and all object variables.
+conDatabase.Close
+Set conDatabase = Nothing
+DoCmd.Close acForm, "frmDBPassword"
+
+Exit Sub
+Error_Handler:
+MsgBox Err.Description, vbCritical
+
+   8. In the OnLoad event of frmDBPassword, enter the following code:
+
+Dim conDatabase As ADODB.Connection
+Dim SQL As String
+
+On Error Resume Next
+
+'Check to see if the database password is enabled.
+Set conDatabase = Application.CurrentProject.Connection
+SQL = "ALTER DATABASE PASSWORD NULL NULL"
+conDatabase.Execute SQL
+
+'If the SQL statement did not cause an error the database
+'password is not currently enabled.
+If Err.Number = 0 Then
+txtOldPwd.Enabled = False
+cmdClear.Enabled = False
+Me.Caption = "New Database Password"
+Err.Clear
+Else
+Me.Caption = "Change Database Password"
+End If
+
+'Close out all object variables.
+conDatabase.Close
+Set conDatabase = Nothing
+
+Note the trick used in the code sample above to determine if a database password is currently set on the database. The SQL statement uses two NULL values. If the SQL statement causes an error, it means that there is already a database password set for the database.
+Using a Procedure
+
+One of the great things about using procedures is that because they are built with parameters, you can use them in very generic ways. For example, in the example used in the procedures section above, a DELETE statement was used to delete all invoices older than a certain given date. Because the procedure used a parameter for the date to delete from, we can prompt the user for the date and simply pass it to the procedure.
+
+The following code uses the InputBox function to prompt the user for a date:
+
+Private Sub cmdExecuteProc_Click()
+Dim conDatabase As ADODB.Connection
+Dim RtnValue As String
+Dim SQL As String
+
+On Error GoTo Error_Handler
+
+Set conDatabase = Application.CurrentProject.Connection
+RtnValue = InputBox("Enter the date to delete from:", _
+           "Delete Invoices", "1/1/1999")
+
+If IsDate(RtnValue) Then
+SQL = "EXECUTE DeleteInvoices '" & RtnValue & "'"
+conDatabase.Execute SQL
+MsgBox "The invoices have been deleted.", vbInformation
+Else
+MsgBox "An invalid date was given.  Please try again.", vbInformation
+End If
+
+conDatabase.Close
+Set conDatabase = Nothing
+
+Exit Sub
+Error_Handler:
+   MsgBox Err.Description, vbInformation
+End Sub
+
+One Last Comment
+
+Although this article has focused on SQL statements that are typically found in multiuser solutions, that is not to say that the statements discussed cannot be used in single-user solutions. Where and when you use Data Definition Language and Data Manipulation Language SQL statements should depend on the requirements of your application.

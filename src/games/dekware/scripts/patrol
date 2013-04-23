@@ -1,0 +1,32 @@
+
+/dest stepper
+/create stepper
+/wake stepper
+
+/stepper/mac walkpath path
+//decl workpath path
+//decl step 
+//label top
+//head %%workpath %%step
+//if success
+//  . %%step
+//  compare %%(%%room)curmove lessthan 15
+//  if success
+//     .cast 'ref' me
+//  endif
+//  delay 3000
+//  goto top
+//endif
+//endmac
+
+/decl makilor n n n w w w w w w w w s s s w w w w 
+
+/mac patrol where
+/decl path %where
+/stepper/walkpath %path
+/endmac
+
+
+/echo this line was added
+/echo and this was added too
+/echo well what about this?

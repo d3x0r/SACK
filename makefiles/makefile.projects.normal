@@ -1,0 +1,48 @@
+
+REALGOALS:=$(filter-out $(LESS_PROJECTS) $(MORE_PROJECTS) $(PROJECTS),$(MAKECMDGOALS))
+SETGOALS:=$(filter-out $(MAKECMDGOALS),$(PROJECTS) $(MORE_PROJECTS)) $(filter $(MORE_PROJECTS) $(PROJECTS),$(MAKECMDGOALS))
+#$(warning SETGOALS=$(SETGOALS))
+ifeq '$(SETGOALS)' ''
+SETGOALS=$(LESS_PROJECTS) $(PROJECTS) $(MORE_PROJECTS)
+endif
+
+MODE_TEXT=Making
+ifneq '$(filter distclean clean,$(MAKECMDGOALS))' ''
+MODE_TEXT=Cleaning
+endif
+
+define REAL_DOMAKE
+    $(QUIETCMD)echo $(MODE_TEXT) $(1)...
+    $(QUIETCMD)$(MAKE) $(2) $(4)
+endef
+
+ifndef Makefile_cache_included
+pre_final_targets: $(LESS_PROJECTS)
+fake_all: pre_final_targets
+final_targets: $(SETGOALS)
+endif
+
+.PHONY: $(LESS_PROJECTS) $(PROJECTS) $(MORE_PROJECTS)
+.PHONY: pre_final_targets all clean distclean # make these always make (force non exist)
+
+
+distclean: $(SETGOALS)
+
+define DEFAULT
+   $(if $(filter-out distclean,$@),$(call DOMAKE,$@,$(if $(QUIET),-s,) -C $@ $(REALGOALS)))
+endef
+
+distclean clean: $(LESS_PROJECTS) $(MORE_PROJECTS) $(PROJECTS)
+
+.DEFAULT:
+	echo hmm missing $@
+
+ifndef Makefile_cache_included
+$(PROJECTS):
+	$(call DOMAKE,$@,$(if $(QUIET),-s,) -C $@ $(REALGOALS))
+
+$(MORE_PROJECTS) $(LESS_PROJECTS):
+	$(call DOMAKE,$@,$(if $(QUIET),-s,) -f $(notdir $@) -C $(dir $@) $(REALGOALS))
+endif
+
+$(SACK_BASE)/makefiles/makefile.projects.normal: ;

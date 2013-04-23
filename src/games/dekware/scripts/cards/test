@@ -1,0 +1,20 @@
+
+
+/CardStore/get deck
+/create aa bb cc
+/wake aa bb cc
+/deck/dealto aa bb cc 
+/deck/dealto aa bb cc 
+/deck/dealto aa bb cc 
+/deck/dealto aa bb cc 
+/deck/dealto aa bb cc 
+/aa/showhand
+/aa/getresult hand
+/bb/showhand
+/bb/getresult hand
+/cc/showhand
+/cc/getresult hand
+/echo %aa.hand
+/echo %bb.hand
+/echo %cc.hand
+

@@ -1,0 +1,207 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0044)http://www.bluesock.org/~willg/dev/ansi.html -->
+<HTML><HEAD><TITLE>ansi codes</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=windows-1252">
+<META content="MSHTML 6.00.2800.1141" name=GENERATOR></HEAD>
+<BODY>
+<H3>ansi codes</H3>
+<P>I found most of this somewhere and moved it to my site for adjustments. I 
+don't know where exactly I found it though. My apologies for lack of credit. 
+</P>
+<P>ANSI escape codes are pretty prevalent in terminal emulation. Different codes 
+are supported by different emulation "standards". Most of this is supported by 
+VT102 but I think this listing is actually for ANSI.SYS. This is useful stuff 
+for building mud-clients and dealing with curses-like applications without using 
+curses. </P>
+<P>If you find mistakes, email me: willg at bluesock dot org. </P>
+<P>Good reading on issues that revolve around ANSI escape codes: </P>
+<UL>
+  <LI><A 
+  href="http://www.amazon.com/exec/obidos/ASIN/0937175226/bluesockorg-20">termcap 
+  &amp; terminfo (O'Reilly Nutshell)</A> 
+  <LI><A 
+  href="http://www.amazon.com/exec/obidos/ASIN/0937175021/bluesockorg-20">Programming 
+  with Curses</A> 
+  <LI><A href="http://vt100.net/">The definitive site on vtXXX stuff</A> -- it 
+  has complete listing on escape codes for most of DEC's vtXXX series and 
+  explanations that go very far beyond this meager page of material 
+  <LI><A href="http://www.rxvt.org/refer/rxvtRef-frame.html">rxvt reference</A> 
+  <LI><A href="http://invisible-island.net/xterm/xterm.faq.html">xterm faq</A> 
+  </LI></UL>
+<HR noShade>
+
+<P><B>list of ansi stuff:</B> </P>
+<TABLE border=1>
+  <TBODY>
+  <TR>
+    <TH>ESC code sequence</TH>
+    <TH>Function</TH></TR>
+  <TR>
+    <TD colSpan=2><B>cursor controls</B></TD></TR>
+  <TR>
+    <TD>ESC[#;#H or ESC[#;#f</TD>
+    <TD>moves cursor to line #, column #</TD></TR>
+  <TR>
+    <TD>ESC[#A</TD>
+    <TD>moves cursor up # lines</TD></TR>
+  <TR>
+    <TD>ESC[#B</TD>
+    <TD>moves cursor down # lines</TD></TR>
+  <TR>
+    <TD>ESC[#C</TD>
+    <TD>moves cursor right # spaces</TD></TR>
+  <TR>
+    <TD>ESC[#D</TD>
+    <TD>moves cursor left # spaces</TD></TR>
+  <TR>
+    <TD>ESC[#;#R</TD>
+    <TD>reports current cursor line &amp; column</TD></TR>
+  <TR>
+    <TD>ESC[s</TD>
+    <TD>save cursor position for recall later</TD></TR>
+  <TR>
+    <TD>ESC[u</TD>
+    <TD>Return to saved cursor position</TD></TR>
+  <TR>
+    <TD colSpan=2><B>erase functions</B></TD></TR>
+  <TR>
+    <TD>ESC[2J</TD>
+    <TD>clear screen and home cursor</TD></TR>
+  <TR>
+    <TD>ESC[K</TD>
+    <TD>clear to end of line</TD></TR>
+  <TR>
+    <TD colSpan=2><B>color and text formatting</B></TD></TR>
+  <TR>
+    <TD vAlign=top>ESC[#<I>(;#)</I>m</TD>
+    <TD>there can be multiple text formatting sequence numbers separated by a 
+      ; and ending with an m where the # is of the following values:<BR>
+      <TABLE border=1>
+        <TBODY>
+        <TR>
+          <TD colSpan=2><B>attributes</B></TD></TR>
+        <TR>
+          <TD>0</TD>
+          <TD>normal display</TD></TR>
+        <TR>
+          <TD>1</TD>
+          <TD>bold</TD></TR>
+        <TR>
+          <TD>4</TD>
+          <TD>underline (mono only)</TD></TR>
+        <TR>
+          <TD>5</TD>
+          <TD>blink on</TD></TR>
+        <TR>
+          <TD>7</TD>
+          <TD>reverse video on</TD></TR>
+        <TR>
+          <TD>8</TD>
+          <TD>nondisplayed (invisible)</TD></TR>
+        <TR>
+          <TD colSpan=2><B>foreground colors</B></TD></TR>
+        <TR>
+          <TD>30</TD>
+          <TD>black</TD></TR>
+        <TR>
+          <TD>31</TD>
+          <TD>red</TD></TR>
+        <TR>
+          <TD>32</TD>
+          <TD>green</TD></TR>
+        <TR>
+          <TD>33</TD>
+          <TD>yellow</TD></TR>
+        <TR>
+          <TD>34</TD>
+          <TD>blue</TD></TR>
+        <TR>
+          <TD>35</TD>
+          <TD>magenta</TD></TR>
+        <TR>
+          <TD>36</TD>
+          <TD>cyan</TD></TR>
+        <TR>
+          <TD>37</TD>
+          <TD>white</TD></TR>
+        <TR>
+          <TD colSpan=2><B>background colors</B></TD></TR>
+        <TR>
+          <TD>40</TD>
+          <TD>black</TD></TR>
+        <TR>
+          <TD>41</TD>
+          <TD>red</TD></TR>
+        <TR>
+          <TD>42</TD>
+          <TD>green</TD></TR>
+        <TR>
+          <TD>43</TD>
+          <TD>yellow</TD></TR>
+        <TR>
+          <TD>44</TD>
+          <TD>blue</TD></TR>
+        <TR>
+          <TD>45</TD>
+          <TD>magenta</TD></TR>
+        <TR>
+          <TD>46</TD>
+          <TD>cyan</TD></TR>
+        <TR>
+          <TD>47</TD>
+          <TD>white</TD></TR></TBODY></TABLE></TD></TR>
+  <TR>
+    <TD colSpan=2><B>screen modes</B></TD></TR>
+  <TR>
+    <TD vAlign=top>ESC[=#;7h or<BR>ESC[=h or<BR>ESC[=0h or<BR>ESC[?7h</TD>
+    <TD>put screen in indicated mode where # is: 
+      <TABLE border=1>
+        <TBODY>
+        <TR>
+          <TD>0</TD>
+          <TD>40 x 25 black &amp; white</TD></TR>
+        <TR>
+          <TD>1</TD>
+          <TD>40 x 25 color</TD></TR>
+        <TR>
+          <TD>2</TD>
+          <TD>80 x 25 b&amp;w</TD></TR>
+        <TR>
+          <TD>3</TD>
+          <TD>80 x 25 color</TD></TR>
+        <TR>
+          <TD>4</TD>
+          <TD>320 x 200 color graphics</TD></TR>
+        <TR>
+          <TD>5</TD>
+          <TD>320 x 200 b &amp; w graphics</TD></TR>
+        <TR>
+          <TD>6</TD>
+          <TD>640 x 200 b &amp; w graphics</TD></TR>
+        <TR>
+          <TD>7</TD>
+          <TD>to wrap at end of line</TD></TR></TBODY></TABLE></TD></TR>
+  <TR>
+    <TD>ESC[=#;7l or<BR>ESC[=l or<BR>ESC[=0l or<BR>ESC[?7l</TD>
+    <TD vAlign=top>resets mode # set with above command</TD></TR></TBODY></TABLE>
+<HR noShade>
+ANSI codes: <PRE>Black            \e[0;30m
+Blue             \e[0;34m
+Green            \e[0;32m
+Cyan             \e[0;36m
+Red              \e[0;31m
+Purple           \e[0;35m
+Brown            \e[0;33m
+Gray             \e[0;37m
+Dark Gray        \e[1;30m
+Light Blue       \e[1;34m
+Light Green      \e[1;32m
+Light Cyan       \e[1;36m
+Light Red        \e[1;31m
+Light Purple     \e[1;35m
+Yellow           \e[1;33m
+White            \e[1;37m
+</PRE>
+<HR noShade>
+<A href="http://www.bluesock.org/~willg/dev/index.php">Back</A> to my dev page. 
+</BODY></HTML>

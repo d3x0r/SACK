@@ -1,0 +1,17 @@
+
+
+all: train.exe libshmem.dll  libimage.dll libvidlib.dll
+
+
+libimage.dll: ../../dll/libimage.dll
+	cp $< $@
+
+libvidlib.dll: ../../dll/libvidlib.dll
+	cp $< $@
+
+libshmem.dll: ../../dll/libshmem.dll
+	cp $< $@
+
+train.exe: train.c
+	gcc -g -mno-cygwin -I../../include -L../../lib train.c -o $@ -lvidlib -limage
+
