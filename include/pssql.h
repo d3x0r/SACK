@@ -768,6 +768,23 @@ PSSQL_PROC( INDEX, FetchLastInsertIDEx)( PODBC odbc, CTEXTSTR table, CTEXTSTR co
    
    \ \                                                                  */
 #define FetchLastInsertID(o,t,c) FetchLastInsertIDEx(o,t,c DBG_SRC )
+/* <combine sack::sql::FetchLastInsertIDEx@PODBC@CTEXTSTR@CTEXTSTR col>
+   
+   \ \                                                                  */
+#define FetchLastInsertKey(o,t,c) FetchLastInsertKeyEx(o,t,c DBG_SRC )
+/* <combine sack::sql::FetchLastInsertIDEx@PODBC@CTEXTSTR@CTEXTSTR col>
+   
+   \ \                                                                  */
+PSSQL_PROC( CTEXTSTR, FetchLastInsertKeyEx)( PODBC odbc, CTEXTSTR table, CTEXTSTR col DBG_PASS );
+
+/* <combine sack::sql::GetLastInsertIDEx@CTEXTSTR@CTEXTSTR col>
+   
+   \ \                                                          */
+PSSQL_PROC( CTEXTSTR, GetLastInsertKeyEx)( CTEXTSTR table, CTEXTSTR col DBG_PASS );
+/* <combine sack::sql::GetLastInsertIDEx@CTEXTSTR@CTEXTSTR col>
+   
+   \ \                                                          */
+#define GetLastInsertKey(t,c) GetLastInsertKeyEx(t,c DBG_SRC )
 
 
 // CreateTable Options (CTO_)
