@@ -152,14 +152,19 @@ INDEX GetNameIndexExx( PODBC odbc, CTEXTSTR name, CTEXTSTR table, CTEXTSTR col, 
 
 
 //-----------------------------------------------------------------------
-INDEX FetchLastInsertIDEx( PODBC odbc, CTEXTSTR table, CTEXTSTR col DBG_PASS )
+CTEXTSTR FetchLastInsertKeyEx( PODBC odbc, CTEXTSTR table, CTEXTSTR col DBG_PASS )
 {
-	INDEX RecordID = INVALID_INDEX;
+	static TEXTSTR RecordID;
 	CTEXTSTR result = NULL;
 	if( !odbc )
 		odbc = g.odbc;
 	if( !odbc )
-		return INVALID_INDEX;
+		return NULL;
+	if( RecordID )
+	{
+		Release( RecordID );
+      RecordID = NULL;
+	}
    //lprintf( "getting last insert ID?" );
 #ifdef POSGRES_BACKEND
 	{
@@ -167,9 +172,8 @@ INDEX FetchLastInsertIDEx( PODBC odbc, CTEXTSTR table, CTEXTSTR col DBG_PASS )
 		sprintf( query, WIDE("select currval('%s_%s_seq')"), table, col );
 		if( SQLQueryEx( odbc, query, &result ) && result DBG_RELAY )
 		{
-			RecordID=atoi( result );
-			Release( result );
-			while( GetSQLResult( &result ) );
+			RecordID = StrDup( result );
+			while( FetchSQLResult( odbc, &result ) );
 		}
 	}
 #endif
@@ -178,7 +182,8 @@ INDEX FetchLastInsertIDEx( PODBC odbc, CTEXTSTR table, CTEXTSTR col DBG_PASS )
 	if( odbc->flags.bSQLite_native )
 	{
       // can also be done with 'select last_insert_rowid()'
-		RecordID = (INDEX)sqlite3_last_insert_rowid( odbc->db );
+		RecordID = NewArray( TEXTCHAR, 32 );
+		snprintf( RecordID, 32, WIDE("%llu"), (INDEX)sqlite3_last_insert_rowid( odbc->db ) );
 	}
 #endif
 #ifdef USE_ODBC
@@ -186,17 +191,13 @@ INDEX FetchLastInsertIDEx( PODBC odbc, CTEXTSTR table, CTEXTSTR col DBG_PASS )
 	if( odbc->flags.bAccess )
 	{
 		if( SQLQueryEx( odbc, WIDE( "select @@IDENTITY" ), &result DBG_RELAY ) && result )
-		//snprintf(sql,256,WIDE("SELECT %s FROM %s ORDER BY %s DESC"), col, table, col);
-		//if( SQLQueryEx( odbc, sql, &result DBG_RELAY ) && result )
-			RecordID = (INDEX)IntCreateFromText( result );
+			RecordID = StrDup( result );
 	}
 	else if( odbc->flags.bODBC )
 	{
 		if( SQLQueryEx( odbc, WIDE("select LAST_INSERT_ID()"), &result DBG_RELAY ) && result )
 		{
-			//lprintf( WIDE("Result is %s"), result );
-			RecordID = (INDEX)IntCreateFromText( result );
-			//while( GetSQLResult( &result ) );
+			RecordID = StrDup( result );
 		}
 	}
 	PopODBCEx( odbc );
@@ -205,7 +206,20 @@ INDEX FetchLastInsertIDEx( PODBC odbc, CTEXTSTR table, CTEXTSTR col DBG_PASS )
 	return RecordID;
 }
 
+//-----------------------------------------------------------------------
+INDEX FetchLastInsertIDEx( PODBC odbc, CTEXTSTR table, CTEXTSTR col DBG_PASS )
+{
+   CTEXTSTR result_key = FetchLastInsertKeyEx( odbc, table, col DBG_RELAY );
+	INDEX result = result_key?(INDEX)IntCreateFromText( result_key ) : INVALID_INDEX;
+   return result;
+}
 
+
+//-----------------------------------------------------------------------
+CTEXTSTR  GetLastInsertKeyEx( CTEXTSTR table, CTEXTSTR col DBG_PASS )
+{
+   return FetchLastInsertKeyEx( NULL, table, col DBG_RELAY );
+}
 
 //-----------------------------------------------------------------------
  INDEX  GetLastInsertIDEx( CTEXTSTR table, CTEXTSTR col DBG_PASS )
