@@ -25,4 +25,4 @@ include/zlib
 include/genxml
 include/png
 include/sexpat
-
+.hg
