@@ -2221,6 +2221,7 @@ int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	if( odbc->flags.bSQLite_native )
 	{
+      int result_code = WM_SQL_RESULT_SUCCESS;
 		int rc3;
 		const char *tail;
 		char *tmp_cmd;
@@ -2276,8 +2277,10 @@ int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 				goto retry;
 			default:
             //  SQLITE_CONSTRAINT - statement like an insert with a key that already exists.
-				lprintf( WIDE( "Unknown, unhandled SQLITE error: %s" ), sqlite3_errmsg(odbc->db ) );
+				if( !odbc->flags.bNoLogging )
+					_lprintf(DBG_RELAY)( WIDE( "Unknown, unhandled SQLITE error: %s" ), sqlite3_errmsg(odbc->db ) );
 				//DebugBreak();
+            result_code = WM_SQL_RESULT_ERROR;
 				break;
 			}
 			// this should be SQLITE_OK || SQLITE_DONE
@@ -2287,7 +2290,7 @@ int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 			sqlite3_finalize( collection->stmt );
 			collection->stmt = NULL;
 		}
-		GenerateResponce( collection, WM_SQL_RESULT_SUCCESS );
+		GenerateResponce( collection, result_code );
 		//DumpODBCInfo( odbc );
 	}
 #endif

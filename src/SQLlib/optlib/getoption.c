@@ -241,14 +241,14 @@ void SetOptionDatabaseOption( PODBC odbc, int bNewVersion )
 	}
 }
 
-void OpenWriter( POPTION_TREE option )
+void OpenWriterEx( POPTION_TREE option DBG_PASS )
 {
 	if( !option->odbc_writer )
 	{
 #ifdef DETAILED_LOGGING
-		lprintf( WIDE( "Connect to writer database for tree %p odbc %p" ), option, option->odbc );
+		_lprintf(DBG_RELAY)( WIDE( "Connect to writer database for tree %p odbc %p" ), option, option->odbc );
 #endif
-		option->odbc_writer = ConnectToDatabase( option->odbc?option->odbc->info.pDSN:global_sqlstub_data->Primary.info.pDSN );
+		option->odbc_writer = ConnectToDatabaseExx( option->odbc?option->odbc->info.pDSN:global_sqlstub_data->Primary.info.pDSN, FALSE DBG_RELAY );
 		if( option->odbc_writer )
 		{
 			if( !global_sqlstub_data->flags.bLogOptionConnection )
@@ -333,62 +333,70 @@ void InitMachine( void )
 
 INDEX ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR table, CTEXTSTR col, CTEXTSTR namecol, int bCreate DBG_PASS )
 {
-			TEXTCHAR query[256];
-			TEXTCHAR *tmp;
-			CTEXTSTR result = NULL;
-			INDEX IDName = INVALID_INDEX;
-			if( !table || !name )
-				return INVALID_INDEX;
+	int first_try = 1;
+	TEXTCHAR query[256];
+	TEXTCHAR *tmp;
+	CTEXTSTR result = NULL;
+	INDEX IDName = INVALID_INDEX;
+	if( !table || !name )
+		return INVALID_INDEX;
 
-			// look in internal cache first...
-			IDName = GetIndexOfName(tree->odbc,table,name);
-			if( IDName != INVALID_INDEX )
-				return IDName;
+	// look in internal cache first...
+	IDName = GetIndexOfName(tree->odbc,table,name);
+	if( IDName != INVALID_INDEX )
+		return IDName;
 
-			if( !tree->odbc )
-				DebugBreak();
+	if( !tree->odbc )
+		DebugBreak();
 
-			CreateOptionDatabaseEx( tree->odbc, tree );
-			PushSQLQueryEx( tree->odbc );
-			tmp = EscapeSQLStringEx( tree->odbc, name DBG_RELAY );
-			snprintf( query, sizeof( query ), WIDE("select %s from %s where %s like '%s'"), col?col:WIDE("id"), table, namecol, tmp );
-			Release( tmp );
-			if( SQLQueryEx( tree->odbc, query, &result DBG_RELAY) && result )
+	CreateOptionDatabaseEx( tree->odbc, tree );
+	PushSQLQueryEx( tree->odbc );
+retry:
+	tmp = EscapeSQLStringEx( tree->odbc, name DBG_RELAY );
+	snprintf( query, sizeof( query ), WIDE("select %s from %s where %s like '%s'"), col?col:WIDE("id"), table, namecol, tmp );
+	Release( tmp );
+	if( SQLQueryEx( tree->odbc, query, &result DBG_RELAY) && result )
+	{
+		IDName = (INDEX)IntCreateFromText( result );
+		SQLEndQuery( tree->odbc );
+	}
+	else if( bCreate )
+	{
+		TEXTSTR newval = EscapeSQLString( tree->odbc, name );
+		snprintf( query, sizeof( query ), WIDE("insert into %s (%s) values( '%s' )"), table, namecol, newval );
+		OpenWriterEx( tree DBG_RELAY );
+		if( !SQLCommandEx( tree->odbc_writer, query DBG_RELAY ) )
+		{
+			// insert failed;  assume it's a duplicate key now, and retry.
+			// on an option connection, maybe the name has been inserted, and is waiting in a commit-on-idle
+			// ... if we try this a few times, the commit will happen; then we can re-select and continue as normal
+			//lprintf( WIDE("insert failed, how can we define name %s?"), name );
+			if( first_try )
 			{
-				IDName = (INDEX)IntCreateFromText( result );
-				SQLEndQuery( tree->odbc );
+				first_try = 0;
+				goto retry;
 			}
-			else if( bCreate )
-			{
-				TEXTSTR newval = EscapeSQLString( tree->odbc, name );
-				snprintf( query, sizeof( query ), WIDE("insert into %s (%s) values( '%s' )"), table, namecol, newval );
-				OpenWriter( tree );
-				if( !SQLCommandEx( tree->odbc_writer, query DBG_RELAY ) )
-				{
-#ifdef DETAILED_LOGGING
-					lprintf( WIDE("insert failed, how can we define name %s?"), name );
-#endif
-					// inser failed...
-				}
-				else
-				{
-					// all is well.
-					IDName = FetchLastInsertIDEx( tree->odbc_writer, table, col?col:WIDE("id") DBG_RELAY );
-				}
-				Release( newval );
-			}
-			else
-				IDName = INVALID_INDEX;
+         else
+				lprintf( WIDE("insert failed, and retry again failed, how can we define name %s?"), name );
+		}
+		else
+		{
+			// all is well.
+			IDName = FetchLastInsertIDEx( tree->odbc_writer, table, col?col:WIDE("id") DBG_RELAY );
+		}
+		Release( newval );
+	}
+	else
+		IDName = INVALID_INDEX;
 
-			PopODBCEx(tree->odbc);
+	PopODBCEx(tree->odbc);
 
-			if( IDName != INVALID_INDEX )
-			{
-				// instead of strdup, consider here using SaveName from procreg?
-				AddBinaryNode( GetTableCache(tree->odbc,table), (POINTER)((PTRSZVAL)(IDName+1))
-								 , (PTRSZVAL)SaveText( name ) );
-			}
-			return IDName;
+	if( IDName != INVALID_INDEX )
+	{
+		AddBinaryNode( GetTableCache(tree->odbc,table), (POINTER)((PTRSZVAL)(IDName+1))
+						 , (PTRSZVAL)SaveText( name ) );
+	}
+	return IDName;
 }
 
 //---------------------------------------------------------------------------
@@ -545,7 +553,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 						// otherwise our root node creation failes if said root is gone.
 						//lprintf( "New entry... create it..." );
 						snprintf( query, sizeof( query ), WIDE("Insert into option_map(`parent_node_id`,`name_id`) values (%ld,%lu)"), parent->id, IDName );
-						OpenWriter( tree );
+						OpenWriterEx( tree DBG_RELAY );
 						if( SQLCommand( tree->odbc_writer, query ) )
 						{
 							ID = FetchLastInsertID( tree->odbc_writer, WIDE("option_map"), WIDE("node_id") );
@@ -1279,7 +1287,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 	}
 	{
 		// first try, do it as false, so we can fill in default values.
-		POPTION_TREE_NODE opt_node = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, pININame, pSection, pOptname, FALSE DBG_SRC );
+		POPTION_TREE_NODE opt_node = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, pININame, pSection, pOptname, FALSE DBG_RELAY );
 		// maybe do an if( l.flags.bLogOptionsRead )
 		if( global_sqlstub_data->flags.bLogOptionConnection )
 			_lprintf(DBG_RELAY)( WIDE( "Getting option {%s}[%s]%s=%s" ), pININame, pSection, pOptname, pDefaultbuf );
