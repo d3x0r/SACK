@@ -488,7 +488,8 @@ int main( int argc, char **argv )
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}${BAG_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}service_list${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}sack.msgsvr.service${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}sack.msgsvr.service.plugin DESTINATION $""{dest} )\n" );
+		fprintf( out, "install( FILES $""{SACK_BASE}/bin/sack.msgsvr.service.plugin DESTINATION $""{dest} )\n" );
+		fprintf( out, "install( FILES $""{SACK_BASE}/bin/msgsvr${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}bag.externals${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}bag.image${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}bag.video${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
@@ -506,6 +507,7 @@ int main( int argc, char **argv )
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/loginfo.module DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/application_delay.module DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/sack.msgsvr.service.plugin DESTINATION $""{dest} )\n" );
+		fprintf( out, "install( FILES $""{SACK_BASE}/bin/msgsvr${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/importini${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/exportini${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
 		
@@ -538,6 +540,7 @@ int main( int argc, char **argv )
 		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_BINPATH "/SetOption${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/loginfo.module DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/application_delay.module DESTINATION $""{dest} )\n" );
+		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_BINPATH "/msgsvr${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/sack.msgsvr.service.plugin DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_BINPATH "/importini${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_BINPATH "/exportini${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
@@ -561,9 +564,10 @@ int main( int argc, char **argv )
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/DumpFontCache${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "endif( NOT __NO_GUI__ )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/SetOption${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-			fprintf( out, "install( FILES $""{SACK_BASE}/bin/loginfo.module DESTINATION $""{dest} )\n" );
-			fprintf( out, "install( FILES $""{SACK_BASE}/bin/application_delay.module DESTINATION $""{dest} )\n" );
-			fprintf( out, "install( FILES $""{SACK_BASE}/bin/sack.msgsvr.service.plugin DESTINATION $""{dest} )\n" );
+		fprintf( out, "install( FILES $""{SACK_BASE}/bin/loginfo.module DESTINATION $""{dest} )\n" );
+		fprintf( out, "install( FILES $""{SACK_BASE}/bin/application_delay.module DESTINATION $""{dest} )\n" );
+		fprintf( out, "install( FILES $""{SACK_BASE}/bin/msgsvr${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
+		fprintf( out, "install( FILES $""{SACK_BASE}/bin/sack.msgsvr.service.plugin DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/importini${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/exportini${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
 		// there is no interface.conf for linux (yet)
@@ -581,6 +585,7 @@ int main( int argc, char **argv )
 		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/SetOption${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/loginfo.module DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/application_delay.module DESTINATION $""{dest} )\n" );
+		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_BINPATH "/msgsvr${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/sack.msgsvr.service.plugin DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/importini${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/exportini${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
