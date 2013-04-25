@@ -1,0 +1,6 @@
+
+/mac accept
+/tell gatekeeper /rename 2.connection guest
+/login guest
+/endmac
+ 

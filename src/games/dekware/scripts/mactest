@@ -1,0 +1,18 @@
+
+
+/create a b c
+/a/mac test
+/dump %me
+/echo I am %me test 1 done
+/endmac
+/b/mac test
+/dump %me
+/echo I am %me test 2 done
+/endmac
+/a/test
+/b/test
+/a/b/test
+/b/a/test
+
+
+

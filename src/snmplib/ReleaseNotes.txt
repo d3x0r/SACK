@@ -1,0 +1,485 @@
+Release Notes, Version 1.14
+January 26th, 1999
+Ryan Troll <ryan@andrew.cmu.edu>
+
+
+Major Changes:
+
+Portability / Bug Fixes
+#######################
+
+Win32 Changes
+- Removed MFC dependencies
+
+Fixed small core leak caused by allocation of data for length 0
+strings.  (Found by John Taylor <jtaylor@questra.com>).
+
+
+----------------------------------------------------------------------
+
+Release Notes, Version 1.13
+
+Ryan Troll <ryan@andrew.cmu.edu>
+
+
+*** SNMP Users Mailing List ***
+
+Now that our site is capable of doing so, I've setup a mailing list
+for users of our SNMP library.  To subscribe, send mail to
+"majordomo@lists.andrew.cmu.edu".  In the body of the message:
+
+subscribe cmu-snmp-users [your email address]
+
+For example, when I subscribed, I sent mail with the following in the body:
+
+subscribe cmu-snmp-users ryan@andrew.cmu.edu
+
+
+
+*** CVS Repository Available ***
+
+As of this version, our src code is available via CVS:
+
+	cvs -d :pserver:anoncvs@cvs.andrew.cmu.edu:/cvs login
+
+the password is "anonymous".  The SNMP collection name is "snmp", and
+our snmpapps collection name is "snmpapps".
+
+
+Major Changes:
+
+Portability / Bug Fixes
+#######################
+
+Added patches by Stepan Skrob <stepan@seznam.cz> to fix an odd
+uninitialized memory read, and to reorder some includes so that things 
+were defined everywhere.
+
+Added patches by Michael Slifcak <mslifcak@amber.iss.net>:
+
+* Library no longer calls exit -- always returns error codes.
+  (Affected function: init_mib)
+
+* Made a compatibility function for gettimeofday under Win32, instead
+  of having patches all over the place.
+
+* No longer force call to WSAStartup and WSACleanup.  Leaves this up
+  to the application.  However, functions to start / stop winsock are
+  provided (winsock_startup(), winsock_cleanup()).
+
+* Now correctly calls closesocket() under WIN32.
+
+* New "SingleSession" API.  Check out Changes.SingleSession
+
+Added Linux RPM generation based on a patch by Nuno Leitao
+<npll@porto.ucp.pt>.  I won't distribute an RPM, as we don't have any
+readhat systems around to generate it with.  I also do not know what
+the effects of having our library installed on a system which has the
+other, snmp-agent including "CMU-SNMP" package installed.  The two
+libraries are different, and if something linked with one tries to use
+the other, problems may arise.
+
+Added load_mib() function, which allows you to specify which MIB to
+load, rather than relying on the internal logic.
+
+Fixed unitialized memory read detected by "Stepan Skrob"
+<stepan@seznam.cz>.
+
+----------------------------------------------------------------------
+
+Release Notes, Version 1.12
+July 3, 1998
+Ryan Troll <ryan@andrew.cmu.edu>
+
+Major Changes:
+
+Portability / Bug Fixes
+#######################
+
+Installs the supplied mibfile into the dest area.
+
+Default mibfile location now also includes the installation area.
+
+Fixed manpage generation, so it now generates manpages for the MIB
+dependant functions as well.
+
+Incorporated patch from Glenn Chisholm <glenn@ccr.curtin.edu.au> for
+myaddress() under WIN32.
+
+Removed redundant include in snmp.h that was causing problems with
+makedepend.  (Patch sent in by John L. Taylor <jtaylor@questra.com>).
+
+Check for hex strings is now a little smarter.
+
+Win32 include file (libsnmp.h) now supports a new src directory
+structure, which mirrors our CVS infrastructure.
+
+----------------------------------------------------------------------
+
+Release Notes, Version 1.11
+May 22, 1998
+Ryan Troll <ryan@andrew.cmu.edu>
+
+Major Changes:
+
+Portability / Bug Fixes
+#######################
+
+Updated Win32 documentation per Yuval Feller's
+<yuvalf@public.tadiran.com> email.
+
+Added patch from Wilfred <Wilfred.Mollenvanger@nl.eds.com>, to fix
+parsing of large uptimes (> 2^32-1 miliseconds), and a problem reading
+default mib files using the wrong read version function.
+
+Fix bug found by Jianping Jiang <jiang@syndesis.com> concerning the
+snmp_api_error function not returning the appropriate strings.
+
+----------------------------------------------------------------------
+
+Release Notes, Version 1.10
+May 8, 1998
+Ryan Troll <ryan@andrew.cmu.edu>
+
+Major Changes:
+
+Portability / Bug Fixes
+#######################
+
+Incorporated patches from "Eric C. S. Dynamic" <ecsd@transbay.net> for
+compilation under FreeBSD.
+
+Now decodes NOSUCHOBJECT, NOSUCHINSTANCE, and ENDOFMIBVIEW.
+
+Now correctly encodes default errstat, errindex when not using
+snmp_api calls.
+
+SNMP Error messages are more verbose.
+
+Install process no longer fails if perl is unavailable.
+
+Shared Library
+##############
+
+This distribution will now by default create a shared library as well
+as a static library, if your OS handles it.  If you do not want to
+build a shared library, run configure with the --disable-shared flag.
+
+If you don't want to build a static library, run configure with the
+--disable-static flag.
+
+Thank the GNU folks for once again making a tricky porting issue
+simple.  Normally, determining what flags should be used for all
+vendor compilers is a really tricky issue.  Via libtool, this is
+pretty darn simple.
+
+Parser
+######
+
+I added a new parser.  One that everybody will enjoy.  The new parser
+correctly handles all SMIv2 MIBs, and even some SMIv1 stuff.  Without
+any mib modifications.  Right now, we are using the MIBs from the
+following RFCs:
+
+	  rfc1757
+	  rfc1902
+	  rfc1903
+	  rfc1904
+	  rfc1906
+	  rfc1907
+	  rfc2011
+	  rfc2012
+	  rfc2013
+	  rfc2021
+	  rfc2096
+	  rfc2206
+	  rfc2213
+	  rfc2214
+	  rfc2233
+	  rfc2261
+	  rfc2262
+	  rfc2265
+
+without any changes.  Our current MIB also includes lots of v2 stuff
+from Cisco's web site, as well as some of their v1 stuff.  All without
+any original MIB changes.
+
+For more information about what MIBs we're using, check out:
+
+	ftp://ftp.net.cmu.edu/pub/mibs
+
+I'll try to put copies of anything we use there.
+
+Parser Compatibility
+####################
+
+So that most things out there won't break, the old parser is also
+present in the code.  When you call init_mib, it will still correctly
+load:
+
+	$MIBFILE
+	mib.txt
+	/etc/mib.txt
+
+However, if one of these are present, they get loaded first:
+
+	$MIBFILE_v2
+	mib-v2.txt
+	/etc/mib-v2.txt
+
+Manpages
+########
+
+Manpages are now generated and included in the distribution, rather
+than requiring the installation site to install them.  This will help
+with sites that do not have Perl, or are not on Unix machines.
+
+----------------------------------------------------------------------
+
+Release Notes, Version 1.9
+February 24th, 1998
+Ryan Troll <ryan@andrew.cmu.edu>
+
+Major Changes:
+
+Portability / Bug Fixes
+#######################
+
+Incorporated patches from Glenn Chisholm <glenn@ccr.curtin.edu.au> for
+compilation on Win32 machines.
+
+Added VC++ workspace to create a DLL.
+
+----------------------------------------------------------------------
+
+Release Notes, Version 1.8
+
+Ryan Troll <ryan@andrew.cmu.edu>
+
+Major Changes:
+
+Portability / Bug Fixes
+#######################
+
+Incorporated patches from Par Westesson <pw@cbc.chalmers.se> and Mats
+B Pettersson <matsp@prosolvia.se>.  The description of the patches
+sent to me:
+
+- The SNMPv2 error code definitions in asn1.c have been fixed.  [ They
+  were previously listed as Hex values, instead of decimal. ]
+
+- The function snmp_var_EncodeVarBind in snmp_vars.c has been modified
+  to be able to encode the exception values noSuchObject,
+  noSuchInstance and endOfMibView. It does so using the definitions
+  added in snmp_vars.h and the function asn_build_exception added in
+  asn1.c.
+
+  Note that we haven't included support for decoding these exceptions
+  (since we're using the library in an agent rather than a manager).
+  Including support for this would however only require some small
+  changes to the function snmp_var_DecodeVarBind and the addition of
+  an asn_parse_exception function.
+
+  We also haven't made any changes to the print_type function in
+  mib.c, so these values can't be printed. Otherwise, no other changes
+  to the library should be necessary because of the inclusion of the
+  support for the exceptions.
+
+- All calls to the macro ASN_PARSE_ERROR which increments the counter
+  snmpInASNParseErrs have been removed from the functions that encode
+  SNMP packets since it should only be used when decoding. This
+  affects the files snmp_vars.c, snmp_msg.c and snmp_pdu.c.
+
+Incorporated patches from Sebastien Rosset
+(sebastien.rosset@cstelecom.cie-signaux.fr):
+
+- Patches that augment Par's changes for noSuchObject, etc.
+
+- Fixed a bug when trying to deal with Bulk requests
+
+
+
+MAX_OID_LEN is now correctly set to 128 subids.
+
+Removed bcmp, bzero calls, for Solaris 2.4.
+
+Parser now handles description fields that begin with a quote
+immediately followed by a word, instead of failing.  (Thanks to Simon
+Burr <simonb@uk.uu.net>)
+
+
+----------------------------------------------------------------------
+
+Release Notes, Version 1.7
+October 14, 1997
+Ryan Troll <ryan@andrew.cmu.edu>
+
+Major changes:
+
+Portability / Bug Fixes
+#######################
+
+Incorporated patches for compilation under Visual C++ 4.0 / WinNT.
+(Thanks to Steven Chew <smchew@ibm.net>)
+
+It is now possible to compile the Irix version with '-n32', '-32', or
+'-o32' and have it installed into the appropriate place with the
+"--with-mips-abi=[n32,o32,32]" flag to configure.  (Thanks to Rob
+Earhart <earhart+@cmu.edu>)
+
+Incorporated patch for socket options under Linux.  Now sending UDP
+packets to remote hosts that are unavailable should not hurt anything
+else.  (Thanks to Chaskiel Grundman <cg2v+@andrew.cmu.edu>)
+
+Other
+#####
+
+The included MIB is now correct, and expanded.
+
+----------------------------------------------------------------------
+
+Release Notes, Version 1.6
+May 27, 1997
+Ryan Troll <ryan@andrew.cmu.edu>
+
+Major changes:
+
+Portability / Bug Fixes
+#######################
+
+Correct use of int/long, so that machines using 64bit longs may use
+the library.
+
+Miniclient function declarations (and others) are now wrapped within
+the appropriate c++ wrappers.
+
+Added timer defines, to allow the library to compile with the Cygnus
+Win32 compiler.
+
+Now handles returns strings that are (supposedly) allocated yet
+contain no information.
+
+Fixed a few calls to asn functions that were passing sizeof(Pointer)
+rather than sizeof(what pointer points to), which weren't caught when
+these were the same.  (But, on 64 bit machines...)
+
+
+Informs
+#######
+
+The built-in snmp PDU/Session management now correctly handles SNMP
+Informs.  
+
+
+Parser
+######
+
+The parser now accepts two additional pieces of information in a mib:
+DESCRIPTION and INDEX.  It also handles "ACCESS" and "MAX-ACCESS".
+With these additions, SNMPv2 SMI MIBs can be parsed with minimal
+changes.  (Specificly, with the removal of text conventions, etc.)
+
+The included CMU MIB should be a good example.
+
+
+Other
+#####
+
+Changed some symbol names to static, to help reduce symbol name
+conflict with applications.
+
+Corrected incorrect backwards-compatibility defines.
+
+----------------------------------------------------------------------
+
+Release Notes, Version 1.5
+March 31, 1997
+Ryan Troll <ryan@andrew.cmu.edu>
+
+
+
+This SNMP library is based on the SNMP1.1b library that has been
+available via ftp.net.cmu.edu since September of 1991.  Many changes
+have been made to increase it's performance, clean up memory leaks,
+and prepare it for use with SNMPv2 managers and agents.
+
+
+This is the last release of the CMU SNMP Library, aside from bug fixes
+and portability patches. Future SNMP development will be in a new
+direction. The new CMU SNMP library will be fully object oriented;
+compatible with SNMPv1, SNMPv2 Classic, and possibly others; and
+handle SMIv2 MIBs with the use of a MIB Compiler (IE: SMICng). 
+
+The major changes since CMU SNMP 1.1b are:
+
+Autoconf
+########
+
+The SNMP Library now uses GNU Autoconf to determine system specific
+information. 
+
+Trap and PDU Type Definitions
+#############################
+
+All well-known traps and PDUs are now defined snmp_pdu.h, and are of
+the format SNMP_TRAP_${TrapType} and SNMP_PDU_${PDUType}.  All defines
+previously used to specify trap and pdu type should still work. 
+
+Installation Directories
+########################
+
+The library is now installed in $(exec_prefix)/lib, and the include
+files are installed in $(exec_prefix)/include.
+
+Includes
+########
+
+Applications now only need to include <snmp/snmp.h>, instead of
+all the separate headers required previously.
+
+MiniClient
+##########
+
+This library now contains a mini-client.  The miniclient only
+implements the Get, GetNext, and Set functions.  By using the
+miniclient, SNMP capable applications may be quickly generated.  (We
+use the miniclient for most of our internal monitoring stuff.)
+
+Optimizations
+#############
+
+Various parts of the library have been optimized.  The most
+significant optimization adds 6 bytes to every outgoing packet the
+length identifiers for the Message, PDU, and Variable List SEQUENCEs
+are now all encoded in three bytes instead of 1.  However, this
+reduces the number of iterations over the variable list during
+encoding from 4 to 1.  There is also no delayed range shifting of the
+entire encoded stream to insert a better length.
+
+Purify
+######
+
+All of the SNMP Applications we've compiled using this library have
+been purified, and all errors / complaints / warnings have been taken
+care of.  Based on this, we believe the library is free of memory
+leaks
+
+Trap Generation
+###############
+
+There are no longer routines for trap generation within this library.
+This may be done by the application.
+
+V1 - V2 Coexistance
+###################
+
+There are two functions (snmp_coexist_V2toV1 and snmp_coexist_V1toV2)
+that should provide V1-V2 coexistance per RFC 1908.  However, these
+have not been tested.
+
+Version
+#######
+
+The snmp_session structure now contains a variable called "Version".
+This variable specifies the default version of all incoming / outgoing
+data for this session.

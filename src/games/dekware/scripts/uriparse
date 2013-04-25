@@ -1,0 +1,61 @@
+
+
+/mac urlparse line
+/decl word
+/label top
+/head %line %word
+/if fail
+/goto end
+/endif
+/compare %word like telnet
+/if success
+/echo telnet connection to...
+/head %line %word
+/if fail
+/goto end
+/endif
+/compare %word is :
+/if fail
+/echo bad URI no ':'
+/stop
+/endif
+
+/head %line %word
+/if fail
+/goto end
+/endif
+/compare %word is /
+/if fail
+/echo bad URI no first '/'
+/stop
+/endif
+
+
+/head %line %word
+/if fail
+/goto end
+/endif
+/compare %word is /
+/if fail
+/echo bad URI no second '/'
+/stop
+/endif
+
+/echo remaining line is....
+/echo quick and dirty try and connect.
+/connect %line
+
+/stop
+
+/endif
+/echo unknown protocol on command line....
+/stop
+/echo word %word
+/goto top
+
+
+
+
+/label end
+/endmac
+

@@ -1,0 +1,161 @@
+/dest switchtype
+/mac switchtype file ttaaii
+/compare %ttaaii like A
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like B
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like C
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like D
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like E
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like F
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like G
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like H
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like I
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like J
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like K
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like L
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like M
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like N
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like O
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like P
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like Q
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like R
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like S
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like T
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like U
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like V
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like W
+/if success
+#/echo Warning in file... %file leader=%ttaaii
+/warning %ttaaii
+/endif
+
+/compare %ttaaii like X
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like Y
+/if success
+/not_done %ttaaii
+/endif
+
+/compare %ttaaii like Z
+/if success
+/not_done %ttaaii
+/endif
+
+#A   Analyses                        
+#B   Service message                 
+#C   Climatic data                   
+#D   Grid point information (GRID)   
+#E   Satellite imagery               
+#F   Forecast                        
+#G   Grid point information (GRID)   
+#H   Grid point information (GRIB)   
+#I   Binary observation - BUFR       
+#J   Binary forecast - BUFR          
+#K   CREX                            
+#L   --                              
+#M   --                              
+#N   Notices                         
+#O   Oceanographic (GRIB)            
+#P   Pictorial information(binary)   
+#Q   Pictorial information regional  
+#R   --                              
+#S   Surface data                    
+#T   Satellite data                  
+#U   Upper-air data                  
+#V   National data                   
+#W   Warnings                        
+#X   GRID regional use               
+#Y   GRIB regional use               
+#Z   GRIB National use               
+
+/endmac

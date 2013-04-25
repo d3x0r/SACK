@@ -1,0 +1,27 @@
+
+
+/decl loginname 
+
+/mac irc where who who1
+	/echo Attempting to connect to %where ...
+   /parse tcp %where
+   /if success
+   	/delay 750
+      /scr irc.trig
+      /format irc
+      #.PASS MyDefaultPassword
+      /decl loginname %who
+      .USER %who1 . . : A User
+      .NICK %who
+   /else
+      /echo Connect Failed.
+     	/endparse
+      /prompt
+   /endif
+/endmac
+
+/mac CloseData  #called from term when connection closes (case sensative?)
+/echo well - we went away for some reason...
+/endmac
+
+

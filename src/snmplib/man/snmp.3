@@ -1,0 +1,84 @@
+.TH SNMP 3 "Mon Jan 25 23:11:52 1999"
+.UC 4
+.SH NAME
+SNMP \-  Simple Network Management Protocol
+.SH DESCRIPTION
+The Carnegie Mellon SNMP library is broken up into the following
+parts:
+.TP 5
+.SB snmp_api
+Session Management API
+.TP 5
+.SB snmp_api_errors
+API Error Functions
+.TP 5
+.SB snmp_client
+Client communication routines
+.TP 5
+.SB snmp_coexistance
+V1/V2 Coexistance Functions
+.TP 5
+.SB snmp_error
+PDU Error Functions
+.TP 5
+.SB snmp_extra
+Miscellaneous Functions
+.TP 5
+.SB snmp_mib
+MIB Dependant Functions
+.TP 5
+.SB snmp_mibii
+MIBII glue
+.TP 5
+.SB snmp_mini_client
+Mini-client
+.TP 5
+.SB snmp_msg
+Message Encoding / Decoding Functions
+.TP 5
+.SB snmp_packet_dump
+Network Packet Dumping Functions
+.TP 5
+.SB snmp_pdu
+PDU Functions
+.TP 5
+.SB snmp_sess_api
+SNMP Single Session API
+.TP 5
+.SB snmp_vars
+Variable Bindings Functions
+.TP 5
+.SB snmp_version_info
+Version Information
+.SH "ENVIRONMENT"
+MIBFILE:  Location of the SNMP MIB.
+.SH "FILES"
+.nf
+mib.txt                   First MIB tried if env. var is not set
+/etc/mib.txt              Second MIB tried if env. var is not set
+.SH "RFCS"
+Related RFCs: 1065, 1066, 1067
+.br
+Related SNMPv2 RFCs: 1901, 1902, 1902, 1904, 1905, 1906, 1907, 1908, 1909
+.SH "RELATED URLS"
+CMU Networking Group: http://www.net.cmu.edu/
+.br
+CMU SNMP Home Page: http://www.net.cmu.edu/projects/snmp
+.SH "SEE ALSO"
+.BR snmp_api (3),
+.BR snmp_api_errors (3),
+.BR snmp_client (3),
+.BR snmp_coexistance (3),
+.BR snmp_error (3),
+.BR snmp_extra (3),
+.BR snmp_mib (3),
+.BR snmp_mibii (3),
+.BR snmp_mini_client (3),
+.BR snmp_msg (3),
+.BR snmp_packet_dump (3),
+.BR snmp_pdu (3),
+.BR snmp_sess_api (3),
+.BR snmp_vars (3),
+.BR snmp_version_info (3),
+.BR snmp_oid (5)
+.BR snmp (3)

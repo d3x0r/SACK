@@ -1,0 +1,23 @@
+ifndef PROJECT_RULES_INCLUDED
+PROJECT_RULES_INCLUDED=1
+include $(SACK_BASE)/makefiles/makefile.common
+
+REALGOALS:=$(filter-out $(PROJECTS) makebuild,$(MAKECMDGOALS))
+SETGOALS:=$(filter-out $(MAKECMDGOALS),$(PROJECTS)) $(filter $(PROJECTS),$(MAKECMDGOALS))
+
+
+ifeq '$(filter makebuild,$(MAKECMDGOALS))' 'makebuild'
+include $(SACK_BASE)/makefiles/makefile.projects.makebuild
+else
+include $(SACK_BASE)/makefiles/makefile.projects.normal
+endif
+
+ define DOMAKE
+   $(if $(NEWMAKE),$(call REAL_DOMAKE,$(1),$(2),NewMake,-f Makefile.new ),)
+   $(if $(ALTMAKE),$(call REAL_DOMAKE,$(1),$(2),AltMake,-f Makefile.alt ),)
+   $(if $(NEWMAKE)$(ALTMAKE),,$(call REAL_DOMAKE,$(1),$(2),Building, ))
+ endef
+
+$(SACK_BASE)/makefiles/makefile.projects: ;
+
+endif

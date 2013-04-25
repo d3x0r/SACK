@@ -1,0 +1,204 @@
+<HTML><HEAD><TITLE>A simple software cacheing system</TITLE></HEAD>
+
+<BODY>
+<CENTER><FONT size=+2>CACHE</FONT></CENTER><br>
+<hr>
+
+
+<h2>Include</h2>
+#include &lt;cache.h&gt;<br>
+
+<h2>Project Location</h2>
+src/cachelib
+<h2>Library</h2>
+cache
+<h2>Required Libraries</h2>
+<a href="memlib.html">shmem</a>, <a href="syslog.html">syslog</a>(debug mode)
+
+<h2>About this Library</h2>
+<menu>
+    This library is designed to implement a software-based, simple (FIFO only) 
+    caching system.  It is useful for storing data in memory before being 
+    written to a disk or database when recent values are accessed often.  This 
+    library works very well with the SACK container library by using POINTERs to
+    handle arbitrary data.  It also works very well with the SACK network 
+    library because data can be written to the cache in the "read complete" 
+    callback functions and then the cache can be emptied during idle times in 
+    the main program thread.
+</menu>
+
+<h2>Routines</h2>
+
+<h3>Cache Data Methods</h3>
+These are methods that act on CacheData.  CacheData is a structure that encompasses
+user-data.  It is not necessary for the end-user ever access members of the CacheData
+struct.  It is just used to hold meta-data needed by the cache library.
+<menu>
+<h3>CacheData * createCacheData( POINTER data , unsigned int size)<br>
+</h3>
+<menu>
+Creates a CacheData object which can contain anything, but should probably be a 
+    user-defined struct so that data indexing/keying can be done.  data should 
+    be a pointer to the data and size should be the size of that data.
+</menu>
+</menu>
+<h3>Cache Methods</h3>
+These are methods that act on the cache system itself.
+<menu>
+<h3>Cache * createCache()</h3>
+<menu>
+This initializes a Cache object to which CacheData can be added
+</menu>
+<h3>void deleteCache( Cache *cache )</h3>
+<menu>
+This function frees all memory that is being used by a Cache object.  All data 
+    in the cache is lost.
+</menu>
+<h3>int setCacheStoreFunction( Cache *cache , int *storeItemFn )</h3>
+<menu>
+    This function sets the callback function that stores a CacheData object to 
+    whereever the user wants.  The callback function should have the signature: 
+    int fnName( POINTER , unsigned int ).  The POINTER will point to the 
+    user-data stored inside the CacheData (CacheData itself is a library-level 
+    struct and the end user should never need to access its members).  The unsigned
+    int is the size of that data.  The end-user can use this function to write data
+    to a more permanant location like a file or a database.
+</menu>
+<h3>int setCacheSearchFunction( Cache *cache , POINTER searchItemFn )</h3>
+<menu>
+    This function sets the callback function that searches the data stored in a
+    CacheData object for a specific key.  The function needs the signature:  
+    POINTER fnName( POINTER , unsigned int , int ).  The POINTER will point to the
+    user-data stored inside the CacheData object.  The unsigned int will be the 
+    size of that data, and the int will be the key that was requested.  This works
+    best when the data is a user-defined struct that has a key (perhaps used to 
+    store an enum) and a value field.  This function should always return NULL if
+    the key was not found in the data.
+</menu>
+<h3>int addItemToCache( Cache *cache , CacheData *data )</h3>
+<menu>
+    This function adds a CacheData item to the cache.  This function is usually 
+    best called by using a call to the createCacheData() function as the second
+    parameter.  Example:
+    <pre>
+        struct cData
+        {
+            int key; /* This would be used for data identification in the search callback function */
+            char data[25];
+        }
+
+        void test( Cache *cache )
+        {
+            struct cData *data;
+
+            data->key = 1;
+            data->data = "Hello world";
+
+            addItemToCache( cache , createCacheData( data , sizeof( struct cData ) ) );
+        }
+    </pre>
+</menu>
+<h3>int storeItemInCache( Cache *cache )</h3>
+<menu>
+    This function writes the OLDEST item in the cache to disk, using the store callback
+    function.
+</menu>
+<h3>unsigned int getCacheItemCount( Cache *cache )</h3>
+<menu>
+    This function returns the number of items (CacheDatas) in the cache.
+</menu>
+
+<h3>void * getValueForKey( Cache *cache , int key )</h3>
+<menu>
+    This function uses the search callback function to search the cache for a given
+    key.  The cache is searched by NEWEST CacheData FIRST.
+</menu>
+
+</menu>
+
+<h2>Example</h2>
+<menu>
+    Here is an (not-very-useful) example that uses the cache to store data that would wait to be
+    stored in a database.  It's not a perfect example because each CacheData holds
+    only one field in a database table instead of an entire record.  This is because
+    it was simplified for clarity (the findItem() function becomes simpler, but the
+    storeItem() function wouldn't work well as it is).  It would be simple to have the 
+    CacheData hold records which could be structs that contain an array/list of struct 
+    field.  The search function would have to be updated, of course.
+    <pre>
+    #include &lt;cache.h&gt;
+    #include &lt;stdio.h&gt;
+    
+    /* This will be used for field naming/indexing/identification */
+    enum
+    {
+        FIELD_NONE,
+        
+        FIELD_INDEX,
+        FIELD_USERNAME,
+        FIELD_PASSWORD,
+        
+        FIELD_COUNT
+    };
+    
+    struct field
+    {
+        int fieldName; /* Holds on of the enum types above */
+        char fieldData[80];
+    };
+    
+    int storeItem( void *item , unsigned int size )
+    {
+        struct field *data = (struct field *) item;
+    
+        /* Code to store field to DB */
+    
+        return TRUE;
+    }
+    
+    void * findItem( void *item , unsigned int size , int key )
+    {
+        struct field *data = (struct field *) item;
+    
+        if ( key == data->fieldName )
+        {
+            return data->fieldData;
+        }
+        
+        return NULL;
+    }
+    
+    int main( int argc , char **argv )
+    {
+        Cache *cache = createCache();
+        struct field *data;
+        unsigned int i = 0;
+    
+        setKeySearchFunction( cache , findItem );
+        setCacheStoreFunction( cache , storeItem );
+    
+        do
+        {
+            /* Get values to fill 'data' */
+
+            addItemToCache( cache , createCacheData( data , sizeof( struct field ) ) );
+    
+            i++;
+        }
+        while ( i < 100 );
+
+        printf( "Items in cache:  %i\n" , getCacheItemCount( cache ) );
+
+        /* This could, say, get the last user to log in */
+        printf( "Last logon:  %s\n" , (char *) getValueForKey( cache , FIELD_USERNAME ) );
+    
+        while ( getCacheItemCount( cache ) )
+        {
+            storeItemInCache( cache );
+        }
+    
+        return 0;
+    }    
+    </pre>
+</menu>
+</BODY></HTML>

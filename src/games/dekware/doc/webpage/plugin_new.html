@@ -1,0 +1,142 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<FONT size=+3><center></center></font><br>
+<a href="plugins.html" OnMouseOver="window.status='Other plugins';return true" OnMouseOut="window.status=''">Return to Plugins</A><br>
+This document describes how to make new plugins. 
+<p>A plugin for Dekware is a file which ends in the extension ".nex" or has
+".nex" in it's name.  A valid plugin could be "plugin.nex.dll" such names are
+required for Borland's compiler to be able to load the debug information for
+the said plugin.  
+<p>A plugin has 2 exported routines.
+   <li>char *RegisterRoutines( PEXPORTTABLE pExportTable );
+   <li>void UnloadPlugin( void );
+These routines must be exported as C names... ie. _RegisterRoutines or
+RegisterRoutines.
+<p>The first routine is called when the plugin is initially loaded.  The 
+plugin is expected to save the pointer to the table passed.  This table 
+contains all routines which exist in the core of the project which are exported
+for plugins to use.  The RegisterRoutines function must return the value DekVersion.
+This version number is used to validate that the current version of Dekware is
+compatible with the plugin.  If the value is not returned, the plugin is unloaded
+along with all routines, devices, or objects which is may have attempted to
+register.
+<p>The second routine is called when the program exits, or when the /UNLOAD 
+command is issued.  (At the moment this command's definition is faulty and 
+will have to be revised.)
+<p>
+<p>
+<pre>
+typedef struct export_table_tag
+{
+   //----------------------------------------------------------------
+   //----------- This portion of the table MUST remain constant for ALL FUTURE VERSIONS!
+   POINTER (*AllocateEx)         ( _32 nSize DBG_PASS );
+   POINTER (*ReleaseEx)          ( POINTER pData DBG_PASS );
+   POINTER (*HoldEx)             ( POINTER pData DBG_PASS );
+   _32     (*LockedExchange)     ( _32 *p, _32 val );
+   void    (*MemSet)             ( POINTER p, int n, int sz );
+   void    (*MemCpy)             ( POINTER pTo, P_0 pFrom, int sz );
+   // should soon have LockedExchange, and also EnterCriticalSec()... 
+   void  (*RegisterRoutine)      ( char *pName, char *pDescription, RoutineAddress Routine ); 
+   void  (*UnregisterRoutine)    ( char *pName );
+   int   (*RegisterDevice)       ( char *pNext, char *pDescription, PDATAPATH (*Open)( PSENTIENT ps, PTEXT params ) );
+   void  (*UnregisterDevice)     ( char *pName );
+   INDEX (*RegisterExtension)    ( void );
+   PDATAPATH (*CreateDataPath)   ( int nExtra );
+   void (*DestroyDataPath)       ( PDATAPATH pdp );
+   //----------------------------------------------------------------
+   // this point forward MAY change... but is never recommended...
+   PLINKQUEUE (*EnqueLinkEx)     ( PLINKQUEUE *plq, POINTER link DBG_PASS);
+   POINTER  (*DequeLink)         ( PLINKQUEUE *plq );
+   PTEXT (*BuildLineEx)          ( char *buf, PTEXT pt, int bSingle DBG_PASS );
+   PTEXT (*GetParam)             ( PSENTIENT pEntity, PTEXT *from );
+   void (*AddVariableEx)         ( PSENTIENT ps, PENTITY pe, PTEXT pName, PTEXT parameters, int bBinary );
+   INDEX (*GetTextSize)          ( PTEXT segment );
+   char *(*GetText)              ( PTEXT segment );
+   PTEXT (*SegExpandEx )         ( PTEXT source, int nSize DBG_PASS );  // add last node... blank space.
+   PTEXT (*SegAppend   )         ( PTEXT source, PTEXT other );
+   PTEXT (*SegInsert   )         ( PTEXT what, PTEXT before );
+   PTEXT (*SegGrab     )         ( PTEXT segment ); // removes seg from list, returns seg.
+   PTEXT (*SegBreak    )         ( PTEXT segment );
+   PTEXT (*SegConcatEx )         (PTEXT output,PTEXT input,S_32 offset,S_32 length DBG_PASS);
+   PTEXT (*SegDuplicateEx)       ( PTEXT pText DBG_PASS );
+   PTEXT (*LineDuplicateEx)      ( PTEXT pText DBG_PASS );
+   PTEXT (*SegCreateIndirectEx)  ( PTEXT pText DBG_PASS );
+   PTEXT (*SegCreateFromTextEx)  ( char *text DBG_PASS );
+   PTEXT (*SegCreateEx)          ( S_32 nSize DBG_PASS );
+   void  (*LineReleaseEx)        ( PTEXT line DBG_PASS );
+   void  (*UpdateMinSignficants) ( command_entry *commands, INDEX nCommands, PLIST pMacros ); // allow macros to also be short-cutable...
+   S_32  (*GetCommandIndex)      ( command_entry *commands, INDEX nCommands, int sig, char *data );
+   PSHADOW (*CreateShadowIn )    ( PENTITY pContainer, PENTITY pe );
+   PENTITY (*CreateEntityIn)     ( PENTITY Location, PTEXT pName );
+   void  (*WriteCommandList)     ( PLINKQUEUE *Output, command_entry *commands, INDEX nCommands, PTEXT pMatch );
+   PTEXT (*MacroDuplicateEx)     ( PSENTIENT pEntity, PTEXT pText, int bKeepEOL, int bSubst DBG_PASS );
+   PTEXT (*burstEx)              ( PTEXT *excess,PTEXT input, int bCanApostrophe, int bCanEscape );
+   PTEXT (*GatherLineEx)         ( PTEXT *pOutput, int *pIndex, int bInsert, int bSaveCR, int bData, PTEXT pInput );
+   PSENTIENT (*CreateAwareness)  ( PENTITY pEntity );
+   void (*DestroyEntity)         ( PENTITY pe );
+   PENTITY (*Duplicate)          (PENTITY object);
+
+   PLINKSTACK (*CreateLinkStack) ( void );
+   void (*DeleteLinkStack)       ( PLINKSTACK pls );
+   PLINKSTACK (*PushLink)        ( PLINKSTACK pls, POINTER p );
+   POINTER (*PopLink)            ( PLINKSTACK pls );
+   POINTER (*PeekLink)           ( PLINKSTACK pls );
+   PTEXT (*GetIndirect)          ( PTEXT segment );
+   POINTER (*FindThingEx)        ( PENTITY Around, int type, int *foundtype, PTEXT pText );
+   PLINKQUEUE (*CreateLinkQueue) ( void );
+   void (*DeleteLinkQueueEx)       ( PLINKQUEUE *plq DBG_PASS );
+
+   // added to support virtuality... allow use of PLIST container
+   PLIST    (*CreateListEx)     ( DBG_VOIDPASS );
+   PLIST    (*DeleteListEx)     ( PLIST *plist DBG_PASS );
+   PLIST    (*AddLinkEx)      ( PLIST *pList, POINTER p DBG_PASS );
+   PLIST    (*SetLinkEx)      ( PLIST *pList, INDEX idx, POINTER p DBG_PASS );
+   POINTER  (*GetLinkEx)      ( PLIST *pList, INDEX idx );
+   // added to support virtuality... allow plugins to use common space object
+   // creation, destruction, and primitive relation functions
+   PTEXT    (*GetName)            ( void *pe );
+   PTEXT    (*GetDescription)     ( void *pe );
+   PENTITY  (*putin)              ( PENTITY obj1, PENTITY obj2 );
+   PENTITY  (*pullout)            ( PENTITY obj1, PENTITY obj2 );
+   PENTITY  (*attach)             ( PENTITY obj1, PENTITY obj2 );
+   PENTITY  (*detach)             ( PENTITY obj1, PENTITY obj2 );
+   PENTITY  (*FindContainer)      ( PENTITY source );
+   PENTITY  (*findbynameEx)       ( PLIST object, int *count, char *name );
+   PTEXT    (*TextDuplicateEx)    ( PTEXT pText, int bSingle DBG_PASS );
+   int      (*GetTextFlags)           ( PTEXT segment );
+   int      (*IsNumber)           ( PTEXT pText ); // return bool true false...
+   int      (*IntNumber)         ( PTEXT pText );
+   double   (*FltNumber)         ( PTEXT pText );
+   void     (*ExitNexus)         ( void );
+   PTEXT    (*GetVariable)       ( PLIST pList, char *text );
+   int      (*CompareStrings)    ( PTEXT pt1, int single1
+                                 , PTEXT pt2, int single2
+                                 , int bExact );
+   _32      (*LineLengthEx)      ( PTEXT pt, _32 bSingle );
+   PDATASTACK  (*PushData)       ( PDATASTACK *pds, POINTER pdata );
+   POINTER     (*PopData)        ( PDATASTACK *pds );
+   POINTER     (*PeekData)       ( PDATASTACK *pds ); // keeps data on stack (can be used)
+   POINTER     (*PeekDataEx)     ( PDATASTACK *pds, int nBack );
+   PENTITY      *_THE_VOID;
+   PSENTIENT    *_PLAYER;
+   PTEXT    (*SegSubst)          ( PTEXT _this, PTEXT that );
+   void     (*RecallCommand)     ( PCOMMAND_INFO pci, int bUp );
+   void     (*EnqueHistory)      ( PCOMMAND_INFO pci, PTEXT pHistory );
+   void     (*AddMethod)         ( PSENTIENT ps, method_entry *pme );
+   void     (*RemoveMethod)      ( PSENTIENT ps, method_entry *pce );
+   INDEX    (*FindLink )         ( PLIST *pList, POINTER value );
+   PTEXT    (*SegSplitEx)        ( PTEXT pLine, int nPos DBG_PASS);
+   int      (*IsQueueEmpty)      ( PLINKQUEUE *pplq  );
+   void     (*InvokeMacro)       ( PSENTIENT ps, PMACRO pMacro, PTEXT pArgs );
+   void     (*RegisterObject)    ( char *pName, char *pDescription, int (*Init)( PSENTIENT ps, PENTITY pe, PTEXT parameters ) );
+   void     (*UnregisterObject)  ( char *pName );
+   // this should be moved up to Allocate/Release/Hold ... ahh well...
+   int     (*Defragment)         ( POINTER *ppData ); // returns true if moved.
+   int zero;
+} EXPORTTABLE, *PEXPORTTABLE;
+</pre>
+
+</BODY>
+</HTML>

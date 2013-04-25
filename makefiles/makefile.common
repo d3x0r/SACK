@@ -1,0 +1,722 @@
+#INDIRECT_BUILD is a nice feature... allows compiling objects
+# in their relative near directories... but some files need to
+# be done in the current project (fntcache, deadstart_list, end )
+# these compile different objects based on the project therefore
+# building the objects near the sources is most valid.
+INDIRECT_BUILD=1
+
+ifndef INCLUDED_COMMON_MAKEFILE_RULESET
+INCLUDED_COMMON_MAKEFILE_RULESET=1
+
+export MAKE
+
+all:
+
+ifeq '$(shell uname)' ''
+# this shoudl attatch this as the first target of all?
+UNAME=Windows
+DIR_CMD=dir /b
+CP_CMD=copy
+RM_CMD=del /s /q
+else
+DIR_CMD=ls
+CP_CMD=cp
+RM_CMD=rm
+UNAME:=$(shell uname -o)
+endif
+
+VPATH=.
+
+ifndef COMPILER
+# these names need to not have a space around them.
+COMPILER:=$(if $(UNAME),$(if $(findstring _64,$(shell uname -m)),lnx64,$(if $(filter Cygwin,$(UNAME)),cyg1,$(if $(filter Windows,$(UNAME)),wcxx,lnx))),wcxx)
+$(warning COMPILER configuration not specified, using $(COMPILER))
+export COMPILER
+endif
+
+ifeq '$(COMPILER)' ''
+$(error COMPILER was not able to be determined.)
+.DEFAULT all:
+	;
+endif
+
+ifndef DEFAULT_DEST
+$(warning DEFAULT_DEST not defined, using 'debug')
+DEFAULT_DEST=debug
+export DEFAULT_DEST
+endif
+
+
+.PHONY: all fakeall final_targets 
+# first default target...
+# mark the first valid target in the system.
+# the target 'all' may not be the same...
+all: fakeall
+
+#config:
+	
+define SYSCMDPATH
+  $(subst /,$(SYSPATHCHAR),$(1))
+endef
+
+ ifndef MAKEFILE
+MAKEFILE:=$(word 1,$(MAKEFILE_LIST))
+ export MAKEFILE
+  define REMAKE 
+  $(QUIET)$(MAKE) -C $(CURDIR) -f $(MAKEFILE) $(filter-out makebuild,$(MAKECMDGOALS))
+  $(EXIT)
+  endef
+  export REMAKE
+ endif
+# only the first needs to define the root remake.
+# every instance needs this target.
+ifneq '$(filter-out makebuild,$(MAKECMDGOALS))' ''
+#$(MAKEFILE) $(if $(findstring /,$(MAKEFILE)),$(MAKEFILE),$(CURDIR)/$(MAKEFILE)): ;
+endif
+
+#$(warning MAKEFILE=$(MAKEFILE) $(CURDIR) $(MAKELEVEL))
+
+INCLUDEDIRS+=$(SACK_BASE)/include $(CURDIR)
+ifdef FINALDEST
+ifeq '$(filter makebuild,$(MAKECMDGOALS))' 'makebuild'
+#INCLUDEDIRS+=$$(_FINALDEST)/include
+else
+#INCLUDEDIRS+=$(FINALDEST)/include
+endif
+endif
+INCLUDEPATH=$(foreach IPATH,$(INCLUDEDIRS),-I$(if $(__WINDOWS__),$(subst /,\,$(IPATH)),$(IPATH)) )
+# this should be a config specific option
+# this is not nessecarily common
+
+ ifndef DEST
+  ifndef DEFAULT_DEST
+   doabort: trueabort
+  endif
+  export DEST=$(DEFAULT_DEST)
+ endif
+
+ ifdef MONO_OUT_BUILD
+  $(warning Building without project build type indiciation... Dropping $(DEST_PREFIX)\$(DEST)-\$(COMPILER)=$(DEST_PREFIX)$(DEST)-$(COMPILER) )
+ endif
+
+ ifeq '$(DEST)' 'debug'
+  DEST_TYPE=DEBUG
+  DEST_SUFFIX=$(if $(MONO_OUT_BUILD),,/$(DEST_PREFIX)debug-$(COMPILER))
+  CFLAGS:=$(CFLAGS) $(INCLUDEPATH)
+  VALID_DEST:=1
+ endif
+ ifeq '$(DEST)' 'release'
+  DEST_TYPE=RELEASE
+  DEST_SUFFIX=$(if $(MONO_OUT_BUILD),,/$(DEST_PREFIX)release-$(COMPILER))
+  CFLAGS:=$(CFLAGS) $(INCLUDEPATH)
+  VALID_DEST:=1
+ endif
+ ifeq '$(DEST)' 'static_debug'
+  DEST_TYPE=DEBUG
+  DEST_SUFFIX=$(if $(MONO_OUT_BUILD),,/$(DEST_PREFIX)debug-$(COMPILER))
+  CFLAGS:=$(CFLAGS) $(INCLUDEPATH) -D__STATIC__
+  STATIC=s
+  VALID_DEST:=1
+  STATIC_LITERAL_NAME=.static
+ endif
+ ifeq '$(DEST)' 'static_release'
+  DEST_TYPE=RELEASE
+  DEST_SUFFIX=$(if $(MONO_OUT_BUILD),,/$(DEST_PREFIX)release-$(COMPILER))
+  CFLAGS:=$(CFLAGS) $(INCLUDEPATH) -D__STATIC__
+  STATIC=s
+  VALID_DEST:=1
+  STATIC_LITERAL_NAME=.static
+ endif
+
+ ifndef BINLIBPATH
+  BINLIBPATH=/bin
+ endif
+ ifndef BINPATH
+  BINPATH=/bin
+ endif
+ ifndef LIBPATH
+  LIBPATH=/lib
+ endif
+ ifndef DATAPATH
+  DATAPATH=/bin
+ endif
+
+CFLAGS:=$(CFLAGS) -DLEGACY_MAKE_SYSTEM
+
+FINALPATHS:=$(FINALDEST)$(BINPATH) $(FINALDEST)$(DATAPATH) $(FINALDEST)$(LIBPATH) $(FINALDEST)$(BINLIBPATH)
+
+#if there has not been a valid
+# destination specified, then  we MUST
+# abort.  This is the one and ONLY rule in the make system.
+ ifneq  '$(VALID_DEST)' '1'
+.PHONY : trueabort
+.DEFAULT trueabort:
+	@echo 'need to specify DEST=(release/debug/stat_release/stat_debug)'
+	@echo 'or define DEFAULT_DEST. default is now "$(DEFAULT_DEST)"'
+	exit
+# else - there IS VALID_DEST, and we get to include
+# a bunch of more rules and REAL targets...
+ else
+
+# relative intermediate destination
+# DEST_PREFIX Is set in Makefile.bag and all
+# .bag projects.  This allows them to be built into an alternative
+# destination allowing the basic aggregate group to compile and 
+# allowing the component peices to also compile
+RINTDEST:=$(DEST_PREFIX)$(DEST)-$(COMPILER)
+export RINTDEST
+# intermediate destination (full path)
+INTDEST:=$(CURDIR)/$(RINTDEST)
+
+# this will indirectly get depended now... if needed
+#$(RINTDEST)
+
+# the final destination of products built...
+# files are compiled into intermediate and linked
+# into final.
+  ifndef FINALDEST
+   FINALDEST=$(SACK_BASE)
+   export FINALDEST
+   $(warning FINALDEST was not defined, setting to "$(SACK_BASE)") 
+  endif
+  ifeq '$(CURDIR)' '$(FINALDEST)'
+   ifneq '$(CURDIR)' '$(SACK_BASE)'
+    NEXT_TOP_LEVEL=$(SACK_BASE)
+    $(warning NEXT_TOP_LEVEL=$(NEXT_TOP_LEVEL))
+   #TOP_LEVEL=1
+   endif
+  endif
+# compiler configuration needs
+# dest, STATIC, DEST_TYPE helps...
+  ifdef COMPILER
+   MAKECONFIG:=$(SACK_BASE)/makefiles/makefile.$(COMPILER).config
+   COMMONMAKE:=makefile.$(COMPILER)
+  else
+   MAKECONFIG:=$(SACK_BASE)/makefiles/$(COMMONMAKE).config
+  endif
+
+# All these funny rules for makefiles - cause if they don't\n" );
+# exist, they can't be made (implicitly or otherwise)\n" );
+  BASEMKFILE:=Makefile
+  ifeq '$(ALTMAKE)' '1'
+   BASEMKFILE:=Makefile.alt
+  else
+   ifeq '$(NEWMAKE)' '1'
+    BASEMKFILE:=Makefile.new
+   endif
+  endif
+# full path of makefile...
+  MKFILE:=$(CURDIR)/$(BASEMKFILE)
+
+define STRIPNAME
+$(strip $(subst \,_,$(subst :,_,$(subst .,_,$(subst -,_,$(subst /,_,$1))))))
+endef
+define CLEANTARGET
+	$(call STRIPNAME,clean_$1)
+endef
+
+  BUILDNAME=$(call STRIPNAME,$(INTDEST)/Makefile.cache)
+
+  BUILD_DEP:=$(BUILD_DEP) $(MKFILE) $(MAKECONFIG) \
+         $(SACK_BASE)/makefiles/makefile.common 
+  ifdef PROJECT_RULES_INCLUDED
+   BUILD_DEP:=$(BUILD_DEP) $(SACK_BASE)/makefiles/makefile.projects
+  endif
+# end of IF VALID_DEST
+ endif
+
+# this section of the makefile is done 
+# if makebuild is a target defined - if it is defined, 
+# its value is the absolute path to the Makefile.cache
+# which is the result of building THIS make file.
+# rules passed from the command line...
+
+# include the current makefile system dependancies...
+# this will probably also include a system set of common
+# definitions...
+$(MAKECONFIG): ;
+include $(MAKECONFIG)
+
+ifeq '$(UNAME)' 'Windows'
+include $(SACK_BASE)/makefiles/prog/uname/makefile.depends
+endif
+include $(SACK_BASE)/makefiles/prog/makemakefile/makefile.depends
+include $(SACK_BASE)/makefiles/prog/zerostamp/makefile.depends
+include $(SACK_BASE)/makefiles/prog/echoto/makefile.depends
+
+# keep track of what we have included...
+# dependant makefiles which have been used to 
+# build this makefile, the vality of the makefile.cache
+# is solely dependant on changes in these files.
+
+$(MKFILE) $(BASEMKFILE): ;
+ifeq '$(filter makebuild,$(MAKECMDGOALS))' 'makebuild'
+$(MKFILE): ;
+endif
+# myself... I exist therefore I think
+$(SACK_BASE)/makefiles/makefile.common makefile.common: ;
+
+
+#########
+# here, do the actual building of the content
+# of the makebuild file.  The top, which
+# determined that this must be run, 
+#ifeq '$(filter makebuild,$(MAKECMDGOALS))' ''
+#$(warning Loading rules when NOT under MAKEBUILD)
+#else
+#$(warning Loading rules when under MAKEBUILD)
+
+ define DOCMD
+  $(1)
+ endef
+ define DOTARGCMD
+  $(1)
+ endef
+
+ REALGOALS:=$(filter-out $(LESS_PROJECTS) $(PROJECTS) $(MORE_PROJECTS),$(MAKECMDGOALS))
+ SETGOALS:=$(filter-out $(MAKECMDGOALS),$(LESS_PROJECTS) $(PROJECTS) $(MORE_PROJECTS)) $(filter $(LESS_PROJECTS) $(PROJECTS) $(MORE_PROJECTS),$(MAKECMDGOALS))
+
+# all commands shall be QUIET - therefore they are optionable 
+# to variations of quiet...
+ ifndef NOTQUIET
+  QUIET=@
+ else
+  QUIET=
+ endif
+
+ LDFLAGS=$(LDXFLAGS) $(LD_$(DEST_TYPE)_FLAGS)
+
+ define DOCMD
+$(1)
+ endef
+
+ifeq '$(filter makebuild,$(MAKECMDGOALS))' 'makebuild'
+FORCED=FORCE
+_FINALDEST:=$(FINALDEST)
+FINALDEST=$$(_FINALDEST)
+else
+_FINALDEST:=$(FINALDEST)
+endif
+export FINALDEST
+export _FINALDEST
+
+ ifeq '$(filter makebuild,$(MAKECMDGOALS))' ''
+  FINALTARGETEX=
+  FINALTARGET=
+  TARGET=
+  QUIETCMD=$(QUIET)
+  define DOTARGCMD
+   $(1)
+   endef
+  ifeq '$(filter clean distclean,$(MAKECMDGOALS))' ''
+#   -include $(INTDEST)/Makefile.cache
+  endif
+  ifeq '$(USECACHE)' '1'
+   -include $(INTDEST)/Makefile.cache
+  endif
+ else
+#  .PRECIOUS:$(RINTDEST)/Makefile.cache
+$(RINTDEST)/Makefile.cache: $(BUILD_DEP) | $(RINTDEST)
+	@echo need to make makefile.cache before it can be included
+	@echo making makefile.cache, or a dependancy has caused this...
+
+#  $(MAKE) -C $(CURDIR) makebuild MAKEBUILD=$(INTDEST)/Makefile.cache
+#  $(REMAKE)
+
+  MAKEBUILD?=$(INTDEST)/Makefile.cache
+# -include $(INTDEST)/Makefile.cache
+# if no libraries are made for programs/Shared libraries(.so's,.dll's) then
+# do not include */lib/* 
+  define FINALTARGETEX
+  @$(call DOTARGCMD,$(1):$(foreach DEP,$^,$(if $(filter-out FORCE,$(notdir $(DEP))),$(DEP))) \| $(FINALDEST)$($(DEST_SUFFIX) $(if $(NO_PROGLIB),,$(FINALDEST)$(LIBPATH)$(DEST_SUFFIX)))
+  endef
+ FINALTARGET=$(call FINALTARGETEX,$@)
+ TARGET=@$(if $(filter makebuild,$(MAKECMDGOALS)), $(call DOTARGCMD,$@:$(INTDEST)/Makefile.cache $(foreach FILE,$^,$(if $(filter-out FORCE,$(notdir $(FILE))),$(if $(findstring /,$(FILE)),$(FILE),$(CURDIR)/$(FILE)))),))
+# $(warning $(TARGET))
+ QUIETCMD=$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto -c $(INTDEST)/Makefile.cache $(space) $$(QUIET)
+  define DOTARGCMD
+  $(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(RINTDEST)/Makefile.cache $(space) $(1)
+  endef
+ endif
+
+ ifndef LD_INPUT
+  define LD_INPUT
+$(1)
+  endef
+ endif
+
+ define SRC_DEPENDS
+ endef 
+
+CLEANRULE=clean : $(sort $(foreach MORE,$(MORE_TARGET_LIST),$(call CLEANTARGET,$(MORE))))
+CLEANRULE_DEPS=$(sort $(foreach MORE,$(MORE_TARGET_LIST),$(call CLEANTARGET,$(MORE)))):
+.PHONY: moreclean ALL_PATH_distclean
+clean: moreclean
+	$(QUIETCMD)-rm -fr $(INTDEST)/Makefile.cache $(DEPLIST) $(OBJLIST) $(filter-out $(MORE_TARGET_LIST),$(OUTNAMES)) $(MYMAKEFILES)
+
+
+####################################################################################
+# some utility macros to simplify otherwise hideous code
+
+define filterdestpath_X
+ $(if $(filter ./,$(dir $(1))),$(CURDIR)/,\
+      $(if $(filter $(SACK_BASE)/src/deadstart/,$(dir $(1))),\
+        $(CURDIR)/,\
+        $(CURDIR)/$(dir $(1))))$(RINTDEST)/$(notdir $(1)) \
+ $(warning $(if $(filter ./,$(dir $(1))),$(CURDIR)/,\
+      $(if $(filter $(SACK_BASE)/src/deadstart/,$(dir $(1))),\
+        $(CURDIR)/,\
+        $(CURDIR)/$(dir $(1))))$(RINTDEST)/$(notdir $(1)))
+endef
+ifdef INDIRECT_BUILD
+
+define filterdeadstartdestpath
+$(if $(filter-out deadstart,$(notdir $(1))),$(1)/$(RINTDEST),$(CURDIR)/$(RINTDEST))
+endef
+
+define filterdestpath
+$(if $(filter-out deadstart,$(notdir $(subst /_,,$(dir $(1))_))),$(dir $(1))$(RINTDEST)/$(notdir $(1)),$(INTDEST)/$(notdir $(1)))
+endef
+else
+define filterdestpath
+$(INTDEST)/$(notdir $(1))
+endef
+endif
+# $(if $(filter ./,$(dir $(1))),$(CURDIR)/,\
+#	$(dir $(1)))$(RINTDEST)/$(notdir $(1))
+
+define filterpath
+   $(if $(filter .,$(1)),$(patsubst %/,%,$(CURDIR))/,\
+      $(if $(dir $(1)),\
+        $(1)/,\
+        $(if $(1),$(CURDIR)/$(1)/,$(CURDIR)/)))
+endef
+
+####################################################################################
+# common rules to explode later...
+
+ ifdef REQUIRE_SHORT_NAMES
+  define MAKE_EXT
+$(3).$(2)$(1)
+  endef
+ else
+  define MAKE_EXT
+$(3)$(2).$(1)
+  endef
+ endif
+  define OBJNAME
+$(call MAKE_EXT,$(OBJEXT),$(1),$(2))
+  endef
+  define DEFEXT
+$(call MAKE_EXT,d,$(1),$(2))
+  endef
+
+
+  ifdef CCRULE
+define std_obj_from_c_commands	
+	@echo Compiling $(notdir $<)...
+	$(call SRC_DEPENDS,$<)
+	$(TARGET)
+	$(call DOCMD,$(call CCRULE,$(CFLAGS) $(CXFLAGSX),$@,$<,$(@:$(call OBJNAME,$(1),)=.d), $(XCXFLAGSX),$(XCPPFLAGSX)))
+	$(call DOCMD,$(call MAKEDEPEND,$(MAKEDEPLIST),$(@:$(call OBJNAME,$(1),)=.d)))
+endef
+else
+define std_obj_from_c_commands
+	@echo Compiling $(notdir $<)...
+	$(call SRC_DEPENDS,$<)
+	$(TARGET)
+	$(call DOCMD,$(CC) $(CFLAGS) $(CXFLAGSX) $(XCXFLAGSX) $(XCPPFLAGSX) $(OUTNAMEOPT)$@ $<)
+	$(call DOCMD,$(call MAKEDEPEND,$(MAKEDEPLIST),$(@:$(call OBJNAME,$(1),)=.d)))
+endef
+endif
+
+ifdef INDIRECT_BUILD
+define std_obj_vars
+   $(call OBJNAME,$(1),$(call filterdeadstartdestpath,$(2))/%): CXFLAGSX=$$(CXFLAGS$(1))
+   $(call OBJNAME,$(1),$(call filterdeadstartdestpath,$(2))/%): XCXFLAGSX=$$(XCXFLAGS$(1))
+   $(call OBJNAME,$(1),$(call filterdeadstartdestpath,$(2))/%): XCPPFLAGSX=$$(XCPPFLAGS$(1))
+endef
+else
+define std_obj_vars
+   $(call OBJNAME,$(1),$(INTDEST)/%): CXFLAGSX=$$(CXFLAGS$(1))
+   $(call OBJNAME,$(1),$(INTDEST)/%): XCXFLAGSX=$$(XCXFLAGS$(1))
+   $(call OBJNAME,$(1),$(INTDEST)/%): XCPPFLAGSX=$$(XCPPFLAGS$(1))
+endef
+endif
+#   $(call OBJNAME,$(1),$(INTDEST)/%): CXFLAGSX=$$(CXFLAGS$(1)) 
+#   $(call OBJNAME,$(1),$(INTDEST)/%): XCXFLAGSX=$$(XCXFLAGS$(1)) 
+#   $(call OBJNAME,$(1),$(INTDEST)/%): XCPPFLAGSX=$$(XCPPFLAGS$(1)) 
+
+
+ifdef INDIRECT_BUILD
+define std_obj_from_c
+$(call OBJNAME,$(1),$(call filterdeadstartdestpath,$(2))/%): $(call filterpath,$(2))%.c;$$(call std_obj_from_c_commands)
+endef                                	
+else
+define std_obj_from_c
+$(call OBJNAME,$(1),$(INTDEST)/%): $(call filterpath,$(2))%.c;$$(call std_obj_from_c_commands)
+endef                                	
+endif
+#$(call OBJNAME,$(1),$(call filterpath,$(2))$(RINTDEST)/%): $(call filterpath,$(2))%.c;$$(call std_obj_from_c_commands)
+
+ifdef CXXRULE
+define std_obj_from_cpp_commands
+	@echo Compiling $(notdir $<)...
+	$(call SRC_DEPENDS,$<)
+	$(TARGET)
+	$(call DOCMD,$(call CXXRULE,$(CFLAGS) $(CXFLAGSX),$@,$<,$(@:$(call OBJNAME,$(1),)=.d), $(XCXFLAGSX),$(XCPPFLAGSX)))
+	$(call DOCMD,$(call MAKEDEPEND,$(MAKEDEPLIST),$(@::$(call OBJEXT,1,)=$(call DEFEXT,1,))))
+endef
+else
+define std_obj_from_cpp_commands
+	@echo Compiling $(notdir $<)...
+	$(call SRC_DEPENDS,$<)
+	$(TARGET)
+	$(call DOCMD,$(CXX) $(CFLAGS) $(CXFLAGSX) $(XCXFLAGSX) $(XCPPFLAGSX) $(OUTNAMEOPT)$@ $<)
+	$(call DOCMD,$(call MAKEDEPEND,$(MAKEDEPLIST),$(@:$(call OBJEXT,$(1),)=$(call DEFEXT,$(1),))))
+endef
+endif
+
+ifdef INDIRECT_BUILD
+define std_obj_from_cpp
+$(call OBJNAME,$(1),$(2)/$(RINTDEST)/%): $(call filterpath,$(2))%.cpp;$$(call std_obj_from_cpp_commands)
+$(call OBJNAME,$(1),$(2)/$(RINTDEST)/%): $(call filterpath,$(2))%.cc;$$(call std_obj_from_cpp_commands)
+endef
+else
+define std_obj_from_cpp
+$(call OBJNAME,$(1),$(INTDEST)/%): $(call filterpath,$(2))%.cpp;$$(call std_obj_from_cpp_commands)
+endef
+endif
+#$(call OBJNAME,$(1),$(call filterpath,$(2))$(RINTDEST)/%):$(call filterpath,$(2))%.cpp;$$(call std_obj_from_cpp_commands)
+
+####################################################################################
+# assembly canned rules... 
+
+ifdef ASMRULE
+ define std_obj_from_asm_commands
+	@echo Assembling $(notdir $<)...
+	$(call SRC_DEPENDS,$<)
+	$(TARGET)
+	$(call DOCMD,$(call ASMRULE,$@,$<,$(dir $<)))
+ endef
+else
+ define std_obj_from_asm_commands
+	@echo Assembling $(notdir $<)...
+	$(call SRC_DEPENDS,$<)
+	$(TARGET)
+	$(call DOCMD,$(ASM) -i$(dir $<) $(AFLAGS) -o $@ $<)
+ endef
+endif
+ifdef INDIRECT_BUILD
+define std_obj_from_asm
+$(call OBJNAME,$(1),$(2)/$(RINTDEST)/%): $(call filterpath,$(2))%.asm; $$(call std_obj_from_asm_commands)
+endef
+else
+define std_obj_from_asm
+$(call OBJNAME,$(1),$(INTDEST)/%): $(call filterpath,$(2))%.asm; $$(call std_obj_from_asm_commands)
+endef
+endif
+####################################################################################
+
+define std_res_from_rc_commands
+	@echo Compiling Resource $(notdir $<)...
+	$(TARGET)
+	$(QUIETCMD)$(RC) $*.rc $(RC_OUT_OPT)$@
+endef
+
+ifdef INDIRECT_BUILD
+define std_res_from_rc
+$(call MAKE_EXT,res,$(1),$(2)/$(RINTDEST)/%): $(call filterpath,$(2))%.rc; $$(call std_res_from_rc_commands)
+endef
+else
+define std_res_from_rc
+$(call MAKE_EXT,res,$(1),$(INTDEST)/%): $(call filterpath,$(2))%.rc; $$(call std_res_from_rc_commands)
+endef
+endif
+####################################################################################
+ifeq '$(filter distclean,$(MAKECMDGOALS))' ''
+# if not distclean...
+#if it doesn't exist, try to make it....
+$(SACK_BASE)/makefiles/$(RINTDEST)/makefile.many.real: $(SACK_BASE)/makefiles/$(RINTDEST)/makefile.mr | $(SACK_BASE)/makefiles/$(RINTDEST)
+	cp $< $@
+
+#$(warning $(shell $(FINALDEST)$(BINPATH)/debug-wc/dateof $(SACK_BASE)/makefiles/$(RINTDEST)/mm$(PROGEXT) $(SACK_BASE)/makefiles/$(RINTDEST)/makefile.mr $(SACK_BASE)/makefiles/$(RINTDEST)/make-sys ))
+$(SACK_BASE)/makefiles/$(RINTDEST)/makefile.mr: $(SACK_BASE)/makefiles/$(RINTDEST)/mm$(PROGEXT)| $(SACK_BASE)/makefiles/$(RINTDEST)
+	$(RUNMM)
+endif
+
+
+# This only needs to be included once, when 
+# the project 'makefiles' is being built, and that
+# project MUST be built before any other project is 
+# built.  This is done by hand at the moment.
+ifeq '$(filter distclean,$(MAKECMDGOALS))' ''
+ ifndef Makefile_cache_included
+  include $(SACK_BASE)/makefiles/$(RINTDEST)/makefile.many.real
+ endif  
+endif
+# if rules not included (0) and projects not blank(1)
+#$(warning possible to include Makefile.projects...)
+ ifeq '$(if $(PROJECT_RULES_INCLUDED),1,0)$(if $(PROJECTS)$(LESS_PROJECTS)$(MORE_PROJECTS),1,0)' '01'
+  include $(SACK_BASE)/makefiles/makefile.projects
+ endif
+
+ALL_PATHS:=$(sort $(FINALDEST)$(LIBPATH)$(DEST_SUFFIX) $(SACK_BASE)/makefiles/$(RINTDEST) $(RINTDEST) $(foreach path,$(VPATH),$(call filterpath,$(path))$(RINTDEST))) $(sort $(foreach outname,$(OUTNAMES),$(subst /_,,$(dir $(outname))_)))
+
+fakeall: | $(ALL_PATHS) 
+
+#$(foreach path,$(VPATH),$(call filterpath,$(path))$(RINTDEST))
+
+
+#	$(QUIET)mkdir $(subst /,$(SYSPATHCHAR),$@)
+
+# these rules handle copying default application data correctly...
+# the extension .DEFAULT was added, by thtat resulted in an
+# always-copy condition...  this resolves the always copy...
+.PRECIOUS: $(FINALDEST)$(BINPATH)$(DEST_SUFFIX)/% $(FINALDEST)$(LIBPATH)$(DEST_SUFFIX)/% $(FINALDEST)$(BINLIBPATH)$(DEST_SUFFIX)/% $(FINALDEST)$(DATAPATH)$(DEST_SUFFIX)/%
+
+$(FINALDEST)$(DATAPATH)$(DEST_SUFFIX)/%:$(CURDIR)/% %
+	$(call FINALTARGETEX,$(@:%.DEFAULT=%))
+	$(call DOCMD,$(QUIETCMD)-cp $< $@)
+
+$(FINALDEST)$(DATAPATH)$(DEST_SUFFIX)/%.DEFAULT: $(FINALDEST)$(DATAPATH)$(DEST_SUFFIX)/% ;
+#$(FINALDEST)$(DATAPATH)$(DEST_SUFFIX)/%.DEFAULT: % ;
+%.DEFAULT: % ;
+
+# ifneq '$(MANY_INCLUDED)$(SINGLE_INCLUDE)' '1'
+ifeq '$(filter distclean,$(MAKECMDGOALS))' 'distclean'
+distclean: $(SETGOALS) ALL_PATH_distclean
+	$(if $(OTHERCLEAN),@-rm -fr $(OTHERCLEAN))
+	@-rm -fr $(foreach vp,$(VPATH),$(subst ./,,$(vp)/)debug*)
+	@-rm -fr $(foreach vp,$(VPATH),$(subst ./,,$(vp)/)static_debug*)
+	@-rm -fr $(foreach vp,$(VPATH),$(subst ./,,$(vp)/)release*)
+	@-rm -fr $(foreach vp,$(VPATH),$(subst ./,,$(vp)/)static_release*)
+
+ALL_PROJ_ID=1 2 3 4 5 6 7 8 9 A B C D E F 10 11 12 13 14 15 16 17 18 19 1A 1B 1C 1D 1E 1F
+TEMP_PATHS=$(sort $(foreach MORE,$(MORE_TARGETS),$(dir $(MORE))) $(foreach proj_id,$(ALL_PROJ_ID),$(foreach src,$(SRCS$(proj_id)),$(dir $(src))))))
+ALL_PATH_distclean:
+	$(QUIETCMD)-rm -fr $(foreach path,$(TEMP_PATHS),$(subst ./,,$(dir $(path)))debug*) $(sort $(foreach MORE,$(MORE_TARGETS),$(if $(filter-out $(SACK_BASE)/include/,$(dir $(MORE))),$(dir $(MORE)),$(MORE))))
+	$(QUIETCMD)-rm -fr $(foreach path,$(TEMP_PATHS),$(subst ./,,$(dir $(path)))static_debug*)
+	$(QUIETCMD)-rm -fr $(foreach path,$(TEMP_PATHS),$(subst ./,,$(dir $(path)))release*)
+	$(QUIETCMD)-rm -fr $(foreach path,$(TEMP_PATHS),$(subst ./,,$(dir $(path)))static_release*)
+endif        
+# endif
+
+
+
+ifeq '$(filter makebuild,$(MAKECMDGOALS))' 'makebuild'
+$(foreach name,$(OUTNAMES),$(name:%.DEFAULT=%)):FORCE
+$(foreach name,$(PARTIAL_TARGETS),$(name:%.DEFAULT=%)):FORCE
+fakeall: $(AUTOLIBS) FORCE
+$(AUTOLIBS):FORCE
+OUTNAMES+=$(AUTOLIBS) 
+.PHONY:$(foreach LIB,$(LIBLIST_1) $(LIBLIST_2) $(LIBLIST_3) $(LIBLIST_4) $(LIBLIST_5) $(LIBLIST_6) $(LIBLIST_7) $(LIBLIST_8) $(LIBLIST_9) $(LIBLIST_A) $(LIBLIST_B),$(FINALDEST)$(LIBPATH)$(DEST_SUFFIX)/$(LIB))
+#$(foreach LIB,$(LIBLIST_1) $(LIBLIST_2) $(LIBLIST_3) $(LIBLIST_4) $(LIBLIST_5) $(LIBLIST_6) $(LIBLIST_7) $(LIBLIST_8) $(LIBLIST_9) $(LIBLIST_A) $(LIBLIST_B),$(FINALDEST)$(LIBPATH)$(DEST_SUFFIX)/$(LIB)):FORCE
+#$(OUTNAMES) 
+endif
+
+.PHONY: FORCE 
+FORCE: ;
+
+.PHONY: createbuild makebuild endbuild
+
+ifneq '$(SACK_BASE)' '$(CURDIR)'
+PARENT_CACHE=$(if $(NEXT_TOP_LEVEL),$(NEXT_TOP_LEVEL)/$(RINTDEST)/Makefile.cache,$(dir $(CURDIR))$(RINTDEST)/Makefile.cache)
+else
+PARENT_CACHE=
+endif
+
+createbuild: $(PARENT_CACHE)| $(INTDEST)
+	$(QUIET)echo $(if $(filter $(SACK_BASE),$(CURDIR)),TOP_LEVEL=1,) #Begin Makefile.cache > $(RINTDEST)/Makefile.cache
+#	$(QUIET)$(if $(filter-out $(SACK_BASE),$(CURDIR)),$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache _FINALDEST=$(_FINALDEST)#,)
+	$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache Makefile_cache_included=1
+	$(QUIET)$(if $(filter $(SACK_BASE),$(CURDIR)),$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache include $$\(SACK_BASE\)/makefiles/makefile.common,)
+	$(if $(filter $(SACK_BASE),$(CURDIR)),,$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache ifndef TOP_LEVEL)
+	$(if $(filter $(SACK_BASE),$(CURDIR)),,$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache INCLUDED_PARENT=1)
+	$(if $(filter $(SACK_BASE),$(CURDIR)),,$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache include $(if $(NEXT_TOP_LEVEL),$(NEXT_TOP_LEVEL)/$(RINTDEST)/Makefile.cache,$(dir $(CURDIR))$(RINTDEST)/Makefile.cache))
+	$(if $(filter $(SACK_BASE),$(CURDIR)),,$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache endif)
+#	$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache ifeq \'$$(CURDIR)\' \'$(CURDIR)\'
+	$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache ifeq \'$$(if $$(filter $$(CURDIR),$(CURDIR)),1,$$(ADD_PROJECT))\' \'1\'
+	$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache final_targets:$(foreach name,$(OUTNAMES),$(name:%.DEFAULT=%))
+	$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache endif
+	$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache ADD_PROJECT=1#end
+	$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache #endif
+	$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache ifndef $(BUILDNAME)
+	$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache $(BUILDNAME)=1
+	$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache $(INTDEST)/Makefile.cache:$(BUILD_DEP) \| $(PARENT_CACHE)
+	$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto -c $(INTDEST)/Makefile.cache $$(QUIET)$$(MAKE) -C $(CURDIR) makebuild
+	$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache $(MKFILE): ; # can't make these they either exist or not.
+ifneq '$(strip $(ALL_DEPS))' ''
+	$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache -include $(ALL_DEPS)
+#there are no reles to create the .d files - they either are or are not as a courtesy to remake
+	$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache $(ALL_DEPS): ; 
+endif		  
+	$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(INTDEST)/Makefile.cache \#head generated from common
+
+ifneq '$(SACK_BASE)' '$(CURDIR)'
+ifndef Makefile_cache_included
+$(PARENT_CACHE):$(filter-out $(MKFILE),$(BUILD_DEP))
+	$(QUIET)$(MAKE) -C $(if $(NEXT_TOP_LEVEL),$(NEXT_TOP_LEVEL),$(dir $(CURDIR))) makebuild
+endif        
+else
+ifdef Makefile_cache_included
+$(SACK_BASE)/$(RINTDEST)/Makefile.cache: $(BUILD_DEP);
+	$(QUIET)$(MAKE) -C $(SACK_BASE) makebuild
+endif
+endif
+
+endbuild: createbuild fakeall
+	$(QUIET)$(SACK_BASE)/makefiles/$(RINTDEST)/echoto $(RINTDEST)/Makefile.cache endif
+
+makebuild: endbuild | $(INTDEST)
+
+########## 
+# COMMON targets
+#  These are rules which only one copy need ever exist in order to build the
+#  entire tree.
+#
+
+# and finally (end of everything mostly... depend fakeall
+# otherwise fakeall just depends on target paths.
+fakeall: final_targets
+# end of if INCLUDED_COMMON_MAKEFILE_RULESET...
+endif
+
+$(eval $(CLEANRULE))
+#$(eval $(CLEANRULE_DEPS))
+# rules to make all destination directories based
+# on the existance of their parent directory...
+ifeq '$(filter distclean,$(MAKECMDGOALS))' ''
+ ifdef __WINDOWS__
+  STRIP_PATH=$(if $(subst .,,$(patsubst %:,,$(subst /_,,$(dir $(1))_))),$(subst /_,,$(dir $(1))_),)
+  define STRIP_PATHS
+   $(if $(filter undefined,$(origin $(call STRIPNAME,$(1)))),$(if $(1),$(eval $(call STRIPNAME,$(1))=EXIST),)$(if $(2),$(eval $(call STRIP_PATHS,$(2),$(call STRIP_PATH,$(2))))$(1): | $(2); -$(QUIET)mkdir $(subst /,$(SYSPATHCHAR),$(1)),$(1): ; -$(QUIET)mkdir $(subst /,$(SYSPATHCHAR),$(1))),)
+  endef
+
+ifndef bare_paths_handled
+$(SACK_BASE)/makefiles: ;
+bare_paths_handled=1
+. bin lib $(CURDIR) $(RINTDEST): ;
+
+endif
+# somehow this is only done once... but the above rules get multiply defined?!
+$(foreach path,$(sort $(ALL_PATHS)),$(if $(filter-out $(SACK_BASE)/include ./$(RINTDEST) $(RINTDEST) $(DEST),$(path)),$(eval $(path): | $(patsubst %/,%,$(subst /_,,$(dir $(path))_)); $(QUIET)mkdir $(subst /,$(SYSPATHCHAR),$(path))),))
+WINDEXT=.exe
+#$(exec $(AAA))
+
+ else
+# linux failure - just go ahead and make all paths stupidly
+# else on boris' make system the above logic causes an overflow.
+  AAA=$(foreach path,$(filter-out $(DEST) .$(DEST_SUFFIX),$(ALL_PATHS)),$(shell mkdir$(WINDEXT) -p $(path)))
+$(exec $(AAA))
+
+ endif
+endif
+
+# rule to ignore making destinations?
+#$(sort $(foreach outname,$(OUTNAMES),$(subst /_,,$(dir $(outname))_))):
+#	$(QUIET)-mkdir$(WINDEXT) -p $@
+
+
+#end of (if not TOP_LEVEL)
+#endif
