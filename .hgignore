@@ -41,5 +41,4 @@ glob:include/genxml/genx.h
 glob:include/png/png.h
 glob:include/zlib/zlib.h
 glob:include/sexpat/sexpat.h
-info/.+\.txt$
 ^build
