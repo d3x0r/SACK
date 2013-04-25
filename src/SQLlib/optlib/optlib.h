@@ -88,7 +88,8 @@ void New4EnumOptions( PODBC odbc, POPTION_TREE_NODE parent
 												  , PTRSZVAL psvUser );
 
 void NewDeleteOption( PODBC odbc, POPTION_TREE_NODE iRoot );
-void OpenWriter( POPTION_TREE option );
+void OpenWriterEx( POPTION_TREE option DBG_PASS);
+#define OpenWriter(o) OpenWriterEx( o DBG_SRC )
 
 INDEX ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR table, CTEXTSTR col, CTEXTSTR namecol, int bCreate DBG_PASS );
 
