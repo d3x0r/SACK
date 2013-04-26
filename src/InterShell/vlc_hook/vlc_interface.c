@@ -311,11 +311,11 @@ static PTRSZVAL CPROC replay_thread( PTHREAD thread )
 static void CPROC PlayerEvent( const libvlc_event_t *event, void *user )
 {
 	struct my_vlc_interface *pmyi = (struct my_vlc_interface *)user;
-	lprintf( WIDE( "Event %d" ), event->type );
+	xlprintf(2100)( WIDE( "Event %d" ), event->type );
 	switch( event->type )
 	{
 	case libvlc_MediaPlayerPlaying:
-		lprintf( WIDE( "Really playing." ) );
+		xlprintf(LOG_ALWAYS)( WIDE( "Really playing." ) );
 		pmyi->flags.bPlaying = 1;
 		break;
 	case libvlc_MediaPlayerLengthChanged:
