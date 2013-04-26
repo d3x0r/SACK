@@ -6,7 +6,7 @@
 #endif
 #define BUILDS_INTERFACE
 #include "../SQLlib/sqlstruc.h"
-#include "3.7.14/sqlite3.h"
+#include "3.7.16.2/sqlite3.h"
 
 struct sqlite_interface my_sqlite_interface = {
 	sqlite3_result_text

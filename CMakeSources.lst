@@ -133,7 +133,7 @@ if( USE_SQLITE )
   SET( BAG_SQLITE_INTERFACE  ${SOURCES_ROOT}src/sqlite/sqlite_interface.c )
   
 if( NOT SQLITE3_FOUND )
-  SET( SQLITE_VERSION 3.7.14 )
+  SET( SQLITE_VERSION 3.7.16.2 )
   SET( SQLITE_SOURCES ${SOURCES_ROOT}src/sqlite/${SQLITE_VERSION}/sqlite3.c )
   include_directories( ${SOURCES_ROOT}src/sqlite/${SQLITE_VERSION} )
   

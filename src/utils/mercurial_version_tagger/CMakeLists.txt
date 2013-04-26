@@ -59,7 +59,7 @@ set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/systemlib/oswin.c )
 set(NET_SOURCES   ${SOURCES_ROOT}/netlib/net_winsock2.c )
 endif( WIN32 )
 
-SET( SQLITE_VERSION 3.7.14 )
+SET( SQLITE_VERSION 3.7.16.2 )
 SET( SQLITE_SOURCES ${BAG_SQLITE_INTERFACE} ${SOURCES_ROOT}/sqlite/${SQLITE_VERSION}/sqlite3.c )
 include_directories( ${SOURCES_ROOT}/sqlite/${SQLITE_VERSION} )
 
