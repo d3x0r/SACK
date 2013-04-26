@@ -1,7 +1,7 @@
 
 project( bag.video.puregl )
 
-
+ADD_DEFINITIONS( -DMAKE_RCOORD_SINGLE )
 #INCLUDE_DIRECTORIES( cg/include/cg )
 # glsl ?
 

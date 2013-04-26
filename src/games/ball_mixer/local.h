@@ -2,13 +2,6 @@
 // bullet instance is defined in l....
 #include <btBulletDynamicsCommon.h>
 
-
-#define CheckErr()  				{    \
-					GLenum err = glGetError();  \
-					if( err )                   \
-						lprintf( "err=%d",err ); \
-				}                               \
-
 struct BulletInfo
 {
 	btBroadphaseInterface* broadphase;
@@ -188,22 +181,10 @@ struct {
 				GLint shine;
 			} material;
 		} simple_shader;
-		struct {
-			GLint projection;
-			GLint worldview;
-			GLint modelview;
-			GLint eye_point;
-
-			GLuint shader; // shader program ID
-			GLint frag_shader;// saved parts for later destruction?
-			GLint vert_shader;// saved parts for later destruction? 
-			GLint global_ambient;
-		} extra_simple_shader;
-
 	} shader;
 
 	float projection[16]; // retreived from opengl state 
-	float worldview[16]; // obtained from camera translation
+	float modelview[16]; // obtained from camera translation
 } l;
 
 enum color_defs{

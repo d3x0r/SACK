@@ -14,199 +14,22 @@
 
 #include <btBulletDynamicsCommon.h>
 
-#ifdef __ANDROID__
-#include <GLES/gl.h>
-#include <GLES2/gl2.h>
-#else
-#define GLEW_NO_GLU
 #include <GL/glew.h>
 #include <GL/gl.h>
-//#include <GL/glu.h>
-#endif
+#include <GL/glu.h>
+
+
+#include <GL/glew.h>
 
 #include "local.h"
 
-
-//const char *gles_
-const CTEXTSTR gles_simple_v_shader =
-    WIDE( "attribute vec4 vPosition;" )
-	WIDE( "attribute vec4 in_Color;" )
-	WIDE( "uniform mat4 modelView;\n" )
-	WIDE( "uniform mat4 worldView;\n" )
-	WIDE( "uniform mat4 Projection;\n" )
-	WIDE( " varying vec4 vColor;" )
-    WIDE("void main() {" )
-    WIDE("  gl_Position = Projection * worldView * modelView * vPosition;" )
-	WIDE( " vColor = in_Color;" )
-    WIDE("}"); 
-
-const CTEXTSTR gles_simple_p_shader =
-    WIDE( "precision mediump float;" )
-	WIDE( " varying vec4 vColor;" )
-    WIDE( "void main() {" )
-    WIDE( "  gl_FragColor = vColor;" )
-    WIDE( "}" );
-
-
-void InitSuperSimpleShader( void )
-{
-	GLint result;
-		const char *codeblocks[2];
-		l.shader.extra_simple_shader.shader = glCreateProgram();
-
-		//Obtain a valid handle to a vertex shader object.
-		l.shader.extra_simple_shader.vert_shader = glCreateShader(GL_VERTEX_SHADER);
-
-		codeblocks[0] = gles_simple_v_shader;
-		codeblocks[1] = NULL;
-
-		//codeblocks[1] = gles_simple_p_shader;
-		//Now, compile the shader source. 
-		//Note that glShaderSource takes an array of chars. This is so that one can load multiple vertex shader files at once.
-		//This is similar in function to linking multiple C++ files together. Note also that there can only be one "void main" definition
-		//In all of the linked source files that are compiling with this funciton.
-		glShaderSource(
-			l.shader.extra_simple_shader.vert_shader, //The handle to our shader
-			1, //The number of files.
-			codeblocks, //An array of const char * data, which represents the source code of theshaders
-			NULL); //An array of string leng7ths. For have null terminated strings, pass NULL.
-	 
-		//Attempt to compile the shader.
-		glCompileShader(l.shader.extra_simple_shader.vert_shader);
-		{
-			//Error checking.
-#ifdef __ANDROID__
-			glGetObjectParameterivARB(l.shader.extra_simple_shader.vert_shader, GL_COMPILE_STATUS, &result);
-#else
-			glGetObjectParameterivARB(l.shader.extra_simple_shader.vert_shader, GL_OBJECT_COMPILE_STATUS_ARB, &result);
-#endif
-			if (!result)
-			{
-				GLint length;
-				GLsizei final;
-				char *buffer;
-				//We failed to compile.
-				lprintf("Vertex shader 'program A' failed compilation.\n");
-				//Attempt to get the length of our error log.
-				glGetObjectParameterivARB(l.shader.extra_simple_shader.vert_shader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
-				buffer = NewArray( char, length );
-				//Create a buffer.
-					
-				//Used to get the final length of the log.
-				glGetInfoLogARB(l.shader.extra_simple_shader.vert_shader, length, &final, buffer);
-				//Convert our buffer into a string.
-				lprintf( "message: %s", buffer );
-
-
-				if (final > length)
-				{
-					//The buffer does not contain all the shader log information.
-					printf("Shader Log contained more information!\n");
-				}
-		
-			}
-		}
-
-		l.shader.extra_simple_shader.frag_shader = glCreateShader(GL_FRAGMENT_SHADER);
-		codeblocks[0] = gles_simple_p_shader;
-		glShaderSource(
-			l.shader.extra_simple_shader.frag_shader, //The handle to our shader
-			1, //The number of files.
-			codeblocks, //An array of const char * data, which represents the source code of theshaders
-			NULL); //An array of string lengths. For have null terminated strings, pass NULL.
-	 
-		//Attempt to compile the shader.
-		glCompileShader(l.shader.extra_simple_shader.frag_shader);
-
-		{
-			//Error checking.
-			glGetObjectParameterivARB(l.shader.extra_simple_shader.frag_shader, GL_OBJECT_COMPILE_STATUS_ARB, &result);
-			if (!result)
-			{
-				GLint length;
-				GLsizei final;
-				char *buffer;
-				//We failed to compile.
-				lprintf("Vertex shader 'program B' failed compilation.\n");
-				//Attempt to get the length of our error log.
-				glGetObjectParameterivARB(l.shader.extra_simple_shader.frag_shader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
-				buffer = NewArray( char, length );
-				//Create a buffer.
-					
-				//Used to get the final length of the log.
-				glGetInfoLogARB(l.shader.extra_simple_shader.frag_shader, length, &final, buffer);
-				//Convert our buffer into a string.
-				lprintf( "message: %s", buffer );
-
-
-				if (final > length)
-				{
-					//The buffer does not contain all the shader log information.
-					printf("Shader Log contained more information!\n");
-				}
-		
-			}
-		}
-
-		glAttachObjectARB(l.shader.extra_simple_shader.shader, l.shader.extra_simple_shader.vert_shader );
-		CheckErr();
-		glAttachObjectARB(l.shader.extra_simple_shader.shader, l.shader.extra_simple_shader.frag_shader );
-		CheckErr();
-		
-		glBindAttribLocation(l.shader.extra_simple_shader.shader, 0, "vPosition");
-		CheckErr();
-		glBindAttribLocation(l.shader.extra_simple_shader.shader, 1, "in_Color");
-		CheckErr();
-
-		glLinkProgram(l.shader.extra_simple_shader.shader);
-		CheckErr();
-		glUseProgram(l.shader.extra_simple_shader.shader);
-		CheckErr();
-
-		lprintf( "X = %d", glGetAttribLocation( l.shader.extra_simple_shader.shader, "vPosition" ) );
-		lprintf( "X = %d", glGetAttribLocation( l.shader.extra_simple_shader.shader, "in_Color" ) );
-
-		l.shader.extra_simple_shader.eye_point
-			=  glGetUniformLocation(l.shader.extra_simple_shader.shader, "in_eye_point" );
-		CheckErr();
-
-		l.shader.extra_simple_shader.global_ambient 
-			=  glGetUniformLocation(l.shader.extra_simple_shader.shader, "vColor");
-		CheckErr();
-
-		l.shader.extra_simple_shader.projection
-			= glGetUniformLocation(l.shader.extra_simple_shader.shader, "Projection");
-		CheckErr();
-		l.shader.extra_simple_shader.worldview
-			= glGetUniformLocation(l.shader.extra_simple_shader.shader, "worldView");
-		CheckErr();
-		l.shader.extra_simple_shader.modelview
-			= glGetUniformLocation(l.shader.extra_simple_shader.shader, "modelView");
-		CheckErr();
-
-		// projection should be constant?
-		glUniformMatrix4fv( l.shader.extra_simple_shader.projection, 1, GL_FALSE, l.projection );
-		CheckErr();
-		glUniform4f( l.shader.extra_simple_shader.global_ambient, 0.5, 0.5, 0.5, 1.0 );
-		CheckErr();
-
-}
 
 
 void InitShader( void )
 {
 	GLint result;
 
-#ifndef __ANDROID__
-		// should be able to do this without glew.
-		if (GLEW_OK != glewInit() )
-		{
-			// okay let's just init glew.
-			return;
-		}
-#endif
-	InitSuperSimpleShader();
-
+	
 	const char *common_vertex_transform_source = "#version 150\n"
 	                                         "uniform mat4 worldView;\n"
 	                                         "uniform mat4 modelView;\n"
@@ -402,10 +225,14 @@ void InitShader( void )
 	{
 		const char *codeblocks[2];
 
-#ifndef __ANDROID__
+		if (GLEW_OK != glewInit() )
+		{
+			// okay let's just init glew.
+			return;
+		}
 		glEnable(GL_FRAGMENT_PROGRAM_ARB);
 		glEnable(GL_VERTEX_PROGRAM_ARB);
-#endif
+
 		l.shader.simple_shader.shader = glCreateProgram();
 
 		//Obtain a valid handle to a vertex shader object.
@@ -427,11 +254,7 @@ void InitShader( void )
 		glCompileShader(l.shader.simple_shader.vert_shader);
 		{
 			//Error checking.
-#ifdef __ANDROID__
-			glGetObjectParameterivARB(l.shader.simple_shader.vert_shader, GL_COMPILE_STATUS, &result);
-#else
 			glGetObjectParameterivARB(l.shader.simple_shader.vert_shader, GL_OBJECT_COMPILE_STATUS_ARB, &result);
-#endif
 			if (!result)
 			{
 				GLint length;
@@ -560,9 +383,8 @@ void InitShader( void )
 		const char *codeblocks[3];
 		GLhandleARB fragmentHandle;
 
-#ifndef __ANDROID__
 		glEnable(GL_FRAGMENT_PROGRAM_ARB);
-#endif
+
 		l.shader.normal_shader.shader = glCreateProgramObjectARB();
 
 		//Obtain a valid handle to a vertex shader object.
@@ -729,25 +551,19 @@ void InitShader( void )
 		glUniformMatrix4fv( l.shader.normal_shader.projection, 1, GL_FALSE, l.projection );
 		glUniform4f( l.shader.normal_shader.global_ambient, 0.5, 0.5, 0.5, 1.0 );
 	}
-         CheckErr();
 
 	glUseProgram( 0 );
-         CheckErr();
-#ifndef __ANDROID__
 	glDisable(GL_FRAGMENT_PROGRAM_ARB);
 	glDisable(GL_VERTEX_PROGRAM_ARB);
-#endif
+
 }
 
 void SetMaterial( void )
 {
-   lprintf( "Set materiall..." );
-#ifndef __ANDROID__
 	glEnable(GL_FRAGMENT_PROGRAM_ARB);
 	glEnable(GL_VERTEX_PROGRAM_ARB);
-#endif
+
 	{
-      lprintf( "Use program" );
 		glUseProgram( l.shader.simple_shader.shader );
 
 		float spec[4];
@@ -794,21 +610,17 @@ void SetMaterial( void )
 		//glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff );
 
 	}
-      lprintf( "Disable program" );
 	glUseProgram( 0 );
-#ifndef __ANDROID__
 	glDisable(GL_FRAGMENT_PROGRAM_ARB);
 	glDisable(GL_VERTEX_PROGRAM_ARB);
-#endif
+
 }
 
 void SetLights( void )
 {
-#ifndef __ANDROID__
 		glEnable(GL_FRAGMENT_PROGRAM_ARB);
 		glEnable(GL_VERTEX_PROGRAM_ARB);
-#endif
-      lprintf( "Use program" );
+
 		glUseProgram( l.shader.simple_shader.shader );
 			{
 				GLfloat lightpos[] = {-1000, 1000, 0., 0.};
@@ -879,12 +691,10 @@ void SetLights( void )
 				//glUniform3fv( l.shader.normal_shader.light[1].direction, 1, lightdir );
 			}
 
-      lprintf( "disable" );
 	glUseProgram( 0 );
-#ifndef __ANDROID__
 	glDisable(GL_FRAGMENT_PROGRAM_ARB);
 	glDisable(GL_VERTEX_PROGRAM_ARB);
-#endif
+
 }
 
 // useful for purely static objects.
@@ -1019,11 +829,8 @@ void RenderBumpTextureFragment( Image texture
 		{
 			SetShader = TRUE;
 			SetLights();
-#ifndef __ANDROID__
 		 	glEnable(GL_FRAGMENT_PROGRAM_ARB);
 		 	glEnable(GL_VERTEX_PROGRAM_ARB);
-#endif
-      lprintf( "Use program" );
 			glUseProgram( l.shader.normal_shader.shader);
 
 			glVertexAttrib4fv((GLuint)2, background); // set constant color attribute
@@ -1033,7 +840,7 @@ void RenderBumpTextureFragment( Image texture
 			glUniformMatrix4fv
 #endif
 				( l.shader.normal_shader.modelview, 1, GL_FALSE, m );
-			glUniformMatrix4fv( l.shader.normal_shader.worldview, 1, GL_FALSE, l.worldview );
+			glUniformMatrix4fv( l.shader.normal_shader.worldview, 1, GL_FALSE, l.modelview );
    			// set with the index of the texture loaded below...
 
 			glActiveTexture( GL_TEXTURE1 );
@@ -1059,11 +866,8 @@ void RenderBumpTextureFragment( Image texture
 	else if( 1 )
 	{
 		SetShader = TRUE;
-#ifndef __ANDROID__
 		glEnable(GL_VERTEX_PROGRAM_ARB);
 		glEnable(GL_FRAGMENT_PROGRAM_ARB);
-#endif
-      lprintf( "Use program" );
 		glUseProgram( l.shader.simple_shader.shader );
 		glUniform4fv( l.shader.simple_shader.material.ambient, 1, background );
 		//glUniform4fv( l.shader.simple_shader.material.diffuse, 1, background );
@@ -1078,14 +882,10 @@ void RenderBumpTextureFragment( Image texture
 
 	if( SetShader )
 	{
-      lprintf( "disable program" );
 		glUseProgram( 0 );
-#ifndef __ANDROID__
 		glDisable(GL_FRAGMENT_PROGRAM_ARB);
 		glDisable(GL_VERTEX_PROGRAM_ARB);
-#endif
 	}
 
 	glBindVertexArray(0);
 }
-
