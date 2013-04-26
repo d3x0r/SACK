@@ -46,7 +46,15 @@ extern "C" {
 ** Add the ability to override 'extern'
 */
 #ifndef SQLITE_EXTERN
-# define SQLITE_EXTERN extern
+#  ifdef SQLITE_SOURCE
+//warning export
+#    define SQLITE_EXTERN EXPORT_METHOD
+#  else
+//warning import
+#    define SQLITE_EXTERN IMPORT_METHOD
+#  endif
+#else
+#  error boom
 #endif
 
 #ifndef SQLITE_API
@@ -141,7 +149,7 @@ extern "C" {
 **
 ** See also: [sqlite_version()] and [sqlite_source_id()].
 */
-SQLITE_API SQLITE_EXTERN const char sqlite3_version[];
+//SQLITE_API SQLITE_EXTERN const char sqlite3_version[];
 SQLITE_API const char *sqlite3_libversion(void);
 SQLITE_API const char *sqlite3_sourceid(void);
 SQLITE_API int sqlite3_libversion_number(void);
@@ -305,7 +313,7 @@ typedef sqlite_uint64 sqlite3_uint64;
 ** ^Calling sqlite3_close() or sqlite3_close_v2() with a NULL pointer
 ** argument is a harmless no-op.
 */
-SQLITE_API int sqlite3_close(sqlite3*);
+SQLITE_EXTERN SQLITE_API int sqlite3_close(sqlite3*);
 SQLITE_API int sqlite3_close_v2(sqlite3*);
 
 /*
@@ -1287,7 +1295,7 @@ SQLITE_API int sqlite3_os_end(void);
 ** ^If the option is unknown or SQLite is unable to set the option
 ** then this routine returns a non-zero [error code].
 */
-SQLITE_API int sqlite3_config(int, ...);
+SQLITE_EXTERN SQLITE_API int sqlite3_config(int, ...);
 
 /*
 ** CAPI3REF: Configure database connections
@@ -1305,7 +1313,7 @@ SQLITE_API int sqlite3_config(int, ...);
 ** ^Calls to sqlite3_db_config() return SQLITE_OK if and only if
 ** the call is considered successful.
 */
-SQLITE_API int sqlite3_db_config(sqlite3*, int op, ...);
+SQLITE_EXTERN SQLITE_API int sqlite3_db_config(sqlite3*, int op, ...);
 
 /*
 ** CAPI3REF: Memory Allocation Routines
@@ -1776,7 +1784,7 @@ SQLITE_API int sqlite3_extended_result_codes(sqlite3*, int onoff);
 ** unpredictable and might not equal either the old or the new
 ** last insert [rowid].
 */
-SQLITE_API sqlite3_int64 sqlite3_last_insert_rowid(sqlite3*);
+SQLITE_EXTERN SQLITE_API sqlite3_int64 sqlite3_last_insert_rowid(sqlite3*);
 
 /*
 ** CAPI3REF: Count The Number Of Rows Modified
@@ -2738,7 +2746,7 @@ SQLITE_API void sqlite3_progress_handler(sqlite3*, int, int(*)(void*), void*);
 **
 ** See also: [sqlite3_temp_directory]
 */
-SQLITE_API int sqlite3_open(
+SQLITE_EXTERN SQLITE_API int sqlite3_open(
   const char *filename,   /* Database filename (UTF-8) */
   sqlite3 **ppDb          /* OUT: SQLite db handle */
 );
@@ -2837,7 +2845,7 @@ SQLITE_API sqlite3_int64 sqlite3_uri_int64(const char*, const char*, sqlite3_int
 */
 SQLITE_API int sqlite3_errcode(sqlite3 *db);
 SQLITE_API int sqlite3_extended_errcode(sqlite3 *db);
-SQLITE_API const char *sqlite3_errmsg(sqlite3*);
+SQLITE_EXTERN SQLITE_API const char *sqlite3_errmsg(sqlite3*);
 SQLITE_API const void *sqlite3_errmsg16(sqlite3*);
 SQLITE_API const char *sqlite3_errstr(int);
 
@@ -3060,7 +3068,7 @@ SQLITE_API int sqlite3_prepare(
   sqlite3_stmt **ppStmt,  /* OUT: Statement handle */
   const char **pzTail     /* OUT: Pointer to unused portion of zSql */
 );
-SQLITE_API int sqlite3_prepare_v2(
+SQLITE_EXTERN SQLITE_API int sqlite3_prepare_v2(
   sqlite3 *db,            /* Database handle */
   const char *zSql,       /* SQL statement, UTF-8 encoded */
   int nByte,              /* Maximum length of zSql in bytes. */
@@ -3377,7 +3385,7 @@ SQLITE_API int sqlite3_clear_bindings(sqlite3_stmt*);
 **
 ** See also: [sqlite3_data_count()]
 */
-SQLITE_API int sqlite3_column_count(sqlite3_stmt *pStmt);
+SQLITE_EXTERN SQLITE_API int sqlite3_column_count(sqlite3_stmt *pStmt);
 
 /*
 ** CAPI3REF: Column Names In A Result Set
@@ -3405,7 +3413,7 @@ SQLITE_API int sqlite3_column_count(sqlite3_stmt *pStmt);
 ** then the name of the column is unspecified and may change from
 ** one release of SQLite to the next.
 */
-SQLITE_API const char *sqlite3_column_name(sqlite3_stmt*, int N);
+SQLITE_EXTERN SQLITE_API const char *sqlite3_column_name(sqlite3_stmt*, int N);
 SQLITE_API const void *sqlite3_column_name16(sqlite3_stmt*, int N);
 
 /*
@@ -3569,7 +3577,7 @@ SQLITE_API const void *sqlite3_column_decltype16(sqlite3_stmt*,int);
 ** then the more specific [error codes] are returned directly
 ** by sqlite3_step().  The use of the "v2" interface is recommended.
 */
-SQLITE_API int sqlite3_step(sqlite3_stmt*);
+SQLITE_EXTERN SQLITE_API int sqlite3_step(sqlite3_stmt*);
 
 /*
 ** CAPI3REF: Number of columns in a result set
@@ -3786,7 +3794,7 @@ SQLITE_API int sqlite3_data_count(sqlite3_stmt *pStmt);
 ** [SQLITE_NOMEM].)^
 */
 SQLITE_API const void *sqlite3_column_blob(sqlite3_stmt*, int iCol);
-SQLITE_API int sqlite3_column_bytes(sqlite3_stmt*, int iCol);
+SQLITE_EXTERN SQLITE_API int sqlite3_column_bytes(sqlite3_stmt*, int iCol);
 SQLITE_API int sqlite3_column_bytes16(sqlite3_stmt*, int iCol);
 SQLITE_API double sqlite3_column_double(sqlite3_stmt*, int iCol);
 SQLITE_API int sqlite3_column_int(sqlite3_stmt*, int iCol);
@@ -3821,7 +3829,7 @@ SQLITE_API sqlite3_value *sqlite3_column_value(sqlite3_stmt*, int iCol);
 ** statement after it has been finalized can result in undefined and
 ** undesirable behavior such as segfaults and heap corruption.
 */
-SQLITE_API int sqlite3_finalize(sqlite3_stmt *pStmt);
+SQLITE_EXTERN SQLITE_API int sqlite3_finalize(sqlite3_stmt *pStmt);
 
 /*
 ** CAPI3REF: Reset A Prepared Statement Object
@@ -4313,7 +4321,7 @@ SQLITE_API void sqlite3_result_error_code(sqlite3_context*, int);
 SQLITE_API void sqlite3_result_int(sqlite3_context*, int);
 SQLITE_API void sqlite3_result_int64(sqlite3_context*, sqlite3_int64);
 SQLITE_API void sqlite3_result_null(sqlite3_context*);
-SQLITE_API void sqlite3_result_text(sqlite3_context*, const char*, int, void(*)(void*));
+SQLITE_EXTERN SQLITE_API void sqlite3_result_text(sqlite3_context*, const char*, int, void(*)(void*));
 SQLITE_API void sqlite3_result_text16(sqlite3_context*, const void*, int, void(*)(void*));
 SQLITE_API void sqlite3_result_text16le(sqlite3_context*, const void*, int,void(*)(void*));
 SQLITE_API void sqlite3_result_text16be(sqlite3_context*, const void*, int,void(*)(void*));
@@ -4567,7 +4575,7 @@ SQLITE_API int sqlite3_sleep(int);
 ** sqlite3_temp_directory = sqlite3_mprintf("%s", zPathBuf);
 ** </pre></blockquote>
 */
-SQLITE_API SQLITE_EXTERN char *sqlite3_temp_directory;
+//SQLITE_API SQLITE_EXTERN char *sqlite3_temp_directory;
 
 /*
 ** CAPI3REF: Name Of The Folder Holding Database Files
@@ -4604,7 +4612,7 @@ SQLITE_API SQLITE_EXTERN char *sqlite3_temp_directory;
 ** made NULL or made to point to memory obtained from [sqlite3_malloc]
 ** or else the use of the [data_store_directory pragma] should be avoided.
 */
-SQLITE_API SQLITE_EXTERN char *sqlite3_data_directory;
+//SQLITE_API SQLITE_EXTERN char *sqlite3_data_directory;
 
 /*
 ** CAPI3REF: Test For Auto-Commit Mode
@@ -4627,7 +4635,7 @@ SQLITE_API SQLITE_EXTERN char *sqlite3_data_directory;
 ** connection while this routine is running, then the return value
 ** is undefined.
 */
-SQLITE_API int sqlite3_get_autocommit(sqlite3*);
+SQLITE_EXTERN SQLITE_API int sqlite3_get_autocommit(sqlite3*);
 
 /*
 ** CAPI3REF: Find The Database Handle Of A Prepared Statement
