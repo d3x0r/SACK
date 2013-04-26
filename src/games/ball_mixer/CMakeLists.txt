@@ -27,7 +27,6 @@ include_directories( ${SACK_INCLUDE_DIR} )
 LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
 
 INSTALL_SACK( bin )
-INSTALL_INTERSHELL_CORE( bin )
 INSTALL_INTERSHELL_PLUGINS( bin )
 INSTALL_SACK_BINARY( systray_shell bin )
 
@@ -43,7 +42,7 @@ SET( EXTRA_SOURCES remote_hook.cpp )
 ADD_DEFINITIONS( -DALTANIK_EXISTS )
 endif( EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../altanik )
 
-
+ADD_DEFINITIONS( -DMAKE_RCOORD_SINGLE )
 
 include_directories( ../include )
 
@@ -59,6 +58,7 @@ endif( WIN32 )
 if( CMAKE_BUILD_lower STREQUAL "debug" )
 #ADD_DEFINITIONS( -DBT_DEBUG )
 endif( CMAKE_BUILD_lower STREQUAL "debug" )
+
 
 ADD_LIBRARY( ${PROJECT_NAME} SHARED
 ${FIRST_GCC_LIBRARY_SOURCE} 

@@ -6,17 +6,8 @@
 #include <network.h>
 #include <sqlgetoption.h>
 #include <vectlib.h>
-
-
-#ifdef __ANDROID__
-#include <GLES/gl.h>
-#include <GLES2/gl2.h>
-#else
-#define GLEW_NO_GLU
-#include <GL/glew.h>
 #include <GL/gl.h>
-//#include <GL/glu.h>
-#endif
+#include <GL/glu.h>
 
 #define INTERFACE_USED
 
@@ -99,7 +90,6 @@ void DrawOverlay( PTRANSFORM camera )
 		}
 		if( bound )
 		{
-#ifndef __ANDROID__
 			for( n = 0; n < 4; n++ )
 				Apply( camera, out_corners[n], corners[n] );
 			glDisable( GL_DEPTH );
@@ -117,10 +107,9 @@ void DrawOverlay( PTRANSFORM camera )
 					:n==1?0
 					:n==2?1
 					:n==3?1:0 );
-				glVertex3dv( out_corners[n] );
+				glVertex3fv( out_corners[n] );
 			}
 			glEnd();
-#endif
 		}
 
 	}

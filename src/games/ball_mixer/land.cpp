@@ -62,14 +62,9 @@
 
 #include <btBulletDynamicsCommon.h>
 
-#ifdef __ANDROID__
-#include <GLES/gl.h>
-#include <GLES2/gl2.h>
-#else
-#define GLEW_NO_GLU
 #include <GL/glew.h>
 #include <GL/gl.h>
-#endif
+#include <GL/glu.h>
 
 #include "land.h"
 
@@ -309,7 +304,6 @@ struct band {
 		hex_size = size;
 		if( hex_size > max_hex_size )
 		{
-
 			if( max_hex_size )
 			{
 				{
@@ -696,14 +690,12 @@ int mating_edges[6][2] = { { 0, 1 }, { 2, 1 }, { 2, 0 }
 	int number;
 
 
-
 // if not north, then south.
 int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 {
 	int s, level, c, r;
 	float back_color[4];
 	float fore_color[4];
-   float *color;
 	float tmpval[4];
    float fade;
 	pole *pole_patch = patch->pole;
@@ -756,22 +748,23 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 	tmpval[1] = 0.5;//l.values[MAT_SPECULAR1] / 256.0f;
 	tmpval[2] = 0.5;//l.values[MAT_SPECULAR2] / 256.0f;
 	//tmpval[3] = 1.0f;
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, tmpval );
-	//glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 64/*l.values[MAT_SHININESS]/2*/ ); // 0-128
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, tmpval );
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 64/*l.values[MAT_SHININESS]/2*/ ); // 0-128
 	tmpval[0] = 0.5;
 	tmpval[1] = 0.5;
 	tmpval[2] = 0.45;
 	//tmpval[3] = 1.0f;
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, tmpval );
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, tmpval );
 	// create array of normals.
 	//__try
-#ifndef NO_SHADERS
 	{
-//		if( !mode )
+		if( !mode )
 		{
 			INDEX idx;
 			struct SACK_3D_Surface * surface;
-/*
+			glEnable(GL_VERTEX_PROGRAM_ARB);
+			glEnable(GL_FRAGMENT_PROGRAM_ARB);
+
 			glUseProgram( l.shader.simple_shader.shader );
 #ifdef BT_USE_DOUBLE_PRECISION
 			glUniformMatrix4dv
@@ -779,18 +772,9 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 			glUniformMatrix4fv
 #endif
 				( l.shader.simple_shader.modelview, 1, GL_FALSE, m );
-*/
-			//glUseProgram( l.shader.extra_simple_shader.shader );
-#ifdef BT_USE_DOUBLE_PRECISION
-			glUniformMatrix4dv
-#else
-			glUniformMatrix4fv
-#endif
-				( l.shader.extra_simple_shader.modelview, 1, GL_FALSE, m );
-	         CheckErr();
-/*
+
 			glUseProgram( l.shader.normal_shader.shader );
-#ifdef BT_USE_DOUBLE_PRECISION
+			#ifdef BT_USE_DOUBLE_PRECISION
 			glUniformMatrix4dv
 #else
 			glUniformMatrix4fv
@@ -798,8 +782,9 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 				( l.shader.normal_shader.modelview, 1, GL_FALSE, m );
 
 			glUseProgram( 0 );
-*/
-			/*
+			glDisable(GL_FRAGMENT_PROGRAM_ARB);
+			glDisable(GL_VERTEX_PROGRAM_ARB);
+
 			LIST_FORALL( patch->pole->bands, idx, struct SACK_3D_Surface *, surface )
 			{
 				if( surface->color )
@@ -811,41 +796,34 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 				if( surface->color )
 					RenderBumpTextureFragment( NULL, NULL, m, 0, fore_color, surface );
 				else
-				RenderBumpTextureFragment( NULL, NULL, m, 0, back_color, surface );
+					RenderBumpTextureFragment( NULL, NULL, m, 0, back_color, surface );
 			}
-			*/
 		}
 
 	}
-#endif
 
 	if( mode )
 	{
-		GLfloat *verts = patch->verts; //[pole_patch->hex_size+1][6];
-		GLfloat *norms = patch->norms; //[pole_patch->hex_size+1][6];
-		GLfloat *colors = patch->colors; //[pole_patch->hex_size+1][8];
-
-
+		glColorMaterial (GL_FRONT_AND_BACK, GL_DIFFUSE);
 		for( s = 0; s < 3; s++ )
 		{
 			for( level = 1; level <= pole_patch->hex_size; level++ )
 			{
 				VECTOR v1,v2;
+
 				{
 					switch( s )
 					{
 					case 0:
 					case 1:
-						color = fore_color;
-						//glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, fore_color );
+						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, fore_color );
 						break;
 					case 2:
-						color = back_color;
-						//glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, back_color );
+						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, back_color );
 						break;
 					}
 				}
-
+				glBegin( GL_TRIANGLE_STRIP );
 				r = 0;
 
 				for( c = 0; c <= level; c++ )
@@ -855,90 +833,58 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 							, SPHERE_SIZE + patch->height[s+(north*6)][x][y] );
 					if( north )
 						v1[1] = -v1[1];
-					verts[c*6+0] = norms[c*6+0] = v1[0];
-					verts[c*6+1] = norms[c*6+1] = v1[1];
-					verts[c*6+2] = norms[c*6+2] = v1[2];
-					colors[c*8+0] = color[0];
-					colors[c*8+1] = color[1];
-					colors[c*8+2] = color[2];
-					colors[c*8+3] = color[3];
+					
+					glNormal3d( v1[0], v1[1], v1[2] );
+					glVertex3d( v1[0], v1[1], v1[2] );
 					if( c < (level) )
 					{
 						ConvertPolarToRect( level-1, c, &x, &y );
 						scale( v1, pole_patch->patches[s].grid[x][y], SPHERE_SIZE + patch->height[s+(north*6)][x][y] );
 						if( north )
 							v1[1] = -v1[1];
-						verts[c*6+3] = norms[c*6+3] = v1[0];
-						verts[c*6+4] = norms[c*6+4] = v1[1];
-						verts[c*6+5] = norms[c*6+5] = v1[2];
-						colors[c*8+4] = color[0];
-						colors[c*8+5] = color[1];
-						colors[c*8+6] = color[2];
-						colors[c*8+7] = color[3];
+						glNormal3d( v1[0], v1[1], v1[2] );
+						glVertex3d( v1[0], v1[1], v1[2] );
 					}
 					r++;
 				}
-				glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );
-				CheckErr();
-				glVertexAttribPointer( 1, 4, GL_FLOAT, FALSE, 0, colors );
-				CheckErr();
-				lprintf( "Draw." );
-				glDrawArrays(GL_LINE_STRIP, 0, (level+1)*2-1);
-		         CheckErr();
+				glEnd();
 				if( bLog )lprintf( WIDE("---------") );
 
 				{
 					switch( s )
 					{
 					case 0:
-						color = fore_color;
-						//glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, fore_color );
+						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, fore_color );
 						break;
 					case 1:
 					case 2:
-						color = back_color;
-						//glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, back_color );
+						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, back_color );
 						break;
 					}
 				}
-				//glBegin( GL_TRIANGLE_STRIP );
-				for( c = 0; c <= level; c++ )
+				glBegin( GL_TRIANGLE_STRIP );
+				for( c = level; c <= level*2; c++ )
 				{
-					ConvertPolarToRect( level, c+level, &x, &y );
+					ConvertPolarToRect( level, c, &x, &y );
 					//if( bLog )lprintf( WIDE("Render corner %d,%d"), 2*level-c,level);
 					scale( v1, pole_patch->patches[s].grid[x][y], SPHERE_SIZE + patch->height[s+(north*6)][x][y] );
 					if( north )
 						v1[1] = -v1[1];
-					verts[c*6+0] = norms[c*6+0] = v1[0];
-					verts[c*6+1] = norms[c*6+1] = v1[1];
-					verts[c*6+2] = norms[c*6+2] = v1[2];
-					colors[c*8+0] = color[0];
-					colors[c*8+1] = color[1];
-					colors[c*8+2] = color[2];
-					colors[c*8+3] = color[3];
-					if( c < (level) )
+					glNormal3d( v1[0], v1[1], v1[2] );
+					glVertex3d( v1[0], v1[1], v1[2] );
+					if( c < (level)*2 )
 					{
 
-						ConvertPolarToRect( level-1, c+level-1, &x, &y );
+						ConvertPolarToRect( level-1, c-1, &x, &y );
 						//if( bLog )lprintf( WIDE("Render corner %d,%d"), 2*level-c-1,level-1);
 						scale( v1, pole_patch->patches[s].grid[x][y], SPHERE_SIZE + patch->height[s+(north*6)][x][y] );
 						if( north )
 							v1[1] = -v1[1];
-						verts[c*6+3] = norms[c*6+3] = v1[0];
-						verts[c*6+4] = norms[c*6+4] = v1[1];
-						verts[c*6+5] = norms[c*6+5] = v1[2];
-						colors[c*8+4] = color[0];
-						colors[c*8+5] = color[1];
-						colors[c*8+6] = color[2];
-						colors[c*8+7] = color[3];
+						glNormal3d( v1[0], v1[1], v1[2] );
+						glVertex3d( v1[0], v1[1], v1[2] );
 					}
 				}
-				//glVertexPointer(3, GL_FLOAT, 0, verts );
-				//glNormalPointer(GL_FLOAT, 0, norms );
-				//glColorPointer( 4, GL_FLOAT, 0, colors );
-            lprintf( "Draw." );
-				glDrawArrays(GL_LINE_STRIP, 0, (level+1)*2-1);
-				CheckErr();
+				glEnd();
 			}
 		}
 	}
@@ -1007,6 +953,7 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 		fore_color[3] = 1.0;
 	}
 
+
 	bright_fore_color[0] = 0.5f;
 	bright_fore_color[1] = 0.5f;
 	bright_fore_color[2] = 0.5f;
@@ -1029,7 +976,6 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, tmpval );
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 64/*l.values[MAT_SHININESS]/2*/ ); // 0-128
 
-#if 0 && !defined( NO_SHADERS )
 	if( !mode )
 	{
 		INDEX idx;
@@ -1060,7 +1006,7 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 			}
 		}
 	}
-#endif
+
 	if( mode )
 	{
 		//scale( ref_point, VectorConst_X, SPHERE_SIZE );
@@ -1151,7 +1097,7 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 
 				}
 
-#if 0
+
 				glBegin( GL_TRIANGLE_STRIP );
 				for( section2 = 0; section2 <= sections2; section2++ )
 				{
@@ -1175,8 +1121,8 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 								glTexCoord2f( (float)section_offset / band->hex_size, 1.0f - (float)section2/band->hex_size );
 							}
 						}
-						glNormal3dv( patch1 );
-						glVertex3dv( patch1 );
+						glNormal3fv( patch1 );
+						glVertex3fv( patch1 );
 
 						if( bound )
 						{
@@ -1193,12 +1139,12 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 								glTexCoord2f( (float)section_offset_1 / band->hex_size, 1.0f - (float)section2/band->hex_size );
 							}
 						}
-						glNormal3dv( patch2 );
-						glVertex3dv( patch2 );
+						glNormal3fv( patch2 );
+						glVertex3fv( patch2 );
 					}
 				}
 				glEnd();
-#endif
+
 			}
 		}
 
@@ -1209,22 +1155,6 @@ int DrawSphereThing( PHEXPATCH patch, int mode )
 {
 	RCOORD scale = 0.0;
 
-	glEnable(GL_VERTEX_PROGRAM_ARB);
-         CheckErr();
-	glEnable(GL_FRAGMENT_PROGRAM_ARB);
-         CheckErr();
-
-	glUseProgram( l.shader.extra_simple_shader.shader );
-         CheckErr();
-	lprintf( "Use ess Program (then draw)" );
-
-	glEnableVertexAttribArray( 0 );
-         CheckErr();
-	glEnableVertexAttribArray( 1 );
-         CheckErr();
-	//glEnableVertexAttribArray( 2 );
-	//glEnableVertexAttribArray( 3 );
-	//glEnableVertexAttribArray( 5 );
 
 	if( patch->number == l.next_active_ball && ( l.next_active_tick > 0 ) )
 	{
@@ -1240,69 +1170,46 @@ int DrawSphereThing( PHEXPATCH patch, int mode )
 		RCOORD real_factor = (target1 * scale + target2 * (1.0-scale));
 		lprintf( "scale is %g   %g", scale, real_factor );
 
-
 		glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-		/*
 		glPushMatrix();
 		glLoadIdentity();									// Reset The Projection Matrix
 
-#ifndef __ANDROID__
-		// changes scaling
 		glOrtho(-real_factor*(l.aspect[0])
 				 , real_factor*(l.aspect[0])
 				 , -real_factor, real_factor, -1000.0f, 3000.0f);
-#endif
-		*/
-			glGetFloatv( GL_PROJECTION_MATRIX, l.projection );
-			glUseProgram( l.shader.simple_shader.shader );
-			CheckErr();
-			lprintf( "Use ss Program" );
-			glUniformMatrix4fv( l.shader.simple_shader.projection, 1, GL_FALSE, l.projection );
-			CheckErr();
-			glUseProgram( l.shader.extra_simple_shader.shader );
-			CheckErr();
-			lprintf( "Use ess Program" );
-			glUniformMatrix4fv( l.shader.extra_simple_shader.projection, 1, GL_FALSE, l.projection );
-			CheckErr();
-			glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 
+		glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 	}
           
 	//if( mode )
-	//glPushMatrix();
+	glPushMatrix();
 
 	btScalar m[16];
 	btTransform trans;
 	patch->fallRigidBody->getMotionState()->getWorldTransform( trans );
 
 	trans.getOpenGLMatrix(m);
-	//btVector3 r = trans.getOrigin();
+	btVector3 r = trans.getOrigin();
 
 #ifdef BT_USE_DOUBLE_PRECISION 
-	//	glMultMatrixd( m );
+		glMultMatrixd( m );
 #else
-	//	glMultMatrixf( m );
+		glMultMatrixf( m );
 #endif
 
 	//which is a 1x1x1 sort of patch array
-	//RenderBandPatch( patch, m, mode );
+	RenderBandPatch( patch, m, mode );
 	RenderPolePatch( patch, m, mode, 0 );
 	RenderPolePatch( patch, m, mode, 1 );
 
-	//glPopMatrix();
+	glPopMatrix();
 
 	if( scale > 0.0 )
 	{
-		/*
 		glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
-		*/
 	}
-	   lprintf( "Program off" );
-		glUseProgram( 0 );
-			//glEnable(GL_VERTEX_PROGRAM_ARB);
-			//glEnable(GL_FRAGMENT_PROGRAM_ARB);
 	return 1;
 }
 
@@ -1340,16 +1247,7 @@ void ResizeHeightMap( PHEXPATCH patch, int size )
 				Release( patch->height[m] );
 			}
 		}
-		Release( patch->verts );
-		Release( patch->norms );
-		Release( patch->colors );
-
 		patch->max_hex_size = patch->hex_size = size;
-
-		patch->verts = NewArray( GLfloat, (patch->hex_size+1)*6); //[pole_patch->hex_size+1][6];
-		patch->norms = NewArray( GLfloat, (patch->hex_size+1)*6); //[pole_patch->hex_size+1][6];
-		patch->colors = NewArray( GLfloat, (patch->hex_size+1)*8); //[pole_patch->hex_size+1][8];
-
 		{
 			int m;
 			for( m = 0; m < 12; m ++ )
@@ -1371,13 +1269,6 @@ PHEXPATCH CreatePatch( int size, PHEXPATCH *nearpatches )
 	// create both polar patches for quick hack.
 	PHEXPATCH patch = (PHEXPATCH)Allocate( sizeof( HEXPATCH ) );
 	MemSet( patch, 0, sizeof( HEXPATCH ) );
-
-	patch->hex_size = size;
-
-	patch->verts = NewArray( GLfloat, (patch->hex_size+1)*6); //[pole_patch->hex_size+1][6];
-	patch->norms = NewArray( GLfloat, (patch->hex_size+1)*6); //[pole_patch->hex_size+1][6];
-	patch->colors = NewArray( GLfloat, (patch->hex_size+1)*8); //[pole_patch->hex_size+1][8];
-
 	patch->time_to_rack = timeGetTime() + 4000;
 	patch->label = MakeImageFile( 60, 20 );
 	ClearImage( patch->label );
@@ -1561,7 +1452,6 @@ PRELOAD( RegisterResources )
 }
 
 
-#ifdef _MSC_VER
 static int EvalExcept( int n )
 {
 	switch( n )
@@ -1576,7 +1466,7 @@ static int EvalExcept( int n )
 	}
 	return EXCEPTION_CONTINUE_EXECUTION;
 }
-#endif
+
 
 void ParseImage( Image image, int size, int rows, int cols )
 {
@@ -2126,6 +2016,7 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
 	// states to make sure we just fall back to the old way.
 	// so should load the classic image along with any new images.
 
+	glGetFloatv( GL_PROJECTION_MATRIX, l.projection );
 	InitShader();
 
 
@@ -2240,9 +2131,7 @@ static void OnBeginDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psv,PTRANSFORM cam
 #define GL_LIGHT_MODEL_COLOR_CONTROL 0x81F8
 #define GL_SEPARATE_SPECULAR_COLOR 0x81FA
 #endif
-#ifndef __ANDROID__
 	glLightModeli (GL_LIGHT_MODEL_COLOR_CONTROL,GL_SEPARATE_SPECULAR_COLOR);
-#endif
 	glShadeModel( GL_SMOOTH );
 	l.transform = camera;
 
@@ -2258,6 +2147,7 @@ static void OnBeginDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psv,PTRANSFORM cam
 	}
 
 	// this transform is initialized to the viewpoint in vidlib.
+	glGetFloatv( GL_PROJECTION_MATRIX, l.projection );
 
 	if( l.flags.rack_balls )
 	{
@@ -2413,81 +2303,6 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 #ifdef DEBUG_TIMING
 	lprintf( "Tick." );
 #endif
-
-	{
-		int result;
-			// First simple object
-			float* vert = new float[9];	// vertex array
-			float* col  = new float[9];	// color array
-
-			glGetFloatv( GL_PROJECTION_MATRIX, l.projection );
-			glUniformMatrix4fv( l.shader.extra_simple_shader.projection, 1, GL_FALSE, l.projection );
-			{
-				INDEX idx;
-				MATRIX tmp;
-				PTRANSFORM camera = l.transform;
-				GetGLCameraMatrix( camera, tmp );
-				for( idx = 0; idx < 16; idx++ )
-					l.worldview[idx] = tmp[0][idx];
-				glUniformMatrix4fv( l.shader.extra_simple_shader.worldview, 1, GL_FALSE, l.worldview );
-				CheckErr();
-			}
-			{
-				float m[16];
-				int i;
-				for( i = 0; i < 16; i++ )
-					m[i] = 0;
-				m[0] = 1;
-				m[5] = 1;
-				m[10] = 1;
-				m[15] = 1;
-				glUniformMatrix4fv( l.shader.extra_simple_shader.modelview, 1, GL_FALSE, m );
-			}
-			
-			
-			vert[0] =-0.3; vert[1] = 0.5; vert[2] =-1.0;
-			vert[3] =-0.8; vert[4] =-0.5; vert[5] =-1.0;
-			vert[6] = 0.2; vert[7] =-0.5; vert[8]= -1.0;
-
-			col[0] = 1.0; col[1] = 0.0; col[2] = 0.0;
-			col[3] = 0.0; col[4] = 1.0; col[5] = 0.0;
-			col[6] = 0.0; col[7] = 0.0; col[8] = 1.0;
-
-			// Second simple object
-			float* vert2 = new float[9];	// vertex array
-
-			vert2[0] =-0.2; vert2[1] = 0.5; vert2[2] =-1.0;
-			vert2[3] = 0.3; vert2[4] =-0.5; vert2[5] =-1.0;
-			vert2[6] = 0.8; vert2[7] = 0.5; vert2[8]= -1.0;
-
-			lprintf( "Use ess Program" );
-			glUseProgram( l.shader.extra_simple_shader.shader );
-			glEnableVertexAttribArray( 0 );
-			glEnableVertexAttribArray( 1 );
-			glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, vert );
-			result = glGetError();
-			if( result )
-            lprintf( "vp err %d", result );
-			glVertexAttribPointer( 1, 3, GL_FLOAT, FALSE, 0, col );
-			result = glGetError();
-			if( result )
-            lprintf( "vp err %d", result );
-			//glColorPointer( 3, GL_FLOAT, 0, col );
-			glDrawArrays(GL_TRIANGLES, 0, 3);	// draw first object
-			glDisableVertexAttribArray( 1 );
-
-
-			glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, vert2 );
-			glVertexAttrib3f((GLuint)1, 1.0, 0.0, 0.0); // set constant color attribute
-			glDrawArrays(GL_TRIANGLES, 0, 3);	// draw second object
-
-			glEnableVertexAttribArray( 1 );
-			delete vert;
-			delete col;
-			delete vert2;
-	}
-
-
 	do
 	{
 #ifdef DEBUG_TIMING7
@@ -2590,35 +2405,22 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 		PTRANSFORM camera = l.transform;
 		GetGLCameraMatrix( camera, tmp );
 		for( idx = 0; idx < 16; idx++ )
-			l.worldview[idx] = tmp[0][idx];
+			l.modelview[idx] = tmp[0][idx];
 
 		{
 			//RCOORD fProjection1[16];
 			//RCOORD fProjection2[16];
 			glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-			//glPushMatrix();
-			//glLoadIdentity();									// Reset The Projection Matrix
+			glPushMatrix();
+			glLoadIdentity();									// Reset The Projection Matrix
 			// this should cause the planes to pivot around the depth sorta...
 			// near things will expand, and far things will shrink.
-
-#ifndef __ANDROID__
-			//glOrtho(-540*(l.aspect[0]), 540*(l.aspect[0]), -540, 540, -1000.0f, 3000.0f);
-#endif
-			glGetFloatv( GL_PROJECTION_MATRIX, l.projection );
-			glUseProgram( l.shader.simple_shader.shader );
-			lprintf( "Use ss Program" );
-			glUniformMatrix4fv( l.shader.simple_shader.projection, 1, GL_FALSE, l.projection );
-
-			glUseProgram( l.shader.extra_simple_shader.shader );
-			lprintf( "Use ess Program" );
-			glUniformMatrix4fv( l.shader.extra_simple_shader.projection, 1, GL_FALSE, l.projection );
-
+			glOrtho(-540*(l.aspect[0]), 540*(l.aspect[0]), -540, 540, -1000.0f, 3000.0f);
 			//glGetDoublev( GL_PROJECTION_MATRIX, fProjection2 );
 			//glLoadMatrixd( fProjection2 );
 
 			glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 		}
-
 		{
 			PC_POINT o;
 			float eye[3];
@@ -2626,32 +2428,22 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 			eye[0] = o[0];
 			eye[1] = o[1];
 			eye[2] = o[2];
-#ifndef __ANDROID__
-			//glEnable(GL_VERTEX_PROGRAM_ARB);
-			//glEnable(GL_FRAGMENT_PROGRAM_ARB);
-#endif
-			//glUseProgram( l.shader.simple_shader.shader );
-			//glUniformMatrix4fv( l.shader.simple_shader.modelview, 1, GL_FALSE, l.modelview );
-			//glUniform3fv( l.shader.simple_shader.eye_point, 1, eye );
-			glUseProgram( l.shader.extra_simple_shader.shader );
-			lprintf( "Use ess Program" );
-			CheckErr();
-			glUniformMatrix4fv( l.shader.extra_simple_shader.worldview, 1, GL_FALSE, l.worldview );
-			CheckErr();
+			glEnable(GL_VERTEX_PROGRAM_ARB);
+			glEnable(GL_FRAGMENT_PROGRAM_ARB);
 
-			//glUseProgram( l.shader.normal_shader.shader );
-			//glUniformMatrix4fv( l.shader.normal_shader.modelview, 1, GL_FALSE, l.modelview );
-			//glUniform3fv( l.shader.normal_shader.eye_point, 1, eye );
+			glUseProgram( l.shader.simple_shader.shader );
+			glUniformMatrix4fv( l.shader.simple_shader.worldview, 1, GL_FALSE, l.modelview );
+			glUniform3fv( l.shader.simple_shader.eye_point, 1, eye );
 
-			//glUseProgram( 0 );
-#ifndef __ANDROID__
-			//glDisable(GL_FRAGMENT_PROGRAM_ARB);
-			//glDisable(GL_VERTEX_PROGRAM_ARB);
-#endif
+			glUseProgram( l.shader.normal_shader.shader );
+			glUniformMatrix4fv( l.shader.normal_shader.worldview, 1, GL_FALSE, l.modelview );
+			glUniform3fv( l.shader.normal_shader.eye_point, 1, eye );
+
+			glUseProgram( 0 );
+			glDisable(GL_FRAGMENT_PROGRAM_ARB);
+			glDisable(GL_VERTEX_PROGRAM_ARB);
 		}
 
-		SetLights();
-		/*
 		{
 			glEnable(GL_LIGHTING);
 
@@ -2696,7 +2488,7 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 				glLightfv( GL_LIGHT1, GL_SPOT_DIRECTION, lightdir );
 			}
 		}
-		*/
+
 		{
 			PHEXPATCH patch;
 			btVector3 bt_view_origin;
@@ -2723,7 +2515,6 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 			}
 
 
-			glVertexAttrib3f((GLuint)1, 0, 1.0, 0.0); // set constant color attribute
 			SetMaterial();
 			// do this in two passes, and skip the faded (fading) balls.
 			LIST_FORALL( l.patches, idx, PHEXPATCH, patch )
@@ -2757,12 +2548,11 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 				// fading/faded balls do not draw here, they draw in the next pass.
 				if( patch->flags.fade )
 					continue;
+
 				DrawSphereThing( patch, 1 );
 			}
-
-
-			//glEnable( GL_BLEND );
-			//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable( GL_BLEND );
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			// a faded ball will be in the center of attention...
 			LIST_FORALL( l.patches, idx, PHEXPATCH, patch )
 			{
@@ -2790,7 +2580,7 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 				glColor4f( 1.0, 1.0, 1.0, 1.0 );
 				LIST_FORALL( l.patches, idx, PHEXPATCH, patch )
 				{
-					//DrawSphereThing2( patch );
+					DrawSphereThing2( patch );
 				}
 			}
 		}
@@ -2809,7 +2599,7 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 		glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 
 		// debug draw the mixer bar approximation
-		if( l.barRigidBody  )
+		if( l.barRigidBody && 0 )
 		{
 			btTransform trans;
 			l.barRigidBody->getMotionState()->getWorldTransform( trans );
@@ -2823,8 +2613,6 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 #else
 			glMultMatrixf( m );
 #endif
-#ifndef __ANDROID__
-
 			glBegin( GL_LINES );
 
 			glVertex3f( 0, 0, 0 );
@@ -2847,10 +2635,9 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 			glVertex3f( 0, 0, 10 );
 			glVertex3f( 1000, 0, 10 );
 			glEnd();
-#endif
 			//getWorldTransform();
 			//getMotionState()
-			//glPopMatrix();
+			glPopMatrix();
 		}
 	}
 	//l.bullet.dynamicsWorld->debugDrawWorld();
@@ -2892,7 +2679,7 @@ void ApplyBlowerForces( void )
 	btScalar attractor_magnitude = 3000;
 	btScalar target_magnitude = -300.0; // unused this is for the suction
 	btVector3 up = btVector3(0,1,0);
-	btScalar air_slow = 1.055;
+   btScalar air_slow = 1.055;
 	btScalar air_condense = 10;
 	magnitude /= TIME_SCALE;
 	target_magnitude /= TIME_SCALE;
@@ -2966,7 +2753,7 @@ CRITICALSECTION csUpdate;
 {
 	_32 now = timeGetTime();
 
-	//ApplyBlowerForces();
+	ApplyBlowerForces();
 
 	// the bar kept stopping; make sure it's active.
 	if( l.barRigidBody )
