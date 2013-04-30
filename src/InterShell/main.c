@@ -3892,10 +3892,10 @@ void CPROC AbortConfigureKeys( PSI_CONTROL pc, _32 keycode )
 		EndEditingPage( pc, canvas->current_page );
 		lprintf( WIDE("And having enabled them... then...") );
 	}
-   InvokeEndEditMode();
+	InvokeEndEditMode();
 	if( g.psv_security )
 	{
-		CloseSecurityContext( (PTRSZVAL)pc, (PTRSZVAL)g.single_frame );
+		CloseSecurityContext( (PTRSZVAL)pc, (PTRSZVAL)g.psv_security );
 	}
 }
 
