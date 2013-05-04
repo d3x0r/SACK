@@ -987,7 +987,7 @@ endif( WATCOM )
 endif( __ANDROID__ )    
 
 
-IF(EXISTS ${BULLET_SOURCE}/ )
+IF(EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
   if( WATCOM )
     message( "bullet is not watcom friendly" )
   else( WATCOM )
@@ -1049,7 +1049,7 @@ IF(EXISTS ${BULLET_SOURCE}/ )
   endif( WATCOM )
 else()
   set( __BULLET_ENABLED__ OFF )
-ENDIF(EXISTS ${BULLET_SOURCE}/ )
+ENDIF(EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
 
 #if( !MSVC )
 #add_subdirectory( src/displaylib )
