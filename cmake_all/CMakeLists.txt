@@ -100,13 +100,13 @@ SET( SACK_REQUIREMENTS ${SACK_REQUIREMENTS} -DNEED_FREETYPE=1 -DNEED_JPEG=1 -DNE
 message( "Not win32, but ${MINGW} maybe android?" )
 endif( WIN32 )
 
-IF(EXISTS ${BULLET_SOURCE}/ )
+IF(EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
   if( WATCOM )
   else( WATCOM )
     set( BULLET_ENABLED ON )
     set( DBULLET_SOURCE -DBULLET_SOURCE=${BULLET_SOURCE} )
   endif( WATCOM )
-endIF(EXISTS ${BULLET_SOURCE}/ )
+endIF(EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
 
 
 set( PROJECT core )
