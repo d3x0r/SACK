@@ -373,6 +373,10 @@ int main( int argc, char **argv )
 		fprintf( out, "#set was_monolithic_build to build mode\n" );
 		fprintf( out, "set( WAS_MONOLITHIC ${BUILD_MONOLITHIC} )\n" );
 		fprintf( out, "\n" );
+#if MAKE_RCOORD_SINGLE
+		fprintf( out, "add_definitions( -DMAKE_RCOORD_SINGLE )\n" );
+#endif
+
 #if __BULLET_ENABLED__
 		fprintf( out, "set( BULLET_SOURCE ${BULLET_SOURCE} )\n" );
 #ifdef BT_USE_DOUBLE_PRECISION
@@ -497,6 +501,7 @@ int main( int argc, char **argv )
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}${BAG_PSI_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}bag.video.puregl${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}bag.image.puregl${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
+		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}bag.image.puregl2${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}glew${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "if( NOT __NO_GUI__ )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/bin/Images/frame_border.png DESTINATION $""{dest}/Images )\n" );
@@ -529,6 +534,7 @@ int main( int argc, char **argv )
 #ifndef __LINUX__
 		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/${CMAKE_SHARED_LIBRARY_PREFIX}bag.video.puregl${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/${CMAKE_SHARED_LIBRARY_PREFIX}bag.image.puregl${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
+		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/${CMAKE_SHARED_LIBRARY_PREFIX}bag.image.puregl2${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
 		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/${CMAKE_SHARED_LIBRARY_PREFIX}glew${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
 #endif
 #ifndef __NO_OPTIONS__
