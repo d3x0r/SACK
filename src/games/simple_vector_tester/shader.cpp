@@ -4,7 +4,7 @@
 //   ported as a SACK plugin module.
 //  Updated to support modelview projection...
 
-
+#define MAKE_RCOORD_SINGLE
 #define NO_FILEOP_ALIAS
 #include <stdhdrs.h>
 #define USE_RENDER_INTERFACE l.pri
@@ -74,29 +74,6 @@ void InitShader( void )
 	                                         "	ex_Color = in_Color;\n"
 	                                         "}\n";
 
-	const char *simple_color_vertex_source2 = "// The 4x4 world view projection matrix.\n"
-	                                         "uniform mat4 worldView;\n"
-	                                         "uniform mat4 Projection;\n"
-	                                         "\n"
-	                                         "\n"
-	                                         "// input parameters for our vertex shader\n"
-	                                         "attribute vec4 position;\n"
-	                                         "\n"
-	                                         "\n"
-	                                         "/**\n"
-	                                         " * Vertex Shader\n"
-	                                         " */\n"
-	                                         "void main() {\n"
-	                                         "  /**\n"
-	                                         "   * We transform each vertex by the world view projection matrix to bring\n"
-	                                         "   * it from world space to projection space.\n"
-	                                         "   *\n"
-	                                         "   * We return its color unchanged.\n"
-	                                         "   */\n"
-	                                         "  gl_Position = worldViewProjection * position;\n"
-											 "  gl_FrontColor = gl_Color;\n"
-											 "  gl_BackColor = gl_Color;\n"
-	                                         "}\n";
 	const char *simple_color_pixel_source = "#version 140\n"
  
 	                                         //"precision highp float; // needed only for version 1.30\n"
@@ -109,14 +86,6 @@ void InitShader( void )
 	                                         "	out_Color = vec4(ex_Color,1.0);\n"
 	                                         "}\n"
 											 "\n";
-
-	const char *simple_color_pixel_source2 = "// #o3d SplitMarker\n"
-	                                         "/**\n"
-	                                         " * Pixel Shader - pixel shader does nothing but return the color.\n"
-	                                         " */\n"
-	                                         "void main() {\n"
-	                                         "  gl_FragColor = gl_Color;\n"
-	                                         "}\n";
 
 	{
 		const char **codeblocks;
