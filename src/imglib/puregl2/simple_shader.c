@@ -41,10 +41,7 @@ void CPROC EnableSimpleShader( PImageShaderTracker tracker, va_list args )
 	float *verts = va_arg( args, float * );
 	float *color = va_arg( args, float * );
 
-	glEnableVertexAttribArray(0);
-	//glEnableVertexAttribArray(tracker->color_attrib);
-
-	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );  
+	glEnableVertexAttribArray(0);	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );  
 	CheckErr();
 	glUniform4fv( tracker->color_attrib, 1, color );
 	CheckErr();

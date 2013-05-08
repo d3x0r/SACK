@@ -44,27 +44,24 @@ static const CTEXTSTR gles_simple_p_shader =
 //const char *gles_
 static const CTEXTSTR gles_simple_v_shader_shaded_texture =
     WIDE( "attribute vec4 vPosition;\n" )
-	WIDE( "attribute vec4 in_Color;\n" )
 	WIDE( "attribute vec2 in_texCoord;\n" )
 	WIDE( "uniform mat4 modelView;\n" )
 	WIDE( "uniform mat4 worldView;\n" )
 	WIDE( "uniform mat4 Projection;\n" )
-	WIDE( " varying vec4 vColor;\n" )
-	WIDE( " varying vec2 out_texCoord;\n" )
+	WIDE( " out vec2 out_texCoord;\n" )
 	WIDE( " \n" )
     WIDE("void main() {\n" )
     WIDE("  gl_Position = Projection * worldView * vPosition;\n" )
-	WIDE( " vColor = in_Color;\n" )
 	WIDE( "out_texCoord = in_texCoord;\n" )
     WIDE("}"); 
 
 static const CTEXTSTR gles_simple_p_shader_shaded_texture =
     WIDE( "precision mediump float;\n" )
-	WIDE( " varying vec4 vColor;\n" )
-	WIDE( " varying vec2 out_texCoord;\n" )
+	WIDE( "uniform vec4 in_Color;\n" )
+	WIDE( " in vec2 out_texCoord;\n" )
 	WIDE( " uniform sampler2D tex;\n" )
 	WIDE( "void main() {\n" )
-	WIDE( "   gl_FragColor = texture( tex, out_texCoord );\n" )
+	WIDE( "   gl_FragColor = in_Color * texture( tex, out_texCoord );\n" )
     WIDE( "}\n" );
 
 
@@ -83,9 +80,9 @@ static void CPROC SimpleTextureEnable( PImageShaderTracker tracker, va_list args
 	struct private_shader_data *data = (struct private_shader_data *)tracker->psv_userdata;
 
 	//glUniform4fv( tracker->color_attrib, 1, GL_FALSE, color );
-	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );  
+	glEnableVertexAttribArray(0);	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );  
 	CheckErr();
-	glVertexAttribPointer( data->texture_attrib, 3, GL_FLOAT, FALSE, 0, texture_verts );            
+	glEnableVertexAttribArray(data->texture_attrib);	glVertexAttribPointer( data->texture_attrib, 3, GL_FLOAT, FALSE, 0, texture_verts );            
 	CheckErr();
 	glUniform1i( data->texture, texture );
 	CheckErr();
@@ -252,12 +249,33 @@ void InitSimpleTextureShader( PImageShaderTracker tracker )
 static void CPROC SimpleTextureEnable2( PImageShaderTracker tracker, va_list args )
 {
 	float *verts = va_arg( args, float *);
-   float *texture_verts = va_arg( args, float *);
 	int texture = va_arg( args, int );
+	float *texture_verts = va_arg( args, float *);
 	float *color = va_arg( args, float *);
 
 	struct private_shader_data *data = (struct private_shader_data *)tracker->psv_userdata;
 
+	glEnableVertexAttribArray(0);	CheckErr();
+	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );  
+	CheckErr();
+	
+	glEnableVertexAttribArray(data->texture_attrib);	CheckErr();
+	glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, texture_verts );  
+	CheckErr();
+
+	glUniform1i(data->texture, 0); //Texture unit 0 is for base images.
+ 
+	//When rendering an objectwith this program.
+	glActiveTexture(GL_TEXTURE0 + 0);
+	CheckErr();
+	glBindTexture(GL_TEXTURE_2D, texture);
+	CheckErr();
+	//glBindSampler(0, linearFiltering);
+	CheckErr();
+
+	CheckErr();
+	glUniform4fv( tracker->color_attrib, 1, color );
+	CheckErr();
 
 
 }
@@ -270,14 +288,14 @@ void InitSimpleShadedTextureShader( PImageShaderTracker tracker )
 	struct private_shader_data *data = New( struct private_shader_data );
 
 	tracker->psv_userdata = (PTRSZVAL)data;
-   tracker->Enable = SimpleTextureEnable2;
+	tracker->Enable = SimpleTextureEnable2;
 
 		tracker->glProgramId = glCreateProgram();
 
 		//Obtain a valid handle to a vertex shader object.
 		tracker->glVertexProgramId = glCreateShader(GL_VERTEX_SHADER);
 
-		codeblocks[0] = gles_simple_v_shader;
+		codeblocks[0] = gles_simple_v_shader_shaded_texture;
 		codeblocks[1] = NULL;
 
 		//codeblocks[1] = gles_simple_p_shader;
@@ -336,7 +354,7 @@ void InitSimpleShadedTextureShader( PImageShaderTracker tracker )
 		}
 
 		tracker->glFragProgramId = glCreateShader(GL_FRAGMENT_SHADER);
-		codeblocks[0] = gles_simple_p_shader;
+		codeblocks[0] = gles_simple_p_shader_shaded_texture;
 		glShaderSource(
 			tracker->glFragProgramId, //The handle to our shader
 			1, //The number of files.
@@ -411,7 +429,12 @@ void InitSimpleShadedTextureShader( PImageShaderTracker tracker )
 		glUseProgram(tracker->glProgramId);
 		CheckErr();
 
-      SetupCommon( tracker, "vPosition", "in_Color" );
+		SetupCommon( tracker, "vPosition", "in_Color" );
+
+		tracker->color_attrib = glGetUniformLocation(tracker->glProgramId, "in_Color" );
+		data->texture = glGetUniformLocation(tracker->glProgramId, "tex");
+		data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
+
 		DumpAttribs( tracker->glProgramId );
 }
 
