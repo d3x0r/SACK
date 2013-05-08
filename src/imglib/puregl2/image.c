@@ -1167,10 +1167,10 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 		VECTOR v[2][4];
 		float _color[4];
 		int vi = 0;
-		_color[0] = RedVal( color );
-		_color[1] = GreenVal( color );
-		_color[2] = BlueVal( color );
-		_color[3] = AlphaVal( color );
+		_color[0] = RedVal( color ) / 255.0f;
+		_color[1] = GreenVal( color ) / 255.0f;
+		_color[2] = BlueVal( color ) / 255.0f;
+		_color[3] = AlphaVal( color ) / 255.0f;
 		TranslateCoord( pifDest, &x, &y );
 
 		v[vi][0][0] = x;
@@ -1280,10 +1280,10 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 		float _color[4];
 		int vi = 0;
 
-		_color[0] = RedVal( color );
-		_color[1] = GreenVal( color );
-		_color[2] = BlueVal( color );
-		_color[3] = AlphaVal( color );
+		_color[0] = RedVal( color ) / 255.0f;
+		_color[1] = GreenVal( color ) / 255.0f;
+		_color[2] = BlueVal( color ) / 255.0f;
+		_color[3] = AlphaVal( color ) / 255.0f;
 		TranslateCoord( pifDest, &x, &y );
 
 		v[vi][0][0] = x;

@@ -17,18 +17,22 @@
 
 //const char *gles_
 static const CTEXTSTR gles_simple_v_shader =
-    WIDE( "attribute vec4 vPosition;" )
 	WIDE( "uniform mat4 modelView;\n" )
 	WIDE( "uniform mat4 worldView;\n" )
 	WIDE( "uniform mat4 Projection;\n" )
-    WIDE("void main() {" )
-    WIDE("  gl_Position = Projection * vPosition;" )
-    WIDE("}"); 
+    WIDE( "in vec4 vPosition;" )
+	//WIDE( "in  vec4 in_Color;\n")
+	//WIDE( "out vec4 ex_Color;\n")
+    WIDE( "void main(void) {" )
+    WIDE( "  gl_Position = Projection * worldView * vPosition;" )
+	//WIDE( "  ex_Color = in_Color;" )
+    WIDE( "}"); 
 
 static const CTEXTSTR gles_simple_p_shader =
-	WIDE( "uniform vec4 in_Color;" )
-    WIDE( "void main() {" )
-	WIDE( " gl_FragColor = in_Color;" )
+	WIDE( "uniform  vec4 in_Color;\n" )
+	WIDE( "out vec4 out_Color;" )
+    WIDE( "void main(void) {" )
+	WIDE( "  out_Color = in_Color;" )
     WIDE( "}" );
 
 
@@ -36,6 +40,9 @@ void CPROC EnableSimpleShader( PImageShaderTracker tracker, va_list args )
 {
 	float *verts = va_arg( args, float * );
 	float *color = va_arg( args, float * );
+
+	glEnableVertexAttribArray(0);
+	//glEnableVertexAttribArray(tracker->color_attrib);
 
 	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );  
 	CheckErr();
