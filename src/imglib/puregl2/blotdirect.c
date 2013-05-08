@@ -520,25 +520,26 @@ namespace image {
 		TranslateCoord( pifSrc, &xs, &ys );
 		{
 			int glDepth = 1;
-			double x_size, x_size2, y_size, y_size2;
-			VECTOR v1[2], v3[2],v4[2],v2[2];
-			int v = 0;
+			float x_size, x_size2, y_size, y_size2;
+         float texture_v[4][2];
+			VECTOR v[2][4],;
+			int vi = 0;
 
-			v1[v][0] = xd;
-			v1[v][1] = yd;
-			v1[v][2] = 0.0;
+			v[vi][0][0] = xd;
+			v[vi][0][1] = yd;
+			v[vi][0][2] = 0.0;
 
-			v2[v][0] = xd;
-			v2[v][1] = yd+hs;
-			v2[v][2] = 0.0;
+			v[vi][1][0] = xd;
+			v[vi][1][1] = yd+hs;
+			v[vi][1][2] = 0.0;
 
-			v3[v][0] = xd+ws;
-			v3[v][1] = yd+hs;
-			v3[v][2] = 0.0;
+			v[vi][2][0] = xd+ws;
+			v[vi][2][1] = yd+hs;
+			v[vi][2][2] = 0.0;
 
-			v4[v][0] = xd+ws;
-			v4[v][1] = yd;
-			v4[v][2] = 0.0;
+			v[vi][3][0] = xd+ws;
+			v[vi][3][1] = yd;
+			v[vi][3][2] = 0.0;
 
 			x_size = (double) xs/ (double)topmost_parent->width;
 			x_size2 = (double) (xs+ws)/ (double)topmost_parent->width;
@@ -552,52 +553,82 @@ namespace image {
 				glDepth = 0;
 				if( pifDest->transform )
 				{
-					Apply( pifDest->transform, v1[1-v], v1[v] );
-					Apply( pifDest->transform, v2[1-v], v2[v] );
-					Apply( pifDest->transform, v3[1-v], v3[v] );
-					Apply( pifDest->transform, v4[1-v], v4[v] );
+					Apply( pifDest->transform, v[1-vi][0], v[vi][0] );
+					Apply( pifDest->transform, v[1-vi][1], v[vi][1] );
+					Apply( pifDest->transform, v[1-vi][2], v[vi][2] );
+					Apply( pifDest->transform, v[1-vi][3], v[vi][3] );
 					v = 1-v;
 				}
 				pifDest = pifDest->pParent;
 			}
 			if( pifDest->transform )
 			{
-				Apply( pifDest->transform, v1[1-v], v1[v] );
-				Apply( pifDest->transform, v2[1-v], v2[v] );
-				Apply( pifDest->transform, v3[1-v], v3[v] );
-				Apply( pifDest->transform, v4[1-v], v4[v] );
+				Apply( pifDest->transform, v[1-vi][0], v[vi][0] );
+				Apply( pifDest->transform, v[1-vi][1], v[vi][1] );
+				Apply( pifDest->transform, v[1-vi][2], v[vi][2] );
+				Apply( pifDest->transform, v[1-vi][3], v[vi][3] );
 				v = 1-v;
 			}
-#if 0
-			if( glDepth )
-			{
-				//lprintf( WIDE( "enqable depth..." ) );
-				glEnable( GL_DEPTH_TEST );
-			}
-			else
-			{
-				//lprintf( WIDE( "disable depth..." ) );
-				glDisable( GL_DEPTH_TEST );
-			}
-#endif
+
+			scale( v[vi][0], v[vi][0], l.scale );
+			scale( v[vi][1], v[vi][1], l.scale );
+			scale( v[vi][2], v[vi][2], l.scale );
+			scale( v[vi][3], v[vi][3], l.scale );
+
+         texture_v[0][0] = x_size;
+         texture_v[0][1] = y_size;
+         texture_v[1][0] = x_size;
+         texture_v[1][1] = y_size2;
+         texture_v[2][0] = x_size2;
+         texture_v[2][1] = y_size;
+         texture_v[3][0] = x_size2;
+         texture_v[3][1] = y_size2;
+
 			/**///glBindTexture(GL_TEXTURE_2D, pifSrc->glActiveSurface);				// Select Our Texture
 			if( method == BLOT_COPY )
+			{
+            EnableShader( "Simple Texture", v[vi], pifSrc->glActiveSurface, texture_v );
 				;/**///glColor4ub( 255,255,255,255 );
+			}
 			else if( method == BLOT_SHADED )
 			{
 				CDATA tmp = va_arg( colors, CDATA );
+				float _color[4];
+				_color[0] = RedVal( tmp ) / 255.0f;
+				_color[1] = GreenVal( tmp ) / 255.0f;
+				_color[2] = BlueVal( tmp ) / 255.0f;
+				_color[3] = AlphaVal( tmp ) / 255.0f;
+
+            EnableShader( "Simple Shaded Texture", v[vi], pifSrc->glActiveSurface, texture_v, _color );
 				;/**///glColor4ubv( (GLubyte*)&tmp );
 			}
 			else if( method == BLOT_MULTISHADE )
 			{
+				CDATA r = va_arg( colors, CDATA );
+				CDATA g = va_arg( colors, CDATA );
+				CDATA b = va_arg( colors, CDATA );
+				float r_color[4], g_color[4], b_color[4];
+				r_color[0] = RedVal( r) / 255.0f;
+				r_color[1] = GreenVal( r ) / 255.0f;
+				r_color[2] = BlueVal( r ) / 255.0f;
+				r_color[3] = AlphaVal( r ) / 255.0f;
+
+				g_color[0] = RedVal( g ) / 255.0f;
+				g_color[1] = GreenVal( g ) / 255.0f;
+				g_color[2] = BlueVal( g ) / 255.0f;
+				g_color[3] = AlphaVal( g ) / 255.0f;
+
+				b_color[0] = RedVal( b ) / 255.0f;
+				b_color[1] = GreenVal( b ) / 255.0f;
+				b_color[2] = BlueVal( b ) / 255.0f;
+				b_color[3] = AlphaVal( b ) / 255.0f;
+
+				EnableShader( "Simple MultiShaded Texture", v[vi], pifSrc->glActiveSurface, texture_v, r_color, g_color, b_color );
 #if !defined( __ANDROID__ )
 				InitShader();
 				if( glUseProgram && l.glActiveSurface->shader.multi_shader )
 				{
 					int err;
-					CDATA r = va_arg( colors, CDATA );
-					CDATA g = va_arg( colors, CDATA );
-					CDATA b = va_arg( colors, CDATA );
 		 			glEnable(GL_FRAGMENT_PROGRAM_ARB);
 					glUseProgram( l.glActiveSurface->shader.multi_shader );
 					err = glGetError();
@@ -640,35 +671,9 @@ namespace image {
 					;/**///glColor4ub( 255,255,255,255 );
 				}
 			}
-			/**///glBegin(GL_TRIANGLE_STRIP);
-			//glBegin(GL_QUADS);
-			scale( v1[v], v1[v], l.scale );
-			scale( v2[v], v2[v], l.scale );
-			scale( v3[v], v3[v], l.scale );
-			scale( v4[v], v4[v], l.scale );
-			/**///glTexCoord2d(x_size, y_size); glVertex3dv(v1[v]);	// Bottom Left Of The Texture and Quad
-			/**///glTexCoord2d(x_size, y_size2); glVertex3dv(v2[v]);	// Top Left Of The Texture and Quad
-			/**///glTexCoord2d(x_size2, y_size); glVertex3dv(v4[v]);	// Bottom Right Of The Texture and Quad
-			/**///glTexCoord2d(x_size2, y_size2); glVertex3dv(v3[v]);	// Top Right Of The Texture and Quad
-			// Back Face
-			/**///`glEnd();
-#if !defined( __ANDROID__ )
-			if( method == BLOT_MULTISHADE )
-			{
-				if( l.glActiveSurface->shader.multi_shader )
-				{
- 					glDisable(GL_FRAGMENT_PROGRAM_ARB);
-				}
-			}
-			else if( method == BLOT_INVERTED )
-			{
-				if( l.glActiveSurface->shader.inverse_shader )
-				{
- 					glDisable(GL_FRAGMENT_PROGRAM_ARB);
-				}
-			}
-#endif
-			/**///glBindTexture(GL_TEXTURE_2D, 0);				// Select Our Texture
+
+			glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+
 		}
 	}
 	else
