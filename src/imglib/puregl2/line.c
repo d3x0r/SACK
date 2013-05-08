@@ -82,9 +82,9 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 		slope[1] = tmp;
 
 		addscaled( v[vi][0], v[vi][0], slope, -0.5 );
-		addscaled( v[vi][3], v[vi][0], slope, 1.0 );
+		addscaled( v[vi][2], v[vi][0], slope, 1.0 );
 		addscaled( v[vi][1], v[vi][1], slope, -0.5 );
-		addscaled( v[vi][2], v[vi][1], slope, 1.0 );
+		addscaled( v[vi][3], v[vi][1], slope, 1.0 );
 
 		while( pImage && pImage->pParent )
 		{
@@ -240,9 +240,9 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 		slope[1] = tmp;
 
 		addscaled( v[vi][0], v[vi][0], slope, -0.5 );
-		addscaled( v[vi][3], v[vi][0], slope, 1.0 );
+		addscaled( v[vi][2], v[vi][0], slope, 1.0 );
 		addscaled( v[vi][1], v[vi][1], slope, -0.5 );
-		addscaled( v[vi][2], v[vi][1], slope, 1.0 );
+		addscaled( v[vi][3], v[vi][1], slope, 1.0 );
 
 		while( pImage && pImage->pParent )
 		{
