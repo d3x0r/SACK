@@ -60,30 +60,27 @@ void InitPerspective( void )
 void InitShader( void )
 {
 	GLint result;
-	const char *simple_color_vertex_source = "#version 140\n"
+	const char *simple_color_vertex_source = //"#version 140\n"
  
 	                                         "uniform mat4 worldView;\n"
 	                                         "uniform mat4 Projection;\n"
-	                                         "in  vec3 in_Position;\n"
-	                                         "in  vec3 in_Color;\n"
-	                                         "out vec3 ex_Color;\n"
+	                                         "in  vec4 in_Position;\n"
+	                                         "in  vec4 in_Color;\n"
+	                                         "out vec4 ex_Color;\n"
  
 	                                         "void main(void)\n"
 	                                         "{\n"
-											 "	gl_Position = Projection * worldView * vec4(in_Position, 1.0);\n"
+											 "	gl_Position = Projection * worldView * in_Position;"//vec4(in_Position, 1.0);\n"
 	                                         "	ex_Color = in_Color;\n"
 	                                         "}\n";
 
-	const char *simple_color_pixel_source = "#version 140\n"
- 
-	                                         //"precision highp float; // needed only for version 1.30\n"
- 
-	                                         "in  vec3 ex_Color;\n"
+	const char *simple_color_pixel_source = //"#version 140\n"
+	                                         "in  vec4 ex_Color;\n"
 	                                         "out vec4 out_Color;\n"
  
 	                                         "void main(void)\n"
 	                                         "{\n"
-	                                         "	out_Color = vec4(ex_Color,1.0);\n"
+	                                         "	out_Color = ex_Color;\n"
 	                                         "}\n"
 											 "\n";
 
