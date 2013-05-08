@@ -16,6 +16,7 @@ ${FIRST_GCC_LIBRARY_SOURCE}
   ${loader_sources}
   ${font_sources}
   shader simple_shader simple_texture_shader
+  simple_multi_shaded_texture_shader.c
 ${LAST_GCC_LIBRARY_SOURCE}
 )
 

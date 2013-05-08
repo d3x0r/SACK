@@ -149,6 +149,7 @@ static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 	InitSuperSimpleShader( GetShader( "Simple Shader" ) );
 	InitSimpleTextureShader( GetShader( "Simmple Texture" ) );
 	InitSimpleShadedTextureShader( GetShader( "Simple Shaded Texture" ) );
+	InitSimpleMultiShadedTextureShader( GetShader( "Simple MultiShaded Texture" ) );
 
 }
 
