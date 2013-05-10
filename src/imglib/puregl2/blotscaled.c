@@ -537,9 +537,10 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 
 		{
 			int glDepth = 1;
-			VECTOR v1[2], v3[2],v4[2],v2[2];
-			int v = 0;
-			double x_size, x_size2, y_size, y_size2;
+			VECTOR v[2][4];
+			float texture_v[4][2];
+			int vi = 0;
+			float x_size, x_size2, y_size, y_size2;
 			/*
 			 * only a portion of the image is actually used, the rest is filled with blank space
 			 *
@@ -547,99 +548,107 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			TranslateCoord( pifDest, &xd, &yd );
 			TranslateCoord( pifSrc, &xs, &ys );
 
-			v1[v][0] = xd;
-			v1[v][1] = yd;
-			v1[v][2] = 0.0;
+			v[vi][0][0] = xd;
+			v[vi][0][1] = yd;
+			v[vi][0][2] = 0.0;
 
-			v2[v][0] = xd;
-			v2[v][1] = yd+hd;
-			v2[v][2] = 0.0;
+			v[vi][3][0] = xd+wd;
+			v[vi][3][1] = yd;
+			v[vi][3][2] = 0.0;
 
-			v3[v][0] = xd+wd;
-			v3[v][1] = yd+hd;
-			v3[v][2] = 0.0;
+			v[vi][1][0] = xd;
+			v[vi][1][1] = yd+hd;
+			v[vi][1][2] = 0.0;
 
-			v4[v][0] = xd+wd;
-			v4[v][1] = yd;
-			v4[v][2] = 0.0;
+			v[vi][2][0] = xd+wd;
+			v[vi][2][1] = yd+hd;
+			v[vi][2][2] = 0.0;
 
-			x_size = (double) xs/ (double)topmost_parent->width;
-			x_size2 = (double) (xs+ws)/ (double)topmost_parent->width;
-			y_size = (double) ys/ (double)topmost_parent->height;
-			y_size2 = (double) (ys+hs)/ (double)topmost_parent->height;
+			x_size = (float) xs/ (float)topmost_parent->width;
+			x_size2 = (float) (xs+ws)/ (float)topmost_parent->width;
+			y_size = (float) ys/ (float)topmost_parent->height;
+			y_size2 = (float) (ys+hs)/ (float)topmost_parent->height;
+
+         texture_v[0][0] = x_size;
+         texture_v[0][1] = y_size;
+         texture_v[1][0] = x_size2;
+         texture_v[1][1] = y_size;
+         texture_v[2][0] = x_size;
+         texture_v[2][1] = y_size2;
+         texture_v[3][0] = x_size2;
+         texture_v[3][1] = y_size2;
+
+
 
 			while( pifDest && pifDest->pParent )
 			{
 				glDepth = 0;
 				if( pifDest->transform )
 				{
-					Apply( pifDest->transform, v1[1-v], v1[v] );
-					Apply( pifDest->transform, v2[1-v], v2[v] );
-					Apply( pifDest->transform, v3[1-v], v3[v] );
-					Apply( pifDest->transform, v4[1-v], v4[v] );
-					v = 1-v;
+					Apply( pifDest->transform, v[1-vi][0], v[vi][0] );
+					Apply( pifDest->transform, v[1-vi][1], v[vi][1] );
+					Apply( pifDest->transform, v[1-vi][2], v[vi][2] );
+					Apply( pifDest->transform, v[1-vi][3], v[vi][3] );
+					vi = 1-vi;
 				}
 				pifDest = pifDest->pParent;
 			}
 			if( pifDest->transform )
 			{
-				Apply( pifDest->transform, v1[1-v], v1[v] );
-				Apply( pifDest->transform, v2[1-v], v2[v] );
-				Apply( pifDest->transform, v3[1-v], v3[v] );
-				Apply( pifDest->transform, v4[1-v], v4[v] );
-				v = 1-v;
+				Apply( pifDest->transform, v[1-vi][0], v[vi][0] );
+				Apply( pifDest->transform, v[1-vi][1], v[vi][1] );
+				Apply( pifDest->transform, v[1-vi][2], v[vi][2] );
+				Apply( pifDest->transform, v[1-vi][3], v[vi][3] );
+				vi = 1-vi;
 			}
-#if 0
-			if( glDepth )
-			{
-				//lprintf( WIDE( "enqable depth..." ) );
-				glEnable( GL_DEPTH_TEST );
-			}
-			else
-			{
-				//lprintf( WIDE( "disable depth..." ) );
-				glDisable( GL_DEPTH_TEST );
-			}
-#endif
-			/**///glBindTexture(GL_TEXTURE_2D, pifSrc->glActiveSurface);				// Select Our Texture
+
+			scale( v[vi][0], v[vi][0], l.scale );
+			scale( v[vi][1], v[vi][1], l.scale );
+			scale( v[vi][2], v[vi][2], l.scale );
+			scale( v[vi][3], v[vi][3], l.scale );
+
 			if( method == BLOT_COPY )
-				;/**///glColor4ub( 255,255,255,255 );
+			{
+				lprintf( "Edge output here..." );
+            PrintVector( v[vi][0] );
+            PrintVector( v[vi][1] );
+            PrintVector( v[vi][2] );
+            PrintVector( v[vi][3] );
+				EnableShader( "Simple Texture", v[vi], pifSrc->glActiveSurface, texture_v );
+			}
 			else if( method == BLOT_SHADED )
 			{
 				CDATA tmp = va_arg( colors, CDATA );
-				;/**///glColor4ubv( (GLubyte*)&tmp );
+				float _color[4];
+				_color[0] = RedVal( tmp ) / 255.0f;
+				_color[1] = GreenVal( tmp ) / 255.0f;
+				_color[2] = BlueVal( tmp ) / 255.0f;
+				_color[3] = AlphaVal( tmp ) / 255.0f;
+
+				EnableShader( "Simple Shaded Texture", v[vi], pifSrc->glActiveSurface, texture_v, _color );
 			}
 			else if( method == BLOT_MULTISHADE )
 			{
-#if !defined( __ANDROID__ )
-				InitShader();
-				if( glUseProgram && l.glActiveSurface->shader.multi_shader )
-				{
-					int err;
-					CDATA r = va_arg( colors, CDATA );
-					CDATA g = va_arg( colors, CDATA );
-					CDATA b = va_arg( colors, CDATA );
-		 			glEnable(GL_FRAGMENT_PROGRAM_ARB);
-					glUseProgram( l.glActiveSurface->shader.multi_shader );
-					err = glGetError();
-					glProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 0, (float)GetRedValue( r )/255.0f, (float)GetGreenValue( r )/255.0f, (float)GetBlueValue( r )/255.0f, (float)GetAlphaValue( r )/255.0f );
-					err = glGetError();
-					glProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 1, (float)GetRedValue( g )/255.0f, (float)GetGreenValue( g )/255.0f, (float)GetBlueValue( g )/255.0f, (float)GetAlphaValue( g )/255.0f );
-					err = glGetError();
-					glProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 2, (float)GetRedValue( b )/255.0f, (float)GetGreenValue( b )/255.0f, (float)GetBlueValue( b )/255.0f, (float)GetAlphaValue( b )/255.0f );					
-					err = glGetError();
-				}
-				else
-#endif
-				{
-					Image output_image;
-					CDATA r = va_arg( colors, CDATA );
-					CDATA g = va_arg( colors, CDATA );
-					CDATA b = va_arg( colors, CDATA );
-					output_image = GetShadedImage( pifSrc, r, g, b );
-					/**///glBindTexture( GL_TEXTURE_2D, output_image->glActiveSurface );
-					;/**///glColor4ub( 255,255,255,255 );
-				}
+				CDATA r = va_arg( colors, CDATA );
+				CDATA g = va_arg( colors, CDATA );
+				CDATA b = va_arg( colors, CDATA );
+				float r_color[4], g_color[4], b_color[4];
+				r_color[0] = RedVal( r) / 255.0f;
+				r_color[1] = GreenVal( r ) / 255.0f;
+				r_color[2] = BlueVal( r ) / 255.0f;
+				r_color[3] = AlphaVal( r ) / 255.0f;
+
+				g_color[0] = RedVal( g ) / 255.0f;
+				g_color[1] = GreenVal( g ) / 255.0f;
+				g_color[2] = BlueVal( g ) / 255.0f;
+				g_color[3] = AlphaVal( g ) / 255.0f;
+
+				b_color[0] = RedVal( b ) / 255.0f;
+				b_color[1] = GreenVal( b ) / 255.0f;
+				b_color[2] = BlueVal( b ) / 255.0f;
+				b_color[3] = AlphaVal( b ) / 255.0f;
+
+				EnableShader( "Simple MultiShaded Texture", v[vi], pifSrc->glActiveSurface, texture_v, r_color, g_color, b_color );
 			}
 			else if( method == BLOT_INVERTED )
 			{
@@ -664,97 +673,68 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				}
 			}
 
-			/**///glBegin(GL_TRIANGLE_STRIP);
-			//glBegin(GL_QUADS);
-			// Front Face
-			//glColor4ub( 255,120,32,192 );
-			scale( v1[v], v1[v], l.scale );
-			scale( v2[v], v2[v], l.scale );
-			scale( v3[v], v3[v], l.scale );
-			scale( v4[v], v4[v], l.scale );
-			/**///glTexCoord2d(x_size, y_size); glVertex3dv(v1[v]);	// Bottom Left Of The Texture and Quad
-			/**///glTexCoord2d(x_size, y_size2); glVertex3dv(v2[v]);	// Bottom Right Of The Texture and Quad
-			/**///glTexCoord2d(x_size2, y_size); glVertex3dv(v4[v]);	// Top Left Of The Texture and Quad
-			/**///glTexCoord2d(x_size2, y_size2); glVertex3dv(v3[v]);	// Top Right Of The Texture and Quad
-			// Back Face
-			/**///glEnd();
-#if !defined( __ANDROID__ )
-			if( method == BLOT_MULTISHADE )
-			{
-				if( l.glActiveSurface->shader.multi_shader )
-				{
- 					glDisable(GL_FRAGMENT_PROGRAM_ARB);
-				}
-			}
-			else if( method == BLOT_INVERTED )
-			{
-				if( l.glActiveSurface->shader.inverse_shader )
-				{
- 					glDisable(GL_FRAGMENT_PROGRAM_ARB);
-				}
-			}
-#endif
-			/**///glBindTexture(GL_TEXTURE_2D, 0);				// Select Our Texture
+			//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 		}
 	}
-
-	else switch( method )
+	else
 	{
-	case BLOT_COPY:
-		if( !nTransparent )
-			cBlotScaledT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );       
-		else if( nTransparent == 1 )
-			cBlotScaledT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );       
-		else if( nTransparent & ALPHA_TRANSPARENT )
-			cBlotScaledTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );
-		else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-			cBlotScaledTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );        
-		else
-			cBlotScaledTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent );        
-		break;
-	case BLOT_SHADED:
-		if( !nTransparent )
-			cBlotScaledShadedT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, va_arg( colors, CDATA ) );
-		else if( nTransparent == 1 )
-			cBlotScaledShadedT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, va_arg( colors, CDATA ) );
-		else if( nTransparent & ALPHA_TRANSPARENT )
-			cBlotScaledShadedTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF, va_arg( colors, CDATA ) );
-		else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-			cBlotScaledShadedTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF, va_arg( colors, CDATA ) );
-		else
-			cBlotScaledShadedTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent, va_arg( colors, CDATA ) );
-		break;
-	case BLOT_MULTISHADE:
+		switch( method )
 		{
-			CDATA r,g,b;
-			r = va_arg( colors, CDATA );
-			g = va_arg( colors, CDATA );
-			b = va_arg( colors, CDATA );
+		case BLOT_COPY:
 			if( !nTransparent )
-				cBlotScaledMultiT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-									  , r, g, b );
+				cBlotScaledT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );
 			else if( nTransparent == 1 )
-				cBlotScaledMultiT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-									  , r, g, b );
+				cBlotScaledT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );
 			else if( nTransparent & ALPHA_TRANSPARENT )
-				cBlotScaledMultiTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-										  , nTransparent & 0xFF
-										  , r, g, b );
+				cBlotScaledTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );
 			else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-				cBlotScaledMultiTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-											, nTransparent & 0xFF
-											, r, g, b );
+				cBlotScaledTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );
 			else
-				cBlotScaledMultiTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-									  , nTransparent
-									  , r, g, b );
+				cBlotScaledTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent );
+			break;
+		case BLOT_SHADED:
+			if( !nTransparent )
+				cBlotScaledShadedT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, va_arg( colors, CDATA ) );
+			else if( nTransparent == 1 )
+				cBlotScaledShadedT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, va_arg( colors, CDATA ) );
+			else if( nTransparent & ALPHA_TRANSPARENT )
+				cBlotScaledShadedTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF, va_arg( colors, CDATA ) );
+			else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
+				cBlotScaledShadedTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF, va_arg( colors, CDATA ) );
+			else
+				cBlotScaledShadedTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent, va_arg( colors, CDATA ) );
+			break;
+		case BLOT_MULTISHADE:
+			{
+				CDATA r,g,b;
+				r = va_arg( colors, CDATA );
+				g = va_arg( colors, CDATA );
+				b = va_arg( colors, CDATA );
+				if( !nTransparent )
+					cBlotScaledMultiT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+											, r, g, b );
+				else if( nTransparent == 1 )
+					cBlotScaledMultiT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+											, r, g, b );
+				else if( nTransparent & ALPHA_TRANSPARENT )
+					cBlotScaledMultiTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+												, nTransparent & 0xFF
+												, r, g, b );
+				else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
+					cBlotScaledMultiTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+												 , nTransparent & 0xFF
+												 , r, g, b );
+				else
+					cBlotScaledMultiTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+											, nTransparent
+											, r, g, b );
+			}
+			break;
 		}
-		break;
 	}
 	lock = 0;
-//   Log( WIDE("Blot done") );
+	//   Log( WIDE("Blot done") );
 }
-
 
 
 #ifdef __cplusplus 
