@@ -32,12 +32,12 @@ static const CTEXTSTR gles_simple_v_shader =
     WIDE("}\n"); 
 
 static const CTEXTSTR gles_simple_p_shader =
-    WIDE( "precision mediump float;\n" )
+    //WIDE( "precision mediump float;\n" )
 	WIDE( " varying vec4 vColor;\n" )
 	WIDE( " varying vec2 out_texCoord;\n" )
 	WIDE( " uniform sampler2D tex;\n" )
 	WIDE( "void main() {\n" )
-	WIDE( "   gl_FragColor = texture( tex, out_texCoord );\n" )
+	WIDE( "   gl_FragColor = texture2D( tex, out_texCoord );\n" )
     WIDE( "}\n" );
 
 
@@ -48,7 +48,7 @@ static const CTEXTSTR gles_simple_v_shader_shaded_texture =
 	WIDE( "uniform mat4 modelView;\n" )
 	WIDE( "uniform mat4 worldView;\n" )
 	WIDE( "uniform mat4 Projection;\n" )
-	WIDE( " out vec2 out_texCoord;\n" )
+	WIDE( "varying vec2 out_texCoord;\n" )
 	WIDE( " \n" )
     WIDE("void main() {\n" )
     WIDE("  gl_Position = Projection * worldView * vPosition;\n" )
@@ -56,12 +56,12 @@ static const CTEXTSTR gles_simple_v_shader_shaded_texture =
     WIDE("}"); 
 
 static const CTEXTSTR gles_simple_p_shader_shaded_texture =
-    WIDE( "precision mediump float;\n" )
+    //WIDE( "precision mediump float;\n" )
 	WIDE( "uniform vec4 in_Color;\n" )
-	WIDE( " in vec2 out_texCoord;\n" )
+	WIDE( " varying vec2 out_texCoord;\n" )
 	WIDE( " uniform sampler2D tex;\n" )
 	WIDE( "void main() {\n" )
-	WIDE( "   gl_FragColor = in_Color * texture( tex, out_texCoord );\n" )
+	WIDE( "   gl_FragColor = in_Color * texture2D( tex, out_texCoord );\n" )
     WIDE( "}\n" );
 
 

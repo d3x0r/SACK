@@ -20,7 +20,7 @@ static const CTEXTSTR gles_simple_v_shader =
 	WIDE( "uniform mat4 modelView;\n" )
 	WIDE( "uniform mat4 worldView;\n" )
 	WIDE( "uniform mat4 Projection;\n" )
-    WIDE( "in vec4 vPosition;" )
+    WIDE( "attribute vec4 vPosition;" )
 	//WIDE( "in  vec4 in_Color;\n")
 	//WIDE( "out vec4 ex_Color;\n")
     WIDE( "void main(void) {" )
@@ -30,9 +30,9 @@ static const CTEXTSTR gles_simple_v_shader =
 
 static const CTEXTSTR gles_simple_p_shader =
 	WIDE( "uniform  vec4 in_Color;\n" )
-	WIDE( "out vec4 out_Color;" )
+	//WIDE( "varying vec4 out_Color;" )
     WIDE( "void main(void) {" )
-	WIDE( "  out_Color = in_Color;" )
+	WIDE( "  gl_FragColor = in_Color;" )
     WIDE( "}" );
 
 
