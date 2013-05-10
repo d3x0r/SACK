@@ -521,8 +521,8 @@ namespace image {
 		{
 			int glDepth = 1;
 			float x_size, x_size2, y_size, y_size2;
-         float texture_v[4][2];
-			VECTOR v[2][4],;
+			float texture_v[4][2];
+			VECTOR v[2][4];
 			int vi = 0;
 
 			v[vi][0][0] = xd;
@@ -557,7 +557,7 @@ namespace image {
 					Apply( pifDest->transform, v[1-vi][1], v[vi][1] );
 					Apply( pifDest->transform, v[1-vi][2], v[vi][2] );
 					Apply( pifDest->transform, v[1-vi][3], v[vi][3] );
-					v = 1-v;
+					vi = 1-vi;
 				}
 				pifDest = pifDest->pParent;
 			}
@@ -567,7 +567,7 @@ namespace image {
 				Apply( pifDest->transform, v[1-vi][1], v[vi][1] );
 				Apply( pifDest->transform, v[1-vi][2], v[vi][2] );
 				Apply( pifDest->transform, v[1-vi][3], v[vi][3] );
-				v = 1-v;
+				vi = 1-vi;
 			}
 
 			scale( v[vi][0], v[vi][0], l.scale );
@@ -587,8 +587,7 @@ namespace image {
 			/**///glBindTexture(GL_TEXTURE_2D, pifSrc->glActiveSurface);				// Select Our Texture
 			if( method == BLOT_COPY )
 			{
-            EnableShader( "Simple Texture", v[vi], pifSrc->glActiveSurface, texture_v );
-				;/**///glColor4ub( 255,255,255,255 );
+				EnableShader( "Simple Texture", v[vi], pifSrc->glActiveSurface, texture_v );
 			}
 			else if( method == BLOT_SHADED )
 			{
@@ -599,8 +598,7 @@ namespace image {
 				_color[2] = BlueVal( tmp ) / 255.0f;
 				_color[3] = AlphaVal( tmp ) / 255.0f;
 
-            EnableShader( "Simple Shaded Texture", v[vi], pifSrc->glActiveSurface, texture_v, _color );
-				;/**///glColor4ubv( (GLubyte*)&tmp );
+				EnableShader( "Simple Shaded Texture", v[vi], pifSrc->glActiveSurface, texture_v, _color );
 			}
 			else if( method == BLOT_MULTISHADE )
 			{
@@ -624,32 +622,6 @@ namespace image {
 				b_color[3] = AlphaVal( b ) / 255.0f;
 
 				EnableShader( "Simple MultiShaded Texture", v[vi], pifSrc->glActiveSurface, texture_v, r_color, g_color, b_color );
-#if !defined( __ANDROID__ )
-				InitShader();
-				if( glUseProgram && l.glActiveSurface->shader.multi_shader )
-				{
-					int err;
-		 			glEnable(GL_FRAGMENT_PROGRAM_ARB);
-					glUseProgram( l.glActiveSurface->shader.multi_shader );
-					err = glGetError();
-					glProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 0, (float)GetRedValue( r )/255.0f, (float)GetGreenValue( r )/255.0f, (float)GetBlueValue( r )/255.0f, (float)GetAlphaValue( r )/255.0f );
-					err = glGetError();
-					glProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 1, (float)GetRedValue( g )/255.0f, (float)GetGreenValue( g )/255.0f, (float)GetBlueValue( g )/255.0f, (float)GetAlphaValue( g )/255.0f );
-					err = glGetError();
-					glProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 2, (float)GetRedValue( b )/255.0f, (float)GetGreenValue( b )/255.0f, (float)GetBlueValue( b )/255.0f, (float)GetAlphaValue( b )/255.0f );					
-					err = glGetError();
-				}
-				else
-#endif
-				{
-					Image output_image;
-					CDATA r = va_arg( colors, CDATA );
-					CDATA g = va_arg( colors, CDATA );
-					CDATA b = va_arg( colors, CDATA );
-					output_image = GetShadedImage( pifSrc, r, g, b );
-					/**///glBindTexture( GL_TEXTURE_2D, output_image->glActiveSurface );
-					;/**///glColor4ub( 255,255,255,255 );
-				}
 			}
 			else if( method == BLOT_INVERTED )
 			{

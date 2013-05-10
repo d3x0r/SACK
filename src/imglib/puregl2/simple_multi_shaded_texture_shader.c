@@ -69,6 +69,9 @@ struct private_shader_data
 {
 	int texture_attrib;
 	int texture;
+	int r_color_attrib;
+	int g_color_attrib;
+	int b_color_attrib;
 };
 
 
@@ -101,8 +104,11 @@ static void CPROC SimpleMultiShadedTextureEnable( PImageShaderTracker tracker, v
 	//glBindSampler(0, linearFiltering);
 	CheckErr();
 
+	glUniform4fv( data->r_color_attrib, 1, r_color );
 	CheckErr();
-	glUniform4fv( tracker->color_attrib, 1, color );
+	glUniform4fv( data->g_color_attrib, 1, g_color );
+	CheckErr();
+	glUniform4fv( data->b_color_attrib, 1, b_color );
 	CheckErr();
 
 
@@ -258,8 +264,10 @@ void InitSimpleShadedTextureShader( PImageShaderTracker tracker )
 		CheckErr();
 
 		SetupCommon( tracker, "vPosition", "in_Color" );
-
-		tracker->color_attrib = glGetUniformLocation(tracker->glProgramId, "in_Color" );
+		
+		data->r_color_attrib = glGetUniformLocation(tracker->glProgramId, "in_RColor" );
+		data->g_color_attrib = glGetUniformLocation(tracker->glProgramId, "in_GColor" );
+		data->b_color_attrib = glGetUniformLocation(tracker->glProgramId, "in_BColor" );
 		data->texture = glGetUniformLocation(tracker->glProgramId, "tex");
 		data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
 
