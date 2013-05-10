@@ -529,22 +529,22 @@ namespace image {
 			v[vi][0][1] = yd;
 			v[vi][0][2] = 0.0;
 
-			v[vi][1][0] = xd;
-			v[vi][1][1] = yd+hs;
+			v[vi][1][0] = xd+ws;
+			v[vi][1][1] = yd;
 			v[vi][1][2] = 0.0;
 
-			v[vi][2][0] = xd+ws;
+			v[vi][2][0] = xd;
 			v[vi][2][1] = yd+hs;
 			v[vi][2][2] = 0.0;
 
 			v[vi][3][0] = xd+ws;
-			v[vi][3][1] = yd;
+			v[vi][3][1] = yd+hs;
 			v[vi][3][2] = 0.0;
 
-			x_size = (double) xs/ (double)topmost_parent->width;
-			x_size2 = (double) (xs+ws)/ (double)topmost_parent->width;
-			y_size = (double) ys/ (double)topmost_parent->height;
-			y_size2 = (double) (ys+hs)/ (double)topmost_parent->height;
+			x_size = (float) xs/ (float)topmost_parent->width;
+			x_size2 = (float) (xs+ws)/ (float)topmost_parent->width;
+			y_size = (float) ys/ (float)topmost_parent->height;
+			y_size2 = (float) (ys+hs)/ (float)topmost_parent->height;
 			// Front Face
 			//glColor4ub( 255,120,32,192 );
 			//lprintf( WIDE( "Texture size is %g,%g to %g,%g" ), x_size, y_size, x_size2, y_size2 );
@@ -577,16 +577,21 @@ namespace image {
 
          texture_v[0][0] = x_size;
          texture_v[0][1] = y_size;
-         texture_v[1][0] = x_size;
-         texture_v[1][1] = y_size2;
-         texture_v[2][0] = x_size2;
-         texture_v[2][1] = y_size;
+         texture_v[1][0] = x_size2;
+         texture_v[1][1] = y_size;
+         texture_v[2][0] = x_size;
+         texture_v[2][1] = y_size2;
          texture_v[3][0] = x_size2;
          texture_v[3][1] = y_size2;
 
 			/**///glBindTexture(GL_TEXTURE_2D, pifSrc->glActiveSurface);				// Select Our Texture
 			if( method == BLOT_COPY )
 			{
+				lprintf( "Corner output here..." );
+            PrintVector( v[vi][0] );
+            PrintVector( v[vi][1] );
+            PrintVector( v[vi][2] );
+            PrintVector( v[vi][3] );
 				EnableShader( "Simple Texture", v[vi], pifSrc->glActiveSurface, texture_v );
 			}
 			else if( method == BLOT_SHADED )
