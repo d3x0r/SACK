@@ -176,8 +176,6 @@ int EditOptions( void )
 {
 	PCOMMON frame;// = LoadFrame( WIDE("edit.frame"), NULL, NULL, 0 );
 	int done = FALSE;
-	//RegisterProcedure( WIDE("psi/control/") LISTBOX_CONTROL_NAME, WIDE("init#options"), int, InitOptionList, PTRSVAL, PCONTROL, ID );
-	//RegisterProcedure( WIDE("psi/control/") LISTBOX_CONTROL_NAME, WIDE("init#files"), int, InitOptionList, PTRSVAL, PCONTROL, ID );
 
 
 	//if( !frame )
@@ -188,7 +186,7 @@ int EditOptions( void )
 #define NEW_SIZE 720
 #define LIST_SIZE           240 - SIZE_BASE + NEW_SIZE
 #define RIGHT_START   250 - SIZE_BASE + NEW_SIZE
-		frame = CreateFrame( WIDE("Edit Options"), -1, -1, NEW_SIZE, 320, BORDER_RESIZABLE|BORDER_NORMAL, NULL );
+		frame = CreateFrame( WIDE("Edit Options"), -1, -1, NEW_SIZE, 320, BORDER_NORMAL, NULL );
 		list = MakeListBox( frame, 5, 5, LIST_SIZE, 310, LST_OPTIONMAP, 0 );
 		SetListboxIsTree( list, TRUE );
 		SetSelChangeHandler( list, OptionSelectionChanged, 0 );
