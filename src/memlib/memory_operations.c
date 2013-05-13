@@ -393,7 +393,7 @@ char *  CStrDupEx ( CTEXTSTR original DBG_PASS )
 	char *result;
 	if( !original )
 		return NULL;
-	for( len = 0; original[len]; len++ ); if( len )
+	for( len = 0; original[len]; len++ ); 
 	result = (char*)AllocateEx( (len+1) * sizeof( result[0] ) DBG_RELAY );
 	len = 0;
 	while( ( result[len] = original[len] ) != 0 ) len++;

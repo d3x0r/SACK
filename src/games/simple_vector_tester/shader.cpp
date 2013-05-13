@@ -61,26 +61,23 @@ void InitShader( void )
 {
 	GLint result;
 	const char *simple_color_vertex_source = //"#version 140\n"
- 
-	                                         "uniform mat4 worldView;\n"
-	                                         "uniform mat4 Projection;\n"
-	                                         "in  vec4 in_Position;\n"
-	                                         "in  vec4 in_Color;\n"
-	                                         "out vec4 ex_Color;\n"
- 
-	                                         "void main(void)\n"
-	                                         "{\n"
-											 "	gl_Position = Projection * worldView * in_Position;"//vec4(in_Position, 1.0);\n"
-	                                         "	ex_Color = in_Color;\n"
-	                                         "}\n";
+
+		"uniform mat4 worldView;\n"
+		"uniform mat4 Projection;\n"
+		"attribute  vec4 in_Position;\n"
+		"attribute  vec4 in_Color;\n"
+		"varying vec4 ex_Color;\n"
+		"void main(void)\n"
+		"{\n"
+		"	gl_Position = Projection * worldView * in_Position;"//vec4(in_Position, 1.0);\n"
+		"	ex_Color = in_Color;\n"
+		"}\n";
 
 	const char *simple_color_pixel_source = //"#version 140\n"
-	                                         "in  vec4 ex_Color;\n"
-	                                         "out vec4 out_Color;\n"
- 
+	                                         "varying  vec4 ex_Color;\n"
 	                                         "void main(void)\n"
 	                                         "{\n"
-	                                         "	out_Color = ex_Color;\n"
+	                                         "	gl_FragColor = ex_Color;\n"
 	                                         "}\n"
 											 "\n";
 
@@ -262,6 +259,15 @@ static void OnDraw3d( WIDE("Simple Shader Array") )( PTRSZVAL psvView )
 			vert2[0] =-0.2; vert2[1] = 0.5; vert2[2] =-1.0;
 			vert2[3] = 0.3; vert2[4] =-0.5; vert2[5] =-1.0;
 			vert2[6] = 0.8; vert2[7] = 0.5; vert2[8]= -1.0;
+
+			{
+				int n;
+				for( n = 0; n < 9; n++ )
+				{
+               vert[n] = 10* vert[n];
+					vert2[n] = 10* vert2[n];
+				}
+			}
 
 			glEnableVertexAttribArray( 0 );
 			glEnableVertexAttribArray( 1 );
