@@ -1453,7 +1453,7 @@ static int CPROC Handle3DTouches( PRENDERER hVideo, PTOUCHINPUT touches, int nTo
 #endif
 #endif
 
-static void RenderGL( struct display_camera *camera )
+static void WantRenderGL( void )
 {
 	INDEX idx;
 	PRENDERER hVideo;
@@ -1462,20 +1462,9 @@ static void RenderGL( struct display_camera *camera )
 	if( l.flags.bLogRenderTiming )
 		lprintf( "Begin Render" );
 
-	if( !camera->flags.did_first_draw )
-	{
-		first_draw = 1;
-		camera->flags.did_first_draw = 1;
-	}
-	else
-		first_draw = 0;
-
-
-	// if there are plugins, then we want to render always.
-	if( !camera->plugins )
 	{
 		PRENDERER other = NULL;
-		PRENDERER hVideo = camera->hVidCore;
+		PRENDERER hVideo;
 		for( hVideo = l.bottom; hVideo; hVideo = hVideo->pBelow )
 		{
 			if( other == hVideo )
@@ -1492,18 +1481,31 @@ static void RenderGL( struct display_camera *camera )
 				continue;
 			}
 			if( hVideo->flags.bUpdated )
+			{
+				// any one window with an update draws all.
+				l.flags.bUpdateWanted = 1;
 				break;
+			}
 		}
-		if( !hVideo )
-			return;
+	}
+}
+
+static void RenderGL( struct display_camera *camera )
+{
+	INDEX idx;
+	PRENDERER hVideo;
+	struct plugin_reference *reference;
+	int first_draw;
+	if( l.flags.bLogRenderTiming )
+		lprintf( "Begin Render" );
+
+	if( !camera->flags.did_first_draw )
+	{
+		first_draw = 1;
+		camera->flags.did_first_draw = 1;
 	}
 	else
-	{
-		// plugins trigger continuous update;
-		// want update will have been reset before here.
-		l.flags.bUpdateWanted = 1;
-	}
-
+		first_draw = 0;
 
 	// do OpenGL Frame
 	SetActiveGLDisplay( camera->hVidCore );
@@ -1550,73 +1552,6 @@ static void RenderGL( struct display_camera *camera )
 
 	GetGLCameraMatrix( camera->origin_camera, camera->hVidCore->fModelView );
 	glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
-
-	for( hVideo = l.bottom; hVideo; hVideo = hVideo->pBelow )
-	{
-		if( l.flags.bLogMessageDispatch )
-			lprintf( WIDE("Have a video in stack...") );
-		if( hVideo->flags.bDestroy )
-			continue;
-		if( hVideo->flags.bHidden || !hVideo->flags.bShown )
-		{
-			if( l.flags.bLogMessageDispatch )
-				lprintf( WIDE("But it's nto exposed...") );
-			continue;
-		}
-
-		hVideo->flags.bUpdated = 0;
-
-		if( l.flags.bLogWrites )
-			lprintf( WIDE("------ BEGIN A REAL DRAW -----------") );
-
-		glEnable( GL_DEPTH_TEST );
-		// put out a black rectangle
-		// should clear stensil buffer here so we can do remaining drawing only on polygon that's visible.
-		ClearImageTo( hVideo->pImage, 0 );
-		glDisable(GL_DEPTH_TEST);							// Enables Depth Testing
-
-		if( hVideo->pRedrawCallback )
-			hVideo->pRedrawCallback( hVideo->dwRedrawData, (PRENDERER)hVideo );
-
-		// allow draw3d code to assume depth testing 
-		glEnable( GL_DEPTH_TEST );
-	}
-	{
-#if 0
-		// render a ray that we use for mouse..
-		{
-			VECTOR target;
-			VECTOR origin;
-			addscaled( target, camera->mouse_ray.o, camera->mouse_ray.n, 1.0 );
-			SetPoint( origin, camera->mouse_ray.o );
-			origin[0] += 0.001;
-			origin[1] += 0.001;
-			//mouse_ray_origin[2] += 0.01;
-			glBegin( GL_LINES );
-			glColor4ub( 255,0,255,128 );
-			glVertex3dv(origin);	// Bottom Left Of The Texture and Quad
-			glColor4ub( 255,255,0,128 );
- 			glVertex3dv(target);	// Bottom Left Of The Texture and Quad
-			glEnd();
-		}
-		// render a ray that we use for mouse..
-		{
-			VECTOR target;
-			VECTOR origin;
-			addscaled( target, l.mouse_ray.o, l.mouse_ray.n, 1.0 );
-			SetPoint( origin, l.mouse_ray.o );
-			origin[0] += 0.001;
-			origin[1] += 0.001;
-			//mouse_ray_origin[2] += 0.01;
-			glBegin( GL_LINES );
-			glColor4ub( 255,255,255,128 );
-			glVertex3dv(origin);	// Bottom Left Of The Texture and Quad
-			glColor4ub( 255,56,255,128 );
- 			glVertex3dv(target);	// Bottom Left Of The Texture and Quad
-			glEnd();
-		}
-#endif
-	}
 
 	LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
 	{
@@ -2660,13 +2595,20 @@ WM_DROPFILES
 				LIST_FORALL( l.update, idx, Update3dProc, proc )
 					proc( l.origin );
 			}
-			if( l.flags.bUpdateWanted )
+
+			// set l.flags.bUpdateWanted for window surfaces.
+			WantRenderGL();
+
 			{
 				struct display_camera *camera;
 				INDEX idx;
 				l.flags.bUpdateWanted = 0;
 				LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
 				{
+					// if plugins or want update, don't continue.
+					if( !camera->plugins && !l.flags.bUpdateWanted )
+						continue;
+					
 					if( !camera->hVidCore || !camera->hVidCore->flags.bReady )
 						continue;
 					// drawing may cause subsequent draws; so clear this first
