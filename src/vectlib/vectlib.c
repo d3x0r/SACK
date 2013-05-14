@@ -918,15 +918,16 @@ void InvokeCallbacks( PTRANSFORM pt )
 
 //----------------------------------------------------------------
 
- void Move( PTRANSFORM pt )
+LOGICAL Move( PTRANSFORM pt )
 {
-   // this matrix of course....
-   // clock the matrix one cycle....
-   // this means - add one speed vector 
-   // and one rotation vector to the current
-   // x-y-z-a-b-c position and orientation 
-   // matrix...  this is later referenced
-   // to trasform the remaining points
+	LOGICAL moved = FALSE;
+	// this matrix of course....
+	// clock the matrix one cycle....
+	// this means - add one speed vector 
+	// and one rotation vector to the current
+	// x-y-z-a-b-c position and orientation 
+	// matrix...  this is later referenced
+	// to trasform the remaining points
 	// (application of this matrix)
 	if( pt && pt->motion )
 	{
@@ -934,13 +935,13 @@ void InvokeCallbacks( PTRANSFORM pt )
 		RCOORD speed_step;
 		RCOORD rotation_step;
 		if( !pt ) 
-			return;
+			return FALSE;
 #ifdef _MSC_VER
-	if( _isnan( pt->m[0][0] ) )
-	{
-		return;
-		lprintf( WIDE( "blah" ) );
-	}
+		if( _isnan( pt->m[0][0] ) )
+		{
+			return FALSE;
+			lprintf( WIDE( "blah" ) );
+		}
 #endif
 	{
 		{
@@ -955,7 +956,7 @@ void InvokeCallbacks( PTRANSFORM pt )
 				_32 delta = ( now = timeGetTime() ) - pt->motion->last_tick;
 				if( !delta )
 				{
-					return;  // on 0 time elapse, don't try this... cpu scaling will mess this up.
+					return FALSE;  // on 0 time elapse, don't try this... cpu scaling will mess this up.
 #if HAVE_CHEAP_CPU_FREQUENCY
 					if( !tick_freq_cpu )
 						tick_freq_cpu = GetCPUFrequency();
@@ -989,7 +990,7 @@ void InvokeCallbacks( PTRANSFORM pt )
 				pt->motion->time_scale = ONE;
 #endif
 				pt->motion->last_tick = timeGetTime();
-            return;
+				return FALSE;
 			}
 		}			
 	}
@@ -1001,8 +1002,9 @@ void InvokeCallbacks( PTRANSFORM pt )
 		VECTOR v;
 		if( pt->motion->rocket )
 		{
+			moved = TRUE;
 			scale( v, pt->motion->accel, speed_step );
-         // add the scaled acceleration in the current direction of this
+			// add the scaled acceleration in the current direction of this
 			pt->motion->speed[0] += v[0] * pt->m[0][0]
 				+ v[1] * pt->m[1][0]
 				+ v[2] * pt->m[2][0];
@@ -1012,22 +1014,27 @@ void InvokeCallbacks( PTRANSFORM pt )
 			pt->motion->speed[2] += v[0] * pt->m[0][2]
 				+ v[1] * pt->m[1][2]
 				+ v[2] * pt->m[2][2];
-         addscaled( pt->m[3], pt->m[3], pt->motion->speed, speed_step );
+			addscaled( pt->m[3], pt->m[3], pt->motion->speed, speed_step );
 		}
 		else
 		{
-			addscaled( pt->motion->speed, pt->motion->speed, pt->motion->accel, speed_step );
-			scale( v, pt->motion->speed, speed_step );
-			//scale( v, v, pt->time_scale ); // velocity applied across this time
-			pt->m[3][0] += v[0] * pt->m[0][0]
-				+ v[1] * pt->m[1][0]
-				+ v[2] * pt->m[2][0];
-			pt->m[3][1] += v[0] * pt->m[0][1]
-				+ v[1] * pt->m[1][1]
-				+ v[2] * pt->m[2][1];
-			pt->m[3][2] += v[0] * pt->m[0][2]
-				+ v[1] * pt->m[1][2]
-				+ v[2] * pt->m[2][2];
+			if( pt->motion->speed[0] || pt->motion->speed[1] || pt->motion->speed[2]
+				|| pt->motion->accel[0] || pt->motion->accel[1] || pt->motion->accel[2] )
+			{
+				moved = TRUE;
+				addscaled( pt->motion->speed, pt->motion->speed, pt->motion->accel, speed_step );
+				scale( v, pt->motion->speed, speed_step );
+				//scale( v, v, pt->time_scale ); // velocity applied across this time
+				pt->m[3][0] += v[0] * pt->m[0][0]
+					+ v[1] * pt->m[1][0]
+					+ v[2] * pt->m[2][0];
+				pt->m[3][1] += v[0] * pt->m[0][1]
+					+ v[1] * pt->m[1][1]
+					+ v[2] * pt->m[2][1];
+				pt->m[3][2] += v[0] * pt->m[0][2]
+					+ v[1] * pt->m[1][2]
+					+ v[2] * pt->m[2][2];
+			}
 		}
 #ifdef _MSC_VER
 		if( _isnan( pt->m[0][0] ) )
@@ -1040,6 +1047,7 @@ void InvokeCallbacks( PTRANSFORM pt )
 		{
 			VECTOR  r;
 			//lprintf( WIDE(WIDE( "Time scale is not applied" )) );
+			moved = TRUE;
 			addscaled( pt->motion->rotation, pt->motion->rotation, pt->motion->rot_accel, rotation_step );
 			scale( r, pt->motion->rotation, rotation_step );
 
@@ -1060,6 +1068,7 @@ void InvokeCallbacks( PTRANSFORM pt )
 #endif
 	}
 	}
+	return moved;
 }
 
 //----------------------------------------------------------------
@@ -1099,7 +1108,7 @@ void InvokeCallbacks( PTRANSFORM pt )
 				_32 delta = ( now = timeGetTime() ) - pt->last_tick;
 				if( !delta )
 				{
-					return;  // on 0 time elapse, don't try this... cpu scaling will mess this up.
+					return FALSE;  // on 0 time elapse, don't try this... cpu scaling will mess this up.
 #if HAVE_CHEAP_CPU_FREQUENCY
 					if( !tick_freq_cpu )
 						tick_freq_cpu = GetCPUFrequency();
