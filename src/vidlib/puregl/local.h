@@ -41,14 +41,14 @@ typedef struct tagUPDATELAYEREDWINDOWINFO {
 
 #endif
 
-typedef void (CPROC *Update3dProc)(PTRANSFORM);
+typedef LOGICAL (CPROC *Update3dProc)(PTRANSFORM);
 
 
 struct plugin_reference
 {
 	CTEXTSTR name;
 	PTRSZVAL psv;
-	void (CPROC *Update3d)(PTRANSFORM origin);
+	LOGICAL (CPROC *Update3d)(PTRANSFORM origin);
 	void (CPROC *FirstDraw3d)(PTRSZVAL);
 	void (CPROC *ExtraDraw3d)(PTRSZVAL,PTRANSFORM camera);
 	void (CPROC *Draw3d)(PTRSZVAL);

@@ -2105,7 +2105,7 @@ static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PTRANSFORM camera, RCOORD *i
 }
 
 static void CPROC UpdatePositions( PTRSZVAL psv );
-static void OnUpdate3d( WIDE( "Terrain View" ) )( PTRANSFORM origin )
+static LOGICAL OnUpdate3d( WIDE( "Terrain View" ) )( PTRANSFORM origin )
 {
 	l.transform = origin;
 	{
@@ -2121,6 +2121,7 @@ static void OnUpdate3d( WIDE( "Terrain View" ) )( PTRANSFORM origin )
 #ifdef DEBUG_TIMING
 	lprintf( "(end tick physics)Tick." );
 #endif
+   return TRUE;
 }
 
 LOGICAL hold_update;
