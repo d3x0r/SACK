@@ -30,7 +30,7 @@
 #include "local.h"
 #define NEED_ALPHA2
 #include "blotproto.h"
-
+#include "shaders.h"
 #ifdef __cplusplus
 namespace sack {
 namespace image {
@@ -588,10 +588,10 @@ namespace image {
 			if( method == BLOT_COPY )
 			{
 				lprintf( "Corner output here..." );
-            PrintVector( v[vi][0] );
-            PrintVector( v[vi][1] );
-            PrintVector( v[vi][2] );
-            PrintVector( v[vi][3] );
+				//PrintVector( v[vi][0] );
+				//PrintVector( v[vi][1] );
+				//PrintVector( v[vi][2] );
+				//PrintVector( v[vi][3] );
 				EnableShader( "Simple Texture", v[vi], pifSrc->glActiveSurface, texture_v );
 			}
 			else if( method == BLOT_SHADED )

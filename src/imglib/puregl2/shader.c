@@ -39,6 +39,7 @@ void EnableShader( CTEXTSTR shader, ... )
 	{
 		if( StrCaseCmp( tracker->name, shader ) == 0 )
 		{
+         xlprintf( LOG_NOISE+1 )( "Enable shader %s", tracker->name );
 			glUseProgram( tracker->glProgramId );
 			if( !tracker->flags.set_matrix )
 			{
@@ -57,6 +58,7 @@ void EnableShader( CTEXTSTR shader, ... )
 				CheckErr();
 				glUniformMatrix4fv( tracker->projection, 1, GL_FALSE, l.projection );
 				CheckErr();
+            tracker->flags.set_matrix = 1;
 			}
 			if( tracker->Enable )
 			{
@@ -67,6 +69,8 @@ void EnableShader( CTEXTSTR shader, ... )
 			break;
 		}
 	}
+	if( !tracker )
+      lprintf( "Failed to find shader %s", shader );
 }
 
 
