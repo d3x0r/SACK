@@ -4424,7 +4424,7 @@ PVIDEO  OpenDisplaySizedAt (_32 attr, _32 wx, _32 wy, S_32 x, S_32 y) // if nati
 	if( DoOpenDisplay( hNextVideo ) )
 	{
 		lprintf( WIDE("New bottom is %p"), l.bottom );
-      return hNextVideo;
+		return hNextVideo;
 	}
 	Release( hNextVideo );
 	return NULL;

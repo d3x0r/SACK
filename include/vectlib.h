@@ -659,7 +659,7 @@ MATHLIB_EXPORT void SetTimeInterval( PTRANSFORM pt, RCOORD speed_interval, RCOOR
    
    See Also
    <link sack::math::vector::SetTimeInterval@PTRANSFORM@RCOORD@RCOORD, SetTimeInterval> */
-MATHLIB_EXPORT void Move( PTRANSFORM pt );
+MATHLIB_EXPORT LOGICAL Move( PTRANSFORM pt );
 #if 0
 	MATHLIB_EXPORT void Unmove( PTRANSFORM pt );
 #endif
@@ -776,10 +776,10 @@ public:
 	inline void SetRotation( PC_POINT p )
 	{	sack::math::vector::SetRotation( &data, p );
 	}
-	inline void Move( void )
+	inline LOGICAL Move( void )
 	{
 		void Move( PTRANSFORM pt );
-		sack::math::vector::Move( &data );
+		return sack::math::vector::Move( &data );
 	}
 	inline void Unmove( void )
 	{
