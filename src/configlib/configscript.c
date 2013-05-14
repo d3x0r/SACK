@@ -1,4 +1,8 @@
 //#define NO_UNICODE_C
+#ifdef _MSC_VER
+//#define NO_CRT_SECURE_WARNINGS
+#endif
+
 #define DEFINE_DEFAULT_IMAGE_INTERFACE
 #include <stdhdrs.h>
 #include <stdio.h>
@@ -2056,6 +2060,9 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 		CTEXTSTR workpath = OSALOT_GetEnvironmentVariable( WIDE( "MY_WORK_PATH" ) );
 		TEXTCHAR pathname[255];
 		snprintf( pathname, sizeof( pathname ), WIDE("%s/%s"), workpath, name );
+#ifdef _MSC_VER
+		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
+#endif
 		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
 	}
 	if( !pch->file && !absolute_path )
@@ -2063,6 +2070,9 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 		CTEXTSTR workpath = OSALOT_GetEnvironmentVariable( WIDE( "MY_LOAD_PATH" ) );
 		TEXTCHAR pathname[255];
 		snprintf( pathname, sizeof( pathname ), WIDE("%s/%s"), workpath, name );
+#ifdef _MSC_VER
+		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
+#endif
 		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
 	}
 #endif
@@ -2070,18 +2080,27 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 	{
 		TEXTCHAR pathname[255];
 		snprintf( pathname, sizeof( pathname ), WIDE("/etc/%s"), name );
+#ifdef _MSC_VER
+		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
+#endif
 		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
 	}
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
 		snprintf( pathname, sizeof( pathname ), WIDE("\\ftn3000\\working\\%s"), name );
+#ifdef _MSC_VER
+		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
+#endif
 		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
 	}
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
 		snprintf( pathname, sizeof( pathname ), WIDE("C:\\ftn3000\\working\\%s"), name );
+#ifdef _MSC_VER
+		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
+#endif
 		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
 	}
 	pch->psvUser = psv;
