@@ -31,15 +31,16 @@ typedef struct render_3d_interface_tag
 #define OnInit3d(name) \
 	__DefineRegistryMethod(WIDE("sack/render/puregl"),Init3d,WIDE("init3d"),name,WIDE("ExtraInit3d"),PTRSZVAL,(PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect ),__LINE__)
 
-// static void OnUpdate3d( "Virtuality" )( PTRSZVAL psvInit, PTRANSFORM eye_transform );
+// static LOGICAL OnUpdate3d( "Virtuality" )( PTRSZVAL psvInit, PTRANSFORM eye_transform );
 // called when a new frame will be rendered.  Once per frame.  All others are called per-camera per-frame.
 // can update the common viewpoint here, and it will propagate, otherwise the camera ends up resetting to
 // this point, unless the named transformation matrix is loaded manually.
 // it is passed the origin transformation view into the universe)
 // since this is potentially one for multiple Init instances, cannot pass the instance this applies to, since it is all.
 // the PTRANSFORM origin has just previously been updated with Move(), so it can have speed and acceleration applied
+// return true/false to indicate a desire to draw this frame.  If this and nothing else changed, the frame will be skipped.
 #define OnUpdate3d(name) \
-	__DefineRegistryMethod(WIDE("sack/render/puregl"),Update3d,WIDE("draw3d"),name,WIDE("Update3d"),void,(PTRANSFORM origin ),__LINE__)
+	__DefineRegistryMethod(WIDE("sack/render/puregl"),Update3d,WIDE("update3d"),name,WIDE("Update3d"),LOGICAL,(PTRANSFORM origin ),__LINE__)
 
 // static void OnFirstDraw3d( "Virtuality" )( PTRSZVAL psvInit );
 // called the first time a camera draws itself;

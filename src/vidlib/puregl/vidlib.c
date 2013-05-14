@@ -1295,7 +1295,7 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 					static PCLASSROOT draw3d;
 					if( !draw3d )
 						draw3d = GetClassRoot( WIDE("sack/render/puregl/draw3d") );
-					reference->Update3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("Update3d"),(PTRANSFORM));
+					reference->Update3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,LOGICAL,WIDE("Update3d"),(PTRANSFORM));
 					// add one copy of each update proc to update list.
 					if( FindLink( &l.update, reference->Update3d ) == INVALID_INDEX )
 						AddLink( &l.update, reference->Update3d );
@@ -2593,11 +2593,18 @@ WM_DROPFILES
 				INDEX idx;
 				Update3dProc proc;
 				LIST_FORALL( l.update, idx, Update3dProc, proc )
-					proc( l.origin );
+				{
+					if( proc( l.origin ) )
+                  l.flags.bUpdateWanted = TRUE;
+				}
 			}
 
-			// set l.flags.bUpdateWanted for window surfaces.
-			WantRenderGL();
+         // no reason to check this if an update is already wanted.
+			if( !l.flags.bUpdateWanted )
+			{
+				// set l.flags.bUpdateWanted for window surfaces.
+				WantRenderGL();
+			}
 
 			{
 				struct display_camera *camera;
