@@ -553,17 +553,17 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			v[vi][0][1] = yd;
 			v[vi][0][2] = 0.0;
 
-			v[vi][3][0] = xd+wd;
-			v[vi][3][1] = yd;
-			v[vi][3][2] = 0.0;
-
-			v[vi][1][0] = xd;
-			v[vi][1][1] = yd+hd;
+			v[vi][1][0] = xd+wd;
+			v[vi][1][1] = yd;
 			v[vi][1][2] = 0.0;
 
-			v[vi][2][0] = xd+wd;
+			v[vi][2][0] = xd;
 			v[vi][2][1] = yd+hd;
 			v[vi][2][2] = 0.0;
+
+			v[vi][3][0] = xd+wd;
+			v[vi][3][1] = yd+hd;
+			v[vi][3][2] = 0.0;
 
 			x_size = (float) xs/ (float)topmost_parent->width;
 			x_size2 = (float) (xs+ws)/ (float)topmost_parent->width;
