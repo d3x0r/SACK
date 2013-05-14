@@ -1553,11 +1553,43 @@ static void RenderGL( struct display_camera *camera )
 	GetGLCameraMatrix( camera->origin_camera, camera->hVidCore->fModelView );
 	glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
 
+	for( hVideo = l.bottom; hVideo; hVideo = hVideo->pBelow )
+	{
+		if( l.flags.bLogMessageDispatch )
+			lprintf( WIDE("Have a video in stack...") );
+		if( hVideo->flags.bDestroy )
+			continue;
+		if( hVideo->flags.bHidden || !hVideo->flags.bShown )
+		{
+			if( l.flags.bLogMessageDispatch )
+				lprintf( WIDE("But it's nto exposed...") );
+			continue;
+		}
+
+		hVideo->flags.bUpdated = 0;
+
+		if( l.flags.bLogWrites )
+			lprintf( WIDE("------ BEGIN A REAL DRAW -----------") );
+
+		glEnable( GL_DEPTH_TEST );
+		// put out a black rectangle
+		// should clear stensil buffer here so we can do remaining drawing only on polygon that's visible.
+		ClearImageTo( hVideo->pImage, 0 );
+		glDisable(GL_DEPTH_TEST);							// Enables Depth Testing
+
+		if( hVideo->pRedrawCallback )
+			hVideo->pRedrawCallback( hVideo->dwRedrawData, (PRENDERER)hVideo );
+
+		// allow draw3d code to assume depth testing 
+		glEnable( GL_DEPTH_TEST );
+	}
+
 	LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
 	{
 		if( reference->Draw3d )
 			reference->Draw3d( reference->psv );
 	}
+
 	if( l.flags.bLogRenderTiming )
 		lprintf( "Done external drawing" );
 	SetActiveGLDisplay( NULL );
