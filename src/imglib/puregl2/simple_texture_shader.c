@@ -84,7 +84,7 @@ static void CPROC SimpleTextureEnable( PImageShaderTracker tracker, va_list args
 	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );
 	CheckErr();
 	glEnableVertexAttribArray(data->texture_attrib);	CheckErr();
-	glVertexAttribPointer( data->texture_attrib, 3, GL_FLOAT, FALSE, 0, texture_verts );            
+	glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, texture_verts );            
 	CheckErr();
 	glActiveTexture(GL_TEXTURE0 + 0);
 	CheckErr();
