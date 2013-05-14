@@ -1603,26 +1603,28 @@ PTRSZVAL CPROC PlayItemOnThread( PTHREAD thread )
 		}
 		else
 		{
-         pmyi->mp = vlc.libvlc_media_player_new( pmyi->inst );
-			RAISE( vlc, &pmyi->ex );
-			pmyi->mpev = vlc.libvlc_media_player_event_manager( pmyi->mp PASS_EXCEPT_PARAM );
+         //pmyi->mp = vlc.libvlc_media_player_new( pmyi->inst );
+			//RAISE( vlc, &pmyi->ex );
+			//pmyi->mpev = vlc.libvlc_media_player_event_manager( pmyi->mp PASS_EXCEPT_PARAM );
 		}
 
-		lprintf( WIDE( "vlc 1.1.x set callbacks, get ready." ) );
-		vlc.libvlc_video_set_callbacks( pmyi->mp, lock_frame, unlock_frame, display_frame, pmyi );
-		lprintf( WIDE( "Output %d %d" ), pmyi->image_w, pmyi->image_h );
-		vlc.libvlc_video_set_format(pmyi->mp, "RV32", pmyi->image_w, pmyi->image_h, -(signed)(pmyi->image_w*sizeof(CDATA)));
+		if( pmyi->mp )
+		{
+			lprintf( WIDE( "vlc 1.1.x set callbacks, get ready." ) );
+			vlc.libvlc_video_set_callbacks( pmyi->mp, lock_frame, unlock_frame, display_frame, pmyi );
+			lprintf( WIDE( "Output %d %d" ), pmyi->image_w, pmyi->image_h );
+			vlc.libvlc_video_set_format(pmyi->mp, "RV32", pmyi->image_w, pmyi->image_h, -(signed)(pmyi->image_w*sizeof(CDATA)));
 
-		BindAllEvents( pmyi );
-
+			BindAllEvents( pmyi );
+		}
 		pmyi->waiting = thread;
 		pmyi->flags.bStarted = 1;
 
 		if( pmyi->flags.bWantPlay && !pmyi->m && pmyi->mp )
 		{
-			lprintf( WIDE( "PLAY (catch up to application wanting play)" ) );
-			vlc.libvlc_vlm_play_media( pmyi->inst, "channel1" PASS_EXCEPT_PARAM);
-			vlc.libvlc_vlm_play_media( pmyi->inst, "channel2" PASS_EXCEPT_PARAM);
+			lprintf( WIDE( "PLAY (catch up to application wanting play) (do nothing)" ) );
+			//vlc.libvlc_vlm_play_media( pmyi->inst, "channel1" PASS_EXCEPT_PARAM);
+			//vlc.libvlc_vlm_play_media( pmyi->inst, "channel2" PASS_EXCEPT_PARAM);
 		}
 
 		if( pmyi->flags.bWantPlay && pmyi->m && pmyi->mp )
