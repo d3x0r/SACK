@@ -2082,7 +2082,10 @@ static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PTRANSFORM camera, RCOORD *i
 
 	l.numbers.image = LoadImageFile( l.numbers.image_name );
 	l.numbers.bump_image = LoadImageFile( l.numbers.bump_image_name );
-	ParseImage( l.numbers.image, l.hex_size, 10, 10 );
+	ParseImage( l.numbers.image, l.hex_size						
+		, SACK_GetPrivateProfileInt( "Ball Animation", "Ball Numbers Rows", 11, "flashdrive.ini" ) 
+		, SACK_GetPrivateProfileInt( "Ball Animation", "Ball Numbers Cols", 10, "flashdrive.ini" ) 
+		);
 
 	l.logo = LoadImageFile( l.logo_name );
 
@@ -2335,7 +2338,10 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 				{
 				
 					l.hex_size = l.hex_size + 1;
-					ParseImage( l.numbers.image, l.hex_size, 10, 10 );
+					ParseImage( l.numbers.image, l.hex_size
+						, SACK_GetPrivateProfileInt( "Ball Animation", "Ball Numbers Rows", 11, "flashdrive.ini" ) 
+						, SACK_GetPrivateProfileInt( "Ball Animation", "Ball Numbers Cols", 10, "flashdrive.ini" ) 
+						);
 						{
 							INDEX idx;
 							PHEXPATCH patch;
@@ -2359,7 +2365,10 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 					if( l.hex_size > 1 )
 					{
 						l.hex_size = l.hex_size / 2;
-						ParseImage( l.numbers.image, l.hex_size, 10, 10 );
+						ParseImage( l.numbers.image, l.hex_size
+							, SACK_GetPrivateProfileInt( "Ball Animation", "Ball Numbers Rows", 11, "flashdrive.ini" ) 
+							, SACK_GetPrivateProfileInt( "Ball Animation", "Ball Numbers Cols", 10, "flashdrive.ini" ) 
+							);
 						{
 							INDEX idx;
 							PHEXPATCH patch;
