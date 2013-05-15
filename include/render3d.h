@@ -40,7 +40,7 @@ typedef struct render_3d_interface_tag
 // the PTRANSFORM origin has just previously been updated with Move(), so it can have speed and acceleration applied
 // return true/false to indicate a desire to draw this frame.  If this and nothing else changed, the frame will be skipped.
 #define OnUpdate3d(name) \
-	__DefineRegistryMethod(WIDE("sack/render/puregl"),Update3d,WIDE("update3d"),name,WIDE("Update3d"),LOGICAL,(PTRANSFORM origin ),__LINE__)
+	__DefineRegistryMethod(WIDE("sack/render/puregl"),Update3d,WIDE("draw3d"),name,WIDE("Update3d"),LOGICAL,(PTRANSFORM origin ),__LINE__)
 
 // static void OnFirstDraw3d( "Virtuality" )( PTRSZVAL psvInit );
 // called the first time a camera draws itself;
