@@ -53,7 +53,7 @@ static const CTEXTSTR gles_simple_p_multi_shader =
 				WIDE( "}\n" );
 
 
-struct private_shader_data
+struct private_mst_shader_data
 {
 	int texture_attrib;
 	int texture;
@@ -72,7 +72,7 @@ static void CPROC SimpleMultiShadedTextureEnable( PImageShaderTracker tracker, v
 	float *g_color = va_arg( args, float *);
 	float *b_color = va_arg( args, float *);
 
-	struct private_shader_data *data = (struct private_shader_data *)tracker->psv_userdata;
+	struct private_mst_shader_data *data = (struct private_mst_shader_data *)tracker->psv_userdata;
 
 	glEnableVertexAttribArray(0);	CheckErr();
 	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );  
@@ -107,7 +107,7 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 {
 	GLint result;
 	const char *codeblocks[2];
-	struct private_shader_data *data = New( struct private_shader_data );
+	struct private_mst_shader_data *data = New( struct private_mst_shader_data );
 
 	tracker->psv_userdata = (PTRSZVAL)data;
 	tracker->Enable = SimpleMultiShadedTextureEnable;
@@ -288,11 +288,11 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 
 		SetupCommon( tracker, "vPosition", "in_Color" );
 		
-		data->r_color_attrib = glGetUniformLocation(tracker->glProgramId, "in_RColor" );
+		data->r_color_attrib = glGetUniformLocation(tracker->glProgramId, "multishade_r" );
 		CheckErr();
-		data->g_color_attrib = glGetUniformLocation(tracker->glProgramId, "in_GColor" );
+		data->g_color_attrib = glGetUniformLocation(tracker->glProgramId, "multishade_g" );
 		CheckErr();
-		data->b_color_attrib = glGetUniformLocation(tracker->glProgramId, "in_BColor" );
+		data->b_color_attrib = glGetUniformLocation(tracker->glProgramId, "multishade_b" );
 		CheckErr();
 		data->texture = glGetUniformLocation(tracker->glProgramId, "tex");
 		CheckErr();
