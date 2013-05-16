@@ -1,0 +1,204 @@
+
+#ifdef OPTION_MAIN_SOURCE
+#define OPT_EXTERN(a,b,...) a b= __VA_ARGS__
+#else
+#define OPT_EXTERN(a,b,...) extern a b
+#endif
+
+//------------------------------------------------------------------------
+// Option V2 tables
+//------------------------------------------------------------------------
+
+//# Table: 'option_exception_time'
+//# 
+#define OPTION_EXCEPTION WIDE("option2_exception")
+
+OPT_EXTERN( CTEXTSTR, option2_exception, WIDE( "CREATE TABLE `option2_exception` (" )
+WIDE( "  `option_exception_id` int(11) NOT NULL auto_increment,\n" )
+WIDE( "  `apply_from` datetime default '0000-00-00 00:00:00',\n" )
+WIDE( "  `apply_until` datetime default '0000-00-00 00:00:00',\n" )
+WIDE( "  `system_id` int(11) NOT NULL default '0',\n" )
+WIDE( "  `override_value_id` int(11) NOT NULL default '0',\n" )
+WIDE( "  `option_id` int(11) NOT NULL default '0',\n" )
+WIDE( "  PRIMARY KEY  (`option_exception_id`)\n" )
+WIDE( " );\n" ) );
+
+//# Table: 'option_map'
+//# 
+#define OPTION_MAP WIDE("option2_map")
+
+OPT_EXTERN( CTEXTSTR, option2_map, WIDE( "CREATE TABLE `option2_map` (" )
+WIDE( "  `option_id` int(11) NOT NULL auto_increment,\n" )
+WIDE( "  `parent_option_id` int(11) NOT NULL default '0',\n" )
+WIDE( "  `name_id` int(11) NOT NULL default '0',\n" )
+WIDE( "  `description` tinytext,\n" )
+WIDE( "  PRIMARY KEY  (`option_id`)," )
+WIDE( "  INDEX `parent_key`(`parent_option_id`)" )
+WIDE( " ) TYPE=MyISAM COMMENT='Table ID defines ID for use in OptionValues';\n" ) );
+
+//# Table: 'option_name'
+//# 
+#define OPTION_NAME WIDE( "option2_name" )
+OPT_EXTERN( CTEXTSTR, option2_name, WIDE( "CREATE TABLE `option2_name` (" )
+WIDE( "  `name_id` int(11) NOT NULL auto_increment,\n" )
+WIDE( "  `name` varchar(255) NOT NULL default '',\n" )
+WIDE( "  PRIMARY KEY  (`name_id`),\n" )
+WIDE( "  UNIQUE KEY `name` (`name`)" )
+WIDE( " ) TYPE=MyISAM;\n" ) );
+
+//# Table: 'option_values'
+//# 
+#define OPTION_VALUES WIDE("option2_values")
+OPT_EXTERN( CTEXTSTR, option2_values, WIDE( "CREATE TABLE `option2_values` (" )
+WIDE( "  `option_id` int(11) default '0',\n" )
+WIDE( "  `string` varchar(100) default NULL,\n" )
+WIDE( "  UNIQUE KEY `value_id` (`option_id`)" )
+WIDE( " ) TYPE=MyISAM;\n" ) );
+
+//# Table: 'option_blobs'
+//# 
+#define OPTION_BLOBS WIDE("option2_blobs")
+OPT_EXTERN( CTEXTSTR, option2_blobs, WIDE( "CREATE TABLE `option2_blobs` (" )
+WIDE( "  `option_id` int(11) default '0',\n" )
+WIDE( "  `binary` blob,\n" )
+WIDE( "  UNIQUE KEY `value_id` (`option_id`)" )
+WIDE( " ) TYPE=MyISAM;\n" ) );
+
+//------------------------------------------------------------------------
+// Option V4 tables
+//------------------------------------------------------------------------
+
+//# Table: 'option4_exception_time'
+//# 
+#define OPTION4_EXCEPTION WIDE("option4_exception")
+
+OPT_EXTERN( CTEXTSTR, option4_exception, WIDE( "CREATE TABLE `option4_exception` (" )
+WIDE( "  `option_exception_id` char(36) NOT NULL,\n" )
+WIDE( "  `apply_from` datetime default '0000-00-00 00:00:00',\n" )
+WIDE( "  `apply_until` datetime default '0000-00-00 00:00:00',\n" )
+WIDE( "  `system_id` int(11) NOT NULL default '0',\n" )
+WIDE( "  `override_value_id` char(36) NOT NULL default '0',\n" )
+WIDE( "  `option_id` char(36) NOT NULL default '0',\n" )
+WIDE( "  PRIMARY KEY  (`option_exception_id`)\n" )
+WIDE( " );\n" ) );
+
+//# Table: 'option4_map'
+//# 
+#define OPTION4_MAP WIDE("option4_map")
+
+OPT_EXTERN( CTEXTSTR, option4_map, WIDE( "CREATE TABLE `option4_map` (" )
+WIDE( "  `option_id` char(36) NOT NULL,\n" )
+WIDE( "  `parent_option_id` char(36) NOT NULL default '0',\n" )
+WIDE( "  `name_id` char(36) NOT NULL default '0',\n" )
+WIDE( "  `description` tinytext,\n" )
+WIDE( "  PRIMARY KEY  (`option_id`)," )
+WIDE( "  INDEX `parent_key`(`parent_option_id`)" )
+WIDE( " ) TYPE=MyISAM COMMENT='Table ID defines ID for use in OptionValues';\n" ) );
+
+//# Table: 'option4_name'
+//# 
+#define OPTION4_NAME WIDE( "option4_name" )
+OPT_EXTERN( CTEXTSTR, option4_name, WIDE( "CREATE TABLE `option4_name` (" )
+WIDE( "  `name_id` char(36) NOT NULL,\n" )
+WIDE( "  `name` varchar(255) NOT NULL default '',\n" )
+WIDE( "  PRIMARY KEY  (`name_id`),\n" )
+WIDE( "  UNIQUE KEY `name` (`name`)" )
+WIDE( " ) TYPE=MyISAM;\n" ) );
+
+//# Table: 'option4_values'
+//# 
+#define OPTION4_VALUES WIDE("option4_values")
+OPT_EXTERN( CTEXTSTR, option4_values, WIDE( "CREATE TABLE `option4_values` (" )
+WIDE( "  `option_id` char(36) default '0',\n" )
+WIDE( "  `string` varchar(100) default NULL,\n" )
+WIDE( "  `segment` int(11) default 0,\n" )
+WIDE( "  UNIQUE KEY `value_id` (`option_id`)" )
+WIDE( " ) TYPE=MyISAM;\n" ) );
+
+//# Table: 'option4_blobs'
+//# 
+#define OPTION4_BLOBS WIDE("option4_blobs")
+OPT_EXTERN( CTEXTSTR, option4_blobs, WIDE( "CREATE TABLE `option4_blobs` (" )
+WIDE( "  `option_id` char(36) default '0',\n" )
+WIDE( "  `binary` blob,\n" )
+WIDE( "  UNIQUE KEY `value_id` (`option_id`)" )
+WIDE( " ) TYPE=MyISAM;\n" ) );
+
+
+
+//#SELECT 
+//#//#a.name_id, b.name_id, c.name_id,d.name_id, e.name_id, f.node_id, g.node_id, h.node_id
+//#ona.name,onb.name,onc.name,ond.name,one.name,onf.name,ong.name,onh.name
+//#FROM `option_map` as a
+//#left join option_map as b on b.parent_node_id=a.node_id
+//#left join option_map as c on c.parent_node_id=b.node_id
+//#left join option_map as d on d.parent_node_id=c.node_id
+//#left join option_map as e on e.parent_node_id=d.node_id
+//#left join option_map as f on f.parent_node_id=e.node_id
+//#left join option_map as g on g.parent_node_id=f.node_id
+//#left join option_map as h on h.parent_node_id=g.node_id
+//#
+//#join option_name as ona on ona.name_id=a.name_id
+//#join option_name as onb on onb.name_id=b.name_id
+//#join option_name as onc on onc.name_id=c.name_id
+//#join option_name as ond on ond.name_id=d.name_id
+//#join option_name as one on one.name_id=e.name_id
+//#left join option_name as onf on onf.name_id=f.name_id
+//#left join option_name as ong on ong.name_id=g.name_id
+//#left join option_name as onh on onh.name_id=h.name_id
+
+//------------------------------------------------------------------------
+// Option V1 tables
+//------------------------------------------------------------------------
+
+//# Table: 'option_exception_time'
+//# 
+OPT_EXTERN( CTEXTSTR, option_exception, WIDE( "CREATE TABLE `option_exception` (" )
+WIDE( "  `option_exception_id` int(11) NOT NULL auto_increment,\n" )
+WIDE( "  `apply_from` datetime default '0000-00-00 00:00:00',\n" )
+WIDE( "  `apply_until` datetime default '0000-00-00 00:00:00',\n" )
+WIDE( "  `system_id` int(11) NOT NULL default '0',\n" )
+WIDE( "  `override_value_id` int(11) NOT NULL default '0',\n" )
+WIDE( "  `value_id` int(11) NOT NULL default '0',\n" )
+WIDE( "  PRIMARY KEY  (`option_exception_id`)\n" )
+WIDE( " );\n" ) );
+
+//# Table: 'option_map'
+//# 
+OPT_EXTERN( CTEXTSTR, option_map, WIDE( "CREATE TABLE `option_map` (" )
+WIDE( "  `node_id` int(11) NOT NULL auto_increment,\n" )
+WIDE( "  `parent_node_id` int(11) NOT NULL default '0',\n" )
+WIDE( "  `name_id` int(11) NOT NULL default '0',\n" )
+WIDE( "  `value_id` int(11) default '0',\n" )
+WIDE( "  `description` tinytext,\n" )
+WIDE( "  PRIMARY KEY  (`node_id`)" )
+WIDE( " ) TYPE=MyISAM COMMENT='Table ID defines ID for use in OptionValues';\n" ) );
+
+//# Table: 'option_name'
+//# 
+OPT_EXTERN( CTEXTSTR, option_name, WIDE( "CREATE TABLE `option_name` (" )
+WIDE( "  `name_id` int(11) NOT NULL auto_increment,\n" )
+WIDE( "  `name` varchar(255) NOT NULL default '',\n" )
+WIDE( "  PRIMARY KEY  (`name_id`),\n" )
+WIDE( "  UNIQUE KEY `name` (`name`)" )
+WIDE( " ) TYPE=MyISAM;\n" ) );
+
+//# Table: 'option_values'
+//# 
+OPT_EXTERN( CTEXTSTR, option_values, WIDE( "CREATE TABLE `option_values` (" )
+WIDE( "  `value_id` int(11) NOT NULL auto_increment,\n" )
+WIDE( "  `string` varchar(100) default NULL,\n" )
+WIDE( "  `binary` blob,\n" )
+WIDE( "  PRIMARY KEY  (`value_id`)" )
+WIDE( " ) TYPE=MyISAM;\n" ) );
+
+//# Table: 'systems'
+//# 
+OPT_EXTERN( CTEXTSTR, systems, WIDE( "CREATE TABLE `systems` (" )
+WIDE( "  `system_id` tinyint(4) NOT NULL auto_increment,\n" )
+WIDE( "  `name` varchar(64) NOT NULL default '',\n" )
+WIDE( "  `address` varchar(64) NOT NULL default '',\n" )
+WIDE( "  PRIMARY KEY  (`system_id`),\n" )
+WIDE( "  KEY `namekey` (`name`)" )
+WIDE( " ) TYPE=MyISAM;\n" ) );
+

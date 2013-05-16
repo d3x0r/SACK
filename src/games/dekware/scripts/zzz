@@ -1,0 +1,4 @@
+/trigger create yank2 &who does a nifty fighting move, but
+.yank %who
+#.w
+/endmac

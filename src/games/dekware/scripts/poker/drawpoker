@@ -1,0 +1,134 @@
+
+
+
+/decl page_title "Some Title goes here"
+
+<HTML><HEAD><TITLE>
+%page_title
+</TITLE>
+<BODY>
+
+#This page requires a deck, and a hand...
+/make deck cards;/create hand;/wake hand;/decl in hand mode reset
+
+<font size=+2>
+/mac drawcards count
+/decl i 0
+/label top
+
+/compare %i is %count
+
+/if fail
+/deck/dealto hand
+/increment %i
+/goto top
+/endif
+/endmac
+
+
+/mac joingame
+/compare hand exists
+/if fail
+no hand.
+/make deck cards;/create hand;/wake hand;/decl in hand mode reset
+/endif
+/look
+/compare %(hand)mode is reset
+/if success
+/deck/shuffle
+/hand/decl mode dealt
+/run drawcards 5
+.Dealing new hand....<br>
+<table>
+.<tr><td> Your Hand: </td><td><font size=+4>
+%(hand)hand </td><td>%(hand)pokerhand </td></tr>
+</table>
+
+<form action="scriptpage" method="get" >
+<INPUT type="checkbox" name="card1" value="discard"> Discard 1<BR>
+<INPUT type="checkbox" name="card2" value="discard"> Discard 2<BR>
+<INPUT type="checkbox" name="card3" value="discard"> Discard 3<BR>
+<INPUT type="checkbox" name="card4" value="discard"> Discard 4<BR>
+<INPUT type="checkbox" name="card5" value="discard"> Discard 5<BR>
+<input type="hidden" name="table" value=%table >
+<INPUT type="submit" value="Send">
+</form>
+
+/else
+
+/compare %(hand)mode is dealt
+/decl discard
+/decl drawcount 0
+/compare %card5 is discard
+/if success
+/push %discard 5
+/increment %drawcount
+/endif
+/compare %card4 is discard
+/if success
+/push %discard 4
+/increment %drawcount
+/endif
+/compare %card3 is discard
+/if success
+/push %discard 3
+/increment %drawcount
+/endif
+/compare %card2 is discard
+/if success
+/push %discard 2
+/increment %drawcount
+/endif
+/compare %card1 is discard
+/if success
+/push %discard 1
+/increment %drawcount
+/endif
+<!--.Discarding some cards, and dealing you a new hand? -->
+<!--. Hand before discard: %(hand)hand <br> -->
+/tell hand /discard %discard
+<!--. Hand after discard: %(hand)hand <br> -->
+/run drawcards %drawcount
+<!--. Hand after discard: %(hand)hand <br> -->
+<table>
+.<tr><td> Your Hand: </td><td><font size=+4>%(hand)hand </td><td><font size=+4>%(hand)pokerhand </td></tr>
+</table>
+
+/hand/decl mode reset
+<form action="scriptpage" method="get" >
+<input type="hidden" name="table" value=%table >
+<INPUT type="submit" value="Play Again">
+</form>
+
+/endif
+
+/endif
+
+/endmac
+
+/run joingame
+
+<Br>
+
+<a href=\"webpage/index.html">DOCS</a>
+</font>
+</BODY>
+
+
+
+
+<!--
+   This form sends the parameters as data... but the format of the params
+   is still the same as the command line... no particular reason to have this?
+   well.. other than to hide the params from the client I suppose....
+<form action="scriptpage" method="post" >
+<INPUT type="checkbox" name="card1" value="discard"> Discard 1<BR>
+<INPUT type="checkbox" name="card2" value="discard"> Discard 2<BR>
+<INPUT type="checkbox" name="card3" value="discard"> Discard 3<BR>
+<INPUT type="checkbox" name="card4" value="discard"> Discard 4<BR>
+<INPUT type="checkbox" name="card5" value="discard"> Discard 5<BR>
+<INPUT type="submit" value="Send">
+</form>
+-->
+
+</html>

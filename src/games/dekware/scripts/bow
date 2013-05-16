@@ -1,0 +1,12 @@
+
+/mac shot
+. remove bow
+/e
+/endmac
+
+/mac shoot
+/s
+/uncloak
+.wield bow
+/endmac
+

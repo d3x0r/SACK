@@ -1,0 +1,130 @@
+.SH NAME
+init_mib, load_mib, read_objid, print_objid, sprint_objid, 
+print_variable, sprint_variable, 
+print_value, sprint_value,
+print_variable_list, print_variable_list_value, print_type,
+print_oid_nums \- Functions requiring an SNMP MIB
+.SH SYNOPSIS
+.B cc
+.RI "[ " "flag" " \|.\|.\|. ] " "file" " \|.\|.\|."
+.B \-lsnmp
+.RI "[ " "library" " \|.\|.\|. ]"
+.LP
+.B #include <sys/types.h>
+.br
+.B #include <snmp/snmp.h>
+.LP
+.B int init_mib(void);
+.LP
+.BI "int load_mib(char * " "filename" ,
+.BI "int " "version" );
+.LP
+.BI "int read_objid(char * " "input" ,
+.BI "oid * " "output" ,
+.BI "int * " "outlen" );
+.LP
+.BI "void print_objid(oid * " "objid" ,
+.BI "int " "objidlen" );
+.LP
+.BI "void sprint_objid(char * " "buf" ,
+.BI "oid * " "objid" ,
+.BI "int " "objidlen" );
+.LP
+.BI "void print_variable(oid * ", "objid" ,
+.BI "int " "objidlen" ,
+.BI "struct variable_list * " "variable" );
+.LP
+.BI "void sprint_variable(char * ", "buf" ,
+.BI "oid * ", "objid" ,
+.BI "int " "objidlen" ,
+.BI "struct variable_list * " "variable" );
+.LP
+.BI "void print_value(oid * ", "objid" ,
+.BI "int " "objidlen" ,
+.BI "struct variable_list * " "variable" );
+.LP
+.BI "void sprint_value(char * ", "buf" ,
+.BI "oid * ", "objid" ,
+.BI "int " "objidlen" ,
+.BI "struct variable_list * " "variable" );
+.LP
+.BI "void print_variable_list(struct variable_list *" "V" );
+.LP
+.BI "void print_variable_list_value(struct variable_list *" "V" );
+.LP
+.BI "void print_type(struct variable_list * " "V" );
+.LP
+.BI "void print_oid_nums(oid * " "O" ,
+.BI "int " "len" );
+.SH DESCRIPTION
+.B init_mib(\|)
+loads the mib.  Returns 1 upon success, 0 otherwise.
+.LP
+.B load_mib(\|)
+reads the specified mibfile, assuming that the mibfile format is the
+version supplied.  Possible versions are OLD_CMU_SNMP_MIB and
+SNMPV2_MIB.
+.LP
+.B read_objid(\|)
+converts the input string (format ".iso.org." or ".1.3.6") into an
+oid, and places the oid into the array 
+.IR output .
+.LP
+.B print_objid(\|)
+prints the specified OID, replacing numbers with their textual
+equivalents from the MIB whenever possible.
+.B sprint_objid(\|)
+does the same, but places the resulting text into
+.IR buf .
+.LP
+.B print_variable(\|)
+prints 
+.I objid
+followed by the value of the 
+.I variable_list
+.I variable
+to stdout, using any information / conversions specified in the MIB.
+.B sprint_variable(\|)
+does the same, but places the resulting text into
+.IR buf .
+.LP
+.B print_value(\|)
+prints the value of the 
+.I variable_list
+.I variable
+to stdout, using any information / conversions specified in the MIB.
+.B sprint_value(\|)
+does the same, but places the resulting text into
+.IR buf .
+.LP
+.B print_variable_list(\|)
+is a shortcut for calling
+.B print_variable(\|)
+on a 
+.I variable_list
+that contains the proper name.
+.LP
+.B print_variable_list_value(\|)
+is a shortcut for calling
+.B print_variable_value(\|)
+on a 
+.I variable_list
+that contains the proper name.
+.LP
+.B print_type(\|)
+prints the type of the specified
+.IR variable_list .
+.LP
+.B print_oid_nums(\|)
+prints the numeric value of
+.I O
+to stdout.
+.SH "RETURN VALUES"
+.B read_objid(\|)
+returns 1 upon success, 0 otherwise.
+.SH ENVIRONMENT
+MIBFILE:  Location of the SNMP MIB.
+.SH FILES
+.nf
+mib.txt                   First MIB tried if env. var is not set
+/etc/mib.txt              Second MIB tried if env. var is not set

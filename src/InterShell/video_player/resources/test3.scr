@@ -1,0 +1,13 @@
+/mac hide_output
+/dest testyy
+/endmac
+/hide_output
+/mac testyy
+/open sysc system test.bat
+/open ansi ansi inbound newline
+/on close_process
+/VidPlayContinue
+/tell %me /endmac
+#/open de2 debug inbound
+/endmac
+/testyy

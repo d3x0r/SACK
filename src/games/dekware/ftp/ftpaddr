@@ -1,0 +1,14 @@
+
+/dest portaddr
+/mac portaddr ip1 comma ip2 comma ip3 comma ip4 comma port1 comma port2
+/decl Port %port1
+/decl IP
+/mult %Port 256
+/incr %Port %port2
+
+/decl IP %ip1.%ip2.%ip3.%ip4:%Port
+/burst %IP temp #concat result 
+/result %temp
+
+/endmac
+

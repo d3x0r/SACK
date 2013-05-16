@@ -1,0 +1,256 @@
+
+/scr common.trig
+/scr folkill.trig
+/scr panther.trig
+
+
+/macro gather container 
+.get plate
+.put plate %container
+.get metal-helmet
+.put metal-helmet %container
+.get plated-gauntlets
+.put plated-gauntlets %container
+.get plated-boots
+.put plated-boots %container
+.get platemail-leggings
+.put platemail-leggings %container
+.get platemail-sleeves
+.put platemail-sleeves %container
+/endmac
+
+/macro getarmor what container 
+.get plate %what
+.put plate %container
+.get metal-helmet %what
+.put metal-helmet %container
+.get plated-gauntlets %what
+.put plated-gauntlets %container
+.get plated-boots %what
+.put plated-boots %container
+.get platemail-leggings %what
+.put platemail-leggings %container
+.get platemail-sleeves %what
+.put platemail-sleeves %container
+/endmac
+
+/macro cloaks 
+.remove cloak
+.remove bags
+.get cloak bags
+.wear cloak
+.put cloak bags
+.wear bags
+/endmac
+
+/macro getstone what from 
+.get %what %from
+.remove pouch
+.put %what pouch
+.wear pouch
+/endmac
+
+/macro r 
+.rec recall
+/endmac
+
+/macro ii 
+.cast 'invisibility to animals'
+/endmac
+
+/decl thornbag bag
+/macro thorn who 
+.get thorns %thornbag
+.hold thorns
+.cast 'thorn' %who
+/endmac
+
+/macro dress 
+.wield staff
+.wear all
+.she staff back
+.wield branch
+.she branch
+.wear all
+/endmac
+
+/macro strong 
+.remove twig-helm
+.put twig-helm casket
+.remove black-gauntlets
+.put black-gauntlets casket
+.remove ribbed
+.put ribbed casket
+.remove manta
+.put manta casket
+.remove silver-armbands
+.put silver-armbands casket
+.remove shard
+
+.get mauve casket
+.get black-bands casket
+.get dwarven-helm casket
+.get strange-gauntlets casket
+.get maroon-robe casket
+.get apron casket
+.wear all
+/endmac
+
+/macro weak 
+.remove strange-gauntlets
+.put strange-gauntlets casket
+.remove maroon-robe
+.put maroon-robe casket
+.remove dwarven-helm
+.put dwarven-helm casket
+.remove black-bands
+.put black-bands casket
+.remove apron
+.put apron casket
+.remove mauve
+.put mauve casket
+.hold shard
+.get silver-armbands casket
+.get manta casket
+.get ribbed casket
+.get twig-helm casket
+.get black-gauntlets casket
+.wear all
+/endmac
+
+/mac helm
+.remove helm
+.get helm casket
+.wear helm
+.put helm casket
+/endmac
+
+/mac boots
+.remove boots
+.get boots casket
+.wear boots
+.put boots casket
+/endmac
+
+/macro neckpack 
+.remove sigil
+.put sigil bags
+.wear bags
+.remove silk
+.put silk bags
+.wear bags
+/endmac
+
+/macro neckdam 
+.remove bags
+.get sigil bags
+.wear sigil
+.remove bags
+.get silk-cloak bags
+.wear silk-cloak
+/endmac
+
+/decl primary flame-blade
+/decl secondary flame-blade
+
+/macro ` 
+.get %primary
+/endmac
+
+/macro 1 
+.get %secondary
+/endmac
+
+/macro 2 
+.wield %primary
+/endmac
+
+/macro 3 
+.wield %secondary sec
+/endmac
+
+/macro  4 
+/1
+/3
+/endmac
+
+/macro 5 
+/`
+/1
+/2
+/3
+/endmac
+
+/macro pack 
+.put stone-dagger basket
+.put stone-dagger basket
+.put mask basket
+.put truss basket
+.put basket casket
+.put all.ring casket
+.remove bags
+.put 2.bags bags
+.put collar bags
+.put cloak bags
+.put cloak bags
+.put all.potion bags
+.put all.flare bags
+.put all.vial bags
+.put all.decanter bags
+.put scythe casket
+.put sword casket
+.put strange casket
+.put robe casket
+.put feather casket
+.put robe casket
+.put exoskeleton casket
+.put dress casket
+.put all.scroll casket
+.put all.stick casket
+.put all.helm casket
+.put all.thorns bag
+.put all.staff sack
+/endmac
+
+
+/decl leader 
+/mac okill who
+/compare %leader blank
+/if success
+   .o followers kill %who
+/else
+   .o %leader kill %who
+   .o followers assist %leader
+/endif
+
+/endmac
+
+/mac odo what
+.o followers %what
+/endmac
+
+/mac bracelets
+.remove all.blue-bracer
+.get all.serpentine-bracelet casket
+.put all.blue-bracer casket
+.wear all
+/endmac
+
+/mac bracers
+.remove all.serpentine-bracelet
+.get all.blue-bracer casket
+.put all.serpentine-bracelet casket
+.wear all
+.wear bracer
+/endmac
+
+/destroy keepalive
+/create keepalive
+/wake keepalive
+/keepalive /mac tick
+//label top
+//reply who
+//delay 480000
+//goto top
+//endmac
+//tick

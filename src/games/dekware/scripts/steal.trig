@@ -1,0 +1,54 @@
+
+
+/trigger create stealocoins &who tries to steal gold from &target
+compare %target is A
+if success
+	return
+endif
+compare %target is The
+if success
+	return
+endif
+compare %target is An
+if success
+	return
+endif
+. say hey, %who, don't steal money from %target!
+/folkill %who
+/autokill %who
+.kill %who
+/endmac
+
+/trigger create stealcoins You discover that &who has his hands in your wallet
+. say hey, %who, don't steal my money!
+/folkill %who
+/autokill %who
+.kill %who
+/endmac
+
+/trigger create steal &who tries to steal something from &target
+compare %target is A
+if success
+	return
+endif
+compare %target is The
+if success
+	return
+endif
+compare %target is An
+if success
+	return
+endif
+. say hey, %who, don't steal! You're dead now...
+. say I'll get them for you, %target!
+/folkill %who
+/autokill %who
+.kill %who
+/endmac
+
+/trigger create steal2 &who tried to steal something from you
+. say hey, %who, don't steal! You're dead now...
+/folkill %who
+/autokill %who
+.kill %who
+/endmac

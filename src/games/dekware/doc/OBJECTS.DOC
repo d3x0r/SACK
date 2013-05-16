@@ -1,0 +1,102 @@
+
+
+No file for what we are manipulating? shame shame.
+
+Objects-
+     Have a name- might not be named -but CAN be named.
+     what are objects?  objects are anything.
+     how can one thing be anything?  well they don't all look the
+     same and therefore can't all act the same either.
+
+     There are however general rules which apply to any object.
+
+     Some things are ideas - concepts or processes - which are not
+     usually considered tangile.
+
+
+
+Object
+     Name  - level 1 Data pointed to - single data block.
+
+     Within - level 2 Object Pointed to - Data in object.
+     Contains - Level 3 List of Objects Pointed to - Data in List[idx]->object
+     BoundTo - level 4 list of lists of objects - binding link[0]->link[0]->object
+                                                  info    link[0]->link[1]->object
+
+     - Other -
+
+
+
+An object like a player
+     is within the location space - PNODE pLocationNode;
+     is bound to all possessions - HAND - one mated object.
+     and contains posessions. - POCKET
+
+An object like a location
+     is within other locations - PNODE pLocation.
+     is bound to other locations with portals
+
+An object like a sublocation exists - consider if you will merely cubing a
+room.  what cube you are in is attached to another cube.  however
+an attachment may be made to an object not in the same location
+and if you leave such a transition you will enter that location's parent.
+
+
+Room Cube
+     // attachment link may also contain other information
+  Contains
+     SubRoom Cube 1
+          Attached to SubRoom Cube 2
+          Attached to SubRoom Cube 3
+     SubRoomCube 2
+          Attached to SubRoom Cube 1 (not always)
+          Attached to Subroom Cube 3
+     SubRoomCube 3
+          Attached to SubRoom Cube 1 (not always)
+          Attached to Subroom Cube 2
+
+
+accept(object)
+     TRUE object is now within the object method called.
+
+OBJECTS attpemt to behave
+
+
+
+-------------------------------------------------------------------
+Objects with state processing values...
+
+Ladder Logic -
+
+CONDITION holding <object>
+     ACTION deny <Command>
+
+CONDITION holding lid
+     ACTION deny Enter
+
+CONDITION holding lock
+     ACTION deny Detach
+
+CONDITION holding key
+     ACTION allow Detach
+
+
+------------------------------------------------------------------
+
+objects of course have to have a command table of their own...
+ "accept (object)"
+  (accept object)
+  (accept (list of objects))
+  box.lid
+
+     (create box)
+     (create (box lid))
+
+method ACCEPT
+   CONTAINS <object>
+   ATTACHEDTO <object>
+   WITHIN <object>
+
+method ATTACH
+   permit <object>
+

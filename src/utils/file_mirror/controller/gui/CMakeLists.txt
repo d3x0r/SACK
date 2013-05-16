@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 2.8)
+
+project( FileMirrorGuiRemote )
+
+set(BASE_SOURCES
+${FIRST_GCC_PROGRAM_SOURCE} 
+    guinet.c guiremote.c main.c
+${LAST_GCC_PROGRAM_SOURCE}
+)
+
+add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
+SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+	COMPILE_DEFINITIONS "TARGET_NAME=\"${PROJECT_NAME}\";TARGET_LABEL=${PROJECT_NAME}"
+        FOLDER "utils/File Mirror"
+)
+target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES})
+install_default_dest( ${PROJECT_NAME} )
+

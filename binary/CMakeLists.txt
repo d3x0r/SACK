@@ -1,0 +1,136 @@
+set_property(GLOBAL PROPERTY USE_FOLDERS On)
+cmake_minimum_required(VERSION 2.8)
+
+
+PROJECT( "Sack.Binaries" )
+
+if( NOT SACK_SDK_ROOT_PATH )
+GET_FILENAME_COMPONENT(SACK_SDK_ROOT_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Freedom Collective\\SACK;Install_Dir]" ABSOLUTE CACHE)
+else( NOT SACK_SDK_ROOT_PATH )
+set(SACK_SDK_ROOT_PATH ${SACK_SDK_ROOT_PATH} CACHE STRING "SACK SDK Root" )
+endif( NOT SACK_SDK_ROOT_PATH )
+
+string( REPLACE "\\" "/" SACK_SDK_ROOT_PATH ${SACK_SDK_ROOT_PATH} )
+
+include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
+
+INSTALL_SACK( bin )
+
+include_directories( ${SACK_INCLUDE_DIR} )
+LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
+message( "installed to ${SACK_LIBRARY_DIR}" )
+
+# lie... this way we can build binaries without depending on intershell
+# but besides that we require direct knowledge of libraries here...
+add_definitions( -DINTERSHELL_CORE_BUILD )
+
+if( __ARM__ )
+ADD_DEFINITIONS( -D__ARM__ )
+endif( __ARM__ )
+if( __NO_ODBC__ )
+ADD_DEFINITIONS( -D__NO_ODBC__ )
+endif( __NO_ODBC__ )
+
+
+add_subdirectory( deploy )
+
+
+macro( add_subpath base )
+string( REPLACE "." "_" base2 ${base} )
+add_subdirectory( ${base} ${base2} )
+endmacro(add_subpath)
+
+
+add_subpath( ../src/psilib/paltst )
+
+# includes some testdata in tstdisplay...
+# the test programs do not have install targets, but they will end up building...
+ if( NOT __NO_GUI__ )
+  add_subpath( ../src/msgsvr/testdisplay )
+ endif( NOT __NO_GUI__ )
+#add_subpath( ../src/bench/mem )
+
+
+if( WIN32 )
+add_subpath( ../src/utils/reboot )
+add_subpath( ../src/utils/cleaner )
+add_subpath( ../src/utils/shutmon )
+add_subpath( ../src/utils/shell )
+endif( WIN32 )
+add_subpath( ../src/netlib/user )
+add_subpath( ../src/netlib/echo )
+add_subpath( ../src/netlib/forward )
+add_subpath( ../src/netlib/proxy )
+add_subpath( ../src/netlib/scan )
+if( NOT __ARM__ )
+add_subpath( ../src/filesyslib/filemon/filemonitor )
+endif( NOT __ARM__ )
+
+add_subpath( ../src/SQLlib/testsql )
+add_subpath( ../src/utils/launcher )
+add_subpath( ../src/utils/strip )
+add_subpath( ../src/sysloglib/logger )
+
+if( WIN32 )
+add_subpath( ../src/utils/shoimg )
+add_subpath( ../src/utils/bubbles2 )
+add_subpath( ../src/utils/top_picker )
+# this is pretty useless :)
+#add_subpath( ../src/utils/rotor/harmonic )
+
+add_subpath( ../src/utils/file_mirror )
+add_subpath( ../src/InterShell/widgets )
+add_subpath( ../src/commlib )
+if( BUILD_TESTS )
+add_subpath( ../src/configlib/test1 )
+endif( BUILD_TESTS )
+add_subpath( ../src/InterShell/widgets/banner/banner_cmd )
+add_subpath( ../src/psilib/console/cmdshell )
+#add_subpath( ../src/utils/http_post )
+add_subpath( ../src/utils/http_server )
+add_subpath( ../src/utils/waitwin )
+add_subpath( ../src/utils/systray_shell )
+add_subpath( ../src/utils/pcopy )
+add_subpath( ../src/utils/window_stacker )
+add_subpath( ../src/utils/set_registry )
+add_subpath( ../src/utils/image_colorizer )
+add_subpath( ../src/utils/opensim/region_maker )
+add_subpath( ../src/netlib/html5.websocket )
+endif( WIN32 )
+
+
+
+SET( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP 1 )
+if( ${CMAKE_BUILD_TYPE} MATCHES "[dD][eE][bB][uU][gG]" )
+message( "Okay install debug" )
+SET( CMAKE_INSTALL_DEBUG_LIBRARIES 1 )
+SET( CMAKE_INSTALL_DEBUG_LIBRARIES_ONLY 1 )
+endif( ${CMAKE_BUILD_TYPE} MATCHES "[dD][eE][bB][uU][gG]" )
+INCLUDE(InstallRequiredSystemLibraries)
+INSTALL( FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin )
+
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "SACK Binaries")
+SET(CPACK_PACKAGE_VENDOR "Freedom Collective")
+SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../howto.compile")
+SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../read.this")
+SET(CPACK_PACKAGE_VERSION_MAJOR "1")
+SET(CPACK_PACKAGE_VERSION_MINOR "0")
+SET(CPACK_PACKAGE_VERSION_PATCH "478")
+#SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
+IF(WIN32 AND NOT UNIX)
+  # There is a bug in NSI that does not handle full unix paths properly. Make
+  # sure there is at least one set of four (4) backlasshes.
+  SET(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/../doc\\\\BlankButton.jpg")
+  SET(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\sack_bag.dll")
+  SET(CPACK_NSIS_DISPLAY_NAME "SACK ${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+  SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\code.google.com\\\\p\\\\c-system-abstraction-component-gui")
+  SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\code.google.com\\\\p\\\\c-system-abstraction-component-gui")
+  SET(CPACK_NSIS_CONTACT "d3ck0r@gmail.com")
+  #SET(CPACK_NSIS_MODIFY_PATH ON)
+ELSE(WIN32 AND NOT UNIX)
+  SET(CPACK_STRIP_FILES "bin/MyExecutable")
+  SET(CPACK_SOURCE_STRIP_FILES "")
+ENDIF(WIN32 AND NOT UNIX)
+SET(CPACK_PACKAGE_EXECUTABLES "MyExecutable" "My Executable")
+INCLUDE(CPack)
+

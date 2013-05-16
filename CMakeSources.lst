@@ -1,0 +1,526 @@
+
+  if( ${CMAKE_COMPILER_IS_GNUCC} ) 
+  SET( FIRST_GCC_LIBRARY_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_list.c ) 
+  SET( FIRST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_list.c ) 
+  SET( LAST_GCC_LIBRARY_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_lib.c ${SOURCES_ROOT}src/deadstart/deadstart_end.c ) 
+  SET( LAST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_lib.c ${SOURCES_ROOT}src/deadstart/deadstart_prog.c ${SOURCES_ROOT}src/deadstart/deadstart_end.c ) 
+  endif()
+  if( ${MSVC}${WATCOM} ) 
+  SET( LAST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_prog.c ) 
+  endif()
+
+
+set(UNSORTED_SOURCES  
+  ${SOURCES_ROOT}src/sysloglib/syslog.c
+  ${SOURCES_ROOT}src/memlib/sharemem.c
+  ${SOURCES_ROOT}src/memlib/memory_operations.c
+  ${SOURCES_ROOT}src/timerlib/timers.c
+  ${SOURCES_ROOT}src/idlelib/idle.c
+  ${SOURCES_ROOT}src/fractionlib/fractions.c
+  ${SOURCES_ROOT}src/configlib/configscript.c
+  ${SOURCES_ROOT}src/procreglib/names.c
+  ${SOURCES_ROOT}src/deadstart/deadstart_core.c
+)
+
+if( NOT __ANDROID__ )
+  set( COMM_SOURCES src/commlib/sackcomm.c )
+  if( NOT __LINUX__ )
+    set( COMM_SOURCES ${COMM_SOURCES} src/windows_hardware_library/listports.c )
+  endif( NOT __LINUX__ )
+
+endif( NOT __ANDROID__ )
+
+if( WIN32 )
+set(MORE_NETWORK_SOURCES
+  ${SOURCES_ROOT}src/netlib/net_winsock2.c
+)
+set( SERVICE_STUB_SOURCES src/utils/service/service_stub.c )
+endif( WIN32 )
+
+if( NOT __ARM__ )
+set(MORE_NETWORK_SOURCES ${MORE_NETWORK_SOURCES} 
+  ${SOURCES_ROOT}src/netlib/ping.c
+  ${SOURCES_ROOT}src/netlib/whois.c
+)
+endif( NOT __ARM__ )
+
+set( NETWORK_SOURCES
+  ${SOURCES_ROOT}src/netlib/network.c
+  ${SOURCES_ROOT}src/netlib/tcpnetwork.c
+  ${SOURCES_ROOT}src/netlib/udpnetwork.c
+  ${MORE_NETWORK_SOURCES}
+)
+SET_SOURCE_FILES_PROPERTIES( ${NETWORK_SOURCES} PROPERTIES 
+		FOLDER "Source Files\\Network Library" )
+
+
+set( SYSTEM_LIBRARY_SOURCES 
+  ${SOURCES_ROOT}src/systemlib/args.c
+  ${SOURCES_ROOT}src/systemlib/system.c
+  ${SOURCES_ROOT}src/systemlib/spawntask.c
+)
+if( WIN32 )
+set( SYSTEM_LIBRARY_SOURCES ${SYSTEM_LIBRARY_SOURCES}
+  ${SOURCES_ROOT}src/systemlib/oswin.c
+)
+endif( WIN32 )
+SET_SOURCE_FILES_PROPERTIES( ${SYSTEM_LIBRARY_SOURCES} PROPERTIES 
+		FOLDER "Source Files\\System Interface" )
+
+set ( EXPAT_SOURCES 
+  ${SOURCES_ROOT}src/sexpat/xmlparse.c
+  ${SOURCES_ROOT}src/sexpat/xmlrole.c
+  ${SOURCES_ROOT}src/sexpat/xmltok.c
+)
+set( EXPAT_SOURCES_FLAGS XML_MIN_SIZE;SEXPAT_SOURCE )
+if( FORCE_CXX )
+set_source_files_properties(${EXPAT_SOURCES} PROPERTIES LANGUAGE CXX )
+endif( FORCE_CXX )
+
+SOURCE_GROUP( "Source Files\\XML\\expat" FILES ${EXPAT_SOURCES} )
+
+set( GENX_SOURCES
+  ${SOURCES_ROOT}src/genx/charProps.c
+  ${SOURCES_ROOT}src/genx/genx.c
+)
+SET_SOURCE_FILES_PROPERTIES( ${GENX_SOURCES} PROPERTIES 
+		FOLDER "Source Files\\XML\\Genx Library" )
+set( GENX_SOURCES_FLAGS GENX_SOURCE )
+
+if( WIN32 )
+	set( VIDLIB_SOURCES
+	  ${SOURCES_ROOT}src/vidlib/key.c
+	  ${SOURCES_ROOT}src/vidlib/keydefs.c
+	  ${SOURCES_ROOT}src/vidlib/vidlib.c
+	)
+        set( VIDLIB_SOURCES_FLAGS RENDER_LIBRARY_SOURCE )
+        
+	if( NOT __ARM__ )
+		set( VIDLIB_SOURCES ${VIDLIB_SOURCES} ${SOURCES_ROOT}src/vidlib/opengl.c )
+		set( VidlibExtraDefinitions "${VidlibExtraDefinitions};_OPENGL_ENABLED" )
+	endif( NOT __ARM__ )
+        
+	if( FORCE_CXX )
+		set_source_files_properties(${VIDLIB_SOURCES} PROPERTIES LANGUAGE CXX )
+	endif( FORCE_CXX )
+	SET_SOURCE_FILES_PROPERTIES( ${VIDLIB_SOURCES} PROPERTIES 
+					FOLDER "Source Files\\Image Output Library" )
+endif( WIN32 )
+
+if( NOT __NO_ODBC__ OR USE_SQLITE )
+
+set( ODBC_SOURCES
+  ${SOURCES_ROOT}src/SQLlib/sqlparse3.c
+  ${SOURCES_ROOT}src/SQLlib/sqlstub.c
+  ${SOURCES_ROOT}src/SQLlib/guid.c
+  ${SOURCES_ROOT}src/SQLlib/sqlutil.c
+  ${SOURCES_ROOT}src/SQLlib/sqlwrap.c
+)
+if( FORCE_CXX )
+endif( FORCE_CXX )
+
+if( __CLR__ )
+set( ODBC_SOURCES ${ODBC_SOURCES} ${SOURCES_ROOT}src/SQLlib/sql_ref_class.cpp )
+endif( __CLR__ )
+SET_SOURCE_FILES_PROPERTIES( ${ODBC_SOURCES} PROPERTIES 
+		FOLDER "Source Files\\ODBC" )
+endif( NOT __NO_ODBC__ OR USE_SQLITE )
+
+if( NOT __NO_ODBC__ OR USE_SQLITE )
+
+
+if( USE_SQLITE )
+  SET( BAG_SQLITE_INTERFACE  ${SOURCES_ROOT}src/sqlite/sqlite_interface.c )
+  
+if( NOT SQLITE3_FOUND )
+  SET( SQLITE_VERSION 3.7.16.2 )
+  SET( SQLITE_SOURCES ${SOURCES_ROOT}src/sqlite/${SQLITE_VERSION}/sqlite3.c )
+  include_directories( ${SOURCES_ROOT}src/sqlite/${SQLITE_VERSION} )
+  
+  if( NOT USE_SQLITE_EXTERNAL AND BUILD_MONOLITHIC )
+   # setup to include sqlite in the core libraries...
+   set( BAG_SQLITE_SOURCES ${SQLITE_SOURCES} )
+   set( ExtraDefinitions "${ExtraDefinitions};USE_SQLITE;SQLITE_SOURCE;USE_SQLITE_INTERFACE" )
+  else()
+   set( BAG_SQLITE_SOURCES ${SQLITE_SOURCES} )
+   set( ExtraDefinitions "${ExtraDefinitions};USE_SQLITE;USE_SQLITE_INTERFACE" )
+  endif()
+else( NOT SQLITE3_FOUND )
+  set( ExtraDefinitions "${ExtraDefinitions};USE_SQLITE;SYSTEM_SQLITE" )
+endif( NOT SQLITE3_FOUND )
+
+endif( USE_SQLITE )
+
+
+SET( OPTION_SOURCE
+   ${SOURCES_ROOT}src/SQLlib/optlib/getoption.c
+   ${SOURCES_ROOT}src/SQLlib/optlib/getoption_new.c
+   ${SOURCES_ROOT}src/SQLlib/optlib/getoption_v4.c
+   ${SOURCES_ROOT}src/SQLlib/optlib/optionutil.c
+   ${SOURCES_ROOT}src/SQLlib/optlib/optionutil_new.c
+   ${SOURCES_ROOT}src/SQLlib/optlib/optionutil_v4.c
+   )
+SET_SOURCE_FILES_PROPERTIES( ${OPTION_SOURCE} PROPERTIES 
+		FOLDER "Source Files\\Option Library" )
+
+  if( FORCE_CXX )
+  endif( FORCE_CXX )
+
+endif( NOT __NO_ODBC__ OR USE_SQLITE )
+
+set( IMAGE_SOURCES
+  ${SOURCES_ROOT}src/imglib/alphastab.c
+  ${SOURCES_ROOT}src/imglib/alphatab.c
+  ${SOURCES_ROOT}src/imglib/blotdirect.c
+  ${SOURCES_ROOT}src/imglib/blotscaled.c
+  ${SOURCES_ROOT}src/imglib/bmpimage.c
+  ${SOURCES_ROOT}src/imglib/fntcache.c
+  ${SOURCES_ROOT}src/imglib/fntrender.c
+  ${SOURCES_ROOT}src/imglib/font.c
+  ${SOURCES_ROOT}src/imglib/gifimage.c
+  ${SOURCES_ROOT}src/imglib/image.c
+  ${SOURCES_ROOT}src/imglib/image_client.c
+  ${SOURCES_ROOT}src/imglib/interface.c
+  ${SOURCES_ROOT}src/imglib/jpgimage.c
+  ${SOURCES_ROOT}src/imglib/line.c
+  ${SOURCES_ROOT}src/imglib/lucidaconsole.c
+  ${SOURCES_ROOT}src/imglib/math.c
+  ${SOURCES_ROOT}src/imglib/pngimage.c
+  ${SOURCES_ROOT}src/imglib/sprite_common.c
+  ${SOURCES_ROOT}src/imglib/sprite.c
+)
+
+SET_SOURCE_FILES_PROPERTIES( ${IMAGE_SOURCES} PROPERTIES 
+		FOLDER "Source Files\\Image Library" )
+
+if( NOT __NO_GUI__ )
+
+set( PSI_MORE_CONTROLS
+  ${SOURCES_ROOT}src/psilib/console/history.c
+  ${SOURCES_ROOT}src/psilib/console/console_keydefs.c
+  ${SOURCES_ROOT}src/psilib/console/paste.c
+  ${SOURCES_ROOT}src/psilib/console/psicon.c
+  ${SOURCES_ROOT}src/psilib/console/psicon_interface.c
+  ${SOURCES_ROOT}src/psilib/console/regaccess.c
+  ${SOURCES_ROOT}src/psilib/console/WinLogic.c
+  ${SOURCES_ROOT}src/psilib/console/console_block_writer.c
+)
+
+
+set( PSI_SOURCES
+  ${SOURCES_ROOT}src/psilib/borders.c
+  ${SOURCES_ROOT}src/psilib/calctl/calender.c
+  ${SOURCES_ROOT}src/psilib/calctl/clock.c
+  ${SOURCES_ROOT}src/psilib/calctl/analog.c
+  ${SOURCES_ROOT}src/psilib/controls.c
+  ${SOURCES_ROOT}src/psilib/control_physical.c
+  ${SOURCES_ROOT}src/psilib/ctlbutton.c
+  ${SOURCES_ROOT}src/psilib/ctledit.c
+  ${SOURCES_ROOT}src/psilib/ctllistbox.c
+  ${SOURCES_ROOT}src/psilib/ctlmisc.c
+  ${SOURCES_ROOT}src/psilib/ctlprop.c
+  ${SOURCES_ROOT}src/psilib/ctlscroll.c
+  ${SOURCES_ROOT}src/psilib/ctlsheet.c
+  ${SOURCES_ROOT}src/psilib/ctlslider.c
+  ${SOURCES_ROOT}src/psilib/ctltext.c
+  ${SOURCES_ROOT}src/psilib/fileopen.c
+  ${SOURCES_ROOT}src/psilib/fntdlg.c
+#  ${SOURCES_ROOT}src/psilib/loadsave.c
+  ${SOURCES_ROOT}src/psilib/mouse.c
+  ${SOURCES_ROOT}src/psilib/palette.c
+  ${SOURCES_ROOT}src/psilib/popups.c
+  ${SOURCES_ROOT}src/psilib/xml_load.c
+  ${SOURCES_ROOT}src/psilib/xml_save.c
+  ${SOURCES_ROOT}src/psilib/option_frame.c
+  ${SOURCES_ROOT}src/psilib/scrollknob.c
+  ${PSI_MORE_CONTROLS}
+)
+
+if( NOT BUILD_MONOLITHIC )
+set( PSI_SOURCES ${PSI_SOURCES} 
+  ${SOURCES_ROOT}src/psilib/fntcache.c
+)
+
+SET_SOURCE_FILES_PROPERTIES( ${PSI_SOURCES} PROPERTIES 
+		FOLDER "Source Files\\PSI Library" )
+SET_SOURCE_FILES_PROPERTIES( ${PSI_MORE_CONTROLS} PROPERTIES 
+		FOLDER "Source Files\\PSI Library\\Console" )
+
+endif()
+
+if( WIN32 )
+  SET( SYSTRAY_SOURCES  ${SOURCES_ROOT}src/systraylib/systray.c )
+  SET( PSI_SOURCES ${PSI_SOURCES}  ${SYSTRAY_SOURCES} )
+else( WIN32 )
+  if( NOT __ANDROID__ )
+  SET( PSI_SOURCES ${PSI_SOURCES}  ${SOURCES_ROOT}src/systraylib/systray_client.c )
+  endif( NOT __ANDROID__ )
+endif( WIN32 )
+
+SET( HTML5_SOURCES 
+		${SOURCES_ROOT}src/psilib/html5.canvas/html5.canvas.c
+		${SOURCES_ROOT}src/netlib/html5.websocket/html5.websocket.c
+	)
+SET_SOURCE_FILES_PROPERTIES( ${HTML5_SOURCES} PROPERTIES 
+		FOLDER "Source Files\\HTML5 Support" )
+        
+
+
+endif( NOT __NO_GUI__ )
+
+
+set( SACK_MSG_SERVICES 
+#  ${SOURCES_ROOT}src/msgsvr/client/client.c
+  ${SOURCES_ROOT}src/msgsvr/client/client_common.c
+  ${SOURCES_ROOT}src/msgsvr/client/client_events.c
+  ${SOURCES_ROOT}src/msgsvr/client/client_service.c
+  ${SOURCES_ROOT}src/msgsvr/client/client_client.c
+  ${SOURCES_ROOT}src/msgsvr/client/client_local.c
+  ${SOURCES_ROOT}src/msgsvr/client/client_input.c
+  ${SOURCES_ROOT}src/msgsvr/client/client_output.c
+  
+  ${SOURCES_ROOT}src/msgsvr/summoner/construct.c
+  )
+SET_SOURCE_FILES_PROPERTIES( ${SACK_MSG_SERVICES} PROPERTIES 
+		FOLDER "Source Files\\Message Service" )
+
+
+
+set( FILESYSTEM_SOURCES 
+  ${SOURCES_ROOT}src/filesyslib/pathops.c
+  ${SOURCES_ROOT}src/filesyslib/filescan.c
+  ${SOURCES_ROOT}src/filesyslib/winfiles.c
+)
+
+set( FILEMONITOR_SOURCES
+  ${SOURCES_ROOT}src/filesyslib/filemon/allfiles.c
+  ${SOURCES_ROOT}src/filesyslib/winfiles.c
+)
+
+
+if( __LINUX__ )
+set(FILEMONITOR_SOURCES ${FILEMONITOR_SOURCES}
+  ${SOURCES_ROOT}src/filesyslib/filemon/linuxfiles.c
+)
+else( __LINUX__ )
+set(FILEMONITOR_SOURCES ${FILEMONITOR_SOURCES}
+  ${SOURCES_ROOT}src/filesyslib/filemon/windowsfiles.c
+)
+endif( __LINUX__ )
+
+SET_SOURCE_FILES_PROPERTIES( ${FILESYSTEM_SOURCES} PROPERTIES 
+		FOLDER "Source Files\\File System Utils" )
+
+SET_SOURCE_FILES_PROPERTIES( ${FILEMONITOR_SOURCES} PROPERTIES 
+		FOLDER "Source Files\\File System Monitor" )
+
+
+set( TYPE_LIBRARY_SOURCES
+  ${SOURCES_ROOT}src/typelib/binarylist.c
+  ${SOURCES_ROOT}src/typelib/familytree.c
+  ${SOURCES_ROOT}src/typelib/input.c
+  ${SOURCES_ROOT}src/typelib/sets.c
+  ${SOURCES_ROOT}src/typelib/text.c
+  ${SOURCES_ROOT}src/typelib/typecode.c
+  ${SOURCES_ROOT}src/typelib/spacetree.c
+  ${MSG_QUEUE_SOURCES}
+)
+
+set( ADVANCED_TYPE_LIBRARY_SOURCES
+    ${SOURCES_ROOT}src/typelib/http.c
+    )
+
+SET_SOURCE_FILES_PROPERTIES( ${TYPE_LIBRARY_SOURCES} PROPERTIES 
+		FOLDER "Source Files\\Types" )
+if( WIN32 )
+set( TYPE_LIBRARY_SOURCES ${TYPE_LIBRARY_SOURCES}
+  ${SOURCES_ROOT}src/typelib/msgqueue.c
+)
+
+endif( WIN32 )
+
+if( NEED_UUID )
+  add_definitions( -D__INTERNAL_UUID__ -DUUID_SOURCE )
+set( UUID_SOURCES
+  ${SOURCES_ROOT}src/uuid-1.6.2/uuid.c
+  ${SOURCES_ROOT}src/uuid-1.6.2/uuid_md5.c
+  ${SOURCES_ROOT}src/uuid-1.6.2/uuid_sha1.c
+  ${SOURCES_ROOT}src/uuid-1.6.2/uuid_dce.c
+  ${SOURCES_ROOT}src/uuid-1.6.2/uuid_mac.c
+  ${SOURCES_ROOT}src/uuid-1.6.2/uuid_prng.c
+  ${SOURCES_ROOT}src/uuid-1.6.2/uuid_str.c
+  ${SOURCES_ROOT}src/uuid-1.6.2/uuid_time.c
+  ${SOURCES_ROOT}src/uuid-1.6.2/uuid_ui128.c
+  ${SOURCES_ROOT}src/uuid-1.6.2/uuid_ui64.c
+)
+endif( NEED_UUID )
+
+SET( VECTLIB_SOURCES src/vectlib/vectlib.c )
+SET_PROPERTY(SOURCE ${VECTLIB_SOURCES}
+                 APPEND 
+		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE" ) 
+
+
+set( SHA1_SOURCES
+  ${SOURCES_ROOT}src/sha1lib/sha1.c
+  )
+  
+set( MD5_SOURCES
+  ${SOURCES_ROOT}src/md5lib/md5c.c
+  )
+
+
+set( SACK_PLUSPLUS_HEADERS 
+     ${SOURCES_ROOT}src/msgsvr/summoner/summoner.h
+     ${SOURCES_ROOT}src/systemlib/taskinfo.h
+     ${SOURCES_ROOT}src/systraylib/resource.h
+     ${SOURCES_ROOT}src/systraylib/msgid.h
+     ${SOURCES_ROOT}src/filesyslib/filemon/monitor.h
+     ${SOURCES_ROOT}src/memlib/sharestruc.h
+     ${SOURCES_ROOT}src/procreglib/registry.h
+     ${SOURCES_ROOT}src/netlib/netstruc.h
+     ${SOURCES_ROOT}src/netlib/ping.h
+     ${SOURCES_ROOT}src/vectlib/vecstruc.h
+     ${SOURCES_ROOT}src/SQLlib/sqlstruc.h
+     ${SOURCES_ROOT}src/SQLlib/optlib/optlib.h
+     ${SOURCES_ROOT}src/SQLlib/optlib/makeopts.mysql
+     ${SOURCES_ROOT}src/imglib/blotproto.h
+     ${SOURCES_ROOT}src/imglib/fntglobal.h
+     ${SOURCES_ROOT}src/imglib/fntcache.c
+     ${SOURCES_ROOT}src/imglib/cache.h
+    ${SOURCES_ROOT}src/imglib/gifimage.h
+    ${SOURCES_ROOT}src/imglib/pngimage.h
+    ${SOURCES_ROOT}src/imglib/jpgimage.h
+        ${SOURCES_ROOT}src/imglib/bmpimage.h
+        ${SOURCES_ROOT}src/imglib/sprite_local.h
+        ${SOURCES_ROOT}src/vidlib/local.h
+        ${SOURCES_ROOT}src/vidlib/glext.h
+        ${SOURCES_ROOT}src/psilib/controlstruc.h
+        ${SOURCES_ROOT}src/psilib/global.h
+        ${SOURCES_ROOT}src/psilib/calctl/local.h
+        ${SOURCES_ROOT}src/psilib/mouse.h
+        ${SOURCES_ROOT}src/psilib/borders.h
+        ${SOURCES_ROOT}src/psilib/resource.h
+        ${SOURCES_ROOT}src/psilib/CommonEdit.Frame
+        ${SOURCES_ROOT}src/psilib/palette.frame
+        ${SOURCES_ROOT}src/psilib/menustruc.h
+        ${SOURCES_ROOT}src/psilib/console/consolestruc.h
+        ${SOURCES_ROOT}src/psilib/console/history.h
+        ${SOURCES_ROOT}src/psilib/console/keydefs.h
+        ${SOURCES_ROOT}src/psilib/console/histstruct.h
+        ${SOURCES_ROOT}src/psilib/console/WinLogic.h
+        ${SOURCES_ROOT}src/genx/genx.h
+        ${SOURCES_ROOT}src/msgsvr/client/global.h
+)
+
+set(BASE_SOURCES  ${BASE_SOURCES}
+  ${UNSORTED_SOURCES}
+  ${MEM_ASSEMBLY_SOURCES}
+  ${TYPE_LIBRARY_SOURCES}
+  ${ADVANCED_TYPE_LIBRARY_SOURCES}
+  ${SYSTEM_LIBRARY_SOURCES}
+  ${NETWORK_SOURCES}
+  ${FILESYSTEM_SOURCES}
+  ${SHA1_SOURCES}
+  ${MD5_SOURCES}
+  ${MORE_SYSTEM_SOURCES}
+  ${SERVICE_STUB_SOURCES}
+  ${COMM_SOURCES}
+  ${OPTION_SOURCE}
+)
+
+if( NOT __LINUX__ )
+  set( BASE_SOURCES  ${BASE_SOURCES} src/windows_hardware_library/listhids.c )
+endif( NOT __LINUX__ )
+
+if( NOT __ARM__ )
+set(BASE_SOURCES ${BASE_SOURCES} ${SACK_MSG_SERVICES} ${FILEMONITOR_SOURCES} ${HTML5_SOURCES} )
+else()
+set( ExtraDefinitions "${ExtraDefinitions};__NO_MSGSVR__" )
+set( __NO_MSGSVR__ ON )
+endif()
+
+
+if( WIN32 )
+LIST(APPEND BASE_SOURCES
+   ${SOURCES_ROOT}src/netlib/net_winsock2.c
+)
+LIST(APPEND BASE_SOURCES     all_resources.rc )
+
+  SET( SNPRINTF_SOURCES src/snprintf_2.2/snprintf.c )
+  set_source_files_properties( ${SNPRINTF_SOURCES} 
+  				PROPERTIES
+                                COMPILE_DEFINITIONS "SNPRINTF_LONGLONG_SUPPORT;PREFER_PORTABLE_SNPRINTF"
+  			)
+  
+endif(WIN32)
+
+if( USE_ASSEMBLY )
+  set( ExtraDefinitions ${ExtraDefinitions};HAS_ASSEMBLY )
+  set( ImageExtraFlags "${ImageExtraFlags} -DHAS_ASSEMBLY" )
+  set( IMAGE_ASM_SOURCES
+    src/imglib/ImageFile.asm
+    src/imglib/alphamac.asm
+    src/imglib/blatcolor.asm
+    src/imglib/blotdirasm.asm
+    src/imglib/blotdirmac.asm
+    src/imglib/blotdirmshadeasm.asm
+    src/imglib/blotdirshadeasm.asm
+    src/imglib/blotscaasm.asm
+    src/imglib/blotscamac.asm
+    src/imglib/blotscamshadeasm.asm
+    src/imglib/blotscashadeasm.asm
+    src/imglib/blotshademac.asm
+    src/imglib/lineasm.asm
+    src/imglib/mmx.asm
+    src/imglib/plotasm.asm
+  )
+  set( MEM_ASSEMBLY_SOURCES src/memlib/memoryasm.asm )
+endif()
+
+
+
+if( FORCE_CXX )
+set_source_files_properties(${GENX_SOURCES} PROPERTIES LANGUAGE CXX )
+set_source_files_properties(${IMAGE_SOURCES} PROPERTIES LANGUAGE CXX )
+set_source_files_properties(${PSI_SOURCES} PROPERTIES LANGUAGE CXX )
+set_source_files_properties(${PSI_MORE_SOURCES} PROPERTIES LANGUAGE CXX )
+set_source_files_properties(${SACK_MSG_SERVICES} PROPERTIES LANGUAGE CXX )
+set_source_files_properties(${TYPE_LIBRARY_SOURCES} PROPERTIES LANGUAGE CXX )
+set_source_files_properties(${ADVANCED_TYPE_LIBRARY_SOURCES} PROPERTIES LANGUAGE CXX )
+set_source_files_properties(${NETWORK_SOURCES} PROPERTIES LANGUAGE CXX )
+set_source_files_properties(${VECTLIB_SOURCES} PROPERTIES LANGUAGE CXX)
+set_source_files_properties(${OPTION_SOURCE} PROPERTIES LANGUAGE CXX )
+set_source_files_properties(${ODBC_SOURCES} PROPERTIES LANGUAGE CXX )
+set_source_files_properties(${BASE_SOURCES} PROPERTIES LANGUAGE CXX )
+endif( FORCE_CXX )
+
+
+macro(my_target_link_libraries target )
+    if(CMAKE_COMPILER_IS_GNUCC AND __ANDROID__ )
+       foreach( target_lib ${ARGN} )
+          if( TARGET ${target_lib} )
+             get_property( lib_path TARGET ${target_lib} PROPERTY LOCATION)
+             get_property( existing_outname TARGET ${target_lib} PROPERTY OUTPUT_NAME )
+             if( NOT existing_outname )
+	             set( existing_outname ${target_lib} )
+             endif( NOT existing_outname )
+             if( ${lib_path} MATCHES "(.*)/([^/]*)$" )
+                get_target_property(existing_link_flags ${target} LINK_FLAGS)
+                if(existing_link_flags)
+                
+                    set(new_link_flags "${existing_link_flags} -L ${CMAKE_MATCH_1} -l ${existing_outname}")
+                else()
+                    set(new_link_flags "-L ${CMAKE_MATCH_1} -l ${existing_outname}")
+                endif()
+                set_target_properties( ${target} PROPERTIES LINK_FLAGS ${new_link_flags})
+             endif( ${lib_path} MATCHES "(.*)/([^/]*)$" )
+          else()
+             target_link_libraries( ${target} ${target_lib} )
+          endif( TARGET ${target_lib} )
+       endforeach( target_lib ${ARGN} )
+    else()
+    	target_link_libraries( ${target} ${ARGN} )
+    endif()
+endmacro()
+

@@ -1,0 +1,23 @@
+# common = <path> this directory and all subdirectories are shipped to all
+#           connected clients - rules needed for TIME
+#
+# listen = <address> specifies allowed places to receive UDP broadcasts from
+#          if 0 or missing - any system can send broadcasts through here
+#
+# server = <address> address to connect to for client configuration....
+#
+# user = <login name>
+# incoming = where data from client is stored
+# outgoing = a single directory where data is sent to the client
+# allow = <addresses...> will only accpet connections from specified address
+
+common=./eltanin_root2
+
+listen=0.0.0.0
+
+user=stationary
+   outgoing=./eltanin_root
+   allow=172.18.*
+
+
+
