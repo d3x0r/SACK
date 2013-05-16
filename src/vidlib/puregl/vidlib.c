@@ -823,59 +823,59 @@ LRESULT CALLBACK
 	        scancode = kbhook->scanCode;
 
 
-         key = ( vkcode ) // base keystroke
+			key = ( vkcode ) // base keystroke
 				| (( kbhook->flags&LLKHF_EXTENDED)?0x0100:0)   // extended key
 				| (scancode << 16)
 				| (( kbhook->flags & LLKHF_UP )?0:0x80000000)
             ;
-         // lparam MSB is keyup status (strange)
+			// lparam MSB is keyup status (strange)
 
-         if (key & 0x80000000)   // test keydown...
+			if (key & 0x80000000)   // test keydown...
 			{
 				if( l.flags.bLogKeyEvent )
-               lprintf( WIDE( "keydown" ) );
-            l.kbd.key[vkcode] |= 0x80;   // set this bit (pressed)
-            l.kbd.key[vkcode] ^= 1;   // toggle this bit...
-         }
-         else
-         {
+					lprintf( WIDE( "keydown" ) );
+				l.kbd.key[vkcode] |= 0x80;   // set this bit (pressed)
+				l.kbd.key[vkcode] ^= 1;   // toggle this bit...
+			}
+			else
+			{
 				if( l.flags.bLogKeyEvent )
 					lprintf( WIDE( "keyup" ) );
-            l.kbd.key[vkcode] &= ~0x80;  //(unpressed)
+	            l.kbd.key[vkcode] &= ~0x80;  //(unpressed)
 			}
 
-         l.kbd.key[KEY_SHIFT] = l.kbd.key[VK_RSHIFT]|l.kbd.key[VK_LSHIFT];
-         l.kbd.key[KEY_CONTROL] = l.kbd.key[VK_RCONTROL]|l.kbd.key[VK_LCONTROL];
-         //lprintf( WIDE("Set local keyboard %d to %d"), wParam& 0xFF, l.kbd.key[wParam&0xFF]);
+			l.kbd.key[KEY_SHIFT] = l.kbd.key[VK_RSHIFT]|l.kbd.key[VK_LSHIFT];
+			l.kbd.key[KEY_CONTROL] = l.kbd.key[VK_RCONTROL]|l.kbd.key[VK_LCONTROL];
+			//lprintf( WIDE("Set local keyboard %d to %d"), wParam& 0xFF, l.kbd.key[wParam&0xFF]);
 			if( hVid )
 			{
 				hVid->kbd.key[vkcode] = l.kbd.key[vkcode];
 			}
 
 			if( (l.kbd.key[VK_LSHIFT]|l.kbd.key[VK_RSHIFT]|l.kbd.key[KEY_SHIFT]) & 0x80)
-         {
-            key |= 0x10000000;
-            l.mouse_b |= MK_SHIFT;
-            keymod |= 1;
-         }
-         else
-            l.mouse_b &= ~MK_SHIFT;
-         if ((l.kbd.key[VK_LCONTROL]|l.kbd.key[VK_RCONTROL]|l.kbd.key[KEY_CTRL]) & 0x80)
-         {
-            key |= 0x20000000;
-            l.mouse_b |= MK_CONTROL;
-            keymod |= 2;
-         }
-         else
-            l.mouse_b &= ~MK_CONTROL;
-         if((l.kbd.key[VK_LMENU]|l.kbd.key[VK_RMENU]|l.kbd.key[KEY_ALT]) & 0x80)
 			{
+				key |= 0x10000000;
+				l.mouse_b |= MK_SHIFT;
+				keymod |= 1;
+			}
+			else
+				l.mouse_b &= ~MK_SHIFT;
+			if ((l.kbd.key[VK_LCONTROL]|l.kbd.key[VK_RCONTROL]|l.kbd.key[KEY_CTRL]) & 0x80)
+			{
+				key |= 0x20000000;
+				l.mouse_b |= MK_CONTROL;
+				keymod |= 2;
+			}
+			else
+				l.mouse_b &= ~MK_CONTROL;
+			if((l.kbd.key[VK_LMENU]|l.kbd.key[VK_RMENU]|l.kbd.key[KEY_ALT]) & 0x80)
+				{
 
-            key |= 0x40000000;
-            l.mouse_b |= MK_ALT;
-            keymod |= 4;
-         }
-         else
+				key |= 0x40000000;
+				l.mouse_b |= MK_ALT;
+				keymod |= 4;
+			}
+			else
 				l.mouse_b &= ~MK_ALT;
 
 			if( l.flags.bLogKeyEvent )
@@ -1797,7 +1797,7 @@ WM_DROPFILES
 		  }
 			if( camera )
 			{
-				PVIDEO hVidPrior = l.hVidFocused;
+				PVIDEO hVidPrior = l.hVidPhysicalFocused;
 				hVideo = camera->hVidCore;
 				if( hVidPrior )
 				{
@@ -1867,7 +1867,7 @@ WM_DROPFILES
 			//SetWindowPos( l.hWndInstance, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE );
 			//SetWindowPos( hWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE );
 			//hVideo = l.top;
-			l.hVidFocused = camera->hVidCore;
+			l.hVidPhysicalFocused = camera->hVidCore;
 			if (hVideo)
 			{
 				if( hVideo->flags.bDestroy )
@@ -1909,7 +1909,7 @@ WM_DROPFILES
 			if( l.flags.bLogFocus )
 				lprintf(WIDE("Got Killfocus new focus to %p %p"), hWnd, wParam);
 #endif
-         l.hVidFocused = NULL;
+         l.hVidPhysicalFocused = NULL;
          hVideo = (PVIDEO) GetWindowLong (hWnd, WD_HVIDEO);
 			if (hVideo)
 			{
@@ -2618,7 +2618,6 @@ WM_DROPFILES
 		{
 			if( l.flags.bLogRenderTiming )
 				lprintf( "Begin Draw Tick" );
-
 			Move( l.origin );
 
 			{
@@ -2946,15 +2945,6 @@ static void LoadOptions( void )
 	l.flags.bLayeredWindowDefault = 0;
 	l.flags.bLogWrites = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/Log Video Output"), 0, TRUE );
 	l.flags.bUseLLKeyhook = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/Use Low Level Keyhook"), 0, TRUE );
-	l.scale = (RCOORD)SACK_GetOptionInt( option, GetProgramName(), "SACK/Image Library/Scale", 10 );
-	if( l.scale == 0.0 )
-	{
-		l.scale = (RCOORD)SACK_GetOptionInt( option, GetProgramName(), "SACK/Image Library/Inverse Scale", 2 );
-		if( l.scale == 0.0 )
-			l.scale = 1;
-	}
-	else
-		l.scale = 1.0 / l.scale;
 
 #else
 #  ifndef UNDER_CE
@@ -3317,8 +3307,9 @@ static int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 												, GetAxis( check->transform, vForward )
 												, GetOrigin( check->transform ), &t );
 				if( cosphi != 0 )
-					addscaled( target_point, l.mouse_ray_origin, l.mouse_ray_slope, t / l.scale );
+					addscaled( target_point, l.mouse_ray_origin, l.mouse_ray_slope, t );
 				//PrintVector( target_point );
+				scale( target_point, target_point, 1/l.scale );
 			}
 			// okay so here's the theory now
 			//   there's an origin where the camera is, I know where that is
@@ -4061,10 +4052,10 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 		while( !l.bExitThread && GetMessage (&Msg, NULL, 0, 0) )
 		{
 			if( l.flags.bLogMessageDispatch )
-				lprintf( WIDE("Dispatched... %p %d"), Msg.hwnd, Msg.message );
+				lprintf( WIDE("Dispatched... %p %d(%04x)"), Msg.hwnd, Msg.message, Msg.message );
 			HandleMessage (Msg);
 			if( l.flags.bLogMessageDispatch )
-				lprintf( WIDE("Finish Dispatched... %p %d"), Msg.hwnd, Msg.message );
+				lprintf( WIDE("Finish Dispatched... %p %d(%04x)"), Msg.hwnd, Msg.message, Msg.message );
 		}
 	}
 	l.bThreadRunning = FALSE;
@@ -4658,7 +4649,7 @@ void  MoveDisplayRel (PVIDEO hVideo, S_32 x, S_32 y)
 		lprintf( WIDE("Moving display %d,%d"), x, y );
 		hVideo->pWindowPos.x += x;
 		hVideo->pWindowPos.y += y;
-		Translate( hVideo->transform, hVideo->pWindowPos.x / l.scale, hVideo->pWindowPos.y / l.scale, 0 );
+		Translate( hVideo->transform, hVideo->pWindowPos.x, hVideo->pWindowPos.y, 0 );
 #ifdef LOG_ORDERING_REFOCUS
 		lprintf( WIDE( "Move display relative" ) );
 #endif
@@ -5595,16 +5586,14 @@ static LOGICAL CPROC CameraRollLeft( PTRSZVAL psv, _32 keycode )
 		if( IsKeyPressed( keycode ) )
 		{
 			//VECTOR tmp;
-         //scale(tmp,_Z,1.0 );
+			//scale(tmp,_Z,1.0 );
 			SetRotation( l.origin, _Z );
 		}
-      else
+		else
 			SetRotation( l.origin, _0 );
-//      return 1;
-      UpdateMouseRays( );
+		UpdateMouseRays( );
 	}
-//   return 0;
-   return 1;
+	return 1;
 }
 
 static LOGICAL CPROC CameraDown( PTRSZVAL psv, _32 keycode )
@@ -5620,11 +5609,9 @@ static LOGICAL CPROC CameraDown( PTRSZVAL psv, _32 keycode )
 		}
 		else
 			Up( l.origin, 0.0 );
-      UpdateMouseRays( );
-//      return 1;
+		UpdateMouseRays( );
 	}
-//   return 0;
-   return 1;
+	return 1;
 }
 
 int IsTouchDisplay( void )
@@ -5639,9 +5626,6 @@ LOGICAL IsDisplayHidden( PVIDEO video )
    return 0;
 }
 
-#ifdef __WATCOM_CPLUSPLUS__
-#pragma initialize 46
-#endif
 PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 {
 	if( l.flags.bLogRegister )
@@ -5722,226 +5706,6 @@ void UnlockRenderer( PRENDERER render )
 	LeaveCriticalSec( &render->cs );
 }
 
-PUBLIC( void, InvokePreloads )( void )
-{
-}
-
-
-
-#ifdef __ANDROID__
-
-#include <jni.h>
-#include <android/log.h>
-
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-
-#define  LOG_TAG    "libgl2jni"
-#define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
-#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
-
-#include <android/input.h>
-
-#ifndef _PACKT_EVENTLOOP_HPP_
-#define _PACKT_EVENTLOOP_HPP_
-#include "ActivityHandler.hpp"
-#include "InputHandler.hpp"
-#include "Types.hpp"
-#include <android_native_app_glue.h>
-namespace packt {
-class EventLoop {
-public:
-EventLoop(android_app* pApplication);
-void run(ActivityHandler* pActivityHandler,
-InputHandler* pInputHandler);
-protected:
-...
-void processAppEvent(int32_t pCommand);
-int32_t processInputEvent(AInputEvent* pEvent);
-void processSensorEvent();
-private:
-...
-static void callback_event(android_app* pApplication,
-int32_t pCommand);
-static int32_t callback_input(android_app* pApplication,
-AInputEvent* pEvent);
-private:
-...
-android_app* mApplication;
-ActivityHandler* mActivityHandler;
-InputHandler* mInputHandler;
-};
-}
-#endif
-
-namespace packt {
-class InputHandler {
-public:
-virtual ~InputHandler() {};
-virtual bool onTouchEvent(AInputEvent* pEvent) = 0;
-};
-}
-
-
-static void printGLString(const char *name, GLenum s) {
-    const char *v = (const char *) glGetString(s);
-    LOGI("GL %s = %s\n", name, v);
-}
-
-static void checkGlError(const char* op) {
-    for (GLint error = glGetError(); error; error
-            = glGetError()) {
-        LOGI("after %s() glError (0x%x)\n", op, error);
-    }
-}
-
-static const char gVertexShader[] = 
-    "attribute vec4 vPosition;\n"
-    "void main() {\n"
-    "  gl_Position = vPosition;\n"
-    "}\n";
-
-static const char gFragmentShader[] = 
-    "precision mediump float;\n"
-    "void main() {\n"
-    "  gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);\n"
-    "}\n";
-
-GLuint loadShader(GLenum shaderType, const char* pSource) {
-    GLuint shader = glCreateShader(shaderType);
-    if (shader) {
-        glShaderSource(shader, 1, &pSource, NULL);
-        glCompileShader(shader);
-        GLint compiled = 0;
-        glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
-        if (!compiled) {
-            GLint infoLen = 0;
-            glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
-            if (infoLen) {
-                char* buf = (char*) malloc(infoLen);
-                if (buf) {
-                    glGetShaderInfoLog(shader, infoLen, NULL, buf);
-                    LOGE("Could not compile shader %d:\n%s\n",
-                            shaderType, buf);
-                    free(buf);
-                }
-                glDeleteShader(shader);
-                shader = 0;
-            }
-        }
-    }
-    return shader;
-}
-
-GLuint createProgram(const char* pVertexSource, const char* pFragmentSource) {
-    GLuint vertexShader = loadShader(GL_VERTEX_SHADER, pVertexSource);
-    if (!vertexShader) {
-        return 0;
-    }
-
-    GLuint pixelShader = loadShader(GL_FRAGMENT_SHADER, pFragmentSource);
-    if (!pixelShader) {
-        return 0;
-    }
-
-    GLuint program = glCreateProgram();
-    if (program) {
-        glAttachShader(program, vertexShader);
-        checkGlError("glAttachShader");
-        glAttachShader(program, pixelShader);
-        checkGlError("glAttachShader");
-        glLinkProgram(program);
-        GLint linkStatus = GL_FALSE;
-        glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
-        if (linkStatus != GL_TRUE) {
-            GLint bufLength = 0;
-            glGetProgramiv(program, GL_INFO_LOG_LENGTH, &bufLength);
-            if (bufLength) {
-                char* buf = (char*) malloc(bufLength);
-                if (buf) {
-                    glGetProgramInfoLog(program, bufLength, NULL, buf);
-                    LOGE("Could not link program:\n%s\n", buf);
-                    free(buf);
-                }
-            }
-            glDeleteProgram(program);
-            program = 0;
-        }
-    }
-    return program;
-}
-
-GLuint gProgram;
-GLuint gvPositionHandle;
-
-bool setupGraphics(int w, int h) {
-    printGLString("Version", GL_VERSION);
-    printGLString("Vendor", GL_VENDOR);
-    printGLString("Renderer", GL_RENDERER);
-    printGLString("Extensions", GL_EXTENSIONS);
-
-    LOGI("setupGraphics(%d, %d)", w, h);
-    gProgram = createProgram(gVertexShader, gFragmentShader);
-    if (!gProgram) {
-        LOGE("Could not create program.");
-        return false;
-    }
-    gvPositionHandle = glGetAttribLocation(gProgram, "vPosition");
-    checkGlError("glGetAttribLocation");
-    LOGI("glGetAttribLocation(\"vPosition\") = %d\n",
-            gvPositionHandle);
-
-    glViewport(0, 0, w, h);
-    checkGlError("glViewport");
-    return true;
-}
-
-const GLfloat gTriangleVertices[] = { 0.0f, 0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f };
-
-void renderFrame() {
-    static float grey;
-    grey += 0.01f;
-    if (grey > 1.0f) {
-        grey = 0.0f;
-    }
-    glClearColor(grey, grey, grey, 1.0f);
-    checkGlError("glClearColor");
-    glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-    checkGlError("glClear");
-
-    glUseProgram(gProgram);
-	 checkGlError("glUseProgram");
-
-    glVertexAttribPointer(gvPositionHandle, 2, GL_FLOAT, GL_FALSE, 0, gTriangleVertices);
-    checkGlError("glVertexAttribPointer");
-    glEnableVertexAttribArray(gvPositionHandle);
-    checkGlError("glEnableVertexAttribArray");
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    checkGlError("glDrawArrays");
-}
-
-
-extern "C" {
-    JNIEXPORT void JNICALL Java_com_android_gl2jni_GL2JNILib_init(JNIEnv * env, jobject obj,  jint width, jint height);
-    JNIEXPORT void JNICALL Java_com_android_gl2jni_GL2JNILib_step(JNIEnv * env, jobject obj);
-};
-
-JNIEXPORT void JNICALL Java_com_android_gl2jni_GL2JNILib_init(JNIEnv * env, jobject obj,  jint width, jint height)
-{
-    setupGraphics(width, height);
-}
-
-JNIEXPORT void JNICALL Java_com_android_gl2jni_GL2JNILib_step(JNIEnv * env, jobject obj)
-{
-    renderFrame();
-}
-
-#endif
 
 RENDER_NAMESPACE_END
 

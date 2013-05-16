@@ -138,7 +138,8 @@ extern
 	int nControlVid;
 	const TEXTCHAR *gpTitle;
 	PVIDEO hVideoPool;      // linked list of active windows
-	PVIDEO hVidFocused;
+	PVIDEO hVidPhysicalFocused;  // this is the physical renderer with focus
+	PVIDEO hVidVirtualFocused;   // this is the virtual window (application surface) with focus
 	PVIDEO hCaptured;
 	// kbd.key == KeyboardState
 	KEYBOARD kbd;
