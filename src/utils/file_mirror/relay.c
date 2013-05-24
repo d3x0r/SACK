@@ -271,7 +271,7 @@ void SetTime( char *buffer ) /*FOLD00*/
 
 //---------------------------------------------------------------------------
 
-static void CPROC LogOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
+void CPROC LogOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
    lprintf( "%s", buffer );
 }

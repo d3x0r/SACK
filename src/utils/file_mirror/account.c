@@ -2487,6 +2487,30 @@ static PTRSZVAL CPROC FinishReading( PTRSZVAL psv )
 	return 0;
 }
 
+//---------------------------------------------------------------------------
+
+static void ProcessLocalVerifyCommands( PACCOUNT account )
+{
+	INDEX idx;
+	CTEXTSTR update_cmd;
+	LIST_FORALL( account->verify_commands, idx, CTEXTSTR, update_cmd )
+	{
+		System( update_cmd, LogOutput, 0 );
+	}
+}
+
+//---------------------------------------------------------------------------
+
+static void ProcessLocalUpdateCommands( PACCOUNT account )
+{
+	INDEX idx;
+	CTEXTSTR update_cmd;
+	LIST_FORALL( account->update_commands, idx, CTEXTSTR, update_cmd )
+	{
+		System( update_cmd, LogOutput, 0 );
+	}
+}
+
 //-------------------------------------------------------------------------
 
 static PTRSZVAL CPROC AddAccountUpdateCommand( PTRSZVAL psv, arg_list args )
@@ -3031,6 +3055,9 @@ LOGICAL ProcessManifest( PNETWORK_STATE pns, PACCOUNT account, _32 *buffer, size
 				Release( pfc );
 		}
 		lprintf( "Send FAIL." );
+		if( account->verify_commands )
+			ProcessLocalVerifyCommands( account );
+
       pns->client_connection->flags.failed = 1;
 		SendTCP( pns->client_connection->pc, "FAIL", 4 );
       // give network a tick.
@@ -3091,6 +3118,8 @@ void ProcessFileChanges( PACCOUNT account, PCLIENT_CONNECTION pcc )
 			xlprintf(2100)( "RE-BUILD manifest after receiving all our data (also saves it)" );
 			BuildManifest( account, !pcc->flags.failed );
 		}
+		if( account->update_commands )
+			ProcessLocalUpdateCommands( account );
 		lprintf( "Send NEXT" );
 		msg[0] = *(_32*)"NEXT";
 		SendTCP( pcc->pc, msg, 4 );
