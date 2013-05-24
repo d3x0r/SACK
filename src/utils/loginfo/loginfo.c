@@ -2,6 +2,8 @@
 #include <filesys.h>
 #include <deadstart.h>
 
+#define USES_OPTION_INTERFACE
+#include <sqloptint.h>
 PRELOAD( loginfo )
 {
 	FILE *input[4];
@@ -47,7 +49,16 @@ PRELOAD( loginfo )
 			}
 			else
 				lprintf( WIDE("Version %d: %s[%s]%s"), j, buffer[0], buffer[1], buffer[2] );
-         j++;
+			j++;
+			{
+            TEXTCHAR buf[256];
+				OptGetProfileString( "SYSTEM", "VERSION", "", buf, 256 );
+				if( StrCmp( buf + 8, buffer[2] ) )
+				{
+               snprintf( buf, 256, "Version %s", buffer[2] );
+					OptWriteProfileString( "SYSTEM", "VERSION", buf );
+				}
+			}
 		}
 	}
 	if( input[0] )
