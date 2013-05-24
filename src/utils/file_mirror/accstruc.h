@@ -110,6 +110,7 @@ struct accounts_tag {
 		BIT_FIELD opened_status : 1;
 		BIT_FIELD manifest_process : 1;
 		BIT_FIELD bClean : 1;
+		BIT_FIELD bRequestedUpdates : 1;
 	} flags;
 	int logincount;
 	PADDRESS allowed;
