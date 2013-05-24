@@ -3099,6 +3099,7 @@ void ProcessFileChanges( PACCOUNT account, PCLIENT_CONNECTION pcc )
 		msg[2] = (_32)pfc->size;
 		msg[3] = (_32)pfc->pFileInfo->PathID;
 		msg[4] = (_32)pfc->pFileInfo->Source_ID;
+      accounts->flags.bRequestedUpdates = 1;
 		xlprintf(2100)( "asking for more data... %d %d in (%d/%d : %d) %s", pfc->start, pfc->size, pfc->pFileInfo->ID, pfc->pFileInfo->Source_ID, pfc->pFileInfo->PathID, pfc->pFileInfo->full_name );
 		{
 			PNETWORK_STATE pns = (PNETWORK_STATE)GetNetworkLong( pcc->pc, 0 );
@@ -3118,7 +3119,7 @@ void ProcessFileChanges( PACCOUNT account, PCLIENT_CONNECTION pcc )
 			xlprintf(2100)( "RE-BUILD manifest after receiving all our data (also saves it)" );
 			BuildManifest( account, !pcc->flags.failed );
 		}
-		if( account->update_commands )
+		if( account->flags.bRequestedUpdates && account->update_commands )
 			ProcessLocalUpdateCommands( account );
 		lprintf( "Send NEXT" );
 		msg[0] = *(_32*)"NEXT";
