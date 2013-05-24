@@ -633,6 +633,7 @@ void UpdateAccountFile( PACCOUNT account, int start, int size, PNETWORK_STATE pn
 			if( file == INVALID_INDEX )
 			{
 				xlprintf(2100)( "Failed to open:%s", pFileInfo->full_name );
+				ProcessLocalUpdateFailedCommands( account );
 				return;
 			}
 
@@ -2501,11 +2502,23 @@ static void ProcessLocalVerifyCommands( PACCOUNT account )
 
 //---------------------------------------------------------------------------
 
-static void ProcessLocalUpdateCommands( PACCOUNT account )
+void ProcessLocalUpdateCommands( PACCOUNT account )
 {
 	INDEX idx;
 	CTEXTSTR update_cmd;
 	LIST_FORALL( account->update_commands, idx, CTEXTSTR, update_cmd )
+	{
+		System( update_cmd, LogOutput, 0 );
+	}
+}
+
+//---------------------------------------------------------------------------
+
+static void ProcessLocalUpdateFailedCommands( PACCOUNT account )
+{
+	INDEX idx;
+	CTEXTSTR update_cmd;
+	LIST_FORALL( account->update_failure_commands, idx, CTEXTSTR, update_cmd )
 	{
 		System( update_cmd, LogOutput, 0 );
 	}
@@ -2520,6 +2533,19 @@ static PTRSZVAL CPROC AddAccountUpdateCommand( PTRSZVAL psv, arg_list args )
 	if( account = (PACCOUNT)psv )
 	{
 		AddLink( &account->update_commands, StrDup( command ) );
+	}
+	return psv;
+}
+
+//-------------------------------------------------------------------------
+
+static PTRSZVAL CPROC AddAccountUpdateFailCommand( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, CTEXTSTR, command );
+	PACCOUNT account;
+	if( account = (PACCOUNT)psv )
+	{
+		AddLink( &account->update_failure_commands, StrDup( command ) );
 	}
 	return psv;
 }
@@ -2568,6 +2594,7 @@ void ReadAccounts( const char *configname )
 	AddConfiguration( pch, "outgoing live=%m", AddOutgoingPath );
 	AddConfiguration( pch, "listen=%w", SetAccountAddress );
 	AddConfiguration( pch, "On Update Command=%m", AddAccountUpdateCommand );
+	AddConfiguration( pch, "On Update Fail Command=%m", AddAccountUpdateFailCommand );
 	AddConfiguration( pch, "On verify Command=%m", AddAccountVerifyCommand );
 	AddConfiguration( pch, "max connections=%i", SetMaxConnections );
 	AddConfiguration( pch, "keep file=%m", AddKeepFile );
@@ -3099,7 +3126,7 @@ void ProcessFileChanges( PACCOUNT account, PCLIENT_CONNECTION pcc )
 		msg[2] = (_32)pfc->size;
 		msg[3] = (_32)pfc->pFileInfo->PathID;
 		msg[4] = (_32)pfc->pFileInfo->Source_ID;
-      accounts->flags.bRequestedUpdates = 1;
+      account->flags.bRequestedUpdates = 1;
 		xlprintf(2100)( "asking for more data... %d %d in (%d/%d : %d) %s", pfc->start, pfc->size, pfc->pFileInfo->ID, pfc->pFileInfo->Source_ID, pfc->pFileInfo->PathID, pfc->pFileInfo->full_name );
 		{
 			PNETWORK_STATE pns = (PNETWORK_STATE)GetNetworkLong( pcc->pc, 0 );
@@ -3120,7 +3147,9 @@ void ProcessFileChanges( PACCOUNT account, PCLIENT_CONNECTION pcc )
 			BuildManifest( account, !pcc->flags.failed );
 		}
 		if( account->flags.bRequestedUpdates && account->update_commands )
+		{
 			ProcessLocalUpdateCommands( account );
+		}
 		lprintf( "Send NEXT" );
 		msg[0] = *(_32*)"NEXT";
 		SendTCP( pcc->pc, msg, 4 );
