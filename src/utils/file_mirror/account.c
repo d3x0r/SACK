@@ -2490,38 +2490,59 @@ static PTRSZVAL CPROC FinishReading( PTRSZVAL psv )
 
 //---------------------------------------------------------------------------
 
-static void ProcessLocalVerifyCommands( PACCOUNT account )
+static PTRSZVAL CPROC DoProcessLocalVerifyCommands( PTHREAD thread )
 {
+   PACCOUNT account = (PACCOUNT)GetThreadParam( thread );
 	INDEX idx;
 	CTEXTSTR update_cmd;
 	LIST_FORALL( account->verify_commands, idx, CTEXTSTR, update_cmd )
 	{
 		System( update_cmd, LogOutput, 0 );
 	}
+	return 0;
+}
+
+static void ProcessLocalVerifyCommands( PACCOUNT account )
+{
+   ThreadTo( DoProcessLocalVerifyCommands, (PTRSZVAL)account );
 }
 
 //---------------------------------------------------------------------------
 
-void ProcessLocalUpdateCommands( PACCOUNT account )
+static PTRSZVAL CPROC DoProcessLocalUpdateCommands( PTHREAD thread )
 {
+   PACCOUNT account = (PACCOUNT)GetThreadParam( thread );
 	INDEX idx;
 	CTEXTSTR update_cmd;
 	LIST_FORALL( account->update_commands, idx, CTEXTSTR, update_cmd )
 	{
 		System( update_cmd, LogOutput, 0 );
 	}
+	return 0;
+}
+
+void ProcessLocalUpdateCommands( PACCOUNT account )
+{
+   ThreadTo( DoProcessLocalUpdateCommands, (PTRSZVAL)account );
 }
 
 //---------------------------------------------------------------------------
 
-static void ProcessLocalUpdateFailedCommands( PACCOUNT account )
+static PTRSZVAL CPROC DoProcessLocalUpdateFailedCommands( PTHREAD thread )
 {
+   PACCOUNT account = (PACCOUNT)GetThreadParam( thread );
 	INDEX idx;
 	CTEXTSTR update_cmd;
 	LIST_FORALL( account->update_failure_commands, idx, CTEXTSTR, update_cmd )
 	{
 		System( update_cmd, LogOutput, 0 );
 	}
+	return 0;
+}
+
+static void ProcessLocalUpdateFailedCommands( PACCOUNT account )
+{
+   ThreadTo( DoProcessLocalUpdateFailedCommands, (PTRSZVAL)account );
 }
 
 //-------------------------------------------------------------------------
