@@ -341,7 +341,7 @@ void ResetResolution( PLOAD_TASK task )
 	{
 		if( task->flags.bExclusive || task->flags.bHideCanvas )
 		{
-			if( !task->flags.bCaptureOutput )
+			if( !task->flags.bCaptureOutput || task->flags.bHideCanvas )
 			{
 				InterShell_DisablePageUpdateEx( InterShell_GetButtonCanvas( task->button ), FALSE );
 				lprintf( WIDE("Calling InterShell_Reveal...") );
@@ -911,16 +911,23 @@ void RunATask( PLOAD_TASK pTask, int bWaitInRoutine )
 #ifndef UNDER_CE
 		if( pTask->flags.bCaptureOutput )
 		{
-			task = LaunchPeerProgram( taskname
+			task = LaunchPeerProgramExx( taskname
 											, path
 											, (PCTEXTSTR)args
+											, 0
 											, HandleTaskOutput
 											, TaskEnded
-											, (PTRSZVAL)pTask );
+											, (PTRSZVAL)pTask 
+											DBG_SRC
+											);
 		}
 		else
 #endif
-			task = LaunchProgramEx( taskname, path, (PCTEXTSTR)args, TaskEnded, (PTRSZVAL)pTask );
+			task = LaunchProgramEx( taskname, path
+					, (PCTEXTSTR)args
+					, TaskEnded
+					, (PTRSZVAL)pTask 
+					);
 		Release( (POINTER)taskname );
 		Release( (POINTER)path );
 		if( args )
@@ -996,15 +1003,15 @@ static LOGICAL TaskHasSpawns( PLOAD_TASK task_test )
 	INDEX idx;
 	PTASK_INFO task;
 	{
-      int other_spawns = 0;
+		int other_spawns = 0;
 		LIST_FORALL( task_test->spawns, idx, PTASK_INFO, task )
 		{
-         other_spawns++;
+			other_spawns++;
 		}
 		if( other_spawns )
 			return TRUE;
 	}
-   return FALSE;
+	return FALSE;
 }
 
 //---------------------------------------------------------------------------
@@ -1012,7 +1019,7 @@ static LOGICAL TaskHasSpawns( PLOAD_TASK task_test )
 static void OnBeginShutdown( WIDE("Intershell Tasks") )( void )
 {
 	xlprintf(2500)( WIDE("Mark to not start tasks now...") );
-   l.flags.bExit = 2;
+	l.flags.bExit = 2;
 }
 
 //---------------------------------------------------------------------------
@@ -1050,7 +1057,7 @@ void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task_ended )
 	if( pTask->psvSecurityToken )
 	{
 		CloseSecurityContext( (PTRSZVAL)pTask, pTask->psvSecurityToken );
-      pTask->psvSecurityToken = 0;
+		pTask->psvSecurityToken = 0;
 	}
 
 	LIST_FORALL( pTask->spawns, idx, PTASK_INFO, task )
@@ -1156,7 +1163,7 @@ void InvokeTaskLaunchComplete( void )
 		if( task )
          return;
 	}
-   l.flags.bSentLaunchComplete = 1;
+	l.flags.bSentLaunchComplete = 1;
 	for( name = GetFirstRegisteredName( TASK_PREFIX WIDE( "/common/task launch complete" ), &data );
 		name;
 		name = GetNextRegisteredName( &data ) )
@@ -1182,7 +1189,7 @@ static void KillSpawnedPrograms( void )
 		LIST_FORALL( tasks->spawns, idx, PTASK_INFO, task )
 		{
 			TEXTCHAR buffer[256];
-         LOGICAL closed = FALSE;
+			LOGICAL closed = FALSE;
 			CTEXTSTR fullname = InterShell_TranslateLabelText( NULL, buffer, sizeof( buffer ), tasks->pTask );
 			CTEXTSTR filename = pathrchr( fullname );
 			if( filename )
