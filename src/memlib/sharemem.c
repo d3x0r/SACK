@@ -556,7 +556,7 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 			{
 				if( pcs->dwThreadWaiting != dwCurProc )
 				{
-					lprintf( "thread to wake is not this one... fail." );
+					lprintf( "thread to wake is not this one... fail. %016Lx %016Lx", pcs->dwThreadWaiting, dwCurProc );
 					// assume that someone else kept our waiting ID...
 					// cause we're not the one waiting, and we have someone elses ID..
 					// we are awake out of order..
