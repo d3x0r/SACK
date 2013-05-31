@@ -2125,6 +2125,7 @@ void CloseDatabaseEx( PODBC odbc, LOGICAL ReleaseConnection )
 #ifdef USE_ODBC
 	if( odbc->hdbc )
 	{
+		SQLDisconnect( odbc->hdbc );
 		SQLFreeHandle( SQL_HANDLE_ENV, odbc->env );
 		odbc->env = NULL;
 		SQLFreeHandle( SQL_HANDLE_DBC, odbc->hdbc );
