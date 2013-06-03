@@ -93,8 +93,8 @@ SACK_NETWORK_NAMESPACE
 
 PRELOAD( InitNetworkGlobalOptions )
 {
-   g.flags.bThreadInitOkay = TRUE;
 #ifndef __NO_OPTIONS__
+	g.flags.bLogProtocols = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Network/Log Protocols" ), 0, TRUE );
    g.flags.bShortLogReceivedData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Received Data(64 byte max)" ), 0, TRUE );
    g.flags.bLogReceivedData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Received Data" ), 0, TRUE );
    g.flags.bLogSentData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Sent Data" ), g.flags.bLogReceivedData, TRUE );
@@ -1751,6 +1751,7 @@ PTRSZVAL CPROC NetworkThreadProc( PTHREAD thread )
 	while( !g.pThreads ) // creator won't pass until bThreadInitComplete is set.
 		Relinquish();
 
+	g.flags.bThreadInitOkay = TRUE;
 	g.flags.bThreadInitComplete = TRUE;
 	while( !g.bQuit )
 	{
@@ -2407,7 +2408,10 @@ NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,_16 wClients,int wUserData)
 	while( !g.flags.bThreadInitComplete )
 		Relinquish();
 	if( !g.flags.bThreadInitOkay )
+	{
+		lprintf( "Abort network, init is NOT ok." );
 		return FALSE;
+	}
 	while( !g.flags.bNetworkReady )
 		Relinquish(); // wait for actual network...
 	{

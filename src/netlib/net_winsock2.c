@@ -64,13 +64,6 @@ int SystemCheck( void )
 	WSADATA wd;
 	int i;
 	int protoIndex = -1;
-	int bLogProtocols
-#ifndef __NO_OPTIONS__
-		= SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Network/Log Protocols" ), 0, TRUE )
-#else
-      = 0
-#endif
-		;
 	int size;
 	//lprintf( "Global is %d %p", sizeof( g ), &g.uNetworkPauseTimer, &g.nProtos );
 
@@ -79,7 +72,7 @@ int SystemCheck( void )
 		lprintf(WIDE( "WSAStartup 2.0 failed: %d" ), h_errno);
 		return 0;
 	}
-	if( bLogProtocols )
+	if( g.flags.bLogProtocols )
 		lprintf(WIDE( "Winsock Version: %d.%d" ), LOBYTE(wd.wVersion), HIBYTE(wd.wVersion));
 
 	size = 0;
@@ -118,7 +111,7 @@ int SystemCheck( void )
 		{
 			g.udp_protocolv6 = i;
 		}
-		if( bLogProtocols )
+		if( g.flags.bLogProtocols )
 			lprintf(WIDE( "Index #%d - name: '%s', type: %d, proto: %d" ), i, g.pProtos[i].szProtocol,
 					  g.pProtos[i].iSocketType, g.pProtos[i].iProtocol);
 	}

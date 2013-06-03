@@ -257,7 +257,7 @@ LOCATION struct network_global_data{
 		BIT_FIELD bThreadExit : 1;
 		BIT_FIELD bNetworkReady : 1;
 		BIT_FIELD bThreadInitOkay : 1;
-
+		BIT_FIELD bLogProtocols : 1;
 	} flags;
 	struct peer_thread_info *root_thread;
 #if !defined( USE_WSA_EVENTS ) && !( defined( __LINUX__ ) || defined( __LINUX64__ ) )
