@@ -110,6 +110,7 @@ struct accounts_tag {
 		BIT_FIELD opened_status : 1;
 		BIT_FIELD manifest_process : 1;
 		BIT_FIELD bClean : 1;
+		BIT_FIELD bRequestedUpdates : 1;
 	} flags;
 	int logincount;
 	PADDRESS allowed;
@@ -140,6 +141,7 @@ struct accounts_tag {
 
 	// have to synchronize this, need to set environment variables for things like the client's IP
 	PLIST update_commands;  // list of strings that are executed if the client udpates (these will be launchpad commands)
+	PLIST update_failure_commands;  // list of strings that are executed if the client udpates (these will be launchpad commands)
 	PLIST verify_commands;  // list of strings that are executed if the client verify fails (these will be launchpad commands)
 
 	struct file_totals

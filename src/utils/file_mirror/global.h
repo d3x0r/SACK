@@ -19,3 +19,8 @@ struct filemirror_global {
 extern
 #endif
 struct filemirror_global global_filemirror_data;
+
+
+void CPROC LogOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, size_t size );
+void ProcessLocalUpdateFailedCommands( PACCOUNT account );
+

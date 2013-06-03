@@ -633,6 +633,7 @@ void UpdateAccountFile( PACCOUNT account, int start, int size, PNETWORK_STATE pn
 			if( file == INVALID_INDEX )
 			{
 				xlprintf(2100)( "Failed to open:%s", pFileInfo->full_name );
+				ProcessLocalUpdateFailedCommands( account );
 				return;
 			}
 
@@ -2487,6 +2488,63 @@ static PTRSZVAL CPROC FinishReading( PTRSZVAL psv )
 	return 0;
 }
 
+//---------------------------------------------------------------------------
+
+static PTRSZVAL CPROC DoProcessLocalVerifyCommands( PTHREAD thread )
+{
+   PACCOUNT account = (PACCOUNT)GetThreadParam( thread );
+	INDEX idx;
+	CTEXTSTR update_cmd;
+	LIST_FORALL( account->verify_commands, idx, CTEXTSTR, update_cmd )
+	{
+		System( update_cmd, LogOutput, 0 );
+	}
+	return 0;
+}
+
+static void ProcessLocalVerifyCommands( PACCOUNT account )
+{
+   ThreadTo( DoProcessLocalVerifyCommands, (PTRSZVAL)account );
+}
+
+//---------------------------------------------------------------------------
+
+static PTRSZVAL CPROC DoProcessLocalUpdateCommands( PTHREAD thread )
+{
+   PACCOUNT account = (PACCOUNT)GetThreadParam( thread );
+	INDEX idx;
+	CTEXTSTR update_cmd;
+	LIST_FORALL( account->update_commands, idx, CTEXTSTR, update_cmd )
+	{
+		System( update_cmd, LogOutput, 0 );
+	}
+	return 0;
+}
+
+void ProcessLocalUpdateCommands( PACCOUNT account )
+{
+   ThreadTo( DoProcessLocalUpdateCommands, (PTRSZVAL)account );
+}
+
+//---------------------------------------------------------------------------
+
+static PTRSZVAL CPROC DoProcessLocalUpdateFailedCommands( PTHREAD thread )
+{
+   PACCOUNT account = (PACCOUNT)GetThreadParam( thread );
+	INDEX idx;
+	CTEXTSTR update_cmd;
+	LIST_FORALL( account->update_failure_commands, idx, CTEXTSTR, update_cmd )
+	{
+		System( update_cmd, LogOutput, 0 );
+	}
+	return 0;
+}
+
+static void ProcessLocalUpdateFailedCommands( PACCOUNT account )
+{
+   ThreadTo( DoProcessLocalUpdateFailedCommands, (PTRSZVAL)account );
+}
+
 //-------------------------------------------------------------------------
 
 static PTRSZVAL CPROC AddAccountUpdateCommand( PTRSZVAL psv, arg_list args )
@@ -2496,6 +2554,19 @@ static PTRSZVAL CPROC AddAccountUpdateCommand( PTRSZVAL psv, arg_list args )
 	if( account = (PACCOUNT)psv )
 	{
 		AddLink( &account->update_commands, StrDup( command ) );
+	}
+	return psv;
+}
+
+//-------------------------------------------------------------------------
+
+static PTRSZVAL CPROC AddAccountUpdateFailCommand( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, CTEXTSTR, command );
+	PACCOUNT account;
+	if( account = (PACCOUNT)psv )
+	{
+		AddLink( &account->update_failure_commands, StrDup( command ) );
 	}
 	return psv;
 }
@@ -2544,6 +2615,7 @@ void ReadAccounts( const char *configname )
 	AddConfiguration( pch, "outgoing live=%m", AddOutgoingPath );
 	AddConfiguration( pch, "listen=%w", SetAccountAddress );
 	AddConfiguration( pch, "On Update Command=%m", AddAccountUpdateCommand );
+	AddConfiguration( pch, "On Update Fail Command=%m", AddAccountUpdateFailCommand );
 	AddConfiguration( pch, "On verify Command=%m", AddAccountVerifyCommand );
 	AddConfiguration( pch, "max connections=%i", SetMaxConnections );
 	AddConfiguration( pch, "keep file=%m", AddKeepFile );
@@ -3031,6 +3103,9 @@ LOGICAL ProcessManifest( PNETWORK_STATE pns, PACCOUNT account, _32 *buffer, size
 				Release( pfc );
 		}
 		lprintf( "Send FAIL." );
+		if( account->verify_commands )
+			ProcessLocalVerifyCommands( account );
+
       pns->client_connection->flags.failed = 1;
 		SendTCP( pns->client_connection->pc, "FAIL", 4 );
       // give network a tick.
@@ -3072,6 +3147,7 @@ void ProcessFileChanges( PACCOUNT account, PCLIENT_CONNECTION pcc )
 		msg[2] = (_32)pfc->size;
 		msg[3] = (_32)pfc->pFileInfo->PathID;
 		msg[4] = (_32)pfc->pFileInfo->Source_ID;
+      account->flags.bRequestedUpdates = 1;
 		xlprintf(2100)( "asking for more data... %d %d in (%d/%d : %d) %s", pfc->start, pfc->size, pfc->pFileInfo->ID, pfc->pFileInfo->Source_ID, pfc->pFileInfo->PathID, pfc->pFileInfo->full_name );
 		{
 			PNETWORK_STATE pns = (PNETWORK_STATE)GetNetworkLong( pcc->pc, 0 );
@@ -3090,6 +3166,10 @@ void ProcessFileChanges( PACCOUNT account, PCLIENT_CONNECTION pcc )
 			// send manifest (after OKAY and OVRL)
 			xlprintf(2100)( "RE-BUILD manifest after receiving all our data (also saves it)" );
 			BuildManifest( account, !pcc->flags.failed );
+		}
+		if( account->flags.bRequestedUpdates && account->update_commands )
+		{
+			ProcessLocalUpdateCommands( account );
 		}
 		lprintf( "Send NEXT" );
 		msg[0] = *(_32*)"NEXT";
