@@ -866,7 +866,7 @@ PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 #define  InterShell_GetButtonControl								   ( !InterShell )?NULL:InterShell->InterShell_GetButtonControl
 #define  InterShell_GetButtonCanvas								   ( !InterShell )?NULL:InterShell->InterShell_GetButtonCanvas
 #define  InterShell_GetPhysicalButton								   ( !InterShell )?NULL:InterShell->InterShell_GetPhysicalButton
-#define  InterShell_GetLabelText								   if( InterShell )InterShell->InterShell_GetLabelText 
+#define  InterShell_GetLabelText(label,string)								   ( !InterShell )?(string):InterShell->InterShell_GetLabelText(label,string)
 #define  InterShell_TranslateLabelText								   ( !InterShell )?NULL:InterShell->InterShell_TranslateLabelText
 #define  InterShell_GetControlLabelText								   if( InterShell )InterShell->InterShell_GetControlLabelText 
 #define  BeginCanvasConfiguration								   if( InterShell )InterShell->BeginCanvasConfiguration 
