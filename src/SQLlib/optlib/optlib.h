@@ -41,6 +41,7 @@ struct sack_option_global_tag {
 		BIT_FIELD bUseProgramDefault : 1;
 		BIT_FIELD bUseSystemDefault : 1;
 		BIT_FIELD bPromptDefault : 1;
+		BIT_FIELD bEnableSystemMapping : 2;
    } flags;
    TEXTCHAR SystemName[128];
    INDEX SystemID;
