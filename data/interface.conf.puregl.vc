@@ -2,18 +2,8 @@
 
 Enable Trace = off
 
-if altanik == enabled
-	# load altanik module:
-	win32 module altanik_core.dll
-	win32 module plugins/altanik_core.dll
-
-	# sack_sql_options OR futgetpr:
-	win32 alias service options futgetpr
-else
-	win32 alias service options sack_sql_options
-endif
-
 option default /DEFAULT/System Settings/@Enable System Mapping=1
+OPTION DEFAULT /DEFAULT/System Settings/@Map INI Local/comports.ini=1
 option default sack/vidlib/use interface = windows
 
 if sack/vidlib/use interface == message
