@@ -1985,7 +1985,7 @@ PACCOUNT CreateAccount( CTEXTSTR name, LOGICAL client )
 
 static CTEXTSTR SubstituteNameVars( CTEXTSTR name )
 {
-   PVARTEXT pvt = VarTextCreate();
+	PVARTEXT pvt = VarTextCreate();
 	const TEXTCHAR *start = name;
 	const TEXTCHAR *this_var = name;
 	const TEXTCHAR *end;
@@ -2001,22 +2001,22 @@ static CTEXTSTR SubstituteNameVars( CTEXTSTR name )
 			CTEXTSTR envvar;
 			snprintf( tmpvar, end-this_var, "%*.*s", end-this_var-1, end-this_var-1, this_var + 1 );
 			envvar = OSALOT_GetEnvironmentVariable( tmpvar );
-         if( envvar )
+			if( envvar )
 				vtprintf( pvt, "%s", OSALOT_GetEnvironmentVariable( tmpvar ) );
 			else
 				lprintf( "failed to find environment variable '%s'", tmpvar );
-         Release( tmpvar );
-         start = end + 1;
+			Release( tmpvar );
+			start = end + 1;
 		}
 		else
-         lprintf( "Bad framing on environemtn variable %%var%% syntax got [%s]", start );
+			lprintf( "Bad framing on environment variable %%var%% syntax got [%s]", start );
 	}
 	if( start[0] )
 		vtprintf( pvt, "%s", start );
 	{
 		TEXTSTR result = StrDup( GetText( VarTextPeek( pvt ) ) );
 		VarTextDestroy( &pvt );
-      return result;
+		return result;
 	}
 }
 //-------------------------------------------------------------------------
