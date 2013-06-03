@@ -13,6 +13,7 @@ else
 	win32 alias service options sack_sql_options
 endif
 
+option default /DEFAULT/System Settings/@Enable System Mapping=1
 option default sack/vidlib/use interface = windows
 
 if sack/vidlib/use interface == message
