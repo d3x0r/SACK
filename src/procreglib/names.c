@@ -1711,6 +1711,44 @@ static PTRSZVAL CPROC HandleModule( PTRSZVAL psv, arg_list args )
 
 //-----------------------------------------------------------------------
 
+static TEXTSTR SubstituteNameVars( CTEXTSTR name )
+{
+	PVARTEXT pvt = VarTextCreate();
+	const TEXTCHAR *start = name;
+	const TEXTCHAR *this_var = name;
+	const TEXTCHAR *end;
+
+	while( this_var = StrChr( start, '%' ) )
+	{
+		if( start < this_var )
+			vtprintf( pvt, "%*.*s", this_var-start, this_var-start, start );
+		end = StrChr( this_var + 1, '%' );
+		if( end )
+		{
+			TEXTCHAR *tmpvar = NewArray( TEXTCHAR, end - this_var );
+			CTEXTSTR envvar;
+			snprintf( tmpvar, end-this_var, "%*.*s", end-this_var-1, end-this_var-1, this_var + 1 );
+			envvar = OSALOT_GetEnvironmentVariable( tmpvar );
+			if( envvar )
+				vtprintf( pvt, "%s", OSALOT_GetEnvironmentVariable( tmpvar ) );
+			else
+				lprintf( "failed to find environment variable '%s'", tmpvar );
+			Release( tmpvar );
+			start = end + 1;
+		}
+		else
+			lprintf( "Bad framing on environment variable %%var%% syntax got [%s]", start );
+	}
+	if( start[0] )
+		vtprintf( pvt, "%s", start );
+	{
+		TEXTSTR result = StrDup( GetText( VarTextPeek( pvt ) ) );
+		VarTextDestroy( &pvt );
+		return result;
+	}
+}
+//-----------------------------------------------------------------------
+
 static PTRSZVAL CPROC HandleModulePath( PTRSZVAL psv, arg_list args )
 {
 
@@ -1814,7 +1852,9 @@ static PTRSZVAL CPROC SetOptionDefault( PTRSZVAL psv, arg_list args )
 	{
 		if( l.flags.bTraceInterfaceLoading )
 			lprintf( WIDE( "Set Option %s / [%s] = [%s}" ), GetProgramName(), key, value );
+		key = SubstituteNameVars( key );
 		SACK_GetProfileStringEx( GetProgramName(), key, value, buf, sizeof( buf ), TRUE );
+		Release( key );
 	}
 	else
 	{
@@ -1825,9 +1865,14 @@ static PTRSZVAL CPROC SetOptionDefault( PTRSZVAL psv, arg_list args )
 		optpath[0] = 0;
 		optpath++;
 
+		optname = SubstituteNameVars( optname );
+		optpath = SubstituteNameVars( optpath );
 		if( l.flags.bTraceInterfaceLoading )
 			lprintf( WIDE( "Set Option [%s]/[%s]/[%s] = [%s}" ), key, optpath, optname, value );
+
 		SACK_GetPrivateProfileStringEx( optpath, optname, value, buf, sizeof( buf ), key, TRUE );
+		Release( optname );
+		Release( optpath );
 	}
 #endif
 	return psv;
