@@ -314,7 +314,6 @@ void InitMachine( void )
 #endif
 		if( !IsSQLOpen(og.Option) )
 		{
-			//DebugBreak();
 			lprintf( WIDE("Get Option init failed... no database...") );
 			return;
 		}
@@ -1277,8 +1276,35 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 																				)
 {
 	EnterCriticalSec( &og.cs_option );
+	//lprintf( "Getting {%s}[%s]%s=%s", pININame, pSection, pOptname, pDefaultbuf );
 	if( !pININame )
 		pININame = DEFAULT_PUBLIC_KEY;
+	else
+	{
+		while( pININame[0] == '/' || pININame[0] == '\\' )
+			pININame++;
+		if( ( pININame != DEFAULT_PUBLIC_KEY )
+			&& ( StrCaseCmp( pININame, DEFAULT_PUBLIC_KEY ) != 0 ) )
+		{
+			if( og.flags.bEnableSystemMapping == 2 )
+				og.flags.bEnableSystemMapping = SACK_GetProfileIntEx( WIDE( "System Settings"), WIDE( "@Enable System Mapping" ), 0, TRUE );
+			if( og.flags.bEnableSystemMapping )
+			{
+				TEXTCHAR buf[128];
+				TEXTCHAR resultbuf[12];
+				snprintf( buf, 128, WIDE("System Settings/@Map INI Local/%s"), GetSystemName() );
+				buf[127] = 0;
+				SACK_GetPrivateProfileStringExxx( odbc, buf, pININame, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_RELAY );
+				if( resultbuf[0] != '0' )
+				{
+					snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pININame );
+					pININame = buf;
+				}
+				// else leave pINI name unchanged.
+			}
+		}
+	}
+
 	if( !odbc )
 	{
 		if( !og.Option )
@@ -1470,7 +1496,31 @@ SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateOptionStringEx )( PODBC odbc, CTEXT
 	POPTION_TREE_NODE optval;
 	if( !pINIFile )
 		pINIFile = DEFAULT_PUBLIC_KEY;
-
+	else
+	{
+		while( pINIFile[0] == '/' || pINIFile[0] == '\\' )
+			pINIFile++;
+		if( ( pINIFile != DEFAULT_PUBLIC_KEY )
+			&& ( StrCaseCmp( pINIFile, DEFAULT_PUBLIC_KEY ) != 0 ) )
+		{
+			if( og.flags.bEnableSystemMapping == 2 )
+				og.flags.bEnableSystemMapping = SACK_GetProfileIntEx( WIDE( "System Settings"), WIDE( "@Enable System Mapping" ), 0, TRUE );
+			if( og.flags.bEnableSystemMapping )
+			{
+				TEXTCHAR buf[128];
+				TEXTCHAR resultbuf[12];
+				snprintf( buf, 128, WIDE("System Settings/@Map INI Local/%s"), GetSystemName() );
+				buf[127] = 0;
+				SACK_GetPrivateProfileStringExxx( odbc, buf, pINIFile, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
+				if( resultbuf[0] != '0' )
+				{
+					snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile );
+					pINIFile = buf;
+				}
+				// else leave pINI name unchanged.
+			}
+		}
+	}
 	optval = GetOptionIndexExxx( odbc, NULL, pINIFile, pSection, pName, TRUE, FALSE DBG_SRC );
 	if( !optval )
 	{
@@ -1659,8 +1709,10 @@ PRIORITY_PRELOAD(RegisterSQLOptionInterface, SQL_PRELOAD_PRIORITY + 1 )
 		RegisterInterface( WIDE("SACK_SQL_Options"), (POINTER(CPROC *)(void))GetOptionInterface, (void(CPROC *)(POINTER))DropOptionInterface );
 		og.flags.bUseProgramDefault = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/SQL/Options/Options Use Program Name Default" ), 0, TRUE );
 		og.flags.bUseSystemDefault = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/SQL/Options/Options Use System Name Default" ), 0, TRUE );
+		og.flags.bEnableSystemMapping = 2;
 	}
 }
+
 
 SQLGETOPTION_PROC( INDEX, GetSystemID )( void )
 {
