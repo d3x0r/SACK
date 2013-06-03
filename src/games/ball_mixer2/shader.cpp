@@ -3,7 +3,7 @@
 #define USE_RENDER_INTERFACE l.pri
 #define USE_IMAGE_INTERFACE l.pii
 #define NEED_VECTLIB_COMPARE
-
+#define MAKE_RCOORD_SINGLE
 #include <sqlgetoption.h>
 #include <math.h>
 #include <render.h>

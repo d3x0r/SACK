@@ -51,7 +51,7 @@
 #define USE_IMAGE_INTERFACE l.pii
 #define NEED_VECTLIB_COMPARE
 #define TERRAIN_MAIN_SOURCE
-//#define MAKE_RCOORD_SINGLE
+#define MAKE_RCOORD_SINGLE
 #include <sqlgetoption.h>
 #include <math.h>
 #include <render.h>
@@ -120,11 +120,11 @@ void ConvertPolarToRect( int level
 							, int *x
 							, int *y )
 {
-	// all maps must include c == HEX_SIZE
-   c %= (level*2+1);
+		// all maps must include c == HEX_SIZE
+		c %= (level*2+1);
 		if( c < level )
 		{
-         // need to redo the flat distortion....
+			// need to redo the flat distortion....
 			(*x) = level;
 			(*y) = c;
 		}
@@ -1286,7 +1286,7 @@ int DrawSphereThing( PHEXPATCH patch, int mode )
 #endif
 
 	//which is a 1x1x1 sort of patch array
-	//RenderBandPatch( patch, m, mode );
+	RenderBandPatch( patch, m, mode );
 	RenderPolePatch( patch, m, mode, 0 );
 	RenderPolePatch( patch, m, mode, 1 );
 
@@ -2475,7 +2475,7 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 			if( result )
             lprintf( "vp err %d", result );
 			//glColorPointer( 3, GL_FLOAT, 0, col );
-			//glDrawArrays(GL_TRIANGLES, 0, 3);	// draw first object
+			glDrawArrays(GL_TRIANGLES, 0, 3);	// draw first object
 			glDisableVertexAttribArray( 1 );
 
 
@@ -2489,7 +2489,6 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 			delete vert2;
 	}
 
-	if( 0 )
 	do
 	{
 #ifdef DEBUG_TIMING7
@@ -2584,7 +2583,7 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 //		__try
 	{
 #endif
-	if( 0 )//SetActiveGLDisplay( pRend ) )
+	//if( 0 )//SetActiveGLDisplay( pRend ) )
 	{
 
 		INDEX idx;
@@ -2653,52 +2652,7 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 		}
 
 		SetLights();
-		/*
-		{
-			glEnable(GL_LIGHTING);
 
-			{
-				GLfloat global_ambient[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-				glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);	
-			}
-
-			{
-				GLfloat lightpos[] = {-1000, 1000, 10., 0.};
-				GLfloat lightdir[] = {-.5, -1., -0.1, 0.};
-				//GLfloat lightamb[] = {l.values[LIT_AMBIENT0]/256.0f, l.values[LIT_AMBIENT1]/256.0f, l.values[LIT_AMBIENT2]/256.0f, 1.0};
-				GLfloat lightamb[] = {1.0, 1.0, 1.0, 1.0};
-				//GLfloat lightdif[] = {l.values[LIT_DIFFUSE0]/256.0f, l.values[LIT_DIFFUSE1]/256.0f, l.values[LIT_DIFFUSE2]/256.0f, 1.0};
-				GLfloat lightdif[] = {1.0, 1.0, 1.0, 1.0};
-				//GLfloat lightspec[] = {l.values[LIT_SPECULAR0]/256.0f, l.values[LIT_SPECULAR1]/256.0f, l.values[LIT_SPECULAR2]/256.0f, 1.0};
-				GLfloat lightspec[] = {1.0, 1.0, 1.0, 1.0};
-				glEnable(GL_LIGHT0);
-				glLightfv(GL_LIGHT0, GL_POSITION, lightpos);
-
-				glLightfv(GL_LIGHT0, GL_AMBIENT, lightamb);
-				glLightfv(GL_LIGHT0, GL_DIFFUSE, lightdif);
-				glLightfv(GL_LIGHT0, GL_SPECULAR, lightspec);
-				glLightfv( GL_LIGHT0, GL_SPOT_DIRECTION, lightdir );
-			}
-
-			{
-				GLfloat lightpos[] = {1000, -1000, -10., 0.};
-				GLfloat lightdir[] = {-1, 1., 0.1, 0.};
-				GLfloat lightamb[] = {1.0, 1.0, 1.0, 1.0};
-				//GLfloat lightamb[] = {0.1, 0.1, 0.1, 1.0};
-				GLfloat lightdif[] = {1.0, 1.0, 1.0, 1.0};
-				//GLfloat lightdif[] = {0.1, 0.1, 0.1, 0.1};
-				GLfloat lightspec[] = {1.0, 1.0, 1.0, 1.0};
-				//GLfloat lightspec[] = {0.1, 0.1, 0.1, 0.1};
-				glEnable(GL_LIGHT1);
-				glLightfv(GL_LIGHT1, GL_POSITION, lightpos);
-
-				glLightfv(GL_LIGHT1, GL_AMBIENT, lightamb);
-				glLightfv(GL_LIGHT1, GL_DIFFUSE, lightdif);
-				glLightfv(GL_LIGHT1, GL_SPECULAR, lightspec);
-				glLightfv( GL_LIGHT1, GL_SPOT_DIRECTION, lightdir );
-			}
-		}
-		*/
 		{
 			PHEXPATCH patch;
 			btVector3 bt_view_origin;

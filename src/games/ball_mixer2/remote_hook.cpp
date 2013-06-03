@@ -3,6 +3,7 @@
 #define USE_RENDER_INTERFACE l.pri
 #define USE_IMAGE_INTERFACE l.pii
 #define NEED_VECTLIB_COMPARE
+#define MAKE_RCOORD_SINGLE
 #include <network.h>
 #include <sqlgetoption.h>
 #include <vectlib.h>
@@ -117,7 +118,7 @@ void DrawOverlay( PTRANSFORM camera )
 					:n==1?0
 					:n==2?1
 					:n==3?1:0 );
-				glVertex3dv( out_corners[n] );
+				glVertex3fv( out_corners[n] );
 			}
 			glEnd();
 #endif
