@@ -77,7 +77,7 @@ static int CPROC SavedNameCmpEx(CTEXTSTR dst, CTEXTSTR src, size_t srclen)
 	size_t l1 = srclen; // one for length, one for nul
 	size_t l2 = dst[-1] - 2; // one for length, one for nul
 	// case insensitive loop..
-	//lprintf( WIDE("Compare %s(%d) vs %s(%d)"), src, l1, dst, l2 );
+	//lprintf( WIDE("Compare %s(%d) vs %s[%p](%d)"), src, l1, dst, dst, l2 );
 	// interesting... first sort by length
 	// and then by content?
 	//if( l1 != l2 )
@@ -210,7 +210,8 @@ static CTEXTSTR DressName( TEXTSTR buf, CTEXTSTR name )
 
 //---------------------------------------------------------------------------
 
-static CTEXTSTR DoSaveName( CTEXTSTR stripped, size_t len )
+static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
+#define DoSaveName(a,b) DoSaveNameEx(a,b DBG_SRC )
 {
 	PNAMESPACE space = l.NameSpace;
 	TEXTCHAR *p;
@@ -227,6 +228,7 @@ static CTEXTSTR DoSaveName( CTEXTSTR stripped, size_t len )
 	if( l.flags.bIndexNameTable )
 	{
 		POINTER p;
+		//_lprintf(DBG_RELAY)( "Indexed name table... %p(%s)", stripped, stripped );
 		p = FindInBinaryTree( l.NameIndex, (PTRSZVAL)stripped );
 		if( p )
 		{
@@ -315,14 +317,24 @@ static CTEXTSTR SaveName( CTEXTSTR name )
 	if( name )
 	{
 		size_t len = StrLen( name );
+		TEXTSTR stripped = NewArray( TEXTCHAR, len + 2 );
 		size_t n;
+		stripped[0] = len + 2;
 		for( n = 0; n < len; n++ )
 			if( name[n] == '\\' || name[n] == '/' )
 			{
 				len = n;
 				break;
 			}
-		return DoSaveName( name, len );
+		stripped = NewArray( TEXTCHAR, len + 2 );
+		StrCpyEx( stripped + 1, name, len + 1 ); // allow +1 length for null after string; otherwise strcpy dropps the nul early
+		stripped[0] = len + 2;
+		//lprintf( "Created stripped..." );
+		{
+			CTEXTSTR result = DoSaveName( stripped + 1, len );
+			Release( stripped );
+			return result;
+		}
 	}
 	return NULL;
 }
@@ -332,7 +344,8 @@ CTEXTSTR SaveNameConcatN( CTEXTSTR name1, ... )
 #define SaveNameConcat(n1,n2) SaveNameConcatN( (n1),(n2),NULL )
 {
 	// space concat since that's eaten by strip...
-	TEXTCHAR stripbuffer[256];
+	TEXTCHAR _stripbuffer[256];
+	TEXTCHAR *stripbuffer = (_stripbuffer+1);
 	size_t len = 0;
 	CTEXTSTR namex;
 	va_list args;
@@ -352,6 +365,7 @@ CTEXTSTR SaveNameConcatN( CTEXTSTR name1, ... )
 		newlen++;
 		len += newlen;
 	}
+	_stripbuffer[0] = len + 2;
    // and add another - final part of string is \0\0
 	//stripbuffer[len] = 0;
    //len++;
@@ -362,7 +376,14 @@ CTEXTSTR SaveNameConcatN( CTEXTSTR name1, ... )
 CTEXTSTR SaveText( CTEXTSTR text )
 #define SaveNameConcat(n1,n2) SaveNameConcatN( (n1),(n2),NULL )
 {
-	return DoSaveName( text, StrLen( text ) );
+	size_t len = StrLen( text );
+	TEXTSTR stripped = NewArray( TEXTCHAR, len + 2 );
+	CTEXTSTR result;
+	StrCpyEx( stripped + 1, text, len + 1 );
+	stripped[0] = len + 2;
+	result = DoSaveName( stripped + 1, len);
+	Release( stripped );
+	return result;
 }
 
 //---------------------------------------------------------------------------
@@ -569,19 +590,20 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 				while( 1 );
 
 				{
-               // dress name terminates on a '/'
+					// dress name terminates on a '/'
 					TEXTCHAR buf[256];
+					//lprintf( "Finding a..." );
 					new_root = (PNAME)FindInBinaryTree( class_root->Tree, (PTRSZVAL)DressName( buf, start ) );
-               //lprintf( WIDE("Found %p %s(%d)=%s"), new_root, buf+1, buf[0], start );
+					//lprintf( WIDE("Found %p %s(%d)=%s"), new_root, buf+1, buf[0], start );
 				}
 				if( !new_root )
 				{
 					if( !bCreate )
-                  return NULL;
+						return NULL;
 					if( alias && !end )
 					{
 						// added name in this place name terminates on a '/'
-                  //lprintf( WIDE("name not found, adding...!end && alias") );
+						//lprintf( WIDE("name not found, adding...!end && alias") );
 						class_root = AddClassTree( class_root
 														 , start
 														 , alias->Tree
@@ -697,6 +719,7 @@ int AddNode( PTREEDEF class_root, POINTER data, PTRSZVAL key )
 
 static int CPROC MyStrCmp( PTRSZVAL s1, PTRSZVAL s2 )
 {
+	//lprintf( WIDE("Compare (%s) vs (%s)"), s1, s2 );
 	return StrCaseCmp( (TEXTCHAR*)s1, (TEXTCHAR*)s2 );
 }
 //---------------------------------------------------------------------------
@@ -1251,8 +1274,9 @@ PROCREG_PROC( int, RegisterValueExx )( PCLASSROOT root, CTEXTSTR name_class, CTE
 	PTREEDEF class_root = GetClassTree( root, (PCLASSROOT)name_class );
 	if( class_root )
 	{
-      TEXTCHAR buf[256];
+		TEXTCHAR buf[256];
 		PNAME oldname = (PNAME)FindInBinaryTree( class_root->Tree, (PTRSZVAL)DressName( buf, name ) );
+		//lprintf( "... existed? %p", oldname );
 
 		if( oldname )
 		{
@@ -1285,6 +1309,7 @@ PROCREG_PROC( int, RegisterValueExx )( PCLASSROOT root, CTEXTSTR name_class, CTE
 				newname->flags.bStringVal = 1;
 				newname->data.name.sValue = SaveName( value ); //StrDup( value );
 			}
+			//lprintf( "... adding %s (%s)", name, newname->name );
 			if( !AddBinaryNode( class_root->Tree, newname, (PTRSZVAL)newname->name ) )
 			{
 				lprintf( WIDE("Failed to add name to tree...%s"), name );
@@ -1292,7 +1317,7 @@ PROCREG_PROC( int, RegisterValueExx )( PCLASSROOT root, CTEXTSTR name_class, CTE
 		}
 		return TRUE;
 	}
-   return FALSE;
+	return FALSE;
 }
 
 PROCREG_PROC( int, RegisterValueEx )( CTEXTSTR name_class, CTEXTSTR name, int bIntVal, CTEXTSTR value )
