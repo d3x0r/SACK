@@ -2495,10 +2495,12 @@ static PTRSZVAL CPROC DoProcessLocalVerifyCommands( PTHREAD thread )
    PACCOUNT account = (PACCOUNT)GetThreadParam( thread );
 	INDEX idx;
 	CTEXTSTR update_cmd;
+	g.threads++;
 	LIST_FORALL( account->verify_commands, idx, CTEXTSTR, update_cmd )
 	{
 		System( update_cmd, LogOutput, 0 );
 	}
+	g.threads--;
 	return 0;
 }
 
@@ -2514,10 +2516,12 @@ static PTRSZVAL CPROC DoProcessLocalUpdateCommands( PTHREAD thread )
    PACCOUNT account = (PACCOUNT)GetThreadParam( thread );
 	INDEX idx;
 	CTEXTSTR update_cmd;
+	g.threads++;
 	LIST_FORALL( account->update_commands, idx, CTEXTSTR, update_cmd )
 	{
 		System( update_cmd, LogOutput, 0 );
 	}
+	g.threads--;
 	return 0;
 }
 
@@ -2533,16 +2537,29 @@ static PTRSZVAL CPROC DoProcessLocalUpdateFailedCommands( PTHREAD thread )
    PACCOUNT account = (PACCOUNT)GetThreadParam( thread );
 	INDEX idx;
 	CTEXTSTR update_cmd;
+	g.threads++;
 	LIST_FORALL( account->update_failure_commands, idx, CTEXTSTR, update_cmd )
 	{
 		System( update_cmd, LogOutput, 0 );
 	}
+	g.threads--;
 	return 0;
 }
 
 static void ProcessLocalUpdateFailedCommands( PACCOUNT account )
 {
    ThreadTo( DoProcessLocalUpdateFailedCommands, (PTRSZVAL)account );
+}
+
+//-------------------------------------------------------------------------
+
+ATEXIT( WaitForTasks )
+{
+	while( g.threads )
+	{
+		lprintf( "Waiting for %d task threads to finish", g.threads );
+		Idle();
+	}
 }
 
 //-------------------------------------------------------------------------

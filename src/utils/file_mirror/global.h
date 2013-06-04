@@ -12,6 +12,7 @@ struct filemirror_global {
 	PNETBUFFER NetworkBuffers;
 	PTHREAD main_thread;
 	CTEXTSTR configname;
+	volatile int threads;
 };
 #define g global_filemirror_data
 
