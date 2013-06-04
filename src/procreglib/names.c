@@ -1721,16 +1721,16 @@ static TEXTSTR SubstituteNameVars( CTEXTSTR name )
 	while( this_var = StrChr( start, '%' ) )
 	{
 		// allow specifying %% for a single %.
-		if( start[1] == '%' )
-		{
-			vtprintf( pvt, "%%" );
-
-			start += 2;
-			continue;
-		}
 		// emit the stuff from start to the variable
 		if( start < this_var )
 			vtprintf( pvt, "%*.*s", this_var-start, this_var-start, start );
+
+		if( this_var[1] == '%' )
+		{
+			vtprintf( pvt, "%%" );
+			start = this_var + 2;
+			continue;
+		}
 		end = StrChr( this_var + 1, '%' );
 		if( end )
 		{
