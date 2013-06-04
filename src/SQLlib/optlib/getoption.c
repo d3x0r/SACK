@@ -1287,17 +1287,16 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 			&& ( StrCaseCmp( pININame, DEFAULT_PUBLIC_KEY ) != 0 ) )
 		{
 			if( og.flags.bEnableSystemMapping == 2 )
-				og.flags.bEnableSystemMapping = SACK_GetProfileIntEx( WIDE( "System Settings"), WIDE( "@Enable System Mapping" ), 0, TRUE );
+				og.flags.bEnableSystemMapping = SACK_GetProfileIntEx( WIDE( "System Settings"), WIDE( "Enable System Mapping" ), 0, TRUE );
 			if( og.flags.bEnableSystemMapping )
 			{
 				TEXTCHAR buf[128];
 				TEXTCHAR resultbuf[12];
-				snprintf( buf, 128, WIDE("System Settings/@Map INI Local/%s"), GetSystemName() );
-				buf[127] = 0;
-				SACK_GetPrivateProfileStringExxx( odbc, buf, pININame, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_RELAY );
+				SACK_GetPrivateProfileStringExxx( odbc, WIDE("System Settings/Map INI Local"), pININame, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_RELAY );
 				if( resultbuf[0] != '0' )
 				{
 					snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pININame );
+					buf[127] = 0;
 					pININame = buf;
 				}
 				// else leave pINI name unchanged.
@@ -1504,17 +1503,16 @@ SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateOptionStringEx )( PODBC odbc, CTEXT
 			&& ( StrCaseCmp( pINIFile, DEFAULT_PUBLIC_KEY ) != 0 ) )
 		{
 			if( og.flags.bEnableSystemMapping == 2 )
-				og.flags.bEnableSystemMapping = SACK_GetProfileIntEx( WIDE( "System Settings"), WIDE( "@Enable System Mapping" ), 0, TRUE );
+				og.flags.bEnableSystemMapping = SACK_GetProfileIntEx( WIDE( "System Settings"), WIDE( "Enable System Mapping" ), 0, TRUE );
 			if( og.flags.bEnableSystemMapping )
 			{
 				TEXTCHAR buf[128];
 				TEXTCHAR resultbuf[12];
-				snprintf( buf, 128, WIDE("System Settings/@Map INI Local/%s"), GetSystemName() );
-				buf[127] = 0;
-				SACK_GetPrivateProfileStringExxx( odbc, buf, pINIFile, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
+				SACK_GetPrivateProfileStringExxx( odbc, WIDE("System Settings/Map INI Local"), pINIFile, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
 				if( resultbuf[0] != '0' )
 				{
 					snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile );
+					buf[127] = 0;
 					pINIFile = buf;
 				}
 				// else leave pINI name unchanged.
