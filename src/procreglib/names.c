@@ -1287,7 +1287,7 @@ PROCREG_PROC( int, RegisterValueExx )( PCLASSROOT root, CTEXTSTR name_class, CTE
 			}
 			if( !AddBinaryNode( class_root->Tree, newname, (PTRSZVAL)newname->name ) )
 			{
-				Log( WIDE("Failed to add name to tree...") );
+				lprintf( WIDE("Failed to add name to tree...%s"), name );
 			}
 		}
 		return TRUE;
@@ -1724,6 +1724,7 @@ static TEXTSTR SubstituteNameVars( CTEXTSTR name )
 		if( start[1] == '%' )
 		{
 			vtprintf( pvt, "%%" );
+
 			start += 2;
 			continue;
 		}
