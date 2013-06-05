@@ -14,11 +14,19 @@ void ProcessINIFile( CTEXTSTR filename, TEXTCHAR *pData, _32 nData )
 	TEXTCHAR *section = NULL;
 	TEXTCHAR *entry = NULL;
 	//	int start_line = TRUE;
-	int ftnsys = SystemPrefix?1:0;
+	int ftnsys = 0;
 	int find_nextline = 0;
 	TEXTCHAR *p = (TEXTSTR)pathrchr( (CTEXTSTR)filename );
+   TEXTCHAR filebuf[256];
 	if( p )
 		filename = p + 1;
+
+	if( SystemPrefix )
+	{
+		static TEXTCHAR tmpbuf[256];
+		snprintf( tmpbuf, sizeof( tmpbuf ), WIDE("%s/%s"), SystemPrefix, filename );
+		filename = tmpbuf;
+	}
 
 	if( StrCaseCmp( filename, WIDE("ftnsys.ini") ) == 0 )
       ftnsys = 1;
@@ -47,14 +55,7 @@ void ProcessINIFile( CTEXTSTR filename, TEXTCHAR *pData, _32 nData )
 					break;
 				sec[0] = 0;
 				if( section ) Release( section );
-				if( SystemPrefix )
-				{
-					static TEXTCHAR tmpbuf[256];
-					snprintf( tmpbuf, sizeof( tmpbuf ), WIDE("%s/%s/%s"), SystemPrefix, filename, pData + 1 );
-					section = tmpbuf;
-				}
-				else
-					section = StrDup( pData + 1 );
+  				section = StrDup( pData + 1 );
 				nData -= ( sec - pData ) + 1;
 				pData = sec + 1;
 				find_nextline = 1;
@@ -91,7 +92,7 @@ void ProcessINIFile( CTEXTSTR filename, TEXTCHAR *pData, _32 nData )
 					if( optend[0] )
 					{
 						optend[0] = 0;
-						//lprintf( WIDE("SQLWrite: (%s)[%s] %s=%s"), filename, section,entry,optval );
+						lprintf( WIDE("SQLWrite: (%s)[%s] %s=%s"), ftnsys?"NULL":filename, section,entry,optval );
 						if( ftnsys )
 							SACK_WriteProfileString( section, entry, optval );
 						else
@@ -170,13 +171,15 @@ int main( int argc, char **argv )
 			static TEXTCHAR tmp[256];
 			if( argc > 2 )
 			{
-            SystemPrefix = DupCharToText( argv[2] );
+				snprintf( tmp, sizeof( tmp ), WIDE("/System Settings/%s"), argv[2] );
+				argc--;
+            argv++;
 			}
 			else
 			{
-				snprintf( tmp, sizeof( tmp ), WIDE("INI Store/%s"), GetSystemName() );
-				SystemPrefix = tmp;
+				snprintf( tmp, sizeof( tmp ), WIDE("/System Settings/%s"), GetSystemName() );
 			}
+			SystemPrefix = tmp;
 		}
 	}
 	//CreateOptionDatabase();

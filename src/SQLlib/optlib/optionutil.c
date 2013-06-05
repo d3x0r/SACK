@@ -139,7 +139,7 @@ static void FixOrphanedBranches( void )
 	CTEXTSTR *result = NULL;
 	CTEXTSTR result2 = NULL;
 	SQLQuery( og.Option, WIDE("select count(*) from option_map"), &result2 );
-   // expand the options list to max extent real quickk....
+	// expand the options list to max extent real quickk....
 	SetLink( &options, atoi( result2 ) + 1, 0 );
 	for( SQLRecordQuery( og.Option, WIDE("select node_id,parent_node_id from option_map"), NULL, &result, NULL );
 		  result;
@@ -149,11 +149,11 @@ static void FixOrphanedBranches( void )
 		node_id = IndexCreateFromText( result[0] );
 		parent_node_id = IndexCreateFromText( result[1] );
 		//sscanf( result, WIDE("%ld,%ld"), &node_id, &parent_node_id );
-      SetLink( &options, node_id, (POINTER)(parent_node_id+1) );
+		SetLink( &options, node_id, (POINTER)(parent_node_id+1) );
 	}
 	{
 		INDEX idx;
-      int deleted;
+   		int deleted;
 		INDEX parent;
 		do
 		{
@@ -180,13 +180,21 @@ static void FixOrphanedBranches( void )
 SQLGETOPTION_PROC( void, DeleteOption )( POPTION_TREE_NODE iRoot )
 {
 	POPTION_TREE tree = GetOptionTreeEx( og.Option );
-	if( tree->flags.bNewVersion )
+	if( tree->flags.bVersion4 )
+	{
+		New4DeleteOption( og.Option, iRoot );
+		return;
+	}
+	else if( tree->flags.bNewVersion )
 	{
 		NewDeleteOption( og.Option, iRoot );
 		return;
 	}
-	SQLCommandf( og.Option, WIDE("delete from option_map where node_id=%ld"), iRoot->id );
-   FixOrphanedBranches();
+	else
+	{
+		SQLCommandf( og.Option, WIDE("delete from option_map where node_id=%ld"), iRoot->id );
+	   	FixOrphanedBranches();
+	}
 }
 
 SACK_OPTION_NAMESPACE_END

@@ -80,6 +80,7 @@ size_t NewGetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *
 size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *buffer, size_t len DBG_PASS );
 LOGICAL NewCreateValue( POPTION_TREE odbc, POPTION_TREE_NODE value, CTEXTSTR pValue );
 LOGICAL New4CreateValue( POPTION_TREE odbc, POPTION_TREE_NODE value, CTEXTSTR pValue );
+void New4DeleteOption( PODBC odbc, POPTION_TREE_NODE iRoot );
 
 void NewEnumOptions( PODBC odbc, POPTION_TREE_NODE parent
 					 , int (CPROC *Process)(PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
