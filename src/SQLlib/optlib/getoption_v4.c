@@ -303,7 +303,7 @@ size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR 
 	TEXTCHAR query[256];
 	CTEXTSTR result = NULL;
 	size_t result_len = 0;
-
+   PVARTEXT pvtResult = NULL;
 	len--;
 
 	if( optval->value_guid )
@@ -334,29 +334,32 @@ size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR 
 #endif
 
 	PushSQLQueryEx( odbc );
-	snprintf( query, sizeof( query ), WIDE( "select string from " )OPTION4_VALUES WIDE( " where option_id='%s'" ), optval->guid );
+	snprintf( query, sizeof( query ), WIDE( "select string from " )OPTION4_VALUES WIDE( " where option_id='%s' order by segment" ), optval->guid );
 	// have to push here, the result of the prior is kept outstanding
 	// if this was not pushed, the prior result would evaporate.
 	buffer[0] = 0;
 	//lprintf( WIDE("do query for value string...") );
-	if( SQLQuery( odbc, query, &result ) )
+	result_len = (size_t)-1;
+	optval->value = NULL;
+	optval->value_guid = optval->guid;
+
+	for( SQLQuery( odbc, query, &result ); result; FetchSQLResult( odbc, &result ) )
 	{
+		if( !pvtResult )
+         pvtResult = VarTextCreate();
+		vtprintf( pvtResult, "%s", result );
+
 		//lprintf( WIDE(" query succeeded....") );
-		if( result )
-		{
-			optval->value_guid = optval->guid;
-			result_len = StrLen( result );
-			StrCpyEx( buffer, result, min(len+1,result_len+1) );
-			buffer[result_len = min(len,result_len)] = 0;
-			optval->value = StrDup( buffer );
-		}
-		else
-		{
-			buffer[0] = 0;
-			result_len = (size_t)-1;
-			optval->value = NULL;
-		}
-		SQLEndQuery( odbc );
+	}
+	if( pvtResult )
+	{
+		PTEXT pResult = VarTextGet( pvtResult );
+		result_len = GetTextSize( pResult );
+		StrCpyEx( buffer, GetText( pResult ), min(len+1,result_len+1) );
+		buffer[result_len = min(len,result_len)] = 0;
+		optval->value = StrDup( GetText( pResult ) );
+		LineRelease( pResult );
+		VarTextDestroy( &pvtResult );
 	}
 	PopODBCEx( odbc );
 	return result_len;
