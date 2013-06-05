@@ -116,8 +116,16 @@ POPTION_TREE GetOptionTreeExx( PODBC odbc DBG_PASS )
 		tree->odbc = odbc;
 		tree->odbc_writer = NULL;
 		// default to the old version... allow other code to select new version.
-		tree->flags.bNewVersion = 0;
-		tree->flags.bVersion4 = 0;
+		if( odbc != &global_sqlstub_data->OptionDb )
+		{
+			tree->flags.bNewVersion = GetOptionTreeEx( &global_sqlstub_data->OptionDb )->flags.bNewVersion;
+			tree->flags.bVersion4 = GetOptionTreeEx( &global_sqlstub_data->OptionDb )->flags.bVersion4;
+		}
+		else
+		{
+			tree->flags.bNewVersion = 0;
+			tree->flags.bVersion4 = 0;
+		}
 		tree->flags.bCreated = 0;
 		AddLink( &og.trees, tree );
 	}
@@ -231,8 +239,11 @@ void SetOptionDatabaseOption( PODBC odbc, int bNewVersion )
 	{
 		tree->flags.bCreated = FALSE;
 		if( bNewVersion == 2 )
+		{
 			tree->flags.bVersion4 = 1;
-      else if( bNewVersion == 1 )
+			tree->flags.bNewVersion = 0; 
+		}
+		else if( bNewVersion == 1 )
 			tree->flags.bNewVersion = 1;
 
 		//lprintf( "Set tree %p to newversion %d", tree, bNewVersion );
@@ -352,7 +363,9 @@ INDEX ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR table, CTE
 	PushSQLQueryEx( tree->odbc );
 retry:
 	tmp = EscapeSQLStringEx( tree->odbc, name DBG_RELAY );
-	snprintf( query, sizeof( query ), WIDE("select %s from %s where %s like '%s'"), col?col:WIDE("id"), table, namecol, tmp );
+	snprintf( query, sizeof( query ), WIDE("select %s from %s where %s like '%s'")
+			  , col?col:WIDE("id")
+			  , table, namecol, tmp );
 	Release( tmp );
 	if( SQLQueryEx( tree->odbc, query, &result DBG_RELAY) && result )
 	{
@@ -418,18 +431,19 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 	if( !parent )
 		parent = tree->root;
 
-	if( tree->flags.bNewVersion )
-	{
-		InitMachine();
-		//lprintf( "... %p %s %s %ws", parent, file, pBranch, pValue );
-		return NewGetOptionIndexExxx( odbc, parent, file, pBranch, pValue, bCreate, bIKnowItDoesntExist DBG_RELAY );
-	}
 	if( tree->flags.bVersion4 )
 	{
 		InitMachine();
 		//lprintf( "... %p %s %s %ws", parent, file, pBranch, pValue );
 		return New4GetOptionIndexExxx( odbc, parent, file, pBranch, pValue, bCreate, bIKnowItDoesntExist DBG_RELAY );
 	}
+	else if( tree->flags.bNewVersion )
+	{
+		InitMachine();
+		//lprintf( "... %p %s %s %ws", parent, file, pBranch, pValue );
+		return NewGetOptionIndexExxx( odbc, parent, file, pBranch, pValue, bCreate, bIKnowItDoesntExist DBG_RELAY );
+	}
+	else 
 	{
 		const TEXTCHAR **start = NULL;
 		TEXTCHAR namebuf[256];
@@ -750,13 +764,13 @@ POPTION_TREE_NODE NewDuplicateValue( PODBC odbc, POPTION_TREE_NODE iOriginalOpti
 POPTION_TREE_NODE DuplicateValue( POPTION_TREE_NODE iOriginalValue, POPTION_TREE_NODE iNewValue )
 {
 	POPTION_TREE tree = GetOptionTreeEx( og.Option );
-	if( tree->flags.bNewVersion )
+	if( tree->flags.bVersion4 )
 	{
-      return NewDuplicateValue( og.Option, iOriginalValue, iNewValue );
+		return New4DuplicateValue( og.Option, iOriginalValue, iNewValue );
 	}
-	else if( tree->flags.bVersion4 )
+	else if( tree->flags.bNewVersion )
 	{
-      return New4DuplicateValue( og.Option, iOriginalValue, iNewValue );
+		return NewDuplicateValue( og.Option, iOriginalValue, iNewValue );
 	}
 	else
 	{
@@ -776,15 +790,15 @@ POPTION_TREE_NODE DuplicateValue( POPTION_TREE_NODE iOriginalValue, POPTION_TREE
 size_t GetOptionStringValueEx( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *buffer, size_t len DBG_PASS )
 {
 	POPTION_TREE tree = GetOptionTreeEx( odbc );
-	if( tree->flags.bNewVersion )
-	{
-		//_lprintf( DBG_RELAY )( "GetOptionString for %p", odbc );
-		return NewGetOptionStringValue( odbc, optval, buffer, len DBG_RELAY );
-	}
-	else if( tree->flags.bVersion4 )
+	if( tree->flags.bVersion4 )
 	{
 		//_lprintf( DBG_RELAY )( "GetOptionString for %p", odbc );
 		return New4GetOptionStringValue( odbc, optval, buffer, len DBG_RELAY );
+	}
+	else if( tree->flags.bNewVersion )
+	{
+		//_lprintf( DBG_RELAY )( "GetOptionString for %p", odbc );
+		return NewGetOptionStringValue( odbc, optval, buffer, len DBG_RELAY );
 	}
 	else
 	{
@@ -1069,7 +1083,6 @@ LOGICAL SetOptionStringValue( POPTION_TREE tree, POPTION_TREE_NODE optval, CTEXT
 		return retval;
 	}
 
-
 	{
 		// should escape quotes passed in....
 		//if( IDValue && IDValue != INVALID_INDEX )
@@ -1109,18 +1122,18 @@ LOGICAL SetOptionStringValue( POPTION_TREE tree, POPTION_TREE_NODE optval, CTEXT
 		{
 			if( tree->flags.bVersion4 )
 			{
-				snprintf( update, sizeof( update ), WIDE("replace into %s (string,option_id) values ('%s',%s)")
+				snprintf( update, sizeof( update ), WIDE("replace into %s (string,option_id) values (%s,'%s')")
 						  , OPTION4_VALUES
 						  , newval
 						  , optval->guid );
 			}
 			else
 			{
-			snprintf( update, sizeof( update ), WIDE("replace into %s (string,%s) values (%s,%ld)")
-					  , tree->flags.bNewVersion?OPTION_VALUES:WIDE( "option_values" )
-					  , tree->flags.bNewVersion?WIDE( "option_id" ):WIDE( "value_id" )
-					  , newval
-					  , optval->value_id );
+				snprintf( update, sizeof( update ), WIDE("replace into %s (string,%s) values (%s,%ld)")
+						  , tree->flags.bNewVersion?OPTION_VALUES:WIDE( "option_values" )
+						  , tree->flags.bNewVersion?WIDE( "option_id" ):WIDE( "value_id" )
+						  , newval
+						  , optval->value_id );
 			}
 			SQLEndQuery( tree->odbc );
 			OpenWriter( tree );
