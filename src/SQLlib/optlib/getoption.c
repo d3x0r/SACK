@@ -424,7 +424,11 @@ INDEX IndexCreateFromText( CTEXTSTR string )
 //#define OPTION_ROOT_VALUE INVALID_INDEX
 #define OPTION_ROOT_VALUE 0
 
-static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, const TEXTCHAR *file, const TEXTCHAR *pBranch, const TEXTCHAR *pValue, int bCreate, int bIKnowItDoesntExist DBG_PASS )
+static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent
+														 , const TEXTCHAR *file
+														 , const TEXTCHAR *pBranch
+														 , const TEXTCHAR *pValue
+														 , int bCreate, int bIKnowItDoesntExist DBG_PASS )
 //#define GetOptionIndex( f,b,v ) GetOptionIndexEx( OPTION_ROOT_VALUE, f, b, v, FALSE )
 {
 	POPTION_TREE tree = GetOptionTreeEx( odbc );
@@ -1270,6 +1274,87 @@ size_t SQLPromptINIValue(
 	return strlen( lpszReturnBuffer );
 }
 
+struct check_mask_param
+{
+   LOGICAL is_found;
+   LOGICAL is_mapped;
+   CTEXTSTR section_name;
+};
+
+static int CPROC CheckMasks( PTRSZVAL psv_params, CTEXTSTR name, POPTION_TREE_NODE this_node, int flags )
+{
+   struct check_mask_param *params = (struct check_mask_param*)psv_params;
+	// return 0 to break loop.
+   lprintf( "Had mask to check [%s]", name );
+	if( CompareMask( name, params->section_name, FALSE ) )
+	{
+		params->is_found = TRUE;
+      //GetOptionStringValue( ... );
+      params->is_mapped = TRUE;
+		return 0;
+	}
+   return TRUE;
+}
+
+//------------------------------------------------------------------------
+
+static CTEXTSTR CPROC ResolveININame( PODBC odbc, CTEXTSTR pSection, TEXTCHAR *buf, CTEXTSTR pINIFile )
+{
+		while( pINIFile[0] == '/' || pINIFile[0] == '\\' )
+			pINIFile++;
+		if( !pathchr( pINIFile ) )
+		{
+			if( ( pINIFile != DEFAULT_PUBLIC_KEY )
+				&& ( StrCaseCmp( pINIFile, DEFAULT_PUBLIC_KEY ) != 0 ) )
+			{
+				lprintf( "(Convert %s)", pINIFile );
+				if( og.flags.bEnableSystemMapping == 2 )
+					og.flags.bEnableSystemMapping = SACK_GetProfileIntEx( WIDE( "System Settings"), WIDE( "Enable System Mapping" ), 0, TRUE );
+				if( og.flags.bEnableSystemMapping )
+				{
+					TEXTCHAR resultbuf[12];
+					SACK_GetPrivateProfileStringExxx( odbc, WIDE("System Settings/Map INI Local"), pINIFile, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
+					if( resultbuf[0] != '0' )
+					{
+						snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile  );
+						buf[127] = 0;
+						pINIFile = buf;
+					}
+					else
+					{
+						POPTION_TREE_NODE node;
+						struct check_mask_param params;
+                  params.is_mapped = FALSE;
+						params.section_name = pSection;
+                  lprintf( "FILE is not mapped entirly, check enumerated options..." );
+						snprintf( buf, 128, WIDE("System Settings/Map INI Local Masks/%s"), pINIFile );
+                  lprintf( "buf is %s", buf );
+						node = GetOptionIndexExxx( odbc, NULL, NULL, NULL, buf, FALSE, FALSE DBG_SRC );
+						EnumOptionsEx( odbc, node, CheckMasks, (PTRSZVAL)&params );
+                  lprintf( "Done enumerating..." );
+						if( !params.is_mapped )
+						{
+							snprintf( buf, 128, WIDE("System Settings/Map INI Local/%s"), pINIFile );
+							SACK_GetPrivateProfileStringExxx( odbc, buf, pSection, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
+							if( resultbuf[0] != '0' )
+                        params.is_mapped = TRUE;
+						}
+
+                  if( params.is_mapped )
+						{
+							snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile );
+							buf[127] = 0;
+							pINIFile = buf;
+						}
+					}
+					// else leave pINI name unchanged.
+				}
+			}
+		}
+      return pINIFile;
+}
+
+
 //------------------------------------------------------------------------
 
 SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
@@ -1289,41 +1374,8 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 		pINIFile = DEFAULT_PUBLIC_KEY;
 	else
 	{
-		while( pINIFile[0] == '/' || pINIFile[0] == '\\' )
-			pINIFile++;
-		if( !pathchr( pINIFile ) )
-		{
-			if( ( pINIFile != DEFAULT_PUBLIC_KEY )
-				&& ( StrCaseCmp( pINIFile, DEFAULT_PUBLIC_KEY ) != 0 ) )
-			{
-				if( og.flags.bEnableSystemMapping == 2 )
-					og.flags.bEnableSystemMapping = SACK_GetProfileIntEx( WIDE( "System Settings"), WIDE( "Enable System Mapping" ), 0, TRUE );
-				if( og.flags.bEnableSystemMapping )
-				{
-					TEXTCHAR buf[128];
-					TEXTCHAR resultbuf[12];
-					SACK_GetPrivateProfileStringExxx( odbc, WIDE("System Settings/Map INI Local"), pINIFile, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
-					if( resultbuf[0] != '0' )
-					{
-						snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile  );
-						buf[127] = 0;
-						pINIFile = buf;
-					}
-					else
-					{
-						snprintf( buf, 128, WIDE("System Settings/Map INI Local/%s"), pINIFile );
-						SACK_GetPrivateProfileStringExxx( odbc, buf, pSection, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_RELAY );
-						if( resultbuf[0] != '0' )
-						{
-							snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile );
-							buf[127] = 0;
-							pINIFile = buf;
-						}
-					}
-					// else leave pINI name unchanged.
-				}
-			}
-		}
+      char buf[128];
+      pINIFile = ResolveININame( odbc, pSection, buf, pINIFile );
 	}
 
 	if( !odbc )
@@ -1365,7 +1417,8 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 					x = (int)StrLen( pBuffer );
 				else
 					x = 0;
-            lprintf( "Result [%s]", pBuffer );
+				if( global_sqlstub_data->flags.bLogOptionConnection )
+					lprintf( "Result [%s]", pBuffer );
 				LeaveCriticalSec( &og.cs_option );
 				return x;
 			}
@@ -1521,41 +1574,8 @@ SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateOptionStringEx )( PODBC odbc, CTEXT
 		pINIFile = DEFAULT_PUBLIC_KEY;
 	else
 	{
-		while( pINIFile[0] == '/' || pINIFile[0] == '\\' )
-			pINIFile++;
-		if( !pathchr( pINIFile ) )
-		{
-			if( ( pINIFile != DEFAULT_PUBLIC_KEY )
-				&& ( StrCaseCmp( pINIFile, DEFAULT_PUBLIC_KEY ) != 0 ) )
-			{
-				if( og.flags.bEnableSystemMapping == 2 )
-					og.flags.bEnableSystemMapping = SACK_GetProfileIntEx( WIDE( "System Settings"), WIDE( "Enable System Mapping" ), 0, TRUE );
-				if( og.flags.bEnableSystemMapping )
-				{
-					TEXTCHAR buf[128];
-					TEXTCHAR resultbuf[12];
-					SACK_GetPrivateProfileStringExxx( odbc, WIDE("System Settings/Map INI Local"), pINIFile, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
-					if( resultbuf[0] != '0' )
-					{
-						snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile  );
-						buf[127] = 0;
-						pINIFile = buf;
-					}
-					else
-					{
-						snprintf( buf, 128, WIDE("System Settings/Map INI Local/%s"), pINIFile );
-						SACK_GetPrivateProfileStringExxx( odbc, buf, pSection, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
-						if( resultbuf[0] != '0' )
-						{
-							snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile );
-							buf[127] = 0;
-							pINIFile = buf;
-						}
-					}
-					// else leave pINI name unchanged.
-				}
-			}
-		}
+      char buf[128];
+      pINIFile = ResolveININame( odbc, pSection, buf, pINIFile );
 	}
 	optval = GetOptionIndexExxx( odbc, NULL, pINIFile, pSection, pName, TRUE, FALSE DBG_SRC );
 	if( !optval )

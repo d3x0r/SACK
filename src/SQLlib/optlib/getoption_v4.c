@@ -205,14 +205,15 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, 
 		if( strcmp( namebuf, WIDE( "." ) ) == 0 )
 			continue;
 
+      lprintf( "Find [%s]", namebuf );
 		{
 			// double convert 'precistion loss 64bit gcc'
 			POPTION_TREE_NODE node = (POPTION_TREE_NODE)FamilyTreeFindChild( tree->option_tree, (PTRSZVAL)namebuf );
 			if( node )
 			{
-#ifdef DETAILED_LOGGING
-				lprintf( WIDE("Which is found, and new parent ID result...%d"), node_id );
-#endif
+//#ifdef DETAILED_LOGGING
+				lprintf( WIDE("Which is found, and new parent ID result...%p"), node );
+//#endif
 				parent = node;
 				continue;
 			}
