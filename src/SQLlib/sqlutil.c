@@ -50,11 +50,11 @@ PTREEROOT GetTableCache( PODBC odbc, CTEXTSTR tablename )
 	PTREEROOT newcache;
 	struct params parameters;
 	parameters.odbc = odbc;
-   parameters.name = tablename;
-   //lprintf( WIDE("Looking for name cache of table %s"), tablename );
+	parameters.name = tablename;
+	//lprintf( WIDE("Looking for name cache of table %s"), tablename );
 	if( !tables )
 	{
-      //lprintf( WIDE("Creating initial tree.") );
+		//lprintf( WIDE("Creating initial tree.") );
 		tables = CreateBinaryTreeExx( BT_OPT_NODUPLICATES
 										 , MyParmCmp
 										 , NULL );
@@ -63,8 +63,8 @@ PTREEROOT GetTableCache( PODBC odbc, CTEXTSTR tablename )
 	{
 		struct params *saveparams = New( struct params );
 		saveparams->name = StrDup( tablename );
-      saveparams->odbc = odbc;
-      //lprintf( WIDE("Failed to find entry, create new tree for cache") );
+		saveparams->odbc = odbc;
+		//lprintf( WIDE("Failed to find entry, create new tree for cache") );
 		AddBinaryNode( tables
 						 , newcache = CreateBinaryTreeExx( BT_OPT_NODUPLICATES
 																	, MyStrCmp
@@ -72,15 +72,21 @@ PTREEROOT GetTableCache( PODBC odbc, CTEXTSTR tablename )
 						 , (PTRSZVAL)saveparams );
 	}
 	//else
-   //   lprintf( WIDE("Found tree cache...") );
-   return newcache;
+	//   lprintf( WIDE("Found tree cache...") );
+	return newcache;
 }
 
 
 INDEX GetIndexOfName(PODBC odbc, CTEXTSTR table,CTEXTSTR name)
 {
-/* this resulting truncation warning is OK. */
+	/* this resulting truncation warning is OK. */
 	return (INDEX)(((PTRSZVAL)FindInBinaryTree( GetTableCache( odbc, table ), (PTRSZVAL)name ))-1);
+}
+
+CTEXTSTR GetKeyOfName(PODBC odbc, CTEXTSTR table,CTEXTSTR name)
+{
+	/* this resulting truncation warning is OK. */
+	return (CTEXTSTR)FindInBinaryTree( GetTableCache( odbc, table ), (PTRSZVAL)name );
 }
 
 //---------------------------------------------------------------------------

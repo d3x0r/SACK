@@ -59,9 +59,9 @@ CTEXTSTR New4ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR tab
 				return NULL;
 
 			// look in internal cache first...
-			//IDName = GetIndexOfName(tree->odbc,table,name);
-			//if( IDName != INVALID_INDEX )
-			//	return IDName;
+			IDName = GetKeyOfName(tree->odbc,table,name);
+			if( IDName )
+				return IDName;
 
 			if( !tree->odbc )
 				DebugBreak();
@@ -404,16 +404,57 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 	CTEXTSTR result=NULL;
 	TEXTSTR newval = EscapeSQLBinaryOpt( tree->odbc_writer, pValue, StrLen( pValue ), TRUE );
 	LOGICAL retval = TRUE;
-	if( pValue == NULL )
-		snprintf( insert, sizeof( insert ), WIDE( "insert into " )OPTION4_BLOBS WIDE( " (`option_id`,`blob` ) values ('%s','')" )
-				  , value->guid
-				  );
-	else
-		snprintf( insert, sizeof( insert ), WIDE( "insert into " )OPTION4_VALUES WIDE( " (`option_id`,`string` ) values ('%s',%s)" )
-				  , value->guid
-				  , pValue?newval:WIDE( "NULL" )
-				  );
 
+	if( pValue == NULL )
+	{
+		snprintf( insert, sizeof( insert ), WIDE( "delete from " )OPTION4_VALUES WIDE( " where `option_id`='%s'" )
+				  , value->guid
+				  );
+		value->value = StrDup( pValue );
+	}
+	else
+	{
+		size_t len = StrLen( pValue );
+		size_t offset = 0;
+      int segment = 0;
+		while( len > 95)
+		{
+			newval = EscapeSQLBinaryOpt( tree->odbc_writer, pValue + offset, 95, TRUE );
+			snprintf( insert, sizeof( insert ), WIDE( "replace into " )OPTION4_VALUES WIDE( " (`option_id`,`string`,`segment` ) values ('%s',%s,%d)" )
+					  , value->guid
+					  , newval
+					  , segment
+					  );
+			OpenWriter( tree );
+			if( SQLCommand( tree->odbc_writer, insert ) )
+			{
+				value->value_guid = value->guid;
+			}
+			else
+			{
+				FetchSQLError( tree->odbc_writer, &result );
+				lprintf( WIDE("Insert value failed: %s"), result );
+				retval = FALSE;
+			}
+			offset += 95;
+         len -= 95;
+         segment++;
+		}
+		newval = EscapeSQLBinaryOpt( tree->odbc_writer, pValue + offset, len, TRUE );
+		snprintf( insert, sizeof( insert ), WIDE( "replace into " )OPTION4_VALUES WIDE( " (`option_id`,`string`,`segment` ) values ('%s',%s,%d)" )
+				  , value->guid
+				  , newval
+				  , segment
+				  );
+		OpenWriter( tree );
+		if( SQLCommand( tree->odbc_writer, insert ) )
+		{
+		}
+		snprintf( insert, sizeof( insert ), WIDE( "delete from " )OPTION4_VALUES WIDE( " where `option_id`='%s' and segment > %d" )
+				  , value->guid
+				  , segment
+				  );
+	}
 	// save the value that we last wrote; then we can get it without worrying about the commit state
 	value->value = StrDup( pValue );
 	OpenWriter( tree );

@@ -1082,6 +1082,11 @@ LOGICAL SetOptionStringValue( POPTION_TREE tree, POPTION_TREE_NODE optval, CTEXT
 		LeaveCriticalSec( &og.cs_option );
 		return retval;
 	}
+	if( tree->flags.bVersion4 )
+	{
+		New4CreateValue( tree, optval, pValue );
+      return TRUE;
+	}
 
 	{
 		// should escape quotes passed in....
@@ -1120,21 +1125,11 @@ LOGICAL SetOptionStringValue( POPTION_TREE tree, POPTION_TREE_NODE optval, CTEXT
 		//lprintf( "ID is %d", IDValue );
 		if( optval && ( optval->value_id != INVALID_INDEX ) )
 		{
-			if( tree->flags.bVersion4 )
-			{
-				snprintf( update, sizeof( update ), WIDE("replace into %s (string,option_id) values (%s,'%s')")
-						  , OPTION4_VALUES
-						  , newval
-						  , optval->guid );
-			}
-			else
-			{
-				snprintf( update, sizeof( update ), WIDE("replace into %s (string,%s) values (%s,%ld)")
-						  , tree->flags.bNewVersion?OPTION_VALUES:WIDE( "option_values" )
-						  , tree->flags.bNewVersion?WIDE( "option_id" ):WIDE( "value_id" )
-						  , newval
-						  , optval->value_id );
-			}
+			snprintf( update, sizeof( update ), WIDE("replace into %s (string,%s) values (%s,%ld)")
+					  , tree->flags.bNewVersion?OPTION_VALUES:WIDE( "option_values" )
+					  , tree->flags.bNewVersion?WIDE( "option_id" ):WIDE( "value_id" )
+					  , newval
+					  , optval->value_id );
 			SQLEndQuery( tree->odbc );
 			OpenWriter( tree );
 			if( !SQLCommand( tree->odbc_writer, update ) )

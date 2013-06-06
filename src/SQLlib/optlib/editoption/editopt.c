@@ -119,7 +119,7 @@ PUBLIC( int, InitOptionList )( PTRSZVAL psv, PCONTROL pc, _32 ID )
 
 static void CPROC OptionSelectionChanged( PTRSZVAL psvUser, PCONTROL pc, PLISTITEM hli )
 {
-	TEXTCHAR buffer[512];
+	static TEXTCHAR buffer[4096];
 	PNODE_DATA pnd = (PNODE_DATA)GetItemData( hli );
 	last_option = pnd->ID_Option;
 	last_node = pnd;

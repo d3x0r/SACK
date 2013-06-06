@@ -186,6 +186,7 @@ typedef struct global_tag
 
 INDEX GetIndexOfName(PODBC odbc, CTEXTSTR table,CTEXTSTR name);
 PTREEROOT GetTableCache( PODBC odbc, CTEXTSTR tablename );
+CTEXTSTR GetKeyOfName(PODBC odbc, CTEXTSTR table,CTEXTSTR name);
 int OpenSQL( DBG_VOIDPASS );
 
 #ifdef USE_SQLITE_INTERFACE
