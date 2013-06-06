@@ -141,7 +141,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, 
 			_system = GetSystemName();
 		system = _system;
 	}
-	InitMachine();
+
 	// resets the search/browse cursor... not empty...
 	FamilyTreeReset( &tree->option_tree );
 	while( system || program || file || pBranch || pValue || start )

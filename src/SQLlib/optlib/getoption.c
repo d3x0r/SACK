@@ -1278,36 +1278,50 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 																				, CTEXTSTR pDefaultbuf
 																				, TEXTCHAR *pBuffer
 																				, size_t nBuffer
-																				, CTEXTSTR pININame
+																				, CTEXTSTR pINIFile
 																				, LOGICAL bQuiet
 																				 DBG_PASS
 																				)
 {
 	EnterCriticalSec( &og.cs_option );
-	//lprintf( "Getting {%s}[%s]%s=%s", pININame, pSection, pOptname, pDefaultbuf );
-	if( !pININame )
-		pININame = DEFAULT_PUBLIC_KEY;
+	//lprintf( "Getting {%s}[%s]%s=%s", pINIFile, pSection, pOptname, pDefaultbuf );
+	if( !pINIFile )
+		pINIFile = DEFAULT_PUBLIC_KEY;
 	else
 	{
-		while( pININame[0] == '/' || pININame[0] == '\\' )
-			pININame++;
-		if( ( pININame != DEFAULT_PUBLIC_KEY )
-			&& ( StrCaseCmp( pININame, DEFAULT_PUBLIC_KEY ) != 0 ) )
+		while( pINIFile[0] == '/' || pINIFile[0] == '\\' )
+			pINIFile++;
+		if( !pathchr( pINIFile ) )
 		{
-			if( og.flags.bEnableSystemMapping == 2 )
-				og.flags.bEnableSystemMapping = SACK_GetProfileIntEx( WIDE( "System Settings"), WIDE( "Enable System Mapping" ), 0, TRUE );
-			if( og.flags.bEnableSystemMapping )
+			if( ( pINIFile != DEFAULT_PUBLIC_KEY )
+				&& ( StrCaseCmp( pINIFile, DEFAULT_PUBLIC_KEY ) != 0 ) )
 			{
-				TEXTCHAR buf[128];
-				TEXTCHAR resultbuf[12];
-				SACK_GetPrivateProfileStringExxx( odbc, WIDE("System Settings/Map INI Local"), pININame, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_RELAY );
-				if( resultbuf[0] != '0' )
+				if( og.flags.bEnableSystemMapping == 2 )
+					og.flags.bEnableSystemMapping = SACK_GetProfileIntEx( WIDE( "System Settings"), WIDE( "Enable System Mapping" ), 0, TRUE );
+				if( og.flags.bEnableSystemMapping )
 				{
-					snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pININame );
-					buf[127] = 0;
-					pININame = buf;
+					TEXTCHAR buf[128];
+					TEXTCHAR resultbuf[12];
+					SACK_GetPrivateProfileStringExxx( odbc, WIDE("System Settings/Map INI Local"), pINIFile, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
+					if( resultbuf[0] != '0' )
+					{
+						snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile  );
+						buf[127] = 0;
+						pINIFile = buf;
+					}
+					else
+					{
+						snprintf( buf, 128, WIDE("System Settings/Map INI Local/%s"), pINIFile );
+						SACK_GetPrivateProfileStringExxx( odbc, buf, pSection, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_RELAY );
+						if( resultbuf[0] != '0' )
+						{
+							snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile );
+							buf[127] = 0;
+							pINIFile = buf;
+						}
+					}
+					// else leave pINI name unchanged.
 				}
-				// else leave pINI name unchanged.
 			}
 		}
 	}
@@ -1320,10 +1334,11 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 	}
 	{
 		// first try, do it as false, so we can fill in default values.
-		POPTION_TREE_NODE opt_node = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, pININame, pSection, pOptname, FALSE DBG_RELAY );
+		POPTION_TREE_NODE opt_node;
 		// maybe do an if( l.flags.bLogOptionsRead )
 		if( global_sqlstub_data->flags.bLogOptionConnection )
-			_lprintf(DBG_RELAY)( WIDE( "Getting option {%s}[%s]%s=%s" ), pININame, pSection, pOptname, pDefaultbuf );
+			_lprintf(DBG_RELAY)( WIDE( "Getting option {%s}[%s]%s=%s" ), pINIFile, pSection, pOptname, pDefaultbuf );
+      opt_node = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, pINIFile, pSection, pOptname, FALSE DBG_RELAY );
 		if( !opt_node )
 		{
 			// this actually implies to delete the entry... but since it doesn't exist no worries...
@@ -1333,7 +1348,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 		do_defaulting:
 			if( !bQuiet && og.flags.bPromptDefault )
 			{
-				SQLPromptINIValue( pSection, pOptname, pDefaultbuf, pBuffer, nBuffer, pININame );
+				SQLPromptINIValue( pSection, pOptname, pDefaultbuf, pBuffer, nBuffer, pINIFile );
 			}
 			else
 			{
@@ -1343,13 +1358,14 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 					pBuffer[0] = 0;
 			}
 			// create the option branch since it doesn't exist...
-			opt_node = GetOptionIndexExxx( odbc, OPTION_ROOT_VALUE, pININame, pSection, pOptname, TRUE, TRUE DBG_RELAY );
+			opt_node = GetOptionIndexExxx( odbc, OPTION_ROOT_VALUE, pINIFile, pSection, pOptname, TRUE, TRUE DBG_RELAY );
 			{
 				int x;
 				if( SetOptionStringValue( GetOptionTreeEx( odbc ), opt_node, pBuffer ) )
 					x = (int)StrLen( pBuffer );
 				else
 					x = 0;
+            lprintf( "Result [%s]", pBuffer );
 				LeaveCriticalSec( &og.cs_option );
 				return x;
 			}
@@ -1378,7 +1394,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExx )( CTEXTSTR pSection
 																		  , CTEXTSTR pDefaultbuf
 																		  , TEXTCHAR *pBuffer
 																		  , size_t nBuffer
-																		  , CTEXTSTR pININame
+																		  , CTEXTSTR pINIFile
 																		  , LOGICAL bQuiet
 																			DBG_PASS
 																				)
@@ -1388,7 +1404,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExx )( CTEXTSTR pSection
 																		  , pDefaultbuf
 																		  , pBuffer
 																		  , nBuffer
-																		  , pININame
+																		  , pINIFile
 																		  , bQuiet
 																			DBG_RELAY
 																		  );
@@ -1400,11 +1416,11 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringEx )( CTEXTSTR pSection
 																		  , CTEXTSTR pDefaultbuf
 																		  , TEXTCHAR *pBuffer
 																		  , size_t nBuffer
-																		  , CTEXTSTR pININame
+																		  , CTEXTSTR pINIFile
 																		  , LOGICAL bQuiet
 																		  )
 {
-	return SACK_GetPrivateProfileStringExx( pSection, pOptname, pDefaultbuf, pBuffer, nBuffer, pININame, bQuiet DBG_SRC );
+	return SACK_GetPrivateProfileStringExx( pSection, pOptname, pDefaultbuf, pBuffer, nBuffer, pINIFile, bQuiet DBG_SRC );
 }
 
 SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileString )( CTEXTSTR pSection
@@ -1412,18 +1428,18 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileString )( CTEXTSTR pSection
                                                  , CTEXTSTR pDefaultbuf
                                                  , TEXTCHAR *pBuffer
                                                  , size_t nBuffer
-                                                 , CTEXTSTR pININame )
+                                                 , CTEXTSTR pINIFile )
 {
-	return SACK_GetPrivateProfileStringEx( pSection, pOptname, pDefaultbuf, pBuffer, nBuffer, pININame, FALSE );
+	return SACK_GetPrivateProfileStringEx( pSection, pOptname, pDefaultbuf, pBuffer, nBuffer, pINIFile, FALSE );
 }
 //------------------------------------------------------------------------
 
-SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntExx )( PODBC odbc, CTEXTSTR pSection, CTEXTSTR pOptname, S_32 nDefault, CTEXTSTR pININame, LOGICAL bQuiet DBG_PASS )
+SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntExx )( PODBC odbc, CTEXTSTR pSection, CTEXTSTR pOptname, S_32 nDefault, CTEXTSTR pINIFile, LOGICAL bQuiet DBG_PASS )
 {
 	TEXTCHAR buffer[32];
 	TEXTCHAR defaultbuf[32];
 	snprintf( defaultbuf, sizeof( defaultbuf ), WIDE("%ld"), nDefault );
-	if( SACK_GetPrivateProfileStringExxx( odbc, pSection, pOptname, defaultbuf, buffer, sizeof( buffer )/sizeof(TEXTCHAR), pININame, bQuiet DBG_RELAY ) )
+	if( SACK_GetPrivateProfileStringExxx( odbc, pSection, pOptname, defaultbuf, buffer, sizeof( buffer )/sizeof(TEXTCHAR), pINIFile, bQuiet DBG_RELAY ) )
 	{
 		if( buffer[0] == 'Y' || buffer[0] == 'y' )
 			return 1;
@@ -1432,15 +1448,15 @@ SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntExx )( PODBC odbc, CTEXTSTR pS
 	return nDefault;
 }
 
-SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pOptname, S_32 nDefault, CTEXTSTR pININame, LOGICAL bQuiet )
+SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pOptname, S_32 nDefault, CTEXTSTR pINIFile, LOGICAL bQuiet )
 {
-   return SACK_GetPrivateProfileIntExx( og.Option, pSection, pOptname, nDefault, pININame, bQuiet DBG_SRC );
+   return SACK_GetPrivateProfileIntExx( og.Option, pSection, pOptname, nDefault, pINIFile, bQuiet DBG_SRC );
 }
 
 
-SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileInt )( CTEXTSTR pSection, CTEXTSTR pOptname, S_32 nDefault, CTEXTSTR pININame )
+SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileInt )( CTEXTSTR pSection, CTEXTSTR pOptname, S_32 nDefault, CTEXTSTR pINIFile )
 {
-	return SACK_GetPrivateProfileIntEx( pSection, pOptname, nDefault, pININame, FALSE );
+	return SACK_GetPrivateProfileIntEx( pSection, pOptname, nDefault, pINIFile, FALSE );
 }
 
 //------------------------------------------------------------------------
@@ -1507,23 +1523,37 @@ SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateOptionStringEx )( PODBC odbc, CTEXT
 	{
 		while( pINIFile[0] == '/' || pINIFile[0] == '\\' )
 			pINIFile++;
-		if( ( pINIFile != DEFAULT_PUBLIC_KEY )
-			&& ( StrCaseCmp( pINIFile, DEFAULT_PUBLIC_KEY ) != 0 ) )
+		if( !pathchr( pINIFile ) )
 		{
-			if( og.flags.bEnableSystemMapping == 2 )
-				og.flags.bEnableSystemMapping = SACK_GetProfileIntEx( WIDE( "System Settings"), WIDE( "Enable System Mapping" ), 0, TRUE );
-			if( og.flags.bEnableSystemMapping )
+			if( ( pINIFile != DEFAULT_PUBLIC_KEY )
+				&& ( StrCaseCmp( pINIFile, DEFAULT_PUBLIC_KEY ) != 0 ) )
 			{
-				TEXTCHAR buf[128];
-				TEXTCHAR resultbuf[12];
-				SACK_GetPrivateProfileStringExxx( odbc, WIDE("System Settings/Map INI Local"), pINIFile, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
-				if( resultbuf[0] != '0' )
+				if( og.flags.bEnableSystemMapping == 2 )
+					og.flags.bEnableSystemMapping = SACK_GetProfileIntEx( WIDE( "System Settings"), WIDE( "Enable System Mapping" ), 0, TRUE );
+				if( og.flags.bEnableSystemMapping )
 				{
-					snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile );
-					buf[127] = 0;
-					pINIFile = buf;
+					TEXTCHAR buf[128];
+					TEXTCHAR resultbuf[12];
+					SACK_GetPrivateProfileStringExxx( odbc, WIDE("System Settings/Map INI Local"), pINIFile, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
+					if( resultbuf[0] != '0' )
+					{
+						snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile  );
+						buf[127] = 0;
+						pINIFile = buf;
+					}
+					else
+					{
+						snprintf( buf, 128, WIDE("System Settings/Map INI Local/%s"), pINIFile );
+						SACK_GetPrivateProfileStringExxx( odbc, buf, pSection, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
+						if( resultbuf[0] != '0' )
+						{
+							snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile );
+							buf[127] = 0;
+							pINIFile = buf;
+						}
+					}
+					// else leave pINI name unchanged.
 				}
-				// else leave pINI name unchanged.
 			}
 		}
 	}
