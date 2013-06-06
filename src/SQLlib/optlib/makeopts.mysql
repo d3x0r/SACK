@@ -32,16 +32,17 @@ WIDE( "  `option_id` int(11) NOT NULL auto_increment,\n" )
 WIDE( "  `parent_option_id` int(11) NOT NULL default '0',\n" )
 WIDE( "  `name_id` int(11) NOT NULL default '0',\n" )
 WIDE( "  `description` tinytext,\n" )
-WIDE( "  UNIQUE KEY  (`option_id`),\n" )
-WIDE( " ) TYPE=INNODB COMMENT='Table ID defines ID for use in OptionValues';\n" ) );
+WIDE( "  UNIQUE KEY  (`option_id`)\n" )
+WIDE( " ) COMMENT='Table ID defines ID for use in OptionValues';\n" ) );
 
 //# Table: 'option_name'
 //# 
 #define OPTION_NAME WIDE( "option2_name" )
 OPT_EXTERN( CTEXTSTR, option2_name, WIDE( "CREATE TABLE `option2_name` (" )
 WIDE( "  `name_id` int(11) NOT NULL auto_increment,\n" )
-WIDE( "  `name` varchar(255) NOT NULL default '',\n" )
-WIDE( " ) TYPE=INNODB;\n" ) );
+WIDE( "  `name` varchar(255) NOT NULL default ''\n" )
+WIDE( "  UNIQUE KEY `name_key` (`name`)" )
+WIDE( " );\n" ) );
 
 //# Table: 'option_values'
 //# 
@@ -49,8 +50,8 @@ WIDE( " ) TYPE=INNODB;\n" ) );
 OPT_EXTERN( CTEXTSTR, option2_values, WIDE( "CREATE TABLE `option2_values` (" )
 WIDE( "  `option_id` int(11) default '0',\n" )
 WIDE( "  `string` varchar(100) default NULL,\n" )
-WIDE( "  UNIQUE KEY `value_id` (`option_id`),\n" )
-WIDE( " ) TYPE=INNODB;\n" ) );
+WIDE( "  UNIQUE KEY `value_id` (`option_id`)\n" )
+WIDE( " );\n" ) );
 
 //# Table: 'option_blobs'
 //# 
@@ -58,8 +59,8 @@ WIDE( " ) TYPE=INNODB;\n" ) );
 OPT_EXTERN( CTEXTSTR, option2_blobs, WIDE( "CREATE TABLE `option2_blobs` (" )
 WIDE( "  `option_id` int(11) default '0',\n" )
 WIDE( "  `binary` blob,\n" )
-WIDE( "  UNIQUE KEY `value_id` (`option_id`)," )
-WIDE( " ) TYPE=INNODB;\n" ) );
+WIDE( "  UNIQUE KEY `value_id` (`option_id`)" )
+WIDE( " );\n" ) );
 
 //------------------------------------------------------------------------
 // Option V4 tables
