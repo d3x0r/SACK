@@ -112,7 +112,10 @@ PUBLIC( int, InitOptionList )( PTRSZVAL psv, PCONTROL pc, _32 ID )
 	lf.pcList = pc;
 	lf.nLevel = 0;
 	lf.pLastItem = NULL;
+	EnableCommonUpdates( pc, FALSE );
 	EnumOptions( NULL, FillList, (PTRSZVAL)&lf );
+	EnableCommonUpdates( pc, TRUE );
+	SmudgeCommon( pc );
 	return 0;
 }
 
