@@ -20,8 +20,7 @@ WIDE( "  `apply_until` datetime default '0000-00-00 00:00:00',\n" )
 WIDE( "  `system_id` int(11) NOT NULL default '0',\n" )
 WIDE( "  `override_value_id` int(11) NOT NULL default '0',\n" )
 WIDE( "  `option_id` int(11) NOT NULL default '0',\n" )
-WIDE( "  UNIQUE KEY  (`option_exception_id`),\n" )
-WIDE( "  CONSTRAINT `FK_map_exception` FOREIGN KEY (`option_id`) REFERENCES `option4_map` (`option_id`) ON DELETE CASCADE ON UPDATE CASCADE\n" )
+WIDE( "  UNIQUE KEY  (`option_exception_id`)\n" )
 WIDE( " );\n" ) );
 
 //# Table: 'option_map'
@@ -34,10 +33,6 @@ WIDE( "  `parent_option_id` int(11) NOT NULL default '0',\n" )
 WIDE( "  `name_id` int(11) NOT NULL default '0',\n" )
 WIDE( "  `description` tinytext,\n" )
 WIDE( "  UNIQUE KEY  (`option_id`),\n" )
-WIDE( "  KEY `FK_map_map` (`parent_option_id`),\n" )
-WIDE( "  KEY `FK_name_map` (`name_id`),\n" )
-WIDE( "  CONSTRAINT `FK_map_map` FOREIGN KEY (`parent_option_id`) REFERENCES `option4_map` (`option_id`) ON DELETE CASCADE ON UPDATE CASCADE,\n" )
-WIDE( "  CONSTRAINT `FK_name_map` FOREIGN KEY (`name_id`) REFERENCES `option4_name` (`name_id`) ON DELETE CASCADE ON UPDATE CASCADE\n" )
 WIDE( " ) TYPE=INNODB COMMENT='Table ID defines ID for use in OptionValues';\n" ) );
 
 //# Table: 'option_name'
@@ -46,8 +41,6 @@ WIDE( " ) TYPE=INNODB COMMENT='Table ID defines ID for use in OptionValues';\n" 
 OPT_EXTERN( CTEXTSTR, option2_name, WIDE( "CREATE TABLE `option2_name` (" )
 WIDE( "  `name_id` int(11) NOT NULL auto_increment,\n" )
 WIDE( "  `name` varchar(255) NOT NULL default '',\n" )
-WIDE( "  UNIQUE KEY  (`name_id`),\n" )
-WIDE( "  UNIQUE KEY `name` (`name`)\n" )
 WIDE( " ) TYPE=INNODB;\n" ) );
 
 //# Table: 'option_values'
@@ -57,8 +50,6 @@ OPT_EXTERN( CTEXTSTR, option2_values, WIDE( "CREATE TABLE `option2_values` (" )
 WIDE( "  `option_id` int(11) default '0',\n" )
 WIDE( "  `string` varchar(100) default NULL,\n" )
 WIDE( "  UNIQUE KEY `value_id` (`option_id`),\n" )
-WIDE( "  KEY `FK_map_values` (`option_id`),\n" )
-WIDE( "  CONSTRAINT `FK_map_values` FOREIGN KEY (`option_id`) REFERENCES `option4_map` (`option_id`) ON DELETE CASCADE ON UPDATE CASCADE\n" )
 WIDE( " ) TYPE=INNODB;\n" ) );
 
 //# Table: 'option_blobs'
@@ -68,7 +59,6 @@ OPT_EXTERN( CTEXTSTR, option2_blobs, WIDE( "CREATE TABLE `option2_blobs` (" )
 WIDE( "  `option_id` int(11) default '0',\n" )
 WIDE( "  `binary` blob,\n" )
 WIDE( "  UNIQUE KEY `value_id` (`option_id`)," )
-WIDE( "  CONSTRAINT `FK_map_blobs` FOREIGN KEY (`option_id`) REFERENCES `option4_map` (`option_id`) ON DELETE CASCADE ON UPDATE CASCADE\n" )
 WIDE( " ) TYPE=INNODB;\n" ) );
 
 //------------------------------------------------------------------------
@@ -87,7 +77,8 @@ WIDE( "  `system_id` int(11) NOT NULL default '0',\n" )
 WIDE( "  `override_value_id` char(36) NOT NULL default '0',\n" )
 WIDE( "  `option_id` char(36) NOT NULL default '0',\n" )
 WIDE( "  PRIMARY KEY  (`option_exception_id`)\n" )
-WIDE( " );\n" ) );
+WIDE( "  CONSTRAINT `FK_map_exception` FOREIGN KEY (`option_id`) REFERENCES `option4_map` (`option_id`) ON DELETE CASCADE ON UPDATE CASCADE\n" )
+WIDE( " ) TYPE=InnoDB;\n" ) );
 
 //# Table: 'option4_map'
 //# 
@@ -99,8 +90,10 @@ WIDE( "  `parent_option_id` char(36) NOT NULL default '0',\n" )
 WIDE( "  `name_id` char(36) NOT NULL default '0',\n" )
 WIDE( "  `description` tinytext,\n" )
 WIDE( "  PRIMARY KEY  (`option_id`)," )
-WIDE( "  INDEX `parent_key`(`parent_option_id`)" )
-WIDE( " ) TYPE=MyISAM COMMENT='Table ID defines ID for use in OptionValues';\n" ) );
+WIDE( "  INDEX `parent_key`(`parent_option_id`)," )
+WIDE( "  CONSTRAINT `FK_map_map` FOREIGN KEY (`parent_option_id`) REFERENCES `option4_map` (`option_id`) ON DELETE CASCADE ON UPDATE CASCADE,\n" )
+WIDE( "  CONSTRAINT `FK_name_map` FOREIGN KEY (`name_id`) REFERENCES `option4_name` (`name_id`) ON DELETE CASCADE ON UPDATE CASCADE\n" )
+WIDE( " ) TYPE=InnoDB COMMENT='Table ID defines ID for use in OptionValues';\n" ) );
 
 //# Table: 'option4_name'
 //# 
@@ -110,7 +103,7 @@ WIDE( "  `name_id` char(36) NOT NULL,\n" )
 WIDE( "  `name` varchar(255) NOT NULL default '',\n" )
 WIDE( "  PRIMARY KEY  (`name_id`),\n" )
 WIDE( "  UNIQUE KEY `name` (`name`)" )
-WIDE( " ) TYPE=MyISAM;\n" ) );
+WIDE( " ) TYPE=InnoDB;\n" ) );
 
 //# Table: 'option4_values'
 //# 
@@ -119,8 +112,9 @@ OPT_EXTERN( CTEXTSTR, option4_values, WIDE( "CREATE TABLE `option4_values` (" )
 WIDE( "  `option_id` char(36) default '0',\n" )
 WIDE( "  `string` varchar(100) default NULL,\n" )
 WIDE( "  `segment` int(11) default 0,\n" )
-WIDE( "  UNIQUE KEY `value_id` (`option_id`)" )
-WIDE( " ) TYPE=MyISAM;\n" ) );
+WIDE( "  UNIQUE KEY `value_id` (`option_id`,`segment`),\n" )
+WIDE( "  CONSTRAINT `FK_map_values` FOREIGN KEY (`option_id`) REFERENCES `option4_map` (`option_id`) ON DELETE CASCADE ON UPDATE CASCADE\n" )
+WIDE( " ) TYPE=InnoDB;\n" ) );
 
 //# Table: 'option4_blobs'
 //# 
@@ -128,8 +122,9 @@ WIDE( " ) TYPE=MyISAM;\n" ) );
 OPT_EXTERN( CTEXTSTR, option4_blobs, WIDE( "CREATE TABLE `option4_blobs` (" )
 WIDE( "  `option_id` char(36) default '0',\n" )
 WIDE( "  `binary` blob,\n" )
-WIDE( "  UNIQUE KEY `value_id` (`option_id`)" )
-WIDE( " ) TYPE=MyISAM;\n" ) );
+WIDE( "  UNIQUE KEY `value_id` (`option_id`)," )
+WIDE( "  CONSTRAINT `FK_map_blobs` FOREIGN KEY (`option_id`) REFERENCES `option4_map` (`option_id`) ON DELETE CASCADE ON UPDATE CASCADE\n" )
+WIDE( " ) TYPE=InnoDB;\n" ) );
 
 
 
