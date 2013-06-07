@@ -1337,6 +1337,23 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 			ofs = 0;
 		// argsize - the program's giving us file and line
 		// debug for here or not, this must be used.
+		if( flags.bLogThreadID )
+			snprintf( threadid, sizeof( threadid ), WIDE("%012") _64fX WIDE("~"), GetMyThreadID() );
+#ifdef UNDER_CE
+		snprintf( buffer + ofs, 4095 - ofs, WIDE("%s%s%s")
+				  , flags.bLogThreadID?threadid:WIDE("")
+				  , flags.bLogProgram?GetProgramName():WIDE("")
+				  , flags.bLogProgram?WIDE("@"):WIDE("")
+				  );
+		ofs += StrLen( buffer + ofs );
+#else
+		snprintf( buffer + ofs, 4095 - ofs, WIDE("%s%s%s")
+				  , flags.bLogThreadID?threadid:WIDE("")
+				  , flags.bLogProgram?GetProgramName():WIDE("")
+				  , flags.bLogProgram?WIDE("@"):WIDE("")
+				  );
+		ofs += StrLen( buffer + ofs );
+#endif
 		{
 			CTEXTSTR pFile;
 #ifndef _LOG_FULL_FILE_NAMES
@@ -1356,20 +1373,12 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 					}
 #endif
 				nLine = next_lprintf.nLine;
-				if( flags.bLogThreadID )
-					snprintf( threadid, sizeof( threadid ), WIDE("%012") _64fX WIDE("~"), GetMyThreadID() );
 #ifdef UNDER_CE
-				snprintf( buffer + ofs, 4095 - ofs, WIDE("%s%s%s%s(%") _32f WIDE("):")
-									, flags.bLogThreadID?threadid:WIDE("")
-									, flags.bLogProgram?GetProgramName():WIDE("")
-									, flags.bLogProgram?WIDE("@"):WIDE("")
+				snprintf( buffer + ofs, 4095 - ofs, WIDE("%s(%") _32f WIDE("):")
 									, pFile, nLine );
 				ofs += StrLen( buffer + ofs );
 #else
-				snprintf( buffer + ofs, 4095 - ofs, WIDE("%s%s%s%s(%") _32f WIDE("):")
-									, flags.bLogThreadID?threadid:WIDE("")
-									, flags.bLogProgram?GetProgramName():WIDE("")
-									, flags.bLogProgram?WIDE("@"):WIDE("")
+				snprintf( buffer + ofs, 4095 - ofs, WIDE("%s(%") _32f WIDE("):")
 									, pFile, nLine );
 				ofs += StrLen( buffer + ofs );
 #endif
