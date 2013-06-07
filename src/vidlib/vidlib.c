@@ -3908,7 +3908,8 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 static void VideoLoadOptions( void )
 {
 	PODBC option = ConnectToDatabase( GetDefaultOptionDatabaseDSN() );
-	SetOptionDatabaseOption( option, TRUE );
+	// don't set this anymore, the new option connection is same version as default
+	//SetOptionDatabaseOption( option, TRUE );
 
 #ifndef __NO_OPTIONS__
 	l.flags.bHookTouchEvents = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/use touch event" ), 0, TRUE );
