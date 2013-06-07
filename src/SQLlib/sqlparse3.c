@@ -305,6 +305,10 @@ int GetTableColumns( PTABLE table, PTEXT *word DBG_PASS )
 					AddIndexKey( table, word, 1, 0, 1 );
 					Release( name );
 				}
+				else if( StrCaseCmp( name, WIDE( "CONSTRAINT" ) ) == 0 )
+				{
+					//lprintf( "Skipping constraint" );
+				}
 				else if( ( StrCaseCmp( name, WIDE( "INDEX" ) ) == 0 )
 					   || ( StrCaseCmp( name, WIDE( "KEY" ) ) == 0 ) )
 				{
