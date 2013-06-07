@@ -244,7 +244,10 @@ void SetOptionDatabaseOption( PODBC odbc, int bNewVersion )
 			tree->flags.bNewVersion = 0; 
 		}
 		else if( bNewVersion == 1 )
+		{
+			tree->flags.bVersion4 = 0;
 			tree->flags.bNewVersion = 1;
+		}
 
 		//lprintf( "Set tree %p to newversion %d", tree, bNewVersion );
 		if( global_sqlstub_data->flags.bInited )
@@ -435,15 +438,15 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 	if( !parent )
 		parent = tree->root;
 
+	InitMachine();
+
 	if( tree->flags.bVersion4 )
 	{
-		InitMachine();
 		//lprintf( "... %p %s %s %ws", parent, file, pBranch, pValue );
 		return New4GetOptionIndexExxx( odbc, parent, file, pBranch, pValue, bCreate, bIKnowItDoesntExist DBG_RELAY );
 	}
 	else if( tree->flags.bNewVersion )
 	{
-		InitMachine();
 		//lprintf( "... %p %s %s %ws", parent, file, pBranch, pValue );
 		return NewGetOptionIndexExxx( odbc, parent, file, pBranch, pValue, bCreate, bIKnowItDoesntExist DBG_RELAY );
 	}
@@ -472,7 +475,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 				_system = GetSystemName();
 			system = _system;
 		}
-		InitMachine();
+
 		// resets the search/browse cursor... not empty...
 		FamilyTreeReset( &tree->option_tree );
 		while( system || program || file || pBranch || pValue || start )
@@ -1089,6 +1092,7 @@ LOGICAL SetOptionStringValue( POPTION_TREE tree, POPTION_TREE_NODE optval, CTEXT
 	if( tree->flags.bVersion4 )
 	{
 		New4CreateValue( tree, optval, pValue );
+		LeaveCriticalSec( &og.cs_option );
       return TRUE;
 	}
 
@@ -1276,9 +1280,11 @@ size_t SQLPromptINIValue(
 
 struct check_mask_param
 {
-   LOGICAL is_found;
-   LOGICAL is_mapped;
-   CTEXTSTR section_name;
+	LOGICAL is_found;
+	LOGICAL is_mapped;
+	CTEXTSTR section_name;
+	CTEXTSTR file_name;
+	PODBC odbc;
 };
 
 static int CPROC CheckMasks( PTRSZVAL psv_params, CTEXTSTR name, POPTION_TREE_NODE this_node, int flags )
@@ -1289,9 +1295,16 @@ static int CPROC CheckMasks( PTRSZVAL psv_params, CTEXTSTR name, POPTION_TREE_NO
 	if( CompareMask( name, params->section_name, FALSE ) )
 	{
 		params->is_found = TRUE;
-      //GetOptionStringValue( ... );
-      params->is_mapped = TRUE;
-		return 0;
+		//GetOptionStringValue( ... );
+		{
+			TEXTCHAR resultbuf[12];
+			TEXTCHAR key[256];
+			snprintf( key, 256, WIDE("System Settings/Map INI Local/%s"), params->file_name );
+			SACK_GetPrivateProfileStringExxx( params->odbc, key, name, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
+			if( resultbuf[0] != '0' )
+				params->is_mapped = TRUE;
+		}
+      return 0;
 	}
    return TRUE;
 }
@@ -1313,42 +1326,52 @@ static CTEXTSTR CPROC ResolveININame( PODBC odbc, CTEXTSTR pSection, TEXTCHAR *b
 				if( og.flags.bEnableSystemMapping )
 				{
 					TEXTCHAR resultbuf[12];
-					SACK_GetPrivateProfileStringExxx( odbc, WIDE("System Settings/Map INI Local"), pINIFile, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
-					if( resultbuf[0] != '0' )
-					{
-						snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile  );
-						buf[127] = 0;
-						pINIFile = buf;
-					}
-					else
+					struct check_mask_param params;
+					params.is_mapped = FALSE;
+					params.is_found = FALSE;
+
+               // check masks first for wildcarded relocations.
 					{
 						POPTION_TREE_NODE node;
-						struct check_mask_param params;
-                  params.is_mapped = FALSE;
 						params.section_name = pSection;
+						params.file_name = pINIFile;
+                  params.odbc = odbc;
                   lprintf( "FILE is not mapped entirly, check enumerated options..." );
 						snprintf( buf, 128, WIDE("System Settings/Map INI Local Masks/%s"), pINIFile );
                   lprintf( "buf is %s", buf );
-						node = GetOptionIndexExxx( odbc, NULL, NULL, NULL, buf, FALSE, FALSE DBG_SRC );
-						EnumOptionsEx( odbc, node, CheckMasks, (PTRSZVAL)&params );
-                  lprintf( "Done enumerating..." );
-						if( !params.is_mapped )
+						node = GetOptionIndexExxx( odbc, NULL, DEFAULT_PUBLIC_KEY, NULL, buf, FALSE, FALSE DBG_SRC );
+						if( node )
 						{
-							snprintf( buf, 128, WIDE("System Settings/Map INI Local/%s"), pINIFile );
-							SACK_GetPrivateProfileStringExxx( odbc, buf, pSection, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
-							if( resultbuf[0] != '0' )
-                        params.is_mapped = TRUE;
-						}
-
-                  if( params.is_mapped )
-						{
-							snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile );
-							buf[127] = 0;
-							pINIFile = buf;
+							lprintf( "Node is %p?", node );
+							EnumOptionsEx( odbc, node, CheckMasks, (PTRSZVAL)&params );
+							lprintf( "Done enumerating..." );
 						}
 					}
-					// else leave pINI name unchanged.
+					if( !params.is_found )
+					{
+						SACK_GetPrivateProfileStringExxx( odbc, WIDE("System Settings/Map INI Local"), pINIFile, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
+						if( resultbuf[0] != '0' )
+						{
+							params.is_found = 1;
+                     params.is_mapped = 1;
+						}
+					}
+					if( !params.is_found )
+					{
+						snprintf( buf, 128, WIDE("System Settings/Map INI Local/%s"), pINIFile );
+						SACK_GetPrivateProfileStringExxx( odbc, buf, pSection, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
+						if( resultbuf[0] != '0' )
+							params.is_mapped = TRUE;
+					}
+
+					if( params.is_mapped )
+					{
+						snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile );
+						buf[127] = 0;
+						pINIFile = buf;
+					}
 				}
+            lprintf( "(result %s)", pINIFile );
 			}
 		}
       return pINIFile;
@@ -1395,7 +1418,10 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 		{
 			// this actually implies to delete the entry... but since it doesn't exist no worries...
 			if( !pDefaultbuf )
+			{
+				LeaveCriticalSec( &og.cs_option );
 				return 0;
+			}
 			// issue dialog
 		do_defaulting:
 			if( !bQuiet && og.flags.bPromptDefault )

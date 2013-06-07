@@ -26,6 +26,7 @@ SQLGETOPTION_PROC( void, EnumOptionsEx )( PODBC odbc, POPTION_TREE_NODE parent
 											  , PTRSZVAL psvUser )
 {
 	POPTION_TREE tree = GetOptionTreeEx( odbc );
+	InitMachine();
 	if( tree->flags.bNewVersion )
 	{
 		NewEnumOptions( og.Option, parent, Process, psvUser );

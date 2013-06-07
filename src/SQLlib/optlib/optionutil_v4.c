@@ -44,9 +44,11 @@ void New4EnumOptions( PODBC odbc
 		parent = node->root;
 
 	pending = odbc;
-	// any existing query needs to be saved...
-	InitMachine();
 
+   // first should check the exisiting loaded family tree....
+   lprintf( "Enumerating for %p %p %s %s", parent, parent->guid, parent->guid, parent->name_guid );
+
+	// any existing query needs to be saved...
 	PushSQLQueryEx( odbc ); // any subqueries will of course clean themselves up.
 	snprintf( query
 			  , sizeof( query )

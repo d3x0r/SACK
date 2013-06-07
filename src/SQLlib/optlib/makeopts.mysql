@@ -77,8 +77,9 @@ WIDE( "  `apply_until` datetime default '0000-00-00 00:00:00',\n" )
 WIDE( "  `system_id` int(11) NOT NULL default '0',\n" )
 WIDE( "  `override_value_id` char(36) NOT NULL default '0',\n" )
 WIDE( "  `option_id` char(36) NOT NULL default '0',\n" )
-WIDE( "  PRIMARY KEY  (`option_exception_id`)\n" )
-WIDE( "  CONSTRAINT `FK_map_exception` FOREIGN KEY (`option_id`) REFERENCES `option4_map` (`option_id`) ON DELETE CASCADE ON UPDATE CASCADE\n" )
+WIDE( "   UNIQUE KEY `option_exception_idkey` (`option_exception_id`),\n" )
+WIDE( "   KEY `FK_map_exception` (`option_id`),\n" )
+WIDE( "   CONSTRAINT `FK_map_exception` FOREIGN KEY (`option_id`) REFERENCES `option4_map` (`option_id`) ON DELETE CASCADE ON UPDATE CASCADE\n" )
 WIDE( " ) TYPE=InnoDB;\n" ) );
 
 //# Table: 'option4_map'
