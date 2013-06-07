@@ -175,7 +175,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, 
 #ifdef DETAILED_LOGGING
 				lprintf( WIDE("Token parsing at value") );
 #endif
-	            start = &pValue;
+				start = &pValue;
 			}
 			if( !start || !(*start) ) continue;
 		}
@@ -205,15 +205,17 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, 
 		if( strcmp( namebuf, WIDE( "." ) ) == 0 )
 			continue;
 
-      lprintf( "Find [%s]", namebuf );
+#ifdef DETAILED_LOGGING
+		lprintf( "Find [%s]", namebuf );
+#endif
 		{
 			// double convert 'precistion loss 64bit gcc'
 			POPTION_TREE_NODE node = (POPTION_TREE_NODE)FamilyTreeFindChild( tree->option_tree, (PTRSZVAL)namebuf );
 			if( node )
 			{
-//#ifdef DETAILED_LOGGING
-				lprintf( WIDE("Which is found, and new parent ID result...%p"), node );
-//#endif
+#ifdef DETAILED_LOGGING
+				lprintf( WIDE("Which is found, and new parent ID result...%p %s"), node, node->guid );
+#endif
 				parent = node;
 				continue;
 			}
@@ -221,7 +223,6 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, 
 
 		{
 			CTEXTSTR IDName = New4ReadOptionNameTable(tree,namebuf,OPTION4_NAME,WIDE( "name_id" ),WIDE( "name" ),1 DBG_RELAY);
-
 			if( !bIKnowItDoesntExist )
 			{
 				PushSQLQueryExEx(tree->odbc DBG_RELAY );
@@ -264,6 +265,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, 
 						new_node->name_guid = IDName;
 						new_node->value = NULL;
 						FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)SaveText( namebuf ) );
+						//lprintf( "New parent has been created in the tree... %p %s", new_node, new_node->guid );
 						parent = new_node;
 					}
 					if( !bIKnowItDoesntExist )
@@ -279,15 +281,16 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, 
 			}
 			else
 			{
+				POPTION_TREE_NODE new_node = New( struct sack_option_tree_family_node );
 #ifdef DETAILED_LOGGING
 				lprintf( WIDE("found the node which has the name specified...") );
 #endif
-				POPTION_TREE_NODE new_node = New( struct sack_option_tree_family_node );
 				new_node->guid = StrDup( result[0] );
 				new_node->value_guid = NULL;
 				new_node->name_guid = IDName;
 				new_node->value = NULL;
 				FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)SaveText( namebuf ) );
+				//lprintf( "New parent has been created in the tree...2 %p %s", new_node, new_node->guid );
 				parent = new_node;
 			}
 			if( !bIKnowItDoesntExist )

@@ -44,9 +44,8 @@ void NewEnumOptions( PODBC odbc
 		parent = node->root;
 
 	pending = odbc;
-	// any existing query needs to be saved...
-	InitMachine();
 
+	// any existing query needs to be saved...
 	PushSQLQueryEx( odbc ); // any subqueries will of course clean themselves up.
 	snprintf( query
 			  , sizeof( query )
