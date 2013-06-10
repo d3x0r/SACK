@@ -3131,6 +3131,7 @@ namespace family {
    multiple children.
                                                             */
 typedef struct familyroot_tag *PFAMILYTREE;
+typedef struct familynode_tag *PFAMILYNODE;
 /* <unfinished>
    
    Incomplete Work in progress (maybe) */
@@ -3148,7 +3149,12 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  FamilyTreeReset ( PFAMILYTREE *option_tree 
 /* <unfinished>
    
    Incomplete Work in progress (maybe) */
-TYPELIB_PROC  void TYPELIB_CALLTYPE  FamilyTreeAddChild ( PFAMILYTREE *root, POINTER userdata, PTRSZVAL key );
+TYPELIB_PROC  PFAMILYNODE TYPELIB_CALLTYPE  FamilyTreeAddChild ( PFAMILYTREE *root, POINTER userdata, PTRSZVAL key );
+
+TYPELIB_PROC LOGICAL TYPEILB_CALLTYPE FamilyTreeForEachChild( PFAMILYTREE root, PFAMILYNODE node
+			, LOGICAL (CPROC *ProcessNode)( PTRSZVAL psvForeach, PTRSZVAL psvNodeData )
+			, PTRSZVAL psvUserData );
+
 #ifdef __cplusplus
 }; //namespace family {
 #endif
