@@ -251,7 +251,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, 
 #ifdef DETAILED_LOGGING
 						lprintf( WIDE("Error inserting option: %s"), error );
 #endif
-                  ID = NULL;
+						ID = NULL;
 					}
 #ifdef DETAILED_LOGGING
 					lprintf( WIDE("Created option root...") );
@@ -259,11 +259,13 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, 
 					//lprintf( WIDE("Adding new option to family tree... ") );
 					{
 						POPTION_TREE_NODE new_node = New( struct sack_option_tree_family_node );
+						MemSet( new_node, 0, sizeof( struct sack_option_tree_family_node ) );
 						new_node->guid = ID;
 						new_node->value_guid = NULL; // no value (yet?)
 						new_node->name_guid = IDName;
+						new_node->name = SaveText( namebuf );
 						new_node->value = NULL;
-						new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)SaveText( namebuf ) );
+						new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)new_node->name );
 						//lprintf( "New parent has been created in the tree... %p %s", new_node, new_node->guid );
 						parent = new_node;
 					}
@@ -281,14 +283,16 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, 
 			else
 			{
 				POPTION_TREE_NODE new_node = New( struct sack_option_tree_family_node );
+				MemSet( new_node, 0, sizeof( struct sack_option_tree_family_node ) );
 #ifdef DETAILED_LOGGING
 				lprintf( WIDE("found the node which has the name specified...") );
 #endif
 				new_node->guid = StrDup( result[0] );
 				new_node->value_guid = NULL;
 				new_node->name_guid = IDName;
+				new_node->name = SaveText( namebuf );
 				new_node->value = NULL;
-				new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)SaveText( namebuf ) );
+				new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)new_node->name );
 
 				//lprintf( "New parent has been created in the tree...2 %p %s", new_node, new_node->guid );
 				parent = new_node;

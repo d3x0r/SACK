@@ -19,7 +19,11 @@ struct sack_option_tree_family_node {
 	CTEXTSTR name_guid;
 	CTEXTSTR value_guid;
 	CTEXTSTR value;
-   PFAMILYNODE node;
+	PFAMILYNODE node;
+	struct {
+		BIT_FIELD bExpanded : 1;
+	} flags;
+   _32 expansion_tick;
 };
 #define MAXOPTION_TREE_NODESPERSET 256
 DeclareSet( OPTION_TREE_NODE );
@@ -58,6 +62,7 @@ struct sack_option_global_tag {
 //INDEX GetOptionIndexEx( INDEX parent, CTEXTSTR file, CTEXTSTR pBranch, CTEXTSTR pValue, int bCreate DBG_PASS );
 //#define GetOptionIndex( f,b,v ) GetOptionIndexEx( OPTION_ROOT_VALUE, f, b, v, FALSE DBG_SRC )
 POPTION_TREE_NODE New4DuplicateValue( PODBC odbc, POPTION_TREE_NODE iOriginalValue, POPTION_TREE_NODE iNewValue );
+CTEXTSTR New4ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR table, CTEXTSTR col, CTEXTSTR namecol, int bCreate DBG_PASS );
 void InitMachine( void );
 #define GetOptionTreeEx(o) GetOptionTreeExx(o DBG_SRC )
 POPTION_TREE GetOptionTreeExx( PODBC odbc DBG_PASS );
