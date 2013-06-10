@@ -596,7 +596,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 							new_node->value_id = INVALID_INDEX;
 							new_node->name_id = IDName;
 							new_node->value = NULL;
-							FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)SaveText( namebuf ) );
+							new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)SaveText( namebuf ) );
 							parent = new_node;
 						}
 						PopODBCEx( odbc );
@@ -624,7 +624,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 						POPTION_TREE_NODE new_node = New( struct sack_option_tree_family_node );
 						new_node->id = IndexCreateFromText( result[0] );
 						new_node->value = NULL;
-						FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)SaveText( namebuf ) );
+						new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)SaveText( namebuf ) );
 						parent = new_node;
 					}
 				}

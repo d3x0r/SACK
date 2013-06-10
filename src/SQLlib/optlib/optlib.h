@@ -14,10 +14,12 @@ struct sack_option_tree_family_node {
 	INDEX id;
 	INDEX name_id;
 	INDEX value_id;
+	CTEXTSTR name;
 	CTEXTSTR guid;
 	CTEXTSTR name_guid;
 	CTEXTSTR value_guid;
 	CTEXTSTR value;
+   PFAMILYNODE node;
 };
 #define MAXOPTION_TREE_NODESPERSET 256
 DeclareSet( OPTION_TREE_NODE );
@@ -27,6 +29,7 @@ struct sack_option_tree_family {
 	PFAMILYTREE option_tree;
 	PODBC odbc;  // each option tree associates with a ODBC connection.
 	PODBC odbc_writer; // a second connection which handles all inserts and updates
+   PFAMILYNODE system_mask_root;
 	struct {
 		BIT_FIELD bNewVersion : 1;
 		BIT_FIELD bVersion4 : 1;

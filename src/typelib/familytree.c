@@ -33,7 +33,7 @@ struct familynode_tag {
 	PTRSZVAL key;
 	struct familynode_tag *elder, *younger, *parent, *child;
 };
-typedef struct familynode_tag FAMILYNODE, *PFAMILYNODE;
+typedef struct familynode_tag FAMILYNODE;
 
 #define MAXFAMILYNODESPERSET 256
 DeclareSet( FAMILYNODE );
@@ -47,7 +47,7 @@ struct familyroot_tag {
 	} flags;
 	void (CPROC *Destroy)( POINTER user, PTRSZVAL key );
 	int (CPROC *Compare)(PTRSZVAL old,PTRSZVAL newx);
-   PFAMILYNODESET nodes;
+	PFAMILYNODESET nodes;
 	PFAMILYNODE family;
 	PFAMILYNODE prior
 		// current is where things are added
@@ -88,7 +88,7 @@ enum {
 													 , PTRSZVAL psvKey )
 {
 	PFAMILYNODE node = root->lastfound;
-   root->prior = root->lastfound;
+   	root->prior = root->lastfound;
 	if( node )
 		node = node->child;
 	else
@@ -104,28 +104,50 @@ enum {
          break;
 		node = node->elder;
 	}
-   root->current = node;
+	root->current = node;
 	if( !node )
 		return NULL;
-   root->lastfound = node;
-   return node->userdata;
+	root->lastfound = node;
+	return node->userdata;
 }
 
 //----------------------------------------------------------------------------
 
- void  FamilyTreeReset ( PFAMILYTREE *option_tree )
+// scans the whole tree to find a node
+LOGICAL FamilyTreeForEachChild( PFAMILYTREE root, PFAMILYNODE node
+			, LOGICAL (CPROC *ProcessNode)( PTRSZVAL psvForeach, PTRSZVAL psvNodeData )
+			, PTRSZVAL psvUserData )
+{
+	if( !node )
+		node = root->family;
+	else
+		node = node->child;
+	while( node )
+	{
+		LOGICAL process_result;
+		process_result = ProcessNode( psvUserData, node->userdata );
+		if( !process_result )
+			return process_result;
+		node = node->elder;
+	}
+	return TRUE;
+}
+
+//----------------------------------------------------------------------------
+
+void  FamilyTreeReset ( PFAMILYTREE *option_tree )
 {
 	if( !option_tree )
 		return;
 	if( !(*option_tree ) )
 		(*option_tree) = CreateFamilyTree( NULL, NULL );
 	(*option_tree)->lastfound = NULL;
-   (*option_tree)->current = NULL;
+	(*option_tree)->current = NULL;
 }
 
 //----------------------------------------------------------------------------
 
- void  FamilyTreeAddChild ( PFAMILYTREE *root, POINTER userdata, PTRSZVAL key )
+PFAMILYNODE  FamilyTreeAddChild ( PFAMILYTREE *root, POINTER userdata, PTRSZVAL key )
 {
 	if( root )
 	{
@@ -154,7 +176,9 @@ enum {
 		(*root)->prior = node;
 		(*root)->lastfound = node;
 		(*root)->current = node;
+		return node;
 	}
+	return NULL;
 }
 #ifdef __cplusplus
 }; //namespace family {

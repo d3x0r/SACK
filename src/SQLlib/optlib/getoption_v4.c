@@ -209,7 +209,6 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, 
 		lprintf( "Find [%s]", namebuf );
 #endif
 		{
-			// double convert 'precistion loss 64bit gcc'
 			POPTION_TREE_NODE node = (POPTION_TREE_NODE)FamilyTreeFindChild( tree->option_tree, (PTRSZVAL)namebuf );
 			if( node )
 			{
@@ -264,7 +263,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, 
 						new_node->value_guid = NULL; // no value (yet?)
 						new_node->name_guid = IDName;
 						new_node->value = NULL;
-						FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)SaveText( namebuf ) );
+						new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)SaveText( namebuf ) );
 						//lprintf( "New parent has been created in the tree... %p %s", new_node, new_node->guid );
 						parent = new_node;
 					}
@@ -289,7 +288,8 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, 
 				new_node->value_guid = NULL;
 				new_node->name_guid = IDName;
 				new_node->value = NULL;
-				FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)SaveText( namebuf ) );
+				new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)SaveText( namebuf ) );
+
 				//lprintf( "New parent has been created in the tree...2 %p %s", new_node, new_node->guid );
 				parent = new_node;
 			}

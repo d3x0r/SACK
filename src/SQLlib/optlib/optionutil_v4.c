@@ -20,6 +20,23 @@ extern struct sack_option_global_tag *sack_global_option_data;
 #define ENUMOPT_FLAG_HAS_VALUE 1
 #define ENUMOPT_FLAG_HAS_CHILDREN 2
 
+struct new4_enum_params
+{
+	int (CPROC *Process)(PTRSZVAL psv
+							  , CTEXTSTR name
+							  , POPTION_TREE_NODE ID
+							  , int flags );
+	PTRSZVAL psvEnum;
+};
+
+
+static LOGICAL CPROC New4CheckOption( PTRSZVAL psvForeach, PTRSZVAL psvNode )
+{
+	POPTION_TREE_NODE option_node = (POPTION_TREE_NODE)psvNode;
+	struct new4_enum_params *params = (struct new4_enum_params *)psvForeach;
+	return params->Process( params->psvEnum, node->name, option_node
+								 , ((option_node->value_id)?1:0) );
+}
 
 void New4EnumOptions( PODBC odbc
 												  , POPTION_TREE_NODE parent
@@ -48,6 +65,13 @@ void New4EnumOptions( PODBC odbc
    // first should check the exisiting loaded family tree....
    lprintf( "Enumerating for %p %p %s %s", parent, parent->guid, parent->guid, parent->name_guid );
 
+	{
+		struct new4_enum_params params;
+		params.Process = Process;
+		params.psvEnum = psvUser;
+      FamilyTreeForEachChild( node->option_tree, parent->node, New4CheckOption, (PTRSZVAL)&params );
+	}
+
 	// any existing query needs to be saved...
 	PushSQLQueryEx( odbc ); // any subqueries will of course clean themselves up.
 	snprintf( query
@@ -63,23 +87,33 @@ void New4EnumOptions( PODBC odbc
 		 results;
 		  FetchSQLRecord( odbc, &results ) )
 	{
-		CTEXTSTR optname;
-		tmp_node = New( OPTION_TREE_NODE );
-		tmp_node->guid = StrDup( results[0] );
-		tmp_node->name_guid = StrDup( results[2] );
-		tmp_node->value_guid = NULL;
+		// if it was already in the tree, it was processed in the loop above.
+		// there is no actual sorting on insert of family nodes, it's more about their relations
+		// then their stats...
 
-		popodbc = 1;
-		optname = results[1];
-
-      // psv is a pointer to args in some cases...
-      //lprintf( WIDE( "Enum %s %ld" ), optname, node );
-		//ReadFromNameTable( name, WIDE(""OPTION_NAME""), WIDE("name_id"), &result);
-		if( !Process( psvUser, optname, tmp_node
-						, ((tmp_node->value_id)?1:0)
-						) )
+		// try adding this node into the tree.
+      POPTION_TREE_NODE existing = (POPTION_TREE_NODE)FamilyTreeFindChild( tree->option_tree, (PTRSZVAL)results[1] );
+		if( !existing )
 		{
-			break;
+			CTEXTSTR optname;
+         tmp_node = New( OPTION_TREE_NODE );
+			tmp_node->guid = StrDup( results[0] );
+			tmp_node->name_guid = StrDup( results[2] );
+			tmp_node->value_guid = NULL;
+
+			popodbc = 1;
+			tmp_node->name = SaveText( results[1] );
+			tmp_node->node = FamilyTreeAddChild( &node->option_tree, tmp_node, (PTRSZVAL)tmp_node->name );
+
+			// psv is a pointer to args in some cases...
+			//lprintf( WIDE( "Enum %s %ld" ), optname, node );
+			//ReadFromNameTable( name, WIDE(""OPTION_NAME""), WIDE("name_id"), &result);
+			if( !Process( psvUser, optname, &tmp_node
+							, ((tmp_node.value_id)?1:0)
+							) )
+			{
+				break;
+			}
 		}
 		//lprintf( WIDE("reget: %s"), query );
 	}
@@ -186,8 +220,9 @@ static void New4FixOrphanedBranches( void )
 void New4DeleteOption( PODBC odbc, POPTION_TREE_NODE iRoot )
 {
 	SQLCommandf( odbc, WIDE( "delete from " )OPTION4_MAP WIDE( " where option_id='%s'" ), iRoot->guid );
-	SQLCommandf( odbc, WIDE( "delete from " )OPTION4_VALUES WIDE( " where option_id='%s'" ), iRoot->guid );
-	SQLCommandf( odbc, WIDE( "delete from " )OPTION4_BLOBS WIDE( " where option_id='%s'" ), iRoot->guid );
+   // foriegn keys should be cascade, so these will disappear without specifically removing.
+	//SQLCommandf( odbc, WIDE( "delete from " )OPTION4_VALUES WIDE( " where option_id='%s'" ), iRoot->guid );
+	//SQLCommandf( odbc, WIDE( "delete from " )OPTION4_BLOBS WIDE( " where option_id='%s'" ), iRoot->guid );
 	New4FixOrphanedBranches();
 }
 
