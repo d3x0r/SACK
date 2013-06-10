@@ -34,7 +34,7 @@ static LOGICAL CPROC New4CheckOption( PTRSZVAL psvForeach, PTRSZVAL psvNode )
 {
 	POPTION_TREE_NODE option_node = (POPTION_TREE_NODE)psvNode;
 	struct new4_enum_params *params = (struct new4_enum_params *)psvForeach;
-	return params->Process( params->psvEnum, node->name, option_node
+	return params->Process( params->psvEnum, option_node->name, option_node
 								 , ((option_node->value_id)?1:0) );
 }
 
@@ -62,19 +62,23 @@ void New4EnumOptions( PODBC odbc
 
 	pending = odbc;
 
-   // first should check the exisiting loaded family tree....
-   lprintf( "Enumerating for %p %p %s %s", parent, parent->guid, parent->guid, parent->name_guid );
+	// first should check the exisiting loaded family tree....
+	lprintf( "Enumerating for %p %p %s %s", parent, parent->guid, parent->guid, parent->name_guid );
 
 	{
 		struct new4_enum_params params;
 		params.Process = Process;
 		params.psvEnum = psvUser;
-      FamilyTreeForEachChild( node->option_tree, parent->node, New4CheckOption, (PTRSZVAL)&params );
+		FamilyTreeForEachChild( node->option_tree, parent->node, New4CheckOption, (PTRSZVAL)&params );
 	}
 
-	// any existing query needs to be saved...
-	PushSQLQueryEx( odbc ); // any subqueries will of course clean themselves up.
-	snprintf( query
+	if( !parent->flags.bExpanded || ( ( timeGetTime() - 5000 ) > parent->expansion_tick ) )
+	{
+		parent->flags.bExpanded = 1;
+		parent->expansion_tick = timeGetTime();
+		// any existing query needs to be saved...
+		PushSQLQueryEx( odbc ); // any subqueries will of course clean themselves up.
+		snprintf( query
 			  , sizeof( query )
 			  , WIDE( "select option_id,n.name,n.name_id " )
 				WIDE( "from " )OPTION4_MAP WIDE( " as m " )
@@ -82,44 +86,44 @@ void New4EnumOptions( PODBC odbc
 				WIDE( "where parent_option_id='%s' " )
 				WIDE( "order by n.name" )
 			  , parent->guid?parent->guid:GuidZero() );
-	popodbc = 0;
-	for( first_result = SQLRecordQuery( odbc, query, NULL, &results, NULL );
-		 results;
-		  FetchSQLRecord( odbc, &results ) )
-	{
-		// if it was already in the tree, it was processed in the loop above.
-		// there is no actual sorting on insert of family nodes, it's more about their relations
-		// then their stats...
-
-		// try adding this node into the tree.
-      POPTION_TREE_NODE existing = (POPTION_TREE_NODE)FamilyTreeFindChild( tree->option_tree, (PTRSZVAL)results[1] );
-		if( !existing )
+		popodbc = 0;
+		for( first_result = SQLRecordQuery( odbc, query, NULL, &results, NULL );
+			 results;
+			  FetchSQLRecord( odbc, &results ) )
 		{
-			CTEXTSTR optname;
-         tmp_node = New( OPTION_TREE_NODE );
-			tmp_node->guid = StrDup( results[0] );
-			tmp_node->name_guid = StrDup( results[2] );
-			tmp_node->value_guid = NULL;
+			// if it was already in the tree, it was processed in the loop above.
+			// there is no actual sorting on insert of family nodes, it's more about their relations
+			// then their stats...
 
-			popodbc = 1;
-			tmp_node->name = SaveText( results[1] );
-			tmp_node->node = FamilyTreeAddChild( &node->option_tree, tmp_node, (PTRSZVAL)tmp_node->name );
-
-			// psv is a pointer to args in some cases...
-			//lprintf( WIDE( "Enum %s %ld" ), optname, node );
-			//ReadFromNameTable( name, WIDE(""OPTION_NAME""), WIDE("name_id"), &result);
-			if( !Process( psvUser, optname, &tmp_node
-							, ((tmp_node.value_id)?1:0)
-							) )
+			// try adding this node into the tree.
+			POPTION_TREE_NODE existing = (POPTION_TREE_NODE)FamilyTreeFindChildEx( node->option_tree, parent->node, (PTRSZVAL)results[1] );
+			if( !existing )
 			{
-				break;
-			}
-		}
-		//lprintf( WIDE("reget: %s"), query );
-	}
-	PopODBCEx( odbc );
-	pending = NULL;
+				tmp_node = New( OPTION_TREE_NODE );
+				MemSet( tmp_node, 0, sizeof( struct sack_option_tree_family_node ) );
+				tmp_node->guid = StrDup( results[0] );
+				tmp_node->name_guid = StrDup( results[2] );
+				tmp_node->value_guid = NULL;
 
+				popodbc = 1;
+				tmp_node->name = SaveText( results[1] );
+				tmp_node->node = FamilyTreeAddChild( &node->option_tree, tmp_node, (PTRSZVAL)tmp_node->name );
+
+				// psv is a pointer to args in some cases...
+				//lprintf( WIDE( "Enum %s %ld" ), optname, node );
+				//ReadFromNameTable( name, WIDE(""OPTION_NAME""), WIDE("name_id"), &result);
+				if( !Process( psvUser, tmp_node->name, tmp_node
+								, ((tmp_node->value_id)?1:0)
+								) )
+				{
+					break;
+				}
+			}
+			//lprintf( WIDE("reget: %s"), query );
+		}
+		PopODBCEx( odbc );
+	}
+	pending = NULL;
 }
 
 
@@ -176,7 +180,7 @@ static void New4FixOrphanedBranches( void )
 	return;
 
 	SQLQuery( og.Option, WIDE( "select count(*) from " ) OPTION_MAP, &result2 );
-   // expand the options list to max extent real quickk....
+	// expand the options list to max extent real quickk....
 	SetLink( &options, atoi( result2 ) + 1, 0 );
 	SetLink( &options2, atoi( result2 ) + 1, 0 );
 
@@ -187,7 +191,7 @@ static void New4FixOrphanedBranches( void )
 		CTEXTSTR node_id, parent_option_id;
 		node_id = StrDup( result[0] );
 		parent_option_id = StrDup( result[1] );
-      AddLink( &options2, parent_option_id );
+		AddLink( &options2, parent_option_id );
 		//sscanf( result, WIDE("%ld,%ld"), &node_id, &parent_option_id );
 		AddLink( &options, node_id );
 	}

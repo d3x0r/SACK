@@ -101,7 +101,7 @@ POPTION_TREE GetOptionTreeExx( PODBC odbc DBG_PASS )
 		//lprintf( WIDE( "need a new option tree for %p" ), odbc );
 		tree = New( struct sack_option_tree_family );
 		tree->root = New( OPTION_TREE_NODE );
-		tree->root->id = 0;
+		MemSet( tree->root, 0, sizeof( struct sack_option_tree_family_node ) );
 		tree->root->name_id = INVALID_INDEX;
 		tree->root->value_id = INVALID_INDEX;
 
@@ -205,6 +205,17 @@ SQLGETOPTION_PROC( void, CreateOptionDatabaseEx )( PODBC odbc, POPTION_TREE tree
 				table = GetFieldsInSQLEx( option4_blobs, FALSE DBG_SRC );
 				CheckODBCTable( tree->odbc, table, CTO_MERGE );
 				DestroySQLTable( table );
+				{
+               // this needs a self-looped root to satisfy constraints.
+               CTEXTSTR result;
+					if( !SQLQueryf( tree->odbc, &result, "select parent_option_id from option4_map where option_id='00000000-0000-0000-0000-000000000000'" )
+						|| !result )
+					{
+						SQLCommandf( tree->odbc, "insert into option4_map (option_id,parent_option_id,name_id)values('00000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000000','%s' )"
+									  , New4ReadOptionNameTable(tree,WIDE("."),OPTION4_NAME,WIDE( "name_id" ),WIDE( "name" ),1 DBG_SRC)
+									  );
+					}
+				}
 			}
          else
 			{
@@ -592,6 +603,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 						//lprintf( WIDE("Adding new option to family tree... ") );
 						{
 							POPTION_TREE_NODE new_node = New( struct sack_option_tree_family_node );
+                     MemSet( new_node, 0, sizeof( struct sack_option_tree_family_node ) );
 							new_node->id = ID;
 							new_node->value_id = INVALID_INDEX;
 							new_node->name_id = IDName;
@@ -622,6 +634,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 					//sscanf( result, WIDE("%lu"), &parent );
 					{
 						POPTION_TREE_NODE new_node = New( struct sack_option_tree_family_node );
+						MemSet( new_node, 0, sizeof( struct sack_option_tree_family_node ) );
 						new_node->id = IndexCreateFromText( result[0] );
 						new_node->value = NULL;
 						new_node->node = FamilyTreeAddChild( &tree->option_tree, new_node, (PTRSZVAL)SaveText( namebuf ) );
