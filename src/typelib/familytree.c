@@ -84,24 +84,24 @@ enum {
 
 //----------------------------------------------------------------------------
 
- POINTER  FamilyTreeFindChild ( PFAMILYTREE root
+ POINTER  FamilyTreeFindChildEx ( PFAMILYTREE root, PFAMILYNODE root_node
 													 , PTRSZVAL psvKey )
 {
-	PFAMILYNODE node = root->lastfound;
-   	root->prior = root->lastfound;
+	PFAMILYNODE node = root_node;
+	root->prior = root_node;
 	if( node )
 		node = node->child;
 	else
 		node = root->family;
 	while( node )
 	{
-      int d;
+		int d;
 		if( root->Compare )
 			d = root->Compare( node->key, psvKey );
 		else
 			d = node->key > psvKey?1:node->key<psvKey?-1:0;
 		if( !d )
-         break;
+			break;
 		node = node->elder;
 	}
 	root->current = node;
@@ -109,6 +109,11 @@ enum {
 		return NULL;
 	root->lastfound = node;
 	return node->userdata;
+}
+
+POINTER  FamilyTreeFindChild ( PFAMILYTREE root, PTRSZVAL psvKey )
+{
+	return FamilyTreeFindChildEx( root, root->lastfound, psvKey );
 }
 
 //----------------------------------------------------------------------------
@@ -125,7 +130,7 @@ LOGICAL FamilyTreeForEachChild( PFAMILYTREE root, PFAMILYNODE node
 	while( node )
 	{
 		LOGICAL process_result;
-		process_result = ProcessNode( psvUserData, node->userdata );
+		process_result = ProcessNode( psvUserData, (PTRSZVAL)node->userdata );
 		if( !process_result )
 			return process_result;
 		node = node->elder;

@@ -4261,6 +4261,38 @@ void PopODBC( void )
    PopODBCEx( NULL );
 }
 
+PODBC SQLGetODBC( CTEXTSTR dsn )
+{
+	INDEX idx;
+	struct odbc_queue *queue;
+retry:
+	LIST_FORALL( l.odbc_queues, idx, struct odbc_queue*, queue )
+	{
+		if( StrCaseCmp( dsn, queue->name ) == 0 )
+		{
+
+			PODBC odbc = (PODBC)DequeLink( &queue->connections );
+			if( odbc )
+				odbc->queue = queue;
+
+			if( !odbc )
+				odbc = ConnectToDatabase( dsn );
+			return odbc;
+		}
+	}
+	{
+		queue = New( struct odbc_queue );
+		queue->name = StrDup( dsn );
+		queue->connections = CreateLinkQueue();
+      goto retry;
+	}
+}
+
+void SQLDropODBC( PODBC odbc )
+{
+   EnqueLink( &odbc->queue->connections, odbc );
+}
+
 
 SQL_NAMESPACE_END
 

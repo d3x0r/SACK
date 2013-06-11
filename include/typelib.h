@@ -3145,13 +3145,18 @@ TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  FamilyTreeFindChild ( PFAMILYTREE root
 /* <unfinished>
    
    Incomplete, Family tree was never completed. */
+TYPELIB_PROC  POINTER  TYPELIB_CALLTYPE FamilyTreeFindChildEx ( PFAMILYTREE root, PFAMILYNODE root_node
+													 , PTRSZVAL psvKey );
+/* <unfinished>
+   
+   Incomplete, Family tree was never completed. */
 TYPELIB_PROC  void TYPELIB_CALLTYPE  FamilyTreeReset ( PFAMILYTREE *option_tree );
 /* <unfinished>
    
    Incomplete Work in progress (maybe) */
 TYPELIB_PROC  PFAMILYNODE TYPELIB_CALLTYPE  FamilyTreeAddChild ( PFAMILYTREE *root, POINTER userdata, PTRSZVAL key );
 
-TYPELIB_PROC LOGICAL TYPEILB_CALLTYPE FamilyTreeForEachChild( PFAMILYTREE root, PFAMILYNODE node
+TYPELIB_PROC LOGICAL TYPELIB_CALLTYPE FamilyTreeForEachChild( PFAMILYTREE root, PFAMILYNODE node
 			, LOGICAL (CPROC *ProcessNode)( PTRSZVAL psvForeach, PTRSZVAL psvNodeData )
 			, PTRSZVAL psvUserData );
 

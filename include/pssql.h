@@ -1137,6 +1137,9 @@ PSSQL_PROC( int, PushSQLQueryEx )(PODBC);
 
 // no application support for username/password, sorry, trust thy odbc layer, please
 PSSQL_PROC( PODBC, ConnectToDatabase )( CTEXTSTR dsn );
+PSSQL_PROC( PODBC, SQLGetODBC )( CTEXTSTR dsn );
+PSSQL_PROC( void, SQLDropODBC )( PODBC odbc );
+
 #endif
 // default parameter to require is the global flag RequireConnection from sql.config....
 PSSQL_PROC( PODBC, ConnectToDatabaseExx )( CTEXTSTR DSN, LOGICAL bRequireConnection DBG_PASS );
