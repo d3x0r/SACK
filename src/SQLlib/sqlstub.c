@@ -4266,7 +4266,7 @@ PODBC SQLGetODBC( CTEXTSTR dsn )
 	INDEX idx;
 	struct odbc_queue *queue;
 retry:
-	LIST_FORALL( l.odbc_queues, idx, struct odbc_queue*, queue )
+	LIST_FORALL( g.odbc_queues, idx, struct odbc_queue*, queue )
 	{
 		if( StrCaseCmp( dsn, queue->name ) == 0 )
 		{
@@ -4284,6 +4284,7 @@ retry:
 		queue = New( struct odbc_queue );
 		queue->name = StrDup( dsn );
 		queue->connections = CreateLinkQueue();
+      AddLink( &g.odbc_queues, queue );
       goto retry;
 	}
 }
