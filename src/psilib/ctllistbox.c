@@ -1166,13 +1166,13 @@ PLISTITEM InsertListItem( PSI_CONTROL pc, PLISTITEM pPrior, CTEXTSTR text )
 	{
 		PLISTITEM pli = (PLISTITEM)Allocate( sizeof( LISTITEM ) );
 		pli->text = StrDup( text );
-      pli->pPopup = NULL;
+		pli->pPopup = NULL;
 		pli->flags.bSelected = FALSE;
 		pli->flags.bFocused = FALSE;
 		pli->flags.bOpen = FALSE;
-      pli->nLevel = plb->nLastLevel;
+		pli->nLevel = plb->nLastLevel;
 		pli->data = 0;
-      pli->within_list = pc;
+		pli->within_list = pc;
 		if( !pPrior )
 		{
 			if( ( pli->next = plb->items ) )
@@ -1226,14 +1226,14 @@ PLISTITEM InsertListItemEx( PSI_CONTROL pc, PLISTITEM pPrior, int nLevel, CTEXTS
 {
 	PLISTITEM pli = InsertListItem( pc, pPrior, text );
 	pli->nLevel = nLevel;
-   return pli;
+	return pli;
 }
 
 //---------------------------------------------------------------------------
 
 PLISTITEM AddListItemEx( PSI_CONTROL pc, int nLevel, const TEXTCHAR *text )
 {
-   PLISTITEM pli = NULL;
+	PLISTITEM pli = NULL;
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	if( plb )
 	{
@@ -1257,12 +1257,12 @@ PLISTITEM AddListItemEx( PSI_CONTROL pc, int nLevel, const TEXTCHAR *text )
 		else
 		{
 		add_at_end:
-         pli = InsertListItem( pc, plb->last, text );
+			pli = InsertListItem( pc, plb->last, text );
 		}
-      pli->nLevel = nLevel;
+		pli->nLevel = nLevel;
 		if( !plb->flags.bNoUpdate )
 		{
-         int bOpen = TRUE;
+			int bOpen = TRUE;
 			if( nLevel )
 			{
 				PLISTITEM parent;
@@ -1274,8 +1274,8 @@ PLISTITEM AddListItemEx( PSI_CONTROL pc, int nLevel, const TEXTCHAR *text )
 				else
                bOpen = TRUE; // ROOT of tree is always open..
 			}
-         //Log( WIDE("Added an item, therefore update this list?!") );
-         // should only auto adjust when adding items...
+			//Log( WIDE("Added an item, therefore update this list?!") );
+			// should only auto adjust when adding items...
 			if( bOpen )
 			{
 				AdjustItemsIntoBox( pc );

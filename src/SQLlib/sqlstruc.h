@@ -134,7 +134,15 @@ struct odbc_handle_tag{
 	int nProtect; // critical section is currently owned
 	PTHREAD auto_commit_thread;
 	PTHREAD auto_close_thread;
+   struct odbc_queue *queue;
 };
+
+struct odbc_queue
+{
+	CTEXTSTR name;
+   PLINKQUEUE connections;
+};
+
 
 #ifdef SQLLIB_SOURCE
 typedef struct global_tag
@@ -180,7 +188,8 @@ typedef struct global_tag
 	FILE *pSQLLog;
 	void (CPROC*feedback_handler)(CTEXTSTR message);
 	ODBC OptionDb; // a third, well-known DSN used for option library by default.  May be SQLite.
-   PLIST date_offsets;
+	PLIST date_offsets;
+   PLIST odbc_queues;
 } GLOBAL;
 #endif
 
