@@ -256,6 +256,28 @@ struct required_key_def
       
       </code>                                                                    */
 
+/* <combine sack::sql::required_constraint_def>
+   
+   \ \                                   */
+typedef struct required_constraint_def  DB_CONSTRAINT_DEF;
+/* <combine sack::sql::required_constraint_def>
+   
+   \ \                                   */
+typedef struct required_constraint_def  *PDB_CONSTRAINT_DEF;
+struct required_constraint_def
+{
+	struct {
+		BIT_FIELD cascade_on_delete : 1;
+		BIT_FIELD cascade_on_update : 1;
+	} flags;
+
+	CTEXTSTR name;
+    CTEXTSTR colnames[MAX_KEY_COLUMNS]; // uhm up to 5 colnames...
+	CTEXTSTR references;
+    CTEXTSTR foriegn_colnames[MAX_KEY_COLUMNS]; // uhm up to 5 colnames...
+    CTEXTSTR null; // if not null, broken structure...
+}; /* Describes a constraint clause
+
 /* Example
    By default, CreateTable( CTEXTSTR tablename, CTEXTSTR
    filename ) which reads a 'create table' statement from a file
@@ -353,6 +375,11 @@ struct required_table_tag
       /* pointer to an array of DB_REQ_KEY. */
       PDB_KEY_DEF key;
 	} keys;
+
+	struct {
+		int count;
+		PDB_CONSTRAINT_DEF constraint;
+	} constraints;
 	/* <combine sack::sql::required_table_tag::flags@1>
 	   
 	   \ \                                              */

@@ -17,7 +17,7 @@ void ProcessINIFile( CTEXTSTR filename, TEXTCHAR *pData, _32 nData )
 	int ftnsys = 0;
 	int find_nextline = 0;
 	TEXTCHAR *p = (TEXTSTR)pathrchr( (CTEXTSTR)filename );
-   TEXTCHAR filebuf[256];
+	TEXTCHAR filebuf[256];
 	if( p )
 		filename = p + 1;
 

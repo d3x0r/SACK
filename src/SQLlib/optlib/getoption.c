@@ -274,6 +274,7 @@ void OpenWriterEx( POPTION_TREE option DBG_PASS )
 		_lprintf(DBG_RELAY)( WIDE( "Connect to writer database for tree %p odbc %p" ), option, option->odbc );
 #endif
 		option->odbc_writer = ConnectToDatabaseExx( option->odbc?option->odbc->info.pDSN:global_sqlstub_data->Primary.info.pDSN, FALSE DBG_RELAY );
+		//option->odbc_writer = SQLGetODBC( option->odbc?option->odbc->info.pDSN:global_sqlstub_data->Primary.info.pDSN );
 		if( option->odbc_writer )
 		{
 			if( !global_sqlstub_data->flags.bLogOptionConnection )
@@ -298,7 +299,7 @@ static LOGICAL CreateOptionDatabase( void )
 #ifdef DETAILED_LOGGING
 				lprintf( WIDE( "Option global database gone - connect to %s" ), global_sqlstub_data->OptionDb.info.pDSN );
 #endif
-				og.Option = ConnectToDatabase( global_sqlstub_data->OptionDb.info.pDSN );
+				og.Option = SQLGetODBC( global_sqlstub_data->OptionDb.info.pDSN );
 				//SetSQLAutoClose( og.Option, TRUE );
 			}
 		}

@@ -94,7 +94,23 @@ static struct {
 #define REALFUNC( name, params, callparams ) 
 #define DOFUNC(name) name
 #endif
-     
+
+#ifdef __BORLANDC__
+#define SIN sin
+#define COS cos
+#else
+#ifdef MAKE_RCOORD_SINGLE
+#define sqrt (float)sqrt
+#define SIN sinf
+#define COS cosf
+#else
+#define sqrt sqrt
+#define SIN sin
+#define COS cos
+#endif
+#endif
+
+
 INLINEFUNC( P_POINT, add, ( P_POINT pr, PC_POINT pv1, PC_POINT pv2 ) )
 {
    _1D( pr[0] = pv1[0] + pv2[0] );
@@ -157,7 +173,7 @@ REALFUNCT( P_POINT, addscaled, ( P_POINT pr, PC_POINT pv1, PC_POINT pv2, RCOORD 
 
 INLINEFUNC( RCOORD, Length, ( PC_POINT v ) )
 {
-   return (RCOORD)sqrt( v[0] * v[0] +
+   return sqrt( v[0] * v[0] +
                 v[1] * v[1]
                 _3D( + v[2] * v[2] )
                 _4D( + v[3] * v[3] ) );
@@ -385,13 +401,8 @@ void TranslateRel(PTRANSFORM pt, RCOORD tx, RCOORD ty, RCOORD tz) {
 }
 
 //----------------------------------------------------------------
-#ifdef __BORLANDC__
-#define SIN sin
-#define COS cos
-#else
-#define SIN sin
-#define COS cos
-#endif
+
+
 void RotateAround( PTRANSFORM pt, PC_POINT p, RCOORD amount )
 {
 	// P defines an axis around which the rotation portion of the matrix
