@@ -243,7 +243,9 @@ typedef struct global_tag
 	int max_themes; // 0==1, at 2 there's the default and 1 theme
 	PCanvasData current_saving_canvas;
 	CTEXTSTR single_frame_title;
-	PODBC configuration_option_db;
+	//PODBC configuration_option_db;
+	TEXTCHAR configuration_dsn[256];
+   int configuration_version;
 } MENU_GLOBAL, *PMENU_GLOBAL;
 
 	struct system_info {

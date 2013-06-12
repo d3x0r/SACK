@@ -330,6 +330,13 @@ void AddIndexKey( PTABLE table, PTEXT *word, int has_name, int primary, int uniq
 		(*word) = NEXTLINE( *word );
 	}
 	GrabKeyColumns( word, table->keys.key[table->keys.count-1].colnames );
+   // using can be after the columns also...
+	if( StrCaseCmp( GetText(*word), WIDE( "USING" ) ) == 0 )
+	{
+		(*word) = NEXTLINE( *word );
+		// next word is the type, skip that word too....
+		(*word) = NEXTLINE( *word );
+	}
 }
 
 //----------------------------------------------------------------------

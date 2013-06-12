@@ -80,12 +80,10 @@ POPTION_TREE GetOptionTreeExx( PODBC odbc DBG_PASS )
 	INDEX idx;
 	if( !odbc )
 	{
-		if( !og.Option )
-		{
-         InitMachine();
-		}
+		if( !og.flags.bInited )
+			InitMachine();
 		//lprintf( "Ran dead init and get %p", og.Option );
-      odbc = og.Option;
+		odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
 	}
 	//_lprintf(DBG_RELAY)( "Finding tree for %p", odbc );
 	LIST_FORALL( og.trees, idx, struct sack_option_tree_family*, tree )
@@ -292,17 +290,19 @@ static LOGICAL CreateOptionDatabase( void )
 	{
 		if( strlen( global_sqlstub_data->OptionDb.info.pDSN ) == 0 )
 			global_sqlstub_data->OptionDb.info.pDSN = WIDE( "@/option.db" );
-
+/*
 		{
 			if( !og.Option )
 			{
 #ifdef DETAILED_LOGGING
 				lprintf( WIDE( "Option global database gone - connect to %s" ), global_sqlstub_data->OptionDb.info.pDSN );
 #endif
-				og.Option = SQLGetODBC( global_sqlstub_data->OptionDb.info.pDSN );
+				og.Option = GetOptionODBC( global_sqlstub_data->OptionDb.info.pDSN, global_sqlstub_data->OptionVersion );
+            DropODBC( og.Option );
 				//SetSQLAutoClose( og.Option, TRUE );
 			}
-		}
+ 		}
+*/
       return TRUE;
 	}
 	return FALSE;
@@ -1405,8 +1405,17 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 																				 DBG_PASS
 																				)
 {
+   LOGICAL drop_odbc = FALSE;
 	EnterCriticalSec( &og.cs_option );
 	//lprintf( "Getting {%s}[%s]%s=%s", pINIFile, pSection, pOptname, pDefaultbuf );
+	if( !odbc )
+	{
+		if( !og.Option )
+			InitMachine();
+		odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
+      drop_odbc = TRUE;
+	}
+
 	if( !pINIFile )
 		pINIFile = DEFAULT_PUBLIC_KEY;
 	else
@@ -1415,12 +1424,6 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
       pINIFile = ResolveININame( odbc, pSection, buf, pINIFile );
 	}
 
-	if( !odbc )
-	{
-		if( !og.Option )
-			InitMachine();
-		odbc = og.Option;
-	}
 	{
 		// first try, do it as false, so we can fill in default values.
 		POPTION_TREE_NODE opt_node;
@@ -1433,6 +1436,8 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 			// this actually implies to delete the entry... but since it doesn't exist no worries...
 			if( !pDefaultbuf )
 			{
+				if( drop_odbc )
+               DropOptionODBC( odbc );
 				LeaveCriticalSec( &og.cs_option );
 				return 0;
 			}
@@ -1459,6 +1464,8 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 					x = 0;
 				if( global_sqlstub_data->flags.bLogOptionConnection )
 					lprintf( "Result [%s]", pBuffer );
+				if( drop_odbc )
+					DropOptionODBC( odbc );
 				LeaveCriticalSec( &og.cs_option );
 				return x;
 			}
@@ -1476,6 +1483,8 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 			}
 			if( global_sqlstub_data->flags.bLogOptionConnection )
 				lprintf( WIDE( "buffer result is [%s]" ), pBuffer );
+			if( drop_odbc )
+				DropOptionODBC( odbc );
 			LeaveCriticalSec( &og.cs_option );
 			return x;
 		}

@@ -572,6 +572,7 @@ static PTRSZVAL CPROC SetOptionDSNVersion( PTRSZVAL psv, arg_list args )
 #ifndef __NO_OPTIONS__
 	SetOptionDatabaseOption( &g.OptionDb, bNewVersion );
 #endif
+	global_sqlstub_data->OptionVersion = bNewVersion?2:1;
 	return psv;
 }
 
@@ -582,6 +583,8 @@ static PTRSZVAL CPROC SetOptionDSNVersion4( PTRSZVAL psv, arg_list args )
    if( bNewVersion )
 		SetOptionDatabaseOption( &g.OptionDb, 2 );
 #endif
+	global_sqlstub_data->OptionVersion = bNewVersion?4:global_sqlstub_data->OptionVersion;
+
 	return psv;
 }
 
@@ -4277,6 +4280,8 @@ retry:
 
 			if( !odbc )
 				odbc = ConnectToDatabase( dsn );
+			if( odbc )
+				odbc->queue = queue;
 			return odbc;
 		}
 	}
