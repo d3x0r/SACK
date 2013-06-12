@@ -1863,7 +1863,7 @@ PODBC GetOptionODBC( CTEXTSTR dsn, int version )
 	{
 		if( StrCaseCmp( dsn, tracker->name ) == 0 )
 		{
-        if( version == tracker->version )
+			if( version == tracker->version )
 				break;
 		}
 	}
