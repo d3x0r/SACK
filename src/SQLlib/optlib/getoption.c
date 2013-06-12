@@ -313,6 +313,7 @@ void InitMachine( void )
 {
 	if( !og.flags.bInited )
 	{
+      /*
       POPTION_TREE tree;
 #if 0
 		_32 timeout;
@@ -331,13 +332,6 @@ void InitMachine( void )
 
 		CreateOptionDatabaseEx( og.Option, tree );
 		// acutlaly init should be called always ....
-#if 0
-		timeout = GetTickCount() + 1000;
-		while( !IsSQLOpen( og.Option ) && ( timeout > GetTickCount() ) )
-		{
-			Sleep( 100 );
-		}
-#endif
 		if( !IsSQLOpen(og.Option) )
 		{
 			lprintf( WIDE("Get Option init failed... no database...") );
@@ -345,6 +339,7 @@ void InitMachine( void )
 		}
 		// og.system = GetSYstemID( WIDE("SYSTEMNAME") );
 		og.SystemID = 0;  // default - any system...
+      */
 		og.flags.bInited = 1;
 		//og.SystemID = SQLReadNameTable( og.Option, GetSystemName(), WIDE("systems"), WIDE("system_id")  );
 	}
@@ -1413,15 +1408,15 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 		if( !og.Option )
 			InitMachine();
 		odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
-      drop_odbc = TRUE;
+		drop_odbc = TRUE;
 	}
 
 	if( !pINIFile )
 		pINIFile = DEFAULT_PUBLIC_KEY;
 	else
 	{
-      char buf[128];
-      pINIFile = ResolveININame( odbc, pSection, buf, pINIFile );
+		char buf[128];
+		pINIFile = ResolveININame( odbc, pSection, buf, pINIFile );
 	}
 
 	{
@@ -1430,7 +1425,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 		// maybe do an if( l.flags.bLogOptionsRead )
 		if( global_sqlstub_data->flags.bLogOptionConnection )
 			_lprintf(DBG_RELAY)( WIDE( "Getting option {%s}[%s]%s=%s" ), pINIFile, pSection, pOptname, pDefaultbuf );
-      opt_node = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, pINIFile, pSection, pOptname, FALSE DBG_RELAY );
+		opt_node = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, pINIFile, pSection, pOptname, FALSE DBG_RELAY );
 		if( !opt_node )
 		{
 			// this actually implies to delete the entry... but since it doesn't exist no worries...
@@ -1862,39 +1857,35 @@ SQLGETOPTION_PROC( CTEXTSTR, GetDefaultOptionDatabaseDSN )( void )
 
 PODBC GetOptionODBC( CTEXTSTR dsn, int version )
 {
-	if( version < 4 )
+	INDEX idx;
+	struct option_odbc_tracker *tracker;
+	LIST_FORALL( og.odbc_list, idx, struct option_odbc_tracker *, tracker )
 	{
-      INDEX idx;
-      struct option_odbc_tracker *tracker;
-		LIST_FORALL( og.odbc_list, idx, struct option_odbc_tracker *, tracker )
+		if( StrCaseCmp( dsn, tracker->name ) == 0 )
 		{
-			if( StrCaseCmp( dsn, tracker->name ) == 0 )
-			{
-            if( version == tracker->version )
-					break;
-			}
-		}
-		if( !tracker )
-		{
-			tracker = New( struct option_odbc_tracker );
-			tracker->name = StrDup( dsn );
-			tracker->version = version;
-			tracker->available = CreateLinkQueue();
-         tracker->outstanding = NULL;
-         AddLink( &og.odbc_list, tracker );
-		}
-		{
-			PODBC odbc = (PODBC)DequeLink( &tracker->available );
-			if( !odbc )
-			{
-				odbc = ConnectToDatabase( tracker->name );
-				SetOptionDatabaseOption( odbc, version==1?0:version==2?1:2 );
-			}
-         AddLink( &tracker->outstanding, odbc );
-         return odbc;
+        if( version == tracker->version )
+				break;
 		}
 	}
-   return NULL;
+	if( !tracker )
+	{
+		tracker = New( struct option_odbc_tracker );
+		tracker->name = StrDup( dsn );
+		tracker->version = version;
+		tracker->available = CreateLinkQueue();
+        tracker->outstanding = NULL;
+        AddLink( &og.odbc_list, tracker );
+	}
+	{
+		PODBC odbc = (PODBC)DequeLink( &tracker->available );
+		if( !odbc )
+		{
+			odbc = ConnectToDatabase( tracker->name );
+			SetOptionDatabaseOption( odbc, version==1?0:version==2?1:2 );
+		}
+        AddLink( &tracker->outstanding, odbc );
+        return odbc;
+	}
 }
 
 
