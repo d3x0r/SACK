@@ -5158,19 +5158,12 @@ PRIORITY_PRELOAD( ProgramLock, DEFAULT_PRELOAD_PRIORITY+2 )
 	g.flags.bSQLConfig = SACK_GetProfileIntEx( GetProgramName(), WIDE("Use SQL Configuration"), 1, TRUE );
 	if( g.flags.bSQLConfig )
 	{
-		TEXTCHAR tmp_dsn[256];
 		int version;
 		SACK_GetProfileStringEx( GetProgramName(), WIDE("Use SQL DSN for Configuration")
 									  , WIDE("@/option.db")
-								  , tmp_dsn, 256, TRUE );
-		version = SACK_GetProfileIntEx( GetProgramName(), WIDE("Use SQL Option Database Version"), 1, TRUE );
-		g.configuration_option_db = ConnectToDatabase( tmp_dsn );
-		if( version == 1 )
-			SetOptionDatabaseOption( g.configuration_option_db, 0 );
-		else if( version == 2 )
-			SetOptionDatabaseOption( g.configuration_option_db, 1 );
-		else  // version 4
-			SetOptionDatabaseOption( g.configuration_option_db, 2 );
+								  , g.configuration_dsn, 256, TRUE );
+		g.configuration_version = SACK_GetProfileIntEx( GetProgramName(), WIDE("Use SQL Option Database Version"), 1, TRUE );
+
 	}
 	SACK_GetProfileStringEx( WIDE("InterShell"), WIDE("Default resource path")
 								  , WIDE("")

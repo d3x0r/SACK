@@ -1046,6 +1046,7 @@ void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 		if( g.flags.bSQLConfig )
 		{
 			int namelen;
+         PODBC odbc;
 			TEXTSTR alt_filename = NewArray( TEXTCHAR, namelen = ( StrLen( filename ) + 6 ) );
 			FILE *out;
 			snprintf( alt_filename, namelen, "%s.sql", filename );
@@ -1053,7 +1054,8 @@ void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 #ifndef __NO_OPTIONS__
 #ifndef __NO_SQL__
 #ifndef __ARM__
-			if( SACK_GetProfileBlobOdbc( g.configuration_option_db
+         odbc = GetOptionODBC( g.configuration_dsn, g.configuration_version );
+			if( SACK_GetProfileBlobOdbc( odbc
 						               , WIDE("intershell/configuration"), filename, &buffer, &buflen ) )
 			{
 				int namelen;
@@ -1081,6 +1083,7 @@ void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 				unlink( tmppath );
 				Release( tmppath );
 			}
+         DropOptionODBC( odbc );
 #endif
 #endif
 #endif
@@ -1790,6 +1793,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 			POINTER mem = OpenSpace( NULL, tmpname, &size );
 			if( mem && size )
 			{
+				PODBC odbc = GetOptionODBC( g.configuration_dsn, g.configuration_version );
 				g.flags.forceload = 0;
 				do
 				{
@@ -1798,12 +1802,12 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 					PTRSZVAL size2 = 0;
 					TEXTCHAR tmpname2[256];
 					POINTER mem2;
+               PODBC odbc;
 					snprintf( tmpname2, 256, "%s.sql", tmpname );
 					mem2 = OpenSpace( NULL, tmpname2, &size2 );
-
 					// if !mem2, then there was no reload from sql.
 					if( mem2 
-						&& SACK_GetProfileBlobOdbc( g.configuration_option_db
+						&& SACK_GetProfileBlobOdbc( odbc
 						                       , WIDE("intershell/configuration"), filename, &buffer, &buflen ) )
 					{
 						// modifies filename here; but this is !forceload, and later the filename is forceload, so it will be original.
@@ -1841,10 +1845,11 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 							fclose( new_sql );
 						}
 					}
-					SACK_WriteProfileBlobOdbc( g.configuration_option_db
+					SACK_WriteProfileBlobOdbc( odbc
 						                       , TASK_PREFIX WIDE("/configuration"), filename, (TEXTCHAR*)mem, size );
 				}
 				while( 0 );
+            DropOptionODBC( odbc );
 				CloseSpace( mem );
 			}
 			Release( tmpname );
