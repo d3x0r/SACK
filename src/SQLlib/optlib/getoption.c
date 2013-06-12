@@ -1851,6 +1851,65 @@ SQLGETOPTION_PROC( CTEXTSTR, GetDefaultOptionDatabaseDSN )( void )
    return global_sqlstub_data->OptionDb.info.pDSN;
 }
 
+PODBC GetOptionODBC( CTEXTSTR dsn, int version )
+{
+	if( version < 4 )
+	{
+      INDEX idx;
+      struct option_odbc_tracker *tracker;
+		LIST_FORALL( og.odbc_list, idx, struct option_odbc_tracker *, tracker )
+		{
+			if( StrCaseCmp( dsn, tracker->name ) == 0 )
+			{
+            if( version == tracker->version )
+					break;
+			}
+		}
+		if( !tracker )
+		{
+			tracker = New( struct option_odbc_tracker );
+			tracker->name = StrDup( dsn );
+			tracker->version = version;
+			tracker->available = CreateLinkQueue();
+         tracker->outstanding = NULL;
+         AddLink( &og.odbc_list, tracker );
+		}
+		{
+			PODBC odbc = (PODBC)DequeLink( &tracker->available );
+			if( !odbc )
+			{
+				odbc = ConnectToDatabase( tracker->name );
+				SetOptionDatabaseOption( odbc, version==1?0:version==2?1:2 );
+			}
+         AddLink( &tracker->outstanding, odbc );
+         return odbc;
+		}
+	}
+   return NULL;
+}
+
+
+void DropOptionODBC( PODBC odbc )
+{
+	INDEX idx;
+	struct option_odbc_tracker *tracker;
+	LIST_FORALL( og.odbc_list, idx, struct option_odbc_tracker *, tracker )
+	{
+		INDEX idx2;
+		PODBC connection;
+		LIST_FORALL( tracker->outstanding, idx2, PODBC, connection )
+		{
+			if( connection == odbc )
+			{
+				SetLink( &tracker->outstanding, idx2, NULL );
+				EnqueLink( &tracker->available, odbc );
+				break;
+			}
+		}
+		if( connection )
+			break;
+	}
+}
 
 PRIORITY_PRELOAD( CommitOptionsLoad, 150 )
 {

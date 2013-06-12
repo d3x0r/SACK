@@ -41,6 +41,14 @@ struct sack_option_tree_family {
 	} flags;
 };
 
+struct option_odbc_tracker
+{
+	CTEXTSTR name;
+   int version;
+	PLINKQUEUE available;
+   PLIST outstanding;
+};
+
 struct sack_option_global_tag {
 	struct {
 		BIT_FIELD bRegistered : 1;
@@ -56,7 +64,8 @@ struct sack_option_global_tag {
 	//PFAMILYTREE option_tree;
    PLIST trees; // list of struct sack_option_family_tree's
 	PODBC Option; // primary ODBC for option use.
-   CRITICALSECTION cs_option;
+	CRITICALSECTION cs_option;
+   PLIST odbc_list;
 };
 
 //INDEX GetOptionIndexEx( INDEX parent, CTEXTSTR file, CTEXTSTR pBranch, CTEXTSTR pValue, int bCreate DBG_PASS );
