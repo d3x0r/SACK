@@ -1499,7 +1499,7 @@ retry:
 								if( StrCmp( table->keys.key[k].colnames[0], table->fields.field[n].name ) == 0 )
 								{
 									vtprintf( pvtCreate, WIDE(" CONSTRAINT `%s` UNIQUE")
-											  , table->keys.key[n].name
+											  , table->keys.key[k].name
 											  );
 								}
 							}
