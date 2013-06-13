@@ -20,7 +20,7 @@ WIDE( "  `apply_until` datetime default '0000-00-00 00:00:00',\n" )
 WIDE( "  `system_id` int(11) NOT NULL default '0',\n" )
 WIDE( "  `override_value_id` int(11) NOT NULL default '0',\n" )
 WIDE( "  `option_id` int(11) NOT NULL default '0',\n" )
-WIDE( "  UNIQUE KEY  (`option_exception_id`)\n" )
+WIDE( "  UNIQUE KEY oek (`option_exception_id`)\n" )
 WIDE( " );\n" ) );
 
 //# Table: 'option_map'
@@ -32,7 +32,7 @@ WIDE( "  `option_id` int(11) NOT NULL auto_increment,\n" )
 WIDE( "  `parent_option_id` int(11) NOT NULL default '0',\n" )
 WIDE( "  `name_id` int(11) NOT NULL default '0',\n" )
 WIDE( "  `description` tinytext,\n" )
-WIDE( "  UNIQUE KEY  (`option_id`)\n" )
+WIDE( "  UNIQUE KEY ok (`option_id`)\n" )
 WIDE( " ) COMMENT='Table ID defines ID for use in OptionValues';\n" ) );
 
 //# Table: 'option_name'
@@ -40,7 +40,7 @@ WIDE( " ) COMMENT='Table ID defines ID for use in OptionValues';\n" ) );
 #define OPTION_NAME WIDE( "option2_name" )
 OPT_EXTERN( CTEXTSTR, option2_name, WIDE( "CREATE TABLE `option2_name` (" )
 WIDE( "  `name_id` int(11) NOT NULL auto_increment,\n" )
-WIDE( "  `name` varchar(255) NOT NULL default ''\n" )
+WIDE( "  `name` varchar(255) NOT NULL default '',\n" )
 WIDE( "  UNIQUE KEY `name_key` (`name`)" )
 WIDE( " );\n" ) );
 
