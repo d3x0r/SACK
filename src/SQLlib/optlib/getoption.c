@@ -1859,6 +1859,11 @@ PODBC GetOptionODBC( CTEXTSTR dsn, int version )
 {
 	INDEX idx;
 	struct option_odbc_tracker *tracker;
+	if( !dsn )
+	{
+		dsn = GetDefaultOptionDatabaseDSN();
+		version = global_sqlstub_data->OptionVersion;
+	}
 	LIST_FORALL( og.odbc_list, idx, struct option_odbc_tracker *, tracker )
 	{
 		if( StrCaseCmp( dsn, tracker->name ) == 0 )
