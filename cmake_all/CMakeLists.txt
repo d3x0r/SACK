@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 
 set(CMAKE_BUILD_TYPE "debug" CACHE STRING "Set build type")
 
+
 if( NOT PROJECT_NAME )
 project( Sack.all )
 endif( NOT PROJECT_NAME )
@@ -30,6 +31,7 @@ IF(NOT CMAKE_CROSSCOMPILING)
     "$ENV{SYSTEMROOT}/Microsoft.NET/Framework/[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VCExpress\\11.0;CLR Version]/")
 ENDIF()
 set( CMAKE_MAKE_PROGRAM ${REAL_CMAKE_MAKE_PROGRAM} )
+set( CMAKE_VS_PLATFORM_TOOLSET v110_xp )
 endif( MSVC11 )
 
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
