@@ -1029,7 +1029,7 @@ NETWORK_PROC( size_t, doReadExx2)(PCLIENT lpClient,POINTER lpBuffer,size_t nByte
 		//				, lpClient->Socket);
 		if( lpClient->dwFlags & CF_READREADY )
 		{
-			lprintf( WIDE("Data already present for read...") );
+			//lprintf( WIDE("Data already present for read...") );
 			FinishPendingRead( lpClient DBG_SRC );
 		}
 #ifdef __UNIX__

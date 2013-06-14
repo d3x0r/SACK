@@ -3907,7 +3907,7 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 //----------------------------------------------------------------------------
 static void VideoLoadOptions( void )
 {
-	PODBC option = ConnectToDatabase( GetDefaultOptionDatabaseDSN() );
+	PODBC option = GetOptionODBC( GetDefaultOptionDatabaseDSN(), 0 );
 	// don't set this anymore, the new option connection is same version as default
 	//SetOptionDatabaseOption( option, TRUE );
 
