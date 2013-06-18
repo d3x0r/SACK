@@ -3907,11 +3907,11 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 //----------------------------------------------------------------------------
 static void VideoLoadOptions( void )
 {
-	PODBC option = GetOptionODBC( GetDefaultOptionDatabaseDSN(), 0 );
 	// don't set this anymore, the new option connection is same version as default
 	//SetOptionDatabaseOption( option, TRUE );
 
 #ifndef __NO_OPTIONS__
+	PODBC option = GetOptionODBC( GetDefaultOptionDatabaseDSN(), 0 );
 	l.flags.bHookTouchEvents = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/use touch event" ), 0, TRUE );
 
 	l.flags.bLogMouseEvents = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/log mouse event" ), 0, TRUE );
@@ -3926,6 +3926,7 @@ static void VideoLoadOptions( void )
 		l.flags.bLayeredWindowDefault = 0;
 	l.flags.bLogWrites = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Log Video Output" ), 0, TRUE );
 	l.flags.bUseLLKeyhook = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Use Low Level Keyhook" ), 0, TRUE );
+	DropOptionODBC( option );
 #else
 #  ifndef UNDER_CE
 	if( l.UpdateLayeredWindowIndirect )
@@ -3934,7 +3935,9 @@ static void VideoLoadOptions( void )
 		l.flags.bOptimizeHide = 0;
 	}
 #  endif
+
 #endif
+
 }
 //----------------------------------------------------------------------------
 

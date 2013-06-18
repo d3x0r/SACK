@@ -7,8 +7,13 @@
 #include <pssql.h>
 #include <sqlgetoption.h>
 
-
+// we want access to GLOBAL from sqltub
+#define SQLLIB_SOURCE
 #include "../sqlstruc.h"
+
+SQL_NAMESPACE
+extern GLOBAL *global_sqlstub_data;
+SQL_NAMESPACE_END
 
 SACK_OPTION_NAMESPACE
 
@@ -29,11 +34,11 @@ SQLGETOPTION_PROC( void, EnumOptionsEx )( PODBC odbc, POPTION_TREE_NODE parent
 	InitMachine();
 	if( tree->flags.bNewVersion )
 	{
-		NewEnumOptions( og.Option, parent, Process, psvUser );
+		NewEnumOptions( odbc, parent, Process, psvUser );
 	}
 	else if( tree->flags.bVersion4 )
 	{
-		New4EnumOptions( og.Option, parent, Process, psvUser );
+		New4EnumOptions( odbc, parent, Process, psvUser );
 	}
 	else
 	{
@@ -58,7 +63,7 @@ SQLGETOPTION_PROC( void, EnumOptionsEx )( PODBC odbc, POPTION_TREE_NODE parent
 			  FetchSQLResult( og.Option, &result ) )
 		{
 			CTEXTSTR optname;
-         POPTION_TREE_NODE tmp_node = New( OPTION_TREE_NODE );
+			POPTION_TREE_NODE tmp_node = New( OPTION_TREE_NODE );
 			popodbc = 1;
 			sscanf( result, WIDE("%lu,%lu,%lu"), &tmp_node->id, &tmp_node->name_id, &tmp_node->value_id );
 			optname = strrchr( result, ',' );
@@ -81,7 +86,9 @@ SQLGETOPTION_PROC( void, EnumOptions )( POPTION_TREE_NODE parent
 					 , int (CPROC *Process)(PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
 											  , PTRSZVAL psvUser )
 {
-   EnumOptionsEx( og.Option, parent, Process, psvUser );
+	PODBC odbc = GetOptionODBC( global_sqlstub_data->OptionDb.info.pDSN, global_sqlstub_data->OptionVersion );
+	EnumOptionsEx( odbc, parent, Process, psvUser );
+	DropOptionODBC( odbc );
 }
 struct copy_data {
 	POPTION_TREE_NODE iNewName;
