@@ -89,7 +89,7 @@ int CPROC FillList( PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags
 		PNODE_DATA pnd = New( NODE_DATA);//Allocate( sizeof( NODE_DATA ) );
 		pnd->flags.bOpened = FALSE;
 		//pnd->nListIndex = GetItemIndex( pc, hli );
-		pnd->ID_Value = GetOptionValueIndex( ID );
+		pnd->ID_Value = ID;//GetOptionValueIndex( ID );
 		pnd->ID_Option = ID;
 		pnd->nLevel = lf.nLevel;
 		pnd->pli_fake = 0; //InsertListItemEx( plf->pcList, hli, plf->nLevel+1, WIDE("fake") );

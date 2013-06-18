@@ -190,8 +190,12 @@ SQLGETOPTION_PROC( LOGICAL, SetOptionStringValue )( POPTION_TREE tree, POPTION_T
 SQLGETOPTION_PROC( void, DeleteOption )( POPTION_TREE_NODE iRoot );
 SQLGETOPTION_PROC( void, DuplicateOption )( POPTION_TREE_NODE iRoot, CTEXTSTR pNewName );
 
+SQLGETOPTION_PROC( PODBC, GetOptionODBCEx )( CTEXTSTR dsn, int version DBG_PASS );
+SQLGETOPTION_PROC( void, DropOptionODBCEx )( PODBC odbc DBG_PASS );
 SQLGETOPTION_PROC( PODBC, GetOptionODBC )( CTEXTSTR dsn, int version );
 SQLGETOPTION_PROC( void, DropOptionODBC )( PODBC odbc );
+#define GetOptionODBC( a,b) GetOptionODBCEx( a,b DBG_SRC )
+#define DropOptionODBC(a) DropOptionODBCEx( a DBG_SRC )
 
 _OPTION_NAMESPACE_END _SQL_NAMESPACE_END SACK_NAMESPACE_END
 

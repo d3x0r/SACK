@@ -76,6 +76,7 @@ SQLGETOPTION_PROC( void, CreateOptionDatabaseEx )( PODBC odbc, POPTION_TREE tree
 
 POPTION_TREE GetOptionTreeExx( PODBC odbc DBG_PASS )
 {
+	int drop_odbc = FALSE;
 	POPTION_TREE tree = NULL;
 	INDEX idx;
 	if( !odbc )
@@ -84,6 +85,7 @@ POPTION_TREE GetOptionTreeExx( PODBC odbc DBG_PASS )
 			InitMachine();
 		//lprintf( "Ran dead init and get %p", og.Option );
 		odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
+		drop_odbc = TRUE;
 	}
 	//_lprintf(DBG_RELAY)( "Finding tree for %p", odbc );
 	LIST_FORALL( og.trees, idx, struct sack_option_tree_family*, tree )
@@ -127,6 +129,8 @@ POPTION_TREE GetOptionTreeExx( PODBC odbc DBG_PASS )
 		tree->flags.bCreated = 0;
 		AddLink( &og.trees, tree );
 	}
+	if( drop_odbc )
+		DropOptionODBC( odbc );
 	//lprintf( "return tree %p for odbc %p", tree, odbc );
 	return tree;
 }
@@ -705,7 +709,11 @@ POPTION_TREE_NODE GetOptionValueIndexEx( PODBC odbc, POPTION_TREE_NODE ID )
 
 POPTION_TREE_NODE GetOptionValueIndex( POPTION_TREE_NODE ID )
 {
-   return GetOptionValueIndexEx( og.Option, ID );
+	PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
+	POPTION_TREE_NODE result;
+	result = GetOptionValueIndexEx( og.Option, ID );
+	DropOptionODBC( odbc );
+	return result;
 }
 
 POPTION_TREE_NODE New4DuplicateValue( PODBC odbc, POPTION_TREE_NODE iOriginalOption, POPTION_TREE_NODE iNewOption )
@@ -1400,7 +1408,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 																				 DBG_PASS
 																				)
 {
-   LOGICAL drop_odbc = FALSE;
+	LOGICAL drop_odbc = FALSE;
 	EnterCriticalSec( &og.cs_option );
 	//lprintf( "Getting {%s}[%s]%s=%s", pINIFile, pSection, pOptname, pDefaultbuf );
 	if( !odbc )
@@ -1496,7 +1504,9 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExx )( CTEXTSTR pSection
 																			DBG_PASS
 																				)
 {
-   return SACK_GetPrivateProfileStringExxx( og.Option,    pSection
+	PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
+	size_t result;
+	result = SACK_GetPrivateProfileStringExxx( odbc,    pSection
 																		  , pOptname
 																		  , pDefaultbuf
 																		  , pBuffer
@@ -1505,7 +1515,8 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExx )( CTEXTSTR pSection
 																		  , bQuiet
 																			DBG_RELAY
 																		  );
-
+	DropOptionODBC( odbc );
+	return result;
 }
 
 SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringEx )( CTEXTSTR pSection
@@ -1642,7 +1653,12 @@ SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateOptionStringEx )( PODBC odbc, CTEXT
 //------------------------------------------------------------------------
 SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateProfileStringEx )( CTEXTSTR pSection, CTEXTSTR pName, CTEXTSTR pValue, CTEXTSTR pINIFile, LOGICAL flush )
 {
-	return SACK_WritePrivateOptionStringEx( og.Option, pSection, pName, pValue, pINIFile, flush );
+	PODBC odbc;
+	LOGICAL result;
+	odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
+	result = SACK_WritePrivateOptionStringEx( odbc, pSection, pName, pValue, pINIFile, flush );
+	DropOptionODBC( odbc );
+	return result;
 }
 
 SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateProfileString )( CTEXTSTR pSection, CTEXTSTR pName, CTEXTSTR pValue, CTEXTSTR pINIFile )
@@ -1855,7 +1871,8 @@ SQLGETOPTION_PROC( CTEXTSTR, GetDefaultOptionDatabaseDSN )( void )
    return global_sqlstub_data->OptionDb.info.pDSN;
 }
 
-PODBC GetOptionODBC( CTEXTSTR dsn, int version )
+static int xx;
+PODBC GetOptionODBCEx( CTEXTSTR dsn, int version  DBG_PASS )
 {
 	INDEX idx;
 	struct option_odbc_tracker *tracker;
@@ -1864,6 +1881,8 @@ PODBC GetOptionODBC( CTEXTSTR dsn, int version )
 		dsn = GetDefaultOptionDatabaseDSN();
 		version = global_sqlstub_data->OptionVersion;
 	}
+	if( !version )
+		version = global_sqlstub_data->OptionVersion;
 	LIST_FORALL( og.odbc_list, idx, struct option_odbc_tracker *, tracker )
 	{
 		if( StrCaseCmp( dsn, tracker->name ) == 0 )
@@ -1878,8 +1897,8 @@ PODBC GetOptionODBC( CTEXTSTR dsn, int version )
 		tracker->name = StrDup( dsn );
 		tracker->version = version;
 		tracker->available = CreateLinkQueue();
-        tracker->outstanding = NULL;
-        AddLink( &og.odbc_list, tracker );
+		tracker->outstanding = NULL;
+		AddLink( &og.odbc_list, tracker );
 	}
 	{
 		PODBC odbc = (PODBC)DequeLink( &tracker->available );
@@ -1888,16 +1907,25 @@ PODBC GetOptionODBC( CTEXTSTR dsn, int version )
 			odbc = ConnectToDatabase( tracker->name );
 			SetOptionDatabaseOption( odbc, version==1?0:version==2?1:2 );
 		}
-        AddLink( &tracker->outstanding, odbc );
-        return odbc;
+		AddLink( &tracker->outstanding, odbc );
+		//xx++;
+		//_lprintf( DBG_RELAY )( "%d  %p result...", xx, odbc );
+		return odbc;
 	}
 }
 
+#undef GetOptionODBC
+PODBC GetOptionODBC( CTEXTSTR dsn, int version )
+{
+	return GetOptionODBCEx( dsn, version DBG_SRC );
+}
 
-void DropOptionODBC( PODBC odbc )
+void DropOptionODBCEx( PODBC odbc DBG_PASS )
 {
 	INDEX idx;
 	struct option_odbc_tracker *tracker;
+	//xx--;
+	//_lprintf( DBG_RELAY )( "%d  %p Drop...", xx, odbc );
 	LIST_FORALL( og.odbc_list, idx, struct option_odbc_tracker *, tracker )
 	{
 		INDEX idx2;
@@ -1911,9 +1939,19 @@ void DropOptionODBC( PODBC odbc )
 				break;
 			}
 		}
+		if( !connection )
+		{
+			lprintf( "Failed to find the thing to drop." );
+		}
 		if( connection )
 			break;
 	}
+}
+
+#undef DropOptionODBC
+void DropOptionODBC( PODBC odbc )
+{
+	DropOptionODBCEx( odbc DBG_SRC );
 }
 
 PRIORITY_PRELOAD( CommitOptionsLoad, 150 )
