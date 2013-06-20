@@ -31,7 +31,6 @@ SQLGETOPTION_PROC( void, EnumOptionsEx )( PODBC odbc, POPTION_TREE_NODE parent
 											  , PTRSZVAL psvUser )
 {
 	POPTION_TREE tree = GetOptionTreeEx( odbc );
-	InitMachine();
 	if( tree->flags.bNewVersion )
 	{
 		NewEnumOptions( odbc, parent, Process, psvUser );
@@ -47,8 +46,7 @@ SQLGETOPTION_PROC( void, EnumOptionsEx )( PODBC odbc, POPTION_TREE_NODE parent
 		CTEXTSTR result = NULL;
 		POPTION_TREE_NODE tmp_node = New( struct sack_option_tree_family_node );
 		// any existing query needs to be saved...
-		InitMachine();
-		PushSQLQueryEx( og.Option ); // any subqueries will of course clean themselves up.
+		PushSQLQueryEx( odbc ); // any subqueries will of course clean themselves up.
 		snprintf( query
 				  , sizeof( query )
 				  , WIDE( "select node_id,m.name_id,value_id,n.name" )
@@ -58,9 +56,9 @@ SQLGETOPTION_PROC( void, EnumOptionsEx )( PODBC odbc, POPTION_TREE_NODE parent
                WIDE( " order by name" )
 				  , parent?parent->id:0 );
 		popodbc = 0;
-		for( first_result = SQLQuery( og.Option, query, &result );
+		for( first_result = SQLQuery( odbc, query, &result );
 			 result;
-			  FetchSQLResult( og.Option, &result ) )
+			  FetchSQLResult( odbc, &result ) )
 		{
 			CTEXTSTR optname;
 			POPTION_TREE_NODE tmp_node = New( OPTION_TREE_NODE );
@@ -78,7 +76,7 @@ SQLGETOPTION_PROC( void, EnumOptionsEx )( PODBC odbc, POPTION_TREE_NODE parent
 			}
 			//lprintf( WIDE("reget: %s"), query );
 		}
-		PopODBCEx( og.Option );
+		PopODBCEx( odbc );
 	}
 }
 
@@ -122,10 +120,10 @@ SQLGETOPTION_PROC( void, DuplicateOptionEx )( PODBC odbc, POPTION_TREE_NODE iRoo
 	copydata.tree = tree;
 	if( tree->flags.bNewVersion )
 	{
-		NewDuplicateOption( og.Option, iRoot, pNewName );
+		NewDuplicateOption( odbc, iRoot, pNewName );
 		return;
 	}
-	if( SQLQueryf( og.Option, &result, WIDE("select parent_node_id from option_map where node_id=%ld"), iRoot ) && result )
+	if( SQLQueryf( odbc, &result, WIDE("select parent_node_id from option_map where node_id=%ld"), iRoot ) && result )
 	{
 		POPTION_TREE_NODE tmp_node = New( OPTION_TREE_NODE );
 		tmp_node->id = IndexCreateFromText( result );
@@ -138,7 +136,9 @@ SQLGETOPTION_PROC( void, DuplicateOptionEx )( PODBC odbc, POPTION_TREE_NODE iRoo
 
 SQLGETOPTION_PROC( void, DuplicateOption )( POPTION_TREE_NODE iRoot, CTEXTSTR pNewName )
 {
-   DuplicateOptionEx( og.Option, iRoot, pNewName );
+   PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
+	DuplicateOptionEx( odbc, iRoot, pNewName );
+   DropOptionODBC( odbc );
 }
 
 static void FixOrphanedBranches( void )
@@ -146,10 +146,11 @@ static void FixOrphanedBranches( void )
 	PLIST options = CreateList();
 	CTEXTSTR *result = NULL;
 	CTEXTSTR result2 = NULL;
-	SQLQuery( og.Option, WIDE("select count(*) from option_map"), &result2 );
+   PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
+	SQLQuery( odbc, WIDE("select count(*) from option_map"), &result2 );
 	// expand the options list to max extent real quickk....
 	SetLink( &options, atoi( result2 ) + 1, 0 );
-	for( SQLRecordQuery( og.Option, WIDE("select node_id,parent_node_id from option_map"), NULL, &result, NULL );
+	for( SQLRecordQuery( odbc, WIDE("select node_id,parent_node_id from option_map"), NULL, &result, NULL );
 		  result;
 		  GetSQLRecord( &result ) )
 	{
@@ -176,33 +177,34 @@ static void FixOrphanedBranches( void )
 					deleted = 1;
 					lprintf( WIDE("node %ld has parent id %ld which does not exist."), idx, parent-1 );
 					SetLink( &options, idx, NULL );
-					SQLCommandf( og.Option, WIDE("delete from option_map where node_id=%ld"), idx );
+					SQLCommandf( odbc, WIDE("delete from option_map where node_id=%ld"), idx );
 				}
 			}
 		}while( deleted );
 	}
 	DeleteList( &options );
+   DropOptionODBC( odbc );
 }
 
 
 SQLGETOPTION_PROC( void, DeleteOption )( POPTION_TREE_NODE iRoot )
 {
-	POPTION_TREE tree = GetOptionTreeEx( og.Option );
+	PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
+	POPTION_TREE tree = GetOptionTreeEx( odbc );
 	if( tree->flags.bVersion4 )
 	{
 		New4DeleteOption( og.Option, iRoot );
-		return;
 	}
 	else if( tree->flags.bNewVersion )
 	{
 		NewDeleteOption( og.Option, iRoot );
-		return;
 	}
 	else
 	{
 		SQLCommandf( og.Option, WIDE("delete from option_map where node_id=%ld"), iRoot->id );
 	   	FixOrphanedBranches();
 	}
+	DropOptionODBC( odbc );
 }
 
 SACK_OPTION_NAMESPACE_END

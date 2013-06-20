@@ -81,8 +81,6 @@ POPTION_TREE GetOptionTreeExx( PODBC odbc DBG_PASS )
 	INDEX idx;
 	if( !odbc )
 	{
-		if( !og.flags.bInited )
-			InitMachine();
 		//lprintf( "Ran dead init and get %p", og.Option );
 		odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
 		drop_odbc = TRUE;
@@ -213,7 +211,8 @@ SQLGETOPTION_PROC( void, CreateOptionDatabaseEx )( PODBC odbc, POPTION_TREE tree
 					if( !SQLQueryf( tree->odbc, &result, "select parent_option_id from option4_map where option_id='00000000-0000-0000-0000-000000000000'" )
 						|| !result )
 					{
-						SQLCommandf( tree->odbc, "insert into option4_map (option_id,parent_option_id,name_id)values('00000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000000','%s' )"
+                  OpenWriter( tree );
+						SQLCommandf( tree->odbc_writer, "insert into option4_map (option_id,parent_option_id,name_id)values('00000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000000','%s' )"
 									  , New4ReadOptionNameTable(tree,WIDE("."),OPTION4_NAME,WIDE( "name_id" ),WIDE( "name" ),1 DBG_SRC)
 									  );
 					}
@@ -288,67 +287,6 @@ void OpenWriterEx( POPTION_TREE option DBG_PASS )
 	}
 }
 
-static LOGICAL CreateOptionDatabase( void )
-{
-	if( !og.Option )
-	{
-		if( strlen( global_sqlstub_data->OptionDb.info.pDSN ) == 0 )
-			global_sqlstub_data->OptionDb.info.pDSN = WIDE( "@/option.db" );
-/*
-		{
-			if( !og.Option )
-			{
-#ifdef DETAILED_LOGGING
-				lprintf( WIDE( "Option global database gone - connect to %s" ), global_sqlstub_data->OptionDb.info.pDSN );
-#endif
-				og.Option = GetOptionODBC( global_sqlstub_data->OptionDb.info.pDSN, global_sqlstub_data->OptionVersion );
-            DropODBC( og.Option );
-				//SetSQLAutoClose( og.Option, TRUE );
-			}
- 		}
-*/
-      return TRUE;
-	}
-	return FALSE;
-
-}
-
-void InitMachine( void )
-{
-	if( !og.flags.bInited )
-	{
-      /*
-      POPTION_TREE tree;
-#if 0
-		_32 timeout;
-#endif
-
-		if( CreateOptionDatabase() )
-		{
-			tree = GetOptionTreeEx( og.Option );
-			//lprintf( "Setup internal primary database version..." );
-			tree->flags.bNewVersion = GetOptionTreeEx( &global_sqlstub_data->OptionDb )->flags.bNewVersion;
-			tree->flags.bVersion4 = GetOptionTreeEx( &global_sqlstub_data->OptionDb )->flags.bVersion4;
-		}
-		else
-			tree = GetOptionTreeEx( og.Option );
-
-
-		CreateOptionDatabaseEx( og.Option, tree );
-		// acutlaly init should be called always ....
-		if( !IsSQLOpen(og.Option) )
-		{
-			lprintf( WIDE("Get Option init failed... no database...") );
-			return;
-		}
-		// og.system = GetSYstemID( WIDE("SYSTEMNAME") );
-		og.SystemID = 0;  // default - any system...
-      */
-		og.flags.bInited = 1;
-		//og.SystemID = SQLReadNameTable( og.Option, GetSystemName(), WIDE("systems"), WIDE("system_id")  );
-	}
-}
-
 //------------------------------------------------------------------------
 
 #define CreateName(o,n) SQLReadNameTable(o,n,OPTION_MAP,WIDE( "name_id" ))
@@ -390,7 +328,9 @@ retry:
 	{
 		TEXTSTR newval = EscapeSQLString( tree->odbc, name );
 		snprintf( query, sizeof( query ), WIDE("insert into %s (%s) values( '%s' )"), table, namecol, newval );
+      lprintf( "openwriter..." );
 		OpenWriterEx( tree DBG_RELAY );
+      lprintf( "and the command..." );
 		if( !SQLCommandEx( tree->odbc_writer, query DBG_RELAY ) )
 		{
 			// insert failed;  assume it's a duplicate key now, and retry.
@@ -443,13 +383,10 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 														 , const TEXTCHAR *pBranch
 														 , const TEXTCHAR *pValue
 														 , int bCreate, int bIKnowItDoesntExist DBG_PASS )
-//#define GetOptionIndex( f,b,v ) GetOptionIndexEx( OPTION_ROOT_VALUE, f, b, v, FALSE )
 {
 	POPTION_TREE tree = GetOptionTreeEx( odbc );
 	if( !parent )
 		parent = tree->root;
-
-	InitMachine();
 
 	if( tree->flags.bVersion4 )
 	{
@@ -711,7 +648,7 @@ POPTION_TREE_NODE GetOptionValueIndex( POPTION_TREE_NODE ID )
 {
 	PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
 	POPTION_TREE_NODE result;
-	result = GetOptionValueIndexEx( og.Option, ID );
+	result = GetOptionValueIndexEx( odbc, ID );
 	DropOptionODBC( odbc );
 	return result;
 }
@@ -787,14 +724,20 @@ POPTION_TREE_NODE NewDuplicateValue( PODBC odbc, POPTION_TREE_NODE iOriginalOpti
 // this changes in the new code...
 POPTION_TREE_NODE DuplicateValue( POPTION_TREE_NODE iOriginalValue, POPTION_TREE_NODE iNewValue )
 {
-	POPTION_TREE tree = GetOptionTreeEx( og.Option );
+   POPTION_TREE_NODE result;
+   PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
+	POPTION_TREE tree = GetOptionTreeEx( odbc );
 	if( tree->flags.bVersion4 )
 	{
-		return New4DuplicateValue( og.Option, iOriginalValue, iNewValue );
+		result = New4DuplicateValue( odbc, iOriginalValue, iNewValue );
+      DropOptionODBC( odbc );
+		return result;
 	}
 	else if( tree->flags.bNewVersion )
 	{
-		return NewDuplicateValue( og.Option, iOriginalValue, iNewValue );
+		result = NewDuplicateValue( odbc, iOriginalValue, iNewValue );
+      DropOptionODBC( odbc );
+		return result;
 	}
 	else
 	{
@@ -805,6 +748,7 @@ POPTION_TREE_NODE DuplicateValue( POPTION_TREE_NODE iOriginalValue, POPTION_TREE
 		OpenWriter( tree );
 		SQLCommand( tree->odbc_writer, query );
 		iNewValue->value_id = FetchLastInsertID(tree->odbc_writer, NULL,NULL);
+      DropOptionODBC( odbc );
 		return iNewValue;
 	}
 }
@@ -1413,8 +1357,6 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 	//lprintf( "Getting {%s}[%s]%s=%s", pINIFile, pSection, pOptname, pDefaultbuf );
 	if( !odbc )
 	{
-		if( !og.Option )
-			InitMachine();
 		odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
 		drop_odbc = TRUE;
 	}
@@ -1558,7 +1500,11 @@ SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntExx )( PODBC odbc, CTEXTSTR pS
 
 SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pOptname, S_32 nDefault, CTEXTSTR pINIFile, LOGICAL bQuiet )
 {
-   return SACK_GetPrivateProfileIntExx( og.Option, pSection, pOptname, nDefault, pINIFile, bQuiet DBG_SRC );
+	S_32 result;
+	PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
+	result = SACK_GetPrivateProfileIntExx( odbc, pSection, pOptname, nDefault, pINIFile, bQuiet DBG_SRC );
+	DropOptionODBC( odbc );
+	return result;
 }
 
 
@@ -1832,8 +1778,7 @@ PRIORITY_PRELOAD(RegisterSQLOptionInterface, SQL_PRELOAD_PRIORITY + 1 )
 
 SQLGETOPTION_PROC( INDEX, GetSystemID )( void )
 {
-   InitMachine();
-   return og.SystemID;
+   return GetSystemIndex( GetSystemName() );
 }
 
 SQLGETOPTION_PROC( void, BeginBatchUpdate )( void )
@@ -1904,12 +1849,12 @@ PODBC GetOptionODBCEx( CTEXTSTR dsn, int version  DBG_PASS )
 		PODBC odbc = (PODBC)DequeLink( &tracker->available );
 		if( !odbc )
 		{
-			odbc = ConnectToDatabase( tracker->name );
+			odbc = ConnectToDatabaseExx( tracker->name, TRUE DBG_RELAY );
 			SetOptionDatabaseOption( odbc, version==1?0:version==2?1:2 );
 		}
 		AddLink( &tracker->outstanding, odbc );
-		//xx++;
-		//_lprintf( DBG_RELAY )( "%d  %p result...", xx, odbc );
+		xx++;
+		_lprintf( DBG_RELAY )( "%d  %p result...", xx, odbc );
 		return odbc;
 	}
 }
@@ -1924,8 +1869,8 @@ void DropOptionODBCEx( PODBC odbc DBG_PASS )
 {
 	INDEX idx;
 	struct option_odbc_tracker *tracker;
-	//xx--;
-	//_lprintf( DBG_RELAY )( "%d  %p Drop...", xx, odbc );
+	xx--;
+	_lprintf( DBG_RELAY )( "%d  %p Drop...", xx, odbc );
 	LIST_FORALL( og.odbc_list, idx, struct option_odbc_tracker *, tracker )
 	{
 		INDEX idx2;
