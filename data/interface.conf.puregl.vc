@@ -2,6 +2,8 @@
 
 Enable Trace = off
 
+win32 alias service options sack_sql_options
+
 option default /DEFAULT/System Settings/Enable System Mapping=1
 OPTION DEFAULT /DEFAULT/System Settings/Map INI Local/comports.ini=1
 option default sack/vidlib/use interface = windows
