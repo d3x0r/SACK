@@ -80,9 +80,9 @@ CTEXTSTR New4ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR tab
 				TEXTSTR newval = EscapeSQLString( tree->odbc, name );
 				snprintf( query, sizeof( query ), WIDE("insert into %s (%s,%s) values( '%s','%s' )")
 						  , table, col, namecol, IDName = GetSeqGUID(), newval );
-            lprintf( "open writer..." );
+				lprintf( "open writer..." );
 				OpenWriterEx( tree DBG_RELAY );
-            lprintf( "and the command..." );
+				lprintf( "and the command..." );
 				if( !SQLCommandEx( tree->odbc_writer, query DBG_RELAY ) )
 				{
 #ifdef DETAILED_LOGGING

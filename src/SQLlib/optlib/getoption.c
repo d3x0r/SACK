@@ -214,19 +214,19 @@ SQLGETOPTION_PROC( void, CreateOptionDatabaseEx )( PODBC odbc, POPTION_TREE tree
 				CheckODBCTable( tree->odbc, table, CTO_MERGE );
 				DestroySQLTable( table );
 				{
-               // this needs a self-looped root to satisfy constraints.
-               CTEXTSTR result;
+					// this needs a self-looped root to satisfy constraints.
+					CTEXTSTR result;
 					if( !SQLQueryf( tree->odbc, &result, "select parent_option_id from option4_map where option_id='00000000-0000-0000-0000-000000000000'" )
 						|| !result )
 					{
-                  OpenWriter( tree );
+						OpenWriter( tree );
 						SQLCommandf( tree->odbc_writer, "insert into option4_map (option_id,parent_option_id,name_id)values('00000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000000','%s' )"
 									  , New4ReadOptionNameTable(tree,WIDE("."),OPTION4_NAME,WIDE( "name_id" ),WIDE( "name" ),1 DBG_SRC)
 									  );
 					}
 				}
 			}
-         else
+			else
 			{
 				table = GetFieldsInSQLEx( option_exception, FALSE DBG_SRC );
 				CheckODBCTable( tree->odbc, table, CTO_MERGE );
@@ -245,8 +245,8 @@ SQLGETOPTION_PROC( void, CreateOptionDatabaseEx )( PODBC odbc, POPTION_TREE tree
 				DestroySQLTable( table );
 			}
 
-         //SQLCommit( odbc );
-         //SQLCommand( odbc, WIDE( "COMMIT" ) );
+			//SQLCommit( odbc );
+			//SQLCommand( odbc, WIDE( "COMMIT" ) );
 			tree->flags.bCreated = 1;
 		}
 	}
