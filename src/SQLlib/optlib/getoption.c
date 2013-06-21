@@ -84,7 +84,7 @@ POPTION_TREE GetOptionTreeExxx( PODBC odbc, PFAMILYTREE existing_tree DBG_PASS )
 		odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
 		drop_odbc = TRUE;
 	}
-	_lprintf(DBG_RELAY)( "Finding tree for %p", odbc );
+	//_lprintf(DBG_RELAY)( "Finding tree for %p", odbc );
 	LIST_FORALL( og.trees, idx, struct sack_option_tree_family*, tree )
 	{
 		if( tree->odbc == odbc )
@@ -95,7 +95,7 @@ POPTION_TREE GetOptionTreeExxx( PODBC odbc, PFAMILYTREE existing_tree DBG_PASS )
 	}
 	if( !tree )
 	{
-		lprintf( WIDE( "need a new option tree for %p" ), odbc );
+		//lprintf( WIDE( "need a new option tree for %p" ), odbc );
 		tree = New( struct sack_option_tree_family );
 		tree->root = New( OPTION_TREE_NODE );
 		MemSet( tree->root, 0, sizeof( struct sack_option_tree_family_node ) );
@@ -111,12 +111,12 @@ POPTION_TREE GetOptionTreeExxx( PODBC odbc, PFAMILYTREE existing_tree DBG_PASS )
 		// if it's a new optiontree, pass it to create...
 		if( existing_tree )
 		{
-         _lprintf(DBG_RELAY)( "attaching existing tree..." );
+         //_lprintf(DBG_RELAY)( "attaching existing tree..." );
 			tree->option_tree = existing_tree;
 		}
 		else
 		{
-         _lprintf(DBG_RELAY)( "attaching NEW tree..." );
+         //_lprintf(DBG_RELAY)( "attaching NEW tree..." );
 			tree->option_tree = CreateFamilyTree( (int(CPROC*)(PTRSZVAL,PTRSZVAL))StrCaseCmp, NULL );
 		}
 		tree->odbc = odbc;
@@ -1898,8 +1898,8 @@ void DropOptionODBCEx( PODBC odbc DBG_PASS )
 {
 	INDEX idx;
 	struct option_odbc_tracker *tracker;
-	xx--;
-	_lprintf( DBG_RELAY )( "%d  %p Drop...", xx, odbc );
+	//xx--;
+	//_lprintf( DBG_RELAY )( "%d  %p Drop...", xx, odbc );
 	LIST_FORALL( og.odbc_list, idx, struct option_odbc_tracker *, tracker )
 	{
 		INDEX idx2;
