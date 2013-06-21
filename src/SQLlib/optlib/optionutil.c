@@ -30,7 +30,7 @@ SQLGETOPTION_PROC( void, EnumOptionsEx )( PODBC odbc, POPTION_TREE_NODE parent
 					 , int (CPROC *Process)(PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
 											  , PTRSZVAL psvUser )
 {
-	POPTION_TREE tree = GetOptionTreeEx( odbc );
+	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
 	if( tree->flags.bNewVersion )
 	{
 		NewEnumOptions( odbc, parent, Process, psvUser );
@@ -116,7 +116,7 @@ SQLGETOPTION_PROC( void, DuplicateOptionEx )( PODBC odbc, POPTION_TREE_NODE iRoo
 {
 	CTEXTSTR result = NULL;
 	struct copy_data copydata;
-	POPTION_TREE tree = GetOptionTreeEx( odbc );
+	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
 	copydata.tree = tree;
 	if( tree->flags.bNewVersion )
 	{
@@ -190,7 +190,7 @@ static void FixOrphanedBranches( void )
 SQLGETOPTION_PROC( void, DeleteOption )( POPTION_TREE_NODE iRoot )
 {
 	PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
-	POPTION_TREE tree = GetOptionTreeEx( odbc );
+	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
 	if( tree->flags.bVersion4 )
 	{
 		New4DeleteOption( og.Option, iRoot );

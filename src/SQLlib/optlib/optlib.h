@@ -46,7 +46,8 @@ struct option_odbc_tracker
 	CTEXTSTR name;
    int version;
 	PLINKQUEUE available;
-   PLIST outstanding;
+	PLIST outstanding;
+   PFAMILYTREE shared_option_tree;
 };
 
 struct sack_option_global_tag {
@@ -73,8 +74,9 @@ struct sack_option_global_tag {
 POPTION_TREE_NODE New4DuplicateValue( PODBC odbc, POPTION_TREE_NODE iOriginalValue, POPTION_TREE_NODE iNewValue );
 CTEXTSTR New4ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR table, CTEXTSTR col, CTEXTSTR namecol, int bCreate DBG_PASS );
 void InitMachine( void );
+#define GetOptionTreeExx(o,... )  GetOptionTreeExxx( o,NULL,##__VA_ARGS__ )
 #define GetOptionTreeEx(o) GetOptionTreeExx(o DBG_SRC )
-POPTION_TREE GetOptionTreeExx( PODBC odbc DBG_PASS );
+POPTION_TREE GetOptionTreeExxx( PODBC odbc, PFAMILYTREE existing_tree DBG_PASS );
 //POPTION_TREE GetOptionTreeEx( PODBC odbc );
 
 LOGICAL SetOptionValueEx( POPTION_TREE tree, POPTION_TREE_NODE optval );
