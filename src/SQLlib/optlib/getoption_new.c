@@ -68,7 +68,7 @@ POPTION_TREE_NODE NewGetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, c
 	const TEXTCHAR *system = NULL;
 	CTEXTSTR *result = NULL;
 	INDEX ID;
-	POPTION_TREE tree = GetOptionTreeEx( odbc );
+	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
 	//, IDName; // Name to lookup
 	if( og.flags.bUseProgramDefault )
 	{

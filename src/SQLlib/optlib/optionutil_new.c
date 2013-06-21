@@ -29,7 +29,7 @@ void NewEnumOptions( PODBC odbc
 																				, int flags )
 												  , PTRSZVAL psvUser )
 {
-	POPTION_TREE node = GetOptionTreeEx( odbc );
+	POPTION_TREE node = GetOptionTreeExxx( odbc, NULL DBG_SRC );
 	TEXTCHAR query[256];
 	static PODBC pending;
 	int first_result, popodbc;
