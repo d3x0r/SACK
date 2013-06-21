@@ -823,7 +823,11 @@ size_t GetOptionStringValueEx( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *b
 
 size_t GetOptionStringValue( POPTION_TREE_NODE optval, TEXTCHAR *buffer, size_t len )
 {
-	return GetOptionStringValueEx( og.Option, optval, buffer, len DBG_SRC );
+	size_t result;
+	PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
+	result = GetOptionStringValueEx( odbc, optval, buffer, len DBG_SRC );
+	DropOptionODBC( odbc );
+	return result;
 }
 
 int GetOptionBlobValueOdbc( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **buffer, size_t *len )
