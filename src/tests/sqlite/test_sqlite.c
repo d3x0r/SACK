@@ -23,10 +23,12 @@ int main( void )
 	//BeginTransact( connections[1] );
 	//SQLCommandf( connections[1], "begin transaction" );
 	SQLCommandf( connections[1], "insert into table1(ID)values(0)" );
+	SQLCommandf( connections[1], "replace into table2 (ID)values(2)" );
+	SQLCommandf( connections[1], "delete from table2 where ID > 55" );
 
 	//BeginTransact( connections[2] );
 	//SQLCommandf( connections[2], "begin transaction" );
-	SQLCommandf( connections[2], "insert into table2(ID)values(1)" );
+	SQLCommandf( connections[2], "insert into table1(ID)values(1)" );
 
 	//SQLCommandf( connections[1], "COMMIT" );
 
