@@ -2225,7 +2225,7 @@ int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	if( odbc->flags.bSQLite_native )
 	{
-      int result_code = WM_SQL_RESULT_SUCCESS;
+		int result_code = WM_SQL_RESULT_SUCCESS;
 		int rc3;
 		const char *tail;
 		char *tmp_cmd;
@@ -2267,24 +2267,24 @@ int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 			case SQLITE_ROW:
 				if( !sqlite3_get_autocommit(odbc->db) )
 				{
-               // this is a noisy message when we start using start trans and endtrans
+					// this is a noisy message when we start using start trans and endtrans
 					//lprintf( "Database has fallen out of auto commit mode!" );
 					//DebugBreak();
 				}
 				break;
 			case SQLITE_BUSY:
-            // going to retry the statement as a whole anyhow.
+				// going to retry the statement as a whole anyhow.
 				sqlite3_finalize( collection->stmt );
 				if( !odbc->flags.bNoLogging )
 					_lprintf(DBG_RElAY)( WIDE( "Database Busy, waiting on[%p]: %s" ), odbc, GetText( cmd ) );
 				WakeableSleep( 25 );
 				goto retry;
 			default:
-            //  SQLITE_CONSTRAINT - statement like an insert with a key that already exists.
+				//  SQLITE_CONSTRAINT - statement like an insert with a key that already exists.
 				if( !odbc->flags.bNoLogging )
 					_lprintf(DBG_RELAY)( WIDE( "Unknown, unhandled SQLITE error: %s" ), sqlite3_errmsg(odbc->db ) );
 				//DebugBreak();
-            result_code = WM_SQL_RESULT_ERROR;
+				result_code = WM_SQL_RESULT_ERROR;
 				break;
 			}
 			// this should be SQLITE_OK || SQLITE_DONE
