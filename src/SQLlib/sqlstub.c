@@ -1072,7 +1072,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 #endif
 						if( StrCaseCmp( buffer, WIDE("05.01.0005") ) == 0 )
 						{
-                     odbc->flags.bFailEnvOnDbcFail = 1;
+							odbc->flags.bFailEnvOnDbcFail = 1;
 						}
 					}
 					odbc->flags.bConnected = TRUE;
@@ -1116,7 +1116,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 			//lprintf( "ODBC Failed, attempting to use SQLITE which is enabled..." );
 #endif
 			// suffix of dsn was not '.db'
-         // and - we REQUIRE connection...
+			// and - we REQUIRE connection...
 			if( !( odbc->flags.bForceConnection && !odbc->flags.bSkipODBC ) )
 			{
 				TEXTCHAR *tmp_name = ExpandPath( odbc->info.pDSN);
@@ -1143,8 +1143,8 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 		}
 		if( !odbc->flags.bConnected )
 		{
-         // finally, should we retry if it's failed to gain connect?
-         if( odbc->flags.bForceConnection )
+			// finally, should we retry if it's failed to gain connect?
+			if( odbc->flags.bForceConnection )
 				WakeableSleep( 1000 ); // wait a second, then retry...
 			else
 			{
@@ -2230,6 +2230,7 @@ int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 		const char *tail;
 		char *tmp_cmd;
 	retry:
+		odbc->last_command_tick = timeGetTime();
 		tmp_cmd = DupTextToChar( GetText( cmd ) );
 		// can get back what was not used when parsing...
 		rc3 = sqlite3_prepare_v2( odbc->db, tmp_cmd, (int)(GetTextSize( cmd )), &collection->stmt, &tail );
