@@ -1802,7 +1802,6 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 					PTRSZVAL size2 = 0;
 					TEXTCHAR tmpname2[256];
 					POINTER mem2;
-               PODBC odbc;
 					snprintf( tmpname2, 256, "%s.sql", tmpname );
 					mem2 = OpenSpace( NULL, tmpname2, &size2 );
 					// if !mem2, then there was no reload from sql.
