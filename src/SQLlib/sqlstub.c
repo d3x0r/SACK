@@ -372,13 +372,13 @@ void ExtendConnection( PODBC odbc )
 
 static void DumpODBCInfo( PODBC odbc )
 {
-	if( g.odbc && odbc != g.odbc )
+	if( g.odbc && odbc == g.odbc )
 	{
 		lprintf( WIDE( "GLBOAL ODBC:" ) );
-		DumpODBCInfo( g.odbc );
 	}
 	if( !odbc )
-      return;
+		return;
+   lprintf( WIDE( "odbc = %p" ), odbc );
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	lprintf( WIDE( "odbc->db = %p" ), odbc->db );
 #endif
@@ -427,6 +427,14 @@ static void DumpODBCInfo( PODBC odbc )
 					 );
 		}
 	}
+}
+
+void DumpAllODBCInfo( void )
+{
+	INDEX idx;
+	PODBC odbc;
+	LIST_FORALL( g.pOpenODBC, idx, PODBC, odbc )
+      DumpODBCInfo( odbc );
 }
 
 //----------------------------------------------------------------------
@@ -1859,6 +1867,7 @@ PODBC ConnectToDatabaseExx( CTEXTSTR DSN, LOGICAL bRequireConnection DBG_PASS )
 	PODBC pODBC;
 	InitLibrary();
 	pODBC = New( ODBC );
+   AddLink( &g.pOpenODBC, pODBC );
 	MemSet( pODBC, 0, sizeof( ODBC ) );
 	pODBC->info.pDSN = StrDup( DSN );
 	pODBC->flags.bForceConnection = bRequireConnection;
@@ -2277,7 +2286,10 @@ int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 				// going to retry the statement as a whole anyhow.
 				sqlite3_finalize( collection->stmt );
 				if( !odbc->flags.bNoLogging )
+				{
 					_lprintf(DBG_RElAY)( WIDE( "Database Busy, waiting on[%p]: %s" ), odbc, GetText( cmd ) );
+					//DumpAllODBCInfo();
+				}
 				WakeableSleep( 25 );
 				goto retry;
 			default:

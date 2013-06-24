@@ -224,6 +224,7 @@ SQLGETOPTION_PROC( void, CreateOptionDatabaseEx )( PODBC odbc, POPTION_TREE tree
 									  , New4ReadOptionNameTable(tree,WIDE("."),OPTION4_NAME,WIDE( "name_id" ),WIDE( "name" ),1 DBG_SRC)
 									  );
 					}
+               SQLEndQuery( tree->odbc );
 				}
 			}
 			else
