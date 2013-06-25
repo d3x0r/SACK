@@ -703,7 +703,7 @@ POPTION_TREE_NODE NewDuplicateValue( PODBC odbc, POPTION_TREE_NODE iOriginalOpti
 	TEXTSTR tmp;
 	PushSQLQueryEx( odbc );
 	// my nested parent may have a select state in a condition that I think it's mine.
-	SQLRecordQueryf( odbc, NULL, &results, NULL, WIDE( "select `string` from " )OPTION_VALUES WIDE( " where option_id=%ld" ), iOriginalOption->guid );
+	SQLRecordQueryf( odbc, NULL, &results, NULL, WIDE( "select `string` from " )OPTION_VALUES WIDE( " where option_id='%s'" ), iOriginalOption->guid );
 
 	if( results && results[0] )
 	{
@@ -715,7 +715,7 @@ POPTION_TREE_NODE NewDuplicateValue( PODBC odbc, POPTION_TREE_NODE iOriginalOpti
 		SQLCommand( odbc, query );
 	}
 
-	SQLRecordQueryf( odbc, NULL, &results, NULL, WIDE( "select `binary` from " )OPTION_BLOBS WIDE( " where option_id=%ld" ), iOriginalOption->guid );
+	SQLRecordQueryf( odbc, NULL, &results, NULL, WIDE( "select `binary` from " )OPTION_BLOBS WIDE( " where option_id='%s'" ), iOriginalOption->guid );
 
 	if( results && results[0] )
 	{
@@ -873,8 +873,8 @@ int GetOptionBlobValueOdbc( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **buf
 			len = &tmplen;
 		PushSQLQueryEx( odbc );
 		if( SQLRecordQueryf( odbc, NULL, &result, NULL
-								 , WIDE("select `binary`,length(`binary`) from ")OPTION4_BLOBS WIDE(" where option_id=%lu")
-								 , optval->id ) )
+								 , WIDE("select `binary`,length(`binary`) from ")OPTION4_BLOBS WIDE(" where option_id='%s'")
+								 , optval->guid ) )
 		{
 			int success = FALSE;
 			//lprintf( WIDE(" query succeeded....") );
@@ -1161,8 +1161,8 @@ static LOGICAL SetOptionBlobValueEx( POPTION_TREE tree, POPTION_TREE_NODE optval
 		{
 			TEXTSTR newval = EscapeSQLBinaryOpt( tree->odbc_writer, (CTEXTSTR)buffer, length, TRUE );
 			LOGICAL retval =
-				SQLCommandf( tree->odbc_writer, WIDE( "replace into " )OPTION4_BLOBS WIDE( " (`option_id`,`binary` ) values (%lu,%s)" )
-							  , optval->id
+				SQLCommandf( tree->odbc_writer, WIDE( "replace into " )OPTION4_BLOBS WIDE( " (`option_id`,`binary` ) values ('%s',%s)" )
+							  , optval->guid
 							  , newval
 							  );
 			Release( newval );
