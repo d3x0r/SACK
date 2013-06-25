@@ -1263,9 +1263,9 @@ struct check_mask_param
 
 static int CPROC CheckMasks( PTRSZVAL psv_params, CTEXTSTR name, POPTION_TREE_NODE this_node, int flags )
 {
-   struct check_mask_param *params = (struct check_mask_param*)psv_params;
+	struct check_mask_param *params = (struct check_mask_param*)psv_params;
 	// return 0 to break loop.
-   lprintf( "Had mask to check [%s]", name );
+	//lprintf( "Had mask to check [%s]", name );
 	if( CompareMask( name, params->section_name, FALSE ) )
 	{
 		params->is_found = TRUE;
@@ -1278,9 +1278,9 @@ static int CPROC CheckMasks( PTRSZVAL psv_params, CTEXTSTR name, POPTION_TREE_NO
 			if( resultbuf[0] != '0' )
 				params->is_mapped = TRUE;
 		}
-      return 0;
+		return 0;
 	}
-   return TRUE;
+	return TRUE;
 }
 
 //------------------------------------------------------------------------
@@ -1294,7 +1294,7 @@ static CTEXTSTR CPROC ResolveININame( PODBC odbc, CTEXTSTR pSection, TEXTCHAR *b
 			if( ( pINIFile != DEFAULT_PUBLIC_KEY )
 				&& ( StrCaseCmp( pINIFile, DEFAULT_PUBLIC_KEY ) != 0 ) )
 			{
-				lprintf( "(Convert %s)", pINIFile );
+				//lprintf( "(Convert %s)", pINIFile );
 				if( og.flags.bEnableSystemMapping == 2 )
 					og.flags.bEnableSystemMapping = SACK_GetProfileIntEx( WIDE( "System Settings"), WIDE( "Enable System Mapping" ), 0, TRUE );
 				if( og.flags.bEnableSystemMapping )
@@ -1304,21 +1304,21 @@ static CTEXTSTR CPROC ResolveININame( PODBC odbc, CTEXTSTR pSection, TEXTCHAR *b
 					params.is_mapped = FALSE;
 					params.is_found = FALSE;
 
-               // check masks first for wildcarded relocations.
+					// check masks first for wildcarded relocations.
 					{
 						POPTION_TREE_NODE node;
 						params.section_name = pSection;
 						params.file_name = pINIFile;
-                  params.odbc = odbc;
-                  lprintf( "FILE is not mapped entirly, check enumerated options..." );
+						params.odbc = odbc;
+						//lprintf( "FILE is not mapped entirly, check enumerated options..." );
 						snprintf( buf, 128, WIDE("System Settings/Map INI Local Masks/%s"), pINIFile );
-                  lprintf( "buf is %s", buf );
+						//lprintf( "buf is %s", buf );
 						node = GetOptionIndexExxx( odbc, NULL, DEFAULT_PUBLIC_KEY, NULL, buf, FALSE, FALSE DBG_SRC );
 						if( node )
 						{
-							lprintf( "Node is %p?", node );
+							//lprintf( "Node is %p?", node );
 							EnumOptionsEx( odbc, node, CheckMasks, (PTRSZVAL)&params );
-							lprintf( "Done enumerating..." );
+							//lprintf( "Done enumerating..." );
 						}
 					}
 					if( !params.is_found )
@@ -1327,7 +1327,7 @@ static CTEXTSTR CPROC ResolveININame( PODBC odbc, CTEXTSTR pSection, TEXTCHAR *b
 						if( resultbuf[0] != '0' )
 						{
 							params.is_found = 1;
-                     params.is_mapped = 1;
+							params.is_mapped = 1;
 						}
 					}
 					if( !params.is_found )
@@ -1345,7 +1345,7 @@ static CTEXTSTR CPROC ResolveININame( PODBC odbc, CTEXTSTR pSection, TEXTCHAR *b
 						pINIFile = buf;
 					}
 				}
-            lprintf( "(result %s)", pINIFile );
+				//lprintf( "(result %s)", pINIFile );
 			}
 		}
       return pINIFile;
