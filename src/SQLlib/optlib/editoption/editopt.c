@@ -19,6 +19,7 @@ typedef struct list_fill_tag
 	PCONTROL pcList;
 	int nLevel;
 	PLISTITEM pLastItem;
+	PODBC odbc;
 } LISTFILL, *PLISTFILL;
 
 typedef struct node_data_tag
@@ -51,8 +52,9 @@ void CPROC ListItem( PTRSZVAL psv, PCOMMON pc, PLISTITEM pli )
 		lf.pcList = pc;
 		lf.nLevel = pnd->nLevel;
 		lf.pLastItem = pli;
+		lf.odbc = (PODBC)psv;
 		//DeleteListItem( pc, pnd->pli_fake );
-		EnumOptions( pnd->ID_Option, FillList, (PTRSZVAL)&lf );
+		EnumOptionsEx( lf.odbc, pnd->ID_Option, FillList, (PTRSZVAL)&lf );
 		pnd->flags.bOpened = TRUE;
 		pnd->pli_fake = NULL;
 	}
@@ -97,7 +99,7 @@ int CPROC FillList( PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags
 		SetItemData( hli,(PTRSZVAL)pnd );
 	}
 	if( !plf->flags.bSecondLevel )
-		EnumOptions( ID, FillList, (PTRSZVAL)&lf );
+		EnumOptionsEx( lf.odbc, ID, FillList, (PTRSZVAL)&lf );
 	plf->pLastItem = lf.pLastItem;
 	//lprintf( WIDE("done with all children under this node.") );
 	return TRUE;
@@ -105,15 +107,16 @@ int CPROC FillList( PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags
 
 
 
-PUBLIC( int, InitOptionList )( PTRSZVAL psv, PCONTROL pc, _32 ID )
+PUBLIC( int, InitOptionList )( PODBC odbc, PCONTROL pc, _32 ID )
 {
 	LISTFILL lf;
 	lf.flags.bSecondLevel = 0;
 	lf.pcList = pc;
 	lf.nLevel = 0;
 	lf.pLastItem = NULL;
+	lf.odbc = odbc;
 	EnableCommonUpdates( pc, FALSE );
-	EnumOptions( NULL, FillList, (PTRSZVAL)&lf );
+	EnumOptionsEx( odbc, NULL, FillList, (PTRSZVAL)&lf );
 	EnableCommonUpdates( pc, TRUE );
 	SmudgeCommon( pc );
 	return 0;
@@ -156,7 +159,7 @@ void CPROC DeleteBranch( PTRSZVAL psv, PCOMMON pc )
 	if( last_option )
 		DeleteOption( last_option );
 	ResetList( GetNearControl( pc, LST_OPTIONMAP ) );
-	InitOptionList( 0, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
+	InitOptionList( (PODBC)psv, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
 	last_option = NULL;
 	return;
 }
@@ -171,11 +174,11 @@ void CPROC CopyBranch( PTRSZVAL psv, PCOMMON pc )
 		DuplicateOption( last_option, result );
 	}
 	ResetList( GetNearControl( pc, LST_OPTIONMAP ) );
-	InitOptionList( 0, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
+	InitOptionList( (PODBC)psv, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
 	return;
 }
 
-int EditOptions( void )
+int EditOptions( PODBC odbc )
 {
 	PCOMMON frame;// = LoadFrame( WIDE("edit.frame"), NULL, NULL, 0 );
 	int done = FALSE;
@@ -183,7 +186,7 @@ int EditOptions( void )
 
 	//if( !frame )
 	{
-      PCOMMON pc;
+		PCOMMON pc;
 		PCONTROL list;
 #define SIZE_BASE 430
 #define NEW_SIZE 720
@@ -193,7 +196,7 @@ int EditOptions( void )
 		list = MakeListBox( frame, 5, 5, LIST_SIZE, 310, LST_OPTIONMAP, 0 );
 		SetListboxIsTree( list, TRUE );
 		SetSelChangeHandler( list, OptionSelectionChanged, 0 );
-		SetListItemOpenHandler( list, HandleItemOpened, 0 );
+		SetListItemOpenHandler( list, HandleItemOpened, (PTRSZVAL)odbc );
 		MakeEditControl( frame, RIGHT_START, 35, 175, 25, EDT_OPTIONVALUE, WIDE("blah"), 0 );
 
 
@@ -203,14 +206,14 @@ int EditOptions( void )
 
 		//SaveFrame( frame, WIDE("edit.frame") );
 		pc = MakeButton( frame, RIGHT_START, 145, 150, 25, BTN_UPDATE, WIDE("update"), 0, 0, 0  );
-		SetButtonPushMethod( pc, UpdateValue, 0 );
+		SetButtonPushMethod( pc, UpdateValue, (PTRSZVAL)odbc );
  		pc = MakeButton( frame, RIGHT_START, 175, 150, 25, BTN_COPY, WIDE("copy"), 0, 0, 0  );
-		SetButtonPushMethod( pc, CopyBranch, 0 );
+		SetButtonPushMethod( pc, CopyBranch, (PTRSZVAL)odbc );
 		pc = MakeButton( frame, RIGHT_START, 205, 150, 25, BTN_DELETE, WIDE("delete"), 0, 0, 0  );
-		SetButtonPushMethod( pc, DeleteBranch, 0 );
+		SetButtonPushMethod( pc, DeleteBranch, (PTRSZVAL)odbc );
 		AddCommonButtonsEx( frame, &done, WIDE("Done"), NULL, NULL );
 
-	      InitOptionList( 0, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
+		InitOptionList( odbc, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
 	}
 	DisplayFrame( frame );
 	CommonWait( frame );
@@ -220,9 +223,9 @@ int EditOptions( void )
 
 SaneWinMain( argc, argv )
 {
+	PODBC o = NULL;
 	if( argc > 1 )
 	{
-		PODBC o;
 		int arg_ofs = 0;
 		if( argv[1][0] == '-' && argv[1][1] == 'o' )
 		{
@@ -241,8 +244,7 @@ SaneWinMain( argc, argv )
 			SetOptionDatabaseOption( o, TRUE ); // defaults to old version... so revert to old version..
 		}
 	}
-   tree = SetOptionDatabase( NULL );
-	EditOptions();
+	EditOptions( o );
 	return 0;
 }
 EndSaneWinMain()
