@@ -258,7 +258,7 @@ void SetOptionDatabaseOption( PODBC odbc, int bNewVersion )
 	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
 	if( tree )
 	{
-		tree->flags.bCreated = FALSE;
+		//tree->flags.bCreated = FALSE;
 		if( bNewVersion == 2 )
 		{
 			tree->flags.bVersion4 = 1;
@@ -1833,6 +1833,7 @@ static int xx;
 PODBC GetOptionODBCEx( CTEXTSTR dsn, int version  DBG_PASS )
 {
 	INDEX idx;
+   LOGICAL new_tracker = FALSE;
 	struct option_odbc_tracker *tracker;
 	if( !dsn )
 	{
@@ -1863,6 +1864,7 @@ PODBC GetOptionODBCEx( CTEXTSTR dsn, int version  DBG_PASS )
 		tracker->available = CreateLinkQueue();
 		tracker->outstanding = NULL;
 		AddLink( &og.odbc_list, tracker );
+      new_tracker = TRUE;
 	}
 	{
 		PODBC odbc = (PODBC)DequeLink( &tracker->available );
@@ -1879,6 +1881,12 @@ PODBC GetOptionODBCEx( CTEXTSTR dsn, int version  DBG_PASS )
 			else
 			{
             GetOptionTreeExxx( odbc, tracker->shared_option_tree DBG_RELAY );
+			}
+         // only if it's a the first connection should we leave created as false.
+			if( !new_tracker )
+			{
+				POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
+				tree->flags.bCreated = 1;
 			}
 			SetOptionDatabaseOption( odbc, version==1?0:version==2?1:2 );
 		}
