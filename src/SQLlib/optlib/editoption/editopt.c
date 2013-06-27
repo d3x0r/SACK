@@ -100,7 +100,7 @@ int CPROC FillList( PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags
 	}
 	if( !plf->flags.bSecondLevel )
 		EnumOptionsEx( lf.odbc, ID, FillList, (PTRSZVAL)&lf );
-	plf->pLastItem = lf.pLastItem;
+	plf->pLastItem = lf.pLastItem; 
 	//lprintf( WIDE("done with all children under this node.") );
 	return TRUE;
 }
@@ -132,7 +132,7 @@ static void CPROC OptionSelectionChanged( PTRSZVAL psvUser, PCONTROL pc, PLISTIT
 	if( pnd->ID_Value )
 	{
 		lprintf( WIDE("Set value to real value.") );
-		GetOptionStringValue( pnd->ID_Value, buffer, sizeof( buffer ) );
+		GetOptionStringValueEx( (PODBC)psvUser, pnd->ID_Value, buffer, sizeof( buffer ) DBG_SRC );
 		StrCpyEx( last_value, buffer, sizeof(last_value)/sizeof(last_value[0]) );
 		SetCommonText( GetNearControl( pc, EDT_OPTIONVALUE ), buffer );
 	}
@@ -150,6 +150,7 @@ void CPROC UpdateValue( PTRSZVAL psv, PCOMMON pc )
 	GetControlText( GetNearControl( pc, EDT_OPTIONVALUE ), value, sizeof(value) );
 	if( StrCmp( value, last_value ) != 0 )
 	{
+		POPTION_TREE tree = GetOptionTreeExxx( (PODBC)psv, NULL DBG_SRC );
 		SetOptionStringValue( tree, last_node->ID_Option, value );
 	}
 }
@@ -195,7 +196,7 @@ int EditOptions( PODBC odbc )
 		frame = CreateFrame( WIDE("Edit Options"), -1, -1, NEW_SIZE, 320, BORDER_NORMAL, NULL );
 		list = MakeListBox( frame, 5, 5, LIST_SIZE, 310, LST_OPTIONMAP, 0 );
 		SetListboxIsTree( list, TRUE );
-		SetSelChangeHandler( list, OptionSelectionChanged, 0 );
+		SetSelChangeHandler( list, OptionSelectionChanged, (PTRSZVAL)odbc );
 		SetListItemOpenHandler( list, HandleItemOpened, (PTRSZVAL)odbc );
 		MakeEditControl( frame, RIGHT_START, 35, 175, 25, EDT_OPTIONVALUE, WIDE("blah"), 0 );
 
@@ -229,19 +230,16 @@ SaneWinMain( argc, argv )
 		int arg_ofs = 0;
 		if( argv[1][0] == '-' && argv[1][1] == 'o' )
 		{
-			tree = SetOptionDatabase( o = ConnectToDatabase( argv[2] ) );
-			SetOptionDatabaseOption( o, FALSE ); // defaults to new version... so revert to old version..
+			o = GetOptionODBC( argv[2], 1 );
 		}
 		else
 		if( argv[1][0] == '-' && argv[1][1] == 'n' )
 		{
-			tree = SetOptionDatabase( o = ConnectToDatabase( argv[2] ) );
-			SetOptionDatabaseOption( o, 2 ); // defaults to new version... so revert to old version..
+			o = GetOptionODBC( argv[2], 4 );
 		}
 		else
 		{
-			tree = SetOptionDatabase( o = ConnectToDatabase( argv[1] ) );
-			SetOptionDatabaseOption( o, TRUE ); // defaults to old version... so revert to old version..
+			o = GetOptionODBC( argv[1], 2 );
 		}
 	}
 	EditOptions( o );

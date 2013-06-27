@@ -162,6 +162,7 @@ SQLGETOPTION_PROC( void, EnumOptions )( POPTION_TREE_NODE parent
 SQLGETOPTION_PROC( void, EnumOptionsEx )( PODBC odbc, POPTION_TREE_NODE parent
 					 , int (CPROC *Process)(PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )
                 , PTRSZVAL psvUser );
+SQLGETOPTION_PROC( POPTION_TREE, GetOptionTreeExxx )( PODBC odbc, PFAMILYTREE existing_tree DBG_PASS );
 
 
 /* Sets the option database to use (does not prevent

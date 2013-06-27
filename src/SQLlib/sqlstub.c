@@ -796,10 +796,10 @@ void InitLibrary( void )
 		g.OptionDb.info.pDSN = StrDup( WIDE( "@/option.db" ) );
       // default to new option database.
 #ifndef __NO_OPTIONS__
-		SetOptionDatabaseOption( &g.OptionDb, TRUE );
+		//SetOptionDatabaseOption( &g.OptionDb, TRUE );
 #endif
 		{
-         LOGICAL success = FALSE;
+			LOGICAL success = FALSE;
 			PCONFIG_HANDLER pch = CreateConfigurationHandler();
 			AddConfigurationMethod( pch, WIDE("Option DSN=%m"), SetOptionDSN );
 			AddConfigurationMethod( pch, WIDE("Option Use New Version=%b"), SetOptionDSNVersion );
@@ -822,7 +822,7 @@ void InitLibrary( void )
 			//AddConfigurationFilter( pch, TranslateINICrypt );
 			{
 				TEXTCHAR tmp[256];
-            snprintf( tmp, 256, WIDE("%s.sql.config"), GetProgramName() );
+				snprintf( tmp, 256, WIDE("%s.sql.config"), GetProgramName() );
 				success = ProcessConfigurationFile( pch, tmp, 0 );
 			}
 
@@ -865,7 +865,7 @@ void InitLibrary( void )
 		{
 			g.flags.bNoBackup = 1;
 		}
-      // allow log to be delayed opened only when something needs to be written the first time.
+		// allow log to be delayed opened only when something needs to be written the first time.
 		g.TimerCollect.pvt_out = VarTextCreate();
 		g.TimerCollect.pvt_result = VarTextCreate();
 		g.TimerCollect.pvt_errorinfo = VarTextCreate();
