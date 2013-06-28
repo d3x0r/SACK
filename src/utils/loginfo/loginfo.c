@@ -2,8 +2,6 @@
 #include <filesys.h>
 #include <deadstart.h>
 
-#define USES_OPTION_INTERFACE
-#include <sqloptint.h>
 PRELOAD( loginfo )
 {
 	FILE *input[4];
