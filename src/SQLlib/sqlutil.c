@@ -900,7 +900,7 @@ void DumpSQLTable( PTABLE table )
 }
 
 #define FAILPARSE() do { if( ( start[0] < '0' ) || ( start[0] > '9' ) ) {  \
-lprintf( WIDE("string failes date parsing... %s"), timestring );                  \
+lprintf( WIDE("string fails date parsing... %s"), timestring );                  \
 return 0; } } while (0);
 
  int  ConvertDBTimeString ( CTEXTSTR timestring
@@ -1618,6 +1618,52 @@ retry:
 							vtprintf( pvtCreate, WIDE(")") );
 							first = 0;
 
+						}
+					}
+				}
+				for( n = 0; n < table->constraints.count; n++ )
+				{
+					int col;
+					int colfirst = 1;
+					{
+						{
+							vtprintf( pvtCreate, WIDE("%sCONSTRAINT `%s` FOREIGN KEY (" )
+									  , first?WIDE(""):WIDE(",")
+									  , table->constraints.constraint[n].name );
+							colfirst = 1;
+							for( col = 0; table->constraints.constraint[n].colnames[col]; col++ )
+							{
+								if( !table->constraints.constraint[n].colnames[col] )
+									break;
+								vtprintf( pvtCreate, WIDE("%s`%s`")
+										  , colfirst?WIDE(""):WIDE(",")
+										  , table->constraints.constraint[n].colnames[col]
+										  );
+								colfirst = 0;
+							}
+							vtprintf( pvtCreate, WIDE(") REFERENCES `%s`(")
+									  , table->constraints.constraint[n].references );
+
+							colfirst = 1;
+							for( col = 0; table->constraints.constraint[n].foriegn_colnames[col]; col++ )
+							{
+								if( !table->constraints.constraint[n].foriegn_colnames[col] )
+									break;
+								vtprintf( pvtCreate, WIDE("%s`%s`")
+										  , colfirst?WIDE(""):WIDE(",")
+										  , table->constraints.constraint[n].foriegn_colnames[col]
+										  );
+								colfirst = 0;
+							}
+							vtprintf( pvtCreate, WIDE(")%s %s")
+
+									  , table->constraints.constraint[n].flags.cascade_on_update?"ON UPDATE CASCADE"
+										//:table->constraints->constraint[n].flags.cascade_on_update?"ON UPDATE SOMETHING"
+										:""
+									  , table->constraints.constraint[n].flags.cascade_on_delete?"ON DELETE CASCADE"
+										:""
+									  );
+ 							first = 0;
 						}
 					}
 				}

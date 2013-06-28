@@ -83,6 +83,11 @@ void ProcessINIFile( CTEXTSTR filename, TEXTCHAR *pData, _32 nData )
 				{
 					optval[0] = 0;
 					optval++;
+					while( optval[-1] == ' ' )
+					{
+						optval[-1] = 0;
+						optval--;
+					}
 
 					if( entry ) Release( entry );
 					entry = StrDup( optname );
