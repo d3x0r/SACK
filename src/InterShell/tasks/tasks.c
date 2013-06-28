@@ -851,7 +851,7 @@ void RunATask( PLOAD_TASK pTask, int bWaitInRoutine )
 		if( !pTask->flags.bAllowedRun )
 			return;
 	}
-	if( !task->flags.bButton ) // otherwise security will be checked on the button
+	if( !pTask->flags.bButton ) // otherwise security will be checked on the button
 	{
 		PTRSZVAL task_security = CreateSecurityContext( (PTRSZVAL)pTask );
 		if( task_security == INVALID_INDEX )
