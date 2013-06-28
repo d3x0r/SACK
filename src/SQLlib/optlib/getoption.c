@@ -198,13 +198,13 @@ SQLGETOPTION_PROC( void, CreateOptionDatabaseEx )( PODBC odbc, POPTION_TREE tree
 			}
 			else if( tree->flags.bVersion4 )
 			{
-				table = GetFieldsInSQLEx( option4_exception, FALSE DBG_SRC );
+				table = GetFieldsInSQLEx( option4_name, FALSE DBG_SRC );
 				CheckODBCTable( tree->odbc, table, CTO_MERGE );
 				DestroySQLTable( table );
 				table = GetFieldsInSQLEx( option4_map, FALSE DBG_SRC );
 				CheckODBCTable( tree->odbc, table, CTO_MERGE );
 				DestroySQLTable( table );
-				table = GetFieldsInSQLEx( option4_name, FALSE DBG_SRC );
+				table = GetFieldsInSQLEx( option4_exception, FALSE DBG_SRC );
 				CheckODBCTable( tree->odbc, table, CTO_MERGE );
 				DestroySQLTable( table );
 				table = GetFieldsInSQLEx( option4_values, FALSE DBG_SRC );
