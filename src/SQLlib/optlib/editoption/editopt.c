@@ -242,6 +242,8 @@ SaneWinMain( argc, argv )
 			o = GetOptionODBC( argv[1], 2 );
 		}
 	}
+	else
+		o = GetOptionODBC( NULL, 0 );
 	EditOptions( o );
 	return 0;
 }
