@@ -273,7 +273,9 @@ int HangBinaryNode( PTREEROOT root, PTREENODE node )
 				check->children -= (node->children + 1);
          DeleteFromSet( TREENODE, &TreeNodeSet, node );
          //Release( node );
-			return 0;
+
+		 
+		 return 0;
 		}
       else
 		{
