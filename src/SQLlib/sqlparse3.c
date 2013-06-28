@@ -246,10 +246,12 @@ void AddConstraint( PTABLE table, PTEXT *word )
 			(*word) = NEXTLINE( *word );
 			if( StrCaseCmp( GetText(*word), WIDE( "CASCADE" ) ) == 0 )
 			{
+				table->constraints.constraint[table->constraints.count-1].flags.cascade_on_delete = 1;
 				(*word) = NEXTLINE( *word );
 			}
 			if( StrCaseCmp( GetText(*word), WIDE( "RESTRICT" ) ) == 0 )
 			{
+				table->constraints.constraint[table->constraints.count-1].flags.restrict_on_delete = 1;
 				(*word) = NEXTLINE( *word );
 			}
 			if( StrCaseCmp( GetText(*word), WIDE( "NO" ) ) == 0 )
@@ -257,6 +259,7 @@ void AddConstraint( PTABLE table, PTEXT *word )
 				(*word) = NEXTLINE( *word );
 				if( StrCaseCmp( GetText(*word), WIDE( "ACTION" ) ) == 0 )
 				{
+					table->constraints.constraint[table->constraints.count-1].flags.noaction_on_delete = 1;
 					(*word) = NEXTLINE( *word );
 				}
 			}
@@ -265,10 +268,12 @@ void AddConstraint( PTABLE table, PTEXT *word )
 				(*word) = NEXTLINE( *word );
 				if( StrCaseCmp( GetText(*word), WIDE( "NULL" ) ) == 0 )
 				{
+					table->constraints.constraint[table->constraints.count-1].flags.setnull_on_delete = 1;
 					(*word) = NEXTLINE( *word );
 				}
 				if( StrCaseCmp( GetText(*word), WIDE( "DEFAULT" ) ) == 0 )
 				{
+					table->constraints.constraint[table->constraints.count-1].flags.setdefault_on_delete = 1;
 					(*word) = NEXTLINE( *word );
 				}
 			}
@@ -278,10 +283,12 @@ void AddConstraint( PTABLE table, PTEXT *word )
 			(*word) = NEXTLINE( *word );
 			if( StrCaseCmp( GetText(*word), WIDE( "CASCADE" ) ) == 0 )
 			{
+				table->constraints.constraint[table->constraints.count-1].flags.cascade_on_update = 1;
 				(*word) = NEXTLINE( *word );
 			}
 			if( StrCaseCmp( GetText(*word), WIDE( "RESTRICT" ) ) == 0 )
 			{
+				table->constraints.constraint[table->constraints.count-1].flags.restrict_on_update = 1;
 				(*word) = NEXTLINE( *word );
 			}
 			if( StrCaseCmp( GetText(*word), WIDE( "NO" ) ) == 0 )
@@ -289,6 +296,7 @@ void AddConstraint( PTABLE table, PTEXT *word )
 				(*word) = NEXTLINE( *word );
 				if( StrCaseCmp( GetText(*word), WIDE( "ACTION" ) ) == 0 )
 				{
+					table->constraints.constraint[table->constraints.count-1].flags.noaction_on_update = 1;
 					(*word) = NEXTLINE( *word );
 				}
 			}
@@ -297,10 +305,12 @@ void AddConstraint( PTABLE table, PTEXT *word )
 				(*word) = NEXTLINE( *word );
 				if( StrCaseCmp( GetText(*word), WIDE( "NULL" ) ) == 0 )
 				{
+					table->constraints.constraint[table->constraints.count-1].flags.setnull_on_update = 1;
 					(*word) = NEXTLINE( *word );
 				}
 				if( StrCaseCmp( GetText(*word), WIDE( "DEFAULT" ) ) == 0 )
 				{
+					table->constraints.constraint[table->constraints.count-1].flags.setdefault_on_update = 1;
 					(*word) = NEXTLINE( *word );
 				}
 			}

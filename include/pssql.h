@@ -269,6 +269,14 @@ struct required_constraint_def
 	struct {
 		BIT_FIELD cascade_on_delete : 1;
 		BIT_FIELD cascade_on_update : 1;
+		BIT_FIELD restrict_on_delete : 1;
+		BIT_FIELD restrict_on_update : 1;
+		BIT_FIELD noaction_on_delete : 1;
+		BIT_FIELD noaction_on_update : 1;
+		BIT_FIELD setnull_on_delete : 1;
+		BIT_FIELD setnull_on_update : 1;
+		BIT_FIELD setdefault_on_delete : 1;
+		BIT_FIELD setdefault_on_update : 1;
 	} flags;
 
 	CTEXTSTR name;
