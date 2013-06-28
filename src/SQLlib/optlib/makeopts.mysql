@@ -93,6 +93,7 @@ WIDE( "  `name_id` char(36) NOT NULL default '0',\n" )
 WIDE( "  `description` tinytext,\n" )
 WIDE( "  PRIMARY KEY  (`option_id`)," )
 WIDE( "  INDEX `parent_key`(`parent_option_id`)," )
+WIDE( "  UNIQUE `parent_key2`(`parent_option_id`,`name_id`)," )
 WIDE( "  CONSTRAINT `FK_map_map` FOREIGN KEY (`parent_option_id`) REFERENCES `option4_map` (`option_id`) ON DELETE CASCADE ON UPDATE CASCADE,\n" )
 WIDE( "  CONSTRAINT `FK_name_map` FOREIGN KEY (`name_id`) REFERENCES `option4_name` (`name_id`) ON DELETE CASCADE ON UPDATE CASCADE\n" )
 WIDE( " ) TYPE=InnoDB COMMENT='Table ID defines ID for use in OptionValues';\n" ) );
