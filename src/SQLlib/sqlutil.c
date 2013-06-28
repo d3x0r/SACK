@@ -1658,9 +1658,16 @@ retry:
 							vtprintf( pvtCreate, WIDE(")%s %s")
 
 									  , table->constraints.constraint[n].flags.cascade_on_update?"ON UPDATE CASCADE"
-										//:table->constraints->constraint[n].flags.cascade_on_update?"ON UPDATE SOMETHING"
+										:table->constraints.constraint[n].flags.restrict_on_update?"ON UPDATE RESTRICT"
+										:table->constraints.constraint[n].flags.setnull_on_update?"ON UPDATE SET NULL"
+										:table->constraints.constraint[n].flags.setdefault_on_update?"ON UPDATE SET DEFAULT"
+										:table->constraints.constraint[n].flags.noaction_on_update?"ON UPDATE NO ACTION"
 										:""
 									  , table->constraints.constraint[n].flags.cascade_on_delete?"ON DELETE CASCADE"
+										:table->constraints.constraint[n].flags.restrict_on_delete?"ON DELETE RESTRICT"
+										:table->constraints.constraint[n].flags.setnull_on_delete?"ON DELETE SET NULL"
+										:table->constraints.constraint[n].flags.setdefault_on_delete?"ON DELETE SET DEFAULT"
+										:table->constraints.constraint[n].flags.noaction_on_delete?"ON DELETE NO ACTION"
 										:""
 									  );
  							first = 0;
