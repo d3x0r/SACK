@@ -887,6 +887,7 @@ void EditCurrentPageProperties(PSI_CONTROL parent, PCanvasData canvas)
 		if( buffer[0] )
 		{
 			canvas->current_page->background = StrDup( buffer );
+			SetLink( &canvas->current_page->backgrounds, l.current_page_theme, canvas->current_page->background );
 			if( canvas->current_page->background_image )
 			{
 				UnmakeImageFile( canvas->current_page->background_image );
@@ -898,6 +899,7 @@ void EditCurrentPageProperties(PSI_CONTROL parent, PCanvasData canvas)
 		{
 			if( canvas->current_page->background )
 			{
+				SetLink( &canvas->current_page->backgrounds, l.current_page_theme, NULL );
 				Release( (POINTER)canvas->current_page->background );
 				canvas->current_page->background = NULL;
 				UnmakeImageFile( canvas->current_page->background_image );
