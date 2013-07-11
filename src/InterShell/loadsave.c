@@ -1059,9 +1059,7 @@ void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 						               , WIDE("intershell/configuration"), filename, &buffer, &buflen ) )
 			{
 				int namelen;
-				TEXTSTR alt_filename = NewArray( TEXTCHAR, namelen = ( StrLen( filename ) + 6 ) );
 				FILE *out;
-				snprintf( alt_filename, namelen, "%s.sql", filename );
 				// modifies filename here; but this is !forceload, and later the filename is forceload, so it will be original.
 				filename = alt_filename;
 				out = sack_fopen( GetFileGroup( WIDE("Resources"), NULL )
@@ -1672,6 +1670,8 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 {
 	FILE *file;
 	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
+	int namelen;
+	TEXTSTR alt_filename = NewArray( TEXTCHAR, namelen = ( StrLen( filename ) + 6 ) );
 
    // -- additional code for XML output...
 	PVARTEXT pvt;
@@ -1681,6 +1681,11 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 	genxSetUserData( w, pvt );
 	// ----------------------------------
 
+	if( g.flags.bSQLConfig )
+	{
+		snprintf( alt_filename, namelen, "%s.tmp", filename );
+		filename = alt_filename;
+	}
 	RenameConfig( filename, filename, strlen( filename ), 1 );
 
 	file = sack_fopen( GetFileGroup( WIDE("Resources"), NULL ), filename, WIDE("wt") );
