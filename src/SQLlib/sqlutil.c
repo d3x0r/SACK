@@ -1494,7 +1494,7 @@ retry:
 						int k;
 						for( k = 0; k < table->keys.count; k++ )
 						{
-							if( table->keys.key[k].flags.bUnique )
+							if( table->keys.key[k].flags.bUnique && !table->keys.key[k].colnames[1] )
 							{
 								if( StrCmp( table->keys.key[k].colnames[0], table->fields.field[n].name ) == 0 )
 								{
@@ -1567,36 +1567,19 @@ retry:
 						{
 							if( table->keys.key[n].flags.bUnique )
 							{
-								if( !table->keys.key[n].colnames[1] )
+								if( table->keys.key[n].flags.bUnique && table->keys.key[n].colnames[1] )
 								{
-									if( !table->keys.key[n].flags.bUnique )
-									{
-										vtprintf( pvtCreate, WIDE("%s`%s`%s")
-												  , first?WIDE(""):WIDE(",")
-												  , table->keys.key[n].name
-												  , WIDE("KEY")
-												  );
-										for( col = 0; table->keys.key[n].colnames[col]; col++ )
-										{
-											if( !table->keys.key[n].colnames[col] )
-												break;
-											vtprintf( pvtCreate, WIDE("%s`%s`")
-													  , colfirst?WIDE(""):WIDE(",")
-													  , table->keys.key[n].colnames[col]
-													  );
-											colfirst = 0;
-										}
-										vtprintf( pvtCreate, WIDE(")") );
-									}
+									int c;
+									vtprintf( pvtCreate, WIDE("%sCONSTRAINT `%s` UNIQUE (")
+											  , first?"":","
+											  , table->keys.key[n].name
+											  );
+									for( c = 0; table->keys.key[n].colnames[c]; c++ )
+										vtprintf( pvtCreate, WIDE( "%s`%s`"), (c==0)?WIDE(""):WIDE(","), table->keys.key[n].colnames[c] );
+									vtprintf( pvtCreate, WIDE(") ON CONFLICT REPLACE")  );
+									first = 0;
 								}
-								else
-								{
-                           lprintf( WIDE( "Complex unique key (sqlite nosupport?)" )) ;
-								}
-								first = 0;
-
 							}
-
 						}
 						else
 #endif
