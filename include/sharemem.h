@@ -339,13 +339,13 @@ MEM_PROC  POINTER MEM_API  AllocateEx ( PTRSZVAL nSize DBG_PASS );
    <code lang="c++">
    int *p_int = New( int );
    </code>                                                           */
-#define New(type) ((type*)Allocate(sizeof(type)))
+#define New(type) ((type*)HeapAllocate(0,sizeof(type)))
 /* Reallocates an array of type.
    Parameters
    type :  type to use for sizeof(type) * sz for resulting size.
    p :     pointer to realloc
    sz :    count of elements in the array                        */
-#define Renew(type,p,sz) ((type*)Reallocate(p, sizeof(type)*sz))
+#define Renew(type,p,sz) ((type*)HeapReallocate(0,p, sizeof(type)*sz))
 /* an advantage of C, can define extra space at end of structure
    which is allowed to carry extra data, which is unknown by
    other code room for exploits rock.
@@ -360,7 +360,7 @@ MEM_PROC  POINTER MEM_API  AllocateEx ( PTRSZVAL nSize DBG_PASS );
    <code lang="c#">
    PTEXT text = NewPlus( TEXT, 18 ); 
    </code>                                                       */
-#define NewPlus(type,extra) ((type*)Allocate(sizeof(type)+(extra)))
+#define NewPlus(type,extra) ((type*)HeapAllocate(0,sizeof(type)+(extra)))
 /* Allocate a new array of type.
    Parameters
    type :   type to determine size of array element to allocate.
@@ -369,7 +369,7 @@ MEM_PROC  POINTER MEM_API  AllocateEx ( PTRSZVAL nSize DBG_PASS );
    Returns
    A pointer to type. (this is important, since in C++ it's cast
    correctly to the destination type).                           */
-#define NewArray(type,count) ((type*)Allocate(sizeof(type)*(count)))
+#define NewArray(type,count) ((type*)HeapAllocate(0,sizeof(type)*(count)))
 /* Allocate sizeof(type). Will invoke some sort of registered
    initializer
    Parameters
@@ -395,7 +395,10 @@ MEM_PROC  POINTER MEM_API  AllocateEx ( PTRSZVAL nSize DBG_PASS );
 /* <combine sack::memory::AllocateEx@PTRSZVAL nSize>
    
    \ \                                               */
+#ifdef FIX_RELEASE_COM_COLLISION
+#else
 #define Allocate( n ) HeapAllocateEx( (PMEM)0, (n) DBG_SRC )
+#endif
 //MEM_PROC  POINTER MEM_API  AllocateEx ( PTRSZVAL nSize DBG_PASS );
 //#define Allocate(n) AllocateEx(n DBG_SRC )
 MEM_PROC  POINTER MEM_API  GetFirstUsedBlock ( PMEM pHeap );
@@ -489,8 +492,10 @@ MEM_PROC  POINTER MEM_API  ReallocateEx ( POINTER source, PTRSZVAL size DBG_PASS
 /* <combine sack::memory::ReallocateEx@POINTER@PTRSZVAL size>
    
    \ \                                                        */
+#ifdef FIX_RELEASE_COM_COLLISION
+#else
 #define Reallocate(p,sz) ReallocateEx( (p),(sz) DBG_SRC )
-
+#endif
 /* This can be used to add additional space before the beginning
    of a memory block.
    Parameters
