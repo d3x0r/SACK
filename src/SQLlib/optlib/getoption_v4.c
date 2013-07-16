@@ -126,7 +126,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, 
 	static const TEXTCHAR *_system = NULL;
 	const TEXTCHAR *system = NULL;
 	CTEXTSTR *result = NULL;
-	CTEXTSTR ID;
+	CTEXTSTR ID = NULL;
 	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
 	//, IDName; // Name to lookup
 	if( og.flags.bUseProgramDefault )
@@ -274,7 +274,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, 
 					continue; // get out of this loop, continue outer.
 				}
 #ifdef DETAILED_LOGGING
-				_lprintf(DBG_RELAY)( WIDE("Option tree corrupt.  No option option_id='%s'"), ID );
+				_lprintf(DBG_RELAY)( WIDE("Option node missing; and was not created='%s'"), namebuf );
 #endif
 				if( !bIKnowItDoesntExist )
 					PopODBCEx( tree->odbc );

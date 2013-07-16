@@ -1032,32 +1032,46 @@ LOGICAL SetOptionStringValue( POPTION_TREE tree, POPTION_TREE_NODE optval, CTEXT
 
 		if( ( optval->value_id != INVALID_INDEX ) || ( optval->value_guid != NULL ) )
 		{
-			snprintf( update, sizeof( update )
-					  , tree->flags.bVersion4?WIDE("delete from %s where %s='%s'")
-						:WIDE("delete from %s where %s=%ld")
-
-					  ,tree->flags.bVersion4?OPTION4_VALUES:
-						tree->flags.bNewVersion?OPTION_VALUES:WIDE( "option_values" )
-					  , (tree->flags.bVersion4||tree->flags.bNewVersion)?WIDE( "option_id" ):WIDE( "value_id" )
-					  , tree->flags.bVersion4?optval->value_guid:(CPOINTER)optval->value_id );
-			OpenWriter( tree );
-			if( !SQLCommand( tree->odbc_writer, update ) )
+			if( tree->flags.bVersion4 )
 			{
-				FetchSQLError( tree->odbc_writer, &result );
-				lprintf( WIDE("Delete value failed: %s"), result );
-				retval = FALSE;
+				snprintf( update, sizeof( update ), WIDE("delete from ")OPTION4_MAP WIDE(" where option_id='%s'")
+						  , optval->guid );
+				if( !SQLCommand( tree->odbc_writer, update ) )
+				{
+					FetchSQLError( tree->odbc_writer, &result );
+					lprintf( WIDE("Delete option failed: %s"), result );
+					retval = FALSE;
+				}
 			}
-
-			snprintf( update, sizeof( update ), WIDE("delete from %s where %s=%ld")
-					  , tree->flags.bVersion4?OPTION4_MAP
-						:tree->flags.bNewVersion?OPTION_MAP:WIDE( "option_map" )
-					  , (tree->flags.bVersion4||tree->flags.bNewVersion)?WIDE( "option_id" ):WIDE( "option_id" )
-					  , tree->flags.bVersion4?optval->value_guid:(CPOINTER)optval->value_id  );
-			if( !SQLCommand( tree->odbc_writer, update ) )
+			else
 			{
-				FetchSQLError( tree->odbc_writer, &result );
-				lprintf( WIDE("Delete option failed: %s"), result );
-				retval = FALSE;
+				snprintf( update, sizeof( update )
+						  , tree->flags.bVersion4?WIDE("delete from %s where %s='%s'")
+							:WIDE("delete from %s where %s=%ld")
+
+						  ,tree->flags.bVersion4?OPTION4_VALUES:
+							tree->flags.bNewVersion?OPTION_VALUES:WIDE( "option_values" )
+						  , (tree->flags.bVersion4||tree->flags.bNewVersion)?WIDE( "option_id" ):WIDE( "value_id" )
+						  , tree->flags.bVersion4?optval->value_guid:(CPOINTER)optval->value_id );
+				OpenWriter( tree );
+				if( !SQLCommand( tree->odbc_writer, update ) )
+				{
+					FetchSQLError( tree->odbc_writer, &result );
+					lprintf( WIDE("Delete value failed: %s"), result );
+					retval = FALSE;
+				}
+
+				snprintf( update, sizeof( update ), WIDE("delete from %s where %s=%ld")
+						  , tree->flags.bVersion4?OPTION4_MAP
+							:tree->flags.bNewVersion?OPTION_MAP:WIDE( "option_map" )
+						  , (tree->flags.bVersion4||tree->flags.bNewVersion)?WIDE( "option_id" ):WIDE( "option_id" )
+						  , tree->flags.bVersion4?optval->value_guid:(CPOINTER)optval->value_id  );
+				if( !SQLCommand( tree->odbc_writer, update ) )
+				{
+					FetchSQLError( tree->odbc_writer, &result );
+					lprintf( WIDE("Delete option failed: %s"), result );
+					retval = FALSE;
+				}
 			}
 		}
 		LeaveCriticalSec( &og.cs_option );
@@ -1296,7 +1310,8 @@ static CTEXTSTR CPROC ResolveININame( PODBC odbc, CTEXTSTR pSection, TEXTCHAR *b
 			{
 				//lprintf( "(Convert %s)", pINIFile );
 				if( og.flags.bEnableSystemMapping == 2 )
-					og.flags.bEnableSystemMapping = SACK_GetProfileIntEx( WIDE( "System Settings"), WIDE( "Enable System Mapping" ), 0, TRUE );
+					og.flags.bEnableSystemMapping = SACK_GetPrivateProfileIntExx( odbc, WIDE( "System Settings")
+																										 , WIDE( "Enable System Mapping" ), 0, NULL, TRUE DBG_SRC );
 				if( og.flags.bEnableSystemMapping )
 				{
 					TEXTCHAR resultbuf[12];
@@ -1514,7 +1529,10 @@ SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntExx )( PODBC odbc, CTEXTSTR pS
 SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pOptname, S_32 nDefault, CTEXTSTR pINIFile, LOGICAL bQuiet )
 {
 	S_32 result;
-	PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
+	PODBC odbc;
+   lprintf( "Get something [%s]%s=%d", pSection, pOptname, nDefault );
+	odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
+
 	result = SACK_GetPrivateProfileIntExx( odbc, pSection, pOptname, nDefault, pINIFile, bQuiet DBG_SRC );
 	DropOptionODBC( odbc );
 	return result;
@@ -1870,7 +1888,7 @@ PODBC GetOptionODBCEx( CTEXTSTR dsn, int version  DBG_PASS )
 		PODBC odbc = (PODBC)DequeLink( &tracker->available );
 		if( !odbc )
 		{
-         //lprintf( "non available, create new connection." );
+         //lprintf( "none available, create new connection." );
 			odbc = ConnectToDatabaseExx( tracker->name, TRUE DBG_RELAY );
 			if( !tracker->shared_option_tree )
 			{
