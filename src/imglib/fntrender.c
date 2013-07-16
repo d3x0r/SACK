@@ -372,8 +372,8 @@ Image AllocateCharacterSpace( PFONT_RENDERER renderer, PCHARACTER character )
 		{
          lprintf( WIDE( "make new lines" ) );
          renderer->nLinesAvail += 16; // another 16 lines... (16 ever should be enough)
-         renderer->pLineStarts = (int*)Reallocate( renderer->pLineStarts, sizeof( int ) * renderer->nLinesAvail );
-         renderer->ppCharacterLineStarts = (PCHARACTER*)Reallocate( renderer->ppCharacterLineStarts, sizeof( PCHARACTER ) * renderer->nLinesAvail );
+         renderer->pLineStarts = (int*)HeapReallocate( 0, renderer->pLineStarts, sizeof( int ) * renderer->nLinesAvail );
+         renderer->ppCharacterLineStarts = (PCHARACTER*)HeapReallocate( 0, renderer->ppCharacterLineStarts, sizeof( PCHARACTER ) * renderer->nLinesAvail );
 		}
 
 		renderer->nLinesUsed++;
@@ -404,7 +404,7 @@ Image AllocateCharacterSpaceByFont( SFTFont font, PCHARACTER character )
 		}
 		if( !renderer )
 		{
-			renderer = (PFONT_RENDERER)Allocate( sizeof( FONT_RENDERER ) );
+			renderer = New( FONT_RENDERER );
 			MemSet( renderer, 0, sizeof( FONT_RENDERER ) );
 			renderer->nWidth = (S_16)0;
 			renderer->nHeight = (S_16)0;
@@ -459,7 +459,7 @@ void RenderMonoChar( PFONT font
 	}
 
 	{
-		PCHARACTER character = (PCHARACTER)Allocate( sizeof( CHARACTER ) +
+		PCHARACTER character = NewPlus( CHARACTER,
 												  ( bitmap->rows
 													* ((bitmap->width+7)/8) ) );
 		INDEX bit, line, linetop, linebottom;
@@ -695,7 +695,7 @@ void RenderGreyChar( PFONT font
 	}
 
 	{
-		PCHARACTER character = (PCHARACTER)Allocate( sizeof( CHARACTER )
+		PCHARACTER character = NewPlus( CHARACTER,
 												  + ( bitmap->rows
 													  * (bitmap->width+(bits==8?0:bits==2?3:7)/(8/bits)) ) );
 		INDEX bit, line, linetop, linebottom;
@@ -1034,7 +1034,7 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 		if( !renderer->font )
 		{
 			lprintf( WIDE("Need font resource (once)") );
-			renderer->font = (PFONT)Allocate( sizeof( FONT ) + 255 * sizeof(PCHARACTER) );
+			renderer->font = NewPlus( FONT, 255 * sizeof(PCHARACTER) );
 			// this is okay it's a kludge so some other code worked magically
 			// it's redundant and should be dleete...
 			renderer->ResultFont = (SFTFont)renderer->font;
@@ -1539,9 +1539,9 @@ SFTFont RenderFontFileScaledEx( CTEXTSTR file, _32 width, _32 height, PFRACTION 
 	if( font && size && pFontData )
 	{
 		size_t chars;
-		PRENDER_FONTDATA pResult = (PRENDER_FONTDATA)Allocate( (*size)
-														= sizeof( RENDER_FONTDATA )
-														+ (chars = strlen( file ) + 1)*sizeof(TEXTCHAR) );
+		PRENDER_FONTDATA pResult = NewPlus( RENDER_FONTDATA, (*size) =
+																			  (chars = strlen( file ) + 1)*sizeof(TEXTCHAR) );
+      (*size) += sizeof( RENDER_FONTDATA );
 		pResult->magic = MAGIC_RENDER_FONT;
 		pResult->nHeight = height;
 		pResult->nWidth = width;
@@ -1589,9 +1589,10 @@ SFTFont RenderScaledFontEx( CTEXTSTR name, _32 width, _32 height, PFRACTION widt
 														 , flags );
 		{
 			size_t chars;
-			PRENDER_FONTDATA pResult = (PRENDER_FONTDATA)Allocate( (*pnFontDataSize)
-																					= sizeof( RENDER_FONTDATA )
-																					+ (chars = strlen( name ) + 1)*sizeof(TEXTCHAR) );
+			PRENDER_FONTDATA pResult = NewPlus( RENDER_FONTDATA, (*pnFontDataSize)
+																					= 
+															    (chars = strlen( name ) + 1)*sizeof(TEXTCHAR) );
+         (*pnFontDataSize) += sizeof( RENDER_FONTDATA );
 			pResult->magic = MAGIC_RENDER_FONT;
 			pResult->nHeight = height;
 			pResult->nWidth = width;
@@ -1611,9 +1612,9 @@ SFTFont RenderScaledFontEx( CTEXTSTR name, _32 width, _32 height, PFRACTION widt
 										  , flags );
 	{
 		size_t chars;
-		PRENDER_FONTDATA pResult = (PRENDER_FONTDATA)Allocate( (*pnFontDataSize)
-																				= sizeof( RENDER_FONTDATA )
-																				+ (chars = strlen( name ) + 1)*sizeof(TEXTCHAR) );
+		PRENDER_FONTDATA pResult = NewPlus( RENDER_FONTDATA, (*pnFontDataSize) =
+																			   (chars = strlen( name ) + 1)*sizeof(TEXTCHAR) );
+      (*pnFontDataSize) += sizeof( RENDER_FONTDATA );
 		pResult->magic = MAGIC_RENDER_FONT;
 		pResult->nHeight = height;
 		pResult->nWidth = width;
