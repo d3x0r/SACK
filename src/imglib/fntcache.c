@@ -289,7 +289,7 @@ PDICT_ENTRY AddDictEntry( PTREEROOT *root, CTEXTSTR name )
 											, DestroyDictEntry );
 
 	len = strlen( name );
-	pde = (PDICT_ENTRY)Allocate( sizeof( DICT_ENTRY ) + len*sizeof(pde->word[0]));
+	pde = NewPlus( DICT_ENTRY, len*sizeof(pde->word[0]));
 	StrCpyEx( pde->word, name, len + 1 );
 	if( !AddBinaryNode( *root, pde, (PTRSZVAL)pde->word ) )
 	{
@@ -356,7 +356,7 @@ PFONT_ENTRY AddFontEntry( PDICT_ENTRY name )
 	pfe = (PFONT_ENTRY)FindInBinaryTree( build.pFontCache, (PTRSZVAL)name->word );
 	if( !pfe )
 	{
-		pfe = (PFONT_ENTRY)Allocate( sizeof( FONT_ENTRY ) );
+		pfe = New( FONT_ENTRY );
 		pfe->flags.unusable = 0;
 		pfe->name = name;
 		pfe->nStyles = 0;
@@ -370,8 +370,7 @@ PFONT_ENTRY AddFontEntry( PDICT_ENTRY name )
 
 void AddAlternateSizeFile( PSIZE_FILE psfBase, PDICT_ENTRY path, PDICT_ENTRY file )
 {
-	PALT_SIZE_FILE psf =
-		(PALT_SIZE_FILE)Allocate( sizeof( ALT_SIZE_FILE ) );
+	PALT_SIZE_FILE psf = New( ALT_SIZE_FILE );
 	psf->path = path;
 	psf->file = file;
 	psfBase->nAlternate++;
@@ -384,7 +383,7 @@ void AddSizeToFile( PSIZE_FILE psf, S_16 width, S_16 height )
 {
 	if( psf )
 	{
-		PSIZES size = (PSIZES)Allocate( sizeof( SIZES ) );
+		PSIZES size = New( SIZES );
 		size->flags.unusable = 0;
 		size->width = width;
 		size->height = height;
@@ -402,7 +401,7 @@ PSIZE_FILE AddSizeFileEx( PFONT_STYLE pfs
 								DBG_PASS )
 #define AddSizeFile(pfs,p,f,t) AddSizeFileEx(pfs,p,f,t DBG_SRC )
 {
-	PSIZE_FILE psf = (PSIZE_FILE)Allocate( sizeof( SIZE_FILE ) );
+	PSIZE_FILE psf = New( SIZE_FILE );
 	PSIZE_FILE psfCheck = NULL;
 	INDEX idx;
 	psf->flags.unusable = 0;
@@ -589,7 +588,7 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 #endif
 	if( *font_memory )
 	{
-		POINTER p = Allocate( size );
+		POINTER p = NewArray( _8, size );
 		MemCpy( p, (*font_memory), size );
 		Deallocate( POINTER, (*font_memory) );
 		(*font_memory) = p;
@@ -648,7 +647,7 @@ static PFONT_STYLE AddFontStyle( PFONT_ENTRY pfe, PDICT_ENTRY name )
 	}
 	if( !pfsCheck )
 	{
-		PFONT_STYLE pfs = (PFONT_STYLE)Allocate( sizeof( FONT_STYLE ) );
+		PFONT_STYLE pfs = New( FONT_STYLE );
 		memset( pfs, 0, sizeof( FONT_STYLE ) );
 		pfs->name = name;
 		pfs->nFiles = 0;
@@ -1499,16 +1498,16 @@ void LoadAllFonts( void )
 						if( sscanf( buf + 2, WIDE("%d,%d,%d,%d"), &nStyles, &nSizeFiles, &nSizes, &nAltFiles ) == 4 )
 						{
 							build.nStyle = 0;
-							build.pStyleSlab = (PFONT_STYLE)Allocate( sizeof( FONT_STYLE ) * nStyles );
+							build.pStyleSlab = NewArray( FONT_STYLE, nStyles );
 							MemSet( build.pStyleSlab, 0, sizeof( FONT_STYLE ) * nStyles );
 							build.nSizeFile = 0;
-							build.pSizeFileSlab = (PAPP_SIZE_FILE)Allocate( sizeof( APP_SIZE_FILE ) * nSizeFiles );
+							build.pSizeFileSlab = NewArray( APP_SIZE_FILE, nSizeFiles );
 							MemSet( build.pSizeFileSlab, 0, sizeof( APP_SIZE_FILE ) * nSizeFiles );
 							build.nSize = 0;
-							build.pSizeSlab = (PSIZES)Allocate( sizeof( SIZES ) * nSizes );
+							build.pSizeSlab = NewArray( SIZES, nSizes );
 							MemSet( build.pSizeSlab, 0, sizeof( SIZES ) * nSizes );
 							build.nAlt = 0;
-							build.pAltSlab = (PALT_SIZE_FILE)Allocate( sizeof( ALT_SIZE_FILE ) * nAltFiles );
+							build.pAltSlab = NewArray( ALT_SIZE_FILE, nAltFiles );
 							MemSet( build.pAltSlab, 0, sizeof( ALT_SIZE_FILE ) * nAltFiles );
 						}
 						else
