@@ -3269,7 +3269,7 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (PVIDEO hVideo, int x, int y,
 #ifdef LOG_OPEN_TIMING
 			lprintf( WIDE( "Created Real window...Stuff.." ) );
 #endif
-			l.hVidCore = (PVIDEO)Allocate (sizeof (VIDEO));
+			l.hVidCore = New(VIDEO);
 			MemSet (l.hVidCore, 0, sizeof (VIDEO));
          InitializeCriticalSec( &l.hVidCore->cs );
 			l.hVidCore->hWndOutput = (HWND)l.hWndInstance;
@@ -3650,7 +3650,7 @@ static void HandleMessage (MSG Msg)
 		GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &dwSize,
 							 sizeof(RAWINPUTHEADER));
 		{
-			LPBYTE lpb = Allocate( dwSize );
+			LPBYTE lpb = NewArray( BYTE, dwSize );
 			if (lpb == NULL)
 			{
 				return;
@@ -4251,7 +4251,7 @@ static LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 RENDER_PROC (PVIDEO, MakeDisplayFrom) (HWND hWnd) 
 {	
 	PVIDEO hNextVideo;
-	hNextVideo = (PVIDEO)Allocate (sizeof (VIDEO));
+	hNextVideo = New(VIDEO);
 	MemSet (hNextVideo, 0, sizeof (VIDEO));
 	InitializeCriticalSec( &hNextVideo->cs );
 
@@ -4281,7 +4281,7 @@ RENDER_PROC (PVIDEO, MakeDisplayFrom) (HWND hWnd)
 RENDER_PROC (PVIDEO, OpenDisplaySizedAt) (_32 attr, _32 wx, _32 wy, S_32 x, S_32 y) // if native - we can return and let the messages dispatch...
 {
 	PVIDEO hNextVideo;
-	hNextVideo = (PVIDEO)Allocate (sizeof (VIDEO));
+	hNextVideo = New(VIDEO);
 	MemSet (hNextVideo, 0, sizeof (VIDEO));
 	InitializeCriticalSec( &hNextVideo->cs );
 #ifdef _OPENGL_ENABLED
@@ -5570,7 +5570,7 @@ RENDER_PROC( PSPRITE_METHOD, EnableSpriteMethod )(PRENDERER render, void(CPROC*R
 {
 	// add a sprite callback to the image.
 	// enable copy image, and restore image
-	PSPRITE_METHOD psm = (PSPRITE_METHOD)Allocate( sizeof( *psm ) );
+	PSPRITE_METHOD psm = New( struct sprite_method_tag );
 	psm->renderer = render;
 	psm->original_surface = MakeImageFile( render->pImage->width, render->pImage->height );
 	//psm->original_surface = MakeImageFile( render->pImage->width, render->pImage->height );

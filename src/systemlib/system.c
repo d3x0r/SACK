@@ -213,7 +213,7 @@ static void SetupSystemServices( void )
 		oldpath = getenv( "LD_LIBRARY_PATH" );
 		if( oldpath )
 		{
-			newpath = (char*)Allocate( (_32)((oldpath?strlen( oldpath ):0) + 2 + strlen(l.load_path)) );
+			newpath = NewArray( char, (_32)((oldpath?strlen( oldpath ):0) + 2 + strlen(l.load_path)) );
 			sprintf( newpath, WIDE("%s:%s"), l.load_path
 					 , oldpath );
 			setenv( WIDE("LD_LIBRARY_PATH"), newpath, 1 );
@@ -226,7 +226,7 @@ static void SetupSystemServices( void )
 		oldpath = getenv( "PATH" );
 		if( oldpath )
 		{
-			newpath = (char*)Allocate( (_32)((oldpath?strlen( oldpath ):0) + 2 + strlen(l.load_path)) );
+			newpath = NewArray( char, (_32)((oldpath?strlen( oldpath ):0) + 2 + strlen(l.load_path)) );
 			sprintf( newpath, WIDE("%s:%s"), l.load_path
 					 , oldpath );
 			setenv( WIDE("PATH"), newpath, 1 );
@@ -828,7 +828,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchProgramEx )( CTEXTSTR program, CTEXTSTR path, PCT
 	TEXTSTR expanded_path = ExpandPath( program );
 	TEXTSTR expanded_working_path = path?ExpandPath( path ):ExpandPath( WIDE(".") );
 	LOGICAL needs_quotes;
-	task = (PTASK_INFO)Allocate( sizeof( TASK_INFO ) );
+	task = New( TASK_INFO );
 	MemSet( task, 0, sizeof( TASK_INFO ) );
 	task->psvEnd = psv;
 	task->EndNotice = EndNotice;
@@ -941,7 +941,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchProgramEx )( CTEXTSTR program, CTEXTSTR path, PCT
 #ifdef __LINUX__
 	{
 		pid_t newpid;
-		task = (PTASK_INFO)Allocate( sizeof( TASK_INFO ) );
+		task = New( TASK_INFO );
 		MemSet( task, 0, sizeof( TASK_INFO ) );
 		task->psvEnd = psv;
 		task->EndNotice = EndNotice;
@@ -1058,7 +1058,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 	if( !library )
 	{
 		size_t maxlen = strlen( l.load_path ) + 1 + strlen( libname ) + 1;
-		library = (PLIBRARY)Allocate( sizeof( LIBRARY ) + sizeof(TEXTCHAR)*((maxlen<0xFFFFFF)?(_32)maxlen:0) );
+		library = NewPlus( LIBRARY, sizeof(TEXTCHAR)*((maxlen<0xFFFFFF)?(_32)maxlen:0) );
 		if( !IsAbsolutePath( libname ) )
 		{
 			library->name = library->full_name
@@ -1141,7 +1141,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		if( !function )
 		{
 			int len;
-			function = (PFUNCTION)Allocate( sizeof( FUNCTION ) + (len=(sizeof(TEXTCHAR)*( (_32)strlen( funcname ) + 1 ) ) ) );
+			function = NewPlus( FUNCTION, (len=(sizeof(TEXTCHAR)*( (_32)strlen( funcname ) + 1 ) ) ) );
 			snprintf( function->name, len, WIDE( "%s" ), funcname );
 			function->library = library;
 			function->references = 0;
