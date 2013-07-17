@@ -26,6 +26,9 @@
 #define DEFAULT_PUBLIC_KEY WIDE( "DEFAULT" )
 //#define DEFAULT_PUBLIC_KEY "system"
 
+SQL_NAMESPACE
+extern GLOBAL *global_sqlstub_data;
+SQL_NAMESPACE_END
 /*
  Dump Option table...
  SELECT oname2.name,oname.name,optionvalues.string,omap.*
@@ -1328,7 +1331,7 @@ static CTEXTSTR CPROC ResolveININame( PODBC odbc, CTEXTSTR pSection, TEXTCHAR *b
 						//lprintf( "FILE is not mapped entirly, check enumerated options..." );
 						snprintf( buf, 128, WIDE("System Settings/Map INI Local Masks/%s"), pINIFile );
 						//lprintf( "buf is %s", buf );
-						node = GetOptionIndexExxx( odbc, NULL, DEFAULT_PUBLIC_KEY, NULL, buf, FALSE, FALSE DBG_SRC );
+						node = GetOptionIndexExxx( odbc, NULL, DEFAULT_PUBLIC_KEY, NULL, buf, TRUE, FALSE DBG_SRC );
 						if( node )
 						{
 							//lprintf( "Node is %p?", node );
@@ -1382,7 +1385,6 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 {
 	LOGICAL drop_odbc = FALSE;
 	EnterCriticalSec( &og.cs_option );
-	//lprintf( "Getting {%s}[%s]%s=%s", pINIFile, pSection, pOptname, pDefaultbuf );
 	if( !odbc )
 	{
 		odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
@@ -1529,10 +1531,7 @@ SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntExx )( PODBC odbc, CTEXTSTR pS
 SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pOptname, S_32 nDefault, CTEXTSTR pINIFile, LOGICAL bQuiet )
 {
 	S_32 result;
-	PODBC odbc;
-   lprintf( "Get something [%s]%s=%d", pSection, pOptname, nDefault );
-	odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
-
+	PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
 	result = SACK_GetPrivateProfileIntExx( odbc, pSection, pOptname, nDefault, pINIFile, bQuiet DBG_SRC );
 	DropOptionODBC( odbc );
 	return result;
