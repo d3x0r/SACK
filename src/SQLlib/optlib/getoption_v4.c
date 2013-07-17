@@ -1,6 +1,8 @@
 #ifndef GETOPTION_SOURCE
 #define GETOPTION_SOURCE
 #endif
+// we want access to GLOBAL from sqltub
+#define SQLLIB_SOURCE
 #include <stdhdrs.h>
 #include <sack_types.h>
 #include <deadstart.h>
@@ -18,8 +20,11 @@
 #include "../sqlstruc.h"
 // define this to show very verbose logging during creation and
 // referencing of option tree...
-//#define DETAILED_LOGGING
+#define DETAILED_LOGGING
 
+SQL_NAMESPACE
+extern GLOBAL *global_sqlstub_data;
+SQL_NAMESPACE_END
 /*
  Dump Option table...
  SELECT oname2.name,oname.name,optionvalues.string,omap.*
@@ -273,9 +278,9 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, 
 						PopODBCEx( tree->odbc );
 					continue; // get out of this loop, continue outer.
 				}
-#ifdef DETAILED_LOGGING
-				_lprintf(DBG_RELAY)( WIDE("Option node missing; and was not created='%s'"), namebuf );
-#endif
+				if( global_sqlstub_data->flags.bLogOptionConnection )
+					_lprintf(DBG_RELAY)( WIDE("Option node missing; and was not created='%s'"), namebuf );
+
 				if( !bIKnowItDoesntExist )
 					PopODBCEx( tree->odbc );
 				return NULL;
@@ -314,6 +319,7 @@ size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR 
    PVARTEXT pvtResult = NULL;
 	len--;
 
+/*
 	if( optval->value_guid )
 	{
 		result_len = StrLen( optval->value );
@@ -321,6 +327,7 @@ size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR 
 		buffer[result_len = min(len,result_len)] = 0;
 		return result_len;
 	}
+*/
 
 #if 0
 	snprintf( query, sizeof( query ), WIDE( "select override_value_id from " )OPTION4_EXCEPTION WIDE( " " )
