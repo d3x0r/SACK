@@ -4,6 +4,9 @@
 #include <sqlgetoption.h>
 #include <sharemem.h>
 
+#define BTN_FIND 1008
+#define BTN_CREATE 1007
+#define BTN_RESET 1006
 #define BTN_UPDATE 1005
 #define TXT_DESCRIPTION 1004
 #define BTN_DELETE 1003
@@ -31,6 +34,7 @@ typedef struct node_data_tag
 	POPTION_TREE_NODE ID_Value;
 	char description[128];
 	POPTION_TREE_NODE ID_Option; // lookin for parent things...
+	CTEXTSTR option_text;
 	_32 nLevel;
 	PLISTITEM pli_fake;
 } NODE_DATA, *PNODE_DATA;
@@ -88,9 +92,10 @@ int CPROC FillList( PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags
 	//lprintf( WIDE("%d - %s (%p)"), plf->nLevel, name, ID );
 	lf.pLastItem = hli = InsertListItemEx( plf->pcList, plf->pLastItem, plf->nLevel, name );
 	{
-		PNODE_DATA pnd = New( NODE_DATA);//Allocate( sizeof( NODE_DATA ) );
+		PNODE_DATA pnd = New(NODE_DATA);//Allocate( sizeof( NODE_DATA ) );
 		pnd->flags.bOpened = FALSE;
 		//pnd->nListIndex = GetItemIndex( pc, hli );
+		pnd->option_text = NULL;
 		pnd->ID_Value = ID;//GetOptionValueIndex( ID );
 		pnd->ID_Option = ID;
 		pnd->nLevel = lf.nLevel;
@@ -129,22 +134,33 @@ static void CPROC OptionSelectionChanged( PTRSZVAL psvUser, PCONTROL pc, PLISTIT
 	PNODE_DATA pnd = (PNODE_DATA)GetItemData( hli );
 	last_option = pnd->ID_Option;
 	last_node = pnd;
-	if( pnd->ID_Value )
+	if( pnd->option_text )
 	{
-		lprintf( WIDE("Set value to real value.") );
-		GetOptionStringValueEx( (PODBC)psvUser, pnd->ID_Value, buffer, sizeof( buffer ) DBG_SRC );
+		if( !pnd->ID_Option )
+			pnd->ID_Option = GetOptionIndexExx( (PODBC)psvUser, NULL, NULL, pnd->option_text, NULL, FALSE DBG_SRC );
+		GetOptionStringValueEx( (PODBC)psvUser, pnd->ID_Option, buffer, sizeof( buffer ) DBG_SRC );
 		StrCpyEx( last_value, buffer, sizeof(last_value)/sizeof(last_value[0]) );
 		SetCommonText( GetNearControl( pc, EDT_OPTIONVALUE ), buffer );
 	}
 	else
 	{
-		lprintf( WIDE("Set to blank value - no value on branch.") );
-		last_value[0] = 0;
-		SetCommonText( GetNearControl( pc, EDT_OPTIONVALUE ), WIDE("") );
+		if( pnd->ID_Value )
+		{
+			lprintf( WIDE("Set value to real value.") );
+			GetOptionStringValueEx( (PODBC)psvUser, pnd->ID_Value, buffer, sizeof( buffer ) DBG_SRC );
+			StrCpyEx( last_value, buffer, sizeof(last_value)/sizeof(last_value[0]) );
+			SetCommonText( GetNearControl( pc, EDT_OPTIONVALUE ), buffer );
+		}
+		else
+		{
+			lprintf( WIDE("Set to blank value - no value on branch.") );
+			last_value[0] = 0;
+			SetCommonText( GetNearControl( pc, EDT_OPTIONVALUE ), WIDE("") );
+		}
 	}
 }
 
-void CPROC UpdateValue( PTRSZVAL psv, PCOMMON pc )
+static void CPROC UpdateValue( PTRSZVAL psv, PCOMMON pc )
 {
 	TEXTCHAR value[256];
 	GetControlText( GetNearControl( pc, EDT_OPTIONVALUE ), value, sizeof(value) );
@@ -155,7 +171,7 @@ void CPROC UpdateValue( PTRSZVAL psv, PCOMMON pc )
 	}
 }
 
-void CPROC ResetButton( PTRSZVAL psv, PCOMMON pc )
+static void CPROC ResetButton( PTRSZVAL psv, PCOMMON pc )
 {
 	ResetList( GetNearControl( pc, LST_OPTIONMAP ) );
 	ResetOptionMap( (PODBC)psv );
@@ -163,7 +179,7 @@ void CPROC ResetButton( PTRSZVAL psv, PCOMMON pc )
 	InitOptionList( (PODBC)psv, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
 }
 
-void CPROC DeleteBranch( PTRSZVAL psv, PCOMMON pc )
+static void CPROC DeleteBranch( PTRSZVAL psv, PCOMMON pc )
 {
 	if( last_option )
 		DeleteOption( last_option );
@@ -171,10 +187,9 @@ void CPROC DeleteBranch( PTRSZVAL psv, PCOMMON pc )
 	ResetOptionMap( (PODBC)psv );
 	last_option = NULL;
 	InitOptionList( (PODBC)psv, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
-	return;
 }
 
-void CPROC CopyBranch( PTRSZVAL psv, PCOMMON pc )
+static void CPROC CopyBranch( PTRSZVAL psv, PCOMMON pc )
 {
 	TEXTCHAR result[256];
 	// there's a current state already ...
@@ -187,16 +202,29 @@ void CPROC CopyBranch( PTRSZVAL psv, PCOMMON pc )
 	ResetOptionMap( (PODBC)psv );
 	last_option = NULL;
 	InitOptionList( (PODBC)psv, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
-	return;
 }
 
-int EditOptions( PODBC odbc )
+static void CPROC CreateEntry( PTRSZVAL psv, PCOMMON pc )
 {
-	PCOMMON frame;// = LoadFrame( WIDE("edit.frame"), NULL, NULL, 0 );
-	int done = FALSE;
+	TEXTCHAR result[256];
+	// there's a current state already ...
+	//GetCurrentSelection( );
+	if( SimpleUserQuery( result, sizeof( result ), WIDE("Enter New Branch Name"), GetFrame( pc ) ) )
+	{
+		GetOptionIndexExx( (PODBC)psv, last_option, result, NULL, NULL, TRUE DBG_SRC );
+		//DuplicateOption( last_option, result );
+		ResetList( GetNearControl( pc, LST_OPTIONMAP ) );
+		ResetOptionMap( (PODBC)psv );
+		last_option = NULL;
+		InitOptionList( (PODBC)psv, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
+	}
+}
 
+static void CPROC FindEntry( PTRSZVAL psv, PCOMMON pc );
 
-	//if( !frame )
+static PSI_CONTROL CreateOptionFrame( PODBC odbc, LOGICAL tree, int *done )
+{
+	PSI_CONTROL frame;
 	{
 		PCOMMON pc;
 		PCONTROL list;
@@ -206,29 +234,91 @@ int EditOptions( PODBC odbc )
 #define RIGHT_START   250 - SIZE_BASE + NEW_SIZE
 		frame = CreateFrame( WIDE("Edit Options"), -1, -1, NEW_SIZE, 320, BORDER_NORMAL, NULL );
 		list = MakeListBox( frame, 5, 5, LIST_SIZE, 310, LST_OPTIONMAP, 0 );
-		SetListboxIsTree( list, TRUE );
+		SetListboxIsTree( list, tree );
 		SetSelChangeHandler( list, OptionSelectionChanged, (PTRSZVAL)odbc );
 		SetListItemOpenHandler( list, HandleItemOpened, (PTRSZVAL)odbc );
 		MakeEditControl( frame, RIGHT_START, 35, 175, 25, EDT_OPTIONVALUE, WIDE("blah"), 0 );
 
-
-      // this needs some work to work - auto wrap at spaces in text, etc....
-		//MakeCaptionedControl( frame, STATIC_TEXT, RIGHT_START, 75, 175, 100, TXT_DESCRIPTION, WIDE("test descript"), 0 );
-
-
-		//SaveFrame( frame, WIDE("edit.frame") );
-		pc = MakeButton( frame, RIGHT_START, 145, 150, 25, BTN_UPDATE, WIDE("update"), 0, 0, 0  );
+		pc = MakeButton( frame, RIGHT_START, 95, 150, 25, BTN_UPDATE, WIDE("Update"), 0, 0, 0  );
 		SetButtonPushMethod( pc, UpdateValue, (PTRSZVAL)odbc );
- 		pc = MakeButton( frame, RIGHT_START, 175, 150, 25, BTN_COPY, WIDE("copy"), 0, 0, 0  );
+		if( tree )
+		{
+			pc = MakeButton( frame, RIGHT_START, 125, 150, 25, BTN_FIND, WIDE("Find Entries"), 0, 0, 0  );
+			SetButtonPushMethod( pc, FindEntry, (PTRSZVAL)odbc );
+			pc = MakeButton( frame, RIGHT_START, 155, 150, 25, BTN_CREATE, WIDE("Make Entry"), 0, 0, 0  );
+			SetButtonPushMethod( pc, CreateEntry, (PTRSZVAL)odbc );
+		}
+ 		pc = MakeButton( frame, RIGHT_START, 185, 150, 25, BTN_COPY, WIDE("Copy"), 0, 0, 0  );
 		SetButtonPushMethod( pc, CopyBranch, (PTRSZVAL)odbc );
-		pc = MakeButton( frame, RIGHT_START, 205, 150, 25, BTN_DELETE, WIDE("delete"), 0, 0, 0  );
+		pc = MakeButton( frame, RIGHT_START, 215, 150, 25, BTN_DELETE, WIDE("Delete"), 0, 0, 0  );
 		SetButtonPushMethod( pc, DeleteBranch, (PTRSZVAL)odbc );
-		pc = MakeButton( frame, RIGHT_START, 235, 150, 25, BTN_DELETE, WIDE("reset"), 0, 0, 0  );
+		pc = MakeButton( frame, RIGHT_START, 245, 150, 25, BTN_DELETE, WIDE("Reset"), 0, 0, 0  );
 		SetButtonPushMethod( pc, ResetButton, (PTRSZVAL)odbc );
-		AddCommonButtonsEx( frame, &done, WIDE("Done"), NULL, NULL );
-
-		InitOptionList( odbc, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
+		AddCommonButtonsEx( frame, done, WIDE("Done"), NULL, NULL );
 	}
+	return frame;
+}
+
+static void CPROC FindEntry( PTRSZVAL psv, PCOMMON pc )
+{
+	TEXTCHAR result[256];
+	// there's a current state already ...
+	//GetCurrentSelection( );
+	if( SimpleUserQuery( result, sizeof( result ), WIDE("Enter Option Name to Find"), GetFrame( pc ) ) )
+	{
+		CTEXTSTR name;
+		INDEX idx;
+		PLIST options = NULL;
+		// this is a magic function.
+		FindOptions( (PODBC)psv, &options, result );
+		if( !options )
+		{
+			SimpleMessageBox( NULL, "No Options Found", "Could not find any matching options" );
+			return;
+		}
+		LIST_FORALL( options, idx, CTEXTSTR, name )
+		{
+			lprintf( "Found : %s", name );
+		}
+
+		{
+			int done = 0;
+			PSI_CONTROL frame = CreateOptionFrame( (PODBC)psv, FALSE, &done );
+			PSI_CONTROL list = GetControl( frame, LST_OPTIONMAP );
+			LIST_FORALL( options, idx, CTEXTSTR, name )
+			{
+				PLISTITEM hli = AddListItem( list, name );
+				PNODE_DATA pnd = New(NODE_DATA);//Allocate( sizeof( NODE_DATA ) );
+				pnd->flags.bOpened = TRUE;
+				pnd->ID_Value = NULL;
+				pnd->ID_Option = NULL;
+				pnd->option_text = StrDup( name );
+				pnd->nLevel = 0;
+				pnd->pli_fake = 0; //InsertListItemEx( plf->pcList, hli, plf->nLevel+1, WIDE("fake") );
+
+				SetItemData( hli,(PTRSZVAL)pnd );
+
+				lprintf( "Found : %s", name );
+			}
+			//InitOptionList( odbc, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
+			DisplayFrame( frame );
+			CommonWait( frame );
+			DestroyFrame( &frame );
+		}
+
+	}
+}
+
+int EditOptions( PODBC odbc )
+{
+	PCOMMON frame;// = LoadFrame( WIDE("edit.frame"), NULL, NULL, 0 );
+	int done = FALSE;
+
+
+	//if( !frame )
+	frame = CreateOptionFrame( odbc, TRUE, &done );
+	InitOptionList( odbc, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
+
 	DisplayFrame( frame );
 	CommonWait( frame );
 	DestroyFrame( &frame );
