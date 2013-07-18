@@ -190,6 +190,7 @@ SQLGETOPTION_PROC( POPTION_TREE_NODE, GetOptionValueIndexEx )( PODBC odbc, POPTI
 SQLGETOPTION_PROC( LOGICAL, SetOptionStringValue )( POPTION_TREE tree, POPTION_TREE_NODE optval, CTEXTSTR pValue );
 SQLGETOPTION_PROC( void, DeleteOption )( POPTION_TREE_NODE iRoot );
 SQLGETOPTION_PROC( void, DuplicateOption )( POPTION_TREE_NODE iRoot, CTEXTSTR pNewName );
+SQLGETOPTION_PROC( void, ResetOptionMap )( PODBC odbc ); // flush the map cache.  
 
 SQLGETOPTION_PROC( PODBC, GetOptionODBCEx )( CTEXTSTR dsn, int version DBG_PASS );
 SQLGETOPTION_PROC( void, DropOptionODBCEx )( PODBC odbc DBG_PASS );

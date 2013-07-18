@@ -224,10 +224,10 @@ static void New4FixOrphanedBranches( void )
 void New4DeleteOption( PODBC odbc, POPTION_TREE_NODE iRoot )
 {
 	SQLCommandf( odbc, WIDE( "delete from " )OPTION4_MAP WIDE( " where option_id='%s'" ), iRoot->guid );
-   // foriegn keys should be cascade, so these will disappear without specifically removing.
+	//   foriegn keys should be cascade, so these will disappear without specifically removing.
 	//SQLCommandf( odbc, WIDE( "delete from " )OPTION4_VALUES WIDE( " where option_id='%s'" ), iRoot->guid );
 	//SQLCommandf( odbc, WIDE( "delete from " )OPTION4_BLOBS WIDE( " where option_id='%s'" ), iRoot->guid );
-	New4FixOrphanedBranches();
+	//New4FixOrphanedBranches();
 }
 
 SACK_OPTION_NAMESPACE_END

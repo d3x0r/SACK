@@ -367,7 +367,7 @@ struct required_table_tag
 	/* This is the name of the table. */
 	CTEXTSTR name;
 	/* describes the columns (fields) in a table. */
-	struct {
+	struct pssql_table_fields {
 		/* number of fields in the array pointed at by field. */
 		int count;
 		/* pointer to an array of FIELD. */
@@ -377,14 +377,14 @@ struct required_table_tag
 	/* <combine sack::sql::required_table_tag::keys@1>
 	   
 	   \ \                                             */
-	struct {
+	struct pssql_table_key {
 		/* number of keys pointed at by key. */
 		int count;
       /* pointer to an array of DB_REQ_KEY. */
       PDB_KEY_DEF key;
 	} keys;
 
-	struct {
+	struct pssql_table_constraint {
 		int count;
 		PDB_CONSTRAINT_DEF constraint;
 	} constraints;
@@ -392,7 +392,7 @@ struct required_table_tag
 	   
 	   \ \                                              */
 	/* flags controlling the table. */
-		struct {
+		struct pssql_table_flags {
          // set this if defined dynamically (from getfields in SQL)
 		BIT_FIELD bDynamic : 1; 
 		/* This is a table that is allocated in memory, static table
@@ -1489,6 +1489,16 @@ PSSQL_PROC( void, SetSQLThreadProtect )( PODBC odbc, LOGICAL bEnable );
    odbc :     connection to set auto transact on
    bEnable :  TRUE to enable, FALSE to disable.                         */
 PSSQL_PROC( void, SetSQLAutoTransact )( PODBC odbc, LOGICAL bEnable );
+/* Enable using 'BEGIN TRANSACTION' and 'COMMIT' commands automatically
+   around commands. If there is a lull of 500ms (1/2 second),
+   then the commit automatically fires. SQLCommit can be called
+   to trigger this process early.
+   
+   
+   Parameters
+   odbc :     connection to set auto transact on
+   callback :  not NULL to enable, NULL to disable.                         */
+PSSQL_PROC( void, SetSQLAutoTransactCallback )( PODBC odbc, void (CPROC*callback)(PTRSZVAL,PODBC), PTRSZVAL psv );
 /* Relevant for SQLite databases. After a certain period of
    inactivity the database is closed (allowing the file to be
    not-in-use during idle). PODBC odject remains valid, and

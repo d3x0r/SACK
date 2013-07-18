@@ -353,6 +353,8 @@ LOGICAL NewCreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pVa
 	// save the value that we last wrote; then we can get it without worrying about the commit state
 	value->value = StrDup( pValue );
 	OpenWriter( tree );
+	value->uncommited_write = tree->odbc_writer;
+	AddLink( &tree->uncommited, value );
 	if( SQLCommand( tree->odbc_writer, insert ) )
 	{
 		value->value_id = value->id;
