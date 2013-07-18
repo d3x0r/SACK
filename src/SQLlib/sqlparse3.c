@@ -216,12 +216,49 @@ void GrabKeyColumns( PTEXT *word, CTEXTSTR *columns )
 //----------------------------------------------------------------------
 void AddConstraint( PTABLE table, PTEXT *word )
 {
+	TEXTSTR tmpname;
+	GrabName( word, (TEXTSTR*)&tmpname, NULL  DBG_SRC);
+	if( StrCaseCmp( GetText(*word), WIDE( "UNIQUE" ) ) == 0 )
+	{
+		(*word) = NEXTLINE( *word );
+		table->keys.count++;
+		table->keys.key = Renew( DB_KEY_DEF
+							   , table->keys.key
+							   , table->keys.count + 1 );
+		table->keys.key[table->keys.count-1].null = NULL;
+		table->keys.key[table->keys.count-1].flags.bPrimary = 0;
+		table->keys.key[table->keys.count-1].flags.bUnique = 1;
+		table->keys.key[table->keys.count-1].name = tmpname;
+		table->keys.key[table->keys.count-1].colnames[0] = NULL;
+		GrabKeyColumns( word, table->keys.key[table->keys.count-1].colnames );
+		if( StrCaseCmp( GetText(*word), WIDE( "ON" ) ) == 0 )
+		{
+			(*word) = NEXTLINE( *word );
+			if( StrCaseCmp( GetText(*word), WIDE( "CONFLICT" ) ) == 0 )
+			{
+				(*word) = NEXTLINE( *word );
+				if( StrCaseCmp( GetText(*word), WIDE( "REPLACE" ) ) == 0 )
+				{
+					(*word) = NEXTLINE( *word );
+				}
+			}
+		}
+		return;
+	}
+
+
+
 	table->constraints.count++;
 	table->constraints.constraint = Renew( DB_CONSTRAINT_DEF
 	                       , table->constraints.constraint
 	                       , table->constraints.count + 1 );
-	GrabName( word, (TEXTSTR*)&table->constraints.constraint[table->constraints.count-1].name, NULL  DBG_SRC);
-	if( StrCaseCmp( GetText(*word), WIDE( "FOREIGN" ) ) == 0 )
+	table->constraints.constraint[table->constraints.count-1].name = tmpname;
+	if( StrCaseCmp( GetText(*word), WIDE( "UNIQUE" ) ) == 0 )
+	{
+		(*word) = NEXTLINE( *word );
+
+	}
+	else if( StrCaseCmp( GetText(*word), WIDE( "FOREIGN" ) ) == 0 )
 	{
 		(*word) = NEXTLINE( *word );
 		if( StrCaseCmp( GetText(*word), WIDE( "KEY" ) ) == 0 )
@@ -249,12 +286,12 @@ void AddConstraint( PTABLE table, PTEXT *word )
 				table->constraints.constraint[table->constraints.count-1].flags.cascade_on_delete = 1;
 				(*word) = NEXTLINE( *word );
 			}
-			if( StrCaseCmp( GetText(*word), WIDE( "RESTRICT" ) ) == 0 )
+			else if( StrCaseCmp( GetText(*word), WIDE( "RESTRICT" ) ) == 0 )
 			{
 				table->constraints.constraint[table->constraints.count-1].flags.restrict_on_delete = 1;
 				(*word) = NEXTLINE( *word );
 			}
-			if( StrCaseCmp( GetText(*word), WIDE( "NO" ) ) == 0 )
+			else if( StrCaseCmp( GetText(*word), WIDE( "NO" ) ) == 0 )
 			{
 				(*word) = NEXTLINE( *word );
 				if( StrCaseCmp( GetText(*word), WIDE( "ACTION" ) ) == 0 )
@@ -271,7 +308,7 @@ void AddConstraint( PTABLE table, PTEXT *word )
 					table->constraints.constraint[table->constraints.count-1].flags.setnull_on_delete = 1;
 					(*word) = NEXTLINE( *word );
 				}
-				if( StrCaseCmp( GetText(*word), WIDE( "DEFAULT" ) ) == 0 )
+				else if( StrCaseCmp( GetText(*word), WIDE( "DEFAULT" ) ) == 0 )
 				{
 					table->constraints.constraint[table->constraints.count-1].flags.setdefault_on_delete = 1;
 					(*word) = NEXTLINE( *word );
@@ -286,12 +323,12 @@ void AddConstraint( PTABLE table, PTEXT *word )
 				table->constraints.constraint[table->constraints.count-1].flags.cascade_on_update = 1;
 				(*word) = NEXTLINE( *word );
 			}
-			if( StrCaseCmp( GetText(*word), WIDE( "RESTRICT" ) ) == 0 )
+			else if( StrCaseCmp( GetText(*word), WIDE( "RESTRICT" ) ) == 0 )
 			{
 				table->constraints.constraint[table->constraints.count-1].flags.restrict_on_update = 1;
 				(*word) = NEXTLINE( *word );
 			}
-			if( StrCaseCmp( GetText(*word), WIDE( "NO" ) ) == 0 )
+			else if( StrCaseCmp( GetText(*word), WIDE( "NO" ) ) == 0 )
 			{
 				(*word) = NEXTLINE( *word );
 				if( StrCaseCmp( GetText(*word), WIDE( "ACTION" ) ) == 0 )
@@ -300,7 +337,7 @@ void AddConstraint( PTABLE table, PTEXT *word )
 					(*word) = NEXTLINE( *word );
 				}
 			}
-			if( StrCaseCmp( GetText(*word), WIDE( "SET" ) ) == 0 )
+			else if( StrCaseCmp( GetText(*word), WIDE( "SET" ) ) == 0 )
 			{
 				(*word) = NEXTLINE( *word );
 				if( StrCaseCmp( GetText(*word), WIDE( "NULL" ) ) == 0 )
@@ -308,7 +345,7 @@ void AddConstraint( PTABLE table, PTEXT *word )
 					table->constraints.constraint[table->constraints.count-1].flags.setnull_on_update = 1;
 					(*word) = NEXTLINE( *word );
 				}
-				if( StrCaseCmp( GetText(*word), WIDE( "DEFAULT" ) ) == 0 )
+				else if( StrCaseCmp( GetText(*word), WIDE( "DEFAULT" ) ) == 0 )
 				{
 					table->constraints.constraint[table->constraints.count-1].flags.setdefault_on_update = 1;
 					(*word) = NEXTLINE( *word );
@@ -392,7 +429,7 @@ int GetTableColumns( PTABLE table, PTEXT *word DBG_PASS )
 						if( StrCaseCmp( GetText(*word), WIDE( "USING" ) ) == 0 )
 						{
 							(*word) = NEXTLINE( *word );
-                     // next word is the type, skip that word too....
+							// next word is the type, skip that word too....
 							(*word) = NEXTLINE( *word );
 						}
 						AddIndexKey( table, word, 0, 1, 0 );
@@ -409,8 +446,15 @@ int GetTableColumns( PTABLE table, PTEXT *word DBG_PASS )
 					if( ( StrCaseCmp( GetText(*word), WIDE( "KEY" ) ) == 0 )
 						|| ( StrCaseCmp( GetText(*word), WIDE( "INDEX" ) ) == 0 ) )
 					{
+						TEXTSTR trash;
+						int bQuoted2;
 						// skip this word.
 						(*word) = NEXTLINE( *word );
+						
+						//GrabName( word, &trash, &bQuoted2  DBG_SRC );
+						//if( StrCaseCmp( GetText(*word), WIDE( "(" ) ) == 0 )
+						//	GrabKeyColumns( word, table->constraints.constraint[table->constraints.count-1].colnames );
+
 					}
 					AddIndexKey( table, word, 1, 0, 1 );
 					Release( name );

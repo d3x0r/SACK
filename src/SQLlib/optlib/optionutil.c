@@ -193,15 +193,15 @@ SQLGETOPTION_PROC( void, DeleteOption )( POPTION_TREE_NODE iRoot )
 	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
 	if( tree->flags.bVersion4 )
 	{
-		New4DeleteOption( og.Option, iRoot );
+		New4DeleteOption( odbc, iRoot );
 	}
 	else if( tree->flags.bNewVersion )
 	{
-		NewDeleteOption( og.Option, iRoot );
+		NewDeleteOption( odbc, iRoot );
 	}
 	else
 	{
-		SQLCommandf( og.Option, WIDE("delete from option_map where node_id=%ld"), iRoot->id );
+		SQLCommandf( odbc, WIDE("delete from option_map where node_id=%ld"), iRoot->id );
 	   	FixOrphanedBranches();
 	}
 	DropOptionODBC( odbc );

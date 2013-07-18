@@ -155,13 +155,22 @@ void CPROC UpdateValue( PTRSZVAL psv, PCOMMON pc )
 	}
 }
 
+void CPROC ResetButton( PTRSZVAL psv, PCOMMON pc )
+{
+	ResetList( GetNearControl( pc, LST_OPTIONMAP ) );
+	ResetOptionMap( (PODBC)psv );
+	last_option = NULL;
+	InitOptionList( (PODBC)psv, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
+}
+
 void CPROC DeleteBranch( PTRSZVAL psv, PCOMMON pc )
 {
 	if( last_option )
 		DeleteOption( last_option );
 	ResetList( GetNearControl( pc, LST_OPTIONMAP ) );
-	InitOptionList( (PODBC)psv, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
+	ResetOptionMap( (PODBC)psv );
 	last_option = NULL;
+	InitOptionList( (PODBC)psv, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
 	return;
 }
 
@@ -175,6 +184,8 @@ void CPROC CopyBranch( PTRSZVAL psv, PCOMMON pc )
 		DuplicateOption( last_option, result );
 	}
 	ResetList( GetNearControl( pc, LST_OPTIONMAP ) );
+	ResetOptionMap( (PODBC)psv );
+	last_option = NULL;
 	InitOptionList( (PODBC)psv, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
 	return;
 }
@@ -212,6 +223,8 @@ int EditOptions( PODBC odbc )
 		SetButtonPushMethod( pc, CopyBranch, (PTRSZVAL)odbc );
 		pc = MakeButton( frame, RIGHT_START, 205, 150, 25, BTN_DELETE, WIDE("delete"), 0, 0, 0  );
 		SetButtonPushMethod( pc, DeleteBranch, (PTRSZVAL)odbc );
+		pc = MakeButton( frame, RIGHT_START, 235, 150, 25, BTN_DELETE, WIDE("reset"), 0, 0, 0  );
+		SetButtonPushMethod( pc, ResetButton, (PTRSZVAL)odbc );
 		AddCommonButtonsEx( frame, &done, WIDE("Done"), NULL, NULL );
 
 		InitOptionList( odbc, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );

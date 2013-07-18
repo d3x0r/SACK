@@ -316,18 +316,16 @@ size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR 
 	TEXTCHAR query[256];
 	CTEXTSTR result = NULL;
 	size_t result_len = 0;
-   PVARTEXT pvtResult = NULL;
+	PVARTEXT pvtResult = NULL;
 	len--;
 
-/*
-	if( optval->value_guid )
+	if( optval->uncommited_write )
 	{
 		result_len = StrLen( optval->value );
 		StrCpyEx( buffer, optval->value, min(len+1,result_len+1) );
 		buffer[result_len = min(len,result_len)] = 0;
 		return result_len;
 	}
-*/
 
 #if 0
 	snprintf( query, sizeof( query ), WIDE( "select override_value_id from " )OPTION4_EXCEPTION WIDE( " " )
@@ -425,13 +423,13 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 		snprintf( insert, sizeof( insert ), WIDE( "delete from " )OPTION4_VALUES WIDE( " where `option_id`='%s'" )
 				  , value->guid
 				  );
-		value->value = StrDup( pValue );
+		value->value = NULL;
 	}
 	else
 	{
 		size_t len = StrLen( pValue );
 		size_t offset = 0;
-      int segment = 0;
+		int segment = 0;
 		while( len > 95)
 		{
 			newval = EscapeSQLBinaryOpt( tree->odbc_writer, pValue + offset, 95, TRUE );
@@ -452,8 +450,8 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 				retval = FALSE;
 			}
 			offset += 95;
-         len -= 95;
-         segment++;
+			len -= 95;
+			segment++;
 		}
 		newval = EscapeSQLBinaryOpt( tree->odbc_writer, pValue + offset, len, TRUE );
 		snprintf( insert, sizeof( insert ), WIDE( "replace into " )OPTION4_VALUES WIDE( " (`option_id`,`string`,`segment` ) values ('%s',%s,%d)" )
@@ -473,6 +471,8 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 	// save the value that we last wrote; then we can get it without worrying about the commit state
 	value->value = StrDup( pValue );
 	OpenWriter( tree );
+	value->uncommited_write = tree->odbc_writer;
+	AddLink( &tree->uncommited, value );
 	if( SQLCommand( tree->odbc_writer, insert ) )
 	{
 		value->value_guid = value->guid;

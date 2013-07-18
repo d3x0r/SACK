@@ -71,8 +71,8 @@ typedef struct familyroot_tag FAMILYTREE;
 	PFAMILYTREE root = (PFAMILYTREE)Allocate( sizeof( FAMILYTREE ) );
 	MemSet( root, 0, sizeof( FAMILYTREE ) );
 	root->Compare = Compare;
-   root->Destroy = Destroy;
-   return root;
+	root->Destroy = Destroy;
+	return root;
 }
 
 //----------------------------------------------------------------------------
@@ -138,8 +138,24 @@ LOGICAL FamilyTreeForEachChild( PFAMILYTREE root, PFAMILYNODE node
 	return TRUE;
 }
 
+static  PTRSZVAL CPROC DestroyNode(void* p,PTRSZVAL psvUser )
+{
+	PFAMILYTREE option_tree = (PFAMILYTREE)psvUser;
+	if( option_tree->Destroy )
+		option_tree->Destroy( ((PFAMILYNODE)p)->userdata, ((PFAMILYNODE)p)->key );
+	DeleteFromSet( FAMILYNODE, option_tree->nodes, p );
+}
+
+void  FamilyTreeClear ( PFAMILYTREE option_tree )
+{
+	ForAllInSet( FAMILYNODE, option_tree->nodes, DestroyNode, (PTRSZVAL)option_tree );
+	DeleteSetEx( FAMILYNODE, &option_tree->nodes );
+	option_tree->family = NULL;
+//	option_tree->nodes
+}
 //----------------------------------------------------------------------------
 
+// resets the search conditions, and possibley makes aa tree if it isn't already.
 void  FamilyTreeReset ( PFAMILYTREE *option_tree )
 {
 	if( !option_tree )

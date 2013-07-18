@@ -722,7 +722,20 @@ void SetSQLAutoTransact( PODBC odbc, LOGICAL bEnable )
 {
 	if( odbc )
 	{
-      odbc->flags.bAutoTransact = bEnable;
+		odbc->flags.bAutoTransact = bEnable;
+	}
+}
+
+void SetSQLAutoTransactCallback( PODBC odbc, void (CPROC*callback)(PTRSZVAL,PODBC), PTRSZVAL psv )
+{
+	if( odbc )
+	{
+		if( callback )
+			odbc->flags.bAutoTransact = 1;
+		else
+			odbc->flags.bAutoTransact = 0;
+		odbc->auto_commit_callback = callback;
+		odbc->auto_commit_callback_psv = psv;
 	}
 }
 
@@ -1202,6 +1215,8 @@ void SQLCommit( PODBC odbc )
 			// the commit command itself will cause SQLCommit to be called - so we turn off autotransact and would create a transaction thread etc...
 			SQLCommand( odbc, WIDE( "COMMIT" ) );
 			odbc->flags.bAutoTransact = n;
+			if( odbc->auto_commit_callback )
+				odbc->auto_commit_callback( odbc->auto_commit_callback_psv, odbc );
 		}
 		LeaveCriticalSec( &odbc->cs );
 	}

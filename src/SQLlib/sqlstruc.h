@@ -134,7 +134,9 @@ struct odbc_handle_tag{
 	int nProtect; // critical section is currently owned
 	PTHREAD auto_commit_thread;
 	PTHREAD auto_close_thread;
-   struct odbc_queue *queue;
+	struct odbc_queue *queue;
+	void (CPROC*auto_commit_callback)(PTRSZVAL,PODBC);
+	PTRSZVAL auto_commit_callback_psv;
 };
 
 struct odbc_queue
@@ -145,34 +147,34 @@ struct odbc_queue
 
 
 #ifdef SQLLIB_SOURCE
-typedef struct global_tag
+typedef struct pssql_global_tag
 {
-   CRITICALSECTION Init;
-   //POPTION_INTERFACE pOptionInterface;
-   _32 PrimaryLastConnect, BackupLastConnect;
-   ODBC Primary, Backup;
+	CRITICALSECTION Init;
+	//POPTION_INTERFACE pOptionInterface;
+	_32 PrimaryLastConnect, BackupLastConnect;
+	ODBC Primary, Backup;
 	PODBC odbc; // current connection
 #ifdef __cplusplus
 //	sack::containers::list::
 #endif
 	PLIST pOpenODBC; // list of PODBC objects which are open.
 	PCOLLECT collections; // collections which were created for g.odbc while it was NULL
-   COLLECT LocalCollect; // this is used for fatal errors when neither primary or backup are set in g.odbc
-   COLLECT TimerCollect; // used when checking status... as a static element it's more reliable.
-   struct {
-      BIT_FIELD  bInited  : 1;
-      // when this happens, something
-      // needs to be done to update information from the
-      // backup to the primary
-      // and from the primary to the backup
-      // if BOTH have failed - we're how shall I say... fucked.
-      BIT_FIELD  bPrimaryRestored  : 1;
-      BIT_FIELD  bNoBackup  : 1;
-      BIT_FIELD  bPrimaryUp  : 1;
-      BIT_FIELD  bBackupUp  : 1;
-      BIT_FIELD  bNoLog  : 1;
-      BIT_FIELD  bOpening  : 1;
-      BIT_FIELD  bMySQL  : 1;
+	COLLECT LocalCollect; // this is used for fatal errors when neither primary or backup are set in g.odbc
+	COLLECT TimerCollect; // used when checking status... as a static element it's more reliable.
+	struct {
+		BIT_FIELD  bInited  : 1;
+		// when this happens, something
+		// needs to be done to update information from the
+		// backup to the primary
+		// and from the primary to the backup
+		// if BOTH have failed - we're how shall I say... fucked.
+		BIT_FIELD  bPrimaryRestored  : 1;
+		BIT_FIELD  bNoBackup  : 1;
+		BIT_FIELD  bPrimaryUp  : 1;
+		BIT_FIELD  bBackupUp  : 1;
+		BIT_FIELD  bNoLog  : 1;
+		BIT_FIELD  bOpening  : 1;
+		BIT_FIELD  bMySQL  : 1;
 		BIT_FIELD  bPostgresql  : 1;
 		BIT_FIELD  bBadODBC  : 1;
 		BIT_FIELD  bLogging  : 1; // do log to SQL.log
@@ -182,15 +184,15 @@ typedef struct global_tag
 		BIT_FIELD  bLogOptionConnection : 1;
 		BIT_FIELD bCriticalSectionInited : 1;
 		BIT_FIELD bDeadstartCompleted : 1;
-   } flags;
+	} flags;
 	struct update_task_def *UpdateTasks;
-   PSERVICE_ROUTE SQLMsgBase;
+	PSERVICE_ROUTE SQLMsgBase;
 	FILE *pSQLLog;
 	void (CPROC*feedback_handler)(CTEXTSTR message);
 	ODBC OptionDb; // a third, well-known DSN used for option library by default.  May be SQLite.
-   int OptionVersion;
+	int OptionVersion;
 	PLIST date_offsets;
-   PLIST odbc_queues;
+	PLIST odbc_queues;
 } GLOBAL;
 #endif
 

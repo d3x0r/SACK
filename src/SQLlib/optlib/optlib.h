@@ -23,6 +23,7 @@ struct sack_option_tree_family_node {
 	struct {
 		BIT_FIELD bExpanded : 1;
 	} flags;
+	PODBC uncommited_write; // connection this was written on for the commit event.
    _32 expansion_tick;
 };
 #define MAXOPTION_TREE_NODESPERSET 256
@@ -33,12 +34,13 @@ struct sack_option_tree_family {
 	PFAMILYTREE option_tree;
 	PODBC odbc;  // each option tree associates with a ODBC connection.
 	PODBC odbc_writer; // a second connection which handles all inserts and updates
-   PFAMILYNODE system_mask_root;
+	PFAMILYNODE system_mask_root;
 	struct {
 		BIT_FIELD bNewVersion : 1;
 		BIT_FIELD bVersion4 : 1;
 		BIT_FIELD bCreated : 1;
 	} flags;
+	PLIST uncommited; // list of option values that were written.
 };
 
 struct option_odbc_tracker
@@ -114,12 +116,7 @@ void OpenWriterEx( POPTION_TREE option DBG_PASS);
 
 INDEX ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR table, CTEXTSTR col, CTEXTSTR namecol, int bCreate DBG_PASS );
 
-
-//SQLGETOPTION_PROC( size_t, GetOptionStringValueEx )( PODBC odbc, INDEX optval, char *buffer, size_t len DBG_PASS );
-//SQLGETOPTION_PROC( size_t, GetOptionStringValue )( INDEX optval, char *buffer, size_t len );
-//SQLGETOPTION_PROC( INDEX, GetOptionValueIndex )( INDEX ID );
-//SQLGETOPTION_PROC( INDEX, GetOptionValueIndexEx )( PODBC odbc, INDEX ID );
- LOGICAL SetOptionStringValue( POPTION_TREE tree, POPTION_TREE_NODE optval, CTEXTSTR pValue );
+LOGICAL SetOptionStringValue( POPTION_TREE tree, POPTION_TREE_NODE optval, CTEXTSTR pValue );
 
 void NewDuplicateOption( PODBC odbc, POPTION_TREE_NODE iRoot, CTEXTSTR pNewName );
 INDEX IndexCreateFromText( CTEXTSTR string );

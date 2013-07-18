@@ -3147,10 +3147,11 @@ TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  FamilyTreeFindChild ( PFAMILYTREE root
    Incomplete, Family tree was never completed. */
 TYPELIB_PROC  POINTER  TYPELIB_CALLTYPE FamilyTreeFindChildEx ( PFAMILYTREE root, PFAMILYNODE root_node
 													 , PTRSZVAL psvKey );
-/* <unfinished>
-   
-   Incomplete, Family tree was never completed. */
+/* Resets the search cursors in the tree... */
 TYPELIB_PROC  void TYPELIB_CALLTYPE  FamilyTreeReset ( PFAMILYTREE *option_tree );
+/* Resets the content of the tree (should call destroy methods, at this time it does not) */
+TYPELIB_PROC  void TYPELIB_CALLTYPE  FamilyTreeClear ( PFAMILYTREE option_tree );
+
 /* <unfinished>
    
    Incomplete Work in progress (maybe) */
