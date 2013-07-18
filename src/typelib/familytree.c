@@ -144,6 +144,7 @@ static  PTRSZVAL CPROC DestroyNode(void* p,PTRSZVAL psvUser )
 	if( option_tree->Destroy )
 		option_tree->Destroy( ((PFAMILYNODE)p)->userdata, ((PFAMILYNODE)p)->key );
 	DeleteFromSet( FAMILYNODE, option_tree->nodes, p );
+	return 0;
 }
 
 void  FamilyTreeClear ( PFAMILYTREE option_tree )

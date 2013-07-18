@@ -1671,6 +1671,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 	FILE *file;
 	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	int namelen;
+   TEXTSTR original_filename = filename;
 	TEXTSTR alt_filename = NewArray( TEXTCHAR, namelen = ( StrLen( filename ) + 6 ) );
 
    // -- additional code for XML output...
@@ -1812,7 +1813,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 					// if !mem2, then there was no reload from sql.
 					if( mem2 
 						&& SACK_GetProfileBlobOdbc( odbc
-						                       , WIDE("intershell/configuration"), filename, &buffer, &buflen ) )
+						                       , WIDE("intershell/configuration"), original_filename, &buffer, &buflen ) )
 					{
 						// modifies filename here; but this is !forceload, and later the filename is forceload, so it will be original.
 						if( size2 != buflen ||
@@ -1850,7 +1851,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 						}
 					}
 					SACK_WriteProfileBlobOdbc( odbc
-						                       , TASK_PREFIX WIDE("/configuration"), filename, (TEXTCHAR*)mem, size );
+						                       , TASK_PREFIX WIDE("/configuration"), original_filename, (TEXTCHAR*)mem, size );
 				}
 				while( 0 );
             DropOptionODBC( odbc );
