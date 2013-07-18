@@ -2311,17 +2311,8 @@ void ScanForDeletes( PACCOUNT account )
 		POINTER data = NULL;
 		info.pDir = pDir;
 		lprintf( "Scan for deletes in %s", pDir->path );
-		{
-			INDEX idx;
-			PFILE_INFO pFileInfo;
-			LIST_FORALL( pDir->files, idx, PFILE_INFO, pFileInfo )
-			{
-				lprintf( "directory has file %s", pFileInfo->name );
-			}
-		}
-		if( !pDir->flags.bVerify )
-			while( ScanFiles( pDir->path, "*", &data
-								 , DeleteScanFile, SFF_NAMEONLY|SFF_SUBCURSE|SFF_DIRECTORIES, (PTRSZVAL)&info ) );
+		while( ScanFiles( pDir->path, "*", &data
+							 , DeleteScanFile, SFF_NAMEONLY|SFF_SUBCURSE|SFF_DIRECTORIES, (PTRSZVAL)&info ) );
 	}
 	{
 		TEXTSTR tmpname;
