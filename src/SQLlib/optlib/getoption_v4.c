@@ -20,7 +20,7 @@
 #include "../sqlstruc.h"
 // define this to show very verbose logging during creation and
 // referencing of option tree...
-#define DETAILED_LOGGING
+//#define DETAILED_LOGGING
 
 SQL_NAMESPACE
 extern GLOBAL *global_sqlstub_data;
@@ -487,6 +487,44 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 	return retval;
 }
 
+int ResolveOptionName( POPTION_TREE options, CTEXTSTR parent_id, CTEXTSTR option_id, CTEXTSTR name_id, CTEXTSTR option_name, TEXTSTR output_buffer, size_t output_buffer_size )
+{
+	CTEXTSTR *results;
+	if( StrCaseCmp( parent_id, "00000000-0000-0000-0000-000000000000" ) == 0 )
+	{
+		output_buffer[0] = 0;
+		return snprintf( output_buffer, output_buffer_size, "%s", option_name );
+	}
+	PushSQLQueryEx( options->odbc ); 
+	for( SQLRecordQueryf( options->odbc, NULL, &results, NULL
+						, WIDE("select parent_option_id,option_id,name_id,name from ") OPTION4_MAP WIDE( " join ") OPTION4_NAME WIDE(" using(name_id) where option_id='%s'" )
+						, parent_id );
+		results;
+		FetchSQLRecord( options->odbc, &results ) )
+	{
+		int offset;
+		offset = ResolveOptionName( options, results[0], results[1], results[2], results[3]
+					, output_buffer, output_buffer_size );
+		PopODBCEx( options->odbc ); 
+		return offset + snprintf( output_buffer + offset, output_buffer_size - offset, "/%s", option_name );
+	}
+	return 0;
+}
+
+void New4FindOptions( POPTION_TREE options, PLIST *result_list, CTEXTSTR name )
+{
+	CTEXTSTR *results;
+	for( SQLRecordQueryf( options->odbc, NULL, &results, NULL
+						, WIDE("select parent_option_id,option_id,name_id,name from ") OPTION4_MAP WIDE( " join ") OPTION4_NAME WIDE(" using(name_id) where name like '%s'" )
+						, name );
+		results;
+		FetchSQLRecord( options->odbc, &results ) )
+	{
+		TEXTCHAR option_name[256];
+		ResolveOptionName( options, results[0], results[1], results[2], results[3], option_name, 256 );
+		AddLink( result_list, StrDup( option_name ) );
+	}
+}
 
 SACK_OPTION_NAMESPACE_END
 

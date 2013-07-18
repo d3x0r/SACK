@@ -1997,4 +1997,25 @@ PRIORITY_PRELOAD( CommitOptionsLoad, 150 )
 	}
 }
 
+
+void FindOptions( PODBC odbc, PLIST *result_list, CTEXTSTR name )
+{
+	POPTION_TREE tree;
+	if( !odbc )
+		odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
+	tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
+	if( tree->flags.bNewVersion )
+	{
+	}
+	else if( tree->flags.bVersion4 )
+	{
+		New4FindOptions( tree, result_list, name );
+		
+	}
+	else  // version 1; 
+	{
+	}
+}
+
+
 SACK_OPTION_NAMESPACE_END

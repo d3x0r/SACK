@@ -199,6 +199,8 @@ SQLGETOPTION_PROC( void, DropOptionODBC )( PODBC odbc );
 #define GetOptionODBC( a,b) GetOptionODBCEx( a,b DBG_SRC )
 #define DropOptionODBC(a) DropOptionODBCEx( a DBG_SRC )
 
+SQLGETOPTION_PROC( void, FindOptions )( PODBC odbc, PLIST *result_list, CTEXTSTR name );
+
 _OPTION_NAMESPACE_END _SQL_NAMESPACE_END SACK_NAMESPACE_END
 
 	USE_OPTION_NAMESPACE

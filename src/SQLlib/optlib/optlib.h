@@ -122,4 +122,5 @@ void NewDuplicateOption( PODBC odbc, POPTION_TREE_NODE iRoot, CTEXTSTR pNewName 
 INDEX IndexCreateFromText( CTEXTSTR string );
 
 int NewGetOptionBlobValueOdbc( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **buffer, size_t *len );
+void New4FindOptions( POPTION_TREE odbc, PLIST *result_list, CTEXTSTR name );
 
