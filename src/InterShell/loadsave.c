@@ -1015,8 +1015,15 @@ void InvokeLoadCommon( void )
 void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 {
 	PCONFIG_HANDLER pch;
+	TEXTSTR name_only = pathrchr( filename );
 	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, g.single_frame );
-   //lprintf( WIDE( "Push initial current canvas" ) );
+	//lprintf( WIDE( "Push initial current canvas" ) );
+
+	if( !name_only )
+		name_only = filename;
+	else
+		name_only++; // go one past the last slash.
+
 	PushLink( &l.current_canvas, pc_canvas );
 	my_current_handler = pch = CreateConfigurationEvaluator();
 	// if this is not done first, then the system will default to 5.
@@ -1049,6 +1056,7 @@ void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
          PODBC odbc;
 			TEXTSTR alt_filename = NewArray( TEXTCHAR, namelen = ( StrLen( filename ) + 6 ) );
 			FILE *out;
+
 			snprintf( alt_filename, namelen, "%s.sql", filename );
 			Banner2NoWait( WIDE("Read SQL Config...") );
 #ifndef __NO_OPTIONS__
@@ -1056,7 +1064,7 @@ void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 #ifndef __ARM__
          odbc = GetOptionODBC( g.configuration_dsn, g.configuration_version );
 			if( SACK_GetProfileBlobOdbc( odbc
-						               , WIDE("intershell/configuration"), filename, &buffer, &buflen ) )
+						               , WIDE("intershell/configuration"), name_only, &buffer, &buflen ) )
 			{
 				int namelen;
 				FILE *out;
@@ -1115,7 +1123,7 @@ void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 			{
 #ifndef __NO_OPTIONS__
 #ifndef __ARM__
-				SACK_WriteProfileBlob( WIDE("intershell/configuration"), filename, (TEXTCHAR*)mem, real_file_size );
+				SACK_WriteProfileBlob( WIDE("intershell/configuration"), name_only, (TEXTCHAR*)mem, real_file_size );
 #endif
 #endif
 				g.flags.forceload = 0;
@@ -1673,6 +1681,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 	int namelen;
    TEXTSTR original_filename = filename;
 	TEXTSTR alt_filename = NewArray( TEXTCHAR, namelen = ( StrLen( filename ) + 6 ) );
+	TEXTSTR name_only = pathrchr( filename );
 
    // -- additional code for XML output...
 	PVARTEXT pvt;
@@ -1681,6 +1690,11 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 	pvt = VarTextCreate();
 	genxSetUserData( w, pvt );
 	// ----------------------------------
+
+	if( !name_only )
+		name_only = filename;
+	else
+		name_only++; // go one past the last slash.
 
 	if( g.flags.bSQLConfig )
 	{
@@ -1813,7 +1827,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 					// if !mem2, then there was no reload from sql.
 					if( mem2 
 						&& SACK_GetProfileBlobOdbc( odbc
-						                       , WIDE("intershell/configuration"), original_filename, &buffer, &buflen ) )
+						                       , WIDE("intershell/configuration"), name_only, &buffer, &buflen ) )
 					{
 						// modifies filename here; but this is !forceload, and later the filename is forceload, so it will be original.
 						if( size2 != buflen ||
@@ -1851,7 +1865,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 						}
 					}
 					SACK_WriteProfileBlobOdbc( odbc
-						                       , TASK_PREFIX WIDE("/configuration"), original_filename, (TEXTCHAR*)mem, size );
+						                       , TASK_PREFIX WIDE("/configuration"), name_only, (TEXTCHAR*)mem, size );
 				}
 				while( 0 );
             DropOptionODBC( odbc );
