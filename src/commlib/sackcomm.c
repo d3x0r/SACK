@@ -29,10 +29,14 @@ int gbLog;
 
 #ifndef USE_REAL_FUNCTIONS // if using real comm functions - this is not needed.
 #ifndef __LINUX__
-	static DCB stDcb;
+static DCB stDcb;
+#else
 #endif
 #endif
 
+#ifdef __LINUX__
+#define B230400 230400
+#endif
 
 
 typedef struct callback_tag {
