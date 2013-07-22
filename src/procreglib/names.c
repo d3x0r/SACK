@@ -2,7 +2,6 @@
 #include <stdhdrs.h>
 #include <sharemem.h>
 #include <filesys.h>
-#include <system.h>
 #include <configscript.h>
 
 //#define DEBUG_GLOBAL_REGISTRATION

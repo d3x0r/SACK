@@ -131,7 +131,7 @@
 
 // incldue this first so we avoid a conflict.
 // hopefully this comes from sack system?
-#include <system.h>
+#include <sack_system.h>
 #if defined( HAVE_ENVIRONMENT )
 #define getenv(name)       OSALOT_GetEnvironmentVariable(name)
 #define setenv(name,val)   SetEnvironmentVariable(name,val)
@@ -167,6 +167,7 @@
 #include <sack_types.h>
 #include <sys/time.h>
 #include <errno.h>
+#include <sack_system.h>
 # include <filedotnet.h>
 #if defined( __ARM__ )
 #  define DebugBreak()

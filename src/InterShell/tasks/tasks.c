@@ -4,7 +4,6 @@
 // define the render interface first.
 
 #include <stdhdrs.h>
-#include <system.h>
 #include <idle.h>
 #ifdef WIN32
 // need PVIDEO internals, so we can generate kind-close keystrokes

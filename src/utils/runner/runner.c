@@ -1,6 +1,5 @@
 #include <stdhdrs.h>
 #include <sharemem.h>
-#include <system.h>
 #include <logging.h>
 
 #include "run.h"

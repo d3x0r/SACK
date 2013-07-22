@@ -1,7 +1,7 @@
 #ifndef SERVICE_HOOK_DEFINED
 #define SERVICE_HOOK_DEFINED
 
-#include <system.h>
+#include <sack_system.h>
 
 #ifdef SERVICE_SOURCE
 #define SERVICE_EXPORT EXPORT_METHOD

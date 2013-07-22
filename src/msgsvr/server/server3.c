@@ -1,6 +1,5 @@
 #include <stdhdrs.h>
 #include <timers.h>
-#include <system.h>
 #ifdef WIN32
 #include <systray.h>
 #endif

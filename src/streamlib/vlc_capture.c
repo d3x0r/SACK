@@ -3,7 +3,6 @@
 #define USE_IMAGE_INTERFACE GetImageInterface()
 #include <stdhdrs.h>
 #include <psi.h>
-#include <system.h>
 #include <sqlgetoption.h>
 #include "../InterShell/vlc_hook/vlcint.h"
 

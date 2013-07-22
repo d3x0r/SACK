@@ -81,6 +81,14 @@ if( BUILD_TESTS )
 SET( DBUILD_TESTS -DBUILD_TESTS=${BUILD_TESTS} )
 endif( BUILD_TESTS )
 
+if( __LINUX__ )
+SET( D__LINUX__ -D__LINUX__=${__LINUX__} )
+endif( __LINUX__ )
+
+if( __ARM__ )
+SET( D__ARM__ -D__ARM__=${__ARM__} )
+endif( __ARM__ )
+
 if( FORCE_MSVCRT )
 SET( DFORCE_MSVCRT -DFORCE_MSVCRT=${FORCE_MSVCRT} )
 endif( FORCE_MSVCRT )
@@ -120,6 +128,8 @@ set( EXTRA_FLAGS -DBUILD_MONOLITHIC=${BUILD_MONOLITHIC}
 	                ${DBUILD_TESTS} 
         	        ${DBUILD_UNICODE} 
                         ${DBULLET_SOURCE}
+                        ${D__ARM__}
+                        ${D__LINUX__}
                         ${D__ANDROID__}
                 )
 BuildProject( ${PROJECT} sack ${CMAKE_CURRENT_LIST_DIR}/.. SACK_SDK_ROOT_PATH ${EXTRA_FLAGS} )

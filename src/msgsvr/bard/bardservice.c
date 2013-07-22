@@ -15,7 +15,6 @@
 #include <stdhdrs.h>
 #include <construct.h>
 #include <network.h>
-#include <system.h>
 //for the msgsvr.  needs msgclient library
 #include <msgclient.h>
 #include <systray.h>

@@ -24,7 +24,6 @@
 #include <logging.h>
 #include <sharemem.h>
 #include <timers.h>
-#include <system.h>
 #include <idle.h>
 #include <sqlgetoption.h>
 #include <configscript.h>

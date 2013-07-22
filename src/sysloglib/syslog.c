@@ -44,7 +44,6 @@
 // okay this brings TIGHT integration.... but standardization for core levels.
 #include <filesys.h>
 #include <procreg.h>
-#include <system.h>
 #ifndef __NO_OPTIONS__
 #include <sqlgetoption.h>
 #endif

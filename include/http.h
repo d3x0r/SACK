@@ -8,7 +8,7 @@
 
 #include <sack_types.h>
 #include <procreg.h>
-#include <system.h>
+#include <sack_system.h>
 #include <network.h>
 
 #ifdef HTTP_SOURCE

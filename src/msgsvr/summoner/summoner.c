@@ -8,7 +8,6 @@
 #include <systray.h>
 #endif
 #include <timers.h>
-#include <system.h>
 #include <sharemem.h>
 
 #include "avatar_prot.h"

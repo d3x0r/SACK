@@ -2,7 +2,6 @@
 #include <stdhdrs.h>
 
 
-#include <system.h>
 #include <plugin.h>
 
 //pGraph->lpVtbl->QueryInterface(pGraph, &IID_IMediaEvent, (void **)&pEvent);

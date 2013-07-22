@@ -15,7 +15,6 @@
 #include <network.h>
 #include <procreg.h>
 #include <deadstart.h>
-#include <system.h>
 #include <sqlgetoption.h>
 #define FULL_TRACE
 #define LOG_LINES_READ

@@ -1,6 +1,5 @@
 #include <stdhdrs.h>
 
-#include <system.h>
 
 typedef void (CPROC *PLINK_DataReceived)(PTRSZVAL psv, POINTER buffer, int length);
 typedef void (CPROC *PLINK_ConnectionClosed)( PTRSZVAL psv );

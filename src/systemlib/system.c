@@ -29,7 +29,7 @@ extern char **environ;
 #endif
 
 
-#include <system.h>
+#include <sack_system.h>
 
 #ifdef __cplusplus
 using namespace sack::timers;

@@ -1,6 +1,5 @@
 
 #include <stdhdrs.h>
-#include <system.h>
 #include <sqlgetoption.h>
 #include <timers.h>
 #include "../../InterShell/widgets/include/banner.h"

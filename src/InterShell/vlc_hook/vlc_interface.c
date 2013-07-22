@@ -8,7 +8,6 @@
 #define VLC_INTERFACE_SOURCE
 
 #include <stdhdrs.h>
-#include <system.h>
 #include <sqlgetoption.h>
 #include <deadstart.h>
 #include <idle.h>

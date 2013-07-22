@@ -1,6 +1,5 @@
 
 #include <stdhdrs.h>
-#include <system.h>
 #include <pssql.h>
 
 

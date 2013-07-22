@@ -1,7 +1,6 @@
 #include <stdhdrs.h>
 #include <fractions.h>
 #include <interface.h>
-#include <system.h>
 
 #include "controlstruc.h"
 #include <keybrd.h>

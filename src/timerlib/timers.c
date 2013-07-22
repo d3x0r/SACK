@@ -34,7 +34,6 @@
 #include <procreg.h> // SimpleRegisterAndCreateGlobal
 // sorry if this causes problems...
 // maybe promote this include into stdhdrs when this fails to compile
-#include <system.h> // GetProgramName
 #ifdef __WATCOMC__
 // _beginthread
 #undef exit

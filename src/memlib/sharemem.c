@@ -57,7 +57,6 @@
 #include <procreg.h>
 #include "sharestruc.h"
 #include <sqlgetoption.h>
-#include <system.h>
 #include <ctype.h>
 #ifdef __cplusplus
 namespace sack {

@@ -1,6 +1,5 @@
 #define VERSION "2.01"
 #include <stdhdrs.h>
-#include <system.h>
 #include <sharemem.h>
 #include <network.h>
 #include <logging.h>

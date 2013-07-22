@@ -14,7 +14,6 @@
 #include <stdhdrs.h>
 #include <timers.h>
 #include <sharemem.h>
-#include <system.h>
 #include <ft2build.h>
 #ifdef __cplusplus
 // isdigit ... hasn't been a problem elsewhere so just add this yere.
@@ -27,7 +26,6 @@
 #include <filedotnet.h>
 #include <filesys.h>
 #include <sharemem.h>
-#include <system.h>
 #include <timers.h>
 
 #include <sha1.h>

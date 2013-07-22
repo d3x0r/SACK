@@ -4,7 +4,6 @@
 #include <stdhdrs.h>
 #include <stdlib.h>
 #include <psi.h>
-#include <system.h>
 #include <network.h>
 #include <timers.h>
 #include <sqlgetoption.h>

@@ -8,7 +8,6 @@
 #include <deadstart.h>
 #include <sharemem.h>
 #include <filesys.h>
-#include <system.h>
 #include <network.h>
 #ifdef __WATCOMC__
 #include <io.h> // unlink

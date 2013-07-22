@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <system.h>
+#include <sack_system.h>
 #include <sqlgetoption.h>
 
 int main( void )

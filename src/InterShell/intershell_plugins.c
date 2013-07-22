@@ -1,7 +1,6 @@
 #include <stdhdrs.h>
 #include <filesys.h>
 #include <deadstart.h>
-#include <system.h>
 #include "intershell_local.h"
 #include "intershell_registry.h"
 
