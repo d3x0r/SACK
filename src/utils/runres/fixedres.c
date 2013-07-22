@@ -4,7 +4,6 @@
 #endif
 #include <stdhdrs.h>
 #include <sqlgetoption.h>
-#include <system.h>
 #include <timers.h>
 
 PTHREAD mainthread;

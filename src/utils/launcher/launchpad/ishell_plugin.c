@@ -2,7 +2,7 @@
 #define DEFINES_INTERSHELL_INTERFACE
 #define USE_IMAGE_INTERFACE l.pii
 #include <psi.h>
-#include <system.h> // GetProgramName()
+#include <sack_system.h> // GetProgramName()
 #include <sqlgetoption.h>
 #include "../../../InterShell/intershell_export.h"
 #include "../../../InterShell/intershell_registry.h"

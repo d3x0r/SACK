@@ -12,29 +12,29 @@ SET(CMAKE_SYSTEM_VERSION 1)
 
 set( ANDROID_SDK_VERSION_NUMBER 8 )
 set( ANDROID_NDK_TARGET_PLATFORM 14 )
-set( ANDROID_NDK_VERSION android-ndk-r8c CACHE STRING "NDK Version (appended to another path)" )
+set( ANDROID_NDK_VERSION android-ndk-r8e CACHE STRING "NDK Version (appended to another path)" )
 set( ANDROID_SDK_ROOT $ENV{ANDROID_SDK_ROOT} CACHE PATH "Android root path" )
 
-#set( ANDROID_NDK_PREBUILT arm-linux-androideabi-4.4.3 )
 set( ANDROID_NDK_PREBUILT_VERSION 4.6 )
 set( ANDROID_NDK_PREBUILT_ARCH_LONG arm-linux-androideabi )
 set( ANDROID_NDK_PREBUILT_ARCH thumb )
 
 set( ANDROID_NDK_PREBUILT ${ANDROID_NDK_PREBUILT_ARCH_LONG}-${ANDROID_NDK_PREBUILT_VERSION} )
 
-SET(ANDROID_DIR c:/general/${ANDROID_NDK_VERSION} CACHE PATH "NDK Root" )
+SET(ANDROID_DIR c:/general/storage/${ANDROID_NDK_VERSION} CACHE PATH "NDK Root" )
 set( SYSROOT ${ANDROID_DIR}/platforms/android-${ANDROID_NDK_TARGET_PLATFORM}/arch-arm )
 set(ENV{SYSROOT} ${SYSROOT} )
 
-#SET(ANDROID_DIR c:/develop/android/${ANDROID_NDK_VERSION})
 SET(ANDROID_NDK_DIR ${ANDROID_DIR}/toolchains )
-#SET(STAGING_DIR ${ANDROID_NDK_DIR}/arm-eabi-4.4.0/prebuilt/windows)
-#SET(TARGET_CC ${STAGING_DIR}/bin/arm-eabi-gcc.exe --sysroot=${SYSROOT} )
-#SET(TARGET_CXX ${STAGING_DIR}/bin/arm-eabi-c++.exe --sysroot=${SYSROOT})
-SET(STAGING_DIR ${ANDROID_NDK_DIR}/arm-linux-androideabi-${ANDROID_NDK_PREBUILT_VERSION}/prebuilt/windows)
+SET(ANDROID_WINVER  windows-x86_64 )
+SET(STAGING_DIR ${ANDROID_NDK_DIR}/arm-linux-androideabi-${ANDROID_NDK_PREBUILT_VERSION}/prebuilt/${ANDROID_WINVER})
 
 SET(TARGET_CC ${STAGING_DIR}/bin/arm-linux-androideabi-gcc.exe --sysroot=${SYSROOT})
 SET(TARGET_CXX ${STAGING_DIR}/bin/arm-linux-androideabi-c++.exe --sysroot=${SYSROOT})
+message( ${TARGET_CC} )
+message( ${STAGING_DIR} )
+message( ${ANDROID_NDK_DIR} )
+
 
 set( CMAKE_C_COMPILER_WORKS 1 )
 set( CMAKE_CXX_COMPILER_WORKS 1 )

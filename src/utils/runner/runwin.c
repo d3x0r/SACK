@@ -2,7 +2,6 @@
 #include <logging.h>
 #include <sharemem.h>
 #include <deadstart.h>
-#include <system.h>
 #ifdef BUILD_SERVICE
 #include <service_hook.h>
 #endif

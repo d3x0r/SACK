@@ -3,7 +3,6 @@
 #endif
 //#define __STATIC__ // defined so that we link to static dll ref...
 #include <stdhdrs.h>
-#include <system.h>
 #define DO_LOGGING
 #include <logging.h>
 #include <procreg.h>

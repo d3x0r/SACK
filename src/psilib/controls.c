@@ -8,7 +8,6 @@
 #include <fractions.h>
 #include <interface.h>
 #include <procreg.h>
-#include <system.h>
 #define CONTROL_BASE
 
 // this is a FUN flag! this turns on

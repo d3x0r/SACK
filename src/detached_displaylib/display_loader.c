@@ -1,5 +1,4 @@
 #include <stdhdrs.h>
-#include <system.h>
 #include <timers.h>
 #ifdef WIN32
 // kinda awkward under linux - cause sometimes this thing itself

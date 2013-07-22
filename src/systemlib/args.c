@@ -2,7 +2,7 @@
 #define SYSTEM_SOURCE
 #endif
 
-#include <system.h>
+#include <sack_system.h>
 #include <sharemem.h>
 
 SACK_SYSTEM_NAMESPACE

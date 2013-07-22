@@ -9,7 +9,6 @@
 #include <configscript.h>
 #ifdef __LINUX__
 // LoadPrivateFunctionEx for real_image library.
-#include <system.h>
 #include <fcntl.h>
 #endif
 

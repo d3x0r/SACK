@@ -52,7 +52,6 @@
 #include <sqlgetoption.h>
 #include <deadstart.h>
 #include <stdio.h>
-#include <system.h>
 #include <string.h>
 #include <timers.h>
 #include <sharemem.h>

@@ -4,7 +4,7 @@
 #include <sharemem.h>
 #include <configscript.h>
 #include <netservice.h>
-#include <system.h>
+#include <sack_system.h>
 #include <timers.h>
 #include <network.h>
 

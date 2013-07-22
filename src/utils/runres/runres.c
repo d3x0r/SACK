@@ -1,5 +1,4 @@
 #include <stdhdrs.h>
-#include <system.h>
 #include <timers.h>
 
 PTHREAD mainthread;

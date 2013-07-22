@@ -39,7 +39,7 @@
 #include <controls.h>
 #include <configscript.h>
 #include <sharemem.h>
-#include <system.h>  // GetProgramName()
+#include <sack_system.h>  // GetProgramName()
 #include <idle.h>
 #include <keybrd.h>
 #include <fractions.h>

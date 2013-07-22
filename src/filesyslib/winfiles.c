@@ -2,7 +2,6 @@
 #include <stdhdrs.h>
 #include <filesys.h>
 #include <sqlgetoption.h>
-#include <system.h>
 
 #ifndef UNDER_CE
 //#include <fcntl.h>

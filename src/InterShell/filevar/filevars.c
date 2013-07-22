@@ -1,5 +1,4 @@
 #include <stdhdrs.h>
-#include <system.h> // GetProgramName()
 #include <sqlgetoption.h>
 #define USES_INTERSHELL_INTERFACE
 #define DEFINES_INTERSHELL_INTERFACE

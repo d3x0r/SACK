@@ -40,8 +40,8 @@ ELSE()
 ENDIF()
 
 # OpenGL ES support
-OPTION(FREEGLUT_GLES1 "Use OpenGL ES 1.x (requires EGL)" OFF)
-OPTION(FREEGLUT_GLES2 "Use OpenGL ES 2.x (requires EGL) (overrides BUILD_GLES1)" OFF)
+#OPTION(FREEGLUT_GLES1 "Use OpenGL ES 1.x (requires EGL)" OFF)
+#OPTION(FREEGLUT_GLES2 "Use OpenGL ES 2.x (requires EGL) (overrides BUILD_GLES1)" OFF)
 
 
 

@@ -85,7 +85,7 @@ int setOptions( int argc )
 			{
 				l.flags.rec_input_type = 1;
 				SACK_GetPrivateProfileString( WIDE( "vlc/config" ), WIDE( "vlc input" ), WIDE("dshow://"), tmp1, sizeof( tmp1 ), WIDE( "video.ini" ) );
-				ofs2 += snprintf( l.input + ofs2, sizeof( l.input ) - ofs2, WIDE( "%s" ), tmp1 );				
+				ofs2 += snprintf( l.input + ofs2, sizeof( l.input ) - ofs2, WIDE( "%s" ), tmp1 );
 			}
 			else if( ( StrCaseCmp( l.wargv[n]+1, WIDE( "input" ) ) == 0 ) && ( l.flags.rec_input_type )  )
 			{

@@ -8,7 +8,6 @@
 #include <deadstart.h>
 #include <sharemem.h>
 #include <filesys.h>
-#include <system.h>
 #include <network.h>
 #include <controls.h> // INI prompt
 #ifdef __WATCOMC__

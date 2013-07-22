@@ -1,5 +1,4 @@
 #include <stdhdrs.h>
-#include <system.h>
 
 	PTASK_INFO cat;
 	PTASK_INFO awk;

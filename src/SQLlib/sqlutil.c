@@ -3,7 +3,6 @@
 #include <sharemem.h>
 #include <procreg.h>
 #include <filesys.h>
-#include <system.h>
 #define SQLLIB_SOURCE
 #ifdef USE_SQLITE_INTERFACE
 #define USES_SQLITE_INTERFACE

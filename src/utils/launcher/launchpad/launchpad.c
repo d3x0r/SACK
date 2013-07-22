@@ -6,7 +6,6 @@
 #include <sharemem.h>
 #include <configscript.h>
 #include <network.h>
-#include <system.h>
 #include <filesys.h>
 #include <timers.h>
 #define DO_LOGGING
