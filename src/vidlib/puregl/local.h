@@ -7,7 +7,7 @@
 #endif
 
 #ifdef __LINUX__
-#ifdef __ANDROID__
+#if defined( __ANDROID__ ) || defined( __QNX__ )
 #include <GLES2/gl2.h>
 #else
 #include <GL/gl.h>

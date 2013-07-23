@@ -4,7 +4,7 @@
 #if defined( __LINUX__ ) && defined( PURE_OPENGL_ENABLED )
 #include <stdio.h>
 
-#ifdef __ANDROID__
+#if defined( __ANDROID__ ) || defined( __QNX__ )
 #include <GLES2/gl2.h>
 #else
 #include <GL/glx.h>
@@ -86,7 +86,7 @@ typedef struct PBOInfo
 #ifdef __LINUX__
 /* stuff about our window grouped together */
 typedef struct {
-#ifndef __ANDROID__
+#if !defined( __ANDROID__ ) && !defined( __QNX__ )
 	Display *dpy;
     Window win;
     GLXContext ctx;

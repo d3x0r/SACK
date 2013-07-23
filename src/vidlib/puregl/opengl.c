@@ -7,14 +7,6 @@
 #include <timers.h>
 #include <logging.h>
 #include <vectlib.h>
-#ifdef __ANDROID__
-#include <GLES2/gl2.h>         // Header File For The OpenGL32 Library
-#else
-#ifndef UNDER_CE
-#include <GL/gl.h>         // Header File For The OpenGL32 Library
-#include <GL/glu.h>        // Header File For The GLu32 Library
-#endif
-#endif
 
 //#include <gl\glaux.h>    // Header File For The Glaux Library
 
@@ -611,7 +603,7 @@ LOGICAL SetupInfo( void )
     // get stecil bits
     glGetIntegerv(GL_STENCIL_BITS, &glInfo.stencilBits);
 	 
-#ifndef __ANDROID__
+#ifndef USE_GLES2
     // get max number of lights allowed
 		 glGetIntegerv(GL_MAX_LIGHTS, &glInfo.maxLights);
 #endif
@@ -619,7 +611,7 @@ LOGICAL SetupInfo( void )
     // get max texture resolution
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &glInfo.maxTextureSize);
 
-#ifndef __ANDROID__
+#ifndef USE_GLES2
     // get max number of clipping planes
     glGetIntegerv(GL_MAX_CLIP_PLANES, &glInfo.maxClipPlanes);
 

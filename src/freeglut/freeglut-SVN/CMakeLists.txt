@@ -362,7 +362,9 @@ ENDIF(FREEGLUT_BUILD_STATIC_LIBS)
         # '-O0 -gstabs+' helps the currently buggy GDB port
         # Too late to manipulate ENV: SET(ENV{CFLAGS} "$ENV{CFLAGS} -mandroid")
         # Not using _INIT variables, they seem to be used internally only
-        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mandroid")
+		if( NOT __QNX__ )
+	        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mandroid")
+		endif( NOT __QNX__ )
         SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -gstabs+")
     ENDIF()
 ENDIF()

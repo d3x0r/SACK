@@ -5,15 +5,23 @@ ADD_DEFINITIONS( -DMAKE_RCOORD_SINGLE )
 #INCLUDE_DIRECTORIES( cg/include/cg )
 # glsl ?
 
-if( NOT __ANDROID__ )
+if( NOT __ANDROID__ AND NOT __QNX__ )
   INCLUDE_DIRECTORIES( glew-1.9.0/include )
   add_subdirectory( glew-1.9.0 )
-endif( NOT __ANDROID__ )
+endif( NOT __ANDROID__ AND NOT __QNX__ )
+
+if( __ANDROID__ OR __QNX__ )
+ADD_DEFINITIONS( -DUSE_GLES2 )
+endif( __ANDROID__ OR __QNX__ )
 
 if( UNIX )
+   if( __QNX__ )
+set( SOURCES key.c keydefs.c opengl.c vidlib_android.c )
+else()
 set( SOURCES key.c keydefs.c opengl.c vidlib_x11.c )
+endif()
 else( UNIX )
-  if( NOT __ANDROID__ )
+  if( NOT __ANDROID__ AND NOT __QNX__ )
     add_definitions( -D__WINDOWS__ )
     set( SOURCES key.c ../keydefs.c opengl.c vidlib.c )
   else()
@@ -36,18 +44,21 @@ SET_TARGET_PROPERTIES( ${PROJECT_NAME} PROPERTIES
 	FOLDER "Video Renderer"  
 )
 
-if( __ANDROID__ )
-  my_target_link_libraries( ${PROJECT_NAME} ${SACK_CORE_LIBRARY} EGL GLESv2 GLESv1_CM )
+
+if( __ANDROID__ OR __QNX__ )
+  my_target_link_libraries( ${PROJECT_NAME} ${SACK_CORE_LIBRARY} EGL GLESv2 )
   ADD_DEFINITIONS( -D__USE_FREEGLUT__ )
   include_directories( ${SOURCES_ROOT}src/freeglut/freeglut-SVN/include )
+  if( NOT __QNX__ )
   my_target_link_libraries( ${PROJECT_NAME} freeglut m )
-else( __ANDROID__ )
+  endif( NOT __QNX__ )
+else( __ANDROID__ OR __QNX__ )
   if( UNIX )
     my_target_link_libraries( ${PROJECT_NAME} ${SACK_CORE_LIBRARY} GL GLU glew Xxf86vm )
   else( UNIX )
     my_target_link_libraries( ${PROJECT_NAME} ${SACK_CORE_LIBRARY} opengl32 glu32 glew )
   endif( UNIX )
-endif( __ANDROID__ )
+endif( __ANDROID__ OR __QNX__ )
 
 install_mode_dest( ${PROJECT_NAME} )
 
