@@ -576,6 +576,9 @@ INTERSHELL_PROC_PTR( SFTFont *, CreateACanvasFont2 )( PSI_CONTROL pc_canvas, CTE
 
 INTERSHELL_PROC_PTR( void, InterShell_DisablePageUpdateEx )( PSI_CONTROL pc_canvas, LOGICAL bDisable );
 
+INTERSHELL_PROC_PTR( void, AddSecurityContextToken )( PTRSZVAL object, CTEXTSTR module, CTEXTSTR token );
+INTERSHELL_PROC_PTR( void, GetSecurityContextTokens )( PTRSZVAL object, CTEXTSTR module, PLIST *list );
+
 };  //struct intershell_interface {
 
 
@@ -901,6 +904,9 @@ PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 
 #define  SetupSecurityEdit								   if( InterShell ) (InterShell)->SetupSecurityEdit
 #define  CreateSecurityContext							( !InterShell )?0:InterShell->CreateSecurityContext
+#define  AddSecurityContextToken							if( InterShell ) InterShell->AddSecurityContextToken
+#define  GetSecurityContextTokens						if( InterShell ) InterShell->GetSecurityContextTokens
+
 #define  CloseSecurityContext								if( InterShell ) (InterShell)->CloseSecurityContext
 #define  InterShell_SaveSecurityInformation        if( InterShell ) (InterShell)->InterShell_SaveSecurityInformation
 

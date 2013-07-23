@@ -2,6 +2,12 @@
 #ifndef TASK_STRUCTURES_DEFINED
 #define TASK_STRUCTURES_DEFINED
 
+struct task_security_module
+{
+	CTEXTSTR name;
+	PLIST tokens;
+};
+
 typedef struct task_tag
 {
    DeclareLink( struct task_tag );
@@ -43,7 +49,8 @@ typedef struct task_tag
 	PLIST allowed_run_on;
 	PLIST disallowed_run_on;
 	PTHREAD waiting_thread;
-   PTRSZVAL psvSecurityToken;
+	PTRSZVAL psvSecurityToken;
+	PLIST security_modules;
 } LOAD_TASK, *PLOAD_TASK;
 
 
