@@ -1,4 +1,3 @@
-
 #define DEFINE_MESSAGE_SERVER_GLOBAL
 #include "global.h"
 

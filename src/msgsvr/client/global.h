@@ -1,3 +1,6 @@
+#ifdef __QNX__
+#define USE_SACK_MSGQ
+#endif
 
 //#define ENABLE_GENERAL_USEFUL_DEBUGGING
 
@@ -26,11 +29,13 @@
 #include <time.h>
 // ipc sysv msgque (msgget,msgsnd,msgrcv)
 #ifdef __ANDROID__
-#include <linux/ipc.h>
-#include <linux/msg.h>
+#  include <linux/ipc.h>
+#  include <linux/msg.h>
 #else
-#include <sys/ipc.h>
-#include <sys/msg.h>
+#  ifndef USE_SACK_MSGQ
+#    include <sys/ipc.h>
+#    include <sys/msg.h>
+#  endif
 #endif
 #include <signal.h>
 #define MSGTYPE (struct msgbuf*)
@@ -58,7 +63,7 @@ MSGCLIENT_NAMESPACE
 #endif
 
 
-#ifdef _WIN32
+#if defined( _WIN32 ) || defined(USE_SACK_MSGQ)
 #ifdef _MSC_VER
 #undef errno
 #define errno GetLastError()
@@ -246,7 +251,7 @@ DeclareSet( BUFFER_LENGTH_PAIR );
 #ifdef DEBUG_DATA_XFER
 #  define msgsnd( q,msg,len,opt) ( _lprintf(DBG_RELAY)( WIDE("Send Message...%d %d"), len, len+4 ), LogBinary( (P_8)msg, (len)+4  ), EnqueMsg( q,(msg),(len),(opt)) )
 #else
-#  define msgsnd EnqueMsg
+#  define msgsnd(a,b,c,d) EnqueMsg((PMSGHANDLE)a,b,c,d)
 #endif
 	#define msgrcv(q,m,sz,id,o) DequeMsg((PMSGHANDLE)q,&id,m,sz,o)
 	#define MSGQSIZE 32768
@@ -255,7 +260,7 @@ DeclareSet( BUFFER_LENGTH_PAIR );
 #define msgget(name,n,opts) ( (opts) & IPC_CREAT )		\
 	? ( ( (opts) & IPC_EXCL)									  \
 	  ? ( SackOpenMsgQueue( name, NULL, 0 )						\
-		 ? MSGFAIL													 \
+		 ? (MSGQ_TYPE)MSGFAIL													 \
 		 : SackCreateMsgQueue( name, MSGQSIZE, NULL, 0 ))	  \
 	  : SackCreateMsgQueue( name, MSGQSIZE, NULL, 0 ))		 \
 	: SackOpenMsgQueue( name, NULL, 0 )

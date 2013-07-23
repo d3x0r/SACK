@@ -17,6 +17,12 @@
 #define USE_PIPE_SEMS
 #endif
 
+#ifdef __QNX__
+#define USE_PIPE_SEMS
+// no semtimedop; no semctl, etc
+//#include <sys/sem.h>
+#endif
+
 // this is a cheat to get the critical section
 // object... otherwise we'd have had circular
 // linking reference between this and sharemem

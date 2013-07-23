@@ -9,7 +9,9 @@
 //#undef __USE_GNU
 //#include <linux/fcntl.h>
 #include <fcntl.h>
+#ifndef __QNX__
 #include <sys/inotify.h>
+#endif
 #endif
 
 #include <time.h>
@@ -144,8 +146,10 @@ static void handler( int sig, siginfo_t *si, void *data )
     {
         PMONITOR cur = Monitors;
         for( cur = Monitors; cur; cur = cur->next )
-        {
-            if( si->si_fd == cur->fdMon )
+		  {
+#ifndef __QNX__
+			  if( si->si_fd == cur->fdMon )
+#endif
             {
                 Log1( WIDE("Setting to scan due to event.. %s"), cur->directory );
 					 if( !cur->DoScanTime )
@@ -155,8 +159,10 @@ static void handler( int sig, siginfo_t *si, void *data )
         }
         if( !cur )
         {
+#ifndef __QNX__
            Log1( WIDE("Signal on handle which did not exist?! %d Invoking failure scanall!"), si->si_fd );
-           close( si->si_fd );
+			  close( si->si_fd );
+#endif
 	        for( cur = Monitors; cur; cur = cur->next )
    	     {
 				  if( !cur->DoScanTime )
@@ -215,7 +221,9 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR dirname, int scan_delay, 
 #if 0
 		fdMon = open( dirname, O_RDONLY );
 #else
+#ifndef __QNX__
 		fdMon = inotify_init();
+#endif
 		fcntl(fdMon, F_SETFL, O_NONBLOCK); 
 #endif
 		if( fdMon >= 0 )
@@ -225,7 +233,10 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR dirname, int scan_delay, 
 			fcntl( fdMon, F_SETSIG, SIGRTMIN );
 			fcntl( fdMon, F_NOTIFY, DN_CREATE|DN_DELETE|DN_RENAME|DN_MODIFY|DN_MULTISHOT );
 #else
+#ifndef __QNX__
+         // this should work for QNX (qnx car?)
 			inotify_add_watch( fdMon, dirname, IN_ALL_EVENTS );
+#endif
 #endif
 			monitor = CreateMonitor( fdMon, (char*)dirname );
 			Monitoring = 1;

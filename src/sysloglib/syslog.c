@@ -785,11 +785,12 @@ static CTEXTSTR GetLogTime( void )
 //----------------------------------------------------------------------------
 #ifndef __DISABLE_UDP_SYSLOG__
 
-#ifndef FBSD
+#if !defined( FBSD ) && !defined(__QNX__)
 static SOCKADDR saLogBroadcast  = { 2, { 0x02, 0x02, (char)0xff, (char)0xff, (char)0xff, (char)0xff } };
 static SOCKADDR saLog  = { 2, { 0x02, 0x02, 0x7f, 0x00, 0x00, 0x01 } };
 static SOCKADDR saBind = { 2, { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } };
 #else
+static SOCKADDR saLogBroadcast  = { 2, 0x02, 0x02, (char)0xff, (char)0xff, (char)0xff, (char)0xff };
 static SOCKADDR saLog  = { 2, 0x02, 0x02, 0x7f, 0x00, 0x00, 0x01  };
 static SOCKADDR saBind = { 2, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  };
 #endif

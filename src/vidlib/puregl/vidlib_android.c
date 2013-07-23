@@ -43,10 +43,10 @@
 
 #include <stdhdrs.h>
 /* again, this should be moved to stdhdrs so we get timeGetTime() */
-#ifdef __ANDROID__
-#include <GLES/gl.h>
+#ifdef USE_GLES2
+//#include <GLES/gl.h>
 #include <GLES2/gl2.h>
-#include "glues/source/glues.h"
+//#include "glues/source/glues.h"
 #else
 #include <GL/gl.h>
 #include "../glext.h"
@@ -557,12 +557,12 @@ static void BeginVisPersp( struct display_camera *camera )
 	//if( mode != MODE_PERSP )
 	{
 		mode = MODE_PERSP;
-		glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
+		//glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 		glLoadIdentity();									// Reset The Projection Matrix
-		gluPerspective(90.0f,camera->aspect,1.0f,30000.0f);
-		glGetFloatv( GL_PROJECTION_MATRIX, l.fProjection );
+		//gluPerspective(90.0f,camera->aspect,1.0f,30000.0f);
+		//glGetFloatv( GL_PROJECTION_MATRIX, l.fProjection );
 
-		glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
+		//glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 	}
 }
 
@@ -571,18 +571,18 @@ static int InitGL( struct display_camera *camera )										// All Setup For Ope
 {
 	if( !camera->flags.init )
 	{
-		glShadeModel(GL_SMOOTH);							// Enable Smooth Shading
+		//glShadeModel(GL_SMOOTH);							// Enable Smooth Shading
 
-		glEnable( GL_ALPHA_TEST );
+		//glEnable( GL_ALPHA_TEST );
 		glEnable( GL_BLEND );
  		glEnable(GL_DEPTH_TEST);							// Enables Depth Testing
 		glEnable( GL_TEXTURE_2D );
  		glDepthFunc(GL_LEQUAL);								// The Type Of Depth Testing To Do
-		glEnable(GL_NORMALIZE); // glNormal is normalized automatically....
+		//glEnable(GL_NORMALIZE); // glNormal is normalized automatically....
 #ifndef __ANDROID__
-		glEnable( GL_POLYGON_SMOOTH );
+		//glEnable( GL_POLYGON_SMOOTH );
 #endif
- 		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculations
+ 		//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculations
  
 		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
  

@@ -4,7 +4,6 @@
 #include <sack_types.h>
 #include <sharemem.h>
 #include <sqlgetoption.h>
-#include <GL/gl.h>
 #include <vectlib.h>
 #include <vidlib/vidstruc.h>
 #include <render.h>
