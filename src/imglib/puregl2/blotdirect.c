@@ -17,8 +17,9 @@
 #include <stdhdrs.h>
 #include <sharemem.h>
 
-#ifdef __ANDROID__
-#include <gles/gl.h>
+#if defined( USE_GLES2 )
+//#include <gles/gl.h>
+#include <gles2/gl2.h>
 #else
 #include <GL/glew.h>
 #include <GL/gl.h>         // Header File For The OpenGL32 Library
@@ -630,7 +631,7 @@ namespace image {
 			}
 			else if( method == BLOT_INVERTED )
 			{
-#if !defined( __ANDROID__ )
+#if !defined( __ANDROID__ ) && !defined( __QNX__ )
 				InitShader();
 				if( l.glActiveSurface->shader.inverse_shader )
 				{

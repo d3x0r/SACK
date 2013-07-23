@@ -25,8 +25,9 @@
 #endif
 #include <stdhdrs.h>
 
-#if defined( __ANDROID__ )
-#include <gles\gl.h>         // Header File For The OpenGL32 Library
+#if defined( USE_GLES2 )
+//#include <gles\gl.h>         // Header File For The OpenGL32 Library
+#include <gles2\gl2.h>         // Header File For The OpenGL32 Library
 #else
 #include <GL/glew.h>
 #include <GL/gl.h>         // Header File For The OpenGL32 Library
@@ -653,7 +654,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			}
 			else if( method == BLOT_INVERTED )
 			{
-#if !defined( __ANDROID__ )
+#if !defined( __ANDROID__ ) && !defined( __QNX__ )
 				InitShader();
 				if( l.glActiveSurface->shader.inverse_shader )
 				{

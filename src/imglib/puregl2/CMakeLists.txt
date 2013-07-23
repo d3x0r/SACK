@@ -5,6 +5,11 @@ if( NOT __ANDROID__ )
   INCLUDE_DIRECTORIES( ../../vidlib/puregl/glew-1.9.0/include )
 endif( NOT __ANDROID__ )
 
+if( __ANDROID__ OR __QNX__ )
+ADD_DEFINITIONS( -DUSE_GLES2 )
+endif( __ANDROID__ OR __QNX__ )
+
+
 set( font_sources font.c fntcache.c fntrender.c lucidaconsole.c )
 set( loader_sources ../bmpimage.c ../gifimage.c ../pngimage.c ../jpgimage.c )
 
@@ -26,9 +31,9 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
 )
 
 my_target_link_libraries( ${PROJECT_NAME} ${SACK_CORE_LIBRARY} )
-if( __ANDROID__ )
+if( __ANDROID__ OR __QNX__ )
   my_target_link_libraries( ${PROJECT_NAME} EGL GLESv2 )
-else( __ANDROID__ )
+else( __ANDROID__ OR __QNX__ )
 if( UNIX )
   my_target_link_libraries( ${PROJECT_NAME} GLESv2 EGL GL )
   if( NOT NEED_PNG ) 
@@ -44,7 +49,7 @@ else( UNIX )
 my_target_link_libraries( ${PROJECT_NAME} opengl32 glu32 )
 my_target_link_libraries( ${PROJECT_NAME} glew )
 endif( UNIX )
-endif( __ANDROID__ )
+endif( __ANDROID__ OR __QNX__ )
 
 my_target_link_libraries( ${PROJECT_NAME} bag.psi )
 
