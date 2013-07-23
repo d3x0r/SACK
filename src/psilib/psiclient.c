@@ -119,7 +119,7 @@ static int ConnectToServer( void )
 {
 	if( !g.flags.connected )
 	{
-		if( InitMessageService() )
+		//if( InitMessageService() )
 		{
 			g.MsgBase = LoadService( WIDE("controls"), ControlEventProcessor );
 			if( g.MsgBase )

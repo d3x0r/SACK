@@ -836,6 +836,10 @@ SET_TARGET_PROPERTIES(bag.externals PROPERTIES
                   FOLDER "Externals"
 )
 
+if( __QNX__ )
+    my_target_link_libraries( bag socket )
+endif( __QNX__ )
+
 if( __ANDROID__ )
     my_target_link_libraries( bag.externals m )
     my_target_link_libraries( bag m )
@@ -1173,8 +1177,10 @@ endif( BUILD_TESTS )
 if( NOT __ANDROID__ )
    add_subdirectory( src/msgsvr/server )
    add_subdirectory( src/msgsvr/servicelist )
-   add_subdirectory( src/utils/application_delay )
 endif( NOT __ANDROID__ )
+if( WIN32 )
+   add_subdirectory( src/utils/application_delay )
+endif( WIN32 )
 
 add_subdirectory( src/deadstart )
 add_subdirectory( src/utils/deploy )

@@ -20,7 +20,7 @@ endif( __ARM__ )
 
 set( __NO_ODBC__ @__NO_ODBC__@ )
 if( __NO_ODBC__ )
-ADD_DEFINITIONS( __NO_ODBC__ ON )
+ADD_DEFINITIONS( -D__NO_ODBC__=1 )
 endif( __NO_ODBC__ )
 
 
