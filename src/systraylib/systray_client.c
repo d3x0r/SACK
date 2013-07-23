@@ -85,7 +85,7 @@ static int ConnectToServer( void )
    if( !g.systrayserver.flags.connected )
    {
       xlprintf(LOG_ALWAYS)("systray server not connected, trying to connect.");
-		if( InitMessageService() )
+		//if( InitMessageService() )
       {
          g.systrayserver.MsgBase = LoadServiceEx( WIDE("systray"), HandleEvents );
          xlprintf(LOG_ALWAYS)( WIDE("systray message base is %") _32f WIDE(""), g.systrayserver.MsgBase );
