@@ -11,8 +11,9 @@
 #endif
 
 #include <stdhdrs.h>
-#ifdef __ANDROID__
-#include <gles/gl.h>
+#if defined( USE_GLES2 )
+//#include <gles/gl.h>
+#include <gles2/gl2.h>
 #else
 #include <GL/glew.h>
 #include <GL/gl.h>         // Header File For The OpenGL32 Library
@@ -138,7 +139,7 @@ static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 {
 	l.glActiveSurface = (struct glSurfaceData *)psv;
 
-#ifndef __ANDROID__
+#if !defined( USE_GLES2 )
 	if (GLEW_OK != glewInit() )
 	{
 		return;
@@ -228,7 +229,7 @@ int ReloadOpenGlTexture( Image child_image, int option )
 					//glPixelTransferf(GL_RED_SCALE,0.5f);                // Scale RGB By 50%, So That We Have Only
 					//glPixelTransferf(GL_GREEN_SCALE,0.5f);              // Half Intenstity
 					//glPixelTransferf(GL_BLUE_SCALE,0.5f);
-#ifndef __ANDROID__
+#ifndef USE_GLES2
 					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP);  // No Wrapping, Please!
 					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);
 #endif
@@ -241,7 +242,7 @@ int ReloadOpenGlTexture( Image child_image, int option )
 				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 				/**///glColor4ub( 255, 255, 255, 255 );
-#ifdef __ANDROID__
+#ifdef USE_GLES2
 				glTexImage2D(GL_TEXTURE_2D, 0, 4, image->real_width, image->real_height
 								, 0, GL_RGBA, GL_UNSIGNED_BYTE
 								, image->image );
@@ -269,7 +270,7 @@ int ReloadOpenGlShadedTexture( Image child_image, int option, CDATA color )
 
 int ReloadOpenGlMultiShadedTexture( Image child_image, int option, CDATA r, CDATA g, CDATA b )
 {
-#if !defined( __ANDROID__ )
+#if !defined( USE_GLES2 )
 				InitShader();
 				if( glUseProgram && l.glActiveSurface->shader.multi_shader )
 				{
@@ -2144,12 +2145,12 @@ void Render3dImage( Image pifSrc, LOGICAL render_pixel_scaled )
 
 void InitShader( void )
 {
-#ifndef __ANDROID__
+#ifndef USE_GLES2
 	const char *string = glGetString(GL_SHADING_LANGUAGE_VERSION);
 	lprintf( "Supported version: %s", string );
 #endif
 	           
-#ifdef __ANDROID__
+#ifdef USE_GLES2
 #else
 	if( !l.glActiveSurface )
 		return;

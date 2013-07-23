@@ -1,7 +1,7 @@
 #include <stdhdrs.h>
 
-#ifdef __ANDROID__
-#include <GLES/gl.h>
+#ifdef USE_GLES2
+//#include <GLES/gl.h>
 #include <GLES2/gl2.h>
 #else
 #define GLEW_NO_GLU
@@ -134,7 +134,7 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 		glCompileShader(tracker->glVertexProgramId);
 		{
 			//Error checking.
-#ifdef __ANDROID__
+#ifdef USE_GLES2
 			glGetShaderiv(tracker->glFragProgramId, GL_COMPILE_STATUS, &result);
 #else
 			glGetObjectParameterivARB(tracker->glVertexProgramId, GL_OBJECT_COMPILE_STATUS_ARB, &result);
@@ -147,7 +147,7 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 				//We failed to compile.
 				lprintf("Vertex shader 'program A' failed compilation.\n");
 				//Attempt to get the length of our error log.
-#ifdef __ANDROID__
+#ifdef USE_GLES2
 				glGetShaderiv(tracker->glVertexProgramId, GL_INFO_LOG_LENGTH, &length);
 #else
 				glGetObjectParameterivARB(tracker->glVertexProgramId, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
@@ -156,7 +156,7 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 				//Create a buffer.
 					
 				//Used to get the final length of the log.
-#ifdef __ANDROID__
+#ifdef USE_GLES2
 				glGetShaderInfoLog( tracker->glVertexProgramId, length, &final, buffer);
 #else
 				glGetInfoLogARB(tracker->glVertexProgramId, length, &final, buffer);
@@ -187,7 +187,7 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 
 		{
 			//Error checking.
-#ifdef __ANDROID__
+#ifdef USE_GLES2
 			glGetShaderiv(tracker->glFragProgramId, GL_COMPILE_STATUS, &result);
 #else
 			glGetObjectParameterivARB(tracker->glFragProgramId, GL_OBJECT_COMPILE_STATUS_ARB, &result);
@@ -200,7 +200,7 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 				//We failed to compile.
 				lprintf("Vertex shader 'program B' failed compilation.\n");
 				//Attempt to get the length of our error log.
-#ifdef __ANDROID__
+#ifdef USE_GLES2
 				glGetShaderiv(tracker->glVertexProgramId, GL_INFO_LOG_LENGTH, &length);
 #else
 				glGetObjectParameterivARB(tracker->glFragProgramId, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
@@ -209,7 +209,7 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 				//Create a buffer.
 					
 				//Used to get the final length of the log.
-#ifdef __ANDROID__
+#ifdef USE_GLES2
 				glGetShaderInfoLog( tracker->glFragProgramId, length, &final, buffer);
 #else
 				glGetInfoLogARB(tracker->glFragProgramId, length, &final, buffer);
@@ -227,13 +227,13 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 			}
 		}
 
-#ifdef __ANDROID__
+#ifdef USE_GLES2
 		glAttachShader(tracker->glProgramId, tracker->glVertexProgramId );
 #else
 		glAttachObjectARB(tracker->glProgramId, tracker->glVertexProgramId );
 #endif
 		CheckErr();
-#ifdef __ANDROID__
+#ifdef USE_GLES2
 		glAttachShader(tracker->glProgramId, tracker->glFragProgramId );
 #else
 		glAttachObjectARB(tracker->glProgramId, tracker->glFragProgramId );
@@ -258,7 +258,7 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 				//We failed to compile.
 				lprintf("Shader failed linking...\n");
 				//Attempt to get the length of our error log.
-#ifdef __ANDROID__
+#ifdef USE_GLES2
 				glGetShaderiv(tracker->glProgramId, GL_INFO_LOG_LENGTH, &length);
 #else
 				glGetObjectParameterivARB(tracker->glProgramId, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
@@ -267,7 +267,7 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 				//Create a buffer.
 					
 				//Used to get the final length of the log.
-#ifdef __ANDROID__
+#ifdef USE_GLES2
 				glGetShaderInfoLog( tracker->glProgramId, length, &final, buffer);
 #else
 				glGetInfoLogARB(tracker->glProgramId, length, &final, buffer);

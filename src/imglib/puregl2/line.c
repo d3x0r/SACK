@@ -20,8 +20,9 @@
 #define LIBRARY_DEF
 #include <stdhdrs.h>
 
-#ifdef __ANDROID__
-#include <gles/gl.h>
+#ifdef USE_GLES2
+//#include <gles/gl.h>
+#include <gles2/gl2.h>
 #else
 #include <GL/glew.h>
 #include <GL/gl.h>   // Header File For The OpenGL32 Library

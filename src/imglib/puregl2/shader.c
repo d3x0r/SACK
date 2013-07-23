@@ -50,7 +50,10 @@ void EnableShader( CTEXTSTR shader, ... )
 				}
 				if( !l.flags.projection_read )
 				{
+#ifndef USE_GLES2
+               // there really isn't a projection matrix for GLES2 should be all me.
 					glGetFloatv( GL_PROJECTION_MATRIX, l.projection );
+#endif
 					l.flags.projection_read = 1;
 				}
 
@@ -106,6 +109,7 @@ void DumpAttribs( int program )
 	int n;
 	int m;
 	lprintf( "---- Program %d -----", program );
+#ifndef USE_GLES2
 	glGetProgramiv( program, GL_ACTIVE_ATTRIBUTES, &m );
 	for( n = 0; n < m; n++ )
 	{
@@ -129,7 +133,7 @@ void DumpAttribs( int program )
 		glGetActiveUniform( program, n, 64, &length, &size, &type, tmp );
 		lprintf( "uniform [%s] %d %d", tmp, size, type );
 	}
-
+#endif
 
 }
 
