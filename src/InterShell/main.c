@@ -5695,7 +5695,9 @@ GetCommonButtonControls
 																				 , CloseSecurityContext
 																				 , InterShell_SaveSecurityInformation
                                                              , CreateACanvasFont2
-															, InterShell_DisablePageUpdateEx
+																				 , InterShell_DisablePageUpdateEx
+                                                             , AddSecurityContextToken
+                                                             , GetSecurityContextTokens
 };
 
 POINTER CPROC LoadInterShellInterface( void )

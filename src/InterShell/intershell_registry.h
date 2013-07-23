@@ -190,6 +190,12 @@ namespace sack {
 #define OnSaveSecurityContext( name ) \
 	__DefineRegistryMethod(TASK_PREFIX,SaveSecurityContext,WIDE( "common" ),WIDE( "Save Security" ),name WIDE( "_save_security" ),void,(FILE*,PTRSZVAL),__LINE__)
 
+#define OnAddSecurityContextToken( name ) \
+	__DefineRegistryMethod(TASK_PREFIX,AddSecurityContextToken,WIDE( "common" ),WIDE( "Add Security Token" ),name WIDE( "_add_token" ),void,(PTRSZVAL,CTEXTSTR),__LINE__)
+
+#define OnGetSecurityContextTokens( name ) \
+	__DefineRegistryMethod(TASK_PREFIX,AddSecurityContextToken,WIDE( "common" ),WIDE( "Get Security Tokens" ),name WIDE( "_get_tokens" ),void,(PTRSZVAL,PLIST*),__LINE__)
+
 /* result INVALID_INDEX - premission denied
  result 0 - no context
  any other result is a result handle that is also closed when complete */

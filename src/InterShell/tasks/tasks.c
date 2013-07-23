@@ -1968,6 +1968,19 @@ static void DumpTask( FILE *file, PLOAD_TASK pTask, int sub )
 		fprintf( file, WIDE("%sForce Hide Display?%s\n" ), sub?"\t":InterShell_GetSaveIndent(), pTask->flags.bHideCanvas?WIDE("Yes"):WIDE("No") );
 		{
 			INDEX idx;
+			INDEX idx2;
+			struct task_security_module *module;
+			LIST_FORALL( pTask->security_modules, idx, struct task_security_module *, module )
+			{
+				CTEXTSTR token;
+				LIST_FORALL( module->tokens, idx2, CTEXTSTR, token )
+				{
+					fprintf( "%sSecurity Token for [%m]%m\n", InterShell_GetSaveIndent(), module->name, token );
+				}
+			}
+		}
+		{
+			INDEX idx;
 			CTEXTSTR sysname;
 			LIST_FORALL( pTask->allowed_run_on, idx, CTEXTSTR, sysname )
 				fprintf( file, WIDE("%sRun task on %s\n" ), sub?"\t":InterShell_GetSaveIndent(), sysname );

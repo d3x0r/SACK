@@ -76,6 +76,22 @@ void CloseSecurityContext( PTRSZVAL button, PTRSZVAL psvSecurity )
 		}
 }
 
+void AddSecurityContextToken( PTRSZVAL button, CTEXTSTR module, CTEXTSTR token )
+{
+	void (CPROC*f)(PTRSZVAL,CTEXTSTR);
+	f = GetRegisteredProcedure2( (CTEXTSTR)WIDE( "intershell/common/Add Security Token" ), void, module, (PTRSZVAL,CTEXTSTR) );
+	if( f )
+		f( button, token );
+}
+
+void GetSecurityContextTokens( PTRSZVAL button, CTEXTSTR module, PLIST *ppList )
+{
+	void (CPROC*f)(PTRSZVAL,PLIST*);
+	f = GetRegisteredProcedure2( (CTEXTSTR)WIDE( "intershell/common/Get Security Tokens" ), void, module, (PTRSZVAL,PLIST*) );
+	if( f )
+		f( button, ppList );
+}
+
 void CPROC SelectEditSecurity( PTRSZVAL psv, PSI_CONTROL listbox, PLISTITEM pli )
 {
 	{
@@ -87,7 +103,6 @@ void CPROC SelectEditSecurity( PTRSZVAL psv, PSI_CONTROL listbox, PLISTITEM pli 
 		if( f )
 			f( (PTRSZVAL)psv );
 	}
-
 }
 
 
