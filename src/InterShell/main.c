@@ -4955,7 +4955,7 @@ void InvokeFinishInit( void )
 	{
 		CTEXTSTR name;
 		PCLASSROOT data = NULL;
-		for( name = GetFirstRegisteredName( TASK_PREFIX WIDE( "/common/Edit Security" ), &data );
+		for( name = GetFirstRegisteredName( TASK_PREFIX WIDE( "/common/Security/Edit Security" ), &data );
 			name;
 			name = GetNextRegisteredName( &data ) )
 		{
@@ -5698,6 +5698,7 @@ GetCommonButtonControls
 																				 , InterShell_DisablePageUpdateEx
                                                              , AddSecurityContextToken
                                                              , GetSecurityContextTokens
+                                                             , GetSecurityModules
 };
 
 POINTER CPROC LoadInterShellInterface( void )

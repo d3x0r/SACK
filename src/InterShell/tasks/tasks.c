@@ -434,19 +434,28 @@ PLOAD_TASK CPROC CreateTask( PMENU_BUTTON button )
 	MemSet( task, 0, sizeof( LOAD_TASK ) );
 	StrCpyEx( task->pPath, WIDE("."), sizeof( task->pPath )/sizeof(TEXTCHAR) );
 	task->spawns = CreateList();
+	{
+		PLIST tmp = NULL;
+		INDEX idx;
+		CTEXTSTR module;
+		GetSecurityModules( &tmp );
+		LIST_FORALL( tmp, idx, CTEXTSTR, module )
+		{
+			struct task_security_module *task_security = New( struct task_security_module );
+			task_security->name = module;
+			task_security->tokens = NULL;
+			AddLink( &task->security_modules, task_security );
+		}
+		DeleteList( &tmp );
+	}
 	LinkThing( l.tasklist, task );
-   //task->button = button;
-   return task;
+	return task;
 }
 
 OnCreateMenuButton( WIDE("Task") )( PMENU_BUTTON button )
 {
-	PLOAD_TASK task = New( LOAD_TASK );
-	MemSet( task, 0, sizeof( LOAD_TASK ) );
-	StrCpyEx( task->pPath, WIDE("."), sizeof( task->pPath )/sizeof(TEXTCHAR) );
-	task->spawns = CreateList();
+   PLOAD_TASK task = CreateTask( button );
 	task->flags.bButton = 1;
-	LinkThing( l.tasklist, task );
 	task->button = button;
 	InterShell_SetButtonStyle( button, WIDE("bicolor square") );
 	return (PTRSZVAL)task;
@@ -578,6 +587,10 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 		SetCommonButtons( frame, &done, &okay );
 		if( bVisual )
 			SetCommonButtonControls( frame );
+
+		// re-set security module to reference a different place.
+		if( pTask->flags.bButton ) // otherwise security will be checked on the non-button task
+			SetupSecurityEdit( frame, (PTRSZVAL)&pTask->security_modules );
 
 		SetControlText( GetControl( frame, EDIT_TASK_FRIENDLY_NAME ), GetTaskName( pTask ) );
 		SetControlText( GetControl( frame, TXT_TASK_NAME ), pTask->pTask );
@@ -850,13 +863,16 @@ void RunATask( PLOAD_TASK pTask, int bWaitInRoutine )
 		if( !pTask->flags.bAllowedRun )
 			return;
 	}
-	if( !pTask->flags.bButton ) // otherwise security will be checked on the button
 	{
-		PTRSZVAL task_security = CreateSecurityContext( (PTRSZVAL)pTask );
+		PTRSZVAL task_security;
+		if( !pTask->flags.bButton ) // otherwise security will be checked on the button
+			task_security = CreateSecurityContext( (PTRSZVAL)pTask );
+		else
+			task_security = CreateSecurityContext( (PTRSZVAL)&pTask->security_modules );
 		if( task_security == INVALID_INDEX )
 			return;
-		if( task_security )
-			pTask->flags.bExclusive = 1;
+		//if( task_security )
+		//	pTask->flags.bExclusive = 1;
 		pTask->psvSecurityToken = task_security;
 	}
 	// else if allowed, okay
@@ -1703,11 +1719,10 @@ PTRSZVAL CPROC SetLeastLaunchResolution( PTRSZVAL psv, arg_list args )
 
 static PTRSZVAL CPROC SetTaskSecurity( PTRSZVAL psv, arg_list args )
 {
-	//PARAM( args, TEXTCHAR *, text );
-	//if( stristr( text, WIDE("something") )
-	//  )
-	//{
-	//}
+	PARAM( args, CTEXTSTR, module );
+	PARAM( args, CTEXTSTR, token );
+	PSV_PARAM;
+	AddSecurityContextToken( (PTRSZVAL)&pTask->security_modules, module, token );	
 	return psv;
 }
 
@@ -1762,7 +1777,7 @@ void AddTaskConfigs( PCONFIG_HANDLER pch )
 	AddConfigurationMethod( pch, WIDE("path=%m"), SetTaskPath );
 	AddConfigurationMethod( pch, WIDE("program=%m"), SetTaskTask );
 	AddConfigurationMethod( pch, WIDE("args=%m"), SetTaskArgs );
-	AddConfigurationMethod( pch, WIDE("security=%m"), SetTaskSecurity );
+	AddConfigurationMethod( pch, WIDE("Security Token for [%m]%m"), SetTaskSecurity );
 	AddConfigurationMethod( pch, WIDE("Launch at %i by %i"), SetLaunchResolution );
 	AddConfigurationMethod( pch, WIDE("Launch at least %i by %i"), SetLeastLaunchResolution );
 	AddConfigurationMethod( pch, WIDE("restart %b"), SetTaskRestart );
@@ -1973,9 +1988,10 @@ static void DumpTask( FILE *file, PLOAD_TASK pTask, int sub )
 			LIST_FORALL( pTask->security_modules, idx, struct task_security_module *, module )
 			{
 				CTEXTSTR token;
+				GetSecurityContextTokens( (PTRSZVAL)&pTask->security_modules, module->name, &module->tokens );
 				LIST_FORALL( module->tokens, idx2, CTEXTSTR, token )
 				{
-					fprintf( "%sSecurity Token for [%m]%m\n", InterShell_GetSaveIndent(), module->name, token );
+					fprintf( file, WIDE("%sSecurity Token for [%s]%s\n"), sub?"\t":InterShell_GetSaveIndent(), module->name, token );
 				}
 			}
 		}
@@ -1988,7 +2004,7 @@ static void DumpTask( FILE *file, PLOAD_TASK pTask, int sub )
 				fprintf( file, WIDE("%sDisallow task on %s\n" ), sub?"\t":InterShell_GetSaveIndent(), sysname );
 		}
 		//if( pTask->flags.bButton )
-		fprintf( file, WIDE("%ssecurity=%s\n"), sub?"\t":InterShell_GetSaveIndent(), GetTaskSecurity( pTask ) );
+		//fprintf( file, WIDE("%ssecurity=%s\n"), sub?"\t":InterShell_GetSaveIndent(), GetTaskSecurity( pTask ) );
 		//if( pTask->pImage && pTask->pImage[0] )
 		//	fprintf( file, WIDE("image=%s\n"), EscapeMenuString( pTask->pImage ) );
 		if( sub )

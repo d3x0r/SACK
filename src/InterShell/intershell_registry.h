@@ -185,27 +185,27 @@ namespace sack {
 	__DefineRegistryMethod(TASK_PREFIX,CloneControl,WIDE( "control" ),name,WIDE( "clone_control" ),void,(PTRSZVAL,PTRSZVAL),__LINE__)
 
 #define OnLoadSecurityContext( name ) \
-	__DefineRegistryMethod(TASK_PREFIX,LoadSecurityContext,WIDE( "common" ),WIDE( "Load Security" ),name WIDE( "_load_security" ),void,(PCONFIG_HANDLER),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,LoadSecurityContext,WIDE( "common/security" ),WIDE( "Load Security" ),name WIDE( "_load_security" ),void,(PCONFIG_HANDLER),__LINE__)
 
 #define OnSaveSecurityContext( name ) \
-	__DefineRegistryMethod(TASK_PREFIX,SaveSecurityContext,WIDE( "common" ),WIDE( "Save Security" ),name WIDE( "_save_security" ),void,(FILE*,PTRSZVAL),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,SaveSecurityContext,WIDE( "common/security" ),WIDE( "Save Security" ),name WIDE( "_save_security" ),void,(FILE*,PTRSZVAL),__LINE__)
 
 #define OnAddSecurityContextToken( name ) \
-	__DefineRegistryMethod(TASK_PREFIX,AddSecurityContextToken,WIDE( "common" ),WIDE( "Add Security Token" ),name WIDE( "_add_token" ),void,(PTRSZVAL,CTEXTSTR),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,AddSecurityContextToken_,WIDE( "common/security/Add Security Token" ),name, WIDE( "add_token" ),void,(PTRSZVAL,CTEXTSTR),__LINE__)
 
 #define OnGetSecurityContextTokens( name ) \
-	__DefineRegistryMethod(TASK_PREFIX,AddSecurityContextToken,WIDE( "common" ),WIDE( "Get Security Tokens" ),name WIDE( "_get_tokens" ),void,(PTRSZVAL,PLIST*),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,GetSecurityContextToken_,WIDE( "common/security/Get Security Tokens" ),name, WIDE( "get_tokens" ),void,(PTRSZVAL,PLIST*),__LINE__)
 
 /* result INVALID_INDEX - premission denied
  result 0 - no context
  any other result is a result handle that is also closed when complete */
 #define TestSecurityContext( name ) \
-	__DefineRegistryMethod(TASK_PREFIX,TestSecurityContext,WIDE( "common" ),WIDE( "Test Security" ),name WIDE( "_test_security" ),PTRSZVAL,(PTRSZVAL),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,TestSecurityContext,WIDE( "common/security" ),WIDE( "Test Security" ),name WIDE( "_test_security" ),PTRSZVAL,(PTRSZVAL),__LINE__)
 #define EndSecurityContext( name ) \
-	__DefineRegistryMethod(TASK_PREFIX,TestSecurityContext,WIDE( "common" ),WIDE( "Close Security" ),name WIDE( "_close_security" ),void,(PTRSZVAL,PTRSZVAL),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,TestSecurityContext,WIDE( "common/security" ),WIDE( "Close Security" ),name WIDE( "_close_security" ),void,(PTRSZVAL,PTRSZVAL),__LINE__)
 
 #define OnEditSecurityContext( name ) \
-	__DefineRegistryMethod(TASK_PREFIX,EditSecurityContext,WIDE( "common" ),WIDE( "Edit Security" ),name,void,(PTRSZVAL),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,EditSecurityContext,WIDE( "common/security" ),WIDE( "Edit Security" ),name,void,(PTRSZVAL),__LINE__)
 
 /* Intended use:edits properties regarding page security... OnPageChange return FALSE to disallow page change...*/
 #define OnEditPageSecurityContext( name ) \

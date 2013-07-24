@@ -14,4 +14,5 @@ void CPROC SetupSecurityEdit( PSI_CONTROL frame, PTRSZVAL object_to_secure );
 void CPROC InterShell_ReloadSecurityInformation( PCONFIG_HANDLER pch );
 void CPROC AddSecurityContextToken( PTRSZVAL button, CTEXTSTR module, CTEXTSTR token );
 void CPROC GetSecurityContextTokens( PTRSZVAL button, CTEXTSTR module, PLIST *tokens );
+void CPROC GetSecurityModules( PLIST *ppList );
 

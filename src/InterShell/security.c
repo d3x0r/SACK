@@ -33,12 +33,12 @@ PTRSZVAL CreateSecurityContext( PTRSZVAL button )
          PTRSZVAL psv_context;
 			CTEXTSTR name;
 			PCLASSROOT data = NULL;
-			for( name = GetFirstRegisteredName( TASK_PREFIX WIDE( "/common/Test Security" ), &data );
+			for( name = GetFirstRegisteredName( TASK_PREFIX WIDE( "/common/security/Test Security" ), &data );
 				 name;
 				  name = GetNextRegisteredName( &data ) )
 			{
 				PTRSZVAL (CPROC*f)(PTRSZVAL);
-				//snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/common/save common/%s" ), name );
+				//snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/common/security/save common/%s" ), name );
 				f = GetRegisteredProcedure2( (CTEXTSTR)data, PTRSZVAL, name, (PTRSZVAL) );
 				if( f )
 				{
@@ -61,12 +61,12 @@ void CloseSecurityContext( PTRSZVAL button, PTRSZVAL psvSecurity )
 			//PTRSZVAL psv_context;
 			CTEXTSTR name;
 			PCLASSROOT data = NULL;
-			for( name = GetFirstRegisteredName( TASK_PREFIX WIDE( "/common/Close Security" ), &data );
+			for( name = GetFirstRegisteredName( TASK_PREFIX WIDE( "/common/security/Close Security" ), &data );
 				 name;
 				  name = GetNextRegisteredName( &data ) )
 			{
 				void (CPROC*f)(PTRSZVAL,PTRSZVAL);
-				//snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/common/save common/%s" ), name );
+				//snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/common/security/save common/%s" ), name );
 				f = GetRegisteredProcedure2( (CTEXTSTR)data, void, name, (PTRSZVAL,PTRSZVAL) );
 				if( f )
 				{
@@ -78,18 +78,35 @@ void CloseSecurityContext( PTRSZVAL button, PTRSZVAL psvSecurity )
 
 void AddSecurityContextToken( PTRSZVAL button, CTEXTSTR module, CTEXTSTR token )
 {
+	TEXTCHAR tmpname[256];
 	void (CPROC*f)(PTRSZVAL,CTEXTSTR);
-	f = GetRegisteredProcedure2( (CTEXTSTR)WIDE( "intershell/common/Add Security Token" ), void, module, (PTRSZVAL,CTEXTSTR) );
+	snprintf( tmpname, 256, WIDE( "intershell/common/security/Add Security Token/%s" ), module );
+	f = GetRegisteredProcedure2( tmpname, void, "add_token", (PTRSZVAL,CTEXTSTR) );
 	if( f )
 		f( button, token );
 }
 
 void GetSecurityContextTokens( PTRSZVAL button, CTEXTSTR module, PLIST *ppList )
 {
+	TEXTCHAR tmpname[256];
 	void (CPROC*f)(PTRSZVAL,PLIST*);
-	f = GetRegisteredProcedure2( (CTEXTSTR)WIDE( "intershell/common/Get Security Tokens" ), void, module, (PTRSZVAL,PLIST*) );
+	snprintf( tmpname, 256, WIDE( "intershell/common/security/Get Security Tokens/%s" ), module );
+	f = GetRegisteredProcedure2( tmpname, void, "get_tokens", (PTRSZVAL,PLIST*) );
 	if( f )
 		f( button, ppList );
+}
+
+void GetSecurityModules( PLIST *ppList )
+{
+	CTEXTSTR name;
+	PCLASSROOT data = NULL;
+	EmptyList( ppList );
+	for( name = GetFirstRegisteredName( TASK_PREFIX WIDE( "/common/security/Get Security Tokens" ), &data );
+		 name;
+		  name = GetNextRegisteredName( &data ) )
+	{
+		AddLink( ppList, name );
+	}
 }
 
 void CPROC SelectEditSecurity( PTRSZVAL psv, PSI_CONTROL listbox, PLISTITEM pli )
@@ -99,7 +116,7 @@ void CPROC SelectEditSecurity( PTRSZVAL psv, PSI_CONTROL listbox, PLISTITEM pli 
 		//TEXTCHAR invoke[256];
 		void (CPROC*f)(PTRSZVAL);
 		name = (CTEXTSTR)GetItemData( pli );
-		f = GetRegisteredProcedure2( (CTEXTSTR)WIDE( "intershell/common/Edit Security" ), void, name, (PTRSZVAL) );
+		f = GetRegisteredProcedure2( (CTEXTSTR)WIDE( "intershell/common/security/Edit Security" ), void, name, (PTRSZVAL) );
 		if( f )
 			f( (PTRSZVAL)psv );
 	}
@@ -138,6 +155,7 @@ void SetupSecurityEdit( PSI_CONTROL frame, PTRSZVAL object_to_secure )
 			{
 				INDEX idx;
 				CTEXTSTR name;
+				ResetList( listbox );
 				LIST_FORALL( g.security_property_names, idx, CTEXTSTR, name )
 				{
 					SetItemData( AddListItem( listbox, name ), (PTRSZVAL)name );
@@ -172,12 +190,12 @@ void InterShell_ReloadSecurityInformation( PCONFIG_HANDLER pch )
 	CTEXTSTR name;
 	PCLASSROOT data = NULL;
 	//lprintf( WIDE( "Gave control a chance to register additional security methods on current config..." ) );
-	for( name = GetFirstRegisteredName( TASK_PREFIX WIDE( "/common/Load Security" ), &data );
+	for( name = GetFirstRegisteredName( TASK_PREFIX WIDE( "/common/security/Load Security" ), &data );
 		 name;
 		  name = GetNextRegisteredName( &data ) )
 	{
 		void (CPROC*f)(PCONFIG_HANDLER);
-		//snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/common/save common/%s" ), name );
+		//snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/common/security/save common/%s" ), name );
 		f = GetRegisteredProcedure2( (CTEXTSTR)data, void, name, (PCONFIG_HANDLER) );
 		if( f )
 			f( pch );
@@ -190,12 +208,12 @@ void InterShell_SaveSecurityInformation( FILE *file, PTRSZVAL psv )
 	CTEXTSTR name;
 	PCLASSROOT data = NULL;
    //lprintf( "Save existing config for %p", psv );
-	for( name = GetFirstRegisteredName( TASK_PREFIX WIDE( "/common/Save Security" ), &data );
+	for( name = GetFirstRegisteredName( TASK_PREFIX WIDE( "/common/security/Save Security" ), &data );
 		 name;
 		  name = GetNextRegisteredName( &data ) )
 	{
 		void (CPROC*f)(FILE*,PTRSZVAL);
-		//snprintf( rootname, sizeof( rootname ), TASK_PREFIX "/common/save common/%s", name );
+		//snprintf( rootname, sizeof( rootname ), TASK_PREFIX "/common/security/save common/%s", name );
 		f = GetRegisteredProcedure2( (CTEXTSTR)data, void, name, (FILE*,PTRSZVAL) );
 		if( f )
 			f( file, psv );
