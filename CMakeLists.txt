@@ -24,6 +24,29 @@ if( ${CMAKE_GENERATOR} MATCHES "Watcom WMake" )
  
 endif( ${CMAKE_GENERATOR} MATCHES "Watcom WMake" )
 
+
+set( SACK_BASE ${PROJECT_SOURCE_DIR} )
+
+set( CMAKE_MODULE_PATH ${SACK_SOURCE_DIR}/makefiles/cmake )
+include( DefaultInstall )
+
+if( TOOLCHAIN STREQUAL "QNX" )
+	DEFINE_DEFAULT( __QNX__ ON )
+        SET( __LINUX__ ON )
+else( TOOLCHAIN STREQUAL "QNX" )
+	DEFINE_DEFAULT( __QNX__ OFF )
+endif( TOOLCHAIN STREQUAL "QNX" )
+SET( __QNX__ ${__QNX__} CACHE BOOL "Enable Linux specific features" )
+DEFINE_DEFAULT( __ARM__ OFF )
+SET( __ARM__ ${__ARM__} CACHE BOOL "Enable ARM specific features" )
+DEFINE_DEFAULT( __ANDROID__ OFF )
+SET( __ANDROID__ ${__ANDROID__} CACHE BOOL "Enable Android specific features" )
+DEFINE_DEFAULT( __LINUX__ OFF )
+SET( __LINUX__ ${__LINUX__} CACHE BOOL "Enable Linux specific features" )
+DEFINE_DEFAULT( __LINUX64__ OFF )
+SET( __LINUX64__ ${__LINUX64__} CACHE BOOL "Enable Linux-x64 specific features" )
+
+
 if( NOT __LINUX__ AND NOT __LINUX64__ )
 set(WIN32_VERSION "0x0601" CACHE STRING
       "Set minimum windows build version")
@@ -33,13 +56,8 @@ add_definitions( -D_WIN32_WINNT=${WIN32_VERSION} -DWINVER=${WIN32_VERSION})
 endif( NOT __LINUX__ AND NOT __LINUX64__ )
 
 
-
-set( SACK_BASE ${PROJECT_SOURCE_DIR} )
-
-set( CMAKE_MODULE_PATH ${SACK_SOURCE_DIR}/makefiles/cmake )
-include( DefaultInstall )
-
 DEFINE_DEFAULT( __ANDROID__ OFF )
+
 if( __ANDROID__ )
 	SET( __LINUX__ ON )
 	SET( __ARM__ ON )
@@ -171,10 +189,9 @@ set( FORCE_CXX ON )
 endif( __CLR__ )
 endif( MSVC )
 
-if( TOOLCHAIN STREQUAL "QNX" )
-set( __QNX__ ON )
+if( __QNX__ )
 ADD_DEFINITIONS( -D__QNX__ )
-endif( TOOLCHAIN STREQUAL "QNX" )
+endif( __QNX__ )
 
 if( BUILD_UNICODE )
 	add_definitions( -D_UNICODE -DUNICODE )
@@ -185,6 +202,7 @@ add_definitions( -D__ANDROID__ )
 endif( __ANDROID__ )
 
 if( __ARM__ )
+message( "IS ARM" )
 add_definitions( -D__ARM__)
 endif( __ARM__ )
 

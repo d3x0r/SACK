@@ -26,8 +26,8 @@
 #include <stdhdrs.h>
 
 #if defined( USE_GLES2 )
-//#include <gles\gl.h>         // Header File For The OpenGL32 Library
-#include <gles2\gl2.h>         // Header File For The OpenGL32 Library
+//#include <gles/gl.h>         // Header File For The OpenGL32 Library
+#include <gles2/gl2.h>         // Header File For The OpenGL32 Library
 #else
 #include <GL/glew.h>
 #include <GL/gl.h>         // Header File For The OpenGL32 Library
