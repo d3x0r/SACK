@@ -578,6 +578,8 @@ INTERSHELL_PROC_PTR( void, InterShell_DisablePageUpdateEx )( PSI_CONTROL pc_canv
 
 INTERSHELL_PROC_PTR( void, AddSecurityContextToken )( PTRSZVAL object, CTEXTSTR module, CTEXTSTR token );
 INTERSHELL_PROC_PTR( void, GetSecurityContextTokens )( PTRSZVAL object, CTEXTSTR module, PLIST *list );
+INTERSHELL_PROC_PTR( void, GetSecurityModules )( PLIST *list );
+INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_GetSaveIndent1 )( void ); // returns one level more than here
 
 };  //struct intershell_interface {
 
@@ -906,6 +908,7 @@ PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 #define  CreateSecurityContext							( !InterShell )?0:InterShell->CreateSecurityContext
 #define  AddSecurityContextToken							if( InterShell ) InterShell->AddSecurityContextToken
 #define  GetSecurityContextTokens						if( InterShell ) InterShell->GetSecurityContextTokens
+#define  GetSecurityModules    						if( InterShell ) InterShell->GetSecurityModules
 
 #define  CloseSecurityContext								if( InterShell ) (InterShell)->CloseSecurityContext
 #define  InterShell_SaveSecurityInformation        if( InterShell ) (InterShell)->InterShell_SaveSecurityInformation
