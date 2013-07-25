@@ -1029,11 +1029,12 @@ PTRSZVAL GetFileSize( int fd )
 			pMem = mmap( 0, *dwSize
 						  , PROT_READ|PROT_WRITE
 						  , MAP_SHARED|MAP_ANONYMOUS
-						  , 0, 0 );
+						  , NOFD  // QNX Note; NOFD = -1
+						  , 0 );
 			if( pMem == (POINTER)-1 )
 			{
-				lprintf( "Something bad about this region sized %p", *dwSize );
-            	DebugBreak();
+				lprintf( "Something bad about this region sized %p(%d)", *dwSize, errno );
+				DebugBreak();
 			}
 			//lprintf( WIDE("Clearing anonymous mmap %") _32f WIDE(""), *dwSize );
 			MemSet( pMem, 0, *dwSize );
