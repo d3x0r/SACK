@@ -441,19 +441,6 @@ typedef unsigned char   __type_rtp;
 typedef void(*__type_rtn ) ( void );
 struct rt_init // structure placed in XI/YI segment
 {
-#ifdef __cplusplus
-	//rt_init( int _rtn_type ) { rt_init::rtn_type = _rtn_type; }
-	/*rt_init( int _priority, CTEXTSTR name, __type_rtn rtn, CTEXTSTR _file, int _line )
-	{
-		rtn_type = 0;
-		scheduled = 0;
-		priority = priority;
-		file = _file;
-		line = _line;
-      routine = rtn;
-		}
-      */
-#endif
 #define DEADSTART_RT_LIST_START 0xFF
     __type_rtp  rtn_type; // - near=0/far=1 routine indication
                           //   also used when walking table to flag
@@ -482,35 +469,8 @@ struct rt_init // structure placed in XI/YI segment
 
 #define JUNKINIT(name) ,&pastejunk(name,_ctor_label)
 
-#ifdef __cplusplus
-#define RTINIT_STATIC 
-#else
 #define RTINIT_STATIC static
-#endif
 
-#ifdef __cplusplus
-#define PRIORITY_PRELOAD(name,priority) static void name(void); \
-   static class pastejunk(schedule_,name) {   \
-     public:pastejunk(schedule_,name)() {    \
-	        RegisterPriorityStartupProc( name,#name,priority,this,WIDE__FILE__,__LINE__ );\
-    }\
-	} do_schedul_##name;     \
-	static void name(void)
-#define MAGIC_PRIORITY_PRELOAD(name,priority) static void name(void); \
-   static class pastejunk(schedule_,name) {   \
-     public:pastejunk(schedule_,name)() {  name();  \
-	  }  \
-	} do_schedul_##name;     \
-	static void name(void)
-#define ATEXIT_PRIORITY(name,priority) static void name(void); \
-   static class pastejunk(schedule_,name) {   \
-     public:pastejunk(schedule_,name)() {    \
-        RegisterPriorityShutdownProc( name,#name,priority,this,WIDE__FILE__,__LINE__ ); \
-      }\
-	} do_schedul_##name;     \
-	static void name(void)
-#define PRIORITY_ATEXIT ATEXIT_PRIORITY
-#else // this is gcc, compiling as a C file...
 #define ATEXIT_PRIORITY PRIORITY_ATEXIT
 
 #define PRIORITY_PRELOAD(name,pr) static void name(void); \
@@ -532,7 +492,6 @@ void pastejunk(atexit,name)(void)                                               
 	RegisterPriorityShutdownProc(name,#name,priority,NULL,WIDE__FILE__,__LINE__);                          \
 }                                                                          \
 void name(void)
-#endif
 
 #define ATEXIT(name) PRIORITY_ATEXIT( name,ATEXIT_PRIORITY_DEFAULT )
 #define ROOT_ATEXIT(name) static void name(void) __attribute__((destructor)); \
