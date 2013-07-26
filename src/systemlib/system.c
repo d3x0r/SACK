@@ -1098,7 +1098,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 																			 RTLD_GLOBAL) );
 		if( !library->library )
 		{
-			_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s(%s) failed: %s."), libname, funcname?funcname:"all", dlerror() );
+			_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s%s(%s) failed: %s."), bPrivate?"(local)":"(global)", libname, funcname?funcname:"all", dlerror() );
 			library->library = dlopen( library->full_name, RTLD_NOW|(bPrivate?RTLD_LOCAL:RTLD_GLOBAL) );
 			if( !library->library )
 			{

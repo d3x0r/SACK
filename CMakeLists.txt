@@ -1109,7 +1109,16 @@ if( CMAKE_COMPILER_IS_GNUCC )
            bin
          RENAME interface.conf
        )
-    else( __ANDROID__ )
+    elseif( __QNX__ )
+       INSTALL(
+         FILES
+           data/interface.conf.puregl.qnx
+         DESTINATION
+           # this could also be /etc
+           bin
+         RENAME interface.conf
+       )
+    else( __QNX__ )
 
        INSTALL(
          FILES

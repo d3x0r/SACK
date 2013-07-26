@@ -493,6 +493,7 @@ CORECON_EXPORT( PSIKEYDEFINE, ConsoleKeyDefs[256] ) =
 };
 #endif
 #ifndef __cplusplus
+#  if 0
 PRELOAD( WriteSymbols)
 {
 	FILE *junk = fopen( WIDE("out.keysyms"), "wt" );
@@ -504,9 +505,45 @@ PRELOAD( WriteSymbols)
          int m;
 			if( ConsoleKeyDefs[n].name1 || ConsoleKeyDefs[n].name2 )
 			{
-				fprintf( junk, ", {WIDE(\"%s\"),WIDE(\"%s\"),%s|%s|%s|%s|%s|%s,{"
-						 , ConsoleKeyDefs[n].name1
-						 , ConsoleKeyDefs[n].name2
+				TEXTCHAR tmp[4];
+				TEXTCHAR tmp2[4];
+				TEXTSTR n1 = ConsoleKeyDefs[n].name1;
+				TEXTSTR n2 = ConsoleKeyDefs[n].name2;
+				if( StrCmp( ConsoleKeyDefs[n].name1, "\"" ) == 0 )
+				{
+               n1 = tmp;
+               tmp[0] = '\\';
+               tmp[1] = '\"';
+					tmp[2] = 0;
+				}
+				if( StrCmp( ConsoleKeyDefs[n].name2, "\"" ) == 0 )
+				{
+               n2 = tmp2;
+               tmp2[0] = '\\';
+               tmp2[1] = '\"';
+					tmp2[2] = 0;
+				}
+				if( StrCmp( ConsoleKeyDefs[n].name1, "\\" ) == 0 )
+				{
+               n1 = tmp;
+               tmp[0] = '\\';
+               tmp[1] = '\\';
+					tmp[2] = 0;
+				}
+				if( StrCmp( ConsoleKeyDefs[n].name2, "\\" ) == 0 )
+				{
+               n2 = tmp2;
+               tmp2[0] = '\\';
+               tmp2[1] = '\\';
+					tmp2[2] = 0;
+				}
+				fprintf( junk, ", {%s%s%s,%s%s%s,%s|%s|%s|%s|%s|%s,{"
+						 , ConsoleKeyDefs[n].name1?"WIDE(\"":""
+						 , ConsoleKeyDefs[n].name1?n1:"NULL"
+						 , ConsoleKeyDefs[n].name1?"\")":""
+						 , ConsoleKeyDefs[n].name2?"WIDE(\"":""
+						 , ConsoleKeyDefs[n].name2?n2:"NULL"
+						 , ConsoleKeyDefs[n].name2?"\")":""
 						 , ConsoleKeyDefs[n].flags&KDF_NODEFINE?"KDF_NODEFINE":"0"
 						 , ConsoleKeyDefs[n].flags&KDF_NOREDEF?"KDF_NOREDEF":"0"
 						 , ConsoleKeyDefs[n].flags&KDF_CAPSKEY?"KDF_CAPSKEY":"0"
@@ -535,6 +572,8 @@ PRELOAD( WriteSymbols)
 		fclose( junk );
 	}
 }
+#  endif
+
 #endif
 #else
 #define NONAMES {NULL,NULL,0}
