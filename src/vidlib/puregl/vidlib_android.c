@@ -1228,8 +1228,8 @@ int Parallel( PVECTOR pv1, PVECTOR pv2 )
 
    // intersect a line with a plane.
 
-//   v € w = (1/2)(|v + w|2 - |v|2 - |w|2) 
-//  (v € w)/(|v| |w|) = cos ß     
+//   v <DOT> w = (1/2)(|v + w|2 - |v|2 - |w|2) 
+//  (v <DOT> w)/(|v| |w|) = cos <theta>     
 
    a = dotproduct( pv1, pv2 );
 
@@ -1271,8 +1271,8 @@ RCOORD IntersectLineWithPlane( PCVECTOR Slope, PCVECTOR Origin,  // line m, b
 
    // intersect a line with a plane.
 
-//   v € w = (1/2)(|v + w|2 - |v|2 - |w|2) 
-//  (v € w)/(|v| |w|) = cos ß     
+//   v <DOT> w = (1/2)(|v + w|2 - |v|2 - |w|2) 
+//  (v <DOT> w)/(|v| |w|) = cos <theta>     
 
 	//cosPhi = CosAngle( Slope, n );
 
@@ -1788,7 +1788,7 @@ TEXTCHAR  GetKeyText (int key)
 	key ^= 0x80000000;
 
    c =  
-#if !defined( UNDER_CE ) && !defined( __ANDROID__ )
+#if !defined( UNDER_CE ) && !defined( __ANDROID__ ) && !defined( __QNX__ )
       ToAscii (key & 0xFF, ((key & 0xFF0000) >> 16) | (key & 0x80000000),
                l.kbd.key, (unsigned short *) ch, 0);
 #else
@@ -2903,7 +2903,9 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
 													, MakeAbsoluteTopmost
 													, SetDisplayFade
 													, IsDisplayHidden
+#ifdef WIN32
 													, GetNativeHandle
+#endif
                                        , GetDisplaySizeEx
 													, LockRenderer
 													, UnlockRenderer
