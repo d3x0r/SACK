@@ -205,11 +205,28 @@ void ShutdownQNXDisplays( void )
 	{
 		for( m = 0; m < l.qnx_dev_info[n].ndisplays; m++ )
 		{
+         gf_display_detach( l.qnx_display[n][m] );
 		}
 		gf_dev_detach( l.qnx_dev[n] );
 	}
    l.nDevices = 0;
 }
+
+/**************************************************************************************
+
+Utility Functions to implement...
+
+
+int gf_display_set_mode( gf_display_t display,
+                         int xres,
+                         int yres,
+                         int refresh,
+                         gf_format_t format,
+                         unsigned flags );
+
+*******************************************************************************************/
+
+
 
 
 ATEXIT( ExitTest )
