@@ -165,6 +165,10 @@ typedef struct HVIDEO_tag
 	struct display_camera *camera;
 	MATRIX fModelView;
 	PTRANSFORM transform;
+#    if defined( __QNX__ )
+	gf_surface_t pSurface;
+   gf_layer_t pLayer;
+#    endif
 #  endif
 #  ifdef _OPENGL_DRIVER
 	Image pAppImage; // this is the image returned for the application's reference.  The real image is a larger surface than this.

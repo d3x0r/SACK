@@ -131,7 +131,6 @@ extern
 	gf_dev_info_t qnx_dev_info[64];
 	gf_display_t* qnx_display[64];
 	gf_display_info_t* qnx_display_info[64];
-
 #endif
 	int bCreatedhWndInstance;
 
