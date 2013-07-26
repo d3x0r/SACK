@@ -1,6 +1,7 @@
 #define SYSTEM_CORE_SOURCE
 #define FIX_RELEASE_COM_COLLISION
 #define TASK_INFO_DEFINED
+#define NO_FILEOP_ALIAS
 #include <stdhdrs.h>
 #ifdef WIN32
 #undef StrDup
@@ -17,6 +18,11 @@
 
 #ifdef WIN32
 #include <tlhelp32.h>
+#endif
+
+#ifdef __QNX__
+#include <devctl.h>
+#include <sys/procfs.h>
 #endif
 
 #ifdef __LINUX__
@@ -170,6 +176,52 @@ static void SetupSystemServices( void )
 #endif
 	}
 #else
+#  if defined( __QNX__ )
+	{
+		struct dinfo_s {
+			procfs_debuginfo info;
+			char pathbuffer[_POSIX_PATH_MAX];
+		};
+
+		struct dinfo_s dinfo;
+		char buf[256], *pb;
+		int proc_fd;
+		proc_fd = open("/proc/self/as",O_RDONLY);
+		if( proc_fd >= 0 )
+		{
+			int status;
+
+			status = devctl( proc_fd, DCMD_PROC_MAPDEBUG_BASE, &dinfo, sizeof(dinfo),
+								 0 );
+			if( status != EOK )
+			{
+				lprintf( "Error in devctl() call. %s",
+						  strerror(status) );
+				l.filename = "FailedToReadFilenaem";
+				l.load_path = ".";
+            l.work_path = ".";
+				return;
+			}
+			close(proc_fd);
+		}
+      snprintf( buf, 256, "/%s", dinfo.info.path );
+		pb = pathrchr(buf);
+		if( pb )
+			pb[0]=0;
+		else
+			pb = buf - 1;
+		//lprintf( WIDE("My execution: %s"), buf);
+		l.filename = StrDupEx( pb + 1 DBG_SRC );
+		l.load_path = StrDupEx( buf DBG_SRC );
+		setenv( WIDE("MY_LOAD_PATH"), l.load_path, TRUE );
+		//strcpy( pMyPath, buf );
+
+		GetCurrentPath( buf, sizeof( buf ) );
+		setenv( WIDE( "MY_WORK_PATH" ), buf, TRUE );
+		l.work_path = StrDupEx( buf DBG_SRC );
+		SetDefaultFilePath( l.work_path );
+	}
+#  else
 	// this might be clever to do, auto export the LD_LIBRARY_PATH
 	// but if we loaded this library, then didn't we already have a good path?
 	// use /proc/self to get to cmdline
@@ -237,6 +289,7 @@ static void SetupSystemServices( void )
 		//<x`int> main() {  }
 		//<x`int>
 	}
+#  endif
 #endif
 }
 

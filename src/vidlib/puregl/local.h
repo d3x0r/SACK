@@ -6,6 +6,10 @@
 #define USE_IMAGE_INTERFACE l.gl_image_interface
 #endif
 
+#if defined( __QNX__ )
+#include <gf/gf.h>
+#endif
+
 #ifdef __LINUX__
 #if defined( __ANDROID__ ) || defined( __QNX__ )
 #include <GLES2/gl2.h>
@@ -121,7 +125,14 @@ extern
 	ATOM aClass;      // keep reference of window class....
 	ATOM aClass2;      // keep reference of window class.... (opengl minimal)
 #endif
+#if defined( __QNX__ )
+   int nDevices;
+	gf_dev_t qnx_dev[64];
+	gf_dev_info_t qnx_dev_info[64];
+	gf_display_t* qnx_display[64];
+	gf_display_info_t* qnx_display_info[64];
 
+#endif
 	int bCreatedhWndInstance;
 
 // thread synchronization variables...

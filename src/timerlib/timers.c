@@ -775,7 +775,7 @@ static void ContinueSignal( int sig )
 // network is at GLOBAL_INIT_PRIORITY
 PRIORITY_PRELOAD( IgnoreSignalContinue, GLOBAL_INIT_PRELOAD_PRIORITY-1 )
 {
-	lprintf( "register handler for sigusr1" );
+	//lprintf( "register handler for sigusr1" );
    signal( SIGUSR1, ContinueSignal );
 }
 

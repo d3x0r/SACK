@@ -361,8 +361,10 @@ LOGICAL IsAbsolutePath( CTEXTSTR path )
 LOGICAL SetFileLength( CTEXTSTR path, size_t length )
 {
 #ifdef __LINUX__
-// files are by default binary in linux
-#define O_BINARY 0
+	// files are by default binary in linux
+#  ifndef O_BINARY
+#    define O_BINARY 0
+#  endif
 #endif
     INDEX file;
     file = sack_iopen( 0, path, O_RDWR|O_BINARY );
