@@ -355,9 +355,9 @@ retry:
 	{
 		TEXTSTR newval = EscapeSQLString( tree->odbc, name );
 		snprintf( query, sizeof( query ), WIDE("insert into %s (%s) values( '%s' )"), table, namecol, newval );
-      lprintf( "openwriter..." );
+      //lprintf( "openwriter..." );
 		OpenWriterEx( tree DBG_RELAY );
-      lprintf( "and the command..." );
+      //lprintf( "and the command..." );
 		if( !SQLCommandEx( tree->odbc_writer, query DBG_RELAY ) )
 		{
 			// insert failed;  assume it's a duplicate key now, and retry.
