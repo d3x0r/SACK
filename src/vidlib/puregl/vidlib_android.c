@@ -146,6 +146,79 @@ RENDER_NAMESPACE
 
 extern KEYDEFINE KeyDefs[];
 
+#ifdef __QNX__
+//----------------------------------------------------------------------------
+//-------------------- QNX specific display code --------------------------
+//----------------------------------------------------------------------------
+#include <gf/gf.h>
+
+void InitQNXDisplays( void )
+{
+	int n;
+   lprintf( "Init QNX DIsplays" );
+	for( n = 0; n < 63; n++ )
+	{
+		int err = gf_dev_attach( &l.qnx_dev[n], GF_DEVICE_INDEX(n), &l.qnx_dev_info[n] );
+		if( err == GF_ERR_DEVICE )
+		{
+         lprintf( "no device at %d", n );
+			break;
+		}
+		if( err != GF_ERR_OK )
+		{
+			lprintf( "Error attaching device(%d): %d", n, err );
+		}
+		else
+		{
+         int m;
+			l.qnx_display[n] = NewArray( gf_display_t, l.qnx_dev_info[n].ndisplays );
+			l.qnx_display_info[n] = NewArray( gf_display_info_t, l.qnx_dev_info[n].ndisplays );
+			for( m = 0; m < l.qnx_dev_info[n].ndisplays; m++ )
+			{
+				err = gf_display_attach( &l.qnx_display[n][m],
+												l.qnx_dev[n],
+												m,
+												&l.qnx_display_info[n][m] );
+				if( err != GF_ERR_OK )
+					lprintf( "Error attaching display(%d,%d): %d", n, m, err );
+				else
+					lprintf( "Display (%d,%d) has %d and is %dx%d", n, m
+							 , l.qnx_display_info[n][m].nlayers
+							 , l.qnx_display_info[n][m].xres
+							 , l.qnx_display_info[n][m].yres );
+			}
+		}
+	}
+   l.nDevices = n;
+	if( n == 0 )
+	{
+		lprintf( "No Displays available." );
+		DebugBreak();
+	}
+
+}
+
+void ShutdownQNXDisplays( void )
+{
+	int n, m;
+	for( n= 0; n < l.nDevices; n++ )
+	{
+		for( m = 0; m < l.qnx_dev_info[n].ndisplays; m++ )
+		{
+		}
+		gf_dev_detach( l.qnx_dev[n] );
+	}
+   l.nDevices = 0;
+}
+
+
+ATEXIT( ExitTest )
+{
+   ShutdownQNXDisplays();
+}
+
+#endif
+
 // forward declaration - staticness will probably cause compiler errors.
 static int CPROC ProcessDisplayMessages(void );
 
@@ -2552,6 +2625,49 @@ void  GetDisplaySizeEx ( int nDisplay
 					*height = r.bottom - r.top;
 			}
 		}
+#elseif defined( __QNX__ )
+		if( nDisplay > 0 )
+		{
+         int n, m;
+			// try and find display number N and return that display size.
+         nDisplay--; // zero bias this.
+			for( n = 0; n < l.nDisplays; n++ )
+			{
+				if( nDisplay > l.qnx_dev_info[n].ndisplays )
+				{
+					nDisplay -= l.qnx_dev_info[n].ndisplays;
+					continue;
+				}
+				else
+				{
+					if( x )
+						(*x) = 0;
+					if( y )
+						(*y) = 0;
+					if( width )
+						(*width) = l.qnx_display_info[n][nDisplay].xres;
+					if( height )
+						(*height) = l.qnx_display_info[n][nDisplay].yres;
+
+				}
+			}
+		}
+      else
+		{
+			if( l.nDisplays )
+			{
+				if( x )
+					(*x) = 0;
+				if( y )
+					(*y) = 0;
+				if( width )
+					(*width) = l.qnx_display_info[0][0].xres;
+				if( height )
+					(*height) = l.qnx_display_info[0][0].yres;
+			}
+         // return default display size
+		}
+
 #else
 		if( x )
          (*x) = 0;
@@ -2567,10 +2683,7 @@ void  GetDisplaySizeEx ( int nDisplay
 
 void  GetDisplaySize (_32 * width, _32 * height)
 {
-	if( width )
-		(*width) = 65535;
-	if( height )
-      (*height) = 65535;
+   GetDisplaySizeEx( 0, NULL, NULL, width, height );
 }
 
 //----------------------------------------------------------------------------
@@ -3127,6 +3240,8 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 #endif
 #endif
 #endif
+	InitQNXDisplays();
+
 	RegisterInterface( 
 	   WIDE("puregl.render")
 	   , GetDisplayInterface, DropDisplayInterface );
