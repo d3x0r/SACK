@@ -205,13 +205,22 @@ static void SetupSystemServices( void )
 			close(proc_fd);
 		}
       snprintf( buf, 256, "/%s", dinfo.info.path );
-		pb = pathrchr(buf);
+		pb = (char*)pathrchr(buf);
 		if( pb )
+		{
 			pb[0]=0;
+			l.filename = StrDupEx( pb + 1 DBG_SRC );
+		}
 		else
-			pb = buf - 1;
+		{
+			l.filename = StrDupEx( buf DBG_SRC );
+			buf[0] = '.';
+			buf[1] = 0;
+		}
+
+		if( StrCmp( buf, "/." ) == 0 )
+			GetCurrentPath( buf, 256 );
 		//lprintf( WIDE("My execution: %s"), buf);
-		l.filename = StrDupEx( pb + 1 DBG_SRC );
 		l.load_path = StrDupEx( buf DBG_SRC );
 		setenv( WIDE("MY_LOAD_PATH"), l.load_path, TRUE );
 		//strcpy( pMyPath, buf );
