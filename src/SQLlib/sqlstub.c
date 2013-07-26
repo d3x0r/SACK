@@ -1131,7 +1131,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 			int rc3;
 #ifndef USE_ODBC
-			lprintf( "ODBC not compiled, attempting to use SQLITE which is enabled..." );
+			//lprintf( "ODBC not compiled, attempting to use SQLITE which is enabled..." );
 #else
 			//lprintf( "ODBC Failed, attempting to use SQLITE which is enabled..." );
 #endif
