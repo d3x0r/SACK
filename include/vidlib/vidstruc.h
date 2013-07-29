@@ -3,8 +3,15 @@
 
 #if defined( __LINUX__ ) && defined( PURE_OPENGL_ENABLED )
 #include <stdio.h>
-
-#if defined( __ANDROID__ ) || defined( __QNX__ )
+#if defined( USE_GLES2 )
+#define USE_EGL
+#include <EGL/egl.h>
+#ifdef _egl_h
+#define _GLES_EGL_H_INCLUDED
+#elif defined( _GLES_EGL_H_INCLUDED )
+#define _egl_h
+#endif
+//#include <GLES/gl.h>
 #include <GLES2/gl2.h>
 #else
 #include <GL/glx.h>
@@ -14,6 +21,11 @@
 #include <X11/keysym.h>
 #endif
 
+#endif
+
+#if defined( __QNX__ )
+#include <gf/gf.h>
+#include <gf/gf3d.h>
 #endif
 
 
@@ -167,8 +179,17 @@ typedef struct HVIDEO_tag
 	PTRANSFORM transform;
 #    if defined( __QNX__ )
 	gf_surface_t pSurface;
-   gf_layer_t pLayer;
+    gf_layer_t pLayer;
+	gf_layer_info_t layer_info;
+	gf_3d_target_t pTarget;
+	EGLint num_config;
+	EGLConfig config;
+	EGLDisplay display;
+	EGLSurface surface;
+	EGLContext econtext;
+
 #    endif
+
 #  endif
 #  ifdef _OPENGL_DRIVER
 	Image pAppImage; // this is the image returned for the application's reference.  The real image is a larger surface than this.

@@ -151,17 +151,19 @@ extern KEYDEFINE KeyDefs[];
 //-------------------- QNX specific display code --------------------------
 //----------------------------------------------------------------------------
 #include <gf/gf.h>
+#include <gf/gf3d.h>
 
 void InitQNXDisplays( void )
 {
 	int n;
-   lprintf( "Init QNX DIsplays" );
+	int nDisplay = 1;
+	lprintf( "Init QNX DIsplays" );
 	for( n = 0; n < 63; n++ )
 	{
 		int err = gf_dev_attach( &l.qnx_dev[n], GF_DEVICE_INDEX(n), &l.qnx_dev_info[n] );
 		if( err == GF_ERR_DEVICE )
 		{
-         lprintf( "no device at %d", n );
+			lprintf( "no device at %d", n );
 			break;
 		}
 		if( err != GF_ERR_OK )
@@ -170,7 +172,7 @@ void InitQNXDisplays( void )
 		}
 		else
 		{
-         int m;
+			int m;
 			l.qnx_display[n] = NewArray( gf_display_t, l.qnx_dev_info[n].ndisplays );
 			l.qnx_display_info[n] = NewArray( gf_display_info_t, l.qnx_dev_info[n].ndisplays );
 			for( m = 0; m < l.qnx_dev_info[n].ndisplays; m++ )
@@ -179,24 +181,29 @@ void InitQNXDisplays( void )
 												l.qnx_dev[n],
 												m,
 												&l.qnx_display_info[n][m] );
+
 				if( err != GF_ERR_OK )
 					lprintf( "Error attaching display(%d,%d): %d", n, m, err );
 				else
-					lprintf( "Display (%d,%d) has %d and is %dx%d", n, m
+				{
+					lprintf( "Display %d=(%d,%d) has %d layers and is %dx%d", nDisplay, n, m
 							 , l.qnx_display_info[n][m].nlayers
 							 , l.qnx_display_info[n][m].xres
 							 , l.qnx_display_info[n][m].yres );
+					nDisplay++;
+				}
 			}
 		}
 	}
-   l.nDevices = n;
+	l.nDevices = n;
 	if( n == 0 )
 	{
 		lprintf( "No Displays available." );
 		DebugBreak();
 	}
-
 }
+
+
 
 void ShutdownQNXDisplays( void )
 {
@@ -209,7 +216,32 @@ void ShutdownQNXDisplays( void )
 		}
 		gf_dev_detach( l.qnx_dev[n] );
 	}
-   l.nDevices = 0;
+	l.nDevices = 0;
+}
+
+// takes a 1 based display number and results with device and display index.
+void ResolveDeviceID( int nDisplay, int *device, int *display )
+{
+	int n;
+	// try and find display number N and return that display size.
+	if( nDisplay )
+		nDisplay--; // zero bias this.
+	for( n = 0; n < l.nDevices; n++ )
+	{
+		if( nDisplay >= l.qnx_dev_info[n].ndisplays )
+		{
+			nDisplay -= l.qnx_dev_info[n].ndisplays;
+			continue;
+		}
+		else
+		{
+			break;
+		}
+	}
+	if( device )
+		(*device)=n;
+	if( display )
+		(*display)=nDisplay;
 }
 
 /**************************************************************************************
@@ -226,6 +258,195 @@ int gf_display_set_mode( gf_display_t display,
 
 *******************************************************************************************/
 
+void FindPixelFormat( struct display_camera *camera )
+{
+	int device, display;
+	static EGLint attribute_list[]=
+	{
+	   EGL_NATIVE_VISUAL_ID, 0,
+	   EGL_NATIVE_RENDERABLE, EGL_TRUE,
+	   EGL_RED_SIZE, 5,
+	   EGL_GREEN_SIZE, 5,
+	   EGL_BLUE_SIZE, 5,
+	   EGL_DEPTH_SIZE, 16,
+	   EGL_NONE
+	};
+	int i;
+	ResolveDeviceID( camera->display, &device, &display );
+	if (gf_layer_query(camera->hVidCore->pLayer, l.qnx_display_info[device][display].main_layer_index
+				, &camera->hVidCore->layer_info) == GF_ERR_OK) 
+	{
+		lprintf("found a compatible frame "
+				"buffer configuration on layer %d\n", l.qnx_display_info[device][display].main_layer_index);
+	}    
+	for (i = 0; ; i++) 
+	{
+		/* Walk through all possible pixel formats for this layer */
+		if (gf_layer_query(camera->hVidCore->pLayer, i, &camera->hVidCore->layer_info) != GF_ERR_OK) 
+		{
+			lprintf("Couldn't find a compatible frame "
+					"buffer configuration on layer %d\n", i);
+			break;
+		}    
+
+		/*
+		 * We want the color buffer format to match the layer format,
+		 * so request the layer format through EGL_NATIVE_VISUAL_ID.
+		 */
+		attribute_list[1] = camera->hVidCore->layer_info.format;
+
+		/* Look for a compatible EGL frame buffer configuration */
+		if (eglChooseConfig(camera->hVidCore->display
+			,attribute_list, &camera->hVidCore->config, 1, &camera->hVidCore->num_config) == EGL_TRUE)
+		{
+			if (camera->hVidCore->num_config > 0) 
+			{
+				lprintf( "multiple configs? %d", camera->hVidCore->num_config );
+				break;
+			}
+			else
+				lprintf( "Config is no good for eglChooseConfig?" );
+		}
+		else
+			lprintf( "Failed to eglChooseConfig? %d", eglGetError() );
+	}
+}
+
+void OpenEGL( struct display_camera *camera )
+{
+	    /*
+    * The layer settings haven't taken effect yet since we haven't
+    * called gf_layer_update() yet.  This is exactly what we want,
+    * since we haven't supplied a valid surface to display yet.
+    * Later, the OpenGL ES library calls will call gf_layer_update()
+    * internally, when  displaying the rendered 3D content.
+    */
+
+   /* create an EGL rendering context */
+   camera->hVidCore->econtext=eglCreateContext(camera->hVidCore->display, camera->hVidCore->config, EGL_NO_CONTEXT, NULL);
+   if (camera->hVidCore->econtext==EGL_NO_CONTEXT)
+   {
+      lprintf( "Create context failed: 0x%x\n", eglGetError());
+      return ;
+   }
+
+   /* create an EGL window surface */
+   camera->hVidCore->surface=eglCreateWindowSurface(camera->hVidCore->display, camera->hVidCore->config, camera->hVidCore->pTarget, NULL);
+   if (camera->hVidCore->surface==EGL_NO_SURFACE)
+   {
+      lprintf( "Create surface failed: 0x%x\n", eglGetError());
+      return;
+   }
+
+}
+
+void EnableEGLContext( PRENDERER hVidCore )
+{
+	if( hVidCore )
+	{
+		/* connect the context to the surface */
+		if (eglMakeCurrent(hVidCore->display, hVidCore->surface, hVidCore->surface, hVidCore->econtext)==EGL_FALSE)
+		{
+			lprintf( "Make current failed: 0x%x\n", eglGetError());
+			return;
+		}
+	}
+	else
+	{
+		//glFinish(); //swapbuffers will do implied glFlush
+		//eglWaitGL(); // same as glFinish();
+
+		// swap should be done at end of render phase.
+		//eglSwapBuffers(hVidCore->display,hVidCore->surface);
+	}
+}
+
+void CreateQNXOuputForCamera( struct display_camera *camera )
+{
+
+	//layer, surface, ...
+	// camera has all information about display number, 
+	// it has a hvideo structure ready to populate that the 
+	// camera owns.  Just create the real drawing surface
+	// and keep handles to enable opengl context for later rendering
+	int device,display;
+	int err;
+
+	ResolveDeviceID( camera->display, &device, &display );
+	lprintf( "create output surface for ..." );
+
+	/* get an EGL display connection */
+	camera->hVidCore->display=eglGetDisplay((EGLNativeDisplayType)l.qnx_display[device][display]);
+
+	if(camera->hVidCore->display == EGL_NO_DISPLAY)
+	{
+		lprintf("ERROR: eglGetDisplay()\n");
+		return;
+	}
+	else
+	{
+		lprintf("SUCCESS: eglGetDisplay()\n");
+	}
+
+	
+	/* initialize the EGL display connection */
+	if(eglInitialize(camera->hVidCore->display, NULL, NULL) != EGL_TRUE)
+	{
+		lprintf( "ERROR: eglInitialize: error 0x%x\n", eglGetError());
+		return;
+	}
+
+	else
+	{
+		lprintf( "SUCCESS: eglInitialize()\n");
+	};
+
+	err = gf_layer_attach( &camera->hVidCore->pLayer, l.qnx_display[device][display], 0, GF_LAYER_ATTACH_PASSIVE );
+	if( err != GF_ERR_OK )
+	{
+		lprintf( "Error attaching layer(%d): %d", camera->display, err );
+		return;
+	}
+	else
+	{
+		gf_layer_enable( camera->hVidCore->pLayer );
+		//gf_surface_create_layer( &camera->hVidCore->pSurface
+		//						, &camera->hVidCore->pLayer, 1, 0
+		//						, camera->w, camera->h
+		//						, 
+	}
+
+	FindPixelFormat( camera );
+
+
+	/* create a 3D rendering target */
+	// the list of surfacs should be 2 if manually created
+	// cann pass null so surfaces are automatically created
+	// (should remove necessicty to get pixel mode?
+	if ( ( err = gf_3d_target_create(&camera->hVidCore->pTarget, camera->hVidCore->pLayer,
+		NULL, 0, camera->w, camera->h, camera->hVidCore->layer_info.format) ) != GF_ERR_OK) 
+	{
+		lprintf("Unable to create rendering target:%d\n",err );
+	}
+
+
+
+	/* create an EGL window surface */
+	camera->hVidCore->surface = eglCreateWindowSurface(camera->hVidCore->display
+		, camera->hVidCore->config, camera->hVidCore->pTarget, NULL);
+
+	if (camera->hVidCore->surface == EGL_NO_SURFACE) 
+	{
+		lprintf("Create surface failed: 0x%x\n", eglGetError());
+		return;
+	}
+
+	// icing?
+	gf_layer_set_src_viewport(camera->hVidCore->pLayer, 0, 0, camera->w-1, camera->h-1);
+	gf_layer_set_dst_viewport(camera->hVidCore->pLayer, 0, 0, camera->w-1, camera->h-1);
+   
+	OpenEGL( camera );
+}
 
 
 
@@ -520,7 +741,10 @@ static void SendApplicationDraw( PVIDEO hVideo )
 				//Return 0;
 			}
 			//lprintf( WIDE( "Allowed to draw..." ) );
-#ifdef _OPENGL_ENABLED
+
+#ifdef __QNX__
+			EnableEGLContext( hVideo );
+#else
 			if( !SetActiveGLDisplay( hVideo ) )
 			{
 				// if the opengl failed, dont' let the application draw.
@@ -575,13 +799,15 @@ static void SendApplicationDraw( PVIDEO hVideo )
 #ifdef LOG_OPENGL_CONTEXT
 			lprintf( WIDE( "Auto disable (swap) window GL" ) );
 #endif
-#ifdef _OPENGL_ENABLED
+#ifdef __QNX__
+			EnableEGLContext( NULL );
+#else
 			SetActiveGLDisplay( NULL );
+#endif
 			if( hVideo->flags.bLayeredWindow )
 			{
 				UpdateDisplay( hVideo );
 			}
-#endif
 		}
 		// might have 'controls' over the open...
 		// these would need to be updated seperately?
@@ -648,7 +874,7 @@ static void BeginVisPersp( struct display_camera *camera )
 	{
 		mode = MODE_PERSP;
 		//glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-		glLoadIdentity();									// Reset The Projection Matrix
+		//glLoadIdentity();									// Reset The Projection Matrix
 		//gluPerspective(90.0f,camera->aspect,1.0f,30000.0f);
 		//glGetFloatv( GL_PROJECTION_MATRIX, l.fProjection );
 
@@ -905,14 +1131,18 @@ static int CPROC Handle3DTouches( PRENDERER hVideo, PTOUCHINPUT touches, int nTo
 }
 #endif
 
-static void RenderGL( struct display_camera *camera )
+static void WantRenderGL( void )
 {
+	INDEX idx;
+	PRENDERER hVideo;
+	struct plugin_reference *reference;
+	int first_draw;
+	if( l.flags.bLogRenderTiming )
+		lprintf( "Begin Render" );
 
-	// if there are plugins, then we want to render always.
-	if( !camera->plugins )
 	{
 		PRENDERER other = NULL;
-		PRENDERER hVideo = camera->hVidCore;
+		PRENDERER hVideo;
 		for( hVideo = l.bottom; hVideo; hVideo = hVideo->pBelow )
 		{
 			if( other == hVideo )
@@ -929,17 +1159,30 @@ static void RenderGL( struct display_camera *camera )
 				continue;
 			}
 			if( hVideo->flags.bUpdated )
+			{
+				// any one window with an update draws all.
+				l.flags.bUpdateWanted = 1;
 				break;
+			}
 		}
-		if( !hVideo )
-			return;
+	}
+}
+static void RenderGL( struct display_camera *camera )
+{
+	INDEX idx;
+	PRENDERER hVideo;
+	struct plugin_reference *reference;
+	int first_draw;
+	if( l.flags.bLogRenderTiming )
+		lprintf( "Begin Render" );
+
+	if( !camera->flags.did_first_draw )
+	{
+		first_draw = 1;
+		camera->flags.did_first_draw = 1;
 	}
 	else
-	{
-		// plugins trigger continuous update;
-		// want update will have been reset before here.
-		l.flags.bUpdateWanted = 1;
-	}
+		first_draw = 0;
 
 
 	// do OpenGL Frame
@@ -949,7 +1192,23 @@ static void RenderGL( struct display_camera *camera )
 	{
 		PRENDERER hVideo = camera->hVidCore;
 
-		ApplyTranslationT( VectorConst_I, camera->origin_camera, l.origin );
+		LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
+		{
+			// setup initial state, like every time so it's a known state?
+			{
+				// copy l.origin to the camera
+				ApplyTranslationT( VectorConst_I, camera->origin_camera, l.origin );
+
+				if( first_draw )
+				{
+					if( reference->FirstDraw3d )
+						reference->FirstDraw3d( reference->psv );
+				}
+				if( reference->ExtraDraw3d )
+					reference->ExtraDraw3d( reference->psv, camera->origin_camera );
+			}
+		}
+
 		switch( camera->type )
 		{
 		case 0:
@@ -971,8 +1230,8 @@ static void RenderGL( struct display_camera *camera )
 			break;
 		}
 
-		GetGLMatrix( camera->origin_camera, camera->hVidCore->fModelView );
-		glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
+		//GetGLMatrix( camera->origin_camera, camera->hVidCore->fModelView );
+		//glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
 
 		{
 			INDEX idx;
@@ -1051,6 +1310,23 @@ static void RenderGL( struct display_camera *camera )
 #endif
 		}
 
+		LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
+		{
+			// setup initial state, like every time so it's a known state?
+			{
+				// copy l.origin to the camera
+				ApplyTranslationT( VectorConst_I, camera->origin_camera, l.origin );
+
+				if( first_draw )
+				{
+					if( reference->FirstDraw3d )
+						reference->FirstDraw3d( reference->psv );
+				}
+				if( reference->ExtraDraw3d )
+					reference->ExtraDraw3d( reference->psv, camera->origin_camera );
+			}
+		}
+
 		{
 			INDEX idx;
 			struct plugin_reference *ref;
@@ -1060,7 +1336,9 @@ static void RenderGL( struct display_camera *camera )
 			}
 		}
 	}
-	SetActiveGLDisplay( NULL );
+	// using eglLayer, doesn't really have to be cleared
+	// each beginning flushes a previous... oh (well at end of all should call a clear)
+	//SetActiveGLDisplay( NULL );
 }
 
 
@@ -1101,8 +1379,14 @@ static void LoadOptions( void )
 			int custom_pos;
 			struct display_camera *camera = New( struct display_camera );
 			MemSet( camera, 0, sizeof( *camera ) );
+			camera->origin_camera = CreateTransform();
+
+#ifdef __QNX__
+			custom_pos = 0;
+#else
 			snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Use Custom Position"), n+1 );
 			custom_pos = SACK_GetProfileIntEx( GetProgramName(), tmp, l.flags.bView360?1:0, TRUE );
+#endif
 			if( custom_pos )
 			{
 				camera->display = -1;
@@ -1168,25 +1452,16 @@ static void LoadOptions( void )
 				camera->aspect = ((float)camera->w/(float)camera->h);
 			}
 
-         camera->origin_camera = CreateTransform();
-			switch( nDisplays )
-			{
-			default:
-				snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Camera Type"), n+1 );
-				camera->type = SACK_GetProfileIntEx( GetProgramName(), tmp, 2, TRUE );
-				if( !default_camera )
-					default_camera = camera;
-				break;
-			case 6: // default left, top, middle, bottom, right, back
-				camera->type = n;
-				if( n == 2 )
-					default_camera = camera;
-				break;
-			}
+			snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Camera Type"), n+1 );
+			camera->type = SACK_GetProfileIntEx( GetProgramName(), tmp, (nDisplays==6)?n:2, TRUE );
+			if( camera->type == 2 )
+				default_camera = camera;
 			InvokeExtraInit( camera, camera->origin_camera );
 			if( camera != default_camera )
 				AddLink( &l.cameras, camera );
 		}
+		if( !default_camera )
+			default_camera = (struct display_camera *)GetLink( &l.cameras, 1 );
 		SetLink( &l.cameras, 0, default_camera );
 	}
 	l.flags.bLogMessageDispatch = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log message dispatch"), 0, TRUE );
@@ -1602,12 +1877,7 @@ static int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 	return used;
 }
 
-
 //static void HandleMessage (MSG Msg);
-
-#ifndef HWND_MESSAGE
-#define HWND_MESSAGE     ((HWND)-3)
-#endif
 
 #ifdef UNDER_CE
 #define WINDOW_STYLE 0
@@ -1623,7 +1893,6 @@ static struct display_camera *OpenCameras( void )
 	INDEX idx;
 	//lprintf( WIDE( "-----Create WIndow Stuff----- %s %s" ), hVideo->flags.bLayeredWindow?WIDE( "layered" ):WIDE( "solid" )
 	//		 , hVideo->flags.bChildWindow?WIDE( "Child(tool)" ):WIDE( "user-selectable" ) );
-	LoadOptions();
 
 	LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
 	{
@@ -1667,6 +1936,9 @@ static struct display_camera *OpenCameras( void )
 			camera->viewport[3] = (int)h;
 
 			/* CreateWindowEx */
+#ifdef __QNX__
+			CreateQNXOuputForCamera( camera );
+#endif
 
 	#ifdef LOG_OPEN_TIMING
 			lprintf( WIDE( "Created Real window...Stuff.." ) );
@@ -1682,8 +1954,9 @@ static struct display_camera *OpenCameras( void )
 	if( l.redraw_timer_id == 0 )
 	{
 		struct display_camera *camera = (struct display_camera *)GetLink( &l.cameras, 0 );
-		lprintf( WIDE("Setting up redraw timer..") );
-		//l.redraw_timer_id = SetTimer( camera->hWndInstance, (UINT_PTR)1, 16, NULL );
+		lprintf( WIDE("Setting up redraw timer.. (this code should be running in the render loop)") );
+		//l.redraw_timer_id = 
+		//ThreadTo( RenderLoop, 0 );
 		lprintf( WIDE("Setting up redraw timer.. result %d"), l.redraw_timer_id );
 	}
 
@@ -1833,6 +2106,40 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 	Log( WIDE("Registered Idle, and starting message loop") );
 #endif
 	{
+		OpenCameras();
+		while( 1 )
+		{
+		         // no reason to check this if an update is already wanted.
+			lprintf( "Right..." );
+			if( !l.flags.bUpdateWanted )
+			{
+				// set l.flags.bUpdateWanted for window surfaces.
+				WantRenderGL();
+			}
+
+			{
+				struct display_camera *camera;
+				INDEX idx;
+				l.flags.bUpdateWanted = 0;
+				LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
+				{
+					// if plugins or want update, don't continue.
+					if( !camera->plugins && !l.flags.bUpdateWanted )
+						continue;
+					
+					if( !camera->hVidCore || !camera->hVidCore->flags.bReady )
+						continue;
+					// drawing may cause subsequent draws; so clear this first
+					RenderGL( camera );
+#ifdef USE_EGL
+					eglSwapBuffers( camera->hVidCore->display, camera->hVidCore->surface );
+#endif
+				}
+			}
+			lprintf( "quater second frame..." );
+			WakeableSleep( 250 );
+		}
+	
 		//MSG Msg;
       // Message Loop
 	}
@@ -2404,6 +2711,23 @@ void  SetMouseHandler (PVIDEO hVideo,
    hVideo->pMouseCallback = pMouseCallback;
 }
 
+void  SetHideHandler (PVIDEO hVideo,
+                                     HideAndRestoreCallback pHideCallback,
+                                     PTRSZVAL dwUser)
+{
+   hVideo->dwHideData = dwUser;
+   hVideo->pHideCallback = pHideCallback;
+}
+
+void  SetRestoreHandler (PVIDEO hVideo,
+                                     HideAndRestoreCallback pRestoreCallback,
+                                     PTRSZVAL dwUser)
+{
+   hVideo->dwRestoreData = dwUser;
+   hVideo->pRestoreCallback = pRestoreCallback;
+}
+
+
 //----------------------------------------------------------------------------
 #if !defined( NO_TOUCH )
 RENDER_PROC (void, SetTouchHandler) (PVIDEO hVideo,
@@ -2547,6 +2871,10 @@ void  HideDisplay (PVIDEO hVideo)
 #undef RestoreDisplay
 void  RestoreDisplay (PVIDEO hVideo)
 {
+	RestoreDisplayEx( hVideo DBG_SRC );
+}
+void RestoreDisplayEx(PVIDEO hVideo DBG_PASS )
+{
 #ifdef __WINDOWS__
 	PostThreadMessage (l.dwThreadID, WM_USER_OPEN_CAMERAS, 0, 0 );
 #endif
@@ -2645,32 +2973,23 @@ void  GetDisplaySizeEx ( int nDisplay
 #elseif defined( __QNX__ )
 		if( nDisplay > 0 )
 		{
-         int n, m;
-			// try and find display number N and return that display size.
-         nDisplay--; // zero bias this.
-			for( n = 0; n < l.nDisplays; n++ )
-			{
-				if( nDisplay > l.qnx_dev_info[n].ndisplays )
-				{
-					nDisplay -= l.qnx_dev_info[n].ndisplays;
-					continue;
-				}
-				else
-				{
-					if( x )
-						(*x) = 0;
-					if( y )
-						(*y) = 0;
-					if( width )
-						(*width) = l.qnx_display_info[n][nDisplay].xres;
-					if( height )
-						(*height) = l.qnx_display_info[n][nDisplay].yres;
-
-				}
-			}
+			int n, m;
+			ResolveDeviceID( nDisplay, &n, &m );
+				// try and find display number N and return that display size.
+			if( x )
+				(*x) = 0;
+			if( y )
+				(*y) = 0;
+			if( width )
+				(*width) = l.qnx_display_info[n][m].xres;
+			if( height )
+				(*height) = l.qnx_display_info[n][m].yres;
 		}
-      else
+		else
 		{
+			// if any displays, otherwise, arrays are unallocated.
+			// application should set insane source values which remain
+			// unchanged.
 			if( l.nDisplays )
 			{
 				if( x )
@@ -2682,7 +3001,7 @@ void  GetDisplaySizeEx ( int nDisplay
 				if( height )
 					(*height) = l.qnx_display_info[0][0].yres;
 			}
-         // return default display size
+			// return default display size
 		}
 
 #else
@@ -3045,6 +3364,9 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
 													, SetTouchHandler
 #endif
                                        , MarkDisplayUpdated
+									   , SetHideHandler
+									   , SetRestoreHandler
+									   , RestoreDisplayEx
 };
 
 RENDER3D_INTERFACE Render3d = {
@@ -3257,8 +3579,11 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 #endif
 #endif
 #endif
+	// loads options describing cameras; creates camera structures and math structures
+	LoadOptions();
+#ifdef __QNX__
 	InitQNXDisplays();
-
+#endif
 	RegisterInterface( 
 	   WIDE("puregl.render")
 	   , GetDisplayInterface, DropDisplayInterface );
