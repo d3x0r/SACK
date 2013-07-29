@@ -2,12 +2,6 @@
 //#include <windows.h>
 #include <vectlib.h>
 
-#if defined( __ANDROID__ ) || defined( __QNX__ )
-#include <GLES2/gl2.h>
-#else
-#include <GL/gl.h>
-#endif
-#include <render.h>
 #include <vidlib/vidstruc.h>
 //#define PRENDERER PVIDEO
 //#include <vidlib.h>
