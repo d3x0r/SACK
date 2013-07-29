@@ -519,6 +519,15 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 			// remove references of 'here' during parsing.
 			if( strcmp( namebuf, WIDE( "." ) ) == 0 )
 				continue;
+			// trim trailing spaces from option names.
+			{
+				int n = StrLen( namebuf ) - 1;
+				while( n >= 0 && namebuf[n] == ' ' )
+				{
+					namebuf[n] = 0;
+					n--;
+				}
+			}
 #ifdef DETAILED_LOGGING
 			lprintf( WIDE("First - check local cache for %s"), namebuf );
 #endif
@@ -1327,6 +1336,9 @@ static int CPROC CheckMasks( PTRSZVAL psv_params, CTEXTSTR name, POPTION_TREE_NO
 
 static CTEXTSTR CPROC ResolveININame( PODBC odbc, CTEXTSTR pSection, TEXTCHAR *buf, CTEXTSTR pINIFile )
 {
+	if( pINIFile[0] == '.' && pINIFile[1] == '/' || pINIFile[1] == '\\' )
+		pINIFile += 2;
+
 		while( pINIFile[0] == '/' || pINIFile[0] == '\\' )
 			pINIFile++;
 		if( !pathchr( pINIFile ) )
