@@ -28,7 +28,7 @@ else( UNIX )
     set( SOURCES key.c ../keydefs.c opengl.c vidlib_android.c )
     set( GLUES_SOURCES glues/source/glues_project.c )
     set( SOURCES ${SOURCES} ${GLUES_SOURCES} )
-  endif( NOT __ANDROID__ )
+  endif( NOT __ANDROID__ AND NOT __QNX__ )
 endif( UNIX )
 
 add_library_force_source( ${PROJECT_NAME} SHARED
