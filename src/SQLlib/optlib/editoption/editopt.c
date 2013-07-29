@@ -335,10 +335,13 @@ SaneWinMain( argc, argv )
 		{
 			o = GetOptionODBC( argv[2], 1 );
 		}
-		else
-		if( argv[1][0] == '-' && argv[1][1] == 'n' )
+		else if( argv[1][0] == '-' && argv[1][1] == 'n' )
 		{
 			o = GetOptionODBC( argv[2], 4 );
+		}
+		else if( argv[1][0] == '-' && argv[1][1] == '2' )
+		{
+			o = GetOptionODBC( argv[2], 2 );
 		}
 		else
 		{
