@@ -208,7 +208,15 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, 
 		// remove references of 'here' during parsing.
 		if( strcmp( namebuf, WIDE( "." ) ) == 0 )
 			continue;
-
+      // trim trailing spaces from option names.
+		{
+         int n = StrLen( namebuf ) - 1;
+			while( n >= 0 && namebuf[n] == ' ' )
+			{
+            namebuf[n] = 0;
+				n--;
+			}
+		}
 #ifdef DETAILED_LOGGING
 		lprintf( "Find [%s]", namebuf );
 #endif

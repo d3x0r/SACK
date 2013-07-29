@@ -1029,7 +1029,12 @@ PTRSZVAL GetFileSize( int fd )
 			pMem = mmap( 0, *dwSize
 						  , PROT_READ|PROT_WRITE
 						  , MAP_SHARED|MAP_ANONYMOUS
-						  , NOFD  // QNX Note; NOFD = -1
+						  ,
+#ifdef __QNX__
+							NOFD  // QNX Note; NOFD = -1
+#else // other systems were quite happy to have a 0 here for the handle.
+							0
+#endif
 						  , 0 );
 			if( pMem == (POINTER)-1 )
 			{
