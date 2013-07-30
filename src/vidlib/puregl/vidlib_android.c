@@ -146,6 +146,60 @@ RENDER_NAMESPACE
 
 extern KEYDEFINE KeyDefs[];
 
+#ifdef USE_EGL
+
+void OpenEGL( struct display_camera *camera )
+{
+	    /*
+    * The layer settings haven't taken effect yet since we haven't
+    * called gf_layer_update() yet.  This is exactly what we want,
+    * since we haven't supplied a valid surface to display yet.
+    * Later, the OpenGL ES library calls will call gf_layer_update()
+    * internally, when  displaying the rendered 3D content.
+    */
+
+   /* create an EGL rendering context */
+   camera->hVidCore->econtext=eglCreateContext(camera->hVidCore->display, camera->hVidCore->config, EGL_NO_CONTEXT, NULL);
+   if (camera->hVidCore->econtext==EGL_NO_CONTEXT)
+   {
+      lprintf( "Create context failed: 0x%x\n", eglGetError());
+      return ;
+   }
+
+   /* create an EGL window surface */
+   camera->hVidCore->surface=eglCreateWindowSurface(camera->hVidCore->display, camera->hVidCore->config, camera->hVidCore->pTarget, NULL);
+   if (camera->hVidCore->surface==EGL_NO_SURFACE)
+   {
+      lprintf( "Create surface failed: 0x%x\n", eglGetError());
+      return;
+   }
+
+}
+
+void EnableEGLContext( PRENDERER hVidCore )
+{
+	if( hVidCore )
+	{
+		/* connect the context to the surface */
+		if (eglMakeCurrent(hVidCore->display, hVidCore->surface, hVidCore->surface, hVidCore->econtext)==EGL_FALSE)
+		{
+			lprintf( "Make current failed: 0x%x\n", eglGetError());
+			return;
+		}
+	}
+	else
+	{
+		//glFinish(); //swapbuffers will do implied glFlush
+		//eglWaitGL(); // same as glFinish();
+
+		// swap should be done at end of render phase.
+		//eglSwapBuffers(hVidCore->display,hVidCore->surface);
+	}
+}
+
+#endif
+
+
 #ifdef __QNX__
 //----------------------------------------------------------------------------
 //-------------------- QNX specific display code --------------------------
@@ -312,55 +366,6 @@ void FindPixelFormat( struct display_camera *camera )
 	}
 }
 
-void OpenEGL( struct display_camera *camera )
-{
-	    /*
-    * The layer settings haven't taken effect yet since we haven't
-    * called gf_layer_update() yet.  This is exactly what we want,
-    * since we haven't supplied a valid surface to display yet.
-    * Later, the OpenGL ES library calls will call gf_layer_update()
-    * internally, when  displaying the rendered 3D content.
-    */
-
-   /* create an EGL rendering context */
-   camera->hVidCore->econtext=eglCreateContext(camera->hVidCore->display, camera->hVidCore->config, EGL_NO_CONTEXT, NULL);
-   if (camera->hVidCore->econtext==EGL_NO_CONTEXT)
-   {
-      lprintf( "Create context failed: 0x%x\n", eglGetError());
-      return ;
-   }
-
-   /* create an EGL window surface */
-   camera->hVidCore->surface=eglCreateWindowSurface(camera->hVidCore->display, camera->hVidCore->config, camera->hVidCore->pTarget, NULL);
-   if (camera->hVidCore->surface==EGL_NO_SURFACE)
-   {
-      lprintf( "Create surface failed: 0x%x\n", eglGetError());
-      return;
-   }
-
-}
-
-void EnableEGLContext( PRENDERER hVidCore )
-{
-	if( hVidCore )
-	{
-		/* connect the context to the surface */
-		if (eglMakeCurrent(hVidCore->display, hVidCore->surface, hVidCore->surface, hVidCore->econtext)==EGL_FALSE)
-		{
-			lprintf( "Make current failed: 0x%x\n", eglGetError());
-			return;
-		}
-	}
-	else
-	{
-		//glFinish(); //swapbuffers will do implied glFlush
-		//eglWaitGL(); // same as glFinish();
-
-		// swap should be done at end of render phase.
-		//eglSwapBuffers(hVidCore->display,hVidCore->surface);
-	}
-}
-
 void CreateQNXOuputForCamera( struct display_camera *camera )
 {
 
@@ -456,6 +461,7 @@ ATEXIT( ExitTest )
 }
 
 #endif
+
 
 // forward declaration - staticness will probably cause compiler errors.
 static int CPROC ProcessDisplayMessages(void );
