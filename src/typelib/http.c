@@ -354,6 +354,8 @@ enum ProcessHttpResult ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 			return HTTP_STATE_RESULT_CONTINUE;
 		if( pHttpState->numeric_code == 404 )
 			return HTTP_STATE_RESOURCE_NOT_FOUND;
+		if( pHttpState->numeric_code == 400 )
+			return HTTP_STATE_BAD_REQUEST;
 	}
 	return HTTP_STATE_RESULT_NOTHING;
 }
