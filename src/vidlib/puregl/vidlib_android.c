@@ -166,8 +166,11 @@ void OpenEGL( struct display_camera *camera )
       return ;
    }
 
-   /* create an EGL window surface */
-   camera->hVidCore->surface=eglCreateWindowSurface(camera->hVidCore->display, camera->hVidCore->config, camera->hVidCore->pTarget, NULL);
+		/* create an EGL window surface */
+#ifdef __QNX__
+		camera->hVidCore->surface=eglCreateWindowSurface(camera->hVidCore->display, camera->hVidCore->config, camera->hVidCore->pTarget, NULL);
+#else
+#endif
    if (camera->hVidCore->surface==EGL_NO_SURFACE)
    {
       lprintf( "Create surface failed: 0x%x\n", eglGetError());
