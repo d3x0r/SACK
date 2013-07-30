@@ -203,6 +203,7 @@ void EnableEGLContext( PRENDERER hVidCore )
 #endif
 
 #ifdef __ANDROID__
+// from ndk sample opengl
 #include <jni.h>
 
 #include <android/sensor.h>
@@ -496,6 +497,67 @@ void do_android_main( void ) {
     }
 }
 //END_INCLUDE(all)
+//------------------------------------------
+// from http://jiggawatt.org/badc0de/android/index.html
+main()
+{
+   const EGLint config16bpp[] =
+{
+EGL_RED_SIZE, 5,
+EGL_GREEN_SIZE, 6,
+EGL_BLUE_SIZE, 5,
+EGL_NONE
+};
+    EGLint majorVersion, minorVersion;
+    EGLContext eglContext;
+    EGLSurface eglSurface;
+    EGLConfig eglConfig;
+    EGLDisplay eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    int numConfigs;
+
+    // Window surface that covers the entire screen, from libui.
+    displayWindow = android_createDisplaySurface();
+
+    eglInitialize(eglDisplay, &majorVersion, &minorVersion);
+    printf("GL version: %d.%d\n",majorVersion,minorVersion);
+
+
+    printf("Window specs: %d*%d format=%d\n",
+     displayWindow->width,
+     displayWindow->height,
+     displayWindow->format);
+
+    if (!eglChooseConfig(eglDisplay, config16bpp, &eglConfig, 1, &numConfigs))
+    {
+    	printf("eglChooseConfig failed\n");
+    	if (eglContext==0) printf("Error code: %x\n", eglGetError());
+    }
+
+    eglContext = eglCreateContext(eglDisplay,
+     eglConfig,
+     EGL_NO_CONTEXT,
+     NULL);
+    printf("GL context: %x\n", eglContext);
+    if (eglContext==0) printf("Error code: %x\n", eglGetError());
+
+    eglSurface = eglCreateWindowSurface(eglDisplay,
+     eglConfig,
+     displayWindow,
+     NULL);
+    printf("GL surface: %x\n", eglSurface);
+    if (eglSurface==0) printf("Error code: %x\n", eglGetError());
+
+    eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext);
+
+
+    while (1)
+    {
+    	draw_tri();
+    	eglSwapBuffers(eglDisplay, eglSurface);
+    }
+
+
+
 #endif
 
 #ifdef __QNX__
