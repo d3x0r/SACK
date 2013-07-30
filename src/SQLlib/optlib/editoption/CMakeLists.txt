@@ -15,6 +15,6 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
 	COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT_NAME}" 
                   FOLDER utils
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES}  )
+my_target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES}  )
 install_mode_dest( ${PROJECT_NAME} )
 

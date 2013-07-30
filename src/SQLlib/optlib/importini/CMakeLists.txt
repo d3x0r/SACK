@@ -15,7 +15,7 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
                   FOLDER utils
 )
 
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
+my_target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
 if( MAKING_SACK_CORE )
 install_mode_dest( ${PROJECT_NAME} )
 else( MAKING_SACK_CORE )
