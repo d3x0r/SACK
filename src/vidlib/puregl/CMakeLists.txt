@@ -46,7 +46,8 @@ SET_TARGET_PROPERTIES( ${PROJECT_NAME} PROPERTIES
 
 
 if( __ANDROID__ OR __QNX__ )
-  my_target_link_libraries( ${PROJECT_NAME} ${SACK_CORE_LIBRARY} EGL GLESv2 )
+  # glOrthof is GLES1 and is used by 'glues' project
+  my_target_link_libraries( ${PROJECT_NAME} ${SACK_CORE_LIBRARY} EGL GLESv2 GLESv1_CM )
   ADD_DEFINITIONS( -D__USE_FREEGLUT__ )
   include_directories( ${SOURCES_ROOT}src/freeglut/freeglut-SVN/include )
   if( NOT __QNX__ )
