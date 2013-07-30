@@ -179,21 +179,23 @@ typedef struct HVIDEO_tag
 	PTRANSFORM transform;
 #    if defined( __QNX__ )
 	gf_surface_t pSurface;
-    gf_layer_t pLayer;
+	gf_layer_t pLayer;
 	gf_layer_info_t layer_info;
 	gf_3d_target_t pTarget;
+
+#    endif
+#    if defined( USE_EGL )
 	EGLint num_config;
 	EGLConfig config;
 	EGLDisplay display;
 	EGLSurface surface;
 	EGLContext econtext;
-
 #    endif
 
 #  endif
 #  ifdef _OPENGL_DRIVER
 	Image pAppImage; // this is the image returned for the application's reference.  The real image is a larger surface than this.
-   GLuint		texture[1]; // texture that is this real image...
+	GLuint		texture[1]; // texture that is this real image...
 #  endif
 #  ifdef _D3D_DRIVER
 #  endif

@@ -56,6 +56,7 @@ enum ProcessHttpResult{
     HTTP_STATE_RESULT_CONTINUE = 100,
 	HTTP_STATE_INTERNAL_SERVER_ERROR=500,
 	HTTP_STATE_RESOURCE_NOT_FOUND=404,
+   HTTP_STATE_BAD_REQUEST=400,
 };
 
 HTTP_EXPORT /* Creates an empty http state, the next operation should be
