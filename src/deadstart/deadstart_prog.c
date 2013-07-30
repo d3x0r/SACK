@@ -59,7 +59,25 @@ PRELOAD( RunDeadstart )
 	atexit( RunExits );
 	InvokeDeadstart(); // call everthing which is logged within SACK to dispatch back to registree's
 	MarkRootDeadstartComplete();
+
+ 
 }
+
+#ifdef __ANDROID__
+#include <android_native_app_glue.h>
+
+void android_main(struct android_app* state)
+{
+   struct android_app* shared_state;
+	RegisterAndCreateGlobal( &shared_state, sizeof( struct android_app ), "Android/android_app/main" );
+   MemCpy( shared_state, state, sizeof( struct android_app ) );
+	//main( NULL, 0, NULL );
+	while( 1 )
+      WakeableSleep( 0 );
+}
+
+
+#endif
 
 SACK_DEADSTART_NAMESPACE_END
 

@@ -132,6 +132,12 @@ endif( __ARM__ )
 
 endif( UNIX )
 
+if( __ANDROID__ )
+	set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} android log )
+        message( "PLATFORM=${PLATFORM_LIBRARIES}" )
+endif( __ANDROID__ )
+
+
 set( BULLET_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/../bullet" CACHE STRING "bullet source path "  )
 
 OPTION( SACK_BUILD_STATIC_LIBS "Enable building static versions of libraries" OFF )
