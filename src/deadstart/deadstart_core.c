@@ -680,8 +680,21 @@ LOGICAL IsRootDeadstartStarted( void )
 #ifndef __STATIC_GLOBALS__
 	if( deadstart_local_data )
 		return bInitialStarted;
+	return 0;
+#else
+   return bInitialStarted;
 #endif
+}
+
+LOGICAL IsRootDeadstartComplete( void )
+{
+#ifndef __STATIC_GLOBALS__
+	if( deadstart_local_data )
+		return bInitialDone;
    return 0;
+#else
+   return bInitialDone;
+#endif
 }
 
 
