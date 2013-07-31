@@ -157,9 +157,58 @@ void OpenEGL( struct display_camera *camera )
     * Later, the OpenGL ES library calls will call gf_layer_update()
     * internally, when  displaying the rendered 3D content.
     */
+   const EGLint config16bpp[] =
+{
+EGL_RED_SIZE, 5,
+EGL_GREEN_SIZE, 6,
+EGL_BLUE_SIZE, 5,
+EGL_NONE
+};
+    EGLint majorVersion, minorVersion;
+    int numConfigs;
+
+    camera->hVidCore->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+
+    // Window surface that covers the entire screen, from libui.
+    camera->hVidCore->displayWindow = android_createDisplaySurface();
+
+    eglInitialize(camera->hVidCore->display, &majorVersion, &minorVersion);
+    lprintf("GL version: %d.%d",majorVersion,minorVersion);
+
+
+    //lprintf("Window specs: %d*%d format=%d",
+     //camera->hVidCore->display->width,
+     //camera->hVidCore->display->height,
+     //camera->hVidCore->display->format
+	 //);
+
+    if (!eglChooseConfig(camera->hVidCore->display, config16bpp, &camera->hVidCore->config, 1, &numConfigs))
+    {
+    	lprintf("eglChooseConfig failed");
+    	if (camera->hVidCore->econtext==0) lprintf("Error code: %x", eglGetError());
+    }
+
+    camera->hVidCore->econtext = eglCreateContext(camera->hVidCore->display,
+     camera->hVidCore->config,
+     EGL_NO_CONTEXT,
+     NULL);
+    lprintf("GL context: %x", camera->hVidCore->econtext);
+    if (camera->hVidCore->econtext==0) lprintf("Error code: %x", eglGetError());
+
+    camera->hVidCore->surface = eglCreateWindowSurface(camera->hVidCore->display,
+     camera->hVidCore->config,
+     camera->hVidCore->displayWindow,
+     NULL);
+    lprintf("GL surface: %x", camera->hVidCore->surface);
+    if (camera->hVidCore->surface==0) lprintf("Error code: %x", eglGetError());
+
+	// makes it go black as soon as ready
+    eglSwapBuffers(camera->hVidCore->display, camera->hVidCore->surface);
+
+
 
    /* create an EGL rendering context */
-   camera->hVidCore->econtext=eglCreateContext(camera->hVidCore->display, camera->hVidCore->config, EGL_NO_CONTEXT, NULL);
+   camera->hVidCore->econtext=eglCreateContext(camera->hVidCore->displayWindow, camera->hVidCore->config, EGL_NO_CONTEXT, NULL);
    if (camera->hVidCore->econtext==EGL_NO_CONTEXT)
    {
       lprintf( "Create context failed: 0x%x\n", eglGetError());
@@ -249,7 +298,7 @@ static int engine_init_display(struct engine* engine) {
 
     /*
      * Here specify the attributes of the desired configuration.
-     * Below, we select an EGLConfig with at least 8 bits per color
+     * Below, we select an camera->hVidCore->config with at least 8 bits per color
      * component compatible with on-screen windows
      */
     const EGLint attribs[] = {
@@ -261,10 +310,10 @@ static int engine_init_display(struct engine* engine) {
     };
     EGLint w, h, dummy, format;
 	 EGLint numConfigs;
+	 EGLConfig config;
+	 EGLSurface surface;
+	 EGLContext context;
     EGLint error;
-    EGLConfig config;
-    EGLSurface surface;
-    EGLContext context;
 
     EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
@@ -274,13 +323,13 @@ static int engine_init_display(struct engine* engine) {
 
     /* Here, the application chooses the configuration it desires. In this
      * sample, we have a very simplified selection process, where we pick
-     * the first EGLConfig that matches our criteria */
+     * the first camera->hVidCore->config that matches our criteria */
     error = eglChooseConfig(display, attribs, &config, 1, &numConfigs);
     lprintf( "... %d",error );
 
-    /* EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
+    /* EGL_NATIVE_VISUAL_ID is an attribute of the camera->hVidCore->config that is
      * guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
-     * As soon as we picked a EGLConfig, we can safely reconfigure the
+     * As soon as we picked a camera->hVidCore->config, we can safely reconfigure the
      * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
     error = eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
     lprintf( "... %d",error );
@@ -420,7 +469,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 void do_android_main( void ) {
     struct engine engine;
 	 struct android_app* state;
-	 RegisterAndCreateGlobal( &state, sizeof( struct android_app ), "Android/android_app/main" );
+	 RegisterAndCreateGlobal( (POINTER*)&state, sizeof( struct android_app ), "Android/android_app/main" );
 
     // Make sure glue isn't stripped.
     app_dummy();
@@ -498,64 +547,8 @@ void do_android_main( void ) {
 }
 //END_INCLUDE(all)
 //------------------------------------------
-// from http://jiggawatt.org/badc0de/android/index.html
-main()
-{
-   const EGLint config16bpp[] =
-{
-EGL_RED_SIZE, 5,
-EGL_GREEN_SIZE, 6,
-EGL_BLUE_SIZE, 5,
-EGL_NONE
-};
-    EGLint majorVersion, minorVersion;
-    EGLContext eglContext;
-    EGLSurface eglSurface;
-    EGLConfig eglConfig;
-    EGLDisplay eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    int numConfigs;
-
-    // Window surface that covers the entire screen, from libui.
-    displayWindow = android_createDisplaySurface();
-
-    eglInitialize(eglDisplay, &majorVersion, &minorVersion);
-    printf("GL version: %d.%d\n",majorVersion,minorVersion);
-
-
-    printf("Window specs: %d*%d format=%d\n",
-     displayWindow->width,
-     displayWindow->height,
-     displayWindow->format);
-
-    if (!eglChooseConfig(eglDisplay, config16bpp, &eglConfig, 1, &numConfigs))
-    {
-    	printf("eglChooseConfig failed\n");
-    	if (eglContext==0) printf("Error code: %x\n", eglGetError());
-    }
-
-    eglContext = eglCreateContext(eglDisplay,
-     eglConfig,
-     EGL_NO_CONTEXT,
-     NULL);
-    printf("GL context: %x\n", eglContext);
-    if (eglContext==0) printf("Error code: %x\n", eglGetError());
-
-    eglSurface = eglCreateWindowSurface(eglDisplay,
-     eglConfig,
-     displayWindow,
-     NULL);
-    printf("GL surface: %x\n", eglSurface);
-    if (eglSurface==0) printf("Error code: %x\n", eglGetError());
-
-    eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext);
-
-
-    while (1)
-    {
-    	draw_tri();
-    	eglSwapBuffers(eglDisplay, eglSurface);
-    }
-
+// sources included from http://jiggawatt.org/badc0de/android/index.html
+// backported into qnx egl structures 
 
 
 #endif
@@ -726,7 +719,7 @@ void FindPixelFormat( struct display_camera *camera )
 	}
 }
 
-void CreateQNXOuputForCamera( struct display_camera *camera )
+void CreateQNXOutputForCamera( struct display_camera *camera )
 {
 
 	//layer, surface, ...
@@ -810,7 +803,6 @@ void CreateQNXOuputForCamera( struct display_camera *camera )
 	gf_layer_set_src_viewport(camera->hVidCore->pLayer, 0, 0, camera->w-1, camera->h-1);
 	gf_layer_set_dst_viewport(camera->hVidCore->pLayer, 0, 0, camera->w-1, camera->h-1);
    
-	OpenEGL( camera );
 }
 
 
@@ -1108,10 +1100,10 @@ static void SendApplicationDraw( PVIDEO hVideo )
 			}
 			//lprintf( WIDE( "Allowed to draw..." ) );
 
-#ifdef __QNX__
+#ifdef USE_EGL
 			EnableEGLContext( hVideo );
 #else
-			if( !SetActiveGLDisplay( hVideo ) )
+			if( !SetActivEGLDisplay( hVideo ) )
 			{
 				// if the opengl failed, dont' let the application draw.
 				return;
@@ -1165,10 +1157,10 @@ static void SendApplicationDraw( PVIDEO hVideo )
 #ifdef LOG_OPENGL_CONTEXT
 			lprintf( WIDE( "Auto disable (swap) window GL" ) );
 #endif
-#ifdef __QNX__
+#ifdef USE_EGL
 			EnableEGLContext( NULL );
 #else
-			SetActiveGLDisplay( NULL );
+			SetActivcamera->hVidCore->display( NULL );
 #endif
 			if( hVideo->flags.bLayeredWindow )
 			{
@@ -1552,7 +1544,7 @@ static void RenderGL( struct display_camera *camera )
 
 
 	// do OpenGL Frame
-	SetActiveGLDisplay( camera->hVidCore );
+	SetActivEGLDisplay( camera->hVidCore );
 	InitGL( camera );
 
 	{
@@ -1704,7 +1696,7 @@ static void RenderGL( struct display_camera *camera )
 	}
 	// using eglLayer, doesn't really have to be cleared
 	// each beginning flushes a previous... oh (well at end of all should call a clear)
-	//SetActiveGLDisplay( NULL );
+	//SetActivcamera->hVidCore->display( NULL );
 }
 
 
@@ -2303,7 +2295,10 @@ static struct display_camera *OpenCameras( void )
 
 			/* CreateWindowEx */
 #ifdef __QNX__
-			CreateQNXOuputForCamera( camera );
+			CreateQNXOutputForCamera( camera );
+#endif
+#ifdef USE_EGL
+			OpenEGL( camera );
 #endif
 
 	#ifdef LOG_OPEN_TIMING
@@ -2472,10 +2467,8 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 	Log( WIDE("Registered Idle, and starting message loop") );
 #endif
 	{
-#ifdef __ANDROID__
-		do_android_main();
-#else
-		OpenCameras();
+		//MSG Msg;
+      // Message Loop
 		while( 1 )
 		{
 		         // no reason to check this if an update is already wanted.
@@ -2508,9 +2501,6 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 			lprintf( "quater second frame..." );
 			WakeableSleep( 250 );
 		}
-#endif
-		//MSG Msg;
-      // Message Loop
 	}
 	l.bThreadRunning = FALSE;
 	lprintf( WIDE( "Video Exited volentarily" ) );
@@ -3691,7 +3681,7 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
 													, SyncRender   // sync
 #ifdef _OPENGL_ENABLED
 													, NULL //EnableOpenGL
-                                       , NULL //SetActiveGLDisplay
+                                       , NULL //SetActivcamera->hVidCore->display
 #else
                                        , NULL
                                        , NULL

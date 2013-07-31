@@ -50,8 +50,8 @@
 
 #ifdef WIN32
 #  ifndef _ARM_
-#    include <gl\gl.h>         // Header File For The OpenGL32 Library
-#    include <gl\glu.h>        // Header File For The GLu32 Library
+#    include <GL/gl.h>         // Header File For The OpenGL32 Library
+#    include <GL/glu.h>        // Header File For The GLu32 Library
 #  else
 #    define __NO_OPENGL__
 #  endif
@@ -185,6 +185,7 @@ typedef struct HVIDEO_tag
 
 #    endif
 #    if defined( USE_EGL )
+	NativeWindowType displayWindow;
 	EGLint num_config;
 	EGLConfig config;
 	EGLDisplay display;

@@ -73,7 +73,9 @@
 #endif
 
 #if defined( _D3D_DRIVER ) || ( !defined( __cplusplus ) && defined( __ANDROID__ ) )
+#ifndef MAKE_RCOORD_SINGLE
 #define MAKE_RCOORD_SINGLE
+#endif
 #endif
 
 #ifdef __cplusplus
