@@ -173,7 +173,9 @@ extern
 #endif
 	_32 last_mouse_update; // last tick the mouse moved.
 	_32 mouse_timer_id;
+#ifdef WIN32
 	_32 redraw_timer_id;
+#endif
 
 	RCOORD fProjection[16];
 	int multi_shader;
