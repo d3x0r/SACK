@@ -157,6 +157,21 @@ void OpenEGL( struct display_camera *camera )
     * Later, the OpenGL ES library calls will call gf_layer_update()
     * internally, when  displaying the rendered 3D content.
     */
+   const EGLint config32bpp[] =
+{
+EGL_ALPHA_SIZE, 8,
+EGL_RED_SIZE, 8,
+EGL_GREEN_SIZE, 8,
+EGL_BLUE_SIZE, 8,
+EGL_NONE
+};
+   const EGLint config24bpp[] =
+{
+EGL_RED_SIZE, 8,
+EGL_GREEN_SIZE, 8,
+EGL_BLUE_SIZE, 8,
+EGL_NONE
+};
    const EGLint config16bpp[] =
 {
 EGL_RED_SIZE, 5,
@@ -164,25 +179,46 @@ EGL_GREEN_SIZE, 6,
 EGL_BLUE_SIZE, 5,
 EGL_NONE
 };
-    EGLint majorVersion, minorVersion;
-    int numConfigs;
+   const EGLint* configXbpp;
+   EGLint majorVersion, minorVersion;
+   int numConfigs;
 
-    camera->hVidCore->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+   camera->hVidCore->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
-    // Window surface that covers the entire screen, from libui.
-    camera->hVidCore->displayWindow = android_createDisplaySurface();
+#ifdef __ANDROID__
+	// Window surface that covers the entire screen, from libui.
+	{
+		 NativeWindowType (*android_cds)(void) = (NativeWindowType (*)(void))LoadFunction( "libui.so", "android_createDisplaySurface" );
+		 if( android_cds )
+		 {
+			 camera->hVidCore->displayWindow = android_cds();
+			lprintf( "native window %p", camera->hVidCore->displayWindow );
+			 lprintf("Window specs: %d*%d format=%d",
+						ANativeWindow_getWidth( camera->hVidCore->displayWindow),
+						ANativeWindow_getHeight( camera->hVidCore->displayWindow),
+						ANativeWindow_getFormat( camera->hVidCore->displayWindow)
+					  );
+			switch( ANativeWindow_getFormat( camera->hVidCore->displayWindow) )
+			  {
+			  case 1:
+				  configXbpp = config32bpp;
+				  break;
+			  case 2:
+	              configXbpp = config24bpp;
+		          break;
+			  case 4:
+				  configXbpp = config16bpp;
+			      break;
+			  }
+
+		 }
+	 }
+#endif
 
     eglInitialize(camera->hVidCore->display, &majorVersion, &minorVersion);
     lprintf("GL version: %d.%d",majorVersion,minorVersion);
 
-
-    //lprintf("Window specs: %d*%d format=%d",
-     //camera->hVidCore->display->width,
-     //camera->hVidCore->display->height,
-     //camera->hVidCore->display->format
-	 //);
-
-    if (!eglChooseConfig(camera->hVidCore->display, config16bpp, &camera->hVidCore->config, 1, &numConfigs))
+    if (!eglChooseConfig(camera->hVidCore->display, configXbpp, &camera->hVidCore->config, 1, &numConfigs))
     {
     	lprintf("eglChooseConfig failed");
     	if (camera->hVidCore->econtext==0) lprintf("Error code: %x", eglGetError());
@@ -204,34 +240,14 @@ EGL_NONE
 
 	// makes it go black as soon as ready
     eglSwapBuffers(camera->hVidCore->display, camera->hVidCore->surface);
-
-
-
-   /* create an EGL rendering context */
-   camera->hVidCore->econtext=eglCreateContext(camera->hVidCore->displayWindow, camera->hVidCore->config, EGL_NO_CONTEXT, NULL);
-   if (camera->hVidCore->econtext==EGL_NO_CONTEXT)
-   {
-      lprintf( "Create context failed: 0x%x\n", eglGetError());
-      return ;
-   }
-
-		/* create an EGL window surface */
-#ifdef __QNX__
-		camera->hVidCore->surface=eglCreateWindowSurface(camera->hVidCore->display, camera->hVidCore->config, camera->hVidCore->pTarget, NULL);
-#else
-#endif
-   if (camera->hVidCore->surface==EGL_NO_SURFACE)
-   {
-      lprintf( "Create surface failed: 0x%x\n", eglGetError());
-      return;
-   }
-
 }
 
 void EnableEGLContext( PRENDERER hVidCore )
 {
+	lprintf( "Enavle context %p", hVidCore );
 	if( hVidCore )
 	{
+
 		/* connect the context to the surface */
 		if (eglMakeCurrent(hVidCore->display, hVidCore->surface, hVidCore->surface, hVidCore->econtext)==EGL_FALSE)
 		{
@@ -1103,7 +1119,7 @@ static void SendApplicationDraw( PVIDEO hVideo )
 #ifdef USE_EGL
 			EnableEGLContext( hVideo );
 #else
-			if( !SetActivEGLDisplay( hVideo ) )
+			if( !SetActiveEGLDisplay( hVideo ) )
 			{
 				// if the opengl failed, dont' let the application draw.
 				return;
@@ -1160,7 +1176,7 @@ static void SendApplicationDraw( PVIDEO hVideo )
 #ifdef USE_EGL
 			EnableEGLContext( NULL );
 #else
-			SetActivcamera->hVidCore->display( NULL );
+			SetActiveEGLDisplay( NULL );
 #endif
 			if( hVideo->flags.bLayeredWindow )
 			{
@@ -1544,7 +1560,12 @@ static void RenderGL( struct display_camera *camera )
 
 
 	// do OpenGL Frame
-	SetActivEGLDisplay( camera->hVidCore );
+#ifdef USE_EGL
+	lprintf( "enavle context" );
+			EnableEGLContext( camera->hVidCore );
+#else
+			//SetActiveEGLDisplay( camera->hVidCore );
+#endif
 	InitGL( camera );
 
 	{
@@ -1696,7 +1717,7 @@ static void RenderGL( struct display_camera *camera )
 	}
 	// using eglLayer, doesn't really have to be cleared
 	// each beginning flushes a previous... oh (well at end of all should call a clear)
-	//SetActivcamera->hVidCore->display( NULL );
+	//SetActiveEGLDisplay( NULL );
 }
 
 
@@ -2439,7 +2460,7 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
    if (l.bThreadRunning)
    {
 		Log( WIDE("Thread Already exists - leaving.") );
-      return 0;
+		return 0;
 	}
 
 #ifdef LOG_STARTUP
@@ -2487,10 +2508,17 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 				{
 					// if plugins or want update, don't continue.
 					if( !camera->plugins && !l.flags.bUpdateWanted )
+					{
+						lprintf( "no update" );
 						continue;
+					}
 					
 					if( !camera->hVidCore || !camera->hVidCore->flags.bReady )
+					{
+						lprintf( "not ready" );
+		
 						continue;
+					}
 					// drawing may cause subsequent draws; so clear this first
 					RenderGL( camera );
 #ifdef USE_EGL
@@ -3681,7 +3709,7 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
 													, SyncRender   // sync
 #ifdef _OPENGL_ENABLED
 													, NULL //EnableOpenGL
-                                       , NULL //SetActivcamera->hVidCore->display
+                                       , NULL //SetActiveEGLDisplay
 #else
                                        , NULL
                                        , NULL
