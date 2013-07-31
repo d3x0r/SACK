@@ -84,7 +84,7 @@
 //#define LOG_MOUSE_EVENTS
 //#define LOG_RECT_UPDATE
 //#define LOG_DESTRUCTION
-//#define LOG_STARTUP
+#define LOG_STARTUP
 //#define LOG_FOCUSEVENTS
 //#define OTHER_EVENTS_HERE
 //#define LOG_SHOW_HIDE
@@ -144,102 +144,110 @@ RENDER_NAMESPACE
 #define VIDLIB_MAIN
 #include "local.h"
 
+	HWND  GetNativeHandle (PVIDEO hVideo);
+
 extern KEYDEFINE KeyDefs[];
 
 #ifdef USE_EGL
 
 void OpenEGL( struct display_camera *camera )
 {
-	    /*
-    * The layer settings haven't taken effect yet since we haven't
-    * called gf_layer_update() yet.  This is exactly what we want,
-    * since we haven't supplied a valid surface to display yet.
-    * Later, the OpenGL ES library calls will call gf_layer_update()
-    * internally, when  displaying the rendered 3D content.
-    */
-   const EGLint config32bpp[] =
-{
-EGL_ALPHA_SIZE, 8,
-EGL_RED_SIZE, 8,
-EGL_GREEN_SIZE, 8,
-EGL_BLUE_SIZE, 8,
-EGL_NONE
-};
-   const EGLint config24bpp[] =
-{
-EGL_RED_SIZE, 8,
-EGL_GREEN_SIZE, 8,
-EGL_BLUE_SIZE, 8,
-EGL_NONE
-};
-   const EGLint config16bpp[] =
-{
-EGL_RED_SIZE, 5,
-EGL_GREEN_SIZE, 6,
-EGL_BLUE_SIZE, 5,
-EGL_NONE
-};
-   const EGLint* configXbpp;
-   EGLint majorVersion, minorVersion;
-   int numConfigs;
+	/*
+	 * The layer settings haven't taken effect yet since we haven't
+	 * called gf_layer_update() yet.  This is exactly what we want,
+	 * since we haven't supplied a valid surface to display yet.
+	 * Later, the OpenGL ES library calls will call gf_layer_update()
+	 * internally, when  displaying the rendered 3D content.
+	 */
+		const EGLint config32bpp[] =
+	{
+		EGL_ALPHA_SIZE, 8,
+		EGL_RED_SIZE, 8,
+		EGL_GREEN_SIZE, 8,
+		EGL_BLUE_SIZE, 8,
+		EGL_NONE
+	};
+	 const EGLint config24bpp[] =
+	 {
+		 EGL_RED_SIZE, 8,
+		 EGL_GREEN_SIZE, 8,
+		 EGL_BLUE_SIZE, 8,
+		 EGL_NONE
+	 };
+	 const EGLint config16bpp[] =
+	 {
+		 EGL_RED_SIZE, 5,
+		 EGL_GREEN_SIZE, 6,
+		 EGL_BLUE_SIZE, 5,
+		 EGL_NONE
+	 };
+	 const EGLint* configXbpp;
+	 EGLint majorVersion, minorVersion;
+	 int numConfigs;
 
-   camera->hVidCore->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	 if( camera->hVidCore->display )
+	 {
+		 lprintf( "EGL Context already initialized for camera" );
+       return;
+	 }
+
+	 camera->hVidCore->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
 #ifdef __ANDROID__
-	// Window surface that covers the entire screen, from libui.
-	{
+	 // Window surface that covers the entire screen, from libui.
+	 {
 		 NativeWindowType (*android_cds)(void) = (NativeWindowType (*)(void))LoadFunction( "libui.so", "android_createDisplaySurface" );
 		 if( android_cds )
 		 {
 			 camera->hVidCore->displayWindow = android_cds();
-			lprintf( "native window %p", camera->hVidCore->displayWindow );
+			 lprintf( "native window %p", camera->hVidCore->displayWindow );
 			 lprintf("Window specs: %d*%d format=%d",
 						ANativeWindow_getWidth( camera->hVidCore->displayWindow),
 						ANativeWindow_getHeight( camera->hVidCore->displayWindow),
 						ANativeWindow_getFormat( camera->hVidCore->displayWindow)
 					  );
-			switch( ANativeWindow_getFormat( camera->hVidCore->displayWindow) )
-			  {
-			  case 1:
-				  configXbpp = config32bpp;
-				  break;
-			  case 2:
-	              configXbpp = config24bpp;
-		          break;
-			  case 4:
-				  configXbpp = config16bpp;
-			      break;
-			  }
+			 switch( ANativeWindow_getFormat( camera->hVidCore->displayWindow) )
+			 {
+			 case 1:
+				 configXbpp = config32bpp;
+				 break;
+			 case 2:
+				 configXbpp = config24bpp;
+				 break;
+			 case 4:
+				 configXbpp = config16bpp;
+				 break;
+			 }
 
 		 }
 	 }
 #endif
 
-    eglInitialize(camera->hVidCore->display, &majorVersion, &minorVersion);
-    lprintf("GL version: %d.%d",majorVersion,minorVersion);
+	 eglInitialize(camera->hVidCore->display, &majorVersion, &minorVersion);
+	 lprintf("GL version: %d.%d",majorVersion,minorVersion);
 
-    if (!eglChooseConfig(camera->hVidCore->display, configXbpp, &camera->hVidCore->config, 1, &numConfigs))
-    {
-    	lprintf("eglChooseConfig failed");
-    	if (camera->hVidCore->econtext==0) lprintf("Error code: %x", eglGetError());
-    }
+	 if (!eglChooseConfig(camera->hVidCore->display, configXbpp, &camera->hVidCore->config, 1, &numConfigs))
+	 {
+		 lprintf("eglChooseConfig failed");
+		 if (camera->hVidCore->econtext==0) lprintf("Error code: %x", eglGetError());
+	 }
 
-    camera->hVidCore->econtext = eglCreateContext(camera->hVidCore->display,
-     camera->hVidCore->config,
-     EGL_NO_CONTEXT,
-     NULL);
-    lprintf("GL context: %x", camera->hVidCore->econtext);
-    if (camera->hVidCore->econtext==0) lprintf("Error code: %x", eglGetError());
+	 camera->hVidCore->econtext = eglCreateContext(camera->hVidCore->display,
+																  camera->hVidCore->config,
+																  EGL_NO_CONTEXT,
+																  NULL);
+	 lprintf("GL context: %x", camera->hVidCore->econtext);
+	 if (camera->hVidCore->econtext==0) lprintf("Error code: %x", eglGetError());
 
-    camera->hVidCore->surface = eglCreateWindowSurface(camera->hVidCore->display,
-     camera->hVidCore->config,
-     camera->hVidCore->displayWindow,
-     NULL);
-    lprintf("GL surface: %x", camera->hVidCore->surface);
-    if (camera->hVidCore->surface==0) lprintf("Error code: %x", eglGetError());
+	 camera->hVidCore->surface = eglCreateWindowSurface(camera->hVidCore->display,
+																		 camera->hVidCore->config,
+																		 camera->hVidCore->displayWindow,
+																		 NULL);
+	 lprintf("GL surface: %x", camera->hVidCore->surface);
+	 if (camera->hVidCore->surface==0) lprintf("Error code: %x", eglGetError());
 
-	// makes it go black as soon as ready
-    eglSwapBuffers(camera->hVidCore->display, camera->hVidCore->surface);
+	 // makes it go black as soon as ready
+	 eglSwapBuffers(camera->hVidCore->display, camera->hVidCore->surface);
 }
 
 void EnableEGLContext( PRENDERER hVidCore )
@@ -2267,11 +2275,14 @@ static int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 // returns the forward view camera (or default camera)
 static struct display_camera *OpenCameras( void )
 {
-	struct display_camera *default_camera = NULL;
+	struct display_camera *default_camera = (struct display_camera *)GetLink( &l.cameras, 0 );
 	struct display_camera *camera;
 	INDEX idx;
 	//lprintf( WIDE( "-----Create WIndow Stuff----- %s %s" ), hVideo->flags.bLayeredWindow?WIDE( "layered" ):WIDE( "solid" )
 	//		 , hVideo->flags.bChildWindow?WIDE( "Child(tool)" ):WIDE( "user-selectable" ) );
+   lprintf( "default_camera is %p", default_camera );
+	if( default_camera )
+      return default_camera;
 
 	LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
 	{
@@ -2338,7 +2349,6 @@ static struct display_camera *OpenCameras( void )
 		struct display_camera *camera = (struct display_camera *)GetLink( &l.cameras, 0 );
 		lprintf( WIDE("Setting up redraw timer.. (this code should be running in the render loop)") );
 		//l.redraw_timer_id = 
-		//ThreadTo( RenderLoop, 0 );
 		lprintf( WIDE("Setting up redraw timer.. result %d"), l.redraw_timer_id );
 	}
 
@@ -2354,7 +2364,7 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 	lprintf(WIDE( "Creating container window named: %s" ),
 			(l.gpTitle && l.gpTitle[0]) ? l.gpTitle : (hVideo&&hVideo->pTitle)?hVideo->pTitle:WIDE("No Name"));
 
-	camera = OpenCameras(); // returns the forward camera
+	camera = (struct display_camera *)GetLink( &l.cameras, 0 ); // returns the forward(default) camera
 
 		if( hVideo )
 		{
@@ -2479,7 +2489,11 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
    l.actual_thread = thread;
 	l.dwThreadID = GetCurrentThreadId ();
 	//l.pid = (_32)l.dwThreadID;
+
+	OpenCameras(); // returns the forward camera
+
 	l.bThreadRunning = TRUE;
+
 
 	AddIdleProc( (int(CPROC*)(PTRSZVAL))ProcessDisplayMessages, 0 );
 
@@ -2540,12 +2554,29 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 
 int  InitDisplay (void)
 {
-#ifndef __NO_WIN32API__
 	//if (!l.aClass)
 	{
-		AddLink( &l.threads, ThreadTo( VideoThreadProc, 0 ) );
-	}
+		if (!l.flags.bThreadCreated )
+		{
+			int failcount = 0;
+			l.flags.bThreadCreated = 1;
+			AddLink( &l.threads, ThreadTo( VideoThreadProc, 0 ) );
+#ifdef LOG_STARTUP
+			Log( WIDE("Started video thread...") );
 #endif
+			{
+				do
+				{
+					failcount++;
+					do
+					{
+						Relinquish();
+					}
+					while (!l.bThreadRunning);
+				} while( (failcount < 100) );
+			}
+		}
+	}
 	{
 		//GLboolean params = 0;
 		//if( glGetBooleanv(GL_STEREO, &params), params )
@@ -2603,32 +2634,6 @@ TEXTCHAR  GetKeyText (int key)
 LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 {
 	InitDisplay();
-	if (!l.flags.bThreadCreated )
-	{
-		int failcount = 0;
-		l.flags.bThreadCreated = 1;
-		//Log( WIDE("Starting video thread...") );
-		AddLink( &l.threads, ThreadTo (VideoThreadProc, 0) );
-#ifdef LOG_STARTUP
-		Log( WIDE("Started video thread...") );
-#endif
-		{
-#ifdef __cplusplus_clr
-			HHOOK added = NULL;
-		do
-		{
-#endif
-			failcount++;
-			do
-			{
-				Sleep (0);
-			}
-			while (!l.bThreadRunning);
-#ifdef __cplusplus_clr
-		} while( !added && (failcount < 100) );
-#endif
-		}
-	}
 
 	PutDisplayAbove( hNextVideo, l.top );
 
@@ -2707,7 +2712,7 @@ LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 		}
 	}
 #ifdef LOG_STARTUP
-	lprintf( WIDE("Resulting new window %p %d"), hNextVideo, hNextVideo->hWndOutput );
+	lprintf( WIDE("Resulting new window %p %p"), hNextVideo, GetNativeHandle( hNextVideo ) );
 #endif
 	return TRUE;
 }
@@ -3969,8 +3974,10 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 	// loads options describing cameras; creates camera structures and math structures
 	LoadOptions();
 #ifdef __QNX__
+   // gets handles to low level device information
 	InitQNXDisplays();
 #endif
+
 	RegisterInterface( 
 	   WIDE("puregl.render")
 	   , GetDisplayInterface, DropDisplayInterface );
