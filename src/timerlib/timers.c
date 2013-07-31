@@ -23,6 +23,10 @@
 //#include <sys/sem.h>
 #endif
 
+#ifdef USE_PIPE_SEMS
+#define _NO_SEMTIMEDOP_
+#endif
+
 // this is a cheat to get the critical section
 // object... otherwise we'd have had circular
 // linking reference between this and sharemem
@@ -81,6 +85,7 @@ namespace sack {
 
 //#define LOG_INSERTS
 //#define LOG_DISPATCH
+//#define DEBUG_PIPE_USAGE
 
 typedef struct thread_event THREAD_EVENT;
 typedef struct thread_event *PTHREAD_EVENT;
@@ -198,7 +203,7 @@ static struct {
 #define HAS_TLS 1
 #define ThreadLocal static __declspec(thread)
 #endif
-#if defined( GNUC )
+#if defined( __GNUC__ )
 #define HAS_TLS 1
 #define ThreadLocal static __thread
 #endif
@@ -233,6 +238,8 @@ ThreadLocal struct my_thread_info {
 #include <signal.h>
 
 #endif
+
+void  RemoveTimerEx( _32 ID DBG_PASS );
 
 // this priorirty is also relative to a secondary init for procreg/names.c
 // if you change this, need to change when that is scheduled also
@@ -530,7 +537,11 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 #ifdef USE_PIPE_SEMS
 	if( thread->semaphore != -1 )
 	{
+#  ifdef DEBUG_PIPE_USAGE
+		_lprintf(DBG_RELAY)( "(wakethread)wil write pipe... %p", thread );
+#  endif
 		write( thread->pipe_ends[1], "G", 1 );
+		//lprintf( "did write pipe..." );
 		Relinquish();
 	}
 #else
@@ -542,7 +553,7 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 		semdo.sem_num = 0;
 		semdo.sem_op = 1;
 		semdo.sem_flg = 0;
-		//_xlprintf( 1 DBG_RELAY )( WIDE("Resetting event on %08x %016Lx"), thread->semaphore, thread->thread_ident );
+		//_xlprintf( 1 DBG_RELAY )( WIDE("Resetting event on %08x %016"_64fx"x"), thread->semaphore, thread->thread_ident );
 		//lprintf( WIDE("Before semval = %d %08lx"), semctl( thread->semaphore, 0, GETVAL ), thread->semaphore );
 		stat = semop( thread->semaphore, &semdo, 1 );
 		if( stat == -1 )
@@ -559,8 +570,12 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 		Relinquish(); // may or may not execute other thread before this...
 	}
 #endif
+#  if 0
 	if( thread->thread ) // thread creation might not be complete yet...
+	{
 		pthread_kill( thread->thread, SIGUSR1 );
+	}
+#  endif
 #endif
 }
 
@@ -634,8 +649,8 @@ void  WakeableSleepEx( _32 n DBG_PASS )
 			int nTimer = 0;
 			if( n != SLEEP_FOREVER )
 			{
-				//lprintf( WIDE("Wakeable sleep in %ld"), n );
-				nTimer = AddTimerEx( n, 0, TimerWake, (PTRSZVAL)pThread );
+				//lprintf( WIDE("Wakeable sleep in %ld (oneshot, no frequency)"), n );
+				nTimer = AddTimerExx( n, 0, TimerWake, (PTRSZVAL)pThread DBG_RELAY );
 			}
 #endif
 			if( pThread->semaphore == -1 )
@@ -655,13 +670,19 @@ void  WakeableSleepEx( _32 n DBG_PASS )
 				while(1)
 				{
 					int stat;
-					//lprintf( WIDE("Lock on semop on semdo... %08x %016Lx"), pThread->semaphore, pThread->thread_ident );
+					//lprintf( WIDE("Lock on semop on semdo... %08x %016"_64fx"x"), pThread->semaphore, pThread->thread_ident );
 					//lprintf( WIDE("Before semval = %d %08lx"), semctl( pThread->semaphore, 0, GETVAL ), pThread->semaphore );
 					if( n != SLEEP_FOREVER )
 					{
 #ifdef USE_PIPE_SEMS
-                  char buf;
+						char buf;
+#  ifdef DEBUG_PIPE_USAGE
+						lprintf(" Begin read on thread %p", pThread );
+#  endif
                   stat = read( pThread->pipe_ends[0], &buf, 1 );
+#  ifdef DEBUG_PIPE_USAGE
+						lprintf( "end read" );
+#  endif
 #else
 # ifdef _NO_SEMTIMEDOP_
 						stat = semop( pThread->semaphore, semdo, 1 );
@@ -677,18 +698,17 @@ void  WakeableSleepEx( _32 n DBG_PASS )
 					{
 #ifdef USE_PIPE_SEMS
                   char buf;
-                  stat = read( pThread->pipe_ends[0], &buf, 1 );
+#  ifdef DEBUG_PIPE_USAGE
+						_lprintf(DBG_RELAY)(" Begin read on thread %p", pThread );
+#  endif
+						stat = read( pThread->pipe_ends[0], &buf, 1 );
+#  ifdef DEBUG_PIPE_USAGE
+						lprintf( "end read" );
+#  endif
 #else
 						stat = semop( pThread->semaphore, semdo, 1 );
 #endif
 					}
-#ifdef _NO_SEMTIMEDOP_
-					if( nTimer )
-					{
-                  //lprintf( WIDE("Removing our wakeup timer....") );
-						RemoveTimer( nTimer );
-					}
-#endif
 					//lprintf( WIDE("After semval = %d %08lx"), semctl( pThread->semaphore, 0, GETVAL ), pThread->semaphore );
 					//lprintf( WIDE("Lock passed.") );
 					if( stat < 0 )
@@ -781,6 +801,7 @@ PRIORITY_PRELOAD( IgnoreSignalContinue, GLOBAL_INIT_PRELOAD_PRIORITY-1 )
 
 static void AlarmSignal( int sig )
 {
+   //lprintf( "Received alarm" );
 	WakeThread( g.pTimerThread );
 }
 
@@ -796,19 +817,22 @@ static void TimerWakeableSleep( _32 n )
 		if( n != SLEEP_FOREVER )
 		{
 			struct itimerval val;
-		//lprintf( WIDE("Wakeable sleep in %") _32f WIDE(""), n );
+			//lprintf( WIDE("Wakeable sleep in %") _32f WIDE(""), n );
 			val.it_value.tv_sec = n / 1000;
 			val.it_value.tv_usec = (n % 1000) * 1000;
 			val.it_interval.tv_sec = 0;
 			val.it_interval.tv_usec = 0;
+			//lprintf( "setitimer %d %d", val.it_value.tv_sec, val.it_value.tv_usec );
 			setitimer( ITIMER_REAL, &val, NULL );
 		}
 		if( g.pTimerThread && g.pTimerThread->semaphore != -1 )
 		{
 #ifdef USE_PIPE_SEMS
 			char buf;
+         //lprintf( "Timer wakeable sleep is reading..." );
 			while( read( g.pTimerThread->pipe_ends[0], &buf, 1 ) < 0 )
 			{
+            //lprintf( "timeout?" );
 				if( !g.pTimerThread )
                return;
 				if( errno == EIDRM )
@@ -912,7 +936,7 @@ void  UnmakeThread( void )
 	if( pThread )
 	{
 #ifdef _WIN32
-      //lprintf( WIDE("Unmaking thread event! on thread %016Lx"), pThread->thread_ident );
+      //lprintf( WIDE("Unmaking thread event! on thread %016"_64fx"x"), pThread->thread_ident );
 		CloseHandle( pThread->thread_event->hEvent );
 #else
 		closesem( (POINTER)pThread, 0 );
@@ -954,7 +978,7 @@ static PTRSZVAL CPROC ThreadWrapper( PTHREAD pThread )
 		pThread->thread_ident = _GetMyThreadID();
 	InitWakeup( pThread );
 #ifdef LOG_THREAD
-	Log1( WIDE("Set thread ident: %016Lx"), pThread->thread_ident );
+	Log1( WIDE("Set thread ident: %016"_64fx""), pThread->thread_ident );
 #endif
 	if( pThread->proc )
 		 result = pThread->proc( pThread );
@@ -992,7 +1016,7 @@ static PTRSZVAL CPROC SimpleThreadWrapper( PTHREAD pThread )
 		pThread->thread_ident = GetMyThreadID();
 	InitWakeup( pThread );
 #ifdef LOG_THREAD
-	Log1( WIDE("Set thread ident: %016Lx"), pThread->thread_ident );
+	Log1( WIDE("Set thread ident: %016"_64fx""), pThread->thread_ident );
 #endif
 	if( pThread->proc )
 		 result = pThread->simple_proc( (POINTER)GetThreadParam( pThread ) );
@@ -1136,7 +1160,7 @@ PTHREAD  ThreadToEx( PTRSZVAL (CPROC*proc)(PTHREAD), PTRSZVAL param DBG_PASS )
 		 while( !pThread->thread_ident )
 			Relinquish();
 #ifdef LOG_THREAD
-	   Log3( WIDE("Created thread address: %p %016Lx at %p")
+	   Log3( WIDE("Created thread address: %p %016"_64fx" at %p")
 	             , pThread->proc, pThread->thread_ident, pThread );
 #endif
 	}
@@ -1205,7 +1229,7 @@ PTHREAD  ThreadToSimpleEx( PTRSZVAL (CPROC*proc)(POINTER), POINTER param DBG_PAS
 		 while( !pThread->thread_ident )
 			Relinquish();
 #ifdef LOG_THREAD
-	   Log3( WIDE("Created thread address: %p %016Lx at %p")
+	   Log3( WIDE("Created thread address: %p %016"_64fx" at %p")
 	             , pThread->proc, pThread->thread_ident, pThread );
 #endif
 	}
@@ -1327,35 +1351,53 @@ static void DoInsertTimer( PTIMER timer )
 
 //--------------------------------------------------------------------------
 
-static void  DoRemoveTimer( _32 timerID )
+static PTRSZVAL CPROC find_timer( POINTER p, PTRSZVAL psvID )
+{
+	_32 timerID = (_32)psvID;
+	PTIMER timer = (PTIMER)p;
+   lprintf( "Find to remove test %d==%d", timer->ID, timerID );
+	if( timer->ID == timerID )
+		return (PTRSZVAL)p;
+   return 0;
+}
+
+static void  DoRemoveTimer( _32 timerID DBG_PASS )
 {
 	EnterCriticalSec( &csGrab );
 	{
-	PTIMER timer = g.timers;
-	while( timer )
-	{
-		if( timer->ID == timerID )
-			break;
-		timer = timer->next;
-	}
-	if( timer )
-	{
-      PTIMER tmp;
-		if( ( tmp = ( (*timer->me) = timer->next ) ) )
+		PTIMER timer = g.timers;
+		PTRSZVAL psvTimerResult = ForAllInSet( TIMER, &g.timer_pool, find_timer, (PTRSZVAL)timerID );
+		if( psvTimerResult )
+			timer = (PTIMER)psvTimerResult;
+		else
 		{
-			// if I had a next - his refernece of thing that points at him is mine.
-			tmp->delta += timer->delta;
-			tmp->me = timer->me;
+			while( timer )
+			{
+				if( timer->ID == timerID )
+					break;
+				timer = timer->next;
+			}
 		}
-      DeleteFromSet( TIMER, &g.timer_pool, timer );
-	}
+		if( timer )
+		{
+			PTIMER tmp;
+			if( ( tmp = ( (*timer->me) = timer->next ) ) )
+			{
+				// if I had a next - his refernece of thing that points at him is mine.
+				tmp->delta += timer->delta;
+				tmp->me = timer->me;
+			}
+			DeleteFromSet( TIMER, &g.timer_pool, timer );
+		}
+		else
+			_lprintf(DBG_RELAY)( "Failed to find timer to grab" );
 	}
 	LeaveCriticalSec( &csGrab );
 }
 
 //--------------------------------------------------------------------------
 
-static void InsertTimer( PTIMER timer )
+static void InsertTimer( PTIMER timer DBG_PASS )
 {
 	if( NotTimerThread() )
 	{
@@ -1406,7 +1448,7 @@ static void InsertTimer( PTIMER timer )
 #endif
 		// wake this thread because it's current scheduled delta (ex 1000ms)
 		// may put it's sleep beyond the frequency of this timer (ex 10ms)
-		WakeThread(g.pTimerThread);
+		WakeThreadEx(g.pTimerThread DBG_RELAY);
 	}
 	else
 	{
@@ -1509,7 +1551,7 @@ static int CPROC ProcessTimers( PTRSZVAL psvForce )
 #ifdef LOG_INSERTS
 			Log( WIDE("Scheduled remove timer...") );
 #endif
-			DoRemoveTimer( g.del_timer );
+			DoRemoveTimer( g.del_timer DBG_SRC );
 			g.del_timer = 0;
 		}
 		// get the time now....
@@ -1635,10 +1677,11 @@ static int CPROC ProcessTimers( PTRSZVAL psvForce )
 			else
 			{
 #ifdef LOG_INSERTS
-				Log( WIDE("Removing one shot timer.") );
+				lprintf( WIDE("Removing one shot timer. %d"), timer->ID );
 #endif
 				// was a one shot timer.
 				DeleteFromSet( TIMER, &g.timer_pool, timer );
+            timer = NULL;
 			}
 		}
 		SetCriticalLogging( 0 );
@@ -1756,7 +1799,7 @@ _32  AddTimerExx( _32 start, _32 frequency, TimerCallbackProc callback, PTRSZVAL
 		 // locks, and tick reference
 	}
 	//_xlprintf(1 DBG_RELAY)( WIDE("Inserting newly created timer.") );
-	InsertTimer( timer );
+	InsertTimer( timer DBG_RELAY );
 	// don't need to sighup here, cause we MUST have permission
 	// from the idle thread to add the timer, which means we issue it
 	// a sighup to make it wake up and allow us to post.
@@ -1774,30 +1817,42 @@ _32  AddTimerEx( _32 start, _32 frequency, void (CPROC*callback)(PTRSZVAL user),
 
 //--------------------------------------------------------------------------
 
-void  RemoveTimer( _32 ID )
+void  RemoveTimerEx( _32 ID DBG_PASS )
 {
 	// Lockout multiple changes at a time...
 	if( !NotTimerThread() && // IS timer thread..
 		( ID != g.CurrentTimerID ) ) // and not in THIS timer...
 	{
 		// is timer thread itself... safe to remove the timer....
-		DoRemoveTimer( ID );
+		DoRemoveTimer( ID DBG_SRC );
 		return;
 	}
 	EnterCriticalSec( &g.cs_timer_change );
 	// only allow one delete at a time...
 	while( g.del_timer )
 	{
+#ifdef LOG_INSERTS
+		lprintf( "pending timer delete, wait." );
+#endif
 		if( !NotTimerThread() ) // IS timer thread...
 		{
+#ifdef LOG_INSERTS
+			lprintf( "is not the timer." );
+#endif
 			if( g.del_timer != g.CurrentTimerID )
 			{
-				DoRemoveTimer( g.del_timer );
+#ifdef LOG_INSERTS
+				lprintf( "schedule timer is not the current timer..." );
+#endif
+				DoRemoveTimer( g.del_timer DBG_SRC );
 				g.del_timer = 0;
 			}
 			if( ID != g.CurrentTimerID )
 			{
-				DoRemoveTimer( ID );
+#ifdef LOG_INSERTS
+				lprintf( "removing timer is not the current timer" );
+#endif
+				DoRemoveTimer( ID DBG_SRC );
 				return;
 			}
 		}
@@ -1805,13 +1860,26 @@ void  RemoveTimer( _32 ID )
 			Relinquish();
 	}
 	// now how to set del_timer to a valid timer?!
+#ifdef LOG_INSERTS
+	_lprintf(DBG_RELAY)( "Set del_timer to schedule delete." );
+#endif
 	g.del_timer = ID;
 	LeaveCriticalSec( &g.cs_timer_change );
 	if( NotTimerThread() )
 	{
+#ifdef LOG_INSERTS
+		lprintf( "wake thread, scheduled delete" );
+#endif
 		//Log( WIDE("waking timer thread to indicate deletion...") );
 		WakeThread( g.pTimerThread );
 	}
+}
+
+
+#undef RemoveTimer
+void  RemoveTimer( _32 ID )
+{
+   RemoveTimerEx( ID DBG_SRC );
 }
 
 //--------------------------------------------------------------------------
@@ -2027,7 +2095,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 				//pcs->dwThreadWaiting = 0;
 				pcs->dwUpdating = 0;
 				if( global_timer_structure && g.flags.bLogCriticalSections )
-					_lprintf( DBG_RELAY )( "%8Lx Waking a thread which is waiting...", wake );
+					_lprintf( DBG_RELAY )( "%8"_64fx" Waking a thread which is waiting...", wake );
 				// don't clear waiting... so the proper thread can
 				// allow itself to claim section...
 				WakeThreadIDEx( wake DBG_RELAY);
@@ -2042,7 +2110,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 	{
 		if( global_timer_structure && g.flags.bLogCriticalSections )
 		{
-			_lprintf( DBG_RELAY )( WIDE("Sorry - you can't leave a section owned by %016Lx locks:%08lx" )
+			_lprintf( DBG_RELAY )( WIDE("Sorry - you can't leave a section owned by %016"_64fx" locks:%08lx" )
 #ifdef DEBUG_CRITICAL_SECTIONS
 										 WIDE(  "%s(%d)...")
 #endif

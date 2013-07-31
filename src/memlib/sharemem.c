@@ -371,8 +371,8 @@ static void DumpSection( PCRITICALSECTION pcs )
 	lprintf( WIDE("Critical Section.....") );
 	lprintf( WIDE("------------------------------") );
 	lprintf( WIDE("Update: %08x"), pcs->dwUpdating );
-	lprintf( WIDE("Current Process: %16Lx"), pcs->dwThreadID );
-	lprintf( WIDE("Next Process:    %16Lx"), pcs->dwThreadWaiting );
+	lprintf( WIDE("Current Process: %16"_64fx""), pcs->dwThreadID );
+	lprintf( WIDE("Next Process:    %16"_64fx""), pcs->dwThreadWaiting );
 	lprintf( WIDE("Last update: %s(%d)"), pcs->pFile?pcs->pFile:"unknown", pcs->nLine );
 }
 #endif
@@ -402,7 +402,7 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 	dwCurProc = GetMyThreadID();
 
 	if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-		_lprintf( DBG_RELAY )( " [%16Lx] Attempt enter critical Section %p %08lx"
+		_lprintf( DBG_RELAY )( " [%16"_64fx"] Attempt enter critical Section %p %08lx"
 									, dwCurProc
 									, pcs
 									, pcs->dwLocks );
@@ -621,7 +621,7 @@ static LOGICAL LeaveCriticalSecNoWakeEx( PCRITICALSECTION pcs DBG_PASS )
 	}
 #ifdef DEBUG_CRITICAL_SECTIONS
 	//if( g.bLogCritical > 1 )
-	// lprintf( DBG_FILELINEFMT WIDE( "Leaving %Lx %Lx %p" ) DBG_RELAY ,pcs->dwThreadID, dwCurProc, pcs );
+	// lprintf( DBG_FILELINEFMT WIDE( "Leaving %"_64fx"x %"_64fx"x %p" ) DBG_RELAY ,pcs->dwThreadID, dwCurProc, pcs );
 #endif
 	if( pcs->dwThreadID == dwCurProc )
 	{
@@ -1167,7 +1167,7 @@ PTRSZVAL GetFileSize( int fd )
 		*dwSize = ( ( (*dwSize) + ( FILE_GRAN - 1 ) ) / FILE_GRAN ) * FILE_GRAN;
 		if( !pWhat && !pWhere )
 		{
-			//lprintf( "ALLOCATE %Ld", (*dwSize)>>32, 0 );
+			//lprintf( "ALLOCATE %"_64fx"d", (*dwSize)>>32, 0 );
 			hMem = CreateFileMapping( INVALID_HANDLE_VALUE, NULL
 											, PAGE_READWRITE
 											 |SEC_COMMIT
