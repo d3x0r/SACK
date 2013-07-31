@@ -32,7 +32,7 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
 
 my_target_link_libraries( ${PROJECT_NAME} ${SACK_CORE_LIBRARY} )
 if( __ANDROID__ OR __QNX__ )
-  my_target_link_libraries( ${PROJECT_NAME} EGL GLESv2 )
+  my_target_link_libraries( ${PROJECT_NAME} EGL GLESv2 GLESv1_CM )
 else( __ANDROID__ OR __QNX__ )
 if( UNIX )
   my_target_link_libraries( ${PROJECT_NAME} GLESv2 EGL GL )
