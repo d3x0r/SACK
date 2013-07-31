@@ -1275,6 +1275,7 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 	PTRSZVAL (CPROC *Init3d)(PTRANSFORM,RCOORD*,RCOORD*);
 	PCLASSROOT data = NULL;
 	CTEXTSTR name;
+   lprintf( "Invoke Init3d" );
 	for( name = GetFirstRegisteredName( WIDE("sack/render/puregl/init3d"), &data );
 		  name;
 		  name = GetNextRegisteredName( &data ) )

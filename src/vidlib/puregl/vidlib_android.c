@@ -220,6 +220,8 @@ void OpenEGL( struct display_camera *camera )
 			 }
 
 		 }
+		 else
+          lprintf( "Fatal error; cannot get android_createDisplaySurface from libui" );
 	 }
 #endif
 
@@ -252,16 +254,17 @@ void OpenEGL( struct display_camera *camera )
 
 void EnableEGLContext( PRENDERER hVidCore )
 {
-	lprintf( "Enavle context %p", hVidCore );
+	lprintf( "Enable context %p", hVidCore );
 	if( hVidCore )
 	{
-
 		/* connect the context to the surface */
+         lprintf( "make current..." );
 		if (eglMakeCurrent(hVidCore->display, hVidCore->surface, hVidCore->surface, hVidCore->econtext)==EGL_FALSE)
 		{
 			lprintf( "Make current failed: 0x%x\n", eglGetError());
 			return;
 		}
+      lprintf( "made current..." );
 	}
 	else
 	{
@@ -1096,152 +1099,20 @@ void DoDestroy (PVIDEO hVideo)
 //----------------------------------------------------------------------------
 
 
-static void SendApplicationDraw( PVIDEO hVideo )
-{
-	// if asked to paint we have definatly been shown.
-#ifdef LOG_OPEN_TIMING
-	lprintf( WIDE( "Application should redraw... %p" ), hVideo );
-#endif
-	if( hVideo && hVideo->pRedrawCallback )
-	{
-		if( !hVideo->flags.bShown || hVideo->flags.bHidden )
-		{
-#ifdef LOG_SHOW_HIDE
-			lprintf(WIDE( " hidden." ) );
-#endif
-         // oh - opps, it's not allowed to draw.
-			return;
-		}
-		if( hVideo->flags.bOpenGL )
-		{
-#ifdef LOG_OPENGL_CONTEXT
-			lprintf( WIDE( "Auto-enable window GL." ) );
-#endif
-			//if( hVideo->flags.event_dispatched )
-			{
-				//lprintf( WIDE( "Fatality..." ) );
-				//Return 0;
-			}
-			//lprintf( WIDE( "Allowed to draw..." ) );
-
-#ifdef USE_EGL
-			EnableEGLContext( hVideo );
-#else
-			if( !SetActiveEGLDisplay( hVideo ) )
-			{
-				// if the opengl failed, dont' let the application draw.
-				return;
-			}
-#endif
-		}
-		hVideo->flags.event_dispatched = 1;
-		//					lprintf( WIDE( "Disaptched..." ) );
-#ifdef _MSC_VER
-		__try
-		{
-			//try
-#elif defined( __WATCOMC__ )
-#ifndef __cplusplus
-			_try
-			{
-#endif
-#endif
-				//if( !hVideo->flags.bShown || !hVideo->flags.bLayeredWindow )
-				{
-					//HDWP hDeferWindowPos = BeginDeferWindowPos( 1 );
-#ifdef NOISY_LOGGING
-					lprintf( WIDE( "redraw... WM_PAINT (sendapplicationdraw)" ) );
-					lprintf( WIDE( "%p %p %p"), hVideo->pRedrawCallback, hVideo->dwRedrawData, (PRENDERER) hVideo );
-#endif
-					hVideo->pRedrawCallback (hVideo->dwRedrawData, (PRENDERER) hVideo);
-				}
-				//catch(...)
-				{
-					//lprintf( WIDE( "Unknown exception during Redraw Callback" ) );
-				}
-#ifdef _MSC_VER
-			}
-			__except( EvalExcept( GetExceptionCode() ) )
-			{
-				lprintf( WIDE( "Caught exception in video output window" ) );
-				;
-			}
-#elif defined( __WATCOMC__ )
-#ifndef __cplusplus
-		}
-		_except( EXCEPTION_EXECUTE_HANDLER )
-		{
-			lprintf( WIDE( "Caught exception in video output window" ) );
-			;
-		}
-#endif
-#endif
-		if( hVideo->flags.bOpenGL )
-		{
-#ifdef LOG_OPENGL_CONTEXT
-			lprintf( WIDE( "Auto disable (swap) window GL" ) );
-#endif
-#ifdef USE_EGL
-			EnableEGLContext( NULL );
-#else
-			SetActiveEGLDisplay( NULL );
-#endif
-			if( hVideo->flags.bLayeredWindow )
-			{
-				UpdateDisplay( hVideo );
-			}
-		}
-		// might have 'controls' over the open...
-		// these would need to be updated seperately?
-		hVideo->flags.event_dispatched = 0;
-		if( hVideo->flags.bShown )
-		{
-#ifdef NOISY_LOGGING
-			lprintf( WIDE( "painting... shown... %p" ), hVideo );
-#endif
-         // application should issue update display as appropriate.
-			//UpdateDisplayPortion(hVideo, 0, 0, 0, 0);
-		}
-		//else
-		//	lprintf( "Not painting... not shown yet..." );
-	}
-	else if( hVideo )
-	{
-		// default update
-		UpdateDisplay( hVideo );
-	}
-#ifdef LOG_OPEN_TIMING
-	//lprintf( WIDE( "Application should have redrawn..." ) );
-#endif
-}
-
-
 int IsVidThread( void )
 {
    // used by opengl to allow selecting context.
-	if( IsThisThread( l.actual_thread ) )\
+	if( IsThisThread( l.actual_thread ) )
 		return TRUE;
 	return FALSE;
 }
 
 void Redraw( PVIDEO hVideo )
 {
-	if( IsThisThread( hVideo->pThreadWnd ) )
-		//if( IsVidThread() )
-	{
-#ifdef LOG_RECT_UPDATE
-		lprintf( WIDE( "..." ) );
-#endif
-		SendApplicationDraw( hVideo );
-	}
+	if( hVideo )
+		hVideo->flags.bUpdated = 1;
 	else
-	{
-		if( l.flags.bLogWrites )
-			lprintf( WIDE( "Posting invalidate rect..." ) );
-#ifdef _WIN32
-		InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
-#endif
-	}
+		l.flags.bUpdateWanted = 1;
 }
 
 
@@ -1287,7 +1158,6 @@ static int InitGL( struct display_camera *camera )										// All Setup For Ope
 		BeginVisPersp( camera );
 		lprintf( WIDE("First GL Init Done.") );
 		camera->flags.init = 1;
-		camera->hVidCore->flags.bReady = TRUE;
 	}
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);				// Black Background
 	glClearDepthf(1.0f);									// Depth Buffer Setup
@@ -1324,11 +1194,15 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 					if( !draw3d )
 						draw3d = GetClassRoot( WIDE("sack/render/puregl/draw3d") );
 					reference->Draw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("ExtraDraw3d"),(PTRSZVAL));
+					reference->FirstDraw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("FirstDraw3d"),(PTRSZVAL));
+					reference->ExtraDraw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("ExtraBeginDraw3d"),(PTRSZVAL,PTRANSFORM));
+					reference->Mouse3d = GetRegisteredProcedureExx( GetClassRoot( WIDE("sack/render/puregl/mouse3d") ),(CTEXTSTR)name,LOGICAL,WIDE("ExtraMouse3d"),(PTRSZVAL,PRAY,_32));
 				}
 				AddLink( &camera->plugins, reference );
 			}
 		}
 	}
+
 }
 
 static void InvokeExtraBeginDraw( CTEXTSTR name, PTRSZVAL psvInit )
@@ -1569,13 +1443,14 @@ static void RenderGL( struct display_camera *camera )
 
 	// do OpenGL Frame
 #ifdef USE_EGL
-	lprintf( "enavle context" );
-			EnableEGLContext( camera->hVidCore );
+	lprintf( "enable context" );
+	EnableEGLContext( camera->hVidCore );
 #else
-			//SetActiveEGLDisplay( camera->hVidCore );
+	//SetActiveEGLDisplay( camera->hVidCore );
 #endif
-	InitGL( camera );
 
+	InitGL( camera );
+   lprintf( "Called init for camera.." );
 	{
 		PRENDERER hVideo = camera->hVidCore;
 
@@ -1648,13 +1523,17 @@ static void RenderGL( struct display_camera *camera )
 				lprintf( WIDE("------ BEGIN A REAL DRAW -----------") );
 
 			glEnable( GL_DEPTH_TEST );
+      lprintf( "..." );
 			// put out a black rectangle
 			// should clear stensil buffer here so we can do remaining drawing only on polygon that's visible.
 			ClearImageTo( hVideo->pImage, 0 );
+      lprintf( "..." );
 			glDisable(GL_DEPTH_TEST);							// Enables Depth Testing
 
 			if( hVideo->pRedrawCallback )
+			{
 				hVideo->pRedrawCallback( hVideo->dwRedrawData, (PRENDERER)hVideo );
+			}
 
 			// allow draw3d code to assume depth testing 
 			glEnable( GL_DEPTH_TEST );
@@ -1841,11 +1720,11 @@ static void LoadOptions( void )
 
 			snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Camera Type"), n+1 );
 			camera->type = SACK_GetProfileIntEx( GetProgramName(), tmp, (nDisplays==6)?n:2, TRUE );
-			if( camera->type == 2 )
+			if( camera->type == 2 && !default_camera )
+			{
 				default_camera = camera;
-			InvokeExtraInit( camera, camera->origin_camera );
-			if( camera != default_camera )
-				AddLink( &l.cameras, camera );
+			}
+			AddLink( &l.cameras, camera );
 		}
 		if( !default_camera )
 			default_camera = (struct display_camera *)GetLink( &l.cameras, 1 );
@@ -2275,17 +2154,17 @@ static int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 // returns the forward view camera (or default camera)
 static struct display_camera *OpenCameras( void )
 {
-	struct display_camera *default_camera = (struct display_camera *)GetLink( &l.cameras, 0 );
 	struct display_camera *camera;
 	INDEX idx;
 	//lprintf( WIDE( "-----Create WIndow Stuff----- %s %s" ), hVideo->flags.bLayeredWindow?WIDE( "layered" ):WIDE( "solid" )
 	//		 , hVideo->flags.bChildWindow?WIDE( "Child(tool)" ):WIDE( "user-selectable" ) );
-   lprintf( "default_camera is %p", default_camera );
-	if( default_camera )
-      return default_camera;
-
 	LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
 	{
+		if( camera->hVidCore )
+		{
+         lprintf( "Camera is already open, skipping..." );
+			continue;
+		}
 		//if( !camera->hWndInstance )
 		{
 			int UseCoords = camera->display == -1;
@@ -2336,21 +2215,20 @@ static struct display_camera *OpenCameras( void )
 	#ifdef LOG_OPEN_TIMING
 			lprintf( WIDE( "Created Real window...Stuff.." ) );
 	#endif
-			//camera->hVidCore->hWndOutput = (HWND)camera->hWndInstance;
+ 			//camera->hVidCore->hWndOutput = (HWND)camera->hWndInstance;
 			//if (!camera->hWndInstance)
 			{
 			//	return FALSE;
 			}
+			camera->flags.extra_init = 1;
+			camera->identity_depth = camera->w/2;
+
+			InvokeExtraInit( camera, camera->origin_camera );
+
+			camera->hVidCore->flags.bReady = TRUE;
 		}
 	}
 
-	if( l.redraw_timer_id == 0 )
-	{
-		struct display_camera *camera = (struct display_camera *)GetLink( &l.cameras, 0 );
-		lprintf( WIDE("Setting up redraw timer.. (this code should be running in the render loop)") );
-		//l.redraw_timer_id = 
-		lprintf( WIDE("Setting up redraw timer.. result %d"), l.redraw_timer_id );
-	}
 
 	return (struct display_camera *)GetLink( &l.cameras, 0 );
 }
@@ -2490,13 +2368,19 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 	l.dwThreadID = GetCurrentThreadId ();
 	//l.pid = (_32)l.dwThreadID;
 
-	OpenCameras(); // returns the forward camera
 
 	l.bThreadRunning = TRUE;
 
-
 	AddIdleProc( (int(CPROC*)(PTRSZVAL))ProcessDisplayMessages, 0 );
 
+	while( !IsRootDeadstartComplete() )
+	{
+      lprintf( "Wait for deadstart to complete..." );
+		WakeableSleep( 10 );
+	}
+
+   // have to wait for inits to be regsitered.
+	OpenCameras(); // returns the forward camera
 	//AddIdleProc ( ProcessClientMessages, 0);
 #ifdef LOG_STARTUP
 	Log( WIDE("Registered Idle, and starting message loop") );
@@ -2507,7 +2391,6 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 		while( 1 )
 		{
 		         // no reason to check this if an update is already wanted.
-			lprintf( "Right..." );
 			if( !l.flags.bUpdateWanted )
 			{
 				// set l.flags.bUpdateWanted for window surfaces.
@@ -2520,11 +2403,14 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 				l.flags.bUpdateWanted = 0;
 				LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
 				{
+               // skip 'default_camera'
+					if( !idx )
+                  continue;
 					// if plugins or want update, don't continue.
 					if( !camera->plugins && !l.flags.bUpdateWanted )
 					{
 						lprintf( "no update" );
-						continue;
+						//continue;
 					}
 					
 					if( !camera->hVidCore || !camera->hVidCore->flags.bReady )
@@ -2540,7 +2426,6 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 #endif
 				}
 			}
-			lprintf( "quater second frame..." );
 			WakeableSleep( 250 );
 		}
 	}
@@ -3143,12 +3028,8 @@ void  SetRedrawHandler (PVIDEO hVideo,
 		//lprintf( WIDE("Sending redraw for %p"), hVideo );
 		if( hVideo->flags.bShown )
 		{
-			Redraw( hVideo );
-			//lprintf( WIDE( "Invalida.." ) );
-			//InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
-			//SendServiceEvent( 0, l.dwMsgBase + MSG_RedrawMethod, &hVideo, sizeof( hVideo ) );
+         l.flags.bUpdateWanted = 1;
 		}
-		//hVideo->pRedrawCallback (hVideo->dwRedrawData, (PRENDERER) hVideo);
 	}
 
 }
@@ -3808,7 +3689,7 @@ static LOGICAL CPROC EnableRotation( PTRSZVAL psv, _32 keycode )
 			struct display_camera *default_camera = (struct display_camera *)GetLink( &l.cameras, 0 );
 			l.mouse_x = default_camera->hVidCore->pWindowPos.cx/2;
 			l.mouse_y = default_camera->hVidCore->pWindowPos.cy/2;
-		lprintf( WIDE("Moving Mouse Not Implemented") );
+			lprintf( WIDE("Moving Mouse Not Implemented") );
 			//SetCursorPos( default_camera->hVidCore->pWindowPos.x
 			//	+ default_camera->hVidCore->pWindowPos.cx/2
 			//	, default_camera->hVidCore->pWindowPos.y
