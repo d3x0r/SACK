@@ -243,8 +243,10 @@ DEADSTART_PROC  void DEADSTART_CALLTYPE  InvokeExits (void);
    before main(). So once code in main begins to run, all prior
    initialization has been performed.                           */
 DEADSTART_PROC  void DEADSTART_CALLTYPE  MarkRootDeadstartComplete ( void );
-/* \returns whether MarkRootDeadstartComplete has been called. */
+/* \returns whether InvokeDeadstarts has been called. */
 DEADSTART_PROC  LOGICAL DEADSTART_CALLTYPE  IsRootDeadstartStarted ( void );
+/* \returns whether MarkRootDeadstartComplete has been called. */
+DEADSTART_PROC  LOGICAL DEADSTART_CALLTYPE  IsRootDeadstartComplete ( void );
 
 #if defined( __LINUX__ )
 // call this after a fork().  Otherwise, it will falsely invoke shutdown when it exits.
