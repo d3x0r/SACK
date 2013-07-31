@@ -3652,7 +3652,6 @@ RENDER3D_INTERFACE Render3d = {
 
 POINTER  CPROC GetDisplayInterface (void)
 {
-	InitDisplay();
    return (POINTER)&VidInterface;
 }
 
@@ -3663,7 +3662,6 @@ void  CPROC DropDisplayInterface (POINTER p)
 #undef GetDisplay3dInterface
 POINTER CPROC GetDisplay3dInterface (void)
 {
-	InitDisplay();
 	return (POINTER)&Render3d;
 }
 
