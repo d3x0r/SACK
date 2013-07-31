@@ -137,6 +137,7 @@ _32 DOALPHA( _32 over, _32 in, _8 a )
 
 static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 {
+   GLboolean tmp;
 	l.glActiveSurface = (struct glSurfaceData *)psv;
 
 #if !defined( USE_GLES2 )
@@ -145,13 +146,22 @@ static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 		return;
 	}
 #endif
-	InitShader();
+   tmp = 0;
+	glGetBooleanv( GL_SHADER_COMPILER, &tmp );
+   lprintf( "Shade Compiler = %d", tmp );
+	if( !tmp )
+	{
+		lprintf( "No Shader Compiler" );
+	}
+	else
+	{
+		InitShader();
 
-	InitSuperSimpleShader( GetShader( "Simple Shader" ) );
-	InitSimpleTextureShader( GetShader( "Simple Texture" ) );
-	InitSimpleShadedTextureShader( GetShader( "Simple Shaded Texture" ) );
-	InitSimpleMultiShadedTextureShader( GetShader( "Simple MultiShaded Texture" ) );
-
+		InitSuperSimpleShader( GetShader( "Simple Shader" ) );
+		InitSimpleTextureShader( GetShader( "Simple Texture" ) );
+		InitSimpleShadedTextureShader( GetShader( "Simple Shaded Texture" ) );
+		InitSimpleMultiShadedTextureShader( GetShader( "Simple MultiShaded Texture" ) );
+	}
 }
 
 static PTRSZVAL OnInit3d( WIDE( "@00 PUREGL Image Library" ) )( PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )

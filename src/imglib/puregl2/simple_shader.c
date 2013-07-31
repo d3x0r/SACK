@@ -93,7 +93,9 @@ void InitSuperSimpleShader( PImageShaderTracker tracker )
 				lprintf("Vertex shader 'program A' failed compilation.\n");
 				//Attempt to get the length of our error log.
 #ifdef USE_GLES2
+            lprintf( "length starts at %d", length );
 				glGetShaderiv(tracker->glVertexProgramId, GL_INFO_LOG_LENGTH, &length);
+
 #else
 				glGetObjectParameterivARB(tracker->glVertexProgramId, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
 #endif
@@ -107,7 +109,7 @@ void InitSuperSimpleShader( PImageShaderTracker tracker )
 				glGetInfoLogARB(tracker->glVertexProgramId, length, &final, buffer);
 #endif
 				//Convert our buffer into a string.
-				lprintf( "message: %s", buffer );
+				lprintf( "message: (%d of %d)%s",  final, length, buffer );
 
 
 				if (final > length)
