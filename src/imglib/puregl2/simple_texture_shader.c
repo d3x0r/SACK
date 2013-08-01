@@ -44,15 +44,15 @@ static const CTEXTSTR gles_simple_p_shader =
 //const char *gles_
 static const CTEXTSTR gles_simple_v_shader_shaded_texture =
     WIDE( "attribute vec4 vPosition;\n" )
-	WIDE( "attribute vec2 in_texCoord;\n" )
-	WIDE( "uniform mat4 modelView;\n" )
-	WIDE( "uniform mat4 worldView;\n" )
-	WIDE( "uniform mat4 Projection;\n" )
-	WIDE( "varying vec2 out_texCoord;\n" )
-	WIDE( " \n" )
+	 WIDE( "attribute vec2 in_texCoord;\n" )
+	 WIDE( "uniform mat4 modelView;\n" )
+	 WIDE( "uniform mat4 worldView;\n" )
+	 WIDE( "uniform mat4 Projection;\n" )
+	 WIDE( "varying vec2 out_texCoord;\n" )
+	 WIDE( "\n" )
     WIDE("void main() {\n" )
     WIDE("  gl_Position = Projection * worldView * vPosition;\n" )
-	WIDE( "out_texCoord = in_texCoord;\n" )
+	 WIDE( " out_texCoord = in_texCoord;\n" )
     WIDE("}"); 
 
 static const CTEXTSTR gles_simple_p_shader_shaded_texture =
@@ -98,17 +98,23 @@ static void CPROC SimpleTextureEnable( PImageShaderTracker tracker, va_list args
 
 void InitSimpleTextureShader( PImageShaderTracker tracker )
 {
-	GLint result;
+	GLint result = 123;
 	const char *codeblocks[2];
 	struct private_shader_data *data = New( struct private_shader_data );
 
 	tracker->psv_userdata = (PTRSZVAL)data;
 	tracker->Enable = SimpleTextureEnable;
 
+	if( result = glGetError() )
+	{
+		lprintf( "unhandled error before shader" );
+	}
 		tracker->glProgramId = glCreateProgram();
+      CheckErr();
 
 		//Obtain a valid handle to a vertex shader object.
 		tracker->glVertexProgramId = glCreateShader(GL_VERTEX_SHADER);
+      CheckErr();
 
 		codeblocks[0] = gles_simple_v_shader;
 		codeblocks[1] = NULL;
@@ -123,9 +129,11 @@ void InitSimpleTextureShader( PImageShaderTracker tracker )
 			1, //The number of files.
 			codeblocks, //An array of const char * data, which represents the source code of theshaders
 			NULL); //An array of string leng7ths. For have null terminated strings, pass NULL.
+      CheckErr();
 	 
 		//Attempt to compile the shader.
 		glCompileShader(tracker->glVertexProgramId);
+      CheckErr();
 		{
 			//Error checking.
 #ifdef USE_GLES2
@@ -139,13 +147,14 @@ void InitSimpleTextureShader( PImageShaderTracker tracker )
 				GLsizei final;
 				char *buffer;
 				//We failed to compile.
-				lprintf("Vertex shader 'program A' failed compilation.\n");
+				lprintf("Vertex shader 'program A' failed compilation. %d\n", length );
 				//Attempt to get the length of our error log.
 #ifdef USE_GLES2
 				glGetShaderiv(tracker->glVertexProgramId, GL_INFO_LOG_LENGTH, &length);
 #else
 				glGetObjectParameterivARB(tracker->glVertexProgramId, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
 #endif
+            lprintf( "length %d", length );
 				buffer = NewArray( char, length );
 				//Create a buffer.
 					
@@ -169,20 +178,23 @@ void InitSimpleTextureShader( PImageShaderTracker tracker )
 		}
 
 		tracker->glFragProgramId = glCreateShader(GL_FRAGMENT_SHADER);
+      CheckErr();
 		codeblocks[0] = gles_simple_p_shader;
 		glShaderSource(
 			tracker->glFragProgramId, //The handle to our shader
 			1, //The number of files.
 			codeblocks, //An array of const char * data, which represents the source code of theshaders
 			NULL); //An array of string lengths. For have null terminated strings, pass NULL.
+      CheckErr();
 	 
 		//Attempt to compile the shader.
 		glCompileShader(tracker->glFragProgramId);
+      CheckErr();
 
 		{
 			//Error checking.
 #ifdef USE_GLES2
-			glGetShaderiv(tracker->glVertexProgramId, GL_COMPILE_STATUS, &result);
+			glGetShaderiv(tracker->glFragProgramId, GL_COMPILE_STATUS, &result);
 #else
 			glGetObjectParameterivARB(tracker->glFragProgramId, GL_OBJECT_COMPILE_STATUS_ARB, &result);
 #endif
@@ -195,7 +207,7 @@ void InitSimpleTextureShader( PImageShaderTracker tracker )
 				lprintf("Vertex shader 'program B' failed compilation.\n");
 				//Attempt to get the length of our error log.
 #ifdef USE_GLES2
-				glGetShaderiv(tracker->glVertexProgramId, GL_INFO_LOG_LENGTH, &length);
+				glGetShaderiv(tracker->glFragProgramId, GL_INFO_LOG_LENGTH, &length);
 #else
 				glGetObjectParameterivARB(tracker->glFragProgramId, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
 #endif
@@ -204,7 +216,7 @@ void InitSimpleTextureShader( PImageShaderTracker tracker )
 					
 				//Used to get the final length of the log.
 #ifdef USE_GLES2
-				glGetShaderInfoLog( tracker->glVertexProgramId, length, &final, buffer);
+				glGetShaderInfoLog( tracker->glFragProgramId, length, &final, buffer);
 #else
 				glGetInfoLogARB(tracker->glFragProgramId, length, &final, buffer);
 #endif
@@ -298,17 +310,11 @@ void InitSimpleShadedTextureShader( PImageShaderTracker tracker )
 	tracker->psv_userdata = (PTRSZVAL)data;
 	tracker->Enable = SimpleTextureEnable2;
 
-	if( result = glGetError() )
-	{
-		lprintf( "unhandled error before shader" );
-	}
 		tracker->glProgramId = glCreateProgram();
-		CheckErr();
 
 		//Obtain a valid handle to a vertex shader object.
 		tracker->glVertexProgramId = glCreateShader(GL_VERTEX_SHADER);
 
-		CheckErr();
 		codeblocks[0] = gles_simple_v_shader_shaded_texture;
 		codeblocks[1] = NULL;
 
@@ -328,7 +334,7 @@ void InitSimpleShadedTextureShader( PImageShaderTracker tracker )
 		{
 			//Error checking.
 #ifdef USE_GLES2
-			glGetShaderiv(tracker->glFragProgramId, GL_COMPILE_STATUS, &result);
+			glGetShaderiv(tracker->glVertexProgramId, GL_COMPILE_STATUS, &result);
 #else
 			glGetObjectParameterivARB(tracker->glVertexProgramId, GL_OBJECT_COMPILE_STATUS_ARB, &result);
 #endif
@@ -338,13 +344,14 @@ void InitSimpleShadedTextureShader( PImageShaderTracker tracker )
 				GLsizei final;
 				char *buffer;
 				//We failed to compile.
-				lprintf("Vertex shader 'program A' failed compilation.\n");
+				lprintf("Vertex shader 'program A' failed compilation. %d\n", length );
 				//Attempt to get the length of our error log.
 #ifdef USE_GLES2
 				glGetShaderiv(tracker->glVertexProgramId, GL_INFO_LOG_LENGTH, &length);
 #else
 				glGetObjectParameterivARB(tracker->glVertexProgramId, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
 #endif
+            lprintf( "length %d", length );
 				buffer = NewArray( char, length );
 				//Create a buffer.
 					

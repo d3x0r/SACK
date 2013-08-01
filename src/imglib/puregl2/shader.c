@@ -48,6 +48,8 @@ void EnableShader( CTEXTSTR shader, ... )
 					GetGLCameraMatrix( l.glActiveSurface->T_Camera, l.worldview );
 					l.flags.worldview_read = 1;
 				}
+#if 0
+            // projection matrix is now shared per-camera as a direct matrix.
 				if( !l.flags.projection_read )
 				{
 #if defined( USE_GLES ) || defined( USE_OPENGL )
@@ -56,10 +58,10 @@ void EnableShader( CTEXTSTR shader, ... )
 #endif
 					l.flags.projection_read = 1;
 				}
-
+#endif
 				glUniformMatrix4fv( tracker->worldview, 1, GL_FALSE, (RCOORD*)l.worldview );
 				CheckErr();
-				glUniformMatrix4fv( tracker->projection, 1, GL_FALSE, l.projection );
+				glUniformMatrix4fv( tracker->projection, 1, GL_FALSE, l.glActiveSurface->M_Projection );
 				CheckErr();
 				tracker->flags.set_matrix = 1;
 			}
@@ -109,7 +111,7 @@ void DumpAttribs( int program )
 	int n;
 	int m;
 	lprintf( "---- Program %d -----", program );
-#ifndef USE_GLES2
+
 	glGetProgramiv( program, GL_ACTIVE_ATTRIBUTES, &m );
 	for( n = 0; n < m; n++ )
 	{
@@ -133,7 +135,5 @@ void DumpAttribs( int program )
 		glGetActiveUniform( program, n, 64, &length, &size, &type, tmp );
 		lprintf( "uniform [%s] %d %d", tmp, size, type );
 	}
-#endif
-
 }
 
