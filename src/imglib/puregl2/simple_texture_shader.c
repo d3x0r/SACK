@@ -298,11 +298,17 @@ void InitSimpleShadedTextureShader( PImageShaderTracker tracker )
 	tracker->psv_userdata = (PTRSZVAL)data;
 	tracker->Enable = SimpleTextureEnable2;
 
+	if( result = glGetError() )
+	{
+		lprintf( "unhandled error before shader" );
+	}
 		tracker->glProgramId = glCreateProgram();
+		CheckErr();
 
 		//Obtain a valid handle to a vertex shader object.
 		tracker->glVertexProgramId = glCreateShader(GL_VERTEX_SHADER);
 
+		CheckErr();
 		codeblocks[0] = gles_simple_v_shader_shaded_texture;
 		codeblocks[1] = NULL;
 

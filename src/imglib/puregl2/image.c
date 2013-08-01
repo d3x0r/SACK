@@ -231,6 +231,7 @@ int ReloadOpenGlTexture( Image child_image, int option )
 			}
 			if( image_data->flags.updated )
 			{
+				int err;
 				if( option & 2 )
 				{
 
@@ -259,9 +260,9 @@ int ReloadOpenGlTexture( Image child_image, int option )
 								, 0, option?GL_BGRA_EXT:GL_RGBA, GL_UNSIGNED_BYTE
 								, image->image );
 #endif
-				if( glGetError() )
+				if( err = glGetError() )
 				{
-					lprintf( WIDE( "gen text error %d" ), glGetError() );
+					lprintf( WIDE( "gen text error %d" ), err );
 				}
 			}
 			image->glActiveSurface = image_data->glIndex;

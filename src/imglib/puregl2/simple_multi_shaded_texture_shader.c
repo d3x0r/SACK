@@ -112,6 +112,11 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 	tracker->psv_userdata = (PTRSZVAL)data;
 	tracker->Enable = SimpleMultiShadedTextureEnable;
 
+		if( result = glGetError() )
+	{
+		lprintf( "unhandled error before shader" );
+	}
+
 		tracker->glProgramId = glCreateProgram();
 
 		//Obtain a valid handle to a vertex shader object.
