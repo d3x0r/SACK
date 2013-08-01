@@ -17,6 +17,7 @@ Q#define USE_OPENGL
 IMAGE_NAMESPACE
 
 struct glSurfaceData {
+	PMatrix M_Projection;
 	PTRANSFORM T_Camera;
 	RCOORD *identity_depth;
 	RCOORD *aspect;

@@ -140,7 +140,7 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 		{
 			//Error checking.
 #ifdef USE_GLES2
-			glGetShaderiv(tracker->glFragProgramId, GL_COMPILE_STATUS, &result);
+			glGetShaderiv(tracker->glVertexProgramId, GL_COMPILE_STATUS, &result);
 #else
 			glGetObjectParameterivARB(tracker->glVertexProgramId, GL_OBJECT_COMPILE_STATUS_ARB, &result);
 #endif
@@ -206,7 +206,7 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 				lprintf("Vertex shader 'program B' failed compilation.\n");
 				//Attempt to get the length of our error log.
 #ifdef USE_GLES2
-				glGetShaderiv(tracker->glVertexProgramId, GL_INFO_LOG_LENGTH, &length);
+				glGetShaderiv(tracker->glFragProgramId, GL_INFO_LOG_LENGTH, &length);
 #else
 				glGetObjectParameterivARB(tracker->glFragProgramId, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
 #endif
@@ -228,7 +228,6 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 					//The buffer does not contain all the shader log information.
 					printf("Shader Log contained more information!\n");
 				}
-		
 			}
 		}
 

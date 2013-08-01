@@ -162,10 +162,11 @@ static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 	}
 }
 
-static PTRSZVAL OnInit3d( WIDE( "@00 PUREGL Image Library" ) )( PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
+static PTRSZVAL OnInit3d( WIDE( "@00 PUREGL Image Library" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
 {
 	struct glSurfaceData *glSurface = New( struct glSurfaceData );
 	MemSet( glSurface, 0, sizeof( *glSurface ) );
+	glSurface->M_Projection = projection;
 	glSurface->T_Camera = camera;
 	glSurface->identity_depth = pIdentity_depty;
 	glSurface->aspect = aspect;
@@ -252,7 +253,7 @@ int ReloadOpenGlTexture( Image child_image, int option )
 				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 				/**///glColor4ub( 255, 255, 255, 255 );
 #ifdef USE_GLES2
-				glTexImage2D(GL_TEXTURE_2D, 0, 4, image->real_width, image->real_height
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->real_width, image->real_height
 								, 0, GL_RGBA, GL_UNSIGNED_BYTE
 								, image->image );
 #else
