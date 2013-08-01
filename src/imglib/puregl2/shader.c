@@ -11,13 +11,13 @@ PImageShaderTracker GetShader( CTEXTSTR name )
 	LIST_FORALL( l.glActiveSurface->shaders, idx, PImageShaderTracker, tracker )
 	{
 		if( StrCaseCmp( tracker->name, name ) == 0 )
-         return tracker;
+			return tracker;
 	}
 	tracker = New( ImageShaderTracker );
-	MemSet( tracker, 0, sizeof( tracker ));
+	MemSet( tracker, 0, sizeof( ImageShaderTracker ));
 	tracker->name = StrDup( name );
 	AddLink( &l.glActiveSurface->shaders, tracker );
-   return tracker;
+	return tracker;
 }
 
 
@@ -39,7 +39,7 @@ void EnableShader( CTEXTSTR shader, ... )
 	{
 		if( StrCaseCmp( tracker->name, shader ) == 0 )
 		{
-         xlprintf( LOG_NOISE+1 )( "Enable shader %s", tracker->name );
+			//xlprintf( LOG_NOISE+1 )( "Enable shader %s", tracker->name );
 			glUseProgram( tracker->glProgramId );
 			if( !tracker->flags.set_matrix )
 			{
@@ -61,7 +61,7 @@ void EnableShader( CTEXTSTR shader, ... )
 				CheckErr();
 				glUniformMatrix4fv( tracker->projection, 1, GL_FALSE, l.projection );
 				CheckErr();
-            tracker->flags.set_matrix = 1;
+				tracker->flags.set_matrix = 1;
 			}
 			if( tracker->Enable )
 			{

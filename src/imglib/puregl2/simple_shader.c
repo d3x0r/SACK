@@ -50,13 +50,11 @@ void CPROC EnableSimpleShader( PImageShaderTracker tracker, va_list args )
 
 void InitSuperSimpleShader( PImageShaderTracker tracker )
 {
-	GLint result;
+	GLint result=123;
 	const char *codeblocks[2];
 
 	tracker->psv_userdata = 0;
 	tracker->Enable = EnableSimpleShader;
-
-		tracker->glProgramId = glCreateProgram();
 
 		//Obtain a valid handle to a vertex shader object.
 		tracker->glVertexProgramId = glCreateShader(GL_VERTEX_SHADER);
@@ -93,7 +91,7 @@ void InitSuperSimpleShader( PImageShaderTracker tracker )
 				lprintf("Vertex shader 'program A' failed compilation.\n");
 				//Attempt to get the length of our error log.
 #ifdef USE_GLES2
-            lprintf( "length starts at %d", length );
+				lprintf( "length starts at %d", length );
 				glGetShaderiv(tracker->glVertexProgramId, GL_INFO_LOG_LENGTH, &length);
 
 #else
@@ -101,6 +99,7 @@ void InitSuperSimpleShader( PImageShaderTracker tracker )
 #endif
 				buffer = NewArray( char, length );
 				//Create a buffer.
+				buffer[0] = 0;
 					
 				//Used to get the final length of the log.
 #ifdef USE_GLES2
@@ -117,7 +116,7 @@ void InitSuperSimpleShader( PImageShaderTracker tracker )
 					//The buffer does not contain all the shader log information.
 					printf("Shader Log contained more information!\n");
 				}
-		
+				Deallocate( char*, buffer );
 			}
 		}
 
@@ -153,6 +152,7 @@ void InitSuperSimpleShader( PImageShaderTracker tracker )
 				glGetObjectParameterivARB(tracker->glFragProgramId, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
 #endif
 				buffer = NewArray( char, length );
+				buffer[0] = 0;
 				//Create a buffer.
 					
 				//Used to get the final length of the log.
@@ -170,9 +170,11 @@ void InitSuperSimpleShader( PImageShaderTracker tracker )
 					//The buffer does not contain all the shader log information.
 					printf("Shader Log contained more information!\n");
 				}
+				Deallocate( char*, buffer );
 		
 			}
 		}
+		tracker->glProgramId = glCreateProgram();
 #ifdef USE_GLES2
 		glAttachShader(tracker->glProgramId, tracker->glVertexProgramId );
 #else
