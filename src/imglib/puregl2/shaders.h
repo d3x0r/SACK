@@ -2,7 +2,7 @@
 #define __need___va_list
 #include <stdarg.h>
 
-#ifdef __ANDROID__
+#ifdef USE_GLES2
 #include <GLES2/gl2.h>
 #endif
 
@@ -18,6 +18,11 @@
 					GLenum err = glGetError();  \
 					if( err )                   \
 						lprintf( "err=%d ",err ); \
+				}                               
+#define CheckErrf(f,...)  				{    \
+					GLenum err = glGetError();  \
+					if( err )                   \
+					lprintf( "err=%d "f,err,##__VA_ARGS__ ); \
 				}                               
 #endif
 

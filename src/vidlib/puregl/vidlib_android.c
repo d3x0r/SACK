@@ -44,7 +44,7 @@
 #include <stdhdrs.h>
 /* again, this should be moved to stdhdrs so we get timeGetTime() */
 #ifdef USE_GLES2
-//#include <GLES/gl.h>
+#include <GLES/gl.h>
 #include <GLES2/gl2.h>
 //#include "glues/source/glues.h"
 #else
@@ -289,16 +289,6 @@ void OpenEGL( struct display_camera *camera )
 
 	 // makes it go black as soon as ready
 	 eglSwapBuffers(camera->hVidCore->display, camera->hVidCore->surface);
-	 /*
-	 {
-		 int test = glCreateProgram( );
-		 lprintf( "test is %d  %p", test, glCreateProgram );
-	 }
-	 {
-		 int test = glCreateProgram( );
-		 lprintf( "test is %d  %p", test, glCreateProgram );
-	 }
-	 */
 
 }
 
@@ -316,20 +306,6 @@ void EnableEGLContext( PRENDERER hVidCore )
 			lprintf( "Make current failed: 0x%x\n", eglGetError());
 			return;
 		}
-		/*
-	 {
-		 int test = glCreateProgram( );
-		 lprintf( "test is %d  %p", test, glCreateProgram );
-	 }
-	 {
-		 int test = glCreateProgram( );
-		 lprintf( "test is %d  %p", test, glCreateProgram );
-	 }
-	 {
-		 int test = glCreateProgram( );
-		 lprintf( "test is %d  %p", test, glCreateProgram );
-	 }
-	 */
 	}
 	else
 	{
@@ -1200,12 +1176,12 @@ static void BeginVisPersp( struct display_camera *camera )
 	//if( mode != MODE_PERSP )
 	{
 		mode = MODE_PERSP;
-		//glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-		//glLoadIdentity();									// Reset The Projection Matrix
-		//gluPerspective(90.0f,camera->aspect,1.0f,30000.0f);
-		//glGetFloatv( GL_PROJECTION_MATRIX, l.fProjection );
+		glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
+		glLoadIdentity();									// Reset The Projection Matrix
+		gluPerspective(90.0f,camera->aspect,1.0f,30000.0f);
+		glGetFloatv( GL_PROJECTION_MATRIX, l.fProjection );
 
-		//glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
+		glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 	}
 }
 
@@ -1352,8 +1328,8 @@ static int CPROC Handle3DTouches( PRENDERER hVideo, PTOUCHINPUT touches, int nTo
          // begin rotate lock
 			if( touches[1].dwFlags & TOUCHEVENTF_DOWN )
 			{
-            touch_info.two.x = touches[1].x;
-            touch_info.two.y = touches[1].y;
+				touch_info.two.x = touches[1].x;
+				touch_info.two.y = touches[1].y;
 			}
 			else if( touches[1].dwFlags & TOUCHEVENTF_UP )
 			{
@@ -1366,27 +1342,27 @@ static int CPROC Handle3DTouches( PRENDERER hVideo, PTOUCHINPUT touches, int nTo
 				int delxt, delyt;
 				int delx2t, dely2t;
 				lprintf( WIDE("drag") );
-            delxt = touches[1].x - touches[0].x;
+				delxt = touches[1].x - touches[0].x;
 				delyt = touches[1].y - touches[0].y;
-            delx2t = touch_info.two.x - touch_info.one.x;
-            dely2t = touch_info.two.y - touch_info.one.y;
+				delx2t = touch_info.two.x - touch_info.one.x;
+				dely2t = touch_info.two.y - touch_info.one.y;
 				delx = -touch_info.one.x + touches[0].x;
-            dely = -touch_info.one.y + touches[0].y;
+				dely = -touch_info.one.y + touches[0].y;
 				delx2 = -touch_info.two.x + touches[1].x;
-            dely2 = -touch_info.two.y + touches[1].y;
+				dely2 = -touch_info.two.y + touches[1].y;
 				{
-               VECTOR v1,v2/*,vr*/;
+					VECTOR v1,v2/*,vr*/;
 					RCOORD delta_x = delx / 40.0;
 					RCOORD delta_y = dely / 40.0;
 					static int toggle;
 					v1[vUp] = delyt;
 					v1[vRight] = delxt;
-               v1[vForward] = 0;
+					v1[vForward] = 0;
 					v2[vUp] = dely2t;
 					v2[vRight] = delx2t;
 					v2[vForward] = 0;
-               normalize( v1 );
-               normalize( v2 );
+					normalize( v1 );
+					normalize( v2 );
 					lprintf( WIDE("angle %g"), atan2( v2[vUp], v2[vRight] ) - atan2( v1[vUp], v1[vRight] ) );
 					RotateRel( l.origin, 0, 0, - atan2( v2[vUp], v2[vRight] ) + atan2( v1[vUp], v1[vRight] ) );
 					delta_x /= hVideo->pWindowPos.cx;
@@ -1430,7 +1406,7 @@ static int CPROC Handle3DTouches( PRENDERER hVideo, PTOUCHINPUT touches, int nTo
 				int delx, dely;
 				lprintf( WIDE("drag") );
 				delx = -touch_info.one.x + touches[0].x;
-            dely = -touch_info.one.y + touches[0].y;
+				dely = -touch_info.one.y + touches[0].y;
 				{
 					RCOORD delta_x = -delx / 40.0;
 					RCOORD delta_y = -dely / 40.0;
@@ -1522,8 +1498,8 @@ static void RenderGL( struct display_camera *camera )
 	//SetActiveGLDisplay( camera->hVidCore );
 #endif
 
-	//InitGL( camera );
-   lprintf( "Called init for camera.." );
+	InitGL( camera );
+	lprintf( "Called init for camera.." );
 	{
 		PRENDERER hVideo = camera->hVidCore;
 
@@ -1566,8 +1542,8 @@ static void RenderGL( struct display_camera *camera )
 			break;
 		}
 
-		//GetGLMatrix( camera->origin_camera, camera->hVidCore->fModelView );
-		//glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
+		GetGLMatrix( camera->origin_camera, camera->hVidCore->fModelView );
+		glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
 
 		{
 			INDEX idx;
@@ -1597,11 +1573,9 @@ static void RenderGL( struct display_camera *camera )
 				lprintf( WIDE("------ BEGIN A REAL DRAW -----------") );
 
 			glEnable( GL_DEPTH_TEST );
-      lprintf( "..." );
 			// put out a black rectangle
 			// should clear stensil buffer here so we can do remaining drawing only on polygon that's visible.
 			ClearImageTo( hVideo->pImage, 0 );
-      lprintf( "..." );
 			glDisable(GL_DEPTH_TEST);							// Enables Depth Testing
 
 			if( hVideo->pRedrawCallback )
@@ -1678,7 +1652,11 @@ static void RenderGL( struct display_camera *camera )
 	}
 	// using eglLayer, doesn't really have to be cleared
 	// each beginning flushes a previous... oh (well at end of all should call a clear)
+#ifdef USE_EGL
+	EnableEGLContext( NULL );
+#else
 	//SetActiveEGLDisplay( NULL );
+#endif
 }
 
 

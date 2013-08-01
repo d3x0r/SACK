@@ -50,8 +50,8 @@ void EnableShader( CTEXTSTR shader, ... )
 				}
 				if( !l.flags.projection_read )
 				{
-#ifndef USE_GLES2
-               // there really isn't a projection matrix for GLES2 should be all me.
+#if defined( USE_GLES ) || defined( USE_OPENGL )
+					// there really isn't a projection matrix for GLES2 should be all me.
 					glGetFloatv( GL_PROJECTION_MATRIX, l.projection );
 #endif
 					l.flags.projection_read = 1;

@@ -56,8 +56,13 @@ void InitSuperSimpleShader( PImageShaderTracker tracker )
 	tracker->psv_userdata = 0;
 	tracker->Enable = EnableSimpleShader;
 
+	if( result = glGetError() )
+	{
+		lprintf( "unhandled error before shader" );
+	}
 		//Obtain a valid handle to a vertex shader object.
 		tracker->glVertexProgramId = glCreateShader(GL_VERTEX_SHADER);
+		CheckErrf("vertex shader fail");
 
 		codeblocks[0] = gles_simple_v_shader;
 		codeblocks[1] = NULL;
@@ -121,15 +126,18 @@ void InitSuperSimpleShader( PImageShaderTracker tracker )
 		}
 
 		tracker->glFragProgramId = glCreateShader(GL_FRAGMENT_SHADER);
+		CheckErrf("create shader");
 		codeblocks[0] = gles_simple_p_shader;
 		glShaderSource(
 			tracker->glFragProgramId, //The handle to our shader
 			1, //The number of files.
 			codeblocks, //An array of const char * data, which represents the source code of theshaders
 			NULL); //An array of string lengths. For have null terminated strings, pass NULL.
+		CheckErrf("set source fail");
 	 
 		//Attempt to compile the shader.
 		glCompileShader(tracker->glFragProgramId);
+		CheckErrf("compile fail %d", tracker->glFragProgramId);
 
 		{
 			//Error checking.
@@ -175,18 +183,19 @@ void InitSuperSimpleShader( PImageShaderTracker tracker )
 			}
 		}
 		tracker->glProgramId = glCreateProgram();
+		CheckErrf("create fail %d", tracker->glProgramId);
 #ifdef USE_GLES2
 		glAttachShader(tracker->glProgramId, tracker->glVertexProgramId );
 #else
 		glAttachObjectARB(tracker->glProgramId, tracker->glVertexProgramId );
 #endif
-		CheckErr();
+		CheckErrf("attach fail");
 #ifdef USE_GLES2
 		glAttachShader(tracker->glProgramId, tracker->glFragProgramId );
 #else
 		glAttachObjectARB(tracker->glProgramId, tracker->glFragProgramId );
 #endif
-		CheckErr();
+		CheckErrf( " attach2 fail" );
 
 		glBindAttribLocation(tracker->glProgramId, 0, "vPosition" );
 		CheckErr();
