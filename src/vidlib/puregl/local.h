@@ -29,6 +29,18 @@
 
 RENDER_NAMESPACE
 
+
+#define CheckErr()  				{    \
+					GLenum err = glGetError();  \
+					if( err )                   \
+						lprintf( "err=%d ",err ); \
+				}                               
+#define CheckErrf(f,...)  				{    \
+					GLenum err = glGetError();  \
+					if( err )                   \
+					lprintf( "err=%d "f,err,##__VA_ARGS__ ); \
+				}                               
+
 #ifdef MINGW_SUX
 typedef struct tagUPDATELAYEREDWINDOWINFO {
     _32               cbSize;
@@ -177,7 +189,7 @@ extern
 	_32 redraw_timer_id;
 #endif
 
-	RCOORD fProjection[16];
+	RCOORD fProjection[4][4];
 	int multi_shader;
 	struct {
 		struct {

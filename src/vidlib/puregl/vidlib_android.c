@@ -294,10 +294,12 @@ void OpenEGL( struct display_camera *camera )
 
 void EnableEGLContext( PRENDERER hVidCore )
 {
-	lprintf( "Enable context %p", hVidCore );
+   static EGLDisplay prior_display;
+	//lprintf( "Enable context %p", hVidCore );
 	if( hVidCore )
 	{
 		/* connect the context to the surface */
+         prior_display = hVidCore->display;
 		if (eglMakeCurrent(hVidCore->display
 				, hVidCore->surface
 				, hVidCore->surface
@@ -314,7 +316,7 @@ void EnableEGLContext( PRENDERER hVidCore )
 
 		// swap should be done at end of render phase.
 		//eglSwapBuffers(hVidCore->display,hVidCore->surface);
-		if (eglMakeCurrent(hVidCore->display, EGL_NO_SURFACE, EGL_NO_SURFACE,  EGL_NO_CONTEXT)==EGL_FALSE)
+		if (eglMakeCurrent(prior_display, EGL_NO_SURFACE, EGL_NO_SURFACE,  EGL_NO_CONTEXT)==EGL_FALSE)
 		{
 			lprintf( "Make current failed: 0x%x\n", eglGetError());
 			return;
@@ -1166,25 +1168,37 @@ void Redraw( PVIDEO hVideo )
 }
 
 
-#define MODE_UNKNOWN 0
-#define MODE_PERSP 1
-#define MODE_ORTHO 2
-static int mode = MODE_UNKNOWN;
+#define __glPi 3.14159265358979323846
 
-static void BeginVisPersp( struct display_camera *camera )
+void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar)
 {
-	//if( mode != MODE_PERSP )
-	{
-		mode = MODE_PERSP;
-		glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-		glLoadIdentity();									// Reset The Projection Matrix
-		gluPerspective(90.0f,camera->aspect,1.0f,30000.0f);
-		glGetFloatv( GL_PROJECTION_MATRIX, l.fProjection );
+#define m l.fProjection
+    //GLfloat m[4][4];
+    GLfloat sine, cotangent, deltaZ;
+    GLfloat radians=(GLfloat)(fovy/2.0f*__glPi/180.0f);
 
-		glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
-	}
+    /*m[0][0] = 1.0f;*/ m[0][1] = 0.0f; m[0][2] = 0.0f; m[0][3] = 0.0f;
+    m[1][0] = 0.0f; /*m[1][1] = 1.0f;*/ m[1][2] = 0.0f; m[1][3] = 0.0f;
+    m[2][0] = 0.0f; m[2][1] = 0.0f; /*m[2][2] = 1.0f; m[2][3] = 0.0f;*/
+	 m[3][0] = 0.0f; m[3][1] = 0.0f; /*m[3][2] = 0.0f; m[3][3] = 1.0f;*/
+
+    deltaZ=zFar-zNear;
+    sine=(GLfloat)sin(radians);
+    if ((deltaZ==0.0f) || (sine==0.0f) || (aspect==0.0f))
+    {
+        return;
+    }
+    cotangent=(GLfloat)(cos(radians)/sine);
+
+    m[0][0] = cotangent / aspect;
+    m[1][1] = cotangent;
+    m[2][2] = -(zFar + zNear) / deltaZ;
+    m[2][3] = -1.0f;
+    m[3][2] = -2.0f * zNear * zFar / deltaZ;
+	 m[3][3] = 0;
+#undef m
+    //glMultMatrixf(&m[0][0]);
 }
-
 
 static int InitGL( struct display_camera *camera )										// All Setup For OpenGL Goes Here
 {
@@ -1194,9 +1208,13 @@ static int InitGL( struct display_camera *camera )										// All Setup For Ope
 
 		//glEnable( GL_ALPHA_TEST );
 		glEnable( GL_BLEND );
+      CheckErr();
  		glEnable(GL_DEPTH_TEST);							// Enables Depth Testing
+      CheckErr();
 		glEnable( GL_TEXTURE_2D );
+      CheckErr();
  		glDepthFunc(GL_LEQUAL);								// The Type Of Depth Testing To Do
+      CheckErr();
 		//glEnable(GL_NORMALIZE); // glNormal is normalized automatically....
 #ifndef __ANDROID__
 		//glEnable( GL_POLYGON_SMOOTH );
@@ -1204,16 +1222,22 @@ static int InitGL( struct display_camera *camera )										// All Setup For Ope
  		//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculations
  
 		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+      CheckErr();
  
-		BeginVisPersp( camera );
+      // this just fills l.fProjection
+		MygluPerspective(90.0f,camera->aspect,1.0f,30000.0f);
+
 		lprintf( WIDE("First GL Init Done.") );
 		camera->flags.init = 1;
 	}
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);				// Black Background
+	CheckErr();
 	glClearDepthf(1.0f);									// Depth Buffer Setup
+	CheckErr();
 	glClear(GL_COLOR_BUFFER_BIT
 			  | GL_DEPTH_BUFFER_BIT
 			 );	// Clear Screen And Depth Buffer
+	CheckErr();
 
 	return TRUE;										// Initialization Went OK
 }
@@ -1221,19 +1245,19 @@ static int InitGL( struct display_camera *camera )										// All Setup For Ope
 
 static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_camera )
 {
-	PTRSZVAL (CPROC *Init3d)(PTRANSFORM,RCOORD*,RCOORD*);
+	PTRSZVAL (CPROC *Init3d)(PMatrix,PTRANSFORM,RCOORD*,RCOORD*);
 	PCLASSROOT data = NULL;
 	CTEXTSTR name;
 	for( name = GetFirstRegisteredName( WIDE("sack/render/puregl/init3d"), &data );
 		  name;
 		  name = GetNextRegisteredName( &data ) )
 	{
-		Init3d = GetRegisteredProcedureExx( data,(CTEXTSTR)name,PTRSZVAL,WIDE("ExtraInit3d"),(PTRANSFORM,RCOORD*,RCOORD*));
+		Init3d = GetRegisteredProcedureExx( data,(CTEXTSTR)name,PTRSZVAL,WIDE("ExtraInit3d"),(PMatrix,PTRANSFORM,RCOORD*,RCOORD*));
 
 		if( Init3d )
 		{
 			struct plugin_reference *reference;
-			PTRSZVAL psvInit = Init3d( view_camera, &camera->identity_depth, &camera->aspect );
+			PTRSZVAL psvInit = Init3d( &l.fProjection, view_camera, &camera->identity_depth, &camera->aspect );
 			if( psvInit )
 			{
 				reference = New( struct plugin_reference );
@@ -1479,6 +1503,9 @@ static void RenderGL( struct display_camera *camera )
 	PRENDERER hVideo;
 	struct plugin_reference *reference;
 	int first_draw;
+	static int end_counter;
+	if( end_counter++ > 10 )
+      exit(3);
 	if( l.flags.bLogRenderTiming )
 		lprintf( "Begin Render" );
 
@@ -1499,7 +1526,7 @@ static void RenderGL( struct display_camera *camera )
 #endif
 
 	InitGL( camera );
-	lprintf( "Called init for camera.." );
+	//lprintf( "Called init for camera.." );
 	{
 		PRENDERER hVideo = camera->hVidCore;
 
@@ -1542,8 +1569,8 @@ static void RenderGL( struct display_camera *camera )
 			break;
 		}
 
-		GetGLMatrix( camera->origin_camera, camera->hVidCore->fModelView );
-		glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
+		//GetGLMatrix( camera->origin_camera, camera->hVidCore->fModelView );
+		//glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
 
 		{
 			INDEX idx;
@@ -1622,23 +1649,6 @@ static void RenderGL( struct display_camera *camera )
 				glEnd();
 			}
 #endif
-		}
-
-		LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
-		{
-			// setup initial state, like every time so it's a known state?
-			{
-				// copy l.origin to the camera
-				ApplyTranslationT( VectorConst_I, camera->origin_camera, l.origin );
-
-				if( first_draw )
-				{
-					if( reference->FirstDraw3d )
-						reference->FirstDraw3d( reference->psv );
-				}
-				if( reference->ExtraDraw3d )
-					reference->ExtraDraw3d( reference->psv, camera->origin_camera );
-			}
 		}
 
 		{
@@ -2212,9 +2222,11 @@ static struct display_camera *OpenCameras( void )
 	//		 , hVideo->flags.bChildWindow?WIDE( "Child(tool)" ):WIDE( "user-selectable" ) );
 	LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
 	{
+		if( !idx ) // default camera is a duplicate of another camera
+			continue;
 		if( camera->hVidCore )
 		{
-         lprintf( "Camera is already open, skipping..." );
+			lprintf( "Camera is already open, skipping..." );
 			continue;
 		}
 		//if( !camera->hWndInstance )
@@ -2274,7 +2286,7 @@ static struct display_camera *OpenCameras( void )
 			}
 			camera->flags.extra_init = 1;
 			camera->identity_depth = camera->w/2;
-
+			lprintf( "Init camera %p", camera );
 			InvokeExtraInit( camera, camera->origin_camera );
 
 			camera->hVidCore->flags.bReady = TRUE;
