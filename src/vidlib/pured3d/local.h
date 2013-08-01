@@ -1,6 +1,6 @@
 #define l local_video_common
 
-#include "../glext.h"
+//#include "../glext.h"
 
 #ifdef MINGW_SUX
 typedef struct tagUPDATELAYEREDWINDOWINFO {

@@ -50,7 +50,7 @@
 #include <GLES2/gl2.h>
 #else
 #include <GL/gl.h>
-#include "../glext.h"
+//#include "../glext.h"
 #endif
 
 #include <sqlgetoption.h>
@@ -1226,6 +1226,7 @@ static void BeginVisPersp( struct display_camera *camera )
 	glLoadIdentity();									// Reset The Projection Matrix
 	gluPerspective(90.0f,camera->aspect,1.0f,30000.0f);
 	glGetFloatv( GL_PROJECTION_MATRIX, l.fProjection );
+   PrintMatrix( l.fProjection );
 	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 }
 
@@ -1285,7 +1286,7 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 		if( Init3d )
 		{
 			struct plugin_reference *reference;
-			PTRSZVAL psvInit = Init3d( NULL, view_camera, &camera->identity_depth, &camera->aspect );
+			PTRSZVAL psvInit = Init3d( &l.fProjection, view_camera, &camera->identity_depth, &camera->aspect );
 			if( psvInit )
 			{
 				reference = New( struct plugin_reference );

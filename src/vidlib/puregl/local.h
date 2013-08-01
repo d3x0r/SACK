@@ -18,7 +18,7 @@
 #include <GL/glext.h>
 #endif
 #else
-#include "../glext.h"
+//#include "../glext.h"
 #endif
 
 #include <imglib/imagestruct.h>

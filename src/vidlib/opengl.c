@@ -171,7 +171,7 @@ RENDER_PROC( int, SetActiveGLDisplayView )( PVIDEO hDisplay, int nFracture )
 			if( _hDisplay->flags.bLayeredWindow )
 			{
 				SwapBuffers( _hDisplay->hDCFakeWindow );
-				ReadBuffer( _hDisplay->PBO );
+				//ReadBuffer( _hDisplay->PBO );
 			}
          else
 				SwapBuffers( _hDisplay->hDCOutput );
@@ -617,7 +617,7 @@ RENDER_PROC( int, EnableOpenGL )( PVIDEO hVideo )
 
 	if( hVideo->flags.bLayeredWindow )
 	{
-		hVideo->PBO = SetupPBO( hVideo->pImage );
+		//hVideo->PBO = SetupPBO( hVideo->pImage );
 	}
 	if(!wglMakeCurrent( NULL, NULL) )               // Try To Deactivate The Rendering Context
 	{
@@ -740,7 +740,8 @@ LOGICAL SetupInfo( void )
 
 }
 
-#include "glext.h"
+#ifdef __TEST_BUFFERS___
+//#include "glext.h"
 struct {
    PFNGLGENBUFFERSARBPROC pglGenBuffersARB;                     // VBO Name Generation Procedure
 	PFNGLBINDBUFFERARBPROC pglBindBufferARB;                     // VBO Bind Procedure
@@ -954,6 +955,7 @@ void ReadBuffer( PPBO_Info pbo )
     }
 }
 
+#endif
 
 RENDER_NAMESPACE_END
 #endif

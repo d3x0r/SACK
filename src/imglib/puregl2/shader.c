@@ -45,6 +45,7 @@ void EnableShader( CTEXTSTR shader, ... )
 			{
 				if( !l.flags.worldview_read )
 				{
+               lprintf( "Grab worldview (from camera)" );
 					GetGLCameraMatrix( l.glActiveSurface->T_Camera, l.worldview );
 					l.flags.worldview_read = 1;
 				}
@@ -59,8 +60,11 @@ void EnableShader( CTEXTSTR shader, ... )
 					l.flags.projection_read = 1;
 				}
 #endif
+				PrintMatrix( l.worldview );
 				glUniformMatrix4fv( tracker->worldview, 1, GL_FALSE, (RCOORD*)l.worldview );
 				CheckErr();
+				
+				PrintMatrix( l.glActiveSurface->M_Projection );
 				glUniformMatrix4fv( tracker->projection, 1, GL_FALSE, l.glActiveSurface->M_Projection );
 				CheckErr();
 				tracker->flags.set_matrix = 1;

@@ -49,7 +49,7 @@
 //#include "glues/source/glues.h"
 #else
 #include <GL/gl.h>
-#include "../glext.h"
+//#include "../glext.h"
 #endif
 
 #ifdef __USE_FREEGLUT__
@@ -1267,6 +1267,10 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 					static PCLASSROOT draw3d;
 					if( !draw3d )
 						draw3d = GetClassRoot( WIDE("sack/render/puregl/draw3d") );
+					reference->Update3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,LOGICAL,WIDE("Update3d"),(PTRANSFORM));
+					// add one copy of each update proc to update list.
+					if( FindLink( &l.update, reference->Update3d ) == INVALID_INDEX )
+						AddLink( &l.update, reference->Update3d );
 					reference->Draw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("ExtraDraw3d"),(PTRSZVAL));
 					reference->FirstDraw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("FirstDraw3d"),(PTRSZVAL));
 					reference->ExtraDraw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("ExtraBeginDraw3d"),(PTRSZVAL,PTRANSFORM));
@@ -1504,7 +1508,7 @@ static void RenderGL( struct display_camera *camera )
 	struct plugin_reference *reference;
 	int first_draw;
 	static int end_counter;
-	if( end_counter++ > 10 )
+	if( end_counter++ > 100 )
       exit(3);
 	if( l.flags.bLogRenderTiming )
 		lprintf( "Begin Render" );
@@ -1813,6 +1817,8 @@ static void LoadOptions( void )
 		RotateAbs( l.origin, M_PI, 0, 0 );
 
 		CreateTransformMotion( l.origin ); // some things like rotate rel
+		SetRotation( l.origin, _Y );
+
 	}
 }
 
@@ -2454,7 +2460,19 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
       // Message Loop
 		while( 1 )
 		{
-		         // no reason to check this if an update is already wanted.
+			Move( l.origin );
+
+			{
+				INDEX idx;
+				Update3dProc proc;
+				LIST_FORALL( l.update, idx, Update3dProc, proc )
+				{
+					if( proc( l.origin ) )
+                  l.flags.bUpdateWanted = TRUE;
+				}
+			}
+
+			// no reason to check this if an update is already wanted.
 			if( !l.flags.bUpdateWanted )
 			{
 				// set l.flags.bUpdateWanted for window surfaces.
