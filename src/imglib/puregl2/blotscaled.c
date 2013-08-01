@@ -611,11 +611,6 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 
 			if( method == BLOT_COPY )
 			{
-				lprintf( "Edge output here..." );
-	            //PrintVector( v[vi][0] );
-		        //PrintVector( v[vi][1] );
-			    //PrintVector( v[vi][2] );
-				//PrintVector( v[vi][3] );
 				EnableShader( "Simple Texture", v[vi], pifSrc->glActiveSurface, texture_v );
 			}
 			else if( method == BLOT_SHADED )
