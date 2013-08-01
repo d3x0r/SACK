@@ -238,10 +238,12 @@ void OpenEGL( struct display_camera *camera )
 			camera->hVidCore->pWindowPos.cx
 				= camera->w = ANativeWindow_getWidth( camera->hVidCore->displayWindow);
 			camera->hVidCore->pWindowPos.cy
-				= camera->h = ANativeWindow_getWidth( camera->hVidCore->displayWindow);
+				= camera->h = ANativeWindow_getHeight( camera->hVidCore->displayWindow);
 			camera->hVidCore->pImage =
 				RemakeImage( camera->hVidCore->pImage, NULL, camera->hVidCore->pWindowPos.cx,
 								camera->hVidCore->pWindowPos.cy );
+
+			camera->identity_depth = camera->w/2;
 
 			if( l.flags.bForceUnaryAspect )
 				camera->aspect = 1.0;
@@ -295,6 +297,7 @@ void OpenEGL( struct display_camera *camera )
 	lprintf("GL surface: %x", camera->hVidCore->surface);
 	if (camera->hVidCore->surface==0) lprintf("Error code: %x", eglGetError());
 
+   lprintf( "First swap..." );
 	// makes it go black as soon as ready
 	eglSwapBuffers(camera->hVidCore->display, camera->hVidCore->surface);
 
@@ -1217,28 +1220,21 @@ static int InitGL( struct display_camera *camera )										// All Setup For Ope
 		//glEnable( GL_ALPHA_TEST );
 		glEnable( GL_BLEND );
       CheckErr();
+		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+		CheckErr();
+
  		glEnable(GL_DEPTH_TEST);							// Enables Depth Testing
-      CheckErr();
-		glEnable( GL_TEXTURE_2D );
       CheckErr();
  		glDepthFunc(GL_LEQUAL);								// The Type Of Depth Testing To Do
       CheckErr();
-		//glEnable(GL_NORMALIZE); // glNormal is normalized automatically....
-#ifndef __ANDROID__
-		//glEnable( GL_POLYGON_SMOOTH );
-#endif
- 		//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculations
- 
-		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-      CheckErr();
- 
+
       // this just fills l.fProjection
 		MygluPerspective(90.0f,camera->aspect,1.0f,30000.0f);
 
 		lprintf( WIDE("First GL Init Done.") );
 		camera->flags.init = 1;
 	}
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);				// Black Background
+	glClearColor(0.0f, 0.5f, 0.0f, 0.0f);				// Black Background
 	CheckErr();
 	glClearDepthf(1.0f);									// Depth Buffer Setup
 	CheckErr();
@@ -1529,13 +1525,7 @@ static void RenderGL( struct display_camera *camera )
 	else
 		first_draw = 0;
 
-
 	// do OpenGL Frame
-#ifdef USE_EGL
-	EnableEGLContext( camera->hVidCore );
-#else
-	//SetActiveGLDisplay( camera->hVidCore );
-#endif
 
 	InitGL( camera );
 	//lprintf( "Called init for camera.." );
@@ -1672,13 +1662,6 @@ static void RenderGL( struct display_camera *camera )
 			}
 		}
 	}
-	// using eglLayer, doesn't really have to be cleared
-	// each beginning flushes a previous... oh (well at end of all should call a clear)
-#ifdef USE_EGL
-	EnableEGLContext( NULL );
-#else
-	//SetActiveEGLDisplay( NULL );
-#endif
 }
 
 
@@ -1785,6 +1768,7 @@ static void LoadOptions( void )
 				GetDisplaySizeEx( camera->display, &camera->x, &camera->y, &camera->w, &camera->h );
 			}
 
+			camera->identity_depth = camera->w/2;
 			if( l.flags.bForceUnaryAspect )
 				camera->aspect = 1.0;
 			else
@@ -2243,68 +2227,38 @@ static struct display_camera *OpenCameras( void )
 			lprintf( "Camera is already open, skipping..." );
 			continue;
 		}
-		//if( !camera->hWndInstance )
-		{
-			int UseCoords = camera->display == -1;
-			int DefaultScreen = camera->display;
-			S_32 x, y;
-			_32 w, h;
 
-			// if we don't do it this way, size_t overflows in camera definition.
-			if( !UseCoords && !l.flags.bView360 )
-			{
-				GetDisplaySizeEx( DefaultScreen, &camera->x, &camera->y, &w, &h );
-				camera->w = w;
-				camera->h = h;
-			}
-			else
-			{
-				w = (_32)camera->w;
-				h = (_32)camera->h;
-			}
+		camera->hVidCore = New( VIDEO );
+		MemSet (camera->hVidCore, 0, sizeof (VIDEO));
+		InitializeCriticalSec( &camera->hVidCore->cs );
+		camera->hVidCore->camera = camera;
+		camera->hVidCore->pMouseCallback = OpenGLMouse;
+		camera->hVidCore->dwMouseData = (PTRSZVAL)camera;
 
-
-			x = camera->x;
-			y = camera->y;
-
-
-	#ifdef LOG_OPEN_TIMING
-			lprintf( WIDE( "Created Real window...Stuff.. %d,%d %dx%d" ),x,y,w,h );
-	#endif
-			camera->hVidCore = New( VIDEO );
-			MemSet (camera->hVidCore, 0, sizeof (VIDEO));
-			InitializeCriticalSec( &camera->hVidCore->cs );
-			camera->hVidCore->camera = camera;
-			camera->hVidCore->pMouseCallback = OpenGLMouse;
-			camera->hVidCore->dwMouseData = (PTRSZVAL)camera;
-			camera->viewport[0] = x;
-			camera->viewport[1] = y;
-			camera->viewport[2] = (int)w;
-			camera->viewport[3] = (int)h;
-
-			/* CreateWindowEx */
+		/* CreateWindowEx */
 #ifdef __QNX__
-			CreateQNXOutputForCamera( camera );
+		CreateQNXOutputForCamera( camera );
 #endif
 #ifdef USE_EGL
-			OpenEGL( camera );
+		OpenEGL( camera );
 #endif
 
-	#ifdef LOG_OPEN_TIMING
-			lprintf( WIDE( "Created Real window...Stuff.." ) );
-	#endif
- 			//camera->hVidCore->hWndOutput = (HWND)camera->hWndInstance;
-			//if (!camera->hWndInstance)
-			{
-			//	return FALSE;
-			}
-			camera->flags.extra_init = 1;
-			camera->identity_depth = camera->w/2;
-			lprintf( "Init camera %p", camera );
-			InvokeExtraInit( camera, camera->origin_camera );
+#ifdef LOG_OPEN_TIMING
+		lprintf( WIDE( "Created Real window...Stuff.. %d,%d %dx%d" ),camera->x,camera->y,camera->w,camera->h );
+#endif
+		camera->viewport[0] = camera->x;
+		camera->viewport[1] = camera->y;
+		camera->viewport[2] = camera->w;
+		camera->viewport[3] = camera->h;
 
-			camera->hVidCore->flags.bReady = TRUE;
-		}
+#ifdef LOG_OPEN_TIMING
+		lprintf( WIDE( "Created Real window...Stuff.." ) );
+#endif
+		camera->flags.extra_init = 1;
+		lprintf( "Init camera %p", camera );
+		InvokeExtraInit( camera, camera->origin_camera );
+
+		camera->hVidCore->flags.bReady = TRUE;
 	}
 
 
@@ -2444,12 +2398,8 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 	}
    l.actual_thread = thread;
 	l.dwThreadID = GetCurrentThreadId ();
-	//l.pid = (_32)l.dwThreadID;
-
 
 	l.bThreadRunning = TRUE;
-
-	AddIdleProc( (int(CPROC*)(PTRSZVAL))ProcessDisplayMessages, 0 );
 
 	while( !IsRootDeadstartComplete() )
 	{
@@ -2510,12 +2460,24 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 						continue;
 					}
 					// drawing may cause subsequent draws; so clear this first
+					// do OpenGL Frame
+#ifdef USE_EGL
+					EnableEGLContext( camera->hVidCore );
+#else
+					SetActiveGLDisplay( camera->hVidCore );
+#endif
 					RenderGL( camera );
 #ifdef USE_EGL
+					lprintf( "doing swap buffer..." );
 					eglSwapBuffers( camera->hVidCore->display, camera->hVidCore->surface );
 #endif
 				}
 			}
+#ifdef USE_EGL
+			EnableEGLContext( NULL );
+#else
+			SetActiveGLDisplay( NULL );
+#endif
 			WakeableSleep( 250 );
 		}
 	}
@@ -3013,7 +2975,7 @@ void  SetMousePosition (PVIDEO hVid, S_32 x, S_32 y)
 		{
 			int newx, newy;
 			//lprintf( "TAGHERE" );
-		lprintf( WIDE("Moving Mouse Not Implemented") );
+			lprintf( WIDE("Moving Mouse Not Implemented") );
 			InverseOpenGLMouse( hVid->camera, hVid, x+ hVid->cursor_bias.x, y, &newx, &newy );
 			//lprintf( "%d,%d became %d,%d", x, y, newx, newy );
 			//SetCursorPos (newx,newy);
@@ -3024,7 +2986,7 @@ void  SetMousePosition (PVIDEO hVid, S_32 x, S_32 y)
 			{
 				int newx, newy;
 				//lprintf( "TAGHERE" );
-		lprintf( WIDE("Moving Mouse Not Implemented") );
+				lprintf( WIDE("Moving Mouse Not Implemented") );
 				InverseOpenGLMouse( l.current_mouse_event_camera, hVid, x, y, &newx, &newy );
 				//lprintf( "%d,%d became %d,%d", x, y, newx, newy );
 				//SetCursorPos (newx + l.WindowBorder_X + hVid->cursor_bias.x + l.current_mouse_event_camera->x ,
@@ -3372,10 +3334,23 @@ void  GetDisplaySizeEx ( int nDisplay
          (*x) = 0;
 		if( y )
          (*y) = 0;
-		if( width )
-         (*width) = 640;
-		if( height )
-         (*height) = 480;
+		{
+			struct display_camera *camera = (struct display_camera *)GetLink( &l.cameras, 0 );
+			if( camera && ( camera != (struct display_camera*)1 ) )
+			{
+				if( width )
+					(*width) = camera->w;
+				if( height )
+					(*height) = camera->h;
+			}
+			else
+			{
+				if( width )
+					(*width) = 640;
+				if( height )
+					(*height) = 480;
+			}
+		}
 #endif
 
 }
