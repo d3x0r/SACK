@@ -41,6 +41,7 @@ typedef float *PRCOORD;
 
 // these SHOULD be dimension relative, but we lack much code for that...
 typedef RCOORD MATRIX[4][4];
+typedef MATRIX *PMatrix;
 /* Describes the rotation matrix for a PTRANSFORM. */
 typedef RCOORD PMATRIX[][4];
 typedef RCOORD RQUATERNION[4];

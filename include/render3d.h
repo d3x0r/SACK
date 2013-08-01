@@ -29,7 +29,7 @@ typedef struct render_3d_interface_tag
 // This may be arbitrarily overridden to be closer than normal in case the physical display dpi is too dense.
 // identity depth should be used for rendering icons on objects.
 #define OnInit3d(name) \
-	__DefineRegistryMethod(WIDE("sack/render/puregl"),Init3d,WIDE("init3d"),name,WIDE("ExtraInit3d"),PTRSZVAL,(PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect ),__LINE__)
+	__DefineRegistryMethod(WIDE("sack/render/puregl"),Init3d,WIDE("init3d"),name,WIDE("ExtraInit3d"),PTRSZVAL,(PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect ),__LINE__)
 
 // static LOGICAL OnUpdate3d( "Virtuality" )( PTRSZVAL psvInit, PTRANSFORM eye_transform );
 // called when a new frame will be rendered.  Once per frame.  All others are called per-camera per-frame.
