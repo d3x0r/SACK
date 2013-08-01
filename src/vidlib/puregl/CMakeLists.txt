@@ -51,7 +51,7 @@ if( __ANDROID__ OR __QNX__ )
   ADD_DEFINITIONS( -D__USE_FREEGLUT__ )
   include_directories( ${SOURCES_ROOT}src/freeglut/freeglut-SVN/include )
   if( NOT __QNX__ )
-  my_target_link_libraries( ${PROJECT_NAME} freeglut m )
+  my_target_link_libraries( ${PROJECT_NAME}  m )
   endif( NOT __QNX__ )
 else( __ANDROID__ OR __QNX__ )
   if( UNIX )
@@ -72,6 +72,6 @@ endif( __64__ )
 #install( FILES ${cgbin} DESTINATION bin )
 #install( FILES multishade.fx DESTINATION bin )
 
-install( FILES glew-1.9.0/include/GL/glew.h DESTINATION include/SACK/GL )
+#install( FILES glew-1.9.0/include/GL/glew.h DESTINATION include/SACK/GL )
 
 
