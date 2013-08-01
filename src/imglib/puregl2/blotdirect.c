@@ -632,7 +632,6 @@ namespace image {
 			else if( method == BLOT_INVERTED )
 			{
 #if !defined( __ANDROID__ ) && !defined( __QNX__ )
-				InitShader();
 				if( l.glActiveSurface->shader.inverse_shader )
 				{
 					int err;

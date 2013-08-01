@@ -13,6 +13,11 @@
 					if( err )                   \
 						lprintf( "err=%d (%s)",err, gluErrorString( err ) ); \
 				}                               
+#define CheckErrf(f,...)  				{    \
+					GLenum err = glGetError();  \
+					if( err )                   \
+					lprintf( "err=%d "f,err,##__VA_ARGS__ ); \
+				}                               
 #else
 #define CheckErr()  				{    \
 					GLenum err = glGetError();  \
