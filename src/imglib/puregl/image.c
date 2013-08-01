@@ -139,7 +139,7 @@ static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 	l.glActiveSurface = (struct glSurfaceData *)psv;
 }
 
-static PTRSZVAL OnInit3d( WIDE( "@00 PUREGL Image Library" ) )( PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
+static PTRSZVAL OnInit3d( WIDE( "@00 PUREGL Image Library" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
 {
 	struct glSurfaceData *glSurface = New( struct glSurfaceData );
 	glSurface->T_Camera = camera;
