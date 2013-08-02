@@ -227,6 +227,26 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, 
 #ifdef DETAILED_LOGGING
 				lprintf( WIDE("Which is found, and new parent ID result...%p %s"), node, node->guid );
 #endif
+				if( !node->guid )
+				{
+					node->guid = GetSeqGUID();
+					OpenWriter( tree );
+					if( SQLCommandf( tree->odbc_writer
+										, WIDE( "Insert into " )OPTION4_MAP WIDE( "(`option_id`,`parent_option_id`,`name_id`) values ('%s','%s','%s')" )
+										, parent?parent->guid:"00000000-0000-0000-0000-000000000000"
+										, node->guid, node->name_guid ) )
+					{
+					}
+					else
+					{
+						CTEXTSTR error;
+						FetchSQLError( tree->odbc, &error );
+#ifdef DETAILED_LOGGING
+						lprintf( WIDE("Error inserting option: %s"), error );
+#endif
+						node->guid = NULL;
+					}
+				}
 				parent = node;
 				continue;
 			}
