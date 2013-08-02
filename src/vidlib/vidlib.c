@@ -3949,7 +3949,6 @@ RENDER_PROC (int, InitDisplay) (void)
 	if (!l.aClass)
 	{
 		InitializeCriticalSec( &l.csList );
-		VideoLoadOptions();
 
 		memset (&wc, 0, sizeof (WNDCLASS));
 		wc.style = 0
@@ -5561,6 +5560,7 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 	   , GetDisplayInterface, DropDisplayInterface );
 	BindEventToKey( NULL, KEY_F4, KEY_MOD_RELEASE|KEY_MOD_ALT, DefaultExit, 0 );
 	//EnableLoggingOutput( TRUE );
+	VideoLoadOptions();
 }
 
 
