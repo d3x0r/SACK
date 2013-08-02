@@ -257,8 +257,13 @@
 #    define EndSaneWinMain() }
 #  endif
 #else
-#  define SaneWinMain(a,b) int main( int a, char **b )
-#  define EndSaneWinMain()
+#  ifdef __ANDROID
+#    define SaneWinMain(a,b) int SACK_Main( int a, char **b )
+#    define EndSaneWinMain()
+#  else
+#    define SaneWinMain(a,b) int main( int a, char **b )
+#    define EndSaneWinMain()
+#  endif
 
 #endif
 

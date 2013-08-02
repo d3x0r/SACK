@@ -1066,14 +1066,18 @@ LOGICAL SetOptionStringValue( POPTION_TREE tree, POPTION_TREE_NODE optval, CTEXT
 		{
 			if( tree->flags.bVersion4 )
 			{
+            lprintf( "Not deleting on NULL option." );
+            /*
 				snprintf( update, sizeof( update ), WIDE("delete from ")OPTION4_MAP WIDE(" where option_id='%s'")
 						  , optval->guid );
+            optval->guid = NULL;
 				if( !SQLCommand( tree->odbc_writer, update ) )
 				{
 					FetchSQLError( tree->odbc_writer, &result );
 					lprintf( WIDE("Delete option failed: %s"), result );
 					retval = FALSE;
-				}
+					}
+               */
 			}
 			else
 			{
