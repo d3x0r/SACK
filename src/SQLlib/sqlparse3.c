@@ -461,7 +461,7 @@ int GetTableColumns( PTABLE table, PTEXT *word DBG_PASS )
 				}
 				else if( StrCaseCmp( name, WIDE( "CONSTRAINT" ) ) == 0 )
 				{
-					lprintf( "Skipping constraint parsing" );
+					//lprintf( "Skipping constraint parsing" );
 					AddConstraint( table, word );
 				}
 				else if( ( StrCaseCmp( name, WIDE( "INDEX" ) ) == 0 )
