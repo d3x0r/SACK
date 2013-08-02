@@ -999,7 +999,6 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 #ifdef LOG_EVERYTHING
 			lprintf( WIDE("Begin ODBC Driver Connect... (may take a LONG time.)") );
 #endif
-			_lprintf(DBG_RELAY)( WIDE("Begin ODBC Driver Connect... ") );
 			for( variation = 0; variation < 2; variation++ )
 			{
 				VarTextEmpty( pvt );
@@ -1023,6 +1022,8 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 							  );
 
 				pConnect = VarTextGet( pvt );
+				if( g.flags.bDeadstartCompleted && (!g.flags.bNoLog) && (~odbc->flags.bNoLogging) )
+					_lprintf(DBG_RELAY)( WIDE("Begin ODBC Driver Connect to [%s]"), GetText(pConnect) );
 
 				rc = SQLDriverConnect( odbc->hdbc
 											, NULL // window handle - do not show dialogs
@@ -1077,7 +1078,8 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 						TEXTCHAR buffer[256];
 						SQLSMALLINT reslen;
 						SQLGetInfo( odbc->hdbc, SQL_DRIVER_NAME, buffer, (SQLSMALLINT)sizeof( buffer ), &reslen );
-						lprintf( WIDE("Driver name = %s"), buffer );
+						if( g.flags.bDeadstartCompleted && (!g.flags.bNoLog) && (~odbc->flags.bNoLogging) )
+							lprintf( WIDE("Driver name = %s"), buffer );
 						if( strcmp( buffer, WIDE("odbcjt32.dll") ) == 0 )
 							odbc->flags.bAccess = 1;
 						if( strcmp( buffer, WIDE("sqlite3odbc.dll") ) == 0 || strcmp( buffer, WIDE("sqliteodbc.dll") ) == 0 )
