@@ -28,7 +28,9 @@
 */
 
 /* own headers (part 1/2) */
+#ifndef UUID_SOURCE
 #define UUID_SOURCE
+#endif
 #include "uuid.h"
 #include "uuid_ac.h"
 

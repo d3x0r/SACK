@@ -16,6 +16,7 @@
  */
 
 //BEGIN_INCLUDE(all)
+#include <stdhdrs.h>
 #include <jni.h>
 #include <errno.h>
 
@@ -223,6 +224,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
     }
 }
 
+IMPORT_METHOD void RunExits( void );
 PTRSZVAL CPROC BeginNormalProcess( PTHREAD thread )
 {
 	atexit( RunExits );

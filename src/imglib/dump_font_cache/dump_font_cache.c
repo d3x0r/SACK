@@ -3,7 +3,7 @@
 #include <image.h>
 
 
-int main( void )
+SaneWinMain( argc, argv )
 {
    FLAGSETTYPE flags = 0;
 	SystemLogTime( 0 );
@@ -14,4 +14,4 @@ int main( void )
    SetSystemLog( SYSLOG_NONE, 0 );
    return;
 }
-
+EndSaneWinMain()
