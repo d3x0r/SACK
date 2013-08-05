@@ -1520,7 +1520,9 @@ static void LoadOptions( void )
 		RotateAbs( l.origin, M_PI, 0, 0 );
 
 		CreateTransformMotion( l.origin ); // some things like rotate rel
-		SetRotation( l.origin, _Y );
+
+      // spin so we can see if the display is SOMEWHERE
+		//SetRotation( l.origin, _Y );
 
 	}
 }
