@@ -445,6 +445,7 @@ void* BeginNormalProcess( void*param )
                while( engine.wait_for_display_init )
 						sched_yield();
 					SACK_Main( 0, NULL );
+               LOGI( "Main exited... so we should all..." );
                break;
 				}
 			}
@@ -520,7 +521,8 @@ void android_main(struct android_app* state) {
             }
 
             // Check if we are exiting.
-            if (state->destroyRequested != 0) {
+				if (state->destroyRequested != 0) {
+               LOGI( "Destroy Requested..." );
 #if __USE_NATIVE_APP_EGL_MODULE__
 					engine_term_display(&engine);
 #endif
