@@ -938,7 +938,7 @@ static int InitGL( struct display_camera *camera )										// All Setup For Ope
 		lprintf( WIDE("First GL Init Done.") );
 		camera->flags.init = 1;
 	}
-	glClearColor(0.0f, 0.5f, 0.0f, 0.0f);				// Black Background
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);				// Black Background
 	CheckErr();
 	glClearDepthf(1.0f);									// Depth Buffer Setup
 	CheckErr();
@@ -1215,9 +1215,6 @@ static void RenderGL( struct display_camera *camera )
 	PRENDERER hVideo;
 	struct plugin_reference *reference;
 	int first_draw;
-	static int end_counter;
-	if( end_counter++ > 100 )
-      exit(3);
 	if( l.flags.bLogRenderTiming )
 		lprintf( "Begin Render" );
 
@@ -2305,7 +2302,7 @@ LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 #ifdef LOG_OPEN_TIMING
 	lprintf( WIDE( "Doing open of a display..." ) );
 #endif
-	if( ( GetCurrentThreadId () == l.dwThreadID )  )
+	//if( ( GetCurrentThreadId () == l.dwThreadID )  )
 	{
 #ifdef LOG_OPEN_TIMING
 		lprintf( WIDE( "Allowed to create my own stuff..." ) );
@@ -2318,6 +2315,7 @@ LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 										, hNextVideo->pWindowPos.cy);
 		lprintf( WIDE("Created some window stuff") );
 	}
+#if 000
 	else
 	{
 		int d = 1;
@@ -2373,6 +2371,7 @@ LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 			}
 		}
 	}
+#endif
 #ifdef LOG_STARTUP
 	lprintf( WIDE("Resulting new window %p %p"), hNextVideo, GetNativeHandle( hNextVideo ) );
 #endif
