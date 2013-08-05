@@ -58,10 +58,17 @@ struct engine {
 #endif
     int32_t width;
     int32_t height;
-    struct saved_state state;
+	 struct saved_state state;
+    volatile int wait_for_startup;
+    volatile int wait_for_display_init;
 };
 
-    struct engine engine;
+void (*OpenCameras)(void);
+void (*RenderPass)(void);
+void (*SetNativeWindowHandle)(NativeWindowType );
+
+struct engine engine;
+
 #if __USE_NATIVE_APP_EGL_MODULE__
 /**
  * Initialize an EGL context for the current display.
@@ -195,7 +202,15 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
             engine->app->savedStateSize = sizeof(struct saved_state);
             break;
         case APP_CMD_INIT_WINDOW:
-            // The window is being shown, get it ready.
+			  // The window is being shown, get it ready.
+			  engine->animating = 1;
+           engine->wait_for_display_init = 1;
+			  while( engine->wait_for_startup )
+              sched_yield();
+			  OpenCameras();
+           engine->wait_for_display_init = 0;
+			  sched_yield();
+           RenderPass();
 #if __USE_NATIVE_APP_EGL_MODULE__
             if (engine->app->window != NULL) {
                 engine_init_display(engine);
@@ -207,10 +222,12 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
             break;
         case APP_CMD_TERM_WINDOW:
             // The window is being hidden or closed, clean it up.
+			  engine->animating = 0;
 #if __USE_NATIVE_APP_EGL_MODULE__
 			  engine_term_display(engine);
 #else
-           // do something like unload interface
+			  // do something like unload interface
+           // CloseCameras();
 #endif
             break;
         case APP_CMD_GAINED_FOCUS:
@@ -391,17 +408,22 @@ void* BeginNormalProcess( void*param )
 					}
 				}
 				{
-               void (*f)(NativeWindowType );
 					void *lib = LoadLibrary( mypath, "libbag.video.puregl.so" );
 					if( !lib )
 						LOGI( "Failed to load lib:%s", dlerror() );
-					f = (void (*)(NativeWindowType ))dlsym( lib, "SetNativeWindowHandle" );
-					if( !f )
+					SetNativeWindowHandle = (void (*)(NativeWindowType ))dlsym( lib, "SetNativeWindowHandle" );
+					if( !SetNativeWindowHandle )
 						LOGI( "Failed to get SetNativeWindowHandle:%s", dlerror() );
 					else
 					{
-						f( engine.app->pendingWindow );
+						SetNativeWindowHandle( engine.app->pendingWindow );
 					}
+					RenderPass = (void (*)(void ))dlsym( lib, "DoRenderPass" );
+					if( !RenderPass )
+						LOGI( "Failed to get DoRenderPass:%s", dlerror() );
+					OpenCameras = (void (*)(void ))dlsym( lib, "OpenCameras" );
+					if( !OpenCameras )
+						LOGI( "Failed to get OpenCameras:%s", dlerror() );
 				}
 				{
 					void *lib;
@@ -418,6 +440,10 @@ void* BeginNormalProcess( void*param )
 					InvokeDeadstart();
                LOGI( "Deadstart Completed..." );
 					MarkRootDeadstartComplete();
+               engine.wait_for_startup = 0;
+					sched_yield();
+               while( engine.wait_for_display_init )
+						sched_yield();
 					SACK_Main( 0, NULL );
                break;
 				}
@@ -458,10 +484,10 @@ void android_main(struct android_app* state) {
 
 	 {
 		 pthread_t thread;
+       engine.wait_for_startup = 1;
 		 pthread_create( &thread, NULL, BeginNormalProcess, NULL );
 	 }
 	 //ThreadTo( BeginNormalProcess, 0 );
-
     // loop waiting for stuff to do.
     while (1) {
         // Read all pending events.
@@ -486,9 +512,9 @@ void android_main(struct android_app* state) {
                     ASensorEvent event;
                     while (ASensorEventQueue_getEvents(engine.sensorEventQueue,
                             &event, 1) > 0) {
-                        LOGI("accelerometer: x=%f y=%f z=%f",
-                                event.acceleration.x, event.acceleration.y,
-                                event.acceleration.z);
+                        //LOGI("accelerometer: x=%f y=%f z=%f",
+                         //       event.acceleration.x, event.acceleration.y,
+                         //       event.acceleration.z);
                     }
                 }
             }
@@ -514,6 +540,7 @@ void android_main(struct android_app* state) {
 #if __USE_NATIVE_APP_EGL_MODULE__
 				engine_draw_frame(&engine);
 #else
+            RenderPass();
             // trigger want draw?
 #endif
         }
