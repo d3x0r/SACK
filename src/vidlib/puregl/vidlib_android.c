@@ -1034,8 +1034,7 @@ static LOGICAL InvokeExtraMouse( CTEXTSTR name, PTRSZVAL psvInit, PRAY mouse_ray
    return FALSE;
 }
 
-#ifndef NO_TOUCH
-static int CPROC Handle3DTouches( PRENDERER hVideo, PTOUCHINPUT touches, int nTouches )
+static int CPROC Handle3DTouches( PRENDERER hVideo, PINPUT_POINT touches, int nTouches )
 {
 	static struct touch_event_state
 	{
@@ -1051,6 +1050,7 @@ static int CPROC Handle3DTouches( PRENDERER hVideo, PTOUCHINPUT touches, int nTo
          int y;
 		} two;
 	} touch_info;
+
 	if( l.flags.bRotateLock )
 	{
 		int t;
@@ -1171,7 +1171,6 @@ static int CPROC Handle3DTouches( PRENDERER hVideo, PTOUCHINPUT touches, int nTo
 	}
 	return 0;
 }
-#endif
 
 static void WantRenderGL( void )
 {
@@ -2138,7 +2137,7 @@ void DoRenderPass( void )
 #endif
 					RenderGL( camera );
 #ifdef USE_EGL
-					lprintf( "doing swap buffer..." );
+					//lprintf( "doing swap buffer..." );
 					eglSwapBuffers( camera->hVidCore->display, camera->hVidCore->surface );
 #endif
 				}
@@ -3344,6 +3343,29 @@ void MarkDisplayUpdated( PRENDERER r )
       r->flags.bUpdated = 1;
 }
 
+void SendTouchEvents( int nPoints, PINPUT_POINT points )
+{
+	{
+		//if( hVideo )
+		{
+			int handled = 0;
+			//if( hVideo->pTouchCallback )
+			{
+			//	handled = hVideo->pTouchCallback( hVideo->dwTouchData, inputs, count );
+			}
+
+			if( !handled )
+			{
+				// this will be like a hvid core
+				handled = Handle3DTouches( NULL, points, nPoints );
+			}
+			if( handled )
+				return 0;
+			return 1;
+		}
+	}
+}
+
 #include <render.h>
 
 static RENDER_INTERFACE VidInterface = { InitDisplay
@@ -3711,10 +3733,6 @@ void LockRenderer( PRENDERER render )
 void UnlockRenderer( PRENDERER render )
 {
 	LeaveCriticalSec( &render->cs );
-}
-
-PUBLIC( void, InvokePreloads )( void )
-{
 }
 
 RENDER_NAMESPACE_END

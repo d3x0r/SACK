@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <EGL/egl.h>
 //#include <GLES/gl.h>
+#include <render.h>
 
 #include <android/sensor.h>
 #include <android/log.h>
@@ -60,12 +61,15 @@ struct engine {
     int32_t height;
 	 struct saved_state state;
     volatile int wait_for_startup;
-    volatile int wait_for_display_init;
+	 volatile int wait_for_display_init;
+	 struct input_point points[10];
+    int nPoints;
 };
 
 void (*OpenCameras)(void);
 void (*RenderPass)(void);
 void (*SetNativeWindowHandle)(NativeWindowType );
+void (*SendTouchEvents)( int nPoints, PINPUT_POINT points );
 
 struct engine engine;
 
@@ -178,10 +182,72 @@ static void engine_term_display(struct engine* engine) {
 /**
  * Process the next input event.
  */
-static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) {
+static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
+{
     struct engine* engine = (struct engine*)app->userData;
-    if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
-        engine->animating = 1;
+	 if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION)
+	 {
+		 int32_t action = AMotionEvent_getAction(event );
+		 int pointer = ( action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK ) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+		 LOGI( "POINTER %04x %d %d", action, pointer, action & AMOTION_EVENT_ACTION_MASK );
+
+		 {
+			 int n;
+			 for( n = 0; n < engine->nPoints; n++ )
+			 {
+				 if( engine->points[n].flags.end_event )
+				 {
+					 memcpy( engine->points + n, engine->points + n + 1, sizeof( struct input_point ) * (9-pointer) );
+					 engine->nPoints--;
+                n--;
+				 }
+			 }
+		 }
+
+		 switch( action & AMOTION_EVENT_ACTION_MASK )
+		 {
+		 case AMOTION_EVENT_ACTION_DOWN:
+			 // primary pointer down.
+          engine->points[0].x = AMotionEvent_getX( event, pointer );
+			 engine->points[0].y = AMotionEvent_getY( event, pointer );
+          engine->points[0].flags.new_event = 1;
+			 engine->points[0].flags.end_event = 0;
+          engine->nPoints++;
+          break;
+		 case AMOTION_EVENT_ACTION_UP:
+			 // primary pointer up.
+          engine->points[0].flags.new_event = 0;
+			 engine->points[0].flags.end_event = 1;
+          break;
+		 case AMOTION_EVENT_ACTION_MOVE:
+          engine->points[pointer].x = AMotionEvent_getX( event, pointer );
+			 engine->points[pointer].y = AMotionEvent_getY( event, pointer );
+          engine->points[pointer].flags.new_event = 0;
+			 engine->points[pointer].flags.end_event = 0;
+			 break;
+		 case AMOTION_EVENT_ACTION_POINTER_DOWN:
+			 // primary pointer down.
+          engine->points[pointer].x = AMotionEvent_getX( event, pointer );
+			 engine->points[pointer].y = AMotionEvent_getY( event, pointer );
+          engine->points[pointer].flags.new_event = 1;
+			 engine->points[pointer].flags.end_event = 0;
+          engine->nPoints++;
+			 break;
+		 case AMOTION_EVENT_ACTION_POINTER_UP:
+          engine->points[pointer].flags.new_event = 0;
+			 engine->points[pointer].flags.end_event = 1;
+			 break;
+		 default:
+          LOGI( "Motion Event ignored..." );
+		 }
+		 {
+			 int n;
+			 for( n = 0; n < engine->nPoints; n++ )
+			 {
+				 LOGI( "Point : %d %4d %4d %d %d", n, engine->points[n].x , engine->points[n].y, engine->points[n].flags.new_event, engine->points[n].flags.end_event );
+			 }
+		 }
+		 engine->animating = 1;
         engine->state.x = AMotionEvent_getX(event, 0);
         engine->state.y = AMotionEvent_getY(event, 0);
         return 1;
@@ -425,6 +491,7 @@ void* BeginNormalProcess( void*param )
 					OpenCameras = (void (*)(void ))dlsym( lib, "OpenCameras" );
 					if( !OpenCameras )
 						LOGI( "Failed to get OpenCameras:%s", dlerror() );
+               SendTouchEvents = (void (*)(int,PINPUT_POINT ))dlsym( lib, "SendTouchEvents" );
 				}
 				{
 					void *lib;
