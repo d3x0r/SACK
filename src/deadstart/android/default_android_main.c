@@ -206,7 +206,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 			  engine->animating = 1;
            engine->wait_for_display_init = 1;
 			  while( engine->wait_for_startup )
-              sched_yield();
+				  sched_yield();
 			  OpenCameras();
            engine->wait_for_display_init = 0;
 			  sched_yield();
@@ -395,15 +395,16 @@ void* BeginNormalProcess( void*param )
                   f( buf );
 					}
 				}
-				LoadLibrary( mypath, "libbag++.so" );
 				LoadLibrary( mypath, "libbag.psi.so" );
-				LoadLibrary( mypath, "libbag.psi++.so" );
+
 				{
 					int n;
 					for( n = 0; n < 1000; n++ )
 					{
 						if( !engine.app->pendingWindow )
 							LOGI( "Pending window will fail!" );
+						else
+                     break;
 						usleep( 10000 );
 					}
 				}

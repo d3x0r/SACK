@@ -1160,12 +1160,12 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 #else
 #  ifndef __ANDROID__
 		// ANDROID This will always fail from the application manager.
-		library->library = dlopen( library->name, RTLD_NOW|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
+		library->library = dlopen( library->name, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
 		if( !library->library )
 		{
 			_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s%s(%s) failed: %s."), bPrivate?"(local)":"(global)", libname, funcname?funcname:"all", dlerror() );
 #  endif
-			library->library = dlopen( library->full_name, RTLD_NOW|(bPrivate?RTLD_LOCAL:RTLD_GLOBAL) );
+			library->library = dlopen( library->full_name, RTLD_LAZY|(bPrivate?RTLD_LOCAL:RTLD_GLOBAL) );
 			if( !library->library )
 			{
 				_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s(%s) failed: %s."), library->full_name, funcname?funcname:"all", dlerror() );
