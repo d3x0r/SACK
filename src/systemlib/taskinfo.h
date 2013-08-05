@@ -50,7 +50,7 @@ struct task_info_tag {
 extern
 #endif
   struct local_systemlib_data {
-	TEXTCHAR *load_path;
+	CTEXTSTR load_path;
 	struct system_local_flags{
 		BIT_FIELD bLog : 1;
 	} flags;

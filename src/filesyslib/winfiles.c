@@ -71,8 +71,13 @@ static void InitGroups( void )
     AddLink( &l.groups, group );
 
     // known handle '1' is the program's load path.
-    group = New( struct Group );
-    group->base_path = StrDup( GetProgramPath() );
+	 group = New( struct Group );
+#ifdef __ANDROID__
+    // assets and other files are in the data directory
+	 group->base_path = StrDup( GetStartupPath() );
+#else
+	 group->base_path = StrDup( GetProgramPath() );
+#endif
     group->name = StrDup( WIDE( "Program Path" ) );
     AddLink( &l.groups, group );
 

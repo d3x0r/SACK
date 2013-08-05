@@ -16,16 +16,17 @@
  */
 
 //BEGIN_INCLUDE(all)
-#include <stdhdrs.h>
 #include <jni.h>
 #include <errno.h>
-
+#include <dlfcn.h>
+#include <stdio.h>
 #include <EGL/egl.h>
-#include <GLES/gl.h>
+//#include <GLES/gl.h>
 
 #include <android/sensor.h>
 #include <android/log.h>
 #include <android_native_app_glue.h>
+#include <android/asset_manager.h>
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-activity", __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "native-activity", __VA_ARGS__))
@@ -49,15 +50,19 @@ struct engine {
     const ASensor* accelerometerSensor;
     ASensorEventQueue* sensorEventQueue;
 
-    int animating;
+	 int animating;
+#if __USE_NATIVE_APP_EGL_MODULE__
     EGLDisplay display;
     EGLSurface surface;
-    EGLContext context;
+	 EGLContext context;
+#endif
     int32_t width;
     int32_t height;
     struct saved_state state;
 };
 
+    struct engine engine;
+#if __USE_NATIVE_APP_EGL_MODULE__
 /**
  * Initialize an EGL context for the current display.
  */
@@ -162,7 +167,7 @@ static void engine_term_display(struct engine* engine) {
     engine->context = EGL_NO_CONTEXT;
     engine->surface = EGL_NO_SURFACE;
 }
-
+#endif
 /**
  * Process the next input event.
  */
@@ -191,14 +196,22 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
             break;
         case APP_CMD_INIT_WINDOW:
             // The window is being shown, get it ready.
+#if __USE_NATIVE_APP_EGL_MODULE__
             if (engine->app->window != NULL) {
                 engine_init_display(engine);
                 engine_draw_frame(engine);
-            }
+				}
+#else
+            // should do something to allow vidlib to process...
+#endif
             break;
         case APP_CMD_TERM_WINDOW:
             // The window is being hidden or closed, clean it up.
-            engine_term_display(engine);
+#if __USE_NATIVE_APP_EGL_MODULE__
+			  engine_term_display(engine);
+#else
+           // do something like unload interface
+#endif
             break;
         case APP_CMD_GAINED_FOCUS:
             // When our app gains focus, we start monitoring the accelerometer.
@@ -218,20 +231,201 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
                         engine->accelerometerSensor);
             }
             // Also stop animating.
-            engine->animating = 0;
-            engine_draw_frame(engine);
+				engine->animating = 0;
+#if __USE_NATIVE_APP_EGL_MODULE__
+				engine_draw_frame(engine);
+#else
+            // trigger want update?
+#endif
             break;
     }
 }
 
-IMPORT_METHOD void RunExits( void );
-PTRSZVAL CPROC BeginNormalProcess( PTHREAD thread )
+void *LoadLibrary( char *path, char *name )
 {
-	atexit( RunExits );
-	InvokeDeadstart(); // call everthing which is logged within SACK to dispatch back to registree's
-	MarkRootDeadstartComplete();
+	char buf[256];
+   int tries = 0;
+	snprintf( buf, 256, "%s/%s", path, name );
+	do
+	{
+      void *result;
+      //LOGI( "Open [%s]", buf );
+		if( !( result = dlopen( buf, 0 ) ) )
+		{
+			const char *recurse = dlerror();
+			LOGI( "error: %s", recurse );
+			if( strstr( recurse, "could not load needed library" ) )
+			{
+				char *namestart = strchr( recurse, '\'' );
+				char *nameend = strchr( namestart+1, '\'' );
+				char tmpname[256];
+				snprintf( tmpname, 256, "%*.*s", (nameend-namestart)-1,(nameend-namestart)-1,namestart+1 );
+            LOGI( "Result was [%s]", tmpname );
+				LoadLibrary( path, tmpname );
+			}
+			else
+			{
+				LOGI( "Some Other Eror:%s", recurse );
+				break;
+			}
+		}
+		else
+         return result;
+      tries++;
+	}
+   while( tries < 2 );
+   return NULL;
+}
 
-   SACK_Main( NULL, 0 );
+void ExportAssets( void )
+{
+	AAssetManager* mgr;
+	mgr = engine.app->activity->assetManager;
+	AAssetDir* assetDir = AAssetManager_openDir(engine.app->activity->assetManager, "");
+	const char* filename = (const char*)NULL;
+	while ((filename = AAssetDir_getNextFileName(assetDir)) != NULL) {
+		AAsset* asset = AAssetManager_open(mgr, filename, AASSET_MODE_STREAMING);
+		char buf[BUFSIZ];
+		int nb_read = 0;
+		//LOGI( "Asset:[%s]", filename );
+		FILE* out = fopen(filename, "w");
+		while ((nb_read = AAsset_read(asset, buf, BUFSIZ)) > 0)
+			fwrite(buf, nb_read, 1, out);
+		fclose(out);
+		AAsset_close(asset);
+	}
+	AAssetDir_close(assetDir);
+}
+
+void* BeginNormalProcess( void*param )
+{
+	char buf[256];
+	{
+		FILE *maps = fopen( "/proc/self/maps", "rt" );
+		while( fgets( buf, 256, maps ) )
+		{
+         unsigned long start;
+			unsigned long end;
+         sscanf( buf, "%lx", &start );
+			sscanf( buf+9, "%lx", &end );
+			if( ((unsigned long)BeginNormalProcess >= start ) && ((unsigned long)BeginNormalProcess <= end ) )
+			{
+				char *mypath;
+				char *myname;
+				void *lib;
+            char *myext;
+				void (*InvokeDeadstart)(void );
+				void (*MarkRootDeadstartComplete)(void );
+				if( strlen( buf ) > 49 )
+				mypath = strdup( buf + 49 );
+				myext = strrchr( mypath, '.' );
+				myname = strrchr( mypath, '/' );
+				if( myname )
+				{
+					myname[0] = 0;
+					myname++;
+				}
+				else
+					myname = mypath;
+				if( myext )
+				{
+               myext[0] = 0;
+				}
+            //LOGI( "my path [%s][%s]", mypath, myname );
+				if( chdir( mypath ) )
+               LOGI( "path change failed to [%s]", mypath );
+				if( chdir( "../files" ) )
+				{
+					if( mkdir( "../files" ) )
+					{
+						LOGI( "path change failed to [%s]", mypath );
+					}
+					if( chdir( "../files" ) )
+					{
+                  getcwd( buf, 256 );
+					}
+				}
+				{
+					FILE *assets_saved = fopen( "assets.exported", "rb" );
+					if( !assets_saved )
+					{
+						ExportAssets();
+						fopen( "assets.exported", "wb" );
+					}
+				}
+				LoadLibrary( mypath, "libbag.externals.so" );
+				{
+					void (*RunExits)(void );
+					lib = LoadLibrary( mypath, "libbag.so" );
+					RunExits = dlsym( lib, "RunExits" );
+					if( RunExits )
+						atexit( RunExits );
+					else
+						LOGI( "Failed to get symbol RunExits:%s", dlerror() );
+					InvokeDeadstart = dlsym( lib, "InvokeDeadstart" );
+					if( !InvokeDeadstart )
+                  LOGI( "Failed to get InvokeDeadstart entry" );
+               MarkRootDeadstartComplete = dlsym( lib, "MarkRootDeadstartComplete" );
+					if( !MarkRootDeadstartComplete )
+						LOGI( "Failed to get MarkRootDeadstartComplete entry" );
+					{
+						void (*f)(char*);
+						f = dlsym( lib, "SACKSystemSetProgramPath" );
+                  f( mypath );
+						f = dlsym( lib, "SACKSystemSetProgramName" );
+                  f( myname );
+						f = dlsym( lib, "SACKSystemSetWorkingPath" );
+                  f( buf );
+					}
+				}
+				LoadLibrary( mypath, "libbag++.so" );
+				LoadLibrary( mypath, "libbag.psi.so" );
+				LoadLibrary( mypath, "libbag.psi++.so" );
+				{
+					int n;
+					for( n = 0; n < 1000; n++ )
+					{
+						if( !engine.app->pendingWindow )
+							LOGI( "Pending window will fail!" );
+						usleep( 10000 );
+					}
+				}
+				{
+               void (*f)(NativeWindowType );
+					void *lib = LoadLibrary( mypath, "libbag.video.puregl.so" );
+					if( !lib )
+						LOGI( "Failed to load lib:%s", dlerror() );
+					f = (void (*)(NativeWindowType ))dlsym( lib, "SetNativeWindowHandle" );
+					if( !f )
+						LOGI( "Failed to get SetNativeWindowHandle:%s", dlerror() );
+					else
+					{
+						f( engine.app->pendingWindow );
+					}
+				}
+				{
+					void *lib;
+               void (*SACK_Main)(int,char* );
+					snprintf( buf, 256, "%s.code.so", myname );
+					lib = LoadLibrary( mypath, buf );
+					SACK_Main = dlsym( lib, "SACK_Main" );
+					if( !SACK_Main )
+					{
+						LOGI( "Failed to get entry point" );
+                  return 0;
+					}
+               LOGI( "Invoke Deadstart..." );
+					InvokeDeadstart();
+               LOGI( "Deadstart Completed..." );
+					MarkRootDeadstartComplete();
+					SACK_Main( 0, NULL );
+               break;
+				}
+			}
+		}
+      fclose( maps );
+	}
+   return NULL;
 }
 
 /**
@@ -240,7 +434,6 @@ PTRSZVAL CPROC BeginNormalProcess( PTHREAD thread )
  * event loop for receiving input events and doing other things.
  */
 void android_main(struct android_app* state) {
-    struct engine engine;
 
     // Make sure glue isn't stripped.
     app_dummy();
@@ -263,7 +456,11 @@ void android_main(struct android_app* state) {
         engine.state = *(struct saved_state*)state->savedState;
     }
 
-	 ThreadTo( BeginNormalProcess, 0 );
+	 {
+		 pthread_t thread;
+		 pthread_create( &thread, NULL, BeginNormalProcess, NULL );
+	 }
+	 //ThreadTo( BeginNormalProcess, 0 );
 
     // loop waiting for stuff to do.
     while (1) {
@@ -298,7 +495,9 @@ void android_main(struct android_app* state) {
 
             // Check if we are exiting.
             if (state->destroyRequested != 0) {
-                engine_term_display(&engine);
+#if __USE_NATIVE_APP_EGL_MODULE__
+					engine_term_display(&engine);
+#endif
                 return;
             }
         }
@@ -312,7 +511,11 @@ void android_main(struct android_app* state) {
 
             // Drawing is throttled to the screen update rate, so there
             // is no need to do timing here.
-            engine_draw_frame(&engine);
+#if __USE_NATIVE_APP_EGL_MODULE__
+				engine_draw_frame(&engine);
+#else
+            // trigger want draw?
+#endif
         }
     }
 }

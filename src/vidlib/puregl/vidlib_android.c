@@ -172,6 +172,13 @@ void DumpSurface( void )
 */
 }
 
+#ifdef __ANDROID__
+// this is dynamically linked from the loader code to get the window
+PUBLIC( void, SetNativeWindowHandle )( NativeWindowType displayWindow )
+{
+   l.displayWindow = displayWindow;
+}
+#endif
 void OpenEGL( struct display_camera *camera )
 {
 	/*
@@ -225,10 +232,10 @@ void OpenEGL( struct display_camera *camera )
 #ifdef __ANDROID__
 	// Window surface that covers the entire screen, from libui.
 	{
-		NativeWindowType (*android_cds)(void) = (NativeWindowType (*)(void))LoadFunction( "libui.so", "android_createDisplaySurface" );
-		if( android_cds )
+		//NativeWindowType (*android_cds)(void) = (NativeWindowType (*)(void))LoadFunction( "libui.so", "android_createDisplaySurface" );
+		//if( android_cds )
 		{
-			camera->hVidCore->displayWindow = android_cds();
+			camera->hVidCore->displayWindow = l.displayWindow;//android_cds();
 			lprintf( "native window %p", camera->hVidCore->displayWindow );
 			lprintf("Window specs: %d*%d format=%d",
 					  ANativeWindow_getWidth( camera->hVidCore->displayWindow),
@@ -266,8 +273,8 @@ void OpenEGL( struct display_camera *camera )
 			}
 
 		}
-		else
-			lprintf( "Fatal error; cannot get android_createDisplaySurface from libui" );
+		//else
+		//	lprintf( "Fatal error; cannot get android_createDisplaySurface from libui" );
 	}
 #endif
 
@@ -290,6 +297,8 @@ void OpenEGL( struct display_camera *camera )
 		lprintf("GL context: %x", camera->hVidCore->econtext);
 		if (camera->hVidCore->econtext==0) lprintf("Error code: %x", eglGetError());
 	}
+	//ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
+
 	camera->hVidCore->surface = eglCreateWindowSurface(camera->hVidCore->display,
 																		camera->hVidCore->config,
 																		camera->hVidCore->displayWindow,

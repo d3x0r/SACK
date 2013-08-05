@@ -1052,6 +1052,9 @@ PTRSZVAL GetFileSize( int fd )
 		{
 			int len;
 #ifdef __ANDROID__
+			if( !IsPath( "./tmp" ) )
+				if( !MakePath( "./tmp" ) )
+               lprintf( "Failed to create a temporary space" );
 			len = snprintf( NULL, 0, WIDE("./tmp/.shared.%s"), pWhat );
 			filename = (char*)Allocate( len + 1 );
 			snprintf( filename, len+1, WIDE("./tmp/.shared.%s"), pWhat );

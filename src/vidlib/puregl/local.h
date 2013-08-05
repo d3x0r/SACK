@@ -144,6 +144,9 @@ extern
 	gf_display_t* qnx_display[64];
 	gf_display_info_t* qnx_display_info[64];
 #endif
+#if defined( __ANDROID__ )
+   NativeWindowType displayWindow;
+#endif
 	int bCreatedhWndInstance;
 
 // thread synchronization variables...

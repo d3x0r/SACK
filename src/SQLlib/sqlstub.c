@@ -805,8 +805,13 @@ void InitLibrary( void )
 		if( g.feedback_handler ) g.feedback_handler( WIDE("Loading ODBC") );
 		CreateCollector( 0, &g.Primary, FALSE );
 		CreateCollector( 0, &g.Backup, FALSE );
+#ifdef __ANDROID__
+		g.OptionDb.info.pDSN = StrDup( WIDE( "./option.db" ) );
+#else
 		g.OptionDb.info.pDSN = StrDup( WIDE( "@/option.db" ) );
+#endif
       // default to new option database.
+      g.OptionVersion = 4;
 #ifndef __NO_OPTIONS__
 		//SetOptionDatabaseOption( &g.OptionDb, TRUE );
 #endif
@@ -850,9 +855,9 @@ void InitLibrary( void )
 					);
 				if( file )
 				{
-					fprintf( file, WIDE("Option DSN=@/option.db\n") );
-					fprintf( file, WIDE("Option Use New Version=on\n") );
-					fprintf( file, WIDE("Option Use Version 4=off\n") );
+					fprintf( file, WIDE("Option DSN=%s\n"), g.OptionDb.info.pDSN );
+					fprintf( file, WIDE("Option Use New Version=off\n") );
+					fprintf( file, WIDE("Option Use Version 4=on\n") );
 					fprintf( file, WIDE("Primary DSN=MySQL\n") );
 					fprintf( file, WIDE("#Primary User=\n") );
 					fprintf( file, WIDE("#Primary Password=\n") );

@@ -1,3 +1,4 @@
+#include <stdhdrs.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
@@ -113,7 +114,7 @@ void ascii_to_unicode( void )
 
 }
 
-int main( int argc, char ** argv )
+SaneWinMain( argc, argv )
 {
 	FILE *input;
 	FILE *output;
@@ -141,6 +142,7 @@ int main( int argc, char ** argv )
 	}
 	return 0;
 }
+EndSaneWinMain()
 
 #if 0
 int wmain( int argc, wchar_t ** argv )
