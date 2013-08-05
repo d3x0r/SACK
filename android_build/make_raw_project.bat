@@ -1,9 +1,9 @@
+
+set SOURCE_ROOT=%~dp0..\debug_solution\core
+set BUILD_ROOT=%~dp0..\debug_out\core
 :goto skip1
 
-mkdir build
-cd build
-echo !!! need to do a configuration here...
-call ..\..\android.bat
+cd %SOURCE_ROOT%
 make install
 
 pause
@@ -14,7 +14,7 @@ cd /D %~dp0
 : name is <name>.apk else 
 
 :call %ANDROID_HOME%\tools\android.bat create project --target "android-14" --name EditOptions  --path ./sack --activity NativeActivity --package org.d3x0r.sack.EditOptions
-
+call %ANDROID_HOME%\tools\android.bat update project --target "android-14" --path ./sack 
 :skip1
 
 cd .\sack
@@ -23,11 +23,11 @@ mkdir libs\armeabi
 mkdir assets
 mkdir res
 mkdir res\drawable
-copy ..\..\test1\debug_out\core\bin\images res\drawable
-copy ..\..\test1\debug_out\core\bin\interface.conf assets
-copy ..\..\test1\debug_out\core\lib libs\armeabi
+copy %BUILD_ROOT%\bin\images res\drawable
+copy %BUILD_ROOT%\bin\interface.conf assets
+copy %BUILD_ROOT%\lib libs\armeabi
 
-c:\tools\apache-ant-1.8.3\bin\ant debug
+call ant debug
 
 cd bin
 
