@@ -30,6 +30,10 @@
 
 #include <stdhdrs.h>
 #include <loadsock.h>
+#ifdef __ANDROID__
+#include <android/log.h>
+#endif
+
 #ifdef WIN32
 #ifndef _ARM_
 #include <io.h> // unlink
@@ -365,6 +369,8 @@ static void LoadOptions( void )
 																 , WIDE( "SACK/Logging/Log Source File")
 																 , flags.bLogSourceFile, TRUE );
 
+#ifndef __ANDROID__
+      // android has a system log that does just fine/ default startup sets that.
 		if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Enable File Log" )
 #ifdef _DEBUG
 										, 1
@@ -376,8 +382,9 @@ static void LoadOptions( void )
 			logtype = SYSLOG_AUTO_FILE;
 			flags.bLogOpenAppend = 0;
 			flags.bLogOpenBackup = 1;
-			flags.bLogProgram = 0;
+			flags.bLogProgram = 1;
 		}
+#endif
 		// set all default parts of the name.
 		// this overrides options with options available from SQL database.
 		if( SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Logging/Default Log Location is current directory"), 0, TRUE ) )
@@ -412,9 +419,10 @@ static void LoadOptions( void )
 		}
 		nLogLevel = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Default Log Level (1001:all, 100:least)" ), nLogLevel, TRUE );
 
-		flags.bLogThreadID = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Thread ID" ), 0, TRUE );
-		flags.bLogProgram = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Program" ), 0, TRUE );
-		flags.bLogSourceFile = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Source File" ), 1, TRUE );
+      // use the defaults; they may be overriden by reading the options.
+		flags.bLogThreadID = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Thread ID" ), flags.bLogThreadID, TRUE );
+		flags.bLogProgram = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Program" ), flags.bLogProgram, TRUE );
+		flags.bLogSourceFile = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Source File" ), flags.bLogSourceFile, TRUE );
 
 		if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log CPU Tick Time and Delta" ), 0, TRUE ) )
 		{
@@ -464,7 +472,19 @@ void InitSyslog( int ignore_options )
 		bCPUTickWorks = 1;
 		nLogLevel = LOG_NOISE-1; // default log EVERYTHING
 
-#ifdef _DEBUG
+#ifdef __ANDROID__
+		{
+			logtype = SYSLOG_SYSTEM;
+			nLogLevel = LOG_NOISE + 1000; // default log EVERYTHING
+			flags.bLogSourceFile = 1;
+			flags.bUseDeltaTime = 1;
+			flags.bLogCPUTime = 1;
+			flags.bLogThreadID = 1;
+			flags.bLogProgram = 0;
+			SystemLogTime( SYSLOG_TIME_HIGH );
+		}
+#else
+#  ifdef _DEBUG
 		{
 			/* using SYSLOG_AUTO_FILE option does not require this to be open.
 			* it is opened on demand.
@@ -482,10 +502,11 @@ void InitSyslog( int ignore_options )
 			SystemLogTime( SYSLOG_TIME_HIGH );
 			//lprintf( WIDE("Syslog Initializing, debug mode, startup programname.log\n") );
 		}
-#else
+#  else
 		// stderr?
 		logtype = SYSLOG_NONE;
 		l.file = NULL;
+#  endif
 #endif
 
 #ifndef __NO_OPTIONS__
@@ -1056,19 +1077,23 @@ void DoSystemLog( const TEXTCHAR *buffer )
 		}
 		FileSystemLog( buffer );
 	}
-#ifdef _WIN32
+#if defined( _WIN32 ) || defined( __ANDROID__ )
 	else if( logtype == SYSLOG_SYSTEM )
 	{
-#ifdef __cplusplus_cli
+#  ifdef __cplusplus_cli
 		// requires referenced xperdex.classes... if this doesn't compile, please add the reference
 		xperdex::classes::Log::log( gcnew System::String( buffer ) );
 		//System::Console::WriteLine( gcnew System::String( buffer ) );
 		//System::Diagnostics::Debug
-#else
+#  else
+#    ifdef __ANDROID__
+		__android_log_print( ANDROID_LOG_INFO, GetProgramName(), buffer );
+#    else
 		OutputDebugString( buffer );
 		OutputDebugString( WIDE("\n") );
-#endif
+#    endif
 	}
+#  endif
 #endif
 	else if( logtype == SYSLOG_CALLBACK )
 		UserCallback( buffer );

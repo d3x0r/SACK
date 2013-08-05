@@ -236,7 +236,11 @@ static void SetupSystemServices( void )
 	// use /proc/self to get to cmdline
 	// which has the whole invokation of this process.
 	{
-	/* #include unistd.h, stdio.h, string.h */
+		/* #include unistd.h, stdio.h, string.h */
+#    ifdef __ANDROID__
+			l.filename = GetProgramName();
+			l.load_path = GetProgramPath();
+#    else
 		{
 			char buf[256], *pb;
 			int n;
@@ -294,6 +298,7 @@ static void SetupSystemServices( void )
 			ReleaseEx( newpath DBG_SRC );
 		}
 	}
+#    endif
 		//<x`int> rathar: main() { char buf[1<<7]; buf[readlink("/proc/self/exe",buf,1<<7)]=0; puts(buf); }
 		//<x`int> main() {  }
 		//<x`int>
@@ -1153,14 +1158,13 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			}
 		}
 #else
-		library->library = dlopen( library->name, RTLD_NOW|(
-#ifndef __ARM__
-																			 bPrivate?RTLD_LOCAL:
-#endif
-																			 RTLD_GLOBAL) );
+#  ifndef __ANDROID__
+		// ANDROID This will always fail from the application manager.
+		library->library = dlopen( library->name, RTLD_NOW|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
 		if( !library->library )
 		{
 			_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s%s(%s) failed: %s."), bPrivate?"(local)":"(global)", libname, funcname?funcname:"all", dlerror() );
+#  endif
 			library->library = dlopen( library->full_name, RTLD_NOW|(bPrivate?RTLD_LOCAL:RTLD_GLOBAL) );
 			if( !library->library )
 			{
@@ -1169,7 +1173,9 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 				ResumeDeadstart();
 				return NULL;
 			}
+#  ifndef __ANDROID__
 		}
+#  endif
 #endif
 #ifdef __cplusplus_cli
 		{
@@ -1400,8 +1406,33 @@ TEXTSTR GetArgsString( PCTEXTSTR pArgs )
 	return args;
 }
 
+
+#ifdef __ANDROID__
+static char *program_name;
+static char *program_path;
+static char *working_path;
+
+void SACKSystemSetProgramPath( char *path )
+{
+   program_path = strdup( path );
+}
+void SACKSystemSetProgramName( char *name )
+{
+   program_name = strdup( name );
+}
+void SACKSystemSetWorkingPath( char *name )
+{
+   working_path = strdup( name );
+}
+#endif
+
+
+
 CTEXTSTR GetProgramName( void )
 {
+#ifdef __ANDROID__
+	return program_name;
+#else
 	if( !l.filename )
 	{
 		SetupSystemServices();
@@ -1412,10 +1443,14 @@ CTEXTSTR GetProgramName( void )
 		}
 	}
 	return l.filename;
+#endif
 }
 
 CTEXTSTR GetProgramPath( void )
 {
+#ifdef __ANDROID__
+	return program_path;
+#else
 	if( !l.load_path )
 	{
 		SetupSystemServices();
@@ -1426,10 +1461,14 @@ CTEXTSTR GetProgramPath( void )
 		}
 	}
 	return l.load_path;
+#endif
 }
 
 CTEXTSTR GetStartupPath( void )
 {
+#ifdef __ANDROID__
+	return working_path;
+#else
 	if( !l.work_path )
 	{
 		SetupSystemServices();
@@ -1440,6 +1479,7 @@ CTEXTSTR GetStartupPath( void )
 		}
 	}
 	return l.work_path;
+#endif
 }
 
 LOGICAL IsSystemShuttingDown( void )

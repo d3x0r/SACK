@@ -4,7 +4,7 @@
     SET( FIRST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_list.c ) 
     SET( LAST_GCC_LIBRARY_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_lib.c ${SOURCES_ROOT}src/deadstart/deadstart_end.c ) 
     if( __ANDROID__ )
-      SET( LAST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_lib.c ${SOURCES_ROOT}src/deadstart/deadstart_prog.c ${SOURCES_ROOT}src/deadstart/deadstart_end.c ${SOURCES_ROOT}/src/deadstart/android/android_native_app_glue ${SOURCES_ROOT}/src/deadstart/android/default_android_main )
+      SET( LAST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_lib.c ${SOURCES_ROOT}src/deadstart/deadstart_prog.c ${SOURCES_ROOT}src/deadstart/deadstart_end.c )
       INCLUDE_DIRECTORIES( ${SOURCES_ROOT}/src/deadstart/android )
     else( __ANDROID__ )
       SET( LAST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_lib.c ${SOURCES_ROOT}src/deadstart/deadstart_prog.c ${SOURCES_ROOT}src/deadstart/deadstart_end.c ) 
