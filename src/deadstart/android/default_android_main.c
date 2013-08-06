@@ -24,48 +24,8 @@
 //#include <GLES/gl.h>
 #include <render.h>
 
-#include <android/sensor.h>
-#include <android/log.h>
-#include <android_native_app_glue.h>
-#include <android/asset_manager.h>
-#include <android/native_activity.h>
 
-#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-activity", __VA_ARGS__))
-#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "native-activity", __VA_ARGS__))
-
-/**
- * Our saved state data.
- */
-struct saved_state {
-    float angle;
-    int32_t x;
-    int32_t y;
-};
-
-/**
- * Shared state for our app.
- */
-struct engine {
-    struct android_app* app;
-
-    ASensorManager* sensorManager;
-    const ASensor* accelerometerSensor;
-    ASensorEventQueue* sensorEventQueue;
-
-	 int animating;
-#if __USE_NATIVE_APP_EGL_MODULE__
-    EGLDisplay display;
-    EGLSurface surface;
-	 EGLContext context;
-#endif
-    int32_t width;
-    int32_t height;
-	 struct saved_state state;
-    volatile int wait_for_startup;
-	 volatile int wait_for_display_init;
-	 struct input_point points[10];
-    int nPoints;
-};
+#include "engine.h"
 
 // sets the native window; opencameras will use this as the surface to initialize to.
 void (*BagVidlibPureglSetNativeWindowHandle)(NativeWindowType );
@@ -385,15 +345,21 @@ void ExportAssets( void )
 	AAssetDir_close(assetDir);
 }
 
+extern void displayKeyboard(int pShow);
+
 void show_keyboard( void )
 {
-	ANativeActivity_showSoftInput( engine.app->activity, ANATIVEACTIVITY_SHOW_SOFT_INPUT_IMPLICIT );
+	LOGI( "ShowSoftInput" );
+   displayKeyboard( 1 );
+	//ANativeActivity_showSoftInput( engine.app->activity, ANATIVEACTIVITY_SHOW_SOFT_INPUT_IMPLICIT );
 
 }
 
 void hide_keyboard( void )
 {
-   ANativeActivity_hideSoftInput( engine.app->activity, ANATIVEACTIVITY_HIDE_SOFT_INPUT_IMPLICIT_ONLY );
+   LOGI( "HideSoftInput" );
+   displayKeyboard( 0 );
+   //ANativeActivity_hideSoftInput( engine.app->activity, ANATIVEACTIVITY_HIDE_SOFT_INPUT_IMPLICIT_ONLY );
 }
 
 void* BeginNormalProcess( void*param )
