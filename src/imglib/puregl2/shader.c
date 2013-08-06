@@ -4,7 +4,7 @@
 #include "local.h"
 #include "shaders.h"
 
-PImageShaderTracker GetShader( CTEXTSTR name )
+PImageShaderTracker GetShader( CTEXTSTR name, void (CPROC*Init)(PImageShaderTracker) )
 {
 	PImageShaderTracker tracker;
 	INDEX idx;
@@ -16,9 +16,30 @@ PImageShaderTracker GetShader( CTEXTSTR name )
 	tracker = New( ImageShaderTracker );
 	MemSet( tracker, 0, sizeof( ImageShaderTracker ));
 	tracker->name = StrDup( name );
+	tracker->Init = Init;
+	if( Init )
+      Init( tracker );
 	AddLink( &l.glActiveSurface->shaders, tracker );
 	return tracker;
 }
+
+void CloseShaders( struct glSurfaceData *glSurface )
+{
+	PImageShaderTracker tracker;
+	INDEX idx;
+	LIST_FORALL( glSurface->shaders, idx, PImageShaderTracker, tracker )
+	{
+		tracker->flags.set_matrix = 0;
+		// all other things are indexes
+		if( tracker->glProgramId )
+		{
+         // the shaders are deleted as we read the common variable indexes
+			glDeleteProgram( tracker->glProgramId );
+			tracker->glProgramId = 0;
+		}
+	}
+}
+
 
 
 void ClearShaders( void )
@@ -39,6 +60,23 @@ void EnableShader( CTEXTSTR shader, ... )
 	{
 		if( StrCaseCmp( tracker->name, shader ) == 0 )
 		{
+			if( !tracker->glProgramId )
+			{
+				if( tracker->flags.failed )
+				{
+               // nothing to enable; shader is failed
+					return;
+				}
+				if( tracker->Init )
+					tracker->Init( tracker );
+				if( !tracker->glProgramId )
+				{
+               lprintf( "Shader initialization failed to produce a program; marking shader broken so we don't retry" );
+					tracker->flags.failed = 1;
+               return;
+				}
+			}
+
 			//xlprintf( LOG_NOISE+1 )( "Enable shader %s", tracker->name );
 			glUseProgram( tracker->glProgramId );
 			if( !tracker->flags.set_matrix )
@@ -54,7 +92,7 @@ void EnableShader( CTEXTSTR shader, ... )
 				CheckErr();
 				
 				//PrintMatrix( l.glActiveSurface->M_Projection );
-				glUniformMatrix4fv( tracker->projection, 1, GL_FALSE, l.glActiveSurface->M_Projection );
+				glUniformMatrix4fv( tracker->projection, 1, GL_FALSE, (RCOORD*)l.glActiveSurface->M_Projection );
 				CheckErr();
 				tracker->flags.set_matrix = 1;
 			}
@@ -97,6 +135,16 @@ void SetupCommon( PImageShaderTracker tracker, CTEXTSTR position, CTEXTSTR color
 		= glGetUniformLocation(tracker->glProgramId, "modelView");
 	CheckErr();
 
+	if( tracker->glFragProgramId )
+	{
+		glDeleteShader( tracker->glFragProgramId );
+		tracker->glFragProgramId = 0;
+	}
+	if( tracker->glVertexProgramId )
+	{
+		glDeleteShader( tracker->glVertexProgramId );
+		tracker->glVertexProgramId = 0;
+	}
 }
 
 void DumpAttribs( int program )

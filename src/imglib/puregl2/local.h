@@ -16,6 +16,10 @@
 
 IMAGE_NAMESPACE
 
+#define MAXImageFileSPERSET 256
+	DeclareSet( ImageFile );
+typedef ImageFile *PImageFile;// for get from set
+
 struct glSurfaceData {
 	PMatrix M_Projection;
 	PTRANSFORM T_Camera;
@@ -57,6 +61,7 @@ struct local_puregl_image_data_tag {
 
 	float projection[16];
 	MATRIX worldview;
+   PImageFileSET Images;
 } local_puregl_image_data;
 #define l local_puregl_image_data
 

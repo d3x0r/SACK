@@ -18,7 +18,7 @@ typedef struct render_3d_interface_tag
 #define g_d3d_device  (USE_RENDER3D_INTERFACE)->current_device
 #endif
 
-// static PTRSZVAL OnInit3d( "Virtuality" )( PTRANSFORM camera )
+// static PTRSZVAL OnInit3d( "Virtuality" )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 // each Init is called once for each display that is opened; the application recevies the reference
 // of the transform used for the camera.  This may be used to clip objects that are out of scene.
 // If you return 0 as the PTRSZVAL result, you will not get any further events.
@@ -30,6 +30,12 @@ typedef struct render_3d_interface_tag
 // identity depth should be used for rendering icons on objects.
 #define OnInit3d(name) \
 	__DefineRegistryMethod(WIDE("sack/render/puregl"),Init3d,WIDE("init3d"),name,WIDE("ExtraInit3d"),PTRSZVAL,(PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect ),__LINE__)
+
+// static void OnClose3d( "Virtuality" )(PTRSZVAL psvInit)
+// handle event when the specified display context is closed.  The value passed is the result from Init3d();
+// All resources relavent to the 3d engine should be released.  (shaders)  and statuses cleared so reinitialization can occur.
+#define OnClose3d(name) \
+	__DefineRegistryMethod(WIDE("sack/render/puregl"),Close3d,WIDE("draw3d"),name,WIDE("ExtraClose3d"),void,(PTRSZVAL psvInit),__LINE__)
 
 // static LOGICAL OnUpdate3d( "Virtuality" )( PTRSZVAL psvInit, PTRANSFORM eye_transform );
 // called when a new frame will be rendered.  Once per frame.  All others are called per-camera per-frame.

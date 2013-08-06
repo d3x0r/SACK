@@ -144,7 +144,8 @@ RENDER_NAMESPACE
 #define VIDLIB_MAIN
 #include "local.h"
 
-	HWND  GetNativeHandle (PVIDEO hVideo);
+HWND  GetNativeHandle (PVIDEO hVideo);
+void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar);
 
 extern KEYDEFINE KeyDefs[];
 
@@ -174,11 +175,12 @@ void DumpSurface( void )
 
 #ifdef __ANDROID__
 // this is dynamically linked from the loader code to get the window
-PUBLIC( void, SetNativeWindowHandle )( NativeWindowType displayWindow )
+void SACK_Vidlib_SetNativeWindowHandle( NativeWindowType displayWindow )
 {
    l.displayWindow = displayWindow;
 }
 #endif
+
 void OpenEGL( struct display_camera *camera )
 {
 	/*
@@ -250,7 +252,8 @@ void OpenEGL( struct display_camera *camera )
 				RemakeImage( camera->hVidCore->pImage, NULL, camera->hVidCore->pWindowPos.cx,
 								camera->hVidCore->pWindowPos.cy );
 
-			camera->identity_depth = camera->w/2;
+			camera->identity_depth = camera->h/2;
+			Translate( l.origin, l.scale * camera->w/2, l.scale * camera->h/2, l.scale * camera->h/2 );
 
 			if( l.flags.bForceUnaryAspect )
 				camera->aspect = 1.0;
@@ -258,6 +261,8 @@ void OpenEGL( struct display_camera *camera )
 			{
 				camera->aspect = ((float)camera->w/(float)camera->h);
 			}
+         // reload all default settings and options too.
+         camera->flags.init = 0;
 
 			switch( ANativeWindow_getFormat( camera->hVidCore->displayWindow) )
 			{
@@ -341,6 +346,52 @@ void EnableEGLContext( PRENDERER hVidCore )
 			lprintf( "Make current failed: 0x%x\n", eglGetError());
 			return;
 		}
+	}
+}
+
+
+void SACK_Vidlib_CloseDisplay( void )
+{
+	INDEX idx;
+   struct display_camera *camera;
+	LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
+	{
+      // default camera is listed twice.
+		if( !idx )
+			continue;
+      camera->hVidCore->flags.bReady = 0;
+		{
+			struct plugin_reference *reference;
+			INDEX idx2;
+			LIST_FORALL( camera->plugins, idx2, struct plugin_reference *, reference )
+			{
+				if( reference->ExtraClose3d )
+               reference->ExtraClose3d( reference->psv );
+			}
+		}
+
+
+		{
+			if (camera->hVidCore->display != EGL_NO_DISPLAY)
+			{
+				EnableEGLContext( NULL );
+				if (camera->hVidCore->econtext != EGL_NO_CONTEXT)
+				{
+					eglDestroyContext(camera->hVidCore->display, camera->hVidCore->econtext);
+				}
+				if (camera->hVidCore->surface != EGL_NO_SURFACE)
+				{
+					eglDestroySurface(camera->hVidCore->display, camera->hVidCore->surface);
+				}
+				eglTerminate(camera->hVidCore->display);
+			}
+			//engine->animating = 0;
+			camera->hVidCore->display = EGL_NO_DISPLAY;
+			camera->hVidCore->econtext = EGL_NO_CONTEXT;
+			camera->hVidCore->surface = EGL_NO_SURFACE;
+
+		}
+
 	}
 }
 
@@ -745,7 +796,7 @@ void  PutDisplayAbove (PVIDEO hVideo, PVIDEO hAbove)
 
 		if( hVideo->pAbove )
 		{
-			lprintf( WIDE( "Windwo was over somethign else and now we die." ) );
+			lprintf( WIDE( "Window was over somethign else and now we die." ) );
 			DebugBreak();
 		}
 
@@ -968,23 +1019,35 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 			PTRSZVAL psvInit = Init3d( &l.fProjection, view_camera, &camera->identity_depth, &camera->aspect );
 			if( psvInit )
 			{
-				reference = New( struct plugin_reference );
-				reference->psv = psvInit;
-				reference->name = name;
+				INDEX idx;
+				LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
 				{
-					static PCLASSROOT draw3d;
-					if( !draw3d )
-						draw3d = GetClassRoot( WIDE("sack/render/puregl/draw3d") );
-					reference->Update3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,LOGICAL,WIDE("Update3d"),(PTRANSFORM));
-					// add one copy of each update proc to update list.
-					if( FindLink( &l.update, reference->Update3d ) == INVALID_INDEX )
-						AddLink( &l.update, reference->Update3d );
-					reference->Draw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("ExtraDraw3d"),(PTRSZVAL));
-					reference->FirstDraw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("FirstDraw3d"),(PTRSZVAL));
-					reference->ExtraDraw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("ExtraBeginDraw3d"),(PTRSZVAL,PTRANSFORM));
-					reference->Mouse3d = GetRegisteredProcedureExx( GetClassRoot( WIDE("sack/render/puregl/mouse3d") ),(CTEXTSTR)name,LOGICAL,WIDE("ExtraMouse3d"),(PTRSZVAL,PRAY,_32));
+					if( StrCaseCmp( reference->name, name ) == 0 )
+						break;
 				}
-				AddLink( &camera->plugins, reference );
+				if( !reference )
+				{
+					reference = New( struct plugin_reference );
+					reference->name = name;
+					{
+						static PCLASSROOT draw3d;
+						if( !draw3d )
+							draw3d = GetClassRoot( WIDE("sack/render/puregl/draw3d") );
+						reference->Update3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,LOGICAL,WIDE("Update3d"),(PTRANSFORM));
+						// add one copy of each update proc to update list.
+						if( FindLink( &l.update, reference->Update3d ) == INVALID_INDEX )
+							AddLink( &l.update, reference->Update3d );
+						reference->Draw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("ExtraDraw3d"),(PTRSZVAL));
+						reference->FirstDraw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("FirstDraw3d"),(PTRSZVAL));
+						reference->ExtraDraw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("ExtraBeginDraw3d"),(PTRSZVAL,PTRANSFORM));
+						reference->ExtraClose3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("ExtraClose3d"),(PTRSZVAL));
+						reference->Mouse3d = GetRegisteredProcedureExx( GetClassRoot( WIDE("sack/render/puregl/mouse3d") ),(CTEXTSTR)name,LOGICAL,WIDE("ExtraMouse3d"),(PTRSZVAL,PRAY,_32));
+					}
+					AddLink( &camera->plugins, reference );
+				}
+
+            // update the psv for the new init.
+				reference->psv = psvInit;
 			}
 		}
 	}
@@ -1062,12 +1125,12 @@ static int CPROC Handle3DTouches( PRENDERER hVideo, PINPUT_POINT touches, int nT
 		if( nTouches == 2 )
 		{
          // begin rotate lock
-			if( touches[1].dwFlags & TOUCHEVENTF_DOWN )
+			if( touches[1].flags.new_event )
 			{
 				touch_info.two.x = touches[1].x;
 				touch_info.two.y = touches[1].y;
 			}
-			else if( touches[1].dwFlags & TOUCHEVENTF_UP )
+			else if( touches[1].flags.end_event )
 			{
 			}
 			else
@@ -1124,14 +1187,14 @@ static int CPROC Handle3DTouches( PRENDERER hVideo, PINPUT_POINT touches, int nT
 		}
 		else if( nTouches == 1 )
 		{
-			if( touches[0].dwFlags & TOUCHEVENTF_DOWN )
+			if( touches[0].flags.new_event )
 			{
             lprintf( WIDE("begin") );
 				// begin touch
             touch_info.one.x = touches[0].x;
             touch_info.one.y = touches[0].y;
 			}
-			else if( touches[0].dwFlags & TOUCHEVENTF_UP )
+			else if( touches[0].flags.end_event )
 			{
 				// release
             lprintf( WIDE("done") );
@@ -1924,7 +1987,7 @@ static int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 #endif
 
 // returns the forward view camera (or default camera)
-struct display_camera *OpenCameras( void )
+struct display_camera *SACK_Vidlib_OpenCameras( void )
 {
 	struct display_camera *camera;
 	INDEX idx;
@@ -1934,19 +1997,15 @@ struct display_camera *OpenCameras( void )
 	{
 		if( !idx ) // default camera is a duplicate of another camera
 			continue;
-		if( camera->hVidCore )
+		if( !camera->hVidCore )
 		{
-			lprintf( "Camera is already open, skipping..." );
-			continue;
+			camera->hVidCore = New( VIDEO );
+			MemSet (camera->hVidCore, 0, sizeof (VIDEO));
+			InitializeCriticalSec( &camera->hVidCore->cs );
+			camera->hVidCore->camera = camera;
+			camera->hVidCore->pMouseCallback = OpenGLMouse;
+			camera->hVidCore->dwMouseData = (PTRSZVAL)camera;
 		}
-
-		camera->hVidCore = New( VIDEO );
-		MemSet (camera->hVidCore, 0, sizeof (VIDEO));
-		InitializeCriticalSec( &camera->hVidCore->cs );
-		camera->hVidCore->camera = camera;
-		camera->hVidCore->pMouseCallback = OpenGLMouse;
-		camera->hVidCore->dwMouseData = (PTRSZVAL)camera;
-
 		/* CreateWindowEx */
 #ifdef __QNX__
 		CreateQNXOutputForCamera( camera );
@@ -1970,6 +2029,9 @@ struct display_camera *OpenCameras( void )
 		lprintf( "Init camera %p", camera );
 		InvokeExtraInit( camera, camera->origin_camera );
 
+      // first draw allows loading textures and shaders; so reset that we did a first draw.
+		camera->flags.did_first_draw = 0;
+      // render loop short circuits if camera is not ready
 		camera->hVidCore->flags.bReady = TRUE;
 	}
 
@@ -2084,7 +2146,7 @@ static int CPROC ProcessDisplayMessages(void )
 
 //----------------------------------------------------------------------------
 
-void DoRenderPass( void )
+void SACK_Vidlib_DoRenderPass( void )
 {
 
 			Move( l.origin );
@@ -2115,6 +2177,8 @@ void DoRenderPass( void )
                // skip 'default_camera'
 					if( !idx )
                   continue;
+					if( !camera->hVidCore->flags.bReady )
+						return;
 					// if plugins or want update, don't continue.
 					if( !camera->plugins && !l.flags.bUpdateWanted )
 					{
@@ -2142,11 +2206,6 @@ void DoRenderPass( void )
 #endif
 				}
 			}
-#ifdef USE_EGL
-			EnableEGLContext( NULL );
-#else
-			SetActiveGLDisplay( NULL );
-#endif
 
 }
 
@@ -2187,7 +2246,7 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 	}
 
    // have to wait for inits to be regsitered.
-	OpenCameras(); // returns the forward camera
+	SACK_Vidlib_OpenCameras(); // returns the forward camera
 
 	//AddIdleProc ( ProcessClientMessages, 0);
 #ifdef LOG_STARTUP
@@ -2198,7 +2257,12 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
       // Message Loop
 		while( 1 )
 		{
-         DoRenderPass();
+         SACK_Vidlib_DoRenderPass();
+#ifdef USE_EGL
+			EnableEGLContext( NULL );
+#else
+			SetActiveGLDisplay( NULL );
+#endif
 			WakeableSleep( 50 );
 		}
 	}
@@ -3343,7 +3407,7 @@ void MarkDisplayUpdated( PRENDERER r )
       r->flags.bUpdated = 1;
 }
 
-void SendTouchEvents( int nPoints, PINPUT_POINT points )
+int SACK_Vidlib_SendTouchEvents( int nPoints, PINPUT_POINT points )
 {
 	{
 		//if( hVideo )
@@ -3359,9 +3423,7 @@ void SendTouchEvents( int nPoints, PINPUT_POINT points )
 				// this will be like a hvid core
 				handled = Handle3DTouches( NULL, points, nPoints );
 			}
-			if( handled )
-				return 0;
-			return 1;
+         return handled;
 		}
 	}
 }

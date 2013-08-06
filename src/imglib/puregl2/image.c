@@ -155,36 +155,96 @@ static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 	}
 	else
 	{
-		InitSuperSimpleShader( GetShader( "Simple Shader" ) );
-		InitSimpleTextureShader( GetShader( "Simple Texture" ) );
-		InitSimpleShadedTextureShader( GetShader( "Simple Shaded Texture" ) );
-		InitSimpleMultiShadedTextureShader( GetShader( "Simple MultiShaded Texture" ) );
+		GetShader( "Simple Shader", InitSuperSimpleShader );
+		GetShader( "Simple Texture", InitSimpleTextureShader );
+		GetShader( "Simple Shaded Texture", InitSimpleShadedTextureShader );
+		GetShader( "Simple MultiShaded Texture", InitSimpleMultiShadedTextureShader );
 	}
 }
 
 static PTRSZVAL OnInit3d( WIDE( "@00 PUREGL Image Library" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
 {
-	struct glSurfaceData *glSurface = New( struct glSurfaceData );
-	MemSet( glSurface, 0, sizeof( *glSurface ) );
-	glSurface->M_Projection = projection;
-	glSurface->T_Camera = camera;
-	glSurface->identity_depth = pIdentity_depty;
-	glSurface->aspect = aspect;
-
+   INDEX idx;
+	struct glSurfaceData *glSurface;
+	LIST_FORALL( l.glSurface, idx, struct glSurfaceData *, glSurface )
+	{
+		if( ( glSurface->T_Camera == camera )
+         && ( glSurface->identity_depth == pIdentity_depty )
+         && ( glSurface->aspect == aspect )
+			&& ( glSurface->M_Projection == projection ) )
+		{
+			break;
+		}
+	}
+	if( !glSurface )
+	{
+		glSurface = New( struct glSurfaceData );
+		MemSet( glSurface, 0, sizeof( *glSurface ) );
+		glSurface->M_Projection = projection;
+		glSurface->T_Camera = camera;
+		glSurface->identity_depth = pIdentity_depty;
+		glSurface->aspect = aspect;
+		AddLink( &l.glSurface, glSurface );
+		{
+			INDEX idx;
+			struct glSurfaceData *data;
+			LIST_FORALL( l.glSurface, idx, struct glSurfaceData *, data )
+				if( data == glSurface )
+				{
+					glSurface->index = idx;
+					break;
+			}
+		}
+	}
 	l.glActiveSurface = glSurface;
 
-	AddLink( &l.glSurface, glSurface );
+	return (PTRSZVAL)glSurface;
+}
+
+static PTRSZVAL CPROC ReleaseTexture( POINTER p, PTRSZVAL psv )
+{
+   Image image = (Image)p;
+	struct glSurfaceData *glSurface = ((struct glSurfaceData *)psv);
+   // if this image has no gl surfaces don't check it (it might make some)
+	if( !image->glSurface )
+      return 0;
+	if( glSurface )
+	{
+		struct glSurfaceImageData *image_data =
+			(struct glSurfaceImageData *)GetLink( &image->glSurface, glSurface->index );
+		if( image_data && image_data->glIndex )
+		{
+			lprintf( "Release Texture %d", image_data->glIndex );
+			glDeleteTextures( 1, &image_data->glIndex );
+			image_data->glIndex = 0;
+		}
+	}
+	else
 	{
 		INDEX idx;
-		struct glSurfaceData *data;
-		LIST_FORALL( l.glSurface, idx, struct glSurfaceData *, data )
-			if( data == glSurface )
-			{
-				glSurface->index = idx;
-				break;
-			}
+		struct glSurfaceImageData * image_data;
+		LIST_FORALL( image->glSurface, idx, struct glSurfaceImageData *, image_data )
+		{
+			lprintf( "Release Texture %d", image_data->glIndex );
+			glDeleteTextures( 1, &image_data->glIndex );
+			image_data->glIndex = 0;
+		}
 	}
-	return (PTRSZVAL)glSurface;
+   return 0;
+}
+
+static void ReleaseTextures( struct glSurfaceData *glSurface )
+{
+   ForAllInSet( ImageFile, l.Images, ReleaseTexture, (PTRSZVAL)glSurface );
+}
+
+static void OnClose3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psvInit )
+{
+	struct glSurfaceData *glSurface = (struct glSurfaceData *)psvInit;
+	lprintf( "Should be cleaning up shaders here..." );
+	CloseShaders( glSurface );
+   lprintf( "and we need to release our textures; so they can be recreated" );
+   ReleaseTextures( glSurface );
 }
 
 static void OnBeginDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psvInit, PTRANSFORM camera )
@@ -194,6 +254,7 @@ static void OnBeginDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psvIni
 	l.camera = camera;
 	l.flags.projection_read = 0;
 	l.flags.worldview_read = 0;
+   // reset matrix settings
 	ClearShaders();
 }
 
@@ -229,6 +290,8 @@ int ReloadOpenGlTexture( Image child_image, int option )
 					lprintf( WIDE( "gen text %d or bad surafce" ), glGetError() );
 					return 0;
 				}
+            lprintf( "texture is %d", image_data->glIndex );
+            image_data->flags.updated = 1;
 			}
 			if( image_data->flags.updated )
 			{
@@ -247,7 +310,6 @@ int ReloadOpenGlTexture( Image child_image, int option )
 				}
 				//lprintf( WIDE( "gen text %d" ), glGetError() );
 				// Create Linear Filtered Texture
-				image_data->flags.updated = 0;
 				glBindTexture(GL_TEXTURE_2D, image_data->glIndex);
 				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
@@ -265,8 +327,9 @@ int ReloadOpenGlTexture( Image child_image, int option )
 				{
 					lprintf( WIDE( "gen text error %d" ), err );
 				}
+				image_data->flags.updated = 0;
 			}
-			image->glActiveSurface = image_data->glIndex;
+ 			image->glActiveSurface = image_data->glIndex;
 			child_image->glActiveSurface = image->glActiveSurface;
 		}
 	}
@@ -318,7 +381,7 @@ static CDATA CPROC cColorAverage( CDATA c1, CDATA c2
 
 //----------------------------------------------------------------------
 
- void  FixImagePosition ( ImageFile *pImage )
+ void  FixImagePosition ( Image pImage )
 {
 	if( pImage )
 	{
@@ -377,9 +440,9 @@ static CDATA CPROC cColorAverage( CDATA c1, CDATA c2
 
 //----------------------------------------------------------------------
 
-static void ComputeImageData( ImageFile *pImage )
+static void ComputeImageData( Image pImage )
 {
-	ImageFile *pParent;
+	Image pParent;
 	int x, y;
 
 	x = pImage->real_x;
@@ -469,7 +532,7 @@ static void ComputeImageData( ImageFile *pImage )
    }
    FixImagePosition( pImage );
    {
-      ImageFile *pSub;
+      Image pSub;
       pSub = pImage->pChild;
       while( pSub )
       {
@@ -494,7 +557,7 @@ static void ComputeImageData( ImageFile *pImage )
 
 //----------------------------------------------------------------------
 
- void  MoveImage ( ImageFile *pImage, S_32 x, S_32 y )
+ void  MoveImage ( Image pImage, S_32 x, S_32 y )
 {
 	if( !pImage->pParent
 		&& !( pImage->flags & IF_FLAG_OWN_DATA ) ) // cannot move master iamge... only sub images..
@@ -507,7 +570,7 @@ static void ComputeImageData( ImageFile *pImage )
 
 //----------------------------------------------------------------------
 
- void  GetImageSize ( ImageFile *image, _32 *width, _32 *height )
+ void  GetImageSize ( Image image, _32 *width, _32 *height )
 {
     if( image )
     {
@@ -528,7 +591,7 @@ static void ComputeImageData( ImageFile *pImage )
 
 //----------------------------------------------------------------------
 
- void  ResizeImageEx ( ImageFile *pImage, S_32 width, S_32 height DBG_PASS )
+ void  ResizeImageEx ( Image pImage, S_32 width, S_32 height DBG_PASS )
 {
    if( !pImage )
       return;
@@ -538,7 +601,7 @@ static void ComputeImageData( ImageFile *pImage )
       //lprintf( WIDE("BLAH") );
 	   if( pImage->real_height != height || pImage->real_width != width )
    	{
-	      if( !( pImage->flags & IF_FLAG_EXTERN_COLORS ) )
+			if( !( pImage->flags & IF_FLAG_EXTERN_COLORS ) )
    	      Release( pImage->image );
       	pImage->height = pImage->real_height =  height;
 	      pImage->width = pImage->real_width =
@@ -638,12 +701,12 @@ static void SmearFlag( Image image, int flag )
 
 //----------------------------------------------------------------------
 
- ImageFile * MakeSubImageEx ( ImageFile *pImage, S_32 x, S_32 y, _32 width, _32 height DBG_PASS)
+ Image  MakeSubImageEx ( Image pImage, S_32 x, S_32 y, _32 width, _32 height DBG_PASS)
 {
-	ImageFile *p;
+	Image p;
 	//if( !pImage )
 	// return NULL;
-	p = (ImageFile*)AllocateEx( sizeof( ImageFile ) DBG_RELAY );
+	p = GetFromSet( ImageFile, &l.Images );
 	p->transform = NULL;
 	p->flags = 0;
 	p->width = p->real_width = width;
@@ -676,10 +739,11 @@ static void SmearFlag( Image image, int flag )
 
 //----------------------------------------------------------------------
 
- ImageFile * BuildImageFileEx ( PCOLOR pc, _32 Width, _32 Height DBG_PASS )
+ Image  BuildImageFileEx ( PCOLOR pc, _32 Width, _32 Height DBG_PASS )
 {
-   ImageFile *p;
-   p = (ImageFile*)AllocateEx( sizeof( ImageFile ) DBG_RELAY);
+	Image p;
+   p = GetFromSet( ImageFile, &l.Images );
+   //p = (ImageFile*)AllocateEx( sizeof( ImageFile ) DBG_RELAY);
    p->transform = NULL;
    p->flags = 0;
    p->eff_x = p->x = p->real_x = 0;
@@ -703,7 +767,7 @@ static void SmearFlag( Image image, int flag )
 
 //----------------------------------------------------------------------
 
- ImageFile *  RemakeImageEx ( ImageFile *pImage, PCOLOR pc
+ Image   RemakeImageEx ( Image pImage, PCOLOR pc
                                  , _32 width, _32 height DBG_PASS)
 {
    // for this routine I'm gonna have to assume that the image
@@ -737,7 +801,7 @@ static void SmearFlag( Image image, int flag )
 			// have a new suface - MUST move child surfaces...
 			//ComputeImageData( pImage );
 			{
-				ImageFile *pSub;
+				Image pSub;
 				pSub = pImage->pChild;
 				while( pSub )
 				{
@@ -761,7 +825,7 @@ static void SmearFlag( Image image, int flag )
 //----------------------------------------------------------------------
 
 
- ImageFile * MakeImageFileEx (_32 Width, _32 Height DBG_PASS)
+ Image  MakeImageFileEx (_32 Width, _32 Height DBG_PASS)
 {
 	//lprintf( WIDE("Allocate %d"),sizeof( COLOR ) * Width * Height  );
 	Image tmp = BuildImageFileEx( (PCOLOR)AllocateEx( sizeof( COLOR ) * Width * Height DBG_RELAY )
@@ -776,7 +840,7 @@ static void SmearFlag( Image image, int flag )
 
 //----------------------------------------------------------------------
 
- void  UnmakeImageFileEx ( ImageFile *pif DBG_PASS)
+ void  UnmakeImageFileEx ( Image pif DBG_PASS)
 {
    if( pif )
    {
@@ -808,8 +872,10 @@ static void SmearFlag( Image image, int flag )
             if( pif->pParent->flags & IF_FLAG_FREE )
                UnmakeImageFile( pif->pParent );
          }
-      }
-      ReleaseEx( pif DBG_RELAY );
+		}
+      ReleaseTexture( pif, 0 );
+		DeleteFromSet( ImageFile, l.Images, pif );
+      //ReleaseEx( pif DBG_RELAY );
    }
 }
 
@@ -852,11 +918,11 @@ Image DecodeMemoryToImage( P_8 buf, _32 size )
 }
 //----------------------------------------------------------------------
 
-ImageFile*  LoadImageFileFromGroupEx ( INDEX group, CTEXTSTR filename DBG_PASS )
+Image LoadImageFileFromGroupEx ( INDEX group, CTEXTSTR filename DBG_PASS )
 {
 	_32 size;
 	P_8 buf;
-	ImageFile* file = NULL;
+	Image file = NULL;
 	FILE* fp;
 
 	fp = sack_fopen( group, filename, WIDE("rb"));
@@ -885,7 +951,7 @@ ImageFile*  LoadImageFileFromGroupEx ( INDEX group, CTEXTSTR filename DBG_PASS )
 
 //---------------------------------------------------------------------------
 
- ImageFile*  LoadImageFileEx ( CTEXTSTR filename DBG_PASS )
+ Image  LoadImageFileEx ( CTEXTSTR filename DBG_PASS )
 {
     return LoadImageFileFromGroupEx( 0, filename DBG_RELAY );
 }
@@ -1082,8 +1148,6 @@ struct glSurfaceImageData * MarkImageUpdated( Image child_image )
 			if( image_data->glIndex )
 			{
 				image_data->flags.updated = 1;
-				//glDeleteTextures( 1, &image_data->glIndex );
-				//image_data->glIndex = 0;
 			}
 			if( data == l.glActiveSurface )
 				current_image_data = image_data;
@@ -1225,7 +1289,7 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 	}
 }
 
-void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
+void  BlatColorAlpha ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 {
 	PCDATA po;
 	int  oo;
@@ -1337,14 +1401,14 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 }
 //---------------------------------------------------------------------------
 #undef ClearImageTo
- void  ClearImageTo ( ImageFile *pImage, CDATA c )
+ void  ClearImageTo ( Image pImage, CDATA c )
 {
 	BlatColor( pImage, 0, 0, pImage->real_width, pImage->real_height, c );
 }
 
 //---------------------------------------------------------------------------
 #undef ClearImage
- void  ClearImage ( ImageFile *pImage )
+ void  ClearImage ( Image pImage )
 {
 	// should use 1 bit blue to make it definatly non transparent?
 	// hmm.... nah - clear is CLEAR image...
@@ -1358,7 +1422,7 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 //#pragma warning( " // this should only be used by internal functions (load gif)" )
 //#warning // and on DYNAMIC bitmaps - do NOT use on DISPLAY bitmaps...
 
- void  FlipImageEx ( ImageFile *pif DBG_PASS )
+ void  FlipImageEx ( Image pif DBG_PASS )
 {
    PCOLOR temp, del;
    int i;
@@ -1400,31 +1464,31 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 IMAGE_NAMESPACE_END
 ASM_IMAGE_NAMESPACE
 
-void CPROC cplot( ImageFile *pi, S_32 x, S_32 y, CDATA c );
-void CPROC cplotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c );
-void CPROC cplotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c );
-CDATA CPROC cgetpixel( ImageFile *pi, S_32 x, S_32 y );
+void CPROC cplot( Image pi, S_32 x, S_32 y, CDATA c );
+void CPROC cplotraw( Image pi, S_32 x, S_32 y, CDATA c );
+void CPROC cplotalpha( Image pi, S_32 x, S_32 y, CDATA c );
+CDATA CPROC cgetpixel( Image pi, S_32 x, S_32 y );
 
 #ifdef HAS_ASSEMBLY
-void CPROC asmplot( ImageFile *pi, S_32 x, S_32 y, CDATA c );
+void CPROC asmplot( Image pi, S_32 x, S_32 y, CDATA c );
 #endif
 
 #ifdef HAS_ASSEMBLY
-void CPROC asmplotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c );
+void CPROC asmplotraw( Image pi, S_32 x, S_32 y, CDATA c );
 #endif
 
 #ifdef HAS_ASSEMBLY
-void CPROC asmplotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c );
-void CPROC asmplotalphaMMX( ImageFile *pi, S_32 x, S_32 y, CDATA c );
+void CPROC asmplotalpha( Image pi, S_32 x, S_32 y, CDATA c );
+void CPROC asmplotalphaMMX( Image pi, S_32 x, S_32 y, CDATA c );
 #endif
 
 #ifdef HAS_ASSEMBLY
-CDATA CPROC asmgetpixel( ImageFile *pi, S_32 x, S_32 y );
+CDATA CPROC asmgetpixel( Image pi, S_32 x, S_32 y );
 #endif
 
 //---------------------------------------------------------------------------
 
-void CPROC cplotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c )
+void CPROC cplotraw( Image pi, S_32 x, S_32 y, CDATA c )
 {
 #ifdef _INVERT_IMAGE
    //y = (pi->real_height-1) - y;
@@ -1454,7 +1518,7 @@ void CPROC cplotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 	}
 }
 
-void CPROC cplot( ImageFile *pi, S_32 x, S_32 y, CDATA c )
+void CPROC cplot( Image pi, S_32 x, S_32 y, CDATA c )
 {
    if( !pi ) return;
    if( ( x >= pi->x ) && ( x < (pi->x + pi->width )) &&
@@ -1490,7 +1554,7 @@ void CPROC cplot( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 
 //---------------------------------------------------------------------------
 
-CDATA CPROC cgetpixel( ImageFile *pi, S_32 x, S_32 y )
+CDATA CPROC cgetpixel( Image pi, S_32 x, S_32 y )
 {
    if( !pi || !pi->image ) return 0;
    if( ( x >= pi->x ) && ( x < (pi->x + pi->width )) &&
@@ -1513,7 +1577,7 @@ CDATA CPROC cgetpixel( ImageFile *pi, S_32 x, S_32 y )
 
 //---------------------------------------------------------------------------
 
-void CPROC cplotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c )
+void CPROC cplotalpha( Image pi, S_32 x, S_32 y, CDATA c )
 {
    CDATA *po;
    if( !pi ) return;
@@ -1551,51 +1615,51 @@ void CPROC cplotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 
 //---------------------------------------------------------------------------
 
-void CPROC do_linec( ImageFile *pImage, S_32 x, S_32 y
+void CPROC do_linec( Image pImage, S_32 x, S_32 y
                             , S_32 xto, S_32 yto, CDATA color );
 #ifdef HAS_ASSEMBLY
-void CPROC do_lineasm( ImageFile *pImage, S_32 x, S_32 y
+void CPROC do_lineasm( Image pImage, S_32 x, S_32 y
                , S_32 xto, S_32 yto, CDATA color );
 #endif
 
-void CPROC do_lineAlphac( ImageFile *pImage, S_32 x, S_32 y
+void CPROC do_lineAlphac( Image pImage, S_32 x, S_32 y
                             , S_32 xto, S_32 yto, CDATA color );
 #ifdef HAS_ASSEMBLY
-void CPROC do_lineAlphaasm( ImageFile *pImage, S_32 x, S_32 y
+void CPROC do_lineAlphaasm( Image pImage, S_32 x, S_32 y
                             , S_32 xto, S_32 yto, CDATA color );
-void CPROC do_lineAlphaMMX( ImageFile *pImage, S_32 x, S_32 y
+void CPROC do_lineAlphaMMX( Image pImage, S_32 x, S_32 y
                     , S_32 xto, S_32 yto, CDATA color );
 #endif
 
-void CPROC do_lineExVc( ImageFile *pImage, S_32 x, S_32 y
+void CPROC do_lineExVc( Image pImage, S_32 x, S_32 y
                             , S_32 xto, S_32 yto, CDATA color
-                            , void (*func)( ImageFile*pif, S_32 x, S_32 y, int d ) );
+                            , void (*func)( Image pif, S_32 x, S_32 y, int d ) );
 #ifdef HAS_ASSEMBLY
-void CPROC do_lineExVasm( ImageFile *pImage, S_32 x, S_32 y
+void CPROC do_lineExVasm( Image pImage, S_32 x, S_32 y
                             , S_32 xto, S_32 yto, CDATA color
-                            , void (*func)( ImageFile*pif, S_32 x, S_32 y, int d ) );
+                            , void (*func)( Image pif, S_32 x, S_32 y, int d ) );
 #endif
 
-void CPROC do_hlinec( ImageFile *pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
+void CPROC do_hlinec( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
 #ifdef HAS_ASSEMBLY
-void CPROC do_hlineasm( ImageFile *pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
+void CPROC do_hlineasm( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
 #endif
 
-void CPROC do_vlinec( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
+void CPROC do_vlinec( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
 #ifdef HAS_ASSEMBLY
-void CPROC do_vlineasm( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
+void CPROC do_vlineasm( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
 #endif
 
-void CPROC do_hlineAlphac( ImageFile *pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
+void CPROC do_hlineAlphac( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
 #ifdef HAS_ASSEMBLY
-void CPROC do_hlineAlphaasm( ImageFile *pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
-void CPROC do_hlineAlphaMMX( ImageFile *pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
+void CPROC do_hlineAlphaasm( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
+void CPROC do_hlineAlphaMMX( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
 #endif
 
-void CPROC do_vlineAlphac( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
+void CPROC do_vlineAlphac( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
 #ifdef HAS_ASSEMBLY
-void CPROC do_vlineAlphaasm( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
-void CPROC do_vlineAlphaMMX( ImageFile *pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
+void CPROC do_vlineAlphaasm( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
+void CPROC do_vlineAlphaMMX( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
 #endif
 
 ASM_IMAGE_NAMESPACE_END
@@ -1604,7 +1668,7 @@ IMAGE_NAMESPACE
 
 //---------------------------------------------------------------------------
 
- void  SetStringBehavior ( ImageFile *pImage, _32 behavior )
+ void  SetStringBehavior ( Image pImage, _32 behavior )
 {
    pImage->flags &= ~(IF_FLAG_C_STRING|IF_FLAG_MENU_STRING|IF_FLAG_CONTROL_STRING );
    if( behavior == STRING_PRINT_RAW )

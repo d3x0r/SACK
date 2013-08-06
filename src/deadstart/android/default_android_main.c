@@ -66,10 +66,13 @@ struct engine {
     int nPoints;
 };
 
-void (*OpenCameras)(void);
-void (*RenderPass)(void);
-void (*SetNativeWindowHandle)(NativeWindowType );
-void (*SendTouchEvents)( int nPoints, PINPUT_POINT points );
+// sets the native window; opencameras will use this as the surface to initialize to.
+void (*BagVidlibPureglSetNativeWindowHandle)(NativeWindowType );
+void (*BagVidlibPureglOpenCameras)(void);
+void (*BagVidlibPureglRenderPass)(void);
+void (*BagVidlibPureglSendTouchEvents)( int nPoints, PINPUT_POINT points );
+
+void (*BagVidlibPureglCloseDisplay)(void);  // do cleanup and suspend processing until a new surface is created.
 
 struct engine engine;
 
@@ -273,10 +276,13 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
            engine->wait_for_display_init = 1;
 			  while( engine->wait_for_startup )
 				  sched_yield();
-			  OpenCameras();
+
+			  BagVidlibPureglSetNativeWindowHandle( engine->app->pendingWindow );
+           // reopen cameras...
+			  BagVidlibPureglOpenCameras();
            engine->wait_for_display_init = 0;
 			  sched_yield();
-           RenderPass();
+           BagVidlibPureglRenderPass();
 #if __USE_NATIVE_APP_EGL_MODULE__
             if (engine->app->window != NULL) {
                 engine_init_display(engine);
@@ -293,7 +299,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 			  engine_term_display(engine);
 #else
 			  // do something like unload interface
-           // CloseCameras();
+           BagVidlibPureglCloseDisplay();
 #endif
             break;
         case APP_CMD_GAINED_FOCUS:
@@ -315,11 +321,6 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
             }
             // Also stop animating.
 				engine->animating = 0;
-#if __USE_NATIVE_APP_EGL_MODULE__
-				engine_draw_frame(engine);
-#else
-            // trigger want update?
-#endif
             break;
     }
 }
@@ -478,20 +479,21 @@ void* BeginNormalProcess( void*param )
 					void *lib = LoadLibrary( mypath, "libbag.video.puregl.so" );
 					if( !lib )
 						LOGI( "Failed to load lib:%s", dlerror() );
-					SetNativeWindowHandle = (void (*)(NativeWindowType ))dlsym( lib, "SetNativeWindowHandle" );
-					if( !SetNativeWindowHandle )
+
+					BagVidlibPureglSetNativeWindowHandle = (void (*)(NativeWindowType ))dlsym( lib, "SACK_Vidlib_SetNativeWindowHandle" );
+					if( !BagVidlibPureglSetNativeWindowHandle )
 						LOGI( "Failed to get SetNativeWindowHandle:%s", dlerror() );
-					else
-					{
-						SetNativeWindowHandle( engine.app->pendingWindow );
-					}
-					RenderPass = (void (*)(void ))dlsym( lib, "DoRenderPass" );
-					if( !RenderPass )
+
+					BagVidlibPureglRenderPass = (void (*)(void ))dlsym( lib, "SACK_Vidlib_DoRenderPass" );
+					if( !BagVidlibPureglRenderPass )
 						LOGI( "Failed to get DoRenderPass:%s", dlerror() );
-					OpenCameras = (void (*)(void ))dlsym( lib, "OpenCameras" );
-					if( !OpenCameras )
+
+					BagVidlibPureglOpenCameras = (void (*)(void ))dlsym( lib, "SACK_Vidlib_OpenCameras" );
+					if( !BagVidlibPureglOpenCameras )
 						LOGI( "Failed to get OpenCameras:%s", dlerror() );
-               SendTouchEvents = (void (*)(int,PINPUT_POINT ))dlsym( lib, "SendTouchEvents" );
+
+					BagVidlibPureglSendTouchEvents = (void (*)(int,PINPUT_POINT ))dlsym( lib, "SACK_Vidlib_SendTouchEvents" );
+               BagVidlibPureglCloseDisplay = (void(*)(void))dlsym( lib, "SACK_Vidlib_CloseDisplay" );
 				}
 				{
 					void *lib;
@@ -610,7 +612,7 @@ void android_main(struct android_app* state) {
 #if __USE_NATIVE_APP_EGL_MODULE__
 				engine_draw_frame(&engine);
 #else
-            RenderPass();
+            BagVidlibPureglRenderPass();
             // trigger want draw?
 #endif
         }
