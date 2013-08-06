@@ -45,7 +45,8 @@ struct image_shader_tracker
 {
 	struct image_shader_flags
 	{
-		BIT_FIELD set_matrix : 1;
+		BIT_FIELD set_matrix : 1; // flag indicating we have set the matrix; this is cleared at the beginning of each enable of a context
+		BIT_FIELD failed : 1; // shader compilation failed, abort enable; and don't reinitialize
 	} flags;
 	CTEXTSTR name;
 	int glProgramId;
@@ -59,12 +60,13 @@ struct image_shader_tracker
 	int worldview;
 	int modelview;
 	PTRSZVAL psv_userdata;
+   void (CPROC*Init)( PImageShaderTracker );
 	void (CPROC*Enable)( PImageShaderTracker,va_list);
 };
 
 
 
-PImageShaderTracker GetShader( CTEXTSTR name );
+PImageShaderTracker GetShader( CTEXTSTR name, void (CPROC*)(PImageShaderTracker) );
 void ClearShaders( void );
 
 void EnableShader( CTEXTSTR shader, ... );
@@ -82,4 +84,10 @@ void InitSimpleTextureShader( PImageShaderTracker tracker );
 // verts, texture_verts, texture and a single texture
 void InitSimpleShadedTextureShader( PImageShaderTracker tracker );
 
+//
+void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker );
+
 void DumpAttribs( int program );
+
+void CloseShaders( struct glSurfaceData *glSurface );
+

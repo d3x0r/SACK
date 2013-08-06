@@ -69,6 +69,7 @@ struct plugin_reference
 	void (CPROC *ExtraDraw3d)(PTRSZVAL,PTRANSFORM camera);
 	void (CPROC *Draw3d)(PTRSZVAL);
 	LOGICAL (CPROC *Mouse3d)(PTRSZVAL,PRAY,_32);
+   void (CPROC *ExtraClose3d)(PTRSZVAL);
 };
 
 struct display_camera
