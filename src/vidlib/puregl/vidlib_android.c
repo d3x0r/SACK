@@ -149,6 +149,32 @@ void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar)
 
 extern KEYDEFINE KeyDefs[];
 
+	static struct touch_event_state
+	{
+		struct touch_event_flags
+		{
+			BIT_FIELD owned_by_surface : 1;
+		}flags;
+		PRENDERER owning_surface;
+
+		struct touch_event_one{
+			struct touch_event_one_flags {
+				BIT_FIELD bDrag : 1;
+			} flags;
+			int x;
+         int y;
+		} one;
+		struct touch_event_two{
+			int x;
+         int y;
+		} two;
+		struct touch_event_three{
+			int x;
+         int y;
+		} three;
+	} touch_info;
+
+
 #ifdef USE_EGL
 
 void DumpSurface( void )
@@ -668,12 +694,14 @@ void SACK_Vidlib_SetTriggerKeyboard( void (*show)(void), void(*hide)(void))
 
 void SACK_Vidlib_ShowInputDevice( void )
 {
+   lprintf( "ShowInputDevice" );
 	if( l.show_keyboard )
       l.show_keyboard();
 }
 
 void SACK_Vidlib_HideInputDevice( void )
 {
+   lprintf( "HideInputDevice" );
 	if( l.hide_keyboard )
       l.hide_keyboard();
 }
@@ -1113,146 +1141,6 @@ static LOGICAL InvokeExtraMouse( CTEXTSTR name, PTRSZVAL psvInit, PRAY mouse_ray
 			return used;
 	}
    return FALSE;
-}
-
-static int CPROC Handle3DTouches( PRENDERER hVideo, PINPUT_POINT touches, int nTouches )
-{
-	static struct touch_event_state
-	{
-		struct {
-			struct {
-				BIT_FIELD bDrag : 1;
-			} flags;
-			int x;
-         int y;
-		} one;
-		struct {
-			int x;
-         int y;
-		} two;
-	} touch_info;
-
-#ifndef __ANDROID__
-	if( l.flags.bRotateLock )
-#endif
-	{
-		int t;
-		for( t = 0; t < nTouches; t++ )
-		{
-			lprintf( WIDE( "%d %5d %5d " ), t, touches[t].x, touches[t].y );
-		}
-		lprintf( WIDE( "touch event" ) );
-		if( nTouches == 2 )
-		{
-         // begin rotate lock
-			if( touches[1].flags.new_event )
-			{
-				touch_info.two.x = touches[1].x;
-				touch_info.two.y = touches[1].y;
-			}
-			else if( touches[1].flags.end_event )
-			{
-			}
-			else
-			{
-				// drag
-				int delx, dely;
-				int delx2, dely2;
-				int delxt, delyt;
-				int delx2t, dely2t;
-				lprintf( WIDE("drag") );
-				delxt = touches[1].x - touches[0].x;
-				delyt = touches[1].y - touches[0].y;
-				delx2t = touch_info.two.x - touch_info.one.x;
-				dely2t = touch_info.two.y - touch_info.one.y;
-				delx = -touch_info.one.x + touches[0].x;
-				dely = -touch_info.one.y + touches[0].y;
-				delx2 = -touch_info.two.x + touches[1].x;
-				dely2 = -touch_info.two.y + touches[1].y;
-				{
-					VECTOR v1,v2/*,vr*/;
-					RCOORD delta_x = delx / 40.0;
-					RCOORD delta_y = dely / 40.0;
-					static int toggle;
-					v1[vUp] = delyt;
-					v1[vRight] = delxt;
-					v1[vForward] = 0;
-					v2[vUp] = dely2t;
-					v2[vRight] = delx2t;
-					v2[vForward] = 0;
-					normalize( v1 );
-					normalize( v2 );
-					lprintf( WIDE("angle %g"), atan2( v2[vUp], v2[vRight] ) - atan2( v1[vUp], v1[vRight] ) );
-					RotateRel( l.origin, 0, 0, - atan2( v2[vUp], v2[vRight] ) + atan2( v1[vUp], v1[vRight] ) );
-					delta_x /= hVideo->pWindowPos.cx;
-					delta_y /= hVideo->pWindowPos.cy;
-					if( toggle )
-					{
-						RotateRel( l.origin, delta_y, 0, 0 );
-						RotateRel( l.origin, 0, delta_x, 0 );
-					}
-					else
-					{
-						RotateRel( l.origin, 0, delta_x, 0 );
-						RotateRel( l.origin, delta_y, 0, 0 );
-					}
-					toggle = 1-toggle;
-				}
-
-            touch_info.one.x = touches[0].x;
-            touch_info.one.y = touches[0].y;
-            touch_info.two.x = touches[1].x;
-            touch_info.two.y = touches[1].y;
-			}
-		}
-		else if( nTouches == 1 )
-		{
-			if( touches[0].flags.new_event )
-			{
-            lprintf( WIDE("begin  (is it a touch on a window?)") );
-				// begin touch
-            touch_info.one.x = touches[0].x;
-            touch_info.one.y = touches[0].y;
-			}
-			else if( touches[0].flags.end_event )
-			{
-				// release
-            lprintf( WIDE("done") );
-			}
-			else
-			{
-				// drag
-				int delx, dely;
-				lprintf( WIDE("drag") );
-				delx = -touch_info.one.x + touches[0].x;
-				dely = -touch_info.one.y + touches[0].y;
-				{
-					RCOORD delta_x = -delx / 1.0;
-					RCOORD delta_y = -dely / 1.0;
-					static int toggle;
-					delta_x /= hVideo->pWindowPos.cx;
-					delta_y /= hVideo->pWindowPos.cy;
-					if( toggle )
-					{
-						RotateRel( l.origin, delta_y, 0, 0 );
-						RotateRel( l.origin, 0, delta_x, 0 );
-					}
-					else
-					{
-						RotateRel( l.origin, 0, delta_x, 0 );
-						RotateRel( l.origin, delta_y, 0, 0 );
-					}
-					toggle = 1-toggle;
-				}
-
-
-				touch_info.one.x = touches[0].x;
-				touch_info.one.y = touches[0].y;
-			}
-		}
-		return 1;
-	}
-	return 0;
 }
 
 static void WantRenderGL( void )
@@ -1838,6 +1726,7 @@ void UpdateMouseRay( struct display_camera * camera )
 		SetPoint( l.mouse_ray_target, tmp1 );
 
 		sub( l.mouse_ray_slope, l.mouse_ray_target, l.mouse_ray_origin );
+		normalize( l.mouse_ray_slope );
 		
 		SetPoint( camera->mouse_ray.n, l.mouse_ray_slope );
 		SetPoint( camera->mouse_ray.o, l.mouse_ray_origin );
@@ -1872,7 +1761,7 @@ static int CPROC InverseOpenGLMouse( struct display_camera *camera, PRENDERER hV
 		else
 			SetPoint( v1, v2 );
 		ApplyInverse( camera->origin_camera, v2, v1 );
-		ApplyInverse( l.origin, v1, v2 );
+		//ApplyInverse( l.origin, v1, v2 );
 
 		//lprintf( "%g,%g,%g  from %g,%g,%g ", v1[0], v1[1], v1[2], v2[0], v2[1] , v2[2] );
 
@@ -1887,7 +1776,7 @@ static int CPROC InverseOpenGLMouse( struct display_camera *camera, PRENDERER hV
 			cosphi = IntersectLineWithPlane( v2, _0, _Z, v4, &t );
 			//lprintf( "t is %g  cosph = %g", t, cosphi );
 			if( cosphi != 0 )
-				addscaled( v2, _0, v1, t );
+				addscaled( v1, _0, v2, t );
 
 			//lprintf( "%g,%g,%g  ", v1[0], v1[1],v1[2] );
 
@@ -1900,19 +1789,19 @@ static int CPROC InverseOpenGLMouse( struct display_camera *camera, PRENDERER hV
 		//		 , (l.viewport[3]/2) - (v1[1]/(2.5/l.aspect) * l.viewport[3])
 		//   	 );
 		if( result_x )
-			(*result_x) = (int)((v2[0]/COMMON_SCALE * camera->viewport[2]) + (camera->viewport[2]/2));
+			(*result_x) = (int)((v1[0]/COMMON_SCALE * camera->viewport[2]) + (camera->viewport[2]/2));
 		if( result_y )
-			(*result_y) = (camera->viewport[3]/2) - (v2[1]/(COMMON_SCALE/camera->aspect) * camera->viewport[3]);
+			(*result_y) = (camera->viewport[3]/2) - (v1[1]/(COMMON_SCALE/camera->aspect) * camera->viewport[3]);
 	}
 	return 1;
 }
 
 
 
-static int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
+static PRENDERER CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 {
 	int used = 0;
-	PRENDERER check;
+	PRENDERER check = NULL;
 	struct display_camera *camera = (struct display_camera *)psvMouse;
 	if( camera->origin_camera )
 	{
@@ -1949,6 +1838,7 @@ static int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 				if( cosphi != 0 )
 					addscaled( target_point, l.mouse_ray_origin, l.mouse_ray_slope, t );
 				//PrintVector( target_point );
+				scale( target_point, target_point, 1/l.scale );
 			}
 			// okay so here's the theory now
 			//   there's an origin where the camera is, I know where that is
@@ -1962,16 +1852,18 @@ static int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 
 				l.real_mouse_x = target_point[0];
 				l.real_mouse_y = target_point[1];
+				//PrintVector( target_point );
 
 				ApplyInverse( check->transform, target_surface_point, target_point );
 				//PrintVector( target_surface_point );
 				newx = (int)target_surface_point[0];
 				newy = (int)target_surface_point[1];
-				//lprintf( "Is %d,%d in %d,%d %dx%d"
-				 //  	 ,newx, newy
-				 //  	 ,check->pWindowPos.x, check->pWindowPos.y
-				 //  	 , check->pWindowPos.x+ check->pWindowPos.cx
-				 //  	 , check->pWindowPos.y+ check->pWindowPos.cy );
+				//lprintf( "Is %d,%d in %d,%d(%dx%d) to %d,%d"
+				//   	 ,newx, newy
+				//   	 ,check->pWindowPos.x, check->pWindowPos.y
+				//   	 ,check->pWindowPos.cx, check->pWindowPos.cy
+				//   	 , check->pWindowPos.x+ check->pWindowPos.cx
+				//   	 , check->pWindowPos.y+ check->pWindowPos.cy );
 
 				if( check == l.hCaptured ||
 					( ( newx >= 0 && newx < (check->pWindowPos.cx ) )
@@ -1980,13 +1872,13 @@ static int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 					if( check && check->pMouseCallback)
 					{
 						if( l.flags.bLogMouseEvent )
-							lprintf( WIDE("Sent Mouse Proper. %d,%d %08x"), newx, newy, l.mouse_b );
+							lprintf( WIDE("Sent Mouse Proper. %d,%d %08x"), newx, newy, b );
 						//InverseOpenGLMouse( camera, check, newx, newy, NULL, NULL );
 						l.current_mouse_event_camera = camera;
 						used = check->pMouseCallback( check->dwMouseData
 													, newx
 													, newy
-													, l.mouse_b );
+													, b );
 						l.current_mouse_event_camera = NULL;
 						if( used )
 							break;
@@ -1995,7 +1887,171 @@ static int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 			}
 		}
 	}
-	return used;
+	return check;
+}
+
+static int CPROC Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nTouches )
+{
+#ifndef __ANDROID__
+	if( l.flags.bRotateLock )
+#endif
+	{
+		int t;
+		for( t = 0; t < nTouches; t++ )
+		{
+			lprintf( WIDE( "%d %5d %5d %s%s" ), t, touches[t].x, touches[t].y, touches[t].flags.new_event?"new":"", touches[t].flags.end_event?"end":"" );
+		}
+		lprintf( WIDE( "touch event" ) );
+		if( nTouches == 3 )
+		{
+			if( touches[2].flags.new_event )
+			{
+				touch_info.three.x = touches[2].x;
+				touch_info.three.y = touches[2].y;
+			}
+
+		}
+		else if( nTouches == 2 )
+		{
+         // begin rotate lock
+			if( touches[1].flags.new_event )
+			{
+				touch_info.two.x = touches[1].x;
+				touch_info.two.y = touches[1].y;
+			}
+			else if( touches[1].flags.end_event )
+			{
+			}
+			else
+			{
+				// drag
+				int delx, dely;
+				int delx2, dely2;
+				int delxt, delyt;
+				int delx2t, dely2t;
+				lprintf( WIDE("drag") );
+				delxt = touches[1].x - touches[0].x;
+				delyt = touches[1].y - touches[0].y;
+				delx2t = touch_info.two.x - touch_info.one.x;
+				dely2t = touch_info.two.y - touch_info.one.y;
+				delx = -touch_info.one.x + touches[0].x;
+				dely = -touch_info.one.y + touches[0].y;
+				delx2 = -touch_info.two.x + touches[1].x;
+				dely2 = -touch_info.two.y + touches[1].y;
+				{
+					VECTOR v1,v2/*,vr*/;
+					RCOORD delta_x = delx / 40.0;
+					RCOORD delta_y = dely / 40.0;
+					static int toggle;
+					v1[vUp] = delyt;
+					v1[vRight] = delxt;
+					v1[vForward] = 0;
+					v2[vUp] = dely2t;
+					v2[vRight] = delx2t;
+					v2[vForward] = 0;
+					normalize( v1 );
+					normalize( v2 );
+					lprintf( WIDE("angle %g"), atan2( v2[vUp], v2[vRight] ) - atan2( v1[vUp], v1[vRight] ) );
+					RotateRel( l.origin, 0, 0, - atan2( v2[vUp], v2[vRight] ) + atan2( v1[vUp], v1[vRight] ) );
+					delta_x /= camera->hVidCore->pWindowPos.cx;
+					delta_y /= camera->hVidCore->pWindowPos.cy;
+					if( toggle )
+					{
+						RotateRel( l.origin, delta_y, 0, 0 );
+						RotateRel( l.origin, 0, delta_x, 0 );
+					}
+					else
+					{
+						RotateRel( l.origin, 0, delta_x, 0 );
+						RotateRel( l.origin, delta_y, 0, 0 );
+					}
+					toggle = 1-toggle;
+				}
+
+            touch_info.one.x = touches[0].x;
+            touch_info.one.y = touches[0].y;
+            touch_info.two.x = touches[1].x;
+            touch_info.two.y = touches[1].y;
+			}
+		}
+		else if( nTouches == 1 )
+		{
+			if( touches[0].flags.new_event )
+			{
+            PRENDERER used;
+            lprintf( WIDE("begin  (is it a touch on a window?)") );
+				// begin touch
+				l.mouse_x
+					= touch_info.one.x = touches[0].x;
+            l.mouse_y
+					= touch_info.one.y = touches[0].y;
+				if( used = OpenGLMouse( (PTRSZVAL)camera, l.mouse_x, l.mouse_y, MK_LBUTTON ) )
+				{
+               l.hCaptured = used;
+					touch_info.owning_surface = used;
+               touch_info.flags.owned_by_surface = 1;
+				}
+				else
+				{
+				}
+			}
+			else if( touches[0].flags.end_event )
+			{
+				if( touch_info.flags.owned_by_surface )
+				{
+					OpenGLMouse( (PTRSZVAL)camera, l.mouse_x, l.mouse_y, 0 );
+					l.hCaptured = NULL;
+					touch_info.owning_surface = NULL;
+					touch_info.flags.owned_by_surface = 0;
+				}
+				// release
+            lprintf( WIDE("done") );
+			}
+			else
+			{
+				if( touch_info.flags.owned_by_surface )
+				{
+					l.mouse_x = touches[0].x;
+					l.mouse_y = touches[0].y;
+					if( !OpenGLMouse( (PTRSZVAL)camera, l.mouse_x, l.mouse_y, MK_LBUTTON ) )
+					{
+                  touch_info.flags.owned_by_surface = 0;
+					}
+				}
+				else
+				{
+					// drag
+					int delx, dely;
+					lprintf( WIDE("drag") );
+					delx = -touch_info.one.x + touches[0].x;
+					dely = -touch_info.one.y + touches[0].y;
+					{
+						RCOORD delta_x = -delx / 1.0;
+						RCOORD delta_y = -dely / 1.0;
+						static int toggle;
+						delta_x /= camera->w;
+						delta_y /= camera->h;
+						if( toggle )
+						{
+							RotateRel( l.origin, delta_y, 0, 0 );
+							RotateRel( l.origin, 0, delta_x, 0 );
+						}
+						else
+						{
+							RotateRel( l.origin, 0, delta_x, 0 );
+							RotateRel( l.origin, delta_y, 0, 0 );
+						}
+						toggle = 1-toggle;
+					}
+
+				}
+				touch_info.one.x = touches[0].x;
+				touch_info.one.y = touches[0].y;
+			}
+		}
+		return 1;
+	}
+	return 0;
 }
 
 //static void HandleMessage (MSG Msg);
@@ -3441,7 +3497,7 @@ int SACK_Vidlib_SendTouchEvents( int nPoints, PINPUT_POINT points )
 			if( !handled )
 			{
 				// this will be like a hvid core
-				handled = Handle3DTouches( ((struct display_camera *)GetLink( &l.cameras, 0 ))->hVidCore, points, nPoints );
+				handled = Handle3DTouches( ((struct display_camera *)GetLink( &l.cameras, 0 )), points, nPoints );
 			}
          return handled;
 		}
