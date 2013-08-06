@@ -148,6 +148,8 @@ extern
 #if defined( __ANDROID__ )
    NativeWindowType displayWindow;
 #endif
+	void (*show_keyboard)(void);
+   void (*hide_keyboard)(void);
 	int bCreatedhWndInstance;
 
 // thread synchronization variables...

@@ -1646,7 +1646,10 @@ struct render_interface_tag
        
        \ \                                                                             */
     RENDER_PROC_PTR( void, SetRestoreHandler)      ( PRENDERER, HideAndRestoreCallback, PTRSZVAL );
-   RENDER_PROC_PTR( void, RestoreDisplayEx )   ( PRENDERER hVideo DBG_PASS );
+		 RENDER_PROC_PTR( void, RestoreDisplayEx )   ( PRENDERER hVideo DBG_PASS );
+       RENDER_PROC_PTR( void, SACK_Vidlib_ShowInputDevice )( void );
+       RENDER_PROC_PTR( void, SACK_Vidlib_HideInputDevice )( void );
+
 };
 
 /* RENDER_PROC( PRENDER_INTERFACE, GetDisplayInterface )( void
@@ -1726,6 +1729,9 @@ typedef int check_this_variable;
 
 #define GetKeyText                REND_PROC_ALIAS(GetKeyText)
 #define HasFocus                  REND_PROC_ALIAS(HasFocus)
+
+#define SACK_Vidlib_ShowInputDevice REND_PROC_ALIAS( SACK_Vidlib_ShowInputDevice )
+#define SACK_Vidlib_HideInputDevice REND_PROC_ALIAS( SACK_Vidlib_HideInputDevice )
 
 #define CreateMessage             REND_PROC_ALIAS(CreateMessage)
 #define SendActiveMessage         REND_PROC_ALIAS(SendActiveMessage)

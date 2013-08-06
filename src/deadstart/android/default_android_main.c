@@ -28,6 +28,7 @@
 #include <android/log.h>
 #include <android_native_app_glue.h>
 #include <android/asset_manager.h>
+#include <android/native_activity.h>
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-activity", __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "native-activity", __VA_ARGS__))
@@ -71,8 +72,8 @@ void (*BagVidlibPureglSetNativeWindowHandle)(NativeWindowType );
 void (*BagVidlibPureglOpenCameras)(void);
 void (*BagVidlibPureglRenderPass)(void);
 void (*BagVidlibPureglSendTouchEvents)( int nPoints, PINPUT_POINT points );
-
 void (*BagVidlibPureglCloseDisplay)(void);  // do cleanup and suspend processing until a new surface is created.
+void (*BagVidlibPureglSetTriggerKeyboard)(void(*show)(void),void(*hide)(void));  // do cleanup and suspend processing until a new surface is created.
 
 struct engine engine;
 
@@ -384,6 +385,17 @@ void ExportAssets( void )
 	AAssetDir_close(assetDir);
 }
 
+void show_keyboard( void )
+{
+	ANativeActivity_showSoftInput( engine.app->activity, ANATIVEACTIVITY_SHOW_SOFT_INPUT_IMPLICIT );
+
+}
+
+void hide_keyboard( void )
+{
+   ANativeActivity_hideSoftInput( engine.app->activity, ANATIVEACTIVITY_HIDE_SOFT_INPUT_IMPLICIT_ONLY );
+}
+
 void* BeginNormalProcess( void*param )
 {
 	char buf[256];
@@ -496,7 +508,9 @@ void* BeginNormalProcess( void*param )
 						LOGI( "Failed to get OpenCameras:%s", dlerror() );
 
 					BagVidlibPureglSendTouchEvents = (void (*)(int,PINPUT_POINT ))dlsym( lib, "SACK_Vidlib_SendTouchEvents" );
-               BagVidlibPureglCloseDisplay = (void(*)(void))dlsym( lib, "SACK_Vidlib_CloseDisplay" );
+					BagVidlibPureglCloseDisplay = (void(*)(void))dlsym( lib, "SACK_Vidlib_CloseDisplay" );
+					BagVidlibPureglSetTriggerKeyboard = (void(*)(void))dlsym( lib, "SACK_Vidlib_SetTriggerKeyboard" );
+               BagVidlibPureglSetTriggerKeyboard( show_keyboard, hide_keyboard );
 				}
 				{
 					void *lib;
