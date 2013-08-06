@@ -660,6 +660,24 @@ ATEXIT( ExitTest )
 #endif
 
 
+void SACK_Vidlib_SetTriggerKeyboard( void (*show)(void), void(*hide)(void))
+{
+	l.show_keyboard = show;
+	l.hide_keyboard = hide;
+}
+
+void SACK_Vidlib_ShowInputDevice( void )
+{
+	if( l.show_keyboard )
+      l.show_keyboard();
+}
+
+void SACK_Vidlib_HideInputDevice( void )
+{
+	if( l.hide_keyboard )
+      l.hide_keyboard();
+}
+
 // forward declaration - staticness will probably cause compiler errors.
 static int CPROC ProcessDisplayMessages(void );
 
@@ -1191,7 +1209,7 @@ static int CPROC Handle3DTouches( PRENDERER hVideo, PINPUT_POINT touches, int nT
 		{
 			if( touches[0].flags.new_event )
 			{
-            lprintf( WIDE("begin") );
+            lprintf( WIDE("begin  (is it a touch on a window?)") );
 				// begin touch
             touch_info.one.x = touches[0].x;
             touch_info.one.y = touches[0].y;
@@ -1209,8 +1227,8 @@ static int CPROC Handle3DTouches( PRENDERER hVideo, PINPUT_POINT touches, int nT
 				delx = -touch_info.one.x + touches[0].x;
 				dely = -touch_info.one.y + touches[0].y;
 				{
-					RCOORD delta_x = -delx / 10.0;
-					RCOORD delta_y = -dely / 10.0;
+					RCOORD delta_x = -delx / 1.0;
+					RCOORD delta_y = -dely / 1.0;
 					static int toggle;
 					delta_x /= hVideo->pWindowPos.cx;
 					delta_y /= hVideo->pWindowPos.cy;
@@ -3516,7 +3534,9 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
                                        , MarkDisplayUpdated
 									   , SetHideHandler
 									   , SetRestoreHandler
-									   , RestoreDisplayEx
+													, RestoreDisplayEx
+                                       , SACK_Vidlib_ShowInputDevice
+                                       , SACK_Vidlib_HideInputDevice
 };
 
 RENDER3D_INTERFACE Render3d = {

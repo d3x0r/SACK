@@ -799,7 +799,12 @@ static int OnCommonFocus( EDIT_FIELD_NAME )( PCONTROL pc, LOGICAL bFocused )
 	ValidatedControlData( PEDIT, EDIT_FIELD, pe, pc );
 	if( pe )
 	{
-      //lprintf( WIDE("Setting active focus here!") );
+		//lprintf( WIDE("Setting active focus here!") );
+		if( bFocused )
+			SACK_Vidlib_ShowInputDevice();
+      else
+         SACK_Vidlib_HideInputDevice();
+
 		pe->flags.bFocused = bFocused;
 		if( pe->flags.bFocused )
 		{
