@@ -1114,7 +1114,9 @@ static int CPROC Handle3DTouches( PRENDERER hVideo, PINPUT_POINT touches, int nT
 		} two;
 	} touch_info;
 
+#ifndef __ANDROID__
 	if( l.flags.bRotateLock )
+#endif
 	{
 		int t;
 		for( t = 0; t < nTouches; t++ )
@@ -1207,8 +1209,8 @@ static int CPROC Handle3DTouches( PRENDERER hVideo, PINPUT_POINT touches, int nT
 				delx = -touch_info.one.x + touches[0].x;
 				dely = -touch_info.one.y + touches[0].y;
 				{
-					RCOORD delta_x = -delx / 40.0;
-					RCOORD delta_y = -dely / 40.0;
+					RCOORD delta_x = -delx / 10.0;
+					RCOORD delta_y = -dely / 10.0;
 					static int toggle;
 					delta_x /= hVideo->pWindowPos.cx;
 					delta_y /= hVideo->pWindowPos.cy;
@@ -3421,7 +3423,7 @@ int SACK_Vidlib_SendTouchEvents( int nPoints, PINPUT_POINT points )
 			if( !handled )
 			{
 				// this will be like a hvid core
-				handled = Handle3DTouches( NULL, points, nPoints );
+				handled = Handle3DTouches( ((struct display_camera *)GetLink( &l.cameras, 0 ))->hVidCore, points, nPoints );
 			}
          return handled;
 		}

@@ -192,7 +192,7 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 	 {
 		 int32_t action = AMotionEvent_getAction(event );
 		 int pointer = ( action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK ) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-		 LOGI( "POINTER %04x %d %d", action, pointer, action & AMOTION_EVENT_ACTION_MASK );
+		 //LOGI( "POINTER %04x %d %d", action, pointer, action & AMOTION_EVENT_ACTION_MASK );
 
 		 {
 			 int n;
@@ -243,6 +243,7 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 		 default:
           LOGI( "Motion Event ignored..." );
 		 }
+       /*
 		 {
 			 int n;
 			 for( n = 0; n < engine->nPoints; n++ )
@@ -250,9 +251,11 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 				 LOGI( "Point : %d %4d %4d %d %d", n, engine->points[n].x , engine->points[n].y, engine->points[n].flags.new_event, engine->points[n].flags.end_event );
 			 }
 		 }
-		 engine->animating = 1;
-        engine->state.x = AMotionEvent_getX(event, 0);
-        engine->state.y = AMotionEvent_getY(event, 0);
+       */
+		 BagVidlibPureglSendTouchEvents( engine->nPoints, engine->points );
+		 //engine->animating = 1;
+        //engine->state.x = AMotionEvent_getX(event, 0);
+        //engine->state.y = AMotionEvent_getY(event, 0);
         return 1;
     }
     return 0;
