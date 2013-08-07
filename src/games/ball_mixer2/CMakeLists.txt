@@ -37,19 +37,21 @@ INSTALL_INTERSHELL_WIDGETS( bin )
 
 PROJECT( ball_mixer )
 
+if( NOT __ANDROID__ )
 if( EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../altanik )
 SET( ALTANIK_ROOT  ${CMAKE_CURRENT_SOURCE_DIR}/../../../../altanik )
 SET( EXTRA_SOURCES remote_hook.cpp )
 ADD_DEFINITIONS( -DALTANIK_EXISTS )
 endif( EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../altanik )
 
-
-
-include_directories( ../include )
-
 if( EXTRA_SOURCES )
 include_directories( ${ALTANIK_ROOT}/include )
 endif( EXTRA_SOURCES )
+endif( NOT __ANDROID__ )
+
+
+
+include_directories( ../include )
 
 include_directories( ${BULLET_SOURCE}/src )
 string( TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_lower ) 
@@ -60,16 +62,26 @@ if( CMAKE_BUILD_lower STREQUAL "debug" )
 #ADD_DEFINITIONS( -DBT_DEBUG )
 endif( CMAKE_BUILD_lower STREQUAL "debug" )
 
+if( __ANDROID__ )
+add_definitions( -DUSE_GLES2 )
+endif( __ANDROID__ )
+
 ADD_LIBRARY( ${PROJECT_NAME} SHARED
 ${FIRST_GCC_LIBRARY_SOURCE} 
+  local.cpp
   land.cpp
   ${EXTRA_SOURCES}
   shader.cpp
 ${LAST_GCC_LIBRARY_SOURCE} 
 )
-TARGET_LINK_LIBRARIES( ${PROJECT_NAME} ${SACK_LIBRARIES} ${BULLET_LIBRARIES} winmm opengl32 glu32 )
+TARGET_LINK_LIBRARIES( ${PROJECT_NAME} ${SACK_LIBRARIES} ${BULLET_LIBRARIES} ${SACK_PLATFORM_LIBRARIES} )
+if( NOT __ANDROID__ )
 TARGET_LINK_LIBRARIES( ${PROJECT_NAME} glew )
+endif( NOT __ANDROID__ )
 
+ set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fPIC") 
+ set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-fPIC") 
+ set(CMAKE_LINK_FLAGS ${CMAKE_LINK_FLAGS} "-fPIC") 
 string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
                   COMPILE_DEFINITIONS "TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}\""

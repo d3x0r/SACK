@@ -1,4 +1,10 @@
 
+#include <render.h>
+#include <vectlib.h>
+#include <controls.h>
+#ifdef USE_GLES2
+#include <GLES2/gl2.h>
+#endif
 // bullet instance is defined in l....
 #include <btBulletDynamicsCommon.h>
 
@@ -29,9 +35,6 @@ struct BulletInfo
 
 #define l local_terrain_data
 
-#ifndef TERRAIN_MAIN_SOURCE
-extern
-#endif
 
 struct local_terrain_data_tag {
 	PRENDER_INTERFACE pri;
@@ -204,7 +207,12 @@ struct {
 
 	float projection[16]; // retreived from opengl state 
 	float worldview[16]; // obtained from camera translation
-} l;
+};
+
+#ifndef TERRAIN_MAIN_SOURCE
+extern struct local_terrain_data_tag l;
+#endif
+
 
 enum color_defs{
 	MAT_AMBIENT0,

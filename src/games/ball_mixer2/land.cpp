@@ -50,7 +50,6 @@
 #define USE_RENDER_INTERFACE l.pri
 #define USE_IMAGE_INTERFACE l.pii
 #define NEED_VECTLIB_COMPARE
-#define TERRAIN_MAIN_SOURCE
 #define MAKE_RCOORD_SINGLE
 #include <sqlgetoption.h>
 #include <math.h>
@@ -100,8 +99,6 @@ enum { UP
 } DIRECTIONS;
 #endif
 
-#define TERRAIN_MAIN_SOURCE
-
 #define TIME_TO_TURN_BALL  l.time_to_turn_ball
 #define TIME_SCALE (1.0f)
 
@@ -110,8 +107,6 @@ enum { UP
 #define TIME_TO_HOME l.time_to_home 
 
 #include "local.h"
-
-EasyRegisterControlWithBorder( WIDE("Terrain View"), 0, BORDER_NONE );
 
 struct world_body_map *bodymap;
 
@@ -1210,11 +1205,12 @@ int DrawSphereThing( PHEXPATCH patch, int mode )
 {
 	RCOORD scale = 0.0;
 
+#ifndef USE_GLES2
 	glEnable(GL_VERTEX_PROGRAM_ARB);
          CheckErr();
 	glEnable(GL_FRAGMENT_PROGRAM_ARB);
          CheckErr();
-
+#endif
 	glUseProgram( l.shader.extra_simple_shader.shader );
          CheckErr();
 	lprintf( "Use ess Program (then draw)" );
@@ -2185,7 +2181,7 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
 
 }
 
-static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	l.identity_depth = identity_depth;
 	l.aspect = aspect;

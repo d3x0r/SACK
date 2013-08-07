@@ -17,6 +17,9 @@
 #ifdef __ANDROID__
 #include <GLES/gl.h>
 #include <GLES2/gl2.h>
+#define GL_GLEXT_PROTOTYPES
+#include <GLES2/gl2ext.h>
+
 #else
 #define GLEW_NO_GLU
 #include <GL/glew.h>
@@ -76,7 +79,7 @@ void InitSuperSimpleShader( void )
 		{
 			//Error checking.
 #ifdef __ANDROID__
-			glGetObjectParameterivARB(l.shader.extra_simple_shader.vert_shader, GL_COMPILE_STATUS, &result);
+			glGetShaderiv(l.shader.extra_simple_shader.vert_shader, GL_COMPILE_STATUS, &result);
 #else
 			glGetObjectParameterivARB(l.shader.extra_simple_shader.vert_shader, GL_OBJECT_COMPILE_STATUS_ARB, &result);
 #endif
@@ -88,12 +91,20 @@ void InitSuperSimpleShader( void )
 				//We failed to compile.
 				lprintf("Vertex shader 'program A' failed compilation.\n");
 				//Attempt to get the length of our error log.
+#ifdef USE_GLES2
+				glGetShaderiv(l.shader.extra_simple_shader.vert_shader, GL_COMPILE_STATUS, &result);
+#else
 				glGetObjectParameterivARB(l.shader.extra_simple_shader.vert_shader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
+#endif
 				buffer = NewArray( char, length );
 				//Create a buffer.
 					
 				//Used to get the final length of the log.
+#ifdef USE_GLES2
+				glGetShaderInfoLog( l.shader.extra_simple_shader.vert_shader, length, &final, buffer);
+#else
 				glGetInfoLogARB(l.shader.extra_simple_shader.vert_shader, length, &final, buffer);
+#endif
 				//Convert our buffer into a string.
 				lprintf( "message: %s", buffer );
 
@@ -120,7 +131,11 @@ void InitSuperSimpleShader( void )
 
 		{
 			//Error checking.
+#ifdef USE_GLES2
+			glGetShaderiv(l.shader.extra_simple_shader.frag_shader, GL_COMPILE_STATUS, &result);
+#else
 			glGetObjectParameterivARB(l.shader.extra_simple_shader.frag_shader, GL_OBJECT_COMPILE_STATUS_ARB, &result);
+#endif
 			if (!result)
 			{
 				GLint length;
@@ -129,12 +144,20 @@ void InitSuperSimpleShader( void )
 				//We failed to compile.
 				lprintf("Vertex shader 'program B' failed compilation.\n");
 				//Attempt to get the length of our error log.
+#ifdef USE_GLES2
+				glGetShaderiv(l.shader.extra_simple_shader.frag_shader, GL_INFO_LOG_LENGTH, &length);
+#else
 				glGetObjectParameterivARB(l.shader.extra_simple_shader.frag_shader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
+#endif
 				buffer = NewArray( char, length );
 				//Create a buffer.
 					
 				//Used to get the final length of the log.
+#ifdef USE_GLES2
+				glGetShaderInfoLog( l.shader.extra_simple_shader.frag_shader, length, &final, buffer);
+#else
 				glGetInfoLogARB(l.shader.extra_simple_shader.frag_shader, length, &final, buffer);
+#endif
 				//Convert our buffer into a string.
 				lprintf( "message: %s", buffer );
 
@@ -148,9 +171,17 @@ void InitSuperSimpleShader( void )
 			}
 		}
 
+#ifdef USE_GLES2
+		glAttachShader(l.shader.extra_simple_shader.shader, l.shader.extra_simple_shader.vert_shader );
+#else
 		glAttachObjectARB(l.shader.extra_simple_shader.shader, l.shader.extra_simple_shader.vert_shader );
+#endif
 		CheckErr();
+#ifdef USE_GLES2
+		glAttachShader(l.shader.extra_simple_shader.shader, l.shader.extra_simple_shader.frag_shader );
+#else
 		glAttachObjectARB(l.shader.extra_simple_shader.shader, l.shader.extra_simple_shader.frag_shader );
+#endif
 		CheckErr();
 		
 		glBindAttribLocation(l.shader.extra_simple_shader.shader, 0, "vPosition");
@@ -427,8 +458,8 @@ void InitShader( void )
 		glCompileShader(l.shader.simple_shader.vert_shader);
 		{
 			//Error checking.
-#ifdef __ANDROID__
-			glGetObjectParameterivARB(l.shader.simple_shader.vert_shader, GL_COMPILE_STATUS, &result);
+#ifdef USE_GLES2
+         glGetShaderiv(l.shader.simple_shader.vert_shader, GL_COMPILE_STATUS, &result);
 #else
 			glGetObjectParameterivARB(l.shader.simple_shader.vert_shader, GL_OBJECT_COMPILE_STATUS_ARB, &result);
 #endif
@@ -440,12 +471,20 @@ void InitShader( void )
 				//We failed to compile.
 				lprintf("Vertex shader 'program A' failed compilation.\n");
 				//Attempt to get the length of our error log.
+#ifdef USE_GLES2
+				glGetShaderiv(l.shader.simple_shader.vert_shader, GL_INFO_LOG_LENGTH, &length);
+#else
 				glGetObjectParameterivARB(l.shader.simple_shader.vert_shader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
+#endif
 				buffer = NewArray( char, length );
 				//Create a buffer.
 					
 				//Used to get the final length of the log.
+#ifdef USE_GLES2
+				glGetShaderInfoLog( l.shader.simple_shader.vert_shader, length, &final, buffer);
+#else
 				glGetInfoLogARB(l.shader.simple_shader.vert_shader, length, &final, buffer);
+#endif
 				//Convert our buffer into a string.
 				lprintf( "message: %s", buffer );
 
@@ -472,7 +511,11 @@ void InitShader( void )
 
 		{
 			//Error checking.
+#ifdef USE_GLES2
+			glGetShaderiv(l.shader.simple_shader.frag_shader, GL_COMPILE_STATUS, &result);
+#else
 			glGetObjectParameterivARB(l.shader.simple_shader.frag_shader, GL_OBJECT_COMPILE_STATUS_ARB, &result);
+#endif
 			if (!result)
 			{
 				GLint length;
@@ -481,12 +524,20 @@ void InitShader( void )
 				//We failed to compile.
 				lprintf("Vertex shader 'program B' failed compilation.\n");
 				//Attempt to get the length of our error log.
+#ifdef USE_GLES2
+				glGetShaderiv(l.shader.simple_shader.frag_shader, GL_INFO_LOG_LENGTH, &length);
+#else
 				glGetObjectParameterivARB(l.shader.simple_shader.frag_shader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
+#endif
 				buffer = NewArray( char, length );
 				//Create a buffer.
 					
 				//Used to get the final length of the log.
+#ifdef USE_GLES2
+				glGetShaderInfoLog( l.shader.simple_shader.frag_shader, length, &final, buffer);
+#else
 				glGetInfoLogARB(l.shader.simple_shader.frag_shader, length, &final, buffer);
+#endif
 				//Convert our buffer into a string.
 				lprintf( "message: %s", buffer );
 
@@ -500,8 +551,16 @@ void InitShader( void )
 			}
 		}
 
+#ifdef USE_GLES2
+		glAttachShader(l.shader.simple_shader.shader, l.shader.simple_shader.vert_shader );
+#else
 		glAttachObjectARB(l.shader.simple_shader.shader, l.shader.simple_shader.vert_shader );
+#endif
+#ifdef USE_GLES2
+		glAttachShader(l.shader.simple_shader.shader, l.shader.simple_shader.frag_shader );
+#else
 		glAttachObjectARB(l.shader.simple_shader.shader, l.shader.simple_shader.frag_shader );
+#endif
 		
 		glBindAttribLocation(l.shader.simple_shader.shader, 0, "in_Position");
 		glBindAttribLocation(l.shader.simple_shader.shader, 1, "in_Normal");
@@ -558,15 +617,15 @@ void InitShader( void )
 
 	{
 		const char *codeblocks[3];
-		GLhandleARB fragmentHandle;
+		GLint fragmentHandle;
 
 #ifndef __ANDROID__
 		glEnable(GL_FRAGMENT_PROGRAM_ARB);
 #endif
-		l.shader.normal_shader.shader = glCreateProgramObjectARB();
+		l.shader.normal_shader.shader = glCreateProgram();
 
 		//Obtain a valid handle to a vertex shader object.
-		l.shader.normal_shader.vert_shader = glCreateShaderObjectARB(GL_VERTEX_SHADER);
+		l.shader.normal_shader.vert_shader = glCreateShader(GL_VERTEX_SHADER);;
 
 		codeblocks[0] = common_vertex_transform_source;
 		codeblocks[1] = layer_texture_source;
@@ -585,7 +644,11 @@ void InitShader( void )
 		glCompileShader(l.shader.normal_shader.vert_shader);
 		{
 			//Error checking.
+#ifdef USE_GLES2
+         glGetShaderiv(l.shader.normal_shader.vert_shader, GL_COMPILE_STATUS, &result);
+#else
 			glGetObjectParameterivARB(l.shader.normal_shader.vert_shader, GL_OBJECT_COMPILE_STATUS_ARB, &result);
+#endif
 			if (!result)
 			{
 				GLint length;
@@ -594,12 +657,20 @@ void InitShader( void )
 				//We failed to compile.
 				lprintf("Vertex shader 'program A' failed compilation.\n");
 				//Attempt to get the length of our error log.
+#ifdef USE_GLES2
+				glGetShaderiv(l.shader.normal_shader.vert_shader, GL_INFO_LOG_LENGTH, &length);
+#else
 				glGetObjectParameterivARB(l.shader.normal_shader.vert_shader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
+#endif
 				buffer = NewArray( char, length );
 				//Create a buffer.
 					
 				//Used to get the final length of the log.
+#ifdef USE_GLES2
+				glGetShaderInfoLog( l.shader.normal_shader.vert_shader, length, &final, buffer);
+#else
 				glGetInfoLogARB(l.shader.normal_shader.vert_shader, length, &final, buffer);
+#endif
 				//Convert our buffer into a string.
 				lprintf( "message: %s", buffer );
 
@@ -613,7 +684,7 @@ void InitShader( void )
 			}
 		}
 
-		fragmentHandle = glCreateShaderObjectARB(GL_FRAGMENT_SHADER);
+		fragmentHandle = glCreateShader(GL_FRAGMENT_SHADER);
 		codeblocks[0] = bump_texture_color_pixel_source;
 		glShaderSource(
 			fragmentHandle, //The handle to our shader
@@ -626,7 +697,7 @@ void InitShader( void )
 
 		{
 			//Error checking.
-			glGetObjectParameterivARB(fragmentHandle, GL_OBJECT_COMPILE_STATUS_ARB, &result);
+			glGetShaderiv(fragmentHandle, GL_COMPILE_STATUS, &result);
 			if (!result)
 			{
 				GLint length;
@@ -635,12 +706,12 @@ void InitShader( void )
 				//We failed to compile.
 				lprintf("Vertex shader 'program B' failed compilation.\n");
 				//Attempt to get the length of our error log.
-				glGetObjectParameterivARB(fragmentHandle, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
+				glGetShaderiv(fragmentHandle, GL_INFO_LOG_LENGTH, &length);
 				buffer = NewArray( char, length );
 				//Create a buffer.
 					
 				//Used to get the final length of the log.
-				glGetInfoLogARB(fragmentHandle, length, &final, buffer);
+			   glGetShaderInfoLog(fragmentHandle, length, &final, buffer);
 				//Convert our buffer into a string.
 				lprintf( "message: %s", buffer );
 
@@ -654,8 +725,8 @@ void InitShader( void )
 			}
 		}
 
-		glAttachObjectARB(l.shader.normal_shader.shader, l.shader.normal_shader.vert_shader );
-		glAttachObjectARB(l.shader.normal_shader.shader, fragmentHandle );
+		glAttachShader(l.shader.normal_shader.shader, l.shader.normal_shader.vert_shader );
+		glAttachShader(l.shader.normal_shader.shader, fragmentHandle );
 
 		glBindAttribLocation(l.shader.normal_shader.shader, 0, "in_Position");
 		glBindAttribLocation(l.shader.normal_shader.shader, 1, "in_Normal");
@@ -896,7 +967,6 @@ struct SACK_3D_Surface *CreateBumpTextureFragment( int verts
 									, PCVECTOR *texture_coord_array  // ignored
 									)
 {
-	if( glGenBuffersARB )
 	{
 		GLint result;
 		struct SACK_3D_Surface *surface = New( struct SACK_3D_Surface );
@@ -904,6 +974,9 @@ struct SACK_3D_Surface *CreateBumpTextureFragment( int verts
 		surface->vertices = shape_array;
 		surface->elements = NewArray( GLuint, verts );
 		surface->pdl_VBOTexture = CreateDataList( sizeof( GLuint ) );
+
+#define glGenVertexArrays glGenVertexArraysOES
+#define glBindVertexArray glBindVertexArrayOES
 
 		glGenVertexArrays(1, &surface->VAOobject); // Create our Vertex Array Object  
 
@@ -914,16 +987,16 @@ struct SACK_3D_Surface *CreateBumpTextureFragment( int verts
 			glGenBuffers( 1, &surface->VBOvertices );
 			glBindBuffer(GL_ARRAY_BUFFER,surface->VBOvertices);			
 			glBufferData(GL_ARRAY_BUFFER, verts * 3 * sizeof(RCOORD), shape_array,GL_STATIC_DRAW);
-			glVertexAttribPointer((GLuint)0, 3, GL_DOUBLE, GL_FALSE, 0, 0); 
-			glVertexPointer( 3,	GL_DOUBLE, 0, 0 );
+			glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			glVertexPointer( 3,	GL_FLOAT, 0, 0 );
 			glEnableVertexAttribArray( 0 );
 			
 
 			glGenBuffers( 1, &surface->VBOnormal );
 			glBindBuffer(GL_ARRAY_BUFFER,surface->VBOnormal);			
 			glBufferData(GL_ARRAY_BUFFER, verts * 3 * sizeof(RCOORD), normal_array, GL_STATIC_DRAW);
-			glVertexAttribPointer((GLuint)1, 3, GL_DOUBLE, GL_TRUE, 0, 0); 
-			glNormalPointer( GL_DOUBLE, 0, 0 ); // invalid_enum
+			glVertexAttribPointer((GLuint)1, 3, GL_FLOAT, GL_TRUE, 0, 0);
+			glNormalPointer( GL_FLOAT, 0, 0 ); // invalid_enum
 			glEnableVertexAttribArray( 1 );
 
 			if( 0 )
@@ -941,15 +1014,15 @@ struct SACK_3D_Surface *CreateBumpTextureFragment( int verts
 				glGenBuffers( 1, &surface->VBOcolor );
 				glBindBuffer( GL_ARRAY_BUFFER, surface->VBOcolor );
 				glBufferData( GL_ARRAY_BUFFER, verts * 4 * sizeof( RCOORD ), c, GL_STATIC_DRAW );
-				glVertexAttribPointer((GLuint)2, 3, GL_DOUBLE, GL_TRUE, 0, 0); 
-				glColorPointer( 4, GL_DOUBLE, 0, 0 );
+				glVertexAttribPointer((GLuint)2, 3, GL_FLOAT, GL_TRUE, 0, 0); 
+				glColorPointer( 4, GL_FLOAT, 0, 0 );
 				glEnableVertexAttribArray( 2 );
 			}
 
 			glGenBuffers(1,&surface->VBOTangent);			
 			glBindBuffer(GL_ARRAY_BUFFER,surface->VBOTangent);			
 			glBufferData(GL_ARRAY_BUFFER,verts * 3 * sizeof(RCOORD),tangent_array,GL_STATIC_DRAW);
-			glVertexAttribPointer((GLuint)3, 3, GL_DOUBLE, GL_FALSE, 0, 0); // Set up our vertex attributes pointer  
+			glVertexAttribPointer((GLuint)3, 3, GL_FLOAT, GL_FALSE, 0, 0); // Set up our vertex attributes pointer  
 			glEnableVertexAttribArray( 3 );
 
 			glGenBuffers(1,&surface->VBOelements);			
@@ -1053,7 +1126,7 @@ void RenderBumpTextureFragment( Image texture
 		// VBO, created and populated once, texture coordinate never change
 		glBindBuffer(GL_ARRAY_BUFFER,*(GLuint*)GetDataItem( &surface->pdl_VBOTexture, texture_id ) );
 		// swap into vao this vbo ?
-		glVertexAttribPointer((GLuint)5, 3, GL_DOUBLE, GL_FALSE, 0, 0); 
+		glVertexAttribPointer((GLuint)5, 3, GL_FLOAT, GL_FALSE, 0, 0); 
 		glEnableVertexAttribArray( 5 );			
 	}
 	else if( 1 )
