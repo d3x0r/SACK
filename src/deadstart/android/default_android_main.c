@@ -506,7 +506,7 @@ void* BeginNormalProcess( void*param )
                BagVidlibPureglSendKeyEvents = (int(*)(int,int,int))dlsym( lib, "SACK_Vidlib_SendKeyEvents" );
 					BagVidlibPureglSendTouchEvents = (void (*)(int,PINPUT_POINT ))dlsym( lib, "SACK_Vidlib_SendTouchEvents" );
 					BagVidlibPureglCloseDisplay = (void(*)(void))dlsym( lib, "SACK_Vidlib_CloseDisplay" );
-					BagVidlibPureglSetTriggerKeyboard = (void(*)(void))dlsym( lib, "SACK_Vidlib_SetTriggerKeyboard" );
+					BagVidlibPureglSetTriggerKeyboard = (void(*)(void(*)(void),void(*)(void)))dlsym( lib, "SACK_Vidlib_SetTriggerKeyboard" );
                BagVidlibPureglSetTriggerKeyboard( show_keyboard, hide_keyboard );
 				}
 				{

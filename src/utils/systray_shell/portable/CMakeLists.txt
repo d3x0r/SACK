@@ -84,6 +84,7 @@ add_executable(${PROJECT_NAME} WIN32
 	${LAST_GCC_PROGRAM_SOURCE}
 )
 build_resource(  ${SOURCES_ROOT}/all_resources.rc all_resources.res )
+target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
 
 message( test ${ExtraDefinitions} )
 string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )

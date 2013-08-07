@@ -64,6 +64,7 @@ ${LAST_GCC_PROGRAM_SOURCE}
 )
 
 add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
+target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
 string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
 COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} " 
@@ -92,6 +93,7 @@ COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INT
                   FOLDER utils/launcher
 )
 target_link_libraries( ${PROJECT_NAME} ws2_32 wsock32 winmm)
+target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
 install_default_dest( ${PROJECT_NAME} )
 
 endif( WIN32 )
