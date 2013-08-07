@@ -1,0 +1,18 @@
+
+#define RAGDOLL_MAIN_SOURCE
+#include "local.h"
+
+
+RAGDOLL_NAMESPACE
+
+
+
+
+
+
+
+
+
+RAGDOLL_NAMESPACE_END
+
+

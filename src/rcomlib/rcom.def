@@ -1,0 +1,18 @@
+LIBRARY rcomlib
+
+EXPORTS
+ 	GetRegistryItem
+	SetRegistryItem
+
+	GetRegistryInt
+	SetRegistryInt
+	GetLocalRegistryInt
+	SetLocalRegistryInt
+	
+	GetRegistryString
+	SetRegistryString
+	GetLocalRegistryString
+	SetLocalRegistryString
+
+ 
+	CenterDialog

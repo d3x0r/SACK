@@ -1,0 +1,52 @@
+
+/mac openuser
+      /compare psicon is_device
+      /if success
+         /create MOOSE
+         /desc MOOSE Master Operator of System Entities
+         /wake MOOSE
+         /MOOSE/decl device psicon
+         //mac openbash
+         //command psicon
+         //option psicon mode direct
+         //open system __pty __raw bash
+         //open binary in log
+         //open binary out log
+         //open ansi in
+         //option psicon keybind up    \x1b[A
+         //option psicon keybind down  \x1b[B
+         //option psicon keybind right \x1b[C
+         //option psicon keybind left  \x1b[D
+         //option psicon keybind pgdn  \x1b[5~
+         //option psicon keypind pgup  \x1b[6~
+         //option psicon keybind home  \x1b[7~
+         //option psicon keybind end   \x1b[8~
+         //option psicon keybind @f \x1b\.f
+         //option psicon keybind @a \x1b\.a
+         //option psicon keybind @b \x1b\.b
+         //option psicon keybind @c \x1b\.c
+         //option psicon keybind @d \x1b\.d
+         
+         #//open binary in log
+         ##//open debug in log
+         //.export TERM=ansi\n
+         //relay
+         //destroy openbash
+         //endmac
+         //openbash
+         /return
+      /endif
+/endmac
+
+/openuser
+
+#/create telnet
+#/wake telnet
+#/tell telnet command tcpserver 23
+#//mac accept
+#//tell MOOSE /echo hey connection accepted...
+#//endmac
+
+/scr connect
+/scr common
+

@@ -1,0 +1,39 @@
+/setcolor white blue
+/echo this line is a very long line which will can wrap several times
+/setcolor white green
+/echo this is a not so long line
+/setcolor black blue
+/echo black
+/setcolor blue blue
+/fecho blue
+/setcolor green blue
+/fecho green
+/setcolor cyan blue
+/fecho cyan
+/setcolor red blue
+/fecho red
+/setcolor magenta blue
+/fecho magenta
+/setcolor brown blue
+/fecho brown
+/setcolor grey blue
+/fecho grey
+/setcolor darkgrey blue
+/fecho dkgrey
+/setcolor lightblue blue
+/fecho brblue
+/setcolor lightgreen blue
+/fecho brgreen
+/setcolor lightcyan blue
+/fecho brcyan
+/setcolor lightred blue
+/fecho brred
+/setcolor lightmagenta blue
+/fecho brmagenta
+/setcolor yellow blue
+/fecho yellow
+/setcolor white blue
+/fecho white
+/setcolor grey black
+/echo DONE
+

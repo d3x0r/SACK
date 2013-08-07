@@ -1,0 +1,16 @@
+
+/mac connect ...
+   echo Attempting to connect to %...
+   echo
+   open tcp tcp %...
+   if success
+   	parse telnet telnet
+   	parse ansi ansi In
+   else 
+      echo Could not connect to %...
+   endif
+/endmac
+
+/mac CloseTerm  #called from term when connection closes (case sensative?)
+
+/endmac

@@ -1,0 +1,5 @@
+SRCS=ntlink qnxcon
+
+DLLNAME=unxcon.nex
+MORELIBS=
+

@@ -1,0 +1,573 @@
+<HTML><HEAD><TITLE>Panthe's Slick Interface Library (PSILib)</TITLE></HEAD><BODY><PRE>
+Panther's Slick Interface Library (PSILib)
+---------------------------------
+
+This library is a display layer which handles window frames, and has many 
+classes of controls ready.  There are some caveats to using this library,
+and I will try my best to cover them all.  
+
+Some terminology/philosophy...
+  FRAME - this is a window frame control.  It contains controls and perhaps
+other frames.  This is the backdrop on which other objects are hung.  A frame
+has a caption, perhaps some control icons like Close, Max, Min, Resize.  It
+handles shadow and highlight attributes, may be aligned to match the color
+mapping on a Windows system.  Otherwise, There are standard colors which all
+controls reference in order to draw shadow, highlight, shade, normal, text,
+titlebars active and inactive, etc.
+
+  CONTROL - This is a generic control class.  It has the ability to display a
+border without caption.  All content of a specific type of control must be
+constructed by the control itself.  Controls have a couple callbacks to handle
+mouse and keyboard inputs, and to draw their content.  
+
+Some Liscensing issues have been mentioned.  Ownership of code, perhaps, some
+ego that there is monitary value in the code itself and not the service it
+provides.  That is, in this library, a control, provides an interface between
+the.... Lisenscing on this library, the core (all of PSILib) is LGPL, as
+expressed near the root on this collection.  The following exception applies:
+
+If you make modifications, and do not remit to the core library for inclusion
+within the LGPL distribution of this library, then you may not share the
+source of this library either.  Updates to the core from the common LGPL
+sources are permitted, but if additions to this library, control extensions 
+for example, are not released in source for public use, then no other part
+of this library may be shared.
+
+A Divergant thread
+-----------------------
+Windows systems use a WindowProc( WINDOW HANDLE, MESSAGE, PARAMS )... some
+other systems like SDL provide these as an EVENT structure with message ID
+content, and perhaps a union of structures based on the message type, this 
+is similar to the method used by X to get events.  QNX Photon uses a callback
+system, where if you want a specific type of message, you register a specific
+routine to handle the message.  The difference between the two methods - the 
+first has a dispatch like this...
+
+The first two (Windows, SDL/X )
+------------------
+switch(message id) { 
+	case DRAW: 
+		DrawProc(); break;
+	case MOUSE: 
+		MouseProc(); break;
+	case KEYBOARD: 
+		KeyboardProc(); break;
+}
+
+The other
+-----------------
+RegisterDraw( DrawProc );
+RegisterMouse( MouseProc );
+RegisterKeyboard( KeyboardProc):
+
+In the first case, everything is jammed together into a single message
+and the application must dispatch to the appropriate method, in the latter
+when that event happens it goes directly to the appropriate method handler.
+If the event goes directly to the handler, there is no code to format a message
+in a general format, to queue that message, and to then disect the message.
+
+
+So what do I do with this thing?
+-----------------------------------------
+
+Well to use these methods you need to....
+#include <controls.h>
+
+And of course once you've compiled you'll want to link the code in....
+Link with psi (psis.lib, psi.lib, libpsis.a, libpsi.so)
+
+This library may require other libraries if linked statically. 
+  Required Libraries: Image(interface), Video(interface), shmem, syslog
+
+  This library is actually able to utilize multiple interfaces dynamically.
+It uses the image interface described in <imginterface.h>, and also the 
+active image interface in <actimg.h>.
+
+Well - you've included the header? Ready to code a dialog?
+------------------------------------------
+
+Let's init the library....
+
+	SetControlImageInterface( GetImageInterface() );
+	SetControlInterface( GetDisplayInterface() );
+
+The image interface and the display interface NEED to be set before the 
+library is loaded.  Soon this can/will default to the appropriate library, 
+however for certain complications, the method is now to link statically.
+
+Let's declare a frame...
+
+	PFRAME pFrame;  
+
+Well okay we NEVER declare a FRAME type.  It's always a 
+pointer(handle/reference) to the FRAME object we create.
+
+	pFrame = CreateFrame( "My First Frame", 0, 0, 0, 0, 0, NULL );
+
+Okay so we get a frame, but didn't specify any special position or size, or
+relation to any other frame.  That's okay - it'll work.  What you'll get is
+a frame (somewhere, maybe where your mouse is) and it will be 256 by 256 
+containable space.  The boarder and caption on this (by the way, the caption
+will of course read "My First Frame" ) will make the actual area larger than 
+this.
+
+	AddCommonButtons( pFrame, NULL, NULL );
+
+And we add an okay and a cancel button to the dialog.  These are biased from
+the lower right hand corner, and are a fixed size.  There is an extended version
+of this function which allows you to specify more detail.  Either NULL may
+be replace by the address of an integer.  The first pointer will be non-zero
+if the Okay button was pressed.  The second pointer will be non-zero if the 
+Cancel button was pressed.  Otherwise, they will be 0.  (Perhaps if the close
+icon is pressed, the result will be neither true).  
+
+   DisplayFrame( pFrame );
+
+And - until JUST now, the frame we made was invisible.  This finally shows
+the frame.  It's kinda a good idea to create all your controls on the frame and
+THEN display it.  Otherwise, ya know you get to see each control drawn.  
+
+   CommonLoop( NULL, NULL );
+
+It is legal/valid, to pass NULL and NULL to this routine, however, these should
+be the addresses of the integer variables passed to AddCommonButtons().  If any
+There are other ways to get the result of a frame, to be discussed later.
+Okay - now we wait.  This routine will return if a> the okay button is pressed,
+b> if the cancel button is pressed, or c> if the dialog were closed otherwise.
+You may not want to wait, and there is provision for that also, but I'll not 
+get into that.  
+
+   DestroyFrame( pFrame );
+
+And now we're done with that frame, destroy it.  It will also destroy any
+of the controls and other frames it contains.  If you have a pointer to a 
+control, it is NOT valid after a destroy frame.
+
+And that's the code of void main(void) - for a hello world program PSI style.
+
+well now, that was fun, but I want ...
+---------------------------------------------
+
+Oh? You think you'd maybe like to have some other controls?  Well, I might
+suggest that you skip down a bit, and browse through the library docs.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The Library and all its methods... (library docs)
+---------------------------------------------
+
+Oh my - where to start?  This could easily EASY have a C++ wrapper.  If
+it ain't object oriented it ain't worth keeping.  
+
+Types
+---------
+	 PFRAME  - This is a frame control, it may be related to other frames,
+	           it may contain frames.  It is the container of all controls.
+	           Much like the box that is the dialog box.
+	PCONTROL - this is a control.  It may be a button, text field, frame,
+	           etc.  There are many classes of controls already.
+
+Definitions
+---------
+   BORDER_NORMAL         
+   BORDER_NONE           
+   BORDER_THIN           
+   BORDER_THINNER        
+   BORDER_INVERT         
+   BORDER_CAPTION        
+   BORDER_INVERT_THINNER 
+   BORDER_INVERT_THIN    
+
+   HIGHLIGHT 
+   NORMAL    
+   SHADE     
+   SHADOW    
+   TEXTCOLOR 
+   CAPTION   
+   CAPTIONTEXTCOLOR
+   INACTIVECAPTION 
+   INACTIVECAPTIONTEXTCOLOR
+   SELECT_BACK   
+   SELECT_TEXT   
+   EDIT_BACKGROUND
+   EDIT_TEXT      
+   SCROLLBAR_BACK 
+
+// these IDs are used to designate default control IDs for
+// buttons...
+#define TXT_STATIC -1
+#define BTN_OKAY   1 
+#define BTN_CANCEL 2
+
+
+Libray Setup/Configuration
+----------
+void SetControlInterface( PACTIMGINTERFACE DisplayInterface )
+	This sets the active image interface which the library will use.  If there
+is no interface described, the library may, and probably will, attempt to load
+a dynamic library for this function.  There are multiple libraries on some
+platforms which will work, and this should not be left for the library to 
+decide.
+
+void SetControlImageInterface ( PIMAGEINTERFACE DisplayInterface );
+   Sets the image interface which the library will use.  As with 
+SetControlInterface, if not set, the library will try to load a library
+to attempt to use.  
+    
+
+void AlignBaseToWindows( void );
+	In a windows system, this aligns the standard colors used for the frames
+and controls.  Other systems may not have the ability to share that information.
+
+void SetBaseColor( INDEX idx, CDATA c );
+	From an external source, one may define the colors to be used for 
+Standard controls.  See the color indexes defined above for valid identifiers
+to use for 'idx', the use/meaning of the color is also described above.  
+Also, See colordef.(h/doc).
+
+//-------- Frame and generic control functions --------------
+
+PSI_PROC( PFRAME, CreateFrame)( char *caption, int x, int y
+   						, int w, int h
+    						, PFRAME hAbove );
+
+Creates a frame, a window if you will, it has a title bar, and someday icons to 
+close, iconize, maximize.  The (w)idth and (h)eight paremaeters define the
+drawable surface of the frame, and do not include the border or caption which will
+be extended beyond this.
+
+Frames may be optioned with BORDER_RESIZABLE to make
+the border stretchable.  BORDER_WANTMOUSE will give the frame itself all mouse
+events, otherwise the events are very reducded. 
+
+A sub-frame may be created by specifying BORDER_WITHIN, and hAbove as the parent
+frame.  This will provide a titleless, (borderless? border invert, thinner, etc should
+apply to these boxes, but then do be aware that the width and height define the 
+usable surface and any border extends beyond that.
+
+
+
+PSI_PROC( void, DestroyFrame)( PFRAME pf );
+
+Destroys a created frame.  All controls which exist within the frame are also
+destroyed.  Some controls may have an event callback so that they may do custom
+destruction code.
+
+PSI_PROC( void, DisplayFrame)( PFRAME pf );
+
+Enable a frame on the display.  When a frame is first created it is in a non-display
+mode.  This allows one to create controls on its surface without cascading updates.
+After DisplayFrame is called, the window is enabled and visible.  There is no way
+to undo this.
+
+PSI_PROC( void, SizeFrame)( PFRAME pf, int w, int h );
+
+A frame might be resized using this routine.  All controls are instructed to redraw
+after the sizing is done.
+
+PSI_PROC( void, MoveFrame)( PFRAME pf, int x, int y );
+
+This moves a frame on the presumed larger display.  A window may be moved with this
+even if BORDER_NOMOVE is optioned when the frame is created.
+
+PSI_PROC( PCONTROL, GetControl)( PFRAME pf, int ID );
+
+Get a control handle by searching for and ID within a frame.
+
+//PSI_PROC void SetDefaultOkayID( PFRAME pFrame, int nID );
+//PSI_PROC void SetDefaultCancelID( PFRAME pFrame, int nID );
+
+//-------- Generic control functions --------------
+PSI_PROC( PFRAME, GetFrame)( PCONTROL pc );
+
+Gets top level parent of a control.  (This may return the first parent frame?)
+
+PSI_PROC( PCONTROL, GetNearControl)( PCONTROL pc, int ID );
+
+Gets a control handle from a frame which has the unique control identifier ID.  (See CreateControl)
+This however searches near another control, and only within the frame immediatly containing
+the control specified.
+
+PSI_PROC( void, GetControlTextEx)( PCONTROL pc, char *buffer, int buflen, int bCString );
+
+Gets text from a control.  The extended option bCString will process \n within 
+the buffer and replace with the binary newline character.  \r, and some others 
+may also be interpreted.
+
+#define GetControlText( pc, buffer, buflen ) GetControlTextEx( pc, buffer, buflen, FALSE )
+
+By default text retrieved from a control is literal and does not perform any interpretations.
+
+PSI_PROC( void, SetControlText)( PCONTROL pc, char *text );
+
+Set the text of a control.  The usage of this field is control specific.  For a frame,
+this will modify the caption bar if present.  For text fields, the text shown is modified,
+buttons, changes the text on the button, Edit fields will set the text which is in the 
+box.  Probably some other options such as combo boxes may also make use of this.  All
+controls have a text field.  It is a duplicate of the text passed in, and the pointer
+is not retained.
+
+PSI_PROC( void, SetControlFocus)( PCONTROL pc );
+
+Sets the active focus to a control.  The keyboard input when the frame is focused on the
+display goes to this control.
+
+PSI_PROC( void, EnableControl)( PCONTROL pc, int bEnable );
+
+This serves as a disable control also.  !bEnable = disable.  (enable FALSE is disable, 
+enable TRUE is enable ).  A disabled control has a status flag changed in its control 
+structure, and its draw method is invoked.
+
+PSI_PROC( int, IsControlEnabled)( PCONTROL pc );
+
+Query a control for its current enabled status.
+
+PSI_PROC( PCONTROL, CreateControl)( PFRAME pFrame
+                      , int nID
+                      , int x, int y
+                      , int w, int h
+                      , int BorderType
+                      , int extra );
+                      
+Creates a control within the frame specified.
+nID is a unique control ID for searching using GetControl.
+x, y, w, h are positional and size coordinates.
+BorderType uses the same options as frames.
+extra is the amount of extra space to allocate at the end of 
+the control... Why?  Well it's kinda crazy really....
+----------------------------------
+Controls really require intimite knowledge of the library.  This 
+is acheived by including <controlstruc.h> from the psilib directory
+itself.  It is not a publicly shared interface.  As provided by 
+licensing controls may be added directly to this project.  Since
+linking within the library is required on some platforms, this has
+been allowed.... hwoever...
+
+#include <../src/psilib/controlstruc.h>
+
+typedef struct mycontrol_tag { 
+   // depending on the compiler, one may include as an anonymous 
+   // structure the control structure. 
+   CONTROL;
+   // but since there are some compilers which object to this
+   // the controls within this library are declared with
+   // CONTROL common;
+   
+   /* Add your own needed structures/members here */
+   
+} MYCONTROL, *PMYCONTROL;
+
+Then to create one of these controls the size of extra would be
+
+sizeof( MYCONTROL ) - sizeof( CONTROL )
+---------------------------------------
+
+
+PSI_PROC( ImageFile *,GetControlSurface)( PCONTROL pc );
+
+This works to get the frame surface also, actually I think this 
+is obslete and there is now a more general GetCommonSurface(PCOMMON) which
+has alias macros GetFrameSurface and GetControlSurface which cast their
+members to a PCOMMON.  
+
+PSI_PROC( void, SetControlDraw)( PCONTROL pc, void (*Draw)(PTRSZVAL pc ) );
+
+Set the routine to be called when the control needs to be updated.  There are 
+few events which cause a control to update.
+
+PSI_PROC( void, SetControlMouse)( PCONTROL pc, void (*MouseMethod)(PTRSZVAL pc, int x, int y, int b ) );
+
+Set the mouse handling method for the control.  See /* insert link here */ Render/Display libraries about mouse
+method callbacks for more information. 
+
+//PSI_PROC void SetControlKey( PCONTROL pc, void (*KeyMethod)( PCONTROL pc, int key ) );
+
+
+
+PSI_PROC( void, UpdateControl)( PCONTROL pc );
+
+Cause a control to update. 
+
+PSI_PROC( int, GetControlID)( PCONTROL pc );
+
+Returns the unique ID which the control was created with or that it
+was assigned.
+              
+PSI_PROC( void, DestroyControl)( PCONTROL pc );
+
+Destroys a control.
+
+PSI_PROC( void, SetNoFocus)( PCONTROL pc );
+
+Disallow a control from getting focus either by clicking on it, or by tabbing to it.
+
+PSI_PROC( void, *ControlExtraData)( PCONTROL pc );
+
+Returns the base pointer of the additional data of a control.
+Perhaps a better design of controls would be to define a structure
+which contains everything unique to a new control, however, it 
+has been often the case that both elements in the base common control
+structure as well as private members are updated at the same time...
+that it it would often be difficult to write routines which worked purely
+on a control's private members.
+
+//------ General Utilities ------------
+// adds OK and Cancel buttons based off the 
+// bottom right of the frame, and when pressed set
+// either done (cancel) or okay(OK) ... 
+// could do done&ok or just done - but we're bein cheesey
+PSI_PROC( void, AddCommonButtonsEx)( PFRAME pf
+                                , int *done, char *donetext
+                                , int *okay, char *okaytext );
+                                
+Add a done and and done with success button to a frame.  These buttons
+are located in the lower right hand corner, offset approcimately 5 units
+from the frame's edge, and are approcimately 18 x 55.  The text passed will 
+be shown on the buttons, and the integer pointers are to reference integer values
+which are initially 0, and will be set with status of the button pressed.
+                                
+PSI_PROC( void, AddCommonButtons)( PFRAME pf, int *done, int *okay );
+
+Simple AddCommonButtons( pf, done, "Cancel", okay "Okay" );
+
+PSI_PROC( void, CommonLoop)( int *done, int *okay ); // perhaps give a callback for within the loop?
+
+A wait for positive status return based on the two pointers passed to 
+add common buttons.  One may use this loop with other method, but it 
+works best with the common buttons.
+
+PSI_PROC( void, ProcessControlMessages)(void);
+
+When idling, within a callback invoked from the PSI library, this needs to be called.
+The preferred method is actually to use idle(); from the idle library, within
+which PSI sets this routine to be called as a set of idle calls.  This allows the
+thread which may be needed for serviceing events to service its events.  This
+can also cause recursion...  In general it is best to not wait within a draw callback,
+mouse update, or any other callback which has been set.  They are meant to be short,
+and to always return before any further event is processed.
+
+//------ BUTTONS ------------
+PSI_PROC( PCONTROL, MakeButton)( PFRAME pFrame, int x, int y, int w, int h
+                  , int nID
+                  , char *caption
+                  , void (*PushMethod)(PCONTROL pc, PTRSZVAL psv)
+                  , PTRSZVAL Data );
+PSI_PROC( PCONTROL, MakeImageButton)( PFRAME pFrame, int x, int y, int w, int h
+                  , ImageFile *pImage
+                  , int nID
+                  , void (*PushMethod)(PCONTROL pc, PTRSZVAL psv)
+                  , PTRSZVAL Data );
+PSI_PROC( PCONTROL, MakeCustomDrawnButton)( PFRAME pFrame, int x, int y, int w, int h
+                  , void (*DrawMethod)(PCONTROL pc)
+                  , int nID
+                  , void (*PushMethod)(PCONTROL pc, PTRSZVAL psv), PTRSZVAL Data );
+PSI_PROC( void, PressButton)( PCONTROL pc, int bPressed );
+PSI_PROC( int, IsButtonPressed)( PCONTROL pc );
+
+PSI_PROC( PCONTROL, MakeCheckButton)( PFRAME pFrame, int x, int y, int w, int h
+                        , int nID, char *text
+                        , void (*CheckProc)(PCONTROL pc, PTRSZVAL psv )
+                        , PTRSZVAL psv );
+PSI_PROC( int, GetCheckState)( PCONTROL pc );
+PSI_PROC( void, SetCheckState)( PCONTROL pc, int nState );
+
+//------ Static Text -----------
+#define TEXT_VERTICAL 1
+#define TEXT_NORMAL 0
+PSI_PROC( PCONTROL, MakeTextControl)( PFRAME pf, int flags, int x, int y, int w, int h
+                        , int nID, char *text );
+
+//------- Edit Control ---------
+PSI_PROC( PCONTROL, MakeEditControl)( PFRAME pf, int options, int x, int y, int w, int h
+                        , int nID, char *text );
+// Use GetControlText/SetControlText
+
+//------- Slider Control --------
+#define SLIDER_HORIZ 1
+#define SLIDER_VERT  0
+PSI_PROC( PCONTROL, MakeSlider)( PFRAME pf, int flags, int x, int y, int w, int h, int nID, void (*SliderUpdated)(PCONTROL pc, int val) );
+PSI_PROC( void, SetSliderValues)( PCONTROL pc, int min, int current, int max );
+
+//------- Color Control --------
+// common dialog to get a color... returns TRUE if *result is set
+// if result is NULL color is not returned, but still can set presets...
+PSI_PROC( int, PickColor)( CDATA *result, CDATA original, PFRAME pAbove );
+
+//------- ListBox Control --------
+typedef PTRSZVAL HLISTITEM;
+PSI_PROC( PCONTROL, MakeListBox)( PFRAME pf, int options, int x, int y, int w, int h, int nID );
+#define LISTOPT_SORT   1
+
+PSI_PROC( void, ResetList)( PCONTROL pc );
+PSI_PROC( HLISTITEM, AddListItem)( PCONTROL pc, char *text );
+PSI_PROC( void, DeleteListItem)( PCONTROL pc, HLISTITEM hli );
+PSI_PROC( void, SetItemData)( HLISTITEM hli, PTRSZVAL psv );
+PSI_PROC( PTRSZVAL, GetItemData)( HLISTITEM hli );
+PSI_PROC( void, GetItemText)( HLISTITEM hli, int bufsize, char *buffer );
+PSI_PROC( HLISTITEM, GetSelectedItem)( PCONTROL pc );
+PSI_PROC( void, SetSelectedItem)( PCONTROL pc, HLISTITEM hli );
+PSI_PROC( void, SetCurrentItem)( PCONTROL pc, HLISTITEM hli );
+PSI_PROC( HLISTITEM, FindListItem)( PCONTROL pc, char *text );
+
+typedef void (*DoubleClicker)( PTRSZVAL psvUser, PCONTROL pc, HLISTITEM hli );
+PSI_PROC( void, SetDoubleClickHandler)( PCONTROL pc, DoubleClicker proc, PTRSZVAL psvUser );
+
+//------- Popup Menus ------------
+// popup interface.... these are mimics of windows... 
+// and at some point should internally alias to popup code - 
+//    if I ever get it back
+#ifndef MENU_DRIVER_SOURCE
+typedef PTRSZVAL PMENU;
+typedef PTRSZVAL PMENUITEM;
+#endif
+#include <menuflags.h>
+
+PSI_PROC( PMENU, CreatePopup)( void );
+PSI_PROC( void, DestroyPopup)( PMENU pm );
+// get sub-menu data...
+PSI_PROC( void ,*GetPopupData)( PMENU pm, int item );
+PSI_PROC( PMENUITEM, AppendPopupItem)( PMENU pm, int type, PTRSZVAL dwID, POINTER pData );
+PSI_PROC( PMENUITEM, CheckPopupItem)( PMENU pm, _32 dwID, _32 state );
+PSI_PROC( PMENUITEM, DeletePopupItem)( PMENU pm, _32 dwID, _32 state );
+PSI_PROC( int, TrackPopup)( PMENU hMenuSub );
+
+//------- File Control --------
+// these are basic basic file selection dialogs... 
+// the concept is valid, and they should be common like controls...
+PSI_PROC( int, PSI_OpenFile)( char *basepath, char *types, char *result );
+// this may be used for save I think....
+PSI_PROC( int, PSI_OpenFileEx)( char *basepath, char *types, char *result, int Create );
+
+//------- Scroll Control --------
+PSI_PROC( void, SetScrollParams)( PCONTROL pc, int min, int cur, int range, int max );
+PSI_PROC( PCONTROL, MakeScrollBar)( PFRAME pf, int flags, int x, int y, int w, int h, int nID  );
+PSI_PROC( void, SetScrollUpdateMethod)( PCONTROL pc
+					, void (*UpdateProc)(PTRSZVAL psv, int type, int current)
+					, PTRSZVAL data );
+
+
+
+</PRE></HTML>
+
+

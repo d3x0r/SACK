@@ -1,0 +1,55 @@
+.TH SNMP_COEXISTANCE 3 "Mon Jan 25 23:11:48 1999"
+.UC 4
+.SH NAME
+snmp_coexist_V2toV1, snmp_coexist_V1toV2 \- Translate SNMP packets
+.SH SYNOPSIS
+.B cc
+.RI "[ " "flag" " \|.\|.\|. ] " "file" " \|.\|.\|."
+.B \-lsnmp
+.RI "[ " "library" " \|.\|.\|. ]"
+.LP
+.B #include <sys/types.h>
+.br
+.B #include <snmp/snmp.h>
+.LP
+.BI "int snmp_coexist_V2toV1(struct snmp_pdu " "PDU");
+.LP
+.BI "int snmp_coexist_V1toV2(struct snmp_pdu " "PDU");
+.SH DESCRIPTION
+Both functions convert the specified packet to the appropriate
+version.  These functions are designed to work in an SNMP agent, and
+convert requests to allow a V1 agent to communicate with a V2 manager.
+.SH "RETURN VALUE"
+All functions return 1 upon success, 0 otherwise.
+.SH ERRORS
+If any of these return unsuccessfully, 
+.B snmp_api_error(\|)
+will be set.
+.SH WARNINGS
+These functions have never been tested.
+.SH "RFCS"
+Related RFCs: 1065, 1066, 1067
+.br
+Related SNMPv2 RFCs: 1901, 1902, 1902, 1904, 1905, 1906, 1907, 1908, 1909
+.SH "RELATED URLS"
+CMU Networking Group: http://www.net.cmu.edu/
+.br
+CMU SNMP Home Page: http://www.net.cmu.edu/projects/snmp
+.SH "SEE ALSO"
+.BR snmp_api (3),
+.BR snmp_api_errors (3),
+.BR snmp_client (3),
+.BR snmp_coexistance (3),
+.BR snmp_error (3),
+.BR snmp_extra (3),
+.BR snmp_mib (3),
+.BR snmp_mibii (3),
+.BR snmp_mini_client (3),
+.BR snmp_msg (3),
+.BR snmp_packet_dump (3),
+.BR snmp_pdu (3),
+.BR snmp_sess_api (3),
+.BR snmp_vars (3),
+.BR snmp_version_info (3),
+.BR snmp_oid (5)
+.BR snmp (3)

@@ -1,0 +1,111 @@
+
+/decl wmode  dual
+/decl primary lion
+/decl secondary lion
+/decl location    # blank or back - for sheathing primar weapon
+/decl cloaked false
+
+/mac `
+	. get %primary
+/endmac
+/mac 1
+	. get %secondary
+/endmac
+/mac 2
+	. wield %primary
+/endmac
+/mac 3
+	. wield %secondary sec
+/endmac
+
+/mac 4
+   /1
+   /3
+/endmac
+
+/mac 5
+	/`
+	/1
+	/2
+	/3
+/endmac
+
+/mac s
+   /compare %wmode is dual
+   /if success
+      .she %primary %location
+      .she %secondary
+   /else
+   .she %primary %location
+   /endif
+   /cloak
+/endmac
+
+
+/mac e
+   /uncloak
+   .draw %primary
+   /compare %wmode is dual
+   /if success
+      /compare %primary like %secondary
+      /if success
+         . draw 2.%secondary sec
+      /else
+         . draw %secondary sec
+      /endif
+   /else
+   /endif
+/endmac
+
+/mac cloak
+/compare %cloaked is true
+/if fail
+   .cloak
+   /decl cloaked true
+/endif
+/endmac
+
+/mac uncloak
+/compare %cloaked is true
+/if success
+   .uncloak
+   /decl cloaked false
+/endif
+/endmac
+
+/mac opencloak
+/compare %cloaked is true
+/if success
+   .uncloak
+/endif
+/endmac
+
+/mac closecloak
+/compare %cloaked is true
+/if success
+   .cloak
+/endif
+/endmac
+
+/mac dual
+   /compare %wmode is dual
+   /if fail
+      /decl wmode dual
+      /compare %primary is %secondary
+      /if success
+         .draw 2.%secondary sec
+      /else
+         .draw %secondary sec
+      /endif
+   /endif
+/endmac
+
+/mac single
+   /compare %wmode is single
+   /if fail
+      /decl wmode single
+      .she %secondary
+   /endif
+/endmac
+
+

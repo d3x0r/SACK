@@ -1,0 +1,35 @@
+[15:36] Tainted:  small = sense life    
+ tiny = levitate    
+ medium = travelling    
+ big = mass heal    
+ huge - sanctuary    
+     
+ healthy = chain lightning    
+ vibrant = weakness    
+ withered = lightning bolt    
+ wilted = fear    
+     
+ amber = cure blind    
+ azure = bless    
+ blue = cure light    
+ speckly = poison    
+ swirly = curse    
+ translucent = cure critic    
+ yellowish = spirit armor    
+     
+ bumpy = blindness    
+ grainy = paralyze    
+ smooth = feeblemind    
+ wrinkled = sleep
+
+strawberry
+pumpkin
+blackberries
+
+fruit
+Seed
+Leef 
+flower 
+strip of bark 
+
+pinecone
