@@ -624,6 +624,7 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, _32 key )
 				used_key = 1;
 				break;
 			}
+#ifndef __ANDROID__
 		case KEY_END:
 			if( key & KEY_SHIFT_DOWN )
 			{
@@ -682,6 +683,7 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, _32 key )
 			SmudgeCommon( pc );
 			used_key = 1;
 			break;
+#endif
 		case KEY_DELETE:
 			if( pe->flags.bSelectSet )
 				CutEditText( pe, &pc->caption.text );
@@ -712,10 +714,12 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, _32 key )
 			SmudgeCommon( pc );
 			used_key = 1;
 			break;
+#ifndef __ANDROID__
 		case KEY_ESCAPE:
 			InvokeDefault( (PCONTROL)pc, INV_CANCEL );
 			used_key = 1;
 			break;
+#endif
 		case KEY_ENTER:
 			InvokeDefault( (PCONTROL)pc, INV_OKAY );
 			used_key = 1;

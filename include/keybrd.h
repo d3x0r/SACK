@@ -271,9 +271,180 @@ RENDER_NAMESPACE_END
 #  endif
 #endif
 
-#ifdef __LINUX__
+#if defined( __ANDROID__ )
 
-//#define USE_SDL_KEYSYM
+#include <android/keycodes.h>
+
+#define KEY_SHIFT        AKEYCODE_SHIFT_LEFT
+#define KEY_LEFT_SHIFT   AKEYCODE_SHIFT_LEFT
+#define KEY_RIGHT_SHIFT  AKEYCODE_SHIFT_RIGHT // maybe?
+
+#define KEY_CTRL          0
+#define KEY_CONTROL       0
+#define KEY_LEFT_CONTROL  0
+#define KEY_RIGHT_CONTROL 0
+
+#define KEY_ALT           0 // can't get usually under windows?(keyhook!)
+#define KEY_LEFT_ALT      0
+#define KEY_RIGHT_ALT     0
+
+#define KEY_CAPS_LOCK     0
+#define KEY_NUM_LOCK      0
+#define KEY_SCROLL_LOCK   0 // unsure about this
+#define KEY_ESC           0
+#define KEY_ESCAPE        0
+
+#define KEY_HOME          0
+#define KEY_PAD_HOME      0
+#define KEY_PAD_7         0
+#define KEY_GREY_HOME     0
+
+#define KEY_UP            AKEYCODE_DPAD_UP
+#define KEY_PAD_8         0
+#define KEY_PAD_UP        0
+#define KEY_GREY_UP       0
+
+#define KEY_PGUP          0
+#define KEY_PAD_9         0
+#define KEY_PAD_PGUP      0
+#define KEY_GREY_PGUP     0
+
+#define KEY_LEFT          AKEYCODE_DPAD_LEFT
+#define KEY_PAD_4         0
+#define KEY_PAD_LEFT      0
+#define KEY_GREY_LEFT     0
+
+#define KEY_CENTER        AKEYCODE_DPAD_CENTER
+#define KEY_PAD_5         0
+#define KEY_PAD_CENTER    0
+#define KEY_GREY_CENTER   0
+
+#define KEY_RIGHT         AKEYCODE_DPAD_RIGHT
+#define KEY_PAD_6         0
+#define KEY_PAD_RIGHT     0
+#define KEY_GREY_RIGHT    0
+
+#define KEY_END           0
+#define KEY_PAD_1         0
+#define KEY_PAD_END       0
+#define KEY_GREY_END      0
+
+#define KEY_DOWN          AKEYCODE_DPAD_DOWN
+#define KEY_PAD_2         0
+#define KEY_PAD_DOWN      0
+#define KEY_GREY_DOWN     0
+
+#define KEY_PGDN          0
+#define KEY_PAD_3         0
+#define KEY_PAD_PGDN      0
+#define KEY_GREY_PGDN     0
+
+#define KEY_INSERT        0
+#define KEY_PAD_0         0
+#define KEY_PAD_INSERT    0
+#define KEY_GREY_INSERT   0
+
+#define KEY_DELETE        0
+#define KEY_PAD_DOT       0
+#define KEY_PAD_DELETE    0
+#define KEY_GREY_DELETE   0
+
+#define KEY_PLUS          0
+#define KEY_PAD_PLUS      0
+#define KEY_GREY_PLUS     0
+
+#define KEY_MINUS         0
+#define KEY_PAD_MINUS     0
+#define KEY_GREY_MINUS    0
+
+#define KEY_MULT          0
+#define KEY_PAD_MULT      0
+#define KEY_GREY_MULT     0
+
+#define KEY_DIV           0
+#define KEY_PAD_DIV       0
+#define KEY_GREY_DIV      0
+
+#define KEY_ENTER         AKEYCODE_ENTER
+#define KEY_PAD_ENTER     AKEYCODE_ENTER
+#define KEY_NORMAL_ENTER  AKEYCODE_ENTER
+
+#define KEY_WINDOW_1      0 // windows keys keys
+#define KEY_WINDOW_2      0 // windows keys keys
+
+
+#define KEY_TAB           AKEYCODE_TAB
+
+#define KEY_SLASH         AKEYCODE_SLASH
+#define KEY_BACKSPACE     AKEYCODE_DEL
+#define KEY_SPACE         AKEYCODE_SPACE
+#define KEY_COMMA         AKEYCODE_COMMA
+#define KEY_STOP          AKEYCODE_PERIOD // should be some sort of VK_ definitions....
+#define KEY_PERIOD        AKEYCODE_PERIOD
+#define KEY_SEMICOLON     AKEYCODE_SEMICOLON
+#define KEY_QUOTE         AKEYCODE_APOSTROPHE
+#define KEY_LEFT_BRACKET  AKEYCODE_LEFT_BRACKET
+#define KEY_RIGHT_BRACKET AKEYCODE_RIGHT_BRACKET
+#define KEY_BACKSLASH     AKEYCODE_BACKSLASH
+#define KEY_DASH          AKEYCODE_MINUS
+#define KEY_EQUAL         AKEYCODE_EQUALS
+#define KEY_ACCENT        AKEYCODE_GRAVE
+
+#define KEY_1         AKEYCODE_1
+#define KEY_2         AKEYCODE_2
+#define KEY_3         AKEYCODE_3
+#define KEY_4         AKEYCODE_4
+#define KEY_5         AKEYCODE_5
+#define KEY_6         AKEYCODE_6
+#define KEY_7         AKEYCODE_7
+#define KEY_8         AKEYCODE_8
+#define KEY_9         AKEYCODE_9
+#define KEY_0         AKEYCODE_0
+
+#define KEY_F1        0
+#define KEY_F2        0
+#define KEY_F3        0
+#define KEY_F4        0
+#define KEY_F5        0
+#define KEY_F6        0
+#define KEY_F7        0
+#define KEY_F8        0
+#define KEY_F9        0
+#define KEY_F10       0
+#define KEY_F11       0
+#define KEY_F12       0
+
+
+#define KEY_A   AKEYCODE_A
+#define KEY_B   AKEYCODE_B
+#define KEY_C   AKEYCODE_C
+#define KEY_D   AKEYCODE_D
+#define KEY_E   AKEYCODE_E
+#define KEY_F   AKEYCODE_F
+#define KEY_G   AKEYCODE_G
+#define KEY_H   AKEYCODE_H
+#define KEY_I   AKEYCODE_I
+#define KEY_J   AKEYCODE_J
+#define KEY_K   AKEYCODE_K
+#define KEY_L   AKEYCODE_L
+#define KEY_M   AKEYCODE_M
+#define KEY_N   AKEYCODE_N
+#define KEY_O   AKEYCODE_O
+#define KEY_P   AKEYCODE_P
+#define KEY_Q   AKEYCODE_Q
+#define KEY_R   AKEYCODE_R
+#define KEY_S   AKEYCODE_S
+#define KEY_T   AKEYCODE_T
+#define KEY_U   AKEYCODE_U
+#define KEY_V   AKEYCODE_V
+#define KEY_W   AKEYCODE_W
+#define KEY_X   AKEYCODE_X
+#define KEY_Y   AKEYCODE_Y
+#define KEY_Z   AKEYCODE_Z
+
+#elif defined( __LINUX__ )
+
+	  //#define USE_SDL_KEYSYM
 // ug - KEYSYMS are too wide...
 // so - we fall back to x scancode tables - and translate sym to these
 // since the scancodes which come from X are not the same as from console Raw
@@ -281,7 +452,6 @@ RENDER_NAMESPACE_END
 // case - these fall to under 256 characters, and can therefore be used...
 
 #define USE_X_RAW_SCANCODES
-
 
 
 #ifdef USE_X_RAW_SCANCODES
@@ -453,9 +623,7 @@ RENDER_NAMESPACE_END
 #define KEY_Y         29
 #define KEY_Z         52
 
-#endif
-
-#ifdef USE_SDL_KEYSYM
+#elif defined( USE_SDL_KEYSYM )
 #include <SDL.h>
 #define KEY_SHIFT        0xFF
 #define KEY_LEFT_SHIFT   SDLK_LSHIFT
@@ -623,9 +791,7 @@ RENDER_NAMESPACE_END
 #define KEY_Y         SDLK_Y
 #define KEY_Z         SDLK_Z
 
-#endif
-
-#ifdef USE_RAW_SCANCODE
+#elif defined( USE_RAW_SCANCODE )
 #error RAW_SCANCODES have not been defined yet.
 #define KEY_SHIFT        0xFF
 #define KEY_LEFT_SHIFT   50
@@ -799,9 +965,7 @@ RENDER_NAMESPACE_END
 
 #endif
 
-#endif
-
-#ifdef DEFINE_HARDWARE_SCANCODES
+#elif defined( DEFINE_HARDWARE_SCANCODES )
 #ifndef KBD_HPP
 #define KBD_HPP
 

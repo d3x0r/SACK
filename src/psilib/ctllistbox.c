@@ -1069,6 +1069,7 @@ static int OnKeyCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 				UpdateScrollForList( pc );
 				handled = 1;
 				break;
+#ifndef __ANDROID__
 			case KEY_PGUP:
 				MoveScrollBar( plb->pcScroll, UPD_RANGEUP );
 				handled = 1;
@@ -1077,6 +1078,7 @@ static int OnKeyCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 				MoveScrollBar( plb->pcScroll, UPD_RANGEDOWN );
 				handled = 1;
 				break;
+#endif
 			case KEY_SPACE:
 				if( plb->current )
 				{

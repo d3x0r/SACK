@@ -158,7 +158,8 @@ RENDER_PROC( void, DestroyKeyBinder )( PKEYDEFINE pKeyDef )
 //  the processing entity...
 RENDER_PROC( int, BindEventToKeyEx )( PKEYDEFINE pKeyDefs, _32 keycode, _32 modifier, KeyTriggerHandler trigger, PTRSZVAL psv )
 {
-	PKEY_FUNCTION keyfunc = New( KEY_FUNCTION );
+	PKEY_FUNCTION keyfunc;
+	keyfunc = New( KEY_FUNCTION );
 	MemSet( keyfunc, 0, sizeof( KEY_FUNCTION ) );
 	if( modifier & KEY_MOD_ALL_CHANGES )
 	{
@@ -172,7 +173,7 @@ RENDER_PROC( int, BindEventToKeyEx )( PKEYDEFINE pKeyDefs, _32 keycode, _32 modi
 	if( modifier & KEY_MOD_EXTENDED )
 	{
 		keyfunc->data.extended_key_trigger = trigger;
-      keyfunc->extended_key_psv = psv;
+		keyfunc->extended_key_psv = psv;
 		AddLink( &pKeyDefs[keycode].mod[modifier&0x7].key_procs, keyfunc );
 		//pKeyDefs[keycode].mod[modifier&0x7].data.extended_key_trigger = trigger;
 		//pKeyDefs[keycode].mod[modifier&0x7].extended_key_psv = psv;
