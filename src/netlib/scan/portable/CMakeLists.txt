@@ -67,6 +67,7 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
                   COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;"
 )
+target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
 if( WIN32 )
 target_link_libraries( ${PROJECT_NAME} winmm ws2_32 wsock32 )
 endif( WIN32 )
@@ -84,6 +85,7 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
                   COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;"
 )
+target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
 if( WIN32 )
 target_link_libraries( ${PROJECT_NAME} winmm ws2_32 wsock32 )
 endif( WIN32 )
@@ -101,6 +103,7 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
                   COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;"
 )
+target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
 if( WIN32 )
 target_link_libraries( ${PROJECT_NAME} winmm ws2_32 wsock32 )
 endif( WIN32 )
@@ -117,6 +120,7 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
                   COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;"
 )
+target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
 if( WIN32 )
 target_link_libraries( ${PROJECT_NAME} winmm ws2_32 wsock32 )
 endif( WIN32 )

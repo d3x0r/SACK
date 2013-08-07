@@ -64,7 +64,7 @@ add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE} 
     ${SOURCES_ROOT}/deadstart/deadstart_core.c
 )
-                                                         target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
+target_link_libraries( ${PROJECT_NAME} ${SACK_PLATFORM_LIBRARIES} )
 
 string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES

@@ -96,6 +96,7 @@ ADD_CUSTOM_TARGET( "generate_foo${PROJECT_NAME}" DEPENDS ${PROJECT_BINARY_DIR}/$
 endif()
 
 add_executable_force_source(${PROJECT_NAME} WIN32 ${BASE_SOURCES} )
+target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
 
 if( WATCOM )
 ADD_DEPENDENCIES( ${PROJECT_NAME} "generate_foo${PROJECT_NAME}" )
@@ -214,6 +215,7 @@ if( WATCOM )
 ADD_DEPENDENCIES( ${PROJECT_NAME} "generate_foo${PROJECT_NAME}" )
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES LINK_FLAGS "option resource=${WATCOM_RESOURCES}")
 endif( WATCOM )
+target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
 
 target_link_libraries( ${PROJECT_NAME} ws2_32 wsock32 winmm odbc32 )
 install_default_dest_binary( ${PROJECT_NAME} )

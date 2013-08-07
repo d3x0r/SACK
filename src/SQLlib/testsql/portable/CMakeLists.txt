@@ -85,6 +85,7 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
                   COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;__STATIC__;__NO_GUI__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;${MoreDefinitions};USE_SQLITE;__DISABLE_UDP_SYSLOG__;__NO_MSGSVR__"
                   FOLDER utils
 )
+target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
 if( WIN32 )
 #target_link_libraries( ${PROJECT_NAME} winmm wsock32 ws2_32 )
 target_link_libraries( ${PROJECT_NAME} winmm odbc32 )
