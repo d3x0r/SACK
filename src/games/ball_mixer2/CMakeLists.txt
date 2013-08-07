@@ -26,10 +26,18 @@ include( ${INTERSHELL_SDK_ROOT_PATH}/CMakePackage )
 include_directories( ${SACK_INCLUDE_DIR} )
 LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
 
+if( NOT __ANDROID__ )
 INSTALL_SACK( bin )
 INSTALL_INTERSHELL_CORE( bin )
 INSTALL_INTERSHELL_PLUGINS( bin )
 INSTALL_SACK_BINARY( systray_shell bin )
+LIST( GET systray_shell_targets 0 shell_target )
+install( FILES ${shell_target}  DESTINATION bin RENAME ball_mixer.exe )
+else( NOT __ANDROID__ )
+INSTALL_SACK( lib )
+INSTALL_INTERSHELL_CORE( lib )
+INSTALL_INTERSHELL_PLUGINS( lib )
+endif( NOT __ANDROID__ )
 
 include_directories( ${INTERSHELL_INCLUDE_DIR} )
 LINK_DIRECTORIES( ${INTERSHELL_LIBRARY_DIR} )
@@ -90,9 +98,6 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
 
 install( FILES ball_mixer.interface.conf DESTINATION bin )
 install( FILES NewBallTextGrid.png bingostarlogo.png DESTINATION bin/Images/balls )
-
-LIST( GET systray_shell_targets 0 shell_target )
-install( FILES ${shell_target}  DESTINATION bin RENAME ball_mixer.exe )
 
 if( WIN32 )
 	# On Windows platforms, the dynamic libs should

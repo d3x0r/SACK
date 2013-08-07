@@ -54,7 +54,7 @@ add_subdirectory( portable )
 
 else( NOT BUILD_INTERSHELL )
 
-project( launchpad.isp ) 
+set( project launchpad.isp ) 
 
 set(BASE_SOURCES2
 ${FIRST_GCC_LIBRARY_SOURCE} 
@@ -63,16 +63,20 @@ ${LAST_GCC_LIBRARY_SOURCE}
 )
 
 include_directories( ${SACK_BASE}/src/InterShell )
-add_library_force_source(${PROJECT_NAME} SHARED ${BASE_SOURCES2} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+add_library_force_source(${project} SHARED ${BASE_SOURCES2} )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags} -DISHELL_PLUGIN"
-                  PREFIX ""
-                  SUFFIX ""
                   FOLDER utils/launcher
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-install_literal_product( ${PROJECT_NAME} plugins ) 
+if( NOT__ANDROID__ )
+SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
+                  SUFFIX ""
+                  PREFIX ""
+)
+endif( NOT__ANDROID__ )
+target_link_libraries( ${project} ${SACK_LIBRARIES} )
+install_PLUGIN( ${project} ) 
 add_subdirectory( frames )
 
 endif( NOT BUILD_INTERSHELL )

@@ -27,7 +27,7 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
 )
 endif( NOT__ANDROID__ )
 target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
-install_literal_product( ${PROJECT} plugins ) 
+INSTALL_PLUGIN( ${PROJECT} ) 
 
 add_subdirectory( frames )
 

@@ -7,10 +7,10 @@ tasks
 ${LAST_GCC_LIBRARY_SOURCE}
 )
 
-add_library_force_source(${PROJECT_NAME} SHARED ${SOURCES} )
+add_library_force_source(${PROJECT} SHARED ${SOURCES} )
 
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+string( REPLACE "." "_" TARGET_LABEL ${PROJECT} )
+SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
                   FOLDER "InterShell/plugins"
 )
@@ -20,8 +20,8 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   PREFIX ""
 )
 endif( NOT__ANDROID__ )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} sack_widgets )
-install_literal_product( ${PROJECT_NAME} plugins ) 
+target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} sack_widgets )
+INSTALL_PLUGIN( ${PROJECT} ) 
 
 add_subdirectory( frames )
 
