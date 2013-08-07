@@ -1017,13 +1017,13 @@ endif( WATCOM )
   
   endif(USE_SQLITE_EXTERNAL)
 
-    if( __ANDROID__ )
-        set( FREEGLUT_GLES2 ON )
-        set( FREEGLUT_BUILD_DEMOS OFF )
-        set( ANDROID ON )
-        add_subdirectory( src/freeglut/freeglut-SVN )
-        INCLUDE_DIRECTORIES( src/freeglut/freeglut-SVN/include )
-    endif( __ANDROID__ )
+    #if( __ANDROID__ )
+        #set( FREEGLUT_GLES2 ON )
+        #set( FREEGLUT_BUILD_DEMOS OFF )
+        #set( ANDROID ON )
+        #add_subdirectory( src/freeglut/freeglut-SVN )
+    	#INCLUDE_DIRECTORIES( src/freeglut/freeglut-SVN/include )
+    #endif( __ANDROID__ )
 
 
 IF(EXISTS ${BULLET_SOURCE}/CMakeLists.txt )

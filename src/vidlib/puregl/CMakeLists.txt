@@ -52,8 +52,8 @@ SET_TARGET_PROPERTIES( bag.video.puregl PROPERTIES
 if( __ANDROID__ OR __QNX__ )
   # glOrthof is GLES1 and is used by 'glues' project
   my_target_link_libraries( bag.video.puregl ${SACK_CORE_LIBRARY} EGL GLESv2 GLESv1_CM android log )
-  ADD_DEFINITIONS( -D__USE_FREEGLUT__ )
-  include_directories( ${SOURCES_ROOT}src/freeglut/freeglut-SVN/include )
+  #DD_DEFINITIONS( -D__USE_FREEGLUT__ )
+  #nclude_directories( ${SOURCES_ROOT}src/freeglut/freeglut-SVN/include )
   if( NOT __QNX__ )
   my_target_link_libraries( bag.video.puregl  m )
   endif( NOT __QNX__ )
