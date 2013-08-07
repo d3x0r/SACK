@@ -1290,13 +1290,17 @@ static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
 			switch( KEY_CODE(key) )
 			{
 			case KEY_0:
+#if !defined( __ANDROID__ )
 			case KEY_PAD_0:
 			case KEY_INSERT:
+#endif
 				KeyPressed( psv, button = pKeyPad->keys[3 * pKeyPad->key_spacing->cols + 1].key );
 				break;
 			case KEY_1:
+#if !defined( __ANDROID__ )
 			case KEY_END:
 			case KEY_PAD_1:
+#endif
 				if( pKeyPad->style & KEYPAD_INVERT )
 					KeyPressed( psv, button = pKeyPad->keys[0 * pKeyPad->key_spacing->cols + 0].key );
 				else
@@ -1304,15 +1308,19 @@ static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
 				break;
 			case KEY_2:
 			case KEY_DOWN:
+#if !defined( __ANDROID__ )
 			case KEY_PAD_2:
+#endif
 				if( pKeyPad->style & KEYPAD_INVERT )
 					KeyPressed( psv, button = pKeyPad->keys[0 * pKeyPad->key_spacing->cols + 1].key );
 				else
 					KeyPressed( psv, button = pKeyPad->keys[2 * pKeyPad->key_spacing->cols + 1].key );
 				break;
 			case KEY_3:
+#if !defined( __ANDROID__ )
 			case KEY_PGDN:
 			case KEY_PAD_3:
+#endif
 				if( pKeyPad->style & KEYPAD_INVERT )
 					KeyPressed( psv, button = pKeyPad->keys[0 * pKeyPad->key_spacing->cols + 2].key );
 				else
@@ -1320,22 +1328,30 @@ static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
 				break;
 			case KEY_4:
 			case KEY_LEFT:
+#if !defined( __ANDROID__ )
 			case KEY_PAD_4:
+#endif
 				KeyPressed( psv, button = pKeyPad->keys[1 * pKeyPad->key_spacing->cols + 0].key );
 				break;
 			case KEY_5:
 			case KEY_CENTER:
+#if !defined( __ANDROID__ )
 			case KEY_PAD_5:
+#endif
 				KeyPressed( psv, button = pKeyPad->keys[1 * pKeyPad->key_spacing->cols + 1].key );
 				break;
 			case KEY_6:
 			case KEY_RIGHT:
+#if !defined( __ANDROID__ )
 			case KEY_PAD_6:
+#endif
 				KeyPressed( psv, button = pKeyPad->keys[1 * pKeyPad->key_spacing->cols + 2].key );
 				break;
 			case KEY_7:
+#if !defined( __ANDROID__ )
 			case KEY_HOME:
 			case KEY_PAD_7:
+#endif
 				if( pKeyPad->style & KEYPAD_INVERT )
 					KeyPressed( psv, button = pKeyPad->keys[2 * pKeyPad->key_spacing->cols + 0].key );
 				else
@@ -1343,15 +1359,19 @@ static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
 				break;
 			case KEY_8:
 			case KEY_UP:
+#if !defined( __ANDROID__ )
 			case KEY_PAD_8:
+#endif
 				if( pKeyPad->style & KEYPAD_INVERT )
 					KeyPressed( psv, button = pKeyPad->keys[2 * pKeyPad->key_spacing->cols + 1].key );
 				else
 					KeyPressed( psv, button = pKeyPad->keys[0 * pKeyPad->key_spacing->cols + 1].key );
 				break;
 			case KEY_9:
+#if !defined( __ANDROID__ )
 			case KEY_PGUP:
 			case KEY_PAD_9:
+#endif
 				if( pKeyPad->style & KEYPAD_INVERT )
 					KeyPressed( psv, button = pKeyPad->keys[2 * pKeyPad->key_spacing->cols + 2].key );
 				else
@@ -1361,10 +1381,12 @@ static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
 			case KEY_PAD_ENTER:
 				KeyPressed( psv, button = pKeyPad->keys[3 * pKeyPad->key_spacing->cols + 2].key );
 				break;
+#if !defined( __ANDROID__ )
 			case KEY_PAD_DELETE:
 			case KEY_DELETE:
 				KeyPressed( psv, button = pKeyPad->keys[3 * pKeyPad->key_spacing->cols + 0].key );
 				break;
+#endif
 			case KEY_PAD_MINUS:
 				KeyPressed( psv, button = pKeyPad->keys[3 * pKeyPad->key_spacing->cols + 0].key );
 				break;
@@ -1400,9 +1422,11 @@ static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
 			case KEY_RIGHT_BRACKET:
 				KeyPressed( psv, button = pKeyPad->keys[25].key );
 				break;
+#if !defined( __ANDROID__ )
 			case KEY_CAPS_LOCK:
 				KeyPressed( psv, button = pKeyPad->keys[26].key );
 				break;
+#endif
 			case KEY_Q:
 				KeyPressed( psv, button = pKeyPad->keys[14].key );
 				break;
@@ -1501,60 +1525,85 @@ static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
 			case KEY_SLASH:
 				KeyPressed( psv, button = pKeyPad->keys[50].key );
 				break;
+#if !defined( __ANDROID__ )
 			case KEY_ESCAPE:
 				KeyPressed( psv, button = pKeyPad->keys[0].key );
 				break;
+#endif
 			case KEY_1:
+#if !defined( __ANDROID__ )
 			case KEY_END:
 			case KEY_PAD_1:
+#endif
 				KeyPressed( psv, button = pKeyPad->keys[1].key );
 				break;
 			case KEY_2:
 			case KEY_DOWN:
+#if !defined( __ANDROID__ )
 			case KEY_PAD_2:
+#endif
 				KeyPressed( psv, button = pKeyPad->keys[2].key );
 				break;
 			case KEY_3:
+#if !defined( __ANDROID__ )
 			case KEY_PGDN:
 			case KEY_PAD_3:
+#endif
 				KeyPressed( psv, button = pKeyPad->keys[3].key );
 				break;
 			case KEY_4:
 			case KEY_LEFT:
+#if !defined( __ANDROID__ )
 			case KEY_PAD_4:
+#endif
 				KeyPressed( psv, button = pKeyPad->keys[4].key );
 				break;
 			case KEY_5:
 			case KEY_CENTER:
+#if !defined( __ANDROID__ )
 			case KEY_PAD_5:
+#endif
 				KeyPressed( psv, button = pKeyPad->keys[5].key );
 				break;
 			case KEY_6:
 			case KEY_RIGHT:
+#if !defined( __ANDROID__ )
 			case KEY_PAD_6:
+#endif
 				KeyPressed( psv, button = pKeyPad->keys[6].key );
 				break;
 			case KEY_7:
+#if !defined( __ANDROID__ )
 			case KEY_HOME:
 			case KEY_PAD_7:
+#endif
 				KeyPressed( psv, button = pKeyPad->keys[7].key );
 				break;
 			case KEY_8:
 			case KEY_UP:
+#if !defined( __ANDROID__ )
 			case KEY_PAD_8:
+#endif
 				KeyPressed( psv, button = pKeyPad->keys[8].key );
 				break;
 			case KEY_9:
+#if !defined( __ANDROID__ )
 			case KEY_PGUP:
 			case KEY_PAD_9:
+#endif
 				KeyPressed( psv, button = pKeyPad->keys[9].key );
 				break;
 			case KEY_0:
+#if !defined( __ANDROID__ )
 			case KEY_PAD_0:
 			case KEY_INSERT:
+#endif
 				KeyPressed( psv, button = pKeyPad->keys[10].key );
 				break;
 
+#if !defined( __ANDROID__ )
+			case KEY_PAD_MINUS:
+#endif
 			case KEY_DASH:
 				KeyPressed( psv, button = pKeyPad->keys[11].key );
 				break;
@@ -1568,13 +1617,12 @@ static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
 			case KEY_PAD_ENTER:
 				KeyPressed( psv, button = pKeyPad->keys[38].key );
 				break;
+#if !defined( __ANDROID__ )
 			case KEY_PAD_DELETE:
 			case KEY_DELETE:
 				KeyPressed( psv, button = pKeyPad->keys[39+3].key );
 				break;
-			case KEY_PAD_MINUS:
-				//KeyPressed( psv, button = pKeyPad->keys[].key );
-				break;
+#endif
 			}
 		}
 		{
@@ -1615,13 +1663,17 @@ static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
 			}
          break;
 		case KEY_0:
+#if !defined( __ANDROID__ )
 		case KEY_PAD_0:
 		case KEY_INSERT:
+#endif
 			button = pKeyPad->keys[3 * pKeyPad->key_spacing->cols + 1].key;
 			break;
 		case KEY_1:
+#if !defined( __ANDROID__ )
 		case KEY_END:
 		case KEY_PAD_1:
+#endif
 			if( pKeyPad->style & KEYPAD_INVERT )
 				button = pKeyPad->keys[0 * pKeyPad->key_spacing->cols + 0].key;
 			else
@@ -1629,15 +1681,19 @@ static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
 			break;
 		case KEY_2:
 		case KEY_DOWN:
+#if !defined( __ANDROID__ )
 		case KEY_PAD_2:
+#endif
 			if( pKeyPad->style & KEYPAD_INVERT )
 				button = pKeyPad->keys[0 * pKeyPad->key_spacing->cols + 1].key;
 			else
 				button = pKeyPad->keys[2 * pKeyPad->key_spacing->cols + 1].key;
 			break;
 		case KEY_3:
+#if !defined( __ANDROID__ )
 		case KEY_PGDN:
 		case KEY_PAD_3:
+#endif
 			if( pKeyPad->style & KEYPAD_INVERT )
 				button = pKeyPad->keys[0 * pKeyPad->key_spacing->cols + 2].key;
 			else
@@ -1645,22 +1701,30 @@ static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
 			break;
 		case KEY_4:
 		case KEY_LEFT:
+#if !defined( __ANDROID__ )
 		case KEY_PAD_4:
+#endif
 			button = pKeyPad->keys[1 * pKeyPad->key_spacing->cols + 0].key;
 			break;
 		case KEY_5:
 		case KEY_CENTER:
+#if !defined( __ANDROID__ )
 		case KEY_PAD_5:
+#endif
 			button = pKeyPad->keys[1 * pKeyPad->key_spacing->cols + 1].key;
 			break;
 		case KEY_6:
 		case KEY_RIGHT:
+#if !defined( __ANDROID__ )
 		case KEY_PAD_6:
+#endif
 			button = pKeyPad->keys[1 * pKeyPad->key_spacing->cols + 2].key;
 			break;
 		case KEY_7:
+#if !defined( __ANDROID__ )
 		case KEY_HOME:
 		case KEY_PAD_7:
+#endif
 			if( pKeyPad->style & KEYPAD_INVERT )
 				button = pKeyPad->keys[2 * pKeyPad->key_spacing->cols + 0].key;
 			else
@@ -1668,15 +1732,19 @@ static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
 			break;
 		case KEY_8:
 		case KEY_UP:
+#if !defined( __ANDROID__ )
 		case KEY_PAD_8:
+#endif
 			if( pKeyPad->style & KEYPAD_INVERT )
 				button = pKeyPad->keys[2 * pKeyPad->key_spacing->cols + 1].key;
 			else
 				button = pKeyPad->keys[0 * pKeyPad->key_spacing->cols + 1].key;
 			break;
 		case KEY_9:
+#if !defined( __ANDROID__ )
 		case KEY_PGUP:
 		case KEY_PAD_9:
+#endif
 			if( pKeyPad->style & KEYPAD_INVERT )
 				button = pKeyPad->keys[2 * pKeyPad->key_spacing->cols + 2].key;
 			else
@@ -1687,10 +1755,12 @@ static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
 			button = pKeyPad->keys[3 * pKeyPad->key_spacing->cols + 2].key;
 			//InvokeEnterEvent( (PSI_CONTROL)psv );
 			break;
+#if !defined( __ANDROID__ )
 		case KEY_PAD_DELETE:
 		case KEY_DELETE:
 			button = pKeyPad->keys[3 * pKeyPad->key_spacing->cols + 0].key;
 			break;
+#endif
 		case KEY_PAD_MINUS:
 			button = pKeyPad->keys[3 * pKeyPad->key_spacing->cols + 0].key;
 			break;
