@@ -1,8 +1,8 @@
 
 
-set ANDROID_SDK_ROOT=c:/general/storage/android
-set ANDROID_NDK_VERSION=android-ndk-r8e
-set ANDROID_DIR=c:/general/storage/%ANDROID_NDK_VERSION%
+set ANDROID_SDK_ROOT=c:/storage/android
+set ANDROID_NDK_VERSION=android-ndk-r9
+set ANDROID_DIR=%ANDROID_SDK_ROOT%/%ANDROID_NDK_VERSION%
 set PWD=%~dp0
 set PWD=%PWD:\=/%
 

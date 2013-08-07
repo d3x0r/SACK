@@ -459,8 +459,11 @@ set( C_SOURCES
     ${PNG_SOURCE}
     ${FREETYPE_SOURCE}
     ${EXPAT_SOURCES}
-    ${UUID_SOURCES}
 )
+if( NEED_UUID )
+set( C_SOURCES ${C_SOURCES} ${UUID_SOURCES} )
+endif( NEED_UUID )
+
 Set( ExternalExtraDefinitions ${ExternalExtraDefinitions} PNG_INTERNAL )
 set( SACK_SOURCES 
   ${FIRST_GCC_LIBRARY_SOURCE} 

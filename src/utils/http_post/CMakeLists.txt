@@ -1,6 +1,5 @@
-cmake_minimum_required(VERSION 2.8)
 
-project( HttpUtils )
+set( project HttpUtils )
 
 GET_FILENAME_COMPONENT(SACK_SDK_ROOT_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Freedom Collective\\SACK;Install_Dir]" ABSOLUTE CACHE)
 include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
@@ -20,12 +19,9 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-	COMPILE_DEFINITIONS "TARGET_NAME=\"${PROJECT_NAME}\";TARGET_LABEL=${PROJECT_NAME}"
+add_program(${project} ${BASE_SOURCES} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
         FOLDER tests
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES})
-install_default_dest( ${PROJECT_NAME} )
 
 

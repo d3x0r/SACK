@@ -2,9 +2,13 @@
 
 #ifndef SQL_STRUCT_DEFINED
 #define SQL_STRUCT_DEFINED
+
+
 # if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 #     include <sqlite3.h>
-#  ifndef USE_ODBC
+# endif
+
+#if !USE_ODBC
 // if not using odbc, need these 
 // otherwise they will be defined in sql.h
 typedef int RETCODE; // sqllite uses a generic int type for result codes
@@ -15,9 +19,7 @@ enum {
 	SQL_HANDLE_DBC
       , SQL_HANDLE_STMT
 };
-#  endif
-# endif
-#ifdef USE_ODBC
+#else
 #include <sql.h>
 #include <sqlext.h>
 #endif
@@ -70,7 +72,7 @@ typedef struct data_collection_tag
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	sqlite3_stmt *stmt;
 #endif
-#ifdef USE_ODBC
+#if USE_ODBC
 	SQLHSTMT    hstmt;
 #endif
 	SQLSMALLINT columns;
@@ -100,7 +102,7 @@ struct odbc_handle_tag{
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	sqlite3 *db;
 #endif
-#ifdef USE_ODBC
+#if USE_ODBC
 	SQLHENV    env;  // odbc database access handle...
 	SQLHDBC    hdbc; // handle to database connection
 #endif
@@ -112,7 +114,7 @@ struct odbc_handle_tag{
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 		BIT_FIELD  bSQLite_native  : 1;
 #endif
-#ifdef USE_ODBC
+#if USE_ODBC
 		BIT_FIELD  bODBC  : 1; // odbc is actually an odbc
 #endif
 		BIT_FIELD bSkipODBC  : 1; // set to skip ODBC connection (if dsn has a '.' in it)

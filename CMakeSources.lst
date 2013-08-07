@@ -340,7 +340,6 @@ set( TYPE_LIBRARY_SOURCES ${TYPE_LIBRARY_SOURCES}
 
 endif( WIN32 OR __QNX__ )
 
-if( NEED_UUID )
   add_definitions( -D__INTERNAL_UUID__ -DUUID_SOURCE )
 set( UUID_SOURCES
   ${SOURCES_ROOT}src/uuid-1.6.2/uuid.c
@@ -354,7 +353,6 @@ set( UUID_SOURCES
   ${SOURCES_ROOT}src/uuid-1.6.2/uuid_ui128.c
   ${SOURCES_ROOT}src/uuid-1.6.2/uuid_ui64.c
 )
-endif( NEED_UUID )
 
 SET( VECTLIB_SOURCES src/vectlib/vectlib.c )
 SET_PROPERTY(SOURCE ${VECTLIB_SOURCES}
