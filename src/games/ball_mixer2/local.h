@@ -36,6 +36,9 @@ struct BulletInfo
 #define l local_terrain_data
 
 
+#ifndef TERRAIN_MAIN_SOURCE
+extern
+#endif
 struct local_terrain_data_tag {
 	PRENDER_INTERFACE pri;
 	PIMAGE_INTERFACE pii;
@@ -207,11 +210,7 @@ struct {
 
 	float projection[16]; // retreived from opengl state 
 	float worldview[16]; // obtained from camera translation
-};
-
-#ifndef TERRAIN_MAIN_SOURCE
-extern struct local_terrain_data_tag l;
-#endif
+} l;
 
 
 enum color_defs{
