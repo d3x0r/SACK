@@ -47,6 +47,13 @@ using namespace sack::config;
 #include "sqlstruc.h"
 
 #include <pssql.h>
+
+#ifdef USE_ODBC
+#  if !USE_ODBC
+#    undef USE_ODBC
+#  endif
+#endif
+
 SQL_NAMESPACE
 
 #ifdef _cplusplus_cli

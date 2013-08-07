@@ -1,6 +1,6 @@
 
 
-project( systray_shell.portable )
+SET( PROJECT systray_shell.portable )
 
 #########################################################
 #### CMake Fixes for RC compilation 
@@ -24,8 +24,8 @@ if( WATCOM )
  )
   ADD_CUSTOM_TARGET( generate_foo${rc_file_stripped} DEPENDS ${WATCOM_PROJECT_BINARY_DIR}/${realfile})
   endif( NOT TARGET generate_foo${rc_file_stripped} )
-  ADD_DEPENDENCIES( ${PROJECT_NAME} generate_foo${rc_file_stripped} )
-  SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES LINK_FLAGS "option resource=${realfile}")
+  ADD_DEPENDENCIES( ${PROJECT} generate_foo${rc_file_stripped} )
+  SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES LINK_FLAGS "option resource=${realfile}")
 else( WATCOM )
 endif( WATCOM )
 endmacro( build_resource ) 
@@ -64,6 +64,11 @@ if( NOT WATCOM )
       set( RC  ${SOURCES_ROOT}/all_resources.rc )
 endif( NOT WATCOM )
 
+# update the short list of sources before it gets added to the big list...
+if( NEED_UUID )
+    set( RC ${RC}   ${UUID_SOURCES} )
+endif( NEED_UUID )
+
 set( BASE_SOURCES 
 	${RC}
 	${TYPE_LIBRARY_SOURCES} 
@@ -72,31 +77,24 @@ set( BASE_SOURCES
         ${NETWORK_SOURCES}
         ${UNSORTED_SOURCES} 
         ${ODBC_SOURCES}
+        ${UUID_SOURCES}
         ${OPTION_SOURCE}
         ${SQLITE_SOURCES}
-        ${SYSTRAY_SOURCES} 
+        ${SYSTRAY_SOURCES}
         ../systray_shell.c )
 
+add_DEFINITIONS( -DUSE_SQLITE )
+if( NOT __NO_ODBC__ )
+ADD_DEFINITIONS( USE_ODBC )
+endif( NOT __NO_ODBC__ )
 
-add_executable(${PROJECT_NAME} WIN32 
+
+add_program(${PROJECT} WIN32 
 	${FIRST_GCC_PROGRAM_SOURCE}
 	${BASE_SOURCES}
 	${LAST_GCC_PROGRAM_SOURCE}
 )
 build_resource(  ${SOURCES_ROOT}/all_resources.rc all_resources.res )
-target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
-
-message( test ${ExtraDefinitions} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}" 
-COMPILE_DEFINITIONS "TARGETNAME=\"${PROJECT_NAME}\";${ExtraDefinitions};__STATIC__;__NO_GUI__;__NO_MSGSVR__;USE_ODBC;SACK_BAG_EXPORTS;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__"
-                  FOLDER utils
-)
-if( WIN32 )
-#ws2_32 wsock32 
-target_link_libraries( ${PROJECT_NAME} wsock32 ws2_32 winmm odbc32 rpcrt4  )
-endif( WIN32 )
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${PROJECT}  ${SACK_PLATFORM_LIBRARIES} )
 
 

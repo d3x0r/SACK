@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 2.8)
 
 macro( build_resource rcfile ) 
 if( WATCOM )
@@ -16,7 +15,7 @@ else( WATCOM )
 endif( WATCOM )
 endmacro( build_resource ) 
 
-project( FileMirror )
+set( project FileMirror )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
@@ -24,27 +23,20 @@ ${FIRST_GCC_PROGRAM_SOURCE}
     relay.rc
 ${LAST_GCC_PROGRAM_SOURCE}
 )
-add_executable(${PROJECT_NAME} WIN32 ${BASE_SOURCES} )
+add_program(${project} WIN32 ${BASE_SOURCES} )
 build_resource( relay.rc )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-	COMPILE_DEFINITIONS "TARGET_NAME=\"${PROJECT_NAME}\";TARGET_LABEL=${PROJECT_NAME}"
+SET_TARGET_PROPERTIES(${project} PROPERTIES
         FOLDER utils/filemirror
 )
 
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} wsock32 winmm ) 
-install_default_dest( ${PROJECT_NAME} )
 
-project( FileMirror.verify )
-add_executable(${PROJECT_NAME} WIN32 ${BASE_SOURCES} )
+set( project FileMirror.verify )
+add_program(${project} WIN32 ${BASE_SOURCES} )
 build_resource( relay.rc )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-	COMPILE_DEFINITIONS "TARGET_NAME=\"${PROJECT_NAME}\";TARGET_LABEL=${TARGET_LABEL};VERIFY_MANIFEST"
+SET_TARGET_PROPERTIES(${project} PROPERTIES
         FOLDER utils/filemirror
 )
 
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} wsock32 winmm ) 
-install_default_dest( ${PROJECT_NAME} )
 
 add_subdirectory( controller )
 

@@ -4,6 +4,18 @@ set( BASE_PATH ${CMAKE_INSTALL_PREFIX} )
         
 #message( "Output to ${FILEOUT}" )        
 
+
+macro( OUTPUT_TARGET target )
+    if( __ANDROID__ )
+      	FILE( APPEND ${FILEOUT} "SET( ${target}_targets $""{SACK_BINARY_BASE}/lib/@CMAKE_SHARED_LIBRARY_PREFIX@${target}@CMAKE_SHARED_LIBRARY_SUFFIX@ $""{SACK_BINARY_BASE}/lib/@CMAKE_SHARED_LIBRARY_PREFIX@${target}.portable@CMAKE_SHARED_LIBRARY_SUFFIX@\n"
+                                "    $""{SACK_BINARY_BASE}/lib/@CMAKE_SHARED_LIBRARY_PREFIX@${target}.code@CMAKE_SHARED_LIBRARY_SUFFIX@ $""{SACK_BINARY_BASE}/lib/@CMAKE_SHARED_LIBRARY_PREFIX@${target}.portable.code@CMAKE_SHARED_LIBRARY_SUFFIX@)\n" 
+        		)
+    else( __ANDROID__ )
+      	FILE( APPEND ${FILEOUT} "SET( ${target}_targets $""{SACK_BINARY_BASE}/bin/${target}@CMAKE_EXECUTABLE_SUFFIX@ $""{SACK_BINARY_BASE}/bin/${target}.portable@CMAKE_EXECUTABLE_SUFFIX@)\n" )
+    endif( __ANDROID__ )
+
+endmacro( OUTPUT_TARGET )
+
 		FILE( WRITE ${FILEOUT} "#@CMAKE_PROJECT_NAME@\n" )
 
 		FILE( APPEND ${FILEOUT} "set( SACK_BINARY_BASE ${BASE_PATH} )\n" )
@@ -24,7 +36,7 @@ set( BASE_PATH ${CMAKE_INSTALL_PREFIX} )
 		FILE( APPEND ${FILEOUT} "SET( sqlcmd_targets $""{SACK_BINARY_BASE}/bin/sqlcmd@CMAKE_EXECUTABLE_SUFFIX@)\n" )
 		FILE( APPEND ${FILEOUT} "SET( shutmon_targets $""{SACK_BINARY_BASE}/bin/shutdown.monitor@CMAKE_EXECUTABLE_SUFFIX@)\n" )
 		FILE( APPEND ${FILEOUT} "SET( launcher_targets $""{SACK_BINARY_BASE}/bin/launchpad@CMAKE_EXECUTABLE_SUFFIX@ $""{SACK_BINARY_BASE}/bin/launchcmd@CMAKE_EXECUTABLE_SUFFIX@ $""{SACK_BINARY_BASE}/bin/launchwin@CMAKE_EXECUTABLE_SUFFIX@)\n" )
-		FILE( APPEND ${FILEOUT} "SET( systray_shell_targets $""{SACK_BINARY_BASE}/bin/systray_shell@CMAKE_EXECUTABLE_SUFFIX@ $""{SACK_BINARY_BASE}/bin/systray_shell.portable@CMAKE_EXECUTABLE_SUFFIX@)\n" )
+                OUTPUT_TARGET( systray_shell )
 		FILE( APPEND ${FILEOUT} "SET( vlc_window_targets $""{SACK_BINARY_BASE}/bin/vlc_window@CMAKE_EXECUTABLE_SUFFIX@)\n" )
 		FILE( APPEND ${FILEOUT} "SET( http_server_targets $""{SACK_BINARY_BASE}/bin/http_server@CMAKE_EXECUTABLE_SUFFIX@)\n" )
 		FILE( APPEND ${FILEOUT} "SET( crossfade_targets $""{SACK_BINARY_BASE}/bin/crossfade_vid_playlist@CMAKE_EXECUTABLE_SUFFIX@\n" )
