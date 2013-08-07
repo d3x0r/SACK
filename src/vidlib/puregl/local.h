@@ -148,8 +148,6 @@ extern
 #if defined( __ANDROID__ )
    NativeWindowType displayWindow;
 #endif
-	void (*show_keyboard)(void);
-   void (*hide_keyboard)(void);
 	int bCreatedhWndInstance;
 
 // thread synchronization variables...
@@ -215,8 +213,11 @@ extern
 	struct display_camera *current_mouse_event_camera;  // setcursorpos can only happen during a mouse event, please.
 
 	PIMAGE_INTERFACE gl_image_interface;
-
+	CTEXTSTR current_key_text;
 } l;
+
+void SACK_Vidlib_HideInputDevice( void );
+void SACK_Vidlib_ShowInputDevice( void );
 
 
 

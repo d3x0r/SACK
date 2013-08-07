@@ -35,6 +35,8 @@ void (*BagVidlibPureglSendTouchEvents)( int nPoints, PINPUT_POINT points );
 void (*BagVidlibPureglCloseDisplay)(void);  // do cleanup and suspend processing until a new surface is created.
 void (*BagVidlibPureglSetTriggerKeyboard)(void(*show)(void),void(*hide)(void));  // do cleanup and suspend processing until a new surface is created.
 
+int (*BagVidlibPureglSendKeyEvents)( int pressed, int key, int mods );
+
 struct engine engine;
 
 #if __USE_NATIVE_APP_EGL_MODULE__
@@ -149,8 +151,10 @@ static void engine_term_display(struct engine* engine) {
 static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 {
     struct engine* engine = (struct engine*)app->userData;
-	 if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION)
+	 switch(AInputEvent_getType(event))
 	 {
+	 case AINPUT_EVENT_TYPE_MOTION:
+		 {
 		 int32_t action = AMotionEvent_getAction(event );
 		 int pointer = ( action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK ) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 		 //LOGI( "POINTER %04x %d %d", action, pointer, action & AMOTION_EVENT_ACTION_MASK );
@@ -217,7 +221,33 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 		 //engine->animating = 1;
         //engine->state.x = AMotionEvent_getX(event, 0);
         //engine->state.y = AMotionEvent_getY(event, 0);
-        return 1;
+		 return 1;
+		 }
+	 case AINPUT_EVENT_TYPE_KEY:
+		 {
+			 int32_t key_val = AKeyEvent_getKeyCode(event);
+			 int32_t key_mods = AKeyEvent_getMetaState( event );
+			 int32_t key_pressed = AKeyEvent_getAction( event );
+			 LOGI("Received key event: %d %d %d\n", key_pressed, key_val, key_mods );
+			 if( key_val )
+			 {
+             int used;
+				 if( key_pressed == AKEY_EVENT_ACTION_MULTIPLE )
+				 {
+					 int count = AKeyEvent_getRepeatCount( event );
+					 int n;
+					 for( n = 0; n < count; n++ )
+					 {
+						 used = BagVidlibPureglSendKeyEvents( 1, key_val, key_mods );
+						 used = BagVidlibPureglSendKeyEvents( 0, key_val, key_mods );
+					 }
+				 }
+				 else
+					 used = BagVidlibPureglSendKeyEvents( (key_pressed==AKEY_EVENT_ACTION_DOWN)?1:0, key_val, key_mods );
+				 return used;
+			 }
+          break;
+		 }
     }
     return 0;
 }
@@ -473,6 +503,7 @@ void* BeginNormalProcess( void*param )
 					if( !BagVidlibPureglOpenCameras )
 						LOGI( "Failed to get OpenCameras:%s", dlerror() );
 
+               BagVidlibPureglSendKeyEvents = (int(*)(int,int,int))dlsym( lib, "SACK_Vidlib_SendKeyEvents" );
 					BagVidlibPureglSendTouchEvents = (void (*)(int,PINPUT_POINT ))dlsym( lib, "SACK_Vidlib_SendTouchEvents" );
 					BagVidlibPureglCloseDisplay = (void(*)(void))dlsym( lib, "SACK_Vidlib_CloseDisplay" );
 					BagVidlibPureglSetTriggerKeyboard = (void(*)(void))dlsym( lib, "SACK_Vidlib_SetTriggerKeyboard" );

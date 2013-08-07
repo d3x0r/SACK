@@ -685,27 +685,6 @@ ATEXIT( ExitTest )
 
 #endif
 
-
-void SACK_Vidlib_SetTriggerKeyboard( void (*show)(void), void(*hide)(void))
-{
-	l.show_keyboard = show;
-	l.hide_keyboard = hide;
-}
-
-void SACK_Vidlib_ShowInputDevice( void )
-{
-   lprintf( "ShowInputDevice" );
-	if( l.show_keyboard )
-      l.show_keyboard();
-}
-
-void SACK_Vidlib_HideInputDevice( void )
-{
-   lprintf( "HideInputDevice" );
-	if( l.hide_keyboard )
-      l.hide_keyboard();
-}
-
 // forward declaration - staticness will probably cause compiler errors.
 static int CPROC ProcessDisplayMessages(void );
 
@@ -1256,13 +1235,13 @@ static void RenderGL( struct display_camera *camera )
 
 		for( hVideo = l.bottom; hVideo; hVideo = hVideo->pBelow )
 		{
-			if( l.flags.bLogMessageDispatch )
+			if( l.flags.bLogWrites )
 				lprintf( WIDE("Have a video in stack...") );
 			if( hVideo->flags.bDestroy )
 				continue;
 			if( hVideo->flags.bHidden || !hVideo->flags.bShown )
 			{
-				if( l.flags.bLogMessageDispatch )
+				if( l.flags.bLogWrites )
 					lprintf( WIDE("But it's nto exposed...") );
 				continue;
 			}
@@ -1469,14 +1448,12 @@ static void LoadOptions( void )
 			default_camera = (struct display_camera *)GetLink( &l.cameras, 1 );
 		SetLink( &l.cameras, 0, default_camera );
 	}
-	l.flags.bLogMessageDispatch = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log message dispatch"), 0, TRUE );
+	l.flags.bLogMessageDispatch = 1;//SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log message dispatch"), 0, TRUE );
 	l.flags.bLogFocus = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log focus event"), 0, TRUE );
 	l.flags.bLogKeyEvent = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log key event"), 0, TRUE );
 	l.flags.bLogMouseEvent = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log mouse event"), 0, TRUE );
-	l.flags.bOptimizeHide = SACK_GetProfileIntEx( WIDE("SACK"), WIDE("Video Render/Optimize Hide with SWP_NOCOPYBITS"), 0, TRUE );
 	l.flags.bLayeredWindowDefault = 0;
 	l.flags.bLogWrites = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Log Video Output"), 0, TRUE );
-	l.flags.bUseLLKeyhook = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Use Low Level Keyhook"), 0, TRUE );
 #else
 #  ifndef UNDER_CE
 #  endif
@@ -2079,8 +2056,8 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 			MemSet (camera->hVidCore, 0, sizeof (VIDEO));
 			InitializeCriticalSec( &camera->hVidCore->cs );
 			camera->hVidCore->camera = camera;
-			camera->hVidCore->pMouseCallback = OpenGLMouse;
-			camera->hVidCore->dwMouseData = (PTRSZVAL)camera;
+			//camera->hVidCore->pMouseCallback = OpenGLMouse;
+			//camera->hVidCore->dwMouseData = (PTRSZVAL)camera;
 		}
 		/* CreateWindowEx */
 #ifdef __QNX__
@@ -2358,11 +2335,12 @@ int  InitDisplay (void)
 		{
 			int failcount = 0;
 			l.flags.bThreadCreated = 1;
-			//AddLink( &l.threads, ThreadTo( VideoThreadProc, 0 ) );
-#if 0
-#ifdef LOG_STARTUP
+#ifndef __ANDROID__
+         lprintf( "DON't DO THIS?!" );
+			AddLink( &l.threads, ThreadTo( VideoThreadProc, 0 ) );
+#  ifdef LOG_STARTUP
 			Log( WIDE("Started video thread...") );
-#endif
+#  endif
 			{
 				do
 				{
@@ -2377,17 +2355,6 @@ int  InitDisplay (void)
 #endif
 		}
 	}
-	{
-		//GLboolean params = 0;
-		//if( glGetBooleanv(GL_STEREO, &params), params )
-		//{
-		//	lprintf( WIDE("yes stereo") );
-		//}
-		//else
-		//	lprintf( WIDE("no stereo") );
-	}
-
-
 	return TRUE;
 }
 
@@ -2396,44 +2363,20 @@ int  InitDisplay (void)
 
 TEXTCHAR  GetKeyText (int key)
 {
-   int c;
-	char ch[5];
-	if( key & KEY_MOD_DOWN )
-      return 0;
-	key ^= 0x80000000;
-
-   c =  
-#if !defined( UNDER_CE ) && !defined( __ANDROID__ ) && !defined( __QNX__ )
-      ToAscii (key & 0xFF, ((key & 0xFF0000) >> 16) | (key & 0x80000000),
-               l.kbd.key, (unsigned short *) ch, 0);
-#else
-	   key;
-#endif
-   if (!c)
-   {
-      // check prior key bindings...
-      //printf( WIDE("no translation\n") );
-      return 0;
-   }
-   else if (c == 2)
-   {
-      //printf( WIDE("Key Translated: %d %d\n"), ch[0], ch[1] );
-      return 0;
-   }
-   else if (c < 0)
-   {
-      //printf( WIDE("Key Translation less than 0\n") );
-      return 0;
-   }
-   //printf( WIDE("Key Translated: %d(%c)\n"), ch[0], ch[0] );
-   return ch[0];
+   if( l.current_key_text )
+		return l.current_key_text[0];
+   return 0;
 }
 
 //----------------------------------------------------------------------------
 
 LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 {
+   // starts our message thread if there is one...
 	InitDisplay();
+
+	if( !l.top )
+		l.hVidVirtualFocused = hNextVideo;
 
 	PutDisplayAbove( hNextVideo, l.top );
 
@@ -2488,7 +2431,6 @@ LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 		}
 		if( hNextVideo )
 		{
-			//_32 timeout = timeGetTime() + 500000;
 			hNextVideo->thread = GetMyThreadID();
 			//while (!hNextVideo->flags.bReady && timeout > timeGetTime())
 			{
@@ -2968,6 +2910,9 @@ void  SetLoseFocusHandler (PVIDEO hVideo,
 {
 	hVideo->dwLoseFocus = dwUser;
 	hVideo->pLoseFocus = pLoseFocus;
+   // window will need the initial set focus if it is focused.
+	if( pLoseFocus && hVideo == l.hVidVirtualFocused )
+      pLoseFocus( dwUser, l.hVidVirtualFocused );
 }
 
 //----------------------------------------------------------------------------
@@ -3381,16 +3326,18 @@ void  SyncRender( PVIDEO hVideo )
 
 //----------------------------------------------------------------------------
 
- void  ForceDisplayFocus ( PRENDERER pRender )
+void  ForceDisplayFocus ( PRENDERER pRender )
 {
-	//SetActiveWindow( GetParent( pRender->hWndOutput ) );
-	//SetForegroundWindow( GetParent( pRender->hWndOutput ) );
-	//SetFocus( GetParent( pRender->hWndOutput ) );
-	//lprintf( WIDE( "... 3 step?" ) );
-	//SetActiveWindow( pRender->hWndOutput );
-	//SetForegroundWindow( pRender->hWndOutput );
-	//if( pRender )
-	//	SafeSetFocus( pRender->hWndOutput );
+	if( !l.hVidVirtualFocused ||
+		l.hVidVirtualFocused != pRender )
+	{
+		if( l.hVidVirtualFocused )
+		{
+			if( l.hVidVirtualFocused->pLoseFocus )
+            l.hVidVirtualFocused->pLoseFocus( l.hVidVirtualFocused->dwLoseFocus, l.hVidVirtualFocused );
+		}
+		l.hVidVirtualFocused = pRender;
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -3817,6 +3764,7 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 	   WIDE("puregl.render.3d")
 	   , GetDisplay3dInterface, DropDisplay3dInterface );
 	l.gl_image_interface = (PIMAGE_INTERFACE)GetInterface( "puregl.image" );
+
 	BindEventToKey( NULL, KEY_F4, KEY_MOD_RELEASE|KEY_MOD_ALT, DefaultExit, 0 );
 	BindEventToKey( NULL, KEY_SCROLL_LOCK, 0, EnableRotation, 0 );
 	BindEventToKey( NULL, KEY_F12, 0, EnableRotation, 0 );
