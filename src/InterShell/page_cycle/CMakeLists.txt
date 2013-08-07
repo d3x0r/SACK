@@ -12,12 +12,16 @@ add_library_force_source(${PROJECT} SHARED ${SOURCES} )
 string( REPLACE "." "_" TARGET_LABEL ${PROJECT} )
 SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
-                  SUFFIX ""
-                  PREFIX ""
                   FOLDER "InterShell/plugins"
 )
+if( NOT__ANDROID__ )
+SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
+                  SUFFIX ""
+                  PREFIX ""
+)
+endif( NOT__ANDROID__ )
 target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
-install_literal_product( ${PROJECT} plugins ) 
+install_PLUGIN( ${PROJECT} ) 
 
 
 set( PROJECT net_page_changer.isp  )
@@ -33,14 +37,15 @@ add_library_force_source(${PROJECT} SHARED ${SOURCES} )
 string( REPLACE "." "_" TARGET_LABEL ${PROJECT} )
 SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
-                  SUFFIX ""
-                  PREFIX ""
                   FOLDER "InterShell/plugins"
 )
-if( WIN32 )
-set( WINMM winmm )
-endif( WIN32 )
-target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} ${WINMM} )
-install_literal_product( ${PROJECT} plugins ) 
+if( NOT__ANDROID__ )
+SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
+                  SUFFIX ""
+                  PREFIX ""
+)
+endif( NOT__ANDROID__ )
+target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} ${SACK_PLATFORM_LIBRAIES} )
+install_PLUGIN( ${PROJECT} ) 
 
 

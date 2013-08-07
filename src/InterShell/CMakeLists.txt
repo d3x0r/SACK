@@ -18,7 +18,11 @@ if( NOT MAKING_SACK_CORE )
 
   include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
 
+if( __ANDROID__ )
+  INSTALL_SACK( lib )
+else( __ANDROID__ )
   INSTALL_SACK( bin )
+endif( __ANDROID__ )
 
   include_directories( ${SACK_INCLUDE_DIR} )
   LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
@@ -30,19 +34,12 @@ endif( NOT MAKING_SACK_CORE )
 
 add_definitions( -DINTERSHELL_CORE_BUILD )
 
-macro( install_plugin )
-install_literal_product( ${PROJECT} plugins ) 
-endmacro( install_plugin )
-
 set( BUILD_INTERSHELL 1 )
 
 add_subdirectory( ../../data __/__/data )
 add_subdirectory( widgets )
 INSTALL( DIRECTORY config/ DESTINATION Resources )
 INSTALL( DIRECTORY frames DESTINATION Resources )
-
-add_subdirectory( ../utils/launcher/launchpad launchpad )
-add_subdirectory( calendar )
 
 set( PROJECT_OUTPUT InterShell.core )
 
@@ -88,9 +85,8 @@ if( NOT __ANDROID__ )
 endif( NOT __ANDROID__ )
 
 target_link_libraries( ${PROJECT_OUTPUT} sack_widgets ${SACK_LIBRARIES} )
-if( WIN32 )
-target_link_libraries( ${PROJECT_OUTPUT} winmm )
-endif( WIN32 )
+target_link_libraries( ${PROJECT_OUTPUT} )
+
 install_literal_product( ${PROJECT_OUTPUT} . ) 
 
 
@@ -123,7 +119,18 @@ INSTALL(
     ${SACK_BASE}/include/SACK/InterShell )
 endif( INSTALL_TO_SACK_SDK )
 
+MACRO( INSTALL_PLUGIN target )
+   if( __ANDROID__ )
+      install_literal_product( ${target} . )
+   else( __ANDROID__ )
+      install_literal_product( ${target} plugins )
+   endif( __ANDROID__ )
+ENDMACRO( INSTALL_PLUGIN target )
+
 set( INSTALLED_TARGETS "" CACHE STRING "" FORCE )
+
+add_subdirectory( ../utils/launcher/launchpad launchpad )
+add_subdirectory( calendar )
 
 if( NOT __ARM__ )
 add_subdirectory( vlc_hook )
@@ -159,10 +166,10 @@ endif( WIN32 )
 
 # this has to be set before the cmakelists.txt ends... but not before other cmakelists are loaded
 
-if( NOT __ARM__ )
+if( NOT __ARM__ OR __ANDROID__ )
 # arm target has no console.
 add_subdirectory( shell )
-endif( NOT __ARM__ )
+endif( NOT __ARM__ OR __ANDROID__ )
 
 MACRO( InstallConfig target )
  if( __ANDROID__ )

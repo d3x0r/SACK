@@ -11,4 +11,4 @@ INSTALL(
     src/sack
 )
 
-
+install( DIRECTORY android DESTINATION src/sack )

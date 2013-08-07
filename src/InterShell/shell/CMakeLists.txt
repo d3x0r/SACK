@@ -1,12 +1,10 @@
 
 
-
-cmake_minimum_required(VERSION 2.8)
 ##########################################################################3
 ################ Console ######################
 ##########################################################################3
 
-project( InterShell_console  )
+set( project InterShell_console  )
 
 
 set(SOURCES
@@ -25,13 +23,17 @@ add_definitions(
 )
 endif( __CLR__ )
 
-add_program(${PROJECT_NAME} ${SOURCES} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+add_program(${project} ${SOURCES} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER InterShell
 )
-
+if( __ANDROID__ )
+install( TARGETS ${project} RUNTIME DESTINATION lib
+	LIBRARY DESTINATION lib) 
+else( __ANDROID__ )
 if( __CLR__ )
-install( TARGETS ${PROJECT_NAME} RUNTIME DESTINATION . ) 
+install( TARGETS ${project} RUNTIME DESTINATION . ) 
 else( __CLR__ )
-install( TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin ) 
+install( TARGETS ${project} RUNTIME DESTINATION bin ) 
 endif( __CLR__ )
+endif( __ANDROID__ )
