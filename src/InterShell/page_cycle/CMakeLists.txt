@@ -1,6 +1,5 @@
-cmake_minimum_required(VERSION 2.8)
 
-project( page_cycle.isp )
+set( PROJECT page_cycle.isp )
 
 set( SOURCES
 ${FIRST_GCC_LIBRARY_SOURCE} 
@@ -8,19 +7,20 @@ page_cycle
 ${LAST_GCC_LIBRARY_SOURCE}
 )
 
-add_library_force_source(${PROJECT_NAME} SHARED ${SOURCES} )
+add_library_force_source(${PROJECT} SHARED ${SOURCES} )
 
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+string( REPLACE "." "_" TARGET_LABEL ${PROJECT} )
+SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
                   SUFFIX ""
                   PREFIX ""
                   FOLDER "InterShell/plugins"
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-install_literal_product( ${PROJECT_NAME} plugins ) 
+target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
+install_literal_product( ${PROJECT} plugins ) 
 
-project( net_page_changer.isp )
+
+set( PROJECT net_page_changer.isp  )
 
 set( SOURCES
 ${FIRST_GCC_LIBRARY_SOURCE} 
@@ -28,10 +28,10 @@ net_page_change
 ${LAST_GCC_LIBRARY_SOURCE}
 )
 
-add_library_force_source(${PROJECT_NAME} SHARED ${SOURCES} )
+add_library_force_source(${PROJECT} SHARED ${SOURCES} )
 
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+string( REPLACE "." "_" TARGET_LABEL ${PROJECT} )
+SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
                   SUFFIX ""
                   PREFIX ""
@@ -40,7 +40,7 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
 if( WIN32 )
 set( WINMM winmm )
 endif( WIN32 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} ${WINMM} )
-install_literal_product( ${PROJECT_NAME} plugins ) 
+target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} ${WINMM} )
+install_literal_product( ${PROJECT} plugins ) 
 
 

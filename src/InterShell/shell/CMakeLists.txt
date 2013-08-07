@@ -2,6 +2,9 @@
 
 
 cmake_minimum_required(VERSION 2.8)
+##########################################################################3
+################ Console ######################
+##########################################################################3
 
 project( InterShell_console  )
 
@@ -22,12 +25,11 @@ add_definitions(
 )
 endif( __CLR__ )
 
-add_executable_force_source(${PROJECT_NAME} ${SOURCES} )
+add_program(${PROJECT_NAME} ${SOURCES} )
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-                  COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT_NAME}"
                   FOLDER InterShell
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
+
 if( __CLR__ )
 install( TARGETS ${PROJECT_NAME} RUNTIME DESTINATION . ) 
 else( __CLR__ )

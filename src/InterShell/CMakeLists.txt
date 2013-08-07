@@ -31,7 +31,7 @@ endif( NOT MAKING_SACK_CORE )
 add_definitions( -DINTERSHELL_CORE_BUILD )
 
 macro( install_plugin )
-install_literal_product( ${PROJECT_NAME} plugins ) 
+install_literal_product( ${PROJECT} plugins ) 
 endmacro( install_plugin )
 
 set( BUILD_INTERSHELL 1 )
@@ -44,7 +44,6 @@ INSTALL( DIRECTORY frames DESTINATION Resources )
 add_subdirectory( ../utils/launcher/launchpad launchpad )
 add_subdirectory( calendar )
 
-#project( InterShell.core )
 set( PROJECT_OUTPUT InterShell.core )
 
 set(SOURCES 
@@ -67,21 +66,26 @@ ${LAST_GCC_LIBRARY_SOURCE}
 )
 
 
-add_library_force_source( ${PROJECT_OUTPUT} SHARED ${SOURCES} )
+add_library( ${PROJECT_OUTPUT} SHARED ${SOURCES} )
 
 string( REPLACE "." "_" TARGET_LABEL ${PROJECT_OUTPUT} )
 SET_TARGET_PROPERTIES(${PROJECT_OUTPUT} PROPERTIES
                   DEFINE_SYMBOL INTERSHELL_SOURCE
                   COMPILE_FLAGS  ""
                   COMPILE_DEFINITIONS "TARGET_LABEL=${TARGET_LABEL};_DEFINE_INTERFACE;__NO_ANIMATION__"
-                  PREFIX ""
                   FOLDER InterShell
 )
-if( NOT __CLR__ )
-SET_TARGET_PROPERTIES(${PROJECT_OUTPUT} PROPERTIES
+
+if( NOT __ANDROID__ )
+       SET_TARGET_PROPERTIES(${PROJECT_OUTPUT} PROPERTIES
+                  PREFIX ""
+       )
+   if( NOT __CLR__ )
+      SET_TARGET_PROPERTIES(${PROJECT_OUTPUT} PROPERTIES
                   SUFFIX ""
-)
-endif( NOT __CLR__ )
+      )
+   endif( NOT __CLR__ )
+endif( NOT __ANDROID__ )
 
 target_link_libraries( ${PROJECT_OUTPUT} sack_widgets ${SACK_LIBRARIES} )
 if( WIN32 )
@@ -129,11 +133,13 @@ add_subdirectory( ../streamlib/InterShell __/streamlib )
   endif( NOT __64__ AND NOT __CLR__ AND NOT BUILD_UNICODE )
 endif()
 add_subdirectory( set_config )
-add_subdirectory( wshell )
-add_subdirectory( service.shell )
-add_subdirectory( stop )
-add_subdirectory( restart )
-add_subdirectory( force_show )
+if( NOT __ANDROID__ )
+  add_subdirectory( wshell )
+  add_subdirectory( service.shell )
+  add_subdirectory( stop )
+  add_subdirectory( restart )
+  add_subdirectory( force_show )
+endif( NOT __ANDROID__ )
 add_subdirectory( tasks )
 add_subdirectory( page_cycle )
 add_subdirectory( clock )
@@ -159,12 +165,18 @@ add_subdirectory( shell )
 endif( NOT __ARM__ )
 
 MACRO( InstallConfig target )
- INSTALL( FILES ${CMAKE_INSTALL_PREFIX}/bin/InterShell_Window.exe
+ if( __ANDROID__ )
+  INSTALL( FILES ${CMAKE_INSTALL_PREFIX}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}InterShell{CMAKE_SHARED_LIBRARY_SUFFIX}
+	DESTINATION ${CMAKE_INSTALL_PREFIX}/bin RENAME ${CMAKE_SHARED_LIBRARY_PREFIX}InterShell{CMAKE_SHARED_LIBRARY_SUFFIX} )
+ else( __ANDROID__ )
+
+  INSTALL( FILES ${CMAKE_INSTALL_PREFIX}/bin/InterShell_Window.exe
 	DESTINATION ${CMAKE_INSTALL_PREFIX}/bin RENAME ${target}.exe )
- INSTALL( FILES ${CMAKE_INSTALL_PREFIX}/bin/InterShell_Window.stop.exe
+  INSTALL( FILES ${CMAKE_INSTALL_PREFIX}/bin/InterShell_Window.stop.exe
 	DESTINATION ${CMAKE_INSTALL_PREFIX}/bin RENAME ${target}.stop.exe )
- INSTALL( FILES ${CMAKE_SOURCE_DIR}/interface/${target}.interface.conf
+  INSTALL( FILES ${CMAKE_SOURCE_DIR}/interface/${target}.interface.conf
 	DESTINATION ${CMAKE_INSTALL_PREFIX}/bin OPTIONAL)
+ endif( __ANDROID__ )
 ENDMACRO( InstallConfig target )
 
 MACRO( InstallServiceConfig target )
