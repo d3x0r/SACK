@@ -59,9 +59,9 @@ LINK_DIRECTORIES( ${ANDROID_DIR}/sources/cxx-stl/gnu-libstdc++/${ANDROID_NDK_PRE
 #SET( CMAKE_EXE_LINKER_FLAGS "-lstdc++ -lsupc++ -lgnustl_shared" )
 #SET( CMAKE_SHARED_LINKER_FLAGS "-lstdc++ -lsupc++ -lgnustl_shared" )
 #SET( CMAKE_MODULE_LINKER_FLAGS "-lstdc++ -lsupc++ -lgnustl_shared" )
-SET( CMAKE_EXE_LINKER_FLAGS "-lstdc++ -lgnustl_static" )
-SET( CMAKE_SHARED_LINKER_FLAGS "-lstdc++ -lgnustl_static" )
-SET( CMAKE_MODULE_LINKER_FLAGS "-lstdc++ -lgnustl_static" )
+SET( CMAKE_EXE_LINKER_FLAGS "-lstdc++ -lgnustl_static  -lsupc++" )
+SET( CMAKE_SHARED_LINKER_FLAGS "-lstdc++ -lgnustl_static -lsupc++" )
+SET( CMAKE_MODULE_LINKER_FLAGS "-lstdc++ -lgnustl_static -lsupc++" )
 
 SET(CMAKE_FIND_ROOT_PATH  ${ANDROID_DIR})
 

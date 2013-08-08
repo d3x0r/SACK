@@ -1,25 +1,13 @@
 
-cmake_minimum_required(VERSION 2.8)
+set( PROJECT dekware )
 
+add_definitions( -DLOAD_LIBNAME="dekware.core" -DMODE=0 )
 
-PROJECT( dekware )
-
-ADD_EXECUTABLE( ${PROJECT_NAME} WIN32 
+ADD_PROGRAM( ${PROJECT} WIN32 
 ${FIRST_GCC_PROGRAM_SOURCE}
    ${SACK_BASE}/src/sack/runwin.c 
 ${LAST_GCC_PROGRAM_SOURCE}
    
 )
 
-add_definitions( 
--DLOAD_LIBNAME="dekware.core" -DMODE=0
-)
 
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-                  COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
-)
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-
-INSTALL( TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin 
-)
