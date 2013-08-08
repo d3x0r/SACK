@@ -76,6 +76,8 @@ endif( __64__ )
 #install( FILES ${cgbin} DESTINATION bin )
 #install( FILES multishade.fx DESTINATION bin )
 
-#install( FILES glew-1.9.0/include/GL/glew.h DESTINATION include/SACK/GL )
+if( NOT __ANDROID__ )
+   install( FILES glew-1.9.0/include/GL/glew.h DESTINATION include/SACK/GL )
+endif( NOT __ANDROID__ )
 
 

@@ -51,6 +51,7 @@
 #define USE_IMAGE_INTERFACE l.pii
 #define NEED_VECTLIB_COMPARE
 #define TERRAIN_MAIN_SOURCE
+#define MAKE_RCOORD_SINGLE
 #include <sqlgetoption.h>
 #include <math.h>
 #include <render.h>

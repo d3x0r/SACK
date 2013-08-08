@@ -7,8 +7,12 @@
 #include <image.h>
 #include <render.h>
 #include <render3d.h>
+#ifdef USE_GLES2
+#include <GLES2/gl2.h>
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
+#endif
 #include <timers.h>
 
 #ifndef VIEW_MAIN
