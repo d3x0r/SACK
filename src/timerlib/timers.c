@@ -1355,7 +1355,7 @@ static PTRSZVAL CPROC find_timer( POINTER p, PTRSZVAL psvID )
 {
 	_32 timerID = (_32)psvID;
 	PTIMER timer = (PTIMER)p;
-   lprintf( "Find to remove test %d==%d", timer->ID, timerID );
+   //lprintf( "Find to remove test %d==%d", timer->ID, timerID );
 	if( timer->ID == timerID )
 		return (PTRSZVAL)p;
    return 0;
