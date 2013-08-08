@@ -1,0 +1,187 @@
+<HTML>
+<HEAD>
+<TITLE>
+System Abstraction Component Kit (SACK)
+</TITLE>
+</HEAD>
+
+<BODY>
+<CENTER>System Abstraction Component Kit (SACK)</CENTER>
+
+<p>This set of libraries supports several compilers, and makes building
+release (optimized) and debug (more checks, logging) versions simple. 
+The make system is modeled somewhat on Visual Studio's idea of how to
+build projects.  It has been extended to also build static and dynamic
+libraries/programs.  Dynamic libraries are .DLL's and .so's on
+respective systems.  Static libraries are .lib, .a products on
+respective systems.
+
+<p>Several environment variables control this make system.
+<MENU>
+<LI>FINALDEST
+<menu>Specifies the directory for the final destination.  Libraries
+specified with MORELIBS will be referenced from the appropriate library
+directory.
+</menu>
+<li>COMPILER
+<menu>Specifies the compiler to use when making these products and
+anything using this make system.
+<li>lnx - GCC (3.2 or higher preferred) - target system is
+Linux.
+<li>wc - Open Watcom compiler (www.openwatcom.org).  This is the
+preferred compiler to use when building windows applications.  This
+compiler supports OS2, Win16, Win32, QNX(?), Linux(?)
+<li>bcc - Borland C 3.1 - expiramental, probably
+incomplete. Target is 16 bit windows.
+<li>b32 - Borland free command line tools (5.5) - expiramental.
+<li>cyg - Cygwin environment, (sources.redhat.com/cygwin). 
+Unmaintained.  Should nearly mimic linux environemt.  -mno-cygwin
+option MUST be used.
+<li>lcc - LCC Win32 (from q software solutions) is used to compile
+windows projects.  This is a C only compiler, and some current projects
+fail because there's aspects of C++ in them.  Further, there were some
+issues when linking with 15 DLLs that cause fopen(), fprintf() to fail.
+Additionally if a routine is defined __declspec(dllexport) the routine
+MUST exist, which causes the display library to fail building... Since
+it is merely a layer for image/video and performs most all the same
+functions, but relies on image/video for the remainder.  (Obsolete)
+<li>vc - MSVC - expiramental and only roughly tested.  Debug
+information options are not complete.
+<li>dm - Digital Mars compiler - to be implemented?
+</menu>
+<li>DEFAULT_DEST
+<menu>
+<p>This specifies a default value for the make argument DEST=.  If a
+command line destination is specified it overrides the DEFAULT_DEST
+defined in the environment.
+<p>The value of the destionation determines the directory the
+intermediate products are built into... $(PROJECT)/$(DEST). where
+PROJECT specifes some library/program directory.
+
+<li>debug - defines flag _DEBUG for compiled code.  Generates debug
+information appropriate for the compiler selected.  Dynamic/shared
+libraries are built, and programs are linked to use these libraries.
+Project intermediates are built into $(project)/debug.  Final products
+are built into $(FINALDEST)/bin/debug, and $(FINALDEST)/lib/debug.
+MODE=debug.
+<li>static_debug - Same as debug mode, except, libraries are built
+statically.  .lib, .a final library targets are built into
+$(FINALDEST)/lib/debug, programs only are built into
+$(FINALDEST)/bin/debug.  Products will also have an 's' appended to the
+end of their name (and before their extension).  For example
+syslog.lib becomes syslogs.lib; bin/libsyslog.so becomes
+lib/libsyslogs.a.  This is true for any static_ destionation.
+intermediate files are built into $(project)/static_debug. MODE=debug.
+<li>release - does not define _DEBUG.  Generates optimized code, and no
+debug information.  Intermediate files are built into
+$(project)/release.  MODE=release.
+<li>static_release - Library names are mangled to have an 's' appended.
+intermediate files are built into $(project)/static_release.
+MODE=release.
+</menu>
+
+</menu>
+
+
+<p>Final products are built into $(FINALDEST)/bin/$(MODE), and
+$(FINALDEST)/lib/$(MODE).  Static libraries, and the import link
+libraries are built into lib.  Dynamic libraries and programs are built
+into bin.  $(FINALDEST) if not specified is $(SACK_BASE) when building
+projects within the SACK subsystem.  This is overridden appropriately
+for ELTANIN_BASE, ALTANIK_BASE as appropriate for project sub-trees.
+
+
+<p><a href="syslog.html">Project: System Logging</a><br>
+Location: src/sysloglib <br>
+Linux products: lib/libsyslogs.a, bin/libsyslog.so  <br>
+Windows products: lib/syslogs.lib, lib/syslog.lib & bin/syslog.dll<br>
+<menu>Used for a common point to control program logging.  On the fly, the 
+target for any logging messages may be changed.  Options also include time
+stamp on all messages either in delta or absolute format.  Resolution of times
+can be from CPU ticks to seconds.  Debug mode code generates messages which include
+__FILE__(__LINE__): prefixes by default.  
+</menu>
+
+
+
+
+
+
+
+</html>
+
+<!--
+
+-----------------------------------------------------------------------------
+BEGIN DEPRECATED
+-----------------------------------------------------------------------------
+
+
+---- any notes on the make system are OBSOLETE --
+---- Please do bear with me while we reconstruct ----
+
+
+This project directory is meant to be at the root of the development
+drive.  This can be accomplished with the 'subst' command...
+
+	 mkdir c:\development
+	 : assuming you have no real M drive you could do....
+	 subst M: c:\development
+	 : thereby making M:\ be the root of the development
+
+unzip (with directories) common.zip into c:\development OR M:\
+
+MAKING Projects
+--------------------------
+	Supported systems now include Linux, LCC, CYGWIN, FreeBSD
+
+	Basic library building is merely running ../makeset from the project
+	directory.  Now, depending on your system, and compiler, there are several
+	makesets available.  
+
+		Makefile - 
+
+	4(four) versions the each library are built.  Release, Debug, both of
+	these are shared library or dll versions.  Static release, debug, 
+	both of these are used for static linking.  Debug information included
+	in debug versions is specific for each development system.  
+
+	The previous makeset files are merely four(4) make -f ..\makefile.xxxxxx
+	script lines.  *.fbsd is for freebsd, *.lnx if for LInux, *.lcc is for
+	LCC compiler (using GNU make), and .cyg is for cygwin compiler.  Each
+	of these first includes makefile.cm1 and makefile.cm2 in each project
+	directory.  makefile.cm1 details names to build, and objects required
+	to build.  makefile.cm2 are the make rules required to build each object.
+
+	On a linux/freebsd system libraries are built with lib<name> format.
+	With LCC, libraries are built without the lib prefix.  Each static version
+	is built with an 's' appended to the name... ie network librarie is built
+	libnetwork.so, libnetworks.a on linux/freebsd/cygwin; network.dll
+	, networks.lib is built using LCC.
+
+	Some projects - Image require nasm, and LCC to build on windows.  
+	library has not been tested on Linux since Vidlib does not compile - there
+	is no way to display images on a linux system.  
+
+Other Documents
+--------------------------
+	Memory.Doc describes the memory library
+
+	Network.doc describes the netlib, networking
+
+	Image.doc describes the image library
+		( somewhat requires jpeg-6b, png, zlib )
+
+	Vectlib.doc describes the vector transformation library
+
+	jpeg, png, and zlib contain their own documentaion and may be
+	   downloaded in somewhat original form... mind you the makefile.cm1, 
+	   makefile.cm2 have been written to facilitate compatible versions for
+	   linking with the image library.
+
+	Vidlib.doc - describes the video output functions written for Windows.
+	   Uses the image library, and displays images built with it into
+	   a window.  Includes the beginnings of a GDI which is platform
+	   non-specific.
+
+-->

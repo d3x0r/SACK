@@ -1,0 +1,6 @@
+<control border="4400" caption="ConfigureCardGames.Frame" edit="0" position="0,0" size="537,390" type="Frame">
+<control border="81" position="27,30" size="110,73" type="ListBox"></control>
+<control border="81" position="164,30" size="110,73" type="ListBox"></control>
+<control IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" border="1" caption="" position="215,184" size="73,21" type="Button"></control>
+<control IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" border="1" caption="" position="310,183" size="73,21" type="Button"></control>
+<control PrivateData="#ff356059" border="1" position="301,34" size="73,21" type="Button"></control></control>

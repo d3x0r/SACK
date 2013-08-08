@@ -1,0 +1,64 @@
+
+/mac quit
+	create xyzz
+	wake xyzz
+	tell xyzz /exit
+/endmac
+/desc quit This is how you exit N3><u5
+
+/macro keybind ...
+	decl stuff %...
+	collapse %stuff
+	burst %stuff thing
+	option interface keybind %thing
+/endmac
+/desc keybind This should set keys the old way...
+
+/macro keyunbind ...
+	execute /option interface keyunbind %...
+/endmac
+/desc keyunbind This should un-set keys the old way...
+
+/macro history
+	execute /option interface history
+/endmac
+/desc history This should show history the old way...
+
+/macro dumphist ...
+	execute /option interface dump %...
+/endmac
+/desc dumphist This should dump history the old way...
+
+/macro sethistory ...
+	execute /option interface sethistory %...
+/endmac
+/desc sethistory This should set history size the old way...
+
+/macro setcolor fore back
+	execute /option interface setcolor %fore %back
+/endmac
+/desc setcolor This should set color the old way.
+
+ /mac NewWindow name
+ /create %name
+ /describe %name Dekware Interface Object
+ /wake %name
+ /tell %name/command interface wincon
+ /tell %name/command usercmd bash
+ /tell %name/command usertrigger trigger
+ /tell %name/script connect
+ /tell %name/enter "Room of Portals"
+ /tell %name/echo okay now I'm good to go...
+ /endmac
+
+ /mac NewConsole name
+ /create %name
+ /describe %name Dekware Interface Object
+ /wake %name
+ /tell %name/command interface psicon
+ /tell %name/command usercmd bash
+ /tell %name/command usertrigger trigger
+ /tell %name/script connect
+ /tell %name/enter "Room of Portals"
+ /tell %name/echo okay now I'm good to go...
+ /endmac

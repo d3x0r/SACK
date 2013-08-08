@@ -1,0 +1,64 @@
+
+/trigger create bashdoor it seems to be locked
+:pounds on the %lastdoor.
+/endmac
+
+
+
+# this overrides the previous prompt definition 
+# all variables should already be in effect...
+/trigger create prompt <&hit &move>
+	compare %hit number
+	if fail
+ 		return
+	endif
+	compare %move number
+        if fail
+        	return
+        endif
+
+	decl skipeatdrink false
+	decl curhit %hit
+	decl curmove %move
+	compare %curhit lessthan %maxhit
+	if success
+   		decl lowhit true
+	endif
+	compare %curhit is %maxhit
+	if success
+   		compare %lowhit is true
+   		if success
+      			#sound ding
+      			decl lowhit false
+   		endif
+	endif
+        
+	dopending
+/endmac
+
+/mac repo
+.:reports: I have %curhit/%maxhit hp, %curmove/%maxmove move.
+/endmac
+
+
+#/trigger crea died is dead! R.I.P.
+#.get all.gold corpse
+#/endmac
+
+/trigger create bashdoor it seems to be locked
+.knock %lastdoor
+/endmac
+
+/trigger create getgold Geori whispers to you, "get coins"
+.get all.gold corpse
+.get all.gold
+/endmac
+
+/trigger create rescueroom you can't get close enough to them to rescue!
+.:shakes his head and says, "I can't reach you, %lastrescue"
+/endmac
+
+/trigger crea rescfail You fail the rescue.
+
+.emote is knocked away from %lastrescue ...
+/endmac

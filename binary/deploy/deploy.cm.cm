@@ -1,0 +1,66 @@
+set( BASE_PATH ${CMAKE_INSTALL_PREFIX} )
+
+	set( FILEOUT ${BASE_PATH}/CMakePackage )
+        
+#message( "Output to ${FILEOUT}" )        
+
+
+macro( OUTPUT_TARGET target )
+    if( __ANDROID__ )
+      	FILE( APPEND ${FILEOUT} "SET( ${target}_targets $""{SACK_BINARY_BASE}/lib/@CMAKE_SHARED_LIBRARY_PREFIX@${target}@CMAKE_SHARED_LIBRARY_SUFFIX@\n"
+                                "    $""{SACK_BINARY_BASE}/lib/@CMAKE_SHARED_LIBRARY_PREFIX@${target}.code@CMAKE_SHARED_LIBRARY_SUFFIX@)\n" 
+        		)
+	if( NOT WAS_MONOLITHIC )                        
+      	FILE( APPEND ${FILEOUT} "SET( ${target}_targets $""{SACK_BINARY_BASE}/lib/@CMAKE_SHARED_LIBRARY_PREFIX@${target}.portable@CMAKE_SHARED_LIBRARY_SUFFIX@\n"
+                                "    $""{SACK_BINARY_BASE}/lib/@CMAKE_SHARED_LIBRARY_PREFIX@${target}.portable.code@CMAKE_SHARED_LIBRARY_SUFFIX@)\n" 
+        		)
+	endif( NOT WAS_MONOLITHIC )                        
+                        
+    else( __ANDROID__ )
+      	FILE( APPEND ${FILEOUT} "SET( ${target}_targets $""{SACK_BINARY_BASE}/bin/${target}@CMAKE_EXECUTABLE_SUFFIX@ $""{SACK_BINARY_BASE}/bin/${target}.portable@CMAKE_EXECUTABLE_SUFFIX@)\n" )
+    endif( __ANDROID__ )
+
+endmacro( OUTPUT_TARGET )
+
+		FILE( WRITE ${FILEOUT} "#@CMAKE_PROJECT_NAME@\n" )
+
+		FILE( APPEND ${FILEOUT} "set( SACK_BINARY_BASE ${BASE_PATH} )\n" )
+		FILE( APPEND ${FILEOUT} "set( SACK_BINARY_INCLUDE_DIR $""{SACK_BINARY_BASE}/include/sack )\n" )
+		FILE( APPEND ${FILEOUT} "set( SACK_BINARY_LIBRARIES sack_widgets )\n" )
+		FILE( APPEND ${FILEOUT} "set( SACK_BINARY_LIBRARY_DIR $""{SACK_BINARY_BASE}/lib )\n" )
+
+		FILE( APPEND ${FILEOUT} "\n" )
+		FILE( APPEND ${FILEOUT} "set(  BINARY_REPO_REVISION \"@CURRENT_REPO_REVISION@\" )\n" )
+		FILE( APPEND ${FILEOUT} "set(  BINARY_BUILD_TYPE \"@CMAKE_BUILD_TYPE@\" )\n" )
+		FILE( APPEND ${FILEOUT} "set(  BINARY_GENERATOR \"@CMAKE_GENERATOR@\" )\n" )
+		FILE( APPEND ${FILEOUT} "set(  BINARY_PROJECT_NAME \"@CMAKE_PROJECT_NAME@\" )\n" )
+		FILE( APPEND ${FILEOUT} "\n" )
+		FILE( APPEND ${FILEOUT} "SET( proxy.service_targets $""{SACK_BINARY_BASE}/bin/proxy.service@CMAKE_EXECUTABLE_SUFFIX@)\n" )
+		FILE( APPEND ${FILEOUT} "SET( rebootnow_targets $""{SACK_BINARY_BASE}/bin/rebootnow@CMAKE_EXECUTABLE_SUFFIX@)\n" )
+		FILE( APPEND ${FILEOUT} "SET( rebootnow.portable_targets $""{SACK_BINARY_BASE}/bin/rebootnow.portable@CMAKE_EXECUTABLE_SUFFIX@)\n" )
+		FILE( APPEND ${FILEOUT} "SET( FileMirror_targets $""{SACK_BINARY_BASE}/bin/FileMirror@CMAKE_EXECUTABLE_SUFFIX@ $""{SACK_BINARY_BASE}/bin/FileMirror.verify@CMAKE_EXECUTABLE_SUFFIX@ $""{SACK_BINARY_BASE}/bin/FileMirrorRemote@CMAKE_EXECUTABLE_SUFFIX@ $""{SACK_BINARY_BASE}/bin/FileMirrorGuiRemote@CMAKE_EXECUTABLE_SUFFIX@)\n" )
+		FILE( APPEND ${FILEOUT} "SET( sqlcmd_targets $""{SACK_BINARY_BASE}/bin/sqlcmd@CMAKE_EXECUTABLE_SUFFIX@)\n" )
+		FILE( APPEND ${FILEOUT} "SET( shutmon_targets $""{SACK_BINARY_BASE}/bin/shutdown.monitor@CMAKE_EXECUTABLE_SUFFIX@)\n" )
+		FILE( APPEND ${FILEOUT} "SET( launcher_targets $""{SACK_BINARY_BASE}/bin/launchpad@CMAKE_EXECUTABLE_SUFFIX@ $""{SACK_BINARY_BASE}/bin/launchcmd@CMAKE_EXECUTABLE_SUFFIX@ $""{SACK_BINARY_BASE}/bin/launchwin@CMAKE_EXECUTABLE_SUFFIX@)\n" )
+                OUTPUT_TARGET( systray_shell )
+		FILE( APPEND ${FILEOUT} "SET( vlc_window_targets $""{SACK_BINARY_BASE}/bin/vlc_window@CMAKE_EXECUTABLE_SUFFIX@)\n" )
+		FILE( APPEND ${FILEOUT} "SET( http_server_targets $""{SACK_BINARY_BASE}/bin/http_server@CMAKE_EXECUTABLE_SUFFIX@)\n" )
+		FILE( APPEND ${FILEOUT} "SET( crossfade_targets $""{SACK_BINARY_BASE}/bin/crossfade_vid_playlist@CMAKE_EXECUTABLE_SUFFIX@\n" )
+		FILE( APPEND ${FILEOUT} "            $""{SACK_BINARY_BASE}/bin/crossfade_vid_trigger@CMAKE_EXECUTABLE_SUFFIX@\n" )
+		FILE( APPEND ${FILEOUT} "    )\n" )
+		#FILE( APPEND ${FILEOUT} "SET( sack.msgsvr.service_targets $""{SACK_BINARY_BASE}/bin/sack.msgsvr.service.plugin)\n" )
+		FILE( APPEND ${FILEOUT} "\n" )
+		FILE( APPEND ${FILEOUT} "\n" )
+
+		FILE( APPEND ${FILEOUT} "macro( INSTALL_SACK_BINARY Project dest )\n" )
+		FILE( APPEND ${FILEOUT} "install( FILES $""{$""{Project}_targets} DESTINATION $""{dest} )\n" )
+		FILE( APPEND ${FILEOUT} "ENDMACRO( INSTALL_SACK_BINARY )\n" )
+		FILE( APPEND ${FILEOUT} "\n" )
+		#FILE( APPEND ${FILEOUT} "IF(CMAKE_BUILD_TPYE_INITIALIZED_TO_DEFAULT)\n" )
+
+		FILE( APPEND ${FILEOUT} "set(CMAKE_BUILD_TYPE \"@CMAKE_BUILD_TYPE@\" CACHE STRING \"Set build type\")\n" )
+		FILE( APPEND ${FILEOUT} "set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS $""{CMAKE_CONFIGURATION_TYPES} )\n" )
+
+		#FILE( APPEND ${FILEOUT} "ENDIF(CMAKE_BUILD_TPYE_INITIALIZED_TO_DEFAULT)\n" )
+
+		FILE( APPEND ${FILEOUT} "\n" )

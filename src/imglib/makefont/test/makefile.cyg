@@ -1,0 +1,13 @@
+
+FONT=LucidaConsole40by24
+
+
+test.exe: test.o myfont.o
+	gcc -mno-cygwin -o test test.o myfont.o -L../../../../lib/debug -lvideos -limages -lshmems -lsyslogs -lwsock32 -ljpegs -lpngs -lzlibs -lgdi32
+	
+
+test.o: test.c makefile
+	gcc -mno-cygwin -c -DGCC -g -D__STATIC__ -I../../../../include -DUSEFONT=$(FONT) $<
+	
+myfont.o: ../$(FONT).c makefile
+	gcc -mno-cygwin -c -DGCC -I../../../../include -o MyFont.o $<
