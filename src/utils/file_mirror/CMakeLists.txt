@@ -1,16 +1,19 @@
 
 macro( build_resource rcfile ) 
 if( WATCOM )
+ SET( CMAKE_RC_COMPILER "rc" )
+
   if( NOT TARGET generate_foo${rcfile} )
     string( REPLACE ".rc" ".res" rcfile_out ${rcfile} )
-    add_custom_command( OUTPUT ${PROJECT_BINARY_DIR}/${rcfile_out}
+     string( REPLACE "/" "\\" resfile_out ${CMAKE_CURRENT_BINARY_DIR}/${rcfile_out} )
+    add_custom_command( OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${rcfile_out}
                      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${rcfile}
-                     COMMAND echo ${CMAKE_RC_COMPILER} -i${CMAKE_CURRENT_SOURCE_DIR} -fo${PROJECT_BINARY_DIR}\\${rcfile_out} ${CMAKE_CURRENT_SOURCE_DIR}\\${rcfile}
-                     COMMAND ${CMAKE_RC_COMPILER} -i${CMAKE_CURRENT_SOURCE_DIR} -fo${PROJECT_BINARY_DIR}\\${rcfile_out} ${CMAKE_CURRENT_SOURCE_DIR}\\${rcfile} )
-    ADD_CUSTOM_TARGET( generate_foo${rcfile} DEPENDS ${PROJECT_BINARY_DIR}/${rcfile_out})
+                     COMMAND echo ${CMAKE_RC_COMPILER} -i${CMAKE_CURRENT_SOURCE_DIR} -fo${CMAKE_CURRENT_BINARY_DIR}\\${rcfile_out} ${CMAKE_CURRENT_SOURCE_DIR}\\${rcfile}
+                     COMMAND ${CMAKE_RC_COMPILER} -i${CMAKE_CURRENT_SOURCE_DIR} -fo${resfile_out} ${CMAKE_CURRENT_SOURCE_DIR}\\${rcfile} )
+    ADD_CUSTOM_TARGET( generate_foo${rcfile} DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${rcfile_out})
   endif( NOT TARGET generate_foo${rcfile} )
   ADD_DEPENDENCIES( ${project} generate_foo${rcfile} )
-  SET_TARGET_PROPERTIES(${project} PROPERTIES LINK_FLAGS "option resource=${rcfile_out}")
+  SET_TARGET_PROPERTIES(${project} PROPERTIES LINK_FLAGS "option resource=${resfile_out}")
 else( WATCOM )
 endif( WATCOM )
 endmacro( build_resource ) 
