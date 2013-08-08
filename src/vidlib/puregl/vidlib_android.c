@@ -1886,7 +1886,16 @@ static int CPROC Handle3DTouches( struct display_camera *camera, PINPUT_POINT to
 				touch_info.three.x = touches[2].x;
 				touch_info.three.y = touches[2].y;
 			}
+			else if( touches[2].flags.end_event )
+			{
+			}
+			else
+			{
+				// third state.
 
+
+
+			}
 		}
 		else if( nTouches == 2 )
 		{
@@ -1902,24 +1911,37 @@ static int CPROC Handle3DTouches( struct display_camera *camera, PINPUT_POINT to
 			else
 			{
 				// drag
+            VECTOR v_n_old, v_n_new;
+            VECTOR v_o_old, v_o_new;
 				int delx, dely;
 				int delx2, dely2;
 				int delxt, delyt;
 				int delx2t, dely2t;
 				lprintf( WIDE("drag") );
-				delxt = touches[1].x - touches[0].x;
-				delyt = touches[1].y - touches[0].y;
-				delx2t = touch_info.two.x - touch_info.one.x;
-				dely2t = touch_info.two.y - touch_info.one.y;
+            v_o_new[vRight] = touches[0].x;
+            v_o_new[vUp] = touches[0].y;
+            v_o_new[vForward] = 0;
+				v_n_new[vRight] = touches[1].x - touches[0].x;
+				v_n_new[vUp] = touches[1].y - touches[0].y;
+				v_n_new[vForward] = 0;
+
+            v_o_old[vRight] = touch_info.one.x;
+            v_o_old[vUp] = touch_info.one.y;
+            v_o_old[vForward] = 0;
+				v_n_old[vRight] = touch_info.two.x - touch_info.one.x;
+				v_n_old[vUp] = touch_info.two.y - touch_info.one.y;
+				v_n_old[vForward] = 0;
+
 				delx = -touch_info.one.x + touches[0].x;
 				dely = -touch_info.one.y + touches[0].y;
 				delx2 = -touch_info.two.x + touches[1].x;
 				dely2 = -touch_info.two.y + touches[1].y;
 				{
 					VECTOR v1,v2/*,vr*/;
-					RCOORD delta_x = delx / 40.0;
-					RCOORD delta_y = dely / 40.0;
+					RCOORD delta_x = delx;
+					RCOORD delta_y = dely;
 					static int toggle;
+               RCOORD angle_one;
 					v1[vUp] = delyt;
 					v1[vRight] = delxt;
 					v1[vForward] = 0;
@@ -1928,21 +1950,32 @@ static int CPROC Handle3DTouches( struct display_camera *camera, PINPUT_POINT to
 					v2[vForward] = 0;
 					normalize( v1 );
 					normalize( v2 );
-					lprintf( WIDE("angle %g"), atan2( v2[vUp], v2[vRight] ) - atan2( v1[vUp], v1[vRight] ) );
-					RotateRel( l.origin, 0, 0, - atan2( v2[vUp], v2[vRight] ) + atan2( v1[vUp], v1[vRight] ) );
-					delta_x /= camera->hVidCore->pWindowPos.cx;
-					delta_y /= camera->hVidCore->pWindowPos.cy;
-					if( toggle )
+					lprintf( WIDE("angle %g"), angle_one = atan2( v2[vUp], v2[vRight] ) - atan2( v1[vUp], v1[vRight] ) );
 					{
-						RotateRel( l.origin, delta_y, 0, 0 );
-						RotateRel( l.origin, 0, delta_x, 0 );
+						RCOORD dot = dotproduct( v_n_old, v_n_new );
+						RCOORD angle = acos( dot );
+						int result;
+						RCOORD dt1, dt2;
+						result = FindIntersectionTime( &dt1, v_o_old, v_n_old
+															  , &dt2, v_o_new, v_n_new );
+						if( result || dt1 > 100000 || dt1 < -100000 )
+						{
+							addscaled( v1, v_o_old, v_n_old, dt1 );
+							v1[vForward] = camera->identity_depth;
+							// intersect is valid.   Otherwise ... I use the halfway point?
+                     PrintVector( v1 );
+							RotateAround( l.origin, v1, angle_one );
+						}
+						else
+						{
+                     lprintf( "not enough angle? more like a move action?" );
+						}
+						lprintf( WIDE( "angle is also %g"), angle );
+
 					}
-					else
-					{
-						RotateRel( l.origin, 0, delta_x, 0 );
-						RotateRel( l.origin, delta_y, 0, 0 );
-					}
-					toggle = 1-toggle;
+               //lprintf(
+					//RotateRel( l.origin, 0, 0, - atan2( v2[vUp], v2[vRight] ) + atan2( v1[vUp], v1[vRight] ) );
+					//toggle = 1-toggle;
 				}
 
             touch_info.one.x = touches[0].x;
@@ -2003,8 +2036,8 @@ static int CPROC Handle3DTouches( struct display_camera *camera, PINPUT_POINT to
 					delx = -touch_info.one.x + touches[0].x;
 					dely = -touch_info.one.y + touches[0].y;
 					{
-						RCOORD delta_x = -delx / 1.0;
-						RCOORD delta_y = -dely / 1.0;
+						RCOORD delta_x = -delx;
+						RCOORD delta_y = -dely;
 						static int toggle;
 						delta_x /= camera->w;
 						delta_y /= camera->h;
