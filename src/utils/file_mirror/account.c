@@ -47,6 +47,9 @@ extern int bForceLowerCase;
 extern int bDone;
 #define FILEPERMS
 
+static void ProcessLocalVerifyCommands( PACCOUNT account );
+static void ProcessLocalUpdateFailedCommands( PACCOUNT account );
+
 //-------------------------------------------------------------------------
 
 int SendFileChange( PACCOUNT account, PCLIENT pc, _32 PathID, _32 ID, char *file, _32 start, _32 length )
@@ -2517,7 +2520,7 @@ static PTRSZVAL CPROC DoProcessLocalUpdateCommands( PTHREAD thread )
 	return 0;
 }
 
-void ProcessLocalUpdateCommands( PACCOUNT account )
+static void ProcessLocalUpdateCommands( PACCOUNT account )
 {
    ThreadTo( DoProcessLocalUpdateCommands, (PTRSZVAL)account );
 }

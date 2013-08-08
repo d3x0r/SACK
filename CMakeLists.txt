@@ -201,16 +201,7 @@ else( NOT __NO_ODBC__ OR USE_SQLITE )
 
 endif( NOT __NO_ODBC__ OR USE_SQLITE )
 
-if( WATCOM OR MSVC )
-    set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} winmm ${SOCKET_LIBRARIES}  ${WIN_SYS_LIBS} ${OPENGL_LIBRARY} ${ODBC_LIBRARY} )
-        set( USE_INTERNAL_STANDARDLIBS 1 )
-else()
-        set( USE_INTERNAL_STANDARDLIBS 0 )
-endif()
-        # TODO: Fix this hardcoding
-#        set( CMAKE_THREAD_LIBS_INIT pthread )
-        set( FREETYPE_LIBRARIES freetype )
-#        set( FREETYPE_INCLUDE_DIRS "c:/tools/unix/mingw/include" )
+        
 if( NOT NEED_JPEG )
         set( JPEG_LIBRARIES jpeg )
 endif( NOT NEED_JPEG )
@@ -218,6 +209,17 @@ if( NOT NEED_PNG )
         set( PNG_LIBRARIES png )
 endif( NOT NEED_PNG )
 
+if( WIN32 AND MINGW )
+    set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} winmm ${SOCKET_LIBRARIES}  ${WIN_SYS_LIBS} ${OPENGL_LIBRARY} ${ODBC_LIBRARY} )
+endif( WIN32 AND MINGW )
+
+if( WATCOM OR MSVC )
+    set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} winmm ${SOCKET_LIBRARIES}  ${WIN_SYS_LIBS} ${OPENGL_LIBRARY} ${ODBC_LIBRARY} )
+        set( USE_INTERNAL_STANDARDLIBS 1 )
+else()
+        set( USE_INTERNAL_STANDARDLIBS 0 )
+endif()
+        
 
 if( __QNX__ )
 ADD_DEFINITIONS( -D__QNX__ )
@@ -339,6 +341,7 @@ endif()
 if( WIN32 )
   add_definitions( -DWIN32 )
 endif(WIN32)
+
 
 if( WIN32)
 if( MINGW )

@@ -16,12 +16,12 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
                   FOLDER InterShell/plugins
 )
-if( NOT__ANDROID__ )
+if( NOT __ANDROID__ )
 SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   SUFFIX ""
                   PREFIX ""
 )
-endif( NOT__ANDROID__ )
+endif( NOT __ANDROID__ )
 target_link_libraries( ${PROJECT} ${SACK_LIBRARIES}  keypad.isp )
 install_plugin( ${PROJECT} ) 
 

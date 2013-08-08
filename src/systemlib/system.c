@@ -630,13 +630,15 @@ void SetDefaultDesktop( void )
 	EnumDesktop();
    EnumStations();
 
-	lngWinSta0 = OpenWindowStation(WIDE( "WinSta0" ), FALSE, WINSTA_ALL_ACCESS );
+   // these should be const strings, but they're not... add typecast for GCC
+	lngWinSta0 = OpenWindowStation( (LPTSTR)WIDE( "WinSta0" ), FALSE, WINSTA_ALL_ACCESS );
 	//lngWinSta0 = OpenWindowStation(WIDE( "msswindowstation" ), FALSE, WINSTA_ALL_ACCESS );
    lprintf( WIDE( "sta = %p %d" ), lngWinSta0, GetLastError() );
 	if( !SetProcessWindowStation(lngWinSta0) )
       lprintf( WIDE( "Failed station set?" ) );
 
-	lngDefaultDesktop = OpenDesktop(WIDE( "Default" ), 0, FALSE, 0x10000000);
+   // these should be const strings, but they're not... add typecast for GCC
+	lngDefaultDesktop = OpenDesktop( (LPTSTR)WIDE( "Default" ), 0, FALSE, 0x10000000);
 	//lngDefaultDesktop = OpenDesktop(WIDE( "WinSta0" ), 0, FALSE, 0x10000000);
    lprintf( WIDE( "defa = %p" ), lngDefaultDesktop );
 	if( !SetThreadDesktop(lngDefaultDesktop) )
