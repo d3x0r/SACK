@@ -13,10 +13,11 @@
 
 
 
-#if defined( _WIN32 ) && !defined( PSICON )
+#if defined( _WIN32 ) 
 #include <windows.h>
 #include "keybrd.h"
 #include <commdlg.h>
+#include <controls.h>
 #else
 #include <stdhdrs.h>
 #include <image.h>
@@ -203,21 +204,21 @@ typedef struct myconsolestruc {
 	void (CPROC *KeystrokePaste )( struct myconsolestruc *pmdp );
 	void (CPROC *RenderCursor )( struct myconsolestruc *pmdp, RECT *r, int column );
    void (CPROC *Update )( struct myconsolestruc *pmdp, RECT *upd );
-	union {
+	struct {
 		// this is what this union has if nothing else defined
       // winlogic should need no member herein....
-		_32 dwInterfaceData[32];
-#ifndef CORE_CON
-#if defined( WINCON )
+		//_32 dwInterfaceData[32];
 		struct {
 			HWND         hWnd;
 			HDC          hDC;
 			HBRUSH       hbrBackground;
 			HBRUSH       hbrCommandBackground;
 
+#if defined( _WIN32 ) 
 			LOGFONT lfFont;
 			CHOOSEFONT cfFont;
 			HFONT hFont;
+#endif
 			COORD cFontSize;
 
 			COLORREF crCommand;
@@ -229,11 +230,10 @@ typedef struct myconsolestruc {
 			COLORREF crText;
          COLORREF crBack;
 		} wincon;
-#elif defined( PSICON )
 		struct
 		{
 			PRENDERER renderer;
-			PCOMMON frame;
+			PSI_CONTROL frame;
 			SFTFont hFont;
 			Image image;
 			CDATA  crCommand;
@@ -245,7 +245,6 @@ typedef struct myconsolestruc {
 			CDATA crText;
          CDATA crBack;
 		} psicon;
-#elif defined( CURSECON )
 		struct {
 			FORMAT CommandColor;
 			int crBackground; // this is an HBRUSH in win32.
@@ -257,7 +256,6 @@ typedef struct myconsolestruc {
 			int crText;
          int crBack;
 		} cursecon;
-#elif defined( CONSOLECON )
 		struct {
 			FORMAT CommandColor;
 			HANDLE hStdout;
@@ -272,8 +270,6 @@ typedef struct myconsolestruc {
 			int crText;
          int crBack;
 		} consolecon;
-#endif
-#endif
 	};
 
 } CONSOLE_INFO, *PCONSOLE_INFO;

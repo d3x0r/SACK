@@ -611,7 +611,10 @@ int WinLogicWrite( PDATAPATH pdp
 			// need to wait for an idle condition - this
 			// process is low priority...
 			BuildDisplayInfoLines( pmdp->pCurrentDisplay );
-			DoRenderHistory( pmdp, FALSE, &upd );
+			if( pmdp->psicon.frame )
+				SmudgeCommon( pmdp->psicon.frame );
+         else
+				DoRenderHistory( pmdp, FALSE, &upd );
 			if( pmdp->Update && upd.flags.bHasContent )
 			{
 				RECT r;
@@ -1310,7 +1313,10 @@ int UpdateHistory( PCONSOLE_INFO pdp )
          MemSet( &upd.cs, 0, sizeof( upd.cs ) );
 			BuildDisplayInfoLines( pdp->pHistoryDisplay );
 			//lprintf( WIDE("ALready showing history?!") );
-			DoRenderHistory(pdp, TRUE, &upd);
+			if( pdp->psicon.frame )
+				SmudgeCommon( pdp->psicon.frame );
+         else
+				DoRenderHistory(pdp, TRUE, &upd);
 
 			// history only changed - safe to update
          // its content on result here...

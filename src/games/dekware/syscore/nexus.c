@@ -2409,7 +2409,7 @@ void Cleanup( void )
 			// unload will close all datapaths now.
 			{
 				extern void UnloadPlugins( void );
-				UnloadPlugins();
+				//UnloadPlugins();
 			}
 			ProtectLoggedFilenames( TRUE );
 
