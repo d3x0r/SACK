@@ -1,6 +1,0 @@
-# also add to included projects...
-
-include $(SACK_BASE)/makefiles/makefile.common
-
-$(SACK_BASE)/makefiles/makefile.many: ;
-
