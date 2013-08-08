@@ -2540,7 +2540,7 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 				if( !patch->flags.simulated && !patch->flags.grabbed && !patch->flags.racked )
 					continue;
 
-				
+#if 0
 				// this does additional clipping when we are close to the ball...
 				if( l.active_ball && !l.return_to_home )
 				{
@@ -2554,7 +2554,7 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 						continue;
 					}
 				}
-				
+#endif
 				// fading/faded balls do not draw here, they draw in the next pass.
 				if( patch->flags.fade )
 					continue;
