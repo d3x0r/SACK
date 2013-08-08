@@ -1,4 +1,5 @@
 
+#define MAKE_RCOORD_SINGLE
 #include <render.h>
 #include <vectlib.h>
 #include <controls.h>

@@ -182,7 +182,7 @@ extern "C" {
 							 , PPEICE_METHODS methods //= NULL
 							 , PTRSZVAL psv
 							 );
-PEICE_PROC(PIVIA,DoCreateVia)( PIBOARD board, TEXTCHAR *name //= "A Peice"
+PEICE_PROC(PIVIA,DoCreateVia)( PIBOARD board, CTEXTSTR name //= "A Peice"
 											 , Image image //= NULL
 											 , PVIA_METHODS methods //= NULL
 											 , PTRSZVAL psv

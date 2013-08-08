@@ -8,6 +8,9 @@ include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
 include_directories( ${SACK_INCLUDE_DIR} )
 LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
 
+if( __ANDROID__ )
+ADD_DEFINITIONS( -DUSE_GLES2 )
+endif( __ANDROID__ )
 
 
 PROJECT( virtuality )

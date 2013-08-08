@@ -380,7 +380,7 @@ void gethotspot( PS_32 x, PS_32 y )
 struct VIA_DATA: public PEICE_DATA
 {
 public:
-	VIA_DATA( PIBOARD board, TEXTCHAR *name
+	VIA_DATA( PIBOARD board, CTEXTSTR name
 			  , Image image = NULL
 			  ):PEICE_DATA(board, name,image,7,7,0,0,FALSE,TRUE)
 	{
@@ -578,7 +578,7 @@ public:
 
 	// plus additional private methods relating to vias....
 	VIA( PIBOARD board
-		, TEXTCHAR *name
+		, CTEXTSTR name
 		, Image image = NULL
 		, PVIA_METHODS methods = NULL
 		, PTRSZVAL psv = 0
@@ -673,7 +673,7 @@ int VIA_METHODS::OnDoubleClick( PTRSZVAL psv, S_32 x, S_32 y )
 	return 0;
 }
 
-VIA::VIA( PIBOARD board, TEXTCHAR *name
+VIA::VIA( PIBOARD board, CTEXTSTR name
 		  , Image image// = NULL
 		  , PVIA_METHODS methods// = NULL
 		  , PTRSZVAL psv
@@ -712,7 +712,7 @@ PIPEICE DoCreatePeice( PIBOARD board, CTEXTSTR name //= WIDE("A Peice")
 	return (PIPEICE)peice; // should be able to auto cast this...
 }
 
-PIVIA DoCreateVia( PIBOARD board, TEXTCHAR *name //= WIDE("A Peice")
+PIVIA DoCreateVia( PIBOARD board, CTEXTSTR name //= WIDE("A Peice")
 											 , Image image //= NULL
 											 , PVIA_METHODS methods //= NULL
 											 , PTRSZVAL psv

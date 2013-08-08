@@ -2,18 +2,10 @@
 #define VIRTUALITY_DEFINITON
 
 
-#if !defined(__STATIC__) && !defined(__UNIX__)
 #ifdef VIRTUALITY_LIBRARY_SOURCE
-#define VIRTUALITY_EXPORT __declspec(dllexport)
+#define VIRTUALITY_EXPORT EXPORT_METHOD
 #else
-#define VIRTUALITY_EXPORT __declspec(dllimport)
-#endif
-#else
-#ifndef VIRTUALITY_LIBRARY_SOURCE
-#define VIRTUALITY_EXPORT extern
-#else
-#define VIRTUALITY_EXPORT
-#endif
+#define VIRTUALITY_EXPORT IMPORT_METHOD
 #endif
 
 

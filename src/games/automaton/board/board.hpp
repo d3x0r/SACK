@@ -25,7 +25,7 @@ public:
 										, PPEICE_METHODS methods = NULL 
 										, PTRSZVAL psvCreate = 0 ) = 0;
 
-	virtual PIVIA CreateVia( TEXTCHAR *name
+	virtual PIVIA CreateVia( CTEXTSTR name
 											, Image image = NULL
 											, PVIA_METHODS methods = NULL 
 										, PTRSZVAL psvCreate = 0 ) = 0;

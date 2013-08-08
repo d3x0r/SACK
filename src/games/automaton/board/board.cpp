@@ -587,7 +587,7 @@ public:
 								  , PPEICE_METHODS methods //= NULL
 								  , PTRSZVAL psv
 								  );
-	PIVIA CreateVia( TEXTCHAR *name //= WIDE("A Peice")
+	PIVIA CreateVia( CTEXTSTR name //= WIDE("A Peice")
 						, Image image //= NULL
 						, PVIA_METHODS methods //= NULL
 					  , PTRSZVAL psv
@@ -1023,7 +1023,7 @@ PIPEICE BOARD::CreatePeice( CTEXTSTR name //= WIDE("A Peice")
 	return peice; // should be able to auto cast this...
 }
 
-PIVIA BOARD::CreateVia( TEXTCHAR *name //= WIDE("A Peice")
+PIVIA BOARD::CreateVia( CTEXTSTR  name //= WIDE("A Peice")
 											 , Image image //= NULL
 											 , PVIA_METHODS methods //= NULL
 											 , PTRSZVAL psv

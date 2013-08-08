@@ -1302,7 +1302,7 @@ SaneWinMain( argc, argv )
       Sleep( 1000 );
    return 0;
 }
-EndSaneWinMain( argc, argv )
+EndSaneWinMain()
 #endif
 
 PRELOAD( CreateBoardTables )

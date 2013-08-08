@@ -974,10 +974,10 @@ struct SACK_3D_Surface *CreateBumpTextureFragment( int verts
 		surface->vertices = shape_array;
 		surface->elements = NewArray( GLuint, verts );
 		surface->pdl_VBOTexture = CreateDataList( sizeof( GLuint ) );
-
+#ifdef __ANDROID__
 #define glGenVertexArrays glGenVertexArraysOES
 #define glBindVertexArray glBindVertexArrayOES
-
+#endif
 		glGenVertexArrays(1, &surface->VAOobject); // Create our Vertex Array Object  
 
 		glBindVertexArray(surface->VAOobject); // Bind our Vertex Array Object so we can use it  
