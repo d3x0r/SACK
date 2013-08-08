@@ -284,7 +284,7 @@ struct required_constraint_def
 	CTEXTSTR references;
     CTEXTSTR foriegn_colnames[MAX_KEY_COLUMNS]; // uhm up to 5 colnames...
     CTEXTSTR null; // if not null, broken structure...
-}; /* Describes a constraint clause
+}; // Describes a constraint clause
 
 /* Example
    By default, CreateTable( CTEXTSTR tablename, CTEXTSTR

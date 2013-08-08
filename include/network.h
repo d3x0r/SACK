@@ -10,7 +10,7 @@
 #define NETWORK_PROC(type,name) IMPORT_METHOD type CPROC name
 #endif
 #else
-#ifdef NETWORK_LIBRARY_SOURCE
+#ifdef NETWORK_SOURCE
 #define NETWORK_PROC(type,name) type CPROC name
 #else
 #define NETWORK_PROC(type,name) extern type CPROC name

@@ -95,23 +95,6 @@ if ( UNIX )
         #set( SDL_LIBRARIES SDL SDL SDLmain SDL_gfx SDL_image SDL_ttf )
 else ( UNIX )
 
-
-if( WATCOM OR MSVC )
-        set( USE_INTERNAL_STANDARDLIBS 1 )
-else()
-        set( USE_INTERNAL_STANDARDLIBS 0 )
-endif()
-        # TODO: Fix this hardcoding
-#        set( CMAKE_THREAD_LIBS_INIT pthread )
-        set( FREETYPE_LIBRARIES freetype )
-#        set( FREETYPE_INCLUDE_DIRS "c:/tools/unix/mingw/include" )
-if( NOT NEED_JPEG )
-        set( JPEG_LIBRARIES jpeg )
-endif( NOT NEED_JPEG )
-if( NOT NEED_PNG )
-        set( PNG_LIBRARIES png )
-endif( NOT NEED_PNG )
-
 if( WIN32 )
         set( SOCKET_LIBRARIES wsock32 ws2_32 iphlpapi )
         set( WIN_SYS_LIBS winmm rpcrt4 )
@@ -178,7 +161,7 @@ OPTION( BUILD_UNICODE "Build All as Unicode" ${BUILD_UNICODE} )
 if( MSVC )
   if( FORCE_MSVCRT )
     set( extra_link_flags "${extra_link_flags} /NODEFAULTLIB" )
-    set( PLATFORM_LIBRARIES msvcrt )
+    set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} msvcrt )
   endif( FORCE_MSVCRT )
 add_definitions( -D_CRT_SECURE_NO_WARNINGS -wd4995 -wd4996 )
 if( __CLR__ )
@@ -193,6 +176,48 @@ string( REPLACE "/RTC1" "/CLR" CMAKE_C_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG} )
 set( FORCE_CXX ON )
 endif( __CLR__ )
 endif( MSVC )
+
+if( NOT __NO_ODBC__ OR USE_SQLITE )
+
+ if( NOT __NO_ODBC__ )
+   set( ExtraDefinitions ${ExtraDefinitions};USE_ODBC )
+   if( WIN32 )
+      SET( ODBC_LIBRARY odbc32 )
+   else()
+      SET( ODBC_LIBRARY odbc uuid )
+   endif()
+ else( NOT __NO_ODBC__ )
+   set( ExtraDefinitions ${ExtraDefinitions};__NO_ODBC__ )
+ endif( NOT __NO_ODBC__ )
+
+ if( USE_OPTIONS )
+
+ else( USE_OPTIONS )
+	set( ExtraDefinitions ${ExtraDefinitions};__NO_OPTIONS__ )
+ endif( USE_OPTIONS )
+ 
+else( NOT __NO_ODBC__ OR USE_SQLITE )
+   set( ExtraDefinitions ${ExtraDefinitions};__NO_SQL__;__NO_OPTIONS__ )
+
+endif( NOT __NO_ODBC__ OR USE_SQLITE )
+
+if( WATCOM OR MSVC )
+    set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} winmm ${SOCKET_LIBRARIES}  ${WIN_SYS_LIBS} ${OPENGL_LIBRARY} ${ODBC_LIBRARY} )
+        set( USE_INTERNAL_STANDARDLIBS 1 )
+else()
+        set( USE_INTERNAL_STANDARDLIBS 0 )
+endif()
+        # TODO: Fix this hardcoding
+#        set( CMAKE_THREAD_LIBS_INIT pthread )
+        set( FREETYPE_LIBRARIES freetype )
+#        set( FREETYPE_INCLUDE_DIRS "c:/tools/unix/mingw/include" )
+if( NOT NEED_JPEG )
+        set( JPEG_LIBRARIES jpeg )
+endif( NOT NEED_JPEG )
+if( NOT NEED_PNG )
+        set( PNG_LIBRARIES png )
+endif( NOT NEED_PNG )
+
 
 if( __QNX__ )
 ADD_DEFINITIONS( -D__QNX__ )
@@ -247,29 +272,6 @@ if( __LINUX64__ )
 endif( __LINUX64__ )
 
 
-if( NOT __NO_ODBC__ OR USE_SQLITE )
-
- if( NOT __NO_ODBC__ )
-   set( ExtraDefinitions ${ExtraDefinitions};USE_ODBC )
-   if( WIN32 )
-      SET( ODBC_LIBRARY odbc32 )
-   else()
-      SET( ODBC_LIBRARY odbc uuid )
-   endif()
- else( NOT __NO_ODBC__ )
-   set( ExtraDefinitions ${ExtraDefinitions};__NO_ODBC__ )
- endif( NOT __NO_ODBC__ )
-
- if( USE_OPTIONS )
-
- else( USE_OPTIONS )
-	set( ExtraDefinitions ${ExtraDefinitions};__NO_OPTIONS__ )
- endif( USE_OPTIONS )
- 
-else( NOT __NO_ODBC__ OR USE_SQLITE )
-   set( ExtraDefinitions ${ExtraDefinitions};__NO_SQL__;__NO_OPTIONS__ )
-
-endif( NOT __NO_ODBC__ OR USE_SQLITE )
 
 # this is where external image libraries are added for windows native builds
 if( NEED_JPEG OR NEED_PNG OR NEED_FREETYPE )

@@ -54,7 +54,7 @@ endif( WIN32 )
 #########################################################
 
 if( __ANDROID__ )
-set( NEED_UUID )
+set( NEED_UUID 1 )
 endif( __ANDROID__ )
 
 

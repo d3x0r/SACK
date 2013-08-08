@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <msgclient.h>
 #include <timers.h>
+#include <idle.h>
 
 
 LOGICAL BaseID;

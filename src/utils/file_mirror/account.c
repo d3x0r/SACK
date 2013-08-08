@@ -1,5 +1,6 @@
 #define DO_LOGGING
 #include <stdhdrs.h>
+#include <idle.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <time.h>
