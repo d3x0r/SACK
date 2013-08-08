@@ -7,9 +7,15 @@ set( BASE_PATH ${CMAKE_INSTALL_PREFIX} )
 
 macro( OUTPUT_TARGET target )
     if( __ANDROID__ )
-      	FILE( APPEND ${FILEOUT} "SET( ${target}_targets $""{SACK_BINARY_BASE}/lib/@CMAKE_SHARED_LIBRARY_PREFIX@${target}@CMAKE_SHARED_LIBRARY_SUFFIX@ $""{SACK_BINARY_BASE}/lib/@CMAKE_SHARED_LIBRARY_PREFIX@${target}.portable@CMAKE_SHARED_LIBRARY_SUFFIX@\n"
-                                "    $""{SACK_BINARY_BASE}/lib/@CMAKE_SHARED_LIBRARY_PREFIX@${target}.code@CMAKE_SHARED_LIBRARY_SUFFIX@ $""{SACK_BINARY_BASE}/lib/@CMAKE_SHARED_LIBRARY_PREFIX@${target}.portable.code@CMAKE_SHARED_LIBRARY_SUFFIX@)\n" 
+      	FILE( APPEND ${FILEOUT} "SET( ${target}_targets $""{SACK_BINARY_BASE}/lib/@CMAKE_SHARED_LIBRARY_PREFIX@${target}@CMAKE_SHARED_LIBRARY_SUFFIX@\n"
+                                "    $""{SACK_BINARY_BASE}/lib/@CMAKE_SHARED_LIBRARY_PREFIX@${target}.code@CMAKE_SHARED_LIBRARY_SUFFIX@)\n" 
         		)
+	if( NOT WAS_MONOLITHIC )                        
+      	FILE( APPEND ${FILEOUT} "SET( ${target}_targets $""{SACK_BINARY_BASE}/lib/@CMAKE_SHARED_LIBRARY_PREFIX@${target}.portable@CMAKE_SHARED_LIBRARY_SUFFIX@\n"
+                                "    $""{SACK_BINARY_BASE}/lib/@CMAKE_SHARED_LIBRARY_PREFIX@${target}.portable.code@CMAKE_SHARED_LIBRARY_SUFFIX@)\n" 
+        		)
+	endif( NOT WAS_MONOLITHIC )                        
+                        
     else( __ANDROID__ )
       	FILE( APPEND ${FILEOUT} "SET( ${target}_targets $""{SACK_BINARY_BASE}/bin/${target}@CMAKE_EXECUTABLE_SUFFIX@ $""{SACK_BINARY_BASE}/bin/${target}.portable@CMAKE_EXECUTABLE_SUFFIX@)\n" )
     endif( __ANDROID__ )

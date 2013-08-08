@@ -45,7 +45,7 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   PREFIX ""
 )
 endif( NOT__ANDROID__ )
-target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} ${SACK_PLATFORM_LIBRAIES} )
+target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} ${SACK_PLATFORM_LIBRARIES} )
 install_PLUGIN( ${PROJECT} ) 
 
 

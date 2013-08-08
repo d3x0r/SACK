@@ -4195,7 +4195,7 @@ int CPROC SQLServiceHandler( PSERVICE_ROUTE SourceRouteID
 
 
 //--------------------------------------------------------------------------
-
+#if 0
 void SQLBeginService( void )
 //int main( void )
 {
@@ -4231,7 +4231,7 @@ void SQLBeginService( void )
 #endif
 	//return 0;
 }
-
+#endif
 //-------------------------------------------------------------------------
 
 void SQLSetUserData( PODBC odbc, PTRSZVAL psvUser )

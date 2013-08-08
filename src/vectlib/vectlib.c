@@ -101,8 +101,13 @@ static struct {
 #else
 #ifdef MAKE_RCOORD_SINGLE
 #define sqrt (float)sqrt
+#ifdef __WATCOMC__
+#define SIN (float)sin
+#define COS (float)cos
+#else
 #define SIN sinf
 #define COS cosf
+#endif
 #else
 #define sqrt sqrt
 #define SIN sin

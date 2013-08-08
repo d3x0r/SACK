@@ -10,7 +10,6 @@
     SET( LAST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_prog.c ) 
   endif()
 
-
 set(UNSORTED_SOURCES  
   ${SOURCES_ROOT}src/sysloglib/syslog.c
   ${SOURCES_ROOT}src/memlib/sharemem.c
@@ -45,6 +44,9 @@ set(MORE_NETWORK_SOURCES ${MORE_NETWORK_SOURCES}
 )
 endif( NOT __ARM__ )
 
+if( NEED_NETWORK )
+ADD_DEFINITIONS( -DNETWORK_SOURCE )
+endif( NEED_NETWORK )
 set( NETWORK_SOURCES
   ${SOURCES_ROOT}src/netlib/network.c
   ${SOURCES_ROOT}src/netlib/tcpnetwork.c
@@ -340,7 +342,9 @@ set( TYPE_LIBRARY_SOURCES ${TYPE_LIBRARY_SOURCES}
 
 endif( WIN32 OR __QNX__ )
 
+if( NEED_UUID )
   add_definitions( -D__INTERNAL_UUID__ -DUUID_SOURCE )
+endif( NEED_UUID )
 set( UUID_SOURCES
   ${SOURCES_ROOT}src/uuid-1.6.2/uuid.c
   ${SOURCES_ROOT}src/uuid-1.6.2/uuid_md5.c

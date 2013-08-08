@@ -804,11 +804,12 @@ static int OnCommonFocus( EDIT_FIELD_NAME )( PCONTROL pc, LOGICAL bFocused )
 	if( pe )
 	{
 		//lprintf( WIDE("Setting active focus here!") );
+#ifdef __ANDROID__
 		if( bFocused )
 			SACK_Vidlib_ShowInputDevice();
       else
          SACK_Vidlib_HideInputDevice();
-
+#endif
 		pe->flags.bFocused = bFocused;
 		if( pe->flags.bFocused )
 		{
