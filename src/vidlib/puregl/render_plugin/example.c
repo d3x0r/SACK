@@ -22,7 +22,7 @@ PRELOAD( Initialization )
 {
 }
 
-static PTRSZVAL OnInit3d( "Example" )( PTRANSFORM camera, RCOORD *pIdentityDepth, RCOORD *pAspect )
+static PTRSZVAL OnInit3d( "Example" )( PMatrix projection, PTRANSFORM camera, RCOORD *pIdentityDepth, RCOORD *pAspect )
 {
    return 1;
 }

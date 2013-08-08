@@ -32,7 +32,7 @@ static void OnBeginDraw3d( "Ragdoll Physics" )( PTRSZVAL psv, PTRANSFORM camera 
 	
 }
 
-static PTRSZVAL OnInit3d( "Ragdoll physics" )( PTRANSFORM camera, RCOORD *unit_distance, RCOORD *aspect )
+static PTRSZVAL OnInit3d( "Ragdoll physics" )( PMatrix projection, PTRANSFORM camera, RCOORD *unit_distance, RCOORD *aspect )
 {
 	return (PTRSZVAL)camera;
 }

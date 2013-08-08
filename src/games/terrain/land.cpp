@@ -2747,7 +2747,7 @@ PHEXPATCH patch;
 PVIEW view;
 int bEnabledGL;
 
-static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PTRANSFORM transform, RCOORD *identity_depth, RCOORD *aspect )
+static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM transform, RCOORD *identity_depth, RCOORD *aspect )
 {
 	return 1;
 }

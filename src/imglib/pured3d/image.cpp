@@ -139,7 +139,7 @@ static void OnFirstDraw3d( WIDE( "@00 DirectX Image Library" ) )( PTRSZVAL psv )
 	l.d3dActiveSurface = (struct d3dSurfaceData *)psv;
 }
 
-static PTRSZVAL OnInit3d( WIDE( "@00 DirectX Image Library" ) )( PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static PTRSZVAL OnInit3d( WIDE( "@00 DirectX Image Library" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	struct d3dSurfaceData *Surfaces = New( struct d3dSurfaceData );
 	Surfaces->T_Camera = camera;

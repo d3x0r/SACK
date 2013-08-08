@@ -1481,7 +1481,7 @@ static void CPROC LoadColors( PTRSZVAL psv, PSI_CONTROL pc )
 	}
 }
 
-static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
    int n;
 	l.frame = CreateFrame( "Light Slider Controls", 0, 0, 1024, 768, 0, NULL );

@@ -2075,7 +2075,7 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
 
 }
 
-static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	l.identity_depth = identity_depth;
 	l.aspect = aspect;

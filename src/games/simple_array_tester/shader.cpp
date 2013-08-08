@@ -374,7 +374,7 @@ static void OnFirstDraw3d( WIDE( "Simple Shader Array" ) )( PTRSZVAL psvInit )
 
 }
 
-static PTRSZVAL OnInit3d( WIDE( "Simple Shader Array" ) )( PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static PTRSZVAL OnInit3d( WIDE( "Simple Shader Array" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	// keep the camera as a 
 	return (PTRSZVAL)camera;

@@ -1290,16 +1290,8 @@ BRAIN_STEM clusters[1] = { BRAIN_STEM( WIDE("Basic Structure")
 // creates a thread, don't do this.
 PBRAIN brains[1];// = { BRAIN( &clusters[0] ) };
 
-#if defined( WINDOWS_MODE )
-int APIENTRY WinMain( HINSTANCE h, HINSTANCE p, LPSTR cmd, int show )
+SaneWinMain( argc, argv )
 {
-#else
-int main( void )
-	{
-#endif
-	{
-
-	}
 
 	brains[0] = new BRAIN( &clusters[0] );
 	//SetAllocateLogging( TRUE );
@@ -1310,11 +1302,8 @@ int main( void )
       Sleep( 1000 );
    return 0;
 }
-
+EndSaneWinMain( argc, argv )
 #endif
-
-
-
 
 PRELOAD( CreateBoardTables )
 {

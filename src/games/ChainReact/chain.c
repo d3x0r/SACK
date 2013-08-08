@@ -1100,11 +1100,7 @@ void CPROC MyRedraw( PTRSZVAL dwUser, PRENDERER pRenderer )
 {
 	DrawBoard( (PTRSZVAL)hDisplay );
 }
-#ifndef WINDOWS_MODE
-int main( char argc, char **argv )
-#else
 SaneWinMain( argc, argv )
-#endif
 {
 	//SetSystemLog( SYSLOG_FILENAME, "chainr.log" );
 	AlignBaseToWindows();
@@ -1193,7 +1189,4 @@ SaneWinMain( argc, argv )
 			Sleep( 25 );
 	}
 }
-#ifndef WINDOWS_MODE
-#else
 EndSaneWinMain()
-#endif

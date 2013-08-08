@@ -1400,19 +1400,19 @@ void Redraw( PVIDEO hVideo )
 
 static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_camera )
 {
-	PTRSZVAL (CPROC *Init3d)(PTRANSFORM,RCOORD*,RCOORD*);
+	PTRSZVAL (CPROC *Init3d)(PMatrix,PTRANSFORM,RCOORD*,RCOORD*);
 	PCLASSROOT data = NULL;
 	CTEXTSTR name;
 	for( name = GetFirstRegisteredName( WIDE( "sack/render/puregl/init3d" ), &data );
 		  name;
 		  name = GetNextRegisteredName( &data ) )
 	{
-		Init3d = GetRegisteredProcedureExx( data,(CTEXTSTR)name,PTRSZVAL,WIDE( "ExtraInit3d" ),(PTRANSFORM,RCOORD*,RCOORD*));
+		Init3d = GetRegisteredProcedureExx( data,(CTEXTSTR)name,PTRSZVAL,WIDE( "ExtraInit3d" ),(PMatrix,PTRANSFORM,RCOORD*,RCOORD*));
 
 		if( Init3d )
 		{
 			struct plugin_reference *reference;
-			PTRSZVAL psvInit = Init3d( view_camera, &camera->identity_depth, &camera->aspect );
+			PTRSZVAL psvInit = Init3d( NULL, view_camera, &camera->identity_depth, &camera->aspect );
 			if( psvInit )
 			{
 				reference = New( struct plugin_reference );

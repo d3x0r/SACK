@@ -592,7 +592,7 @@ void RotateMatrix( int nType, PTRANSFORM T )
 	}
 }
 
-static PTRSZVAL OnInit3d( WIDE("Virtuality") )( PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static PTRSZVAL OnInit3d( WIDE("Virtuality") )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	PVIEW view = New( VIEW );
 	memset( view, 0, sizeof( VIEW ) );
