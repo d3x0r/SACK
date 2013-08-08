@@ -157,7 +157,7 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 		 {
 		 int32_t action = AMotionEvent_getAction(event );
 		 int pointer = ( action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK ) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-		 //LOGI( "POINTER %04x %d %d", action, pointer, action & AMOTION_EVENT_ACTION_MASK );
+		 int p = AMotionEvent_getPointerCount( event );
 
 		 {
 			 int n;
@@ -188,16 +188,22 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 			 engine->points[0].flags.end_event = 1;
           break;
 		 case AMOTION_EVENT_ACTION_MOVE:
-          engine->points[pointer].x = AMotionEvent_getX( event, pointer );
-			 engine->points[pointer].y = AMotionEvent_getY( event, pointer );
-          engine->points[pointer].flags.new_event = 0;
-			 engine->points[pointer].flags.end_event = 0;
+			 {
+				 int n;
+				 for( n = 0; n < p; n++ )
+				 {
+					 engine->points[n].x = AMotionEvent_getX( event, n );
+					 engine->points[n].y = AMotionEvent_getY( event, n );
+					 engine->points[n].flags.new_event = 0;
+					 engine->points[n].flags.end_event = 0;
+				 }
+			 }
 			 break;
 		 case AMOTION_EVENT_ACTION_POINTER_DOWN:
 			 // primary pointer down.
           engine->points[pointer].x = AMotionEvent_getX( event, pointer );
 			 engine->points[pointer].y = AMotionEvent_getY( event, pointer );
-          engine->points[pointer].flags.new_event = 1;
+			 engine->points[pointer].flags.new_event = 1;
 			 engine->points[pointer].flags.end_event = 0;
           engine->nPoints++;
 			 break;
