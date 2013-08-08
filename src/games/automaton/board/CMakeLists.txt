@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 
-PROJECT( automaton.board )
+if( __ANDROID__ )
+ADD_DEFINITIONS( "-fno-rtti" )
+endif( __ANDROID__ )
+
+set( PROJECT automaton.board )
 set( SOURCES 
   ${FIRST_GCC_LIBRARY_SOURCE}
   board.cpp
@@ -11,29 +15,32 @@ set( SOURCES
   ${LAST_GCC_LIBRARY_SOURCE}
 )
 
+if( __ANDROID__ )
+set( MOREFLAGS "-fno-rtti" )
+endif( __ANDROID__ )
 ADD_DEFINITIONS( -DBOARD_SOURCE -DPEICE_SOURCE )
-ADD_LIBRARY( ${PROJECT_NAME} SHARED ${SOURCES} )
-TARGET_LINK_LIBRARIES( ${PROJECT_NAME} ${SACK_LIBRARIES} automaton.brain )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+ADD_LIBRARY( ${PROJECT} SHARED ${SOURCES} )
+TARGET_LINK_LIBRARIES( ${PROJECT} ${SACK_LIBRARIES} ${SACK_LIBRARIES_PLUSPLUS} automaton.brain )
+string( REPLACE "." "_" TARGET_LABEL ${PROJECT} )
+SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
 )
 
 if( WIN32 )
 	# On Windows platforms, the dynamic libs should
 	# go in the same dir as the executables.
-	install( TARGETS ${PROJECT_NAME}
+	install( TARGETS ${PROJECT}
 	        RUNTIME DESTINATION bin                     
         	LIBRARY DESTINATION bin
 	        ARCHIVE DESTINATION lib )
 else( WIN32 )
-	install( TARGETS ${PROJECT_NAME}
+	install( TARGETS ${PROJECT}
 	        RUNTIME DESTINATION bin 
         	LIBRARY DESTINATION lib
 	        ARCHIVE DESTINATION lib )
 endif( WIN32 )
 
-PROJECT( automaton.brain.board.shell )
+set( PROJECT automaton.brain.board.shell )
 
 set( SOURCES 
   ${FIRST_GCC_PROGRAM_SOURCE}
@@ -42,33 +49,20 @@ set( SOURCES
   ${LAST_GCC_PROGRAM_SOURCE}
 )
 
+if( __ANDROID__ )
+set( MOREFLAGS "-fno-rtti" )
+endif( __ANDROID__ )
+
 if( WIN32 )
-set( MOREFLAGS "-DWINDOWS_MODE" )
+set( MOREFLAGS ${MOREFLAGS} "-DWINDOWS_MODE" )
 endif( WIN32 )
 
 
-ADD_EXECUTABLE( ${PROJECT_NAME} WIN32 ${SOURCES} )
-TARGET_LINK_LIBRARIES( ${PROJECT_NAME} ${SACK_LIBRARIES} automaton.board automaton.brain )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-                  COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${MOREFLAGS}"
-)
+ADD_PROGRAM( ${PROJECT} WIN32 ${SOURCES} )
+TARGET_LINK_LIBRARIES( ${PROJECT} automaton.board automaton.brain )
 
-if( WIN32 )
-	# On Windows platforms, the dynamic libs should
-	# go in the same dir as the executables.
-	install( TARGETS ${PROJECT_NAME}
-	        RUNTIME DESTINATION bin                     
-        	LIBRARY DESTINATION bin
-	        ARCHIVE DESTINATION lib )
-else( WIN32 )
-	install( TARGETS ${PROJECT_NAME}
-	        RUNTIME DESTINATION bin 
-        	LIBRARY DESTINATION lib
-	        ARCHIVE DESTINATION lib )
-endif( WIN32 )
 
-PROJECT( automaton.brain.board )
+set( PROJECT automaton.brain.board )
 
 set( SOURCES 
   ${FIRST_GCC_LIBRARY_SOURCE}
@@ -77,10 +71,13 @@ set( SOURCES
   ${LAST_GCC_LIBRARY_SOURCE} 
 )
 
-ADD_LIBRARY( ${PROJECT_NAME} SHARED ${SOURCES} )
-TARGET_LINK_LIBRARIES( ${PROJECT_NAME} ${SACK_LIBRARIES} automaton.board automaton.brain )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+if( __ANDROID__ )
+ADD_DEFINITIONS( "-fno-rtti" )
+endif( __ANDROID__ )
+ADD_LIBRARY( ${PROJECT} SHARED ${SOURCES} )
+TARGET_LINK_LIBRARIES( ${PROJECT} ${SACK_LIBRARIES} ${SACK_LIBRARIES_PLUSPLUS} automaton.board automaton.brain )
+string( REPLACE "." "_" TARGET_LABEL ${PROJECT} )
+SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
 )
 
@@ -92,12 +89,12 @@ install( DIRECTORY images DESTINATION Resources/images/brainboard/ )
 if( WIN32 )
 	# On Windows platforms, the dynamic libs should
 	# go in the same dir as the executables.
-	install( TARGETS ${PROJECT_NAME}
+	install( TARGETS ${PROJECT}
 	        RUNTIME DESTINATION bin                     
         	LIBRARY DESTINATION bin
 	        ARCHIVE DESTINATION lib )
 else( WIN32 )
-	install( TARGETS ${PROJECT_NAME}
+	install( TARGETS ${PROJECT}
 	        RUNTIME DESTINATION bin 
         	LIBRARY DESTINATION lib
 	        ARCHIVE DESTINATION lib )
