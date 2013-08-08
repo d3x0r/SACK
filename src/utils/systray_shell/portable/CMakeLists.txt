@@ -9,23 +9,23 @@ SET( PROJECT systray_shell.portable )
 macro( build_resource rcfile realfile ) 
 
     string( REPLACE "." "_" rc_file_stripped ${rcfile} )
-    string( REPLACE "\\" "-" rc_file_stripped ${rc_file_stripped} )
-    string( REPLACE "/" "-" rc_file_stripped ${rc_file_stripped} )
+    string( REPLACE "\\" "_" rc_file_stripped ${rc_file_stripped} )
+    string( REPLACE "/" "_" rc_file_stripped ${rc_file_stripped} )
     
 if( WATCOM )
+ SET( CMAKE_RC_COMPILER "rc" )
   if( NOT TARGET generate_foo${rc_file_stripped} )
     string( REPLACE "/" "\\" WATCOM_PROJECT_BINARY_DIR ${PROJECT_BINARY_DIR} )
     string( REPLACE "/" "\\" WATCOM_CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR} )
-    message( tmp : ${WATCOM_CMAKE_CURRENT_SOURCE_DIR} )
-    add_custom_command( OUTPUT ${PROJECT_BINARY_DIR}/${realfile}
-                     DEPENDS ${rcfile}
-                     COMMAND echo ${CMAKE_RC_COMPILER} -i${WATCOM_CMAKE_CURRENT_SOURCE_DIR}\\..\\..\\..\\.. -i${WATCOM_CMAKE_CURRENT_SOURCE_DIR} -fo${WATCOM_PROJECT_BINARY_DIR}\\${realfile} ${WATCOM_CMAKE_CURRENT_SOURCE_DIR}\\${rcfile}
-                     COMMAND ${CMAKE_RC_COMPILER} -i${WATCOM_CMAKE_CURRENT_SOURCE_DIR}\\..\\..\\..\\.. -i${WATCOM_CMAKE_CURRENT_SOURCE_DIR} -fo${WATCOM_PROJECT_BINARY_DIR}\\${realfile} ${WATCOM_CMAKE_CURRENT_SOURCE_DIR}\\${rcfile}
+    add_custom_command( OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../${realfile}
+                     DEPENDS ${rcfile} 
+                     COMMAND echo ${CMAKE_RC_COMPILER} -i${WATCOM_CMAKE_CURRENT_SOURCE_DIR}\\..\\..\\..\\.. -i${WATCOM_CMAKE_CURRENT_SOURCE_DIR} -fo${CMAKE_CURRENT_BINARY_DIR}\\${realfile} ${WATCOM_CMAKE_CURRENT_SOURCE_DIR}\\${rcfile}
+                     COMMAND ${CMAKE_RC_COMPILER} -i${WATCOM_CMAKE_CURRENT_SOURCE_DIR}\\..\\..\\..\\.. -i${WATCOM_CMAKE_CURRENT_SOURCE_DIR} -fo${CMAKE_CURRENT_BINARY_DIR}\\..\\${realfile} ${WATCOM_CMAKE_CURRENT_SOURCE_DIR}\\${rcfile}
  )
-  ADD_CUSTOM_TARGET( generate_foo${rc_file_stripped} DEPENDS ${WATCOM_PROJECT_BINARY_DIR}/${realfile})
+  ADD_CUSTOM_TARGET( generate_foo${rc_file_stripped} DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../${realfile})
   endif( NOT TARGET generate_foo${rc_file_stripped} )
   ADD_DEPENDENCIES( ${PROJECT} generate_foo${rc_file_stripped} )
-  SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES LINK_FLAGS "option resource=${realfile}")
+  SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES LINK_FLAGS "option resource=${CMAKE_CURRENT_BINARY_DIR}/../${realfile}")
 else( WATCOM )
 endif( WATCOM )
 endmacro( build_resource ) 
@@ -53,11 +53,13 @@ endif( WIN32 )
 ####  End RC fixes
 #########################################################
 
+if( __ANDROID__ )
+set( NEED_UUID )
+endif( __ANDROID__ )
 
 
 set( SOURCES_ROOT ../../../../ )
 set( USE_SQLITE ON )
-
 include( ../../../../CMakeSources.lst )
 
 if( NOT WATCOM )
@@ -77,19 +79,19 @@ set( BASE_SOURCES
         ${NETWORK_SOURCES}
         ${UNSORTED_SOURCES} 
         ${ODBC_SOURCES}
-        ${UUID_SOURCES}
         ${OPTION_SOURCE}
         ${SQLITE_SOURCES}
         ${SYSTRAY_SOURCES}
         ../systray_shell.c )
 
+ADD_DEFINITIONS( -DSACK_BAG_EXPORTS)
 add_DEFINITIONS( -DUSE_SQLITE )
 if( NOT __NO_ODBC__ )
-ADD_DEFINITIONS( USE_ODBC )
+ADD_DEFINITIONS( -DUSE_ODBC )
 endif( NOT __NO_ODBC__ )
 
 
-add_program(${PROJECT} WIN32 
+add_portable_program(${PROJECT} WIN32 
 	${FIRST_GCC_PROGRAM_SOURCE}
 	${BASE_SOURCES}
 	${LAST_GCC_PROGRAM_SOURCE}
