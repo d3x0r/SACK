@@ -67,7 +67,7 @@ _TIMER_NAMESPACE
 #define TIMER_PROC(type,name) IMPORT_METHOD type CPROC name
 #endif
 
-#ifdef __LINUX__
+#if defined( __LINUX__ ) || defined( __ANDROID__ )
 TIMER_PROC( _32, timeGetTime )( void );
 TIMER_PROC( _32, GetTickCount )( void );
 TIMER_PROC( void, Sleep )( _32 ms );

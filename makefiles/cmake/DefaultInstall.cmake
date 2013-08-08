@@ -158,18 +158,20 @@ if( __ANDROID__ )
   		LIBRARY DESTINATION lib/${project_target} 
   	)
 else( __ANDROID__ )
-if( WIN32 )
-if( __CLR__ )
-  install( TARGETS ${proj} RUNTIME DESTINATION ./${project_target} 
+  if( WIN32 )
+    if( __CLR__ )
+      install( TARGETS ${proj} RUNTIME DESTINATION ./${project_target} 
   	)
-else( __CLR__ )
-  install( TARGETS ${proj} RUNTIME DESTINATION bin/${project_target} 
+    else( __CLR__ )
+      install( TARGETS ${proj} RUNTIME DESTINATION bin/${project_target}
+		        ARCHIVE DESTINATION lib      		
   	)
-endif( __CLR__ )
-else( WIN32 )
-  install( TARGETS ${proj} 
+    endif( __CLR__ )
+  else( WIN32 )
+    install( TARGETS ${proj} 
 	RUNTIME DESTINATION bin/${project_target} 
 	LIBRARY DESTINATION bin/${project_target} 
+        ARCHIVE DESTINATION lib
   	)
 endif()
 

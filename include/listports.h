@@ -20,9 +20,9 @@ extern "C"{
 typedef struct
 {
 	TEXTSTR lpPortName;     /* "COM1", etc. */
-	TEXTSTR lpFriendlyName; /* Suitable to describe the port, as for  */
+	CTEXTSTR lpFriendlyName; /* Suitable to describe the port, as for  */
 							/* instance "Infrared serial port (COM4)" */
-	TEXTSTR lpTechnology;   /* "BIOS","INFRARED","USB", etc.          */
+	CTEXTSTR lpTechnology;   /* "BIOS","INFRARED","USB", etc.          */
 
 }LISTPORTS_PORTINFO;
 

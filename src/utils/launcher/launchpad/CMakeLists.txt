@@ -1,7 +1,7 @@
 
 if( NOT BUILD_INTERSHELL )
 
-project( launchpad )
+set( project launchpad )
 
 set( RESOURCES launchpad.rc )
 if( MINGW OR MSVC )
@@ -29,26 +29,26 @@ add_custom_command( OUTPUT ${PROJECT_BINARY_DIR}/${WATCOM_RESOURCES}
                      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${RESOURCES}
                      COMMAND ${CMAKE_RC_COMPILER} -i${WATCOM_CMAKE_CURRENT_SOURCE_DIR} -fo${WATCOM_PROJECT_BINARY_DIR}\\${WATCOM_RESOURCES} ${WATCOM_CMAKE_CURRENT_SOURCE_DIR}\\${RESOURCES}
  )
-ADD_CUSTOM_TARGET( "generate_foo${PROJECT_NAME}" DEPENDS ${PROJECT_BINARY_DIR}/${WATCOM_RESOURCES})
+ADD_CUSTOM_TARGET( "generate_foo${project}" DEPENDS ${PROJECT_BINARY_DIR}/${WATCOM_RESOURCES})
 
 endif()
 
 
-add_executable_force_source(${PROJECT_NAME} WIN32 ${BASE_SOURCES} )
+add_executable_force_source(${project} WIN32 ${BASE_SOURCES} )
 
 if( WATCOM )
-ADD_DEPENDENCIES( ${PROJECT_NAME} "generate_foo${PROJECT_NAME}" )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES 
+ADD_DEPENDENCIES( ${project} "generate_foo${project}" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES 
           LINK_FLAGS "option resource=${WATCOM_RESOURCES}")
 endif( WATCOM )
 
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-          COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT_NAME}" 
-          COMPILE_DEFINITIONS "TARGETNAME=\"${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}\""
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+          COMPILE_FLAGS  "-DTARGET_LABEL=${project}" 
+          COMPILE_DEFINITIONS "TARGETNAME=\"${project}${CMAKE_EXECUTABLE_SUFFIX}\""
                   FOLDER utils/launcher
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-install_default_dest_binary( ${PROJECT_NAME} )
+target_link_libraries( ${project} ${SACK_LIBRARIES} )
+install_default_dest_binary( ${project} )
 
 add_subdirectory( portable )
 
@@ -69,12 +69,12 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags} -DISHELL_PLUGIN"
                   FOLDER utils/launcher
 )
-if( NOT__ANDROID__ )
-SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
+if( NOT __ANDROID__ )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
                   SUFFIX ""
                   PREFIX ""
 )
-endif( NOT__ANDROID__ )
+endif( NOT __ANDROID__ )
 target_link_libraries( ${project} ${SACK_LIBRARIES} )
 install_PLUGIN( ${project} ) 
 add_subdirectory( frames )
@@ -82,7 +82,7 @@ add_subdirectory( frames )
 endif( NOT BUILD_INTERSHELL )
 
 if( altanik_is_built )
-project( launchpad.isom ) 
+set( project launchpad.isom ) 
 
 set(BASE_SOURCES3
 ${FIRST_GCC_PROGRAM_SOURCE} 
@@ -90,16 +90,16 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_library_force_source(${PROJECT_NAME} SHARED ${BASE_SOURCES3} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+add_library_force_source(${project} SHARED ${BASE_SOURCES3} )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags} -DISHELL_PLUGIN"
                   PREFIX ""
                   SUFFIX ""
                   FOLDER utils/launcher
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project} ${SACK_LIBRARIES} )
+install_default_dest( ${project} )
 add_subdirectory( frames )
 
 endif()
