@@ -1330,6 +1330,10 @@ static int CPROC Handle3DTouches( PRENDERER hVideo, PTOUCHINPUT touches, int nTo
 			int x;
          int y;
 		} two;
+		struct {
+			int x;
+         int y;
+		} three;
 	} touch_info;
 	if( l.flags.bRotateLock )
 	{
@@ -1339,7 +1343,23 @@ static int CPROC Handle3DTouches( PRENDERER hVideo, PTOUCHINPUT touches, int nTo
 			lprintf( WIDE( "%d %5d %5d " ), t, touches[t].x, touches[t].y );
 		}
 		lprintf( WIDE( "touch event" ) );
-		if( nTouches == 2 )
+		if( nTouches == 3 )
+		{
+			if( touches[2].dwFlags & TOUCHEVENTF_DOWN )
+			{
+            touch_info.three.x = touches[2].x;
+            touch_info.three.y = touches[2].y;
+			}
+			else if( touches[2].dwFlags & TOUCHEVENTF_UP )
+			{
+
+			}
+			else
+			{
+            // move/drag state
+			}
+		}
+		else if( nTouches == 2 )
 		{
          // begin rotate lock
 			if( touches[1].dwFlags & TOUCHEVENTF_DOWN )
