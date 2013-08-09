@@ -539,32 +539,24 @@ void DrawMenuItem( LOGICAL measure, PDRAWPOPUPITEM pdi )
 static int WindowRegistered;
 int RegisterWindows( void )
 {
-   if( WindowRegistered )
-        return TRUE;
-    //Log( "Setting up PSI render interface..." );
-	 SetControlInterface( RenderInterface = GetDisplayInterface() );
-	 if( !RenderInterface )
-       return 0;
-   //Log( "Setting up PSI image interface..." );
-	SetControlImageInterface( ImageInterface = GetImageInterface() );
-	if( !ImageInterface )
-      return 0;
-   //Log( "Done with psi interfaces.." );
-    hChildMenu = CreatePopup();
-   Log( WIDE( "Created menu..." ) );
-    AppendPopupItem( hChildMenu, MF_STRING, MNU_FONT, WIDE( "Set Font" ) );
-    Log( WIDE( "Added an ittem..." ) );
-   {
-      hHistoryMenu = CreatePopup();
-      AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE25, WIDE( "25%" ) );
-      AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE50, WIDE( "50%" ) );
-      AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE75, WIDE( "75%" ) );
-      AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE100, WIDE( "100%" ) );
-      AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (PTRSZVAL)hHistoryMenu, WIDE( "History Display Size" ) );
-   }
-   {
-      PMENU hColorMenu, hColorMenu2;
-      hColorMenu = CreatePopup();
+	if( WindowRegistered )
+		return TRUE;
+	//Log( "Done with psi interfaces.." );
+	hChildMenu = CreatePopup();
+	Log( WIDE( "Created menu..." ) );
+	AppendPopupItem( hChildMenu, MF_STRING, MNU_FONT, WIDE( "Set Font" ) );
+	Log( WIDE( "Added an ittem..." ) );
+	{
+		hHistoryMenu = CreatePopup();
+		AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE25, WIDE( "25%" ) );
+		AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE50, WIDE( "50%" ) );
+		AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE75, WIDE( "75%" ) );
+		AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE100, WIDE( "100%" ) );
+		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (PTRSZVAL)hHistoryMenu, WIDE( "History Display Size" ) );
+	}
+	{
+		PMENU hColorMenu, hColorMenu2;
+		hColorMenu = CreatePopup();
       AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_BLACK, (POINTER)DrawMenuItem );
       AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_BLUE, (POINTER)DrawMenuItem );
       AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_GREEN, (POINTER)DrawMenuItem );
