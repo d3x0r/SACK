@@ -678,7 +678,7 @@ PRELOAD(RegisterConsole)
 // methods for window logic routines to use as callbacks...
 //----------------------------------------------------------------------------
 
-static void CPROC DrawString( PCONSOLE_INFO pdp, int x, int y, RECT *r, TEXTCHAR *s, int nShown, int nShow )
+static void CPROC DrawString( PCONSOLE_INFO pdp, int x, int y, RECT *r, TEXTCHAR *s, size_t nShown, size_t nShow )
 {
 	//lprintf( WIDE("Adding string out : %p %s %d %d at %d,%d #%08lX #%08lX"), pdp, s, nShown, nShow,x,y,r->left,r->top
 	//		 , pdp->psicon.crText, pdp->psicon.crBack );

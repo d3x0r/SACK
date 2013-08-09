@@ -224,8 +224,8 @@ extern
 	CTEXTSTR current_key_text;
 } l;
 
-void SACK_Vidlib_HideInputDevice( void );
-void SACK_Vidlib_ShowInputDevice( void );
+void CPROC SACK_Vidlib_HideInputDevice( void );
+void CPROC SACK_Vidlib_ShowInputDevice( void );
 
 void	HostSystem_InitDisplayInfo( void );
 int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nTouches );
@@ -244,6 +244,10 @@ void SACK_Vidlib_HideInputDevice( void );
 // ---------------- Common --------------------
 PTRANSFORM CPROC GetRenderTransform( PRENDERER r );
 struct display_camera *SACK_Vidlib_OpenCameras( void );
+LOGICAL CreateDrawingSurface (PVIDEO hVideo);
+void DoDestroy (PVIDEO hVideo);
+LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
+                                              int wx, int wy);
 
 // --------------- Mouse 3d ------------
 void UpdateMouseRay( struct display_camera * camera );
