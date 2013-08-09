@@ -588,6 +588,7 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 		CreateQNXOutputForCamera( camera );
 #endif
 #ifdef USE_EGL
+		camera->displayWindow = l.displayWindow;
 		OpenEGL( camera, camera->displayWindow );
 #else
       OpenWin32Camera( camera );
