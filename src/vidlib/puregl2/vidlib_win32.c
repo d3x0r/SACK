@@ -785,8 +785,9 @@ WM_DROPFILES
 					int n;
 					for( n = 0; n < count; n++ )
 					{
-                  outputs[n].x = inputs[n].x;
-						outputs[n].y = inputs[n].y;
+                  // windows coordiantes some in in hundreths of pixesl as a long
+                  outputs[n].x = inputs[n].x / 100.0f;
+						outputs[n].y = inputs[n].y / 100.0f;
 						if( inputs[1].dwFlags & TOUCHEVENTF_DOWN )
 							outputs[n].flags.new_event = 1;
                   else

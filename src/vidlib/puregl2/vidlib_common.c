@@ -1624,28 +1624,6 @@ void MarkDisplayUpdated( PRENDERER r )
       r->flags.bUpdated = 1;
 }
 
-int SACK_Vidlib_SendTouchEvents( int nPoints, PINPUT_POINT points )
-{
-	{
-		//if( hVideo )
-		{
-			int handled = 0;
-			//if( hVideo->pTouchCallback )
-			{
-			//	handled = hVideo->pTouchCallback( hVideo->dwTouchData, inputs, count );
-			}
-
-			if( !handled )
-			{
-				// this will be like a hvid core
-				handled = Handle3DTouches( ((struct display_camera *)GetLink( &l.cameras, 0 )), points, nPoints );
-			}
-         return handled;
-		}
-	}
-}
-
-
 static LOGICAL CPROC DefaultExit( PTRSZVAL psv, _32 keycode )
 {
    lprintf( WIDE( "Default Exit..." ) );
