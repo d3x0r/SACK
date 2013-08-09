@@ -323,7 +323,8 @@ typedef int  (CPROC*MouseCallback)( PTRSZVAL psvUser, S_32 x, S_32 y, _32 b );
 
 typedef struct input_point
 {
-	S_32 x, y;
+   //
+	RCOORD x, y;
 	struct {
 		BIT_FIELD new_event : 1;  // set on first down, clear on subsequent events
 		BIT_FIELD end_event : 1; // set on first up, clear on first down,
