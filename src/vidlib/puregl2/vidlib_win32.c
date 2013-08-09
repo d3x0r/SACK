@@ -1,4 +1,5 @@
 #include <stdhdrs.h>
+#include <idle.h>
 
 #include "local.h"
 
@@ -766,7 +767,7 @@ WM_DROPFILES
 			hVideo->flags.bReady = 1;
 		}
 		Return 0;         // indicate handled message... no WM_MOVE/WM_SIZE generated.
-#if !(defined __WATCOMC__ || defined __WATCOMCPP__ || defined __GNUC__ )
+#ifndef NO_TOUCH
 	case WM_TOUCH:
 		{
 			if( l.GetTouchInputInfo )
@@ -815,7 +816,7 @@ WM_DROPFILES
 				}
 			}
 		}
-      break;
+		break;
 #endif
 
 #ifndef UNDER_CE
@@ -1572,10 +1573,6 @@ void OpenWin32Camera( struct display_camera *camera )
 					HandleMessage (Msg);
 				}
 			}
-			if (!camera->hWndInstance)
-			{
-				return FALSE;
-			}
 }
 
 static int CPROC ProcessDisplayMessages( PTRSZVAL psvUnused )
@@ -1704,7 +1701,6 @@ void	HostSystem_InitDisplayInfo( void )
 		if (!l.aClass)
 		{
 			lprintf( WIDE("Failed to register class %s %d"), wc.lpszClassName, GetLastError() );
-			return FALSE;
 		}
 
 #ifdef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS

@@ -1664,22 +1664,24 @@ struct render_interface_tag
 #undef USE_RENDER_INTERFACE
 #endif
 
-#ifdef USE_RENDER_INTERFACE
-
+#if !defined(FORCE_NO_RENDER_INTERFACE)
 /* RENDER_PROC( PRENDER_INTERFACE, GetDisplayInterface )( void );
    
    Gets the interface the proper way - by name.
    Returns
    Pointer to the render interface.                            */
 
-#define GetDisplayInterface() (PRENDER_INTERFACE)GetInterface( WIDE("render") )
+#  define GetDisplayInterface() (PRENDER_INTERFACE)GetInterface( WIDE("render") )
 /* RENDER_PROC( void, DropDisplayInterface )( PRENDER_INTERFACE interface );
    
    release the interface (could be cleanup, most are donothing....
    parameters
    interface   - Pointer to the render interface.                            */
 
-#define DropDisplayInterface(x) DropInterface( WIDE("render"), x )
+#  define DropDisplayInterface(x) DropInterface( WIDE("render"), x )
+#endif
+
+#ifdef USE_RENDER_INTERFACE
 
 
 typedef int check_this_variable;

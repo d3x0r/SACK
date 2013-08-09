@@ -47,10 +47,14 @@ SACK_DEADSTART_NAMESPACE
 void name( void )
 #endif
 
-#ifdef __WATCOMC__
-IMPORT_METHOD void RunExits( void );
+#if defined( BUILD_PORTABLE_EXECUTABLE )
+extern void RunExits( void );
 #else
+#  ifdef __WATCOMC__
+IMPORT_METHOD void RunExits( void );
+#  else
 IMPORT_METHOD void CPROC RunExits( void );
+#  endif
 #endif
 
 #ifndef __ANDROID__

@@ -66,7 +66,7 @@ struct image_shader_tracker
 
 
 
-PImageShaderTracker GetShader( CTEXTSTR name, void (CPROC*)(PImageShaderTracker) );
+PImageShaderTracker GetShader( CTEXTSTR name, void (*)(PImageShaderTracker) );
 void ClearShaders( void );
 
 void EnableShader( CTEXTSTR shader, ... );

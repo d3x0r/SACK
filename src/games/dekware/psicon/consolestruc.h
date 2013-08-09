@@ -208,6 +208,8 @@ typedef struct myconsolestruc {
 		// this is what this union has if nothing else defined
       // winlogic should need no member herein....
 		//_32 dwInterfaceData[32];
+#ifndef __ANDROID__
+      // windows native MDI console
 		struct {
 			HWND         hWnd;
 			HDC          hDC;
@@ -230,6 +232,7 @@ typedef struct myconsolestruc {
 			COLORREF crText;
          COLORREF crBack;
 		} wincon;
+#endif
 		struct
 		{
 			PRENDERER renderer;
@@ -256,6 +259,8 @@ typedef struct myconsolestruc {
 			int crText;
          int crBack;
 		} cursecon;
+#if defined( _WIN32 )
+      // windows direct console output
 		struct {
 			FORMAT CommandColor;
 			HANDLE hStdout;
@@ -270,6 +275,7 @@ typedef struct myconsolestruc {
 			int crText;
          int crBack;
 		} consolecon;
+#endif
 	};
 
 } CONSOLE_INFO, *PCONSOLE_INFO;

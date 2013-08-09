@@ -2,8 +2,9 @@
 #include <stdhdrs.h>
 #include <android/keycodes.h>
 
-#include <psi/console.h>
 #include "local.h"
+
+#include <psi/console.h>
 // androi
 // requires C99 to compile at this point!
 RENDER_NAMESPACE
