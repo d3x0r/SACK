@@ -4,7 +4,9 @@
 #if defined( __LINUX__ ) && defined( PURE_OPENGL_ENABLED )
 #include <stdio.h>
 #if defined( USE_GLES2 )
-#define USE_EGL
+#  ifndef USE_EGL
+#    define USE_EGL
+#  endif
 #include <EGL/egl.h>
 #ifdef _egl_h
 #define _GLES_EGL_H_INCLUDED
@@ -185,7 +187,6 @@ typedef struct HVIDEO_tag
 
 #    endif
 #    if defined( USE_EGL )
-	NativeWindowType displayWindow;
 	EGLint num_config;
 	EGLConfig config;
 	EGLDisplay display;

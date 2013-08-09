@@ -446,15 +446,8 @@ int GetTableColumns( PTABLE table, PTEXT *word DBG_PASS )
 					if( ( StrCaseCmp( GetText(*word), WIDE( "KEY" ) ) == 0 )
 						|| ( StrCaseCmp( GetText(*word), WIDE( "INDEX" ) ) == 0 ) )
 					{
-						TEXTSTR trash;
-						int bQuoted2;
 						// skip this word.
 						(*word) = NEXTLINE( *word );
-						
-						//GrabName( word, &trash, &bQuoted2  DBG_SRC );
-						//if( StrCaseCmp( GetText(*word), WIDE( "(" ) ) == 0 )
-						//	GrabKeyColumns( word, table->constraints.constraint[table->constraints.count-1].colnames );
-
 					}
 					AddIndexKey( table, word, 1, 0, 1 );
 					Release( name );

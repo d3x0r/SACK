@@ -1113,6 +1113,7 @@ if( NOT __QNX__ )
   #standard OpenGL; mostly windows-centric
   add_subdirectory( src/imglib/puregl )
 endif( NOT __QNX__ )
+add_subdirectory( src/vidlib/puregl2 )
 add_subdirectory( src/vidlib/puregl )
 if( DIRECTX_SDK )
 if( WIN32 AND NOT CMAKE_COMPILER_IS_GNUCC AND NOT WATCOM AND NOT __NO_GUI__ )

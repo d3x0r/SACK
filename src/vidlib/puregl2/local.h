@@ -21,11 +21,16 @@
 //#include "../glext.h"
 #endif
 
+#define NEED_VECTLIB_COMPARE
+#define FORCE_NO_RENDER_INTERFACE
+
 #include <imglib/imagestruct.h>
 #include <imglib/fontstruct.h>
 #include <vidlib/vidstruc.h>
 #include <render.h>
+#include <render3d.h>
 #include <image.h>
+#include <vectlib.h>
 
 RENDER_NAMESPACE
 
@@ -82,7 +87,7 @@ struct display_camera
 	PTRANSFORM origin_camera;
 	PRENDERER hVidCore; // common, invisible surface behind all windows (application container)
 #if defined( __LINUX__ )
-#elif defined( __WINDOWS__ )
+#elif defined( _WIN32 )
 	HWND hWndInstance;
 #endif
 #if defined( USE_EGL )
@@ -137,7 +142,7 @@ extern
 
 	RAY mouse_ray;
 
-#if defined( __WINDOWS__ )
+#if defined( _WIN32 )
 	ATOM aClass;      // keep reference of window class....
 	ATOM aClass2;      // keep reference of window class.... (opengl minimal)
 #endif
@@ -148,7 +153,7 @@ extern
 	gf_display_t* qnx_display[64];
 	gf_display_info_t* qnx_display_info[64];
 #endif
-#if defined( __ANDROID__ )
+#if defined( USE_EGL )
    NativeWindowType displayWindow;
 #endif
 	int bCreatedhWndInstance;
@@ -221,6 +226,46 @@ extern
 
 void SACK_Vidlib_HideInputDevice( void );
 void SACK_Vidlib_ShowInputDevice( void );
+
+void	HostSystem_InitDisplayInfo( void );
+int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nTouches );
+
+
+/// ---------------- Interface ---------------
+POINTER  CPROC GetDisplayInterface (void);
+void  CPROC DropDisplayInterface (POINTER p);
+POINTER CPROC GetDisplay3dInterface (void);
+void  CPROC DropDisplay3dInterface (POINTER p);
+
+// ------------- Interface to system key event interface
+void SACK_Vidlib_ShowInputDevice( void );
+void SACK_Vidlib_HideInputDevice( void );
+
+// ---------------- Common --------------------
+PTRANSFORM CPROC GetRenderTransform( PRENDERER r );
+struct display_camera *SACK_Vidlib_OpenCameras( void );
+
+// --------------- Mouse 3d ------------
+void UpdateMouseRay( struct display_camera * camera );
+int InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, RCOORD x, RCOORD y, int *result_x, int *result_y );
+PRENDERER CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b );
+int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
+								, RCOORD *pT2, PVECTOR s2, PVECTOR o2 );
+// this uses coordiantes in l.mouse_x and l.mouse_y and computes the current mouse ray in all displays
+void UpdateMouseRays( void );
+
+//-------------------  render utility ------------
+void RenderGL( struct display_camera *camera );
+void WantRenderGL( void );
+
+// -------------  physical interface - WIN32 ------------
+void OpenWin32Camera( struct display_camera *camera );
+int InitGL( struct display_camera *camera );										// All Setup For OpenGL Goes Here
+
+
+
+// ---------- vidlib win32 - share dsymbols for keymap win32
+#define WD_HVIDEO   0   // WindowData_HVIDEO
 
 
 
