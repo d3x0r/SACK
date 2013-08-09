@@ -263,20 +263,19 @@ void OpenEGL( struct display_camera *camera )
 		//NativeWindowType (*android_cds)(void) = (NativeWindowType (*)(void))LoadFunction( "libui.so", "android_createDisplaySurface" );
 		//if( android_cds )
 		{
-			camera->hVidCore->displayWindow = l.displayWindow;//android_cds();
-			lprintf( "native window %p", camera->hVidCore->displayWindow );
+			camera->displayWindow = l.displayWindow;//android_cds();
+			lprintf( "native window %p", camera->displayWindow );
 			lprintf("Window specs: %d*%d format=%d",
-					  ANativeWindow_getWidth( camera->hVidCore->displayWindow),
-					  ANativeWindow_getHeight( camera->hVidCore->displayWindow),
-					  ANativeWindow_getFormat( camera->hVidCore->displayWindow)
+					  ANativeWindow_getWidth( camera->displayWindow),
+					  ANativeWindow_getHeight( camera->displayWindow),
+					  ANativeWindow_getFormat( camera->displayWindow)
 					 );
-			camera->hVidCore->pWindowPos.cx
-				= camera->w = ANativeWindow_getWidth( camera->hVidCore->displayWindow);
+   		camera->hVidCore->pWindowPos.cx
+				= camera->w = ANativeWindow_getWidth( camera->displayWindow);
 			camera->hVidCore->pWindowPos.cy
-				= camera->h = ANativeWindow_getHeight( camera->hVidCore->displayWindow);
+				= camera->h = ANativeWindow_getHeight( camera->displayWindow);
 			camera->hVidCore->pImage =
-				RemakeImage( camera->hVidCore->pImage, NULL, camera->hVidCore->pWindowPos.cx,
-								camera->hVidCore->pWindowPos.cy );
+				RemakeImage( camera->hVidCore->pImage, NULL, camera->w, camera->h );
 
 			camera->identity_depth = camera->h/2;
 			Translate( l.origin, l.scale * camera->w/2, l.scale * camera->h/2, l.scale * camera->h/2 );
@@ -290,7 +289,7 @@ void OpenEGL( struct display_camera *camera )
          // reload all default settings and options too.
          camera->flags.init = 0;
 
-			switch( ANativeWindow_getFormat( camera->hVidCore->displayWindow) )
+			switch( ANativeWindow_getFormat( camera->displayWindow) )
 			{
 			case 1:
 				configXbpp = config32bpp;
@@ -332,7 +331,7 @@ void OpenEGL( struct display_camera *camera )
 
 	camera->hVidCore->surface = eglCreateWindowSurface(camera->hVidCore->display,
 																		camera->hVidCore->config,
-																		camera->hVidCore->displayWindow,
+																		camera->displayWindow,
 																		NULL);
 	lprintf("GL surface: %x", camera->hVidCore->surface);
 	if (camera->hVidCore->surface==0) lprintf("Error code: %x", eglGetError());
@@ -1066,7 +1065,7 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 						reference->FirstDraw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("FirstDraw3d"),(PTRSZVAL));
 						reference->ExtraDraw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("ExtraBeginDraw3d"),(PTRSZVAL,PTRANSFORM));
 						reference->ExtraClose3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("ExtraClose3d"),(PTRSZVAL));
-						reference->Mouse3d = GetRegisteredProcedureExx( GetClassRoot( WIDE("sack/render/puregl/mouse3d") ),(CTEXTSTR)name,LOGICAL,WIDE("ExtraMouse3d"),(PTRSZVAL,PRAY,_32));
+						reference->Mouse3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,LOGICAL,WIDE("ExtraMouse3d"),(PTRSZVAL,PRAY,_32));
 					}
 					AddLink( &camera->plugins, reference );
 				}
@@ -1077,49 +1076,6 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 		}
 	}
 
-}
-
-static void InvokeExtraBeginDraw( CTEXTSTR name, PTRSZVAL psvInit )
-{
-	static PCLASSROOT draw3d;
-	void (CPROC *Draw3d)(PTRSZVAL);
-	if( !draw3d )
-		draw3d = GetClassRoot( WIDE("sack/render/puregl/draw3d") );
-	Draw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("ExtraBeginDraw3d"),(PTRSZVAL));
-	if( Draw3d )
-	{
-		Draw3d( psvInit );
-	}
-}
-
-static void InvokeExtraDraw( CTEXTSTR name, PTRSZVAL psvInit )
-{
-	static PCLASSROOT draw3d;
-	void (CPROC *Draw3d)(PTRSZVAL);
-	if( !draw3d )
-		draw3d = GetClassRoot( WIDE("sack/render/puregl/draw3d") );
-	Draw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("ExtraDraw3d"),(PTRSZVAL));
-	if( Draw3d )
-	{
-		Draw3d( psvInit );
-	}
-}
-
-static LOGICAL InvokeExtraMouse( CTEXTSTR name, PTRSZVAL psvInit, PRAY mouse_ray, _32 b )
-{
-	static PCLASSROOT mouse3d;
-	LOGICAL (CPROC *Mouse3d)(PTRSZVAL,PRAY,_32);
-	LOGICAL used;
-	if( !mouse3d )
-		mouse3d = GetClassRoot( WIDE("sack/render/puregl/mouse3d") );
-	Mouse3d = GetRegisteredProcedureExx( mouse3d, (CTEXTSTR)name,LOGICAL,WIDE("ExtraMouse3d" ),(PTRSZVAL,PRAY,_32));
-	if( Mouse3d )
-	{
-		used = Mouse3d( psvInit, mouse_ray, b );
-		if( used )
-			return used;
-	}
-   return FALSE;
 }
 
 static void WantRenderGL( void )
@@ -1301,15 +1257,6 @@ static void RenderGL( struct display_camera *camera )
 				glEnd();
 			}
 #endif
-		}
-
-		{
-			INDEX idx;
-			struct plugin_reference *ref;
-			LIST_FORALL( camera->plugins, idx, struct plugin_reference *, ref )
-			{
-				InvokeExtraDraw( ref->name, ref->psv );
-			}
 		}
 	}
 }
@@ -1789,7 +1736,8 @@ static PRENDERER CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 			struct plugin_reference *ref;
 			LIST_FORALL( camera->plugins, idx, struct plugin_reference *, ref )
 			{
-				used = InvokeExtraMouse( ref->name, ref->psv, &camera->mouse_ray, b );
+				if( ref->Mouse3d )
+               used = ref->Mouse3d( ref->psv, &camera->mouse_ray, b );
 				if( used )
 					break;
 			}

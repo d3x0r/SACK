@@ -1574,6 +1574,12 @@ static void RenderGL( struct display_camera *camera )
 	GetGLCameraMatrix( camera->origin_camera, camera->hVidCore->fModelView );
 	glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
 
+	LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
+	{
+		if( reference->Draw3d )
+			reference->Draw3d( reference->psv );
+	}
+
 	for( hVideo = l.bottom; hVideo; hVideo = hVideo->pBelow )
 	{
 		if( l.flags.bLogMessageDispatch )
@@ -1603,12 +1609,6 @@ static void RenderGL( struct display_camera *camera )
 
 		// allow draw3d code to assume depth testing 
 		glEnable( GL_DEPTH_TEST );
-	}
-
-	LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
-	{
-		if( reference->Draw3d )
-			reference->Draw3d( reference->psv );
 	}
 
 	if( l.flags.bLogRenderTiming )

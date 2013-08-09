@@ -77,13 +77,15 @@ typedef struct render_3d_interface_tag
 // return FALSE if you did not use the mouse.
 // return TRUE if you did, and therefore the event is used and noonne else should make two things happen...
 #define OnMouse3d(name) \
-	__DefineRegistryMethod(WIDE("sack/render/puregl"),Mouse3d,WIDE("mouse3d"),name,WIDE("ExtraMouse3d"),LOGICAL,(PTRSZVAL psvUser, PRAY mouse_ray, _32 b),__LINE__)
+	__DefineRegistryMethod(WIDE("sack/render/puregl"),Mouse3d,WIDE("draw3d"),name,WIDE("ExtraMouse3d"),LOGICAL,(PTRSZVAL psvUser, PRAY mouse_ray, _32 b),__LINE__)
 
 
+#if !defined( FORCE_NO_INTERFACE ) && !defined( FORCE_NO_RENDER_INTERFACE )
 
-#define GetRender3dInterface() (PRENDER3D_INTERFACE)GetInterface( WIDE("render.3d") )
+#  define GetRender3dInterface() (PRENDER3D_INTERFACE)GetInterface( WIDE("render.3d") )
 
-#define GetRenderTransform             REND_PROC_ALIAS(GetRenderTransform)
-#define ClipPoints             REND_PROC_ALIAS(ClipPoints)
+#  define GetRenderTransform             REND_PROC_ALIAS(GetRenderTransform)
+#  define ClipPoints             REND_PROC_ALIAS(ClipPoints)
+#endif
 
 #endif // __RENDER3D_EXTENSIONS_DEFINED__
