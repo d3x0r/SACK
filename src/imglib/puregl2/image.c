@@ -262,7 +262,7 @@ static void OnBeginDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psvIni
 int ReloadOpenGlTexture( Image child_image, int option )
 {
 	Image image;
-	if( !child_image) 
+	if( !child_image)
 		return 0;
 	for( image = child_image; image && image->pParent; image = image->pParent );
 
@@ -343,15 +343,13 @@ int ReloadOpenGlShadedTexture( Image child_image, int option, CDATA color )
 
 int ReloadOpenGlMultiShadedTexture( Image child_image, int option, CDATA r, CDATA g, CDATA b )
 {
-				{
-					Image output_image;
-					output_image = GetShadedImage( child_image, r, g, b );
-					//lprintf( "Output is %p", output_image );
-					/**///glBindTexture( GL_TEXTURE_2D, output_image->glActiveSurface );
-					;/**///glColor4ub( 255,255,255,255 );
-					return output_image->glActiveSurface;//ReloadOpenGlTexture( child_image, option );
-				}
-
+	if( !child_image )
+		return 0;
+	{
+		Image output_image;
+		output_image = GetShadedImage( child_image, r, g, b );
+		return output_image->glActiveSurface;//ReloadOpenGlTexture( child_image, option );
+	}
 }
 //------------------------------------------
 
