@@ -21,7 +21,18 @@ set( ANDROID_NDK_PREBUILT_ARCH thumb )
 
 set( ANDROID_NDK_PREBUILT ${ANDROID_NDK_PREBUILT_ARCH_LONG}-${ANDROID_NDK_PREBUILT_VERSION} )
 
-SET(ANDROID_DIR c:/storage/android/${ANDROID_NDK_VERSION} CACHE PATH "NDK Root" )
+macro( DEFINE_DEFAULT variable default )
+if( NOT DEFINED ${variable} )
+   set( ${variable} $ENV{${variable}} )
+   if( "${${variable}}" STREQUAL "" )
+     set( ${variable} ${default} )
+   endif( "${${variable}}" STREQUAL "" )
+endif( NOT DEFINED ${variable} )
+endmacro( DEFINE_DEFAULT variable )
+
+DEFINE_DEFAULT( ANDROID_DIR c:/storage/android/${ANDROID_NDK_VERSION} )
+
+SET(ANDROID_DIR ${ANDROID_DIR} CACHE PATH "NDK Root" )
 set( SYSROOT ${ANDROID_DIR}/platforms/android-${ANDROID_NDK_TARGET_PLATFORM}/arch-arm )
 set(ENV{SYSROOT} ${SYSROOT} )
 

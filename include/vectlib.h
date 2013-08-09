@@ -301,7 +301,11 @@ MATHLIB_DEXPORT const PC_POINT VectorConst_Z;
    to initialize a matrix transform (internally).               */
 MATHLIB_DEXPORT const PCTRANSFORM VectorConst_I;
 #define _0 ((PC_POINT)VectorConst_0)
-#define _X ((PC_POINT)VectorConst_X)
+#  ifndef _X
+#    define _X ((PC_POINT)VectorConst_X)
+#  else
+#    warning _X previously defined, skipping definition for vectlib
+#  endif
 #define _Y ((PC_POINT)VectorConst_Y)
 #define _Z ((PC_POINT)VectorConst_Z)
 #define _I ((PC_POINT)VectorConst_I)

@@ -184,6 +184,7 @@ if( WIN32 )
   install( TARGETS ${proj} RUNTIME DESTINATION ${project_target} )
 else( WIN32 )
   install( TARGETS ${proj} LIBRARY DESTINATION bin/${project_target} 
+  		RUNTIME DESTINATION bin/${project_target} 
 	)
 endif()
 endmacro( install_default_project )
