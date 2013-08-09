@@ -493,7 +493,7 @@ void* BeginNormalProcess( void*param )
 					}
 				}
 				{
-					void *lib = LoadLibrary( mypath, "libbag.video.puregl.so" );
+					void *lib = LoadLibrary( mypath, "libbag.video.puregl2.so" );
 					if( !lib )
 						LOGI( "Failed to load lib:%s", dlerror() );
 
