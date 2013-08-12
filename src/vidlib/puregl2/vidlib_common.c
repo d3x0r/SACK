@@ -23,7 +23,7 @@
 #define NO_TRANSPARENCY
 #undef _OPENGL_ENABLED
 #else
-#  if defined( __WINDOWS__ )
+#  if defined( _WIN32 )
 #    define USE_KEYHOOK
 #  endif
 #endif
@@ -1776,7 +1776,7 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 
 #ifndef __ANDROID__
 #ifndef UNDER_CE
-#if !defined( __WATCOMC__ ) && !defined( __GNUC__ )
+#ifndef NO_TOUCH
 	l.GetTouchInputInfo = (BOOL (WINAPI *)( HTOUCHINPUT, UINT, PTOUCHINPUT, int) )LoadFunction( WIDE("user32.dll"), WIDE("GetTouchInputInfo") );
 	l.CloseTouchInputHandle =(BOOL (WINAPI *)( HTOUCHINPUT ))LoadFunction( WIDE("user32.dll"), WIDE("CloseTouchInputHandle") );
 	l.RegisterTouchWindow = (BOOL (WINAPI *)( HWND, ULONG  ))LoadFunction( WIDE("user32.dll"), WIDE("RegisterTouchWindow") );

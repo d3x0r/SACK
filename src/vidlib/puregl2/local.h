@@ -131,6 +131,7 @@ extern
 		//---------- see comment above
 		BIT_FIELD bForceUnaryAspect : 1;
 		BIT_FIELD bLogRenderTiming : 1;
+		BIT_FIELD bHookTouchEvents : 1;
 	} flags;
 	PRENDERER mouse_last_vid;
 
@@ -272,6 +273,16 @@ int InitGL( struct display_camera *camera );										// All Setup For OpenGL Go
 // ---------- vidlib win32 - share dsymbols for keymap win32
 #define WD_HVIDEO   0   // WindowData_HVIDEO
 
+LRESULT CALLBACK
+   KeyHook (int code,      // hook code
+				WPARAM wParam,    // virtual-key code
+				LPARAM lParam     // keystroke-message information
+			  );
+LRESULT CALLBACK
+   KeyHook2 (int code,      // hook code
+				WPARAM wParam,    // virtual-key code
+				LPARAM lParam     // keystroke-message information
+			  );
 
 
 RENDER_NAMESPACE_END
