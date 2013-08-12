@@ -31,6 +31,7 @@ int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
 #define nf (s2[2])
 
    crossproduct(denoms, s1, s2 ); // - result...
+ PrintVector( denoms );
    denom = denoms[2];
 //   denom = ( nd * nb ) - ( ne * na );
    if( NearZero( denom ) )
@@ -81,6 +82,9 @@ int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
        ( !COMPARE(R1[1],R2[1]) ) ||
        ( !COMPARE(R1[2],R2[2]) ) )
    {
+		PrintVector( R1 );
+		PrintVector( R2 );
+		lprintf( "too far from the same... %g %g ", t1, t2 );
       return FALSE;
    }
    *pT2 = t2;

@@ -72,14 +72,14 @@ void WantRenderGL( void )
 			if( other == hVideo )
 				DebugBreak();
 			other = hVideo;
-			if( l.flags.bLogMessageDispatch )
+			if( l.flags.bLogWrites )
 				lprintf( WIDE("Have a video in stack...") );
 			if( hVideo->flags.bDestroy )
 				continue;
 			if( hVideo->flags.bHidden || !hVideo->flags.bShown )
 			{
-				if( l.flags.bLogMessageDispatch )
-					lprintf( WIDE("But it's nto exposed...") );
+				if( l.flags.bLogWrites )
+					lprintf( WIDE("But it's not exposed...") );
 				continue;
 			}
 			if( hVideo->flags.bUpdated )

@@ -3,6 +3,8 @@
 
 #include "local.h"
 
+//#define LOG_STARTUP
+
 // commands to the video thread for non-windows native ....
 #define CREATE_VIEW 1
 
@@ -1677,7 +1679,7 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 //----------------------------------------------------------------------------
 
 
-void	HostSystem_InitDisplayInfo( void )
+PRELOAD( HostSystem_InitDisplayInfo )
 {
 
 #ifndef __NO_WIN32API__
@@ -1708,21 +1710,12 @@ void	HostSystem_InitDisplayInfo( void )
 		InitMessageService();
 		l.dwMsgBase = LoadService( NULL, VideoEventHandler );
 #endif
-
+      // need options loaded before thread, because cameras will open.
+		LoadOptions();
 		AddLink( &l.threads, ThreadTo( VideoThreadProc, 0 ) );
 		AddIdleProc( ProcessDisplayMessages, 0 );
 	}
 #endif
-	{
-		GLboolean params = 0;
-		if( glGetBooleanv(GL_STEREO, &params), params )
-		{
-			lprintf( WIDE("yes stereo") );
-		}
-		else
-			lprintf( WIDE("no stereo") );
-	}
-
 }
 
 
