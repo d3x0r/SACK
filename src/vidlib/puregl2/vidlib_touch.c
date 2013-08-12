@@ -104,8 +104,8 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
             RCOORD new_length, old_length;
 
 				//lprintf( WIDE("drag") );
-            v_o_new[vRight] = touches[0].x;
-            v_o_new[vUp] = touches[0].y;
+            v_o_new[vRight] = touches[0].x - camera->w/2;
+            v_o_new[vUp] = camera->h/2 - touches[0].y;
 				v_o_new[vForward] = 0;
 
 				v_n_new[vRight] = touches[1].x - touches[0].x;
@@ -115,8 +115,8 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
             new_length = Length( v_n_new );
             addscaled( v_mid_new, v_o_new, v_n_new, 0.5f );
 
-            v_o_old[vRight] = touch_info.one.x;
-            v_o_old[vUp] = touch_info.one.y;
+            v_o_old[vRight] = touch_info.one.x - camera->w/2;
+            v_o_old[vUp] = camera->h/2 - touch_info.one.y;
 				v_o_old[vForward] = 0;
 
 				v_n_old[vRight] = touch_info.two.x - touch_info.one.x;
@@ -126,31 +126,30 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
             old_length = Length( v_n_old );
 				addscaled( v_mid_old, v_o_old, v_n_old, 0.5f );
 
-            PrintVector( v_n_new );
-            PrintVector( v_n_old );
 
 				sub( v_delta_pos, v_mid_new, v_mid_old );
 				add( v_o_old, v_o_old, v_delta_pos );
 
-            scale( v_delta_pos, v_delta_pos, l.scale );
+				scale( v_delta_pos, v_delta_pos, l.scale );
+            PrintVector( v_delta_pos );
             // update old origin to new; for computing rotation point versus translateion
 
             MoveRight( l.origin, -v_delta_pos[vRight] );
-				MoveUp( l.origin, v_delta_pos[vUp] );
+				MoveUp( l.origin, -v_delta_pos[vUp] );
             MoveForward( l.origin, ( ( new_length - old_length ) / old_length ) * camera->identity_depth * l.scale );
 				//TranslateRelV( l.origin, v_delta_pos );
-
 
 				{
 					static int toggle;
                RCOORD angle_one;
-               angle_one = atan2( v_n_new[vUp], v_n_new[vRight] ) - atan2( v_n_old[vUp], v_n_old[vRight] );
-					//lprintf( WIDE("angle %g"), angle_one );
+					angle_one = atan2( v_n_new[vUp], v_n_new[vRight] ) - atan2( v_n_old[vUp], v_n_old[vRight] );
+               if( 0 )
 					{
+                  // attempting to be smart about the direction of rotation... failed.
 						int result;
 						RCOORD dt1, dt2;
-						result = FindIntersectionTime( &dt1, v_o_old, v_n_old
-															  , &dt2, v_o_new, v_n_new );
+						result = FindIntersectionTime( &dt1, v_n_old, v_o_old
+															  , &dt2, v_n_new, v_o_new );
 
                   lprintf( "Result is %d %g %g", result, dt1, dt2 );
 						if( result )
@@ -160,25 +159,15 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 							v1[vForward] = camera->identity_depth;
 							// intersect is valid.   Otherwise ... I use the halfway point?
 							PrintVector( v1 );
-						}
-						//if( result || dt1 > 100000 || dt1 < -100000 )
-						{
-                     VECTOR v1;
-							addscaled( v1, v_o_old, v_n_old, dt1 );
-							v1[vForward] = camera->identity_depth;
-							// intersect is valid.   Otherwise ... I use the halfway point?
-							PrintVector( v1 );
-                     RotateRel( l.origin, 0, 0, angle_one );
-							//RotateAround( l.origin, GetAxis( v1, vForward ), angle );
+							RotateAround( l.origin, v1, angle_one );
 						}
 						//else
 						{
                   //   lprintf( "not enough angle? more like a move action?" );
 						}
 					}
-               //lprintf(
-					//RotateRel( l.origin, 0, 0, - atan2( v2[vUp], v2[vRight] ) + atan2( v1[vUp], v1[vRight] ) );
-					//toggle = 1-toggle;
+               else
+						RotateRel( l.origin, 0, 0, angle_one );
 				}
 
             touch_info.one.x = touches[0].x;
