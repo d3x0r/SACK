@@ -75,66 +75,54 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 			{
 				// drag
             VECTOR v_n_old, v_n_new;
-            VECTOR v_o_old, v_o_new;
-				int delx, dely;
-				int delx2, dely2;
-				int delxt, delyt;
-				int delx2t, dely2t;
-				lprintf( WIDE("drag") );
+				VECTOR v_o_old, v_o_new;
+
+				//lprintf( WIDE("drag") );
             v_o_new[vRight] = touches[0].x;
             v_o_new[vUp] = touches[0].y;
-            v_o_new[vForward] = 0;
+				v_o_new[vForward] = 0;
+
 				v_n_new[vRight] = touches[1].x - touches[0].x;
 				v_n_new[vUp] = touches[1].y - touches[0].y;
 				v_n_new[vForward] = 0;
 
             v_o_old[vRight] = touch_info.one.x;
             v_o_old[vUp] = touch_info.one.y;
-            v_o_old[vForward] = 0;
+				v_o_old[vForward] = 0;
+
 				v_n_old[vRight] = touch_info.two.x - touch_info.one.x;
 				v_n_old[vUp] = touch_info.two.y - touch_info.one.y;
 				v_n_old[vForward] = 0;
 
-				delx = -touch_info.one.x + touches[0].x;
-				dely = -touch_info.one.y + touches[0].y;
-				delx2 = -touch_info.two.x + touches[1].x;
-				dely2 = -touch_info.two.y + touches[1].y;
+            PrintVector( v_n_new );
+            PrintVector( v_n_old );
+
 				{
-					VECTOR v1,v2/*,vr*/;
-					RCOORD delta_x = delx;
-					RCOORD delta_y = dely;
 					static int toggle;
                RCOORD angle_one;
-					v1[vUp] = delyt;
-					v1[vRight] = delxt;
-					v1[vForward] = 0;
-					v2[vUp] = dely2t;
-					v2[vRight] = delx2t;
-					v2[vForward] = 0;
-					normalize( v1 );
-					normalize( v2 );
-					lprintf( WIDE("angle %g"), angle_one = atan2( v2[vUp], v2[vRight] ) - atan2( v1[vUp], v1[vRight] ) );
+               angle_one = atan2( v_n_new[vUp], v_n_new[vRight] ) - atan2( v_n_old[vUp], v_n_old[vRight] );
+					//lprintf( WIDE("angle %g"), angle_one );
 					{
-						RCOORD dot = dotproduct( v_n_old, v_n_new );
-						RCOORD angle = acos( dot );
 						int result;
 						RCOORD dt1, dt2;
-						result = FindIntersectionTime( &dt1, v_o_old, v_n_old
-															  , &dt2, v_o_new, v_n_new );
-						if( result || dt1 > 100000 || dt1 < -100000 )
-						{
-							addscaled( v1, v_o_old, v_n_old, dt1 );
-							v1[vForward] = camera->identity_depth;
-							// intersect is valid.   Otherwise ... I use the halfway point?
-                     PrintVector( v1 );
-							RotateAround( l.origin, v1, angle_one );
-						}
-						else
-						{
-                     lprintf( "not enough angle? more like a move action?" );
-						}
-						lprintf( WIDE( "angle is also %g"), angle );
+						//result = FindIntersectionTime( &dt1, v_o_old, v_n_old
+						//									  , &dt2, v_o_new, v_n_new );
 
+                  //lprintf( "Result is %d %g %g", result, dt1, dt2 );
+
+						//if( result || dt1 > 100000 || dt1 < -100000 )
+						{
+							//addscaled( v1, v_o_old, v_n_old, dt1 );
+							//v1[vForward] = camera->identity_depth;
+							// intersect is valid.   Otherwise ... I use the halfway point?
+							//PrintVector( v1 );
+                     RotateRel( l.origin, 0, 0, angle_one );
+							//RotateAround( l.origin, GetAxis( v1, vForward ), angle );
+						}
+						//else
+						{
+                  //   lprintf( "not enough angle? more like a move action?" );
+						}
 					}
                //lprintf(
 					//RotateRel( l.origin, 0, 0, - atan2( v2[vUp], v2[vRight] ) + atan2( v1[vUp], v1[vRight] ) );
