@@ -419,15 +419,14 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
             engine->app->savedStateSize = sizeof(struct saved_state);
             break;
 	 case APP_CMD_INIT_WINDOW:
-       LOGI( "Init..." );
 		 // don't realy want to do anything, this is legal to bind to the egl context, but the size is invalid.
        // after init will get a changed anyway
-		 break;
-	 case APP_CMD_WINDOW_RESIZED:
-       LOGI( "Resized received..." );
+		 //break;
+	 //case APP_CMD_WINDOW_RESIZED:
+      // LOGI( "Resized received..." );
 		 // The window is being shown, get it ready.
 		 engine->wait_for_display_init = 1;
-		 while( !engine->wait_for_startup )
+		 while( engine->wait_for_startup )
 		 {
           LOGI( "wait for deadstart to finish (load interfaces)" );
 			 sched_yield();
