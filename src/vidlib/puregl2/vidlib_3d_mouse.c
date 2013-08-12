@@ -226,13 +226,13 @@ void UpdateMouseRay( struct display_camera * camera )
 
 		// this is definaly the correct rotation
 		Apply( t, tmp1, l.mouse_ray_origin );
-      SetPoint( l.mouse_ray_origin, tmp1 );
+		SetPoint( l.mouse_ray_origin, tmp1 );
 		Apply( t, tmp1, l.mouse_ray_target );
 		SetPoint( l.mouse_ray_target, tmp1 );
 
 		sub( l.mouse_ray_slope, l.mouse_ray_target, l.mouse_ray_origin );
 		normalize( l.mouse_ray_slope );
-		
+
 		SetPoint( camera->mouse_ray.n, l.mouse_ray_slope );
 		SetPoint( camera->mouse_ray.o, l.mouse_ray_origin );
 		SetRay( &l.mouse_ray, &camera->mouse_ray );
@@ -311,16 +311,18 @@ PRENDERER CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 	struct display_camera *camera = (struct display_camera *)psvMouse;
 	if( camera->origin_camera )
 	{
-      UpdateMouseRay( camera );
-
+		UpdateMouseRay( camera );
 		{
 			INDEX idx;
 			struct plugin_reference *ref;
 			LIST_FORALL( camera->plugins, idx, struct plugin_reference *, ref )
 			{
-				used = ref->Mouse3d( ref->psv, &camera->mouse_ray, b );
-				if( used )
-					break;
+				if( ref->Mouse3d )
+				{
+					used = ref->Mouse3d( ref->psv, &camera->mouse_ray, b );
+					if( used )
+						break;
+				}
 			}
 		}
 
@@ -371,6 +373,7 @@ PRENDERER CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 				//   	 , check->pWindowPos.x+ check->pWindowPos.cx
 				//   	 , check->pWindowPos.y+ check->pWindowPos.cy );
 
+				lprintf( "..." );
 				if( check == l.hCaptured ||
 					( ( newx >= 0 && newx < (check->pWindowPos.cx ) )
 					 && ( newy >= 0 && newy < (check->pWindowPos.cy ) ) ) )

@@ -366,7 +366,7 @@ void LoadOptions( void )
 	}
 	else
 		l.scale = 1.0 / l.scale;
-
+   lprintf( "LoadOptions" );
 	if( !l.cameras )
 	{
 		struct display_camera *default_camera = NULL;
@@ -387,6 +387,7 @@ void LoadOptions( void )
 			average_height = screen_h/3;
 			break;
 		}
+lprintf( "Set camera 0 to 1" );
 		SetLink( &l.cameras, 0, (POINTER)1 ); // set default here 
 		for( n = 0; n < nDisplays; n++ )
 		{
@@ -474,10 +475,15 @@ void LoadOptions( void )
 			{
 				default_camera = camera;
 			}
+lprintf( "Add camera to list" );
 			AddLink( &l.cameras, camera );
 		}
 		if( !default_camera )
+		{
 			default_camera = (struct display_camera *)GetLink( &l.cameras, 1 );
+lprintf( "Retrieve default as %p", default_camera );
+		}
+lprintf( "Set default to %p", default_camera );
 		SetLink( &l.cameras, 0, default_camera );
 	}
 	l.flags.bLogMessageDispatch = 1;//SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log message dispatch"), 0, TRUE );
@@ -485,7 +491,7 @@ void LoadOptions( void )
 	l.flags.bLogKeyEvent = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log key event"), 0, TRUE );
 	l.flags.bLogMouseEvent = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log mouse event"), 0, TRUE );
 	l.flags.bLayeredWindowDefault = 0;
-	l.flags.bLogWrites = 1;//SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Log Video Output"), 0, TRUE );
+	l.flags.bLogWrites = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Log Video Output"), 0, TRUE );
 
 #endif
 
