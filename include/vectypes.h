@@ -111,12 +111,12 @@ typedef RCOORD PRQUATERNION[4];
 // 1 == 1.5
 // 1 == 1.01
 
-#define THRESHOLD 1
+#define THRESHOLD 10
 /* Macro to extract the exponent part of a RCOORD.
                                                    */
-#define EXPON(f) ((int)( RCOORDBITS(f) & 0x40000000L ) ?   \
+#define EXPON(f) ((int)(( RCOORDBITS(f) & 0x40000000L ) ?   \
                     (( RCOORDBITS(f) & 0x3F800000L ) >> 23) :    \
-                    ((( RCOORDBITS(f) & 0x3F800000L ) >> 23) - 128))
+                    ((( RCOORDBITS(f) & 0x3F800000L ) >> 23) - 128)))
 #endif
 
 #ifdef NEED_VECTLIB_COMPARE
@@ -126,22 +126,22 @@ static int COMPARE( RCOORD n1, RCOORD n2 )
 	RCOORD tmp1, tmp2;
 	int compare_result;
 	tmp1=n1-n2;
-   /*
-	lprintf( WIDE("exponents %ld %ld"), EXPON( n1 ), EXPON( n2 ) );
- 	lprintf("%9.9g-%9.9g=%9.9g %s %s %ld %ld %ld"
-			 , (n1),(n2),(tmp1)
-			 ,!RCOORDBITS(n1)?"zero":"    ",!RCOORDBITS(n2)?"zero":"    "
-  		 ,EXPON(n1)-THRESHOLD
-			 ,EXPON(n2)-THRESHOLD
-			 ,EXPON(tmp1) );
-          */
+
+	//lprintf( WIDE("exponents %ld %ld"), EXPON( n1 ), EXPON( n2 ) );
+ 	//lprintf("%9.9g-%9.9g=%9.9g %s %s %ld %ld %ld"
+	//		 , (n1),(n2),(tmp1)
+	//		 ,!RCOORDBITS(n1)?"zero":"    ",!RCOORDBITS(n2)?"zero":"    "
+  	//	 ,EXPON(n1)-THRESHOLD
+	//   	 ,EXPON(n2)-THRESHOLD
+	//		 ,EXPON(tmp1) );
+
 	tmp2=n2-n1;
-   /*
-	lprintf("%9.9g-%9.9g=%9.9g %s %s %ld %ld %ld"
-			 , (n2),(n1),(tmp2)
-			 ,!RCOORDBITS(n2)?"zero":"    ",!RCOORDBITS(n1)?"zero":"    "
-			 ,EXPON(n2)-THRESHOLD,EXPON(n1)-THRESHOLD,EXPON(tmp2));
-			 */
+
+	//lprintf("%9.9g-%9.9g=%9.9g %s %s %ld %ld %ld"
+	//		 , (n2),(n1),(tmp2)
+	//		 ,!RCOORDBITS(n2)?"zero":"    ",!RCOORDBITS(n1)?"zero":"    "
+	//		 ,EXPON(n2)-THRESHOLD,EXPON(n1)-THRESHOLD,EXPON(tmp2));
+
 	compare_result = ( ( !RCOORDBITS(n1) )?( (n2) <  0.0000001 &&
 														 (n2) > -0.0000001 )?1:0
 							:( !RCOORDBITS(n2) )?( (n1) <  0.0000001 &&
@@ -152,9 +152,6 @@ static int COMPARE( RCOORD n1, RCOORD n2 )
 							( ( EXPON(n2) - THRESHOLD ) >=
 							 ( EXPON( tmp2) ) ) ? 1 : 0
 						  );
-   /*
-	 lprintf( WIDE("result=%d"), compare_result );
-    */
 	return compare_result;
 }
 /*
@@ -184,7 +181,7 @@ static RCOORD CompareTemp1, CompareTemp2;
 #else
 inline int COMPARE( RCOORD n1, RCOORD n2 )
 {
-    RCOORD CompareTemp1, CompareTemp2;
+	RCOORD CompareTemp1, CompareTemp2;
    return  RCOORDBITS(n1)                \
                             ? ( CompareTemp1 = (n1)+(n1), \
                                 CompareTemp2 = (n1)+(n2), \

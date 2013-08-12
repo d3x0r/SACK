@@ -51,6 +51,10 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 			}
 			else if( touches[2].flags.end_event )
 			{
+            touch_info.one.x = touches[0].x;
+            touch_info.one.y = touches[0].y;
+            touch_info.two.x = touches[1].x;
+            touch_info.two.y = touches[1].y;
 			}
 			else
 			{
@@ -70,6 +74,9 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 			}
 			else if( touches[1].flags.end_event )
 			{
+            // otherwise, next move will cause screen to 'pop'...
+            touch_info.one.x = touches[0].x;
+            touch_info.one.y = touches[0].y;
 			}
 			else
 			{
@@ -125,7 +132,14 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 															  , &dt2, v_o_new, v_n_new );
 
                   lprintf( "Result is %d %g %g", result, dt1, dt2 );
-
+						if( result )
+						{
+                     VECTOR v1;
+							addscaled( v1, v_o_old, v_n_old, dt1 );
+							v1[vForward] = camera->identity_depth;
+							// intersect is valid.   Otherwise ... I use the halfway point?
+							PrintVector( v1 );
+						}
 						//if( result || dt1 > 100000 || dt1 < -100000 )
 						{
                      VECTOR v1;

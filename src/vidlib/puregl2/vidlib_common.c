@@ -486,7 +486,7 @@ lprintf( "Retrieve default as %p", default_camera );
 lprintf( "Set default to %p", default_camera );
 		SetLink( &l.cameras, 0, default_camera );
 	}
-	l.flags.bLogMessageDispatch = 1;//SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log message dispatch"), 0, TRUE );
+	l.flags.bLogMessageDispatch = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log message dispatch"), 0, TRUE );
 	l.flags.bLogFocus = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log focus event"), 0, TRUE );
 	l.flags.bLogKeyEvent = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log key event"), 0, TRUE );
 	l.flags.bLogMouseEvent = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log mouse event"), 0, TRUE );
@@ -593,6 +593,7 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 		camera->displayWindow = l.displayWindow;
 		OpenEGL( camera, camera->displayWindow );
 #else
+      lprintf( "Open win32 camera..." );
       OpenWin32Camera( camera );
 #endif
 
@@ -608,7 +609,6 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 		lprintf( WIDE( "Created Real window...Stuff.." ) );
 #endif
 		camera->flags.extra_init = 1;
-		lprintf( "Init camera %p", camera );
 
 		// extra init iterates through registered plugins and
       // loads their initial callbacks; the actual OnIni3d() has many more params
