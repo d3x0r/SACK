@@ -1,3 +1,4 @@
+// see also http://docs.nvidia.com/tegra/data/Android_Application_Lifecycle_in_Practice_A_Developer_s_Guide.html
 /*
  * Copyright (C) 2010 The Android Open Source Project
  *
@@ -33,118 +34,14 @@ void (*BagVidlibPureglOpenCameras)(void);
 void (*BagVidlibPureglRenderPass)(void);
 void (*BagVidlibPureglSendTouchEvents)( int nPoints, PINPUT_POINT points );
 void (*BagVidlibPureglCloseDisplay)(void);  // do cleanup and suspend processing until a new surface is created.
+void (*BagVidlibPureglSurfaceLost)(void);  // do cleanup and suspend processing until a new surface is created.
+void (*BagVidlibPureglSurfaceGained)(NativeWindowType);  // do cleanup and suspend processing until a new surface is created.
 void (*BagVidlibPureglSetTriggerKeyboard)(void(*show)(void),void(*hide)(void));  // do cleanup and suspend processing until a new surface is created.
 
 int (*BagVidlibPureglSendKeyEvents)( int pressed, int key, int mods );
 
 struct engine engine;
 
-#if __USE_NATIVE_APP_EGL_MODULE__
-/**
- * Initialize an EGL context for the current display.
- */
-static int engine_init_display(struct engine* engine) {
-    // initialize OpenGL ES and EGL
-
-    /*
-     * Here specify the attributes of the desired configuration.
-     * Below, we select an EGLConfig with at least 8 bits per color
-     * component compatible with on-screen windows
-     */
-    const EGLint attribs[] = {
-            EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-            EGL_BLUE_SIZE, 8,
-            EGL_GREEN_SIZE, 8,
-            EGL_RED_SIZE, 8,
-            EGL_NONE
-    };
-    EGLint w, h, dummy, format;
-    EGLint numConfigs;
-    EGLConfig config;
-    EGLSurface surface;
-    EGLContext context;
-
-    EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-
-    eglInitialize(display, 0, 0);
-
-    /* Here, the application chooses the configuration it desires. In this
-     * sample, we have a very simplified selection process, where we pick
-     * the first EGLConfig that matches our criteria */
-    eglChooseConfig(display, attribs, &config, 1, &numConfigs);
-
-    /* EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
-     * guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
-     * As soon as we picked a EGLConfig, we can safely reconfigure the
-     * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
-    eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
-
-    ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
-
-    surface = eglCreateWindowSurface(display, config, engine->app->window, NULL);
-    context = eglCreateContext(display, config, NULL, NULL);
-
-    if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
-        LOGW("Unable to eglMakeCurrent");
-        return -1;
-    }
-
-    eglQuerySurface(display, surface, EGL_WIDTH, &w);
-    eglQuerySurface(display, surface, EGL_HEIGHT, &h);
-
-    engine->display = display;
-    engine->context = context;
-    engine->surface = surface;
-    engine->width = w;
-    engine->height = h;
-    engine->state.angle = 0;
-
-    // Initialize GL state.
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
-    glEnable(GL_CULL_FACE);
-    glShadeModel(GL_SMOOTH);
-    glDisable(GL_DEPTH_TEST);
-
-    return 0;
-}
-
-/**
- * Just the current frame in the display.
- */
-static void engine_draw_frame(struct engine* engine) {
-    if (engine->display == NULL) {
-        // No display.
-        return;
-    }
-
-    // Just fill the screen with a color.
-    glClearColor(((float)engine->state.x)/engine->width, engine->state.angle,
-            ((float)engine->state.y)/engine->height, 1);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    eglSwapBuffers(engine->display, engine->surface);
-}
-
-/**
- * Tear down the EGL context currently associated with the display.
- */
-static void engine_term_display(struct engine* engine) {
-    if (engine->display != EGL_NO_DISPLAY) {
-        eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-        if (engine->context != EGL_NO_CONTEXT) {
-            eglDestroyContext(engine->display, engine->context);
-        }
-        if (engine->surface != EGL_NO_SURFACE) {
-            eglDestroySurface(engine->display, engine->surface);
-        }
-        eglTerminate(engine->display);
-    }
-    engine->animating = 0;
-    engine->display = EGL_NO_DISPLAY;
-    engine->context = EGL_NO_CONTEXT;
-    engine->surface = EGL_NO_SURFACE;
-}
-#endif
 /**
  * Process the next input event.
  */
@@ -257,74 +154,6 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
     }
     return 0;
 }
-
-/**
- * Process the next main command.
- */
-static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
-    struct engine* engine = (struct engine*)app->userData;
-    switch (cmd) {
-        case APP_CMD_SAVE_STATE:
-            // The system has asked us to save our current state.  Do so.
-            engine->app->savedState = malloc(sizeof(struct saved_state));
-            *((struct saved_state*)engine->app->savedState) = engine->state;
-            engine->app->savedStateSize = sizeof(struct saved_state);
-            break;
-        case APP_CMD_INIT_WINDOW:
-			  // The window is being shown, get it ready.
-			  engine->animating = 1;
-           engine->wait_for_display_init = 1;
-			  while( engine->wait_for_startup )
-				  sched_yield();
-
-			  BagVidlibPureglSetNativeWindowHandle( engine->app->pendingWindow );
-           // reopen cameras...
-			  BagVidlibPureglOpenCameras();
-           engine->wait_for_display_init = 0;
-			  sched_yield();
-           BagVidlibPureglRenderPass();
-#if __USE_NATIVE_APP_EGL_MODULE__
-            if (engine->app->window != NULL) {
-                engine_init_display(engine);
-                engine_draw_frame(engine);
-				}
-#else
-            // should do something to allow vidlib to process...
-#endif
-            break;
-        case APP_CMD_TERM_WINDOW:
-            // The window is being hidden or closed, clean it up.
-			  engine->animating = 0;
-#if __USE_NATIVE_APP_EGL_MODULE__
-			  engine_term_display(engine);
-#else
-			  // do something like unload interface
-           BagVidlibPureglCloseDisplay();
-#endif
-            break;
-        case APP_CMD_GAINED_FOCUS:
-            // When our app gains focus, we start monitoring the accelerometer.
-            if (engine->accelerometerSensor != NULL) {
-                ASensorEventQueue_enableSensor(engine->sensorEventQueue,
-                        engine->accelerometerSensor);
-                // We'd like to get 60 events per second (in us).
-                ASensorEventQueue_setEventRate(engine->sensorEventQueue,
-                        engine->accelerometerSensor, (1000L/60)*1000);
-            }
-            break;
-        case APP_CMD_LOST_FOCUS:
-            // When our app loses focus, we stop monitoring the accelerometer.
-            // This is to avoid consuming battery while not being used.
-            if (engine->accelerometerSensor != NULL) {
-                ASensorEventQueue_disableSensor(engine->sensorEventQueue,
-                        engine->accelerometerSensor);
-            }
-            // Also stop animating.
-				engine->animating = 0;
-            break;
-    }
-}
-
 void *LoadLibrary( char *path, char *name )
 {
 	char buf[256];
@@ -454,6 +283,8 @@ void* BeginNormalProcess( void*param )
 						fopen( "assets.exported", "wb" );
 					}
 				}
+// do not auto load libraries
+#ifndef BUILD_PORTABLE_EXECUTABLE
 				LoadLibrary( mypath, "libbag.externals.so" );
 				{
 					void (*RunExits)(void );
@@ -482,44 +313,34 @@ void* BeginNormalProcess( void*param )
 				LoadLibrary( mypath, "libbag.psi.so" );
 
 				{
-					int n;
-					for( n = 0; n < 1000; n++ )
-					{
-						if( !engine.app->pendingWindow )
-							LOGI( "Pending window will fail!" );
-						else
-                     break;
-						usleep( 10000 );
-					}
-				}
-				{
 					void *lib = LoadLibrary( mypath, "libbag.video.puregl2.so" );
 					if( !lib )
 						LOGI( "Failed to load lib:%s", dlerror() );
 
-					BagVidlibPureglSetNativeWindowHandle = (void (*)(NativeWindowType ))dlsym( lib, "SACK_Vidlib_SetNativeWindowHandle" );
-					if( !BagVidlibPureglSetNativeWindowHandle )
-						LOGI( "Failed to get SetNativeWindowHandle:%s", dlerror() );
-
-					BagVidlibPureglRenderPass = (void (*)(void ))dlsym( lib, "SACK_Vidlib_DoRenderPass" );
-					if( !BagVidlibPureglRenderPass )
-						LOGI( "Failed to get DoRenderPass:%s", dlerror() );
-
-					BagVidlibPureglOpenCameras = (void (*)(void ))dlsym( lib, "SACK_Vidlib_OpenCameras" );
-					if( !BagVidlibPureglOpenCameras )
-						LOGI( "Failed to get OpenCameras:%s", dlerror() );
-
-               BagVidlibPureglSendKeyEvents = (int(*)(int,int,int))dlsym( lib, "SACK_Vidlib_SendKeyEvents" );
-					BagVidlibPureglSendTouchEvents = (void (*)(int,PINPUT_POINT ))dlsym( lib, "SACK_Vidlib_SendTouchEvents" );
-					BagVidlibPureglCloseDisplay = (void(*)(void))dlsym( lib, "SACK_Vidlib_CloseDisplay" );
-					BagVidlibPureglSetTriggerKeyboard = (void(*)(void(*)(void),void(*)(void)))dlsym( lib, "SACK_Vidlib_SetTriggerKeyboard" );
-               BagVidlibPureglSetTriggerKeyboard( show_keyboard, hide_keyboard );
 				}
+#endif
 				{
 					void *lib;
                void (*SACK_Main)(int,char* );
 					snprintf( buf, 256, "%s.code.so", myname );
 					lib = LoadLibrary( mypath, buf );
+               // assume we need to init this; it's probably a portable target
+					if( !InvokeDeadstart )
+					{
+                  // this normally comes from bag; but a static/portable application may have it linked as part of its code
+						InvokeDeadstart = dlsym( lib, "InvokeDeadstart" );
+						{
+							void (*f)(char*);
+							f = dlsym( lib, "SACKSystemSetProgramPath" );
+							f( mypath );
+							f = dlsym( lib, "SACKSystemSetProgramName" );
+							f( myname );
+							f = dlsym( lib, "SACKSystemSetWorkingPath" );
+							f( buf );
+						}
+						MarkRootDeadstartComplete = dlsym( lib, "MarkRootDeadstartComplete" );
+					}
+
 					SACK_Main = dlsym( lib, "SACK_Main" );
 					if( !SACK_Main )
 					{
@@ -530,11 +351,39 @@ void* BeginNormalProcess( void*param )
 					InvokeDeadstart();
                LOGI( "Deadstart Completed..." );
 					MarkRootDeadstartComplete();
-               engine.wait_for_startup = 0;
-					sched_yield();
-               while( engine.wait_for_display_init )
+
+					// somehow these will be loaded
+					// but we don't know where, but it's pretty safe to assume the names are unique, or
+               // first-come-first-serve is appropriate
+					BagVidlibPureglSetNativeWindowHandle = (void (*)(NativeWindowType ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SetNativeWindowHandle" );
+					if( !BagVidlibPureglSetNativeWindowHandle )
+						LOGI( "Failed to get SetNativeWindowHandle:%s", dlerror() );
+
+					BagVidlibPureglRenderPass = (void (*)(void ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_DoRenderPass" );
+					if( !BagVidlibPureglRenderPass )
+						LOGI( "Failed to get DoRenderPass:%s", dlerror() );
+
+					BagVidlibPureglOpenCameras = (void (*)(void ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_OpenCameras" );
+					if( !BagVidlibPureglOpenCameras )
+						LOGI( "Failed to get OpenCameras:%s", dlerror() );
+
+               BagVidlibPureglSendKeyEvents = (int(*)(int,int,int))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SendKeyEvents" );
+					BagVidlibPureglSendTouchEvents = (void (*)(int,PINPUT_POINT ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SendTouchEvents" );
+					BagVidlibPureglCloseDisplay = (void(*)(void))dlsym( RTLD_DEFAULT, "SACK_Vidlib_CloseDisplay" );
+               BagVidlibPureglSurfaceLost = (void(*)(void))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SurfaceLost" );  // egl event
+               BagVidlibPureglSurfaceGained = (void(*)(NativeWindowType))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SurfaceGained" );  // egl event
+					BagVidlibPureglSetTriggerKeyboard = (void(*)(void(*)(void),void(*)(void)))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SetTriggerKeyboard" );
+               if( BagVidlibPureglSetTriggerKeyboard )
+						BagVidlibPureglSetTriggerKeyboard( show_keyboard, hide_keyboard );
+
+               // shouldn't need this shortly; was more about doing things my way than the android way
+					engine.wait_for_startup = 0;
+					// resume other threads so potentially the display is the next thing initialized.
+					while( engine.wait_for_display_init )
 						sched_yield();
+
 					SACK_Main( 0, NULL );
+               engine.closed = 1;
                LOGI( "Main exited... so we should all..." );
                break;
 				}
@@ -544,6 +393,86 @@ void* BeginNormalProcess( void*param )
 	}
    return NULL;
 }
+
+
+/**
+ * Process the next main command.
+ */
+static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
+    struct engine* engine = (struct engine*)app->userData;
+	 switch (cmd)
+	 {
+	 case APP_CMD_START:
+		 {
+			 pthread_t thread;
+			 engine->wait_for_startup = 1;
+			 pthread_create( &thread, NULL, BeginNormalProcess, NULL );
+          // wait for core initilization to complete, and soft symbols to be loaded.
+			 while( engine->wait_for_startup )
+				  sched_yield();
+		 }
+       break;
+	 case APP_CMD_SAVE_STATE:
+		 // The system has asked us to save our current state.  Do so.
+            engine->app->savedState = malloc(sizeof(struct saved_state));
+            *((struct saved_state*)engine->app->savedState) = engine->state;
+            engine->app->savedStateSize = sizeof(struct saved_state);
+            break;
+	 case APP_CMD_INIT_WINDOW:
+       LOGI( "Init..." );
+		 // don't realy want to do anything, this is legal to bind to the egl context, but the size is invalid.
+       // after init will get a changed anyway
+		 break;
+	 case APP_CMD_WINDOW_RESIZED:
+       LOGI( "Resized received..." );
+		 // The window is being shown, get it ready.
+		 engine->wait_for_display_init = 1;
+		 while( !engine->wait_for_startup )
+		 {
+          LOGI( "wait for deadstart to finish (load interfaces)" );
+			 sched_yield();
+		 }
+		 BagVidlibPureglSetNativeWindowHandle( engine->app->pendingWindow );
+		 engine->wait_for_display_init = 0;
+		 // reopen cameras...
+		 BagVidlibPureglOpenCameras();
+		 break;
+	 case APP_CMD_TERM_WINDOW:
+		 // The window is being hidden or closed, clean it up.
+		 engine->animating = 0;
+		 BagVidlibPureglCloseDisplay();
+		 break;
+	 case APP_CMD_GAINED_FOCUS:
+		 // first resume is not valid until gained focus (else resume during lock screen)
+		 //case APP_CMD_RESUME:
+		 // resume physics from now
+		 engine->animating = 1;
+
+		 // When our app gains focus, we start monitoring the accelerometer.
+		 if (engine->accelerometerSensor != NULL) {
+			 ASensorEventQueue_enableSensor(engine->sensorEventQueue,
+                        engine->accelerometerSensor);
+			 // We'd like to get 60 events per second (in us).
+			 ASensorEventQueue_setEventRate(engine->sensorEventQueue,
+													  engine->accelerometerSensor, (1000L/60)*1000);
+		 }
+		 break;
+	 case APP_CMD_LOST_FOCUS:
+		 // need to suspend physics at this point; aka next move is time 0, until the next-next
+
+		 // When our app loses focus, we stop monitoring the accelerometer.
+		 // This is to avoid consuming battery while not being used.
+		 if (engine->accelerometerSensor != NULL) {
+			 ASensorEventQueue_disableSensor(engine->sensorEventQueue,
+														engine->accelerometerSensor);
+		 }
+		 // Also stop animating.
+		 engine->animating = 0;
+		 break;
+    }
+}
+
+
 
 /**
  * This is the main entry point of a native application that is using
@@ -573,12 +502,6 @@ void android_main(struct android_app* state) {
         engine.state = *(struct saved_state*)state->savedState;
     }
 
-	 {
-		 pthread_t thread;
-       engine.wait_for_startup = 1;
-		 pthread_create( &thread, NULL, BeginNormalProcess, NULL );
-	 }
-	 //ThreadTo( BeginNormalProcess, 0 );
     // loop waiting for stuff to do.
     while (1) {
         // Read all pending events.
@@ -589,36 +512,35 @@ void android_main(struct android_app* state) {
         // If not animating, we will block forever waiting for events.
         // If animating, we loop until all events are read, then continue
         // to draw the next frame of animation.
-        while ((ident=ALooper_pollAll(engine.animating ? 0 : -1, NULL, &events,
-                (void**)&source)) >= 0) {
+		  while ((ident=ALooper_pollAll(engine.animating ? 0 : -1, NULL, &events, (void**)&source)) >= 0)
+		  {
+			  // Process this event.
+			  if (source != NULL)
+			  {
+				  source->process(state, source);
+			  }
 
-            // Process this event.
-            if (source != NULL) {
-                source->process(state, source);
-            }
+			  // If a sensor has data, process it now.
+			  if (ident == LOOPER_ID_USER) {
+				  if (engine.accelerometerSensor != NULL) {
+					  ASensorEvent event;
+					  while (ASensorEventQueue_getEvents(engine.sensorEventQueue,
+																	 &event, 1) > 0) {
+						  //LOGI("accelerometer: x=%f y=%f z=%f",
+						  //       event.acceleration.x, event.acceleration.y,
+						  //       event.acceleration.z);
+					  }
+				  }
+			  }
 
-            // If a sensor has data, process it now.
-            if (ident == LOOPER_ID_USER) {
-                if (engine.accelerometerSensor != NULL) {
-                    ASensorEvent event;
-                    while (ASensorEventQueue_getEvents(engine.sensorEventQueue,
-                            &event, 1) > 0) {
-                        //LOGI("accelerometer: x=%f y=%f z=%f",
-                         //       event.acceleration.x, event.acceleration.y,
-                         //       event.acceleration.z);
-                    }
-                }
-            }
-
-            // Check if we are exiting.
-				if (state->destroyRequested != 0) {
-               LOGI( "Destroy Requested..." );
-#if __USE_NATIVE_APP_EGL_MODULE__
-					engine_term_display(&engine);
-#endif
-                return;
-            }
-        }
+			  // Check if we are exiting.
+			  if (state->destroyRequested != 0) {
+				  LOGI( "Destroy Requested..." );
+				  //state->activity->vm->DetachCurrentThread();
+				  BagVidlibPureglCloseDisplay();
+				  return;
+			  }
+		  }
 
         if (engine.animating) {
             // Done with events; draw next animation frame.
@@ -629,13 +551,13 @@ void android_main(struct android_app* state) {
 
             // Drawing is throttled to the screen update rate, so there
             // is no need to do timing here.
-#if __USE_NATIVE_APP_EGL_MODULE__
-				engine_draw_frame(&engine);
-#else
             BagVidlibPureglRenderPass();
             // trigger want draw?
-#endif
         }
-    }
+		  if(engine.closed)
+		  {
+			  ANativeActivity_finish(state->activity);
+		  }
+	 }
 }
 //END_INCLUDE(all)

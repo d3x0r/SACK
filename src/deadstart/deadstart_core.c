@@ -11,7 +11,7 @@
 
 // debugging only gets you the ordering(priority) logging and something else...
 // useful logging is now controlled with l.flags.bLog
-#define DISABLE_DEBUG_REGISTER_AND_DISPATCH
+//#define DISABLE_DEBUG_REGISTER_AND_DISPATCH
 //#define DEBUG_SHUTDOWN
 #define LOG_ALL 0
 
@@ -363,9 +363,7 @@ void InvokeDeadstart( void )
 #endif
 		&& l.flags.bLog ))
 		{
-#ifdef WIN32
 			lprintf( WIDE("Dispatch %s@%s(%d)p:%d "), proc->func,proc->file,proc->line, proc->priority );
-#endif // WIN32
 		}
 		{
 			bDispatched = 1;
@@ -420,7 +418,7 @@ void MarkRootDeadstartComplete( void )
 // options initializes at SQL+1
 PRIORITY_PRELOAD( InitDeadstartOptions, SQL_PRELOAD_PRIORITY+2 )
 {
-	l.flags.bLog = SACK_GetProfileIntEx( WIDE( "SACK/Deadstart" ), WIDE( "Logging Enabled?" ), 0, TRUE );
+	l.flags.bLog = 1;//SACK_GetProfileIntEx( WIDE( "SACK/Deadstart" ), WIDE( "Logging Enabled?" ), 0, TRUE );
 }
 #endif
 
