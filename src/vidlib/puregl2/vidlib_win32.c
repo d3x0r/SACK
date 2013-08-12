@@ -828,7 +828,6 @@ WM_DROPFILES
 					}
 					if( handled )
 						Return 0;
-					Return 1;
 				}
 			}
 		}
@@ -901,7 +900,7 @@ WM_DROPFILES
    case WM_MOUSEMOVE:
 			l.mouse_b = ( l.mouse_b & ~(MK_LBUTTON|MK_RBUTTON|MK_MBUTTON) ) | (int)wParam;
 		}
-
+		lprintf( "mouse" );
 		//hWndLastFocus = hWnd;
 		hVideo = (PVIDEO) GetWindowLong (hWnd, WD_HVIDEO);
 		if (!hVideo)
@@ -1008,6 +1007,7 @@ WM_DROPFILES
 								 , msg
 								 , sizeof( msg ) );
 #endif
+#if 0
 			if( l.flags.bRotateLock  )
 			{
 				RCOORD delta_x = l.mouse_x - (hVideo->pWindowPos.cx/2);
@@ -1032,11 +1032,13 @@ WM_DROPFILES
 					l.mouse_x = hVideo->pWindowPos.cx/2;
 					l.mouse_y = hVideo->pWindowPos.cy/2;
 					//lprintf( WIDE("Set curorpos..") );
-					SetCursorPos( hVideo->pWindowPos.x + hVideo->pWindowPos.cx/2, hVideo->pWindowPos.y + hVideo->pWindowPos.cy / 2 );
+					//SetCursorPos( hVideo->pWindowPos.x + hVideo->pWindowPos.cx/2, hVideo->pWindowPos.y + hVideo->pWindowPos.cy / 2 );
 					//lprintf( WIDE("Set curorpos Done..") );
 				}
 			}
-			else if (hVideo->pMouseCallback)
+			else 
+#endif				
+				if (hVideo->pMouseCallback)
 			{
 				hVideo->pMouseCallback (hVideo->dwMouseData,
 												l.mouse_x, l.mouse_y, l.mouse_b);
