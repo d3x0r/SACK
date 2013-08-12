@@ -251,7 +251,7 @@ void UpdateMouseRays( void )
 
 
 
-// h
+// Maps a point on a RENDEER surface to a screen point
 int InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, RCOORD x, RCOORD y, int *result_x, int *result_y )
 {
 	if( camera->origin_camera )
