@@ -81,7 +81,13 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
             sub( v3, v1, v2 );
 				touch_info.two.x = touches[1].x;
 				touch_info.two.y = touches[1].y;
-            touch_info.two.begin_length = length( v3 );
+            touch_info.two.begin_length = Length( v3 );
+			}
+			else if( touches[0].flags.end_event )
+			{
+            // otherwise, next move will cause screen to 'pop'...
+            touch_info.one.x = touches[1].x;
+            touch_info.one.y = touches[1].y;
 			}
 			else if( touches[1].flags.end_event )
 			{
@@ -106,7 +112,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				v_n_new[vUp] = touches[1].y - touches[0].y;
 				v_n_new[vForward] = 0;
 
-            new_length = length( v_n_new );
+            new_length = Length( v_n_new );
             addscaled( v_mid_new, v_o_new, v_n_new, 0.5f );
 
             v_o_old[vRight] = touch_info.one.x;
@@ -117,7 +123,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				v_n_old[vUp] = touch_info.two.y - touch_info.one.y;
 				v_n_old[vForward] = 0;
 
-            old_length = length( v_n_old );
+            old_length = Length( v_n_old );
 				addscaled( v_mid_old, v_o_old, v_n_old, 0.5f );
 
             PrintVector( v_n_new );
@@ -131,7 +137,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 
             MoveRight( l.origin, -v_delta_pos[vRight] );
 				MoveUp( l.origin, v_delta_pos[vUp] );
-            MoveForward( l.origin, ( ( new_length - old_length ) / old_length ) );
+            MoveForward( l.origin, ( ( new_length - old_length ) / old_length ) * camera->identity_depth * l.scale );
 				//TranslateRelV( l.origin, v_delta_pos );
 
 

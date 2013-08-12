@@ -273,6 +273,8 @@ int InitGL( struct display_camera *camera );										// All Setup For OpenGL Go
 // ---------- vidlib win32 - share dsymbols for keymap win32
 #define WD_HVIDEO   0   // WindowData_HVIDEO
 
+// --------------- win32 keymap ------------------------
+#ifndef NO_TOUCH
 LRESULT CALLBACK
    KeyHook (int code,      // hook code
 				WPARAM wParam,    // virtual-key code
@@ -283,6 +285,6 @@ LRESULT CALLBACK
 				WPARAM wParam,    // virtual-key code
 				LPARAM lParam     // keystroke-message information
 			  );
-
+#endif
 
 RENDER_NAMESPACE_END
