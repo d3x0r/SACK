@@ -3,6 +3,19 @@
 
 #include "local.h"
 
+extern KEYDEFINE KeyDefs[];
+#if defined( UNDER_CE )
+#define NO_MOUSE_TRANSPARENCY
+#define NO_ENUM_DISPLAY
+#define NO_DRAG_DROP
+#define NO_TRANSPARENCY
+#undef _OPENGL_ENABLED
+#else
+#  if defined( _WIN32 )
+#    define USE_KEYHOOK
+#  endif
+#endif
+
 //#define LOG_STARTUP
 
 // commands to the video thread for non-windows native ....
@@ -775,7 +788,7 @@ WM_DROPFILES
 			if( l.GetTouchInputInfo )
 			{
 				TOUCHINPUT inputs[20];
-            struct input_point outputs[20];
+				struct input_point outputs[20];
 				int count = LOWORD(wParam);
 				PVIDEO hVideo = (PVIDEO)GetWindowLong( hWnd, WD_HVIDEO );
 				if( count > 20 )
@@ -787,22 +800,22 @@ WM_DROPFILES
 					int n;
 					for( n = 0; n < count; n++ )
 					{
-                  // windows coordiantes some in in hundreths of pixesl as a long
-                  outputs[n].x = inputs[n].x / 100.0f;
+						// windows coordiantes some in in hundreths of pixesl as a long
+						outputs[n].x = inputs[n].x / 100.0f;
 						outputs[n].y = inputs[n].y / 100.0f;
 						if( inputs[1].dwFlags & TOUCHEVENTF_DOWN )
 							outputs[n].flags.new_event = 1;
-                  else
+						else
 							outputs[n].flags.new_event = 0;
 						if( inputs[1].dwFlags & TOUCHEVENTF_UP )
 							outputs[n].flags.end_event = 1;
-                  else
+						else
 							outputs[n].flags.end_event = 0;
 					}
 				}
 				if( hVideo )
 				{
-               int handled = 0;
+					int handled = 0;
 					if( hVideo->pTouchCallback )
 					{
 						handled = hVideo->pTouchCallback( hVideo->dwTouchData, inputs, count );
@@ -810,12 +823,12 @@ WM_DROPFILES
 
 					if( !handled )
 					{
-                  // this will be like a hvid core
-                  handled = Handle3DTouches( hVideo, outputs, count );
+						// this will be like a hvid core
+						handled = Handle3DTouches( hVideo->camera, outputs, count );
 					}
 					if( handled )
 						Return 0;
-               Return 1;
+					Return 1;
 				}
 			}
 		}
@@ -1242,7 +1255,7 @@ WM_DROPFILES
 				}
 			}
 			pcs = (LPCREATESTRUCT) lParam;
-#if !defined( __WATCOMC__ ) && !defined( __GNUC__ )
+#ifndef NO_TOUCH
 			if( l.RegisterTouchWindow )
 				l.RegisterTouchWindow( hWnd, TWF_WANTPALM|TWF_FINETOUCH );
 #endif
@@ -1609,6 +1622,36 @@ static int CPROC ProcessDisplayMessages( PTRSZVAL psvUnused )
 	return -1;
 }
 
+#ifndef NO_TOUCH
+HHOOK prochook;
+LRESULT CALLBACK AllWndProc( int code, WPARAM wParam, LPARAM lParam )
+{
+	PCWPSTRUCT msg  = (PCWPSTRUCT)lParam;
+	lprintf( WIDE( "msg %p %d %d %p" ), msg->hwnd, msg->message, msg->wParam, msg->lParam );
+	if( msg->message == WM_TOUCH )
+	{
+		lprintf( WIDE( "TOUCH %d" ), msg->wParam );
+	}
+
+	return CallNextHookEx( prochook, code, wParam, lParam );
+}
+HHOOK get_prochook;
+LRESULT CALLBACK AllGetWndProc( int code, WPARAM wParam, LPARAM lParam )
+{
+	MSG *msg  = (MSG*)lParam;
+	lprintf( WIDE( "msg %p %d %d %p %d" )
+		, msg->hwnd
+		, msg->message
+		, msg->wParam, msg->lParam, msg->time );
+	if( msg->message == WM_TOUCH )
+	{
+		lprintf( WIDE( "TOUCH %d" ), msg->wParam );
+	}
+
+	return CallNextHookEx( get_prochook, code, wParam, lParam );
+}
+#endif
+
 
 //----------------------------------------------------------------------------
 PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
@@ -1628,6 +1671,21 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 	lprintf( WIDE( "Video Thread Proc %x, adding hook and thread." ), GetCurrentThreadId() );
 #endif
 #ifdef USE_KEYHOOK
+#ifndef NO_TOUCH
+	if( l.flags.bHookTouchEvents )
+	{
+		prochook = SetWindowsHookEx(
+											 WH_CALLWNDPROC,
+											 AllWndProc,
+											 GetModuleHandle(_WIDE(TARGETNAME)),
+											 0);
+		get_prochook = SetWindowsHookEx(
+												  WH_CALLWNDPROC,
+												  AllGetWndProc,
+												  GetModuleHandle(_WIDE(TARGETNAME)),
+												  0);
+	}
+#endif
 
    if( l.flags.bUseLLKeyhook )
 		AddLink( &l.ll_keyhooks,
