@@ -76,6 +76,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				// drag
             VECTOR v_n_old, v_n_new;
 				VECTOR v_o_old, v_o_new;
+            VECTOR v_mid_old, v_mid_new, v_delta_pos;
 
 				//lprintf( WIDE("drag") );
             v_o_new[vRight] = touches[0].x;
@@ -86,6 +87,8 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				v_n_new[vUp] = touches[1].y - touches[0].y;
 				v_n_new[vForward] = 0;
 
+            addscaled( v_mid_new, v_o_new, v_n_new, 0.5f );
+
             v_o_old[vRight] = touch_info.one.x;
             v_o_old[vUp] = touch_info.one.y;
 				v_o_old[vForward] = 0;
@@ -94,8 +97,21 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				v_n_old[vUp] = touch_info.two.y - touch_info.one.y;
 				v_n_old[vForward] = 0;
 
+				addscaled( v_mid_old, v_o_old, v_n_old, 0.5f );
+
             PrintVector( v_n_new );
             PrintVector( v_n_old );
+
+				sub( v_delta_pos, v_mid_new, v_mid_old );
+				add( v_o_old, v_o_old, v_delta_pos );
+
+            scale( v_delta_pos, v_delta_pos, l.scale );
+            // update old origin to new; for computing rotation point versus translateion
+
+            MoveRight( l.origin, -v_delta_pos[vRight] );
+            MoveUp( l.origin, v_delta_pos[vUp] );
+				//TranslateRelV( l.origin, v_delta_pos );
+
 
 				{
 					static int toggle;
@@ -105,17 +121,18 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 					{
 						int result;
 						RCOORD dt1, dt2;
-						//result = FindIntersectionTime( &dt1, v_o_old, v_n_old
-						//									  , &dt2, v_o_new, v_n_new );
+						result = FindIntersectionTime( &dt1, v_o_old, v_n_old
+															  , &dt2, v_o_new, v_n_new );
 
-                  //lprintf( "Result is %d %g %g", result, dt1, dt2 );
+                  lprintf( "Result is %d %g %g", result, dt1, dt2 );
 
 						//if( result || dt1 > 100000 || dt1 < -100000 )
 						{
-							//addscaled( v1, v_o_old, v_n_old, dt1 );
-							//v1[vForward] = camera->identity_depth;
+                     VECTOR v1;
+							addscaled( v1, v_o_old, v_n_old, dt1 );
+							v1[vForward] = camera->identity_depth;
 							// intersect is valid.   Otherwise ... I use the halfway point?
-							//PrintVector( v1 );
+							PrintVector( v1 );
                      RotateRel( l.origin, 0, 0, angle_one );
 							//RotateAround( l.origin, GetAxis( v1, vForward ), angle );
 						}
