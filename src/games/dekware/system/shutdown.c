@@ -47,10 +47,10 @@ extern TEXTCHAR **environ;
 
 int CPROC SystemShutdown( PSENTIENT ps, PTEXT param )
 {
-   {
-      HANDLE hToken, hProcess;
-      TOKEN_PRIVILEGES tp;
-      if( DuplicateHandle( GetCurrentProcess(), GetCurrentProcess()
+	{
+		HANDLE hToken, hProcess;
+		TOKEN_PRIVILEGES tp;
+		if( DuplicateHandle( GetCurrentProcess(), GetCurrentProcess()
                         , GetCurrentProcess(), &hProcess, 0 
                         , FALSE, DUPLICATE_SAME_ACCESS  ) )
 		{
@@ -64,8 +64,8 @@ int CPROC SystemShutdown( PSENTIENT ps, PTEXT param )
             	if( !b95 )
             	{
 	               tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-   	            AdjustTokenPrivileges( hToken, FALSE, &tp, 0, NULL, NULL );
-					}
+   					AdjustTokenPrivileges( hToken, FALSE, &tp, 0, NULL, NULL );
+				}
                //ExitWindowsEx( EWX_LOGOFF|EWX_FORCE, 0 );
                {
                   PTEXT temp;
@@ -101,10 +101,10 @@ int CPROC SystemShutdown( PSENTIENT ps, PTEXT param )
             GetLastError();
 			}
 		}
-      else
-         GetLastError();
-      CloseHandle( hProcess );
-      CloseHandle( hToken );
+		else
+			GetLastError();
+		CloseHandle( hProcess );
+		CloseHandle( hToken );
    }
    return 0;
 }
@@ -256,21 +256,21 @@ extern int nSystemID;
 typedef struct handle_info_tag
 {
 	struct mydatapath_tag *pdp;
-   PTEXT pLine; // partial inputs...
-   TEXTCHAR *name;
+	PTEXT pLine; // partial inputs...
+	TEXTCHAR *name;
 	int       bNextNew;
-   PTHREAD   hThread;
+	PTHREAD   hThread;
 #ifdef WIN32
-   HANDLE    handle;   // read/write handle
+	HANDLE    handle;   // read/write handle
 #else
-   int       pair[2];
-   int       handle;   // read/write handle
+	int       pair[2];
+	int       handle;   // read/write handle
 #endif
 } HANDLEINFO, *PHANDLEINFO;
 
 typedef struct mydatapath_tag {
-   DATAPATH common;
-   PSENTIENT ps;
+	DATAPATH common;
+	PSENTIENT ps;
 	// probably need process handles, partial line gatherers
 	// 
 	struct {
@@ -285,9 +285,9 @@ typedef struct mydatapath_tag {
 	//HANDLEINFO hStdErr;
 	PTEXT pEndOfLine; // this should be substituted for all EndOfLine segs.
 #ifdef __LINUX__
-   int child_pid;
+	int child_pid;
 #else
-   HANDLE hProcess;    // spawned proces handle... 
+	HANDLE hProcess;    // spawned proces handle... 
 #endif
 } MYDATAPATH, *PMYDATAPATH;
 
@@ -307,14 +307,14 @@ static PTEXT ValidateEOL( PTEXT line )
 	check = end;
 	while( check && ( check->flags & TF_INDIRECT ) )
 	{
-      PTEXT tmp = GetIndirect( check );
+		PTEXT tmp = GetIndirect( check );
 		if( tmp )
 		{
 			check = tmp;
 			SetEnd( check );
 		}
 		else
-         break;
+			break;
 	}
    // check will never be NULL. it will always point to the last valid segment
 	// if check == NULL the last segment is a indirect with 0 content...
@@ -350,23 +350,23 @@ static int CPROC WriteSystem( PDATAPATH pdpX )
 #endif
 	PTEXT pLine, pOutput;
 	pLine = (PTEXT)DequeLink( &pdp->common.Output );
-   if( !pdp->flags.no_auto_newline )
+	if( !pdp->flags.no_auto_newline )
 		ValidateEOL( pLine );
-      //if( pdp->common.flags.Formatted )
-      {
-	      if( TextIs( pLine, WIDE(".") ) )
+		//if( pdp->common.flags.Formatted )
+		{
+			if( TextIs( pLine, WIDE(".") ) )
 			{
-            Log( WIDE("Forwarding a dot command to next layer...") );
-      		if( pdp->common.pPrior )
-      		{
-      			EnqueLink( &pdp->common.pPrior->Output
-      						, SegBreak( NEXTLINE( pLine ) ) );
-	      		LineRelease( pLine );
-   	   		continue;
-      		}
-	      }
-   	   pOutput = BuildLineExx( pLine, FALSE, pdp->pEndOfLine DBG_SRC );
-	      LineRelease( pLine );
+				Log( WIDE("Forwarding a dot command to next layer...") );
+      			if( pdp->common.pPrior )
+      			{
+      				EnqueLink( &pdp->common.pPrior->Output
+      							, SegBreak( NEXTLINE( pLine ) ) );
+	      			LineRelease( pLine );
+   	   				continue;
+      			}
+			}
+   			pOutput = BuildLineExx( pLine, FALSE, pdp->pEndOfLine DBG_SRC );
+			LineRelease( pLine );
 		}
 		/*
 		else
@@ -396,7 +396,7 @@ static int CPROC WriteSystem( PDATAPATH pdpX )
 						Log( WIDE("Pipe has no readers...") );
 							break;
 					}
-               LogBinary( GetText( seg ), GetTextSize( seg ) );
+					LogBinary( GetText( seg ), GetTextSize( seg ) );
 					write( pdp->hStdIn.handle
 						 , GetText( seg )
 						 , GetTextSize( seg ) );
@@ -407,8 +407,8 @@ static int CPROC WriteSystem( PDATAPATH pdpX )
 		}
 		pdp->hStdOut.bNextNew = TRUE;
 		//pdp->hStdErr.bNextNew = TRUE;
-      LineRelease( pOutput );
-   }
+		LineRelease( pOutput );
+	}
 	return 0;	
 }
 
@@ -456,21 +456,22 @@ void CheckPendingStatus( PMYDATAPATH pdp )
 PTRSZVAL CPROC CommandInputThread( PTHREAD pThread )
 {
 	PHANDLEINFO phi = (PHANDLEINFO)GetThreadParam( pThread );
-   PTEXT pInput = SegCreate( 4096 );
-   int done, lastloop, do_start = 1, check_time;
-   _32 start;
+	PTEXT pInput = SegCreate( 4096 );
+	int done, lastloop, do_start = 1, check_time;
+	_32 start;
+	Hold( phi->pdp );
 #ifdef _DEBUG
-   {
+	{
 //	   DECLTEXT( msg, WIDE("Started system input thread!") );
 //   	EnqueLink( phi->pdp->&ps->Command->Output, &msg );
 	}
 #endif
 	done = lastloop = FALSE;
-   do
-   {
-      _32 dwRead, dwAvail;
-      if( done )
-      	lastloop = TRUE;
+	do
+	{
+		_32 dwRead, dwAvail;
+		if( done )
+      		lastloop = TRUE;
 		if( do_start )
 		{
 			start = GetTickCount() + 50;
@@ -486,7 +487,7 @@ PTRSZVAL CPROC CommandInputThread( PTHREAD pThread )
 #endif
 		{
 #ifdef _WIN32
-	      ReadFile( phi->handle
+			ReadFile( phi->handle
 	      			, GetText( pInput ), (DWORD)GetTextSize( pInput ) - 1
 	      			, &dwRead, NULL);  //read the  pipe
 #else
@@ -496,10 +497,10 @@ PTRSZVAL CPROC CommandInputThread( PTHREAD pThread )
 			if( !dwRead )
 			{
 #ifdef _DEBUG
-			   {
+				{
 					DECLTEXT( msg, WIDE("Ending system thread because of broke pipe!") );
-               Log( WIDE("Ending system thread because of broke pipe!") );
-			      //EnqueLink( &phi->pdp->common.Owner->Command->Output, &msg );
+					Log( WIDE("Ending system thread because of broke pipe!") );
+					//EnqueLink( &phi->pdp->common.Owner->Command->Output, &msg );
 				}
 #endif
 				break;
@@ -509,19 +510,19 @@ PTRSZVAL CPROC CommandInputThread( PTHREAD pThread )
 			pInput->data.size = dwRead;
 			EnqueLink( &phi->pdp->common.Input, SegDuplicate( pInput ) );
 			WakeAThread( phi->pdp->common.Owner );
-      	pInput->data.size = 4096;
-      	do_start = TRUE;
-      	check_time = FALSE;
-      }
-      //allow a minor time for output to be gathered before sending 
+      		pInput->data.size = 4096;
+      		do_start = TRUE;
+      		check_time = FALSE;
+		}
+		//allow a minor time for output to be gathered before sending 
 	   // partial gathers...	
 #ifdef _WIN32
-      if( WaitForSingleObject( phi->pdp->hProcess, 0 ) )
-	      Sleep(1);
+		if( WaitForSingleObject( phi->pdp->hProcess, 0 ) )
+			Sleep(1);
 		else
 		{
 			// Ending system thread because of process exit!
-      	done = TRUE;
+      		done = TRUE;
 		}
 #else
 		if( !dwRead )
@@ -536,8 +537,8 @@ PTRSZVAL CPROC CommandInputThread( PTHREAD pThread )
          Relinquish();
 		}
 #endif
-   }
-   while( !lastloop );
+	}
+	while( !lastloop );
 #ifdef _DEBUG
 	if( lastloop )
 	{
@@ -550,19 +551,20 @@ PTRSZVAL CPROC CommandInputThread( PTHREAD pThread )
 		//EnqueLink( phi->pdp->&ps->Command->Output, &msg );
 	}
 #endif
-   LineRelease( pInput );
+	LineRelease( pInput );
 #ifdef _WIN32
-   CloseHandle( phi->handle );
+	CloseHandle( phi->handle );
 	phi->hThread = 0;
 #else
 	close( phi->handle );
 #endif
 	phi->pdp->common.flags.Closed = 1;
 	if( phi->handle == phi->pdp->hStdIn.handle )
-      phi->pdp->hStdIn.handle = INVALID_HANDLE_VALUE;
+		phi->pdp->hStdIn.handle = INVALID_HANDLE_VALUE;
 	phi->handle = INVALID_HANDLE_VALUE;
-   WakeAThread( phi->pdp->common.Owner );
-   return 0xdead;
+	WakeAThread( phi->pdp->common.Owner );
+	Release( phi->pdp );
+	return 0xdead;
 }
 
 
@@ -623,130 +625,130 @@ int RunProg( TEXTCHAR *ActCommand, TEXTCHAR **args, TEXTCHAR **env )
 int LaunchSystemCommand( PMYDATAPATH pdp, PTEXT Command )
 {
 #ifdef _WIN32
-   PROCESS_INFORMATION pi;
-   STARTUPINFO si;
-   HANDLE hReadOut, hWriteOut;
-   //HANDLE hReadErr, hWriteErr;
-   HANDLE hReadIn, hWriteIn;
-   int bRunSuccess;
-   SECURITY_ATTRIBUTES sa;
+	PROCESS_INFORMATION pi;
+	STARTUPINFO si;
+	HANDLE hReadOut, hWriteOut;
+	//HANDLE hReadErr, hWriteErr;
+	HANDLE hReadIn, hWriteIn;
+	int bRunSuccess;
+	SECURITY_ATTRIBUTES sa;
 
-   sa.bInheritHandle = TRUE;
-   sa.lpSecurityDescriptor = NULL;
-   sa.nLength = sizeof( sa );
+	sa.bInheritHandle = TRUE;
+	sa.lpSecurityDescriptor = NULL;
+	sa.nLength = sizeof( sa );
 
-   CreatePipe( &hReadOut, &hWriteOut, &sa, 0 );
-   //CreatePipe( &hReadErr, &hWriteErr, &sa, 0 );
-   CreatePipe( &hReadIn, &hWriteIn, &sa, 0 );
+	CreatePipe( &hReadOut, &hWriteOut, &sa, 0 );
+	//CreatePipe( &hReadErr, &hWriteErr, &sa, 0 );
+	CreatePipe( &hReadIn, &hWriteIn, &sa, 0 );
 
-   MemSet( &si, 0, sizeof( si ) );
-   si.cb = sizeof( STARTUPINFO );
-   si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
-   si.wShowWindow = SW_HIDE;
-   //si.hStdError = hWriteErr;
+	MemSet( &si, 0, sizeof( si ) );
+	si.cb = sizeof( STARTUPINFO );
+	si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+	si.wShowWindow = SW_HIDE;
+	//si.hStdError = hWriteErr;
 	si.hStdInput = hReadIn;
-   si.hStdError = hWriteOut;
-   si.hStdOutput = hWriteOut;
-   //DebugBreak();
-   if( !Command || !GetText( Command )
-       || !(bRunSuccess=CreateProcess( NULL, GetText( Command ), NULL
-                      , NULL
+	si.hStdError = hWriteOut;
+	si.hStdOutput = hWriteOut;
+	//DebugBreak();
+	if( !Command || !GetText( Command )
+		 || !(bRunSuccess=CreateProcess( NULL, GetText( Command ), NULL
+							 , NULL
 							 , TRUE // must set to true to have handle set right!
-                      , 0
-                      , NULL, NULL, &si, &pi ) ) )
-   {
-      DECLTEXT( cmd, WIDE("cmd.exe /c ") );
-      DECLTEXT( cmd95, WIDE("command.com /c ") );
-      PTEXT pNewCmd;
-      if( b95 )
-         Command = SegAppend( SegCreateIndirect( (PTEXT)&cmd95 ), Command );
-      else
-         Command = SegAppend( SegCreateIndirect( (PTEXT)&cmd ), Command );
-      pNewCmd = BuildLine( Command );
-      Log1( WIDE("Attempting to run: %s"), GetText( pNewCmd ) );
-      bRunSuccess = CreateProcess( NULL, GetText( pNewCmd ), NULL
-                                 , NULL
+							 , 0
+							 , NULL, NULL, &si, &pi ) ) )
+	{
+		DECLTEXT( cmd, WIDE("cmd.exe /c ") );
+		DECLTEXT( cmd95, WIDE("command.com /c ") );
+		PTEXT pNewCmd;
+		if( b95 )
+			Command = SegAppend( SegCreateIndirect( (PTEXT)&cmd95 ), Command );
+		else
+			Command = SegAppend( SegCreateIndirect( (PTEXT)&cmd ), Command );
+		pNewCmd = BuildLine( Command );
+		Log1( WIDE("Attempting to run: %s"), GetText( pNewCmd ) );
+		bRunSuccess = CreateProcess( NULL, GetText( pNewCmd ), NULL
+											, NULL
 											, TRUE // must set to true to have handle set right!
-                                 , 0
-                                 , NULL, NULL, &si, &pi );
+											, 0
+											, NULL, NULL, &si, &pi );
 		LineRelease( pNewCmd );
-      LineRelease( Command ); 
-   }
+		LineRelease( Command ); 
+	}
 
-   if( bRunSuccess )
-   {
-   	//DECLTEXT( msg, WIDE("Ran command success!") );
-   	//EnqueLink( &pdp->ps->Command->Output, &msg );
+	if( bRunSuccess )
+	{
+			//DECLTEXT( msg, WIDE("Ran command success!") );
+			//EnqueLink( &pdp->ps->Command->Output, &msg );
 
-   	// close our half of the desciptors passed to the child....
-   	//CloseHandle( hWriteErr );
-   	CloseHandle( hReadIn );
-   	CloseHandle( hWriteOut );
+			// close our half of the desciptors passed to the child....
+			//CloseHandle( hWriteErr );
+			CloseHandle( hReadIn );
+			CloseHandle( hWriteOut );
 
-      // don't need thread access on child 
-	   //CloseHandle( pi.hThread );
+		// don't need thread access on child 
+		//CloseHandle( pi.hThread );
 
-      pdp->hProcess = pi.hProcess;
+		pdp->hProcess = pi.hProcess;
 
-      pdp->hStdIn.handle 	= hWriteIn;
-      pdp->hStdIn.pLine 	= NULL;
-      pdp->hStdIn.pdp 		= pdp;
-      pdp->hStdIn.hThread  = 0;
-      pdp->hStdIn.bNextNew = TRUE;
+		pdp->hStdIn.handle 	= hWriteIn;
+		pdp->hStdIn.pLine 	= NULL;
+		pdp->hStdIn.pdp 		= pdp;
+		pdp->hStdIn.hThread  = 0;
+		pdp->hStdIn.bNextNew = TRUE;
 
-      pdp->hStdOut.handle 	 = hReadOut;
-      pdp->hStdOut.pLine 	 = NULL;
-      pdp->hStdOut.pdp 		 = pdp;
-      pdp->hStdOut.bNextNew = TRUE;
-      pdp->hStdOut.hThread  = ThreadTo( CommandInputThread, (PTRSZVAL)&pdp->hStdOut );
-   }
-   else
-   {
-   	//CloseHandle( hWriteErr );
-   	CloseHandle( hReadIn );
-   	CloseHandle( hWriteOut );
-   	//CloseHandle( hReadErr );
-   	CloseHandle( hWriteIn );
-   	CloseHandle( hReadOut );
-   }
-   
-   return bRunSuccess;
+		pdp->hStdOut.handle 	 = hReadOut;
+		pdp->hStdOut.pLine 	 = NULL;
+		pdp->hStdOut.pdp 		 = pdp;
+		pdp->hStdOut.bNextNew = TRUE;
+		pdp->hStdOut.hThread  = ThreadTo( CommandInputThread, (PTRSZVAL)&pdp->hStdOut );
+	}
+	else
+	{
+		//CloseHandle( hWriteErr );
+		CloseHandle( hReadIn );
+		CloseHandle( hWriteOut );
+		//CloseHandle( hReadErr );
+		CloseHandle( hWriteIn );
+		CloseHandle( hReadOut );
+	}
+	
+	return bRunSuccess;
 #else
 #ifdef __UNIX__
-   {
-      PLIST pArgs;
-      TEXTCHAR *p;
-      TEXTCHAR ActCommand[256];
+	{
+		PLIST pArgs;
+		TEXTCHAR *p;
+		TEXTCHAR ActCommand[256];
 
-      pArgs = NULL;
+		pArgs = NULL;
 		ActCommand[0] = 0;
 		Log1( WIDE("Command input: %s"), GetText( Command ) );
-      p = strtok( GetText( Command ), WIDE(" ") );
-      if( p )
-      {
-	      do
-   	   {
-      	   if( !ActCommand[0] ) 
-         	{
-            	strcpy( ActCommand, p );
-	            AddLink( &pArgs, ActCommand );
-   	      }
-      	   else
-         	{
-            	TEXTCHAR *pNew;
-	            pNew = NewArray( TEXTCHAR, strlen( p ) + 1 );
-   	         strcpy( pNew, p );
-      	      AddLink( &pArgs, pNew );
-         	}
-	      }
-	      while( p = strtok( NULL, WIDE(" ") ) );
+		p = strtok( GetText( Command ), WIDE(" ") );
+		if( p )
+		{
+			do
+			{
+				if( !ActCommand[0] ) 
+				{
+					strcpy( ActCommand, p );
+					AddLink( &pArgs, ActCommand );
+				}
+				else
+				{
+					TEXTCHAR *pNew;
+					pNew = NewArray( TEXTCHAR, strlen( p ) + 1 );
+					strcpy( pNew, p );
+					AddLink( &pArgs, pNew );
+				}
+			}
+			while( p = strtok( NULL, WIDE(" ") ) );
 		}
-      AddLink( &pArgs, NULL ); //assuming all prior adds were non-null...
-                              // this SHOULD add a NULL at end of list...
-                              // any subsequent AddLink would over-write
-                              //this, however...
+		AddLink( &pArgs, NULL ); //assuming all prior adds were non-null...
+										// this SHOULD add a NULL at end of list...
+										// any subsequent AddLink would over-write
+										//this, however...
 		
-      {
+	   {
 			int child_pid, hMaster, hSlave;
 			if( pdp->flags.use_pty )
 			{
@@ -852,7 +854,7 @@ int LaunchSystemCommand( PMYDATAPATH pdp, PTEXT Command )
 
 				pdp->hStdOut.pLine = NULL;
 				pdp->hStdOut.pdp 	 = pdp;
-            pdp->hStdOut.hThread = ThreadTo( CommandInputThread, (PTRSZVAL)&pdp->hStdOut );
+				pdp->hStdOut.hThread = ThreadTo( CommandInputThread, (PTRSZVAL)&pdp->hStdOut );
 				DeleteList( &pArgs );
 			}
 	   }
@@ -875,11 +877,11 @@ int CPROC EndSysCommand( PDATAPATH pdpX )
 {
 	PMYDATAPATH pdp = (PMYDATAPATH)pdpX;
 	PSENTIENT ps = pdpX->Owner;
-   //RemoveMethod( pdp->ps, methods );
-   pdp->common.Type = 0;
-   pdp->common.Read = NULL;
-   pdp->common.Write = NULL;
-   pdp->common.Close = NULL;
+	//RemoveMethod( pdp->ps, methods );
+	pdp->common.Type = 0;
+	pdp->common.Read = NULL;
+	pdp->common.Write = NULL;
+	pdp->common.Close = NULL;
 	LineRelease( pdp->pEndOfLine );
 #ifdef _WIN32
 	if( pdp->hStdOut.handle )
@@ -893,11 +895,10 @@ int CPROC EndSysCommand( PDATAPATH pdpX )
    if( pdp->hStdOut.hThread &&
        WaitForSingleObject( pdp->hStdOut.hThread, 0 ) )
    {
-   	//DECLTEXT( msg, WIDE("Forcing Output thread death!") );
-   	//EnqueLink( pdp->&ps->Command->Output, &msg );
-   	TerminateThread( pdp->hStdOut.hThread, 0xD1E );
-   }
-   CloseHandle( pdp->hStdOut.hThread );
+   		//DECLTEXT( msg, WIDE("Forcing Output thread death!") );
+   		//EnqueLink( pdp->&ps->Command->Output, &msg );
+   		TerminateThread( pdp->hStdOut.hThread, 0xD1E );
+	}
    /*
    if( pdp->hStdErr.hThread &&
        WaitForSingleObject( pdp->hStdErr.hThread, 0 ) )
@@ -937,15 +938,15 @@ PDATAPATH CPROC SysCommand( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters 
 	{
 		pdp->ps = ps;
 		pdp->common.Type = nSystemID;
-      pdp->common.Read = SystemRead;
-      pdp->common.Write = WriteSystem;
+		pdp->common.Read = SystemRead;
+		pdp->common.Write = WriteSystem;
 		pdp->common.Close = EndSysCommand;
-      pdp->common.Owner = ps;
+		pdp->common.Owner = ps;
 		//pdp->common.flags.Formatted = TRUE;
 
-      pdp->hStdIn.name = WIDE("Standard In");
-      pdp->hStdOut.name = WIDE("Standard Out");
-      //pdp->hStdErr.name = WIDE("Standard Error");
+		pdp->hStdIn.name = WIDE("Standard In");
+		pdp->hStdOut.name = WIDE("Standard Out");
+		//pdp->hStdErr.name = WIDE("Standard Error");
 	}
 	{
 		TEXTCHAR *pc;
@@ -978,7 +979,7 @@ PDATAPATH CPROC SysCommand( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters 
    //Log1( WIDE("Input(%s)"), GetText( parameters ) );
 	pLine = MacroDuplicate( ps, parameters );
 	pCmdLine = BuildLine( pLine );
-   Log1( WIDE("BuiltLine(%s)"), GetText( pCmdLine ) );
+	Log1( WIDE("BuiltLine(%s)"), GetText( pCmdLine ) );
 
 	if( !LaunchSystemCommand( pdp, pCmdLine ) )
 	{

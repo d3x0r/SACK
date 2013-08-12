@@ -1778,8 +1778,8 @@ int ProcessSentients( THREAD_ID ThreadID )
 				  ) // sometimes reading data can cause a macro to run....
 			{
 				PTEXT pIn;
-				if( gbTrace )
-					lprintf( WIDE("Read data, no macro running, auto relay mode...") );
+				//if( gbTrace )
+				//	lprintf( WIDE("Read data, no macro running, auto relay mode...") );
 				n++;
 				pIn = (PTEXT)DequeLink( &ps->Data->Input );
 				EnqueLink( &ps->Command->Output, pIn );

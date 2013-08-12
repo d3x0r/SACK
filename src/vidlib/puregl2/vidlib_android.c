@@ -110,22 +110,29 @@ void  GetDisplaySizeEx ( int nDisplay
 		if( x )
          (*x) = 0;
 		if( y )
-         (*y) = 0;
+			(*y) = 0;
+
+
 		{
-			struct display_camera *camera = (struct display_camera *)GetLink( &l.cameras, 0 );
-			if( camera && ( camera != (struct display_camera*)1 ) )
+         int set = 0;
+			if( l.cameras )
 			{
-				if( width )
-					(*width) = camera->w;
-				if( height )
-					(*height) = camera->h;
+				struct display_camera *camera = (struct display_camera *)GetLink( &l.cameras, 0 );
+				if( camera && ( camera != (struct display_camera*)1 ) )
+				{
+               set = 1;
+					if( width )
+						(*width) = camera->w;
+					if( height )
+						(*height) = camera->h;
+				}
 			}
-			else
+         if( !set )
 			{
 				if( width )
-					(*width) = 640;
+					(*width) = l.default_display_x;
 				if( height )
-					(*height) = 480;
+					(*height) = l.default_display_y;
 			}
 		}
 }
@@ -139,12 +146,23 @@ void SetCameraNativeHandle( struct display_camera *camera )
 // this is dynamically linked from the loader code to get the window
 void SACK_Vidlib_SetNativeWindowHandle( NativeWindowType displayWindow )
 {
-   l.displayWindow = displayWindow;
+   lprintf( "Setting native window handle... (shouldn't this do something else?)" );
+	l.displayWindow = displayWindow;
+
+   // Standard init (was looking more like a common call thing)
+	HostSystem_InitDisplayInfo();
+   // creates the cameras.
+   LoadOptions();
 }
 
 void HostSystem_InitDisplayInfo(void )
 {
-   // this is passed in from the external world; do nothing, but provide the hook.
+	// this is passed in from the external world; do nothing, but provide the hook.
+	// have to wait for this ....
+	l.default_display_x = ANativeWindow_getWidth( l.displayWindow);
+	l.default_display_y = ANativeWindow_getHeight( l.displayWindow);
+	//default_display_x	ANativeWindow_getFormat( camera->displayWindow)
+
 }
 
 // this is linked to external native activiety shell...

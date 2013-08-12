@@ -183,11 +183,11 @@ void CPROC KeystrokePaste( PCONSOLE_INFO pdp )
 int CPROC RenderChildWindow( PCOMMON pc )
 {
 	PCONSOLE_INFO pdp = (PCONSOLE_INFO)GetCommonUserData(pc);
-	lprintf( WIDE("Rendering window.") );
+	//lprintf( WIDE("Rendering window.") );
 	if( !pdp )
 	{
 		Log( WIDE("How could we have gotten here without a pdp??") );
-      return 0;
+		return 0;
 	}
 	pdp->psicon.image = GetFrameSurface( pc );
    // this is the only place which size is changed.

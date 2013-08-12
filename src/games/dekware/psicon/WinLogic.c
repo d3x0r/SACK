@@ -604,16 +604,16 @@ int WinLogicWrite( PDATAPATH pdp
 		if( first_read )
 		{
 			PENDING_RECT upd;
-         //lprintf( WIDE("Okay well there's no data, first pass to check, end of stream... flush") );
-         MemSet( &upd.cs, 0, sizeof( upd.cs ) );
+			//lprintf( WIDE("Okay well there's no data, first pass to check, end of stream... flush") );
+			MemSet( &upd.cs, 0, sizeof( upd.cs ) );
 			upd.flags.bTmpRect = 1;
-         upd.flags.bHasContent = 0;
+			upd.flags.bHasContent = 0;
 			// need to wait for an idle condition - this
 			// process is low priority...
 			BuildDisplayInfoLines( pmdp->pCurrentDisplay );
 			if( pmdp->psicon.frame )
 				SmudgeCommon( pmdp->psicon.frame );
-         else
+			else
 				DoRenderHistory( pmdp, FALSE, &upd );
 			if( pmdp->Update && upd.flags.bHasContent )
 			{
@@ -625,11 +625,11 @@ int WinLogicWrite( PDATAPATH pdp
             //lprintf( WIDE("Doing update call to display...") );
 				pmdp->Update( pmdp, &r );
 			}
-         updated = 0;
+			updated = 0;
 		}
 	}
-   LeaveCriticalSec( &pmdp->Lock );
-   return updated;
+	LeaveCriticalSec( &pmdp->Lock );
+	return updated;
 }
 
 //----------------------------------------------------------------------------

@@ -31,6 +31,7 @@ struct engine {
     ASensorEventQueue* sensorEventQueue;
 
 	 int animating;
+    int closed; // set this, next event loop, trigger native exit.
 #if __USE_NATIVE_APP_EGL_MODULE__
     EGLDisplay display;
     EGLSurface surface;

@@ -139,6 +139,7 @@ extern
 	int real_mouse_x, real_mouse_y;
 
 	int WindowBorder_X, WindowBorder_Y;
+   int default_display_x, default_display_y;
 
 	RAY mouse_ray;
 

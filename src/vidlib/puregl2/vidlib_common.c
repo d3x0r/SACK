@@ -348,11 +348,12 @@ void DoDestroy (PVIDEO hVideo)
 
 //----------------------------------------------------------------------------
 
-static void LoadOptions( void )
+void LoadOptions( void )
 {
 	_32 average_width, average_height;
 	//int some_width;
 	//int some_height;
+	//HostSystem_InitDisplayInfo();
 #ifndef __NO_OPTIONS__
 	l.flags.bView360 = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/360 view"), 0, TRUE );
 
@@ -484,10 +485,8 @@ static void LoadOptions( void )
 	l.flags.bLogKeyEvent = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log key event"), 0, TRUE );
 	l.flags.bLogMouseEvent = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log mouse event"), 0, TRUE );
 	l.flags.bLayeredWindowDefault = 0;
-	l.flags.bLogWrites = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Log Video Output"), 0, TRUE );
-#else
-#  ifndef UNDER_CE
-#  endif
+	l.flags.bLogWrites = 1;//SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Log Video Output"), 0, TRUE );
+
 #endif
 
 	if( !l.origin )
@@ -505,7 +504,6 @@ static void LoadOptions( void )
 
 	}
 
-	HostSystem_InitDisplayInfo();
 
 }
 
@@ -567,7 +565,7 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 {
 	struct display_camera *camera;
 	INDEX idx;
-	//lprintf( WIDE( "-----Create WIndow Stuff----- %s %s" ), hVideo->flags.bLayeredWindow?WIDE( "layered" ):WIDE( "solid" )
+   //lprintf( WIDE( "-----Create WIndow Stuff----- %s %s" ), hVideo->flags.bLayeredWindow?WIDE( "layered" ):WIDE( "solid" )
 	//		 , hVideo->flags.bChildWindow?WIDE( "Child(tool)" ):WIDE( "user-selectable" ) );
 	LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
 	{
@@ -580,8 +578,6 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 			InitializeCriticalSec( &camera->hVidCore->cs );
 			camera->hVidCore->camera = camera;
 		}
-		camera->hVidCore->pImage =
-			RemakeImage( camera->hVidCore->pImage, NULL, camera->w, camera->h );
 
 		/* CreateWindowEx */
 #ifdef __QNX__
@@ -607,6 +603,9 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 #endif
 		camera->flags.extra_init = 1;
 		lprintf( "Init camera %p", camera );
+
+		// extra init iterates through registered plugins and
+      // loads their initial callbacks; the actual OnIni3d() has many more params
 		InvokeExtraInit( camera, camera->origin_camera );
 
       // first draw allows loading textures and shaders; so reset that we did a first draw.
@@ -621,35 +620,20 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
                                               int wx, int wy)
 {
-#ifndef __NO_WIN32API__
-	struct display_camera *camera;
-
-	lprintf(WIDE( "Creating container window named: %s" ),
-			(l.gpTitle && l.gpTitle[0]) ? l.gpTitle : (hVideo&&hVideo->pTitle)?hVideo->pTitle:WIDE("No Name"));
-
-	camera = (struct display_camera *)GetLink( &l.cameras, 0 ); // returns the forward(default) camera
-
 		if( hVideo )
 		{
 			if (wx == CW_USEDEFAULT || wy == CW_USEDEFAULT)
 			{
-				wx = camera->viewport[2] * 7 / 10;
-				wy = camera->viewport[3] * 7 / 10;
+				_32 w, h;
+            GetDisplaySize( &w, &h );
+				wx = w * 7 / 10;
+				wy = h * 7 / 10;
 			}
 			if( x == CW_USEDEFAULT )
 				x = 10;
 			if( y == CW_USEDEFAULT )
 				y = 10;
-			//if( hVideo->hWndContainer )
-			{
-				//RECT r;
-				//GetClientRect( hVideo->hWndContainer, &r );
-				x = 0;
-				y = 0;
-				//wx = r.right-r.left + 1;
-				//wy = r.top-r.bottom + 1;
-			}
-			//if( !hVideo->hWndOutput )
+
 			{
 				// hWndOutput is set within the create window proc...
 		#ifdef LOG_OPEN_TIMING
@@ -681,12 +665,6 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 					hVideo->pImage->flags |= IF_FLAG_FINAL_RENDER;
 				}
 				hVideo->flags.bReady = 1;
-				WakeThreadID( hVideo->thread );
-			  //CreateWindowEx used to be here
-			}
-			//else
-			{
-
 			}
 
 
@@ -704,10 +682,6 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 		}
 
 	return TRUE;
-#else
-	// need a .NET window here...
-	return FALSE;
-#endif
 }
 
 //----------------------------------------------------------------------------
@@ -809,6 +783,8 @@ PVIDEO  OpenDisplaySizedAt (_32 attr, _32 wx, _32 wy, S_32 x, S_32 y) // if nati
 	hNextVideo = New(VIDEO);
 	MemSet (hNextVideo, 0, sizeof (VIDEO));
 	InitializeCriticalSec( &hNextVideo->cs );
+
+   lprintf( "(don't know from where)CreateWindow at %d,%d %dx%d", x, y, wx, wy );
 #ifdef _OPENGL_ENABLED
 	hNextVideo->_prior_fracture = -1;
 #endif
@@ -889,11 +865,7 @@ PVIDEO  OpenDisplayAboveUnderSizedAt (_32 attr, _32 wx, _32 wy,
 	   // use initial SW_RESTORE instead of SW_NORMAL
 		newvid->flags.bOpenedBehind = 1;
 		newvid->under = barrier;
-		//if( barrier->over )
-		{
-         //if( barrier->over != parent )
-			//	DebugBreak();
-		}
+
 		barrier->over = newvid;
 		if( barrier )
 		{
@@ -912,16 +884,6 @@ PVIDEO  OpenDisplayAboveUnderSizedAt (_32 attr, _32 wx, _32 wy,
 				barrier->pAbove->pBelow = newvid;
 			barrier->pAbove = newvid;
 		}
-		//lprintf( "Opening window behind another." );
-		//lprintf( "--- before SWP --- " );
-		//DumpChainAbove( newvid, newvid->hWndOutput );
-		//DumpChainBelow( newvid, newvid->hWndOutput );
-
-		//SetWindowPos( newvid->hWndOutput, barrier->hWndOutput, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE );
-
-	   //lprintf( "--- after SWP --- " );
-		//DumpChainAbove( newvid, newvid->hWndOutput );
-		//DumpChainBelow( newvid, newvid->hWndOutput );
    }
    if (parent)
       PutDisplayAbove (newvid, parent);
@@ -1100,7 +1062,7 @@ void  UpdateDisplayEx (PVIDEO hVideo DBG_PASS )
 
 void  ClearDisplay (PVIDEO hVideo)
 {
-   lprintf( WIDE("Who's calling clear display? it's assumed clear") );
+   // since we're in always draw mode, it's clear, or it's got appropriate background already
    //ClearImage( hVideo->pImage );
 }
 
@@ -1361,6 +1323,7 @@ void RestoreDisplayEx(PVIDEO hVideo DBG_PASS )
 
 void  GetDisplaySize (_32 * width, _32 * height)
 {
+   lprintf( "GetDisplaySize (this will pause for a display to be given to us...)" );
    GetDisplaySizeEx( 0, NULL, NULL, width, height );
 }
 
@@ -1815,12 +1778,14 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 #endif
 #endif
 	// loads options describing cameras; creates camera structures and math structures
-	LoadOptions();
+
+	//LoadOptions();
 #ifdef __QNX__
    // gets handles to low level device information
 	InitQNXDisplays();
 #endif
 
+#ifndef __ANDROID__
 	BindEventToKey( NULL, KEY_F4, KEY_MOD_RELEASE|KEY_MOD_ALT, DefaultExit, 0 );
 	BindEventToKey( NULL, KEY_SCROLL_LOCK, 0, EnableRotation, 0 );
 	BindEventToKey( NULL, KEY_F12, 0, EnableRotation, 0 );
@@ -1830,6 +1795,7 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 	BindEventToKey( NULL, KEY_W, KEY_MOD_ALL_CHANGES, CameraForward, 0 );
 	BindEventToKey( NULL, KEY_Q, KEY_MOD_ALL_CHANGES, CameraRollLeft, 0 );
 	BindEventToKey( NULL, KEY_E, KEY_MOD_ALL_CHANGES, CameraRollRight, 0 );
+#endif
 	//EnableLoggingOutput( TRUE );
 }
 
