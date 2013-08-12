@@ -15,16 +15,18 @@
 			struct touch_event_one_flags {
 				BIT_FIELD bDrag : 1;
 			} flags;
-			int x;
-         int y;
+			RCOORD x;
+         RCOORD y;
 		} one;
 		struct touch_event_two{
-			int x;
-         int y;
+			RCOORD x;
+			RCOORD y;
+         RCOORD begin_length;
 		} two;
 		struct touch_event_three{
-			int x;
-         int y;
+			RCOORD x;
+			RCOORD y;
+         RCOORD begin_lengths[3]; //3 lengths for segments 1->2, 2->3, 1->3
 		} three;
 	} touch_info;
 
@@ -69,8 +71,17 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
          // begin rotate lock
 			if( touches[1].flags.new_event )
 			{
+				VECTOR v1, v2, v3;
+            v1[vRight] = touches[0].x;
+				v1[vUp] = touches[0].y;
+            v1[vForward] = 0;
+            v2[vRight] = touches[1].x;
+            v2[vUp] = touches[1].y;
+				v2[vForward] = 0;
+            sub( v3, v1, v2 );
 				touch_info.two.x = touches[1].x;
 				touch_info.two.y = touches[1].y;
+            touch_info.two.begin_length = length( v3 );
 			}
 			else if( touches[1].flags.end_event )
 			{
@@ -83,7 +94,8 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				// drag
             VECTOR v_n_old, v_n_new;
 				VECTOR v_o_old, v_o_new;
-            VECTOR v_mid_old, v_mid_new, v_delta_pos;
+				VECTOR v_mid_old, v_mid_new, v_delta_pos;
+            RCOORD new_length, old_length;
 
 				//lprintf( WIDE("drag") );
             v_o_new[vRight] = touches[0].x;
@@ -94,6 +106,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				v_n_new[vUp] = touches[1].y - touches[0].y;
 				v_n_new[vForward] = 0;
 
+            new_length = length( v_n_new );
             addscaled( v_mid_new, v_o_new, v_n_new, 0.5f );
 
             v_o_old[vRight] = touch_info.one.x;
@@ -104,6 +117,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				v_n_old[vUp] = touch_info.two.y - touch_info.one.y;
 				v_n_old[vForward] = 0;
 
+            old_length = length( v_n_old );
 				addscaled( v_mid_old, v_o_old, v_n_old, 0.5f );
 
             PrintVector( v_n_new );
@@ -116,7 +130,8 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
             // update old origin to new; for computing rotation point versus translateion
 
             MoveRight( l.origin, -v_delta_pos[vRight] );
-            MoveUp( l.origin, v_delta_pos[vUp] );
+				MoveUp( l.origin, v_delta_pos[vUp] );
+            MoveForward( l.origin, ( ( new_length - old_length ) / old_length ) );
 				//TranslateRelV( l.origin, v_delta_pos );
 
 

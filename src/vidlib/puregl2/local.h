@@ -190,7 +190,7 @@ extern
 #ifdef WIN32
 	BOOL (WINAPI *UpdateLayeredWindow)(HWND,HDC,POINT*,SIZE*,HDC,POINT*,COLORREF,BLENDFUNCTION*,DWORD);
 	BOOL (WINAPI *UpdateLayeredWindowIndirect )(HWND hWnd, const UPDATELAYEREDWINDOWINFO *pULWInfo);
-#if !defined( __WATCOMC__ ) && !defined( __GNUC__ )
+#ifndef NO_TOUCH
 	BOOL (WINAPI *GetTouchInputInfo )( HTOUCHINPUT hTouchInput, UINT cInputs, PTOUCHINPUT pInputs, int cbSize );
 	BOOL (WINAPI *CloseTouchInputHandle )( HTOUCHINPUT hTouchInput );
 	BOOL (WINAPI *RegisterTouchWindow )( HWND hWnd, ULONG ulFlags );
