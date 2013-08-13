@@ -245,7 +245,7 @@ int SACK_Vidlib_SendTouchEvents( int nPoints, PINPUT_POINT points )
 				// this will be like a hvid core
 				handled = Handle3DTouches( ((struct display_camera *)GetLink( &l.cameras, 0 )), points, nPoints );
 			}
-         return handled;
+			return handled;
 		}
 	}
 }

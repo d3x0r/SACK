@@ -103,6 +103,8 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				VECTOR v_mid_old, v_mid_new, v_delta_pos;
             RCOORD new_length, old_length;
 
+				RAY rotate_axis;
+
 				//lprintf( WIDE("drag") );
             v_o_new[vRight] = touches[0].x - camera->w/2;
             v_o_new[vUp] = camera->h/2 - touches[0].y;
@@ -126,6 +128,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
             old_length = Length( v_n_old );
 				addscaled( v_mid_old, v_o_old, v_n_old, 0.5f );
 
+				ComputeMouseRay( camera, FALSE, &rotate_axis, v_mid_new[vRight] + camera->w/2, camera->h/2 - v_mid_new[vUp] );
 
 				sub( v_delta_pos, v_mid_new, v_mid_old );
 				add( v_o_old, v_o_old, v_delta_pos );
@@ -141,11 +144,14 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 
 				{
 					static int toggle;
-               RCOORD angle_one;
+					RCOORD angle_one;
 					angle_one = atan2( v_n_new[vUp], v_n_new[vRight] ) - atan2( v_n_old[vUp], v_n_old[vRight] );
-               if( 0 )
+					if( 0 )
 					{
-                  // attempting to be smart about the direction of rotation... failed.
+						PrintVector( rotate_axis.n );
+						RotateAround( l.origin, rotate_axis.n, angle_one );
+#if 0
+						// attempting to be smart about the direction of rotation... failed.
 						int result;
 						RCOORD dt1, dt2;
 						result = FindIntersectionTime( &dt1, v_n_old, v_o_old
@@ -165,6 +171,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 						{
                   //   lprintf( "not enough angle? more like a move action?" );
 						}
+#endif
 					}
                else
 						RotateRel( l.origin, 0, 0, angle_one );

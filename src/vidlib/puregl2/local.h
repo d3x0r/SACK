@@ -246,7 +246,7 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
                                               int wx, int wy);
 
 // --------------- Mouse 3d ------------
-void ComputeMouseRay( PTRANSFORM t, RCOORD aspect, _32 w, _32 h, PRAY mouse_ray, S_32 x, S_32 y );
+void ComputeMouseRay( struct display_camera *camera, LOGICAL bUniverseSpace, PRAY mouse_ray, S_32 x, S_32 y );
 int InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, RCOORD x, RCOORD y, int *result_x, int *result_y );
 PRENDERER CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b );
 int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
