@@ -94,7 +94,6 @@ struct display_camera
    NativeWindowType displayWindow;
 #endif
 	RAY mouse_ray;
-	int viewport[4];
 	struct {
 		BIT_FIELD extra_init : 1;
 		BIT_FIELD init : 1;
@@ -141,8 +140,6 @@ extern
 
 	int WindowBorder_X, WindowBorder_Y;
    int default_display_x, default_display_y;
-
-	RAY mouse_ray;
 
 #if defined( _WIN32 )
 	ATOM aClass;      // keep reference of window class....
@@ -215,9 +212,6 @@ extern
 	PLIST cameras; // list of struct display_camera *
 	PLIST update; // list of updates from plugins that have registered.
 	PTRANSFORM origin;
-	VECTOR mouse_ray_slope;
-	VECTOR mouse_ray_origin;
-	VECTOR mouse_ray_target;
 	RCOORD scale;
 
 	struct display_camera *current_mouse_event_camera;  // setcursorpos can only happen during a mouse event, please.
@@ -252,13 +246,13 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
                                               int wx, int wy);
 
 // --------------- Mouse 3d ------------
-void UpdateMouseRay( struct display_camera * camera );
+void ComputeMouseRay( PTRANSFORM t, RCOORD aspect, _32 w, _32 h, PRAY mouse_ray, S_32 x, S_32 y );
 int InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, RCOORD x, RCOORD y, int *result_x, int *result_y );
 PRENDERER CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b );
 int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
 								, RCOORD *pT2, PVECTOR s2, PVECTOR o2 );
 // this uses coordiantes in l.mouse_x and l.mouse_y and computes the current mouse ray in all displays
-void UpdateMouseRays( void );
+void UpdateMouseRays( S_32 x, S_32 y );
 
 //-------------------  render utility ------------
 void RenderGL( struct display_camera *camera );

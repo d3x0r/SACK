@@ -600,10 +600,6 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 #ifdef LOG_OPEN_TIMING
 		lprintf( WIDE( "Created Real window...Stuff.. %d,%d %dx%d" ),camera->x,camera->y,camera->w,camera->h );
 #endif
-		camera->viewport[0] = camera->x;
-		camera->viewport[1] = camera->y;
-		camera->viewport[2] = camera->w;
-		camera->viewport[3] = camera->h;
 
 #ifdef LOG_OPEN_TIMING
 		lprintf( WIDE( "Created Real window...Stuff.." ) );
@@ -1642,7 +1638,7 @@ static LOGICAL CPROC CameraForward( PTRSZVAL psv, _32 keycode )
 		}
       else
 			Forward( l.origin, 0.0 );
-      UpdateMouseRays( );
+      UpdateMouseRays( l.mouse_x, l.mouse_y );
 //      return 1;
 	}
 //   return 0;
@@ -1666,7 +1662,7 @@ static LOGICAL CPROC CameraLeft( PTRSZVAL psv, _32 keycode )
 		}
       else
 			Right( l.origin, 0.0 );
-      UpdateMouseRays( );
+      UpdateMouseRays( l.mouse_x, l.mouse_y );
 //      return 1;
 	}
 //   return 0;
@@ -1682,7 +1678,7 @@ static LOGICAL CPROC CameraRight( PTRSZVAL psv, _32 keycode )
       else
 			Right( l.origin, 0.0 );
 //      return 1;
-      UpdateMouseRays( );
+      UpdateMouseRays( l.mouse_x, l.mouse_y );
 	}
 //   return 0;
    return 1;
@@ -1701,7 +1697,7 @@ static LOGICAL CPROC CameraRollRight( PTRSZVAL psv, _32 keycode )
       else
 			SetRotation( l.origin, _0 );
 //      return 1;
-      UpdateMouseRays( );
+      UpdateMouseRays( l.mouse_x, l.mouse_y );
 	}
 //   return 0;
    return 1;
@@ -1720,7 +1716,7 @@ static LOGICAL CPROC CameraRollLeft( PTRSZVAL psv, _32 keycode )
       else
 			SetRotation( l.origin, _0 );
 //      return 1;
-      UpdateMouseRays( );
+      UpdateMouseRays( l.mouse_x, l.mouse_y );
 	}
 //   return 0;
    return 1;
@@ -1739,7 +1735,7 @@ static LOGICAL CPROC CameraDown( PTRSZVAL psv, _32 keycode )
 		}
 		else
 			Up( l.origin, 0.0 );
-      UpdateMouseRays( );
+      UpdateMouseRays( l.mouse_x, l.mouse_y );
 //      return 1;
 	}
 //   return 0;
