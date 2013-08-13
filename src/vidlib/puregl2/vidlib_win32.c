@@ -801,13 +801,27 @@ WM_DROPFILES
 					for( n = 0; n < count; n++ )
 					{
 						// windows coordiantes some in in hundreths of pixesl as a long
+						lprintf( "input point %d,%d %08x  %s %s %s %s %s %s %s"
+								 , inputs[n].x, inputs[n].y
+								 , inputs[n].dwFlags
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_MOVE)?"MOVE":""
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_DOWN)?"DOWN":""
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_UP)?"UP":""
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_INRANGE)?"InRange":""
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_PRIMARY)?"Primary":""
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_NOCOALESCE)?"NoCoales":""
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_PALM)?"PALM":""
+
+								 );
 						outputs[n].x = inputs[n].x / 100.0f;
 						outputs[n].y = inputs[n].y / 100.0f;
-						if( inputs[1].dwFlags & TOUCHEVENTF_DOWN )
+
+						if( inputs[n].dwFlags & TOUCHEVENTF_DOWN )
 							outputs[n].flags.new_event = 1;
 						else
 							outputs[n].flags.new_event = 0;
-						if( inputs[1].dwFlags & TOUCHEVENTF_UP )
+
+						if( inputs[n].dwFlags & TOUCHEVENTF_UP )
 							outputs[n].flags.end_event = 1;
 						else
 							outputs[n].flags.end_event = 0;

@@ -433,7 +433,8 @@ PTRSZVAL CPROC check_thread( POINTER p, PTRSZVAL psv )
 {
 	PTHREAD thread = (PTHREAD)p;
 	THREAD_ID ID = *((THREAD_ID*)psv);
-	if( thread->thread_ident == ID )
+	if( ( thread->thread_ident == ID )
+		&& ( StrCmp( thread->thread_event_name, "ThreadSignal" ) == 0 ) )
 		return (PTRSZVAL)p;
 	return 0;
 }
@@ -500,7 +501,8 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 		TEXTCHAR name[64];
 		if( !(thread_event = thread->thread_event ) )
 		{
-			snprintf( name, sizeof(name), WIDE("Thread Signal:%08lX:%08lX"), (_32)(thread->thread_ident >> 32)
+			snprintf( name, sizeof(name), WIDE("%s:%08lX:%08lX")
+					  , thread->thread_event_name, (_32)(thread->thread_ident >> 32)
 					 , (_32)(thread->thread_ident & 0xFFFFFFFF));
 			LIST_FORALL( g.thread_events, idx, PTHREAD_EVENT, thread_event )
 			{
