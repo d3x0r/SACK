@@ -130,6 +130,7 @@ struct threads_tag
 	//HANDLE hEvent;
 	HANDLE hThread;
 	PTHREAD_EVENT thread_event;
+   CTEXTSTR thread_event_name; // might be not a real thread.
 #else
 #ifdef USE_PIPE_SEMS
    int pipe_ends[2]; // file handles that are the pipe's ends. 0=read 1=write
@@ -323,14 +324,17 @@ PRIORITY_ATEXIT( CloseAllWakeups, ATEXIT_PRIORITY_TIMERS )
 #endif
 //--------------------------------------------------------------------------
 
-static void InitWakeup( PTHREAD thread )
+static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 {
 #ifdef _WIN32
 	if( !thread->thread_event )
 	{
 		PTHREAD_EVENT thread_event;
 		TEXTCHAR name[64];
-		snprintf( name, 64, WIDE("Thread Signal:%08lX:%08lX"), (_32)(thread->thread_ident >> 32)
+		if( !event_name )
+			event_name = "ThreadSignal";
+		thread->thread_event_name = StrDup( event_name );
+		snprintf( name, 64, WIDE("%s:%08lX:%08lX"), event_name, (_32)(thread->thread_ident >> 32)
 				 , (_32)(thread->thread_ident & 0xFFFFFFFF) );
 #ifdef LOG_CREATE_EVENT_OBJECT
 		lprintf( WIDE("Thread Event created is: %s everyone should use this..."), name );
@@ -386,6 +390,45 @@ static void InitWakeup( PTHREAD thread )
 //--------------------------------------------------------------------------
 
 
+PTRSZVAL CPROC check_thread_name( POINTER p, PTRSZVAL psv )
+{
+	PTHREAD thread = (PTHREAD)p;
+	if( StrCaseCmp( thread->thread_event_name, (CTEXTSTR)psv ) == 0 )
+		return (PTRSZVAL)p;
+	return 0;
+}
+
+static PTHREAD FindWakeup( CTEXTSTR name )
+{
+	PTHREAD check;
+	if( global_timer_structure )
+	{
+		// don't need locks if init didn't finish, there's now way to have threads in loader lock.
+		while( LockedExchange( &g.lock_thread_create, 1 ) )
+			Relinquish();
+	}
+	else
+	{
+		if( IsRootDeadstartStarted() )
+			SimpleRegisterAndCreateGlobal( global_timer_structure );
+	}
+
+	check = (PTHREAD)ForAllInSet( THREAD, g.threadset, check_thread_name, (PTRSZVAL)name );
+	if( !check )
+	{
+#ifdef _DEBUG
+		//lprintf( DBG_FILELINEFMT "Failed to find the thread - so let's add it" );
+#endif
+		check = GetFromSet( THREAD, &g.threadset );
+		MemSet( check, 0, sizeof( THREAD ) );
+		check->thread_ident = GetMyThreadID();
+		InitWakeup( check, name );
+		check->flags.bReady = 1;
+	}
+	g.lock_thread_create = 0;
+	return check;
+}
+
 PTRSZVAL CPROC check_thread( POINTER p, PTRSZVAL psv )
 {
 	PTHREAD thread = (PTHREAD)p;
@@ -417,48 +460,10 @@ static PTHREAD FindThread( THREAD_ID thread )
 		//lprintf( DBG_FILELINEFMT "Failed to find the thread - so let's add it" );
 #endif
 		check = GetFromSet( THREAD, &g.threadset );
-      //lprintf( WIDE("Get Thread %p"), check );
-		//check = Allocate( sizeof( THREAD ) );
 		MemSet( check, 0, sizeof( THREAD ) );
 		check->thread_ident = thread;
-		//check->proc = NULL;
-		//check->param = 0;
-#ifdef __LINUX__
-      if( 0 )
-		{
-			char buf[128];
-			char fname[128];
-			sprintf( fname, WIDE("/proc/%") _32f WIDE("/status"), (_32)((thread >> 32) & 0x3FFFFFFF) );
-			{
-				FILE *status = fopen( fname, WIDE("rt") );
-				if( status )
-				{
-					while( fgets( buf, 128, status ) )
-					{
-						if( strncmp( buf, WIDE("State:"),6 ) == 0 )
-						{
-							char *p = buf + 6;
-							while( p[0] == ' ' || p[0] == '\t' ) p++;
-							if( p[0] == 'S' )
-							{
-								//check->flags.bSleeping = 1;
-							}
-							break;
-						}
-					}
-					fclose( status );
-				}
-				else
-					lprintf( WIDE("Failed to open %s"), fname );
-			}
-		}
-#endif
-		InitWakeup( check );
+		InitWakeup( check, "ThreadSignal" );
 		check->flags.bReady = 1;
-		//if( ( check->next = g.threads ) )
-		//	check->next->me = &check->next;
-		//check->me = &g.threads;
-		//g.threads = check;
 	}
 	g.lock_thread_create = 0;
 	return check;
@@ -579,6 +584,12 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 #endif
 }
 
+
+void  WakeNamedSleeperEx( CTEXTSTR name DBG_PASS )
+{
+	PTHREAD sleeper = FindWakeup( name );
+   WakeThreadEx( sleeper DBG_RELAY );
+}
 //#undef WakeThread
 //void  WakeThread( PTHREAD thread )
 //{
@@ -611,7 +622,7 @@ static void CPROC TimerWake( PTRSZVAL psv )
 #endif
 //--------------------------------------------------------------------------
 
-void  WakeableSleepEx( _32 n DBG_PASS )
+void  WakeableNamedSleepEx( CTEXTSTR name, _32 n DBG_PASS )
 {
 	PTHREAD pThread;
 #ifdef HAS_TLS
@@ -622,13 +633,17 @@ void  WakeableSleepEx( _32 n DBG_PASS )
 		pThread = MyThreadInfo.pThread;
 	}
 #else
-	pThread = FindThread( GetMyThreadID() );
+   if( name )
+		pThread = FindWakeup( name );
+	else
+      pTherad = FindThread( GetMyThreadID() );
 #endif
 	if( pThread )
 	{
 #ifdef _WIN32
 		if( g.flags.bLogSleeps )
-			_xlprintf(1 DBG_RELAY )( WIDE("About to sleep on %d Thread event created...%016llx"), pThread->thread_event->hEvent, pThread->thread_ident );
+			_xlprintf(1 DBG_RELAY )( WIDE("About to sleep on %d Thread event created...%s:%016llx")
+										  , pThread->thread_event->hEvent, pThread->thread_event_name, pThread->thread_ident );
 		if( WaitForSingleObject( pThread->thread_event->hEvent
 									  , n==SLEEP_FOREVER?INFINITE:(n) ) != WAIT_TIMEOUT )
 		{
@@ -656,7 +671,7 @@ void  WakeableSleepEx( _32 n DBG_PASS )
 			if( pThread->semaphore == -1 )
 			{
 	            //lprintf( WIDE("Invalid semaphore...fixing?") );
-				InitWakeup( pThread );
+				InitWakeup( pThread, name?name:"ThreadSignal" );
 			}
 			if( pThread->semaphore != -1 )
 			{
@@ -776,6 +791,12 @@ void  WakeableSleepEx( _32 n DBG_PASS )
       lprintf( WIDE("You, as a thread, do not exist, sorry.") );
 	}
 }
+
+void  WakeableSleepEx( _32 n DBG_PASS )
+{
+   WakeableNamedSleepEx( NULL, n DBG_RELAY );
+}
+
 
 #undef WakeableSleep
 void  WakeableSleep( _32 n )
@@ -976,7 +997,7 @@ static PTRSZVAL CPROC ThreadWrapper( PTHREAD pThread )
 	MyThreadInfo.nThread =
 #endif
 		pThread->thread_ident = _GetMyThreadID();
-	InitWakeup( pThread );
+	InitWakeup( pThread, pThread->thread_event_name );
 #ifdef LOG_THREAD
 	Log1( WIDE("Set thread ident: %016"_64fx""), pThread->thread_ident );
 #endif
@@ -1014,7 +1035,7 @@ static PTRSZVAL CPROC SimpleThreadWrapper( PTHREAD pThread )
 	MyThreadInfo.nThread =
 #endif
 		pThread->thread_ident = GetMyThreadID();
-	InitWakeup( pThread );
+	InitWakeup( pThread, pThread->thread_event_name );
 #ifdef LOG_THREAD
 	Log1( WIDE("Set thread ident: %016"_64fx""), pThread->thread_ident );
 #endif
@@ -1061,7 +1082,7 @@ PTHREAD  MakeThread( void )
 			//pThread->me = &g.threads;
 			//g.threads = pThread;
 
-			InitWakeup( pThread );
+			InitWakeup( pThread, pThread->thread_event_name );
 			g.lock_thread_create = 0;
 #ifdef LOG_THREAD
 			Log3( WIDE("Created thread address: %p %"PRIxFAST64" at %p")
