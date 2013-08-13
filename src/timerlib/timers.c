@@ -463,7 +463,7 @@ static PTHREAD FindThread( THREAD_ID thread )
 		check = GetFromSet( THREAD, &g.threadset );
 		MemSet( check, 0, sizeof( THREAD ) );
 		check->thread_ident = thread;
-		InitWakeup( check, "ThreadSignal" );
+		InitWakeup( check, NULL );
 		check->flags.bReady = 1;
 	}
 	g.lock_thread_create = 0;
@@ -673,7 +673,7 @@ void  WakeableNamedSleepEx( CTEXTSTR name, _32 n DBG_PASS )
 			if( pThread->semaphore == -1 )
 			{
 	            //lprintf( WIDE("Invalid semaphore...fixing?") );
-				InitWakeup( pThread, name?name:"ThreadSignal" );
+				InitWakeup( pThread, name );
 			}
 			if( pThread->semaphore != -1 )
 			{
@@ -999,7 +999,7 @@ static PTRSZVAL CPROC ThreadWrapper( PTHREAD pThread )
 	MyThreadInfo.nThread =
 #endif
 		pThread->thread_ident = _GetMyThreadID();
-	InitWakeup( pThread, pThread->thread_event_name );
+	InitWakeup( pThread, NULL );
 #ifdef LOG_THREAD
 	Log1( WIDE("Set thread ident: %016"_64fx""), pThread->thread_ident );
 #endif
@@ -1037,7 +1037,7 @@ static PTRSZVAL CPROC SimpleThreadWrapper( PTHREAD pThread )
 	MyThreadInfo.nThread =
 #endif
 		pThread->thread_ident = GetMyThreadID();
-	InitWakeup( pThread, pThread->thread_event_name );
+	InitWakeup( pThread, NULL );
 #ifdef LOG_THREAD
 	Log1( WIDE("Set thread ident: %016"_64fx""), pThread->thread_ident );
 #endif
@@ -1084,7 +1084,7 @@ PTHREAD  MakeThread( void )
 			//pThread->me = &g.threads;
 			//g.threads = pThread;
 
-			InitWakeup( pThread, pThread->thread_event_name );
+			InitWakeup( pThread, NULL );
 			g.lock_thread_create = 0;
 #ifdef LOG_THREAD
 			Log3( WIDE("Created thread address: %p %"PRIxFAST64" at %p")
