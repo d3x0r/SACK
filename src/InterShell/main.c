@@ -5161,7 +5161,7 @@ PRIORITY_PRELOAD( ProgramLock, DEFAULT_PRELOAD_PRIORITY+2 )
 		SACK_GetProfileStringEx( GetProgramName(), WIDE("Use SQL DSN for Configuration")
 									  , WIDE("@/option.db")
 								  , g.configuration_dsn, 256, TRUE );
-		g.configuration_version = SACK_GetProfileIntEx( GetProgramName(), WIDE("Use SQL Option Database Version"), 1, TRUE );
+		g.configuration_version = SACK_GetProfileIntEx( GetProgramName(), WIDE("Use SQL Option Database Version"), 4, TRUE );
 
 	}
 	SACK_GetProfileStringEx( WIDE("InterShell"), WIDE("Default resource path")
