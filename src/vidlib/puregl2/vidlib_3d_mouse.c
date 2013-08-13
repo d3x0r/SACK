@@ -209,13 +209,13 @@ RCOORD IntersectLineWithPlane( PCVECTOR Slope, PCVECTOR Origin,  // line m, b
 	}
 }
 
-void ComputeMouseRay( PTRANSFORM t, RCOORD aspect, _32 w, _32 h, PRAY mouse_ray, S_32 x, S_32 y )
+void ComputeMouseRay( struct display_camera *camera, LOGICAL bUniverseSpace, PRAY mouse_ray, S_32 x, S_32 y )
 {
 #define BEGIN_SCALE 1
-#define COMMON_SCALE ( 2*aspect)
+#define COMMON_SCALE ( 2*camera->aspect)
 #define END_SCALE 1000
 #define tmp_param1 (END_SCALE*COMMON_SCALE)
-	if( t )
+	if( camera->origin_camera )
 	{
 		VECTOR tmp1;
 		VECTOR mouse_ray_origin;
@@ -224,18 +224,24 @@ void ComputeMouseRay( PTRANSFORM t, RCOORD aspect, _32 w, _32 h, PRAY mouse_ray,
 		//PTRANSFORM t = camera->origin_camera;
 
 		addscaled( mouse_ray_origin, _0, _Z, BEGIN_SCALE );
-		addscaled( mouse_ray_origin, mouse_ray_origin, _X, (x-(w/2.0f) )*COMMON_SCALE/w );
-		addscaled( mouse_ray_origin, mouse_ray_origin, _Y, -(y-(h/2.0f) )*(COMMON_SCALE/aspect)/h );
+		addscaled( mouse_ray_origin, mouse_ray_origin, _X, (x-(camera->w/2.0f) )*COMMON_SCALE/camera->w );
+		addscaled( mouse_ray_origin, mouse_ray_origin, _Y, -(y-(camera->h/2.0f) )*(COMMON_SCALE/camera->aspect)/camera->h );
 
 		addscaled( mouse_ray_target, _0, _Z, END_SCALE );
-		addscaled( mouse_ray_target, mouse_ray_target, _X, tmp_param1*(x-(w/2.0f) )/w );
-		addscaled( mouse_ray_target, mouse_ray_target, _Y, -(tmp_param1/aspect)*(y-(h/2.0f))/h );
+		addscaled( mouse_ray_target, mouse_ray_target, _X, tmp_param1*(x-(camera->w/2.0f) )/camera->w );
+		addscaled( mouse_ray_target, mouse_ray_target, _Y, -(tmp_param1/camera->aspect)*(y-(camera->h/2.0f))/camera->h );
 
 		// this is definaly the correct rotation
-		Apply( t, tmp1, mouse_ray_origin );
-		SetPoint( mouse_ray_origin, tmp1 );
-		Apply( t, tmp1, mouse_ray_target );
-		SetPoint( mouse_ray_target, tmp1 );
+		if( bUniverseSpace )
+		{
+			Apply( camera->origin_camera, tmp1, mouse_ray_origin );
+			SetPoint( mouse_ray_origin, tmp1 );
+		}
+		if( bUniverseSpace )
+		{
+			Apply( camera->origin_camera, tmp1, mouse_ray_target );
+			SetPoint( mouse_ray_target, tmp1 );
+		}
 
 		sub( mouse_ray_slope, mouse_ray_target, mouse_ray_origin );
 		normalize( mouse_ray_slope );
@@ -251,13 +257,10 @@ void UpdateMouseRays( S_32 x, S_32 y )
 	INDEX idx;
 	LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
 	{
-		ComputeMouseRay( camera->origin_camera, camera->aspect, camera->w, camera->h, &camera->mouse_ray, x, y );
+		ComputeMouseRay( camera, TRUE, &camera->mouse_ray, x, y );
 	}
 }
 
-
-#undef COMMON_SCALE
-#define COMMON_SCALE ( 2*camera->aspect)
 
 // Maps a point on a RENDEER surface to a screen point
 int InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, RCOORD x, RCOORD y, int *result_x, int *result_y )
@@ -314,7 +317,7 @@ PRENDERER CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 	struct display_camera *camera = (struct display_camera *)psvMouse;
 	if( camera->origin_camera )
 	{
-		ComputeMouseRay( camera->origin_camera, camera->aspect, camera->w, camera->h, &camera->mouse_ray, x, y );
+		ComputeMouseRay( camera, TRUE, &camera->mouse_ray, x, y );
 		{
 			INDEX idx;
 			struct plugin_reference *ref;
