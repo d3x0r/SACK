@@ -18,9 +18,16 @@ add_definitions(
 	-DLOAD_LIBNAME="InterShell.core.dll" -DMODE=1
 )
 else( __CLR__ )
-add_definitions( 
+  if( __ANDROID__ )
+    add_definitions( 
+	-DLOAD_LIBNAME="libInterShell.core.so" -DMODE=1
+     )
+  else( __ANDROID__ )
+
+    add_definitions( 
 	-DLOAD_LIBNAME="InterShell.core" -DMODE=1
-)
+    )
+  endif( __ANDROID__ )
 endif( __CLR__ )
 
 add_program(${project} ${SOURCES} )

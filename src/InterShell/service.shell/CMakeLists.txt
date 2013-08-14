@@ -10,11 +10,11 @@ set(SOURCES
 
 if( __CLR__ )
 add_definitions( 
-	-DLOAD_LIBNAME="InterShell.core.dll" -DMODE=1
+	-DLOAD_LIBNAME="InterShell.core.dll" -DMODE=1 -DCONSOLE_SHELL
 )
 else( __CLR__ )
 add_definitions( 
-	-DLOAD_LIBNAME="InterShell.core" -DMODE=1
+	-DLOAD_LIBNAME="InterShell.core" -DMODE=1 -DCONSOLE_SHELL
 )
 endif( __CLR__ )
 
