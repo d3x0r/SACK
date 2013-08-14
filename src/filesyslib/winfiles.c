@@ -56,7 +56,7 @@ PRIORITY_PRELOAD( InitWinFileSysEarly, CONFIG_SCRIPT_PRELOAD_PRIORITY - 1 )
 PRELOAD( InitWinFileSys )
 {
     LocalInit();
-    l.flags.bLogOpenClose = SACK_GetProfileIntEx( WIDE( "SACK/filesys" ), WIDE( "Log open and close" ), 0, TRUE );
+    l.flags.bLogOpenClose = 1;//SACK_GetProfileIntEx( WIDE( "SACK/filesys" ), WIDE( "Log open and close" ), 0, TRUE );
 }
 #endif
 
@@ -338,7 +338,11 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 		}
 	}
 	if( !group || ( filename && ( IsAbsolutePath( real_filename ) ) ) )
+	{
+		if( l.flags.bLogOpenClose )
+			lprintf( "already an absolute path.  [%s]", real_filename );
 		return real_filename;
+	}
 
 	{
 		TEXTSTR tmp_path;
@@ -754,11 +758,10 @@ FILE*  sack_fopen ( INDEX group, CTEXTSTR filename, CTEXTSTR opts )
 
         file->handles = NULL;
         file->files = NULL;
-        file->name = StrDup( filename );
+		  file->name = StrDup( filename );
 		  tmpname = ExpandPath( filename );
 		  if( !IsAbsolutePath( tmpname ) )
 		  {
-
 			  file->fullname = PrependBasePath( group, filegroup, tmpname );
            Release( tmpname );
 		  }
