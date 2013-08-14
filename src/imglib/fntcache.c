@@ -1322,7 +1322,7 @@ void BuildFontCache( void )
 		);
 #endif
 
-	// .psf.gz doesn't load directly....
+	// .psf.gz doesn't load directly.... 
 	while( ScanFiles( WIDE("."), WIDE("*.ttf\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
 						 , ListFontFile, SFF_SUBCURSE, 0 ) );
 
@@ -1391,7 +1391,8 @@ void LoadAllFonts( void )
 	//return;
 	if( fg.pFontCache )
 	{
-		//   return;
+      // if it was loaded, don't re-load it.
+		return;
 	}
 	Fopen( in, WIDE("Fonts.Cache"), WIDE("rt") );
 	if( !in )
