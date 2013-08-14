@@ -84,8 +84,7 @@ if( NOT __ANDROID__ )
    endif( NOT __CLR__ )
 endif( NOT __ANDROID__ )
 
-target_link_libraries( ${PROJECT_OUTPUT} sack_widgets ${SACK_LIBRARIES} )
-target_link_libraries( ${PROJECT_OUTPUT} )
+my_target_link_libraries( ${PROJECT_OUTPUT} sack_widgets ${SACK_LIBRARIES} )
 
 install_literal_product( ${PROJECT_OUTPUT} . ) 
 
