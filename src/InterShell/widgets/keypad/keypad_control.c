@@ -29,7 +29,7 @@
 #define DEFINE_DEFAULT_RENDER_INTERFACE
 #define DEFINE_DEFAULT_IMAGE_INTERFACE
 #define USES_INTERSHELL_INTERFACE
-#define DEFINES_INTERSHELL_INTERFACE
+//#define DEFINES_INTERSHELL_INTERFACE
 // this is ugly , but it works, please consider
 // a library init that will grab this...
 #ifndef __cplusplus_cli
@@ -2195,24 +2195,24 @@ void KeypadSetC_KeyTextColor( PSI_CONTROL pc_keypad, CDATA color )
 	}
 }
 
-void KeypadWriteConfig( FILE *file, PSI_CONTROL pc_keypad )
+void KeypadWriteConfig( FILE *file, CTEXTSTR indent, PSI_CONTROL pc_keypad )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, pc_keypad );
-	fprintf( file, WIDE( "%skeypad background=%s\n" ), InterShell_GetSaveIndent(), FormatColor( keypad->background_color ) );
-	fprintf( file, WIDE( "%skeypad display background=%s\n" ), InterShell_GetSaveIndent(), FormatColor( keypad->display_background_color ) );
-	fprintf( file, WIDE( "%skeypad display text color=%s\n" ), InterShell_GetSaveIndent(), FormatColor( keypad->display_text_color ) );
-	fprintf( file, WIDE( "%skeypad color numkey=%s\n" ), InterShell_GetSaveIndent(), FormatColor( keypad->numkey_color ) );
-	fprintf( file, WIDE( "%skeypad color enterkey=%s\n" ), InterShell_GetSaveIndent(), FormatColor( keypad->enterkey_color ) );
-	fprintf( file, WIDE( "%skeypad color cancelkey=%s\n" ), InterShell_GetSaveIndent(), FormatColor( keypad->cancelkey_color ) );
-	fprintf( file, WIDE( "%skeypad color numkey text=%s\n" ), InterShell_GetSaveIndent(), FormatColor( keypad->numkey_text_color ) );
-	fprintf( file, WIDE( "%skeypad color enterkey text=%s\n" ), InterShell_GetSaveIndent(), FormatColor( keypad->enterkey_text_color ) );
-	fprintf( file, WIDE( "%skeypad color cancelkey text=%s\n" ), InterShell_GetSaveIndent(), FormatColor( keypad->cancelkey_text_color ) );
-	fprintf( file, WIDE( "%skeypad style=%ld\n" ), InterShell_GetSaveIndent(), keypad->style );
+	fprintf( file, WIDE( "%skeypad background=%s\n" ), indent, FormatColor( keypad->background_color ) );
+	fprintf( file, WIDE( "%skeypad display background=%s\n" ), indent, FormatColor( keypad->display_background_color ) );
+	fprintf( file, WIDE( "%skeypad display text color=%s\n" ), indent, FormatColor( keypad->display_text_color ) );
+	fprintf( file, WIDE( "%skeypad color numkey=%s\n" ), indent, FormatColor( keypad->numkey_color ) );
+	fprintf( file, WIDE( "%skeypad color enterkey=%s\n" ), indent, FormatColor( keypad->enterkey_color ) );
+	fprintf( file, WIDE( "%skeypad color cancelkey=%s\n" ), indent, FormatColor( keypad->cancelkey_color ) );
+	fprintf( file, WIDE( "%skeypad color numkey text=%s\n" ), indent, FormatColor( keypad->numkey_text_color ) );
+	fprintf( file, WIDE( "%skeypad color enterkey text=%s\n" ), indent, FormatColor( keypad->enterkey_text_color ) );
+	fprintf( file, WIDE( "%skeypad color cancelkey text=%s\n" ), indent, FormatColor( keypad->cancelkey_text_color ) );
+	fprintf( file, WIDE( "%skeypad style=%ld\n" ), indent, keypad->style );
 	if( keypad->display_format )
 	{
 		TEXTCHAR outbuf[256];
 		ExpandConfigString( outbuf, keypad->display_format );
-		fprintf( file, WIDE( "%skeypad formatting='%s'\n" ), InterShell_GetSaveIndent(), outbuf );
+		fprintf( file, WIDE( "%skeypad formatting='%s'\n" ), indent, outbuf );
 	}
 }
 

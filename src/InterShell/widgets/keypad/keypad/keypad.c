@@ -561,7 +561,7 @@ OnSaveControl( WIDE( "Keypad 2" ) )( FILE *file, PTRSZVAL psv )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 	fprintf( file, WIDE( "%sKeypad type='%s'\n" ), InterShell_GetSaveIndent(), keypad->keypad_type?keypad->keypad_type:WIDE(".") );
-	KeypadWriteConfig( file, keypad->keypad );
+	KeypadWriteConfig( file, InterShell_GetSaveIndent(), keypad->keypad );
 	//fprintf( file, "Keypad Option Go-Clear=%s", GetKeypadGoClear( keypad->keypad ) );
 }
 
@@ -722,7 +722,7 @@ OnSaveControl( WIDE( "Keyboard 2" ) )( FILE *file, PTRSZVAL psv )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 	fprintf( file, WIDE( "Keypad type='%s'\n" ), keypad->keypad_type?keypad->keypad_type:WIDE(".") );
-	KeypadWriteConfig( file, keypad->keypad );
+	KeypadWriteConfig( file, InterShell_GetSaveIndent(), keypad->keypad );
 	//fprintf( file, "Keypad Option Go-Clear=%s", GetKeypadGoClear( keypad->keypad ) );
 }
 
