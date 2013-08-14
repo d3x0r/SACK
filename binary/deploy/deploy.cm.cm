@@ -22,6 +22,23 @@ macro( OUTPUT_TARGET target )
 
 endmacro( OUTPUT_TARGET )
 
+
+macro( OUTPUT_TARGET2 target )
+      	FILE( APPEND ${FILEOUT} "SET( ${target}_targets\n" )
+	foreach( package ${ARGN} )
+            if( __ANDROID__ )
+      	FILE( APPEND ${FILEOUT} "\t$""{SACK_BINARY_BASE}/lib/@CMAKE_SHARED_LIBRARY_PREFIX@${package}@CMAKE_SHARED_LIBRARY_SUFFIX@ "
+                                "    $""{SACK_BINARY_BASE}/lib/@CMAKE_SHARED_LIBRARY_PREFIX@${package}.code@CMAKE_SHARED_LIBRARY_SUFFIX@" 
+        		)
+        else( __ANDROID__ )
+          	FILE( APPEND ${FILEOUT} "\t$""{SACK_BINARY_BASE}/bin/${package}@CMAKE_EXECUTABLE_SUFFIX@" )
+        endif( __ANDROID__ )
+      	FILE( APPEND ${FILEOUT} "\n" )
+    endforeach( package )
+      	FILE( APPEND ${FILEOUT} "\t)\n" )
+
+endmacro( OUTPUT_TARGET2 )
+
 		FILE( WRITE ${FILEOUT} "#@CMAKE_PROJECT_NAME@\n" )
 
 		FILE( APPEND ${FILEOUT} "set( SACK_BINARY_BASE ${BASE_PATH} )\n" )
@@ -45,9 +62,7 @@ endmacro( OUTPUT_TARGET )
                 OUTPUT_TARGET( systray_shell )
 		FILE( APPEND ${FILEOUT} "SET( vlc_window_targets $""{SACK_BINARY_BASE}/bin/vlc_window@CMAKE_EXECUTABLE_SUFFIX@)\n" )
 		FILE( APPEND ${FILEOUT} "SET( http_server_targets $""{SACK_BINARY_BASE}/bin/http_server@CMAKE_EXECUTABLE_SUFFIX@)\n" )
-		FILE( APPEND ${FILEOUT} "SET( crossfade_targets $""{SACK_BINARY_BASE}/bin/crossfade_vid_playlist@CMAKE_EXECUTABLE_SUFFIX@\n" )
-		FILE( APPEND ${FILEOUT} "            $""{SACK_BINARY_BASE}/bin/crossfade_vid_trigger@CMAKE_EXECUTABLE_SUFFIX@\n" )
-		FILE( APPEND ${FILEOUT} "    )\n" )
+                OUTPUT_TARGET2( crossfade crossfade_vid_playlist crossfade_vid_triger )
 		#FILE( APPEND ${FILEOUT} "SET( sack.msgsvr.service_targets $""{SACK_BINARY_BASE}/bin/sack.msgsvr.service.plugin)\n" )
 		FILE( APPEND ${FILEOUT} "\n" )
 		FILE( APPEND ${FILEOUT} "\n" )

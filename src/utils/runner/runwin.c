@@ -149,127 +149,121 @@ static void CPROC DoStart2( void )
 
 #endif
 
-#if (MODE==0)
 SaneWinMain( argc, argv )
-#else
-int main( int argc, TEXTCHAR **argv )
-#endif
 {
 	{
 #ifndef BUILD_SERVICE
 #ifndef LOAD_LIBNAME
-	if( argc > 1 )
-	{
-		hModule = LoadFunction( libname = argv[1], NULL );
-		if( hModule )
-         arg_offset++;
-	}
+		if( argc > 1 )
+		{
+			hModule = LoadFunction( libname = argv[1], NULL );
+			if( hModule )
+				arg_offset++;
+		}
 #endif
 
-	if( !hModule )
-	{
-#ifdef LOAD_LIBNAME
-		hModule = LoadFunction( libname = _WIDE(LOAD_LIBNAME), NULL );
 		if( !hModule )
 		{
+#ifdef LOAD_LIBNAME
+			hModule = LoadFunction( libname = _WIDE(LOAD_LIBNAME), NULL );
+			if( !hModule )
+			{
 #ifndef UNDER_CE
-			lprintf( WIDE("error: (%ld)%s")
+				lprintf( WIDE("error: (%ld)%s")
+						 , GetLastError()
+						 , strerror(GetLastError()) );
+#endif
+				return 0;
+			}
+			else
+				arg_offset = 0;
+#else
+			lprintf( WIDE("strerror(This is NOT right... what's the GetStrError?): (%ld)%s")
 					 , GetLastError()
 					 , strerror(GetLastError()) );
-#endif
 			return 0;
+#endif
 		}
-		else
-			arg_offset = 0;
-#else
-		lprintf( WIDE("strerror(This is NOT right... what's the GetStrError?): (%ld)%s")
-				 , GetLastError()
-				 , strerror(GetLastError()) );
-		return 0;
 #endif
-	}
-#endif
-	my_argc = argc;
-   my_argv = argv;
+		my_argc = argc;
+		my_argv = argv;
 
 #ifdef BUILD_SERVICE
-	{
-		// look through command line, and while -L options exist, use thsoe to load more libraries
-      // then pass the final remainer to the proc (if used)
-#ifdef _WIN32
-		for( ; arg_offset < argc; arg_offset++ )
 		{
-			if( StrCaseCmp( argv[arg_offset], WIDE("install") ) == 0 )
+			// look through command line, and while -L options exist, use thsoe to load more libraries
+			// then pass the final remainer to the proc (if used)
+#ifdef _WIN32
+			for( ; arg_offset < argc; arg_offset++ )
 			{
-				ServiceInstall( GetProgramName() );
-				return 0;
+				if( StrCaseCmp( argv[arg_offset], WIDE("install") ) == 0 )
+				{
+					ServiceInstall( GetProgramName() );
+					return 0;
+				}
+				if( StrCaseCmp( argv[arg_offset], WIDE("uninstall") ) == 0 )
+				{
+					ServiceUninstall( GetProgramName() );
+					return 0;
+				}
 			}
-			if( StrCaseCmp( argv[arg_offset], WIDE("uninstall") ) == 0 )
-			{
-				ServiceUninstall( GetProgramName() );
-				return 0;
-			}
-		}
-		// need to do this before windows are created?
+			// need to do this before windows are created?
 #ifdef BUILD_SERVICE_THREAD
-      xlprintf(2400)( WIDE("Go To Service. %s"), GetProgramName() );
-		SetupServiceThread( (TEXTSTR)GetProgramName(), DoStart2, 0 );
+			xlprintf(2400)( WIDE("Go To Service. %s"), GetProgramName() );
+			SetupServiceThread( (TEXTSTR)GetProgramName(), DoStart2, 0 );
 #else
-      xlprintf(2400)( WIDE("Go To Service. %s"), GetProgramName() );
-		SetupService( (TEXTSTR)GetProgramName(), DoStart2 );
+			xlprintf(2400)( WIDE("Go To Service. %s"), GetProgramName() );
+			SetupService( (TEXTSTR)GetProgramName(), DoStart2 );
 #endif
 #endif
-	}
+		}
 #endif
 #ifndef BUILD_SERVICE
-	{
+		{
 
-		Main = (MainFunction)LoadFunction( libname, WIDE( "_Main" ) );
-		if( !Main )
-			Main = (MainFunction)LoadFunction( libname, WIDE( "Main" ) );
-		if( !Main )
-			Main = (MainFunction)LoadFunction( libname, WIDE( "Main_" ) );
-		if( Main )
-		{
-			Main( argc-arg_offset, argv+arg_offset, MODE );
-		}
-		else
-		{
-			Begin = (BeginFunction)LoadFunction( libname, WIDE( "_Begin" ) );
-			if( !Begin )
-				Begin = (BeginFunction)LoadFunction( libname, WIDE( "Begin" ) );
-			if( !Begin )
-				Begin = (BeginFunction)LoadFunction( libname, WIDE( "Begin_" ) );
-			if( Begin )
+			Main = (MainFunction)LoadFunction( libname, WIDE( "_Main" ) );
+			if( !Main )
+				Main = (MainFunction)LoadFunction( libname, WIDE( "Main" ) );
+			if( !Main )
+				Main = (MainFunction)LoadFunction( libname, WIDE( "Main_" ) );
+			if( Main )
 			{
-				int xlen, ofs, arg;
-				for( arg = arg_offset, xlen = 0; arg < argc; arg++, xlen += snprintf( NULL, 0, WIDE( "%s%s" ), arg?WIDE( " " ):WIDE( "" ), argv[arg] ) );
-				x = (TEXTCHAR*)malloc( ++xlen );
-				for( arg = arg_offset, ofs = 0; arg < argc; arg++, ofs += snprintf( (TEXTCHAR*)x + ofs, xlen - ofs, WIDE( "%s%s" ), arg?WIDE( " " ):WIDE( "" ), argv[arg] ) );
-				Begin( x, MODE ); // pass console defined in Makefile
-				free( x );
+				Main( argc-arg_offset, argv+arg_offset, MODE );
 			}
 			else
 			{
-				Start = (StartFunction)LoadFunction( libname, WIDE( "_Start" ) );
-				if( !Start )
-					Start = (StartFunction)LoadFunction( libname, WIDE( "Start" ) );
-				if( !Start )
-					Start = (StartFunction)LoadFunction( libname, WIDE( "Start_" ) );
-				if( Start )
+				Begin = (BeginFunction)LoadFunction( libname, WIDE( "_Begin" ) );
+				if( !Begin )
+					Begin = (BeginFunction)LoadFunction( libname, WIDE( "Begin" ) );
+				if( !Begin )
+					Begin = (BeginFunction)LoadFunction( libname, WIDE( "Begin_" ) );
+				if( Begin )
 				{
-					Start( );
+					int xlen, ofs, arg;
+					for( arg = arg_offset, xlen = 0; arg < argc; arg++, xlen += snprintf( NULL, 0, WIDE( "%s%s" ), arg?WIDE( " " ):WIDE( "" ), argv[arg] ) );
+					x = (TEXTCHAR*)malloc( ++xlen );
+					for( arg = arg_offset, ofs = 0; arg < argc; arg++, ofs += snprintf( (TEXTCHAR*)x + ofs, xlen - ofs, WIDE( "%s%s" ), arg?WIDE( " " ):WIDE( "" ), argv[arg] ) );
+					Begin( x, MODE ); // pass console defined in Makefile
+					free( x );
+				}
+				else
+				{
+					Start = (StartFunction)LoadFunction( libname, WIDE( "_Start" ) );
+					if( !Start )
+						Start = (StartFunction)LoadFunction( libname, WIDE( "Start" ) );
+					if( !Start )
+						Start = (StartFunction)LoadFunction( libname, WIDE( "Start_" ) );
+					if( Start )
+					{
+						Start( );
+					}
 				}
 			}
 		}
-	}
 #endif
 	}
 	return 0;
 }
-#if (MODE==0)
 EndSaneWinMain( )
-#endif
 
 // $Log: runwin.c,v $
 // Revision 1.6  2003/08/01 00:58:34  panther

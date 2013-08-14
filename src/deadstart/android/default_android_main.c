@@ -344,7 +344,7 @@ void* BeginNormalProcess( void*param )
 					SACK_Main = dlsym( lib, "SACK_Main" );
 					if( !SACK_Main )
 					{
-						LOGI( "Failed to get entry point" );
+						LOGI( "Failed to get SACK_Main entry point; I am [%s]", myname );
                   return 0;
 					}
                LOGI( "Invoke Deadstart..." );
