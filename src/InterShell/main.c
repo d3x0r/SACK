@@ -4149,7 +4149,7 @@ void SetupSystemsListAndGlobalSingleFrame(void )
 			else
 #endif
 			{
-				lprintf( WIDE("opening canvas at 0,0, %dx%d"), g.width, g.height );
+				lprintf( WIDE("opening canvas at 0,0, %dx%d %d"), g.width, g.height, menu_surface.TypeID );
 				g.single_frame = MakeControl( NULL, menu_surface.TypeID, 0, 0, g.width, g.height, 0 );
 			}
 			SetCommonText( g.single_frame, g.single_frame_title );
@@ -5403,8 +5403,10 @@ PUBLIC( int, Main)( int argc, TEXTCHAR **argv, int bConsole )
 	g.flags.bSpanDisplay = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Use Both Displays(horizontal)"), 0, TRUE );
 	g.flags.bTerminateStayResident = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell/TSR"), 0, TRUE );
 #endif
+#ifndef __ANDROID__
 	if( bConsole )
 		SetSystemLog( SYSLOG_FILE, stderr );
+#endif
 	//SystemLogTime( SYSLOG_TIME_CPU| SYSLOG_TIME_DELTA );
 
 	g.system_name = GetSystemName(); // Initialized here. Command argument -Sysname= may override.
@@ -5714,7 +5716,7 @@ PRIORITY_PRELOAD( RegisterInterShellInterface, DEFAULT_PRELOAD_PRIORITY-4 )
 {
 	RegisterInterface( WIDE( "InterShell" ), LoadInterShellInterface, UnloadInterShellInterface );
 #ifndef __NO_OPTIONS__
-	if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "Alias InterShell for MILK" ), 1, TRUE) )
+	//if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "Alias InterShell for MILK" ), 1, TRUE) )
 #endif
 	{
 		RegisterClassAlias( WIDE( "system/interfaces/InterShell" ), WIDE( "system/interfaces/MILK" ));
