@@ -126,11 +126,11 @@ struct threads_tag
 	PTRSZVAL (CPROC*proc)( struct threads_tag * );
 	PTRSZVAL (CPROC*simple_proc)( POINTER );
 	THREAD_ID thread_ident;
+	CTEXTSTR thread_event_name; // might be not a real thread.
 #ifdef _WIN32
 	//HANDLE hEvent;
 	HANDLE hThread;
 	PTHREAD_EVENT thread_event;
-   CTEXTSTR thread_event_name; // might be not a real thread.
 #else
 #ifdef USE_PIPE_SEMS
    int pipe_ends[2]; // file handles that are the pipe's ends. 0=read 1=write
@@ -326,14 +326,14 @@ PRIORITY_ATEXIT( CloseAllWakeups, ATEXIT_PRIORITY_TIMERS )
 
 static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 {
+	if( !event_name )
+		event_name = "ThreadSignal";
+	thread->thread_event_name = StrDup( event_name );
 #ifdef _WIN32
 	if( !thread->thread_event )
 	{
 		PTHREAD_EVENT thread_event;
 		TEXTCHAR name[64];
-		if( !event_name )
-			event_name = "ThreadSignal";
-		thread->thread_event_name = StrDup( event_name );
 		snprintf( name, 64, WIDE("%s:%08lX:%08lX"), event_name, (_32)(thread->thread_ident >> 32)
 				 , (_32)(thread->thread_ident & 0xFFFFFFFF) );
 #ifdef LOG_CREATE_EVENT_OBJECT
@@ -347,7 +347,8 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 	}
 #else
 #ifdef USE_PIPE_SEMS
-   // store status of pipe() in semaphore... it's not really a semaphore..
+	// store status of pipe() in semaphore... it's not really a semaphore..
+	//lprintf( "Init wakeup %p %s", thread, event_name );
 	if( ( thread->semaphore = pipe( thread->pipe_ends ) )  == -1 )
 	{
 		lprintf( WIDE("Failed to get pipe! %d:%s"), errno, strerror( errno ) );
@@ -433,6 +434,7 @@ PTRSZVAL CPROC check_thread( POINTER p, PTRSZVAL psv )
 {
 	PTHREAD thread = (PTHREAD)p;
 	THREAD_ID ID = *((THREAD_ID*)psv);
+	//lprintf( "Check thread %016llx %016llx %s", thread->thread_ident, ID, thread->thread_event_name );
 	if( ( thread->thread_ident == ID )
 		&& ( StrCmp( thread->thread_event_name, "ThreadSignal" ) == 0 ) )
 		return (PTRSZVAL)p;
