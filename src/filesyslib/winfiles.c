@@ -56,7 +56,7 @@ PRIORITY_PRELOAD( InitWinFileSysEarly, CONFIG_SCRIPT_PRELOAD_PRIORITY - 1 )
 PRELOAD( InitWinFileSys )
 {
     LocalInit();
-    l.flags.bLogOpenClose = 1;//SACK_GetProfileIntEx( WIDE( "SACK/filesys" ), WIDE( "Log open and close" ), 0, TRUE );
+    l.flags.bLogOpenClose = SACK_GetProfileIntEx( WIDE( "SACK/filesys" ), WIDE( "Log open and close" ), 0, TRUE );
 }
 #endif
 
