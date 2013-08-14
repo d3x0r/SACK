@@ -2181,6 +2181,7 @@ static PTRSZVAL CPROC NetworkThreadProc( PTHREAD thread )
    signal( SIGPIPE, SIG_IGN );
 	while( !g.pThreads )
 		Relinquish(); // wait for pThread to be done
+ 	g.flags.bThreadInitOkay = TRUE;
    g.flags.bThreadInitComplete = TRUE;
    g.flags.bNetworkReady = TRUE;
    //lprintf( WIDE("Network Thread Began...") );
