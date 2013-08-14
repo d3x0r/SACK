@@ -105,7 +105,11 @@ static void InitBannerFrame( void )
 #endif
 		GetDisplaySize( &banner_local.w, &banner_local.h );
 #ifndef __NO_OPTIONS__
+#ifdef __ANDROID__
+		SACK_GetProfileStringEx( "SACK/Widgets/Banner3", "Default Font", "fonts.arialbd.ttf", font, sizeof( font ), TRUE );
+#else
 		SACK_GetProfileStringEx( "SACK/Widgets/Banner3", "Default Font", "arialbd.ttf", font, sizeof( font ), TRUE );
+#endif
 #else
 		StrCpy( font, WIDE( "arialbd.ttf" ) );
 #endif
@@ -116,7 +120,11 @@ static void InitBannerFrame( void )
 		if( !banner_local.font )
 		{
 #ifndef __NO_OPTIONS__
+#ifdef __ANDROID__
+			SACK_GetProfileStringEx( WIDE( "SACK/Widgets/Banner3" ), WIDE( "Alternate Font" ), WIDE( "fonts.arialbd.ttf" ), font, sizeof( font ), TRUE );
+#else
 			SACK_GetProfileStringEx( WIDE( "SACK/Widgets/Banner3" ), WIDE( "Alternate Font" ), WIDE( "fonts/arialbd.ttf" ), font, sizeof( font ), TRUE );
+#endif
 #else
 			StrCpy( font, WIDE( "fonts/arialbd.ttf" ) );
 #endif
