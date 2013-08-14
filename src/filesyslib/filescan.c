@@ -507,7 +507,7 @@ typedef struct myfinddata {
 	char buffer[MAX_PATH_NAME];
 	char basename[MAX_PATH_NAME];
 	struct myfinddata *current;
-	struct myfinddata *prior;
+	//struct myfinddata *prior;
 } MFD, *PMFD;
 
 #define finddir(pInfo) ( ((PMFD)(*pInfo))->dir)
@@ -545,7 +545,9 @@ int  ScanFiles ( CTEXTSTR base
 				strcpy( findbasename(pInfo), WIDE(".") );
 			}
 		}
+      //lprintf( "Open directory for scanning... %s %s", base, mask );
 		finddir( pInfo ) = opendir( findbasename(pInfo) );
+      //lprintf( "result of opendir on %s = %d", findbasename(pInfo), finddir( pInfo ) );
 		//*pInfo = (void*)dir;
 	}
 	else
@@ -554,9 +556,9 @@ int  ScanFiles ( CTEXTSTR base
 	}
 	{
 		char *p;
-	// result from pathrchr is within findbasename(pInfo)
-	// it's result si technically a CTEXTSTR since
-	// that is what is passed to pathrchr
+		// result from pathrchr is within findbasename(pInfo)
+		// it's result si technically a CTEXTSTR since
+		// that is what is passed to pathrchr
 		if( ( p = (char*)pathrchr( findbasename(pInfo) ) ) )
 		{
 			if( !p[1] )
@@ -617,13 +619,12 @@ int  ScanFiles ( CTEXTSTR base
 				return 1;
 			}
 		}
+	if( finddir( pInfo ) )
+		closedir( finddir( pInfo ) );
 
-	closedir( finddir( pInfo ) );
 	{
-		PMFD pData = (PMFD)(*pInfo);
-		PMFD prior = pData->prior;
 		Release( *pInfo );
-		*pInfo = prior;
+		*pInfo = NULL;
 	}
 	return !((*pInfo)==NULL);
 }
