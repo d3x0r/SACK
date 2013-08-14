@@ -1142,8 +1142,8 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			StrCpy( library->name, libname );
 		}
 		library->functions = NULL;
-#ifdef _WIN32
 		SuspendDeadstart();
+#ifdef _WIN32
 		// with deadstart suspended, the library can safely register
 		// all of its preloads.  Then invoke will release suspend
 		// so final initializers in application can run.
