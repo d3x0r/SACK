@@ -706,7 +706,7 @@ ImageFile*  LoadImageFileEx ( CTEXTSTR filename DBG_PASS )
 {
 	Image result = LoadImageFileFromGroupEx( 0, filename DBG_RELAY );
 	if( !result )
-		result = LoadImageFileFromGroupEx( GetFileGroup( "Images", "./Images" ), filename DBG_RELAY );
+		result = LoadImageFileFromGroupEx( GetFileGroup( "Images", "./images" ), filename DBG_RELAY );
    return result;
 }
 
