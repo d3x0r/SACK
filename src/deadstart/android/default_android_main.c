@@ -432,9 +432,9 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 			 sched_yield();
 		 }
 		 BagVidlibPureglSetNativeWindowHandle( engine->app->pendingWindow );
-		 engine->wait_for_display_init = 0;
 		 // reopen cameras...
 		 BagVidlibPureglOpenCameras();
+		 engine->wait_for_display_init = 0;
 		 break;
 	 case APP_CMD_TERM_WINDOW:
 		 // The window is being hidden or closed, clean it up.
