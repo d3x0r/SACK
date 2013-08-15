@@ -173,12 +173,17 @@ void RenderGL( struct display_camera *camera )
 		{
 			if( l.flags.bLogWrites )
 				lprintf( WIDE("Have a video in stack...") );
+			hVideo->flags.bRendering = 1;
 			if( hVideo->flags.bDestroy )
+			{
+				hVideo->flags.bRendering = 0;
 				continue;
+			}
 			if( hVideo->flags.bHidden || !hVideo->flags.bShown )
 			{
 				if( l.flags.bLogWrites )
 					lprintf( WIDE("But it's nto exposed...") );
+				hVideo->flags.bRendering = 0;
 				continue;
 			}
 
@@ -200,6 +205,7 @@ void RenderGL( struct display_camera *camera )
 
 			// allow draw3d code to assume depth testing 
 			glEnable( GL_DEPTH_TEST );
+			hVideo->flags.bRendering = 0;
 		}
 
 		{

@@ -1193,7 +1193,6 @@ WM_DROPFILES
 					if( !camera->hVidCore || !camera->hVidCore->flags.bReady )
 						continue;
 					// drawing may cause subsequent draws; so clear this first
-
 					SetActiveGLDisplay( camera->hVidCore );
 					RenderGL( camera );
 					SetActiveGLDisplay( NULL );
