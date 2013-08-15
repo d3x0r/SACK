@@ -3709,6 +3709,12 @@ void DestroyCommonExx( PSI_CONTROL *ppc, int level DBG_PASS )
 		PSI_CONTROL pc = *ppc;
       // need to get what frame this control is in before unlinking it from the frame!
 		PSI_CONTROL pFrame = GetFrame( pc );
+		AddUse( pc );
+		if( pc->device )
+		{
+			DetachFrameFromRenderer( pc );
+		}
+		DeleteUse( pc );
 		pc->flags.bDestroy = 1;
 		if( ( pNext = pc->next ) )
 		{
@@ -3751,15 +3757,6 @@ void DestroyCommonExx( PSI_CONTROL *ppc, int level DBG_PASS )
 				pc->caption.text = NULL;
 			}
 			{
-				//PSI_CONTROL _pc = pc;
-				//while( _pc )
-				//{
-				//	pNext = _pc->next;
-				//	DestroyCommonEx( &_pc->next DBG_RELAY );
-				//	_pc = pNext;
-				//}
-			}
-			{
 				if( pc->Destroy )
 					pc->Destroy( pc );
 				{
@@ -3775,7 +3772,7 @@ void DestroyCommonExx( PSI_CONTROL *ppc, int level DBG_PASS )
 						CustomDestroy = GetRegisteredProcedureExx((PCLASSROOT)data,(CTEXTSTR)NULL,int,name,(PSI_CONTROL));
 						if( CustomDestroy )
 						{
-                     lprintf( WIDE("Invoking custom destroy") );
+							lprintf( WIDE("Invoking custom destroy") );
 							if( !CustomDestroy( pc ) )
 							{
 								lprintf( WIDE("extra destroy has returned failure... so what?") );
@@ -3801,11 +3798,7 @@ void DestroyCommonExx( PSI_CONTROL *ppc, int level DBG_PASS )
 				Release( ControlData( POINTER, pc ) );
 				pc->pUser = NULL;
 			}
-			if( pc->device )
-			{
-				DetachFrameFromRenderer( pc );
-			}
-			else
+			if( !pc->device )
 			{
 				// this may not be destroyed if it's
 				// the main frame, and the image is that
