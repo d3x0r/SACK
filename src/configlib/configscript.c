@@ -2053,15 +2053,16 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 	PTEXT line;
 	int absolute_path = IsAbsolutePath( name ); // don't prefix with anything.
 	pch->file = sack_fopen( 0, name, WIDE("rb") );
-#ifndef UNDER_CE
+#ifndef __ANDROID__
+#  ifndef UNDER_CE
 	if( !pch->file && !absolute_path )
 	{
 		CTEXTSTR workpath = OSALOT_GetEnvironmentVariable( WIDE( "MY_WORK_PATH" ) );
 		TEXTCHAR pathname[255];
 		snprintf( pathname, sizeof( pathname ), WIDE("%s/%s"), workpath, name );
-#ifdef _MSC_VER
+#    ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
-#endif
+#    endif
 		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
 	}
 	if( !pch->file && !absolute_path )
@@ -2069,39 +2070,40 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 		CTEXTSTR workpath = OSALOT_GetEnvironmentVariable( WIDE( "MY_LOAD_PATH" ) );
 		TEXTCHAR pathname[255];
 		snprintf( pathname, sizeof( pathname ), WIDE("%s/%s"), workpath, name );
-#ifdef _MSC_VER
+#    ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
-#endif
+#    endif
 		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
 	}
-#endif
+#  endif
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
 		snprintf( pathname, sizeof( pathname ), WIDE("/etc/%s"), name );
-#ifdef _MSC_VER
+#  ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
-#endif
+#  endif
 		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
 	}
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
 		snprintf( pathname, sizeof( pathname ), WIDE("\\ftn3000\\working\\%s"), name );
-#ifdef _MSC_VER
+#  ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
-#endif
+#  endif
 		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
 	}
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
 		snprintf( pathname, sizeof( pathname ), WIDE("C:\\ftn3000\\working\\%s"), name );
-#ifdef _MSC_VER
+#  ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
-#endif
+#  endif
 		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
 	}
+#endif
 	pch->psvUser = psv;
 	if( pch->file )
 	{
