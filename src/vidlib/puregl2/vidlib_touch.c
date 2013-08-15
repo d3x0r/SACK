@@ -44,7 +44,15 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 			lprintf( WIDE( "%d %5g %5g %s%s" ), t, touches[t].x, touches[t].y, touches[t].flags.new_event?"new":"", touches[t].flags.end_event?"end":"" );
 		}
 		lprintf( WIDE( "touch event" ) );
-		if( nTouches == 3 )
+#ifdef __ANDROID__
+		if( nTouches == 4 )
+		{
+			if( touches[3].flags.new_event )
+				SACK_Vidlib_ToggleInputDevice();
+		}
+      else 
+#endif
+		     if( nTouches == 3 )
 		{
 			if( touches[2].flags.new_event )
 			{

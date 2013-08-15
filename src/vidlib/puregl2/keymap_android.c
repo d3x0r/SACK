@@ -152,6 +152,7 @@ static struct keymap_state
 {
 	struct {
 		BIT_FIELD bShifted : 1;
+		BIT_FIELD bShowing : 1;
 	} flags;
 	void (*show_keyboard)(void);
    void (*hide_keyboard)(void);
@@ -224,15 +225,31 @@ void SACK_Vidlib_SetTriggerKeyboard( void (*show)(void), void(*hide)(void))
 
 void SACK_Vidlib_ShowInputDevice( void )
 {
+   keymap_local.flags.bShowing = 1;
 	if( keymap_local.show_keyboard )
       keymap_local.show_keyboard();
 }
 
 void SACK_Vidlib_HideInputDevice( void )
 {
+   keymap_local.flags.bShowing = 0;
 	if( keymap_local.hide_keyboard )
       keymap_local.hide_keyboard();
 }
 
+void SACK_Vidlib_ToggleInputDevice( void )
+{
+   keymap_local.flags.bShowing = !keymap_local.flags.bShowing;
+	if( keymap_local.flags.bShowing )
+	{
+		if( keymap_local.show_keyboard )
+			keymap_local.show_keyboard();
+	}
+   else
+	{
+		if( keymap_local.hide_keyboard )
+			keymap_local.hide_keyboard();
+	}
+}
 
 RENDER_NAMESPACE_END

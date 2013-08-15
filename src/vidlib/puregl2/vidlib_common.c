@@ -1292,7 +1292,7 @@ void  MakeAbsoluteTopmost (PVIDEO hVideo)
 void  HideDisplay (PVIDEO hVideo)
 {
 //#ifdef LOG_SHOW_HIDE
-	lprintf(WIDE( "Hiding the window! %p %p %p" ), hVideo, hVideo->pAbove, hVideo->pBelow );
+	lprintf(WIDE( "Hiding the window! %p %p %p" ), hVideo, hVideo?hVideo->pAbove:0, hVideo?hVideo->pBelow:0 );
 //#endif
 	if( hVideo )
 	{
