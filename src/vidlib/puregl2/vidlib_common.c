@@ -908,7 +908,8 @@ void  CloseDisplay (PVIDEO hVideo)
 	UnlinkVideo( hVideo );
 	lprintf( WIDE("and we should be ok?") );
 	hVideo->flags.bDestroy = 1;
-
+	while( hVideo->flags.bRendering )
+		Relinquish();
 	// the scan of inactive windows releases the hVideo...
 	AddLink( &l.pInactiveList, hVideo );
 	// generate an event to dispatch pending...
