@@ -878,7 +878,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 #ifdef __DEKWARE_PLUGIN__
          if( !pdp->flags.bDirect && ( pText->flags & TF_PROMPT ) )
 			{
-				lprintf( WIDE("Segment is promtp - and we need to skip it.") );
+				//lprintf( WIDE("Segment is prompt - and we need to skip it.") );
             pText = NEXTLINE( pText );
             continue;
          }
