@@ -148,7 +148,7 @@ static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 #endif
    tmp = 123;
 	glGetBooleanv( GL_SHADER_COMPILER, &tmp );
-   lprintf( "Shader Compiler = %d", tmp );
+   //lprintf( "Shader Compiler = %d", tmp );
 	if( !tmp )
 	{
 		lprintf( "No Shader Compiler" );
