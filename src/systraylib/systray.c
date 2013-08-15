@@ -445,13 +445,12 @@ int RegisterIconEx( CTEXTSTR user_icon DBG_PASS )
 
 void ChangeIconEx( CTEXTSTR icon DBG_PASS )
 {
-	//NOTIFYICONDATA nid;
 	if( !ghWndIcon )
 	{
 		RegisterIcon( icon ); 
 		return;
 	}
-   nid.cbSize = sizeof( NOTIFYICONDATA );
+	nid.cbSize = sizeof( NOTIFYICONDATA );
 	nid.hWnd = ghWndIcon;
 	nid.uID = 0;
 	nid.uFlags = NIF_ICON|NIF_MESSAGE;
@@ -502,13 +501,15 @@ void ChangeIconEx( CTEXTSTR icon DBG_PASS )
 
 void UnregisterIcon( void )
 {
-	//NOTIFYICONDATA nid;
-	nid.cbSize = sizeof( NOTIFYICONDATA );
-	nid.hWnd = ghWndIcon;
-	nid.uID = 0;
-	nid.uFlags = NIF_ICON|NIF_MESSAGE;
-	nid.uCallbackMessage = WM_USERICONMSG;
-	Shell_NotifyIcon( NIM_DELETE, &nid );
+	if( nid.cbSize )
+	{
+		nid.cbSize = sizeof( NOTIFYICONDATA );
+		nid.hWnd = ghWndIcon;
+		nid.uID = 0;
+		nid.uFlags = NIF_ICON|NIF_MESSAGE;
+		nid.uCallbackMessage = WM_USERICONMSG;
+		Shell_NotifyIcon( NIM_DELETE, &nid );
+	}
 }
 
 void TerminateIcon( void )
