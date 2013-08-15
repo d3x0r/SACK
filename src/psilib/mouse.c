@@ -393,12 +393,12 @@ void DeleteUseEx( PSI_CONTROL *pc DBG_PASS )
 #endif
 		if( ((*pc)->InUse - (*pc)->NotInUse )== 1 )
 		{
-         if( !(*pc)->flags.bDestroy )
+			if( !(*pc)->flags.bDestroy )
 			{
-            // do update with use still locked...
+				// do update with use still locked...
 				PSI_CONTROL parent = *pc;
 				//PSI_CONTROL update = NULL;
-            if(0)
+				if(0)
 				while( parent && ( parent->parent && !parent->device ) /*&& (parent->flags.bTransparent || parent->flags.bDirty)*/ )
 				{
 					if( parent->flags.bDirty )
@@ -444,11 +444,11 @@ void ReleaseCommonUse( PSI_CONTROL pc )
 // set fake decrement to this ...
 // we can force the render code of deleteuse to run
 	pc->NotInUse = pc->InUse;
-   // add one use, delete use consumes it.
+	// add one use, delete use consumes it.
 	pc->InUse++;
 	DeleteUseEx( &pc DBG_SRC );
 	// the fake not-in-use counter is not useful anymore
-   // we've already forced deleteuse to do the draw work (if not delete)
+	// we've already forced deleteuse to do the draw work (if not delete)
 	pc->NotInUse = 0;
 }
 
