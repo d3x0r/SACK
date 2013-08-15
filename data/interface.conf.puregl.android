@@ -1,0 +1,34 @@
+#sourced from sack/data/interface.conf.puregl.android
+Enable Trace = off
+
+
+# set 'options' interface default to sack_sql
+win32 alias service options sack_sql_options
+
+option default sack/vidlib/use interface = opengl
+
+if sack/vidlib/use interface == opengl
+option default SACK/Video Render/360 view = 0
+module libbag.image.puregl2.so
+module libbag.video.puregl2.so
+
+alias service render puregl.render
+alias service image puregl.image
+
+alias service render.3d puregl.render.3d
+endif
+
+if sack/vidlib/use interface == windows
+module libbag.video.dll
+module libbag.image.dll
+
+alias service render sack.render
+alias service image sack.image
+endif
+
+
+# logging needs options, which needs to be aliased before this is loaded
+module loginfo.module
+
+
+

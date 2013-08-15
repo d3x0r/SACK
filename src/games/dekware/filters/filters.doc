@@ -1,0 +1,36 @@
+
+Filters
+-----------
+
+NIL -
+   Does no translation - is no use other than to test passing of data, events,
+   destruction of filter layers, and to be a shell for other filters.
+
+ANSI - 
+	Decode ansi position, color codes and removes from the stream
+	May also take current segment attributes and produce ansi data for output
+	Options to this filter include
+	   Inbound - data is from 'outer' heading to 'core' object
+	   Outbound - data is from the object heading out
+	   Encode - checkes segment formatting and introduces data reflecting changes
+	   Decode - analyzes data inbound for escape sequences and produces format changes
+
+IRC - 
+	Will be similar to the ansi plugin bug handlign IRC type attributes.
+
+Binary -
+   Useful filter for analyzing data streams - will convert any data to
+   hex equivalents (16 characters wide) and matching ascii representation.
+   Options may include
+   	Inbound
+   	Outbound
+
+Grouper -
+	This attempts to pair matching quotes, braces, brackets, et al.  Resulting
+	in segemts with attributes indirected with content data.
+
+tokenizer -
+   Generic filter to produce tokenized data... This classically was done 
+   for each device by itself, but this will simplify their work a bit... and
+   commonize how this is done.
+

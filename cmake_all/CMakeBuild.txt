@@ -1,0 +1,83 @@
+macro( DEFINE_DEFAULT variable default )
+if( NOT DEFINED ${variable} )
+   message( "variable ${variable} not defined (command line)" )
+   set( ${variable} $ENV{${variable}} )
+   if( "${${variable}}" STREQUAL "" )
+     set( ${variable} ${default} )
+   endif( "${${variable}}" STREQUAL "" )
+endif( NOT DEFINED ${variable} )
+endmacro( DEFINE_DEFAULT variable )
+
+macro( BuildProject PROJECT SOLUTION PROJECT_SOURCE INSTALL_RESULT )
+string( TOLOWER "${CMAKE_BUILD_TYPE}" cmake_build_type_lower )
+string( TOLOWER "${CMAKE_BINARY_DIR}" cmake_binary_dir_lower )
+
+  set( LAST_TARGET Build${PROJECT} )
+  if( cmake_binary_dir_lower MATCHES ${cmake_build_type_lower}_solution\$ )
+    set( INSTALL ${CMAKE_BINARY_DIR}/../${CMAKE_BUILD_TYPE}_out/${PROJECT} )
+    set( BUILD ${CMAKE_BINARY_DIR}/../${CMAKE_BUILD_TYPE}_solution/${PROJECT} ) 
+  else()
+    set( INSTALL ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}_out/${PROJECT} )
+    set( BUILD ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}_solution/${PROJECT} ) 
+  endif( cmake_binary_dir_lower MATCHES ${cmake_build_type_lower}_solution\$ )
+  set( ${INSTALL_RESULT} ${INSTALL} )
+
+  FILE( MAKE_DIRECTORY ${BUILD} )
+
+  if( MSVC )
+    if( NOT EXISTS ${BUILD}/${SOLUTION}.sln )
+      FILE( WRITE ${BUILD}/${SOLUTION}.sln )
+    endif()
+    if( ${CMAKE_MAKE_PROGRAM} MATCHES .*[Mm][Ss][Bb]uild.* )
+    	  build_command( BUILD_COMMAND CONFIGURATION ${CMAKE_BUILD_TYPE} PROJECT_NAME ${SOLUTION} TARGET INSTALL )
+          SET( MORE_ARGS /m:4 /v:m )
+    else()
+  	  build_command( BUILD_COMMAND CONFIGURATION ${CMAKE_BUILD_TYPE} PROJECT_NAME ${SOLUTION} TARGET INSTALL.vcxproj )
+    endif()
+    SEPARATE_ARGUMENTS( BUILD_COMMAND WINDOWS_COMMAND ${BUILD_COMMAND} )
+    SET( BUILD_COMMAND ${BUILD_COMMAND} ${MORE_ARGS} )
+    SET( ADD_SOURCES  SOURCES ${BUILD}/${SOLUTION}.sln )
+  else( MSVC )
+    build_command( BUILD_COMMAND CONFIGURATION ${CMAKE_BUILD_TYPE} PROJECT_NAME ${SOLUTION} TARGET install )
+    SEPARATE_ARGUMENTS( BUILD_COMMAND UNIX_COMMAND ${BUILD_COMMAND} )
+  endif( MSVC )
+
+  if( CMAKE_TOOLCHAIN_FILE )
+    set( TOOLCHAIN -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} )
+  endif( CMAKE_TOOLCHAIN_FILE )
+
+  set( FAKE_ARGN1 ${ARGN})
+  
+if( UNIX )
+   set( SCRIPTNAME makeit.sh )
+else( UNIX )
+   set( SCRIPTNAME makeit.bat )
+endif( UNIX )
+   
+
+  string (REPLACE ";" " " FAKE_ARGN2 "${FAKE_ARGN1}")
+if( __ANDROID__ )  
+  FILE( WRITE  ${BUILD}/${SCRIPTNAME} "\"${CMAKE_COMMAND}\" -G \"${CMAKE_GENERATOR}\" -T \"${CMAKE_VS_PLATFORM_TOOLSET}\" ${TOOLCHAIN} \"${PROJECT_SOURCE}\" -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${INSTALL} ${FAKE_ARGN2} -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} -DANDROID_DIR=${ANDROID_DIR} -DANDROID_NDK_VERSION=${ANDROID_NDK_VERSION}\n" )
+else( __ANDROID__ )  
+  FILE( WRITE  ${BUILD}/${SCRIPTNAME} "\"${CMAKE_COMMAND}\" -G \"${CMAKE_GENERATOR}\" -T \"${CMAKE_VS_PLATFORM_TOOLSET}\" ${TOOLCHAIN} \"${PROJECT_SOURCE}\" -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${INSTALL} ${FAKE_ARGN2}\n" )
+endif( __ANDROID__ )  
+  string (REPLACE ";" " " FAKE_BUILD_COMMAND "${BUILD_COMMAND}")
+  FILE( APPEND ${BUILD}/${SCRIPTNAME} ${FAKE_BUILD_COMMAND} )
+
+
+
+if( UNIX )
+  add_custom_target( Build${PROJECT} ALL
+          COMMAND chmod 755 ${SCRIPTNAME}
+	  WORKING_DIRECTORY ${BUILD}
+          ${ADD_SOURCES}
+  )
+endif( UNIX )  
+  add_custom_target( Build${PROJECT} ALL
+          COMMAND ${SCRIPTNAME}
+	  WORKING_DIRECTORY ${BUILD}
+          ${ADD_SOURCES}
+  )
+endmacro( BuildProject )
+
+

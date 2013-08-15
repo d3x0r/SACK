@@ -1,0 +1,80 @@
+
+Initially this project was made to be a stand alone application.  This
+has since been reconsidered and was a bad direction to have gone.  Many
+of the peices - the grid display, dialogs, undo, etc are good, but the
+backend needs to be server based.  The backend needs to coordinate 
+multiple clients, including hosting play and edit clients at the same
+time.  A play client will run within the world and experience the
+world.  An edit client works ON the world, and can manipulate the world
+in realtime.
+
+
+
+A world consists of sectors which have lines/walls.  
+
+Bodies are also entities within the world, but are inverted in view...
+that is instead of the inside sectors being valid, the outside is....
+
+
+
+So.. the server needs to be aware of what the clients currently know
+about... Would be no good for the clients to constantly query the
+server for the current informatino about the world... world look like
+they save at a couple hundred K....
+
+The initial load will synch the client with the server.  The client's
+view of the world will only be updated as a result of information from
+the server.
+
+So each thing which the server tells the client about is given a unique
+ID from the server.  Then when that thing is updated, the server will
+send that unique ID for the client to know which thing has been
+updated.  The IDs are probably low numbered indexes into sets of
+information.
+
+
+Well then besides coordination factors, and creation notifications
+Seems that the client needs to know all of the same structures which
+the server has.  The server will do things like disallow certain
+motions - there are directions which sectors need to be prevented
+from...
+
+
+client -> server
+
+client sends its version.  server sends its version.  These need not
+match, but each needs to be aware of the other so that bad information
+is not sent either way.  
+
+The server will have all known worlds available to load, the worlds are
+never saved on the client side.   A server may act as a client... then
+a client may connect to its local server, which may in fact save the
+world seperate from the main server.  
+
+The server really does need to pretend to be a continuously running
+entity, such that when it restarts it comes back up with all previous
+states.
+
+
+
+
+There is going to be some plugin like factors... body, weapons, wheels,
+etc all need to be dynamic and control their own information. 
+Interfaces to these also need to be compatible with brain-like
+controls.
+
+
+From early expiramentation this 2d method of editing levels should work
+in a 3d environment also. 
+
+
+
+
+
+
+
+
+
+
+
+

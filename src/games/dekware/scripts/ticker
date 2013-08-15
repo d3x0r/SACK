@@ -1,0 +1,74 @@
+
+
+/dest tickthing
+/create tickthing
+/wake tickthing
+
+/tickthing/decl delaytime 54000
+/tickthing/decl synch false
+
+/tickthing/mac tick
+/tickthing/label top
+
+/tickthing/reply /setcolor white blue
+/tickthing/reply /echo Tick...%%now
+/tickthing/reply /setcolor grey black
+/tickthing/reply /fecho 
+
+/tickthing/label doublesynch
+
+/tickthing/decl synch false
+/tickthing/delay %%delaytime
+/tickthing/getdelay
+/tickthing/getresult temp
+
+#/tickthing/decl delaytime %%temp
+/tickthing/fecho delayresult: %%temp
+
+/tickthing/compare %%synch is true
+/tickthing/if fail
+	/tickthing/reply /setcolor white blue
+	/tickthing/reply /echo Tick in 6 seconds...%%now
+	/tickthing/reply /setcolor grey black
+	/tickthing/reply /fecho 
+	/tickthing/delay 3000
+	#/tickthing/getdelay
+	#/tickthing/getresult temp
+	#/tickthing/fecho delayresult: %%temp
+/tickthing/endif
+
+/tickthing/compare %%synch is true
+/tickthing/if fail
+	/tickthing/reply /setcolor white blue
+	/tickthing/reply /echo Tick in 3 seconds...%%now
+	/tickthing/reply /setcolor grey black
+	/tickthing/reply /fecho 
+	/tickthing/delay 3000
+	#/tickthing/getdelay
+	#/tickthing/getresult temp
+	#/tickthing/decl delaytime 54000
+	#/tickthing/decrement %%delaytime %%temp
+	#/tickthing/fecho delayresult: %%temp
+/tickthing/endif
+
+/tickthing/goto top
+/tickthing/endmac
+
+/tickthing/tick
+
+/mac ticksynch
+/decl in tickthing synch true
+/tickthing/resume
+/endmac
+
+/mac connected
+/compare connected
+/if success
+/scr synch.trig
+/endif
+/dest connected
+/endm
+
+/endmac
+
+/connected

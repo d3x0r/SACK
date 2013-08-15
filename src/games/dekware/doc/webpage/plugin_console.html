@@ -1,0 +1,73 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<FONT size=+3><center>Console Plugin</center></font><br>
+<a href="plugins.html" OnMouseOver="window.status='Other plugins';return true" OnMouseOut="window.status=''">Return to Plugins</A><br>
+<hr>
+<p>The console plugin provides a command console input to nexus.&nbsp; Only one
+console window may be opened for any windows application.&nbsp; 
+
+<center><u>Devices</u></center>
+<menu>
+   console
+   <menu>
+      No additional parameters are required to invoke a console parser.
+   </menu>
+   example: /command "console"<br>
+   This is one of the commands performed by MOOSE when created.
+</menu>
+
+<center><u>Additional Commands</u></center>
+<menu>
+   SETCOLOR [foreground] [background]
+   <menu>
+      Sets the default and current color of the display to the foreground
+      and background specified.  If the background color is omitted, the
+      current background is used, and only the foreground color changes.
+      Possible colors: black, blue, green, cyan, red, brown, magenta, grey,
+      darkgrey, lightblue, lightgreen, lightcyan, lightred, lightmagenta,
+      yellow, white.
+   </menu><br>
+   LINES [line count]
+   <menu>
+      Sets the number of lines of continuous output which may be displayed
+      before the output is paused.
+   </menu><br>
+   KEYBIND [Key] &lt;keystroke&gt; &nbsp;&nbsp;(see <a href="keylist.html">here</a> for key list)
+   <menu>
+      If data is specified after the keyname, this data is treated as a keystroke.
+      A keystroke is a set of characters entered as if they were typed.  If no 
+      keystroke is specified, then commands following are recorded as actions
+      to be done when the key is pressed.
+      <p>For example:
+      <menu>/keybind F10<br>
+            /echo F10 key was pressed!<br>
+            /endmac
+            </menu>
+      NOTE: Key macros are terminated the same as normal macros.
+
+   </menu><br>
+   KEYUNBIND [Key]
+   <menu>
+      Removes a macro or keystroke which was
+   </menu>
+   No additional commands are provided by this plugin.
+</menu>
+<p>The console plugin allows commands to be entered in a DOS type command
+window.&nbsp; Some special keys work for command entry.
+<menu>
+   <li>Escape - clear current command.
+   <li>Up Arrow - Recall the last command entered.
+   <li>Down Arrow - Recall the next command.&nbsp; If you have used up arrow to recall a command, down will step through the next commands.
+   <li>Left Arrow - Steps the cursor one space left.
+   <li>Right Arrow - Steps the cursor one space right.
+   <li>Enter - Issue the command
+   <li>Home - Go to the beginning of the command line.
+   <li>End - Go to the end of the command line.
+   <li>Backspace - deletes the character to the left of the cursor.
+   <li>Delete - Deletes the character to the right of the cursor.
+   <li>Insert - Toggle between insert/overwrite.&nbsp; No indication of current mode.
+</menu>
+
+</BODY>
+</HTML>

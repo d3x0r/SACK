@@ -1,0 +1,96 @@
+
+/scr folkill.trig
+
+/trigger dest prompt
+/trigger create prompt <&hit &move>
+/decl skipeatdrink false
+/decl curhit %hit
+/decl curmove %move
+/compare %curhit lessthan %maxhit
+/if success
+	/decl lowhit true
+/endif
+/compare %curhit is %maxhit
+/if success
+	/compare %lowhit is true
+   /if success
+   	/sound ding
+      .:seems quite healthy.
+      /decl lowhit false
+   /endif
+/endif
+/endmac
+
+/trigger dest followbeck
+/trigger create followbeck &who beckons you 
+. say I'll have to consider that option, %who.
+. fol %who
+/endmac
+/trigger opt follow anchor
+
+/trigger dest group
+/trigger create group &who starts following you
+. group %who
+/endmac
+
+#restring autowake for lightfoot.
+/trigger dest autowake
+/trigger create autowake You have been idle, and are pulled into a void.
+:scratches himself...
+/endmac
+
+
+/dest repo
+/mac repo
+. :reports: I have %curhit/%maxhit hp, %curmove/%maxmove move.
+/endmac
+
+/trigger destroy lookat
+/trigger create lookat &who looks at you
+.peek %who
+/endmac
+
+/trigger destroy stealocoins
+/trigger create stealocoins &who tried to steal gold from &target
+.steal coins %who
+/endmac
+
+/trigger destroy stealcoins
+/trigger create stealcoins You discover that &who has his hands in your wallet
+.steal coins %who
+/endmac
+
+/trigger destroy steal
+/trigger create steal &who tried to steal something from &target
+. whis %who You really should be more careful...
+.peek %who
+/endmac
+
+/trigger destroy smile
+/trigger create smile &who smiles at you
+.sneer %who
+/endmac
+
+/trigger dest bashdoor
+/trigger create bashdoor it seems to be locked
+/echo figure out how lockpicks work here...
+/echo
+#.say the %lastdoor seems to be stuck, maybe if I....
+#.doorbash %lastdoor
+/endmac
+
+/trigger dest died
+/trigger crea died is dead! R.I.P.
+.sneak
+.hide
+/endmac
+
+/trigger dest resneak
+/trigger create resneak you are no longer sneaky
+. sneak
+/endmac
+
+/trigger dest tripfall
+/trigger crea tripfail avoids your attempt to trip 
+.stand
+/endmac

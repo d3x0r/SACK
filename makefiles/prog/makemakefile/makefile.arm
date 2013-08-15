@@ -1,0 +1,15 @@
+
+#GCC=i686-pc-linux-gnu-gcc
+GCC=gcc
+GCCPATH=$(dir $(word 2,$(shell whereis gcc)))
+
+ifdef BAG
+$(SACK_BASE)/makefiles/$(RINTDEST)/mm: mmf.c
+	PATH=$(GCCPATH):$(PATH) $(GCC) -DBAG -o $@ -D__LINUX__ mmf.c
+else
+$(SACK_BASE)/makefiles/$(RINTDEST)/mm: mmf.c
+	PATH=$(GCCPATH):$(PATH) $(GCC) -o $@ -D__LINUX__ mmf.c
+endif
+
+makefile.arm: ;
+

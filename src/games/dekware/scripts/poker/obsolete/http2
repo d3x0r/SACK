@@ -1,0 +1,15 @@
+
+
+/create game_server
+/wake game_server
+/game_server/parse request tcpserver 81
+//mac Accept
+//parse token bash
+//scr http.alias
+//dump %%me
+//trigger list test
+//trigger list test2
+//endmac
+
+
+

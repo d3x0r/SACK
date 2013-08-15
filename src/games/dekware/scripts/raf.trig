@@ -1,0 +1,11 @@
+
+
+
+/trigger create ignoreooc *someone says OOC:
+/trigger opt ignoresaytext once
+/endmac
+/trigger opt ignoreooc anchor consume
+
+/mac ooc what
+/trigger opt ignoreooc %what
+/endmac
