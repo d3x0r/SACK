@@ -384,6 +384,32 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 		if( l.flags.bLogOpenClose )
 			lprintf("prepend %s[%s] with %s", group->base_path, tmp_path, filename );
 		snprintf( fullname, len * sizeof( TEXTCHAR ), WIDE("%s/%s"), tmp_path, real_filename );
+#if __ANDROID__
+		{
+			int len_base;
+			static TEXTCHAR here[256];
+			static size_t len;
+			size_t ofs;
+			if( !here[0] )
+			{
+				GetCurrentPath( here, sizeof( here ) );
+			}
+			if( StrStr( tmp_path, here ) )
+				len = StrLen( here );
+			else
+				len = 0;
+
+			if( l.flags.bLogOpenClose )
+				lprintf( "Fix dots in [%s]", fullname );
+			for( ofs = len+1; fullname[ofs]; ofs++ )
+			{
+				if( fullname[ofs] == '/' )
+					fullname[ofs] = '.';
+				if( fullname[ofs] == '\\' )
+					fullname[ofs] = '.';
+			}
+		}
+#endif
 		if( l.flags.bLogOpenClose )
 			lprintf( "result %s", fullname );
 		Release( tmp_path );
