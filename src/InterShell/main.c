@@ -2811,7 +2811,7 @@ void CPROC DrawEditGlare( PTRSZVAL psv, Image surface )
 		{
 			// should use X to capture an image of the current menu config
 			// then during editing we do not have to redraw all controls all the time..
-			ClearImageTo( surface, 0x01000000 );
+			ClearImageTo( surface, 0x20101010 );
 
 			{
 				PMENU_BUTTON button;
@@ -5138,6 +5138,7 @@ PRIORITY_PRELOAD( LoadingMessage, DEFAULT_PRELOAD_PRIORITY+3 )
 {
 
 	Banner2NoWaitAlpha( WIDE("Loading...") );
+
 	//void SQLSetFeedbackHandler( void (CPROC*HandleSQLFeedback*)(TEXTCHAR *message) );
 #ifndef __NO_SQL__
 	SQLSetFeedbackHandler( MyHandleSQLFeedback );
