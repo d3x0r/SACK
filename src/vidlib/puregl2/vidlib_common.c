@@ -993,13 +993,9 @@ void  MoveDisplayRel (PVIDEO hVideo, S_32 x, S_32 y)
 {
    if (x || y)
    {
-		lprintf( WIDE("Moving display %d,%d"), x, y );
 		hVideo->pWindowPos.x += x;
 		hVideo->pWindowPos.y += y;
 		Translate( hVideo->transform, hVideo->pWindowPos.x, hVideo->pWindowPos.y, 0 );
-#ifdef LOG_ORDERING_REFOCUS
-		lprintf( WIDE( "Move display relative" ) );
-#endif
    }
 }
 
@@ -1608,10 +1604,12 @@ static LOGICAL CPROC EnableRotation( PTRSZVAL psv, _32 keycode )
 			l.mouse_x = default_camera->hVidCore->pWindowPos.cx/2;
 			l.mouse_y = default_camera->hVidCore->pWindowPos.cy/2;
 			lprintf( WIDE("Moving Mouse Not Implemented") );
-			//SetCursorPos( default_camera->hVidCore->pWindowPos.x
-			//	+ default_camera->hVidCore->pWindowPos.cx/2
-			//	, default_camera->hVidCore->pWindowPos.y
-			//	+ default_camera->hVidCore->pWindowPos.cy / 2 );
+#ifdef _WIN32
+			SetCursorPos( default_camera->hVidCore->pWindowPos.x
+				+ default_camera->hVidCore->pWindowPos.cx/2
+				, default_camera->hVidCore->pWindowPos.y
+				+ default_camera->hVidCore->pWindowPos.cy / 2 );
+#endif
 		}
 		lprintf( WIDE("ALLOW ROTATE") );
 	}

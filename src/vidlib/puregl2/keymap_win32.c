@@ -228,7 +228,8 @@ LRESULT CALLBACK
             l.mouse_b &= ~MK_ALT;
 #ifndef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
 		{
-			PVIDEO hVideo = hVid;
+			PVIDEO hVideo = l.hVidVirtualFocused;
+
 			if( FindLink( &l.pActiveList, hVideo ) != INVALID_INDEX )
 			{
 				if( hVideo && hVideo->pKeyProc )
