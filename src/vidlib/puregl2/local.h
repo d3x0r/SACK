@@ -262,6 +262,9 @@ void WantRenderGL( void );
 void OpenWin32Camera( struct display_camera *camera );
 int InitGL( struct display_camera *camera );										// All Setup For OpenGL Goes Here
 
+// ------ android keymap -------------
+void SACK_Vidlib_ToggleInputDevice( void );
+
 
 
 // ---------- vidlib win32 - share dsymbols for keymap win32
