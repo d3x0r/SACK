@@ -482,7 +482,7 @@ void TryLoadingFrameImage( void )
 #else
 		StrCpy( buffer, WIDE("frame_border.png") );
 #endif
-		g.BorderImage = LoadImageFileFromGroup( GetFileGroup( WIDE( "Images" ), WIDE( "./Images" ) ), buffer );
+		g.BorderImage = LoadImageFileFromGroup( GetFileGroup( WIDE( "Images" ), WIDE( "./images" ) ), buffer );
 		if( g.BorderImage )
 		{
 			int MiddleSegmentWidth, MiddleSegmentHeight;
