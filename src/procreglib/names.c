@@ -2030,7 +2030,12 @@ void ReadConfiguration( void )
 		AddConfigurationMethod( pch, WIDE("module path %m"), HandleModulePath );
 
 		{
-			CTEXTSTR filepath = GetProgramPath();
+			CTEXTSTR filepath
+#ifdef __ANDROID__
+				= ".";
+#else
+				= GetProgramPath();
+#endif
 			TEXTSTR loadname;
 			size_t len;
 			int success = FALSE;

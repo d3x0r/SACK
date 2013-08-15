@@ -45,7 +45,8 @@ static void LocalInit( void )
     {
         InitializeCriticalSec( &l.cs_files );
         l.flags.bInitialized = 1;
-    }
+	 }
+    l.flags.bLogOpenClose = 1;
 }
 
 PRIORITY_PRELOAD( InitWinFileSysEarly, CONFIG_SCRIPT_PRELOAD_PRIORITY - 1 )
@@ -221,7 +222,10 @@ TEXTSTR ExpandPath( CTEXTSTR path )
 				size_t len;
 				GetCurrentPath( here, sizeof( here ) );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				snprintf( tmp_path, len, WIDE( "%s%s%s" ), here, path[1]?WIDE("/"):WIDE(""), path[1]?(path + 2):WIDE("") );
+				snprintf( tmp_path, len, WIDE( "%s%s%s" )
+						  , here
+						  , path[1]?WIDE("/"):WIDE("")
+						  , path[1]?(path + 2):WIDE("") );
 			}
 			else if( ( path[0] == '@' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) )
 			{
@@ -245,6 +249,7 @@ TEXTSTR ExpandPath( CTEXTSTR path )
 			}
 			else
 			{
+            int ofs;
             // no change...
 				tmp_path = StrDup( path );
             /*
@@ -255,6 +260,31 @@ TEXTSTR ExpandPath( CTEXTSTR path )
 				snprintf( tmp_path, len, WIDE( "%s/%s" ), here, path );
             */
 			}
+#if __ANDROID__
+			{
+				int len_base;
+				TEXTCHAR here[256];
+				size_t len;
+            size_t ofs;
+				GetCurrentPath( here, sizeof( here ) );
+				if( StrStr( tmp_path, here ) )
+					len = StrLen( here );
+				else
+               len = 0;
+
+				if( l.flags.bLogOpenClose )
+					lprintf( "Fix dots in [%s]", tmp_path );
+				for( ofs = len+1; tmp_path[ofs]; ofs++ )
+				{
+					if( tmp_path[ofs] == '/' )
+                  tmp_path[ofs] = '.';
+					if( tmp_path[ofs] == '\\' )
+						tmp_path[ofs] = '.';
+				}
+				if( l.flags.bLogOpenClose )
+					lprintf( "Fixed result [%s]", tmp_path );
+			}
+#endif
 		}
 		else if( StrChr( path, '%' ) != NULL )
 		{
@@ -328,6 +358,8 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 	TEXTSTR real_filename = filename?ExpandPath( filename ):NULL;
 	TEXTSTR fullname;
 
+	lprintf( "Prepend to {%s} %p %d", real_filename, group, groupid );
+
 	if( l.groups )
 	{
 		//SetDefaultFilePath( GetProgramPath() );
@@ -351,7 +383,7 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 		fullname = NewArray( TEXTCHAR, len = StrLen( filename ) + StrLen(tmp_path) + 2 );
 		if( l.flags.bLogOpenClose )
 			lprintf("prepend %s[%s] with %s", group->base_path, tmp_path, filename );
-		snprintf( fullname, len * sizeof( TEXTCHAR ), WIDE("%s/%s"), tmp_path, filename );
+		snprintf( fullname, len * sizeof( TEXTCHAR ), WIDE("%s/%s"), tmp_path, real_filename );
 		if( l.flags.bLogOpenClose )
 			lprintf( "result %s", fullname );
 		Release( tmp_path );

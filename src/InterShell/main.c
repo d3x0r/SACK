@@ -5160,7 +5160,11 @@ PRIORITY_PRELOAD( ProgramLock, DEFAULT_PRELOAD_PRIORITY+2 )
 	{
 		int version;
 		SACK_GetProfileStringEx( GetProgramName(), WIDE("Use SQL DSN for Configuration")
+#ifdef __ANDROID_
+									  , WIDE("./option.db")
+#else
 									  , WIDE("@/option.db")
+#endif
 								  , g.configuration_dsn, 256, TRUE );
 		g.configuration_version = SACK_GetProfileIntEx( GetProgramName(), WIDE("Use SQL Option Database Version"), 4, TRUE );
 
@@ -5171,7 +5175,9 @@ PRIORITY_PRELOAD( ProgramLock, DEFAULT_PRELOAD_PRIORITY+2 )
 								  , sizeof( resource_path ), TRUE );
    lprintf( WIDE("Move to resource directory; setup resource path") );
 	SACK_GetProfileStringEx( GetProgramName(), WIDE("resource path")
-#ifdef __LINUX__
+#ifdef __ANDROID_
+								  , resource_path[0]?resource_path:WIDE(".")
+#elif defined( __LINUX__ )
 								  , resource_path[0]?resource_path:WIDE("~")
 #else
 								  , resource_path[0]?resource_path:WIDE("@/../resources")
@@ -5397,7 +5403,6 @@ PTRSZVAL CPROC MenuThread( PTHREAD thread )
 PUBLIC( int, Main)( int argc, TEXTCHAR **argv, int bConsole )
 {
 #endif
-
 #ifndef __NO_OPTIONS__
 	g.flags.bTopmost = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Display Topmost"), 0, TRUE );
 	g.flags.bTransparent = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Display is transparent"), 1, TRUE );
@@ -5411,7 +5416,10 @@ PUBLIC( int, Main)( int argc, TEXTCHAR **argv, int bConsole )
 	//SystemLogTime( SYSLOG_TIME_CPU| SYSLOG_TIME_DELTA );
 
 	g.system_name = GetSystemName(); // Initialized here. Command argument -Sysname= may override.
-
+#ifdef __ANDROID__
+   // need to reset some statuses because we're presistant loaded
+	g.flags.bExit = 0;
+#endif
 	CreateBanner2Ex( NULL, NULL, WIDE("Starting...")
 						, (g.flags.bTopmost?BANNER_TOP:0)
 						 |BANNER_NOWAIT|BANNER_DEAD|BANNER_ALPHA, 0 );
@@ -5482,6 +5490,7 @@ PUBLIC( int, Main)( int argc, TEXTCHAR **argv, int bConsole )
 	g.pMainThread = MakeThread();
 	if( !g.flags.bTerminateStayResident )
 	{
+      g.flags.bExit = 0;
 		while( restart() != 1 );
 		QuitMenu( 0, 0 );
 #ifdef USE_INTERFACES

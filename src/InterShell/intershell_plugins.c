@@ -372,19 +372,6 @@ static void UpdateFromControls( PSI_CONTROL frame )
 		}
 		else
 		{
-#if 0 // this is much too late - during configuration - to have controls added to create control menu
-			if( !plugin->flags.bLoaded )
-			{
-				LIST_FORALL( plugin->pLoadOn, idx, CTEXTSTR, p )
-				{
-					if( CompareMask( p, InterShell_GetSystemName(), FALSE ) )
-					{
-						plugin->flags.bLoaded = TRUE;
-						LoadInterShellPlugins( NULL, plugin->plugin_full_name );
-					}
-				}
-			}
-#endif
 		}
 	}
 }
