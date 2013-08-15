@@ -302,8 +302,8 @@ static void DrawBannerCaption( PSI_CONTROL pc, PBANNER banner, Image surface, TE
 	int skip = 0;
 	if( !banner_local.flags.bFullDraw && banner->bit_flags.bounds_set )
 	{
-      // be kinda nice to be able to result this to the control to get a partial update to screen...
-      //lprintf( "Clearing box %d %d %d %d", banner->text_bounds.x, banner->text_bounds.y
+		// be kinda nice to be able to result this to the control to get a partial update to screen...
+		//lprintf( "Clearing box %d %d %d %d", banner->text_bounds.x, banner->text_bounds.y
 		//			, banner->text_bounds.w, banner->text_bounds.h );
 		banner->old_bounds = banner->text_bounds;
 		BlatColor( surface, banner->text_bounds.x, banner->text_bounds.y
@@ -311,7 +311,7 @@ static void DrawBannerCaption( PSI_CONTROL pc, PBANNER banner, Image surface, TE
 	}
 	else
 	{
-      //lprintf( "output full surface." );
+		//lprintf( "output full surface." );
 		banner->old_bounds.x = 0;
 		banner->old_bounds.y = 0;
 		banner->old_bounds.w = surface->width;
@@ -580,7 +580,7 @@ int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, i
 	if( !banner->frame )
 	{
 		banner->textcolor = textcolor?textcolor:AColor( 0x0d, 0x0d, 0x0d, 0xff );
-		banner->basecolor = basecolor?basecolor:AColor( 0x13, 0x53, 0x93, 0x01 );
+		banner->basecolor = basecolor?basecolor:AColor( 0x13, 0x53, 0x93, 0x40 );
 		//		GetDisplaySize( &banner_local.w, &banner_local.h );
 		{
 			CTEXTSTR result;

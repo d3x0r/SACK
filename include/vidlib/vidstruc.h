@@ -279,6 +279,7 @@ typedef struct HVIDEO_tag
 		BIT_FIELD bRestoring : 1; // set during SW_RESTORE operation (kills resizes, which happen when expanding the screen)
 		BIT_FIELD bUpdated : 1;
 		BIT_FIELD bForceSurfaceUpdate : 1; // set when we change size.
+		BIT_FIELD bRendering : 1; // while rendering, set this; prevents destroy-while-draw
 	} flags;
 
    struct HVIDEO_tag *pNext, *pPrior;
