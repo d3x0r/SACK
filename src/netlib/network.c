@@ -2176,15 +2176,19 @@ static PTRSZVAL CPROC NetworkThreadProc( PTHREAD thread )
    //   lprintf( WIDE("Thread has already been started.") );
 	//	return 0;
 	//}
-   //Relinquish();
-   g.uPendingTimer = AddTimer( 5000, PendingTimer, 0 );
-   signal( SIGPIPE, SIG_IGN );
+	//Relinquish();
+	g.uPendingTimer = AddTimer( 5000, PendingTimer, 0 );
+	signal( SIGPIPE, SIG_IGN );
 	while( !g.pThreads )
+	{
 		Relinquish(); // wait for pThread to be done
- 	g.flags.bThreadInitOkay = TRUE;
-   g.flags.bThreadInitComplete = TRUE;
-   g.flags.bNetworkReady = TRUE;
-   //lprintf( WIDE("Network Thread Began...") );
+	}
+	g.pThread = thread;
+	g.flags.bThreadInitOkay = TRUE;
+	g.flags.bThreadInitComplete = TRUE;
+	g.flags.bNetworkReady = TRUE;
+	//lprintf( "So we're good to go; set all flags as sucess, and begin doing nothing." );
+	//lprintf( WIDE("Network Thread Began...") );
 
    while( !g.bQuit )
 	{
@@ -2205,6 +2209,7 @@ static PTRSZVAL CPROC NetworkThreadProc( PTHREAD thread )
          Release( slab );
 		}
 	}
+	lprintf( "Exiting network thread..." );
 	DeleteList( &g.ClientSlabs );
 	Release( g.pUserData );
 	g.pUserData = NULL;
@@ -2382,6 +2387,9 @@ NETWORK_PROC( LOGICAL, NetworkWait )(POINTER unused,_16 wClients,int wUserData)
 NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,_16 wClients,int wUserData)
 #endif
 {
+	// want to start the thead; clear quit.
+	g.bQuit = FALSE;
+
 	ReallocClients( wClients, wUserData );
 
 	//-------------------------
@@ -2407,7 +2415,9 @@ NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,_16 wClients,int wUserData)
 	//lprintf( WIDE("Network Initialize..."));
 	//lprintf( WIDE("Create network thread.") );
 	while( !g.flags.bThreadInitComplete )
+	{
 		Relinquish();
+	}
 	if( !g.flags.bThreadInitOkay )
 	{
 		lprintf( "Abort network, init is NOT ok." );
