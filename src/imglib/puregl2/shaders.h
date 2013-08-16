@@ -66,12 +66,6 @@ struct image_shader_tracker
 	void (CPROC*Enable)( PImageShaderTracker,va_list);
 };
 
-struct image_shader_attribute_order
-{
-	int n;
-   CTEXTSTR name;
-};
-
 
 PImageShaderTracker GetShader( CTEXTSTR name, void (*)(PImageShaderTracker) );
 int CompileShaderEx( PImageShaderTracker shader, CTEXTSTR *vertex_code, int vert_blocks, CTEXTSTR *frag_code, int frag_blocks, struct image_shader_attribute_order *, int nAttribs );
