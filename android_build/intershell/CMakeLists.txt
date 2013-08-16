@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
+set( Project SACK.InterShell )
 
 if( NOT INTERSHELL_SDK_ROOT_PATH )
 GET_FILENAME_COMPONENT(INTERSHELL_SDK_ROOT_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Freedom Collective\\InterShell;Install_Dir]" ABSOLUTE CACHE)
@@ -48,6 +49,7 @@ ainstall( ${INTERSHELL_SDK_ROOT_PATH}/lib * DESTINATION package/libs/armeabi )
 
 dinstall(  ${CMAKE_SOURCE_DIR}/res * DESTINATION package/res )
 ainstall(  ${CMAKE_SOURCE_DIR} sql.config DESTINATION package/assets )
+ainstall(  ${CMAKE_SOURCE_DIR} libEditOptions.interface.conf DESTINATION package/assets )
 ainstall(  ${CMAKE_SOURCE_DIR} libInterShell_console.interface.conf DESTINATION package/assets )
 ainstall(  ${CMAKE_SOURCE_DIR} libInterShell_console.config DESTINATION package/assets )
 ainstall(  ${CMAKE_SOURCE_DIR} build.xml DESTINATION package )
@@ -74,4 +76,11 @@ EXECUTE_PROCESS(
 EXECUTE_PROCESS( 
        COMMAND ant.bat debug 
        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/package )
+
+
+    add_custom_target( install 
+    			COMMAND echo adb install command...
+                     COMMAND adb install package/bin/${Project}-debug.apk
+ )
+
 
