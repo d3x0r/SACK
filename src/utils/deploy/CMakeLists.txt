@@ -21,7 +21,6 @@ macro( build_package_include )
    	file( APPEND ${CMAKE_BINARY_DIR}/deploy.package.h \t\" "${LINE}" \\n\"\n )
    endforeach( LINE )
    file( APPEND ${CMAKE_BINARY_DIR}/deploy.package.h \t\; )
-   INCLUDE_DIRECTORIES( ${CMAKE_BINARY_DIR} )
 endmacro( build_package_include )
 
 build_package_include()
