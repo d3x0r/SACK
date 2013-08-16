@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "deploy.package.h"
+
 #if defined( __LINUX64__ )
 #define SHARED_LIBPATH "lib64"
 #define LINK_LIBPATH "lib64"
@@ -370,249 +372,21 @@ int main( int argc, char **argv )
 #endif
 		}
 
-		fprintf( out, "#set was_monolithic_build to build mode\n" );
-		fprintf( out, "set( WAS_MONOLITHIC ${BUILD_MONOLITHIC} )\n" );
-		fprintf( out, "\n" );
-#if MAKE_RCOORD_SINGLE
-		fprintf( out, "add_definitions( -DMAKE_RCOORD_SINGLE )\n" );
-#endif
 
-#if __BULLET_ENABLED__
-		fprintf( out, "set( BULLET_SOURCE ${BULLET_SOURCE} )\n" );
-#ifdef BT_USE_DOUBLE_PRECISION
-		fprintf( out, "add_definitions( -DBT_USE_DOUBLE_PRECISION )\n" );
-#endif
-      // (after MiniCL) BulletWorldImporter
-		fprintf( out, "set( BULLET_LIBRARIES BulletMultiThreaded MiniCL BulletSoftBody BulletDynamics BulletCollision LinearMath ) \n" );
-#endif
-		fprintf( out, "\n" );
-		fprintf( out, "enable_language(C)\n" );
-		fprintf( out, "enable_language(CXX)\n" );
-		fprintf( out, "\n" );
-		fprintf( out, "if( MSVC )\n" );
-		fprintf( out, "set( SUPPORTS_PARALLEL_BUILD_TYPE 1 )\n" );
-		fprintf( out, "endif( MSVC )\n" );
-		fprintf( out, "\n" );
-		fprintf( out, "set( SACK_BASE %s )\n", SlashFix( path ) );
-		fprintf( out, "set( SACK_INCLUDE_DIR $""{SACK_BASE}/include/SACK )\n" );
-		fprintf( out, "set( SACK_BAG_PLUSPLUS @SACK_BAG_PLUSPLUS@ )\n" );
-		fprintf( out, "if( WAS_MONOLITHIC )\n" );
-		fprintf( out, "set( SACK_LIBRARIES sack_bag $""{SACK_BAG_PLUSPLUS} )\n" );
-		fprintf( out, "else( WAS_MONOLITHIC )\n" );
-		fprintf( out, "set( SACK_LIBRARIES ${BAG_PLUSPLUS} bag ${BAG_PSI_PLUSPLUS} bag.psi bag.externals )\n" );
-		fprintf( out, "endif( WAS_MONOLITHIC )\n" );
-		fprintf( out, "set( SACK_LIBRARY_DIR $""{SACK_BASE}/lib )\n" );
-		fprintf( out, "\n" );
-		fprintf( out, "set( USE_OPTIONS ${USE_OPTIONS} )\n" );
-		fprintf( out, "if( NOT USE_OPTIONS )\n" );
-		fprintf( out, "add_definitions( -D__NO_OPTIONS__ )\n" );
-		fprintf( out, "endif( NOT USE_OPTIONS )\n" );
-#ifdef MINGW_SUX
-		fprintf( out, "add_definitions( -DMINGW_SUX )\n" );
-#endif
-		fprintf( out, "set( __NO_GUI__ ${__NO_GUI__} )\n" );
-		fprintf( out, "if( __NO_GUI__ )\n" );
-		fprintf( out, "add_definitions( -D__NO_GUI__ )\n" );
-		fprintf( out, "endif( __NO_GUI__ )\n" );
-		fprintf( out, "set( __LINUX__ ${__LINUX__} )\n" );
-		fprintf( out, "set( __LINUX__ ${__LINUX__} )\n" );
-		fprintf( out, "set( __LINUX64__ ${__LINUX64__} )\n" );
-		#ifdef __LINUX__
-		fprintf( out, "add_definitions( -D__LINUX__ )\n" );
-		#endif
-		#ifdef __LINUX64__
-		fprintf( out, "add_definitions( -D__LINUX64__ )\n" );
-		#endif
-		#ifdef __64__
-		fprintf( out, "add_definitions( -D__64__ )\n" );
-		#endif
-		#ifdef __WINDOWS__
-		fprintf( out, "add_definitions( -D__WINDOWS__ )\n" );
-		#endif
-		fprintf( out, "set( WIN_SYS_LIBS ${WIN_SYS_LIBS} )\n" );
-		fprintf( out, "set( SOCKET_LIBRARIES ${SOCKET_LIBRARIES} )\n" );
-		fprintf( out, "\n" );
-		fprintf( out, "\n" );
-		fprintf( out, "set(  CMAKE_CXX_FLAGS_DEBUG \"$""{CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG\" )\n" );
-		fprintf( out, "set(  CMAKE_CXX_FLAGS_RELWITHDEBINFO \"$""{CMAKE_CXX_FLAGS_RELWITHDEBINFO} -D_DEBUG\" )\n" );
-		fprintf( out, "set(  CMAKE_C_FLAGS_DEBUG \"$""{CMAKE_C_FLAGS_DEBUG} -D_DEBUG\" )\n" );
-		fprintf( out, "set(  CMAKE_C_FLAGS_RELWITHDEBINFO \"$""{CMAKE_C_FLAGS_RELWITHDEBINFO} -D_DEBUG\" )\n" );
-		fprintf( out, "set(  SACK_REPO_REVISION \"${CURRENT_REPO_REVISION}\" )\n" );
-		fprintf( out, "set(  SACK_BUILD_TYPE \"${CMAKE_BUILD_TYPE}\" )\n" );
-		fprintf( out, "set(  SACK_GENERATOR \"${CMAKE_GENERATOR}\" )\n" );
-		fprintf( out, "set(  SACK_PROJECT_NAME \"${CMAKE_PROJECT_NAME}\" )\n" );
-		fprintf( out, "\n" );
-		fprintf( out, "  if( $""{CMAKE_COMPILER_IS_GNUCC} )\n" );
-		fprintf( out, "    if( UNIX )\n" );
-		fprintf( out, "      SET( CMAKE_EXE_LINKER_FLAGS \"-Wl,--as-needed\" )\n" );
-		fprintf( out, "      SET( CMAKE_SHARED_LINKER_FLAGS \"-Wl,--as-needed\" )\n" );
-		fprintf( out, "      SET( CMAKE_MODULE_LINKER_FLAGS \"-Wl,--as-needed\" )\n" );
-		fprintf( out, "    endif( UNIX )\n" );
-		fprintf( out, "    SET( FIRST_GCC_LIBRARY_SOURCE $""{SACK_BASE}/src/sack/deadstart_list.c )\n" );
-		fprintf( out, "    SET( FIRST_GCC_PROGRAM_SOURCE $""{SACK_BASE}/src/sack/deadstart_list.c )\n" );
-		fprintf( out, "    SET( LAST_GCC_LIBRARY_SOURCE $""{SACK_BASE}/src/sack/deadstart_lib.c $""{SACK_BASE}/src/sack/deadstart_end.c )\n" );
-		fprintf( out, "    SET( LAST_GCC_PROGRAM_SOURCE $""{SACK_BASE}/src/sack/deadstart_lib.c $""{SACK_BASE}/src/sack/deadstart_prog.c $""{SACK_BASE}/src/sack/deadstart_end.c )\n" );
-		fprintf( out, "  endif()\n" );
-		fprintf( out, "\n" );
-		fprintf( out, "if( MSVC OR WATCOM )\n" );
-		fprintf( out, "  SET( LAST_GCC_PROGRAM_SOURCE $""{SACK_BASE}/src/sack/deadstart_prog.c )\n" );
-		fprintf( out, "endif( MSVC OR WATCOM )\n" );
-		fprintf( out, "\n" );
-		fprintf( out, "add_definitions( -D_WIN32_WINNT=${WIN32_VERSION} -DWINVER=${WIN32_VERSION})\n" );
-      fprintf( out, "\n" );
-		fprintf( out, "if( MSVC )\n" );
-      // remove snprintf deprication and posix warning
-		fprintf( out, "add_definitions( -D_CRT_SECURE_NO_WARNINGS -wd4995 -wd4996)\n" );
-		fprintf( out, "    if( CMAKE_CL_64 )\n" );
-		fprintf( out, "      add_definitions( -D_AMD64_ -D__64__ -D_WIN64 )\n" );
-		fprintf( out, "    else( CMAKE_CL_64 )\n" );
-		fprintf( out, "      add_definitions( -D_X86_ )\n" );
-		fprintf( out, "    endif( CMAKE_CL_64 )\n" );
-		fprintf( out, "endif( MSVC )\n" );
-#if UNICODE
-		fprintf( out, "add_definitions( -DUNICODE )\n" );
-#endif
-#if _UNICODE
-		fprintf( out, "add_definitions( -D_UNICODE )\n" );
-#endif
+		{
+			const char *replace_start;
+			const char *replace_end;
+			replace_start = strstr( package, "@@@" );
+			if( replace_start )
+			{
+				fprintf( out, "%*.*s", replace_start - package, replace_start - package, package );
+				fprintf( out, "%s", SlashFix( path ) );
+				fprintf( out, "%s", replace_start + 3 );
+			}
+			else
+				fprintf( out, "%s", package );
+		}
 
-		fprintf( out, "SET( DATA_INSTALL_PREFIX resources )\n" );
-      fprintf( out, "\n" );
-		fprintf( out, "#### Carried Definition of how library was linked\n" );
-		fprintf( out, "SET( FORCE_MSVCRT ${FORCE_MSVCRT})\n" );
-		fprintf( out, "SET( SACK_PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES})\n" );
-		fprintf( out, "SET( sack_extra_link_flags ${extra_link_flags})\n" );
-      fprintf( out, "\n" );
-		fprintf( out, "include( $""{SACK_BASE}/DefaultInstall.cmake )\n" );
-		fprintf( out, "if( NOT WAS_MONOLITHIC )\n" );
-		fprintf( out, "macro( INSTALL_SACK dest )\n" );
-		fprintf( out, "\n" );
-		fprintf( out, "if(SUPPORTS_PARALLEL_BUILD_TYPE)\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}bag${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}${BAG_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}service_list${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}sack.msgsvr.service${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/sack.msgsvr.service.plugin DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/msgsvr${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}bag.externals${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}bag.image${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}bag.video${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}bag.psi${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}${BAG_PSI_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}bag.video.puregl${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}bag.image.puregl${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}bag.image.puregl2${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}glew${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "if( NOT __NO_GUI__ )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/Images/frame_border.png DESTINATION $""{dest}/Images )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/EditOptions${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/DumpFontCache${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "endif( NOT __NO_GUI__ )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/SetOption${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/loginfo.module DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/application_delay.module DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/sack.msgsvr.service.plugin DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/msgsvr${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/importini${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/exportini${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		
-		// there is no interface.conf for linux (yet)
-#ifndef __LINUX__
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/interface.conf DESTINATION $""{dest} )\n" );
-#endif
-		fprintf( out, "else(SUPPORTS_PARALLEL_BUILD_TYPE)\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/${CMAKE_SHARED_LIBRARY_PREFIX}bag${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/${CMAKE_SHARED_LIBRARY_PREFIX}${BAG_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_BINPATH "/service_list${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_BINPATH "/msgsvr${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/sack.msgsvr.service.plugin DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/${CMAKE_SHARED_LIBRARY_PREFIX}bag.externals${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/${CMAKE_SHARED_LIBRARY_PREFIX}bag.image${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/${CMAKE_SHARED_LIBRARY_PREFIX}bag.video${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/${CMAKE_SHARED_LIBRARY_PREFIX}bag.psi${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/${CMAKE_SHARED_LIBRARY_PREFIX}${BAG_PSI_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-#ifndef __LINUX__
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/${CMAKE_SHARED_LIBRARY_PREFIX}bag.video.puregl${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/${CMAKE_SHARED_LIBRARY_PREFIX}bag.image.puregl${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/${CMAKE_SHARED_LIBRARY_PREFIX}bag.image.puregl2${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/${CMAKE_SHARED_LIBRARY_PREFIX}glew${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-#endif
-#ifndef __NO_OPTIONS__
-		fprintf( out, "if( NOT __NO_GUI__ )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_BINPATH "/Images/frame_border.png DESTINATION $""{dest}/Images )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_BINPATH "/EditOptions${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_BINPATH "/DumpFontCache${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "endif( NOT __NO_GUI__ )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_BINPATH "/SetOption${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/loginfo.module DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/application_delay.module DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_BINPATH "/msgsvr${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/sack.msgsvr.service.plugin DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_BINPATH "/importini${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_BINPATH "/exportini${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-#endif
-		// there is no interface.conf for linux (yet)
-#ifndef __LINUX__
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_BINPATH "/interface.conf DESTINATION $""{dest} )\n" );
-#endif
-		fprintf( out, "endif(SUPPORTS_PARALLEL_BUILD_TYPE)\n" );
-		fprintf( out, "ENDMACRO( INSTALL_SACK )\n" );
-		fprintf( out, "else( NOT WAS_MONOLITHIC )\n" );
-		fprintf( out, "add_definitions( -DFORCE_NO_INTERFACE )\n" );
-		fprintf( out, "macro( INSTALL_SACK dest )\n" );
-		fprintf( out, "\n" );
-		fprintf( out, "if(SUPPORTS_PARALLEL_BUILD_TYPE)\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}${SACK_BAG_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}sack_bag${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "if( NOT __NO_GUI__ )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/Images/frame_border.png DESTINATION $""{dest}/Images )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/EditOptions${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/DumpFontCache${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "endif( NOT __NO_GUI__ )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/SetOption${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/loginfo.module DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/application_delay.module DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/msgsvr${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/sack.msgsvr.service.plugin DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/importini${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/exportini${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		// there is no interface.conf for linux (yet)
-#ifndef __LINUX__
-		fprintf( out, "install( FILES $""{SACK_BASE}/bin/interface.conf DESTINATION $""{dest} )\n" );
-#endif
-		fprintf( out, "else(SUPPORTS_PARALLEL_BUILD_TYPE)\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/${CMAKE_SHARED_LIBRARY_PREFIX}${SACK_BAG_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/${CMAKE_SHARED_LIBRARY_PREFIX}sack_bag${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "if( NOT __NO_GUI__ )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/Images/frame_border.png DESTINATION $""{dest}/Images )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/EditOptions${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/DumpFontCache${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "endif( NOT __NO_GUI__ )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/SetOption${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/loginfo.module DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/application_delay.module DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_BINPATH "/msgsvr${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/sack.msgsvr.service.plugin DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/importini${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/exportini${CMAKE_EXECUTABLE_SUFFIX} DESTINATION $""{dest} )\n" );
-		
-		// there is no interface.conf for linux (yet)
-#ifndef __LINUX__
-		fprintf( out, "install( FILES $""{SACK_BASE}/" SHARED_LIBPATH "/interface.conf DESTINATION $""{dest} )\n" );
-#endif
-		fprintf( out, "endif(SUPPORTS_PARALLEL_BUILD_TYPE)\n" );
-		fprintf( out, "ENDMACRO( INSTALL_SACK )\n" );
-		fprintf( out, "endif( NOT WAS_MONOLITHIC )\n" );
-		fprintf( out, "\n" );
-
-		//fprintf( out, "IF(CMAKE_BUILD_TPYE_INITIALIZED_TO_DEFAULT)\n" );
-
-		fprintf( out, "set(CMAKE_BUILD_TYPE \"${CMAKE_BUILD_TYPE}\" CACHE STRING \"Set build type\")\n" );
-		fprintf( out, "set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS $""{CMAKE_CONFIGURATION_TYPES} Debug Release RelWithDebInfo MinSizeRel )\n" );
-                
-		//fprintf( out, "ENDIF(CMAKE_BUILD_TPYE_INITIALIZED_TO_DEFAULT)\n" );
-
-		fprintf( out, "\n" );
 
 		fclose( out );
 	}
