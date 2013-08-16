@@ -2647,7 +2647,7 @@ WM_DROPFILES
 				LIST_FORALL( l.update, idx, Update3dProc, proc )
 				{
 					if( proc( l.origin ) )
-                  l.flags.bUpdateWanted = TRUE;
+						l.flags.bUpdateWanted = TRUE;
 				}
 			}
 
@@ -2658,6 +2658,7 @@ WM_DROPFILES
 				WantRenderGL();
 			}
 
+			if( l.flags.bUpdateWanted )
 			{
 				struct display_camera *camera;
 				INDEX idx;
@@ -5667,7 +5668,7 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 	   WIDE("puregl.render.3d")
 	   , GetDisplay3dInterface, DropDisplay3dInterface );
 
-	l.gl_image_interface = (PIMAGE_INTERFACE)GetInterface( "puregl.image" );
+	l.gl_image_interface = (PIMAGE_INTERFACE)GetInterface( "image" );
 
 	BindEventToKey( NULL, KEY_F4, KEY_MOD_RELEASE|KEY_MOD_ALT, DefaultExit, 0 );
 	BindEventToKey( NULL, KEY_SCROLL_LOCK, 0, EnableRotation, 0 );

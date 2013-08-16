@@ -43,9 +43,10 @@ module bag.video.puregl.dll
 module bag.image.puregl2.dll
 
 alias service render puregl.render
-alias service image puregl.image
+alias service image puregl2.image
 
 alias service render.3d puregl.render.3d
+alias service image.3d puregl2.image.3d
 endif
 
 if sack/vidlib/use interface == windows

@@ -1762,12 +1762,12 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 		lprintf( WIDE("Regstering video interface...") );
 
 	RegisterInterface( 
-	   WIDE("puregl.render")
+	   WIDE("puregl2.render")
 	   , GetDisplayInterface, DropDisplayInterface );
 	RegisterInterface( 
-	   WIDE("puregl.render.3d")
+	   WIDE("puregl2.render.3d")
 	   , GetDisplay3dInterface, DropDisplay3dInterface );
-	l.gl_image_interface = (PIMAGE_INTERFACE)GetInterface( "puregl.image" );
+	l.gl_image_interface = (PIMAGE_INTERFACE)GetInterface( "image" );
 
 #ifndef __ANDROID__
 #ifndef UNDER_CE

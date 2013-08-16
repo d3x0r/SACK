@@ -29,7 +29,7 @@ filesys.h
 fractions.h
 hidtables.h
 idle.h
-image.h
+image.h image3d.h
 interface.h
 keybrd.h
 listports.h

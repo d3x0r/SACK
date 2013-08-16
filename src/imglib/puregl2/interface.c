@@ -8,8 +8,10 @@
 #include <sqlgetoption.h>
 #undef IMAGE_SOURCE
 #include <image.h>
+#include <image3d.h>
 #include "fntglobal.h"
 #include "local.h"
+#include "shaders.h"
 
 IMAGE_NAMESPACE
 
@@ -152,31 +154,37 @@ IMAGE_INTERFACE RealImageInterface = {
 
 };
 
+
+IMAGE_3D_INTERFACE Image3dInterface = {
+	GetShader,
+      CompileShader,
+	  EnableShader
+};
+
 #undef GetImageInterface
 #undef DropImageInterface
-static POINTER CPROC _ImageGetImageInterface( void )
+#undef GetImage3dInterface
+
+PIMAGE_INTERFACE CPROC GetImageInterface ( void )
 {
-   //RealImageInterface._global_font_data = GetGlobalFonts();
-   return &RealImageInterface;
+   return (PIMAGE_INTERFACE)&RealImageInterface;
 }
 
- PIMAGE_INTERFACE  GetImageInterface ( void )
+static POINTER CPROC GetImage3dInterface( void )
 {
-   return (PIMAGE_INTERFACE)_ImageGetImageInterface();
+   return &Image3dInterface;
+}
+
+static void  DropImage3dInterface ( POINTER p )
+{
+   ;
 }
 
 
-static void CPROC _ImageDropImageInterface( POINTER p )
+void  DropImageInterface ( PIMAGE_INTERFACE p )
 {
+   ;
 }
-#ifndef __STATIC__
-#if !(defined( SACK_BAG_EXPORTS ) && defined( __LINUX__ ))
- void  DropImageInterface ( PIMAGE_INTERFACE p )
-{
-   _ImageDropImageInterface(p );
-}
-#endif
-#endif
 
 #ifdef __WATCOM_CPLUSPLUS__
 #pragma initialize 45
@@ -326,7 +334,8 @@ Image GetShadedImage( Image child_image, CDATA red, CDATA green, CDATA blue )
 
 PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 {
-	RegisterInterface( WIDE("puregl.image"), _ImageGetImageInterface, _ImageDropImageInterface );
+	RegisterInterface( WIDE("puregl2.image"), GetImageInterface, DropImageInterface );
+	RegisterInterface( WIDE("puregl2.image.3d"), GetImage3dInterface, DropImage3dInterface );
 	l.shade_cache = CreateBinaryTreeExtended( 0, ComparePointer, NULL DBG_SRC );
 	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Image Library/Scale", 10 );
 	if( l.scale == 0.0 )
@@ -336,7 +345,7 @@ PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 			l.scale = 1;
 	}
 	else
-		l.scale = 1.0 / l.scale;
+		l.scale = 1.0f / l.scale;
 
    // this initializes some of the interface methods
    SetBlotMethod( BLOT_C );

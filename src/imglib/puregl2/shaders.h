@@ -37,6 +37,8 @@
 #define va_list va_list
 #endif
 
+#include <image3d.h>
+
 
 typedef struct image_shader_tracker ImageShaderTracker;
 typedef struct image_shader_tracker *PImageShaderTracker;
@@ -64,9 +66,16 @@ struct image_shader_tracker
 	void (CPROC*Enable)( PImageShaderTracker,va_list);
 };
 
+struct image_shader_attribute_order
+{
+	int n;
+   CTEXTSTR name;
+};
 
 
 PImageShaderTracker GetShader( CTEXTSTR name, void (*)(PImageShaderTracker) );
+int CompileShaderEx( PImageShaderTracker shader, CTEXTSTR *vertex_code, int vert_blocks, CTEXTSTR *frag_code, int frag_blocks, struct image_shader_attribute_order *, int nAttribs );
+int CompileShader( PImageShaderTracker shader, CTEXTSTR *vertex_code, int vert_blocks, CTEXTSTR *frag_code, int frag_blocks );
 void ClearShaders( void );
 
 void EnableShader( CTEXTSTR shader, ... );
