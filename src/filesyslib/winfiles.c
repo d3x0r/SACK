@@ -45,8 +45,8 @@ static void LocalInit( void )
     {
         InitializeCriticalSec( &l.cs_files );
         l.flags.bInitialized = 1;
-	 }
-    l.flags.bLogOpenClose = 1;
+	}
+    l.flags.bLogOpenClose = 0;
 }
 
 PRIORITY_PRELOAD( InitWinFileSysEarly, CONFIG_SCRIPT_PRELOAD_PRIORITY - 1 )
@@ -57,7 +57,7 @@ PRIORITY_PRELOAD( InitWinFileSysEarly, CONFIG_SCRIPT_PRELOAD_PRIORITY - 1 )
 PRELOAD( InitWinFileSys )
 {
     LocalInit();
-    l.flags.bLogOpenClose = SACK_GetProfileIntEx( WIDE( "SACK/filesys" ), WIDE( "Log open and close" ), 0, TRUE );
+    l.flags.bLogOpenClose = SACK_GetProfileIntEx( WIDE( "SACK/filesys" ), WIDE( "Log open and close" ), l.flags.bLogOpenClose, TRUE );
 }
 #endif
 
