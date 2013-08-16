@@ -158,6 +158,7 @@ IMAGE_INTERFACE RealImageInterface = {
 IMAGE_3D_INTERFACE Image3dInterface = {
 	GetShader,
       CompileShader,
+      CompileShaderEx,
 	  EnableShader
 };
 

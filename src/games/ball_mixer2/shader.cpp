@@ -57,6 +57,7 @@ void InitSuperSimpleShader( PImageShaderTracker shader )
 		GLint result;
 		const char *v_codeblocks[2];
 		const char *p_codeblocks[2];
+		struct image_shader_attribute_order attribs[] = { { 0, "vPosition" }, { 1, "in_Color" } };
 		
 		v_codeblocks[0] = gles_simple_v_shader;
 		v_codeblocks[1] = NULL;
@@ -64,15 +65,7 @@ void InitSuperSimpleShader( PImageShaderTracker shader )
 		p_codeblocks[0] = gles_simple_p_shader;
 		p_codeblocks[1] = NULL;
 
-		l.shader.extra_simple_shader.shader = ImageCompileShader( shader, v_codeblocks, 1, p_codeblocks, 1 );
-
-		glBindAttribLocation(l.shader.extra_simple_shader.shader, 0, "vPosition");
-		CheckErr();
-		glBindAttribLocation(l.shader.extra_simple_shader.shader, 1, "in_Color");
-		CheckErr();
-
-		lprintf( "X = %d", glGetAttribLocation( l.shader.extra_simple_shader.shader, "vPosition" ) );
-		lprintf( "X = %d", glGetAttribLocation( l.shader.extra_simple_shader.shader, "in_Color" ) );
+		l.shader.extra_simple_shader.shader = ImageCompileShaderEx( shader, v_codeblocks, 1, p_codeblocks, 1, attribs, 2 );
 
 		l.shader.extra_simple_shader.eye_point
 			=  glGetUniformLocation(l.shader.extra_simple_shader.shader, "in_eye_point" );
