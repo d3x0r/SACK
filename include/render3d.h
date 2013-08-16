@@ -82,10 +82,12 @@ typedef struct render_3d_interface_tag
 
 #if !defined( FORCE_NO_INTERFACE ) && !defined( FORCE_NO_RENDER_INTERFACE )
 
+#define REND3D_PROC_ALIAS(name) ((USE_RENDER_3D_INTERFACE)->_##name)
+
 #  define GetRender3dInterface() (PRENDER3D_INTERFACE)GetInterface( WIDE("render.3d") )
 
-#  define GetRenderTransform             REND_PROC_ALIAS(GetRenderTransform)
-#  define ClipPoints             REND_PROC_ALIAS(ClipPoints)
+#  define GetRenderTransform             REND3D_PROC_ALIAS(GetRenderTransform)
+#  define ClipPoints             REND3D_PROC_ALIAS(ClipPoints)
 #endif
 
 #endif // __RENDER3D_EXTENSIONS_DEFINED__

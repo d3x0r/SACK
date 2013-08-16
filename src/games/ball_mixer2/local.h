@@ -3,6 +3,7 @@
 #include <render.h>
 #include <vectlib.h>
 #include <controls.h>
+#include <image3d.h>
 #ifdef USE_GLES2
 #include <GLES2/gl2.h>
 #endif
@@ -43,6 +44,7 @@ extern
 struct local_terrain_data_tag {
 	PRENDER_INTERFACE pri;
 	PIMAGE_INTERFACE pii;
+	PIMAGE_3D_INTERFACE pi3di;
 	RCOORD *identity_depth;
 	RCOORD *aspect ;
 	Image logo;
@@ -129,12 +131,13 @@ struct local_terrain_data_tag {
 
 	// added info to support shader
 	struct gl_shader_data {
-struct {
+		struct {
 			BIT_FIELD init_ok : 1;
 			BIT_FIELD shader_ok : 1;
 		} flags;
 
 		struct {
+			PImageShaderTracker shader_tracker;
 			GLint projection;
 			GLint worldview;
 			GLint modelview;
@@ -171,6 +174,7 @@ struct {
 			} material;
 		} normal_shader;
 		struct {
+			PImageShaderTracker shader_tracker;
 			GLint projection;
 			GLint worldview;
 			GLint modelview;
@@ -196,6 +200,7 @@ struct {
 			} material;
 		} simple_shader;
 		struct {
+			PImageShaderTracker shader_tracker;
 			GLint projection;
 			GLint worldview;
 			GLint modelview;
@@ -209,7 +214,8 @@ struct {
 
 	} shader;
 
-	float projection[16]; // retreived from opengl state 
+	GLfloat *projection;
+	//float projection[16]; // retreived from opengl state 
 	float worldview[16]; // obtained from camera translation
 } l;
 
@@ -279,7 +285,9 @@ struct SACK_3D_Surface {
 	int verts;
 } ;
 
-void InitShader();
+void InitShader(PImageShaderTracker shader);
+void InitSuperSimpleShader( PImageShaderTracker shader );
+
 
 struct SACK_3D_Surface *CreateBumpTextureFragment( int verts
 									, PCVECTOR *shape_array

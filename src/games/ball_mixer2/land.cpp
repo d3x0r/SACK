@@ -49,6 +49,7 @@
 #include <stdhdrs.h>
 #define USE_RENDER_INTERFACE l.pri
 #define USE_IMAGE_INTERFACE l.pii
+#define USE_IMAGE_3D_INTERFACE l.pi3di
 #define NEED_VECTLIB_COMPARE
 #define TERRAIN_MAIN_SOURCE
 #define MAKE_RCOORD_SINGLE
@@ -56,8 +57,8 @@
 #include <math.h>
 #include <render.h>
 #include <render3d.h>
+#include <image3d.h>
 #include <vectlib.h>
-#include <sharemem.h>
 #include <psi.h>
 
 #include <btBulletDynamicsCommon.h>
@@ -380,11 +381,11 @@ struct band {
 					for( section2 = 0; section2 <= sections2; section2++ )
 					{
 						VECTOR patch1x;
-						RotateAbs( work, 0, 0, ((((60.0/hex_size)*section2)-30.0)*(1*M_PI))/180.0 );
+						RotateAbs( work, 0, 0, ((((60.0f/hex_size)*section2)-30.0f)*(1*M_PI))/180.0f );
 						GetAxisV( work, patch1x, vRight );
 						for( section = 0; section < sections; section ++ )
 						{
-							RotateAbs( work, 0, ((float)section*(2.0*M_PI))/(float)sections, 0 );
+							RotateAbs( work, 0, ((float)section*(2.0f*M_PI))/(float)sections, 0 );
 							Apply( work
 								, patches[section/hex_size].grid[section%hex_size][section2]
 							, patch1x );
@@ -762,59 +763,24 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 	//glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, tmpval );
 	// create array of normals.
 	//__try
-#ifndef NO_SHADERS
 	{
 //		if( !mode )
 		{
 			INDEX idx;
 			struct SACK_3D_Surface * surface;
-/*
-			glUseProgram( l.shader.simple_shader.shader );
-#ifdef BT_USE_DOUBLE_PRECISION
-			glUniformMatrix4dv
-#else
-			glUniformMatrix4fv
-#endif
-				( l.shader.simple_shader.modelview, 1, GL_FALSE, m );
-*/
-			//glUseProgram( l.shader.extra_simple_shader.shader );
-#ifdef BT_USE_DOUBLE_PRECISION
-			glUniformMatrix4dv
-#else
-			glUniformMatrix4fv
-#endif
-				( l.shader.extra_simple_shader.modelview, 1, GL_FALSE, m );
-	         CheckErr();
-/*
-			glUseProgram( l.shader.normal_shader.shader );
-#ifdef BT_USE_DOUBLE_PRECISION
-			glUniformMatrix4dv
-#else
-			glUniformMatrix4fv
-#endif
-				( l.shader.normal_shader.modelview, 1, GL_FALSE, m );
+			ImageEnableShader( "SuperSimpleShader", m );
 
-			glUseProgram( 0 );
-*/
-			/*
 			LIST_FORALL( patch->pole->bands, idx, struct SACK_3D_Surface *, surface )
 			{
-				if( surface->color )
-						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, fore_color );
-				else
-						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, back_color );
-
 				// somehow this surface thing needs extra data for the fragment color
 				if( surface->color )
 					RenderBumpTextureFragment( NULL, NULL, m, 0, fore_color, surface );
 				else
-				RenderBumpTextureFragment( NULL, NULL, m, 0, back_color, surface );
+					RenderBumpTextureFragment( NULL, NULL, m, 0, back_color, surface );
 			}
-			*/
 		}
 
 	}
-#endif
 
 	if( mode )
 	{
@@ -822,6 +788,9 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 		GLfloat *norms = patch->norms; //[pole_patch->hex_size+1][6];
 		GLfloat *colors = patch->colors; //[pole_patch->hex_size+1][8];
 
+		glUseProgram( l.shader.extra_simple_shader.shader );
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
 
 		for( s = 0; s < 3; s++ )
 		{
@@ -875,11 +844,15 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 					}
 					r++;
 				}
+
+				// just to make sure the verts are loaded into the correct shader...
+
+
 				glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );
 				CheckErr();
 				glVertexAttribPointer( 1, 4, GL_FLOAT, FALSE, 0, colors );
 				CheckErr();
-				lprintf( "Draw." );
+				lprintf( "Draw. %d", (level+1)*2-1 );
 				glDrawArrays(GL_LINE_STRIP, 0, (level+1)*2-1);
 		         CheckErr();
 				if( bLog )lprintf( WIDE("---------") );
@@ -933,7 +906,11 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 				//glVertexPointer(3, GL_FLOAT, 0, verts );
 				//glNormalPointer(GL_FLOAT, 0, norms );
 				//glColorPointer( 4, GL_FLOAT, 0, colors );
-            lprintf( "Draw." );
+				glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );
+				CheckErr();
+				glVertexAttribPointer( 1, 4, GL_FLOAT, FALSE, 0, colors );
+				CheckErr();
+				lprintf( "Draw2. %d", (level+1)*2-1 );
 				glDrawArrays(GL_LINE_STRIP, 0, (level+1)*2-1);
 				CheckErr();
 			}
@@ -1251,7 +1228,6 @@ int DrawSphereThing( PHEXPATCH patch, int mode )
 				 , -real_factor, real_factor, -1000.0f, 3000.0f);
 #endif
 		*/
-			glGetFloatv( GL_PROJECTION_MATRIX, l.projection );
 			glUseProgram( l.shader.simple_shader.shader );
 			CheckErr();
 			lprintf( "Use ss Program" );
@@ -1274,18 +1250,11 @@ int DrawSphereThing( PHEXPATCH patch, int mode )
 	patch->fallRigidBody->getMotionState()->getWorldTransform( trans );
 
 	trans.getOpenGLMatrix(m);
-	//btVector3 r = trans.getOrigin();
-
-#ifdef BT_USE_DOUBLE_PRECISION 
-	//	glMultMatrixd( m );
-#else
-	//	glMultMatrixf( m );
-#endif
 
 	//which is a 1x1x1 sort of patch array
-	RenderBandPatch( patch, m, mode );
+	//RenderBandPatch( patch, m, mode );
 	RenderPolePatch( patch, m, mode, 0 );
-	RenderPolePatch( patch, m, mode, 1 );
+	//RenderPolePatch( patch, m, mode, 1 );
 
 	//glPopMatrix();
 
@@ -1315,7 +1284,7 @@ void DrawSphereThing2( PHEXPATCH patch )
 		_POINT p;
 		_POINT p2;
 		p[0] = 0;
-		p[1] = PLANET_RADIUS * 1.4;
+		p[1] = PLANET_RADIUS * 1.4f;
 		p[2] = 0;
 		ApplyRotation( l.transform, p2, p );
 		Translate( t, r[0] + p2[0], r[1] + p2[1], r[2] + p2[2] );		
@@ -1556,6 +1525,7 @@ PRELOAD( RegisterResources )
 {
 	l.pri = GetDisplayInterface();
 	l.pii = GetImageInterface();
+	l.pi3di = GetImage3dInterface();
 }
 
 
@@ -1631,8 +1601,8 @@ void ParseImage( Image image, int size, int rows, int cols )
 			{
 				for( y = 0; y <= size; y++ )
 				{
-					l.numbers.coords[r][c][x][y][0] = (c / (double)cols) + ( ( size - x ) / (double)( rows*size ) );
-					l.numbers.coords[r][c][x][y][1] = (r / (double)rows) + ( ( y ) / (double)( cols*size ) );
+					l.numbers.coords[r][c][x][y][0] = (c / (RCOORD)cols) + ( ( size - x ) / (RCOORD)( rows*size ) );
+					l.numbers.coords[r][c][x][y][1] = (r / (RCOORD)rows) + ( ( y ) / (RCOORD)( cols*size ) );
 					l.numbers.coords[r][c][x][y][2] = 0;
 				}
 			}
@@ -2124,8 +2094,9 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
 	// states to make sure we just fall back to the old way.
 	// so should load the classic image along with any new images.
 
-	InitShader();
+	l.shader.extra_simple_shader.shader_tracker = ImageGetShader( "SuperSimpleShader", InitSuperSimpleShader );
 
+	l.shader.simple_shader.shader_tracker = ImageGetShader( "SimpleShader", InitShader );
 
 	{
 		int n;
@@ -2186,6 +2157,7 @@ static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFO
 {
 	l.identity_depth = identity_depth;
 	l.aspect = aspect;
+	l.projection = (GLfloat*)projection;
 
 	l.numbers.image = LoadImageFile( l.numbers.image_name );
 	l.numbers.bump_image = LoadImageFile( l.numbers.bump_image_name );
@@ -2419,7 +2391,9 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 			float* vert = new float[9];	// vertex array
 			float* col  = new float[9];	// color array
 
-			glGetFloatv( GL_PROJECTION_MATRIX, l.projection );
+			glUseProgram( l.shader.extra_simple_shader.shader );
+
+			// projection changes in this application, better to reload it.
 			glUniformMatrix4fv( l.shader.extra_simple_shader.projection, 1, GL_FALSE, l.projection );
 			{
 				INDEX idx;
@@ -2431,6 +2405,7 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 				glUniformMatrix4fv( l.shader.extra_simple_shader.worldview, 1, GL_FALSE, l.worldview );
 				CheckErr();
 			}
+			if( 0 )
 			{
 				float m[16];
 				int i;
@@ -2602,7 +2577,6 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 #ifndef __ANDROID__
 			//glOrtho(-540*(l.aspect[0]), 540*(l.aspect[0]), -540, 540, -1000.0f, 3000.0f);
 #endif
-			glGetFloatv( GL_PROJECTION_MATRIX, l.projection );
 			glUseProgram( l.shader.simple_shader.shader );
 			lprintf( "Use ss Program" );
 			glUniformMatrix4fv( l.shader.simple_shader.projection, 1, GL_FALSE, l.projection );

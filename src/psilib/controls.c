@@ -1929,10 +1929,13 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 	{
 		if( pc )
 		{
-			PSI_CONTROL frame = GetFrame( pc );
-			PPHYSICAL_DEVICE device = frame?frame->device:NULL;
-			if( device )
-				MarkDisplayUpdated( device->pActImg );
+			if( !pc->flags.bDestroy )
+			{
+				PSI_CONTROL frame = GetFrame( pc );
+				PPHYSICAL_DEVICE device = frame?frame->device:NULL;
+				if( device )
+					MarkDisplayUpdated( device->pActImg );
+			}
 		}
 		if( g.flags.bLogDebugUpdate )
 			_lprintf(DBG_RELAY)( WIDE( "%p(%s) wanted to draw..." ), pc, pc->pTypeName );
@@ -1942,6 +1945,8 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 
 	if(pc)
 	{
+		if( pc->flags.bDestroy )
+			return;
 #if DEBUG_UPDAATE_DRAW > 0
 		if( g.flags.bLogDebugUpdate )
 			_lprintf(DBG_RELAY)( WIDE( "Smudge %p %s" ), pc, pc->pTypeName?pc->pTypeName:WIDE( "NoTypeName" ) );
@@ -3707,7 +3712,7 @@ void DestroyCommonExx( PSI_CONTROL *ppc, int level DBG_PASS )
 	if( ppc && *ppc )
 	{
 		PSI_CONTROL pc = *ppc;
-      // need to get what frame this control is in before unlinking it from the frame!
+		// need to get what frame this control is in before unlinking it from the frame!
 		PSI_CONTROL pFrame = GetFrame( pc );
 		AddUse( pc );
 		if( pc->device )

@@ -2,6 +2,7 @@
 #include <stdhdrs.h>
 #define USE_RENDER_INTERFACE l.pri
 #define USE_IMAGE_INTERFACE l.pii
+#define USE_IMAGE_3D_INTERFACE l.pi3di
 #define NEED_VECTLIB_COMPARE
 #define MAKE_RCOORD_SINGLE
 #include <sqlgetoption.h>
@@ -39,7 +40,7 @@ const CTEXTSTR gles_simple_v_shader =
 	WIDE( "uniform mat4 Projection;\n" )
 	WIDE( " varying vec4 vColor;" )
     WIDE("void main() {" )
-    WIDE("  gl_Position = Projection * worldView * modelView * vPosition;" )
+    WIDE("  gl_Position = Projection * worldView * vPosition;" )
 	WIDE( " vColor = in_Color;" )
     WIDE("}"); 
 
@@ -51,147 +52,23 @@ const CTEXTSTR gles_simple_p_shader =
     WIDE( "}" );
 
 
-void InitSuperSimpleShader( void )
+void InitSuperSimpleShader( PImageShaderTracker shader )
 {
-	GLint result;
-		const char *codeblocks[2];
-		l.shader.extra_simple_shader.shader = glCreateProgram();
-
-		//Obtain a valid handle to a vertex shader object.
-		l.shader.extra_simple_shader.vert_shader = glCreateShader(GL_VERTEX_SHADER);
-
-		codeblocks[0] = gles_simple_v_shader;
-		codeblocks[1] = NULL;
-
-		//codeblocks[1] = gles_simple_p_shader;
-		//Now, compile the shader source. 
-		//Note that glShaderSource takes an array of chars. This is so that one can load multiple vertex shader files at once.
-		//This is similar in function to linking multiple C++ files together. Note also that there can only be one "void main" definition
-		//In all of the linked source files that are compiling with this funciton.
-		glShaderSource(
-			l.shader.extra_simple_shader.vert_shader, //The handle to our shader
-			1, //The number of files.
-			codeblocks, //An array of const char * data, which represents the source code of theshaders
-			NULL); //An array of string leng7ths. For have null terminated strings, pass NULL.
-	 
-		//Attempt to compile the shader.
-		glCompileShader(l.shader.extra_simple_shader.vert_shader);
-		{
-			//Error checking.
-#ifdef __ANDROID__
-			glGetShaderiv(l.shader.extra_simple_shader.vert_shader, GL_COMPILE_STATUS, &result);
-#else
-			glGetObjectParameterivARB(l.shader.extra_simple_shader.vert_shader, GL_OBJECT_COMPILE_STATUS_ARB, &result);
-#endif
-			if (!result)
-			{
-				GLint length;
-				GLsizei final;
-				char *buffer;
-				//We failed to compile.
-				lprintf("Vertex shader 'program A' failed compilation.\n");
-				//Attempt to get the length of our error log.
-#ifdef USE_GLES2
-				glGetShaderiv(l.shader.extra_simple_shader.vert_shader, GL_COMPILE_STATUS, &result);
-#else
-				glGetObjectParameterivARB(l.shader.extra_simple_shader.vert_shader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
-#endif
-				buffer = NewArray( char, length );
-				//Create a buffer.
-					
-				//Used to get the final length of the log.
-#ifdef USE_GLES2
-				glGetShaderInfoLog( l.shader.extra_simple_shader.vert_shader, length, &final, buffer);
-#else
-				glGetInfoLogARB(l.shader.extra_simple_shader.vert_shader, length, &final, buffer);
-#endif
-				//Convert our buffer into a string.
-				lprintf( "message: %s", buffer );
-
-
-				if (final > length)
-				{
-					//The buffer does not contain all the shader log information.
-					printf("Shader Log contained more information!\n");
-				}
+		GLint result;
+		const char *v_codeblocks[2];
+		const char *p_codeblocks[2];
 		
-			}
-		}
+		v_codeblocks[0] = gles_simple_v_shader;
+		v_codeblocks[1] = NULL;
 
-		l.shader.extra_simple_shader.frag_shader = glCreateShader(GL_FRAGMENT_SHADER);
-		codeblocks[0] = gles_simple_p_shader;
-		glShaderSource(
-			l.shader.extra_simple_shader.frag_shader, //The handle to our shader
-			1, //The number of files.
-			codeblocks, //An array of const char * data, which represents the source code of theshaders
-			NULL); //An array of string lengths. For have null terminated strings, pass NULL.
-	 
-		//Attempt to compile the shader.
-		glCompileShader(l.shader.extra_simple_shader.frag_shader);
+		p_codeblocks[0] = gles_simple_p_shader;
+		p_codeblocks[1] = NULL;
 
-		{
-			//Error checking.
-#ifdef USE_GLES2
-			glGetShaderiv(l.shader.extra_simple_shader.frag_shader, GL_COMPILE_STATUS, &result);
-#else
-			glGetObjectParameterivARB(l.shader.extra_simple_shader.frag_shader, GL_OBJECT_COMPILE_STATUS_ARB, &result);
-#endif
-			if (!result)
-			{
-				GLint length;
-				GLsizei final;
-				char *buffer;
-				//We failed to compile.
-				lprintf("Vertex shader 'program B' failed compilation.\n");
-				//Attempt to get the length of our error log.
-#ifdef USE_GLES2
-				glGetShaderiv(l.shader.extra_simple_shader.frag_shader, GL_INFO_LOG_LENGTH, &length);
-#else
-				glGetObjectParameterivARB(l.shader.extra_simple_shader.frag_shader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
-#endif
-				buffer = NewArray( char, length );
-				//Create a buffer.
-					
-				//Used to get the final length of the log.
-#ifdef USE_GLES2
-				glGetShaderInfoLog( l.shader.extra_simple_shader.frag_shader, length, &final, buffer);
-#else
-				glGetInfoLogARB(l.shader.extra_simple_shader.frag_shader, length, &final, buffer);
-#endif
-				//Convert our buffer into a string.
-				lprintf( "message: %s", buffer );
+		l.shader.extra_simple_shader.shader = ImageCompileShader( shader, v_codeblocks, 1, p_codeblocks, 1 );
 
-
-				if (final > length)
-				{
-					//The buffer does not contain all the shader log information.
-					printf("Shader Log contained more information!\n");
-				}
-		
-			}
-		}
-
-#ifdef USE_GLES2
-		glAttachShader(l.shader.extra_simple_shader.shader, l.shader.extra_simple_shader.vert_shader );
-#else
-		glAttachObjectARB(l.shader.extra_simple_shader.shader, l.shader.extra_simple_shader.vert_shader );
-#endif
-		CheckErr();
-#ifdef USE_GLES2
-		glAttachShader(l.shader.extra_simple_shader.shader, l.shader.extra_simple_shader.frag_shader );
-#else
-		glAttachObjectARB(l.shader.extra_simple_shader.shader, l.shader.extra_simple_shader.frag_shader );
-#endif
-		CheckErr();
-		
 		glBindAttribLocation(l.shader.extra_simple_shader.shader, 0, "vPosition");
 		CheckErr();
 		glBindAttribLocation(l.shader.extra_simple_shader.shader, 1, "in_Color");
-		CheckErr();
-
-		glLinkProgram(l.shader.extra_simple_shader.shader);
-		CheckErr();
-		glUseProgram(l.shader.extra_simple_shader.shader);
 		CheckErr();
 
 		lprintf( "X = %d", glGetAttribLocation( l.shader.extra_simple_shader.shader, "vPosition" ) );
@@ -224,7 +101,7 @@ void InitSuperSimpleShader( void )
 }
 
 
-void InitShader( void )
+void InitShader( PImageShaderTracker shader )
 {
 	GLint result;
 
@@ -236,7 +113,6 @@ void InitShader( void )
 			return;
 		}
 #endif
-	InitSuperSimpleShader();
 
 	const char *common_vertex_transform_source = "#version 150\n"
 	                                         "uniform mat4 worldView;\n"
@@ -1116,9 +992,7 @@ void RenderBumpTextureFragment( Image texture
 
 			glUniform1i(l.shader.normal_shader.diffuseTextureUniform, 0 );
 			glUniform1i(l.shader.normal_shader.normalTextureUniform, 1 );
-
 			glUniform1f( l.shader.normal_shader.invRadiusUniform, 0.0001f );
-
 			glUniform4fv( l.shader.normal_shader.material.ambient, 1, background );
 
 
@@ -1136,7 +1010,8 @@ void RenderBumpTextureFragment( Image texture
 		glEnable(GL_VERTEX_PROGRAM_ARB);
 		glEnable(GL_FRAGMENT_PROGRAM_ARB);
 #endif
-      lprintf( "Use program" );
+
+		//lprintf( "Use program" );
 		glUseProgram( l.shader.simple_shader.shader );
 		glUniform4fv( l.shader.simple_shader.material.ambient, 1, background );
 		//glUniform4fv( l.shader.simple_shader.material.diffuse, 1, background );
