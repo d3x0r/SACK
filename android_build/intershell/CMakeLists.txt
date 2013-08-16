@@ -54,6 +54,20 @@ ainstall(  ${CMAKE_SOURCE_DIR} build.xml DESTINATION package )
 ainstall(  ${CMAKE_SOURCE_DIR} AndroidManifest.xml DESTINATION package )
 ainstall(  ${CMAKE_SOURCE_DIR} strings.xml DESTINATION package/res/values )
 
+
+EXECUTE_PROCESS(COMMAND cmake -E remove_directory package/src )
+message( "EXECUTE_PROCESS(COMMAND cmake -E remove_directory${P_SOURCE_DIR}/package/src )")
+
+set( application InterShell )
+set( activity EditOptions )
+CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/../MyNativeActivity.cm package/src/org/d3x0r/${application}/${activity}/${activity}.java )
+
+set( activity InterShell_console )
+CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/../MyNativeActivity.cm package/src/org/d3x0r/${application}/${activity}/${activity}.java )
+
+
+
+
 EXECUTE_PROCESS( 
        COMMAND android.bat update project --target "android-14" --path .
        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/package )
