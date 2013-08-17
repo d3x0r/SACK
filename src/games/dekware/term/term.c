@@ -1030,7 +1030,7 @@ static int HandleCommand(WIDE("trace"), WIDE("Route trace a network address...")
    if( InitNetwork(ps) )
    {
       temp = GetParam( ps, &parameters );
-#ifdef __ANDROID__
+#ifndef __ANDROID__
       DoPing( GetText( temp ), 32, 2500, 1, pvt, FALSE, NULL );
 #endif
       temp = VarTextGet( pvt );
