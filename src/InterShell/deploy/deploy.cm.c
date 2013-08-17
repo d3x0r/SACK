@@ -13,6 +13,8 @@
 #define strdup _strdup
 #endif
 
+#include "deploy.package.h"
+
 #define MySubKey "Freedom Collective\\${CMAKE_PROJECT_NAME}"
 #define MyKey "SOFTWARE\\" MySubKey
 #define NewArray(a,b)  (a*)malloc( sizeof(a)*b )
@@ -298,82 +300,21 @@ int main( int argc, char **argv )
 			}
 #endif
 		}
-		fprintf( out, "GET_FILENAME_COMPONENT(SACK_SDK_ROOT_PATH \"[HKEY_LOCAL_MACHINE\\\\SOFTWARE\\\\Freedom Collective\\\\SACK;Install_Dir]\" ABSOLUTE CACHE)\n" );
-		fprintf( out, "include( $""{SACK_SDK_ROOT_PATH}/CMakePackage)\n" );
 
-		//fprintf( out, "GET_FILENAME_COMPONENT(INTERSHELL_SDK_ROOT_PATH \"[HKEY_LOCAL_MACHINE\\SOFTWARE\\Freedom Collective\\${CMAKE_PROJECT_NAME};Install_Dir]\" ABSOLUTE CACHE)\n" );
+      {
+			const char *replace_start;
+			const char *replace_end;
+			replace_start = strstr( package, "@@@" );
+			if( replace_start )
+			{
+				fprintf( out, "%*.*s", replace_start - package, replace_start - package, package );
+				fprintf( out, "%s", SlashFix( path ) );
+				fprintf( out, "%s", replace_start + 3 );
+			}
+			else
+				fprintf( out, "%s", package );
+		}
 
-		fprintf( out, "set( INTERSHELL_BASE %s )\n", path );
-		fprintf( out, "set( INTERSHELL_INCLUDE_DIR $""{INTERSHELL_BASE}/include/SACK )\n" );
-		fprintf( out, "set( INTERSHELL_LIBRARIES sack_widgets )\n" );
-		fprintf( out, "set( INTERSHELL_LIBRARY_DIR $""{INTERSHELL_BASE}/lib )\n" );
-
-		fprintf( out, "\n" );
-		fprintf( out, "set(  INTERSHELL_REPO_REVISION \"${CURRENT_REPO_REVISION}\" )\n" );
-		fprintf( out, "set(  INTERSHELL_BUILD_TYPE \"${CMAKE_BUILD_TYPE}\" )\n" );
-		fprintf( out, "set(  INTERSHELL_GENERATOR \"${CMAKE_GENERATOR}\" )\n" );
-		fprintf( out, "set(  INTERSHELL_PROJECT_NAME \"${CMAKE_PROJECT_NAME}\" )\n" );
-
-		fprintf( out, "\n" );
-		fprintf( out, "macro( INSTALL_INTERSHELL_BINARY_OLD dest )\n" );
-		fprintf( out, "install( DIRECTORY $""{INTERSHELL_BASE}/bin/ DESTINATION $""{dest} )\n" );
-		fprintf( out, "endmacro( INSTALL_INTERSHELL_BINARY_OLD )\n" );
-		fprintf( out, "\n" );
-		fprintf( out, "macro( INSTALL_INTERSHELL_CORE dest )\n" );
-		fprintf( out, "install( FILES  $""{REAL_INSTALL_TARGETS} $""{INTERSHELL_BASE}/bin/InterShell.core $""{INTERSHELL_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}sack_widgets${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "endmacro( INSTALL_INTERSHELL_CORE )\n" );
-		fprintf( out, "\n" );
-		fprintf( out, "macro( INSTALL_INTERSHELL_BINARY dest )\n" );
-		fprintf( out, "set( REAL_INSTALL_TARGETS )\n" );
-		fprintf( out, "foreach( TARGET ${INSTALLED_TARGETS} )\n" );
-		fprintf( out, "  set( REAL_INSTALL_TARGETS $""{REAL_INSTALL_TARGETS} $""{INTERSHELL_BASE}/bin/$""{TARGET} )\n" );
-		fprintf( out, "endforeach( TARGET $""{INSTALLED_TARGETS} )\n" );
-		fprintf( out, "INSTALL_INTERSHELL_CORE( $""{dest} )\n" );
-		fprintf( out, "endmacro( INSTALL_INTERSHELL_BINARY )\n" );
-		fprintf( out, "\n" );
-		fprintf( out, "macro( INSTALL_INTERSHELL_PLUGINS dest )\n" );
-		fprintf( out, "install( DIRECTORY $""{INTERSHELL_BASE}/bin/plugins/ DESTINATION $""{dest} )\n" );
-		fprintf( out, "install( FILES $""{INTERSHELL_BASE}/bin/plugins/${CMAKE_SHARED_LIBRARY_PREFIX}vlc_interface${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION $""{dest} )\n" );
-		fprintf( out, "endmacro( INSTALL_INTERSHELL_PLUGINS )\n" );
-		fprintf( out, "\n" );
-		fprintf( out, "macro( INSTALL_INTERSHELL_WIDGETS dest )\n" );
-		fprintf( out, "install( FILES \"$""{INTERSHELL_BASE}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}sack_widgets${CMAKE_SHARED_LIBRARY_SUFFIX}\" DESTINATION $""{dest} )\n" );
-		fprintf( out, "endmacro( INSTALL_INTERSHELL_WIDGETS )\n" );
-		fprintf( out, "\n" );
-		fprintf( out, "macro( INSTALL_INTERSHELL_FRAMES dest )\n" );
-		fprintf( out, "install( DIRECTORY $""{INTERSHELL_BASE}/resources/frames DESTINATION $""{dest} )\n" );
-		fprintf( out, "endmacro( INSTALL_INTERSHELL_FRAMES )\n" );
-		fprintf( out, "\n" );
-		fprintf( out, "macro( INSTALL_INTERSHELL_IMAGES dest )\n" );
-		fprintf( out, "INSTALL( DIRECTORY $""{INTERSHELL_BASE}/Resources/images DESTINATION $""{dest} )\n" );
-		fprintf( out, "ENDMACRO( INSTALL_INTERSHELL_IMAGES )\n" );
-		fprintf( out, "\n" );
-
-		fprintf( out, "macro( INSTALL_INTERSHELL_FONTS dest )\n" );
-		fprintf( out, "  install( DIRECTORY $""{INTERSHELL_BASE}/Resources/fonts/ DESTINATION $""{dest} )\n" );
-		fprintf( out, "ENDMACRO( INSTALL_INTERSHELL_FONTS )\n" );
-		fprintf( out, "\n" );
-
-		fprintf( out, "macro( INSTALL_INTERSHELL dest )\n" );
-		fprintf( out, "  if( COMMAND INSTALL_SACK_BINARY )\n" );
-		fprintf( out, "    INSTALL_SACK_BINARY( crossfade bin )\n" );
-      fprintf( out, "  endif( COMMAND INSTALL_SACK_BINARY )\n" );
-
-		fprintf( out, "  INSTALL_INTERSHELL_BINARY( $""{dest}/bin )\n" );
-		fprintf( out, "  INSTALL_INTERSHELL_PLUGINS( $""{dest}/bin/plugins )\n" );
-		fprintf( out, "  INSTALL_INTERSHELL_FRAMES( $""{dest}/Resources )\n" );
-		fprintf( out, "  INSTALL_INTERSHELL_IMAGES( $""{dest}/Resources )\n" );
-		fprintf( out, "  INSTALL_INTERSHELL_FONTS( $""{dest}/Resources/fonts )\n" );
-		fprintf( out, "ENDMACRO( INSTALL_INTERSHELL )\n" );
-		fprintf( out, "\n" );
-		//fprintf( out, "IF(CMAKE_BUILD_TPYE_INITIALIZED_TO_DEFAULT)\n" );
-
-		fprintf( out, "set(CMAKE_BUILD_TYPE \"${CMAKE_BUILD_TYPE}\" CACHE STRING \"Set build type\")\n" );
-		fprintf( out, "set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS $""{CMAKE_CONFIGURATION_TYPES} )\n" );
-
-		//fprintf( out, "ENDIF(CMAKE_BUILD_TPYE_INITIALIZED_TO_DEFAULT)\n" );
-
-		fprintf( out, "\n" );
 
 		fclose( out );
 	}

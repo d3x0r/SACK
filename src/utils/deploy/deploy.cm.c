@@ -10,20 +10,6 @@
 
 #include "deploy.package.h"
 
-#if defined( __LINUX64__ )
-#define SHARED_LIBPATH "lib64"
-#define LINK_LIBPATH "lib64"
-#define SHARED_BINPATH "bin"
-#elif defined( __LINUX__ )
-#define SHARED_LIBPATH "lib"
-#define LINK_LIBPATH "lib"
-#define SHARED_BINPATH "bin"
-#else
-#define SHARED_LIBPATH "bin"
-#define LINK_LIBPATH "lib"
-#define SHARED_BINPATH "bin"
-#endif
-
 
 #ifdef WIN32
 #include <windows.h>
@@ -159,7 +145,7 @@ int SetRegistryItem( HKEY hRoot, char *pPrefix,
 #ifdef _UNICODE
 		tmp = MyCharWConvert( pKey );
 #else
-		tmp = pKey;
+		tmp = StrDup( pKey );
 #endif
       dwStatus = RegSetValueEx(hTemp, tmp, 0
                                 , dwType
