@@ -321,6 +321,10 @@ int EditOptions( PODBC odbc )
 
 	DisplayFrame( frame );
 	CommonWait( frame );
+
+	lprintf( "frame is now %p", frame );
+	WakeableSleep( 300 );
+	lprintf( "frame is now %p", frame );
 	DestroyFrame( &frame );
 	return 1;
 }

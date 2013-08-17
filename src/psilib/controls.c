@@ -3714,14 +3714,17 @@ void DestroyCommonExx( PSI_CONTROL *ppc, int level DBG_PASS )
 		PSI_CONTROL pc = *ppc;
 		// need to get what frame this control is in before unlinking it from the frame!
 		PSI_CONTROL pFrame = GetFrame( pc );
-		AddUse( pc );
-		if( pc->device )
+		if( !pc->flags.bDestroy )
 		{
-			DetachFrameFromRenderer( pc );
+			if( pc->device )
+			{
+				AddUse( pc );
+				DetachFrameFromRenderer( pc );
+				DeleteUse( pc );
+			}
+			pc->flags.bDestroy = 1;
 		}
-		DeleteUse( pc );
-		pc->flags.bDestroy = 1;
-		if( ( pNext = pc->next ) )
+		if( ( pNext = pc->next ) != NULL )
 		{
 			pc->next->prior = pc->prior;
 			pc->next = NULL;
@@ -3742,7 +3745,8 @@ void DestroyCommonExx( PSI_CONTROL *ppc, int level DBG_PASS )
 				}
 			if( pc->parent->child == pc )
 				pc->parent->child = pNext;
-			SmudgeCommon( pc->parent );
+         if( !pc->parent->flags.bDestroy )
+				SmudgeCommon( pc->parent );
 			pc->parent = NULL;
 		}
 		if( !pc->InUse && !pc->InWait )

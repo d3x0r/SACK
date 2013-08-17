@@ -1,23 +1,15 @@
 // built from http://stackoverflow.com/questions/6838397/how-do-i-load-my-own-java-class-in-c-on-android/6920115#6920115
 
 
-package org.d3x0r.sack.${application};
+package org.d3x0r.sack.@application@;
 
 import android.app.NativeActivity;
 import android.util.Log;
 
-public class ${activity} extends NativeActivity {
-//  static {
-    //System.loadLibrary("my_ndk_lib");  
-//  }
-
-  private static String TAG = "${activity}";
-
-  public ${activity}() {
+public class @activity@ extends NativeActivity {
+// think I might have to catch landscape event here for some android revisions
+  private static String TAG = "@activity@";
+  public @activity@() {
     super();
   }
-
-//  public static void MyUsefulJavaFunction() {
-//    doSomethingAwesome();
-//  }
 }

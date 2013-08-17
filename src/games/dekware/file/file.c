@@ -720,7 +720,8 @@ int CPROC CreateFileMonitor( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 	PTEXT pFile = GetParam( ps, &parameters );
 	if( pFile )
 	{
-      PMONITOR pMonitor;
+#ifndef __ANDROID__
+		PMONITOR pMonitor;
 		if( ( pMonitor = MonitorFiles( GetText( pFile ), 100 ) ) )
 		{
 			psNew = pe->pControlledBy;
@@ -736,6 +737,7 @@ int CPROC CreateFileMonitor( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 			AddBehavior( pe, WIDE("update"), WIDE("A file has changed %1 is file; %2 is <PATH/FILE>") );
 			UnlockAwareness( psNew );
 		}
+#endif
 	}
    return 0;
 }

@@ -32,7 +32,7 @@ BOOL ReadMib( void )
    TCHAR FileName[256];
    struct snmp_mib_tree *mib_tree;
    Mib = mib_tree = NULL; // initialize tree..
-   GetCurrentDirectory( 256, FileName );
+   GetCurrentPath( FileName, 256 );
 
    handle = FindFirstFile( "*.mib", &fileinfo );
    if( handle == INVALID_HANDLE_VALUE )

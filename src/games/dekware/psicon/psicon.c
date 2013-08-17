@@ -638,6 +638,18 @@ static void CPROC FillLineLeader( PCONSOLE_INFO pdp, RECT *r, CDATA c )
 //----------------------------------------------------------------------------
 
 #include <psi.h>
+
+static int OnCommonFocus( WIDE("Dekware PSI Console") )( PSI_CONTROL pc, LOGICAL bFocused )
+{
+#ifdef __ANDROID__
+		if( bFocused )
+			SACK_Vidlib_ShowInputDevice();
+      else
+			SACK_Vidlib_HideInputDevice();
+      return 1;
+#endif
+}
+
 CONTROL_REGISTRATION ConsoleClass = { WIDE("Dekware PSI Console"), { { -1, -1 }, 0, BORDER_NORMAL|BORDER_RESIZABLE|BORDER_FIXED }
 												, NULL
 												, NULL

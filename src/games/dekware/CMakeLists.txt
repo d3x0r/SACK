@@ -47,6 +47,26 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/include )
 
 install(DIRECTORY scripts DESTINATION bin )
 
+macro( ADD_PLUGIN target group  )
+	add_library( ${target} SHARED ${FIRST_GCC_LIBRARY_SOURCE} ${ARGN} ${LAST_GCC_LIBRARY_SOURCE} )
+	string( REPLACE "." "_" TARGET_LABEL ${target} )
+	SET_TARGET_PROPERTIES(${target} PROPERTIES
+                  COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags} -D__DEKWARE_PLUGIN__"
+                  FOLDER Dekware/plugins/${group}
+	)
+	if( NOT __ANDROID__ )
+		SET_TARGET_PROPERTIES(${target} PROPERTIES
+                  SUFFIX ""
+                  PREFIX ""
+		)
+	endif( NOT __ANDROID__ )
+	target_link_libraries( ${target} ${SACK_LIBRARIES} ${PLATFORM_LIBRARIES} )
+	INSTALL( TARGETS ${target} 
+		RUNTIME DESTINATION bin/plugins
+		LIBRARY DESTINATION bin/plugins
+	)
+        
+endmacro( ADD_PLUGIN )
 
 add_subdirectory( deploy )
 add_subdirectory( runner )

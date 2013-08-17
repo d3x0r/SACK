@@ -5,7 +5,7 @@
 
 #include "plugin.h"
 
-#ifndef __UNIX__
+#ifndef __LINUX__
 int CPROC SystemShutdown( PSENTIENT ps, PTEXT param );
 int CPROC Sound( PSENTIENT ps, PTEXT parameters );
 #endif
@@ -16,7 +16,7 @@ int CPROC MakeProcess( PSENTIENT ps, PENTITY peInit, PTEXT parameters );
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
-#ifndef __UNIX__
+#ifndef __LINUX__
    RegisterRoutine( WIDE("Shutdown"), WIDE("Windows System Shutdown..."), SystemShutdown );
    RegisterRoutine( WIDE("sound"), WIDE("Play a sound using windows multimedia..."), Sound );
    srand( GetTickCount() );

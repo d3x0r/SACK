@@ -2,15 +2,6 @@
 #include "plugin.h"
 #include <time.h>
 
-// common DLL plugin interface.....
-#if defined( _WIN32 ) && !defined( __STATIC__ )
-int APIENTRY LibMain( HANDLE hDLL, DWORD dwReason, void *pReserved )
-{
-   return TRUE; // success whatever the reason...
-}
-#endif
-
-
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
    srand( (unsigned int)time( NULL ) );

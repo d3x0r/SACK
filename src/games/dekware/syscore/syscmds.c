@@ -198,7 +198,7 @@ int CPROC CHANGEDIR( PSENTIENT ps, PTEXT parameters )
       return FALSE;
    LineRelease( pDir1 );
 #ifdef _WIN32
-   if( SetCurrentDirectory( GetText( pDir ) ) )
+   if( SetCurrentPath( GetText( pDir ) ) )
 #else
    if( !chdir( GetText( pDir ) ) )
 #endif

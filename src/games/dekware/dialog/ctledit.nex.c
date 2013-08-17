@@ -15,7 +15,7 @@ static void InitControlObject( PENTITY pe, PCOMMON pc )
 	//connect PSI events to behaviors...
 }
 
-int CPROC CustomEditButton( PCOMMON pc )
+static int CPROC CustomEditButton( PCOMMON pc )
 {
 	InitControlObject( CommonInitControl( pc ), pc );
    return 1;

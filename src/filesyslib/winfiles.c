@@ -249,35 +249,26 @@ TEXTSTR ExpandPath( CTEXTSTR path )
 			}
 			else
 			{
-            int ofs;
-            // no change...
 				tmp_path = StrDup( path );
-            /*
-				TEXTCHAR here[256];
-				size_t len;
-				GetCurrentPath( here, sizeof( here ) );
-				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) + 2 ) );
-				snprintf( tmp_path, len, WIDE( "%s/%s" ), here, path );
-            */
 			}
 #if __ANDROID__
 			{
 				int len_base;
 				TEXTCHAR here[256];
 				size_t len;
-            size_t ofs;
+				size_t ofs;
 				GetCurrentPath( here, sizeof( here ) );
 				if( StrStr( tmp_path, here ) )
 					len = StrLen( here );
 				else
-               len = 0;
+					len = 0;
 
 				if( l.flags.bLogOpenClose )
 					lprintf( "Fix dots in [%s]", tmp_path );
 				for( ofs = len+1; tmp_path[ofs]; ofs++ )
 				{
 					if( tmp_path[ofs] == '/' )
-                  tmp_path[ofs] = '.';
+						tmp_path[ofs] = '.';
 					if( tmp_path[ofs] == '\\' )
 						tmp_path[ofs] = '.';
 				}

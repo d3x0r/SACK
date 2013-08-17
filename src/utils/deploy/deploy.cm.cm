@@ -1,3 +1,7 @@
+	set( FILEOUT ${BASE_PATH}/CMakePackage )
+
+      	FILE( WRITE ${FILEOUT} "#generated from deploy.cm.cm....\n" )
+
 
 if( __LINUX64__ )
 SET(  SHARED_LIBPATH "lib64" )
@@ -26,11 +30,7 @@ endif( __NO_ODBC__ )
 
 set( BASE_PATH ${CMAKE_INSTALL_PREFIX} )
 
-	set( FILEOUT ${BASE_PATH}/CMakePackage )
         
-#message( "Output to ${FILEOUT}" )        
-
-              	FILE( WRITE ${FILEOUT} "#generated from deploy.cm.cm....\n" )
 
 		FILE( APPEND ${FILEOUT} "#set was_monolithic_build to build mode\n" )
 		FILE( APPEND ${FILEOUT} "set( WAS_MONOLITHIC @BUILD_MONOLITHIC@ )\n" )

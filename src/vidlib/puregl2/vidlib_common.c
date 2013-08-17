@@ -904,6 +904,10 @@ void  CloseDisplay (PVIDEO hVideo)
 	Log (WIDE( "Unlinking destroyed window..." ));
 #endif
 	// take this out of the list of active windows...
+	if( l.hVidVirtualFocused == hVideo )
+	{
+		l.hVidVirtualFocused = 0; // and noone gets it yet either.
+	}
 	DeleteLink( &l.pActiveList, hVideo );
 	UnlinkVideo( hVideo );
 	lprintf( WIDE("and we should be ok?") );
