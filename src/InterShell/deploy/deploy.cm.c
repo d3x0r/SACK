@@ -111,7 +111,7 @@ int SetRegistryItem( HKEY hRoot, char *pPrefix,
 #ifdef _UNICODE
 	optional_wide = MyCharWConvert( szString );
 #else
-   optional_wide = szString;
+   optional_wide = strdup( szString );
 #endif
    dwStatus = RegOpenKeyEx( hRoot,
                             optional_wide, 0,
@@ -142,7 +142,7 @@ int SetRegistryItem( HKEY hRoot, char *pPrefix,
 #ifdef _UNICODE
 		tmp = MyCharWConvert( pKey );
 #else
-		tmp = pKey;
+		tmp = strdup( pKey );
 #endif
       dwStatus = RegSetValueEx(hTemp, tmp, 0
                                 , dwType
