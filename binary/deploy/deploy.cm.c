@@ -12,6 +12,8 @@
 #define strdup _strdup
 #endif
 
+#include "deploy.package.h"
+
 #define MySubKey "Freedom Collective\\${CMAKE_PROJECT_NAME}"
 #define MyKey "SOFTWARE\\" MySubKey
 #define NewArray(a,b)  (a*)malloc( sizeof(a)*b )
@@ -108,7 +110,7 @@ int SetRegistryItem( HKEY hRoot, char *pPrefix,
 #ifdef _UNICODE
 	optional_wide = MyCharWConvert( szString );
 #else
-   optional_wide = szString;
+   optional_wide = strdup( szString );
 #endif
    dwStatus = RegOpenKeyEx( hRoot,
                             optional_wide, 0,
@@ -139,7 +141,7 @@ int SetRegistryItem( HKEY hRoot, char *pPrefix,
 #ifdef _UNICODE
 		tmp = MyCharWConvert( pKey );
 #else
-		tmp = pKey;
+		tmp = strdup( pKey );
 #endif
       dwStatus = RegSetValueEx(hTemp, tmp, 0
                                 , dwType
@@ -293,54 +295,20 @@ int main( int argc, char **argv )
 			}
 #endif
 		}
-		//fprintf( out, "if( NOT SACK_SDK_ROOT_PATH )\n" );
-		//fprintf( out, "GET_FILENAME_COMPONENT(SACK_SDK_ROOT_PATH \"[HKEY_LOCAL_MACHINE\\\\SOFTWARE\\\\Freedom Collective\\\\SACK;Install_Dir]\" ABSOLUTE CACHE)\n" );
-		//fprintf( out, "else( NOT SACK_SDK_ROOT_PATH )\n" );
-		//fprintf( out, "set(SACK_SDK_ROOT_PATH ${SACK_SDK_ROOT_PATH} CACHE STRING \"SACK SDK Root\" )\n" );
-		//fprintf( out, "endif( NOT SACK_SDK_ROOT_PATH )\n" );
-		//fprintf( out, "include( $""{SACK_SDK_ROOT_PATH}/CMakePackage)\n" );
-		fprintf( out, "#${CMAKE_PROJECT_NAME}\n" );
 
-		fprintf( out, "set( SACK_BINARY_BASE %s )\n", path );
-		fprintf( out, "set( SACK_BINARY_INCLUDE_DIR $""{SACK_BINARY_BASE}/include/sack )\n" );
-		fprintf( out, "set( SACK_BINARY_LIBRARIES sack_widgets )\n" );
-		fprintf( out, "set( SACK_BINARY_LIBRARY_DIR $""{SACK_BINARY_BASE}/lib )\n" );
-
-		fprintf( out, "\n" );
-		fprintf( out, "set(  BINARY_REPO_REVISION \"${CURRENT_REPO_REVISION}\" )\n" );
-		fprintf( out, "set(  BINARY_BUILD_TYPE \"${CMAKE_BUILD_TYPE}\" )\n" );
-		fprintf( out, "set(  BINARY_GENERATOR \"${CMAKE_GENERATOR}\" )\n" );
-		fprintf( out, "set(  BINARY_PROJECT_NAME \"${CMAKE_PROJECT_NAME}\" )\n" );
-		fprintf( out, "\n" );
-		fprintf( out, "SET( proxy.service_targets $""{SACK_BINARY_BASE}/bin/proxy.service${CMAKE_EXECUTABLE_SUFFIX})\n" );
-		fprintf( out, "SET( rebootnow_targets $""{SACK_BINARY_BASE}/bin/rebootnow${CMAKE_EXECUTABLE_SUFFIX})\n" );
-		fprintf( out, "SET( rebootnow.portable_targets $""{SACK_BINARY_BASE}/bin/rebootnow.portable${CMAKE_EXECUTABLE_SUFFIX})\n" );
-		fprintf( out, "SET( FileMirror_targets $""{SACK_BINARY_BASE}/bin/FileMirror${CMAKE_EXECUTABLE_SUFFIX} $""{SACK_BINARY_BASE}/bin/FileMirror.verify${CMAKE_EXECUTABLE_SUFFIX} $""{SACK_BINARY_BASE}/bin/FileMirrorRemote${CMAKE_EXECUTABLE_SUFFIX} $""{SACK_BINARY_BASE}/bin/FileMirrorGuiRemote${CMAKE_EXECUTABLE_SUFFIX})\n" );
-		fprintf( out, "SET( sqlcmd_targets $""{SACK_BINARY_BASE}/bin/sqlcmd${CMAKE_EXECUTABLE_SUFFIX})\n" );
-		fprintf( out, "SET( shutmon_targets $""{SACK_BINARY_BASE}/bin/shutdown.monitor${CMAKE_EXECUTABLE_SUFFIX})\n" );
-		fprintf( out, "SET( launcher_targets $""{SACK_BINARY_BASE}/bin/launchpad${CMAKE_EXECUTABLE_SUFFIX} $""{SACK_BINARY_BASE}/bin/launchcmd${CMAKE_EXECUTABLE_SUFFIX} $""{SACK_BINARY_BASE}/bin/launchwin${CMAKE_EXECUTABLE_SUFFIX})\n" );
-		fprintf( out, "SET( systray_shell_targets $""{SACK_BINARY_BASE}/bin/systray_shell${CMAKE_EXECUTABLE_SUFFIX} $""{SACK_BINARY_BASE}/bin/systray_shell.portable${CMAKE_EXECUTABLE_SUFFIX})\n" );
-		fprintf( out, "SET( vlc_window_targets $""{SACK_BINARY_BASE}/bin/vlc_window${CMAKE_EXECUTABLE_SUFFIX})\n" );
-		fprintf( out, "SET( http_server_targets $""{SACK_BINARY_BASE}/bin/http_server${CMAKE_EXECUTABLE_SUFFIX})\n" );
-		fprintf( out, "SET( crossfade_targets $""{SACK_BINARY_BASE}/bin/crossfade_vid_playlist${CMAKE_EXECUTABLE_SUFFIX}\n" );
-		fprintf( out, "            $""{SACK_BINARY_BASE}/bin/crossfade_vid_trigger${CMAKE_EXECUTABLE_SUFFIX}\n" );
-		fprintf( out, "    )\n" );
-		//fprintf( out, "SET( sack.msgsvr.service_targets $""{SACK_BINARY_BASE}/bin/sack.msgsvr.service.plugin)\n" );
-		fprintf( out, "\n" );
-		fprintf( out, "\n" );
-
-		fprintf( out, "macro( INSTALL_SACK_BINARY Project dest )\n" );
-		fprintf( out, "install( FILES $""{$""{Project}_targets} DESTINATION $""{dest} )\n" );
-		fprintf( out, "ENDMACRO( INSTALL_SACK_BINARY )\n" );
-		fprintf( out, "\n" );
-		//fprintf( out, "IF(CMAKE_BUILD_TPYE_INITIALIZED_TO_DEFAULT)\n" );
-
-		fprintf( out, "set(CMAKE_BUILD_TYPE \"${CMAKE_BUILD_TYPE}\" CACHE STRING \"Set build type\")\n" );
-		fprintf( out, "set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS $""{CMAKE_CONFIGURATION_TYPES} )\n" );
-
-		//fprintf( out, "ENDIF(CMAKE_BUILD_TPYE_INITIALIZED_TO_DEFAULT)\n" );
-
-		fprintf( out, "\n" );
+      {
+			const char *replace_start;
+			const char *replace_end;
+			replace_start = strstr( package, "@@@" );
+			if( replace_start )
+			{
+				fprintf( out, "%*.*s", replace_start - package, replace_start - package, package );
+				fprintf( out, "%s", SlashFix( path ) );
+				fprintf( out, "%s", replace_start + 3 );
+			}
+			else
+				fprintf( out, "%s", package );
+		}
 
 		fclose( out );
 	}
