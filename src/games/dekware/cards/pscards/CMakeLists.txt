@@ -1,22 +1,16 @@
 
-cmake_minimum_required(VERSION 2.8)
+add_library( pscards SHARED ../cards ../poker )
 
-project( pscards )
-
-add_library( ${PROJECT_NAME} SHARED ../cards ../poker )
-
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+SET_TARGET_PROPERTIES(pscards PROPERTIES
                   COMPILE_DEFINITIONS  "CARDS_SOURCE"
-                  FOLDER plugins
+                  FOLDER plugins/cards
 )
 
-target_link_libraries( ${PROJECT_NAME} 
-	${SACK_LIBRARIES}
-)
+my_target_link_libraries( pscards ${SACK_LIBRARIES} )
 
-INSTALL( TARGETS ${PROJECT_NAME} 
+INSTALL( TARGETS pscards 
 	RUNTIME DESTINATION bin/plugins
 	LIBRARY DESTINATION bin/plugins
-ARCHIVE DESTINATION lib )
+	ARCHIVE DESTINATION lib )
 
 

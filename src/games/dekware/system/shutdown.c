@@ -126,7 +126,7 @@ int GetSoundList( PSENTIENT ps, PLIST *pList, PTEXT pName )
 	TEXTCHAR *str, *p, *p2;
 	int cnt = 0;
 	TEXTCHAR buf[256];
-	GetCurrentDirectory( 512, savedir );
+	GetCurrentPath( savedir, 512 );
 	str = GetText( pName );
 	do
 	{
@@ -141,7 +141,7 @@ int GetSoundList( PSENTIENT ps, PLIST *pList, PTEXT pName )
 				try_p2:
 					memcpy( buf, str, p2 - str );
 					buf[p2-str] = 0;
-				   SetCurrentDirectory( buf );
+				   SetCurrentPath( buf );
 			   	str = p2+1;
 				}
 				else
@@ -154,7 +154,7 @@ int GetSoundList( PSENTIENT ps, PLIST *pList, PTEXT pName )
 		try_p:
 				memcpy( buf, str, p - str );
 				buf[p-str] = 0;
-				SetCurrentDirectory( buf );
+				SetCurrentPath( buf );
 			   str = p+1;
 			}
 		}	

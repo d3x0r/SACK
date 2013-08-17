@@ -116,7 +116,6 @@ void InitSimpleTextureShader( PImageShaderTracker tracker )
 		lprintf( "position is really %d", glGetAttribLocation(tracker->glProgramId, "vPosition" ) );
 	}
 
-	DumpAttribs( tracker->glProgramId );
 }
 
 static void CPROC SimpleTextureEnable2( PImageShaderTracker tracker, va_list args )
@@ -173,13 +172,11 @@ void InitSimpleShadedTextureShader( PImageShaderTracker tracker )
 
 	if( CompileShaderEx( tracker, v_codeblocks, 1, p_codeblocks, 1, attribs, 3 ) )
 	{
-
 		SetupCommon( tracker, "vPosition", "in_Color" );
 
 		tracker->color_attrib = glGetUniformLocation(tracker->glProgramId, "in_Color" );
 		data->texture = glGetUniformLocation(tracker->glProgramId, "tex");
 		data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
 	}
-	DumpAttribs( tracker->glProgramId );
 }
 

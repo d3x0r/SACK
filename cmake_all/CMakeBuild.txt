@@ -8,11 +8,16 @@ if( NOT DEFINED ${variable} )
 endif( NOT DEFINED ${variable} )
 endmacro( DEFINE_DEFAULT variable )
 
+  if( CMAKE_TOOLCHAIN_FILE )
+    set( TOOLCHAIN -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} )
+  endif( CMAKE_TOOLCHAIN_FILE )
+
 macro( BuildProject PROJECT SOLUTION PROJECT_SOURCE INSTALL_RESULT )
 string( TOLOWER "${CMAKE_BUILD_TYPE}" cmake_build_type_lower )
 string( TOLOWER "${CMAKE_BINARY_DIR}" cmake_binary_dir_lower )
 
   set( LAST_TARGET Build${PROJECT} )
+  # this is a fake rule to support old build system at work; this should be a patch forward on proprietary
   if( cmake_binary_dir_lower MATCHES ${cmake_build_type_lower}_solution\$ )
     set( INSTALL ${CMAKE_BINARY_DIR}/../${CMAKE_BUILD_TYPE}_out/${PROJECT} )
     set( BUILD ${CMAKE_BINARY_DIR}/../${CMAKE_BUILD_TYPE}_solution/${PROJECT} ) 
@@ -42,10 +47,6 @@ string( TOLOWER "${CMAKE_BINARY_DIR}" cmake_binary_dir_lower )
     SEPARATE_ARGUMENTS( BUILD_COMMAND UNIX_COMMAND ${BUILD_COMMAND} )
   endif( MSVC )
 
-  if( CMAKE_TOOLCHAIN_FILE )
-    set( TOOLCHAIN -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} )
-  endif( CMAKE_TOOLCHAIN_FILE )
-
   set( FAKE_ARGN1 ${ARGN})
   
 if( UNIX )
@@ -63,12 +64,27 @@ else( __ANDROID__ )
 endif( __ANDROID__ )  
   string (REPLACE ";" " " FAKE_BUILD_COMMAND "${BUILD_COMMAND}")
   FILE( APPEND ${BUILD}/${SCRIPTNAME} ${FAKE_BUILD_COMMAND} )
+if( __ANDROID__ )
+     set( package_path ${BUILD}/../../package/${PROJECT} )
+	if ( EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../android_build/${PROJECT} )
+		FILE( MAKE_DIRECTORY ${package_path} )
+		FILE( WRITE ${package_path}/${SCRIPTNAME} "cmake -G \"Unix Makefiles\"  -D${INSTALL_RESULT}=${INSTALL} ${CMAKE_CURRENT_SOURCE_DIR}/../android_build/${PROJECT}\n"  )
 
+  add_custom_target( BuildAndroid${PROJECT} ALL
+          COMMAND ${package_path}/${SCRIPTNAME}
+	  WORKING_DIRECTORY ${package_path}
+          DEPENDS Build${PROJECT}
+  ) 
+	endif ( EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../android_build/${PROJECT} )
+
+
+endif( __ANDROID__ )
 
 
 if( UNIX )
   add_custom_target( Build${PROJECT} ALL
           COMMAND chmod 755 ${SCRIPTNAME}
+          COMMAND ${SCRIPTNAME}
 	  WORKING_DIRECTORY ${BUILD}
           ${ADD_SOURCES}
   )
@@ -78,6 +94,8 @@ endif( UNIX )
 	  WORKING_DIRECTORY ${BUILD}
           ${ADD_SOURCES}
   )
+if( __ANDROID__ )  
+endif( __ANDROID__ )  
 endmacro( BuildProject )
 
 

@@ -25,7 +25,7 @@ static int CPROC CustomEditButton( PCOMMON pc )
 
 PRELOAD( RegisterExtraInits )
 {
-	SimpleRegisterMethod( "psi/control/" EDIT_FIELD_NAME "/rtti"
+	SimpleRegisterMethod( "psi/control/" "generic control name" "/rtti"
 							  , CustomEditButton, "int", "extra init", "(PCOMMON)" );
 }
 

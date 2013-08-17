@@ -946,43 +946,44 @@ static int HandleCommand(WIDE("getport") , WIDE("Get network address from messag
 
 static int HandleCommand(WIDE("whois"), WIDE("Perform whois query on listed names."))( PSENTIENT ps, PTEXT parameters )
 {
-   PTEXT temp;
+	PTEXT temp;
 #undef byOutput // ... yuck.
 	PTEXT pOutput;
-   PVARTEXT pvt = VarTextCreate();
-   if( InitNetwork( ps ) )
-   {
-      while( ( temp = GetParam( ps, &parameters ) ) )
-      {
-//#ifdef _WIN32
-         DoWhois( GetText( temp ), NULL, pvt );
+	PVARTEXT pvt = VarTextCreate();
+	if( InitNetwork( ps ) )
+	{
+#ifndef __ANDROID__
+		while( ( temp = GetParam( ps, &parameters ) ) )
+		{
+			DoWhois( GetText( temp ), NULL, pvt );
 			//#endif
-         pOutput = VarTextGet( pvt );
-         //pOutput = SegCreateFromText( byOutput );
+			pOutput = VarTextGet( pvt );
+			//pOutput = SegCreateFromText( byOutput );
 			{
-            PTEXT partial = NULL, out;
-            out = GatherLineEx( &partial, NULL, FALSE, FALSE, TRUE, pOutput );
-            while( out )
-            {
-            	PTEXT end;
-            	end = out;
-            	SetEnd( end );
-            	if( end )
-	            	GetText( end )[GetTextSize(end)-1] = 0;
-               EnqueLink( &ps->Command->Output, out );
-               out = GatherLineEx( &partial, NULL, FALSE, FALSE, TRUE, NULL );
-            }
-            if( partial )
-            {
-               EnqueLink( &ps->Command->Output, partial );
-            }
+				PTEXT partial = NULL, out;
+				out = GatherLineEx( &partial, NULL, FALSE, FALSE, TRUE, pOutput );
+				while( out )
+				{
+					PTEXT end;
+					end = out;
+					SetEnd( end );
+					if( end )
+						GetText( end )[GetTextSize(end)-1] = 0;
+					EnqueLink( &ps->Command->Output, out );
+					out = GatherLineEx( &partial, NULL, FALSE, FALSE, TRUE, NULL );
+				}
+				if( partial )
+				{
+					EnqueLink( &ps->Command->Output, partial );
+				}
 			}
 			LineRelease( pOutput );
-         //EnqueLink( &ps->Command->Output, pOutput );
+			//EnqueLink( &ps->Command->Output, pOutput );
 		}
-      VarTextDestroy( &pvt );
-   }
-   return 0;
+		VarTextDestroy( &pvt );
+#endif
+	}
+	return 0;
 }
 
 static int HandleCommand(WIDE("ping"), WIDE("Ping a network address..."))( PSENTIENT ps, PTEXT parameters )
@@ -991,7 +992,8 @@ static int HandleCommand(WIDE("ping"), WIDE("Ping a network address..."))( PSENT
    PVARTEXT pvt = VarTextCreate();
    if( InitNetwork(ps) )
    {
-      temp = GetParam( ps, &parameters );
+      	temp = GetParam( ps, &parameters );
+#ifndef __ANDROID__
 		DoPing( GetText( temp ), 0, 2500, 1, pvt, FALSE, NULL );
 		temp = VarTextGet( pvt );
 		{
@@ -1014,6 +1016,7 @@ static int HandleCommand(WIDE("ping"), WIDE("Ping a network address..."))( PSENT
 				EnqueLink( &ps->Command->Output, partial );
 			}
 		}
+#endif
 		LineRelease( temp );
 	}
 	VarTextDestroy( &pvt );
@@ -1027,9 +1030,9 @@ static int HandleCommand(WIDE("trace"), WIDE("Route trace a network address...")
    if( InitNetwork(ps) )
    {
       temp = GetParam( ps, &parameters );
-//#ifdef _WIN32
+#ifdef __ANDROID__
       DoPing( GetText( temp ), 32, 2500, 1, pvt, FALSE, NULL );
-//#endif
+#endif
       temp = VarTextGet( pvt );
 		{
          PTEXT partial = NULL, out;

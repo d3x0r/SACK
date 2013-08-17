@@ -2304,7 +2304,12 @@ void Startup( TEXTCHAR *lpCmdLine )
 		Log( WIDE("Running on a unix like type system...") );
 #endif
 		InitSpace( lpCmdLine?lpCmdLine:WIDE("") ); // no command line.
-		snprintf( pMyPluginPath, sizeof( pMyPluginPath ), WIDE("%s/%s"), GetProgramPath(), WIDE("plugins") );
+#ifdef __ANDROID__
+		snprintf( pMyPluginPath, sizeof( pMyPluginPath ), WIDE("%s"), GetProgramPath() );
+#else
+		snprintf( pMyPluginPath, sizeof( pMyPluginPath ), WIDE("%s/%s"), GetProgramPath()
+					, WIDE("plugins") );
+#endif
 		Log1( WIDE("Loading plugins from: %s"), pMyPluginPath );
 		LoadPlugins( pMyPluginPath );
 		if( StrCmp( pMyPluginPath, core_load_path ) )

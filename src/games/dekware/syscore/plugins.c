@@ -67,44 +67,6 @@ void DumpLoadedPluginList( PSENTIENT ps )
 
 //--------------------------------------------------------------------------
 
-#if !defined( __CYGWIN__ )
-#if defined( WIN32 ) && !defined( __TURBOC__ )
-#else
-
-CTEXTSTR GetFile( CTEXTSTR base, CTEXTSTR mask, void **pInfo )
-{
-   DIR *dir;
-   struct dirent *de;
-   if( !*pInfo )
-   {
-      dir = opendir( base );
-      *pInfo = (void*)dir;
-   }
-   else
-   {
-      dir = (DIR*)*pInfo;
-   }
-   if( dir )
-      while( ( de = readdir( dir ) ) )
-      {
-//#ifdef __QNX__
-//       if( strstr( de->d_name, WIDE(".nex.so") ) )
-//#else        
-         if( strstr( de->d_name, WIDE(".nex") ) )
-//#endif       
-         {
-            return de->d_name;
-         }
-      }
-   closedir( dir );
-   *pInfo = NULL;
-   return NULL;
-}
-#endif
-#endif
-
-//--------------------------------------------------------------------------
-
 PPLUGIN AddPlugin( CTEXTSTR pName, RegisterRoutinesProc RegisterRoutines, void (CPROC *Unload)(void) )
 {
    PPLUGIN pPlugin;
@@ -336,27 +298,33 @@ void LoadPlugins( CTEXTSTR base )
 	CTEXTSTR old_environ = StrDup( OSALOT_GetEnvironmentVariable( WIDE( "PATH" ) ) );
    pInfo = NULL;
    // this *.nex is ignored except in windows pattern search support...
-   GetCurrentDirectory( 256, savepath );
-   SetCurrentDirectory( base );
+#ifndef __ANDROID__
+   GetCurrentPath( savepath, savepath );
+   SetCurrentPath( base );
+#endif
 
    pluginfile = sack_fopen( 0, WIDE("plugins.list"), WIDE("rt") );
    if( !pluginfile )
-	{
+   {
+#ifdef __ANDROID__
+		while( ScanFiles( base, WIDE("lib*.nex.so"), &pInfo, LoadAPlugin, 0, 0 ) );
+#else
 		while( ScanFiles( base, WIDE("*.nex"), &pInfo, LoadAPlugin, 0, 0 ) );
+#endif
    }
    else
    {
 		TEXTCHAR buf[256];
 		while( fgets( buf, sizeof( buf ), pluginfile ) )
 		{
-         CTEXTSTR r;
+			CTEXTSTR r;
 			TEXTCHAR filename[256];
 			buf[strlen( buf)-1] = 0; // kill \n from end of line
 			if( r = pathrchr( buf ) )
 			{
-            LOGICAL bAppended = FALSE;
+				LOGICAL bAppended = FALSE;
 				{
-               // use length of r-buf to print into a buffer for the base path of the plugin to set as path (if missing)
+					// use length of r-buf to print into a buffer for the base path of the plugin to set as path (if missing)
 					PVARTEXT pvt;
 					PTEXT result;
 
@@ -371,7 +339,7 @@ void LoadPlugins( CTEXTSTR base )
 				}
 
 				while( ScanFiles( filename, r+1, &pInfo, LoadAPlugin, 0, 0 ) );
-            if( bAppended )
+				if( bAppended )
 					OSALOT_SetEnvironmentVariable( WIDE("PATH"), old_environ );
 			}
 			else
@@ -382,7 +350,7 @@ void LoadPlugins( CTEXTSTR base )
 		fclose( pluginfile );
 	}
 
-	SetCurrentDirectory( savepath );
+	SetCurrentPath( savepath );
 
 	OSALOT_SetEnvironmentVariable( WIDE("PATH"), old_environ );
 	Release( (POINTER)old_environ );

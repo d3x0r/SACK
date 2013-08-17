@@ -1,8 +1,5 @@
 
-
-cmake_minimum_required(VERSION 2.8)
-
-project( dekware.core )
+set( project Dekware.core )
 
 
 set(SOURCES 
@@ -12,21 +9,24 @@ interface
 ${LAST_GCC_LIBRARY_SOURCE} )
 
 
-add_library( ${PROJECT_NAME} SHARED ${SOURCES} )
+add_library( ${project} SHARED ${SOURCES} )
 
-string( REGEX REPLACE "(.*)\\.(.*)" "\\1_\\2" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+string( REGEX REPLACE "(.*)\\.(.*)" "\\1_\\2" TARGET_LABEL ${project} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
                   DEFINE_SYMBOL CORE_SOURCE
-                  PREFIX ""
-                  SUFFIX ""
-                  COMPILE_DEFINITIONS "TARGETNAME=\"${PROJECT_NAME}\""
+                  COMPILE_DEFINITIONS "TARGETNAME=\"${project}\""
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
 )
+if( NOT __ANDROID__ )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+                  PREFIX ""
+                  SUFFIX ""
+)
+endif( NOT __ANDROID__ )
 
+target_link_libraries( ${project}  ${SACK_LIBRARIES} )
 
-target_link_libraries( ${PROJECT_NAME}  ${SACK_LIBRARIES} )
-
-INSTALL( TARGETS ${PROJECT_NAME} 
+INSTALL( TARGETS ${project} 
 	RUNTIME DESTINATION bin 
 	LIBRARY DESTINATION bin 
 )

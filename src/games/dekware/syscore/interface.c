@@ -120,7 +120,8 @@ void CPROC UnloadDekwareInterface( POINTER p )
 {
 }
 
-PRIORITY_PRELOAD( RegisterDekwareInterface, DEFAULT_PRELOAD_PRIORITY-1 )
+// have to regsiter this before pscards; which may have to be loaded at same time
+PRIORITY_PRELOAD( RegisterDekwareInterface, DEFAULT_PRELOAD_PRIORITY-4 )
 {
 	RegisterInterface( WIDE("Dekware"), LoadDekwareInterface, UnloadDekwareInterface );
 }

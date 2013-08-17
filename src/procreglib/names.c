@@ -2128,7 +2128,7 @@ POINTER GetInterfaceExx( CTEXTSTR pServiceName, LOGICAL ReadConfig DBG_PASS )
 			{
 				if( !GetRegisteredValueExx( (PCLASSROOT)interface_name, NULL, WIDE( "Logged" ), 1 ) )
 				{
-					_lprintf(DBG_RELAY)( WIDE("Did not find load procedure for:[%s] (dumping names from /system/interface/* so you can see what might be availalbe)"), interface_name );
+					_lprintf(DBG_RELAY)( WIDE("Did not find load procedure for:[%s] (dumping names from /system/interface/* so you can see what might be available)"), interface_name );
 					DumpRegisteredNamesFrom(GetClassRoot(WIDE( "system/interfaces" )));
 					RegisterValueExx( (PCLASSROOT)interface_name, NULL, WIDE( "Logged" ), 1, (CTEXTSTR)1 );
 				}
