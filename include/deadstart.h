@@ -277,7 +277,7 @@ DEADSTART_PROC  void DEADSTART_CALLTYPE  DispelDeadstart ( void );
 #define PRIORITY_PRELOAD(name,priority) static void CPROC name(void); \
    static class pastejunk(schedule_,name) {   \
      public:pastejunk(schedule_,name)() {    \
-	RegisterPriorityStartupProc( name,_WIDE(#name),priority,(void*)this,WIDE__FILE__,__LINE__ );\
+	RegisterPriorityStartupProc( name,TOSTR(name),priority,(void*)this,WIDE__FILE__,__LINE__ );\
 	  }  \
 	} pastejunk(do_schedule_,name);     \
 	static void name(void)
@@ -299,7 +299,7 @@ DEADSTART_PROC  void DEADSTART_CALLTYPE  DispelDeadstart ( void );
 #define ATEXIT_PRIORITY(name,priority) static void CPROC name(void); \
    static class pastejunk(schedule_,name) {   \
      public:pastejunk(schedule_,name)() {    \
-	RegisterPriorityShutdownProc( name,_WIDE(#name),priority,(void*)this,WIDE__FILE__,__LINE__ );\
+	RegisterPriorityShutdownProc( name,TOSTR(name),priority,(void*)this,WIDE__FILE__,__LINE__ );\
 	  }  \
 	} pastejunk(do_schedule_,name);     \
 	static void name(void)
@@ -320,7 +320,7 @@ DEADSTART_PROC  void DEADSTART_CALLTYPE  DispelDeadstart ( void );
 #define PRIORITY_ATEXIT(name,priority) static void CPROC name(void); \
    static class pastejunk(shutdown_,name) {   \
 	public:pastejunk(shutdown_,name)() {    \
-   RegisterPriorityShutdownProc( name,_WIDE(#name),priority,(void*)this,WIDE__FILE__,__LINE__ );\
+   RegisterPriorityShutdownProc( name,TOSTR(name),priority,(void*)this,WIDE__FILE__,__LINE__ );\
 	/*name(); / * call on destructor of static object.*/ \
 	  }  \
 	} do_shutdown_##name;     \
@@ -397,13 +397,13 @@ struct rt_init // structure placed in XI/YI segment
 #define PRIORITY_PRELOAD(name,priority) static void pastejunk(schedule_,name)(void); static void CPROC name(void); \
 	static struct rt_init __based(__segname("XI")) pastejunk(name,_ctor_label)={0,(DEADSTART_PRELOAD_PRIORITY-1),pastejunk(schedule_,name)}; \
 	static void pastejunk(schedule_,name)(void) {                 \
-	RegisterPriorityStartupProc( name,_WIDE(#name),priority,&pastejunk(name,_ctor_label),WIDE__FILE__,__LINE__ );\
+	RegisterPriorityStartupProc( name,TOSTR(name),priority,&pastejunk(name,_ctor_label),WIDE__FILE__,__LINE__ );\
 	}                                       \
 	void name(void)
 #define ATEXIT_PRIORITY(name,priority) static void pastejunk(schedule_exit_,name)(void); static void CPROC name(void); \
 	static struct rt_init __based(__segname("XI")) pastejunk(name,_dtor_label)={0,69,pastejunk(schedule_exit_,name)}; \
 	static void pastejunk(schedule_exit_,name)(void) {                                              \
-	RegisterPriorityShutdownProc( name,_WIDE(#name),priority,&name##_dtor_label,WIDE__FILE__,__LINE__ );\
+	RegisterPriorityShutdownProc( name,TOSTR(name),priority,&name##_dtor_label,WIDE__FILE__,__LINE__ );\
 	}                                       \
 	void name(void)
 
@@ -481,7 +481,7 @@ struct rt_init // structure placed in XI/YI segment
 	={0,0,pr INIT_PADDING    \
 	 ,__LINE__,name         \
 	 ,WIDE__FILE__        \
-	,#name        \
+	,TOSTR(name)        \
 	JUNKINIT(name)}; \
 	void name(void) __attribute__((used));  \
 	void name(void)
@@ -491,7 +491,7 @@ typedef void(*atexit_priority_proc)(void (*)(void),CTEXTSTR,int,CTEXTSTR,int);
 static void pastejunk(atexit,name)(void) __attribute__((constructor));  \
 void pastejunk(atexit,name)(void)                                                  \
 {                                                                        \
-	RegisterPriorityShutdownProc(name,#name,priority,NULL,WIDE__FILE__,__LINE__);                          \
+	RegisterPriorityShutdownProc(name,TOSTR(name),priority,NULL,WIDE__FILE__,__LINE__);                          \
 }                                                                          \
 void name(void)
 
@@ -560,39 +560,6 @@ struct rt_init // structure placed in XI/YI segment
 #define RTINIT_STATIC static
 #endif
 
-#ifdef __cplusplus
-#define PRIORITY_PRELOAD(name,priority) static void name(void); \
-   static class pastejunk(schedule_,name) {   \
-     public:pastejunk(schedule_,name)() {    \
-	static char myname[256];HMODULE mod;if(myname[0])return;myname[0]='a';GetModuleFileName( NULL, myname, sizeof( myname ) );\
-	mod=LoadLibrary(myname);DebugBreak();if(mod){\
-   typedef void (*x)(void);void(*rsp)( x,const CTEXTSTR,int,const CTEXTSTR,int); \
-	if((rsp=((void(*)(void(*)(void),const CTEXTSTR,int,const CTEXTSTR,int))(GetProcAddress( mod, WIDE("RegisterPriorityStartupProc"))))))\
-	{rsp( name,#name,priority,WIDE__FILE__,__LINE__ );}}\
-     FreeLibrary( mod); \
-    }\
-	} pastejunk(do_schedul_,name);     \
-	static void name(void)
-#define MAGIC_PRIORITY_PRELOAD(name,priority) static void name(void); \
-   static class pastejunk(schedule_,name) {   \
-     public:pastejunk(schedule_,name)() {  name();  \
-	  }  \
-	} pastejunk(do_schedule_,name);     \
-	static void name(void)
-#define ATEXIT_PRIORITY(name,priority) static void name(void); \
-   static class pastejunk(schedule_,name) {   \
-     public:pastejunk(schedule_,name)() {    \
-	static char myname[256];HMODULE mod;DebugBreak();if(myname[0])return;myname[0]='a';GetModuleFileName( NULL, myname, sizeof( myname ) );\
-	mod=LoadLibrary(myname);if(mod){\
-   typedef void (*x)(void);void(*rsp)( x,const CTEXTSTR,int,const CTEXTSTR,int); \
-	if((rsp=((void(*)(void(*)(void),const CTEXTSTR,int,const CTEXTSTR,int))(GetProcAddress( mod, WIDE("RegisterPriorityShutdownProc"))))))\
-	{rsp( name,#name,priority,WIDE__FILE__,__LINE__ );}}\
-     FreeLibrary( mod); \
-      }\
-	} do_schedul_##name;     \
-	static void name(void)
-
-#else
 
 typedef void(*atexit_priority_proc)(void (*)(void),CTEXTSTR,int,CTEXTSTR,int);
 #define ATEXIT_PRIORITY(name,priority) static void name(void); static void atexit##name(void) __attribute__((constructor));  \
@@ -603,14 +570,12 @@ void atexit##name(void)                                                  \
 	mod=LoadLibrary(myname);if(mod){\
    typedef void (*x)(void);void(*rsp)( x,const CTEXTSTR,int,const CTEXTSTR,int); \
 	if((rsp=((void(*)(void(*)(void),const CTEXTSTR,int,const CTEXTSTR,int))(GetProcAddress( mod, WIDE("RegisterPriorityShutdownProc"))))))\
-	 {rsp( name,#name,priority,WIDE__FILE__,__LINE__ );}\
-	 else atexit_failed##name(name,priority,#name,WIDE__FILE__,__LINE__);        \
+	 {rsp( name,TOSTR(name),priority,WIDE__FILE__,__LINE__ );}\
+	 else atexit_failed##name(name,priority,TOSTR(name),WIDE__FILE__,__LINE__);        \
 	}\
      FreeLibrary( mod); \
 	}             \
 void name( void)
-
-#error blah
 
 
 #define PRIORITY_PRELOAD(name,pr) static void name(void); \
@@ -619,10 +584,9 @@ void name( void)
 	={0,0,pr INIT_PADDING    \
 	 ,__LINE__,name         \
 	 ,WIDE__FILE__        \
-	,#name        \
+	,TOSTR(name)        \
 	JUNKINIT(name)}; \
 	static void name(void)
-#endif
 
 #define ATEXIT(name)      ATEXIT_PRIORITY(name,ATEXIT_PRIORITY_DEFAULT)
 #define PRIORITY_ATEXIT ATEXIT_PRIORITY
@@ -693,7 +657,7 @@ void name( void)
    static int CPROC pastejunk(schedule_,name)(void);   \
 	static __declspec(allocate(_STARTSEG_)) int (CPROC*pastejunk(TARGET_LABEL,pastejunk( pastejunk(x_,name),__LINE__)))(void) = pastejunk(schedule_,name); \
 	int CPROC pastejunk(schedule_,name)(void) {                 \
-	RegisterPriorityStartupProc( name,WIDE(#name),priority,pastejunk(TARGET_LABEL,pastejunk( pastejunk(x_,name),__LINE__)),WIDE__FILE__,__LINE__ );\
+	RegisterPriorityStartupProc( name,TOSTR(name),priority,pastejunk(TARGET_LABEL,pastejunk( pastejunk(x_,name),__LINE__)),WIDE__FILE__,__LINE__ );\
 	return 0; \
 	}                                       \
 	/*static __declspec(allocate(_STARTSEG_)) void (CPROC*pointer_##name)(void) = pastejunk(schedule_,name);*/ \
@@ -711,7 +675,7 @@ typedef void(*atexit_priority_proc)(void (*)(void),int,CTEXTSTR,CTEXTSTR,int);
    static int schedule_atexit_##name(void);   \
 	static __declspec(allocate(_STARTSEG_)) void (CPROC*pastejunk(TARGET_LABEL,pastejunk( x_##name,__LINE__)))(void) = (void(CPROC*)(void))schedule_atexit_##name; \
 	static int schedule_atexit_##name(void) {                 \
-	RegisterPriorityShutdownProc( name,WIDE(#name),priority,pastejunk(TARGET_LABEL,pastejunk( x_##name,__LINE__)),WIDE__FILE__,__LINE__ );\
+	RegisterPriorityShutdownProc( name,TOSTR(name),priority,pastejunk(TARGET_LABEL,pastejunk( x_##name,__LINE__)),WIDE__FILE__,__LINE__ );\
 	return 0; \
 	}                                       \
 	static void CPROC name(void)
