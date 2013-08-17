@@ -1,6 +1,5 @@
 macro( DEFINE_DEFAULT variable default )
 if( NOT DEFINED ${variable} )
-   message( "variable ${variable} not defined (command line)" )
    set( ${variable} $ENV{${variable}} )
    if( "${${variable}}" STREQUAL "" )
      set( ${variable} ${default} )

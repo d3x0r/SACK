@@ -1,6 +1,7 @@
-	set( FILEOUT ${BASE_PATH}/CMakePackage )
+set( BASE_PATH ${CMAKE_INSTALL_PREFIX} )
+set( FILEOUT ${BASE_PATH}/CMakePackage )
 
-      	FILE( WRITE ${FILEOUT} "#generated from deploy.cm.cm....\n" )
+FILE( WRITE ${FILEOUT} "#generated from deploy.cm.cm....\n" )
 
 
 if( __LINUX64__ )
@@ -28,7 +29,6 @@ ADD_DEFINITIONS( -D__NO_ODBC__=1 )
 endif( __NO_ODBC__ )
 
 
-set( BASE_PATH ${CMAKE_INSTALL_PREFIX} )
 
         
 
@@ -60,6 +60,9 @@ if( __NO_ODBC__ )
 		FILE( APPEND ${FILEOUT} "ADD_DEFINITIONS( -D__NO_ODBC__=1 )\n" )
 endif( __NO_ODBC__ )
 		FILE( APPEND ${FILEOUT} "SET( __ANDROID__ ${__ANDROID__})\n" )
+if( __ANDROID__ )                
+		FILE( APPEND ${FILEOUT} "ADD_DEFINITIONS( -D__ANDROID__ )\n" )
+endif( __ANDROID__ )                                
 		FILE( APPEND ${FILEOUT} "SET( __ARM__ ${__ARM__})\n" )
 		FILE( APPEND ${FILEOUT} "SET( __LINUX__ ${__LINUX__})\n" )
 if( NEED_UUNID )                
