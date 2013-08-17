@@ -284,11 +284,7 @@ int main( int argc, char **argv )
 #else
 	out = fopen( tmp, "wt" );
 #endif
-	{
-		int c;
-		for( c = 0; path[c]; c++ )
-			if( path[c] == '\\' ) path[c] = '/';
-	}
+   SlashFix( path );
 	if( out )
 	{
 		if( !no_registry )
