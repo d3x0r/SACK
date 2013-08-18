@@ -113,4 +113,21 @@ getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
 in onCreate
 
 
+alternative full screen method?
+public class FullScreen extends Activity {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
+                                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        setContentView(R.layout.main);
+    }
+}
+// see http://androidsnippets.com/how-to-make-an-activity-fullscreen
+
+
 */
+
