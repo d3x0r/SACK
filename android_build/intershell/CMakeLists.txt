@@ -74,13 +74,17 @@ EXECUTE_PROCESS(
        COMMAND android.bat update project --target "android-14" --path .
        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/package )
 EXECUTE_PROCESS( 
-       COMMAND ant.bat debug 
+       COMMAND ant.bat CMAKE_BUILD_TYPE 
        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/package )
 
 
     add_custom_target( install 
     			COMMAND echo adb install command...
-                     COMMAND adb install package/bin/${Project}-debug.apk
+                     COMMAND adb install package/bin/${Project}-${CMAKE_BUILD_TYPE}.apk
  )
 
+    add_custom_target( uninstall 
+    			COMMAND echo adb uninstall command...
+                     COMMAND adb uninstall org.d3x0r.sack.${Project}
+ )
 
