@@ -16,6 +16,9 @@
  *
  */
 
+#define DEBUG_TOUCH_INPUT
+
+
 //BEGIN_INCLUDE(all)
 #include <jni.h>
 #include <errno.h>
@@ -27,6 +30,7 @@
 
 
 #include "engine.h"
+
 
 // sets the native window; opencameras will use this as the surface to initialize to.
 static void (*BagVidlibPureglSetNativeWindowHandle)(NativeWindowType );
@@ -56,7 +60,9 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 		 int32_t action = AMotionEvent_getAction(event );
 		 int pointer = ( action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK ) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 		 int p = AMotionEvent_getPointerCount( event );
-		 //LOGI( "pointer %04x %d", action, pointer );
+#ifndef DEBUG_TOUCH_INPUT
+		 LOGI( "pointer (full action)%04x (pointer)%d (number points)%d", action, pointer, p );
+#endif
 		 {
 			 int n;
 			 for( n = 0; n < engine->nPoints; n++ )
@@ -64,8 +70,21 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 				 engine->points[n].flags.new_event = 0;
 				 if( engine->points[n].flags.end_event )
 				 {
-					 //LOGI( "Previously had a point to delete %d", n );
-					 memcpy( engine->points + n, engine->points + n + 1, sizeof( struct input_point ) * (9-pointer) );
+					 int m;
+					 for( m = n; m < (engine->nPoints-1); m++ )
+					 {
+						 if( engine->input_point_map[m+1] == m+1 )
+							 engine->input_point_map[m] = m;
+						 else
+						 {
+							 if( engine->input_point_map[m+1] < n )
+								 engine->input_point_map[m] = engine->input_point_map[m+1];
+							 else
+								 engine->input_point_map[m] = engine->input_point_map[m+1] - 1;
+
+						 }
+						 engine->points[m] = engine->points[m+1];
+					 }
 					 engine->nPoints--;
 					 n--;
 				 }
@@ -76,11 +95,16 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 		 {
 		 case AMOTION_EVENT_ACTION_DOWN:
 			 // primary pointer down.
+			 //if( engine->nPoints )
+			 //{
+          //   LOGI( "Pointer Event Down (pointer0) and there's already pointers..." );
+			 //}
           engine->points[0].x = AMotionEvent_getX( event, pointer );
 			 engine->points[0].y = AMotionEvent_getY( event, pointer );
           engine->points[0].flags.new_event = 1;
 			 engine->points[0].flags.end_event = 0;
-          engine->nPoints++;
+			 engine->nPoints++;
+          engine->input_point_map[0] = 0;
           break;
 		 case AMOTION_EVENT_ACTION_UP:
 			 // primary pointer up.
@@ -92,41 +116,144 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 				 int n;
 				 for( n = 0; n < p; n++ )
 				 {
-					 engine->points[n].x = AMotionEvent_getX( event, n );
-					 engine->points[n].y = AMotionEvent_getY( event, n );
-					 engine->points[n].flags.new_event = 0;
-					 engine->points[n].flags.end_event = 0;
+					 // points may have come in as 'new' in the wrong order,
+                // reference the input point map to fill in the correct point location
+					 int actual = engine->input_point_map[n];
+					 engine->points[actual].x = AMotionEvent_getX( event, n );
+					 engine->points[actual].y = AMotionEvent_getY( event, n );
+					 engine->points[actual].flags.new_event = 0;
+					 engine->points[actual].flags.end_event = 0;
 				 }
 			 }
 			 break;
 		 case AMOTION_EVENT_ACTION_POINTER_DOWN:
+			 // the new pointer might not be the last one, so we insert it.
+			 // at the end, before dispatch, new points are moved to the end
+			 // and mapping begins.  this code should not reference the map
+			 if( pointer < engine->nPoints )
+			 {
+				 int c;
+#ifndef DEBUG_TOUCH_INPUT
+				 LOGI( "insert point new. %d", engine->nPoints-1 );
+#endif
+				 for( c = ( engine->nPoints ); c > pointer; c-- )
+				 {
+					 engine->points[c] = engine->points[c-1];
+                // if the point is mapped from inputs, the map on this point will also not be itself
+					 if( engine->input_point_map[c-1] != (c-1) )
+					 {
+						 int map;
+						 engine->input_point_map[c] = engine->input_point_map[c-1];
+#ifndef DEBUG_TOUCH_INPUT
+						 LOGI( "have to remap" );
+#endif
+						 for( map = 0; map < engine->nPoints; map++ )
+						 {
+#ifndef DEBUG_TOUCH_INPUT
+							 LOGI( "something else %d %d", map, engine->input_point_map[map] );
+#endif
+                      // find the map entry pointing at this one, and increment it.
+							 if( engine->input_point_map[map] == (c-1) )
+							 {
+                         // increment the map reference to me, I'm one position higher.
+								 engine->input_point_map[map]++;
+								 break;
+							 }
+						 }
+					 }
+					 else
+                   engine->input_point_map[c] = c;
+				 }
+#ifndef DEBUG_TOUCH_INPUT
+				 for( c = 0; c < engine->nPoints; c++ )
+				 {
+					 LOGI( "Point : %d %d %g %g %d %d", c, engine->input_point_map[c], engine->points[c].x , engine->points[c].y, engine->points[c].flags.new_event, engine->points[c].flags.end_event );
+				 }
+#endif
+			 }
+
 			 // primary pointer down.
           engine->points[pointer].x = AMotionEvent_getX( event, pointer );
 			 engine->points[pointer].y = AMotionEvent_getY( event, pointer );
 			 engine->points[pointer].flags.new_event = 1;
 			 engine->points[pointer].flags.end_event = 0;
+			 engine->input_point_map[pointer] = pointer;
+          // always initialize the
           engine->nPoints++;
 			 break;
 		 case AMOTION_EVENT_ACTION_POINTER_UP:
-          engine->points[pointer].flags.new_event = 0;
-			 engine->points[pointer].flags.end_event = 1;
+			 {
+             // a up pointer may be remapped already, set the actual entry for the point
+				 int actual = engine->input_point_map[pointer];
+             int n;
+				 engine->points[actual].flags.new_event = 0;
+				 engine->points[actual].flags.end_event = 1;
+#ifndef DEBUG_TOUCH_INPUT
+				 LOGI( "Set point %d (map %d) to ended", pointer, actual );
+#endif
+             // any release event will reset the other input points appropriately(?)
+				 for( n = 0; n < engine->nPoints; n++ )
+				 {
+                int other;
+					 if( (other = engine->input_point_map[n]) != n )
+					 {
+						 struct input_point tmp = engine->points[n];
+                   engine->points[n] = engine->points[other];
+						 engine->points[other] = tmp;
+
+						 engine->input_point_map[other] = engine->input_point_map[n];
+						 engine->input_point_map[n] = n;
+#ifndef DEBUG_TOUCH_INPUT
+						 LOGI( "reversed points %d %d", n, other );
+#endif
+					 }
+				 }
+			 }
 			 break;
 		 default:
           LOGI( "Motion Event ignored..." );
 		 }
-       /*
+
 		 {
 			 int n;
+			 int found_new;
+          // sort new point to the end, and apply remap if required.
+#ifndef DEBUG_TOUCH_INPUT
 			 for( n = 0; n < engine->nPoints; n++ )
 			 {
-				 LOGI( "Point : %d %g %g %d %d", n, engine->points[n].x , engine->points[n].y, engine->points[n].flags.new_event, engine->points[n].flags.end_event );
+				 LOGI( "Point : %d %d %g %g %d %d", n, engine->input_point_map[n], engine->points[n].x , engine->points[n].y, engine->points[n].flags.new_event, engine->points[n].flags.end_event );
 			 }
+#endif
+			 for( n = 0; n < engine->nPoints; n++ )
+			 {
+				 if( engine->points[n].flags.new_event )
+				 {
+					 if( n < (engine->nPoints-1) )
+					 {
+						 struct input_point tmp;
+						 // swap the real points
+						 tmp = engine->points[n];
+						 engine->points[n] = engine->points[engine->nPoints-1];
+						 engine->points[engine->nPoints-1] = tmp;
+						 // setup the map to reverse them.
+						 engine->input_point_map[engine->nPoints-1] = n;
+						 engine->input_point_map[n] = engine->nPoints-1;
+					 }
+				 }
+			 }
+
+#ifndef DEBUG_TOUCH_INPUT
+			 for( n = 0; n < engine->nPoints; n++ )
+			 {
+				 LOGI( "Point : %d %d %g %g %d %d", n, engine->input_point_map[n], engine->points[n].x , engine->points[n].y, engine->points[n].flags.new_event, engine->points[n].flags.end_event );
+			 }
+#endif
 		 }
-       */
+
 		 BagVidlibPureglSendTouchEvents( engine->nPoints, engine->points );
 		 //engine->animating = 1;
-        //engine->state.x = AMotionEvent_getX(event, 0);
-        //engine->state.y = AMotionEvent_getY(event, 0);
+		 //engine->state.x = AMotionEvent_getX(event, 0);
+		 //engine->state.y = AMotionEvent_getY(event, 0);
 		 return 1;
 		 }
 	 case AINPUT_EVENT_TYPE_KEY:

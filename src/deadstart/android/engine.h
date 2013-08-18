@@ -43,5 +43,6 @@ struct engine {
     volatile int wait_for_startup;
 	 volatile int wait_for_display_init;
 	 struct input_point points[10];
+    int input_point_map[10];
     int nPoints;
 };
