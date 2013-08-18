@@ -174,11 +174,11 @@ void EnableEGLContext( PRENDERER hVidCore )
 	if( hVidCore )
 	{
 		/* connect the context to the surface */
-         prior_display = hVidCore->display;
+		prior_display = hVidCore->display;
 		if (eglMakeCurrent(hVidCore->display
-				, hVidCore->surface
-				, hVidCore->surface
-				, hVidCore->econtext)==EGL_FALSE)
+								, hVidCore->surface
+								, hVidCore->surface
+								, hVidCore->econtext)==EGL_FALSE)
 		{
 			lprintf( "Make current failed: 0x%x\n", eglGetError());
 			return;
@@ -191,10 +191,14 @@ void EnableEGLContext( PRENDERER hVidCore )
 
 		// swap should be done at end of render phase.
 		//eglSwapBuffers(hVidCore->display,hVidCore->surface);
-		if (eglMakeCurrent(prior_display, EGL_NO_SURFACE, EGL_NO_SURFACE,  EGL_NO_CONTEXT)==EGL_FALSE)
+		if( prior_display )
 		{
-			lprintf( "Make current failed: 0x%x\n", eglGetError());
-			return;
+			if (eglMakeCurrent(prior_display, EGL_NO_SURFACE, EGL_NO_SURFACE,  EGL_NO_CONTEXT)==EGL_FALSE)
+			{
+				lprintf( "Make current failed: 0x%x\n", eglGetError());
+				return;
+			}
+			prior_display = NULL;
 		}
 	}
 }
@@ -203,14 +207,19 @@ void EnableEGLContext( PRENDERER hVidCore )
 void SACK_Vidlib_CloseDisplay( void )
 {
 	INDEX idx;
-   struct display_camera *camera;
+	struct display_camera *camera;
+	// suspend display will have already
+	//    1) set NULL render context for this thread
+	//    2) destroyed the surface and display.
+	//  so all that's left is to tell imagelib to release its resources in the context
+   //  and release the context.
 	SACK_Vidlib_SuspendDisplay();
 	LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
 	{
       // default camera is listed twice.
 		if( !idx )
 			continue;
-      camera->hVidCore->flags.bReady = 0;
+
 		{
 			struct plugin_reference *reference;
 			INDEX idx2;
@@ -221,28 +230,28 @@ void SACK_Vidlib_CloseDisplay( void )
 			}
 		}
 
-
+		// so then the context CAN exist without the display or surface...
+		// but you can't put anything into it without one.
+      // what happens if you put a context on a dissimilar surface?
+		if (camera->hVidCore->econtext != EGL_NO_CONTEXT)
 		{
-			if (camera->hVidCore->display != EGL_NO_DISPLAY)
-			{
-				EnableEGLContext( NULL );
-				if (camera->hVidCore->econtext != EGL_NO_CONTEXT)
-				{
-					eglDestroyContext(camera->hVidCore->display, camera->hVidCore->econtext);
-				}
-				if (camera->hVidCore->surface != EGL_NO_SURFACE)
-				{
-					eglDestroySurface(camera->hVidCore->display, camera->hVidCore->surface);
-				}
-				eglTerminate(camera->hVidCore->display);
-			}
-			//engine->animating = 0;
-			camera->hVidCore->display = EGL_NO_DISPLAY;
+			eglDestroyContext(camera->hVidCore->display, camera->hVidCore->econtext);
 			camera->hVidCore->econtext = EGL_NO_CONTEXT;
-			camera->hVidCore->surface = EGL_NO_SURFACE;
-
 		}
 
+		// this is redundant; unless something freak occurs,
+		// this will already be destroyed by suspend surface
+		if (camera->hVidCore->surface != EGL_NO_SURFACE)
+		{
+			eglDestroySurface(camera->hVidCore->display, camera->hVidCore->surface);
+			camera->hVidCore->surface = EGL_NO_SURFACE;
+		}
+		if (camera->hVidCore->display != EGL_NO_DISPLAY)
+		{
+			// this will already be destroyed by suspend surface
+			eglTerminate(camera->hVidCore->display);
+			camera->hVidCore->display = EGL_NO_DISPLAY;
+		}
 	}
 }
 
@@ -258,16 +267,16 @@ void SACK_Vidlib_SuspendDisplayEx( INDEX idx )
       // default camera is listed twice.
 		camera->hVidCore->flags.bReady = 0;
 		{
+			if (camera->hVidCore->surface != EGL_NO_SURFACE)
+			{
+				eglDestroySurface(camera->hVidCore->display, camera->hVidCore->surface);
+				camera->hVidCore->surface = EGL_NO_SURFACE;
+			}
 			if (camera->hVidCore->display != EGL_NO_DISPLAY)
 			{
-				if (camera->hVidCore->surface != EGL_NO_SURFACE)
-				{
-					eglDestroySurface(camera->hVidCore->display, camera->hVidCore->surface);
-				}
 				eglTerminate(camera->hVidCore->display);
+				camera->hVidCore->display = EGL_NO_DISPLAY;
 			}
-			camera->hVidCore->display = EGL_NO_DISPLAY;
-			camera->hVidCore->surface = EGL_NO_SURFACE;
 		}
 	}
 }
