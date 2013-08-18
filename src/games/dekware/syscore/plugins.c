@@ -350,8 +350,9 @@ void LoadPlugins( CTEXTSTR base )
 		fclose( pluginfile );
 	}
 
+#ifndef __ANDROID__
 	SetCurrentPath( savepath );
-
+#endif
 	OSALOT_SetEnvironmentVariable( WIDE("PATH"), old_environ );
 	Release( (POINTER)old_environ );
 
