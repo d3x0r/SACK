@@ -197,11 +197,7 @@ int CPROC CHANGEDIR( PSENTIENT ps, PTEXT parameters )
    else
       return FALSE;
    LineRelease( pDir1 );
-#ifdef _WIN32
    if( SetCurrentPath( GetText( pDir ) ) )
-#else
-   if( !chdir( GetText( pDir ) ) )
-#endif
    {
       if( ps->CurrentMacro )
          ps->CurrentMacro->state.flags.bSuccess = TRUE;

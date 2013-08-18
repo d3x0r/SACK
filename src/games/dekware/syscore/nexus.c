@@ -2330,8 +2330,9 @@ void Startup( TEXTCHAR *lpCmdLine )
 		{
 			PLAYER = CreateAwareness( THE_VOID );
 			UnlockAwareness( PLAYER );
-			           
-         DoCommandf( PLAYER, WIDE("/echo /script macros") );
+
+			//DoCommandf( PLAYER, WIDE("/debug") );
+			DoCommandf( PLAYER, WIDE("/echo /script macros") );
 			DoCommandf( PLAYER, WIDE("/script macros") );
 		}
 		Log( WIDE("Start one sentience...") );
