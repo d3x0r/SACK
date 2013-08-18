@@ -15,7 +15,6 @@
  * Our saved state data.
  */
 struct saved_state {
-    float angle;
     int32_t x;
     int32_t y;
 };
@@ -31,7 +30,8 @@ struct engine {
     ASensorEventQueue* sensorEventQueue;
 
 	 int animating;
-    int closed; // set this, next event loop, trigger native exit.
+	 int closed; // set this, next event loop, trigger native exit.
+    int restarting;
 #if __USE_NATIVE_APP_EGL_MODULE__
     EGLDisplay display;
     EGLSurface surface;

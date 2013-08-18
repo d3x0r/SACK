@@ -29,16 +29,17 @@
 #include "engine.h"
 
 // sets the native window; opencameras will use this as the surface to initialize to.
-void (*BagVidlibPureglSetNativeWindowHandle)(NativeWindowType );
-void (*BagVidlibPureglOpenCameras)(void);
-void (*BagVidlibPureglRenderPass)(void);
-void (*BagVidlibPureglSendTouchEvents)( int nPoints, PINPUT_POINT points );
-void (*BagVidlibPureglCloseDisplay)(void);  // do cleanup and suspend processing until a new surface is created.
-void (*BagVidlibPureglSurfaceLost)(void);  // do cleanup and suspend processing until a new surface is created.
-void (*BagVidlibPureglSurfaceGained)(NativeWindowType);  // do cleanup and suspend processing until a new surface is created.
-void (*BagVidlibPureglSetTriggerKeyboard)(void(*show)(void),void(*hide)(void));  // do cleanup and suspend processing until a new surface is created.
-
-int (*BagVidlibPureglSendKeyEvents)( int pressed, int key, int mods );
+static void (*BagVidlibPureglSetNativeWindowHandle)(NativeWindowType );
+static void (*BagVidlibPureglOpenCameras)(void);
+static void (*BagVidlibPureglRenderPass)(void);
+static void (*BagVidlibPureglSendTouchEvents)( int nPoints, PINPUT_POINT points );
+static void (*BagVidlibPureglCloseDisplay)(void);  // do cleanup and suspend processing until a new surface is created.
+static void (*BagVidlibPureglSurfaceLost)(void);  // do cleanup and suspend processing until a new surface is created.
+static void (*BagVidlibPureglSurfaceGained)(NativeWindowType);  // do cleanup and suspend processing until a new surface is created.
+static void (*BagVidlibPureglSetTriggerKeyboard)(void(*show)(void),void(*hide)(void));  // do cleanup and suspend processing until a new surface is created.
+static int  (*BagVidlibPureglSendKeyEvents)( int pressed, int key, int mods );
+static void (*SACK_Main)(int,char* );
+static char *myname;
 
 struct engine engine;
 
@@ -55,16 +56,18 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 		 int32_t action = AMotionEvent_getAction(event );
 		 int pointer = ( action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK ) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 		 int p = AMotionEvent_getPointerCount( event );
-
+		 //LOGI( "pointer %04x %d", action, pointer );
 		 {
 			 int n;
 			 for( n = 0; n < engine->nPoints; n++ )
 			 {
+				 engine->points[n].flags.new_event = 0;
 				 if( engine->points[n].flags.end_event )
 				 {
+					 //LOGI( "Previously had a point to delete %d", n );
 					 memcpy( engine->points + n, engine->points + n + 1, sizeof( struct input_point ) * (9-pointer) );
 					 engine->nPoints--;
-                n--;
+					 n--;
 				 }
 			 }
 		 }
@@ -116,7 +119,7 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 			 int n;
 			 for( n = 0; n < engine->nPoints; n++ )
 			 {
-				 LOGI( "Point : %d %4d %4d %d %d", n, engine->points[n].x , engine->points[n].y, engine->points[n].flags.new_event, engine->points[n].flags.end_event );
+				 LOGI( "Point : %d %g %g %d %d", n, engine->points[n].x , engine->points[n].y, engine->points[n].flags.new_event, engine->points[n].flags.end_event );
 			 }
 		 }
        */
@@ -229,23 +232,27 @@ void hide_keyboard( void )
 
 void* BeginNormalProcess( void*param )
 {
-	char buf[256];
+	if( !engine.restarting )
 	{
+		char buf[256];
 		FILE *maps = fopen( "/proc/self/maps", "rt" );
-		while( fgets( buf, 256, maps ) )
+		while( maps && fgets( buf, 256, maps ) )
 		{
-         unsigned long start;
+			unsigned long start;
 			unsigned long end;
-         sscanf( buf, "%lx", &start );
+			sscanf( buf, "%lx", &start );
 			sscanf( buf+9, "%lx", &end );
 			if( ((unsigned long)BeginNormalProcess >= start ) && ((unsigned long)BeginNormalProcess <= end ) )
 			{
 				char *mypath;
-				char *myname;
 				void *lib;
             char *myext;
 				void (*InvokeDeadstart)(void );
 				void (*MarkRootDeadstartComplete)(void );
+
+				fclose( maps );
+            maps = NULL;
+
 				if( strlen( buf ) > 49 )
 				mypath = strdup( buf + 49 );
 				myext = strrchr( mypath, '.' );
@@ -321,7 +328,6 @@ void* BeginNormalProcess( void*param )
 #endif
 				{
 					void *lib;
-               void (*SACK_Main)(int,char* );
 					snprintf( buf, 256, "%s.code.so", myname );
 					lib = LoadLibrary( mypath, buf );
                // assume we need to init this; it's probably a portable target
@@ -344,28 +350,28 @@ void* BeginNormalProcess( void*param )
 					SACK_Main = dlsym( lib, "SACK_Main" );
 					if( !SACK_Main )
 					{
-						LOGI( "Failed to get SACK_Main entry point; I am [%s]", myname );
-                  return 0;
+						// allow normal main fail processing
+						break;
 					}
-               LOGI( "Invoke Deadstart..." );
+					LOGI( "Invoke Deadstart..." );
 					InvokeDeadstart();
                LOGI( "Deadstart Completed..." );
 					MarkRootDeadstartComplete();
 
 					// somehow these will be loaded
 					// but we don't know where, but it's pretty safe to assume the names are unique, or
-               // first-come-first-serve is appropriate
+					// first-come-first-serve is appropriate
 					BagVidlibPureglSetNativeWindowHandle = (void (*)(NativeWindowType ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SetNativeWindowHandle" );
-					if( !BagVidlibPureglSetNativeWindowHandle )
-						LOGI( "Failed to get SetNativeWindowHandle:%s", dlerror() );
+					//if( !BagVidlibPureglSetNativeWindowHandle )
+					//	LOGI( "Failed to get SetNativeWindowHandle:%s", dlerror() );
 
 					BagVidlibPureglRenderPass = (void (*)(void ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_DoRenderPass" );
-					if( !BagVidlibPureglRenderPass )
-						LOGI( "Failed to get DoRenderPass:%s", dlerror() );
+					//if( !BagVidlibPureglRenderPass )
+					//	LOGI( "Failed to get DoRenderPass:%s", dlerror() );
 
 					BagVidlibPureglOpenCameras = (void (*)(void ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_OpenCameras" );
-					if( !BagVidlibPureglOpenCameras )
-						LOGI( "Failed to get OpenCameras:%s", dlerror() );
+					//if( !BagVidlibPureglOpenCameras )
+					//	LOGI( "Failed to get OpenCameras:%s", dlerror() );
 
                BagVidlibPureglSendKeyEvents = (int(*)(int,int,int))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SendKeyEvents" );
 					BagVidlibPureglSendTouchEvents = (void (*)(int,PINPUT_POINT ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SendTouchEvents" );
@@ -373,25 +379,32 @@ void* BeginNormalProcess( void*param )
                BagVidlibPureglSurfaceLost = (void(*)(void))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SurfaceLost" );  // egl event
                BagVidlibPureglSurfaceGained = (void(*)(NativeWindowType))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SurfaceGained" );  // egl event
 					BagVidlibPureglSetTriggerKeyboard = (void(*)(void(*)(void),void(*)(void)))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SetTriggerKeyboard" );
-               if( BagVidlibPureglSetTriggerKeyboard )
-						BagVidlibPureglSetTriggerKeyboard( show_keyboard, hide_keyboard );
+               //if( BagVidlibPureglSetTriggerKeyboard )
+					//	BagVidlibPureglSetTriggerKeyboard( show_keyboard, hide_keyboard );
 
                // shouldn't need this shortly; was more about doing things my way than the android way
+					engine.wait_for_display_init = 1;
 					engine.wait_for_startup = 0;
-					// resume other threads so potentially the display is the next thing initialized.
+ 					// resume other threads so potentially the display is the next thing initialized.
 					while( engine.wait_for_display_init )
 						sched_yield();
-
-					SACK_Main( 0, NULL );
-               engine.closed = 1;
-               LOGI( "Main exited... so we should all..." );
                break;
 				}
 			}
 		}
-      fclose( maps );
+      myname = "Reading /proc/self/maps failed";
+		if( maps )
+			fclose( maps );
 	}
-   return NULL;
+	if( !SACK_Main )
+	{
+		LOGI( "(still)Failed to get SACK_Main entry point; I am [%s]", myname );
+		return 0;
+	}
+	SACK_Main( 0, NULL );
+	engine.closed = 1;
+	LOGI( "Main exited... and so should we all..." );
+	return NULL;
 }
 
 
@@ -425,7 +438,6 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 	 //case APP_CMD_WINDOW_RESIZED:
       // LOGI( "Resized received..." );
 		 // The window is being shown, get it ready.
-		 engine->wait_for_display_init = 1;
 		 while( engine->wait_for_startup )
 		 {
           LOGI( "wait for deadstart to finish (load interfaces)" );
@@ -435,6 +447,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 		 // reopen cameras...
 		 BagVidlibPureglOpenCameras();
 		 engine->wait_for_display_init = 0;
+		 sched_yield();
 		 break;
 	 case APP_CMD_TERM_WINDOW:
 		 // The window is being hidden or closed, clean it up.
@@ -534,20 +547,16 @@ void android_main(struct android_app* state) {
 
 			  // Check if we are exiting.
 			  if (state->destroyRequested != 0) {
-				  LOGI( "Destroy Requested..." );
+				  LOGI( "Destroy Requested... %d", engine.closed );
 				  //state->activity->vm->DetachCurrentThread();
 				  BagVidlibPureglCloseDisplay();
+				  engine.closed = 0;
+				  engine.restarting = 1;
 				  return;
 			  }
 		  }
 
         if (engine.animating) {
-            // Done with events; draw next animation frame.
-            engine.state.angle += .01f;
-            if (engine.state.angle > 1) {
-                engine.state.angle = 0;
-            }
-
             // Drawing is throttled to the screen update rate, so there
             // is no need to do timing here.
             BagVidlibPureglRenderPass();
