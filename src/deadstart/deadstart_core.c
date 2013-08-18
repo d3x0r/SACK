@@ -143,7 +143,13 @@ static void InitLocal( void )
 	}
 }
 
+#ifndef  DISABLE_DEBUG_REGISTER_AND_DISPATCH
+#define ENQUE_STARTUP_DBG_SRC DBG_SRC
+void EnqueStartupProc( PSTARTUP_PROC *root, PSTARTUP_PROC proc DBG_PASS )
+#else
+#define ENQUE_STARTUP_DBG_SRC
 void EnqueStartupProc( PSTARTUP_PROC *root, PSTARTUP_PROC proc )
+#endif
 {
 	PSTARTUP_PROC check;
 	PSTARTUP_PROC last;
@@ -160,7 +166,7 @@ void EnqueStartupProc( PSTARTUP_PROC *root, PSTARTUP_PROC proc )
 			if( proc->priority < check->priority )
 			{
 #ifndef  DISABLE_DEBUG_REGISTER_AND_DISPATCH
-				lprintf( WIDE("%s(%d) is to run before %s and after %s first is %s")
+				_lprintf(DBG_RELAY)( WIDE("%s(%d) is to run before %s and after %s first is %s")
 						 , proc->func
 						 , proc - procs
 						 , check->func
@@ -235,7 +241,7 @@ void RegisterPriorityStartupProc( void (CPROC*proc)(void), CTEXTSTR func,int pri
 	procs[use_proc].next = NULL; // initialize so it doesn't try unlink in requeue common routine.
 	procs[use_proc].me = NULL; // initialize so it doesn't try unlink in requeue common routine.
 
-	EnqueStartupProc( &proc_schedule, procs + use_proc );
+	EnqueStartupProc( &proc_schedule, procs + use_proc ENQUE_STARTUP_DBG_SRC );
 
    if( nProcs < 1024 )
 		nProcs++;
@@ -396,9 +402,10 @@ void InvokeDeadstart( void )
 #endif
 				{
 					newly_scheduled_things->me = &newly_scheduled_things;
+					//lprintf( "------------------  newly scheduled startups; requeue old startups into new list ------------------ " );
 					while( newly_scheduled_things )
 					{
-						EnqueStartupProc( &proc, newly_scheduled_things );
+						EnqueStartupProc( &proc, newly_scheduled_things ENQUE_STARTUP_DBG_SRC );
 					}
 				}
 			}
@@ -418,7 +425,11 @@ void MarkRootDeadstartComplete( void )
 // options initializes at SQL+1
 PRIORITY_PRELOAD( InitDeadstartOptions, SQL_PRELOAD_PRIORITY+2 )
 {
+#ifdef DISABLE_DEBUG_REGISTER_AND_DISPATCH
 	l.flags.bLog = SACK_GetProfileIntEx( WIDE( "SACK/Deadstart" ), WIDE( "Logging Enabled?" ), 0, TRUE );
+#else
+   l.flags.bLog = 1;
+#endif
 }
 #endif
 

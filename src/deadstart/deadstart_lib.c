@@ -1,5 +1,5 @@
 
-#define DISABLE_DEBUG_REGISTER_AND_DISPATCH
+//#define DISABLE_DEBUG_REGISTER_AND_DISPATCH
 
 #if defined( __GNUC__ )
 #ifndef __cplusplus
@@ -42,34 +42,11 @@ void paste2( TARGET_LABEL,_RegisterStartups)( void )
       return;
 	if( (begin+1) < end )
 	{
-#ifdef __CYGWIN__
-		void (*MyRegisterPriorityStartupProc)( void (*proc)(void), CTEXTSTR func,int priority, CTEXTSTR file,int line );
-		char myname[256];
-      HMODULE mod;
-      GetModuleFileName(NULL,myname,sizeof(myname));
-		mod = LoadLibrary( myname );GetModuleFileName(NULL,myname,sizeof(myname));
-		MyRegisterPriorityStartupProc = (void(*)( void(*)(void),CTEXTSTR,int,CTEXTSTR,int))GetProcAddress( mod, "RegisterPriorityStartupProc" );
-#ifdef DEBUG_CYGWIN_START
-		fprintf( stderr, "mod is %p proc  is %p %s\n", mod, MyRegisterPriorityStartupProc, TARGETNAME );
-#endif
-		if( MyRegisterPriorityStartupProc )
-		{
-#endif
 		for( current = begin + 1; current < end; current++ )
 		{
 			if( !current[0].scheduled )
 			{
-#ifndef  DISABLE_DEBUG_REGISTER_AND_DISPATCH
-				lprintf( WIDE("Register %d %s@%s(%d)"), current->priority, current->funcname, current->file, current->line );
-#endif
-#ifdef __CYGWIN__
-#ifdef DEBUG_CYGWIN_START
-				fprintf( stderr, WIDE("Register %d %s@%s(%d)\n"), current->priority, current->funcname, current->file, current->line );
-#endif
-				MyRegisterPriorityStartupProc( current->routine, current->funcname, current->priority, current->file, current->line );
-#else
 				RegisterPriorityStartupProc( current->routine, current->funcname, current->priority, NULL, current->file, current->line );
-#endif
             current[0].scheduled = 1;
 			}
 			else
@@ -78,9 +55,6 @@ void paste2( TARGET_LABEL,_RegisterStartups)( void )
 				lprintf( WIDE("Not Register(already did this once) %d %s@%s(%d)"), current->priority, current->funcname, current->file, current->line );
 #endif
 			}
-#ifdef __CYGWIN__
-		}
-#endif
 		}
 	}
    // should be setup in such a way that this ignores all external invokations until the core app runs.
