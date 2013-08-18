@@ -49,6 +49,63 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 		{
 			if( touches[3].flags.new_event )
 				SACK_Vidlib_ToggleInputDevice();
+			else if( touches[0].flags.end_event )
+			{
+				int n;
+				touch_info.one.x = touches[1].x;
+				touch_info.one.y = touches[1].y;
+				touch_info.two.x = touches[2].x;
+				touch_info.two.y = touches[2].y;
+				touch_info.three.x = touches[3].x;
+				touch_info.three.y = touches[3].y;
+			}
+			else if( touches[1].flags.end_event )
+			{
+				int n;
+				touch_info.one.x = touches[0].x;
+				touch_info.one.y = touches[0].y;
+				touch_info.two.x = touches[2].x;
+				touch_info.two.y = touches[2].y;
+				touch_info.three.x = touches[3].x;
+				touch_info.three.y = touches[3].y;
+			}
+			else if( touches[2].flags.end_event )
+			{
+				int n;
+				touch_info.one.x = touches[0].x;
+				touch_info.one.y = touches[0].y;
+				touch_info.two.x = touches[1].x;
+				touch_info.two.y = touches[1].y;
+				touch_info.three.x = touches[3].x;
+				touch_info.three.y = touches[3].y;
+			}
+			else if( touches[3].flags.end_event )
+			{
+				int n;
+				touch_info.one.x = touches[0].x;
+				touch_info.one.y = touches[0].y;
+				touch_info.two.x = touches[1].x;
+				touch_info.two.y = touches[1].y;
+				touch_info.three.x = touches[2].x;
+				touch_info.three.y = touches[2].y;
+			}
+			else
+			{
+				/* does not track point 4; was just using this for the on down toggle for keyboard trigger....
+				 however, the other points still need to be updated so next continue event has a reasonable source
+				 for its delta */
+				/*
+				 // and right now, since the end event will happen, all of these will get set correctly then.
+				 // save a few micro-cycles :)
+				 touch_info.one.x = touches[0].x;
+				 touch_info.one.y = touches[0].y;
+				 touch_info.two.x = touches[1].x;
+				 touch_info.two.y = touches[1].y;
+				 touch_info.three.x = touches[2].x;
+				 touch_info.three.y = touches[2].y;
+				 */
+				// and four if we ever use this
+			}
 		}
       else 
 #endif
@@ -59,18 +116,39 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				touch_info.three.x = touches[2].x;
 				touch_info.three.y = touches[2].y;
 			}
+			else if( touches[0].flags.end_event )
+			{
+				int n;
+				touch_info.one.x = touches[1].x;
+				touch_info.one.y = touches[1].y;
+				touch_info.two.x = touches[2].x;
+				touch_info.two.y = touches[2].y;
+			}
+			else if( touches[1].flags.end_event )
+			{
+				int n;
+				touch_info.one.x = touches[0].x;
+				touch_info.one.y = touches[0].y;
+				touch_info.two.x = touches[2].x;
+				touch_info.two.y = touches[2].y;
+			}
 			else if( touches[2].flags.end_event )
 			{
-            touch_info.one.x = touches[0].x;
-            touch_info.one.y = touches[0].y;
-            touch_info.two.x = touches[1].x;
-            touch_info.two.y = touches[1].y;
+				int n;
+				touch_info.one.x = touches[0].x;
+				touch_info.one.y = touches[0].y;
+				touch_info.two.x = touches[1].x;
+				touch_info.two.y = touches[1].y;
 			}
 			else
 			{
-				// third state.
-
-
+				// all 3 points still down, figure out who moved and who didn't.
+				touch_info.one.x = touches[0].x;
+				touch_info.one.y = touches[0].y;
+				touch_info.two.x = touches[1].x;
+				touch_info.two.y = touches[1].y;
+				touch_info.three.x = touches[2].x;
+				touch_info.three.y = touches[2].y;
 
 			}
 		}
