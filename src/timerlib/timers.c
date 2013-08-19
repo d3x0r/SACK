@@ -640,7 +640,7 @@ void  WakeableNamedSleepEx( CTEXTSTR name, _32 n DBG_PASS )
    if( name )
 		pThread = FindWakeup( name );
 	else
-      pTherad = FindThread( GetMyThreadID() );
+      pThread = FindThread( GetMyThreadID() );
 #endif
 	if( pThread )
 	{
