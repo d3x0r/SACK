@@ -174,7 +174,7 @@ Add_custom_command( TARGET Build${PROJECT}
 	WORKING_DIRECTORY ${INTERSHELL_SDK_ROOT_PATH}
 )                
 endif( NOT __ANDROID__ )
-add_dependencies( ${LAST_TARGET} Buildcore )
+add_dependencies( ${LAST_TARGET} Buildcore Buildbinary )
 
 if( NOT __ANDROID__ )
   set( PROJECT mercurial_version_tagger )
