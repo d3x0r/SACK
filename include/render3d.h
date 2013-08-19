@@ -37,6 +37,15 @@ typedef struct render_3d_interface_tag
 #define OnClose3d(name) \
 	__DefineRegistryMethod(WIDE("sack/render/puregl"),Close3d,WIDE("draw3d"),name,WIDE("ExtraClose3d"),void,(PTRSZVAL psvInit),__LINE__)
 
+// static void OnResume3d( "Virtuality" )( void) { }
+// On Resume is invoked when a significant time has passed and simulations should consider working from 'NOW'
+// instead of the prior tick.  So basically the next 'update' should be a delta of 0; or that the delta should be from
+// this point.  So maybe the draw is called first before the update in the case of resume.
+// Android targets can invoke a pause state, from which resume will be required for smooth animations
+// (excessive time steps will cause overflow conditions)
+#define OnResume3d(name) \
+	__DefineRegistryMethod(WIDE("sack/render/puregl"),Resume3d,WIDE("draw3d"),name,WIDE("Resume3d"),void,(void),__LINE__)
+
 // static LOGICAL OnUpdate3d( "Virtuality" )( PTRSZVAL psvInit, PTRANSFORM eye_transform );
 // called when a new frame will be rendered.  Once per frame.  All others are called per-camera per-frame.
 // can update the common viewpoint here, and it will propagate, otherwise the camera ends up resetting to
