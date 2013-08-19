@@ -1314,7 +1314,9 @@ void  BlatColorAlpha ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color 
 		r2.height = pifDest->height;
 		if( !IntersectRectangle( &r, &r1, &r2 ) )
 		{
-			lprintf( WIDE( "Blat color out of bounds" ) );
+			lprintf( WIDE("blat color is out of bounds (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(") (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(")")
+				, x, y, w, h
+				, r2.x, r2.y, r2.width, r2.height );
 			return;
 		}
 #ifdef DEBUG_BLATCOLOR
