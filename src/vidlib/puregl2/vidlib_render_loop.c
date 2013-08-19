@@ -169,10 +169,12 @@ void RenderGL( struct display_camera *camera )
 			}
 		}
 
+		if( l.flags.bLogWrites )
+			lprintf( "Begin drawing from bottom up" );
 		for( hVideo = l.bottom; hVideo; hVideo = hVideo->pBelow )
 		{
 			if( l.flags.bLogWrites )
-				lprintf( WIDE("Have a video in stack...") );
+				lprintf( WIDE("Have a video in stack... %p"), hVideo );
 			hVideo->flags.bRendering = 1;
 			if( hVideo->flags.bDestroy )
 			{
@@ -182,7 +184,7 @@ void RenderGL( struct display_camera *camera )
 			if( hVideo->flags.bHidden || !hVideo->flags.bShown )
 			{
 				if( l.flags.bLogWrites )
-					lprintf( WIDE("But it's nto exposed...") );
+					lprintf( WIDE("But it's not exposed...") );
 				hVideo->flags.bRendering = 0;
 				continue;
 			}
