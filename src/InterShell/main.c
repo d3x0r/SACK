@@ -2922,7 +2922,7 @@ void CPROC DrawEditGlare( PTRSZVAL psv, Image surface )
 				int last_x = -1, last_y = -1;
 				int x, y;
 
-				for( x = 0; x <= PARTSX; x++ )
+				for( x = 0; x < PARTSX; x++ )
 				{
 					//lprintf( WIDE("line %d..."), x );
 					if( (last_x > 0) && ((PARTX(x) - last_x) < 15) )
@@ -2935,7 +2935,7 @@ void CPROC DrawEditGlare( PTRSZVAL psv, Image surface )
 					do_vlineAlpha( surface, PARTX(x), 0, surface->height, SetAlpha( BASE_COLOR_WHITE, 48 ) );
 				}
 
-				for( y = 0; y <= PARTSY; y++ )
+				for( y = 0; y < PARTSY; y++ )
 				{
 					//lprintf( WIDE("line %d..."), y );
 					if( (last_y > 0) && ((PARTY(y) - last_y) < 15) )
