@@ -139,7 +139,10 @@ UnlinkVideo (PVIDEO hVideo)
 		hVideo->pBelow->pAbove = hVideo->pAbove;
 	}
 	else
+	{
 		l.top = hVideo->pAbove;
+		//lprintf( "set l.top to %p", l.top );
+	}	
 	if (hVideo->pAbove)
 	{
 		hVideo->pAbove->pBelow = hVideo->pBelow;
@@ -203,6 +206,7 @@ void  PutDisplayAbove (PVIDEO hVideo, PVIDEO hAbove)
 			lprintf( WIDE( "Failure, no bottom, but somehow a second display is already known?" ) );
 		l.bottom = hVideo;
 		l.top = hVideo;
+		//lprintf( "set l.top to %p", l.top );
 		return;
 	}
 
@@ -233,7 +237,10 @@ void  PutDisplayAbove (PVIDEO hVideo, PVIDEO hAbove)
 			hAbove->pBelow->pAbove = hVideo;
 		}
 		else
+		{
 			l.top = hVideo;
+			//lprintf( "set l.top to %p", l.top );
+		}
 
 		if( hVideo->pAbove )
 		{
@@ -247,6 +254,7 @@ void  PutDisplayAbove (PVIDEO hVideo, PVIDEO hAbove)
 		LeaveCriticalSec( &l.csList );
 		return;
 	}
+
 	{
 
 		EnterCriticalSec( &l.csList );
@@ -701,7 +709,7 @@ LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 	//hNextVideo->pid = l.pid;
 	hNextVideo->KeyDefs = CreateKeyBinder();
 #ifdef LOG_OPEN_TIMING
-	lprintf( WIDE( "Doing open of a display..." ) );
+	lprintf( WIDE( "Doing open of a display... %p" ) , hNextVideo);
 #endif
 	//if( ( GetCurrentThreadId () == l.dwThreadID )  )
 	{
@@ -853,10 +861,13 @@ PVIDEO  OpenDisplaySizedAt (_32 attr, _32 wx, _32 wy, S_32 x, S_32 y) // if nati
 PVIDEO  OpenDisplayAboveSizedAt (_32 attr, _32 wx, _32 wy,
                                                S_32 x, S_32 y, PVIDEO parent)
 {
-   PVIDEO newvid = OpenDisplaySizedAt (attr, wx, wy, x, y);
-   if (parent)
-      PutDisplayAbove (newvid, parent);
-   return newvid;
+	PVIDEO newvid = OpenDisplaySizedAt (attr, wx, wy, x, y);
+	if (parent)
+	{
+		lprintf( "Want to reposition; had a parent to put this window above" );
+		PutDisplayAbove (newvid, parent);
+	}
+	return newvid;
 }
 
 PVIDEO  OpenDisplayAboveUnderSizedAt (_32 attr, _32 wx, _32 wy,
@@ -887,10 +898,13 @@ PVIDEO  OpenDisplayAboveUnderSizedAt (_32 attr, _32 wx, _32 wy,
 				barrier->pAbove->pBelow = newvid;
 			barrier->pAbove = newvid;
 		}
-   }
-   if (parent)
-      PutDisplayAbove (newvid, parent);
-   return newvid;
+	}
+	if (parent)
+	{
+		lprintf( "Want to reposition; had a parent to put this window above" );
+		PutDisplayAbove (newvid, parent);
+	}
+	return newvid;
 }
 
 //----------------------------------------------------------------------------
@@ -1304,6 +1318,7 @@ void  HideDisplay (PVIDEO hVideo)
 		if( l.hCaptured == hVideo )
 			l.hCaptured = NULL;
 		hVideo->flags.bHidden = 1;
+		UnlinkVideo( hVideo );  // might as well take it out of the list, no keys, mouse or output allowed.
 		/* handle lose focus */
 	}
 }
@@ -1318,8 +1333,10 @@ void RestoreDisplayEx(PVIDEO hVideo DBG_PASS )
 {
 	if( hVideo )
 	{
-		hVideo->flags.bHidden = 0;
+		if( hVideo->flags.bHidden )
+			PutDisplayAbove( hVideo, l.top );  // might as well take it out of the list, no keys, mouse or output allowed.
 		hVideo->flags.bShown = 1;
+		hVideo->flags.bHidden = 0;
 	}
 }
 
@@ -1506,7 +1523,10 @@ void  ForceDisplayFocus ( PRENDERER pRender )
  void  ForceDisplayFront ( PRENDERER pRender )
 {
 	if( pRender != l.top )
+	{
+		//lprintf( "Force some display forward %p", pRender );
 		PutDisplayAbove( pRender, l.top );
+	}
 
 }
 

@@ -376,9 +376,6 @@ WM_DROPFILES
 			if( l.flags.bLogFocus )
 				Log (WIDE("Got setfocus..."));
 #endif
-			//SetWindowPos( l.hWndInstance, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE );
-			//SetWindowPos( hWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE );
-			//hVideo = l.top;
 			l.hVidPhysicalFocused = camera->hVidCore;
 			if (hVideo)
 			{
