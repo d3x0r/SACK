@@ -553,7 +553,8 @@ void UnshowMenu( PMENU pm )
 #ifdef DEBUG_MENUS
 		Log1( WIDE("Telling parent that selection is: %08")_32fx WIDE(""), pm->selection );
 #endif
-		if( ( pm->parent->selection = pm->selection ) != -1 )
+		if( ( ( pm->parent->selection = pm->selection ) != -1 )
+			|| pm->flags.abort)
 			passed_result = pm->parent;
 		// no longer is there a child menu..
 		pm->parent->child = NULL;
