@@ -188,6 +188,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 	{
 		S_32 xd = x;
 		S_32 yd = y+(UseFont->baseline - pchar->ascent);
+		S_32 yd_back = y;
 		S_32 xs = 0;
 		S_32 ys = 0;
 		Image pifSrc = pchar->cell;
@@ -208,11 +209,12 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 		 *
 		 */
 		TranslateCoord( pifDest, &xd, &yd );
+		TranslateCoord( pifDest, NULL, &yd_back );
 		TranslateCoord( pifSrc, &xs, &ys );
 		{
 			int glDepth = 1;
 			float x_size, x_size2, y_size, y_size2;
-			VECTOR v[2][4];
+			VECTOR v[2][4], v2[2][4];
 			int vi = 0;
 			float texture_v[4][2];
 			float _color[4];
@@ -239,6 +241,22 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				v[vi][3][0] = xd+pchar->cell->real_width;
 				v[vi][3][1] = yd+pchar->cell->real_height;
 				v[vi][3][2] = 1.0f;
+
+				v2[vi][0][vRight] = xd + pchar->width;
+				v2[vi][0][vUp] = yd_back;
+				v2[vi][0][vForward] = 1.0;
+
+				v2[vi][1][vRight] = xd;
+				v2[vi][1][vUp] = yd_back;
+				v2[vi][1][vForward] = 1.0;
+
+				v2[vi][2][vRight] = xd + pchar->width;
+				v2[vi][2][vUp] = yd_back + UseFont->height;
+				v2[vi][2][vForward] = 1.0;
+
+				v2[vi][3][vRight] = xd;
+				v2[vi][3][vUp] = yd_back + UseFont->height;
+				v2[vi][3][vForward] = 1.0;
 				break;
 			case OrderPointsInvert:
 		   		v[vi][0][0] = xd - pchar->cell->real_width;
@@ -317,6 +335,13 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 					Apply( pifDest->transform, v[1-vi][1], v[vi][1] );
 					Apply( pifDest->transform, v[1-vi][2], v[vi][2] );
 					Apply( pifDest->transform, v[1-vi][3], v[vi][3] );
+					if( background )
+					{
+						Apply( pifDest->transform, v2[1-vi][0], v2[vi][0] );
+						Apply( pifDest->transform, v2[1-vi][1], v2[vi][1] );
+						Apply( pifDest->transform, v2[1-vi][2], v2[vi][2] );
+						Apply( pifDest->transform, v2[1-vi][3], v2[vi][3] );
+					}
 					vi = 1 - vi;
 				}
 				pifDest = pifDest->pParent;
@@ -327,6 +352,13 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				Apply( pifDest->transform, v[1-vi][1], v[vi][1] );
 				Apply( pifDest->transform, v[1-vi][2], v[vi][2] );
 				Apply( pifDest->transform, v[1-vi][3], v[vi][3] );
+				if( background )
+				{
+					Apply( pifDest->transform, v2[1-vi][0], v2[vi][0] );
+					Apply( pifDest->transform, v2[1-vi][1], v2[vi][1] );
+					Apply( pifDest->transform, v2[1-vi][2], v2[vi][2] );
+					Apply( pifDest->transform, v2[1-vi][3], v2[vi][3] );
+				}
 				vi = 1 - vi;
 			}
 
@@ -334,6 +366,13 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			scale( v[vi][1], v[vi][1], l.scale );
 			scale( v[vi][2], v[vi][2], l.scale );
 			scale( v[vi][3], v[vi][3], l.scale );
+			if( background )
+			{
+				scale( v2[vi][0], v2[vi][0], l.scale );
+				scale( v2[vi][1], v2[vi][1], l.scale );
+				scale( v2[vi][2], v2[vi][2], l.scale );
+				scale( v2[vi][3], v2[vi][3], l.scale );
+			}
 			switch( order )
 			{
 			case OrderPoints:
@@ -393,6 +432,18 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				/**///glTexCoord2d(x_size, y_size2); glVertex3dv(v[vi][3]);	// Top Right Of The Texture and Quad
 				break;
 			}
+
+			if( background )
+			{
+				float _back_color[4];
+				_back_color[0] = RedVal( background ) / 255.0f;
+				_back_color[1] = GreenVal( background ) / 255.0f;
+				_back_color[2] = BlueVal( background ) / 255.0f;
+				_back_color[3] = AlphaVal( background ) / 255.0f;
+				EnableShader( "Simple Shader", v2[vi], _back_color );
+				glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+			}
+
 			EnableShader( "Simple Shaded Texture", v[vi], pifSrc->glActiveSurface, texture_v, _color );
 			glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 			// Back Face
