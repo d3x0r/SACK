@@ -5,6 +5,11 @@ LIST( GET TMP_tags -1 TMP_TAG )
 STRING( REPLACE " " ";" NEWLIST ${TMP_TAG} )
 LIST( GET NEWLIST -1 CURRENT_REPO_REVISION )
 
+configure_file( deploy.cm.cm ${CMAKE_BINARY_DIR}/deploy.cm.tmp @ONLY )
+include( ${CMAKE_BINARY_DIR}/deploy.cm.tmp )
+
+
+
 macro( build_package_include )
    file( STRINGS ${CMAKE_INSTALL_PREFIX}/CMakePackage LINES )
    #file( READ ${CMAKE_INSTALL_PREFIX}/CMakePackage LINES )
