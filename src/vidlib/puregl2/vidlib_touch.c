@@ -149,7 +149,6 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				touch_info.two.y = touches[1].y;
 				touch_info.three.x = touches[2].x;
 				touch_info.three.y = touches[2].y;
-
 			}
 		}
 		else if( nTouches == 2 )
@@ -232,6 +231,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 					static int toggle;
 					RCOORD angle_one;
 					angle_one = atan2( v_n_new[vUp], v_n_new[vRight] ) - atan2( v_n_old[vUp], v_n_old[vRight] );
+               lprintf( "Rotation angle is %g", angle_one );
 					if( 0 )
 					{
 						PrintVector( rotate_axis.n );

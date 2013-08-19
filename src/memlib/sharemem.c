@@ -1047,7 +1047,7 @@ PTRSZVAL GetFileSize( int fd )
 		else if( pWhere ) // name doesn't matter, same file cannot be called another name
 		{
 			filename = StrDup( pWhere );
-		}
+ 		}
 		else if( pWhat )
 		{
 			int len;
@@ -1066,8 +1066,9 @@ PTRSZVAL GetFileSize( int fd )
 			bTemp = TRUE;
 		}
 
+		lprintf( "Open Space: %s", filename?filename:"anonymous" );
 
-		if( !pMem )
+		if( !pMem && filename )
 		{
 			mode_t prior;
 			prior = umask( 0 );
