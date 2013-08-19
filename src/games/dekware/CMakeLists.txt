@@ -50,8 +50,16 @@ install(DIRECTORY scripts DESTINATION bin )
 macro( ADD_PLUGIN target group  )
 	add_library( ${target} SHARED ${FIRST_GCC_LIBRARY_SOURCE} ${ARGN} ${LAST_GCC_LIBRARY_SOURCE} )
 	string( REPLACE "." "_" TARGET_LABEL ${target} )
+
+  if( __ANDROID__ )        
+        set( MOREDEFS TARGETNAME=\"${target}\" )
+  else( __ANDROID__ )        
+        set( MOREDEFS TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${target}${CMAKE_SHARED_LIBRARY_SUFFIX}\" )
+  endif( __ANDROID__ )        
+
 	SET_TARGET_PROPERTIES(${target} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags} -D__DEKWARE_PLUGIN__"
+                  COMPILE_DEFINITIONS ${MOREDEFS}
                   FOLDER Dekware/plugins/${group}
 	)
 	if( NOT __ANDROID__ )
@@ -60,7 +68,7 @@ macro( ADD_PLUGIN target group  )
                   PREFIX ""
 		)
 	endif( NOT __ANDROID__ )
-	target_link_libraries( ${target} ${SACK_LIBRARIES} ${PLATFORM_LIBRARIES} )
+	target_link_libraries( ${target} ${SACK_LIBRARIES} ${SACK_PLATFORM_LIBRARIES} )
 	INSTALL( TARGETS ${target} 
 		RUNTIME DESTINATION bin/plugins
 		LIBRARY DESTINATION bin/plugins
