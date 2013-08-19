@@ -128,6 +128,8 @@ public class FullScreen extends Activity {
 }
 // see http://androidsnippets.com/how-to-make-an-activity-fullscreen
 
+android manifest feature:
+android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
 
 */
 
