@@ -16,7 +16,7 @@
  *
  */
 
-#define DEBUG_TOUCH_INPUT
+//#define DEBUG_TOUCH_INPUT
 
 
 //BEGIN_INCLUDE(all)
@@ -138,10 +138,14 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 #endif
              for( c = engine->nPoints; c >= pointer; c-- )
 				 {
-                LOGI( "Set %d to %d", c, engine->input_point_map[c-1] );
+#ifdef DEBUG_TOUCH_INPUT
+					 LOGI( "Set %d to %d", c, engine->input_point_map[c-1] );
+#endif
 					 engine->input_point_map[c] = engine->input_point_map[c-1]; // save still in the same target...
 				 }
+#ifdef DEBUG_TOUCH_INPUT
 				 LOGI( "Set %d to %d", pointer, engine->nPoints );
+#endif
 				 engine->input_point_map[pointer] = engine->nPoints; // and the new one maps to the last.
 				 // now just save in last and don't swap twice.
 				 engine->points[engine->nPoints].x = AMotionEvent_getX( event, pointer );
@@ -178,7 +182,9 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 					 if( engine->input_point_map[n] != n )
 					 {
 						 int m;
-                   lprintf( "reorder to natural input order" );
+#ifdef DEBUG_TOUCH_INPUT
+						 LOGI( "reorder to natural input order" );
+#endif
 						 memcpy( engine->tmp_points, engine->points, engine->nPoints * sizeof( struct input_point ) );
 						 // m is the point currently mapped to this position.
                    // data from engine[n] and engine[m] need to swap
@@ -196,7 +202,10 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 			 }
 			 break;
 		 default:
-          LOGI( "Motion Event ignored..." );
+#ifdef DEBUG_TOUCH_INPUT
+			 LOGI( "Motion Event ignored..." );
+#endif
+          break;
 		 }
 
 		 {
@@ -405,12 +414,15 @@ void* BeginNormalProcess( void*param )
 				}
 				LoadLibrary( mypath, "libbag.psi.so" );
 
+            if( 0 )
 				{
 					void *lib = LoadLibrary( mypath, "libbag.video.puregl2.so" );
 					if( !lib )
 						LOGI( "Failed to load lib:%s", dlerror() );
 
 				}
+				else
+               LOGI( "not loading puregl, should already be loaded..." );
 #endif
 				{
 					void *lib;
@@ -448,16 +460,16 @@ void* BeginNormalProcess( void*param )
 					// but we don't know where, but it's pretty safe to assume the names are unique, or
 					// first-come-first-serve is appropriate
 					BagVidlibPureglSetNativeWindowHandle = (void (*)(NativeWindowType ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SetNativeWindowHandle" );
-					//if( !BagVidlibPureglSetNativeWindowHandle )
-					//	LOGI( "Failed to get SetNativeWindowHandle:%s", dlerror() );
+					if( !BagVidlibPureglSetNativeWindowHandle )
+						LOGI( "Failed to get SetNativeWindowHandle:%s", dlerror() );
 
 					BagVidlibPureglRenderPass = (void (*)(void ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_DoRenderPass" );
-					//if( !BagVidlibPureglRenderPass )
-					//	LOGI( "Failed to get DoRenderPass:%s", dlerror() );
+					if( !BagVidlibPureglRenderPass )
+						LOGI( "Failed to get DoRenderPass:%s", dlerror() );
 
 					BagVidlibPureglOpenCameras = (void (*)(void ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_OpenCameras" );
-					//if( !BagVidlibPureglOpenCameras )
-					//	LOGI( "Failed to get OpenCameras:%s", dlerror() );
+					if( !BagVidlibPureglOpenCameras )
+						LOGI( "Failed to get OpenCameras:%s", dlerror() );
 
                BagVidlibPureglSendKeyEvents = (int(*)(int,int,int))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SendKeyEvents" );
 					BagVidlibPureglSendTouchEvents = (void (*)(int,PINPUT_POINT ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SendTouchEvents" );
