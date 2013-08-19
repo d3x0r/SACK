@@ -380,10 +380,13 @@ void InvokeDestroy( PMENU_BUTTON button )
 {
 	TEXTCHAR rootname[256];
 	void (CPROC*f)(PTRSZVAL);
-	snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/control/%s" ), button->pTypeName );
-	f = GetRegisteredProcedure2( rootname, void, WIDE("button_destroy"), (PTRSZVAL) );
-	if( f )
-		f(button->psvUser);
+	if( button )
+	{
+		snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/control/%s" ), button->pTypeName );
+		f = GetRegisteredProcedure2( rootname, void, WIDE("button_destroy"), (PTRSZVAL) );
+		if( f )
+			f(button->psvUser);
+	}
 }
 
 void InvokeShowControl( PMENU_BUTTON button )
