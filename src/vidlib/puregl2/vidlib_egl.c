@@ -203,6 +203,44 @@ void EnableEGLContext( PRENDERER hVidCore )
 	}
 }
 
+// suspend display does not notify plugins
+// ; plugin notification would be to release resources on the context, but we get to keep the context this way.
+void SACK_Vidlib_SuspendDisplayEx( INDEX idx )
+{
+   struct display_camera *camera = ( struct display_camera *)GetLink( &l.cameras, idx );
+	EnableEGLContext( NULL );
+
+   if( camera->hVidCore->flags.bReady )
+	{
+      // default camera is listed twice.
+		camera->hVidCore->flags.bReady = 0;
+		{
+			if (camera->hVidCore->surface != EGL_NO_SURFACE)
+			{
+				eglDestroySurface(camera->hVidCore->display, camera->hVidCore->surface);
+				camera->hVidCore->surface = EGL_NO_SURFACE;
+			}
+			if (camera->hVidCore->display != EGL_NO_DISPLAY)
+			{
+				eglTerminate(camera->hVidCore->display);
+				camera->hVidCore->display = EGL_NO_DISPLAY;
+			}
+		}
+	}
+}
+
+void SACK_Vidlib_SuspendDisplay( void )
+{
+   SACK_Vidlib_SuspendDisplayEx( 0 );
+
+}
+
+
+void SACK_Vidlib_ResumeDisplay( NativeWindowType displayWindow  )
+{
+	
+}
+
 
 void SACK_Vidlib_CloseDisplay( void )
 {
@@ -253,44 +291,6 @@ void SACK_Vidlib_CloseDisplay( void )
 			camera->hVidCore->display = EGL_NO_DISPLAY;
 		}
 	}
-}
-
-// suspend display does not notify plugins
-// ; plugin notification would be to release resources on the context, but we get to keep the context this way.
-void SACK_Vidlib_SuspendDisplayEx( INDEX idx )
-{
-   struct display_camera *camera = ( struct display_camera *)GetLink( &l.cameras, idx );
-	EnableEGLContext( NULL );
-
-   if( camera->hVidCore->flags.bReady )
-	{
-      // default camera is listed twice.
-		camera->hVidCore->flags.bReady = 0;
-		{
-			if (camera->hVidCore->surface != EGL_NO_SURFACE)
-			{
-				eglDestroySurface(camera->hVidCore->display, camera->hVidCore->surface);
-				camera->hVidCore->surface = EGL_NO_SURFACE;
-			}
-			if (camera->hVidCore->display != EGL_NO_DISPLAY)
-			{
-				eglTerminate(camera->hVidCore->display);
-				camera->hVidCore->display = EGL_NO_DISPLAY;
-			}
-		}
-	}
-}
-
-void SACK_Vidlib_SuspendDisplay( void )
-{
-   SACK_Vidlib_SuspendDisplayEx( 0 );
-
-}
-
-
-void SACK_Vidlib_ResumeDisplay( NativeWindowType displayWindow  )
-{
-	
 }
 
 #endif

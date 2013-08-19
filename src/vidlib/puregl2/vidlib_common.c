@@ -545,6 +545,7 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 						if( !draw3d )
 							draw3d = GetClassRoot( WIDE("sack/render/puregl/draw3d") );
 						reference->Update3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,LOGICAL,WIDE("Update3d"),(PTRANSFORM));
+						reference->Resume3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("Resume3d"),(void));
 						// add one copy of each update proc to update list.
 						if( FindLink( &l.update, reference->Update3d ) == INVALID_INDEX )
 							AddLink( &l.update, reference->Update3d );
