@@ -25,6 +25,8 @@ extern TEXTCHAR **environ;
 #endif
 
 
+#define __USE_SACK_COMMON_LAUNCH__
+
 #include <filesys.h>
 #include <logging.h>
 #include <stdio.h>
@@ -595,12 +597,12 @@ static void CPROC TaskOutputHandler(PTRSZVAL psvpdp, PTASK_INFO task, CTEXTSTR b
 
 int LaunchSystemCommand( PMYDATAPATH pdp, PTEXT Command )
 {
-#if __USE_SACK_COMMON_LAUNCH__
+#ifdef __USE_SACK_COMMON_LAUNCH__
 	TEXTSTR *argv;
 	int argc;
-	ParseIntoArgs( GetText( command_line ) &argc, &argv );
+	ParseIntoArgs( GetText( Command ), &argc, &argv );
 
-	pdp->task = LaunchPeerProgramExx( argv[0], NULL, (PCTEXTSTR)argv, 0, OuptutHandler, TaskEnd, (PTRSZVAL)&pdp DBG_RELAY );
+	pdp->task = LaunchPeerProgramExx( argv[0], NULL, (PCTEXTSTR)argv, 0, TaskOutputHandler, TaskEndHandler, (PTRSZVAL)&pdp DBG_SRC );
 
 	{
 		POINTER tmp = (POINTER)argv;
@@ -945,12 +947,14 @@ PDATAPATH CPROC SysCommand( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters 
 		{
 			PTEXT localopt;
 			localopt = GetParam( ps, &parameters );
+#ifndef __ANDROID__
 #ifdef __LINUX__
 			if( TextLike( localopt, WIDE("__pty") ) )
 			{
             Log( WIDE("Opening Pseudo tty") );
             pdp->flags.use_pty = 1;
 			}
+#endif
 #endif
 			if( TextLike( localopt, WIDE("__raw") ) )
 			{
