@@ -67,12 +67,12 @@ struct image_shader_tracker
 };
 
 
-PImageShaderTracker GetShader( CTEXTSTR name, void (*)(PImageShaderTracker) );
-int CompileShaderEx( PImageShaderTracker shader, CTEXTSTR *vertex_code, int vert_blocks, CTEXTSTR *frag_code, int frag_blocks, struct image_shader_attribute_order *, int nAttribs );
-int CompileShader( PImageShaderTracker shader, CTEXTSTR *vertex_code, int vert_blocks, CTEXTSTR *frag_code, int frag_blocks );
-void ClearShaders( void );
+PImageShaderTracker CPROC GetShader( CTEXTSTR name, void (*)(PImageShaderTracker) );
+int CPROC CompileShaderEx( PImageShaderTracker shader, CTEXTSTR *vertex_code, int vert_blocks, CTEXTSTR *frag_code, int frag_blocks, struct image_shader_attribute_order *, int nAttribs );
+int CPROC CompileShader( PImageShaderTracker shader, CTEXTSTR *vertex_code, int vert_blocks, CTEXTSTR *frag_code, int frag_blocks );
+void CPROC ClearShaders( void );
 
-void EnableShader( CTEXTSTR shader, ... );
+void CPROC EnableShader( CTEXTSTR shader, ... );
 
 // this part is very specific to a shader....
 void SetupCommon( PImageShaderTracker tracker, CTEXTSTR position, CTEXTSTR color );
