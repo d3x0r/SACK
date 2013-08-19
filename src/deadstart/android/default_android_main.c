@@ -60,7 +60,7 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 		 int32_t action = AMotionEvent_getAction(event );
 		 int pointer = ( action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK ) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 		 int p = AMotionEvent_getPointerCount( event );
-#ifndef DEBUG_TOUCH_INPUT
+#ifdef DEBUG_TOUCH_INPUT
 		 LOGI( "pointer (full action)%04x (pointer)%d (number points)%d", action, pointer, p );
 #endif
 		 {
@@ -133,51 +133,30 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 			 if( pointer < engine->nPoints )
 			 {
 				 int c;
-#ifndef DEBUG_TOUCH_INPUT
+#ifdef DEBUG_TOUCH_INPUT
 				 LOGI( "insert point new. %d", engine->nPoints-1 );
 #endif
-				 for( c = ( engine->nPoints ); c > pointer; c-- )
+             for( c = engine->nPoints; c >= pointer; c-- )
 				 {
-					 engine->points[c] = engine->points[c-1];
-                // if the point is mapped from inputs, the map on this point will also not be itself
-					 if( engine->input_point_map[c-1] != (c-1) )
-					 {
-						 int map;
-						 engine->input_point_map[c] = engine->input_point_map[c-1];
-#ifndef DEBUG_TOUCH_INPUT
-						 LOGI( "have to remap" );
-#endif
-						 for( map = 0; map < engine->nPoints; map++ )
-						 {
-#ifndef DEBUG_TOUCH_INPUT
-							 LOGI( "something else %d %d", map, engine->input_point_map[map] );
-#endif
-                      // find the map entry pointing at this one, and increment it.
-							 if( engine->input_point_map[map] == (c-1) )
-							 {
-                         // increment the map reference to me, I'm one position higher.
-								 engine->input_point_map[map]++;
-								 break;
-							 }
-						 }
-					 }
-					 else
-                   engine->input_point_map[c] = c;
+                LOGI( "Set %d to %d", c, engine->input_point_map[c-1] );
+					 engine->input_point_map[c] = engine->input_point_map[c-1]; // save still in the same target...
 				 }
-#ifndef DEBUG_TOUCH_INPUT
-				 for( c = 0; c < engine->nPoints; c++ )
-				 {
-					 LOGI( "Point : %d %d %g %g %d %d", c, engine->input_point_map[c], engine->points[c].x , engine->points[c].y, engine->points[c].flags.new_event, engine->points[c].flags.end_event );
-				 }
-#endif
+				 LOGI( "Set %d to %d", pointer, engine->nPoints );
+				 engine->input_point_map[pointer] = engine->nPoints; // and the new one maps to the last.
+				 // now just save in last and don't swap twice.
+				 engine->points[engine->nPoints].x = AMotionEvent_getX( event, pointer );
+				 engine->points[engine->nPoints].y = AMotionEvent_getY( event, pointer );
+				 pointer = engine->nPoints;
 			 }
-
+			 else
+			 {
+				 engine->points[pointer].x = AMotionEvent_getX( event, pointer );
+				 engine->points[pointer].y = AMotionEvent_getY( event, pointer );
+				 engine->input_point_map[pointer] = pointer;
+			 }
 			 // primary pointer down.
-          engine->points[pointer].x = AMotionEvent_getX( event, pointer );
-			 engine->points[pointer].y = AMotionEvent_getY( event, pointer );
 			 engine->points[pointer].flags.new_event = 1;
 			 engine->points[pointer].flags.end_event = 0;
-			 engine->input_point_map[pointer] = pointer;
           // always initialize the
           engine->nPoints++;
 			 break;
@@ -188,24 +167,30 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
              int n;
 				 engine->points[actual].flags.new_event = 0;
 				 engine->points[actual].flags.end_event = 1;
-#ifndef DEBUG_TOUCH_INPUT
+
+#ifdef DEBUG_TOUCH_INPUT
 				 LOGI( "Set point %d (map %d) to ended", pointer, actual );
 #endif
-             // any release event will reset the other input points appropriately(?)
+				 // any release event will reset the other input points appropriately(?)
 				 for( n = 0; n < engine->nPoints; n++ )
 				 {
-                int other;
-					 if( (other = engine->input_point_map[n]) != n )
+					 int other;
+					 if( engine->input_point_map[n] != n )
 					 {
-						 struct input_point tmp = engine->points[n];
-                   engine->points[n] = engine->points[other];
-						 engine->points[other] = tmp;
-
-						 engine->input_point_map[other] = engine->input_point_map[n];
-						 engine->input_point_map[n] = n;
-#ifndef DEBUG_TOUCH_INPUT
-						 LOGI( "reversed points %d %d", n, other );
+						 int m;
+                   lprintf( "reorder to natural input order" );
+						 memcpy( engine->tmp_points, engine->points, engine->nPoints * sizeof( struct input_point ) );
+						 // m is the point currently mapped to this position.
+                   // data from engine[n] and engine[m] need to swap
+						 for( m = 0; m < engine->nPoints; m++ )
+						 {
+                      engine->points[m] = engine->tmp_points[other = engine->input_point_map[m]];
+							 engine->input_point_map[m] = m;
+#ifdef DEBUG_TOUCH_INPUT
+							 LOGI( "move point %d to %d", other, m );
 #endif
+						 }
+						 break;
 					 }
 				 }
 			 }
@@ -216,33 +201,7 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 
 		 {
 			 int n;
-			 int found_new;
-          // sort new point to the end, and apply remap if required.
-#ifndef DEBUG_TOUCH_INPUT
-			 for( n = 0; n < engine->nPoints; n++ )
-			 {
-				 LOGI( "Point : %d %d %g %g %d %d", n, engine->input_point_map[n], engine->points[n].x , engine->points[n].y, engine->points[n].flags.new_event, engine->points[n].flags.end_event );
-			 }
-#endif
-			 for( n = 0; n < engine->nPoints; n++ )
-			 {
-				 if( engine->points[n].flags.new_event )
-				 {
-					 if( n < (engine->nPoints-1) )
-					 {
-						 struct input_point tmp;
-						 // swap the real points
-						 tmp = engine->points[n];
-						 engine->points[n] = engine->points[engine->nPoints-1];
-						 engine->points[engine->nPoints-1] = tmp;
-						 // setup the map to reverse them.
-						 engine->input_point_map[engine->nPoints-1] = n;
-						 engine->input_point_map[n] = engine->nPoints-1;
-					 }
-				 }
-			 }
-
-#ifndef DEBUG_TOUCH_INPUT
+#ifdef DEBUG_TOUCH_INPUT
 			 for( n = 0; n < engine->nPoints; n++ )
 			 {
 				 LOGI( "Point : %d %d %g %g %d %d", n, engine->input_point_map[n], engine->points[n].x , engine->points[n].y, engine->points[n].flags.new_event, engine->points[n].flags.end_event );
