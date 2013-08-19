@@ -2,6 +2,7 @@
 
 #include "local.h"
 
+//#define DEBUG_TOUCH_INPUTS
 
 	static struct touch_event_state
 	{
@@ -38,12 +39,16 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 	if( l.flags.bRotateLock )
 #endif
 	{
+
+#ifdef DEBUG_TOUCH_INPUTS
 		int t;
 		for( t = 0; t < nTouches; t++ )
 		{
 			lprintf( WIDE( "%d %5g %5g %s%s" ), t, touches[t].x, touches[t].y, touches[t].flags.new_event?"new":"", touches[t].flags.end_event?"end":"" );
 		}
 		lprintf( WIDE( "touch event" ) );
+#endif
+
 #ifdef __ANDROID__
 		if( nTouches == 4 )
 		{
