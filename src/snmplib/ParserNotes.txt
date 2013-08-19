@@ -1,0 +1,22 @@
+
+struct subid:
+
+One element of an OID.  Consists of text name, integer, or both.
+(-1, NULL -> not present.)
+
+struct node:
+
+Linked list of nodes.
+- label:  Nodes textual name
+- subid:  Nodes subid
+- parent: Nodes textual parent name
+- type:   Node type
+- enum:   Optional list of enumerated data
+
+----------------------------------------------------
+
+Current parser:
+- Load all nodes into linked list
+- Call build_tree
+
+get_token()

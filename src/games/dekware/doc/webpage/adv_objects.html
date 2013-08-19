@@ -1,0 +1,50 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<center><font size=+3>Advanced Object Topics</font></center>
+<p><a href="objects.html">Return to Object Page</a>
+<hr>
+<center><img src="object_map.gif"></center>
+<p>This map demonstrates at least one of every relationship an object might
+have to other objects.&nbsp; The Void contains Room and Some Thing.&nbsp;
+Room is attached to Another Room. (Note: Another Room might not be considered
+present within The Void, since it is held by Room)&nbsp; Within Room, A Comfy Chair 
+and MOOSE are present.&nbsp; MOOSE is holding (attached to) Held Object.&nbsp;
+MOOSE contains (possesses) one and two.
+<p>From MOOSE's perspective, one, two, Held Object, Comfy Chair, Another Room, and
+Room are all visible.&nbsp; MOOSE could /ENTER Another Room and Comfy Chair.&nbsp;
+MOOSE could /LEAVE and be in The Void.&nbsp; If MOOSE were given a command, 
+which was a macro name, it would check first its own macros, then the macros
+of Room.&nbsp; Regardless of where the macro is found, the variables used
+are ALWAYS contained within the active object.
+<p>There will come a time when more than one object of the same name
+will be visible.&nbsp; When there are more than one objects of the same name
+1.object, 2.object, n.object, can be used to select objects other than the
+first.&nbsp; Objects are checked for presence first in the contents of self,
+then held objects, and finally then objects in the same room.&nbsp;
+Many commands check
+only these, the set of 'grabbable' objects.&nbsp; Some commands will additionally
+check objects attached to the current room, and then the room the object is
+in.&nbsp;
+A DESTROY command will then check macros on the current object for a match.
+<p>When a macro is defined it is stored in the current object.&nbsp; When 
+a command is entered to invoke a macro, the current object is checked first,
+if the macro is not found, the object containing the current is checked.&nbsp;
+This allows macros for 'rooms' to be defined, so any object within it may use
+the macro.&nbsp; Only these two levels are checked.&nbsp; An object does not
+have to be aware to have a macro defined for it; /macro [IN [object]] [name]
+[parameters...] will define a macro in the specified object, if the object is
+visible.
+<p>When a variable is declared, the variable is stored in the object.&nbsp; If
+the variable is declared within a macro, the variable is stored in the current
+macro state.&nbsp; A variable can be defined in any visible object using
+'/declare in [object] [varname] [value...]'.&nbsp; If the object specified is
+visible, this command will succeed.&nbsp; When a macro references a variable,
+first the parameters to the macro are checked, then the macros defined in the
+current macro state, and finally the variables defined for the object.&nbsp;
+If the variable is found in the object's variable space, subsequent declares
+will modify that value, not create a new one in the macro state.
+
+<p><a href="objects.html">Return to Object Page</a>
+</BODY>
+</HTML>

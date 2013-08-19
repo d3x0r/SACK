@@ -1,0 +1,46 @@
+
+/mac sendpage file
+/echo hopening file %file
+/parse file file %file
+/if success
+/  option file close
+/  decl line
+/  label top
+/  getline %line
+/  if success
+.    %line
+/  goto top
+/  endif
+/endif
+
+# this closes this device... but
+# the object remains
+#/close
+# this gets the device closed also...
+/debug
+/destroy %me
+/debug
+/endmac
+
+
+
+/trigger create test GET /*page HTTP/*version
+/decl junk 
+/decl p %page
+/echo request is %p
+/scr scriptpage
+/destroy %me
+/endmac
+/trigger opt test anchor consume
+
+
+/trigger create test2 GET /*page ? *cgi HTTP/*version
+/decl junk 
+/decl p %page
+/echo request is %p
+/scr scriptpage
+/destroy %me
+/endmac
+/trigger opt test2 anchor consume
+
+

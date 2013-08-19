@@ -1,0 +1,41 @@
+.SH NAME
+snmp_dump, snmp_dump_packet \- SNMP Network Packet Dumping Routines
+.SH SYNOPSIS
+.B cc
+.RI "[ " "flag" " \|.\|.\|. ] " "file" " \|.\|.\|."
+.B \-lsnmp
+.RI "[ " "library" " \|.\|.\|. ]"
+.LP
+.B #include <sys/types.h>
+.br
+.B #include <snmp/snmp.h>
+.LP
+.BI "void snmp_dump_packet(int " "i");
+.LP
+.BI "void snmp_dump(unsigned char * " "Buf",
+.BI "int " "BufLen",
+.BI "char *" "How",
+.BI "struct in_addr " "Who");
+.SH DESCRIPTION
+.B snmp_dump_packet(\|)
+sets the boolean value for whether or not
+.B snmp_dump(\|)
+should do anything to the value of
+.IR i .
+.LP
+.B snmp_dump(\|)
+prints 
+.I BufLen
+bytes of
+.IR Buf ,
+with a header describing where it is going from/to.  The destination
+machine is
+.IR Who ,
+and a description of how the data is moving is passed as
+.IR How .
+.LP
+snmp_dump_packet(Buf, 15, "Sending", &from)
+.LP
+would result in a header that says
+.LP
+Sending 15 bytes <-> host.in.from:

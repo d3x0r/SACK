@@ -1,0 +1,51 @@
+
+/mac pack
+/scr packfruit
+.remove bags
+/packfruit bags
+.remove backpack
+.put foot backpack
+.put claw backpack
+.put tail backpack
+.put all.cloak backpack
+.put wooden-rod backpack
+.put all.token backpack
+.put robe backpack
+.put all.bracelet backpack
+.remove sack
+.put all.thorns sack
+.put all.scroll sack
+.put all.potion sack
+.put all.rod sack
+.put 2.sack sack
+.put 2.sack sack
+.put all.ring sack
+.she branch
+.wear all
+/endmac
+
+/mac bracelets which
+.remove all.bracelet
+.remove backpack
+.get all.%which-bracelet backpack
+.put 3.bracelet backpack
+.put 3.bracelet backpack
+.wear all
+/endmac
+
+/mac battle
+/bracelets serpentine
+.remove bags
+.remove backpack
+.get all.cloak backpack
+.wear all
+/endmac
+
+/mac idle
+/bracelets ordinary
+.remove cloak
+.remove cloak
+.put all.cloak backpack
+.wear all
+/endmac
+

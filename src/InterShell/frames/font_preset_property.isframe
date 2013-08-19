@@ -1,0 +1,7 @@
+<control ID="-1" caption="Select Font Preset" edit="1" position="0,0" size="411,324" type="Frame">
+<control ID="-1" caption="Preset Fonts" position="10,28" size="196,21" type="TextControl"></control>
+<control ID="1" IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" caption="Okay" position="291,164" size="73,29" type="Button"></control>
+<control ID="2" IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" caption="Cancel" position="290,127" size="73,27" type="Button"></control>
+<control ID="1014" IDName="InterShell/Button/BTN_EDITFONT" PrivateData="#ff356059" caption="Edit Font" position="50,229" size="85,32" type="Button"></control>
+<control ID="1011" IDName="InterShell/Button/BTN_PICKFONT" PrivateData="#ff356059" caption="New Font" position="166,228" size="90,32" type="Button"></control>
+<control ID="2811" IDName="InterShell/ListBox/LST_FONTS" caption="" position="18,59" size="262,156" type="ListBox"></control></control>

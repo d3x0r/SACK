@@ -1,0 +1,16 @@
+
+/mac open_psicon
+/command usercmd bash
+/command aliae trigger
+
+/parse merge merge
+#as it turns out in this configuration 'PLAYER' is "The Void"
+/"The Void"/command split split outbound outtoin "Auto Console"
+
+/echo any other sort of startup goes into psicon.startup.
+/echo Thanx for using this embedded console :)
+/dest open_psicon
+/endmac
+# this will wait until all commands are done before actually running the 
+# commands within this macro...
+/open_psicon

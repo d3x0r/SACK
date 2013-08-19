@@ -1,0 +1,98 @@
+.TH SNMP_API_ERRORS 3 "Mon Jan 25 23:11:48 1999"
+.UC 4
+.SH NAME
+snmp_api_error, snmp_api_errno \- Deal with SNMP API Errors
+.SH SYNOPSIS
+.B cc
+.RI "[ " "flag" " \|.\|.\|. ] " "file" " \|.\|.\|."
+.B \-lsnmp
+.RI "[ " "library" " \|.\|.\|. ]"
+.LP
+.B #include <sys/types.h>
+.br
+.B #include <snmp/snmp.h>
+.LP
+.BI "char *snmp_api_error(int " "errno" );
+.LP
+.B int snmp_api_errno(void);
+.SH DESCRIPTION
+.B snmp_api_errno(\|)
+returns the current SNMP API error status.
+.LP
+.B snmp_api_error(\|)
+returns a string describing what the error represents.
+.SH "ERROR VALUES"
+The possible error values are:
+.TP 10
+.SB SNMPERR_GENERR
+A generic occured.
+.TP 10
+.SB SNMPERR_BAD_LOCPORT
+.TP 10
+.SB SNMPERR_BAD_ADDRESS
+.TP 10
+.SB SNMPERR_BAD_SESSION
+.TP 10
+.SB SNMPERR_TOO_LONG
+Data too long for provided buffer
+.TP 10
+.SB SNMPERR_ASN_ENCODE
+There was a problem encoding the ASN1/BER stream.
+.TP 10
+.SB SNMPERR_ASN_DECODE
+There was a problem decoding the ASN1/BER stream.
+.TP 10
+.SB SNMPERR_PDU_TRANSLATION
+Unable to translate the specified PDU.
+.TP 10
+.SB SNMPERR_OS_ERR
+An OS error occured.  Most likely a failed malloc.
+.TP 10
+.SB SNMPERR_INVALID_TXTOID
+The textual oid usaed was invalid
+.TP 10
+.SB SNMPERR_UNABLE_TO_FIX
+Unable to fix this PDU.  Caused by the PDU not being a response, not
+containing an error, or the errindex being invalid.
+.TP 10
+.SB SNMPERR_UNSUPPORTED_TYPE
+An unsupported OID type was encountered.
+.TP 10
+.SB SNMPERR_PDU_PARSE
+The PDU was decoded, but it contained something unexpected.
+.TP 10
+.SB SNMPERR_PACKET_ERR
+.TP 10
+.SB SNMPERR_NO_RESPONSE
+
+.SH NOTES
+The error message is stored in the data segment of the library.  Do
+not attempt to 
+.B free(\|)
+ it.
+.SH "RFCS"
+Related RFCs: 1065, 1066, 1067
+.br
+Related SNMPv2 RFCs: 1901, 1902, 1902, 1904, 1905, 1906, 1907, 1908, 1909
+.SH "RELATED URLS"
+CMU Networking Group: http://www.net.cmu.edu/
+.br
+CMU SNMP Home Page: http://www.net.cmu.edu/projects/snmp
+.SH "SEE ALSO"
+.BR snmp_api (3),
+.BR snmp_api_errors (3),
+.BR snmp_client (3),
+.BR snmp_coexistance (3),
+.BR snmp_error (3),
+.BR snmp_extra (3),
+.BR snmp_mib (3),
+.BR snmp_mibii (3),
+.BR snmp_mini_client (3),
+.BR snmp_msg (3),
+.BR snmp_packet_dump (3),
+.BR snmp_pdu (3),
+.BR snmp_sess_api (3),
+.BR snmp_vars (3),
+.BR snmp_version_info (3),
+.BR snmp_oid (5)
+.BR snmp (3)

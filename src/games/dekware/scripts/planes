@@ -1,0 +1,22 @@
+Fire
+(entrance to volcano) -- n w s e e s s (entrance to golden city)
+(city) -- n n w w n e s (volcano)
+(first space from entrance to plane) s s w w w s (entrance to golden city)
+(Entrance to golden city) n e e e e e e e e (buried in soot)
+(entrance to golden city) n w n w w (near some magma)
+
+Air
+(first space from entrance to plane) e e e s s s s e (buried in snow)
+(entrance to plane) e e e e w (smog bank)
+(buried in snow) w n n n n e w(smog bank)
+(first space from entrance to plane) s s s s s e e e e s (entrance to city) 
+(first space from entrance to plane) w s e n e e e e n e s(hermit)
+
+Earth
+(a flow of molten rock) w w w w w w s s s (entrance to fault line settlement)
+(a flow of molten rock) w n e n w (in some mud)
+
+Water
+(in murky water) w s s e e e e e s (entrance to ruined underwater city)
+ 
+n;drop 1 coin; w;drop 1 coin; w;drop 1 coin; w;drop 1 coin; w;drop 1 coin; w;drop 1 coin; n;drop 1 coin; n;drop 1 coin; e;drop 1 coin;

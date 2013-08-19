@@ -1,0 +1,1 @@
+add_plugin( split.filter.nex filters split)

@@ -1,0 +1,127 @@
+   This project is to begin work on a cyberspace reality/environment for
+development of totem and or other things.  This provides a space under which
+all things are similar...  I have discussed commands before and such, and
+now is the time for implementation...
+
+     Commands
+          Create <name> - makes a new object and puts it in your hand.
+          Destroy       - destroys the object in your hand.
+          attach
+          remove
+          put in
+          take out
+          view
+          describe
+          modify
+          grab
+          activate
+
+     at a primative level- some things can be done to all objects.
+     objects can be created.
+     Objects can be destroyed.
+     Objects can be actviated.
+
+     Objects
+          Objects are names.  The names have some things that are related
+     to them.  Relations:
+          name         - is data of node.
+          within       - list of objects which contain this one.
+          contains     - list of objects which this one contains.
+          attached to  - list of objects which are attached to this one.
+
+          Manifestation- This is a list of pointers to objects that
+                         Describe how the object manifests itself.
+               Visual
+               Sensual
+               Activities
+
+          Objects have to exist in a state such that they are referencable
+     by other objects.
+          Objects which create another object contain the newly created
+     object.
+
+          ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿   ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+          ³Name            ÃÄÄÄ´Data          ³
+          ³ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ³   ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+          ³Within          ÃÄÄÄÄ¿
+          ³ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ³    ³ÚÄÄÄÄÄÄÄÄÄÄÄ¿   ÚÄÄÄÄÄÄÄÄÄÄÄ¿
+          ³Contains        ³ÄÄÄ¿À´Pointers   ÃÄÄÄ´Object     ³
+          ³ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ³   ³ ÃÄÄÄÄÄÄÄÄÄÄÄ´   ÀÄÄÄÄÄÄÄÄÄÄÄÙ ÚÄÄÄÄÄÄÄÄÄÄ¿
+          ³Attachedto      ÃÄÄ¿³ ³           ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´Object    ³
+          ³ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ³  ³³ ÃÄÄÄÄÄÄÄÄÄÄÄ´                 ÀÄÄÄÄÄÄÄÄÄÄÙ
+          ³Manifestation   ÃÄ¿³³ ³           ³
+          ³ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ³ ³³³ ÀÄÄÄÄÄÄÄÄÄÄÄÙ
+          ³                ³ ³³³ ÚÄÄÄÄÄÄÄÄÄÄÄ¿   ÚÄÄÄÄÄÄÄÄÄÄÄ¿
+          ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ ³³ÀÄ´Pointers   ÃÄÄÄ´Object     ³
+                             ³³  ÃÄÄÄÄÄÄÄÄÄÄÄ´   ÀÄÄÄÄÄÄÄÄÄÄÄÙ ÚÄÄÄÄÄÄÄÄÄÄ¿
+                             ³³  ³           ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´Object    ³
+                             ³³  ÃÄÄÄÄÄÄÄÄÄÄÄ´   ÚÄÄÄÄÄÄÄÄÄÄÄ¿ ÀÄÄÄÄÄÄÄÄÄÄÙ
+                             ³³  ³           ÃÄÄÄ´Object     ³
+                             ³³  ÀÄÄÄÄÄÄÄÄÄÄÄÙ   ÀÄÄÄÄÄÄÄÄÄÄÄÙ
+                             ³³  ÚÄÄÄÄÄÄÄÄÄÄÄ¿   ÚÄÄÄÄÄÄÄÄÄÄÄ¿
+                             ³ÀÄÄ´Pointers   ÃÄÄÄ´Object     ³
+                             ³   ÃÄÄÄÄÄÄÄÄÄÄÄ´   ÀÄÄÄÄÄÄÄÄÄÄÄÙ ÚÄÄÄÄÄÄÄÄÄÄ¿
+                             ³   ³           ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´Object    ³
+                             ³   ÃÄÄÄÄÄÄÄÄÄÄÄ´   ÚÄÄÄÄÄÄÄÄÄÄÄ¿ ÀÄÄÄÄÄÄÄÄÄÄÙ
+                             ³   ³           ÃÄÄÄ´Object     ³
+                             ³   ÀÄÄÄÄÄÄÄÄÄÄÄÙ   ÀÄÄÄÄÄÄÄÄÄÄÄÙ
+                             ³   ÚÄÄÄÄÄÄÄÄÄÄÄ¿   ÚÄÄÄÄÄÄÄÄÄÄÄ¿
+                             ÀÄÄÄ´Pointers   ÃÄÄÄ´Activities ³
+                                 ÃÄÄÄÄÄÄÄÄÄÄÄ´   ÀÄÄÄÄÄÄÄÄÄÄÄÙ
+                                 ³           ³
+                                 ÃÄÄÄÄÄÄÄÄÄÄÄ´
+                                 ³           ³
+                                 ÀÄÄÄÄÄÄÄÄÄÄÄÙ
+
+          UHOH!  Okay- now we have objects, which all follow a general
+          pattern, but activities also have to be created.
+
+     Within the program we have
+          Objects
+          Text Things (commands)
+
+
+   Object
+     Name
+   Abstracts
+     Name
+     Value
+
+   Object    <Name>
+   Abstract  <Name>
+   Rename    <Name>
+   Duplicate <Name>
+   Destroy   <Name>
+
+   Manifest <Object> <Abstract>
+
+   Set     <Abstract> <New Value>
+   Modify  <Abstract> <Modification>
+
+   Destroy <Object>
+   Relocate <Ojbect> <Ojbect> <Object>
+      <Take out> <Put In>
+
+
+
+---------------------------------------------------------------
+     Objects - generic expressions of data.  However usage of this
+data is of course specific in each case.  This is defined by the definition
+of programming being the processing of exceptions.  Each condition which
+arrises is an exception and results in a change, or maintenance of a
+stasis.  Each level of an object relates a form of data content and
+of course methods of interfacing and modifying the data.  Not all data
+is compatible with all other forms of data.  Also since each bit of data
+is strung together with pointers, it is not contiguous - which aids in
+it's expanstion capabilities.  However - an object which has been
+strung together with vapourous links needs to be collapsed to a 'solid
+object' which may then be serialized into a stream.  On the receiving
+side the object may be maintained in a 'solid' form, or may be unstrung
+into it's parts.  Each element in a structure is either a 'size' or a
+'pointer' to each other.
+     BUT - there is NO generic form which encapsulates ALL Data so that
+it may be generically viewed.
+
+---------------------------------------------------------------------
+
+

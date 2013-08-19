@@ -1,0 +1,1 @@
+add_plugin( dekware.isp InterShell  dekwarecon.c solitaire.c )
