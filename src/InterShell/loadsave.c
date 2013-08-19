@@ -89,8 +89,8 @@ void SetDefaultRowsCols( void )
 
 	if( !canvas->flags.bSetResolution )
 	{
-		PushArgument( args, _64, 5 );
-		PushArgument( args, _64, 5 );
+		PushArgument( args, _64, 40 );
+		PushArgument( args, _64, 40 );
 		SetMenuRowCols( 0, pass_args( args ) );
 		PopArguments( args );
 	}
@@ -1026,7 +1026,7 @@ void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 
 	PushLink( &l.current_canvas, pc_canvas );
 	my_current_handler = pch = CreateConfigurationEvaluator();
-	// if this is not done first, then the system will default to 5.
+	// if this is not done first, then the system will default to 40.
 
 	// these are only on the very top level canvas...
 	AddConfigurationMethod( pch, WIDE("%m button mono shade"), SetRoundMonoShade );
