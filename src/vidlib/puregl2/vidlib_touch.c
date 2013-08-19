@@ -224,7 +224,9 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				add( v_o_old, v_o_old, v_delta_pos );
 
 				scale( v_delta_pos, v_delta_pos, l.scale );
-            PrintVector( v_delta_pos );
+#ifdef DEBUG_TOUCH_INPUTS
+				PrintVector( v_delta_pos );
+#endif
             // update old origin to new; for computing rotation point versus translateion
 
             MoveRight( l.origin, -v_delta_pos[vRight] );
@@ -236,7 +238,9 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 					static int toggle;
 					RCOORD angle_one;
 					angle_one = atan2( v_n_new[vUp], v_n_new[vRight] ) - atan2( v_n_old[vUp], v_n_old[vRight] );
-               lprintf( "Rotation angle is %g", angle_one );
+#ifdef DEBUG_TOUCH_INPUTS
+					lprintf( "Rotation angle is %g", angle_one );
+#endif
 					if( 0 )
 					{
 						PrintVector( rotate_axis.n );
