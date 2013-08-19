@@ -337,7 +337,10 @@ void DoDestroy (PVIDEO hVideo)
       // unlink from the stack of windows...
 		UnlinkVideo (hVideo);
 		if( l.hCaptured == hVideo )
+		{
 			l.hCaptured = NULL;
+			l.flags.bManuallyCapturedMouse = 0;
+		}
 		//Log (WIDE( "Cleared hVideo - is NOW !bReady" ));
 		if( !hVideo->flags.event_dispatched )
 		{
@@ -1316,7 +1319,10 @@ void  HideDisplay (PVIDEO hVideo)
 	if( hVideo )
 	{
 		if( l.hCaptured == hVideo )
+		{
 			l.hCaptured = NULL;
+			l.flags.bManuallyCapturedMouse = 0;
+		}
 		hVideo->flags.bHidden = 1;
 		UnlinkVideo( hVideo );  // might as well take it out of the list, no keys, mouse or output allowed.
 		/* handle lose focus */
@@ -1444,6 +1450,7 @@ void  OwnMouseEx (PVIDEO hVideo, _32 own DBG_PASS)
 		{
 			l.hCaptured = hVideo;
 			hVideo->flags.bCaptured = 1;
+			l.flags.bManuallyCapturedMouse = 1;
 		}
 		else
 		{
@@ -1452,13 +1459,14 @@ void  OwnMouseEx (PVIDEO hVideo, _32 own DBG_PASS)
 				lprintf( WIDE("Another window now wants to capture the mouse... the prior window will ahve the capture stolen.") );
 				l.hCaptured = hVideo;
 				hVideo->flags.bCaptured = 1;
+				l.flags.bManuallyCapturedMouse = 1;
 			}
 			else
 			{
 				if( !hVideo->flags.bCaptured )
 				{
 					lprintf( WIDE("This should NEVER happen!") );
-               *(int*)0 = 0;
+					*(int*)0 = 0;
 				}
 				// should already have the capture...
 			}
@@ -1472,6 +1480,7 @@ void  OwnMouseEx (PVIDEO hVideo, _32 own DBG_PASS)
 			//ReleaseCapture ();
 			hVideo->flags.bCaptured = 0;
 			l.hCaptured = NULL;
+			l.flags.bManuallyCapturedMouse = 0;
 		}
 	}
 }
