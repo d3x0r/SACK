@@ -1,10 +1,11 @@
 #include <stdhdrs.h>
 
-
 #if defined( __LINUX__ )
 
 #if !defined( __ANDROID__ )
 #include <pty.h>
+#else
+#include <termios.h>
 #endif
 #include <utmp.h> // login_tty
 #include <pthread.h>
@@ -270,6 +271,7 @@ typedef struct handle_info_tag
 
 typedef struct mydatapath_tag {
 	DATAPATH common;
+   PTASK_INFO task;
 	PSENTIENT ps;
 	// probably need process handles, partial line gatherers
 	// 
@@ -413,7 +415,7 @@ static int CPROC WriteSystem( PDATAPATH pdpX )
 }
 
 //--------------------------------------------------------------------------
-#ifdef __UNIX__
+#ifdef __LINUX__
 int CanRead( int handle )
 {
 	fd_set n;
@@ -570,60 +572,46 @@ PTRSZVAL CPROC CommandInputThread( PTHREAD pThread )
 
 //--------------------------------------------------------------------------
 
-#ifdef __UNIX__
-int RunProg( TEXTCHAR *ActCommand, TEXTCHAR **args, TEXTCHAR **env )
+static void CPROC TaskEndHandler(PTRSZVAL psvpdp, PTASK_INFO task_ended)
 {
-	TEXTCHAR *path = getenv( WIDE("PATH") ), *ptr;
-	TEXTCHAR pathdata[512];
-	TEXTCHAR file[512];
-	if( path )
-		strcpy( pathdata, path );
-	if( !strchr( ActCommand, '/' ) )
-	{
-		strcpy( file, ActCommand );
-		ptr = path = pathdata; // move to local copy...
-		do
-		{
-			if(0)
-			{
-				write( 2, WIDE("Running: "), 9 );
-				write( 2, file, strlen( file ) );
-				write( 2, WIDE("\n"), 1 );
-			}
-		   path = ptr;
-		   ptr = strchr( path, ':' );
-	   	if( ptr )
-	   	{
-		   	*ptr = 0;
-		   	ptr++;
-		   }
-	   	strcpy( file, path );
-		   strcat( file, WIDE("/") );
-		   strcat( file, ActCommand );
-		   // can move this forward to before path search/build
-		   // this will pass the programname itself to try run.
-		   // this will fail however. (probably)
-	   	execve( file, args, env );
-		} while( path );
-	}
-	else
-	{
-		if(0)
-		{
-			write( 2, WIDE("Running: "), 9 );
-			write( 2, ActCommand, strlen( ActCommand ) );
-			write( 2, WIDE("\n"), 1 );
-		}
-	   execve( ActCommand, args, env );
-	}
-	return -1;
+	PMYDATAPATH pdp = (PMYDATAPATH)psvpdp;
+	Hold( pdp );
+
+	pdp->task = NULL;
+	pdp->common.flags.Closed = 1;
+	WakeAThread( pdp->common.Owner );
+
+	Release( pdp );
 }
-#endif
-//--------------------------------------------------------------------------
+
+static void CPROC TaskOutputHandler(PTRSZVAL psvpdp, PTASK_INFO task, CTEXTSTR buffer, size_t size )
+{
+   PMYDATAPATH pdp = (PMYDATAPATH)psvpdp;
+
+	EnqueLink( &pdp->common.Input, SegCreateFromText( buffer ) );
+	WakeAThread( pdp->common.Owner );
+}
 
 
 int LaunchSystemCommand( PMYDATAPATH pdp, PTEXT Command )
 {
+#if __USE_SACK_COMMON_LAUNCH__
+	TEXTSTR *argv;
+	int argc;
+	ParseIntoArgs( GetText( command_line ) &argc, &argv );
+
+	pdp->task = LaunchPeerProgramExx( argv[0], NULL, (PCTEXTSTR)argv, 0, OuptutHandler, TaskEnd, (PTRSZVAL)&pdp DBG_RELAY );
+
+	{
+		POINTER tmp = (POINTER)argv;
+		while( argv[0] )
+		{
+			Release( (POINTER)argv[0] );
+			argv++;
+		}
+		Release( tmp );
+	}
+#else
 #ifdef _WIN32
 	PROCESS_INFORMATION pi;
 	STARTUPINFO si;
@@ -714,7 +702,7 @@ int LaunchSystemCommand( PMYDATAPATH pdp, PTEXT Command )
 	
 	return bRunSuccess;
 #else
-#ifdef __UNIX__
+#ifdef __LINUX__
 	{
 		PLIST pArgs;
 		TEXTCHAR *p;
@@ -752,7 +740,6 @@ int LaunchSystemCommand( PMYDATAPATH pdp, PTEXT Command )
 			int child_pid, hMaster, hSlave;
 			if( pdp->flags.use_pty )
 			{
-
 				struct winsize winsize;
             PTEXT val;;
 				val = GetVolatileVariable( pdp->ps->Current, WIDE("rows") );
@@ -818,7 +805,6 @@ int LaunchSystemCommand( PMYDATAPATH pdp, PTEXT Command )
 #ifdef _DEBUG
 //	   	   write( 2, WIDE("Running command..."), sizeof( WIDE("Running command...") ) );
 #endif
-				//RunProg( ActCommand, (TEXTCHAR**)pArgs->pNode, environ );
 				Log1( WIDE("Running program: %s"), ActCommand );
 				execvp( ActCommand, (TEXTCHAR**)pArgs->pNode );
 				Log1( WIDE("Running program: %s"), getenv(WIDE("SHELL")) );
@@ -860,6 +846,7 @@ int LaunchSystemCommand( PMYDATAPATH pdp, PTEXT Command )
 	   }
    }
    return TRUE;
+#endif
 #endif
 #endif
 }
