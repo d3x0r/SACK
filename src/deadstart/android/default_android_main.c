@@ -475,10 +475,11 @@ void* BeginNormalProcess( void*param )
 					BagVidlibPureglSendTouchEvents = (void (*)(int,PINPUT_POINT ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SendTouchEvents" );
 					BagVidlibPureglCloseDisplay = (void(*)(void))dlsym( RTLD_DEFAULT, "SACK_Vidlib_CloseDisplay" );
                BagVidlibPureglSurfaceLost = (void(*)(void))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SurfaceLost" );  // egl event
-               BagVidlibPureglSurfaceGained = (void(*)(NativeWindowType))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SurfaceGained" );  // egl event
+					BagVidlibPureglSurfaceGained = (void(*)(NativeWindowType))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SurfaceGained" );  // egl event
+
 					BagVidlibPureglSetTriggerKeyboard = (void(*)(void(*)(void),void(*)(void)))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SetTriggerKeyboard" );
-               //if( BagVidlibPureglSetTriggerKeyboard )
-					//	BagVidlibPureglSetTriggerKeyboard( show_keyboard, hide_keyboard );
+					if( BagVidlibPureglSetTriggerKeyboard )
+						BagVidlibPureglSetTriggerKeyboard( show_keyboard, hide_keyboard );
 
                // shouldn't need this shortly; was more about doing things my way than the android way
 					engine.wait_for_display_init = 1;
