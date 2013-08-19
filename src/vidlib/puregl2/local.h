@@ -132,6 +132,7 @@ extern
 		BIT_FIELD bForceUnaryAspect : 1;
 		BIT_FIELD bLogRenderTiming : 1;
 		BIT_FIELD bHookTouchEvents : 1;
+		BIT_FIELD bManuallyCapturedMouse : 1;
 	} flags;
 	PRENDERER mouse_last_vid;
 

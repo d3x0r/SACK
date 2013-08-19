@@ -389,10 +389,13 @@ PRENDERER CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 							lprintf( WIDE("Sent Mouse Proper. %d,%d %08x"), newx, newy, b );
 						//InverseOpenGLMouse( camera, check, newx, newy, NULL, NULL );
 						l.current_mouse_event_camera = camera;
-						if( MAKE_SOMEBUTTONS( b ) )
-							l.hCaptured = check;
-						else
-							l.hCaptured = NULL;
+						if( !l.flags.bManuallyCapturedMouse )
+						{
+							if( MAKE_SOMEBUTTONS( b ) )
+								l.hCaptured = check;
+							else
+								l.hCaptured = NULL;
+						}
 						used = check->pMouseCallback( check->dwMouseData
 													, newx
 													, newy

@@ -1055,7 +1055,7 @@ WM_DROPFILES
 			l._mouse_y = l.mouse_y;
 			// clear scroll buttons...
 			// otherwise circumstances of mouse wheel followed by any other event
-         // continues to generate scroll clicks.
+			// continues to generate scroll clicks.
 			l.mouse_b &= ~( MK_SCROLL_UP|MK_SCROLL_DOWN);
 			l._mouse_b = l.mouse_b;
 		}
