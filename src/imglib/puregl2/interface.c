@@ -166,25 +166,25 @@ IMAGE_3D_INTERFACE Image3dInterface = {
 #undef DropImageInterface
 #undef GetImage3dInterface
 
-PIMAGE_INTERFACE CPROC GetImageInterface ( void )
+static PIMAGE_INTERFACE CPROC GetImageInterface ( void )
 {
-   return (PIMAGE_INTERFACE)&RealImageInterface;
+	return (PIMAGE_INTERFACE)&RealImageInterface;
 }
 
 static POINTER CPROC GetImage3dInterface( void )
 {
-   return &Image3dInterface;
+	return &Image3dInterface;
 }
 
-static void  DropImage3dInterface ( POINTER p )
+static void  CPROC DropImage3dInterface ( POINTER p )
 {
-   ;
+	;
 }
 
 
-void  DropImageInterface ( PIMAGE_INTERFACE p )
+static void  CPROC DropImageInterface ( PIMAGE_INTERFACE p )
 {
-   ;
+	;
 }
 
 #ifdef __WATCOM_CPLUSPLUS__

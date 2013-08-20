@@ -39,26 +39,10 @@
 #define _CYGWIN_MSG_H
 
 
-#ifdef BCC16
-#ifdef MSG_SOURCE
-#define MSG_PROC(type,name) type STDPROC _export name
-#else
-#define MSG_PROC(type,name) type STDPROC name
-#endif
-#else
-#if !defined(__STATIC__) && !defined(__UNIX__)
 #ifdef MSG_SOURCE
 #define MSG_PROC(type,name) __declspec(dllexport) type name
 #else
 #define MSG_PROC(type,name) __declspec(dllimport) type name
-#endif
-#else
-#ifdef MSG_SOURCE
-#define MSG_PROC(type,name) type name
-#else
-#define MSG_PROC(type,name) extern type name
-#endif
-#endif
 #endif
 
 

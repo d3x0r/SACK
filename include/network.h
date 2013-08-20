@@ -3,18 +3,10 @@
 #include "sack_types.h"
 #include "loadsock.h"
 
-#if !defined(__STATIC__) && !defined( __UNIX__ )
 #ifdef NETWORK_SOURCE
 #define NETWORK_PROC(type,name) EXPORT_METHOD type CPROC name
 #else
 #define NETWORK_PROC(type,name) IMPORT_METHOD type CPROC name
-#endif
-#else
-#ifdef NETWORK_SOURCE
-#define NETWORK_PROC(type,name) type CPROC name
-#else
-#define NETWORK_PROC(type,name) extern type CPROC name
-#endif
 #endif
 
 #ifdef __cplusplus
