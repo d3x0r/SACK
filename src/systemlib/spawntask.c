@@ -70,6 +70,7 @@ static PTRSZVAL CPROC HandleTaskOutput(PTHREAD thread )
 {
 	PTASK_INFO task = (PTASK_INFO)GetThreadParam( thread );
 	{
+		task->pOutputThread = thread;
 		// read input from task, montiro close and dispatch TaskEnd Notification also.
 		{
 			PHANDLEINFO phi = &task->hStdOut;
@@ -216,6 +217,7 @@ static PTRSZVAL CPROC HandleTaskOutput(PTHREAD thread )
 			if( phi->handle == task->hStdIn.handle )
 				task->hStdIn.handle = INVALID_HANDLE_VALUE;
 			phi->handle = INVALID_HANDLE_VALUE;
+			task->pOutputThread = NULL;
 
 			Release( task );
 			//WakeAThread( phi->pdp->common.Owner );

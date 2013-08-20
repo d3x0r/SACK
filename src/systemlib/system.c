@@ -541,6 +541,10 @@ PTRSZVAL CPROC WaitForTaskEnd( PTHREAD pThread )
 #endif
 		}
 
+		// wait for task last output before notification of end of task.
+		while( task->pOutputThread )
+			Relinquish();
+
 		if( task->EndNotice )
 			task->EndNotice( task->psvEnd, task );
 #if defined( WIN32 )
