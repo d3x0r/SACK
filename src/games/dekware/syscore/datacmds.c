@@ -21,11 +21,11 @@ void CloseSomeDatapath( PSENTIENT ps, PTEXT parameters, PDATAPATH *root )
 	{
 		PDATAPATH pdp = FindOpenDevice( ps, temp );
 		if( pdp )
-         DestroyDataPath( pdp );
+			DestroyDataPath( pdp );
 	}
 	else
 	{
-      datasource = 1;
+		datasource = 1;
 		do
 		{
 			if( root )
@@ -46,7 +46,7 @@ void CloseSomeDatapath( PSENTIENT ps, PTEXT parameters, PDATAPATH *root )
 
 int CPROC CMD_ENDPARSE( PSENTIENT ps, PTEXT parameters )
 {
-   CloseSomeDatapath( ps, parameters, &ps->Data );
+	CloseSomeDatapath( ps, parameters, &ps->Data );
 	return FALSE;
 }
 //--------------------------------------

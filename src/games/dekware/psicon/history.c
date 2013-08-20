@@ -15,16 +15,20 @@ void SetTopOfForm( PHISTORY_LINE_CURSOR phlc );
 
 PHISTORYBLOCK DestroyRawHistoryBlock( PHISTORYBLOCK pHistory )
 {
-   _32 i;
-   PHISTORYBLOCK next;
-   for( i = 0; i < pHistory->nLinesUsed; i++ )
-   {
-      LineRelease( pHistory->pLines[i].pLine );
+	_32 i;
+	PHISTORYBLOCK next;
+	for( i = 0; i < pHistory->nLinesUsed; i++ )
+	{
+		if( pHistory->pLines[i].pLine == 0xFeeefeee )
+		{
+			lprintf( "a deleted line is in history %d", i );
+		}
+		LineRelease( pHistory->pLines[i].pLine );
 	}
 	if( ( next = ( (*pHistory->me) = pHistory->next ) ) )
-      pHistory->next->me = pHistory->me;
-   Release( pHistory );
-   return next;
+		pHistory->next->me = pHistory->me;
+	Release( pHistory );
+	return next;
 }
 
 //----------------------------------------------------------------------------

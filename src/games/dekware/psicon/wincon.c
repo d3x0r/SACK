@@ -882,10 +882,10 @@ DWORD dwMessageThread;
 _32 exiting;
 PTRSZVAL CPROC FrameWindowThread( PTHREAD thread )
 {
-   MSG msg;
-   // create message queue - make sure we're able to handle incoming messages...
-   PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE );
-   hWndFrame = CreateWindow( WIDE("DekwareFrameClass"),
+	MSG msg;
+	// create message queue - make sure we're able to handle incoming messages...
+	PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE );
+	hWndFrame = CreateWindow( WIDE("DekwareFrameClass"),
                  WIDE("Dekware Interface"),
                  (WS_VISIBLE|WS_OVERLAPPEDWINDOW),
                  CW_USEDEFAULT,
@@ -897,23 +897,23 @@ PTRSZVAL CPROC FrameWindowThread( PTHREAD thread )
                  hInstMe, // GetModuleHandle(NULL),
                  NULL );
 
-   {
-      while( GetMessage( &msg, NULL, 0, 0 ) )
-      {
-         if( !TranslateMDISysAccel( hWndMDI, &msg ) )
-         {
-            //TranslateAccelerator( &msg );
-            DispatchMessage( &msg );
-         }
-      }
+	{
+		while( GetMessage( &msg, NULL, 0, 0 ) )
+		{
+			if( !TranslateMDISysAccel( hWndMDI, &msg ) )
+			{
+				//TranslateAccelerator( &msg );
+				DispatchMessage( &msg );
+			}
+		}
 	}
 #ifdef __DEKWARE_PLUGIN__
-   if( !exiting )
+	if( !exiting )
 		ExitNexus();
 #endif
-   //DestroyEntity( THE_VOID );
-   hMessageThread = NULL;
-   return 0;
+	//DestroyEntity( THE_VOID );
+	hMessageThread = NULL;
+	return 0;
 
 }
 

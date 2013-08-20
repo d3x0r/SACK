@@ -589,9 +589,11 @@ static void CPROC TaskEndHandler(PTRSZVAL psvpdp, PTASK_INFO task_ended)
 static void CPROC TaskOutputHandler(PTRSZVAL psvpdp, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
    PMYDATAPATH pdp = (PMYDATAPATH)psvpdp;
+	Hold( pdp );
 
 	EnqueLink( &pdp->common.Input, SegCreateFromText( buffer ) );
 	WakeAThread( pdp->common.Owner );
+	Release( pdp );
 }
 
 
@@ -602,7 +604,7 @@ int LaunchSystemCommand( PMYDATAPATH pdp, PTEXT Command )
 	int argc;
 	ParseIntoArgs( GetText( Command ), &argc, &argv );
 
-	pdp->task = LaunchPeerProgramExx( argv[0], NULL, (PCTEXTSTR)argv, 0, TaskOutputHandler, TaskEndHandler, (PTRSZVAL)&pdp DBG_SRC );
+	pdp->task = LaunchPeerProgramExx( argv[0], NULL, (PCTEXTSTR)argv, 0, TaskOutputHandler, TaskEndHandler, (PTRSZVAL)pdp DBG_SRC );
 
 	{
 		POINTER tmp = (POINTER)argv;
@@ -613,6 +615,9 @@ int LaunchSystemCommand( PMYDATAPATH pdp, PTEXT Command )
 		}
 		Release( tmp );
 	}
+	if( pdp->task )
+		return TRUE;
+   return FALSE;
 #else
 #ifdef _WIN32
 	PROCESS_INFORMATION pi;
