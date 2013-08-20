@@ -431,7 +431,7 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 		( ( pText = GetParam( ps, tokens ) ) );
 		if( pText && ((pText->flags & TF_ENTITY )== TF_ENTITY) )
 		{
-         lprintf( WIDE("Segment itself is an entity... therefore no searching required.") );
+			//lprintf( WIDE("Segment itself is an entity... therefore no searching required.") );
 			return GetApplicationPointer( pText );
 		}
 		if( pText && (pText->flags & TF_INDIRECT) )
