@@ -14,7 +14,6 @@
 
 #include <sack_types.h> // CPROC
 
-#if !defined(__STATIC__) && !defined(__UNIX__)
 #ifdef GENX_SOURCE
 #define GENX_PROC(type,name) EXPORT_METHOD type CPROC name
 #else
