@@ -124,7 +124,7 @@ static PTRSZVAL CPROC HandleTaskOutput(PTHREAD thread )
 								{
 									if( task->flags.log_input )
 										lprintf( WIDE( "Finished, no more data, task has ended; no need for once more around" ) );
-                           lastloop = 1;
+									lastloop = 1;
 									break; // we're done; task ended, and we got an io terminator on XP
 								}
 							}
@@ -270,7 +270,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 		MemSet( task, 0, sizeof( TASK_INFO ) );
 		task->psvEnd = psv;
 		task->EndNotice = EndNotice;
-		xlprintf(LOG_DEBUG+1)( WIDE("%s[%s]"), path, expanded_working_path );
+		xlprintf(LOG_NOISE)( WIDE("%s[%s]"), path, expanded_working_path );
 		if( StrCmp( path, WIDE(".") ) == 0 )
 		{
 			path = NULL;
@@ -284,7 +284,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 		else
 			needs_quotes = FALSE;
 
-		xlprintf(LOG_DEBUG+1)( WIDE( "quotes?%s path [%s] program [%s]"), needs_quotes?WIDE( "yes"):WIDE( "no"), expanded_working_path, expanded_path );
 
 		if( needs_quotes )
 			vtprintf( pvt, WIDE( "\"" ) );
@@ -320,11 +319,13 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			args++;
 		}
 		cmdline = VarTextGet( pvt );
-		vtprintf( pvt, WIDE( "cmd.exe %s" ), GetText( cmdline ) );
+		vtprintf( pvt, WIDE( "cmd.exe /c %s" ), GetText( cmdline ) );
 		final_cmdline = VarTextGet( pvt );
 		VarTextDestroy( &pvt );
 		MemSet( &task->si, 0, sizeof( STARTUPINFO ) );
 		task->si.cb = sizeof( STARTUPINFO );
+
+		xlprintf(LOG_NOISE)( WIDE( "quotes?%s path [%s] program [%s]  [cmd.exe (%s)]"), needs_quotes?WIDE( "yes"):WIDE( "no"), expanded_working_path, expanded_path, GetText( final_cmdline ) );
       /*
 		if( path )
 		{
@@ -435,7 +436,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 										, &task->si
 										, &task->pi ) || FixHandles(task) || DumpError() ) ||
 					( TryShellExecute( task, expanded_working_path, program, cmdline ) ) ||
-					( CreateProcess( WIDE( "cmd.exe" )
+					( CreateProcess( NULL//WIDE( "cmd.exe" )
 										, GetText( final_cmdline )
 										, NULL, NULL, TRUE
 										, 0//CREATE_NEW_PROCESS_GROUP
@@ -453,7 +454,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			{
 				//CloseHandle( task->hReadIn );
 				//CloseHandle( task->hWriteOut );
-				xlprintf(LOG_DEBUG+1)( WIDE("Success running %s[%s] in %s (%p): %d"), program, GetText( cmdline ), expanded_working_path, task->pi.hProcess, GetLastError() );
+				xlprintf(LOG_NOISE)( WIDE("Success running %s[%s] in %s (%p): %d"), program, GetText( cmdline ), expanded_working_path, task->pi.hProcess, GetLastError() );
 				if( OutputHandler )
 				{
 					task->hStdIn.handle 	= task->hWriteIn;
@@ -477,7 +478,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			}
 			else
 			{
-				xlprintf(LOG_DEBUG+1)( WIDE("Failed to run %s[%s]: %d"), program, GetText( cmdline ), GetLastError() );
+				xlprintf(LOG_NOISE)( WIDE("Failed to run %s[%s]: %d"), program, GetText( cmdline ), GetLastError() );
 				CloseHandle( task->hWriteIn );
 				CloseHandle( task->hReadIn );
 				CloseHandle( task->hWriteOut );
