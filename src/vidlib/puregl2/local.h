@@ -269,11 +269,12 @@ void SACK_Vidlib_ToggleInputDevice( void );
 
 
 
+
 // ---------- vidlib win32 - share dsymbols for keymap win32
 #define WD_HVIDEO   0   // WindowData_HVIDEO
 
 // --------------- win32 keymap ------------------------
-#ifndef NO_TOUCH
+#ifdef _WIN32
 LRESULT CALLBACK
    KeyHook (int code,      // hook code
 				WPARAM wParam,    // virtual-key code
