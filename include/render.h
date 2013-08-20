@@ -151,19 +151,11 @@
 #define PASTE(sym,name) PASTE2(sym,name)
 #endif
 
-#     if !defined(__STATIC__) && !defined(__UNIX__)
 #        ifdef RENDER_LIBRARY_SOURCE 
 #           define RENDER_PROC(type,name) EXPORT_METHOD type CPROC PASTE(SECOND_RENDER_LEVEL,name)
 #        else
 #           define RENDER_PROC(type,name) IMPORT_METHOD type CPROC PASTE(SECOND_RENDER_LEVEL,name)
 #        endif
-#     else
-#        ifdef RENDER_LIBRARY_SOURCE 
-#           define RENDER_PROC(type,name) type CPROC PASTE(SECOND_RENDER_LEVEL,name)
-#        else
-#           define RENDER_PROC(type,name) extern type CPROC PASTE(SECOND_RENDER_LEVEL,name)
-#        endif
-#     endif
 
 SACK_NAMESPACE
 /* <copy render.h>
