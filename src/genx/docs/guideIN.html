@@ -1,0 +1,750 @@
+<html>
+<head>
+<title>Generating XML With Genx</title>
+<style>
+body {
+  font-family: Georgia, serif;
+  margin-left: 30px;
+  margin-right: 30px;
+}
+h1, h2, h3, h4 {
+ font-family: Verdana, Arial, sans-serif;
+ color: #c00;
+}
+code {
+  font-weight: bold; color: #080;
+}
+pre {
+  background: #dde;
+  padding: 10px;
+}
+a code {
+  text-decoration: underline;
+}
+a {
+  text-decoration: none;
+  color: #c00;
+  font-weight: bold;
+}
+dt { font-weight: bold; }
+</style>
+<meta http-equiv="Content-Type" CONTENT="text/html; charset=UTF-8" />
+</head>
+<body>
+<h1>Generating XML With Genx</h1>
+<p>Author: Tim Bray<br/>
+Date: Jan-May, 2004<br/>
+Locations: Vancouver, Melbourne, Mooloolaba</p>
+<h2>Status of Genx</h2>
+<p>This document describes release <i>beta5</i> of <i>Genx</i>.</p>
+<i>Genx</i> may not
+  remain hosted at wherever you got this file from, and is quite likely to
+  change and grow based on community feedback.
+You’ve been warned!</p>
+<p><i>Genx</i> is copyright &copy; Tim Bray and Sun Microsystems, 2004.
+It is licensed for re-use under the terms described in the
+  file <code>COPYING</code>.</p>
+<h2>Introduction</h2>
+<p><i>Genx</i> is a software library written in the C programming language.
+You can use it to generate XML output, suitable for saving into a file or
+  sending in a message to another computer program.
+<i>Genx</i> does several things at once:</p>
+<ul>
+<li><p>Takes care of escaping XML’s special characters for you.</p></li>
+<li><p>Keeps you from generating text which isn’t well-formed.</p></li>
+<li><p>Generates namespace prefixes so you don’t have to.</p></li>
+<li><p>Produces documents which are <a href="http://www.w3.org/TR/xml-c14n">Canonical XML</a>, suitable
+    for use with digital-signature technology.</p></li>
+<li><p>Tries to do all this efficiently.</p></li>
+</ul>
+<h2>Table of Contents</h2>
+<ol><li><p><a href="#hello">Hello World!</a></p></li>
+<li><p><a href="#overview">API Overview</a></p></li>
+<li><p><a href="#Errors">Errors</a></p></li>
+<li><p><a href="#Limitations">Limitations</a></p></li>
+<li><p><a href="#c14n">Canonical XML</a></p></li>
+<li><p><a href="#speed">Performance</a></p></li>
+<li><p><a href="#declarations">Declaration Index</a></p></li>
+<li><p><a href="#API">API Index</a></p></li>
+<li><p><a href="#thanks">Acknowledgments</a></p></li>
+</ol>
+<h2 id="hello">Hello World!</h2>
+<p>Here’s the program:</p>
+<source>hello.c</source>
+<p>Compile it with something like
+<code>cc -o hello hello.c libgenx.a</code>
+and the output should look like this:</p>
+<run>hello</run>
+<p>Of course, useful XML documents have attributes as well as elements, so
+  let’s add one:</p>
+<source>helloAttr.c</source>
+<p>This generates:</p>
+<run>helloAttr</run>
+<p>Another common XML idiom is namespaces, so let’s
+  put our element
+  and attribute into two separate namespaces.</p>
+<source>helloNS.c</source>
+<p>This makes the output quite a bit uglier:</p>
+<run>helloNS</run>
+<p>Passing all these literal strings for element types and attribute names
+  and so on is inefficient, particularly since they usually don’t change much.
+So if you wanted to generate a million random year/month combinations
+  efficiently as in the example below, you’d use the predeclared versions of
+  the <i>Genx</i>
+  calls.
+Also, if something goes wrong, you’d like to hear about it before looping a
+  million times uselessly; so this version has error-checking.</p>
+<p>Also, I’ve put the root element in a namespace so you can see how that
+  works.</p>
+<source>helloMillion.c</source>
+<p>Here are the first 10 lines of output:</p>
+<run>helloMillion | head -10</run>
+<h2 id="overview">API Overview</h2>
+<h3>genxWriter</h3>
+<p>Before you do anything, you need to create a <code class="ref">genxWriter</code>
+  with <code class="ref">genxNew</code>.  A <code class="ref">genxWriter</code> can be used to
+ generate as
+  many XML documents as you want (one at a time). It’s a bit expensive to
+  create, so if you’re going to be writing multiple  XML documents,
+  particularly if they all have the same elements and attributes, do re-use
+  a <code class="ref">genxWriter</code>.</p>
+<h3>Predeclaration</h3>
+<p>Declaring your elements and attributes is <strong>much</strong> more
+  efficient than using
+  the <code>Literal</code> versions of the calls.
+This is because <i>Genx</i> only needs to check the names once for
+  well-formedness, and because it can pre-arrange the sorting of attributes
+  in canonical order.
+Also, <i>Genx</i> makes its own copy of the element, attribute and
+  namespace names and prefixes and so on, so you don’t have to keep them
+  around.
+For any production application, predeclaration is the way to go.</p>
+<h3>Files and Senders</h3>
+<p>Once you’ve got a <code class="ref">genxWriter</code>, you set up to write a document
+  either with <code class="ref">genxStartDocFile</code>
+  or <code class="ref">genxStartDocSender</code>.
+  The first is easiest to understand; you provide a <code>FILE&nbsp;*</code>,
+  and <i>Genx</i> writes into it.</p>
+<p>Alternatively, you can provide your own set of routines to do output, for
+  example into a relational database or a socket, in a package called
+  a <code class="ref">genxSender</code>, and <i>Genx</i> uses that instead.</p>
+<h3 id="sequence">Sequencing</h3>
+<p>Once you’ve got your elements, attributes, and namespaces declared, you
+  start new documents with <code class="ref">genxStartDocFile</code>
+  or <code class="ref">genxStartDocSender</code>, then you
+  can just bang away
+  with <code class="ref">genxStartElement</code>, <code class="ref">genxAddAttribute</code>,
+  <code class="ref">genxAddText</code>, <code class="ref">genxEndElement</code>, and so on,
+and end each document with <code class="ref">genxEndDoc</code>.</p>
+<h3>UTF-8</h3>
+<p><i>Genx</i> expects you to provide all strings in UTF-8 format, and
+  checks each one to make sure that it’s real UTF-8 and that each
+  character is a legal XML character.
+  It doesn’t know about <code>&amp;lt;</code> and <code>&amp;amp;</code> and
+  so on; that is, it knows how to generate them, but it won’t interpret them
+  in the input.  So if you want to
+  say <code>if(a&lt;b&amp;&amp;c&lt;d)</code>, don’t fool with any escaping,
+  just use
+<code>genxAddText(w,"if(a&lt;b&amp;&amp;c&lt;d)")</code> and <i>Genx</i> will
+sort it all out.</p>
+<p>If there is some “difficult” character that you want to get into your
+  XML output, say a mathematical integral symbol “&int;”, and you’d really
+  like the equivalent of
+  <code>&amp;int;</code> or <code>&amp;#x222b;</code>, just use
+  the Unicode value: <code>genxAddCharacter(w,0x222b)</code>.</p>
+<h3>Namespace Prefixes</h3>
+<p>You can control your namespace prefixes if you use the predeclared version.
+But you can always leave out the prefix and <i>Genx</i> will generate one;
+  the first will be <code>g1:</code>, the second <code>g2:</code>, and so
+  on.</p>
+<h2 id="Errors">Errors</h2>
+<h3>Mechanics</h3>
+<p><i>Genx</i> provides a set of status codes in an <code>enum</code>
+  called <code class="ref">genxStatus</code>.
+  The value for success, <code>GENX_SUCCESS</code>, is guaranteed to be zero,
+  so it’s easy to check errors in <i>Genx</i> calls along the lines
+  of:</p>
+<p><code>if (genxAddAttribute(id, idValue) { /* oops! */ }</code></p>
+<p>Well, except when it isn’t.  The routines that declare things return the
+  things they declare (<code>NULL</code> on error) and write the <code
+  class="ref">genxStatus</code>
+  into a variable
+  whose address you provide, for example
+<code>genxElement&nbsp;genxDeclareElement(genxWriter&nbsp;w,&nbsp;genxNamespace&nbsp;ns,&nbsp;constUtf8&nbsp;type,&nbsp;genxStatus&nbsp;*&nbsp;statusP);</code></p>
+<p>There are a couple of routines, <code class="ref">genxGetErrorMessage</code> and
+  <code class="ref">genxLastErrorMessage</code>, which retrieve English-language
+  descriptions of what went wrong.</p>
+<h3>Kinds of Errors</h3>
+<p>There are three kinds of errors you can encounter with <i>Genx</i>.</p>
+<dl><dt>Stupidity</dt>
+<dd><p>We all have reduced-mental-function days, and <i>Genx</i> will sneer
+    pityingly at you if you try to <code class="ref">genxStartElement</code> without
+    having previously done a <code>GenxStartDoc</code> call, or do
+    a <code class="ref">genxAddAttribute</code> any time but after
+    a <code class="ref">genxStartElement</code>.  And so on.</p></dd>
+<dt>Bad Data</dt>
+<dd><p>This is the kind of problem that you’re most likely to run across.
+  If you’re trying to wrap XML tags around input data you
+  don’t control (common enough), <i>Genx</i> will be unhappy if the data has
+  malformed UTF-8 or contains Unicode characters that XML doesn’t allow.</p>
+<p>To help out with these situations, there are
+  the <code class="ref">genxCheckText</code> and <code class="ref">genxScrubText</code> calls.
+  Appropriate use of these ensures that you never hurt any feelings,
+  either in the <i>Genx</i> software or, more important, with whoever’s going
+  to be receiving your XML.
+See the write-up on <a href="#utilities">utility routines</a> for some
+  specific suggestions.</p></dd>
+<dt>System Problems</dt>
+<dd><p><i>Genx</i> throws up its hands in despair if it can’t allocate
+  memory
+  or it gets an I/O error writing data.
+  The first is unlikely to happen, since <i>Genx</i> doesn’t use much memory.
+  However, it does store up attribute values per element, so if you did a
+  thousand or
+  so <code class="ref">genxAddAttribute</code> calls for a single element, each with an
+  attribute value ten
+  megabytes long, some pain would ensue.</p></dd>
+</dl>
+<h2 id="utilities">Utility Routines</h2>
+<p>To make sure you never hand <i>Genx</i> an illegal  name or
+  malformed XML, there are the handy utility
+  routines <code class="ref">genxCheckText</code> and <code class="ref">genxCheckName</code>.
+  If you’re including someone else’s data in your XML and you can’t control
+  whether it contains proper XML characters properly UTF-8 encoded,give serious
+  thought to using <code class="ref">genxScrubText</code>, which brutally discards any
+  bytes that aren’t well-formed UTF-8 or don’t encode legal XML characters.</p>
+<p>Since <code class="ref">genxAddText</code> does the checking anyhow,
+  there’s no need for you to do it first.  Consider an idiom like:</p>
+<pre><code>
+/* Add text safely */
+status = genxAddText(w, text);
+if (status == GENX_BAD_UTF8 || status == genx_NON_XML_CHAR)
+{
+  constUtf8 newText = (constUtf8) alloca(strlen(text) + 1);
+  genxScrubText(text, newText);
+  status = genxAddText(w, newText); /* Can't fail */
+}
+if (status) /* something SERIOUSLY wrong */</code></pre>
+<h2 id="Limitations">Limitations</h2>
+<p>There are a bunch of things that people often do in creating XML
+  but that <i>Genx</i> doesn’t support.  In some cases, Doing These Things
+  Would Be Wrong.  In others, they might be handy but don’t feel essential
+  for this kind of a low-rent package.</p>
+<p>The things that <i>Genx</i> can’t do include:</p>
+<ul><li><p>Generating output in anything but UTF8.</p></li>
+<li><p>Writing namespace-oblivious XML.  That is to say, you can’t have an
+    element or attribute named <code>foo:bar</code> unless <code>foo</code>
+    is a prefix associated with some namespace.</p>
+<li><p>Empty-element tags.</p></li>
+<li><p>Writing XML or <code>&lt;!DOCTYPE></code> declarations.
+Of course, you could squeeze these into the output stream yourself before
+ any <i>Genx</i> calls that generate output.</p></li>
+<li><p>Pretty-printing.  Of course, you can pretty-print yourself by
+      putting the linebreaks in the right places and indenting appropriately,
+      but <i>Genx</i> won’t do it for you.  Someone might want to write a
+      pretty-printer that sits on top of <i>Genx.</i></p></li>
+</ul>
+<h2 id="c14n">Canonical XML</h2>
+<p>By design, <i>Genx</i> writes <a href="XXX">Canonical XML</a>.
+This means that there are no XML or <code>&lt;!DOCTYPE></code> declarations,
+that the attributes are sorted in a particular order, that all
+  instances of <code>></code> and carriage-return (U+000D) are escaped, and
+ that there is no whitespace outside the root element except newlines that
+ precede and follow comments and PIs.</p>
+<p>Normally, this should cause no surprises or difficulties, except that
+  Canonical XML documents don’t have a closing new-line character, which may
+  irritate some applications such as text editors.</p>
+<p>As noted above, if you want extra declarations or closing newlines, you
+  can put them in yourself before and after doing your <i>Genx</i> calls; but
+  be aware that your output will no longer be Canonical XML.</p>
+<h2 id="speed">Performance</h2>
+<p>The design of <i>Genx</i> takes some care to achieve good performance.
+However, there are some things you can do to help, and others which will slow
+  it down; one function in particular can be used in optimizing or
+  pessimizing performance.</p>
+<p>The <code class="ref">genxAddNamespace</code> call
+  instructs <i>Genx</i> to insert a namespace declaration; it must be called
+  after starting an element and before any
+<code class="ref">genxAddAttribute</code> calls.
+You don’t ever <em>need</em> to call it; <i>Genx</i> will figure out when it
+needs to add namespace declarations on its own.  However, if you have a bunch
+of elements or attributes, all in the same namespace, scattered all around
+your document, if you do a 
+<code class="ref">genxAddNamespace</code> for that
+  namespace on the root element, <i>Genx</i> won’t ever have to add another
+  declaration, and your document will end up smaller, more readable, and
+  quicker to transmit and parse.</p>
+<p>On the other hand, 
+<code class="ref">genxAddNamespace</code> can be called
+with an extra argument, a prefix to use, which need not be the same as the
+default prefix for that namespace.
+If you do this, performance will suffer grievously, as it makes a bunch of
+internal optimizations impossible and <i>Genx</i> has to laboriously examine
+its whole internal stack any time use you use that namespace again to make sure
+the right prefixes are in scope.
+(By the way, it’s good practice anyhow to use the same prefix for the same
+namespace throughout an XML document, so <i>Genx</i> rewards good practice
+with good performance.)</p>
+<p><i>Genx</i> also has a 
+<code class="ref">genxUnsetDefaultNamespace</code>
+ call, which does what its name suggests.  If you use this, however, you will
+ defeat a bunch of optimizations and make the namespace that used to be the
+ default much slower to process.</p>
+<h2 id="declarations">Datatype Index</h2>
+<p>This section documents all the datatypes that appear in <i>Genx</i>’s
+  published interface, found in the file <code>genx.h</code>.</p>
+<h3 id="genxStatus">genxStatus</h3>
+<pre><code>typedef enum
+{
+  GENX_SUCCESS = 0,
+  GENX_BAD_UTF8,
+  GENX_NON_XML_CHARACTER,
+  GENX_BAD_NAME,
+  GENX_ALLOC_FAILED,
+  GENX_BAD_NAMESPACE_NAME,
+  GENX_INTERNAL_ERROR,
+  GENX_DUPLICATE_PREFIX,
+  GENX_SEQUENCE_ERROR,
+  GENX_NO_START_TAG,
+  GENX_IO_ERROR,
+  GENX_MISSING_VALUE,
+  GENX_MALFORMED_COMMENT,
+  GENX_XML_PI_TARGET,
+  GENX_MALFORMED_PI,
+  GENX_DUPLICATE_ATTRIBUTE,
+  GENX_ATTRIBUTE_IN_DEFAULT_NAMESPACE,
+  GENX_DUPLICATE_NAMESPACE,
+  GENX_BAD_DEFAULT_DECLARATION
+} genxStatus;</code></pre>
+<p>This documents all the things that can go wrong.
+You can use the functions <code class="ref">genxGetErrorMessage</code>
+  and <code class="ref">genxLastErrorMessage</code> to associate
+  English-language messages with these codes.
+Here are some further notes on the ones that are actually used in
+the implementation:</p>
+<dl>
+<dt>GENX_BAD_UTF8</dt>
+<dd><p>A violation of the UTF-8 encoding rules, as
+as documented in Chapter 3.10 of
+<a href="http://www.unicode.org/">The Unicode Specification</a>. That’s the
+chapter reference for Version Four of Unicode, anyhow, which is what I used
+to help me write <i>Genx</i>.
+The explanation of UTF-8 in Version Four is quite a bit better than in any of
+the earlier releases.</p></dd>
+<dt>GENX_NON_XML_CHARACTER</dt>
+<dd><p>The rule for what characters are legal in XML comes from the
+    production labeled <code>Char</code> in the XML 1.0
+    specification.</p></dd>
+<dt>GENX_BAD_NAME</dt>
+<dd><p>The rule that applies here is the production labeled <code>NCName</code>
+    in <a href="http://www.w3.org/TR/REC-xml-names/">Namespaces in XML</a>.
+The bad name could be an element type, an attribute name, a PI target, or a
+    namespace prefix.</p></dd>
+<dt>GENX_ALLOC_FAILED</dt>
+<dd><p>This means that <i>Genx</i> failed to allocate memory for some reason
+    that it has no hope of understanding and you probably have no hope of
+    fixing, but at least you know.</p></dd>
+<dt>GENX_BAD_NAMESPACE_NAME</dt>
+<dd><p>This means that you tried to <code class="ref">genxDeclareNamespace</code> and
+    passed <code>NULL</code> as a namespace name, which pretty well defeats the
+    purpose.  Or, you passed the empty string <code>""</code>, which would
+    undeclare a default namespace except for <i>Genx</i> doesn’t do those.</p></dd>
+<dt>GENX_INTERNAL_ERROR</dt>
+<dd><p>Something is terribly wrong inside <i>Genx</i>, send mail to the bozo
+    who wrote it, I think he’s named Ibrahim and lives in Singapore.</p></dd>
+<dt>GENX_DUPLICATE_PREFIX</dt>
+<dd><p>You tried to declare two namespaces with the same default
+    prefix.</p></dd> 
+<dt>GENX_SEQUENCE_ERROR</dt>
+<dd><p><i>Genx</i> functions have to be called in
+<a href="#sequence">a particular order</a>, which is reasonably self-evident:
+You can only call <code class="ref">genxAddNamespace</code> and 
+<code class="ref">genxUnsetDefaultNamespace</code> after a 
+<code class="ref">genxStartElement</code> call and before any
+<code class="ref">genxAddAttribute</code> calls.
+Turning it around, <code class="ref">genxAddAttribute</code> can only be
+called after <code class="ref">genxStartElement</code> and possibly one or
+more <code class="ref">genxAddNamespace</code>/<code class="ref">genxUnsetDefaultNamespace</code>
+calls.
+This code means you got that order wrong.</p></dd>
+<dt>GENX_NO_START_TAG</dt>
+<dd><p>You called <code class="ref">genxEndElement</code>, but there was no
+    corresponding <code class="ref">genxStartElement</code> call.</p></dd>
+<dt>GENX_IO_ERROR</dt>
+<dd><p>An I/O routine has complained to <i>Genx</i>, which is
+    passing the complaint on to you, so it’s your problem now.
+If you used <code class="ref">genxStartDocFile</code>, the error comes from
+    down in 
+    the <i>stdio</i> library, which probably means something is terribly
+    wrong at a level too low for you to fix.  If on the other hand you’re
+    doing your own I/O via <code class="ref">genxStartDocSender</code>, you
+    may be able 
+    to do something useful.</p></dd>
+<dt>GENX_MISSING_VALUE</dt>
+<dd><p>You called <code class="ref">genxAddAttribute</code> but used <code>NULL</code> for
+  the attribute   value; if you want it to be empty, use <code>""</code>
+  instead.</p></dd>
+<dt>GENX_MALFORMED_COMMENT</dt>
+<dd><p>A comment’s text isn’t allowed to either begin or end
+    with <code>-</code>, nor is it allowed to contain <code>--</code>.
+You called <code class="ref">genxComment</code> with text exhibiting one of these
+    problems.</p></dd>
+<dt>GENX_XML_PI_TARGET</dt>
+<dd><p>You tried to create a PI whose target was <code>xml</code> (in any
+    combination of upper and lower case).  XML 1.0 says you can’t do
+    that.</p></dd>
+<dt>GENX_MALFORMED_PI</dt>
+<p><dd>You called <code class="ref">genxPI</code> with a body which included an
+    illegal <code>?></code>.</p></p>
+<dt>GENX_DUPLICATE_ATTRIBUTE</dt>
+<dd><p>You tried to add the same attribute to some element more than
+  once.  There’s no check whether you provided the same value
+  or not; this is evidence of breakage.</p></dd>
+<dt>GENX_ATTRIBUTE_IN_DEFAULT_NAMESPACE</dt>
+<dd><p>You either tried to declare an attribute in a namespace whose default
+  prefix is empty (i.e. it’s the default namespace), or tried to add an
+  attribute which is in a namespace, and the currently-effective declaration
+  for that namespace has an empty prefix, i.e. it’s the default
+  namespace.</p></dd>
+<dt>GENX_DUPLICATE_NAMESPACE</dt>
+<dd><p>You tried to add two namespace declarations for the same namespace on
+  the 
+  same element, but with different prefixes.</p></dd>
+<dt>GENX_BAD_DEFAULT_DECLARATION</dt>
+<dd><p>You tried to declare some namespace to be the default on an element
+  which is in no namespace.</p></dd>
+</dl>
+<h3 id="ctypes">Character Types</h3>
+<pre><code>#define GENX_XML_CHAR 1
+#define GENX_LETTER 2
+#define GENX_NAMECHAR 4</code></pre>
+<p>These are mostly used internally, but the utility
+  function <code class="ref">genxCharClass</code> returns the OR of any that
+  apply.</p>
+<h3 id="utf8">utf8</h3>
+<pre><code>typedef unsigned char * utf8;</code></pre>
+<p>This is the flavor of text string that all <i>GenX</i> functions expect.</p>
+<h3 id="constUtf8">constUtf8</h3>
+<pre><code>typedef const unsigned char * constUtf8;</code></pre>
+<p>You’d think that this would be the same as <code>const utf8</code> but
+  it’s not, since <code>const</code> applies a typedef at a time.</p>
+<h3 id="genxWriter">genxWriter</h3>
+<p>Opaque pointer type which identifies a writer object and is the first
+  argument to most <i>Genx</i> calls; created
+  with <code class="ref">genxNew</code>.</p>
+<h3 id="genxNamespace">genxNamespace</h3>
+<p>Opaque pointer identifying a namespace; created
+  with <code class="ref">genxDeclareNamespace</code>.</p>
+<h3 id="genxElement">genxElement</h3>
+<p>Opaque pointer identifying an element; created
+  with <code class="ref">genxDeclareElement</code>.</p>
+<h3 id="genxAttribute">genxAttribute</h3>
+<p>Opaque pointer identifying an attribute; created
+  with <code class="ref">genxDeclareAttribute</code>.</p>
+<h3 id="genxSender">genxSender</h3>
+<pre><code>typedef struct
+{
+  genxStatus (* send)(void * userData, constUtf8 s);
+  genxStatus (* sendBounded)(void * userData, constUtf8 start, constUtf8 end);
+  genxStatus (* flush)(void * userData);
+} genxSender;</code></pre>
+<p>A user-provided package of I/O routines, to be passed via
+<code class="ref">genxStartDocSender</code>.
+Their names should be self-explanatory; for <code>sendBounded</code>, if you
+have <code>s = "abcdef";</code> and you want to send <code>abc</code>, you’d
+call <code>sendBounded(userData,&nbsp;s,&nbsp;s&nbsp+&nbsp;3);</code></p>
+<h2 id="API">API Index</h2>
+<p>This section documents all the function calls that appear in <i>Genx</i>’s
+  published interface, found in the file <code>genx.h</code>.</p>
+<h3 id="genxNew">genxNew</h3>
+<pre><code>genxWriter genxNew(void * (*alloc)(void * userData, int bytes),
+		   void (* dealloc)(void * userData, void * data),
+		   void * userData);</code></pre>
+<p>Creates a new instance of <code class="ref">genxWriter</code>.
+The three arguments are a memory allocator and deallocator
+  (see <code class="ref">genxSetAlloc</code> and <code class="ref">genxSetDealloc</code>),
+and a <code>userData</code> value
+  (see <code class="ref">genxSetUserData</code>).</p>
+<h3 id="genxDispose">genxDispose</h3>
+<pre><code>void genxDispose(genxWriter w);</code></pre>
+<p>Frees all the memory associated with
+a <code class="ref">genxWriter</code>.</p>
+<h3 id="genxSetUserData">genxSetUserData</h3>
+<pre><code>void genxSetUserData(genxWriter w, void * userData);</code></pre>
+<p>The value passed in <code>userData</code> is passed as the first
+  argument to memory-allocation (see <code class="ref">genxSetAlloc</code>) and I/O
+(see <code class="ref">genxStartDocSender</code>) callbacks.
+If not provided, <code>NULL</code> is passed.</p>
+<h3 id="genxGetUserData">genxGetUserData</h3>
+<pre><code>void * genxGetUserData(genxWriter w);</code></pre>
+<p>Retrieves the value set with <code class="ref">genxSetUserData</code>,
+  or <code>NULL</code> if none was set.</p>
+<h3 id="genxSetAlloc">genxSetAlloc</h3>
+<pre><code>void genxSetAlloc(genxWriter w,
+		  void * (* alloc)(void * userData, int bytes));</code></pre>
+<p>The subroutine identified by <code>alloc</code> is used by <i>Genx</i>
+  to allocate   memory.
+Otherwise, <i>Genx</i> uses <code>malloc</code>.</p>
+<h3 id="genxSetDealloc">genxSetDealloc</h3>
+<pre><code>void genxSetDealloc(genxWriter w,
+		    void (* dealloc)(void * userData, void * data));</code></pre>
+<p>The subroutine identified by <code>dealloc</code> is used
+  by <i>Genx</i> to deallocate memory, but only if you called <code
+  class="ref">genxSetAlloc</code> with a non-<code>NULL</code> argument.</p>
+<p>If you set a non-<code>NULL</code> allocator
+  with <code class="ref">genxSetAlloc</code> but no deallocator, <i>Genx</i>
+  will never deallocate memory.</p>
+<h3 id="genxGetAlloc">genxGetAlloc</h3>
+<pre><code>void * (* genxGetAlloc(genxWriter w))(void * userData, int bytes);</code></pre>
+<p>Retrieves the allocator routine pointer (if any) set
+  with <code>genxSetAlloc</code>.</p>
+<h3 id="genxGetDealloc">genxGetDealloc</h3>
+<pre><code>void (* genxGetDealloc(genxWriter w))(void * userData, void * data);</code></pre>
+<p>Retrieves the deallocator routine pointer (if any) set
+  with <code>genxSetDealloc</code>.</p>
+<h3 id="genxDeclareNamespace">genxDeclareNamespace</h3>
+<pre><code>genxNamespace genxDeclareNamespace(genxWriter w,
+				   constUtf8 uri, constUtf8 prefix,
+				   genxStatus * statusP);</code></pre>
+<p>Declares a namespace.
+   If successful, the <code class="ref">genxNamespace</code> object is returned and
+   the <code class="ref">genxStatus</code> variable indicated by <code>statusP</code>
+   is set to <code>GENX_SUCCESS</code>.</p>
+<p>The prefix, if provided, is the default prefix which will be used
+  when <i>Genx</i> has to insert its own <code>xmlns:whatever</code> attribute
+  when you insert an element or attribute in a namespace that you haven’t
+  previously done a <code class="ref">genxAddNamespace</code> call on; the
+  default is also used when you call <code class="ref">genxAddNamespace</code>
+  with 
+  a <code>NULL</code> second argument.</p>
+<p>You can use <code>""</code> for the default prefix to make this default to
+  being the default namespace (<code>xmlns=</code>).</p>
+<p>If the prefix argument is <code>NULL</code> and you haven’t previously
+  declared this namespace, <i>Genx</i> generates a
+  default prefix; the first is <code>g1:</code>, the
+  second <code>g2:</code>, and 
+  so on.</p>
+<p>If the prefix argument is <code>NULL</code> but you had previously
+  declared a default prefix for this namespace, this is a no-op.</p>
+<p>You can declare the same namespace multiple times with no ill effect.</p>
+<p>Things can go wrong, signaled by a return value of <code>NULL</code> and
+  a <code>genxStatus</code> code written into <code>*statusP</code>:</p>
+<ul>
+<li><p>The namespace name URI is either <code>NULL</code> or an empty string.</p></li>
+<li><p>The namespace name contains broken UTF-8 or a non-XML
+    character.</p></li>
+<li><p>The namespace prefix (if provided) isn’t
+    an <code>NCName</code></p></li>
+<li><p>You declared two namespaces with the same default prefix.</p></li>
+</ul>
+<h3 id="genxGetNamespacePrefix">genxGetNamespacePrefix</h3>
+<pre><code>utf8 genxGetNamespacePrefix(genxNamespace ns);</code></pre>
+<p>Returns the prefix associated with a namespace; particularly useful where
+  the prefix has been generated for the caller by <i>Genx</i>.</p>
+<h3 id="genxDeclareElement">genxDeclareElement</h3>
+<pre><code>genxElement genxDeclareElement(genxWriter w,
+			       genxNamespace ns, constUtf8 type,
+			       genxStatus * statusP);</code></pre>
+
+<p>Declares an element.
+   If successful, the <code class="ref">genxElement</code> object is returned and
+   the <code class="ref">genxStatus</code> variable indicated by <code>statusP</code>
+   is set to <code>GENX_SUCCESS</code>.
+You can declare the same element multiple times.</p>
+<p>If the <code>ns</code> is <code>NULL</code>, the element is not in
+  any namespace.</p>
+<p>The only likely error is the <code>type</code> not being an
+  <code>NCName</code>, in which case <code>NULL</code> is returned
+  and <code>*statusP</code> is set appropriately.</p>
+<h3 id="genxDeclareAttribute">genxDeclareAttribute</h3>
+<pre><code>genxAttribute genxDeclareAttribute(genxWriter w,
+				   genxNamespace ns,
+				   constUtf8 name, genxStatus * statusP);</code></pre>
+<p>Declares an attribute.
+   If successful, the <code class="ref">genxAttribute</code> object is returned and
+   the <code class="ref">genxStatus</code> variable indicated by <code>statusP</code>
+   is set to <code>GENX_SUCCESS</code>.
+You can declare the same attribute multiple times.</p>
+<p>If the <code>ns</code> is <code>NULL</code>, the attribute is not in
+  any namespace.</p>
+<p>The only likely error is the <code>name</code> not being an
+  <code>NCName</code>, in which case <code>NULL</code> is returned
+  and <code>*statusP</code> is set appropriately.</p>
+<h3 id="genxStartDocFile">genxStartDocFile</h3>
+<pre><code>genxStatus genxStartDocFile(genxWriter w, FILE * file);</code></pre>
+<p>Prepares to start writing an XML document, using the
+  provided <code>FILE&nbsp;*</code> stream for output.</p>
+<h3 id="genxStartDocSender">genxStartDocSender</h3>
+<pre><code>genxStatus genxStartDocSender(genxWriter w, genxSender * sender);</code></pre>
+<p>Prepares to start writing an XML document, using the
+  provided <code class="ref">genxSender</code> structure for output.</p>
+<h3 id="genxEndDocument">genxEndDocument</h3>
+<pre><code>genxStatus genxEndDocument(genxWriter w);</code></pre>
+<p>Signals the end of a document.
+Actually does very little aside from calling <code>fflush</code> if writing
+  to a <code>FILE&nbsp;*</code>, the <code>flush</code> method
+  of <code class="ref">genxSender</code> otherwise.  Since <i>Genx</i> can detect when the
+    root element has ended, perhaps this should be removed?</p>
+<h3 id="genxComment">genxComment</h3>
+<pre><code>genxStatus genxComment(genxWriter w, constUtf8 text);</code></pre>
+<p>Inserts a comment with the text provided.
+Can provoke an error if the text fails to follow the XML 1.0 rules for
+  comment text: no leading or trailing <code>-</code>, and no
+  embedded <code>--</code>.</p>
+<p>Per Canonical XML, if the comment appears before the root element, it will
+  be followed by a newline; if after the root element, it will be preceded by
+  a newline.</p>
+<h3 id="genxPI">genxPI</h3>
+<pre><code>genxStatus genxPI(genxWriter w, constUtf8 target, constUtf8 text);</code></pre>
+<p>Inserts a Processing Instruction.
+Can provoke an error if the the target is <code>xml</code> in any combination
+  of upper and lower case; or if the text contains <code>?></code>.</p>
+<p>PIs outside the root element are equipped with newlines exactly as with
+  comments.</p>
+<h3 id="genxStartElementLiteral">genxStartElementLiteral</h3>
+<pre><code>genxStatus genxStartElementLiteral(genxWriter w,
+				   constUtf8 xmlns, constUtf8 type);</code></pre>
+<p>Start writing an element.
+The <code>xmlns</code> argument, if non-<code>NULL</code>, is the
+  namespace name, a URI.  <i>Genx</i> generates a prefix.
+If <code>xmlns</code> is <code>NULL</code>, the element will be in no
+  namespace.</p>
+<p>If you have previously declared a namespace for the namespace name, the
+  prefix associated with that declaration will be used.</p>
+<p>Errors can occur if the <code>xmlns</code> contains broken UTF-8 or
+  non-XML characters, or the <code>type</code> is not an
+  <code>NCName</code>.</p>
+<p>This call is much less efficient than <code class="ref">genxStartElement</code>.</p>
+<h3 id="genxStartElement">genxStartElement</h3>
+<pre><code>genxStatus genxStartElement(genxElement e);</code></pre>
+<p>Start writing an element using a predeclared <code class="ref">genxElement</code> and
+  (optionally) <code class="ref">genxNamespace</code>.</p>
+<p>There is very little that can go wrong with this call, unless you neglect
+  to start the document or have already
+  called <code class="ref">genxEndDocument</code>.</p>
+<h3 id="genxAddAttributeLiteral">genxAddAttributeLiteral</h3>
+<pre><code>genxStatus genxAddAttributeLiteral(genxWriter w, constUtf8 xmlns,
+				   constUtf8 name, constUtf8 value);</code></pre>
+<p>Adds an attribute to a just-opened element; i.e. it must be called
+  immediately after one of the start-element calls.</p>
+<p>The <code>xmlns</code> argument, if non-<code>NULL</code>, is the
+  namespace name, a URI.  <i>Genx</i> generates a prefix.
+If <code>xmlns</code> is <code>NULL</code>, the attribute will be in no
+  namespace.</p>
+<p>Errors can occur if the <code>xmlns</code> or <code>value</code>
+  contains broken UTF-8 or
+  non-XML characters, the <code>type</code> is not an
+  <code>NCName</code>, or if you try to add the same attribute to an element more than once.</p>
+<p>Since there is no DTD available, <i>Genx</i> does not do any
+attribute normalization.
+However, it does escape the
+  characters <code>&lt;</code>, <code>&amp;</code>, <code>></code>,
+  carriage-return (U+000D), and <code>"</code> in the attribute value.</p>
+<p>This call is much less efficient than <code class="ref">genxAddAttribute</code>.</p>
+<h3 id="genxAddAttribute">genxAddAttribute</h3>
+<pre><code>genxStatus genxAddAttribute(genxAttribute a, constUtf8 value);</code></pre>
+<p>Adds a predeclared attribute with an (optional) predeclared namespace to a
+  just-opened element; i.e. it must be called
+  immediately after one of the start-element calls.</p>
+<p>Errors can occur if the provided value
+  contains broken UTF-8 or non-XML characters, or if you try to add the same attribute to an element more than once.</p>
+<p>Since there is no DTD available, <i>Genx</i> does not do any
+attribute normalization.
+However, it does escape the
+  characters <code>&lt;</code>, <code>&amp;</code>, <code>></code>,
+  carriage-return (U+000D), and <code>"</code> in the attribute value.</p>
+<h3 id="genxAddNamespace">genxAddNamespace</h3>
+<pre><code>genxStatus genxAddNamespace(genxNamespace ns, constUtf8 prefix);</code></pre>
+<p>Inserts a declaration for a namespace, with the requested prefix, or with
+  the default prefix if the second argument is <code>NULL</code>.
+  If the requested prefix is not the default, this will have a significant
+  impact on the performance of subsequent <i>Genx</i> calls involving this
+  namespace.
+  This is a no-op if a declaration of this namespace/prefix combination is
+  already in effect.</p>
+<p>You can’t use the same prefix for two different namespaces within a single
+  start-tag, and you can’t use two different prefixes for the same namespace
+  in the same scope.</p>
+<p>This must be called after a 
+<code class="ref">genxStartElement</code> call and before any
+<code class="ref">genxAddAttribute</code> calls or
+a <code>GENX_SEQUENCE_ERROR</code> will ensue.</p>
+<h3 id="genxUnsetDefaultNamespace">genxUnsetDefaultNamespace</h3>
+<pre><code>genxStatus genxUnsetDefaultNamespace(genxWriter w);</code></pre>
+<p>Inserts a <code>xmlns=""</code> declaration to unset the default namespace
+  declaration.
+This is a no-op if no default namespace is in effect.</p>
+<h3 id="genxEndElement">genxEndElement</h3>
+<pre><code>genxStatus genxEndElement(genxWriter w);</code></pre>
+<p>Close an element, writing out its end-tag.
+The only error that can normally arise is if this is called without a
+  corresponding start-element call.</p>
+<h3 id="genxAddText">genxAddText</h3>
+<pre><code>genxStatus genxAddText(genxWriter w, constUtf8 start);
+genxStatus genxAddCountedText(genxWriter w, constUtf8 start, int byteCount);
+genxStatus genxAddBoundedText(genxWriter w, constUtf8 start, constUtf8 end);</code></pre>
+<p>Write some text into the XML document.
+This can only be called between start-element and end-element calls.</p>
+<p>The text is processed by escaping <code>&lt;</code>, <code>&amp;</code>,
+  <code>></code>, and carriage-return (U+000D) characters.</p>
+<p>In the first version, the text is zero-terminated; the
+<code>Counted</code> and <code>Bounded</code> versions allow the caller to
+avoid the
+zero-termination.</p>
+<h3 id="genxAddCharacter">genxAddCharacter</h3>
+<pre><code>genxStatus genxAddCharacter(genxWriter w, int c);</code></pre>
+<p>Add a single character to the XML document.
+The value passed is the Unicode scalar as normally expressed in the U+XXXX
+  notation.
+  Like <code class="ref">genxAddText</code>, this can only be called between
+  start-element and end-element calls.
+This should not normally provoke an error unless the character provided is not
+  a legal XML character.</p>
+<h3 id="genxNextUnicodeChar">genxNextUnicodeChar</h3>
+<pre><code>int genxNextUnicodeChar(utf8 * sp);</code></pre>
+<p>Returns the Unicode character encoded by the UTF-8 pointed-to by the
+argument, and advances the argument to point at the first byte past the
+  encoding of the character. 
+Returns -1 if the UTF-8 is malformed, in which case advances the
+argument to point at the first byte after the point where malformation was
+  detected. </p>
+<h3 id="genxCheckText">genxCheckText</h3>
+<pre><code>genxStatus genxCheckText(genxWriter w, constUtf8 s);</code></pre>
+<p>This utility routine checks the null-terminated text provided and returns
+  one of <code>GENX_SUCCESS</code>, <code>GENX_BAD_UTF8</code>,
+  or <code>GENX_NON_XML_CHARACTER</code>.</p>
+<h3 id="genxCharClass">genxCharClass</h3>
+<pre><code>int genxCharClass(genxWriter w, int c);</code></pre>
+<p>The argument is a single Unicode scalar character value.
+Returns an integer which is the OR
+  of one or more of <code>GENX_XML_CHAR</code>, <code>GENX_LETTER</code>, and
+  <code>GENX_NAMECHAR</code>.</p>
+<h3 id="genxScrubText">genxScrubText</h3>
+<pre><code>int genxScrubText(genxWriter w, constUtf8 in, utf8 out);</code></pre>
+<p>Copies the zero-terminated text from <code>in</code> to <code>out</code>,
+  removing any bytes which are not well-formed UTF-8 or which represent
+  characters that are not legal in XML 1.0.
+  The output length can never be greater than the input length.
+  Returns a nonzero value if any changes were made while copying.</p>
+<h3 id="genxGetErrorMessage">genxGetErrorMessage</h3>
+<pre><code>char * genxGetErrorMessage(genxWriter w, genxStatus status);</code></pre>
+<p>Returns an English string containing the error message corresponding to
+  the provided <code class="ref">genxStatus</code> code.</p>
+<h3 id="genxLastErrorMessage">genxLastErrorMessage</h3>
+<pre><code>char * genxLastErrorMessage(genxWriter w);</code></pre>
+<p>Returns an English string containing the error message corresponding to
+  the last error <i>Genx</i> encountered.</p>
+<h3 id="genxGetVersion">genxGetVersion</h3>
+<pre><code>char * genxGetVersion();</code></pre>
+<p>Returns a string representation of the current version of <i>Genx</i>.</p>
+<p>For the package you are reading, it returns:</p>
+<run>getVersion</run>
+<h2 id="thanks">Acknowledgments</h2>
+<p>The design of <i>Genx</i> was substantially shaped by discussion in
+ <a href="http://www.xml.org/xml/xmldev.shtml">the XML-dev</a> mailing list.
+Particular credit is due to John Cowan, David Tolpin, Rich Salz,
+Elliotte Rusty Harold, and Mark
+Lentczner; not that they or anyone but Tim Bray should be blamed for the
+ inevitable infelicities and outright bugs herein.</p>
+</body>
+</head>

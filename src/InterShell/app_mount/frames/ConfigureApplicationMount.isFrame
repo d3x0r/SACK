@@ -1,0 +1,11 @@
+<control caption="Configure Application Mount" position="0,0" size="452,305" type="Frame">
+<control IDName="InterShell/Application Mountapplication_mount.isp/EditControl/EDIT_APP_WINDOW_NAME" caption="" position="188,15" size="228,21" type="EditControl"></control>
+<control IDName="InterShell/Application Mountapplication_mount.isp/EditControl/EDIT_APP_CLASS_NAME" caption="" position="188,49" size="228,21" type="EditControl"></control>
+<control IDName="InterShell/Application Mountapplication_mount.isp/EditControl/EDIT_APP_ADDRESS" caption="" position="188,84" size="229,21" type="EditControl"></control>
+<control IDName="InterShell/Application Mountapplication_mount.isp/EditControl/EDIT_APP_SEND_FROM" caption="" position="188,120" size="229,21" type="EditControl"></control>
+<control IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" caption="Cancel" position="339,170" size="73,21" type="Button"></control>
+<control IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" caption="Okay" position="242,168" size="73,21" type="Button"></control>
+<control caption="Window Title" position="14,18" size="158,21" type="TextControl"></control>
+<control caption="Window Class" position="14,54" size="166,21" type="TextControl"></control>
+<control caption="UDP Address" position="14,89" size="171,21" type="TextControl"></control>
+<control caption="UDP Send From" position="13,125" size="173,21" type="TextControl"></control></control>

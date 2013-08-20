@@ -1,0 +1,42 @@
+OKay - ODBC was previously a command processor only....
+the idea of object with go-put, is useful - as a table may be created
+as an object, and may store objects which are put in - or reject the object.
+If the attempted operation fails, the action is of course deny input.
+
+
+so - what happens with /odbc command is....
+   /create object
+   /declare in object user UserName
+   /declare in object password UserPassword
+   /odbc connect object database
+
+   now... upon entering this object....
+     /look will list tables ... 
+     /
+
+
+     idea - objects may supply thier own command table....
+
+     nexus script language will be the only constant left....
+     this language is /declare /compare /if /label /macro /goto...
+     		and related commands
+
+     
+
+    table object within the connected ODBC object are NO-PICKUP
+
+
+also to consider... create an odbc object
+  enter object....
+
+also to contemplate - shadows, cannot be grabbed, or entered...
+they may only be owned... may not be controlled and perform self actions
+
+also - binary blocks - files and graphics sounds and the like....
+how oh how to store those?  as objects of course - they may even have 
+extended properties and be aware of physical locaion on the disk.
+they may also just exist within my internal map of the system...
+would have to go through and cache all files and all directories on the
+system, and of course make hooks for creatoin and destruction to maintain
+a constant, correct version of the disk structure...
+

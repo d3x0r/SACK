@@ -1,0 +1,146 @@
+.SH NAME
+init_mini_snmp_client, close_mini_snmp_client, snmp_mini_response_len,
+snmp_mini_open, snmp_mini_close, snmp_mini_set_int, snmp_mini_set_str,
+snmp_mini_get, snmp_mini_getnext \- SNMP Mini Client
+.SH SYNOPSIS
+.B cc
+.RI "[ " "flag" " \|.\|.\|. ] " "file" " \|.\|.\|."
+.B \-lsnmp
+.RI "[ " "library" " \|.\|.\|. ]"
+.LP
+.B #include <sys/types.h>
+.br
+.B #include <snmp/snmp.h>
+.LP
+.BI "void init_mini_snmp_client(int " "Size" );
+.LP
+.B void close_mini_snmp_client(void);
+.LP
+.BI "int snmp_mini_response_len(int " "Index" );
+.LP
+.BI "void *snmp_mini_open(char * " "Host" ,
+.BI "int " "port" ,
+.BI "char * " "community" );
+.LP
+.BI "void snmp_mini_close(void * " "MiniSession" );
+.LP
+.BI "int snmp_mini_set_int(char * " "Host" ,
+.BI "char *" "Community" ,
+.BI "oid * " "Query" ,
+.BI "int " "QueryLen" ,
+.BI "int " "Value" ,
+.BI "void *" "MiniSession" );
+.LP
+.BI "int snmp_mini_set_str(char * " "Host" ,
+.BI "char *" "Community" ,
+.BI "oid * " "Query" ,
+.BI "int " "QueryLen" ,
+.BI "char * " "Value" ,
+.BI "int " "ValueLen" ,
+.BI "void *" "MiniSession" );
+.LP
+.BI "void **snmp_mini_get(char * " "Host" ,
+.BI "char *" "Community" ,
+.BI "int " "NumQueries" ,
+.BI "oid ** " "Queries" ,
+.BI "int * " "QueryLens" ,
+.BI "void *" "MiniSession" );
+.LP
+.BI "int snmp_mini_getnext(char * " "Host" ,
+.BI "char *" "Community" ,
+.BI "oid * " "Query" ,
+.BI "int " "QueryLen" ,
+.BI "oid * " "ResponseOID" ,
+.BI "void ** " "ResponseData" ,
+.BI "void *" "MiniSession" );
+.SH DESCRIPTION
+The SNMP mini-client is a quick way to send a few requests to a remote
+SNMP agent.  The client takes care of memory allocation / deallocation
+for all returned data.  The only thing the user must deal with is the
+specification of what OIDs to fetch.
+.LP
+.B init_mini_snmp_client(\|)
+initializes the mini-client.  The
+.I Size
+argument must be greater than the max number of items you will fetch
+during one 
+.B snmp_mini_client_get(\|)
+call.  This initializes the return array to the appropriate size.
+.LP
+.B close_mini_snmp_client(\|)
+Cleans up any memory still in use by the mini-client.  Once called,
+any data that was ever returned by the mini-client, if not copied, is
+invalid.
+.LP
+.B snmp_mini_response_len(\|)
+allows one to fetch the length of the returned data.  
+.I Index
+is the index into the returned array of responses.
+.LP
+.B snmp_mini_open(\|)
+and
+.B snmp_mini_close(\|)
+allow the user to open and close a connection to a host.  While all of
+the mini-client functions will also do this, by opening the connection
+first with 
+.BR snmp_mini_open(\|) ,
+the connection may be on an alternate port.  Opening the connection
+once and using it over and over again will also save the overhead of
+establishing the connection again and again.
+.LP
+.B snmp_mini_set_int(\|)
+and
+.B snmp_mini_set_str(\|)
+will send an SNMP SET request to the host specified by 
+.IR Host,
+using community string
+.IR Community,
+setting the OID
+.I Query
+of length 
+.I QueryLen
+to
+.IR Value .
+.I MiniSession
+may be used instead of
+.I Host
+and 
+.IR Community .
+.I MiniSession
+is what is returned by
+.BR snmp_mini_open(\|) .
+.LP
+.B snmp_mini_get(\|)
+sends 
+.I NumQueries
+SNMP GET requests to
+.I Host
+with community string
+.IR Community (
+or uses session
+.IR MiniSession ).
+The OIDs to fetch are in the array
+.IR Queries ,
+and the OID lengths are in the array
+.IR QueryLens .
+If successful, the returned array contains all of the responses.
+Returned array index X is the response to Query array index X.
+.LP
+.B snmp_mini_getnext(\|)
+sends an SNMP GETNEXT request to
+.I Host
+with community string
+.IR Community (
+or uses session
+.IR MiniSession ).
+The next OID is placed in
+.I ResponseOID
+and it's length is returned.  The data pertaining to that oid is
+pointed to by 
+.I ResponseData.
+.SH ERRORS
+If any of these return unsuccessfully, 
+.B snmp_api_error(\|)
+will be set.
+.SH NOTES
+The set commands have not been tested extensively.

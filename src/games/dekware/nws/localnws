@@ -1,0 +1,67 @@
+
+
+/create filebot
+/wake filebot
+/tell filebot /leave
+/tell filebot /decl filelist dir.lst
+/tell filebot /script filebot.mac
+
+/mac blah
+
+/scr nws
+
+/dest pfile
+/mac pfile file
+/decl word
+/decl line
+/decl paragraph true
+/echo told to process file... %file.
+/parse file %file
+/if success
+	/getword %word
+   /if success
+	   /switchtype %file %word
+   /endif
+/else
+	/echo failed to open %file.
+/endif
+/endparse
+/tell filebot /next
+/endmac
+
+/dest WriteRecord1
+/mac WriteRecord1 datatype location displaytype time endtime cccc zoneinfo message
+	/convert %time
+	/getresult stime
+	/convert %endtime
+	/getresult etime
+
+/decl zoneleader
+/decl zonenumber
+/decl junk
+
+/head %zoneinfo %zoneleader 3
+/label nextzone
+/head %zoneinfo %zonenumber 3
+/head %zoneinfo %junk 1  #this should be the dash between...
+
+/compare %zonenumber blank
+/if fail
+
+   /echo decl in record _table warnings
+   /echo decl in record Zone %zoneleader%zonenumber
+   /echo decl in record Location %location
+   /echo decl in record WarnType %datatype
+   /echo decl in record EndTime %etime
+   /echo decl in record BeginTime %stime
+   /echo decl in record CCCC %cccc
+   /echo decl in record WarnText %message
+	/goto nextzone
+/endif
+/endmac
+
+/endmac
+
+/blah # this command will be performed after
+		# all commands from scripts are processed...
+

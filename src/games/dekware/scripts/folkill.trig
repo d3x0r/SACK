@@ -1,0 +1,147 @@
+
+/decl tracking noone
+/decl autokill noone
+
+/mac killcommand 
+.kill %autokill
+/endmac
+
+/trigger create follow1 *who leaves &where .
+/compare %who is %tracking
+/if success
+   .%where
+/endif
+/endmac
+/trigger opt follow1 disable
+
+/trigger create follow2 &who charges &where .
+/compare %who like %tracking
+/if success
+   .%where
+/endif
+/endmac
+/trigger opt follow2 anchor disable
+
+/trigger create follow2a &who staggers &where .
+/compare %who like %tracking
+/if success
+   .%where
+/endif
+/endmac
+/trigger opt follow2a anchor disable
+
+/trigger create follow3 &who strides &where .
+/compare %who like %tracking
+/if success
+   .%where
+/endif
+/endmac
+/trigger opt follow3 anchor disable
+
+/trigger create follow4 &who levitates &where .
+/compare %who like %tracking
+/if success
+   .%where
+/endif
+/endmac
+/trigger opt follow4 anchor disable
+
+/trigger create follow5 &who stalks &where .
+/compare %who like %tracking
+/if success
+   .%where
+/endif
+/endmac
+/trigger opt follow5 anchor disable
+
+/trigger create beginkill &who is &what here .
+/compare %who like %autokill
+/if success
+   /killcommand
+/endif   
+/endmac
+
+/trigger create beginkill1 &who is here, fighting
+/compare %who like %autokill
+/if success
+   /killcommand
+/endif   
+/endmac
+
+/trigger create beginkill2 &who (invisible) is &what here 
+/compare %who like %autokill
+/if success
+   /killcommand
+/endif   
+/endmac
+
+/mac autokill who
+/decl tracking %who
+/decl autokill %who
+/compare %who is noone
+/if success
+/trigger opt beginkill disable
+:looks less alert.
+/else
+/trigger opt beginkill enable
+:scans the area alertly.
+/endif
+/endmac
+
+/mac folkill who
+/decl tracking %who
+/decl autokill %who
+/compare %who is noone
+/if success
+/trigger opt follow1 disable
+/trigger opt follow2 disable
+/trigger opt follow2a disable
+/trigger opt follow3 disable
+/trigger opt follow4 disable
+/trigger opt follow5 disable
+/trigger opt beginkill disable
+/trigger opt beginkill1 disable
+/trigger opt beginkill2 disable
+.:looks less alert.
+/else
+/trigger opt follow1 enable 
+/trigger opt follow2 enable
+/trigger opt follow2a enable
+/trigger opt follow3 enable
+/trigger opt follow4 enable
+/trigger opt follow5 enable
+/trigger opt beginkill enable
+/trigger opt beginkill1 enable
+/trigger opt beginkill2 enable
+.:scans the area alertly.
+.l
+/endif
+/endmac
+
+/mac follow ...
+/decl pname %...
+#/pcase %pname
+/compare %... is noone
+/if success
+/trigger opt follow1 disable
+/trigger opt follow2 disable
+/trigger opt follow2a disable
+/trigger opt follow3 disable
+/trigger opt follow4 disable
+/trigger opt follow5 disable
+.:seems less interested in %tracking\..
+/else
+/trigger opt follow1 enable 
+/trigger opt follow2 enable
+/trigger opt follow2a disable
+/trigger opt follow3 enable
+/trigger opt follow4 enable
+/trigger opt follow5 enable
+.:watches every move %pname makes.
+/endif
+/decl tracking %pname
+/endmac
+
+/trigger crea growl you feel too peaceful to contemplate
+.:growls feircely at %autokill...
+/endmac
