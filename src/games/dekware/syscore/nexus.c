@@ -947,50 +947,50 @@ CORE_PROC( PDATAPATH, CreateDataPath )( PDATAPATH *ppChannel, int nExtra )
 
 CORE_PROC( PDATAPATH, DestroyDataPathEx )( PDATAPATH pdp DBG_PASS )
 {
-   PTEXT p;
-   PTEXT pName;
-   PDATAPATH pReturn;
-   if( !pdp )
-      return NULL;
+	PTEXT p;
+	PTEXT pName;
+	PDATAPATH pReturn;
+	if( !pdp )
+		return NULL;
 	pName = pdp->pName;
 	{
 		extern int gbTrace;
 		if( gbTrace )
 			Log1( WIDE("calling datapath close:%s"), GetText( pName ) );
 	}
-   //_xlprintf(1 DBG_RELAY)( WIDE("Closing datapath %p(%d)"), pdp, pdp->Type );
-   if( !CloseDevice( pdp ) )
+	//_xlprintf(1 DBG_RELAY)( WIDE("Closing datapath %p(%d)"), pdp, pdp->Type );
+	if( !CloseDevice( pdp ) )
 	{
-   	// device denied closing...
+		// device denied closing...
 		return 0;
 	}
-   //lprintf( WIDE("Removed from it's device....") );
+	//lprintf( WIDE("Removed from it's device....") );
 	//Log2( WIDE("%s(%d):Deleting datapath Input"), pFile, nLine );
-   while( ( p = (PTEXT)DequeLink( &pdp->Input ) ) )
-      LineRelease( p );
-   DeleteLinkQueue( &pdp->Input );
+	while( ( p = (PTEXT)DequeLink( &pdp->Input ) ) )
+		LineRelease( p );
+	DeleteLinkQueue( &pdp->Input );
 
 	//Log2( WIDE("%s(%d):Deleting datapath Output"), pFile, nLine );
-   while( ( p = (PTEXT)DequeLink( &pdp->Output ) ) )
-   {
+	while( ( p = (PTEXT)DequeLink( &pdp->Output ) ) )
+	{
 #ifdef _DEBUG
-	   {
-	   	PTEXT out = BuildLine( p );
-	   	Log1( WIDE("Trashing output line: %s"), GetText( out ) );
-	   	LineRelease( out );
-   	}
+		{
+			PTEXT out = BuildLine( p );
+		   	Log1( WIDE("Trashing output line: %s"), GetText( out ) );
+		   	LineRelease( out );
+	   	}
 #endif
-      LineRelease( p );
-   }
-   DeleteLinkQueue( &pdp->Output );
-   //pdp->ppOutput = NULL;
+		LineRelease( p );
+	}
+	DeleteLinkQueue( &pdp->Output );
+	//pdp->ppOutput = NULL;
 
 	LineRelease( pdp->Partial );
 	LineRelease( pdp->CurrentLine );
 	if( pdp->pPrior )
    		pdp->pPrior->ppMe = pdp->ppMe;
 
-   if( pdp->ppMe )
+	if( pdp->ppMe )
 		*(pdp->ppMe) = pdp->pPrior;
 	pReturn = pdp->pPrior;
 	LineRelease( pdp->pName );
@@ -1454,14 +1454,14 @@ int ProcessSentients( THREAD_ID ThreadID )
 						// if command processor is the datapath filter
 						// the command will have been processed, and not
 						// relayed through, otherwise it's data and it goes...
-                  // hmm would be helpful if the command was marked as TF_RELAY...
+						// hmm would be helpful if the command was marked as TF_RELAY...
 						n |= ps->Command->Read( ps->Command );
 					}
 
 					pCommand = (PTEXT)DequeLink( &ps->Command->Input );
 					if( pCommand && ps->Data && ( ( pCommand->flags & TF_RELAY ) == TF_RELAY ) )
 					{
-                  if( gbTrace )
+						if( gbTrace )
 							SystemLog( WIDE("Data is relayed.") );
 						EnqueLink( &ps->Data->Output, pCommand );
 						continue;
@@ -1474,10 +1474,10 @@ int ProcessSentients( THREAD_ID ThreadID )
 							if( ps->Command->flags.Closed )
 							{
 								if( gbTrace )
-                           SystemLog( WIDE("End of input, device is closed.") );
+									SystemLog( WIDE("End of input, device is closed.") );
 								if( !DestroyDataPath( ps->Command ) )
 								{
-                           SystemLog( WIDE("Device will not close, releasing sentience") );
+									SystemLog( WIDE("Device will not close, releasing sentience") );
 									break;
 								}
 								continue;
@@ -1486,7 +1486,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 					}
 					else
 					{
-                  lprintf( WIDE("Okay got data to result to input.") );
+						lprintf( WIDE("Okay got data to result to input.") );
 						if( pCommand )
 						{
 							SetIndirect( ps->MacroInputVar, pCommand );
@@ -1504,15 +1504,6 @@ int ProcessSentients( THREAD_ID ThreadID )
 						}
 					}
 				}
-            //if( pCommand )
-				{
-				  // PTEXT x = BuildLine( pCommand );
-				  // lprintf( WIDE("Cmd: %s"), GetText( x ) ) ;
-				  // LineRelease( x );
-
-				}
-				//else
-            //    lprintf( WIDE("No command...") );
 				if( pCommand ) // got command from input queue...
 				{
 					// _this indicates the command was sourced from a sentience...
