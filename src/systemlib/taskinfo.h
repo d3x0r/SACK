@@ -28,6 +28,7 @@ struct task_info_tag {
 	PTRSZVAL psvEnd;
 	HANDLEINFO hStdIn;
 	HANDLEINFO hStdOut;
+	volatile PTHREAD pOutputThread;
 	//HANDLEINFO hStdErr;
 #if defined(WIN32)
 
