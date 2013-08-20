@@ -526,7 +526,7 @@ static PCLIENT InternalTCPClientAddrExxx(SOCKADDR *lpAddr,
 				Idle(); // wait for it to be added to waiting lists?
 
 #endif
-#ifdef __UNIX__
+#ifdef __LINUX__
 			{
 				//kill( (_32)(g.pThread->ThreadID), SIGHUP );
 				WakeThread( g.pThread );
@@ -1032,7 +1032,7 @@ NETWORK_PROC( size_t, doReadExx2)(PCLIENT lpClient,POINTER lpBuffer,size_t nByte
 			//lprintf( WIDE("Data already present for read...") );
 			FinishPendingRead( lpClient DBG_SRC );
 		}
-#ifdef __UNIX__
+#ifdef __LINUX__
 		// if not unix, then the socket is already generating
 		// WindowsMessage_ReadReady when there is something to
 		// read...
@@ -1203,7 +1203,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					lprintf( WIDE("Pending write...") );
 #endif
 					pc->dwFlags |= CF_WRITEPENDING;
-#ifdef __UNIX__
+#ifdef __LINUX__
 					//if( !(pc->dwFlags & CF_WRITEISPENDED ) )
 					//{
 					//	   lprintf( WIDE("Sending signal") );
@@ -1223,7 +1223,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 											  pc->lpFirstPending->dwAvail );
 					if( WSAGetLastError() == 10057 // ENOTCONN
 						||WSAGetLastError() == 10014 // EFAULT
-#ifdef __UNIX__
+#ifdef __LINUX__
 						|| WSAGetLastError() == EPIPE
 #endif
 					  )
@@ -1302,7 +1302,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 							lprintf( WIDE( "SET GLOBAL EVENT (write pending)" ) );
 						WSASetEvent( g.hMonitorThreadControlEvent );
 #endif
-#ifdef __UNIX__
+#ifdef __LINUX__
 						//kill( (_32)(g.pThread->ThreadID), SIGHUP );
 						WakeThread( g.pThread );
 #endif

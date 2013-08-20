@@ -495,7 +495,7 @@ NETWORK_PROC( int, doUDPRead )( PCLIENT pc, POINTER lpBuffer, int nBytes )
 			lprintf( WIDE( "SET GLOBAL EVENT (set readpending)" ) );
 		WSASetEvent( g.hMonitorThreadControlEvent );
 #endif
-#ifdef __UNIX__
+#ifdef __LINUX__
 		{
 			WakeThread( g.pThread );
 		}
@@ -547,7 +547,7 @@ int FinishUDPRead( PCLIENT pc )
 				 lprintf( WIDE( "SET GLOBAL EVENT (set read pending)" ) );
 			WSASetEvent( g.hMonitorThreadControlEvent );
 #endif
-#ifdef __UNIX__
+#ifdef __LINUX__
 			{
 				WakeThread( g.pThread );
 			}
