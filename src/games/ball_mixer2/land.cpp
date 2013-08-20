@@ -2183,6 +2183,14 @@ static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFO
 	return (PTRSZVAL)camera;
 }
 
+
+static void OnResume3d( WIDE( "Terrain View" ) )( void )
+{
+	// initializing last_tick will cause the next update to skip
+   // and then compute motion from that point.
+   l.last_tick = 0;
+}
+
 static void CPROC UpdatePositions( PTRSZVAL psv );
 static LOGICAL OnUpdate3d( WIDE( "Terrain View" ) )( PTRANSFORM origin )
 {
@@ -2905,6 +2913,150 @@ CRITICALSECTION csUpdate;
 		l.bullet.dynamicsWorld->stepSimulation( (now-l.last_tick)/(TIME_SCALE*1000.f), 20, 0.016/TIME_SCALE );
 	}
 	l.last_tick = now;
+
+   // ---- perform individual ball force manipulations/overrides as appropriate
+	if( l.flags.rack_balls )
+	{
+		RackBalls();
+		l.flags.rack_balls = 0;
+	}
+
+	hold_update = TRUE;
+
+	MoveBallsToRack();
+
+	if( l.return_to_home )
+	{
+		lprintf( "return to home..." );
+		if( 1 )
+		{
+			l.return_to_home = 0;
+		}
+		else
+		{
+			// want to return to home; 
+			// clear out the last active ball
+
+			if( l.return_to_home > l.last_tick )
+			{
+				// still under the final tick, move camera towards home
+				MoveCameraToHome();
+			}
+			else
+			{
+				//lprintf( "at home position..." );
+				if( l.active_ball )
+				{
+					FadeBall( l.active_ball );
+					l.active_ball = 0;
+				}
+				l.return_to_home = 0;
+			}
+		}
+	}
+	// update the camera to one of the balls....
+	else if( l.next_active_ball && !l.active_ball )
+	{
+		lprintf( "next ball is %d now(%d)  watch(%d)  next(%d)"
+			, l.last_tick, l.next_active_ball, l.watch_ball_tick, l.next_active_tick );
+		if( l.next_active_ball && l.watch_ball_tick || l.next_active_tick == 0 )
+		{
+			lprintf( "Pointing camera..." );
+			PointCameraAtNextActiveBall();
+			// when we are done watching; clear watch flag.
+			if( l.watch_ball_tick <= l.last_tick )
+			{
+				l.watch_ball_tick = 0;
+				// if watch flag is clear, setup approach time.
+				BeginApproach();
+			}
+		}
+		else
+		{
+			if( l.next_active_tick < l.last_tick )
+			{
+				lprintf( "Trigger pivot" );
+				l.active_ball = l.next_active_ball;
+				l.next_active_ball = 0;
+				l.next_active_tick = 0;
+				l.active_ball_forward_tick = 0;
+				if( l.flags.nextball_mode )
+				{
+					BeginPivot();
+				}
+			}
+
+			MoveBallToCameraApproach();
+			//MoveCameraOnBallApproach();
+		}
+	}
+	else if( l.active_ball )
+	{
+		PHEXPATCH ball = (PHEXPATCH)GetLink( &l.patches, l.active_ball-1 ); // pick one of the balls to follow....
+		lprintf( "active ball..." );
+		if( !ball->flags.simulated && !ball->flags.grabbed )
+		{
+			lprintf( "No ball." );
+			// no, ball is no longer simulated.
+			l.active_ball = 0;
+			l.return_to_home = l.last_tick + TIME_TO_HOME;
+		}
+
+		MoveBallToCameraApproach();
+		if( 0 ) // this is old mode active ball turn around thing...
+		{			
+			btTransform trans;
+			ball->fallRigidBody->getMotionState()->getWorldTransform( trans );
+			btVector3 ball_origin = trans.getOrigin();
+			lprintf( "Rotating?" );
+			{
+				btQuaternion rotation = trans.getRotation();
+				RCOORD r2[4];
+				RCOORD r3[4];
+				r2[0] = -rotation[3];
+				r2[1] = rotation[0];
+				r2[2] = rotation[1];
+				r2[3] = rotation[2];
+				SetRotationMatrix( camera, r2 );
+				
+				Translate( camera, ball_origin.x(), ball_origin.y(), ball_origin.z()  );
+				if( l.active_ball_forward_tick == 0 )
+				{
+					lprintf( "Fixed pos" );
+					MoveForward( camera, -70 );
+				}
+				else if(  l.active_ball_forward_tick > l.last_tick )
+				// rotate around until we lock...
+				{
+					lprintf( "rotating" );
+					RotateRel( camera, 0, (M_PI) * ( TIME_TO_TURN_BALL - (l.active_ball_forward_tick - l.last_tick) ) / TIME_TO_TURN_BALL, 0 ) ;
+					MoveForward( camera, -70 );
+					RotateRel( camera, 0, 0, M_PI  * ( TIME_TO_TURN_BALL - (l.active_ball_forward_tick - l.last_tick) ) / TIME_TO_TURN_BALL );
+				}
+				else
+				{
+					l.active_ball_forward_tick = 0;
+
+					RotateRel( camera, 0, (M_PI), 0 ) ;
+					MoveForward( camera, -70 );
+					RotateRel( camera, 0, 0, M_PI );
+					if( !l.return_to_home )
+					{
+						SetPoint( l.final_view_origin, GetOrigin( camera ) );
+						GetRotationMatrix( camera, l.final_view_quat );
+					}	
+				}
+			}
+		}
+	}
+	else
+	{
+		lprintf( "begin watch   %d", l.nNextBalls[0] );
+		BeginWatch( l.nNextBalls[0] );
+		//lprintf( "at home position" );
+	}
+
+
 }
 
 void SetupBullet( struct BulletInfo *_bullet )
