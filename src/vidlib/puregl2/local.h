@@ -225,7 +225,10 @@ extern
 void CPROC SACK_Vidlib_HideInputDevice( void );
 void CPROC SACK_Vidlib_ShowInputDevice( void );
 
+#ifndef _WIN32
+// this is external for android, it's preload for windows
 void	HostSystem_InitDisplayInfo( void );
+#endif
 int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nTouches );
 
 
