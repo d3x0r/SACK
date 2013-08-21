@@ -1,26 +1,10 @@
 #ifndef NETWORK_SERVICE_RESPOND_DISCOVER
 #define NETWORK_SERVICE_RESPOND_DISCOVER
 
-#ifdef BCC16
-#ifdef NETSERVICE_SOURCE
-#define NETSERVICE_PROC(type,name) type STDPROC _export name
-#else
-#define NETSERVICE_PROC(type,name) type STDPROC name
-#endif
-#else
-#if !defined(__STATIC__) && !defined(__UNIX__)
 #ifdef NETSERVICE_SOURCE
 #define NETSERVICE_PROC(type,name) EXPORT_METHOD type name
 #else
 #define NETSERVICE_PROC(type,name) IMPORT_METHOD type name
-#endif
-#else
-#ifdef NETSERVICE_SOURCE
-#define NETSERVICE_PROC(type,name) type name
-#else
-#define NETSERVICE_PROC(type,name) extern type name
-#endif
-#endif
 #endif
 
 #include <sack_types.h>

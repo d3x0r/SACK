@@ -37,26 +37,10 @@
 #include <colordef.h>
 #include "fractions.h"
 
-#ifdef BCC16
-#ifdef CONFIGURATION_LIBRARY_SOURCE
-#define CONFIGSCR_PROC(type,name) type STDPROC _export name
-#else
-#define CONFIGSCR_PROC(type,name) type STDPROC name
-#endif
-#else
-#if !defined(__STATIC__) && !defined(__UNIX__)
 #ifdef CONFIGURATION_LIBRARY_SOURCE
 #define CONFIGSCR_PROC(type,name) EXPORT_METHOD type CPROC name
 #else
 #define CONFIGSCR_PROC(type,name) IMPORT_METHOD type CPROC name
-#endif
-#else
-#ifdef CONFIGURATION_LIBRARY_SOURCE
-#define CONFIGSCR_PROC(type,name) EXPORT_METHOD type CPROC name
-#else
-#define CONFIGSCR_PROC(type,name) extern type CPROC name
-#endif
-#endif
 #endif
 
 #ifdef __cplusplus

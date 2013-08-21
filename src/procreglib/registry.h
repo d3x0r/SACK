@@ -97,6 +97,7 @@ typedef struct tree_def_tag
 			// a list of things may serve as lightweight alternative
 		PLIST List; 
 	};
+   POINTER cursor;
 } TREEDEF, *PTREEDEF;
 #define MAXTREEDEFSPERSET 256
 DeclareSet( TREEDEF );

@@ -14,7 +14,7 @@
 #include <network.h>
 #include "myping.h"
 
-#ifdef __UNIX__
+#ifdef __LINUX__
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/socket.h>

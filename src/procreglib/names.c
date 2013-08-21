@@ -948,7 +948,7 @@ PROCREG_PROC( PROCEDURE, ReadRegisteredProcedureEx )( PCLASSROOT root
 																  )
 {
 	PTREEDEF class_root = GetClassTree( root, NULL );
-	PNAME oldname = (PNAME)GetCurrentNode( class_root->Tree );
+	PNAME oldname = (PNAME)GetCurrentNodeEx( class_root->Tree, &class_root->cursor );
 	if( oldname )
 	{
 		PROCEDURE proc = oldname->data.proc.proc;
@@ -1053,6 +1053,7 @@ void DumpRegisteredNamesWork( PTREEDEF tree, int level )
 	PNAME name;
 	PVARTEXT pvt;
 	PTEXT pText;
+   POINTER data;
 	int bLogging = 0;
    if( l.flags.bDisableMemoryLogging )
 		bLogging = SetAllocateLogging( FALSE );
@@ -1064,9 +1065,9 @@ void DumpRegisteredNamesWork( PTREEDEF tree, int level )
 		return;
 	}
 	pvt = VarTextCreateExx( 512, 1024 );
-	for( name = (PNAME)GetLeastNode( tree->Tree );
+	for( name = (PNAME)GetLeastNodeEx( tree->Tree, &data );
 		  name;
-		  name = (PNAME)GetGreaterNode( tree->Tree ) )
+		  name = (PNAME)GetGreaterNodeEx( tree->Tree, &data ) )
 	{
 		int n;
 		for( n = 0; n < level; n++ )
@@ -1119,20 +1120,12 @@ struct browse_index
    PCLASSROOT current_branch;
 };
 
-PROCREG_PROC( int, NewNameHasBranches )( PCLASSROOT *data )
-{
-   struct browse_index *class_root = (struct browse_index*)(*data);
-	PNAME name;
-	name = (PNAME)GetCurrentNode( class_root->current_branch->Tree );
-	return name->flags.bTree; // may also have a value, but it was created as a path node in the tree
-}
-
 PROCREG_PROC( int, NameHasBranches )( PCLASSROOT *data )
 {
    PTREEDEF class_root;
 	PNAME name;
 	class_root = (PTREEDEF)*data;
-	name = (PNAME)GetCurrentNode( class_root->Tree );
+	name = (PNAME)GetCurrentNodeEx( class_root->Tree, &class_root->cursor );
 	return name->flags.bTree; // may also have a value, but it was created as a path node in the tree
 }
 
@@ -1141,7 +1134,7 @@ int NewNameIsAlias( PCLASSROOT *data )
 {
    struct browse_index *class_root = (struct browse_index*)(*data);
 	PNAME name;
-	name = (PNAME)GetCurrentNode( class_root->current_branch->Tree );
+	name = (PNAME)GetCurrentNodeEx( class_root->current_branch->Tree, &class_root->current_branch->cursor );
 	return name->flags.bAlias; // may also have a value, but it was created as a path node in the tree
 }
 
@@ -1150,7 +1143,7 @@ int NameIsAlias( PCLASSROOT *data )
    PTREEDEF class_root;
 	PNAME name;
 	class_root = (PTREEDEF)*data;
-	name = (PNAME)GetCurrentNode( class_root->Tree );
+	name = (PNAME)GetCurrentNodeEx( class_root->Tree, &class_root->cursor );
 	return name->flags.bAlias; // may also have a value, but it was created as a path node in the tree
 }
 
@@ -1159,7 +1152,7 @@ PROCREG_PROC( PCLASSROOT, GetCurrentRegisteredTree )( PCLASSROOT *data )
    PTREEDEF class_root;
 	PNAME name;
 	class_root = (PTREEDEF)*data;
-	name = (PNAME)GetCurrentNode( class_root->Tree );
+	name = (PNAME)GetCurrentNodeEx( class_root->Tree, &class_root->cursor );
    if( name )
 		return &name->tree;
    return NULL;
@@ -1171,7 +1164,6 @@ PROCREG_PROC( PCLASSROOT, GetCurrentRegisteredTree )( PCLASSROOT *data )
 
 
 PROCREG_PROC( CTEXTSTR, GetFirstRegisteredNameEx )( PCLASSROOT root, CTEXTSTR classname, PCLASSROOT *data )
-#if 1
 {
    PTREEDEF class_root;
 	PNAME name;
@@ -1179,7 +1171,7 @@ PROCREG_PROC( CTEXTSTR, GetFirstRegisteredNameEx )( PCLASSROOT root, CTEXTSTR cl
 		class_root = GetClassTree( root, (PCLASSROOT)classname );
 	if( class_root )
 	{
-		name = (PNAME)GetLeastNode( class_root->Tree );
+		name = (PNAME)GetLeastNodeEx( class_root->Tree, &class_root->cursor );
 		if( name )
 		{
 			//lprintf( WIDE("Resulting first name: %s"), name->name );
@@ -1188,31 +1180,6 @@ PROCREG_PROC( CTEXTSTR, GetFirstRegisteredNameEx )( PCLASSROOT root, CTEXTSTR cl
 	}
    return NULL;
 }
-#else
-{
-   struct browse_index *class_root;
-   //PTREEDEF class_root;
-	PNAME name;
-	*data = (PCLASSROOT)(class_root =New( struct browse_index ));
-	class_root->current_branch = GetClassTree( root, (PCLASSROOT)classname );
-	if( class_root )
-	{
-		name = (PNAME)GetLeastNode( class_root->current_branch->Tree );
-      class_root->current_limbs = &name->tree;
-		if( name )
-		{
-			//lprintf( WIDE("Resulting first name: %s"), name->name );
-			return name->name;
-		}
-		else
-		{
-         Release( *data );
-			(*data) = NULL;
-		}
-	}
-   return NULL;
-}                        
-#endif
 
 PROCREG_PROC( CTEXTSTR, GetFirstRegisteredName )( CTEXTSTR classname, PCLASSROOT *data )
 {
@@ -1234,7 +1201,7 @@ PROCREG_PROC( CTEXTSTR, GetNextRegisteredName )( PCLASSROOT *data )
    class_root = (PTREEDEF)*data;
 	if( class_root )
 	{
-		name = (PNAME)GetGreaterNode( class_root->Tree );
+		name = (PNAME)GetGreaterNodeEx( class_root->Tree, &class_root->cursor );
 		if( name )
 		{
 			//lprintf( WIDE("Resulting next name: %s"), name->name );

@@ -28,7 +28,7 @@
 #define WINVER 0x0601
 #endif
 
-#if !defined(__LINUX__) && !defined(__UNIX__)
+#if !defined(__LINUX__)
 #  ifndef STRICT
 #    define STRICT
 #  endif

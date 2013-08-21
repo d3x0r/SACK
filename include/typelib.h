@@ -3018,16 +3018,33 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  DumpTree( PTREEROOT root
 
 /* See Also
    <link GetChildNode> */
+TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetLeastNodeEx( PTREEROOT root, POINTER *cursor );
+/* See Also
+   <link GetChildNode> */
 TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetLeastNode( PTREEROOT root );
+/* See Also
+   <link GetChildNode> */
+TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetGreatestNodeEx( PTREEROOT root, POINTER *cursor );
 /* See Also
    <link GetChildNode> */
 TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetGreatestNode( PTREEROOT root );
 /* See Also
    <link GetChildNode> */
+TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetLesserNodeEx( PTREEROOT root, POINTER *cursor );
+/* See Also
+   <link GetChildNode> */
 TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetLesserNode( PTREEROOT root );
 /* See Also
    <link GetChildNode> */
+TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetGreaterNodeEx( PTREEROOT root, POINTER *cursor );
+/* See Also
+   <link GetChildNode> */
 TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetGreaterNode( PTREEROOT root );
+/* \Returns the node that is set as 'current' in the tree. There
+   is a cursor within the tree that can be used for browsing.
+   See Also
+   <link GetChildNode>                                           */
+TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetCurrentNodeEx( PTREEROOT root, POINTER *cursor );
 /* \Returns the node that is set as 'current' in the tree. There
    is a cursor within the tree that can be used for browsing.
    See Also
@@ -3038,6 +3055,9 @@ TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetCurrentNode( PTREEROOT root );
    See Also
    <link GetChildNode>                                        */
 TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetRootNode( PTREEROOT root );
+/* See Also
+   <link GetChildNode> */
+TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetParentNodeEx( PTREEROOT root, POINTER *cursor );
 /* See Also
    <link GetChildNode> */
 TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetParentNode( PTREEROOT root );
@@ -3103,6 +3123,12 @@ TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetParentNode( PTREEROOT root );
    
    </code>                                                                            */
 TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetChildNode( PTREEROOT root, int direction );
+/* See Also
+   <link GetChildNode> */
+TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetChildNodeEx( PTREEROOT root, POINTER *cursor, int direction );
+/* See Also
+   <link GetChildNode> */
+TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetPriorNodeEx( PTREEROOT root, POINTER *cursor );
 /* See Also
    <link GetChildNode> */
 TYPELIB_PROC  POINTER TYPELIB_CALLTYPE  GetPriorNode( PTREEROOT root );

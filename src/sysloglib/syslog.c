@@ -21,7 +21,7 @@
 #include <intrinsics.h>
 #endif
 
-#ifdef __UNIX__
+#ifdef __LINUX__
 #include <unistd.h>
 #include <sys/time.h>
 #include <time.h>

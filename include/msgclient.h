@@ -3,27 +3,11 @@
 
 #include <sack_types.h>
 
-#ifdef BCC16
-# ifdef CLIENTMSG_SOURCE
-#  define CLIENTMSG_PROC(type,name) type STDPROC _export name
-# else
-#  define CLIENTMSG_PROC(type,name) type STDPROC name
-# endif
-#else
-# if !defined(__STATIC__) && !defined(__UNIX__)
 #  ifdef CLIENTMSG_SOURCE
 #   define CLIENTMSG_PROC(type,name) EXPORT_METHOD type CPROC name
 #  else
 #   define CLIENTMSG_PROC(type,name) IMPORT_METHOD type CPROC name
 #  endif
-# else
-#  ifdef CLIENTMSG_SOURCE
-#   define CLIENTMSG_PROC(type,name) type CPROC name
-#  else
-#   define CLIENTMSG_PROC(type,name) extern type CPROC name
-#  endif
-# endif
-#endif
 
 #include <msgprotocol.h>
 

@@ -1,26 +1,10 @@
 #ifndef FILE_MONITOR_LIBRARY_DEFINED
 #define FILE_MONITOR_LIBRARY_DEFINED
 
-#ifdef BCC16
-#ifdef FILEMONITOR_SOURCE
-#define FILEMONITOR_PROC(type,name) type STDPROC _export name
-#else
-#define FILEMONITOR_PROC(type,name) type STDPROC name
-#endif
-#else
-#if !defined(__STATIC__) && !defined(__UNIX__)
 #ifdef FILEMONITOR_SOURCE
 #define FILEMONITOR_PROC(type,name) EXPORT_METHOD type CPROC name
 #else
 #define FILEMONITOR_PROC(type,name) IMPORT_METHOD type CPROC name
-#endif
-#else
-#ifdef FILEMONITOR_SOURCE
-#define FILEMONITOR_PROC(type,name) type CPROC name
-#else
-#define FILEMONITOR_PROC(type,name) extern type CPROC name
-#endif
-#endif
 #endif
 
 // filemon will require system features, so pull stdhdrs instead of

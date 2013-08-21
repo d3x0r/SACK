@@ -225,7 +225,10 @@ extern
 void CPROC SACK_Vidlib_HideInputDevice( void );
 void CPROC SACK_Vidlib_ShowInputDevice( void );
 
+#ifndef _WIN32
+// this is external for android, it's preload for windows
 void	HostSystem_InitDisplayInfo( void );
+#endif
 int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nTouches );
 
 
@@ -269,11 +272,12 @@ void SACK_Vidlib_ToggleInputDevice( void );
 
 
 
+
 // ---------- vidlib win32 - share dsymbols for keymap win32
 #define WD_HVIDEO   0   // WindowData_HVIDEO
 
 // --------------- win32 keymap ------------------------
-#ifndef NO_TOUCH
+#ifdef _WIN32
 LRESULT CALLBACK
    KeyHook (int code,      // hook code
 				WPARAM wParam,    // virtual-key code
