@@ -354,26 +354,10 @@ _PSI_NAMESPACE
 #define REQUIRE_PSI(ma,mi)    ( PSI_VERSION >= MK_PSI_VERSION(ma,mi) )
 
 
-#ifdef BCC16
-#ifdef PSI_SOURCE
-#define PSI_PROC(type,name) type STDPROC _export name
-#else
-#define PSI_PROC(type,name) type STDPROC name
-#endif
-#else
-#if !defined(__STATIC__) && !defined(__UNIX__)
 #ifdef PSI_SOURCE
 #define PSI_PROC(type,name) EXPORT_METHOD type CPROC name
 #else
 #define PSI_PROC(type,name) IMPORT_METHOD type CPROC name
-#endif
-#else
-#ifdef PSI_SOURCE
-#define PSI_PROC(type,name) EXPORT_METHOD type CPROC name
-#else
-#define PSI_PROC(type,name) extern type CPROC name
-#endif
-#endif
 #endif
 
 // Control callback functions NEED to be declared in the same source as what

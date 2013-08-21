@@ -1851,15 +1851,6 @@ IMAGE_PROC_PTR( void, Render3dImage )( Image pImage, LOGICAL render_pixel_scaled
 } IMAGE_INTERFACE, *PIMAGE_INTERFACE;
 
 
-/* \Result with an Image interface. This function requires
-   direct linking, so the interface should be loaded with
-   GetInterface instead.                                   */
-IMAGE_PROC  struct image_interface_tag* IMAGE_API  GetImageInterface ( void );
-/* When done with an image interface, the application should
-   drop it. This disconnects message pipes etc, when the image
-   library is mounted across a pipe service.                   */
-IMAGE_PROC  void IMAGE_API  DropImageInterface ( PIMAGE_INTERFACE );
-
 
 #define GetImageInterface() (PIMAGE_INTERFACE)GetInterface( WIDE("image") )
 /* <combine sack::image::DropImageInterface@PIMAGE_INTERFACE>

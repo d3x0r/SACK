@@ -20,26 +20,10 @@
 	
 #include <sack_types.h>
 
-#ifdef BCC16
-#ifdef SHA1_SOURCE
-#define SHA1_PROC(type,name) type STDPROC _export name
-#else
-#define SHA1_PROC(type,name) type STDPROC name
-#endif
-#else
-#if !defined(__STATIC__) && !defined(__UNIX__)
 #ifdef SHA1_SOURCE
 #define SHA1_PROC(type,name) EXPORT_METHOD type CPROC name
 #else
 #define SHA1_PROC(type,name) IMPORT_METHOD type CPROC name
-#endif
-#else
-#ifdef SHA1_SOURCE
-#define SHA1_PROC(type,name) type name
-#else
-#define SHA1_PROC(type,name) extern type name
-#endif
-#endif
 #endif
 
 #if !defined( BCC32 ) && !defined( __WATCOMC__ ) && !defined( _MSC_VER )

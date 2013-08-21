@@ -41,7 +41,6 @@
 
 
 typedef struct image_shader_tracker ImageShaderTracker;
-typedef struct image_shader_tracker *PImageShaderTracker;
 
 struct image_shader_tracker
 {

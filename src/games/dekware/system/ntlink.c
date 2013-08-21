@@ -29,7 +29,7 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-#ifndef __UNIX__
+#ifndef __LINUX__
    UnregisterRoutine( WIDE("Shutdown") );
    UnregisterRoutine( WIDE("sound") );
 #endif

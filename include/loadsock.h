@@ -54,7 +54,7 @@ typedef ADDRINFOA   *LPADDRINFO;
 typedef int socklen_t;
 #endif
 //#endif
-#elif defined( __LINUX__ ) || defined( __UNIX__)
+#elif defined( __LINUX__ )
 #include <sack_types.h>
 #if defined( FBSD )
 #include <sys/types.h>

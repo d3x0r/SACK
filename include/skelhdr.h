@@ -4,18 +4,12 @@
 
 
 
-#if !defined(__STATIC__) && !defined(__UNIX__)
 #ifdef SKELETON_LIBRARY_SOURCE
-#define SKELETON_PROC(type,name) __declspec(dllexport) type name
+#define SKELETON_PROC(type,name) EXPORT_METHOD type name
 #else
-#define SKELETON_PROC(type,name) __declspec(dllimport) type name
+#define SKELETON_PROC(type,name) IMPORT_METHOD type name
 #endif
 #else
-#ifdef SKELETON_LIBRARY_SOURCE
-#define SKELETON_PROC(type,name) type name
-#else
-#define SKELETON_PROC(type,name) extern type name
-#endif
 
 
 

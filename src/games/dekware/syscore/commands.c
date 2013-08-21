@@ -1,13 +1,7 @@
 #ifndef CORE_SOURCE
 #define CORE_SOURCE
 #endif
-#if defined( __UNIX__ )
-#include <sys/time.h>
-#include <sys/wait.h>
-#include <time.h>
-#include <errno.h>
-extern TEXTCHAR **environ;
-#endif
+
 #define DO_LOGGING
 #include <logging.h>
 #include <stdhdrs.h>

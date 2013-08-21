@@ -2014,7 +2014,7 @@ CORE_PROC( void, ExitNexus )( void )
 // _this section of code provides a default console device using
 // FILE * input - intended for use on UNIX systems...
 //------------------------------------------------------------------------
-#ifndef __UNIX__
+#ifdef __LINUX__
 #ifndef WIN32
 
 //----------------------------------------------------------------------
