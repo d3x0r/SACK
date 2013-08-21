@@ -21,6 +21,7 @@ typedef struct task_tag
 		BIT_FIELD bAutoLaunch : 1;
 		BIT_FIELD bExclusive : 1;
 		BIT_FIELD bOneLaunch : 1;  // not same as exclusive, can launch in parallel with other things.
+		BIT_FIELD bOneLaunchClickStop : 1; // clicking the same button will stop a one-launch process
 		BIT_FIELD bRestart : 1; // if it stops, respawn it.
 		BIT_FIELD bDestroy : 1; // set if destroyed, but launched...
 		BIT_FIELD bButton : 1; // if it's created as a control instead of via common load

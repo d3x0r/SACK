@@ -70,6 +70,7 @@ enum {
 	  , LABEL_BACKGROUND_COLOR
 	  , LABEL_RING_COLOR
 	  , LABEL_RING_HIGHLIGHT_COLOR
+	  , CHECKBOX_ONE_TIME_CLICK_STOP
 };
 
 LOGICAL MainCanvasStillHidden( void )
@@ -376,6 +377,7 @@ PRELOAD( RegisterTaskControls )
 	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_LAUNCH_CALLER_READY, RADIO_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_CALLER_WAIT        , RADIO_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_ONE_TIME_LAUNCH    , RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_ONE_TIME_CLICK_STOP, RADIO_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_CAPTURE_OUTPUT     , RADIO_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_HIDE_CANVAS        , RADIO_BUTTON_NAME );
    EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_LAUNCH_AT_LEAST    , RADIO_BUTTON_NAME );
@@ -606,6 +608,7 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 		SetCheckState( GetControl( frame, CHECKBOX_BACKGROUND ), pTask->flags.bBackground );
 		SetCheckState( GetControl( frame, CHECKBOX_LAUNCH_CALLER_READY ), pTask->flags.bLaunchWhenCallerUp );
 		SetCheckState( GetControl( frame, CHECKBOX_ONE_TIME_LAUNCH ), pTask->flags.bOneLaunch );
+		SetCheckState( GetControl( frame, CHECKBOX_ONE_TIME_CLICK_STOP ), pTask->flags.bOneLaunchClickStop );
 		SetCheckState( GetControl( frame, CHECKBOX_CAPTURE_OUTPUT ), pTask->flags.bCaptureOutput );
 		SetCheckState( GetControl( frame, CHECKBOX_HIDE_CANVAS ), pTask->flags.bHideCanvas );
 		SetCheckState( GetControl( frame, CHECKBOX_LAUNCH_AT_LEAST ), pTask->flags.bLaunchAtLeast );
@@ -670,6 +673,8 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 			if( checkbox ) pTask->flags.bLaunchWhenCallerUp = GetCheckState( checkbox );
 			checkbox = GetControl( frame, CHECKBOX_ONE_TIME_LAUNCH );
 			if( checkbox ) pTask->flags.bOneLaunch = GetCheckState( checkbox );
+			checkbox = GetControl( frame, CHECKBOX_ONE_TIME_CLICK_STOP );
+			if( checkbox ) pTask->flags.bOneLaunchClickStop = GetCheckState( checkbox );
 			checkbox = GetControl( frame, CHECKBOX_CAPTURE_OUTPUT );
 			if( checkbox ) pTask->flags.bCaptureOutput = GetCheckState( checkbox );
 			checkbox = GetControl( frame, CHECKBOX_HIDE_CANVAS );
@@ -841,6 +846,19 @@ void CPROC HandleTaskOutput( PTRSZVAL psvTaskInfo, PTASK_INFO task, CTEXTSTR buf
 	PLOAD_TASK pTask = (PLOAD_TASK)psvTaskInfo;
 	lprintf( WIDE("%s:%s"), pTask->pTask, buffer );
 }
+
+//---------------------------------------------------------------------------
+static LOGICAL IsTaskRunning( PLOAD_TASK pTask )
+{
+	PTASK_INFO task;
+	INDEX idx;
+	LIST_FORALL( pTask->spawns, idx, PTASK_INFO, task )
+	{
+      return TRUE;
+	}
+   return FALSE;
+}
+
 
 //---------------------------------------------------------------------------
 // forward declaration, cause the task may re-spawn within task ended
@@ -1147,58 +1165,8 @@ void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task_ended )
 }
 
 //---------------------------------------------------------------------------
-
-// should get auto innited to button proc...
-OnKeyPressEvent(  WIDE("Task") )( PTRSZVAL psv )
+static void KillSpawnedProgram( PLOAD_TASK tasks )
 {
-	//PLOAD_TASK pTask = (PLOAD_TASK)psv;
-	RunATask( (PLOAD_TASK)psv, InterShell_IsButtonVirtual( ((PLOAD_TASK)psv)->button ) );
-	if( ((PLOAD_TASK)psv)->button )
-	{
-		UpdateButton( ((PLOAD_TASK)psv)->button );
-	}
-}
-
-//---------------------------------------------------------------------------
-
-void InvokeTaskLaunchComplete( void )
-{
-	CTEXTSTR name;
-	PCLASSROOT data = NULL;
-	if( l.flags.bSentLaunchComplete )
-		return;
-
-	{
-		INDEX idx;
-		PLOAD_TASK task;
-		LIST_FORALL( l.autoload, idx, PLOAD_TASK, task )
-		{
-			if( !task->spawns )
-            break;
-		}
-		if( task )
-         return;
-	}
-	l.flags.bSentLaunchComplete = 1;
-	for( name = GetFirstRegisteredName( TASK_PREFIX WIDE( "/common/task launch complete" ), &data );
-		name;
-		name = GetNextRegisteredName( &data ) )
-	{
-		void (CPROC*f)(void);
-		f = GetRegisteredProcedure2( (CTEXTSTR)data, void, name, (void) );
-		if( f )
-			f();
-	}
-}
-
-
-//---------------------------------------------------------------------------
-
-static void KillSpawnedPrograms( void )
-{
-	PLOAD_TASK tasks = l.tasklist;
-   // need to kill autolaunched things too...
-	while( tasks )
 	{
 		INDEX idx;
 		PTASK_INFO task;
@@ -1287,6 +1255,70 @@ static void KillSpawnedPrograms( void )
 				TerminateProgram( task );
 			}
 		}
+	}
+}
+
+//---------------------------------------------------------------------------
+
+// should get auto innited to button proc...
+OnKeyPressEvent(  WIDE("Task") )( PTRSZVAL psv )
+{
+	PLOAD_TASK pTask = (PLOAD_TASK)psv;
+	if( pTask->flags.bOneLaunch && pTask->flags.bOneLaunchClickStop && TaskHasSpawns( pTask ) )
+	{
+		KillSpawnedProgram( pTask );
+	}
+	else
+	{
+		RunATask( (PLOAD_TASK)psv, InterShell_IsButtonVirtual( ((PLOAD_TASK)psv)->button ) );
+	}
+	if( ((PLOAD_TASK)psv)->button )
+	{
+		UpdateButton( ((PLOAD_TASK)psv)->button );
+	}
+}
+
+//---------------------------------------------------------------------------
+
+void InvokeTaskLaunchComplete( void )
+{
+	CTEXTSTR name;
+	PCLASSROOT data = NULL;
+	if( l.flags.bSentLaunchComplete )
+		return;
+
+	{
+		INDEX idx;
+		PLOAD_TASK task;
+		LIST_FORALL( l.autoload, idx, PLOAD_TASK, task )
+		{
+			if( !task->spawns )
+            break;
+		}
+		if( task )
+         return;
+	}
+	l.flags.bSentLaunchComplete = 1;
+	for( name = GetFirstRegisteredName( TASK_PREFIX WIDE( "/common/task launch complete" ), &data );
+		name;
+		name = GetNextRegisteredName( &data ) )
+	{
+		void (CPROC*f)(void);
+		f = GetRegisteredProcedure2( (CTEXTSTR)data, void, name, (void) );
+		if( f )
+			f();
+	}
+}
+
+
+//---------------------------------------------------------------------------
+static void KillSpawnedPrograms( void )
+{
+	PLOAD_TASK tasks = l.tasklist;
+   // need to kill autolaunched things too...
+	while( tasks )
+	{
+		KillSpawnedProgram( tasks );
 		tasks = NextLink( tasks );
 	}
 	// did as good a job as we can...
@@ -1677,6 +1709,15 @@ PTRSZVAL CPROC SetTaskOneTime( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
+PTRSZVAL CPROC SetTaskOneTimeClickStop( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, LOGICAL, bOneLaunchClickStop );
+	PSV_PARAM;
+	if( pTask )
+		pTask->flags.bOneLaunchClickStop = bOneLaunchClickStop;
+	return psv;
+}
+
 //---------------------------------------------------------------------------
 
 PTRSZVAL CPROC SetLaunchResolution( PTRSZVAL psv, arg_list args )
@@ -1782,6 +1823,7 @@ void AddTaskConfigs( PCONFIG_HANDLER pch )
 	AddConfigurationMethod( pch, WIDE("Launch at least %i by %i"), SetLeastLaunchResolution );
 	AddConfigurationMethod( pch, WIDE("restart %b"), SetTaskRestart );
 	AddConfigurationMethod( pch, WIDE("one time %b"), SetTaskOneTime );
+	AddConfigurationMethod( pch, WIDE("click to stop %b"), SetTaskOneTimeClickStop );
 	AddConfigurationMethod( pch, WIDE("non-exclusive %b"), SetTaskExclusive );
 	AddConfigurationMethod( pch, WIDE("wait for task %b"), SetTaskWait );
 	AddConfigurationMethod( pch, WIDE("background %b"), SetTaskBackground );
@@ -1979,6 +2021,7 @@ static void DumpTask( FILE *file, PLOAD_TASK pTask, int sub )
 		fprintf( file, WIDE("%swait for task %s\n"), sub?"\t":InterShell_GetSaveIndent(), pTask->flags.bWaitForTask?WIDE("Yes"):WIDE("No") );
 		fprintf( file, WIDE("%sbackground %s\n"), sub?"\t":InterShell_GetSaveIndent(), pTask->flags.bBackground?WIDE("Yes"):WIDE("No") );
 		fprintf( file, WIDE("%sone time %s\n"), sub?"\t":InterShell_GetSaveIndent(), pTask->flags.bOneLaunch?WIDE("Yes"):WIDE("No") );
+		fprintf( file, WIDE("%sclick to stop %s\n"), sub?"\t":InterShell_GetSaveIndent(), pTask->flags.bOneLaunchClickStop?WIDE("Yes"):WIDE("No") );
 		fprintf( file, WIDE("%sCapture task output?%s\n" ), sub?"\t":InterShell_GetSaveIndent(), pTask->flags.bCaptureOutput?WIDE("Yes"):WIDE("No") );
 		fprintf( file, WIDE("%sForce Hide Display?%s\n" ), sub?"\t":InterShell_GetSaveIndent(), pTask->flags.bHideCanvas?WIDE("Yes"):WIDE("No") );
 		{
