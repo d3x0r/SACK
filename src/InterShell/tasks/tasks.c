@@ -927,7 +927,7 @@ void RunATask( PLOAD_TASK pTask, int bWaitInRoutine, LOGICAL bShutdown )
 	// else if allowed, okay
 	// if not allowed and not disallowed, okay
 
-	if( !bShutdown && pTask->flags.bExclusive )
+	if( (!bShutdown) && pTask->flags.bExclusive )
 	{
 		LIST_FORALL( pTask->spawns, idx, PTASK_INFO, task )
 		{
@@ -1020,19 +1020,22 @@ void RunATask( PLOAD_TASK pTask, int bWaitInRoutine, LOGICAL bShutdown )
 		AddLink( &pTask->spawns, (POINTER)task );
 		pTask->flags.bStarting = 0; // okay to allow ended to check now...
 
-		if( pTask->button )
-			InterShell_SetButtonHighlight( pTask->button, TRUE );
-
-		if( pTask->flags.bExclusive )
+		if( !bShutdown )
 		{
-			if( !pTask->flags.bCaptureOutput || pTask->flags.bHideCanvas )
+			if( pTask->button )
+				InterShell_SetButtonHighlight( pTask->button, TRUE );
+
+			if( pTask->flags.bExclusive )
 			{
-				AddLink( &l.tasks_that_hid_main_canvas, pTask );
-				InterShell_Hide( InterShell_GetButtonCanvas( pTask->button ) );
+				if( !pTask->flags.bCaptureOutput || pTask->flags.bHideCanvas )
+				{
+					AddLink( &l.tasks_that_hid_main_canvas, pTask );
+					InterShell_Hide( InterShell_GetButtonCanvas( pTask->button ) );
+				}
 			}
 		}
 
-		if( pTask->flags.bExclusive || pTask->flags.bWaitForTask )
+		if( bShutdown || pTask->flags.bExclusive || pTask->flags.bWaitForTask )
 		{
 			// Wait here until task ends.
 			// no real reason to wait anymore, there is an event thhat happens?
@@ -1215,8 +1218,10 @@ void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task_ended )
 static void KillSpawnedProgram( PLOAD_TASK tasks )
 {
 	{
+		int first_pass = 1;
 		INDEX idx;
 		PTASK_INFO task;
+	retry:
 		LIST_FORALL( tasks->spawns, idx, PTASK_INFO, task )
 		{
 			TEXTCHAR buffer[256];
@@ -1228,10 +1233,12 @@ static void KillSpawnedProgram( PLOAD_TASK tasks )
 			else
 				filename = fullname;
 
-			if( tasks->pShutdownTask[0] )
+			if( first_pass && tasks->pShutdownTask[0] )
 			{
-            // run and wait there always.  This must complete before continue.
-            RunATask( tasks, TRUE, TRUE );
+				// run and wait there always.  This must complete before continue.
+				RunATask( tasks, TRUE, TRUE );
+				first_pass = 0;
+				goto retry;
 			}
 
 			tasks->flags.bRestart = 0;
@@ -1264,6 +1271,7 @@ static void KillSpawnedProgram( PLOAD_TASK tasks )
 					if( !still_here )
 						closed = TRUE;
 				}
+
 
 				if( !closed )
 				{
