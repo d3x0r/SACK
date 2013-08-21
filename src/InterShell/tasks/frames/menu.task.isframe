@@ -34,10 +34,11 @@
 
 <control IDName="InterShell/Tasks/CheckButton/CHECKBOX_EXCLUSIVE" caption="Exclusive" position="389,206" size="130,21" type="CheckButton"></control>
 <control IDName="InterShell/Tasks/CheckButton/CHECKBOX_ONE_TIME_LAUNCH" caption="One Launch" position="389,227" size="150,21" type="CheckButton"></control>
-<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_CAPTURE_OUTPUT" caption="Capture Task Output" position="388,248" size="192,21" type="CheckButton"></control>
-<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_BACKGROUND" caption="Background" position="388,270" size="149,21" type="CheckButton"></control>
-<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_HIDE_CANVAS" caption="Hide Canvas" position="388,292" size="192,21" type="CheckButton"></control>
-<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_LAUNCH_AT_LEAST" caption="Launch At Least..." position="388,314" size="192,21" type="CheckButton"></control>
+<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_ONE_TIME_CLICK_STOP" caption="One Launch-Click to Stop" position="389,248" size="150,21" type="CheckButton"></control>
+<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_CAPTURE_OUTPUT" caption="Capture Task Output" position="388,269" size="192,21" type="CheckButton"></control>
+<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_BACKGROUND" caption="Background" position="388,290" size="149,21" type="CheckButton"></control>
+<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_HIDE_CANVAS" caption="Hide Canvas" position="388,311" size="192,21" type="CheckButton"></control>
+<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_LAUNCH_AT_LEAST" caption="Launch At Least..." position="388,332" size="192,21" type="CheckButton"></control>
 
 <control caption="Text" position="247,166" size="73,21" type="TextControl"></control>
 <control caption="Background" position="245,201" size="102,21" type="TextControl"></control>
