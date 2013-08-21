@@ -71,6 +71,9 @@ enum {
 	  , LABEL_RING_COLOR
 	  , LABEL_RING_HIGHLIGHT_COLOR
 	  , CHECKBOX_ONE_TIME_CLICK_STOP
+	  , TXT_SHUTDOWN_TASK_NAME
+	  , TXT_SHUTDOWN_TASK_PATH
+	  , TXT_SHUTDOWN_TASK_ARGS
 };
 
 LOGICAL MainCanvasStillHidden( void )
@@ -363,6 +366,9 @@ PRELOAD( RegisterTaskControls )
 	EasyRegisterResource( WIDE("InterShell/tasks"), TXT_TASK_NAME, EDIT_FIELD_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), TXT_TASK_PATH, EDIT_FIELD_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), TXT_TASK_ARGS, EDIT_FIELD_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), TXT_SHUTDOWN_TASK_NAME, EDIT_FIELD_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), TXT_SHUTDOWN_TASK_PATH, EDIT_FIELD_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), TXT_SHUTDOWN_TASK_ARGS, EDIT_FIELD_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), EDIT_TASK_LAUNCH_X, EDIT_FIELD_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), EDIT_TASK_LAUNCH_Y, EDIT_FIELD_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), LISTBOX_AUTO_TASKS          , LISTBOX_CONTROL_NAME );
@@ -471,7 +477,7 @@ OnDestroyMenuButton( WIDE("Task") )( PTRSZVAL psv )
 
 //---------------------------------------------------------------------------
 
-void SetTaskArguments( PLOAD_TASK pTask, TEXTCHAR *args )
+void SetTaskArguments( PLOAD_TASK pTask, LOGICAL bShutdown, TEXTCHAR *args )
 {
 	int argc;
 	TEXTCHAR **pp;
@@ -481,49 +487,46 @@ void SetTaskArguments( PLOAD_TASK pTask, TEXTCHAR *args )
 		Release( pp[0] );
 		pp++;
 	}
-	Release( pTask->pArgs );
+	if( bShutdown )
+	{
+		Release( pTask->pShutdownArgs );
+		ParseIntoArgs( args, &argc, &pTask->pShutdownArgs );
+		// insert a TEXTSTR pointer so we can include the task name in the args... prebuilt for launching.
+		pTask->pShutdownArgs = (TEXTSTR*)Preallocate( pTask->pShutdownArgs, SizeOfMemBlock( pTask->pShutdownArgs ) + sizeof( TEXTSTR ) );
+		pTask->pShutdownArgs[0] = StrDup( pTask->pShutdownTask );
+	}
+	else
+	{
+		Release( pTask->pArgs );
 
-	ParseIntoArgs( args, &argc, &pTask->pArgs );
-	// insert a TEXTSTR pointer so we can include the task name in the args... prebuilt for launching.
-	pTask->pArgs = (TEXTSTR*)Preallocate( pTask->pArgs, SizeOfMemBlock( pTask->pArgs ) + sizeof( TEXTSTR ) );
-	pTask->pArgs[0] = StrDup( pTask->pTask );
+		ParseIntoArgs( args, &argc, &pTask->pArgs );
+		// insert a TEXTSTR pointer so we can include the task name in the args... prebuilt for launching.
+		pTask->pArgs = (TEXTSTR*)Preallocate( pTask->pArgs, SizeOfMemBlock( pTask->pArgs ) + sizeof( TEXTSTR ) );
+		pTask->pArgs[0] = StrDup( pTask->pTask );
+	}
 	return;
 }
 
 //---------------------------------------------------------------------------
 
-TEXTCHAR *GetTaskName( PLOAD_TASK pTask )
-{
-	return pTask->pName;
-}
-
-//---------------------------------------------------------------------------
-
-TEXTCHAR *GetTaskArgs( PLOAD_TASK pTask )
+TEXTCHAR *GetTaskArgs( PLOAD_TASK pTask, LOGICAL bShutdown )
 {
 	static TEXTCHAR args[4096];
 	int len = 0, n;
 	args[0] = 0;
 	// arg[0] should be the same as program name...
-	for( n = 1; pTask->pArgs && pTask->pArgs[n]; n++ )
+	for( n = 1; bShutdown?(pTask->pShutdownArgs && pTask->pShutdownArgs[n]):(pTask->pArgs && pTask->pArgs[n]); n++ )
 	{
-		if( pTask->pArgs[n][0] == 0 )
+		if( (bShutdown?pTask->pShutdownArgs[n][0]:pTask->pArgs[n][0]) == 0 )
 			len += snprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), WIDE("%s\"\""), n>1?WIDE(" "):WIDE("") );
-		else if( StrChr( pTask->pArgs[n], ' ' ) )
-			len += snprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), WIDE("%s\"%s\""), n>1?WIDE(" "):WIDE(""), pTask->pArgs[n] );
+		else if( StrChr( bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n], ' ' ) )
+		{
+			len += snprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), WIDE("%s\"%s\""), n>1?WIDE(" "):WIDE(""), (bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n]) );
+		}
 		else
-			len += snprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), WIDE("%s%s"), n>1?WIDE(" "):WIDE(""), pTask->pArgs[n] );
+			len += snprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), WIDE("%s%s"), n>1?WIDE(" "):WIDE(""), (bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n]) );
 	}
 	return args;
-}
-
-//---------------------------------------------------------------------------
-
-void SetTaskName( PLOAD_TASK pTask, TEXTCHAR *p )
-{
-	StrCpyEx( pTask->pName, p, sizeof( pTask->pName )/sizeof( TEXTCHAR ) );
-	if( pTask->button )
-		InterShell_SetButtonText( pTask->button, p );
 }
 
 //---------------------------------------------------------------------------
@@ -594,10 +597,20 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 		if( pTask->flags.bButton ) // otherwise security will be checked on the non-button task
 			SetupSecurityEdit( frame, (PTRSZVAL)&pTask->security_modules );
 
-		SetControlText( GetControl( frame, EDIT_TASK_FRIENDLY_NAME ), GetTaskName( pTask ) );
+		{
+			TEXTCHAR buf[256];
+			if( pTask->button )
+				InterShell_GetButtonText( pTask->button, buf, 256 );
+			else
+				StrCpyEx( buf, pTask->pName, 256 );
+			SetControlText( GetControl( frame, EDIT_TASK_FRIENDLY_NAME ), buf );
+		}
 		SetControlText( GetControl( frame, TXT_TASK_NAME ), pTask->pTask );
 		SetControlText( GetControl( frame, TXT_TASK_PATH ), pTask->pPath );
-		SetControlText( GetControl( frame, TXT_TASK_ARGS ), GetTaskArgs( pTask ) );
+		SetControlText( GetControl( frame, TXT_TASK_ARGS ), GetTaskArgs( pTask, FALSE ) );
+		SetControlText( GetControl( frame, TXT_SHUTDOWN_TASK_NAME ), pTask->pShutdownTask );
+		SetControlText( GetControl( frame, TXT_SHUTDOWN_TASK_PATH ), pTask->pShutdownPath );
+		SetControlText( GetControl( frame, TXT_SHUTDOWN_TASK_ARGS ), GetTaskArgs( pTask, TRUE ) );
 		snprintf( menuname, sizeof(menuname), WIDE("%ld"), pTask->launch_width );
 		SetControlText( GetControl( frame, EDIT_TASK_LAUNCH_X ), menuname );
 		snprintf( menuname, sizeof(menuname), WIDE("%ld"), pTask->launch_height );
@@ -651,8 +664,10 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 		// Get info from dialog...
 		GetControlText( GetControl( frame, TXT_TASK_NAME ), pTask->pTask, sizeof( pTask->pTask ) );
 		GetControlText( GetControl( frame, TXT_TASK_PATH ), pTask->pPath, sizeof( pTask->pPath ) );
+		GetControlText( GetControl( frame, TXT_SHUTDOWN_TASK_NAME ), pTask->pShutdownTask, sizeof( pTask->pShutdownTask ) );
+		GetControlText( GetControl( frame, TXT_SHUTDOWN_TASK_PATH ), pTask->pShutdownPath, sizeof( pTask->pShutdownPath ) );
 		GetControlText( GetControl( frame, EDIT_TASK_FRIENDLY_NAME ), menuname, sizeof( menuname ) );
-		SetTaskName( pTask, menuname );
+      InterShell_SetButtonText( pTask->button, menuname );
 		GetControlText( GetControl( frame, EDIT_TASK_LAUNCH_X ), args, sizeof( args ) );
 		pTask->launch_width = atoi( args );
 		GetControlText( GetControl( frame, EDIT_TASK_LAUNCH_Y ), args, sizeof( args ) );
@@ -758,7 +773,10 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 		}
 		GetControlText( GetControl( frame, TXT_TASK_ARGS )
 						  , args, sizeof( args ) );
-		SetTaskArguments( pTask, args );
+		SetTaskArguments( pTask, FALSE, args );
+		GetControlText( GetControl( frame, TXT_SHUTDOWN_TASK_ARGS )
+						  , args, sizeof( args ) );
+		SetTaskArguments( pTask, TRUE, args );
 		if( bVisual )
 			GetCommonButtonControls( frame );
 	}
@@ -820,6 +838,7 @@ void DestroyTask( PLOAD_TASK *ppTask )
 			}
 		}
 		DeleteList( &pTask->spawns );
+
 		if( pTask->pArgs )
 		{
 			TEXTCHAR **pp;
@@ -831,6 +850,18 @@ void DestroyTask( PLOAD_TASK *ppTask )
 			}
 			Release( pTask->pArgs );
 			pTask->pArgs = NULL;
+		}
+		if( pTask->pShutdownArgs )
+		{
+			TEXTCHAR **pp;
+			pp = pTask->pShutdownArgs;
+			while( pp && pp[0] )
+			{
+				Release( pp[0] );
+				pp++;
+			}
+			Release( pTask->pShutdownArgs );
+			pTask->pShutdownArgs = NULL;
 		}
 		DeleteLink( &l.autoload, pTask );
 		UnlinkThing( pTask );
@@ -865,7 +896,7 @@ static LOGICAL IsTaskRunning( PLOAD_TASK pTask )
 void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task_ended );
 //---------------------------------------------------------------------------
 
-void RunATask( PLOAD_TASK pTask, int bWaitInRoutine )
+void RunATask( PLOAD_TASK pTask, int bWaitInRoutine, LOGICAL bShutdown )
 {
 	//PLOAD_TASK pTask = (PLOAD_TASK)psv;
 	PTASK_INFO task;
@@ -896,7 +927,7 @@ void RunATask( PLOAD_TASK pTask, int bWaitInRoutine )
 	// else if allowed, okay
 	// if not allowed and not disallowed, okay
 
-	if( pTask->flags.bExclusive )
+	if( !bShutdown && pTask->flags.bExclusive )
 	{
 		LIST_FORALL( pTask->spawns, idx, PTASK_INFO, task )
 		{
@@ -920,14 +951,21 @@ void RunATask( PLOAD_TASK pTask, int bWaitInRoutine )
 			SetResolution( pTask, pTask->launch_width, pTask->launch_height, FALSE );
 		}
 	}
-	xlprintf(LOG_ALWAYS)( WIDE("Launching program... %s[%s] in %s"), pTask->pTask, GetTaskArgs(pTask), pTask->pPath );
-	pTask->last_lauch_time = timeGetTime();
-	pTask->launch_count++;
+	xlprintf(LOG_ALWAYS)( WIDE("Launching program... %s[%s] in %s"), pTask->pTask, GetTaskArgs(pTask, bShutdown), pTask->pPath );
+	if( !bShutdown )
+	{
+		pTask->last_lauch_time = timeGetTime();
+		pTask->launch_count++;
+	}
 	{
 		TEXTCHAR buffer1[256];
 		TEXTCHAR buffer2[256];
-		CTEXTSTR taskname = StrDup( InterShell_TranslateLabelText( NULL, buffer1, sizeof( buffer1 ), pTask->pTask ) );
-		CTEXTSTR path = StrDup( InterShell_TranslateLabelText( NULL, buffer2, sizeof( buffer2 ), pTask->pPath ) );
+		CTEXTSTR taskname = StrDup( InterShell_TranslateLabelText( NULL
+																					, buffer1, sizeof( buffer1 )
+																					, bShutdown?pTask->pShutdownTask:pTask->pTask ) );
+		CTEXTSTR path = StrDup( InterShell_TranslateLabelText( NULL
+																			  , buffer2, sizeof( buffer2 )
+																			  , bShutdown?pTask->pShutdownPath:pTask->pPath ) );
 		TEXTSTR *args;
 		if( pTask->pArgs )
 		{
@@ -936,7 +974,9 @@ void RunATask( PLOAD_TASK pTask, int bWaitInRoutine )
 			for( n = 0; args && args[n]; n++ ); // just count.
 				args = NewArray( TEXTSTR, (n+1) );
 			for( n = 0; pTask->pArgs[n]; n++ )
-				args[n] = StrDup( InterShell_TranslateLabelText( NULL, buffer1, sizeof( buffer1 ), pTask->pArgs[n] ) );
+				args[n] = StrDup( InterShell_TranslateLabelText( NULL
+																			  , buffer1, sizeof( buffer1 )
+																			  , bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n] ) );
 			args[n] = pTask->pArgs[n]; // copy NULL too.
 		}
 		else
@@ -1070,7 +1110,14 @@ void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task_ended )
 	// don't check ended while starting...
 	while( pTask->flags.bStarting )
 		Relinquish();
-	lprintf( WIDE("%s ended - refocus menu..."), pTask->pName );
+	{
+		TEXTCHAR buf[64];
+      if( pTask->button )
+			InterShell_GetButtonText( pTask->button, buf, 64 );
+		else
+         StrCpyEx( buf, pTask->pName, 64 );
+		lprintf( WIDE("%s ended - refocus menu..."), buf );
+	}
 	for( tmp = l.tasklist; (!marked) && tmp; tmp = tmp->next )
 	{
 		//lprintf( WIDE("looking at task %p..."), tmp );
@@ -1139,7 +1186,7 @@ void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task_ended )
 					pTask->flags.bRestart = 0;
 				}
 				else
-					RunATask( pTask, InterShell_IsButtonVirtual( pTask->button ) );
+					RunATask( pTask, InterShell_IsButtonVirtual( pTask->button ), FALSE );
 			}
 			// during exit, no point to updating...
 			if( !l.flags.bExit )
@@ -1180,6 +1227,12 @@ static void KillSpawnedProgram( PLOAD_TASK tasks )
 				filename++;
 			else
 				filename = fullname;
+
+			if( tasks->pShutdownTask[0] )
+			{
+            // run and wait there always.  This must complete before continue.
+            RunATask( tasks, TRUE, TRUE );
+			}
 
 			tasks->flags.bRestart = 0;
 #ifdef WIN32
@@ -1270,7 +1323,7 @@ OnKeyPressEvent(  WIDE("Task") )( PTRSZVAL psv )
 	}
 	else
 	{
-		RunATask( (PLOAD_TASK)psv, InterShell_IsButtonVirtual( ((PLOAD_TASK)psv)->button ) );
+		RunATask( (PLOAD_TASK)psv, InterShell_IsButtonVirtual( ((PLOAD_TASK)psv)->button ), FALSE );
 	}
 	if( ((PLOAD_TASK)psv)->button )
 	{
@@ -1384,7 +1437,7 @@ int LaunchAutoTasks( int bCaller )
 			|| ( !bCaller && !( task->flags.bLaunchWhenCallerUp ) ) )
 		{
 			launched = 1;
-			RunATask( task, (task->flags.bWaitForTask||task->flags.bExclusive )&&!task->flags.bBackground );
+			RunATask( task, (task->flags.bWaitForTask||task->flags.bExclusive )&&!task->flags.bBackground, FALSE );
 		}
 	}
    if( launched )
@@ -1472,12 +1525,6 @@ OnFinishAllInit( WIDE("tasks") )( void )
    // to the button text.  Other tasks have their own names (auto task/auto caller task)
 	for( tmp = l.tasklist; tmp; tmp = tmp->next )
 	{
-		if( tmp->flags.bButton )
-		{
-         TEXTCHAR buffer[256];
-         InterShell_GetButtonText( tmp->button, buffer, 256 );
-			SetTaskName( tmp, buffer );
-		}
 	}
 	ThreadTo( AutoTaskStarter, 0 );
 	ThreadTo( WaitForCallerThread, 1 );
@@ -1513,7 +1560,7 @@ static LOGICAL CPROC PressDosKey( PTRSZVAL psv, _32 key )
 		if( psv == 'S' )
 		{
 			if( l.shell )
-				RunATask( l.shell, 0 );
+				RunATask( l.shell, 0, FALSE );
 			reset = 0;
 		}
 		break;
@@ -1533,7 +1580,7 @@ static LOGICAL CPROC PressDosKey( PTRSZVAL psv, _32 key )
 		if( psv == 'N' )
 		{
 			if( l.windows_shell )
-				RunATask( l.windows_shell, 0 );
+				RunATask( l.windows_shell, 0, FALSE );
 			reset3 = 0;
 		}
 		break;
@@ -1552,7 +1599,7 @@ static LOGICAL CPROC PressDosKey( PTRSZVAL psv, _32 key )
 		if( psv == 'S' )
 		{
 			if( l.power_shell )
-				RunATask( l.power_shell, 0 );
+				RunATask( l.power_shell, 0, FALSE );
 			reset2 = 0;
 		}
 		break;
@@ -1572,7 +1619,7 @@ static LOGICAL CPROC PressDosKey( PTRSZVAL psv, _32 key )
 		if( psv == 'I' )
 		{
 			if( l.power_shell_ise )
-				RunATask( l.power_shell_ise, 0 );
+				RunATask( l.power_shell_ise, 0, FALSE );
 			reset4 = 0;
 		}
 		break;
@@ -1601,21 +1648,20 @@ OnFinishInit( WIDE("TasksShellKeys") )( void )
 	   pTask = (PLOAD_TASK)psv;
 
 
-PTRSZVAL CPROC ConfigSetTaskName( PTRSZVAL psv, arg_list args )
+static PTRSZVAL CPROC ConfigSetTaskName( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, text );
 	PSV_PARAM;
 	if( pTask )
 	{
-		SetTaskName( pTask, text );
-		//InterShell_SetButtonText( pTask->button, GetTaskName( pTask ) );
+		StrCpyEx( pTask->pName, text, sizeof( pTask->pName )/sizeof( TEXTCHAR ) );
 	}
 	return psv;
 }
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetTaskPath( PTRSZVAL psv, arg_list args )
+static PTRSZVAL CPROC SetTaskPath( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, text );
 	PSV_PARAM;
@@ -1627,7 +1673,19 @@ PTRSZVAL CPROC SetTaskPath( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
-PTRSZVAL CPROC SetTaskTask( PTRSZVAL psv, arg_list args )
+static PTRSZVAL CPROC SetShutdownTaskPath( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, TEXTCHAR *, text );
+	PSV_PARAM;
+	//lprintf( "Setting path on task %p", psv );
+	if( pTask )
+		StrCpyEx( pTask->pShutdownPath, text, sizeof( pTask->pShutdownPath )/sizeof(TEXTCHAR) );
+	return psv;
+}
+
+//---------------------------------------------------------------------------
+
+static PTRSZVAL CPROC SetTaskTask( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, text );
 	PSV_PARAM;
@@ -1638,12 +1696,34 @@ PTRSZVAL CPROC SetTaskTask( PTRSZVAL psv, arg_list args )
 
 //---------------------------------------------------------------------------
 
+static PTRSZVAL CPROC SetShutdownTaskTask( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, TEXTCHAR *, text );
+	PSV_PARAM;
+	if( pTask )
+		StrCpyEx( pTask->pShutdownTask, text, sizeof( pTask->pShutdownTask ) );
+	return psv;
+}
+
+//---------------------------------------------------------------------------
+
 PTRSZVAL CPROC SetTaskArgs( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, text );
 	PSV_PARAM;
 	if( pTask )
-		SetTaskArguments( pTask, text );
+		SetTaskArguments( pTask, FALSE, text );
+	//strcpy( pTask->name, text );
+	return psv;
+}
+//---------------------------------------------------------------------------
+
+PTRSZVAL CPROC SetShutdownTaskArgs( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, TEXTCHAR *, text );
+	PSV_PARAM;
+	if( pTask )
+		SetTaskArguments( pTask, TRUE, text );
 	//strcpy( pTask->name, text );
 	return psv;
 }
@@ -1818,6 +1898,9 @@ void AddTaskConfigs( PCONFIG_HANDLER pch )
 	AddConfigurationMethod( pch, WIDE("path=%m"), SetTaskPath );
 	AddConfigurationMethod( pch, WIDE("program=%m"), SetTaskTask );
 	AddConfigurationMethod( pch, WIDE("args=%m"), SetTaskArgs );
+	AddConfigurationMethod( pch, WIDE("shutdown path=%m"), SetShutdownTaskPath );
+	AddConfigurationMethod( pch, WIDE("shutdown program=%m"), SetShutdownTaskTask );
+	AddConfigurationMethod( pch, WIDE("shutdown args=%m"), SetShutdownTaskArgs );
 	AddConfigurationMethod( pch, WIDE("Security Token for [%m]%m"), SetTaskSecurity );
 	AddConfigurationMethod( pch, WIDE("Launch at %i by %i"), SetLaunchResolution );
 	AddConfigurationMethod( pch, WIDE("Launch at least %i by %i"), SetLeastLaunchResolution );
@@ -1996,18 +2079,25 @@ static void DumpTask( FILE *file, PLOAD_TASK pTask, int sub )
 	if( pTask )
 	{
 		CTEXTSTR p;
-      InterShell_SaveSecurityInformation( file, (PTRSZVAL)pTask );
+		InterShell_SaveSecurityInformation( file, (PTRSZVAL)pTask );
+
 		if( sub )
 		{
-			if( ( p = EscapeMenuString( GetTaskName( pTask ) ) ) )
+			if( ( p = EscapeMenuString( pTask->pName ) ) )
 				fprintf( file, WIDE("%sname=%s\n"), sub?"\t":InterShell_GetSaveIndent(), p );
 		}
 		if( ( p = EscapeMenuString( pTask->pPath ) ) )
 			fprintf( file, WIDE("%spath=%s\n"), sub?"\t":InterShell_GetSaveIndent(), p );
 		if( ( p =  EscapeMenuString( pTask->pTask ) ) )
 			fprintf( file, WIDE("%sprogram=%s\n"), sub?"\t":InterShell_GetSaveIndent(), p );
-		if( ( p =  EscapeMenuString( GetTaskArgs( pTask ) ) ) )
+		if( ( p =  EscapeMenuString( GetTaskArgs( pTask, FALSE ) ) ) )
 			fprintf( file, WIDE("%sargs=%s\n"), sub?"\t":InterShell_GetSaveIndent(), p );
+		if( ( p = EscapeMenuString( pTask->pShutdownPath ) ) )
+			fprintf( file, WIDE("%sshutdown path=%s\n"), sub?"\t":InterShell_GetSaveIndent(), p );
+		if( ( p =  EscapeMenuString( pTask->pShutdownTask ) ) )
+			fprintf( file, WIDE("%sshutdown program=%s\n"), sub?"\t":InterShell_GetSaveIndent(), p );
+		if( ( p =  EscapeMenuString( GetTaskArgs( pTask, TRUE ) ) ) )
+			fprintf( file, WIDE("%sshutdown args=%s\n"), sub?"\t":InterShell_GetSaveIndent(), p );
       if( pTask->flags.bLaunchAtLeast )
 			fprintf( file, WIDE("%slaunch at least %d by %d\n"), sub?"\t":InterShell_GetSaveIndent(), pTask->launch_width, pTask->launch_height );
 		if( pTask->flags.bLaunchAt )
@@ -2143,7 +2233,7 @@ void CPROC EditAutoTaskProperties( PTRSZVAL psv, PSI_CONTROL button )
 		PLOAD_TASK task = (PLOAD_TASK)GetItemData( pli );
 		EditTaskProperties( (PTRSZVAL)task, button, FALSE );
 		snprintf( buf, sizeof( buf ), WIDE("%s%s%s")
-				  , GetTaskName( task )
+				  , task->pName
 				  , task->flags.bLaunchWhenCallerUp?WIDE("[CALLER]"):WIDE("")
 				  , task->flags.bRestart?WIDE("[RESTART]"):WIDE("") );
 		SetItemText( pli, buf );
@@ -2161,7 +2251,7 @@ void CPROC CreateAutoTaskProperties( PTRSZVAL psv, PSI_CONTROL button )
 	{
 		TEXTCHAR buf[256];
 		snprintf( buf, sizeof( buf ), WIDE("%s%s%s")
-				  , GetTaskName( task )
+				  , task->pName
 				  , task->flags.bLaunchWhenCallerUp?WIDE("[CALLER]"):WIDE("")
 				  , task->flags.bRestart?WIDE("[RESTART]"):WIDE("") );
 		SetItemData( AddListItem( GetNearControl( button, LISTBOX_AUTO_TASKS ), buf ), (PTRSZVAL)task );
@@ -2209,7 +2299,7 @@ OnGlobalPropertyEdit( WIDE("Tasks") )( PSI_CONTROL parent )
 				LIST_FORALL( l.autoload, idx, PLOAD_TASK, task )
 				{
 					snprintf( buf, sizeof( buf ), WIDE("%s%s%s")
-							  , GetTaskName( task )
+							  , task->pName
 							  , task->flags.bLaunchWhenCallerUp?WIDE("[CALLER]"):WIDE("")
 							  , task->flags.bRestart?WIDE("[RESTART]"):WIDE("") );
 					SetItemData( AddListItem( list, buf ), (PTRSZVAL)task );
@@ -2243,7 +2333,8 @@ static void OnCloneControl( WIDE("Task") )( PTRSZVAL psvNew, PTRSZVAL psvOrigina
 	pNewTask->allowed_run_on = NULL;
 	pNewTask->disallowed_run_on = NULL;
 	pNewTask->pArgs = NULL; // don't have args yet... so don't release anything when setting args.
-	SetTaskArguments( pNewTask, GetTaskArgs( pOriginalTask ) );
+	SetTaskArguments( pNewTask, FALSE, GetTaskArgs( pOriginalTask, FALSE ) );
+	SetTaskArguments( pNewTask, TRUE, GetTaskArgs( pOriginalTask, TRUE ) );
 	{
 		POINTER p;
 		INDEX idx;
@@ -2363,7 +2454,9 @@ static LOGICAL OnDropAccept( WIDE("Add Task Button") )( CTEXTSTR file, int x, in
 			if( ext )
 				ext[0] = 0;
 
-			SetTaskName( pTask, pathend+1 );
+			if( pTask->button )
+				InterShell_SetButtonText( pTask->button, pathend+1 );
+
 			StrCpyEx( pTask->pPath, file, 256 );
 
 			pTask->pArgs = NULL;

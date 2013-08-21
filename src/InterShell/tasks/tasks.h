@@ -39,8 +39,11 @@ typedef struct task_tag
    _32 launch_count;
    _32 launch_width, launch_height;
 
-	TEXTCHAR pName[256], pTask[256], pPath[256];
+	TEXTCHAR pName[256];
+	TEXTCHAR pTask[256], pPath[256];
 	TEXTCHAR **pArgs;
+	TEXTCHAR pShutdownTask[256], pShutdownPath[256];
+	TEXTCHAR **pShutdownArgs;
 	//CDATA color, textcolor;
 	//char pImage[256];
 	PLIST spawns;
