@@ -526,10 +526,18 @@ TEXTCHAR *GetTaskArgs( PLOAD_TASK pTask, LOGICAL bShutdown )
 	{
 		if( (bShutdown?pTask->pShutdownArgs[n][0]:pTask->pArgs[n][0]) == 0 )
 			len += snprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), WIDE("%s\"\""), n>1?WIDE(" "):WIDE("") );
-		else if( StrChr( bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n], ' ' )
-				 || StrChr( bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n], '-' ) )
+		else if( StrChr( bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n], ' ' ) )
 		{
-			len += snprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), WIDE("%s\"%s\""), n>1?WIDE(" "):WIDE("")
+			if( StrChr( bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n], '\"' ) )
+				len += snprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), WIDE("%s\'%s\'"), n>1?WIDE(" "):WIDE("")
+									, (bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n]) );
+			else
+				len += snprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), WIDE("%s\'%s\'"), n>1?WIDE(" "):WIDE("")
+									, (bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n]) );
+		}
+		else if( StrChr(bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n], '\"' ) )
+		{
+			len += snprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), WIDE("%s\'%s\'"), n>1?WIDE(" "):WIDE("")
 								, (bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n]) );
 		}
 		else
