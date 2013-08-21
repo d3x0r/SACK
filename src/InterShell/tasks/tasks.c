@@ -481,14 +481,15 @@ void SetTaskArguments( PLOAD_TASK pTask, LOGICAL bShutdown, TEXTCHAR *args )
 {
 	int argc;
 	TEXTCHAR **pp;
-	pp = pTask->pArgs;
-	while( pp && pp[0] )
-	{
-		Release( pp[0] );
-		pp++;
-	}
+
 	if( bShutdown )
 	{
+		pp = pTask->pShutdownArgs;
+		while( pp && pp[0] )
+		{
+			Release( pp[0] );
+			pp++;
+		}
 		Release( pTask->pShutdownArgs );
 		ParseIntoArgs( args, &argc, &pTask->pShutdownArgs );
 		// insert a TEXTSTR pointer so we can include the task name in the args... prebuilt for launching.
@@ -497,6 +498,12 @@ void SetTaskArguments( PLOAD_TASK pTask, LOGICAL bShutdown, TEXTCHAR *args )
 	}
 	else
 	{
+		pp = pTask->pArgs;
+		while( pp && pp[0] )
+		{
+			Release( pp[0] );
+			pp++;
+		}
 		Release( pTask->pArgs );
 
 		ParseIntoArgs( args, &argc, &pTask->pArgs );
@@ -519,12 +526,15 @@ TEXTCHAR *GetTaskArgs( PLOAD_TASK pTask, LOGICAL bShutdown )
 	{
 		if( (bShutdown?pTask->pShutdownArgs[n][0]:pTask->pArgs[n][0]) == 0 )
 			len += snprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), WIDE("%s\"\""), n>1?WIDE(" "):WIDE("") );
-		else if( StrChr( bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n], ' ' ) )
+		else if( StrChr( bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n], ' ' )
+				 || StrChr( bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n], '-' ) )
 		{
-			len += snprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), WIDE("%s\"%s\""), n>1?WIDE(" "):WIDE(""), (bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n]) );
+			len += snprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), WIDE("%s\"%s\""), n>1?WIDE(" "):WIDE("")
+								, (bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n]) );
 		}
 		else
-			len += snprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), WIDE("%s%s"), n>1?WIDE(" "):WIDE(""), (bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n]) );
+			len += snprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), WIDE("%s%s"), n>1?WIDE(" "):WIDE("")
+								, (bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n]) );
 	}
 	return args;
 }
@@ -967,20 +977,40 @@ void RunATask( PLOAD_TASK pTask, int bWaitInRoutine, LOGICAL bShutdown )
 																			  , buffer2, sizeof( buffer2 )
 																			  , bShutdown?pTask->pShutdownPath:pTask->pPath ) );
 		TEXTSTR *args;
-		if( pTask->pArgs )
+		if( bShutdown )
 		{
-			int n;
-			args = pTask->pArgs;
-			for( n = 0; args && args[n]; n++ ); // just count.
+			if( pTask->pShutdownArgs )
+			{
+				int n;
+				args = pTask->pShutdownArgs;
+				for( n = 0; args && args[n]; n++ ); // just count.
 				args = NewArray( TEXTSTR, (n+1) );
-			for( n = 0; pTask->pArgs[n]; n++ )
-				args[n] = StrDup( InterShell_TranslateLabelText( NULL
-																			  , buffer1, sizeof( buffer1 )
-																			  , bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n] ) );
-			args[n] = pTask->pArgs[n]; // copy NULL too.
+				for( n = 0; pTask->pShutdownArgs[n]; n++ )
+					args[n] = StrDup( InterShell_TranslateLabelText( NULL
+																				  , buffer1, sizeof( buffer1 )
+																				  , bShutdown?pTask->pShutdownArgs[n]:pTask->pShutdownArgs[n] ) );
+				args[n] = pTask->pShutdownArgs[n]; // copy NULL too.
+			}
+			else
+				args = NULL;
 		}
 		else
-			args = NULL;
+		{
+			if( pTask->pArgs )
+			{
+				int n;
+				args = pTask->pArgs;
+				for( n = 0; args && args[n]; n++ ); // just count.
+				args = NewArray( TEXTSTR, (n+1) );
+				for( n = 0; pTask->pArgs[n]; n++ )
+					args[n] = StrDup( InterShell_TranslateLabelText( NULL
+																				  , buffer1, sizeof( buffer1 )
+																				  , bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n] ) );
+				args[n] = pTask->pArgs[n]; // copy NULL too.
+			}
+			else
+				args = NULL;
+		}
 		pTask->flags.bStarting = 1;
 #ifndef UNDER_CE
 		if( pTask->flags.bCaptureOutput )
@@ -2341,7 +2371,8 @@ static void OnCloneControl( WIDE("Task") )( PTRSZVAL psvNew, PTRSZVAL psvOrigina
 	pNewTask->allowed_run_on = NULL;
 	pNewTask->disallowed_run_on = NULL;
 	pNewTask->pArgs = NULL; // don't have args yet... so don't release anything when setting args.
-	SetTaskArguments( pNewTask, FALSE, GetTaskArgs( pOriginalTask, FALSE ) );
+	pNewTask->pShutdownArgs = NULL; // don't have args yet... so don't release anything when setting args.
+ 	SetTaskArguments( pNewTask, FALSE, GetTaskArgs( pOriginalTask, FALSE ) );
 	SetTaskArguments( pNewTask, TRUE, GetTaskArgs( pOriginalTask, TRUE ) );
 	{
 		POINTER p;
