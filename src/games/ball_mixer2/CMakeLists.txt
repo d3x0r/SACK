@@ -46,18 +46,6 @@ INSTALL_INTERSHELL_WIDGETS( bin )
 
 PROJECT( ball_mixer2 )
 
-if( NOT __ANDROID__ )
-if( EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../altanik )
-SET( ALTANIK_ROOT  ${CMAKE_CURRENT_SOURCE_DIR}/../../../../altanik )
-SET( EXTRA_SOURCES remote_hook.cpp )
-ADD_DEFINITIONS( -DALTANIK_EXISTS )
-endif( EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../altanik )
-
-if( EXTRA_SOURCES )
-include_directories( ${ALTANIK_ROOT}/include )
-endif( EXTRA_SOURCES )
-endif( NOT __ANDROID__ )
-
 
 
 include_directories( ../include )
@@ -78,7 +66,6 @@ endif( __ANDROID__ )
 ADD_LIBRARY( ${PROJECT_NAME} SHARED
 ${FIRST_GCC_LIBRARY_SOURCE} 
   land.cpp
-  ${EXTRA_SOURCES}
   shader.cpp
 ${LAST_GCC_LIBRARY_SOURCE} 
 )
@@ -109,20 +96,6 @@ else( WIN32 )
         	LIBRARY DESTINATION lib
 	        ARCHIVE DESTINATION lib )
 endif( WIN32 )
-
-if( ALTANIK_ROOT )
-set( MILK2_SYSTEM ON )
-set( MILK_PATH milk2 )
-set( USE_SACK_WIDGETS ON )
-
-# set this to install altanik_core in correct directory
-set( INSTALL_ALONG bin )
-
-# set WIDGET_LIBRARY_ONLY; do not install full resources
-set( WIDGET_LIBRARY_ONLY ON )
-add_subdirectory( ${ALTANIK_ROOT}/src/fut altanik_core )
-add_subdirectory( ${ALTANIK_ROOT}/src/fut/flashdrive flashdrive )
-endif( ALTANIK_ROOT )
 
 
 # get the system libraries..
