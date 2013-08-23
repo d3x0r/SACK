@@ -512,6 +512,7 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, _32 key )
 {
 	ValidatedControlData( PEDIT, EDIT_FIELD, pe, pc );
 	int used_key = 0;
+	int updated = 0;
 	TEXTCHAR ch;
 	if( !pe || pe->flags.bReadOnly )
 		return 0;
@@ -686,21 +687,32 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, _32 key )
 #endif
 		case KEY_DELETE:
 			if( pe->flags.bSelectSet )
-				CutEditText( pe, &pc->caption.text );
-			else
 			{
-				pe->flags.bSelectSet = 1;
-				pe->select_end =
-					pe->select_start = pe->cursor_pos;
+				updated = 1;
 				CutEditText( pe, &pc->caption.text );
 			}
-			SmudgeCommon( pc );
+			else
+			{
+				if( pe->cursor_pos != pe->cursor_pos )
+				{
+					pe->flags.bSelectSet = 1;
+					pe->select_end =
+						pe->select_start = pe->cursor_pos;
+					CutEditText( pe, &pc->caption.text );
+					updated = 1;
+				}
+			}
+			if( updated )
+				SmudgeCommon( pc );
 			used_key = 1;
 			break;
 		case KEY_BACKSPACE:
 			//Log( WIDE("Backspace?!") );
 			if( pe->flags.bSelectSet )
+			{
+				updated = 1;
 				CutEditText( pe, &pc->caption.text );
+			}
 			else
 			{
 				if( pe->cursor_pos )
@@ -709,9 +721,11 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, _32 key )
 					pe->select_end =
 						pe->select_start = pe->cursor_pos-1;
 					CutEditText( pe, &pc->caption.text );
+					updated = 1;
 				}
 			}
-			SmudgeCommon( pc );
+			if( updated )
+				SmudgeCommon( pc );
 			used_key = 1;
 			break;
 #ifndef __ANDROID__
