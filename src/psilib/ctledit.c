@@ -55,7 +55,7 @@ CTEXTSTR GetString( PEDIT pe, CTEXTSTR text, size_t length )
 			temp[n] = '*';
 		}
 		temp[n] = 0;
-      return temp;
+		return temp;
 	}
 
 	return text;
@@ -69,9 +69,9 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 	SFTFont font;
 	size_t ofs;
 	int x, CursX;
-   LOGICAL string_fits = FALSE;
+	LOGICAL string_fits = FALSE;
 	CTEXTSTR caption_text = GetText( pc->caption.text);
-   CTEXTSTR output_string;
+	CTEXTSTR output_string;
 
 	_32 height;
 	BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor(pc)[EDIT_BACKGROUND] );
@@ -233,10 +233,10 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
 	}
 	else
 	{
-      CTEXTSTR caption_text = GetText( pc->caption.text);
+		CTEXTSTR caption_text = GetText( pc->caption.text);
 		//cx = ( x - LEFT_SIDE_PAD ) / characters...
 		// so given any font - variable size, we have to figure out which
-      // character is on this line...
+		// character is on this line...
 		for( cx = 1; ( cx <= ( len - pe->Start ) ); cx++ )
 		{
 			if( GetStringSizeFontEx( caption_text + pe->Start, cx, &width, NULL, font ) )
@@ -268,7 +268,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
 	{
 		cx = len - pe->Start;
 		// cx max...
-      //lprintf( WIDE("Past end of string...") );
+		//lprintf( WIDE("Past end of string...") );
 	}
 	moving_left = 0;
 	moving_right = 0;
@@ -280,7 +280,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
 			if( pe->cursor_pos > (cx+pe->Start) )
 				moving_left = 1;
 			else
-            moving_right = 1;
+				moving_right = 1;
 			pe->cursor_pos = cx + pe->Start;
 			SmudgeCommon( pc );
 		}
@@ -290,7 +290,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
    //lprintf( "alright we have %d,%d,%d,%d", pe->select_anchor, pe->Start, pe->select_start, cx );
 	if( b & MK_LBUTTON )
 	{
-      //cx -= 1;
+		//cx -= 1;
 		if( !( _b & MK_LBUTTON ) )
 		{
 			// we're not really moving, we just started...
@@ -299,11 +299,11 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
 			if( (cx + pe->Start) < len )
 			{
 				//lprintf( WIDE("Setting select start, end at %d,%d,%d"), cx + pe->Start, cx, pe->Start );
-            pe->select_anchor = cx + pe->Start;
+				pe->select_anchor = cx + pe->Start;
 			}
 			else
 			{
-            //lprintf( WIDE("Setting select start, end at %d,%d"), len-1, len-1 );
+				//lprintf( WIDE("Setting select start, end at %d,%d"), len-1, len-1 );
 				pe->select_anchor = len;
 			}
 			//lprintf( WIDE("--- Setting begin and end... hmm first button I guess Select...") );
@@ -331,7 +331,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
 		}
 	}
 	_b = b;
-   return 1;
+	return 1;
 }
 
 //---------------------------------------------------------------------------
@@ -356,8 +356,8 @@ void CutEditText( PEDIT pe, PTEXT *caption )
 			GetText( *caption )[pe->select_start] = 0;
 		}
 		pe->cursor_pos = pe->select_start;
-	 }
-	 pe->flags.bSelectSet = 0;
+	}
+	pe->flags.bSelectSet = 0;
 }
 
 static void InsertAChar( PEDIT pe, PTEXT *caption, TEXTCHAR ch )
@@ -596,7 +596,7 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, _32 key )
 					}
 					else
 					{
-                  if( pe->flags.bSelectSet )
+						if( pe->flags.bSelectSet )
 						{
 							if( oldpos == (pe->select_end+1) )
 							{
@@ -765,7 +765,7 @@ PSI_CONTROL SetEditControlReadOnly( PSI_CONTROL pc, LOGICAL bEnable )
 	ValidatedControlData( PEDIT, EDIT_FIELD, pe, pc );
 	if( pe )
 	{
-      //lprintf( WIDE("Setting readonly attribut of control to %d"), bEnable );
+		//lprintf( WIDE("Setting readonly attribut of control to %d"), bEnable );
 		pe->flags.bReadOnly = bEnable;
 	}
 	return pc;
@@ -778,7 +778,7 @@ PSI_CONTROL SetEditControlPassword( PSI_CONTROL pc, LOGICAL bEnable )
 	ValidatedControlData( PEDIT, EDIT_FIELD, pe, pc );
 	if( pe )
 	{
-      //lprintf( WIDE("Setting readonly attribut of control to %d"), bEnable );
+		//lprintf( WIDE("Setting readonly attribut of control to %d"), bEnable );
 		pe->flags.bPassword = bEnable;
 	}
 	return pc;
@@ -799,7 +799,7 @@ static void OnChangeCaption( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 	else
 		pe->cursor_pos = 0;
 
-   pe->nCaptionSize = pe->cursor_pos+1;
+	pe->nCaptionSize = pe->cursor_pos+1;
 	pe->nCaptionUsed = pe->nCaptionSize-1;
 
 	pe->Start = 0;
