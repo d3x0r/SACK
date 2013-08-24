@@ -550,6 +550,8 @@ int CPROC TextMatchLocate( PTRSZVAL key1, PTRSZVAL key2 )
 		// cannot match this.... but should
 		// try to choose a direction
 		int dir = StrCaseCmpEx( (CTEXTSTR)key1, (CTEXTSTR)key2, k2len );
+		if( dir == 0 )
+			return 100;
 		if( dir > 0 )
 			return 1;
 		return -1;
@@ -602,27 +604,46 @@ POINTER LocateInBinaryTree( PTREEROOT root, PTRSZVAL key
 		if( dir == 100 )
 		{
 			PTREENODE one_up;
+			PTREENODE one_down;
 			// this matched, in an inexact length.
 			// to be really careful we should match one up and one down.
 			// well, we'll match better only if we had exact length
-         // so - go up one node, until we find exact length
+			// so - go up one node, until we find exact length
 			//lprintf( " - Found a near match..." );
 			one_up = node;
+			one_down = node;
 			do
 			{
 				GetLesserNodeExx( root, &one_up );
-				dir = fuzzy( key, one_up->key );
-				if( dir == 100 )
-					continue;
-				if( dir == 0 )
+				if( one_up )
 				{
-					root->lastfound = one_up;
-					return (one_up->userdata);
+					dir = fuzzy( key, one_up->key );
+					if( dir == 100 )
+						continue;
+					if( dir == 0 )
+					{
+						root->lastfound = one_up;
+						return (one_up->userdata);
+					}
+					else
+						break;
 				}
-				else
-					break;
+				GetGreaterNodeExx( root, &one_down );
+				if( one_down )
+				{
+					dir = fuzzy( key, one_down->key );
+					if( dir == 100 )
+						continue;
+					if( dir == 0 )
+					{
+						root->lastfound = one_down;
+						return (one_down->userdata);
+					}
+					else
+						break;
+				}
 			}
-			while( 1 );
+			while( one_up || one_down );
 			root->lastfound = node;
 			return( node->userdata );
 		}
@@ -637,7 +658,7 @@ POINTER LocateInBinaryTree( PTREEROOT root, PTRSZVAL key
 		else
 			break;
 	}
-   root->lastfound = node;
+	root->lastfound = node;
 	if( node )
 		return node->userdata;
 	return 0;
