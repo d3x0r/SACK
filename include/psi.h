@@ -226,9 +226,23 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
    Internal
    Registers under
    
-   /psi/control/\<name\>/rtti/draw=(PSI_CONTROL)@void@_@draw                           */
+   /psi/control/\<name\>/rtti/draw=(PSI_CONTROL)@int@_@draw                           */
 #define OnDrawCommon(name)  \
 	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnDrawCommon,WIDE("control"),name WIDE("/rtti"),WIDE("draw"),int,(PSI_CONTROL), __LINE__)
+/* Event given to a control when it needs to draw its decorations after children have updated.
+   Example
+   <code lang="c#">
+   static void OnDrawCommonDecorations(name)( PSI_CONTROL control )
+   {
+      // draw decorations (effects after child controls have drawn)
+   }
+   </code>
+   Internal
+   Registers under
+   
+   /psi/control/\<name\>/rtti/draw_decorations=(PSI_CONTROL)@void@_@draw                           */
+#define OnDrawCommonDecorations(name)  \
+	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnDrawCommonDecorations,WIDE("control"),name WIDE("/rtti"),WIDE("decoration_draw"),void,(PSI_CONTROL), __LINE__)
 /* User event callback called when a mouse event happens over a
    control, unless the control has claimed the mouse, in which
    case the mouse may not be over the control. X and Y are

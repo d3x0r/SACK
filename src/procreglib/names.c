@@ -992,7 +992,7 @@ PROCREG_PROC( PROCEDURE, GetRegisteredProcedureExxx )( PCLASSROOT root, PCLASSRO
 	if( class_root )
 	{
 		PNAME oldname;
-      //TEXTCHAR buf[256];
+		//TEXTCHAR buf[256];
 		//lprintf( WIDE("Found class %s=%p for %s"), name_class, class_root, name );
 		//DumpRegisteredNamesWork( class_root, 5 );
 		oldname = (PNAME)LocateInBinaryTree( class_root->Tree, (PTRSZVAL)name, NULL );
@@ -1008,7 +1008,7 @@ PROCREG_PROC( PROCEDURE, GetRegisteredProcedureExxx )( PCLASSROOT root, PCLASSRO
 				// should compare whether the types match...
 				if( !proc )
 				{
-               Log( WIDE("Failed to load function when requested from tree...") );
+					Log( WIDE("Failed to load function when requested from tree...") );
 				}
 				oldname->data.proc.proc = proc;
 			}
@@ -1017,7 +1017,7 @@ PROCREG_PROC( PROCEDURE, GetRegisteredProcedureExxx )( PCLASSROOT root, PCLASSRO
 		//else
       //   lprintf( WIDE("Failed to find %s in the tree"), buf );
 	}
-   //lprintf( WIDE("Failed to find the class root...") );
+	//lprintf( WIDE("Failed to find the class root...") );
 	return NULL;
 }
 
