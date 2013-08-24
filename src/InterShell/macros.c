@@ -48,6 +48,7 @@ enum {
 	  , BUTTON_ELEMENT_CONFIGURE
 	  , BUTTON_ELEMENT_CLONE
      , BUTTON_ELEMENT_REMOVE
+	 , BUTTON_ELEMENT_CLONE_ELEMENT
 };
 
 PRELOAD( RegisterMacroDialogResources )
@@ -60,6 +61,7 @@ PRELOAD( RegisterMacroDialogResources )
 	EasyRegisterResource( WIDE( "intershell/macros" ), BUTTON_ELEMENT_DOWN, NORMAL_BUTTON_NAME );
 	EasyRegisterResource( WIDE( "intershell/macros" ), BUTTON_ELEMENT_REMOVE, NORMAL_BUTTON_NAME );
 	EasyRegisterResource( WIDE( "intershell/macros" ), BUTTON_ELEMENT_CLONE, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( WIDE( "intershell/macros" ), BUTTON_ELEMENT_CLONE_ELEMENT, NORMAL_BUTTON_NAME );
 	EasyRegisterResource( WIDE( "intershell/macros" ), LIST_MACRO_ELEMENTS, LISTBOX_CONTROL_NAME );
 #define EasyAlias( x, y )   \
 	RegisterClassAlias( WIDE( "psi/resources/intershell/macros/" )y WIDE( "/" )WIDE(#x), WIDE( "psi/resources/application/" ) y WIDE( "/" ) WIDE(#x) )
@@ -100,6 +102,14 @@ static void CPROC MoveElementClone( PTRSZVAL psv, PSI_CONTROL control )
 		LinkLast( button->elements, PMACRO_ELEMENT, pme );
 		FillList( GetNearControl( control, LIST_MACRO_ELEMENTS ), button );
 	}
+}
+
+static void CPROC CloneElement( PTRSZVAL psv, PSI_CONTROL control )
+{
+	PSI_CONTROL list = GetNearControl( control, LIST_MACRO_ELEMENTS );
+	PLISTITEM pli = GetSelectedItem( list );
+	PMACRO_ELEMENT pme = (PMACRO_ELEMENT)GetItemData( pli );
+	InterShell_SetCloneButton( pme->button );
 }
 
 
@@ -318,6 +328,7 @@ static void ConfigureMacroButton( PMACRO_BUTTON button, PSI_CONTROL parent )
 			}
 			SetButtonPushMethod( GetControl( frame, BUTTON_ELEMENT_UP ), MoveElementUp, (PTRSZVAL)button );
 			SetButtonPushMethod( GetControl( frame, BUTTON_ELEMENT_CLONE ), MoveElementClone, (PTRSZVAL)button );
+			SetButtonPushMethod( GetControl( frame, BUTTON_ELEMENT_CLONE_ELEMENT ), CloneElement, (PTRSZVAL)button );
 			SetButtonPushMethod( GetControl( frame, BUTTON_ELEMENT_DOWN ), MoveElementDown, (PTRSZVAL)button );
 			SetButtonPushMethod( GetControl( frame, BUTTON_ELEMENT_CONFIGURE ), ConfigureElement, (PTRSZVAL)button );
 			SetButtonPushMethod( GetControl( frame, BUTTON_ELEMENT_REMOVE ), MoveElementRemove, (PTRSZVAL)button );

@@ -532,7 +532,7 @@ void DestroyButton( PMENU_BUTTON button )
 	if( !canvas )
 		return;
 	if( button == g.clonebutton )
-		g.clonebutton = NULL;
+		InterShell_SetCloneButton( NULL );
 	DeleteLink( &canvas->current_page->controls, button );
 
 	InvokeDestroy( button );
@@ -2745,6 +2745,11 @@ void CloneCommonButtonProperties( PMENU_BUTTON clone, PMENU_BUTTON  clonebutton 
 	//INDEX iSecurityContext; // index into login_history that identifies the context of this login..
 }
 
+void InterShell_SetCloneButton( PMENU_BUTTON button )
+{
+	g.clonebutton = button;
+}
+
 PMENU_BUTTON GetCloneButton( PCanvasData canvas, int px, int py, int bInvisible )
 {
 	if( g.clonebutton )
@@ -2759,8 +2764,8 @@ PMENU_BUTTON GetCloneButton( PCanvasData canvas, int px, int py, int bInvisible 
 			clone = CreateSomeControl( canvas->current_page->frame
 											 , px //- (g.clonebutton->w/2)
 											 , py //- (g.clonebutton->h/2)
-											 , (_32)g.clonebutton->w
-											 , (_32)g.clonebutton->h
+											 , (_32)g.clonebutton->w?g.clonebutton->w:4
+											 , (_32)g.clonebutton->h?g.clonebutton->w:2
 											 , g.clonebutton->pTypeName );
 		}
 		CloneCommonButtonProperties( clone, g.clonebutton );
@@ -3183,14 +3188,14 @@ static int ProcessContextMenu( PCanvasData canvas, PSI_CONTROL pc, S_32 px, S_32
 						}
 						break;
 					case MNU_CLONE:
-						g.clonebutton = canvas->pCurrentControl;
+						InterShell_SetCloneButton( canvas->pCurrentControl );
 						break;
 					case MNU_COPY:
-						g.clonebutton = canvas->pCurrentControl;
+						InterShell_SetCloneButton( canvas->pCurrentControl );
 						InvokeCopyControl( canvas->pCurrentControl );
 						break;
 					case MNU_PASTE:
-						g.clonebutton = canvas->pCurrentControl;
+						InterShell_SetCloneButton( canvas->pCurrentControl );
 						InvokePasteControl( canvas->pCurrentControl );
 						break;
 					case MNU_EDIT_CONTROL:
@@ -5714,6 +5719,8 @@ GetCommonButtonControls
                                                              , AddSecurityContextToken
                                                              , GetSecurityContextTokens
                                                              , GetSecurityModules
+
+															 , InterShell_SetCloneButton
 };
 
 POINTER CPROC LoadInterShellInterface( void )
