@@ -25,8 +25,8 @@ PSI_MOUSE_NAMESPACE
     do_hline( surface, bias[1] + point[1] - SPOT_SIZE, bias[0] + point[0] - SPOT_SIZE, bias[0] + point[0] + SPOT_SIZE, Color( 0, 0, 0 ) );
     do_hline( surface, bias[1] + point[1] + SPOT_SIZE, bias[0] + point[0] - SPOT_SIZE, bias[0] + point[0] + SPOT_SIZE, Color( 0, 0, 0 ) );
     do_vline( surface, bias[0] + point[0] - SPOT_SIZE, bias[1] + point[1] - SPOT_SIZE, bias[1] + point[1] + SPOT_SIZE, Color( 0, 0, 0 ) );
-	 do_vline( surface, bias[0] + point[0] + SPOT_SIZE, bias[1] + point[1] - SPOT_SIZE, bias[1] + point[1] + SPOT_SIZE, Color( 0, 0, 0 ) );
-    //_lprintf(DBG_RELAY)( "color %d %d %d %d %d %d", bias[0], bias[1], point[0], point[1], surface->width, surface->height );
+	do_vline( surface, bias[0] + point[0] + SPOT_SIZE, bias[1] + point[1] - SPOT_SIZE, bias[1] + point[1] + SPOT_SIZE, Color( 0, 0, 0 ) );
+    _lprintf(DBG_RELAY)( "color %d %d %d %d %d %d", bias[0], bias[1], point[0], point[1], surface->width, surface->height );
     BlatColor( surface
               , bias[0] + point[0] - (SPOT_SIZE-1)
               , bias[1] + point[1] - (SPOT_SIZE-1)
@@ -70,70 +70,73 @@ void DrawHotSpotsEx( PSI_CONTROL pf, PEDIT_STATE pEditState DBG_PASS )
 void SetupHotSpots( PEDIT_STATE pEditState )
 {
 	int bias_x = 0, bias_y = 0;
-	PSI_CONTROL pCom = (PSI_CONTROL)pEditState->pCurrent;
-	do
+	PSI_CONTROL pCom;
+	if( pCom = (PSI_CONTROL)pEditState->pCurrent )
 	{
-		bias_x += pCom->surface_rect.x;
-		bias_y += pCom->surface_rect.y;
-#ifdef HOTSPOT_DEBUG
-		lprintf( WIDE("Bias is %d,%d"), bias_x, bias_y );
-#endif
-		if( pCom && pCom->parent )
+		do
 		{
-			bias_x += pCom->rect.x;
-			bias_y += pCom->rect.y;
+			bias_x += pCom->surface_rect.x;
+			bias_y += pCom->surface_rect.y;
 #ifdef HOTSPOT_DEBUG
-			lprintf( WIDE("Bias IS %d,%d"), bias_x, bias_y );
+			lprintf( WIDE("Bias is %d,%d"), bias_x, bias_y );
 #endif
+			if( pCom && pCom->parent )
+			{
+				bias_x += pCom->rect.x;
+				bias_y += pCom->rect.y;
+#ifdef HOTSPOT_DEBUG
+				lprintf( WIDE("Bias IS %d,%d"), bias_x, bias_y );
+#endif
+			}
+			pCom = pCom->parent;
 		}
-		pCom = pCom->parent;
-	}
-	while( pCom );
-	pEditState->bias[0] = bias_x - (SPOT_SIZE);
-	pEditState->bias[1] = bias_y - (SPOT_SIZE);
+		while( pCom );
+		pEditState->bias[0] = bias_x - (SPOT_SIZE);
+		pEditState->bias[1] = bias_y - (SPOT_SIZE);
 #ifdef HOTSPOT_DEBUG
-	lprintf( WIDE("Setup hotspots for control %p (%d,%d)")
-			 , pEditState->pCurrent
-			 , pEditState->bias[0], pEditState->bias[1] );
+		lprintf( WIDE("Setup hotspots for control %p (%d,%d)")
+				 , pEditState->pCurrent
+				 , pEditState->bias[0], pEditState->bias[1] );
 #endif
-	pEditState->hotspot[0][0] = 0;
-	pEditState->hotspot[0][1] = 0;
-	pEditState->hotspot[1][0] = 0 + (pEditState->pCurrent->rect.width) / 2;
-	pEditState->hotspot[1][1] = 0;
-	pEditState->hotspot[2][0] = 0 + (pEditState->pCurrent->rect.width);
-	pEditState->hotspot[2][1] = 0;
+		pEditState->hotspot[0][0] = 0;
+		pEditState->hotspot[0][1] = 0;
+		pEditState->hotspot[1][0] = 0 + (pEditState->pCurrent->rect.width) / 2;
+		pEditState->hotspot[1][1] = 0;
+		pEditState->hotspot[2][0] = 0 + (pEditState->pCurrent->rect.width);
+		pEditState->hotspot[2][1] = 0;
 
-	pEditState->hotspot[3][0] = 0;
-	pEditState->hotspot[3][1] = 0 + (SPOT_SIZE + pEditState->pCurrent->rect.height) / 2;
-	pEditState->hotspot[4][0] = 0 + (pEditState->pCurrent->rect.width) / 2;
-	pEditState->hotspot[4][1] = 0 + (SPOT_SIZE + pEditState->pCurrent->rect.height) / 2;
-	pEditState->hotspot[5][0] = 0 + (pEditState->pCurrent->rect.width);
-	pEditState->hotspot[5][1] = 0 + (SPOT_SIZE + pEditState->pCurrent->rect.height) / 2;
+		pEditState->hotspot[3][0] = 0;
+		pEditState->hotspot[3][1] = 0 + (SPOT_SIZE + pEditState->pCurrent->rect.height) / 2;
+		pEditState->hotspot[4][0] = 0 + (pEditState->pCurrent->rect.width) / 2;
+		pEditState->hotspot[4][1] = 0 + (SPOT_SIZE + pEditState->pCurrent->rect.height) / 2;
+		pEditState->hotspot[5][0] = 0 + (pEditState->pCurrent->rect.width);
+		pEditState->hotspot[5][1] = 0 + (SPOT_SIZE + pEditState->pCurrent->rect.height) / 2;
 
-	pEditState->hotspot[6][0] = 0;
-	pEditState->hotspot[6][1] = 0 + (SPOT_SIZE + pEditState->pCurrent->rect.height) - 1;
-	pEditState->hotspot[7][0] = 0 + (pEditState->pCurrent->rect.width) / 2;
-	pEditState->hotspot[7][1] = 0 + (SPOT_SIZE + pEditState->pCurrent->rect.height) - 1;
-	pEditState->hotspot[8][0] = 0 + (pEditState->pCurrent->rect.width);
-	pEditState->hotspot[8][1] = 0 + (SPOT_SIZE + pEditState->pCurrent->rect.height) - 1;
+		pEditState->hotspot[6][0] = 0;
+		pEditState->hotspot[6][1] = 0 + (SPOT_SIZE + pEditState->pCurrent->rect.height) - 1;
+		pEditState->hotspot[7][0] = 0 + (pEditState->pCurrent->rect.width) / 2;
+		pEditState->hotspot[7][1] = 0 + (SPOT_SIZE + pEditState->pCurrent->rect.height) - 1;
+		pEditState->hotspot[8][0] = 0 + (pEditState->pCurrent->rect.width);
+		pEditState->hotspot[8][1] = 0 + (SPOT_SIZE + pEditState->pCurrent->rect.height) - 1;
 
-	{
-		int n;
-		for( n = 0; n < 9; n++ )
 		{
+			int n;
+			for( n = 0; n < 9; n++ )
+			{
 #ifdef HOTSPOT_DEBUG
-			lprintf( WIDE("Hotspot %d is %d,%d")
-					 , n
-					 , pEditState->hotspot[n][0]
-					 , pEditState->hotspot[n][1] );
+				lprintf( WIDE("Hotspot %d is %d,%d")
+						 , n
+						 , pEditState->hotspot[n][0]
+						 , pEditState->hotspot[n][1] );
 #endif
+			}
 		}
+		pEditState->bound.position[0] = 0 - SPOT_SIZE;
+		pEditState->bound.position[1] = 0 - SPOT_SIZE;
+		pEditState->bound.size[0] = pEditState->pCurrent->rect.width + (SPOT_SIZE * 2);
+		pEditState->bound.size[1] = pEditState->pCurrent->rect.height + (SPOT_SIZE * 2);
+		pEditState->flags.bHotSpotsActive = 1;
 	}
-	pEditState->bound.position[0] = 0 - SPOT_SIZE;
-	pEditState->bound.position[1] = 0 - SPOT_SIZE;
-	pEditState->bound.size[0] = pEditState->pCurrent->rect.width + (SPOT_SIZE * 2);
-	pEditState->bound.size[1] = pEditState->pCurrent->rect.height + (SPOT_SIZE * 2);
-	pEditState->flags.bHotSpotsActive = 1;
 }
 
 //---------------------------------------------------------------------------
@@ -672,25 +675,7 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 				if( pc->nType &&  // don't set focus to the frame...
 					(PSI_CONTROL)pc != pf->EditState.pCurrent )
 				{
-					if( pf->EditState.pCurrent )
-					{
-						SmudgeCommon( pf->common );
-					}
 					pf->EditState.pCurrent = (PSI_CONTROL)pc;
-					// override the current key proc so arrows work...
-#ifdef HOTSPOT_DEBUG
-					lprintf( WIDE("overriding key method.") );
-#endif
-					pf->EditState.n_KeyProc = pf->EditState.pCurrent->n_KeyProc;
-					pf->EditState._KeyProc = pf->EditState.pCurrent->_KeyProc;
-					pf->EditState.pCurrent->n_KeyProc = 1;
-					{
-						static __KeyProc *tmp;
-						tmp = (__KeyProc *)Allocate( sizeof( __KeyProc ) );
-						tmp[0] = EditControlKeyProc;
-						pf->EditState.pCurrent->_KeyProc = tmp;
-					}
-
 					SetupHotSpots( &pf->EditState );
 					// setup which spot we're in now.
 #ifdef HOTSPOT_DEBUG
@@ -702,7 +687,24 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 #ifdef EDIT_MOUSE_DEBUG
 					Log( WIDE("And now we draw new spots...") );
 #endif
-					DrawHotSpots( pf->common, &pf->EditState );
+					// hotspots have to be drawn on the frame, so they have to be refreshed on the frame
+					SmudgeCommon( pf->common );
+
+					{
+						// override the current key proc so arrows work...
+#ifdef HOTSPOT_DEBUG
+						lprintf( WIDE("overriding key method.") );
+#endif
+						pf->EditState.n_KeyProc = pf->EditState.pCurrent->n_KeyProc;
+						pf->EditState._KeyProc = pf->EditState.pCurrent->_KeyProc;
+						pf->EditState.pCurrent->n_KeyProc = 1;
+						{
+							static __KeyProc *tmp;
+							tmp = (__KeyProc *)Allocate( sizeof( __KeyProc ) );
+							tmp[0] = EditControlKeyProc;
+							pf->EditState.pCurrent->_KeyProc = tmp;
+						}
+					}
 				}
 			}
 			}
@@ -1083,10 +1085,16 @@ PSI_PROC( void, SetFrameMousePosition )( PSI_CONTROL pfc, int x, int y )
 									, x + pfc->surface_rect.x + pfc->rect.x
 									, y + pfc->surface_rect.y + pfc->rect.y );
    else
-		SetMousePosition( pf->pActImg
-							 , x + pfc->surface_rect.x
-							 , y + pfc->surface_rect.y
-							 );
+   {
+		if( 0 )
+		{
+			// know, the hotspot thing is too agressive anyway.
+			SetMousePosition( pf->pActImg
+								 , x + pfc->surface_rect.x
+								 , y + pfc->surface_rect.y
+								 );
+		}
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -1226,7 +1234,6 @@ int HandleEditStateMouse( PEDIT_STATE pEditState
 				Log( WIDE("Mark changed spots...") );
 #endif
 				pEditState->flags.fLocked = spot;
-				DrawHotSpots( pfc, pEditState );
 			}
 			if( MAKE_FIRSTBUTTON( b, pf->_b ) )
 			{

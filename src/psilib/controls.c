@@ -1031,6 +1031,18 @@ static int OnDrawCommon( WIDE("Frame") )( PSI_CONTROL pc )
 }
 
 //--------------------------------------------------------------------------
+
+static void OnDrawCommonDecorations( WIDE("Frame") )( PSI_CONTROL pc )
+{
+#ifdef DEBUG_UPDAATE_DRAW
+	if( g.flags.bLogDebugUpdate )
+		lprintf( WIDE( "-=-=-=-=- Output Frame decorations..." ) );
+#endif
+	if( pc->device )
+		DrawHotSpots( pc, &pc->device->EditState );
+}
+
+//--------------------------------------------------------------------------
 // forward declaration cause we're lazy and don't want to re-wind the below routines...
 typedef struct penging_rectangle_tag
 {
@@ -1566,7 +1578,7 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 				if( pc->flags.bInitial != pc->parent->flags.bInitial )
 				{
 					pc->flags.bInitial = pc->parent->flags.bInitial;
-               if( !pc->flags.bHidden )
+					if( !pc->flags.bHidden )
 						InvokeControlRevealed( pc );
 				}
 
@@ -1592,47 +1604,47 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 #endif
 				if( !g.flags.always_draw )
 				{
-				if( ( ((pc->parent&&!pc->device) && pc->parent->flags.bDirty ) || pc->flags.bParentCleaned ) && pc->flags.bTransparent )//&& pc->flags.bFirstCleaning )
-				{
-					Image OldSurface;
-					OldSurface = CopyOriginalSurface( pc, pc->OriginalSurface );
-					if( OldSurface )
+					if( ( ((pc->parent&&!pc->device) && pc->parent->flags.bDirty ) || pc->flags.bParentCleaned ) && pc->flags.bTransparent )//&& pc->flags.bFirstCleaning )
 					{
+						Image OldSurface;
+						OldSurface = CopyOriginalSurface( pc, pc->OriginalSurface );
+						if( OldSurface )
+						{
 #ifdef DEBUG_UPDAATE_DRAW
-						if( g.flags.bLogDebugUpdate )
-							_lprintf(DBG_RELAY)( WIDE("--------------- Successfully copied new background original image") );
+							if( g.flags.bLogDebugUpdate )
+								_lprintf(DBG_RELAY)( WIDE("--------------- Successfully copied new background original image") );
 #endif
-						pc->OriginalSurface = OldSurface;
+							pc->OriginalSurface = OldSurface;
+						}
+						else
+							if( pc->OriginalSurface )
+							{
+#ifdef DEBUG_UPDAATE_DRAW
+								if( g.flags.bLogDebugUpdate )
+									_xlprintf(LOG_NOISE DBG_RELAY)( WIDE("--------------- Restoring prior image (didn't need a new image)") );
+								if( g.flags.bLogDebugUpdate )
+									lprintf( WIDE( "Restoring orignal background... " ) );
+#endif
+								BlotImage( pc->Window, pc->OriginalSurface, 0, 0 );
+								pc->flags.bParentCleaned = 1;
+								pc->flags.children_cleaned = 0;
+							}
 					}
 					else
+					{
 						if( pc->OriginalSurface )
 						{
 #ifdef DEBUG_UPDAATE_DRAW
 							if( g.flags.bLogDebugUpdate )
-								_xlprintf(LOG_NOISE DBG_RELAY)( WIDE("--------------- Restoring prior image (didn't need a new image)") );
+								_xlprintf(LOG_NOISE DBG_RELAY)( WIDE("--------------- Restoring prior image") );
 							if( g.flags.bLogDebugUpdate )
-								lprintf( WIDE( "Restoring orignal background... " ) );
+								lprintf( WIDE( "Restore original background..." ) );
 #endif
 							BlotImage( pc->Window, pc->OriginalSurface, 0, 0 );
 							pc->flags.bParentCleaned = 1;
 							pc->flags.children_cleaned = 0;
 						}
-				}
-				else
-				{
-					if( pc->OriginalSurface )
-					{
-#ifdef DEBUG_UPDAATE_DRAW
-						if( g.flags.bLogDebugUpdate )
-							_xlprintf(LOG_NOISE DBG_RELAY)( WIDE("--------------- Restoring prior image") );
-						if( g.flags.bLogDebugUpdate )
-							lprintf( WIDE( "Restore original background..." ) );
-#endif
-						BlotImage( pc->Window, pc->OriginalSurface, 0, 0 );
-						pc->flags.bParentCleaned = 1;
-						pc->flags.children_cleaned = 0;
 					}
-				}
 				}
 				pc->flags.bFirstCleaning = 0;
 			}
@@ -1640,7 +1652,7 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 			// bInitial still invokes first draw.
 			if( !pc->flags.bNoUpdate && ( g.flags.always_draw || pc->flags.bDirty || bDraw ) && !pc->flags.bHidden )
 			{
-            Image current = NULL;
+				Image current = NULL;
 #ifdef DEBUG_UPDAATE_DRAW
 				if( g.flags.bLogDebugUpdate )
 					lprintf( WIDE("Invoking a draw self for %p at %s(%d) level %d"), pc DBG_RELAY , level );
@@ -1676,8 +1688,6 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 					}
 				}
 
-            //if( pc->flags.bTransparent )
-            //   current = CopyOriginalSurface( pc, current );
 				pc->draw_result = 0;
 #ifdef DEBUG_UPDAATE_DRAW
 				if( g.flags.bLogDebugUpdate )
@@ -1759,7 +1769,7 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 				// okay hokey logic here...
 				// if not transparent - go
 				// (else IS transparent, in which case if draw_result, go )
-            //   ELSE don't add
+				//   ELSE don't add
 
 				if( !pc->flags.bTransparent || pc->draw_result )
 				{
@@ -1842,8 +1852,17 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 				if( g.flags.bLogDebugUpdate )
 					lprintf( WIDE( "Recovered dirty that was set while we were cleaning... going back to draw again." ) );
 #endif
-            goto retry_update;
+				goto retry_update;
 			}
+
+			// after all children have updated, draw decorations (edit hotspots, cover animations...)
+			InvokeMethod( pc, _DrawDecorations, ( pc ) );
+
+#if LOCK_TEST
+			if( device )
+				UnlockRenderer( device->pActImg );
+#endif
+
 			pc->flags.children_cleaned = 1;
 			pc->flags.bCleaning = 0;
 			pc->flags.bFirstCleaning = 1;
@@ -1861,7 +1880,6 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 				// to draw, at which time it will do it's own draw.
 				// there's going to be a hang though, when the final
 				// update to display happens... need to catch that.
-            //DebugBreak();
 				cleaned = 1; // lie.  The parent claims it finished cleaning
 				// clear this, cause we're no longer drawing within the parent
 #ifdef DEBUG_UPDAATE_DRAW
@@ -2321,7 +2339,9 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
    //
 	snprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f WIDE("/rtti"), nType );
 	root = GetClassRoot( mydef );
+   DumpRegisteredNames();
 	SetCommonDraw( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,int,WIDE("draw"),(PSI_CONTROL)));
+	SetCommonDrawDecorations( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("decoration_draw"),(PSI_CONTROL)));
 	SetCommonMouse( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,int,WIDE("mouse"),(PSI_CONTROL,S_32,S_32,_32)));
 	SetCommonKey( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,int,WIDE("key"),(PSI_CONTROL,_32)));
 	pc->Destroy        = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("destroy"),(PSI_CONTROL));
@@ -2412,7 +2432,7 @@ PSI_PROC( PSI_CONTROL, CreateFrame )( CTEXTSTR caption
                         , NULL
 								DBG_SRC );
 	if( !(BorderTypeFlags & BORDER_WITHIN ) )
-      pc->parent = hAbove;
+		pc->parent = hAbove;
 	SetCommonBorder( pc, BorderTypeFlags|((BorderTypeFlags & BORDER_WITHIN)?0:BORDER_FRAME) );
 	//lprintf( WIDE("FRAME is %p"), pc );
 	return pc;
@@ -2828,9 +2848,8 @@ PSI_PROC( void, SizeCommon )( PSI_CONTROL pc, _32 width, _32 height )
 			if( pEditState->flags.bActive &&
 				pEditState->pCurrent == pc )
 			{
-				SmudgeCommon( pFrame->common );
 				SetupHotSpots( pEditState );
-				DrawHotSpots( pFrame->common, pEditState );
+				SmudgeCommon( pFrame->common );
 			}
 		}
 	}
@@ -2924,9 +2943,8 @@ PSI_PROC( void, MoveCommon )( PSI_CONTROL pc, S_32 x, S_32 y )
 			if( pEditState&& pEditState->flags.bActive &&
 				pEditState->pCurrent == pc )
 			{
-				SmudgeCommon( pFrame->common );
 				SetupHotSpots( pEditState );
-				DrawHotSpots( pFrame->common, pEditState );
+				SmudgeCommon( pFrame->common );
 			}
 		}
 		InvokePosChange( pc, FALSE );
@@ -3490,7 +3508,6 @@ PSI_CONTROL CreateCommonExxx( PSI_CONTROL pContainer
 	{
 		if( !((int(CPROC *)(PSI_CONTROL,POINTER))proc)( pResult, extra_param ) )
 		{
-         DebugBreak();
 			_xlprintf(1 DBG_RELAY )( WIDE("Failed to init the control - destroying it.") );
 			DestroyCommon( &pResult );
 		}
@@ -3875,6 +3892,7 @@ void DestroyCommonExx( PSI_CONTROL *ppc, int level DBG_PASS )
 				}
 			}
 			Release( pc->_DrawThySelf );
+			Release( pc->_DrawDecorations );
 			Release( pc->_MouseMethod );
 			Release( pc->_KeyProc );
 			if( pc->OriginalSurface )
@@ -4383,6 +4401,18 @@ void SetCommonDraw( PSI_CONTROL pc
 		pc->_DrawThySelf = (__DrawThySelf*)Preallocate( pc->_DrawThySelf, ( pc->n_DrawThySelf + 1 ) * sizeof( pc->_DrawThySelf[0] ) );
 		pc->_DrawThySelf[0] = Draw;
 		pc->n_DrawThySelf++;
+	}
+}
+//---------------------------------------------------------------------------
+
+void SetCommonDrawDecorations( PSI_CONTROL pc
+									  , __DrawDecorations DrawDecorations )
+{
+	if( DrawDecorations )
+	{
+		pc->_DrawDecorations = (__DrawDecorations*)Preallocate( pc->_DrawDecorations, ( pc->n_DrawDecorations + 1 ) * sizeof( pc->_DrawDecorations[0] ) );
+		pc->_DrawDecorations[0] = DrawDecorations;
+		pc->n_DrawDecorations++;
 	}
 }
 
