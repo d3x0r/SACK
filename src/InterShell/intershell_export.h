@@ -579,7 +579,8 @@ INTERSHELL_PROC_PTR( void, InterShell_DisablePageUpdateEx )( PSI_CONTROL pc_canv
 INTERSHELL_PROC_PTR( void, AddSecurityContextToken )( PTRSZVAL object, CTEXTSTR module, CTEXTSTR token );
 INTERSHELL_PROC_PTR( void, GetSecurityContextTokens )( PTRSZVAL object, CTEXTSTR module, PLIST *list );
 INTERSHELL_PROC_PTR( void, GetSecurityModules )( PLIST *list );
-INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_GetSaveIndent1 )( void ); // returns one level more than here
+//INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_GetSaveIndent1 )( void ); // returns one level more than here
+INTERSHELL_PROC_PTR( void, InterShell_SetCloneButton )( PMENU_BUTTON button );
 
 };  //struct intershell_interface {
 
@@ -788,6 +789,7 @@ INTERSHELL_PROC( void, InterShell_SetTheme )( int ID );
 INTERSHELL_PROC( void, DisplayMenuCanvas )( PSI_CONTROL pc_canvas, PRENDERER under, _32 width, _32 height, S_32 x, S_32 y );
 INTERSHELL_PROC( void, InterShell_SetPageColor )( PPAGE_DATA page, CDATA color );
 
+INTERSHELL_PROC( void, InterShell_SetCloneButton )( PMENU_BUTTON button );
 
 #endif
 
@@ -817,7 +819,7 @@ PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 #define InterShell_CreateControl                                ( !InterShell )?0:InterShell->InterShell_CreateControl
 #define  GetCommonButtonControls                               if( InterShell )InterShell->GetCommonButtonControls 
 #define  SetCommonButtonControls							   if( InterShell )InterShell->SetCommonButtonControls 
-#define  InterShell_AddCommonButtonConfig							   if( InterShell )InterShell->InterShell_AddCommonButtonConfig
+#define  InterShell_AddCommonButtonConfig						if( InterShell )InterShell->InterShell_AddCommonButtonConfig
 #define  RestartMenu										   if( InterShell )InterShell->RestartMenu 
 #define  ResumeMenu											   if( InterShell )InterShell->ResumeMenu
 
@@ -912,6 +914,9 @@ PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 
 #define  CloseSecurityContext								if( InterShell ) (InterShell)->CloseSecurityContext
 #define  InterShell_SaveSecurityInformation        if( InterShell ) (InterShell)->InterShell_SaveSecurityInformation
+
+#define InterShell_SetCloneButton								if( InterShell) (InterShell)->InterShell_SetCloneButton
+
 
 #endif
 

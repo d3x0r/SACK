@@ -999,7 +999,7 @@ void InvokeLoadCommon( void )
 			if( f )
 			{
 				TEXTCHAR buf[256];
-				snprintf( buf, sizeof( buf ), WIDE( "%s:%s" ), name, WIDE("executed") );
+				snprintf( buf, sizeof( buf ), WIDE( "%s/%s" ), name, WIDE("executed") );
 				if( !GetRegisteredIntValue( (CTEXTSTR)data, buf ) )
 				{
 					//lprintf( "Dipatching load for %s", name );
