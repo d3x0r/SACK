@@ -1079,6 +1079,7 @@ PSI_PROC( void, AdoptCommon )( PSI_CONTROL pFoster, PSI_CONTROL pElder, PSI_CONT
 #define AdoptControlEx(pcf,pce,pco,d) AdoptCommonEx((PSI_CONTROL)pcf,(PSI_CONTROL)pce,(PSI_CONTROL)pco, d)
 
 PSI_PROC( void, SetCommonDraw )( PSI_CONTROL pf, int (CPROC*Draw)( PSI_CONTROL pc ) );
+PSI_PROC( void, SetCommonDrawDecorations )( PSI_CONTROL pc, void(CPROC*DrawDecorations)(PSI_CONTROL) );
 PSI_PROC( void, SetCommonKey )( PSI_CONTROL pf, int (CPROC*Key)(PSI_CONTROL,_32) );
 PSI_PROC( void, SetCommonMouse)( PSI_CONTROL pc, int (CPROC*MouseMethod)(PSI_CONTROL, S_32 x, S_32 y, _32 b ) );
 PSI_PROC( void, AddCommonDraw )( PSI_CONTROL pf, int (CPROC*Draw)( PSI_CONTROL pc ) );
