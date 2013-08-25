@@ -24,7 +24,10 @@ typedef struct image_3d_interface_tag
 															 , CTEXTSTR *vertex_code, int vert_blocks
 															 , CTEXTSTR *frag_code, int frag_blocks
 															 , struct image_shader_attribute_order *attribs, int nAttribs  );
-	IMAGE_PROC_PTR( void, ImageEnableShader )( CTEXTSTR name, ... );
+	IMAGE_PROC_PTR( void, ImageEnableShader )( PImageShaderTracker tarcker, ... );
+	IMAGE_PROC_PTR( void, ImageSetShaderEnable )( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker, PTRSZVAL psv, va_list args ), PTRSZVAL psv );
+	IMAGE_PROC_PTR( void, ImageSetShaderModelView )( PImageShaderTracker tracker, RCOORD *matrix );
+
 } IMAGE_3D_INTERFACE, *PIMAGE_3D_INTERFACE;
 
 
@@ -38,6 +41,9 @@ typedef struct image_3d_interface_tag
 #  define ImageCompileShader         IMAGE3D_PROC_ALIAS(ImageCompileShader)
 #  define ImageCompileShaderEx       IMAGE3D_PROC_ALIAS(ImageCompileShaderEx)
 #  define ImageEnableShader          IMAGE3D_PROC_ALIAS(ImageEnableShader)
+#  define ImageSetShaderEnable       IMAGE3D_PROC_ALIAS(ImageSetShaderEnable)
+#  define ImageSetShaderModelView    IMAGE3D_PROC_ALIAS(ImageSetShaderModelView)
+
 #endif
 
 #endif // __IMAGE3D_EXTENSIONS_DEFINED__

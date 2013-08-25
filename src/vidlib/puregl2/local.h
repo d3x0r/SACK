@@ -74,7 +74,7 @@ struct plugin_reference
 	void (CPROC *ExtraDraw3d)(PTRSZVAL,PTRANSFORM camera);
 	void (CPROC *Draw3d)(PTRSZVAL);
 	LOGICAL (CPROC *Mouse3d)(PTRSZVAL,PRAY,_32);
-   void (CPROC *ExtraClose3d)(PTRSZVAL);
+	void (CPROC *ExtraClose3d)(PTRSZVAL);
 	void (CPROC *Resume3d)(void);
 };
 
@@ -141,7 +141,7 @@ extern
 	int real_mouse_x, real_mouse_y;
 
 	int WindowBorder_X, WindowBorder_Y;
-   int default_display_x, default_display_y;
+	int default_display_x, default_display_y;
 
 #if defined( _WIN32 )
 	ATOM aClass;      // keep reference of window class....
@@ -155,7 +155,7 @@ extern
 	gf_display_info_t* qnx_display_info[64];
 #endif
 #if defined( USE_EGL )
-   NativeWindowType displayWindow;
+	NativeWindowType displayWindow;
 #endif
 	int bCreatedhWndInstance;
 

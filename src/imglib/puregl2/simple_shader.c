@@ -24,7 +24,7 @@ static const CTEXTSTR gles_simple_v_shader =
 	//WIDE( "in  vec4 in_Color;\n")
 	//WIDE( "out vec4 ex_Color;\n")
     WIDE( "void main(void) {" )
-    WIDE( "  gl_Position = Projection * worldView * vPosition;" )
+    WIDE( "  gl_Position = Projection * worldView * modelView * vPosition;" )
 	//WIDE( "  ex_Color = in_Color;" )
     WIDE( "}"); 
 
@@ -36,7 +36,7 @@ static const CTEXTSTR gles_simple_p_shader =
     WIDE( "}" );
 
 
-void CPROC EnableSimpleShader( PImageShaderTracker tracker, va_list args )
+void CPROC EnableSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv, va_list args )
 {
 	float *verts = va_arg( args, float * );
 	float *color = va_arg( args, float * );
@@ -44,7 +44,7 @@ void CPROC EnableSimpleShader( PImageShaderTracker tracker, va_list args )
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );
 	CheckErr();
-	glUniform4fv( tracker->color_attrib, 1, color );
+	glUniform4fv( psv, 1, color );
 	CheckErr();
 
 }
@@ -53,9 +53,7 @@ void InitSuperSimpleShader( PImageShaderTracker tracker )
 {
 	const char *v_codeblocks[2];
 	const char *p_codeblocks[2];
-
-	tracker->psv_userdata = 0;
-	tracker->Enable = EnableSimpleShader;
+	int color_attrib;
 
 	v_codeblocks[0] = gles_simple_v_shader;
 	v_codeblocks[1] = NULL;
@@ -63,14 +61,7 @@ void InitSuperSimpleShader( PImageShaderTracker tracker )
 	p_codeblocks[1] = NULL;
 	if( CompileShader( tracker, v_codeblocks, 1, p_codeblocks, 1 ) )
 	{
-
-		glBindAttribLocation(tracker->glProgramId, 0, "vPosition" );
-		CheckErr();
-		glBindAttribLocation(tracker->glProgramId, 1, "in_Color" );
-		CheckErr();
-
-      SetupCommon( tracker, "vPosition", "in_Color" );
-		// SetupCommon reads color_attrib as an attribute, instead of a uniform, so get the uniform instead.
-		tracker->color_attrib = glGetUniformLocation(tracker->glProgramId, "in_Color" );
+		color_attrib = glGetUniformLocation(tracker->glProgramId, "in_Color" );
+		SetShaderEnable( tracker, EnableSimpleShader, color_attrib );
 	}
 }

@@ -611,7 +611,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 
 			if( method == BLOT_COPY )
 			{
-				EnableShader( "Simple Texture", v[vi], pifSrc->glActiveSurface, texture_v );
+				EnableShader( GetShader( "Simple Texture", NULL ), v[vi], pifSrc->glActiveSurface, texture_v );
 			}
 			else if( method == BLOT_SHADED )
 			{
@@ -622,7 +622,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				_color[2] = BlueVal( tmp ) / 255.0f;
 				_color[3] = AlphaVal( tmp ) / 255.0f;
 
-				EnableShader( "Simple Shaded Texture", v[vi], pifSrc->glActiveSurface, texture_v, _color );
+				EnableShader( GetShader( "Simple Shaded Texture", NULL ), v[vi], pifSrc->glActiveSurface, texture_v, _color );
 			}
 			else if( method == BLOT_MULTISHADE )
 			{
@@ -645,7 +645,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				b_color[2] = BlueVal( b ) / 255.0f;
 				b_color[3] = AlphaVal( b ) / 255.0f;
 
-				EnableShader( "Simple MultiShaded Texture", v[vi], pifSrc->glActiveSurface, texture_v, r_color, g_color, b_color );
+				EnableShader( GetShader( "Simple MultiShaded Texture", NULL ), v[vi], pifSrc->glActiveSurface, texture_v, r_color, g_color, b_color );
 			}
 			else if( method == BLOT_INVERTED )
 			{
