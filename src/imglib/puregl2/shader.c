@@ -64,7 +64,9 @@ void ClearShaders( void )
 		if( tracker->flags.set_modelview )
 		{
 			glUseProgram( tracker->glProgramId );
+			CheckErr();
 			glUniformMatrix4fv( tracker->modelview, 1, GL_FALSE, VectorConst_I );
+			CheckErr();
 			tracker->flags.set_modelview = 0;
 		}
 	}

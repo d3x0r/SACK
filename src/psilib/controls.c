@@ -2339,7 +2339,6 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
    //
 	snprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f WIDE("/rtti"), nType );
 	root = GetClassRoot( mydef );
-   DumpRegisteredNames();
 	SetCommonDraw( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,int,WIDE("draw"),(PSI_CONTROL)));
 	SetCommonDrawDecorations( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("decoration_draw"),(PSI_CONTROL)));
 	SetCommonMouse( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,int,WIDE("mouse"),(PSI_CONTROL,S_32,S_32,_32)));
