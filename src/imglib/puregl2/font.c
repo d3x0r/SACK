@@ -440,11 +440,11 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				_back_color[1] = GreenVal( background ) / 255.0f;
 				_back_color[2] = BlueVal( background ) / 255.0f;
 				_back_color[3] = AlphaVal( background ) / 255.0f;
-				EnableShader( "Simple Shader", v2[vi], _back_color );
+				EnableShader( GetShader( "Simple Shader", NULL ), v2[vi], _back_color );
 				glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 			}
 
-			EnableShader( "Simple Shaded Texture", v[vi], pifSrc->glActiveSurface, texture_v, _color );
+			EnableShader( GetShader( "Simple Shaded Texture", NULL ), v[vi], pifSrc->glActiveSurface, texture_v, _color );
 			glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 			// Back Face
 		}

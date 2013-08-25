@@ -155,20 +155,7 @@ void RenderGL( struct display_camera *camera )
 			RotateRight( camera->origin_camera, -1, -1 );
 			break;
 		}
-
-		//GetGLMatrix( camera->origin_camera, camera->hVidCore->fModelView );
-		//glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
-
-		{
-			INDEX idx;
-			struct plugin_reference *ref;
-			LIST_FORALL( camera->plugins, idx, struct plugin_reference *, ref )
-			{
-				if( ref->Draw3d )
-					ref->Draw3d( ref->psv );
-			}
-		}
-
+	
 		if( l.flags.bLogWrites )
 			lprintf( "Begin drawing from bottom up" );
 		for( hVideo = l.bottom; hVideo; hVideo = hVideo->pBelow )
@@ -193,13 +180,13 @@ void RenderGL( struct display_camera *camera )
 
 			if( l.flags.bLogWrites )
 				lprintf( WIDE("------ BEGIN A REAL DRAW -----------") );
-
+#if 0
 			glEnable( GL_DEPTH_TEST );
 			// put out a black rectangle
 			// should clear stensil buffer here so we can do remaining drawing only on polygon that's visible.
 			ClearImageTo( hVideo->pImage, 0 );
 			glDisable(GL_DEPTH_TEST);							// Enables Depth Testing
-
+#endif
 			if( hVideo->pRedrawCallback )
 			{
 				hVideo->pRedrawCallback( hVideo->dwRedrawData, (PRENDERER)hVideo );
@@ -208,43 +195,6 @@ void RenderGL( struct display_camera *camera )
 			// allow draw3d code to assume depth testing 
 			glEnable( GL_DEPTH_TEST );
 			hVideo->flags.bRendering = 0;
-		}
-
-		{
-#if 0
-			// render a ray that we use for mouse..
-			{
-				VECTOR target;
-				VECTOR origin;
-				addscaled( target, camera->mouse_ray.o, camera->mouse_ray.n, 1.0 );
-				SetPoint( origin, camera->mouse_ray.o );
-				origin[0] += 0.001;
-				origin[1] += 0.001;
-				//mouse_ray_origin[2] += 0.01;
-				glBegin( GL_LINES );
-				glColor4ub( 255,0,255,128 );
-				glVertex3dv(origin);	// Bottom Left Of The Texture and Quad
-				glColor4ub( 255,255,0,128 );
- 				glVertex3dv(target);	// Bottom Left Of The Texture and Quad
-				glEnd();
-			}
-			// render a ray that we use for mouse..
-			{
-				VECTOR target;
-				VECTOR origin;
-				addscaled( target, l.mouse_ray.o, l.mouse_ray.n, 1.0 );
-				SetPoint( origin, l.mouse_ray.o );
-				origin[0] += 0.001;
-				origin[1] += 0.001;
-				//mouse_ray_origin[2] += 0.01;
-				glBegin( GL_LINES );
-				glColor4ub( 255,255,255,128 );
-				glVertex3dv(origin);	// Bottom Left Of The Texture and Quad
-				glColor4ub( 255,56,255,128 );
- 				glVertex3dv(target);	// Bottom Left Of The Texture and Quad
-				glEnd();
-			}
-#endif
 		}
 
 		{

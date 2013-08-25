@@ -1269,7 +1269,7 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 		scale( v[vi][2], v[vi][2], l.scale );
 		scale( v[vi][3], v[vi][3], l.scale );
 
-		EnableShader( "Simple Shader", v[vi], _color );
+		EnableShader( GetShader( "Simple Shader", NULL ), v[vi], _color );
 		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 	}
 	else
@@ -1384,7 +1384,7 @@ void  BlatColorAlpha ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color 
 		scale( v[vi][2], v[vi][2], l.scale );
 		scale( v[vi][3], v[vi][3], l.scale );
 
-		EnableShader( "Simple Shader", v[vi], _color );
+		EnableShader( GetShader( "Simple Shader", NULL ), v[vi], _color );
 		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 		CheckErr();
 	}
@@ -1508,7 +1508,7 @@ void CPROC cplotraw( Image pi, S_32 x, S_32 y, CDATA c )
 		v[0] = (float)(x/l.scale);
 		v[1] = (float)(y/l.scale);
 		v[2] = 0.0f;
-		EnableShader( "Simple Shader", v, _color );
+		EnableShader( GetShader( "Simple Shader", NULL ), v, _color );
 
       glDrawArrays( GL_POINTS, 0, 1 );
 		CheckErr();
@@ -1542,7 +1542,7 @@ void CPROC cplot( Image pi, S_32 x, S_32 y, CDATA c )
 			v[0] = (float)(x/l.scale);
 			v[1] = (float)(y/l.scale);
 			v[2] = 0.0f;
-			EnableShader( "Simple Shader", v, _color );
+			EnableShader( GetShader( "Simple Shader", NULL ), v, _color );
 
 			glDrawArrays( GL_POINTS, 0, 1 );
 		}
@@ -1602,7 +1602,7 @@ void CPROC cplotalpha( Image pi, S_32 x, S_32 y, CDATA c )
 			v[0] = (float)(x/l.scale);
 			v[1] = (float)(y/l.scale);
 			v[2] = 0.0f;
-			EnableShader( "Simple Shader", v, _color );
+			EnableShader( GetShader( "Simple Shader", NULL ), v, _color );
 
 			glDrawArrays( GL_POINTS, 0, 1 );
 		}
@@ -2183,17 +2183,17 @@ void Render3dImage( Image pifSrc, LOGICAL render_pixel_scaled )
 			tmp->vi = 1-tmp->vi;
 		}
 
-      tmp->v_image[0][0] = tmp->x_size;
-      tmp->v_image[0][1] = tmp->y_size2;
-      tmp->v_image[1][0] = tmp->x_size2;
-      tmp->v_image[1][1] = tmp->y_size2;
-      tmp->v_image[2][0] = tmp->x_size2;
-      tmp->v_image[2][1] = tmp->y_size;
-      tmp->v_image[3][0] = tmp->x_size;
+		tmp->v_image[0][0] = tmp->x_size;
+		tmp->v_image[0][1] = tmp->y_size2;
+		tmp->v_image[1][0] = tmp->x_size2;
+		tmp->v_image[1][1] = tmp->y_size2;
+		tmp->v_image[2][0] = tmp->x_size2;
+		tmp->v_image[2][1] = tmp->y_size;
+		tmp->v_image[3][0] = tmp->x_size;
 		tmp->v_image[3][1] = tmp->y_size;
 
-		EnableShader( "Simple Texture Shader", tmp->v[tmp->vi], tmp->v_image, pifSrc->glActiveSurface );
-      glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+		EnableShader( GetShader( "Simple Texture Shader", NULL ), tmp->v[tmp->vi], tmp->v_image, pifSrc->glActiveSurface );
+		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 
 		Deallocate( struct workspace *, tmp );
 	}

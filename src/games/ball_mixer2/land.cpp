@@ -1,4 +1,4 @@
-//#define DEBUG_TIMING
+	//#define DEBUG_TIMING
 
 /*
  * Theory of operation?
@@ -750,25 +750,11 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 		fore_color[3] = 1.0;
 	}
 	
-	tmpval[0] = 0.5;//l.values[MAT_SPECULAR0] / 256.0f;
-	tmpval[1] = 0.5;//l.values[MAT_SPECULAR1] / 256.0f;
-	tmpval[2] = 0.5;//l.values[MAT_SPECULAR2] / 256.0f;
-	//tmpval[3] = 1.0f;
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, tmpval );
-	//glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 64/*l.values[MAT_SHININESS]/2*/ ); // 0-128
-	tmpval[0] = 0.5;
-	tmpval[1] = 0.5;
-	tmpval[2] = 0.45;
-	//tmpval[3] = 1.0f;
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, tmpval );
-	// create array of normals.
-	//__try
 	{
-//		if( !mode )
 		{
 			INDEX idx;
 			struct SACK_3D_Surface * surface;
-			ImageEnableShader( "SuperSimpleShader", m );
+			ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, m );
 
 			LIST_FORALL( patch->pole->bands, idx, struct SACK_3D_Surface *, surface )
 			{
@@ -1208,47 +1194,10 @@ int DrawSphereThing( PHEXPATCH patch, int mode )
 	else if( patch->number == l.active_ball )
 		scale = 1.0;
 
-	if( scale > 0.0 )
-	{
-		RCOORD target1 = 40;
-		RCOORD target2 = 540;
-		RCOORD real_factor = (target1 * scale + target2 * (1.0-scale));
-		lprintf( "scale is %g   %g", scale, real_factor );
-
-
-		glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-		/*
-		glPushMatrix();
-		glLoadIdentity();									// Reset The Projection Matrix
-
-#ifndef __ANDROID__
-		// changes scaling
-		glOrtho(-real_factor*(l.aspect[0])
-				 , real_factor*(l.aspect[0])
-				 , -real_factor, real_factor, -1000.0f, 3000.0f);
-#endif
-		*/
-			glUseProgram( l.shader.simple_shader.shader );
-			CheckErr();
-			lprintf( "Use ss Program" );
-			glUniformMatrix4fv( l.shader.simple_shader.projection, 1, GL_FALSE, l.projection );
-			CheckErr();
-			glUseProgram( l.shader.extra_simple_shader.shader );
-			CheckErr();
-			lprintf( "Use ess Program" );
-			glUniformMatrix4fv( l.shader.extra_simple_shader.projection, 1, GL_FALSE, l.projection );
-			CheckErr();
-			glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
-
-	}
           
-	//if( mode )
-	//glPushMatrix();
-
 	btScalar m[16];
 	btTransform trans;
 	patch->fallRigidBody->getMotionState()->getWorldTransform( trans );
-
 	trans.getOpenGLMatrix(m);
 
 	//which is a 1x1x1 sort of patch array
@@ -1256,20 +1205,7 @@ int DrawSphereThing( PHEXPATCH patch, int mode )
 	RenderPolePatch( patch, m, mode, 0 );
 	//RenderPolePatch( patch, m, mode, 1 );
 
-	//glPopMatrix();
 
-	if( scale > 0.0 )
-	{
-		/*
-		glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
-		*/
-	}
-	   lprintf( "Program off" );
-		glUseProgram( 0 );
-			//glEnable(GL_VERTEX_PROGRAM_ARB);
-			//glEnable(GL_FRAGMENT_PROGRAM_ARB);
 	return 1;
 }
 
@@ -1509,7 +1445,7 @@ void DistortPatch( PHEXPATCH patch
 					patch->height[near_points[p][2]][near_points[p][0]][near_points[p][1]] += delta*tension;
 			}
 		}
-      //delta *= tension;
+		//delta *= tension;
 	}
 }
 
@@ -2097,6 +2033,7 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
 	l.shader.extra_simple_shader.shader_tracker = ImageGetShader( "SuperSimpleShader", InitSuperSimpleShader );
 
 	l.shader.simple_shader.shader_tracker = ImageGetShader( "SimpleShader", InitShader );
+#if 0
 
 	{
 		int n;
@@ -2150,7 +2087,7 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
 			AddLink( &l.patches, patch );
 		}
 	}
-
+#endif
 }
 
 static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
@@ -2191,7 +2128,7 @@ static void OnResume3d( WIDE( "Terrain View" ) )( void )
    l.last_tick = 0;
 }
 
-static void CPROC UpdatePositions( PTRSZVAL psv );
+static void CPROC UpdatePositions( PTRSZVAL psv, PTRANSFORM origin );
 static LOGICAL OnUpdate3d( WIDE( "Terrain View" ) )( PTRANSFORM origin )
 {
 	l.transform = origin;
@@ -2204,7 +2141,7 @@ static LOGICAL OnUpdate3d( WIDE( "Terrain View" ) )( PTRANSFORM origin )
 #ifdef DEBUG_TIMING
 	lprintf( "Tick." );
 #endif
-	UpdatePositions( 0 );  // updates last_tick to now.
+	UpdatePositions( 0, origin );  // updates last_tick to now.
 #ifdef DEBUG_TIMING
 	lprintf( "(end tick physics)Tick." );
 #endif
@@ -2382,6 +2319,47 @@ static void OnBeginDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psv,PTRANSFORM cam
 
 static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 {
+
+		{
+			// First simple object
+			float* vert = new float[9];	// vertex array
+			float* col  = new float[9];	// color array
+			
+			vert[0] =-0.3; vert[1] = 0.5; vert[2] =-1.0;
+			vert[3] =-0.8; vert[4] =-0.5; vert[5] =-1.0;
+			vert[6] = 0.2; vert[7] =-0.5; vert[8]= -1.0;
+
+			col[0] = 1.0; col[1] = 0.0; col[2] = 0.0;
+			col[3] = 1.0; col[4] = 1.0; col[5] = 0.0;
+			col[6] = 0.0; col[7] = 0.0; col[8] = 1.0;
+
+			// Second simple object
+			float* vert2 = new float[9];	// vertex array
+
+			vert2[0] =-0.2; vert2[1] = 0.5; vert2[2] =-1.0;
+			vert2[3] = 0.3; vert2[4] =-0.5; vert2[5] =-1.0;
+			vert2[6] = 0.8; vert2[7] = 0.5; vert2[8]= -1.0;
+
+			{
+				int n;
+				for( n = 0; n < 9; n++ )
+				{
+					vert[n] = 10* vert[n];
+					vert2[n] = 10* vert2[n];
+				}
+			}
+
+			ImageEnableShader( ImageGetShader( "Simple Shader", NULL ), vert, col );
+			glDrawArrays(GL_TRIANGLES, 0, 3);	// draw second object
+
+			ImageEnableShader( ImageGetShader( "Simple Shader", NULL ), vert2, col );
+
+			glDrawArrays(GL_TRIANGLES, 0, 3);	// draw second object
+
+		}
+
+
+
 	MATRIX m;
 	static _32 prior_tick;
 	static int frames;
@@ -2393,82 +2371,8 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 	lprintf( "Tick." );
 #endif
 
-	{
-			int result;
-			// First simple object
-			float* vert = new float[9];	// vertex array
-			float* col  = new float[9];	// color array
-
-			glUseProgram( l.shader.extra_simple_shader.shader );
-
-			// projection changes in this application, better to reload it.
-			glUniformMatrix4fv( l.shader.extra_simple_shader.projection, 1, GL_FALSE, l.projection );
-			{
-				INDEX idx;
-				MATRIX tmp;
-				PTRANSFORM camera = l.transform;
-				GetGLCameraMatrix( camera, tmp );
-				for( idx = 0; idx < 16; idx++ )
-					l.worldview[idx] = tmp[0][idx];
-				glUniformMatrix4fv( l.shader.extra_simple_shader.worldview, 1, GL_FALSE, l.worldview );
-				CheckErr();
-			}
-			if( 0 )
-			{
-				float m[16];
-				int i;
-				for( i = 0; i < 16; i++ )
-					m[i] = 0;
-				m[0] = 1;
-				m[5] = 1;
-				m[10] = 1;
-				m[15] = 1;
-				glUniformMatrix4fv( l.shader.extra_simple_shader.modelview, 1, GL_FALSE, m );
-			}
-			
-			
-			vert[0] =-0.3; vert[1] = 0.5; vert[2] =-1.0;
-			vert[3] =-0.8; vert[4] =-0.5; vert[5] =-1.0;
-			vert[6] = 0.2; vert[7] =-0.5; vert[8]= -1.0;
-
-			col[0] = 1.0; col[1] = 0.0; col[2] = 0.0;
-			col[3] = 0.0; col[4] = 1.0; col[5] = 0.0;
-			col[6] = 0.0; col[7] = 0.0; col[8] = 1.0;
-
-			// Second simple object
-			float* vert2 = new float[9];	// vertex array
-
-			vert2[0] =-0.2; vert2[1] = 0.5; vert2[2] =-1.0;
-			vert2[3] = 0.3; vert2[4] =-0.5; vert2[5] =-1.0;
-			vert2[6] = 0.8; vert2[7] = 0.5; vert2[8]= -1.0;
-
-			lprintf( "Use ess Program" );
-			glUseProgram( l.shader.extra_simple_shader.shader );
-			glEnableVertexAttribArray( 0 );
-			glEnableVertexAttribArray( 1 );
-			glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, vert );
-			result = glGetError();
-			if( result )
-            lprintf( "vp err %d", result );
-			glVertexAttribPointer( 1, 3, GL_FLOAT, FALSE, 0, col );
-			result = glGetError();
-			if( result )
-            lprintf( "vp err %d", result );
-			//glColorPointer( 3, GL_FLOAT, 0, col );
-			glDrawArrays(GL_TRIANGLES, 0, 3);	// draw first object
-			glDisableVertexAttribArray( 1 );
-
-
-			glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, vert2 );
-			glVertexAttrib3f((GLuint)1, 1.0, 0.0, 0.0); // set constant color attribute
-			//glDrawArrays(GL_TRIANGLES, 0, 3);	// draw second object
-
-			glEnableVertexAttribArray( 1 );
-			delete vert;
-			delete col;
-			delete vert2;
-	}
-
+	// disable auto scaling for a little
+#if 0 
 	do
 	{
 #ifdef DEBUG_TIMING7
@@ -2558,6 +2462,7 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 			prior_tick = now;
 		}
 	} while( 0);
+#endif
 	// display already activated by the time we get here.
 #ifdef _MSC_VER
 //		__try
@@ -2573,65 +2478,9 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 		for( idx = 0; idx < 16; idx++ )
 			l.worldview[idx] = tmp[0][idx];
 
-		{
-			//RCOORD fProjection1[16];
-			//RCOORD fProjection2[16];
-			glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-			//glPushMatrix();
-			//glLoadIdentity();									// Reset The Projection Matrix
-			// this should cause the planes to pivot around the depth sorta...
-			// near things will expand, and far things will shrink.
 
-#ifndef __ANDROID__
-			//glOrtho(-540*(l.aspect[0]), 540*(l.aspect[0]), -540, 540, -1000.0f, 3000.0f);
-#endif
-			glUseProgram( l.shader.simple_shader.shader );
-			lprintf( "Use ss Program" );
-			glUniformMatrix4fv( l.shader.simple_shader.projection, 1, GL_FALSE, l.projection );
-
-			glUseProgram( l.shader.extra_simple_shader.shader );
-			lprintf( "Use ess Program" );
-			glUniformMatrix4fv( l.shader.extra_simple_shader.projection, 1, GL_FALSE, l.projection );
-
-			//glGetDoublev( GL_PROJECTION_MATRIX, fProjection2 );
-			//glLoadMatrixd( fProjection2 );
-
-			glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
-		}
-
-		{
-			PC_POINT o;
-			float eye[3];
-			o = GetOrigin( l.transform );
-			eye[0] = o[0];
-			eye[1] = o[1];
-			eye[2] = o[2];
-#ifndef __ANDROID__
-			//glEnable(GL_VERTEX_PROGRAM_ARB);
-			//glEnable(GL_FRAGMENT_PROGRAM_ARB);
-#endif
-			//glUseProgram( l.shader.simple_shader.shader );
-			//glUniformMatrix4fv( l.shader.simple_shader.modelview, 1, GL_FALSE, l.modelview );
-			//glUniform3fv( l.shader.simple_shader.eye_point, 1, eye );
-			glUseProgram( l.shader.extra_simple_shader.shader );
-			lprintf( "Use ess Program" );
-			CheckErr();
-			glUniformMatrix4fv( l.shader.extra_simple_shader.worldview, 1, GL_FALSE, l.worldview );
-			CheckErr();
-
-			//glUseProgram( l.shader.normal_shader.shader );
-			//glUniformMatrix4fv( l.shader.normal_shader.modelview, 1, GL_FALSE, l.modelview );
-			//glUniform3fv( l.shader.normal_shader.eye_point, 1, eye );
-
-			//glUseProgram( 0 );
-#ifndef __ANDROID__
-			//glDisable(GL_FRAGMENT_PROGRAM_ARB);
-			//glDisable(GL_VERTEX_PROGRAM_ARB);
-#endif
-		}
-
-		SetLights();
-
+//		SetLights();
+		if( 0 )
 		{
 			PHEXPATCH patch;
 			btVector3 bt_view_origin;
@@ -2730,72 +2579,54 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 			}
 		}
 
-		{
-			//glDisable(GL_LIGHT1);
-			glDisable(GL_LIGHT0);
-			glDisable(GL_LIGHTING);
-		}
-
-#ifdef ALTANIK_EXISTS
-		DrawOverlay( l.transform );
-#endif
-		glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
-
+			CheckErr();
 		// debug draw the mixer bar approximation
 		if( l.barRigidBody  )
 		{
 			btTransform trans;
 			l.barRigidBody->getMotionState()->getWorldTransform( trans );
 
-			glPushMatrix();
 
 			btScalar m[16];
 			trans.getOpenGLMatrix(m);
-#ifdef BT_USE_DOUBLE_PRECISION 
-			glMultMatrixd( m );
-#else
-			glMultMatrixf( m );
-#endif
-#ifndef __ANDROID__
+			float* vert = new float[9];	// vertex array
+			float* col  = new float[12];	// color array
+			
 
-			glBegin( GL_LINES );
+			vert[0] =-0; vert[1] = 0; vert[2] =0;
+			vert[3] =1000; vert[4] =0; vert[5] =0;
+			vert[6] =-0; vert[7] = 10; vert[8] =0;
 
-			glVertex3f( 0, 0, 0 );
-			glVertex3f( 1000, 0, 0 );
-			glEnd();
-			glBegin( GL_LINES );
+			col[0] = 1.0; col[1] = 0.0; col[2] = 0.0;  col[3] = 1.0;
+			col[4] = 0.0; col[5] = 1.0; col[6] = 0.0;  col[7] = 1.0;
+			col[8] = 0.5; col[9] = 0.0; col[10] = 1.0;  col[11] = 1.0;
 
-			glVertex3f( 0, 10, 0 );
-			glVertex3f( 1000, 10, 0 );
-			glEnd();
+			ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, vert, col );
+			SetSimpleShaderModel( (float*)(m) );
 
-			glBegin( GL_LINES );
+			glDrawArrays(GL_TRIANGLES, 0, 3);
+			glDrawArrays(GL_LINES, 0, 2);
 
-			glVertex3f( 0, -10, 0 );
-			glVertex3f( 1000, -10, 0 );
-			glEnd();
+			CheckErr();
+			vert[0] =-0; vert[1] = 10; vert[2] =0;
+			vert[3] =1000; vert[4] =10; vert[5] =0;
 
-			glBegin( GL_LINES );
+			ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, vert, col );
+			glDrawArrays(GL_LINES, 0, 2);	
+			CheckErr();
 
-			glVertex3f( 0, 0, 10 );
-			glVertex3f( 1000, 0, 10 );
-			glEnd();
-#endif
-			//getWorldTransform();
-			//getMotionState()
-			//glPopMatrix();
+
+			vert[0] =-0; vert[1] = -10; vert[2] =0;
+			vert[3] =1000; vert[4] =-10; vert[5] =0;
+
+			ImageEnableShader( ImageGetShader( "Simple Shader", NULL ), vert, col );
+			glDrawArrays(GL_LINES, 0, 2);	
+			CheckErr();
 		}
 	}
 	//l.bullet.dynamicsWorld->debugDrawWorld();
 #ifdef _MSC_VER
 	}
-	//					__except( EvalExcept( GetExceptionCode() ) )
-					{
-		//				lprintf( WIDE(" ...") );
-						;
-					}
 #endif
 	hold_update = FALSE;
 #ifdef DEBUG_TIMING
@@ -2897,7 +2728,7 @@ void ApplyBlowerForces( void )
 
 CRITICALSECTION csUpdate;
 
- void CPROC UpdatePositions( PTRSZVAL psv )
+ void CPROC UpdatePositions( PTRSZVAL psv, PTRANSFORM camera )
 {
 	_32 now = timeGetTime();
 
@@ -3344,7 +3175,7 @@ PRELOAD( InitDisplay )
 	PopulateBulletContainer( &l.bullet );
 
 	//if( 0 )
-	//CreateMixerBar( &l.bullet );
+	CreateMixerBar( &l.bullet );
 	//PopulateBulletTest( &l.bullet );
 	//TestPopulatedBullet( &l.bullet );
 

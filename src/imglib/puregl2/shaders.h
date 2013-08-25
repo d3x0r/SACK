@@ -48,6 +48,7 @@ struct image_shader_tracker
 	{
 		BIT_FIELD set_matrix : 1; // flag indicating we have set the matrix; this is cleared at the beginning of each enable of a context
 		BIT_FIELD failed : 1; // shader compilation failed, abort enable; and don't reinitialize
+		BIT_FIELD set_modelview : 1;
 	} flags;
 	CTEXTSTR name;
 	int glProgramId;
@@ -62,19 +63,19 @@ struct image_shader_tracker
 	int modelview;
 	PTRSZVAL psv_userdata;
    void (CPROC*Init)( PImageShaderTracker );
-	void (CPROC*Enable)( PImageShaderTracker,va_list);
+	void (CPROC*Enable)( PImageShaderTracker,PTRSZVAL,va_list);
 };
 
 
 PImageShaderTracker CPROC GetShader( CTEXTSTR name, void (*)(PImageShaderTracker) );
+void  SetShaderEnable( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker, PTRSZVAL, va_list args ), PTRSZVAL psv );
+void SetShaderModelView( PImageShaderTracker tracker, RCOORD *matrix );
+
 int CPROC CompileShaderEx( PImageShaderTracker shader, CTEXTSTR *vertex_code, int vert_blocks, CTEXTSTR *frag_code, int frag_blocks, struct image_shader_attribute_order *, int nAttribs );
 int CPROC CompileShader( PImageShaderTracker shader, CTEXTSTR *vertex_code, int vert_blocks, CTEXTSTR *frag_code, int frag_blocks );
 void CPROC ClearShaders( void );
 
-void CPROC EnableShader( CTEXTSTR shader, ... );
-
-// this part is very specific to a shader....
-void SetupCommon( PImageShaderTracker tracker, CTEXTSTR position, CTEXTSTR color );
+void CPROC EnableShader( PImageShaderTracker shader, ... );
 
 
 // verts and a single color
