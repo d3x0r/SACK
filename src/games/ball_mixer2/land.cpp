@@ -213,16 +213,6 @@ struct band {
 					SetPoint( tangents[nShape], tmp2 );
 				//normalize(shape[nShape]);
 				normalize( tangents[nShape] );
-				{
-					//lprintf( "texture point %d", nShape );
-					//PrintVector( shape[nShape] );
-					//PrintVector( tangents[nShape] );
-
-					//crossproduct( tmp1, shape[nShape], tangents[nShape] );
-					//normalize( tmp1 );
-					//PrintVector( tmp1);
-				}
-
 				nShape++;
 				
 				// s2 can change patches, whereas the number coords... go forward
@@ -233,8 +223,9 @@ struct band {
 				normalize( tangents[nShape] );
 				nShape++;
 			}
-			AddLink( &bands, tmp = CreateBumpTextureFragment( verts, (PCVECTOR*)shape, (PCVECTOR*)shape
-				, (PCVECTOR*)tangents, (PCVECTOR*)NULL, (PCVECTOR*)texture ) );
+			tmp = CreateBumpTextureFragment( verts, (PCVECTOR*)shape, (PCVECTOR*)shape
+				, (PCVECTOR*)tangents, (PCVECTOR*)NULL, (PCVECTOR*)texture );
+			AddLink( &bands, tmp );
 			tmp->color = (((section/band->hex_size)%6) < 3)?TRUE:FALSE;
 
 		}
@@ -310,34 +301,31 @@ struct band {
 
 			if( max_hex_size )
 			{
+				int n;
+				for( n = 0; n < max_hex_size; n++ )
 				{
-					int n;
-					for( n = 0; n < max_hex_size; n++ )
-					{
-						int m;
-						for( m = 0; m < max_hex_size; m ++ )
-							Release( corners[n][m] );
-						Release( corners[n] );
-					}
-					Release( corners );
-
-					for( n = 0; n < 6; n++ )
-					{
-						int m;
-						for( m = 0; m < max_hex_size; m++ )
-							Release( patches[n].grid[m] );
-						Release( patches[n].grid );
-						for( m = 0; m < max_hex_size; m++ )
-						{
-							int k;
-							for( k = 0; k < max_hex_size + 1; k++ )
-								Release( patches[n].near_area[m][k] );
-							Release( patches[n].near_area[m] );
-						}
-						Release( patches[n].near_area );
-					}
+					int m;
+					for( m = 0; m < max_hex_size; m ++ )
+						Release( corners[n][m] );
+					Release( corners[n] );
 				}
+				Release( corners );
 
+				for( n = 0; n < 6; n++ )
+				{
+					int m;
+					for( m = 0; m < max_hex_size; m++ )
+						Release( patches[n].grid[m] );
+					Release( patches[n].grid );
+					for( m = 0; m < max_hex_size; m++ )
+					{
+						int k;
+						for( k = 0; k < max_hex_size + 1; k++ )
+							Release( patches[n].near_area[m][k] );
+						Release( patches[n].near_area[m] );
+					}
+					Release( patches[n].near_area );
+				}
 			}
 			// allocate
 			{
@@ -393,7 +381,7 @@ struct band {
 					}
 					DestroyTransform( work );
 				}
-		CreateBandFragments( );
+		//CreateBandFragments( );
 	}
 
 	band( int size ) 
@@ -677,7 +665,7 @@ struct pole{
 					DestroyTransform( work );
 			//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( WIDE("Pole Patch Excepted.") ); }
 		}
-		CreatePoleFragments();
+		//CreatePoleFragments();
 	}
 	pole( int size )
 	{
@@ -701,9 +689,9 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 	int s, level, c, r;
 	float back_color[4];
 	float fore_color[4];
-   float *color;
+	float *color;
 	float tmpval[4];
-   float fade;
+	float fade;
 	pole *pole_patch = patch->pole;
 	int x, y; // used to reference patch level
 	//int x2, y2;
@@ -750,11 +738,13 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 		fore_color[3] = 1.0;
 	}
 	
+	// render with VAOs
+	if( 0  )
 	{
 		{
 			INDEX idx;
 			struct SACK_3D_Surface * surface;
-			ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, m );
+			ImageSetShaderModelView( l.shader.extra_simple_shader.shader_tracker, m );
 
 			LIST_FORALL( patch->pole->bands, idx, struct SACK_3D_Surface *, surface )
 			{
@@ -773,10 +763,6 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 		GLfloat *verts = patch->verts; //[pole_patch->hex_size+1][6];
 		GLfloat *norms = patch->norms; //[pole_patch->hex_size+1][6];
 		GLfloat *colors = patch->colors; //[pole_patch->hex_size+1][8];
-
-		glUseProgram( l.shader.extra_simple_shader.shader );
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
 
 		for( s = 0; s < 3; s++ )
 		{
@@ -804,7 +790,7 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 				{
 					ConvertPolarToRect( level, c, &x, &y );
 					scale( v1, pole_patch->patches[s].grid[x][y]
-							, SPHERE_SIZE + patch->height[s+(north*6)][x][y] );
+							, SPHERE_SIZE /*+ patch->height[s+(north*6)][x][y]*/ );
 					if( north )
 						v1[1] = -v1[1];
 					verts[c*6+0] = norms[c*6+0] = v1[0];
@@ -817,7 +803,7 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 					if( c < (level) )
 					{
 						ConvertPolarToRect( level-1, c, &x, &y );
-						scale( v1, pole_patch->patches[s].grid[x][y], SPHERE_SIZE + patch->height[s+(north*6)][x][y] );
+						scale( v1, pole_patch->patches[s].grid[x][y], SPHERE_SIZE /*+ patch->height[s+(north*6)][x][y]*/ );
 						if( north )
 							v1[1] = -v1[1];
 						verts[c*6+3] = norms[c*6+3] = v1[0];
@@ -830,16 +816,9 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 					}
 					r++;
 				}
-
 				// just to make sure the verts are loaded into the correct shader...
-
-
-				glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );
-				CheckErr();
-				glVertexAttribPointer( 1, 4, GL_FLOAT, FALSE, 0, colors );
-				CheckErr();
-				lprintf( "Draw. %d", (level+1)*2-1 );
-				glDrawArrays(GL_LINE_STRIP, 0, (level+1)*2-1);
+				ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
+				glDrawArrays(GL_TRIANGLE_STRIP, 0, (level+1)*2-1);
 		         CheckErr();
 				if( bLog )lprintf( WIDE("---------") );
 
@@ -857,12 +836,11 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 						break;
 					}
 				}
-				//glBegin( GL_TRIANGLE_STRIP );
 				for( c = 0; c <= level; c++ )
 				{
 					ConvertPolarToRect( level, c+level, &x, &y );
 					//if( bLog )lprintf( WIDE("Render corner %d,%d"), 2*level-c,level);
-					scale( v1, pole_patch->patches[s].grid[x][y], SPHERE_SIZE + patch->height[s+(north*6)][x][y] );
+					scale( v1, pole_patch->patches[s].grid[x][y], SPHERE_SIZE /*+ patch->height[s+(north*6)][x][y] */);
 					if( north )
 						v1[1] = -v1[1];
 					verts[c*6+0] = norms[c*6+0] = v1[0];
@@ -877,7 +855,7 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 
 						ConvertPolarToRect( level-1, c+level-1, &x, &y );
 						//if( bLog )lprintf( WIDE("Render corner %d,%d"), 2*level-c-1,level-1);
-						scale( v1, pole_patch->patches[s].grid[x][y], SPHERE_SIZE + patch->height[s+(north*6)][x][y] );
+						scale( v1, pole_patch->patches[s].grid[x][y], SPHERE_SIZE /*+ patch->height[s+(north*6)][x][y]*/ );
 						if( north )
 							v1[1] = -v1[1];
 						verts[c*6+3] = norms[c*6+3] = v1[0];
@@ -889,15 +867,8 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 						colors[c*8+7] = color[3];
 					}
 				}
-				//glVertexPointer(3, GL_FLOAT, 0, verts );
-				//glNormalPointer(GL_FLOAT, 0, norms );
-				//glColorPointer( 4, GL_FLOAT, 0, colors );
-				glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );
-				CheckErr();
-				glVertexAttribPointer( 1, 4, GL_FLOAT, FALSE, 0, colors );
-				CheckErr();
-				lprintf( "Draw2. %d", (level+1)*2-1 );
-				glDrawArrays(GL_LINE_STRIP, 0, (level+1)*2-1);
+				ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
+				glDrawArrays(GL_TRIANGLE_STRIP, 0, (level+1)*2-1);
 				CheckErr();
 			}
 		}
@@ -920,8 +891,9 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 	float back_color[4];
 	float tmpval[4];
 	float fore_color[4];
+	float *color;
 	float bright_fore_color[4];
-   float fade;
+	float fade;
 
 	number = patch->number;
 	row = (number-1)/l.numbers.cols;
@@ -1021,8 +993,12 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 		}
 	}
 #endif
-	if( mode )
 	{
+		GLfloat *verts = patch->verts; //[pole_patch->hex_size+1][6];
+		GLfloat *norms = patch->norms; //[pole_patch->hex_size+1][6];
+		GLfloat *colors = patch->colors; //[pole_patch->hex_size+1][8];
+		int n = 0;
+
 		//scale( ref_point, VectorConst_X, SPHERE_SIZE );
 		//lprintf( " Begin --------------"  );
 		for( section = 0; section < sections; section ++ )
@@ -1048,57 +1024,56 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 					tmpval[0] = 0.5;//l.values[MAT_SPECULAR0] / 256.0f;
 					tmpval[1] = 0.5;//l.values[MAT_SPECULAR1] / 256.0f;
 					tmpval[2] = 0.5;//l.values[MAT_SPECULAR2] / 256.0f;
-					glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, tmpval );
-					glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 64/*l.values[MAT_SHININESS]/2*/ ); // 0-128
+					//glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, tmpval );
+					//glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 64/*l.values[MAT_SHININESS]/2*/ ); // 0-128
 					tmpval[0] = 0.5;
 					tmpval[1] = 0.5;
 					tmpval[2] = 0.45;
 					//tmpval[3] = 1.0f;
-					glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, tmpval );
+					//glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, tmpval );
 					switch( s )
 					{
 					case 0:
 					case 1:
 					case 2:
-						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, fore_color);
+						color = fore_color;
 						break;
 					case 3:
 					case 4:
 					case 5:
-						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, back_color );
+						color = back_color;
 						break;
 					}
-					glBindTexture( GL_TEXTURE_2D, 0 );
-					bound = 0;
 				}
 				else
 				{
 					tmpval[0] = 0.35f;
 					tmpval[1] = 0.35f;
 					tmpval[2] = 0.35f;
-					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, tmpval );
-					glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 32/*l.values[MAT_SHININESS]/2*/ ); // 0-128
+					//glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, tmpval );
+					//glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 32/*l.values[MAT_SHININESS]/2*/ ); // 0-128
 					tmpval[0] = 0.5f;
 					tmpval[1] = 0.5f;
 					tmpval[2] = 0.5f;
 					//tmpval[3] = 1.0f;
-					glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, tmpval );
+					//glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, tmpval );
 					tmpval[0] = 0.5;
 					tmpval[1] = 0.5;
 					tmpval[2] = 0.5;
 					//tmpval[3] = 1.0f;
-					glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, tmpval );
+					//glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, tmpval );
 					if( s == 1 )
 					{
-						glColor4f( 1.0f, 1.0f, 1.0f, fade );
-						glBindTexture( GL_TEXTURE_2D, l.numbers.texture );
-						bound = 1;
+						color[3] = fade;
+						//glBindTexture( GL_TEXTURE_2D, l.numbers.texture );
+						//bound = 1;
 						front = 1;
 					}
 					else if( s == 4 )
 					{
-						glColor4f( 1.0f, 1.0f, 1.0f, fade );
-						glBindTexture( GL_TEXTURE_2D, l.logo_texture );
+						color[3] = fade;
+						//glColor4f( 1.0f, 1.0f, 1.0f, fade );
+						//glBindTexture( GL_TEXTURE_2D, l.logo_texture );
 						bound = 1;
 						front = 0;
 					}
@@ -1111,8 +1086,6 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 
 				}
 
-#if 0
-				glBegin( GL_TRIANGLE_STRIP );
 				for( section2 = 0; section2 <= sections2; section2++ )
 				{
 					scale( patch1, band->patches[s].grid[section_offset][section2], SPHERE_SIZE );
@@ -1120,7 +1093,7 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 					scale( patch2, band->patches[s2].grid[section_offset_1_a][section2], SPHERE_SIZE );
 
 					{
-						if( bound )	
+						if( 0 && bound )	
 						{
 							if( front )
 							{
@@ -1135,9 +1108,14 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 								glTexCoord2f( (float)section_offset / band->hex_size, 1.0f - (float)section2/band->hex_size );
 							}
 						}
-						glNormal3dv( patch1 );
-						glVertex3dv( patch1 );
-
+						verts[n+0] = norms[n+0] = patch1[0];
+						verts[n+1] = norms[n+1] = patch1[1];
+						verts[n+2] = norms[n+2] = patch1[2];
+						colors[n*4+0] = color[0];
+						colors[n*4+1] = color[1];
+						colors[n*4+2] = color[2];
+						colors[n*4+3] = color[3];
+						n++;
 						if( bound )
 						{
 							if( front )
@@ -1153,39 +1131,27 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 								glTexCoord2f( (float)section_offset_1 / band->hex_size, 1.0f - (float)section2/band->hex_size );
 							}
 						}
-						glNormal3dv( patch2 );
-						glVertex3dv( patch2 );
+						verts[n+0] = norms[n+0] = patch2[0];
+						verts[n+1] = norms[n+1] = patch2[1];
+						verts[n+2] = norms[n+2] = patch2[2];
+						colors[n*4+0] = color[0];
+						colors[n*4+1] = color[1];
+						colors[n*4+2] = color[2];
+						colors[n*4+3] = color[3];
+						n++;
 					}
 				}
-				glEnd();
-#endif
+				ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
+				glDrawArrays( GL_TRIANGLE_STRIP, 0, n );
 			}
 		}
-
-		glBindTexture( GL_TEXTURE_2D, 0 );
 	}
 }
+
+
 int DrawSphereThing( PHEXPATCH patch, int mode )
 {
 	RCOORD scale = 0.0;
-
-#ifndef USE_GLES2
-	glEnable(GL_VERTEX_PROGRAM_ARB);
-         CheckErr();
-	glEnable(GL_FRAGMENT_PROGRAM_ARB);
-         CheckErr();
-#endif
-	glUseProgram( l.shader.extra_simple_shader.shader );
-         CheckErr();
-	lprintf( "Use ess Program (then draw)" );
-
-	glEnableVertexAttribArray( 0 );
-         CheckErr();
-	glEnableVertexAttribArray( 1 );
-         CheckErr();
-	//glEnableVertexAttribArray( 2 );
-	//glEnableVertexAttribArray( 3 );
-	//glEnableVertexAttribArray( 5 );
 
 	if( patch->number == l.next_active_ball && ( l.next_active_tick > 0 ) )
 	{
@@ -1199,11 +1165,12 @@ int DrawSphereThing( PHEXPATCH patch, int mode )
 	btTransform trans;
 	patch->fallRigidBody->getMotionState()->getWorldTransform( trans );
 	trans.getOpenGLMatrix(m);
+	ImageSetShaderModelView( l.shader.extra_simple_shader.shader_tracker, (float*)(m) );
 
 	//which is a 1x1x1 sort of patch array
-	//RenderBandPatch( patch, m, mode );
+	RenderBandPatch( patch, m, mode );
 	RenderPolePatch( patch, m, mode, 0 );
-	//RenderPolePatch( patch, m, mode, 1 );
+	RenderPolePatch( patch, m, mode, 1 );
 
 
 	return 1;
@@ -1847,7 +1814,6 @@ void MoveBallsToRack( void )
 			btTransform trans;
 			patch->fallRigidBody->getMotionState()->getWorldTransform(trans);
 			trans.setOrigin( work );
-			lprintf( "SET ROTATION" );
 			trans.setRotation( rotation );
 			//trans.setRotation(  btQuaternion( 0, 0, 1, 0 ) );
 			patch->fallRigidBody->getMotionState()->setWorldTransform(trans);
@@ -2033,14 +1999,15 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
 	l.shader.extra_simple_shader.shader_tracker = ImageGetShader( "SuperSimpleShader", InitSuperSimpleShader );
 
 	l.shader.simple_shader.shader_tracker = ImageGetShader( "SimpleShader", InitShader );
-#if 0
-
 	{
 		int n;
 		struct band *initial_band = new band( l.hex_size );
 		struct pole *initial_pole = new pole( l.hex_size );
-		initial_band->Texture( 0 );
 
+		/*
+		// this creates VAO references... (and crashes rendering)
+		initial_band->Texture( 0 );
+		*/
 		for( n = 0; n < 75; n++ )
 		{
 			PHEXPATCH patch = CreatePatch( l.hex_size, NULL );
@@ -2048,7 +2015,7 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
 			patch->band = initial_band;
 			patch->pole = initial_pole;
 		
-			initial_band->Texture( n + 1 );
+			//initial_band->Texture( n + 1 );
 
 
 			patch->origin[0] =  (n % 5) * 100 - 250 ;
@@ -2087,7 +2054,7 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
 			AddLink( &l.patches, patch );
 		}
 	}
-#endif
+
 }
 
 static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
@@ -2319,7 +2286,6 @@ static void OnBeginDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psv,PTRANSFORM cam
 
 static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 {
-
 		{
 			// First simple object
 			float* vert = new float[9];	// vertex array
@@ -2351,13 +2317,13 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 
 			ImageEnableShader( ImageGetShader( "Simple Shader", NULL ), vert, col );
 			glDrawArrays(GL_TRIANGLES, 0, 3);	// draw second object
-
+			CheckErr();
 			ImageEnableShader( ImageGetShader( "Simple Shader", NULL ), vert2, col );
 
 			glDrawArrays(GL_TRIANGLES, 0, 3);	// draw second object
+			CheckErr();
 
 		}
-
 
 
 	MATRIX m;
@@ -2464,11 +2430,6 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 	} while( 0);
 #endif
 	// display already activated by the time we get here.
-#ifdef _MSC_VER
-//		__try
-	{
-#endif
-	//if( 0 )//SetActiveGLDisplay( pRend ) )
 	{
 
 		INDEX idx;
@@ -2480,7 +2441,6 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 
 
 //		SetLights();
-		if( 0 )
 		{
 			PHEXPATCH patch;
 			btVector3 bt_view_origin;
@@ -2507,9 +2467,8 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 			}
 
 
-			glVertexAttrib3f((GLuint)1, 0, 1.0, 0.0); // set constant color attribute
-			SetMaterial();
 			// do this in two passes, and skip the faded (fading) balls.
+
 			LIST_FORALL( l.patches, idx, PHEXPATCH, patch )
 			{
 				if(  patch->fade_target_tick && ( patch->fade_target_tick < l.last_tick ) )
@@ -2602,7 +2561,7 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 			col[8] = 0.5; col[9] = 0.0; col[10] = 1.0;  col[11] = 1.0;
 
 			ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, vert, col );
-			SetSimpleShaderModel( (float*)(m) );
+			ImageSetShaderModelView( l.shader.extra_simple_shader.shader_tracker, (float*)(m) );
 
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 			glDrawArrays(GL_LINES, 0, 2);
@@ -2625,9 +2584,6 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 		}
 	}
 	//l.bullet.dynamicsWorld->debugDrawWorld();
-#ifdef _MSC_VER
-	}
-#endif
 	hold_update = FALSE;
 #ifdef DEBUG_TIMING
 	lprintf( "(end draw Tick." );

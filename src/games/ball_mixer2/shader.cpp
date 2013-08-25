@@ -487,11 +487,13 @@ void SetMaterial( void )
 		spec[2] = 0.5f;//l.values[MAT_SPECULAR2] / 256.0f;
 		spec[3] = 1.0f;
 		glUniform4fv( l.shader.normal_shader.material.specular, 1, spec );
+		CheckErr();
 
 
 		//glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec );
 		//glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 64/*l.values[MAT_SHININESS]/2*/ ); // 0-128
 		glUniform1f( l.shader.normal_shader.material.shine, l.values[MAT_SHININESS]/2 );
+		CheckErr();
 
 		diff[0] = 0.5f;
 		diff[1] = 0.5f;
@@ -499,6 +501,7 @@ void SetMaterial( void )
 		diff[3] = 1.0f;
 		glUniform4fv( l.shader.normal_shader.material.diffuse, 1, diff );
 		//glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff );
+		CheckErr();
 
 	}
     lprintf( "Disable program" );
@@ -694,7 +697,7 @@ void RenderBumpTextureFragment( Image texture
 	LOGICAL SetShader = FALSE;
 
 	glBindVertexArray(surface->VAOobject); // Bind our Vertex Array Object so we can use it  	
-
+	CheckErr();
 	if( texture )
 	{
 		int texture_texture;
@@ -754,6 +757,7 @@ void RenderBumpTextureFragment( Image texture
 		glVertexAttrib4fv((GLuint)2, background); // set constant color attribute
 		glDisableVertexAttribArray( 5 );
 
+		//ImageEnableShader( l.shader.simple_shader.shader_tracker, background );
 	}
 
 	
