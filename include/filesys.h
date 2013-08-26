@@ -30,7 +30,7 @@
 #endif
 
 /* uhmm in legacy usage this was not CPROC, but was unspecified */
-#define FILESYS_API CPROC 
+#define FILESYS_API 
 // DOM-IGNORE-BEGIN
 #ifdef FILESYSTEM_LIBRARY_SOURCE
 #  define FILESYS_PROC EXPORT_METHOD

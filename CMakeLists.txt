@@ -291,8 +291,6 @@ SET( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/ )
 include( CMakeSources.lst )
 
 
-# expat is a 'standard' library.  ripped a copy for ease, it's also incredibly simple.
-set( ExternalExtraDefinitions "${ExternalExtraDefinitions};${EXPAT_SOURCES_FLAGS}" )
 
 # genx is searchable by looking for 'genx xml'
 set( ExtraDefinitions "${ExtraDefinitions};${GENX_SOURCES_FLAGS}" )
@@ -443,6 +441,20 @@ if( __ANDROID__ )
 endif( __ANDROID__ )
 
 
+set( INCLUDE_XPAT_IN_CORE ON )
+if( INCLUDE_XPAT_IN_CORE )
+    # expat is a 'standard' library.  ripped a copy for ease, it's also incredibly simple.
+    set( ExtraDefinitions "${ExtraDefinitions};${EXPAT_SOURCES_FLAGS}" )
+    set( CORE_EXPAT_SOURCES ${EXPAT_SOURCES} )
+    set( EXTERNAL_EXPAT_SOURCES )
+else( INCLUDE_XPAT_IN_CORE )
+    # expat is a 'standard' library.  ripped a copy for ease, it's also incredibly simple.
+    set( ExternalExtraDefinitions "${ExternalExtraDefinitions};${EXPAT_SOURCES_FLAGS}" )
+    set( CORE_EXPAT_SOURCES )
+    set( EXTERNAL_EXPAT_SOURCES ${EXPAT_SOURCES} )
+endif( INCLUDE_XPAT_IN_CORE )
+
+
 if( BUILD_MONOLITHIC )
 
   if( NOT FORCE_INTERFACE )
@@ -480,6 +492,7 @@ set( SACK_SOURCES
     ${BAG_SQLITE_SOURCES}
     ${C_SOURCES}
     ${GENX_SOURCES}
+    ${CORE_EXPAT_SOURCES}
   ${LAST_GCC_LIBRARY_SOURCE} 
 )
 
@@ -757,6 +770,7 @@ add_library( bag SHARED
     ${VECTLIB_SOURCES}
     ${ODBC_SOURCES}
     ${GENX_SOURCES}
+    ${CORE_EXPAT_SOURCES}
     ${BAG_SQLITE_INTERFACE}
   ${LAST_GCC_LIBRARY_SOURCE}  
 )
@@ -868,7 +882,7 @@ add_library( bag.externals SHARED
     ${ZLIB_SOURCE}
     ${PNG_SOURCE}
     ${FREETYPE_SOURCE}
-    ${EXPAT_SOURCES}
+    ${EXTERNAL_EXPAT_SOURCES}
     ${BAG_SQLITE_SOURCES}
     ${MORE_SOURCES}
 )
@@ -878,6 +892,7 @@ SET_TARGET_PROPERTIES(bag.externals PROPERTIES
                   LINK_FLAGS "${extra_link_flags}"
                   FOLDER "Externals"
 )
+
 
 if( __QNX__ )
     my_target_link_libraries( bag socket )
