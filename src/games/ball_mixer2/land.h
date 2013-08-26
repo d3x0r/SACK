@@ -537,12 +537,9 @@ typedef struct hexpatch_tag
 	int max_hex_size;
 	int hex_size;
 	struct band *band;
-	struct pole *pole;
+	struct pole *pole[2];
 	Image label;
-	GLfloat *verts;
-	GLfloat *norms;
-	GLfloat *colors;
-	
+
 } HEXPATCH, *PHEXPATCH;
 
 

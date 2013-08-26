@@ -125,6 +125,7 @@ SACK_NAMESPACE
 
 
 
+typedef RCOORD _POINT4[4];
 typedef RCOORD _POINT[DIMENSIONS];
 /* pointer to a point. */
 typedef RCOORD *P_POINT;
@@ -216,8 +217,8 @@ struct orthoarea_tag {
    radians.                                                 */
 #define _45 (RCOORD)((45.0/180.0)*M_PI )
 
-// should end up layering this macro based on DIMENSIONS
 #define SetPoint( d, s ) ( (d)[0] = (s)[0], (d)[1]=(s)[1], (d)[2]=(s)[2] )
+#define SetPoint4( d, s ) ( (d)[0] = (s)[0], (d)[1]=(s)[1], (d)[2]=(s)[2], (d)[3]=(s)[3] )
 /* Inverts a vector. that is vector * -1. (a,b,c) = (-a,-b,-c)
    
    <b>Parameters</b>

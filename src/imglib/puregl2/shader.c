@@ -94,6 +94,7 @@ void EnableShader( PImageShaderTracker tracker, ... )
 
 	//xlprintf( LOG_NOISE+1 )( "Enable shader %s", tracker->name );
 	glUseProgram( tracker->glProgramId );
+	CheckErrf( " (%s)", tracker->name );
 	if( !tracker->flags.set_matrix )
 	{
 		if( !l.flags.worldview_read )
@@ -104,7 +105,7 @@ void EnableShader( PImageShaderTracker tracker, ... )
 
 		//PrintMatrix( l.worldview );
 		glUniformMatrix4fv( tracker->worldview, 1, GL_FALSE, (RCOORD*)l.worldview );
-		CheckErr();
+		CheckErrf( " (%s)", tracker->name );
 				
 		//PrintMatrix( l.glActiveSurface->M_Projection );
 		glUniformMatrix4fv( tracker->projection, 1, GL_FALSE, (RCOORD*)l.glActiveSurface->M_Projection );
@@ -144,11 +145,11 @@ static void SetupCommon( PImageShaderTracker tracker )
 	}
 }
 
-void DumpAttribs( int program )
+void DumpAttribs( PImageShaderTracker tracker, int program )
 {
 	int n;
 	int m;
-	lprintf( "---- Program %d -----", program );
+	lprintf( "---- Program %s(%d) -----", tracker->name, program );
 
 	glGetProgramiv( program, GL_ACTIVE_ATTRIBUTES, &m );
 	for( n = 0; n < m; n++ )
@@ -338,7 +339,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 	CheckErr();
 	SetupCommon( tracker );
 
-	DumpAttribs( tracker->glProgramId );
+	DumpAttribs( tracker, tracker->glProgramId );
 	return tracker->glProgramId;
 }
 
@@ -352,7 +353,12 @@ void SetShaderModelView( PImageShaderTracker tracker, RCOORD *matrix )
 {
 	if( tracker )
 	{
+		glUseProgram(tracker->glProgramId);
+		CheckErrf( "SetModelView for (%s)", tracker->name );
+
 		glUniformMatrix4fv( tracker->modelview, 1, GL_FALSE, matrix );
+		CheckErrf( "SetModelView for (%s)", tracker->name );
+
 		tracker->flags.set_modelview = 1;
 	}
 }

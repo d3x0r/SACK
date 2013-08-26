@@ -159,6 +159,13 @@ struct band {
 		//        3
 		//
 
+		int *nPoints; // for each patch, how many points it is
+		// holds the list of rows (for the grid) and is verts; really it's scaled grid.
+		_POINT **verts;
+		// normals at that point
+		_POINT **norms;
+		// colors at that point
+		_POINT4 **colors;
 	} patches[6]; // actually this is continuous...
 	int max_hex_size;
 	int hex_size;
@@ -178,56 +185,56 @@ struct band {
 	{
 		struct SACK_3D_Surface *tmp;
 		int verts = ( hex_size + 1 ) * 2;
-		_POINT *tangents = NewArray( _POINT, verts );
+		_POINT *normals = NewArray( _POINT, verts );
 		_POINT *texture = NewArray( _POINT, verts );
 		int nShape;
 	
 		struct band *band = this;
-		int section, section2;
-		int sections = 6*band->hex_size;
-		int sections2= band->hex_size;
 
-
-		for( section = 0; section < sections; section ++ )
+		for( int s = 0; s < 6; s ++ )
 		{
-			_POINT *shape = NewArray( _POINT, verts);
-			int other_s = (section/(band->hex_size+1))%6; // might be 6, which needs to be 0.
-			int s = (section/band->hex_size)%6; // might be 6, which needs to be 0.
-			int s2 = ((section+1)/band->hex_size)%6; // might be 6, which needs to be 0.
-			int section_offset = ( section % band->hex_size );
-			int section_offset_1_a = ( (section+1) % band->hex_size );
-		
-			nShape = 0;
-			for( section2 = 0; section2 <= sections2; section2++ )
+			patches[s].verts = NewArray( _POINT*, verts * hex_size * 2 );
+			patches[s].norms = NewArray( _POINT*, verts * hex_size * 2 );
+			patches[s].colors = NewArray( _POINT4*, verts * hex_size );
+			patches[s].nPoints = NewArray( int, hex_size );
+
+			for( int row = 0; row < hex_size; row++ )
 			{
 				_POINT tmp2;
-				scale( shape[nShape], band->patches[s].grid[section_offset][section2], SPHERE_SIZE );
-				//texture[nShape][0] = l.numbers.coords[row][col][section_offset][section2][0];
-				//texture[nShape][1] = l.numbers.coords[row][col][section_offset][section2][1];
-				//crossproduct( tmp1, _Z, shape[nShape] );
-				// cross with Y to get horizontal.
-				crossproduct( tmp2, _Y, shape[nShape] );
-				//if( Length( tmp1 ) > Length( tmp2 ) )
-				//	SetPoint( tangents[nShape], tmp1 );
-				//else
-					SetPoint( tangents[nShape], tmp2 );
-				//normalize(shape[nShape]);
-				normalize( tangents[nShape] );
-				nShape++;
-				
-				// s2 can change patches, whereas the number coords... go forward
-				scale( shape[nShape], band->patches[s2].grid[section_offset_1_a][section2], SPHERE_SIZE );
-				//texture[nShape][0] = l.numbers.coords[row][col][section_offset+1][section2][0];
-				//texture[nShape][1] = l.numbers.coords[row][col][section_offset+1][section2][1];
-				crossproduct( tangents[nShape], _Y, shape[nShape] );
-				normalize( tangents[nShape] );
-				nShape++;
-			}
-			tmp = CreateBumpTextureFragment( verts, (PCVECTOR*)shape, (PCVECTOR*)shape
-				, (PCVECTOR*)tangents, (PCVECTOR*)NULL, (PCVECTOR*)texture );
-			AddLink( &bands, tmp );
-			tmp->color = (((section/band->hex_size)%6) < 3)?TRUE:FALSE;
+				int use_s2;
 
+				patches[s].nPoints[row] = ( (hex_size+1)*2-1 );
+
+				_POINT *row_verts = patches[s].verts[row] = NewArray( _POINT, verts );
+				_POINT *row_norms = patches[s].norms[row] = NewArray( _POINT, verts );
+				patches[s].colors[row] = NewArray( _POINT4, hex_size * 2 );
+
+				for( int col = 0; col <= hex_size; col++ )
+				{
+					int s2;
+					int c2;
+					if( col == hex_size )
+					{
+						c2 = 0;
+						s2 = ( s + 1 ) % 6;
+					}
+					else
+					{
+						c2 = col;
+						s2 = s;
+					}
+					scale( row_verts[col*2], band->patches[s].grid[row][col], SPHERE_SIZE );
+					crossproduct( row_norms[col*2], _Y, row_verts[col*2] );
+					normalize( row_norms[col*2] );
+				
+					scale( row_verts[col*2+1], band->patches[s2].grid[row+1][c2], SPHERE_SIZE );
+					crossproduct( row_norms[col*2+1], _Y, row_verts[col*2+1] );
+					normalize( row_norms[col*2+1] );
+				}
+			}
+			//tmp = CreateBumpTextureFragment( verts, (PCVECTOR*)shape, (PCVECTOR*)shape
+			//	, (PCVECTOR*)normals, (PCVECTOR*)NULL, (PCVECTOR*)texture );
+			//AddLink( &bands, tmp );
 		}
 	}
 
@@ -342,9 +349,10 @@ struct band {
 					for( n = 0; n < 6; n++ )
 					{
 						int m;
-						patches[n].grid = NewArray( VECTOR *, size );
-						for( m = 0; m < size; m++ )
+						patches[n].grid = NewArray( VECTOR *, size + 1 );
+						for( m = 0; m <= size; m++ )
 							patches[n].grid[m] = NewArray( VECTOR, size + 1 );
+
 						patches[n].near_area = NewArray( struct band_patch_tag::near_sector **, size );
 						for( m = 0; m < size; m++ )
 						{
@@ -381,7 +389,7 @@ struct band {
 					}
 					DestroyTransform( work );
 				}
-		//CreateBandFragments( );
+		CreateBandFragments( );
 	}
 
 	band( int size ) 
@@ -442,11 +450,19 @@ struct pole{
 			// indexed by x, y from level, c translation.  Is the 4 near squares to any given point.
          // on the pole itself, this is short 1, and .s = -1
 		} ***near_area;//[HEX_SIZE+1][HEX_SIZE+1][4]; // the 4 corners that are this hex square.
+
+		int *nPoints; // for each patch, how many points it is
+		// holds the list of rows (for the grid) and is verts; really it's scaled grid.
+		_POINT **verts;
+		// normals at that point
+		_POINT **norms;
+		// colors at that point
+		_POINT4 **colors;
 	} patches[3];
 	PLIST pole_bands[2];
 	PLIST bands;
 	int number;
-	void CreatePoleFragments( void )
+	void CreatePoleFragments( int north )
 	{
 		int maxverts = ( hex_size + 1 ) * 2;
 		int s, level, c, r;
@@ -457,107 +473,112 @@ struct pole{
 	#ifdef DEBUG_RENDER_POLE_NEARNESS
 		bLog = 1;
 	#endif
-//__try
 		{
-			int north;
 			int verts = ( hex_size + 1 ) * 2;
-			_POINT *tangents = NewArray( _POINT, verts );
-			_POINT *texture = NewArray( _POINT, verts );
-			_POINT *shape = NewArray( _POINT, verts);
-			int nShape;
 
-			for( north = 0; north <= 1; north++ )
+			//for( north = 0; north <= 1; north++ )
 			{
 				struct SACK_3D_Surface *tmp;
 				for( s = 0; s < 3; s++ )
 				{
+					int row;
+					patches[s].verts = NewArray( _POINT*, verts * hex_size * 2 );
+					patches[s].norms = NewArray( _POINT*, verts * hex_size * 2 );
+					patches[s].colors = NewArray( _POINT4*, verts * hex_size );
+					patches[s].nPoints = NewArray( int, hex_size );
 					for( level = 1; level <= hex_size; level++ )
 					{
+						row = (level-1)*2;
 
-						nShape = 0;
-
-						r = 0;
+						patches[s].nPoints[level-1] = (level+1)*2-1;
+						_POINT *row_verts = patches[s].verts[row] = NewArray( _POINT, level * (level+1)*2-1 );
+						_POINT *row_norms = patches[s].norms[row] = NewArray( _POINT, level * (level+1)*2-1 );
+						patches[s].colors[row] = NewArray( _POINT4, level * (level+1)*2-1 );
 
 						for( c = 0; c <= level; c++ )
 						{
+							int v_idx = c * 2;
 							ConvertPolarToRect( level, c, &x, &y );
-							scale( shape[nShape], patches[s].grid[x][y]
+							scale( row_verts[v_idx]
+									, patches[s].grid[x][y]
 									, SPHERE_SIZE /*+ height[s+(north*6)][x][y]*/ );
-							if( north )
-								shape[nShape][1] = -shape[nShape][1];
-					
-							crossproduct( tangents[nShape], _Y, shape[nShape] );
-							normalize( tangents[nShape] );
 
-							nShape++;
+							if( north )
+								row_verts[v_idx][1] = -row_verts[v_idx][1];
+					
+							crossproduct(  row_norms[v_idx], _Y, row_verts[v_idx] );
+							normalize(  row_norms[v_idx] );
+
 							if( c < (level) )
 							{
 								ConvertPolarToRect( level-1, c, &x, &y );
-								scale( shape[nShape], patches[s].grid[x][y], SPHERE_SIZE /*+ patch->height[s+(north*6)][x][y]*/ );
+								scale( row_verts[v_idx+1], patches[s].grid[x][y]
+										, SPHERE_SIZE /*+ patch->height[s+(north*6)][x][y]*/ );
 								if( north )
-									shape[nShape][1] = -shape[nShape][1];
-								crossproduct( tangents[nShape], _Y, shape[nShape] );
-								normalize( tangents[nShape] );
-								nShape++;
+									row_verts[v_idx+1][1] = -row_verts[v_idx+1][1];
+								crossproduct(row_norms[v_idx+1], _Y, row_verts[v_idx+1] );
+								normalize( row_norms[v_idx+1] );
 							}
-							r++;
 						}
 
-						AddLink( &bands, tmp = CreateBumpTextureFragment( nShape, (PCVECTOR*)shape, (PCVECTOR*)shape, (PCVECTOR*)tangents, (PCVECTOR*)NULL, (PCVECTOR*)NULL ) );
-						switch( s )
+						if( 0 )
 						{
-						case 0:
-						case 1:
-							tmp->color = 1;
-							break;
-						case 2:
-							tmp->color = 0;
-							break;
+							//AddLink( &bands, tmp = CreateBumpTextureFragment( nShape, (PCVECTOR*)shape, (PCVECTOR*)shape, (PCVECTOR*)normals, (PCVECTOR*)NULL, (PCVECTOR*)NULL ) );
+							switch( s )
+							{
+							case 0:
+							case 1:
+								tmp->color = 1;
+								break;
+							case 2:
+								tmp->color = 0;
+								break;
+							}
 						}
 
-						nShape = 0;
 						if( bLog )lprintf( WIDE("---------") );
 
-
+						row = (level-1)*2 + 1;
+						row_verts = patches[s].verts[row] = NewArray( _POINT, level * (level+1)*2-1 );
+						row_norms = patches[s].norms[row] = NewArray( _POINT, level * (level+1)*2-1 );
+						patches[s].colors[row] = NewArray( _POINT4, level * (level+1)*2-1 );
 						for( c = level; c <= level*2; c++ )
 						{
-							ConvertPolarToRect( level, c, &x, &y );
-							//if( bLog )lprintf( WIDE("Render corner %d,%d"), 2*level-c,level);
-							scale( shape[nShape], patches[s].grid[x][y], SPHERE_SIZE /*+ patch->height[s+(north*6)][x][y]*/ );
-							if( north )
-								shape[nShape][1] = -shape[nShape][1];
+							int v_idx = (c - level)*2;
 
-							crossproduct( tangents[nShape], _Y, shape[nShape] );
-							normalize( tangents[nShape] );
-							nShape++;
+							ConvertPolarToRect( level, c, &x, &y );
+							scale( row_verts[v_idx]
+									, patches[s].grid[x][y], SPHERE_SIZE /*+ patch->height[s+(north*6)][x][y]*/ );
+							if( north )
+								row_verts[v_idx][1] = -row_verts[v_idx][1];
+							crossproduct( row_norms[v_idx], _Y, row_verts[v_idx] );
+							normalize( row_norms[v_idx] );
 							if( c < (level)*2 )
 							{
-
 								ConvertPolarToRect( level-1, c-1, &x, &y );
 								//if( bLog )lprintf( WIDE("Render corner %d,%d"), 2*level-c-1,level-1);
-								scale( shape[nShape], patches[s].grid[x][y], SPHERE_SIZE /*+ patch->height[s+(north*6)][x][y]*/ );
+								scale( row_verts[v_idx+1], patches[s].grid[x][y], SPHERE_SIZE /*+ patch->height[s+(north*6)][x][y]*/ );
 								if( north )
-									shape[nShape][1] = -shape[nShape][1];
-								crossproduct( tangents[nShape], _Y, shape[nShape] );
-								normalize( tangents[nShape] );
-								nShape++;
+									row_verts[v_idx+1][1] = -row_verts[v_idx+1][1];
+								crossproduct( row_norms[v_idx+1], _Y, row_verts[v_idx+1] );
+								normalize( row_norms[v_idx+1] );
 							}
 						}
-						
-						AddLink( &bands, tmp = CreateBumpTextureFragment( nShape, (PCVECTOR*)shape, (PCVECTOR*)shape, (PCVECTOR*)tangents, (PCVECTOR*)NULL, (PCVECTOR*)NULL ) );
 
-						switch( s )
+						if( 0 )
 						{
-						case 0:
-							tmp->color = 1;
-							break;
-						case 1:
-						case 2:
-							tmp->color = 0;
-							break;
+							//AddLink( &bands, tmp = CreateBumpTextureFragment( nShape, (PCVECTOR*)shape, (PCVECTOR*)shape, (PCVECTOR*)normals, (PCVECTOR*)NULL, (PCVECTOR*)NULL ) );
+							switch( s )
+							{
+							case 0:
+								tmp->color = 1;
+								break;
+							case 1:
+							case 2:
+								tmp->color = 0;
+								break;
+							}
 						}
-
-						nShape = 0;
 					}
 				}
 			}
@@ -566,7 +587,7 @@ struct pole{
 	}
 
 
-	void resize( int size )
+	void resize( int size, int north )
 	{
 		hex_size = size;
 		if( hex_size > max_hex_size )
@@ -633,45 +654,43 @@ struct pole{
 			int level;
 			int c;
 			int patch;
-				work = CreateTransform();
+			work = CreateTransform();
 			//__try
+			for( patch = 0; patch < 3; patch++ )
 			{
-				for( patch = 0; patch < 3; patch++ )
+				for( level = 0; level <= hex_size; level++ )
 				{
-					for( level = 0; level <= hex_size; level++ )
+					RCOORD patch_bias = -((patch*120) * M_PI ) / 180;
+					int sections = ( level * 2 );
+					RotateAbs( work, 0, 0, ((((60.0/hex_size)*level))*(1*M_PI))/180.0 );
+					GetAxisV( work, patch1x, vUp );
+					//Apply( work, patch1x, ref_point );
+					if( !sections ) // level 0
 					{
-						RCOORD patch_bias = -((patch*120) * M_PI ) / 180;
-						int sections = ( level * 2 );
-						RotateAbs( work, 0, 0, ((((60.0/hex_size)*level))*(1*M_PI))/180.0 );
-						GetAxisV( work, patch1x, vUp );
-						//Apply( work, patch1x, ref_point );
-						if( !sections ) // level 0
-						{
-							SetPoint( patches[patch].grid[0][0], patch1x );
-							continue;
-						}
-						//use common convert sphere to hex...
-						for( c = 0; c <= sections; c++ )
-						{
-							int x, y;
-							ConvertPolarToRect( level, c, &x, &y );
-							RotateAbs( work, 0, patch_bias - ((120.0*c)*(1*M_PI))/((sections)*180.0), 0 );
-							Apply( work, patch1, patch1x );
-							SetPoint( patches[patch].grid[x][y], patch1 );
-						}
+						SetPoint( patches[patch].grid[0][0], patch1x );
+						continue;
+					}
+					//use common convert sphere to hex...
+					for( c = 0; c <= sections; c++ )
+					{
+						int x, y;
+						ConvertPolarToRect( level, c, &x, &y );
+						RotateAbs( work, 0, patch_bias - ((120.0*c)*(1*M_PI))/((sections)*180.0), 0 );
+						Apply( work, patch1, patch1x );
+						SetPoint( patches[patch].grid[x][y], patch1 );
 					}
 				}
 			}
-					DestroyTransform( work );
+			DestroyTransform( work );
 			//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( WIDE("Pole Patch Excepted.") ); }
 		}
-		//CreatePoleFragments();
+		CreatePoleFragments( north );
 	}
-	pole( int size )
+	pole( int size, int north )
 	{
 		bands = NULL;
 		max_hex_size = 0;
-		resize( size );
+		resize( size, north );
 	}
 };
 
@@ -692,7 +711,7 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 	float *color;
 	float tmpval[4];
 	float fade;
-	pole *pole_patch = patch->pole;
+	pole *pole_patch = patch->pole[north];
 	int x, y; // used to reference patch level
 	//int x2, y2;
 	int bLog = 0;
@@ -746,7 +765,7 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 			struct SACK_3D_Surface * surface;
 			ImageSetShaderModelView( l.shader.extra_simple_shader.shader_tracker, m );
 
-			LIST_FORALL( patch->pole->bands, idx, struct SACK_3D_Surface *, surface )
+			LIST_FORALL( patch->pole[north]->bands, idx, struct SACK_3D_Surface *, surface )
 			{
 				// somehow this surface thing needs extra data for the fragment color
 				if( surface->color )
@@ -760,14 +779,15 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 
 	if( mode )
 	{
-		GLfloat *verts = patch->verts; //[pole_patch->hex_size+1][6];
-		GLfloat *norms = patch->norms; //[pole_patch->hex_size+1][6];
-		GLfloat *colors = patch->colors; //[pole_patch->hex_size+1][8];
 
 		for( s = 0; s < 3; s++ )
 		{
 			for( level = 1; level <= pole_patch->hex_size; level++ )
 			{
+				GLfloat *verts = (GLfloat*)patch->pole[north]->patches[s].verts[(level-1)*2]; //[pole_patch->hex_size+1][6];
+				GLfloat *norms = (GLfloat*)patch->pole[north]->patches[s].norms[(level-1)*2]; //[pole_patch->hex_size+1][6];
+				GLfloat *colors = (GLfloat*)patch->pole[north]->patches[s].colors[(level-1)*2]; //[pole_patch->hex_size+1][8];
+
 				VECTOR v1,v2;
 				{
 					switch( s )
@@ -775,52 +795,34 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 					case 0:
 					case 1:
 						color = fore_color;
-						//glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, fore_color );
 						break;
 					case 2:
 						color = back_color;
-						//glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, back_color );
 						break;
 					}
 				}
-
-				r = 0;
-
 				for( c = 0; c <= level; c++ )
 				{
-					ConvertPolarToRect( level, c, &x, &y );
-					scale( v1, pole_patch->patches[s].grid[x][y]
-							, SPHERE_SIZE /*+ patch->height[s+(north*6)][x][y]*/ );
-					if( north )
-						v1[1] = -v1[1];
-					verts[c*6+0] = norms[c*6+0] = v1[0];
-					verts[c*6+1] = norms[c*6+1] = v1[1];
-					verts[c*6+2] = norms[c*6+2] = v1[2];
 					colors[c*8+0] = color[0];
 					colors[c*8+1] = color[1];
 					colors[c*8+2] = color[2];
 					colors[c*8+3] = color[3];
 					if( c < (level) )
 					{
-						ConvertPolarToRect( level-1, c, &x, &y );
-						scale( v1, pole_patch->patches[s].grid[x][y], SPHERE_SIZE /*+ patch->height[s+(north*6)][x][y]*/ );
-						if( north )
-							v1[1] = -v1[1];
-						verts[c*6+3] = norms[c*6+3] = v1[0];
-						verts[c*6+4] = norms[c*6+4] = v1[1];
-						verts[c*6+5] = norms[c*6+5] = v1[2];
 						colors[c*8+4] = color[0];
 						colors[c*8+5] = color[1];
 						colors[c*8+6] = color[2];
 						colors[c*8+7] = color[3];
 					}
-					r++;
 				}
 				// just to make sure the verts are loaded into the correct shader...
 				ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, (level+1)*2-1);
 		         CheckErr();
-				if( bLog )lprintf( WIDE("---------") );
+
+				verts = (GLfloat*)patch->pole[north]->patches[s].verts[(level-1)*2+1]; //[pole_patch->hex_size+1][6];
+				norms = (GLfloat*)patch->pole[north]->patches[s].norms[(level-1)*2+1]; //[pole_patch->hex_size+1][6];
+				colors = (GLfloat*)patch->pole[north]->patches[s].colors[(level-1)*2+1]; //[pole_patch->hex_size+1][8];
 
 				{
 					switch( s )
@@ -836,31 +838,15 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 						break;
 					}
 				}
+
 				for( c = 0; c <= level; c++ )
 				{
-					ConvertPolarToRect( level, c+level, &x, &y );
-					//if( bLog )lprintf( WIDE("Render corner %d,%d"), 2*level-c,level);
-					scale( v1, pole_patch->patches[s].grid[x][y], SPHERE_SIZE /*+ patch->height[s+(north*6)][x][y] */);
-					if( north )
-						v1[1] = -v1[1];
-					verts[c*6+0] = norms[c*6+0] = v1[0];
-					verts[c*6+1] = norms[c*6+1] = v1[1];
-					verts[c*6+2] = norms[c*6+2] = v1[2];
 					colors[c*8+0] = color[0];
 					colors[c*8+1] = color[1];
 					colors[c*8+2] = color[2];
 					colors[c*8+3] = color[3];
 					if( c < (level) )
 					{
-
-						ConvertPolarToRect( level-1, c+level-1, &x, &y );
-						//if( bLog )lprintf( WIDE("Render corner %d,%d"), 2*level-c-1,level-1);
-						scale( v1, pole_patch->patches[s].grid[x][y], SPHERE_SIZE /*+ patch->height[s+(north*6)][x][y]*/ );
-						if( north )
-							v1[1] = -v1[1];
-						verts[c*6+3] = norms[c*6+3] = v1[0];
-						verts[c*6+4] = norms[c*6+4] = v1[1];
-						verts[c*6+5] = norms[c*6+5] = v1[2];
 						colors[c*8+4] = color[0];
 						colors[c*8+5] = color[1];
 						colors[c*8+6] = color[2];
@@ -961,63 +947,17 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, tmpval );
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 64/*l.values[MAT_SHININESS]/2*/ ); // 0-128
 
-#if 0 && !defined( NO_SHADERS )
-	if( !mode )
 	{
-		INDEX idx;
-		struct SACK_3D_Surface * surface;
-		LIST_FORALL( patch->band->bands, idx, struct SACK_3D_Surface *, surface )
-		{
-			int s = (idx/band->hex_size)%6; // might be 6, which needs to be 0.
-				if( surface->color )
-						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, fore_color );
-				else
-						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, back_color );
-			if( s == 1 )
-			{
-				// select the texture vertext buffer here somehow...
-				RenderBumpTextureFragment( l.numbers.image, l.numbers.bump_image, m, patch->number, fore_color, surface );
-			}
-			else if( s == 4 )
-			{
-				// select the texture vertext buffer here somehow...
-				RenderBumpTextureFragment( l.logo, NULL, m, 0, back_color, surface );
-			}
-			else
-			{
-				if( s < 3 )
-					RenderBumpTextureFragment( NULL, NULL, m, 0, fore_color, surface );
-				else
-					RenderBumpTextureFragment( NULL, NULL, m, 0, back_color, surface );
-			}
-		}
-	}
-#endif
-	{
-		GLfloat *verts = patch->verts; //[pole_patch->hex_size+1][6];
-		GLfloat *norms = patch->norms; //[pole_patch->hex_size+1][6];
-		GLfloat *colors = patch->colors; //[pole_patch->hex_size+1][8];
 		int n = 0;
-
+		int s;
+		int layer;
+		int row;
 		//scale( ref_point, VectorConst_X, SPHERE_SIZE );
 		//lprintf( " Begin --------------"  );
-		for( section = 0; section < sections; section ++ )
+		for( s = 0; s < 6; s++ )
 		{
-			int bound, front;
-			int other_s = (section/(band->hex_size+1))%6; // might be 6, which needs to be 0.
-			int s = (section/band->hex_size)%6; // might be 6, which needs to be 0.
-			int s2 = ((section+1)/band->hex_size)%6; // might be 6, which needs to be 0.
-			int section_offset = ( section % band->hex_size );
-			int section_offset_1 = ( (section) % band->hex_size ) + 1;
-			int section_offset_1_a = ( (section+1) % band->hex_size );
-			int layer;
-			if( section == band->hex_size )
-			{
-				//lprintf( "%d %d", s, s2 );
-				//continue;
-			}
 			//lprintf( "section %d = %d,%d", section, s, s2 );
-			for( layer = 0; layer < 2; layer++ )
+			for( layer = 0; layer < 1; layer++ )
 			{
 				if( layer == 0 )
 				{
@@ -1067,15 +1007,15 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 						color[3] = fade;
 						//glBindTexture( GL_TEXTURE_2D, l.numbers.texture );
 						//bound = 1;
-						front = 1;
+						//front = 1;
 					}
 					else if( s == 4 )
 					{
 						color[3] = fade;
 						//glColor4f( 1.0f, 1.0f, 1.0f, fade );
 						//glBindTexture( GL_TEXTURE_2D, l.logo_texture );
-						bound = 1;
-						front = 0;
+						//bound = 1;
+						//front = 0;
 					}
 					else
 					{
@@ -1086,63 +1026,29 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 
 				}
 
-				for( section2 = 0; section2 <= sections2; section2++ )
+				for( int row = 0; row < sections2; row++ )
 				{
-					scale( patch1, band->patches[s].grid[section_offset][section2], SPHERE_SIZE );
-					// s2 can change patches, whereas the number coords... go forward
-					scale( patch2, band->patches[s2].grid[section_offset_1_a][section2], SPHERE_SIZE );
-
+					GLfloat *verts = (GLfloat*)patch->band->patches[s].verts[row]; //[pole_patch->hex_size+1][6];
+					GLfloat *norms = (GLfloat*)patch->band->patches[s].norms[row]; //[pole_patch->hex_size+1][6];
+					GLfloat *colors = (GLfloat*)patch->band->patches[s].colors[row]; //[pole_patch->hex_size+1][8];
+					int n = 0;
+					for( int s2 = 0; s2 <= patch->hex_size; s2++ )
 					{
-						if( 0 && bound )	
-						{
-							if( front )
-							{
-								//lprintf( "one  Using %g,%g", l.numbers.coords[row][col][section_offset][section2][0]
-								//	, l.numbers.coords[row][col][section_offset][section2][1] );
-								glTexCoord2d( l.numbers.coords[row][col][section_offset][section2][0]
-											, l.numbers.coords[row][col][section_offset][section2][1] );
-							}
-							else
-							{
-								//lprintf( "offset1 is %d %d", section_offset, HEX_SIZE );
-								glTexCoord2f( (float)section_offset / band->hex_size, 1.0f - (float)section2/band->hex_size );
-							}
-						}
-						verts[n+0] = norms[n+0] = patch1[0];
-						verts[n+1] = norms[n+1] = patch1[1];
-						verts[n+2] = norms[n+2] = patch1[2];
 						colors[n*4+0] = color[0];
 						colors[n*4+1] = color[1];
 						colors[n*4+2] = color[2];
 						colors[n*4+3] = color[3];
 						n++;
-						if( bound )
-						{
-							if( front )
-							{
-								//lprintf( "then Using %g,%g", l.numbers.coords[row][col][section_offset_1_a][section2][0]
-							//		, l.numbers.coords[row][col][section_offset+1][section2][1] );
-								glTexCoord2d( l.numbers.coords[row][col][section_offset+1][section2][0]
-											, l.numbers.coords[row][col][section_offset+1][section2][1] );
-							}
-							else
-							{
-								//lprintf( "offset2 is %d %d", section_offset_1, HEX_SIZE );
-								glTexCoord2f( (float)section_offset_1 / band->hex_size, 1.0f - (float)section2/band->hex_size );
-							}
-						}
-						verts[n+0] = norms[n+0] = patch2[0];
-						verts[n+1] = norms[n+1] = patch2[1];
-						verts[n+2] = norms[n+2] = patch2[2];
 						colors[n*4+0] = color[0];
 						colors[n*4+1] = color[1];
 						colors[n*4+2] = color[2];
 						colors[n*4+3] = color[3];
 						n++;
 					}
+					ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
+					glDrawArrays( GL_TRIANGLE_STRIP, 0, n );
+					CheckErr();
 				}
-				ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
-				glDrawArrays( GL_TRIANGLE_STRIP, 0, n );
 			}
 		}
 	}
@@ -1210,15 +1116,8 @@ void ResizeHeightMap( PHEXPATCH patch, int size )
 				Release( patch->height[m] );
 			}
 		}
-		Release( patch->verts );
-		Release( patch->norms );
-		Release( patch->colors );
 
 		patch->max_hex_size = patch->hex_size = size;
-
-		patch->verts = NewArray( GLfloat, (patch->hex_size+1)*6); //[pole_patch->hex_size+1][6];
-		patch->norms = NewArray( GLfloat, (patch->hex_size+1)*6); //[pole_patch->hex_size+1][6];
-		patch->colors = NewArray( GLfloat, (patch->hex_size+1)*8); //[pole_patch->hex_size+1][8];
 
 		{
 			int m;
@@ -1244,9 +1143,6 @@ PHEXPATCH CreatePatch( int size, PHEXPATCH *nearpatches )
 
 	patch->hex_size = size;
 
-	patch->verts = NewArray( GLfloat, (patch->hex_size+1)*6); //[pole_patch->hex_size+1][6];
-	patch->norms = NewArray( GLfloat, (patch->hex_size+1)*6); //[pole_patch->hex_size+1][6];
-	patch->colors = NewArray( GLfloat, (patch->hex_size+1)*8); //[pole_patch->hex_size+1][8];
 
 	patch->time_to_rack = timeGetTime() + 4000;
 	patch->label = MakeImageFile( 60, 20 );
@@ -2002,7 +1898,8 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
 	{
 		int n;
 		struct band *initial_band = new band( l.hex_size );
-		struct pole *initial_pole = new pole( l.hex_size );
+		struct pole *initial_pole = new pole( l.hex_size, 0 );
+		struct pole *initial_pole_north = new pole( l.hex_size, 1 );
 
 		/*
 		// this creates VAO references... (and crashes rendering)
@@ -2013,7 +1910,8 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
 			PHEXPATCH patch = CreatePatch( l.hex_size, NULL );
 
 			patch->band = initial_band;
-			patch->pole = initial_pole;
+			patch->pole[0] = initial_pole;
+			patch->pole[1] = initial_pole_north;
 		
 			//initial_band->Texture( n + 1 );
 
