@@ -1,9 +1,9 @@
 
 <?php 
 
-function get_lobbies( $platform )
+function get_lobbies( )
 {
-    $sql = "select lobby_id from games_platform_lobbies join games_platforms using(platform_id) where platform_name=$platform";
+    $sql = "select lobby_id from games_platform_lobbies join games_platforms using(platform_id) where platform_name=$_SESSION['active_platform']";
 
     // Note the use of trigger_error instead of or die. 
     $query = mysql_query($sql) or trigger_error("Query Failed: " . mysql_error()); 
@@ -19,8 +19,9 @@ function get_lobbies( $platform )
 
 function set_platform( $platform )
 {
-
+    $_SESSION['active_platform'] = $platform;
 }
+
 
 
 ?>
