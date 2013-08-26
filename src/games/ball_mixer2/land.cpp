@@ -770,6 +770,7 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 			INDEX idx;
 			struct SACK_3D_Surface * surface;
 			ImageSetShaderModelView( l.shader.extra_simple_shader.shader_tracker, m );
+			ImageSetShaderModelView( l.shader.simple_shader.shader_tracker, m );
 
 			LIST_FORALL( patch->pole[north]->bands, idx, struct SACK_3D_Surface *, surface )
 			{
@@ -822,7 +823,8 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 					}
 				}
 				// just to make sure the verts are loaded into the correct shader...
-				ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
+				//ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
+				ImageEnableShader( l.shader.simple_shader.shader_tracker, verts, norms, color );
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, (level+1)*2-1);
 		         CheckErr();
 
@@ -859,7 +861,8 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 						colors[c*8+7] = color[3];
 					}
 				}
-				ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
+				//ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
+				ImageEnableShader( l.shader.simple_shader.shader_tracker, verts, norms, color );
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, (level+1)*2-1);
 				CheckErr();
 			}
@@ -1051,7 +1054,8 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 						colors[n*4+3] = color[3];
 						n++;
 					}
-					ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
+					//ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
+					ImageEnableShader( l.shader.simple_shader.shader_tracker, verts, norms, color );
 					glDrawArrays( GL_TRIANGLE_STRIP, 0, n );
 					CheckErr();
 				}
@@ -1077,13 +1081,13 @@ int DrawSphereThing( PHEXPATCH patch, int mode )
 	btTransform trans;
 	patch->fallRigidBody->getMotionState()->getWorldTransform( trans );
 	trans.getOpenGLMatrix(m);
-	ImageSetShaderModelView( l.shader.extra_simple_shader.shader_tracker, (float*)(m) );
+	//ImageSetShaderModelView( l.shader.extra_simple_shader.shader_tracker, (float*)(m) );
+	ImageSetShaderModelView( l.shader.simple_shader.shader_tracker, m );
 
 	//which is a 1x1x1 sort of patch array
 	RenderBandPatch( patch, m, mode );
 	RenderPolePatch( patch, m, mode, 0 );
 	RenderPolePatch( patch, m, mode, 1 );
-
 
 	return 1;
 }
@@ -1900,8 +1904,8 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
 
 	l.shader.extra_simple_shader.shader_tracker = ImageGetShader( "SuperSimpleShader", InitSuperSimpleShader );
 
-	l.shader.simple_shader.shader_tracker = ImageGetShader( "SimpleShader", InitShader );
-	l.shader.simple_shader.shader_tracker = ImageGetShader( "SimpleLayerShader", InitLayerTextureShader );
+	l.shader.simple_shader.shader_tracker = ImageGetShader( "SimpleLightShader", InitShader );
+	l.shader.normal_shader.shader_tracker = ImageGetShader( "SimpleLightLayerShader", InitLayerTextureShader );
 	{
 		int n;
 		struct band *initial_band = new band( l.hex_size );
@@ -1964,6 +1968,18 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
 
 static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
+	l.frame = CreateFrame( "Light Slider Controls", 0, 0, 1024, 768, 0, NULL );
+	for( int n = 0; n < 40; n++ )
+	{
+		PSI_CONTROL pc;
+		l.sliders[n] = MakeSlider( l.frame, 5 + 25*n, 5, 20, 420, 1, 0, UpdateSliderVal, n );
+		SetSliderValues( l.sliders[n], 0, 128, 256 );
+		pc = MakeButton( l.frame, 5, 430, 45, 15, 0, "Save", 0, SaveColors, 0 );
+		pc = MakeButton( l.frame, 55, 430, 45, 15, 0, "Load", 0, LoadColors, 0 );
+	}
+	DisplayFrame( l.frame );
+
+
 	l.identity_depth = identity_depth;
 	l.aspect = aspect;
 	l.projection = (GLfloat*)projection;
@@ -1980,13 +1996,13 @@ static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFO
 		RCOORD quat[4];
 
 		//<-31.9047,309.653,711.449> <0.0023503,0.0506664,0.996322,-0.0690609>
-		quat[0] = 0.0023503;
-		quat[1] = 0.0506664;
-		quat[2] = 0.996322;
-		quat[3] = -0.0690609;
+		quat[0] = 0.0023503f;
+		quat[1] = 0.0506664f;
+		quat[2] = 0.996322f;
+		quat[3] = -0.0690609f;
 
 		SetRotationMatrix( transform, quat );
-		Translate( transform, -31.9047,309.653,711.449);
+		Translate( transform, -31.9047f,309.653f,711.449f);
 	}
 
 	return (PTRSZVAL)camera;
@@ -2345,7 +2361,9 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 			l.worldview[idx] = tmp[0][idx];
 
 
-//		SetLights();
+		SetLights();
+		SetMaterial();
+
 		{
 			PHEXPATCH patch;
 			btVector3 bt_view_origin;
@@ -2467,6 +2485,7 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 
 			ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, vert, col );
 			ImageSetShaderModelView( l.shader.extra_simple_shader.shader_tracker, (float*)(m) );
+			ImageSetShaderModelView( l.shader.simple_shader.shader_tracker, m );
 
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 			glDrawArrays(GL_LINES, 0, 2);
