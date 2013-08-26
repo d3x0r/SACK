@@ -84,31 +84,6 @@ void InitSuperSimpleShader( PImageShaderTracker shader )
 		l.shader.extra_simple_shader.shader = ImageCompileShaderEx( shader, v_codeblocks, 1, p_codeblocks, 1, attribs, 2 );
 
 
-		l.shader.extra_simple_shader.eye_point
-			=  glGetUniformLocation(l.shader.extra_simple_shader.shader, "in_eye_point" );
-		CheckErr();
-
-		l.shader.extra_simple_shader.global_ambient 
-			=  glGetUniformLocation(l.shader.extra_simple_shader.shader, "vColor");
-		CheckErr();
-
-		l.shader.extra_simple_shader.projection
-			= glGetUniformLocation(l.shader.extra_simple_shader.shader, "Projection");
-		CheckErr();
-		l.shader.extra_simple_shader.worldview
-			= glGetUniformLocation(l.shader.extra_simple_shader.shader, "worldView");
-		CheckErr();
-		l.shader.extra_simple_shader.modelview
-			= glGetUniformLocation(l.shader.extra_simple_shader.shader, "modelView");
-		CheckErr();
-
-		// projection should be constant?
-		glUniformMatrix4fv( l.shader.extra_simple_shader.projection, 1, GL_FALSE, l.projection );
-		CheckErr();
-		glUniform4f( l.shader.extra_simple_shader.global_ambient, 0.5, 0.5, 0.5, 1.0 );
-		CheckErr();
-
-
 }
 
 	const char *common_vertex_transform_source = "#version 150\n"
@@ -116,7 +91,7 @@ void InitSuperSimpleShader( PImageShaderTracker shader )
 	                                         "uniform mat4 modelView;\n"
 	                                         "uniform mat4 Projection;\n"
 	                                         "uniform vec3 in_eye_point;\n"
-	                                         "in  vec3 in_Position;\n"
+	                                         "in  vec4 in_Position;\n"
 											 "in  vec3 in_Normal;\n"
 	                                   
 	                                         "uniform  vec4 in_GlobalAmbient;\n"
@@ -130,7 +105,7 @@ void InitSuperSimpleShader( PImageShaderTracker shader )
 	                                         "uniform  vec4 in_LightAmbient2;\n"
 	                                         
 	                                         "void setpos(void){ \n"
-											 "  gl_Position = Projection * worldView * modelView * vec4(in_Position,1.0);\n"
+											 "  gl_Position = Projection * worldView * modelView * in_Position;\n"
 											 "}\n"
 											 "\n";
 	
@@ -156,7 +131,7 @@ void InitSuperSimpleShader( PImageShaderTracker shader )
 	                                         "   */\n"
 											 //"  vec3 eye_point = -vec3( worldView[3] );\n"
 											 "  setpos();\n"
-											 "  vec3 world_vertex = vec3( modelView * vec4( in_Position, 1.0 ) );\n"
+											 "  vec3 world_vertex = vec3( modelView * in_Position );\n"
 											 "  normal = normalize(mat3(modelView) * in_Normal);\n"
 											 "  lightDir = in_LightPosition1 - world_vertex;\n"
 											 "  lightDir2 = in_LightPosition2 - world_vertex;\n"
@@ -302,6 +277,25 @@ void InitSuperSimpleShader( PImageShaderTracker shader )
 	                                         "}\n";
 
 
+void CPROC EnableSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv, va_list args )
+{
+	float *verts = va_arg( args, float * );
+	float *norms = va_arg( args, float * );
+	float *color = va_arg( args, float * );
+
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	CheckErr();
+	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );
+	CheckErr();
+	glVertexAttribPointer( 1, 3, GL_FLOAT, FALSE, 0, norms );
+	CheckErr();
+	glUniform4fv( l.shader.simple_shader.material.ambient, 1, color );
+	//glVertexAttribPointer( 2, 4, GL_FLOAT, FALSE, 0, color );
+	CheckErr();
+
+}
+
 
 void InitShader( PImageShaderTracker shader )
 {
@@ -310,13 +304,15 @@ void InitShader( PImageShaderTracker shader )
 	{
 		const char *v_codeblocks[2];
 		const char *p_codeblocks[2];
-		struct image_shader_attribute_order attribs[] = { { 0, "in_Position" }, { 1, "in_Normal" }, { 2, "in_Color" } };
+		struct image_shader_attribute_order attribs[] = { { 0, "in_Position" }, { 1, "in_Normal" } };
+
+		ImageSetShaderEnable( shader, EnableSimpleShader, 0 );
 
 		v_codeblocks[0] = common_vertex_transform_source;
 		v_codeblocks[1] = simple_color_vertex_source;
 		p_codeblocks[0] = simple_color_pixel_source;
 
-		l.shader.simple_shader.shader = ImageCompileShaderEx( shader, v_codeblocks, 2, p_codeblocks, 1, attribs, 3 );
+		l.shader.simple_shader.shader = ImageCompileShaderEx( shader, v_codeblocks, 2, p_codeblocks, 1, attribs, 2 );
 		
 		l.shader.simple_shader.eye_point
 			=  glGetUniformLocation(l.shader.simple_shader.shader, "in_eye_point" );
@@ -351,18 +347,27 @@ void InitShader( PImageShaderTracker shader )
 		l.shader.simple_shader.light[1].specular
 			= glGetUniformLocation(l.shader.simple_shader.shader, "in_LightSpecular2");
 
-		l.shader.simple_shader.projection
-			= glGetUniformLocation(l.shader.simple_shader.shader, "Projection");
-		l.shader.simple_shader.worldview
-			= glGetUniformLocation(l.shader.simple_shader.shader, "worldView");
-		l.shader.simple_shader.modelview
-			= glGetUniformLocation(l.shader.simple_shader.shader, "modelView");
-
 		// projection should be constant?
-		glUniformMatrix4fv( l.shader.simple_shader.projection, 1, GL_FALSE, l.projection );
+		//glUniformMatrix4fv( l.shader.simple_shader.projection, 1, GL_FALSE, l.projection );
 		glUniform4f( l.shader.simple_shader.global_ambient, 0.5, 0.5, 0.5, 1.0 );
 	}
 }
+
+static void CPROC EnableSimpleLayerTextureShader( PImageShaderTracker tracker, PTRSZVAL psv, va_list args )
+{
+	float *verts = va_arg( args, float * );
+	float *color = va_arg( args, float * );
+
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	CheckErr();
+	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );
+	CheckErr();
+	glVertexAttribPointer( 1, 4, GL_FLOAT, FALSE, 0, color );
+	CheckErr();
+
+}
+
 
 void InitLayerTextureShader( PImageShaderTracker shader )
 {
@@ -376,6 +381,7 @@ void InitLayerTextureShader( PImageShaderTracker shader )
 						, { 3, "in_Tangent" }
 						, { 5, "in_Texture" } };
 
+		ImageSetShaderEnable( shader, EnableSimpleLayerTextureShader, 0 );
 
 		v_codeblocks[0] = common_vertex_transform_source;
 		v_codeblocks[1] = layer_texture_source;
@@ -508,78 +514,79 @@ void SetMaterial( void )
 
 void SetLights( void )
 {
-		lprintf( "Use program" );
-		glUseProgram( l.shader.simple_shader.shader );
-			{
-				GLfloat lightpos[] = {-1000, 1000, 0., 0.};
-				GLfloat lightdir[] = {-.5, -1., -10., 0.};
-				GLfloat lightamb[] = {l.values[LIT_AMBIENT0]/256.0f, l.values[LIT_AMBIENT1]/256.0f, l.values[LIT_AMBIENT2]/256.0f, 1.0};
-				//GLfloat lightamb[] = {0.1, 0.1, 0.1, 1.0};
-				GLfloat lightdif[] = {l.values[LIT_DIFFUSE0]/256.0f, l.values[LIT_DIFFUSE1]/256.0f, l.values[LIT_DIFFUSE2]/256.0f, 1.0};
-				//GLfloat lightdif[] = {0.1, 0.1, 0.1, 0.1};
-				GLfloat lightspec[] = {l.values[LIT_SPECULAR0]/256.0f, l.values[LIT_SPECULAR1]/256.0f, l.values[LIT_SPECULAR2]/256.0f, 1.0};
-				//GLfloat lightspec[] = {0.1, 0.1, 0.1, 0.1};
-				glUniform3fv( l.shader.simple_shader.light[0].position, 1, lightpos );
-				glUniform4fv( l.shader.simple_shader.light[0].ambient, 1, lightamb );
-				glUniform4fv( l.shader.simple_shader.light[0].specular, 1, lightspec );
-				glUniform4fv( l.shader.simple_shader.light[0].diffuse, 1, lightdif );
-				//glUniform3fv( l.shader.simple_shader.light[0].direction, 1, lightdir );
+	glUseProgram( l.shader.simple_shader.shader );
+	{
+		GLfloat lightpos[] = {-1000, 1000, 0., 0.};
+		GLfloat lightdir[] = {-.5, -1., -10., 0.};
+		GLfloat lightamb[] = {l.values[LIT_AMBIENT0]/256.0f, l.values[LIT_AMBIENT1]/256.0f, l.values[LIT_AMBIENT2]/256.0f, 1.0};
+		//GLfloat lightamb[] = {0.1, 0.1, 0.1, 1.0};
+		GLfloat lightdif[] = {l.values[LIT_DIFFUSE0]/256.0f, l.values[LIT_DIFFUSE1]/256.0f, l.values[LIT_DIFFUSE2]/256.0f, 1.0};
+		//GLfloat lightdif[] = {0.1, 0.1, 0.1, 0.1};
+		GLfloat lightspec[] = {l.values[LIT_SPECULAR0]/256.0f, l.values[LIT_SPECULAR1]/256.0f, l.values[LIT_SPECULAR2]/256.0f, 1.0};
+		//GLfloat lightspec[] = {0.1, 0.1, 0.1, 0.1};
+		glUniform3fv( l.shader.simple_shader.light[0].position, 1, lightpos );
+		CheckErr();
+		glUniform4fv( l.shader.simple_shader.light[0].ambient, 1, lightamb );
+		CheckErr();
+		glUniform4fv( l.shader.simple_shader.light[0].specular, 1, lightspec );
+		CheckErr();
+		glUniform4fv( l.shader.simple_shader.light[0].diffuse, 1, lightdif );
+		CheckErr();
+		//glUniform3fv( l.shader.simple_shader.light[0].direction, 1, lightdir );
 
-			}
+	}
 
-			{
-				GLfloat lightpos[] = {1000, -1000, -10., 0.};
-				GLfloat lightdir[] = {-.5, -1., -10., 0.};
-				GLfloat lightamb[] = {1.0, 1.0, 1.0, 1.0};
-				//GLfloat lightamb[] = {0.1, 0.1, 0.1, 1.0};
-				GLfloat lightdif[] = {1.0, 1.0, 1.0, 1.0};
-				//GLfloat lightdif[] = {0.1, 0.1, 0.1, 0.1};
-				GLfloat lightspec[] = {1.0, 1.0, 1.0, 1.0};
-				//GLfloat lightspec[] = {0.1, 0.1, 0.1, 0.1};
+	{
+		GLfloat lightpos[] = {1000, -1000, -10., 0.};
+		GLfloat lightdir[] = {-.5, -1., -10., 0.};
+		GLfloat lightamb[] = {1.0, 1.0, 1.0, 1.0};
+		//GLfloat lightamb[] = {0.1, 0.1, 0.1, 1.0};
+		GLfloat lightdif[] = {1.0, 1.0, 1.0, 1.0};
+		//GLfloat lightdif[] = {0.1, 0.1, 0.1, 0.1};
+		GLfloat lightspec[] = {1.0, 1.0, 1.0, 1.0};
+		//GLfloat lightspec[] = {0.1, 0.1, 0.1, 0.1};
 
-				glUniform3fv( l.shader.simple_shader.light[1].position, 1, lightpos );
-				glUniform4fv( l.shader.simple_shader.light[1].ambient, 1, lightamb );
-				glUniform4fv( l.shader.simple_shader.light[1].specular, 1, lightspec );
-				glUniform4fv( l.shader.simple_shader.light[1].diffuse, 1, lightdif );
-				//glUniform3fv( l.shader.simple_shader.light[1].direction, 1, lightdir );
-			}
+		glUniform3fv( l.shader.simple_shader.light[1].position, 1, lightpos );
+		glUniform4fv( l.shader.simple_shader.light[1].ambient, 1, lightamb );
+		glUniform4fv( l.shader.simple_shader.light[1].specular, 1, lightspec );
+		glUniform4fv( l.shader.simple_shader.light[1].diffuse, 1, lightdif );
+		//glUniform3fv( l.shader.simple_shader.light[1].direction, 1, lightdir );
+	}
 
-			glUseProgram( l.shader.normal_shader.shader );
-			{
-				GLfloat lightpos[] = {-1000, 1000, 0., 0.};
-				GLfloat lightdir[] = {-.5, -1., -10., 0.};
-				GLfloat lightamb[] = {l.values[LIT_AMBIENT0]/256.0f, l.values[LIT_AMBIENT1]/256.0f, l.values[LIT_AMBIENT2]/256.0f, 1.0};
-				//GLfloat lightamb[] = {0.1, 0.1, 0.1, 1.0};
-				GLfloat lightdif[] = {l.values[LIT_DIFFUSE0]/256.0f, l.values[LIT_DIFFUSE1]/256.0f, l.values[LIT_DIFFUSE2]/256.0f, 1.0};
-				//GLfloat lightdif[] = {0.1, 0.1, 0.1, 0.1};
-				GLfloat lightspec[] = {l.values[LIT_SPECULAR0]/256.0f, l.values[LIT_SPECULAR1]/256.0f, l.values[LIT_SPECULAR2]/256.0f, 1.0};
-				//GLfloat lightspec[] = {0.1, 0.1, 0.1, 0.1};
-				glUniform3fv( l.shader.normal_shader.light[0].position, 1, lightpos );
-				glUniform4fv( l.shader.normal_shader.light[0].ambient, 1, lightamb );
-				glUniform4fv( l.shader.normal_shader.light[0].specular, 1, lightspec );
-				glUniform4fv( l.shader.normal_shader.light[0].diffuse, 1, lightdif );
-				//glUniform3fv( l.shader.normal_shader.light[0].direction, 1, lightdir );
+	glUseProgram( l.shader.normal_shader.shader );
+	{
+		GLfloat lightpos[] = {-1000, 1000, 0., 0.};
+		GLfloat lightdir[] = {-.5, -1., -10., 0.};
+		GLfloat lightamb[] = {l.values[LIT_AMBIENT0]/256.0f, l.values[LIT_AMBIENT1]/256.0f, l.values[LIT_AMBIENT2]/256.0f, 1.0};
+		//GLfloat lightamb[] = {0.1, 0.1, 0.1, 1.0};
+		GLfloat lightdif[] = {l.values[LIT_DIFFUSE0]/256.0f, l.values[LIT_DIFFUSE1]/256.0f, l.values[LIT_DIFFUSE2]/256.0f, 1.0};
+		//GLfloat lightdif[] = {0.1, 0.1, 0.1, 0.1};
+		GLfloat lightspec[] = {l.values[LIT_SPECULAR0]/256.0f, l.values[LIT_SPECULAR1]/256.0f, l.values[LIT_SPECULAR2]/256.0f, 1.0};
+		//GLfloat lightspec[] = {0.1, 0.1, 0.1, 0.1};
+		glUniform3fv( l.shader.normal_shader.light[0].position, 1, lightpos );
+		glUniform4fv( l.shader.normal_shader.light[0].ambient, 1, lightamb );
+		glUniform4fv( l.shader.normal_shader.light[0].specular, 1, lightspec );
+		glUniform4fv( l.shader.normal_shader.light[0].diffuse, 1, lightdif );
+		//glUniform3fv( l.shader.normal_shader.light[0].direction, 1, lightdir );
 
-			}
+	}
 
-			{
-				GLfloat lightpos[] = {1000, -1000, -10., 0.};
-				GLfloat lightdir[] = {-.5, -1., -10., 0.};
-				GLfloat lightamb[] = {1.0, 1.0, 1.0, 1.0};
-				//GLfloat lightamb[] = {0.1, 0.1, 0.1, 1.0};
-				GLfloat lightdif[] = {1.0, 1.0, 1.0, 1.0};
-				//GLfloat lightdif[] = {0.1, 0.1, 0.1, 0.1};
-				GLfloat lightspec[] = {1.0, 1.0, 1.0, 1.0};
-				//GLfloat lightspec[] = {0.1, 0.1, 0.1, 0.1};
+	{
+		GLfloat lightpos[] = {1000, -1000, -10., 0.};
+		GLfloat lightdir[] = {-.5, -1., -10., 0.};
+		GLfloat lightamb[] = {1.0, 1.0, 1.0, 1.0};
+		//GLfloat lightamb[] = {0.1, 0.1, 0.1, 1.0};
+		GLfloat lightdif[] = {1.0, 1.0, 1.0, 1.0};
+		//GLfloat lightdif[] = {0.1, 0.1, 0.1, 0.1};
+		GLfloat lightspec[] = {1.0, 1.0, 1.0, 1.0};
+		//GLfloat lightspec[] = {0.1, 0.1, 0.1, 0.1};
 
-				glUniform3fv( l.shader.normal_shader.light[1].position, 1, lightpos );
-				glUniform4fv( l.shader.normal_shader.light[1].ambient, 1, lightamb );
-				glUniform4fv( l.shader.normal_shader.light[1].specular, 1, lightspec );
-				glUniform4fv( l.shader.normal_shader.light[1].diffuse, 1, lightdif );
-				//glUniform3fv( l.shader.normal_shader.light[1].direction, 1, lightdir );
-			}
-
-      lprintf( "disable" );
+		glUniform3fv( l.shader.normal_shader.light[1].position, 1, lightpos );
+		glUniform4fv( l.shader.normal_shader.light[1].ambient, 1, lightamb );
+		glUniform4fv( l.shader.normal_shader.light[1].specular, 1, lightspec );
+		glUniform4fv( l.shader.normal_shader.light[1].diffuse, 1, lightdif );
+		//glUniform3fv( l.shader.normal_shader.light[1].direction, 1, lightdir );
+	}
 }
 
 // useful for purely static objects.

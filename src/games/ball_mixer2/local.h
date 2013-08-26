@@ -175,9 +175,6 @@ struct local_terrain_data_tag {
 		} normal_shader;
 		struct {
 			PImageShaderTracker shader_tracker;
-			GLint projection;
-			GLint worldview;
-			GLint modelview;
 			GLint eye_point;
 
 			GLuint shader; // shader program ID
@@ -187,7 +184,6 @@ struct local_terrain_data_tag {
 				GLint position;
 				GLint ambient;
 				GLint specular;
-				GLint shine;
 				GLint diffuse;
 				GLint direction;
 			} light[2];
