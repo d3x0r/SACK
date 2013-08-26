@@ -337,7 +337,7 @@ Image GetShadedImage( Image child_image, CDATA red, CDATA green, CDATA blue )
 
 PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 {
-	RegisterInterface( WIDE("puregl2.image"), GetImageInterface, DropImageInterface );
+	RegisterInterface( WIDE("puregl2.image"), (void*(CPROC*)(void))GetImageInterface, (void(CPROC*)(void*))DropImageInterface );
 	RegisterInterface( WIDE("puregl2.image.3d"), GetImage3dInterface, DropImage3dInterface );
 	l.shade_cache = CreateBinaryTreeExtended( 0, ComparePointer, NULL DBG_SRC );
 	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Image Library/Scale", 10 );

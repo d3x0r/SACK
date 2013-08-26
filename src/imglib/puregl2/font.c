@@ -27,6 +27,7 @@
 #define SFTFont struct font_tag *
 #include <image.h>
 #include "local.h"
+#include "shaders.h"
 
 #define TRUE (!FALSE)
 
