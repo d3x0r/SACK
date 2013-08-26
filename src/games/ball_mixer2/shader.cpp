@@ -111,14 +111,6 @@ void InitSuperSimpleShader( PImageShaderTracker shader )
 
 }
 
-void SetSimpleShaderModel( float *matrix )
-{
-	glUniformMatrix4fv( l.shader.extra_simple_shader.modelview, 1, GL_FALSE, (RCOORD*)matrix );
-
-}
-
-void InitShader( PImageShaderTracker shader )
-{
 	const char *common_vertex_transform_source = "#version 150\n"
 	                                         "uniform mat4 worldView;\n"
 	                                         "uniform mat4 modelView;\n"
@@ -311,6 +303,10 @@ void InitShader( PImageShaderTracker shader )
 
 
 
+void InitShader( PImageShaderTracker shader )
+{
+
+
 	{
 		const char *v_codeblocks[2];
 		const char *p_codeblocks[2];
@@ -366,7 +362,10 @@ void InitShader( PImageShaderTracker shader )
 		glUniformMatrix4fv( l.shader.simple_shader.projection, 1, GL_FALSE, l.projection );
 		glUniform4f( l.shader.simple_shader.global_ambient, 0.5, 0.5, 0.5, 1.0 );
 	}
+}
 
+void InitLayerTextureShader( PImageShaderTracker shader )
+{
 
 	{
 		const char *v_codeblocks[3];

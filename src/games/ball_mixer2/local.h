@@ -287,7 +287,7 @@ struct SACK_3D_Surface {
 
 void InitShader(PImageShaderTracker shader);
 void InitSuperSimpleShader( PImageShaderTracker shader );
-void SetSimpleShaderModel( float *matrix );
+void InitLayerTextureShader( PImageShaderTracker shader );
 
 
 struct SACK_3D_Surface *CreateBumpTextureFragment( int verts

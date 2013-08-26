@@ -245,18 +245,20 @@ struct band {
 		int nShape;
 	
 		struct band *band = this;
-		int section, section2;
+		int section;
 		int sections = 6*band->hex_size;
 		int sections2= band->hex_size;
 		int row;
 		int col;
+		int image_row;
+		int image_col;
 
 		if( number )
 		{
-			row = (number-1)/l.numbers.cols;
-			col = (number-1)%l.numbers.cols;
+			image_row = (number-1)/l.numbers.cols;
+			image_col = (number-1)%l.numbers.cols;
 		}
-		for( section = 0; section < sections; section ++ )
+		for( section = 0; section < 6; section ++ )
 		{
 			struct SACK_3D_Surface * surface = (struct SACK_3D_Surface *)GetLink( &bands, section );
 			if( surface )
@@ -264,34 +266,36 @@ struct band {
 				int section_offset = ( section % band->hex_size );
 				int section_offset_1 = ( (section) % band->hex_size ) + 1;
 				nShape = 0;
-				for( section2 = 0; section2 <= sections2; section2++ )
+				for( row = 0; row <= band->hex_size; row++ )
 				{
+					/*
 					if( number )
 					{
-						texture[nShape][0] = l.numbers.coords[row][col][section_offset][section2][0];
-						texture[nShape][1] = l.numbers.coords[row][col][section_offset][section2][1];
+						texture[nShape][0] = l.numbers.coords[row][col][section_offset][row][0];
+						texture[nShape][1] = l.numbers.coords[row][col][section_offset][row][1];
 						texture[nShape][2] = 0;
 						nShape++;
 
 						// s2 can change patches, whereas the number coords... go forward
-						texture[nShape][0] = l.numbers.coords[row][col][section_offset+1][section2][0];
-						texture[nShape][1] = l.numbers.coords[row][col][section_offset+1][section2][1];
+						texture[nShape][0] = l.numbers.coords[row][col][section_offset+1][row][0];
+						texture[nShape][1] = l.numbers.coords[row][col][section_offset+1][row][1];
 						texture[nShape][2] = 0;
 						nShape++;
 					}
 					else
 					{
 						texture[nShape][0] = (float)section_offset / band->hex_size;
-						texture[nShape][1] = 1.0f - (float)section2/band->hex_size;
+						texture[nShape][1] = 1.0f - (float)row/band->hex_size;
 						texture[nShape][2] = 0;
 						nShape++;
 
 						// s2 can change patches, whereas the number coords... go forward
 						texture[nShape][0] = (float)section_offset_1 / band->hex_size;
-						texture[nShape][1] = 1.0f - (float)section2/band->hex_size;
+						texture[nShape][1] = 1.0f - (float)row/band->hex_size;
 						texture[nShape][2] = 0;
 						nShape++;
 					}
+					*/
 				}
 				//lprintf( "verts %d shape %d", verts, nShape );
 				AddBumpTextureFragmentTexture( surface, number, (PCVECTOR*)texture );
@@ -365,30 +369,32 @@ struct band {
 				}
 			}
 		}
+		{
+			PTRANSFORM work;
+			int col, row;
+			int sections = 6*hex_size;
+			int sections2= hex_size;
+				work = CreateTransform();
+
+			//scale( ref_point, VectorConst_X, SPHERE_SIZE );
+			for( int s = 0; s < 6; s++ )
+			{
+				for( row = 0; row <= hex_size; row++ )
 				{
-					PTRANSFORM work;
-					int section, section2;
-					int sections = 6*hex_size;
-					int sections2= hex_size;
-						work = CreateTransform();
-
-					//scale( ref_point, VectorConst_X, SPHERE_SIZE );
-
-					for( section2 = 0; section2 <= sections2; section2++ )
+					VECTOR patch1x;
+					RotateAbs( work, 0, 0, ((((60.0f/hex_size)*row)-30.0f)*(1*M_PI))/180.0f );
+					GetAxisV( work, patch1x, vRight );
+					for( int col = 0; col <= hex_size; col ++ )
 					{
-						VECTOR patch1x;
-						RotateAbs( work, 0, 0, ((((60.0f/hex_size)*section2)-30.0f)*(1*M_PI))/180.0f );
-						GetAxisV( work, patch1x, vRight );
-						for( section = 0; section < sections; section ++ )
-						{
-							RotateAbs( work, 0, ((float)section*(2.0f*M_PI))/(float)sections, 0 );
-							Apply( work
-								, patches[section/hex_size].grid[section%hex_size][section2]
+						RotateAbs( work, 0, ((float)((s*hex_size)+col)*(2.0f*M_PI))/(float)sections, 0 );
+						Apply( work
+							, patches[s].grid[row][col]
 							, patch1x );
-						}
 					}
-					DestroyTransform( work );
 				}
+			}
+			DestroyTransform( work );
+		}
 		CreateBandFragments( );
 	}
 
@@ -866,11 +872,11 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 {
 	struct band *band = patch->band;
-	int section, section2;
+	int section, row;
 	int sections = 6*band->hex_size;
 	int sections2= band->hex_size;
-	int row;
-	int col;
+	int image_row;
+	int image_col;
 	VECTOR patch1, patch2;
 	//VECTOR ref_point;
 	//InitBandPatch();
@@ -882,8 +888,8 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 	float fade;
 
 	number = patch->number;
-	row = (number-1)/l.numbers.cols;
-	col = (number-1)%l.numbers.cols;
+	image_row = (number-1)/l.numbers.cols;
+	image_col = (number-1)%l.numbers.cols;
 
 	back_color[0] = RedVal( l.colors[(number-1)/15] )/(256*4.0f);
 	back_color[1] = GreenVal( l.colors[(number-1)/15] )/(256*4.0f);
@@ -1895,6 +1901,7 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
 	l.shader.extra_simple_shader.shader_tracker = ImageGetShader( "SuperSimpleShader", InitSuperSimpleShader );
 
 	l.shader.simple_shader.shader_tracker = ImageGetShader( "SimpleShader", InitShader );
+	l.shader.simple_shader.shader_tracker = ImageGetShader( "SimpleLayerShader", InitLayerTextureShader );
 	{
 		int n;
 		struct band *initial_band = new band( l.hex_size );
