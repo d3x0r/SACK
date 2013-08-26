@@ -4,9 +4,9 @@
 #include "loadsock.h"
 
 #ifdef NETWORK_SOURCE
-#define NETWORK_PROC(type,name) EXPORT_METHOD type CPROC name
+#define NETWORK_PROC(type,name) EXPORT_METHOD type name
 #else
-#define NETWORK_PROC(type,name) IMPORT_METHOD type CPROC name
+#define NETWORK_PROC(type,name) IMPORT_METHOD type name
 #endif
 
 #ifdef __cplusplus

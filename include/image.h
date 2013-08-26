@@ -1302,6 +1302,7 @@ IMAGE_PROC  SFTFont IMAGE_API  RenderFontFileScaledEx ( CTEXTSTR file, _32 width
    
    \ \                                                                         */
 #define RenderFontFile(file,w,h,flags) RenderFontFileScaledEx(file,w,h,NULL,NULL,flags,NULL,NULL)
+IMAGE_PROC  SFTFont IMAGE_API  RenderFontFileEx ( CTEXTSTR file, _32 width, _32 height, _32 flags, size_t *pnFontDataSize, POINTER *pFontData );
 #define RenderFontFileEx(file,w,h,flags,a,b) RenderFontFileScaledEx(file,w,h,NULL,NULL,flags,a,b )
 
 		/* This can be used to get the internal description of a font,

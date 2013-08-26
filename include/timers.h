@@ -60,11 +60,11 @@ _TIMER_NAMESPACE
 
 
 #ifdef TIMER_SOURCE 
-#define TIMER_PROC(type,name) EXPORT_METHOD type CPROC name
+#define TIMER_PROC(type,name) EXPORT_METHOD type name
 #else
 /* Defines import export and call method for timers. Looks like
    timers are native calltype by default instead of CPROC.      */
-#define TIMER_PROC(type,name) IMPORT_METHOD type CPROC name
+#define TIMER_PROC(type,name) IMPORT_METHOD type name
 #endif
 
 #if defined( __LINUX__ ) || defined( __ANDROID__ )
