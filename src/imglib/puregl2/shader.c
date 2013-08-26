@@ -94,7 +94,7 @@ void EnableShader( PImageShaderTracker tracker, ... )
 
 	//xlprintf( LOG_NOISE+1 )( "Enable shader %s", tracker->name );
 	glUseProgram( tracker->glProgramId );
-	CheckErrf( " (%s)", tracker->name );
+	CheckErrf( "Failed glUseProgram (%s)", tracker->name );
 	if( !tracker->flags.set_matrix )
 	{
 		if( !l.flags.worldview_read )
