@@ -262,7 +262,7 @@ endif( WIN32 )
 
 SET( HTML5_SOURCES 
 		${SOURCES_ROOT}src/psilib/html5.canvas/html5.canvas.c
-		${SOURCES_ROOT}src/netlib/html5.websocket/html5.websocket.c
+		${SOURCES_ROOT}src/netlib/html5.websocket/server/html5.websocket.c
 	)
 SET_SOURCE_FILES_PROPERTIES( ${HTML5_SOURCES} PROPERTIES 
 		FOLDER "Source Files\\HTML5 Support" )
