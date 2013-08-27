@@ -217,10 +217,112 @@ struct url_data *SACK_ParseURLEx( CTEXSTR url )
 }
 
 
+enum URLParseState
+{
+	PARSE_STATE_COLLECT_PROTOCOL = 0  // find ':', store characters in buffer
+	, PARSE_STATE_COLLECT_PROTOCOL_1  // find '/', eat /
+	, PARSE_STATE_COLLECT_PROTOCOL_2  // eat '/', eat /
+      , PARSE_STATE_COLLECT_USER
+      , PARSE_STATE_COLLECT_PASSWORD
+      , PARSE_STATE_COLLECT_ADDRESS
+      , PARSE_STATE_COLLECT_PORT
+      , PARSE_STATE_COLLECT_RESOURCE_PATH
+      , PARSE_STATE_COLLECT_RESOURCE_NAME
+      , PARSE_STATE_COLLECT_RESOURCE_EXTENSION
+      , PARSE_STATE_COLLECT_RESOURCE_ANCHOR
+      , PARSE_STATE_COLLECT_CGI_NAME
+      , PARSE_STATE_COLLECT_CGI_VALUE
+};
 
-
-
-
-
+static void Parse2( CTEXTSTR url )
+{
+	int inchar;
+	int outchar;
+	TEXTSTR outbuf = NewArray( TEXTCHAR, StrLen( url ) + 1 );
+   int state;
+	while( url[inchar] )
+	{
+		int use_char;
+		use_char = 0;
+		switch( url[inchar] )
+		{
+		case '&':
+			if( state == PARSE_STATE_COLLECT_CGI_VALUE )
+            state = PARSE_STATE_COLLECT_CGI_NAME;
+         break;
+		case '=':
+			if( state == PARSE_STATE_COLLECT_CGI_NAME )
+            state = PARSE_STATE_COLLECT_CGI_VALUE;
+         break;
+		case '?':
+			if( ( state == PARSE_STATE_COLLECT_EXTENSION )
+				|| ( state == PARSE_STATE_COLLECT_NAME )
+            || ( state == PARSE_STATE_COLLECT_RESOURCE_ANCHOR )
+			  )
+				state = PARSE_STATE_COLLECT_CGI_NAME;
+         break;
+		case '#':
+			if( ( state == PARSE_STATE_COLLECT_EXTENSION )
+				|| ( state == PARSE_STATE_COLLECT_NAME ) )
+				state = PARSE_STATE_COLLECT_RESOURCE_ANCHOR;
+         break;
+		case '.':
+			if( state == PARSE_STATE_COLLECT_RESOURCE_PATH
+				|| state == PARSE_STATE_COLLECT_RESOURCE_NAME )
+			{
+				state = PARSE_STATE_COLLECT_RESOURCE_EXTENSION;
+			}
+         break;
+		case '/':
+			if( state == PARSE_STATE_COLLECT_PROTOCOL_1 )
+            state = PARSE_STATE_COLLECT_PROTOCOL_2;
+			else if( state == PARSE_STATE_COLLECT_PROTOCOL_2 )
+				state = PARSE_STATE_COLLECT_USER;
+			else if( state == PARSE_STATE_COLLECT_ADDRESS )
+				state = PARSE_STATE_COLLECT_RESOURCE_PATH;
+			else if( state == PARSE_STATE_COLLECT_PATH )
+				state = PARSE_STATE_COLLECT_RESOURCE_NAME;
+			else if( state == PARSE_STATE_COLLECT_NAME )
+			{
+				// this isn't really the, it's another part of the resource path
+				state = PARSE_STATE_COLLECT_RESOURCE_NAME;
+			}
+			else
+            use_char = 1;
+         break;
+		case '@':
+			if( ( state == PARSE_STATE_COLLECT_USER )  // hit the colon between user and password
+				|| ( state == PARSE_STATE_COLLECT_PASSWORD ) )
+				state = PARSE_STATE_COLLECT_ADDRESS;
+         break;
+		case ':':
+			if( state == PARSE_STATE_COLLECT_PROTOCOL )
+				state = PARSE_STATE_COLLECT_PROTOCOL_1;
+			else if( state == PARSE_STATE_COLLECT_USER )  // hit the colon between user and password
+				state = PARSE_STATE_COLLECT_PASSWORD;
+			else if( state == PARSE_STATE_COLLECT_ADDRESS )  // hit the colon between address and port
+				state = PARSE_STATE_COLLECT_PORT;
+			else
+            ; // error
+         break;
+		default:
+			switch( state )
+			{
+			case PARSE_STATE_COLLECT_PROTOCOL_1:
+				// the thing after the ':' was not a '/', so this isn't the protocol.
+            break;
+			case PARSE_STATE_COLLECT_PROTOCOL_2:
+				break;
+			default:
+            usechar = 1;
+			}
+         break;
+		}
+      if( usechar )
+			outbuf[outchar++] = inbuf[inchar++];
+      else
+			inchar++;
+	}
 }
+
 
