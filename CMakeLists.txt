@@ -1316,3 +1316,5 @@ ENDIF(WIN32 AND NOT UNIX)
 #SET(CPACK_PACKAGE_EXECUTABLES "" "My Executable")
 INCLUDE(CPack)
 
+add_subdirectory( src/netlib/html5.websocket/client/websocketpp-master )
+
