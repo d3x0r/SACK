@@ -469,7 +469,6 @@ void SACK_ReleaseURL( struct url_data *data )
 	Release( (POINTER)data->user );
 	Release( (POINTER)data->password );
 	Release( (POINTER)data->host );
-	Release( (POINTER)data->port );
 	Release( (POINTER)data->resource_path );
 	Release( (POINTER)data->resource_file );
 	Release( (POINTER)data->resource_extension );
