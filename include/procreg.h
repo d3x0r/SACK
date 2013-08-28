@@ -586,7 +586,8 @@ PROCREG_PROC( void, DropInterface )( CTEXTSTR pServiceName, POINTER interface_x 
    a text string to an interface. Interfaces are registered at a
    known location in the registry tree.                            */
 PROCREG_PROC( POINTER, GetInterfaceDbg )( CTEXTSTR pServiceName DBG_PASS );
-#define GetInterface(n) GetInterfaceDbg( n DBG_SRC )
+//#define GetInterface(n) GetInterfaceDbg( n DBG_SRC )
+PROCREG_PROC( POINTER, GetInterface )( CTEXTSTR pServiceName );
 
 #define GetRegisteredInterface(name) GetInterface(name)
 PROCREG_PROC( LOGICAL, RegisterInterface )( CTEXTSTR name, POINTER(CPROC*load)(void), void(CPROC*unload)(POINTER));
