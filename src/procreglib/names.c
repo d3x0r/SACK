@@ -2123,7 +2123,7 @@ POINTER GetInterfaceDbg( CTEXTSTR pServiceName DBG_PASS )
 }
 
 #undef GetInterface
-PUBLIC( POINTER, GetInterface )( CTEXTSTR pServiceName )
+POINTER GetInterface( CTEXTSTR pServiceName )
 {
    return GetInterfaceDbg( pServiceName DBG_SRC );
 }
