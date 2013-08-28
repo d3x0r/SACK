@@ -1,19 +1,20 @@
 #include <stdhdrs.h>
 
+#include <http.h>
 
 struct default_port
 {
 	CTEXTSTR name;
-   int number;
+   CTEXTSTR number;
 };
-static struct default_port default_ports[] = { { "http", 80 }
-															, { "ftp", 21 }
-															, { "ssh", 22 }
-															, { "telnet", 23 }
-															, { "https", 443 }
-															, { "ws", 80 }
-															, { "wss", 443 }
-															, { "file", 0 }
+static struct default_port default_ports[] = { { "http", "80" }
+															, { "ftp", "21" }
+															, { "ssh", "22" }
+															, { "telnet", "23" }
+															, { "https", "443" }
+															, { "ws", "80" }
+															, { "wss", "443" }
+															, { "file", "0" }
                                              };
 
 
@@ -22,199 +23,6 @@ static struct default_port default_ports[] = { { "http", 80 }
 // SACK_ParseURL takes a URL string and gets the peices it can identify
 // if a peice is not specified, the result will be NULL.
 
-void SACK_ParseURL( CTEXSTR url
-						, CTEXTSTR *protocol
-						, CTEXTSTR *user
-						, CTEXTSTR *password
-						, CTEXTSTR *host
-						, CTEXTSTR *port
-						, CTEXTSTR *resource_path
-                  , CTEXTSTR *resource_file
-                  , CTEXTSTR *resource_extension
-                  , CTEXTSTR *anchor_name
-						)
-{
-	CTEXTSTR colon;
-	CTEXTSTR slash;
-	TEXTSTR tmpbuf;
-	CTEXTSTR addr_start;
-
-
-	// http specific encoding... (anchor reference <a ref="pagelabel"> )
-   // initialize these...
-	if( anchor_name )
-		(*anchor_name) = NULL;
-	if( resource_path )
-		(*resource_path) = NULL;
-	if( resource_file )
-		(*resource_file) = NULL;
-	if( resource_extension )
-		(*resource_extension) = NULL;
-
-	colon = StrChr( url, ':' );
-	if( colon[1] == '/' && colon[2] == '/' )
-	{
-      addr_start = colon + 3;
-		tmpbuf = NewArray( TEXTCHAR, colon - url + 1);
-		StrCpyEx( tmpbuf, colon, colon - url );
-      tmpbuf[colon-url] = 0;
-		if( protocol )
-			(*protocol) = SaveName( tmpbuf );
-      Release( tmpbuf );
-      if( port )
-		{
-			int n;
-         (*port) = 0;
-			for( n = 0; n < ( sizeof( default_ports ) / sizeof( default_ports[0] ) ); n++ )
-			{
-				if( StrCaseCmp( (*protocol), default_ports[n].name ) == 0 )
-				{
-					(*port) = default_ports[n].port;
-					break;
-				}
-			}
-		}
-	}
-	else
-	{
-		if( (*protocol) )
-			(*protocol) = NULL;
-		if( port )
-         (*port) = 0;
-		addr_start = url;
-	}
-
-	atsymbol = StrChr( addr_start, '@' );
-	if( atsymbol )
-	{
-		colon = StrChr( addr_start, ':' );
-		if( colon )
-		{
-			if( name )
-			{
-				tmpbuf = ConvertURIText( addr_start, colon - addr_start );
-				(*name) = SaveName( tmpbuf );
-				Release( tmpbuf );
-			}
-			if( password )
-			{
-				tmpbuf = ConvertURIText( addr_start, atsymbol - colon );
-				(*password) = SaveName( tmpbuf );
-				Release( tmpbuf );
-			}
-		}
-		else
-		{
-			if( password )
-				(*password) = NULL;
-			tmpbuf = ConvertURIText( addr_start, atsymbol - addr_start );
-			(*name) = SaveName( tmpbuf );
-			Release( tmpbuf );
-
-		}
-		addr_start = atsymbol + 1;
-	}
-	else
-	{
-		if( user )
-         (*user) = NULL;
-		if( password )
-         (*password) = NULL;
-	}
-
-	if( addr_start[0] == '[' )
-	{
-		if( host )
-		{
-			CTEXTSTR end = StrChr( addr_start, ']' );
-         tmpbuf = ConvertURIText( addr_start + 1, ( end - addr_start ) - 2 );
-			(*host) = SaveName( tmpbuf );
-         Release( tmpbuf );
-			addr_start = end + 1;
-		}
-	}
-	colon = StrChr( addr_start, ':' );
-	slash = StrChr( addr_start, '/' );
-
-   if( colon == addr_start )
-	{
-		// collected address already
-		if( slash )
-		{
-		}
-		else
-		{
-		}
-	}
-	else if( colon )
-	{
-		if( colon < slash )
-		{
-			tmpbuf = ConvertURLText( addr_start, colon - addr_start + 1 );
-         if( add
-         StrCpyEx( tmpbuf, addr_start, colon - addr_start );
-         Release( tmpbuf );
-		}
-		else
-		{
-			tmpbuf = ConvertURLText( addr_start, slash - addr_start + 1 );
-			StrCpyEx( tmpbuf, addr_start, slash - addr_start );
-         Release( tmpbuf );
-		}
-	}
-	else
-	{
-		if( slash )
-		{
-
-		}
-		else
-		{
-			if( resource_path )
-			{
-			}
-		}
-	}
-}
-
-struct url_cgi_data
-{
-	CTEXTSTR name;
-   CTEXTSTR value;
-}
-
-struct url_data
-{
-	CTEXTSTR protocol;
-	CTEXTSTR user;
-	CTEXTSTR password;
-	CTEXTSTR host;
-	CTEXTSTR port;
-	CTEXTSTR resource_path;
-	CTEXTSTR resource_file;
-	CTEXTSTR resource_extension;
-	CTEXTSTR anchor_name;
-   // list of struct url_cgi_data *
-	PLIST cgi_parameters;
-};
-
-struct url_data *SACK_ParseURLEx( CTEXSTR url )
-{
-   struct url_data *data = New( struct url_data );
-	SACK_ParseURL( url
-					 , &data->protocol
-                , &data->user
-                , &data->password
-                , &data->host
-                , &data->port
-                , &data->resource_path
-                , &data->resource_file
-                , &data->resource_extension
-					 , &data->anchor_name
-					 , &data->cgi_parameters
-					 );
-   return data;
-}
 
 
 enum URLParseState
@@ -234,12 +42,40 @@ enum URLParseState
       , PARSE_STATE_COLLECT_CGI_VALUE
 };
 
-static void Parse2( CTEXTSTR url )
+static void AppendBuffer( CTEXTSTR *output, CTEXTSTR seperator, CTEXTSTR input )
 {
+	CTEXTSTR tmpbuf = ConvertURIText( input, StrLen( input ) );
+   TEXTSTR newout;
+	if( *output )
+	{
+		int len;
+		len = StrLen( *output ) + StrLen( tmpbuf ) + 1;
+      if( seperator )
+			len += StrLen( seperator );
+		newout = NewArray( TEXTCHAR, len );
+		snprintf( newout, len, "%s%s%s", (*output), seperator?seperator:"", tmpbuf );
+		Release( (POINTER)*output );
+      (*output) = newout;
+		Release( (POINTER)tmpbuf );
+	}
+	else
+	{
+      (*output) = tmpbuf;
+	}
+}
+
+struct url_data * SACK_URLParse( CTEXTSTR url )
+{
+	struct url_data *data = New( struct url_data );
+	struct url_cgi_data *cgi_data;
+
 	int inchar;
 	int outchar;
 	TEXTSTR outbuf = NewArray( TEXTCHAR, StrLen( url ) + 1 );
-   int state;
+	int _state, state;
+	_state = -1;
+	state = PARSE_STATE_COLLECT_PROTOCOL;
+	MemSet( data, 0, sizeof( struct url_data ) );
 	while( url[inchar] )
 	{
 		int use_char;
@@ -248,81 +84,315 @@ static void Parse2( CTEXTSTR url )
 		{
 		case '&':
 			if( state == PARSE_STATE_COLLECT_CGI_VALUE )
-            state = PARSE_STATE_COLLECT_CGI_NAME;
-         break;
+			{
+				outbuf[outchar] = 0;
+				outchar = 0;
+            AppendBuffer( &cgi_data->value, NULL, outbuf );
+				state = PARSE_STATE_COLLECT_CGI_NAME;
+			}
+			break;
 		case '=':
 			if( state == PARSE_STATE_COLLECT_CGI_NAME )
-            state = PARSE_STATE_COLLECT_CGI_VALUE;
-         break;
+			{
+				cgi_data = New( struct url_cgi_data );
+            cgi_data->name = NULL;
+            cgi_data->value = NULL;
+            AddLink( &data->cgi_parameters, cgi_data );
+				outbuf[outchar] = 0;
+            outchar = 0;
+				AppendBuffer( &cgi_data->name, NULL, outbuf );
+				state = PARSE_STATE_COLLECT_CGI_VALUE;
+			}
+			break;
 		case '?':
-			if( ( state == PARSE_STATE_COLLECT_EXTENSION )
-				|| ( state == PARSE_STATE_COLLECT_NAME )
-            || ( state == PARSE_STATE_COLLECT_RESOURCE_ANCHOR )
-			  )
+			if( state == PARSE_STATE_COLLECT_RESOURCE_EXTENSION )
+			{
+				outbuf[outchar] = 0;
+				outchar = 0;
+            AppendBuffer( &data->resource_extension, NULL, outbuf );
 				state = PARSE_STATE_COLLECT_CGI_NAME;
-         break;
+			}
+			if( state == PARSE_STATE_COLLECT_RESOURCE_NAME )
+			{
+            outbuf[outchar] = 0;
+            outchar = 0;
+            AppendBuffer( &data->resource_file, NULL, outbuf );
+				state = PARSE_STATE_COLLECT_CGI_NAME;
+			}
+         if( state == PARSE_STATE_COLLECT_RESOURCE_ANCHOR )
+			{
+            outbuf[outchar] = 0;
+            outchar = 0;
+            AppendBuffer( &data->resource_extension, NULL, outbuf );
+				state = PARSE_STATE_COLLECT_CGI_NAME;
+			}
+			break;
 		case '#':
-			if( ( state == PARSE_STATE_COLLECT_EXTENSION )
-				|| ( state == PARSE_STATE_COLLECT_NAME ) )
+			if( state == PARSE_STATE_COLLECT_RESOURCE_EXTENSION )
+			{
+				outbuf[outchar] = 0;
+				outchar = 0;
+            AppendBuffer( &data->resource_extension, NULL, outbuf );
 				state = PARSE_STATE_COLLECT_RESOURCE_ANCHOR;
+			}
+			if( ( state == PARSE_STATE_COLLECT_RESOURCE_NAME )
+            || ( state == PARSE_STATE_COLLECT_RESOURCE_PATH ) )
+			{
+            outbuf[outchar] = 0;
+            outchar = 0;
+            AppendBuffer( &data->resource_file, NULL, outbuf );
+				state = PARSE_STATE_COLLECT_RESOURCE_ANCHOR;
+			}
          break;
 		case '.':
 			if( state == PARSE_STATE_COLLECT_RESOURCE_PATH
 				|| state == PARSE_STATE_COLLECT_RESOURCE_NAME )
 			{
+            outbuf[outchar] = 0;
+            outchar = 0;
+            AppendBuffer( &data->resource_file, NULL, outbuf );
 				state = PARSE_STATE_COLLECT_RESOURCE_EXTENSION;
 			}
          break;
 		case '/':
 			if( state == PARSE_STATE_COLLECT_PROTOCOL_1 )
-            state = PARSE_STATE_COLLECT_PROTOCOL_2;
-			else if( state == PARSE_STATE_COLLECT_PROTOCOL_2 )
-				state = PARSE_STATE_COLLECT_USER;
-			else if( state == PARSE_STATE_COLLECT_ADDRESS )
-				state = PARSE_STATE_COLLECT_RESOURCE_PATH;
-			else if( state == PARSE_STATE_COLLECT_PATH )
-				state = PARSE_STATE_COLLECT_RESOURCE_NAME;
-			else if( state == PARSE_STATE_COLLECT_NAME )
 			{
-				// this isn't really the, it's another part of the resource path
+				if( outchar > 0 )
+					lprintf( "Characters between protocol ':' and first slash" );
+				state = PARSE_STATE_COLLECT_PROTOCOL_2;
+			}
+			else if( state == PARSE_STATE_COLLECT_PROTOCOL_2 )
+			{
+				if( outchar > 0 )
+					lprintf( "Characters between protocol first and second slash" );
+				state = PARSE_STATE_COLLECT_USER;
+			}
+			else if( state == PARSE_STATE_COLLECT_USER )
+			{
+            // what was collected was really
+            outbuf[outchar] = 0;
+            outchar = 0;
+            AppendBuffer( &data->host, NULL, outbuf );
+				state = PARSE_STATE_COLLECT_RESOURCE_PATH;
+			}
+			else if( state == PARSE_STATE_COLLECT_ADDRESS )
+			{
+            outbuf[outchar] = 0;
+            outchar = 0;
+            AppendBuffer( &data->host, NULL, outbuf );
+				state = PARSE_STATE_COLLECT_RESOURCE_PATH;
+			}
+			else if( state == PARSE_STATE_COLLECT_PORT )
+			{
+            outbuf[outchar] = 0;
+            outchar = 0;
+            AppendBuffer( &data->port, NULL, outbuf );
+				state = PARSE_STATE_COLLECT_RESOURCE_PATH;
+			}
+			else if( state == PARSE_STATE_COLLECT_RESOURCE_PATH )
+			{
+            outbuf[outchar] = 0;
+            outchar = 0;
+            AppendBuffer( &data->resource_path, "/", outbuf );
 				state = PARSE_STATE_COLLECT_RESOURCE_NAME;
 			}
-			else
-            use_char = 1;
+			else if( state == PARSE_STATE_COLLECT_RESOURCE_NAME )
+			{
+				// this isn't really the name, it's another part of the resource path
+				outbuf[outchar] = 0;
+            outchar = 0;
+            AppendBuffer( &data->resource_path, "/", outbuf );
+				state = PARSE_STATE_COLLECT_RESOURCE_NAME;
+			}
          break;
 		case '@':
-			if( ( state == PARSE_STATE_COLLECT_USER )  // hit the colon between user and password
-				|| ( state == PARSE_STATE_COLLECT_PASSWORD ) )
+			if( state == PARSE_STATE_COLLECT_USER )  // hit the colon between user and password
+			{
+            outbuf[outchar] = 0;
+            outchar = 0;
+            AppendBuffer( &data->user, NULL, outbuf );
 				state = PARSE_STATE_COLLECT_ADDRESS;
+			}
+			if( state == PARSE_STATE_COLLECT_PASSWORD )
+			{
+            outbuf[outchar] = 0;
+            outchar = 0;
+            AppendBuffer( &data->password, NULL, outbuf );
+				state = PARSE_STATE_COLLECT_ADDRESS;
+			}
          break;
 		case ':':
 			if( state == PARSE_STATE_COLLECT_PROTOCOL )
+			{
+            outbuf[outchar] = 0;
+            outchar = 0;
+            AppendBuffer( &data->protocol, NULL, outbuf );
 				state = PARSE_STATE_COLLECT_PROTOCOL_1;
+			}
 			else if( state == PARSE_STATE_COLLECT_USER )  // hit the colon between user and password
+			{
+            outbuf[outchar] = 0;
+            outchar = 0;
+            AppendBuffer( &data->user, NULL, outbuf );
 				state = PARSE_STATE_COLLECT_PASSWORD;
+			}
 			else if( state == PARSE_STATE_COLLECT_ADDRESS )  // hit the colon between address and port
+			{
+            outbuf[outchar] = 0;
+            outchar = 0;
+            AppendBuffer( &data->host, NULL, outbuf );
 				state = PARSE_STATE_COLLECT_PORT;
+			}
 			else
-            ; // error
-         break;
+			{
+				; // error
+			}
+			break;
 		default:
 			switch( state )
 			{
 			case PARSE_STATE_COLLECT_PROTOCOL_1:
 				// the thing after the ':' was not a '/', so this isn't the protocol.
-            break;
+				break;
 			case PARSE_STATE_COLLECT_PROTOCOL_2:
 				break;
 			default:
-            usechar = 1;
+				use_char = 1;
 			}
-         break;
+			break;
 		}
-      if( usechar )
-			outbuf[outchar++] = inbuf[inchar++];
-      else
+		if( use_char )
+			outbuf[outchar++] = url[inchar++];
+		else
+		{
+			if( _state == state )
+				lprintf( "Dropping character (%d) '%c' in %s", inchar, url[inchar], url );
 			inchar++;
+		}
+		_state = state;
+	}
+	return data;
+}
+
+CTEXTSTR SACK_BuildURL( struct url_data *data )
+{
+	PVARTEXT pvt = VarTextCreate();
+   CTEXTSTR tmp = NULL;
+   CTEXTSTR tmp2 = NULL;
+   if( data->protocol )
+		vtprintf( pvt, "%s://", tmp = ConvertTextURI( data->protocol, StrLen( data->protocol ), 0 ) );
+	if( tmp )
+	{
+		Release( (POINTER)tmp );
+		tmp = NULL;
+	}
+   // must be a user to use the password, setting just a password is an error really
+   if( data->user )
+		vtprintf( pvt, "%s%s%s@"
+				  , tmp = ConvertTextURI( data->user, StrLen( data->user ), 0 )
+				  , data->password?":":""
+				  , data->password?(tmp2 = ConvertTextURI( data->password, StrLen( data->password ), 0 )):"" );
+	if( tmp )
+	{
+		Release( (POINTER)tmp );
+		tmp = NULL;
+	}
+	if( tmp2 )
+	{
+		Release( (POINTER)tmp2 );
+		tmp2 = NULL;
+	}
+
+   if( data->address )
+		vtprintf( pvt, "%s"
+				  , tmp = ConvertTextURI( data->address, StrLen( data->address ), 0 ) );
+	if( tmp )
+	{
+		Release( (POINTER)tmp );
+		tmp = NULL;
+	}
+   if( data->port )
+		vtprintf( pvt, ":%s"
+				  , tmp = ConvertTextURI( data->port, StrLen( data->port ), 0 ) );
+	if( tmp )
+	{
+		Release( (POINTER)tmp );
+		tmp = NULL;
+	}
+
+   if( data->resource_path )
+		vtprintf( pvt, "/%s"
+				  , tmp = ConvertTextURI( data->resource_path, StrLen( data->resource_path), 0 ) );
+	if( tmp )
+	{
+		Release( (POINTER)tmp );
+		tmp = NULL;
+	}
+   if( data->resource_file )
+		vtprintf( pvt, "/%s"
+				  , tmp = ConvertTextURI( data->resource_file, StrLen( data->resource_file), 0 ) );
+	if( tmp )
+	{
+		Release( (POINTER)tmp );
+		tmp = NULL;
+	}
+   if( data->resource_extension )
+		vtprintf( pvt, ".%s"
+				  , tmp = ConvertTextURI( data->resource_extension, StrLen( data->resource_extension), 0 ) );
+	if( tmp )
+	{
+		Release( (POINTER)tmp );
+		tmp = NULL;
+	}
+   if( data->resource_anchor )
+		vtprintf( pvt, ".%s"
+				  , tmp = ConvertTextURI( data->resource_anchor, StrLen( data->resource_anchor), 0 ) );
+	if( tmp )
+	{
+		Release( (POINTER)tmp );
+		tmp = NULL;
+	}
+
+   if( data->cgi_parameters )
+	{
+      int first = 1;
+		INDEX idx;
+		struct url_cgi_data *cgi_data;
+		LIST_FORALL( data->cgi_parameters, idx, struct url_cgi_dat *, cgi_data )
+		{
+			if( cgi_data->value )
+				vtprintf( pvt, "%s%s=%s", first?"?":"&", cgi_data->name, cgi_data->value );
+			else
+				vtprintf( pvt, "%s%s", first?"?":"&", cgi_data->name );
+		}
+	}
+	{
+		PTEXT text_result = VarTextGet( pvt );
+		CTEXTSTR result = StrDup( GetText( text_result ) );
+		return result;
 	}
 }
 
+void SACK_ReleaseURL( struct url_data *data )
+{
+	struct url_cgi_data *cgi_data;
+	INDEX idx;
+	LIST_FORALL( data->cgi_parameters, idx, struct url_cgi_data *, cgi_data )
+	{
+      Release( (POINTER)cgi_data->name );
+      Release( (POINTER)cgi_data->value );
+	}
+   DeleteList( &data->cgi_parameters );
+	Release( (POINTER)data->protocol );
+	Release( (POINTER)data->user );
+	Release( (POINTER)data->password );
+	Release( (POINTER)data->host );
+	Release( (POINTER)data->port );
+	Release( (POINTER)data->resource_path );
+	Release( (POINTER)data->resource_file );
+	Release( (POINTER)data->resource_extension );
+	Release( (POINTER)data->resource_anchor );
+
+   Release( data );
+}
 
