@@ -186,7 +186,7 @@ static void AddFragment( HTML5WebSocket socket, POINTER fragment, size_t frag_le
       *  %xA denotes a pong
       *  %xB-F are reserved for further control frames
 */
-void HandleData( HTML5WebSocket socket, PCLIENT pc, POINTER buffer, size_t length )
+static void HandleData( HTML5WebSocket socket, PCLIENT pc, POINTER buffer, size_t length )
 {
 	size_t n;
 	_8 okay = 0;
@@ -240,7 +240,7 @@ void HandleData( HTML5WebSocket socket, PCLIENT pc, POINTER buffer, size_t lengt
 	}
 }
 
-void HandleData_RFC6455( HTML5WebSocket socket, POINTER buffer, size_t length )
+static void HandleData_RFC6455( HTML5WebSocket socket, POINTER buffer, size_t length )
 {
 	LOGICAL final = 0;
 	LOGICAL mask = 0;
@@ -355,7 +355,7 @@ void HandleData_RFC6455( HTML5WebSocket socket, POINTER buffer, size_t length )
 
 }
 
-void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
+static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 {
 	if( buffer )
 	{
@@ -502,7 +502,7 @@ void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 	ReadTCP( pc, buffer, 4096 );
 }
 
-void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
+static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 {
 	//HTML5WebSocket server_socket = (HTML5WebSocket)GetNetworkLong( pc_server, 0 );
 	HTML5WebSocket socket = New( struct html5_web_socket );
@@ -514,6 +514,11 @@ void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 	SetNetworkReadComplete( pc_new, read_complete );
 }
 
+static LOGICAL CPROC HandleRequest( PTRSZVAL psv, HTTPState pHttpState )
+{
+
+}
+
 HTML5WebSocket CreateWebSocket( CTEXTSTR hosturl )
 {
 	HTML5WebSocket socket = New( struct html5_web_socket );
@@ -521,7 +526,8 @@ HTML5WebSocket CreateWebSocket( CTEXTSTR hosturl )
 	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
 
 	socket->pc = 0;
-	socket->pc = OpenTCPListenerEx( 9998, connected );
+	socket->pc = //CreateHttpServer( "localhost:9998", "WebSockets", "url", HandleRequest, 0 );
+		OpenTCPListenerEx( 9998, connected );
 	socket->http_state = CreateHttpState();
 	SetNetworkLong( socket->pc, 0, (PTRSZVAL)socket );
 	return socket;

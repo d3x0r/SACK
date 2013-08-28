@@ -186,6 +186,36 @@ HTTP_EXPORT HTTPState  HTTPAPI GetHttpQuery( PTEXT site, PTEXT resource );
 	__DefineRegistryMethod(WIDE( "SACK/Http/Methods" ),OnHttpRequest,WIDE( "something" ),site WIDE( "/" ) resource,WIDE( "Get" ),void,(PTRSZVAL,PCLIENT,struct HttpState *,PTEXT),__LINE__)
 
 
+//--------------------------------------------------------------
+//  URL.c  (url parsing utility)
+
+struct url_cgi_data
+{
+	CTEXTSTR name;
+	CTEXTSTR value;
+};
+
+struct url_data
+{
+	CTEXTSTR protocol;
+	CTEXTSTR user;
+	CTEXTSTR password;
+	CTEXTSTR host;
+	int default_port;  
+	int port;  // encoding RFC3986 http://tools.ietf.org/html/rfc3986  specifies port characters are in the set of digits.
+	//CTEXTSTR port_data;  // during collection, the password may be in the place of 'port'
+	CTEXTSTR resource_path;
+	CTEXTSTR resource_file;
+	CTEXTSTR resource_extension;
+	CTEXTSTR resource_anchor;
+   // list of struct url_cgi_data *
+	PLIST cgi_parameters;
+};
+
+HTTP_EXPORT struct url_data * HTTPAPI SACK_URLParse( CTEXTSTR url );
+HTTP_EXPORT CTEXTSTR HTTPAPI SACK_BuildURL( struct url_data *data );
+HTTP_EXPORT void HTTPAPI SACK_ReleaseURL( struct url_data *data );
+
 
 	_HTTP_NAMESPACE_END
 TEXT_NAMESPACE_END

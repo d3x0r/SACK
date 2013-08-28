@@ -2708,7 +2708,7 @@ TYPELIB_PROC TEXTSTR ATFtnA( TEXTSTR buf );
    length :      max length of text to convert
    skip_slash :  if TRUE, keep slash characters as literal,
                  otherwise they get converted.                  */
-TYPELIB_PROC TEXTSTR TYPELIB_CALLTYPE ConvertTextURI( TEXTSTR text, INDEX length, int skip_slash );
+TYPELIB_PROC TEXTSTR TYPELIB_CALLTYPE ConvertTextURI( CTEXTSTR text, INDEX length, int skip_slash );
 /* Converts URI escape characters like %3B to the appropriate
    ascii characters. The resulting string must be released by
    the application.
@@ -2729,7 +2729,7 @@ TYPELIB_PROC TEXTSTR TYPELIB_CALLTYPE ConvertTextURI( TEXTSTR text, INDEX length
    
    
    </code>                                                                                                                        */
-TYPELIB_PROC TEXTSTR TYPELIB_CALLTYPE ConvertURIText( TEXTSTR text, INDEX length );
+TYPELIB_PROC TEXTSTR TYPELIB_CALLTYPE ConvertURIText( CTEXTSTR text, INDEX length );
 
 TYPELIB_PROC LOGICAL TYPELIB_CALLTYPE ParseStringVector( CTEXTSTR data, CTEXTSTR **pData, int *nData );
 TYPELIB_PROC LOGICAL TYPELIB_CALLTYPE ParseIntVector( CTEXTSTR data, int **pData, int *nData );
