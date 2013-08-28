@@ -192,7 +192,7 @@ HTTP_EXPORT HTTPState  HTTPAPI GetHttpQuery( PTEXT site, PTEXT resource );
 struct url_cgi_data
 {
 	CTEXTSTR name;
-   CTEXTSTR value;
+	CTEXTSTR value;
 };
 
 struct url_data
@@ -201,7 +201,9 @@ struct url_data
 	CTEXTSTR user;
 	CTEXTSTR password;
 	CTEXTSTR host;
-	CTEXTSTR port;
+	int default_port;  
+	int port;  // encoding RFC3986 http://tools.ietf.org/html/rfc3986  specifies port characters are in the set of digits.
+	//CTEXTSTR port_data;  // during collection, the password may be in the place of 'port'
 	CTEXTSTR resource_path;
 	CTEXTSTR resource_file;
 	CTEXTSTR resource_extension;
