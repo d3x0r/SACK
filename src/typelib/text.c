@@ -2523,7 +2523,7 @@ static const TEXTCHAR *translated[] = { WIDE( "%21" ),WIDE( "%2A" ),WIDE( "%27" 
 												 ,WIDE( "%3C" ),WIDE( "%3E" ),WIDE( "%7E" ),WIDE( "%2E" ),WIDE( "%22" ),WIDE( "%7B" ),WIDE( "%7D" ),WIDE( "%7C" ),WIDE( "%5C" ),WIDE( "%2D" ),WIDE( "%60" ),WIDE( "%5F" ),WIDE( "%5E" ),WIDE( "%25" ),WIDE( "%20" )
 };
 
-static int MeasureTextURI( TEXTSTR text, INDEX length, int skip_slash )
+static int MeasureTextURI( CTEXTSTR text, INDEX length, int skip_slash )
 {
 	// compute how long it should be.
 	INDEX i;
@@ -2540,7 +2540,7 @@ static int MeasureTextURI( TEXTSTR text, INDEX length, int skip_slash )
 	return out_length;
 }
 
-TEXTSTR ConvertTextURI( TEXTSTR text, INDEX length, int skip_slash )
+TEXTSTR ConvertTextURI( CTEXTSTR text, INDEX length, int skip_slash )
 {
 	int target_len = MeasureTextURI( text, length, skip_slash );
 	TEXTSTR target = NewArray( TEXTCHAR, target_len + 1 );
@@ -2572,7 +2572,7 @@ TEXTSTR ConvertTextURI( TEXTSTR text, INDEX length, int skip_slash )
    return target;
 }
 
-static int MeasureURIText( TEXTSTR text, INDEX length )
+static int MeasureURIText( CTEXTSTR text, INDEX length )
 {
 	// compute how long it should be.
 	INDEX i;
@@ -2590,7 +2590,7 @@ static int MeasureURIText( TEXTSTR text, INDEX length )
 	return out_length;
 }
 
-TEXTSTR ConvertURIText( TEXTSTR text, INDEX length )
+TEXTSTR ConvertURIText( CTEXTSTR text, INDEX length )
 {
 	int target_len = MeasureURIText( text, length );
 	TEXTSTR target = NewArray( TEXTCHAR, target_len + 1 );
