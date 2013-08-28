@@ -296,11 +296,11 @@ LOGICAL CreateDrawingSurface (PVIDEO hVideo)
 	{
 		TEXTCHAR name[64];
 		snprintf( name, sizeof( name ), WIDE( "render.display.%p" ), hVideo );
-		lprintf( WIDE( "making initial transform" ) );
+		//lprintf( WIDE( "making initial transform" ) );
 		hVideo->transform = hVideo->pImage->transform = CreateTransformMotion( CreateNamedTransform( name ) );
 	}
 
-	lprintf( WIDE( "Set transform at %d,%d" ), hVideo->pWindowPos.x, hVideo->pWindowPos.y );
+	//lprintf( WIDE( "Set transform at %d,%d" ), hVideo->pWindowPos.x, hVideo->pWindowPos.y );
 	Translate( hVideo->transform, (RCOORD)hVideo->pWindowPos.x, (RCOORD)hVideo->pWindowPos.y, 0 );
 
 	// additionally indicate that this is a GL render point
@@ -377,7 +377,7 @@ void LoadOptions( void )
 	}
 	else
 		l.scale = 1.0 / l.scale;
-   lprintf( "LoadOptions" );
+   //lprintf( "LoadOptions" );
 	if( !l.cameras )
 	{
 		struct display_camera *default_camera = NULL;
@@ -398,7 +398,7 @@ void LoadOptions( void )
 			average_height = screen_h/3;
 			break;
 		}
-lprintf( "Set camera 0 to 1" );
+		//lprintf( "Set camera 0 to 1" );
 		SetLink( &l.cameras, 0, (POINTER)1 ); // set default here 
 		for( n = 0; n < nDisplays; n++ )
 		{
@@ -486,15 +486,15 @@ lprintf( "Set camera 0 to 1" );
 			{
 				default_camera = camera;
 			}
-lprintf( "Add camera to list" );
+			//lprintf( "Add camera to list" );
 			AddLink( &l.cameras, camera );
 		}
 		if( !default_camera )
 		{
 			default_camera = (struct display_camera *)GetLink( &l.cameras, 1 );
-lprintf( "Retrieve default as %p", default_camera );
+			//lprintf( "Retrieve default as %p", default_camera );
 		}
-lprintf( "Set default to %p", default_camera );
+		//lprintf( "Set default to %p", default_camera );
 		SetLink( &l.cameras, 0, default_camera );
 	}
 	l.flags.bLogMessageDispatch = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log message dispatch"), 0, TRUE );
@@ -605,7 +605,7 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 		camera->displayWindow = l.displayWindow;
 		OpenEGL( camera, camera->displayWindow );
 #else
-      lprintf( "Open win32 camera..." );
+		//lprintf( "Open win32 camera..." );
       OpenWin32Camera( camera );
 #endif
 
