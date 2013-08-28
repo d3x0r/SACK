@@ -349,7 +349,8 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 	TEXTSTR real_filename = filename?ExpandPath( filename ):NULL;
 	TEXTSTR fullname;
 
-	lprintf( "Prepend to {%s} %p %d", real_filename, group, groupid );
+	if( l.flags.bLogOpenClose )
+		lprintf( "Prepend to {%s} %p %d", real_filename, group, groupid );
 
 	if( l.groups )
 	{
