@@ -2546,7 +2546,7 @@ TEXTSTR ConvertTextURI( CTEXTSTR text, INDEX length, int skip_slash )
 	TEXTSTR target = NewArray( TEXTCHAR, target_len + 1 );
 	INDEX i;
 	TEXTSTR out_pos = target;
-   const TEXTCHAR *char_pos;
+	const TEXTCHAR *char_pos;
 	for( i = 0; i < length && text[i]; i++ )
 	{
 		if( skip_slash && text[i] == '/' )
@@ -2559,7 +2559,7 @@ TEXTSTR ConvertTextURI( CTEXTSTR text, INDEX length, int skip_slash )
 #ifdef __cplusplus
 			sack::memory::
 #endif
-         StrCpyEx( out_pos, translated[char_pos - reserved_uri], target_len - ( out_pos - target ) );
+			StrCpyEx( out_pos, translated[char_pos - reserved_uri], target_len - ( out_pos - target ) );
 			out_pos += 3;
 		}
 		else
@@ -2568,15 +2568,15 @@ TEXTSTR ConvertTextURI( CTEXTSTR text, INDEX length, int skip_slash )
 			out_pos++;
 		}
 	}
-   out_pos++;
-   return target;
+	out_pos[0] = 0;
+	return target;
 }
 
 static int MeasureURIText( CTEXTSTR text, INDEX length )
 {
 	// compute how long it should be.
 	INDEX i;
-   int out_length = 0;
+	int out_length = 0;
 	for( i = 0; i < length && text[i]; i++ )
 	{
 		if( text[i] == '%' )
@@ -2619,8 +2619,9 @@ TEXTSTR ConvertURIText( CTEXTSTR text, INDEX length )
 			out_pos++;
 		}
 	}
-   out_pos++;
-   return target;
+	out_pos[0] = 0;
+	//out_pos++;
+	return target;
 }
 
 
