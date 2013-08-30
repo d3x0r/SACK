@@ -97,6 +97,7 @@ static int example_handler(request_rec *r)
 static void register_hooks(apr_pool_t *pool)
 {
 	/* Create a hook in the request handler, so we get called when a request arrives */
+   InvokeDeadstart();
    lprintf( "here" );
     ap_hook_handler(example_handler, NULL, NULL, APR_HOOK_LAST);
 }
