@@ -235,6 +235,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 /// ---------------- Interface ---------------
 #undef GetDisplayInterface
 POINTER  CPROC GetDisplayInterface (void);
+#undef DropDisplayInterface
 void  CPROC DropDisplayInterface (POINTER p);
 POINTER CPROC GetDisplay3dInterface (void);
 void  CPROC DropDisplay3dInterface (POINTER p);
@@ -244,6 +245,7 @@ void SACK_Vidlib_ShowInputDevice( void );
 void SACK_Vidlib_HideInputDevice( void );
 
 // ---------------- Common --------------------
+#undef GetRenderTransform
 PTRANSFORM CPROC GetRenderTransform( PRENDERER r );
 struct display_camera *SACK_Vidlib_OpenCameras( void );
 LOGICAL CreateDrawingSurface (PVIDEO hVideo);
