@@ -789,7 +789,9 @@ if( NOT __NO_CPLUSPLUS )
 if( NOT FORCE_CXX )
 set( cplusplus_sources )
 COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} include/sha1.h include/md5.h )
-
+if( NEED_UUID )
+COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} src/uuid-1.6.2/uuid.h )
+endif( NEED_UUID )
 
 set( cplusplus_sources 
   #${FIRST_GCC_LIBRARY_SOURCE} 
