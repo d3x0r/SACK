@@ -233,6 +233,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 
 
 /// ---------------- Interface ---------------
+#undef GetDisplayInterface
 POINTER  CPROC GetDisplayInterface (void);
 void  CPROC DropDisplayInterface (POINTER p);
 POINTER CPROC GetDisplay3dInterface (void);

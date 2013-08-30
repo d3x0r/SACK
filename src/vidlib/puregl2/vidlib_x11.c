@@ -287,7 +287,7 @@ GLWindow * createGLWindow(struct display_camera *camera)
 
 
 
-static void Redraw( PRENDERER hVideo )
+ void Redraw( PRENDERER hVideo )
 {
 	if( IsThisThread( hVideo->pThreadWnd ) )
 		//if( IsVidThread() )
