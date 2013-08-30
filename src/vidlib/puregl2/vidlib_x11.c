@@ -286,28 +286,6 @@ GLWindow * createGLWindow(struct display_camera *camera)
 
 
 
-
- void Redraw( PRENDERER hVideo )
-{
-	if( IsThisThread( hVideo->pThreadWnd ) )
-		//if( IsVidThread() )
-	{
-#ifdef LOG_RECT_UPDATE
-		lprintf( WIDE( "..." ) );
-#endif
-		SendApplicationDraw( hVideo );
-	}
-	else
-	{
-		if( l.flags.bLogWrites )
-			lprintf( WIDE( "Posting invalidate rect..." ) );
-#ifdef _WIN32
-		InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
-#endif
-	}
-}
-
-
 #define MODE_UNKNOWN 0
 #define MODE_PERSP 1
 #define MODE_ORTHO 2
@@ -328,7 +306,7 @@ static int mode = MODE_UNKNOWN;
 }
 
 
- int InitGL( struct display_camera *camera )										// All Setup For OpenGL Goes Here
+ int AnotherInitGL( struct display_camera *camera )										// All Setup For OpenGL Goes Here
 {
 	if( !camera->flags.init )
 	{
