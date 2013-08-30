@@ -3448,13 +3448,13 @@ void  CPROC DropDisplay3dInterface (POINTER p)
 {
 }
 
-static void CPROC DefaultExit( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROCDefaultExit( PTRSZVAL psv, _32 keycode )
 {
    lprintf( WIDE( "Default Exit..." ) );
    BAG_Exit(0);
 }
 
-static void CPROC EnableRotation( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROCEnableRotation( PTRSZVAL psv, _32 keycode )
 {
 	lprintf( "Enable Rotation..." );
 	if( IsKeyPressed( keycode ) )
@@ -3481,7 +3481,7 @@ static void CPROC EnableRotation( PTRSZVAL psv, _32 keycode )
 		lprintf( "unlock rotate" );
 }
 
-static void CPROC CameraForward( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROCCameraForward( PTRSZVAL psv, _32 keycode )
 {
 	if( l.flags.bRotateLock )
 	{
@@ -3501,7 +3501,7 @@ static void CPROC CameraForward( PTRSZVAL psv, _32 keycode )
 //   return 0;
 }
 
-static void CPROC CameraLeft( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROCCameraLeft( PTRSZVAL psv, _32 keycode )
 {
 	if( l.flags.bRotateLock )
 	{
@@ -3524,7 +3524,7 @@ static void CPROC CameraLeft( PTRSZVAL psv, _32 keycode )
 //   return 0;
 }
 
-static void CPROC CameraRight( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROCCameraRight( PTRSZVAL psv, _32 keycode )
 {
 	if( l.flags.bRotateLock )
 	{
@@ -3538,7 +3538,7 @@ static void CPROC CameraRight( PTRSZVAL psv, _32 keycode )
 //   return 0;
 }
 
-static void CPROC CameraRollRight( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROCCameraRollRight( PTRSZVAL psv, _32 keycode )
 {
 	if( l.flags.bRotateLock )
 	{
@@ -3556,7 +3556,7 @@ static void CPROC CameraRollRight( PTRSZVAL psv, _32 keycode )
 //   return 0;
 }
 
-static void CPROC CameraRollLeft( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROCCameraRollLeft( PTRSZVAL psv, _32 keycode )
 {
 	if( l.flags.bRotateLock )
 	{
@@ -3574,7 +3574,7 @@ static void CPROC CameraRollLeft( PTRSZVAL psv, _32 keycode )
 //   return 0;
 }
 
-static void CPROC CameraDown( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROCCameraDown( PTRSZVAL psv, _32 keycode )
 {
 	if( l.flags.bRotateLock )
 	{
