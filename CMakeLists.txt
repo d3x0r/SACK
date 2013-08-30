@@ -1259,6 +1259,8 @@ add_subdirectory( src/utils/deploy )
   
  endif( USE_OPTIONS )
 
+add_subdirectory( src/utils/apache_shell )
+
 if( __INCLUDE_INTERSHELL__ )
 add_subdirectory( src/InterShell )
 endif( __INCLUDE_INTERSHELL__ )

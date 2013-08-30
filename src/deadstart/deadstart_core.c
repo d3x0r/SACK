@@ -706,5 +706,14 @@ LOGICAL IsRootDeadstartComplete( void )
 #endif
 }
 
+__declspec(dllexport) int WINAPI DllMain(  HINSTANCE hinstDLL,
+   DWORD fdwReason,
+   LPVOID lpvReserved
+													 )
+{
+   if( fdwReason == DLL_PROCESS_DETACH )
+		InvokeExits();
+   return TRUE;
+}
 
 SACK_DEADSTART_NAMESPACE_END

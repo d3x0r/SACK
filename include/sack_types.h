@@ -513,14 +513,6 @@ typedef int pid_t;
 #endif
 #define LIBEXIT() } static int LibExit( void ); ATEXIT( LiraryUninitializer ) { LibExit(); } int LibExit(void) { /*Log( WIDE("Library Exit" ) );*/
 #define LIBMAIN_END() }
-#if 0
-#define LIBMAIN() EXPORT_METHOD WINPROC(int, DllMain)(HINSTANCE hInstance, DWORD dwReason, void *unused ) \
-		{ if( dwReason == DLL_PROCESS_ATTACH ) {\
-			/*Log( WIDE("Library Enter" ) );*//* here would be if dwReason == process_attach */
-#define LIBEXIT() } /* end if */ if( dwReason == DLL_PROCESS_DETACH ) {  \
-	   									 /*Log( WIDE("Library Exit" ) );*/
-#define LIBMAIN_END()  } return 1; }
-#endif
 #endif
 #define PACKED
 #endif
@@ -1660,8 +1652,10 @@ EXPORT_METHOD
 #else
 IMPORT_METHOD
 #endif
-	void BAG_Exit( int code );
+		void BAG_Exit( int code );
+#ifndef NO_SACK_EXIT_OVERRIDE
 #define exit(n) BAG_Exit(n)
+#endif
 
 SACK_NAMESPACE_END // namespace sack {
 
