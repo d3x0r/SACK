@@ -2235,7 +2235,7 @@ struct peer_thread_info *IsNetworkThread( void )
 //----------------------------------------------------------------------------
 int NetworkQuit(void)
 {
-#ifdef __STATIC__
+#ifndef __STATIC__
 	if( !global_network_data )
 		return 0;
 #endif

@@ -1868,14 +1868,17 @@ ATEXIT( CommitOptions )
 #ifdef DETAILED_LOGGING
 	lprintf( WIDE( "Running Option cleanup..." ) );
 #endif
-	LIST_FORALL( og.trees, idx, POPTION_TREE, tree )
+	if( sack_global_option_data )
 	{
-		if( tree->odbc_writer )
+		LIST_FORALL( og.trees, idx, POPTION_TREE, tree )
 		{
+			if( tree->odbc_writer )
+			{
 #ifdef DETAILED_LOGGING
-			lprintf( WIDE( "flushing a write on %p" ), tree->odbc_writer );
+				lprintf( WIDE( "flushing a write on %p" ), tree->odbc_writer );
 #endif
-			SQLCommit( tree->odbc_writer );
+				SQLCommit( tree->odbc_writer );
+			}
 		}
 	}
 }

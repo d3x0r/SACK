@@ -724,7 +724,7 @@ static void DoCloseSpace( PSPACE ps, int bFinal );
 // hmm this runs
 PRIORITY_ATEXIT(ReleaseAllMemory,ATEXIT_PRIORITY_SHAREMEM)
 {
-#ifndef __LINUX__
+#ifdef __SKIP_RELEASE_OPEN_SPACES__
 	// actually, under linux, it releases /tmp/.shared files.
 	//lprintf( WIDE( "No super significant reason to release all memory blocks?" ) );
 	//lprintf( WIDE( "Short circuit on memory shutdown." ) );
@@ -752,7 +752,9 @@ PRIORITY_ATEXIT(ReleaseAllMemory,ATEXIT_PRIORITY_SHAREMEM)
 				}
 #endif
 */
+#ifndef _WIN32
 				if( ps->flags.bTemporary )
+#endif
 					DoCloseSpace( ps, TRUE );
 			}
 		}

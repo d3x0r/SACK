@@ -137,15 +137,15 @@ static void DoSystemLog( const TEXTCHAR *buffer );
 // we should really wait until the very end to cleanup?
 PRIORITY_ATEXIT( CleanSyslog, ATEXIT_PRIORITY_SYSLOG )
 {
-	enum syslog_types _logtype = logtype;
-	if( ( _logtype == SYSLOG_AUTO_FILE && l.file ) || ( _logtype != SYSLOG_AUTO_FILE && _logtype == SYSLOG_NONE ) )
-		lprintf( WIDE( "Final log - syslog closed." ) );
+	enum syslog_types _logtype;
+	if( !syslog_local )
+		return;
+	_logtype = logtype;
+	if( ( _logtype == SYSLOG_AUTO_FILE && l.file ) || ( _logtype == SYSLOG_NONE ) )
+		lprintf( WIDE( "Final log - syslog clos(ing)ed." ) );
 
-	return;
 
 	pProgramName = NULL; // this was dynamic allocated memory, and it is now gone.
-	if( ( _logtype == SYSLOG_AUTO_FILE && l.file ) || ( _logtype != SYSLOG_AUTO_FILE && _logtype == SYSLOG_NONE ) )
-		lprintf( WIDE( "Final log - syslog closed." ) );
 	logtype = SYSLOG_NONE;
 	switch( _logtype )
 	{

@@ -620,7 +620,7 @@ static void DisconnectClient(void)
 {
 	static int bDone;
 	PEVENTHANDLER pHandler;
-	if( bDone )
+	if( !global_msgclient || bDone )
 		return;
 	bDone = 1;
 
