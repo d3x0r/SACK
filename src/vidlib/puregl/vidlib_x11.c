@@ -1490,42 +1490,6 @@ void LoadOptions( void )
 				camera->display = SACK_GetProfileIntEx( GetProgramName(), tmp, nDisplays>1?n+1:0, TRUE );
             GetDisplaySizeEx( camera->display, &camera->x, &camera->y, &camera->w, &camera->h );
 			}
-			camera->T_camera = CreateTransform();
-			if( n == 0 )
-			{
-				Translate( camera->T_camera, camera->w/2, camera->h/2, camera->h/2 );
-				//Translate( l.origin, some_width/2, some_height/2, some_height/2 );
-				//ShowTransform( l.origin );
-				// flip over
-				RotateAbs( camera->T_camera, M_PI, 0, 0 );
-			}
-			else if( n == 1 )
-			{
-				Translate( camera->T_camera, camera->w/2, camera->h/2, camera->h/2 );
-				//Translate( camera->T_camera, -100, 150, 150 );
-				//Translate( l.origin, some_width/2, some_height/2, some_height/2 );
-				//ShowTransform( l.origin );
-				// flip over
-				RotateAbs( camera->T_camera, M_PI, M_PI/16, 0 );
-			}
-			else if( n == 2 )
-			{
-				Translate( camera->T_camera, camera->w/2, camera->h/2, camera->h/2 );
-				//Translate( camera->T_camera, 900, 150, 150 );
-				//Translate( l.origin, some_width/2, some_height/2, some_height/2 );
-				//ShowTransform( l.origin );
-				// flip over
-				RotateAbs( camera->T_camera, M_PI, -M_PI/16, 0 );
-			}
-			else if( n == 3 )
-			{
-				Translate( camera->T_camera, camera->w/2, camera->h/2, camera->h/2 );
-				//Translate( l.origin, some_width/2, some_height/2, some_height/2 );
-				//ShowTransform( l.origin );
-				// flip over
-				RotateAbs( camera->T_camera, M_PI, 0, 0 );
-				RotateRel( camera->T_camera, 0, 0, M_PI/32 );
-			}
 
 			InvokeExtraInit( camera, camera->T_camera, camera->w/2 );			
 
