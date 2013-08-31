@@ -1739,7 +1739,7 @@ void UpdateMouseRay( struct display_camera * camera )
 #define COMMON_SCALE ( 2*camera->aspect)
 #define END_SCALE 1000
 #define tmp_param1 (END_SCALE*COMMON_SCALE)
-	if( camera->T_camera )
+	if( camera->origin_camera )
         {
             GLWindow *x11_gl_window = camera->hVidCore->x11_gl_window;
 		VECTOR tmp1;
@@ -3412,7 +3412,7 @@ void  CPROC DropDisplay3dInterface (POINTER p)
 {
 }
 
-static LOGICAL CPROCDefaultExit( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROC DefaultExit( PTRSZVAL psv, _32 keycode )
 {
    lprintf( WIDE( "Default Exit..." ) );
    BAG_Exit(0);
