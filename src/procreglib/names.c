@@ -460,6 +460,12 @@ static void Init( void )
 
 static void ReadConfiguration( void );
 
+PRIORITY_UNLOAD( InitProcreg, NAMESPACE_PRELOAD_PRIORITY )
+{
+	// release other members too, kindly
+	Deallocate( struct procreg_local_tag*, procreg_local_data );
+	procreg_local_data = NULL;
+}
 PRIORITY_PRELOAD( InitProcReg2, SYSLOG_PRELOAD_PRIORITY )
 {
    // this has to be done after timer's init is done, which is SYSLOG_PRELOAD_PRIORITY-1

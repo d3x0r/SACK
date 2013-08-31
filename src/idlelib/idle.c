@@ -31,38 +31,49 @@ struct idle_proc_tag
 	PIDLEPROC similar; // same function references go here - for multiple thread entries...
    DeclareLink( struct idle_proc_tag );
 };
-static CRITICALSECTION idle_cs;
-static LOGICAL cs_inited;
+struct idle_global_tag {
+	CRITICALSECTION idle_cs;
+	LOGICAL cs_inited;
+	PIDLEPROC registered_idle_procs;
+};
 #ifndef __STATIC_GLOBALS__
-static PIDLEPROC *registered_idle_procs;
-#define procs (*registered_idle_procs)
+static struct idle_global_tag *idle_global;// registered_idle_procs;
+#  define l (*idle_global)
 
+PRIORITY_UNLOAD( InitGlobalIdle, OSALOT_PRELOAD_PRIORITY )
+{
+	Deallocate( struct idle_global_tag *, idle_global );
+	idle_global = NULL;
+}
 PRIORITY_PRELOAD( InitGlobalIdle, OSALOT_PRELOAD_PRIORITY )
 {
-	SimpleRegisterAndCreateGlobal( registered_idle_procs );
-   if( !cs_inited )
-		InitializeCriticalSec( &idle_cs );
+	SimpleRegisterAndCreateGlobal( idle_global );
+	if( !l.cs_inited )
+	{
+		InitializeCriticalSec( &l.idle_cs );
+		l.cs_inited = 1;
+	}
 }
 #else
-static PIDLEPROC registered_idle_procs;
-#define procs (registered_idle_procs)
+static struct idle_global_tag idle_global;// registered_idle_procs;
+#  define l (idle_global)
 #endif
-//PLIST pIdleProcs;
-//PLIST pIdleData;
+
+#define procs (l.registered_idle_procs)
 
 IDLE_PROC( void, AddIdleProc )( int (CPROC*Proc)( PTRSZVAL psv ), PTRSZVAL psvUser )
 {
 	PIDLEPROC proc = NULL;
 #ifndef __STATIC_GLOBALS__
-	if( !registered_idle_procs )
-		SimpleRegisterAndCreateGlobal( registered_idle_procs );
+	if( !idle_global )
+		SimpleRegisterAndCreateGlobal( idle_global );
 #endif
-	if( !cs_inited )
+	if( !l.cs_inited )
 	{
-		InitializeCriticalSec( &idle_cs );
-		cs_inited = TRUE;
+		InitializeCriticalSec( &l.idle_cs );
+		l.cs_inited = TRUE;
 	}
-	EnterCriticalSec( &idle_cs );
+	EnterCriticalSec( &l.idle_cs );
 
 	for( proc = procs; proc; proc = proc->next )
 	{
@@ -95,18 +106,22 @@ IDLE_PROC( void, AddIdleProc )( int (CPROC*Proc)( PTRSZVAL psv ), PTRSZVAL psvUs
 		//proc->similar = NULL;
 		LinkThing( procs, proc );
 	}
-   LeaveCriticalSec( &idle_cs );
+   LeaveCriticalSec( &l.idle_cs );
 }
 
 IDLE_PROC( int, RemoveIdleProc )( int (CPROC*Proc)(PTRSZVAL psv ) )
 {
 	PIDLEPROC check_proc;
-	if( !cs_inited )
+#ifndef __STATIC_GLOBALS__
+	if( !idle_global )
+		SimpleRegisterAndCreateGlobal( idle_global );
+#endif
+	if( !l.cs_inited )
 	{
-		InitializeCriticalSec( &idle_cs );
-		cs_inited = TRUE;
+		InitializeCriticalSec( &l.idle_cs );
+		l.cs_inited = TRUE;
 	}
-   EnterCriticalSec( &idle_cs );
+   EnterCriticalSec( &l.idle_cs );
 	for( check_proc = procs; check_proc; check_proc = check_proc->next )
 	{
 		if( Proc == check_proc->function )
@@ -125,7 +140,7 @@ IDLE_PROC( int, RemoveIdleProc )( int (CPROC*Proc)(PTRSZVAL psv ) )
 			break;
 		}
 	}
-   LeaveCriticalSec( &idle_cs );
+   LeaveCriticalSec( &l.idle_cs );
 	return 0;
 }
 

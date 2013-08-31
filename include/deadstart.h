@@ -161,6 +161,7 @@ SACK_NAMESPACE
    appropriate.                                             */
 #define DEADSTART_PRELOAD_PRIORITY 70
 
+#define PRIORITY_UNLOAD(proc,priority) PRIORITY_ATEXIT( proc##_unload, priority )
 /* Used by PRELOAD and PRIORITY_PRELOAD macros to register a
    startup routine at a specific priority. Lower number
    priorities are scheduled to run before higher number

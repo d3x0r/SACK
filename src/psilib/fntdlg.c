@@ -57,10 +57,6 @@ typedef struct font_dialog_tag
 	PTRSZVAL psvUpdate;
 } FONT_DIALOG, *PFONT_DIALOG;
 
-//PUBLIC_DATA( WIDE("Font Choice Data"), FONTDIALOG, InitFontDialog, NULL );
-
-//#undef fg
-//#define fg (*GetGlobalFonts())
 //-------------------------------------------------------------------------
 
 PRIORITY_PRELOAD( InitFontDialogGlobal, IMAGE_PRELOAD_PRIORITY + 2 )

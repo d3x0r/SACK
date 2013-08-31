@@ -1195,6 +1195,13 @@ void  EmptyDataQueue ( PDATAQUEUE *ppdq )
 };//		namespace data_queue {
 #endif
 
+PRIORITY_UNLOAD( InitLocals, NAMESPACE_PRELOAD_PRIORITY + 1 )
+{
+	Deallocate( POINTER, _list_local );
+	Deallocate( POINTER, _data_list_local );
+	Deallocate( POINTER, _link_queue_local );
+	Deallocate( POINTER, _data_queue_local );
+}
 PRIORITY_PRELOAD( InitLocals, NAMESPACE_PRELOAD_PRIORITY + 1 )
 {
 #ifdef __cplusplus

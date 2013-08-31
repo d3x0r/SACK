@@ -163,6 +163,14 @@ GLOBAL *global_sqlstub_data;
 
 void InitLibrary( void );
 
+PRIORITY_UNLOAD( InitGlobalData, SQL_PRELOAD_PRIORITY )
+{
+   // probably should delete all resources that is in this also....
+   
+	Deallocate( POINTER, global_sqlstub_data );
+	global_sqlstub_data = NULL;
+}
+
 PRIORITY_PRELOAD( InitGlobalData, SQL_PRELOAD_PRIORITY )
 {
    // is null initialized.
