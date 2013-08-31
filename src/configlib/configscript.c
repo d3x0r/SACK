@@ -210,7 +210,7 @@ typedef struct configuation_state {
 	PTRSZVAL (CPROC *Unhandled)( PTRSZVAL, CTEXTSTR );
 } CONFIG_STATE;
 
-typedef struct global_tag {
+typedef struct configscript_global_tag {
    //LOGICAL bSaveMemDebug;
 	int _last_allocate_logging;
 	int _disabled_allocate_logging;
@@ -231,6 +231,11 @@ static GLOBAL *global_config_data;
 PRIORITY_PRELOAD( InitGlobalConfigScript, CONFIG_SCRIPT_PRELOAD_PRIORITY )
 {
 	SimpleRegisterAndCreateGlobal( global_config_data );
+}
+PRIORITY_UNLOAD( InitGlobalConfigScript, CONFIG_SCRIPT_PRELOAD_PRIORITY )
+{
+	Deallocate( struct configscript_global_tag *, global_config_data );
+	global_config_data = NULL;
 }
 #else
 static GLOBAL global_config_data;

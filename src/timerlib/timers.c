@@ -241,6 +241,11 @@ ThreadLocal struct my_thread_info {
 #endif
 
 void  RemoveTimerEx( _32 ID DBG_PASS );
+PRIORITY_UNLOAD( LowLevelInit, SYSLOG_PRELOAD_PRIORITY-1 )
+{
+	Deallocate( POINTER, global_timer_structure );
+	global_timer_structure = NULL;
+}
 
 // this priorirty is also relative to a secondary init for procreg/names.c
 // if you change this, need to change when that is scheduled also

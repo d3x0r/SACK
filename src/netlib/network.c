@@ -113,6 +113,11 @@ void LowLevelInit( void )
 		SimpleRegisterAndCreateGlobal( global_network_data );
 }
 
+PRIORITY_UNLOAD( InitNetworkGlobal, GLOBAL_INIT_PRELOAD_PRIORITY )
+{
+	Deallocate( struct network_global_data*, global_network_data );
+	global_network_data = NULL;
+}
 PRIORITY_PRELOAD( InitNetworkGlobal, GLOBAL_INIT_PRELOAD_PRIORITY )
 {
    LowLevelInit();

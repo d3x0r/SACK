@@ -150,6 +150,15 @@ static void CPROC InitGlobalData( POINTER p, _32 size )
 #    endif
 	global->dwSystemCapacity = 0x10000 * 0x08;  // 512K ! 1 meg... or 16 :(
 }
+
+PRIORITY_PRELOAD( InitGlobal, GLOBAL_INIT_PRELOAD_PRIORITY-1 )
+{
+	// this will cause everything to break :)
+// so lets not do it just yet, we already enabled closing all spaces at exit.
+	//Deallocate( POINTER, global_memory_data );
+	global_memory_data = NULL;
+
+}
 PRIORITY_PRELOAD( InitGlobal, GLOBAL_INIT_PRELOAD_PRIORITY-1 )
 {
 	SimpleRegisterAndCreateGlobalWithInit( global_memory_data, InitGlobalData );

@@ -1824,7 +1824,13 @@ SQLGETOPTION_PROC( void, DropOptionInterface )( POPTION_INTERFACE interface_drop
 {
 
 }
-
+PRIORITY_UNLOAD( AllocateOptionGlobal, CONFIG_SCRIPT_PRELOAD_PRIORITY )
+{
+   // other data to destroy?	
+	DeleteCriticalSec( &og.cs_option );
+	Deallocate( POINTER, sack_global_option_data );
+	sack_global_option_data = NULL;
+}
 PRIORITY_PRELOAD( AllocateOptionGlobal, CONFIG_SCRIPT_PRELOAD_PRIORITY )
 {
 	SimpleRegisterAndCreateGlobal( sack_global_option_data );

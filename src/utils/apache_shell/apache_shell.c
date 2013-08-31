@@ -64,10 +64,10 @@ PRELOAD( InitApacheModule )
 	l.__a_c_interface.ap_hook_handler           = LoadFunction( l.server_core, "ap_hook_handler" );
 	l.__a_c_interface.ap_hook_post_read_request = LoadFunction( l.server_core, "ap_hook_post_read_request" );
 
-	l.__a_stdcall_interface.ap_set_content_type        = LoadFunction( l.server_core, "ap_set_content_type" );
-	l.__a_stdcall_interface.ap_rprintf                 = LoadFunction( l.server_core, "ap_rprintf" );
-	l.__a_stdcall_interface.ap_hook_handler            = LoadFunction( l.server_core, "ap_hook_handler" );
-	l.__a_stdcall_interface.ap_hook_post_read_request  = LoadFunction( l.server_core, "ap_hook_post_read_request" );
+	l.__a_stdcall_interface.ap_set_content_type        = (void (__stdcall *)(request_rec *,const char *))LoadFunction( l.server_core, "ap_set_content_type" );
+	l.__a_stdcall_interface.ap_rprintf                 = (int (__cdecl *)(request_rec *,const char *,...))LoadFunction( l.server_core, "ap_rprintf" );
+	l.__a_stdcall_interface.ap_hook_handler            = (int (__stdcall *)(ap_HOOK_handler_t (__cdecl *),const char *const *,const char *const *,int))LoadFunction( l.server_core, "ap_hook_handler" );
+	l.__a_stdcall_interface.ap_hook_post_read_request  = (int (__stdcall *)(ap_HOOK_handler_t (__cdecl *),const char *const *,const char *const *,int))LoadFunction( l.server_core, "ap_hook_post_read_request" );
 
    // setup one of the interfaces... 50-50 chance to get it right?
    //l.a_c_interface = &l.__a_c_interface;

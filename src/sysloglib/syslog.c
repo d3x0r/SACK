@@ -138,8 +138,10 @@ static void DoSystemLog( const TEXTCHAR *buffer );
 PRIORITY_ATEXIT( CleanSyslog, ATEXIT_PRIORITY_SYSLOG )
 {
 	enum syslog_types _logtype;
+#ifndef __STATIC_GLOBALS__
 	if( !syslog_local )
 		return;
+#endif
 	_logtype = logtype;
 	if( ( _logtype == SYSLOG_AUTO_FILE && l.file ) || ( _logtype == SYSLOG_NONE ) )
 		lprintf( WIDE( "Final log - syslog clos(ing)ed." ) );
@@ -164,6 +166,14 @@ PRIORITY_ATEXIT( CleanSyslog, ATEXIT_PRIORITY_SYSLOG )
       // else... no resources to cleanup
       break;
 	}
+
+#ifndef __STATIC_GLOBALS__
+	if( syslog_local )
+	{
+		Deallocate( struct syslog_local_data *, syslog_local );
+		syslog_local = NULL;
+	}
+#endif
 }
 
 
