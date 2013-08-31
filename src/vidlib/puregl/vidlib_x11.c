@@ -1510,7 +1510,7 @@ void LoadOptions( void )
 		l.origin = CreateNamedTransform( "render.camera" );
 		Translate( l.origin, average_width/2, average_height/2, average_height/2 );
 		RotateAbs( l.origin, M_PI, 0, 0 );
-		l.origin_surface_camera = CreateTransform( );
+		l.origin = CreateTransform( );
 
 
 		//Translate( l.origin, 200, 150, 150 );
@@ -1750,7 +1750,7 @@ void UpdateMouseRay( struct display_camera * camera )
 		// camera origin is already relative to l.origin 
 		//   as l.origin rotates, the effetive camera origin also rotates.
 
-		ApplyT( camera->T_camera, t, l.origin );
+		ApplyT( camera->origin_camera, t, l.origin );
 		//GetOriginV( camera->T_camera, tmp1 );
 		//InvertVector( tmp1 );
 		//ApplyRotation( l.origin, tmp1, GetOrigin( camera->T_camera ) );
@@ -1809,7 +1809,7 @@ void UpdateMouseRays( void )
 // h
 int CPROC InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, RCOORD x, RCOORD y, int *result_x, int *result_y )
 {
-	if( camera->T_camera )
+	if( camera->origin_camera )
 	{
 		VECTOR v1, v2;
 		int v = 0;
@@ -1822,7 +1822,7 @@ int CPROC InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, R
 			Apply( hVideo->transform, v1, v2 );
 		else
 			SetPoint( v1, v2 );
-		ApplyInverse( camera->T_camera, v2, v1 );
+		ApplyInverse( camera->origin_camera, v2, v1 );
 		ApplyInverse( l.origin, v1, v2 );
 
 		//lprintf( "%g,%g,%g  from %g,%g,%g ", v1[0], v1[1], v1[2], v2[0], v2[1] , v2[2] );
@@ -1867,7 +1867,7 @@ int CPROC InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, R
     struct display_camera *camera = (struct display_camera *)psvMouse;
     GLWindow *x11_gl_window = camera->hVidCore->x11_gl_window;
     lprintf( "Good, a mouse event..." );
-    if( camera->T_camera )
+    if( camera->origin_camera )
     {
         UpdateMouseRay( camera );
 
