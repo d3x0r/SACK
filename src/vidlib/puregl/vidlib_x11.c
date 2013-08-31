@@ -1491,7 +1491,7 @@ void LoadOptions( void )
             GetDisplaySizeEx( camera->display, &camera->x, &camera->y, &camera->w, &camera->h );
 			}
 
-			InvokeExtraInit( camera, camera->T_camera, camera->w/2 );			
+			InvokeExtraInit( camera, camera->origin_camera, camera->w/2 );
 
 			AddLink( &l.cameras, camera );
 		}
@@ -3418,7 +3418,7 @@ static LOGICAL CPROCDefaultExit( PTRSZVAL psv, _32 keycode )
    BAG_Exit(0);
 }
 
-static LOGICAL CPROCEnableRotation( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROC EnableRotation( PTRSZVAL psv, _32 keycode )
 {
 	lprintf( "Enable Rotation..." );
 	if( IsKeyPressed( keycode ) )
@@ -3445,7 +3445,7 @@ static LOGICAL CPROCEnableRotation( PTRSZVAL psv, _32 keycode )
 		lprintf( "unlock rotate" );
 }
 
-static LOGICAL CPROCCameraForward( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROC CameraForward( PTRSZVAL psv, _32 keycode )
 {
 	if( l.flags.bRotateLock )
 	{
@@ -3465,7 +3465,7 @@ static LOGICAL CPROCCameraForward( PTRSZVAL psv, _32 keycode )
 //   return 0;
 }
 
-static LOGICAL CPROCCameraLeft( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROC CameraLeft( PTRSZVAL psv, _32 keycode )
 {
 	if( l.flags.bRotateLock )
 	{
@@ -3488,7 +3488,7 @@ static LOGICAL CPROCCameraLeft( PTRSZVAL psv, _32 keycode )
 //   return 0;
 }
 
-static LOGICAL CPROCCameraRight( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROC CameraRight( PTRSZVAL psv, _32 keycode )
 {
 	if( l.flags.bRotateLock )
 	{
@@ -3502,7 +3502,7 @@ static LOGICAL CPROCCameraRight( PTRSZVAL psv, _32 keycode )
 //   return 0;
 }
 
-static LOGICAL CPROCCameraRollRight( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROC CameraRollRight( PTRSZVAL psv, _32 keycode )
 {
 	if( l.flags.bRotateLock )
 	{
@@ -3520,7 +3520,7 @@ static LOGICAL CPROCCameraRollRight( PTRSZVAL psv, _32 keycode )
 //   return 0;
 }
 
-static LOGICAL CPROCCameraRollLeft( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROC CameraRollLeft( PTRSZVAL psv, _32 keycode )
 {
 	if( l.flags.bRotateLock )
 	{
@@ -3538,7 +3538,7 @@ static LOGICAL CPROCCameraRollLeft( PTRSZVAL psv, _32 keycode )
 //   return 0;
 }
 
-static LOGICAL CPROCCameraDown( PTRSZVAL psv, _32 keycode )
+static LOGICAL CPROC CameraDown( PTRSZVAL psv, _32 keycode )
 {
 	if( l.flags.bRotateLock )
 	{
