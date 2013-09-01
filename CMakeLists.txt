@@ -1150,7 +1150,7 @@ if( CMAKE_COMPILER_IS_GNUCC )
 
        INSTALL(
          FILES
-           data/interface.conf.puregl
+           data/interface.conf.puregl.lnx
          DESTINATION
            # this could also be /etc
            bin

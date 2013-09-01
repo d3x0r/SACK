@@ -26,6 +26,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <stdarg.h>
+#include <sys/un.h> // struct sockaddr_un
 #endif
 
 #include <stdhdrs.h>
@@ -113,12 +114,17 @@ struct state_flags{
  FILE *file;
  SOCKET   hSock;
 #define hSock l.hSock
+ SOCKET   hSyslogdSock;
  int bCPUTickWorks; // assume this works, until it fails
 #define bCPUTickWorks l.bCPUTickWorks
  _64 tick_bias;
 #define tick_bias l.tick_bias
  _64 lasttick;
  _64 lasttick2;
+ 
+ LOGICAL bStarted;
+ LOGICAL bLogging;
+ LOGICAL bSyslogdLogging;
 
 };
 
@@ -155,6 +161,14 @@ PRIORITY_ATEXIT( CleanSyslog, ATEXIT_PRIORITY_SYSLOG )
 	case SYSLOG_FILENAME:
 		fclose( l.file );
 		break;
+#ifdef __LINUX__
+#  ifndef __DISABLE_SYSLOGD_SYSLOG__
+	case SYSLOG_SOCKET_SYSLOGD:
+		closesocket( l.hSyslogdSock );
+		l.hSyslogdSock = INVALID_SOCKET;
+		break;
+#  endif
+#endif
 #ifndef __DISABLE_UDP_SYSLOG__
 	case SYSLOG_UDP:
 	case SYSLOG_UDPBROADCAST:
@@ -163,8 +177,8 @@ PRIORITY_ATEXIT( CleanSyslog, ATEXIT_PRIORITY_SYSLOG )
 		break;
 #endif
 	default:
-      // else... no resources to cleanup
-      break;
+		// else... no resources to cleanup
+		break;
 	}
 
 #ifndef __STATIC_GLOBALS__
@@ -381,12 +395,13 @@ static void LoadOptions( void )
 
 #ifndef __ANDROID__
       // android has a system log that does just fine/ default startup sets that.
+#  ifndef __LINUX__ 
 		if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Enable File Log" )
-#ifdef _DEBUG
+#    ifdef _DEBUG
 										, 1
-#else
+#    else
 										, 0
-#endif
+#    endif
 										, TRUE ) )
 		{
 			logtype = SYSLOG_AUTO_FILE;
@@ -394,6 +409,7 @@ static void LoadOptions( void )
 			flags.bLogOpenBackup = 1;
 			flags.bLogProgram = 1;
 		}
+#  endif
 #endif
 		// set all default parts of the name.
 		// this overrides options with options available from SQL database.
@@ -424,12 +440,12 @@ static void LoadOptions( void )
 		{
 			if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Broadcast UDP" ), 0, TRUE ) )
 				logtype = SYSLOG_UDPBROADCAST;
-         else
+			else
 				logtype = SYSLOG_UDP;
 		}
 		nLogLevel = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Default Log Level (1001:all, 100:least)" ), nLogLevel, TRUE );
 
-      // use the defaults; they may be overriden by reading the options.
+		// use the defaults; they may be overriden by reading the options.
 		flags.bLogThreadID = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Thread ID" ), flags.bLogThreadID, TRUE );
 		flags.bLogProgram = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Program" ), flags.bLogProgram, TRUE );
 		flags.bLogSourceFile = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Source File" ), flags.bLogSourceFile, TRUE );
@@ -442,9 +458,17 @@ static void LoadOptions( void )
 		{
 			SystemLogTime( SYSLOG_TIME_HIGH|SYSLOG_TIME_DELTA );
 		}
+#  ifndef __LINUX__
+		else if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Time" ), 0, TRUE ) )
+#  else
 		else if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Time" ), 1, TRUE ) )
+#  endif
 		{
+#  ifndef __LINUX__
+			if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Date" ), 0, TRUE ) )
+#  else
 			if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Date" ), 1, TRUE ) )
+#  endif
 			{
 				SystemLogTime( SYSLOG_TIME_LOG_DAY|SYSLOG_TIME_HIGH );
 			}
@@ -479,6 +503,7 @@ void InitSyslog( int ignore_options )
 	{
 		logtype = SYSLOG_NONE;
 		hSock = INVALID_SOCKET;
+		l.hSyslogdSock = INVALID_SOCKET;
 		bCPUTickWorks = 1;
 		nLogLevel = LOG_NOISE-1; // default log EVERYTHING
 
@@ -496,10 +521,14 @@ void InitSyslog( int ignore_options )
 #else
 #  ifdef _DEBUG
 		{
+#    ifdef __LINUX__
+			logtype = SYSLOG_SOCKET_SYSLOGD;
+#    else
 			/* using SYSLOG_AUTO_FILE option does not require this to be open.
 			* it is opened on demand.
 			*/
 			logtype = SYSLOG_AUTO_FILE;
+#    endif
 			nLogLevel = LOG_NOISE + 1000; // default log EVERYTHING
 			flags.bLogOpenAppend = 0;
 			flags.bLogOpenBackup = 1;
@@ -657,18 +686,18 @@ static TEXTCHAR *GetTimeHigh( void )
 		GetLocalTime( &st );
 
 	if( flags.bUseDay )
-	   snprintf( timebuffer, sizeof(timebuffer), WIDE("%02d/%02d/%d %02d:%02d:%02d.%03d")
-   	        , st.wMonth, st.wDay, st.wYear
-      	     , st.wHour, st.wMinute, st.wSecond, st.wMilliseconds );
+		snprintf( timebuffer, sizeof(timebuffer), WIDE("%02d/%02d/%d %02d:%02d:%02d.%03d")
+		        , st.wMonth, st.wDay, st.wYear
+		        , st.wHour, st.wMinute, st.wSecond, st.wMilliseconds );
 	else
-	   snprintf( timebuffer, sizeof(timebuffer), WIDE("%02d:%02d:%02d.%03d")
-				  , st.wHour, st.wMinute, st.wSecond, st.wMilliseconds );
+		snprintf( timebuffer, sizeof(timebuffer), WIDE("%02d:%02d:%02d.%03d")
+		        , st.wHour, st.wMinute, st.wSecond, st.wMilliseconds );
 #else
 	static struct timeval _tv;
-   static struct tm _tm;
+	static struct tm _tm;
 	struct timeval tv, tv_save;
-   struct tm *timething, tm, tm_save;
-   int len;
+	struct tm *timething, tm, tm_save;
+	int len;
 	gettimeofday( &tv, NULL );
 	if( flags.bUseDeltaTime )
 	{
@@ -678,25 +707,25 @@ static TEXTCHAR *GetTimeHigh( void )
 		if( !_tm.tm_year )
 		{
 			_tm = *timething;
-         _tv = tv;
+			_tv = tv;
 		}
 		tv.tv_usec -= _tv.tv_usec;
 		if( tv.tv_usec < 0 )
 		{
 			tv.tv_usec += 1000000;
-         tm.tm_sec--;
+			tm.tm_sec--;
 		}
 		tm.tm_sec -= _tm.tm_sec;
 		if( tm.tm_sec < 0 )
 		{
 			tm.tm_sec += 60;
-         tm.tm_min--;
+			tm.tm_min--;
 		}
 		tm.tm_min -= _tm.tm_min;
 		if( tm.tm_min < 0 )
 		{
 			tm.tm_min += 60;
-         tm.tm_hour--;
+			tm.tm_hour--;
 		}
 		tm.tm_hour -= _tm.tm_hour;
 		if( tm.tm_hour < 0 )
@@ -825,17 +854,15 @@ static SOCKADDR saLogBroadcast  = { 2, 0x02, 0x02, (char)0xff, (char)0xff, (char
 static SOCKADDR saLog  = { 2, 0x02, 0x02, 0x7f, 0x00, 0x00, 0x01  };
 static SOCKADDR saBind = { 2, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  };
 #endif
-static LOGICAL      bStarted;
-static LOGICAL bLogging;
 
 static void UDPSystemLog( const TEXTCHAR *message )
 {
 #ifdef HAVE_IDLE
-	while( bLogging )
+	while( l.bLogging )
 		Idle();
 #endif
-	bLogging = 1;
-	if( !bStarted )
+	l.bLogging = 1;
+	if( !l.bStarted )
 	{
 #ifdef _WIN32
 #ifndef MAKEWORD
@@ -844,11 +871,11 @@ static void UDPSystemLog( const TEXTCHAR *message )
 		WSADATA ws;  // used to start up the socket services...
 		if( WSAStartup( MAKEWORD(1,1), &ws ) )
 		{
-			bLogging = 0;
+			l.bLogging = 0;
 			return;
 		}
 #endif
-		bStarted = TRUE;
+		l.bStarted = TRUE;
 	}
 	if( hSock == INVALID_SOCKET )
 	{
@@ -856,14 +883,14 @@ static void UDPSystemLog( const TEXTCHAR *message )
 		hSock = socket(PF_INET,SOCK_DGRAM,0);
 		if( hSock == INVALID_SOCKET )
 		{
-			bLogging = 0;
+			l.bLogging = 0;
 			return;
 		}
 		if( bind(hSock,&saBind,sizeof(SOCKADDR)) )
 		{
 			closesocket( hSock );
 			hSock = INVALID_SOCKET;
-			bLogging = 0;
+			l. bLogging = 0;
 			return;
 		}
 #ifndef BCC16
@@ -893,11 +920,64 @@ static void UDPSystemLog( const TEXTCHAR *message )
 #ifdef __cplusplus_cli
 		Release( tmp );
 #endif
-      if( logtype != SYSLOG_UDPBROADCAST )
+		if( logtype != SYSLOG_UDPBROADCAST )
 			Relinquish(); // allow logging agents time to pick this up...
 	}
-	bLogging = 0;
+	l.bLogging = 0;
 }
+#endif
+
+//----------------------------------------------------------------------------
+#ifdef __LINUX__
+#  ifndef __DISABLE_SYSLOGD_SYSLOG__
+
+#    if !defined( FBSD ) && !defined(__QNX__)
+static struct sockaddr_un saSyslogdAddr  = { AF_UNIX, "/dev/log" };
+#    else
+static struct sockaddr_un saSyslogdAddr  = { AF_UNIX, {"/dev/log"} };
+#    endif
+
+static void SyslogdSystemLog( const TEXTCHAR *message )
+{
+	while( l.bSyslogdLogging )
+#    ifdef HAVE_IDLE
+		Idle();
+#    else
+		Relinquish();
+#    endif
+	//fprintf( stderr, "present." );
+	l.bSyslogdLogging = 1;
+	if( l.hSyslogdSock == INVALID_SOCKET )
+	{
+		LOGICAL bEnable = TRUE;
+		l.hSyslogdSock = socket(AF_UNIX,SOCK_DGRAM,0);
+		if( l.hSyslogdSock == INVALID_SOCKET )
+		{
+			//fprintf( stderr, "failed..." );
+			l.bSyslogdLogging = 0;
+			return;
+		}
+		if(connect(l.hSyslogdSock,(struct sockaddr *)&saSyslogdAddr,sizeof(saSyslogdAddr)) )
+		{
+			//fprintf( stderr, "failed..." );
+			closesocket( l.hSyslogdSock );
+			l.hSyslogdSock = INVALID_SOCKET;
+			l.bSyslogdLogging = 0;
+			return;
+		}
+	}
+	if( l.hSyslogdSock != INVALID_SOCKET )
+	{
+		if( send( l.hSyslogdSock, message, strlen( message ), 0 ) == 0 )
+		{
+			//fprintf( stderr, "failed..." );
+			closesocket( l.hSyslogdSock );
+			l.hSyslogdSock = INVALID_SOCKET;
+		}
+	}
+	l.bSyslogdLogging = 0;
+}
+#  endif
 #endif
 
 #ifdef __LINUX__
@@ -998,6 +1078,12 @@ void DoSystemLog( const TEXTCHAR *buffer )
 			return;
 	}
 #endif
+
+#ifndef __DISABLE_SYSLOGD_SYSLOG__
+	if( logtype == SYSLOG_SOCKET_SYSLOGD )
+		SyslogdSystemLog( buffer );
+#endif
+
 #ifndef __DISABLE_UDP_SYSLOG__
 	if( logtype == SYSLOG_UDP
 		|| logtype == SYSLOG_UDPBROADCAST )

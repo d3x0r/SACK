@@ -2,7 +2,13 @@ if( NOT __ANDROID__ )
 
 set( PROJECT apache_shell )
 
+if( __LINUX__ )
+include_directories( /usr/include/apr-1 )
+include_directories( /usr/include/apache )
+include_directories( /usr/include/apr-util )
+else( __LINUX__ )
 include_directories( c:/wamp/bin/apache/apache2.4.4/include )
+endif( __LINUX__ )
 
 
 include_directories(  ${SACK_BASE}/include )
