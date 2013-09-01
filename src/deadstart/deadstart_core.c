@@ -710,14 +710,22 @@ LOGICAL IsRootDeadstartComplete( void )
 #ifdef __cplusplus
 extern "C"
 #endif
-__declspec(dllexport) BOOL WINAPI DllMain(  HINSTANCE hinstDLL,
+__declspec(dllexport) 
+	BOOL WINAPI DllMain(  HINSTANCE hinstDLL,
    DWORD fdwReason,
    LPVOID lpvReserved
+B
 													 )
 {
    if( fdwReason == DLL_PROCESS_DETACH )
 		InvokeExits();
    return TRUE;
+}
+#else
+void RootDestructor(void) __attribute__((destructor));
+void RootDestructor( void )
+{
+   InvokeExits();
 }
 #endif
 

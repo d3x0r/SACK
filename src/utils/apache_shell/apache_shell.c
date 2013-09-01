@@ -3,9 +3,9 @@
 
 #include <stdhdrs.h>
 
-#include <httpd.h>  // apache header files.
-#include <http_config.h>
-#include <http_protocol.h>
+#include <apache/httpd.h>  // apache header files.
+#include <apache/http_config.h>
+#include <apache/http_protocol.h>
 
 //HTTPD_CALL_CONVENTION
 
@@ -22,7 +22,7 @@ struct apache_interface_cdecl
 
 struct apache_interface_stdcall
 {
-
+#define WINAPI
 	void (WINAPI *ap_set_content_type)(request_rec *r, const char *ct);
 	int  (WINAPI *ap_rprintf)(request_rec *r, const char *fmt,...) __attribute__((format(printf,2,3)));
 	int  (WINAPI *ap_hook_handler)(ap_HOOK_handler_t, const char * const *aszPre, const char * const *aszSucc, int nOrder);
@@ -63,7 +63,8 @@ PRELOAD( InitApacheModule )
 	l.__a_c_interface.ap_rprintf                = LoadFunction( l.server_core, "ap_rprintf" );
 	l.__a_c_interface.ap_hook_handler           = LoadFunction( l.server_core, "ap_hook_handler" );
 	l.__a_c_interface.ap_hook_post_read_request = LoadFunction( l.server_core, "ap_hook_post_read_request" );
-
+#define __stdcall  __cdecl
+#define __cdecl
 	l.__a_stdcall_interface.ap_set_content_type        = (void (__stdcall *)(request_rec *,const char *))LoadFunction( l.server_core, "ap_set_content_type" );
 	l.__a_stdcall_interface.ap_rprintf                 = (int (__cdecl *)(request_rec *,const char *,...))LoadFunction( l.server_core, "ap_rprintf" );
 	l.__a_stdcall_interface.ap_hook_handler            = (int (__stdcall *)(ap_HOOK_handler_t (__cdecl *),const char *const *,const char *const *,int))LoadFunction( l.server_core, "ap_hook_handler" );

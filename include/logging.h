@@ -115,7 +115,8 @@ SYSLOG_CALLBACK    = 5
    lets logging go anywhere else that's not already thought of. */
 SYSLOG_AUTO_FILE = SYSLOG_FILE + 100 /* Send logging to a file. If the file is not open, open the
    \file. If no logging happens, no log file is created.     */
-
+, /* Send logging to /dev/log (unix socket), default LINUX option */
+SYSLOG_SOCKET_SYSLOGD
 };
 
 #if !defined( NO_LOGGING )
