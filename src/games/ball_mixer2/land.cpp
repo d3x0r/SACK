@@ -2612,7 +2612,7 @@ CRITICALSECTION csUpdate;
 {
 	_32 now = timeGetTime();
 
-	//ApplyBlowerForces();
+	/ApplyBlowerForces();
 
 	// the bar kept stopping; make sure it's active.
 	if( l.barRigidBody )
