@@ -714,8 +714,7 @@ __declspec(dllexport)
 	BOOL WINAPI DllMain(  HINSTANCE hinstDLL,
    DWORD fdwReason,
    LPVOID lpvReserved
-B
-													 )
+  		 )
 {
    if( fdwReason == DLL_PROCESS_DETACH )
 		InvokeExits();

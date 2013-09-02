@@ -3,9 +3,15 @@
 
 #include <stdhdrs.h>
 
+#ifdef __LINUX__
 #include <apache/httpd.h>  // apache header files.
 #include <apache/http_config.h>
 #include <apache/http_protocol.h>
+#else
+#include <httpd.h>  // apache header files.
+#include <http_config.h>
+#include <http_protocol.h>
+#endif
 
 //HTTPD_CALL_CONVENTION
 
@@ -22,7 +28,9 @@ struct apache_interface_cdecl
 
 struct apache_interface_stdcall
 {
+#ifndef WINAPI
 #define WINAPI
+#endif
 	void (WINAPI *ap_set_content_type)(request_rec *r, const char *ct);
 	int  (WINAPI *ap_rprintf)(request_rec *r, const char *fmt,...) __attribute__((format(printf,2,3)));
 	int  (WINAPI *ap_hook_handler)(ap_HOOK_handler_t, const char * const *aszPre, const char * const *aszSucc, int nOrder);
@@ -63,8 +71,10 @@ PRELOAD( InitApacheModule )
 	l.__a_c_interface.ap_rprintf                = LoadFunction( l.server_core, "ap_rprintf" );
 	l.__a_c_interface.ap_hook_handler           = LoadFunction( l.server_core, "ap_hook_handler" );
 	l.__a_c_interface.ap_hook_post_read_request = LoadFunction( l.server_core, "ap_hook_post_read_request" );
+#ifdef __LINUX__
 #define __stdcall  __cdecl
 #define __cdecl
+#endif
 	l.__a_stdcall_interface.ap_set_content_type        = (void (__stdcall *)(request_rec *,const char *))LoadFunction( l.server_core, "ap_set_content_type" );
 	l.__a_stdcall_interface.ap_rprintf                 = (int (__cdecl *)(request_rec *,const char *,...))LoadFunction( l.server_core, "ap_rprintf" );
 	l.__a_stdcall_interface.ap_hook_handler            = (int (__stdcall *)(ap_HOOK_handler_t (__cdecl *),const char *const *,const char *const *,int))LoadFunction( l.server_core, "ap_hook_handler" );
@@ -112,13 +122,59 @@ static int example_handler(request_rec *r)
     return OK;
 }
 
-static void*  register_dir_handler( apr_pool_t *pool, char *x )
+/** Function to allow all modules to create per directory configuration
+ *  structures.
+ *  @param p The pool to use for all allocations.
+ *  @param dir The directory currently being processed.
+ *  @return The per-directory structure created
+ */
+static void*  create_dir_config( apr_pool_t *pool, char *x )
 {
 	struct dir_data *dir = New( struct dir_data );
 	lprintf( "Adding to %s", x?x:"<global>" );
 	dir->name = x;
 	return dir;
 }
+
+
+/** Function to allow all modules to merge the per directory configuration
+ *  structures for two directories.
+ *  @param p The pool to use for all allocations.
+ *  @param base_conf The directory structure created for the parent directory.
+ *  @param new_conf The directory structure currently being processed.
+ *  @return The new per-directory structure created
+ */
+void * merge_dir_config(apr_pool_t *p, void *base_conf, void *new_conf)
+{
+   lprintf( "merge_dir_  here" );
+   return NULL;
+}
+
+/** Function to allow all modules to create per server configuration
+ *  structures.
+ *  @param p The pool to use for all allocations.
+ *  @param s The server currently being processed.
+ *  @return The per-server structure created
+ */
+void *create_server_config(apr_pool_t *p, server_rec *s)
+{
+   lprintf( "create_server_config " );
+   return NULL;
+}
+/** Function to allow all modules to merge the per server configuration
+ *  structures for two servers.
+ *  @param p The pool to use for all allocations.
+ *  @param base_conf The directory structure created for the parent directory.
+ *  @param new_conf The directory structure currently being processed.
+ *  @return The new per-directory structure created
+ */
+void *merge_server_config(apr_pool_t *p, void *base_conf,
+								  void *new_conf)
+{
+   lprintf( "merge server config" );
+   return NULL;
+}
+
 
 
 //static const command_rec mosquitto_cmds[] 
@@ -154,10 +210,10 @@ static void register_hooks(apr_pool_t *pool)
 module AP_MODULE_DECLARE_DATA org_d3x0r_sack_apache_module =
 {
     STANDARD20_MODULE_STUFF,
-    register_dir_handler, //create_dir_conf, /* Per-directory configuration handler */
-    NULL, //merge_dir_conf,  /* Merge handler for per-directory configurations */
-    NULL, //create_svr_conf, /* Per-server configuration handler */
-    NULL, //merge_svr_conf,  /* Merge handler for per-server configurations */
+    create_dir_config, //create_dir_conf, /* Per-directory configuration handler */
+    merge_dir_config,  /* Merge handler for per-directory configurations */
+    create_server_config, /* Per-server configuration handler */
+    merge_server_config,  /* Merge handler for per-server configurations */
     NULL, //directives,      /* Any directives we may have for httpd */
     register_hooks   /* Our hook registering function */
 };

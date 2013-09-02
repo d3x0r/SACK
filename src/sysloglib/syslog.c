@@ -1079,9 +1079,11 @@ void DoSystemLog( const TEXTCHAR *buffer )
 	}
 #endif
 
-#ifndef __DISABLE_SYSLOGD_SYSLOG__
+#ifdef __LINUX__
+#  ifndef __DISABLE_SYSLOGD_SYSLOG__
 	if( logtype == SYSLOG_SOCKET_SYSLOGD )
 		SyslogdSystemLog( buffer );
+#  endif
 #endif
 
 #ifndef __DISABLE_UDP_SYSLOG__
