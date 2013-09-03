@@ -760,7 +760,7 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
    if( !(*pplq) )
       *pplq = CreateLinkQueueEx( DBG_VOIDRELAY );
 
-	while( LockedExchange( link_queue_local_lock, 1 ) )
+	while( LockedExchange( link_queue_local_lock, __LINE__ ) )
 		Relinquish();
 
    plq = *pplq;
@@ -794,7 +794,7 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
    if( !(*pplq) )
       *pplq = CreateLinkQueueEx( DBG_VOIDRELAY );
 
-   while( LockedExchange( link_queue_local_lock, 1 ) )
+   while( LockedExchange( link_queue_local_lock, __LINE__ ) )
       Relinquish();
 
    plq = *pplq;
@@ -888,7 +888,7 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
    POINTER p;
    INDEX tmp;
    if( pplq && *pplq )
-      while( LockedExchange( link_queue_local_lock, 1 ) )
+      while( LockedExchange( link_queue_local_lock, __LINE__ ) )
          Relinquish();
    else
       return NULL;
@@ -1195,7 +1195,8 @@ void  EmptyDataQueue ( PDATAQUEUE *ppdq )
 };//		namespace data_queue {
 #endif
 
-PRIORITY_UNLOAD( InitLocals, NAMESPACE_PRELOAD_PRIORITY + 1 )
+// syslog uses link queues for buffers, so delete memory after syslog.
+PRIORITY_UNLOAD( InitLocals, SYSLOG_PRELOAD_PRIORITY-1 )
 {
 	Deallocate( POINTER, _list_local );
 	Deallocate( POINTER, _data_list_local );

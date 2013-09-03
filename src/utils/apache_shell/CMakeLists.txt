@@ -8,6 +8,7 @@ include_directories( /usr/include/apache )
 include_directories( /usr/include/apr-util )
 else( __LINUX__ )
 include_directories( c:/wamp/bin/apache/apache2.4.4/include )
+LINK_DIRECTORIES( C:/wamp/bin/apache/Apache2.4.4/lib )
 endif( __LINUX__ )
 
 
@@ -24,6 +25,11 @@ add_library( ${PROJECT} SHARED
            )
 
 my_target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
+if( __LINUX__ )
+
+else( __LINUX__ )
+my_target_link_libraries( ${PROJECT} libhttpd )
+endif( __LINUX__ )
 set( TARGET_LABEL ${PROJECT} )
 SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"

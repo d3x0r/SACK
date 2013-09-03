@@ -29,7 +29,7 @@ struct apache_interface_cdecl
 struct apache_interface_stdcall
 {
 	void (WINAPI *ap_set_content_type)(request_rec *r, const char *ct);
-	int  (WINAPI *ap_rprintf)(request_rec *r, const char *fmt,...) __attribute__((format(printf,2,3)));
+	int  (CPROC *ap_rprintf)(request_rec *r, const char *fmt,...) __attribute__((format(printf,2,3)));
 	int  (WINAPI *ap_hook_handler)(ap_HOOK_handler_t, const char * const *aszPre, const char * const *aszSucc, int nOrder);
 	int  (WINAPI *ap_hook_post_read_request)(ap_HOOK_handler_t, const char * const *aszPre, const char * const *aszSucc, int nOrder);
 	void *ap_set_string_slot;
@@ -51,10 +51,10 @@ static struct {
 } l;
 
 
+#ifdef DYNAMIC_LINK
 #define ALIAS(n,...)  ( (l.a_c_interface)?(l.a_c_interface)->n(__VA_ARGS__):((l.a_stdcall_interface)?(l.a_stdcall_interface)->n(__VA_ARGS__):0))
 #define ALIAS_F(n)  ( (l.a_c_interface)?(l.a_c_interface)->n:((l.a_stdcall_interface)?(l.a_stdcall_interface)->n:0))
 
-#ifndef __LINUX__
 #define ap_set_content_type(...)        ALIAS(ap_set_content_type,__VA_ARGS__)
 #define ap_rprintf(...)                 ALIAS(ap_rprintf,__VA_ARGS__)
 #define ap_hook_handler(...)            ALIAS(ap_hook_handler,__VA_ARGS__)
@@ -65,7 +65,7 @@ static struct {
 
 #endif
 
-#ifndef __LINUX__
+#ifdef DYNAMIC_LINK
 PRELOAD( InitApacheModule )
 {
 	l.__a_c_interface.ap_set_content_type       = LoadFunction( l.server_core, "ap_set_content_type" );
@@ -206,7 +206,8 @@ static void register_hooks(apr_pool_t *pool)
 	ap_hook_handler(example_handler, NULL, NULL, APR_HOOK_FIRST);
    ap_hook_post_read_request( first_post, NULL, NULL, APR_HOOK_FIRST );
 									  // ap_hook_fixups() ; // last chance hook before content generation
-                             // ap_hook_log_transaction
+	// ap_hook_log_transaction
+   lprintf( "done register..." );
 }
 
 module AP_MODULE_DECLARE_DATA org_d3x0r_sack_apache_module =
