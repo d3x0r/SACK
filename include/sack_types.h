@@ -518,34 +518,38 @@ typedef int pid_t;
 #endif
 
 #if defined( __GNUC__ )
-#ifndef STDPROC
-#define STDPROC
-#endif
-#ifndef STDCALL
-#define STDCALL // for IsBadCodePtr which isn't a linux function...
-#endif
-#ifndef WINAPI
-#define WINAPI __stdcall
-#endif
-#ifndef PASCAL
+#  ifndef STDPROC
+#    define STDPROC
+#  endif
+#  ifndef STDCALL
+#    define STDCALL // for IsBadCodePtr which isn't a linux function...
+#  endif
+#  ifndef WINAPI
+#    ifdef __LINUX__
+#       define WINAPI
+#    else
+#       define WINAPI __stdcall
+#    endif
+#  endif
+#  ifndef PASCAL
 //#define PASCAL
-#endif
-#define WINPROC(type,name)   type WINAPI name
-#define CALLBACKPROC( type, name ) type name
-#define PUBLIC(type,name) EXPORT_METHOD type CPROC name
-#define LIBMAIN()   static int __LibMain( HINSTANCE ); PRELOAD( LibraryInitializer ) { \
+#  endif
+#  define WINPROC(type,name)   type WINAPI name
+#  define CALLBACKPROC( type, name ) type name
+#  define PUBLIC(type,name) EXPORT_METHOD type CPROC name
+#  define LIBMAIN()   static int __LibMain( HINSTANCE ); PRELOAD( LibraryInitializer ) { \
 	__LibMain( GetModuleHandle(TARGETNAME) );   } \
 	static int __LibMain( HINSTANCE hInstance ) { /*Log( WIDE("Library Enter" ) );*/
-#define LIBEXIT() } static int LibExit( void ); ATEXIT( LiraryUninitializer ) { LibExit(); } int LibExit(void) { /*Log( WIDE("Library Exit" ) );*/
-#define LIBMAIN_END()  }
+#  define LIBEXIT() } static int LibExit( void ); ATEXIT( LiraryUninitializer ) { LibExit(); } int LibExit(void) { /*Log( WIDE("Library Exit" ) );*/
+#  define LIBMAIN_END()  }
 /* Portability Macro for porting legacy code forward. */
-#define FAR
-#define NEAR
+#  define FAR
+#  define NEAR
 //#define HUGE
-#define far
-#define near
-#define huge
-#define PACKED __attribute__((packed))
+#  define far
+#  define near
+#  define huge
+#  define PACKED __attribute__((packed))
 #endif
 
 #if defined( BCC32 )
