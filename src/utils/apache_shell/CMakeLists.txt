@@ -26,9 +26,9 @@ add_library( ${PROJECT} SHARED
 
 my_target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
 if( __LINUX__ )
-
+   my_target_link_libraries( ${PROJECT} httpd apr-1)
 else( __LINUX__ )
-my_target_link_libraries( ${PROJECT} libhttpd )
+   my_target_link_libraries( ${PROJECT} libhttpd libapr-1)
 endif( __LINUX__ )
 set( TARGET_LABEL ${PROJECT} )
 SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES

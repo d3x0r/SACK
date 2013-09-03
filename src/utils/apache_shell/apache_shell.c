@@ -1,3 +1,8 @@
+/* other useful sources https://github.com/disconnect/apache-websocket/blob/master/mod_websocket.c
+ https://github.com/disconnect/apache-websocket
+
+ */
+
 // don't define exit() apache has a definition for it.
 #define NO_SACK_EXIT_OVERRIDE
 
@@ -109,19 +114,64 @@ static int example_handler(request_rec *r)
      * If it is, we accept it and do our things, if not, we simply return DECLINED,
      * and the server will try somewhere else.
 	  */
-   lprintf( "r_handler is %s", r->handler );
-    if (!r->handler || strcmp(r->handler, "org.d3x0r.sack.apache.module")) return (DECLINED);
-    
-    /* Now that we are handling this request, we'll write out "Hello, world!" to the client.
-     * To do so, we must first set the appropriate content type, followed by our output.
-     */
-    ap_set_content_type(r, "text/html");
-    ap_rprintf(r, "Hello, world!");
-    
+
+   /*
+	lprintf( "r_handler is %s", r->handler );
+	lprintf( "the_request = %s", r->the_request );
+	lprintf( "protocol is %s", r->protocol );
+	lprintf( "host is %s", r->hostname );
+	lprintf( "method is %s", r->method );
+	lprintf( "content is %s", r->content_type );
+	lprintf( "path_info is %s", r->path_info );
+	lprintf( "uri is %s", r->unparsed_uri );
+	lprintf( "uri is %s", r->uri );
+	lprintf( "filename is %s", r->filename );
+	lprintf( "canonical is %s", r->canonical_filename );
+	lprintf( "args is %s", r->args );
+	*/
+
+	if (!r->handler || strcmp(r->handler, "org_d3x0r_sack_apache_module")) return (DECLINED);
+	{
+		char *upgrade = apr_table_get(r->headers_in, "Upgrade");
+		if( upgrade )
+		{
+			lprintf( "Upgrade found: %s", upgrade );
+			/*
+			 * Since we are handling a WebSocket connection, not a standard HTTP
+			 * connection, remove the HTTP input filter.
+			 */
+			{
+				ap_filter_t *input_filter;
+				for (input_filter = r->input_filters;
+					  input_filter != NULL;
+					  input_filter = input_filter->next)
+				{
+					if ((input_filter->frec != NULL) &&
+						 (input_filter->frec->name != NULL) &&
+						 !strcasecmp(input_filter->frec->name, "http_in")) {
+						ap_remove_input_filter(input_filter);
+						break;
+					}
+				}
+			}
+
+			apr_table_clear(r->headers_out);
+			apr_table_setn(r->headers_out, "Upgrade", "websocket");
+			apr_table_setn(r->headers_out, "Connection", "Upgrade");
+
+		}
+	}
+
+	/* Now that we are handling this request, we'll write out "Hello, world!" to the client.
+	 * To do so, we must first set the appropriate content type, followed by our output.
+	 */
+	ap_set_content_type(r, "text/html");
+	ap_rprintf(r, "Hello, world!");
+
     /* Lastly, we must tell the server that we took care of this request and everything went fine.
-     * We do so by simply returning the value OK to the server.
-     */
-    return OK;
+	  * We do so by simply returning the value OK to the server.
+	  */
+	return OK;
 }
 
 /** Function to allow all modules to create per directory configuration
