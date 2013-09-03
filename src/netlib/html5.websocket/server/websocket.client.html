@@ -41,15 +41,17 @@ function WebSocketTest()
      ws = new WebSocket("ws://localhost:9998/echo");
   }
   if( "MozWebSocket" in window )
+  {
      alert( "mozwebsocket..." );
      
-try
-{
-  var moztest = MozWebSocket( "ws://192.168.173.107:9998/echo" );
-}
-catch( err )
-{
-alert(err );
+	try
+	{
+	  var moztest = MozWebSocket( "ws://localhost:9998/echo" );
+	}
+	catch( err )
+	{
+	alert(err );
+	}
 }
 if( "MozWebSocket" in window )
   alert( "mozwebsocket..." );

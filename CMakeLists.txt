@@ -1261,7 +1261,9 @@ add_subdirectory( src/utils/deploy )
   
  endif( USE_OPTIONS )
 
+if( __LINUX__ OR ( MSVC10 AND __64__ ) )
 add_subdirectory( src/utils/apache_shell )
+endif( __LINUX__ OR ( MSVC10 AND __64__ ) )
 
 if( __INCLUDE_INTERSHELL__ )
 add_subdirectory( src/InterShell )
