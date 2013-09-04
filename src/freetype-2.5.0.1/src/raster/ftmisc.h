@@ -74,8 +74,8 @@
     void*            user;
 
     FT_Alloc_Func    alloc;
-    FT_Free_Func     free;
-    FT_Realloc_Func  realloc;
+    FT_Free_Func     ft_free;
+    FT_Realloc_Func  ft_realloc;
 
   } FT_MemoryRec;
 
