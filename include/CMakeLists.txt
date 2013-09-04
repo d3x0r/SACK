@@ -177,7 +177,7 @@ endif( NEED_JPEG )
 if( NEED_FREETYPE )
 INSTALL(
   DIRECTORY
-  	../src/freetype-2.4.10/include/
+  	../src/freetype-2.5.0.1/include/
   DESTINATION
   	include/${CMAKE_PROJECT_NAME}
 )
