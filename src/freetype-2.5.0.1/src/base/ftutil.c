@@ -152,7 +152,7 @@
       FT_Long     new_size = new_count*item_size;
 
 
-      block2 = memory->realloc( memory, cur_size, new_size, block );
+      block2 = memory->ft_realloc( memory, cur_size, new_size, block );
       if ( block2 == NULL )
         error = FT_THROW( Out_Of_Memory );
       else
@@ -169,7 +169,7 @@
                const void *P )
   {
     if ( P )
-      memory->free( memory, (void*)P );
+      memory->ft_free( memory, (void*)P );
   }
 
 

@@ -294,8 +294,8 @@
     {
       memory->user    = 0;
       memory->alloc   = ft_alloc;
-      memory->realloc = ft_realloc;
-      memory->free    = ft_free;
+      memory->ft_realloc = ft_realloc;
+      memory->ft_free    = ft_free;
 #ifdef FT_DEBUG_MEMORY
       ft_mem_debug_init( memory );
 #endif

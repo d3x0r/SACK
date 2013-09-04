@@ -62,7 +62,7 @@ endif( NEED_PNG )
 
 
 if( NEED_FREETYPE )
-SET( FBASEDIR src/freetype-2.4.10/src )
+SET( FBASEDIR src/freetype-2.5.0.1/src )
 
 Set( ExternalExtraDefinitions ${ExternalExtraDefinitions} FREETYPE_SOURCE FT2_BUILD_LIBRARY )
 
@@ -111,7 +111,7 @@ set_source_files_properties(${FREETYPE_SOURCE} PROPERTIES LANGUAGE CXX )
 endif( FORCE_CXX )
 endif()
 
-source_group("Source Files\\Freetype-2.4.10 Library" FILES ${FREETYPE_SOURCE})
+source_group("Source Files\\Freetype-2.5.0.1 Library" FILES ${FREETYPE_SOURCE})
 
 endif( NOT __NO_GUI__ )
 

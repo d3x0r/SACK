@@ -4462,7 +4462,7 @@
   {
     FT_Module*           cur;
     FT_Module*           limit;
-    FT_Module_Interface  interface;
+    FT_Module_Interface  ft_interface;
 
     FT_Service_Properties  service;
 
@@ -4505,16 +4505,16 @@
     }
 
     /* search property service */
-    interface = cur[0]->clazz->get_interface( cur[0],
+    ft_interface = cur[0]->clazz->get_interface( cur[0],
                                               FT_SERVICE_ID_PROPERTIES );
-    if ( !interface )
+    if ( !ft_interface )
     {
       FT_ERROR(( "%s: module `%s' doesn't support properties\n",
                  func_name, module_name ));
       return FT_THROW( Unimplemented_Feature );
     }
 
-    service = (FT_Service_Properties)interface;
+    service = (FT_Service_Properties)ft_interface;
 
     if ( set )
       missing_func = (FT_Bool)( !service->set_property );

@@ -514,6 +514,13 @@ FT_BEGIN_HEADER
 
 #endif /* !FT_BASE_DEF */
 
+#ifdef FREETYPE_SOURCE
+#  define FT_EXPORT(x) EXPORT_METHOD x
+#  define FT_EXPORT_DEF(x) EXPORT_METHOD x
+#else
+#  define FT_EXPORT(x) IMPORT_METHOD x
+#  define FT_EXPORT_DEF(x) IMPORT_METHOD x
+#endif
 
 #ifndef FT_EXPORT
 

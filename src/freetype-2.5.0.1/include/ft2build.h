@@ -31,6 +31,11 @@
 #ifndef __FT2_BUILD_GENERIC_H__
 #define __FT2_BUILD_GENERIC_H__
 
+#ifdef FT2_BUILD_LIBRARY
+#define NO_OPEN_MACRO
+#endif
+#define NO_UNICODE_C
+#include <stdhdrs.h>
 #include <freetype/config/ftheader.h>
 
 #endif /* __FT2_BUILD_GENERIC_H__ */
