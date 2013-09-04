@@ -146,7 +146,10 @@ IMAGE_INTERFACE RealImageInterface = {
 												 , RerenderFont
 												 , (int(CPROC*)(Image,int))Nothing // ReloadTexture
 												 , (int(CPROC*)(Image,int,CDATA))Nothing // ReloadShadedTexture
-                                     , (int(CPROC*)(Image,int,CDATA,CDATA,CDATA))Nothing // ReloadMultiShadedTexture
+												 , (int(CPROC*)(Image,int,CDATA,CDATA,CDATA))Nothing // ReloadMultiShadedTexture
+												 , NULL // set image transofrm
+												 , NULL // render 3d image
+                                     , DumpFontFile
 };
 
 #undef GetImageInterface

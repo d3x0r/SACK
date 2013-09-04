@@ -151,6 +151,7 @@ IMAGE_INTERFACE RealImageInterface = {
 												 , ReloadOpenGlMultiShadedTexture
 												 , SetImageTransformRelation
                                      , Render3dImage
+                                     , DumpFontFile
 
 };
 
