@@ -1848,6 +1848,8 @@ IMAGE_PROC_PTR( int, ReloadMultiShadedTexture )( Image child_image, int option, 
 
 IMAGE_PROC_PTR( void, SetImageTransformRelation )( Image pImage, enum image_translation_relation relation, PRCOORD aux );
 IMAGE_PROC_PTR( void, Render3dImage )( Image pImage, LOGICAL render_pixel_scaled );
+IMAGE_PROC_PTR( void, DumpFontFile )( CTEXTSTR name, SFTFont font_to_dump );
+
 } IMAGE_INTERFACE, *PIMAGE_INTERFACE;
 
 
@@ -1971,6 +1973,7 @@ IMAGE_PROC_PTR( void, Render3dImage )( Image pImage, LOGICAL render_pixel_scaled
 #define GetImageTransformation              PROC_ALIAS(GetImageTransformation)
 #define SetImageTransformRelation      PROC_ALIAS( SetImageTransformRelation )
 #define Render3dImage                  PROC_ALIAS( Render3dImage )
+#define DumpFontFile                   PROC_ALIAS( DumpFontFile )
 //#define global_font_data         (*PROC_ALIAS(global_font_data))
 #endif
 
