@@ -1066,7 +1066,13 @@ void BRAINBOARD::LoadPeices( TEXTCHAR *file )
 	AddConfigurationMethod( pch, WIDE("block %m (%i by %i) %p"), ::DefineABlock );
 	AddConfigurationMethod( pch, WIDE("color %m %i %c %c %c"), ::DefinePeiceColors );
 	AddConfigurationMethod( pch, WIDE("pathway %p"), ::DefineABlockNoOpt );
-	ProcessConfigurationFile( pch, file, (PTRSZVAL)this );
+	
+	if( !ProcessConfigurationFile( pch, file, (PTRSZVAL)this ) )
+	{
+		TEXTCHAR otherfile[256];
+		snprintf( otherfile, 256, "%%resources%%/%s", file );
+		ProcessConfigurationFile( pch, otherfile, (PTRSZVAL)this );
+	}
 	DestroyConfigurationHandler( pch );
 }
 
@@ -1204,8 +1210,9 @@ BRAINBOARD::BRAINBOARD()
 
 BRAINBOARD::~BRAINBOARD()
 {
+	// sub menus get destroyed if they are attached...
 	DestroyPopup( hMenu );
-	DestroyPopup( hMenuComponents );
+	//DestroyPopup( hMenuComponents );
 	board->Close();
 	brain->ReleaseNeuron( DefaultNeuron );
 	brain->ReleaseSynapse( DefaultSynapse );
@@ -1219,6 +1226,8 @@ BRAINBOARD::~BRAINBOARD()
 		}
 		DeleteList( &connectors );
 	}
+
+	if( 0 )
 	{
 		INDEX idx;
 		PMENU menu;
@@ -1226,8 +1235,8 @@ BRAINBOARD::~BRAINBOARD()
 		{
 			DestroyPopup( menu );
 		}
-		DeleteList( &menus );
 	}
+	DeleteList( &menus );
 	if( InputPeice )
 		InputPeice->Destroy();
 	if( OutputPeice )

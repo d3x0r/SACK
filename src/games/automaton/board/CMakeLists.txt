@@ -84,7 +84,7 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
 install( FILES brain.peices.txt DESTINATION Resources )
 
 install( DIRECTORY frames DESTINATION Resources )
-install( DIRECTORY images DESTINATION Resources/images/brainboard/ )
+install( DIRECTORY images/ DESTINATION Resources/images/brainboard )
 
 if( WIN32 )
 	# On Windows platforms, the dynamic libs should

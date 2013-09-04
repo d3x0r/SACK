@@ -68,7 +68,13 @@ static PTRSZVAL CPROC DoBrainTick(PTRSZVAL psv, INDEX idx, POINTER *item )
 
 void CPROC BrainTick( PTRSZVAL unused )
 {
-	ForAllLinks( &brains, DoBrainTick, 0 );
+	INDEX idx;
+	PBRAIN brain;
+	LIST_FORALL( brains, idx, PBRAIN, brain )
+	{
+		DoBrainTick( 0, idx, (POINTER*)&brain );
+	}
+	//ForAllLinks( &brains, DoBrainTick, 0 );
 
 }
 
