@@ -293,9 +293,10 @@ static void CPROC FrameFocusProc( PTRSZVAL psvFrame, PRENDERER loss )
 	}
 	if( !pc->flags.bHidden )
 	{
-		//void DrawFrameCaption( PSI_CONTROL pc );
-
-		DrawFrameCaption( pc );
+		if( !g.flags.always_draw )
+			DrawFrameCaption( pc );
+		else
+			SmudgeCommon( pc );
 		// update just the caption portion?
 		if( pc->surface_rect.y && !pc->flags.bRestoring )
 		{
