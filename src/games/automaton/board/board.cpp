@@ -191,7 +191,7 @@ private:
 	{
 		default_peice = peice;
 		default_peice_instance = default_peice->methods->Create(peice->psvCreate);
-		BoardRefresh();
+		SmudgeCommon( pControl );
 	}
 
 	void SetCellSize( _32 cx, _32 cy )
@@ -371,7 +371,7 @@ private:
 void LayPathTo( int wX, int wY )
 {
 	route_current_layer->LayPath( wX, wY );
-	BoardRefresh();
+	SmudgeCommon( pControl );
 }
 
 public:
@@ -439,7 +439,7 @@ void DoMouse( int X, int Y, int b )
 					board_origin_y += wY - yStart;
 					wX = xStart;
 					wY = yStart;
-					BoardRefresh( );
+					SmudgeCommon( pControl );
 				}
 			}
 			else
@@ -457,7 +457,7 @@ void DoMouse( int X, int Y, int b )
 			move_current_layer->move( wX - xStart, wY - yStart );
 			xStart = wX;
 			yStart = wY;
-			BoardRefresh();
+			SmudgeCommon( pControl );
 			move_current_layer
 				->pLayerData
 				->peice
@@ -633,16 +633,16 @@ int CPROC PSIBoardRefreshExtern( PCOMMON pc )
 	ValidatedControlData( BOARD*, pb, , pc );
 	if( pb )
 	{
-      pb->BoardRefresh();
+		pb->BoardRefresh();
 	}
-   return 1;
+	return 1;
 }
 #endif
 
 void CPROC BoardRefreshExtern( PTRSZVAL dwUser, PRENDERER renderer )
 {
-   BOARD *pb = (BOARD*)dwUser;
-   pb->BoardRefresh();
+	BOARD *pb = (BOARD*)dwUser;
+	pb->BoardRefresh();
 }
 
 
@@ -753,26 +753,7 @@ BOARD::BOARD()
 extern CONTROL_REGISTRATION board_control; // forward declaration so we have the control ID
 //BOARD *creating_board;
 
-/*
-int CPROC InitBrainEditorControl( PSI_CONTROL pc )
-{
-	ValidatedControlData( BOARD **, board_control.TypeID, ppBoard, pc );
-	if( ppBoard )
-	{
-		if( creating_board )
-		{
-			(*ppBoard) = creating_board;
-			creating_board = NULL;
-		}
-		else
-		{
-         (*ppBoard) = new BOARD();
-		}
-	}
-	// hrm how do I set this data ?
-   return TRUE;
-}
-*/
+
 int CPROC DrawBrainEditorControl( PSI_CONTROL pc )
 {
 	ValidatedControlData( BOARD **, board_control.TypeID, ppBoard, pc );
@@ -794,17 +775,6 @@ int CPROC MouseBrainEditorControl( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
 	return 0;
 }
 
-void CPROC BoardPositionChanging( PSI_CONTROL pc, LOGICAL bStart )
-{
-	ValidatedControlData( class BOARD * *, board_control.TypeID, ppBoard, pc );
-	if( ppBoard )
-	{
-		if( bStart )
-			EnterCriticalSec( &(*ppBoard)->cs );
-		else
-			LeaveCriticalSec( &(*ppBoard)->cs );
-	}
-}
 CONTROL_REGISTRATION board_control = { WIDE("Brain Edit Control"), { { 256, 256 }, sizeof( class BOARD * ), BORDER_RESIZABLE }
 												 , NULL /* InitBrainEditorControl /* int CPROC init(PSI_CONTROL) */
 												 , NULL /* load*/
@@ -818,8 +788,6 @@ CONTROL_REGISTRATION board_control = { WIDE("Brain Edit Control"), { { 256, 256 
 												 , NULL // Added a control
 												 , NULL // changed caption
 												 , NULL // focuschanged
-                                     , BoardPositionChanging
-                                     , 0 // typeID
 };
 PRELOAD( RegisterBoardControl )
 {
@@ -993,7 +961,8 @@ void BOARD::PutPeice( PIPEICE peice, S_32 x, S_32 y, PTRSZVAL psv )
 	//pl->pLayerData = new(&LayerDataPool) LAYER_DATA(peice);
 	// should be portioned...
 	LeaveCriticalSec( &cs );
-	BoardRefresh();
+	SmudgeCommon( pControl );
+	//BoardRefresh();
 	//UpdateDisplay( pDisplay );
 }
 
