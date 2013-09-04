@@ -186,7 +186,7 @@ set( IMAGE_SOURCES
   ${SOURCES_ROOT}src/imglib/interface.c
   ${SOURCES_ROOT}src/imglib/jpgimage.c
   ${SOURCES_ROOT}src/imglib/line.c
-  ${SOURCES_ROOT}src/imglib/lucidaconsole.c
+  ${SOURCES_ROOT}src/imglib/lucidaconsole2.c
   ${SOURCES_ROOT}src/imglib/math.c
   ${SOURCES_ROOT}src/imglib/pngimage.c
   ${SOURCES_ROOT}src/imglib/sprite_common.c
