@@ -185,8 +185,8 @@ void RenderGL( struct display_camera *camera )
 			// put out a black rectangle
 			// should clear stensil buffer here so we can do remaining drawing only on polygon that's visible.
 			ClearImageTo( hVideo->pImage, 0 );
-			glDisable(GL_DEPTH_TEST);							// Enables Depth Testing
 #endif
+			glDisable(GL_DEPTH_TEST);							// Enables Depth Testing
 			if( hVideo->pRedrawCallback )
 			{
 				hVideo->pRedrawCallback( hVideo->dwRedrawData, (PRENDERER)hVideo );
