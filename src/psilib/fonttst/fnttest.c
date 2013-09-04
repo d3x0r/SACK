@@ -76,7 +76,7 @@ int main( int argc, char **argv )
 				}
 			}
          // yeah - you can use dumpfontfile to produce a header which is a font...
-			//DumpFontFile( argv[2]?argv[2]:"fonttst.dump.h", font );
+			DumpFontFile( argv[2]?argv[2]:"fonttst.dump.h", font );
 		}
 		else
 		{
@@ -105,7 +105,7 @@ int main( int argc, char **argv )
 				font = RenderFontFile( WIDE("lucon.ttf"), 14, 14, 2 );
 			}
          // yeah - you can use dumpfontfile to produce a header which is a font...
-			//DumpFontFile( WIDE("lucidaconsole.h"), font );
+			DumpFontFile( WIDE("lucidaconsole.h"), font );
 		}
 	}
 	else 
@@ -129,7 +129,7 @@ int main( int argc, char **argv )
 			}
 		}
 		// yeah - you can use dumpfontfile to produce a header which is a font...
-		//DumpFontFile( argv[1], font );
+		DumpFontFile( argv[1], font );
 	}
 	psvFont = (PTRSZVAL)font;
 	{
