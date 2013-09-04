@@ -50,10 +50,29 @@ PRIORITY_PRELOAD( CreateFontRenderGlobal, IMAGE_PRELOAD_PRIORITY )
 
 void PrintLeadin( int bits )
 {
+	fprintf( output, WIDE( "#include <vectlib.h>\n" ) );
+	fprintf( output, WIDE( "#undef _X\n" ) );
+
 	if( bits == 2)
 		fprintf( output, WIDE("#define BITS_GREY2\n") );
 	if( bits != 8 )
 		fprintf( output, WIDE("#include \"symbits.h\"\n") );
+
+	fprintf( output, WIDE( "#ifdef __cplusplus\n") );
+	fprintf( output, WIDE( "namespace sack {\n") );
+	fprintf( output, WIDE( "namespace image {\n") );
+	fprintf( output, WIDE( "#endif\n") );
+	fprintf( output, WIDE( "	typedef struct font_tag *PFONT ;\n") );
+	fprintf( output, WIDE( "#ifdef __cplusplus \n") );
+	fprintf( output, WIDE( "	namespace default_font {\n") );
+	fprintf( output, WIDE( "#endif\n") );
+	fprintf( output, WIDE( "\n") );
+	fprintf( output, WIDE( "#define EXTRA_STRUCT  struct ImageFile_tag *cell; RCOORD x1, x2, y1, y2; struct font_char_tag *next_in_line;\n") );
+	fprintf( output, WIDE( "#define EXTRA_INIT  0,0,0,0,0,0\n") );
+
+
+
+
 	fprintf( output, WIDE("typedef char CHARACTER, *PCHARACTER;\n") );
 }
 
@@ -73,14 +92,14 @@ int PrintChar( int bits, int charnum, PCHARACTER character, int height )
 		outwidth = ((character->size+7) & 0xF8 ); // round up to next byte increments size.
 
 	if( ((outwidth)/(8/bits))*( ( character->ascent - character->descent ) + 1 ))
-		fprintf( output, WIDE("static struct{ char s, w, o, j, a, d; unsigned char data[%d]; } %s =\n"), 
+		fprintf( output, WIDE("static struct{ char s, w, o, j, a, d; EXTRA_STRUCT unsigned char data[%d]; } %s =\n"),
 						((outwidth)/(8/bits))*( ( character->ascent - character->descent ) + 1 )
 						, charid );
 	else
-		fprintf( output, WIDE("static struct{ char s, w, o, j, a, d; } %s =\n")
+		fprintf( output, WIDE("static struct{ char s, w, o, j, a, d; EXTRA_STRUCT } %s =\n")
 						, charid );
 
-	fprintf( output, WIDE("{ %2d, %2d, %2d, 0, %2d, %2d")
+	fprintf( output, WIDE("{ %2d, %2d, %2d, 0, %2d, %2d, EXTRA_INIT ")
 							, character->size
 							, character->width
 							, (signed)character->offset
@@ -157,7 +176,7 @@ int PrintChar( int bits, int charnum, PCHARACTER character, int height )
 				{
 					if( bit )
 						fprintf( output, WIDE(",") );
-					fprintf( output, WIDE("%3d"), dataline[bit] );
+					fprintf( output, WIDE("%3u"), (unsigned)dataline[bit] );
 				}
 
 			}
@@ -193,12 +212,19 @@ void PrintFontTable( CTEXTSTR name, PFONT font )
 	}
 	fprintf( output, WIDE("struct { unsigned short height, baseline, chars; unsigned char flags, junk;\n")
 				WIDE("         char *fontname;\n")
-				WIDE("         PCHARACTER character[256]; } %s = { \n%d, %d, 256, %d, 0, \"%s\", {")
+			  WIDE("         PCHARACTER character[256]; }\n")
+			  WIDE("#ifdef __cplusplus\n")
+			  WIDE( "       ___%s\n")
+			  WIDE("#else\n")
+			  WIDE( "       __%s\n")
+			  WIDE("#endif\n")
+			  WIDE( "= { \n%d, %d, 256, %d, 0, \"%s\", {")
 				, name
+			 , name
 				, font->height 
 				, font->baseline
 				, font->flags
-				, name
+           , name
 				);
 
 	for( i = 0; i < 256; i++ )
@@ -208,6 +234,23 @@ void PrintFontTable( CTEXTSTR name, PFONT font )
 
 	}
 	fprintf( output, WIDE("\n} };") );
+
+	fprintf( output, WIDE("\n") );
+	fprintf( output, WIDE("#ifdef __cplusplus\n") );
+	fprintf( output, WIDE("PFONT __%s = (PFONT)&___%s;\n"), name, name );
+	fprintf( output, WIDE("#endif\n") );
+
+}
+
+void PrintFooter( void )
+{
+	fprintf( output, WIDE("#ifdef __cplusplus\n" ) );
+	fprintf( output, WIDE("      }; // default_font namespace\n" ) );
+	fprintf( output, WIDE("   }//namespace sack {\n" ) );
+	fprintf( output, WIDE("}//namespace image {\n" ) );
+	fprintf( output, WIDE("#endif\n" ) );
+
+
 }
 
 //-------------------------------------------------------------------------
@@ -227,7 +270,10 @@ void DumpFontFile( CTEXTSTR name, SFTFont font_to_dump )
 				int charid;
 				for	( charid = 0; charid < 256; charid++ )
 				{
-					PCHARACTER character = font->character[charid];
+					PCHARACTER character;
+					void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx );
+               InternalRenderFontCharacter( NULL, font_to_dump, charid );
+					character = font->character[charid];
 					if( character )
 						PrintChar( (font->flags&3) == FONT_FLAG_8BIT?8
 									 :(font->flags&3) == FONT_FLAG_2BIT?2
@@ -236,6 +282,7 @@ void DumpFontFile( CTEXTSTR name, SFTFont font_to_dump )
 				}
 			}
 			PrintFontTable( font->name, font );
+         PrintFooter();
 			sack_fclose( output );
 		}
 	}

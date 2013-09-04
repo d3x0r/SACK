@@ -150,6 +150,7 @@ IMAGE_INTERFACE RealImageInterface = {
 												 , SetImageTransformRelation
                                      , Render3dImage
 
+                                     , DumpFontFile
 };
 
 #undef GetImageInterface
