@@ -195,6 +195,29 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 		Image pifSrc = pchar->cell;
 		Image pifSrcReal;
 		Image pifDest = pImage;
+		switch( order )
+		{
+		case OrderPoints:
+			xd = x;
+			yd = y+(UseFont->baseline - pchar->ascent);
+			yd_back = y;
+         break;
+		case OrderPointsInvert:
+			xd = x;
+			yd = y-UseFont->baseline + pchar->ascent;
+			yd_back = y;
+         break;
+		case OrderPointsVertical:
+			xd = x - (UseFont->baseline - pchar->ascent);
+			yd = y;
+			yd_back = y;
+         break;
+		case OrderPointsVerticalInvert:
+			xd = x + (UseFont->baseline - pchar->ascent);
+			yd = y;
+			yd_back = y;
+         break;
+		}
 		
 		for( pifSrcReal = pifSrc; pifSrcReal->pParent; pifSrcReal = pifSrcReal->pParent );
 		ReloadOpenGlTexture( pifSrc, 0 );
@@ -224,10 +247,10 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			_color[2] = BlueVal( color ) / 255.0f;
 			_color[3] = AlphaVal( color ) / 255.0f;
 
-			switch( order )
+   		switch( order )
 			{
 			case OrderPoints:
-		   		v[vi][0][0] = xd;
+				v[vi][0][0] = xd;
 				v[vi][0][1] = yd;
 				v[vi][0][2] = 1.0f;
 
@@ -243,74 +266,126 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				v[vi][3][1] = yd+pchar->cell->real_height;
 				v[vi][3][2] = 1.0f;
 
-				v2[vi][0][vRight] = xd + pchar->width;
-				v2[vi][0][vUp] = yd_back;
-				v2[vi][0][vForward] = 1.0;
+				v2[vi][0][0] = xd + pchar->width;
+				v2[vi][0][1] = yd_back;
+				v2[vi][0][2] = 1.0;
 
-				v2[vi][1][vRight] = xd;
-				v2[vi][1][vUp] = yd_back;
-				v2[vi][1][vForward] = 1.0;
+				v2[vi][1][0] = xd;
+				v2[vi][1][1] = yd_back;
+				v2[vi][1][2] = 1.0;
 
-				v2[vi][2][vRight] = xd + pchar->width;
-				v2[vi][2][vUp] = yd_back + UseFont->height;
-				v2[vi][2][vForward] = 1.0;
+				v2[vi][2][0] = xd + pchar->width;
+				v2[vi][2][1] = yd_back + UseFont->height;
+				v2[vi][2][2] = 1.0;
 
-				v2[vi][3][vRight] = xd;
-				v2[vi][3][vUp] = yd_back + UseFont->height;
-				v2[vi][3][vForward] = 1.0;
-				break;
+				v2[vi][3][0] = xd;
+				v2[vi][3][1] = yd_back + UseFont->height;
+				v2[vi][3][2] = 1.0;
+
+ 				break;
 			case OrderPointsInvert:
-		   		v[vi][0][0] = xd - pchar->cell->real_width;
-				v[vi][0][1] = yd - pchar->cell->real_height;
+				v[vi][0][0] = xd;
+				v[vi][0][1] = yd;
 				v[vi][0][2] = 1.0f;
 
-				v[vi][1][0] = xd - pchar->cell->real_width;
-				v[vi][1][1] = yd+pchar->cell->real_height - pchar->cell->real_height;
+				v[vi][1][0] = xd;
+				v[vi][1][1] = yd - pchar->cell->real_height;
 				v[vi][1][2] = 1.0f;
 
-				v[vi][2][0] = xd+pchar->cell->real_width - pchar->cell->real_width;
-				v[vi][2][1] = yd - pchar->cell->real_height;
+				v[vi][2][0] = xd - pchar->cell->real_width;
+				v[vi][2][1] = yd;
 				v[vi][2][2] = 1.0f;
 
-				v[vi][3][0] = xd+pchar->cell->real_width - pchar->cell->real_width;
-				v[vi][3][1] = yd+pchar->cell->real_height - pchar->cell->real_height;
+				v[vi][3][0] = xd - pchar->cell->real_width;
+				v[vi][3][1] = yd - pchar->cell->real_height;
 				v[vi][3][2] = 1.0f;
+
+				v2[vi][0][0] = xd;
+				v2[vi][0][1] = yd_back;
+				v2[vi][0][2] = 1.0f;
+
+				v2[vi][1][0] = xd;
+				v2[vi][1][1] = yd_back - UseFont->height;
+				v2[vi][1][2] = 1.0f;
+
+				v2[vi][2][0] = xd - pchar->cell->real_width;
+				v2[vi][2][1] = yd_back;
+				v2[vi][2][2] = 1.0f;
+
+				v2[vi][3][0] = xd;
+				v2[vi][3][1] = yd_back - UseFont->height;
+				v2[vi][3][2] = 1.0f;
+
 				break;
 			case OrderPointsVertical:
-				v[vi][0][0] = xd-pchar->cell->real_height;
+				v[vi][0][0] = xd;
 				v[vi][0][1] = yd;
 				v[vi][0][2] = 1.0;
 
-				v[vi][1][0] = xd+pchar->cell->real_height-pchar->cell->real_height;
+				v[vi][1][0] = xd-pchar->cell->real_height;
 				v[vi][1][1] = yd;
 				v[vi][1][2] = 1.0;
 
-				v[vi][2][0] = xd-pchar->cell->real_height;
+				v[vi][2][0] = xd;
 				v[vi][2][1] = yd+pchar->cell->real_width;
 				v[vi][2][2] = 1.0;
 
 
-				v[vi][3][0] = xd+pchar->cell->real_height-pchar->cell->real_height;
+				v[vi][3][0] = xd-pchar->cell->real_height;
 				v[vi][3][1] = yd+pchar->cell->real_width;
 				v[vi][3][2] = 1.0;
+
+				v2[vi][0][0] = x;
+				v2[vi][0][1] = yd_back;
+				v2[vi][0][2] = 1.0;
+
+				v2[vi][1][0] = x-UseFont->height;
+				v2[vi][1][1] = yd_back;
+				v2[vi][1][2] = 1.0;
+
+				v2[vi][2][0] = x;
+				v2[vi][2][1] = yd_back+pchar->cell->real_width;
+				v2[vi][2][2] = 1.0;
+
+				v2[vi][3][0] = x-UseFont->height;
+				v2[vi][3][1] = yd_back+pchar->cell->real_width;
+				v2[vi][3][2] = 1.0;
+
 				break;
 		   case OrderPointsVerticalInvert:
 				v[vi][0][0] = xd;
-				v[vi][0][1] = yd-pchar->cell->real_width;
+				v[vi][0][1] = yd;
 				v[vi][0][2] = 1.0;
 
 				v[vi][1][0] = xd+pchar->cell->real_height;
-				v[vi][1][1] = yd-pchar->cell->real_width;
+				v[vi][1][1] = yd;
 				v[vi][1][2] = 1.0;
 
 				v[vi][2][0] = xd;
-				v[vi][2][1] = yd+pchar->cell->real_width-pchar->cell->real_width;
+				v[vi][2][1] = yd-pchar->cell->real_width;
 				v[vi][2][2] = 1.0;
 
 
 				v[vi][3][0] = xd+pchar->cell->real_height;
-				v[vi][3][1] = yd+pchar->cell->real_width-pchar->cell->real_width;
+				v[vi][3][1] = yd-pchar->cell->real_width;
 				v[vi][3][2] = 1.0;
+
+				v2[vi][0][0] = x;
+				v2[vi][0][1] = yd_back;
+				v2[vi][0][2] = 1.0;
+
+				v2[vi][1][0] = x+UseFont->height;
+				v2[vi][1][1] = yd_back;
+				v2[vi][1][2] = 1.0;
+
+				v2[vi][2][0] = x;
+				v2[vi][2][1] = yd_back-pchar->cell->real_width;
+				v2[vi][2][2] = 1.0;
+
+
+				v2[vi][3][0] = x+UseFont->height;
+				v2[vi][3][1] = yd_back-pchar->cell->real_width;
+				v2[vi][3][2] = 1.0;
 				break;
 			}
 
@@ -374,65 +449,19 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				scale( v2[vi][2], v2[vi][2], l.scale );
 				scale( v2[vi][3], v2[vi][3], l.scale );
 			}
-			switch( order )
-			{
-			case OrderPoints:
-				texture_v[0][0] = x_size;
-				texture_v[0][1] = y_size;
-				/**///glTexCoord2d(x_size, y_size); glVertex3dv(v[vi][0]);	// Bottom Left Of The Texture and Quad
-				texture_v[1][0] = x_size;
-				texture_v[1][1] = y_size2;
-				/**///glTexCoord2d(x_size, y_size2); glVertex3dv(v[vi][1]);	// Top Left Of The Texture and Quad
-				texture_v[2][0] = x_size2;
-				texture_v[2][1] = y_size;
-				/**///glTexCoord2d(x_size2, y_size); glVertex3dv(v[vi][2]);	// Bottom Right Of The Texture and Quad
-				texture_v[3][0] = x_size2;
-				texture_v[3][1] = y_size2;
-				/**///glTexCoord2d(x_size2, y_size2); glVertex3dv(v[vi][3]);	// Top Right Of The Texture and Quad
-				break;
-			case OrderPointsInvert:
-				texture_v[0][0] = x_size;
-				texture_v[0][1] = y_size2;
-				/**///glTexCoord2d(x_size, y_size2); glVertex3dv(v[vi][0]);	// Bottom Left Of The Texture and Quad
-				texture_v[0][0] = x_size;
-				texture_v[0][1] = y_size;
-				/**///glTexCoord2d(x_size, y_size); glVertex3dv(v[vi][1]);	// Top Left Of The Texture and Quad
-				texture_v[0][0] = x_size2;
-				texture_v[0][1] = y_size2;
-				/**///glTexCoord2d(x_size2, y_size2); glVertex3dv(v[vi][2]);	// Bottom Right Of The Texture and Quad
-				texture_v[0][0] = x_size2;
-				texture_v[0][1] = y_size;
-				/**///glTexCoord2d(x_size2, y_size); glVertex3dv(v[vi][3]);	// Top Right Of The Texture and Quad
-            break;
-			case OrderPointsVertical:
-				texture_v[0][0] = x_size;
-				texture_v[0][1] = y_size2;
-				/**///glTexCoord2d(x_size, y_size2); glVertex3dv(v[vi][0]);	// Bottom Left Of The Texture and Quad
-				texture_v[0][0] = x_size;
-				texture_v[0][1] = y_size;
-				/**///glTexCoord2d(x_size, y_size); glVertex3dv(v[vi][1]);	// Top Left Of The Texture and Quad
-				texture_v[0][0] = x_size2;
-				texture_v[0][1] = y_size2;
-				/**///glTexCoord2d(x_size2, y_size2); glVertex3dv(v[vi][2]);	// Bottom Right Of The Texture and Quad
-				texture_v[0][0] = x_size2;
-				texture_v[0][1] = y_size;
-				/**///glTexCoord2d(x_size2, y_size); glVertex3dv(v[vi][3]);	// Top Right Of The Texture and Quad
-            break;
-			case OrderPointsVerticalInvert:
-				texture_v[0][0] = x_size2;
-				texture_v[0][1] = y_size;
-				/**///glTexCoord2d(x_size2, y_size); glVertex3dv(v[vi][0]);	// Bottom Left Of The Texture and Quad
-				texture_v[0][0] = x_size2;
-				texture_v[0][1] = y_size2;
-				/**///glTexCoord2d(x_size2, y_size2); glVertex3dv(v[vi][1]);	// Top Left Of The Texture and Quad
-				texture_v[0][0] = x_size;
-				texture_v[0][1] = y_size;
-				/**///glTexCoord2d(x_size, y_size); glVertex3dv(v[vi][2]);	// Bottom Right Of The Texture and Quad
-				texture_v[0][0] = x_size;
-				texture_v[0][1] = y_size2;
-				/**///glTexCoord2d(x_size, y_size2); glVertex3dv(v[vi][3]);	// Top Right Of The Texture and Quad
-				break;
-			}
+
+			texture_v[0][0] = x_size;
+			texture_v[0][1] = y_size;
+			/**///glTexCoord2d(x_size, y_size); glVertex3dv(v[vi][0]);	// Bottom Left Of The Texture and Quad
+			texture_v[1][0] = x_size;
+			texture_v[1][1] = y_size2;
+			/**///glTexCoord2d(x_size, y_size2); glVertex3dv(v[vi][1]);	// Top Left Of The Texture and Quad
+			texture_v[2][0] = x_size2;
+			texture_v[2][1] = y_size;
+			/**///glTexCoord2d(x_size2, y_size); glVertex3dv(v[vi][2]);	// Bottom Right Of The Texture and Quad
+			texture_v[3][0] = x_size2;
+			texture_v[3][1] = y_size2;
+			/**///glTexCoord2d(x_size2, y_size2); glVertex3dv(v[vi][3]);	// Top Right Of The Texture and Quad
 
 			if( background )
 			{
