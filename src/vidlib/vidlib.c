@@ -332,8 +332,8 @@ void IssueUpdateLayeredEx( PVIDEO hVideo, LOGICAL bContent, S_32 x, S_32 y, _32 
 										UPDATELAYEREDWINDOWINFO ULWInfo;
 										rc_dirty.top = y>=topPos.y?y:topPos.y;
 										rc_dirty.left = x>=topPos.x?x:topPos.x;
-										rc_dirty.right = x + w-1;
-										rc_dirty.bottom = y + h-1;
+										rc_dirty.right = x + w;
+										rc_dirty.bottom = y + h;
 										ULWInfo.cbSize = sizeof(UPDATELAYEREDWINDOWINFO);
 										ULWInfo.hdcDst = bContent?hVideo->hDCOutput:NULL;
 										ULWInfo.pptDst = bContent?&topPos:NULL;
