@@ -762,28 +762,6 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 		{
 			INDEX idx;
 			struct SACK_3D_Surface * surface;
-			glEnable(GL_VERTEX_PROGRAM_ARB);
-			glEnable(GL_FRAGMENT_PROGRAM_ARB);
-
-			glUseProgram( l.shader.simple_shader.shader );
-#ifdef BT_USE_DOUBLE_PRECISION
-			glUniformMatrix4dv
-#else
-			glUniformMatrix4fv
-#endif
-				( l.shader.simple_shader.modelview, 1, GL_FALSE, m );
-
-			glUseProgram( l.shader.normal_shader.shader );
-			#ifdef BT_USE_DOUBLE_PRECISION
-			glUniformMatrix4dv
-#else
-			glUniformMatrix4fv
-#endif
-				( l.shader.normal_shader.modelview, 1, GL_FALSE, m );
-
-			glUseProgram( 0 );
-			glDisable(GL_FRAGMENT_PROGRAM_ARB);
-			glDisable(GL_VERTEX_PROGRAM_ARB);
 
 			LIST_FORALL( patch->pole->bands, idx, struct SACK_3D_Surface *, surface )
 			{
@@ -976,36 +954,6 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, tmpval );
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 64/*l.values[MAT_SHININESS]/2*/ ); // 0-128
 
-	if( !mode )
-	{
-		INDEX idx;
-		struct SACK_3D_Surface * surface;
-		LIST_FORALL( patch->band->bands, idx, struct SACK_3D_Surface *, surface )
-		{
-			int s = (idx/band->hex_size)%6; // might be 6, which needs to be 0.
-				if( surface->color )
-						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, fore_color );
-				else
-						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, back_color );
-			if( s == 1 )
-			{
-				// select the texture vertext buffer here somehow...
-				RenderBumpTextureFragment( l.numbers.image, l.numbers.bump_image, m, patch->number, fore_color, surface );
-			}
-			else if( s == 4 )
-			{
-				// select the texture vertext buffer here somehow...
-				RenderBumpTextureFragment( l.logo, NULL, m, 0, back_color, surface );
-			}
-			else
-			{
-				if( s < 3 )
-					RenderBumpTextureFragment( NULL, NULL, m, 0, fore_color, surface );
-				else
-					RenderBumpTextureFragment( NULL, NULL, m, 0, back_color, surface );
-			}
-		}
-	}
 
 	if( mode )
 	{
@@ -1074,10 +1022,11 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 					tmpval[2] = 0.5;
 					//tmpval[3] = 1.0f;
 					glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, tmpval );
-					if( s == 1 )
+					if( ( s == 1 ) )
 					{
 						glColor4f( 1.0f, 1.0f, 1.0f, fade );
 						glBindTexture( GL_TEXTURE_2D, l.numbers.texture );
+						//lprintf( "bound... (front) %d %d", s, section );
 						bound = 1;
 						front = 1;
 					}
@@ -1111,7 +1060,7 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 							if( front )
 							{
 								//lprintf( "one  Using %g,%g", l.numbers.coords[row][col][section_offset][section2][0]
-								//	, l.numbers.coords[row][col][section_offset][section2][1] );
+								//		 , l.numbers.coords[row][col][section_offset][section2][1] );
 								glTexCoord2d( l.numbers.coords[row][col][section_offset][section2][0]
 											, l.numbers.coords[row][col][section_offset][section2][1] );
 							}
@@ -1129,7 +1078,7 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 							if( front )
 							{
 								//lprintf( "then Using %g,%g", l.numbers.coords[row][col][section_offset_1_a][section2][0]
-							//		, l.numbers.coords[row][col][section_offset+1][section2][1] );
+								//	, l.numbers.coords[row][col][section_offset+1][section2][1] );
 								glTexCoord2d( l.numbers.coords[row][col][section_offset+1][section2][0]
 											, l.numbers.coords[row][col][section_offset+1][section2][1] );
 							}
@@ -1523,8 +1472,8 @@ void ParseImage( Image image, int size, int rows, int cols )
 			{
 				for( y = 0; y <= size; y++ )
 				{
-					l.numbers.coords[r][c][x][y][0] = (c / (double)cols) + ( ( size - x ) / (double)( rows*size ) );
-					l.numbers.coords[r][c][x][y][1] = (r / (double)rows) + ( ( y ) / (double)( cols*size ) );
+					l.numbers.coords[r][c][x][y][0] = (c / (double)cols) + ( ( size - x ) / (double)( cols*size ) );
+					l.numbers.coords[r][c][x][y][1] = (r / (double)rows) + ( ( y ) / (double)( rows*size ) );
 					l.numbers.coords[r][c][x][y][2] = 0;
 				}
 			}
@@ -2430,28 +2379,6 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 			//glLoadMatrixd( fProjection2 );
 
 			glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
-		}
-		{
-			PC_POINT o;
-			float eye[3];
-			o = GetOrigin( l.transform );
-			eye[0] = o[0];
-			eye[1] = o[1];
-			eye[2] = o[2];
-			glEnable(GL_VERTEX_PROGRAM_ARB);
-			glEnable(GL_FRAGMENT_PROGRAM_ARB);
-
-			glUseProgram( l.shader.simple_shader.shader );
-			glUniformMatrix4fv( l.shader.simple_shader.worldview, 1, GL_FALSE, l.modelview );
-			glUniform3fv( l.shader.simple_shader.eye_point, 1, eye );
-
-			glUseProgram( l.shader.normal_shader.shader );
-			glUniformMatrix4fv( l.shader.normal_shader.worldview, 1, GL_FALSE, l.modelview );
-			glUniform3fv( l.shader.normal_shader.eye_point, 1, eye );
-
-			glUseProgram( 0 );
-			glDisable(GL_FRAGMENT_PROGRAM_ARB);
-			glDisable(GL_VERTEX_PROGRAM_ARB);
 		}
 
 		{
