@@ -166,76 +166,6 @@ struct band {
 	};
 	PLIST bands;  
 
-	void CreateBandFragments2( void )
-	{
-	}
-
-
-	void CreateBandFragments( void )
-	{
-		struct SACK_3D_Surface *tmp;
-		int verts = ( hex_size + 1 ) * 2;
-		_POINT *tangents = NewArray( _POINT, verts );
-		_POINT *texture = NewArray( _POINT, verts );
-		int nShape;
-	
-		struct band *band = this;
-		int section, section2;
-		int sections = 6*band->hex_size;
-		int sections2= band->hex_size;
-
-
-		for( section = 0; section < sections; section ++ )
-		{
-			_POINT *shape = NewArray( _POINT, verts);
-			int other_s = (section/(band->hex_size+1))%6; // might be 6, which needs to be 0.
-			int s = (section/band->hex_size)%6; // might be 6, which needs to be 0.
-			int s2 = ((section+1)/band->hex_size)%6; // might be 6, which needs to be 0.
-			int section_offset = ( section % band->hex_size );
-			int section_offset_1_a = ( (section+1) % band->hex_size );
-		
-			nShape = 0;
-			for( section2 = 0; section2 <= sections2; section2++ )
-			{
-				_POINT tmp2;
-				scale( shape[nShape], band->patches[s].grid[section_offset][section2], SPHERE_SIZE );
-				//texture[nShape][0] = l.numbers.coords[row][col][section_offset][section2][0];
-				//texture[nShape][1] = l.numbers.coords[row][col][section_offset][section2][1];
-				//crossproduct( tmp1, _Z, shape[nShape] );
-				// cross with Y to get horizontal.
-				crossproduct( tmp2, _Y, shape[nShape] );
-				//if( Length( tmp1 ) > Length( tmp2 ) )
-				//	SetPoint( tangents[nShape], tmp1 );
-				//else
-					SetPoint( tangents[nShape], tmp2 );
-				//normalize(shape[nShape]);
-				normalize( tangents[nShape] );
-				{
-					//lprintf( "texture point %d", nShape );
-					//PrintVector( shape[nShape] );
-					//PrintVector( tangents[nShape] );
-
-					//crossproduct( tmp1, shape[nShape], tangents[nShape] );
-					//normalize( tmp1 );
-					//PrintVector( tmp1);
-				}
-
-				nShape++;
-				
-				// s2 can change patches, whereas the number coords... go forward
-				scale( shape[nShape], band->patches[s2].grid[section_offset_1_a][section2], SPHERE_SIZE );
-				//texture[nShape][0] = l.numbers.coords[row][col][section_offset+1][section2][0];
-				//texture[nShape][1] = l.numbers.coords[row][col][section_offset+1][section2][1];
-				crossproduct( tangents[nShape], _Y, shape[nShape] );
-				normalize( tangents[nShape] );
-				nShape++;
-			}
-			AddLink( &bands, tmp = CreateBumpTextureFragment( verts, (PCVECTOR*)shape, (PCVECTOR*)shape
-				, (PCVECTOR*)tangents, (PCVECTOR*)NULL, (PCVECTOR*)texture ) );
-			tmp->color = (((section/band->hex_size)%6) < 3)?TRUE:FALSE;
-
-		}
-	}
 
 	void Texture( int number )
 	{
@@ -292,8 +222,6 @@ struct band {
 						nShape++;
 					}
 				}
-				//lprintf( "verts %d shape %d", verts, nShape );
-				AddBumpTextureFragmentTexture( surface, number, (PCVECTOR*)texture );
 			}
 		}
 	}
@@ -389,7 +317,7 @@ struct band {
 					}
 					DestroyTransform( work );
 				}
-		CreateBandFragments( );
+		//CreateBandFragments( );
 	}
 
 	band( int size ) 
@@ -454,125 +382,6 @@ struct pole{
 	PLIST pole_bands[2];
 	PLIST bands;
 	int number;
-	void CreatePoleFragments( void )
-	{
-		int maxverts = ( hex_size + 1 ) * 2;
-		int s, level, c, r;
-		int x, y; // used to reference patch level
-		//int x2, y2;
-		int bLog = 0;
-
-	#ifdef DEBUG_RENDER_POLE_NEARNESS
-		bLog = 1;
-	#endif
-//__try
-		{
-			int north;
-			int verts = ( hex_size + 1 ) * 2;
-			_POINT *tangents = NewArray( _POINT, verts );
-			_POINT *texture = NewArray( _POINT, verts );
-			_POINT *shape = NewArray( _POINT, verts);
-			int nShape;
-
-			for( north = 0; north <= 1; north++ )
-			{
-				struct SACK_3D_Surface *tmp;
-				for( s = 0; s < 3; s++ )
-				{
-					for( level = 1; level <= hex_size; level++ )
-					{
-
-						nShape = 0;
-
-						r = 0;
-
-						for( c = 0; c <= level; c++ )
-						{
-							ConvertPolarToRect( level, c, &x, &y );
-							scale( shape[nShape], patches[s].grid[x][y]
-									, SPHERE_SIZE /*+ height[s+(north*6)][x][y]*/ );
-							if( north )
-								shape[nShape][1] = -shape[nShape][1];
-					
-							crossproduct( tangents[nShape], _Y, shape[nShape] );
-							normalize( tangents[nShape] );
-
-							nShape++;
-							if( c < (level) )
-							{
-								ConvertPolarToRect( level-1, c, &x, &y );
-								scale( shape[nShape], patches[s].grid[x][y], SPHERE_SIZE /*+ patch->height[s+(north*6)][x][y]*/ );
-								if( north )
-									shape[nShape][1] = -shape[nShape][1];
-								crossproduct( tangents[nShape], _Y, shape[nShape] );
-								normalize( tangents[nShape] );
-								nShape++;
-							}
-							r++;
-						}
-
-						AddLink( &bands, tmp = CreateBumpTextureFragment( nShape, (PCVECTOR*)shape, (PCVECTOR*)shape, (PCVECTOR*)tangents, (PCVECTOR*)NULL, (PCVECTOR*)NULL ) );
-						switch( s )
-						{
-						case 0:
-						case 1:
-							tmp->color = 1;
-							break;
-						case 2:
-							tmp->color = 0;
-							break;
-						}
-
-						nShape = 0;
-						if( bLog )lprintf( WIDE("---------") );
-
-
-						for( c = level; c <= level*2; c++ )
-						{
-							ConvertPolarToRect( level, c, &x, &y );
-							//if( bLog )lprintf( WIDE("Render corner %d,%d"), 2*level-c,level);
-							scale( shape[nShape], patches[s].grid[x][y], SPHERE_SIZE /*+ patch->height[s+(north*6)][x][y]*/ );
-							if( north )
-								shape[nShape][1] = -shape[nShape][1];
-
-							crossproduct( tangents[nShape], _Y, shape[nShape] );
-							normalize( tangents[nShape] );
-							nShape++;
-							if( c < (level)*2 )
-							{
-
-								ConvertPolarToRect( level-1, c-1, &x, &y );
-								//if( bLog )lprintf( WIDE("Render corner %d,%d"), 2*level-c-1,level-1);
-								scale( shape[nShape], patches[s].grid[x][y], SPHERE_SIZE /*+ patch->height[s+(north*6)][x][y]*/ );
-								if( north )
-									shape[nShape][1] = -shape[nShape][1];
-								crossproduct( tangents[nShape], _Y, shape[nShape] );
-								normalize( tangents[nShape] );
-								nShape++;
-							}
-						}
-						
-						AddLink( &bands, tmp = CreateBumpTextureFragment( nShape, (PCVECTOR*)shape, (PCVECTOR*)shape, (PCVECTOR*)tangents, (PCVECTOR*)NULL, (PCVECTOR*)NULL ) );
-
-						switch( s )
-						{
-						case 0:
-							tmp->color = 1;
-							break;
-						case 1:
-						case 2:
-							tmp->color = 0;
-							break;
-						}
-
-						nShape = 0;
-					}
-				}
-			}
-		}
-		//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( WIDE("Pole Patch Excepted.") );return 0; }
-	}
-
 
 	void resize( int size )
 	{
@@ -673,7 +482,6 @@ struct pole{
 					DestroyTransform( work );
 			//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( WIDE("Pole Patch Excepted.") ); }
 		}
-		CreatePoleFragments();
 	}
 	pole( int size )
 	{
@@ -755,30 +563,6 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 	tmpval[2] = 0.45;
 	//tmpval[3] = 1.0f;
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, tmpval );
-	// create array of normals.
-	//__try
-	{
-		if( !mode )
-		{
-			INDEX idx;
-			struct SACK_3D_Surface * surface;
-
-			LIST_FORALL( patch->pole->bands, idx, struct SACK_3D_Surface *, surface )
-			{
-				if( surface->color )
-						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, fore_color );
-				else
-						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, back_color );
-
-				// somehow this surface thing needs extra data for the fragment color
-				if( surface->color )
-					RenderBumpTextureFragment( NULL, NULL, m, 0, fore_color, surface );
-				else
-					RenderBumpTextureFragment( NULL, NULL, m, 0, back_color, surface );
-			}
-		}
-
-	}
 
 	if( mode )
 	{
