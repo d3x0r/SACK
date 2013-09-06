@@ -48,6 +48,9 @@
 		4a:i,substruct:op{name:s}
  *************/
 
+#ifdef __cplusplus
+SACK_NAMESPACE namespace network { namespace json {
+#endif
 
 
 struct json_context_object_element
@@ -75,6 +78,8 @@ struct json_context
 
 static CTEXTSTR tab_filler = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
 
+//----------------------------------------------------------------------------------------------
+
 struct json_context *json_create_context( void )
 {
 	struct json_context *context = New( struct json_context );
@@ -83,46 +88,110 @@ struct json_context *json_create_context( void )
    return context;
 }
 
+//----------------------------------------------------------------------------------------------
+
 void json_begin_object( struct json_context *context, CTEXTSTR name )
 {
 	if( context->levels && name )
-		vtprintf( context->pvt, "\"%s\":{", name );
+		vtprintf( context->pvt, "%*.*s\"%s\":{\n"
+				  , context->levels, context->levels, tab_filler
+				  , name );
    else
-		vtprintf( context->pvt, "{" );
+		vtprintf( context->pvt, "%*.*s{\n"
+				  , context->levels, context->levels, tab_filler );
 	context->levels++;
 }
 
 
+//----------------------------------------------------------------------------------------------
 
 void json_end_object( struct json_context *context )
 {
 	context->levels--;
-	vtprintf( context->pvt, "}\n" );
+	vtprintf( context->pvt, "%*.*s}\n"
+			  , context->levels, context->levels, tab_filler );
 }
+
+//----------------------------------------------------------------------------------------------
 
 void json_add_value( struct json_context *context, CTEXTSTR name, CTEXTSTR value )
 {
+	vtprintf( context->pvt, "%*.*s\"%s\":\"%s\"\n"
+			  , context->levels, context->levels, tab_filler
+			  , name, value );
 }
+
+//----------------------------------------------------------------------------------------------
 
 void json_add_int_value( struct json_context *context, CTEXTSTR name, int value )
 {
+  vtprintf( context->pvt, "%*.*s\"%s\":%d\n"
+			  , context->levels, context->levels, tab_filler
+			  , name, value );
 }
+
+//----------------------------------------------------------------------------------------------
 
 void json_add_float_value( struct json_context *context, CTEXTSTR name, double value )
 {
+  vtprintf( context->pvt, "%*.*s\"%s\":%g\n"
+			  , context->levels, context->levels, tab_filler
+			  , name, value );
 }
+
+//----------------------------------------------------------------------------------------------
 
 void json_add_value_array( struct json_context *context, CTEXTSTR name, CTEXTSTR* pValue, int nValues )
 {
+	int n;
+	vtprintf( context->pvt, "%*.*s\"%s\":["
+			  , context->levels, context->levels, tab_filler
+			  , name );
+   for( n = 0; n < nValues; n++ )
+		vtprintf( context->pvt, "%s%s", (n==0)?"":",", pValue[nValues] );
+	vtprintf( context->pvt, "]\n" );
 }
+
+//----------------------------------------------------------------------------------------------
 
 void json_add_int_value_array( struct json_context *context, CTEXTSTR name, int* pValues, int nValues )
 {
+	int n;
+	vtprintf( context->pvt, "%*.*s\"%s\":["
+			  , context->levels, context->levels, tab_filler
+			  , name );
+   for( n = 0; n < nValues; n++ )
+		vtprintf( context->pvt, "%s%d", (n==0)?"":",", pValue[nValues] );
+	vtprintf( context->pvt, "]\n" );
 }
 
-void json_add_float_value_array( struct json_context *context, CTEXTSTR name, double* pValues, int nValues )
+//----------------------------------------------------------------------------------------------
+
+void json_add_float_value_array( struct json_context *context, CTEXTSTR name, float* pValues, int nValues )
 {
+	int n;
+	vtprintf( context->pvt, "%*.*s\"%s\":["
+			  , context->levels, context->levels, tab_filler
+			  , name );
+   for( n = 0; n < nValues; n++ )
+		vtprintf( context->pvt, "%s%g", (n==0)?"":",", pValue[nValues] );
+	vtprintf( context->pvt, "]\n" );
 }
+
+//----------------------------------------------------------------------------------------------
+
+void json_add_double_value_array( struct json_context *context, CTEXTSTR name, double* pValues, int nValues )
+{
+	int n;
+	vtprintf( context->pvt, "%*.*s\"%s\":["
+			  , context->levels, context->levels, tab_filler
+			  , name );
+   for( n = 0; n < nValues; n++ )
+		vtprintf( context->pvt, "%s%g", (n==0)?"":",", pValue[nValues] );
+	vtprintf( context->pvt, "]\n" );
+}
+
+//----------------------------------------------------------------------------------------------
 
 static int GetNumber( CTEXTSTR *start )
 {
@@ -135,6 +204,8 @@ static int GetNumber( CTEXTSTR *start )
 	}
    return result;
 }
+
+//----------------------------------------------------------------------------------------------
 
 PTRSZVAL ParseFormat( struct json_context *context, CTEXTSTR format, PTRSZVAL object )
 {
@@ -243,13 +314,19 @@ PTRSZVAL ParseFormat( struct json_context *context, CTEXTSTR format, PTRSZVAL ob
    return current_obj_ofs;
 }
 
+//----------------------------------------------------------------------------------------------
+
 void json_add_object( struct json_context *context, CTEXTSTR name, struct json_context_object *format, POINTER object )
 {
 }
 
+//----------------------------------------------------------------------------------------------
+
 void json_add_object_array( struct json_context *context, CTEXTSTR name, struct json_context_object *format, POINTER pValues, int nValues  )
 {
 }
+
+//----------------------------------------------------------------------------------------------
 
 struct json_context_object *json_create_object( struct json_context *context, CTEXTSTR name )
 {
@@ -260,6 +337,8 @@ struct json_context_object *json_create_object( struct json_context *context, CT
    return format;
 }
 
+
+//----------------------------------------------------------------------------------------------
 
 struct json_context_object *json_add_object_member_array( struct json_context *context
 											, struct json_context_object *format
@@ -278,10 +357,13 @@ struct json_context_object *json_add_object_member_array( struct json_context *c
 		member->object = json_create_object( context, name );
       break;
 	}
+   AddLink( &format->members, member );
 	if( member->object )
 		return member->object;
    return format;
 }
+
+//----------------------------------------------------------------------------------------------
 
 struct json_context_object *json_add_object_member( struct json_context *context
 									, struct json_context_object *format
@@ -291,6 +373,7 @@ struct json_context_object *json_add_object_member( struct json_context *context
    return json_add_object_member_array( context, format, name, offset, type, 1 );
 }
 
+//----------------------------------------------------------------------------------------------
 void json_add_object_member_array_pointer( struct json_context *context
 													  , struct json_context_object *format
 													  , CTEXTSTR name
@@ -303,4 +386,71 @@ void json_add_object_member_array_pointer( struct json_context *context
 	member->type = type;
    member->count_offset = count_offset;
 }
+
+//----------------------------------------------------------------------------------------------
+
+CTEXTSTR json_build_message( struct json_context *context
+									, struct json_context_object *format
+									, POINTER msg )
+{
+	CTEXTSTR result;
+
+	INDEX idx;
+	struct json_context_object_member *member;
+   VarTextEmpty( context->pvt );
+   json_begin_object( context );
+	LIST_FORALL( format->members, idx, struct json_context_object_member *, member )
+	{
+		switch( member->type )
+		{
+		case JSON_Element_Integer:
+			if( member->count )
+				json_add_int_value_array( context, member->name, *(int*)(((PTRSZVAL)msg)+member->offset), member->count );
+			else if( member->count_offset >= 0 )
+				json_add_int_value_array( context, member->name
+										, *(int*)(((PTRSZVAL)msg)+member->offset)
+										, *(int*)(((PTRSZVAL)msg)+member->count_offset)
+										);
+			else
+				json_add_int_value( context, member->name, *(int*)(((PTRSZVAL)msg)+member->offset) );
+			break;
+		case JSON_Element_String:
+			if( member->count )
+				json_add_value_array( context, member->name, (CTEXTSTR)(((PTRSZVAL)msg)+member->offset), member->count );
+			else if( member->count_offset >= 0 )
+				json_add_value_array( context, member->name
+										, (CTEXTSTR)(((PTRSZVAL)msg)+member->offset)
+										, *(int*)(((PTRSZVAL)msg)+member->count_offset)
+										);
+			else
+				json_add_value( context, member->name, (CTEXTSTR)(((PTRSZVAL)msg)+member->offset) );
+         break;
+		case JSON_Element_ObjectPointer:
+
+         break;
+		}
+	}
+
+	json_end_object( context );
+
+	{
+		PTEXT tmp = VarTextGet( context->pvt );
+		result = StrDup( GetText( tmp ) );
+		LineRelease( tmp );
+		return result;
+	}
+}
+
+//----------------------------------------------------------------------------------------------
+
+CTEXTSTR json_parse_message( struct json_context *context
+									, struct json_context_object *format
+                           , CTEXTSTR msg
+									, POINTER msg_output )
+{
+}
+
+#ifdef __cplusplus
+} } }
+#endif
 
