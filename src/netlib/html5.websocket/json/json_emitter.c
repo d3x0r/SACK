@@ -2,6 +2,9 @@
 
 #define JSON_EMITTER_SOURCE
 #include <json_emitter.h>
+
+PTRSZVAL json_add_object( struct json_context *context, CTEXTSTR name, struct json_context_object *format, POINTER object );
+
 /***********
  <Alternative, instead of object format thing, provide a registration mechanism to specify
   bindings similar to ODBC>
@@ -61,7 +64,7 @@ struct json_context_object_element
 	int count; // at offset, this number of these is there; (array)
 	int count_offset; // at count_offset, is the number of elements that the pointer at this offset
    struct json_context_object *object;
-}
+};
 
 struct json_context_object
 {
@@ -161,7 +164,7 @@ void json_add_int_value_array( struct json_context *context, CTEXTSTR name, int*
 			  , context->levels, context->levels, tab_filler
 			  , name );
    for( n = 0; n < nValues; n++ )
-		vtprintf( context->pvt, "%s%d", (n==0)?"":",", pValue[nValues] );
+		vtprintf( context->pvt, "%s%d", (n==0)?"":",", pValues[nValues] );
 	vtprintf( context->pvt, "]\n" );
 }
 
@@ -174,7 +177,7 @@ void json_add_float_value_array( struct json_context *context, CTEXTSTR name, fl
 			  , context->levels, context->levels, tab_filler
 			  , name );
    for( n = 0; n < nValues; n++ )
-		vtprintf( context->pvt, "%s%g", (n==0)?"":",", pValue[nValues] );
+		vtprintf( context->pvt, "%s%g", (n==0)?"":",", pValues[nValues] );
 	vtprintf( context->pvt, "]\n" );
 }
 
@@ -187,7 +190,7 @@ void json_add_double_value_array( struct json_context *context, CTEXTSTR name, d
 			  , context->levels, context->levels, tab_filler
 			  , name );
    for( n = 0; n < nValues; n++ )
-		vtprintf( context->pvt, "%s%g", (n==0)?"":",", pValue[nValues] );
+		vtprintf( context->pvt, "%s%g", (n==0)?"":",", pValues[nValues] );
 	vtprintf( context->pvt, "]\n" );
 }
 
@@ -232,7 +235,7 @@ PTRSZVAL ParseFormat( struct json_context *context, CTEXTSTR format, PTRSZVAL ob
 	if( !start[0] )
 	{
 		lprintf( WIDE("Object description format error: no colon after (%s)"), _start );
-		return;
+		return 0;
 	}
 
 	start++; // skip the ':'
@@ -296,12 +299,14 @@ PTRSZVAL ParseFormat( struct json_context *context, CTEXTSTR format, PTRSZVAL ob
 		case 'p':
 			if( start[2] == '{' )
 			{
-				json_add_object( context, namebuf, start + 3, *(POINTER*)current_obj_ofs );
+            // add_object doesn't work like this now
+				//json_add_object( context, namebuf, start + 3, *(POINTER*)current_obj_ofs );
 			}
-         current_obj_ofs + padded_add( sizeof( POINTER ) );
+         current_obj_ofs += padded_add( sizeof( POINTER ) );
 			break;
 		case '{':
-         current_obj_ofs = json_add_object( context, namebuf, start + 2, (POINTER)current_obj_ofs );
+			// add_object doesn't work like this now
+         //current_obj_ofs = json_add_object( context, namebuf, start + 2, (POINTER)current_obj_ofs );
          break;
 		default:
          lprintf( "Didn't find object description for object (%s) near (%s)", namebuf, start );
@@ -316,8 +321,9 @@ PTRSZVAL ParseFormat( struct json_context *context, CTEXTSTR format, PTRSZVAL ob
 
 //----------------------------------------------------------------------------------------------
 
-void json_add_object( struct json_context *context, CTEXTSTR name, struct json_context_object *format, POINTER object )
+PTRSZVAL json_add_object( struct json_context *context, CTEXTSTR name, struct json_context_object *format, POINTER object )
 {
+   return 0;
 }
 
 //----------------------------------------------------------------------------------------------
@@ -345,7 +351,7 @@ struct json_context_object *json_add_object_member_array( struct json_context *c
 											, CTEXTSTR name
 											, int offset, int type, int count )
 {
-	struct json_context_object_member *member = New( struct json_context_object_member );
+	struct json_context_object_element *member = New( struct json_context_object_element );
 	member->name = StrDup( name );
 	member->offset = offset;
 	member->type = type;
@@ -380,7 +386,7 @@ void json_add_object_member_array_pointer( struct json_context *context
 													  , int offset, int type
 													  , int count_offset )
 {
-	struct json_context_object_member *member = New( struct json_context_object_member );
+	struct json_context_object_element *member = New( struct json_context_object_element );
 	member->name = StrDup( name );
 	member->offset = offset;
 	member->type = type;
@@ -394,21 +400,27 @@ CTEXTSTR json_build_message( struct json_context *context
 									, POINTER msg )
 {
 	CTEXTSTR result;
-
+   int n;
 	INDEX idx;
-	struct json_context_object_member *member;
-   VarTextEmpty( context->pvt );
-   json_begin_object( context );
-	LIST_FORALL( format->members, idx, struct json_context_object_member *, member )
+	struct json_context_object_element *member;
+	VarTextEmpty( context->pvt );
+   n = 0;
+	LIST_FORALL( format->members, idx, struct json_context_object_element *, member )
+	{
+      n++;
+	}
+   if( n > 1 )
+		json_begin_object( context, NULL );
+	LIST_FORALL( format->members, idx, struct json_context_object_element *, member )
 	{
 		switch( member->type )
 		{
 		case JSON_Element_Integer:
 			if( member->count )
-				json_add_int_value_array( context, member->name, *(int*)(((PTRSZVAL)msg)+member->offset), member->count );
+				json_add_int_value_array( context, member->name, *(int**)(((PTRSZVAL)msg)+member->offset), member->count );
 			else if( member->count_offset >= 0 )
 				json_add_int_value_array( context, member->name
-										, *(int*)(((PTRSZVAL)msg)+member->offset)
+										, *(int**)(((PTRSZVAL)msg)+member->offset)
 										, *(int*)(((PTRSZVAL)msg)+member->count_offset)
 										);
 			else
@@ -416,10 +428,10 @@ CTEXTSTR json_build_message( struct json_context *context
 			break;
 		case JSON_Element_String:
 			if( member->count )
-				json_add_value_array( context, member->name, (CTEXTSTR)(((PTRSZVAL)msg)+member->offset), member->count );
+				json_add_value_array( context, member->name, (CTEXTSTR*)(((PTRSZVAL)msg)+member->offset), member->count );
 			else if( member->count_offset >= 0 )
 				json_add_value_array( context, member->name
-										, (CTEXTSTR)(((PTRSZVAL)msg)+member->offset)
+										, (CTEXTSTR*)(((PTRSZVAL)msg)+member->offset)
 										, *(int*)(((PTRSZVAL)msg)+member->count_offset)
 										);
 			else
@@ -443,7 +455,7 @@ CTEXTSTR json_build_message( struct json_context *context
 
 //----------------------------------------------------------------------------------------------
 
-CTEXTSTR json_parse_message( struct json_context *context
+void json_parse_message( struct json_context *context
 									, struct json_context_object *format
                            , CTEXTSTR msg
 									, POINTER msg_output )
