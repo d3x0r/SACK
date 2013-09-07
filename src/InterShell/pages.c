@@ -542,7 +542,7 @@ void ChangePagesEx( PSI_CONTROL pc_canvas, PPAGE_DATA page DBG_PASS )
 	//lprintf( WIDE("-------------------------------------- ChangePages -------------------------------------") );
 	bChanging = TRUE;
 	if( !g.flags.bPageUpdateDisabled )
-		EnableCommonUpdates( pc_canvas, FALSE );
+		EnableCommonUpdates( canvas->pc_canvas, FALSE );
 
 	if( !g.flags.bPageReturn && ( canvas->current_page != page ) )
 	{
@@ -556,7 +556,7 @@ void ChangePagesEx( PSI_CONTROL pc_canvas, PPAGE_DATA page DBG_PASS )
 			was_active = 1;
 		else
 			was_active = 0;
-		HidePageEx( pc_canvas );
+		HidePageEx( canvas->pc_canvas );
 		//canvas->current_page = page;
 		RestorePageEx( canvas, page, FALSE, was_active);
 	}
@@ -565,10 +565,9 @@ void ChangePagesEx( PSI_CONTROL pc_canvas, PPAGE_DATA page DBG_PASS )
 	// I dunno about all this....
 	if( !g.flags.bPageUpdateDisabled )
 	{
-		EnableCommonUpdates( pc_canvas, TRUE );
-		//ReleaseCommonUse( pc_canvas );
+		EnableCommonUpdates( canvas->pc_canvas, TRUE );
 		/* disabled auto smudge on enable(TRUE).... so smudge */
-		SmudgeCommon( pc_canvas );
+		SmudgeCommon( canvas->pc_canvas );
 	}
 	//lprintf( WIDE("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Changed Pages ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-") );
 	bChanging = FALSE;
