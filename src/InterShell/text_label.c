@@ -685,7 +685,7 @@ CTEXTSTR InterShell_TranslateLabelTextEx( PMENU_BUTTON button, PPAGE_LABEL label
 
 CTEXTSTR InterShell_TranslateLabelText( PPAGE_LABEL label, TEXTSTR output, int buffer_len, CTEXTSTR variable )
 {
-   return InterShell_TranslateLabelTextEx( NULL, label, output, buffer_len, variable );
+	return InterShell_TranslateLabelTextEx( NULL, label, output, buffer_len, variable );
 }
 
 
@@ -699,7 +699,7 @@ void LabelVariableChanged( PVARIABLE variable) // update any labels which are us
 		{
 			INDEX idx;
 			PPAGE_LABEL label;
-         PMENU_BUTTON button;
+			PMENU_BUTTON button;
 			LIST_FORALL( var->references, idx, PPAGE_LABEL, label )
 			{
 				CTEXTSTR tmp;
@@ -721,7 +721,7 @@ void LabelVariableChanged( PVARIABLE variable) // update any labels which are us
 			}
 			LIST_FORALL( var->button_refs, idx, PMENU_BUTTON, button )
 			{
-            UpdateButton( button );
+				UpdateButton( button );
 			}
 		}
 	}
@@ -743,7 +743,7 @@ OnDestroyControl( TEXT_LABEL_NAME )( PTRSZVAL psv )
 	INDEX nVar;
 	LIST_FORALL( extern_variables, nVar, PVARIABLE, var )
 	{
-      DeleteLink( &var->references, (POINTER)psv );
+		DeleteLink( &var->references, (POINTER)psv );
 	}
 	DeleteLink( &l.labels, title );
 	DestroyCommon( &title->control );
@@ -756,9 +756,9 @@ OnCreateControl( TEXT_LABEL_NAME )( PSI_CONTROL frame, S_32 x, S_32 y, _32 w, _3
 {
 	PPAGE_LABEL title = New( struct page_label );
 	MemSet( title, 0, sizeof( *title ) );
-   title->canvas = frame;
+	title->canvas = frame;
 	title->page = ShellGetCurrentPage();
-   title->button = InterShell_GetCurrentlyCreatingButton();
+	title->button = InterShell_GetCurrentlyCreatingButton();
 	title->control = MakeControl( frame, STATIC_TEXT, x, y, w, h, -1 );
 	SetCommonBorder( title->control, BORDER_FIXED|BORDER_NONE );
 	//SetControlAlignment( title->control, 2 );
@@ -772,11 +772,11 @@ OnGetControl( TEXT_LABEL_NAME )( PTRSZVAL psv )
 //PSI_CONTROL CPROC GetTitleControl( PTRSZVAL psv )
 {
 	PPAGE_LABEL title = (PPAGE_LABEL)psv;
-   if( title )
+	if( title )
 		return title->control;
 	else
-      DebugBreak();
-      return NULL;
+		DebugBreak();
+	return NULL;
 }
 
 OnSaveControl( TEXT_LABEL_NAME )( FILE *file,PTRSZVAL psv )
@@ -794,7 +794,7 @@ OnSaveControl( TEXT_LABEL_NAME )( FILE *file,PTRSZVAL psv )
 		fprintf( file, WIDE("%sfont name=%s\n"), InterShell_GetSaveIndent(),title->preset_name );
 	}
 	if( title->button->text )
-	fprintf( file, WIDE("%slabel=%s\n"), InterShell_GetSaveIndent(), EscapeMenuString( title->button->text ) );
+		fprintf( file, WIDE("%slabel=%s\n"), InterShell_GetSaveIndent(), EscapeMenuString( title->button->text ) );
 }
 
 
@@ -802,7 +802,7 @@ static PTRSZVAL CPROC SetTitleLabel( PTRSZVAL psv, arg_list args )
 {
 	PPAGE_LABEL title = (PPAGE_LABEL)psv;
 	PARAM( args, TEXTCHAR *, label );
-   InterShell_SetButtonText( title->button, label );
+	InterShell_SetButtonText( title->button, label );
 	return psv;
 }
 
@@ -810,64 +810,64 @@ static PTRSZVAL CPROC SetTitleColor( PTRSZVAL psv, arg_list args )
 {
 	PPAGE_LABEL title = (PPAGE_LABEL)psv;
 	PARAM( args, CDATA, color );
-   title->color = color;
-   return psv;
+	title->color = color;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetTitleBackColor( PTRSZVAL psv, arg_list args )
 {
 	PPAGE_LABEL title = (PPAGE_LABEL)psv;
 	PARAM( args, CDATA, color );
-   title->back_color = color;
-   return psv;
+	title->back_color = color;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetTitleCenter( PTRSZVAL psv, arg_list args )
 {
 	PPAGE_LABEL title = (PPAGE_LABEL)psv;
 	PARAM( args, LOGICAL, center );
-   title->flags.bCenter = center;
-   return psv;
+	title->flags.bCenter = center;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetTitleTextShadow( PTRSZVAL psv, arg_list args )
 {
 	PPAGE_LABEL title = (PPAGE_LABEL)psv;
 	PARAM( args, LOGICAL, center );
-   title->flags.bShadow = center;
-   return psv;
+	title->flags.bShadow = center;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetTitleVertical( PTRSZVAL psv, arg_list args )
 {
 	PPAGE_LABEL title = (PPAGE_LABEL)psv;
 	PARAM( args, LOGICAL, vertical );
-   title->flags.bVertical = vertical;
-   return psv;
+	title->flags.bVertical = vertical;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetTitleInverted( PTRSZVAL psv, arg_list args )
 {
 	PPAGE_LABEL title = (PPAGE_LABEL)psv;
 	PARAM( args, LOGICAL, inverted );
-   title->flags.bInverted = inverted;
-   return psv;
+	title->flags.bInverted = inverted;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetTitleRight( PTRSZVAL psv, arg_list args )
 {
 	PPAGE_LABEL title = (PPAGE_LABEL)psv;
 	PARAM( args, LOGICAL, right );
-   title->flags.bRight = right;
-   return psv;
+	title->flags.bRight = right;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetTitleScrollRightLeft( PTRSZVAL psv, arg_list args )
 {
 	PPAGE_LABEL title = (PPAGE_LABEL)psv;
 	PARAM( args, LOGICAL, scroll );
-   title->flags.bScroll = scroll;
-   return psv;
+	title->flags.bScroll = scroll;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetTitleFontByName( PTRSZVAL psv, arg_list args )
@@ -875,7 +875,7 @@ static PTRSZVAL CPROC SetTitleFontByName( PTRSZVAL psv, arg_list args )
 	PPAGE_LABEL title = (PPAGE_LABEL)psv;
 	PARAM( args, TEXTCHAR *, name );
 	title->font = UseACanvasFont( title->canvas, name );
-   title->preset_name = StrDup( name );
+	title->preset_name = StrDup( name );
 	return psv;
 }
 
@@ -883,14 +883,14 @@ OnLoadControl( TEXT_LABEL_NAME )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
 	AddConfigurationMethod( pch, WIDE("color=%c"), SetTitleColor );
 	AddConfigurationMethod( pch, WIDE("background color=%c"), SetTitleBackColor );
-   AddConfigurationMethod( pch, WIDE("font name=%m"), SetTitleFontByName );
+	AddConfigurationMethod( pch, WIDE("font name=%m"), SetTitleFontByName );
 	AddConfigurationMethod( pch, WIDE("label=%m"), SetTitleLabel );
-   AddConfigurationMethod( pch, WIDE("align center?%b"), SetTitleCenter );
-   AddConfigurationMethod( pch, WIDE("align scroll?%b"), SetTitleScrollRightLeft );
-   AddConfigurationMethod( pch, WIDE("align right?%b"), SetTitleRight );
-   AddConfigurationMethod( pch, WIDE("align vertical?%b"), SetTitleVertical );
-   AddConfigurationMethod( pch, WIDE("align vertical?%b"), SetTitleTextShadow );
-   AddConfigurationMethod( pch, WIDE("align inverted?%b"), SetTitleInverted );
+	AddConfigurationMethod( pch, WIDE("align center?%b"), SetTitleCenter );
+	AddConfigurationMethod( pch, WIDE("align scroll?%b"), SetTitleScrollRightLeft );
+	AddConfigurationMethod( pch, WIDE("align right?%b"), SetTitleRight );
+	AddConfigurationMethod( pch, WIDE("align vertical?%b"), SetTitleVertical );
+	AddConfigurationMethod( pch, WIDE("align vertical?%b"), SetTitleTextShadow );
+	AddConfigurationMethod( pch, WIDE("align inverted?%b"), SetTitleInverted );
 }
 
 OnQueryShowControl( TEXT_LABEL_NAME )( PTRSZVAL psv )
@@ -985,11 +985,33 @@ OnEditControl( TEXT_LABEL_NAME )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 				EnableColorWellPick( SetColorWell( GetControl( frame, CLR_BACKGROUND), page_label->back_color ), TRUE );
 				//EnableColorWellPick( SetColorWell( GetControl( frame, CLR_RING_BACKGROUND), page_label->button->secondary_color ), TRUE );
 				SetCheckState( GetControl( frame, CHECKBOX_LABEL_SHADOW ), page_label->flags.bShadow );
-			   SetCheckState( GetControl( frame, CHECKBOX_LABEL_CENTER ), page_label->flags.bCenter );
-			   SetCheckState( GetControl( frame, CHECKBOX_LABEL_SCROLL ), page_label->flags.bScroll );
+				SetCheckState( GetControl( frame, CHECKBOX_LABEL_CENTER ), page_label->flags.bCenter );
+				SetCheckState( GetControl( frame, CHECKBOX_LABEL_SCROLL ), page_label->flags.bScroll );
 				SetCheckState( GetControl( frame, CHECKBOX_LABEL_RIGHT ), page_label->flags.bRight );
 				SetButtonPushMethod( GetControl( frame, BTN_PICKFONT ), PickLabelFont, psv );
-				SetCommonText( GetControl( frame, TXT_CONTROL_TEXT ), page_label->button->text );
+				{
+					TEXTCHAR buffer[256];
+					int o;
+					CTEXTSTR string = page_label->button->text;
+					int n;
+					for( n = 0; ( o < (sizeof(buffer)/sizeof(buffer[0])) ) && string[n]; n++ )
+					{
+						switch( string[n] )
+						{
+						case '\n':
+							buffer[o++] = '\\';
+							buffer[o++] = 'n';
+							break;
+						case '\t':
+							buffer[o++] = '\\';
+							buffer[o++] = 't';
+							break;
+						default:
+							buffer[o++] = string[n];
+						}
+					}
+					SetCommonText( GetControl( frame, TXT_CONTROL_TEXT ), buffer );
+				}
 				{
 					PSI_CONTROL list = GetControl( frame, LST_VARIABLES );
 					if( list )
@@ -1014,11 +1036,11 @@ OnEditControl( TEXT_LABEL_NAME )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 			if( okay )
 			{
 				// blah get the resuslts...
-            if( page_label->new_font )
+				if( page_label->new_font )
 					page_label->font = page_label->new_font;
 				page_label->color = GetColorFromWell( GetControl( frame, CLR_TEXT_COLOR ) );
 				page_label->back_color = GetColorFromWell( GetControl( frame, CLR_BACKGROUND ) );
-            page_label->flags.bShadow = GetCheckState( GetControl( frame, CHECKBOX_LABEL_SHADOW ) );
+				page_label->flags.bShadow = GetCheckState( GetControl( frame, CHECKBOX_LABEL_SHADOW ) );
 				page_label->flags.bCenter = GetCheckState( GetControl( frame, CHECKBOX_LABEL_CENTER ) );
 				if( !page_label->flags.bCenter )
 					page_label->flags.bRight = GetCheckState( GetControl( frame, CHECKBOX_LABEL_RIGHT ) );
@@ -1027,8 +1049,9 @@ OnEditControl( TEXT_LABEL_NAME )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 				page_label->flags.bScroll = GetCheckState( GetControl( frame, CHECKBOX_LABEL_SCROLL ) );
 
 				{
-					TEXTCHAR buffer[128];
+					TEXTCHAR buffer[256];
 					int i,o;
+					GetControlText( GetControl( frame, TXT_CONTROL_TEXT ), buffer, sizeof( buffer ) );
 					for( i = o = 0; buffer[i]; i++,o++ )
 					{
 						if( buffer[o] == '\\' )
@@ -1036,13 +1059,16 @@ OnEditControl( TEXT_LABEL_NAME )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 							switch( buffer[o+1] )
 							{
 							case 'n':
-                        i++;
-                        buffer[o] = '\n';
-                        break;
+								i++;
+								buffer[o] = '\n';
+								break;
+							case 't':
+								i++;
+								buffer[o] = '\t';
+								break;
 							}
 						}
 					}
-					GetControlText( GetControl( frame, TXT_CONTROL_TEXT ), buffer, sizeof( buffer ) );
 					if( page_label->button->text )
 						Release( page_label->button->text );
 					page_label->button->text = StrDup( buffer );
@@ -1073,10 +1099,10 @@ void SetVariable( CTEXTSTR name, CTEXTSTR value )
 {
 	PVARIABLE pVar = FindVariableByName( name );
 	if( !pVar )
-      pVar = CreateLabelVariableEx( name, LABEL_TYPE_CONST_STRING, value, 0 );
+		pVar = CreateLabelVariableEx( name, LABEL_TYPE_CONST_STRING, value, 0 );
 	else if( pVar->flags.bConstString )
 	{
-      /* this isn't const data... or better not be... */
+		/* this isn't const data... or better not be... */
 		Release( (POINTER)pVar->data.string_const_value );
 		if( value )
 			pVar->data.string_const_value = StrDup( value );
@@ -1159,8 +1185,8 @@ static void OnCloneControl( WIDE( "InterShell/Set Variable" ) )( PTRSZVAL psvNew
 {
 	PSETVAR pSetVarNew = (PSETVAR)psvNew;
 	PSETVAR pSetVarOld = (PSETVAR)psvOld;
-   pSetVarNew->varname = StrDup( pSetVarOld->varname );
-   pSetVarNew->newval = StrDup( pSetVarOld->newval );
+	pSetVarNew->varname = StrDup( pSetVarOld->varname );
+	pSetVarNew->newval = StrDup( pSetVarOld->newval );
 }
 
 static PTRSZVAL CPROC SetVariableVariableName( PTRSZVAL psv, arg_list args )
@@ -1173,7 +1199,7 @@ static PTRSZVAL CPROC SetVariableVariableName( PTRSZVAL psv, arg_list args )
 		if( !pVar )
 			pVar = CreateLabelVariableEx( pSetVar->varname, LABEL_TYPE_CONST_STRING, NULL, 0 );
  	}
-   return psv;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetVariableVariableValue( PTRSZVAL psv, arg_list args )
@@ -1181,13 +1207,13 @@ static PTRSZVAL CPROC SetVariableVariableValue( PTRSZVAL psv, arg_list args )
 	PARAM( args, CTEXTSTR, name );
 	PSETVAR pSetVar = (PSETVAR)psv;
 	pSetVar->newval = StrDup( name );
-   return psv;
+	return psv;
 }
 
 OnLoadControl( WIDE( "InterShell/Set Variable" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
-   AddConfigurationMethod( pch,  WIDE( "set variable text name=%m" ), SetVariableVariableName );
-   AddConfigurationMethod( pch,  WIDE( "set variable text value=%m" ), SetVariableVariableValue );
+	AddConfigurationMethod( pch,  WIDE( "set variable text name=%m" ), SetVariableVariableName );
+	AddConfigurationMethod( pch,  WIDE( "set variable text value=%m" ), SetVariableVariableValue );
 }
 
 #undef SetTextLabelOptions
