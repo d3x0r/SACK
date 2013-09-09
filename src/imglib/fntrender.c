@@ -92,11 +92,11 @@ int PrintChar( int bits, int charnum, PCHARACTER character, int height )
 		outwidth = ((character->size+7) & 0xF8 ); // round up to next byte increments size.
 
 	if( ((outwidth)/(8/bits))*( ( character->ascent - character->descent ) + 1 ))
-		fprintf( output, WIDE("static struct{ char s, w, o, j, a, d; EXTRA_STRUCT unsigned char data[%d]; } %s =\n"),
+		fprintf( output, WIDE("static struct{ char s, w, o, j; short a, d; EXTRA_STRUCT unsigned char data[%d]; } %s =\n"),
 						((outwidth)/(8/bits))*( ( character->ascent - character->descent ) + 1 )
 						, charid );
 	else
-		fprintf( output, WIDE("static struct{ char s, w, o, j, a, d; EXTRA_STRUCT } %s =\n")
+		fprintf( output, WIDE("static struct{ char s, w, o, j; short a, d; EXTRA_STRUCT } %s =\n")
 						, charid );
 
 	fprintf( output, WIDE("{ %2d, %2d, %2d, 0, %2d, %2d, EXTRA_INIT ")
