@@ -126,7 +126,8 @@ void RenderGL( struct display_camera *camera )
 
 				if( first_draw )
 				{
-					lprintf( "Send first draw" );
+					if( l.flags.bLogRenderTiming )
+						lprintf( "Send first draw" );
 					if( reference->FirstDraw3d )
 						reference->FirstDraw3d( reference->psv );
 				}
@@ -156,11 +157,11 @@ void RenderGL( struct display_camera *camera )
 			break;
 		}
 	
-		if( l.flags.bLogWrites )
+		if( l.flags.bLogRenderTiming )
 			lprintf( "Begin drawing from bottom up" );
 		for( hVideo = l.bottom; hVideo; hVideo = hVideo->pBelow )
 		{
-			if( l.flags.bLogWrites )
+			if( l.flags.bLogRenderTiming )
 				lprintf( WIDE("Have a video in stack... %p"), hVideo );
 			hVideo->flags.bRendering = 1;
 			if( hVideo->flags.bDestroy )
@@ -196,6 +197,8 @@ void RenderGL( struct display_camera *camera )
 			glEnable( GL_DEPTH_TEST );
 			hVideo->flags.bRendering = 0;
 		}
+		if( l.flags.bLogRenderTiming )
+			lprintf( "Begin Render (plugins)" );
 
 		{
 			INDEX idx;
@@ -206,6 +209,8 @@ void RenderGL( struct display_camera *camera )
 					ref->Draw3d( ref->psv );
 			}
 		}
+		if( l.flags.bLogRenderTiming )
+			lprintf( "End Render" );
 	}
 }
 

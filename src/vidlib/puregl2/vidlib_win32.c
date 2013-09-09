@@ -1183,6 +1183,9 @@ WM_DROPFILES
 				l.flags.bUpdateWanted = 0;
 				LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
 				{
+               // skip the 'default' camera.
+					if( !idx )
+                  continue;
 					// if plugins or want update, don't continue.
 					if( !camera->plugins && !l.flags.bUpdateWanted )
 						continue;
