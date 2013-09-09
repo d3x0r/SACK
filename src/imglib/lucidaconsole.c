@@ -25,8 +25,13 @@ namespace image {
 	namespace default_font {
 #endif
 
+#ifdef __3D__
 #define EXTRA_STRUCT  struct ImageFile_tag *cell; RCOORD x1, x2, y1, y2; struct font_char_tag *next_in_line;
 #define EXTRA_INIT  0,0,0,0,0,0,
+#else
+#define EXTRA_STRUCT  
+#define EXTRA_INIT  
+#endif
 
 typedef char CHARACTER, *PCHARACTER;
 static struct{ char s, w, o, j; short a, d; EXTRA_STRUCT unsigned char data[16]; } _char_0 =

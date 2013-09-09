@@ -9,6 +9,7 @@ if( __ANDROID__ OR __QNX__ )
 ADD_DEFINITIONS( -DUSE_GLES2 )
 endif( __ANDROID__ OR __QNX__ )
 
+ADD_DEFINITIONS( -D__3D__ )
 
 set( font_sources font.c fntcache.c fntrender.c lucidaconsole.c )
 set( loader_sources ../bmpimage.c ../gifimage.c ../pngimage.c ../jpgimage.c )
