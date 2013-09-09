@@ -1429,7 +1429,7 @@ void RackBalls( void )
 			patch->fallRigidBody->translate( btVector3( patch->origin[0], patch->origin[1], patch->origin[2] ) );
 			{
 				btTransform t;
-				lprintf( "SET ROTATION" );
+				//lprintf( "SET ROTATION" );
 				t.setRotation(btQuaternion(0,0,0,1));
 				t.setOrigin(btVector3(patch->origin[0], patch->origin[1], patch->origin[2]));
       
@@ -1566,7 +1566,6 @@ void MoveBallsToRack( void )
 			btTransform trans;
 			patch->fallRigidBody->getMotionState()->getWorldTransform(trans);
 			trans.setOrigin( work );
-			lprintf( "SET ROTATION" );
 			trans.setRotation( rotation );
 			//trans.setRotation(  btQuaternion( 0, 0, 1, 0 ) );
 			patch->fallRigidBody->getMotionState()->setWorldTransform(trans);
@@ -1868,6 +1867,7 @@ static void OnBeginDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psv,PTRANSFORM cam
 #define GL_LIGHT_MODEL_COLOR_CONTROL 0x81F8
 #define GL_SEPARATE_SPECULAR_COLOR 0x81FA
 #endif
+	//lprintf( "Begin Draw 3d (setup to draw)" );
 	glLightModeli (GL_LIGHT_MODEL_COLOR_CONTROL,GL_SEPARATE_SPECULAR_COLOR);
 	glShadeModel( GL_SMOOTH );
 	l.transform = camera;
@@ -2022,7 +2022,7 @@ static void OnBeginDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psv,PTRANSFORM cam
 	}
 	else
 	{
-		lprintf( "begin watch   %d", l.nNextBalls[0] );
+		//lprintf( "begin watch   %d", l.nNextBalls[0] );
 		BeginWatch( l.nNextBalls[0] );
 		//lprintf( "at home position" );
 	}
@@ -2585,7 +2585,6 @@ static btCompoundShape* BuildTowerCompoundShape(const btVector3& brickFullDimens
             btScalar floorOffsetAngle = (f%2==1 ? floorOffsetAngleBase : 0.0f);
             for (unsigned t=0;t< numBricksPerRow;t++)   {
                T2=T;                  
-	lprintf( "SET ROTATION" );
                T2.setRotation(btQuaternion(t * elementOffsetAngle+ floorOffsetAngle,0,0));//assignAY( t * elementOffsetAngle+ floorOffsetAngle );
                T2.setOrigin(T2.getOrigin()+T2.getBasis().getColumn(2)*radius);                     
                // Body Creation:

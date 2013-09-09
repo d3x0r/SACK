@@ -115,14 +115,22 @@ void InitSuperSimpleShader( PImageShaderTracker shader )
 	
 	const char *simple_color_vertex_source = "\n"
 	                                         "// input parameters for our vertex shader\n"
-	                                         "out vec4 diffuse,ambient;\n"
-											 "out vec3 normal,lightDir,lightDir2,halfVector,halfVector2;\n"
+	                                         "uniform  vec4 in_MaterialDiffuse;\n"
+											 "uniform vec4 in_MaterialSpecular;\n"
+	                                         "uniform  float in_MaterialShine;\n"
+	                                         "uniform  vec4 in_LightSpecular1;\n"
+	                                         "uniform  vec4 in_LightSpecular2;\n"
+											 "uniform  vec4 in_LightDiffuse1;\n"
+	                                         "uniform  vec4 in_LightDiffuse2;\n"
+											 "out vec4 color;\n"
 	                                         "\n"
 	                                         "\n"
 	                                         "/**\n"
 	                                         " * Vertex Shader\n"
 	                                         " */\n"
 	                                         "void main() {\n"
+	                                         " vec4 diffuse,ambient;\n"
+											 " vec3 normal,lightDir,halfVector,lightDir2,halfVector2;\n"
 	                                         "  /**\n"
 	                                         "   * We transform each vertex by the world view projection matrix to bring\n"
 	                                         "   * it from world space to projection space.\n"
@@ -145,29 +153,12 @@ void InitSuperSimpleShader( PImageShaderTracker shader )
 											 "  ambient = in_MaterialAmbient * in_LightAmbient1 + in_MaterialAmbient * in_LightAmbient2;\n"
 											 "  ambient += in_GlobalAmbient * in_MaterialAmbient;\n"
 	
-											 "}\n";
-
-	const char *simple_color_pixel_source =  "#version 140\n"
-	                                         "// #o3d SplitMarker\n"
-	                                         "/**\n"
-	                                         " * Pixel Shader - pixel shader does nothing but return the color.\n"
-	                                         " */\n"
-	                                         "uniform  vec4 in_MaterialDiffuse;\n"
-											 "uniform vec4 in_MaterialSpecular;\n"
-	                                         "uniform  float in_MaterialShine;\n"
-	                                         "uniform  vec4 in_LightSpecular1;\n"
-	                                         "uniform  vec4 in_LightSpecular2;\n"
-											 "uniform  vec4 in_LightDiffuse1;\n"
-	                                         "uniform  vec4 in_LightDiffuse2;\n"
-	                                         "in vec4 diffuse,ambient;\n"
-											 "in vec3 normal,lightDir,halfVector,lightDir2,halfVector2;\n"
-	                                         "out vec4 out_Color;\n"
-	                                         "void main() {\n"
+	                                         "  {\n"
 											 "    vec3 n;\n"
 											 "	  float NdotL,NdotHV;\n"
 		
 											 "    /* The ambient term will always be present */\n"
-											 "	  vec4 color = ambient;\n"
+											 "	  color = ambient;\n"
 		
 											 "		/* a fragment shader can't write a varying variable, hence we need\n"
 											 "		a new variable to store the normalized interpolated normal */\n"
@@ -189,6 +180,17 @@ void InitSuperSimpleShader( PImageShaderTracker shader )
 											 "					in_LightSpecular2 * \n"
 											 "					pow(NdotHV, in_MaterialShine);\n"
 											 "		}\n"
+	                                         "  }\n"
+											 "}\n";
+
+	const char *simple_color_pixel_source =  "#version 140\n"
+	                                         "// #o3d SplitMarker\n"
+	                                         "/**\n"
+	                                         " * Pixel Shader - pixel shader does nothing but return the color.\n"
+	                                         " */\n"
+	                                         "in vec4 color;\n"
+	                                         "out vec4 out_Color;\n"
+	                                         "void main() {\n"
 											 "	out_Color = color;\n"
 	                                         "}\n";
 
@@ -285,15 +287,14 @@ void CPROC EnableSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv, va_lis
 
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
-	CheckErr();
+	//CheckErr();
 	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );
-	CheckErr();
+	//CheckErr();
 	glVertexAttribPointer( 1, 3, GL_FLOAT, FALSE, 0, norms );
-	CheckErr();
+	//CheckErr();
 	glUniform4fv( l.shader.simple_shader.material.ambient, 1, color );
 	//glVertexAttribPointer( 2, 4, GL_FLOAT, FALSE, 0, color );
-	CheckErr();
-
+	//CheckErr();
 }
 
 
@@ -456,10 +457,10 @@ void InitLayerTextureShader( PImageShaderTracker shader )
 
 void SetMaterial( void )
 {
-   lprintf( "Set materiall..." );
+   //lprintf( "Set materiall..." );
 
    {
-		lprintf( "Use program" );
+		//lprintf( "Use program" );
 		glUseProgram( l.shader.simple_shader.shader );
 
 		float spec[4];
@@ -509,7 +510,7 @@ void SetMaterial( void )
 		CheckErr();
 
 	}
-    lprintf( "Disable program" );
+    //lprintf( "Disable program" );
 }
 
 void SetLights( void )
