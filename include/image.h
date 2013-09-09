@@ -1181,6 +1181,9 @@ IMAGE_PROC void IMAGE_API RerenderFont( SFTFont font, S_32 width, S_32 height, P
 	 */
 IMAGE_PROC void IMAGE_API DumpFontCache( void );
 
+/* takes a font and dumps a header-file formatted file; then the font can be
+ statically built into code. */
+IMAGE_PROC void IMAGE_API DumpFontFile( CTEXTSTR name, SFTFont font_to_dump );
 
 /* Creates a font based on indexes from the internal font cache.
    This is used by the FontPicker dialog to choose a font. The
