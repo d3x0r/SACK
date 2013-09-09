@@ -965,7 +965,7 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 		//lprintf( " Begin --------------"  );
 		for( s = 0; s < 6; s++ )
 		{
-			//lprintf( "section %d = %d,%d", section, s, s2 );
+			//lprintf( "Section %d", s );
 			for( layer = 0; layer < 1; layer++ )
 			{
 				if( layer == 0 )
@@ -999,30 +999,24 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 					tmpval[0] = 0.35f;
 					tmpval[1] = 0.35f;
 					tmpval[2] = 0.35f;
-					//glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, tmpval );
-					//glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 32/*l.values[MAT_SHININESS]/2*/ ); // 0-128
+
 					tmpval[0] = 0.5f;
 					tmpval[1] = 0.5f;
 					tmpval[2] = 0.5f;
 					//tmpval[3] = 1.0f;
-					//glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, tmpval );
 					tmpval[0] = 0.5;
 					tmpval[1] = 0.5;
 					tmpval[2] = 0.5;
 					//tmpval[3] = 1.0f;
-					//glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, tmpval );
 					if( s == 1 )
 					{
 						color[3] = fade;
-						//glBindTexture( GL_TEXTURE_2D, l.numbers.texture );
 						//bound = 1;
 						//front = 1;
 					}
 					else if( s == 4 )
 					{
 						color[3] = fade;
-						//glColor4f( 1.0f, 1.0f, 1.0f, fade );
-						//glBindTexture( GL_TEXTURE_2D, l.logo_texture );
 						//bound = 1;
 						//front = 0;
 					}
@@ -1057,7 +1051,7 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 					//ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
 					ImageEnableShader( l.shader.simple_shader.shader_tracker, verts, norms, color );
 					glDrawArrays( GL_TRIANGLE_STRIP, 0, n );
-					CheckErr();
+					//CheckErr();
 				}
 			}
 		}
@@ -1068,7 +1062,7 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 int DrawSphereThing( PHEXPATCH patch, int mode )
 {
 	RCOORD scale = 0.0;
-
+	//lprintf( "Begin draw %d", patch->number );
 	if( patch->number == l.next_active_ball && ( l.next_active_tick > 0 ) )
 	{
 		scale = 1.0 - ( (RCOORD)l.next_active_tick - l.last_tick ) / TIME_TO_APPROACH;
@@ -1081,14 +1075,14 @@ int DrawSphereThing( PHEXPATCH patch, int mode )
 	btTransform trans;
 	patch->fallRigidBody->getMotionState()->getWorldTransform( trans );
 	trans.getOpenGLMatrix(m);
-	//ImageSetShaderModelView( l.shader.extra_simple_shader.shader_tracker, (float*)(m) );
+	ImageSetShaderModelView( l.shader.extra_simple_shader.shader_tracker, (float*)(m) );
 	ImageSetShaderModelView( l.shader.simple_shader.shader_tracker, m );
 
 	//which is a 1x1x1 sort of patch array
 	RenderBandPatch( patch, m, mode );
 	RenderPolePatch( patch, m, mode, 0 );
 	RenderPolePatch( patch, m, mode, 1 );
-
+	
 	return 1;
 }
 
@@ -1968,17 +1962,18 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
 
 static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
+	
 	l.frame = CreateFrame( "Light Slider Controls", 0, 0, 1024, 768, 0, NULL );
 	for( int n = 0; n < 40; n++ )
 	{
 		PSI_CONTROL pc;
 		l.sliders[n] = MakeSlider( l.frame, 5 + 25*n, 5, 20, 420, 1, 0, UpdateSliderVal, n );
 		SetSliderValues( l.sliders[n], 0, 128, 256 );
-		pc = MakeButton( l.frame, 5, 430, 45, 15, 0, "Save", 0, SaveColors, 0 );
-		pc = MakeButton( l.frame, 55, 430, 45, 15, 0, "Load", 0, LoadColors, 0 );
 	}
+	 MakeButton( l.frame, 5, 430, 45, 15, 0, "Save", 0, SaveColors, 0 );
+	 MakeButton( l.frame, 55, 430, 45, 15, 0, "Load", 0, LoadColors, 0 );
 	DisplayFrame( l.frame );
-
+	
 
 	l.identity_depth = identity_depth;
 	l.aspect = aspect;
@@ -2025,9 +2020,9 @@ static LOGICAL OnUpdate3d( WIDE( "Terrain View" ) )( PTRANSFORM origin )
 		SetPoint( l.initial_view_origin, o );
 	}
 	GetRotationMatrix( l.transform, l.initial_view_quat );
-
+	
 #ifdef DEBUG_TIMING
-	lprintf( "Tick." );
+	lprintf( "Update Tick." );
 #endif
 	UpdatePositions( 0, origin );  // updates last_tick to now.
 #ifdef DEBUG_TIMING
@@ -2044,6 +2039,7 @@ static void OnBeginDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psv,PTRANSFORM cam
 #define GL_LIGHT_MODEL_COLOR_CONTROL 0x81F8
 #define GL_SEPARATE_SPECULAR_COLOR 0x81FA
 #endif
+	//lprintf( "Begin Draw 3d (setup to draw)" );
 #ifndef __ANDROID__
 	glLightModeli (GL_LIGHT_MODEL_COLOR_CONTROL,GL_SEPARATE_SPECULAR_COLOR);
 #endif
@@ -2060,193 +2056,12 @@ static void OnBeginDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psv,PTRANSFORM cam
 
 		l.numbers.texture = ReloadMultiShadedTexture( l.numbers.image, 0, AColor( 5, 5, 5, 32), Color( 12, 12, 83 ), Color( 0, 170, 170 ) );
 	}
-
+	//lprintf( "..." );
 	// this transform is initialized to the viewpoint in vidlib.
-
-	if( l.flags.rack_balls )
-	{
-		RackBalls();
-		l.flags.rack_balls = 0;
-	}
-
-	hold_update = TRUE;
-
-	MoveBallsToRack();
-
-	if( l.return_to_home )
-	{
-		lprintf( "return to home..." );
-		if( 1 )
-		{
-			l.return_to_home = 0;
-		}
-		else
-		{
-			// want to return to home; 
-			// clear out the last active ball
-
-			if( l.return_to_home > l.last_tick )
-			{
-				// still under the final tick, move camera towards home
-				MoveCameraToHome();
-			}
-			else
-			{
-				//lprintf( "at home position..." );
-				if( l.active_ball )
-				{
-					FadeBall( l.active_ball );
-					l.active_ball = 0;
-				}
-				l.return_to_home = 0;
-			}
-		}
-	}
-	// update the camera to one of the balls....
-	else if( l.next_active_ball && !l.active_ball )
-	{
-		lprintf( "next ball is %d now(%d)  watch(%d)  next(%d)"
-			, l.last_tick, l.next_active_ball, l.watch_ball_tick, l.next_active_tick );
-		if( l.next_active_ball && l.watch_ball_tick || l.next_active_tick == 0 )
-		{
-			lprintf( "Pointing camera..." );
-			PointCameraAtNextActiveBall();
-			// when we are done watching; clear watch flag.
-			if( l.watch_ball_tick <= l.last_tick )
-			{
-				l.watch_ball_tick = 0;
-				// if watch flag is clear, setup approach time.
-				BeginApproach();
-			}
-		}
-		else
-		{
-			if( l.next_active_tick < l.last_tick )
-			{
-				lprintf( "Trigger pivot" );
-				l.active_ball = l.next_active_ball;
-				l.next_active_ball = 0;
-				l.next_active_tick = 0;
-				l.active_ball_forward_tick = 0;
-				if( l.flags.nextball_mode )
-				{
-					BeginPivot();
-				}
-			}
-
-			MoveBallToCameraApproach();
-			//MoveCameraOnBallApproach();
-		}
-	}
-	else if( l.active_ball )
-	{
-		PHEXPATCH ball = (PHEXPATCH)GetLink( &l.patches, l.active_ball-1 ); // pick one of the balls to follow....
-		lprintf( "active ball..." );
-		if( !ball->flags.simulated && !ball->flags.grabbed )
-		{
-			lprintf( "No ball." );
-			// no, ball is no longer simulated.
-			l.active_ball = 0;
-			l.return_to_home = l.last_tick + TIME_TO_HOME;
-		}
-
-		MoveBallToCameraApproach();
-		if( 0 ) // this is old mode active ball turn around thing...
-		{			
-			btTransform trans;
-			ball->fallRigidBody->getMotionState()->getWorldTransform( trans );
-			btVector3 ball_origin = trans.getOrigin();
-			lprintf( "Rotating?" );
-			{
-				btQuaternion rotation = trans.getRotation();
-				RCOORD r2[4];
-				RCOORD r3[4];
-				r2[0] = -rotation[3];
-				r2[1] = rotation[0];
-				r2[2] = rotation[1];
-				r2[3] = rotation[2];
-				SetRotationMatrix( camera, r2 );
-				
-				Translate( camera, ball_origin.x(), ball_origin.y(), ball_origin.z()  );
-				if( l.active_ball_forward_tick == 0 )
-				{
-					lprintf( "Fixed pos" );
-					MoveForward( camera, -70 );
-				}
-				else if(  l.active_ball_forward_tick > l.last_tick )
-				// rotate around until we lock...
-				{
-					lprintf( "rotating" );
-					RotateRel( camera, 0, (M_PI) * ( TIME_TO_TURN_BALL - (l.active_ball_forward_tick - l.last_tick) ) / TIME_TO_TURN_BALL, 0 ) ;
-					MoveForward( camera, -70 );
-					RotateRel( camera, 0, 0, M_PI  * ( TIME_TO_TURN_BALL - (l.active_ball_forward_tick - l.last_tick) ) / TIME_TO_TURN_BALL );
-				}
-				else
-				{
-					l.active_ball_forward_tick = 0;
-
-					RotateRel( camera, 0, (M_PI), 0 ) ;
-					MoveForward( camera, -70 );
-					RotateRel( camera, 0, 0, M_PI );
-					if( !l.return_to_home )
-					{
-						SetPoint( l.final_view_origin, GetOrigin( camera ) );
-						GetRotationMatrix( camera, l.final_view_quat );
-					}	
-				}
-			}
-		}
-	}
-	else
-	{
-		lprintf( "begin watch   %d", l.nNextBalls[0] );
-		BeginWatch( l.nNextBalls[0] );
-		//lprintf( "at home position" );
-	}
 }
 
 static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 {
-		{
-			// First simple object
-			float* vert = new float[9];	// vertex array
-			float* col  = new float[9];	// color array
-			
-			vert[0] =-0.3; vert[1] = 0.5; vert[2] =-1.0;
-			vert[3] =-0.8; vert[4] =-0.5; vert[5] =-1.0;
-			vert[6] = 0.2; vert[7] =-0.5; vert[8]= -1.0;
-
-			col[0] = 1.0; col[1] = 0.0; col[2] = 0.0;
-			col[3] = 1.0; col[4] = 1.0; col[5] = 0.0;
-			col[6] = 0.0; col[7] = 0.0; col[8] = 1.0;
-
-			// Second simple object
-			float* vert2 = new float[9];	// vertex array
-
-			vert2[0] =-0.2; vert2[1] = 0.5; vert2[2] =-1.0;
-			vert2[3] = 0.3; vert2[4] =-0.5; vert2[5] =-1.0;
-			vert2[6] = 0.8; vert2[7] = 0.5; vert2[8]= -1.0;
-
-			{
-				int n;
-				for( n = 0; n < 9; n++ )
-				{
-					vert[n] = 10* vert[n];
-					vert2[n] = 10* vert2[n];
-				}
-			}
-
-			ImageEnableShader( ImageGetShader( "Simple Shader", NULL ), vert, col );
-			glDrawArrays(GL_TRIANGLES, 0, 3);	// draw second object
-			CheckErr();
-			ImageEnableShader( ImageGetShader( "Simple Shader", NULL ), vert2, col );
-
-			glDrawArrays(GL_TRIANGLES, 0, 3);	// draw second object
-			CheckErr();
-
-		}
-
-
 	MATRIX m;
 	static _32 prior_tick;
 	static int frames;
@@ -2405,7 +2220,7 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 				if( !patch->flags.simulated && !patch->flags.grabbed && !patch->flags.racked )
 					continue;
 
-				
+#ifdef ENABLE_BALL_BEHIND_US_CLIPPING				
 				// this does additional clipping when we are close to the ball...
 				if( l.active_ball && !l.return_to_home )
 				{
@@ -2419,10 +2234,12 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 						continue;
 					}
 				}
-				
+#endif
+
 				// fading/faded balls do not draw here, they draw in the next pass.
 				if( patch->flags.fade )
 					continue;
+				//lprintf( "Draw patch." );
 				DrawSphereThing( patch, 1 );
 			}
 
@@ -2483,14 +2300,13 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 			col[4] = 0.0; col[5] = 1.0; col[6] = 0.0;  col[7] = 1.0;
 			col[8] = 0.5; col[9] = 0.0; col[10] = 1.0;  col[11] = 1.0;
 
-			ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, vert, col );
 			ImageSetShaderModelView( l.shader.extra_simple_shader.shader_tracker, (float*)(m) );
 			ImageSetShaderModelView( l.shader.simple_shader.shader_tracker, m );
+			ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, vert, col );
 
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 			glDrawArrays(GL_LINES, 0, 2);
 
-			CheckErr();
 			vert[0] =-0; vert[1] = 10; vert[2] =0;
 			vert[3] =1000; vert[4] =10; vert[5] =0;
 
@@ -2556,7 +2372,7 @@ void ApplyBlowerForces( void )
 			btScalar x = dir.dot( up );
 			if( x > 0.60 )
 			{
-            btScalar decay = dist*dist*dist;
+				btScalar decay = dist*dist*dist;
 				btScalar force = magnitude/(dist*dist*dist);
 				if( force > 180 )
 					force = 180;
@@ -2623,6 +2439,7 @@ CRITICALSECTION csUpdate;
 		//lprintf( "Step simulation %d", now-l.last_tick );
 		l.bullet.dynamicsWorld->stepSimulation( (now-l.last_tick)/(TIME_SCALE*1000.f), 20, 0.016/TIME_SCALE );
 	}
+	//lprintf( "Stepped" );
 	l.last_tick = now;
 
    // ---- perform individual ball force manipulations/overrides as appropriate
@@ -2762,7 +2579,7 @@ CRITICALSECTION csUpdate;
 	}
 	else
 	{
-		lprintf( "begin watch   %d", l.nNextBalls[0] );
+		//lprintf( "begin watch   %d", l.nNextBalls[0] );
 		BeginWatch( l.nNextBalls[0] );
 		//lprintf( "at home position" );
 	}
