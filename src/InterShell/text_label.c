@@ -991,7 +991,8 @@ OnEditControl( TEXT_LABEL_NAME )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 				SetButtonPushMethod( GetControl( frame, BTN_PICKFONT ), PickLabelFont, psv );
 				{
 					TEXTCHAR buffer[256];
-					int o;
+#define BUFSIZE (sizeof(buffer)/sizeof(buffer[0]))
+					int o = 0;
 					CTEXTSTR string = page_label->button->text;
 					int n;
 					for( n = 0; ( o < (sizeof(buffer)/sizeof(buffer[0])) ) && string[n]; n++ )
@@ -1010,6 +1011,10 @@ OnEditControl( TEXT_LABEL_NAME )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 							buffer[o++] = string[n];
 						}
 					}
+					if( o < (BUFSIZE-1) )
+						buffer[o] = 0;
+					else
+						buffer[BUFSIZE-1] = 0;
 					SetCommonText( GetControl( frame, TXT_CONTROL_TEXT ), buffer );
 				}
 				{
