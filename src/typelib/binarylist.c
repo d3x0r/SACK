@@ -551,7 +551,7 @@ int CPROC TextMatchLocate( PTRSZVAL key1, PTRSZVAL key2 )
 		// try to choose a direction
 		int dir = StrCaseCmpEx( (CTEXTSTR)key1, (CTEXTSTR)key2, k2len );
 		if( dir == 0 )
-			return 100;
+			return 101;
 		if( dir > 0 )
 			return 1;
 		return -1;
@@ -600,8 +600,9 @@ POINTER LocateInBinaryTree( PTREEROOT root, PTRSZVAL key
 
 	while( node )
 	{
+		int _dir;
 		int dir = fuzzy( key, node->key );
-		if( dir == 100 )
+		if( dir == 100 || dir == 101 )
 		{
 			PTREENODE one_up;
 			PTREENODE one_down;
@@ -612,6 +613,7 @@ POINTER LocateInBinaryTree( PTREEROOT root, PTRSZVAL key
 			//lprintf( " - Found a near match..." );
 			one_up = node;
 			one_down = node;
+			_dir = dir;
 			do
 			{
 				GetLesserNodeExx( root, &one_up );
@@ -626,7 +628,7 @@ POINTER LocateInBinaryTree( PTREEROOT root, PTRSZVAL key
 						return (one_up->userdata);
 					}
 					else
-						break;
+						one_up = NULL;
 				}
 				GetGreaterNodeExx( root, &one_down );
 				if( one_down )
@@ -640,12 +642,18 @@ POINTER LocateInBinaryTree( PTREEROOT root, PTRSZVAL key
 						return (one_down->userdata);
 					}
 					else
-						break;
+						one_down = NULL;
 				}
 			}
 			while( one_up || one_down );
+			if( _dir == 101 )
+			{
+				node = NULL;
+			}
 			root->lastfound = node;
-			return( node->userdata );
+			if( node )
+				return( node->userdata );
+			return 0;
 		}
 		if( dir > 0 )
 		{
