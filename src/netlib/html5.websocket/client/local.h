@@ -29,8 +29,18 @@ struct web_socket_client
 
 	size_t fragment_collection_avail;
 	size_t fragment_collection_length;
+	size_t fragment_collection_index;  // used for selecting mask byte
 	P_8 fragment_collection;
 
+	_32 last_reception; // for automatic ping/keep alive/idle death
+
+	LOGICAL final;
+	LOGICAL mask;
+	_8 mask_key[4];
+	int opcode;
+	size_t frame_length;
+	int input_msg_state;
+	int input_type; // text or binary
 };
 
 

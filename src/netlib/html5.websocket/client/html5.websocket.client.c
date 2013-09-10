@@ -50,6 +50,39 @@ static void AddFragment( WebSocketClient websock, POINTER fragment, size_t frag_
 	websock->fragment_collection = new_fragbuf;
 }
 
+static void MaskMessageOut( P_8 bufout, size_t length )
+{
+	size_t n;
+	static int newmask;
+	newmask ^= rand() ^ ( rand() << 13 );
+	for( n = 0; n < length; n++ )
+	{
+		bufout[n] = bufout[n] ^ ((P_8)&newmask)[n&3];
+	}
+}
+
+static void ResetInputState( WebSocketClient websock )
+{
+	websock->input_msg_state = 0;
+	websock->final = 0;
+	websock->mask = 0;
+	websock->fragment_collection_index = 0; // mask index counter
+	websock->input_type = 0; // assume text input; binary will set flag opposite
+
+	// just always process the mask key, so set it to 0 for a no-op on XOR
+	websock->mask_key[0] = 0;
+	websock->mask_key[1] = 0;
+	websock->mask_key[2] = 0;
+	websock->mask_key[3] = 0;
+}
+
+// literal binary sending; this may happen to be base64 encoded too
+void WebSocketSendControl( WebSocketClient websock, _8 opcode, POINTER otherdata, size_t legnth )
+{
+}
+
+
+
 /* opcodes
       *  %x0 denotes a continuation frame
       *  %x1 denotes a text frame
@@ -60,127 +93,199 @@ static void AddFragment( WebSocketClient websock, POINTER fragment, size_t frag_
       *  %xA denotes a pong
       *  %xB-F are reserved for further control frames
 */
-static void ProcessWebSockProtocol( WebSocketClient websock, POINTER buffer, size_t length )
+static void ProcessWebSockProtocol( WebSocketClient websock, P_8 msg, size_t length )
 {
-	LOGICAL final = 0;
-	LOGICAL mask = 0;
-	_8 mask_key[4];
-	int opcode;
-	size_t frame_length;
-	int offset = 0;
-	P_8 msg = (P_8)buffer;
+	size_t n;
 
-	if( msg[0] & 0x80 )
-		final = 1;
-
-	opcode = ( msg[0] & 0xF );
-	mask = (msg[1] & 0x80) != 0;
-	frame_length = (msg[1] & 0x7f );
-	if( frame_length == 126 )
+	for( n = 0; n < length; n++ )
 	{
-		offset = 2;
-		frame_length = ( msg[2] << 8 ) | msg[3];
-	}
-	lprintf( WIDE("Final: %d  opcode %d  mask %d length %Ld "), final, opcode, mask, frame_length );
-
-	if( frame_length == 127 )
-	{
-		frame_length = ( (_64)msg[2] << 56 ) 
-			| ( (_64)msg[3] << 48 ) 
-			| ( (_64)msg[4] << 32 ) 
-			| ( (_64)msg[5] << 24 ) 
-			| ( (_64)msg[6] << 16 ) 
-			| ( (_64)msg[7] << 8 ) 
-			| msg[8];
-		offset = 8;
-	}
-	if( mask )
-	{
-		mask_key[0] = msg[offset + 2];
-		mask_key[1] = msg[offset + 3];
-		mask_key[2] = msg[offset + 4];
-		mask_key[3] = msg[offset + 5];
-		offset += 4;
-	}
-	{
-		size_t n;
-		for( n = 0; n < frame_length; n++ )
+		switch( websock->input_msg_state )
 		{
-			msg[offset + 2+n] = msg[offset+2+n] ^ mask_key[n&3];
-		}
-	}
+		case 0: // opcode/final
+			if( msg[n] & 0x80 )
+				websock->final = 1;
+			websock->opcode = ( msg[n] & 0xF );
+			websock->input_msg_state++;
+			break;
+		case 1: // mask bit, and 7 bits of frame_length(payload)
+			websock->mask = (msg[n] & 0x80) != 0;
+			websock->frame_length = (msg[n] & 0x7f );
 
-   // control opcodes are limited to the one byte size limit
-	if( opcode & 0x8 )
-	{
-		if( length > 125 )
-		{
-			lprintf( WIDE("Bad length of control packet: %d"), length );
-			return;
-		}
+			// control opcodes are limited to the one byte size limit; they can never be encoded with extended payload length
+			if( websock->opcode & 0x8 )
+			{
+				if( websock->frame_length > 125 )
+				{
+					lprintf( WIDE("Bad length of control packet: %d"), length );
+					// RemoveClient( websock->pc );
+					ResetInputState( websock );
+					// drop the rest of the data, maybe the beginning of the next packet will make us happy
+					return;
+				}
+			}
 
-	}
-	switch( opcode )
-	{
-	case 0x00: // continuation
-		AddFragment( websock, msg + offset+2, frame_length );
-		if( final )
-		{
-			LogBinary( websock->fragment_collection, websock->fragment_collection_length );
-		}
-		break;
-	case 0x01: //text
-      if( !final )
-			AddFragment( websock, msg + offset+2, frame_length );
-		else if( websock->fragment_collection_length )
-		{
-			AddFragment( websock, msg + offset+2, frame_length );
-         LogBinary( websock->fragment_collection, websock->fragment_collection_length );
-		}
-		else
-         LogBinary( msg + offset+2, frame_length );
-		break;
-	case 0x02: //binary
-		if( !final )
-			AddFragment( websock, msg + offset+2, frame_length );
-		else if( websock->fragment_collection_length )
-		{
-			AddFragment( websock, msg + offset+2, frame_length );
-         LogBinary( websock->fragment_collection, websock->fragment_collection_length );
-		}
-		else
-			LogBinary( msg + offset+2, frame_length );
+			if( websock->frame_length == 126 )
+			{
+				websock->frame_length = 0;
+				websock->input_msg_state = 2;
+			}
+			else if( websock->frame_length == 127 )
+			{
+				websock->frame_length = 0;
+				websock->input_msg_state = 4;
+			}
+			else
+			{
+				if( websock->mask )
+					websock->input_msg_state = 12;
+				else
+					websock->input_msg_state = 16;
+			}
+			break;
 
-		break;
-	case 0x08: // close
-		// close may have app data with a reason.
-		// if it has a reason, then the first two bytes are a code
-		//  1000 - normal
-		//  1001 - end point going away (page close, server shutdown)
-		//  1002 - termination from protocol error
-		//  1003 - binary/text mismatch (if supported)
-		// 1004 - reserved
-		// 1005 - No status code (reserved, must not send in close)
-		// 1006 - reserved for not in clude; connection terminated unexpected ( guess there are local-only, not sent)
-		// 1007 - inconsistant data for data in message
-		// 1008 - ereceived a message that violates policy (generic message for nothing better)
-		// 1009 - message too big
-		// 1010 - server did not negotiate extension
-		// 1011 - excpetion in handling message.
-		// 1015 - reservd, must not send in close; failure to perform TLS handshake (or bad server verification)
-		//  0-999 = not used;
-		// 1000-2999 - reserved for this protocol, reserved for specification
-		// 3000-3999 - libarry/framework/application.  Registered with IANA.  Defined by protocol.
-      // 4000-4999 - reserved for private use; cannot be registerd;
-		break;
-	case 0x09: // ping
-		break;
-	case 0x0A: // pong
+		case 2: // byte 1, extended payload _16
+			websock->frame_length = msg[n] << 8;
+			websock->input_msg_state++;
+			break;
+		case 3: // byte 1, extended payload _16
+			websock->frame_length |= msg[3];
 
-		break;
-	default:
-		lprintf( WIDE("Bad WebSocket opcode: %d"), opcode );
-      return;
+			if( websock->mask )
+				websock->input_msg_state = 12;
+			else
+				websock->input_msg_state = 16;
+			break;
+
+		case 4: // byte 1, extended payload _64
+		case 5: // byte 2, extended payload _64
+		case 6: // byte 3, extended payload _64
+		case 7: // byte 4, extended payload _64
+		case 8: // byte 5, extended payload _64
+		case 9: // byte 6, extended payload _64
+		case 10: // byte 7, extended payload _64
+			websock->frame_length |= msg[n] << ( ( 11 - websock->input_msg_state ) * 8 );
+			websock->input_msg_state++;
+			break;
+		case 11: // byte 8, extended payload _64
+			websock->frame_length |= msg[n];
+
+			if( websock->mask )
+				websock->input_msg_state++;
+			else
+				websock->input_msg_state = 16;
+			break;
+
+		case 12: // mask data byte 1
+		case 13: // mask data byte 2
+		case 14: // mask data byte 3
+		case 15: // mask data byte 4
+			websock->mask_key[websock->input_msg_state-12] = msg[n];
+			websock->input_msg_state++;
+			break;
+
+		case 16: // extended data or application data byte 1.
+			// might have already collected fragments (non final packets, so increase the full buffer )
+			// first byte of data, check we have enough room for the remaining bytes; the frame_length is valid now.
+			if( websock->fragment_collection_avail < ( websock->fragment_collection_length + websock->frame_length ) )
+			{
+				P_8 new_fragbuf;
+				websock->fragment_collection_avail += websock->frame_length;
+				new_fragbuf = (P_8)Allocate( websock->fragment_collection_avail );
+				if( websock->fragment_collection_length )
+					MemCpy( new_fragbuf, websock->fragment_collection, websock->fragment_collection_length );
+				Deallocate( P_8, websock->fragment_collection );
+				websock->fragment_collection = new_fragbuf;
+            websock->fragment_collection_index = 0; // start with mask byte 0 on this new packet
+			}
+			websock->input_msg_state++;
+			// fall through, no break statement; add the byte to the buffer
+		case 17:
+			websock->fragment_collection[websock->fragment_collection_length++]
+				= msg[n] ^ websock->mask_key[(websock->fragment_collection_index++) % 4];
+
+			// if final packet, and we have all the bytes for this packet
+			// dispatch the opcode.
+			if( websock->final && ( websock->fragment_collection_length == websock->frame_length ) )
+			{
+
+				lprintf( WIDE("Final: %d  opcode %d  mask %d length %Ld ")
+						 , websock->final, websock->opcode, websock->mask, websock->frame_length );
+				websock->last_reception = timeGetTime();
+
+				switch( websock->opcode )
+				{
+				case 0x02: //binary
+					websock->input_type = 1;
+				case 0x01: //text
+				case 0x00: // continuation
+					if( websock->final )
+					{
+						/// single packet, final...
+						LogBinary( websock->fragment_collection, websock->fragment_collection_length );
+						if( websock->on_event )
+							websock->on_event( websock->psv_on, websock->fragment_collection, websock->fragment_collection_length );
+						websock->fragment_collection_length = 0;
+					}
+					break;
+				case 0x08: // close
+					// close may have app data with a reason.
+					// if it has a reason, then the first two bytes are a code
+					//  1000 - normal
+					//  1001 - end point going away (page close, server shutdown)
+					//  1002 - termination from protocol error
+					//  1003 - binary/text mismatch (if supported)
+					// 1004 - reserved
+					// 1005 - No status code (reserved, must not send in close)
+					// 1006 - reserved for not in clude; connection terminated unexpected ( guess there are local-only, not sent)
+					// 1007 - inconsistant data for data in message
+					// 1008 - ereceived a message that violates policy (generic message for nothing better)
+					// 1009 - message too big
+					// 1010 - server did not negotiate extension
+					// 1011 - excpetion in handling message.
+					// 1015 - reservd, must not send in close; failure to perform TLS handshake (or bad server verification)
+					//  0-999 = not used;
+					// 1000-2999 - reserved for this protocol, reserved for specification
+					// 3000-3999 - libarry/framework/application.  Registered with IANA.  Defined by protocol.
+					// 4000-4999 - reserved for private use; cannot be registerd;
+					if( !websock->flags.closed )
+					{
+						static _8 msgout[128];
+						msgout[0] = 0x88;
+						// being a control frame, the frame_length must be a single byte.
+						msgout[1] = websock->frame_length;
+						memcpy( msg + 2, websock->fragment_collection, websock->frame_length );
+						MaskMessageOut( msg + 2, websock->frame_length );
+						SendTCP( websock->pc, msg, 2 + websock->frame_length );
+					}
+					websock->fragment_collection_length = 0;
+					break;
+				case 0x09: // ping
+					{
+						static _8 msgout[128];
+						msgout[0] = 0x8a; // final pong?
+						// being a control frame, the frame_length must be a single byte.
+						msgout[1] = websock->frame_length;
+						memcpy( msg + 2, websock->fragment_collection, websock->frame_length );
+						MaskMessageOut( msg + 2, websock->frame_length );
+						SendTCP( websock->pc, msg, 2 + websock->frame_length );
+					}
+					websock->fragment_collection_length = 0;
+					break;
+				case 0x0A: // pong
+					{
+						// nothing to do?
+					}
+					websock->fragment_collection_length = 0;
+					break;
+				default:
+					lprintf( WIDE("Bad WebSocket opcode: %d"), websock->opcode );
+					return;
+				}
+
+				ResetInputState( websock );
+			}
+			break;
+		}
 	}
 }
 
@@ -224,7 +329,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 					if( websock->on_open )
                   websock->on_open( websock->psv_on );
 					if( content )
-                  ProcessWebSockProtocol( websock, GetText( content ), GetTextSize( content ) );
+                  ProcessWebSockProtocol( websock, (P_8)GetText( content ), GetTextSize( content ) );
 				}
 			}
 			else if( (int)result >= 300 && (int)result < 400 )
@@ -242,7 +347,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 		}
 		else
 		{
-			ProcessWebSockProtocol( websock, buffer, len );
+			ProcessWebSockProtocol( websock, (P_8)buffer, len );
 		}
 		// process buffer?
 
