@@ -4302,7 +4302,7 @@ int CommonInitCanvas( PSI_CONTROL pc_canvas, PCanvasData canvas )
 		canvas->pPageMenu = CreatePopup();
 		AppendPopupItem( canvas->pPageMenu, MF_STRING|MF_CHECKED
 			, MNU_CHANGE_PAGE + ( canvas->default_page->ID = 0 )
-			, WIDE("Fist Page") );
+			, WIDE("First Page") );
 	}
 	if( !canvas->pPageUndeleteMenu )
 	{
