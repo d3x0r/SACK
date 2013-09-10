@@ -190,7 +190,7 @@ void Tell( PSENTIENT ps // source
                  SegAppend( pFrom
                           , line ) );
 	}
-	else
+	else if( pEnt )
 	{
 		// directly dispatch the command using my own sentience
 		// on the new object...
