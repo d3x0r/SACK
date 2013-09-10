@@ -137,6 +137,7 @@ HTTP_EXPORT /* Resets a processing state, so it can start collecting the
    pHttpState :  state to reset for next read...             */
 void HTTPAPI EndHttp( HTTPState pHttpState );
 
+
 HTTP_EXPORT
 /* reply message - 200/OK with this body, sent as Content-Type that was requested */
 void HTTPAPI SendHttpMessage( HTTPState pHttpState, PCLIENT pc, PTEXT body );

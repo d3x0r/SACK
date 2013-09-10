@@ -32,6 +32,10 @@ typedef struct web_socket_client *WebSocketClient;
 #define WEBSOCKET_EXPORT IMPORT_METHOD
 #endif
 
+typedef void (*web_socket_opened)( PTRSZVAL psv );
+typedef void (*web_socket_closed)( PTRSZVAL psv );
+typedef void (*web_socket_error)( PTRSZVAL psv, int error );
+typedef void (*web_socket_event)( PTRSZVAL psv, POINTER buffer, int msglen );
 
 
 typedef struct web_socket_client *WebSocketClient;
@@ -43,7 +47,7 @@ typedef struct web_socket_client *WebSocketClient;
 WEBSOCKET_EXPORT WebSocketClient WebSocketOpen( CTEXTSTR address
 															 , int options
 															 , web_socket_opened
-															 , web_socket_event, web_socket_closed, web_socket_error, psv );
+															 , web_socket_event, web_socket_closed, web_socket_error, PTRSZVAL psv );
 
 // end a websocket connection nicely.
 WEBSOCKET_EXPORT void WebSocketClose( WebSocketClient );

@@ -1,6 +1,9 @@
 #include <stdhdrs.h>
-
+// not really, but close enough
+#define HTTP_SOURCE
 #include <http.h>
+
+HTTP_NAMESPACE
 
 struct default_port
 {
@@ -477,3 +480,4 @@ void SACK_ReleaseURL( struct url_data *data )
 	Release( data );
 }
 
+HTTP_NAMESPACE_END
