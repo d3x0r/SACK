@@ -98,9 +98,10 @@ DeclareSet( WALL );
 //--------------------------------------------
 
 typedef struct sectorflags_tag {
-	_32 bBody : 1;
-	_32 bStaticBody : 1;
-	_32 bUnused : 1;
+	BIT_FIELD bBody : 1;
+	BIT_FIELD bStaticBody : 1;
+	BIT_FIELD bUnused : 1;
+	BIT_FIELD bOpenShape : 1; // should be drawn with lines not filled polygons (line/curve)
 } SECTORFLAGS;
 
 typedef struct sector_tag {
@@ -154,7 +155,7 @@ typedef struct UndoRecord_tag
 		} wallset;
 		struct {
 			int nsectors;
-			INDEX *sectors;
+INDEX *sectors;
 			_POINT origin;
 			int bCompleted;
 			_POINT endorigin;

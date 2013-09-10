@@ -43,6 +43,7 @@ HTML5_WEBSOCKET_NAMESPACE
 typedef struct html5_web_socket *HTML5WebSocket;
 
 // need some sort of other methods to work with an HTML5WebSocket...
+// server side.
 HTML5_WEBSOCKET_PROC( HTML5WebSocket, CreateWebSocket )( CTEXTSTR server_url );
 //HTML5_WEBSOCKET_PROC( LOGICAL, SendWebSocket )( HTML5WebSocket, CTEXTSTR filename );
 //HTML5_WEBSOCKET_PROC( void, h5printf )( HTML5WebSocket, CTEXTSTR format, ... );
