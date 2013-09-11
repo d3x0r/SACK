@@ -128,10 +128,10 @@ CONTROL_REGISTRATION ConsoleClass = { WIDE("PSI Console"), { { -1, -1 }, sizeof(
 
 void CPROC RenderSeparator( PCONSOLE_INFO console, int nStart )
 {
-	lprintf( WIDE("Render separator %d-%d %d"), 0, console->nWidth, nStart );
+	//lprintf( WIDE("Render separator %d-%d %d"), 0, console->nWidth, nStart );
 	if( nStart > 0 && (S_64)nStart < console->nHeight )
 	{
-	// Render Command Line Separator
+		// Render Command Line Separator
 		do_hline( console->psicon.image, nStart, 0, console->nWidth, cPenHighlight );
 		do_hline( console->psicon.image, nStart+1, 0, console->nWidth, cPenNormal );
 		do_hline( console->psicon.image, nStart+2, 0, console->nWidth, cPenShadow );
@@ -203,7 +203,7 @@ static int OnDrawCommon( WIDE("PSI Console") )( PCOMMON pc )
 {
 	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
 	//PCONSOLE_INFO console = (PCONSOLE_INFO)GetCommonUserData(pc);
-	lprintf( WIDE("Rendering window.") );
+	//lprintf( WIDE("Rendering window.") );
 	if( !console )
 	{
 		Log( WIDE("How could we have gotten here without a console??") );
@@ -221,12 +221,12 @@ static int OnDrawCommon( WIDE("PSI Console") )( PCOMMON pc )
 		console->rArea.right = console->psicon.image->width;
 		console->rArea.top = 0;
 		console->rArea.bottom = console->psicon.image->height;
-		lprintf( WIDE("Updating child propportions...") );
+		//lprintf( WIDE("Updating child propportions...") );
 		PSI_ConsoleCalculate( console );
 	}
 	else
 		PSI_RenderConsole( console );
-	lprintf( WIDE( "Done rendering child." ) );
+	//lprintf( WIDE( "Done rendering child." ) );
 	return TRUE;
 }
 
@@ -280,7 +280,7 @@ int CPROC MouseHandler( PCOMMON pc, S_32 x, S_32 y, _32 b )
 {
 	static S_32 _x, _y;
 	static _32 _b;
-	lprintf( WIDE("Mouse thing...%ld,%ld %08lx"), x, y, b );
+	//lprintf( WIDE("Mouse thing...%ld,%ld %08lx"), x, y, b );
 	{
 		int xPos, yPos, row, col;
 		//PCONSOLE_INFO console;
@@ -391,7 +391,7 @@ int CPROC MouseHandler( PCOMMON pc, S_32 x, S_32 y, _32 b )
 #endif
 #endif
 						}
-						Log( WIDE( "Ending mark." ) );
+						//Log( WIDE( "Ending mark." ) );
 						console->flags.bMarking = 0;
 						console->flags.bUpdatingEnd = 0;
 					}
@@ -400,7 +400,7 @@ int CPROC MouseHandler( PCOMMON pc, S_32 x, S_32 y, _32 b )
 			}
 			if( !(b & MK_LBUTTON) && (_b & MK_LBUTTON) )
 			{
-				Log( WIDE( "Ending mark(2)." ) );
+				//Log( WIDE( "Ending mark(2)." ) );
 				console->flags.bMarking = 0;
 				console->flags.bUpdatingEnd = 0;
 				SmudgeCommon( console->psicon.frame );
@@ -543,9 +543,9 @@ int RegisterWindows( void )
 		return TRUE;
 	//Log( "Done with psi interfaces.." );
 	hChildMenu = CreatePopup();
-	Log( WIDE( "Created menu..." ) );
+	//Log( WIDE( "Created menu..." ) );
 	AppendPopupItem( hChildMenu, MF_STRING, MNU_FONT, WIDE( "Set Font" ) );
-	Log( WIDE( "Added an ittem..." ) );
+	//Log( WIDE( "Added an ittem..." ) );
 	{
 		hHistoryMenu = CreatePopup();
 		AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE25, WIDE( "25%" ) );
@@ -594,24 +594,24 @@ int RegisterWindows( void )
       AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (PTRSZVAL)hColorMenu2, WIDE( "Background Color" ) );
    }
    AppendPopupItem( hChildMenu, MF_STRING, MNU_COMMAND_COLOR, WIDE( "Command Color" ) );
-   AppendPopupItem( hChildMenu, MF_STRING, MNU_COMMAND_BACK, WIDE( "Command Background Color" ) );
-    AppendPopupItem( hChildMenu, MF_STRING, MNU_DIRECT, WIDE( "Direct Mode" ) );
-   Log( WIDE( "Menus created..." ) );
-   cPenNormal = GetBaseColor( NORMAL );
-   cPenHighlight = GetBaseColor( HIGHLIGHT );
+	AppendPopupItem( hChildMenu, MF_STRING, MNU_COMMAND_BACK, WIDE( "Command Background Color" ) );
+	AppendPopupItem( hChildMenu, MF_STRING, MNU_DIRECT, WIDE( "Direct Mode" ) );
+	//Log( WIDE( "Menus created..." ) );
+	cPenNormal = GetBaseColor( NORMAL );
+	cPenHighlight = GetBaseColor( HIGHLIGHT );
    cPenShadow = GetBaseColor( SHADE );
    cPenDkShadow = GetBaseColor( SHADOW );
    cPenCursor = Color( 255, 255, 255 );
-   WindowRegistered = TRUE;
-   return TRUE;
+	WindowRegistered = TRUE;
+	return TRUE;
 }
 //----------------------------------------------------------------------------
 void UnregisterWindows( void )
 {
 	DestroyPopup( hChildMenu );
-// first set the old interfaces to NULL then we can drop the interface.
+	// first set the old interfaces to NULL then we can drop the interface.
 	SetControlInterface( NULL );
-	SetControlImageInterface( NULL );
+	//SetControlImageInterface( NULL );
 	DropDisplayInterface( NULL );
 	DropImageInterface( NULL );
 	WindowRegistered = FALSE;
@@ -695,6 +695,8 @@ static void FillDefaultColors( void )
 
 PRELOAD(RegisterConsole)
 {
+	ImageInterface = GetImageInterface();
+	RenderInterface = GetDisplayInterface();
 	DoRegisterControl( &ConsoleClass );
 	//SimpleRegisterMethod( WIDE( "psi/control/" ) WIDE( "Dekware PSI Console" ) WIDE( "/rtti/extra init" )
 	//						  , InitDekwareConsole, WIDE( "int" ), WIDE( "extra init" ), WIDE( "(PCOMMON)" ) );

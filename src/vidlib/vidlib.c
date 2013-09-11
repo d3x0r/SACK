@@ -1072,15 +1072,11 @@ BOOL CreateDrawingSurface (PVIDEO hVideo)
 
 	if( hVideo->flags.bReady && !hVideo->flags.bHidden && hVideo->pRedrawCallback )
 	{
-		//lprintf( WIDE("Sending redraw for %p"), hVideo );
-		{
 #ifndef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
-			lprintf( WIDE( "Posting invalidate rect..." ) );
-			InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
+		InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
 #else
-			SendServiceEvent( 0, l.dwMsgBase + MSG_RedrawMethod, &hVideo, sizeof( hVideo ) );
+		SendServiceEvent( 0, l.dwMsgBase + MSG_RedrawMethod, &hVideo, sizeof( hVideo ) );
 #endif
-		}
 	}
    //lprintf( WIDE( "And here I might want to update the video, hope someone else does for me." ) );
 	return TRUE;

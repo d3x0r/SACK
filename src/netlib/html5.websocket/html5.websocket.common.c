@@ -276,7 +276,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, s
 					// 4000-4999 - reserved for private use; cannot be registerd;
 					if( !websock->flags.closed )
 					{
-						SendWebSocketMessage( pc, 8, 1, 0, websock->fragment_collection, websock->frame_length );
+						SendWebSocketMessage( pc, 0x08, 1, 0, websock->fragment_collection, websock->frame_length );
                   websock->flags.closed = 1;
 					}
 					if( websock->on_close )

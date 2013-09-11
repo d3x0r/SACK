@@ -150,7 +150,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
       upd.left = pdp->nXPad + ( nCurrentCol * pdp->nFontWidth );
 
 	r.left = x = pdp->nXPad + ( nCurrentCol * pdp->nFontWidth );
-   lprintf( WIDE( "x/left is %d" ), x );
+   //lprintf( WIDE( "x/left is %d" ), x );
    // for now...
 
    upd.right = pdp->nWidth;
