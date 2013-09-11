@@ -34,10 +34,12 @@ typedef struct web_socket_client *WebSocketClient;
 #define WEBSOCKET_EXPORT IMPORT_METHOD
 #endif
 
-typedef void (*web_socket_opened)( PTRSZVAL psv );
-typedef void (*web_socket_closed)( PTRSZVAL psv );
-typedef void (*web_socket_error)( PTRSZVAL psv, int error );
-typedef void (*web_socket_event)( PTRSZVAL psv, POINTER buffer, int msglen );
+// the result returned from the web_socket_opened event will
+// become the new value used for future PTRSZVAL parameters to other events.
+typedef PTRSZVAL (*web_socket_opened)( PCLIENT pc, PTRSZVAL psv );
+typedef void (*web_socket_closed)( PCLIENT pc, PTRSZVAL psv );
+typedef void (*web_socket_error)( PCLIENT pc, PTRSZVAL psv, int error );
+typedef void (*web_socket_event)( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen );
 
 
 // create a websocket connection.

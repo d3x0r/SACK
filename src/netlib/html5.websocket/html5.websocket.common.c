@@ -250,7 +250,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, s
 						/// single packet, final...
 						LogBinary( websock->fragment_collection, websock->fragment_collection_length );
 						if( websock->on_event )
-							websock->on_event( websock->psv_on, websock->fragment_collection, websock->fragment_collection_length );
+							websock->on_event( pc, websock->psv_on, websock->fragment_collection, websock->fragment_collection_length );
 						websock->fragment_collection_length = 0;
 					}
 					break;
@@ -280,7 +280,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, s
                   websock->flags.closed = 1;
 					}
 					if( websock->on_close )
-                  websock->on_close( websock->psv_on );
+                  websock->on_close( pc, websock->psv_on );
 					websock->fragment_collection_length = 0;
 					break;
 				case 0x09: // ping

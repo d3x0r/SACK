@@ -102,7 +102,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 				{
 					PTEXT content = GetHttpContent( websock->pHttpState );
 					if( websock->input_state.on_open )
-                  websock->input_state.on_open( websock->input_state.psv_on );
+                  websock->input_state.on_open( pc, websock->input_state.psv_on );
 					if( content )
                   ProcessWebSockProtocol( &websock->input_state, websock->pc, (P_8)GetText( content ), GetTextSize( content ) );
 				}

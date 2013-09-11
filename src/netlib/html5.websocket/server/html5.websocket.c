@@ -350,6 +350,9 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 						LogBinary( output, GetTextSize( value ) );
 						SendTCP( pc, output, GetTextSize( value ) );
 					}
+					if( socket->input_state.on_open )
+						socket->input_state.on_open( pc, socket->input_state.psv_on );
+
 					EndHttp( socket->http_state );
 					socket->flags.initial_handshake_done = 1;
 					break;
@@ -396,12 +399,22 @@ static LOGICAL CPROC HandleRequest( PTRSZVAL psv, HTTPState pHttpState )
 
 }
 
-PCLIENT WebSocketCreate( CTEXTSTR hosturl )
+PCLIENT WebSocketCreate( CTEXTSTR hosturl
+							, web_socket_opened on_open
+							, web_socket_event on_event
+							, web_socket_closed on_closed
+							, web_socket_error on_error
+							, PTRSZVAL psv )
 {
 	HTML5WebSocket socket = New( struct html5_web_socket );
 	NetworkStart();
 	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
 	socket->Magic = 0x20130912;
+	socket->input_state.on_open = on_open;
+	socket->input_state.on_event = on_event;
+	socket->input_state.on_close = on_closed;
+	socket->input_state.on_error = on_error;
+	socket->input_state.psv_on = psv;
 
 	socket->pc = //CreateHttpServer( "localhost:9998", "WebSockets", "url", HandleRequest, 0 );
 		OpenTCPListenerEx( 9998, connected );
