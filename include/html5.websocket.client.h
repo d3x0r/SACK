@@ -55,9 +55,21 @@ WEBSOCKET_EXPORT WebSocketClient WebSocketOpen( CTEXTSTR address
 // end a websocket connection nicely.
 WEBSOCKET_EXPORT void WebSocketClose( WebSocketClient );
 
+
+// there is a control bit for whether the content is text or binary or a continuation
+WEBSOCKET_EXPORT void WebSocketBeginSendText( WebSocketClient, POINTER, size_t ); // UTF8 RFC3629
+
+// literal binary sending; this may happen to be base64 encoded too
+WEBSOCKET_EXPORT void WebSocketBeginSendBinary( WebSocketClient, POINTER, size_t );
+
 // there is a control bit for whether the content is text or binary or a continuation
 WEBSOCKET_EXPORT void WebSocketSendText( WebSocketClient, POINTER, size_t ); // UTF8 RFC3629
 
 // literal binary sending; this may happen to be base64 encoded too
 WEBSOCKET_EXPORT void WebSocketSendBinary( WebSocketClient, POINTER, size_t ); 
+
+WEBSOCKET_EXPORT void WebSocketEnableAutoPing( WebSocketClient websock, _32 delay );
+
+WEBSOCKET_EXPORT void WebSocketPing( WebSocketClient websock, _32 timeout );
+
 
