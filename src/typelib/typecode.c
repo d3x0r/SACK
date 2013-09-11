@@ -684,11 +684,12 @@ void DeleteDataStackEx( PDATASTACK *pds DBG_PASS )
 static struct link_queue_local_data
 {
 	volatile _32 lock;
+   volatile PTHREAD thread;
 } s_link_queue_local, *_link_queue_local;
 
 #define link_queue_local  ((_link_queue_local)?(*_link_queue_local):(s_link_queue_local))
+#define link_queue_local_thread  ((_link_queue_local)?(*_link_queue_local).thread:(s_link_queue_local.thread))
 #define link_queue_local_lock  ((_link_queue_local)?(&_link_queue_local->lock):(&s_link_queue_local.lock))
-
 
 
 PLINKQUEUE CreateLinkQueueEx( DBG_VOIDPASS )
@@ -753,20 +754,31 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
 
  PLINKQUEUE  EnqueLinkEx ( PLINKQUEUE *pplq, POINTER link DBG_PASS )
 {
-   INDEX tmp;
-   PLINKQUEUE plq;
-   if( !pplq )
-      return NULL;
-   if( !(*pplq) )
-      *pplq = CreateLinkQueueEx( DBG_VOIDRELAY );
+	INDEX tmp;
+	int keep_lock = 0;
+	PLINKQUEUE plq;
+	if( !pplq )
+		return NULL;
+	if( !(*pplq) )
+		*pplq = CreateLinkQueueEx( DBG_VOIDRELAY );
 
 	while( LockedExchange( link_queue_local_lock, __LINE__ ) )
+	{
+		if( link_queue_local_thread == MakeThread() )
+		{
+			keep_lock = 1;
+			break;
+		}
 		Relinquish();
+	}
 
-   plq = *pplq;
-
-   if( link )
-   {
+	plq = *pplq;
+	if( _link_queue_local )
+		_link_queue_local->thread = MakeThread();
+	else
+		s_link_queue_local.thread = MakeThread();
+	if( link )
+	{
       tmp = plq->Top + 1;
       if( tmp >= plq->Cnt )
          tmp -= plq->Cnt;
@@ -778,9 +790,10 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
       plq->pNode[plq->Top] = link;
       plq->Top = tmp;
    }
-   *pplq = plq;
-	link_queue_local_lock[0] = 0;
-   return plq;
+	*pplq = plq;
+	if( !keep_lock )
+		link_queue_local_lock[0] = 0;
+	return plq;
 }
 
 //--------------------------------------------------------------------------
@@ -799,6 +812,10 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
 
    plq = *pplq;
 
+	if( _link_queue_local )
+		_link_queue_local->thread = MakeThread();
+	else
+		s_link_queue_local.thread = MakeThread();
    if( link )
    {
       tmp = plq->Bottom - 1;
@@ -883,26 +900,43 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
 
 //--------------------------------------------------------------------------
 
- POINTER  DequeLink ( PLINKQUEUE *pplq )
+POINTER  DequeLink ( PLINKQUEUE *pplq )
 {
-   POINTER p;
-   INDEX tmp;
-   if( pplq && *pplq )
-      while( LockedExchange( link_queue_local_lock, __LINE__ ) )
-         Relinquish();
-   else
-      return NULL;
-   p = NULL;
-   if( (*pplq)->Bottom != (*pplq)->Top )
-   {
-      tmp = (*pplq)->Bottom + 1;
-      if( tmp >= (*pplq)->Cnt )
+	int keep_lock = 0;
+	POINTER p;
+	INDEX tmp;
+	if( pplq && *pplq )
+	{
+		_32 priorline;
+		while( priorline = LockedExchange( link_queue_local_lock, __LINE__ ) )
+		{
+			if( link_queue_local_thread == MakeThread() )
+			{
+				keep_lock = 1;
+				break;
+			}
+			lprintf( "waiting on lock %d %p", priorline, pplq );
+			Relinquish();
+		}
+	}
+	else
+		return NULL;
+	if( _link_queue_local )
+		_link_queue_local->thread = MakeThread();
+	else
+		s_link_queue_local.thread = MakeThread();
+	p = NULL;
+	if( (*pplq)->Bottom != (*pplq)->Top )
+	{
+		tmp = (*pplq)->Bottom + 1;
+		if( tmp >= (*pplq)->Cnt )
          tmp -= (*pplq)->Cnt;
       p = (*pplq)->pNode[(*pplq)->Bottom];
       (*pplq)->Bottom = tmp;
-   }
-	link_queue_local_lock[0] = 0;
-   return p;
+	}
+	if( !keep_lock )
+		link_queue_local_lock[0] = 0;
+	return p;
 }
 #ifdef __cplusplus
 }//		namespace queue {
