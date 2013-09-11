@@ -11,6 +11,9 @@ struct web_socket_client
 		BIT_FIELD want_close : 1; // schedule to close
 
 		BIT_FIELD fragment_collecting : 1;
+		BIT_FIELD sent_type : 1;
+		BIT_FIELD received_pong : 1;
+		BIT_FIELD sent_ping : 1;
 	} flags;
 	PCLIENT pc;
 
@@ -33,6 +36,7 @@ struct web_socket_client
 	P_8 fragment_collection;
 
 	_32 last_reception; // for automatic ping/keep alive/idle death
+   _32 ping_delay; // when set by enable auto_ping is the delay between packets to generate a ping
 
 	LOGICAL final;
 	LOGICAL mask;
@@ -49,5 +53,6 @@ struct web_socket_client_local
    _32 timer;
 	PLIST clients;
    CRITICALSECTION cs_opening;
-   struct web_socket_client *opening_client;
+	struct web_socket_client *opening_client;
+   int newmask;
 } wsc_local;

@@ -33,11 +33,6 @@ static void SendRequestHeader( WebSocketClient websock )
 }
 
 
-static void SendClose( WebSocketClient websock )
-{
-
-}
-
 static void AddFragment( WebSocketClient websock, POINTER fragment, size_t frag_length )
 {
 	P_8 new_fragbuf;
@@ -53,11 +48,10 @@ static void AddFragment( WebSocketClient websock, POINTER fragment, size_t frag_
 static void MaskMessageOut( P_8 bufout, size_t length )
 {
 	size_t n;
-	static int newmask;
-	newmask ^= rand() ^ ( rand() << 13 );
+	wsc_local.newmask ^= rand() ^ ( rand() << 13 ) ^ ( rand() << 26 );
 	for( n = 0; n < length; n++ )
 	{
-		bufout[n] = bufout[n] ^ ((P_8)&newmask)[n&3];
+		bufout[n] = bufout[n] ^ ((P_8)&wsc_local.newmask)[n&3];
 	}
 }
 
@@ -77,9 +71,88 @@ static void ResetInputState( WebSocketClient websock )
 }
 
 // literal binary sending; this may happen to be base64 encoded too
-void WebSocketSendControl( WebSocketClient websock, _8 opcode, POINTER otherdata, size_t legnth )
+static void SendWebSocketMessage( WebSocketClient websock, int opcode, int final, int no_mask, P_8 payload, size_t length )
 {
+	P_8 msgout;
+	P_8 use_mask;
+   _32 zero = 0;
+   size_t length_out = length + 2; // minimum additional is the opcode and tiny payload length (2 bytes)
+	if( ( opcode & 8 ) && ( length > 125 ) )
+	{
+      lprintf( "Invalid send, control packet with large payload. (opcode %d  length %d)", opcode, length );
+		return;
+	}
+
+	if( length > 125 )
+	{
+      if( length > 32767 )
+			length_out += 8; // need 8 more bytes for a really long length
+		else
+         length_out += 2; // need 2 more bytes for a longer length
+	}
+	if( !no_mask )
+	{
+      wsc_local.newmask ^= rand() ^ ( rand() << 13 ) ^ ( rand() << 26 );
+		use_mask = (P_8)&wsc_local.newmask;
+      length_out += 4; // need 4 more bytes for the mask
+	}
+	else
+	{
+		use_mask = (P_8)&zero;
+	}
+
+	msgout = NewArray( _8, length_out );
+	msgout[0] = (final?0x80:0x00) | opcode;
+	if( length > 125 )
+	{
+		if( length > 32767 )
+		{
+			msgout[1] = 127;
+#if __64__
+			msgout[2] = (_8)(length >> 56);
+			msgout[3] = (_8)(length >> 48);
+			msgout[4] = (_8)(length >> 40);
+			msgout[5] = (_8)(length >> 32);
+#else
+			msgout[2] = 0;
+			msgout[3] = 0;
+			msgout[4] = 0;
+			msgout[5] = 0;
+#endif
+			msgout[6] = (_8)(length >> 24);
+			msgout[7] = (_8)(length >> 16);
+			msgout[8] = (_8)(length >> 8);
+			msgout[9] = (_8)length;
+		}
+		else
+		{
+			msgout[1] = 126;
+			msgout[2] = (_8)(length >> 8);
+         msgout[3] = (_8)(length);
+		}
+	}
+	else
+		msgout[1] = length;
+	if( !no_mask )
+	{
+      int mask_offset = (length_out-length) - 4;
+      msgout[mask_offset+0] = (_8)(wsc_local.newmask >> 24);
+      msgout[mask_offset+1] = (_8)(wsc_local.newmask >> 16);
+      msgout[mask_offset+2] = (_8)(wsc_local.newmask >> 8);
+      msgout[mask_offset+3] = (_8)(wsc_local.newmask);
+	}
+	{
+		size_t n;
+      P_8 data_out = msgout + (length_out-length);
+		for( n = 0; n < length; n++ )
+		{
+         (*data_out++) = payload[n] ^ use_mask[n&3];
+		}
+	}
+	SendTCP( websock->pc, msgout, length_out );
+   Deallocate( P_8, msgout );
 }
+
 
 
 
@@ -249,31 +322,21 @@ static void ProcessWebSockProtocol( WebSocketClient websock, P_8 msg, size_t len
 					// 4000-4999 - reserved for private use; cannot be registerd;
 					if( !websock->flags.closed )
 					{
-						static _8 msgout[128];
-						msgout[0] = 0x88;
-						// being a control frame, the frame_length must be a single byte.
-						msgout[1] = websock->frame_length;
-						memcpy( msg + 2, websock->fragment_collection, websock->frame_length );
-						MaskMessageOut( msg + 2, websock->frame_length );
-						SendTCP( websock->pc, msg, 2 + websock->frame_length );
+						SendWebSocketMessage( websock, 8, 1, 0, websock->fragment_collection, websock->frame_length );
+                  websock->flags.closed = 1;
 					}
+					if( websock->on_close )
+                  websock->on_close( websock->psv_on );
 					websock->fragment_collection_length = 0;
 					break;
 				case 0x09: // ping
-					{
-						static _8 msgout[128];
-						msgout[0] = 0x8a; // final pong?
-						// being a control frame, the frame_length must be a single byte.
-						msgout[1] = websock->frame_length;
-						memcpy( msg + 2, websock->fragment_collection, websock->frame_length );
-						MaskMessageOut( msg + 2, websock->frame_length );
-						SendTCP( websock->pc, msg, 2 + websock->frame_length );
-					}
+					SendWebSocketMessage( websock, 0x0a, 1, 0, websock->fragment_collection, websock->frame_length );
 					websock->fragment_collection_length = 0;
 					break;
 				case 0x0A: // pong
 					{
-						// nothing to do?
+                  // this is for the ping routine to wait (or rather to end wait)
+                  websock->flags.received_pong = 1;
 					}
 					websock->fragment_collection_length = 0;
 					break;
@@ -292,13 +355,44 @@ static void ProcessWebSockProtocol( WebSocketClient websock, P_8 msg, size_t len
 
 static void CPROC WebSocketTimer( PTRSZVAL psv )
 {
+   _32 now;
 	INDEX idx;
    WebSocketClient websock;
 	LIST_FORALL( wsc_local.clients, idx, WebSocketClient, websock )
 	{
+		now = timeGetTime();
+
+      // close is delay notified
 		if( websock->flags.want_close )
 		{
-         SendClose( websock );
+			struct {
+				_16 reason;
+			} msg;
+         msg.reason = 1000; // normal
+			websock->flags.closed = 1;
+         SendWebSocketMessage( websock, 8, 1, 0, (P_8)&msg, 2 );
+		}
+
+      // do auto ping...
+		if( !websock->flags.closed )
+		{
+			if( websock->ping_delay )
+				if( !websock->flags.sent_ping )
+				{
+					if( ( now - websock->last_reception ) > websock->ping_delay )
+					{
+						SendWebSocketMessage( websock, 0x09, 1, 0, NULL, 0 );
+					}
+				}
+				else
+				{
+					if( ( now - websock->last_reception ) > ( websock->ping_delay * 2 ) )
+					{
+						websock->flags.want_close = 1;
+                  // send close immediately
+                  RescheduleTimerEx( wsc_local.timer, 0 );
+					}
+				}
 		}
 	}
 }
@@ -437,16 +531,56 @@ void WebSocketClose( WebSocketClient websock )
    RescheduleTimerEx( wsc_local.timer, 0 );
 }
 
+void WebSocketPing( WebSocketClient websock, _32 timeout )
+{
+	_32 start_at = timeGetTime();
+	_32 target = start_at + timeout;
+   _32 now;
+	SendWebSocketMessage( websock, 9, 1, 0, NULL, 0 );
+
+	while( !websock->flags.received_pong
+			&& ( ( ( now=timeGetTime() ) - start_at ) < timeout ) )
+		IdleFor( target-now );
+   websock->flags.received_pong = 0;
+}
+
+void WebSocketEnableAutoPing( WebSocketClient websock, _32 delay )
+{
+	if( websock )
+	{
+      websock->ping_delay = delay;
+	}
+}
+
 // there is a control bit for whether the content is text or binary or a continuation
 void WebSocketSendText( WebSocketClient websock, POINTER buffer, size_t length ) // UTF8 RFC3629
 {
+	SendWebSocketMessage( websock, websock->flags.sent_type?0:1, 1, 0, (P_8)buffer, length );
+   websock->flags.sent_type = 0;
+}
+
+// there is a control bit for whether the content is text or binary or a continuation
+void WebSocketBeginSendText( WebSocketClient websock, POINTER buffer, size_t length ) // UTF8 RFC3629
+{
+   SendWebSocketMessage( websock, 1, 0, 0, (P_8)buffer, length );
+   websock->flags.sent_type = 1;
 
 }
 
 // literal binary sending; this may happen to be base64 encoded too
 void WebSocketSendBinary( WebSocketClient websock, POINTER buffer, size_t length )
 {
+	SendWebSocketMessage( websock, websock->flags.sent_type?0:2, 1, 0, (P_8)buffer, length );
 }
+
+// literal binary sending; this may happen to be base64 encoded too
+void WebSocketBeginSendBinary( WebSocketClient websock, POINTER buffer, size_t length )
+{
+   SendWebSocketMessage( websock, 2, 0, 0, (P_8)buffer, length );
+   websock->flags.sent_type = 1;
+}
+
+
 
 PRELOAD( InitWebSocketServer )
 {
