@@ -520,7 +520,13 @@ PTRSZVAL CPROC WaitForTaskEnd( PTHREAD pThread )
 			if( (int)MyCancelSynchronousIo == -1 )
 				MyCancelSynchronousIo = (BOOL(WINAPI*)(HANDLE))LoadFunction( WIDE( "kernel32.dll" ), WIDE( "CancelSynchronousIo" ) );
 			if( MyCancelSynchronousIo )
-				MyCancelSynchronousIo( GetThreadHandle( task->hStdOut.hThread ) );
+			{
+				if( !MyCancelSynchronousIo( GetThreadHandle( task->hStdOut.hThread ) ) )
+				{
+					// maybe the read wasn't queued yet....
+					//lprintf( "Failed to cancel IO on thread %d %d", GetThreadHandle( task->hStdOut.hThread ), GetLastError() );
+				}
+			}
 			else
 			{
 				static BOOL (WINAPI *MyCancelIoEx)( HANDLE hFile,LPOVERLAPPED ) = (BOOL(WINAPI*)(HANDLE,LPOVERLAPPED))-1;

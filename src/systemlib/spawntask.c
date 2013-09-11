@@ -94,7 +94,8 @@ static PTRSZVAL CPROC HandleTaskOutput(PTHREAD thread )
 						if( task->flags.log_input )
 							lprintf( WIDE( "Go to read task's stdout." ) );
 #ifdef _WIN32
-						if( ReadFile( phi->handle
+						if( !task->flags.process_ended &&
+							 ReadFile( phi->handle
 										, GetText( pInput ), (DWORD)(GetTextSize( pInput ) - 1)
 										, &dwRead, NULL ) )  //read the  pipe
 						{
