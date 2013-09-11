@@ -262,11 +262,13 @@ endif( WIN32 )
 
 set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS} 
      ${SOURCES_ROOT}src/netlib/html5.websocket/client/local.h
+     ${SOURCES_ROOT}src/netlib/html5.websocket/html5.websocket.common.h
      )
 
 SET( HTML5_SOURCES 
 		${SOURCES_ROOT}src/psilib/html5.canvas/html5.canvas.c
-		${SOURCES_ROOT}src/netlib/html5.websocket/server/html5.websocket.c
+        	${SOURCES_ROOT}src/netlib/html5.websocket/html5.websocket.common.c
+        	${SOURCES_ROOT}src/netlib/html5.websocket/server/html5.websocket.c
 		${SOURCES_ROOT}src/netlib/html5.websocket/client/html5.websocket.client.c
 		${SOURCES_ROOT}src/netlib/html5.websocket/json/json_emitter.c
 	)

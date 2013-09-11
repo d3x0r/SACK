@@ -9,15 +9,13 @@
 #include <md5.h>
 #include <http.h>
 
-
+#include "../html5.websocket.common.h"
 #include <html5.websocket.h>
 
 HTML5_WEBSOCKET_NAMESPACE
 
 struct sockett {
-
 	_8 generated[75];
-	
 } l;
 
 struct html5_web_socket {
@@ -27,11 +25,9 @@ struct html5_web_socket {
 	{
 		BIT_FIELD initial_handshake_done : 1;
 		BIT_FIELD rfc6455 : 1;
-		BIT_FIELD fragment_collecting : 1;
 	} flags;
-	size_t fragment_collection_avail;
-	size_t fragment_collection_length;
-	P_8 fragment_collection;
+
+   struct web_socket_input_state input_state;
 };
 
 const TEXTCHAR *base64 = WIDE("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");
@@ -164,18 +160,6 @@ static LOGICAL ComputeReplyKey2( PVARTEXT pvt_output, HTML5WebSocket socket, PTE
 	return TRUE;
 }
 
-static void AddFragment( HTML5WebSocket socket, POINTER fragment, size_t frag_length )
-{
-	P_8 new_fragbuf;
-	socket->fragment_collection_length += frag_length;
-	new_fragbuf = (P_8)Allocate( socket->fragment_collection_length + frag_length );
-	if( socket->fragment_collection_length )
-		MemCpy( new_fragbuf, socket->fragment_collection, socket->fragment_collection_length );
-	MemCpy( new_fragbuf + socket->fragment_collection_length, fragment, frag_length );
-	Deallocate( P_8, socket->fragment_collection );
-	socket->fragment_collection = new_fragbuf;
-}
-
 /* opcodes
       *  %x0 denotes a continuation frame
       *  %x1 denotes a text frame
@@ -197,17 +181,17 @@ static void HandleData( HTML5WebSocket socket, PCLIENT pc, POINTER buffer, size_
 	{
 		if( bytes[n] == 0 )
 		{
-			if( socket->fragment_collection_length )
+			if( socket->input_state.fragment_collection_length )
 			{
 				lprintf( WIDE("Message start with a message outstanding, double null chars?!") );
-				socket->fragment_collection_length = 0;
+				socket->input_state.fragment_collection_length = 0;
 			}
 		}
 		if( bytes[n] == 0xFF )
 		{
 			lprintf( WIDE("Completed message...") );
-			LogBinary( socket->fragment_collection, socket->fragment_collection_length );
-			socket->fragment_collection_length = 0;
+			LogBinary( socket->input_state.fragment_collection, socket->input_state.fragment_collection_length );
+			socket->input_state.fragment_collection_length = 0;
 		}
 		if( bytes[n] == 'n' && bytes[n + 1] == 'u' && bytes[n + 2] == 'm' )
 		{			
@@ -227,133 +211,19 @@ static void HandleData( HTML5WebSocket socket, PCLIENT pc, POINTER buffer, size_
 		}
 		else
 		{
-			if( socket->fragment_collection_avail == socket->fragment_collection_length )
+			if( socket->input_state.fragment_collection_avail == socket->input_state.fragment_collection_length )
 			{
-				P_8 new_fragment = NewArray( _8, socket->fragment_collection_avail + 64 );
-				socket->fragment_collection_avail += 64;
-				MemCpy( new_fragment, socket->fragment_collection, socket->fragment_collection_length );
-				Deallocate( POINTER, socket->fragment_collection );
-				socket->fragment_collection = new_fragment;
+				P_8 new_fragment = NewArray( _8, socket->input_state.fragment_collection_avail + 64 );
+				socket->input_state.fragment_collection_avail += 64;
+				MemCpy( new_fragment, socket->input_state.fragment_collection, socket->input_state.fragment_collection_length );
+				Deallocate( POINTER, socket->input_state.fragment_collection );
+				socket->input_state.fragment_collection = new_fragment;
 			}
-			socket->fragment_collection[socket->fragment_collection_length++] = bytes[n];
+			socket->input_state.fragment_collection[socket->input_state.fragment_collection_length++] = bytes[n];
 		}
 	}
 }
 
-static void HandleData_RFC6455( HTML5WebSocket socket, POINTER buffer, size_t length )
-{
-	LOGICAL final = 0;
-	LOGICAL mask = 0;
-	_8 mask_key[4];
-	int opcode;
-	_64 frame_length;
-	int offset = 0;
-	P_8 msg = (P_8)buffer;
-
-	if( msg[0] & 0x80 )
-		final = 1;
-
-	opcode = ( msg[0] & 0xF );
-	mask = (msg[1] & 0x80) != 0;
-	frame_length = (msg[1] & 0x7f );
-	if( frame_length == 126 )
-	{
-		offset = 2;
-		frame_length = ( msg[2] << 8 ) | msg[3];
-	}
-	lprintf( WIDE("Final: %d  opcode %d  mask %d length %Ld "), final, opcode, mask, frame_length );
-
-	if( frame_length == 127 )
-	{
-		frame_length = ( (_64)msg[2] << 56 ) 
-			| ( (_64)msg[3] << 48 ) 
-			| ( (_64)msg[4] << 32 ) 
-			| ( (_64)msg[5] << 24 ) 
-			| ( (_64)msg[6] << 16 ) 
-			| ( (_64)msg[7] << 8 ) 
-			| msg[8];
-		offset = 8;
-	}
-	if( mask )
-	{
-		mask_key[0] = msg[offset + 2];
-		mask_key[1] = msg[offset + 3];
-		mask_key[2] = msg[offset + 4];
-		mask_key[3] = msg[offset + 5];
-		offset += 4;
-	}
-	{
-		size_t n;
-		for( n = 0; n < frame_length; n++ )
-		{
-			msg[offset + 2+n] = msg[offset+2+n] ^ mask_key[n&3];
-		}
-	}
-
-   // control opcodes are limited to the one byte size limit
-	if( opcode & 0x8 )
-	{
-		if( length > 125 )
-		{
-			lprintf( WIDE("Bad length of control packet: %d"), length );
-			return;
-		}
-
-	}
-	switch( opcode )
-	{
-	case 0x00: // continuation
-		AddFragment( socket, msg + offset+2, frame_length );
-		if( final )
-		{
-			LogBinary( socket->fragment_collection, socket->fragment_collection_length );
-		}
-		break;
-	case 0x01: //text
-      if( !final )
-			AddFragment( socket, msg + offset+2, frame_length );
-      else
-         LogBinary( msg + offset+2, frame_length );
-		break;
-	case 0x02: //binary
-		if( !final )
-			AddFragment( socket, msg + offset+2, frame_length );
-		else
-			LogBinary( msg + offset+2, frame_length );
-
-		break;
-	case 0x08: // close
-		// close may have app data with a reason.
-		// if it has a reason, then the first two bytes are a code
-		//  1000 - normal
-		//  1001 - end point going away (page close, server shutdown)
-		//  1002 - termination from protocol error
-		//  1003 - binary/text mismatch (if supported)
-		// 1004 - reserved
-		// 1005 - No status code (reserved, must not send in close)
-		// 1006 - reserved for not in clude; connection terminated unexpected ( guess there are local-only, not sent)
-		// 1007 - inconsistant data for data in message
-		// 1008 - ereceived a message that violates policy (generic message for nothing better)
-		// 1009 - message too big
-		// 1010 - server did not negotiate extension
-		// 1011 - excpetion in handling message.
-		// 1015 - reservd, must not send in close; failure to perform TLS handshake (or bad server verification)
-		//  0-999 = not used;
-		// 1000-2999 - reserved for this protocol, reserved for specification
-		// 3000-3999 - libarry/framework/application.  Registered with IANA.  Defined by protocol.
-      // 4000-4999 - reserved for private use; cannot be registerd;
-		break;
-	case 0x09: // ping
-		break;
-	case 0x0A: // pong
-
-		break;
-	default:
-		lprintf( WIDE("Bad WebSocket opcode: %d"), opcode );
-      return;
-	}
-
-}
 
 static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 {
@@ -377,7 +247,6 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 					{
 						PVARTEXT pvt_output = VarTextCreate();
 						PTEXT value;
-						PTEXT value2;
 						PTEXT key1, key2;
 						char *output;
 						key1 = GetHTTPField( socket->http_state, WIDE( "Sec-WebSocket-Key1" ) );
@@ -489,7 +358,9 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 		{
 			lprintf( WIDE("Okay then hand this as data to process... within protocol") );
 			if( socket->flags.rfc6455 )
-				HandleData_RFC6455( socket, buffer, length );
+			{
+            ProcessWebSockProtocol( &socket->input_state, pc, (P_8)buffer, length );
+			}
 			else
 				HandleData( socket, pc, buffer, length );
 		}
