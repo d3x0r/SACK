@@ -1,6 +1,7 @@
 #include <stdhdrs.h>
 #include <network.h>
-
+#include <idle.h>
+#define SACK_WEBSOCKET_CLIENT_SOURCE
 #define WEBSOCKET_COMMON_SOURCE
 #include "html5.websocket.common.h"
 
@@ -304,5 +305,54 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, s
 		}
 	}
 }
+
+void WebSocketPing( PCLIENT pc, _32 timeout )
+{
+	_32 start_at = timeGetTime();
+	_32 target = start_at + timeout;
+	_32 now;
+   struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 2 );
+	SendWebSocketMessage( pc, 9, 1, 0, NULL, 0 );
+
+	while( !input_state->flags.received_pong
+			&& ( ( ( now=timeGetTime() ) - start_at ) < timeout ) )
+		IdleFor( target-now );
+   input_state->flags.received_pong = 0;
+}
+
+
+// there is a control bit for whether the content is text or binary or a continuation
+void WebSocketSendText( PCLIENT pc, POINTER buffer, size_t length ) // UTF8 RFC3629
+{
+   struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
+	SendWebSocketMessage( pc, output->flags.sent_type?0:1, 1, 0, (P_8)buffer, length );
+   output->flags.sent_type = 0;
+}
+
+// there is a control bit for whether the content is text or binary or a continuation
+void WebSocketBeginSendText( PCLIENT pc, POINTER buffer, size_t length ) // UTF8 RFC3629
+{
+   struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
+   SendWebSocketMessage( pc, 1, 0, 0, (P_8)buffer, length );
+   output->flags.sent_type = 1;
+
+}
+
+// literal binary sending; this may happen to be base64 encoded too
+void WebSocketSendBinary( PCLIENT pc, POINTER buffer, size_t length )
+{
+   struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
+	SendWebSocketMessage( pc, output->flags.sent_type?0:2, 1, 0, (P_8)buffer, length );
+}
+
+// literal binary sending; this may happen to be base64 encoded too
+void WebSocketBeginSendBinary( PCLIENT pc, POINTER buffer, size_t length )
+{
+   struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
+   SendWebSocketMessage( pc, 2, 0, 0, (P_8)buffer, length );
+   output->flags.sent_type = 1;
+}
+
+
 
 

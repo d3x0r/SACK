@@ -43,6 +43,15 @@ struct web_socket_input_state
 
 };
 
+struct web_socket_output_state
+{
+	struct web_socket_output_flags
+	{
+		BIT_FIELD sent_type : 1;
+	} flags;
+};
+
+
 EXTERN void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int no_mask, P_8 payload, size_t length );
 EXTERN void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, size_t length );
 

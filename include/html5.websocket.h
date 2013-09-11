@@ -40,15 +40,9 @@ HTML5_WEBSOCKET_NAMESPACE
 #define HTML5_WEBSOCKET_PROC(type,name) IMPORT_METHOD type CPROC name
 #endif
 
-typedef struct html5_web_socket *HTML5WebSocket;
-
 // need some sort of other methods to work with an HTML5WebSocket...
 // server side.
-HTML5_WEBSOCKET_PROC( HTML5WebSocket, CreateWebSocket )( CTEXTSTR server_url );
-//HTML5_WEBSOCKET_PROC( LOGICAL, SendWebSocket )( HTML5WebSocket, CTEXTSTR filename );
-//HTML5_WEBSOCKET_PROC( void, h5printf )( HTML5WebSocket, CTEXTSTR format, ... );
-//HTML5_WEBSOCKET_PROC( void, AddResourceToWebSocket )( HTML5WebSocket, CTEXTSTR resource_name );
-
+HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketCreate )( CTEXTSTR server_url );
 
 
 /* define a callback which uses a HTML5WebSocket collector to build javascipt to render the control.
