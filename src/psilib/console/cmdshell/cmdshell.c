@@ -45,7 +45,11 @@ int main( int argc, char **argv )
 		DisplayFrame( pc );
 
 		//task = LaunchPeerProgram( argc>1?argv[1]:"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", ".", NULL, OutputHandle, TaskEnded, (PTRSZVAL)pc );
-		task = LaunchPeerProgram( argc>1?argv[1]:"cmd.exe", ".", NULL, OutputHandle, TaskEnded, (PTRSZVAL)pc );
+		task = LaunchPeerProgramExx( argc>1?argv[1]:"cmd.exe", ".", NULL
+											, 0 /*LPP_OPTION_DO_NOT_HIDE*/
+											, OutputHandle, TaskEnded, (PTRSZVAL)pc
+                                  DBG_SRC
+											);
 		if( task )
 		{
 			PSIConsoleInputEvent( pc, WindowInput, (PTRSZVAL)task );
