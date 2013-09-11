@@ -2,7 +2,7 @@
 #include <idle.h>
 #define SACK_WEBSOCKET_CLIENT_SOURCE
 #include <html5.websocket.client.h>
-
+#include "../html5.websocket.common.h"
 
 #include "local.h"
 
@@ -32,29 +32,7 @@ static void SendRequestHeader( WebSocketClient websock )
    VarTextDestroy( &pvtHeader );
 }
 
-
-static void AddFragment( WebSocketClient websock, POINTER fragment, size_t frag_length )
-{
-	P_8 new_fragbuf;
-	websock->fragment_collection_length += frag_length;
-	new_fragbuf = (P_8)Allocate( websock->fragment_collection_length + frag_length );
-	if( websock->fragment_collection_length )
-		MemCpy( new_fragbuf, websock->fragment_collection, websock->fragment_collection_length );
-	MemCpy( new_fragbuf + websock->fragment_collection_length, fragment, frag_length );
-	Deallocate( P_8, websock->fragment_collection );
-	websock->fragment_collection = new_fragbuf;
-}
-
-static void MaskMessageOut( P_8 bufout, size_t length )
-{
-	size_t n;
-	wsc_local.newmask ^= rand() ^ ( rand() << 13 ) ^ ( rand() << 26 );
-	for( n = 0; n < length; n++ )
-	{
-		bufout[n] = bufout[n] ^ ((P_8)&wsc_local.newmask)[n&3];
-	}
-}
-
+#if 0
 static void ResetInputState( WebSocketClient websock )
 {
 	websock->input_msg_state = 0;
@@ -69,90 +47,6 @@ static void ResetInputState( WebSocketClient websock )
 	websock->mask_key[2] = 0;
 	websock->mask_key[3] = 0;
 }
-
-// literal binary sending; this may happen to be base64 encoded too
-static void SendWebSocketMessage( WebSocketClient websock, int opcode, int final, int no_mask, P_8 payload, size_t length )
-{
-	P_8 msgout;
-	P_8 use_mask;
-   _32 zero = 0;
-   size_t length_out = length + 2; // minimum additional is the opcode and tiny payload length (2 bytes)
-	if( ( opcode & 8 ) && ( length > 125 ) )
-	{
-      lprintf( "Invalid send, control packet with large payload. (opcode %d  length %d)", opcode, length );
-		return;
-	}
-
-	if( length > 125 )
-	{
-      if( length > 32767 )
-			length_out += 8; // need 8 more bytes for a really long length
-		else
-         length_out += 2; // need 2 more bytes for a longer length
-	}
-	if( !no_mask )
-	{
-      wsc_local.newmask ^= rand() ^ ( rand() << 13 ) ^ ( rand() << 26 );
-		use_mask = (P_8)&wsc_local.newmask;
-      length_out += 4; // need 4 more bytes for the mask
-	}
-	else
-	{
-		use_mask = (P_8)&zero;
-	}
-
-	msgout = NewArray( _8, length_out );
-	msgout[0] = (final?0x80:0x00) | opcode;
-	if( length > 125 )
-	{
-		if( length > 32767 )
-		{
-			msgout[1] = 127;
-#if __64__
-			msgout[2] = (_8)(length >> 56);
-			msgout[3] = (_8)(length >> 48);
-			msgout[4] = (_8)(length >> 40);
-			msgout[5] = (_8)(length >> 32);
-#else
-			msgout[2] = 0;
-			msgout[3] = 0;
-			msgout[4] = 0;
-			msgout[5] = 0;
-#endif
-			msgout[6] = (_8)(length >> 24);
-			msgout[7] = (_8)(length >> 16);
-			msgout[8] = (_8)(length >> 8);
-			msgout[9] = (_8)length;
-		}
-		else
-		{
-			msgout[1] = 126;
-			msgout[2] = (_8)(length >> 8);
-         msgout[3] = (_8)(length);
-		}
-	}
-	else
-		msgout[1] = length;
-	if( !no_mask )
-	{
-      int mask_offset = (length_out-length) - 4;
-      msgout[mask_offset+0] = (_8)(wsc_local.newmask >> 24);
-      msgout[mask_offset+1] = (_8)(wsc_local.newmask >> 16);
-      msgout[mask_offset+2] = (_8)(wsc_local.newmask >> 8);
-      msgout[mask_offset+3] = (_8)(wsc_local.newmask);
-	}
-	{
-		size_t n;
-      P_8 data_out = msgout + (length_out-length);
-		for( n = 0; n < length; n++ )
-		{
-         (*data_out++) = payload[n] ^ use_mask[n&3];
-		}
-	}
-	SendTCP( websock->pc, msgout, length_out );
-   Deallocate( P_8, msgout );
-}
-
 
 
 
@@ -322,7 +216,7 @@ static void ProcessWebSockProtocol( WebSocketClient websock, P_8 msg, size_t len
 					// 4000-4999 - reserved for private use; cannot be registerd;
 					if( !websock->flags.closed )
 					{
-						SendWebSocketMessage( websock, 8, 1, 0, websock->fragment_collection, websock->frame_length );
+						SendWebSocketMessage( websock->pc, 8, 1, 0, websock->fragment_collection, websock->frame_length );
                   websock->flags.closed = 1;
 					}
 					if( websock->on_close )
@@ -330,13 +224,13 @@ static void ProcessWebSockProtocol( WebSocketClient websock, P_8 msg, size_t len
 					websock->fragment_collection_length = 0;
 					break;
 				case 0x09: // ping
-					SendWebSocketMessage( websock, 0x0a, 1, 0, websock->fragment_collection, websock->frame_length );
+					SendWebSocketMessage( websock->pc, 0x0a, 1, 0, websock->fragment_collection, websock->frame_length );
 					websock->fragment_collection_length = 0;
 					break;
 				case 0x0A: // pong
 					{
                   // this is for the ping routine to wait (or rather to end wait)
-                  websock->flags.received_pong = 1;
+                  websock->input_state.flags.received_pong = 1;
 					}
 					websock->fragment_collection_length = 0;
 					break;
@@ -351,7 +245,7 @@ static void ProcessWebSockProtocol( WebSocketClient websock, P_8 msg, size_t len
 		}
 	}
 }
-
+#endif
 
 static void CPROC WebSocketTimer( PTRSZVAL psv )
 {
@@ -369,24 +263,24 @@ static void CPROC WebSocketTimer( PTRSZVAL psv )
 				_16 reason;
 			} msg;
          msg.reason = 1000; // normal
-			websock->flags.closed = 1;
-         SendWebSocketMessage( websock, 8, 1, 0, (P_8)&msg, 2 );
+			websock->input_state.flags.closed = 1;
+         SendWebSocketMessage( websock->pc, 8, 1, 0, (P_8)&msg, 2 );
 		}
 
       // do auto ping...
-		if( !websock->flags.closed )
+		if( !websock->input_state.flags.closed )
 		{
 			if( websock->ping_delay )
-				if( !websock->flags.sent_ping )
+				if( !websock->input_state.flags.sent_ping )
 				{
-					if( ( now - websock->last_reception ) > websock->ping_delay )
+					if( ( now - websock->input_state.last_reception ) > websock->ping_delay )
 					{
-						SendWebSocketMessage( websock, 0x09, 1, 0, NULL, 0 );
+						SendWebSocketMessage( websock->pc, 0x09, 1, 0, NULL, 0 );
 					}
 				}
 				else
 				{
-					if( ( now - websock->last_reception ) > ( websock->ping_delay * 2 ) )
+					if( ( now - websock->input_state.last_reception ) > ( websock->ping_delay * 2 ) )
 					{
 						websock->flags.want_close = 1;
                   // send close immediately
@@ -420,10 +314,10 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 				websock->flags.connected = 1;
 				{
 					PTEXT content = GetHttpContent( websock->pHttpState );
-					if( websock->on_open )
-                  websock->on_open( websock->psv_on );
+					if( websock->input_state.on_open )
+                  websock->input_state.on_open( websock->input_state.psv_on );
 					if( content )
-                  ProcessWebSockProtocol( websock, (P_8)GetText( content ), GetTextSize( content ) );
+                  ProcessWebSockProtocol( &websock->input_state, websock->pc, (P_8)GetText( content ), GetTextSize( content ) );
 				}
 			}
 			else if( (int)result >= 300 && (int)result < 400 )
@@ -441,7 +335,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 		}
 		else
 		{
-			ProcessWebSockProtocol( websock, (P_8)buffer, len );
+			ProcessWebSockProtocol( &websock->input_state, websock->pc, (P_8)buffer, len );
 		}
 		// process buffer?
 
@@ -487,17 +381,17 @@ WebSocketClient WebSocketOpen( CTEXTSTR url_address
 									  , PTRSZVAL psv )
 {
 	WebSocketClient websock = New( struct web_socket_client );
-   MemSet( websock, 0, sizeof( struct web_socket_client ) );
-   websock->on_open = on_open;
-   websock->on_event = on_event;
-   websock->on_close = on_closed;
-	websock->on_error = on_error;
-	websock->psv_on = psv;
+	MemSet( websock, 0, sizeof( struct web_socket_client ) );
+	websock->input_state.on_open = on_open;
+	websock->input_state.on_event = on_event;
+	websock->input_state.on_close = on_closed;
+	websock->input_state.on_error = on_error;
+	websock->input_state.psv_on = psv;
 
 	websock->url = SACK_URLParse( url_address );
 
 	EnterCriticalSec( &wsc_local.cs_opening );
-   wsc_local.opening_client = websock;
+	wsc_local.opening_client = websock;
 	{
 		websock->pc = OpenTCPClientExx( websock->url->host
 												, websock->url->port?websock->url->port:websock->url->default_port
@@ -509,16 +403,16 @@ WebSocketClient WebSocketOpen( CTEXTSTR url_address
 		if( websock->pc && !on_open )
 		{
 			// send request if we got connected, if there is a on_open callback, then we're delay waiting
-         // so this will be sent in the socket on-open event.
+			// so this will be sent in the socket on-open event.
 			SendRequestHeader( websock );
-			while( !websock->flags.connected && !websock->flags.closed )
-            Idle();
+			while( !websock->flags.connected && !websock->input_state.flags.closed )
+				Idle();
 		}
 		while( wsc_local.opening_client )
-         Idle();
+			Idle();
 	}
-   LeaveCriticalSec( &wsc_local.cs_opening );
-   return  websock;
+	LeaveCriticalSec( &wsc_local.cs_opening );
+	return  websock;
 }
 
 // end a websocket connection nicely.
@@ -536,12 +430,12 @@ void WebSocketPing( WebSocketClient websock, _32 timeout )
 	_32 start_at = timeGetTime();
 	_32 target = start_at + timeout;
    _32 now;
-	SendWebSocketMessage( websock, 9, 1, 0, NULL, 0 );
+	SendWebSocketMessage( websock->pc, 9, 1, 0, NULL, 0 );
 
-	while( !websock->flags.received_pong
+	while( !websock->input_state.flags.received_pong
 			&& ( ( ( now=timeGetTime() ) - start_at ) < timeout ) )
 		IdleFor( target-now );
-   websock->flags.received_pong = 0;
+   websock->input_state.flags.received_pong = 0;
 }
 
 void WebSocketEnableAutoPing( WebSocketClient websock, _32 delay )
@@ -555,14 +449,14 @@ void WebSocketEnableAutoPing( WebSocketClient websock, _32 delay )
 // there is a control bit for whether the content is text or binary or a continuation
 void WebSocketSendText( WebSocketClient websock, POINTER buffer, size_t length ) // UTF8 RFC3629
 {
-	SendWebSocketMessage( websock, websock->flags.sent_type?0:1, 1, 0, (P_8)buffer, length );
+	SendWebSocketMessage( websock->pc, websock->flags.sent_type?0:1, 1, 0, (P_8)buffer, length );
    websock->flags.sent_type = 0;
 }
 
 // there is a control bit for whether the content is text or binary or a continuation
 void WebSocketBeginSendText( WebSocketClient websock, POINTER buffer, size_t length ) // UTF8 RFC3629
 {
-   SendWebSocketMessage( websock, 1, 0, 0, (P_8)buffer, length );
+   SendWebSocketMessage( websock->pc, 1, 0, 0, (P_8)buffer, length );
    websock->flags.sent_type = 1;
 
 }
@@ -570,13 +464,13 @@ void WebSocketBeginSendText( WebSocketClient websock, POINTER buffer, size_t len
 // literal binary sending; this may happen to be base64 encoded too
 void WebSocketSendBinary( WebSocketClient websock, POINTER buffer, size_t length )
 {
-	SendWebSocketMessage( websock, websock->flags.sent_type?0:2, 1, 0, (P_8)buffer, length );
+	SendWebSocketMessage( websock->pc, websock->flags.sent_type?0:2, 1, 0, (P_8)buffer, length );
 }
 
 // literal binary sending; this may happen to be base64 encoded too
 void WebSocketBeginSendBinary( WebSocketClient websock, POINTER buffer, size_t length )
 {
-   SendWebSocketMessage( websock, 2, 0, 0, (P_8)buffer, length );
+   SendWebSocketMessage( websock->pc, 2, 0, 0, (P_8)buffer, length );
    websock->flags.sent_type = 1;
 }
 
