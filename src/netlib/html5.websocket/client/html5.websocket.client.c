@@ -298,6 +298,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
       SetTCPNoDelay( pc, TRUE );
 		wsc_local.opening_client->buffer = Allocate( 4096 );
 		SetNetworkLong( pc, 0, (PTRSZVAL)wsc_local.opening_client );
+      SetNetworkLong( pc, 1, (PTRSZVAL)&wsc_local.opening_client->output_state );
       wsc_local.opening_client = NULL; // clear this to allow open to return.
 	}
 	else
@@ -372,13 +373,13 @@ static void CPROC WebSocketClientConnected( PCLIENT pc, int error )
 //  If web_socket_opened is passed as NULL, this function will wait until the negotiation has passed.
 //  since these packets are collected at a lower layer, buffers passed to receive event are allocated for
 //  the application, and the application does not need to setup an  initial read.
-WebSocketClient WebSocketOpen( CTEXTSTR url_address
-									  , int options
-									  , web_socket_opened on_open
-									  , web_socket_event on_event
-									  , web_socket_closed on_closed
-									  , web_socket_error on_error
-									  , PTRSZVAL psv )
+PCLIENT WebSocketOpen( CTEXTSTR url_address
+							, int options
+							, web_socket_opened on_open
+							, web_socket_event on_event
+							, web_socket_closed on_closed
+							, web_socket_error on_error
+							, PTRSZVAL psv )
 {
 	WebSocketClient websock = New( struct web_socket_client );
 	MemSet( websock, 0, sizeof( struct web_socket_client ) );
@@ -412,68 +413,23 @@ WebSocketClient WebSocketOpen( CTEXTSTR url_address
 			Idle();
 	}
 	LeaveCriticalSec( &wsc_local.cs_opening );
-	return  websock;
+	return  websock->pc;
 }
 
 // end a websocket connection nicely.
-void WebSocketClose( WebSocketClient websock )
+void WebSocketClose( PCLIENT pc )
 {
-	websock->flags.want_close = 1;
-	// wake up the timer processing socket closes... so we can close and result
-	// immediatly; also Open is usually an asynch operation; although it's
-   // mostly network event driven instead.
-   RescheduleTimerEx( wsc_local.timer, 0 );
+   RemoveClient( pc );
 }
 
-void WebSocketPing( WebSocketClient websock, _32 timeout )
+void WebSocketEnableAutoPing( PCLIENT pc, _32 delay )
 {
-	_32 start_at = timeGetTime();
-	_32 target = start_at + timeout;
-   _32 now;
-	SendWebSocketMessage( websock->pc, 9, 1, 0, NULL, 0 );
-
-	while( !websock->input_state.flags.received_pong
-			&& ( ( ( now=timeGetTime() ) - start_at ) < timeout ) )
-		IdleFor( target-now );
-   websock->input_state.flags.received_pong = 0;
-}
-
-void WebSocketEnableAutoPing( WebSocketClient websock, _32 delay )
-{
-	if( websock )
+	WebSocketClient websock = (WebSocketClient)GetNetworkLong( pc, 0 );
+	if( websock->Magic == 0x20130911 )
 	{
-      websock->ping_delay = delay;
+		websock->ping_delay = delay;
 	}
 }
-
-// there is a control bit for whether the content is text or binary or a continuation
-void WebSocketSendText( WebSocketClient websock, POINTER buffer, size_t length ) // UTF8 RFC3629
-{
-	SendWebSocketMessage( websock->pc, websock->flags.sent_type?0:1, 1, 0, (P_8)buffer, length );
-   websock->flags.sent_type = 0;
-}
-
-// there is a control bit for whether the content is text or binary or a continuation
-void WebSocketBeginSendText( WebSocketClient websock, POINTER buffer, size_t length ) // UTF8 RFC3629
-{
-   SendWebSocketMessage( websock->pc, 1, 0, 0, (P_8)buffer, length );
-   websock->flags.sent_type = 1;
-
-}
-
-// literal binary sending; this may happen to be base64 encoded too
-void WebSocketSendBinary( WebSocketClient websock, POINTER buffer, size_t length )
-{
-	SendWebSocketMessage( websock->pc, websock->flags.sent_type?0:2, 1, 0, (P_8)buffer, length );
-}
-
-// literal binary sending; this may happen to be base64 encoded too
-void WebSocketBeginSendBinary( WebSocketClient websock, POINTER buffer, size_t length )
-{
-   SendWebSocketMessage( websock->pc, 2, 0, 0, (P_8)buffer, length );
-   websock->flags.sent_type = 1;
-}
-
 
 
 PRELOAD( InitWebSocketServer )

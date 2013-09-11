@@ -18,7 +18,10 @@ struct sockett {
 	_8 generated[75];
 } l;
 
+typedef struct html5_web_socket *HTML5WebSocket;
+
 struct html5_web_socket {
+   _32 Magic; // this value must be 0x20130912
 	HTTPState http_state;
 	PCLIENT pc;
 	struct web_socket_flags
@@ -28,6 +31,7 @@ struct html5_web_socket {
 	} flags;
 
    struct web_socket_input_state input_state;
+   struct web_socket_output_state output_state;
 };
 
 const TEXTCHAR *base64 = WIDE("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");
@@ -368,7 +372,6 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 	else
 	{
 		buffer = Allocate( 4096 );
-      //SendTCP( "
 	}
 	ReadTCP( pc, buffer, 4096 );
 }
@@ -378,10 +381,13 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 	//HTML5WebSocket server_socket = (HTML5WebSocket)GetNetworkLong( pc_server, 0 );
 	HTML5WebSocket socket = New( struct html5_web_socket );
 	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
+   socket->Magic = 0x20130912;
 	socket->pc = pc_new;
 	socket->http_state = CreateHttpState();
 
 	SetNetworkLong( pc_new, 0, (PTRSZVAL)socket );
+	SetNetworkLong( pc_new, 1, (PTRSZVAL)&socket->output_state );
+	SetNetworkLong( pc_new, 2, (PTRSZVAL)&socket->input_state );
 	SetNetworkReadComplete( pc_new, read_complete );
 }
 
@@ -390,19 +396,22 @@ static LOGICAL CPROC HandleRequest( PTRSZVAL psv, HTTPState pHttpState )
 
 }
 
-HTML5WebSocket CreateWebSocket( CTEXTSTR hosturl )
+PCLIENT WebSocketCreate( CTEXTSTR hosturl )
 {
 	HTML5WebSocket socket = New( struct html5_web_socket );
 	NetworkStart();
 	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
+	socket->Magic = 0x20130912;
 
-	socket->pc = 0;
 	socket->pc = //CreateHttpServer( "localhost:9998", "WebSockets", "url", HandleRequest, 0 );
 		OpenTCPListenerEx( 9998, connected );
 	socket->http_state = CreateHttpState();
 	SetNetworkLong( socket->pc, 0, (PTRSZVAL)socket );
-	return socket;
+	SetNetworkLong( socket->pc, 1, (PTRSZVAL)&socket->output_state );
+	SetNetworkLong( socket->pc, 2, (PTRSZVAL)&socket->input_state );
+	return socket->pc;
 }
+
 
 HTML5_WEBSOCKET_NAMESPACE_END
 
