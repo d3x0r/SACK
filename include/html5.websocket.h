@@ -18,6 +18,8 @@
 #include <procreg.h>
 #include <controls.h>
 
+// should consider merging these headers(?)
+#include <html5.websocket.client.h>
 
 #ifdef __cplusplus
 #define _HTML5_WEBSOCKET_NAMESPACE namespace Html5WebSocket {
@@ -42,7 +44,13 @@ HTML5_WEBSOCKET_NAMESPACE
 
 // need some sort of other methods to work with an HTML5WebSocket...
 // server side.
-HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketCreate )( CTEXTSTR server_url );
+	HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketCreate )( CTEXTSTR server_url
+																	, web_socket_opened on_open
+																	, web_socket_event on_event
+																	, web_socket_closed on_closed
+																	, web_socket_error on_error
+																	, PTRSZVAL psv
+																	);
 
 
 /* define a callback which uses a HTML5WebSocket collector to build javascipt to render the control.
