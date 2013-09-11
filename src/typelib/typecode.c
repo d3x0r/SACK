@@ -837,10 +837,10 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
 
  LOGICAL  IsQueueEmpty ( PLINKQUEUE *pplq  )
 {
-   if( !pplq || !(*pplq) ||
+	if( !pplq || !(*pplq) ||
        (*pplq)->Bottom == (*pplq)->Top )
-      return TRUE;
-   return FALSE;
+		return TRUE;
+	return FALSE;
 }
 
 //--------------------------------------------------------------------------
@@ -864,7 +864,7 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
 	if( idx == INVALID_INDEX )
 		return NULL;
 	if( !plq )
-      return NULL;
+		return NULL;
 	for( top = plq->Bottom
 		 ; idx != INVALID_INDEX && top != plq->Top
 		 ; )
@@ -873,13 +873,13 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
 		if( idx != INVALID_INDEX )
 		{
 			top++;
-         if( (top)>=plq->Cnt)
+			if( (top)>=plq->Cnt)
 				top=(top)-plq->Cnt;
 		}
 	}
-   if( idx == INVALID_INDEX )
+	if( idx == INVALID_INDEX )
 		return plq->pNode[top];
-   return NULL;
+	return NULL;
 }
 
  POINTER  PeekQueue ( PLINKQUEUE plq )
@@ -930,9 +930,9 @@ POINTER  DequeLink ( PLINKQUEUE *pplq )
 	{
 		tmp = (*pplq)->Bottom + 1;
 		if( tmp >= (*pplq)->Cnt )
-         tmp -= (*pplq)->Cnt;
-      p = (*pplq)->pNode[(*pplq)->Bottom];
-      (*pplq)->Bottom = tmp;
+			tmp -= (*pplq)->Cnt;
+		p = (*pplq)->pNode[(*pplq)->Bottom];
+		(*pplq)->Bottom = tmp;
 	}
 	if( !keep_lock )
 		link_queue_local_lock[0] = 0;
@@ -958,27 +958,27 @@ static struct data_queue_local_data
 
 PDATAQUEUE CreateDataQueueEx( INDEX size DBG_PASS )
 {
-   PDATAQUEUE pdq;
-   pdq = (PDATAQUEUE)AllocateEx( ( ( sizeof( DATAQUEUE ) + (2*size) ) - 1 ) DBG_RELAY );
-   pdq->Top      = 0;
-   pdq->Bottom   = 0;
-   pdq->Lock     = 0;
-   pdq->ExpandBy = 16;
-   pdq->Size     = size;
-   pdq->Cnt      = 2;
-   return pdq;
+	PDATAQUEUE pdq;
+	pdq = (PDATAQUEUE)AllocateEx( ( ( sizeof( DATAQUEUE ) + (2*size) ) - 1 ) DBG_RELAY );
+	pdq->Top      = 0;
+	pdq->Bottom   = 0;
+	pdq->Lock     = 0;
+	pdq->ExpandBy = 16;
+	pdq->Size     = size;
+	pdq->Cnt      = 2;
+	return pdq;
 }
 
 //--------------------------------------------------------------------------
 
 void DeleteDataQueueEx( PDATAQUEUE *ppdq DBG_PASS )
 {
-   if( ppdq )
-   {
-      if( *ppdq )
-         ReleaseEx( *ppdq DBG_RELAY );
-      *ppdq = NULL;
-   }
+	if( ppdq )
+	{
+		if( *ppdq )
+			ReleaseEx( *ppdq DBG_RELAY );
+		*ppdq = NULL;
+	}
 }
 
 //--------------------------------------------------------------------------
@@ -1015,7 +1015,7 @@ static PDATAQUEUE ExpandDataQueueEx( PDATAQUEUE *ppdq, INDEX entries DBG_PASS )
 				, pdq->data + (pdq->Bottom * pdq->Size)
 				, pdq->Size * pdqNew->Top );
 		}
-      (*ppdq) = pdqNew;
+		(*ppdq) = pdqNew;
 		Release( pdq );
 	}
 	return pdqNew;
