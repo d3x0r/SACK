@@ -325,6 +325,7 @@ static CTEXTSTR SaveName( CTEXTSTR name )
 				len = n;
 				break;
 			}
+		Release( stripped );
 		stripped = NewArray( TEXTCHAR, len + 2 );
 		StrCpyEx( stripped + 1, name, len + 1 ); // allow +1 length for null after string; otherwise strcpy dropps the nul early
 		stripped[0] = len + 2;
