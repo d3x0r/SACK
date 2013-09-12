@@ -916,9 +916,40 @@ PSI_PROC( void, OwnCommonMouse)( PSI_CONTROL pc, int bOwn );
 //PSI_PROC void SetDefaultCancelID( PSI_CONTROL pFrame, int nID );
 
 //-------- Generic control functions --------------
-PSI_PROC( PSI_CONTROL, GetCommonParent )( PSI_CONTROL pc );
+
+// previously this was used;
+//PSI_PROC( PSI_CONTROL, GetCommonParent )( PSI_CONTROL pc );
+#define GetCommonParent(pc)  GetParentControl(pc)
+/* Return the container control of this control.
+   NULL if there is no parent container. */
+PSI_PROC( PSI_CONTROL, GetParentControl )( PSI_CONTROL pc );
+/* Return the first control contained in the specified control.
+ returns NULL if there is no child control
+
+ <code>
+ void enum_all_controls( PSI_CONTROL a_control )
+ {
+     PSI_CONTROL root_control = a_control;
+	  PSI_CONTROL current_control;
+	  while( current_control = GetParentControl( root_control ) )
+	      root_control = current_control;
+			for( current_control = GetFirstChildControl( root_control );
+              current_control;
+				  current_control = GetNextControl( current_control ) )
+			{
+             // hmm some sort of recursion on each of these too...
+			}
+ }
+   </code>
+ */
+PSI_PROC( PSI_CONTROL, GetFirstChildControl )( PSI_CONTROL pc );
+/* Return the next control after this one.
+    returns NULL if there are no other controls after this one*/
+PSI_PROC( PSI_CONTROL, GetNextControl )( PSI_CONTROL pc );
+
 PSI_PROC( PSI_CONTROL, GetFrame)( PSI_CONTROL pc );
 #define GetFrame(c) GetFrame((PSI_CONTROL)(c))
+
 PSI_PROC( PSI_CONTROL, GetNearControl)( PSI_CONTROL pc, int ID );
 PSI_PROC( void, GetCommonTextEx)( PSI_CONTROL pc, TEXTSTR  buffer, int buflen, int bCString );
 #define GetControlTextEx(pc,b,len,str) GetCommonTextEx(pc,b,len,str)

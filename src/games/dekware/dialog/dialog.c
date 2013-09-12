@@ -282,7 +282,7 @@ PENTITY CommonInitControl( PCOMMON pc )
    EnterCriticalSec( &g.csCreating );
 	{
 		PCOMMON_TRACKER pComTrack = New( COMMON_TRACKER );
-		PCOMMON pcFrame = GetCommonParent( pc );
+		PCOMMON pcFrame = GetParentControl( pc );
 		pComTrack->control.pc = pc;
 		pComTrack->flags.created_internally = 0;
 		pComTrack->flags.menu = 0;
@@ -304,7 +304,7 @@ PENTITY CommonInitControl( PCOMMON pc )
 				PTEXT name = SegCreateFromText( GetControlTypeName( pc ) );
 				while( pcFrame && !( peFrame = (PENTITY)GetOneOfMyFrames( pcFrame ) ) )
 				{
-					pcFrame = GetCommonParent( pcFrame );
+					pcFrame = GetParentControl( pcFrame );
 				}
 				peNew = CreateEntityIn( peFrame, name );
 				if( peNew )

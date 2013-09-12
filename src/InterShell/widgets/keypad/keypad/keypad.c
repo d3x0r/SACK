@@ -473,16 +473,10 @@ OnEditControl( WIDE( "Keypad 2" ) )( PTRSZVAL psv, PSI_CONTROL pc_parent )
 					if( buffer[0] != '-' )
 					{
 						keypad->keypad_type = StrDup( buffer );
-						// builds the control attached to keypad thing for typename (only one per type)
-						//IsGetKeypadControlForType( GetCommonParent( keypad->keypad )
-						//								 , keypad );
 					}
-
 					else
 					{
 						keypad->keypad_type = NULL;
-						// builds the control attached to keypad thing (only one per type)
-						//IsGetKeypadControlForType( GetCommonParent( keypad->keypad ), keypad );
 					}
 				}
 			}
@@ -496,12 +490,6 @@ OnCreateControl( WIDE( "Keypad 2" ) )( PSI_CONTROL frame, S_32 x, S_32 y, _32 w,
 {
 	PPAGE_KEYPAD page_keypad = NULL;
 	{
-		//INDEX idx;
-		//LIST_FORALL( l.keypads, idx, PPAGE_KEYPAD, page_keypad )
-		//{
-		//	if( page_keypad->page == ShellGetCurrentPage() )
-        //      break;
-		//}
 
 		if( !page_keypad )
 		{
@@ -574,7 +562,6 @@ static PTRSZVAL CPROC MySetKeypadType( PTRSZVAL psv, arg_list args )
 		keypad->keypad_type = StrDup( name );
 
 	l.psv_read_keypad = (PTRSZVAL)keypad->keypad;
-	//IsGetKeypadControlForType( GetCommonParent( keypad->keypad ), keypad );
 
 	return psv;
 }
@@ -646,15 +633,11 @@ OnEditControl( WIDE( "Keyboard 2" ) )( PTRSZVAL psv, PSI_CONTROL pc_parent )
 					{
 						keypad->keypad_type = StrDup( buffer );
 						// builds the control attached to keypad thing for typename (only one per type)
-						//IsGetKeypadControlForType( GetCommonParent( keypad->keypad )
-						//								 , keypad );
 					}
 
 					else
 					{
 						keypad->keypad_type = NULL;
-						// builds the control attached to keypad thing (only one per type)
-						//IsGetKeypadControlForType( GetCommonParent( keypad->keypad ), keypad );
 					}
 				}
 			}

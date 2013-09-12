@@ -245,7 +245,7 @@ void UpdateButtonExx( PMENU_BUTTON button, int bEndingEdit DBG_PASS )
 		/* better to validate this, so off-page controls don't accidentatlly
 		 * show themselves with update.
        */
-		PCanvasData canvas = GetCanvas( GetCommonParent( QueryGetControl( button ) ) );
+		PCanvasData canvas = GetCanvas( GetParentControl( QueryGetControl( button ) ) );
 		// doesn't matter ... we're not on this button's page..
 
 		//lprintf( WIDE( "probably not g.flags.multi_edit ( %d )" ),  g.flags.multi_edit );

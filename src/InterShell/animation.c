@@ -163,7 +163,7 @@ Called when prcessing needs to be resumed
 
 	PMNG_ANIMATION animation = (PMNG_ANIMATION)psv;
 	mng_retcode myretcode;
-	PCanvasData canvas = GetCanvas( GetCommonParent( animation->control ) );
+	PCanvasData canvas = GetCanvas( GetParentControl( animation->control ) );
 
 	if(!animation || !animation->flags.initialized || ontimer )
 		return;

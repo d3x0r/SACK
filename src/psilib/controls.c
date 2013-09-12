@@ -4112,10 +4112,37 @@ PSI_PROC( PSI_CONTROL, GetFrame )( PSI_CONTROL pc )
 
 //---------------------------------------------------------------------------
 
+#undef GetCommonParent
+// this should ge depricated; for bad syntax
 PSI_CONTROL GetCommonParent( PSI_CONTROL pc )
 {
 	if( pc )
       return pc->parent;
+   return NULL;
+}
+
+//---------------------------------------------------------------------------
+
+PSI_CONTROL GetParentControl( PSI_CONTROL pc )
+{
+	if( pc )
+      return pc->parent;
+   return NULL;
+}
+
+//---------------------------------------------------------------------------
+PSI_CONTROL GetFirstChildControl( PSI_CONTROL pc )
+{
+	if( pc )
+      return pc->child;
+   return NULL;
+}
+
+//---------------------------------------------------------------------------
+PSI_CONTROL GetNextControl( PSI_CONTROL pc )
+{
+	if( pc )
+      return pc->next;
    return NULL;
 }
 
