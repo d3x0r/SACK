@@ -477,7 +477,7 @@ PCanvasData GetCanvas( PSI_CONTROL pc )
 		{
 			PSI_CONTROL parent;
 			//lprintf( WIDE( WIDE("Control %p is not a canvas, go to parent, check it...") ) );
-			for( parent = GetCommonParent( pc ); parent; parent = GetCommonParent( parent ) )
+			for( parent = GetParentControl( pc ); parent; parent = GetParentControl( parent ) )
 			{
 				ValidatedControlData( PCanvasData, menu_surface.TypeID, _canvas, parent );
 				if( _canvas )
@@ -528,7 +528,7 @@ void InvokePasteControl( PMENU_BUTTON button )
 void DestroyButton( PMENU_BUTTON button )
 {
 	PSI_CONTROL pc_canvas;
-	PCanvasData canvas = GetCanvas( pc_canvas = GetCommonParent( QueryGetControl( button ) ) );
+	PCanvasData canvas = GetCanvas( pc_canvas = GetParentControl( QueryGetControl( button ) ) );
 	if( !canvas )
 		return;
 	if( button == g.clonebutton )
@@ -1026,7 +1026,7 @@ void FlushToKey( PMENU_BUTTON button )
 #ifndef __NO_ANIMATION__
 					if( button->pAnimation[0] )
 					{
-						PCanvasData canvas = GetCanvas( GetCommonParent( QueryGetControl( button ) ) );
+						PCanvasData canvas = GetCanvas( GetParentControl( QueryGetControl( button ) ) );
 						if( button->decal_animation )
 							DeInitAnimationEngine( button->decal_animation );
 
@@ -2368,7 +2368,7 @@ void SetCommonButtonControls( PSI_CONTROL frame )
    // startup and shutdown macros are crazy.
    if( configure_key_dispatch.button )
 		{
-			PCanvasData canvas = GetCanvas( GetCommonParent( QueryGetControl( configure_key_dispatch.button ) ) );
+			PCanvasData canvas = GetCanvas( GetParentControl( QueryGetControl( configure_key_dispatch.button ) ) );
 			PSI_CONTROL list = GetControl( frame, LST_PAGES );
 			if( canvas && list )
 			{
