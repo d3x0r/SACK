@@ -1,7 +1,6 @@
 
-cmake_minimum_required(VERSION 2.8)
 
-project( test.html5.websocket )
+set( project test.html5.websocket )
 
 
 set(BASE_SOURCES
@@ -10,16 +9,16 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+add_executable(${project} ${BASE_SOURCES} )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
 	COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
                   FOLDER utils/tests
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project} ${SACK_LIBRARIES} )
+install_default_dest( ${project} )
 
-project( test.html5.caller )
+set( project test.html5.caller )
 
 
 set(BASE_SOURCES
@@ -28,11 +27,11 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+add_executable(${project} ${BASE_SOURCES} )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
 	COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
                   FOLDER utils/tests
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project} ${SACK_LIBRARIES} )
+install_default_dest( ${project} )

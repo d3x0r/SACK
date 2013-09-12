@@ -90,11 +90,15 @@ if( "MozWebSocket" in window )
         var received_msg = evt.data;
         alert("Message is received...");
      };
-     ws.onclose = function()
+     ws.onclose = function( evt )
      { 
         // websocket is closed.
-        alert("Connection is closed..."); 
+        alert("Connection is closed..." + evt.data ); 
      };
+     ws.onerror = function(evt)
+     {
+        alert( "connection error: " + evt.data );
+     }
 }
 </script>
 

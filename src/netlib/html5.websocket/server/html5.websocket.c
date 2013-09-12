@@ -236,17 +236,19 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 		HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
 		enum ProcessHttpResult result;
 		TEXTSTR tmp = DupCharToText( (const char*)buffer );
-		LogBinary( buffer, length );
+		//LogBinary( buffer, length );
 		if( !socket->flags.initial_handshake_done )
 		{
-			lprintf( WIDE("Initial handshake is not done...") );
+			//lprintf( WIDE("Initial handshake is not done...") );
 			((char*)buffer)[length] = 0; // make sure nul terminated.
 			AddHttpData( socket->http_state, tmp, length );
 			while( ( result = ProcessHttp( pc, socket->http_state ) ) )
 			{
-				lprintf( WIDE("result is %d"), result );
 				switch( result )
 				{
+				default:
+					lprintf( WIDE("unexpected result is %d"), result );
+					break;
 				case HTTP_STATE_RESULT_CONTENT:
 					{
 						PVARTEXT pvt_output = VarTextCreate();
@@ -347,7 +349,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 
 						value = VarTextGet( pvt_output );
 						output = DupTextToChar( GetText( value ) );
-						LogBinary( output, GetTextSize( value ) );
+						//LogBinary( output, GetTextSize( value ) );
 						SendTCP( pc, output, GetTextSize( value ) );
 					}
 					if( socket->input_state.on_open )
@@ -363,10 +365,10 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 		}
 		else
 		{
-			lprintf( WIDE("Okay then hand this as data to process... within protocol") );
+			//lprintf( WIDE("Okay then hand this as data to process... within protocol") );
 			if( socket->flags.rfc6455 )
 			{
-            ProcessWebSockProtocol( &socket->input_state, pc, (P_8)buffer, length );
+				ProcessWebSockProtocol( &socket->input_state, pc, (P_8)buffer, length );
 			}
 			else
 				HandleData( socket, pc, buffer, length );
@@ -381,11 +383,12 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 
 static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 {
-	//HTML5WebSocket server_socket = (HTML5WebSocket)GetNetworkLong( pc_server, 0 );
+	HTML5WebSocket server_socket = (HTML5WebSocket)GetNetworkLong( pc_server, 0 );
 	HTML5WebSocket socket = New( struct html5_web_socket );
 	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
-   socket->Magic = 0x20130912;
+	socket->Magic = 0x20130912;
 	socket->pc = pc_new;
+	socket->input_state = server_socket->input_state;
 	socket->http_state = CreateHttpState();
 
 	SetNetworkLong( pc_new, 0, (PTRSZVAL)socket );

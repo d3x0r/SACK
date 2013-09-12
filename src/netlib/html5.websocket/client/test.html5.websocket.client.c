@@ -1,8 +1,6 @@
-
 #include <stdhdrs.h>
-#include <network.h>
 
-#include <html5.websocket.h>
+#include <html5.websocket.client.h>
 
 
 PTRSZVAL my_web_socket_opened( PCLIENT pc, PTRSZVAL psv )
@@ -26,22 +24,25 @@ void my_web_socket_event( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 {
 	lprintf( "Recieved event" );
 	LogBinary( buffer, msglen );
-	WebSocketSendText( pc, buffer, msglen );
+	//WebSocketSendText( pc, buffer, msglen );
 }
 
 int main( void )
 {
-	PCLIENT socket = WebSocketCreate( "0.0.0.0:9998"
-											  , my_web_socket_opened
-											  , my_web_socket_event
-											  , my_web_socket_closed
-											  , my_web_socket_error
-											  , 0
-											  );
-
-	while( 1 )
-		WakeableSleep( 10000 );
-
-	return 0;
+	PCLIENT socket;
+	NetworkStart();
+	socket = WebSocketOpen( "ws://localhost:9998", 0
+								 , my_web_socket_opened
+								 , my_web_socket_event
+								 , my_web_socket_closed
+								 , my_web_socket_error
+								 , 0
+								 );
+	if( socket )
+	{
+		while( 1 )
+			WakeableSleep( 10000 );
+	}
+   return 0;
 }
 
