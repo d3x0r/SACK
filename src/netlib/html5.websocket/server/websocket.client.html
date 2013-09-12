@@ -88,7 +88,7 @@ if( "MozWebSocket" in window )
      ws.onmessage = function (evt) 
      { 
         var received_msg = evt.data;
-        alert("Message is received...");
+        alert("Message is received..." + evt.data );
      };
      ws.onclose = function( evt )
      { 

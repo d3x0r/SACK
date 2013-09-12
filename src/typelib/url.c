@@ -347,6 +347,12 @@ struct url_data * SACK_URLParse( CTEXTSTR url )
 		outchar = 0;
 		AppendBuffer( &cgi_data->value, NULL, outbuf );
 		break;
+	case PARSE_STATE_COLLECT_RESOURCE_PATH:
+		outbuf[outchar] = 0;
+		outchar = 0;
+		AppendBuffer( &data->resource_file, NULL, outbuf );
+		// this would be one word, no slashes, collecting a path . this is resource name
+		break;
 	default:
 		if( outchar )
 		{

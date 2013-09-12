@@ -2,16 +2,21 @@
 
 #include <html5.websocket.client.h>
 
+int done;
+PTHREAD main_thread;
 
 PTRSZVAL my_web_socket_opened( PCLIENT pc, PTRSZVAL psv )
 {
 	lprintf( "Connection opened... %p %p", pc, psv );
+   WebSocketSendText( pc, "Test Message", 12 );
 	return psv;
 }
 
 void my_web_socket_closed( PCLIENT pc, PTRSZVAL psv )
 {
 	lprintf( "Connection closed... %p %p", pc, psv );
+	done = 1;
+	WakeThread( main_thread );
 }
 
 void my_web_socket_error( PCLIENT pc, PTRSZVAL psv, int error )
@@ -31,7 +36,7 @@ int main( void )
 {
 	PCLIENT socket;
 	NetworkStart();
-	socket = WebSocketOpen( "ws://localhost:9998", 0
+	socket = WebSocketOpen( "ws://localhost:9998/echo", 0
 								 , my_web_socket_opened
 								 , my_web_socket_event
 								 , my_web_socket_closed
@@ -40,9 +45,10 @@ int main( void )
 								 );
 	if( socket )
 	{
-		while( 1 )
+		main_thread = MakeThread();
+		while( !done )
 			WakeableSleep( 10000 );
 	}
-   return 0;
+	return 0;
 }
 
