@@ -1,0 +1,6 @@
+gcc -c -g -I../../../include -DGCC -D_DEBUG -D__STATIC__ cmdline.c
+gcc -oscmdline cmdline.o  -L../../../lib/debug -lshmems -lsyslogs -lwsock32
+gcc -c -g -I../../../include -DGCC -D_DEBUG cmdline.c
+gcc -ocmdline cmdline.o  -L../../../lib/debug -lshmem -lsyslog
+cp ../../../dll/debug/libshmem.dll .
+cp ../../../dll/debug/libsyslog.dll .

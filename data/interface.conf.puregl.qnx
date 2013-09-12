@@ -1,0 +1,28 @@
+#sourced from sack/data/interface.conf.puregl.qnx
+Enable Trace = off
+
+
+# set 'options' interface default to sack_sql
+win32 alias service options sack_sql_options
+
+option default sack/vidlib/use interface = opengl
+
+if sack/vidlib/use interface == opengl
+option default SACK/Video Render/360 view = 0
+module libgf.so
+module libEGL.so
+module libbag.video.puregl.so
+module libbag.image.puregl2.so
+
+alias service render puregl.render
+alias service image puregl.image
+
+alias service render.3d puregl.render.3d
+endif
+
+
+# logging needs options, which needs to be aliased before this is loaded
+module loginfo.module
+
+
+

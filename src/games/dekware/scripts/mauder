@@ -1,0 +1,33 @@
+
+/trigger create recast1 You lost your concentration.
+.!
+/endmac
+
+/trigger create recast2 Something distracts you, and you lose your concentration.
+.!
+/endmac
+
+/trigger create recast3 you get a mental block mid-way through the casting.
+.!
+/endmac
+
+#/trigger create recast4 you failed.
+#.!
+#/endmac
+
+/trigger create reamor your armor returns to its mundane value
+.cast 'armor'
+/endmac
+
+/trigger create reshield your force shield shimmers then fades away
+.cast 'shield'
+/endmac
+
+/trigger create reskin your flesh sheds its draconian aspects
+.cast 'dragonskin'
+/endmac
+
+/trigger create rewit the wit of the dragon withdraws from your mind
+.cast 'dragon wit'
+/endmac
+

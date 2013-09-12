@@ -1,0 +1,65 @@
+
+/keybind shift num4
+.l n
+.l s
+.w
+/endmac
+
+/mac aa
+.l n
+.l s
+.w
+/endmac       
+
+/keybind shift num6
+.l n
+.l s
+.e
+/endmac
+
+/mac dd
+.l n
+.l s
+.e
+/endmac
+
+/keybind shift num8
+.l w
+.l e
+.n
+/endmac
+
+/mac ww
+.l w
+.l e
+.n
+/endmac
+
+/keybind shift num2
+.l w
+.l e
+.s
+/endmac
+
+/mac ss
+.l w
+.l e
+.s
+/endmac
+
+
+/keybind num4
+west
+/endmac
+
+/keybind num6
+east
+/endmac
+
+/keybind num8
+north
+/endmac
+
+/keybind num2
+south
+/endmac

@@ -1,0 +1,273 @@
+
+There are several project branches here at work...
+1) SACK - System Abstraction Component Kit - a generic, C library providing many containers and tool objects, also a set of libraries for UI design.
+2) Altanik - Legacy windows code ported to 32 bit+, many custom written applications for supporting Bingo, as the bingo world has evolved.  It has some generic utilities that are generally usefule - Menu (a simple display capable of launching tasks), SetupUnit for configuring handheld units through IR download, db import/export utils from legacy to modern SQL Stuff
+3) Eltanin - the player unit, stationary unit, the thing that the players use for the games. A game server, a POS thing...
+4) Windows - the legacy windows C code compiled with Borland C++ 3.1.  (weee!)
+5) misc others... barbingo, print services, ....
+
+Mostly I wanted to mention some things about SACK, and I'm horrible with speaking, hence this note...
+
+sack/doc/index.html - the base core of the documentation for this library.
+
+Primary - types in this were chosen with a unique standard, as much as Windows, or even the C99 standard supplies types that noone else uses.  Types are specified as an underscore, followed by the number of bits, for most integer types... _8, _16, _32, _64, prefixing an S indicates signed, otherwise values are unsigned... S_8 S_16, S_32, etc... prefixing either of these with a P indicates a pointer to the said type.  Then there are 4 extra types... POINTER - basically a (void*), INDEX - a unsigned 32 bit value, PTRSZVAL - variable in size, the size of this will be large enough to store the type of POINTER, but it is an integer type.  a PTRSZVAL is often typecast to some pointer type, or an integer type, at the applications discresion.  These values are generally passed as user data parameters  ( for example, when one defines a button, a click callback method may be specified, with a extra, application defined value, as a PTRSZVAL, since often, the application would like to attach a pointer to a structure to the value, and declaring this as an integer type, forces the programmer to typecast it from a pointer to the integer type PTRSZVAL... then in the callback, the user defined value is given, it may be returned to a pointer type, or maybe a simple integer value is all the application wanted to assign, and this is fine... In general - I have no run into a circumstance that this caused extra pain and suffering, and has tended to make me use the right types where I mean to. 
+
+Finally, C99 defines the standard type 'bool', but compiler support has always been well, crappy, for this type.  I defined a type LOGICAL, which I indended to be just a bitfield, but you cannot decalre an array of bitfield types.... it is suggested to use LOGICAL to contain values TRUE and FALSE (where TRUE == (!( FALSE == 0 ) )....Actually the more preferred method is to use something like
+
+struct {
+  _32 bit_logical_value : 1;
+  .....
+} flags;
+
+and reference (flags.bit_logical_value)
+
+I suppose I could make a whole semester of a college course on just basic things that SACK provides, I strongly recommend browsing the 'containers' documentation... LISTs, QUEUEs, STACKs, BinaryTrees, linked lists, sets of things ( a complex type using allocation in slabs of units to return single elements instead oaf allocating each one indpenedantly)
+
+Simple logging.
+
+lprintf ( format, ... ) ; // acts and smells like printf with an L preceeding it.
+
+output is sent to the current log device.  This device may be a file, a socket, NOTHING, something else, a use specified routine....
+
+
+SImple memory mangment
+------------
+POINTER = Allocate( size_in_bytes );
+
+allocates a block of memory much like malloc, calloc, new
+------------
+void Release( POINTER );  
+
+Releases a block of memory much like free, or delete
+------------
+POINTER Hold( POINTER ); 
+
+Adds a usage count to a block, so as many Holds are applied, Release must be called
+before the block will actually be released.
+
+--------
+
+I would also recommend briefly browsing the network documentation, my implementation of network communication is NOT Berkley sockets, but rather how sockets should have been implemented instead of how those Berkley college flunkies developed it....
+
+I heard it said, that my network interface code was hard to use, cause there's like 100000 references on the internet for berkely sockets, and only 1 for these.  I dunno there's a bunch of VB OCX type controls that provide network funcationality which are also less than completely documented....
+
+--------
+
+this is the point of documentation that always gets me, where to go next, there's a plethora of things I could talk about.
+
+----------
+
+In the Altanik tree there is a simple ODBC interface library called SQLStub  (altanik/src/fut/sqlproxy) .. This has recently been extended to be able to return char ** result sets, which is an array of strings, which removes the need to parse the single result string previously required...
+
+for example
+
+char *result = NULL;
+DoSQLQuery( "select a,b,c,d from blah", &result );
+result == "123,534,,";
+
+with the newer function
+
+char **results == NULL;
+int *count;
+DoSQLRecordQuery( "select a,b,c,d from blah", &results, &count );
+results[0] = "123";
+results[1] = "534";
+results[2] = NULL; // no value actually resulted as above double commas with no data
+results[3] = ""; // actually had a value, but it has no length.
+
+It was very hard to distinguish between a NULL result and a 0 length string result, when the results were built into a single, comma separated list and given to the application..
+
+
+This new RecordQuery stuff has onlly been implemented quickly, and no application uses it yet, however, for future developments I highly recommend this interface....
+
+altanik/include/sqlstub.h 
+
+There is also support IN this library for checking for active tables, etc, Jesse implemented a bunch of this stuff on his own, instead of using the predevloped methods, and perhaps could be standardized into using facilities built into the sql stub library.
+
+
+-------------------------------
+
+More to come - please, if you have any questions, statements, anything, please do respond :)
+
+Jim
+
+=========================================
+
+PFRAME frame;
+frame = CreateFrame( "caption goes here", x, y, w, h, BORDER_NORMAL, NULL /* parent*/ );
+DisplayFrame( frame );
+DestroyFrame( &frame );
+
+Important - frame WILL be NULL after destroy frame, or, when the frame is really destroyed.... Hmm I think probably just at the call...
+
+
+I just wrote a simple message server that will be available as a serivce, I might maybe should make
+the sql stub proxy a message handler aware service... rather than each application needing to laod it, a single one could be used via an RPC sort of mechanism..
+
+
+
+
+
+
+class {
+// private:  // implied, default protectino of class
+    void *data_goes_here;
+public:
+   void DoStuff( void *do_something_on_this );
+   int init( void );
+   int main( void ){ if( init() ) DoStuff(); }
+} application;
+
+This generally defines an application...
+
+what we demand and desire is that this object declares no private or public data, but only methods.
+
+Many other classes for subclasses contain private data... take for instance, a point vector
+
+typedef struct {  // doesn't require a _tag cause we're in no way self-referential
+// public: // default of struct, not supported in C
+// private: // whatever, maybe we don't want anyone to reference members
+   int x, y, z;
+   void set( int x, int y, int z);
+   void set( int v[3] );
+} VECTOR;
+
+It is a atomic thing, and, well, we allocate one of these and run some methods...
+
+An application is allocated, and main is invoked....
+
+An application may load libraries, which are containers of objects, which may be used by the process which main begins.
+
+For organization, I found it each to expand the hungarian notation of 'g' and 'l' (or is l long -err far?  as on lpVoid - or is it some sort of old musical record, turn table thing )
+
+static struct {
+   int local_data_goes_here;
+  // local data is used by only a single compiled object
+  // this name 'l'
+} l;
+
+// an alternative notation
+// typedef struct { int _blah; } LOCAL; static LOCAL l;
+
+
+struct {
+   int global_data_goes_here;
+// global data ( g.data ) is data which is available to other objects in this library.
+// create.c destroy.c modify.c library.c - when compiled independantly, all
+// reference g in some way for some reasonably good reason.
+} g;
+
+Basically the problem with this, is that 'g' becomes a symbol, also exported when linking against the library, when using GCC, (unknown watcom behavior under linux).  Under windows, with most windows compilers, only those routines, and data elements explicitly exported using __declspec(dllexport) or specifying the name in a .DEF file, are available outside of a shared object library (dynamic link library).
+
+Under linux, these global structures need to be declared with a name of their own.
+
+One possible implementation...
+
+typedef struct global_tag {
+   void b;
+   int a[0]; // some compilers require at least one element in a structure
+   //int c[]; // some compilers want a 0 here, some do not.  EMPTY_STRUCT is this type...
+  EMPTY_STRUCT label_goes_here; // offset( struct global_tag, label_goes_here ) == sizeof( g );
+} GLOBAL;
+
+// in a global.h
+#ifndef GLOBAL_C
+extern
+#endif
+GLOBAL global_library_name_data;
+#define g global_library_name_data
+
+// in a 2 line global.c
+#define GLOBAL_C
+#include "global.h"
+
+// in every other .c file for the library
+#include "global.h"
+
+This covers the basis of needing another name, provides a G member, however, unless people know where to find the name that 'g' actually is can make a developer's life difficult, when debugging other's code... since 'print g' results "nothing named 'g' "...
+
+I've been tending to migrate away from this, and use LOCAL data more...
+
+V -------------------- CUT ------------------- V
+
+Really, in conclusion, I'm really just suggesting that global data is OK.
+
+V -------------------- CUT ------------------- V
+
+/* that made me wince when I typed it, so I edited s/suggesting that/saying/ */
+
+Often, however, global data should be an element of a more related structure...?
+
+windows/source/pegasus/playrtrk/global.h  - global data?!  OMG. here's some global data fer yer ass.
+
+But mostly it's global mode flags that affect the function of many disrelated functions...
+
+I guess maybe global data should be reserved for future patching around places that the original structures failed?
+
+Well NO, cause, ya know, I can then include this as a module for some other application which doesn't need to know that it has to call my interface methods with some global structure that I know about...
+
+But then again, in a monolithic design... everyone knows everything about everyone and everything else, and the structures for global data can be more abused and contain huge amounts of data giving information to routines which should have no business knowing about certain memebers, allowing careless abuse of data - I mean heck if I knew how the FILE * structure worked, couldn't I fix the buffer sizes? or soemthing?  but then again, do I really need or care to know what is in a HWND structure of a BITMAP or ICON? I just need to pass the right type of thing tot he right routines to make it work...
+
+V -------------------- CUT ------------------- V
+
+:) Anyone who's browsed though the network code for some reason starts in the guts of it... tring to figure out why
+
+#ifndef CLIENT_DEFINED
+typedef struct Client
+{
+   unsigned char Private_Structure_information_here;
+}CLIENT, *PCLIENT;
+#endif
+
+it's a one byte element, but there's a creation type...
+
+this has more cleanly been represted by future applications by
+
+typedef PTRSZVAL PCLIENT;
+
+PCLIENT CreateClient();
+void DestroyClient( PCLIENT *client );
+
+/* okay bad example */
+
+LOCATION struct {
+   int     nMaxClients;
+    int     nUserData;     // number of longs.
+   P_8     pUserData;
+   PLIST   ClientSlabs; // PLIST of PCLIENT_SLAB
+   LOGICAL bLog;
+   LOGICAL bQuit;
+   PTHREAD pThread;
+    PCLIENT AvailableClients;
+    PCLIENT ActiveClients;
+    PCLIENT ClosedClients;
+} network_global_data; // aka 'g'
+
+would this really help you ?  I guess it's available under linux...
+
+
+/* show doc/network.doc  include/network.h, netlib/echo/echo.c netlib/user/user.c  */
+/* I dunno comment on C++ native-like port of the C library... */
+
+
+
+Something to note about the SACK networking stuff...
+
+ReadTCP has a void() return. .. the read does not get data really, but the ReadComplete callback is invoked because of a ReadTCP...
+
+Essentially ReadTCP calls ReadComplete indirectly, and may or may not return before doing so...
+
+uhmm
+
+at the end of each read complete, another read should be queued.  If there is data immediatly available, the read complete will be invoked before ReadTCP returns ( stacking on itself recursively).  If there is no data, at some later time read complete will be invoked.  The other option is that a close callback is invoked instead.
+
+ReadTCPMsg() reads exactly the number of bytes requested, and readcomplete will be called with exactly the number of bytes requested.
+ReadTCP() may result in a short read, but will result when any amount of data more than 0 bytes is available.
+
+SendTCP() will result, probably, before all data is sent.  If the message does not go out in the first attempt, what remains is copied into an internal buffer, and kept, until the connection closes, or it gets sent successfully.  If a LARGE data packet is sent, you may not want it to copy the data... (memory map a large file several megs large, and send that memory buffer... ) This is where WriteComplete comes in, you can use a sendTCP which tells the network api to keep the pointer to the original buffer, instead of copying it.  Then when it is done it calls the WriteComplete event so that the application may release this large buffer.... the application SHOULD NOT release a buffer which it has given to the network in such a way.   However, the default behavior, again, is to copy any remaining data and pend it internally.
+
+It is a very very bad idea to do multiple reads before the first completes.
+.
+
+
+

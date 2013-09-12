@@ -1,0 +1,10 @@
+These are some changes I'd like to make, but which would require
+datastructure changes, and thus a major shared library version change.
+
+
+* Improved Parser -- keep the description strings, etc. around.
+
+* Removal of strings -- add a field to the snmp_session structure
+  which will contain the error strings for any given operation, rather
+  than using the global snmp_errno.
+

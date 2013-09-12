@@ -1,0 +1,54 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<FONT size=+3><center>Parser</center></font><br>
+<center>
+<a href="manual.html" OnMouseOver="window.status='Back to Manual Contents';return true" OnMouseOut="window.status=''">Return to Online Manual Contents</A><br>
+</center>
+<hr>
+<p>Nexus uses a couple different methods of parsing data.&nbsp; To parse, is
+to attempt to make atomic, meaningful elements from an otherwise continuous
+stream of near random values... a web browser parses these sentences to
+format the words so they will all fit on the page, wrapping if needed.
+<p>Some definitions may be useful before this content.
+<menu>
+<li> Atom/Atomic - A set of characters that is 1(one) entire,
+seperate/separable, word.
+<li> Phrase - a regularly bound set of potential atoms.  
+<li> white Space - a space character, a tab, and most times a carriage return.
+</menu>
+<p>The first method of parsing gathers data into lines.&nbsp; Carriage return 
+and new line characters are used to determine the end of lines.
+<p>The second method, much more complex, processes text into words, and 
+phrases.&nbsp; A phrase is determined by matching sets of certain characters...
+<menu>
+<li>" " - Double quotation marks
+<li>( ) - Parenthesis can be used to form a phrase, very common in many
+programming languages.
+<li>[ ] - square brackets can also be used to denote a phrase.
+<li>{ } - curly brackets will also determine a quoted phrase.
+<li>< > - HTML type tag markings also denote a phrase.
+<li>' ' - Potentially single quotation marks may be used, however, due to the
+abundant usage of abbreviations the (') character is considered a letter type
+character.&nbsp; Perhaps at one point "'"s will be used for phrase parsing.
+</menu>
+<p>If any of these begin a phrase, and any other set is between, they will
+be gathered into the phrase... for example "<a little (large) blue [and orange] thing>"...
+will be a phrase, and can be further parsed into it's sub words...
+<p>Spaces and punctuation split lines into word phrases.&nbsp; Carriage return
+characters are treated as space, and end previously accumulated words just
+like spaces and tabs.&nbsp; Most punctuation marks ( % / , ; ! ? = + * & ~ # @ )
+end words, and will become atomic unto themselves. Period has the property that
+it can be part of an elipses (...) where more than one of the same punctuation
+character may be in the same atom. A period or colon, will only behave like a
+singlar punctuation mark when the next character is white space,
+or a '%'.  
+This rule simplified collection of network address and filenames.  A '%' always
+introduces a variable reference. A '-' when followed by a number will not 
+be atomic unto itself, instead will be collected with a number, to allow parsing
+of negative numbers.  If the '-' and numeric character are seperated by a space, 
+the '-' will be atomic to itself and may have no relation to the number.
+<p>Revision may be required to this page...
+
+</BODY>
+</HTML>

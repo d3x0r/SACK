@@ -1,0 +1,17 @@
+
+
+
+/create Courtyard
+/desc Courtyard A small courtyard paved with cobblestone.  Several benches are in the area.
+/grab Couryard
+
+/create "Brevard Avenue"
+/desc "Brevard Avenue" A one way street with light traffic.
+/grab "Brevard Avenue"
+/attach "Brevard Avenue" Couryard
+
+/macro in Courtyard east
+/enter "Brevard Avenue"
+/announce %me leaves east.
+/endmac
+

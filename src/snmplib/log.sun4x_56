@@ -1,0 +1,169 @@
+mkdir /usr/obj/local/snmp/032
+Making wash
+rm -rf /usr/obj/local/snmp/032
+mkdir /usr/obj/local/snmp/032
+Links removed
+Making links in /usr/obj/local/snmp/032
+for i in ${SRCDIR}/*; do mklink -RFl "${i}"; done
+Links made
+cd /usr/obj/local/snmp/032
+Making Makefile
+./configure
+creating cache ./config.cache
+checking for mkdirhier... /usr/local/bin/mkdirhier
+using /usr/local/bin/mkdirhier
+checking for gcc... cc
+checking whether the C compiler (cc -xO4 -xdepend ) works... yes
+checking whether the C compiler (cc -xO4 -xdepend ) is a cross-compiler... no
+checking whether we are using GNU C... no
+checking for a BSD compatible install... /usr/local/bin/install -c
+checking for ranlib... ranlib
+checking for perl5... /usr/local/bin/perl5
+checking how to run the C preprocessor... cc -E
+checking for ANSI C header files... yes
+checking for sys/time.h... yes
+checking whether time.h and sys/time.h may both be included... yes
+checking for unistd.h... yes
+checking for bstring.h... no
+checking for sys/time.h... (cached) yes
+checking for strings.h... yes
+checking for stdlib.h... yes
+checking for malloc.h... yes
+checking for sys/sockio.h... yes
+checking for sys/select.h... yes
+checking for gettimeofday... yes
+checking for select... yes
+checking for socket... no
+checking for srand... yes
+checking for strdup... yes
+checking host system type... sparc-sun-solaris2.6
+checking for non-GNU ld... /usr/ccs/bin/ld
+checking whether we are using GNU ld... no
+checking whether ln -s works... yes
+checking whether we are using GNU C... no
+checking for cc option to produce PIC... -KPIC
+checking for cc option to statically link programs... -Bstatic
+checking whether we are using GNU ld... no
+checking whether the linker (/usr/ccs/bin/ld) supports shared libraries... yes
+checking how to hardcode library paths into programs... immediate
+checking for /usr/ccs/bin/ld option to reload object files... -r
+checking dynamic linker characteristics... solaris2.6 ld.so
+checking if libtool supports shared libraries... yes
+checking whether to build shared libraries... yes
+checking whether to build static libraries... yes
+creating libtool
+updating cache ./config.cache
+creating ./config.status
+creating Makefile
+creating cmu-snmp-spec
+creating config.h
+cd /usr/obj/local/snmp/032
+make all
+cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\""  -c  mibii.c
+cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\""  -c  snmp_error.c
+cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\""  -c  snmp_extra.c
+cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\""  -c  snmp_dump.c
+cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\""  -c  asn1.c
+cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\""  -c  coexistance.c
+cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\""  -c  snmp_msg.c
+cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\""  -c  snmp_pdu.c
+cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\""  -c  snmp_vars.c
+cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\""  -c  snmp_api_error.c
+cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\""  -c  snmp_client.c
+cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\""  -c  snmp_api.c
+"snmp_api.c", line 271: warning: assignment type mismatch:
+	pointer to uchar "=" pointer to char
+"snmp_api.c", line 272: warning: argument #1 is incompatible with prototype:
+	prototype: pointer to const char : "/usr/include/string.h", line 64
+	argument : pointer to uchar
+cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\""  -c  mini-client.c
+cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\""  -c  mib.c
+cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\""  -c  parse.c
+cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\""  -c  new-parse.c
+cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\"" -DCMU_SNMP_VERSION="\"`head -1 VERSION`\"" -c version.c -o version.o 
+cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\""  -c  snmp_api_util.c
+ar crv libsnmp.a mibii.o snmp_error.o snmp_extra.o snmp_dump.o asn1.o coexistance.o snmp_msg.o snmp_pdu.o snmp_vars.o 		snmp_api_error.o snmp_client.o snmp_api.o mini-client.o 		mib.o parse.o new-parse.o version.o snmp_api_util.o
+ar: writing libsnmp.a
+a - mibii.o
+a - snmp_error.o
+a - snmp_extra.o
+a - snmp_dump.o
+a - asn1.o
+a - coexistance.o
+a - snmp_msg.o
+a - snmp_pdu.o
+a - snmp_vars.o
+a - snmp_api_error.o
+a - snmp_client.o
+a - snmp_api.o
+a - mini-client.o
+a - mib.o
+a - parse.o
+a - new-parse.o
+a - version.o
+a - snmp_api_util.o
+ranlib libsnmp.a
+./libtool cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\"" -c mibii.c
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c -KPIC -DPIC mibii.c
+mv -f mibii.o mibii.lo
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c mibii.c
+./libtool cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\"" -c snmp_error.c
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c -KPIC -DPIC snmp_error.c
+mv -f snmp_error.o snmp_error.lo
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c snmp_error.c
+./libtool cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\"" -c snmp_extra.c
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c -KPIC -DPIC snmp_extra.c
+mv -f snmp_extra.o snmp_extra.lo
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c snmp_extra.c
+./libtool cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\"" -c snmp_dump.c
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c -KPIC -DPIC snmp_dump.c
+mv -f snmp_dump.o snmp_dump.lo
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c snmp_dump.c
+./libtool cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\"" -c asn1.c
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c -KPIC -DPIC asn1.c
+mv -f asn1.o asn1.lo
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c asn1.c
+./libtool cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\"" -c coexistance.c
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c -KPIC -DPIC coexistance.c
+mv -f coexistance.o coexistance.lo
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c coexistance.c
+./libtool cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\"" -c snmp_msg.c
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c -KPIC -DPIC snmp_msg.c
+mv -f snmp_msg.o snmp_msg.lo
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c snmp_msg.c
+./libtool cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\"" -c snmp_pdu.c
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c -KPIC -DPIC snmp_pdu.c
+mv -f snmp_pdu.o snmp_pdu.lo
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c snmp_pdu.c
+./libtool cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\"" -c snmp_vars.c
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c -KPIC -DPIC snmp_vars.c
+mv -f snmp_vars.o snmp_vars.lo
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c snmp_vars.c
+./libtool cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\"" -c snmp_api_error.c
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c -KPIC -DPIC snmp_api_error.c
+mv -f snmp_api_error.o snmp_api_error.lo
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c snmp_api_error.c
+./libtool cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\"" -c snmp_client.c
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c -KPIC -DPIC snmp_client.c
+mv -f snmp_client.o snmp_client.lo
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c snmp_client.c
+./libtool cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\"" -c snmp_api.c
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c -KPIC -DPIC snmp_api.c
+"snmp_api.c", line 271: warning: assignment type mismatch:
+	pointer to uchar "=" pointer to char
+"snmp_api.c", line 272: warning: argument #1 is incompatible with prototype:
+	prototype: pointer to const char : "/usr/include/string.h", line 64
+	argument : pointer to uchar
+mv -f snmp_api.o snmp_api.lo
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c snmp_api.c
+"snmp_api.c", line 271: warning: assignment type mismatch:
+	pointer to uchar "=" pointer to char
+"snmp_api.c", line 272: warning: argument #1 is incompatible with prototype:
+	prototype: pointer to const char : "/usr/include/string.h", line 64
+	argument : pointer to uchar
+./libtool cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\"" -c mini-client.c
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c -KPIC -DPIC mini-client.c
+mv -f mini-client.o mini-client.lo
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c mini-client.c
+./libtool cc -xO4 -xdepend -I.  -DHAVE_CONFIG_H -DMIBDIR="\"/usr/local/etc\"" -c mib.c
+cc -xO4 -xdepend -I. -DHAVE_CONFIG_H '-DMIBDIR="/usr/local/etc"' -c -KPIC -DPIC mib.c

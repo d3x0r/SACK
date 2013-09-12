@@ -1,0 +1,1473 @@
+#include <stdhdrs.h>
+#include <logging.h>
+#include <sharemem.h>
+#include <timers.h>
+#include <idle.h>
+#include <configscript.h>
+
+#include "global.h"
+
+#include "stocks.h"
+#include "board.h"
+#include "input.h"
+#include "player.h"
+
+
+//-----------------------------------------------------------------
+#include <psi.h>
+extern CONTROL_REGISTRATION board_space;
+//-----------------------------------------------------------------
+/*
+void MountPanel( PFRAME frame )
+{
+	if( frame != g.Mounted )
+	{
+      if( g.Mounted )
+			OrphanFrame( g.Mounted );
+		AdoptFrame( g.Panel, NULL, frame );
+      g._Mounted = g.Mounted;
+      g.Mounted = frame;
+	}
+}
+
+void UnmountPanel( PFRAME frame )
+{
+	if( frame == g.Mounted && g._Mounted)
+	{
+		OrphanFrame( g.Mounted );
+		AdoptFrame( g.Panel, NULL, g._Mounted );
+		g.Mounted = g._Mounted;
+      g._Mounted = NULL;
+	}
+}
+*/
+void AlignTokens( PSPACE pSpace )
+{
+	int x, y;
+	Image Surface = GetControlSurface( pSpace->region );
+	x = Surface->width - 2;
+	y = Surface->height - 2;
+	switch( pSpace->type )
+	{
+	default:
+		{
+			PPLAYER pPlayer;
+			Image Token;
+			for( pPlayer = pSpace->pPlayers; pPlayer; pPlayer = pPlayer->next)
+			{
+				Token = GetControlSurface( pPlayer->pPlayerToken );
+				x -= Token->width + 1;
+				if( x < 0 )
+				{
+					x = (Surface->width - 2) - (Token->width + 1 );
+					y-= Token->height + 1;
+				}
+				printf( "Moving token to %d,%lu\n"
+						, x, y - (Token->height+1));
+				MoveControl( pPlayer->pPlayerToken, x, y - (Token->height+1));
+			}
+		}
+      break;
+	}
+}
+
+//-----------------------------------------------------------------
+
+void SetPlayerSpace( PSPACE pSpace, PPLAYER pPlayer )
+{
+	pPlayer->pCurrentSpace = pSpace;
+	lprintf( "ORPHAN TOKEN" );
+	OrphanControlEx( pPlayer->pPlayerToken, TRUE );
+	RelinkThing( pSpace->pPlayers, pPlayer );
+	lprintf( "ADOPT TOKEN" );
+	AdoptControlEx( pSpace->region
+               , NULL
+					, pPlayer->pPlayerToken, TRUE );
+	AlignTokens( pSpace );
+	UpdateCommon( pSpace->region ); // update
+}
+
+//-----------------------------------------------------------------
+
+void ShowASpace( PSPACE pSpace, PSTOCK pBranch )
+{
+	printf( "(%ld)", pSpace->ID );
+    switch( pSpace->type )
+    {
+    case SPACE_START:
+        printf( "Start (Fee $%ld)\n"
+                , pSpace->attributes.start.cost );
+        break;
+    case SPACE_BROKER:
+        printf( "Broker's Fee ($%ld/share)\n"
+                , pSpace->attributes.broker.fee );
+        break;
+    case SPACE_STOCKSELL:
+        printf( "Sell all %s at %ld\n"
+                , pSpace->attributes.buy_sell.stock->name
+                , GetStockValue( pSpace->attributes.buy_sell.stock, TRUE )
+                );
+        break;
+    case SPACE_STOCKBUY:
+        printf( "Buy %s\n"
+                , pSpace->attributes.buy_sell.stock->name
+                );
+        break;
+    case SPACE_HOLDERSMEETING:
+        printf( "Split %s %d-%d\n"
+                , pBranch->name
+                , pSpace->attributes.split.ratio.numerator
+                , pSpace->attributes.split.ratio.denominator
+                );
+        break;
+    case SPACE_HOLDERSENTRANCE:
+        printf( "Buy 1 %s (enter meeting)\n"
+                , pSpace->attributes.buy_sell.stock->name
+                );
+		  break;
+	 default:
+       printf( "A Space.\n" );
+       break;
+    }
+}
+
+void ChoosePlayerDestination( void )
+{
+    int n;
+    int nPossible, nPossibility;
+	int bLeft[4], bInMeeting[4];
+	PSPACE pPossible[4];
+	PSTOCK pBranch[4]; // stock which the meeting is for
+	PSPACE pSpace = g.pCurrentPlayer->pCurrentSpace;
+	for( n = 0; n < 4; n++ )
+      bInMeeting[n] = 0;
+	// current roll determines possible spaces from here...
+    switch( pSpace->type )
+    {
+    case SPACE_PROFESSION:
+		return; // no motion this way...
+    case SPACE_START:
+        if( g.nCurrentRoll & 1 )
+            g.pCurrentPlayer->flags.GoingLeft =
+                !pSpace->attributes.start.flags.bEvenRight;
+		else
+            g.pCurrentPlayer->flags.GoingLeft =
+                pSpace->attributes.start.flags.bEvenRight;
+		break;
+	case SPACE_HOLDERSENTRANCE:
+	case SPACE_STOCKSELL:
+	case SPACE_STOCKBUY:
+	case SPACE_BROKER:
+		g.pCurrentPlayer->flags.GoingLeft = pSpace->flags.bMoveLeft;
+		break;
+	case SPACE_HOLDERSMEETING:
+		 pBranch[0] = g.pCurrentPlayer->pMeeting->stock;
+		 break;
+	default:
+		break;
+    }
+    if( g.pCurrentPlayer->flags.GoingLeft )
+    {
+        printf( "Going left... %d\n", g.nCurrentRoll );
+		  bLeft[0] = TRUE;
+    }
+	else
+	{
+		printf( "Going right...%d\n", g.nCurrentRoll );
+		bLeft[0] = FALSE;
+	}
+	nPossible = 1;
+	pPossible[0] = pSpace;
+    for( n = 0; n < g.nCurrentRoll; n++ )
+    {
+		 int nCheck = nPossible;
+		 //printf( "Processing %d", n );
+		 for( nPossibility = 0; nPossibility < nCheck; nPossibility++ )
+		 {
+            //printf( "possibility %d (%d)", nPossibility, pPossible[nPossibility]->alternate );
+            if( pPossible[nPossibility]->alternate != INVALID_INDEX &&
+                !bInMeeting[nPossibility] // coming out of a meeting
+              )
+            {
+                PSTOCKACCOUNT pAccount =
+                    GetStockAccount( &g.pCurrentPlayer->portfolio
+											  , pPossible[nPossibility]->attributes.buy_sell.stock );
+					 //printf( "had stock: %p", pAccount );
+                if( pAccount && pAccount->shares )
+                {
+                    //printf( "Alternate path." );
+                    pBranch[nPossible] = pPossible[nPossibility]->attributes.buy_sell.stock;
+                    bLeft[nPossible] = pPossible[nPossibility]->flags.bAlternateLeft;
+                    pPossible[nPossible++] = (PSPACE)GetLink( &g.Board, pPossible[nPossibility]->alternate );
+						  //ShowASpace( pPossible[nPossible-1], pBranch[nPossible-1] );
+                }
+            }
+            if( pPossible[nPossibility]->type == SPACE_HOLDERSMEETING )
+                bInMeeting[nPossibility] = 1;
+         else
+                bInMeeting[nPossibility] = 0;
+            //ShowASpace( pPossible[nPossibility], pBranch[nPossibility] );
+            if( bLeft[nPossibility] )
+                pPossible[nPossibility] = (PSPACE)GetLink( &g.Board, pPossible[nPossibility]->left );
+            else
+                pPossible[nPossibility] = (PSPACE)GetLink( &g.Board, pPossible[nPossibility]->right );
+        }
+    }
+    do
+	 {
+        for( n = 0; n < nPossible; n++ )
+        {
+            if( nPossible > 1 )
+            {
+                printf( "%d> ", n + 1);
+					 AddLink( &g.PossibleSpaces, pPossible[n] );
+				}
+				ShowASpace( pPossible[n], pBranch[n] );
+        }
+        if( nPossible > 1 )
+        {
+			  printf( "Choose a space:" );
+           StartFlash();
+			  n = GetANumber();
+        }
+    }
+	 while( nPossible > 1 && ( n < 1 || n > nPossible ) );
+    StopFlash();
+	 n--;
+    SetPlayerSpace( pPossible[n], g.pCurrentPlayer );
+    g.pCurrentPlayer->pCurrentSpace = pPossible[n];
+	 g.pCurrentPlayer->flags.GoingLeft = bLeft[n];
+	 if( pPossible[n]->type == SPACE_HOLDERSMEETING )
+		 g.pCurrentPlayer->pMeeting =
+			 GetStockAccount( &g.pCurrentPlayer->portfolio
+								 , pBranch[n] );
+}
+
+void ProcessCurrentSpace( void )
+{
+   PSPACE pSpace = g.pCurrentPlayer->pCurrentSpace;
+    switch( pSpace->type )
+    {
+    case SPACE_START:
+        if( g.pCurrentPlayer->MinValue < pSpace->attributes.start.cost )
+        {
+            printf( "%s has gone bankrupt.  Please start again.\n", g.pCurrentPlayer->name );
+            g.pCurrentPlayer->Cash += SellAllStocks( &g.pCurrentPlayer->portfolio, TRUE );
+            g.pCurrentPlayer->pCurrentSpace = NULL;
+				ChoosePlayerProfessions();
+        }
+        while( g.pCurrentPlayer->Cash < pSpace->attributes.start.cost )
+        {
+			  printf( "Not enough cash to cover start fee...\n" );
+			  g.pCurrentPlayer->Cash += SellStocks( &g.pCurrentPlayer->portfolio
+															  , pSpace->attributes.start.cost
+																- g.pCurrentPlayer->Cash
+															  , TRUE );
+        }
+        g.pCurrentPlayer->Cash -= pSpace->attributes.start.cost;
+		  printf( "%s paid $%ld start fee\n"
+				  , g.pCurrentPlayer->name
+				  , pSpace->attributes.start.cost );
+        break;
+    case SPACE_BROKER:
+        {
+         _32 shares;
+            UpdateStocks( pSpace->FixedStageAdjust );
+            shares = CountShares( &g.pCurrentPlayer->portfolio );
+            if( shares )
+            {
+                printf( "%s must pay %ld to the broker.\n"
+                        , g.pCurrentPlayer->name
+                        , shares * pSpace->attributes.broker.fee
+                        );
+					 while( g.pCurrentPlayer->Cash < (shares * pSpace->attributes.broker.fee) )
+					 {
+						 if( shares * pSpace->attributes.broker.fee > g.pCurrentPlayer->Cash )
+						 {
+							 printf( "Sorry you must sell some stocks to cover the fee.\n" );
+							 g.pCurrentPlayer->Cash +=
+								 SellStocks( &g.pCurrentPlayer->portfolio
+											  , shares * pSpace->attributes.broker.fee
+												- g.pCurrentPlayer->Cash
+											  , TRUE );
+						 }
+					 }
+					 {
+                   char msg[128];
+						 snprintf( msg, sizeof( msg ), "%s paid $%ld in broker's fees."
+								  , g.pCurrentPlayer->name
+								  , shares * pSpace->attributes.broker.fee );
+						 SimpleMessageBox( g.board, "Forced Sell", msg );
+					 }
+					 g.pCurrentPlayer->Cash -= shares * pSpace->attributes.broker.fee;
+            }
+            else
+            {
+					printf( "You have no shares - no broker to pay!\n" );
+            }
+        }
+        break;
+    case SPACE_STOCKSELL:
+        {
+         _32 cash;
+            PSTOCKACCOUNT pAccount =
+                GetStockAccount( &g.pCurrentPlayer->portfolio
+                                    , pSpace->attributes.buy_sell.stock );
+            UpdateStocks( pSpace->FixedStageAdjust );
+            if( pAccount && pAccount->shares )
+				{
+                cash = SellStock( &g.pCurrentPlayer->portfolio
+                                     , pAccount
+                                     , TRUE
+										  , pAccount->shares );
+					 {
+						char msg[128];
+						 snprintf( msg, sizeof( msg ), "%s had to sell %s, received $%ld"
+								  , g.pCurrentPlayer->name
+								  , pSpace->attributes.buy_sell.stock->name
+								  , cash );
+						 SimpleMessageBox( g.board, "Forced Sell", msg );
+					 }
+                printf( "Sold all %s for $%ld\n"
+                        , pSpace->attributes.buy_sell.stock->name
+                        , cash );
+                g.pCurrentPlayer->Cash += cash;
+            }
+				else
+				{
+                printf( "Had no %s to sell.\n"
+                        , pSpace->attributes.buy_sell.stock->name
+							 );
+				}
+        }
+        break;
+    case SPACE_HOLDERSMEETING:
+        {
+            FRACTION result;
+         _32 shares = g.pCurrentPlayer->pMeeting->shares;
+            ScaleFraction( &result
+                             , shares
+                             , &pSpace->attributes.split.ratio );
+            {
+                char msg[256];
+					 sLogFraction( msg, &result );
+            }
+            g.pCurrentPlayer->pMeeting->shares += ReduceFraction( &result );
+            printf( "%s had %ld shares and now has %ld shares\n"
+                    ,g.pCurrentPlayer->name
+                    , shares
+                    , g.pCurrentPlayer->pMeeting->shares
+                    );
+        }
+        break;
+    case SPACE_HOLDERSENTRANCE:
+        {
+            int max_shares = 1;
+            if(0) {
+    case SPACE_STOCKBUY:
+                max_shares = 0; // set max by cash amount...
+            }
+				{
+					_32 value;
+					PSTOCKACCOUNT pAccount =
+						GetStockAccount( &g.pCurrentPlayer->portfolio
+											, pSpace->attributes.buy_sell.stock );
+					_32 shares;
+
+					if( pAccount && pAccount->shares )
+					{
+						g.pCurrentPlayer->Cash +=
+							pAccount->stock->Dividend * pAccount->shares;
+						printf( "Paid %s a dividend of $%ld for %ld of %s\n"
+                        , g.pCurrentPlayer->name
+								, pAccount->stock->Dividend * pAccount->shares
+								, pAccount->shares
+								, pAccount->stock->name );
+					}
+					UpdateStocks( pSpace->FixedStageAdjust );
+
+					value = GetStockValue( pSpace->attributes.buy_sell.stock, FALSE );
+					do {
+						printf( "%s is going for $%ld\n"
+								, pSpace->attributes.buy_sell.stock->name
+								, value );
+						if( max_shares == 1 )
+						{
+							if( value <= g.pCurrentPlayer->Cash )
+								printf( "%s may buy one share\n"
+										, g.pCurrentPlayer->name
+										);
+							else
+							{
+								max_shares = 0;
+							}
+						}
+						else
+						{
+							printf( "%s has %ld shares and can buy up to %ld more shares\n"
+									, g.pCurrentPlayer->name
+									, pAccount?pAccount->shares:0
+                            , max_shares = g.pCurrentPlayer->Cash / value
+									);
+							if( max_shares )
+								printf( "5=$%ld 25=$%ld\n"
+										, 5 * value
+										, 25 * value
+										);
+						}
+						if( max_shares )
+						{
+							printf( "How many shares do you want? (0 to abort)" );
+							BuySomeStock( pSpace->attributes.buy_sell.stock, max_shares );
+							shares = GetANumber();
+							StockBuyEnd();
+							if( shares <= max_shares )
+							{
+								max_shares -= shares;
+								if( shares )
+								{
+                            printf( "Buy %ld shares for $%ld (total of %ld)"
+											 , shares
+											 , shares * value
+											 , shares + (pAccount?pAccount->shares:0) );
+									 if( GetYesNo() )
+										 g.pCurrentPlayer->Cash -=
+											 BuyStock( &g.pCurrentPlayer->portfolio
+														, pSpace->attributes.buy_sell.stock
+														, shares );
+								}
+								printf( "Are you done?" );
+								if( GetYesNo() )
+									break;
+							}
+							else
+							{
+								printf( "Cannot buy that many!\n" );
+							}
+						}
+						else
+							printf( "Sorry, cannot afford any more shares.\n" );
+					}
+					while( max_shares );
+					UpdatePlayerDialog();
+				}
+				break;
+		  default:
+           break;
+		  }
+    }
+}
+
+void PayWageSlaves( void )
+{
+	INDEX idx;
+	PPLAYER player;
+	// pay players
+	LIST_FORALL( g.Players, idx, PPLAYER, player )
+	{
+		if( player->pCurrentSpace->type == SPACE_PROFESSION )
+		{
+			if( TESTFLAG( player->pCurrentSpace->attributes.profession.payon, g.nCurrentRoll ) )
+			{
+				player->Cash += player->pCurrentSpace->attributes.profession.pay;
+				printf( "%s(%s) gets $%ld\n"
+						, player->name
+						, player->archtype->colorname
+						, player->pCurrentSpace->attributes.profession.pay );
+			}
+		}
+	}
+}
+
+//-----------------------------------------------------------------
+
+PSPACE ChooseStartSpace( void )
+{
+    int n, which;
+    INDEX idx;
+	 PSPACE pSpace;
+    do
+	 {
+        n = 0;
+        LIST_FORALL( g.Board, idx, PSPACE, pSpace )
+        {
+            if( pSpace->type == SPACE_START )
+				{
+					AddLink( &g.PossibleSpaces, pSpace );
+               printf( "%d> Start\n", ++n );
+            }
+		  }
+        StartFlash();
+		  which = GetANumber();
+		  if( which <= n && which >= 1 )
+           break;
+	 } while( 1 );
+	 pSpace = (PSPACE)GetLink( &g.PossibleSpaces
+						  , which -1 );
+    StopFlash();
+	 return pSpace;
+}
+
+//-----------------------------------------------------------------
+
+PSPACE ChooseProfessionSpace( PPLAYER player )
+{
+	int n;
+	int ch;
+	INDEX idx;
+	PSPACE pSpace;
+	do
+	{
+		do
+		{
+			n = 0;
+			LIST_FORALL( g.Board, idx, PSPACE, pSpace )
+			{
+				if( pSpace->type == SPACE_PROFESSION )
+				{
+					int roll;
+					AddLink( &g.PossibleSpaces, pSpace );
+					StartFlash();
+					printf( "%d > %s (pays $%ld on "
+							, ++n
+							, pSpace->attributes.profession.name
+							, pSpace->attributes.profession.pay
+							);
+					for( roll = 1; roll <=12; roll++ )
+						if( TESTFLAG( pSpace->attributes.profession.payon, roll ) )
+						{
+							printf( "%d", roll++ );
+							break;
+						}
+					printf( " or " );
+					for( ; roll <=12; roll++ )
+						if( TESTFLAG( pSpace->attributes.profession.payon, roll ) )
+						{
+							printf( "%d", roll++ );
+							break;
+						}
+					printf( ")\n" );
+				}
+			}
+
+			printf( "Select profession space for %s(%s):"
+					, player->name
+					, player->archtype->colorname );
+			fflush( stdout );
+			ch = GetCh();
+			printf( "\n" );
+			if( ch < '1' || ( ch > ( '0' + n ) ) )
+				continue;
+		} while( 0 );
+
+		n = 0;
+		LIST_FORALL( g.Board, idx, PSPACE, pSpace )
+		{
+			if( pSpace->type == SPACE_PROFESSION )
+			{
+				n++;
+				if( n + '0' == ch )
+					break;
+			}
+		}
+	}
+	while (!pSpace );
+	StopFlash();
+	return pSpace;
+}
+
+//-----------------------------------------------------------------
+
+void ValidateBoard( void )
+{   
+    INDEX idx;
+    PSPACE pSpace;
+    LIST_FORALL( g.Board, idx, PSPACE, pSpace )
+    {
+        PSPACE left, right;
+        //Log3( "Check %d and %d from %d", pSpace->left, pSpace->right, idx );
+        if( pSpace->type == SPACE_PROFESSION ||
+             pSpace->type == SPACE_QUIT )
+            continue;
+        left = (PSPACE)GetLink( &g.Board, pSpace->left );
+        right = (PSPACE)GetLink( &g.Board, pSpace->right );
+        if( pSpace->type == SPACE_HOLDERSENTRANCE )
+            if( pSpace->alternate == INVALID_INDEX )
+            Log( "Holders entrance lacks a meeting path" );
+        if( !left || !right )
+        {
+            Log1( "%d - Space lacks left or right...", idx );
+        }
+        if( pSpace->type == SPACE_HOLDERSMEETING )
+        {
+         if( left->type == SPACE_HOLDERSENTRANCE )
+            {
+                if( GetLink( &g.Board, left->alternate ) != pSpace )
+               Log2( "entrance %d and exit %d mismatch", pSpace->left, idx );
+            }
+            else if( GetLink( &g.Board, left->right ) != pSpace )
+            {
+                Log2( "%d and %d mismatch", idx, pSpace->left );
+            }
+            if( right->type == SPACE_HOLDERSENTRANCE )
+            {
+                if( GetLink( &g.Board, right->alternate ) != pSpace )
+               Log2( "entrance %d and exit %d mismatch", pSpace->right, idx );
+            }
+         else if( GetLink( &g.Board, right->left ) != pSpace )
+            {
+                Log2( "%d and %d mismatch", idx, pSpace->right );
+            }
+        }
+        else
+        {
+            if( GetLink( &g.Board, left->right ) != pSpace )
+            {
+                Log2( "%d and %d mismatch", idx, pSpace->left );
+            }
+            if( GetLink( &g.Board, right->left ) != pSpace )
+            {
+                Log2( "%d and %d mismatch", idx, pSpace->right );
+            }
+        }
+    }
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC AddSpace( PTRSZVAL psv, arg_list args )
+{
+   PARAM( args, S_64, ID );
+    if( psv )
+    {
+        // check for last space's completeness
+    }
+    {
+        PSPACE pSpace = New( SPACE );
+      MemSet( pSpace, 0, sizeof( SPACE ) );
+      SetLink( &g.Board, (INDEX)ID, pSpace );
+      pSpace->ID = ID;
+      pSpace->left = INVALID_INDEX;
+        pSpace->right = INVALID_INDEX;
+      pSpace->alternate = INVALID_INDEX;
+        return (PTRSZVAL)pSpace;
+    }
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC AddCenter( PTRSZVAL psv, arg_list args )
+{
+    PARAM( args, char *, name );
+    PARAM( args, _64, pay );
+    PARAM( args, _64, roll1 );
+    PARAM( args, _64, roll2 );
+    PSPACE pSpace = (PSPACE)psv;
+    Log4( "Name: %s Pay %d on %d or %d", name, (_32)pay, (_32)roll1, (_32)roll2 );
+    pSpace->type = SPACE_PROFESSION;
+    pSpace->attributes.profession.name = NewArray( char, strlen( name ) + 1 );
+    strcpy( pSpace->attributes.profession.name, name );
+    pSpace->attributes.profession.pay = pay;
+    SETFLAG( pSpace->attributes.profession.payon, roll1 );
+    SETFLAG( pSpace->attributes.profession.payon, roll2 );
+    return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetMarketUp( PTRSZVAL psv, arg_list args )
+{
+   PARAM( args, S_64, amount );
+    PSPACE pSpace = (PSPACE)psv;
+    pSpace->FixedStageAdjust = amount;
+    return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetMarketDown( PTRSZVAL psv, arg_list args )
+{
+   PARAM( args, S_64, amount );
+    PSPACE pSpace = (PSPACE)psv;
+    pSpace->FixedStageAdjust = -amount;
+    return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetStockBuy( PTRSZVAL psv, arg_list args )
+{
+   PARAM( args, S_64, stock );
+    PSPACE pSpace = (PSPACE)psv;
+   if( pSpace->type == SPACE_UNKNOWN )
+        pSpace->type = SPACE_STOCKBUY;
+   pSpace->attributes.buy_sell.stock = GetStockByID( stock );
+   return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetStockSell( PTRSZVAL psv, arg_list args )
+{
+   PARAM( args, S_64, stock );
+    PSPACE pSpace = (PSPACE)psv;
+   pSpace->type = SPACE_STOCKSELL;
+   pSpace->attributes.buy_sell.stock = GetStockByID( stock );
+   return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetSpaceBroker( PTRSZVAL psv, arg_list args )
+{
+    PSPACE pSpace = (PSPACE)psv;
+    pSpace->type = SPACE_BROKER;
+   pSpace->attributes.broker.fee = 10;
+   return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetSpaceLeft( PTRSZVAL psv, arg_list args )
+{
+   PARAM( args, S_64, ID );
+    PSPACE pSpace = (PSPACE)psv;
+   pSpace->left = ID;
+   return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetSpaceRight( PTRSZVAL psv, arg_list args )
+{
+   PARAM( args, S_64, ID );
+    PSPACE pSpace = (PSPACE)psv;
+   pSpace->right = ID;
+   return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetHolderEntranceLeft( PTRSZVAL psv, arg_list args )
+{
+   PARAM( args, S_64, ID );
+    PSPACE pSpace = (PSPACE)psv;
+    pSpace->alternate = ID;
+   pSpace->type = SPACE_HOLDERSENTRANCE;
+   pSpace->flags.bAlternateLeft = 1;
+   return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetHolderEntranceRight( PTRSZVAL psv, arg_list args )
+{
+   PARAM( args, S_64, ID );
+    PSPACE pSpace = (PSPACE)psv;
+   pSpace->type = SPACE_HOLDERSENTRANCE;
+   pSpace->alternate = ID;
+   pSpace->flags.bAlternateLeft = 0;
+   return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetExitLeft( PTRSZVAL psv, arg_list args )
+{
+    PSPACE pSpace = (PSPACE)psv;
+   pSpace->flags.bMoveLeft = 1;
+   return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetExitRight( PTRSZVAL psv, arg_list args )
+{
+    PSPACE pSpace = (PSPACE)psv;
+   pSpace->flags.bMoveLeft = 0;
+   return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetSpaceStart( PTRSZVAL psv, arg_list args )
+{
+   PSPACE pSpace = (PSPACE)psv;
+	pSpace->type = SPACE_START;
+   // should option this also...
+   pSpace->attributes.start.cost = 100;
+   return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetStockSplit( PTRSZVAL psv, arg_list args )
+{
+   PARAM( args, FRACTION, fraction );
+    PSPACE pSpace = (PSPACE)psv;
+    pSpace->type = SPACE_HOLDERSMEETING;
+   pSpace->attributes.split.ratio = fraction;
+   return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetSpaceSize( PTRSZVAL psv, arg_list args )
+{
+    PARAM( args, S_64, width );
+    PARAM( args, S_64, height );
+    PSPACE pSpace = (PSPACE)psv;
+    pSpace->position.width = width;
+    pSpace->position.height = height;
+    return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetSpacePosition( PTRSZVAL psv, arg_list args )
+{
+    PARAM( args, S_64, x );
+    PARAM( args, S_64, y );
+    PSPACE pSpace = (PSPACE)psv;
+    pSpace->position.x = x;
+    pSpace->position.y = y;
+    return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetSpaceColor( PTRSZVAL psv, arg_list args )
+{
+    PARAM( args, CDATA, color );
+    PSPACE pSpace = (PSPACE)psv;
+    pSpace->attributes.profession.color = color;
+   return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetRandomRoll( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, LOGICAL, yesno );
+   g.flags.bRandomRoll = yesno;
+   return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetHorizontalAlignment( PTRSZVAL psv, arg_list args )
+{
+    PSPACE pSpace = (PSPACE)psv;
+    pSpace->flags.bVertical = FALSE;
+    pSpace->flags.bInvert = FALSE;
+    return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetHorizontalLeftAlignment( PTRSZVAL psv, arg_list args )
+{
+    PSPACE pSpace = (PSPACE)psv;
+    pSpace->flags.bVertical = FALSE;
+    pSpace->flags.bInvert = TRUE;
+    return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetVerticalUpAlignment( PTRSZVAL psv, arg_list args )
+{
+    PSPACE pSpace = (PSPACE)psv;
+    pSpace->flags.bVertical = TRUE;
+    pSpace->flags.bInvert = TRUE;
+    return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetSpaceQuit( PTRSZVAL psv, arg_list args )
+{
+    PSPACE pSpace = (PSPACE)psv;
+    pSpace->type = SPACE_QUIT;
+    return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetRollDice( PTRSZVAL psv, arg_list args )
+{
+    PSPACE pSpace = (PSPACE)psv;
+    pSpace->type = SPACE_ROLL;
+    return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetPlayerSell( PTRSZVAL psv, arg_list args )
+{
+    PSPACE pSpace = (PSPACE)psv;
+    pSpace->type = SPACE_SELL;
+    return psv;
+}
+
+//-----------------------------------------------------------------
+
+PTRSZVAL CPROC SetVerticalDownAlignment( PTRSZVAL psv, arg_list args )
+{
+    PSPACE pSpace = (PSPACE)psv;
+    pSpace->flags.bVertical = TRUE;
+    pSpace->flags.bInvert = FALSE;
+    return psv;
+}
+
+//-----------------------------------------------------------------
+
+void PutDirectedArrow( Image image, int pos
+							, int width, int height
+							, CDATA color
+							, int dir, int bLeft )
+{
+	switch( dir )
+	{
+	case 0:
+		do_hline( image, pos, 5, width - 10, color );
+		if( bLeft )
+		{
+			do_line( image, width-10, pos, width-10 - 3, pos-3, color );
+			do_line( image, width-10, pos, width-10 - 3, pos+3, color );
+		}
+		else
+		{
+			do_line( image, 5, pos, 5+3, pos-3, color );
+			do_line( image, 5, pos, 5+3, pos+3, color );
+		}
+      break;
+	case 1:
+		do_vline( image, width-pos, 5, height - 10, color );
+		if( bLeft )
+		{
+			do_line( image, width-pos, height-10, width-pos-3, height-10 - 3, color );
+			do_line( image, width-pos, height-10, width-pos+3, height-10 - 3, color );
+		}
+		else
+		{
+			do_line( image, width-pos, 5, width-pos-3, 5+3, color );
+			do_line( image, width-pos, 5, width-pos+3, 5+3, color );
+		}
+      break;
+	case 2:
+		do_hline( image, height-pos, 5, width - 10, color );
+		if( bLeft )
+		{
+			do_line( image, 5, height-pos, 5+3, height-pos-3, color );
+			do_line( image, 5, height-pos, 5+3, height-pos+3, color );
+		}
+		else
+		{
+			do_line( image, width-10, height-pos, width-10 - 3, height-pos-3, color );
+			do_line( image, width-10, height-pos, width-10 - 3, height-pos+3, color );
+		}
+      break;
+	case 3:
+		do_vline( image, pos, 5, height - 10, color );
+		if( bLeft )
+		{
+			do_line( image, pos, 5, pos-3, 5+3, color );
+			do_line( image, pos, 5, pos+3, 5+3, color );
+		}
+		else
+		{
+			do_line( image, pos, height-10, pos-3, height-10 - 3, color );
+			do_line( image, pos, height-10, pos+3, height-10 - 3, color );
+		}
+      break;
+	}
+}
+
+//-----------------------------------------------------------------
+
+void PutDirectedText( Image image, int x, int y
+                    , int width, int height
+						  , CDATA fore, CDATA back
+                      , int dir, char *text )
+{
+    switch( dir )
+    {
+    case 0:
+        PutString( image, x, y, fore, back, text );
+        break;
+    case 1:
+		 PutStringVertical( image
+								, width - y, x
+								, fore, back, text );
+		 break;
+    case 2:
+		 PutStringInvert( image
+							 , width-x, height-y
+							 , fore, back, text );
+        break;
+    case 3:
+		 PutStringInvertVertical( image
+										, y, height - x
+										, fore, back, text );
+      break;
+    }
+}
+
+//-----------------------------------------------------------------
+
+int CPROC DrawSpace( PCOMMON pc )
+{
+	PCOMMON pRegion = pc;
+	PSPACE pSpace = (PSPACE)GetCommonUserData( pc );
+	//ValidatedControlData( PSPACE, board_space.TypeID, pSpace, pc );
+    char text[15];
+    int x = 2
+     , y = 2
+     , width
+	 , height;
+    int dir;
+    Image Surface;
+    Surface = GetControlSurface( pRegion );
+    width = Surface->width - 4;
+    height = Surface->height - 4;
+
+	if( pSpace->flags.bFlashing )
+	{
+		if( pSpace->flags.bFlashOn )
+			ClearImageTo( Surface, Color( 255, 0, 0 ) );
+		else
+			ClearImageTo( Surface, Color( 255, 255, 255 ) );
+	}
+	else
+		ClearImageTo( Surface, Color(0,0,1) );
+    dir = (int)pSpace->flags.bInvert * 2 + pSpace->flags.bVertical;
+	switch( pSpace->type )
+	{
+	case SPACE_STOCKBUY:
+	case SPACE_HOLDERSENTRANCE:
+	case SPACE_STOCKSELL:
+    {
+		BlatColor( Surface, x, y, width, height, pSpace->attributes.buy_sell.stock->color );
+		snprintf( text, sizeof( text ), "%4.4s", pSpace->attributes.buy_sell.stock->Symbol );
+		PutDirectedText( Surface
+                          , x + 3, 5, Surface->width, Surface->height
+                          , Color( 255,255,255 ), AColor( 0,0,0, 32)
+                          , dir
+							  , text );
+		  if( pSpace->type == SPACE_STOCKSELL )
+		  {
+			  PutDirectedText( Surface
+								  , x + 8, 17, Surface->width, Surface->height
+								  , Color( 255,255,255 ), AColor( 0,0,0, 32)
+								  , dir
+								  , "SELL" );
+		  }
+		  PutDirectedArrow( Surface, height - 5
+								, Surface->width, Surface->height
+								, Color( 0, 0, 0 )
+								, dir
+								, pSpace->flags.bMoveLeft );
+		{
+			char staging[8];
+			  if( pSpace->FixedStageAdjust > 0 )
+			  {
+              snprintf( staging, sizeof( staging ), "Up %d", pSpace->FixedStageAdjust );
+			  }
+			  else
+			  {
+              snprintf( staging, sizeof( staging ), "Dn %d", -pSpace->FixedStageAdjust );
+			  }
+			  PutDirectedText( Surface
+								  , x+8, 29
+								  ,Surface->width, Surface->height
+								  , Color( 255,255,255 ), AColor( 0,0,0, 32)
+								  , dir
+								  , staging );
+		  }
+		  break;
+	 }
+	case SPACE_BROKER:
+    {
+        BlatColor( Surface, x, y, width, height, Color( 255,255,255 ) );
+        snprintf( text, sizeof( text ), "BRKR" );
+        PutDirectedText( Surface
+                          , 5, 5, Surface->width, Surface->height
+                          , Color( 0,0,0 ), AColor( 255,255,255, 32)
+                          , dir
+                          ,  text
+							  );
+		  PutDirectedArrow( Surface, height - 5
+								, Surface->width, Surface->height
+								, Color( 0, 0, 0 )
+								, dir
+                        , pSpace->flags.bMoveLeft );
+		  {
+           char staging[8];
+			  if( pSpace->FixedStageAdjust > 0 )
+			  {
+              snprintf( staging,  sizeof( staging ), "Up %d", pSpace->FixedStageAdjust );
+			  }
+			  else
+			  {
+              snprintf( staging, sizeof( staging ), "Dn %d", -pSpace->FixedStageAdjust );
+			  }
+			  PutDirectedText( Surface
+								  , x+8, 29
+								  , Surface->width, Surface->height
+								  , Color( 0, 0, 0 ), AColor( 255,255,255, 32)
+								  , dir
+								  , staging );
+		  }
+        break;
+    }
+	case SPACE_HOLDERSMEETING:
+    {
+        snprintf( text, sizeof( text ), "%d:%d"
+                    , pSpace->attributes.split.ratio.numerator
+                    , pSpace->attributes.split.ratio.denominator );
+        BlatColor( Surface, x, y, width, height, Color( 255,255,255 ) );
+        PutDirectedText( Surface
+                          , 5, 5, Surface->width, Surface->height
+                          , Color( 0,0,1 ), 0
+                          , dir
+                          ,  text);
+        break;
+    }
+	case SPACE_PROFESSION:
+    {
+        BlatColor( Surface, x, y, width, height, Color( 255,255,255 ) );
+        PutDirectedText( Surface
+							  , 5, 5, Surface->width, Surface->height
+                          , Color( 0,0,0 ), AColor( 255,255,255, 32)
+                        , dir
+                            , pSpace->attributes.profession.name);
+        snprintf( text, sizeof( text ), "Pays $%ld", pSpace->attributes.profession.pay );
+        PutDirectedText( Surface
+							  , 5, 5 + GetFontHeight( NULL ), Surface->width, Surface->height
+                          , Color( 0,0,0 ), AColor( 255,255,255, 32)
+                        , dir
+                            ,  text);
+        {
+            int ofs = 0, roll;
+            ofs = snprintf( text, sizeof( text ), "On " );
+            for( roll = 1; roll <=12; roll++ )
+                if( TESTFLAG( pSpace->attributes.profession.payon, roll ) )
+                {
+                    ofs += snprintf( text + ofs, sizeof( text ) - ofs, "%d", roll++ );
+                    break;
+                }
+         ofs += snprintf( text + ofs, sizeof( text )-ofs, " or " );
+            for( ; roll <=12; roll++ )
+                if( TESTFLAG( pSpace->attributes.profession.payon, roll ) )
+                {
+                    ofs += snprintf( text + ofs, sizeof( text ) - ofs, "%d", roll++ );
+                    break;
+                }
+        }
+        PutDirectedText( Surface
+							  , 5, 5 + GetFontHeight( NULL )*2, Surface->width, Surface->height
+                          , Color( 0,0,0 ), AColor( 255,255,255, 32)
+                          , dir
+                            ,  text);
+        break;
+    }
+
+	case SPACE_START:
+    {
+        BlatColor( Surface, x, y, width, height, Color( 255,255,255 ) );
+		  PutDirectedText( Surface
+							  , 8, 2, Surface->width, Surface->height
+							  , Color( 255,0,0 ), AColor( 0,0,0, 32)
+							  , dir
+							  ,  "Start");
+		  break;
+	 }
+	case SPACE_QUIT:
+		 {
+			 BlatColor( Surface, x, y, width, height, Color( 255,255,255 ) );
+			 PutDirectedText( Surface
+								 , 10, 2, Surface->width, Surface->height
+								 , Color( 255,0,0 ), AColor( 0,0,0, 32)
+								 , dir
+								 ,  "Quit");
+			 break;
+		 }
+	case SPACE_ROLL:
+		 {
+			 BlatColor( Surface, x, y, width, height, Color( 140,120, 43 ) );
+			 PutDirectedText( Surface
+								 , 10, 2, Surface->width, Surface->height
+								 , Color( 255,255,255 ), AColor( 0,0,0, 32)
+								 , dir
+								 ,  "Roll");
+			 break;
+		 }
+	case SPACE_SELL:
+		{
+			BlatColor( Surface, x, y, width, height, Color( 180,150, 80 ) );
+			PutDirectedText( Surface
+								 , 10, 2, Surface->width, Surface->height
+								 , Color( 255,255,255 ), AColor( 0,0,0, 32)
+								 , dir
+								 ,  "Sell");
+			break;
+		}
+	case SPACE_UNKNOWN:
+		break;
+	}
+	return TRUE;
+}
+
+//---------------------------------------------------------------------------
+
+void StartFlash( void )
+{
+	g.flags.bFlashing = 1;
+   RescheduleTimerEx( g.nFlashTimer, 0 ); // flash NOW
+}
+
+//---------------------------------------------------------------------------
+
+void StopFlash( void )
+{
+	if( g.flags.bFlashing )
+	{
+      // wait for a flash at least once...
+		while( !g.flags.bFlashed )
+			Idle();
+		g.flags.bFlashing = 0;
+		RescheduleTimerEx( g.nFlashTimer, 0 ); // flash NOW
+      // wait for last flash...
+		while( g.flags.bFlashed )
+			Idle();
+	}
+}
+
+
+//---------------------------------------------------------------------------
+
+void CPROC FlashSpaces( PTRSZVAL psv )
+{
+	PSPACE pSpace;
+	CDATA Border;
+	Image Surface;
+	INDEX idx;
+   //lprintf( "FLASH!!!!!!!!!!" );
+	g.flags.bFlashOn = !g.flags.bFlashOn;
+	if( g.flags.bFlashing )
+	{
+		LIST_FORALL( g.PossibleSpaces, idx, PSPACE, pSpace )
+		{
+			lprintf( "It's a possible space..." );
+			pSpace->flags.bFlashOn = g.flags.bFlashOn;
+			pSpace->flags.bFlashing = 1;
+         SmudgeCommon( pSpace->region );
+		}
+      lprintf( "How many psosible spaces was that?" );
+      g.flags.bFlashed = 1;
+	}
+	else
+	{
+		if( g.flags.bFlashed )
+		{
+			LIST_FORALL( g.PossibleSpaces, idx, PSPACE, pSpace )
+			{
+            pSpace->flags.bFlashing = 0;
+				SmudgeCommon( pSpace->region );
+			}
+			// so we don't get confused....
+         printf( "Emptying list of possibles...\n" );
+         EmptyList( &g.PossibleSpaces );
+			g.flags.bFlashed = 0;
+		}
+	}
+   //lprintf( "Doing smudge for token." );
+   // flash the player token...
+	{
+		static PPLAYER _player; // prior player peice...
+		if( g.pCurrentPlayer != _player )
+		{
+			if( _player )
+			{
+            lprintf( "Update last player token" );
+				SmudgeCommon( _player->pPlayerToken );
+			}
+         _player = g.pCurrentPlayer;
+		}
+		if( g.pCurrentPlayer )
+		{
+			lprintf( "Update this player's token." );
+			SmudgeCommon( g.pCurrentPlayer->pPlayerToken );
+		}
+	}
+   //SmudgeCommon( g.board );
+   //UpdateFrame( g.board, 0, 0, 0, 0 );
+}
+
+//-----------------------------------------------------------------
+
+int CPROC MouseSpace( PCOMMON pc, S_32 x, S_32 y, _32 b )
+{
+   PSPACE  pSpace = (PSPACE)GetCommonUserData( pc );
+    // hmm not sure how these buttons will work
+    // and what I'm supposed to track... maybe alias some of the
+	// combinations...
+   static _32 _b;
+    if( ( b & 1 ) && !( _b & 1 ) )
+	 {
+		 INDEX idx;
+		 PSPACE pCheck;
+		 switch( pSpace->type )
+		 {
+		 case SPACE_QUIT:
+			 exit(0);
+			 break;
+		 case SPACE_ROLL:
+			 if( g.flags.bSelectPlayer )
+			 {
+				 EnqueStrokes( "0" );
+             return TRUE;
+			 }
+			 else
+			 {
+				 EnqueStrokes( "n" ); // otherwise is sell...
+			 }
+			 break;
+		 case SPACE_SELL:
+			 if( g.flags.bAllowSell )
+             EnqueStrokes( "y" );
+			 break;
+		 default:
+			 LIST_FORALL( g.PossibleSpaces, idx, PSPACE, pCheck )
+			 {
+				 if( pCheck == pSpace )
+				 {
+					 char select[4];
+					 snprintf( select, sizeof( select ), "%ld%s"
+							  , idx + 1
+							  , g.flags.bChoiceNeedsEnter?"\n":"" );
+					 EnqueStrokes( select );
+					 break;
+				 }
+			 }
+          break;
+		 }
+    }
+	 _b = b;
+    return TRUE;
+}
+
+//-----------------------------------------------------------------
+#include <psi.h>
+CONTROL_REGISTRATION board_space = { "StockMarket Board Space"
+											  , { { 40, 40 }, sizeof( SPACE ), BORDER_NONE }
+											  ,NULL
+											  , NULL
+											  , DrawSpace
+											  , MouseSpace
+};
+PRELOAD( RegisterSpace ){ DoRegisterControl( &board_space ); };
+//-----------------------------------------------------------------
+
+void CreateBoardDisplay( void )
+{
+    INDEX idx;
+	PSPACE pSpace;
+	g.board = CreateFrame( "Stock Board", 0, 0, 800, 768, BORDER_NORMAL, NULL );
+	if( !g.board )
+		return;
+	g.Panel = MakeSheetControl( g.board
+										, g.scale * 7
+										, g.scale * 15
+										, g.scale * 12
+										, (g.scale * 13/2)
+										, 0 );
+	GetSheetSize( g.Panel, &g.PanelWidth, &g.PanelHeight );
+    LIST_FORALL( g.Board, idx, PSPACE, pSpace )
+	{
+		 /*
+        Log4( "Createing a region at : %d,%d %d by %d", pSpace->position.x
+                                , pSpace->position.y
+                                , pSpace->position.width
+										  , pSpace->position.height);
+                                */
+        pSpace->region = MakeControl( g.board, board_space.TypeID
+                                                , pSpace->position.x * g.scale
+                                                , pSpace->position.y * g.scale
+                                                , pSpace->position.width * g.scale
+                                              , pSpace->position.height * g.scale
+												, 0 );
+        SetCommonUserData( pSpace->region, (PTRSZVAL)pSpace );
+        //SetControlDraw( pSpace->region, (RedrawCallback)DrawSpace, (PTRSZVAL)pSpace );
+        //SetControlMouse( pSpace->region, (MouseCallback)MouseSpace, (PTRSZVAL)pSpace );
+	}
+	DisplayFrame( g.board );
+}
+
+//-----------------------------------------------------------------
+
+void ReadBoardDefinitions( char *filename )
+{
+	PCONFIG_HANDLER pch = CreateConfigurationEvaluator();
+	AddConfiguration( pch, "Roll is random %b", SetRandomRoll );
+    AddConfiguration( pch, "center %m pays %i on %i or %i",     AddCenter );
+    AddConfiguration( pch, "space %i", AddSpace );
+	AddConfiguration( pch, "color %c", SetSpaceColor );
+    AddConfiguration( pch, "market up %i", SetMarketUp );
+    AddConfiguration( pch, "market down %i", SetMarketDown );
+	AddConfiguration( pch, "Stock %i", SetStockBuy );
+	AddConfiguration( pch, "do sell", SetPlayerSell );
+    AddConfiguration( pch, "roll", SetRollDice );
+    AddConfiguration( pch, "sell stock %i", SetStockSell );
+    AddConfiguration( pch, "broker", SetSpaceBroker );
+    AddConfiguration( pch, "left %i", SetSpaceLeft );
+    AddConfiguration( pch, "right %i", SetSpaceRight );
+    AddConfiguration( pch, "holders %i left", SetHolderEntranceLeft );
+    AddConfiguration( pch, "holders %i right", SetHolderEntranceRight );
+    AddConfiguration( pch, "leave left", SetExitLeft );
+    AddConfiguration( pch, "leave right", SetExitRight );
+	AddConfiguration( pch, "split %q", SetStockSplit );
+	AddConfiguration( pch, "start", SetSpaceStart );
+	AddConfiguration( pch, "size %i,%i", SetSpaceSize );
+	AddConfiguration( pch, "position %i, %i", SetSpacePosition );
+	AddConfiguration( pch, "align horizontal right", SetHorizontalAlignment );
+	AddConfiguration( pch, "align horizontal left", SetHorizontalLeftAlignment );
+	AddConfiguration( pch, "align vertical up", SetVerticalUpAlignment );
+	AddConfiguration( pch, "align vertical down", SetVerticalDownAlignment );
+	AddConfiguration( pch, "quit", SetSpaceQuit );
+    ProcessConfigurationFile( pch, filename, 0 );
+    DestroyConfigurationEvaluator( pch );
+    ValidateBoard();
+
+    CreateBoardDisplay();
+    g.nFlashTimer = AddTimer( 250, FlashSpaces, 0 );
+}
+
+
+void AddRollToPossible( void )
+{
+	INDEX idx;
+   PSPACE pSpace;
+	LIST_FORALL( g.Board, idx, PSPACE, pSpace )
+	{
+		if( pSpace->type == SPACE_ROLL )
+		{
+			AddLink( &g.PossibleSpaces, pSpace );
+		}
+	}
+}
+
+void AddSellToPossible( void )
+{
+	INDEX idx;
+   PSPACE pSpace;
+	LIST_FORALL( g.Board, idx, PSPACE, pSpace )
+	{
+		if( pSpace->type == SPACE_SELL )
+		{
+			AddLink( &g.PossibleSpaces, pSpace );
+		}
+	}
+}
+

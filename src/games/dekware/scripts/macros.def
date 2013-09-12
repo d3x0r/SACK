@@ -1,0 +1,64 @@
+/dest telnet
+/create telnet
+/wake telnet 
+/tell telnet /command tcpserver 23
+
+/dest quit
+/mac quit
+/create x
+/wake x
+/tell x /exit
+/endmac
+
+/dest put
+/mac put object in
+   /grab %1
+   /if success
+      /enter %2
+      /if success
+         /drop %1
+         /leave 
+      /else
+         /echo "no object called" %2 "is near."
+      /endif
+   /endif
+/endmac
+/describe put "Put object in another object" 
+
+/dest place
+/mac place object
+   /grab %object
+   /if success
+      /drop %object
+   /else
+      /echo Object was not found.
+   /endif
+/endmac
+/describe place Drop a carried object.
+
+/dest take
+/mac take object
+   /grab %object
+   /if success
+      /store %object
+   /endif
+/endmac
+/describe take Pick up a nearby object.
+
+/dest get
+/mac get object from
+   /enter %2
+   /if success
+      /grab %1
+      /if fail
+         /echo "no object in" %1 "called" %2.
+      /else
+         /echo "Now holding" %1 "."
+      /endif
+   /else
+      /echo "no object" %1 "nearby" 
+   /endif
+/endmac
+/describe get "Get Object from another object" 
+
+/scr connect

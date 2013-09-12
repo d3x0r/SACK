@@ -1,0 +1,57 @@
+
+/echo Auto updates have been disabled.
+/echo
+
+#/mac checkversion
+#/echo Checking for new version...
+#/http get verpage www.dekware.com/version.txt
+#/if success
+#	/goto success
+#/endif
+#/http get verpage dekware.darktech.org/version.txt
+#/if success
+#	/label success
+#   /decl ver1
+#   /tail %verpage %ver1
+#   /burst %ver1 version
+#   /version myversion
+#   /compare %myversion like %version
+#   /if fail
+#      /echo A version is available for download.  The current version is %myversion.
+#      /echo The new version is %version.
+#      /echo do you wish to get the new version? Enter something like Yes to continue.
+#      /decl responce no
+#           /prompt
+#      /input %responce
+#      /compare %responce like yes
+#      /if success
+#         /http get vername www.dekware.com/vername.txt
+#         /if fail
+#            /echo failed to retreive version file name... 
+#            /goto done
+#         /endif
+#         /decl vernamebin
+#         /tail %vername %vernamebin
+#         /burst %vernamebin vername
+#         /http get newver www.dekware.com/%vername
+#         /decl versionbin
+#         /tail %newver %versionbin
+#         /storefile %versionbin %vername
+#         /echo new version has been retrieved into the current directory as %vername.
+#         /echo please /quit and run this self-extracting new version.
+#      /else
+#         /echo New version skipped...
+#      /endif
+#   /else
+#      /echo No new version...
+#   /endif
+#/else
+#   /echo Could not locate server or page.
+#/endif
+#/label done
+#/prompt
+#/dest checkversion
+#/endmac
+#
+#/checkversion
+#

@@ -1,0 +1,96 @@
+
+
+Scanloop design
+process/threading design
+
+Objects - LINK/CLASSES/LINKLEVELS
+
+Keyboard - Programmable - string/macro config
+                          function hooks
+
+
+Registered Functions
+     int signal(void)     - no input required.
+     int sendto(pMessage) - sends a message to a routine to process.
+     int Other(Params,...) - variable parameter list functions -
+                             untracable
+
+Assembly(?)
+
+Screen output
+
+World format
+
+desktop controlling parameters
+
+console control pannels
+     command entry - bottom.
+     slide command console on sides - bitmap tabs show
+
+mouse input
+
+
+Polled input structure - all input is polled for readyness
+design limitation of library -
+          signal input trigger possiblilty for processing
+          interupt handlers to handle hardware events at
+          highest priority - continuous calculations prempted
+
+continuous calculations occur in a 3d environment - hardly ever paused or still
+
+
+3/4 perspective - flatland control module
+
+1st person - flatland control module
+
+boundland - portal rendering
+
+unboundland - object rendering in space with backdrop function(stars)
+
+below, on, above levels of rendering possibility - each has merits of itself.
+
+objects contain scripts which they may process
+     state type scripting - can be continuous - but each state
+     change results in a relinquish.
+
+
+(timer?) Process Loop
+     Scan Keyboard (read string input) - operate currently console control
+     Scan Mouse (trigger mouse event) - process control console operation.
+     file events are uninteruptable.
+     scan for network event (option)
+     process object script ready queue
+     Update display
+
+Now keyboard events and display contexts
+     attach display to object - default resource view internals
+
+Objects contain
+     referenceID/description
+     content
+
+responsibility for onscreen update
+     main process loop update frame (graphic demos)
+     each routine responsible.
+
+UpdateMain( x, y, xto, yto, frombitmap, x, y)
+
+overlays and desktop process and other overlays must handle video.
+Allocate sub-bitmap whole display - set clipping region ...
+
+     adjust clipping region.
+     adjust visible region...
+     chain bitmaps of subspaces all but clipped for filling spaces.
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,10 @@
+
+.INTERMEDIATE:echoto.obj
+
+$(SACK_BASE)/makefiles/$(RINTDEST)/echoto.exe: echoto.obj
+	@wlink option quiet system nt file $< name $@
+
+echoto.obj: echoto.c
+	@wcc386 /zq echoto.c
+
+

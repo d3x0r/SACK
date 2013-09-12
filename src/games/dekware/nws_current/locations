@@ -1,0 +1,298 @@
+US"United States of America" go
+HW"Hawaiian Islands" go
+AK"Alaska" go
+AB"Albania" stop
+AG"Argentina" stop
+AH"Afganistan" stop
+AI"Ascension Island" stop
+AJ"Azerbaijan, Republic of" stop
+AL"Algeria" stop
+AN"Angola" stop
+AT"Antiqua, St. Kitts & British islands in the vicinity" stop
+AU"Australia" stop
+AY"Armenia. Republic of" stop
+AZ"Azores Islands" stop
+BA"Bahamas" stop
+BC"Botswana" stop
+BD"Brunei Darussalam" stop
+BE"Bermuda" go
+BG"Bosnia & Herzegovina" stop
+BH"Belize" stop
+BI"Burundi" stop
+BJ"Benin" stop
+BK"Banks Islands" stop
+BM"Myanmar (Burma)" stop
+BN"Bahrain" stop
+BO"Bolivia" stop
+BR"Barbados" stop
+BU"Bulgaria" stop
+BV"Bouvet Island" stop
+BW"Bangladesh" stop
+BX"Belgium, Luxembourg" stop
+BY"Belarus, Republic of" stop
+BZ"Brazil" stop
+CD"Chad" stop
+CE"Central African Rep" stop
+CG"Congo" stop
+CH"Chile" stop
+CI"China" stop
+CM"Cameroon" stop
+CN"Canada" stop
+CO"Colombia" stop
+CR"Canary Islands (Spain)" stop
+CS"Costa Rica" stop
+CT"Canton Island" stop
+CU"Cuba" stop
+CV"Cape Verde Islands" stop
+CY"Cyprus" stop
+CZ"Czech Republic" stop
+DJ"Djibouti" stop
+DL"Germany" stop
+DN"Denmark" stop
+DO"Dominica" stop
+DR"Dominican Republic" stop
+DY"Democratic Yemen" stop
+EG"Egypt" stop
+EO"Estonia" stop
+EQ"Ecuador" stop
+ER"United Arab Emirates" stop
+ES"El Salvador" stop
+ET"Ethiopia" stop
+FA"Faeroes Islands" stop
+FG"French Guiana" stop
+FI"Finland" stop
+FJ"Fiji Islands" stop
+FK"Falkland Isl (Malvinas)" stop
+FP"Saint Pierre Island & Miquelon" stop
+FR"France" stop
+FW"Wallis and Futuna Islands" stop
+GB"Gambia" stop
+GC"Cayman Islands" stop
+GD"Grenada" stop
+GE"Gough Island" stop
+GG"Georgia, Republic of" stop
+GH"Ghana" stop
+GI"Gibraltar" stop
+GL"Greenland" stop
+GM"Guam Island" go
+GN"Guinea" stop
+GO"Gabon" stop
+GQ"Equatorial Guinea" stop
+GR"Greece" stop
+GU"Guatemala" stop
+GW"Guinea-Bissau" stop
+GY"Guyana" stop
+HA"Haiti" stop
+HE"St. Helena Island" stop
+HK"Hong Kong" stop
+HO"Honduras" stop
+HU"Hungary" stop
+HV"Burkina Faso" stop
+IC"Comoros" stop
+ID"Indonesia" stop
+IE"Ireland" stop
+IL"Iceland" stop
+IN"India" stop
+IQ"Iraq" stop
+IR"Iran" stop
+IS"Isreal" stop
+IV"Cote d'Lvoire" stop
+IY"Italy" stop
+JD"Jordan" stop
+JM"Jamaica" stop
+JP"Japan" stop
+KA"Caroline Islands" stop
+KB"Kiribati" stop
+KG"Kirgiristan,Republic of" stop
+KI"Christmas Islands" stop
+KK"Cocos Islands" stop
+KN"Kenya" stop
+KO"Korea, Republic of" stop
+KP"Cambodia" stop
+KR"Democratic People's Republic of Korea" stop
+KU"Cook Island" stop
+KW"Kuwait" stop
+KY"Kyrghyzstan, Republic of" stop
+KZ"Kazakhstan,Republic of" stop
+LA"Lao People's Democratic Rep" stop
+LB"Lebanon" stop
+LC"Saint Lucia" stop
+LI"Liberia" stop
+LJ"Slovenia" stop
+LN"Southern Line Islands" stop
+LS"Lesotho" stop
+LT"Lithuania" stop
+LV"Latvia" stop
+LY"Libyan Arab Jamahiriya" stop
+MA"Mauritius" stop
+MB"Marion Island" stop
+MC"Morocco" stop
+MD"Madeira Island" stop
+MF"Saint-Martin, Saint-Bartholomew Guadeloupe/other French isles in the vicinity" stop
+MG"Madagascar" stop
+MH"Marshall Islands" stop
+MI"Mali" stop
+MJ"Former Yougoslov Rep. of Mecedonia" stop
+ML"Malta" stop
+MN"St.Maarten, St.Eustatius & Saba" stop
+MO"Mongolia" stop
+MR"Martinique Island" stop
+MS"Malaysia" stop
+MT"Mauritania" stop
+MU"Macao" stop
+MV"Maldives Islands" stop
+MW"Malawi" stop
+MX"Mexico" stop
+MY"Mariana Islands" stop
+MZ"Mozambique" stop
+NC"New Caledonia Island" stop
+NG"Papua New Guinea" stop
+NI"Nigeria" stop
+NK"Nicaragua" stop
+NL"Netherlands" stop
+NM"Namibia" stop
+NO"Norway" stop
+NP"Nepal" stop
+NR"Niger" stop
+NU"Netherlands Antilles (Aruba,Bonaire, Curacao)" stop
+NV"Vanuatu" stop
+NW"Nauru Island" stop
+NZ"New Zealand" stop
+OM"Oman" stop
+OR"South Orkney Islands" stop
+OS"Austria" stop
+PF"French Polynesia Islands" stop
+PH"Philippines" stop
+PI"Pheonix Islands" stop
+PK"Pakistan" stop
+PL"Poland" stop
+PM"Panama" stop
+PO"Portugal" stop
+PR"Peru" stop
+PT"Pitcairn Island" stop
+PU"Puerto Rico" go
+PY"Paraguay" stop
+QT"Qatar" stop
+RA"Russia, Republic of (East)" stop
+RE"Reunion and assoc. islands" stop
+RH"Croatia" stop
+RM"Republic of Moldova" stop
+RO"Romania" stop
+RS"Russia, Republic of (West)" stop
+RW"Rwanda" stop
+SB"Sri Lanka" stop
+SC"Seychelles Islands" stop
+SD"Saudi Arabia" stop
+SG"Senegal" stop
+SI"Somalia" stop
+SK"Sarawak" stop
+SL"Sierra Leone" stop
+SM"Suriname" stop
+SN"Sweden" stop
+SO"Solomon Islands" stop
+SQ"Slovokia" stop
+SP"Spain" stop
+SR"Singapore" stop
+SU"Sudan" stop
+SV"Swaziland" stop
+SW"Switzerland" stop
+SX"Santa Cruz Island" stop
+SY"Syria" stop
+SZ"Spitzbergen Islands" stop
+TC"Tristan da Cunha" stop
+TD"Trinidad and Tobago" stop
+TG"Togo" stop
+TH"Thailand" stop
+TI"Turks and Caicos Islands" stop
+TK"Tokelau Islands" stop
+TM"Timor" stop
+TN"Tanzania, United Rep of" stop
+TO"Tonga" stop
+TP"Sao Tome and Principe" stop
+TR"Turkmenistan, Republic of" stop
+TS"Tunisia" stop
+TU"Turkey" stop
+TV"Tuvalu" stop
+TZ"Tajikistan, Republic of" stop
+UG"Uganda" stop
+UK"United Kingdom of Great Britain and Northern Ireland" stop
+UR"Ukraine, Republic of" stop
+UY"Uruguay" stop
+UZ"Uzbekistan, Republic of" stop
+VG"St. Vincent and the Grenadines" stop
+VI"Virgin Islands" go
+VN"Venezuela" stop
+VS"Vietnam" stop
+YE"Yemen" stop
+YG"Yougoslavia" stop
+ZA"South Africa" stop
+ZB"Zambia" stop
+ZM"Western Samoa" stop
+ZR"Zaire" stop
+ZW"Zimbabwe" stop
+AA"Antarctic" stop
+AC"Arctic" stop
+AE"South-East Asia" stop
+AF"Africa" stop
+AM"Central Africa" stop
+AO"West Africa" stop
+AP"Southern Africa" stop
+AS"Asia" stop
+AW"Near East" stop
+AX"Arabian Sea area" stop
+BQ"Baltic Sea area" stop
+CA"Caribbean & Central America" stop
+EA"East Africa" stop
+EC"East China Sea area" stop
+EE"Eastern Europe" stop
+EM"Middle Europe" stop
+EN"Northern Europe" stop
+EU"Europe" stop
+EW"Western Europe" stop
+FE"Far East" stop
+GA"Gulf of Alaska area" go
+GX"Gulf of Mexico area" go
+IO"Indian Ocean area" stop
+ME"Eastern Mediterranean area" stop
+MM"Mediterranean area" stop
+MP"Central Mediterranean" stop
+MQ"Western Mediterranean" stop
+NA"North America" go
+NT"North Atlantic area" stop
+OC"Oceania" stop
+OH"Sea of Okhotsk" stop
+PA"Pacific area" stop
+PE"Persian area" stop
+PN"North Pacific area" stop
+PQ"Western North Pacific" stop
+PS"South Pacific area" stop
+PW"Western Pacific area" stop
+PZ"Eastern Pacific area" stop
+SA"South America" stop
+SE"Southern Ocean area" stop
+SJ"Sea of Japan area" stop
+MP"Central Mediterranean" stop
+MQ"Western Mediterranean" stop
+NA"North America" stop
+NT"North Atlantic area" stop
+OC"Oceania" stop
+OH"Sea of Okhotsk" stop
+PA"Pacific area" stop
+PE"Persian area" stop
+PN"North Pacific area" stop
+PQ"Western North Pacific" stop
+PS"South Pacific area" stop
+PW"Western Pacific area" stop
+PZ"Eastern Pacific area" stop
+SA"South America" stop
+SE"Southern Ocean area" stop
+SJ"Sea of Japan area" stop
+SS"South China Sea area" stop
+ST"South Atlantic area" stop
+XE"Eastern hemisphere" stop
+XN"Northern hemisphere" stop
+XS"Southern hemisphere" stop
+XT"Tropical belt" stop
+XW"Western hemisphere" stop
+XX"Other - Undefined Value" stop
+ 
