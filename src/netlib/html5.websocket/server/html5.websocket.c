@@ -234,7 +234,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 	if( buffer )
 	{
 		HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
-		enum ProcessHttpResult result;
+		int result;
 		TEXTSTR tmp = DupCharToText( (const char*)buffer );
 		//LogBinary( buffer, length );
 		if( !socket->flags.initial_handshake_done )

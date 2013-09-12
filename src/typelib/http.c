@@ -107,7 +107,7 @@ void ProcessURL_CGI( struct HttpState *pHttpState, PTEXT params )
 }
 
 //int ProcessHttp( struct HttpState *pHttpState )
-enum ProcessHttpResult ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
+int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 {
 	if( pHttpState->final )
 	{
@@ -356,6 +356,7 @@ enum ProcessHttpResult ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 			return HTTP_STATE_RESOURCE_NOT_FOUND;
 		if( pHttpState->numeric_code == 400 )
 			return HTTP_STATE_BAD_REQUEST;
+      return pHttpState->numeric_code;
 	}
 	return HTTP_STATE_RESULT_NOTHING;
 }
@@ -720,7 +721,7 @@ static void CPROC HandleRequest( PCLIENT pc, POINTER buffer, size_t length )
 	}
 	else
 	{
-		enum ProcessHttpResult result;
+		int result;
 		//struct HttpServer *server = (struct HttpServer *)GetNetworkLong( pc, 0 );
 		struct HttpState *pHttpState = (struct HttpState *)GetNetworkLong( pc, 1 );
 		if( l.flags.bLogReceived )

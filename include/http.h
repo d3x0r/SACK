@@ -89,7 +89,7 @@ void HTTPAPI AddHttpData( HTTPState pHttpState, POINTER buffer, size_t size );
             to 'content\-length' meta tag.
    FALSE :  Still collecting full packet                           */
 //HTTP_EXPORT int HTTPAPI ProcessHttp( HTTPState pHttpState );
-HTTP_EXPORT enum ProcessHttpResult HTTPAPI ProcessHttp( PCLIENT pc, HTTPState pHttpState );
+HTTP_EXPORT int HTTPAPI ProcessHttp( PCLIENT pc, HTTPState pHttpState );
 
 HTTP_EXPORT /* Gets the specific result code at the header of the packet -
    http 2.0 OK sort of thing.                                  */

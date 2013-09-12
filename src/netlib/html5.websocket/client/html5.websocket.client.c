@@ -10,8 +10,9 @@
 static void SendRequestHeader( WebSocketClient websock )
 {
 	PVARTEXT pvtHeader = VarTextCreate();
-	vtprintf( pvtHeader, "GET /%s/%s%s%s HTTP/1.1\r\n"
-			  , websock->url->resource_path
+	vtprintf( pvtHeader, "GET /%s%s%s%s%s HTTP/1.1\r\n"
+			  , websock->url->resource_path?websock->url->resource_path:""
+			  , websock->url->resource_path?"/":""
 			  , websock->url->resource_file
 			  , websock->url->resource_extension?".":""
 			  , websock->url->resource_extension?websock->url->resource_extension:""
@@ -35,25 +36,25 @@ static void SendRequestHeader( WebSocketClient websock )
 
 static void CPROC WebSocketTimer( PTRSZVAL psv )
 {
-   _32 now;
+	_32 now;
 	INDEX idx;
-   WebSocketClient websock;
+	WebSocketClient websock;
 	LIST_FORALL( wsc_local.clients, idx, WebSocketClient, websock )
 	{
 		now = timeGetTime();
 
-      // close is delay notified
+		// close is delay notified
 		if( websock->flags.want_close )
 		{
 			struct {
 				_16 reason;
 			} msg;
-         msg.reason = 1000; // normal
+			msg.reason = 1000; // normal
 			websock->input_state.flags.closed = 1;
-         SendWebSocketMessage( websock->pc, 8, 1, 0, (P_8)&msg, 2 );
+			SendWebSocketMessage( websock->pc, 8, 1, 0, (P_8)&msg, 2 );
 		}
 
-      // do auto ping...
+		// do auto ping...
 		if( !websock->input_state.flags.closed )
 		{
 			if( websock->ping_delay )
@@ -69,8 +70,8 @@ static void CPROC WebSocketTimer( PTRSZVAL psv )
 					if( ( now - websock->input_state.last_reception ) > ( websock->ping_delay * 2 ) )
 					{
 						websock->flags.want_close = 1;
-                  // send close immediately
-                  RescheduleTimerEx( wsc_local.timer, 0 );
+						// send close immediately
+						RescheduleTimerEx( wsc_local.timer, 0 );
 					}
 				}
 		}
@@ -79,37 +80,51 @@ static void CPROC WebSocketTimer( PTRSZVAL psv )
 
 static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len )
 {
+	WebSocketClient websock = (WebSocketClient)GetNetworkLong( pc, 0 );
 	if( !buffer )
 	{
-      SetTCPNoDelay( pc, TRUE );
-		wsc_local.opening_client->buffer = Allocate( 4096 );
-		SetNetworkLong( pc, 0, (PTRSZVAL)wsc_local.opening_client );
-      SetNetworkLong( pc, 1, (PTRSZVAL)&wsc_local.opening_client->output_state );
-      wsc_local.opening_client = NULL; // clear this to allow open to return.
+		if( !websock )
+		{
+			if( wsc_local.opening_client )
+			{
+				SetTCPNoDelay( pc, TRUE );
+				SetNetworkLong( pc, 0, (PTRSZVAL)wsc_local.opening_client );
+				SetNetworkLong( pc, 1, (PTRSZVAL)&wsc_local.opening_client->output_state );
+				wsc_local.opening_client = NULL; // clear this to allow open to return.
+			}
+			else
+			{
+				lprintf( "Fatality; didn't have a related structure, and no client opening" );
+			}
+		}
+		else
+			buffer = websock->buffer;
 	}
 	else
 	{
 		WebSocketClient websock = (WebSocketClient)GetNetworkLong( pc, 0 );
 		if( !websock->flags.connected )
 		{
-         enum ProcessHttpResult result;
+			int result;
 			// this is HTTP state...
 			AddHttpData( websock->pHttpState, buffer, len );
 			result = ProcessHttp( pc, websock->pHttpState );
-			if( (int)result >= 200 && (int)result < 300 )
+			//lprintf( "reply is %d", result );
+			if( (int)result == 101 )
 			{
 				websock->flags.connected = 1;
 				{
 					PTEXT content = GetHttpContent( websock->pHttpState );
 					if( websock->input_state.on_open )
-                  websock->input_state.on_open( pc, websock->input_state.psv_on );
+						websock->input_state.on_open( pc, websock->input_state.psv_on );
 					if( content )
-                  ProcessWebSockProtocol( &websock->input_state, websock->pc, (P_8)GetText( content ), GetTextSize( content ) );
+						ProcessWebSockProtocol( &websock->input_state, websock->pc, (P_8)GetText( content ), GetTextSize( content ) );
 				}
 			}
 			else if( (int)result >= 300 && (int)result < 400 )
 			{
-            // redirect, disconnect, reconnect to new address offered.
+				lprintf( "Redirection of some sort" );
+				// redirect, disconnect, reconnect to new address offered.
 			}
 			else if( (int)result )
 			{
@@ -117,7 +132,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 			}
 			else
 			{
-            // not a full header yet. (something about no content-length?)
+				// not a full header yet. (something about no content-length?)
 			}
 		}
 		else
@@ -144,13 +159,21 @@ static void CPROC WebSocketClientClosed( PCLIENT pc )
 
 static void CPROC WebSocketClientConnected( PCLIENT pc, int error )
 {
+	WebSocketClient websock;
+	while( !( websock = (WebSocketClient)GetNetworkLong( pc, 0 ) ) )
+		Relinquish();
+
 	if( !error )
 	{
-      // connect succeeded.
-		WebSocketClient websock;
-		while( !( websock = (WebSocketClient)GetNetworkLong( pc, 0 ) ) )
-			Relinquish();
-      SendRequestHeader( websock );
+		// connect succeeded.
+		SendRequestHeader( websock );
+		SetTCPNoDelay( pc, TRUE );
+	}
+	else
+	{
+		wsc_local.opening_client = NULL;
+		if( websock->input_state.on_close )
+         websock->input_state.on_close( NULL, websock->input_state.psv_on );
 	}
 }
 
@@ -169,6 +192,8 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 {
 	WebSocketClient websock = New( struct web_socket_client );
 	MemSet( websock, 0, sizeof( struct web_socket_client ) );
+	websock->buffer = Allocate( 4096 );
+	websock->pHttpState = CreateHttpState();
 	websock->input_state.on_open = on_open;
 	websock->input_state.on_event = on_event;
 	websock->input_state.on_close = on_closed;
@@ -189,16 +214,26 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 												, NULL
 												, on_open?WebSocketClientConnected:NULL // if there is an on-open event, then register for async open
 												);
-		if( websock->pc && !on_open )
+		if( websock->pc )
 		{
-			// send request if we got connected, if there is a on_open callback, then we're delay waiting
-			// so this will be sent in the socket on-open event.
-			SendRequestHeader( websock );
-			while( !websock->flags.connected && !websock->input_state.flags.closed )
+			if( !on_open )
+			{	
+				// send request if we got connected, if there is a on_open callback, then we're delay waiting
+				// so this will be sent in the socket on-open event.
+				SendRequestHeader( websock );
+				while( !websock->flags.connected && !websock->input_state.flags.closed )
+					Idle();
+			}
+			else
+			{
+				SetNetworkLong( websock->pc, 0, (PTRSZVAL)websock );
+				SetNetworkLong( websock->pc, 1, (PTRSZVAL)&websock->output_state );
+			}
+			while( wsc_local.opening_client )
 				Idle();
 		}
-		while( wsc_local.opening_client )
-			Idle();
+		else
+			wsc_local.opening_client = NULL;	
 	}
 	LeaveCriticalSec( &wsc_local.cs_opening );
 	return  websock->pc;
