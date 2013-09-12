@@ -1228,8 +1228,12 @@ int CPROC SetFlash( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters )
 
 static void CPROC DrawString( PCONSOLE_INFO pmdp, int x, int y, RECT *r, TEXTCHAR *s, int nShown, int nShow )
 {
+   SIZE size;
 	//lprintf( WIDE("Adding string out : %s %d %d at %d,%d or (%d,%d)  (%d,%d)"), s, nShown, nShow,x,y,r->left,r->top, r->right, r->bottom );
-   //InvalidateRect( pmdp->wincon.hDC, r, NULL );
+	//InvalidateRect( pmdp->wincon.hDC, r, NULL );
+	GetTextExtentPoint32( pmdp->wincon.hDC, s, nShow, &size );
+	r->right = x + size.cx; // leading pad is in the rect.
+   r->bottom = r->top + size.cy;
 	ExtTextOut( pmdp->wincon.hDC, x, y
 				 , ETO_OPAQUE, r
 				 , s + nShown

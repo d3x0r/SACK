@@ -417,7 +417,9 @@ static void CPROC DrawString( PCONSOLE_INFO pdp, int x, int y, RECT *r, char *s,
 {
 	_32 dwSize;
 	lprintf( "Adding string out : %s %d %d at %d,%d", s, nShown, nShow,x,y,r->left,r->top );
-   move( y-1, x );
+	move( y-1, x );
+   r->right = r.left + nShow;
+   r->bottom = r.top + 1;
 	WriteConsole( pdp->consolecon.hStdout, s + nShown, nShow, &dwSize, NULL );
 }
 

@@ -150,11 +150,20 @@ void RenderCommandLine( PCONSOLE_INFO pdp, POINTER p )
 		}
       upd.left = 0;
    }
-   else
-      upd.left = pdp->nXPad + ( nCurrentCol * pdp->nFontWidth );
+	else
+	{
+      // this is an inaccurate calculation.
+		//upd.left = pdp->nXPad + ( nCurrentCol * pdp->nFontWidth );
+		if( pdp->flags.bDirect )
+			r.right = upd.left = ( pdp->nNextCharacterBegin );
+      else
+			r.right = upd.left = pdp->nXPad;
+	}
 
-   r.left = x = pdp->nXPad + ( nCurrentCol * pdp->nFontWidth );
-   // for now...
+	// this is an inaccurate calculation.
+	//r.left = x = pdp->nXPad + ( nCurrentCol * pdp->nFontWidth );
+	r.left = x = r.right;
+	// for now...
 
    upd.right = pdp->nWidth;
    upd.top = r.top;
@@ -182,8 +191,7 @@ void RenderCommandLine( PCONSOLE_INFO pdp, POINTER p )
       // like make it externally definable like prompt is now...
       nShow = snprintf( byName, sizeof( byName ), WIDE("(%s) ")
                      , GetText( GetName( pdp->common.Owner->pRecord ) )
-                     );
-		r.right = r.left + pdp->nFontWidth * ( nShow );
+							 );
 		if( pdp->DrawString )
 			pdp->DrawString( pdp, x, y, &r, byName, nShown, nShow );
       //DrawString( byName );
@@ -215,8 +223,6 @@ void RenderCommandLine( PCONSOLE_INFO pdp, POINTER p )
 
       if( nCurrentCol + nShow > end )
          nShow = end - nCurrentCol;
-
-      r.right = r.left + pdp->nFontWidth * nShow ;
 
 		if( pdp->DrawString )
          pdp->DrawString( pdp, x, y, &r, GetText( pStart ), nShown, nShow );
@@ -995,24 +1001,29 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 					}
 				}
 				if( nChar )
-					x = r.left = pdp->nXPad+ nChar * pdp->nFontWidth;
+				{
+               // left should already equal r.right...
+               x = r.left;
+				}
 				else
 				{
 					r.left = 0;
 					x = pdp->nXPad;
 				}
-				r.right = pdp->nXPad + ( nChar + nShow ) * pdp->nFontWidth;
 				if( r.bottom > nMinLine )
 				{
-               //lprintf( WIDE("And finally we can show some text... %s %d"), text, y );
+					//lprintf( WIDE("And finally we can show some text... %s %d"), text, y );
 					if( pdp->DrawString )
 						pdp->DrawString( pdp, x, y, &r, text, nShown, nShow );
+					if( nLine == 0 )  // only keep the (last) line's end.
+						pdp->nNextCharacterBegin = r.right;
 					//DrawString( text );
 				}
 				else
 					lprintf( WIDE("Hmm bottom < minline?") );
 						  // fill to the end of the line...
-						  //nLen -= nShow;
+				//nLen -= nShow;
+            r.left = r.right;
 				nShown += nShow;
 				nChar += nShow;
 			}
@@ -1027,10 +1038,9 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 					  // if soething left to fill, blank fill it...
 			if( r.left < r.right )
 			{
-            //lprintf( WIDE("WRiting empty string (over top?)") );
+				//lprintf( WIDE("WRiting empty string (over top?)") );
 				if( pdp->FillConsoleRect )
 					pdp->FillConsoleRect( pdp, &r, FILL_DISPLAY_BACK );
-				//FillConsoleRect();
 			}
 		}
 		if( nFirst >= 0 )

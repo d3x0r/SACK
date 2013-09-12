@@ -146,16 +146,23 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		}
       upd.left = 0;
    }
-   else
-      upd.left = pdp->nXPad + ( nCurrentCol * pdp->nFontWidth );
+	else
+	{
+		if( pdp->flags.bDirect )
+			r.right = upd.left = ( pdp->nNextCharacterBegin );
+      else
+			r.right = upd.left = pdp->nXPad;
+	}
 
-	r.left = x = pdp->nXPad + ( nCurrentCol * pdp->nFontWidth );
+	//r.left = x = pdp->nXPad + ( nCurrentCol * pdp->nFontWidth );
+	r.left = x = r.right;
    //lprintf( WIDE( "x/left is %d" ), x );
    // for now...
 
    upd.right = pdp->nWidth;
    upd.top = r.top;
    upd.bottom = r.bottom;
+
 
    {
       // totally set the background of the command thingy...
@@ -190,8 +197,6 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 
       if( nCurrentCol + nShow > end )
          nShow = end - nCurrentCol;
-
-      r.right = r.left + pdp->nFontWidth * nShow ;
 
 		if( pdp->DrawString )
          pdp->DrawString( pdp, x, y, &r, GetText( pStart ), nShown, nShow );
@@ -864,7 +869,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 				}
 				//lprintf( "Some stats %d %d %d", nChar, nShow, nShown );
 				if( nChar )
-					x = r.left = pdp->nXPad+ nChar * pdp->nFontWidth;
+					x = r.left = r.right;
 				else
 				{
 					r.left = r.right;
@@ -879,6 +884,8 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 					//lprintf( "putting string %s at %d,%d (left-right) %d,%d", text, x, y, r.left, r.right );
 					if( pdp->DrawString )
 						pdp->DrawString( pdp, x, y, &r, text, nShown, nShow );
+					if( nLine == 0 )  // only keep the (last) line's end.
+						pdp->nNextCharacterBegin = r.right;
 					//DrawString( text );
 					//lprintf( "putting string %s at %d,%d (left-right) %d,%d", text, x, y, r.left, r.right );
 				}
