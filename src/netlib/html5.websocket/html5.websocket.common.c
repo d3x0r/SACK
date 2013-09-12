@@ -9,7 +9,7 @@ struct {
    _32 newmask;
 } wscom_local;
 
-void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int no_mask, P_8 payload, size_t length )
+void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, P_8 payload, size_t length )
 {
 	P_8 msgout;
 	P_8 use_mask;
@@ -28,7 +28,7 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int no_mask, P_8 p
 		else
          length_out += 2; // need 2 more bytes for a longer length
 	}
-	if( !no_mask )
+	if( do_mask )
 	{
       wscom_local.newmask ^= rand() ^ ( rand() << 13 ) ^ ( rand() << 26 );
 		use_mask = (P_8)&wscom_local.newmask;
@@ -71,7 +71,7 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int no_mask, P_8 p
 	}
 	else
 		msgout[1] = length;
-	if( !no_mask )
+	if( do_mask )
 	{
       int mask_offset = (length_out-length) - 4;
       msgout[mask_offset+0] = (_8)(wscom_local.newmask >> 24);
@@ -276,7 +276,8 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, s
 					// 4000-4999 - reserved for private use; cannot be registerd;
 					if( !websock->flags.closed )
 					{
-						SendWebSocketMessage( pc, 0x08, 1, 0, websock->fragment_collection, websock->frame_length );
+						struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
+						SendWebSocketMessage( pc, 0x08, 1, output->flags.expect_masking, websock->fragment_collection, websock->frame_length );
                   websock->flags.closed = 1;
 					}
 					if( websock->on_close )
@@ -284,8 +285,11 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, s
 					websock->fragment_collection_length = 0;
 					break;
 				case 0x09: // ping
-					SendWebSocketMessage( pc, 0x0a, 1, 0, websock->fragment_collection, websock->frame_length );
-					websock->fragment_collection_length = 0;
+					{
+						struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
+						SendWebSocketMessage( pc, 0x0a, 1, output->flags.expect_masking, websock->fragment_collection, websock->frame_length );
+						websock->fragment_collection_length = 0;
+					}
 					break;
 				case 0x0A: // pong
 					{
@@ -298,7 +302,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, s
 					lprintf( WIDE("Bad WebSocket opcode: %d"), websock->opcode );
 					return;
 				}
-
+            // after processing any opcode (this is IN final, and length match) we're done, start next message
 				ResetInputState( websock );
 			}
 			break;
@@ -312,7 +316,8 @@ void WebSocketPing( PCLIENT pc, _32 timeout )
 	_32 target = start_at + timeout;
 	_32 now;
    struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 2 );
-	SendWebSocketMessage( pc, 9, 1, 0, NULL, 0 );
+   struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
+	SendWebSocketMessage( pc, 9, 1, output->flags.expect_masking, NULL, 0 );
 
 	while( !input_state->flags.received_pong
 			&& ( ( ( now=timeGetTime() ) - start_at ) < timeout ) )
@@ -325,7 +330,7 @@ void WebSocketPing( PCLIENT pc, _32 timeout )
 void WebSocketSendText( PCLIENT pc, POINTER buffer, size_t length ) // UTF8 RFC3629
 {
    struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
-	SendWebSocketMessage( pc, output->flags.sent_type?0:1, 1, 0, (P_8)buffer, length );
+	SendWebSocketMessage( pc, output->flags.sent_type?0:1, 1, output->flags.expect_masking, (P_8)buffer, length );
    output->flags.sent_type = 0;
 }
 
@@ -333,7 +338,7 @@ void WebSocketSendText( PCLIENT pc, POINTER buffer, size_t length ) // UTF8 RFC3
 void WebSocketBeginSendText( PCLIENT pc, POINTER buffer, size_t length ) // UTF8 RFC3629
 {
    struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
-   SendWebSocketMessage( pc, 1, 0, 0, (P_8)buffer, length );
+   SendWebSocketMessage( pc, 1, 0, output->flags.expect_masking, (P_8)buffer, length );
    output->flags.sent_type = 1;
 
 }
@@ -342,14 +347,14 @@ void WebSocketBeginSendText( PCLIENT pc, POINTER buffer, size_t length ) // UTF8
 void WebSocketSendBinary( PCLIENT pc, POINTER buffer, size_t length )
 {
    struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
-	SendWebSocketMessage( pc, output->flags.sent_type?0:2, 1, 0, (P_8)buffer, length );
+	SendWebSocketMessage( pc, output->flags.sent_type?0:2, 1, output->flags.expect_masking, (P_8)buffer, length );
 }
 
 // literal binary sending; this may happen to be base64 encoded too
 void WebSocketBeginSendBinary( PCLIENT pc, POINTER buffer, size_t length )
 {
    struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
-   SendWebSocketMessage( pc, 2, 0, 0, (P_8)buffer, length );
+   SendWebSocketMessage( pc, 2, 0, output->flags.expect_masking, (P_8)buffer, length );
    output->flags.sent_type = 1;
 }
 

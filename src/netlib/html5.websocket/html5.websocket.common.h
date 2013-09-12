@@ -48,10 +48,13 @@ struct web_socket_output_state
 	struct web_socket_output_flags
 	{
 		BIT_FIELD sent_type : 1;
+		// apparently clients did not implement back masking??
+      // I get a close; probably because of the length exception
+		BIT_FIELD expect_masking : 1;
 	} flags;
 };
 
 
-EXTERN void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int no_mask, P_8 payload, size_t length );
+EXTERN void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, P_8 payload, size_t length );
 EXTERN void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, size_t length );
 
