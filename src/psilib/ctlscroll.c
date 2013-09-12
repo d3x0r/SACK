@@ -62,7 +62,7 @@ static int CPROC RenderScrollBar( PCONTROL pc )
 		}
 
 
-		ClearImageTo( surface, basecolor(pc)[SCROLLBAR_BACK] );
+		BlatColorAlpha( surface, 0, 0, surface->width, surface->height, basecolor(pc)[SCROLLBAR_BACK] );
 		if( psb->range == 0 )
          return 1;
 
@@ -83,7 +83,7 @@ static int CPROC RenderScrollBar( PCONTROL pc )
 				top = 0;
 				bottom = psb->width - 1;
 			}
-			BlatColor( surface, top, 0
+			BlatColorAlpha( surface, top, 0
 								, bottom-top
 								, psb->height, basecolor(pc)[NORMAL] );
 	   }
@@ -99,7 +99,7 @@ static int CPROC RenderScrollBar( PCONTROL pc )
 				top = 0;
 				bottom = psb->height - 1;
 			}
-			BlatColor( surface, 0, top
+			BlatColorAlpha( surface, 0, top
 								, psb->width
 								, bottom-top, basecolor(pc)[NORMAL] );
 		}
@@ -111,17 +111,17 @@ static int CPROC RenderScrollBar( PCONTROL pc )
 
 		if( psb->scrollflags.bHorizontal )
 		{
-			do_vline( surface, top, 1, psb->height-2, basecolor(pc)[HIGHLIGHT] );
-			do_hline( surface, 1, top, bottom, basecolor(pc)[HIGHLIGHT] );
-			do_hline( surface, psb->height-2, top, bottom, basecolor(pc)[SHADOW] );
-			do_vline( surface, bottom, 1, psb->height-2, basecolor(pc)[SHADOW] );
+			do_vlineAlpha( surface, top, 1, psb->height-2, basecolor(pc)[HIGHLIGHT] );
+			do_hlineAlpha( surface, 1, top, bottom, basecolor(pc)[HIGHLIGHT] );
+			do_hlineAlpha( surface, psb->height-2, top, bottom, basecolor(pc)[SHADOW] );
+			do_vlineAlpha( surface, bottom, 1, psb->height-2, basecolor(pc)[SHADOW] );
 		}
 		else
 		{
-			do_hline( surface, top, 1, psb->width-2, basecolor(pc)[HIGHLIGHT] );
-			do_vline( surface, 1, top, bottom, basecolor(pc)[HIGHLIGHT] );
-			do_vline( surface, psb->width-2, top, bottom, basecolor(pc)[SHADOW] );
-			do_hline( surface, bottom, 1, psb->width-2, basecolor(pc)[SHADOW] );
+			do_hlineAlpha( surface, top, 1, psb->width-2, basecolor(pc)[HIGHLIGHT] );
+			do_vlineAlpha( surface, 1, top, bottom, basecolor(pc)[HIGHLIGHT] );
+			do_vlineAlpha( surface, psb->width-2, top, bottom, basecolor(pc)[SHADOW] );
+			do_hlineAlpha( surface, bottom, 1, psb->width-2, basecolor(pc)[SHADOW] );
 		}
 
 	}
@@ -285,7 +285,7 @@ static void CPROC DrawBottomButton( PTRSZVAL psv, PSI_CONTROL pc )
 		int mx = pc->surface_rect.width/2;
 		int cx = pc->surface_rect.width/4
 	, cy = pc->surface_rect.height/3;
-      ClearImageTo( surface, basecolor(pc)[NORMAL] );
+		BlatColorAlpha( surface, 0, 0, surface->width, surface->height, basecolor(pc)[NORMAL] );
 		if( IsButtonPressed( pc ) )
 		{
 			cx++;
@@ -310,7 +310,7 @@ static void CPROC DrawRightButton( PTRSZVAL psv, PCONTROL pc )
 	{
 		int cx = pc->surface_rect.width/2
 	, cy = pc->surface_rect.height/2;
-      ClearImageTo( surface, basecolor(pc)[NORMAL] );
+      BlatColorAlpha( surface, 0, 0, surface->width, surface->height, basecolor(pc)[NORMAL] );
 		if( IsButtonPressed( pc ) )
 			cx++;
 		do_line( surface, cy - 2, cx - 3, cy + 1, cx  , basecolor(pc)[SHADE] );
@@ -340,7 +340,7 @@ static void CPROC DrawTopButton( PTRSZVAL psv, PCONTROL pc )
 		int mx = pc->surface_rect.width/2;
 		int cx = pc->surface_rect.width/4
 		  , cy = pc->surface_rect.height/3;
-      ClearImageTo( surface, basecolor(pc)[NORMAL] );
+      BlatColorAlpha( surface, 0, 0, surface->width, surface->height, basecolor(pc)[NORMAL] );
 		if( IsButtonPressed( pc ) )
 			cx++;
 		c = basecolor(pc)[SHADE];
@@ -364,15 +364,15 @@ static void CPROC DrawLeftButton( PTRSZVAL psv, PCONTROL pc )
 		int cx = pc->surface_rect.width/2
 	, cy = pc->surface_rect.height/2;
       // hmm hope clearimage uses a blatalpha..
-      ClearImageTo( surface, basecolor(pc)[NORMAL] );
+      BlatColorAlpha( surface, 0, 0, surface->width, surface->height, basecolor(pc)[NORMAL] );
 		if( IsButtonPressed( pc ) )
 			cx++;
-		do_line( surface, cy - 3, cx  , cy+1, cx+4, basecolor(pc)[SHADE] );
-		do_line( surface, cy - 2, cx  , cy+2, cx+4, basecolor(pc)[SHADOW] );
-		do_line( surface, cy - 1, cx  , cy+2, cx+3, basecolor(pc)[SHADE] );
-		do_line( surface, cy + 2, cx-3, cy-1, cx  , basecolor(pc)[HIGHLIGHT] );
-		do_line( surface, cy + 2, cx-4, cy-2, cx  , basecolor(pc)[SHADE] );
-		do_line( surface, cy + 1, cx-4, cy-3, cx  , basecolor(pc)[SHADOW] );
+		do_lineAlpha( surface, cy - 3, cx  , cy+1, cx+4, basecolor(pc)[SHADE] );
+		do_lineAlpha( surface, cy - 2, cx  , cy+2, cx+4, basecolor(pc)[SHADOW] );
+		do_lineAlpha( surface, cy - 1, cx  , cy+2, cx+3, basecolor(pc)[SHADE] );
+		do_lineAlpha( surface, cy + 2, cx-3, cy-1, cx  , basecolor(pc)[HIGHLIGHT] );
+		do_lineAlpha( surface, cy + 2, cx-4, cy-2, cx  , basecolor(pc)[SHADE] );
+		do_lineAlpha( surface, cy + 1, cx-4, cy-3, cx  , basecolor(pc)[SHADOW] );
 		//plot( surface, cx + 4, cy + 2, basecolor(pc)[HIGHLIGHT] );
 	}
 }

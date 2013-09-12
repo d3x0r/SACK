@@ -1,3 +1,4 @@
+#define DEFINE_DEFAULT_IMAGE_INTERFACE
 #include <vidlib.h>
 #include <controls.h>
 #include <sharemem.h>
@@ -53,6 +54,15 @@ PSI_CONTROL CreateListTester( PSI_CONTROL parent )
 	AddListItem( pcList, WIDE("Nine") );
 	AddListItem( pcList, WIDE("Items to add") );
 	AddListItem( pcList, WIDE("And a very very very long one") );
+
+   SetCommonTransparent( pcList, TRUE );
+   SetCommonTransparent( GetFirstChildControl( pcList ), TRUE );
+
+   SetControlColor( GetFirstChildControl( GetFirstChildControl( pcList ) ), NORMAL, AColor( 128, 0, 128, 32 ) );
+   SetControlColor( GetNextControl( GetFirstChildControl( GetFirstChildControl( pcList ) ) ), NORMAL, AColor( 128, 0, 128, 32 ) );
+   SetControlColor( GetFirstChildControl( pcList ), NORMAL, AColor( 128, 128, 128, 32 ) );
+   SetControlColor( GetFirstChildControl( pcList ), SCROLLBAR_BACK, AColor( 128, 128, 128, 32 ) );
+   SetControlColor( pcList, EDIT_BACKGROUND, AColor( 128, 128, 128, 32 ) );
 	/*
 	for( i = 0; i <  100; i++ )
 	{
