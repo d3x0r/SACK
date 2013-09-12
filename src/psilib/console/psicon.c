@@ -712,13 +712,17 @@ static void CPROC DrawString( PCONSOLE_INFO console, int x, int y, RECT *r, CTEX
 	//_32 width;
 	//lprintf( WIDE( "Adding string out : %p %s start:%d len:%d at %d,%d #%08lX #%08lX" ), console, s, nShown, nShow,x,y,r->left,r->top
 	//		 , console->psicon.crText, console->psicon.crBack );
+	{
+		_32 w, h;
+      GetStringSizeFontEx( s + nShown, nShow, &w, &h, console->psicon.hFont );
+		r->right = r->left + w;
+		r->bottom = r->left + h;
+	}
 	PutStringFontEx( console->psicon.image, x, y
 						, console->psicon.crText, console->psicon.crBack
 						, s + nShown
 						, nShow
 						, console->psicon.hFont );
-	r->right = r->left + GetStringSizeFontEx( s + nShown, nShow, NULL, NULL, console->psicon.hFont );
-	//r->right = r->left + width;
 }
 
 //----------------------------------------------------------------------------

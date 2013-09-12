@@ -151,6 +151,7 @@ typedef struct myconsolestruc {
    // therefore that region has no information to show.
    int nHistoryLineStart;
 	int nDisplayLineStart; // top visual line of those in 'display' (start of separator)
+   int nNextCharacterBegin; // this is computed from the last position of the last renderd line ( continue for command line)
 	int nCommandLineStart; // marks the top of the separator line... bottom of text
 
 	// these are within the history cursor...
