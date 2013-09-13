@@ -8,13 +8,6 @@ websocket protocol is itself wrapped in a frame, so messages are described with 
 length, and what is received will be exactly like the block that was sent.
 
 
-typedef void (*web_socket_opened)( PTRSZVAL psv );
-typedef void (*web_socket_closed)( PTRSZVAL psv );
-typedef void (*web_socket_error)( PTRSZVAL psv, int error );
-typedef void (*web_socket_event)( PTRSZVAL psv, POINTER buffer, int msglen );
-typedef struct web_socket_client *WebSocketClient;
-
- WebSocketClient OpenWebSocket( address, socket_opened, event_received, socket_closed, error_recieved, psv );
 
 
 
