@@ -3,6 +3,7 @@
 #define JSON_EMITTER_SOURCE
 #include <json_emitter.h>
 
+#include "json.h"
 PTRSZVAL json_add_object( struct json_context *context, CTEXTSTR name, struct json_context_object *format, POINTER object );
 
 /***********
@@ -55,29 +56,6 @@ PTRSZVAL json_add_object( struct json_context *context, CTEXTSTR name, struct js
 SACK_NAMESPACE namespace network { namespace json {
 #endif
 
-
-struct json_context_object_element
-{
-	int type;     // type of the element at this offset
-	int offset;   // offset into the structure
-	CTEXTSTR name; // name of this element in the object
-	int count; // at offset, this number of these is there; (array)
-	int count_offset; // at count_offset, is the number of elements that the pointer at this offset
-   struct json_context_object *object;
-};
-
-struct json_context_object
-{
-   PLIST members;   // list of members of this object
-   CTEXTSTR name;   // name of this object (might be an object within an object)
-};
-
-struct json_context
-{
-	int levels;
-	PVARTEXT pvt;
-   PLIST object_types;
-};
 
 static CTEXTSTR tab_filler = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
 
@@ -334,11 +312,12 @@ void json_add_object_array( struct json_context *context, CTEXTSTR name, struct 
 
 //----------------------------------------------------------------------------------------------
 
-struct json_context_object *json_create_object( struct json_context *context, CTEXTSTR name )
+struct json_context_object *json_create_object( struct json_context *context )
 {
 	struct json_context_object *format = New( struct json_context_object );
-   format->name = StrDup( name ); // just used for debugging/diagnostics
+   format->name = NULL; // just used for debugging/diagnostics
 	format->members = NULL;
+   // keep a reference for cleanup
    AddLink( &context->object_types, format );
    return format;
 }
@@ -380,7 +359,7 @@ struct json_context_object *json_add_object_member( struct json_context *context
 }
 
 //----------------------------------------------------------------------------------------------
-void json_add_object_member_array_pointer( struct json_context *context
+json_add_object_member_array_pointer *json_add_object_member_array_pointer( struct json_context *context
 													  , struct json_context_object *format
 													  , CTEXTSTR name
 													  , int offset, int type
@@ -390,7 +369,7 @@ void json_add_object_member_array_pointer( struct json_context *context
 	member->name = StrDup( name );
 	member->offset = offset;
 	member->type = type;
-   member->count_offset = count_offset;
+	member->count_offset = count_offset;
 }
 
 //----------------------------------------------------------------------------------------------
@@ -455,12 +434,6 @@ CTEXTSTR json_build_message( struct json_context *context
 
 //----------------------------------------------------------------------------------------------
 
-void json_parse_message( struct json_context *context
-									, struct json_context_object *format
-                           , CTEXTSTR msg
-									, POINTER msg_output )
-{
-}
 
 #ifdef __cplusplus
 } } }
