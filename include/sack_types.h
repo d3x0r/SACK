@@ -1168,9 +1168,37 @@ SACK_NAMESPACE
 /* 32 bit HEX output printf format specifier. This would
    otherwise be defined in \<inttypes.h\>                */
 #define _32fX   WIDE("lX" )
-/* 64 bit signed decimal output printf format specifier. This
+/* 32 bit signed decimal output printf format specifier. This
    would otherwise be defined in \<inttypes.h\>               */
 #define _32fs   WIDE("ld" )
+
+/* 16 bit unsigned decimal output printf format specifier. This would
+   otherwise be defined in \<inttypes.h\>                */
+#define _16f   WIDE("u" )
+/* 16 bit hex output printf format specifier. This would
+   otherwise be defined in \<inttypes.h\>                */
+#define _16fx   WIDE("x" )
+/* 16 bit HEX output printf format specifier. This would
+   otherwise be defined in \<inttypes.h\>                */
+#define _16fX   WIDE("X" )
+/* 16 bit signed decimal output printf format specifier. This
+   would otherwise be defined in \<inttypes.h\>               */
+#define _16fs   WIDE("d" )
+
+/* 8 bit unsigned decimal output printf format specifier. This would
+   otherwise be defined in \<inttypes.h\>                */
+#define _8f   WIDE("u" )
+/* 8 bit hex output printf format specifier. This would
+   otherwise be defined in \<inttypes.h\>                */
+#define _8fx   WIDE("x" )
+/* 8 bit HEX output printf format specifier. This would
+   otherwise be defined in \<inttypes.h\>                */
+#define _8fX   WIDE("X" )
+/* 8 bit signed decimal output printf format specifier. This
+   would otherwise be defined in \<inttypes.h\>               */
+#define _8fs   WIDE("d" )
+
+
 /* format string for output PTRSZVAL as unsigned decimal.  Size changes by platform.  */
 #define PTRSZVALfs WIDE("lu" )
 /* format string for output PTRSZVAL as unsigned hex.  Size changes by platform.  */
