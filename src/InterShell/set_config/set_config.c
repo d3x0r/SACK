@@ -18,10 +18,7 @@ int main( int argc, TEXTCHAR **argv )
 
 	{
       TEXTSTR tmp = (TEXTSTR)StrDup( argv[1] );
-		TEXTSTR extend = (TEXTSTR)strrchr( tmp, '.' );
 		TEXTSTR filename = (TEXTSTR)pathrchr( tmp );
-      if( extend )
-			extend[0] = 0;
 		if( !filename )
          filename = tmp;
 
