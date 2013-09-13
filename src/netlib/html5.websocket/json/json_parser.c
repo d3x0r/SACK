@@ -39,12 +39,20 @@ struct array_element {
 struct json_parse_context {
    int context;
 	PLIST elements;
+};
 
+struct json_value_container {
+	int result_value;
+	int float_result;
+	double result_d;
+	S_64 result_n;
+	PVARTEXT pvt_collector;
 };
 
 
-
-static void FillDataToElement( struct json_context_object_element *element, int result_value, int float_result, double result_d, int result_n, PVARTEXT pvt_collector, POINTER msg_output )
+static void FillDataToElement( struct json_context_object_element *element
+                             , struct json_value_container *val
+									  , POINTER msg_output )
 {
    PTEXT string;
 	switch( element->type )
@@ -58,23 +66,30 @@ static void FillDataToElement( struct json_context_object_element *element, int 
 		}
 		else
 		{
-			switch( result_value )
+			switch( val->result_value )
 			{
 			case VALUE_NULL:
 				((CTEXTSTR*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = NULL;
             break;
 			case VALUE_STRING:
-            string = VarTextGet( pvt_collector );
+            string = VarTextGet( val->pvt_collector );
 				((CTEXTSTR*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = StrDup( GetText( string ) );
             LineRelease( string );
 				break;
 			default:
-            lprintf( "Expected a string, but parsed result was a %d", result_value );
+            lprintf( "Expected a string, but parsed result was a %d", val->result_value );
             break;
 			}
 		}
       break;
-	case JSON_Element_Integer:
+	case JSON_Element_Integer_64:
+	case JSON_Element_Integer_32:
+	case JSON_Element_Integer_16:
+	case JSON_Element_Integer_8:
+	case JSON_Element_Unsigned_Integer_64:
+	case JSON_Element_Unsigned_Integer_32:
+	case JSON_Element_Unsigned_Integer_16:
+	case JSON_Element_Unsigned_Integer_8:
 		if( element->count )
 		{
 		}
@@ -83,27 +98,63 @@ static void FillDataToElement( struct json_context_object_element *element, int 
 		}
 		else
 		{
-			switch( result_value )
+			switch( val->result_value )
 			{
 			case VALUE_TRUE:
-				((S_64*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = 1;
+				switch( element->type )
+				{
+				case JSON_Element_Integer_64:
+				case JSON_Element_Unsigned_Integer_64:
+					((S_8*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = 1;
+               break;
+				case JSON_Element_Integer_32:
+				case JSON_Element_Unsigned_Integer_32:
+					((S_16*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = 1;
+               break;
+				case JSON_Element_Integer_16:
+				case JSON_Element_Unsigned_Integer_16:
+					((S_32*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = 1;
+               break;
+				case JSON_Element_Integer_8:
+				case JSON_Element_Unsigned_Integer_8:
+					((S_64*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = 1;
+					break;
+				}
 				break;
 			case VALUE_FALSE:
-				((S_64*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = 0;
+				switch( element->type )
+				{
+				case JSON_Element_Integer_64:
+				case JSON_Element_Unsigned_Integer_64:
+					((S_8*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = 0;
+               break;
+				case JSON_Element_Integer_32:
+				case JSON_Element_Unsigned_Integer_32:
+					((S_16*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = 0;
+               break;
+				case JSON_Element_Integer_16:
+				case JSON_Element_Unsigned_Integer_16:
+					((S_32*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = 0;
+               break;
+				case JSON_Element_Integer_8:
+				case JSON_Element_Unsigned_Integer_8:
+					((S_64*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = 0;
+					break;
+				}
 				break;
 			case VALUE_NUMBER:
-				if( float_result )
+				if( val->float_result )
 				{
                lprintf( "warning received float, converting to int" );
-					((S_64*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = (S_64)result_d;
+					((S_64*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = (S_64)val->result_d;
 				}
 				else
 				{
-					((S_64*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = result_n;
+					((S_64*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = val->result_n;
 				}
 				break;
 			default:
-            lprintf( "Expected a string, but parsed result was a %d", result_value );
+            lprintf( "Expected a string, but parsed result was a %d", val->result_value );
             break;
 			}
 		}
@@ -119,15 +170,15 @@ static void FillDataToElement( struct json_context_object_element *element, int 
 		}
 		else
 		{
-			switch( result_value )
+			switch( val->result_value )
 			{
 			case VALUE_NUMBER:
-				if( float_result )
+				if( val->float_result )
 				{
 					if( element->type == JSON_Element_Float )
-						((float*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = (float)result_d;
+						((float*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = (float)val->result_d;
 					else
-						((double*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = result_d;
+						((double*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = val->result_d;
 
 				}
 				else
@@ -135,14 +186,14 @@ static void FillDataToElement( struct json_context_object_element *element, int 
                // this is probably common (0 for instance)
 					lprintf( "warning received int, converting to float" );
 					if( element->type == JSON_Element_Float )
-						((float*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = (float)result_n;
+						((float*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = (float)val->result_n;
 					else
-						((double*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = (double)result_n;
+						((double*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = (double)val->result_n;
 
 				}
 				break;
 			default:
-            lprintf( "Expected a float, but parsed result was a %d", result_value );
+            lprintf( "Expected a float, but parsed result was a %d", val->result_value );
             break;
 			}
 		}
@@ -163,7 +214,6 @@ LOGICAL json_parse_message( struct json_context *context
 	struct json_context_object_element *element;
    INDEX idx;
 	size_t n = 0; // character index;
-	PVARTEXT pvt_collector = VarTextCreate();
 	PTEXT name = NULL;
 	PTEXT value;
    int word;
@@ -182,11 +232,10 @@ LOGICAL json_parse_message( struct json_context *context
 	enum json_parse_state state;
 
    int parse_context = CONTEXT_UNKNOWN;
-	double result_d;
-	S_64 result_n;
-   int result_value = 0;
-	int float_result;
+   struct json_value_container val;
 
+	val.result_value = 0;
+   val.pvt_collector = VarTextCreate();
 
 //	static CTEXTSTR keyword[3] = { "false", "null", "true" };
 
@@ -285,7 +334,7 @@ LOGICAL json_parse_message( struct json_context *context
 				// what is next; a array?object?string?number?
 				if( name )
 					LineRelease( name );
-				name = VarTextGet( pvt_collector );
+				name = VarTextGet( val.pvt_collector );
 				//state |= JSON_PARSE_STATE_PICK_WHATS_NEXT;
 			}
 			else
@@ -296,7 +345,7 @@ LOGICAL json_parse_message( struct json_context *context
 			if( parse_context == CONTEXT_IN_OBJECT )
 			{
 				// first, add the last value
-				FillDataToElement( element, result_value, float_result, result_d, result_n, pvt_collector, msg_output );
+				FillDataToElement( element, &val, msg_output );
 
 				{
 					struct json_parse_context *old_context = (struct json_parse_context *)PopLink( &context_stack );
@@ -313,7 +362,7 @@ LOGICAL json_parse_message( struct json_context *context
 		case ']':
 			if( parse_context == CONTEXT_IN_ARRAY )
 			{
-				FillDataToElement( element, result_value, float_result, result_d, result_n, pvt_collector, msg_output );
+				FillDataToElement( element, &val, msg_output );
 				{
 					struct json_parse_context *old_context = (struct json_parse_context *)PopLink( &context_stack );
 					parse_context = old_context->context;
@@ -329,20 +378,11 @@ LOGICAL json_parse_message( struct json_context *context
 		case ',':
 			if( parse_context == CONTEXT_IN_ARRAY )
 			{
-				FillDataToElement( element, result_value, float_result, result_d, result_n, pvt_collector, msg_output );
-				switch( result_value )
-				{
-				case VALUE_STRING:
-					break;
-				}
+				FillDataToElement( element, &val, msg_output );
 			}
 			else if( parse_context == CONTEXT_IN_OBJECT )
 			{
-				FillDataToElement( element, result_value, float_result, result_d, result_n, pvt_collector, msg_output );
-				switch( result_value )
-				{
-
-				}
+				FillDataToElement( element, &val, msg_output );
 			}
 			else
 			{
@@ -367,14 +407,14 @@ LOGICAL json_parse_message( struct json_context *context
 						if( c == '\\' )
 						{
 							if( escape )
-								VarTextAddCharacter( pvt_collector, '\\' );
+								VarTextAddCharacter( val.pvt_collector, '\\' );
 							else
 								escape = 1;
 						}
 						else if( c == '"' )
 						{
                      if( escape )
-								VarTextAddCharacter( pvt_collector, '\"' );
+								VarTextAddCharacter( val.pvt_collector, '\"' );
 							else
                         break;
 						}
@@ -387,22 +427,22 @@ LOGICAL json_parse_message( struct json_context *context
 								case '/':
 								case '\\':
 								case '"':
-									VarTextAddCharacter( pvt_collector, c );
+									VarTextAddCharacter( val.pvt_collector, c );
 									break;
 								case 't':
-									VarTextAddCharacter( pvt_collector, '\t' );
+									VarTextAddCharacter( val.pvt_collector, '\t' );
                            break;
 								case 'b':
-									VarTextAddCharacter( pvt_collector, '\b' );
+									VarTextAddCharacter( val.pvt_collector, '\b' );
                            break;
 								case 'n':
-									VarTextAddCharacter( pvt_collector, '\n' );
+									VarTextAddCharacter( val.pvt_collector, '\n' );
                            break;
 								case 'r':
-									VarTextAddCharacter( pvt_collector, '\r' );
+									VarTextAddCharacter( val.pvt_collector, '\r' );
                            break;
 								case 'f':
-									VarTextAddCharacter( pvt_collector, '\f' );
+									VarTextAddCharacter( val.pvt_collector, '\f' );
 									break;
 								case 'u':
 									{
@@ -426,7 +466,7 @@ LOGICAL json_parse_message( struct json_context *context
 														 , msg + n + 1
 														 );// fault
 										}
-                              VarTextAddCharacter( pvt_collector, (TEXTCHAR)hex_char );
+                              VarTextAddCharacter( val.pvt_collector, (TEXTCHAR)hex_char );
 									}
 									break;
 								default:
@@ -441,10 +481,10 @@ LOGICAL json_parse_message( struct json_context *context
                         escape = 0;
 							}
                      else
-								VarTextAddCharacter( pvt_collector, c );
+								VarTextAddCharacter( val.pvt_collector, c );
 						}
 					}
-               result_value = VALUE_STRING;
+               val.result_value = VALUE_STRING;
 					break;
 				}
 
@@ -484,12 +524,12 @@ LOGICAL json_parse_message( struct json_context *context
 			case 'e':
 				if( word == 3 )
 				{
-               result_value = VALUE_TRUE;
+               val.result_value = VALUE_TRUE;
 					word = 0;
 				}
 				else if( word == 14 )
 				{
-               result_value = VALUE_FALSE;
+               val.result_value = VALUE_FALSE;
 					word = 0;
 				}
 				else
@@ -509,7 +549,7 @@ LOGICAL json_parse_message( struct json_context *context
 				else if( word == 23 )
 				{
 					word = 0;
-               result_value = VALUE_NULL;
+               val.result_value = VALUE_NULL;
 				}
 				else if( word == 12 )
 					word = 13;
@@ -548,8 +588,8 @@ LOGICAL json_parse_message( struct json_context *context
 				{
 					// always reset this here....
                // keep it set to determine what sort of value is ready.
-					float_result = 0;
-					VarTextAddCharacter( pvt_collector, c );
+					val.float_result = 0;
+					VarTextAddCharacter( val.pvt_collector, c );
 					while( c = msg[++n] )
 					{
 						// leading zeros should be forbidden.
@@ -559,12 +599,12 @@ LOGICAL json_parse_message( struct json_context *context
 							|| ( c == '+' )
 						  )
 						{
-							VarTextAddCharacter( pvt_collector, c );
+							VarTextAddCharacter( val.pvt_collector, c );
 						}
 						else if( ( c =='e' ) || ( c == 'E' ) || ( c == '.' ) )
 						{
-							float_result = 1;
-							VarTextAddCharacter( pvt_collector, c );
+							val.float_result = 1;
+							VarTextAddCharacter( val.pvt_collector, c );
 						}
 						else
 						{
@@ -574,18 +614,18 @@ LOGICAL json_parse_message( struct json_context *context
 						}
 					}
 					{
-						PTEXT number = VarTextGet( pvt_collector );
-						if( float_result )
+						PTEXT number = VarTextGet( val.pvt_collector );
+						if( val.float_result )
 						{
-							result_d = FloatCreateFromSeg( number );
+							val.result_d = FloatCreateFromSeg( number );
 						}
 						else
 						{
-							result_n = IntCreateFromSeg( number );
+							val.result_n = IntCreateFromSeg( number );
 						}
                   LineRelease( number );
 					}
-					result_value = VALUE_NUMBER;
+					val.result_value = VALUE_NUMBER;
 				}
 				else if( ( c >= ' ' )
 						  || ( c == '\t' )

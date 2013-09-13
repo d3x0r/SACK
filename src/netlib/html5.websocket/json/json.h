@@ -17,8 +17,9 @@ struct json_context_object_element
 
 struct json_context_object
 {
-   PLIST members;   // list of members of this object
-   CTEXTSTR name;   // name of this object (might be an object within an object)
+   struct json_context *context;
+	PLIST members;   // list of members of this object
+   int is_array; // if set is an array format, otherwise is an object format.
 };
 
 struct json_context
