@@ -6,6 +6,11 @@
 #include "json.h"
 
 
+#ifdef __cplusplus
+SACK_NAMESPACE namespace network { namespace json {
+#endif
+
+
 enum json_parse_state{
 	JSON_PARSE_STATE_PICK_WHATS_NEXT       = 0x01
       , JSON_PARSE_STATE_GET_NUMBER       = 0x02
@@ -38,6 +43,116 @@ struct json_parse_context {
 };
 
 
+
+static void FillDataToElement( struct json_context_object_element *element, int result_value, int float_result, double result_d, int result_n, PVARTEXT pvt_collector, POINTER msg_output )
+{
+   PTEXT string;
+	switch( element->type )
+	{
+	case JSON_Element_String:
+		if( element->count )
+		{
+		}
+		else if( element->count_offset >= 0 )
+		{
+		}
+		else
+		{
+			switch( result_value )
+			{
+			case VALUE_NULL:
+				((CTEXTSTR*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = NULL;
+            break;
+			case VALUE_STRING:
+            string = VarTextGet( pvt_collector );
+				((CTEXTSTR*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = StrDup( GetText( string ) );
+            LineRelease( string );
+				break;
+			default:
+            lprintf( "Expected a string, but parsed result was a %d", result_value );
+            break;
+			}
+		}
+      break;
+	case JSON_Element_Integer:
+		if( element->count )
+		{
+		}
+		else if( element->count_offset >= 0 )
+		{
+		}
+		else
+		{
+			switch( result_value )
+			{
+			case VALUE_TRUE:
+				((S_64*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = 1;
+				break;
+			case VALUE_FALSE:
+				((S_64*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = 0;
+				break;
+			case VALUE_NUMBER:
+				if( float_result )
+				{
+               lprintf( "warning received float, converting to int" );
+					((S_64*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = (S_64)result_d;
+				}
+				else
+				{
+					((S_64*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = result_n;
+				}
+				break;
+			default:
+            lprintf( "Expected a string, but parsed result was a %d", result_value );
+            break;
+			}
+		}
+		break;
+
+	case JSON_Element_Float:
+	case JSON_Element_Double:
+		if( element->count )
+		{
+		}
+		else if( element->count_offset >= 0 )
+		{
+		}
+		else
+		{
+			switch( result_value )
+			{
+			case VALUE_NUMBER:
+				if( float_result )
+				{
+					if( element->type == JSON_Element_Float )
+						((float*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = (float)result_d;
+					else
+						((double*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = result_d;
+
+				}
+				else
+				{
+               // this is probably common (0 for instance)
+					lprintf( "warning received int, converting to float" );
+					if( element->type == JSON_Element_Float )
+						((float*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = (float)result_n;
+					else
+						((double*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = (double)result_n;
+
+				}
+				break;
+			default:
+            lprintf( "Expected a float, but parsed result was a %d", result_value );
+            break;
+			}
+		}
+
+      break;
+	}
+
+
+}
+
 LOGICAL json_parse_message( struct json_context *context
 									, struct json_context_object *format
                            , CTEXTSTR msg
@@ -48,7 +163,7 @@ LOGICAL json_parse_message( struct json_context *context
 	struct json_context_object_element *element;
    INDEX idx;
 	size_t n = 0; // character index;
-	PVARTEXT pvt_collector = VarTextCreate();;
+	PVARTEXT pvt_collector = VarTextCreate();
 	PTEXT name = NULL;
 	PTEXT value;
    int word;
@@ -66,7 +181,7 @@ LOGICAL json_parse_message( struct json_context *context
    LOGICAL first_token = TRUE;
 	enum json_parse_state state;
 
-   int context = CONTEXT_UNKNOWN;
+   int parse_context = CONTEXT_UNKNOWN;
 	double result_d;
 	S_64 result_n;
    int result_value = 0;
@@ -82,16 +197,16 @@ LOGICAL json_parse_message( struct json_context *context
 		case '{':
 			{
 				struct json_parse_context *old_context = New( struct json_parse_context );
-				old_context->context = context;
-				old_context->elments = elements;
+				old_context->context = parse_context;
+				old_context->elements = elements;
 				PushLink( &context_stack, old_context );
 
-				context = CONTEXT_IN_OBJECT;
+				parse_context = CONTEXT_IN_OBJECT;
 				if( first_token )
 				{
 					// begin an object.
 					// content is
-					elements = format->elements;
+					elements = format->members;
 					PushLink( &element_lists, elements );
 					first_token = 0;
 				}
@@ -101,7 +216,7 @@ LOGICAL json_parse_message( struct json_context *context
 					// begin a sub object, we should have just had a name for it
 					// since this will be the value of that name.
 					// this will eet 'element' to NULL (fall out of loop) or the current one to store values into
-					LIST_FORALL( elements, idx, struct json_context_object_element, element )
+					LIST_FORALL( elements, idx, struct json_context_object_element *, element )
 					{
 						if( StrCaseCmp( element->name, GetText( name ) ) == 0 )
 						{
@@ -127,14 +242,14 @@ LOGICAL json_parse_message( struct json_context *context
 		case '[':
 			{
 				struct json_parse_context *old_context = New( struct json_parse_context );
-				old_context->context = context;
-				old_context->elments = elements;
+				old_context->context = parse_context;
+				old_context->elements = elements;
 				PushLink( &context_stack, old_context );
 
-            context = CONTEXT_IN_ARRAY;
+            parse_context = CONTEXT_IN_ARRAY;
 				if( first_token )
 				{
-					elements = format->elements;
+					elements = format->members;
 					PushLink( &element_lists, elements );
 					first_token = 0;
 				}
@@ -146,7 +261,7 @@ LOGICAL json_parse_message( struct json_context *context
 					// begin a sub object, we should have just had a name for it
 					// since this will be the value of that name.
 					// this will eet 'element' to NULL (fall out of loop) or the current one to store values into
-					LIST_FORALL( elements, idx, struct json_context_object_element, element )
+					LIST_FORALL( elements, idx, struct json_context_object_element *, element )
 					{
 						if( StrCaseCmp( element->name, GetText( name ) ) == 0 )
 						{
@@ -165,136 +280,30 @@ LOGICAL json_parse_message( struct json_context *context
 			break;
 
 		case ':':
-			if( context == CONTEXT_IN_OBJECT )
+			if( parse_context == CONTEXT_IN_OBJECT )
 			{
 				// what is next; a array?object?string?number?
 				if( name )
 					LineRelease( name );
 				name = VarTextGet( pvt_collector );
-				state |= JSON_PARSE_STATE_PICK_WHATS_NEXT;
+				//state |= JSON_PARSE_STATE_PICK_WHATS_NEXT;
 			}
 			else
 			{
 			}
 			break;
 		case '}':
-			if( context == CONTEXT_IN_OBJECT )
+			if( parse_context == CONTEXT_IN_OBJECT )
 			{
 				// first, add the last value
-
-				switch( element->type )
-				{
-				case JSON_Element_String:
-					if( element->count )
-					{
-					}
-					else if( element->count_offset >= 0 )
-					{
-					}
-					else
-					{
-						switch( result_value )
-						{
-						case VALUE_NULL:
-							(CTEXTSTR*)( ((PTRSZVAL)msg_output) + element->offset )[0] = NULL;
-                     break;
-						case VALUE_STRING:
-							if( name )
-                        LineRelease( name );
-                     name = VarTextGet( pvt_collector );
-							(CTEXTSTR*)( ((PTRSZVAL)msg_output) + element->offset )[0] = StrDup( GetText( name ) );
-							break;
-						default:
-                     lprintf( "Expected a string, but parsed result was a %d", result_value );
-                     break;
-						}
-					}
-               break;
-				case JSON_Element_Integer:
-					if( element->count )
-					{
-					}
-					else if( element->count_offset >= 0 )
-					{
-					}
-					else
-					{
-						switch( result_value )
-						{
-						case VALUE_TRUE:
-							(S_64*)( ((PTRSZVAL)msg_output) + element->offset )[0] = 1;
-							break;
-						case VALUE_FALSE:
-							(S_64*)( ((PTRSZVAL)msg_output) + element->offset )[0] = 0;
-							break;
-						case VALUE_NUMBER:
-							if( float_result )
-							{
-                        lprintf( "warning received float, converting to int" );
-								(S_64*)( ((PTRSZVAL)msg_output) + element->offset )[0] = (S_64)result_d;
-							}
-							else
-							{
-								(S_64*)( ((PTRSZVAL)msg_output) + element->offset )[0] = result_n;
-							}
-							break;
-						default:
-                     lprintf( "Expected a string, but parsed result was a %d", result_value );
-                     break;
-						}
-					}
-					break;
-
-				case JSON_Element_Float:
-				case JSON_Element_Double:
-					if( element->count )
-					{
-					}
-					else if( element->count_offset >= 0 )
-					{
-					}
-					else
-					{
-						switch( result_value )
-						{
-						case VALUE_NUMBER:
-							if( float_result )
-							{
-								if( element->type == JSON_Element_Float )
-									(float*)( ((PTRSZVAL)msg_output) + element->offset )[0] = (float)result_f;
-								else
-									(double*)( ((PTRSZVAL)msg_output) + element->offset )[0] = result_n;
-
-							}
-							else
-							{
-                        // this is probably common (0 for instance)
-								lprintf( "warning received int, converting to float" );
-								if( element->type == JSON_Element_Float )
-									(float*)( ((PTRSZVAL)msg_output) + element->offset )[0] = (float)result_n;
-								else
-									(double*)( ((PTRSZVAL)msg_output) + element->offset )[0] = (double)result_n;
-
-							}
-							break;
-						default:
-                     lprintf( "Expected a float, but parsed result was a %d", result_value );
-                     break;
-						}
-					}
-
-               break;
-				}
-
+				FillDataToElement( element, result_value, float_result, result_d, result_n, pvt_collector, msg_output );
 
 				{
 					struct json_parse_context *old_context = (struct json_parse_context *)PopLink( &context_stack );
-					context = old_context->context;
+					parse_context = old_context->context;
 					elements = old_context->elements;
 					Release( old_context );
 				}
-
-
 
 			}
 			else
@@ -302,29 +311,34 @@ LOGICAL json_parse_message( struct json_context *context
 			}
 			break;
 		case ']':
-			if( context == CONTEXT_IN_ARRAY )
+			if( parse_context == CONTEXT_IN_ARRAY )
 			{
-				struct json_parse_context *old_context = (struct json_parse_context *)PopLink( &context_stack );
-				context = old_context->context;
-				elements = old_context->elements;
-            Release( old_context );
+				FillDataToElement( element, result_value, float_result, result_d, result_n, pvt_collector, msg_output );
+				{
+					struct json_parse_context *old_context = (struct json_parse_context *)PopLink( &context_stack );
+					parse_context = old_context->context;
+					elements = old_context->elements;
+					Release( old_context );
+				}
 			}
 			else
 			{
-				lprintf( "fault parsing '%c' unexpected %d", c, n );// fault
+				lprintf( "bad context %d; fault parsing '%c' unexpected %d", context, c, n );// fault
 			}
 			break;
 		case ',':
-			if( context == CONTEXT_IN_ARRAY )
+			if( parse_context == CONTEXT_IN_ARRAY )
 			{
+				FillDataToElement( element, result_value, float_result, result_d, result_n, pvt_collector, msg_output );
 				switch( result_value )
 				{
 				case VALUE_STRING:
 					break;
 				}
 			}
-			else if( context == CONTEXT_IN_OBJECT )
+			else if( parse_context == CONTEXT_IN_OBJECT )
 			{
+				FillDataToElement( element, result_value, float_result, result_d, result_n, pvt_collector, msg_output );
 				switch( result_value )
 				{
 
@@ -332,20 +346,18 @@ LOGICAL json_parse_message( struct json_context *context
 			}
 			else
 			{
-				lprintf( "fault parsing '%c' unexpected %d", c, n );// fault
+				lprintf( "bad context; fault parsing '%c' unexpected %d", c, n );// fault
 			}
 			break;
 
 		default:
 			if( first_token )
 			{
-				lprintf( "fault parsing '%c' unexpected %d", c, n );// fault
+				lprintf( "first token; fault parsing '%c' unexpected %d", c, n );// fault
             return FALSE;
 			}
 			switch( c )
 			{
-
-
 			case '"':
 				{
 					// collect a string
@@ -463,6 +475,8 @@ LOGICAL json_parse_message( struct json_context *context
 			case 'u':
 				if( word == 2 )
                word = 3;
+				else if( word == 21 )
+					word = 22;
 				else
                lprintf( "fault parsing '%c' unexpected %d", c, n );// fault
 				n++;
@@ -487,13 +501,6 @@ LOGICAL json_parse_message( struct json_context *context
 					word = 21;
 				else
 					lprintf( "fault parsing '%c' unexpected %d", c, n );// fault
-				n++;
-            break;
-			case 'u':
-				if( word == 21 )
-					word = 22;
-				else
-               lprintf( "fault parsing '%c' unexpected %d", c, n );// fault
 				n++;
             break;
 			case 'l':
@@ -606,6 +613,11 @@ LOGICAL json_parse_message( struct json_context *context
 		}
 	}
 
-
-
 }
+
+#ifdef __cplusplus
+} } SACK_NAMESPACE_END
+#endif
+
+
+

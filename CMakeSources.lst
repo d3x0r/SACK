@@ -262,6 +262,7 @@ endif( WIN32 )
 
 set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS} 
      ${SOURCES_ROOT}src/netlib/html5.websocket/client/local.h
+     ${SOURCES_ROOT}src/netlib/html5.websocket/json/json.h
      ${SOURCES_ROOT}src/netlib/html5.websocket/html5.websocket.common.h
      )
 
@@ -271,6 +272,7 @@ SET( HTML5_SOURCES
         	${SOURCES_ROOT}src/netlib/html5.websocket/server/html5.websocket.c
 		${SOURCES_ROOT}src/netlib/html5.websocket/client/html5.websocket.client.c
 		${SOURCES_ROOT}src/netlib/html5.websocket/json/json_emitter.c
+		${SOURCES_ROOT}src/netlib/html5.websocket/json/json_parser.c
 	)
 SET_SOURCE_FILES_PROPERTIES( ${HTML5_SOURCES} PROPERTIES 
 		FOLDER "Source Files\\HTML5 Support" )
