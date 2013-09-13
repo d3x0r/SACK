@@ -4838,11 +4838,8 @@ OnCreateMenuButton( WIDE( "InterShell/Debug Break" ) )( PMENU_BUTTON button )
 	return (PTRSZVAL)button;
 }
 
-//------------------------------------------------------
-OnKeyPressEvent( WIDE( "Quit Application" ) )( PTRSZVAL psv )
-//void CPROC QuitPOS( PTRSZVAL psv, PKEY_BUTTON key )
+static void ExitKeypress( void )
 {
-	Banner2NoWaitAlpha( WIDE("Exiting...") );
 #ifdef __cplusplus_cli
 	//Application::Exit();
 #endif
@@ -4857,6 +4854,13 @@ OnKeyPressEvent( WIDE( "Quit Application" ) )( PTRSZVAL psv )
 		// if it's in a macro, don't continue rest of macro.
 		SetMacroResult( FALSE );
 	}
+}
+
+//------------------------------------------------------
+OnKeyPressEvent( WIDE( "Quit Application" ) )( PTRSZVAL psv )
+{
+	Banner2NoWaitAlpha( WIDE("Exiting...") );
+   ExitKeypress();
 }
 OnCreateMenuButton( WIDE( "Quit Application" ) )( PMENU_BUTTON button )
 {
@@ -5752,6 +5756,60 @@ OnKeyPressEvent( WIDE( "InterShell/Debug Memory" ) )( PTRSZVAL psv )
 }
 
 OnCreateMenuButton( WIDE( "InterShell/Debug Memory" ) )( PMENU_BUTTON button )
+{
+	return 1;
+}
+
+static volatile int dirty_variable_task_done;
+
+static void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task )
+{
+	dirty_variable_task_done = 1;
+}
+
+OnKeyPressEvent( WIDE( "InterShell/Reset SQL Configuration" ) )( PTRSZVAL psv )
+{
+	CTEXTSTR cmd[256];
+   CTEXTSTR args[4];
+	TEXTCHAR *tmp_path = ExpandPath( g.config_filename );
+	args[0] = "@/set_config";
+	args[1] = tmp_path;
+	args[2] = NULL;
+   dirty_variable_task_done = 0;
+	if( LaunchProgramEx( args[0], NULL, args, TaskEnded, 0 ) )
+	{
+      // while not required, would be nice to know when the config is ready to read....
+		while( !dirty_variable_task_done )
+			Relinquish();
+
+		Banner2NoWaitAlpha( WIDE("Restarting...") );
+		snprintf( cmd, 256, "@/%s.restart.exe", GetProgramName() );
+		args[0] = cmd;
+		args[1] = NULL;
+		LaunchProgramEx( args[0], NULL, args, TaskEnded, 0 );
+	}
+   else
+		Banner2Message( WIDE("Failed...") );
+}
+
+OnCreateMenuButton( WIDE( "InterShell/Reset SQL Configuration" ) )( PMENU_BUTTON button )
+{
+	return 1;
+}
+
+OnKeyPressEvent( WIDE( "InterShell/Restart Application" ) )( PTRSZVAL psv )
+{
+	CTEXTSTR cmd[256];
+   CTEXTSTR args[4];
+	Banner2NoWaitAlpha( WIDE("Restarting...") );
+	snprintf( cmd, 256, "@/%s.restart.exe", GetProgramName() );
+	args[0] = cmd;
+	args[1] = NULL;
+	if( !LaunchProgramEx( args[0], NULL, args, TaskEnded, 0 ) )
+		Banner2Message( WIDE("Failed...") );
+}
+
+OnCreateMenuButton( WIDE( "InterShell/Restart Application" ) )( PMENU_BUTTON button )
 {
 	return 1;
 }
