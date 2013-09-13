@@ -50,12 +50,31 @@ struct worldscape_client
 	_32 tracker_count;
 	PCLIENT_WORLD_TRACKER world_trackers;
 	SERVICE_ROUTE pid;
+   PCLIENT pc; // websocket that connected here
 };
+
+typedef struct json_context *PJC;
+typedef struct json_context_object *PJCO;
+typedef struct world_server_mesasge {
+	CTEXTSTR opcode;
+   CTEXTSTR data;
+} WorldServerMessage, *PWorldServerMessage;
+
+typedef struct world_server_mesasge {
+	CTEXTSTR opcode;
+	int nData;
+   POINTER pData;
+} WorldServerMessageSimpleArray, *PWorldServerMessageSimpleArray;
+
 
 static struct worldscape_server_local
 {
 	_32 SrvrMsgBase;
 	PLIST clients; // list of PWORLDSCAPE_CLIENTs
+   PCLASSROOT server_opcodes;
+	PJC pjc_world_server;
+	PJCO pjco_world_server_message; // for WorldServerMessage
+   PJCO pjco_world_server_message_list_world_reply; // maps to a WorldServerMessageSimpleArray
 }l;
 //#if 0
 
@@ -1171,9 +1190,111 @@ SERVER_FUNCTION functions[] = {
 										, ServerFunctionEntry( HandleLineChanged ) //SendLineChanged )( INDEX iWorld );
 };
 
+static void WorldServerListWorlds( PWORLDSCAPE_CLIENT client, PWorldServerMessage message )
+{
+	WorldServerMessageReplyWorlds reply;
+	reply.opcode = "List World Reply";
+   reply.world_names =
+   LIST_FORALL(
+}
+
+
+
+
+PTRSZVAL flatland_server_web_socket_opened( PCLIENT pc, PTRSZVAL psv )
+{
+	PWORLDSCAPE_CLIENT client = New( WORLDSCAPE_CLIENT );
+	client->tracker_count = 0;
+	client->world_trackers = NULL;
+	client->worlds.num = 0;
+   client->pc = pc;
+	AddLink( &l.clients, client );
+	return (PTRSZVAL)client;
+}
+
+void flatland_server_web_socket_closed( PCLIENT pc, PTRSZVAL psv )
+{
+	PWORLDSCAPE_CLIENT client = (PWORLDSCAPE_CLIENT)psv;
+
+	DeleteLink( &l.clients, client );
+   Release( client );
+}
+
+void flatland_server_web_socket_error( PCLIENT pc, PTRSZVAL psv, int error )
+{
+	//PWORLDSCAPE_CLIENT client = (PWORLDSCAPE_CLIENT)psv;
+   // ya...I care?
+}
+
+#define ServerFunctionResult void
+#define ServerFunctionArgs (PWORLDSCAPE_CLIENT,PWorldServerMessage)
+void flatland_server_web_socket_event( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
+{
+	PWORLDSCAPE_CLIENT client = (PWORLDSCAPE_CLIENT)psv;
+   WorldServerMessage message;
+	json_parse_message( l.pjc_world_server, l.pjco_world_server_message, buffer, &message );
+
+	{
+      ServerFunctionResult (*f) ServerFunctionArgs;
+		f = GetRegisteredProcedure( l.server_opcodes, ServerFunctionResult, message->opcode, ServerFunctionArgs );
+		if( f )
+         f( client, &message );
+	}
+
+   json_dispose_message( l.pjc_world_server, l.pjco_world_server_message, &message );
+}
+
+void DefineJSONInterface()
+{
+	PJCO pjco_root;
+   PJCO pjco; // current elemnt in the root; may be a object result
+	l.pjc_world_server = json_create_context();
+
+	pjco_root
+		= l.pjco_world_server_message = json_create_object( pjc ); // root element name won't get emitted.
+	pjco = json_create_object_member( pjc, pjco_root,
+												"opcode"
+											  , offset( WorldServerMessage, opcode ), JSON_Element_String );
+	pjco = json_create_object_member( pjc, pjco_root
+											  , "data"
+											  , offset( WorldServerMessage, data ), JSON_Element_String );
+
+	pjco_root
+		= l.pjco_world_server_message_list_world_reply = json_create_object( pjc ); // root element name won't get emitted.
+   pjco = json_create_object_member( pjc, pjco_root,
+												"opcode"
+											  , offset( WorldServerMessage, opcode ), JSON_Element_String );
+	pjco = json_create_object_member_array_pointer( pjc, pjco_root
+																 , "data"
+																 , offset( WorldServerMessageSimpleArray, pData )
+																 , JSON_Element_String
+                                                 , offset( WorldServerMessageSimpleArray, nData );
+																 );
+}
+
 // enable magic linking.
 PRELOAD( RegisterFlatlandService )
 {
+	PCLIENT pc;
+	NetworkWait( 0, 5000, 16 );
+   // should end up with multiple sockets for ipv4 and 6; so... ya, no address on server is good.
+	pc = WebSocketCreate( "ws:///org/d3x0r/sack/games/flatland/world"
+										 , flatland_server_web_socket_opened
+										 , flatland_server_web_socket_event
+										 , flatland_server_web_socket_closed
+										 , flatland_server_web_socket_error
+										 , 0
+							  );
+   DefineJSONInterface();
+	l.server_opcodes = GetClassRoot( "org/d3x0r/sack/games/flatland/world/server" );
+
+	RegisterFunction( "org/d3x0r/sack/games/flatland/world"
+						 , "server"
+						 , ServerFunctionResult
+						 , "List Worlds"
+						 , ServerFunctionArgs );
+
+
 	//PWSTR result;
 	//PeerCreatePeerName( NULL, "test.singular", &result );
 	if( !( l.SrvrMsgBase = RegisterService( WORLD_SCAPE_INTERFACE_NAME
