@@ -334,29 +334,29 @@ static int RenderItemKnob( PSI_CONTROL pc, PLISTITEM pli )
 	y = pli->top + ( pli->height / 2 );
 
    // this draws the box with a + in it...
-	do_hline( pc->Surface, y - 5, x-5, x+5, basecolor(pc)[SHADE] );
-	do_hline( pc->Surface, y + 5, x-5, x+5, basecolor(pc)[SHADE] );
-	do_vline( pc->Surface, x - 5, y-5, y+5, basecolor(pc)[SHADE] );
-	do_vline( pc->Surface, x + 5, y-5, y+5, basecolor(pc)[SHADE] );
+	do_hlineAlpha( pc->Surface, y - 5, x-5, x+5, basecolor(pc)[SHADE] );
+	do_hlineAlpha( pc->Surface, y + 5, x-5, x+5, basecolor(pc)[SHADE] );
+	do_vlineAlpha( pc->Surface, x - 5, y-5, y+5, basecolor(pc)[SHADE] );
+	do_vlineAlpha( pc->Surface, x + 5, y-5, y+5, basecolor(pc)[SHADE] );
 	if( !pli->flags.bOpen )
 	{
-		do_hline( pc->Surface, y, x-3, x+3, basecolor(pc)[SHADOW] );
-		do_vline( pc->Surface, x, y-3, y+3, basecolor(pc)[SHADOW] );
+		do_hlineAlpha( pc->Surface, y, x-3, x+3, basecolor(pc)[SHADOW] );
+		do_vlineAlpha( pc->Surface, x, y-3, y+3, basecolor(pc)[SHADOW] );
 	}
 	else
 	{
-		do_hline( pc->Surface, y, x-3, x+3, basecolor(pc)[SHADOW] );
+		do_hlineAlpha( pc->Surface, y, x-3, x+3, basecolor(pc)[SHADOW] );
 	}
 
    // draw line leading in (top) and out (right)
-   do_vline( pc->Surface, x, y - 5, pli->top, basecolor(pc)[SHADE] );
-	do_hline( pc->Surface, y, x + 5, x + (BRANCH_WIDTH/2)-1, basecolor(pc)[SHADE] );
+   do_vlineAlpha( pc->Surface, x, y - 5, pli->top, basecolor(pc)[SHADE] );
+	do_hlineAlpha( pc->Surface, y, x + 5, x + (BRANCH_WIDTH/2)-1, basecolor(pc)[SHADE] );
 
    // optionally draw line leading down (bottom)
 	if( pliNextUpLevel && ( pliNextUpLevel->nLevel == pli->nLevel ) )
 	{
       // next item is on this level, extend branch line down.
-      do_vline( pc->Surface, y, y + 5, pli->top + pli->height - 1, basecolor(pc)[SHADE] );
+      do_vlineAlpha( pc->Surface, y, y + 5, pli->top + pli->height - 1, basecolor(pc)[SHADE] );
 	}
    return x + BRANCH_WIDTH/2;
 }
@@ -452,7 +452,7 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 		}
 		if( pli->flags.bSelected )
 		{
-			BlatColor( pSurface, x-2, y, w-4, h, basecolor(pc)[SELECT_BACK] );
+			BlatColorAlpha( pSurface, x-2, y, w-4, h, basecolor(pc)[SELECT_BACK] );
 		}
 		while( start )
 		{
