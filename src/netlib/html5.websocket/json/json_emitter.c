@@ -4,7 +4,6 @@
 #include <json_emitter.h>
 
 #include "json.h"
-PTRSZVAL json_add_object( struct json_context *context, CTEXTSTR name, struct json_context_object *format, POINTER object );
 
 /***********
  <Alternative, instead of object format thing, provide a registration mechanism to specify
@@ -56,6 +55,7 @@ PTRSZVAL json_add_object( struct json_context *context, CTEXTSTR name, struct js
 SACK_NAMESPACE namespace network { namespace json {
 #endif
 
+PTRSZVAL json_add_object( struct json_context *context, CTEXTSTR name, struct json_context_object *format, POINTER object );
 
 static CTEXTSTR tab_filler = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
 
@@ -339,7 +339,7 @@ struct json_context_object *json_add_object_member_array( struct json_context *c
 	{
 	case JSON_Element_Object:
 	case JSON_Element_ObjectPointer:
-		member->object = json_create_object( context, name );
+		member->object = json_create_object( context );
       break;
 	}
    AddLink( &format->members, member );
@@ -359,7 +359,7 @@ struct json_context_object *json_add_object_member( struct json_context *context
 }
 
 //----------------------------------------------------------------------------------------------
-json_add_object_member_array_pointer *json_add_object_member_array_pointer( struct json_context *context
+void json_add_object_member_array_pointer( struct json_context *context
 													  , struct json_context_object *format
 													  , CTEXTSTR name
 													  , int offset, int type

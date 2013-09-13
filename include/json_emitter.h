@@ -36,7 +36,7 @@ struct json_context;
 JSON_EMITTER_PROC( struct json_context *, json_create_context )( void );
 
 // Begin the definition of a json formatting object.
-JSON_EMITTER_PROC( struct json_context_object *, json_create_object )( struct json_context *context, CTEXTSTR name );
+JSON_EMITTER_PROC( struct json_context_object *, json_create_object )( struct json_context *context );
 
 // add a member element to a json object
 // if the member element is a object type, then a new context_object results, to which members may be added.
@@ -56,7 +56,7 @@ JSON_EMITTER_PROC( void, json_add_object_member_array_pointer )( struct json_con
 																					, struct json_context_object *format
 																					, CTEXTSTR name
 																					, int offset, int type
-																					, int count_offset )
+																					, int count_offset );
 
 // take a object format and a pointer to data and return a json message string
 JSON_EMITTER_PROC( CTEXTSTR, json_build_message )( struct json_context *context
@@ -64,7 +64,7 @@ JSON_EMITTER_PROC( CTEXTSTR, json_build_message )( struct json_context *context
 																 , POINTER msg );
 
 // take a json string and a format and fill in a structure from the text.
-JSON_EMITTER_PROC( void, json_parse_message )( struct json_context *context
+JSON_EMITTER_PROC( LOGICAL, json_parse_message )( struct json_context *context
 															, struct json_context_object *format
                                              , CTEXTSTR msg
 															, POINTER msg_data_out
