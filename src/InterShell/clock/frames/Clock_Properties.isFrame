@@ -7,8 +7,8 @@
 <control IDName="InterShell/Color Well/CLR_BACKGROUND" caption="" position="153,54" size="32,32" type="Color Well"></control>
 <control caption="Background" position="12,62" size="126,21" type="TextControl"></control>
 <control caption="Background Image" position="16,99" size="136,21" type="TextControl"></control>
-<control IDName="InterShell/clock.isp/EditControl/EDIT_BACKGROUND_IMAGE" caption="" position="152,98" size="155,21" type="EditControl"></control>
-<control IDName="InterShell/clock.isp/CheckButton/CHECKBOX_ANALOG" caption="Analog" position="13,136" size="73,21" type="CheckButton"></control>
-<control IDName="InterShell/clock.isp/EditControl/EDIT_ANALOG_IMAGE" caption="images/Clock.png" position="92,130" size="211,23" type="EditControl"></control>
-<control IDName="InterShell/clock.isp/CheckButton/CHECKBOX_DATE" caption="Date" position="40,252" size="73,21" type="CheckButton"></control>
-<control IDName="InterShell/clock.isp/CheckButton/CHECKBOX_DAY_OF_WEEK" caption="day of week" position="42,309" size="178,21" type="CheckButton"></control></control>
+<control IDName="InterShell/clock/EditControl/EDIT_BACKGROUND_IMAGE" caption="" position="152,98" size="155,21" type="EditControl"></control>
+<control IDName="InterShell/clock/CheckButton/CHECKBOX_ANALOG" caption="Analog" position="13,136" size="73,21" type="CheckButton"></control>
+<control IDName="InterShell/clock/EditControl/EDIT_ANALOG_IMAGE" caption="images/Clock.png" position="92,130" size="211,23" type="EditControl"></control>
+<control IDName="InterShell/clock/CheckButton/CHECKBOX_DATE" caption="Date" position="40,252" size="73,21" type="CheckButton"></control>
+<control IDName="InterShell/clock/CheckButton/CHECKBOX_DAY_OF_WEEK" caption="day of week" position="42,309" size="178,21" type="CheckButton"></control></control>
