@@ -12,21 +12,21 @@ struct json_context_object_element
 	CTEXTSTR name; // name of this element in the object
 	int count; // at offset, this number of these is there; (array)
 	int count_offset; // at count_offset, is the number of elements that the pointer at this offset
-   struct json_context_object *object;
+	struct json_context_object *object;
 };
 
 struct json_context_object
 {
-   struct json_context *context;
+	struct json_context *context;
 	PLIST members;   // list of members of this object
-   int is_array; // if set is an array format, otherwise is an object format.
+	int is_array; // if set is an array format, otherwise is an object format.
 };
 
 struct json_context
 {
 	int levels;
 	PVARTEXT pvt;
-   PLIST object_types;
+	PLIST object_types;
 };
 
 #ifdef __cplusplus
