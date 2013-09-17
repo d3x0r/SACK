@@ -1487,9 +1487,6 @@ typedef struct LinkBlock
 {
 	/* How many pointers the list can contain now. */
 	INDEX     Cnt;
-	/* A simple exchange-lock for add, modify and delete. For thread
-	   safety.                                                       */
-	volatile _32     Lock;
 	/* \ \  */
 	POINTER pNode[1];
 } LIST, *PLIST;
@@ -1521,7 +1518,7 @@ struct DataBlock
 	INDEX     Avail;
 	/* A simple exchange lock on the data for insert and delete. For
 	   thread safety.                                                */
-	volatile _32     Lock;
+	//volatile _32     Lock;
 	/* How big each element of the array is. */
 	INDEX     Size;
 	/* The physical array. */
@@ -1544,7 +1541,7 @@ typedef struct LinkStack
 	INDEX     Cnt;
 	/* thread interlock using InterlockedExchange semaphore. For
 	                  thread safety.                                            */
-	volatile _32     Lock;  
+	//volatile _32     Lock;
 	/*  a defined maximum capacity of stacked values... values beyond this are lost from the bottom  */
 	_32     Max;
 	/* Reserved data portion that stores the pointers. */
@@ -1561,12 +1558,12 @@ typedef struct LinkStack
    pointers to this stack.                                       */
 typedef struct DataListStack
 {
-	INDEX     Top; /* enable logging the program executable (probably the same for
+	volatile INDEX     Top; /* enable logging the program executable (probably the same for
 	                all messages, unless they are network)
 	                                                                             */
 	INDEX     Cnt; // How many elements are on the stack. 
-	volatile _32     Lock;  /* thread interlock using InterlockedExchange semaphore. For
-	                  thread safety.                                            */
+	//volatile _32     Lock;  /* thread interlock using InterlockedExchange semaphore. For
+	//                  thread safety.                                            */
 	INDEX     Size; /* Size of each element in the stack. */
 	_8      data[1]; /* The actual data area of the stack.  */
 } DATASTACK, *PDATASTACK;
@@ -1579,14 +1576,14 @@ typedef struct LinkQueue
 	/* This is the index of the next pointer to be added to the
 	   queue. If Top==Bottom, then the queue is empty, until a
 	   pointer is added to the queue, and Top is incremented.   */
-	INDEX     Top;
+	volatile INDEX     Top;
 	/* This is the index of the next element to leave the queue. */
-	INDEX     Bottom;
+	volatile INDEX     Bottom;
 	/* This is the current count of pointers that can be stored in
 	   the queue.                                                  */
 	INDEX     Cnt;
-	volatile _32     Lock;  /* thread interlock using InterlockedExchange semaphore. For
-	                  thread safety.                                            */
+	//volatile _32     Lock;  /* thread interlock using InterlockedExchange semaphore. For
+	  //                thread safety.                                            */
 	POINTER pNode[2]; // need two to have distinct empty/full conditions
 } LINKQUEUE, *PLINKQUEUE;
 
@@ -1602,16 +1599,16 @@ typedef struct DataQueue
 	/* This is the next index to be added to. If Top==Bottom, the
 	   queue is empty, until an entry is added at Top, and Top
 	   increments.                                                */
-	INDEX     Top;
+	volatile INDEX     Top;
 	/* The current bottom index. This is the next one to be
 	   returned.                                            */
-	INDEX     Bottom;
+	volatile INDEX     Bottom;
 	/* How many elements the queue can hold. If a queue has more
 	   elements added to it than it has count, it will be expanded,
 	   and a new queue returned.                                    */
 	INDEX     Cnt;
 	/* thread interlock using InterlockedExchange semaphore */
-	volatile _32     Lock;  
+	//volatile _32     Lock;
 	/* How big each element in the queue is. */
 	INDEX     Size;
 	/* How many elements to expand the queue by, when its capacity

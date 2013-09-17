@@ -101,7 +101,6 @@ static PLIST ExpandListEx( PLIST *pList, INDEX amount DBG_PASS )
 		pl = (PLIST)AllocateEx( size = MY_OFFSETOF( pList, pNode[amount] ) DBG_RELAY );
 		pl->Cnt = 0;
 	}
-	pl->Lock = TRUE; // assume a locked state...
 	if( old_list )
 	{
 		// copy old list to new list
@@ -188,7 +187,6 @@ static PLIST ExpandListEx( PLIST *pList, INDEX amount DBG_PASS )
 	}
 	if( idx == INVALID_INDEX )
 	{
-		(*pList)->Lock = 0;
 		list_local_lock[0] = 0;
 		return *pList; // not set...
 	}
@@ -358,7 +356,6 @@ PDATALIST ExpandDataListEx( PDATALIST *ppdl, INDEX entries DBG_PASS )
 	PDATALIST pdl = (PDATALIST)AllocateEx( sizeof( DATALIST ) DBG_RELAY );
 	pdl->Cnt = 0;
 	pdl->Avail = 0;
-	pdl->Lock = 0;
 	pdl->Size = nSize;
 	return pdl;
 }
@@ -449,7 +446,6 @@ namespace link_stack {
 	pls = (PLINKSTACK)AllocateEx( sizeof( LINKSTACK ) DBG_RELAY );
 	pls->Top = 0;
 	pls->Cnt = 0;
-	pls->Lock = 0;
 	pls->Max = max_entries;
 	return pls;
 }
@@ -524,13 +520,11 @@ static PLINKSTACK ExpandStackEx( PLINKSTACK *stack, INDEX entries DBG_PASS )
 		MemCpy( pNewStack->pNode, (*stack)->pNode, (*stack)->Cnt * sizeof(POINTER) );
 		pNewStack->Top = (*stack)->Top;
 		pNewStack->Max = (*stack)->Max;
-		pNewStack->Lock = (*stack)->Lock;
 		*stack = pNewStack;
 		ReleaseEx( pls DBG_RELAY );
 	}
 	else
 	{
-		pNewStack->Lock = 0;
 		pNewStack->Top = 0;
 		pNewStack->Max = 0;
 		*stack = pNewStack;
@@ -698,7 +692,6 @@ PLINKQUEUE CreateLinkQueueEx( DBG_VOIDPASS )
    plq = (PLINKQUEUE)AllocateEx( sizeof( LINKQUEUE ) DBG_RELAY );
    plq->Top      = 0;
    plq->Bottom   = 0;
-   plq->Lock     = 0;
    plq->Cnt      = 2;
    plq->pNode[0] = NULL;
    plq->pNode[1] = NULL; // shrug
@@ -730,7 +723,6 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
 		plqNew = (PLINKQUEUE)AllocateEx( size DBG_RELAY );
 		plqNew->Cnt = plq->Cnt + entries;
 		plqNew->Bottom = 0;
-		plqNew->Lock = plq->Lock;
 		if( plq->Bottom > plq->Top )
 		{
 			INDEX bottom_half;
@@ -962,7 +954,6 @@ PDATAQUEUE CreateDataQueueEx( INDEX size DBG_PASS )
 	pdq = (PDATAQUEUE)AllocateEx( ( ( sizeof( DATAQUEUE ) + (2*size) ) - 1 ) DBG_RELAY );
 	pdq->Top      = 0;
 	pdq->Bottom   = 0;
-	pdq->Lock     = 0;
 	pdq->ExpandBy = 16;
 	pdq->Size     = size;
 	pdq->Cnt      = 2;
@@ -995,7 +986,6 @@ static PDATAQUEUE ExpandDataQueueEx( PDATAQUEUE *ppdq, INDEX entries DBG_PASS )
 		pdqNew->ExpandBy = pdq->ExpandBy;
 		pdqNew->Bottom = 0;
 		pdqNew->Size = pdq->Size;
-		pdqNew->Lock = pdq->Lock;
 		if( pdq->Bottom > pdq->Top )
 		{
 			INDEX bottom_half;

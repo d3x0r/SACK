@@ -180,53 +180,6 @@ typedef BLOBTYPE shadow_tag
 	//    /duplicate deck another_deck
 } SHADOW_OBJECT;
 
-//typedef struct behavior_tag
-//{
-// name, record and descriptionless macros.... but have vars, instructions
-   //int flags;
-   /*
-   PMACRO OnDrop;  // other entity dropping from grab state... On Being Dropped
-    PMACRO OnLoss2; // grabbed thing moved into room - on Losing
-
-   PMACRO OnGrab;  // other entity grabbing this...
-    PMACRO OnPull;   // Thing is being removed from this (as opposed to the thing leaving itself)
-    PMACRO OnReceive; // grabbed thing has been moved into attached state.
-
-   PMACRO OnStore; // other entity storing this into itself
-    PMACRO OnLoss;  // attached thing is moved into contained state
-    PMACRO OnPush;  // thing is being put into this (as opposed to entering this)
-
-   PMACRO OnEnter; // (container)other entity containing itself within
-    PMACRO OnConceal; // (room) contained entity entering another contained thing
-
-   PMACRO OnLeave; // (container)other entity leaving this posession thing(newroom)
-    //PMACRO OnReveal; // (room)entity storing itself from a subcontainer into room
-    PMACRO OnInject; // such as the contents of a needle are put into the needle's container..
-    // reveal used to be this... but it was rednundant for on leave - being revealed into room
-   // this the room is injected with something new ... room (newthing)
-
-    PMACRO OnAttach; // other entity attaching itself to this
-
-   PMACRO OnDetach; // other entity removeing itself form this
-
-   PMACRO OnEnterNear; // which near...like leave but not to without...
-
-    // going to try to work on a new naming convention becuase this previous natural
-   // language definition is about to fail badly due to an original oversite.
-    PMACRO ObjectLeftYou;
-    PMACRO YouLeftRoom;
-
-    PMACRO YouEnteredRoom;
-    PMACRO ObjectEnteredYou;
-
-    // for all near objects...
-
-    //PMACRO ObjectApproachedYou;
-    PMACRO OnApproach;  // you become near something...
-   PMACRO OnApproached; // something nears you
-    //PMACRO YouApproachedObject;
-   */
-//} BEHAVIOR, *PBEHAVIOR;
 
 typedef BLOBTYPE structure_tag
 {
@@ -271,7 +224,6 @@ public:
    //---- 
        // to be impelmented - but then the action has to be delayed until the
        // macro associated is completed...
-    //PBEHAVIOR pForeBehaviors; // behaviors triggered before the action takes place
    PLIST behaviors; // local behaviors listed here (TEXTCHAR*)
 	PLIST pBehaviors; // set once any single behavior is scripted... local behaviors(PMACRO)
    PLIST pGlobalBehaviors; // (uses global.behaviors...) (PMACRO)
