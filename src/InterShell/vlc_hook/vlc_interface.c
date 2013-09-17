@@ -1070,7 +1070,7 @@ struct my_vlc_interface *CreateInstanceOn( PRENDERER renderer, CTEXTSTR name, LO
 		pmyi = New( struct my_vlc_interface );
 		MemSet( pmyi, 0, sizeof( struct my_vlc_interface ) );
 
-		if( l.flags.bRequireDraw )
+		if( renderer && l.flags.bRequireDraw )
 		{
 			//	pmyi->update_thread = ThreadTo( UpdateThread, (PTRSZVAL)pmyi );
 			SetRedrawHandler( renderer, VLC_RedrawCallback, (PTRSZVAL)pmyi );
@@ -1078,9 +1078,18 @@ struct my_vlc_interface *CreateInstanceOn( PRENDERER renderer, CTEXTSTR name, LO
 
 		pmyi->host_control = NULL;
 		pmyi->host_surface = renderer;
-		pmyi->host_image = GetDisplayImage( renderer );
-		pmyi->image_w = pmyi->host_image->width;
-		pmyi->image_h = pmyi->host_image->height;
+		if( renderer )
+		{
+			pmyi->host_image = renderer?GetDisplayImage( renderer ):NULL;
+			pmyi->image_w = pmyi->host_image->width;
+			pmyi->image_h = pmyi->host_image->height;
+		}
+		else
+		{
+			pmyi->host_image = NULL;
+			pmyi->image_w = 0;
+			pmyi->image_h = 0;
+		}
 		pmyi->flags.direct_output = 1;
 		pmyi->flags.transparent = transparent;
 
