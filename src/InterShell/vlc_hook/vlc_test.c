@@ -21,7 +21,7 @@ static struct vlc_test_local {
 		BIT_FIELD is_transparent : 1;
 		BIT_FIELD is_stream : 1;
 		BIT_FIELD rec_input_type : 1;		
-
+		BIT_FIELD nodisplay : 1;
 	} flags;
 
 } l;
@@ -46,7 +46,11 @@ int setOptions( int argc )
 				l.display = atoi( l.wargv[n+1] );
 				n++;
 			}
-
+			else if( StrCaseCmp( l.wargv[n]+1, WIDE( "nodisplay" ) ) == 0 )
+			{
+				l.flags.nodisplay = 1;
+				n++;
+			}
 			else if( StrCaseCmp( l.wargv[n]+1, WIDE( "transparent" ) ) == 0 )
 			{
 				l.flags.is_transparent = 1;                                          
@@ -174,6 +178,7 @@ int main( int argc, char ** argv )
 					  WIDE( " -transparent : use transparent display\n" )
 					  WIDE( " -stream : output is stream\n" )
 					  WIDE( " -input : Read input info from editoptions\n" )
+					  WIDE( " -nodisplay : probably VLC will create its own window; so don't create one\n" )
 					  WIDE( " -options : Read extra vlc options from editoptions\n" )
 					  WIDE( "\n All VLC Options Should Be Valid\n" )
 					 , WIDE( "Must Enter a Command Line Argument" ), MB_OK );
@@ -196,7 +201,7 @@ int main( int argc, char ** argv )
 
 
 		// If streaming do not open window
-		if( !l.flags.is_stream )
+		if( !l.flags.is_stream && !l.flags.nodisplay)
 		{
 			transparent = OpenDisplaySizedAt( l.flags.is_transparent?DISPLAY_ATTRIBUTE_LAYERED:0, w, h, x, y );
 			surface = l.flags.in_control?CreateFrameFromRenderer( WIDE( "Video Display" )
@@ -209,6 +214,11 @@ int main( int argc, char ** argv )
 				UpdateDisplay( transparent );
 			if( l.flags.make_top )
 				MakeTopmost( transparent );
+		}
+		else
+		{
+			transparent = NULL;
+			surface = NULL;
 		}
 		
 		if( l.flags.is_stream )
