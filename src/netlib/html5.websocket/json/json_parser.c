@@ -55,7 +55,7 @@ static void FillDataToElement( struct json_context_object_element *element
                              , struct json_value_container *val
 									  , POINTER msg_output )
 {
-   PTEXT string;
+	PTEXT string;
 	switch( element->type )
 	{
 	case JSON_Element_String:
@@ -207,7 +207,7 @@ static void FillDataToElement( struct json_context_object_element *element
 
 LOGICAL json_parse_message( struct json_context_object *format
                            , CTEXTSTR msg
-									, POINTER msg_output )
+									, POINTER *_msg_output )
 {
 	/* I guess this is a good parser */
 	PLIST elements = NULL;
@@ -232,6 +232,15 @@ LOGICAL json_parse_message( struct json_context_object *format
 
 	int parse_context = CONTEXT_UNKNOWN;
 	struct json_value_container val;
+
+	POINTER msg_output;
+	if( !_msg_output )
+      return FALSE;
+	msg_output = (*_msg_output);
+   if( !msg_output )
+		msg_output = (*_msg_output)
+         = NewArray( _8, format->object_size );
+
 
 	val.result_value = 0;
 	val.pvt_collector = VarTextCreate();
@@ -331,7 +340,7 @@ LOGICAL json_parse_message( struct json_context_object *format
 							else
 							{
 								lprintf( "Incompatible value; expected element that can take an array, type is %d", element->type );
-								return;
+								return FALSE;
 							}
 						}
 					}
@@ -365,7 +374,7 @@ LOGICAL json_parse_message( struct json_context_object *format
 			else
 			{
 				lprintf( "(in array, got colon out of string):parsing fault; unexpected %c at %d", c, n );
-				return;
+				return FALSE;
 			}
 			break;
 		case '}':

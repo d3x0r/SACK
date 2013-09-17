@@ -57,6 +57,11 @@ typedef struct json_context *PJC;
 typedef struct json_context_object *PJCO;
 typedef struct world_server_mesasge {
 	CTEXTSTR opcode;
+   POINTER data;
+} WorldServerMessage, *PWorldServerMessage;
+
+typedef struct world_server_mesasge {
+	CTEXTSTR opcode;
    CTEXTSTR data;
 } WorldServerMessage, *PWorldServerMessage;
 
@@ -1024,171 +1029,8 @@ int CPROC ClientConnect( PSERVICE_ROUTE route, _32 *params, size_t param_length
 	return TRUE;
 }
 
-int CPROC ClientDisconnect( PSERVICE_ROUTE route, _32 *params, size_t param_length
-							, _32 *result, size_t *result_length
-							)
-{
-	INDEX idx;
-	PWORLDSCAPE_CLIENT client;
-	LIST_FORALL( l.clients, idx, PWORLDSCAPE_CLIENT, client )
-	{
- 		if( IsSameMsgDest( &client->pid, route ) )
-		{
-			SetLink( &l.clients, idx, NULL );
-			Release( client );
-			break;
-		}
-	}
-	return TRUE;
-}
-
-SERVER_FUNCTION functions[] = {
-	ServerFunctionEntry(ClientDisconnect) // disocnnect
-										, ServerFunctionEntry(ClientConnect)   // connect
-										, ServerFunctionEntry(NULL) // undefined
-										, ServerFunctionEntry(NULL) // unedefined
-										// 4
-										, ServerFunctionEntry( ServerCreateWorld )
-										, ServerFunctionEntry( ServerDestroyWorld )
-										, ServerFunctionEntry( ServerResetWorld )
-										, ServerFunctionEntry( NULL )//WORLD_PROC( _32, GetSectorCount )( INDEX iWorld );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( _32, GetWallCount )( INDEX iWorld );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( _32, GetLineCount )( INDEX iWorld );
-										// 10
-
-										, ServerFunctionEntry( ServerSaveWorld )//, SaveWorldToFile
-										, ServerFunctionEntry( ServerLoadWorld )//, LoadWorldFromFile
 
 
-										, ServerFunctionEntry( NULL )//WORLD_PROC( int, MergeSelectedWalls )( INDEX iWorld, INDEX iDefiniteWall, PORTHOAREA rect );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( int, MarkSelectedSectors )( INDEX iWorld, PORTHOAREA rect, INDEX **sectorarray, int *sectorcount );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( int, MarkSelectedWalls )( INDEX iWorld, PORTHOAREA rect, INDEX **wallarray, int *wallcount );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, MergeOverlappingWalls )( INDEX iWorld, PORTHOAREA rect );
-
-										, ServerFunctionEntry( NULL )//WORLD_PROC( int, ValidateWorldLinks )( INDEX iWorld );
-
-										//------ Sectors ----------
-										/// this function isn't actually given to server, search can be done client side.
-										, ServerFunctionEntry( ServerFindSectorAroundPoint )//WORLD_PROC( INDEX, FindSectorAroundPoint )( INDEX iWorld, P_POINT p );
-
-										//	  , ServerFunctionEntry( NULL )//WORLD_PROC( void, DeleteSectors )( PSECTORSET *psectors );
-
-										, ServerFunctionEntry( ServerCreateSquareSector )
-										, ServerFunctionEntry( ServerAddConnectedSector )//WORLD_PROC( INDEX, AddConnectedSector )( INDEX iWorld, INDEX iWall, RCOORD offset );
-										// 20
-										, ServerFunctionEntry( ServerMoveWalls )//WORLD_PROC( int, MoveWalls )( INDEX iWorld, int nWalls, INDEX *WallList, P_POINT del, int bLockSlope );
-										// send current line, get all updates from world-scape server
-										, ServerFunctionEntry( ServerUpdateMatingLines )//WORLD_PROC( int, UpdateMatingLines )( INDEX iWorld, INDEX iWall, int bLockSlopes, int bErrorOK );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( int, WallInSector )( INDEX iWorld, INDEX iSector, INDEX iWall );
-
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, GetSectorOrigin )( INDEX iWorld, INDEX sector, P_POINT o );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( int, LineInCur )( INDEX iWorld
-										// , INDEX *SectorList, int nSectors
-										// , INDEX *WallList, int nWalls
-										// , INDEX pLine );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, FindIntersectingWall )( INDEX iWorld, INDEX iSector, P_POINT n, P_POINT o );
-
-										, ServerFunctionEntry( NULL )//WORLD_PROC( int, DestroySector )( INDEX iWorld, INDEX iSector );
-
-										, ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, FlatlandPointWithin )( INDEX iWorld, int nSectors, INDEX *piSectors, P_POINT p );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, FlatlandPointWithinSingle )( INDEX world, INDEX iSector, P_POINT p );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, FlatlandPointWithinLoopSingle )(  PTRSZVAL psv, INDEX iSector );
-
-										// 30
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, ComputeSectorOrigin )( INDEX iWorld, INDEX iSector );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, ComputeSectorSetOrigin )( INDEX iWorld, int nSectors, INDEX *sectors, P_POINT origin );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, ComputeWallSetOrigin )( INDEX iWorld, int nWalls, INDEX *walls, P_POINT origin );
-
-										, ServerFunctionEntry( ServerMoveSectors )//WORLD_PROC( int, MoveSectors )( INDEX iWorld
-										//, int nSectors
-										//, INDEX *pSectors, P_POINT del );
-
-
-										, ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, CreateWall )( INDEX world, INDEX iSector
-										// , INDEX pStart, int bFromStartEnd
-										// , INDEX pEnd,   int bFromEndEnd
-										// , _POINT o, _POINT n );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( int, DestroyWall )( INDEX iWorld, INDEX iWall );
-
-										, ServerFunctionEntry( NULL )//WORLD_PROC( int, MergeWalls )( INDEX iWorld, INDEX iCurWall, INDEX iMarkedWall );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, SplitWall )( INDEX iWorld, INDEX iWall );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( int, RemoveWall )( INDEX iWorld, INDEX iWall ); // remove wall, and relink mating...
-
-
-										, ServerFunctionEntry( NULL )//WORLD_PROC( _POINT*, CheckPointOrder )( PC_POINT normal, _POINT *plist, int npoints );
-										// 40 
-										, ServerFunctionEntry( NULL )//WORLD_PROC( _POINT*, ComputeSectorPointList )( INDEX iWorld, INDEX sector, int *pnpoints );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, BreakWall )( INDEX iWorld, INDEX wall );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, GetNameText )( INDEX iWorld, INDEX name, char *text, int maxlen );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, GetWallLine )( INDEX iWorld, INDEX wall );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, GetWallSector )( INDEX iWorld, INDEX iSector );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, GetMatedWall )( INDEX iWorld, INDEX wall );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, GetFirstWall )( INDEX iWorld, INDEX iSector, int *priorend );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, GetNextWall )( INDEX iWorld, INDEX wall, int *priorend );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, GetSectorName )( INDEX iWorld, INDEX iSector );
-
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, GetLineData )( INDEX iWorld, INDEX iLine, PFLATLAND_MYLINESEG *line );
-										//50
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, BalanceALine )( INDEX iWorld, INDEX iLine );
-
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, GetNameData )( INDEX iWorld, INDEX iName, PNAME *name );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, GetSectorTexture )( INDEX iWorld, INDEX iSector );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, GetTextureData )( INDEX iWorld, INDEX iTexture, PFLATLAND_TEXTURE *texture );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, GetSectorPoints )( INDEX iWorld, INDEX iSector, _POINT **list, int *npoints );
-										
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, ForAllSectors )( INDEX iWorld, PTRSZVAL(CPROC *f)(PTRSZVAL,INDEX),PTRSZVAL);
-
-										// internal only function use
-										// BalanceALine and pass world and line index
-										//   , ServerFunctionEntry( NULL )//WORLD_PROC( void, BalanceLine )( PFLATLAND_MYLINESEG pls );
-
-
-										, ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, MakeTexture )( INDEX iWorld, char *text );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, SetSolidColor )( INDEX iWorld, INDEX iTexture, CDATA color );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, DeleteTexture )( INDEX iWorld, INDEX iTexture );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, DeleteTextures )( INDEX iWorld );
-
-										// 60
-										, ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, MakeName )( INDEX iWorld, char *text );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, SetName )( INDEX iWorld, INDEX iName, char *text );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, DeleteNames )( INDEX iWorld );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, DeleteName )( INDEX iWorld, INDEX iName );
-
-										, ServerFunctionEntry( ServerClearUndo )
-										, ServerFunctionEntry( ServerDoUndo )//WORLD_PROC( void, DoUndo )( INDEX iWorld );
-
-										, ServerFunctionEntry( ServerAddUndo )//WORLD_PROC( INDEX, ForAllTextures )( INDEX iWorld, INDEX (CPROC*)(INDEX,PTRSZVAL), PTRSZVAL );
-										, ServerFunctionEntry( ServerEndUndo )//WORLD_PROC( void, GetTextureNameText )( INDEX iWorld, INDEX iTexture, char *buf, int bufsize );
-
-
-										, ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, ForAllTextures )( INDEX iWorld, INDEX (CPROC*)(INDEX,PTRSZVAL), PTRSZVAL );
-										, ServerFunctionEntry( NULL )//WORLD_PROC( void, GetTextureNameText )( INDEX iWorld, INDEX iTexture, char *buf, int bufsize );
-										// 70
-										, ServerFunctionEntry( NULL )//WORLD_PROC( INDEX, SetTexture )( INDEX iWorld, INDEX iSector, INDEX iTexture );
-
-										, ServerFunctionEntry( NULL ) //SetSectorName )( INDEX iWorld, INDEX iSector, INDEX iName );
-
-										//-------------------------------------------------------
-										/* intended for client application registration for update notifications */
-
-										//typedef void (CPROC *WorldScapeUdpateProc)( PTRSZVAL );
-										, ServerFunctionEntry( NULL ) //AddUpdateCallback )( WorldScapeUdpateProc, PTRSZVAL psv );
-
-										//-------------------------------------------------------
-										// meant for client->server communication
-										, ServerFunctionEntry( ServerHandleUpdateLine ) //UpdateLine )( void );
-										//, ServerFunctionEntry( NULL ) //UpdateSector )( void );
-										, ServerFunctionEntry( NULL ) //UpdateWall )( void );
-										, ServerFunctionEntry( NULL ) //UpdateName )( void );
-										, ServerFunctionEntry( NULL ) //UpdateTexture )( void );
-										, ServerFunctionEntry( NULL ) //FlushUpdates )( void ); // meant for client->server communication
-										, ServerFunctionEntry( NULL ) //MarkLineChanged )( INDEX iWorld, INDEX iLine );
-										, ServerFunctionEntry( NULL ) //SendLinesChanged )( INDEX iWorld );
-										// 80
-										, ServerFunctionEntry( ReceiveLineChanged )//HandleLineNormalsChanged ) //SendLineChanged )( INDEX iWorld );
-										, ServerFunctionEntry( NULL ) // a blank one.
-										, ServerFunctionEntry( HandleLineChanged ) //SendLineChanged )( INDEX iWorld );
-};
 
 static void WorldServerListWorlds( PWORLDSCAPE_CLIENT client, PWorldServerMessage message )
 {
@@ -1278,7 +1120,7 @@ PRELOAD( RegisterFlatlandService )
 	PCLIENT pc;
 	NetworkWait( 0, 5000, 16 );
    // should end up with multiple sockets for ipv4 and 6; so... ya, no address on server is good.
-	pc = WebSocketCreate( "ws:///org/d3x0r/sack/games/flatland/world"
+	pc = WebSocketCreate( "ws:///org/d3x0r/sack/games/flatland/world/scape"
 										 , flatland_server_web_socket_opened
 										 , flatland_server_web_socket_event
 										 , flatland_server_web_socket_closed
@@ -1286,14 +1128,17 @@ PRELOAD( RegisterFlatlandService )
 										 , 0
 							  );
    DefineJSONInterface();
-	l.server_opcodes = GetClassRoot( "org/d3x0r/sack/games/flatland/world/server" );
+	l.server_opcodes = GetClassRoot( "org/d3x0r/sack/games/flatland/world/scape/server" );
 
-	RegisterFunction( "org/d3x0r/sack/games/flatland/world"
-						 , "server"
+	RegisterFunction( "org/d3x0r/sack/games/flatland/world/scape/server", NULL
 						 , ServerFunctionResult
 						 , "List Worlds"
 						 , ServerFunctionArgs );
 
+	RegisterFunction( "org/d3x0r/sack/games/flatland/world/scape/server", NULL
+						 , ServerFunctionResult
+						 , "List Worlds"
+						 , ServerFunctionArgs );
 
 	//PWSTR result;
 	//PeerCreatePeerName( NULL, "test.singular", &result );

@@ -1207,7 +1207,7 @@ add_subdirectory( src/utils/runner )
 
 if( BUILD_TESTS )
    add_subdirectory( src/netlib/html5.websocket/server )
-   add_subdirectory( src/netlib/html5.websocket/client )
+   #add_subdirectory( src/netlib/html5.websocket/client )
    add_subdirectory( src/netlib/html5.websocket/json/tests )
    add_subdirectory( src/psilib/console/cmdshell )
    add_subdirectory( src/msgsvr/client/client_server )

@@ -490,10 +490,11 @@ void json_add_object_array( struct json_context *context, CTEXTSTR name, struct 
 
 //----------------------------------------------------------------------------------------------
 
-struct json_context_object *json_create_object( struct json_context *context )
+struct json_context_object *json_create_object( struct json_context *context, size_t object_size )
 {
 	struct json_context_object *format = New( struct json_context_object );
 	format->context = context;
+   format->object_size = object_size;
 	format->members = NULL;
 	format->is_array = FALSE;
 	// keep a reference for cleanup
@@ -505,10 +506,10 @@ struct json_context_object *json_create_object( struct json_context *context )
 //----------------------------------------------------------------------------------------------
 
 struct json_context_object *json_create_array( struct json_context *context
-	                                         , size_t offset
-											 , int type
-											 , size_t count
-											 , size_t count_offset 
+															, size_t offset
+															, int type
+															, size_t count
+															, size_t count_offset
 											 )
 {
 	struct json_context_object *format = New( struct json_context_object );
@@ -536,7 +537,12 @@ struct json_context_object *json_create_array( struct json_context *context
 
 struct json_context_object *json_add_object_member_array( struct json_context_object *format
 																		  , CTEXTSTR name
-																		  , int offset, int type, int count )
+																		  , size_t offset
+																		  , int type
+																		  , size_t object_size
+																		  , size_t count
+																		  , size_t count_offset
+																		  )
 {
 	struct json_context *context = format->context;
 	struct json_context_object_element *member = New( struct json_context_object_element );
@@ -544,11 +550,12 @@ struct json_context_object *json_add_object_member_array( struct json_context_ob
 	member->offset = offset;
 	member->type = type;
 	member->count = count;
+	member->count_offset = count_offset;
 	switch( type )
 	{
 	case JSON_Element_Object:
 	case JSON_Element_ObjectPointer:
-		member->object = json_create_object( context );
+		member->object = json_create_object( context, object_size );
 		break;
 	}
 	AddLink( &format->members, member );
@@ -560,19 +567,88 @@ struct json_context_object *json_add_object_member_array( struct json_context_ob
 //----------------------------------------------------------------------------------------------
 
 struct json_context_object *json_add_object_member( struct json_context_object *format
-									, CTEXTSTR name
-									, int offset, int type )
+																  , CTEXTSTR name
+																  , size_t offset, int type
+																  , size_t object_size )
 {
-   return json_add_object_member_array( format, name, offset, type, 0 );
+   return json_add_object_member_array( format, name, offset, type, object_size, 0, JSON_NO_OFFSET );
 }
 
+// adds a reference to a PLIST as an array with the content of the array specified as the type
+struct json_context_object *json_add_object_member_list( struct json_context_object *object
+																		 , CTEXTSTR name
+																		 , size_t offset
+																		 , int content_type
+																		 , size_t object_size
+																		 )
+{
+	// this is a double pointer... implement as a specific type?
+   //return json_add_object_member_array( format, name, offset, content_type, object_size, 0, offsetof(
+	struct json_context *context = object->context;
+	struct json_context_object_element *member = New( struct json_context_object_element );
+	member->name = StrDup( name );
+	member->offset = offset;
+	member->type = JSON_Element_List;
+	member->content_type = content_type;
+	member->count = 0;
+	member->count_offset = offsetof( LIST, Cnt );
+	AddLink( &object->members, member );
+	if( member->object )
+		return member->object;
+	return object;
+}
+
+// this allows recursive structures, so the structure may contain a reference to itself.
+// this allows buildling other objects and referencing them instead of building them in-place
+JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_object_array )( struct json_context_object *object
+																												  , CTEXTSTR name
+																												  , size_t offset
+																												  , int type
+																												  , struct json_context_object *child_object
+																												  , int count
+																												  , int count_offset
+																												  )
+{
+	struct json_context *context = object->context;
+	struct json_context_object_element *member = New( struct json_context_object_element );
+	member->name = StrDup( name );
+	member->offset = offset;
+	member->type = type;
+	member->count = count;
+   member->count_offset = count_offset;
+	switch( type )
+	{
+	case JSON_Element_Object:
+	case JSON_Element_ObjectPointer:
+		member->object = child_object;
+		break;
+	default:
+      lprintf( "incompatible type" );
+      break;
+	}
+	AddLink( &object->members, member );
+	if( member->object )
+		return member->object;
+	return object;
+}
+
+
+JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_object )( struct json_context_object *object
+																								 , CTEXTSTR name
+																								 , size_t offset
+																								 , int type
+																								 , struct json_context_object *child_object
+																								 )
+{
+   return json_add_object_member_object_array( object, name, offset, type, child_object, 0, JSON_NO_OFFSET );
+}
 //----------------------------------------------------------------------------------------------
-void json_add_object_member_array_pointer( struct json_context_object *format
+void json_add_object_member_array_pointer( struct json_context_object *object
 													  , CTEXTSTR name
 													  , int offset, int type
 													  , int count_offset )
 {
-	struct json_context *context = format->context;
+	struct json_context *context = object->context;
 	struct json_context_object_element *member = New( struct json_context_object_element );
 	member->name = StrDup( name );
 	member->offset = offset;
@@ -582,26 +658,26 @@ void json_add_object_member_array_pointer( struct json_context_object *format
 
 //----------------------------------------------------------------------------------------------
 
-CTEXTSTR json_build_message( struct json_context_object *format
+CTEXTSTR json_build_message( struct json_context_object *object
 									, POINTER msg )
 {
-	struct json_context *context = format->context;
+	struct json_context *context = object->context;
 	CTEXTSTR result;
 	int n;
 	INDEX idx;
 	struct json_context_object_element *member;
 	VarTextEmpty( context->pvt );
 	n = 0;
-	LIST_FORALL( format->members, idx, struct json_context_object_element *, member )
+	LIST_FORALL( object->members, idx, struct json_context_object_element *, member )
 	{
 		n++;
 	}
-	if( format->is_array )
+	if( object->is_array )
 		json_begin_array( context, NULL );
    else
 		json_begin_object( context, NULL );
 
-	LIST_FORALL( format->members, idx, struct json_context_object_element *, member )
+	LIST_FORALL( object->members, idx, struct json_context_object_element *, member )
 	{
 		switch( member->type )
 		{
@@ -721,7 +797,7 @@ CTEXTSTR json_build_message( struct json_context_object *format
 		}
 	}
 
-	if( format->is_array )
+	if( object->is_array )
 		json_end_array( context );
    else
 		json_end_object( context );
