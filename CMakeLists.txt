@@ -7,7 +7,7 @@ project( SACK )
 
 SET( MAKING_SACK_CORE ON )
 SET( SACK_SDK_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR} )
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES} debug release RelWithDebInfo MinSizeRel )
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES} Debug Release RelWithDebInfo MinSizeRel )
 
 if( NOT CMAKE_BUILD_TYPE )
 message( FATAL_ERROR "MUST set CMAKE_BUILD_TYPE!" )
@@ -1241,6 +1241,7 @@ if( WIN32 )
    add_subdirectory( src/utils/application_delay )
 endif( WIN32 )
 
+add_subdirectory( src/utils/seed_random )
 add_subdirectory( src/deadstart )
 add_subdirectory( src/utils/deploy )
 #add_subdirectory( ../allegro allegro )
