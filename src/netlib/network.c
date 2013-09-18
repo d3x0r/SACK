@@ -810,7 +810,8 @@ void HandleEvent( PCLIENT pClient )
 							pClient->dwFlags |= CF_CONNECTED;
 						else
 						{
-							lprintf( WIDE("Connect error: %d"), wError );
+							if( g.flags.bLogNotices )
+								lprintf( WIDE("Connect error: %d"), wError );
 							pClient->dwFlags |= CF_CONNECTERROR;
 						}
 						if( !( pClient->dwFlags & CF_CONNECTERROR ) )
@@ -826,7 +827,8 @@ void HandleEvent( PCLIENT pClient )
 						pClient->dwFlags &= ~CF_CONNECTING;
 						if( pClient->connect.ThisConnected )
 						{
-							lprintf( WIDE( "Post to application %p" ), pClient );
+                     if( g.flags.bLogNotices )
+								lprintf( WIDE( "Post connect to application %p  error:%d" ), pClient, wError );
 							if( pClient->dwFlags & CF_CPPCONNECT )
 								pClient->connect.CPPThisConnected( pClient->psvConnect, wError );
 							else
