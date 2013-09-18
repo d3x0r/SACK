@@ -65,30 +65,6 @@ extern CONTROL_REGISTRATION menu_surface;
 void CPROC AbortConfigureKeys( PSI_CONTROL pc, _32 keycode );
 
 
-PRELOAD( blah )
-{
-#undef SYMNAME
-#define SYMNAME( a,b) EasyRegisterResource( WIDE( "intershell/visibility" ), a, b );
-		SYMNAME( LIST_ALLOW_SHOW, LISTBOX_CONTROL_NAME )
-		SYMNAME( LIST_DISALLOW_SHOW, LISTBOX_CONTROL_NAME )
-		SYMNAME( LIST_SYSTEMS, LISTBOX_CONTROL_NAME ) // known systems list
-		SYMNAME( EDIT_SYSTEM_NAME, EDIT_FIELD_NAME )
-		SYMNAME( BTN_ADD_SYSTEM, NORMAL_BUTTON_NAME )
-		SYMNAME( BTN_ADD_SYSTEM_TO_DISALLOW, NORMAL_BUTTON_NAME )
-		SYMNAME( BTN_ADD_SYSTEM_TO_ALLOW, NORMAL_BUTTON_NAME )
-		SYMNAME( BTN_REMOVE_SYSTEM_FROM_DISALLOW, NORMAL_BUTTON_NAME )
-		SYMNAME( BTN_REMOVE_SYSTEM_FROM_ALLOW, NORMAL_BUTTON_NAME )
-#undef SYMNAME
-#define SYMNAME( a,b) EasyRegisterResource( WIDE( "intershell/page property" ), a, b );
-		SYMNAME( EDIT_PAGE_GRID_PARTS_X, EDIT_FIELD_NAME )
-		SYMNAME( EDIT_PAGE_GRID_PARTS_Y, EDIT_FIELD_NAME )
-#undef SYMNAME
-#define SYMNAME( a,b) EasyRegisterResource( WIDE( "intershell/Button General/security" ), a, b );
-		SYMNAME( LISTBOX_SECURITY_MODULE, LISTBOX_CONTROL_NAME );
-		SYMNAME( EDIT_SECURITY, NORMAL_BUTTON_NAME );
-
-}
-
 
 struct image_tag{
 	CTEXTSTR name;
@@ -722,23 +698,6 @@ void MakeGlareSet( TEXTCHAR *name, TEXTCHAR *glare, TEXTCHAR *up, TEXTCHAR *down
 struct glare_set_edit{
 	PGLARE_SET current;
 };
-
-PRELOAD( RegisterGlaresetResources )
-{
-	EasyRegisterResource( WIDE( "intershell/glareset" ), MNU_EDIT_GLARES, WIDE( "Popup Menu" ) );
-	EasyRegisterResource( WIDE( "intershell/glareset" ), LISTBOX_GLARE_SETS, LISTBOX_CONTROL_NAME );
-	EasyRegisterResource( WIDE( "intershell/glareset" ), LISTBOX_GLARE_SET_THEME, LISTBOX_CONTROL_NAME );
-	EasyRegisterResource( WIDE( "intershell/glareset" ), EDIT_GLARESET_GLARE, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE( "intershell/glareset" ), EDIT_GLARESET_UP, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE( "intershell/glareset" ), EDIT_GLARESET_DOWN, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE( "intershell/glareset" ), EDIT_GLARESET_MASK, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE( "intershell/glareset" ), CHECKBOX_GLARESET_MULTISHADE, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "intershell/glareset" ), CHECKBOX_GLARESET_SHADE, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "intershell/glareset" ), CHECKBOX_GLARESET_FIXED, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "intershell/glareset" ), GLARESET_APPLY_CHANGES, NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "intershell/glareset" ), GLARESET_CREATE, NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "intershell/glareset" ), GLARESET_ADD_THEME, NORMAL_BUTTON_NAME );
-}
 
 void CPROC OnGlareSetSelect( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM pli )
 {
@@ -4597,10 +4556,6 @@ CONTROL_REGISTRATION menu_edit_glare = { WIDE( "Edit Glare" )
 , NULL 
 };
 
-PRELOAD( RegisterMenuSurface ) { 
-	DoRegisterControl( &menu_surface ); 
-	DoRegisterControl( &menu_edit_glare );
-}
 
 void DisplayMenuCanvas( PSI_CONTROL pc_canvas, PRENDERER under, _32 width, _32 height, S_32 x, S_32 y )
 {
@@ -4684,6 +4639,21 @@ void InvokeFinishInit( void );
 
 int Init( LOGICAL bLoadConfig )
 {
+	if( g.flags.restoreload )
+	{
+		TEXTCHAR *ext;
+		ext = strrchr( g.config_filename, '.' );
+		if( !ext || StrCaseCmpEx( ext, WIDE( ".AutoConfigBackup" ), 17 ) )
+		{
+			TEXTCHAR msg[256];
+			snprintf( msg, sizeof( msg ), WIDE( "%s\nINVALID Configuration Name to Restore\nShould be like *.AutoConfigBackup*" )
+				, g.config_filename );
+			Banner2Message( msg );
+			return -1;
+		}
+		g.flags.forceload = 1; // -restore implies -force
+	}
+
 	SetupSystemsListAndGlobalSingleFrame();
 
 	// Load the previous configuration file...
@@ -5146,17 +5116,6 @@ static int CPROC InterShellCoreService( _32 SourceRouteID, _32 MsgID
    return TRUE;
 }
 
-PRIORITY_PRELOAD( LoadingMessage, DEFAULT_PRELOAD_PRIORITY+3 )
-{
-
-	Banner2NoWaitAlpha( WIDE("Loading...") );
-
-	//void SQLSetFeedbackHandler( void (CPROC*HandleSQLFeedback*)(TEXTCHAR *message) );
-#ifndef __NO_SQL__
-	SQLSetFeedbackHandler( MyHandleSQLFeedback );
-#endif
-}
-
 #ifndef UNDER_CE
 #if defined( WIN32 )
 PRIORITY_PRELOAD( ProgramLock, DEFAULT_PRELOAD_PRIORITY+2 )
@@ -5241,6 +5200,7 @@ PRIORITY_PRELOAD( ProgramLock, DEFAULT_PRELOAD_PRIORITY+2 )
 }
 #endif
 #endif
+
 
 void AddTmpPath( TEXTCHAR *tmp )
 {
@@ -5389,19 +5349,6 @@ void LoadInterShellPlugins( CTEXTSTR mypath, CTEXTSTR mask, CTEXTSTR extra_path 
 
 }
 
-// this should run after most everything else that could be loaded...
-// At one point in time this was hard coded as 75
-PRIORITY_PRELOAD( LoadExtra, DEADSTART_PRELOAD_PRIORITY + 5 ) // low priority... lower than most should think of.
-{
-	{
-		TEXTCHAR buf[256];
-		// this is done before main... preloaded plugins were the standard once upon a time.
-		snprintf( buf, sizeof( buf ), WIDE( "%%resources%%/%s.config" ), GetProgramName() );
-		g.config_filename = StrDup( buf );
-		//g.config_filename = WIDE( "intershell.config" );
-	}
-}
-
 
 #ifdef DEKWARE_PLUGIN
 PTRSZVAL CPROC MenuThread( PTHREAD thread )
@@ -5415,31 +5362,10 @@ PTRSZVAL CPROC MenuThread( PTHREAD thread )
 PUBLIC( int, Main)( int argc, TEXTCHAR **argv, int bConsole )
 {
 #endif
-#ifndef __NO_OPTIONS__
-	g.flags.bTopmost = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Display Topmost"), 0, TRUE );
-	g.flags.bTransparent = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Display is transparent"), 1, TRUE );
-	g.flags.bSpanDisplay = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Use Both Displays(horizontal)"), 0, TRUE );
-	g.flags.bTerminateStayResident = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell/TSR"), 0, TRUE );
-#endif
 #ifndef __ANDROID__
 	if( bConsole )
 		SetSystemLog( SYSLOG_FILE, stderr );
 #endif
-	//SystemLogTime( SYSLOG_TIME_CPU| SYSLOG_TIME_DELTA );
-
-	g.system_name = GetSystemName(); // Initialized here. Command argument -Sysname= may override.
-#ifdef __ANDROID__
-   // need to reset some statuses because we're presistant loaded
-	g.flags.bExit = 0;
-#endif
-	CreateBanner2Ex( NULL, NULL, WIDE("Starting...")
-						, (g.flags.bTopmost?BANNER_TOP:0)
-						 |BANNER_NOWAIT|BANNER_DEAD|BANNER_ALPHA, 0 );
-	{
-		TEXTCHAR buf[256];
-		snprintf( buf, sizeof( buf ), WIDE( "%%resources%%/%s.config" ), GetProgramName() );
-		g.config_filename = StrDup( buf );
-	}
 	{
 		int n;
 		for( n = 1; n < argc; n++ )
@@ -5484,20 +5410,6 @@ PUBLIC( int, Main)( int argc, TEXTCHAR **argv, int bConsole )
 				}
 			}
 		}
-	}
-	if( g.flags.restoreload )
-	{
-		TEXTCHAR *ext;
-		ext = strrchr( g.config_filename, '.' );
-		if( !ext || StrCaseCmpEx( ext, WIDE( ".AutoConfigBackup" ), 17 ) )
-		{
-			TEXTCHAR msg[256];
-			snprintf( msg, sizeof( msg ), WIDE( "%s\nINVALID Configuration Name to Restore\nShould be like *.AutoConfigBackup*" )
-				, g.config_filename );
-			Banner2Message( msg );
-			return -1;
-		}
-		g.flags.forceload = 1; // -restore implies -force
 	}
 	g.pMainThread = MakeThread();
 	if( !g.flags.bTerminateStayResident )
@@ -5727,17 +5639,53 @@ GetCommonButtonControls
 															 , InterShell_SetCloneButton
 };
 
-POINTER CPROC LoadInterShellInterface( void )
+static POINTER CPROC LoadInterShellInterface( void )
 {
 	return (POINTER)&RealInterShellInterface;
 }
 
-void CPROC UnloadInterShellInterface( POINTER p )
+static void CPROC UnloadInterShellInterface( POINTER p )
 {
+}
+
+static void InitInterShell()
+{
+#ifndef __NO_OPTIONS__
+	g.flags.bTopmost = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Display Topmost"), 0, TRUE );
+	g.flags.bTransparent = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Display is transparent"), 1, TRUE );
+	g.flags.bSpanDisplay = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Use Both Displays(horizontal)"), 0, TRUE );
+	g.flags.bTerminateStayResident = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell/TSR"), 0, TRUE );
+#endif
+	//SystemLogTime( SYSLOG_TIME_CPU| SYSLOG_TIME_DELTA );
+
+	g.system_name = GetSystemName(); // Initialized here. Command argument -Sysname= may override.
+#ifdef __ANDROID__
+   // need to reset some statuses because we're presistant loaded
+	g.flags.bExit = 0;
+#endif
+	{
+		TEXTCHAR buf[256];
+		snprintf( buf, sizeof( buf ), WIDE( "%%resources%%/%s.config" ), GetProgramName() );
+		g.config_filename = StrDup( buf );
+	}
+
+
+}
+
+PRIORITY_PRELOAD( StartTSR, DEFAULT_PRELOAD_PRIORITY+5 )
+{
+	Banner2NoWaitAlpha( WIDE("Loading...") );
+	//void SQLSetFeedbackHandler( void (CPROC*HandleSQLFeedback*)(TEXTCHAR *message) );
+#ifndef __NO_SQL__
+	SQLSetFeedbackHandler( MyHandleSQLFeedback );
+#endif
+	if( g.flags.bTerminateStayResident )
+		restart(); // actually start, but it's oneshot.
 }
 
 PRIORITY_PRELOAD( RegisterInterShellInterface, DEFAULT_PRELOAD_PRIORITY-4 )
 {
+
 	RegisterInterface( WIDE( "InterShell" ), LoadInterShellInterface, UnloadInterShellInterface );
 #ifndef __NO_OPTIONS__
 	//if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "Alias InterShell for MILK" ), 1, TRUE) )
@@ -5748,6 +5696,45 @@ PRIORITY_PRELOAD( RegisterInterShellInterface, DEFAULT_PRELOAD_PRIORITY-4 )
 		RegisterClassAlias( WIDE( "sack/widgets" ), WIDE( "altanik/widgets" ) );
 		RegisterClassAlias( WIDE( "psi/Resources/InterShell" ), WIDE( "psi/Resources/MILK" ) );
 	}
+
+#undef SYMNAME
+#define SYMNAME( a,b) EasyRegisterResource( WIDE( "intershell/visibility" ), a, b );
+		SYMNAME( LIST_ALLOW_SHOW, LISTBOX_CONTROL_NAME )
+		SYMNAME( LIST_DISALLOW_SHOW, LISTBOX_CONTROL_NAME )
+		SYMNAME( LIST_SYSTEMS, LISTBOX_CONTROL_NAME ) // known systems list
+		SYMNAME( EDIT_SYSTEM_NAME, EDIT_FIELD_NAME )
+		SYMNAME( BTN_ADD_SYSTEM, NORMAL_BUTTON_NAME )
+		SYMNAME( BTN_ADD_SYSTEM_TO_DISALLOW, NORMAL_BUTTON_NAME )
+		SYMNAME( BTN_ADD_SYSTEM_TO_ALLOW, NORMAL_BUTTON_NAME )
+		SYMNAME( BTN_REMOVE_SYSTEM_FROM_DISALLOW, NORMAL_BUTTON_NAME )
+		SYMNAME( BTN_REMOVE_SYSTEM_FROM_ALLOW, NORMAL_BUTTON_NAME )
+#undef SYMNAME
+#define SYMNAME( a,b) EasyRegisterResource( WIDE( "intershell/page property" ), a, b );
+		SYMNAME( EDIT_PAGE_GRID_PARTS_X, EDIT_FIELD_NAME )
+		SYMNAME( EDIT_PAGE_GRID_PARTS_Y, EDIT_FIELD_NAME )
+#undef SYMNAME
+#define SYMNAME( a,b) EasyRegisterResource( WIDE( "intershell/Button General/security" ), a, b );
+		SYMNAME( LISTBOX_SECURITY_MODULE, LISTBOX_CONTROL_NAME );
+		SYMNAME( EDIT_SECURITY, NORMAL_BUTTON_NAME );
+
+	EasyRegisterResource( WIDE( "intershell/glareset" ), MNU_EDIT_GLARES, WIDE( "Popup Menu" ) );
+	EasyRegisterResource( WIDE( "intershell/glareset" ), LISTBOX_GLARE_SETS, LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( WIDE( "intershell/glareset" ), LISTBOX_GLARE_SET_THEME, LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( WIDE( "intershell/glareset" ), EDIT_GLARESET_GLARE, EDIT_FIELD_NAME );
+	EasyRegisterResource( WIDE( "intershell/glareset" ), EDIT_GLARESET_UP, EDIT_FIELD_NAME );
+	EasyRegisterResource( WIDE( "intershell/glareset" ), EDIT_GLARESET_DOWN, EDIT_FIELD_NAME );
+	EasyRegisterResource( WIDE( "intershell/glareset" ), EDIT_GLARESET_MASK, EDIT_FIELD_NAME );
+	EasyRegisterResource( WIDE( "intershell/glareset" ), CHECKBOX_GLARESET_MULTISHADE, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE( "intershell/glareset" ), CHECKBOX_GLARESET_SHADE, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE( "intershell/glareset" ), CHECKBOX_GLARESET_FIXED, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE( "intershell/glareset" ), GLARESET_APPLY_CHANGES, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( WIDE( "intershell/glareset" ), GLARESET_CREATE, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( WIDE( "intershell/glareset" ), GLARESET_ADD_THEME, NORMAL_BUTTON_NAME );
+
+	DoRegisterControl( &menu_surface ); 
+	DoRegisterControl( &menu_edit_glare );
+
+   InitInterShell();
 }
 
 OnKeyPressEvent( WIDE( "InterShell/Debug Memory" ) )( PTRSZVAL psv )
