@@ -22,7 +22,7 @@ enum {
 
 struct graph_line_subtype_struct
 {
-   GRAPH_LINE_TYPE parent;
+	GRAPH_LINE_TYPE parent;
 } ;
 
 
@@ -39,7 +39,7 @@ struct graph_line_type_struct
 
 struct graph_line_parent_struct
 {
-   PTRSZVAL psvInstance; // common instance shared by all lines to this target...
+	PTRSZVAL psvInstance; // common instance shared by all lines to this target...
 };
 
 struct graph_line_struct
@@ -57,9 +57,9 @@ struct graph_line_struct
 
 struct graph_struct
 {
-   PSI_CONTROL pc; // actual control this is // control also points back at graph
+	PSI_CONTROL pc; // actual control this is // control also points back at graph
 	PLIST lines;  // list of GRAPH_LINE
-   GRAPH_LINE current_line; // this is for editing interface purposes...
+	GRAPH_LINE current_line; // this is for editing interface purposes...
 	PLIST targets; // targets that the graph is showing?
    _32 timespan; // milliseconds of history to show
 } ;
@@ -71,8 +71,9 @@ PTRSZVAL CPROC FakeTimer( PTHREAD thread )
 	_32 freq = 250;
 	while( !graph_line->done )
 	{
-      graph_line->type->parent->timer( graph_line->psvInstance );
-      WakeableSleep( freq );
+		if( graph_line->type )
+			graph_line->type->parent->timer( graph_line->psvInstance );
+		WakeableSleep( freq );
 	}
 	graph_line->thread = NULL;
 	return 0;
@@ -127,7 +128,7 @@ PTRSZVAL Instance( GRAPH graph, GRAPH_LINE graph_line, TARGET_ADDRESS target )
 			}
 		}
 	}
-   return graph_line->psvInstance;;
+	return graph_line->psvInstance;;
 }
 
 void Destroy( GRAPH graph, GRAPH_LINE destroy_line )
@@ -161,7 +162,7 @@ typedef struct ping_result {
 	int max;
 	int avg;
 	int drop;
-   int hops;
+	int hops;
 } PING_RESULT, *PPING_RESULT;
 
 #define MAXPING_RESULTSPERSET 512
@@ -170,29 +171,29 @@ DeclareSet( PING_RESULT );
 static struct {
 	PLIST line_types; // PLIST of GRAPH_LINE_TYPEs (types of lines to show )
 	PLIST targets; // PLIST of TARGET_ADDRESSs (list of servers to ping)
-   PLIST graphs; // PLIST of GRAPHs  ( controls)
+	PLIST graphs; // PLIST of GRAPHs  ( controls)
 } l;
 
 
 typedef struct ping_data_col PING_DATA_COLLECTOR, *PPING_DATA_COLLECTOR;
 struct ping_data_col{
-   TARGET_ADDRESS address;
+	TARGET_ADDRESS address;
 	//PLINKQUEUE queue;
-   PPING_RESULTSET samples;
+	PPING_RESULTSET samples;
 };
 
 PTRSZVAL InstancePing( TARGET_ADDRESS address )
 {
 	NEW( PING_DATA_COLLECTOR,result);
 	result->address = address;
-   return (PTRSZVAL)result;
+	return (PTRSZVAL)result;
 }
 
 void DestroyPing( PTRSZVAL psv )
 {
 	PPING_DATA_COLLECTOR pdc = (PPING_DATA_COLLECTOR)psv;
-   DeleteSet( (GENERICSET**)&pdc->samples );
-   Release( pdc );
+	DeleteSet( (GENERICSET**)&pdc->samples );
+	Release( pdc );
 }
 
 TARGET_ADDRESS CreateTarget( CTEXTSTR address )
@@ -204,7 +205,7 @@ TARGET_ADDRESS CreateTarget( CTEXTSTR address )
 		Release( target );
 	else
 		AddLink( &l.targets, target );
-   return target;
+	return target;
 }
 
 
@@ -222,9 +223,9 @@ void PingResult( PTRSZVAL psv, _32 dwIP, CTEXTSTR name, int min, int max, int av
 		result->min = min;
 		result->max = max;
 		result->avg = avg;
-      //lprintf( WIDE("setting sample drops to %d"), dropped );
+		//lprintf( WIDE("setting sample drops to %d"), dropped );
 		result->drop = dropped;
-      dropped = 0;
+		dropped = 0;
 		result->hops = hops;
 		result->tick = timeGetTime();
 		//lprintf( WIDE("Added a result. at %ld %p %ld %ld %ld %ld %ld")
@@ -241,7 +242,7 @@ void PingResult( PTRSZVAL psv, _32 dwIP, CTEXTSTR name, int min, int max, int av
 void CPROC PingTimer( PTRSZVAL psv )
 {
 	PPING_DATA_COLLECTOR pdc = (PPING_DATA_COLLECTOR)psv;
-   //static char pResult[4096];
+	//static char pResult[4096];
 	// pass PLINKQUEUE* to pdc...
 	DoPingEx( pdc->address->name, 0, 150, 1, NULL/*pResult*/, FALSE, PingResult, (PTRSZVAL)pdc );
 	//lprintf( WIDE("result text: %s"), pResult );
@@ -250,7 +251,7 @@ void CPROC PingTimer( PTRSZVAL psv )
 GRAPH_LINE AddGraphLine( GRAPH graph, CTEXTSTR server, CTEXTSTR line_type, CTEXTSTR subtype )
 {
 	INDEX idx;
-   TARGET_ADDRESS target;
+	TARGET_ADDRESS target;
 	LIST_FORALL( l.targets, idx, TARGET_ADDRESS, target )
 	{
 		if( strcmp( target->name, server ) == 0 )
@@ -258,7 +259,7 @@ GRAPH_LINE AddGraphLine( GRAPH graph, CTEXTSTR server, CTEXTSTR line_type, CTEXT
 	}
 	if( target )
 	{
-      GRAPH_LINE_TYPE glt;
+		GRAPH_LINE_TYPE glt;
 		LIST_FORALL( l.line_types, idx, GRAPH_LINE_TYPE, glt )
 		{
 			if( strcmp( glt->name, line_type ) == 0 )
@@ -266,21 +267,21 @@ GRAPH_LINE AddGraphLine( GRAPH graph, CTEXTSTR server, CTEXTSTR line_type, CTEXT
 		}
 		if( glt && subtype )
 		{
-         GRAPH_LINE_TYPE line_subtype;
+			GRAPH_LINE_TYPE line_subtype;
 			LIST_FORALL( glt->children, idx, GRAPH_LINE_TYPE, line_subtype )
 			{
 				if( strcmp( line_subtype->name, subtype ) == 0 )
                break;
 			}
 			if( line_subtype )
-            glt = line_subtype; // create one of these, not the parent.
+				glt = line_subtype; // create one of these, not the parent.
 		}
 		if( glt && !glt->children )
 		{
 			NEW( struct graph_line_struct, graph_line );
 			graph_line->type = glt;
 			graph_line->target = target;
-         Instance( graph, graph_line, target );
+			Instance( graph, graph_line, target );
 			if( !graph_line->type || !graph_line->psvInstance )
 				Release( graph_line );
 			else
@@ -293,19 +294,19 @@ GRAPH_LINE AddGraphLine( GRAPH graph, CTEXTSTR server, CTEXTSTR line_type, CTEXT
 			 * sample rate of each ping must be
 			 * independant.  However, it is a single
 			 */
-         return graph_line;
+			return graph_line;
 		}
       // else it's a parent class, and it's invalid.
 	}
-   return NULL;
+	return NULL;
 }
 
 PTRSZVAL CPROC ReloadGraphTimespan( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, S_64, timespan );
 	GRAPH graph = (GRAPH)psv;
-   graph->timespan = (_32)timespan;
-   return psv;
+	graph->timespan = (_32)timespan;
+	return psv;
 }
 
 PTRSZVAL CPROC ReloadGraphTarget( PTRSZVAL psv, arg_list args )
@@ -314,9 +315,9 @@ PTRSZVAL CPROC ReloadGraphTarget( PTRSZVAL psv, arg_list args )
 	PARAM( args, CTEXTSTR, type );
 	GRAPH graph = (GRAPH)psv;
 	GRAPH_LINE line = AddGraphLine( graph, server, type, NULL );
-   if( line )
+	if( line )
 		line->color = BASE_COLOR_WHITE;
-   return psv;
+	return psv;
 }
 
 PTRSZVAL CPROC NewReloadGraphTarget( PTRSZVAL psv, arg_list args )
@@ -326,9 +327,9 @@ PTRSZVAL CPROC NewReloadGraphTarget( PTRSZVAL psv, arg_list args )
 	PARAM( args, CDATA, color );
 	GRAPH graph = (GRAPH)psv;
 	GRAPH_LINE line = AddGraphLine( graph, server, type, NULL );
-   if( line )
+	if( line )
 		line->color = color;
-   return psv;
+	return psv;
 }
 
 PTRSZVAL CPROC NewReloadGraphSubTarget( PTRSZVAL psv, arg_list args )
@@ -339,17 +340,17 @@ PTRSZVAL CPROC NewReloadGraphSubTarget( PTRSZVAL psv, arg_list args )
 	PARAM( args, CDATA, color );
 	GRAPH graph = (GRAPH)psv;
 	GRAPH_LINE line = AddGraphLine( graph, server, type, sub_type );
-   if( line )
+	if( line )
 		line->color = color;
-   return psv;
+	return psv;
 }
 
 PTRSZVAL CPROC ReloadTarget( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, server );
-   CreateTarget( server );
+	CreateTarget( server );
 	//GetAddressParts( target->addr, &target->dwIP, &target->port );
-   return psv;
+	return psv;
 }
 
 GRAPH_LINE_TYPE RegisterLineType( CTEXTSTR name, InstanceFunction i, DestroyFunction d, TimerProc t, RenderFunction f )
@@ -363,10 +364,10 @@ GRAPH_LINE_TYPE RegisterLineType( CTEXTSTR name, InstanceFunction i, DestroyFunc
 		return NULL;
 	}
 	line->instance = i;
-   line->timer = t;
-   line->destroy = d;
+	line->timer = t;
+	line->destroy = d;
 	AddLink( &l.line_types, line );
-   return line;
+	return line;
 }
 
 GRAPH_LINE_TYPE RegisterLineClassType( CTEXTSTR class_name, InstanceFunction i, DestroyFunction d, TimerProc t )
@@ -380,10 +381,10 @@ GRAPH_LINE_TYPE RegisterLineClassType( CTEXTSTR class_name, InstanceFunction i, 
 		return NULL;
 	}
 	class_line->instance = i;
-   class_line->timer = t;
+	class_line->timer = t;
 	class_line->destroy = d;
-   AddLink( &l.line_types, class_line );
-   return class_line;
+	AddLink( &l.line_types, class_line );
+	return class_line;
 }
 
 GRAPH_LINE_TYPE RegisterLineSubType( GRAPH_LINE_TYPE parent, CTEXTSTR name, RenderFunction f )
@@ -485,7 +486,7 @@ void RenderPingMax( PTRSZVAL psv, PDATALIST *points, _32 from, _32 to, _32 resol
 
 void RenderPingDropped( PTRSZVAL psv, PDATALIST *points, _32 from, _32 to, _32 resolution, _32 value_resolution )
 {
-   PPING_DATA_COLLECTOR ppdc = (PPING_DATA_COLLECTOR)psv;
+	PPING_DATA_COLLECTOR ppdc = (PPING_DATA_COLLECTOR)psv;
 	_32 tick;
 	INDEX idx_sample;
 	PPING_RESULT sample;
@@ -548,7 +549,7 @@ void RenderPingDropped( PTRSZVAL psv, PDATALIST *points, _32 from, _32 to, _32 r
 				//lprintf( WIDE("Added point... %ld %ld"), point.offset, point.value );
 
 				AddDataItem( points, &point );
-            //lprintf( WIDE("End is %ld"), (*points)->Cnt );
+				//lprintf( WIDE("End is %ld"), (*points)->Cnt );
 				tick = sample->tick + 1;  // find next sample
 			}
 			else
@@ -563,7 +564,7 @@ OnLoadCommon( WIDE("Ping Graph Registry") )( PCONFIG_HANDLER pch )
 	//RegisterLineType( WIDE("Ping Min"), NULL );
 	{
 		GRAPH_LINE_TYPE type = RegisterLineClassType( WIDE("Ping"), InstancePing, DestroyPing, PingTimer );
-      RegisterLineSubType( type, WIDE("Max"), RenderPingMax );
+		RegisterLineSubType( type, WIDE("Max"), RenderPingMax );
 		RegisterLineSubType( type, WIDE("Dropped"), RenderPingDropped );
 	}
 	RegisterLineType( WIDE("Ping Max"), InstancePing, DestroyPing, PingTimer, RenderPingMax );
@@ -574,7 +575,7 @@ OnLoadCommon( WIDE("Ping Graph Registry") )( PCONFIG_HANDLER pch )
 	SimpleRegisterResource( LST_GRAPH_TYPE, LISTBOX_CONTROL_NAME );
 	SimpleRegisterResource( LST_TARGET_NAMES, LISTBOX_CONTROL_NAME );
 	SimpleRegisterResource( LST_LINES_ACTIVE, LISTBOX_CONTROL_NAME );
-   SimpleRegisterResource( CLR_LINE_COLOR, WIDE("Color Well") );
+	SimpleRegisterResource( CLR_LINE_COLOR, WIDE("Color Well") );
 	SimpleRegisterResource( BTN_NEW_TARGET, NORMAL_BUTTON_NAME );
 	SimpleRegisterResource( BTN_ADD_LINE, NORMAL_BUTTON_NAME );
 	SimpleRegisterResource( BTN_REMOVE_LINE, NORMAL_BUTTON_NAME );
@@ -592,14 +593,14 @@ OnLoadControl( WIDE("Ping Status Graph") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 OnSaveControl( WIDE("Ping Status Graph") )( FILE *file, PTRSZVAL psv )
 {
 	INDEX idx;
-   GRAPH_LINE line;
+	GRAPH_LINE line;
 	GRAPH graph = (GRAPH)psv;
 	LIST_FORALL( graph->lines, idx, GRAPH_LINE, line )
 	{
 		TARGET_ADDRESS target = (TARGET_ADDRESS)line->target;
-      if( line->type->parent )
+		if( line->type->parent )
 			fprintf( file, WIDE("graph line server:\'%s\' status:\'%s\' sub: \'%s\' color:$%")_32fX WIDE("\n"), target->name, line->type->parent->name, line->type->name, line->color );
-      else
+		else
 			fprintf( file, WIDE("graph line server:\'%s\' status:\'%s\' color:$%")_32fX WIDE("\n"), target->name, line->type->name, line->color );
 	}
 	fprintf( file, WIDE("graph timespan:%ld\n"), graph->timespan );
@@ -607,13 +608,13 @@ OnSaveControl( WIDE("Ping Status Graph") )( FILE *file, PTRSZVAL psv )
 
 OnLoadCommon( WIDE("Ping Status Graph Targets") )( PCONFIG_HANDLER pch )
 {
-   AddConfigurationMethod( pch, WIDE("ping target=%m"), ReloadTarget );
+	AddConfigurationMethod( pch, WIDE("ping target=%m"), ReloadTarget );
 }
 
 OnSaveCommon( WIDE("Ping Status Graph Targets") )( FILE *file )
 {
 	INDEX idx;
-   TARGET_ADDRESS target;
+	TARGET_ADDRESS target;
 	LIST_FORALL( l.targets, idx, TARGET_ADDRESS, target )
 	{
 		fprintf( file, WIDE("ping target=%s\n"), target->name );
@@ -623,7 +624,7 @@ OnSaveCommon( WIDE("Ping Status Graph Targets") )( FILE *file )
 static void CPROC CreateATarget( PTRSZVAL psv, PSI_CONTROL button )
 {
 	TEXTCHAR buffer[256];
-   TARGET_ADDRESS target;
+	TARGET_ADDRESS target;
 	if( SimpleUserQuery( buffer, 256, WIDE("Enter new target address"), NULL ) )
 	{
 		target = CreateTarget( buffer );
@@ -650,7 +651,12 @@ static void CPROC ButtonAddGraphLine( PTRSZVAL psv, PSI_CONTROL button )
 	}
 	graph_line->target =
 		(TARGET_ADDRESS)GetItemData( GetSelectedItem( GetNearControl( button, LST_TARGET_NAMES ) ) );
-
+	if( !graph_line->target )
+	{
+		SimpleMessageBox( NULL, "Bad Selection", "Must Select a target Server" );
+		Deallocate( struct graph_line_struct, graph_line );
+		return;
+	}
 	Instance( graph, graph_line, graph_line->target );
 
 	if( !graph_line->type || !graph_line->target || !graph_line->psvInstance )
@@ -672,7 +678,7 @@ static void CPROC ButtonDeleteGraphLine( PTRSZVAL psv, PSI_CONTROL button )
 {
 	GRAPH graph = (GRAPH)psv;
 	{
-      PSI_CONTROL list;
+		PSI_CONTROL list;
 		PLISTITEM pli = GetSelectedItem( list = GetNearControl( button, LST_LINES_ACTIVE ) );
 		if( pli )
 		{
@@ -711,7 +717,7 @@ static void CPROC SetLineColor( PTRSZVAL psv, CDATA color )
 	GRAPH graph = (GRAPH)psv;
 	if( graph->current_line )
 	{
-      graph->current_line->color = color;
+		graph->current_line->color = color;
  	}
 }
 
@@ -726,7 +732,7 @@ void FillLineTypeList( PSI_CONTROL list, PLIST line_type_list, INDEX level )
 			SetItemData( AddListItemEx( list, level, glt->name ), (PTRSZVAL)glt );
 			if( glt->children )
 			{
-            FillLineTypeList( list, glt->children, level+1 );
+				FillLineTypeList( list, glt->children, level+1 );
 			}
 		}
 	}
@@ -740,7 +746,7 @@ OnEditControl( WIDE("Ping Status Graph") )( PTRSZVAL psv, PSI_CONTROL parent )
 	{
 		PSI_CONTROL list;
 		list = GetControl( frame, LST_GRAPH_TYPE );
-      SetListboxIsTree( list, TRUE );
+		SetListboxIsTree( list, TRUE );
 		FillLineTypeList( list, l.line_types, 0 );
 
 		list = GetControl( frame, LST_TARGET_NAMES );
@@ -750,7 +756,7 @@ OnEditControl( WIDE("Ping Status Graph") )( PTRSZVAL psv, PSI_CONTROL parent )
 			TARGET_ADDRESS target;
 			LIST_FORALL( l.targets, idx, TARGET_ADDRESS, target )
 			{
-            SetItemData( AddListItem( list, target->name ), (PTRSZVAL)target );
+				SetItemData( AddListItem( list, target->name ), (PTRSZVAL)target );
 			}
 		}
 		list = GetControl( frame, LST_LINES_ACTIVE );
@@ -810,19 +816,19 @@ OnEditControl( WIDE("Ping Status Graph") )( PTRSZVAL psv, PSI_CONTROL parent )
 		}
 
 	}
-   return psv;
+	return psv;
 }
 
 OnGetControl( WIDE("Ping Status Graph") )( PTRSZVAL psv )
 {
 	GRAPH graph = (GRAPH)psv;
-   return graph->pc;
+	return graph->pc;
 }
 
 void CPROC UpdateGraph( PTRSZVAL psv )
 {
 	GRAPH graph = (GRAPH)psv;
-   SmudgeCommon( graph->pc );
+	SmudgeCommon( graph->pc );
 }
 
 OnCreateControl( WIDE("Ping Status Graph") )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
@@ -832,7 +838,7 @@ OnCreateControl( WIDE("Ping Status Graph") )( PSI_CONTROL parent, S_32 x, S_32 y
 	PSI_CONTROL pc = MakeNamedControl( parent, WIDE("Graph Control"), x, y, w, h, 0 );
 	{
 		ValidatedControlData( GRAPH, graph_control_reg.TypeID, graph, pc );
-      graph->pc = pc;
+		graph->pc = pc;
 	
 		graph->timespan = 30000; // 30 seconds
 		AddTimer( 30, UpdateGraph, (PTRSZVAL)graph );
@@ -845,8 +851,8 @@ OnCreateControl( WIDE("Ping Status Graph") )( PSI_CONTROL parent, S_32 x, S_32 y
 OnDestroyControl( WIDE("Ping Status Graph") )( PTRSZVAL psv )
 {
 	GRAPH graph = (GRAPH)psv;
-   SetControlData( GRAPH, graph->pc, NULL );
-   Release( graph );
+	SetControlData( GRAPH, graph->pc, NULL );
+	Release( graph );
 }
 
 void DrawLine( Image image, GRAPH graph, GRAPH_LINE line )
@@ -900,19 +906,19 @@ static int CPROC OnDrawCommon( WIDE("Graph Control") )( PSI_CONTROL pc )
 	if( graph )
 	{
 		Image image = GetControlSurface( pc );
-      //lprintf( WIDE("Begin Graph") );
+		//lprintf( WIDE("Begin Graph") );
 		ClearImageTo( image, SetAlpha( BASE_COLOR_DARKGREY, 128 ) );
 		{
 			int n;
 			_32 w, h;
-         GetImageSize( image, &w, &h );
+			GetImageSize( image, &w, &h );
 			for( n = 0; n <= 10; n++ )
 			{
-            do_vline( image, ( ( ( w - 30 ) *n )/ 10 ) + 15, 0, h, BASE_COLOR_BLUE );
+				do_vline( image, ( ( ( w - 30 ) *n )/ 10 ) + 15, 0, h, BASE_COLOR_BLUE );
 			}
 		}
 		{
-         GRAPH_LINE line;
+			GRAPH_LINE line;
 			INDEX idx;
 			LIST_FORALL( graph->lines, idx, GRAPH_LINE, line )
 			{
