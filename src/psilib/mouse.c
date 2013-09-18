@@ -323,7 +323,7 @@ void SetCommonFocus( PSI_CONTROL pc )
 				if( !test && pf->pFocus )
 				{
 					pf->pFocus->flags.bFocused = FALSE;
-               InvokeSingleMethod( pf->pFocus, ChangeFocus, (pf->pFocus, FALSE) );
+					InvokeSingleMethod( pf->pFocus, ChangeFocus, (pf->pFocus, FALSE) );
 #ifdef DETAILED_MOUSE_DEBUG
 					if( g.flags.bLogDetailedMouse )
 						lprintf( WIDE("Clearing prior focus, telling control to draw itself...") );
@@ -1678,7 +1678,7 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 			pf->CurrentBias.y -= pf->pCurrent->rect.y;
 			pf->CurrentBias.flags.bias_is_surface = 1;
 			pf->pCurrent = pf->pCurrent->parent;
-         goto retry1;
+			goto retry1;
 		}
 	}
 	else
