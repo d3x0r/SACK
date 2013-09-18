@@ -13,6 +13,7 @@
 #include <sharemem.h>
 //#define NO_LOGGING
 #include <logging.h>
+#include <sqlgetoption.h>
 
 #include "global.h"
 
@@ -68,6 +69,13 @@ PSI_PROC( PMENU, CreatePopup )( void )
 #else
 	local_popup_data.flags.bCustomMenuEnable = RequiresDrawAll();
 #endif
+#ifndef __NO_OPTIONS__
+	local_popup_data.flags.bCustomMenuEnable = SACK_GetProfileIntEx( GetProgramName()
+																						, "SACK/PSI/menus/Use Custom Popups"
+																						, local_popup_data.flags.bCustomMenuEnable
+																						, TRUE );
+#endif
+
 	if( local_popup_data.flags.bCustomMenuEnable )
 	{
 		PMENU pm;
