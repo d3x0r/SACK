@@ -1743,7 +1743,6 @@ HWND MoveWindowStack( PVIDEO hInChain, HWND hwndInsertAfter, int use_under )
 			result_after = hwndInsertAfter;
 
 		hwndInsertAfter = current->hWndOutput;
-		current = current->pAbove;
 	}								
 	EndDeferWindowPos( hWinPosInfo );
 
