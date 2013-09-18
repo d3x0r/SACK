@@ -94,14 +94,13 @@ PRELOAD( InitInterfaces )
 #ifndef __NO_OPTIONS__
 	l.flags.bLogTiming = SACK_GetPrivateProfileInt( WIDE( "vlc/config" ), WIDE( "log timing" ), 0, WIDE( "video.ini" ) );
 #endif
-   lprintf( WIDE( "path is %s" ), vlc_path );
+   	lprintf( WIDE( "path is %s" ), vlc_path );
 	{
 		int n;
 		for( n = 0; l.vlc_path[n]; n++ )
 			if( l.vlc_path[n] == '/' )
 				l.vlc_path[n] = '\\';
 	}
-   AddTimer( 100, Cleaner, 0 );
 }
 
 typedef void (CPROC *mylibvlc_callback_t )( const libvlc_event_t *, void * );
@@ -379,6 +378,8 @@ static void CPROC PlayerEvent( const libvlc_event_t *event, void *user )
 				struct vlc_release *vlc_release = New( struct vlc_release );
 				vlc_release->pmyi = pmyi;
 				vlc_release->tick = timeGetTime();
+				if( !l.vlc_releases )
+					AddTimer( 100, Cleaner, 0 );
 				AddLink( &l.vlc_releases, vlc_release );
 			}
 			pmyi->flags.bDone = 1;

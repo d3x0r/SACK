@@ -68,9 +68,6 @@ int setOptions( int argc )
 
 			else if( StrCaseCmp( l.wargv[n]+1, WIDE( "log_stdout" ) ) == 0 )
 			{
-				FLAGSETTYPE flags = 0;
-				SetSyslogOptions( &flags );
-				SystemLogTime( 0 );
 				SetSystemLog( SYSLOG_FILE, stdout );
 			}
 
@@ -263,7 +260,7 @@ int main( int argc, char ** argv )
 		lprintf( WIDE( " Woke up..." ) );
 
 
-		if( !l.flags.is_stream )
+		if( !l.flags.is_stream && transparent )
 			if( !DisplayIsValid( transparent ) )
 				break;
 
