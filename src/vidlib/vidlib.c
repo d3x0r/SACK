@@ -56,13 +56,13 @@
 #include <shlwapi.h> // must include this if shellapi.h is used.
 #include <shellapi.h> // very last though - this is DragAndDrop definitions...
 
-//#define LOG_ORDERING_REFOCUS
+#define LOG_ORDERING_REFOCUS
 //#define LOG_MOUSE_EVENTS
 //#define LOG_RECT_UPDATE
 //#define LOG_DESTRUCTION
 //#define LOG_STARTUP
 //#define LOG_FOCUSEVENTS
-//#define OTHER_EVENTS_HERE
+#define OTHER_EVENTS_HERE
 //#define LOG_SHOW_HIDE
 //#define LOG_DISPLAY_RESIZE
 //#define NOISY_LOGGING
@@ -380,30 +380,30 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
                                           , S_32 x, S_32 y
                                           , _32 w, _32 h DBG_PASS)
 {
-   ImageFile *pImage;
-   if (hVideo
+	ImageFile *pImage;
+	if (hVideo
        && (pImage = hVideo->pImage) && hVideo->hDCBitmap && hVideo->hDCOutput)
 	{
 #ifdef LOG_RECT_UPDATE
 		lprintf( WIDE( "Entering from %s(%d)" ), pFile, nLine );
 #endif
-	  if( x + (signed)w < 0 )
+		if( x + (signed)w < 0 )
 			return;
-	  if( y + (signed)h < 0 )
-		  return;
-	  if( x > hVideo->pWindowPos.cx ) 
-		  return;
-	  if( y > hVideo->pWindowPos.cy ) 
-		  return;
-      if (!h)
-         h = pImage->height;
-      if (!w)
-         w = pImage->width;
+		if( y + (signed)h < 0 )
+			return;
+		if( x > hVideo->pWindowPos.cx ) 
+			return;
+		if( y > hVideo->pWindowPos.cy ) 
+			return;
+		if (!h)
+			h = pImage->height;
+		if (!w)
+			w = pImage->width;
 
-	  if( l.flags.bLogWrites )
+		if( l.flags.bLogWrites )
 			_xlprintf( 1 DBG_RELAY )( WIDE("Write to Window: %p %d %d %d %d"), hVideo, x, y, w, h );
 
-      if (!hVideo->flags.bShown)
+		if (!hVideo->flags.bShown)
 		{
 			if( l.flags.bLogWrites )
 				lprintf( WIDE("Setting shown...") );
@@ -415,8 +415,8 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 			if( l.flags.bLogWrites )
 				_xlprintf( 1 DBG_RELAY )( WIDE("Show Window: %d %d %d %d"), x, y, w, h );
 			//lprintf( "During an update showing window... %p", hVideo );
-				if( hVideo->flags.bTopmost )
-				{
+			if( hVideo->flags.bTopmost )
+			{
 #ifdef LOG_ORDERING_REFOCUS
 
 			//DumpMyChain( hVideo );
@@ -724,7 +724,7 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 	{
 		//lprintf( WIDE("Rendering surface is not able to be updated (no surface, hdc, bitmap, etc)") );
 	}
-#if defined( LOG_ORDERING_REFOCUS )
+#ifdef DEBUG_TIMING
 	lprintf( WIDE( "Done with UpdateDisplayPortionEx()" ) );
 #endif
 }
@@ -1156,9 +1156,12 @@ LRESULT CALLBACK
 		int dispatch_handled = 0;
 		PVIDEO hVid;
 		int key, scancode, keymod = 0;
+		HWND hWndActive = GetActiveWindow ();
 		HWND hWndFocus = GetFocus ();
 		HWND hWndFore = GetForegroundWindow();
 		ATOM aThisClass;
+
+		lprintf( "window's %p %p %p", hWndFocus, hWndFore, hWndActive );
 		if( code == HC_NOREMOVE )
 		{
 			{
@@ -1719,9 +1722,12 @@ HWND MoveWindowStack( PVIDEO hInChain, HWND hwndInsertAfter, int use_under )
 			hwndInsertAfter = check->under->hWndOutput;
 		}
 
-		save_current = current;
-	while( current )
+	save_current = current;
+	for( ; current; current = current->pAbove )
 	{
+		if( current->flags.bHidden )
+			continue;
+
 #ifdef LOG_ORDERING_REFOCUS
 		lprintf( WIDE( "Add defered pos put %p after %p" )
 			, current->hWndOutput
@@ -1986,7 +1992,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 #if defined( OTHER_EVENTS_HERE )
 	static int level;
-#define Return   lprintf( WIDE("Finished Message %p %d %d"), hWnd, uMsg, level-- ); return 
+#define Return   	if( l.flags.bLogMessages ) lprintf( WIDE("Finished Message %p %d %d"), hWnd, uMsg, level-- ); return
 #else
 #define Return   return 
 #endif
@@ -1994,10 +2000,11 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	_32 _mouse_b = l.mouse_b;
 	//static UINT uLastMouseMsg;
 #if defined( OTHER_EVENTS_HERE )
-   if( uMsg != 13 && uMsg != WM_TIMER ) // get window title?
-   {
-		lprintf( WIDE("Got message %p %d(%04x) %p %p %d"), hWnd, uMsg, uMsg, wParam, lParam, ++level );
-   }
+	if( l.flags.bLogMessages )
+		if( uMsg != 13 && uMsg != WM_TIMER ) // get window title?
+		{
+			lprintf( WIDE("Got message %p %d(%04x) %p %p %d"), hWnd, uMsg, uMsg, wParam, lParam, ++level );
+		}
 #endif
 	switch (uMsg)
 	{
@@ -2034,7 +2041,8 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 #endif
 
 #if defined( OTHER_EVENTS_HERE )
-		lprintf( WIDE( "No, thanx, you don't need to activate." ) );
+		if( l.flags.bLogMessages )
+			lprintf( WIDE( "No, thanx, you don't need to activate." ) );
 #endif
 #ifndef UNDER_CE
 		Return MA_NOACTIVATE;
@@ -2045,7 +2053,8 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 #if defined( OTHER_EVENTS_HERE )
 			POINTS p = MAKEPOINTS( lParam );
-			lprintf( WIDE( "%d,%d Hit Test is Client" ), p.x,p.y );
+			if( l.flags.bLogMessages )
+				lprintf( WIDE( "%d,%d Hit Test is Client" ), p.x,p.y );
 #endif
 		}
 		Return HTCLIENT;
@@ -2347,7 +2356,8 @@ WM_DROPFILES
 #ifndef UNDER_CE
    case WM_ACTIVATEAPP:
 #ifdef OTHER_EVENTS_HERE
-		lprintf( "activate app on this window? %d", wParam );
+		if( l.flags.bLogMessages )
+			lprintf( "activate app on this window? %d", wParam );
 #endif
 	   break;
 #endif
@@ -2592,7 +2602,7 @@ WM_DROPFILES
  #ifdef LOG_ORDERING_REFOCUS
 			if( !pwp->hwndInsertAfter )
 			{
-            //WakeableSleep( 500 );
+				//WakeableSleep( 500 );
 				lprintf( WIDE( "..." ) );
 			}
 			lprintf( WIDE("Being inserted after %x %x"), pwp->hwndInsertAfter, hWnd );
@@ -2639,7 +2649,7 @@ WM_DROPFILES
 				lprintf( WIDE( "Resize happened, recreate drawing surface..." ) );
 #endif
 				CreateDrawingSurface (hVideo);
-            // ??
+				// ??
 			}
 			LeaveCriticalSec( &hVideo->cs );
 
@@ -2694,16 +2704,16 @@ WM_DROPFILES
 				if( hVideo )
 				{
 					int n;
-               PINPUT_POINT new_inputs = NewArray( struct input_point, count );
+					PINPUT_POINT new_inputs = NewArray( struct input_point, count );
 					for( n = 0; n < count; n++ )
 					{
 						new_inputs[n].x = inputs[n].x;
 						new_inputs[n].y = inputs[n].y;
-                  new_inputs[n].flags.new_event = inputs[n].dwFlags & TOUCHEVENTF_DOWN;
-                  new_inputs[n].flags.end_event = inputs[n].dwFlags & TOUCHEVENTF_UP;
+						new_inputs[n].flags.new_event = inputs[n].dwFlags & TOUCHEVENTF_DOWN;
+						new_inputs[n].flags.end_event = inputs[n].dwFlags & TOUCHEVENTF_UP;
 					}
 					InvokeSurfaceInput( count, new_inputs );
-               Deallocate( PINPUT_POINT, new_inputs );
+					Deallocate( PINPUT_POINT, new_inputs );
 					if( hVideo->pTouchCallback )
 					{
 						hVideo->pTouchCallback( hVideo->dwTouchData, inputs, count );
@@ -3193,7 +3203,7 @@ WM_DROPFILES
 				hVideo->hWndOutput = hWnd;
 				hVideo->pThreadWnd = MakeThread();
 
-            hVideo->flags.bForceSurfaceUpdate = 0;
+				hVideo->flags.bForceSurfaceUpdate = 0;
 				CreateDrawingSurface (hVideo);
 				hVideo->flags.bReady = TRUE;
 				WakeThreadID( hVideo->thread );
@@ -3267,7 +3277,7 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (PVIDEO hVideo, int x, int y,
 #endif
 			l.hVidCore = New(VIDEO);
 			MemSet (l.hVidCore, 0, sizeof (VIDEO));
-         InitializeCriticalSec( &l.hVidCore->cs );
+			InitializeCriticalSec( &l.hVidCore->cs );
 			l.hVidCore->hWndOutput = (HWND)l.hWndInstance;
 			l.hVidCore->pThreadWnd = MakeThread();
 		}
@@ -3356,7 +3366,7 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (PVIDEO hVideo, int x, int y,
 int CPROC VideoEventHandler( _32 MsgID, _32 *params, _32 paramlen )
 {
 #if defined( LOG_MOUSE_EVENTS ) || defined( OTHER_EVENTS_HERE )
-	if( l.flags.bLogMouseEvents )
+	if( l.flags.bLogMouseEvents || l.flags.bLogMessages )
 		lprintf( WIDE("Received message %d"), MsgID );
 #endif
 	l.dwEventThreadID = GetCurrentThreadId();
@@ -3908,6 +3918,7 @@ static void VideoLoadOptions( void )
 
 #ifndef __NO_OPTIONS__
 	PODBC option = GetOptionODBC( GetDefaultOptionDatabaseDSN(), 0 );
+   l.flags.bLogMessages = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/log messages" ), 0, TRUE );
 	l.flags.bHookTouchEvents = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/use touch event" ), 0, TRUE );
 
 	l.flags.bLogMouseEvents = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/log mouse event" ), 0, TRUE );
@@ -4347,10 +4358,10 @@ RENDER_PROC( void, SetDisplayNoMouse )( PVIDEO hVideo, int bNoMouse )
 RENDER_PROC (PVIDEO, OpenDisplayAboveSizedAt) (_32 attr, _32 wx, _32 wy,
                                                S_32 x, S_32 y, PVIDEO parent)
 {
-   PVIDEO newvid = OpenDisplaySizedAt (attr, wx, wy, x, y);
-   if (parent)
-      PutDisplayAbove (newvid, parent);
-   return newvid;
+	PVIDEO newvid = OpenDisplaySizedAt (attr, wx, wy, x, y);
+	if (parent)
+		PutDisplayAbove (newvid, parent);
+	return newvid;
 }
 
 RENDER_PROC (PVIDEO, OpenDisplayAboveUnderSizedAt) (_32 attr, _32 wx, _32 wy,
@@ -4859,23 +4870,25 @@ RENDER_PROC (void, HideDisplay) (PVIDEO hVideo)
 				//lprintf( "Checking thread..." );
 				if( ( GetCurrentThreadId () == l.dwThreadID ) && IsThisThread( thread ) )
 				{
+					HWND hWndActive = GetActiveWindow();
+					HWND hWndFocus = GetFocus ();
+					HWND hWndFore = GetForegroundWindow();
 					found = 1;
 					//lprintf( WIDE( "..." ) );
-					if( hVideo->hWndOutput == GetActiveWindow() ||
+					if( hVideo->hWndOutput == GetForegroundWindow() ||
 						hVideo->hWndOutput == GetFocus() )
 					{
 						if (hVideo->pAbove)
 						{
-                     SafeSetFocus( hVideo->pAbove->hWndOutput );
-
+							SafeSetFocus( hVideo->pAbove->hWndOutput );
 						}
 						else if( hVideo->pBelow )
 						{
-                     SafeSetFocus( hVideo->pBelow->hWndOutput );
+							SafeSetFocus( hVideo->pBelow->hWndOutput );
 						}
 						else
 						{
-                     SafeSetFocus( GetDesktopWindow() );
+							SafeSetFocus( GetDesktopWindow() );
 						}
 					}
 
@@ -4991,19 +5004,22 @@ void RestoreDisplayEx(PVIDEO hVideo DBG_PASS )
 				if( ( GetCurrentThreadId () == l.dwThreadID ) && isthread )
 				{
 #if defined( OTHER_EVENTS_HERE )
-					lprintf( WIDE( "Sending SHOW_WINDOW to window thread.. %p" ), hVideo  );
+					if( l.flags.bLogMessages )
+						lprintf( WIDE( "Sending SHOW_WINDOW to window thread.. %p" ), hVideo  );
 #endif
 					PostThreadMessage (l.dwThreadID, WM_USER_SHOW_WINDOW, 0, (LPARAM)hVideo );
 				}
 				else
 				{
 #if defined( OTHER_EVENTS_HERE )
-					lprintf( WIDE( "Doing the show window." ) );
+					if( l.flags.bLogMessages )
+						lprintf( WIDE( "Doing the show window." ) );
 #endif
 					if( hVideo->flags.bShown )
 					{
 #if defined( OTHER_EVENTS_HERE )
-						lprintf( WIDE( "window was shown, use restore." ) );
+						if( l.flags.bLogMessages )
+							lprintf( WIDE( "window was shown, use restore." ) );
 #endif
 						hVideo->flags.bRestoring = 1;
 						ShowWindow( hVideo->hWndOutput, SW_RESTORE );
@@ -5013,14 +5029,16 @@ void RestoreDisplayEx(PVIDEO hVideo DBG_PASS )
 					{
 						hVideo->flags.bShown = 1;
 #if defined( OTHER_EVENTS_HERE )
-						lprintf( WIDE( "Generating initial show (restore display, never shown)" ) );
+						if( l.flags.bLogMessages )
+							lprintf( WIDE( "Generating initial show (restore display, never shown)" ) );
 #endif
 						ShowWindow( hVideo->hWndOutput, SW_SHOW );
 					}
 					if( hVideo->flags.bTopmost )
 					{
 #if defined( OTHER_EVENTS_HERE )
-						lprintf( WIDE( "Setting possition topmost..." ) );
+						if( l.flags.bLogMessages )
+							lprintf( WIDE( "Setting possition topmost..." ) );
 #endif
 						SetWindowPos( hVideo->hWndOutput
 										 , HWND_TOPMOST
@@ -5119,13 +5137,13 @@ RENDER_PROC (void, GetDisplaySizeEx) ( int nDisplay
 
 RENDER_PROC (void, GetDisplaySize) (_32 * width, _32 * height)
 {
-   RECT r;
-   GetWindowRect (GetDesktopWindow (), &r);
-   //Log4( WIDE("Desktop rect is: %d, %d, %d, %d"), r.left, r.right, r.top, r.bottom );
-   if (width)
-      *width = r.right - r.left;
-   if (height)
-      *height = r.bottom - r.top;
+	RECT r;
+	GetWindowRect (GetDesktopWindow (), &r);
+	//Log4( WIDE("Desktop rect is: %d, %d, %d, %d"), r.left, r.right, r.top, r.bottom );
+	if (width)
+		*width = r.right - r.left;
+	if (height)
+		*height = r.bottom - r.top;
 }
 
 //----------------------------------------------------------------------------
@@ -5162,35 +5180,37 @@ RENDER_PROC (void, GetDisplayPosition) (PVIDEO hVid, S_32 * x, S_32 * y,
 //----------------------------------------------------------------------------
 RENDER_PROC (LOGICAL, DisplayIsValid) (PVIDEO hVid)
 {
-   return hVid->flags.bReady;
+   if( hVid )
+		return hVid->flags.bReady;
+   return FALSE;
 }
 
 //----------------------------------------------------------------------------
 
 RENDER_PROC (void, SetDisplaySize) (_32 width, _32 height)
 {
-   SizeDisplay (l.hVideoPool, width, height);
+	SizeDisplay (l.hVideoPool, width, height);
 }
 
 //----------------------------------------------------------------------------
 
 RENDER_PROC (ImageFile *,GetDisplayImage )(PVIDEO hVideo)
 {
-   return hVideo->pImage;
+	return hVideo->pImage;
 }
 
 //----------------------------------------------------------------------------
 
 RENDER_PROC (PKEYBOARD, GetDisplayKeyboard) (PVIDEO hVideo)
 {
-   return &hVideo->kbd;
+	return &hVideo->kbd;
 }
 
 //----------------------------------------------------------------------------
 
 RENDER_PROC (LOGICAL, HasFocus) (PRENDERER hVideo)
 {
-   return hVideo->flags.bFocused;
+	return hVideo->flags.bFocused;
 }
 
 //----------------------------------------------------------------------------
@@ -5238,7 +5258,7 @@ RENDER_PROC (void, OwnMouseEx) (PVIDEO hVideo, _32 own DBG_PASS)
 				if( !hVideo->flags.bCaptured )
 				{
 					lprintf( WIDE("This should NEVER happen!") );
-               *(int*)0 = 0;
+					*(int*)0 = 0;
 				}
 				// should already have the capture...
 			}
@@ -5272,14 +5292,14 @@ NoProc (void)
 
 RENDER_PROC (int, BeginCalibration) (_32 nPoints)
 {
-   return 1;
+	return 1;
 }
 
 //----------------------------------------------------------------------------
 RENDER_PROC (void, SyncRender)( PVIDEO hVideo )
 {
-   // sync has no consequence...
-   return;
+	// sync has no consequence...
+	return;
 }
 
 //----------------------------------------------------------------------------
@@ -5289,10 +5309,10 @@ RENDER_PROC( void, ForceDisplayFocus )( PRENDERER pRender )
 	//SetActiveWindow( GetParent( pRender->hWndOutput ) );
 	//SetForegroundWindow( GetParent( pRender->hWndOutput ) );
 	//SetFocus( GetParent( pRender->hWndOutput ) );
-   //lprintf( WIDE( "... 3 step?" ) );
+	//lprintf( WIDE( "... 3 step?" ) );
 	//SetActiveWindow( pRender->hWndOutput );
 	//SetForegroundWindow( pRender->hWndOutput );
-   if( pRender )
+	if( pRender )
 		SafeSetFocus( pRender->hWndOutput );
 }
 
@@ -5315,8 +5335,8 @@ RENDER_PROC( void, ForceDisplayFront )( PRENDERER pRender )
 RENDER_PROC( void, ForceDisplayBack )( PRENDERER pRender )
 {
 	// uhmm...
-   lprintf( WIDE( "Force display backward." ) );
-   SetWindowPos( pRender->hWndOutput, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE );
+	lprintf( WIDE( "Force display backward." ) );
+	SetWindowPos( pRender->hWndOutput, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE );
 
 }
 //----------------------------------------------------------------------------
@@ -5324,8 +5344,8 @@ RENDER_PROC( void, ForceDisplayBack )( PRENDERER pRender )
 #undef UpdateDisplay
 RENDER_PROC (void, UpdateDisplay) (PVIDEO hVideo )
 {
-   //DebugBreak();
-   UpdateDisplayEx( hVideo DBG_SRC );
+	//DebugBreak();
+	UpdateDisplayEx( hVideo DBG_SRC );
 }
 
 RENDER_PROC (void, DisableMouseOnIdle) (PVIDEO hVideo, LOGICAL bEnable )
@@ -5338,12 +5358,12 @@ RENDER_PROC (void, DisableMouseOnIdle) (PVIDEO hVideo, LOGICAL bEnable )
 			SetTimer( (HWND)hVideo->hWndOutput, 100, 100, NULL );
 			if( !hVideo->idle_timer_id )
 				hVideo->idle_timer_id = SetTimer( hVideo->hWndOutput, 100, 100, NULL );
-         l.last_mouse_update = timeGetTime(); // prime the hider.
+			l.last_mouse_update = timeGetTime(); // prime the hider.
 			hVideo->flags.bIdleMouse = bEnable;
 		}
 		else // disabling...
 		{
-         if( l.last_mouse_update_display == hVideo )
+			if( l.last_mouse_update_display == hVideo )
 				l.last_mouse_update = 0;
 			hVideo->flags.bIdleMouse = bEnable;
 			if( !l.flags.mouse_on )
@@ -5493,21 +5513,21 @@ RENDER_PROC (void, DropDisplayInterface) (POINTER p)
 
 static LOGICAL CPROC DefaultExit( PTRSZVAL psv, _32 keycode )
 {
-   lprintf( WIDE( "Default Exit..." ) );
+	lprintf( WIDE( "Default Exit..." ) );
 	ThreadTo( DoExit, 0 );
-   return 1;
+	return 1;
 }
 
 int IsTouchDisplay( void )
 {
-   return 0;
+	return 0;
 }
 
 LOGICAL IsDisplayHidden( PVIDEO video )
 {
-   if( video )
+	if( video )
 		return video->flags.bHidden;
-   return 0;
+	return 0;
 }
 
 #ifdef __WATCOM_CPLUSPLUS__
@@ -5584,14 +5604,14 @@ RENDER_PROC( PSPRITE_METHOD, EnableSpriteMethod )(PRENDERER render, void(CPROC*R
 static void CPROC SavePortion( PSPRITE_METHOD psm, _32 x, _32 y, _32 w, _32 h )
 {
 	struct saved_location location;
-   location.x = x;
-   location.y = y;
-   location.w = w;
+	location.x = x;
+	location.y = y;
+	location.w = w;
 	location.h = h;
 	//lprintf( "Save Portion %d,%d %d,%d", x, y, w, h );
 	EnqueData( &psm->saved_spots, &location );
 	//lprintf( "Save Portion %d,%d %d,%d", x, y, w, h );
-   /*
+	/*
 	BlotImageSizedEx( psm->original_surface, psm->renderer->pImage
 						 , x, y
 						 , x, y
@@ -5625,270 +5645,3 @@ PUBLIC( void, InvokePreloads )( void )
 
 RENDER_NAMESPACE_END
 
-//--------------------------------------------------------------------------
-//
-// $Log: vidlib.c,v $
-// Revision 1.99  2005/06/29 09:07:58  d3x0r
-// No opengl version compiled... may be selected by editing interface.conf
-//
-// Revision 1.98  2005/06/19 07:28:25  d3x0r
-// Fix local event handling (actually it's a bug in the msgsvr client library.  Also update to new msgevent_handling protocol which one can return wait_dispatch_pending....
-//
-// Revision 1.97  2005/05/25 16:50:31  d3x0r
-// Synch with working repository.
-//
-// Revision 1.123  2005/05/13 00:39:50  jim
-// Quick hack on windows vidlib code for sendeventmessage (local queue)
-//
-// Revision 1.122  2005/05/12 21:05:08  jim
-// Implement (sorta) OkaySyncRender to comply with changes to display
-//
-// Revision 1.121  2005/04/26 18:54:54  jim
-// Fix SyncRender implementation
-//
-// Revision 1.120  2005/04/12 23:57:16  jim
-// Remove noisy logging by ifdeffing the sections.
-//
-// Revision 1.119  2005/04/11 22:29:56  jim
-// Oh - we DO care about motions of hidden windows, at last to save their new dimensions.
-//
-// Revision 1.118  2005/04/05 11:56:04  panther
-// Adding sprite support - might have added an extra draw callback...
-//
-// Revision 1.117  2005/03/28 09:44:17  panther
-// Use single surface to project surround-o-vision.  This btw has the benefit of uniform output.
-//
-// Revision 1.116  2005/03/23 12:31:23  panther
-// Remove noisy messages...
-//
-// Revision 1.115  2005/03/23 12:21:58  panther
-// Remove more noisy messages.
-//
-// Revision 1.114  2005/03/22 12:11:28  panther
-// Save window surface into the buffer before resulting to the application.
-//
-// Revision 1.113  2005/03/17 02:23:53  panther
-// Checkpoint - working on message server abstraction interface... some of this seems to work quite well, some of this is still broken very badly...
-//
-// Revision 1.112  2005/03/14 16:31:14  panther
-// Hmm WS_EX_LAYERED was bad... made window disssappear.
-//
-// Revision 1.111  2005/03/14 11:07:00  panther
-// Link all windows above something... so all windows of an application promote in application order.
-//
-// Revision 1.110  2005/03/13 23:34:35  panther
-// Focus and mouse capture issues resolved for windows libraries... need to tinker with this same function within Linux.
-//
-// Revision 1.109  2005/03/12 23:22:30  panther
-// Added support to reorder in-level windows based on the windowposchanged message.... focus issues are still isues for popups.
-//
-// Revision 1.108  2005/02/27 00:59:42  panther
-// option out noisy logging.
-//
-// Revision 1.107  2005/02/18 19:43:10  panther
-// Added some meaningful logging about hidden window updates.
-//
-// Revision 1.106  2005/01/17 12:28:57  panther
-// Remove noisy logging
-//
-// Revision 1.105  2004/12/20 19:37:09  panther
-// Fixes for re-typed event proc handler
-//
-// Revision 1.104  2004/12/18 22:34:08  panther
-// Protect against focus changes while destroying...
-//
-// Revision 1.103  2004/12/16 06:53:44  panther
-// Fixes for setting topmost
-//
-// Revision 1.102  2004/12/15 03:17:12  panther
-// Minor remanants of fixes already commited.
-//
-// Revision 1.101  2004/12/13 11:08:17  panther
-// Checkpoint, minor tweaks
-//
-// Revision 1.100  2004/12/05 15:32:06  panther
-// Some minor cleanups fixed a couple memory leaks
-//
-// Revision 1.99  2004/12/05 14:31:52  panther
-// Improve handling of closing video surfaces... something should be learned here about easy methods of deep protection involved between 3 input events and timers and the application....
-//
-// Revision 1.98  2004/12/04 01:22:04  panther
-// Destroy key binder associated with hvideo
-//
-// Revision 1.97  2004/12/04 01:09:13  panther
-// Set destroy flag to avoid dispatch killfocus during destruction
-//
-// Revision 1.96  2004/10/31 17:22:29  d3x0r
-// Minor fixes to control library...
-//
-// Revision 1.95  2004/10/22 09:27:02  d3x0r
-// Checkpoint.  Stability is approaching a limit.
-//
-// Revision 1.94  2004/10/08 01:21:17  d3x0r
-// checkpoint
-//
-// Revision 1.93  2004/10/04 20:08:39  d3x0r
-// Minor adjustments for static linking
-//
-// Revision 1.92  2004/10/03 01:25:36  d3x0r
-// Stop a parent focus from getting focus... have to do things about events thereto.
-//
-// Revision 1.91  2004/10/02 19:49:12  d3x0r
-// Fix logging... trying to track down multiple update display issues.... keys are queued, events are locally queued...
-//
-// Revision 1.90  2004/09/30 22:02:43  d3x0r
-// checkpoing
-//
-// Revision 1.89  2004/09/30 01:14:48  d3x0r
-// Cleaned up consistancy of PID and thread ID... extended message service a bit to supply event PID both ways.
-//
-// Revision 1.88  2004/09/29 00:49:50  d3x0r
-// Added fancy wait for PSI frames which allows non-polling sleeping... Extended Idle() to result in meaningful information.
-//
-// Revision 1.87  2004/09/24 00:07:19  d3x0r
-// Minor adjustments for video stability...
-//
-// Revision 1.86  2004/09/23 00:35:33  d3x0r
-// Implement key and mouse messages across message system... soon to allow applications to catch these directly instead of callback methods.
-//
-// Revision 1.85  2004/09/22 20:25:20  d3x0r
-// Begin implementation of message queues to handle events from video to application
-//
-// Revision 1.84  2004/09/22 03:11:16  d3x0r
-// It WORKs!
-//
-// Revision 1.83  2004/09/21 00:48:52  d3x0r
-// checkpoint.
-//
-// Revision 1.82  2004/09/12 02:07:53  d3x0r
-// Checkpoint...
-//
-// Revision 1.81  2004/09/01 03:27:21  d3x0r
-// Control updates video display issues?  Image blot message go away...
-//
-// Revision 1.80  2004/08/29 14:56:24  d3x0r
-// Protect against hiding a NULL window
-//
-// Revision 1.79  2004/08/17 16:45:57  d3x0r
-// When registering the draw event, do a draw... otherwise surface is not initialized.  Only draw dispatch is when size changes.
-//
-// Revision 1.78  2004/08/16 06:34:37  d3x0r
-// Begin toying with raw input avaialble on XP
-//
-// Revision 1.77  2004/08/11 11:40:23  d3x0r
-// Begin seperation of key and render
-//
-// Revision 1.76  2004/06/21 07:46:45  d3x0r
-// Account for newly moved structure files.
-//
-// Revision 1.75  2004/06/21 07:39:36  d3x0r
-// use moved include files for image structures
-//
-// Revision 1.74  2004/06/16 03:02:50  d3x0r
-// checkpoint
-//
-// Revision 1.73  2004/06/15 08:32:35  d3x0r
-// Added bind events to interface table
-//
-// Revision 1.72  2004/06/14 11:15:10  d3x0r
-// Okay force foreground movement in all ways - else it was just shy of the top...
-//
-// Revision 1.71  2004/06/14 10:52:49  d3x0r
-// Implement new force methods for order and focus
-//
-// Revision 1.70  2004/05/25 19:11:33  d3x0r
-// Fix redundant mouse click issue... ONLY generate mouse messages when there is a change
-//
-// Revision 1.69  2004/05/02 05:44:38  d3x0r
-// Implement  BindEventToKey and UnbindKey
-//
-// Revision 1.68  2004/05/02 05:06:23  d3x0r
-// Sweeping changes to logging which by default release was very very noisy...
-//
-// Revision 1.67  2004/04/29 11:16:41  d3x0r
-// Reformat, collect global data into a structure
-//
-// Revision 1.66  2004/04/27 21:14:30  d3x0r
-// Fix nasty thread problem
-//
-// Revision 1.65  2004/04/27 09:55:11  d3x0r
-// Add keydef to keyhandler path
-//
-// Revision 1.64  2004/04/27 03:18:27  d3x0r
-// Fix race condition when starting window
-//
-// Revision 1.63  2004/04/26 20:15:31  d3x0r
-// Include idle.h, return keys...
-//
-// Revision 1.62  2004/04/19 14:04:27  d3x0r
-// Okay this seems to layout the whole project tree - just not reassembling the parts right...
-//
-// Revision 1.61  2004/03/04 01:09:51  d3x0r
-// Modifications to force slashes to wlib.  Updates to Interfaces to be gotten from common interface manager.
-//
-// Revision 1.60  2003/12/14 06:35:27  panther
-// Added syncrender call
-//
-// Revision 1.59  2003/11/30 08:17:39  panther
-// Put more functions in interface table
-//
-// Revision 1.58  2003/11/10 03:59:27  panther
-// Fix idle to call idle()
-//
-// Revision 1.57  2003/11/03 09:20:44  panther
-// Grabbed the threadID from the wrong place...
-//
-// Revision 1.56  2003/10/27 16:41:26  panther
-// Go to standard abstract ThreadTO instead of CreateThread
-//
-// Revision 1.55  2003/09/26 14:20:41  panther
-// PSI DumpFontFile, fix hide/restore display
-//
-// Revision 1.54  2003/09/25 09:18:11  panther
-// Add newly defined methods...
-//
-// Revision 1.53  2003/08/01 23:52:57  panther
-// Updates for msvc build
-//
-// Revision 1.52  2003/07/25 08:33:37  panther
-// Heck - always focus the newest window created
-//
-// Revision 1.51  2003/07/22 15:16:59  panther
-// Add AddIdleProc
-//
-// Revision 1.50  2003/07/21 16:31:19  panther
-// Generate useful information on lose focus
-//
-// Revision 1.49  2003/07/21 15:27:13  panther
-// Active window initially created on win98 (xp was easy)
-//
-// Revision 1.48  2003/07/17 10:13:53  panther
-// Set newly created windows to be the active window.
-//
-// Revision 1.47  2003/06/24 11:05:59  panther
-// define calibration, include displaylib on windows project list
-//
-// Revision 1.46  2003/04/24 00:03:49  panther
-// Added ColorAverage to image... Fixed a couple macros
-//
-// Revision 1.45  2003/04/21 20:01:20  panther
-// Remove some logging, add support for hasfocus
-//
-// Revision 1.44  2003/03/29 17:21:06  panther
-// Focus problems, mouse message problems resolved... Focus works through to the client side now
-//
-// Revision 1.43  2003/03/29 15:56:53  panther
-// Simplify focus handling
-//
-// Revision 1.42  2003/03/29 15:53:07  panther
-// Fix windows vidlib focus handling
-//
-// Revision 1.41  2003/03/27 19:26:03  panther
-// Implement OwnMouseEx and DropDisplayInterface
-//
-// Revision 1.40  2003/03/25 23:36:27  panther
-// Added SizeDisplayRel and MoveSizeDisplayRel.
-//
-// Revision 1.39  2003/03/25 08:45:58  panther
-// Added CVS logging tag
-//

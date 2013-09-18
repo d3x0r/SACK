@@ -38,7 +38,8 @@ extern
 {
 	struct {
 		//-------- these should be removed! and moved to comments to save
-      // string space! (and related logging statements these protect should be eliminated.)
+		// string space! (and related logging statements these protect should be eliminated.)
+		BIT_FIELD bLogMessages : 1;
 		BIT_FIELD bLogRegister : 1;
 		BIT_FIELD bLogFocus : 1;
 		BIT_FIELD bLogWrites : 1; // log when surfaces are written to real space
