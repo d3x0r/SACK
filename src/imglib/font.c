@@ -878,7 +878,8 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 					maxheight = UseFont->baseline - chars[*(unsigned char*)pString]->descent;
 			}
 		}
-		(*charheight) = (*height);
+		if( charheight )
+			(*charheight) = (*height);
 		(*height) += maxheight - UseFont->height;
 	}
 	else
