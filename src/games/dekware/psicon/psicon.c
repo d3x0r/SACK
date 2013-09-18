@@ -516,17 +516,17 @@ int RegisterWindows( void )
 //      return 0;
    //Log( WIDE("Done with psi interfaces..") );
     hChildMenu = CreatePopup();
-   Log( WIDE("Created menu...") );
+	 Log( WIDE("Created menu...") );
     AppendPopupItem( hChildMenu, MF_STRING, MNU_FONT, WIDE("Set Font") );
     Log( WIDE("Added an ittem...") );
-   {
-      hHistoryMenu = CreatePopup();
-      AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE25, WIDE("25%") );
-      AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE50, WIDE("50%") );
-      AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE75, WIDE("75%") );
-      AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE100, WIDE("100%") );
-      AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (int)hHistoryMenu, WIDE("History Display Size") );
-   }
+	 {
+		 hHistoryMenu = CreatePopup();
+		 AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE25, WIDE("25%") );
+		 AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE50, WIDE("50%") );
+		 AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE75, WIDE("75%") );
+		 AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE100, WIDE("100%") );
+		 AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (int)hHistoryMenu, WIDE("History Display Size") );
+	 }
    {
       PMENU hColorMenu, hColorMenu2;
       hColorMenu = CreatePopup();
@@ -692,17 +692,16 @@ PRELOAD(RegisterConsole)
 
 static void CPROC DrawString( PCONSOLE_INFO pdp, int x, int y, RECT *r, TEXTCHAR *s, size_t nShown, size_t nShow )
 {
-   _32 w, h;
+	_32 w, h;
 	//lprintf( WIDE("Adding string out : %p %s %d %d at %d,%d #%08lX #%08lX"), pdp, s, nShown, nShow,x,y,r->left,r->top
 	//		 , pdp->psicon.crText, pdp->psicon.crBack );
-   GetStringRenderSizeFontEx( s, nShow, &w, &h, NULL, pdp->psicon.hFont );
+	GetStringRenderSizeFontEx( s, nShow, &w, &h, NULL, pdp->psicon.hFont );
 	r->right = r->left + w;
-   r->bottom = r->top + h;
+	r->bottom = r->top + h;
 	PutStringFontEx( pdp->psicon.image, x, y
 						, pdp->psicon.crText, pdp->psicon.crBack
 						, s + nShown
 						, nShow, pdp->psicon.hFont );
-
 }
 
 //----------------------------------------------------------------------------
