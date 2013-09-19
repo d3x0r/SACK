@@ -33,6 +33,7 @@
 #define EXIT_FAILURE  1
 #endif
 
+#undef exit
 
 /*
  * Create the message string table.
