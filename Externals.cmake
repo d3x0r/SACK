@@ -51,13 +51,13 @@ source_group("Source Files\\zlib-1.2.7 Library" FILES ${ZLIB_SOURCE})
  endif( NEED_ZLIB )
 
 
- SET( PBASEDIR src/libpng-1.5.12 )
+ SET( PBASEDIR src/libpng-1.6.5 )
  include( ${PBASEDIR}/CMakeLists.part )
 
 if( FORCE_CXX )
 set_source_files_properties(${PNG_SOURCE} PROPERTIES LANGUAGE CXX )
 endif( FORCE_CXX )
-source_group("Source Files\\libpng-1.5.12 Library" FILES ${PNG_SOURCE})
+source_group("Source Files\\libpng-1.6.5 Library" FILES ${PNG_SOURCE})
 endif( NEED_PNG )
 
 
