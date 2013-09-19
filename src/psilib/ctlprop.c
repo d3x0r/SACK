@@ -105,55 +105,44 @@ int FillControlIDList( CTEXTSTR root, PSI_CONTROL listbox, PSI_CONTROL pc, int l
 	PCLASSROOT data = NULL;
 	TEXTCHAR rootname[256];
 	//lprintf( "Look for resoruces under %s at %d", root, level );
-	snprintf( rootname, sizeof( rootname ), PSI_ROOT_REGISTRY WIDE("/resources%s%s"), root?WIDE("/"):WIDE(""), root?root:WIDE("") );
+	snprintf( rootname, sizeof( rootname ), PSI_ROOT_REGISTRY WIDE("/resources/%s%s%s")
+			  , pc->pTypeName
+			  , root?WIDE("/"):WIDE("")
+			  , root?root:WIDE("") );
 	for( name = GetFirstRegisteredName( rootname, &data );
 		 name;
 		  name = GetNextRegisteredName( &data ) )
 	{
+		if( !NameIsAlias( &data ) )
 		{
-			TEXTCHAR rootname[256];
-			//lprintf( "is %s==%s?", name, pc->pTypeName );
-			if( StrCaseCmp( name, pc->pTypeName ) == 0 )
+			int value = (int)(long)GetRegisteredValueExx( (CTEXTSTR)data, name, WIDE("value"), TRUE );
+			if( value )
 			{
-				// this is of the type we want.
-				{
-					CTEXTSTR name2;
-					PCLASSROOT data2 = NULL;
-					snprintf( rootname, sizeof( rootname ), PSI_ROOT_REGISTRY WIDE("/resources%s%s/%s"), root?WIDE("/"):WIDE(""), root?root:WIDE(""), name );
-					lprintf( WIDE("newroot = %s"), rootname );
-					for( name2 = GetFirstRegisteredName( rootname, &data2 );
-						 name2;
-						  name2 = GetNextRegisteredName( &data2 ) )
-					{
-						if( !NameIsAlias( &data2 ) )
-						{
-							struct list_item_data *itemdata = (struct list_item_data*)Allocate( sizeof( *itemdata ) );
-							itemdata->appname = StrDup( root );
-							itemdata->_typename = pc->pTypeName;
-							itemdata->resname = name2;
-							/* ETHICALITY DISCLAIMED: this is an okay conversion, cause we're asking for an INT type anyhow...*/
-							itemdata->value = (int)(long)GetRegisteredValueExx( (CTEXTSTR)data2, name2, WIDE("value"), TRUE );
-							/* ETHICALITY DISCLAIMED: this is an okay conversion, cause we're asking for an INT type anyhow...*/
-							itemdata->range = (int)(long)GetRegisteredValueExx( (CTEXTSTR)data2, name2, WIDE("range"), TRUE );
-							//lprintf( WIDE("Found Name %s"), name2 );
-							SetItemData( AddListItemEx( listbox, level, name2 ), (PTRSZVAL)itemdata );
-							status = TRUE;
-						}
-					}
-				}
+				struct list_item_data *itemdata = (struct list_item_data*)Allocate( sizeof( *itemdata ) );
+				itemdata->appname = StrDup( root );
+				itemdata->_typename = pc->pTypeName;
+				itemdata->resname = name;
+				/* ETHICALITY DISCLAIMED: this is an okay conversion, cause we're asking for an INT type anyhow...*/
+				itemdata->value = (int)(long)GetRegisteredValueExx( (CTEXTSTR)data, name, WIDE("value"), TRUE );
+				/* ETHICALITY DISCLAIMED: this is an okay conversion, cause we're asking for an INT type anyhow...*/
+				itemdata->range = (int)(long)GetRegisteredValueExx( (CTEXTSTR)data, name, WIDE("range"), TRUE );
+				//lprintf( WIDE("Found Name %s"), name2 );
+				SetItemData( AddListItemEx( listbox, level, name ), (PTRSZVAL)itemdata );
+				status = TRUE;
 			}
 			else
 			{
-            PLISTITEM pli;
+				PLISTITEM pli;
 				if( !NameIsAlias( &data ) )
 				{
 					snprintf( rootname, sizeof(rootname),WIDE("%s%s%s"), root?root:WIDE(""), root?WIDE("/"):WIDE(""), name );
-					lprintf( WIDE("newroot = %s"), rootname );
 					pli = AddListItemEx( listbox, level, name );
 					if( !FillControlIDList( rootname, listbox, pc, level+1, name ) )
 					{
 						DeleteListItem( listbox, pli );
 					}
+					else
+						status = TRUE;
 				}
 			}
 		}
