@@ -604,12 +604,12 @@ do_mark_copy:
             if( 0 )
             {
     case WM_MOUSEMOVE:
-              pdp = (PCONSOLE_INFO)GetWindowLong( hWnd, WD_CONSOLE_INFO );
+				pdp = (PCONSOLE_INFO)GetWindowLong( hWnd, WD_CONSOLE_INFO );
                 xPos = LOWORD(lParam); 
                 yPos = HIWORD(lParam); 
                 mouse_buttons = wParam;
             }
-            if( pdp->flags.bMarking &&
+            if( pdp && pdp->flags.bMarking &&
                  ConvertXYToLineCol( pdp, xPos, yPos
                                    , &row, &col ) )
             {
