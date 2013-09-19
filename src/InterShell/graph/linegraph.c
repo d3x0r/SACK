@@ -449,6 +449,8 @@ void RenderPingMax( PTRSZVAL psv, PDATALIST *points, _32 from, _32 to, _32 resol
 		base_value = 1000;
 		max_value = 250000;
 		//lprintf( WIDE("Min %d max %d"), base_value, max_value );
+		if( !min_index_set )
+			return;
 		sample = GetUsedSetMember( PING_RESULT, &ppdc->samples, idx_sample = min_index );
 		for( tick = from; sample && tick < to; )
 		{
