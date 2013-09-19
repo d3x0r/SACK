@@ -435,10 +435,14 @@ static void OnRevealCommon( BUTTON_NAME )( PSI_CONTROL pc )
 		if( button->animation_layer )
 		{
 			PutDisplayAbove( button->animation_layer, GetFrameRenderer( GetFrame( pc ) ) );
-			PutDisplayAbove( button->lense_layer, button->animation_layer );
+			if( button->flags.bLayered )
+				PutDisplayAbove( button->lense_layer, button->animation_layer );
 		}
 		else
-			PutDisplayAbove( button->lense_layer, GetFrameRenderer( GetFrame( pc ) ) );
+		{
+			if( button->flags.bLayered )
+				PutDisplayAbove( button->lense_layer, GetFrameRenderer( GetFrame( pc ) ) );
+		}
 	}
 	// could just wait for the draw to happen after the reveal notification
    // which will at that time put the display in the correct place.
@@ -1709,7 +1713,13 @@ PRENDERER GetButtonAnimationLayer( PSI_CONTROL pc_key_button )
 			if( key->flags.bOrdered )
 			{
 				//lprintf( "Inserting the animation layer between lense_layer" );
-				PutDisplayAbove( key->lense_layer, key->animation_layer );
+				if( key->flags.bLayered )
+					PutDisplayAbove( key->lense_layer, key->animation_layer );
+				else
+				{
+					// position/size needs to be computed if not layered.
+					PutDisplayAbove( GetFrameRenderer( GetFrame( pc_key_button ) ), key->animation_layer );
+				}
 			}
 		}
 		return key->animation_layer;

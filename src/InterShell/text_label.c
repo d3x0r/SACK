@@ -995,7 +995,7 @@ OnEditControl( TEXT_LABEL_NAME )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 					int o = 0;
 					CTEXTSTR string = page_label->button->text;
 					int n;
-					for( n = 0; ( o < (sizeof(buffer)/sizeof(buffer[0])) ) && string[n]; n++ )
+					if( string ) for( n = 0; ( o < (sizeof(buffer)/sizeof(buffer[0])) ) && string[n]; n++ )
 					{
 						switch( string[n] )
 						{
