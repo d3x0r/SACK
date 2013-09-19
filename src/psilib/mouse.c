@@ -1612,7 +1612,8 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 			lprintf( WIDE( "Current owns flag is set?" ) );
 #endif
 		InvokeMouseMethod( pc, x, y, b );
-		if( !pf->flags.bApplicationOwned && BREAK_LASTBUTTON( b, pf->_b ) )
+		pf = pc->device;
+		if( pf && !pf->flags.bApplicationOwned && BREAK_LASTBUTTON( b, pf->_b ) )
 		{
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
@@ -1630,10 +1631,11 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 			if( g.flags.bLogDetailedMouse )
 				lprintf( WIDE("Returning early... still owned...") );
 #endif
-         pf->_b = b;
-         DeleteUse( pc );
-         return TRUE;
-      }
+			if( pf )
+				pf->_b = b;
+			DeleteUse( pc );
+			return TRUE;
+		}
 	}
 	if( IsMouseInCurrent( pc
                        , x - pf->CurrentBias.x
@@ -1700,7 +1702,7 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 			FirstFrameMouse( pf, x, y, b, TRUE );
 			pf->CurrentBias.x = 0;
 			pf->CurrentBias.y = 0;
-         pf->CurrentBias.flags.bias_is_surface = 0;
+			pf->CurrentBias.flags.bias_is_surface = 0;
 		}
 		else
 		{
@@ -1708,8 +1710,8 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 			if( g.flags.bLogDetailedMouse )
 				lprintf( WIDE("Mouse on surface of frame, find a control.") );
 #endif
-         pf->CurrentBias.x = pc->surface_rect.x;
-         pf->CurrentBias.y = pc->surface_rect.y;
+			pf->CurrentBias.x = pc->surface_rect.x;
+			pf->CurrentBias.y = pc->surface_rect.y;
 			pf->CurrentBias.flags.bias_is_surface = 1;
 			pcIn = FindControl( pc, pc->child
 									, x - pf->CurrentBias.x
@@ -1812,11 +1814,13 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 				if( pc->BorderType & BORDER_WANTMOUSE )
 				{
 					InvokeMouseMethod( pc, x, y, b );
+					pf = pc->device;
 				}
 			}
 		}
 	}
- 	pf->_b = b;
+	if( pf )
+ 		pf->_b = b;
 	//lprintf("releasing %p", pc );
 	DeleteUse( pc );
 	return TRUE;
