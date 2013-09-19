@@ -115,7 +115,8 @@ struct global_memory_tag {
 	size_t nMinAllocateSize;
 	int pagesize;
 	int bLogAllocate;
-   int bLogAllocateWithHold;
+	int bLogAllocateWithHold;
+	LOGICAL bCustomAllocer;
 	LOGICAL bInit;
 	PSPACEPOOL pSpacePool;
 #ifdef _WIN32
@@ -124,7 +125,6 @@ struct global_memory_tag {
 	int InAdding; // don't add our tracking to ourselves...
 	_32 bMemInstanced; // set if anybody starts to DIG.
 	PMEM pMemInstance;
-   LOGICAL bCustomAllocer;
 };
 
 #ifdef __STATIC__
@@ -136,6 +136,7 @@ static struct global_memory_tag *global_memory_data;
 static void CPROC InitGlobalData( POINTER p, _32 size )
 {
 	struct global_memory_tag *global = (struct global_memory_tag *)p;
+	global->bCustomAllocer = 0;
 	global->bLogAllocate = 0;
 	global->bLogAllocateWithHold = 0;
 #ifdef UNDER_CE
@@ -174,11 +175,18 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 1/*auto check
 															 , 0
 #    endif
 
-															 , 0, 0, 0/*logging*/ };
+															 , 0, 0
+															 , 0 /*log allocates*/
+															 , 0 /* logging too */
+															 , 0 /* custom allocer*/ };
 // this one has memory logging enabled by default...
 //struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 1, 0, 0, 0, 1 };
 #  else
-struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 1/*auto check*/, 0, 0, 0, 0/*logging*/ };
+struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 1/*auto check*/, 0, 0, 0
+															 , 0/*log allocates*/
+															 , 0  /* log holds */
+															 , 0  // custom allocer
+											};
 // this one has memory logging enabled by default...
 //struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 1, 0, 0, 0, 1 };
 #  endif
@@ -2015,7 +2023,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			}
 		}
 
-      if( !g.bCustomAllocer )
+		if( !g.bCustomAllocer )
 		{
 			// register PMEM pMem = (PMEM)(pData - offsetof( MEM, pRoot ));
 			register PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((PTRSZVAL)pData) -
