@@ -1288,8 +1288,11 @@ ATEXIT( unload_vlc_interface )
 			vlc.libvlc_media_list_player_release( pmyi->mlp );
 
 		lprintf( WIDE( "releasing instance..." ) );
-		vlc.libvlc_release (pmyi->inst);
-		RAISE( vlc, &pmyi->ex );
+		if( vlc.libvlc_release )
+		{
+			vlc.libvlc_release (pmyi->inst);
+			RAISE( vlc, &pmyi->ex );
+		}
 	}
 	/* Stop playing */
 
