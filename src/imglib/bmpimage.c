@@ -163,7 +163,12 @@ typedef PREFIX_PACKED struct tagBITMAPV5INFO { // bmi
 
 #endif
 
-
+#undef GLColor
+#ifdef _OPENGL_DRIVER
+#define GLColor( c )  (((c)&0xFF00FF00)|(((c)&0xFF0000)>>16)|(((c)&0x0000FF)<<16))
+#else
+#define GLColor(c) (c)
+#endif
 //BITMAPFILEHEADER bmfh;
 //BITMAPINFOHEADER bmih;
 //RGBQUAD          aColors[];
@@ -293,10 +298,20 @@ static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, P_8 data )
 	}
    pif = MakeImageFile( w = pbm->biWidth,
                         h = pbm->biHeight );
-   Log3( WIDE("Load bitmamp image: %d by %d %d bits"), w, h, pbm->biBitCount );
+	lprintf( WIDE("Load bitmamp image: %d by %d %d bits (%s) (%08x=%08x)"), w, h, pbm->biBitCount
+			 , bGLColorMode?"GL Color":"Native Colors"
+			 , 0x12345678
+           , GLColor( 0x12345678)
+			 );
    if( pif )
    {
-      dwPalette = (P_32)(((P_8)pbm) + pbm->biSize);
+		dwPalette = (P_32)(((P_8)pbm) + pbm->biSize);
+      if( bGLColorMode && ( pbm->biBitCount <= 8 ) )
+		{
+			int n;
+			for( n = 0; n < ( 1 << pbm->biBitCount ); n++ )
+				dwPalette[n] = GLColor( dwPalette[n] );
+		}
       //pColor = (P_8)(pbm->bmiColors + pbm->biClrUsed );
       pColor = data;
       switch( pbm->biBitCount )
@@ -354,7 +369,9 @@ static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, P_8 data )
       default:
          Log1( WIDE("Unknown BITMAP pixel format: %d\n"), pbm->biBitCount );
       }
-   }
+	}
+	if( !( pif->flags & IF_FLAG_INVERTED ) )
+      FlipImage( pif );
    return pif;
 }
 
