@@ -544,7 +544,7 @@ LOGICAL CanMoveCards( struct card_stack_control *from, struct card_stack_control
 			PCARD test = from->flags.bCompareTopOnly
 				?from_stack->cards
 				:( GetNthCard( from_stack, from->active.nCardsSelected-1 ) );
-			if( to_stack->cards )
+			if( test && to_stack->cards )
 			{
 				if( ( ( to_stack->cards->id / from->game->faces ) %2 )
 					!= ( 1 - ( (test->id / from->game->faces ) % 2)) )
