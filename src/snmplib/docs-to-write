@@ -1,0 +1,51 @@
+mibii.c:
+
+int snmpInASNParseErrs();
+int snmpInASNParseErrs_Add(int);
+int snmpInBadVersions();
+int snmpInBadVersions_Add(int);
+
+snmp_error.c:
+
+char *snmp_errstring(int);
+
+coexistance.c:
+
+int snmp-coexist_V2toV1(PDU *);
+int snmp-coexist_V1toV2(PDU *);
+
+snmp_extra.c:
+
+char   *uptime_string(timeticks, buf);
+long    uptime();
+u_long  myaddress();
+
+snmp_msg.c:
+
+u_char *snmp_msg_Encode(Buf, BufLen, Community, CommLen, Version, PDU);
+u_char *snmp_msg_Decode(Packet, PacketLenP, Comm, CommLenP, VerP, PDUP);
+
+snmp_pdu.c:
+
+PDU     snmp_pdu_create(Command);
+PDU     snmp_pdu_close(PDU);
+PDU     snmp_fix_pdu(PDU, Command);
+void    snmp_free_pdu(PDU);
+u_char *snmp_pdu_encode(Buf, BufLenP, PDU);
+u_char *snmp_pdu_decode(Buf, BufLenP, PDU);
+
+snmp_vars.c:
+
+VARS    snmp_var_new(OID, OidLen);
+VARS    snmp_var_clone(VARS);
+void    snmp_var_free(VARS);
+u_char *snmp_var_EncodeVarBind(Buf, BufLenP, VARS, Version);
+u_char *snmp_var_DecodeVarBind(Buf, BufLenP, VARS *, Version);
+
+snmp_dump.c:
+
+void snmp_dump_packet(T/F);
+void snmp_dump(Buf, BufLen, How, in_addr who);
+
+version.c:
+char *snmp_Version();

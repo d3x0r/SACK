@@ -1,0 +1,35 @@
+
+MASTER images\master.gif 7 7
+#GATES images\gates.gif 3 3
+#HI_SYN images\highsyns.gif 3 3
+#LO_SYN images\lowsnys.gif 3 3
+
+# yes - the names are not correct....
+# but they make a little more asthetic sense to do this way...
+
+NEURON images\multi-blob.gif 3 3  
+INPUT images\neuron.gif 3 3
+OUTPUT images\image3.gif 3 3
+
+BLANK images\grid.gif 1 1 # make an array of 1x1 out of this peice...
+
+#LHD images\lhd.gif
+#RHD images\rhd.gif
+#HORIZONTAL images\horizontal.gif 
+#LHU images\lhu.gif
+#RHU images\rhu.gif
+#DIAG1 images\diag1.gif
+#DIAG2 images\diag2.gif
+#VERTICAL images\vertical.gif
+#DVR images\dvr.gif
+#DVL     images\dvl.gif
+#UVR     images\uvr.gif
+#UVL     images\uvl.gif
+
+#DF1  images\df1.gif  # df1 = bottom left
+#DF2  images\df2.gif  # df2 = top left
+#DF3  images\df3.gif  # df3 = top right
+#DF4  images\df4.gif  # df4 = bottom right
+
+
+

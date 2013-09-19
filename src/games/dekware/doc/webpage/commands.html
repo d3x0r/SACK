@@ -1,0 +1,775 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA >
+<FONT size=+3><center>Command Reference</center></font><br>
+<a href="manual.html" OnMouseOver="window.status='Back to Manual Contents';return true" OnMouseOut="window.status=''">Return to Online Manual Contents</A><br>
+<br>
+
+<table border=2 cellpadding=1 cellspacing=1>
+<tr valign=top>
+<td width=50%>
+<a href="#objectcommands">Basic Object Commands</a>
+<menu>
+Create, Make, Shadow, Destroy/Delete, Describe, Duplicate,
+Grab, Drop, Store, Attach, Detach, Enter, Leave, Rename
+</menu>
+</td>
+<td>
+<a href="#objectanim">Object Animation Commands</a>
+<menu>
+Become, Revert, Wake,  
+Stop, Resume, Suspend, Kill, Sleep, Monitor, Execute, Tell, Reply, Run
+</menu>
+</td>
+</tr>
+<tr valign=top>
+<td>
+<a href="#syscommands">System Commands</a>
+<menu>
+Debug, Dump, Dumpvar, Memory, MemDump, Break
+</menu>
+</td>
+<td>
+<a href="#objectinfo">Object Information Commands</a>
+<MENU>
+Look, Inventory, Map
+</menu>
+</td>
+</tr>
+<tr valign=top>
+<td>
+<a href="#MacroVar">Varible and Macro Commands</a>
+<menu>
+Declare/Set, Macro, EndMacro, Vars, Label, Goto, Echo, FEcho, List, Methods
+Result, GetResult, Return, Stop, Compare, If/Else/Endif, Script, 
+Push, Parse/Open, Endparse/Close, Option, Command, Endcommand, GetWord, GetLine, 
+GetPartial, Head, Tail, UCase, LCase, PCase, Bound, Burst, Collapse, Setresult,
+Result, <a href="#on">On</a>
+</menu>
+</td>
+<td>
+<a href="#misccommands">Miscellaneous Commands</a>
+<menu>
+Help/'?', '!', '.', ChangeDir/CD, Input, Wait, Increment, Decrement,
+Multiply, Divide, LAlign, RAlign, NoAlign
+</menu>
+</td>
+</tr>
+</table>
+<br><br>
+<hr>
+
+<a name="objectcommands">
+<center><u>Basic Object Commands</u></center>
+<menu>
+    /CREATE [object name]...
+    <menu>
+       For all parameters passed to the create command a seperate
+       object is created.  Each paramater passed to create is used
+       as the new object's name.  Objects are created within the currently
+       controlled object.  
+   </menu></menu><menu>
+   /MAKE [object_type] [object name] ...
+   <menu>
+      There are certain complex objects available, these are created using the
+      make command.  /MAKE with no parameters lists availble archetypes.  The 
+      basic form is to /make [type (from archetype names)] [name] and if the 
+      parameters required are not specified, it's up to the archetype to result
+      with information.  (This was introduced to /make cards deck, which 
+      creates an object named deck with methods to /draw, /shuffle, ...)
+   </menu></menu><menu>
+   /SHADOW [object] ....
+   <menu>
+      Creates a reference to the real object.  Theortically all operations
+      done to the shadow in fact will reference the real object.  However,
+      the shadow has it's own presence (location/attachments).
+   </menu></menu><menu>
+    /DESTROY [object]...<br>
+    /DELETE [object]...
+    <menu>
+       For all parameters passed to the destroy command objects are 
+       located and destroyed.  If they were previously sentient, their
+       controller is also deleted.  Object are located near this,
+       in this, on this, and then macros for the current object are
+       checked.  If an object contained other objects, all contained 
+       objects become contained in the container of the object.
+       ( Deleting a book shelf would drop all the books into the library.
+         Assuming the shelf still exists, deleting the pages would drop the 
+         words into the shelf.  Since the covers are both attached to the
+         binding, they would remain, but become detached from each other,
+         however, if the binding were deleted, then the front cover, pages,
+         and back cover would all become divorced. )
+       If the name specified is not an object name, but is a macro name,
+       then the macro is deleted.
+</menu></menu><menu>
+
+    /DESCRIBE [what] [description]...
+    <menu>
+       Changes the description from nothing, to the set of tokens passed
+       after the object name to describe.  Objects are located in this, 
+       on this, near this, then macros of this object are checked.  
+   
+</menu></menu><menu>
+    /DUPLICATE [object]...
+    <menu>
+       Locates the specified object first on, then in the current object.
+       If the object is found, then the object is duplicated in all aspects.
+       All objects within the object being duplicated are also duplicated.
+
+</menu></menu><menu>
+    /GRAB [object]...
+    <menu>
+       Locates an object on, in, then near the currently controlled object.
+       The object is moved from it's current location and becomes attached
+       to the current object.  
+</menu></menu><menu>
+
+    /DROP [object]...
+    <menu>
+       Locates the specified objects on the current object (held by).  The
+       object is then put near the current object (placed in the containing
+       object of the current object.
+
+</menu></menu><menu>
+    /STORE [object]...
+    <menu>
+       Locates the specified objects on the current object (held by).  The
+       object is then put in the current object.
+
+</menu></menu><menu>
+    /ATTACH [ [object] [to object] ]...
+    <menu>
+       Both objects must be held by the current object.  The first object
+       is then attached to the second object specified.  Multiple pairs
+       of objects may be specified.
+
+</menu></menu><menu>
+    /DETACH [ [from object] [object] ]...
+    <menu>
+       The object to be detached from is specified first.  The object must
+       be held by the current object.  The object to remove from the held
+       object is specified second.  After this is completed the current object
+       will hold both objects seperated from each other.
+
+</menu></menu><menu>
+    /ENTER [object]...
+    <menu>
+       For each object specified in the parameter list, the object is located
+       near the current object.  The currently controlled object will then 
+       move into the specified object.
+
+</menu></menu><menu>
+    /LEAVE 
+    <menu>
+       Moves the currently controlled object out of the current object it is
+       in.  If the current object is in "The Void", then leaving has no effect.
+
+</menu></menu><menu>
+    /RENAME [object] [to_name]
+    <menu>
+       Renames an object to the new name...... 
+</menu></menu>
+<a name="objectanim">
+<center><u>Object Animation Commands</u></center>
+<menu>
+    /BECOME [object]
+    <menu>
+       The user context becomes the controller of the specified object.
+
+</menu></menu><menu>
+    /REVERT
+    <menu>
+       Similar to leave, the reversion commands saves having to know what
+       the previously active object was, or for that matter where it was...
+        
+</menu></menu><menu>
+    /WAKE [object]
+    <menu>
+       Makes an inanimate object active.  It may process macros on its
+       own.  Any command a user may issue may also be issued by the object.
+       Therefore it may create, destroy, rename, or otherwise manipule
+       other objects.  All aware objects have a variable '%me'... which is
+       the name of the object.
+
+</menu></menu><menu>
+    /STOP
+    <menu>
+      Halts and terminated the currently executing macro.
+
+</menu></menu><menu>
+    /RESUME  
+    <menu>
+       Resumes the currently syspended macro (unless not suspended, then 
+       does nothing)
+
+</menu></menu><menu>
+    /SUSPEND 
+    <menu>
+       Halts the currently executing macro.
+
+</menu></menu><menu>
+    /KILL    - (To Be Implemented)<br>
+    /SLEEP   - (To Be Implemented)<br>
+</menu><menu>
+
+    /MONITOR [object]
+    <menu>
+       If the object is already sentient itself, then the user must use
+       the context of the object's sentience.... (bad wording... )
+
+</menu></menu><menu>
+    /EXECUTE [Command Line]... 
+    <menu>
+       The arguments passed to this may be variables, and therefore resolve
+       to their real values.  The command is then queued to the currently
+       active object.
+
+</menu></menu><menu>
+    /TELL [object] [Command line]...
+    <menu>
+       Similar to process, but the object specified must be in visible 
+       space.  The command line parameters are substituted appropriately
+       if they are variables, then the command is queued to the specified
+       object.
+
+</menu></menu><menu>
+    /REPLY [Command]
+    <menu>
+      This command only functions within a macro context.  It /TELLs the
+      object which invoked the macro, possibly itself, the command specified.
+</menu></menu>
+
+<a name="syscommands">
+<center><u>System Commands</u></center>
+</a>
+<menu>
+    /DEBUG on<br>
+    /DEBUG off<br>
+    /DEBUG   <br>
+    <menu>
+       Turns on and off the printing of the actively executing commands.
+       If 'on' or 'off' are not specified, then the currently logging state
+       is toggled.  Logging only occurs for the current macro, not it's
+       caller, nor for the macros it executes, unless those macros also
+       turn on the debug tracing.  If this command is issued outside of
+       a macro, global tracing is turned on and ALL commands are logged.
+
+</menu></menu><menu>
+    /DUMP [object]
+    <menu>
+       Is supposed to dump verbose diagnostic information about objects....
+
+</menu></menu><menu>
+    /DUMPVAR [variable]
+    <menu>
+       Dumps verbose information about a variable.  
+
+</menu></menu><menu>
+    /MEMORY 
+    <menu>
+       Returns the amount of free memory, used memory, number of free
+       blocks, and the number of used blocks.  
+
+</menu></menu><menu>
+    /MEMDUMP
+    <menu>
+       Causes the memory system to issue OutputDebugStrings() for a system
+       debug message logger to view.  (www.sysinternals.com has such a thing)
+
+</menu></menu><menu>
+    /BREAK (BAD)
+    <menu>
+       causes a hardware INT 3.  This is the program execution breakpoint 
+       instruction.  Upon executing this - the program can/will go away
+       depending on your system configuration.  
+</menu></menu>
+       
+<a name="objectinfo">
+<center><u>Object Information Commands</u></center>
+<menu>
+    /LOOK [object]
+    /LOOK in [object]
+    <menu>
+       Locates the object in visible space.  The search is done first within
+       the current object, then on, near, and then around the current.  The
+       object description, and items currently held by (attached to) are 
+       printed.
+</menu></menu><menu>
+
+    /INVENTORY
+    <menu>
+       Prints all of the objects held by the current object, then prints
+       all objects contained within the current object.   
+
+</menu></menu><menu>
+    /MAP<br> 
+    /MAP [object]  (not fully implemented yet)
+    <menu>
+       Prints the heirarchy of objects in an indented tree format...
+
+</menu></menu>
+<a name="MacroVar">
+<center><U>Varible and Macro Commands</U></center>
+<menu>
+	 /SET [varname] [zero or more atoms]<br>
+	 /SEt [IN [object]] [varname] [zero or more atoms]<br>
+    /DECLARE [varname] [zero or more atoms]<br>
+    /DECLARE [IN [object]] [varname] [zero or more atoms]
+    <menu>
+      creates a variable called [varname] which points to a string
+       of atoms.  Internally this command creates a text node which points
+       to an indirect text node.  The indirect text node points to the 
+       actual value of the line.  Each indirect node must be assumed to 
+       only contain one atom... since this provides a way to use existing
+       data without having to copy it.
+
+       <p>If this statement is used within a macro it creates a local instance
+       of the variable which is deleted when the macro exits.  If this is
+       used with outside of a macro the value is common to all macros which
+       an object may use.  
+       <p>If the 'IN [object]' parameter is specified, the variable is declared
+       for the specified object, not the current active object.  If the object
+       specified is not visible, an error message is generated.
+</menu></menu><menu>
+
+    /MACRO [name] [param-1] [param-2]...[param-N]<br>
+    /MACRO [IN [object]] [name] [param-1] [param-2]...[param-N]
+
+    <menu>
+       variables passed to a macro have a different nature since the
+       caller must provide all the parameters the list of names of parameters
+       is parallel to the list of values passed to the macro.
+       <p>If the 'IN [object]' parameter is specified, the macro is defined
+       for the specified object, not the current active object.  If the object
+       specified is not visible, an error message is generated.
+
+</menu></menu><menu>
+    /MACRO [what] [expected parameters...]
+    <menu>
+        If the macro does not previously exist, and does not conflict 
+        with an internal command name, then all commands entered until
+        /ENDMACRO are stored as the macro.  No checking for parameter or
+        variable validity is done.  If the macro contains /macro commands,
+        then a count of levels of /endmacro commands is kept until the 
+        final /endmacro is issued.  Macros are created in the current
+        object context only.  Other objects cannot use the macros unless
+        they /tell the object to perform the macro.  Perhaps if they pass
+        local variables or macro arguments the remote macro may perform
+        a useful operation for the requestor - more than likely the 
+        macro should be copied to the object requesting its use.  When a 
+        macro is defined, all commands are updated according to minimal
+        significant characters make that command unique.  (see /HELP)
+
+</menu></menu><menu>
+    /VARS 
+    <menu>
+       Lists all global variables, and also variables defined in the
+       current macro context, with their associated values.
+</menu></menu><menu>
+
+    /LABEL [mark name]
+    <menu>
+       Marks a spot in a macro which maybe be given to a /goto command.
+       Only the first label of each name will be gone to - although multple
+       lines maybe be /label'ed with the same name.  Mark name may be a
+       variable.
+</menu></menu><menu>
+
+    /GOTO [label name]
+    <menu>
+       Resets the macro index to the beginning of the current macro, and
+       searched forward until the first /label with the name matching the
+       parameter to the goto is found.  Label name may be a variable.
+
+</menu></menu><menu>
+    /ECHO [token]...[token]
+    <menu>
+        Each token specified is displayed.... useful for printing out 
+        the values in current variables.  Each line echoed will start
+        on a new line, because ECHO will generate a newline BEFORE 
+        actually outputting the tokens.
+</menu></menu><menu>
+    /FECHO [token]...[token]
+    <menu>
+        This command acts just like ECHO, however does NOT prefix lines
+        with a newline.
+
+</menu></menu><menu>
+    /LIST [macro]
+    <menu>
+        If a macro name is specified, then the macro is listed.  If there
+        is no name specified, then a list of macros which the current object
+        is printed.  If a parameter is specified, and it matches a name
+        of a macro defined for this object, then the macro is listed.
+
+</menu></menu><menu>
+    /METHODS
+    <menu>
+      Lists available methods on an object.  Methods are typically only available
+      on objects created with /make.  However, opening certain devices may 
+      result in methods on the object.
+
+</menu></menu><menu>
+    /ENDMACRO
+    <menu>
+        Terminates a macro defination.  Also, when executed by a macro,
+        acts as a /return statement.
+</menu></menu><menu>
+
+    /RESULT [zero or more atoms]
+    <menu>
+       Sets the return value of the current macro to the atoms specified.
+</menu></menu><menu>
+
+    /GETRESULT [variable]
+    <menu>
+        Gets the last result from a macro /RESULT command, and stores it
+        in the variable reference specified.
+</menu></menu><menu>
+
+    /RETURN
+    <menu>
+        Leaves the current macro and returns to the previous macro, or 
+        to an idle input state...
+</menu></menu><menu>
+
+    /COMPARE [op1] is [op2]<BR>
+    /COMPARE [op1] like [op2]<BR>
+    /COMPARE [op1] is_tag<BR>
+    <menu>
+        This command is used to set success or fail assuming an IF statement
+        follows near by.  The parameters to this command are op1 - a variable
+        or a constant value, op2 - a variable or a constant value.  The 
+        operands (1, 2) are assumed to be words... not strings (yet).<br><br>
+          <u>requires both op1 and op2</u><br>
+        <menu>
+           is     - compares the two operands and sets success if they match
+                    length, and a case-sensitive match.<br>
+           like   - sets success if the operands match up to the length of
+                    the shorter with a case-insensitive match.<br>
+           in     - the first operator is a word, the second is a list,
+                    result is true if the word is in the list.<br>
+           morethan - compares the numeric value of op1 and op2, if op1 is 
+                      more than op2 then the result is true.<br>
+           lessthan - compares the numeric value of op1 and op2, if op1 is 
+                      more than op2 then the result is true.<br><br>
+         </menu>
+          <u>requires only op1</u><br>
+          <menu>
+           is_tag - set success if the token was bound by &lt; &gt;.<br>
+           is_... - to be determined... but other options will likely be
+                    is_paren, is_quoted, is_bracketed, is_braced.<br>
+           is_device - test to see if [op1] is the name of a known device type.<br>
+
+           blank  - if only end of lines are present, or there is no content
+                    in the variable, it is blank.<br>
+           eol    - if the variable is an end of line record, result is true.<br>
+           binary - if the data is binary, the result is true.
+           number - if the content of [op1] resembles a number (+/-*[0-9][.]*[0-9])<br><br>
+
+         </menu>
+           <u>requires no operands</u><br>
+          <menu>
+           connected - returns true if the file or tcp connection being 
+                       processed is still open and connected.<br>
+           active    - returns true if the COMMAND data path is still connected.<br>
+           is_console - returns true if the loader used is console mode.<br>
+        </menu>
+</menu></menu><menu>
+
+    /IF success<BR>
+    /IF fail<BR>
+   &nbsp;&nbsp;...<BR>
+    /ELSE<BR>
+   &nbsp;&nbsp;...<BR>
+    /ENDIF<BR>
+    <menu>
+       There are only two types of IF allowed - if FAIL or if SUCCESS.
+       Many commands set success or failure when used in a macro.  This
+       allows the results to be tested.  /grab for example returns failure
+       if the object was not found.
+</menu></menu><menu>
+
+    /SCRIPT [scriptname]
+    <menu>
+       Attempts to open a file specified by script name, then parses the file
+       and performs all commands specified therein.
+
+</menu></menu><menu>
+    /PUSH [var] [token]
+    <menu>
+       Appends token to the end of the variable referenced in the first parameter.
+       
+</menu></menu><menu>
+    /PARSE [devname] [device] [parameters...]<br>
+    /OPEN [devname] [device] [parameters...]
+    <menu>
+    	Opens a data datapath on the currently executing sentience.
+    	&lt;<a href="devices.html">device</a>&gt; specifies a device name 
+    	to open, and &lt;parameters&gt; are 
+    	specific parameters for said device.<br>
+    	[devname] is a required parameter.  It is some unique name for the 
+    	device to be referenced as.&nbsp; This name is used in close and option.<br>
+    	[device] is the type of the device to open. <br>
+      For more information on devices please view <a href="devices.html">device</a> pages... 
+      <br>
+      [parameters...] are optional parameters specific to each type of device.&nbsp; 
+      These paramters are detailed on the <a href="devices.html">device</a> pages...<br>
+       The object may step through data from the device currently being parsed using
+       /getword, /getline, or /getpartial....<br>
+       If not in a macro, data available from the device will automatically 
+       be relayed to the active command channel.<br>
+</menu></menu><menu>
+	 /OPTION [devname] [parameters...]<br>
+	 <menu>
+	 Options per device after the device is open, some parameters may be modified.&nbsp;
+	 Also certain commands become available after a device has been opened, these
+	 can be accessed using the option command.&nbsp;  Often, but not always, "/option &lt;devname&gt; help"
+	 will list available options for the devices.
+</menu></menu><menu>
+    /ENDPARSE [devname]<br>
+    /CLOSE [devname]
+    <menu>                     
+       Closes the current file specified being parsed.&nbps; If no device name is 
+       specified, then the first open file is closed.  "/dump %me" lists devices
+       currently open.
+</menu></menu><menu>
+    /COMMAND [device name] [device specific parameters]
+    <menu>
+      For more information on this command please view <a href="devices.html">device</a> pages... 
+      Basically command input is taken from the device specified.<br>
+    	Opens a command datapath on the currently executing sentience.
+    	&lt;<a href="devices.html">device</a>&gt; specifies a device name to 
+    	open, and &lt;parameters&gt; are 
+    	specific parameters for said device.
+
+</menu></menu><menu>
+    /ENDCOMMAND
+    <menu>
+    	Closes the next command datapath device in the chain of command datapaths.
+
+</menu></menu><menu>
+    /GETWORD [varname]
+    <menu>
+       This command demands that a variable name be used.  The variable
+       specified is set to the next value from the file opened by the last
+       /parse command.
+
+</menu></menu><menu>
+    /GETPARTIAL [varname]
+    <menu>
+       If /getword fails, then there might be a partial expression.  This
+       command gets the partial and puts it in a variable, clearing the
+       partial accumulator.  Useful for badly formatted files being parsed.
+</menu></menu><menu>
+    /HEAD [varname] [into] [count]
+    <menu>
+       Takes the first word from [varname] and moves it to the variable [into].
+       If [count] is specified and is a positive number, this is the number
+       of characters to get instead.  If the number of characters requested
+       is greater than the length of the first atom, the whole atom is moved.
+       If only a part of the atom is to be gotten, the remainder is put back
+       in front of [varname].
+</menu></menu><menu>
+    /TAIL [varname] [into] [count]
+    <menu>
+       Takes the last word from [varname] and moves it to the variable [into].
+       If [count] is specified and is a positive number, this is the number
+       of characters from the end to get instead.
+       If the number of characters requested
+       is greater than the length of the last atom, the whole atom is moved.
+       If only a part of the atom is to be gotten, the remainder is put back
+       at the end of [varname].
+</menu></menu>
+<menu>
+   /UCASE [variable]
+      <menu>
+      Uppercases the specified variable.
+</menu></menu><menu>
+   /LCASE [variable]
+      <menu>
+      Lowercases the specified variable.
+</menu></menu><menu>
+   /UCASE [variable]
+      <menu>
+      Changes the case to be proper, that is capitalize the first letter of
+      every word.
+
+</menu></menu><menu>
+   /BURST [variable] [destination]
+      <menu>
+      	If no parameters are specified, burst will take the current 'macro result'
+      	(/setresult, /result) data and burst it and store the result back
+      	into the 'macro result'<br>
+      	If variable is specified without a destination, the data is queued into
+      	the data datapath as an input.<br>
+      	If a destionation NAME is specified, a variable named that is set.<br>
+      	<br>
+      	ex: 
+      	<menu>/decl temp "this is a thing to burst"<br>
+      	      /burst %temp  # results in data in the data datapath<br>
+      	      /burst %temp out # results in a variable called 'out'<br>
+      	      <br>
+      	      /result %temp # sets the 'macro result'<br>
+      	      /burst # bursts the currently set macro result<br>
+
+      	</menu>
+
+</menu></menu><menu>
+   /COLLAPSE [variable]
+      <menu>
+      If variable is specified, then collapse will take the tokens which make
+      up the variable and collapse them into a single thing.  By default MOST
+      information within dekware is maintained as tokens.<br>
+      If no variable is specified, then it attempts to use the current 'macro result' 
+      and collapse that back into itself.
+
+</menu></menu><menu>
+   /RESULT [text...]
+      <menu>
+      Sets an internal value to whatever tokens are passed as text.  This value
+      remains the same until some other command modifies it - some commands 
+      modify it, but mostly the only time it changes is with /setresult.
+
+</menu></menu><menu>
+   /GETRESULT [variable name]
+      <menu>
+      Retrieves the last value set in the internal macro result variable, and
+      puts it in the variable named variable.  This command does NOT use a 
+      variable reference...
+      <p>
+      /result %temp # this is usually WRONG (unless temp contained the right varname)
+      <p>/result temp # sets the macro result variable into 'temp'
+
+<a name="on" >
+</menu></menu><menu>
+   /ON [behavior method]
+      <menu>
+      Begins recording of actions to perform when behavior actions are triggered.  At some
+      point there may be a command /before which behaves almost like this, but happens before the 
+      object actually changes its location.  When the macro is called the parameter %caller may be 
+      used to reference the object which has triggered the event.  %me will reference the object
+      which has received the trigger.
+
+      <p>Behaviors are as follows<br>
+      <list>
+      <li>Enter - triggered on the object entered when /enter command is used.
+      <li>Leave - triggers on room you are in when /leave command is used.
+      </list>
+      <br>
+      <center>Partially implemented behaviors (untested)</center>
+      <br>
+      <list>
+      <li>Grab - triggered on object which is grabbed
+      <li>Pull - triggered on previous container of grabbed object
+      <li>Receive - triggered on object which now possesses the grabbed item.
+      </list>
+      <br>
+      <center>To be implemented behaviors (designed)</center>
+      <br>
+      <list>
+      <li>conceal - triggered on room containing object which has (/enter'ed) a container.
+      <li>reveal - triggered on new room when an object leaves a container.
+      <li>Store - triggered on object which is stored
+      <li>Push - triggered on container which receives the stored item.
+      <li>Loss - triggered on entity which previously possessed stored item.
+      <li>Drop - triggered on entity dropped.
+      <li>Loss2 - triggered on room receiving the dropped object.
+      <li>Attach - triggered on both items being attached (?)
+      <li>detach - triggered on both items being seperated (?)
+      <li>enter near - triggered on new room receiving an object... This happens when entering a room
+      which is attached to the previous room.  /Enter also works for traversing attached objects.
+      <li>leave near - triggered on room which an object has left... this happens when leaving a room
+      which is attached to the previous...
+      </list>
+
+</menu></menu>
+<a name="misccommands">
+<center><u>Miscellaneous Commands</u></center>
+<menu>
+    /HELP [commands like...]
+    <menu>
+       Shows a list of commands, and if the command has a description,
+       also displays the description.  Macros become part of this list.
+       The amount of characters required to match the command are
+       bracketed.  More characters than required to match may be entered,
+       but they must match the command also.... If a parameter is given
+       to HELP, only the commands which resemble the word entered are shown.
+</menu></menu><menu>
+   ! [command line]
+   <menu>
+      Launches a system command using the current command stream.  This
+      works for most commands, however, FTP under windows does not use standard
+      input to read the password... so this application will just hang.  Most 
+      applications will run, but the object processing this command will be 
+      halted until the command completes.  Simple commands like !dir, !ping, 
+      etc. will work well.
+</menu></menu><menu>
+   . [command to send...]
+   <menu>
+      Period(.) will send the line to the current data channel after
+      substituting variables on the line.  The period itself will not be sent.
+      Currently the only devices which support this command well are TCP, UDP,
+      TCPSERVER, and UDPSERVER.  Other devices such as 'file' do not yet 
+      support output methods, being primarily used to read and parse files.
+      If connected to another Dek via a network connection, this allows
+      commands to be sent through to the next Dek.  "./help" will get 
+      help from the remove Dek instead of the local.  This command is also
+      useful for Unix systems where "./configure" might be run, one can use 
+      the command "../configure" to work on the remote system. If nothing is 
+      put after the period a blank line is generated to the remote connection.
+      If the data path is not open on the object, this will have no action.
+</menu></menu><menu>
+    /CHANGEDIR [directory]<br>
+    /CD [directory]
+    <menu>
+       Changes the current working directory to the specified path.  If
+       used within a macro success/fail is set.
+</menu></menu><menu>
+   /INPUT [variable] 
+      <menu>
+      Gets the next command line entered, or queued by a TELL to the active
+      object, and stores it in the variable referenced.  Macro execution is
+      halted until the input is satisfied.
+</menu></menu><menu>
+   /WAIT 
+      <menu>
+      Wait until there is data on the input data channel.  See sentients for 
+      more information on channels.
+
+</menu></menu><menu>
+   /INCREMENT [variable] [amount]
+      <menu>
+      Adds value to the variable, assuming the variable is numeric in content.
+</menu></menu><menu>
+
+   /DECREMENT [variable] [amount]
+      <menu>
+      Subtracts value to the variable, assuming the variable is numeric in content.
+</menu></menu><menu>
+
+   /MULTIPLY [variable] [amount]
+      <menu>
+      Multiplies the value of the variable, assuming the variable is numeric in content.
+</menu></menu><menu>
+
+   /DIVIDE [variable] [amount]
+      <menu>
+      Divides the value of the variable, assuming the variable is numeric in content.
+</menu></menu><menu>
+
+   /LALIGN [variable] 
+      <menu>
+      Sets the output alignment to the left... for more on alignment see Parsing.
+</menu></menu><menu>
+   /RALIGN [variable] 
+      <menu>
+      Sets the output alignment to the right... for more on alignment see Parsing.
+</menu></menu><menu>
+   /NOALIGN [variable] 
+      <menu>
+      Sets the output alignment to none... for more on alignment see Parsing.
+</menu></menu>
+
+</BODY>
+</HTML>

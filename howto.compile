@@ -1,0 +1,8 @@
+Use cmake.
+
+mkdir build
+cd build
+ccmake ../cmake_all
+
+select appropriate generator.
+

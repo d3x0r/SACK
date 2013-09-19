@@ -1,0 +1,5 @@
+.SH NAME
+SNMP \-  Simple Network Management Protocol
+.SH DESCRIPTION
+The Carnegie Mellon SNMP library is broken up into the following
+parts:

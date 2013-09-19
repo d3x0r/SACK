@@ -1,0 +1,5 @@
+
+FILE( GLOB TMP_FRAMES  *.frame )
+
+INSTALL( FILES ${TMP_FRAMES} DESTINATION Resources/frames )
+

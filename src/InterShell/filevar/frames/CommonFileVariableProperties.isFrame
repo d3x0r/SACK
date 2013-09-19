@@ -1,0 +1,10 @@
+<control caption="File Variables" edit="1" position="0,0" size="580,525" type="Frame">
+<control IDName="InterShell/File Vars/EditControl/EDIT_VARNAME" caption="" position="19,47" size="405,20" type="EditControl"></control>
+<control IDName="InterShell/File Vars/EditControl/EDIT_FILENAME" caption="" position="29,112" size="399,24" type="EditControl"></control>
+<control IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" caption="Cancel" position="311,384" size="73,21" type="Button"></control>
+<control IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" caption="Ok" position="418,386" size="73,21" type="Button"></control>
+<control caption="Variable Name" position="7,11" size="168,21" type="TextControl"></control>
+<control caption="File Path and Name" position="9,80" size="226,22" type="TextControl"></control>
+<control IDName="InterShell/File Vars/ListBox/LISTBOX_VARIABLES" caption="(null)" position="13,159" size="424,151" type="ListBox"></control>
+<control IDName="InterShell/File Vars/Button/BTN_DEL_VARIABLE" PrivateData="#ff356059" caption="Delete Var" position="168,337" size="105,33" type="Button"></control>
+<control IDName="InterShell/File Vars/Button/BTN_ADD_VARIABLE" PrivateData="#ff356059" caption="Add Var" position="24,338" size="101,29" type="Button"></control></control>
