@@ -241,7 +241,7 @@ static void DumpMacros( PVARTEXT vt, PENTITY pe )
 			}
 		}
 	}
-   lprintf( WIDE("Failed to find contorl... entity this time...") );
+   lprintf( WIDE("Failed to find control... entity this time...") );
    return NULL;
 }
 
