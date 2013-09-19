@@ -67,12 +67,14 @@ void DrawClock( Image surface, PANALOG_CLOCK analog )
 				UnmakeImageFile( analog->composite );
 				analog->composite = MakeImageFile( analog->w, analog->h );
 			}
+			analog->composite = surface;
+
 			ClearImageTo( analog->composite, 0 );
 			//BlotScaledImageAlpha( surface, analog->composite, ALPHA_TRANSPARENT );
 			BlotScaledImageSizedToAlpha( analog->composite, analog->face
 												, 0, 0
 												, surface->width, surface->height, ALPHA_TRANSPARENT );
-         //BlotImage( analog->composite, analog->face, 0, 0);
+			//BlotImage( analog->composite, analog->face, 0, 0);
 			{
 				//PANALOG_CLOCK analog = (PANALOG_CLOCK)psv;
 				//Image surface = GetDisplayImage( renderer );
@@ -96,7 +98,8 @@ void DrawClock( Image surface, PANALOG_CLOCK analog )
 										  );
 			}
 			//xlprintf(LOG_NOISE-1)( WIDE("Surface is %ld,%ld,%ld"), surface, surface->x, surface->y );
-			BlotImageAlpha( surface, analog->composite, 0, 0, ALPHA_TRANSPARENT );
+			if( surface != analog->composite )
+				BlotImageAlpha( surface, analog->composite, 0, 0, ALPHA_TRANSPARENT );
 			//BlotImageSizedAlpha( surface, analog->composite, 0, 0, surface->width, surface->height, ALPHA_TRANSPARENT );
 			//BlotScaledImageAlpha( surface, analog->composite, ALPHA_TRANSPARENT );
 			analog->flags.bLocked = 0;

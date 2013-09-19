@@ -95,13 +95,14 @@ void RegisterResource( CTEXTSTR appname, CTEXTSTR resource_name, int resource_na
 
 	{
 		TEXTCHAR root[256];
+		TEXTCHAR old_root[256];
 		//lprintf( "resource name = %s", resource_names[n].type_name );
 		//lprintf( "resource name = %s", resource_names[n].resource_name );
-		snprintf( root, sizeof( root ), PSI_ROOT_REGISTRY WIDE( "/resources/") WIDE("%s") WIDE( "/%s/%s" )
-				  , appname
-					//snprintf( root, sizeof( root ), WIDE("/psi/resources/core/%s/%s")
+		snprintf( root, sizeof( root ), PSI_ROOT_REGISTRY WIDE( "/resources/") WIDE("%s/%s/%s" )
 				  , type_name
-				  , resource_name );
+				  , appname
+				  , resource_name 
+				  );
 			RegisterIntValue( root
 								 , WIDE("value")
 								 , resource_name_id );
@@ -109,10 +110,17 @@ void RegisterResource( CTEXTSTR appname, CTEXTSTR resource_name, int resource_na
 								 , WIDE("range")
 								 , resource_name_range );
 			snprintf( root, sizeof( root ), PSI_ROOT_REGISTRY WIDE("/resources/") WIDE("%s") WIDE("/%s")
-					  , appname, type_name );
+					, type_name 
+					  , appname
+						);
+			snprintf( old_root, sizeof( old_root ), PSI_ROOT_REGISTRY WIDE("/resources/") WIDE("%s") WIDE("/%s")
+					  , appname
+					  , type_name
+						);
 			RegisterIntValue( root
 								 , resource_name
 								 , resource_name_id );
+			RegisterClassAlias( root, old_root );
 	}
 }
 
