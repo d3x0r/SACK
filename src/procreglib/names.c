@@ -1560,15 +1560,16 @@ PROCREG_PROC( PTRSZVAL, CreateRegisteredDataTypeEx)( PCLASSROOT root
 										 , p
 										 , (PTRSZVAL)instancename );
 					}
-#ifdef DEBUG_GLOBAL_REGISTRATION
 					else
 					{
+						Hold( p );
+#ifdef DEBUG_GLOBAL_REGISTRATION
 						lprintf( WIDE("Resulting with previuosly created instance.") );
 						// increment instances referenced so that close does not
 						// destroy - fortunatly this is persistant data, and therefore
 						// doesn't get destroyed yet.
-					}
 #endif
+					}
 					return (PTRSZVAL)p;
 				}
 			}
