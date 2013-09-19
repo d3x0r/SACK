@@ -167,9 +167,9 @@ endif( NEED_PNG )
 if( NEED_JPEG )
 INSTALL( 
   FILES
-    ../src/jpeg-8d/jpeglib.h
-    ../src/jpeg-8d/jconfig.h
-    ../src/jpeg-8d/jmorecfg.h
+    ../${JBASEDIR}/jpeglib.h
+    ../${JBASEDIR}/jconfig.h
+    ../${JBASEDIR}/jmorecfg.h
   DESTINATION
     include/${CMAKE_PROJECT_NAME}/jpeg
 )
