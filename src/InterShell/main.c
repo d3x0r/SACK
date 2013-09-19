@@ -937,7 +937,6 @@ void FlushToKey( PMENU_BUTTON button )
 					EnableKeyPresses( button->control.key, !button->flags.bNoPress );
 					SetKeyTextColor( button->control.key, colors->textcolor );
 					SetKeyColor( button->control.key, colors->color );
-					lprintf( "Set Button Text..." );
 					SetButtonText( button );
 					if( button->glare_set->flags.bMultiShadeBackground )
 					{
