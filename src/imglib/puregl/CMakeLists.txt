@@ -13,8 +13,8 @@ endif( NOT __ANDROID__ )
 
 add_library_force_source( ${project} SHARED
 ${FIRST_GCC_LIBRARY_SOURCE}
-  blotscaled.c blotdirect.c image.c gifimage.c pngimage.c jpgimage.c 
-  bmpimage.c line.c interface.c alphatab.c alphastab.c sprite.c sprite_common.c
+  blotscaled.c blotdirect.c image.c ../gifimage.c ../pngimage.c ../jpgimage.c 
+  ../bmpimage.c line.c interface.c alphatab.c alphastab.c sprite.c sprite_common.c
   ${font_sources}
 ${LAST_GCC_LIBRARY_SOURCE}
 )
