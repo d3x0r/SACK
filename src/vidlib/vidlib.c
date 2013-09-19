@@ -330,8 +330,8 @@ void IssueUpdateLayeredEx( PVIDEO hVideo, LOGICAL bContent, S_32 x, S_32 y, _32 
 										// this is Vista+ function.
 										RECT rc_dirty;
 										UPDATELAYEREDWINDOWINFO ULWInfo;
-										rc_dirty.top = y>=topPos.y?y:topPos.y;
-										rc_dirty.left = x>=topPos.x?x:topPos.x;
+										rc_dirty.top = y;
+										rc_dirty.left = x;
 										rc_dirty.right = x + w;
 										rc_dirty.bottom = y + h;
 										ULWInfo.cbSize = sizeof(UPDATELAYEREDWINDOWINFO);
@@ -342,7 +342,7 @@ void IssueUpdateLayeredEx( PVIDEO hVideo, LOGICAL bContent, S_32 x, S_32 y, _32 
 										ULWInfo.pptSrc = bContent?&pointSource:NULL;
 										ULWInfo.crKey = 0;
 										ULWInfo.pblend = &blend;
-                              ULWInfo.dwFlags = ULW_ALPHA;
+										ULWInfo.dwFlags = ULW_ALPHA;
 										ULWInfo.prcDirty = bContent?&rc_dirty:NULL;
 //#ifdef LOG_RECT_UPDATE
 										if( l.flags.bLogWrites )
