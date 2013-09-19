@@ -76,7 +76,7 @@ PRELOAD( InitUSBPulse100 )
 	if( !devices )
 	{
 		lprintf( WIDE("No Devices Attached.") );
-		BannerMessage( WIDE("No Devices Attached.") );
+		//BannerMessage( WIDE("No Devices Attached.") );
 		return;
 	}
 	
