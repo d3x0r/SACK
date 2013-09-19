@@ -2,7 +2,7 @@
 if( NOT __NO_GUI__ )
 
 if( NEED_JPEG )
-SET( JBASEDIR src/jpeg-8d )
+SET( JBASEDIR src/jpeg-9 )
 SET( SYSDEPMEM jmemnobs.c )
 
 # library object files common to compression and decompression
@@ -33,7 +33,7 @@ if( FORCE_CXX )
 set_source_files_properties(${JPEG_SOURCE} PROPERTIES LANGUAGE CXX )
 endif( FORCE_CXX )
 
-source_group("Source Files\\Jpeg-8b Library" FILES ${JPEG_SOURCE})
+source_group("Source Files\\Jpeg-9 Library" FILES ${JPEG_SOURCE})
 
 
 endif( NEED_JPEG )
