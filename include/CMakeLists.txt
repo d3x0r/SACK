@@ -156,9 +156,9 @@ endif( NEED_ZLIB )
 if( NEED_PNG )
 INSTALL( 
   FILES
-    ../src/libpng-1.5.12/png.h
-    ../src/libpng-1.5.12/pngconf.h
-    ../src/libpng-1.5.12/pnglibconf.h
+    ../${PBASEDIR}/png.h
+    ../${PBASEDIR}/pngconf.h
+    ../${PBASEDIR}/pnglibconf.h
   DESTINATION
     include/${CMAKE_PROJECT_NAME}/png
 )
