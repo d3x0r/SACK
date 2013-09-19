@@ -56,7 +56,7 @@ static int OnDrawCommon( SLIDER_CONTROL_NAME )( PSI_CONTROL pc )
 					if( x == -caretw/2 )
 						c = basecolor(pc)[HIGHLIGHT];
 					else if( x == caretw/2 )
-					c = basecolor(pc)[SHADOW];
+						c = basecolor(pc)[SHADOW];
 					else if( x == caretw/2 - 1 )
 						c = basecolor(pc)[SHADE];
 					else
