@@ -596,20 +596,24 @@ static PENTITY CreateEntity( PTEXT pName )
 
 CORE_PROC( PENTITY, CreateEntityIn )( PENTITY Location, PTEXT pName )
 {
-   PENTITY pTemp, peCreator;
-	pTemp = CreateEntity( pName );
-   if( !Location )
-      putin( peCreator = THE_VOID, pTemp );
+	PENTITY pTemp, peCreator;
+	if( !Location )
+		peCreator = THE_VOID;
 	else
 	{
-		putin( peCreator = Location, pTemp );
+		peCreator = Location;
 		// find list of what people in _this near location
 		// and announce to those that are operators that the enetity has
-      // been created, and by whom
+		// been created, and by whom
 	}
-   pTemp->pCreatedBy = peCreator;
-   AddLink( &peCreator->pCreated, pTemp );
-   return pTemp;
+	if( peCreator )
+	{
+		pTemp = CreateEntity( pName );
+		putin( peCreator, pTemp );
+		pTemp->pCreatedBy = peCreator;
+		AddLink( &peCreator->pCreated, pTemp );
+		return pTemp;
+	}
 }
 
 //--------------------------------------------------------------------------
