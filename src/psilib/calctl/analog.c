@@ -48,6 +48,10 @@ void DrawClock( Image surface, PANALOG_CLOCK analog )
 			if( analog->flags.bLocked )
 				return;
 			analog->flags.bLocked = 1;
+
+			SetSpritePosition( analog->second_hand, surface->width/2, surface->height/2 );
+			SetSpritePosition( analog->minute_hand, surface->width/2, surface->height/2 );
+			SetSpritePosition( analog->hour_hand, surface->width/2, surface->height/2 );
 			if( SUS_GT(surface->height,S_32,analog->h,_32) )
 			{
 				remake = 1;
