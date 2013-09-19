@@ -44,23 +44,23 @@ int bGLColorMode = 0; // this gets set if we're working with BGR native or RGB n
 #define DO_BMP
 
 #ifdef DO_PNG
-#include "pngimage.h"
+#include "../pngimage.h"
 #endif
 
 #ifdef DO_GIF
-#include "gifimage.h"
+#include "../gifimage.h"
 #endif
 
 #ifdef DO_TGA
-#include "tgaimage.h"
+#include "../tgaimage.h"
 #endif
 
 #ifdef DO_JPG
-#include "jpgimage.h"
+#include "../jpgimage.h"
 #endif
 
 #ifdef DO_BMP
-#include "bmpimage.h"
+#include "../bmpimage.h"
 #endif
 #ifdef __cplusplus
 using namespace sack::image::loader;
