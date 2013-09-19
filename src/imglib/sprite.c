@@ -684,7 +684,7 @@ static void PlotArbitrary( Image dest
 			} // if left.cury == final y
 			if( (left.cury == points[left.idx].left.y) )
 			{
-            //DebugBreak();
+				//DebugBreak();
 				if( points[left.idx+1].flags.no_left || ( left.idx == 2 ) )
 				{
 					// done!
