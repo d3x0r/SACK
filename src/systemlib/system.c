@@ -49,6 +49,38 @@ SACK_SYSTEM_NAMESPACE
 
 #include "taskinfo.h"
 
+//-------------------------------------------------------------------------
+//  Function/library manipulation routines...
+//-------------------------------------------------------------------------
+
+
+typedef struct loaded_function_tag
+{
+	_32 references;
+	void (CPROC*function)(void );
+	struct loaded_library_tag *library;
+	DeclareLink( struct loaded_function_tag );
+	TEXTCHAR name[];
+} FUNCTION, *PFUNCTION;
+
+#ifdef WIN32
+typedef HMODULE HLIBRARY;
+#else
+typedef void* HLIBRARY;
+#endif
+typedef struct loaded_library_tag
+{
+	PTRSZVAL nLibrary; // when unloading...
+	HLIBRARY library;
+	PFUNCTION functions;
+	DeclareLink( struct loaded_library_tag );
+	TEXTCHAR *name;
+	TEXTCHAR full_name[];
+} LIBRARY, *PLIBRARY;
+
+static PLIBRARY libraries;
+static PTREEROOT pFunctionTree;
+
 typedef struct task_info_tag TASK_INFO;
 
 #ifdef HAVE_ENVIRONMENT
@@ -1084,39 +1116,28 @@ SYSTEM_PROC( int, CallProgram )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args
 }
 
 //-------------------------------------------------------------------------
-//-------------------------------------------------------------------------
-//  Function/library manipulation routines...
+
 //-------------------------------------------------------------------------
 
-
-typedef struct loaded_function_tag
+void InvokeLibraryLoad( void )
 {
-	_32 references;
-	void (CPROC*function)(void );
-	struct loaded_library_tag *library;
-	DeclareLink( struct loaded_function_tag );
-	TEXTCHAR name[];
-} FUNCTION, *PFUNCTION;
+	void (CPROC *f)(void);
+	PCLASSROOT data = NULL;
+	PCLASSROOT event_root = GetClassRoot( "SACK/system/library/load_event" );
+	CTEXTSTR name;
+	for( name = GetFirstRegisteredName( event_root, &data );
+		 name;
+		  name = GetNextRegisteredName( &data ) )
+	{
+		f = GetRegisteredProcedureExx( data,(CTEXTSTR)NULL,void,name,(void));
+		if( f )
+		{
+			f();
+		}
+	}
+}
 
-#ifdef WIN32
-typedef HMODULE HLIBRARY;
-#else
-typedef void* HLIBRARY;
-#endif
-typedef struct loaded_library_tag
-{
-	PTRSZVAL nLibrary; // when unloading...
-	HLIBRARY library;
-	PFUNCTION functions;
-	DeclareLink( struct loaded_library_tag );
-	TEXTCHAR *name;
-	TEXTCHAR full_name[];
-} LIBRARY, *PLIBRARY;
 
-static PLIBRARY libraries;
-static PTREEROOT pFunctionTree;
-
-//-------------------------------------------------------------------------
 
 SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR funcname, LOGICAL bPrivate  DBG_PASS )
 {
@@ -1206,6 +1227,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			// and we need to force this here.
 			InvokeDeadstart();
 		}
+		InvokeLibraryLoad();
 		library->nLibrary = ++nLibrary;
 		LinkThing( libraries, library );
 	}

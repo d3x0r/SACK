@@ -75,6 +75,8 @@ void ClearShaders( void )
 
 void EnableShader( PImageShaderTracker tracker, ... )
 {
+	if( !tracker )
+		return;
 	if( !tracker->glProgramId )
 	{
 		if( tracker->flags.failed )

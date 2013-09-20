@@ -102,14 +102,6 @@ void RenderGL( struct display_camera *camera )
 		lprintf( "Begin Render" );
 
 
-	if( !camera->flags.did_first_draw )
-	{
-		first_draw = 1;
-		camera->flags.did_first_draw = 1;
-	}
-	else
-		first_draw = 0;
-
 	// do OpenGL Frame
 
 	InitGL( camera );
@@ -119,6 +111,14 @@ void RenderGL( struct display_camera *camera )
 
 		LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
 		{
+			if( !reference->flags.did_first_draw )
+			{
+				first_draw = 1;
+				reference->flags.did_first_draw = 1;
+			}
+			else
+				first_draw = 0;
+
 			// setup initial state, like every time so it's a known state?
 			{
 				// copy l.origin to the camera

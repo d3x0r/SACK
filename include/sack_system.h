@@ -122,6 +122,10 @@ SYSTEM_PROC( generic_function, LoadFunctionEx )( CTEXTSTR library, CTEXTSTR func
 SYSTEM_PROC( generic_function, LoadPrivateFunctionEx )( CTEXTSTR libname, CTEXTSTR funcname DBG_PASS );
 #define LoadPrivateFunction(l,f) LoadPrivateFunctionEx(l,f DBG_SRC )
 
+#define OnLibraryLoad(name)  \
+	__DefineRegistryMethod("SACK",_OnLibraryLoad,WIDE("system/library"),WIDE("load_event"),name WIDE("_LoadEvent"),void,(void), __LINE__)
+
+
 // this is a pointer pointer - being that generic_fucntion is
 // a pointer...
 SYSTEM_PROC( int, UnloadFunctionEx )( generic_function* DBG_PASS );
