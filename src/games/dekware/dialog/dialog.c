@@ -32,18 +32,18 @@ static int ObjectMethod( WIDE("psi_control"), WIDE("save"), WIDE("Save Control (
 	if( filename )
 	{
 		PCOMMON_TRACKER pct = (PCOMMON_TRACKER)GetLink( &ps->Current->pPlugin, g.iCommon );
-      PCOMMON pc = pct->control.pc;
+		PCOMMON pc = pct->control.pc;
 		if( pc )
 		{
 			if( SaveXMLFrame( pc, GetText( filename ) ) )
 			{
 				if( ps->CurrentMacro )
-               ps->CurrentMacro->state.flags.bSuccess = 1;
+					ps->CurrentMacro->state.flags.bSuccess = 1;
 			}
 			else
 				if( !ps->CurrentMacro )
 				{
-               S_MSG( ps, WIDE("Failed to save control.") );
+					S_MSG( ps, WIDE("Failed to save control.") );
 				}
 		}
 	}
@@ -51,10 +51,10 @@ static int ObjectMethod( WIDE("psi_control"), WIDE("save"), WIDE("Save Control (
 	{
 		if( !ps->CurrentMacro )
 		{
-         S_MSG( ps, WIDE("Must supply a filename to write control to.") );
+			S_MSG( ps, WIDE("Must supply a filename to write control to.") );
 		}
 	}
-   return 0;
+	return 0;
 }
 //--------------------------------------------------------------------------
 
@@ -71,7 +71,7 @@ static int ObjectMethod( WIDE("psi_control"), WIDE("edit"), WIDE("Edit Control (
 			option = WIDE("0");
 		EditFrame( GetFrame( pc ), atoi( option ) );
 	}
-   return 1;
+	return 1;
 }
 
 //--------------------------------------------------------------------------
@@ -83,9 +83,9 @@ static int ObjectMethod( WIDE("psi_control"), WIDE("hide"), WIDE("Hide Control (
 	PCOMMON pc = pct->control.pc;
 	if( pc )
 	{
-      HideCommon( pc );
+		HideCommon( pc );
 	}
-   return 1;
+	return 1;
 }
 
 //--------------------------------------------------------------------------
@@ -98,9 +98,9 @@ static int ObjectMethod( WIDE("psi_control"), WIDE("show"), WIDE("Show Control (
 	PCOMMON pc = pct->control.pc;
 	if( pc )
 	{
-      DisplayFrame( pc );
+		DisplayFrame( pc );
 	}
-   return 1;
+	return 1;
 }
 
 //--------------------------------------------------------------------------
@@ -111,7 +111,7 @@ void DestroyAControl( PENTITY pe )
 	PCOMMON_TRACKER pComTrack = (PCOMMON_TRACKER)GetLink( &pe->pPlugin, g.iCommon );
 	if( pComTrack )
 	{
-      DeleteLink( &g.pMyFrames, pe );
+		DeleteLink( &g.pMyFrames, pe );
 		SetLink( &pe->pPlugin, g.iCommon, NULL );
 		if( pComTrack->flags.created_internally )
 		{
@@ -132,15 +132,15 @@ static int CPROC CreatePopupThing( PSENTIENT ps, PENTITY peNew, PTEXT params )
 	PCOMMON_TRACKER pComTrack = New( COMMON_TRACKER );
 	pComTrack->control.menu = menu;
 	pComTrack->flags.created_internally = 1;
-   pComTrack->flags.menu = 1;
+	pComTrack->flags.menu = 1;
 	SetLink( &ps->Current->pPlugin, g.iCommon, (POINTER)pComTrack );
 	// add some methods to add menu items, and to
 	// issue the popup dialog....
 	// also these popup objects need to be able to be given
-   // to things like listboxes for contect menus on items.
+	// to things like listboxes for contect menus on items.
 	UnlockAwareness( CreateAwareness( peNew ) );
 
-   return 0;
+	return 0;
 }
 
 //--------------------------------------------------------------------------
@@ -154,7 +154,7 @@ int IsOneOfMyFrames( PENTITY pe )
 		if( pe == peCheck )
          return TRUE;
 	}
-   return FALSE;
+	return FALSE;
 }
 
 static PTEXT CPROC SetCaption( PTRSZVAL psv
@@ -279,7 +279,7 @@ static volatile_variable_entry common_vars[] = { { DEFTEXT(WIDE("caption"))
 PENTITY CommonInitControl( PCOMMON pc )
 {
 	PENTITY peNew = NULL;
-   EnterCriticalSec( &g.csCreating );
+	EnterCriticalSec( &g.csCreating );
 	{
 		PCOMMON_TRACKER pComTrack = New( COMMON_TRACKER );
 		PCOMMON pcFrame = GetParentControl( pc );
@@ -289,7 +289,7 @@ PENTITY CommonInitControl( PCOMMON pc )
 		if( g.peCreating )
 		{
 			pComTrack->flags.created_internally = 1;
-         peNew = g.peCreating;
+			peNew = g.peCreating;
 			g.peCreating = NULL;
 			SetLink( &peNew->pPlugin, g.iCommon, (POINTER)pComTrack );
 		}
@@ -321,14 +321,14 @@ PENTITY CommonInitControl( PCOMMON pc )
 				else
                lprintf( WIDE("Failed to create entity for control...") );
 			}
-         // this needs to be done so that buttons may perform 'on' commands.
+			// this needs to be done so that buttons may perform 'on' commands.
 			//UnlockAwareness( CreateAwareness( peNew ) );
 			LeaveCriticalSec( &g.csCreating );
 			return NULL;
 		}
 	}
 	LeaveCriticalSec( &g.csCreating );
-   return peNew;
+	return peNew;
 }
 
 
@@ -397,7 +397,7 @@ static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
 			{
 				PCOMMON pNewControl;
 				EnterCriticalSec( &g.csCreating );
-            g.peCreating = peNew;
+				g.peCreating = peNew;
 				pNewControl = MakeNamedCaptionedControl( pc, control_type
 																 , atoi( px ), atoi( py )
 																 , atoi( pw ), atoi( ph )
@@ -424,7 +424,7 @@ static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
 				AddMethod( peNew, dialog_commands );
 				AddMethod( peNew, dialog_commands+1 );
 				AddMethod( peNew, dialog_commands+2 );
-            if( !pc )
+				if( !pc )
 					AddMethod( peNew, dialog_commands+3 );
 #endif
 
@@ -455,14 +455,14 @@ static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
 int CPROC CustomFrameInit( PCOMMON pc )
 {
 	CommonInitControl( pc );
-   return 1;
+	return 1;
 }
 
 //--------------------------------------------------------------------------
 static int CPROC CustomDefaultInit( PCOMMON pc )
 {
 	CommonInitControl( pc );
-   return 1;
+	return 1;
 }
 
 //--------------------------------------------------------------------------
@@ -475,10 +475,10 @@ static int CPROC CustomDefaultDestroy( PCOMMON pc )
 	{
 		// in the course of destruction, DestroyCallbacks dispatched
 		// which removes this from my list of things now.
-      // since multiple paths of destroyentity might happen...
+		// since multiple paths of destroyentity might happen...
 		DestroyEntity( pe );
 	}
-   return 1;
+	return 1;
 }
 
 //--------------------------------------------------------------------------
@@ -486,18 +486,18 @@ static int CPROC CustomDefaultDestroy( PCOMMON pc )
 PRELOAD( RegisterExtraInits )
 {
 	TEXTCHAR rootname[128];
-   InitializeCriticalSec( &g.csCreating );
+	InitializeCriticalSec( &g.csCreating );
 }
 
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
-   g.iCommon = RegisterExtension( WIDE("PSI Control") );
+	g.iCommon = RegisterExtension( WIDE("PSI Control") );
 	////RegisterObject( WIDE("Frame"), WIDE("Allows interface to Panther's Slick Interface dialogs"), InitFrame );
 	//RegisterObject( WIDE("Control"), WIDE("Allows interface to Panther's Slick Interface dialogs"), AddAControl );
 	RegisterObject( WIDE("Menu"), WIDE("A popup menu selector"), CreatePopupThing );
 
-   // this registers a default, if the control itself does not specify...
+	// this registers a default, if the control itself does not specify...
 	SimpleRegisterMethod( WIDE("psi/control/rtti/extra init")
 							  , CustomDefaultInit, WIDE("int"), WIDE("dekware common init"), WIDE("(PCOMMON)") );
 	SimpleRegisterMethod( WIDE("psi/control/rtti/extra destroy")
@@ -505,7 +505,7 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 
 	SimpleRegisterMethod( WIDE("psi/control/") CONTROL_FRAME_NAME  WIDE("/rtti/extra init")
 							  , CustomFrameInit, WIDE("int"), WIDE("extra init"), WIDE("(PCOMMON)") );
-   //DumpRegisteredNames();
+	//DumpRegisteredNames();
 	return DekVersion;
 }
 
