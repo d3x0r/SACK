@@ -537,6 +537,10 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 		  name;
 		  name = GetNextRegisteredName( &data ) )
 	{
+		LOGICAL already_inited = GetRegisteredIntValueEx( data,(CTEXTSTR)name, "Executed" );
+		if( already_inited )
+			continue;
+		RegisterIntValueEx( data, (CTEXTSTR)name, "Executed", 1 );
 		Init3d = GetRegisteredProcedureExx( data,(CTEXTSTR)name,PTRSZVAL,WIDE("ExtraInit3d"),(PMatrix,PTRANSFORM,RCOORD*,RCOORD*));
 
 		if( Init3d )
@@ -554,6 +558,7 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 				if( !reference )
 				{
 					reference = New( struct plugin_reference );
+					reference->flags.did_first_draw = 0;
 					reference->name = name;
 					{
 						static PCLASSROOT draw3d;
@@ -587,7 +592,7 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 {
 	struct display_camera *camera;
 	INDEX idx;
-   //lprintf( WIDE( "-----Create WIndow Stuff----- %s %s" ), hVideo->flags.bLayeredWindow?WIDE( "layered" ):WIDE( "solid" )
+	//lprintf( WIDE( "-----Create WIndow Stuff----- %s %s" ), hVideo->flags.bLayeredWindow?WIDE( "layered" ):WIDE( "solid" )
 	//		 , hVideo->flags.bChildWindow?WIDE( "Child(tool)" ):WIDE( "user-selectable" ) );
 	LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
 	{
@@ -610,25 +615,19 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 		OpenEGL( camera, camera->displayWindow );
 #else
 		//lprintf( "Open win32 camera..." );
-      OpenWin32Camera( camera );
+		OpenWin32Camera( camera );
 #endif
 
 #ifdef LOG_OPEN_TIMING
 		lprintf( WIDE( "Created Real window...Stuff.. %d,%d %dx%d" ),camera->x,camera->y,camera->w,camera->h );
 #endif
 
-#ifdef LOG_OPEN_TIMING
-		lprintf( WIDE( "Created Real window...Stuff.." ) );
-#endif
-		camera->flags.extra_init = 1;
-
 		// extra init iterates through registered plugins and
-      // loads their initial callbacks; the actual OnIni3d() has many more params
+		// loads their initial callbacks; the actual OnIni3d() has many more params
 		InvokeExtraInit( camera, camera->origin_camera );
 
-      // first draw allows loading textures and shaders; so reset that we did a first draw.
-		camera->flags.did_first_draw = 0;
-      // render loop short circuits if camera is not ready
+		// first draw allows loading textures and shaders; so reset that we did a first draw.
+		// render loop short circuits if camera is not ready
 		camera->hVidCore->flags.bReady = TRUE;
 	}
 
@@ -713,7 +712,6 @@ LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 	PutDisplayAbove( hNextVideo, l.top );
 
 	AddLink( &l.pActiveList, hNextVideo );
-	//hNextVideo->pid = l.pid;
 	hNextVideo->KeyDefs = CreateKeyBinder();
 #ifdef LOG_OPEN_TIMING
 	lprintf( WIDE( "Doing open of a display... %p" ) , hNextVideo);
@@ -731,62 +729,6 @@ LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 										, hNextVideo->pWindowPos.cy);
 		lprintf( WIDE("Created some window stuff") );
 	}
-#if 000
-	else
-	{
-		int d = 1;
-		int cnt = 25;
-		do
-		{
-			//SendServiceEvent( l.pid, WM_USER + 512, &hNextVideo, sizeof( hNextVideo ) );
-			lprintf( WIDE("posting create to thred.") );
-			//d = PostThreadMessage (l.dwThreadID, WM_USER_CREATE_WINDOW, 0,
-			//							  (LPARAM) hNextVideo);
-			if (!d)
-			{
-				Log1( WIDE("Failed to post create new window message...%d" ),
-						GetLastError ());
-				cnt--;
-			}
-#ifdef LOG_STARTUP
-			else
-			{
-				lprintf( WIDE("Posted create new window message...") );
-			}
-#endif
-			Relinquish();
-		}
-		while (!d && cnt);
-		if (!d)
-		{
-			DebugBreak ();
-		}
-		if( hNextVideo )
-		{
-			hNextVideo->thread = GetMyThreadID();
-			//while (!hNextVideo->flags.bReady && timeout > timeGetTime())
-			{
-				// need to do this on the possibility that
-				// thIS thread did create this window...
-				if( !Idle() )
-				{
-#ifdef NOISY_LOGGING
-					lprintf( WIDE("Sleeping until the window is created.") );
-#endif
-					WakeableSleep( SLEEP_FOREVER );
-					//Relinquish();
-				}
-			}
-			//if( !hNextVideo->flags.bReady )
-			{
-				//CloseDisplay( hNextVideo );
-				//lprintf( WIDE("Fatality.. window creation did not complete in a timely manner.") );
-				// hnextvideo is null anyhow, but this is explicit.
-				//return FALSE;
-			}
-		}
-	}
-#endif
 #ifdef LOG_STARTUP
 	lprintf( WIDE("Resulting new window %p %p"), hNextVideo, GetNativeHandle( hNextVideo ) );
 #endif

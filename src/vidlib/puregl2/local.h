@@ -67,6 +67,10 @@ typedef LOGICAL (CPROC *Update3dProc)(PTRANSFORM);
 
 struct plugin_reference
 {
+	struct plugin_refernce_flags
+	{
+		BIT_FIELD did_first_draw : 1;
+	} flags;
 	CTEXTSTR name;
 	PTRSZVAL psv;
 	LOGICAL (CPROC *Update3d)(PTRANSFORM origin);
@@ -98,7 +102,6 @@ struct display_camera
 	struct {
 		BIT_FIELD extra_init : 1;
 		BIT_FIELD init : 1;
-		BIT_FIELD did_first_draw : 1;  // init but in the opengl context....
 		BIT_FIELD topmost : 1;
 	} flags;
 	PLIST plugins; // each camera has plugins that might attach more render and mouse methods
@@ -180,7 +183,6 @@ extern
 	// kbd.key == KeyboardState
 	KEYBOARD kbd;
 	_32 dwMsgBase;
-	//_32 pid;
 	//char KeyboardState[256];   // export for key procs to reference...
 	PLIST keyhooks;
 	PLIST ll_keyhooks;

@@ -1560,13 +1560,15 @@ void OpenWin32Camera( struct display_camera *camera )
 {
 	static HMODULE hMe;
 	TEXTCHAR window_name[128];
-	hMe = GetModuleHandle (_WIDE(TARGETNAME));
+	if( !camera->hWndInstance )
+	{
+		hMe = GetModuleHandle (_WIDE(TARGETNAME));
 
-	if( !camera->display )
-		snprintf( window_name, 128, "%s:3D View", GetProgramName() );
-	else
-		snprintf( window_name, 128, "%s:3D View(%d)", GetProgramName(), camera->display );
-	camera->hWndInstance = CreateWindowEx (0
+		if( !camera->display )
+			snprintf( window_name, 128, "%s:3D View", GetProgramName() );
+		else
+			snprintf( window_name, 128, "%s:3D View(%d)", GetProgramName(), camera->display );
+		camera->hWndInstance = CreateWindowEx (0
 	#ifndef NO_DRAG_DROP
 														| WS_EX_ACCEPTFILES
 	#endif
@@ -1615,6 +1617,7 @@ void OpenWin32Camera( struct display_camera *camera )
 					HandleMessage (Msg);
 				}
 			}
+	}
 }
 
 static int CPROC ProcessDisplayMessages( PTRSZVAL psvUnused )
@@ -1737,7 +1740,6 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 	}
 	l.actual_thread = thread;
 	l.dwThreadID = GetCurrentThreadId ();
-	//l.pid = (_32)l.dwThreadID;
 	l.bThreadRunning = TRUE;
 	SACK_Vidlib_OpenCameras();
 #ifdef LOG_STARTUP
@@ -1758,6 +1760,12 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 	lprintf( WIDE( "Video Exited volentarily" ) );
 	//ExitThread( 0 );
 	return 0;
+}
+
+static void OnLibraryLoad( "Video Render PureGL 2" )( void )
+{
+	if( l.bThreadRunning )
+		SACK_Vidlib_OpenCameras();
 }
 
 //----------------------------------------------------------------------------

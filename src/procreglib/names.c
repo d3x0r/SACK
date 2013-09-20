@@ -1388,6 +1388,16 @@ PROCREG_PROC( int, GetRegisteredIntValue )( CTEXTSTR name_class, CTEXTSTR name )
 	return (int)(PTRSZVAL)GetRegisteredValueEx( (CTEXTSTR)name_class, name, TRUE );
 }
 
+PROCREG_PROC( int, GetRegisteredIntValueEx )( PCLASSROOT root, CTEXTSTR name_class, CTEXTSTR name )
+{
+/*
+ * this has a warning - typecast to value of differnet size.
+ * this is OK.  the value originates as an 'int' and is typecast to a
+ * CTEXTSTR which this then down converts back to 'int'
+ */
+	return (int)(PTRSZVAL)GetRegisteredValueExx( root, name_class, name, TRUE );
+}
+
 #ifdef __cplusplus
 PROCREG_PROC( int, GetRegisteredIntValue )( PCLASSROOT name_class, CTEXTSTR name )
 {

@@ -137,7 +137,7 @@ _32 DOALPHA( _32 over, _32 in, _8 a )
 
 static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 {
-   GLboolean tmp;
+	GLboolean tmp;
 	l.glActiveSurface = (struct glSurfaceData *)psv;
 
 #if !defined( USE_GLES2 )
@@ -146,9 +146,9 @@ static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 		return;
 	}
 #endif
-   tmp = 123;
+	tmp = 123;
 	glGetBooleanv( GL_SHADER_COMPILER, &tmp );
-   //lprintf( "Shader Compiler = %d", tmp );
+	//lprintf( "Shader Compiler = %d", tmp );
 	if( !tmp )
 	{
 		lprintf( "No Shader Compiler" );
@@ -936,12 +936,6 @@ Image LoadImageFileFromGroupEx ( INDEX group, CTEXTSTR filename DBG_PASS )
 
 	file = 
 		DecodeMemoryToImage( buf, size );
-
-	if( file )
-	{
-		lprintf( WIDE( "making textue %s" ), filename );
-		ReloadOpenGlTexture( file, 0 );
-	}
 
 	ReleaseEx( buf DBG_RELAY );
 	return file;
