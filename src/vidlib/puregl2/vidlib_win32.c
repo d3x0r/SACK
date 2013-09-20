@@ -1593,6 +1593,18 @@ void OpenWin32Camera( struct display_camera *camera )
 			}
 			EnableOpenGL( camera->hVidCore );
 			ShowWindow( camera->hWndInstance, SW_SHOWNORMAL );
+
+			camera->hVidCore->flags.bTopmost = camera->flags.topmost;
+			if( camera->flags.topmost )
+			{
+				SetWindowPos( camera->hWndInstance
+								, HWND_TOPMOST
+								, 0, 0, 0, 0,
+								 SWP_NOMOVE
+								 | SWP_NOSIZE
+								);
+			}
+
 			while( !camera->hVidCore->flags.bReady )
 			{
 				MSG Msg;

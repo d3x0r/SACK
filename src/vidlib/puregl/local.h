@@ -94,6 +94,7 @@ struct display_camera
 		BIT_FIELD extra_init : 1;
 		BIT_FIELD init : 1;
 		BIT_FIELD did_first_draw : 1;  // init but in the opengl context....
+		BIT_FIELD topmost : 1;
 	} flags;
 	PLIST plugins; // each camera has plugins that might attach more render and mouse methods
 	int type;
