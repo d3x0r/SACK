@@ -640,6 +640,7 @@ png_set_longjmp_fn(png_structrp png_ptr, png_longjmp_ptr longjmp_fn,
    return png_ptr->jmp_buf_ptr;
 }
 
+#ifdef PNG_SETJMP_SUPPORTED
 void /* PRIVATE */
 png_free_jmpbuf(png_structrp png_ptr)
 {
@@ -678,6 +679,7 @@ png_free_jmpbuf(png_structrp png_ptr)
       png_ptr->longjmp_fn = 0;
    }
 }
+#endif  /* PNG_SETJMP_SUPPORTED */
 #endif
 
 /* This is the default error handling function.  Note that replacements for
@@ -869,6 +871,7 @@ png_safe_error,(png_structp png_nonconst_ptr, png_const_charp error_message),
        * C++ compilation too is pretty tricky: C++ wants a pointer to the first
        * element of a jmp_buf, but C doesn't tell us the type of that.
        */
+#ifdef PNG_SETJMP_SUPPORTED
       if (image->opaque != NULL && image->opaque->error_buf != NULL)
          longjmp(png_control_jmp_buf(image->opaque), 1);
 
@@ -879,12 +882,12 @@ png_safe_error,(png_structp png_nonconst_ptr, png_const_charp error_message),
          png_safecat(image->message, (sizeof image->message), pos,
              error_message);
       }
+#endif  /* PNG_SETJMP_SUPPORTED */
    }
 
    /* Here on an internal programming error. */
-   abort();
+	//abort();
 }
-
 #ifdef PNG_WARNINGS_SUPPORTED
 void /* PRIVATE */
 png_safe_warning(png_structp png_nonconst_ptr, png_const_charp warning_message)
@@ -907,16 +910,22 @@ png_safe_execute(png_imagep image_in, int (*function)(png_voidp), png_voidp arg)
    volatile png_imagep image = image_in;
    volatile int result;
    volatile png_voidp saved_error_buf;
+#ifdef PNG_SETJMP_SUPPORTED
    jmp_buf safe_jmpbuf;
+#endif /* PNG_SETJMP_SUPPORTED */
 
    /* Safely execute function(arg) with png_error returning to this function. */
    saved_error_buf = image->opaque->error_buf;
-   result = setjmp(safe_jmpbuf) == 0;
+#ifdef PNG_SETJMP_SUPPORTED
+	result = setjmp(safe_jmpbuf) == 0;
+#endif /* PNG_SETJMP_SUPPORTED */
 
    if (result)
    {
 
-      image->opaque->error_buf = safe_jmpbuf;
+#ifdef PNG_SETJMP_SUPPORTED
+		image->opaque->error_buf = safe_jmpbuf;
+#endif /* PNG_SETJMP_SUPPORTED */
       result = function(arg);
    }
 

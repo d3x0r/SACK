@@ -145,11 +145,11 @@ no_mem2:
 //	if (setjmp( *(png_set_longjmp_fn((png_ptr), (png_longjmp_ptr)my_png_longjmp_ptr3, sizeof (jmp_buf)))
 //				 // png_jmpbuf(png_ptr)
 //				 ))
-#else
+#    else
 	if( 0 )
 #    endif
+	if( 0 )
 #  endif
-	
 	{
 		png_destroy_read_struct(&png_ptr, &info_ptr,
 										&end_info);
