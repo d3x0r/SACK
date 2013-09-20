@@ -2870,6 +2870,8 @@ static void LoadOptions( void )
 			int custom_pos;
 			struct display_camera *camera = New( struct display_camera );
 			MemSet( camera, 0, sizeof( *camera ) );
+			snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Display is topmost"), n+1 );
+         camera->flags.topmost = SACK_GetOptionIntEx( option, GetProgramName(), tmp, 0, TRUE );
 			snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Use Custom Position"), n+1 );
 			custom_pos = SACK_GetOptionIntEx( option, GetProgramName(), tmp, l.flags.bView360?1:0, TRUE );
 			if( custom_pos )
@@ -3478,6 +3480,16 @@ static struct display_camera *OpenCameras( void )
 			camera->hVidCore->hWndOutput = (HWND)camera->hWndInstance;
 			EnableOpenGL( camera->hVidCore );
 			ShowWindow( camera->hWndInstance, SW_SHOWNORMAL );
+			camera->hVidCore->flags.bTopmost = camera->flags.topmost;
+			if( camera->flags.topmost )
+			{
+				SetWindowPos( camera->hWndInstance
+								, HWND_TOPMOST
+								, 0, 0, 0, 0,
+								 SWP_NOMOVE
+								 | SWP_NOSIZE
+								);
+			}
 			while( !camera->hVidCore->flags.bReady )
 			{
 				MSG Msg;

@@ -409,6 +409,9 @@ void LoadOptions( void )
 			MemSet( camera, 0, sizeof( *camera ) );
 			camera->origin_camera = CreateTransform();
 
+			snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Display is topmost"), n+1 );
+			camera->flags.topmost = SACK_GetProfileIntEx( GetProgramName(), tmp, 0, TRUE );
+
 #if defined( __QNX__ ) || defined( __ANDROID__ )
 			custom_pos = 0;
 #else
