@@ -3422,7 +3422,7 @@ BOOL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 	#ifdef LOG_OPEN_TIMING
 			lprintf( WIDE( "Created Real window...Stuff.. %d,%d %dx%d" ),x,y,w,h );
 	#endif
-			camera->hVidCore = (PVIDEO)Allocate (sizeof (VIDEO));
+			camera->hVidCore = New(VIDEO);
 			MemSet (camera->hVidCore, 0, sizeof (VIDEO));
 			camera->hVidCore->camera = camera;
 			camera->hVidCore->pMouseCallback = OpenGLMouse;
@@ -4332,7 +4332,7 @@ PVIDEO  MakeDisplayFrom (HWND hWnd)
 {
 	
 	PVIDEO hNextVideo;
-	hNextVideo = (PVIDEO)Allocate (sizeof (VIDEO));
+	hNextVideo = New(VIDEO);
 	MemSet (hNextVideo, 0, sizeof (VIDEO));
 #ifdef _OPENGL_ENABLED
 	hNextVideo->_prior_fracture = -1;
@@ -4364,7 +4364,7 @@ PVIDEO  OpenDisplaySizedAt (_32 attr, _32 wx, _32 wy, S_32 x, S_32 y) // if nati
 {
 	PVIDEO hNextVideo;
    lprintf( WIDE( "open display..." ) );
-	hNextVideo = (PVIDEO)Allocate (sizeof (VIDEO));
+	hNextVideo = New(VIDEO);
 	MemSet (hNextVideo, 0, sizeof (VIDEO));
 #ifdef _OPENGL_ENABLED
 	hNextVideo->_prior_fracture = -1;
@@ -5596,7 +5596,7 @@ PSPRITE_METHOD  EnableSpriteMethod (PRENDERER render, void(CPROC*RenderSprites)(
 {
 	// add a sprite callback to the image.
 	// enable copy image, and restore image
-	PSPRITE_METHOD psm = (PSPRITE_METHOD)Allocate( sizeof( *psm ) );
+	PSPRITE_METHOD psm = New(struct sprite_method_tag);
 	psm->renderer = render;
 	psm->saved_spots = CreateDataQueue( sizeof( struct saved_location ) );
 	psm->RenderSprites = RenderSprites;

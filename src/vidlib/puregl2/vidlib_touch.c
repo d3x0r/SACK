@@ -242,7 +242,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 					lprintf( "Rotation angle is %g", angle_one );
 #endif
 					if( 0 )
-					{
+					 {
 						PrintVector( rotate_axis.n );
 						RotateAround( l.origin, rotate_axis.n, angle_one );
 #if 0

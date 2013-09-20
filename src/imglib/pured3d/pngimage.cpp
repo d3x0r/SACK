@@ -183,7 +183,7 @@ no_mem2:
       {
          size_t rowbytes;
 		 int row;
-         png_bytep * const row_pointers = (png_bytep*const)Allocate( sizeof( png_bytep ) * pImage->height );
+         png_bytep * const row_pointers = NewArray(png_bytep, pImage->height );
 
          rowbytes = png_get_rowbytes (png_ptr, info_ptr);
          if (rowbytes != pImage->pwidth*4 )
