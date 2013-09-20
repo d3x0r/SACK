@@ -2827,8 +2827,7 @@ WM_DROPFILES
 static void LoadOptions( void )
 {
 	_32 average_width, average_height;
-	PODBC option = ConnectToDatabase( GetDefaultOptionDatabaseDSN() );
-	SetOptionDatabaseOption( option, TRUE );
+	PODBC option = GetOptionODBC( NULL, 0 );
 	//int some_width;
 	//int some_height;
 #ifndef __NO_OPTIONS__

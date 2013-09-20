@@ -366,7 +366,7 @@ void LoadOptions( void )
 	//int some_height;
 	//HostSystem_InitDisplayInfo();
 #ifndef __NO_OPTIONS__
-   l.flags.bLogRenderTiming = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Log Render Timing"), 0, TRUE );
+   	l.flags.bLogRenderTiming = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Log Render Timing"), 0, TRUE );
 	l.flags.bView360 = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/360 view"), 0, TRUE );
 
 	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Image Library/Scale", 10 );
@@ -378,7 +378,7 @@ void LoadOptions( void )
 	}
 	else
 		l.scale = 1.0 / l.scale;
-   //lprintf( "LoadOptions" );
+	//lprintf( "LoadOptions" );
 	if( !l.cameras )
 	{
 		struct display_camera *default_camera = NULL;
