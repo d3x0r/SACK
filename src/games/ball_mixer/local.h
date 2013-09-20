@@ -87,6 +87,7 @@ struct local_terrain_data_tag {
 	 _32 next_active_tick;
 	 _32 active_ball_forward_tick; 
 	 _32 return_to_home;
+    _32 end_watch_tick;
     btVector3 ball_grab_position;
 
 	 RCOORD initial_view_quat[4];
@@ -109,6 +110,7 @@ struct local_terrain_data_tag {
 	 _32 time_to_track;
 	 _32 time_to_approach;
 	 _32 time_to_turn_ball;
+    _32 time_to_watch_ball;
 
 	int nNextBalls[75];
 	int last_set; // last position set from ball queue...

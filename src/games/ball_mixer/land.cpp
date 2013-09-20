@@ -1331,7 +1331,7 @@ void BeginApproach( void )
 void BeginPivot( void )
 {
 	// a ball is being watched...
-   // the pivot is pre-empting all prior activity up to turning
+	// the pivot is pre-empting all prior activity up to turning
 	if( !l.active_ball && l.next_active_ball )
 	{
 		l.active_ball = l.next_active_ball;
@@ -1414,6 +1414,13 @@ void RackBalls( void )
 {
 	INDEX idx;
 	PHEXPATCH patch;
+
+   // reset all pending timers and modes...
+	l.return_to_home = 0;
+	l.next_active_ball = 0;
+	l.active_ball = 0;
+	l.end_watch_tick = 0;
+
 	LIST_FORALL( l.patches, idx, PHEXPATCH, patch )
 	{
 		if( !patch->flags.simulated )
@@ -1597,12 +1604,13 @@ void MoveBallToCameraApproach( void )
 	{
 		scale = 1.0;
 		// we now have a ball directly
-		lprintf( "active (%d)", l.active_ball_forward_tick );
+		lprintf( "active (%d %d, remaining %d)", l.active_ball_forward_tick, l.last_tick, l.active_ball_forward_tick - l.last_tick );
 		if( l.active_ball_forward_tick )
 		{
 			if(  l.active_ball_forward_tick < l.last_tick )
 			{
 				lprintf( "rotated." );
+            l.end_watch_tick = l.last_tick + l.time_to_watch_ball;
 				rotating =FALSE;
 				rotated = TRUE;
 				delta = 1.0;
@@ -1925,11 +1933,22 @@ static void OnBeginDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psv,PTRANSFORM cam
 			}
 		}
 	}
+	else if( l.end_watch_tick )
+	{
+		if( l.end_watch_tick < l.last_tick )
+		{
+			EndWatchBall();
+         l.end_watch_tick = 0;
+		}
+	}
 	// update the camera to one of the balls....
 	else if( l.next_active_ball && !l.active_ball )
 	{
-		lprintf( "next ball is %d now(%d)  watch(%d)  next(%d)"
-			, l.last_tick, l.next_active_ball, l.watch_ball_tick, l.next_active_tick );
+		lprintf( "next ball is %d now(%d)  watch(%d)  next(%d)  endwatch(%d)"
+				 , l.last_tick, l.next_active_ball
+				 , l.watch_ball_tick
+				 , l.next_active_tick
+				 , l.end_watch_tick );
 		if( l.next_active_ball && l.watch_ball_tick || l.next_active_tick == 0 )
 		{
 			lprintf( "Pointing camera..." );
@@ -1972,53 +1991,7 @@ static void OnBeginDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psv,PTRANSFORM cam
 			l.active_ball = 0;
 			l.return_to_home = l.last_tick + TIME_TO_HOME;
 		}
-
 		MoveBallToCameraApproach();
-		if( 0 ) // this is old mode active ball turn around thing...
-		{			
-			btTransform trans;
-			ball->fallRigidBody->getMotionState()->getWorldTransform( trans );
-			btVector3 ball_origin = trans.getOrigin();
-			lprintf( "Rotating?" );
-			{
-				btQuaternion rotation = trans.getRotation();
-				RCOORD r2[4];
-				RCOORD r3[4];
-				r2[0] = -rotation[3];
-				r2[1] = rotation[0];
-				r2[2] = rotation[1];
-				r2[3] = rotation[2];
-				SetRotationMatrix( camera, r2 );
-				
-				Translate( camera, ball_origin.x(), ball_origin.y(), ball_origin.z()  );
-				if( l.active_ball_forward_tick == 0 )
-				{
-					lprintf( "Fixed pos" );
-					MoveForward( camera, -70 );
-				}
-				else if(  l.active_ball_forward_tick > l.last_tick )
-				// rotate around until we lock...
-				{
-					lprintf( "rotating" );
-					RotateRel( camera, 0, (M_PI) * ( TIME_TO_TURN_BALL - (l.active_ball_forward_tick - l.last_tick) ) / TIME_TO_TURN_BALL, 0 ) ;
-					MoveForward( camera, -70 );
-					RotateRel( camera, 0, 0, M_PI  * ( TIME_TO_TURN_BALL - (l.active_ball_forward_tick - l.last_tick) ) / TIME_TO_TURN_BALL );
-				}
-				else
-				{
-					l.active_ball_forward_tick = 0;
-
-					RotateRel( camera, 0, (M_PI), 0 ) ;
-					MoveForward( camera, -70 );
-					RotateRel( camera, 0, 0, M_PI );
-					if( !l.return_to_home )
-					{
-						SetPoint( l.final_view_origin, GetOrigin( camera ) );
-						GetRotationMatrix( camera, l.final_view_quat );
-					}	
-				}
-			}
-		}
 	}
 	else
 	{
@@ -2792,6 +2765,7 @@ PRELOAD( InitDisplay )
 	l.time_to_rack = SACK_GetPrivateProfileInt( "Ball Animation", "time to rack ball", 1800, "flashdrive.ini" );
 	l.time_to_approach = SACK_GetPrivateProfileInt( "Ball Animation", "time to approach ball", 1500, "flashdrive.ini" );
 	l.time_to_turn_ball = SACK_GetPrivateProfileInt( "Ball Animation", "time to turn ball", 800, "flashdrive.ini" );
+   l.time_to_watch_ball = SACK_GetPrivateProfileInt( "Ball Animation", "time to watch ball", 4000, "flashdrive.ini" );
 
 		 
 	l.demo_time_wait_after_drop  = SACK_GetPrivateProfileInt( "Ball Animation", "Demo Mode/time to pick first ball", 12000, "flashdrive.ini" );
