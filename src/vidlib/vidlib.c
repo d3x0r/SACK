@@ -3916,7 +3916,7 @@ static void VideoLoadOptions( void )
 	//SetOptionDatabaseOption( option, TRUE );
 
 #ifndef __NO_OPTIONS__
-	PODBC option = GetOptionODBC( GetDefaultOptionDatabaseDSN(), 0 );
+	PODBC option = GetOptionODBC( NULL, 0 );
    l.flags.bLogMessages = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/log messages" ), 0, TRUE );
 	l.flags.bHookTouchEvents = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/use touch event" ), 0, TRUE );
 
