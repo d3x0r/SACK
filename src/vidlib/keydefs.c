@@ -138,7 +138,7 @@ int FindKey( PTEXT pKey )
 
 RENDER_PROC( PKEYDEFINE, CreateKeyBinder )( void )
 {
-	PKEYDEFINE KeyDef = (PKEYDEFINE)Allocate( sizeof( KEYDEFINE ) * 256 );
+	PKEYDEFINE KeyDef = NewArray( KEYDEFINE, 256 );
 	MemSet( KeyDef, 0, sizeof( KEYDEFINE ) * 256 );
 	return KeyDef;
 }

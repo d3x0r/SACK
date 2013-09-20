@@ -151,7 +151,7 @@ ImageFile *ImageGifFile (_8* ptr, long filesize)
   memset( Suffix, 0, sizeof( Suffix ) );
   memset( OutCode, 0, sizeof( OutCode ) );
 
-  Raster = (_8*)Allocate( filesize );
+  Raster = NewArray( _8, filesize );
   memset( Raster, 0, filesize );
 
   BitOffset = 0;
@@ -181,7 +181,7 @@ ImageFile *ImageGifFile (_8* ptr, long filesize)
 
 /* Read in global colormap. */
 
-   Palette = (RGBcolor*)Allocate( sizeof( RGBcolor ) * ColorMapSize );
+   Palette = NewArray( RGBcolor, ColorMapSize );
 
    if (HasColormap)
    {
