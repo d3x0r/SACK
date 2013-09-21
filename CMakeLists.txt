@@ -1226,6 +1226,7 @@ if( BUILD_TESTS )
    add_subdirectory( src/psilib/menutst )
    add_subdirectory( src/psilib/sheettst )
    add_subdirectory( src/psilib/paltst )
+   add_subdirectory( src/typelib )
 
    if( NOT WATCOM AND NOT UNIX AND NOT MINGW )
       add_subdirectory( src/utils/multi_touch/diagnostic )
