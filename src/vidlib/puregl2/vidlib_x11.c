@@ -112,8 +112,6 @@ int initGL(GLWindow *GLWin )
     return True;
 }
 
-void RenderGL( struct display_camera *camera );
-
 /* Here goes our drawing code */
 int drawGLScene( struct display_camera *camera, GLWindow *GLWin)
 {
@@ -121,7 +119,7 @@ int drawGLScene( struct display_camera *camera, GLWindow *GLWin)
     glLoadIdentity();
     
     Move( l.origin );
-    RenderGL( camera );
+    Render3D( camera );
     
     if (GLWin->doubleBuffered)
     {

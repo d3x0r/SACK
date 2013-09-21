@@ -1,3 +1,5 @@
+#define VIDLIB_INTERFACE_DEFINED
+#define FIX_RELEASE_COM_COLLISION
 #include <stdhdrs.h>
 
 #include "local.h"

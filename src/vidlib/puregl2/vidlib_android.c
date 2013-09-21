@@ -185,7 +185,7 @@ void SACK_Vidlib_DoRenderPass( void )
 			if( !l.flags.bUpdateWanted )
 			{
 				// set l.flags.bUpdateWanted for window surfaces.
-				WantRenderGL();
+				WantRender3D();
 			}
 
 			{
@@ -219,7 +219,7 @@ void SACK_Vidlib_DoRenderPass( void )
 #else
 					SetActiveGLDisplay( camera->hVidCore );
 #endif
-					RenderGL( camera );
+					Render3D( camera );
 #ifdef USE_EGL
 					//lprintf( "doing swap buffer..." );
 					eglSwapBuffers( camera->hVidCore->display, camera->hVidCore->surface );

@@ -1,9 +1,10 @@
 #define FIX_RELEASE_COM_COLLISION
 
 #include <stdhdrs.h>
+
 #include "local.h"
 
-
+RENDER_NAMESPACE
 
 
 int IsVidThread( void )
@@ -56,7 +57,7 @@ void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar)
 }
 
 
-void WantRenderGL( void )
+void WantRender3D( void )
 {
 	INDEX idx;
 	PRENDERER hVideo;
@@ -93,7 +94,7 @@ void WantRenderGL( void )
 	}
 }
 
-void RenderGL( struct display_camera *camera )
+void Render3D( struct display_camera *camera )
 {
 	INDEX idx;
 	PRENDERER hVideo;
@@ -105,8 +106,20 @@ void RenderGL( struct display_camera *camera )
 
 	// do OpenGL Frame
 #ifdef _OPENGL_DRIVER
+	SetActiveGLDisplay( camera->hVidCore );
 	InitGL( camera );
 #endif
+#ifdef _D3D_DRIVER
+	if( !SetActiveD3DDisplay( camera->hVidCore ) )  // BeginScene()
+		return;
+
+
+	Render3d.current_device->Clear(0, NULL, D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER
+											, D3DCOLOR_XRGB(0, 40, 100)
+											, 1.0f
+											, 0);
+#endif
+
 	//lprintf( "Called init for camera.." );
 	{
 		PRENDERER hVideo = camera->hVidCore;
@@ -158,7 +171,21 @@ void RenderGL( struct display_camera *camera )
 			RotateRight( camera->origin_camera, -1, -1 );
 			break;
 		}
-	
+#ifdef _D3D_DRIVER
+		{
+			PC_POINT tmp = GetAxis( camera->origin_camera, 0 );
+			{
+				D3DXMATRIX out;
+				D3DXVECTOR3 eye(tmp[12], tmp[13], tmp[14]);
+				D3DXVECTOR3 at(tmp[8], tmp[9], tmp[10]);
+				D3DXVECTOR3 up(tmp[4], tmp[5], tmp[6] );
+				at += eye;
+				D3DXMatrixLookAtLH(&out, &eye, &at, &up);
+				camera->hVidCore->d3ddev->SetTransform( D3DTS_WORLD, &out );
+			}
+		}
+#endif
+
 		if( l.flags.bLogRenderTiming )
 			lprintf( "Begin drawing from bottom up" );
 		for( hVideo = l.bottom; hVideo; hVideo = hVideo->pBelow )
@@ -195,6 +222,17 @@ void RenderGL( struct display_camera *camera )
 			glDisable(GL_DEPTH_TEST);							// Enables Depth Testing
 
 #endif
+#ifdef _D3D_DRIVER
+			Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 1 );
+			ClearImageTo( hVideo->pImage, 0 );
+			Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 0 );
+
+         /* some kinda init; no? */
+			Render3d.current_device->SetRenderState(D3DRS_ALPHABLENDENABLE,true);
+			Render3d.current_device->SetRenderState(D3DRS_SRCBLEND,D3DBLEND_SRCALPHA);
+			Render3d.current_device->SetRenderState(D3DRS_DESTBLEND,D3DBLEND_INVSRCALPHA);
+			Render3d.current_device->SetRenderState(D3DRS_BLENDOP,D3DBLENDOP_ADD);
+#endif
 			if( hVideo->pRedrawCallback )
 			{
 				hVideo->pRedrawCallback( hVideo->dwRedrawData, (PRENDERER)hVideo );
@@ -203,6 +241,9 @@ void RenderGL( struct display_camera *camera )
 #ifdef _OPENGL_DRIVER
 			// allow draw3d code to assume depth testing 
 			glEnable( GL_DEPTH_TEST );
+#endif
+#ifdef _D3D_DRIVER
+			Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 1 );
 #endif
 			hVideo->flags.bRendering = 0;
 		}
@@ -221,9 +262,15 @@ void RenderGL( struct display_camera *camera )
 		if( l.flags.bLogRenderTiming )
 			lprintf( "End Render" );
 	}
+#ifdef _OPENGL_DRIVER
+	SetActiveGLDisplay( NULL );
+#endif
+#ifdef _D3D_DRIVER
+	SetActiveD3DDisplay( NULL ); // EndScene
+#endif
 }
 
 
 
 
-
+RENDER_NAMESPACE_END

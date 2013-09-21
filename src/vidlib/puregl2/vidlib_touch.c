@@ -1,7 +1,10 @@
+#define FIX_RELEASE_COM_COLLISION
+
 #include <stdhdrs.h>
 
 #include "local.h"
 
+RENDER_NAMESPACE
 //#define DEBUG_TOUCH_INPUTS
 
 	static struct touch_event_state
@@ -289,7 +292,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 					= touch_info.one.x = touches[0].x;
             l.mouse_y
 					= touch_info.one.y = touches[0].y;
-				if( used = OpenGLMouse( (PTRSZVAL)camera, l.mouse_x, l.mouse_y, MK_LBUTTON ) )
+				if( used = (PRENDERER)OpenGLMouse( (PTRSZVAL)camera, l.mouse_x, l.mouse_y, MK_LBUTTON ) )
 				{
                l.hCaptured = used;
 					touch_info.owning_surface = used;
@@ -358,3 +361,4 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 	return 0;
 }
 
+RENDER_NAMESPACE_END
