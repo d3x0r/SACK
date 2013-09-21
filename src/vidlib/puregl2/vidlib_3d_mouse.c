@@ -1,7 +1,9 @@
+#define FIX_RELEASE_COM_COLLISION
 #include <stdhdrs.h>
 
 #include "local.h"
 
+RENDER_NAMESPACE 
 
 // intersection of lines - assuming lines are
 // relative on the same plane....
@@ -411,3 +413,4 @@ PRENDERER CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 	return check;
 }
 
+RENDER_NAMESPACE_END

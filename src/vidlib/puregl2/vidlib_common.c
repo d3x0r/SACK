@@ -37,6 +37,7 @@
 #endif
 #endif
 
+#define FIX_RELEASE_COM_COLLISION
 
 #define NEED_REAL_IMAGE_STRUCTURE
 #define USE_IMAGE_INTERFACE l.gl_image_interface
@@ -321,7 +322,7 @@ void DoDestroy (PVIDEO hVideo)
 			hVideo->over->under = NULL;
 		if( hVideo->under )
 			hVideo->under->over = NULL;
-		Release (hVideo->pTitle);
+		Deallocate(TEXTCHAR *, hVideo->pTitle);
 		DestroyKeyBinder( hVideo->KeyDefs );
 		// Image library tracks now that someone else gave it memory
 		// and it does not deallocate something it didn't allocate...
@@ -781,7 +782,7 @@ PVIDEO  OpenDisplaySizedAt (_32 attr, _32 wx, _32 wy, S_32 x, S_32 y) // if nati
       lprintf( WIDE("New bottom is %p"), l.bottom );
       return hNextVideo;
 	}
-	Release( hNextVideo );
+	Deallocate( PRENDERER, hNextVideo );
 	return NULL;
 }
 
@@ -1204,7 +1205,7 @@ void  SetRendererTitle (PVIDEO hVideo, const TEXTCHAR *pTitle)
 	//if (l.hWndInstance)
 	{
 		if( hVideo->pTitle )
-         Release( hVideo->pTitle );
+         Deallocate( POINTER, hVideo->pTitle );
 		hVideo->pTitle = StrDupEx( pTitle DBG_SRC );
 	}
 }
