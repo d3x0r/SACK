@@ -1,7 +1,12 @@
+
+#define FIX_RELEASE_COM_COLLISION
+
 #include <stdhdrs.h>
 #include <idle.h>
 
 #include "local.h"
+
+RENDER_NAMESPACE
 
 extern KEYDEFINE KeyDefs[];
 #if defined( UNDER_CE )
@@ -1174,7 +1179,7 @@ WM_DROPFILES
 			if( !l.flags.bUpdateWanted )
 			{
 				// set l.flags.bUpdateWanted for window surfaces.
-				WantRenderGL();
+				WantRender3D();
 			}
 
 			{
@@ -1193,9 +1198,7 @@ WM_DROPFILES
 					if( !camera->hVidCore || !camera->hVidCore->flags.bReady )
 						continue;
 					// drawing may cause subsequent draws; so clear this first
-					SetActiveGLDisplay( camera->hVidCore );
-					RenderGL( camera );
-					SetActiveGLDisplay( NULL );
+					Render3D( camera );
 				}
 			}
 		}
@@ -1593,7 +1596,12 @@ void OpenWin32Camera( struct display_camera *camera )
 			{
 				l.redraw_timer_id = SetTimer( camera->hWndInstance, (UINT_PTR)1, 16, NULL );
 			}
+#ifdef _OPENGL_DRIVER
 			EnableOpenGL( camera->hVidCore );
+#endif
+#ifdef _D3D_DRIVER
+			EnableD3D( camera->hVidCore );
+#endif
 			ShowWindow( camera->hWndInstance, SW_SHOWNORMAL );
 
 			camera->hVidCore->flags.bTopmost = camera->flags.topmost;
@@ -1896,3 +1904,4 @@ RENDER_PROC (void, GetDisplaySizeEx) ( int nDisplay
 
 }
 
+RENDER_NAMESPACE_END

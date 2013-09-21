@@ -1,3 +1,4 @@
+#define FIX_RELEASE_COM_COLLISION
 
 #ifdef UNDER_CE
 #define NO_MOUSE_TRANSPARENCY
@@ -12,6 +13,8 @@
 #include <stdhdrs.h>
 
 #include "local.h"
+
+RENDER_NAMESPACE
 
 // key_events has this
 extern KEYDEFINE KeyDefs[];
@@ -644,4 +647,6 @@ void SACK_Vidlib_HideInputDevice( void )
 //	if( keymap_local.hide_keyboard )
 //      keymap_local.hide_keyboard();
 }
+
+RENDER_NAMESPACE_END
 

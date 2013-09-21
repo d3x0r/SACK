@@ -312,7 +312,7 @@ int InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, RCOORD 
 }
 
 
-PRENDERER CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
+int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 {
 	int used = 0;
 	PRENDERER check = NULL;
@@ -410,7 +410,7 @@ PRENDERER CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 			}
 		}
 	}
-	return check;
+	return (int)check;
 }
 
 RENDER_NAMESPACE_END

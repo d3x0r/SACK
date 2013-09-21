@@ -6,6 +6,14 @@
 #define USE_IMAGE_INTERFACE l.gl_image_interface
 #endif
 
+#ifdef _D3D_DRIVER
+#include <d3d9.h>
+#include <d3dx9.h>
+#include <D3dx9math.h>
+//#include <d3d11.h>
+#endif
+
+
 #if defined( __QNX__ )
 #include <gf/gf.h>
 #endif
@@ -248,6 +256,7 @@ void SACK_Vidlib_ShowInputDevice( void );
 void SACK_Vidlib_HideInputDevice( void );
 
 // ---------------- Common --------------------
+void LoadOptions( void );
 #undef GetRenderTransform
 PTRANSFORM CPROC GetRenderTransform( PRENDERER r );
 struct display_camera *SACK_Vidlib_OpenCameras( void );
@@ -259,15 +268,15 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 // --------------- Mouse 3d ------------
 void ComputeMouseRay( struct display_camera *camera, LOGICAL bUniverseSpace, PRAY mouse_ray, S_32 x, S_32 y );
 int InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, RCOORD x, RCOORD y, int *result_x, int *result_y );
-PRENDERER CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b );
+int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b );
 int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
 								, RCOORD *pT2, PVECTOR s2, PVECTOR o2 );
 // this uses coordiantes in l.mouse_x and l.mouse_y and computes the current mouse ray in all displays
 void UpdateMouseRays( S_32 x, S_32 y );
 
 //-------------------  render utility ------------
-void RenderGL( struct display_camera *camera );
-void WantRenderGL( void );
+void Render3D( struct display_camera *camera );
+void WantRender3D( void );
 
 // -------------  physical interface - WIN32 ------------
 void OpenWin32Camera( struct display_camera *camera );
@@ -277,7 +286,14 @@ int InitGL( struct display_camera *camera );										// All Setup For OpenGL Go
 void SACK_Vidlib_ToggleInputDevice( void );
 
 
-
+#ifdef _D3D_DRIVER
+int SetActiveD3DDisplay( PVIDEO hVideo );
+int SetActiveD3DDisplayView( PVIDEO hVideo, int nFracture );
+#  ifndef VIDLIB_INTERFACE_DEFINED
+extern
+	  RENDER3D_INTERFACE Render3d;
+#  endif
+#endif
 
 // ---------- vidlib win32 - share dsymbols for keymap win32
 #define WD_HVIDEO   0   // WindowData_HVIDEO

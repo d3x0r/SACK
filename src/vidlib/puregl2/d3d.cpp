@@ -11,10 +11,6 @@
 #include <vectlib.h>
 
 
-#include <d3d9.h>
-#include <d3dx9.h>
-#include <D3dx9math.h>
-//#include <d3d11.h>
 
 #include <imglib/imagestruct.h>
 #include <vidlib/vidstruc.h>
@@ -43,8 +39,6 @@ void KillGLWindow( void )
 
 extern RENDER3D_INTERFACE Render3d;
 
-
-int IsVidThread( void );
 
 int SetActiveD3DDisplayView( PVIDEO hVideo, int nFracture )
 {

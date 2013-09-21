@@ -21,7 +21,7 @@ set( COMMON_SOURCES
         vidlib_render_loop.c  # dispach draw to all windows in a camera
    )     
 
-foreach( SOURCE ${COMMON_SOURCES} )
+foreach( SOURCE ${COMMON_SOURCES} vidlib_win32.c keymap_win32.c )
    if( ${SOURCE} MATCHES "(.*)\\.c$" )
       set( BASENAME ${CMAKE_MATCH_1} )
    endif()
