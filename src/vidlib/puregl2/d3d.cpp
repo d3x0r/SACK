@@ -30,9 +30,9 @@
 //#define ENABLE_ON_DC hDCOutput
 //hDCBitmap
 
+#include "local.h"
 RENDER_NAMESPACE
 
-#include "local.h"
 
 
 

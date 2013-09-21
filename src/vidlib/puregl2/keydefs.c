@@ -1,3 +1,6 @@
+#define NO_OPEN_MACRO
+#define FIX_RELEASE_COM_COLLISION
+
 #define _INCLUDE_CLIPBOARD
 #define KEYS_DEFINED
 #include <stdhdrs.h>
@@ -128,14 +131,14 @@ int FindKey( PTEXT pKey )
 
 RENDER_PROC( PKEYDEFINE, CreateKeyBinder )( void )
 {
-	PKEYDEFINE KeyDef = (PKEYDEFINE)Allocate( sizeof( KEYDEFINE ) * 256 );
+	PKEYDEFINE KeyDef = NewArray( KEYDEFINE, 256 );
 	MemSet( KeyDef, 0, sizeof( KEYDEFINE ) * 256 );
 	return KeyDef;
 }
 
 RENDER_PROC( void, DestroyKeyBinder )( PKEYDEFINE pKeyDef )
 {
-   Release( pKeyDef );
+   Deallocate( PKEYDEFINE, pKeyDef );
 }
 
 // Usage: /KeyBind shift-F1

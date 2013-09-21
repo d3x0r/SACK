@@ -1,3 +1,4 @@
+#define FIX_RELEASE_COM_COLLISION
 
 #include <stdhdrs.h>
 #include "local.h"
@@ -103,8 +104,9 @@ void RenderGL( struct display_camera *camera )
 
 
 	// do OpenGL Frame
-
+#ifdef _OPENGL_DRIVER
 	InitGL( camera );
+#endif
 	//lprintf( "Called init for camera.." );
 	{
 		PRENDERER hVideo = camera->hVidCore;
@@ -181,6 +183,9 @@ void RenderGL( struct display_camera *camera )
 
 			if( l.flags.bLogWrites )
 				lprintf( WIDE("------ BEGIN A REAL DRAW -----------") );
+
+#ifdef _OPENGL_DRIVER
+
 #if 0
 			glEnable( GL_DEPTH_TEST );
 			// put out a black rectangle
@@ -188,13 +193,17 @@ void RenderGL( struct display_camera *camera )
 			ClearImageTo( hVideo->pImage, 0 );
 #endif
 			glDisable(GL_DEPTH_TEST);							// Enables Depth Testing
+
+#endif
 			if( hVideo->pRedrawCallback )
 			{
 				hVideo->pRedrawCallback( hVideo->dwRedrawData, (PRENDERER)hVideo );
 			}
 
+#ifdef _OPENGL_DRIVER
 			// allow draw3d code to assume depth testing 
 			glEnable( GL_DEPTH_TEST );
+#endif
 			hVideo->flags.bRendering = 0;
 		}
 		if( l.flags.bLogRenderTiming )
