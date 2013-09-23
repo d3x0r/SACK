@@ -289,6 +289,7 @@ void SACK_Vidlib_ToggleInputDevice( void );
 #ifdef _D3D_DRIVER
 int SetActiveD3DDisplay( PVIDEO hVideo );
 int SetActiveD3DDisplayView( PVIDEO hVideo, int nFracture );
+int InitD3D( struct display_camera *camera ); // begin drawing (setup projection)
 #  ifndef VIDLIB_INTERFACE_DEFINED
 extern
 	  RENDER3D_INTERFACE Render3d;

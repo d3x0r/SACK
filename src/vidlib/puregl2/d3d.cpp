@@ -168,7 +168,6 @@ int InitD3D( struct display_camera *camera )										// All Setup For OpenGL Go
 		BeginVisPersp( camera );
 		lprintf( WIDE("First GL Init Done.") );
 		camera->flags.init = 1;
-		camera->hVidCore->flags.bReady = TRUE;
 	}
 	return TRUE;										// Initialization Went OK
 }

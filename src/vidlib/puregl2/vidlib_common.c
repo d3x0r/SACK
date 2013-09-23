@@ -1741,13 +1741,22 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 {
 	if( l.flags.bLogRegister )
 		lprintf( WIDE("Regstering video interface...") );
-
+#ifdef _OPENGL_DRIVER
 	RegisterInterface( 
 	   WIDE("puregl2.render")
 	   , GetDisplayInterface, DropDisplayInterface );
 	RegisterInterface( 
 	   WIDE("puregl2.render.3d")
 	   , GetDisplay3dInterface, DropDisplay3dInterface );
+#endif
+#ifdef _D3D_DRIVER
+	RegisterInterface( 
+	   WIDE("d3d2.render")
+	   , GetDisplayInterface, DropDisplayInterface );
+	RegisterInterface( 
+	   WIDE("d3d2.render.3d")
+	   , GetDisplay3dInterface, DropDisplay3dInterface );
+#endif
 	l.gl_image_interface = (PIMAGE_INTERFACE)GetInterface( "image" );
 
 #ifndef __ANDROID__
