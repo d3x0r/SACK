@@ -113,7 +113,7 @@ void Render3D( struct display_camera *camera )
 	if( !SetActiveD3DDisplay( camera->hVidCore ) )  // BeginScene()
 		return;
 
-
+	InitD3D( camera );
 	Render3d.current_device->Clear(0, NULL, D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER
 											, D3DCOLOR_XRGB(0, 40, 100)
 											, 1.0f
