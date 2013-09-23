@@ -10,6 +10,7 @@
  *
  */
 
+#define FIX_RELEASE_COM_COLLISION
 #ifndef WINVER
 #define WINVER 0x500
 #endif
@@ -28,8 +29,7 @@
 extern int bGLColorMode;
 
 #ifdef __cplusplus 
-namespace sack {
-	namespace image {
+IMAGE_NAMESPACE
 		namespace loader {
 #endif
 
@@ -416,8 +416,7 @@ Image ImageRawBMPFile (_8* ptr, _32 filesize)
 
 #ifdef __cplusplus
 		}; //namespace loader {
-};//namespace sack {
-};//namespace image {
+IMAGE_NAMESPACE_END
 #endif
 
 // $Log: bmpimage.c,v $

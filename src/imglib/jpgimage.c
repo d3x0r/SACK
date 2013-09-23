@@ -11,30 +11,8 @@
  */
 
 
-/*
-    Copyright (C) 1998 by Tor Andersson and Jorrit Tyberghein
-
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Library General Public
-    License as published by the Free Software Foundation; either
-    version 2 of the License, or (at your option) any later version.
-
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Library General Public License for more details.
-
-    You should have received a copy of the GNU Library General Public
-    License along with this library; if not, write to the Free
-    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-    Copyright (C) 2000 by James Buckeyne
-    This library itself is freeware - and has been extended/ ported
-    and modified at great lengths by Me.
-*/
-
-#include <sack_types.h>
-#include <stdio.h>
+#define FIX_RELEASE_COM_COLLISION
+#include <stdhdrs.h>
 
 #include <setjmp.h>
 #include <string.h>
@@ -68,11 +46,12 @@
 #endif
 #endif
 
+
+
 extern int bGLColorMode;
 
 #ifdef __cplusplus 
-namespace sack {
-namespace image {
+IMAGE_NAMESPACE
 	namespace loader {
 #endif
 
@@ -327,8 +306,7 @@ Image ImageJpgFile (_8 * buf, _32 size)
 
 #ifdef __cplusplus 
 	}//	namespace loader {
-}//namespace sack {
-}//namespace image {
+IMAGE_NAMESPACE_END
 #endif
 
 // $Log: jpgimage.c,v $

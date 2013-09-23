@@ -6,6 +6,7 @@
 #define FIX_RELEASE_COM_COLLISION
 #include <stdhdrs.h>
 #include <imglib/imagestruct.h>
+#include <sqlgetoption.h>
 #include <procreg.h>
 #undef IMAGE_SOURCE
 #include <image.h>
@@ -250,6 +251,15 @@ PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 {
 	RegisterInterface( WIDE("d3d.image"), _ImageGetImageInterface, _ImageDropImageInterface );
    l.shade_cache = CreateBinaryTreeExtended( 0, ComparePointer, NULL DBG_SRC );
+	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Image Library/Scale", 10 );
+	if( l.scale == 0.0 )
+	{
+		l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Image Library/Inverse Scale", 2 );
+		if( l.scale == 0.0 )
+			l.scale = 1;
+	}
+	else
+		l.scale = 1.0f / l.scale;
    // this initializes some of the interface methods
    SetBlotMethod( BLOT_C );
 }

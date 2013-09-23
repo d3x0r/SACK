@@ -75,6 +75,7 @@ struct {
 	PLIST d3dSurfaces; // list of struct glSurfaceData *
 	struct d3dSurfaceData *d3dActiveSurface;
 	PRENDER3D_INTERFACE pr3di;
+   RCOORD scale;
 } local_image_data;
 #define l local_image_data
 

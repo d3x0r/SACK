@@ -7,7 +7,7 @@
  *  *  consult doc/image.html
  *
  */
-
+#define FIX_RELEASE_COM_COLLISION
 #include <string.h>
 #include <sharemem.h>
 #define LIBRARY_DEF
