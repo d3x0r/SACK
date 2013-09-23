@@ -477,15 +477,17 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			/**///glTexCoord2d(x_size2, y_size2); glVertex3dv(v[vi][3]);	// Top Right Of The Texture and Quad
 
 #ifndef PURE_OPENGL2_ENABLED
-			glColor4ubv( (GLubyte*)&background );
-			glBegin(GL_TRIANGLE_STRIP);
-			glVertex3fv(v2[vi][0]);	// Bottom Left Of The Texture and Quad
-			glVertex3fv(v2[vi][1]);	// Top Left Of The Texture and Quad
-			glVertex3fv(v2[vi][2]);	// Bottom Right Of The Texture and Quad
-			glVertex3fv(v2[vi][3]);	// Top Right Of The Texture and Quad
-			// Back Face
-			glEnd();
-
+			if( background )
+			{
+				glColor4ubv( (GLubyte*)&background );
+				glBegin(GL_TRIANGLE_STRIP);
+				glVertex3fv(v2[vi][0]);	// Bottom Left Of The Texture and Quad
+				glVertex3fv(v2[vi][1]);	// Top Left Of The Texture and Quad
+				glVertex3fv(v2[vi][2]);	// Bottom Right Of The Texture and Quad
+				glVertex3fv(v2[vi][3]);	// Top Right Of The Texture and Quad
+				// Back Face
+				glEnd();
+			}
 			glBindTexture(GL_TEXTURE_2D, pifSrc->glActiveSurface);				// Select Our Texture
 			glColor4ubv( (GLubyte*)&color );
 			glBegin(GL_TRIANGLE_STRIP);
