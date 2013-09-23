@@ -11,7 +11,7 @@ endif( __ANDROID__ OR __QNX__ )
 
 ADD_DEFINITIONS( -D__3D__ )
 
-set( font_sources font.c fntcache.c fntrender.c lucidaconsole.c )
+set( font_sources ../font.c ../fntcache.c ../fntrender.c ../lucidaconsole.c )
 set( loader_sources ../bmpimage.c ../gifimage.c ../pngimage.c ../jpgimage.c )
 
 add_library_force_source( ${PROJECT_NAME} SHARED
