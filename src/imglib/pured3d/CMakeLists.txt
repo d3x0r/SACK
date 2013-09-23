@@ -3,13 +3,42 @@ set( project bag.image.pured3d )
 
 ADD_DEFINITIONS( -D__3D__ )
 
-set( font_sources font.cpp fntcache.cpp fntrender.cpp lucidaconsole.cpp )
+set( COMMON_CPP_SOURCES   blotscaled.cpp blotdirect.cpp image.cpp 
+  line.cpp interface.cpp alphatab.cpp alphastab.cpp sprite.cpp sprite_common.cpp )
 
+set( font_sources 
+	../font.c 
+        ../fntcache.c 
+        ../fntrender.c 
+        ../lucidaconsole.c 
+        ../pngimage.c 
+        ../pngimage.h 
+        ../bmpimage.c 
+        ../bmpimage.h 
+        ../gifimage.c 
+        ../gifimage.h 
+        ../jpgimage.c 
+        ../jpgimage.h 
+        ../fntglobal.h 
+        ../cache.h 
+)
+
+foreach( SOURCE ${font_sources} )
+   if( ${SOURCE} MATCHES "(.*)/(.*)\\.c$" )
+      set( BASENAME ${CMAKE_MATCH_2} )
+      EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE} ${CMAKE_BINARY_DIR}/imglib.pured3d/${BASENAME}.cpp )
+      set( COMMON_CPP_SOURCES ${COMMON_CPP_SOURCES} ${CMAKE_BINARY_DIR}/imglib.pured3d/${BASENAME}.cpp )
+   endif()
+   if( ${SOURCE} MATCHES "(.*)/(.*)\\.h$" )
+      set( BASENAME ${CMAKE_MATCH_2} )
+      EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE} ${CMAKE_BINARY_DIR}/imglib.pured3d/${BASENAME}.h )
+   endif()
+
+endforeach()
+message( result: ${COMMON_CPP_SOURCES} )
 add_library( ${project} SHARED
 ${FIRST_GCC_LIBRARY_SOURCE}
-  blotscaled.cpp blotdirect.cpp image.cpp gifimage.cpp pngimage.cpp jpgimage.cpp 
-  bmpimage.cpp line.cpp interface.cpp alphatab.cpp alphastab.cpp sprite.cpp sprite_common.cpp
-  ${font_sources}
+  ${COMMON_CPP_SOURCES}
 ${LAST_GCC_LIBRARY_SOURCE}
 )
 

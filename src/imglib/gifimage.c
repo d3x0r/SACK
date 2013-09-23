@@ -29,6 +29,7 @@
     License along with this library; if not, write to the Free
     Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 	 */
+#define FIX_RELEASE_COM_COLLISION
 #include <stdhdrs.h>
 
 #include <math.h>
@@ -145,7 +146,7 @@ ImageFile *ImageGifFile (_8* ptr, long filesize)
   memset( Suffix, 0, sizeof( Suffix ) );
   memset( OutCode, 0, sizeof( OutCode ) );
 
-  Raster = (_8*)Allocate( filesize );
+  Raster = NewArray( _8, filesize );
   memset( Raster, 0, filesize );
 
   BitOffset = 0;
@@ -175,7 +176,7 @@ ImageFile *ImageGifFile (_8* ptr, long filesize)
 
 /* Read in global colormap. */
 
-   Palette = (RGBcolor*)Allocate( sizeof( RGBcolor ) * ColorMapSize );
+   Palette = (RGBcolor*)NewArray( RGBcolor, ColorMapSize );
 
    if (HasColormap)
    {
@@ -403,8 +404,8 @@ cleanup:
   UnmakeImageFile( file );
   file = NULL;
 file_okay:
-  if (Raster) { Release( Raster ); Raster = NULL; }
-  if (Palette) { Release( Palette ); Palette = NULL; }
+  if (Raster) { Deallocate( _8*, Raster ); Raster = NULL; }
+  if (Palette) { Deallocate( RGBcolor*, Palette ); Palette = NULL; }
 /*
   // stack variables HAH!
   if (Prefix) { CHK (delete [] Prefix); }

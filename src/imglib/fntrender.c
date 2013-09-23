@@ -58,10 +58,7 @@ void PrintLeadin( int bits )
 	if( bits != 8 )
 		fprintf( output, WIDE("#include \"symbits.h\"\n") );
 
-	fprintf( output, WIDE( "#ifdef __cplusplus\n") );
-	fprintf( output, WIDE( "namespace sack {\n") );
-	fprintf( output, WIDE( "namespace image {\n") );
-	fprintf( output, WIDE( "#endif\n") );
+	fprintf( output, WIDE( "IMAGE_NAMESPACE\n") );
 	fprintf( output, WIDE( "	typedef struct font_tag *PFONT ;\n") );
 	fprintf( output, WIDE( "#ifdef __cplusplus \n") );
 	fprintf( output, WIDE( "	namespace default_font {\n") );
@@ -246,10 +243,8 @@ void PrintFooter( void )
 {
 	fprintf( output, WIDE("#ifdef __cplusplus\n" ) );
 	fprintf( output, WIDE("      }; // default_font namespace\n" ) );
-	fprintf( output, WIDE("   }//namespace sack {\n" ) );
-	fprintf( output, WIDE("}//namespace image {\n" ) );
 	fprintf( output, WIDE("#endif\n" ) );
-
+	fprintf( output, WIDE( "IMAGE_NAMESPACE_END\n") );
 
 }
 

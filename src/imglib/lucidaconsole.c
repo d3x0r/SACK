@@ -12,14 +12,13 @@
 
 
 #include <vectlib.h>
+#include <image.h>
 #undef _X
 #define BITS_GREY2
 #include "symbits.h"
 //#include <imglib/fontstruct.h>
-#ifdef __cplusplus 
-namespace sack {
-namespace image {
-#endif
+IMAGE_NAMESPACE
+
 	typedef struct font_tag *PFONT ;
 #ifdef __cplusplus 
 	namespace default_font {
@@ -3443,10 +3442,8 @@ struct { unsigned short height, baseline, chars; unsigned char flags, junk;
 
 #ifdef __cplusplus
 PFONT __LucidaConsole13by8 = (PFONT)&___LucidaConsole13by8;
+
+	};  // namespace end.
 #endif
 
-#ifdef __cplusplus
- }; // default_font namespace
-}//namespace sack {
-}//namespace image {
-#endif
+IMAGE_NAMESPACE_END
