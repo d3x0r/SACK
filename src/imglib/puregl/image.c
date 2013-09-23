@@ -884,9 +884,11 @@ void TranslateCoord( Image image, S_32 *x, S_32 *y )
 	while( image )
 	{
 		//lprintf( WIDE( "%p adjust image %d,%d " ), image, image->real_x, image->real_y );
-      (*x) += image->real_x;
-		(*y) += image->real_y;
-      image = image->pParent;
+		if( x )
+			(*x) += image->real_x;
+		if( y )
+			(*y) += image->real_y;
+		image = image->pParent;
 	}
 }
 

@@ -5,7 +5,7 @@ set( project bag.image.puregl )
 
 ADD_DEFINITIONS( -D__3D__ )
 
-set( font_sources font.c fntcache.c fntrender.c lucidaconsole.c )
+set( font_sources ../font.c ../fntcache.c ../fntrender.c ../lucidaconsole.c )
 
 if( NOT __ANDROID__ )
   INCLUDE_DIRECTORIES( ../../vidlib/puregl/glew-1.9.0/include )
@@ -14,7 +14,7 @@ endif( NOT __ANDROID__ )
 add_library_force_source( ${project} SHARED
 ${FIRST_GCC_LIBRARY_SOURCE}
   blotscaled.c blotdirect.c image.c ../gifimage.c ../pngimage.c ../jpgimage.c 
-  ../bmpimage.c line.c interface.c alphatab.c alphastab.c sprite.c sprite_common.c
+  ../bmpimage.c line.c interface.c ../alphatab.c ../alphastab.c sprite.c sprite_common.c
   ${font_sources}
 ${LAST_GCC_LIBRARY_SOURCE}
 )

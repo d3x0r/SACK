@@ -24,9 +24,8 @@
 /**
  * the JPEG Image Loader.
  */
+IMAGE_NAMESPACE
 #ifdef __cplusplus 
-namespace sack {
-namespace image {
 namespace loader {
 #endif
 
@@ -34,9 +33,8 @@ Image ImageJpgFile (_8* buf, _32 size);
 
 #ifdef __cplusplus 
 }// namespace loader
-}//namespace sack {
-}//namespace image {
 #endif
+IMAGE_NAMESPACE_END
 
 #endif //JPGIMAGE_H
 // $Log: $

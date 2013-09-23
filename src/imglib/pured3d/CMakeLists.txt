@@ -4,9 +4,11 @@ set( project bag.image.pured3d )
 ADD_DEFINITIONS( -D__3D__ )
 
 set( COMMON_CPP_SOURCES   blotscaled.cpp blotdirect.cpp image.cpp 
-  line.cpp interface.cpp alphatab.cpp alphastab.cpp sprite.cpp sprite_common.cpp )
+  line.cpp interface.cpp sprite.cpp sprite_common.cpp )
 
 set( font_sources 
+	../alphatab.c 
+	../alphastab.c 
 	../font.c 
         ../fntcache.c 
         ../fntrender.c 
@@ -21,6 +23,7 @@ set( font_sources
         ../jpgimage.h 
         ../fntglobal.h 
         ../cache.h 
+        local.h
 )
 
 foreach( SOURCE ${font_sources} )
@@ -28,9 +31,11 @@ foreach( SOURCE ${font_sources} )
       set( BASENAME ${CMAKE_MATCH_2} )
       EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE} ${CMAKE_BINARY_DIR}/imglib.pured3d/${BASENAME}.cpp )
       set( COMMON_CPP_SOURCES ${COMMON_CPP_SOURCES} ${CMAKE_BINARY_DIR}/imglib.pured3d/${BASENAME}.cpp )
-   endif()
-   if( ${SOURCE} MATCHES "(.*)/(.*)\\.h$" )
+   elseif( ${SOURCE} MATCHES "(.*)/(.*)\\.h$" )
       set( BASENAME ${CMAKE_MATCH_2} )
+      EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE} ${CMAKE_BINARY_DIR}/imglib.pured3d/${BASENAME}.h )
+   elseif( ${SOURCE} MATCHES "(.*)\\.h$" )
+      set( BASENAME ${CMAKE_MATCH_1} )
       EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE} ${CMAKE_BINARY_DIR}/imglib.pured3d/${BASENAME}.h )
    endif()
 

@@ -65,7 +65,7 @@ void PrintLeadin( int bits )
 	fprintf( output, WIDE( "#endif\n") );
 	fprintf( output, WIDE( "\n") );
 	fprintf( output, WIDE( "#define EXTRA_STRUCT  struct ImageFile_tag *cell; RCOORD x1, x2, y1, y2; struct font_char_tag *next_in_line;\n") );
-	fprintf( output, WIDE( "#define EXTRA_INIT  0,0,0,0,0,0\n") );
+	fprintf( output, WIDE( "#define EXTRA_INIT  ,0,0,0,0,0,0\n") );
 
 
 
@@ -96,7 +96,7 @@ int PrintChar( int bits, int charnum, PCHARACTER character, int height )
 		fprintf( output, WIDE("static struct{ char s, w, o, j; short a, d; EXTRA_STRUCT } %s =\n")
 						, charid );
 
-	fprintf( output, WIDE("{ %2d, %2d, %2d, 0, %2d, %2d, EXTRA_INIT ")
+	fprintf( output, WIDE("{ %2d, %2d, %2d, 0, %2d, %2d EXTRA_INIT ")
 							, character->size
 							, character->width
 							, (signed)character->offset

@@ -8,7 +8,7 @@ IMAGE_NAMESPACE
 
 struct d3dSurfaceData {
 	PTRANSFORM T_Camera;
-   RCOORD *aspect;
+	RCOORD *aspect;
 	RCOORD *identity_depth;
 	int index;
 };
@@ -75,7 +75,7 @@ struct {
 	PLIST d3dSurfaces; // list of struct glSurfaceData *
 	struct d3dSurfaceData *d3dActiveSurface;
 	PRENDER3D_INTERFACE pr3di;
-   RCOORD scale;
+	RCOORD scale;
 } local_image_data;
 #define l local_image_data
 

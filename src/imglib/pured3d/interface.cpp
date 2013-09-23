@@ -10,7 +10,7 @@
 #include <procreg.h>
 #undef IMAGE_SOURCE
 #include <image.h>
-#include "fntglobal.h"
+#include "../fntglobal.h"
 #include "local.h"
 
 IMAGE_NAMESPACE
