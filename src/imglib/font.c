@@ -8,15 +8,32 @@
  *
  */
 #define FIX_RELEASE_COM_COLLISION
-#include <string.h>
-#include <sharemem.h>
-#define LIBRARY_DEF
+#include <stdhdrs.h>
 #define IMAGE_LIBRARY_SOURCE
 #include <imglib/fontstruct.h>
 #include <imglib/imagestruct.h>
 #include <image.h>
 
-#define TRUE (!FALSE)
+#ifdef _OPENGL_DRIVER
+#ifdef USE_GLES2
+//#include <GLES/gl.h>
+#include <GLES2/gl2.h>
+#else
+#include <GL/glew.h>
+#include <GL/gl.h>         // Header File For The OpenGL32 Library
+#ifdef PURE_OPENGL2_ENABLED
+#include "puregl2/local.h"
+#else
+#include "puregl/local.h"
+#endif
+#endif
+
+#endif
+
+#ifdef _D3D_DRIVER
+#include <d3d11.h>
+#include "local.h"
+#endif
 
 //#ifdef UNNATURAL_ORDER
 // use this as natural - to avoid any confusion about signs...
@@ -137,11 +154,15 @@ S_32 StepYInvertVertical(S_32 base1,S_32 delta1,S_32 delta2)
 }
 //---------------------------------------------------------------------------
 
+enum order_type {
+   OrderPoints,OrderPointsVertical,OrderPointsInvert,OrderPointsVerticalInvert
+};
 
 static _32 PutCharacterFontX ( ImageFile *pImage
                              , S_32 x, S_32 y
                              , CDATA color, CDATA background
-                             , _32 c, PFONT UseFont
+									  , _32 c, PFONT UseFont
+									  , enum order_type order
                              , S_32 (*StepX)(S_32 base1,S_32 delta1,S_32 delta2)
                              , S_32 (*StepY)(S_32 base1,S_32 delta1,S_32 delta2)
                              )
@@ -157,85 +178,713 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 	_32 (*CharDatax)( _8 *bits, _8 bit );
    if( !UseFont )
       UseFont = &DEFAULTFONT;
-   if( !pImage || c > UseFont->characters || !pImage->image )
+   if( !pImage || c > UseFont->characters )
 		return 0;
    // real quick -
 	if( !UseFont->character[c] )
 		InternalRenderFontCharacter( NULL, UseFont, c );
 
 	pchar = UseFont->character[c];
-   if( !pchar ) return 0;
-   data  = pchar->data;
-   // background may have an alpha value - 
-   // but we should still assume that black is transparent...
-   size = pchar->size;
-   width = pchar->width;
-   if( ( UseFont->flags & 3 ) == FONT_FLAG_MONO )
-   {
-      CharPlotAlphax = CharPlotAlpha1;
-      CharDatax = CharData1;
-      inc = (pchar->size+7)/8;
-   }
-   else if( ( UseFont->flags & 3 ) == FONT_FLAG_2BIT )
-   {
-      CharPlotAlphax = CharPlotAlpha2;
-      CharDatax = CharData2;
-      inc = (pchar->size+3)/4;
-   }
-   else if( ( UseFont->flags & 3 ) == FONT_FLAG_8BIT )
-   {
-      CharPlotAlphax = CharPlotAlpha8;
-      CharDatax = CharData8;
-      inc = (pchar->size);
-   }
-   if( background &0xFFFFFF )
-   {
-      for( line = 0; line < UseFont->baseline - pchar->ascent; line++ )
-      {
-         for( col = 0; col < pchar->width; col++ )
-            CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col), background );
-      }
-      for( ; line <= UseFont->baseline - pchar->descent ; line++ )
-      {
-         dataline = data;
-         col = 0;
-         for( col = 0; col < pchar->offset; col++ )
-            CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col), background );
-         for( bit = 0; bit < size; col++, bit++ )
-            CharPlotAlphax( pImage, StepX(x,col,line), StepY(y,line,col), CharDatax( data, bit ), color, background );
-         for( ; col < width; col++ ) 
-            CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col),background );
-         data += inc;
-      }
-      for( ; line < UseFont->height; line++ )
-      {
-         for( col = 0; col < pchar->width; col++ )
-            CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col), background );
-      }
-   }
-   else
+	if( !pchar ) return 0;
+
+#if defined( _OPENGL_DRIVER ) || defined( _D3D_DRIVER )
+	if( !UseFont->character[c]->cell && ( pImage->flags & IF_FLAG_FINAL_RENDER ) )
 	{
-		if( 0 )
-			lprintf( WIDE("%d %d %d"), UseFont->baseline - pchar->ascent, y, UseFont->baseline - pchar->descent );
-      // bias the left edge of the character
-      for(line = UseFont->baseline - pchar->ascent;
-          line <= UseFont->baseline - pchar->descent;
-          line++ )
-      {
-         dataline = data;
-         col = pchar->offset;
-         for( bit = 0; bit < size; col++, bit++ )
-         {
-            _8 chardata = (_8)CharDatax( data, bit );
-            if( chardata )
-               CharPlotAlphax( pImage, StepX(x,col,line), StepY(y,line,col)
-                             , chardata
-                             , color, 0 );
-         }
-         data += inc;
-      }
-   }
-   return pchar->width;
+		Image image = AllocateCharacterSpaceByFont( UseFont, UseFont->character[c] );
+		// it's the same characteristics... so we should just pass same step XY
+		// oh wait - that's like for lines for sideways stuff... uhmm...should get direction and render 4 bitmaps
+		//lprintf( "Render to image this character... %p", image );
+		PutCharacterFontX( image, 0, 0, BASE_COLOR_WHITE, 0, c, UseFont, OrderPoints, StepXNormal, StepYNormal );
+	}
+
+	if( pImage->flags & IF_FLAG_FINAL_RENDER )
+	{
+#ifdef _OPENGL_DRIVER
+		S_32 xd = x;
+		S_32 yd = y+(UseFont->baseline - pchar->ascent);
+		S_32 yd_back = y;
+		S_32 xs = 0;
+		S_32 ys = 0;
+		Image pifSrc = pchar->cell;
+		Image pifSrcReal;
+		Image pifDest = pImage;
+		switch( order )
+		{
+		case OrderPoints:
+			xd = x;
+			yd = y+(UseFont->baseline - pchar->ascent);
+			yd_back = y;
+         break;
+		case OrderPointsInvert:
+			xd = x;
+			yd = y-UseFont->baseline + pchar->ascent;
+			yd_back = y;
+         break;
+		case OrderPointsVertical:
+			xd = x - (UseFont->baseline - pchar->ascent);
+			yd = y;
+			yd_back = y;
+         break;
+		case OrderPointsVerticalInvert:
+			xd = x + (UseFont->baseline - pchar->ascent);
+			yd = y;
+			yd_back = y;
+         break;
+		}
+		
+		for( pifSrcReal = pifSrc; pifSrcReal->pParent; pifSrcReal = pifSrcReal->pParent );
+		ReloadOpenGlTexture( pifSrc, 0 );
+		if( !pifSrc->glActiveSurface )
+		{
+			return 0;
+		}
+		//lprintf( "use regular texture %p (%d,%d)", pifSrc, pifSrc->width, pifSrc->height );
+		//DebugBreak();        g
+
+		/*
+		 * only a portion of the image is actually used, the rest is filled with blank space
+		 *
+		 */
+		TranslateCoord( pifDest, &xd, &yd );
+		TranslateCoord( pifDest, NULL, &yd_back );
+		TranslateCoord( pifSrc, &xs, &ys );
+		{
+			int glDepth = 1;
+			float x_size, x_size2, y_size, y_size2;
+			VECTOR v[2][4], v2[2][4];
+			int vi = 0;
+			float texture_v[4][2];
+			float _color[4];
+			_color[0] = RedVal( color ) / 255.0f;
+			_color[1] = GreenVal( color ) / 255.0f;
+			_color[2] = BlueVal( color ) / 255.0f;
+			_color[3] = AlphaVal( color ) / 255.0f;
+
+   			switch( order )
+			{
+			case OrderPoints:
+				v[vi][0][0] = xd;
+				v[vi][0][1] = yd;
+				v[vi][0][2] = 1.0f;
+
+				v[vi][1][0] = xd;
+				v[vi][1][1] = yd+pchar->cell->real_height;
+				v[vi][1][2] = 1.0f;
+
+				v[vi][2][0] = xd+pchar->cell->real_width;
+				v[vi][2][1] = yd;
+				v[vi][2][2] = 1.0f;
+
+				v[vi][3][0] = xd+pchar->cell->real_width;
+				v[vi][3][1] = yd+pchar->cell->real_height;
+				v[vi][3][2] = 1.0f;
+
+				v2[vi][0][0] = xd + pchar->width;
+				v2[vi][0][1] = yd_back;
+				v2[vi][0][2] = 1.0;
+
+				v2[vi][1][0] = xd;
+				v2[vi][1][1] = yd_back;
+				v2[vi][1][2] = 1.0;
+
+				v2[vi][2][0] = xd + pchar->width;
+				v2[vi][2][1] = yd_back + UseFont->height;
+				v2[vi][2][2] = 1.0;
+
+				v2[vi][3][0] = xd;
+				v2[vi][3][1] = yd_back + UseFont->height;
+				v2[vi][3][2] = 1.0;
+
+ 				break;
+			case OrderPointsInvert:
+				v[vi][0][0] = xd;
+				v[vi][0][1] = yd;
+				v[vi][0][2] = 1.0f;
+
+				v[vi][1][0] = xd;
+				v[vi][1][1] = yd - pchar->cell->real_height;
+				v[vi][1][2] = 1.0f;
+
+				v[vi][2][0] = xd - pchar->cell->real_width;
+				v[vi][2][1] = yd;
+				v[vi][2][2] = 1.0f;
+
+				v[vi][3][0] = xd - pchar->cell->real_width;
+				v[vi][3][1] = yd - pchar->cell->real_height;
+				v[vi][3][2] = 1.0f;
+
+				v2[vi][0][0] = xd;
+				v2[vi][0][1] = yd_back;
+				v2[vi][0][2] = 1.0f;
+
+				v2[vi][1][0] = xd;
+				v2[vi][1][1] = yd_back - UseFont->height;
+				v2[vi][1][2] = 1.0f;
+
+				v2[vi][2][0] = xd - pchar->cell->real_width;
+				v2[vi][2][1] = yd_back;
+				v2[vi][2][2] = 1.0f;
+
+				v2[vi][3][0] = xd;
+				v2[vi][3][1] = yd_back - UseFont->height;
+				v2[vi][3][2] = 1.0f;
+
+				break;
+			case OrderPointsVertical:
+				v[vi][0][0] = xd;
+				v[vi][0][1] = yd;
+				v[vi][0][2] = 1.0;
+
+				v[vi][1][0] = xd-pchar->cell->real_height;
+				v[vi][1][1] = yd;
+				v[vi][1][2] = 1.0;
+
+				v[vi][2][0] = xd;
+				v[vi][2][1] = yd+pchar->cell->real_width;
+				v[vi][2][2] = 1.0;
+
+
+				v[vi][3][0] = xd-pchar->cell->real_height;
+				v[vi][3][1] = yd+pchar->cell->real_width;
+				v[vi][3][2] = 1.0;
+
+				v2[vi][0][0] = x;
+				v2[vi][0][1] = yd_back;
+				v2[vi][0][2] = 1.0;
+
+				v2[vi][1][0] = x-UseFont->height;
+				v2[vi][1][1] = yd_back;
+				v2[vi][1][2] = 1.0;
+
+				v2[vi][2][0] = x;
+				v2[vi][2][1] = yd_back+pchar->cell->real_width;
+				v2[vi][2][2] = 1.0;
+
+				v2[vi][3][0] = x-UseFont->height;
+				v2[vi][3][1] = yd_back+pchar->cell->real_width;
+				v2[vi][3][2] = 1.0;
+
+				break;
+		   case OrderPointsVerticalInvert:
+				v[vi][0][0] = xd;
+				v[vi][0][1] = yd;
+				v[vi][0][2] = 1.0;
+
+				v[vi][1][0] = xd+pchar->cell->real_height;
+				v[vi][1][1] = yd;
+				v[vi][1][2] = 1.0;
+
+				v[vi][2][0] = xd;
+				v[vi][2][1] = yd-pchar->cell->real_width;
+				v[vi][2][2] = 1.0;
+
+
+				v[vi][3][0] = xd+pchar->cell->real_height;
+				v[vi][3][1] = yd-pchar->cell->real_width;
+				v[vi][3][2] = 1.0;
+
+				v2[vi][0][0] = x;
+				v2[vi][0][1] = yd_back;
+				v2[vi][0][2] = 1.0;
+
+				v2[vi][1][0] = x+UseFont->height;
+				v2[vi][1][1] = yd_back;
+				v2[vi][1][2] = 1.0;
+
+				v2[vi][2][0] = x;
+				v2[vi][2][1] = yd_back-pchar->cell->real_width;
+				v2[vi][2][2] = 1.0;
+
+
+				v2[vi][3][0] = x+UseFont->height;
+				v2[vi][3][1] = yd_back-pchar->cell->real_width;
+				v2[vi][3][2] = 1.0;
+				break;
+			}
+
+			x_size = (double) xs/ (double)pifSrcReal->width;
+			x_size2 = (double) (xs+pchar->cell->real_width)/ (double)pifSrcReal->width;
+			y_size = (double) ys/ (double)pifSrcReal->height;
+			y_size2 = (double) (ys+pchar->cell->real_height)/ (double)pifSrcReal->height;
+
+			//x_size = (double) xs/ (double)pifSrc->width;
+			//x_size2 = (double) (xs+pchar->cell->real_width)/ (double)pifSrc->width;
+			//y_size = (double) ys/ (double)pifSrc->height;
+			//y_size2 = (double) (ys+pchar->cell->real_height)/ (double)pifSrc->height;
+
+			// Front Face
+			//glColor4ub( 255,120,32,192 );
+			//lprintf( "Texture size is %g,%g to %g,%g", x_size, y_size, x_size2, y_size2 );
+			while( pifDest && pifDest->pParent )
+			{
+				glDepth = 0;
+				if( pifDest->transform )
+				{
+					Apply( pifDest->transform, v[1-vi][0], v[vi][0] );
+					Apply( pifDest->transform, v[1-vi][1], v[vi][1] );
+					Apply( pifDest->transform, v[1-vi][2], v[vi][2] );
+					Apply( pifDest->transform, v[1-vi][3], v[vi][3] );
+					if( background )
+					{
+						Apply( pifDest->transform, v2[1-vi][0], v2[vi][0] );
+						Apply( pifDest->transform, v2[1-vi][1], v2[vi][1] );
+						Apply( pifDest->transform, v2[1-vi][2], v2[vi][2] );
+						Apply( pifDest->transform, v2[1-vi][3], v2[vi][3] );
+					}
+					vi = 1 - vi;
+				}
+				pifDest = pifDest->pParent;
+			}
+			if( pifDest->transform )
+			{
+				Apply( pifDest->transform, v[1-vi][0], v[vi][0] );
+				Apply( pifDest->transform, v[1-vi][1], v[vi][1] );
+				Apply( pifDest->transform, v[1-vi][2], v[vi][2] );
+				Apply( pifDest->transform, v[1-vi][3], v[vi][3] );
+				if( background )
+				{
+					Apply( pifDest->transform, v2[1-vi][0], v2[vi][0] );
+					Apply( pifDest->transform, v2[1-vi][1], v2[vi][1] );
+					Apply( pifDest->transform, v2[1-vi][2], v2[vi][2] );
+					Apply( pifDest->transform, v2[1-vi][3], v2[vi][3] );
+				}
+				vi = 1 - vi;
+			}
+
+			scale( v[vi][0], v[vi][0], l.scale );
+			scale( v[vi][1], v[vi][1], l.scale );
+			scale( v[vi][2], v[vi][2], l.scale );
+			scale( v[vi][3], v[vi][3], l.scale );
+			if( background )
+			{
+				scale( v2[vi][0], v2[vi][0], l.scale );
+				scale( v2[vi][1], v2[vi][1], l.scale );
+				scale( v2[vi][2], v2[vi][2], l.scale );
+				scale( v2[vi][3], v2[vi][3], l.scale );
+			}
+
+			texture_v[0][0] = x_size;
+			texture_v[0][1] = y_size;
+			/**///glTexCoord2d(x_size, y_size); glVertex3dv(v[vi][0]);	// Bottom Left Of The Texture and Quad
+			texture_v[1][0] = x_size;
+			texture_v[1][1] = y_size2;
+			/**///glTexCoord2d(x_size, y_size2); glVertex3dv(v[vi][1]);	// Top Left Of The Texture and Quad
+			texture_v[2][0] = x_size2;
+			texture_v[2][1] = y_size;
+			/**///glTexCoord2d(x_size2, y_size); glVertex3dv(v[vi][2]);	// Bottom Right Of The Texture and Quad
+			texture_v[3][0] = x_size2;
+			texture_v[3][1] = y_size2;
+			/**///glTexCoord2d(x_size2, y_size2); glVertex3dv(v[vi][3]);	// Top Right Of The Texture and Quad
+
+#ifndef PURE_OPENGL2_ENABLED
+			glColor4ubv( (GLubyte*)&background );
+			glBegin(GL_TRIANGLE_STRIP);
+			glVertex3fv(v2[vi][0]);	// Bottom Left Of The Texture and Quad
+			glVertex3fv(v2[vi][1]);	// Top Left Of The Texture and Quad
+			glVertex3fv(v2[vi][2]);	// Bottom Right Of The Texture and Quad
+			glVertex3fv(v2[vi][3]);	// Top Right Of The Texture and Quad
+			// Back Face
+			glEnd();
+
+			glBindTexture(GL_TEXTURE_2D, pifSrc->glActiveSurface);				// Select Our Texture
+			glColor4ubv( (GLubyte*)&color );
+			glBegin(GL_TRIANGLE_STRIP);
+			glTexCoord2f(x_size,  y_size  ); glVertex3fv(v[vi][0]);	// Bottom Left Of The Texture and Quad
+			glTexCoord2f(x_size,  y_size2 ); glVertex3fv(v[vi][1]);	// Top Left Of The Texture and Quad
+			glTexCoord2f(x_size2, y_size  ); glVertex3fv(v[vi][2]);	// Bottom Right Of The Texture and Quad
+			glTexCoord2f(x_size2, y_size2 ); glVertex3fv(v[vi][3]);	// Top Right Of The Texture and Quad
+			// Back Face
+			glEnd();
+			glBindTexture(GL_TEXTURE_2D, 0);				// Select Our Texture
+#endif  // ifndef OPENGL2  (OPENGl1?)
+
+#ifdef PURE_OPENGL2_ENABLED
+
+			if( background )
+			{
+				float _back_color[4];
+				_back_color[0] = RedVal( background ) / 255.0f;
+				_back_color[1] = GreenVal( background ) / 255.0f;
+				_back_color[2] = BlueVal( background ) / 255.0f;
+				_back_color[3] = AlphaVal( background ) / 255.0f;
+				EnableShader( GetShader( "Simple Shader", NULL ), v2[vi], _back_color );
+				glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+			}
+
+			EnableShader( GetShader( "Simple Shaded Texture", NULL ), v[vi], pifSrc->glActiveSurface, texture_v, _color );
+			glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+			// Back Face
+#endif  // ifdef OPENGL2
+		}
+#endif  // _OPENGL_DRIVER
+
+#ifdef _D3D_DRIVER
+		S_32 xd = x;
+		S_32 yd = y+(UseFont->baseline - pchar->ascent);
+		S_32 xs = 0;
+		S_32 ys = 0;
+		Image pifSrc = pchar->cell;
+		Image pifSrcReal;
+		Image pifDest = pImage;
+		int updated = 0;
+
+		for( pifSrcReal = pifSrc; pifSrcReal->pParent; pifSrcReal = pifSrcReal->pParent );
+		ReloadD3DTexture( pifSrc, 0 );
+		if( !pifSrc->pActiveSurface )
+		{
+			return 0;
+		}
+		//lprintf( "use regular texture %p (%d,%d)", pifSrc, pifSrc->width, pifSrc->height );
+		//DebugBreak();        g
+
+		/*
+		 * only a portion of the image is actually used, the rest is filled with blank space
+		 *
+		 */
+		TranslateCoord( pifDest, &xd, &yd );
+		TranslateCoord( pifSrc, &xs, &ys );
+		{
+			int glDepth = 1;
+			RCOORD x_size, x_size2, y_size, y_size2;
+			VECTOR v1[2], v3[2],v4[2],v2[2];
+			int v = 0;
+
+			switch( order )
+			{
+			case OrderPoints:
+				v1[v][0] = xd;
+				v1[v][1] = yd;
+				v1[v][2] = 1.0;
+
+				v2[v][0] = xd;
+				v2[v][1] = yd+pchar->cell->real_height;
+				v2[v][2] = 1.0;
+
+				v3[v][0] = xd+pchar->cell->real_width;
+				v3[v][1] = yd;
+				v3[v][2] = 1.0;
+
+				v4[v][0] = xd+pchar->cell->real_width;
+				v4[v][1] = yd+pchar->cell->real_height;
+				v4[v][2] = 1.0;
+				break;
+			case OrderPointsInvert:
+				v1[v][0] = xd - pchar->cell->real_width;
+				v1[v][1] = yd - pchar->cell->real_height;
+				v1[v][2] = 1.0;
+
+				v2[v][0] = xd - pchar->cell->real_width;
+				v2[v][1] = yd+pchar->cell->real_height - pchar->cell->real_height;
+				v2[v][2] = 1.0;
+
+				v3[v][0] = xd+pchar->cell->real_width - pchar->cell->real_width;
+				v3[v][1] = yd - pchar->cell->real_height;
+				v3[v][2] = 1.0;
+
+				v4[v][0] = xd+pchar->cell->real_width - pchar->cell->real_width;
+				v4[v][1] = yd+pchar->cell->real_height - pchar->cell->real_height;
+				v4[v][2] = 1.0;
+				break;
+			case OrderPointsVertical:
+				v1[v][0] = xd-pchar->cell->real_height;
+				v1[v][1] = yd;
+				v1[v][2] = 1.0;
+
+				v2[v][0] = xd+pchar->cell->real_height-pchar->cell->real_height;
+				v2[v][1] = yd;
+				v2[v][2] = 1.0;
+
+				v3[v][0] = xd-pchar->cell->real_height;
+				v3[v][1] = yd+pchar->cell->real_width;
+				v3[v][2] = 1.0;
+
+
+				v4[v][0] = xd+pchar->cell->real_height-pchar->cell->real_height;
+				v4[v][1] = yd+pchar->cell->real_width;
+				v4[v][2] = 1.0;
+				break;
+		   case OrderPointsVerticalInvert:
+				v1[v][0] = xd;
+				v1[v][1] = yd-pchar->cell->real_width;
+				v1[v][2] = 1.0;
+
+				v2[v][0] = xd+pchar->cell->real_height;
+				v2[v][1] = yd-pchar->cell->real_width;
+				v2[v][2] = 1.0;
+
+				v3[v][0] = xd;
+				v3[v][1] = yd+pchar->cell->real_width-pchar->cell->real_width;
+				v3[v][2] = 1.0;
+
+
+				v4[v][0] = xd+pchar->cell->real_height;
+				v4[v][1] = yd+pchar->cell->real_width-pchar->cell->real_width;
+				v4[v][2] = 1.0;
+				break;
+			}
+
+			x_size = (RCOORD) xs/ (RCOORD)pifSrcReal->width;
+			x_size2 = (RCOORD) (xs+pchar->cell->real_width)/ (RCOORD)pifSrcReal->width;
+			y_size = (RCOORD) ys/ (RCOORD)pifSrcReal->height;
+			y_size2 = (RCOORD) (ys+pchar->cell->real_height)/ (RCOORD)pifSrcReal->height;
+
+			// Front Face
+			//lprintf( "Texture size is %g,%g to %g,%g", x_size, y_size, x_size2, y_size2 );
+			while( pifDest && pifDest->pParent )
+			{
+				glDepth = 0;
+				if( pifDest->transform )
+				{
+					Apply( pifDest->transform, v1[1-v], v1[v] );
+					Apply( pifDest->transform, v2[1-v], v2[v] );
+					Apply( pifDest->transform, v3[1-v], v3[v] );
+					Apply( pifDest->transform, v4[1-v], v4[v] );
+					v = 1-v;
+				}
+				pifDest = pifDest->pParent;
+			}
+			if( pifDest->transform )
+			{
+				Apply( pifDest->transform, v1[1-v], v1[v] );
+				Apply( pifDest->transform, v2[1-v], v2[v] );
+				Apply( pifDest->transform, v3[1-v], v3[v] );
+				Apply( pifDest->transform, v4[1-v], v4[v] );
+				v = 1-v;
+			}
+
+			LPDIRECT3DVERTEXBUFFER9 pQuadVB;
+			g_d3d_device->CreateVertexBuffer(sizeof( D3DTEXTUREDVERTEX )*4,
+                                      D3DUSAGE_WRITEONLY,
+                                      D3DFVF_CUSTOMTEXTUREDVERTEX,
+                                      D3DPOOL_MANAGED,
+                                      &pQuadVB,
+                                      NULL);
+			D3DTEXTUREDVERTEX* pData;
+			//lock buffer (NEW)
+			pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
+				pData[0].dwColor = color;
+				pData[1].dwColor = color;
+				pData[2].dwColor = color;
+				pData[3].dwColor = color;
+			switch( order )
+			{
+			case OrderPoints:
+				pData[0].fX = v1[v][vRight];
+				pData[0].fY = v1[v][vUp];
+				pData[0].fZ = v1[v][vForward];
+				
+				pData[0].fU1 = x_size;
+				pData[0].fV1 = y_size;
+				pData[1].fX = v3[v][vRight];
+				pData[1].fY = v3[v][vUp];
+				pData[1].fZ = v3[v][vForward];
+				
+				pData[1].fU1 = x_size2;
+				pData[1].fV1 = y_size;
+				pData[2].fX = v2[v][vRight];
+				pData[2].fY = v2[v][vUp];
+				pData[2].fZ = v2[v][vForward];
+				
+				pData[2].fU1 = x_size;
+				pData[2].fV1 = y_size2;
+				pData[3].fX = v4[v][vRight];
+				pData[3].fY = v4[v][vUp];
+				pData[3].fZ = v4[v][vForward];
+				
+				pData[3].fU1 = x_size2;
+				pData[3].fV1 = y_size2;
+				break;
+			case OrderPointsInvert:
+				pData[0].fX = v1[v][vRight];
+				pData[0].fY = v1[v][vUp];
+				pData[0].fZ = v1[v][vForward];
+				
+				pData[0].fU1 = x_size;
+				pData[0].fV1 = y_size2;
+				pData[1].fX = v2[v][vRight];
+				pData[1].fY = v2[v][vUp];
+				pData[1].fZ = v2[v][vForward];
+				
+				pData[1].fU1 = x_size;
+				pData[1].fV1 = y_size;
+				pData[2].fX = v3[v][vRight];
+				pData[2].fY = v3[v][vUp];
+				pData[2].fZ = v3[v][vForward];
+				
+				pData[2].fU1 = x_size2;
+				pData[2].fV1 = y_size2;
+				pData[3].fX = v4[v][vRight];
+				pData[3].fY = v4[v][vUp];
+				pData[3].fZ = v4[v][vForward];
+				
+				pData[3].fU1 = x_size2;
+				pData[3].fV1 = y_size;
+            break;
+			case OrderPointsVertical:
+				pData[0].fX = v1[v][vRight];
+				pData[0].fY = v1[v][vUp];
+				pData[0].fZ = v1[v][vForward];
+				
+				pData[0].fU1 = x_size;
+				pData[0].fV1 = y_size2;
+				pData[1].fX = v2[v][vRight];
+				pData[1].fY = v2[v][vUp];
+				pData[1].fZ = v2[v][vForward];
+				
+				pData[1].fU1 = x_size;
+				pData[1].fV1 = y_size;
+				pData[2].fX = v3[v][vRight];
+				pData[2].fY = v3[v][vUp];
+				pData[2].fZ = v3[v][vForward];
+				pData[2].fU1 = x_size2;
+				pData[2].fV1 = y_size2;
+				pData[3].fX = v4[v][vRight];
+				pData[3].fY = v4[v][vUp];
+				pData[3].fZ = v4[v][vForward];
+				
+				pData[3].fU1 = x_size2;
+				pData[3].fV1 = y_size;
+	            break;
+			case OrderPointsVerticalInvert:
+				pData[0].fX = v1[v][vRight];
+				pData[0].fY = v1[v][vUp];
+				pData[0].fZ = v1[v][vForward];
+				
+				pData[0].fU1 = x_size2;
+				pData[0].fV1 = y_size;
+
+				pData[1].fX = v2[v][vRight];
+				pData[1].fY = v2[v][vUp];
+				pData[1].fZ = v2[v][vForward];
+				
+				pData[1].fU1 = x_size2;
+				pData[1].fV1 = y_size2;
+
+				pData[2].fX = v3[v][vRight];
+				pData[2].fY = v3[v][vUp];
+				pData[2].fZ = v3[v][vForward];
+				
+				pData[2].fU1 = x_size;
+				pData[2].fV1 = y_size;
+
+				pData[3].fX = v4[v][vRight];
+				pData[3].fY = v4[v][vUp];
+				pData[3].fZ = v4[v][vForward];
+				
+				pData[3].fU1 = x_size;
+				pData[3].fV1 = y_size2;
+	            break;
+			}
+			//copy data to buffer (NEW)
+			//unlock buffer (NEW)
+			pQuadVB->Unlock();
+			g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
+			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DTEXTUREDVERTEX));
+			g_d3d_device->SetFVF( D3DFVF_CUSTOMTEXTUREDVERTEX );
+
+			g_d3d_device->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+			g_d3d_device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+			g_d3d_device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAOP, D3DTOP_BLENDTEXTUREALPHA );
+			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
+			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG2,D3DTA_DIFFUSE);
+
+			//g_d3d_device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTSS_COLORARG1);
+			//g_d3d_device->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_DIFFUSE);
+
+			g_d3d_device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTSS_COLORARG1);
+			g_d3d_device->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+
+			//draw quad (NEW)
+			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
+			g_d3d_device->SetTexture( 0, NULL );
+			pQuadVB->Release();
+		}
+
+#endif  // _D3D_DRIVER
+	}
+	else
+#endif  // defined ( D3D OR OPENGL )
+	{
+		// need a physical color buffer attached...
+		if( !pImage->image )
+			return 0;
+
+		data  = pchar->data;
+		// background may have an alpha value -
+		// but we should still assume that black is transparent...
+		size = pchar->size;
+		width = pchar->width;
+		if( ( UseFont->flags & 3 ) == FONT_FLAG_MONO )
+		{
+			CharPlotAlphax = CharPlotAlpha1;
+			CharDatax = CharData1;
+			inc = (pchar->size+7)/8;
+		}
+		else if( ( UseFont->flags & 3 ) == FONT_FLAG_2BIT )
+		{
+			CharPlotAlphax = CharPlotAlpha2;
+			CharDatax = CharData2;
+			inc = (pchar->size+3)/4;
+		}
+		else if( ( UseFont->flags & 3 ) == FONT_FLAG_8BIT )
+		{
+			CharPlotAlphax = CharPlotAlpha8;
+			CharDatax = CharData8;
+			inc = (pchar->size);
+		}
+		if( background &0xFFFFFF )
+		{
+			for( line = 0; line < UseFont->baseline - pchar->ascent; line++ )
+			{
+				for( col = 0; col < pchar->width; col++ )
+					CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col), background );
+			}
+			for( ; line <= UseFont->baseline - pchar->descent ; line++ )
+			{
+				dataline = data;
+				col = 0;
+				for( col = 0; col < pchar->offset; col++ )
+					CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col), background );
+				for( bit = 0; bit < size; col++, bit++ )
+					CharPlotAlphax( pImage, StepX(x,col,line), StepY(y,line,col), CharDatax( data, bit ), color, background );
+				for( ; col < width; col++ )
+					CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col),background );
+				data += inc;
+			}
+			for( ; line < UseFont->height; line++ )
+			{
+				for( col = 0; col < pchar->width; col++ )
+					CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col), background );
+			}
+		}
+		else
+		{
+			if( 0 )
+				lprintf( WIDE("%d %d %d"), UseFont->baseline - pchar->ascent, y, UseFont->baseline - pchar->descent );
+			// bias the left edge of the character
+			for(line = UseFont->baseline - pchar->ascent;
+				 line <= UseFont->baseline - pchar->descent;
+				 line++ )
+			{
+				dataline = data;
+				col = pchar->offset;
+				for( bit = 0; bit < size; col++, bit++ )
+				{
+					_8 chardata = (_8)CharDatax( data, bit );
+					if( chardata )
+						CharPlotAlphax( pImage, StepX(x,col,line), StepY(y,line,col)
+										  , chardata
+										  , color, 0 );
+				}
+				data += inc;
+			}
+		}
+#if defined( _D3D_DRIVER ) || defined( _OPENGL_DRIVER )
+		MarkImageUpdated( pImage );
+#endif
+	}
+	return pchar->width;
 }
 
 static _32 _PutCharacterFont( ImageFile *pImage
@@ -243,7 +892,7 @@ static _32 _PutCharacterFont( ImageFile *pImage
                                    , CDATA color, CDATA background
                                    , _32 c, PFONT UseFont )
 {
-   return PutCharacterFontX( pImage, x, y, color, background, c, UseFont
+   return PutCharacterFontX( pImage, x, y, color, background, c, UseFont, OrderPoints
                             , StepXNormal, StepYNormal );
 }
 
@@ -253,7 +902,7 @@ static _32 _PutCharacterVerticalFont( ImageFile *pImage
                                            , _32 c, PFONT UseFont )
 {
 	return PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-                            , StepXVertical, StepYVertical );
+                            , OrderPointsVertical, StepXVertical, StepYVertical );
 }
 
 
@@ -263,7 +912,7 @@ static _32 _PutCharacterInvertFont( ImageFile *pImage
                                            , _32 c, PFONT UseFont )
 {
 	return PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-									, StepXInvert, StepYInvert );
+									, OrderPointsInvert, StepXInvert, StepYInvert );
 }
 
 static _32 _PutCharacterVerticalInvertFont( ImageFile *pImage
@@ -280,7 +929,7 @@ static _32 _PutCharacterVerticalInvertFont( ImageFile *pImage
    if( !pchar ) return 0;
    x -= pchar->offset;
 	return PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-									, StepXInvertVertical, StepYInvertVertical );
+									, OrderPointsVerticalInvert, StepXInvertVertical, StepYInvertVertical );
 }
 
 void PutCharacterFont( ImageFile *pImage
@@ -289,7 +938,7 @@ void PutCharacterFont( ImageFile *pImage
                                    , _32 c, PFONT UseFont )
 {
    PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-                            , StepXNormal, StepYNormal );
+                            , OrderPointsVerticalInvert, StepXNormal, StepYNormal );
 }
 
 void PutCharacterVerticalFont( ImageFile *pImage
@@ -299,7 +948,7 @@ void PutCharacterVerticalFont( ImageFile *pImage
 {
 	//return
 		PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-                            , StepXVertical, StepYVertical );
+                            , OrderPoints, StepXVertical, StepYVertical );
 }
 
 
@@ -310,7 +959,7 @@ void PutCharacterInvertFont( ImageFile *pImage
 {
 	//return
 		PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-                            , StepXInvert, StepYInvert );
+                            , OrderPointsInvert, StepXInvert, StepYInvert );
 }
 
 void PutCharacterVerticalInvertFont( ImageFile *pImage
@@ -328,7 +977,7 @@ void PutCharacterVerticalInvertFont( ImageFile *pImage
    x -= pchar->offset;
 	//return
 		PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-                            , StepXInvertVertical, StepYInvertVertical );
+                            , OrderPointsVerticalInvert, StepXInvertVertical, StepYInvertVertical );
 }
 
 
