@@ -40,7 +40,6 @@ foreach( SOURCE ${font_sources} )
    endif()
 
 endforeach()
-message( result: ${COMMON_CPP_SOURCES} )
 add_library( ${project} SHARED
 ${FIRST_GCC_LIBRARY_SOURCE}
   ${COMMON_CPP_SOURCES}

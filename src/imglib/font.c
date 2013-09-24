@@ -187,6 +187,8 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 	pchar = UseFont->character[c];
 	if( !pchar ) return 0;
 
+	//lprintf( "output %c at %d,%d", c, x, y );
+
 #if defined( _OPENGL_DRIVER ) || defined( _D3D_DRIVER )
 	if( !UseFont->character[c]->cell && ( pImage->flags & IF_FLAG_FINAL_RENDER ) )
 	{
@@ -200,9 +202,9 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 	if( pImage->flags & IF_FLAG_FINAL_RENDER )
 	{
 #ifdef _OPENGL_DRIVER
-		S_32 xd = x;
-		S_32 yd = y+(UseFont->baseline - pchar->ascent);
-		S_32 yd_back = y;
+		S_32 xd;
+		S_32 yd;
+		S_32 yd_back;
 		S_32 xs = 0;
 		S_32 ys = 0;
 		Image pifSrc = pchar->cell;
@@ -210,6 +212,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 		Image pifDest = pImage;
 		switch( order )
 		{
+		default:
 		case OrderPoints:
 			xd = x;
 			yd = y+(UseFont->baseline - pchar->ascent);
@@ -239,7 +242,6 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			return 0;
 		}
 		//lprintf( "use regular texture %p (%d,%d)", pifSrc, pifSrc->width, pifSrc->height );
-		//DebugBreak();        g
 
 		/*
 		 * only a portion of the image is actually used, the rest is filled with blank space
@@ -465,43 +467,45 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 
 			texture_v[0][0] = x_size;
 			texture_v[0][1] = y_size;
-			/**///glTexCoord2d(x_size, y_size); glVertex3dv(v[vi][0]);	// Bottom Left Of The Texture and Quad
 			texture_v[1][0] = x_size;
 			texture_v[1][1] = y_size2;
-			/**///glTexCoord2d(x_size, y_size2); glVertex3dv(v[vi][1]);	// Top Left Of The Texture and Quad
 			texture_v[2][0] = x_size2;
 			texture_v[2][1] = y_size;
-			/**///glTexCoord2d(x_size2, y_size); glVertex3dv(v[vi][2]);	// Bottom Right Of The Texture and Quad
 			texture_v[3][0] = x_size2;
 			texture_v[3][1] = y_size2;
-			/**///glTexCoord2d(x_size2, y_size2); glVertex3dv(v[vi][3]);	// Top Right Of The Texture and Quad
 
 #ifndef PURE_OPENGL2_ENABLED
 			if( background )
 			{
 				glColor4ubv( (GLubyte*)&background );
 				glBegin(GL_TRIANGLE_STRIP);
-				glVertex3fv(v2[vi][0]);	// Bottom Left Of The Texture and Quad
-				glVertex3fv(v2[vi][1]);	// Top Left Of The Texture and Quad
-				glVertex3fv(v2[vi][2]);	// Bottom Right Of The Texture and Quad
-				glVertex3fv(v2[vi][3]);	// Top Right Of The Texture and Quad
-				// Back Face
+				{
+					int n;
+					for( n = 0; n < 4; n++ )
+					{
+						//lprintf( "background vert %g,%d", v2[vi][n][0],v2[vi][n][1] );
+						glVertex3fv(v2[vi][n]);
+					}
+				}
 				glEnd();
 			}
 			glBindTexture(GL_TEXTURE_2D, pifSrc->glActiveSurface);				// Select Our Texture
 			glColor4ubv( (GLubyte*)&color );
 			glBegin(GL_TRIANGLE_STRIP);
-			glTexCoord2f(x_size,  y_size  ); glVertex3fv(v[vi][0]);	// Bottom Left Of The Texture and Quad
-			glTexCoord2f(x_size,  y_size2 ); glVertex3fv(v[vi][1]);	// Top Left Of The Texture and Quad
-			glTexCoord2f(x_size2, y_size  ); glVertex3fv(v[vi][2]);	// Bottom Right Of The Texture and Quad
-			glTexCoord2f(x_size2, y_size2 ); glVertex3fv(v[vi][3]);	// Top Right Of The Texture and Quad
-			// Back Face
+			{
+			 	int n;
+				for( n = 0; n < 4; n++ )
+				{
+					//lprintf( "fore vert %g,%d", v[vi][n][0],v[vi][n][1] );
+					glTexCoord2f( texture_v[n][0], texture_v[n][1]  ); 
+					glVertex3fv(v[vi][n]);	// Bottom Left Of The Texture and Quad
+				}
+			}
 			glEnd();
 			glBindTexture(GL_TEXTURE_2D, 0);				// Select Our Texture
 #endif  // ifndef OPENGL2  (OPENGl1?)
 
 #ifdef PURE_OPENGL2_ENABLED
-
 			if( background )
 			{
 				float _back_color[4];
@@ -865,9 +869,15 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			if( 0 )
 				lprintf( WIDE("%d %d %d"), UseFont->baseline - pchar->ascent, y, UseFont->baseline - pchar->descent );
 			// bias the left edge of the character
+#if defined( _D3D_DRIVER ) || defined( _OPENGL_DRIVER )
+			for(line = 0;
+				 line <= UseFont->baseline - pchar->descent;
+				 line++ )
+#else
 			for(line = UseFont->baseline - pchar->ascent;
 				 line <= UseFont->baseline - pchar->descent;
 				 line++ )
+#endif
 			{
 				dataline = data;
 				col = pchar->offset;
@@ -1581,52 +1591,3 @@ PRELOAD( InitColorDefaults )
 
 IMAGE_NAMESPACE_END
 
-// $Log: font.c,v $
-// Revision 1.36  2005/01/27 08:20:57  panther
-// These should be cleaned up soon... but they're messy and sprite acutally used them at one time.
-//
-// Revision 1.35  2004/12/15 03:17:11  panther
-// Minor remanants of fixes already commited.
-//
-// Revision 1.34  2004/10/13 18:53:18  d3x0r
-// protect against images which have no surface
-//
-// Revision 1.33  2004/10/02 23:41:06  d3x0r
-// Protect against NULL height result.
-//
-// Revision 1.32  2004/08/11 12:52:36  d3x0r
-// Should figure out where they hide flag isn't being set... vline had to check for height<0
-//
-// Revision 1.32  2004/08/09 03:28:27  jim
-// Make strings by default handle \n binary characters.
-//
-// Revision 1.31  2004/06/21 07:47:12  d3x0r
-// Account for newly moved structure files.
-//
-// Revision 1.30  2004/03/26 06:27:33  d3x0r
-// Fix 2-bit font alpha computation some (not perfect, but who is?)
-//
-// Revision 1.29  2003/10/13 05:04:16  panther
-// Hmm wonder how that minor thing got through... font alpha addition was obliterated.
-//
-// Revision 1.28  2003/10/08 09:28:48  panther
-// Simplify some work drawing characters...
-//
-// Revision 1.27  2003/10/07 20:29:17  panther
-// Generalize font render to one routine, handle multi-bit fonts.
-//
-// Revision 1.26  2003/10/07 02:12:50  panther
-// Ug - it's all terribly broken
-//
-// Revision 1.25  2003/10/07 01:53:52  panther
-// Quick and dirty patch to support alpha fonts
-//
-// Revision 1.24  2003/08/27 07:57:21  panther
-// Fix calling of plot in lineasm.  Fix no character data in font
-//
-// Revision 1.23  2003/05/01 21:37:30  panther
-// Fix string to const string
-//
-// Revision 1.22  2003/03/25 08:45:51  panther
-// Added CVS logging tag
-//
