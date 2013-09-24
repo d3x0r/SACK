@@ -1292,6 +1292,11 @@ void  BlatColorAlpha ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color 
 		lprintf( WIDE( "No dest, or no dest image." ) );
 		return;
 	}
+	if(  (S_32)w <= 0 || (S_32)h <= 0 )
+	{
+		//lprintf( "BlatColorAlpha; width or height less than 0 (%" _32fs "x%"_32fs")", w, h );
+		return;
+	}
 	if( !w )
 		w = pifDest->width;
 	if( !h )
