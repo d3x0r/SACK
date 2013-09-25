@@ -388,12 +388,12 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 													  iheight, iattribs );
 						HDC hpbufdc = wglGetPbufferDCARB( hbuffer );
 						{
-                     // get size of image created.
+							// get size of image created.
 							wglQueryPbufferARB( hbuffer, WGL_PBUFFER_WIDTH_ARB, &h );
 							wglQueryPbufferARB( hbuffer, WGL_PBUFFER_WIDTH_ARB, &w );
 						}
 						HRC pbufglctx = wglCreateContext( hpbufdc );
-                  //wglMakeCurrent( hpbufdc, pbufglctx );
+						//wglMakeCurrent( hpbufdc, pbufglctx );
 					}
 				}
 			}
