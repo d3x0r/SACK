@@ -195,6 +195,7 @@ IDirect3DBaseTexture9 *ReloadD3DTexture( Image child_image, int option )
 				, &image_data->d3tex, NULL );
 			image_data->d3dTexture = image_data->d3tex;
 			image_data->d3tex->LockRect(0, &rect, NULL, D3DLOCK_DISCARD);
+			LogBinary( image->image, image->width*image->height*sizeof(CDATA));
 			CopyMemory(rect.pBits, image->image, image->width*image->height*sizeof(CDATA));
 			image_data->d3tex->UnlockRect(0);
 		}
@@ -348,26 +349,27 @@ static void ComputeImageData( ImageFile *pImage )
 		}
 		else
 		{
-#ifdef _INVERT_IMAGE
-  // so to find the very last line...
-			// first last line possible is the parent's base pointer.
-			// actual lastline will be hmm
-			// real_height - (my_height + my_real_y)
-			// so that as my height decreases ....
-			//    real_height - less total si a bigger number which offsets it
-			//   if realheight is my_
+			if( pImage->flags & IF_FLAG_INVERTED )
+			{
+				// so to find the very last line...
+				// first last line possible is the parent's base pointer.
+				// actual lastline will be hmm
+				// real_height - (my_height + my_real_y)
+				// so that as my height decreases ....
+				//    real_height - less total si a bigger number which offsets it
+				//   if realheight is my_
 
 
 
-			// so - under inverted image condition (windows)
-			// the data at -> image is the LAST line of the window
-			// and goes UP from there...
-			// so the offset to apply is the different of parent's height
-			// minus y + height ( total offset to bottom of subimage)
-			y = (pParent->eff_maxy - (pImage->eff_maxy + pImage->real_y) );
-			if( y < 0 )
-				DebugBreak();
-#endif
+				// so - under inverted image condition (windows)
+				// the data at -> image is the LAST line of the window
+				// and goes UP from there...
+				// so the offset to apply is the different of parent's height
+				// minus y + height ( total offset to bottom of subimage)
+				y = (pParent->eff_maxy - (pImage->eff_maxy + pImage->real_y) );
+				if( y < 0 )
+					DebugBreak();
+			}
 			pImage->image = pParent->image + x
 				+ ( y * (pImage->pwidth = pParent->pwidth ));
 		}
@@ -511,7 +513,8 @@ static void ComputeImageData( ImageFile *pImage )
 
 	if( pImage->pElder )
 		pImage->pElder->pYounger = pImage->pYounger;
-
+	pImage->pElder = NULL;
+	pImage->pYounger = NULL;
 	pImage->pParent = NULL;
 	ComputeImageData( pImage );
 }
@@ -546,6 +549,8 @@ static void SmearFlag( Image image, int flag )
 		pOrphan->pElder->pYounger = pOrphan;
 	pOrphan->pParent = pFoster;
 	pFoster->pChild = pOrphan;
+	pOrphan->pYounger = NULL; // may be undefined
+
 	SmearFlag( pOrphan, IF_FLAG_FINAL_RENDER );
 	// compute new image bounds within the parent...
 	ComputeImageData( pOrphan );
@@ -611,7 +616,7 @@ ImageFile * MakeSubImageEx ( ImageFile *pImage, S_32 x, S_32 y, _32 width, _32 h
 	p->pYounger = NULL;
 	p->Surfaces = 0;
 	// assume external colors...
-	p->flags |= IF_FLAG_EXTERN_COLORS|IF_FLAG_INVERTED;
+	p->flags |= IF_FLAG_EXTERN_COLORS/*|IF_FLAG_INVERTED*/;
 	return p;
 }
 
@@ -683,7 +688,7 @@ ImageFile * MakeSubImageEx ( ImageFile *pImage, S_32 x, S_32 y, _32 width, _32 h
 										 , Height
 										  DBG_RELAY );
 	// even if it's parented, it should still be origined to itself...
-	tmp->flags |= IF_FLAG_OWN_DATA|IF_FLAG_INVERTED;
+	tmp->flags |= IF_FLAG_OWN_DATA/*|IF_FLAG_INVERTED*/;
 	tmp->flags &= ~(IF_FLAG_EXTERN_COLORS); // not really extern colors
 	return tmp;
 }
@@ -1171,12 +1176,10 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 	{
 		//lprintf( WIDE("Blotting %d,%d - %d,%d"), x, y, w, h );
 		// start at origin on destination....
-#ifdef _INVERT_IMAGE
-		//y += h-1; // least address in memory.
-		oo = 4*( (-(S_32)w) - pifDest->pwidth);     // w is how much we can copy...
-#else
-		oo = 4*(pifDest->pwidth - w);     // w is how much we can copy...
-#endif
+		if( pifDest->flags & IF_FLAG_INVERTED )
+			oo = 4*( (-(S_32)w) - pifDest->pwidth);     // w is how much we can copy...
+		else
+			oo = 4*(pifDest->pwidth - w);     // w is how much we can copy...
 		po = IMG_ADDRESS(pifDest,x,y);
 		//oo = 4*(pifDest->pwidth - w);     // w is how much we can copy...
 		BlatPixels( po, oo, w, h, color );
@@ -1336,9 +1339,8 @@ float fX,
 	else
 	{
 		// start at origin on destination....
-#ifdef _INVERT_IMAGE
-		y += h-1;
-#endif
+		if( pifDest->flags & IF_FLAG_INVERTED )
+			y += h-1;
 		po = IMG_ADDRESS(pifDest,x,y);
 		oo = 4*(pifDest->pwidth - w);     // w is how much we can copy...
 
@@ -1437,12 +1439,8 @@ CDATA CPROC asmgetpixel( ImageFile *pi, S_32 x, S_32 y );
 
 void CPROC cplotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 {
-#ifdef _INVERT_IMAGE
-	//y = (pi->real_height-1) - y;
-#endif
 	if( pi->flags & IF_FLAG_FINAL_RENDER )
 	{
-
 #if 0
 		glBegin( GL_POINTS );
 		TranslateCoord( pi, &x, &y );
@@ -1464,9 +1462,6 @@ void CPROC cplot( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 	if( ( x >= pi->x ) && ( x < (pi->x + pi->width )) &&
 		 ( y >= pi->y ) && ( y < (pi->y + pi->height )) )
 	{
-#ifdef _INVERT_IMAGE
-	  // y = ( pi->real_height - 1 )- y;
-#endif
 		if( pi->flags & IF_FLAG_FINAL_RENDER )
 		{
 #if 0
@@ -1493,9 +1488,6 @@ CDATA CPROC cgetpixel( ImageFile *pi, S_32 x, S_32 y )
 	if( ( x >= pi->x ) && ( x < (pi->x + pi->width )) &&
 		 ( y >= pi->y ) && ( y < (pi->y + pi->height )) )
 	{
-#ifdef _INVERT_IMAGE
-		//y = (pi->real_height-1) - y;
-#endif
 		if( pi->flags & IF_FLAG_FINAL_RENDER )
 		{
 			lprintf( WIDE( "get pixel option on opengl surface" ) );
@@ -1517,9 +1509,6 @@ void CPROC cplotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 	if( ( x >= pi->x ) && ( x < (pi->x + pi->width )) &&
 		 ( y >= pi->y ) && ( y < (pi->y + pi->height) ) )
 	{
-#ifdef _INVERT_IMAGE
-		//y = ( pi->height - 1 )- y;
-#endif
 		if( pi->flags & IF_FLAG_FINAL_RENDER )
 		{
 #if 0

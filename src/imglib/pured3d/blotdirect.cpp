@@ -464,25 +464,27 @@ IMAGE_NAMESPACE
 		lprintf( WIDE( "out of bounds" ) );
 		return;
 	}
-#ifdef _INVERT_IMAGE
-	// set pointer in to the starting x pixel
-	// on the last line of the image to be copied
-	//pi = IMG_ADDRESS( pifSrc, xs, ys );
-	//po = IMG_ADDRESS( pifDest, xd, yd );
-	pi = IMG_ADDRESS( pifSrc, xs, ys );
-	po = IMG_ADDRESS( pifDest, xd, yd );
+
+	if( pifSrc->flags & IF_FLAG_INVERTED )
+	{
+		// set pointer in to the starting x pixel
+		// on the last line of the image to be copied
+		pi = IMG_ADDRESS( pifSrc, xs, ys );
+		po = IMG_ADDRESS( pifDest, xd, yd );
 //cpg 19 Jan 2007 2>c:\work\sack\src\imglib\blotdirect.c(492) : warning C4146: unary minus operator applied to unsigned type, result still unsigned
 //cpg 19 Jan 2007 2>c:\work\sack\src\imglib\blotdirect.c(493) : warning C4146: unary minus operator applied to unsigned type, result still unsigned
-	oo = 4*-(int)(ws+pifDest->pwidth);     // w is how much we can copy...
-	oi = 4*-(int)(ws+pifSrc->pwidth); // adding remaining width...
-#else
-	// set pointer in to the starting x pixel
-	// on the first line of the image to be copied...
-	pi = IMG_ADDRESS( pifSrc, xs, ys );
-	po = IMG_ADDRESS( pifDest, xd, yd );
-	oo = 4*(pifDest->pwidth - ws);     // w is how much we can copy...
-	oi = 4*(pifSrc->pwidth - ws); // adding remaining width...
-#endif
+		oo = 4*-(int)(ws+pifDest->pwidth);     // w is how much we can copy...
+		oi = 4*-(int)(ws+pifSrc->pwidth); // adding remaining width...
+	}
+	else
+	{
+		// set pointer in to the starting x pixel
+		// on the first line of the image to be copied...
+		pi = IMG_ADDRESS( pifSrc, xs, ys );
+		po = IMG_ADDRESS( pifDest, xd, yd );
+		oo = 4*(pifDest->pwidth - ws);     // w is how much we can copy...
+		oi = 4*(pifSrc->pwidth - ws); // adding remaining width...
+	}
 	//lprintf( WIDE("Doing image (%d,%d)-(%d,%d) (%d,%d)-(%d,%d)"), xs, ys, ws, hs, xd, yd, wd, hd );
 	//oo = 4*(pifDest->pwidth - ws);     // w is how much we can copy...
 	//oi = 4*(pifSrc->pwidth - ws); // adding remaining width...
