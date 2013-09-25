@@ -9,7 +9,7 @@
 #undef IMAGE_SOURCE
 #include <image.h>
 #include <image3d.h>
-#include "fntglobal.h"
+#include "../fntglobal.h"
 #include "local.h"
 #include "shaders.h"
 

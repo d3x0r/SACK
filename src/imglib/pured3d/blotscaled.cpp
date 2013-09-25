@@ -483,23 +483,26 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 	//          , ys, FROMFIXED(ys)
 	//          , xd, FROMFIXED(xd)
 	//          , yd, FROMFIXED(yd) );
-#ifdef _INVERT_IMAGE
-	// set pointer in to the starting x pixel
-	// on the last line of the image to be copied 
-	pi = IMG_ADDRESS( pifSrc, (xs), (ys) );
-	po = IMG_ADDRESS( pifDest, (xd), (yd) );
-	oo = 4*(-((signed)wd) - (pifDest->pwidth) ); // w is how much we can copy...
-	// adding in multiple of 4 because it's C...
-	srcwidth = -(4* pifSrc->pwidth);
-#else
-	// set pointer in to the starting x pixel
-	// on the first line of the image to be copied...
-	pi = IMG_ADDRESS( pifSrc, (xs), (ys) );
-	po = IMG_ADDRESS( pifDest, (xd), (yd) );
-	oo = 4*(pifDest->pwidth - (wd)); // w is how much we can copy...
-	// adding in multiple of 4 because it's C...
-	srcwidth = 4* pifSrc->pwidth;
-#endif
+	if( pifSrc->flags & IF_FLAG_INVERTED )
+	{
+		// set pointer in to the starting x pixel
+		// on the last line of the image to be copied 
+		pi = IMG_ADDRESS( pifSrc, (xs), (ys) );
+		po = IMG_ADDRESS( pifDest, (xd), (yd) );
+		oo = 4*(-((signed)wd) - (pifDest->pwidth) ); // w is how much we can copy...
+		// adding in multiple of 4 because it's C...
+		srcwidth = -(4* pifSrc->pwidth);
+	}
+	else
+	{
+		// set pointer in to the starting x pixel
+		// on the first line of the image to be copied...
+		pi = IMG_ADDRESS( pifSrc, (xs), (ys) );
+		po = IMG_ADDRESS( pifDest, (xd), (yd) );
+		oo = 4*(pifDest->pwidth - (wd)); // w is how much we can copy...
+		// adding in multiple of 4 because it's C...
+		srcwidth = 4* pifSrc->pwidth;
+	}
 	while( LockedExchange( &lock, 1 ) )
 		Relinquish();
    //Log8( WIDE("Do blot work...%d(%d),%d(%d) %d(%d) %d(%d)")

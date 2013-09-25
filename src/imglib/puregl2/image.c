@@ -351,6 +351,7 @@ int ReloadOpenGlMultiShadedTexture( Image child_image, int option, CDATA r, CDAT
 		return output_image->glActiveSurface;//ReloadOpenGlTexture( child_image, option );
 	}
 }
+
 //------------------------------------------
 
 #define Avg( c1, c2, d, max ) ((((c1)*(max-(d))) + ((c2)*(d)))/max)
@@ -658,6 +659,8 @@ static void ComputeImageData( Image pImage )
    if( pImage->pElder )
       pImage->pElder->pYounger = pImage->pYounger;
 
+	pImage->pElder = NULL;
+	pImage->pYounger = NULL;
    pImage->pParent = NULL;
    ComputeImageData( pImage );
 }
@@ -692,6 +695,7 @@ static void SmearFlag( Image image, int flag )
       pOrphan->pElder->pYounger = pOrphan;
    pOrphan->pParent = pFoster;
 	pFoster->pChild = pOrphan;
+   pOrphan->pYounger = NULL; // may be undefined
    SmearFlag( pOrphan, IF_FLAG_FINAL_RENDER );
    // compute new image bounds within the parent...
    ComputeImageData( pOrphan );
