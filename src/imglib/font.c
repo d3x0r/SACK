@@ -264,12 +264,18 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			VECTOR v[2][4], v2[2][4];
 			int vi = 0;
 			float texture_v[4][2];
+#ifdef PURE_OPENGL2_ENABLED
 			float _color[4];
+			float _back_color[4];
 			_color[0] = RedVal( color ) / 255.0f;
 			_color[1] = GreenVal( color ) / 255.0f;
 			_color[2] = BlueVal( color ) / 255.0f;
 			_color[3] = AlphaVal( color ) / 255.0f;
-
+			_back_color[0] = RedVal( background ) / 255.0f;
+			_back_color[1] = GreenVal( background ) / 255.0f;
+			_back_color[2] = BlueVal( background ) / 255.0f;
+			_back_color[3] = AlphaVal( background ) / 255.0f;
+#endif
 			switch( order )
 			{
 			default:
@@ -417,14 +423,15 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			x_size2 = (double) (xs+pchar->cell->real_width)/ (double)pifSrcReal->width;
 			y_size = (double) ys/ (double)pifSrcReal->height;
 			y_size2 = (double) (ys+pchar->cell->real_height)/ (double)pifSrcReal->height;
+			texture_v[0][0] = x_size;
+			texture_v[0][1] = y_size;
+			texture_v[1][0] = x_size;
+			texture_v[1][1] = y_size2;
+			texture_v[2][0] = x_size2;
+			texture_v[2][1] = y_size;
+			texture_v[3][0] = x_size2;
+			texture_v[3][1] = y_size2;
 
-			//x_size = (double) xs/ (double)pifSrc->width;
-			//x_size2 = (double) (xs+pchar->cell->real_width)/ (double)pifSrc->width;
-			//y_size = (double) ys/ (double)pifSrc->height;
-			//y_size2 = (double) (ys+pchar->cell->real_height)/ (double)pifSrc->height;
-
-			// Front Face
-			//glColor4ub( 255,120,32,192 );
 			//lprintf( "Texture size is %g,%g to %g,%g", x_size, y_size, x_size2, y_size2 );
 			while( pifDest && pifDest->pParent )
 			{
@@ -474,14 +481,6 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				scale( v2[vi][3], v2[vi][3], l.scale );
 			}
 
-			texture_v[0][0] = x_size;
-			texture_v[0][1] = y_size;
-			texture_v[1][0] = x_size;
-			texture_v[1][1] = y_size2;
-			texture_v[2][0] = x_size2;
-			texture_v[2][1] = y_size;
-			texture_v[3][0] = x_size2;
-			texture_v[3][1] = y_size2;
 
 #ifdef _OPENGL_DRIVER
 #  ifndef PURE_OPENGL2_ENABLED
@@ -518,11 +517,6 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 #  ifdef PURE_OPENGL2_ENABLED
 			if( background )
 			{
-				float _back_color[4];
-				_back_color[0] = RedVal( background ) / 255.0f;
-				_back_color[1] = GreenVal( background ) / 255.0f;
-				_back_color[2] = BlueVal( background ) / 255.0f;
-				_back_color[3] = AlphaVal( background ) / 255.0f;
 				EnableShader( GetShader( "Simple Shader", NULL ), v2[vi], _back_color );
 				glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 			}
@@ -543,119 +537,39 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 												  NULL);
 			D3DTEXTUREDVERTEX* pData;
 			//lock buffer (NEW)
-			pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
-				pData[0].dwColor = color;
-				pData[1].dwColor = color;
-				pData[2].dwColor = color;
-				pData[3].dwColor = color;
-			switch( order )
+			if( background )
 			{
-			case OrderPoints:
-				pData[0].fX = v[vi][0][vRight];
-				pData[0].fY = v[vi][0][vUp];
-				pData[0].fZ = v[vi][0][vForward];
-				
-				pData[0].fU1 = x_size;
-				pData[0].fV1 = y_size;
-				pData[1].fX = v[vi][1][vRight];
-				pData[1].fY = v[vi][1][vUp];
-				pData[1].fZ = v[vi][1][vForward];
-				
-				pData[1].fU1 = x_size2;
-				pData[1].fV1 = y_size;
-				pData[2].fX = v[vi][2][vRight];
-				pData[2].fY = v[vi][2][vUp];
-				pData[2].fZ = v[vi][2][vForward];
-				
-				pData[2].fU1 = x_size;
-				pData[2].fV1 = y_size2;
-				pData[3].fX = v[vi][3][vRight];
-				pData[3].fY = v[vi][3][vUp];
-				pData[3].fZ = v[vi][3][vForward];
-				
-				pData[3].fU1 = x_size2;
-				pData[3].fV1 = y_size2;
-				break;
-			case OrderPointsInvert:
-				pData[0].fX = v[vi][0][vRight];
-				pData[0].fY = v[vi][0][vUp];
-				pData[0].fZ = v[vi][0][vForward];
-				
-				pData[0].fU1 = x_size;
-				pData[0].fV1 = y_size2;
-				pData[1].fX = v[vi][1][vRight];
-				pData[1].fY = v[vi][1][vUp];
-				pData[1].fZ = v[vi][1][vForward];
-				
-				pData[1].fU1 = x_size;
-				pData[1].fV1 = y_size;
-				pData[2].fX = v[vi][2][vRight];
-				pData[2].fY = v[vi][2][vUp];
-				pData[2].fZ = v[vi][2][vForward];
-				
-				pData[2].fU1 = x_size2;
-				pData[2].fV1 = y_size2;
-				pData[3].fX = v[vi][3][vRight];
-				pData[3].fY = v[vi][3][vUp];
-				pData[3].fZ = v[vi][3][vForward];
-				
-				pData[3].fU1 = x_size2;
-				pData[3].fV1 = y_size;
-				break;
-			case OrderPointsVertical:
-				pData[0].fX = v[vi][0][vRight];
-				pData[0].fY = v[vi][0][vUp];
-				pData[0].fZ = v[vi][0][vForward];
-				
-				pData[0].fU1 = x_size;
-				pData[0].fV1 = y_size2;
-				pData[1].fX = v[vi][1][vRight];
-				pData[1].fY = v[vi][1][vUp];
-				pData[1].fZ = v[vi][1][vForward];
-				
-				pData[1].fU1 = x_size;
-				pData[1].fV1 = y_size;
-				pData[2].fX = v[vi][2][vRight];
-				pData[2].fY = v[vi][2][vUp];
-				pData[2].fZ = v[vi][2][vForward];
-				pData[2].fU1 = x_size2;
-				pData[2].fV1 = y_size2;
-				pData[3].fX = v[vi][3][vRight];
-				pData[3].fY = v[vi][3][vUp];
-				pData[3].fZ = v[vi][3][vForward];
-				
-				pData[3].fU1 = x_size2;
-				pData[3].fV1 = y_size;
-					break;
-			case OrderPointsVerticalInvert:
-				pData[0].fX = v[vi][0][vRight];
-				pData[0].fY = v[vi][0][vUp];
-				pData[0].fZ = v[vi][0][vForward];
-				
-				pData[0].fU1 = x_size2;
-				pData[0].fV1 = y_size;
+				pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
+				{
+					int n;
+					for( n = 0; n < 4; n++ )
+					{
+						pData[n].dwColor = background;
+						pData[n].fX = v2[vi][n][vRight];
+						pData[n].fY = v2[vi][n][vUp];
+						pData[n].fZ = v2[vi][n][vForward];
+					}
+				}
+				pQuadVB->Unlock();
+				g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
+			}
 
-				pData[1].fX = v[vi][1][vRight];
-				pData[1].fY = v[vi][1][vUp];
-				pData[1].fZ = v[vi][1][vForward];
-				
-				pData[1].fU1 = x_size2;
-				pData[1].fV1 = y_size2;
+			pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
+			pData[1].dwColor = color;
+			pData[2].dwColor = color;
+			pData[3].dwColor = color;
+			{
+				int n;
+				for( n = 0; n < 4; n++ )
+				{
+					pData[n].dwColor = color;
+					pData[n].fX = v[vi][n][vRight];
+					pData[n].fY = v[vi][n][vUp];
+					pData[n].fZ = v[vi][n][vForward];
 
-				pData[2].fX = v[vi][2][vRight];
-				pData[2].fY = v[vi][2][vUp];
-				pData[2].fZ = v[vi][2][vForward];
-				
-				pData[2].fU1 = x_size;
-				pData[2].fV1 = y_size;
-
-				pData[3].fX = v[vi][3][vRight];
-				pData[3].fY = v[vi][3][vUp];
-				pData[3].fZ = v[vi][3][vForward];
-				
-				pData[3].fU1 = x_size;
-				pData[3].fV1 = y_size2;
-					break;
+					pData[n].fU1 = texture_v[n][vRight];
+					pData[n].fV1 = texture_v[n][vUp];
+				}
 			}
 			//copy data to buffer (NEW)
 			//unlock buffer (NEW)
@@ -667,15 +581,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			g_d3d_device->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
 			g_d3d_device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
 			g_d3d_device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-			//g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAOP, D3DTOP_BLENDTEXTUREALPHA );
 			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
-			//g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG2,D3DTA_DIFFUSE);
-
-			//g_d3d_device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTSS_COLORARG1);
-			//g_d3d_device->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_DIFFUSE);
-
-			//g_d3d_device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTSS_COLORARG1);
-			//g_d3d_device->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
 
 			//draw quad (NEW)
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);

@@ -51,51 +51,51 @@ IF_FLAG_FINAL_RENDER = 0x200, // output should render to opengl target (with tra
 struct ImageFile_tag
 {
 #if defined( IMAGE_LIBRARY_SOURCE ) || defined( NEED_REAL_IMAGE_STRUCTURE )
-   int real_x;
-   int real_y;
-   int real_width;   // desired height and width may not be actual cause of 
-   int real_height;  // resizing of parent image....
+	int real_x;
+	int real_y;
+	int real_width;   // desired height and width may not be actual cause of 
+	int real_height;  // resizing of parent image....
 # ifdef HAVE_ANONYMOUS_STRUCTURES
 	IMAGE_RECTANGLE;
 # else
-   int x; // need this for sub images - otherwise is irrelavent
-   int y;
-   int width;  /// Width of image.
-   int height; /// Height of image.
+	int x; // need this for sub images - otherwise is irrelavent
+	int y;
+	int width;  /// Width of image.
+	int height; /// Height of image.
 # endif
 #else
-   /* X coordinate of the image within another image. */
-   int x;
-   /* Y coordinate of an image within another image. */
-   int y;
-   int width;   // desired height and width may not be actual cause of
+	/* X coordinate of the image within another image. */
+	int x;
+	/* Y coordinate of an image within another image. */
+	int y;
+	int width;   // desired height and width may not be actual cause of
 	int height;  // resizing of parent image....
-   int actual_x; // need this for sub images - otherwise is irrelavent
-   int actual_y;  /* Y coordinate of the image. probably 0 if a parent image. */
-   int actual_width;  // Width of image.
-   int actual_height; // Height of image.
+	int actual_x; // need this for sub images - otherwise is irrelavent
+	int actual_y;  /* Y coordinate of the image. probably 0 if a parent image. */
+	int actual_width;  // Width of image.
+	int actual_height; // Height of image.
 #endif
 
-   int pwidth; // width of real physical layer
+	int pwidth; // width of real physical layer
 
-   // The image data.
+	// The image data.
 	PCOLOR image;   
-   /* a combination of <link ImageFlags, IF_FLAG_> (ImageFile Flag)
-      which apply to this image.                                    */
-   int flags;
-   /* This points to a peer image that existed before this one. If
-      NULL, there is no elder, otherwise, contains the next peer
-      image in the same parent image.                              */
-   /* Points to the parent image of a sub-image. (The parent image
-      contains this image)                                         */
-   /* Pointer to the youngest child sub-image. If there are no sub
-      images pChild will be NULL. Otherwise, pchild points at the
-      first of one or more sub images. Other sub images in this one
-      are found by following the pElder link of the pChild.         */
-   /* This points at a more recently created sub-image. (another
-      sub image within the same parent, but younger)             */
+	/* a combination of <link ImageFlags, IF_FLAG_> (ImageFile Flag)
+	   which apply to this image.                                    */
+	int flags;
+	/* This points to a peer image that existed before this one. If
+	   NULL, there is no elder, otherwise, contains the next peer
+	   image in the same parent image.                              */
+	/* Points to the parent image of a sub-image. (The parent image
+	   contains this image)                                         */
+	/* Pointer to the youngest child sub-image. If there are no sub
+	   images pChild will be NULL. Otherwise, pchild points at the
+	   first of one or more sub images. Other sub images in this one
+	   are found by following the pElder link of the pChild.         */
+	/* This points at a more recently created sub-image. (another
+	   sub image within the same parent, but younger)             */
 			struct ImageFile_tag *pParent, *pChild, *pElder, *pYounger;
-      // effective x - clipped by reality real coordinate. 
+	   // effective x - clipped by reality real coordinate. 
 	           // (often eff_x = -real_x )
 	int eff_x; 
 	/* this is used internally for knowing what the effective y of
@@ -112,14 +112,14 @@ struct ImageFile_tag
 			IMAGE_RECTANGLE auxrect;
 //DOM-IGNORE-BEGIN
 #ifdef _OPENGL_DRIVER
-   /* gl context? */
+	/* gl context? */
 	PLIST glSurface;
 	int glActiveSurface; // most things will still use this, since reload image is called first, reload will set active
 	PTRANSFORM transform;
-   VECTOR coords[4];  // updated with SetTransformRelation, otherwise defaults to image size.
+	VECTOR coords[4];  // updated with SetTransformRelation, otherwise defaults to image size.
 #endif
 #ifdef _D3D_DRIVER
-   /* gl context? */
+	/* gl context? */
 	PLIST Surfaces;
 	IDirect3DBaseTexture9 *pActiveSurface;
 	PTRANSFORM transform;
@@ -133,41 +133,41 @@ private:
 };
 
 /* The basic structure. This is referenced by applications as '<link sack::image::Image, Image>'
-   This is the primary type that the image library works with.
-   
-   This is the internal definition.
-   
-   This is a actual data content, Image is (ImageFile *).                                        */
+	This is the primary type that the image library works with.
+	
+	This is the internal definition.
+	
+	This is a actual data content, Image is (ImageFile *).                                        */
 typedef struct ImageFile_tag ImageFile;
 /* A simple wrapper to add dynamic changing position and
-   orientation to an image. Sprites can be output at any angle. */
+	orientation to an image. Sprites can be output at any angle. */
 struct sprite_tag
 {
-   /* Current location of the sprite's origin. */
-   /* Current location of the sprite's origin. */
-   S_32 curx, cury;  // current x and current y for placement on image.
+	/* Current location of the sprite's origin. */
+	/* Current location of the sprite's origin. */
+	S_32 curx, cury;  // current x and current y for placement on image.
 	S_32 hotx, hoty;  // int of bitmap hotspot... centers cur on hot
-   Image image;
-   // curx,y are kept for moving the sprite independantly
+	Image image;
+	// curx,y are kept for moving the sprite independantly
 	fixed scalex, scaley;
-   // radians from 0 -> 2*pi.  there is no negative...
-   float angle; // radians for now... (used internally, set by blot rotated sprite)
-   // should consider keeping the angle of rotation
-   // and also should cosider keeping velocity/acceleration
-   // but then limits would have to be kept also... so perhaps
-   // the game module should keep such silly factors... but then couldn't
-   // it also keep curx, cury ?  though hotx hoty is the actual
-   // origin to rotate this image about, and to draw ON curx 0 cury 0
+	// radians from 0 -> 2*pi.  there is no negative...
+	float angle; // radians for now... (used internally, set by blot rotated sprite)
+	// should consider keeping the angle of rotation
+	// and also should cosider keeping velocity/acceleration
+	// but then limits would have to be kept also... so perhaps
+	// the game module should keep such silly factors... but then couldn't
+	// it also keep curx, cury ?  though hotx hoty is the actual
+	// origin to rotate this image about, and to draw ON curx 0 cury 0
 	// int orgx, orgy;  // rotated origin of bitmap.
 
-   // after being drawn the min(x,y) and max(x,y) are set.
+	// after being drawn the min(x,y) and max(x,y) are set.
 	S_32 minx, maxx; // after draw, these are the extent of the sprite.
-   S_32 miny, maxy; // after draw, these are the extent of the sprite.
-   PSPRITE_METHOD pSpriteMethod;
+	S_32 miny, maxy; // after draw, these are the extent of the sprite.
+	PSPRITE_METHOD pSpriteMethod;
 };
 /* A Sprite type. Adds position and rotation and motion factors
-   to an image. Hooks into the render system to get an update to
-   draw on a temporary layer after the base rendering is done.   */
+	to an image. Hooks into the render system to get an update to
+	draw on a temporary layer after the base rendering is done.   */
 typedef struct sprite_tag SPRITE;
 
 
@@ -178,9 +178,9 @@ typedef struct sprite_tag SPRITE;
 #define INVERTY(i,y)     ( (((i)->eff_maxy) - (y))/*+((i)->eff_y)*/)
 #else
 /* This is a macro is used when image data is inverted on a
-   platform. (Windows images, the first row of data is the
-   bottom of the image, all Image operations are specified from
-   the top-left as 0,0)                                         */
+	platform. (Windows images, the first row of data is the
+	bottom of the image, all Image operations are specified from
+	the top-left as 0,0)                                         */
 #define INVERTY(i,y)     ((y) - (i)->eff_y)
 #endif
 
@@ -192,9 +192,9 @@ typedef struct sprite_tag SPRITE;
 //#define IMG_ADDRESS(i,x,y) ImageAddress( i,x,y )
 #else
 #define IMG_ADDRESS(i,x,y)    ((CDATA*) \
-                               ((i)->image + (( (x) - (i)->eff_x ) \
+	                            ((i)->image + (( (x) - (i)->eff_x ) \
 	+(((i)->flags&IF_FLAG_INVERTED)?(INVERTY_INVERTED( (i), (y) ) * (i)->pwidth ):(INVERTY_NON_INVERTED( (i), (y) ) * (i)->pwidth )) \
-                               ))   \
+	                            ))   \
 										)
 #endif
 
