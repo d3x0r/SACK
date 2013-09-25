@@ -46,24 +46,24 @@ SACK_NAMESPACE
 
 #else
 #ifdef _OPENGL_DRIVER
-#define Color( r,g,b ) (((_32)( ((_8)(r))|((_16)((_8)(g))<<8))|(((_32)((_8)(b))<<16)))|0xFF000000)
-#define AColor( r,g,b,a ) (((_32)( ((_8)(r))|((_16)((_8)(g))<<8))|(((_32)((_8)(b))<<16)))|((a)<<24))
-#define SetAlpha( rgb, a ) ( ((rgb)&0xFFFFFF) | ( (a)<<24 ) )
-#define SetGreen( rgb, g ) ( ((rgb)&0xFFFF00FF) | ( ((g)&0xFF)<<8 ) )
-#define SetBlue( rgb, b ) ( ((rgb)&0xFF00FFFF) | ( ((b)&0xFF)<<16 ) )
-#define SetRed( rgb, r ) ( ((rgb)&0xFFFFFF00) | ( ((r)&0xFF)<<0 ) )
-#define GLColor( c )  (c)
-#define AlphaVal(color) (((color) >> 24) & 0xFF)
-#define RedVal(color)   (((color)) & 0xFF)
-#define GreenVal(color) (((color) >> 8) & 0xFF)
-#define BlueVal(color)  (((color) >> 16) & 0xFF)
+#  define Color( r,g,b ) (((_32)( ((_8)(r))|((_16)((_8)(g))<<8))|(((_32)((_8)(b))<<16)))|0xFF000000)
+#  define AColor( r,g,b,a ) (((_32)( ((_8)(r))|((_16)((_8)(g))<<8))|(((_32)((_8)(b))<<16)))|((a)<<24))
+#  define SetAlpha( rgb, a ) ( ((rgb)&0xFFFFFF) | ( (a)<<24 ) )
+#  define SetGreen( rgb, g ) ( ((rgb)&0xFFFF00FF) | ( ((g)&0xFF)<<8 ) )
+#  define SetBlue( rgb, b ) ( ((rgb)&0xFF00FFFF) | ( ((b)&0xFF)<<16 ) )
+#  define SetRed( rgb, r ) ( ((rgb)&0xFFFFFF00) | ( ((r)&0xFF)<<0 ) )
+#  define GLColor( c )  (c)
+#  define AlphaVal(color) (((color) >> 24) & 0xFF)
+#  define RedVal(color)   (((color)) & 0xFF)
+#  define GreenVal(color) (((color) >> 8) & 0xFF)
+#  define BlueVal(color)  (((color) >> 16) & 0xFF)
 #else
-#ifdef _WIN64
-#define AND_FF &0xFF
-#else
+#  ifdef _WIN64
+#    define AND_FF &0xFF
+#  else
 /* This is a macro to cure a 64bit warning in visual studio. */
-#define AND_FF
-#endif
+#    define AND_FF
+#  endif
 /* A macro to create a solid color from R G B coordinates.
    Example
    <code lang="c++">
