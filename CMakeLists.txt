@@ -298,7 +298,7 @@ set( ExternalExtraDefinitions "${ExternalExtraDefinitions};${EXPAT_SOURCES_FLAGS
 set( ExtraDefinitions "${ExtraDefinitions};${GENX_SOURCES_FLAGS}" )
 
 if( WIN32 )
-	set( VidlibExtraDefinitions "${VidlibExtraDefinitions};${VIDLIB_SOURCES_FLAGS}" )
+	set( VidlibExtraDefinitions "${VidlibExtraDefinitions};" )
 endif( WIN32 )
 
 if( __NO_GUI__ )
@@ -515,15 +515,15 @@ endif( NOT __NO_CPLUSPLUS )
 
 add_library( sack_bag SHARED ${SACK_SOURCES} )
 SET_TARGET_PROPERTIES(sack_bag PROPERTIES
-                  COMPILE_FLAGS  "${ExtraFlags} ${ExtraRenderFlags}"
-                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;${ExtraDefinitions};${VidlibExtraDefinitions};${ExternalExtraDefinitions};${PSIExtraDefinitions};TARGET_LABEL=sack_bag;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}sack_bag${CMAKE_SHARED_LIBRARY_SUFFIX}\""
+                  COMPILE_FLAGS  "${ExtraFlags}"
+                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;${ExtraDefinitions};${ExternalExtraDefinitions};${PSIExtraDefinitions};TARGET_LABEL=sack_bag;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}sack_bag${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"
                   LINK_FLAGS "${extra_link_flags}"
 )
 if( SACK_BUILD_STATIC_LIBS )
 add_library( sack_bag_static ${SACK_SOURCES} )
 SET_TARGET_PROPERTIES(sack_bag_static PROPERTIES
-                  COMPILE_FLAGS  "${ExtraFlags} ${ExtraRenderFlags}"
-                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;${ExtraDefinitions};${VidlibExtraDefinitions};${ExternalExtraDefinitions};${PSIExtraDefinitions};TARGET_LABEL=sack_bag;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}sack_bag${CMAKE_SHARED_LIBRARY_SUFFIX}\""
+                  COMPILE_FLAGS  "${ExtraFlags}"
+                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;${ExtraDefinitions};${ExternalExtraDefinitions};${PSIExtraDefinitions};TARGET_LABEL=sack_bag;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}sack_bag${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"
                   LINK_FLAGS "${extra_link_flags}"
 )
 endif( SACK_BUILD_STATIC_LIBS )
@@ -533,16 +533,16 @@ if( NOT FORCE_CXX )
 
 add_library( ${SACK_BAG_PLUSPLUS} SHARED ${cplusplus_sources} )
 SET_TARGET_PROPERTIES(${SACK_BAG_PLUSPLUS} PROPERTIES
-                  COMPILE_FLAGS  "${ExtraFlags} ${ExtraRenderFlags}"
-                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;${ExtraDefinitions};${VidlibExtraDefinitions};${ExternalExtraDefinitions};${PSIExtraDefinitions};TARGET_LABEL=sack_bag_plusplus;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${SACK_BAG_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX}\""
+                  COMPILE_FLAGS  "${ExtraFlags}"
+                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;${ExtraDefinitions};${ExternalExtraDefinitions};${PSIExtraDefinitions};TARGET_LABEL=sack_bag_plusplus;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${SACK_BAG_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"
                   LINK_FLAGS "${extra_link_flags}"
 )
 
 if( SACK_BUILD_STATIC_LIBS )
 add_library( ${SACK_BAG_PLUSPLUS}_static ${cplusplus_sources} )
 SET_TARGET_PROPERTIES(${SACK_BAG_PLUSPLUS}_static PROPERTIES
-                  COMPILE_FLAGS  "${ExtraFlags} ${ExtraRenderFlags}"
-                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;${ExtraDefinitions};${VidlibExtraDefinitions};${ExternalExtraDefinitions};${PSIExtraDefinitions};TARGET_LABEL=sack_bag_plusplus;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${SACK_BAG_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX}\""
+                  COMPILE_FLAGS  "${ExtraFlags}"
+                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;${ExtraDefinitions};${ExternalExtraDefinitions};${PSIExtraDefinitions};TARGET_LABEL=sack_bag_plusplus;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${SACK_BAG_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"
                   LINK_FLAGS "${extra_link_flags}"
 )
 endif( SACK_BUILD_STATIC_LIBS )
@@ -766,8 +766,8 @@ add_library( bag SHARED
 
 SET_TARGET_PROPERTIES(bag PROPERTIES 
                   DEFINE_SYMBOL SACK_BAG_EXPORTS
-                  COMPILE_FLAGS  "${ExtraFlags} ${ExtraRenderFlags}"
-                  COMPILE_DEFINITIONS "${ExtraDefinitions};TARGET_LABEL=bag;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}bag${CMAKE_SHARED_LIBRARY_SUFFIX}\""
+                  COMPILE_FLAGS  "${ExtraFlags}"
+                  COMPILE_DEFINITIONS "${ExtraDefinitions};TARGET_LABEL=bag;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}bag${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"
                   LINK_FLAGS "${extra_link_flags}"
 )
 
@@ -809,8 +809,8 @@ COPY_CPLUSPLUS( psi_cplusplus_sources ${PSI_SOURCES} )
 add_library( ${BAG_PLUSPLUS} SHARED ${cplusplus_sources} )
 SET_TARGET_PROPERTIES(${BAG_PLUSPLUS} PROPERTIES
                   DEFINE_SYMBOL SACK_BAG_EXPORTS
-                  COMPILE_FLAGS  "${ExtraFlags} ${ExtraRenderFlags}"
-                  COMPILE_DEFINITIONS "${ExtraDefinitions};TARGET_LABEL=bag_plusplus;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${BAG_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX}\""
+                  COMPILE_FLAGS  "${ExtraFlags}"
+                  COMPILE_DEFINITIONS "${ExtraDefinitions};TARGET_LABEL=bag_plusplus;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${BAG_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"
                   LINK_FLAGS "${extra_link_flags}"
 )
 
@@ -898,38 +898,12 @@ set( EXTERNALS bag.externals )
 endif()
 ###########
 
-add_library( bag.image SHARED 
-  ${FIRST_GCC_LIBRARY_SOURCE} 
-  ${IMAGE_SOURCES} 
-  ${LAST_GCC_LIBRARY_SOURCE} 
-)
-SET_TARGET_PROPERTIES(bag.image PROPERTIES
-                  COMPILE_FLAGS  "-DTARGET_LABEL=bag_image ${ExtraFlags} ${ImageExtraFlags}"
-                  FOLDER "Image Library" 
-                  LINK_FLAGS "${extra_link_flags}"
-)
-my_target_link_libraries( bag.image bag ${EXTERNALS} ${PLATFORM_LIBRARIES} bag.psi )
-set( SACK_IMAGE_LIBRARY bag.video )
+add_subdirectory( src/imglib )
 
 ###########
 
 if( NOT __ANDROID__ )
-
-add_library( bag.video SHARED 
-  ${FIRST_GCC_LIBRARY_SOURCE} 
-  ${VIDLIB_SOURCES} 
-  ${LAST_GCC_LIBRARY_SOURCE} 
-)
-SET_TARGET_PROPERTIES(bag.video PROPERTIES
-                  DEFINE_SYMBOL VIDEO_LIBRARY_SOURCE
-                  COMPILE_FLAGS  "-DTARGET_LABEL=bag_video -DRENDER_LIBRARY_SOURCE ${ExtraRenderFlags}"
-                  COMPILE_DEFINITIONS "${VidlibExtraDefinitions};TARGET_LABEL=bag_video;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}bag.video${CMAKE_SHARED_LIBRARY_SUFFIX}\""
-                  FOLDER "Video Renderer" 
-                  LINK_FLAGS "${extra_link_flags}"
-)
-my_target_link_libraries( bag.video bag.image bag ${EXTERNALS} ${OPENGL_LIBRARY}  ${PLATFORM_LIBRARIES})
-set( SACK_VIDEO_LIBRARY bag.video )
-
+   add_subdirectory( src/vidlib )
 endif( NOT __ANDROID__ )
 
 ###########
@@ -968,39 +942,31 @@ if( NOT __NO_CPLUSPLUS )
     my_target_link_libraries( ${BAG_PSI_PLUSPLUS} bag ${BAG_PLUSPLUS} ${EXTERNALS} ${PLATFORM_LIBRARIES} )
     set( SACK_PSI_LIBRARY ${BAG_PSI_PLUSPLUS} bag.psi )
     if( __ANDROID__ )
-        install_mode_dest( bag bag.image bag.psi ${BAG_PLUSPLUS} ${BAG_PSI_PLUSPLUS} ${EXTERNALS} )
+        install_mode_dest( bag bag.psi ${BAG_PLUSPLUS} ${BAG_PSI_PLUSPLUS} ${EXTERNALS} )
     else()
-        install_mode_dest( bag bag.image bag.video bag.psi ${BAG_PLUSPLUS} ${BAG_PSI_PLUSPLUS} ${EXTERNALS} )
+        install_mode_dest( bag bag.psi ${BAG_PLUSPLUS} ${BAG_PSI_PLUSPLUS} ${EXTERNALS} )
     endif( __ANDROID__ )
   else( NOT FORCE_CXX )
     set( SACK_PSI_LIBRARY bag.psi )
-    install_mode_dest( bag bag.image bag.video bag.psi ${EXTERNALS} )
+    install_mode_dest( bag bag.psi ${EXTERNALS} )
   endif( NOT FORCE_CXX )
 else( NOT __NO_CPLUSPLUS )
     if( __ANDROID__ )
-        install_mode_dest( bag bag.image bag.psi ${EXTERNALS} )
+        install_mode_dest( bag bag.psi ${EXTERNALS} )
     else()
-        install_mode_dest( bag bag.image bag.video bag.psi ${EXTERNALS} )
+        install_mode_dest( bag bag.psi ${EXTERNALS} )
     endif( __ANDROID__ )
 endif( NOT __NO_CPLUSPLUS )
 
 my_target_link_libraries( bag.psi bag ${EXTERNALS} ${PLATFORM_LIBRARIES} )
 
-if( NOT NEED_PNG ) 
-  my_target_link_libraries( bag.image png )
-endif() 
-if( NOT NEED_JPEG ) 
-  my_target_link_libraries( bag.image jpeg )
-endif() 
 if( NOT NEED_FREETYPE )
-  my_target_link_libraries( bag.image  freetype  )
   my_target_link_libraries( bag.psi  freetype  )
   if( NOT __NO_CPLUSPLUS )
     if( NOT FORCE_CXX )
       my_target_link_libraries( ${BAG_PLUSPLUS}  freetype  )
     endif( NOT FORCE_CXX )
   endif( NOT __NO_CPLUSPLUS )
-
   include_directories( ${FREETYPE_INCLUDE_DIRS} )
 endif()
 

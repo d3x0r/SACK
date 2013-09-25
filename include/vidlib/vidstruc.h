@@ -175,7 +175,7 @@ typedef struct HVIDEO_tag
 		HGLRC    hRC;     // Permanent Rendering Context
 	} *pFractures;
 #endif
-#  if defined( PURE_OPENGL_ENABLED ) || defined( PURE_D3D_ENABLED )
+#  if defined( _OPENGL_DRIVER ) || defined( _D3D_DRIVER )
 	struct display_camera *camera;
 	MATRIX fModelView;
 	PTRANSFORM transform;
@@ -295,7 +295,7 @@ typedef struct HVIDEO_tag
 #ifdef _OPENGL_ENABLED
    HGLRC    hRC;     // Permanent Rendering Context
 #endif
-#ifdef _D3D_ENABLED
+#ifdef _D3D_DRIVER
     LPDIRECT3D9 d3d;    // the pointer to our Direct3D interface
 	LPDIRECT3DDEVICE9 d3ddev;    // the pointer to the device class
 // function prototypes

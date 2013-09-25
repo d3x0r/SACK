@@ -91,16 +91,18 @@ SET_SOURCE_FILES_PROPERTIES( ${GENX_SOURCES} PROPERTIES
 set( GENX_SOURCES_FLAGS GENX_SOURCE )
 
 if( WIN32 )
+	#vidlib is a windows-specific driver
+        # vidlib.puregl and puregl2 are non windows specific; but are not
+        # included in monolithic build.
 	set( VIDLIB_SOURCES
 	  ${SOURCES_ROOT}src/vidlib/key.c
 	  ${SOURCES_ROOT}src/vidlib/keydefs.c
 	  ${SOURCES_ROOT}src/vidlib/vidlib.c
 	)
-        set( VIDLIB_SOURCES_FLAGS RENDER_LIBRARY_SOURCE )
+	set( ExtraRenderFlags "RENDER_LIBRARY_SOURCE;_OPENGL_ENABLED" )
         
 	if( NOT __ARM__ )
 		set( VIDLIB_SOURCES ${VIDLIB_SOURCES} ${SOURCES_ROOT}src/vidlib/opengl.c )
-		set( VidlibExtraDefinitions "${VidlibExtraDefinitions};_OPENGL_ENABLED" )
 	endif( NOT __ARM__ )
         
 	if( FORCE_CXX )
