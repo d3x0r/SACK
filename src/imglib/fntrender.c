@@ -412,10 +412,10 @@ Image AllocateCharacterSpace( PFONT_RENDERER renderer, PCHARACTER character )
 
 		if( renderer->nLinesUsed == renderer->nLinesAvail )
 		{
-         lprintf( WIDE( "make new lines" ) );
-         renderer->nLinesAvail += 16; // another 16 lines... (16 ever should be enough)
-         renderer->pLineStarts = (int*)HeapReallocate( 0, renderer->pLineStarts, sizeof( int ) * renderer->nLinesAvail );
-         renderer->ppCharacterLineStarts = (PCHARACTER*)HeapReallocate( 0, renderer->ppCharacterLineStarts, sizeof( PCHARACTER ) * renderer->nLinesAvail );
+			lprintf( WIDE( "make new lines" ) );
+			renderer->nLinesAvail += 16; // another 16 lines... (16 ever should be enough)
+			renderer->pLineStarts = (int*)HeapReallocate( 0, renderer->pLineStarts, sizeof( int ) * renderer->nLinesAvail );
+			renderer->ppCharacterLineStarts = (PCHARACTER*)HeapReallocate( 0, renderer->ppCharacterLineStarts, sizeof( PCHARACTER ) * renderer->nLinesAvail );
 		}
 
 		renderer->nLinesUsed++;
