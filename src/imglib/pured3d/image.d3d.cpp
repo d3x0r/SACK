@@ -1,3 +1,8 @@
+#define DEBUG_IMAGE_UPDATE
+
+
+
+
 #define IMAGE_LIBRARY_SOURCE_MAIN
 #ifndef IMAGE_LIBRARY_SOURCE
 #define IMAGE_LIBRARY_SOURCE
@@ -21,6 +26,11 @@ extern int bGLColorMode;
 #include "local.h"
 #include "blotproto.h"
 #include "../image_common.h"
+
+#ifdef DEBUG_IMAGE_UPDATE
+#define DO_PNG
+#include "../pngimage.h"
+#endif
 
 #ifndef __arm__
 
@@ -106,7 +116,23 @@ IDirect3DBaseTexture9 *ReloadD3DTexture( Image child_image, int option )
 				, &image_data->d3tex, NULL );
 			image_data->d3dTexture = image_data->d3tex;
 			image_data->d3tex->LockRect(0, &rect, NULL, D3DLOCK_DISCARD);
-			LogBinary( image->image, image->width*image->height*sizeof(CDATA));
+#ifdef DEBUG_IMAGE_UPDATE
+			{
+				_8 *buf;
+				int size;
+				static int n;
+				TEXTCHAR filename[64];
+            FILE *file;
+				PngImageFile( image, &buf, &size );
+				snprintf( filename, 64, "update-%04d.png", n++ );
+				file = fopen( filename, "wb" );
+				if( file )
+				{
+               fwrite( buf, 1, size, file );
+               fclose( file );
+				}
+			}
+#endif
 			CopyMemory(rect.pBits, image->image, image->width*image->height*sizeof(CDATA));
 			image_data->d3tex->UnlockRect(0);
 		}

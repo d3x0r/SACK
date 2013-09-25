@@ -4,13 +4,16 @@
 #define PNGIMAGE_H
 
 /**
- * An ImageFile subclass for reading GIF files.
+ * An ImageFile subclass for reading PNG files.
  */
 IMAGE_NAMESPACE
 #ifdef __cplusplus
 namespace loader {
 #endif
-ImageFile *ImagePngFile (_8 * buf, long size);
+   // decompress a buffer into an image...
+	ImageFile *ImagePngFile (_8 * buf, long size);
+	// compress image into a buffer
+	LOGICAL PngImageFile ( Image pImage, _8 ** buf, int *size);
 #ifdef __cplusplus
 }
 #endif
