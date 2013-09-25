@@ -508,13 +508,18 @@ void CPROC do_vlinec( ImageFile *pImage, int x, int yfrom, int yto, CDATA color 
 
 void CPROC do_hlineAlphac( ImageFile *pImage, int y, int xfrom, int xto, CDATA color )
 {
-   BlatColorAlpha( pImage, xfrom, y, xto-xfrom, 1, color );
-   //do_lineAlphac( pImage, xfrom, y, xto, y, color );
+	if( xfrom < xto )
+		BlatColorAlpha( pImage, xfrom, y, xto-xfrom, 1, color );
+	else
+		BlatColorAlpha( pImage, xfrom, y, xfrom-xto, 1, color );
 }
 
 void CPROC do_vlineAlphac( ImageFile *pImage, int x, int yfrom, int yto, CDATA color )
 {
-   BlatColorAlpha( pImage, x, yfrom, 1, yto-yfrom, color );
+	if( yto > yfrom )
+		BlatColorAlpha( pImage, x, yfrom, 1, yto-yfrom, color );
+	else
+		BlatColorAlpha( pImage, x, yfrom, 1, yfrom-yto, color );
 }
 
 #ifdef __cplusplus

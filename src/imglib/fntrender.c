@@ -397,7 +397,7 @@ Image AllocateCharacterSpace( PFONT_RENDERER renderer, PCHARACTER character )
 		// if we got here, didn't find room on any line.
 		if( !renderer->surface )
 		{
-			lprintf( WIDE( "make new image" ) );
+			//lprintf( WIDE( "make new image" ) );
 			// gonna need lines and character chain starts too... don't continue
 			UpdateRendererImage( renderer, character->width, height );
 		}
@@ -405,14 +405,14 @@ Image AllocateCharacterSpace( PFONT_RENDERER renderer, PCHARACTER character )
 		// this should NOT go more than once.... but it could with nasty fonts...
 		if( ( last_line_top + height ) > renderer->surface->real_height )
 		{
-			lprintf( WIDE( "expand font image %d %d %d" ), last_line_top, height, renderer->surface->real_height );
+			//lprintf( WIDE( "expand font image %d %d %d" ), last_line_top, height, renderer->surface->real_height );
 			UpdateRendererImage( renderer, character->width, height );
 			continue; // go to top of while loop;
 		}
 
 		if( renderer->nLinesUsed == renderer->nLinesAvail )
 		{
-			lprintf( WIDE( "make new lines" ) );
+			//lprintf( WIDE( "make new lines" ) );
 			renderer->nLinesAvail += 16; // another 16 lines... (16 ever should be enough)
 			renderer->pLineStarts = (int*)HeapReallocate( 0, renderer->pLineStarts, sizeof( int ) * renderer->nLinesAvail );
 			renderer->ppCharacterLineStarts = (PCHARACTER*)HeapReallocate( 0, renderer->ppCharacterLineStarts, sizeof( PCHARACTER ) * renderer->nLinesAvail );
@@ -429,8 +429,8 @@ Image AllocateCharacterSpace( PFONT_RENDERER renderer, PCHARACTER character )
 												);
 		break;
 	} while( 1 );
-   lprintf( WIDE( "Result %d,%d" ), character->cell->real_x, character->cell->real_y );
-   return character->cell;
+	//lprintf( WIDE( "Result %d,%d" ), character->cell->real_x, character->cell->real_y );
+	return character->cell;
 }
 
 Image AllocateCharacterSpaceByFont( SFTFont font, PCHARACTER character )
