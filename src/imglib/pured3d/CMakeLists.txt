@@ -3,7 +3,7 @@ set( project bag.image.pured3d )
 
 ADD_DEFINITIONS( -D__3D__ )
 
-set( COMMON_CPP_SOURCES   blotscaled.cpp blotdirect.cpp image.cpp 
+set( COMMON_CPP_SOURCES   blotscaled.cpp blotdirect.cpp image.d3d.cpp 
   line.cpp interface.cpp sprite.cpp sprite_common.cpp )
 
 set( font_sources 
@@ -23,7 +23,9 @@ set( font_sources
         ../jpgimage.h 
         ../fntglobal.h 
         ../cache.h 
+        ../blotproto.h 
         local.h
+        ../image_common.c
 )
 
 foreach( SOURCE ${font_sources} )

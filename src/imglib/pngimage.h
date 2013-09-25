@@ -19,5 +19,12 @@ IMAGE_NAMESPACE_END
 #endif //GIFIMAGE_H
 #endif //DO_PNG
 
+#ifdef __cplusplus
+#ifdef _D3D_DRIVER
+using namespace sack::image::d3d::loader;
+#else
+using namespace sack::image::loader;
+#endif
+#endif
 
 // $Log: $
