@@ -185,7 +185,6 @@ set( IMAGE_SOURCES
   ${SOURCES_ROOT}src/imglib/gifimage.c
   ${SOURCES_ROOT}src/imglib/image_common.c
   ${SOURCES_ROOT}src/imglib/image.c
-#  ${SOURCES_ROOT}src/imglib/image_client.c
   ${SOURCES_ROOT}src/imglib/interface.c
   ${SOURCES_ROOT}src/imglib/jpgimage.c
   ${SOURCES_ROOT}src/imglib/line.c

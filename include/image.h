@@ -69,7 +69,7 @@
 #        define IMAGE_PROC_D  IMPORT_METHOD
 #     endif
 
-#if defined( _WIN32 ) && !defined( _OPENGL_DRIVER )
+#if defined( _WIN32 ) && !defined( _OPENGL_DRIVER ) && !defined( _D3D_DRIVER )
 #define _INVERT_IMAGE
 #endif
 
