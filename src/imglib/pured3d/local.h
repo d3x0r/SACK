@@ -100,7 +100,7 @@ void InitShader( void );
 Image AllocateCharacterSpaceByFont( SFTFont font, PCHARACTER character );
 IDirect3DBaseTexture9 *ReloadD3DTexture( Image image, int option );
 void TranslateCoord( Image image, S_32 *x, S_32 *y );
-struct d3dSurfaceImageData * MarkImageUpdated( Image image );
+void MarkImageUpdated( Image image );
 
 IMAGE_NAMESPACE_END
 
