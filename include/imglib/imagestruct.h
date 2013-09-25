@@ -43,7 +43,7 @@ IF_FLAG_USER1    =     0x10000, // please #define user flag to this
 IF_FLAG_USER2    =     0x20000, /* An extra flag that can be used by users of the image library. */
 
 IF_FLAG_USER3    =     0x40000, /* An extra flag that can be used by users of the image library. */
-IF_FLAG_FINAL_RENDER = 0x100, // output should render to opengl target (with transform)
+IF_FLAG_FINAL_RENDER = 0x200, // output should render to opengl target (with transform)
 	};
 //#define _DRAWPOINT_X 0
 //#define _DRAWPOINT_Y 1
