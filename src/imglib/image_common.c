@@ -496,7 +496,11 @@ static void SmearFlag( Image image, int flag )
    p->pChild = NULL;
    p->pYounger = NULL;
    p->pElder = NULL;
-   p->image = NULL; // set it to nothing for now ComputeData will fix
+	p->image = NULL; // set it to nothing for now ComputeData will fix
+#if defined( _OPENGL_DRIVER )
+	p->glSurface = NULL;
+   p->transform = NULL;
+#endif
 #if defined( _D3D_DRIVER )
 	p->Surfaces = NULL;
    p->transform = NULL;
@@ -535,6 +539,10 @@ static void SmearFlag( Image image, int flag )
 	p->pYounger = NULL;
    // assume external colors...
 	p->flags |= IF_FLAG_EXTERN_COLORS;
+#if defined( _OPENGL_DRIVER )
+	p->glSurface = NULL;
+   p->transform = NULL;
+#endif
 #if defined( _D3D_DRIVER )
 	p->Surfaces = NULL;
    p->transform = NULL;
@@ -740,8 +748,10 @@ void TranslateCoord( Image image, S_32 *x, S_32 *y )
 	while( image )
 	{
 		//lprintf( "%p adjust image %d,%d ", image, image->real_x, image->real_y );
-		(*x) += image->real_x;
-		(*y) += image->real_y;
+		if( x )
+			(*x) += image->real_x;
+		if( y )
+			(*y) += image->real_y;
 		image = image->pParent;
 	}
 }
@@ -1242,7 +1252,7 @@ void RotateImageAbout( Image pImage, int edge_flag, RCOORD offset_x, RCOORD offs
 
 void MarkImageDirty( Image pImage )
 {
-#ifdef _D3D_DRIVER
+#if defined( _D3D_DRIVER ) || defined( _OPENGL_DRIVER )
 	extern void MarkImageUpdated( Image child_image );
 #endif
 

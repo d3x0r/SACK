@@ -17,7 +17,7 @@ set( loader_sources ../bmpimage.c ../gifimage.c ../pngimage.c ../jpgimage.c )
 add_library_force_source( ${PROJECT_NAME} SHARED
 ${FIRST_GCC_LIBRARY_SOURCE}
   ../alphatab.c ../alphastab.c
-  blotscaled.c blotdirect.c image.c  
+  blotscaled.c blotdirect.c image.c ../image_common.c 
   line.c interface.c sprite.c sprite_common.c
   ${loader_sources}
   ${font_sources}

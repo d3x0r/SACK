@@ -26,6 +26,7 @@ set( font_sources
         ../blotproto.h 
         local.h
         ../image_common.c
+        ../image_common.h
 )
 
 foreach( SOURCE ${font_sources} )
