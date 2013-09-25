@@ -79,7 +79,7 @@ static void CPROC SimpleTextureEnable( PImageShaderTracker tracker, PTRSZVAL psv
 
 	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );
 	CheckErr();
-	glEnableVertexAttribArray(data->texture_attrib);	CheckErr();
+	glEnableVertexAttribArray(data->texture_attrib);	CheckErr();
 	glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, texture_verts );            
 	CheckErr();
 	glActiveTexture(GL_TEXTURE0 + 0);
@@ -124,11 +124,11 @@ static void CPROC SimpleTextureEnable2( PImageShaderTracker tracker, PTRSZVAL ps
 
 	struct private_shader_data *data = (struct private_shader_data *)psv;
 
-	glEnableVertexAttribArray(0);	CheckErr();
+	glEnableVertexAttribArray(0);	CheckErr();
 	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );  
 	CheckErr();
 	
-	glEnableVertexAttribArray(data->texture_attrib);	CheckErr();
+	glEnableVertexAttribArray(data->texture_attrib);	CheckErr();
 	glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, texture_verts );  
 	CheckErr();
 

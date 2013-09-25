@@ -69,7 +69,7 @@ extern FONT DEFAULTFONT;
 
 PFONT GetDefaultFont( void )
 {
-   return &DEFAULTFONT;
+	return &DEFAULTFONT;
 }
 
 #define CharPlotAlpha(pImage,x,y,color) plotalpha( pImage, x, y, color )
@@ -77,20 +77,20 @@ PFONT GetDefaultFont( void )
 //---------------------------------------------------------------------------
 void CharPlotAlpha8( ImageFile *pImage, S_32 x, S_32 y, _32 data, CDATA fore, CDATA back )
 {
-   if( back )
-      CharPlotAlpha( pImage, x, y, back );
-   if( data )
-      CharPlotAlpha( pImage, x, y, ( fore & 0xFFFFFF ) | ( (((_32)data*AlphaVal(fore))&0xFF00) << 16 ) );
+	if( back )
+		CharPlotAlpha( pImage, x, y, back );
+	if( data )
+		CharPlotAlpha( pImage, x, y, ( fore & 0xFFFFFF ) | ( (((_32)data*AlphaVal(fore))&0xFF00) << 16 ) );
 }
 _32 CharData8( _8 *bits, _8 bit )
 {
-   return bits[bit];
+	return bits[bit];
 }
 //---------------------------------------------------------------------------
 void CharPlotAlpha2( ImageFile *pImage, S_32 x, S_32 y, _32 data, CDATA fore, CDATA back )
 {
-   if( back )
-      CharPlotAlpha( pImage, x, y, back );
+	if( back )
+		CharPlotAlpha( pImage, x, y, back );
 	if( data )
 	{
 		CharPlotAlpha( pImage, x, y, ( fore & 0xFFFFFF ) | ( (((_32)((data&3)+1)*(AlphaVal(fore)))&0x03FC) << 22 ) );
@@ -98,96 +98,96 @@ void CharPlotAlpha2( ImageFile *pImage, S_32 x, S_32 y, _32 data, CDATA fore, CD
 }
 _32 CharData2( _8 *bits, _8 bit )
 {
-   return (bits[bit>>2] >> (2*(bit&3)))&3;
+	return (bits[bit>>2] >> (2*(bit&3)))&3;
 }
 //---------------------------------------------------------------------------
 void CharPlotAlpha1( ImageFile *pImage, S_32 x, S_32 y, _32 data, CDATA fore, CDATA back )
 {
-   if( data )
-      CharPlotAlpha( pImage, x, y, fore );
-   else if( back )
-      CharPlotAlpha( pImage, x, y, back );
+	if( data )
+		CharPlotAlpha( pImage, x, y, fore );
+	else if( back )
+		CharPlotAlpha( pImage, x, y, back );
 }
 _32 CharData1( _8 *bits, _8 bit )
 {
-   return (bits[bit>>3] >> (bit&7))&1;
+	return (bits[bit>>3] >> (bit&7))&1;
 }
 //---------------------------------------------------------------------------
 
 S_32 StepXNormal(S_32 base1,S_32 delta1,S_32 delta2)
 {
-   return base1+delta1;
+	return base1+delta1;
 }
 S_32 StepYNormal(S_32 base1,S_32 delta1,S_32 delta2)
 {
-   return base1+delta1;
+	return base1+delta1;
 }
 //---------------------------------------------------------------------------
 
 S_32 StepXVertical(S_32 base1,S_32 delta1,S_32 delta2)
 {
-   return base1-delta2;
+	return base1-delta2;
 }
 S_32 StepYVertical(S_32 base1,S_32 delta1,S_32 delta2)
 {
-   return base1+delta2;
+	return base1+delta2;
 }
 //---------------------------------------------------------------------------
 
 S_32 StepXInvert(S_32 base1,S_32 delta1,S_32 delta2)
 {
-   return base1-delta1;
+	return base1-delta1;
 }
 S_32 StepYInvert(S_32 base1,S_32 delta1,S_32 delta2)
 {
-   return base1-delta1;
+	return base1-delta1;
 }
 //---------------------------------------------------------------------------
 
 S_32 StepXInvertVertical(S_32 base1,S_32 delta1,S_32 delta2)
 {
-   return base1+delta2;
+	return base1+delta2;
 }
 S_32 StepYInvertVertical(S_32 base1,S_32 delta1,S_32 delta2)
 {
-   return base1-delta2;
+	return base1-delta2;
 }
 //---------------------------------------------------------------------------
 
 enum order_type {
-   OrderPoints,OrderPointsVertical,OrderPointsInvert,OrderPointsVerticalInvert
+	OrderPoints,OrderPointsVertical,OrderPointsInvert,OrderPointsVerticalInvert
 };
 
 static _32 PutCharacterFontX ( ImageFile *pImage
-                             , S_32 x, S_32 y
-                             , CDATA color, CDATA background
+									  , S_32 x, S_32 y
+									  , CDATA color, CDATA background
 									  , _32 c, PFONT UseFont
 									  , enum order_type order
-                             , S_32 (*StepX)(S_32 base1,S_32 delta1,S_32 delta2)
-                             , S_32 (*StepY)(S_32 base1,S_32 delta1,S_32 delta2)
-                             )
+									  , S_32 (*StepX)(S_32 base1,S_32 delta1,S_32 delta2)
+									  , S_32 (*StepY)(S_32 base1,S_32 delta1,S_32 delta2)
+									  )
 {
-   int bit, col, inc;
-   int line;
-   int width;
-   int size;
-   PCHARACTER pchar;
-   P_8 data;
-   P_8 dataline;
-   void (*CharPlotAlphax)( ImageFile *pImage, S_32 x, S_32 y, _32 data, CDATA fore, CDATA back );
+	int bit, col, inc;
+	int line;
+	int width;
+	int size;
+	PCHARACTER pchar;
+	P_8 data;
+	P_8 dataline;
+	void (*CharPlotAlphax)( ImageFile *pImage, S_32 x, S_32 y, _32 data, CDATA fore, CDATA back );
 	_32 (*CharDatax)( _8 *bits, _8 bit );
-   if( !UseFont )
-      UseFont = &DEFAULTFONT;
-   if( !pImage || c > UseFont->characters )
+	if( !UseFont )
+		UseFont = &DEFAULTFONT;
+	if( !pImage || c > UseFont->characters )
 		return 0;
-   // real quick -
+	// real quick -
 	if( !UseFont->character[c] )
 		InternalRenderFontCharacter( NULL, UseFont, c );
 
 	pchar = UseFont->character[c];
 	if( !pchar ) return 0;
 
-	//lprintf( "output %c at %d,%d", c, x, y );
+	lprintf( "output %c at %d,%d", c, x, y );
 
 #if defined( _OPENGL_DRIVER ) || defined( _D3D_DRIVER )
 	if( !UseFont->character[c]->cell && ( pImage->flags & IF_FLAG_FINAL_RENDER ) )
@@ -201,7 +201,6 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 
 	if( pImage->flags & IF_FLAG_FINAL_RENDER )
 	{
-#ifdef _OPENGL_DRIVER
 		S_32 xd;
 		S_32 yd;
 		S_32 yd_back;
@@ -217,30 +216,39 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			xd = x;
 			yd = y+(UseFont->baseline - pchar->ascent);
 			yd_back = y;
-         break;
+			break;
 		case OrderPointsInvert:
 			xd = x;
 			yd = y-UseFont->baseline + pchar->ascent;
 			yd_back = y;
-         break;
+			break;
 		case OrderPointsVertical:
 			xd = x - (UseFont->baseline - pchar->ascent);
 			yd = y;
 			yd_back = y;
-         break;
+			break;
 		case OrderPointsVerticalInvert:
 			xd = x + (UseFont->baseline - pchar->ascent);
 			yd = y;
 			yd_back = y;
-         break;
+			break;
 		}
 		
 		for( pifSrcReal = pifSrc; pifSrcReal->pParent; pifSrcReal = pifSrcReal->pParent );
+#ifdef _OPENGL_DRIVER
 		ReloadOpenGlTexture( pifSrc, 0 );
 		if( !pifSrc->glActiveSurface )
 		{
 			return 0;
 		}
+#endif
+#ifdef _D3D_DRIVER
+		ReloadD3DTexture( pifSrc, 0 );
+		if( !pifSrc->pActiveSurface )
+		{
+			return 0;
+		}
+#endif
 		//lprintf( "use regular texture %p (%d,%d)", pifSrc, pifSrc->width, pifSrc->height );
 
 		/*
@@ -262,8 +270,9 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			_color[2] = BlueVal( color ) / 255.0f;
 			_color[3] = AlphaVal( color ) / 255.0f;
 
-   			switch( order )
+			switch( order )
 			{
+			default:
 			case OrderPoints:
 				v[vi][0][0] = xd;
 				v[vi][0][1] = yd;
@@ -367,7 +376,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				v2[vi][3][2] = 1.0;
 
 				break;
-		   case OrderPointsVerticalInvert:
+			case OrderPointsVerticalInvert:
 				v[vi][0][0] = xd;
 				v[vi][0][1] = yd;
 				v[vi][0][2] = 1.0;
@@ -474,7 +483,8 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			texture_v[3][0] = x_size2;
 			texture_v[3][1] = y_size2;
 
-#ifndef PURE_OPENGL2_ENABLED
+#ifdef _OPENGL_DRIVER
+#  ifndef PURE_OPENGL2_ENABLED
 			if( background )
 			{
 				glColor4ubv( (GLubyte*)&background );
@@ -503,9 +513,9 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			}
 			glEnd();
 			glBindTexture(GL_TEXTURE_2D, 0);				// Select Our Texture
-#endif  // ifndef OPENGL2  (OPENGl1?)
+#  endif  // ifndef OPENGL2  (OPENGl1?)
 
-#ifdef PURE_OPENGL2_ENABLED
+#  ifdef PURE_OPENGL2_ENABLED
 			if( background )
 			{
 				float _back_color[4];
@@ -520,151 +530,17 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			EnableShader( GetShader( "Simple Shaded Texture", NULL ), v[vi], pifSrc->glActiveSurface, texture_v, _color );
 			glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 			// Back Face
-#endif  // ifdef OPENGL2
-		}
-#endif  // _OPENGL_DRIVER
-
+#  endif  // ifdef OPENGL2
+#endif
 #ifdef _D3D_DRIVER
-		S_32 xd = x;
-		S_32 yd = y+(UseFont->baseline - pchar->ascent);
-		S_32 xs = 0;
-		S_32 ys = 0;
-		Image pifSrc = pchar->cell;
-		Image pifSrcReal;
-		Image pifDest = pImage;
-		int updated = 0;
-
-		for( pifSrcReal = pifSrc; pifSrcReal->pParent; pifSrcReal = pifSrcReal->pParent );
-		ReloadD3DTexture( pifSrc, 0 );
-		if( !pifSrc->pActiveSurface )
-		{
-			return 0;
-		}
-		//lprintf( "use regular texture %p (%d,%d)", pifSrc, pifSrc->width, pifSrc->height );
-		//DebugBreak();        g
-
-		/*
-		 * only a portion of the image is actually used, the rest is filled with blank space
-		 *
-		 */
-		TranslateCoord( pifDest, &xd, &yd );
-		TranslateCoord( pifSrc, &xs, &ys );
-		{
-			int glDepth = 1;
-			RCOORD x_size, x_size2, y_size, y_size2;
-			VECTOR v1[2], v3[2],v4[2],v2[2];
-			int v = 0;
-
-			switch( order )
-			{
-			case OrderPoints:
-				v1[v][0] = xd;
-				v1[v][1] = yd;
-				v1[v][2] = 1.0;
-
-				v2[v][0] = xd;
-				v2[v][1] = yd+pchar->cell->real_height;
-				v2[v][2] = 1.0;
-
-				v3[v][0] = xd+pchar->cell->real_width;
-				v3[v][1] = yd;
-				v3[v][2] = 1.0;
-
-				v4[v][0] = xd+pchar->cell->real_width;
-				v4[v][1] = yd+pchar->cell->real_height;
-				v4[v][2] = 1.0;
-				break;
-			case OrderPointsInvert:
-				v1[v][0] = xd - pchar->cell->real_width;
-				v1[v][1] = yd - pchar->cell->real_height;
-				v1[v][2] = 1.0;
-
-				v2[v][0] = xd - pchar->cell->real_width;
-				v2[v][1] = yd+pchar->cell->real_height - pchar->cell->real_height;
-				v2[v][2] = 1.0;
-
-				v3[v][0] = xd+pchar->cell->real_width - pchar->cell->real_width;
-				v3[v][1] = yd - pchar->cell->real_height;
-				v3[v][2] = 1.0;
-
-				v4[v][0] = xd+pchar->cell->real_width - pchar->cell->real_width;
-				v4[v][1] = yd+pchar->cell->real_height - pchar->cell->real_height;
-				v4[v][2] = 1.0;
-				break;
-			case OrderPointsVertical:
-				v1[v][0] = xd-pchar->cell->real_height;
-				v1[v][1] = yd;
-				v1[v][2] = 1.0;
-
-				v2[v][0] = xd+pchar->cell->real_height-pchar->cell->real_height;
-				v2[v][1] = yd;
-				v2[v][2] = 1.0;
-
-				v3[v][0] = xd-pchar->cell->real_height;
-				v3[v][1] = yd+pchar->cell->real_width;
-				v3[v][2] = 1.0;
-
-
-				v4[v][0] = xd+pchar->cell->real_height-pchar->cell->real_height;
-				v4[v][1] = yd+pchar->cell->real_width;
-				v4[v][2] = 1.0;
-				break;
-		   case OrderPointsVerticalInvert:
-				v1[v][0] = xd;
-				v1[v][1] = yd-pchar->cell->real_width;
-				v1[v][2] = 1.0;
-
-				v2[v][0] = xd+pchar->cell->real_height;
-				v2[v][1] = yd-pchar->cell->real_width;
-				v2[v][2] = 1.0;
-
-				v3[v][0] = xd;
-				v3[v][1] = yd+pchar->cell->real_width-pchar->cell->real_width;
-				v3[v][2] = 1.0;
-
-
-				v4[v][0] = xd+pchar->cell->real_height;
-				v4[v][1] = yd+pchar->cell->real_width-pchar->cell->real_width;
-				v4[v][2] = 1.0;
-				break;
-			}
-
-			x_size = (RCOORD) xs/ (RCOORD)pifSrcReal->width;
-			x_size2 = (RCOORD) (xs+pchar->cell->real_width)/ (RCOORD)pifSrcReal->width;
-			y_size = (RCOORD) ys/ (RCOORD)pifSrcReal->height;
-			y_size2 = (RCOORD) (ys+pchar->cell->real_height)/ (RCOORD)pifSrcReal->height;
-
-			// Front Face
-			//lprintf( "Texture size is %g,%g to %g,%g", x_size, y_size, x_size2, y_size2 );
-			while( pifDest && pifDest->pParent )
-			{
-				glDepth = 0;
-				if( pifDest->transform )
-				{
-					Apply( pifDest->transform, v1[1-v], v1[v] );
-					Apply( pifDest->transform, v2[1-v], v2[v] );
-					Apply( pifDest->transform, v3[1-v], v3[v] );
-					Apply( pifDest->transform, v4[1-v], v4[v] );
-					v = 1-v;
-				}
-				pifDest = pifDest->pParent;
-			}
-			if( pifDest->transform )
-			{
-				Apply( pifDest->transform, v1[1-v], v1[v] );
-				Apply( pifDest->transform, v2[1-v], v2[v] );
-				Apply( pifDest->transform, v3[1-v], v3[v] );
-				Apply( pifDest->transform, v4[1-v], v4[v] );
-				v = 1-v;
-			}
 
 			LPDIRECT3DVERTEXBUFFER9 pQuadVB;
 			g_d3d_device->CreateVertexBuffer(sizeof( D3DTEXTUREDVERTEX )*4,
-                                      D3DUSAGE_WRITEONLY,
-                                      D3DFVF_CUSTOMTEXTUREDVERTEX,
-                                      D3DPOOL_MANAGED,
-                                      &pQuadVB,
-                                      NULL);
+												  D3DUSAGE_WRITEONLY,
+												  D3DFVF_CUSTOMTEXTUREDVERTEX,
+												  D3DPOOL_MANAGED,
+												  &pQuadVB,
+												  NULL);
 			D3DTEXTUREDVERTEX* pData;
 			//lock buffer (NEW)
 			pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
@@ -675,111 +551,111 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			switch( order )
 			{
 			case OrderPoints:
-				pData[0].fX = v1[v][vRight];
-				pData[0].fY = v1[v][vUp];
-				pData[0].fZ = v1[v][vForward];
+				pData[0].fX = v[vi][0][vRight];
+				pData[0].fY = v[vi][0][vUp];
+				pData[0].fZ = v[vi][0][vForward];
 				
 				pData[0].fU1 = x_size;
 				pData[0].fV1 = y_size;
-				pData[1].fX = v3[v][vRight];
-				pData[1].fY = v3[v][vUp];
-				pData[1].fZ = v3[v][vForward];
+				pData[1].fX = v[vi][1][vRight];
+				pData[1].fY = v[vi][1][vUp];
+				pData[1].fZ = v[vi][1][vForward];
 				
 				pData[1].fU1 = x_size2;
 				pData[1].fV1 = y_size;
-				pData[2].fX = v2[v][vRight];
-				pData[2].fY = v2[v][vUp];
-				pData[2].fZ = v2[v][vForward];
+				pData[2].fX = v[vi][2][vRight];
+				pData[2].fY = v[vi][2][vUp];
+				pData[2].fZ = v[vi][2][vForward];
 				
 				pData[2].fU1 = x_size;
 				pData[2].fV1 = y_size2;
-				pData[3].fX = v4[v][vRight];
-				pData[3].fY = v4[v][vUp];
-				pData[3].fZ = v4[v][vForward];
+				pData[3].fX = v[vi][3][vRight];
+				pData[3].fY = v[vi][3][vUp];
+				pData[3].fZ = v[vi][3][vForward];
 				
 				pData[3].fU1 = x_size2;
 				pData[3].fV1 = y_size2;
 				break;
 			case OrderPointsInvert:
-				pData[0].fX = v1[v][vRight];
-				pData[0].fY = v1[v][vUp];
-				pData[0].fZ = v1[v][vForward];
+				pData[0].fX = v[vi][0][vRight];
+				pData[0].fY = v[vi][0][vUp];
+				pData[0].fZ = v[vi][0][vForward];
 				
 				pData[0].fU1 = x_size;
 				pData[0].fV1 = y_size2;
-				pData[1].fX = v2[v][vRight];
-				pData[1].fY = v2[v][vUp];
-				pData[1].fZ = v2[v][vForward];
+				pData[1].fX = v[vi][1][vRight];
+				pData[1].fY = v[vi][1][vUp];
+				pData[1].fZ = v[vi][1][vForward];
 				
 				pData[1].fU1 = x_size;
 				pData[1].fV1 = y_size;
-				pData[2].fX = v3[v][vRight];
-				pData[2].fY = v3[v][vUp];
-				pData[2].fZ = v3[v][vForward];
+				pData[2].fX = v[vi][2][vRight];
+				pData[2].fY = v[vi][2][vUp];
+				pData[2].fZ = v[vi][2][vForward];
 				
 				pData[2].fU1 = x_size2;
 				pData[2].fV1 = y_size2;
-				pData[3].fX = v4[v][vRight];
-				pData[3].fY = v4[v][vUp];
-				pData[3].fZ = v4[v][vForward];
+				pData[3].fX = v[vi][3][vRight];
+				pData[3].fY = v[vi][3][vUp];
+				pData[3].fZ = v[vi][3][vForward];
 				
 				pData[3].fU1 = x_size2;
 				pData[3].fV1 = y_size;
-            break;
+				break;
 			case OrderPointsVertical:
-				pData[0].fX = v1[v][vRight];
-				pData[0].fY = v1[v][vUp];
-				pData[0].fZ = v1[v][vForward];
+				pData[0].fX = v[vi][0][vRight];
+				pData[0].fY = v[vi][0][vUp];
+				pData[0].fZ = v[vi][0][vForward];
 				
 				pData[0].fU1 = x_size;
 				pData[0].fV1 = y_size2;
-				pData[1].fX = v2[v][vRight];
-				pData[1].fY = v2[v][vUp];
-				pData[1].fZ = v2[v][vForward];
+				pData[1].fX = v[vi][1][vRight];
+				pData[1].fY = v[vi][1][vUp];
+				pData[1].fZ = v[vi][1][vForward];
 				
 				pData[1].fU1 = x_size;
 				pData[1].fV1 = y_size;
-				pData[2].fX = v3[v][vRight];
-				pData[2].fY = v3[v][vUp];
-				pData[2].fZ = v3[v][vForward];
+				pData[2].fX = v[vi][2][vRight];
+				pData[2].fY = v[vi][2][vUp];
+				pData[2].fZ = v[vi][2][vForward];
 				pData[2].fU1 = x_size2;
 				pData[2].fV1 = y_size2;
-				pData[3].fX = v4[v][vRight];
-				pData[3].fY = v4[v][vUp];
-				pData[3].fZ = v4[v][vForward];
+				pData[3].fX = v[vi][3][vRight];
+				pData[3].fY = v[vi][3][vUp];
+				pData[3].fZ = v[vi][3][vForward];
 				
 				pData[3].fU1 = x_size2;
 				pData[3].fV1 = y_size;
-	            break;
+					break;
 			case OrderPointsVerticalInvert:
-				pData[0].fX = v1[v][vRight];
-				pData[0].fY = v1[v][vUp];
-				pData[0].fZ = v1[v][vForward];
+				pData[0].fX = v[vi][0][vRight];
+				pData[0].fY = v[vi][0][vUp];
+				pData[0].fZ = v[vi][0][vForward];
 				
 				pData[0].fU1 = x_size2;
 				pData[0].fV1 = y_size;
 
-				pData[1].fX = v2[v][vRight];
-				pData[1].fY = v2[v][vUp];
-				pData[1].fZ = v2[v][vForward];
+				pData[1].fX = v[vi][1][vRight];
+				pData[1].fY = v[vi][1][vUp];
+				pData[1].fZ = v[vi][1][vForward];
 				
 				pData[1].fU1 = x_size2;
 				pData[1].fV1 = y_size2;
 
-				pData[2].fX = v3[v][vRight];
-				pData[2].fY = v3[v][vUp];
-				pData[2].fZ = v3[v][vForward];
+				pData[2].fX = v[vi][2][vRight];
+				pData[2].fY = v[vi][2][vUp];
+				pData[2].fZ = v[vi][2][vForward];
 				
 				pData[2].fU1 = x_size;
 				pData[2].fV1 = y_size;
 
-				pData[3].fX = v4[v][vRight];
-				pData[3].fY = v4[v][vUp];
-				pData[3].fZ = v4[v][vForward];
+				pData[3].fX = v[vi][3][vRight];
+				pData[3].fY = v[vi][3][vUp];
+				pData[3].fZ = v[vi][3][vForward];
 				
 				pData[3].fU1 = x_size;
 				pData[3].fV1 = y_size2;
-	            break;
+					break;
 			}
 			//copy data to buffer (NEW)
 			//unlock buffer (NEW)
@@ -791,7 +667,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			g_d3d_device->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
 			g_d3d_device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
 			g_d3d_device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-		   //g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAOP, D3DTOP_BLENDTEXTUREALPHA );
+			//g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAOP, D3DTOP_BLENDTEXTUREALPHA );
 			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
 			//g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG2,D3DTA_DIFFUSE);
 
@@ -805,9 +681,8 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
 			g_d3d_device->SetTexture( 0, NULL );
 			pQuadVB->Release();
-		}
-
 #endif  // _D3D_DRIVER
+		}
 	}
 	else
 #endif  // defined ( D3D OR OPENGL )
@@ -900,159 +775,159 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 }
 
 static _32 _PutCharacterFont( ImageFile *pImage
-                                   , S_32 x, S_32 y
-                                   , CDATA color, CDATA background
-                                   , _32 c, PFONT UseFont )
+											  , S_32 x, S_32 y
+											  , CDATA color, CDATA background
+											  , _32 c, PFONT UseFont )
 {
-   return PutCharacterFontX( pImage, x, y, color, background, c, UseFont, OrderPoints
-                            , StepXNormal, StepYNormal );
+	return PutCharacterFontX( pImage, x, y, color, background, c, UseFont, OrderPoints
+									 , StepXNormal, StepYNormal );
 }
 
 static _32 _PutCharacterVerticalFont( ImageFile *pImage
-                                           , S_32 x, S_32 y
-                                           , CDATA color, CDATA background
-                                           , _32 c, PFONT UseFont )
+														 , S_32 x, S_32 y
+														 , CDATA color, CDATA background
+														 , _32 c, PFONT UseFont )
 {
 	return PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-                            , OrderPointsVertical, StepXVertical, StepYVertical );
+									 , OrderPointsVertical, StepXVertical, StepYVertical );
 }
 
 
 static _32 _PutCharacterInvertFont( ImageFile *pImage
-                                           , S_32 x, S_32 y
-                                           , CDATA color, CDATA background
-                                           , _32 c, PFONT UseFont )
+													, S_32 x, S_32 y
+													, CDATA color, CDATA background
+													, _32 c, PFONT UseFont )
 {
 	return PutCharacterFontX( pImage, x, y, color, background, c, UseFont
 									, OrderPointsInvert, StepXInvert, StepYInvert );
 }
 
 static _32 _PutCharacterVerticalInvertFont( ImageFile *pImage
-                                           , S_32 x, S_32 y
-                                           , CDATA color, CDATA background
-                                                 , _32 c, PFONT UseFont )
+													, S_32 x, S_32 y
+													, CDATA color, CDATA background
+													, _32 c, PFONT UseFont )
 {
-   PCHARACTER pchar;
-   if( !UseFont )
-      UseFont = &DEFAULTFONT;
+	PCHARACTER pchar;
+	if( !UseFont )
+		UseFont = &DEFAULTFONT;
 	if( !UseFont->character[c] )
 		InternalRenderFontCharacter( NULL, UseFont, c );
-   pchar = UseFont->character[c];
-   if( !pchar ) return 0;
-   x -= pchar->offset;
+	pchar = UseFont->character[c];
+	if( !pchar ) return 0;
+	x -= pchar->offset;
 	return PutCharacterFontX( pImage, x, y, color, background, c, UseFont
 									, OrderPointsVerticalInvert, StepXInvertVertical, StepYInvertVertical );
 }
 
 void PutCharacterFont( ImageFile *pImage
-                                   , S_32 x, S_32 y
-                                   , CDATA color, CDATA background
-                                   , _32 c, PFONT UseFont )
+											  , S_32 x, S_32 y
+											  , CDATA color, CDATA background
+											  , _32 c, PFONT UseFont )
 {
-   PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-                            , OrderPointsVerticalInvert, StepXNormal, StepYNormal );
+	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
+									 , OrderPointsVerticalInvert, StepXNormal, StepYNormal );
 }
 
 void PutCharacterVerticalFont( ImageFile *pImage
-                                           , S_32 x, S_32 y
-                                           , CDATA color, CDATA background
-                                           , _32 c, PFONT UseFont )
+														 , S_32 x, S_32 y
+														 , CDATA color, CDATA background
+														 , _32 c, PFONT UseFont )
 {
 	//return
 		PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-                            , OrderPoints, StepXVertical, StepYVertical );
+									 , OrderPoints, StepXVertical, StepYVertical );
 }
 
 
 void PutCharacterInvertFont( ImageFile *pImage
-                                           , S_32 x, S_32 y
-                                           , CDATA color, CDATA background
-                                           , _32 c, PFONT UseFont )
+														 , S_32 x, S_32 y
+														 , CDATA color, CDATA background
+														 , _32 c, PFONT UseFont )
 {
 	//return
 		PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-                            , OrderPointsInvert, StepXInvert, StepYInvert );
+									 , OrderPointsInvert, StepXInvert, StepYInvert );
 }
 
 void PutCharacterVerticalInvertFont( ImageFile *pImage
-                                           , S_32 x, S_32 y
-                                           , CDATA color, CDATA background
-                                                 , _32 c, PFONT UseFont )
+														 , S_32 x, S_32 y
+														 , CDATA color, CDATA background
+															    , _32 c, PFONT UseFont )
 {
-   PCHARACTER pchar;
-   if( !UseFont )
-      UseFont = &DEFAULTFONT;
+	PCHARACTER pchar;
+	if( !UseFont )
+		UseFont = &DEFAULTFONT;
 	if( !UseFont->character[c] )
 		InternalRenderFontCharacter( NULL, UseFont, c );
-   pchar = UseFont->character[c];
-   if( !pchar ) return;// 0;
-   x -= pchar->offset;
+	pchar = UseFont->character[c];
+	if( !pchar ) return;// 0;
+	x -= pchar->offset;
 	//return
 		PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-                            , OrderPointsVerticalInvert, StepXInvertVertical, StepYInvertVertical );
+									 , OrderPointsVerticalInvert, StepXInvertVertical, StepYInvertVertical );
 }
 
 
 typedef struct string_state_tag
 {
-   struct {
-      _32 bEscape : 1;
-      _32 bLiteral : 1;
-   } flags;
+	struct {
+		_32 bEscape : 1;
+		_32 bLiteral : 1;
+	} flags;
 } STRING_STATE, *PSTRING_STATE;
 
 /*
 static void ClearStringState( PSTRING_STATE pss )
 {
-   pss->flags.bEscape = 0;
+	pss->flags.bEscape = 0;
 }
 */
 typedef _32 (*CharPut)(ImageFile *pImage
-                      , S_32 x, S_32 y
-                      , CDATA fore, CDATA back
-                      , char pc
-                      , PFONT font );
+							 , S_32 x, S_32 y
+							 , CDATA fore, CDATA back
+							 , char pc
+							 , PFONT font );
 /*
 static _32 FilterMenuStrings( ImageFile *pImage
-                            , S_32 *x, S_32 *y
-                            , S_32 xdel, S_32 ydel
-                            , CDATA fore, CDATA back
-                            , char pc, PFONT font
-                            , PSTRING_STATE pss
-                            , CharPut out)
+									 , S_32 *x, S_32 *y
+									 , S_32 xdel, S_32 ydel
+									 , CDATA fore, CDATA back
+									 , char pc, PFONT font
+									 , PSTRING_STATE pss
+									 , CharPut out)
 {
-   _32 w;
-   if( pc == '&' )
-   {
-      if( pss->flags.bEscape )
-      {
-         if( pss->flags.bLiteral )
-         {
-            if( out )
-               w = out( pImage, *x, *y, fore, back, '&', font );
-            w |= 0x80000000;
-            pss->flags.bLiteral = 0;
-         }
-         else
-         {
-            pss->flags.bLiteral = 1;
-            pss->flags.bEscape = 0;
-         }
-      }
-      else
-         pss->flags.bEscape = 1;
-   }
-   else
-   {
-      if( out )
-         w = out( pImage, *x, *y, fore, back, pc, font );
-      if( pss->flags.bEscape )
-      {
-         w |= 0x80000000;
-         pss->flags.bEscape = 0;
-      }
-   }
-   return w;
+	_32 w;
+	if( pc == '&' )
+	{
+		if( pss->flags.bEscape )
+		{
+			if( pss->flags.bLiteral )
+			{
+				if( out )
+					w = out( pImage, *x, *y, fore, back, '&', font );
+				w |= 0x80000000;
+				pss->flags.bLiteral = 0;
+			}
+			else
+			{
+				pss->flags.bLiteral = 1;
+				pss->flags.bEscape = 0;
+			}
+		}
+		else
+			pss->flags.bEscape = 1;
+	}
+	else
+	{
+		if( out )
+			w = out( pImage, *x, *y, fore, back, pc, font );
+		if( pss->flags.bEscape )
+		{
+			w |= 0x80000000;
+			pss->flags.bEscape = 0;
+		}
+	}
+	return w;
 }
 */
 
@@ -1195,7 +1070,7 @@ static LOGICAL Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *ba
 					break;
 				}
 				/*
-          // handle justification codes...
+			 // handle justification codes...
 			{
 				int textx = 0, texty = 0, first = 1, lines = 0, line = 0;
 				CTEXTSTR p;
@@ -1247,18 +1122,18 @@ static LOGICAL Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *ba
 					(*pc) += len; // next string if any...
 				}
 			}
-         */
+			*/
 			}
 
-         // if the string ended...
+			// if the string ended...
 			if( !(*(*pc)) )
 			{
-            // this is done.  There's nothing left... command with no data is bad form, but not illegal.
+				// this is done.  There's nothing left... command with no data is bad form, but not illegal.
 				return FALSE;
 			}
 			else  // pc is now on the stop command, advance one....
 			{
-            // this is in a loop, and the next character may be another command....
+				// this is in a loop, and the next character may be another command....
 				(*pc)++;
 				(*nLen)--;
 			}
@@ -1266,63 +1141,63 @@ static LOGICAL Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *ba
 		return TRUE;
 	}
 	else
-      return FALSE;
+		return FALSE;
 }
 
 void PutStringVerticalFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, PFONT font )
 {
 	_32 _y = y;
 	CDATA tmp1 = 0;
-   CDATA tmp2 = 0;
-   if( !font )
-      font = &DEFAULTFONT;
+	CDATA tmp2 = 0;
+	if( !font )
+		font = &DEFAULTFONT;
 	if( !pImage || !pc ) return;// y;
-   while( Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
+	while( Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
 	{
 		if( *(unsigned char*)pc == '\n' )
 		{
 			x -= font->height;
-         y = _y;
+			y = _y;
 		}
-      else
+		else
 			y += _PutCharacterVerticalFont( pImage, x, y, color, background, *(unsigned char*)pc, font );
-   }
-   return;// y;
+	}
+	return;// y;
 }
 
 void PutStringInvertVerticalFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, PFONT font )
 {
-   _32 _y = y;
+	_32 _y = y;
 	CDATA tmp1 = 0;
-   CDATA tmp2 = 0;
-   if( !font )
-      font = &DEFAULTFONT;
-   if( !pImage || !pc ) return;// y;
-   while( Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
-   {
+	CDATA tmp2 = 0;
+	if( !font )
+		font = &DEFAULTFONT;
+	if( !pImage || !pc ) return;// y;
+	while( Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
+	{
 		if( *(unsigned char*)pc == '\n' )
 		{
 			x += font->height;
-         y = _y;
+			y = _y;
 		}
-      else
+		else
 			y -= _PutCharacterVerticalInvertFont( pImage, x, y, color, background, *(unsigned char*)pc, font );
-   }
-   return;// y;
+	}
+	return;// y;
 }
 
 void PutStringFontEx( ImageFile *pImage
-                                  , S_32 x, S_32 y
-                                  , CDATA color, CDATA background
-                                  , CTEXTSTR pc, size_t nLen, PFONT font )
+											 , S_32 x, S_32 y
+											 , CDATA color, CDATA background
+											 , CTEXTSTR pc, size_t nLen, PFONT font )
 {
-   _32 _x = x;
+	_32 _x = x;
 	CDATA tmp1 = 0;
-   CDATA tmp2 = 0;
-   if( !font )
-      font = &DEFAULTFONT;
-   if( !pImage || !pc ) return;// x;
-   {
+	CDATA tmp2 = 0;
+	if( !font )
+		font = &DEFAULTFONT;
+	if( !pImage || !pc ) return;// x;
+	{
 		while( Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
 		{
 			if( *(unsigned char*)pc == '\n' )
@@ -1332,30 +1207,30 @@ void PutStringFontEx( ImageFile *pImage
 			}
 			else
 				x += _PutCharacterFont( pImage, x, y, color, background, *(unsigned char*)pc, font );
-      }
-   }
-   return;// x;
+		}
+	}
+	return;// x;
 }
 
 void PutStringInvertFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, PFONT font )
 {
-   _32 _x = x;
+	_32 _x = x;
 	CDATA tmp1 = 0;
-   CDATA tmp2 = 0;
-   if( !font )
-      font = &DEFAULTFONT;
-   if( !pImage || !pc ) return;// x;
+	CDATA tmp2 = 0;
+	if( !font )
+		font = &DEFAULTFONT;
+	if( !pImage || !pc ) return;// x;
 	while( Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
-   {
+	{
 		if( *(unsigned char*)pc == '\n' )
 		{
 			y -= font->height;
-         x = _x;
+			x = _x;
 		}
-      else
+		else
 			x -= _PutCharacterInvertFont( pImage, x, y, color, background, *(unsigned char*)pc, font );
-   }
-   return;// x;
+	}
+	return;// x;
 }
 
 _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, PFONT UseFont )
@@ -1365,27 +1240,27 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 	CDATA tmp2 = 0;
 	if( !UseFont )
 		UseFont = &DEFAULTFONT;
-   bUnderline = FALSE;
+	bUnderline = FALSE;
 	while( Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
-   {
-      int w;
-      bUnderline = FALSE;
-      if( *(unsigned char*)pc == '&' )
-      {
-         bUnderline = TRUE;
-         pc++;
-         if( *(unsigned char*)pc == '&' )
-            bUnderline = FALSE;
-      }
-      if( !(*(unsigned char*)pc) ) // just in case '&' was end of string...
-         break;
-      w = _PutCharacterFont( pImage, x, y, color, background, *(unsigned char*)pc, UseFont );
-      if( bUnderline )
-         do_line( pImage, x, y + UseFont->height -1,
-                          x + w, y + UseFont->height -1, color );
-      x += w;
-   }
-   return x;
+	{
+		int w;
+		bUnderline = FALSE;
+		if( *(unsigned char*)pc == '&' )
+		{
+			bUnderline = TRUE;
+			pc++;
+			if( *(unsigned char*)pc == '&' )
+				bUnderline = FALSE;
+		}
+		if( !(*(unsigned char*)pc) ) // just in case '&' was end of string...
+			break;
+		w = _PutCharacterFont( pImage, x, y, color, background, *(unsigned char*)pc, UseFont );
+		if( bUnderline )
+			do_line( pImage, x, y + UseFont->height -1,
+								  x + w, y + UseFont->height -1, color );
+		x += w;
+	}
+	return x;
 }
 
  _32  GetMenuStringSizeFontEx ( CTEXTSTR string, size_t len, int *width, int *height, PFONT font )
@@ -1395,15 +1270,15 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 	if( !font )
 		font = &DEFAULTFONT;
 	if( height )
-      *height = font->height;
-   if( !width )
+		*height = font->height;
+	if( !width )
 		width = &_width;
 	*width = 0;
 	while( Step( &string, &len, &tmp1, &tmp1, &tmp1, &tmp1 ) )
 	{
 		if( *(unsigned char*)string == '&' )
 		{
-         string++;
+			string++;
 			len--;
 			if( !*(unsigned char*)string )
 				break;
@@ -1417,12 +1292,12 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 
  _32  GetMenuStringSizeFont ( CTEXTSTR string, int *width, int *height, PFONT font )
 {
-   return GetMenuStringSizeFontEx( string, StrLen( string ), width, height, font );
+	return GetMenuStringSizeFontEx( string, StrLen( string ), width, height, font );
 }
 
  _32  GetMenuStringSizeEx ( CTEXTSTR string, int len, int *width, int *height )
 {
-   return GetMenuStringSizeFontEx( string, len, width, height, &DEFAULTFONT );
+	return GetMenuStringSizeFontEx( string, len, width, height, &DEFAULTFONT );
 }
 
  _32  GetMenuStringSize ( CTEXTSTR string, int *width, int *height )
@@ -1440,12 +1315,12 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 		if( width )
 			*width = 0;
 		if( height )
-         		*height = 0;
+					*height = 0;
 		return 0;
 	}
 	if( !UseFont )
 		UseFont = &DEFAULTFONT;
-   	// a character must be rendered before height can be computed.
+		// a character must be rendered before height can be computed.
 	if( !UseFont->character[0] )
 	{
 		InternalRenderFontCharacter(  NULL, UseFont, pString?pString[0]:0 );
@@ -1462,10 +1337,10 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 		unsigned int character;
 		// color is irrelavent, safe to use a 0 initialized variable...
 		// Step serves to do some computation and work to update colors, but also to step application commands
-      // application commands should be non-printed.
+		// application commands should be non-printed.
 		while( Step( &pString, &nLen, &tmp1, &tmp1, &tmp1, &tmp1 ) )
 		{
-         character = (*(unsigned char*)pString) & 0xFF;
+			character = (*(unsigned char*)pString) & 0xFF;
 			if( *pString == '\n' )
 			{
 				*height += UseFont->height;

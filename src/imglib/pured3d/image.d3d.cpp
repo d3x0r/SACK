@@ -106,6 +106,7 @@ IDirect3DBaseTexture9 *ReloadD3DTexture( Image child_image, int option )
 				, &image_data->d3tex, NULL );
 			image_data->d3dTexture = image_data->d3tex;
 			image_data->d3tex->LockRect(0, &rect, NULL, D3DLOCK_DISCARD);
+			LogBinary( image->image, image->width*image->height*sizeof(CDATA));
 			CopyMemory(rect.pBits, image->image, image->width*image->height*sizeof(CDATA));
 			image_data->d3tex->UnlockRect(0);
 		}
@@ -139,6 +140,8 @@ void MarkImageUpdated( Image child_image )
 			}
 			if( image_data->d3dTexture )
 			{
+				image_data->d3dTexture->Release();
+				//textureToDelete->Release
 				//glDeleteTextures( 1, &image_data->d3dTexture );
 				image_data->d3dTexture = 0;
 			}
@@ -603,7 +606,7 @@ void CPROC cplotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 		else if( pi->image )
 		{
 			po = IMG_ADDRESS(pi,x,y);
-			*po = DOALPHA2( *po, c, AlphaVal(c) );
+			*po = DOALPHA( *po, c, AlphaVal(c) );
 			MarkImageUpdated( pi );
 		}
 	}

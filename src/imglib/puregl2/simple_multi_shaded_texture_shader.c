@@ -74,11 +74,11 @@ static void CPROC SimpleMultiShadedTextureEnable( PImageShaderTracker tracker, P
 
 	struct private_mst_shader_data *data = (struct private_mst_shader_data *)tracker->psv_userdata;
 
-	glEnableVertexAttribArray(0);	CheckErr();
+	glEnableVertexAttribArray(0);	CheckErr();
 	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );  
 	CheckErr();
 	
-	glEnableVertexAttribArray(data->texture_attrib);	CheckErr();
+	glEnableVertexAttribArray(data->texture_attrib);	CheckErr();
 	glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, texture_verts );  
 	CheckErr();
 

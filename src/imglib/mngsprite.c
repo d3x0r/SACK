@@ -233,7 +233,7 @@ PMNG_SPRITE DecodeMNG( _8 *buf, _32 size )
  //     /* wait for timer interval */;
  //     myretcode = mng_display_resume (sprite->handle);
  //   }
-//
+//
  //   if (myretcode != MNG_NOERROR)
  //     /* process error */;
  //

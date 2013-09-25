@@ -28,8 +28,6 @@ IMAGE_NAMESPACE
 		extern "C" {
 #endif
 
-_32 DOALPHA( _32 over, _32 in, _8 a );
-
 #define CLAMP(n) (((n)>255)?(255):(n))
 #ifdef NEED_ALPHA2
 static _32 _XXr, _XXg, _XXb, aout, atmp, atmp2;
