@@ -32,7 +32,7 @@
 #include "local.h"
 #define NEED_ALPHA2
 #include "blotproto.h"
-
+#include "../image_common.h"
 IMAGE_NAMESPACE
 
 #if !defined( _WIN32 ) && !defined( NO_TIMING_LOGGING )
@@ -512,6 +512,10 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 	if( pifDest->flags & IF_FLAG_FINAL_RENDER )
 	{
 		int updated = 0;
+		Image topmost_parent;
+
+		// closed loop to get the top imgae size.
+		for( topmost_parent = pifSrc; topmost_parent->pParent; topmost_parent = topmost_parent->pParent );
 		ReloadD3DTexture( pifSrc, 0 );
 		if( !pifSrc->pActiveSurface )
 		{
@@ -537,22 +541,22 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			v1[v][1] = yd;
 			v1[v][2] = 0.0;
 
-			v2[v][0] = xd;
-			v2[v][1] = yd+hd;
+			v2[v][0] = xd+wd;
+			v2[v][1] = yd;
 			v2[v][2] = 0.0;
 
-			v3[v][0] = xd+wd;
+			v3[v][0] = xd;
 			v3[v][1] = yd+hd;
 			v3[v][2] = 0.0;
 
 			v4[v][0] = xd+wd;
-			v4[v][1] = yd;
+			v4[v][1] = yd+hd;
 			v4[v][2] = 0.0;
 
-			x_size = (double) xs/ (double)pifSrc->width;
-			x_size2 = (double) (xs+ws)/ (double)pifSrc->width;
-			y_size = (double) ys/ (double)pifSrc->height;
-			y_size2 = (double) (ys+hs)/ (double)pifSrc->height;
+			x_size = (RCOORD) xs/ (RCOORD)topmost_parent->width;
+			x_size2 = (RCOORD) (xs+ws)/ (RCOORD)topmost_parent->width;
+			y_size = (RCOORD) ys/ (RCOORD)topmost_parent->height;
+			y_size2 = (RCOORD) (ys+hs)/ (RCOORD)topmost_parent->height;
 			//lprintf( WIDE( "Texture size is %g,%g to %g,%g" ), x_size, y_size, x_size2, y_size2 );
 			//lprintf( WIDE( "Texture size is %g,%g" ), x_size, y_size );
 			while( pifDest && pifDest->pParent )
@@ -577,30 +581,20 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				v = 1-v;
 			}
 
-			g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
-			{
-				g_d3d_device->SetTextureStageState(0,D3DTSS_COLOROP,D3DTOP_SELECTARG1);
-				g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE);
-				g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG2,D3DTA_DIFFUSE);   //
-				struct textured_vertex{
-					float x, y, z, rhw;  // The transformed(screen space) position for the vertex.
-					float tu,tv;         // Texture coordinates
-				};
-
-				//Transformed vertex with 1 set of texture coordinates
-				const DWORD tri_fvf=D3DFVF_XYZRHW|D3DFVF_TEX1;
-
-
-			}
-			//glBindTexture(GL_TEXTURE_2D, pifSrc->glActiveSurface);				// Select Our Texture
 			if( method == BLOT_COPY )
+			{
+				g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
 				;//glColor4ub( 255,255,255,255 );
+			}
 			else if( method == BLOT_SHADED )
 			{
 				CDATA tmp = va_arg( colors, CDATA );
 				//glColor4ubv( (GLubyte*)&tmp );
+				//ReloadD3DTexture( output_image );
+            // just need to set ambient light.
+				g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
 			}
-			else
+			else if( method == BLOT_MULTISHADE )
 			{
 				{
 					Image output_image;
@@ -608,10 +602,14 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 					CDATA g = va_arg( colors, CDATA );
 					CDATA b = va_arg( colors, CDATA );
 					output_image = GetShadedImage( pifSrc, r, g, b );
-					//glBindTexture( GL_TEXTURE_2D, output_image->glActiveSurface );
-					//glColor4ub( 255,255,255,255 );
+					ReloadD3DTexture( output_image, 0 );
+               g_d3d_device->SetTexture( 0, output_image->pActiveSurface );
 				}
 			}
+			else if( method == BLOT_INVERTED )
+			{
+			}
+
 			LPDIRECT3DVERTEXBUFFER9 pQuadVB;
 
 			g_d3d_device->CreateVertexBuffer(sizeof( D3DTEXTUREDVERTEX )*4,
@@ -622,7 +620,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
                                       NULL);
 			D3DTEXTUREDVERTEX* pData;
 			//lock buffer (NEW)
-			pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
+			pQuadVB->Lock(0,0,(void**)&pData,0);
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
@@ -635,17 +633,17 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				pData[1].fY = v2[v][vUp] * l.scale;
 				pData[1].fZ = v2[v][vForward] * l.scale;
 				pData[1].dwColor = 0xFFFFFFFF;
-				pData[1].fU1 = x_size;
-				pData[1].fV1 = y_size2;
-				pData[2].fX = v4[v][vRight] * l.scale;
-				pData[2].fY = v4[v][vUp] * l.scale;
-				pData[2].fZ = v4[v][vForward] * l.scale;
+				pData[1].fU1 = x_size2;
+				pData[1].fV1 = y_size;
+				pData[2].fX = v3[v][vRight] * l.scale;
+				pData[2].fY = v3[v][vUp] * l.scale;
+				pData[2].fZ = v3[v][vForward] * l.scale;
 				pData[2].dwColor = 0xFFFFFFFF;
-				pData[2].fU1 = x_size2;
-				pData[2].fV1 = y_size;
-				pData[3].fX = v3[v][vRight] * l.scale;
-				pData[3].fY = v3[v][vUp] * l.scale;
-				pData[3].fZ = v3[v][vForward] * l.scale;
+				pData[2].fU1 = x_size;
+				pData[2].fV1 = y_size2;
+				pData[3].fX = v4[v][vRight] * l.scale;
+				pData[3].fY = v4[v][vUp] * l.scale;
+				pData[3].fZ = v4[v][vForward] * l.scale;
 				pData[3].dwColor = 0xFFFFFFFF;
 				pData[3].fU1 = x_size2;
 				pData[3].fV1 = y_size2;

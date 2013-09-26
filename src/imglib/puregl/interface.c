@@ -170,6 +170,7 @@ static POINTER CPROC _ImageGetImageInterface( void )
 static void CPROC _ImageDropImageInterface( POINTER p )
 {
 }
+
 #ifndef __STATIC__
 #if !(defined( SACK_BAG_EXPORTS ) && defined( __LINUX__ ))
  void  DropImageInterface ( PIMAGE_INTERFACE p )
@@ -179,156 +180,9 @@ static void CPROC _ImageDropImageInterface( POINTER p )
 #endif
 #endif
 
-#ifdef __WATCOM_CPLUSPLUS__
-#pragma initialize 45
-#endif
-
-static int CPROC ComparePointer( PTRSZVAL oldnode, PTRSZVAL newnode )
-{
-	if( newnode > oldnode )
-		return 1;
-	else if( newnode < oldnode )
-		return -1;
-	return 0;
-}
-
-Image GetInvertedImage( Image child_image )
-{
-	Image image;
-	for( image = child_image; image && image->pParent; image = image->pParent );
-
-	{
-		POINTER node = FindInBinaryTree( l.shade_cache, (PTRSZVAL)image );
-		struct shade_cache_image *ci = (struct shade_cache_image *)node;
-		struct shade_cache_element *ce;
-		if( node )
-		{
-			struct shade_cache_element *ce;
-			INDEX idx;
-			int count = 0;
-			struct shade_cache_element *oldest = NULL;
-
-			LIST_FORALL( ci->elements, idx, struct shade_cache_element *, ce )
-			{
-				if( !oldest )
-					oldest = ce;
-				else
-					if( ce->age < oldest->age )
-						oldest = ce;
-				count++;
-				if( ce->inverted )
-				{
-					ce->age = timeGetTime();
-					return ce->image;
-				}
-			}
-			if( count > 16 )
-			{
-				// overwrite the oldest image... usually isn't that many
-				ce = oldest;
-			}
-			else
-			{
-				ce = New( struct shade_cache_element );
-				ce->image = MakeImageFile( image->real_width, image->real_height );
-			}
-		}
-		else
-		{
-			ci = New( struct shade_cache_image );
-			ci->image = image;
-			ci->elements = NULL;
-			AddBinaryNode( l.shade_cache, ci, (PTRSZVAL)image );
-			ce = New( struct shade_cache_element );
-			ce->image = MakeImageFile( image->real_width, image->real_height );
-		}
-
-		{
-			ce->r = 0;
-			ce->grn = 0;
-			ce->b = 0;
-			ce->age = timeGetTime();
-			ce->inverted = TRUE;
-			BlotImageSizedEx( ce->image, ci->image, 0, 0, 0, 0, image->real_width, image->real_height, 0, BLOT_INVERTED );
-			ReloadOpenGlTexture( ce->image, 0 );
-			AddLink( &ci->elements, ce );
-			return ce->image;
-		}
-	}
-}
-
-Image GetShadedImage( Image child_image, CDATA red, CDATA green, CDATA blue )
-{
-	Image image;
-
-   // go to topmost parent image.
-	for( image = child_image; image && image->pParent; image = image->pParent );
-
-	{
-		POINTER node = FindInBinaryTree( l.shade_cache, (PTRSZVAL)image );
-		struct shade_cache_image *ci = (struct shade_cache_image *)node;
-		struct shade_cache_element *ce;
-
-		if( node )
-		{
-			INDEX idx;
-			int count = 0;
-			struct shade_cache_element *oldest = NULL;
-
-			LIST_FORALL( ci->elements, idx, struct shade_cache_element *, ce )
-			{
-				if( !oldest )
-					oldest = ce;
-				else
-					if( ce->age < oldest->age )
-						oldest = ce;
-				count++;
-				if( ce->r == red && ce->grn == green && ce->b == blue )
-				{
-					ce->age = timeGetTime();
-					ReloadOpenGlTexture( ce->image, 0 );
-					return ce->image;
-				}
-			}
-			if( count > 16 )
-			{
-				// overwrite the oldest image... usually isn't that many
-				ce = oldest;
-			}
-			else
-			{
-				ce = New( struct shade_cache_element );
-				ce->image = MakeImageFile( image->real_width, image->real_height );
-			}
-		}
-		else
-		{
-			ci = New( struct shade_cache_image );
-			ce = New( struct shade_cache_element );
-			ci->image = image;
-			ci->elements = NULL;
-			AddBinaryNode( l.shade_cache, ci, (PTRSZVAL)image );
-
-			ce->image = MakeImageFile( image->real_width, image->real_height );
-		}
-		{
-			ce->r = red;
-			ce->grn = green;
-			ce->b = blue;
-			ce->age = timeGetTime();
-			ce->inverted = 0;
-			BlotImageSizedEx( ce->image, ci->image, 0, 0, 0, 0, image->real_width, image->real_height, 0, BLOT_MULTISHADE, red, green, blue );
-			ReloadOpenGlTexture( ce->image, 0 );
-			AddLink( &ci->elements, ce );
-			return ce->image;
-		}
-	}
-}
-
 PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 {
 	RegisterInterface( WIDE("puregl.image"), _ImageGetImageInterface, _ImageDropImageInterface );
-	l.shade_cache = CreateBinaryTreeExtended( 0, ComparePointer, NULL DBG_SRC );
 	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Image Library/Scale", 10 );
 	if( l.scale == 0.0 )
 	{
