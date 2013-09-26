@@ -560,18 +560,7 @@ IMAGE_NAMESPACE
 				Apply( pifDest->transform, v4[1-v], v4[v] );
 				v = 1-v;
 			}
-#if 0
-			if( glDepth )
-			{
-				//lprintf( WIDE( "enqable depth..." ) );
-				glEnable( GL_DEPTH_TEST );
-			}
-			else
-			{
-				//lprintf( WIDE( "disable depth..." ) );
-				glDisable( GL_DEPTH_TEST );
-			}
-#endif
+
 			LPDIRECT3DVERTEXBUFFER9 pQuadVB;
 			#define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ | D3DFVF_NORMAL)
 
@@ -587,27 +576,27 @@ IMAGE_NAMESPACE
 			pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
 			//copy data to buffer (NEW)
 			{
-				pData[0].fX = v1[v][vRight];
-				pData[0].fY = v1[v][vUp];
-				pData[0].fZ = v1[v][vForward];
+				pData[0].fX = v1[v][vRight] * l.scale;
+				pData[0].fY = v1[v][vUp] * l.scale;
+				pData[0].fZ = v1[v][vForward] * l.scale;
 				pData[0].dwColor = 0xFFFFFFFF;
 				pData[0].fU1 = x_size;
 				pData[0].fV1 = y_size;
-				pData[1].fX = v2[v][vRight];
-				pData[1].fY = v2[v][vUp];
-				pData[1].fZ = v2[v][vForward];
+				pData[1].fX = v2[v][vRight] * l.scale;
+				pData[1].fY = v2[v][vUp] * l.scale;
+				pData[1].fZ = v2[v][vForward] * l.scale;
 				pData[1].dwColor = 0xFFFFFFFF;
 				pData[1].fU1 = x_size;
 				pData[1].fV1 = y_size2;
-				pData[2].fX = v4[v][vRight];
-				pData[2].fY = v4[v][vUp];
-				pData[2].fZ = v4[v][vForward];
+				pData[2].fX = v4[v][vRight] * l.scale;
+				pData[2].fY = v4[v][vUp] * l.scale;
+				pData[2].fZ = v4[v][vForward] * l.scale;
 				pData[2].dwColor = 0xFFFFFFFF;
 				pData[2].fU1 = x_size2;
 				pData[2].fV1 = y_size;
-				pData[3].fX = v3[v][vRight];
-				pData[3].fY = v3[v][vUp];
-				pData[3].fZ = v3[v][vForward];
+				pData[3].fX = v3[v][vRight] * l.scale;
+				pData[3].fY = v3[v][vUp] * l.scale;
+				pData[3].fZ = v3[v][vForward] * l.scale;
 				pData[3].dwColor = 0xFFFFFFFF;
 				pData[3].fU1 = x_size2;
 				pData[3].fV1 = y_size2;
@@ -620,66 +609,6 @@ IMAGE_NAMESPACE
 			//draw quad (NEW)
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
 			pQuadVB->Release();
-#if 0
-			glBindTexture(GL_TEXTURE_2D, pifSrc->glActiveSurface);				// Select Our Texture
-			if( method == BLOT_COPY )
-				glColor4ub( 255,255,255,255 );
-			else if( method == BLOT_SHADED )
-			{
-				CDATA tmp = va_arg( colors, CDATA );
-				glColor4ubv( (GLubyte*)&tmp );
-			}
-			else
-			{
-#if !defined( __ANDROID__ )
-				InitShader();
-				if( l.shader.multi_shader )
-				{
-					int err;
-					CDATA r = va_arg( colors, CDATA );
-					CDATA g = va_arg( colors, CDATA );
-					CDATA b = va_arg( colors, CDATA );
-		 			glEnable(GL_FRAGMENT_PROGRAM_ARB);
-					glUseProgram( l.shader.multi_shader );
-					err = glGetError();
-					glProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 0, (float)GetRedValue( r )/255.0f, (float)GetGreenValue( r )/255.0f, (float)GetBlueValue( r )/255.0f, (float)GetAlphaValue( r )/255.0f );
-					err = glGetError();
-					glProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 1, (float)GetRedValue( g )/255.0f, (float)GetGreenValue( g )/255.0f, (float)GetBlueValue( g )/255.0f, (float)GetAlphaValue( g )/255.0f );
-					err = glGetError();
-					glProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 2, (float)GetRedValue( b )/255.0f, (float)GetGreenValue( b )/255.0f, (float)GetBlueValue( b )/255.0f, (float)GetAlphaValue( b )/255.0f );					
-					err = glGetError();
-				}
-				else
-#endif
-				{
-					Image output_image;
-					CDATA r = va_arg( colors, CDATA );
-					CDATA g = va_arg( colors, CDATA );
-					CDATA b = va_arg( colors, CDATA );
-					output_image = GetShadedImage( pifSrc, r, g, b );
-					glBindTexture( GL_TEXTURE_2D, output_image->glActiveSurface );
-					glColor4ub( 255,255,255,255 );
-				}
-			}
-			glBegin(GL_TRIANGLE_STRIP);
-			//glBegin(GL_QUADS);
-			glTexCoord2d(x_size, y_size); glVertex3dv(v1[v]);	// Bottom Left Of The Texture and Quad
-			glTexCoord2d(x_size, y_size2); glVertex3dv(v2[v]);	// Top Left Of The Texture and Quad
-			glTexCoord2d(x_size2, y_size); glVertex3dv(v4[v]);	// Bottom Right Of The Texture and Quad
-			glTexCoord2d(x_size2, y_size2); glVertex3dv(v3[v]);	// Top Right Of The Texture and Quad
-			// Back Face
-			glEnd();
-#if !defined( __ANDROID__ )
-			if( method == BLOT_MULTISHADE )
-			{
-				if( l.shader.multi_shader )
-				{
- 					glDisable(GL_FRAGMENT_PROGRAM_ARB);
-				}
-			}
-			glBindTexture(GL_TEXTURE_2D, 0);				// Select Our Texture
-#endif
-#endif
 		}
 	}
 	else

@@ -120,21 +120,21 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 			pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
 			//copy data to buffer (NEW)
 			{
-				pData[0].fX = v1[v][vRight];
-				pData[0].fY = v1[v][vUp];
-				pData[0].fZ = v1[v][vForward];
+				pData[0].fX = v1[v][vRight] * l.scale;
+				pData[0].fY = v1[v][vUp] * l.scale;
+				pData[0].fZ = v1[v][vForward] * l.scale;
 				pData[0].dwColor = d;
-				pData[1].fX = v2[v][vRight];
-				pData[1].fY = v2[v][vUp];
-				pData[1].fZ = v2[v][vForward];
+				pData[1].fX = v2[v][vRight] * l.scale;
+				pData[1].fY = v2[v][vUp] * l.scale;
+				pData[1].fZ = v2[v][vForward] * l.scale;
 				pData[1].dwColor = d;
-				pData[2].fX = v4[v][vRight];
-				pData[2].fY = v4[v][vUp];
-				pData[2].fZ = v4[v][vForward];
+				pData[2].fX = v4[v][vRight] * l.scale;
+				pData[2].fY = v4[v][vUp] * l.scale;
+				pData[2].fZ = v4[v][vForward] * l.scale;
 				pData[2].dwColor = d;
-				pData[3].fX = v3[v][vRight];
-				pData[3].fY = v3[v][vUp];
-				pData[3].fZ = v3[v][vForward];
+				pData[3].fX = v3[v][vRight] * l.scale;
+				pData[3].fY = v3[v][vUp] * l.scale;
+				pData[3].fZ = v3[v][vForward] * l.scale;
 				pData[3].dwColor = d;
 			}
 			//unlock buffer (NEW)
@@ -144,15 +144,6 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
 			pQuadVB->Release();
 
-#if 0
-		glBegin( GL_TRIANGLE_STRIP );
-		glColor4ub( RedVal(d), GreenVal(d),BlueVal(d), 255 );
-		glVertex3dv(v1[v]);	// Bottom Left Of The Texture and Quad
-		glVertex3dv(v2[v]);	// Bottom Right Of The Texture and Quad
-		glVertex3dv(v4[v]);	// Bottom Left Of The Texture and Quad
-		glVertex3dv(v3[v]);	// Bottom Right Of The Texture and Quad
-		glEnd();
-#endif
 	}
    else
 	{
@@ -284,12 +275,8 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 			Apply( pImage->transform, v4[1-v], v4[v] );
 			v = 1-v;
 		}
-#if 0
-		if( glDepth )
-			glEnable( GL_DEPTH_TEST );
-		else
-			glDisable( GL_DEPTH_TEST );
-#endif
+
+
 			LPDIRECT3DVERTEXBUFFER9 pQuadVB;
 			#define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ | D3DFVF_NORMAL)
 
@@ -308,21 +295,21 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 			pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
 			//copy data to buffer (NEW)
 			{
-				pData[0].fX = v1[v][vRight];
-				pData[0].fY = v1[v][vUp];
-				pData[0].fZ = v1[v][vForward];
+				pData[0].fX = v1[v][vRight] * l.scale;
+				pData[0].fY = v1[v][vUp] * l.scale;
+				pData[0].fZ = v1[v][vForward] * l.scale;
 				pData[0].dwColor = d;
-				pData[1].fX = v2[v][vRight];
-				pData[1].fY = v2[v][vUp];
-				pData[1].fZ = v2[v][vForward];
+				pData[1].fX = v2[v][vRight] * l.scale;
+				pData[1].fY = v2[v][vUp] * l.scale;
+				pData[1].fZ = v2[v][vForward] * l.scale;
 				pData[1].dwColor = d;
-				pData[2].fX = v4[v][vRight];
-				pData[2].fY = v4[v][vUp];
-				pData[2].fZ = v4[v][vForward];
+				pData[2].fX = v4[v][vRight] * l.scale;
+				pData[2].fY = v4[v][vUp] * l.scale;
+				pData[2].fZ = v4[v][vForward] * l.scale;
 				pData[2].dwColor = d;
-				pData[3].fX = v3[v][vRight];
-				pData[3].fY = v3[v][vUp];
-				pData[3].fZ = v3[v][vForward];
+				pData[3].fX = v3[v][vRight] * l.scale;
+				pData[3].fY = v3[v][vUp] * l.scale;
+				pData[3].fZ = v3[v][vForward] * l.scale;
 				pData[3].dwColor = d;
 			}
 			//unlock buffer (NEW)
@@ -331,15 +318,6 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 			//draw quad (NEW)
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
 			pQuadVB->Release();
-#if 0
-      glBegin( GL_TRIANGLE_STRIP );
-		glColor4ub( RedVal(d), GreenVal(d),BlueVal(d), AlphaVal( d ) );
-		glVertex3dv(v1[v]);	// Bottom Left Of The Texture and Quad
-		glVertex3dv(v2[v]);	// Bottom Right Of The Texture and Quad
-		glVertex3dv(v4[v]);	// Bottom Left Of The Texture and Quad
-		glVertex3dv(v3[v]);	// Bottom Right Of The Texture and Quad
-		glEnd();
-#endif
 	}
    else
 	{

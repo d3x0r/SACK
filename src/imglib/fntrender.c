@@ -367,8 +367,8 @@ Image AllocateCharacterSpace( PFONT_RENDERER renderer, PCHARACTER character )
 		last_line_top = 0;
 		for( line = 0; line < renderer->nLinesUsed; line++ )
 		{
-         //lprintf( "Is %d in %d?", height, renderer->pLineStarts[line] );
-			if( height <= renderer->pLineStarts[line] )
+         //lprintf( "Is %d in %d?", height, (renderer->pLineStarts[line]) );
+			if( height <= ( renderer->pLineStarts[line] ) )
 			{
 				// fits within the current line height...
 				PCHARACTER check = renderer->ppCharacterLineStarts[line];
@@ -383,6 +383,8 @@ Image AllocateCharacterSpace( PFONT_RENDERER renderer, PCHARACTER character )
 				}
 				if( ( new_line_start + character->width + 2 ) <= renderer->surface->real_width )
 				{
+               //lprintf( "Fits in this line, create at %d,%d   %d width", new_line_start + 1, last_line_top + 1
+					//										, character->width );
 					check->next_in_line = character;
 					character->cell = MakeSubImage( renderer->surface
 															, new_line_start + 1, last_line_top + 1
@@ -391,7 +393,7 @@ Image AllocateCharacterSpace( PFONT_RENDERER renderer, PCHARACTER character )
 					return character->cell;
 				}
 			}
-			last_line_top += renderer->pLineStarts[line];
+			last_line_top += renderer->pLineStarts[line] + 2;
 		}
 
 		// if we got here, didn't find room on any line.
@@ -420,9 +422,9 @@ Image AllocateCharacterSpace( PFONT_RENDERER renderer, PCHARACTER character )
 
 		renderer->nLinesUsed++;
 
-		renderer->pLineStarts[line] = height+2;
+		renderer->pLineStarts[line] = height;
 		renderer->ppCharacterLineStarts[line] = character;
-
+      //lprintf( "added new line; this is at %d,%d high", 1, last_line_top + 1 );
 		character->cell = MakeSubImage( renderer->surface
 												, 0+1, last_line_top+1
 												, character->width, height

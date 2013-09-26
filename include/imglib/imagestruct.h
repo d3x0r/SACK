@@ -7,7 +7,7 @@
 
 #include <vectlib.h>
 
-#if defined( _WIN32 ) && !defined( _INVERT_IMAGE ) && !defined( _OPENGL_DRIVER )
+#if defined( _WIN32 ) && !defined( _INVERT_IMAGE ) && !defined( _OPENGL_DRIVER ) && !defined( _D3D_DRIVER )
 #define _INVERT_IMAGE
 #endif
 

@@ -1,4 +1,4 @@
-#define DEBUG_IMAGE_UPDATE
+//#define DEBUG_IMAGE_UPDATE
 
 
 
@@ -291,10 +291,10 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 		else
 			glDisable( GL_DEPTH_TEST );
 #endif
-			LPDIRECT3DVERTEXBUFFER9 pQuadVB;
+		LPDIRECT3DVERTEXBUFFER9 pQuadVB;
 
-			if( g_d3d_device )
-			{
+		if( g_d3d_device )
+		{
 			g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
 												  D3DUSAGE_WRITEONLY,
 												  D3DFVF_CUSTOMVERTEX,
@@ -306,21 +306,21 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 			pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
 			//copy data to buffer (NEW)
 			{
-				pData[0].fX = v1[v][vRight];
-				pData[0].fY = v1[v][vUp];
-				pData[0].fZ = v1[v][vForward];
+				pData[0].fX = v1[v][vRight] * l.scale;
+				pData[0].fY = v1[v][vUp] * l.scale;
+				pData[0].fZ = v1[v][vForward] * l.scale;
 				pData[0].dwColor = color;
-				pData[1].fX = v2[v][vRight];
-				pData[1].fY = v2[v][vUp];
-				pData[1].fZ = v2[v][vForward];
+				pData[1].fX = v2[v][vRight] * l.scale;
+				pData[1].fY = v2[v][vUp] * l.scale;
+				pData[1].fZ = v2[v][vForward] * l.scale;
 				pData[1].dwColor = color;
-				pData[2].fX = v3[v][vRight];
-				pData[2].fY = v3[v][vUp];
-				pData[2].fZ = v3[v][vForward];
+				pData[2].fX = v3[v][vRight] * l.scale;
+				pData[2].fY = v3[v][vUp] * l.scale;
+				pData[2].fZ = v3[v][vForward] * l.scale;
 				pData[2].dwColor = color;
-				pData[3].fX = v4[v][vRight];
-				pData[3].fY = v4[v][vUp];
-				pData[3].fZ = v4[v][vForward];
+				pData[3].fX = v4[v][vRight] * l.scale;
+				pData[3].fY = v4[v][vUp] * l.scale;
+				pData[3].fZ = v4[v][vForward] * l.scale;
 				pData[3].dwColor = color;
 			}
 			//unlock buffer (NEW)
@@ -444,68 +444,59 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 		}
 
 			LPDIRECT3DVERTEXBUFFER9 pQuadVB;
-			struct D3DVERTEX
-{
-float fX,
-		fY,
-		fZ;
-DWORD dwColor;
-};
-			struct D3DXVECTOR3
-{
-float fX,
-		fY,
-		fZ;
-};
+		struct D3DVERTEX
+		{
+			float fX,
+			fY,
+			fZ;
+			DWORD dwColor;
+		};
+		struct D3DXVECTOR3
+		{
+			float fX,
+			fY,
+			fZ;
+		};
 
 
-			g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
-												  D3DUSAGE_WRITEONLY,
-												  D3DFVF_CUSTOMVERTEX,
-												  D3DPOOL_MANAGED,
-												  &pQuadVB,
-												  NULL);
-			D3DVERTEX* pData;
-			//lock buffer (NEW)
-			pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
-			//copy data to buffer (NEW)
-			{
-				pData[0].fX = v1[v][vRight];
-				pData[0].fY = v1[v][vUp];
-				pData[0].fZ = v1[v][vForward];
-				pData[0].dwColor = color;
-				pData[1].fX = v2[v][vRight];
-				pData[1].fY = v2[v][vUp];
-				pData[1].fZ = v2[v][vForward];
-				pData[1].dwColor = color;
-				pData[2].fX = v3[v][vRight];
-				pData[2].fY = v3[v][vUp];
-				pData[2].fZ = v3[v][vForward];
-				pData[2].dwColor = color;
-				pData[3].fX = v4[v][vRight];
-				pData[3].fY = v4[v][vUp];
-				pData[3].fZ = v4[v][vForward];
-				pData[3].dwColor = color;
-			}
-			//unlock buffer (NEW)
-			pQuadVB->Unlock();
-			g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
-			g_d3d_device->SetRenderState(D3DRS_AMBIENT,RGB(255,255,255));
-			g_d3d_device->SetRenderState( D3DRS_LIGHTING,false);
-			//g_d3d_device->SetRenderState( D3DRS_ALPHATESTENABLE, TRUE );
-			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DVERTEX));
-			//draw quad (NEW)
-			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
-			pQuadVB->Release();
-#if 0
-		glBegin( GL_TRIANGLE_STRIP );
-		glColor4ubv( (GLubyte*)&color );
-		glVertex3dv( v1[v] );	// Bottom Left Of The Texture and Quad
-		glVertex3dv( v2[v] );	// Bottom Right Of The Texture and Quad
-		glVertex3dv( v3[v] );	// Top Right Of The Texture and Quad
-		glVertex3dv( v4[v] );	// Top Left Of The Texture and Quad
-		glEnd();
-#endif
+		g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
+													D3DUSAGE_WRITEONLY,
+													D3DFVF_CUSTOMVERTEX,
+													D3DPOOL_MANAGED,
+													&pQuadVB,
+													NULL);
+		D3DVERTEX* pData;
+		//lock buffer (NEW)
+		pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
+		//copy data to buffer (NEW)
+		{
+			pData[0].fX = v1[v][vRight] * l.scale;
+			pData[0].fY = v1[v][vUp] * l.scale;
+			pData[0].fZ = v1[v][vForward] * l.scale;
+			pData[0].dwColor = color;
+			pData[1].fX = v2[v][vRight] * l.scale;
+			pData[1].fY = v2[v][vUp] * l.scale;
+			pData[1].fZ = v2[v][vForward] * l.scale;
+			pData[1].dwColor = color;
+			pData[2].fX = v3[v][vRight] * l.scale;
+			pData[2].fY = v3[v][vUp] * l.scale;
+			pData[2].fZ = v3[v][vForward] * l.scale;
+			pData[2].dwColor = color;
+			pData[3].fX = v4[v][vRight] * l.scale;
+			pData[3].fY = v4[v][vUp] * l.scale;
+			pData[3].fZ = v4[v][vForward] * l.scale;
+			pData[3].dwColor = color;
+		}
+		//unlock buffer (NEW)
+		pQuadVB->Unlock();
+		g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
+		g_d3d_device->SetRenderState(D3DRS_AMBIENT,RGB(255,255,255));
+		g_d3d_device->SetRenderState( D3DRS_LIGHTING,false);
+		//g_d3d_device->SetRenderState( D3DRS_ALPHATESTENABLE, TRUE );
+		g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DVERTEX));
+		//draw quad (NEW)
+		g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
+		pQuadVB->Release();
 	}
 	else
 	{
@@ -551,13 +542,7 @@ void CPROC cplotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 {
 	if( pi->flags & IF_FLAG_FINAL_RENDER )
 	{
-#if 0
-		glBegin( GL_POINTS );
-		TranslateCoord( pi, &x, &y );
-		glColor4ub( RedVal(c), GreenVal(c),BlueVal(c), AlphaVal(c) );
-		glVertex3f((float)x, (float)y,  0.0f);	// Bottom Left Of The Texture and Quad
-		glEnd();
-#endif
+		lprintf( "plot not implemented in d3d yet..." );
 	}
 	else
 	{
@@ -574,13 +559,7 @@ void CPROC cplot( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 	{
 		if( pi->flags & IF_FLAG_FINAL_RENDER )
 		{
-#if 0
-			glBegin( GL_POINTS );
-			TranslateCoord( pi, &x, &y );
-			glColor4ub( RedVal(c), GreenVal(c),BlueVal(c), 255/*AlphaVal(d)*/ );
-			glVertex3f((float)x, (float)y,  0.0f);	// Bottom Left Of The Texture and Quad
-			glEnd();
-#endif
+         lprintf( "plot not implemented in d3d yet..." );
 		}
 		else if( pi->image )
 		{
@@ -600,7 +579,7 @@ CDATA CPROC cgetpixel( ImageFile *pi, S_32 x, S_32 y )
 	{
 		if( pi->flags & IF_FLAG_FINAL_RENDER )
 		{
-			lprintf( WIDE( "get pixel option on opengl surface" ) );
+			lprintf( WIDE( "get pixel not implemented on d3d surface" ) );
 		}
 		else
 		{
@@ -621,13 +600,7 @@ void CPROC cplotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 	{
 		if( pi->flags & IF_FLAG_FINAL_RENDER )
 		{
-#if 0
-			glBegin( GL_POINTS );
-			TranslateCoord( pi, &x, &y );
-			glColor4ub( RedVal(c), GreenVal(c),BlueVal(c), AlphaVal(c) );
-			glVertex3f((float)x, (float)y,  0.0f);	// Bottom Left Of The Texture and Quad
-			glEnd();
-#endif
+         lprintf( "plot not implemented in d3d yet..." );
 		}
 		else if( pi->image )
 		{

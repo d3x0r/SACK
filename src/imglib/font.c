@@ -187,7 +187,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 	pchar = UseFont->character[c];
 	if( !pchar ) return 0;
 
-	lprintf( "output %c at %d,%d", c, x, y );
+	//lprintf( "output %c at %d,%d", c, x, y );
 
 #if defined( _OPENGL_DRIVER ) || defined( _D3D_DRIVER )
 	if( !UseFont->character[c]->cell && ( pImage->flags & IF_FLAG_FINAL_RENDER ) )
@@ -284,31 +284,31 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				v[vi][0][1] = yd;
 				v[vi][0][2] = 1.0f;
 
-				v[vi][1][0] = xd;
-				v[vi][1][1] = yd+pchar->cell->real_height;
+				v[vi][1][0] = xd+pchar->cell->real_width;
+				v[vi][1][1] = yd;
 				v[vi][1][2] = 1.0f;
 
-				v[vi][2][0] = xd+pchar->cell->real_width;
-				v[vi][2][1] = yd;
+				v[vi][2][0] = xd;
+				v[vi][2][1] = yd+pchar->cell->real_height;
 				v[vi][2][2] = 1.0f;
 
 				v[vi][3][0] = xd+pchar->cell->real_width;
 				v[vi][3][1] = yd+pchar->cell->real_height;
 				v[vi][3][2] = 1.0f;
 
-				v2[vi][0][0] = xd + pchar->width;
+				v2[vi][0][0] = xd;
 				v2[vi][0][1] = yd_back;
 				v2[vi][0][2] = 1.0;
 
-				v2[vi][1][0] = xd;
+				v2[vi][1][0] = xd + pchar->width;
 				v2[vi][1][1] = yd_back;
 				v2[vi][1][2] = 1.0;
 
-				v2[vi][2][0] = xd + pchar->width;
+				v2[vi][2][0] = xd;
 				v2[vi][2][1] = yd_back + UseFont->height;
 				v2[vi][2][2] = 1.0;
 
-				v2[vi][3][0] = xd;
+				v2[vi][3][0] = xd + pchar->width;
 				v2[vi][3][1] = yd_back + UseFont->height;
 				v2[vi][3][2] = 1.0;
 
@@ -425,10 +425,10 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			y_size2 = (double) (ys+pchar->cell->real_height)/ (double)pifSrcReal->height;
 			texture_v[0][0] = x_size;
 			texture_v[0][1] = y_size;
-			texture_v[1][0] = x_size;
-			texture_v[1][1] = y_size2;
-			texture_v[2][0] = x_size2;
-			texture_v[2][1] = y_size;
+			texture_v[1][0] = x_size2;
+			texture_v[1][1] = y_size;
+			texture_v[2][0] = x_size;
+			texture_v[2][1] = y_size2;
 			texture_v[3][0] = x_size2;
 			texture_v[3][1] = y_size2;
 
@@ -539,7 +539,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			//lock buffer (NEW)
 			if( background )
 			{
-				pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
+				pQuadVB->Lock(0,0,(void**)&pData,0);
 				{
 					int n;
 					for( n = 0; n < 4; n++ )
@@ -551,13 +551,11 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 					}
 				}
 				pQuadVB->Unlock();
+				g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DTEXTUREDVERTEX));
+				g_d3d_device->SetFVF( D3DFVF_CUSTOMTEXTUREDVERTEX );
 				g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
 			}
-
-			pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
-			pData[1].dwColor = color;
-			pData[2].dwColor = color;
-			pData[3].dwColor = color;
+			pQuadVB->Lock(0,0,(void**)&pData,0);
 			{
 				int n;
 				for( n = 0; n < 4; n++ )
@@ -569,6 +567,14 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 
 					pData[n].fU1 = texture_v[n][vRight];
 					pData[n].fV1 = texture_v[n][vUp];
+					//lprintf( "point %d  %g,%g,%g   %g,%g  %08x"
+					//		 , n
+					//		 , pData[n].fX
+					//		 , pData[n].fY
+					//		 , pData[n].fZ
+					//		 , pData[n].fU1
+					//		 , pData[n].fV1
+					//  	 , pData[n].dwColor );
 				}
 			}
 			//copy data to buffer (NEW)
