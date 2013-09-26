@@ -499,6 +499,7 @@ static void SmearFlag( Image image, int flag )
 	p->pYounger = NULL;
 	p->pElder = NULL;
 	p->image = NULL; // set it to nothing for now ComputeData will fix
+	p->flags |= (pImage->flags & IF_FLAG_FINAL_RENDER);
 #if defined( _OPENGL_DRIVER )
 	p->glSurface = NULL;
 	p->transform = NULL;
@@ -541,6 +542,7 @@ static void SmearFlag( Image image, int flag )
 	p->pYounger = NULL;
 	// assume external colors...
 	p->flags |= IF_FLAG_EXTERN_COLORS;
+
 #if defined( _OPENGL_DRIVER )
 	p->glSurface = NULL;
 	p->transform = NULL;
