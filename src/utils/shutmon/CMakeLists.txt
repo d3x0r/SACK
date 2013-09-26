@@ -19,8 +19,8 @@ target_link_libraries( ${project} ${SACK_LIBRARIES} )
 install_default_dest( ${project} )
 
 
-
-set( project shutdown.monitor )
+if( INTERSHELL_SDK_ROOT )
+set( project shutdown.monitor.isp )
 
 
 set(BASE_SOURCES
@@ -37,4 +37,5 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
            FOLDER utils
 )
 target_link_libraries( ${project} ${SACK_LIBRARIES} )
-install_default_dest( ${project} )
+INSTALL_PLUGIN( ${project} )
+endif( INTERSHELL_SDK_ROOT )
