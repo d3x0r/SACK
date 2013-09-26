@@ -183,74 +183,10 @@ static int CPROC ComparePointer( PTRSZVAL oldnode, PTRSZVAL newnode )
 	return 0;
 }
 
-Image GetShadedImage( Image image, CDATA red, CDATA green, CDATA blue )
-{
-	POINTER node = FindInBinaryTree( l.shade_cache, (PTRSZVAL)image );
-	if( node )
-	{
-		struct shade_cache_image *ci = (struct shade_cache_image *)node;
-		struct shade_cache_element *ce;
-		INDEX idx;
-		int count = 0;
-		struct shade_cache_element *oldest = NULL;
-
-		LIST_FORALL( ci->elements, idx, struct shade_cache_element *, ce )
-		{
-			if( !oldest )
-				oldest = ce;
-			else
-				if( ce->age < oldest->age )
-					oldest = ce;
-         count++;
-			if( ce->r == red && ce->grn == green && ce->b == blue )
-			{
-				ce->age = timeGetTime();
-				return ce->image;
-			}
-		}
-		if( count > 16 )
-		{
-			// overwrite the oldest image... usually isn't that many
-			ce = oldest;
-		}
-		else
-		{
-			ce = New( struct shade_cache_element );
-			ce->image = MakeImageFile( image->real_width, image->real_height );
-		}
-		ce->r = red;
-		ce->grn = green;
-		ce->b = blue;
-		ce->age = timeGetTime();
-		BlotImageSizedEx( ce->image, ci->image, 0, 0, 0, 0, image->real_width, image->real_height, 0, BLOT_MULTISHADE, red, green, blue );
-		ReloadD3DTexture( ce->image, 0 );
-		AddLink( &ci->elements, ce );
-		return ce->image;
-	}
-	else
-	{
-		struct shade_cache_image *ci = New( struct shade_cache_image );
-		struct shade_cache_element *ce = New( struct shade_cache_element );
-		ci->image = image;
-		ci->elements = NULL;
-		AddBinaryNode( l.shade_cache, ci, (PTRSZVAL)image );
-
-		ce->image = MakeImageFile( image->real_width, image->real_height );
-		ce->r = red;
-		ce->grn = green;
-		ce->b = blue;
-		ce->age = timeGetTime();
-		BlotImageSizedEx( ce->image, ci->image, 0, 0, 0, 0, image->real_width, image->real_height, 0, BLOT_MULTISHADE, red, green, blue );
-		ReloadD3DTexture( ce->image, 0 );
-		AddLink( &ci->elements, ce );
-		return ce->image;
-	}
-}
 
 PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 {
 	RegisterInterface( WIDE("d3d.image"), _ImageGetImageInterface, _ImageDropImageInterface );
-   l.shade_cache = CreateBinaryTreeExtended( 0, ComparePointer, NULL DBG_SRC );
 	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Image Library/Scale", 10 );
 	if( l.scale == 0.0 )
 	{

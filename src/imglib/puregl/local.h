@@ -37,7 +37,6 @@ struct glSurfaceImageData {
 extern
 #endif
 struct local_puregl_image_data_tag {
-	PTREEROOT shade_cache;
 	GLuint glImageIndex;
 	PLIST glSurface; // list of struct glSurfaceData *
 	struct glSurfaceData *glActiveSurface;
@@ -46,22 +45,7 @@ struct local_puregl_image_data_tag {
 } local_puregl_image_data;
 #define l local_puregl_image_data
 
-struct shade_cache_element {
-	CDATA r,grn,b;
-	Image image;
-	_32 age;
-	LOGICAL inverted;
-};
 
-struct shade_cache_image
-{
-	PLIST elements;
-	Image image;
-};
-
-// use this if opengl shaders are missing.
-Image GetShadedImage( Image image, CDATA red, CDATA green, CDATA blue );
-Image GetInvertedImage( Image image );
 
 
 void InitShader( void );

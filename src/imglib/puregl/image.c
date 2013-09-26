@@ -31,7 +31,7 @@
 #include <imglib/imagestruct.h>
 #include <image.h>
 #include <render3d.h>
-
+#include "../image_common.h"
 #ifdef __cplusplus
 using namespace sack::image::loader;
 #endif

@@ -39,6 +39,7 @@ using namespace sack::image::loader;
 #include "local.h"
 #include "shaders.h"
 #include "blotproto.h"
+#include "../image_common.h"
 
 
 

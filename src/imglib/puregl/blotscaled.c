@@ -40,6 +40,7 @@
 #include "local.h"
 #define NEED_ALPHA2
 #include "blotproto.h"
+#include "../image_common.h"
 
 #ifdef __cplusplus 
 namespace sack {

@@ -70,7 +70,6 @@ struct {
 			BIT_FIELD shader_ok : 1;
 		} flags;
 	} shader;
-	PTREEROOT shade_cache;
 	int glImageIndex;
 	PLIST d3dSurfaces; // list of struct glSurfaceData *
 	struct d3dSurfaceData *d3dActiveSurface;
@@ -79,20 +78,8 @@ struct {
 } local_image_data;
 #define l local_image_data
 
-struct shade_cache_element {
-	CDATA r,grn,b;
-	Image image;
-	_32 age;
-};
-
-struct shade_cache_image
-{
-	PLIST elements;
-	Image image;
-};
 
 // use this if opengl shaders are missing.
-Image GetShadedImage( Image image, CDATA red, CDATA green, CDATA blue );
 
 
 void InitShader( void );
