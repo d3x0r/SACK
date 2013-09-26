@@ -722,14 +722,6 @@ static _32 _PutCharacterVerticalInvertFont( ImageFile *pImage
 													, CDATA color, CDATA background
 													, _32 c, PFONT UseFont )
 {
-	PCHARACTER pchar;
-	if( !UseFont )
-		UseFont = &DEFAULTFONT;
-	if( !UseFont->character[c] )
-		InternalRenderFontCharacter( NULL, UseFont, c );
-	pchar = UseFont->character[c];
-	if( !pchar ) return 0;
-	x -= pchar->offset;
 	return PutCharacterFontX( pImage, x, y, color, background, c, UseFont
 									, OrderPointsVerticalInvert, StepXInvertVertical, StepYInvertVertical );
 }
@@ -740,7 +732,7 @@ void PutCharacterFont( ImageFile *pImage
 											  , _32 c, PFONT UseFont )
 {
 	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-									 , OrderPointsVerticalInvert, StepXNormal, StepYNormal );
+						  , OrderPointsVerticalInvert, StepXNormal, StepYNormal );
 }
 
 void PutCharacterVerticalFont( ImageFile *pImage
@@ -748,9 +740,8 @@ void PutCharacterVerticalFont( ImageFile *pImage
 														 , CDATA color, CDATA background
 														 , _32 c, PFONT UseFont )
 {
-	//return
-		PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-									 , OrderPoints, StepXVertical, StepYVertical );
+	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
+						  , OrderPoints, StepXVertical, StepYVertical );
 }
 
 
@@ -759,9 +750,8 @@ void PutCharacterInvertFont( ImageFile *pImage
 														 , CDATA color, CDATA background
 														 , _32 c, PFONT UseFont )
 {
-	//return
-		PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-									 , OrderPointsInvert, StepXInvert, StepYInvert );
+	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
+						  , OrderPointsInvert, StepXInvert, StepYInvert );
 }
 
 void PutCharacterVerticalInvertFont( ImageFile *pImage
@@ -769,17 +759,8 @@ void PutCharacterVerticalInvertFont( ImageFile *pImage
 														 , CDATA color, CDATA background
 															    , _32 c, PFONT UseFont )
 {
-	PCHARACTER pchar;
-	if( !UseFont )
-		UseFont = &DEFAULTFONT;
-	if( !UseFont->character[c] )
-		InternalRenderFontCharacter( NULL, UseFont, c );
-	pchar = UseFont->character[c];
-	if( !pchar ) return;// 0;
-	x -= pchar->offset;
-	//return
-		PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-									 , OrderPointsVerticalInvert, StepXInvertVertical, StepYInvertVertical );
+	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
+						  , OrderPointsVerticalInvert, StepXInvertVertical, StepYInvertVertical );
 }
 
 
