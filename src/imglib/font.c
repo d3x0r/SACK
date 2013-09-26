@@ -204,6 +204,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 		S_32 xd;
 		S_32 yd;
 		S_32 yd_back;
+		S_32 xd_back;
 		S_32 xs = 0;
 		S_32 ys = 0;
 		Image pifSrc = pchar->cell;
@@ -215,22 +216,26 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 		case OrderPoints:
 			xd = x;
 			yd = y+(UseFont->baseline - pchar->ascent);
+         xd_back = xd;
 			yd_back = y;
 			break;
 		case OrderPointsInvert:
 			xd = x;
-			yd = y-UseFont->baseline + pchar->ascent;
+			yd = y- UseFont->baseline + pchar->ascent;
+         xd_back = xd;
 			yd_back = y;
 			break;
 		case OrderPointsVertical:
 			xd = x - (UseFont->baseline - pchar->ascent);
 			yd = y;
-			yd_back = y;
+         xd_back = x;
+			yd_back = yd;
 			break;
 		case OrderPointsVerticalInvert:
 			xd = x + (UseFont->baseline - pchar->ascent);
 			yd = y;
-			yd_back = y;
+         xd_back = x;
+			yd_back = yd;
 			break;
 		}
 		
@@ -256,7 +261,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 		 *
 		 */
 		TranslateCoord( pifDest, &xd, &yd );
-		TranslateCoord( pifDest, NULL, &yd_back );
+		TranslateCoord( pifDest, &xd_back, &yd_back );
 		TranslateCoord( pifSrc, &xs, &ys );
 		{
 			int glDepth = 1;
@@ -296,19 +301,19 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				v[vi][3][1] = yd+pchar->cell->real_height;
 				v[vi][3][2] = 1.0f;
 
-				v2[vi][0][0] = xd;
+				v2[vi][0][0] = xd_back;
 				v2[vi][0][1] = yd_back;
 				v2[vi][0][2] = 1.0;
 
-				v2[vi][1][0] = xd + pchar->width;
+				v2[vi][1][0] = xd_back + pchar->width;
 				v2[vi][1][1] = yd_back;
 				v2[vi][1][2] = 1.0;
 
-				v2[vi][2][0] = xd;
+				v2[vi][2][0] = xd_back;
 				v2[vi][2][1] = yd_back + UseFont->height;
 				v2[vi][2][2] = 1.0;
 
-				v2[vi][3][0] = xd + pchar->width;
+				v2[vi][3][0] = xd_back + pchar->width;
 				v2[vi][3][1] = yd_back + UseFont->height;
 				v2[vi][3][2] = 1.0;
 
@@ -318,31 +323,31 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				v[vi][0][1] = yd;
 				v[vi][0][2] = 1.0f;
 
-				v[vi][1][0] = xd;
-				v[vi][1][1] = yd - pchar->cell->real_height;
+				v[vi][1][0] = xd - pchar->cell->real_width;
+				v[vi][1][1] = yd;
 				v[vi][1][2] = 1.0f;
 
-				v[vi][2][0] = xd - pchar->cell->real_width;
-				v[vi][2][1] = yd;
+				v[vi][2][0] = xd;
+				v[vi][2][1] = yd - pchar->cell->real_height;
 				v[vi][2][2] = 1.0f;
 
 				v[vi][3][0] = xd - pchar->cell->real_width;
 				v[vi][3][1] = yd - pchar->cell->real_height;
 				v[vi][3][2] = 1.0f;
 
-				v2[vi][0][0] = xd;
+				v2[vi][0][0] = xd_back;
 				v2[vi][0][1] = yd_back;
 				v2[vi][0][2] = 1.0f;
 
-				v2[vi][1][0] = xd;
-				v2[vi][1][1] = yd_back - UseFont->height;
+				v2[vi][1][0] = xd_back - pchar->cell->real_width;
+				v2[vi][1][1] = yd_back;
 				v2[vi][1][2] = 1.0f;
 
-				v2[vi][2][0] = xd - pchar->cell->real_width;
-				v2[vi][2][1] = yd_back;
+				v2[vi][2][0] = xd_back;
+				v2[vi][2][1] = yd_back - UseFont->height;
 				v2[vi][2][2] = 1.0f;
 
-				v2[vi][3][0] = xd;
+				v2[vi][3][0] = xd_back - pchar->cell->real_width;
 				v2[vi][3][1] = yd_back - UseFont->height;
 				v2[vi][3][2] = 1.0f;
 
@@ -352,12 +357,12 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				v[vi][0][1] = yd;
 				v[vi][0][2] = 1.0;
 
-				v[vi][1][0] = xd-pchar->cell->real_height;
-				v[vi][1][1] = yd;
+				v[vi][1][0] = xd;
+				v[vi][1][1] = yd+pchar->cell->real_width;
 				v[vi][1][2] = 1.0;
 
-				v[vi][2][0] = xd;
-				v[vi][2][1] = yd+pchar->cell->real_width;
+				v[vi][2][0] = xd-pchar->cell->real_height;
+				v[vi][2][1] = yd;
 				v[vi][2][2] = 1.0;
 
 
@@ -365,19 +370,19 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				v[vi][3][1] = yd+pchar->cell->real_width;
 				v[vi][3][2] = 1.0;
 
-				v2[vi][0][0] = x;
+				v2[vi][0][0] = xd_back;
 				v2[vi][0][1] = yd_back;
 				v2[vi][0][2] = 1.0;
 
-				v2[vi][1][0] = x-UseFont->height;
-				v2[vi][1][1] = yd_back;
+				v2[vi][1][0] = xd_back;
+				v2[vi][1][1] = yd_back+pchar->cell->real_width;
 				v2[vi][1][2] = 1.0;
 
-				v2[vi][2][0] = x;
-				v2[vi][2][1] = yd_back+pchar->cell->real_width;
+				v2[vi][2][0] = xd_back-UseFont->height;
+				v2[vi][2][1] = yd_back;
 				v2[vi][2][2] = 1.0;
 
-				v2[vi][3][0] = x-UseFont->height;
+				v2[vi][3][0] = xd_back-UseFont->height;
 				v2[vi][3][1] = yd_back+pchar->cell->real_width;
 				v2[vi][3][2] = 1.0;
 
@@ -387,33 +392,31 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				v[vi][0][1] = yd;
 				v[vi][0][2] = 1.0;
 
-				v[vi][1][0] = xd+pchar->cell->real_height;
-				v[vi][1][1] = yd;
+				v[vi][1][0] = xd;
+				v[vi][1][1] = yd-pchar->cell->real_width;
 				v[vi][1][2] = 1.0;
 
-				v[vi][2][0] = xd;
-				v[vi][2][1] = yd-pchar->cell->real_width;
+				v[vi][2][0] = xd+pchar->cell->real_height;
+				v[vi][2][1] = yd;
 				v[vi][2][2] = 1.0;
-
 
 				v[vi][3][0] = xd+pchar->cell->real_height;
 				v[vi][3][1] = yd-pchar->cell->real_width;
 				v[vi][3][2] = 1.0;
 
-				v2[vi][0][0] = x;
+				v2[vi][0][0] = xd_back;
 				v2[vi][0][1] = yd_back;
 				v2[vi][0][2] = 1.0;
 
-				v2[vi][1][0] = x+UseFont->height;
-				v2[vi][1][1] = yd_back;
+				v2[vi][1][0] = xd_back;
+				v2[vi][1][1] = yd_back-pchar->cell->real_width;
 				v2[vi][1][2] = 1.0;
 
-				v2[vi][2][0] = x;
-				v2[vi][2][1] = yd_back-pchar->cell->real_width;
+				v2[vi][2][0] = xd_back+UseFont->height;
+				v2[vi][2][1] = yd_back;
 				v2[vi][2][2] = 1.0;
 
-
-				v2[vi][3][0] = x+UseFont->height;
+				v2[vi][3][0] = xd_back+UseFont->height;
 				v2[vi][3][1] = yd_back-pchar->cell->real_width;
 				v2[vi][3][2] = 1.0;
 				break;
