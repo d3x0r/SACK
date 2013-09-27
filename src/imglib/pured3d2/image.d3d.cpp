@@ -1,4 +1,4 @@
-//#define DEBUG_IMAGE_UPDATE
+#define DEBUG_IMAGE_UPDATE
 
 
 
@@ -109,6 +109,7 @@ IDirect3DBaseTexture9 *ReloadD3DTexture( Image child_image, int option )
 		if( !image_data->d3dTexture )
 		{
 			D3DLOCKED_RECT rect;
+         //lprintf( "Create texture %d,%d %d", image->width, image->height, image->pwidth );
 			g_d3d_device->CreateTexture( image->width, image->height, 1
 				, D3DUSAGE_DYNAMIC
 				, D3DFORMAT::D3DFMT_A8R8G8B8
@@ -122,19 +123,29 @@ IDirect3DBaseTexture9 *ReloadD3DTexture( Image child_image, int option )
 				int size;
 				static int n;
 				TEXTCHAR filename[64];
-            FILE *file;
+				FILE *file;
 				PngImageFile( image, &buf, &size );
 				snprintf( filename, 64, "update-%04d.png", n++ );
 				file = fopen( filename, "wb" );
 				if( file )
 				{
-               fwrite( buf, 1, size, file );
-               fclose( file );
+					fwrite( buf, 1, size, file );
+					fclose( file );
 				}
 			}
 #endif
-			CopyMemory(rect.pBits, image->image, image->width*image->height*sizeof(CDATA));
+			{
+				int line;
+				for( line = 0; line < image->height; line++ )
+				{
+					CopyMemory( (P_8)rect.pBits + line * rect.Pitch
+								 , image->image + line * image->pwidth
+								 , image->width*sizeof(CDATA)
+								 );
+				}
+			}
 			image_data->d3tex->UnlockRect(0);
+         //lprintf( "Remade texture %p for image %p", image_data->d3tex, image );
 		}
 		image->pActiveSurface = image_data->d3dTexture;
 		child_image->pActiveSurface = image->pActiveSurface;
@@ -166,6 +177,7 @@ void MarkImageUpdated( Image child_image )
 			}
 			if( image_data->d3dTexture )
 			{
+            //lprintf( "releasing texture %p for image %p", image_data->d3dTexture, image );
 				image_data->d3dTexture->Release();
 				//textureToDelete->Release
 				//glDeleteTextures( 1, &image_data->d3dTexture );
@@ -285,25 +297,21 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 			Apply( pifDest->transform, v4[1-v], v4[v] );
 			v = 1-v;
 		}
-#if 0
-		if( glDepth )
-			glEnable( GL_DEPTH_TEST );
-		else
-			glDisable( GL_DEPTH_TEST );
-#endif
-		LPDIRECT3DVERTEXBUFFER9 pQuadVB;
+
+		static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
 
 		if( g_d3d_device )
 		{
-			g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
-												  D3DUSAGE_WRITEONLY,
-												  D3DFVF_CUSTOMVERTEX,
-												  D3DPOOL_MANAGED,
-												  &pQuadVB,
-												  NULL);
+         if( !pQuadVB )
+				g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
+															D3DUSAGE_WRITEONLY,
+															D3DFVF_CUSTOMVERTEX,
+															D3DPOOL_MANAGED,
+															&pQuadVB,
+															NULL);
 			D3DVERTEX* pData;
 			//lock buffer (NEW)
-			pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
+			pQuadVB->Lock(0,0,(void**)&pData,0);
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
@@ -323,20 +331,11 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 				pData[3].fZ = v4[v][vForward] * l.scale;
 				pData[3].dwColor = color;
 			}
-			//unlock buffer (NEW)
 			pQuadVB->Unlock();
 			g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
 			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DVERTEX));
-			//draw quad (NEW)
-
-
-			HRESULT br = g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
-			if( br )
-			{
-				int tmp;
-				lprintf( WIDE( "error %d" ), br );
-			}
-			pQuadVB->Release();
+			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
+			//pQuadVB->Release();
 		}
 	}
 	else
@@ -441,7 +440,7 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 			v = 1-v;
 		}
 
-			LPDIRECT3DVERTEXBUFFER9 pQuadVB;
+		static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
 		struct D3DVERTEX
 		{
 			float fX,
@@ -449,23 +448,16 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 			fZ;
 			DWORD dwColor;
 		};
-		struct D3DXVECTOR3
-		{
-			float fX,
-			fY,
-			fZ;
-		};
-
-
-		g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
-													D3DUSAGE_WRITEONLY,
-													D3DFVF_CUSTOMVERTEX,
-													D3DPOOL_MANAGED,
-													&pQuadVB,
-													NULL);
+      if( !pQuadVB )
+			g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
+														D3DUSAGE_WRITEONLY,
+														D3DFVF_CUSTOMVERTEX,
+														D3DPOOL_MANAGED,
+														&pQuadVB,
+														NULL);
 		D3DVERTEX* pData;
 		//lock buffer (NEW)
-		pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
+		pQuadVB->Lock(0,0,(void**)&pData,0);
 		//copy data to buffer (NEW)
 		{
 			pData[0].fX = v1[v][vRight] * l.scale;
@@ -488,16 +480,13 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 		//unlock buffer (NEW)
 		pQuadVB->Unlock();
 		g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
-		g_d3d_device->SetRenderState(D3DRS_AMBIENT,RGB(255,255,255));
-		g_d3d_device->SetRenderState( D3DRS_LIGHTING,false);
-		//g_d3d_device->SetRenderState( D3DRS_ALPHATESTENABLE, TRUE );
 		g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DVERTEX));
 		//draw quad (NEW)
 		g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
-		pQuadVB->Release();
+		//pQuadVB->Release();
 	}
 	else
-	{
+	{              
 		// start at origin on destination....
 		if( pifDest->flags & IF_FLAG_INVERTED )
 			y += h-1;
