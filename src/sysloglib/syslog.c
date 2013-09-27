@@ -458,13 +458,13 @@ static void LoadOptions( void )
 		{
 			SystemLogTime( SYSLOG_TIME_HIGH|SYSLOG_TIME_DELTA );
 		}
-#  ifndef __LINUX__
+#  ifdef __ANDROID__
 		else if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Time" ), 0, TRUE ) )
 #  else
 		else if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Time" ), 1, TRUE ) )
 #  endif
 		{
-#  ifndef __LINUX__
+#  ifndef __ANDROID__
 			if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Date" ), 0, TRUE ) )
 #  else
 			if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Date" ), 1, TRUE ) )
