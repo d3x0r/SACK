@@ -215,7 +215,6 @@ INDEX GetBuildVersion( PODBC odbc, INDEX project_id )
 					  , project_build_id );
 		}
 		System( tmp, NULL, 0 );
-		System( "hg push", NULL, 0 );
 	}
 
 	

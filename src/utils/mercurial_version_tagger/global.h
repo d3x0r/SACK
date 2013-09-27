@@ -9,9 +9,10 @@ extern
 	{
 		BIT_FIELD use_common_build : 1;
 		BIT_FIELD use_all_build : 1;
+		BIT_FIELD skip_push : 1;
 	} flags;
 	CTEXTSTR dsn;
-   INDEX build_id;
+	INDEX build_id;
 } g;
 
 //----------------------------------------------------------------------
