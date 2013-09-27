@@ -35,23 +35,29 @@ static struct winfile_local_tag {
         BIT_FIELD bLogOpenClose : 1;
         BIT_FIELD bInitialized : 1;
     } flags;
-} winfile_local;
+} *winfile_local;
 
-#define l winfile_local
+#define l (*winfile_local)
+
+PRIORITY_UNLOAD( LowLevelInit, SYSLOG_PRELOAD_PRIORITY-1 )
+{
+	Deallocate( POINTER, winfile_local );
+}
 
 static void LocalInit( void )
 {
-    if( !l.flags.bInitialized )
-    {
-        InitializeCriticalSec( &l.cs_files );
-        l.flags.bInitialized = 1;
+	if( !winfile_local )
+	{
+		SimpleRegisterAndCreateGlobal( winfile_local );
+		InitializeCriticalSec( &l.cs_files );
+		l.flags.bInitialized = 1;
+		l.flags.bLogOpenClose = 0;
 	}
-    l.flags.bLogOpenClose = 0;
 }
 
-PRIORITY_PRELOAD( InitWinFileSysEarly, CONFIG_SCRIPT_PRELOAD_PRIORITY - 1 )
+PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )
 {
-    LocalInit();
+	LocalInit();
 }
 #ifndef __NO_OPTIONS__
 PRELOAD( InitWinFileSys )
@@ -328,7 +334,8 @@ INDEX  SetGroupFilePath ( CTEXTSTR group, CTEXTSTR path )
 void SetDefaultFilePath( CTEXTSTR path )
 {
     TEXTSTR tmp_path = NULL;
-    struct Group *filegroup;
+	 struct Group *filegroup;
+    LocalInit();
     filegroup = (struct Group *)GetLink( &l.groups, 0 );
     tmp_path = ExpandPath( path );
     if( l.groups && filegroup )
