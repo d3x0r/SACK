@@ -149,7 +149,9 @@ IDLE_PROC( int, IdleEx )( DBG_VOIDPASS )
 	THREAD_ID me = GetMyThreadID();
 	int success = 0;
 	PIDLEPROC proc;
+#ifndef __STATIC_GLOBALS__
 	if( idle_global )
+#endif
 	for( proc = procs; proc;  )
 	{
 		PIDLEPROC check;
