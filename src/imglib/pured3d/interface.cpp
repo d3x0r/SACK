@@ -174,14 +174,6 @@ static void CPROC _ImageDropImageInterface( POINTER p )
 #pragma initialize 45
 #endif
 
-static int CPROC ComparePointer( PTRSZVAL oldnode, PTRSZVAL newnode )
-{
-	if( newnode > oldnode )
-		return 1;
-	else if( newnode < oldnode )
-		return -1;
-	return 0;
-}
 
 
 PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )

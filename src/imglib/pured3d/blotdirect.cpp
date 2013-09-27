@@ -27,7 +27,7 @@
 #include "local.h"
 #define NEED_ALPHA2
 #include "blotproto.h"
-
+#include "../image_common.h"
 IMAGE_NAMESPACE
 
 
@@ -559,6 +559,53 @@ IMAGE_NAMESPACE
 				Apply( pifDest->transform, v3[1-v], v3[v] );
 				Apply( pifDest->transform, v4[1-v], v4[v] );
 				v = 1-v;
+			}
+
+			if( method == BLOT_COPY )
+			{
+				ReloadD3DTexture( pifSrc, 0 );
+				if( !pifSrc->pActiveSurface )
+				{
+					lprintf( WIDE( "gl texture hasn't downloaded or went away?" ) );
+					lock = 0;
+					return;
+				}
+				g_d3d_device->SetRenderState(D3DRS_AMBIENT, 0xFFFFFFFF );
+				g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
+				;//glColor4ub( 255,255,255,255 );
+			}
+			else if( method == BLOT_SHADED )
+			{
+				CDATA tmp = va_arg( colors, CDATA );
+				// just need to set ambient light.
+				ReloadD3DTexture( pifSrc, 0 );
+				g_d3d_device->SetRenderState(D3DRS_AMBIENT, tmp );
+				g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
+			}
+			else if( method == BLOT_MULTISHADE )
+			{
+				Image output_image;
+				CDATA r = va_arg( colors, CDATA );
+				CDATA g = va_arg( colors, CDATA );
+				CDATA b = va_arg( colors, CDATA );
+				output_image = GetShadedImage( pifSrc, r, g, b );
+				ReloadD3DTexture( output_image, 0 );
+				if( !output_image->pActiveSurface )
+				{
+					lprintf( WIDE( "gl texture hasn't downloaded or went away?" ) );
+					lock = 0;
+					return;
+				}
+				g_d3d_device->SetRenderState(D3DRS_AMBIENT, 0xFFFFFFFF );
+				g_d3d_device->SetTexture( 0, output_image->pActiveSurface );
+			}
+			else if( method == BLOT_INVERTED )
+			{
+				Image output_image;
+				output_image = GetInvertedImage( pifSrc );
+				ReloadD3DTexture( output_image, 0 );
+				g_d3d_device->SetRenderState(D3DRS_AMBIENT, 0xFFFFFFFF );
+				g_d3d_device->SetTexture( 0, output_image->pActiveSurface );
 			}
 
 			LPDIRECT3DVERTEXBUFFER9 pQuadVB;
