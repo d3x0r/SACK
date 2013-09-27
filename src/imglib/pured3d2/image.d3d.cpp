@@ -326,8 +326,6 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 			//unlock buffer (NEW)
 			pQuadVB->Unlock();
 			g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
-			g_d3d_device->SetRenderState(D3DRS_AMBIENT,RGB(255,255,255));
-			g_d3d_device->SetRenderState( D3DRS_LIGHTING,false);
 			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DVERTEX));
 			//draw quad (NEW)
 

@@ -10,7 +10,7 @@ if( __ANDROID__ )
 ADD_DEFINITIONS( -D__ANDROID__ )
 endif( __ANDROID__ )
 
-
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 set( COMMON_SOURCES
         keydefs.c    # key event binding to global keyboard input or specific displays
         key_state.c  # key state handling; is key up/down, delay times, toggles...
