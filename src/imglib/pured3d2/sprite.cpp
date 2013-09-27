@@ -29,7 +29,8 @@
 #include "image.h"
 #include "sprite_local.h"
 
-
+#include <d3d9.h>
+#include "local.h"
 
 //#define DEBUG_TIMING
 #define OUTPUT_IMAGE
@@ -949,13 +950,18 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 	_POINT tmp;
 	static _32 lock;
 	static PTRANSFORM transform;
+	S_32 xd, yd;
 	//lprintf( "-- Begin Transform" );
 	while( LockedExchange( &lock, 1 ) ) Relinquish();
 	if( !transform )
 		transform = CreateNamedTransform( NULL );
+	xd = sprite->curx;// * sprite->scalex / (RCOORD)0x10000;
+	yd = sprite->cury;// * sprite->scaley / (RCOORD)0x10000;
+	TranslateCoord( dest, &xd, &yd );
+
 	Translate( transform
-				, (RCOORD)sprite->curx * sprite->scalex / (RCOORD)0x10000
-				, (RCOORD)sprite->cury*sprite->scaley / (RCOORD)0x10000
+				, (RCOORD)xd
+				, (RCOORD)yd
 				, (RCOORD)0 );
 	//lprintf( WIDE("angle = %ld"), sprite->angle );
 	Scale( transform, sprite->scalex / (RCOORD)0x10000, sprite->scaley / (RCOORD)0x10000, 0 );
@@ -1030,22 +1036,148 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 #endif
 		}
 	}
+
+	if( !(dest->flags & IF_FLAG_FINAL_RENDER ) )
+	{
 #ifdef DEBUG_TIMING
-	lprintf( "Output arbitrary" );
+		lprintf( "Output arbitrary" );
 #endif
-         //lprintf( "plot arbitraty..." );
-	PlotArbitrary( dest, sprite->image
-					 , x1, y1
-					 , x2, y2
-					 , x3, y3
-					 , x4, y4
-					 , 0
-					 , BLOT_COPY
-					 , 0, 0, 0 );
-         //lprintf( "done plott..." );
+		//lprintf( "plot arbitraty..." );
+		PlotArbitrary( dest, sprite->image
+						 , x1, y1
+						 , x2, y2
+						 , x3, y3
+						 , x4, y4
+						 , 0
+						 , BLOT_COPY
+						 , 0, 0, 0 );
+		//lprintf( "done plott..." );
 #ifdef DEBUG_TIMING
-	lprintf( "arbitrary out" );
+		lprintf( "arbitrary out" );
 #endif
+	}
+	else
+	{
+			VECTOR v[2][4];
+			float texture_v[4][2];
+			int vi = 0;
+			//TranslateCoord( dest, &xd, &yd );
+
+			v[vi][0][0] = x1;
+			v[vi][0][1] = y1;
+			v[vi][0][2] = 0.0;
+
+			v[vi][1][0] = x2;
+			v[vi][1][1] = y2;
+			v[vi][1][2] = 0.0;
+
+			v[vi][2][0] = x4;
+			v[vi][2][1] = y4;
+			v[vi][2][2] = 0.0;
+
+			v[vi][3][0] = x3;
+			v[vi][3][1] = y3;
+			v[vi][3][2] = 0.0;
+
+
+			while( dest && dest->pParent )
+			{
+				if( dest->transform )
+				{
+					Apply( dest->transform, v[1-vi][0], v[vi][0] );
+					Apply( dest->transform, v[1-vi][1], v[vi][1] );
+					Apply( dest->transform, v[1-vi][2], v[vi][2] );
+					Apply( dest->transform, v[1-vi][3], v[vi][3] );
+					vi = 1-vi;
+				}
+				dest = dest->pParent;
+			}
+			if( dest->transform )
+			{
+				Apply( dest->transform, v[1-vi][0], v[vi][0] );
+				Apply( dest->transform, v[1-vi][1], v[vi][1] );
+				Apply( dest->transform, v[1-vi][2], v[vi][2] );
+				Apply( dest->transform, v[1-vi][3], v[vi][3] );
+				vi = 1-vi;
+			}
+
+			//scale( v[vi][0], v[vi][0], l.scale );
+			//scale( v[vi][1], v[vi][1], l.scale );
+			//scale( v[vi][2], v[vi][2], l.scale );
+			//scale( v[vi][3], v[vi][3], l.scale );
+
+				float x_size, x_size2, y_size, y_size2;
+				int xs, ys, ws, hs;
+				Image topmost_parent ;
+				xs = sprite->image->real_x;
+				ys = sprite->image->real_y;
+				ws = sprite->image->width;
+				hs = sprite->image->height;
+				for( topmost_parent = sprite->image->pParent; topmost_parent && topmost_parent->pParent; topmost_parent = topmost_parent->pParent )
+				{
+					xs += topmost_parent->real_x;
+					ys += topmost_parent->real_y;
+				}
+				x_size = (float) xs/ (float)topmost_parent->width;
+				x_size2 = (float) (xs+ws)/ (float)topmost_parent->width;
+				y_size = (float) ys/ (float)topmost_parent->height;
+				y_size2 = (float) (ys+hs)/ (float)topmost_parent->height;
+
+				ReloadD3DTexture( topmost_parent, 0 );
+
+			static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
+			if( !pQuadVB )
+				g_d3d_device->CreateVertexBuffer(sizeof( D3DTEXTUREDVERTEX )*4,
+															D3DUSAGE_WRITEONLY,
+															D3DFVF_CUSTOMTEXTUREDVERTEX,
+															D3DPOOL_MANAGED,
+															&pQuadVB,
+															NULL);
+			D3DTEXTUREDVERTEX* pData;
+			//lock buffer (NEW)
+			pQuadVB->Lock(0,0,(void**)&pData,0);
+			//copy data to buffer (NEW)
+			{
+				pData[0].fX = v[vi][0][vRight] * l.scale;
+				pData[0].fY = v[vi][0][vUp] * l.scale;
+				pData[0].fZ = v[vi][0][vForward] * l.scale;
+				pData[0].dwColor = 0xFFFFFFFF;
+				pData[0].fU1 = x_size;
+				pData[0].fV1 = y_size;
+				pData[1].fX = v[vi][1][vRight] * l.scale;
+				pData[1].fY = v[vi][1][vUp] * l.scale;
+				pData[1].fZ = v[vi][1][vForward] * l.scale;
+				pData[1].dwColor = 0xFFFFFFFF;
+				pData[1].fU1 = x_size2;
+				pData[1].fV1 = y_size;
+				pData[2].fX = v[vi][2][vRight] * l.scale;
+				pData[2].fY = v[vi][2][vUp] * l.scale;
+				pData[2].fZ = v[vi][2][vForward] * l.scale;
+				pData[2].dwColor = 0xFFFFFFFF;
+				pData[2].fU1 = x_size;
+				pData[2].fV1 = y_size2;
+				pData[3].fX = v[vi][3][vRight] * l.scale;
+				pData[3].fY = v[vi][3][vUp] * l.scale;
+				pData[3].fZ = v[vi][3][vForward] * l.scale;
+				pData[3].dwColor = 0xFFFFFFFF;
+				pData[3].fU1 = x_size2;
+				pData[3].fV1 = y_size2;
+			}
+			//unlock buffer (NEW)
+			pQuadVB->Unlock();
+			g_d3d_device->SetFVF( D3DFVF_CUSTOMTEXTUREDVERTEX );
+			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DTEXTUREDVERTEX));
+			//draw quad (NEW)
+			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
+			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE);
+			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
+			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_DIFFUSE);
+			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_DIFFUSE);
+			//pQuadVB->Release();
+
+
+	}
+
 }
 
 
