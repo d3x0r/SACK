@@ -106,8 +106,6 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 			#define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ | D3DFVF_NORMAL)
 
 			g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
-			//g_d3d_device->SetRenderState(D3DRS_AMBIENT,RGB(255,255,255));
-			//g_d3d_device->SetRenderState( D3DRS_LIGHTING,false);
 
 			g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
                                       D3DUSAGE_WRITEONLY,
@@ -281,8 +279,6 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 			#define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ | D3DFVF_NORMAL)
 
 			g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
-			g_d3d_device->SetRenderState(D3DRS_AMBIENT,RGB(255,255,255));
-			g_d3d_device->SetRenderState( D3DRS_LIGHTING,false);
 
 			g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
                                       D3DUSAGE_WRITEONLY,

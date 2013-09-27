@@ -472,6 +472,7 @@ PRIORITY_PRELOAD( InitProcReg2, SYSLOG_PRELOAD_PRIORITY )
    // this has to be done after timer's init is done, which is SYSLOG_PRELOAD_PRIORITY-1
    procreg_local_private_data.flags.enable_critical_sections = 1;
 }
+
 PRIORITY_PRELOAD( InitProcreg, NAMESPACE_PRELOAD_PRIORITY )
 {
 	Init();
@@ -534,7 +535,7 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 	{
 		Init();
 
-		if( !l.Names )
+		if( !procreg_local_data || !l.Names )
 			InitGlobalSpace( &l, 0);
 		root = l.Names;
 	}// fix root...
@@ -666,7 +667,7 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 //---------------------------------------------------------------------------
 PROCREG_PROC( PCLASSROOT, CheckClassRoot )( CTEXTSTR name_class )
 {
-   return GetClassTreeEx( l.Names, (PCLASSROOT)name_class, NULL, FALSE );
+   return GetClassTreeEx( NULL, (PCLASSROOT)name_class, NULL, FALSE );
 }
 
 //---------------------------------------------------------------------------
@@ -1172,9 +1173,9 @@ PROCREG_PROC( PCLASSROOT, GetCurrentRegisteredTree )( PCLASSROOT *data )
 
 PROCREG_PROC( CTEXTSTR, GetFirstRegisteredNameEx )( PCLASSROOT root, CTEXTSTR classname, PCLASSROOT *data )
 {
-   PTREEDEF class_root;
+	PTREEDEF class_root;
 	PNAME name;
-   *data =
+	*data =
 		class_root = GetClassTree( root, (PCLASSROOT)classname );
 	if( class_root )
 	{
@@ -1190,12 +1191,12 @@ PROCREG_PROC( CTEXTSTR, GetFirstRegisteredNameEx )( PCLASSROOT root, CTEXTSTR cl
 
 PROCREG_PROC( CTEXTSTR, GetFirstRegisteredName )( CTEXTSTR classname, PCLASSROOT *data )
 {
-   return GetFirstRegisteredNameEx( l.Names, classname, data );
+   return GetFirstRegisteredNameEx( NULL, classname, data );
 }
 #ifdef __cplusplus
 PROCREG_PROC( CTEXTSTR, GetFirstRegisteredName )( PCLASSROOT classname, PCLASSROOT *data )
 {
-   return GetFirstRegisteredNameEx( l.Names, (CTEXTSTR)classname, data );
+   return GetFirstRegisteredNameEx( NULL, (CTEXTSTR)classname, data );
 }
 #endif
 

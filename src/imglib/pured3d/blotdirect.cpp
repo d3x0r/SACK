@@ -571,7 +571,6 @@ IMAGE_NAMESPACE
 			else if( method == BLOT_SHADED )
 			{
 				color = va_arg( colors, CDATA );
-				// just need to set ambient light.
 				ReloadD3DTexture( pifSrc, 0 );
 				g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
 			}
@@ -644,8 +643,11 @@ IMAGE_NAMESPACE
 			g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
 			g_d3d_device->SetFVF( D3DFVF_CUSTOMTEXTUREDVERTEX );
 			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DTEXTUREDVERTEX));
-			//draw quad (NEW)
+			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
+			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE);
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
+			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_DIFFUSE);
+			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_DIFFUSE);
 			pQuadVB->Release();
 		}
 	}

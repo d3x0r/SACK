@@ -184,6 +184,21 @@ void Render3D( struct display_camera *camera )
 				camera->hVidCore->d3ddev->SetTransform( D3DTS_WORLD, &out );
 			}
 		}
+         /* some kinda init; no? */
+			Render3d.current_device->SetRenderState(D3DRS_ALPHABLENDENABLE,true);
+			Render3d.current_device->SetRenderState(D3DRS_SRCBLEND,D3DBLEND_SRCALPHA);
+			Render3d.current_device->SetRenderState(D3DRS_DESTBLEND,D3DBLEND_INVSRCALPHA);
+			Render3d.current_device->SetRenderState(D3DRS_BLENDOP,D3DBLENDOP_ADD);
+
+			Render3d.current_device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+			Render3d.current_device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+			Render3d.current_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
+
+			Render3d.current_device->SetRenderState(D3DRS_AMBIENT, 0xFFFFFFFF );
+			Render3d.current_device->SetRenderState( D3DRS_LIGHTING,false);
+			Render3d.current_device->SetRenderState( D3DRS_ALPHATESTENABLE, TRUE );
+			Render3d.current_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_DIFFUSE);
+			Render3d.current_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_DIFFUSE);
 #endif
 
 		if( l.flags.bLogRenderTiming )
@@ -223,16 +238,13 @@ void Render3D( struct display_camera *camera )
 
 #endif
 #ifdef _D3D_DRIVER
+#if 0
 			Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 1 );
 			ClearImageTo( hVideo->pImage, 0 );
-			Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 0 );
-
-         /* some kinda init; no? */
-			Render3d.current_device->SetRenderState(D3DRS_ALPHABLENDENABLE,true);
-			Render3d.current_device->SetRenderState(D3DRS_SRCBLEND,D3DBLEND_SRCALPHA);
-			Render3d.current_device->SetRenderState(D3DRS_DESTBLEND,D3DBLEND_INVSRCALPHA);
-			Render3d.current_device->SetRenderState(D3DRS_BLENDOP,D3DBLENDOP_ADD);
 #endif
+			Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 0 );
+#endif
+
 			if( hVideo->pRedrawCallback )
 			{
 				hVideo->pRedrawCallback( hVideo->dwRedrawData, (PRENDERER)hVideo );

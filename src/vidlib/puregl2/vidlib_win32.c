@@ -37,6 +37,16 @@ extern KEYDEFINE KeyDefs[];
 #define WM_RUALIVE 5000 // lparam = pointer to alive variable expected to set true
 
 
+ATEXIT( ExitTest )
+{
+	l.bExitThread = 1;
+   // just to make sure something wakes it up... it could be in a mouse event.
+	PostThreadMessage (l.dwThreadID, WM_USER_SHUTDOWN, 0, 0);
+	while(l.bThreadRunning)
+      Relinquish();
+}
+
+
 struct dropped_file_acceptor_tag {
 	dropped_file_acceptor f;
 	PTRSZVAL psvUser;

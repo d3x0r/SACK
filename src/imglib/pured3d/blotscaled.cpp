@@ -357,7 +357,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
       _32 alpha;
       if( (cin = *pi) )
       {
-         _32 rout, gout, bout;
+			_32 rout, gout, bout;
 			cin = MULTISHADEPIXEL( cin, r, g, b );
 			alpha = ( cin & 0xFF000000 ) >> 24;
 			alpha -= nTransparent;
@@ -494,7 +494,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		//lprintf( WIDE( "use regular texture %p (%d,%d)" ), pifSrc, pifSrc->width, pifSrc->height );
 
 		{
-         _32 color;
+			_32 color = 0xffffffff;
 			int glDepth = 1;
 			VECTOR v1[2], v3[2],v4[2],v2[2];
 			int v = 0;
@@ -559,13 +559,11 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 					lock = 0;
 					return;
 				}
-            color = 0xFFFFFFFF;
 				g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
 			}
 			else if( method == BLOT_SHADED )
 			{
 				color = va_arg( colors, CDATA );
-				// just need to set ambient light.
 				ReloadD3DTexture( pifSrc, 0 );
 				g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
 			}
@@ -583,7 +581,6 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 					lock = 0;
 					return;
 				}
-            color = 0xFFFFFFFF;
 				g_d3d_device->SetTexture( 0, output_image->pActiveSurface );
 			}
 			else if( method == BLOT_INVERTED )
@@ -591,7 +588,6 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				Image output_image;
 				output_image = GetInvertedImage( pifSrc );
 				ReloadD3DTexture( output_image, 0 );
-            color = 0xFFFFFFFF;
 				g_d3d_device->SetTexture( 0, output_image->pActiveSurface );
 			}
 
@@ -638,11 +634,14 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			g_d3d_device->SetFVF( D3DFVF_CUSTOMTEXTUREDVERTEX );
 			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DTEXTUREDVERTEX));
 			//draw quad (NEW)
+			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
+			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE);
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
+			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_DIFFUSE);
+			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_DIFFUSE);
 			pQuadVB->Release();
 		}
 	}
-
 	else
 	{
 		//Log9( WIDE("Image locations: %d(%d %d) %d(%d) %d(%d) %d(%d)")

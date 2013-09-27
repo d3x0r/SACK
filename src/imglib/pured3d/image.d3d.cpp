@@ -325,6 +325,7 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 			g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
 			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DVERTEX));
 			//draw quad (NEW)
+			g_d3d_device->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
 
 
 			HRESULT br = g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
@@ -438,7 +439,7 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 			v = 1-v;
 		}
 
-			LPDIRECT3DVERTEXBUFFER9 pQuadVB;
+		LPDIRECT3DVERTEXBUFFER9 pQuadVB;
 		struct D3DVERTEX
 		{
 			float fX,
@@ -446,13 +447,6 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 			fZ;
 			DWORD dwColor;
 		};
-		struct D3DXVECTOR3
-		{
-			float fX,
-			fY,
-			fZ;
-		};
-
 
 		g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
 													D3DUSAGE_WRITEONLY,
