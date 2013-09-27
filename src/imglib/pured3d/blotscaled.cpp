@@ -2,9 +2,9 @@
  *  Crafted by Jim Buckeyne
  *   (c)1999-2006++ Freedom Collective
  * 
- *   Handle putting out one image scaled onto another image.
+ *   Handle putting out one image scaled onto another image; clips to bounds of sub-image
  * 
- * 
+ *
  * 
  *  consult doc/image.html
  *
@@ -478,31 +478,6 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		return;
 	}
    
-	//Log9( WIDE("Image locations: %d(%d %d) %d(%d) %d(%d) %d(%d)")
-	//          , xs, FROMFIXED(xs), FIXEDPART(xs)
-	//          , ys, FROMFIXED(ys)
-	//          , xd, FROMFIXED(xd)
-	//          , yd, FROMFIXED(yd) );
-	if( pifSrc->flags & IF_FLAG_INVERTED )
-	{
-		// set pointer in to the starting x pixel
-		// on the last line of the image to be copied 
-		pi = IMG_ADDRESS( pifSrc, (xs), (ys) );
-		po = IMG_ADDRESS( pifDest, (xd), (yd) );
-		oo = 4*(-((signed)wd) - (pifDest->pwidth) ); // w is how much we can copy...
-		// adding in multiple of 4 because it's C...
-		srcwidth = -(4* pifSrc->pwidth);
-	}
-	else
-	{
-		// set pointer in to the starting x pixel
-		// on the first line of the image to be copied...
-		pi = IMG_ADDRESS( pifSrc, (xs), (ys) );
-		po = IMG_ADDRESS( pifDest, (xd), (yd) );
-		oo = 4*(pifDest->pwidth - (wd)); // w is how much we can copy...
-		// adding in multiple of 4 because it's C...
-		srcwidth = 4* pifSrc->pwidth;
-	}
 	while( LockedExchange( &lock, 1 ) )
 		Relinquish();
    //Log8( WIDE("Do blot work...%d(%d),%d(%d) %d(%d) %d(%d)")
@@ -668,58 +643,86 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		}
 	}
 
-	else switch( method )
+	else
 	{
-	case BLOT_COPY:
-		if( !nTransparent )
-			cBlotScaledT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );       
-		else if( nTransparent == 1 )
-			cBlotScaledT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );       
-		else if( nTransparent & ALPHA_TRANSPARENT )
-			cBlotScaledTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );
-		else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-			cBlotScaledTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );        
-		else
-			cBlotScaledTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent );        
-		break;
-	case BLOT_SHADED:
-		if( !nTransparent )
-			cBlotScaledShadedT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, va_arg( colors, CDATA ) );
-		else if( nTransparent == 1 )
-			cBlotScaledShadedT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, va_arg( colors, CDATA ) );
-		else if( nTransparent & ALPHA_TRANSPARENT )
-			cBlotScaledShadedTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF, va_arg( colors, CDATA ) );
-		else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-			cBlotScaledShadedTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF, va_arg( colors, CDATA ) );
-		else
-			cBlotScaledShadedTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent, va_arg( colors, CDATA ) );
-		break;
-	case BLOT_MULTISHADE:
+		//Log9( WIDE("Image locations: %d(%d %d) %d(%d) %d(%d) %d(%d)")
+		//          , xs, FROMFIXED(xs), FIXEDPART(xs)
+		//          , ys, FROMFIXED(ys)
+		//          , xd, FROMFIXED(xd)
+		//          , yd, FROMFIXED(yd) );
+		if( pifSrc->flags & IF_FLAG_INVERTED )
 		{
-			CDATA r,g,b;
-			r = va_arg( colors, CDATA );
-			g = va_arg( colors, CDATA );
-			b = va_arg( colors, CDATA );
-			if( !nTransparent )
-				cBlotScaledMultiT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-									  , r, g, b );
-			else if( nTransparent == 1 )
-				cBlotScaledMultiT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-									  , r, g, b );
-			else if( nTransparent & ALPHA_TRANSPARENT )
-				cBlotScaledMultiTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-										  , nTransparent & 0xFF
-										  , r, g, b );
-			else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-				cBlotScaledMultiTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-											, nTransparent & 0xFF
-											, r, g, b );
-			else
-				cBlotScaledMultiTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-									  , nTransparent
-									  , r, g, b );
+			// set pointer in to the starting x pixel
+			// on the last line of the image to be copied
+			pi = IMG_ADDRESS( pifSrc, (xs), (ys) );
+			po = IMG_ADDRESS( pifDest, (xd), (yd) );
+			oo = 4*(-((signed)wd) - (pifDest->pwidth) ); // w is how much we can copy...
+			// adding in multiple of 4 because it's C...
+			srcwidth = -(4* pifSrc->pwidth);
 		}
-		break;
+		else
+		{
+			// set pointer in to the starting x pixel
+			// on the first line of the image to be copied...
+			pi = IMG_ADDRESS( pifSrc, (xs), (ys) );
+			po = IMG_ADDRESS( pifDest, (xd), (yd) );
+			oo = 4*(pifDest->pwidth - (wd)); // w is how much we can copy...
+			// adding in multiple of 4 because it's C...
+			srcwidth = 4* pifSrc->pwidth;
+		}
+		switch( method )
+		{
+		case BLOT_COPY:
+			if( !nTransparent )
+				cBlotScaledT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );
+			else if( nTransparent == 1 )
+				cBlotScaledT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );
+			else if( nTransparent & ALPHA_TRANSPARENT )
+				cBlotScaledTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );
+			else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
+				cBlotScaledTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );
+			else
+				cBlotScaledTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent );
+			break;
+		case BLOT_SHADED:
+			if( !nTransparent )
+				cBlotScaledShadedT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, va_arg( colors, CDATA ) );
+			else if( nTransparent == 1 )
+				cBlotScaledShadedT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, va_arg( colors, CDATA ) );
+			else if( nTransparent & ALPHA_TRANSPARENT )
+				cBlotScaledShadedTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF, va_arg( colors, CDATA ) );
+			else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
+				cBlotScaledShadedTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF, va_arg( colors, CDATA ) );
+			else
+				cBlotScaledShadedTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent, va_arg( colors, CDATA ) );
+			break;
+		case BLOT_MULTISHADE:
+			{
+				CDATA r,g,b;
+				r = va_arg( colors, CDATA );
+				g = va_arg( colors, CDATA );
+				b = va_arg( colors, CDATA );
+				if( !nTransparent )
+					cBlotScaledMultiT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+										  , r, g, b );
+				else if( nTransparent == 1 )
+					cBlotScaledMultiT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+										  , r, g, b );
+				else if( nTransparent & ALPHA_TRANSPARENT )
+					cBlotScaledMultiTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+											  , nTransparent & 0xFF
+											  , r, g, b );
+				else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
+					cBlotScaledMultiTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+												, nTransparent & 0xFF
+												, r, g, b );
+				else
+					cBlotScaledMultiTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+										  , nTransparent
+										  , r, g, b );
+			}
+			break;
+		}
 	}
 	lock = 0;
 //   Log( WIDE("Blot done") );
@@ -728,75 +731,3 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 
 IMAGE_NAMESPACE_END
 
-//---------------------------------------------------------------------------
-
-// $Log: blotscaled.c,v $
-// Revision 1.29  2005/06/21 00:45:41  jim
-// Fix image bound issue with scaled image blotting... Also add a custom error handler to png image loader
-//
-// Revision 1.30  2005/05/30 20:05:53  d3x0r
-// okay right/bottom edge adjustment was wrong... corrected.
-//
-// Revision 1.29  2005/05/30 19:56:37  d3x0r
-// Make blotscaled behave a lot better... respecting image boundrys much better...
-//
-// Revision 1.28  2004/09/01 03:27:20  d3x0r
-// Control updates video display issues?  Image blot message go away...
-//
-// Revision 1.27  2004/08/11 12:52:36  d3x0r
-// Should figure out where they hide flag isn't being set... vline had to check for height<0
-//
-// Revision 1.26  2004/06/21 07:47:08  d3x0r
-// Account for newly moved structure files.
-//
-// Revision 1.25  2004/03/29 20:07:25  d3x0r
-// Remove benchmark logging
-//
-// Revision 1.24  2004/01/12 00:34:54  panther
-// Fix error really of always 0 comparison vs wd, ht
-//
-// Revision 1.23  2003/09/15 17:06:37  panther
-// Fixed to image, display, controls, support user defined clipping , nearly clearing correct portions of frame when clearing hotspots...
-//
-// Revision 1.22  2003/08/20 15:53:31  panther
-// Okay and assembly loops have been updated accordingly
-//
-// Revision 1.21  2003/08/20 14:22:23  panther
-// Remove excess logging, unused parameters
-//
-// Revision 1.20  2003/08/20 13:59:13  panther
-// Okay looks like the C layer blotscaled works...
-//
-// Revision 1.19  2003/08/20 08:07:12  panther
-// some fixes to blot scaled... fixed to makefiles test projects... fixes to export containters lib funcs
-//
-// Revision 1.18  2003/08/12 15:11:08  panther
-// Test fixed point bias for scaled clipping
-//
-// Revision 1.17  2003/08/12 15:09:32  panther
-// Test fixed point bias for scaled clipping
-//
-// Revision 1.16  2003/08/01 07:56:12  panther
-// Commit changes for logging...
-//
-// Revision 1.15  2003/08/01 00:17:34  panther
-// minor cleanup for watcom compile
-//
-// Revision 1.14  2003/07/31 08:55:30  panther
-// Fix blotscaled boundry calculations - perhaps do same to blotdirect
-//
-// Revision 1.13  2003/07/25 00:08:59  panther
-// Fixeup all copyies, scaled and direct for watcom
-//
-// Revision 1.12  2003/04/25 08:33:09  panther
-// Okay move the -1's back out of IMG_ADDRESS
-//
-// Revision 1.11  2003/03/30 21:17:40  panther
-// Used wrong image names..
-//
-// Revision 1.10  2003/03/30 18:39:03  panther
-// Update image blotters to use IMG_ADDRESS
-//
-// Revision 1.9  2003/03/25 08:45:51  panther
-// Added CVS logging tag
-//
