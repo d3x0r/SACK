@@ -113,7 +113,7 @@ void ClearBoard( void )
 		// ends up setting new game...
 		CloseDisplay( hDisplay );
 		while( !NewGame )
-         Idle();
+			Idle();
 		hDisplay = NULL;
 	}
 	NewGame = FALSE;
@@ -1182,7 +1182,7 @@ SaneWinMain( argc, argv )
 		}
 		else if( winstate )
 		{
-         SimpleMessageBox( NULL, "Someone Won!!!", "WINNER" );
+			SimpleMessageBox( NULL, "Someone Won!!!", "WINNER" );
 			NewGame = TRUE;
 		}
 		else

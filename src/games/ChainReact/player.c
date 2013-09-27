@@ -55,7 +55,7 @@ extern PLAYER players[];
 void CPROC AddPlayerButton( PTRSZVAL psv, PCONTROL pc )
 {
 	char buffer[256];
-   PCOMMON frame = GetFrame( pc );
+	PCOMMON frame = GetFrame( pc );
 	(nPlayers)++;
 
  	GetControlText( GetControl( frame, EDT_NAME )
@@ -98,8 +98,8 @@ void CPROC AddPlayerButton( PTRSZVAL psv, PCONTROL pc )
 			{
 				if( IsControlEnabled( pcColor = GetControl( frame, BTN_COLOR1 + n ) ) )
 				{
-		   		LastColor = n;
-		   		break;
+		   			LastColor = n;
+		   			break;
 				}
 			}
 		}
@@ -112,18 +112,18 @@ void CPROC AddPlayerButton( PTRSZVAL psv, PCONTROL pc )
 
 void CPROC SetPlayerColor( PTRSZVAL psv, PCONTROL pc )
 {
-   if( LastColor >= 0 )
-   {
-	   PressButton( pcColor, FALSE );
-   }
-   PressButton( pc, TRUE );
-   LastColor = ( GetControlID( pc ) - BTN_COLOR1 ) + 1;
-   pcColor = pc;
+	if( LastColor >= 0 )
+	{
+		PressButton( pcColor, FALSE );
+	}
+	PressButton( pc, TRUE );
+	LastColor = ( GetControlID( pc ) - BTN_COLOR1 ) + 1;
+	pcColor = pc;
 }
 
 void CPROC PlayGameButton( PTRSZVAL psv, PCONTROL pc  )
 {
-   done = TRUE;
+	done = TRUE;
 }
 
 void CPROC ShowSomeHelp( PTRSZVAL psv, PCONTROL pc )
@@ -146,10 +146,10 @@ int ConfigurePlayers( void )
 	int n;
 	for( n = 1; n <= MAX_PLAYERS; n++ )
 	{
-	   extern Image pAtom;
+		extern Image pAtom;
 		pImages[n-1] = MakeImageFile( 22, 22 );
 		ClearImageTo( pImages[n-1], 0 );
-      BlotScaledImageSizedEx( pImages[n-1], pAtom
+		BlotScaledImageSizedEx( pImages[n-1], pAtom
    						    	 , 0, 0, pImages[n-1]->width, pImages[n-1]->height
    						    	 , 0, 0, pAtom->width, pAtom->height
                          	 , TRUE, BLOT_MULTISHADE
@@ -161,7 +161,7 @@ int ConfigurePlayers( void )
 //      						, Colors[n] );
 	}
 	pFrame = CreateFrame( "Config Player", 0, 0, 275, 125, BORDER_NORMAL, (PCOMMON)0 );
-   pPlayerFrame = pFrame;
+	pPlayerFrame = pFrame;
 	MoveFrame( pFrame, 50, 50 );
 	MakeButton( pFrame, 255, 5, 15, 15, BTN_QUIT, "X", 0, QuitGame, 0 );
 	MakeTextControl( pFrame, 5, 10, 150, 15, TXT_CONFIGNUM, "Configure Player #1", 0 );
@@ -183,17 +183,17 @@ int ConfigurePlayers( void )
 	MakeButton( pFrame, 108, 100, 82, 20, BTN_ADD, "Add Player", 0, AddPlayerButton,  (PTRSZVAL)&nPlayers);
 	MakeButton( pFrame, 14, 100, 82, 20, BTN_PLAY, "Play Game", 0, PlayGameButton, (PTRSZVAL)&done );
 	EnableControl( GetControl( pFrame, BTN_PLAY ), FALSE );
-   SetCommonFocus( GetControl( pFrame, EDT_NAME ) );
-   LastColor = players[1].color;
-   pcColor = GetControl( pFrame, BTN_COLOR1 + players[1].color - 1);
-   PressButton( pcColor, TRUE );
+	SetCommonFocus( GetControl( pFrame, EDT_NAME ) );
+	LastColor = players[1].color;
+	pcColor = GetControl( pFrame, BTN_COLOR1 + players[1].color - 1);
+	PressButton( pcColor, TRUE );
 	SetCheckState( GetControl( pFrame, CHK_COMPUTER ), players[1].computer );
 	DisplayFrame( pFrame );
-   nPlayers = 0;
+	nPlayers = 0;
 	done = FALSE;
 	while( !done )
 	{
-      Idle();
+		IdleFor( 250 );
 	}
 
 	DestroyFrame( &pFrame );
