@@ -563,9 +563,18 @@ PSI_PROC( PRENDER_INTERFACE, SetControlInterface )( PRENDER_INTERFACE DisplayInt
 PSI_PROC( void, AlignBaseToWindows )( void )
 {
 #ifdef _WIN32
-    int tmp;
-#define Swap(i) (tmp = i,((( tmp&0xFF) << 16 ) | ( tmp & 0xFF00 ) | ( ( tmp & 0xFF0000 ) >> 16 ) | 0xFF000000 ))
-	 defaultcolor[HIGHLIGHT        ] =  Swap(GetSysColor( COLOR_3DHIGHLIGHT));
+   int sys_r;
+   int sys_g;
+   int sys_b;
+   int sys_a;
+	int tmp;
+   int z;
+
+#define Swap(i)    ( (tmp = i),( sys_r = ((tmp) & 0xFF)), (sys_g = ((tmp>>8) & 0xFF)),(sys_b = ((tmp >>16) & 0xFF)),(sys_a = 0xFF),AColor(sys_r,sys_g,sys_b,sys_a) )
+
+//#define Swap(i) (tmp = i,((( tmp&0xFF) << 16 ) | ( tmp & 0xFF00 ) | ( ( tmp & 0xFF0000 ) >> 16 ) | 0xFF000000 ))
+	z = defaultcolor[HIGHLIGHT        ] =  Swap(GetSysColor( COLOR_3DHIGHLIGHT));
+	lprintf( "color was %08x is now %08x from %02x %02x %02x %02x", tmp, z, sys_r, sys_g, sys_b, sys_a );
     if( !g.BorderImage )
 		 defaultcolor[NORMAL           ] =  Swap(GetSysColor(COLOR_3DFACE ));
     defaultcolor[SHADE            ] =  Swap(GetSysColor(COLOR_3DSHADOW ));
