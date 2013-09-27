@@ -532,8 +532,7 @@ IMAGE_NAMESPACE
 			y_size2 = (double) (ys+hs)/ (double)pifSrc->height;
 
 			// Front Face
-			//glColor4ub( 255,120,32,192 );
-			//lprintf( WIDE( "Texture size is %g,%g to %g,%g" ), x_size, y_size, x_size2, y_size2 );
+			lprintf( WIDE( "Texture size is %g,%g to %g,%g" ), x_size, y_size, x_size2, y_size2 );
 			while( pifDest && pifDest->pParent )
 			{
 				glDepth = 0;
@@ -580,7 +579,9 @@ IMAGE_NAMESPACE
 				CDATA r = va_arg( colors, CDATA );
 				CDATA g = va_arg( colors, CDATA );
 				CDATA b = va_arg( colors, CDATA );
+				lock = 0;
 				output_image = GetShadedImage( pifSrc, r, g, b );
+				lock = 1;
 				ReloadD3DTexture( output_image, 0 );
 				if( !output_image->pActiveSurface )
 				{
@@ -598,19 +599,18 @@ IMAGE_NAMESPACE
 				g_d3d_device->SetTexture( 0, output_image->pActiveSurface );
 			}
 
-			LPDIRECT3DVERTEXBUFFER9 pQuadVB;
-			#define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ | D3DFVF_NORMAL)
+			static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
 
-
-			g_d3d_device->CreateVertexBuffer(sizeof( D3DTEXTUREDVERTEX )*4,
-                                      D3DUSAGE_WRITEONLY,
-                                      D3DFVF_CUSTOMTEXTUREDVERTEX,
-                                      D3DPOOL_MANAGED,
-                                      &pQuadVB,
-                                      NULL);
+			if( !pQuadVB )
+				g_d3d_device->CreateVertexBuffer(sizeof( D3DTEXTUREDVERTEX )*4,
+															D3DUSAGE_WRITEONLY,
+															D3DFVF_CUSTOMTEXTUREDVERTEX,
+															D3DPOOL_MANAGED,
+															&pQuadVB,
+															NULL);
 			D3DTEXTUREDVERTEX* pData;
 			//lock buffer (NEW)
-			pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
+			pQuadVB->Lock(0,0,(void**)&pData,0);
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
@@ -638,17 +638,32 @@ IMAGE_NAMESPACE
 				pData[3].fU1 = x_size2;
 				pData[3].fV1 = y_size2;
 			}
+{
+int n;
+for( n = 0; n < 4; n++ )
+lprintf( "pdata[%d] = %g %g %g %08x %g %g", n
+, pData[n].fX
+, pData[n].fY
+, pData[n].fZ
+, pData[n].dwColor
+, pData[n].fU1
+, pData[n].fV1 );
+}
 			//unlock buffer (NEW)
 			pQuadVB->Unlock();
 			g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
 			g_d3d_device->SetFVF( D3DFVF_CUSTOMTEXTUREDVERTEX );
 			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DTEXTUREDVERTEX));
+
 			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
 			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE);
+
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
+
 			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_DIFFUSE);
 			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_DIFFUSE);
-			pQuadVB->Release();
+
+			//pQuadVB->Release();
 		}
 	}
 	else

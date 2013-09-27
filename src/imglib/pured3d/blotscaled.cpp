@@ -526,7 +526,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			x_size2 = (RCOORD) (xs+ws)/ (RCOORD)topmost_parent->width;
 			y_size = (RCOORD) ys/ (RCOORD)topmost_parent->height;
 			y_size2 = (RCOORD) (ys+hs)/ (RCOORD)topmost_parent->height;
-			//lprintf( WIDE( "Texture size is %g,%g to %g,%g" ), x_size, y_size, x_size2, y_size2 );
+			lprintf( WIDE( "Texture size is %g,%g to %g,%g" ), x_size, y_size, x_size2, y_size2 );
 			//lprintf( WIDE( "Texture size is %g,%g" ), x_size, y_size );
 			while( pifDest && pifDest->pParent )
 			{
@@ -591,14 +591,14 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				g_d3d_device->SetTexture( 0, output_image->pActiveSurface );
 			}
 
-			LPDIRECT3DVERTEXBUFFER9 pQuadVB;
-
-			g_d3d_device->CreateVertexBuffer(sizeof( D3DTEXTUREDVERTEX )*4,
-                                      D3DUSAGE_WRITEONLY,
-                                      D3DFVF_CUSTOMTEXTUREDVERTEX,
-                                      D3DPOOL_MANAGED,
-                                      &pQuadVB,
-                                      NULL);
+			static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
+			if( !pQuadVB )
+				g_d3d_device->CreateVertexBuffer(sizeof( D3DTEXTUREDVERTEX )*4,
+															D3DUSAGE_WRITEONLY,
+															D3DFVF_CUSTOMTEXTUREDVERTEX,
+															D3DPOOL_MANAGED,
+															&pQuadVB,
+															NULL);
 			D3DTEXTUREDVERTEX* pData;
 			//lock buffer (NEW)
 			pQuadVB->Lock(0,0,(void**)&pData,0);
@@ -639,7 +639,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
 			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_DIFFUSE);
 			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_DIFFUSE);
-			pQuadVB->Release();
+			//pQuadVB->Release();
 		}
 	}
 	else

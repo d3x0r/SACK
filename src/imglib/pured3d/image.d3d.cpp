@@ -1,4 +1,4 @@
-//#define DEBUG_IMAGE_UPDATE
+#define DEBUG_IMAGE_UPDATE
 
 
 
@@ -288,16 +288,17 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 			v = 1-v;
 		}
 
-		LPDIRECT3DVERTEXBUFFER9 pQuadVB;
+		static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
 
 		if( g_d3d_device )
 		{
-			g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
-												  D3DUSAGE_WRITEONLY,
-												  D3DFVF_CUSTOMVERTEX,
-												  D3DPOOL_MANAGED,
-												  &pQuadVB,
-												  NULL);
+         if( !pQuadVB )
+				g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
+															D3DUSAGE_WRITEONLY,
+															D3DFVF_CUSTOMVERTEX,
+															D3DPOOL_MANAGED,
+															&pQuadVB,
+															NULL);
 			D3DVERTEX* pData;
 			//lock buffer (NEW)
 			pQuadVB->Lock(0,0,(void**)&pData,0);
@@ -334,7 +335,7 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 				int tmp;
 				lprintf( WIDE( "error %d" ), br );
 			}
-			pQuadVB->Release();
+			//pQuadVB->Release();
 		}
 	}
 	else
@@ -439,7 +440,7 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 			v = 1-v;
 		}
 
-		LPDIRECT3DVERTEXBUFFER9 pQuadVB;
+		static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
 		struct D3DVERTEX
 		{
 			float fX,
@@ -447,13 +448,13 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 			fZ;
 			DWORD dwColor;
 		};
-
-		g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
-													D3DUSAGE_WRITEONLY,
-													D3DFVF_CUSTOMVERTEX,
-													D3DPOOL_MANAGED,
-													&pQuadVB,
-													NULL);
+      if( !pQuadVB )
+			g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
+														D3DUSAGE_WRITEONLY,
+														D3DFVF_CUSTOMVERTEX,
+														D3DPOOL_MANAGED,
+														&pQuadVB,
+														NULL);
 		D3DVERTEX* pData;
 		//lock buffer (NEW)
 		pQuadVB->Lock(0,0,(void**)&pData,0);
@@ -482,7 +483,7 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 		g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DVERTEX));
 		//draw quad (NEW)
 		g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
-		pQuadVB->Release();
+		//pQuadVB->Release();
 	}
 	else
 	{              
