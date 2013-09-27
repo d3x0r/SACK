@@ -159,7 +159,7 @@ struct thread_event
 {
 	TEXTSTR name;
 #ifdef _WIN32
-   HANDLE hEvent;
+	HANDLE hEvent;
 #endif
 };
 
@@ -1530,6 +1530,8 @@ static PTIMER GrabTimer( PTIMER timer )
 
 static int CPROC ProcessTimers( PTRSZVAL psvForce )
 {
+	if( global_timer_structure )
+	{
 	PTIMER timer;
 	BIT_FIELD bLock = g.flags.bLogCriticalSections;
 	_32 newtick;
@@ -1759,6 +1761,8 @@ static int CPROC ProcessTimers( PTRSZVAL psvForce )
 	}
 	//Log( WIDE("Timer thread is exiting...") );
 	return 1;
+	}
+	return -1;
 }
 
 
