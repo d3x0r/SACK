@@ -56,21 +56,6 @@
 // this is safe to leave on.
 #define LOG_ORDERING_REFOCUS
 
-//#define LOG_MOUSE_EVENTS
-//#define LOG_RECT_UPDATE
-//#define LOG_DESTRUCTION
-#define LOG_STARTUP
-//#define LOG_FOCUSEVENTS
-//#define OTHER_EVENTS_HERE
-//#define LOG_SHOW_HIDE
-//#define LOG_DISPLAY_RESIZE
-//#define NOISY_LOGGING
-// related symbol needs to be defined in KEYDEFS.C
-//#define LOG_KEY_EVENTS
-#define LOG_OPEN_TIMING
-//#define LOG_MOUSE_HIDE_IDLE
-//#define LOG_OPENGL_CONTEXT
-
 // move local into render namespace.
 #define VIDLIB_MAIN
 #include "local.h"

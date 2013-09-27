@@ -22,6 +22,20 @@ extern KEYDEFINE KeyDefs[];
 #endif
 
 //#define LOG_STARTUP
+//#define OTHER_EVENTS_HERE
+//#define LOG_MOUSE_EVENTS
+//#define LOG_RECT_UPDATE
+//#define LOG_DESTRUCTION
+#define LOG_STARTUP
+//#define LOG_FOCUSEVENTS
+//#define LOG_SHOW_HIDE
+//#define LOG_DISPLAY_RESIZE
+//#define NOISY_LOGGING
+// related symbol needs to be defined in KEYDEFS.C
+//#define LOG_KEY_EVENTS
+#define LOG_OPEN_TIMING
+//#define LOG_MOUSE_HIDE_IDLE
+//#define LOG_OPENGL_CONTEXT
 
 // commands to the video thread for non-windows native ....
 #define CREATE_VIEW 1
@@ -324,13 +338,13 @@ WM_DROPFILES
 #endif
    case WM_SETFOCUS:
       {
-		  INDEX idx;
-		  struct display_camera * camera;
-		  LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
-		  {
-			  if( camera->hWndInstance == hWnd )
-				  break;
-		  }
+			INDEX idx;
+			struct display_camera * camera;
+			LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
+			{
+				if( camera->hWndInstance == hWnd )
+					break;
+			}
 			if( camera )
 			{
 				PVIDEO hVidPrior = l.hVidPhysicalFocused;
@@ -432,7 +446,7 @@ WM_DROPFILES
 			}
 			//SetFocus( l.hWndInstance );
 		}
-	  Return 1;
+		Return 1;
 #ifndef __cplusplus
 		break;
 #endif
@@ -518,7 +532,7 @@ WM_DROPFILES
 #endif
 			}
 		}
-	  Return 1;
+		Return 1;
 #ifndef __cplusplus
 		break;
 #endif
@@ -571,11 +585,11 @@ WM_DROPFILES
 #ifndef UNDER_CE
    case WM_NCPAINT:
       hVideo = (PVIDEO) GetWindowLong (hWnd, WD_HVIDEO);
-      if (hVideo && hVideo->flags.bFull)   // do not allow system draw...
-	  {
-		  Return 0;
-	  }
-      break;
+		if (hVideo && hVideo->flags.bFull)   // do not allow system draw...
+		{
+			Return 0;
+		}
+		break;
 #endif
 #ifndef UNDER_CE
    case WM_WINDOWPOSCHANGING:
@@ -1190,7 +1204,7 @@ WM_DROPFILES
 				LIST_FORALL( l.update, idx, Update3dProc, proc )
 				{
 					if( proc( l.origin ) )
-                  l.flags.bUpdateWanted = TRUE;
+						l.flags.bUpdateWanted = TRUE;
 				}
 			}
 
@@ -1246,9 +1260,9 @@ WM_DROPFILES
 				}
 			}
 		}
-      // this is a special return, it doesn't decrement the counter... cause WM_TIMER is filtered in OTHER_EVENTS logging
+		// this is a special return, it doesn't decrement the counter... cause WM_TIMER is filtered in OTHER_EVENTS logging
 		return 0;
-      //break;
+		//break;
 	case WM_CREATE:
 		{
 			LPCREATESTRUCT pcs;
