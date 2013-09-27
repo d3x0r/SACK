@@ -23,13 +23,13 @@ struct idle_proc_tag
 	// return -1 if not the correct thread
 	// to handle this callback
 	// return 0 if no messages were processed
-   // return 1 if messages were processed
+	// return 1 if messages were processed
 	int (CPROC*function)(PTRSZVAL);
 	PTRSZVAL data;
 	THREAD_ID thread;
 	//PDATAQUEUE threads;
 	PIDLEPROC similar; // same function references go here - for multiple thread entries...
-   DeclareLink( struct idle_proc_tag );
+	DeclareLink( struct idle_proc_tag );
 };
 struct idle_global_tag {
 	CRITICALSECTION idle_cs;
@@ -96,7 +96,7 @@ IDLE_PROC( void, AddIdleProc )( int (CPROC*Proc)( PTRSZVAL psv ), PTRSZVAL psvUs
 	if( !proc )
 	{
 		proc = (PIDLEPROC)Allocate( sizeof( IDLEPROC ) );
-      MemSet( proc, 0, sizeof( IDLEPROC ) );
+		MemSet( proc, 0, sizeof( IDLEPROC ) );
 		//proc->thread = 0;
 		//proc->threads = CreateDataQueue( sizeof( THREAD_ID ) );
 		//proc->flags.bDispatched = 0;
@@ -106,7 +106,7 @@ IDLE_PROC( void, AddIdleProc )( int (CPROC*Proc)( PTRSZVAL psv ), PTRSZVAL psvUs
 		//proc->similar = NULL;
 		LinkThing( procs, proc );
 	}
-   LeaveCriticalSec( &l.idle_cs );
+	LeaveCriticalSec( &l.idle_cs );
 }
 
 IDLE_PROC( int, RemoveIdleProc )( int (CPROC*Proc)(PTRSZVAL psv ) )
@@ -121,7 +121,7 @@ IDLE_PROC( int, RemoveIdleProc )( int (CPROC*Proc)(PTRSZVAL psv ) )
 		InitializeCriticalSec( &l.idle_cs );
 		l.cs_inited = TRUE;
 	}
-   EnterCriticalSec( &l.idle_cs );
+	EnterCriticalSec( &l.idle_cs );
 	for( check_proc = procs; check_proc; check_proc = check_proc->next )
 	{
 		if( Proc == check_proc->function )
@@ -130,7 +130,7 @@ IDLE_PROC( int, RemoveIdleProc )( int (CPROC*Proc)(PTRSZVAL psv ) )
 			{
 				UnlinkThing( check_proc );
 				if( check_proc->similar )
-               LinkThing( check_proc->similar, procs );
+					LinkThing( check_proc->similar, procs );
 				Release( check_proc );
 			}
 			else
@@ -140,7 +140,7 @@ IDLE_PROC( int, RemoveIdleProc )( int (CPROC*Proc)(PTRSZVAL psv ) )
 			break;
 		}
 	}
-   LeaveCriticalSec( &l.idle_cs );
+	LeaveCriticalSec( &l.idle_cs );
 	return 0;
 }
 
@@ -149,6 +149,7 @@ IDLE_PROC( int, IdleEx )( DBG_VOIDPASS )
 	THREAD_ID me = GetMyThreadID();
 	int success = 0;
 	PIDLEPROC proc;
+	if( idle_global )
 	for( proc = procs; proc;  )
 	{
 		PIDLEPROC check;
@@ -157,21 +158,21 @@ IDLE_PROC( int, IdleEx )( DBG_VOIDPASS )
 			check->flags.bDispatched = 1;
 			//lprintf( "attempt proc %p in %Lx  procthread=%Lx", check, GetThreadID( MakeThread() ), check->thread );
 			//if( !check->thread || ( check->thread == me ) )
-         // sometimes... a function belongs to multiple threads...
-				if( check->function( check->data ) != -1 )
-				{
-					check->thread = me;
-					success = 1;
-				}
+			// sometimes... a function belongs to multiple threads...
+			if( check->function( check->data ) != -1 )
+			{
+				check->thread = me;
+				success = 1;
+			}
 			check->flags.bDispatched = 0;
 			if( check->flags.bRemove )
 			{
 				UnlinkThing( check );
 				if( check->similar && check == proc )
-               LinkThing( check->similar, procs );
+					LinkThing( check->similar, procs );
 				Release( proc );
 				proc = procs;
-            break;
+				break;
 			}
 			else
 			{
@@ -182,8 +183,8 @@ IDLE_PROC( int, IdleEx )( DBG_VOIDPASS )
 				}
 			}
 		}
-			if( check == NULL )
-            proc = proc->next;
+		if( check == NULL )
+			proc = proc->next;
 	}
 	//_lprintf( DBG_AVAILABLE, WIDE("Is Going idle.") DBG_RELAY );
 	Relinquish();
@@ -204,11 +205,11 @@ IDLE_PROC( int, IdleForEx )( _32 dwMilliseconds DBG_PASS )
 	{
 		if( !IdleEx( DBG_VOIDRELAY ) )
 		{
-         // sleeping... cause ew didn't do any idle procs...
-         WakeableSleep( dwMilliseconds );
+			// sleeping... cause ew didn't do any idle procs...
+			WakeableSleep( dwMilliseconds );
 		}
 	}
-   return 0;
+	return 0;
 }
 
 #undef IdleFor
