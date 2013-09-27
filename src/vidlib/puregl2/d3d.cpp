@@ -17,7 +17,6 @@
 #include <render.h>
 #include <render3d.h>
 //#define LOG_OPENGL_CONTEXT
-#include "win32.local.h"
 //#define ENABLE_ON_DC_LAYERED hDCFakeWindow
 //#define ENABLE_ON_DC_LAYERED hDCFakeWindow
 #define ENABLE_ON_DC_NORMAL hDCOutput
