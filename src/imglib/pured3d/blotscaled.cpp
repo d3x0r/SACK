@@ -516,16 +516,10 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 
 		// closed loop to get the top imgae size.
 		for( topmost_parent = pifSrc; topmost_parent->pParent; topmost_parent = topmost_parent->pParent );
-		ReloadD3DTexture( pifSrc, 0 );
-		if( !pifSrc->pActiveSurface )
-		{
-			lprintf( WIDE( "gl texture hasn't downloaded or went away?" ) );
-			lock = 0;
-			return;
-		}
 		//lprintf( WIDE( "use regular texture %p (%d,%d)" ), pifSrc, pifSrc->width, pifSrc->height );
 
 		{
+         _32 color;
 			int glDepth = 1;
 			VECTOR v1[2], v3[2],v4[2],v2[2];
 			int v = 0;
@@ -583,31 +577,47 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 
 			if( method == BLOT_COPY )
 			{
+				ReloadD3DTexture( pifSrc, 0 );
+				if( !pifSrc->pActiveSurface )
+				{
+					lprintf( WIDE( "gl texture hasn't downloaded or went away?" ) );
+					lock = 0;
+					return;
+				}
+            color = 0xFFFFFFFF;
 				g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
-				;//glColor4ub( 255,255,255,255 );
 			}
 			else if( method == BLOT_SHADED )
 			{
-				CDATA tmp = va_arg( colors, CDATA );
-				//glColor4ubv( (GLubyte*)&tmp );
-				//ReloadD3DTexture( output_image );
-            // just need to set ambient light.
+				color = va_arg( colors, CDATA );
+				// just need to set ambient light.
+				ReloadD3DTexture( pifSrc, 0 );
 				g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
 			}
 			else if( method == BLOT_MULTISHADE )
 			{
+				Image output_image;
+				CDATA r = va_arg( colors, CDATA );
+				CDATA g = va_arg( colors, CDATA );
+				CDATA b = va_arg( colors, CDATA );
+				output_image = GetShadedImage( pifSrc, r, g, b );
+				ReloadD3DTexture( output_image, 0 );
+				if( !output_image->pActiveSurface )
 				{
-					Image output_image;
-					CDATA r = va_arg( colors, CDATA );
-					CDATA g = va_arg( colors, CDATA );
-					CDATA b = va_arg( colors, CDATA );
-					output_image = GetShadedImage( pifSrc, r, g, b );
-					ReloadD3DTexture( output_image, 0 );
-               g_d3d_device->SetTexture( 0, output_image->pActiveSurface );
+					lprintf( WIDE( "gl texture hasn't downloaded or went away?" ) );
+					lock = 0;
+					return;
 				}
+            color = 0xFFFFFFFF;
+				g_d3d_device->SetTexture( 0, output_image->pActiveSurface );
 			}
 			else if( method == BLOT_INVERTED )
 			{
+				Image output_image;
+				output_image = GetInvertedImage( pifSrc );
+				ReloadD3DTexture( output_image, 0 );
+            color = 0xFFFFFFFF;
+				g_d3d_device->SetTexture( 0, output_image->pActiveSurface );
 			}
 
 			LPDIRECT3DVERTEXBUFFER9 pQuadVB;
@@ -626,32 +636,31 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				pData[0].fX = v1[v][vRight] * l.scale;
 				pData[0].fY = v1[v][vUp] * l.scale;
 				pData[0].fZ = v1[v][vForward] * l.scale;
-				pData[0].dwColor = 0xFFFFFFFF;
+				pData[0].dwColor = color;
 				pData[0].fU1 = x_size;
 				pData[0].fV1 = y_size;
 				pData[1].fX = v2[v][vRight] * l.scale;
 				pData[1].fY = v2[v][vUp] * l.scale;
 				pData[1].fZ = v2[v][vForward] * l.scale;
-				pData[1].dwColor = 0xFFFFFFFF;
+				pData[1].dwColor = color;
 				pData[1].fU1 = x_size2;
 				pData[1].fV1 = y_size;
 				pData[2].fX = v3[v][vRight] * l.scale;
 				pData[2].fY = v3[v][vUp] * l.scale;
 				pData[2].fZ = v3[v][vForward] * l.scale;
-				pData[2].dwColor = 0xFFFFFFFF;
+				pData[2].dwColor = color;
 				pData[2].fU1 = x_size;
 				pData[2].fV1 = y_size2;
 				pData[3].fX = v4[v][vRight] * l.scale;
 				pData[3].fY = v4[v][vUp] * l.scale;
 				pData[3].fZ = v4[v][vForward] * l.scale;
-				pData[3].dwColor = 0xFFFFFFFF;
+				pData[3].dwColor = color;
 				pData[3].fU1 = x_size2;
 				pData[3].fV1 = y_size2;
 			}
 			//unlock buffer (NEW)
 			pQuadVB->Unlock();
 			g_d3d_device->SetFVF( D3DFVF_CUSTOMTEXTUREDVERTEX );
-			g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
 			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DTEXTUREDVERTEX));
 			//draw quad (NEW)
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);

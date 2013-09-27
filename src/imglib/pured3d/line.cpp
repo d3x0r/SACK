@@ -106,8 +106,8 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 			#define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ | D3DFVF_NORMAL)
 
 			g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
-			g_d3d_device->SetRenderState(D3DRS_AMBIENT,RGB(255,255,255));
-			g_d3d_device->SetRenderState( D3DRS_LIGHTING,false);
+			//g_d3d_device->SetRenderState(D3DRS_AMBIENT,RGB(255,255,255));
+			//g_d3d_device->SetRenderState( D3DRS_LIGHTING,false);
 
 			g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
                                       D3DUSAGE_WRITEONLY,
@@ -117,7 +117,7 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
                                       NULL);
 			D3DVERTEX* pData;
 			//lock buffer (NEW)
-			pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
+			pQuadVB->Lock(0,0,(void**)&pData,0);
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
@@ -226,16 +226,16 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 {
 	if( pImage->flags & IF_FLAG_FINAL_RENDER )
 	{
-      int glDepth = 1;
+		int glDepth = 1;
 		VECTOR v1[2], v2[2];
 		VECTOR v3[2], v4[2];
 		VECTOR slope;
-      RCOORD tmp;
-      VECTOR normal;
+		RCOORD tmp;
+		VECTOR normal;
 		int v = 0;
 
-      TranslateCoord( pImage, (S_32*)&x1, (S_32*)&y1 );
-      TranslateCoord( pImage, (S_32*)&x2, (S_32*)&y2 );
+		TranslateCoord( pImage, (S_32*)&x1, (S_32*)&y1 );
+		TranslateCoord( pImage, (S_32*)&x2, (S_32*)&y2 );
 		v1[v][0] = x1;
 		v1[v][1] = y1;
 		v1[v][2] = 0.0;
@@ -249,15 +249,15 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 		slope[0] = -slope[1];
 		slope[1] = tmp;
 
-      addscaled( v1[v], v1[v], slope, -0.5 );
-      addscaled( v4[v], v1[v], slope, 1.0 );
-      addscaled( v2[v], v2[v], slope, -0.5 );
-      addscaled( v3[v], v2[v], slope, 1.0 );
+		addscaled( v1[v], v1[v], slope, -0.5 );
+		addscaled( v4[v], v1[v], slope, 1.0 );
+		addscaled( v2[v], v2[v], slope, -0.5 );
+		addscaled( v3[v], v2[v], slope, 1.0 );
 
 		while( pImage && pImage->pParent )
 		{
-         glDepth = 0;
-         if(pImage->transform )
+			glDepth = 0;
+			if(pImage->transform )
 			{
 				Apply( pImage->transform, v1[1-v], v1[v] );
 				Apply( pImage->transform, v2[1-v], v2[v] );
@@ -292,7 +292,7 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
                                       NULL);
 			D3DVERTEX* pData;
 			//lock buffer (NEW)
-			pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
+			pQuadVB->Lock(0,0,(void**)&pData,0);
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
@@ -467,21 +467,24 @@ void CPROC do_lineExVc( ImageFile *pImage, int x1, int y1
             y1 += inc;
          }
          len--;
-      }
-   // pImageFile is not nesseciarily an image; do not set updated.
+		}
 	}
 }
 
 void CPROC do_hlinec( ImageFile *pImage, int y, int xfrom, int xto, CDATA color )
 {
-   BlatColor( pImage, xfrom, y, xto-xfrom, 1, color );
-   //do_linec( pImage, xfrom, y, xto, y, color );
+	if( xfrom < xto )
+	   BlatColor( pImage, xfrom, y, xto-xfrom, 1, color );
+	else
+	   BlatColor( pImage, xfrom, y, xfrom-xto, 1, color );
 }
 
 void CPROC do_vlinec( ImageFile *pImage, int x, int yfrom, int yto, CDATA color )
 {
-   BlatColor( pImage, x, yfrom, 1, yto-yfrom, color );
-   //do_linec( pImage, x, yfrom, x, yto, color );
+	if( yto > yfrom )
+	   BlatColor( pImage, x, yfrom, 1, yto-yfrom, color );
+	else
+	   BlatColor( pImage, x, yfrom, 1, yfrom-yto, color );
 }
 
 void CPROC do_hlineAlphac( ImageFile *pImage, int y, int xfrom, int xto, CDATA color )
