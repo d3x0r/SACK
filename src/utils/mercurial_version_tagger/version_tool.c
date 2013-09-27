@@ -94,7 +94,7 @@ int main( int argc, char **argv )
 	}
 	if( n == 1 )
 	{
-		printf( "Usage: %s [-b build_id] [-u] [-v version] [-d dsn] [-n] [project]\n" );
+		printf( "Usage: %s [-b build_id] [-u] [-v version] [-d dsn] [-n] [project]\n", argv[0] );
 		printf( "  option order matters; such that - option must preceed the project otherwise does not matter\n" );
 		printf( " -b sets the current build number\n" );
 		printf( "  build_id is an integer; it specifies the least significant build digits\n" );
