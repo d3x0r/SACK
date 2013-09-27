@@ -493,13 +493,6 @@ IMAGE_NAMESPACE
 
 	if( pifDest->flags & IF_FLAG_FINAL_RENDER )
 	{
-		ReloadD3DTexture( pifSrc, 0 );
-		if( !pifSrc->pActiveSurface )
-		{
-	        //lprintf( WIDE( "gl texture hasn't updated or went away?" ) );
-		    lock = 0;
-			return;
-		}
 		//lprintf( WIDE( "use regular texture %p (%d,%d)" ), pifSrc, pifSrc->width, pifSrc->height );
       //DebugBreak();        g
 
@@ -507,28 +500,30 @@ IMAGE_NAMESPACE
 		 * only a portion of the image is actually used, the rest is filled with blank space
 		 *
 		 */
-		TranslateCoord( pifDest, &xd, &yd );
-		TranslateCoord( pifSrc, &xs, &ys );
 		{
 			int glDepth = 1;
 			double x_size, x_size2, y_size, y_size2;
 			VECTOR v1[2], v3[2],v4[2],v2[2];
+			CDATA color = 0xffffffff;
 			int v = 0;
+
+			TranslateCoord( pifDest, &xd, &yd );
+			TranslateCoord( pifSrc, &xs, &ys );
 
 			v1[v][0] = xd;
 			v1[v][1] = yd;
 			v1[v][2] = 0.0;
 
-			v2[v][0] = xd;
-			v2[v][1] = yd+hs;
+			v2[v][0] = xd+ws;
+			v2[v][1] = yd;
 			v2[v][2] = 0.0;
 
-			v3[v][0] = xd+ws;
+			v3[v][0] = xd;
 			v3[v][1] = yd+hs;
 			v3[v][2] = 0.0;
 
 			v4[v][0] = xd+ws;
-			v4[v][1] = yd;
+			v4[v][1] = yd+hs;
 			v4[v][2] = 0.0;
 
 			x_size = (double) xs/ (double)pifSrc->width;
@@ -570,16 +565,14 @@ IMAGE_NAMESPACE
 					lock = 0;
 					return;
 				}
-				g_d3d_device->SetRenderState(D3DRS_AMBIENT, 0xFFFFFFFF );
 				g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
 				;//glColor4ub( 255,255,255,255 );
 			}
 			else if( method == BLOT_SHADED )
 			{
-				CDATA tmp = va_arg( colors, CDATA );
+				color = va_arg( colors, CDATA );
 				// just need to set ambient light.
 				ReloadD3DTexture( pifSrc, 0 );
-				g_d3d_device->SetRenderState(D3DRS_AMBIENT, tmp );
 				g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
 			}
 			else if( method == BLOT_MULTISHADE )
@@ -596,7 +589,6 @@ IMAGE_NAMESPACE
 					lock = 0;
 					return;
 				}
-				g_d3d_device->SetRenderState(D3DRS_AMBIENT, 0xFFFFFFFF );
 				g_d3d_device->SetTexture( 0, output_image->pActiveSurface );
 			}
 			else if( method == BLOT_INVERTED )
@@ -604,7 +596,6 @@ IMAGE_NAMESPACE
 				Image output_image;
 				output_image = GetInvertedImage( pifSrc );
 				ReloadD3DTexture( output_image, 0 );
-				g_d3d_device->SetRenderState(D3DRS_AMBIENT, 0xFFFFFFFF );
 				g_d3d_device->SetTexture( 0, output_image->pActiveSurface );
 			}
 
@@ -626,25 +617,25 @@ IMAGE_NAMESPACE
 				pData[0].fX = v1[v][vRight] * l.scale;
 				pData[0].fY = v1[v][vUp] * l.scale;
 				pData[0].fZ = v1[v][vForward] * l.scale;
-				pData[0].dwColor = 0xFFFFFFFF;
+				pData[0].dwColor = color;
 				pData[0].fU1 = x_size;
 				pData[0].fV1 = y_size;
 				pData[1].fX = v2[v][vRight] * l.scale;
 				pData[1].fY = v2[v][vUp] * l.scale;
 				pData[1].fZ = v2[v][vForward] * l.scale;
-				pData[1].dwColor = 0xFFFFFFFF;
-				pData[1].fU1 = x_size;
-				pData[1].fV1 = y_size2;
-				pData[2].fX = v4[v][vRight] * l.scale;
-				pData[2].fY = v4[v][vUp] * l.scale;
-				pData[2].fZ = v4[v][vForward] * l.scale;
-				pData[2].dwColor = 0xFFFFFFFF;
-				pData[2].fU1 = x_size2;
-				pData[2].fV1 = y_size;
-				pData[3].fX = v3[v][vRight] * l.scale;
-				pData[3].fY = v3[v][vUp] * l.scale;
-				pData[3].fZ = v3[v][vForward] * l.scale;
-				pData[3].dwColor = 0xFFFFFFFF;
+				pData[1].dwColor = color;
+				pData[1].fU1 = x_size2;
+				pData[1].fV1 = y_size;
+				pData[2].fX = v3[v][vRight] * l.scale;
+				pData[2].fY = v3[v][vUp] * l.scale;
+				pData[2].fZ = v3[v][vForward] * l.scale;
+				pData[2].dwColor = color;
+				pData[2].fU1 = x_size;
+				pData[2].fV1 = y_size2;
+				pData[3].fX = v4[v][vRight] * l.scale;
+				pData[3].fY = v4[v][vUp] * l.scale;
+				pData[3].fZ = v4[v][vForward] * l.scale;
+				pData[3].dwColor = color;
 				pData[3].fU1 = x_size2;
 				pData[3].fV1 = y_size2;
 			}
@@ -742,54 +733,3 @@ void  BlotImageEx ( ImageFile *pifDest, ImageFile *pifSrc, S_32 xd, S_32 yd, _32
 IMAGE_NAMESPACE_END
 
 
-// $Log: blotdirect.c,v $
-// Revision 1.21  2003/12/13 08:26:57  panther
-// Fix blot direct for image bound having been set (break natural?)
-//
-// Revision 1.20  2003/09/21 20:47:26  panther
-// Removed noisy logging messages.
-//
-// Revision 1.19  2003/09/21 16:25:28  panther
-// Removed much noisy logging, all in the interest of sheet controls.
-// Fixed some linking of services.
-// Fixed service close on dead client.
-//
-// Revision 1.18  2003/09/12 14:37:55  panther
-// Fix another overflow in drawing sources rects greater than source image
-//
-// Revision 1.17  2003/09/12 14:12:54  panther
-// Fix apparently blotting image problem...
-//
-// Revision 1.16  2003/08/30 10:05:01  panther
-// Fix clipping blotted images beyond dest boundries
-//
-// Revision 1.15  2003/08/14 11:57:48  panther
-// Okay - so this blotdirect code definatly works....
-//
-// Revision 1.14  2003/08/13 16:24:22  panther
-// Well - found what was broken...
-//
-// Revision 1.13  2003/08/13 16:14:11  panther
-// Remove stupid timing...
-//
-// Revision 1.12  2003/07/31 08:55:30  panther
-// Fix blotscaled boundry calculations - perhaps do same to blotdirect
-//
-// Revision 1.11  2003/07/25 00:08:31  panther
-// Fixeup all copyies, scaled and direct for watcom
-//
-// Revision 1.10  2003/07/01 08:54:13  panther
-// Fix seg fault when blotting soft cursor over bottom of screen
-//
-// Revision 1.9  2003/04/25 08:33:09  panther
-// Okay move the -1's back out of IMG_ADDRESS
-//
-// Revision 1.8  2003/04/24 00:03:49  panther
-// Added ColorAverage to image... Fixed a couple macros
-//
-// Revision 1.7  2003/03/30 18:39:03  panther
-// Update image blotters to use IMG_ADDRESS
-//
-// Revision 1.6  2003/03/25 08:45:51  panther
-// Added CVS logging tag
-//
