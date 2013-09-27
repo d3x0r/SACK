@@ -26,7 +26,7 @@
 #include "image.h"
 #include "sprite_local.h"
 
-
+#include "local.h"
 
 //#define DEBUG_TIMING
 #define OUTPUT_IMAGE
@@ -1027,22 +1027,112 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 #endif
 		}
 	}
+	if( !(dest->flags & IF_FLAG_FINAL_RENDER ) )
+	{
 #ifdef DEBUG_TIMING
-	lprintf( "Output arbitrary" );
+		lprintf( "Output arbitrary" );
 #endif
-         //lprintf( "plot arbitraty..." );
-	PlotArbitrary( dest, sprite->image
-					 , x1, y1
-					 , x2, y2
-					 , x3, y3
-					 , x4, y4
-					 , 0
-					 , BLOT_COPY
-					 , 0, 0, 0 );
-         //lprintf( "done plott..." );
+		//lprintf( "plot arbitraty..." );
+		PlotArbitrary( dest, sprite->image
+						 , x1, y1
+						 , x2, y2
+						 , x3, y3
+						 , x4, y4
+						 , 0
+						 , BLOT_COPY
+						 , 0, 0, 0 );
+		//lprintf( "done plott..." );
 #ifdef DEBUG_TIMING
-	lprintf( "arbitrary out" );
+		lprintf( "arbitrary out" );
 #endif
+	}
+	else
+	{
+			VECTOR v[2][4];
+			float texture_v[4][2];
+			int vi = 0;
+			//TranslateCoord( dest, &xd, &yd );
+
+			v[vi][0][0] = x1;
+			v[vi][0][1] = y1;
+			v[vi][0][2] = 0.0;
+
+			v[vi][1][0] = x2;
+			v[vi][1][1] = y2;
+			v[vi][1][2] = 0.0;
+
+			v[vi][2][0] = x4;
+			v[vi][2][1] = y4;
+			v[vi][2][2] = 0.0;
+
+			v[vi][3][0] = x3;
+			v[vi][3][1] = y3;
+			v[vi][3][2] = 0.0;
+
+
+			while( dest && dest->pParent )
+			{
+				if( dest->transform )
+				{
+					Apply( dest->transform, v[1-vi][0], v[vi][0] );
+					Apply( dest->transform, v[1-vi][1], v[vi][1] );
+					Apply( dest->transform, v[1-vi][2], v[vi][2] );
+					Apply( dest->transform, v[1-vi][3], v[vi][3] );
+					vi = 1-vi;
+				}
+				dest = dest->pParent;
+			}
+			if( dest->transform )
+			{
+				Apply( dest->transform, v[1-vi][0], v[vi][0] );
+				Apply( dest->transform, v[1-vi][1], v[vi][1] );
+				Apply( dest->transform, v[1-vi][2], v[vi][2] );
+				Apply( dest->transform, v[1-vi][3], v[vi][3] );
+				vi = 1-vi;
+			}
+
+			scale( v[vi][0], v[vi][0], l.scale );
+			scale( v[vi][1], v[vi][1], l.scale );
+			scale( v[vi][2], v[vi][2], l.scale );
+			scale( v[vi][3], v[vi][3], l.scale );
+
+			{
+				float x_size, x_size2, y_size, y_size2;
+				int xs, ys, ws, hs;
+				Image topmost_parent ;
+				xs = sprite->image->real_x;
+				ys = sprite->image->real_y;
+				ws = sprite->image->width;
+				hs = sprite->image->height;
+				for( topmost_parent = sprite->image->pParent; topmost_parent && topmost_parent->pParent; topmost_parent = topmost_parent->pParent )
+				{
+					xs += topmost_parent->real_x;
+					ys += topmost_parent->real_y;
+				}
+				x_size = (float) xs/ (float)topmost_parent->width;
+				x_size2 = (float) (xs+ws)/ (float)topmost_parent->width;
+				y_size = (float) ys/ (float)topmost_parent->height;
+				y_size2 = (float) (ys+hs)/ (float)topmost_parent->height;
+
+				texture_v[0][0] = x_size;
+				texture_v[0][1] = y_size;
+				texture_v[1][0] = x_size2;
+				texture_v[1][1] = y_size;
+				texture_v[2][0] = x_size;
+				texture_v[2][1] = y_size2;
+				texture_v[3][0] = x_size2;
+				texture_v[3][1] = y_size2;
+
+				ReloadOpenGlTexture( topmost_parent, 0 );
+				//EnableShader( GetShader( "Simple Texture", NULL ), v[vi], topmost_parent->glActiveSurface, texture_v );
+			glBegin(GL_TRIANGLE_STRIP);
+			glTexCoord2f(x_size, y_size); glVertex3fv(v[vi][0]);	// Bottom Left Of The Texture and Quad
+			glTexCoord2f(x_size, y_size2); glVertex3fv(v[vi][1]);	// Bottom Right Of The Texture and Quad
+			glTexCoord2f(x_size2, y_size); glVertex3fv(v[vi][3]);	// Top Left Of The Texture and Quad
+			glTexCoord2f(x_size2, y_size2); glVertex3fv(v[vi][2]);	// Top Right Of The Texture and Quad
+         glEnd();
+			}
+	}
 }
 
 

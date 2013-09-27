@@ -133,10 +133,16 @@ int ReloadOpenGlTexture( Image child_image, int option )
 			// should be checked outside.
 			if( image_data->glIndex == 0 )
 			{
-				glGenTextures(1, &image_data->glIndex);			// Create One Texture
-				if( glGetError() || !image_data->glIndex)
+				int gl_error;
+				gl_error = glGetError() ;
+				if( gl_error )
 				{
-					lprintf( WIDE( "gen text %d or bad surafce" ), glGetError() );
+					lprintf( "Previous error" );
+				}
+				glGenTextures(1, &image_data->glIndex);			// Create One Texture
+				if( ( gl_error = glGetError() ) || !image_data->glIndex)
+				{
+					lprintf( WIDE( "gen text %d or bad surafce" ), gl_error );
 					return 0;
 				}
 			}
