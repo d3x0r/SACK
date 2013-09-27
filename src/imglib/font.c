@@ -531,13 +531,14 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 #endif
 #ifdef _D3D_DRIVER
 
-			LPDIRECT3DVERTEXBUFFER9 pQuadVB;
-			g_d3d_device->CreateVertexBuffer(sizeof( D3DTEXTUREDVERTEX )*4,
-												  D3DUSAGE_WRITEONLY,
-												  D3DFVF_CUSTOMTEXTUREDVERTEX,
-												  D3DPOOL_MANAGED,
-												  &pQuadVB,
-												  NULL);
+			static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
+         if( !pQuadVB )
+				g_d3d_device->CreateVertexBuffer(sizeof( D3DTEXTUREDVERTEX )*4,
+															D3DUSAGE_WRITEONLY,
+															D3DFVF_CUSTOMTEXTUREDVERTEX,
+															D3DPOOL_MANAGED,
+															&pQuadVB,
+															NULL);
 			D3DTEXTUREDVERTEX* pData;
 			//lock buffer (NEW)
 			if( background )
@@ -584,8 +585,8 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			//unlock buffer (NEW)
 			pQuadVB->Unlock();
 			g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
-			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DTEXTUREDVERTEX));
 			g_d3d_device->SetFVF( D3DFVF_CUSTOMTEXTUREDVERTEX );
+			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DTEXTUREDVERTEX));
 
 			//draw quad (NEW)
 			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
@@ -594,7 +595,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_DIFFUSE);
 			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_DIFFUSE);
 			g_d3d_device->SetTexture( 0, NULL );
-			pQuadVB->Release();
+			//pQuadVB->Release();
 #endif  // _D3D_DRIVER
 		}
 	}
