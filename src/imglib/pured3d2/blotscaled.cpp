@@ -2,9 +2,9 @@
  *  Crafted by Jim Buckeyne
  *   (c)1999-2006++ Freedom Collective
  * 
- *   Handle putting out one image scaled onto another image.
+ *   Handle putting out one image scaled onto another image; clips to bounds of sub-image
  * 
- * 
+ *
  * 
  *  consult doc/image.html
  *
@@ -32,7 +32,7 @@
 #include "local.h"
 #define NEED_ALPHA2
 #include "blotproto.h"
-
+#include "../image_common.h"
 IMAGE_NAMESPACE
 
 #if !defined( _WIN32 ) && !defined( NO_TIMING_LOGGING )
@@ -357,7 +357,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
       _32 alpha;
       if( (cin = *pi) )
       {
-         _32 rout, gout, bout;
+			_32 rout, gout, bout;
 			cin = MULTISHADEPIXEL( cin, r, g, b );
 			alpha = ( cin & 0xFF000000 ) >> 24;
 			alpha -= nTransparent;
@@ -478,31 +478,6 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		return;
 	}
    
-	//Log9( WIDE("Image locations: %d(%d %d) %d(%d) %d(%d) %d(%d)")
-	//          , xs, FROMFIXED(xs), FIXEDPART(xs)
-	//          , ys, FROMFIXED(ys)
-	//          , xd, FROMFIXED(xd)
-	//          , yd, FROMFIXED(yd) );
-	if( pifSrc->flags & IF_FLAG_INVERTED )
-	{
-		// set pointer in to the starting x pixel
-		// on the last line of the image to be copied 
-		pi = IMG_ADDRESS( pifSrc, (xs), (ys) );
-		po = IMG_ADDRESS( pifDest, (xd), (yd) );
-		oo = 4*(-((signed)wd) - (pifDest->pwidth) ); // w is how much we can copy...
-		// adding in multiple of 4 because it's C...
-		srcwidth = -(4* pifSrc->pwidth);
-	}
-	else
-	{
-		// set pointer in to the starting x pixel
-		// on the first line of the image to be copied...
-		pi = IMG_ADDRESS( pifSrc, (xs), (ys) );
-		po = IMG_ADDRESS( pifDest, (xd), (yd) );
-		oo = 4*(pifDest->pwidth - (wd)); // w is how much we can copy...
-		// adding in multiple of 4 because it's C...
-		srcwidth = 4* pifSrc->pwidth;
-	}
 	while( LockedExchange( &lock, 1 ) )
 		Relinquish();
    //Log8( WIDE("Do blot work...%d(%d),%d(%d) %d(%d) %d(%d)")
@@ -512,16 +487,14 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 	if( pifDest->flags & IF_FLAG_FINAL_RENDER )
 	{
 		int updated = 0;
-		ReloadD3DTexture( pifSrc, 0 );
-		if( !pifSrc->pActiveSurface )
-		{
-			lprintf( WIDE( "gl texture hasn't downloaded or went away?" ) );
-			lock = 0;
-			return;
-		}
+		Image topmost_parent;
+
+		// closed loop to get the top imgae size.
+		for( topmost_parent = pifSrc; topmost_parent->pParent; topmost_parent = topmost_parent->pParent );
 		//lprintf( WIDE( "use regular texture %p (%d,%d)" ), pifSrc, pifSrc->width, pifSrc->height );
 
 		{
+			_32 color = 0xffffffff;
 			int glDepth = 1;
 			VECTOR v1[2], v3[2],v4[2],v2[2];
 			int v = 0;
@@ -537,24 +510,23 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			v1[v][1] = yd;
 			v1[v][2] = 0.0;
 
-			v2[v][0] = xd;
-			v2[v][1] = yd+hd;
+			v2[v][0] = xd+wd;
+			v2[v][1] = yd;
 			v2[v][2] = 0.0;
 
-			v3[v][0] = xd+wd;
+			v3[v][0] = xd;
 			v3[v][1] = yd+hd;
 			v3[v][2] = 0.0;
 
 			v4[v][0] = xd+wd;
-			v4[v][1] = yd;
+			v4[v][1] = yd+hd;
 			v4[v][2] = 0.0;
 
-			x_size = (double) xs/ (double)pifSrc->width;
-			x_size2 = (double) (xs+ws)/ (double)pifSrc->width;
-			y_size = (double) ys/ (double)pifSrc->height;
-			y_size2 = (double) (ys+hs)/ (double)pifSrc->height;
+			x_size = (RCOORD) xs/ (RCOORD)topmost_parent->width;
+			x_size2 = (RCOORD) (xs+ws)/ (RCOORD)topmost_parent->width;
+			y_size = (RCOORD) ys/ (RCOORD)topmost_parent->height;
+			y_size2 = (RCOORD) (ys+hs)/ (RCOORD)topmost_parent->height;
 			//lprintf( WIDE( "Texture size is %g,%g to %g,%g" ), x_size, y_size, x_size2, y_size2 );
-			//lprintf( WIDE( "Texture size is %g,%g" ), x_size, y_size );
 			while( pifDest && pifDest->pParent )
 			{
 				glDepth = 0;
@@ -577,142 +549,178 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				v = 1-v;
 			}
 
-			g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
-			{
-				g_d3d_device->SetTextureStageState(0,D3DTSS_COLOROP,D3DTOP_SELECTARG1);
-				g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE);
-				g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG2,D3DTA_DIFFUSE);   //
-				struct textured_vertex{
-					float x, y, z, rhw;  // The transformed(screen space) position for the vertex.
-					float tu,tv;         // Texture coordinates
-				};
-
-				//Transformed vertex with 1 set of texture coordinates
-				const DWORD tri_fvf=D3DFVF_XYZRHW|D3DFVF_TEX1;
-
-
-			}
-			//glBindTexture(GL_TEXTURE_2D, pifSrc->glActiveSurface);				// Select Our Texture
 			if( method == BLOT_COPY )
-				;//glColor4ub( 255,255,255,255 );
+			{
+				ReloadD3DTexture( pifSrc, 0 );
+				if( !pifSrc->pActiveSurface )
+				{
+					lprintf( WIDE( "gl texture hasn't downloaded or went away?" ) );
+					lock = 0;
+					return;
+				}
+				g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
+			}
 			else if( method == BLOT_SHADED )
 			{
-				CDATA tmp = va_arg( colors, CDATA );
-				//glColor4ubv( (GLubyte*)&tmp );
+				color = va_arg( colors, CDATA );
+				ReloadD3DTexture( pifSrc, 0 );
+				g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
 			}
-			else
+			else if( method == BLOT_MULTISHADE )
 			{
+				Image output_image;
+				CDATA r = va_arg( colors, CDATA );
+				CDATA g = va_arg( colors, CDATA );
+				CDATA b = va_arg( colors, CDATA );
+				output_image = GetShadedImage( pifSrc, r, g, b );
+				ReloadD3DTexture( output_image, 0 );
+				if( !output_image->pActiveSurface )
 				{
-					Image output_image;
-					CDATA r = va_arg( colors, CDATA );
-					CDATA g = va_arg( colors, CDATA );
-					CDATA b = va_arg( colors, CDATA );
-					output_image = GetShadedImage( pifSrc, r, g, b );
-					//glBindTexture( GL_TEXTURE_2D, output_image->glActiveSurface );
-					//glColor4ub( 255,255,255,255 );
+					lprintf( WIDE( "gl texture hasn't downloaded or went away?" ) );
+					lock = 0;
+					return;
 				}
+				g_d3d_device->SetTexture( 0, output_image->pActiveSurface );
 			}
-			LPDIRECT3DVERTEXBUFFER9 pQuadVB;
+			else if( method == BLOT_INVERTED )
+			{
+				Image output_image;
+				output_image = GetInvertedImage( pifSrc );
+				ReloadD3DTexture( output_image, 0 );
+				g_d3d_device->SetTexture( 0, output_image->pActiveSurface );
+			}
 
-			g_d3d_device->CreateVertexBuffer(sizeof( D3DTEXTUREDVERTEX )*4,
-                                      D3DUSAGE_WRITEONLY,
-                                      D3DFVF_CUSTOMTEXTUREDVERTEX,
-                                      D3DPOOL_MANAGED,
-                                      &pQuadVB,
-                                      NULL);
+			static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
+			if( !pQuadVB )
+				g_d3d_device->CreateVertexBuffer(sizeof( D3DTEXTUREDVERTEX )*4,
+															D3DUSAGE_WRITEONLY,
+															D3DFVF_CUSTOMTEXTUREDVERTEX,
+															D3DPOOL_MANAGED,
+															&pQuadVB,
+															NULL);
 			D3DTEXTUREDVERTEX* pData;
 			//lock buffer (NEW)
-			pQuadVB->Lock(0,sizeof(pData),(void**)&pData,0);
+			pQuadVB->Lock(0,0,(void**)&pData,0);
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
 				pData[0].fY = v1[v][vUp] * l.scale;
 				pData[0].fZ = v1[v][vForward] * l.scale;
-				pData[0].dwColor = 0xFFFFFFFF;
+				pData[0].dwColor = color;
 				pData[0].fU1 = x_size;
 				pData[0].fV1 = y_size;
 				pData[1].fX = v2[v][vRight] * l.scale;
 				pData[1].fY = v2[v][vUp] * l.scale;
 				pData[1].fZ = v2[v][vForward] * l.scale;
-				pData[1].dwColor = 0xFFFFFFFF;
-				pData[1].fU1 = x_size;
-				pData[1].fV1 = y_size2;
-				pData[2].fX = v4[v][vRight] * l.scale;
-				pData[2].fY = v4[v][vUp] * l.scale;
-				pData[2].fZ = v4[v][vForward] * l.scale;
-				pData[2].dwColor = 0xFFFFFFFF;
-				pData[2].fU1 = x_size2;
-				pData[2].fV1 = y_size;
-				pData[3].fX = v3[v][vRight] * l.scale;
-				pData[3].fY = v3[v][vUp] * l.scale;
-				pData[3].fZ = v3[v][vForward] * l.scale;
-				pData[3].dwColor = 0xFFFFFFFF;
+				pData[1].dwColor = color;
+				pData[1].fU1 = x_size2;
+				pData[1].fV1 = y_size;
+				pData[2].fX = v3[v][vRight] * l.scale;
+				pData[2].fY = v3[v][vUp] * l.scale;
+				pData[2].fZ = v3[v][vForward] * l.scale;
+				pData[2].dwColor = color;
+				pData[2].fU1 = x_size;
+				pData[2].fV1 = y_size2;
+				pData[3].fX = v4[v][vRight] * l.scale;
+				pData[3].fY = v4[v][vUp] * l.scale;
+				pData[3].fZ = v4[v][vForward] * l.scale;
+				pData[3].dwColor = color;
 				pData[3].fU1 = x_size2;
 				pData[3].fV1 = y_size2;
 			}
 			//unlock buffer (NEW)
 			pQuadVB->Unlock();
 			g_d3d_device->SetFVF( D3DFVF_CUSTOMTEXTUREDVERTEX );
-			g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
 			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DTEXTUREDVERTEX));
 			//draw quad (NEW)
+			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
+			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE);
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
-			pQuadVB->Release();
+			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_DIFFUSE);
+			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_DIFFUSE);
+			//pQuadVB->Release();
 		}
 	}
-
-	else switch( method )
+	else
 	{
-	case BLOT_COPY:
-		if( !nTransparent )
-			cBlotScaledT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );       
-		else if( nTransparent == 1 )
-			cBlotScaledT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );       
-		else if( nTransparent & ALPHA_TRANSPARENT )
-			cBlotScaledTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );
-		else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-			cBlotScaledTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );        
-		else
-			cBlotScaledTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent );        
-		break;
-	case BLOT_SHADED:
-		if( !nTransparent )
-			cBlotScaledShadedT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, va_arg( colors, CDATA ) );
-		else if( nTransparent == 1 )
-			cBlotScaledShadedT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, va_arg( colors, CDATA ) );
-		else if( nTransparent & ALPHA_TRANSPARENT )
-			cBlotScaledShadedTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF, va_arg( colors, CDATA ) );
-		else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-			cBlotScaledShadedTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF, va_arg( colors, CDATA ) );
-		else
-			cBlotScaledShadedTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent, va_arg( colors, CDATA ) );
-		break;
-	case BLOT_MULTISHADE:
+		//Log9( WIDE("Image locations: %d(%d %d) %d(%d) %d(%d) %d(%d)")
+		//          , xs, FROMFIXED(xs), FIXEDPART(xs)
+		//          , ys, FROMFIXED(ys)
+		//          , xd, FROMFIXED(xd)
+		//          , yd, FROMFIXED(yd) );
+		if( pifSrc->flags & IF_FLAG_INVERTED )
 		{
-			CDATA r,g,b;
-			r = va_arg( colors, CDATA );
-			g = va_arg( colors, CDATA );
-			b = va_arg( colors, CDATA );
-			if( !nTransparent )
-				cBlotScaledMultiT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-									  , r, g, b );
-			else if( nTransparent == 1 )
-				cBlotScaledMultiT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-									  , r, g, b );
-			else if( nTransparent & ALPHA_TRANSPARENT )
-				cBlotScaledMultiTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-										  , nTransparent & 0xFF
-										  , r, g, b );
-			else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-				cBlotScaledMultiTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-											, nTransparent & 0xFF
-											, r, g, b );
-			else
-				cBlotScaledMultiTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
-									  , nTransparent
-									  , r, g, b );
+			// set pointer in to the starting x pixel
+			// on the last line of the image to be copied
+			pi = IMG_ADDRESS( pifSrc, (xs), (ys) );
+			po = IMG_ADDRESS( pifDest, (xd), (yd) );
+			oo = 4*(-((signed)wd) - (pifDest->pwidth) ); // w is how much we can copy...
+			// adding in multiple of 4 because it's C...
+			srcwidth = -(4* pifSrc->pwidth);
 		}
-		break;
+		else
+		{
+			// set pointer in to the starting x pixel
+			// on the first line of the image to be copied...
+			pi = IMG_ADDRESS( pifSrc, (xs), (ys) );
+			po = IMG_ADDRESS( pifDest, (xd), (yd) );
+			oo = 4*(pifDest->pwidth - (wd)); // w is how much we can copy...
+			// adding in multiple of 4 because it's C...
+			srcwidth = 4* pifSrc->pwidth;
+		}
+		switch( method )
+		{
+		case BLOT_COPY:
+			if( !nTransparent )
+				cBlotScaledT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );
+			else if( nTransparent == 1 )
+				cBlotScaledT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth );
+			else if( nTransparent & ALPHA_TRANSPARENT )
+				cBlotScaledTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );
+			else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
+				cBlotScaledTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF );
+			else
+				cBlotScaledTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent );
+			break;
+		case BLOT_SHADED:
+			if( !nTransparent )
+				cBlotScaledShadedT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, va_arg( colors, CDATA ) );
+			else if( nTransparent == 1 )
+				cBlotScaledShadedT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, va_arg( colors, CDATA ) );
+			else if( nTransparent & ALPHA_TRANSPARENT )
+				cBlotScaledShadedTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF, va_arg( colors, CDATA ) );
+			else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
+				cBlotScaledShadedTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent&0xFF, va_arg( colors, CDATA ) );
+			else
+				cBlotScaledShadedTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth, nTransparent, va_arg( colors, CDATA ) );
+			break;
+		case BLOT_MULTISHADE:
+			{
+				CDATA r,g,b;
+				r = va_arg( colors, CDATA );
+				g = va_arg( colors, CDATA );
+				b = va_arg( colors, CDATA );
+				if( !nTransparent )
+					cBlotScaledMultiT0( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+										  , r, g, b );
+				else if( nTransparent == 1 )
+					cBlotScaledMultiT1( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+										  , r, g, b );
+				else if( nTransparent & ALPHA_TRANSPARENT )
+					cBlotScaledMultiTImgA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+											  , nTransparent & 0xFF
+											  , r, g, b );
+				else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
+					cBlotScaledMultiTImgAI( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+												, nTransparent & 0xFF
+												, r, g, b );
+				else
+					cBlotScaledMultiTA( po, pi, errx, erry, wd, hd, dwd, dhd, dws, dhs, oo, srcwidth
+										  , nTransparent
+										  , r, g, b );
+			}
+			break;
+		}
 	}
 	lock = 0;
 //   Log( WIDE("Blot done") );
@@ -721,75 +729,3 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 
 IMAGE_NAMESPACE_END
 
-//---------------------------------------------------------------------------
-
-// $Log: blotscaled.c,v $
-// Revision 1.29  2005/06/21 00:45:41  jim
-// Fix image bound issue with scaled image blotting... Also add a custom error handler to png image loader
-//
-// Revision 1.30  2005/05/30 20:05:53  d3x0r
-// okay right/bottom edge adjustment was wrong... corrected.
-//
-// Revision 1.29  2005/05/30 19:56:37  d3x0r
-// Make blotscaled behave a lot better... respecting image boundrys much better...
-//
-// Revision 1.28  2004/09/01 03:27:20  d3x0r
-// Control updates video display issues?  Image blot message go away...
-//
-// Revision 1.27  2004/08/11 12:52:36  d3x0r
-// Should figure out where they hide flag isn't being set... vline had to check for height<0
-//
-// Revision 1.26  2004/06/21 07:47:08  d3x0r
-// Account for newly moved structure files.
-//
-// Revision 1.25  2004/03/29 20:07:25  d3x0r
-// Remove benchmark logging
-//
-// Revision 1.24  2004/01/12 00:34:54  panther
-// Fix error really of always 0 comparison vs wd, ht
-//
-// Revision 1.23  2003/09/15 17:06:37  panther
-// Fixed to image, display, controls, support user defined clipping , nearly clearing correct portions of frame when clearing hotspots...
-//
-// Revision 1.22  2003/08/20 15:53:31  panther
-// Okay and assembly loops have been updated accordingly
-//
-// Revision 1.21  2003/08/20 14:22:23  panther
-// Remove excess logging, unused parameters
-//
-// Revision 1.20  2003/08/20 13:59:13  panther
-// Okay looks like the C layer blotscaled works...
-//
-// Revision 1.19  2003/08/20 08:07:12  panther
-// some fixes to blot scaled... fixed to makefiles test projects... fixes to export containters lib funcs
-//
-// Revision 1.18  2003/08/12 15:11:08  panther
-// Test fixed point bias for scaled clipping
-//
-// Revision 1.17  2003/08/12 15:09:32  panther
-// Test fixed point bias for scaled clipping
-//
-// Revision 1.16  2003/08/01 07:56:12  panther
-// Commit changes for logging...
-//
-// Revision 1.15  2003/08/01 00:17:34  panther
-// minor cleanup for watcom compile
-//
-// Revision 1.14  2003/07/31 08:55:30  panther
-// Fix blotscaled boundry calculations - perhaps do same to blotdirect
-//
-// Revision 1.13  2003/07/25 00:08:59  panther
-// Fixeup all copyies, scaled and direct for watcom
-//
-// Revision 1.12  2003/04/25 08:33:09  panther
-// Okay move the -1's back out of IMG_ADDRESS
-//
-// Revision 1.11  2003/03/30 21:17:40  panther
-// Used wrong image names..
-//
-// Revision 1.10  2003/03/30 18:39:03  panther
-// Update image blotters to use IMG_ADDRESS
-//
-// Revision 1.9  2003/03/25 08:45:51  panther
-// Added CVS logging tag
-//

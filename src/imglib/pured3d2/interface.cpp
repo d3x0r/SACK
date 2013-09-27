@@ -170,6 +170,11 @@ static void CPROC _ImageDropImageInterface( POINTER p )
 #endif
 #endif
 
+#ifdef __WATCOM_CPLUSPLUS__
+#pragma initialize 45
+#endif
+
+
 
 PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 {
