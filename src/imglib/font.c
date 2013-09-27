@@ -216,25 +216,25 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 		case OrderPoints:
 			xd = x;
 			yd = y+(UseFont->baseline - pchar->ascent);
-         xd_back = xd;
+			xd_back = xd;
 			yd_back = y;
 			break;
 		case OrderPointsInvert:
 			xd = x;
 			yd = y- UseFont->baseline + pchar->ascent;
-         xd_back = xd;
+			xd_back = xd;
 			yd_back = y;
 			break;
 		case OrderPointsVertical:
 			xd = x - (UseFont->baseline - pchar->ascent);
 			yd = y;
-         xd_back = x;
+			xd_back = x;
 			yd_back = yd;
 			break;
 		case OrderPointsVerticalInvert:
 			xd = x + (UseFont->baseline - pchar->ascent);
 			yd = y;
-         xd_back = x;
+			xd_back = x;
 			yd_back = yd;
 			break;
 		}

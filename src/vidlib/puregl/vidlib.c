@@ -4134,16 +4134,6 @@ int  InitDisplay (void)
 		AddLink( &l.threads, ThreadTo( VideoThreadProc, 0 ) );
 	}
 #endif
-	{
-		GLboolean params = 0;
-		if( glGetBooleanv(GL_STEREO, &params), params )
-		{
-			lprintf( WIDE("yes stereo") );
-		}
-		else
-			lprintf( WIDE("no stereo") );
-	}
-
 
 	return TRUE;
 }
@@ -4174,7 +4164,7 @@ PRIORITY_ATEXIT( RemoveKeyHook, 100 )
 			d = PostThreadMessage (l.dwThreadID, WM_USER_SHUTDOWN, 0, 0);
 			if (!d)
 			{
-            _32 error = GetLastError();
+				_32 error = GetLastError();
 				Log1( WIDE("Failed to post shutdown message...%d" ), error );
 
 				if( error == ERROR_INVALID_THREAD_ID )
