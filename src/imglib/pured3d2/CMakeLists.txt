@@ -1,5 +1,5 @@
 
-set( project bag.image.pured3d )
+set( project bag.image.pured3d2 )
 
 ADD_DEFINITIONS( -D__3D__ )
 
