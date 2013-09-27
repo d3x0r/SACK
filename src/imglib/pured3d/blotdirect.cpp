@@ -502,7 +502,7 @@ IMAGE_NAMESPACE
 		 */
 		{
 			int glDepth = 1;
-			double x_size, x_size2, y_size, y_size2;
+			RCOORD x_size, x_size2, y_size, y_size2;
 			VECTOR v1[2], v3[2],v4[2],v2[2];
 			CDATA color = 0xffffffff;
 			int v = 0;
@@ -526,13 +526,15 @@ IMAGE_NAMESPACE
 			v4[v][1] = yd+hs;
 			v4[v][2] = 0.0;
 
-			x_size = (double) xs/ (double)pifSrc->width;
-			x_size2 = (double) (xs+ws)/ (double)pifSrc->width;
-			y_size = (double) ys/ (double)pifSrc->height;
-			y_size2 = (double) (ys+hs)/ (double)pifSrc->height;
 
-			// Front Face
-			lprintf( WIDE( "Texture size is %g,%g to %g,%g" ), x_size, y_size, x_size2, y_size2 );
+			Image pifSrcReal;
+			for( pifSrcReal = pifSrc; pifSrcReal->pParent; pifSrcReal = pifSrcReal->pParent );
+			x_size = (RCOORD) xs/ (RCOORD)pifSrcReal->width;
+			x_size2 = (RCOORD) (xs+ws)/ (RCOORD)pifSrcReal->width;
+			y_size = (RCOORD) ys/ (RCOORD)pifSrcReal->height;
+			y_size2 = (RCOORD) (ys+hs)/ (RCOORD)pifSrcReal->height;
+
+			//lprintf( WIDE( "Texture size is %g,%g to %g,%g" ), x_size, y_size, x_size2, y_size2 );
 			while( pifDest && pifDest->pParent )
 			{
 				glDepth = 0;
@@ -638,20 +640,21 @@ IMAGE_NAMESPACE
 				pData[3].fU1 = x_size2;
 				pData[3].fV1 = y_size2;
 			}
-{
-int n;
-for( n = 0; n < 4; n++ )
-lprintf( "pdata[%d] = %g %g %g %08x %g %g", n
-, pData[n].fX
-, pData[n].fY
-, pData[n].fZ
-, pData[n].dwColor
-, pData[n].fU1
-, pData[n].fV1 );
-}
+         /*
+			{
+				int n;
+				for( n = 0; n < 4; n++ )
+					lprintf( "pdata[%d] = %g %g %g %08x %g %g", n
+							 , pData[n].fX
+							 , pData[n].fY
+							 , pData[n].fZ
+							 , pData[n].dwColor
+							 , pData[n].fU1
+							 , pData[n].fV1 );
+			}
+         */
 			//unlock buffer (NEW)
 			pQuadVB->Unlock();
-			g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
 			g_d3d_device->SetFVF( D3DFVF_CUSTOMTEXTUREDVERTEX );
 			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DTEXTUREDVERTEX));
 
