@@ -22,21 +22,21 @@ static LOCAL l;
 //------------------------------------------------------------------------------
 
 typedef struct button {
-   CTEXTSTR ClickMethodName;
+	CTEXTSTR ClickMethodName;
 	void (CPROC*ClickMethod)( PTRSZVAL, PSI_CONTROL );
 	PTRSZVAL ClickData;
-   _32 attr;
+	_32 attr;
 	struct {
 		_32 pressed:1;
 	}buttonflags;
-   CDATA color;
+	CDATA color;
 	_32 centx; // offset from center to draw...
 	S_32 topy; // top of the caption...
 	_32 _b; // prior button states...
 	Image pImage;
-   CTEXTSTR DrawMethodName;
+	CTEXTSTR DrawMethodName;
 	void (CPROC*DrawMethod)( PTRSZVAL, PSI_CONTROL );
-   PTRSZVAL DrawData;
+	PTRSZVAL DrawData;
 } BUTTON, *PBUTTON;
 
 
@@ -50,7 +50,7 @@ typedef struct {
 	} flags;
 	int centx;
 	int groupid; // if is not zero - will work as a radio button
-   CTEXTSTR ClickMethodName;
+	CTEXTSTR ClickMethodName;
 	void (CPROC*ClickMethod)( PTRSZVAL, PCONTROL );
 	PTRSZVAL ClickData;
 	Image pCheckWindow;
@@ -65,9 +65,9 @@ static int Init( void )
 	if( !l.flags.bInited )
 	{
 		l.flags.bTouchDisplay = IsTouchDisplay();
-      l.flags.bInited = TRUE;
+		l.flags.bInited = TRUE;
 	}
-   return TRUE;
+	return TRUE;
 }
 
 
@@ -145,14 +145,14 @@ static int CPROC ButtonDraw( PSI_CONTROL pc )
 			}
 		}
 	}
-   //lprintf( WIDE("Button drawing...") );
+	//lprintf( WIDE("Button drawing...") );
 	if( pb->buttonflags.pressed )
 		pc->BorderType |= BORDER_INVERT;
 	else
 		pc->BorderType &= ~BORDER_INVERT;
 
-   SetDrawBorder( pc );
-   if( pc->DrawBorder ) pc->DrawBorder(pc);
+	SetDrawBorder( pc );
+	if( pc->DrawBorder ) pc->DrawBorder(pc);
 	if( !pb->DrawMethod )
 	{
 		BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, pb->color );
@@ -203,12 +203,12 @@ static int CPROC ButtonDraw( PSI_CONTROL pc )
 			}
 		}
 	}
-   else  //( pb->DrawMethod )
+	else  //( pb->DrawMethod )
 	{
 		//lprintf( WIDE("Calling application's custom draw routine for a button! ------------------") );
 		pb->DrawMethod( pb->DrawData, pc );
 	}
-   return 1;
+	return 1;
 }
 
 //---------------------------------------------------------------------------
@@ -217,7 +217,7 @@ static void CPROC ButtonCaptionChange( PSI_CONTROL pc )
 {
 	PBUTTON pb;
 	_32 height;
-   SFTFont font;
+	SFTFont font;
 	pb = (PBUTTON)pc;
 	font = GetFrameFont( pc );
 	GetStringSizeFont( GetText( pc->caption.text ), &pb->centx, &height, font );
@@ -266,7 +266,7 @@ static int CPROC ButtonMouse( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
 	if( !pb )
 	{
 		ValidatedControlData( PBUTTON, CUSTOM_BUTTON, pb2, pc );
-      //lprintf( WIDE("Is not a NORMAL_BUTTON") );
+		//lprintf( WIDE("Is not a NORMAL_BUTTON") );
 		if( pb2 )
 			pb = pb2;
 		else
@@ -282,7 +282,7 @@ static int CPROC ButtonMouse( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
 			}
 		}
 	}
-   //lprintf( WIDE("mouse on a button...") );
+	//lprintf( WIDE("mouse on a button...") );
 	if( pc->flags.bDisable ) // ignore mouse on these...
 		return 0;
 	if( b == -1 )
@@ -319,7 +319,7 @@ static int CPROC ButtonMouse( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
 				pb->buttonflags.pressed = TRUE;
 				SmudgeCommon( pc );
 			}
-         if( l.flags.bTouchDisplay )
+			if( l.flags.bTouchDisplay )
 				InvokeButton( pc );
 		}
 	}
@@ -338,7 +338,7 @@ static int CPROC ButtonMouse( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
 		}
 	}
 	pb->_b = b;
-   return 1;
+	return 1;
 }
 
 //---------------------------------------------------------------------------
@@ -348,7 +348,7 @@ static int CPROC ButtonKeyProc( PSI_CONTROL pc, _32 key )
    //printf( WIDE("Key: %08x\n"), key );
 	if( key & 0x80000000 )
 	{
-      int keymod = KEY_MOD( key );
+		int keymod = KEY_MOD( key );
 		if( !keymod &&
 			( ( key & 0xFF ) == KEY_SPACE ) ||
 			( ( key & 0xFF ) == KEY_ENTER ) )
@@ -401,7 +401,7 @@ static void OnPropertyEditOkay( WIDE( "Button" ) )( PSI_CONTROL pControl, PSI_CO
 	// destruction will happen shortly after this
 	// but this should not care fore that...
 	PLISTITEM pli = GetSelectedItem( GetControl( page, LISTBOX ) );
-   ((PBUTTON)pControl)->ClickMethod = (void (CPROC*)(PTRSZVAL,PSI_CONTROL))GetItemData( pli );
+	((PBUTTON)pControl)->ClickMethod = (void (CPROC*)(PTRSZVAL,PSI_CONTROL))GetItemData( pli );
 
 }
 
@@ -417,7 +417,7 @@ CTEXTSTR GetMethodName( POINTER Method, CTEXTSTR type, CTEXTSTR method )
 		 name;
 		  name = GetNextRegisteredName( &data ) )
 	{
-      POINTER p;
+		POINTER p;
 		//lprintf( WIDE("Checking method name %s %s"), buffer, name );
 		p = (POINTER)GetRegisteredProcedureExxx( (PCLASSROOT)NULL, buffer
 											  , WIDE("void")
@@ -430,22 +430,22 @@ CTEXTSTR GetMethodName( POINTER Method, CTEXTSTR type, CTEXTSTR method )
 		if( p == Method )
 			break;
 	}
-   return name;
+	return name;
 }
 
 CTEXTSTR GetClickMethodName( void (CPROC*ClickMethod)(PTRSZVAL psv, PCONTROL pc) )
 {
-   return (CTEXTSTR)GetMethodName( (POINTER)ClickMethod, WIDE("Button"), WIDE("Click") );
+	return (CTEXTSTR)GetMethodName( (POINTER)ClickMethod, WIDE("Button"), WIDE("Click") );
 }
 
 CTEXTSTR GetDrawMethodName( void (CPROC*DrawMethod)(PTRSZVAL psv, PCONTROL pc) )
 {
-   return GetMethodName( (POINTER)DrawMethod, WIDE("Button"), WIDE("Draw") );
+	return GetMethodName( (POINTER)DrawMethod, WIDE("Button"), WIDE("Draw") );
 }
 
 CTEXTSTR GetCheckMethodName( void (CPROC*CheckMethod)(PTRSZVAL psv, PCONTROL pc) )
 {
-   return GetMethodName( (POINTER)CheckMethod, WIDE("Button"), WIDE("Check") );
+	return GetMethodName( (POINTER)CheckMethod, WIDE("Button"), WIDE("Check") );
 }
 
 //---------------------------------------------------------------------------
@@ -455,12 +455,12 @@ void CPROC ButtonText( PSI_CONTROL pc, PVARTEXT pvt )
 	if( !pb )
 	{
 		ValidatedControlData( PBUTTON, CUSTOM_BUTTON, pb2, pc );
-      pb = pb2;
+		pb = pb2;
 	}
 	if( !pb )
 	{
 		ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb2, pc );
-      pb = pb2;
+		pb = pb2;
 	}
 	vtprintf( pvt ,WIDE("#%08x"), pb->color );
 	{
@@ -494,7 +494,7 @@ CONTROL_PROC_DEF_EX( NORMAL_BUTTON, BUTTON, Button, (void) )
 	if( pb )
 	{
 		// this bit of code needs to go away...
-      SetCommonTransparent( pc, TRUE );
+		SetCommonTransparent( pc, TRUE );
 		pb->buttonflags.pressed = FALSE;
 		pb->color = basecolor(pc)[NORMAL];
 		pb->_b = 0;
@@ -535,14 +535,14 @@ int CPROC ConfigureCustomDrawnButton( PSI_CONTROL pc )
 #endif
 	if( pb )
 	{
-      SetCommonTransparent( pc, TRUE );
+		SetCommonTransparent( pc, TRUE );
 		pc->CaptionChanged = ButtonCaptionChange;
 		pb->color = basecolor(pc)[NORMAL];
 		pb->buttonflags.pressed = FALSE;
 		pb->_b = 0;
 		return 1;
 	}
-   return 0;
+	return 0;
 }
 
 //---------------------------------------------------------------------------
@@ -550,11 +550,11 @@ int CPROC ConfigureCustomDrawnButton( PSI_CONTROL pc )
 int CPROC ConfigureImageButton( PSI_CONTROL pc )
 {
 	//ARG( Image, pImage );
-   //ARG( _32, attr );
+	//ARG( _32, attr );
 	//FP_ARG( void CPROC,PushMethod,(PTRSZVAL psv, PCONTROL pc) );
 	//ARG( PTRSZVAL, Data );
-   ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb, pc );
-   Init();
+	ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb, pc );
+	Init();
 	if( pb )
 	{
 		//if( attr & BUTTON_NO_BORDER )
@@ -565,19 +565,19 @@ int CPROC ConfigureImageButton( PSI_CONTROL pc )
 		pb->color = basecolor(pc)[NORMAL];
 		pb->buttonflags.pressed = FALSE;
 		pc->CaptionChanged = ButtonCaptionChange;
-      return TRUE;
+		return TRUE;
 	}
-   return FALSE;
+	return FALSE;
 }
 
 PSI_PROC( PSI_CONTROL, SetButtonImage )( PSI_CONTROL pc, Image pImage )
 {
-   ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb, pc );
+	ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb, pc );
 	if( pb )
 	{
 		pb->pImage = pImage;
 	}
-   return pc;
+	return pc;
 }
 
 //---------------------------------------------------------------------------
@@ -606,7 +606,7 @@ int IsButtonPressed( PSI_CONTROL pc )
 	{
 		return pb->buttonflags.pressed;
 	}
-   return 0;
+	return 0;
 }
 
 PSI_PROC( void, SetButtonColor )( PSI_CONTROL pc, CDATA color )
@@ -625,7 +625,7 @@ void CPROC RadioButtonText( PSI_CONTROL pc, PVARTEXT pvt )
 	ValidatedControlData( PCHECK, RADIO_BUTTON, pb, pc );
 	if( !pb )
 	{
-      return;
+		return;
 	}
 	//vtprintf( pvt ,"#%08x", pb->color );
 	{
@@ -648,7 +648,7 @@ static int CPROC DrawCheckButton( PSI_CONTROL pc )
 	// c> the whole control si a button that locks down...
 	if( pchk )
 	{
-      BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor(pc)[NORMAL] );
+		BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor(pc)[NORMAL] );
 		//ClearImageTo( pc->Surface, basecolor(pc)[NORMAL] );
 	}
    if( pchk->pCheckWindow )
@@ -687,7 +687,7 @@ static int CPROC DrawCheckButton( PSI_CONTROL pc )
 			PutMenuString( pc->Surface, x, 0, basecolor(pc)[SHADOW], 0, GetText( pc->caption.text) );
 		}
 	}
-   return 1;
+	return 1;
 }
 
 //---------------------------------------------------------------------------
@@ -695,7 +695,7 @@ static int CPROC DrawCheckButton( PSI_CONTROL pc )
 static int CPROC CheckKeyProc( PSI_CONTROL pc, _32 key )
 {
 	PCHECK pb = (PCHECK)pc;
-   //printf( WIDE("Key: %08x\n"), key );
+	//printf( WIDE("Key: %08x\n"), key );
 	if( key & 0x80000000 )
 	{
 		if( ( ( key & 0xFF ) == KEY_SPACE ) ||
@@ -708,7 +708,7 @@ static int CPROC CheckKeyProc( PSI_CONTROL pc, _32 key )
 			return 1;
 		}
 	}
-   return 0;
+	return 0;
 }
 
 //---------------------------------------------------------------------------
@@ -717,7 +717,7 @@ static int CPROC MouseCheckButton( PSI_CONTROL pCom, S_32 x, S_32 y, _32 b )
 {
 	ValidatedControlData( PCHECK, RADIO_BUTTON, pc, pCom );
 	if( !pc )
-      return 0;
+		return 0;
 	if( pCom->flags.bDisable ) // ignore mouse on these...
 		return 0;
 	if( b == -1 )
@@ -797,11 +797,11 @@ static int CPROC MouseCheckButton( PSI_CONTROL pCom, S_32 x, S_32 y, _32 b )
 				if( pc->ClickMethod )
 					pc->ClickMethod( pc->ClickData, pCom );
 			}
-         SmudgeCommon( pCom );
+			SmudgeCommon( pCom );
 		}
 	}
 	pc->_b = b;
-   return 1;
+	return 1;
 }
 
 //---------------------------------------------------------------------------
@@ -829,7 +829,7 @@ PCONTROL SetButtonGroupID(PCONTROL pControl, int nGroupID )
 	{
 		pc->groupid = nGroupID;
 	}
-   return pControl;
+	return pControl;
 }
 PCONTROL SetCheckButtonHandler( PCONTROL pControl
 														, void (CPROC*CheckProc)(PTRSZVAL psv, PCONTROL pc)
@@ -842,27 +842,27 @@ PCONTROL SetCheckButtonHandler( PCONTROL pControl
 		pc->ClickMethodName = GetCheckMethodName( CheckProc );
 		pc->ClickData = psv;
 	}
-   return pControl;
+	return pControl;
 }
 
 
 int CPROC ConfigureCheckButton( PSI_CONTROL pControl )
 {
-   //ARG( _32, attr );
+	//ARG( _32, attr );
 	//ARG( _32, GroupID );
 	//FP_ARG(  void CPROC,CheckProc,(PTRSZVAL psv, PSI_CONTROL pc ) );
 	//ARG( PTRSZVAL, psv );
-   ValidatedControlData( PCHECK, RADIO_BUTTON, pc, pControl );
-   Init();
+	ValidatedControlData( PCHECK, RADIO_BUTTON, pc, pControl );
+	Init();
 	if( pc )
 	{
 		pc->pCheckWindow = MakeSubImage( pControl->Surface, 1, 1, 12, 12 );
 		pc->pCheckSurface = MakeSubImage( pc->pCheckWindow, 1, 1, 10, 10 );
 		//pc->ClickMethod = CheckProc;
-      //pc->ClickMethodName = GetCheckMethodName( CheckProc );
+		//pc->ClickMethodName = GetCheckMethodName( CheckProc );
 		//pc->ClickData = psv;
 		//pc->groupid = GroupID;
-      /*
+		/*
 	   if( !( attr & RADIO_CALL_CHANGED ) )
 			pc->flags.bCallAll = 1;
 		else
@@ -872,10 +872,10 @@ int CPROC ConfigureCheckButton( PSI_CONTROL pControl )
 			if( attr & RADIO_CALL_UNCHECKED )
 				pc->flags.bCallUnchecked = 1;
 		}
-      */
-      return 1;
+		*/
+		return 1;
 	}
-   return 0;
+	return 0;
 }
 
 //---------------------------------------------------------------------------
@@ -909,7 +909,7 @@ void GetButtonPushMethod( PCONTROL pc, ButtonPushMethod *method, PTRSZVAL *psv )
 	if( !pb )
 	{
 		ValidatedControlData( PBUTTON, CUSTOM_BUTTON, pb2, pc );
-      //lprintf( WIDE("Is not a NORMAL_BUTTON") );
+		//lprintf( WIDE("Is not a NORMAL_BUTTON") );
 		if( pb2 )
 			pb = pb2;
 		else
@@ -927,9 +927,9 @@ void GetButtonPushMethod( PCONTROL pc, ButtonPushMethod *method, PTRSZVAL *psv )
 	}
 	if( pb )
 	{
-      if( method )
+		if( method )
 			(*method) = pb->ClickMethod;
-      if( psv )
+		if( psv )
 			(*psv) = pb->ClickData;
 	}
 
@@ -944,7 +944,7 @@ PCONTROL SetButtonAttributes( PCONTROL pCom, int attr )
 	//   SetCommonBorder( pc, BORDER_DEFAULT_FOR_BUTTON ); // LOL - someday
 	{
 		ValidatedControlData( PCHECK, RADIO_BUTTON, pc, pCom );
-      if( pc )
+		if( pc )
 		{
 			if( attr & RADIO_CALL_CHANGED )
 				pc->flags.bCallAll = 1;
@@ -958,7 +958,7 @@ PCONTROL SetButtonAttributes( PCONTROL pCom, int attr )
 		}
 
 	}
-   return pCom;
+	return pCom;
 }
 
 PSI_CONTROL SetButtonDrawMethod( PSI_CONTROL pc, ButtonPushMethod method, PTRSZVAL psv )
@@ -968,14 +968,14 @@ PSI_CONTROL SetButtonDrawMethod( PSI_CONTROL pc, ButtonPushMethod method, PTRSZV
 	{
 		ValidatedControlData( PBUTTON, CUSTOM_BUTTON, pb2, pc );
 		if( pb2 )
-         pb = pb2;
+			pb = pb2;
 	}
-   if( pb )
+	if( pb )
 	{
 		pb->DrawMethod = method;
-      pb->DrawData = psv;
+		pb->DrawData = psv;
 	}
-   return pc;
+	return pc;
 }
 
 PSI_CONTROL SetButtonPushMethod( PSI_CONTROL pc, ButtonPushMethod method, PTRSZVAL psv )
@@ -984,7 +984,7 @@ PSI_CONTROL SetButtonPushMethod( PSI_CONTROL pc, ButtonPushMethod method, PTRSZV
 	if( !pb )
 	{
 		ValidatedControlData( PBUTTON, CUSTOM_BUTTON, pb2, pc );
-      //lprintf( WIDE("Is not a NORMAL_BUTTON") );
+		//lprintf( WIDE("Is not a NORMAL_BUTTON") );
 		if( pb2 )
 			pb = pb2;
 		else
@@ -1001,7 +1001,7 @@ PSI_CONTROL SetButtonPushMethod( PSI_CONTROL pc, ButtonPushMethod method, PTRSZV
 				{
 					pb2->ClickMethod = method;
 					pb2->ClickData = psv;
-               return pc;
+					return pc;
 				}
 				else
 				{
@@ -1014,7 +1014,7 @@ PSI_CONTROL SetButtonPushMethod( PSI_CONTROL pc, ButtonPushMethod method, PTRSZV
 	if( pb )
 	{
 		pb->ClickMethod = method;
-      pb->ClickData = psv;
+		pb->ClickData = psv;
 	}
 	return pc;
 }
@@ -1077,17 +1077,17 @@ radio_button = { RADIO_BUTTON_NAME
 
 static int OnCommonFocus( NORMAL_BUTTON_NAME )( PSI_CONTROL pc, LOGICAL bFocus )
 {
-   SmudgeCommon( pc );
-   return 1;
+	SmudgeCommon( pc );
+	return 1;
 }
 
 PRIORITY_PRELOAD( register_buttons, PSI_PRELOAD_PRIORITY ) {
-   l.flags.bTouchDisplay = 1;//IsTouchDisplay();
+	l.flags.bTouchDisplay = 1;//IsTouchDisplay();
 	DoRegisterControl( &normal_button );
 	DoRegisterControl( &image_button );
 	DoRegisterControl( &custom_button );
 	DoRegisterControl( &radio_button );
-   //DumpRegisteredNames();
+	//DumpRegisteredNames();
 }
 
 PSI_BUTTON_NAMESPACE_END
