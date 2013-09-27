@@ -194,7 +194,7 @@ void Render3D( struct display_camera *camera )
 			Render3d.current_device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
 			Render3d.current_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
 
-			Render3d.current_device->SetRenderState(D3DRS_AMBIENT, 0xFFFFFFFF );
+			//Render3d.current_device->SetRenderState(D3DRS_AMBIENT, 0xFFFFFFFF );
 			Render3d.current_device->SetRenderState( D3DRS_LIGHTING,false);
 			Render3d.current_device->SetRenderState( D3DRS_ALPHATESTENABLE, TRUE );
 			Render3d.current_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_DIFFUSE);
