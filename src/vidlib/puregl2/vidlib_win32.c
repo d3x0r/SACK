@@ -40,14 +40,17 @@ extern KEYDEFINE KeyDefs[];
 ATEXIT( ExitTest )
 {
 	l.bExitThread = 1;
-	if( l.dwThreadID != GetCurrentThreadId () )
+	if( l.bThreadRunning )
 	{
-		// just to make sure something wakes it up... it could be in a mouse event.
-		PostThreadMessage (l.dwThreadID, WM_USER_SHUTDOWN, 0, 0);
-		while(l.bThreadRunning)
+		if( l.dwThreadID != GetCurrentThreadId () )
 		{
-         lprintf( "waiting..." );
-			Relinquish();
+			// just to make sure something wakes it up... it could be in a mouse event.
+			PostThreadMessage (l.dwThreadID, WM_USER_SHUTDOWN, 0, 0);
+			while(l.bThreadRunning)
+			{
+				lprintf( "waiting..." );
+				Relinquish();
+			}
 		}
 	}
 }
