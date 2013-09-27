@@ -102,20 +102,19 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 			v = 1-v;
 		}
 
-			LPDIRECT3DVERTEXBUFFER9 pQuadVB;
-			#define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ | D3DFVF_NORMAL)
+			static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
 
-			g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
-
-			g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
-                                      D3DUSAGE_WRITEONLY,
-                                      D3DFVF_CUSTOMVERTEX,
-                                      D3DPOOL_MANAGED,
-                                      &pQuadVB,
-                                      NULL);
+         if( !pQuadVB )
+				g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
+															D3DUSAGE_WRITEONLY,
+															D3DFVF_CUSTOMVERTEX,
+															D3DPOOL_MANAGED,
+															&pQuadVB,
+															NULL);
 			D3DVERTEX* pData;
 			//lock buffer (NEW)
 			pQuadVB->Lock(0,0,(void**)&pData,0);
+         //lprintf( "line color should be %08x", d );
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
@@ -137,10 +136,11 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 			}
 			//unlock buffer (NEW)
 			pQuadVB->Unlock();
+
+			g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
 			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DVERTEX));
-			//draw quad (NEW)
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
-			pQuadVB->Release();
+			//pQuadVB->Release();
 
 	}
    else
@@ -275,20 +275,19 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 		}
 
 
-			LPDIRECT3DVERTEXBUFFER9 pQuadVB;
-			#define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ | D3DFVF_NORMAL)
+		static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
 
-			g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
-
+		if( !pQuadVB )
 			g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
-                                      D3DUSAGE_WRITEONLY,
-                                      D3DFVF_CUSTOMVERTEX,
-                                      D3DPOOL_MANAGED,
-                                      &pQuadVB,
-                                      NULL);
+														D3DUSAGE_WRITEONLY,
+														D3DFVF_CUSTOMVERTEX,
+														D3DPOOL_MANAGED,
+														&pQuadVB,
+														NULL);
 			D3DVERTEX* pData;
 			//lock buffer (NEW)
 			pQuadVB->Lock(0,0,(void**)&pData,0);
+         //lprintf( "line color should be %08x", d );
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
@@ -310,10 +309,10 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 			}
 			//unlock buffer (NEW)
 			pQuadVB->Unlock();
+			g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
 			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DVERTEX));
-			//draw quad (NEW)
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
-			pQuadVB->Release();
+			//pQuadVB->Release();
 	}
    else
 	{

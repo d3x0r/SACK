@@ -526,8 +526,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			x_size2 = (RCOORD) (xs+ws)/ (RCOORD)topmost_parent->width;
 			y_size = (RCOORD) ys/ (RCOORD)topmost_parent->height;
 			y_size2 = (RCOORD) (ys+hs)/ (RCOORD)topmost_parent->height;
-			lprintf( WIDE( "Texture size is %g,%g to %g,%g" ), x_size, y_size, x_size2, y_size2 );
-			//lprintf( WIDE( "Texture size is %g,%g" ), x_size, y_size );
+			//lprintf( WIDE( "Texture size is %g,%g to %g,%g" ), x_size, y_size, x_size2, y_size2 );
 			while( pifDest && pifDest->pParent )
 			{
 				glDepth = 0;

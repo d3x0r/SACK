@@ -109,6 +109,7 @@ IDirect3DBaseTexture9 *ReloadD3DTexture( Image child_image, int option )
 		if( !image_data->d3dTexture )
 		{
 			D3DLOCKED_RECT rect;
+         //lprintf( "Create texture %d,%d %d", image->width, image->height, image->pwidth );
 			g_d3d_device->CreateTexture( image->width, image->height, 1
 				, D3DUSAGE_DYNAMIC
 				, D3DFORMAT::D3DFMT_A8R8G8B8
@@ -133,7 +134,16 @@ IDirect3DBaseTexture9 *ReloadD3DTexture( Image child_image, int option )
 				}
 			}
 #endif
-			CopyMemory(rect.pBits, image->image, image->width*image->height*sizeof(CDATA));
+			{
+				int line;
+				for( line = 0; line < image->height; line++ )
+				{
+					CopyMemory( (P_8)rect.pBits + line * rect.Pitch
+								 , image->image + line * image->pwidth
+								 , image->width*sizeof(CDATA)
+								 );
+				}
+			}
 			image_data->d3tex->UnlockRect(0);
          //lprintf( "Remade texture %p for image %p", image_data->d3tex, image );
 		}
@@ -321,20 +331,10 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 				pData[3].fZ = v4[v][vForward] * l.scale;
 				pData[3].dwColor = color;
 			}
-			//unlock buffer (NEW)
 			pQuadVB->Unlock();
 			g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
 			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DVERTEX));
-			//draw quad (NEW)
-			g_d3d_device->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-
-
-			HRESULT br = g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
-			if( br )
-			{
-				int tmp;
-				lprintf( WIDE( "error %d" ), br );
-			}
+			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
 			//pQuadVB->Release();
 		}
 	}
