@@ -51,7 +51,7 @@ source_group("Source Files\\zlib-1.2.7 Library" FILES ${ZLIB_SOURCE})
  endif( NEED_ZLIB )
 
 
- SET( PBASEDIR src/libpng-1.6.5 )
+ SET( PBASEDIR src/libpng-1.6.6 )
  include( ${PBASEDIR}/CMakeLists.part )
 
 if( FORCE_CXX )
