@@ -62,6 +62,7 @@ add_subpath( ../src/netlib/echo )
 add_subpath( ../src/netlib/forward )
 add_subpath( ../src/netlib/proxy )
 add_subpath( ../src/netlib/scan )
+add_subpath( ../src/psilib/calctl )
 
 add_subpath( ../src/SQLlib/testsql )
 add_subpath( ../src/utils/launcher )
