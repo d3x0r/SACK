@@ -268,7 +268,9 @@
 #  else /* !Windows/x86 && !OS/2 */
     /* Use the defaults, or define PNG*API on the command line (but
      * this will have to be done for every compile!)
-     */
+	  */
+//    build as a shared library
+#    define PNG_DLL_EXPORT
 #  endif /* other system, !OS/2 */
 #endif /* !Windows/x86 */
 
