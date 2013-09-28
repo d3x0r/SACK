@@ -243,7 +243,7 @@ void MakeClockAnalogEx( PSI_CONTROL pc, CTEXTSTR imagename, struct clock_image_t
             int minute_hand_center, minute_hand_width, minute_hand_pivot;
             int hour_hand_center, hour_hand_width, hour_hand_pivot;
 				TEXTCHAR tmp[256];
-            snprintf( tmp, sizeof( tmp ), WIDE( "Analog Clock/%s" ), imagename );
+            snprintf( tmp, sizeof( tmp ), WIDE( "%s/Analog Clock/%s" ), GetProgramName(), imagename );
             x = SACK_GetProfileInt( tmp, WIDE( "face x" ), 0 );
             y = SACK_GetProfileInt( tmp, WIDE( "face y" ), 0 );
             w = SACK_GetProfileInt( tmp, WIDE( "face width" ), 358 );
@@ -322,7 +322,9 @@ void MakeClockAnalogEx( PSI_CONTROL pc, CTEXTSTR imagename, struct clock_image_t
 
 void MakeClockAnalog( PSI_CONTROL pc )
 {
-   MakeClockAnalogEx( pc, WIDE("images/Clock.png"), NULL );
+	TEXTCHAR namebuf[256];
+   SACK_GetProfileString( GetProgramName(), WIDE("Analog Clock/Use Image"), WIDE("images/Clock.png"), namebuf, 256 );
+   MakeClockAnalogEx( pc, namebuf, NULL );
 }
 
 PSI_CLOCK_NAMESPACE_END
