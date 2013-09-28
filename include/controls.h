@@ -918,7 +918,7 @@ PSI_PROC( void, OwnCommonMouse)( PSI_CONTROL pc, int bOwn );
 //-------- Generic control functions --------------
 
 // previously this was used;
-//PSI_PROC( PSI_CONTROL, GetCommonParent )( PSI_CONTROL pc );
+PSI_PROC( PSI_CONTROL, GetCommonParent )( PSI_CONTROL pc );
 #define GetCommonParent(pc)  GetParentControl(pc)
 /* Return the container control of this control.
    NULL if there is no parent container. */

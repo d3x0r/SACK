@@ -400,6 +400,7 @@ set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS}
      ${SOURCES_ROOT}src/SQLlib/optlib/optlib.h
      ${SOURCES_ROOT}src/SQLlib/optlib/makeopts.mysql
      ${SOURCES_ROOT}src/imglib/blotproto.h
+     ${SOURCES_ROOT}src/imglib/image_common.h
      ${SOURCES_ROOT}src/imglib/fntglobal.h
      ${SOURCES_ROOT}src/imglib/fntcache.c
      ${SOURCES_ROOT}src/imglib/cache.h
