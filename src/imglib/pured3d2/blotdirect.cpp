@@ -640,32 +640,11 @@ IMAGE_NAMESPACE
 				pData[3].fU1 = x_size2;
 				pData[3].fV1 = y_size2;
 			}
-         /*
-			{
-				int n;
-				for( n = 0; n < 4; n++ )
-					lprintf( "pdata[%d] = %g %g %g %08x %g %g", n
-							 , pData[n].fX
-							 , pData[n].fY
-							 , pData[n].fZ
-							 , pData[n].dwColor
-							 , pData[n].fU1
-							 , pData[n].fV1 );
-			}
-         */
 			//unlock buffer (NEW)
 			pQuadVB->Unlock();
 			g_d3d_device->SetFVF( D3DFVF_CUSTOMTEXTUREDVERTEX );
 			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DTEXTUREDVERTEX));
-
-			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
-			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE);
-
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
-
-			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_DIFFUSE);
-			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_DIFFUSE);
-
 			//pQuadVB->Release();
 		}
 	}
