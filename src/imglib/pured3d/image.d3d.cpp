@@ -1,7 +1,4 @@
-#define DEBUG_IMAGE_UPDATE
-
-
-
+//#define DEBUG_IMAGE_UPDATE
 
 #define IMAGE_LIBRARY_SOURCE_MAIN
 #ifndef IMAGE_LIBRARY_SOURCE
@@ -334,6 +331,9 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 			pQuadVB->Unlock();
 			g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
 			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DVERTEX));
+			g_d3d_device->SetTexture(0, NULL);
+			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
+			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE);
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
 			//pQuadVB->Release();
 		}
@@ -441,13 +441,6 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 		}
 
 		static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
-		struct D3DVERTEX
-		{
-			float fX,
-			fY,
-			fZ;
-			DWORD dwColor;
-		};
       if( !pQuadVB )
 			g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
 														D3DUSAGE_WRITEONLY,
@@ -464,14 +457,17 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 			pData[0].fY = v1[v][vUp] * l.scale;
 			pData[0].fZ = v1[v][vForward] * l.scale;
 			pData[0].dwColor = color;
+
 			pData[1].fX = v2[v][vRight] * l.scale;
 			pData[1].fY = v2[v][vUp] * l.scale;
 			pData[1].fZ = v2[v][vForward] * l.scale;
 			pData[1].dwColor = color;
+
 			pData[2].fX = v3[v][vRight] * l.scale;
 			pData[2].fY = v3[v][vUp] * l.scale;
 			pData[2].fZ = v3[v][vForward] * l.scale;
 			pData[2].dwColor = color;
+
 			pData[3].fX = v4[v][vRight] * l.scale;
 			pData[3].fY = v4[v][vUp] * l.scale;
 			pData[3].fZ = v4[v][vForward] * l.scale;
@@ -480,10 +476,11 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 		//unlock buffer (NEW)
 		pQuadVB->Unlock();
 		g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
+		g_d3d_device->SetTexture( 0, NULL );
 		g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DVERTEX));
-		//draw quad (NEW)
+			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
+			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE);
 		g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
-		//pQuadVB->Release();
 	}
 	else
 	{              
