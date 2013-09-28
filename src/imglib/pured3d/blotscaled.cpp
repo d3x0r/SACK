@@ -636,8 +636,6 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
 			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE);
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
-			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_DIFFUSE);
-			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_DIFFUSE);
 			//pQuadVB->Release();
 		}
 	}
