@@ -946,13 +946,18 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 	_POINT tmp;
 	static _32 lock;
 	static PTRANSFORM transform;
+	S_32 xd, yd;
 	//lprintf( "-- Begin Transform" );
 	while( LockedExchange( &lock, 1 ) ) Relinquish();
 	if( !transform )
 		transform = CreateNamedTransform( NULL );
+	xd = sprite->curx;// * sprite->scalex / (RCOORD)0x10000;
+	yd = sprite->cury;// * sprite->scaley / (RCOORD)0x10000;
+	TranslateCoord( dest, &xd, &yd );
+
 	Translate( transform
-				, (RCOORD)sprite->curx * sprite->scalex / (RCOORD)0x10000
-				, (RCOORD)sprite->cury*sprite->scaley / (RCOORD)0x10000
+				, (RCOORD)xd
+				, (RCOORD)yd
 				, (RCOORD)0 );
 	//lprintf( WIDE("angle = %ld"), sprite->angle );
 	Scale( transform, sprite->scalex / (RCOORD)0x10000, sprite->scaley / (RCOORD)0x10000, 0 );
@@ -1114,68 +1119,21 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 				y_size = (float) ys/ (float)topmost_parent->height;
 				y_size2 = (float) (ys+hs)/ (float)topmost_parent->height;
 
-				texture_v[0][0] = x_size;
-				texture_v[0][1] = y_size;
-				texture_v[1][0] = x_size2;
-				texture_v[1][1] = y_size;
-				texture_v[2][0] = x_size;
-				texture_v[2][1] = y_size2;
-				texture_v[3][0] = x_size2;
-				texture_v[3][1] = y_size2;
 
-				ReloadOpenGlTexture( topmost_parent, 0 );
+				ReloadOpenGlTexture( sprite->image, 0 );
 				//EnableShader( GetShader( "Simple Texture", NULL ), v[vi], topmost_parent->glActiveSurface, texture_v );
+			glBindTexture(GL_TEXTURE_2D, sprite->image->glActiveSurface);				// Select Our Texture
 			glBegin(GL_TRIANGLE_STRIP);
 			glTexCoord2f(x_size, y_size); glVertex3fv(v[vi][0]);	// Bottom Left Of The Texture and Quad
-			glTexCoord2f(x_size, y_size2); glVertex3fv(v[vi][1]);	// Bottom Right Of The Texture and Quad
-			glTexCoord2f(x_size2, y_size); glVertex3fv(v[vi][3]);	// Top Left Of The Texture and Quad
-			glTexCoord2f(x_size2, y_size2); glVertex3fv(v[vi][2]);	// Top Right Of The Texture and Quad
+			glTexCoord2f(x_size2, y_size); glVertex3fv(v[vi][1]);	// Bottom Right Of The Texture and Quad
+			glTexCoord2f(x_size, y_size2); glVertex3fv(v[vi][2]);	// Top Left Of The Texture and Quad
+			glTexCoord2f(x_size2, y_size2); glVertex3fv(v[vi][3]);	// Top Right Of The Texture and Quad
          glEnd();
 			}
 	}
 }
 
 
-/*
-
-static PSPRITE MakeSpriteEx( DBG_VOIDPASS )
-{
-   PSPRITE ps;
-   ps = (PSPRITE)AllocateEx( sizeof( SPRITE ) DBG_RELAY );
-   MemSet( ps, 0, sizeof( SPRITE ) );
-   return ps;
-}
-
-  PSPRITE  MakeSpriteImageEx ( ImageFile *Image DBG_PASS)
-{
-   PSPRITE ps = MakeSpriteEx( DBG_VOIDRELAY );
-   ps->image = Image;
-   return ps;
-}
-
-  PSPRITE  MakeSpriteImageFileEx ( CTEXTSTR fname DBG_PASS )
-{
-   PSPRITE ps = MakeSpriteEx( DBG_VOIDRELAY );
-   ps->image = LoadImageFileEx( fname DBG_RELAY );
-   if( !ps->image )
-   {
-      ReleaseEx( ps DBG_RELAY );
-      return NULL;
-   }
-   return ps;
-}
-*/
-
-/*
-void UnmakeSprite( PSPRITE sprite, int bForceImageAlso )
-{
-	if( bForceImageAlso )// of if the sprite was created by name...
-	{
-      UnmakeImageFile( sprite->image );
-	}
-   Release( sprite );
-}
-*/
 
 /* rotate_scaled_sprite:
  *  Draws a sprite image onto a bitmap at the specified position, rotating 
@@ -1212,122 +1170,6 @@ void UnmakeSprite( PSPRITE sprite, int bForceImageAlso )
 }
 
 
-
-  void  BlotSprite ( ImageFile *pdest, SPRITE *ps ) // hotspot bitmaps...
-{
-   PCOLOR po, pi;
-#ifdef __CYGWIN__
-   int i;
-#endif
-   int h, w, x ,y, oo, oi ;
-
-   if( !pdest ||
-       !pdest->image ||
-       !ps ||
-       !ps->image )
-      return;
-
-   x = ps->curx - ps->hotx - ps->image->width / 2;
-
-   y = ps->cury - ps->hoty - ps->image->height / 2;
-
-   pi = ps->image->image;
-
-   w = ps->image->width;
-
-   if( x < 0 )
-   {
-      w += x;
-      if( w <= 0 ) return;  // shifted completely offscreen.
-      pi -= x;  // start at correct incoming offset...
-      x = 0;
-      lprintf( WIDE("Fixed PI because of input x..\n") );
-   }
-
-
-   if( (x + w) >= pdest->width )
-   {
-      w = (pdest->width - x) -1;
-      if( w <= 0 ) return;
-   }
-
-   h = ps->image->height;
-
-   if( y < 0 )
-   {
-      h += y;
-      if( h <= 0 ) return; // shifted completely offscreen
-      pi -= ps->image->width * y; // y is negative so subtract to add...
-      y = 0;
-      lprintf( WIDE("Fixed PI because of input Y..\n") );
-   }
-
-   if( (h + y) >= pdest->height )
-   {
-      h = (pdest->height - y) - 1;
-      if( h <= 0 ) return;
-   }
-
-   po = pdest->image + x + ( y * pdest->width );
-
-   oo = 4*(pdest->width - w);     // w is how much we can copy...
-   oi = 4*(ps->image->width - w); // adding remaining width...
-#ifdef __CYGWIN__
-
-   asm(  ""
-         "LoopTop:\n"
-         : : "S"(pi), WIDE("D")(po), WIDE("d")(0), WIDE("b")(h) );
-   asm(
-         "cmpl %%ebx, %%edx\n"
-         "jl   Label\n"
-         "jmp  Done\n"
-         "Label:\n"
-         : : "c"(w)
-      );
-   asm(
-         "lodsl\n"
-         "or %%eax,%%eax\n"
-         "jz Label2\n"
-         "stosl\n"
-         "loop Label\n"
-         "jmp Label3\n"
-      : : : "%eax");
-   asm(  "Label2:\n"
-         "addl $4, %edi\n"
-         "loop Label\n"
-         "Label3:\n"
-      );
-   asm(  "addl %0, %%edi\n"
-         "addl %1, %%esi\n"
-         "inc %%edx\n"
-         "jmp LoopTop\n"
-         "Done:\n"
-         : : "a"(oo), WIDE("c")(oi) );
-#else
-#endif
-}
-
-/*
-PSPRITE SetSpriteHotspot( PSPRITE sprite, S_32 x, S_32 y )
-{
-	if( sprite )
-	{
-		sprite->hotx = x;
-		sprite->hoty = y;
-	}
-   return sprite;
-}
-
-PSPRITE SetSpritePosition( PSPRITE sprite, S_32 x, S_32 y )
-{
-	if( sprite )
-	{
-		sprite->curx = x;
-		sprite->cury = y;
-	}
-   return sprite;
-}
-*/
 IMAGE_NAMESPACE_END
 
 // $Log: sprite.c,v $
