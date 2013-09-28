@@ -869,9 +869,10 @@ png_safe_error,(png_structp png_nonconst_ptr, png_const_charp error_message),
        * C++ compilation too is pretty tricky: C++ wants a pointer to the first
        * element of a jmp_buf, but C doesn't tell us the type of that.
        */
+#if defined(PNG_SETJMP_SUPPORTED)
       if (image->opaque != NULL && image->opaque->error_buf != NULL)
          longjmp(png_control_jmp_buf(image->opaque), 1);
-
+#endif
       /* Missing longjmp buffer, the following is to help debugging: */
       {
          size_t pos = png_safecat(image->message, (sizeof image->message), 0,
@@ -882,7 +883,7 @@ png_safe_error,(png_structp png_nonconst_ptr, png_const_charp error_message),
    }
 
    /* Here on an internal programming error. */
-   abort();
+   //abort();
 }
 
 #ifdef PNG_WARNINGS_SUPPORTED
@@ -906,6 +907,7 @@ png_safe_execute(png_imagep image_in, int (*function)(png_voidp), png_voidp arg)
 {
    volatile png_imagep image = image_in;
    volatile int result;
+#if defined(PNG_SETJMP_SUPPORTED)
    volatile png_voidp saved_error_buf;
    jmp_buf safe_jmpbuf;
 
@@ -917,10 +919,13 @@ png_safe_execute(png_imagep image_in, int (*function)(png_voidp), png_voidp arg)
    {
 
       image->opaque->error_buf = safe_jmpbuf;
+#endif
       result = function(arg);
+#if defined(PNG_SETJMP_SUPPORTED)
    }
 
    image->opaque->error_buf = saved_error_buf;
+#endif
 
    /* And do the cleanup prior to any failure return. */
    if (!result)
