@@ -548,18 +548,27 @@ void InitSyslog( int ignore_options )
 #  endif
 #endif
 
-#ifndef __NO_OPTIONS__
-		if( !ignore_options )
-			LoadOptions();
-#else
-		flags.bOptionsLoaded = 1;
-		SetDefaultName( NULL, NULL, NULL );
-#endif
 		flags.bInitialized = 1;
 	}
+#ifndef __NO_OPTIONS__
+	if( !ignore_options )
+		LoadOptions();
+#else
+	flags.bOptionsLoaded = 1;
+	SetDefaultName( NULL, NULL, NULL );
+#endif
 }
 
 PRIORITY_PRELOAD( InitSyslogPreload, SYSLOG_PRELOAD_PRIORITY )
+{
+   InitSyslog( 1 );
+}
+
+// delay reading options (unless we had to because of a logging requirement) but all core
+// logging should be disabled (usually) until after init.
+// that will allow these to be set with interface.conf defaults.
+// but still fairly early...
+PRIORITY_PRELOAD( InitSyslogPreloadWithOptions, NAMESPACE_PRELOAD_PRIORITY + 1 )
 {
    InitSyslog( 0 );
 }
