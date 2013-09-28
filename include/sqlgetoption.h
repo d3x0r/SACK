@@ -127,6 +127,13 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 																				 DBG_PASS
 																				);
 
+
+#ifdef __NO_OPTIONS__
+#define SACK_GetProfileInt( s,e,d ) (d)
+#define SACK_GetProfileString( s,e,d,b,n ) ((d)?StrCpyEx( b,d,n ):0)
+#endif
+
+
 #define SACK_GetPrivateOptionString( odbc, section, option, default_buf, buf, buf_size, ini_name )   \
 	SACK_GetPrivateProfileStringExxx( odbc, section, option, default_buf, buf, buf_size, ini_name, FALSE DBG_SRC )
 
