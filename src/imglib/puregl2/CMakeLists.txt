@@ -13,12 +13,13 @@ ADD_DEFINITIONS( -D__3D__ )
 
 set( font_sources ../font.c ../fntcache.c ../fntrender.c ../lucidaconsole.c )
 set( loader_sources ../bmpimage.c ../gifimage.c ../pngimage.c ../jpgimage.c )
+set( sprite_sources ../sprite_common.c )
 
 add_library_force_source( ${PROJECT_NAME} SHARED
 ${FIRST_GCC_LIBRARY_SOURCE}
   ../alphatab.c ../alphastab.c
   blotscaled.c blotdirect.c image.c ../image_common.c 
-  line.c interface.c sprite.c sprite_common.c
+  line.c interface.c sprite.c ${sprite_sources}
   ${loader_sources}
   ${font_sources}
   shader simple_shader simple_texture_shader

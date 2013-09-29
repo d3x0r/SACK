@@ -1,3 +1,4 @@
+#define FIX_RELEASE_COM_COLLISION
 
 
 #define IMAGE_LIBRARY_SOURCE
@@ -54,7 +55,7 @@ void UnmakeSprite( PSPRITE sprite, int bForceImageAlso )
 	{
       UnmakeImageFile( sprite->image );
 	}
-   Release( sprite );
+   Deallocate( PSPRITE, sprite );
 }
 
 
