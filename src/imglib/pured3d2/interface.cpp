@@ -178,7 +178,7 @@ static void CPROC _ImageDropImageInterface( POINTER p )
 
 PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 {
-	RegisterInterface( WIDE("d3d.image"), _ImageGetImageInterface, _ImageDropImageInterface );
+	RegisterInterface( WIDE("d3d2.image"), _ImageGetImageInterface, _ImageDropImageInterface );
 	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Image Library/Scale", 10 );
 	if( l.scale == 0.0 )
 	{

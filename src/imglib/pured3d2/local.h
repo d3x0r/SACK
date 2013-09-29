@@ -3,14 +3,17 @@
 #include <render3d.h>
 #include <imglib/imagestruct.h>
 #include <imglib/fontstruct.h>
+#include "shaders.h"
 
 IMAGE_NAMESPACE
 
 struct d3dSurfaceData {
+	PMatrix M_Projection;
 	PTRANSFORM T_Camera;
 	RCOORD *aspect;
 	RCOORD *identity_depth;
 	int index;
+	PLIST shaders;
 };
 
 //-------------- register order mappings for FVF vertices
@@ -40,13 +43,20 @@ float fX,
       fZ;
 DWORD dwColor;
 };
-#define D3DFVF_CUSTOMTEXTUREDVERTEX (D3DFVF_XYZ | D3DFVF_DIFFUSE| D3DFVF_TEX1)
+
+struct D3DPOSVERTEX
+{
+float fX,
+      fY,
+      fZ;
+};
+
+#define D3DFVF_CUSTOMTEXTUREDVERTEX (D3DFVF_XYZ | D3DFVF_TEX1)
 struct D3DTEXTUREDVERTEX
 {
 float fX,
       fY,
       fZ;
-DWORD dwColor;
 float fU1, //first tex coords
       fV1;
 };
@@ -64,17 +74,22 @@ extern
 #endif
 struct {
 	struct {
-		int multi_shader;
-		struct {
-			BIT_FIELD init_ok : 1;
-			BIT_FIELD shader_ok : 1;
-		} flags;
-	} shader;
+		BIT_FIELD projection_read : 1;
+		BIT_FIELD worldview_read : 1;
+	} flags;
 	int glImageIndex;
 	PLIST d3dSurfaces; // list of struct glSurfaceData *
 	struct d3dSurfaceData *d3dActiveSurface;
 	PRENDER3D_INTERFACE pr3di;
 	RCOORD scale;
+
+	float projection[16];
+	MATRIX worldview;
+	PImageShaderTracker simple_shader;
+	PImageShaderTracker simple_texture_shader;
+	PImageShaderTracker simple_shaded_texture_shader;
+	PImageShaderTracker simple_multi_shaded_texture_shader;
+	PImageShaderTracker simple_inverse_texture_shader;
 } local_image_data;
 #define l local_image_data
 

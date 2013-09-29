@@ -23,6 +23,7 @@ extern int bGLColorMode;
 #include "local.h"
 #include "blotproto.h"
 #include "../image_common.h"
+#include "shaders.h"
 
 #ifdef DEBUG_IMAGE_UPDATE
 #define DO_PNG
@@ -52,24 +53,47 @@ int LoadD3DImage( Image image, int *result )
 static void OnFirstDraw3d( WIDE( "@00 DirectX Image Library" ) )( PTRSZVAL psv )
 {
 	l.d3dActiveSurface = (struct d3dSurfaceData *)psv;
+	{
+		l.simple_shader = GetShader( "Simple Shader", InitSuperSimpleShader );
+		l.simple_texture_shader = GetShader( "Simple Texture", InitSimpleTextureShader );
+		l.simple_shaded_texture_shader = GetShader( "Simple Shaded Texture", InitSimpleShadedTextureShader );
+		l.simple_multi_shaded_texture_shader = GetShader( "Simple MultiShaded Texture", InitSimpleMultiShadedTextureShader );
+	}
 }
 
 static PTRSZVAL OnInit3d( WIDE( "@00 DirectX Image Library" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
-	struct d3dSurfaceData *Surfaces = New( struct d3dSurfaceData );
-	Surfaces->T_Camera = camera;
-	Surfaces->identity_depth = identity_depth;
-	Surfaces->aspect = aspect;
-	AddLink( &l.d3dSurfaces, Surfaces );
+	struct d3dSurfaceData *Surfaces;
+	INDEX idx;
+	LIST_FORALL( l.d3dSurfaces, idx, struct d3dSurfaceData *, Surfaces )
 	{
-		INDEX idx;
-		struct d3dSurfaceData *data;
-		LIST_FORALL( l.d3dSurfaces, idx, struct d3dSurfaceData *, data )
-			if( data == Surfaces )
-			{
-				Surfaces->index = idx;
-				break;
-			}
+		if( ( Surfaces->T_Camera == camera )
+         && ( Surfaces->identity_depth == identity_depth )
+         && ( Surfaces->aspect == aspect )
+			&& ( Surfaces->M_Projection == projection ) )
+		{
+			break;
+		}
+	}
+	if( !Surfaces )
+	{
+		Surfaces = New( struct d3dSurfaceData );
+		Surfaces->M_Projection = projection;
+		Surfaces->T_Camera = camera;
+		Surfaces->identity_depth = identity_depth;
+		Surfaces->aspect = aspect;
+		Surfaces->shaders = NULL;
+		AddLink( &l.d3dSurfaces, Surfaces );
+		{
+			INDEX idx;
+			struct d3dSurfaceData *data;
+			LIST_FORALL( l.d3dSurfaces, idx, struct d3dSurfaceData *, data )
+				if( data == Surfaces )
+				{
+					Surfaces->index = idx;
+					break;
+				}
+		}
 	}
 	return (PTRSZVAL)Surfaces;
 }
@@ -91,7 +115,6 @@ IDirect3DBaseTexture9 *ReloadD3DTexture( Image child_image, int option )
 		struct d3dSurfaceImageData *image_data = 
 			(d3dSurfaceImageData *)GetLink( &image->Surfaces
 															, l.glImageIndex );
-		int d3dTexture;
 
 		if( !image_data )
 		{
@@ -106,7 +129,7 @@ IDirect3DBaseTexture9 *ReloadD3DTexture( Image child_image, int option )
 		if( !image_data->d3dTexture )
 		{
 			D3DLOCKED_RECT rect;
-         //lprintf( "Create texture %d,%d %d", image->width, image->height, image->pwidth );
+			//lprintf( "Create texture %d,%d %d", image->width, image->height, image->pwidth );
 			g_d3d_device->CreateTexture( image->width, image->height, 1
 				, D3DUSAGE_DYNAMIC
 				, D3DFORMAT::D3DFMT_A8R8G8B8
@@ -142,7 +165,7 @@ IDirect3DBaseTexture9 *ReloadD3DTexture( Image child_image, int option )
 				}
 			}
 			image_data->d3tex->UnlockRect(0);
-         //lprintf( "Remade texture %p for image %p", image_data->d3tex, image );
+			//lprintf( "Remade texture %p for image %p", image_data->d3tex, image );
 		}
 		image->pActiveSurface = image_data->d3dTexture;
 		child_image->pActiveSurface = image->pActiveSurface;
@@ -174,7 +197,7 @@ void MarkImageUpdated( Image child_image )
 			}
 			if( image_data->d3dTexture )
 			{
-            //lprintf( "releasing texture %p for image %p", image_data->d3dTexture, image );
+				//lprintf( "releasing texture %p for image %p", image_data->d3dTexture, image );
 				image_data->d3dTexture->Release();
 				//textureToDelete->Release
 				//glDeleteTextures( 1, &image_data->d3dTexture );
@@ -299,14 +322,14 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 
 		if( g_d3d_device )
 		{
-         if( !pQuadVB )
-				g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
+			if( !pQuadVB )
+				g_d3d_device->CreateVertexBuffer(sizeof( D3DPOSVERTEX )*4,
 															D3DUSAGE_WRITEONLY,
-															D3DFVF_CUSTOMVERTEX,
+															D3DFVF_XYZ,
 															D3DPOOL_MANAGED,
 															&pQuadVB,
 															NULL);
-			D3DVERTEX* pData;
+			D3DPOSVERTEX* pData;
 			//lock buffer (NEW)
 			pQuadVB->Lock(0,0,(void**)&pData,0);
 			//copy data to buffer (NEW)
@@ -314,26 +337,24 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 				pData[0].fX = v1[v][vRight] * l.scale;
 				pData[0].fY = v1[v][vUp] * l.scale;
 				pData[0].fZ = v1[v][vForward] * l.scale;
-				pData[0].dwColor = color;
 				pData[1].fX = v2[v][vRight] * l.scale;
 				pData[1].fY = v2[v][vUp] * l.scale;
 				pData[1].fZ = v2[v][vForward] * l.scale;
-				pData[1].dwColor = color;
 				pData[2].fX = v3[v][vRight] * l.scale;
 				pData[2].fY = v3[v][vUp] * l.scale;
 				pData[2].fZ = v3[v][vForward] * l.scale;
-				pData[2].dwColor = color;
 				pData[3].fX = v4[v][vRight] * l.scale;
 				pData[3].fY = v4[v][vUp] * l.scale;
 				pData[3].fZ = v4[v][vForward] * l.scale;
-				pData[3].dwColor = color;
 			}
 			pQuadVB->Unlock();
-			g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
-			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DVERTEX));
-			g_d3d_device->SetTexture(0, NULL);
-			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
-			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE);
+
+			float _color[4];
+			_color[0] = RedVal( color ) / 255.0f;
+			_color[1] = GreenVal( color ) / 255.0f;
+			_color[2] = BlueVal( color ) / 255.0f;
+			_color[3] = AlphaVal( color ) / 255.0f;
+			EnableShader( l.simple_shader, pQuadVB, _color );
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
 			//pQuadVB->Release();
 		}
@@ -441,14 +462,14 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 		}
 
 		static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
-      if( !pQuadVB )
-			g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
+		if( !pQuadVB )
+			g_d3d_device->CreateVertexBuffer(sizeof( D3DPOSVERTEX )*4,
 														D3DUSAGE_WRITEONLY,
 														D3DFVF_CUSTOMVERTEX,
 														D3DPOOL_MANAGED,
 														&pQuadVB,
 														NULL);
-		D3DVERTEX* pData;
+		D3DPOSVERTEX* pData;
 		//lock buffer (NEW)
 		pQuadVB->Lock(0,0,(void**)&pData,0);
 		//copy data to buffer (NEW)
@@ -456,31 +477,28 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 			pData[0].fX = v1[v][vRight] * l.scale;
 			pData[0].fY = v1[v][vUp] * l.scale;
 			pData[0].fZ = v1[v][vForward] * l.scale;
-			pData[0].dwColor = color;
 
 			pData[1].fX = v2[v][vRight] * l.scale;
 			pData[1].fY = v2[v][vUp] * l.scale;
 			pData[1].fZ = v2[v][vForward] * l.scale;
-			pData[1].dwColor = color;
 
 			pData[2].fX = v3[v][vRight] * l.scale;
 			pData[2].fY = v3[v][vUp] * l.scale;
 			pData[2].fZ = v3[v][vForward] * l.scale;
-			pData[2].dwColor = color;
 
 			pData[3].fX = v4[v][vRight] * l.scale;
 			pData[3].fY = v4[v][vUp] * l.scale;
 			pData[3].fZ = v4[v][vForward] * l.scale;
-			pData[3].dwColor = color;
 		}
 		//unlock buffer (NEW)
 		pQuadVB->Unlock();
-		g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
-		g_d3d_device->SetTexture( 0, NULL );
-		g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DVERTEX));
-			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
-			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE);
-		g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
+			float _color[4];
+			_color[0] = RedVal( color ) / 255.0f;
+			_color[1] = GreenVal( color ) / 255.0f;
+			_color[2] = BlueVal( color ) / 255.0f;
+			_color[3] = AlphaVal( color ) / 255.0f;
+			EnableShader( l.simple_shader, pQuadVB, _color );
+  		g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
 	}
 	else
 	{              

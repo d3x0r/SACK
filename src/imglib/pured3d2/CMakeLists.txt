@@ -4,7 +4,9 @@ set( project bag.image.pured3d2 )
 ADD_DEFINITIONS( -D__3D__ )
 
 set( COMMON_CPP_SOURCES   blotscaled.cpp blotdirect.cpp image.d3d.cpp 
-  line.cpp interface.cpp sprite.cpp )
+  line.cpp interface.cpp sprite.cpp 
+  shader.cpp simple_shader.cpp simple_texture_shader.cpp simple_multi_shaded_texture_shader.cpp
+  )
 
 set( font_sources 
 	../alphatab.c 
@@ -26,6 +28,7 @@ set( font_sources
         ../cache.h 
         ../blotproto.h 
         local.h
+        shaders.h
         ../image_common.c
         ../image_common.h
         ../sprite_local.h
@@ -52,7 +55,7 @@ ${LAST_GCC_LIBRARY_SOURCE}
 )
 
 SET_TARGET_PROPERTIES(${project} PROPERTIES 
-        COMPILE_DEFINITIONS "TARGET_LABEL=${TARGET_LABEL};_D3D_DRIVER" 
+        COMPILE_DEFINITIONS "TARGET_LABEL=${TARGET_LABEL};_D3D_DRIVER;_D3D_DRIVER2" 
         FOLDER "Image Library" 
 )
 
@@ -62,6 +65,14 @@ else( __ANDROID__ )
 target_link_libraries( ${project} ${SACK_CORE_LIBRARY} )
 endif( __ANDROID__ )
 
-target_link_libraries( ${project} ${BAG_PSI_PLUSPLUS} )
+target_link_libraries( ${project} ${BAG_PSI_PLUSPLUS} d3dcompiler )
 
 install_mode_dest( ${project} )
+
+if( MSVC11 )
+  if( __64__ )
+    install( FILES redist.vs11/D3D/x64/d3dcompiler_46.dll DESTINATION bin )
+  else( __64__ )
+    install( FILES redist.vs11/D3D/x86/d3dcompiler_46.dll DESTINATION bin )
+  endif( __64__ )
+endif( MSVC11 )

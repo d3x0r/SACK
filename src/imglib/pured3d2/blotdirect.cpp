@@ -557,50 +557,6 @@ IMAGE_NAMESPACE
 				v = 1-v;
 			}
 
-			if( method == BLOT_COPY )
-			{
-				ReloadD3DTexture( pifSrc, 0 );
-				if( !pifSrc->pActiveSurface )
-				{
-					lprintf( WIDE( "gl texture hasn't downloaded or went away?" ) );
-					lock = 0;
-					return;
-				}
-				g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
-				;//glColor4ub( 255,255,255,255 );
-			}
-			else if( method == BLOT_SHADED )
-			{
-				color = va_arg( colors, CDATA );
-				ReloadD3DTexture( pifSrc, 0 );
-				g_d3d_device->SetTexture( 0, pifSrc->pActiveSurface );
-			}
-			else if( method == BLOT_MULTISHADE )
-			{
-				Image output_image;
-				CDATA r = va_arg( colors, CDATA );
-				CDATA g = va_arg( colors, CDATA );
-				CDATA b = va_arg( colors, CDATA );
-				lock = 0;
-				output_image = GetShadedImage( pifSrc, r, g, b );
-				lock = 1;
-				ReloadD3DTexture( output_image, 0 );
-				if( !output_image->pActiveSurface )
-				{
-					lprintf( WIDE( "gl texture hasn't downloaded or went away?" ) );
-					lock = 0;
-					return;
-				}
-				g_d3d_device->SetTexture( 0, output_image->pActiveSurface );
-			}
-			else if( method == BLOT_INVERTED )
-			{
-				Image output_image;
-				output_image = GetInvertedImage( pifSrc );
-				ReloadD3DTexture( output_image, 0 );
-				g_d3d_device->SetTexture( 0, output_image->pActiveSurface );
-			}
-
 			static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
 
 			if( !pQuadVB )
@@ -618,34 +574,70 @@ IMAGE_NAMESPACE
 				pData[0].fX = v1[v][vRight] * l.scale;
 				pData[0].fY = v1[v][vUp] * l.scale;
 				pData[0].fZ = v1[v][vForward] * l.scale;
-				pData[0].dwColor = color;
 				pData[0].fU1 = x_size;
 				pData[0].fV1 = y_size;
 				pData[1].fX = v2[v][vRight] * l.scale;
 				pData[1].fY = v2[v][vUp] * l.scale;
 				pData[1].fZ = v2[v][vForward] * l.scale;
-				pData[1].dwColor = color;
 				pData[1].fU1 = x_size2;
 				pData[1].fV1 = y_size;
 				pData[2].fX = v3[v][vRight] * l.scale;
 				pData[2].fY = v3[v][vUp] * l.scale;
 				pData[2].fZ = v3[v][vForward] * l.scale;
-				pData[2].dwColor = color;
 				pData[2].fU1 = x_size;
 				pData[2].fV1 = y_size2;
 				pData[3].fX = v4[v][vRight] * l.scale;
 				pData[3].fY = v4[v][vUp] * l.scale;
 				pData[3].fZ = v4[v][vForward] * l.scale;
-				pData[3].dwColor = color;
 				pData[3].fU1 = x_size2;
 				pData[3].fV1 = y_size2;
 			}
 			//unlock buffer (NEW)
 			pQuadVB->Unlock();
-			g_d3d_device->SetFVF( D3DFVF_CUSTOMTEXTUREDVERTEX );
-			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DTEXTUREDVERTEX));
+
+			if( method == BLOT_COPY )
+			{
+				EnableShader( l.simple_texture_shader, pQuadVB, pifSrc );
+			}
+			else if( method == BLOT_SHADED )
+			{
+				color = va_arg( colors, CDATA );
+				float _color[4];
+				_color[0] = RedVal( color ) / 255.0f;
+				_color[1] = GreenVal( color ) / 255.0f;
+				_color[2] = BlueVal( color ) / 255.0f;
+				_color[3] = AlphaVal( color ) / 255.0f;
+				EnableShader( l.simple_shaded_texture_shader, pQuadVB, pifSrc, _color );
+			}
+			else if( method == BLOT_MULTISHADE )
+			{
+				Image output_image;
+				CDATA r = va_arg( colors, CDATA );
+				CDATA g = va_arg( colors, CDATA );
+				CDATA b = va_arg( colors, CDATA );
+				float r_color[4];
+				float g_color[4];
+				float b_color[4];
+				r_color[0] = RedVal( r ) / 255.0f;
+				r_color[1] = GreenVal( r ) / 255.0f;
+				r_color[2] = BlueVal( r ) / 255.0f;
+				r_color[3] = AlphaVal( r ) / 255.0f;
+				g_color[0] = RedVal( g ) / 255.0f;
+				g_color[1] = GreenVal( g ) / 255.0f;
+				g_color[2] = BlueVal( g ) / 255.0f;
+				g_color[3] = AlphaVal( g ) / 255.0f;
+				b_color[0] = RedVal( b ) / 255.0f;
+				b_color[1] = GreenVal( b ) / 255.0f;
+				b_color[2] = BlueVal( b ) / 255.0f;
+				b_color[3] = AlphaVal( b ) / 255.0f;
+				EnableShader( l.simple_multi_shaded_texture_shader, pQuadVB, pifSrc, r_color, g_color, b_color );
+			}
+			else if( method == BLOT_INVERTED )
+			{
+				//EnableShader( l.simple_inverted_texture_shader, pQuadVB, pifSrc );
+			}
+
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
-			//pQuadVB->Release();
 		}
 	}
 	else
