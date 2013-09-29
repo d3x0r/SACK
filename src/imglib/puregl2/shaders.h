@@ -1,3 +1,5 @@
+#ifndef IMAGE_SHADER_EXTENSION_INCLUDED
+#define IMAGE_SHADER_EXTENSION_INCLUDED
 
 #define __need___va_list
 #include <stdarg.h>
@@ -94,3 +96,4 @@ void DumpAttribs( PImageShaderTracker tracker, int program );
 
 void CloseShaders( struct glSurfaceData *glSurface );
 
+#endif

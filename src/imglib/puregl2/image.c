@@ -69,16 +69,17 @@ static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 	}
 	else
 	{
-		GetShader( "Simple Shader", InitSuperSimpleShader );
-		GetShader( "Simple Texture", InitSimpleTextureShader );
-		GetShader( "Simple Shaded Texture", InitSimpleShadedTextureShader );
-		GetShader( "Simple MultiShaded Texture", InitSimpleMultiShadedTextureShader );
+		l.simple_shader = GetShader( "Simple Shader", InitSuperSimpleShader );
+		l.simple_texture_shader = GetShader( "Simple Texture", InitSimpleTextureShader );
+		l.simple_shaded_texture_shader = GetShader( "Simple Shaded Texture", InitSimpleShadedTextureShader );
+		l.simple_multi_shaded_texture_shader = GetShader( "Simple MultiShaded Texture", InitSimpleMultiShadedTextureShader );
+		//l.simple_inverse_texture_shader = GetShader( "Simple Inverse Texture", InitSimpleShadedTextureShader );
 	}
 }
 
 static PTRSZVAL OnInit3d( WIDE( "@00 PUREGL Image Library" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
 {
-   INDEX idx;
+	INDEX idx;
 	struct glSurfaceData *glSurface;
 	LIST_FORALL( l.glSurface, idx, struct glSurfaceData *, glSurface )
 	{
@@ -415,7 +416,7 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 		scale( v[vi][2], v[vi][2], l.scale );
 		scale( v[vi][3], v[vi][3], l.scale );
 
-		EnableShader( GetShader( "Simple Shader", NULL ), v[vi], _color );
+		EnableShader( l.simple_shader, v[vi], _color );
 		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 	}
 	else

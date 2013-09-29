@@ -1085,6 +1085,8 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 			v[vi][3][2] = 0.0;
 
 
+
+
 			while( dest && dest->pParent )
 			{
 				if( dest->transform )
@@ -1142,8 +1144,6 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 				EnableShader( GetShader( "Simple Texture", NULL ), v[vi], topmost_parent->glActiveSurface, texture_v );
 			}
 			glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
-
-
 	}
 }
 

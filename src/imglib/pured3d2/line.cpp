@@ -104,123 +104,119 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 
 			static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
 
-         if( !pQuadVB )
-				g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
+			if( !pQuadVB )
+				g_d3d_device->CreateVertexBuffer(sizeof( D3DPOSVERTEX )*4,
 															D3DUSAGE_WRITEONLY,
-															D3DFVF_CUSTOMVERTEX,
+															D3DFVF_XYZ,
 															D3DPOOL_MANAGED,
 															&pQuadVB,
 															NULL);
-			D3DVERTEX* pData;
+			D3DPOSVERTEX* pData;
 			//lock buffer (NEW)
 			pQuadVB->Lock(0,0,(void**)&pData,0);
-         //lprintf( "line color should be %08x", d );
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
 				pData[0].fY = v1[v][vUp] * l.scale;
 				pData[0].fZ = v1[v][vForward] * l.scale;
-				pData[0].dwColor = d;
 				pData[1].fX = v2[v][vRight] * l.scale;
 				pData[1].fY = v2[v][vUp] * l.scale;
 				pData[1].fZ = v2[v][vForward] * l.scale;
-				pData[1].dwColor = d;
 				pData[2].fX = v4[v][vRight] * l.scale;
 				pData[2].fY = v4[v][vUp] * l.scale;
 				pData[2].fZ = v4[v][vForward] * l.scale;
-				pData[2].dwColor = d;
 				pData[3].fX = v3[v][vRight] * l.scale;
 				pData[3].fY = v3[v][vUp] * l.scale;
 				pData[3].fZ = v3[v][vForward] * l.scale;
-				pData[3].dwColor = d;
 			}
 			//unlock buffer (NEW)
 			pQuadVB->Unlock();
-
-			g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
-			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DVERTEX));
+			float _color[4];
+			_color[0] = RedVal( d ) / 255.0f;
+			_color[1] = GreenVal( d ) / 255.0f;
+			_color[2] = BlueVal( d ) / 255.0f;
+			_color[3] = AlphaVal( d ) / 255.0f;
+			EnableShader( l.simple_shader, pQuadVB, _color );
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
-			//pQuadVB->Release();
-
 	}
-   else
+	else
 	{
-   int err, delx, dely, len, inc;
-   if( !pImage || !pImage->image ) return;
-   delx = x2 - x1;
-   if( delx < 0 )
-      delx = -delx;
+	int err, delx, dely, len, inc;
+	if( !pImage || !pImage->image ) return;
+	delx = x2 - x1;
+	if( delx < 0 )
+		delx = -delx;
 
-   dely = y2 - y1;
-   if( dely < 0 )
-      dely = -dely;
+	dely = y2 - y1;
+	if( dely < 0 )
+		dely = -dely;
 
-   if( dely > delx ) // length for y is more than length for x
-   {
-      len = dely;
-      if( y1 > y2 )
-      {
-         int tmp = x1;
-         x1 = x2;
-         x2 = tmp;
-         y1 = y2; // x1 is start...
-      }
-      if( x2 > x1 )
-         inc = 1;
-      else
-         inc = -1;
+	if( dely > delx ) // length for y is more than length for x
+	{
+		len = dely;
+		if( y1 > y2 )
+		{
+			int tmp = x1;
+			x1 = x2;
+			x2 = tmp;
+			y1 = y2; // x1 is start...
+		}
+		if( x2 > x1 )
+			inc = 1;
+		else
+			inc = -1;
 
-      err = -(dely / 2);
-      while( len >= 0 )
-      {
-         plot( pImage, x1, y1, d );
-         y1++;
-         err += delx;
-         while( err >= 0 )
-         {
-            err -= dely;
-            x1 += inc;
-         }
-         len--;
-      }
-   }
-   else
-   {
-      if( !delx ) // 0 length line
-         return;
-      len = delx;
-      if( x1 > x2 )
-      {
-         int tmp = y1;
-         y1 = y2;
-         y2 = tmp;
-         x1 = x2; // x1 is start...
-      }
-      if( y2 > y1 )
-         inc = 1;
-      else
-         inc = -1;
+		err = -(dely / 2);
+		while( len >= 0 )
+		{
+			plot( pImage, x1, y1, d );
+			y1++;
+			err += delx;
+			while( err >= 0 )
+			{
+				err -= dely;
+				x1 += inc;
+			}
+			len--;
+		}
+	}
+	else
+	{
+		if( !delx ) // 0 length line
+			return;
+		len = delx;
+		if( x1 > x2 )
+		{
+			int tmp = y1;
+			y1 = y2;
+			y2 = tmp;
+			x1 = x2; // x1 is start...
+		}
+		if( y2 > y1 )
+			inc = 1;
+		else
+			inc = -1;
 
-      err = -(delx / 2);
-      while( len >= 0 )
-      {
-         plot( pImage, x1, y1, d );
-         x1++;
-         err += dely;
-         while( err >= 0 )
-         {
-            err -= delx;
-            y1 += inc;
-         }
-         len--;
-      }
-   }
-   MarkImageUpdated( pImage );
+		err = -(delx / 2);
+		while( len >= 0 )
+		{
+			plot( pImage, x1, y1, d );
+			x1++;
+			err += dely;
+			while( err >= 0 )
+			{
+				err -= delx;
+				y1 += inc;
+			}
+			len--;
+		}
+	}
+	MarkImageUpdated( pImage );
 	}
 }
 
 void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
-                            , int x2, int y2, int d )
+				                , int x2, int y2, int d )
 {
 	if( pImage->flags & IF_FLAG_FINAL_RENDER )
 	{
@@ -278,97 +274,97 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 		static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
 
 		if( !pQuadVB )
-			g_d3d_device->CreateVertexBuffer(sizeof( D3DVERTEX )*4,
+			g_d3d_device->CreateVertexBuffer(sizeof( D3DPOSVERTEX )*4,
 														D3DUSAGE_WRITEONLY,
-														D3DFVF_CUSTOMVERTEX,
+														D3DFVF_XYZ,
 														D3DPOOL_MANAGED,
 														&pQuadVB,
 														NULL);
-			D3DVERTEX* pData;
+			D3DPOSVERTEX* pData;
 			//lock buffer (NEW)
 			pQuadVB->Lock(0,0,(void**)&pData,0);
-         //lprintf( "line color should be %08x", d );
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
 				pData[0].fY = v1[v][vUp] * l.scale;
 				pData[0].fZ = v1[v][vForward] * l.scale;
-				pData[0].dwColor = d;
 				pData[1].fX = v2[v][vRight] * l.scale;
 				pData[1].fY = v2[v][vUp] * l.scale;
 				pData[1].fZ = v2[v][vForward] * l.scale;
-				pData[1].dwColor = d;
 				pData[2].fX = v4[v][vRight] * l.scale;
 				pData[2].fY = v4[v][vUp] * l.scale;
 				pData[2].fZ = v4[v][vForward] * l.scale;
-				pData[2].dwColor = d;
 				pData[3].fX = v3[v][vRight] * l.scale;
 				pData[3].fY = v3[v][vUp] * l.scale;
 				pData[3].fZ = v3[v][vForward] * l.scale;
-				pData[3].dwColor = d;
 			}
 			//unlock buffer (NEW)
 			pQuadVB->Unlock();
-			g_d3d_device->SetFVF( D3DFVF_CUSTOMVERTEX );
-			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DVERTEX));
+
+			float _color[4];
+			_color[0] = RedVal( d ) / 255.0f;
+			_color[1] = GreenVal( d ) / 255.0f;
+			_color[2] = BlueVal( d ) / 255.0f;
+			_color[3] = AlphaVal( d ) / 255.0f;
+			EnableShader( l.simple_shader, pQuadVB, _color );
+
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
-			//pQuadVB->Release();
 	}
-   else
+	else
 	{
-   int err, delx, dely, len, inc;
-   if( !pImage || !pImage->image ) return;
-   delx = x2 - x1;
-   if( delx < 0 )
-      delx = -delx;
+	int err, delx, dely, len, inc;
+	if( !pImage || !pImage->image ) return;
+	delx = x2 - x1;
+	if( delx < 0 )
+		delx = -delx;
 
-   dely = y2 - y1;
-   if( dely < 0 )
-      dely = -dely;
+	dely = y2 - y1;
+	if( dely < 0 )
+		dely = -dely;
 
-   if( dely > delx ) // length for y is more than length for x
-   {
-      len = dely;
-      if( y1 > y2 )
-      {
-         int tmp = x1;
-         x1 = x2;
-         x2 = tmp;
-         y1 = y2; // x1 is start...
-      }
-      if( x2 > x1 )
-         inc = 1;
-      else
-         inc = -1;
+	if( dely > delx ) // length for y is more than length for x
+	{
+		len = dely;
+		if( y1 > y2 )
+		{
+			int tmp = x1;
+			x1 = x2;
+			x2 = tmp;
+			y1 = y2; // x1 is start...
+		}
+		if( x2 > x1 )
+			inc = 1;
+		else
+			inc = -1;
 
-      err = -(dely / 2);
-      while( len >= 0 )
-      {
-         plotalpha( pImage, x1, y1, d );
-         y1++;
-         err += delx;
-         while( err >= 0 )
-         {
-            err -= dely;
-            x1 += inc;
-         }
-         len--;
-      }
-   }
-   else
-   {
-      if( !delx ) // 0 length line
-         return;
-      len = delx;
-      if( x1 > x2 )
-      {
-         int tmp = y1;
-         y1 = y2;
-         y2 = tmp;
-         x1 = x2; // x1 is start...
-      }
-      if( y2 > y1 )
-         inc = 1;
+		err = -(dely / 2);
+		while( len >= 0 )
+		{
+			plotalpha( pImage, x1, y1, d );
+			y1++;
+			err += delx;
+			while( err >= 0 )
+			{
+				err -= dely;
+				x1 += inc;
+			}
+			len--;
+		}
+	}
+	else
+	{
+		if( !delx ) // 0 length line
+			return;
+		len = delx;
+		if( x1 > x2 )
+		{
+			int tmp = y1;
+			y1 = y2;
+			y2 = tmp;
+			x1 = x2; // x1 is start...
+		}
+		if( y2 > y1 )
+			inc = 1;
 		else
 			inc = -1;
 
@@ -391,77 +387,77 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 }
 
 void CPROC do_lineExVc( ImageFile *pImage, int x1, int y1
-                            , int x2, int y2, int d
-                            , void (*func)(ImageFile *pif, int x, int y, int d ) )
+				                , int x2, int y2, int d
+				                , void (*func)(ImageFile *pif, int x, int y, int d ) )
 {
-   int err, delx, dely, len, inc;
-   //if( !pImage || !pImage->image ) return;
-   delx = x2 - x1;
-   if( delx < 0 )
-      delx = -delx;
+	int err, delx, dely, len, inc;
+	//if( !pImage || !pImage->image ) return;
+	delx = x2 - x1;
+	if( delx < 0 )
+		delx = -delx;
 
-   dely = y2 - y1;
-   if( dely < 0 )
-      dely = -dely;
+	dely = y2 - y1;
+	if( dely < 0 )
+		dely = -dely;
 
-   if( dely > delx ) // length for y is more than length for x
-   {
-      len = dely;
-      if( y1 > y2 )
-      {
-         int tmp = x1;
-         x1 = x2;
-         x2 = tmp;
-         y1 = y2; // x1 is start...
-      }
-      if( x2 > x1 )
-         inc = 1;
-      else
-         inc = -1;
+	if( dely > delx ) // length for y is more than length for x
+	{
+		len = dely;
+		if( y1 > y2 )
+		{
+			int tmp = x1;
+			x1 = x2;
+			x2 = tmp;
+			y1 = y2; // x1 is start...
+		}
+		if( x2 > x1 )
+			inc = 1;
+		else
+			inc = -1;
 
-      err = -(dely / 2);
-      while( len >= 0 )
-      {
-         func( pImage, x1, y1, d );
-         y1++;
-         err += delx;
-         while( err >= 0 )
-         {
-            err -= dely;
-            x1 += inc;
-         }
-         len--;
-      }
-   }
-   else
-   {
-      if( !delx ) // 0 length line
-         return;
-      len = delx;
-      if( x1 > x2 )
-      {
-         int tmp = y1;
-         y1 = y2;
-         y2 = tmp;
-         x1 = x2; // x1 is start...
-      }
-      if( y2 > y1 )
-         inc = 1;
-      else
-         inc = -1;
+		err = -(dely / 2);
+		while( len >= 0 )
+		{
+			func( pImage, x1, y1, d );
+			y1++;
+			err += delx;
+			while( err >= 0 )
+			{
+				err -= dely;
+				x1 += inc;
+			}
+			len--;
+		}
+	}
+	else
+	{
+		if( !delx ) // 0 length line
+			return;
+		len = delx;
+		if( x1 > x2 )
+		{
+			int tmp = y1;
+			y1 = y2;
+			y2 = tmp;
+			x1 = x2; // x1 is start...
+		}
+		if( y2 > y1 )
+			inc = 1;
+		else
+			inc = -1;
 
-      err = -(delx / 2);
-      while( len >= 0 )
-      {
-         func( pImage, x1, y1, d );
-         x1++;
-         err += dely;
-         while( err >= 0 )
-         {
-            err -= delx;
-            y1 += inc;
-         }
-         len--;
+		err = -(delx / 2);
+		while( len >= 0 )
+		{
+			func( pImage, x1, y1, d );
+			x1++;
+			err += dely;
+			while( err >= 0 )
+			{
+				err -= delx;
+				y1 += inc;
+			}
+			len--;
 		}
 	}
 }
@@ -469,17 +465,17 @@ void CPROC do_lineExVc( ImageFile *pImage, int x1, int y1
 void CPROC do_hlinec( ImageFile *pImage, int y, int xfrom, int xto, CDATA color )
 {
 	if( xfrom < xto )
-	   BlatColor( pImage, xfrom, y, xto-xfrom, 1, color );
+		BlatColor( pImage, xfrom, y, xto-xfrom, 1, color );
 	else
-	   BlatColor( pImage, xfrom, y, xfrom-xto, 1, color );
+		BlatColor( pImage, xfrom, y, xfrom-xto, 1, color );
 }
 
 void CPROC do_vlinec( ImageFile *pImage, int x, int yfrom, int yto, CDATA color )
 {
 	if( yto > yfrom )
-	   BlatColor( pImage, x, yfrom, 1, yto-yfrom, color );
+		BlatColor( pImage, x, yfrom, 1, yto-yfrom, color );
 	else
-	   BlatColor( pImage, x, yfrom, 1, yfrom-yto, color );
+		BlatColor( pImage, x, yfrom, 1, yfrom-yto, color );
 }
 
 void CPROC do_hlineAlphac( ImageFile *pImage, int y, int xfrom, int xto, CDATA color )

@@ -1141,86 +1141,33 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 				pData[0].fX = v[vi][0][vRight] * l.scale;
 				pData[0].fY = v[vi][0][vUp] * l.scale;
 				pData[0].fZ = v[vi][0][vForward] * l.scale;
-				pData[0].dwColor = 0xFFFFFFFF;
 				pData[0].fU1 = x_size;
 				pData[0].fV1 = y_size;
 				pData[1].fX = v[vi][1][vRight] * l.scale;
 				pData[1].fY = v[vi][1][vUp] * l.scale;
 				pData[1].fZ = v[vi][1][vForward] * l.scale;
-				pData[1].dwColor = 0xFFFFFFFF;
 				pData[1].fU1 = x_size2;
 				pData[1].fV1 = y_size;
 				pData[2].fX = v[vi][2][vRight] * l.scale;
 				pData[2].fY = v[vi][2][vUp] * l.scale;
 				pData[2].fZ = v[vi][2][vForward] * l.scale;
-				pData[2].dwColor = 0xFFFFFFFF;
 				pData[2].fU1 = x_size;
 				pData[2].fV1 = y_size2;
 				pData[3].fX = v[vi][3][vRight] * l.scale;
 				pData[3].fY = v[vi][3][vUp] * l.scale;
 				pData[3].fZ = v[vi][3][vForward] * l.scale;
-				pData[3].dwColor = 0xFFFFFFFF;
 				pData[3].fU1 = x_size2;
 				pData[3].fV1 = y_size2;
 			}
 			//unlock buffer (NEW)
 			pQuadVB->Unlock();
-			g_d3d_device->SetFVF( D3DFVF_CUSTOMTEXTUREDVERTEX );
-			g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DTEXTUREDVERTEX));
-			//draw quad (NEW)
-			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
-			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE);
+
+			EnableShader( l.simple_texture_shader, pQuadVB, topmost_parent );
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
-			g_d3d_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_DIFFUSE);
-			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_DIFFUSE);
-			//pQuadVB->Release();
-
-
 	}
 
 }
 
-
-/*
-
-static PSPRITE MakeSpriteEx( DBG_VOIDPASS )
-{
-   PSPRITE ps;
-   ps = (PSPRITE)AllocateEx( sizeof( SPRITE ) DBG_RELAY );
-   MemSet( ps, 0, sizeof( SPRITE ) );
-   return ps;
-}
-
-  PSPRITE  MakeSpriteImageEx ( ImageFile *Image DBG_PASS)
-{
-   PSPRITE ps = MakeSpriteEx( DBG_VOIDRELAY );
-   ps->image = Image;
-   return ps;
-}
-
-  PSPRITE  MakeSpriteImageFileEx ( CTEXTSTR fname DBG_PASS )
-{
-   PSPRITE ps = MakeSpriteEx( DBG_VOIDRELAY );
-   ps->image = LoadImageFileEx( fname DBG_RELAY );
-   if( !ps->image )
-   {
-      ReleaseEx( ps DBG_RELAY );
-      return NULL;
-   }
-   return ps;
-}
-*/
-
-/*
-void UnmakeSprite( PSPRITE sprite, int bForceImageAlso )
-{
-	if( bForceImageAlso )// of if the sprite was created by name...
-	{
-      UnmakeImageFile( sprite->image );
-	}
-   Release( sprite );
-}
-*/
 
 /* rotate_scaled_sprite:
  *  Draws a sprite image onto a bitmap at the specified position, rotating 
@@ -1257,131 +1204,5 @@ void UnmakeSprite( PSPRITE sprite, int bForceImageAlso )
 }
 
 
-
-  void  BlotSprite ( ImageFile *pdest, SPRITE *ps ) // hotspot bitmaps...
-{
-   PCOLOR po, pi;
-#ifdef __CYGWIN__
-   int i;
-#endif
-   int h, w, x ,y, oo, oi ;
-
-   if( !pdest ||
-       !pdest->image ||
-       !ps ||
-       !ps->image )
-      return;
-
-   x = ps->curx - ps->hotx - ps->image->width / 2;
-
-   y = ps->cury - ps->hoty - ps->image->height / 2;
-
-   pi = ps->image->image;
-
-   w = ps->image->width;
-
-   if( x < 0 )
-   {
-      w += x;
-      if( w <= 0 ) return;  // shifted completely offscreen.
-      pi -= x;  // start at correct incoming offset...
-      x = 0;
-      lprintf( WIDE("Fixed PI because of input x..\n") );
-   }
-
-
-   if( (x + w) >= pdest->width )
-   {
-      w = (pdest->width - x) -1;
-      if( w <= 0 ) return;
-   }
-
-   h = ps->image->height;
-
-   if( y < 0 )
-   {
-      h += y;
-      if( h <= 0 ) return; // shifted completely offscreen
-      pi -= ps->image->width * y; // y is negative so subtract to add...
-      y = 0;
-      lprintf( WIDE("Fixed PI because of input Y..\n") );
-   }
-
-   if( (h + y) >= pdest->height )
-   {
-      h = (pdest->height - y) - 1;
-      if( h <= 0 ) return;
-   }
-
-   po = pdest->image + x + ( y * pdest->width );
-
-   oo = 4*(pdest->width - w);     // w is how much we can copy...
-   oi = 4*(ps->image->width - w); // adding remaining width...
-#ifdef __CYGWIN__
-
-   asm(  ""
-         "LoopTop:\n"
-         : : "S"(pi), WIDE("D")(po), WIDE("d")(0), WIDE("b")(h) );
-   asm(
-         "cmpl %%ebx, %%edx\n"
-         "jl   Label\n"
-         "jmp  Done\n"
-         "Label:\n"
-         : : "c"(w)
-      );
-   asm(
-         "lodsl\n"
-         "or %%eax,%%eax\n"
-         "jz Label2\n"
-         "stosl\n"
-         "loop Label\n"
-         "jmp Label3\n"
-      : : : "%eax");
-   asm(  "Label2:\n"
-         "addl $4, %edi\n"
-         "loop Label\n"
-         "Label3:\n"
-      );
-   asm(  "addl %0, %%edi\n"
-         "addl %1, %%esi\n"
-         "inc %%edx\n"
-         "jmp LoopTop\n"
-         "Done:\n"
-         : : "a"(oo), WIDE("c")(oi) );
-#else
-#endif
-}
-
-/*
-PSPRITE SetSpriteHotspot( PSPRITE sprite, S_32 x, S_32 y )
-{
-	if( sprite )
-	{
-		sprite->hotx = x;
-		sprite->hoty = y;
-	}
-   return sprite;
-}
-
-PSPRITE SetSpritePosition( PSPRITE sprite, S_32 x, S_32 y )
-{
-	if( sprite )
-	{
-		sprite->curx = x;
-		sprite->cury = y;
-	}
-   return sprite;
-}
-*/
 IMAGE_NAMESPACE_END
 
-// $Log: sprite.c,v $
-// Revision 1.9  2005/04/05 11:56:04  panther
-// Adding sprite support - might have added an extra draw callback...
-//
-// Revision 1.8  2004/06/21 07:47:13  d3x0r
-// Account for newly moved structure files.
-//
-// Revision 1.7  2003/03/25 08:45:51  panther
-// Added CVS logging tag
-//

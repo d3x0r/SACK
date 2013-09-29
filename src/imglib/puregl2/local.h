@@ -13,6 +13,7 @@
 #include <GL/glew.h>
 #include <GL/gl.h>         // Header File For The OpenGL32 Library
 #endif
+#include "shaders.h"
 
 IMAGE_NAMESPACE
 
@@ -60,7 +61,12 @@ struct local_puregl_image_data_tag {
 
 	float projection[16];
 	MATRIX worldview;
-   PImageFileSET Images;
+	PImageFileSET Images;
+	PImageShaderTracker simple_shader;
+	PImageShaderTracker simple_texture_shader;
+	PImageShaderTracker simple_shaded_texture_shader;
+	PImageShaderTracker simple_multi_shaded_texture_shader;
+	PImageShaderTracker simple_inverse_texture_shader;
 } local_puregl_image_data;
 #define l local_puregl_image_data
 

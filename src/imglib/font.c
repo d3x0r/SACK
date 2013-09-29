@@ -530,9 +530,83 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 #  endif  // ifdef OPENGL2
 #endif
 #ifdef _D3D_DRIVER
-
+#  ifdef _D3D_DRIVER2
+			static LPDIRECT3DVERTEXBUFFER9 pQuadVB_back;
 			static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
-         if( !pQuadVB )
+			if( !pQuadVB_back )
+				g_d3d_device->CreateVertexBuffer(sizeof( D3DPOSVERTEX )*4,
+															D3DUSAGE_WRITEONLY,
+															D3DFVF_XYZ,
+															D3DPOOL_MANAGED,
+															&pQuadVB_back,
+															NULL);
+			if( !pQuadVB )
+				g_d3d_device->CreateVertexBuffer(sizeof( D3DTEXTUREDVERTEX )*4,
+															D3DUSAGE_WRITEONLY,
+															D3DFVF_CUSTOMTEXTUREDVERTEX,
+															D3DPOOL_MANAGED,
+															&pQuadVB,
+															NULL);
+			D3DPOSVERTEX* pData_back;
+			D3DTEXTUREDVERTEX* pData;
+			//lock buffer (NEW)
+			if( background )
+			{
+				pQuadVB->Lock(0,0,(void**)&pData_back,0);
+				{
+					int n;
+					for( n = 0; n < 4; n++ )
+					{
+						pData_back[n].fX = v2[vi][n][vRight];
+						pData_back[n].fY = v2[vi][n][vUp];
+						pData_back[n].fZ = v2[vi][n][vForward];
+					}
+				}
+				pQuadVB_back->Unlock();
+				float _color[4];
+				_color[0] = RedVal( background ) / 255.0f;
+				_color[1] = GreenVal( background ) / 255.0f;
+				_color[2] = BlueVal( background ) / 255.0f;
+				_color[3] = AlphaVal( background ) / 255.0f;
+				EnableShader( l.simple_shader, pQuadVB_back, _color );
+				g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
+			}
+			pQuadVB->Lock(0,0,(void**)&pData,0);
+			{
+				int n;
+				for( n = 0; n < 4; n++ )
+				{
+					pData[n].fX = v[vi][n][vRight];
+					pData[n].fY = v[vi][n][vUp];
+					pData[n].fZ = v[vi][n][vForward];
+
+					pData[n].fU1 = texture_v[n][vRight];
+					pData[n].fV1 = texture_v[n][vUp];
+					//lprintf( "point %d  %g,%g,%g   %g,%g  %08x"
+					//		 , n
+					//		 , pData[n].fX
+					//		 , pData[n].fY
+					//		 , pData[n].fZ
+					//		 , pData[n].fU1
+					//		 , pData[n].fV1
+					//  	 , pData[n].dwColor );
+				}
+			}
+			//copy data to buffer (NEW)
+			//unlock buffer (NEW)
+			pQuadVB->Unlock();
+			float _color[4];
+			_color[0] = RedVal( color ) / 255.0f;
+			_color[1] = GreenVal( color ) / 255.0f;
+			_color[2] = BlueVal( color ) / 255.0f;
+			_color[3] = AlphaVal( color ) / 255.0f;
+			EnableShader( l.simple_texture_shader, pQuadVB_back, pifSrc, _color );
+
+			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
+			//pQuadVB->Release();
+#  else
+			static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
+			if( !pQuadVB )
 				g_d3d_device->CreateVertexBuffer(sizeof( D3DTEXTUREDVERTEX )*4,
 															D3DUSAGE_WRITEONLY,
 															D3DFVF_CUSTOMTEXTUREDVERTEX,
@@ -555,6 +629,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 					}
 				}
 				pQuadVB->Unlock();
+
 				g_d3d_device->SetStreamSource(0,pQuadVB,0,sizeof(D3DTEXTUREDVERTEX));
 				g_d3d_device->SetFVF( D3DFVF_CUSTOMTEXTUREDVERTEX );
 				g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
@@ -596,6 +671,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_DIFFUSE);
 			g_d3d_device->SetTexture( 0, NULL );
 			//pQuadVB->Release();
+#  endif
 #endif  // _D3D_DRIVER
 		}
 	}
@@ -736,9 +812,9 @@ void PutCharacterFont( ImageFile *pImage
 }
 
 void PutCharacterVerticalFont( ImageFile *pImage
-														 , S_32 x, S_32 y
-														 , CDATA color, CDATA background
-														 , _32 c, PFONT UseFont )
+                             , S_32 x, S_32 y
+                             , CDATA color, CDATA background
+                             , _32 c, PFONT UseFont )
 {
 	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
 						  , OrderPoints, StepXVertical, StepYVertical );
@@ -746,18 +822,18 @@ void PutCharacterVerticalFont( ImageFile *pImage
 
 
 void PutCharacterInvertFont( ImageFile *pImage
-														 , S_32 x, S_32 y
-														 , CDATA color, CDATA background
-														 , _32 c, PFONT UseFont )
+                           , S_32 x, S_32 y
+                           , CDATA color, CDATA background
+                           , _32 c, PFONT UseFont )
 {
 	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
 						  , OrderPointsInvert, StepXInvert, StepYInvert );
 }
 
 void PutCharacterVerticalInvertFont( ImageFile *pImage
-														 , S_32 x, S_32 y
-														 , CDATA color, CDATA background
-															    , _32 c, PFONT UseFont )
+                                   , S_32 x, S_32 y
+                                   , CDATA color, CDATA background
+                                   , _32 c, PFONT UseFont )
 {
 	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
 						  , OrderPointsVerticalInvert, StepXInvertVertical, StepYInvertVertical );
