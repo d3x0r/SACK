@@ -6,7 +6,7 @@ win32 alias service options sack_sql_options
 
 option default /DEFAULT/System Settings/Enable System Mapping=1
 OPTION DEFAULT /DEFAULT/System Settings/Map INI Local/comports.ini=1
-option default sack/vidlib/use interface = opengl2
+option default sack/vidlib/use interface = d3d3
 
 if sack/vidlib/use interface == message
 module bag.display.image.client.plugin
@@ -32,6 +32,16 @@ module bag.image.pured3d.dll
 
 alias service render d3d2.render
 alias service image d3d.image
+
+alias service render.3d d3d2.render.3d
+endif
+
+if sack/vidlib/use interface == d3d3
+module bag.video.pured3d2.dll
+module bag.image.pured3d2.dll
+
+alias service render d3d2.render
+alias service image d3d2.image
 
 alias service render.3d d3d2.render.3d
 endif

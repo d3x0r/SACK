@@ -142,12 +142,19 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 static int mode = MODE_UNKNOWN;
 
 
+void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar);
 
 static void BeginVisPersp( struct display_camera *camera )
 {
 	D3DXMATRIX  dmx;
-	//D3DXMatrixPerspectiveLH( &dmx, 2, 2/camera->aspect, 1.0f, 30000.0f );
-	D3DXMatrixPerspectiveFovLH( &dmx, 90.0/180.0*3.1415926, camera->aspect, 1.0f, 30000.0f );
+	/* init fProjection */
+	//D3DXMatrixPerspectiveFovLH( &dmx, 90.0/180.0*3.1415926, camera->aspect, 1.0f, 30000.0f );
+	MygluPerspective(90.0f,camera->aspect,1.0f,30000.0f);
+	{
+		int n;
+		for( n = 0; n < 16; n++ )
+			dmx.m[0][n] = l.fProjection[0][n];
+	}
 	//D3DXMatrixPerspectiveLH( &dmx, camera->hVidCore->pWindowPos.cx, camera->hVidCore->pWindowPos.cy, 0.1f, 30000.0f );
 	camera->hVidCore->d3ddev->SetTransform( D3DTS_PROJECTION, &dmx );
 
