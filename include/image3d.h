@@ -6,6 +6,8 @@
 #include <image.h>
 #include <vectlib.h>
 
+IMAGE_NAMESPACE
+
 typedef struct image_shader_tracker *PImageShaderTracker;
 
 struct image_shader_attribute_order
@@ -45,5 +47,6 @@ typedef struct image_3d_interface_tag
 #  define ImageSetShaderModelView    IMAGE3D_PROC_ALIAS(ImageSetShaderModelView)
 
 #endif
+IMAGE_NAMESPACE_END
 
 #endif // __IMAGE3D_EXTENSIONS_DEFINED__
