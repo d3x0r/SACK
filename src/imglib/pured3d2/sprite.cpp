@@ -27,7 +27,7 @@
 #define NEED_ALPHA2
 #include "blotproto.h"
 #include "image.h"
-#include "sprite_local.h"
+#include "../sprite_local.h"
 
 #include <d3d9.h>
 #include "local.h"
