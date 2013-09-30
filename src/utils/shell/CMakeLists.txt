@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
 
-project( mercurial_version_tool )
-
 include_directories( ../../../include  )
 ### END include sack ###
 
@@ -36,8 +34,8 @@ if( WATCOM )
  )
     ADD_CUSTOM_TARGET( generate_foo${rcfile} DEPENDS ${PROJECT_BINARY_DIR}/${rcfile_out})
   endif( NOT TARGET generate_foo${rcfile} )
-  ADD_DEPENDENCIES( ${PROJECT_NAME} generate_foo${rcfile} )
-  SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES LINK_FLAGS "option resource=${rcfile_out}")
+  ADD_DEPENDENCIES( ${project} generate_foo${rcfile} )
+  SET_TARGET_PROPERTIES(${project} PROPERTIES LINK_FLAGS "option resource=${rcfile_out}")
 else( WATCOM )
 endif( WATCOM )
 endmacro( build_resource ) 
@@ -100,21 +98,21 @@ if( WIN32 )
 endif( WIN32 )
 
 
-project( shell )
+set( project shell )
 
-add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+sack_add_executable(${project} ${BASE_SOURCES} )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_MSGSVR__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;TARGETNAME=\"${project}${CMAKE_EXECUTABLE_SUFFIX}\"" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
 COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}" 
-COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_MSGSVR__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;DEDICATE_REBOOT"
                   FOLDER utils
 )
 if( WIN32 )
 #ws2_32 wsock32 
-target_link_libraries( ${PROJECT_NAME}  winmm odbc32)
+target_link_libraries( ${project}  winmm odbc32)
 endif( WIN32 )
 
-install( TARGETS ${PROJECT_NAME} DESTINATION bin )
+install( TARGETS ${project} DESTINATION bin )
 
 
 set(BASE_SOURCES
@@ -157,22 +155,23 @@ ${LAST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/deadstart/deadstart_core.c 
 )
 
-project( wshell )
+set( project wshell )
 
 
-add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+sack_add_executable(${project} ${BASE_SOURCES} )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_MSGSVR__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;TARGETNAME=\"${project}${CMAKE_EXECUTABLE_SUFFIX}\"" )
+
+SET_TARGET_PROPERTIES(${project} PROPERTIES
 COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}" 
-COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_MSGSVR__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;DEDICATE_REBOOT"
                   FOLDER utils
 )
 if( WIN32 )
 #ws2_32 wsock32 
-target_link_libraries( ${PROJECT_NAME}  winmm odbc32)
+target_link_libraries( ${project}  winmm odbc32)
 endif( WIN32 )
 
-install( TARGETS ${PROJECT_NAME} DESTINATION bin )
+install( TARGETS ${project} DESTINATION bin )
 
 
 

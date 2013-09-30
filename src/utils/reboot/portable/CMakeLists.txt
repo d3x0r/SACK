@@ -18,7 +18,7 @@ string( REGEX REPLACE "library clbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES ${CMAK
 string( REGEX REPLACE "library plbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES ${CMAKE_C_STANDARD_LIBRARIES} )
 endif( WATCOM )
 
-project( rebootnow.portable )
+set( project rebootnow.portable )
 
 
 macro( build_resource rcfile realfile ) 
@@ -27,13 +27,13 @@ if( WATCOM )
     string( REPLACE ".rc" ".res" rcfile_out ${realfile} )
     add_custom_command( OUTPUT ${PROJECT_BINARY_DIR}/${rcfile_out}
                      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${realfile}
-                     COMMAND echo ${CMAKE_RC_COMPILER} -i${CMAKE_CURRENT_SOURCE_DIR} -fo${PROJECT_BINARY_DIR}\\${rcfile_out} ${CMAKE_CURRENT_SOURCE_DIR}\\${realfile}
-                     COMMAND ${CMAKE_RC_COMPILER} -i${CMAKE_CURRENT_SOURCE_DIR} -fo${PROJECT_BINARY_DIR}\\${rcfile_out} ${CMAKE_CURRENT_SOURCE_DIR}\\${realfile}
+                     COMMAND echo ${CMAKE_RC_COMPILER} -i${CMAKE_CURRENT_SOURCE_DIR} -i${CMAKE_CURRENT_SOURCE_DIR}\\.. -fo${PROJECT_BINARY_DIR}\\${rcfile_out} ${CMAKE_CURRENT_SOURCE_DIR}\\${realfile}
+                     COMMAND ${CMAKE_RC_COMPILER} -i${CMAKE_CURRENT_SOURCE_DIR} -i${CMAKE_CURRENT_SOURCE_DIR}\\.. -fo${PROJECT_BINARY_DIR}\\${rcfile_out} ${CMAKE_CURRENT_SOURCE_DIR}\\${realfile}
  )
     ADD_CUSTOM_TARGET( generate_foo${rcfile} DEPENDS ${PROJECT_BINARY_DIR}/${rcfile_out})
   endif( NOT TARGET generate_foo${rcfile} )
-  ADD_DEPENDENCIES( ${PROJECT_NAME} generate_foo${rcfile} )
-  SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES LINK_FLAGS "option resource=${rcfile_out}")
+  ADD_DEPENDENCIES( ${project} generate_foo${rcfile} )
+  SET_TARGET_PROPERTIES(${project} PROPERTIES LINK_FLAGS "option resource=${rcfile_out}")
 else( WATCOM )
 endif( WATCOM )
 endmacro( build_resource ) 
@@ -48,20 +48,20 @@ endif( WIN32 )
 set( BASE_SOURCES ../reboot.c )
 
 
-add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+add_executable(${project} ${BASE_SOURCES} )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
 COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}" 
 COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;DEDICATE_REBOOT"
                   FOLDER utils
 )
 if( WIN32 )
 #ws2_32 wsock32 
-target_link_libraries( ${PROJECT_NAME} winmm)
+target_link_libraries( ${project} winmm)
 endif( WIN32 )
-install_default_dest( ${PROJECT_NAME} )
+install_default_dest( ${project} )
 
-project( reboot.monitor.portable )
+set( project reboot.monitor.portable )
 
 if( WIN32 )
   set( NET_SOURCES     ${SOURCES_ROOT}/netlib/network.c
@@ -102,19 +102,20 @@ ${LAST_GCC_PROGRAM_SOURCE}
 )
 
 
-add_executable(${PROJECT_NAME} WIN32 ${BASE_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
+sack_add_executable(${project} WIN32 ${BASE_SOURCES} )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
 build_resource( portable.reboot.rc ../reboot.rc )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;TARGETNAME=\"${project}${CMAKE_EXECUTABLE_SUFFIX}\"" )
+
+SET_TARGET_PROPERTIES(${project} PROPERTIES
    COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}" 
-   COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;TARGETNAME=\"${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}\""
                   FOLDER utils
 )
 if( WIN32 )
 #ws2_32 wsock32 
-target_link_libraries( ${PROJECT_NAME} ws2_32 wsock32 winmm)
+target_link_libraries( ${project} ws2_32 wsock32 winmm)
 endif( WIN32 )
-install_default_dest( ${PROJECT_NAME} )
+install_default_dest( ${project} )
 
 
 
