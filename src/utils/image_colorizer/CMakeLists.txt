@@ -1,5 +1,5 @@
 
-include_directories( ../../zlib-1.2.7 ../../libpng-1.6.5 )
+include_directories( ../../zlib-1.2.7 ../../libpng-1.6.6 )
 
 
 PROJECT( image_colorizer )

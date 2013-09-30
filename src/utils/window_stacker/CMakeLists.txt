@@ -1,5 +1,5 @@
 
-project( window_stacker )
+set( project window_stacker )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
@@ -7,15 +7,15 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable(${PROJECT_NAME} WIN32 ${BASE_SOURCES} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT_NAME}" 
+add_executable(${project} WIN32 ${BASE_SOURCES} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+COMPILE_FLAGS  "-DTARGET_LABEL=${project}" 
                   FOLDER utils
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} psapi )
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project} ${SACK_LIBRARIES} psapi )
+install_default_dest( ${project} )
 
-project( window_stacker.portable )
+set( project window_stacker.portable )
 
 set( SOURCES_ROOT ../.. )
 
@@ -55,18 +55,14 @@ ${LAST_GCC_PROGRAM_SOURCE}
 )
 
 
-add_executable(${PROJECT_NAME} WIN32 ${BASE_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+sack_add_executable(${project} WIN32 ${BASE_SOURCES} )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY 
+	COMPILE_DEFINITIONS "TARGETNAME=\"${project}${CMAKE_EXECUTABLE_SUFFIX}\";__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
 	COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}" 
-	COMPILE_DEFINITIONS "TARGETNAME=\"${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}\";__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__"
 	FOLDER utils
 )
-if( WIN32 )
-#ws2_32 wsock32 
-target_link_libraries( ${PROJECT_NAME} winmm psapi )
-else( WIN32 )
-target_link_libraries( ${PROJECT_NAME} dl pthread )
-endif( WIN32 )
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project} ${SACK_PLATFORM_LIBRARIES} psapi )
+install_default_dest( ${project} )
 

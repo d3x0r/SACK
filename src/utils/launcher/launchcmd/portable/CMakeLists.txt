@@ -18,7 +18,7 @@ string( REGEX REPLACE "library clbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES ${CMAK
 string( REGEX REPLACE "library plbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES ${CMAKE_C_STANDARD_LIBRARIES} )
 endif( WATCOM )
 
-project( launchcmd.portable )
+set( project launchcmd.portable )
 
 set( SOURCES_ROOT ../../../.. )
 
@@ -63,37 +63,31 @@ ${LAST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/deadstart/deadstart_core.c 
 )
 
-add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
-target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
+sack_add_executable(${project} ${BASE_SOURCES} )
+target_link_libraries( ${project}  ${SACK_PLATFORM_LIBRARIES} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY
+     COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;TARGETNAME=\"${project}${CMAKE_EXECUTABLE_SUFFIX}\"" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+string( REPLACE "." "_" TARGET_LABEL ${project} )
 COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} " 
-COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;TARGETNAME=\"${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}\""
                   FOLDER utils/launcher
 )
-if( WIN32 )
-target_link_libraries( ${PROJECT_NAME} ws2_32 wsock32 winmm )
-else( WIN32 )
-if( __ANDROID__ )
-    target_link_libraries( ${PROJECT_NAME} dl )
-else( __ANDROID__ )
-    target_link_libraries( ${PROJECT_NAME} dl pthread )
-endif( __ANDROID__ )
-endif( WIN32 )
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project} ${SACK_PLATFORM_LIBRARIES})
+install_default_dest( ${project} )
 
 if( WIN32 )
 
-Project( launchwin.portable )
-add_executable(${PROJECT_NAME} WIN32 ${BASE_SOURCES} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
+set( project launchwin.portable )
+sack_add_executable(${project} WIN32 ${BASE_SOURCES} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY
+	COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;TARGETNAME=\"${project}${CMAKE_EXECUTABLE_SUFFIX}\";WINDOWS_MODE" )
+
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+string( REPLACE "." "_" TARGET_LABEL ${project} )
 COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} " 
-COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;TARGETNAME=\"${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}\";WINDOWS_MODE"
                   FOLDER utils/launcher
 )
-target_link_libraries( ${PROJECT_NAME} ws2_32 wsock32 winmm)
-target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project}  ${SACK_PLATFORM_LIBRARIES} )
+install_default_dest( ${project} )
 
 endif( WIN32 )

@@ -18,7 +18,7 @@ string( REGEX REPLACE "library clbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES ${CMAK
 string( REGEX REPLACE "library plbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES ${CMAKE_C_STANDARD_LIBRARIES} )
 endif( WATCOM )
 
-project( waitwin.portable )
+set( project waitwin.portable )
 
 set( SOURCES_ROOT ../../.. )
 
@@ -56,20 +56,18 @@ ${LAST_GCC_PROGRAM_SOURCE}
 )
 
 
-add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
+sack_add_executable(${project} ${BASE_SOURCES} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY 
+    COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__" )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
 COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}" 
-COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__"
                   FOLDER utils
 )
-if( WIN32 )
-#ws2_32 wsock32 
-target_link_libraries( ${PROJECT_NAME} winmm)
-endif( WIN32 )
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project} ${SACK_PLATFORM_LIBRARIES} )
+install_default_dest( ${project} )
 
-project( waitproc.portable )
+set( project waitproc.portable )
 
 if( WIN32 )
 set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/systemlib/oswin.c )
@@ -105,18 +103,16 @@ ${LAST_GCC_PROGRAM_SOURCE}
 )
 
 
-add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
-target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+sack_add_executable(${project} ${BASE_SOURCES} )
+target_link_libraries( ${project}  ${SACK_PLATFORM_LIBRARIES} )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY 
+       COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
 COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}" 
-COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__"
                   FOLDER utils
 )
-if( WIN32 )
-#ws2_32 wsock32 
-target_link_libraries( ${PROJECT_NAME} winmm)
-endif( WIN32 )
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project} ${SACK_PLATFORM_LIBRARIES} )
+install_default_dest( ${project} )
 
 

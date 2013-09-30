@@ -19,7 +19,7 @@ string( REGEX REPLACE "library clbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES ${CMAK
 string( REGEX REPLACE "library plbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES ${CMAKE_C_STANDARD_LIBRARIES} )
 endif( WATCOM )
 
-project( pcopy.portable )
+set( project pcopy.portable )
 
 set( SOURCES_ROOT ../../.. )
 
@@ -55,19 +55,20 @@ ${LAST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/deadstart/deadstart_core.c 
 )
 
-add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+sack_add_executable(${project} ${BASE_SOURCES} )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY 
+	COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__STATIC__;__STATIC_GLOBALS__;__DISABLE_UDP_SYSLOG__" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
 COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} " 
-COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__STATIC__;__STATIC_GLOBALS__;__DISABLE_UDP_SYSLOG__"
                   FOLDER utils
 )
 
-target_link_libraries( ${PROJECT_NAME} winmm )
+target_link_libraries( ${project} ${SACK_PLATFORM_LIBRARIES} )
 
 if( MAKING_SACK_CORE )
-install_mode_dest( ${PROJECT_NAME} )
+install_mode_dest( ${project} )
 else( MAKING_SACK_CORE )
-install_default_dest( ${PROJECT_NAME} )
+install_default_dest( ${project} )
 endif( MAKING_SACK_CORE )
 
