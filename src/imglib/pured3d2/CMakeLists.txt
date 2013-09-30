@@ -2,6 +2,8 @@
 set( project bag.image.pured3d2 )
 
 ADD_DEFINITIONS( -D__3D__ )
+INCLUDE_DIRECTORIES( ${DIRECTX_SDK}/include )
+LINK_DIRECTORIES( ${DIRECTX_SDK}/lib/${TARGET_ARCH} )
 
 set( COMMON_CPP_SOURCES   blotscaled.cpp blotdirect.cpp image.d3d.cpp 
   line.cpp interface.cpp sprite.cpp 
