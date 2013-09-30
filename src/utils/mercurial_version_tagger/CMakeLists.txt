@@ -129,7 +129,7 @@ COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
                   FOLDER utils
 )
 if( WIN32 )
-target_link_libraries( ${project} winmm ${SACK_PLATFORM_LIBRARIES} )
+target_link_libraries( ${project} odbc32 winmm ${SACK_PLATFORM_LIBRARIES} )
 else( WIN32 )
 target_link_libraries( ${project}  ${SACK_PLATFORM_LIBRARIES} )
 endif( WIN32 )
