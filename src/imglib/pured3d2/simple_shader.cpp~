@@ -1,0 +1,90 @@
+#define FIX_RELEASE_COM_COLLISION
+#include <stdhdrs.h>
+
+#include "local.h"
+
+#include "shaders.h"
+
+
+//const char *gles_
+static const CTEXTSTR gles_simple_v_shader =
+
+   WIDE( "struct VS_INPUT\n" )
+   WIDE( "{\n" )
+   WIDE( "    float4 vPosition : POSITION;\n" )
+   WIDE( "    float3 vColor : COLOR0;\n" )
+   WIDE( "};\n" )
+   WIDE( "\n" )
+   WIDE( "struct VS_OUTPUT\n" )
+   WIDE( "{\n" )
+   WIDE( "    float4  vPosition : POSITION;\n" )
+   WIDE( "    float4  vDiffuse : COLOR;\n" )
+   WIDE( "};\n" )
+   WIDE( "\n" )
+   WIDE( "float4x4 mWld1;\n" )
+   WIDE( "float4x4 mWld2;\n" )
+   WIDE( "float4x4 mWld3;\n" )
+   WIDE( "float4x4 mWld4;\n" )
+   WIDE( "\n" )
+   WIDE( "VS_OUTPUT main(VS_INPUT v)\n" )
+   WIDE( "{\n" )
+   WIDE( "    VS_OUTPUT out;\n" )
+   WIDE( "\n" )
+   WIDE( "    // Skin position (to world space)\n" )
+   WIDE( "    float3 vPosition = \n" )
+   WIDE( "        mul(v.vPosition, (float4x3) mWld1) +\n" )
+   WIDE( "        mul(v.vPosition, (float4x3) mWld2) +\n" )
+   WIDE( "        mul(v.vPosition, (float4x3) mWld3) +\n" )
+   WIDE( "        mul(v.vPosition, (float4x3) mWld4) ;\n" )
+   WIDE( "    \n" )
+   WIDE( "    // Output stuff\n" )
+   WIDE( "    out.vPosition    = vPosition;\n" )
+   WIDE( "    out.vDiffuse  = vColor;\n" )
+   WIDE( "\n" )
+   WIDE( "    return out;\n" )
+   WIDE( "}\n" );
+
+
+static const CTEXTSTR gles_simple_p_shader =
+   WIDE( "struct PS_OUTPUT\n" )
+   WIDE( "{\n" )
+   WIDE( "    float4 Color : COLOR0;\n" )
+   WIDE( "};\n" )
+   WIDE( "\n" )
+   WIDE( "PS_OUTPUT main(void)\n" )
+   WIDE( "{\n" )
+   WIDE( "    PS_OUTPUT out;\n" )
+   WIDE( "  out.Color = vDiffuse\n" )
+   WIDE( "    return out;\n" )
+   WIDE( "}\n" );
+
+
+
+void CPROC EnableSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv, va_list args )
+{
+	IDirect3DVertexBuffer9  *verts = va_arg( args, IDirect3DVertexBuffer9 * );
+	float *color = va_arg( args, float * );
+
+	g_d3d_device->SetStreamSource( 0, verts, 0, sizeof( float ) * 3 );
+
+//	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );
+   g_d3d_device->SetVertexShaderConstantF( 0, color, 1 );
+
+}
+
+void InitSuperSimpleShader( PImageShaderTracker tracker )
+{
+	const char *v_codeblocks[2];
+	const char *p_codeblocks[2];
+	int color_attrib;
+
+	v_codeblocks[0] = gles_simple_v_shader;
+	v_codeblocks[1] = NULL;
+	p_codeblocks[0] = gles_simple_p_shader;
+	p_codeblocks[1] = NULL;
+	if( CompileShader( tracker, v_codeblocks, 1, p_codeblocks, 1 ) )
+	{
+		//color_attrib = glGetUniformLocation(tracker->glProgramId, "in_Color" );
+		SetShaderEnable( tracker, EnableSimpleShader, color_attrib );
+	}
+}
