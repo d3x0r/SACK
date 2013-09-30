@@ -506,7 +506,7 @@ void UnlinkWebNode( PSPACEWEB_NODE node )
 
 }
 
-int pause = 50000;
+int update_pause = 50000;
 PSPACEWEB_LINK_DATA IsLinked( PSPACEWEB_NODE node, PSPACEWEB_NODE other );
 
 void BreakSingleNodeLinkEx( PSPACEWEB_NODE node, PSPACEWEB_NODE other DBG_PASS )
@@ -515,7 +515,7 @@ void BreakSingleNodeLinkEx( PSPACEWEB_NODE node, PSPACEWEB_NODE other DBG_PASS )
 	//#if ( DEBUG_ALL )
   // if( ( NodeIndex(node) == 39 && NodeIndex(other)==38)
   // 	||( NodeIndex(node) == 38 && NodeIndex(other)==39) )
-		//pause = 1000;
+		//update_pause = 1000;
 	_lprintf(DBG_RELAY)( "Seperate nodes %d and %d", NodeIndex( node ), NodeIndex( other ) );
 //#endif
 	if( IsLinked( node, other ) )
@@ -696,7 +696,7 @@ int LinkWebNodeEx( PSPACEWEB_NODE node, PSPACEWEB_NODE linkto DBG_PASS )
 	// be ultra safe - only one instance of a link should exist!
 	//#if ( DEBUG_ALL )
 	//if( NodeIndex( node ) == 4 &&  NodeIndex( linkto ) == 20 )
-	//   pause = 150000;
+	//   update_pause = 150000;
 	_lprintf(DBG_RELAY)( "link %d to %d", NodeIndex( node ), NodeIndex( linkto ) );
 	//#endif
 	//BreakSingleNodeLink( node, linkto );
@@ -1884,7 +1884,7 @@ static int OnDrawCommon( "Web Tester" )( PSI_CONTROL pc )
 static int OnKeyCommon( "Web Tester" )( PSI_CONTROL pc, _32 key )
 {
 	if( IsKeyPressed(key) && KEY_CODE(key) == KEY_SPACE )
-		pause = 0;
+		update_pause = 0;
 	if( IsKeyPressed(key) && KEY_CODE(key) == KEY_N )
 	{
 		PSPACEWEB_NODE check;
@@ -1907,18 +1907,18 @@ void CPROC MoveWeb( PTRSZVAL psv )
 	INDEX idx;
 	static int cycle;
 	//return;
-	pause -= 50;
-	if( pause < 0 )
-		pause = 0;
-	if( pause > 0 )
+	update_pause -= 50;
+	if( update_pause < 0 )
+		update_pause = 0;
+	if( update_pause > 0 )
 		return;
 
 	// 500 has some issues.
 	//	if( cycle >= 500 )
 	//if( cycle > 300 )
-		pause = 150000;
+		update_pause = 150000;
 	//else
-	//   pause = 1000;
+	//   update_pause = 1000;
 	cycle++;
 	lprintf( "cycle %d", cycle );
 	LIST_FORALL( test.nodes, idx, PSPACEWEB_NODE, node )
