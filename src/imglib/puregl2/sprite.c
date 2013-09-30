@@ -1117,11 +1117,11 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 				float x_size, x_size2, y_size, y_size2;
 				int xs, ys, ws, hs;
 				Image topmost_parent ;
-				xs = sprite->image->real_x;
-				ys = sprite->image->real_y;
+				xs = 0;
+				ys = 0;
 				ws = sprite->image->width;
 				hs = sprite->image->height;
-				for( topmost_parent = sprite->image->pParent; topmost_parent && topmost_parent->pParent; topmost_parent = topmost_parent->pParent )
+				for( topmost_parent = sprite->image; topmost_parent && topmost_parent->pParent; topmost_parent = topmost_parent->pParent )
 				{
 					xs += topmost_parent->real_x;
 					ys += topmost_parent->real_y;

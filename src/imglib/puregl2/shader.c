@@ -8,6 +8,8 @@ PImageShaderTracker GetShader( CTEXTSTR name, void (CPROC*Init)(PImageShaderTrac
 {
 	PImageShaderTracker tracker;
 	INDEX idx;
+	if( !l.glActiveSurface )
+		return NULL;
 	LIST_FORALL( l.glActiveSurface->shaders, idx, PImageShaderTracker, tracker )
 	{
 		if( StrCaseCmp( tracker->name, name ) == 0 )
