@@ -1218,7 +1218,6 @@ WM_DROPFILES
 			{
 				struct display_camera *camera;
 				INDEX idx;
-				l.flags.bUpdateWanted = 0;
 				LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
 				{
                // skip the 'default' camera.
@@ -1230,9 +1229,23 @@ WM_DROPFILES
 					
 					if( !camera->hVidCore || !camera->hVidCore->flags.bReady )
 						continue;
+					if( camera->flags.first_draw )
+					{
+						INDEX idx2;
+						struct plugin_reference *reference;
+                  //lprintf( "camera is in first_draw..." );
+						LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
+						{
+                     //lprintf( "so reset plugin... is there one?" );
+							reference->flags.did_first_draw = 0;
+						}
+					}
+               //lprintf( "Render camera %p", camera );
 					// drawing may cause subsequent draws; so clear this first
 					Render3D( camera );
+               camera->flags.first_draw = 0;
 				}
+				l.flags.bUpdateWanted = 0;
 			}
 		}
 		if( l.mouse_timer_id == wParam )

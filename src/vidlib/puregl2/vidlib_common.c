@@ -391,6 +391,7 @@ void LoadOptions( void )
 			int custom_pos;
 			struct display_camera *camera = New( struct display_camera );
 			MemSet( camera, 0, sizeof( *camera ) );
+         camera->nCamera = n + 1;
 			camera->origin_camera = CreateTransform();
 
 			snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Display is topmost"), n+1 );
@@ -517,14 +518,17 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 	PTRSZVAL (CPROC *Init3d)(PMatrix,PTRANSFORM,RCOORD*,RCOORD*);
 	PCLASSROOT data = NULL;
 	CTEXTSTR name;
+	TEXTCHAR optname[64];
 	for( name = GetFirstRegisteredName( WIDE("sack/render/puregl/init3d"), &data );
 		  name;
 		  name = GetNextRegisteredName( &data ) )
 	{
-		LOGICAL already_inited = GetRegisteredIntValueEx( data,(CTEXTSTR)name, "Executed" );
+		LOGICAL already_inited;
+		snprintf( optname, 64, "%s/%d", name, camera->nCamera );
+		already_inited = GetRegisteredIntValueEx( data, optname, "Executed" );
 		if( already_inited )
 			continue;
-		RegisterIntValueEx( data, (CTEXTSTR)name, "Executed", 1 );
+		RegisterIntValueEx( data, optname, "Executed", 1 );
 		Init3d = GetRegisteredProcedureExx( data,(CTEXTSTR)name,PTRSZVAL,WIDE("ExtraInit3d"),(PMatrix,PTRANSFORM,RCOORD*,RCOORD*));
 
 		if( Init3d )
@@ -605,6 +609,8 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 #ifdef LOG_OPEN_TIMING
 		lprintf( WIDE( "Created Real window...Stuff.. %d,%d %dx%d" ),camera->x,camera->y,camera->w,camera->h );
 #endif
+      // trigger first draw logic for camera
+		camera->flags.first_draw = 1;
 
 		// extra init iterates through registered plugins and
 		// loads their initial callbacks; the actual OnIni3d() has many more params

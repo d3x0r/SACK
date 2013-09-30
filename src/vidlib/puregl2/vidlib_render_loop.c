@@ -130,20 +130,26 @@ void Render3D( struct display_camera *camera )
 	{
 		PRENDERER hVideo = camera->hVidCore;
 
+		ApplyTranslationT( VectorConst_I, camera->origin_camera, l.origin );
+
 		LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
 		{
+         //lprintf( "Check plugin on camera %p %p", reference, camera );
 			if( !reference->flags.did_first_draw )
 			{
+            //lprintf( "first draw..." );
 				first_draw = 1;
 				reference->flags.did_first_draw = 1;
 			}
 			else
+			{
+            //lprintf( "skipping first draw" );
 				first_draw = 0;
+			}
 
 			// setup initial state, like every time so it's a known state?
 			{
 				// copy l.origin to the camera
-				ApplyTranslationT( VectorConst_I, camera->origin_camera, l.origin );
 
 				if( first_draw )
 				{

@@ -111,9 +111,11 @@ struct display_camera
 		BIT_FIELD extra_init : 1;
 		BIT_FIELD init : 1;
 		BIT_FIELD topmost : 1;
+		BIT_FIELD first_draw : 1;
 	} flags;
 	PLIST plugins; // each camera has plugins that might attach more render and mouse methods
 	int type;
+   int nCamera;
 };
 
 #ifndef VIDLIB_MAIN
