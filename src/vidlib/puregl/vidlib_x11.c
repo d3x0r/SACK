@@ -724,15 +724,9 @@ LOGICAL CreateDrawingSurface (PRENDERER hVideo)
 	if (!hVideo)
 		return FALSE;
 
-#if WIN32
 	hVideo->pImage =
 		RemakeImage( hVideo->pImage, NULL, hVideo->pWindowPos.cx,
 						hVideo->pWindowPos.cy );
-#else
-	hVideo->pImage =
-		RemakeImage( hVideo->pImage, NULL, hVideo->WindowPos.cx,
-						hVideo->WindowPos.cy );
-#endif
 	if( !hVideo->transform )
 	{
 		TEXTCHAR name[64];
@@ -741,13 +735,8 @@ LOGICAL CreateDrawingSurface (PRENDERER hVideo)
 		hVideo->transform = hVideo->pImage->transform = CreateTransformMotion( CreateNamedTransform( name ) );
 	}
 
-#if WIN32
 	lprintf( WIDE( "Set transform at %d,%d" ), hVideo->pWindowPos.x, hVideo->pWindowPos.y );
 	Translate( hVideo->transform, hVideo->pWindowPos.x, hVideo->pWindowPos.y, 0 );
-#else
-	lprintf( WIDE( "Set transform at %d,%d" ), hVideo->WindowPos.x, hVideo->WindowPos.y );
-	Translate( hVideo->transform, hVideo->WindowPos.x, hVideo->WindowPos.y, 0 );
-#endif
 	// additionally indicate that this is a GL render point
 	hVideo->pImage->flags |= IF_FLAG_FINAL_RENDER;
 	return TRUE;
@@ -1741,7 +1730,7 @@ void UpdateMouseRay( struct display_camera * camera )
 #define tmp_param1 (END_SCALE*COMMON_SCALE)
 	if( camera->origin_camera )
         {
-            GLWindow *x11_gl_window = camera->hVidCore->x11_gl_window;
+		GLWindow *x11_gl_window = camera->hVidCore->x11_gl_window;
 		VECTOR tmp1;
 		static PTRANSFORM t;
 		if( !t )

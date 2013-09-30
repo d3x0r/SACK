@@ -1,27 +1,28 @@
 #ifndef VIDEO_STRUCTURE_DEFINED
 #define VIDEO_STRUCTURE_DEFINED
 
-#if defined( __LINUX__ ) && defined( PURE_OPENGL_ENABLED )
-#include <stdio.h>
-#if defined( USE_GLES2 )
-#  ifndef USE_EGL
-#    define USE_EGL
-#  endif
-#include <EGL/egl.h>
-#ifdef _egl_h
-#define _GLES_EGL_H_INCLUDED
-#elif defined( _GLES_EGL_H_INCLUDED )
-#define _egl_h
-#endif
+#if defined( __LINUX__ ) 
+#  include <stdio.h>
+#  if defined( USE_GLES2 )
+#    ifndef USE_EGL
+#      define USE_EGL
+#    endif
+#      include <EGL/egl.h>
+#      ifdef _egl_h
+#        define _GLES_EGL_H_INCLUDED
+#      elif defined( _GLES_EGL_H_INCLUDED )
+#        define _egl_h
+#        endif
 //#include <GLES/gl.h>
-#include <GLES2/gl2.h>
-#else
-#include <GL/glx.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <X11/extensions/xf86vmode.h>
-#include <X11/keysym.h>
-#endif
+#      include <GLES2/gl2.h>
+#    else
+#      include <GL/glx.h>
+#      include <GL/gl.h>
+#      include <GL/glu.h>
+#      include <X11/Xlib.h>
+#      include <X11/extensions/xf86vmode.h>
+#      include <X11/keysym.h>
+#    endif
 
 #endif
 
@@ -134,31 +135,31 @@ typedef struct WindowPos
 typedef struct HVIDEO_tag
 {
 //DOM-IGNORE-BEGIN
-   KEYBOARD kbd;
+	KEYBOARD kbd;
 	PKEYDEFINE KeyDefs;
-   CRITICALSECTION cs;
+	CRITICALSECTION cs;
 	struct ImageFile_tag *pImage;
-   TEXTCHAR *pTitle; // window title... need this if we draw manually anyhow
-   // this is the thread that created the hwndoutput (events get dispatched to this.)
-   PTHREAD pThreadWnd;
-   struct {
-	   S_32 x;
-	   S_32 y;
-   } cursor_bias;
-   WINDOWPOS pWindowPos;  // should always contain current information.
+	TEXTCHAR *pTitle; // window title... need this if we draw manually anyhow
+	// this is the thread that created the hwndoutput (events get dispatched to this.)
+	PTHREAD pThreadWnd;
+	struct {
+		S_32 x;
+		S_32 y;
+	} cursor_bias;
+	WINDOWPOS pWindowPos;  // should always contain current information.
 #ifdef _WIN32
 	HWND hWndOutput;
 	// do opengl rendering to this... then move from window to window the updated stuff for layered window openGL junk.
-   HWND hWndOutputFake;
+	HWND hWndOutputFake;
 
-   PLIST dropped_file_acceptors;
+	PLIST dropped_file_acceptors;
 	HDC hDCOutput; // handle to the window....
-#elif defined( __LINUX__ ) && defined( PURE_OPENGL_ENABLED )
+#elif defined( __LINUX__ )
 #define CW_USEDEFAULT 0x40000000
 	GLWindow *x11_gl_window;
 	struct my_windowpos_clone_tag {
 		S_32 x, y;
-      _32 cx, cy;
+		_32 cx, cy;
 	} WindowPos;
 #endif
 #  ifdef _OPENGL_ENABLED

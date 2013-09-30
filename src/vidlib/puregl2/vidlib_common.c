@@ -623,7 +623,7 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 			if (wx == CW_USEDEFAULT || wy == CW_USEDEFAULT)
 			{
 				_32 w, h;
-            GetDisplaySize( &w, &h );
+				GetDisplaySize( &w, &h );
 				wx = w * 7 / 10;
 				wy = h * 7 / 10;
 			}
