@@ -3,6 +3,8 @@
 #define FIX_RELEASE_COM_COLLISION
 
 #include <stdhdrs.h>
+#include <d3d11.h>
+#include <d3d10effect.h>
 #include <D3Dcompiler.h>
 #include "local.h"
 #include "shaders.h"

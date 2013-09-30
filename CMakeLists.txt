@@ -261,6 +261,12 @@ else( )
   endif( MSVC )
 endif()
 
+if( __64__ )
+set( TARGET_ARCH x64 )
+else( __64__ )
+set( TARGET_ARCH x86 )
+endif( __64__ )
+
 
 set( ExtraDefinitions ${ExtraDefinitions};SACK_CORE_BUILD )
 
