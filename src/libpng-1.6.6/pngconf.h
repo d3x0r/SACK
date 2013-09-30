@@ -423,7 +423,8 @@
 
 #  elif defined(__WATCOMC__)
 #    ifndef PNG_RESTRICT
-#      define PNG_RESTRICT __restrict
+#      define PNG_RESTRICT 
+//__restrict
 #    endif
 #  endif /* _MSC_VER */
 #endif /* PNG_PEDANTIC_WARNINGS */

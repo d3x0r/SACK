@@ -208,7 +208,7 @@
 
 #ifndef PNG_INTERNAL_CALLBACK
 #  define PNG_INTERNAL_CALLBACK(type, name, args, attributes)\
-      extern PNG_CALLBACK(type, name, args, PNG_EMPTY attributes)
+      extern PNG_CALLBACK_FUNCTION(type, name, args, PNG_EMPTY attributes)
 #endif
 
 
