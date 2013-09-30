@@ -1607,7 +1607,15 @@ static void RenderGL( struct display_camera *camera )
 		if( hVideo->pRedrawCallback )
 			hVideo->pRedrawCallback( hVideo->dwRedrawData, (PRENDERER)hVideo );
 
-		// allow draw3d code to assume depth testing 
+		{
+			INDEX idx;
+			PSPRITE_METHOD psm;
+			LIST_FORALL( hVideo->sprites, idx, PSPRITE_METHOD, psm )
+			{
+				psm->RenderSprites( psm->psv, hVideo, 0, 0, 0, 0 );
+			}
+		}
+		// allow draw3d code to assume depth testing
 		glEnable( GL_DEPTH_TEST );
 	}
 
