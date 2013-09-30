@@ -311,6 +311,10 @@
 #  define PNG_FUNCTION(type, name, args, attributes) attributes type name args
 #endif
 
+#ifndef PNG_CALLBACK_FUNCTION
+#  define PNG_CALLBACK_FUNCTION(type, name, args, attributes) attributes type PNGCBAPI name args
+#endif
+
 #ifndef PNG_EXPORT_TYPE
 #  define PNG_EXPORT_TYPE(type) PNG_IMPEXP type
 #endif
