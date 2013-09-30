@@ -1,4 +1,6 @@
-
+#define DEFINE_DEFAULT_RENDER_INTERFACE
+#define DEFINE_DEFAULT_IMAGE_INTERFACE
+#include <stdhdrs.h>
 #include <timers.h>
 #include <render.h>
 #include <image.h>
@@ -131,10 +133,10 @@ void CPROC Tick( PTRSZVAL psv )
 }
 
 
-int main( void )
+SaneWinMain( argc, argv )
 {
 	Image image = LoadImageFile( "images/firestar2.png" );
-   background = LoadImageFile( "sky.jpg" );
+   background = LoadImageFile( "images/sky.jpg" );
 	SystemLogTime( SYSLOG_TIME_CPU| SYSLOG_TIME_DELTA );
 	SetBlotMethod( BLOT_MMX );
 	if( !image )
@@ -181,4 +183,5 @@ int main( void )
    return 0;
 
 }
+EndSaneWinMain()
 
