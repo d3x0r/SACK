@@ -74,7 +74,7 @@ JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member )( struc
 // the message part.
 JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_array )( struct json_context_object *format
 																										 , CTEXTSTR name
-																										 , int offset
+																										 , size_t offset
 																										 , int type
                                                                                , size_t object_size
 																										 , size_t count
@@ -106,7 +106,7 @@ JSON_EMITTER_PROC( CTEXTSTR, json_build_message )( struct json_context_object *f
 // take a json string and a format and fill in a structure from the text.
 JSON_EMITTER_PROC( LOGICAL, json_parse_message )( struct json_context_object *format
                                              , CTEXTSTR msg
-															, POINTER msg_data_out
+															, POINTER *msg_data_out
 															);
 // any allocate mesage parts are released.
 JSON_EMITTER_PROC( void, json_dispose_message )( struct json_context_object *format

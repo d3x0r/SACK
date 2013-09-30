@@ -308,7 +308,8 @@ LOGICAL PngImageFile ( Image pImage, _8 ** buf, int *size)
 				  NULL, NULL);
    if (!png_ptr)
 		return FALSE;
-	png_set_error_fn( png_ptr, NotSoFatalError //png_get_error_ptr( png_ptr )
+   // this may have to be reverted for older png libraries....
+	png_set_error_fn( png_ptr, png_get_error_ptr( png_ptr )
 						 , NotSoFatalError2, NotSoFatalError2 );
 	//png_ptr->error_fn = NotSoFatalError;
    info_ptr = png_create_info_struct(png_ptr);
