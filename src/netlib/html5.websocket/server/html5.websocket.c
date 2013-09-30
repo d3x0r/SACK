@@ -399,7 +399,7 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 
 static LOGICAL CPROC HandleRequest( PTRSZVAL psv, HTTPState pHttpState )
 {
-
+   return 0;
 }
 
 PCLIENT WebSocketCreate( CTEXTSTR hosturl
