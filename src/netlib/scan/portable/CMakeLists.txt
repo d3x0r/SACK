@@ -56,72 +56,72 @@ set(BASE_SOURCES
 )
 
 
-PROJECT( scan_ports.portable )
-add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} 
+set( PROJECT scan_ports.portable )
+sack_add_executable( ${PROJECT} ${FIRST_GCC_PROGRAM_SOURCE} 
 ../scanner 
 ${BASE_SOURCES}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+string( REPLACE "." "_" TARGET_LABEL ${PROJECT} )
+SET_PROPERTY(TARGET ${PROJECT} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;" )
+SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
-                  COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;"
 )
-target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
+target_link_libraries( ${PROJECT}  ${SACK_PLATFORM_LIBRARIES} )
 if( WIN32 )
-target_link_libraries( ${PROJECT_NAME} winmm ws2_32 wsock32 )
+target_link_libraries( ${PROJECT} winmm ws2_32 wsock32 )
 endif( WIN32 )
-install_default_dest( ${PROJECT_NAME} )
+install_default_dest( ${PROJECT} )
 
 if( NOT __ARM__ )
-PROJECT( scan_addresses.portable )
-add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} 
+set( PROJECT scan_addresses.portable )
+sack_add_executable( ${PROJECT} ${FIRST_GCC_PROGRAM_SOURCE} 
 ../pinger 
 ${BASE_SOURCES}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+string( REPLACE "." "_" TARGET_LABEL ${PROJECT} )
+SET_PROPERTY(TARGET ${PROJECT} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;" )
+SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
-                  COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;"
 )
-target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
+target_link_libraries( ${PROJECT}  ${SACK_PLATFORM_LIBRARIES} )
 if( WIN32 )
-target_link_libraries( ${PROJECT_NAME} winmm ws2_32 wsock32 )
+target_link_libraries( ${PROJECT} winmm ws2_32 wsock32 )
 endif( WIN32 )
-install_default_dest( ${PROJECT_NAME} )
+install_default_dest( ${PROJECT} )
 endif( NOT __ARM__ )
 
-PROJECT( nameof.portable )
-add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} 
+set( PROJECT nameof.portable )
+sack_add_executable( ${PROJECT} ${FIRST_GCC_PROGRAM_SOURCE} 
 ../nameof 
 ${BASE_SOURCES}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+string( REPLACE "." "_" TARGET_LABEL ${PROJECT} )
+SET_PROPERTY(TARGET ${PROJECT} APPEND PROPERTY COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;__NO_GUI__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__STATIC__" )
+SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
-                  COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;"
 )
-target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
+target_link_libraries( ${PROJECT}  ${SACK_PLATFORM_LIBRARIES} )
 if( WIN32 )
-target_link_libraries( ${PROJECT_NAME} winmm ws2_32 wsock32 )
+target_link_libraries( ${PROJECT} winmm ws2_32 wsock32 )
 endif( WIN32 )
-install_default_dest( ${PROJECT_NAME} )
+install_default_dest( ${PROJECT} )
 
-PROJECT( ipof.portable )
-add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} 
+set( PROJECT ipof.portable )
+sack_add_executable( ${PROJECT} ${FIRST_GCC_PROGRAM_SOURCE} 
 ../ipof 
 ${BASE_SOURCES}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+string( REPLACE "." "_" TARGET_LABEL ${PROJECT} )
+SET_PROPERTY(TARGET ${PROJECT} APPEND PROPERTY COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;__NO_GUI__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__STATIC__" )
+SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
-                  COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;"
 )
-target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
+target_link_libraries( ${PROJECT}  ${SACK_PLATFORM_LIBRARIES} )
 if( WIN32 )
-target_link_libraries( ${PROJECT_NAME} winmm ws2_32 wsock32 )
+target_link_libraries( ${PROJECT} winmm ws2_32 wsock32 )
 endif( WIN32 )
-install_default_dest( ${PROJECT_NAME} )
+install_default_dest( ${PROJECT} )

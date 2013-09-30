@@ -17,7 +17,7 @@ string( REGEX REPLACE "library clbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES ${CMAK
 string( REGEX REPLACE "library plbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES ${CMAKE_C_STANDARD_LIBRARIES} )
 endif( WATCOM )
 
-PROJECT( proxy.portable )
+set( project proxy.portable )
 
 set( SOURCES_ROOT ../../.. )
 
@@ -37,7 +37,7 @@ if( MSVC )
 SET( ExtraSources ${SOURCES_ROOT}/systemlib/args.c )
 endif( MSVC )
 
-add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} 
+sack_add_executable( ${project} ${FIRST_GCC_PROGRAM_SOURCE} 
     ../proxy.c 
     ../../network.c 
     ../../udpnetwork.c 
@@ -64,20 +64,20 @@ add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE} 
     ${SOURCES_ROOT}/deadstart/deadstart_core.c
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_PLATFORM_LIBRARIES} )
+target_link_libraries( ${project} ${SACK_PLATFORM_LIBRARIES} )
 
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;__NO_GUI__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__STATIC__" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
                   COMPILE_FLAGS  "${my_add_definitions} -DTARGET_LABEL=${TARGET_LABEL} ${CORE_SOURCE_FLAGS}"
-                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;__NO_GUI__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__STATIC__"
                   FOLDER "Network examples"
 )
-target_link_libraries( ${PROJECT_NAME} ${SOCKET_LIBRARIES} ${WIN_SYS_LIBS} )
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project} ${SOCKET_LIBRARIES} ${WIN_SYS_LIBS} )
+install_default_dest( ${project} )
 
 if( WIN32 )
 
-PROJECT( proxy.service )
+set( project proxy.service )
 if( WIN32 )
 set( NET_SOURCES     ../../net_winsock2.c  ) 
 set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/systemlib/oswin.c )
@@ -88,7 +88,7 @@ SET( ExtraSources ${SOURCES_ROOT}/systemlib/args.c )
 endif( MSVC )
 
 
-add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} 
+sack_add_executable( ${project} ${FIRST_GCC_PROGRAM_SOURCE} 
     ../proxy.c 
     ../../network.c 
     ../../udpnetwork.c 
@@ -118,14 +118,14 @@ add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE} 
     ${SOURCES_ROOT}/deadstart/deadstart_core.c
 )
-target_link_libraries( ${PROJECT_NAME} wsock32 ws2_32 winmm )
+target_link_libraries( ${project} wsock32 ws2_32 winmm )
 
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;BUILD_SERVICE;__STATIC__;__NO_GUI__;__NO_DEFAULT_INTERFACES__;__NO_OPTIONS__" )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
-                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;BUILD_SERVICE;__STATIC__;__NO_GUI__;__NO_DEFAULT_INTERFACES__;__NO_OPTIONS__"
                   FOLDER "Network examples"
 )
-install_default_dest( ${PROJECT_NAME} )
+install_default_dest( ${project} )
 
 endif( WIN32 )

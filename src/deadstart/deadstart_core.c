@@ -706,10 +706,11 @@ LOGICAL IsRootDeadstartComplete( void )
 #endif
 }
 
-#ifndef __LINUX__
-#ifdef __cplusplus
+#ifndef NO_DEADSTART_DLLMAIN
+#  ifndef __LINUX__
+#    ifdef __cplusplus
 extern "C"
-#endif
+#    endif
 __declspec(dllexport) 
 	BOOL WINAPI DllMain(  HINSTANCE hinstDLL,
    DWORD fdwReason,
@@ -720,12 +721,13 @@ __declspec(dllexport)
 		InvokeExits();
    return TRUE;
 }
-#else
+#  else
 void RootDestructor(void) __attribute__((destructor));
 void RootDestructor( void )
 {
    InvokeExits();
 }
+#  endif
 #endif
 
 SACK_DEADSTART_NAMESPACE_END

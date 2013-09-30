@@ -218,6 +218,12 @@ macro( add_executable_force_source project optional_style )
   add_executable( ${project} ${optional_style} ${ARGN} )
 endmacro( add_executable_force_source )
 
+macro( sack_add_executable project optional_style )
+  add_executable( ${project} ${optional_style} ${ARGN} )
+  SET_PROPERTY( TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "NO_DEADSTART_DLLMAIN;" )
+endmacro( sack_add_executable )
+
+
 macro(my_target_link_libraries target )
     if(CMAKE_COMPILER_IS_GNUCC AND __ANDROID__ )
        foreach( target_lib ${ARGN} )
