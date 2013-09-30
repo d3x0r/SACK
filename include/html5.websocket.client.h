@@ -1,4 +1,5 @@
-
+#ifndef HTML5_WEBSOCKET_CLIENT_INCLUDED
+#define HTML5_WEBSOCKET_CLIENT_INCLUDED
 
 /*****************************************************
 
@@ -67,4 +68,4 @@ WEBSOCKET_EXPORT void WebSocketEnableAutoPing( PCLIENT websock, _32 delay );
 
 WEBSOCKET_EXPORT void WebSocketPing( PCLIENT websock, _32 timeout );
 
-
+#endif

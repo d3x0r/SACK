@@ -5755,7 +5755,7 @@ static void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task )
 
 OnKeyPressEvent( WIDE( "InterShell/Reset SQL Configuration" ) )( PTRSZVAL psv )
 {
-	CTEXTSTR cmd[256];
+	CTEXTCHAR cmd[256];
    CTEXTSTR args[4];
 	TEXTCHAR *tmp_path = ExpandPath( g.config_filename );
 	args[0] = "@/set_config";
@@ -5769,7 +5769,7 @@ OnKeyPressEvent( WIDE( "InterShell/Reset SQL Configuration" ) )( PTRSZVAL psv )
 			Relinquish();
 
 		Banner2NoWaitAlpha( WIDE("Restarting...") );
-		snprintf( cmd, 256, "@/%s.restart.exe", GetProgramName() );
+		snprintf( cmd, 256, WIDE("@/%s.restart.exe"), GetProgramName() );
 		args[0] = cmd;
 		args[1] = NULL;
 		LaunchProgramEx( args[0], NULL, args, TaskEnded, 0 );
