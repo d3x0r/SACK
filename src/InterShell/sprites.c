@@ -158,15 +158,12 @@ void CPROC Tick( PTRSZVAL psv )
 
 int InitSpriteEngine( void )
 	// create some sprite objects here... should probably hook into the configuration file also...
-
-
 {
 #ifdef DISABLE_SPRITES
 	return 0;
 #endif
 	//Image image = LoadImageFile( "images/firestar2.png" );
 	//render = _render;
-	SystemLogTime( SYSLOG_TIME_CPU| SYSLOG_TIME_DELTA );
 	//SetBlotMethod( BLOT_MMX );
 	{
 		{

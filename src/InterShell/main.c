@@ -1266,8 +1266,8 @@ static void CPROC AllPresses( PTRSZVAL psv, PKEY_BUTTON key )
 	}
 
 	{
-		//PCanvasData canvas = GetCanvas( NULL );
-		//GenerateSprites( GetFrameRenderer( g.single_frame ), PARTX(button->x) + (PARTW(button->x,button->w) /2), PARTY(button->y) + (PARTH(button->y,button->h)/2));
+		PCanvasData canvas = GetCanvas( NULL );
+		GenerateSprites( GetFrameRenderer( g.single_frame ), PARTX(button->x) + (PARTW(button->x,button->w) /2), PARTY(button->y) + (PARTH(button->y,button->h)/2));
 	}
 
 	if( g.flags.bLogKeypresses )
