@@ -1,7 +1,6 @@
 #define FIX_RELEASE_COM_COLLISION
 
 #include <stdhdrs.h>
-
 #include "local.h"
 
 RENDER_NAMESPACE
@@ -265,6 +264,14 @@ void Render3D( struct display_camera *camera )
 #ifdef _D3D_DRIVER
 			Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 1 );
 #endif
+			{
+				INDEX idx;
+				PSPRITE_METHOD psm;
+				LIST_FORALL( hVideo->sprites, idx, PSPRITE_METHOD, psm )
+				{
+					psm->RenderSprites( psm->psv, hVideo, 0, 0, 0, 0 );
+				}
+			}
 			hVideo->flags.bRendering = 0;
 		}
 		if( l.flags.bLogRenderTiming )

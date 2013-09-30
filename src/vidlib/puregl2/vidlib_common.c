@@ -68,15 +68,6 @@ struct saved_location
 	_32 w, h;
 };
 
-struct sprite_method_tag
-{
-	PRENDERER renderer;
-	Image original_surface;
-	Image debug_image;
-	PDATAQUEUE saved_spots;
-	void(CPROC*RenderSprites)(PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h );
-	PTRSZVAL psv;
-};
 IMAGE_NAMESPACE_END
 
 RENDER_NAMESPACE
