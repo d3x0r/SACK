@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-project( mercurial_version_tool )
+set( project mercurial_version_tool )
 
 if( NOT SACK_SDK_ROOT_PATH )
 GET_FILENAME_COMPONENT(SACK_SDK_ROOT_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Freedom Collective\\SACK;Install_Dir]" ABSOLUTE CACHE)
@@ -10,7 +10,7 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES
 endif( NOT SACK_SDK_ROOT_PATH )
 
 ### Include and implement sack ###
-#include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
+include( ../../../makefiles/cmake/DefaultInstall.cmake )
 
 include_directories( ../../../include  )
 ### END include sack ###
@@ -46,8 +46,8 @@ if( WATCOM )
  )
     ADD_CUSTOM_TARGET( generate_foo${rcfile} DEPENDS ${PROJECT_BINARY_DIR}/${rcfile_out})
   endif( NOT TARGET generate_foo${rcfile} )
-  ADD_DEPENDENCIES( ${PROJECT_NAME} generate_foo${rcfile} )
-  SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES LINK_FLAGS "option resource=${rcfile_out}")
+  ADD_DEPENDENCIES( ${project} generate_foo${rcfile} )
+  SET_TARGET_PROPERTIES(${project} PROPERTIES LINK_FLAGS "option resource=${rcfile_out}")
 else( WATCOM )
 endif( WATCOM )
 endmacro( build_resource ) 
@@ -120,17 +120,19 @@ endif( WIN32 )
 
 
 
-add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+sack_add_executable(${project} ${BASE_SOURCES} )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY 
+         COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;USE_ODBC;USE_SQLITE;__NO_MSGSVR__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;DEDICATE_REBOOT" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
 COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}" 
-COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;USE_ODBC;USE_SQLITE;__NO_MSGSVR__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;DEDICATE_REBOOT"
                   FOLDER utils
 )
 if( WIN32 )
-#ws2_32 wsock32 
-target_link_libraries( ${PROJECT_NAME}  winmm odbc32)
+target_link_libraries( ${project} winmm ${SACK_PLATFORM_LIBRARIES} )
+else( WIN32 )
+target_link_libraries( ${project}  ${SACK_PLATFORM_LIBRARIES} )
 endif( WIN32 )
 
-install( TARGETS ${PROJECT_NAME} DESTINATION . )
+install( TARGETS ${project} DESTINATION . )
 
