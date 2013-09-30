@@ -81,9 +81,7 @@ IMAGE_NAMESPACE_END
 
 RENDER_NAMESPACE
 
-
 HWND  GetNativeHandle (PVIDEO hVideo);
-void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar);
 
 extern KEYDEFINE KeyDefs[];
 
