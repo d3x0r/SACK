@@ -47,11 +47,11 @@ void CPROC SpriteDrawProc( PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32
 	{
 		if( sprite[n].ttl )
 		{
-         lprintf( "------------- (BEGIN SPRITE)" );
+			//lprintf( "------------- (BEGIN SPRITE)" );
 			rotate_scaled_sprite( GetDisplayImage( renderer ), sprite[n].sprite, rot, 0x10000, 0x10000 );
-         lprintf( "------------- (BEGIN BLOT)" );
-			BlotImage( GetDisplayImage( renderer ), sprite[n].sprite->image, sprite[n].sprite->curx, sprite[n].sprite->cury );
-         lprintf( "------------- (DONE)" );
+			//lprintf( "------------- (BEGIN BLOT)" );
+			//BlotImage( GetDisplayImage( renderer ), sprite[n].sprite->image, sprite[n].sprite->curx, sprite[n].sprite->cury );
+			//lprintf( "------------- (DONE)" );
 		}
 	}
 
