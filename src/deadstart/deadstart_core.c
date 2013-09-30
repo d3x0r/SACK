@@ -706,7 +706,7 @@ LOGICAL IsRootDeadstartComplete( void )
 #endif
 }
 
-#ifndef NO_DEADSTART_DLLMAIN
+#if !defined( NO_DEADSTART_DLLMAIN ) && !defined( BUILD_PORTABLE_EXECUTABLE )
 #  ifndef __LINUX__
 #    ifdef __cplusplus
 extern "C"
