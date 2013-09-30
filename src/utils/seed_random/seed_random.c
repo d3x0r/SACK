@@ -6,3 +6,8 @@ PRELOAD( InitRandom )
 	srand( timeGetTime() );
 }
 
+#ifdef __WATCOMC__
+PUBLIC( void, ExportThis)( void )
+{
+}
+#endif
