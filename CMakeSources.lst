@@ -408,6 +408,7 @@ set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS}
     ${SOURCES_ROOT}src/imglib/pngimage.h
     ${SOURCES_ROOT}src/imglib/jpgimage.h
         ${SOURCES_ROOT}src/imglib/bmpimage.h
+        ${SOURCES_ROOT}src/imglib/image_common.h
         ${SOURCES_ROOT}src/imglib/sprite_local.h
         ${SOURCES_ROOT}src/vidlib/local.h
         ${SOURCES_ROOT}src/vidlib/glext.h
