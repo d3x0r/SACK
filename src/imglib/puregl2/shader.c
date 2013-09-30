@@ -1,7 +1,8 @@
 
 #include <stdhdrs.h>
-
+struct glSurfaceData;
 #include "local.h"
+
 #include "shaders.h"
 
 PImageShaderTracker GetShader( CTEXTSTR name, void (CPROC*Init)(PImageShaderTracker) )
