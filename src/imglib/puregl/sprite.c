@@ -1105,11 +1105,11 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 				float x_size, x_size2, y_size, y_size2;
 				int xs, ys, ws, hs;
 				Image topmost_parent ;
-				xs = sprite->image->real_x;
-				ys = sprite->image->real_y;
+				xs = 0;
+				ys = 0;
 				ws = sprite->image->width;
 				hs = sprite->image->height;
-				for( topmost_parent = sprite->image->pParent; topmost_parent && topmost_parent->pParent; topmost_parent = topmost_parent->pParent )
+				for( topmost_parent = sprite->image; topmost_parent && topmost_parent->pParent; topmost_parent = topmost_parent->pParent )
 				{
 					xs += topmost_parent->real_x;
 					ys += topmost_parent->real_y;
@@ -1128,8 +1128,8 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 			glTexCoord2f(x_size2, y_size); glVertex3fv(v[vi][1]);	// Bottom Right Of The Texture and Quad
 			glTexCoord2f(x_size, y_size2); glVertex3fv(v[vi][2]);	// Top Left Of The Texture and Quad
 			glTexCoord2f(x_size2, y_size2); glVertex3fv(v[vi][3]);	// Top Right Of The Texture and Quad
-         glEnd();
-			}
+			glEnd();
+		}
 	}
 }
 
