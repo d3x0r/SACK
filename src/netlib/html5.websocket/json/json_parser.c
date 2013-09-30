@@ -498,7 +498,7 @@ LOGICAL json_parse_message( struct json_context_object *format
 											else if( c >= 'a' && c <= 'f' )
 												hex_char += ( c - 'F' ) + 10;
 											else
-												lprintf( "(escaped character, parsing hex of \u) fault parsing '%c' unexpected %d (near %*.*s[%c]%s)", c, n
+												lprintf( "(escaped character, parsing hex of \\u) fault parsing '%c' unexpected %d (near %*.*s[%c]%s)", c, n
 														 , ( (n>3)?3:n ), ( (n>3)?3:n )
 														 , msg + n - ( (n>3)?3:n )
 														 , c
@@ -690,7 +690,7 @@ LOGICAL json_parse_message( struct json_context_object *format
 			break; // default of high level switch
 		}
 	}
-
+   return TRUE;
 }
 
 #ifdef __cplusplus
