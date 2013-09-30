@@ -18,7 +18,7 @@ string( REGEX REPLACE "library clbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES ${CMAK
 string( REGEX REPLACE "library plbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES ${CMAKE_C_STANDARD_LIBRARIES} )
 endif( WATCOM )
 
-project( syslog.logger.portable )
+set( project syslog.logger.portable )
 
 set( SOURCES_ROOT ../../.. )
 
@@ -60,22 +60,13 @@ ${LAST_GCC_PROGRAM_SOURCE}
 )
 
 
-add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-	COMPILE_DEFINITIONS "TARGET_LABEL=${TARGET_LABEL};__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__"
+sack_add_executable(${project} ${BASE_SOURCES} )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY 	COMPILE_DEFINITIONS "TARGET_LABEL=${TARGET_LABEL};__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER utils
 )
-target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
-if( WIN32 )
-target_link_libraries( ${PROJECT_NAME} winmm ws2_32 wsock32 )
-else( WIN32 )
-   if( __ANDROID__ )
-      target_link_libraries( ${PROJECT_NAME} dl )
-   else( __ANDROID__ )
-      target_link_libraries( ${PROJECT_NAME} dl pthread )
-   endif( __ANDROID__ )
-endif( WIN32 )
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project}  ${SACK_PLATFORM_LIBRARIES} )
+install_default_dest( ${project} )
 
 

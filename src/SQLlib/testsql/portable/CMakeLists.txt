@@ -18,7 +18,7 @@ string( REGEX REPLACE "library clbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES ${CMAK
 string( REGEX REPLACE "library plbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES ${CMAKE_C_STANDARD_LIBRARIES} )
 endif( WATCOM )
 
-project( sqlcmd.portable )
+set( project sqlcmd.portable )
 
 set( SOURCES_ROOT ../../.. )
 
@@ -78,23 +78,24 @@ else( NOT __ODBC__ )
 endif( NOT __NO_ODBC__ )
 
 
-add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+sack_add_executable(${project} ${BASE_SOURCES} )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY
+                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;__STATIC__;__NO_GUI__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;${MoreDefinitions};USE_SQLITE;__DISABLE_UDP_SYSLOG__;__NO_MSGSVR__" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
     COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}" 
-                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;__STATIC__;__NO_GUI__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;${MoreDefinitions};USE_SQLITE;__DISABLE_UDP_SYSLOG__;__NO_MSGSVR__"
                   FOLDER utils
 )
-target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
+target_link_libraries( ${project}  ${SACK_PLATFORM_LIBRARIES} )
 if( WIN32 )
-#target_link_libraries( ${PROJECT_NAME} winmm wsock32 ws2_32 )
-target_link_libraries( ${PROJECT_NAME} winmm odbc32 )
+#target_link_libraries( ${project} winmm wsock32 ws2_32 )
+target_link_libraries( ${project} winmm odbc32 )
 else( WIN32 )
 if( NOT __NO_ODBC__ )
-   target_link_libraries( ${PROJECT_NAME} odbc  )
+   target_link_libraries( ${project} odbc  )
 endif( NOT __NO_ODBC__ )
 endif( WIN32 )
-install_default_dest_binary( ${PROJECT_NAME} )
+install_default_dest_binary( ${project} )
 
 
 

@@ -19,7 +19,7 @@ string( REGEX REPLACE "library clbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES ${CMAK
 string( REGEX REPLACE "library plbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES ${CMAKE_C_STANDARD_LIBRARIES} )
 endif( WATCOM )
 
-project( launchpad.portable )
+set( project launchpad.portable )
 
 set( RESOURCES ../launchpad.rc )
 if( MINGW OR MSVC )
@@ -89,45 +89,46 @@ string( REPLACE "/" "\\" WATCOM_PROJECT_BINARY_DIR ${PROJECT_BINARY_DIR} )
 string( REPLACE "/" "\\" WATCOM_CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR} )
 add_custom_command( OUTPUT ${PROJECT_BINARY_DIR}/${WATCOM_RESOURCES}
                      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${RESOURCES}
-                     COMMAND ${CMAKE_RC_COMPILER} -i${WATCOM_CMAKE_CURRENT_SOURCE_DIR} -fo${WATCOM_PROJECT_BINARY_DIR}\\${WATCOM_RESOURCES} ${WATCOM_CMAKE_CURRENT_SOURCE_DIR}\\${RESOURCES}
+                     COMMAND ${CMAKE_RC_COMPILER} -i${WATCOM_CMAKE_CURRENT_SOURCE_DIR}\\.. -i${WATCOM_CMAKE_CURRENT_SOURCE_DIR} -fo${WATCOM_PROJECT_BINARY_DIR}\\${WATCOM_RESOURCES} ${WATCOM_CMAKE_CURRENT_SOURCE_DIR}\\${RESOURCES}
  )
-ADD_CUSTOM_TARGET( "generate_foo${PROJECT_NAME}" DEPENDS ${PROJECT_BINARY_DIR}/${WATCOM_RESOURCES})
+ADD_CUSTOM_TARGET( "generate_foo${project}" DEPENDS ${PROJECT_BINARY_DIR}/${WATCOM_RESOURCES})
 
 endif()
 
-add_executable_force_source(${PROJECT_NAME} WIN32 ${BASE_SOURCES} )
-target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
+sack_add_executable(${project} WIN32 ${BASE_SOURCES} )
+target_link_libraries( ${project}  ${SACK_PLATFORM_LIBRARIES} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY
+                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__STATIC__;TARGETNAME=\"${project}${CMAKE_EXECUTABLE_SUFFIX}\"" )
 
 if( WATCOM )
-ADD_DEPENDENCIES( ${PROJECT_NAME} "generate_foo${PROJECT_NAME}" )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES 
+ADD_DEPENDENCIES( ${project} "generate_foo${project}" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES 
           LINK_FLAGS "option resource=${WATCOM_RESOURCES}")
 endif( WATCOM )
 
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
-                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__STATIC__;TARGETNAME=\"${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}\""
                   FOLDER utils/launcher
 )
 if( WATCOM )
-ADD_DEPENDENCIES( ${PROJECT_NAME} "generate_foo${PROJECT_NAME}" )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES LINK_FLAGS "option resource=${WATCOM_RESOURCES}")
+ADD_DEPENDENCIES( ${project} "generate_foo${project}" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES LINK_FLAGS "option resource=${WATCOM_RESOURCES}")
 endif( WATCOM )
 if( WIN32 )
-target_link_libraries( ${PROJECT_NAME} ${SOCKET_LIBRARIES} ${WIN_SYS_LIBS} )
+target_link_libraries( ${project} ${SOCKET_LIBRARIES} ${WIN_SYS_LIBS} )
 else( WIN32 )
    if( __ANDROID__ )
-      target_link_libraries( ${PROJECT_NAME} dl )
+      target_link_libraries( ${project} dl )
    else( __ANDROID__ )
-      target_link_libraries( ${PROJECT_NAME} dl pthread )
+      target_link_libraries( ${project} dl pthread )
    endif( __ANDROID__ )
 endif( WIN32 )
-install_default_dest_binary( ${PROJECT_NAME} )
+install_default_dest_binary( ${project} )
 
 if( WIN32 )
 
-project( launchpad.portable.service )
+set( project launchpad.portable.service )
 
 
 set( SOURCES_ROOT ../../../.. )
@@ -204,21 +205,22 @@ ENABLE_LANGUAGE(RC)
 endif()
 
 
-add_executable_force_source(${PROJECT_NAME} ${BASE_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+sack_add_executable(${project} ${BASE_SOURCES} )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY
+                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;__STATIC__;BUILD_SERVICE;USE_ODBC;USE_SQLITE;__NO_MSGSVR__;__NO_GUI__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;TARGETNAME=\"${project}${CMAKE_EXECUTABLE_SUFFIX}\"" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
-                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;__STATIC__;BUILD_SERVICE;USE_ODBC;USE_SQLITE;__NO_MSGSVR__;__NO_GUI__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;TARGETNAME=\"${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}\""
                   FOLDER utils/launcher
 )
 if( WATCOM )
-ADD_DEPENDENCIES( ${PROJECT_NAME} "generate_foo${PROJECT_NAME}" )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES LINK_FLAGS "option resource=${WATCOM_RESOURCES}")
+ADD_DEPENDENCIES( ${project} "generate_foo${project}" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES LINK_FLAGS "option resource=${WATCOM_RESOURCES}")
 endif( WATCOM )
-target_link_libraries( ${PROJECT_NAME}  ${SACK_PLATFORM_LIBRARIES} )
+target_link_libraries( ${project}  ${SACK_PLATFORM_LIBRARIES} )
 
-target_link_libraries( ${PROJECT_NAME} ws2_32 wsock32 winmm odbc32 )
-install_default_dest_binary( ${PROJECT_NAME} )
+target_link_libraries( ${project} ws2_32 wsock32 winmm odbc32 )
+install_default_dest_binary( ${project} )
 
 endif( WIN32 )
 
