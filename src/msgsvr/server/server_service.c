@@ -7,11 +7,7 @@ static void CPROC Start( void )
 }
 
 
-#ifdef _MSC_VER
 SaneWinMain( argc, argv )
-#else
-int main( int argc, char **argv )
-#endif
 {
    // doesn't matter...
 	if( argc > (1) && StrCaseCmp( argv[1], WIDE("install") ) == 0 )
@@ -33,6 +29,4 @@ int main( int argc, char **argv )
 		lprintf( WIDE("Failed to load message core service.\n") );
    return 0;
 }
-#ifdef _MSC_VER
 EndSaneWinMain()
-#endif

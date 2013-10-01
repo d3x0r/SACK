@@ -97,7 +97,7 @@ void ProcessINIFile( CTEXTSTR filename, TEXTCHAR *pData, _32 nData )
 					if( optend[0] )
 					{
 						optend[0] = 0;
-						lprintf( WIDE("SQLWrite: (%s)[%s] %s=%s"), ftnsys?"NULL":filename, section,entry,optval );
+						lprintf( WIDE("SQLWrite: (%s)[%s] %s=%s"), ftnsys?WIDE("NULL"):filename, section,entry,optval );
 						if( ftnsys )
 							SACK_WriteProfileString( section, entry, optval );
 						else

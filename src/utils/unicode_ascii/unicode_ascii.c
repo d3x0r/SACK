@@ -78,7 +78,7 @@ void unicode_to_ascii ( void  )
    err = ( convertedChars == -1 );
 #endif
 	if (err != 0)
-		printf(( "wcstombs_s  failed!\n" ));
+		lprintf( WIDE("wcstombs_s  failed!") );
 
 }
 
@@ -110,15 +110,13 @@ void ascii_to_unicode( void )
     err = ( convertedChars == -1 );
 #endif
 	if (err != 0)
-		printf(( "wcstombs_s  failed!\n" ));
+		lprintf( WIDE( "wcstombs_s  failed!" ));
 
 }
 
 SaneWinMain( argc, argv )
 {
 	FILE *input;
-	FILE *output;
-	printf( "main\n" );
 	if( argc > 1 )
 	{
 		input = fopen( argv[1], "rb+" );
@@ -144,12 +142,3 @@ SaneWinMain( argc, argv )
 }
 EndSaneWinMain()
 
-#if 0
-int wmain( int argc, wchar_t ** argv )
-{
-	FILE *input;
-	FILE *output;
-   wprintf( L"wmain\n" );
-   return 0;
-}
-#endif
