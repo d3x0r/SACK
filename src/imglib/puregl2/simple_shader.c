@@ -16,24 +16,24 @@
 
 
 //const char *gles_
-static const CTEXTSTR gles_simple_v_shader =
-	WIDE( "uniform mat4 modelView;\n" )
-	WIDE( "uniform mat4 worldView;\n" )
-	WIDE( "uniform mat4 Projection;\n" )
-    WIDE( "attribute vec4 vPosition;" )
-	//WIDE( "in  vec4 in_Color;\n")
-	//WIDE( "out vec4 ex_Color;\n")
-    WIDE( "void main(void) {" )
-    WIDE( "  gl_Position = Projection * worldView * modelView * vPosition;" )
-	//WIDE( "  ex_Color = in_Color;" )
-    WIDE( "}"); 
+static const char *gles_simple_v_shader =
+	 "uniform mat4 modelView;\n" 
+	 "uniform mat4 worldView;\n" 
+	 "uniform mat4 Projection;\n" 
+     "attribute vec4 vPosition;" 
+	// "in  vec4 in_Color;\n"
+	// "out vec4 ex_Color;\n"
+     "void main(void) {"
+     "  gl_Position = Projection * worldView * modelView * vPosition;" 
+	// "  ex_Color = in_Color;" 
+     "}"; 
 
-static const CTEXTSTR gles_simple_p_shader =
-	WIDE( "uniform  vec4 in_Color;\n" )
-	//WIDE( "varying vec4 out_Color;" )
-    WIDE( "void main(void) {" )
-	WIDE( "  gl_FragColor = in_Color;" )
-    WIDE( "}" );
+static const char *gles_simple_p_shader =
+	 "uniform  vec4 in_Color;\n" 
+	// "varying vec4 out_Color;" 
+     "void main(void) {"
+	 "  gl_FragColor = in_Color;" 
+     "}" ;
 
 
 void CPROC EnableSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv, va_list args )

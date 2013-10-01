@@ -16,49 +16,49 @@
 
 
 //const char *gles_
-static const CTEXTSTR gles_simple_v_shader =
-    WIDE( "attribute vec4 vPosition;\n" )
-	WIDE( "attribute vec2 in_texCoord;\n" )
-	WIDE( "uniform mat4 modelView;\n" )
-	WIDE( "uniform mat4 worldView;\n" )
-	WIDE( "uniform mat4 Projection;\n" )
-	WIDE( " varying vec2 out_texCoord;\n" )
-    WIDE("void main() {\n" )
-    WIDE("  gl_Position = Projection * worldView * modelView * vPosition;\n" )
-	WIDE( "out_texCoord = in_texCoord;\n" )
-    WIDE("}\n"); 
+static const char *gles_simple_v_shader =
+     "attribute vec4 vPosition;\n" 
+	 "attribute vec2 in_texCoord;\n" 
+	 "uniform mat4 modelView;\n" 
+	 "uniform mat4 worldView;\n" 
+	 "uniform mat4 Projection;\n" 
+	 " varying vec2 out_texCoord;\n" 
+    "void main() {\n"
+    "  gl_Position = Projection * worldView * modelView * vPosition;\n" 
+	 "out_texCoord = in_texCoord;\n" 
+    "}\n"; 
 
-static const CTEXTSTR gles_simple_p_shader =
-    //WIDE( "precision mediump float;\n" )
-	WIDE( " varying vec2 out_texCoord;\n" )
-	WIDE( " uniform sampler2D tex;\n" )
-	WIDE( "void main() {\n" )
-	WIDE( "   gl_FragColor = texture2D( tex, out_texCoord );\n" )
-    WIDE( "}\n" );
+static const char *gles_simple_p_shader =
+    // "precision mediump float;\n" 
+	 " varying vec2 out_texCoord;\n" 
+	 " uniform sampler2D tex;\n" 
+	 "void main() {\n"
+	 "   gl_FragColor = texture2D( tex, out_texCoord );\n"
+     "}\n" ;
 
 
 //const char *gles_
-static const CTEXTSTR gles_simple_v_shader_shaded_texture =
-    WIDE( "attribute vec4 vPosition;\n" )
-	 WIDE( "attribute vec2 in_texCoord;\n" )
-	 WIDE( "uniform mat4 modelView;\n" )
-	 WIDE( "uniform mat4 worldView;\n" )
-	 WIDE( "uniform mat4 Projection;\n" )
-	 WIDE( "varying vec2 out_texCoord;\n" )
-	 WIDE( "\n" )
-    WIDE("void main() {\n" )
-    WIDE("  gl_Position = Projection * worldView * modelView * vPosition;\n" )
-	 WIDE( " out_texCoord = in_texCoord;\n" )
-    WIDE("}"); 
+static const char *gles_simple_v_shader_shaded_texture =
+     "attribute vec4 vPosition;\n" 
+	  "attribute vec2 in_texCoord;\n" 
+	  "uniform mat4 modelView;\n" 
+	  "uniform mat4 worldView;\n" 
+	  "uniform mat4 Projection;\n" 
+	  "varying vec2 out_texCoord;\n" 
+	  "\n" 
+    "void main() {\n"
+    "  gl_Position = Projection * worldView * modelView * vPosition;\n" 
+	  " out_texCoord = in_texCoord;\n" 
+    "}"; 
 
-static const CTEXTSTR gles_simple_p_shader_shaded_texture =
-    //WIDE( "precision mediump float;\n" )
-	WIDE( "uniform vec4 in_Color;\n" )
-	WIDE( " varying vec2 out_texCoord;\n" )
-	WIDE( " uniform sampler2D tex;\n" )
-	WIDE( "void main() {\n" )
-	WIDE( "   gl_FragColor = in_Color * texture2D( tex, out_texCoord );\n" )
-    WIDE( "}\n" );
+static const char *gles_simple_p_shader_shaded_texture =
+    // "precision mediump float;\n" 
+	 "uniform vec4 in_Color;\n" 
+	 " varying vec2 out_texCoord;\n" 
+	 " uniform sampler2D tex;\n" 
+	 "void main() {\n"
+	 "   gl_FragColor = in_Color * texture2D( tex, out_texCoord );\n"
+     "}\n" ;
 
 
 struct private_shader_data
@@ -109,8 +109,6 @@ void InitSimpleTextureShader( PImageShaderTracker tracker )
 	{
 		data->texture = glGetUniformLocation(tracker->glProgramId, "tex");
 		data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
-		lprintf( "texture is really %d", data->texture_attrib );
-		lprintf( "position is really %d", glGetAttribLocation(tracker->glProgramId, "vPosition" ) );
 	}
 
 }

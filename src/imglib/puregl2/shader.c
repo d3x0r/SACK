@@ -129,13 +129,13 @@ void EnableShader( PImageShaderTracker tracker, ... )
 static void SetupCommon( PImageShaderTracker tracker )
 {
 	tracker->projection
-		= glGetUniformLocation(tracker->glProgramId, WIDE("Projection"));
+		= glGetUniformLocation(tracker->glProgramId, "Projection");
 	CheckErr();
 	tracker->worldview
-		= glGetUniformLocation(tracker->glProgramId, WIDE("worldView"));
+		= glGetUniformLocation(tracker->glProgramId, "worldView");
 	CheckErr();
 	tracker->modelview
-		= glGetUniformLocation(tracker->glProgramId, WIDE("modelView"));
+		= glGetUniformLocation(tracker->glProgramId, "modelView");
 	CheckErr();
 
 	if( tracker->glFragProgramId )
@@ -160,9 +160,9 @@ void DumpAttribs( PImageShaderTracker tracker, int program )
 	for( n = 0; n < m; n++ )
 	{
 		char tmp[64];
-		size_t length;
+		int length;
 		int size;
-		int type;
+		unsigned int type;
 		int index;
 
 		glGetActiveAttrib( program, n, 64, &length, &size, &type, tmp );
@@ -174,9 +174,9 @@ void DumpAttribs( PImageShaderTracker tracker, int program )
 	for( n = 0; n < m; n++ )
 	{
 		char tmp[64];
-		size_t length;
+		int length;
 		int size;
-		int type;
+		unsigned int type;
 		glGetActiveUniform( program, n, 64, &length, &size, &type, tmp );
 		lprintf( WIDE("uniform [%s] %d %d"), tmp, size, type );
 	}
@@ -184,8 +184,8 @@ void DumpAttribs( PImageShaderTracker tracker, int program )
 
 
 int CompileShaderEx( PImageShaderTracker tracker
-					  , CTEXTSTR *vertex_code, int vertex_blocks
-					  , CTEXTSTR *frag_code, int frag_blocks
+					  , char **vertex_code, int vertex_blocks
+					  , char **frag_code, int frag_blocks
 					  , struct image_shader_attribute_order *attrib_order, int nAttribs )
 {
 	GLint result=123;
@@ -349,7 +349,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 }
 
 
-int CompileShader( PImageShaderTracker tracker, CTEXTSTR *vertex_code, int vertex_blocks, CTEXTSTR *frag_code, int frag_blocks )
+int CompileShader( PImageShaderTracker tracker, char **vertex_code, int vertex_blocks, char **frag_code, int frag_blocks )
 {
    return CompileShaderEx( tracker, vertex_code, vertex_blocks, frag_code, frag_blocks, NULL, 0 );
 }
