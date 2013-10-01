@@ -107,7 +107,7 @@ static PSERVICE FindService( TEXTCHAR *name )
 #undef strcmp
 #undef strdup
 #undef strlen
-		if( !strcmp( service->name, name ) )
+		if( !StrCmp( service->name, name ) )
 			break;
 		service = service->next;
 	}
@@ -153,7 +153,7 @@ static int CPROC MY_CLIENT_LOAD_SERVICE( PSERVICE_ROUTE route, _32 *params, size
 	// a client will have had to connect first to me....
 	//PCLIENT client = FindClient( params[-1] );
 	{
-		PSERVICE service = FindService( (char*)(params) );
+		PSERVICE service = FindService( (TEXTCHAR*)(params) );
 		if( service )
 		{
 			if( service->flags.bRemote )

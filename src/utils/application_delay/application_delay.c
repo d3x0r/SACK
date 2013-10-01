@@ -3,7 +3,7 @@
 
 PRELOAD( loginfo )
 {
-   MessageBox( NULL, "Press OK to continue", "Pause...", MB_OK );
+   MessageBox( NULL, WIDE("Press OK to continue"), WIDE("Pause..."), MB_OK );
 }
 
 #if ( __WATCOMC__ < 1291 )

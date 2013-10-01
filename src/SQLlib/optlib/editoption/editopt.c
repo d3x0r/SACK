@@ -273,12 +273,12 @@ static void CPROC FindEntry( PTRSZVAL psv, PCOMMON pc )
 		FindOptions( (PODBC)psv, &options, result );
 		if( !options )
 		{
-			SimpleMessageBox( NULL, "No Options Found", "Could not find any matching options" );
+			SimpleMessageBox( NULL, WIDE("No Options Found"), WIDE("Could not find any matching options") );
 			return;
 		}
 		LIST_FORALL( options, idx, CTEXTSTR, name )
 		{
-			lprintf( "Found : %s", name );
+			lprintf( WIDE("Found : %s"), name );
 		}
 
 		{
@@ -298,7 +298,7 @@ static void CPROC FindEntry( PTRSZVAL psv, PCOMMON pc )
 
 				SetItemData( hli,(PTRSZVAL)pnd );
 
-				lprintf( "Found : %s", name );
+				lprintf( WIDE("Found : %s"), name );
 			}
 			//InitOptionList( odbc, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
 			DisplayFrame( frame );
@@ -321,10 +321,6 @@ int EditOptions( PODBC odbc )
 
 	DisplayFrame( frame );
 	CommonWait( frame );
-
-	lprintf( "frame is now %p", frame );
-	WakeableSleep( 300 );
-	lprintf( "frame is now %p", frame );
 	DestroyFrame( &frame );
 	return 1;
 }
