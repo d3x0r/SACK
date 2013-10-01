@@ -13,7 +13,7 @@ PRELOAD( InitCo )
    CoInitializeEx( NULL, COINIT_MULTITHREADED );
 }
 
-#if ( defined( __WATCOMC__) && ( __WATCOMC__ < 1290 ) ) || defined( MINGW_SUX )
+#if ( defined( __WATCOMC__) && ( __WATCOMC__ < 1280 ) ) || defined( MINGW_SUX )
 #ifdef __cplusplus
 	extern "C" {
 #endif
