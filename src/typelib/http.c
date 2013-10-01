@@ -207,7 +207,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 								MemCpy( line = GetText( pLine ), c + start, (pos - start - bLine)*sizeof(TEXTCHAR));
 								line[pos-start-bLine] = 0;
 								pHttpState->response_status = pLine;
-								pHttpState->numeric_code = 200; // initialize to assume it's OK.  (requests should be OK)
+								pHttpState->numeric_code = 0; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 								{
 									PTEXT request = TextParse( pHttpState->response_status, WIDE( "?#" ), WIDE( " " ), 1, 1 DBG_SRC );
 									{
@@ -237,9 +237,6 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 												resource_path = SegAppend( resource_path, SegGrab( tmp ) );
 											}
 										}
-
-
-
 										pHttpState->resource = resource_path;
 									}
 									LineRelease( request );
