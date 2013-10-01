@@ -16,41 +16,41 @@
 
 
 //const char *gles_
-static const CTEXTSTR gles_simple_v_multi_shader =
-	WIDE( "uniform mat4 modelView;\n" )
-	WIDE( "uniform mat4 worldView;\n" )
-	WIDE( "uniform mat4 Projection;\n" )
-	WIDE( "attribute vec2 in_texCoord;\n" )
-    WIDE( "attribute vec4 vPosition;" )
-	WIDE( " varying vec2 out_texCoord;\n" )
-	//WIDE( "in  vec4 in_Color;\n")
-	//WIDE( "out vec4 ex_Color;\n")
-    WIDE( "void main(void) {" )
-    WIDE( "  gl_Position = Projection * worldView * vPosition;" )
-	WIDE( "out_texCoord = in_texCoord;\n" )
-	//WIDE( "  ex_Color = in_Color;" )
-    WIDE( "}"); 
+static const char *gles_simple_v_multi_shader =
+	 "uniform mat4 modelView;\n" 
+	 "uniform mat4 worldView;\n" 
+	 "uniform mat4 Projection;\n" 
+	 "attribute vec2 in_texCoord;\n" 
+     "attribute vec4 vPosition;" 
+	 " varying vec2 out_texCoord;\n" 
+	// "in  vec4 in_Color;\n"
+	// "out vec4 ex_Color;\n"
+     "void main(void) {"
+     "  gl_Position = Projection * worldView * vPosition;" 
+	 "out_texCoord = in_texCoord;\n" 
+	// "  ex_Color = in_Color;" 
+     "}"; 
 
 
-static const CTEXTSTR gles_simple_p_multi_shader =
-	    WIDE( " varying vec2 out_texCoord;\n" )
-       WIDE( "uniform sampler2D tex;\n" )
-       WIDE( "uniform vec4 multishade_r;\n" )
-       WIDE( "uniform vec4 multishade_g;\n" )
-       WIDE( "uniform vec4 multishade_b;\n" )
-       WIDE( "\n" )
-       WIDE( "void main(void)\n" )
-       WIDE( "{\n" )
-       WIDE( "    vec4 color = texture2D(tex, out_texCoord);\n" )
-       WIDE( "	gl_FragColor = vec4( (color.b * multishade_b.r) + (color.g * multishade_g.r) + (color.r * multishade_r.r),\n" )
-       WIDE( "		(color.b * multishade_b.g) + (color.g * multishade_g.g) + (color.r * multishade_r.g),\n" )
-       WIDE( "		(color.b * multishade_b.b) + (color.g * multishade_g.b) + (color.r * multishade_r.b),\n" )
-       WIDE( "		  color.r!=0.0?( color.a * multishade_r.a) :0.0\n" )
-       WIDE( "                + color.g!=0.0?( color.a * multishade_g.a) :0.0\n" )
-       WIDE( "                + color.b!=0.0?( color.a * multishade_b.a) :0.0\n" )
-       WIDE( "                )\n" )
-       WIDE( "		;\n" )
-				WIDE( "}\n" );
+static const char *gles_simple_p_multi_shader =
+	     " varying vec2 out_texCoord;\n" 
+        "uniform sampler2D tex;\n" 
+        "uniform vec4 multishade_r;\n" 
+        "uniform vec4 multishade_g;\n" 
+        "uniform vec4 multishade_b;\n" 
+        "\n" 
+        "void main(void)\n"
+        "{\n" 
+        "    vec4 color = texture2D(tex, out_texCoord);\n"
+        "	gl_FragColor = vec4( (color.b * multishade_b.r) + (color.g * multishade_g.r) + (color.r * multishade_r.r),\n"
+        "		(color.b * multishade_b.g) + (color.g * multishade_g.g) + (color.r * multishade_r.g),\n"
+        "		(color.b * multishade_b.b) + (color.g * multishade_g.b) + (color.r * multishade_r.b),\n"
+        "		  color.r!=0.0?( color.a * multishade_r.a ):0.0\n"
+        "                + color.g!=0.0?( color.a * multishade_g.a ):0.0\n"
+        "                + color.b!=0.0?( color.a * multishade_b.a ):0.0\n"
+        "                )\n"
+        "		;\n" 
+				 "}\n" ;
 
 
 struct private_mst_shader_data
@@ -115,7 +115,7 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 
 	if( result = glGetError() )
 	{
-		lprintf( "unhandled error before shader" );
+		lprintf( WIDE("unhandled error before shader") );
 	}
 
 	v_codeblocks[0] = gles_simple_v_multi_shader;

@@ -73,8 +73,8 @@ PImageShaderTracker CPROC GetShader( CTEXTSTR name, void (*)(PImageShaderTracker
 void CPROC  SetShaderEnable( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker, PTRSZVAL, va_list args ), PTRSZVAL psv );
 void CPROC SetShaderModelView( PImageShaderTracker tracker, RCOORD *matrix );
 
-int CPROC CompileShaderEx( PImageShaderTracker shader, CTEXTSTR *vertex_code, int vert_blocks, CTEXTSTR *frag_code, int frag_blocks, struct image_shader_attribute_order *, int nAttribs );
-int CPROC CompileShader( PImageShaderTracker shader, CTEXTSTR *vertex_code, int vert_blocks, CTEXTSTR *frag_code, int frag_blocks );
+int CPROC CompileShaderEx( PImageShaderTracker shader, char **vertex_code, int vert_blocks, char **frag_code, int frag_blocks, struct image_shader_attribute_order *, int nAttribs );
+int CPROC CompileShader( PImageShaderTracker shader, char **vertex_code, int vert_blocks, char **frag_code, int frag_blocks );
 void CPROC ClearShaders( void );
 
 void CPROC EnableShader( PImageShaderTracker shader, ... );
