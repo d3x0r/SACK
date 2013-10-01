@@ -11,14 +11,14 @@ struct default_port
 	int number;
 };
 #define num_defaults (sizeof(default_ports)/sizeof(default_ports[0]))
-static struct default_port default_ports[] = { { "http", 80 }
-															, { "ftp", 21 }
-															, { "ssh", 22 }
-															, { "telnet", 23 }
-															, { "https", 443 }
-															, { "ws", 80 }
-															, { "wss", 443 }
-															, { "file", 0 }
+static struct default_port default_ports[] = { { WIDE("http"), 80 }
+															, { WIDE("ftp"), 21 }
+															, { WIDE("ssh"), 22 }
+															, { WIDE("telnet"), 23 }
+															, { WIDE("https"), 443 }
+															, { WIDE("ws"), 80 }
+															, { WIDE("wss"), 443 }
+															, { WIDE("file"), 0 }
 															};
 
 
@@ -57,7 +57,7 @@ static void AppendBuffer( CTEXTSTR *output, CTEXTSTR seperator, CTEXTSTR input )
 		if( seperator )
 			len += StrLen( seperator );
 		newout = NewArray( TEXTCHAR, len );
-		snprintf( newout, len, "%s%s%s", (*output), seperator?seperator:"", tmpbuf );
+		snprintf( newout, len, WIDE("%s%s%s"), (*output), seperator?seperator:WIDE(""), tmpbuf );
 		Release( (POINTER)*output );
 		(*output) = newout;
 		Release( (POINTER)tmpbuf );
@@ -177,13 +177,13 @@ struct url_data * SACK_URLParse( CTEXTSTR url )
 			if( state == PARSE_STATE_COLLECT_PROTOCOL_1 )
 			{
 				if( outchar > 0 )
-					lprintf( "Characters between protocol ':' and first slash" );
+					lprintf( WIDE("Characters between protocol ':' and first slash") );
 				state = PARSE_STATE_COLLECT_PROTOCOL_2;
 			}
 			else if( state == PARSE_STATE_COLLECT_PROTOCOL_2 )
 			{
 				if( outchar > 0 )
-					lprintf( "Characters between protocol first and second slash" );
+					lprintf( WIDE("Characters between protocol first and second slash") );
 				state = PARSE_STATE_COLLECT_USER;
 			}
 			else if( state == PARSE_STATE_COLLECT_USER )
@@ -224,7 +224,7 @@ struct url_data * SACK_URLParse( CTEXTSTR url )
 			{
 				outbuf[outchar] = 0;
 				outchar = 0;
-				AppendBuffer( &data->resource_path, "/", outbuf );
+				AppendBuffer( &data->resource_path, WIDE("/"), outbuf );
 				state = PARSE_STATE_COLLECT_RESOURCE_NAME;
 			}
 			else if( state == PARSE_STATE_COLLECT_RESOURCE_NAME )
@@ -232,7 +232,7 @@ struct url_data * SACK_URLParse( CTEXTSTR url )
 				// this isn't really the name, it's another part of the resource path
 				outbuf[outchar] = 0;
 				outchar = 0;
-				AppendBuffer( &data->resource_path, "/", outbuf );
+				AppendBuffer( &data->resource_path, WIDE("/"), outbuf );
 				state = PARSE_STATE_COLLECT_RESOURCE_NAME;
 			}
 
@@ -311,7 +311,7 @@ struct url_data * SACK_URLParse( CTEXTSTR url )
 				&& ( state != PARSE_STATE_COLLECT_RESOURCE_NAME )  // after starting the path, look for fliename, if the extension or other is not found
 				&& ( state != PARSE_STATE_COLLECT_CGI_NAME ) // blank cgi names go & to & and stay in the same state
 				)
-				lprintf( "Dropping character (%d) '%c' in %s", inchar, url[inchar], url );
+				lprintf( WIDE("Dropping character (%d) '%c' in %s"), inchar, url[inchar], url );
 			inchar++;
 		}
 		_state = state;
@@ -357,7 +357,7 @@ struct url_data * SACK_URLParse( CTEXTSTR url )
 		if( outchar )
 		{
 			outbuf[outchar] = 0;
-			lprintf( "Unused output: [%s]", outbuf );
+			lprintf( WIDE("Unused output: [%s]"), outbuf );
 		}
 		break;
 	}
@@ -371,7 +371,7 @@ CTEXTSTR SACK_BuildURL( struct url_data *data )
 	CTEXTSTR tmp = NULL;
 	CTEXTSTR tmp2 = NULL;
 	if( data->protocol )
-		vtprintf( pvt, "%s://", tmp = ConvertTextURI( data->protocol, StrLen( data->protocol ), 0 ) );
+		vtprintf( pvt, WIDE("%s://"), tmp = ConvertTextURI( data->protocol, StrLen( data->protocol ), 0 ) );
 	if( tmp )
 	{
 		Release( (POINTER)tmp );
@@ -379,10 +379,10 @@ CTEXTSTR SACK_BuildURL( struct url_data *data )
 	}
 	// must be a user to use the password, setting just a password is an error really
 	if( data->user )
-		vtprintf( pvt, "%s%s%s@"
+		vtprintf( pvt, WIDE("%s%s%s@")
 				  , tmp = ConvertTextURI( data->user, StrLen( data->user ), 0 )
-				  , data->password?":":""
-				  , data->password?(tmp2 = ConvertTextURI( data->password, StrLen( data->password ), 0 )):"" );
+				  , data->password?WIDE(":"):WIDE("")
+				  , data->password?(tmp2 = ConvertTextURI( data->password, StrLen( data->password ), 0 )):WIDE("") );
 	if( tmp )
 	{
 		Release( (POINTER)tmp );
@@ -395,7 +395,7 @@ CTEXTSTR SACK_BuildURL( struct url_data *data )
 	}
 
 	if( data->host )
-		vtprintf( pvt, "%s"
+		vtprintf( pvt, WIDE("%s")
 				  , tmp = ConvertTextURI( data->host, StrLen( data->host ), 0 ) );
 	if( tmp )
 	{
@@ -403,7 +403,7 @@ CTEXTSTR SACK_BuildURL( struct url_data *data )
 		tmp = NULL;
 	}
 	if( data->port )
-		vtprintf( pvt, ":%d", data->port );
+		vtprintf( pvt, WIDE(":%d"), data->port );
 	if( tmp )
 	{
 		Release( (POINTER)tmp );
@@ -411,7 +411,7 @@ CTEXTSTR SACK_BuildURL( struct url_data *data )
 	}
 
 	if( data->resource_path )
-		vtprintf( pvt, "/%s"
+		vtprintf( pvt, WIDE("/%s")
 				  , tmp = ConvertTextURI( data->resource_path, StrLen( data->resource_path), 1 ) );
 	if( tmp )
 	{
@@ -419,7 +419,7 @@ CTEXTSTR SACK_BuildURL( struct url_data *data )
 		tmp = NULL;
 	}
 	if( data->resource_file )
-		vtprintf( pvt, "/%s"
+		vtprintf( pvt, WIDE("/%s")
 				  , tmp = ConvertTextURI( data->resource_file, StrLen( data->resource_file), 0 ) );
 	if( tmp )
 	{
@@ -427,7 +427,7 @@ CTEXTSTR SACK_BuildURL( struct url_data *data )
 		tmp = NULL;
 	}
 	if( data->resource_extension )
-		vtprintf( pvt, ".%s"
+		vtprintf( pvt, WIDE(".%s")
 				  , tmp = ConvertTextURI( data->resource_extension, StrLen( data->resource_extension), 0 ) );
 	if( tmp )
 	{
@@ -435,7 +435,7 @@ CTEXTSTR SACK_BuildURL( struct url_data *data )
 		tmp = NULL;
 	}
 	if( data->resource_anchor )
-		vtprintf( pvt, "#%s"
+		vtprintf( pvt, WIDE("#%s")
 				  , tmp = ConvertTextURI( data->resource_anchor, StrLen( data->resource_anchor), 0 ) );
 	if( tmp )
 	{
@@ -451,9 +451,9 @@ CTEXTSTR SACK_BuildURL( struct url_data *data )
 		LIST_FORALL( data->cgi_parameters, idx, struct url_cgi_data *, cgi_data )
 		{
 			if( cgi_data->value )
-				vtprintf( pvt, "%s%s=%s", first?"?":"&", cgi_data->name, cgi_data->value );
+				vtprintf( pvt, WIDE("%s%s=%s"), first?WIDE("?"):WIDE("&"), cgi_data->name, cgi_data->value );
 			else
-				vtprintf( pvt, "%s%s", first?"?":"&", cgi_data->name );
+				vtprintf( pvt, WIDE("%s%s"), first?WIDE("?"):WIDE("&"), cgi_data->name );
 			first = 0;
 		}
 	}

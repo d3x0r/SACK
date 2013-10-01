@@ -78,7 +78,7 @@ static void FillDataToElement( struct json_context_object_element *element
             LineRelease( string );
 				break;
 			default:
-            lprintf( "Expected a string, but parsed result was a %d", val->result_value );
+            lprintf( WIDE("Expected a string, but parsed result was a %d"), val->result_value );
             break;
 			}
 		}
@@ -146,7 +146,7 @@ static void FillDataToElement( struct json_context_object_element *element
 			case VALUE_NUMBER:
 				if( val->float_result )
 				{
-					lprintf( "warning received float, converting to int" );
+					lprintf( WIDE("warning received float, converting to int") );
 					((S_64*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = (S_64)val->result_d;
 				}
 				else
@@ -155,7 +155,7 @@ static void FillDataToElement( struct json_context_object_element *element
 				}
 				break;
 			default:
-				lprintf( "Expected a string, but parsed result was a %d", val->result_value );
+				lprintf( WIDE("Expected a string, but parsed result was a %d"), val->result_value );
 				break;
 			}
 		}
@@ -185,7 +185,7 @@ static void FillDataToElement( struct json_context_object_element *element
 				else
 				{
                // this is probably common (0 for instance)
-					lprintf( "warning received int, converting to float" );
+					lprintf( WIDE("warning received int, converting to float") );
 					if( element->type == JSON_Element_Float )
 						((float*)( ((PTRSZVAL)msg_output) + element->offset ))[0] = (float)val->result_n;
 					else
@@ -194,7 +194,7 @@ static void FillDataToElement( struct json_context_object_element *element
 				}
 				break;
 			default:
-            lprintf( "Expected a float, but parsed result was a %d", val->result_value );
+            lprintf( WIDE("Expected a float, but parsed result was a %d"), val->result_value );
             break;
 			}
 		}
@@ -297,7 +297,7 @@ LOGICAL json_parse_message( struct json_context_object *format
 							}
 							else
 							{
-								lprintf( "Incompatible value expected object type, type is %d", element->type );
+								lprintf( WIDE("Incompatible value expected object type, type is %d"), element->type );
 							}
 						}
 					}
@@ -339,7 +339,7 @@ LOGICAL json_parse_message( struct json_context_object *format
 							}
 							else
 							{
-								lprintf( "Incompatible value; expected element that can take an array, type is %d", element->type );
+								lprintf( WIDE("Incompatible value; expected element that can take an array, type is %d"), element->type );
 								return FALSE;
 							}
 						}
@@ -373,7 +373,7 @@ LOGICAL json_parse_message( struct json_context_object *format
 			}
 			else
 			{
-				lprintf( "(in array, got colon out of string):parsing fault; unexpected %c at %d", c, n );
+				lprintf( WIDE("(in array, got colon out of string):parsing fault; unexpected %c at %d"), c, n );
 				return FALSE;
 			}
 			break;
@@ -392,7 +392,7 @@ LOGICAL json_parse_message( struct json_context_object *format
 			}
 			else
 			{
-				lprintf( "Fault parsing, unexpected %c at %d", c, n );
+				lprintf( WIDE("Fault parsing, unexpected %c at %d"), c, n );
 			}
 			break;
 		case ']':
@@ -408,7 +408,7 @@ LOGICAL json_parse_message( struct json_context_object *format
 			}
 			else
 			{
-				lprintf( "bad context %d; fault parsing '%c' unexpected %d", parse_context, c, n );// fault
+				lprintf( WIDE("bad context %d; fault parsing '%c' unexpected %d"), parse_context, c, n );// fault
 			}
 			break;
 		case ',':
@@ -422,14 +422,14 @@ LOGICAL json_parse_message( struct json_context_object *format
 			}
 			else
 			{
-				lprintf( "bad context; fault parsing '%c' unexpected %d", c, n );// fault
+				lprintf( WIDE("bad context; fault parsing '%c' unexpected %d"), c, n );// fault
 			}
 			break;
 
 		default:
 			if( first_token )
 			{
-				lprintf( "first token; fault parsing '%c' unexpected %d", c, n );// fault
+				lprintf( WIDE("first token; fault parsing '%c' unexpected %d"), c, n );// fault
 				return FALSE;
 			}
 			switch( c )
@@ -498,7 +498,7 @@ LOGICAL json_parse_message( struct json_context_object *format
 											else if( c >= 'a' && c <= 'f' )
 												hex_char += ( c - 'F' ) + 10;
 											else
-												lprintf( "(escaped character, parsing hex of \\u) fault parsing '%c' unexpected %d (near %*.*s[%c]%s)", c, n
+												lprintf( WIDE("(escaped character, parsing hex of \\u) fault parsing '%c' unexpected %d (near %*.*s[%c]%s)"), c, n
 														 , ( (n>3)?3:n ), ( (n>3)?3:n )
 														 , msg + n - ( (n>3)?3:n )
 														 , c
@@ -509,7 +509,7 @@ LOGICAL json_parse_message( struct json_context_object *format
 									}
 									break;
 								default:
-									lprintf( "(escaped character) fault parsing '%c' unexpected %d (near %*.*s[%c]%s)", c, n
+									lprintf( WIDE("(escaped character) fault parsing '%c' unexpected %d (near %*.*s[%c]%s)"), c, n
 											 , ( (n>3)?3:n ), ( (n>3)?3:n )
 											 , msg + n - ( (n>3)?3:n )
 											 , c
@@ -541,14 +541,14 @@ LOGICAL json_parse_message( struct json_context_object *format
 				if( word == 0 )
 					word = 1;
 				else
-					lprintf( "fault parsing '%c' unexpected at %d", c, n );// fault
+					lprintf( WIDE("fault parsing '%c' unexpected at %d"), c, n );// fault
 				n++;
 				break;
 			case 'r':
 				if( word == 1 )
 					word = 2;
 				else
-					lprintf( "fault parsing '%c' unexpected %d", c, n );// fault
+					lprintf( WIDE("fault parsing '%c' unexpected %d"), c, n );// fault
 				n++;
 				break;
 			case 'u':
@@ -557,7 +557,7 @@ LOGICAL json_parse_message( struct json_context_object *format
 				else if( word == 21 )
 					word = 22;
 				else
-					lprintf( "fault parsing '%c' unexpected %d", c, n );// fault
+					lprintf( WIDE("fault parsing '%c' unexpected %d"), c, n );// fault
 				n++;
 				break;
 			case 'e':
@@ -572,14 +572,14 @@ LOGICAL json_parse_message( struct json_context_object *format
 					word = 0;
 				}
 				else
-					lprintf( "fault parsing '%c' unexpected %d", c, n );// fault
+					lprintf( WIDE("fault parsing '%c' unexpected %d"), c, n );// fault
 				n++;
 				break;
 			case 'n':
 				if( word == 0 )
 					word = 21;
 				else
-					lprintf( "fault parsing '%c' unexpected %d", c, n );// fault
+					lprintf( WIDE("fault parsing '%c' unexpected %d"), c, n );// fault
 				n++;
 				break;
 			case 'l':
@@ -593,28 +593,28 @@ LOGICAL json_parse_message( struct json_context_object *format
 				else if( word == 12 )
 					word = 13;
 				else
-					lprintf( "fault parsing '%c' unexpected %d", c, n );// fault
+					lprintf( WIDE("fault parsing '%c' unexpected %d"), c, n );// fault
 				n++;
 				break;
 			case 'f':
 				if( word == 0 )
 					word = 11;
 				else
-					lprintf( "fault parsing '%c' unexpected %d", c, n );// fault
+					lprintf( WIDE("fault parsing '%c' unexpected %d"), c, n );// fault
 				n++;
 				break;
 			case 'a':
 				if( word == 11 )
 					word = 12;
 				else
-					lprintf( "fault parsing '%c' unexpected %d", c, n );// fault
+					lprintf( WIDE("fault parsing '%c' unexpected %d"), c, n );// fault
 				n++;
 				break;
 			case 's':
 				if( word == 13 )
 					word = 14;
 				else
-					lprintf( "fault parsing '%c' unexpected %d", c, n );// fault
+					lprintf( WIDE("fault parsing '%c' unexpected %d"), c, n );// fault
 				n++;
             break;
 		//
@@ -677,7 +677,7 @@ LOGICAL json_parse_message( struct json_context_object *format
 				else
 				{
 					// fault, illegal characer (whitespace?)
-					lprintf( "fault parsing '%c' unexpected %d (near %*.*s[%c]%s)", c, n
+					lprintf( WIDE("fault parsing '%c' unexpected %d (near %*.*s[%c]%s)"), c, n
 							 , ( (n>3)?3:n ), ( (n>3)?3:n )
 							 , msg + n - ( (n>3)?3:n )
 							 , c

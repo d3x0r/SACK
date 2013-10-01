@@ -332,7 +332,7 @@ PRIORITY_ATEXIT( CloseAllWakeups, ATEXIT_PRIORITY_TIMERS )
 static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 {
 	if( !event_name )
-		event_name = "ThreadSignal";
+		event_name = WIDE("ThreadSignal");
 	thread->thread_event_name = StrDup( event_name );
 #ifdef _WIN32
 	if( !thread->thread_event )
@@ -441,7 +441,7 @@ PTRSZVAL CPROC check_thread( POINTER p, PTRSZVAL psv )
 	THREAD_ID ID = *((THREAD_ID*)psv);
 	//lprintf( "Check thread %016llx %016llx %s", thread->thread_ident, ID, thread->thread_event_name );
 	if( ( thread->thread_ident == ID )
-		&& ( StrCmp( thread->thread_event_name, "ThreadSignal" ) == 0 ) )
+		&& ( StrCmp( thread->thread_event_name, WIDE("ThreadSignal") ) == 0 ) )
 		return (PTRSZVAL)p;
 	return 0;
 }
@@ -1420,7 +1420,7 @@ static void  DoRemoveTimer( _32 timerID DBG_PASS )
 			DeleteFromSet( TIMER, &g.timer_pool, timer );
 		}
 		else
-			_lprintf(DBG_RELAY)( "Failed to find timer to grab" );
+			_lprintf(DBG_RELAY)( WIDE("Failed to find timer to grab") );
 	}
 	LeaveCriticalSec( &csGrab );
 }
@@ -2087,7 +2087,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 	)
 	{
 		if( global_timer_structure && g.flags.bLogCriticalSections )
-			_lprintf( DBG_RELAY )( "On leave - section is updating, wait..." );
+			_lprintf( DBG_RELAY )( WIDE("On leave - section is updating, wait...") );
 		Relinquish();
 	}
 #ifdef _DEBUG
@@ -2101,7 +2101,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 	if( !( pcs->dwLocks & ~SECTION_LOGGED_WAIT ) )
 	{
 		if( global_timer_structure && g.flags.bLogCriticalSections )
-			_lprintf( DBG_RELAY )( "Leaving a blank critical section" );
+			_lprintf( DBG_RELAY )( WIDE("Leaving a blank critical section") );
 		pcs->dwUpdating = 0;
 		return FALSE;
 	}
@@ -2114,7 +2114,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #endif
 		pcs->dwLocks--;
 		if( global_timer_structure && g.flags.bLogCriticalSections )
-			lprintf( "Remaining locks... %08" _32fx, pcs->dwLocks );
+			lprintf( WIDE("Remaining locks... %08") _32fx, pcs->dwLocks );
 		if( !( pcs->dwLocks & ~(SECTION_LOGGED_WAIT) ) )
 		{
 			pcs->dwLocks = 0;
@@ -2129,7 +2129,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 				//pcs->dwThreadWaiting = 0;
 				pcs->dwUpdating = 0;
 				if( global_timer_structure && g.flags.bLogCriticalSections )
-					_lprintf( DBG_RELAY )( "%8"_64fx" Waking a thread which is waiting...", wake );
+					_lprintf( DBG_RELAY )( WIDE("%8")_64fx WIDE(" Waking a thread which is waiting..."), wake );
 				// don't clear waiting... so the proper thread can
 				// allow itself to claim section...
 				WakeThreadIDEx( wake DBG_RELAY);
@@ -2144,14 +2144,14 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 	{
 		if( global_timer_structure && g.flags.bLogCriticalSections )
 		{
-			_lprintf( DBG_RELAY )( WIDE("Sorry - you can't leave a section owned by %016"_64fx" locks:%08lx" )
+			_lprintf( DBG_RELAY )( WIDE("Sorry - you can't leave a section owned by %016")_64fx WIDE(" locks:%08lx" )
 #ifdef DEBUG_CRITICAL_SECTIONS
 										 WIDE(  "%s(%d)...")
 #endif
 										, pcs->dwThreadID
 										, pcs->dwLocks
 #ifdef DEBUG_CRITICAL_SECTIONS
-										, (pcs->pFile)?(pcs->pFile):"Unknown", pcs->nLine
+										, (pcs->pFile)?(pcs->pFile):WIDE("Unknown"), pcs->nLine
 #endif
 										);
 		}

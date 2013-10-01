@@ -10,22 +10,22 @@
 static void SendRequestHeader( WebSocketClient websock )
 {
 	PVARTEXT pvtHeader = VarTextCreate();
-	vtprintf( pvtHeader, "GET /%s%s%s%s%s HTTP/1.1\r\n"
-			  , websock->url->resource_path?websock->url->resource_path:""
-			  , websock->url->resource_path?"/":""
+	vtprintf( pvtHeader, WIDE("GET /%s%s%s%s%s HTTP/1.1\r\n")
+			  , websock->url->resource_path?websock->url->resource_path:WIDE("")
+			  , websock->url->resource_path?WIDE("/"):WIDE("")
 			  , websock->url->resource_file
-			  , websock->url->resource_extension?".":""
-			  , websock->url->resource_extension?websock->url->resource_extension:""
+			  , websock->url->resource_extension?WIDE("."):WIDE("")
+			  , websock->url->resource_extension?websock->url->resource_extension:WIDE("")
 
 			  );
-	vtprintf( pvtHeader, "Host: %s:%d\r\n"
+	vtprintf( pvtHeader, WIDE("Host: %s:%d\r\n")
 			  , websock->url->host
 			  , websock->url->port?websock->url->port:websock->url->default_port );
-	vtprintf( pvtHeader, "Upgrade: websocket\r\n");
-	vtprintf( pvtHeader, "Connection: Upgrade\r\n");
-	vtprintf( pvtHeader, "Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\r\n" );
-	vtprintf( pvtHeader, "Sec-WebSocket-Version: 13\r\n" );
-	vtprintf( pvtHeader, "\r\n" );
+	vtprintf( pvtHeader, WIDE("Upgrade: websocket\r\n"));
+	vtprintf( pvtHeader, WIDE("Connection: Upgrade\r\n"));
+	vtprintf( pvtHeader, WIDE("Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\r\n") );
+	vtprintf( pvtHeader, WIDE("Sec-WebSocket-Version: 13\r\n") );
+	vtprintf( pvtHeader, WIDE("\r\n") );
 	{
 		PTEXT text = VarTextPeek( pvtHeader ); // just leave the buffer in-place
 		SendTCP( websock->pc, GetText( text ), GetTextSize( text ) );
@@ -94,7 +94,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 			}
 			else
 			{
-				lprintf( "Fatality; didn't have a related structure, and no client opening" );
+				lprintf( WIDE("Fatality; didn't have a related structure, and no client opening") );
 			}
 		}
 		else
@@ -109,7 +109,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 			// this is HTTP state...
 			AddHttpData( websock->pHttpState, buffer, len );
 			result = ProcessHttp( pc, websock->pHttpState );
-			//lprintf( "reply is %d", result );
+			//lprintf( WIDE("reply is %d"), result );
 			if( (int)result == 101 )
 			{
 				websock->flags.connected = 1;
@@ -123,12 +123,12 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 			}
 			else if( (int)result >= 300 && (int)result < 400 )
 			{
-				lprintf( "Redirection of some sort" );
+				lprintf( WIDE("Redirection of some sort") );
 				// redirect, disconnect, reconnect to new address offered.
 			}
 			else if( (int)result )
 			{
-				lprintf( "Some other error: %d", result );
+				lprintf( WIDE("Some other error: %d"), result );
 			}
 			else
 			{

@@ -741,7 +741,7 @@ ImageFile*  LoadImageFileEx ( CTEXTSTR filename DBG_PASS )
 {
 	Image result = LoadImageFileFromGroupEx( 0, filename DBG_RELAY );
 	if( !result )
-		result = LoadImageFileFromGroupEx( GetFileGroup( "Images", "./images" ), filename DBG_RELAY );
+		result = LoadImageFileFromGroupEx( GetFileGroup( WIDE("Images"), WIDE("./images") ), filename DBG_RELAY );
 	return result;
 }
 
@@ -751,7 +751,7 @@ void TranslateCoord( Image image, S_32 *x, S_32 *y )
 {
 	while( image )
 	{
-		//lprintf( "%p adjust image %d,%d ", image, image->real_x, image->real_y );
+		//lprintf( WIDE("%p adjust image %d,%d "), image, image->real_x, image->real_y );
 		if( x )
 			(*x) += image->real_x;
 		if( y )

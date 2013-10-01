@@ -2427,7 +2427,7 @@ NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,_16 wClients,int wUserData)
 	}
 	if( !g.flags.bThreadInitOkay )
 	{
-		lprintf( "Abort network, init is NOT ok." );
+		lprintf( WIDE("Abort network, init is NOT ok.") );
 		return FALSE;
 	}
 	while( !g.flags.bNetworkReady )

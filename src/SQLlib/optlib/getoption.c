@@ -219,11 +219,11 @@ SQLGETOPTION_PROC( void, CreateOptionDatabaseEx )( PODBC odbc, POPTION_TREE tree
 				{
 					// this needs a self-looped root to satisfy constraints.
 					CTEXTSTR result;
-					if( !SQLQueryf( tree->odbc, &result, "select parent_option_id from option4_map where option_id='00000000-0000-0000-0000-000000000000'" )
+					if( !SQLQueryf( tree->odbc, &result, WIDE("select parent_option_id from option4_map where option_id='00000000-0000-0000-0000-000000000000'") )
 						|| !result )
 					{
 						OpenWriter( tree );
-						SQLCommandf( tree->odbc_writer, "insert into option4_map (option_id,parent_option_id,name_id)values('00000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000000','%s' )"
+						SQLCommandf( tree->odbc_writer, WIDE("insert into option4_map (option_id,parent_option_id,name_id)values('00000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000000','%s' )")
 									  , New4ReadOptionNameTable(tree,WIDE("."),OPTION4_NAME,WIDE( "name_id" ),WIDE( "name" ),1 DBG_SRC)
 									  );
 					}
@@ -1066,7 +1066,7 @@ LOGICAL SetOptionStringValue( POPTION_TREE tree, POPTION_TREE_NODE optval, CTEXT
 		{
 			if( tree->flags.bVersion4 )
 			{
-            lprintf( "Not deleting on NULL option." );
+            lprintf( WIDE("Not deleting on NULL option.") );
             /*
 				snprintf( update, sizeof( update ), WIDE("delete from ")OPTION4_MAP WIDE(" where option_id='%s'")
 						  , optval->guid );
@@ -1434,7 +1434,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 		pINIFile = DEFAULT_PUBLIC_KEY;
 	else
 	{
-		char buf[128];
+		TEXTCHAR buf[128];
 		pINIFile = ResolveININame( odbc, pSection, buf, pINIFile );
 	}
 
@@ -1477,7 +1477,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 				else
 					x = 0;
 				if( global_sqlstub_data->flags.bLogOptionConnection )
-					lprintf( "Result [%s]", pBuffer );
+					lprintf( WIDE("Result [%s]"), pBuffer );
 				if( drop_odbc )
 					DropOptionODBC( odbc );
 				LeaveCriticalSec( &og.cs_option );
@@ -1644,7 +1644,7 @@ SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateOptionStringEx )( PODBC odbc, CTEXT
 		pINIFile = DEFAULT_PUBLIC_KEY;
 	else
 	{
-      char buf[128];
+      TEXTCHAR buf[128];
       pINIFile = ResolveININame( odbc, pSection, buf, pINIFile );
 	}
 	optval = GetOptionIndexExxx( odbc, NULL, pINIFile, pSection, pName, TRUE, FALSE DBG_SRC );
@@ -1989,7 +1989,7 @@ void DropOptionODBCEx( PODBC odbc DBG_PASS )
 		}
 		if( !connection )
 		{
-			lprintf( "Failed to find the thing to drop." );
+			lprintf( WIDE("Failed to find the thing to drop.") );
 		}
 		if( connection )
 			break;

@@ -21,19 +21,19 @@ PSI_MOUSE_NAMESPACE
 	static void DrawHotSpotEx( PSI_CONTROL pc, P_IMAGE_POINT bias, P_IMAGE_POINT point, int hot DBG_PASS )
 #define DrawHotSpot(pc,bias,point,hot) DrawHotSpotEx(pc,bias,point,hot DBG_SRC)
 {
-    Image surface = pc->Window;
-    do_hline( surface, bias[1] + point[1] - SPOT_SIZE, bias[0] + point[0] - SPOT_SIZE, bias[0] + point[0] + SPOT_SIZE, Color( 0, 0, 0 ) );
-    do_hline( surface, bias[1] + point[1] + SPOT_SIZE, bias[0] + point[0] - SPOT_SIZE, bias[0] + point[0] + SPOT_SIZE, Color( 0, 0, 0 ) );
-    do_vline( surface, bias[0] + point[0] - SPOT_SIZE, bias[1] + point[1] - SPOT_SIZE, bias[1] + point[1] + SPOT_SIZE, Color( 0, 0, 0 ) );
+	Image surface = pc->Window;
+	do_hline( surface, bias[1] + point[1] - SPOT_SIZE, bias[0] + point[0] - SPOT_SIZE, bias[0] + point[0] + SPOT_SIZE, Color( 0, 0, 0 ) );
+	do_hline( surface, bias[1] + point[1] + SPOT_SIZE, bias[0] + point[0] - SPOT_SIZE, bias[0] + point[0] + SPOT_SIZE, Color( 0, 0, 0 ) );
+	do_vline( surface, bias[0] + point[0] - SPOT_SIZE, bias[1] + point[1] - SPOT_SIZE, bias[1] + point[1] + SPOT_SIZE, Color( 0, 0, 0 ) );
 	do_vline( surface, bias[0] + point[0] + SPOT_SIZE, bias[1] + point[1] - SPOT_SIZE, bias[1] + point[1] + SPOT_SIZE, Color( 0, 0, 0 ) );
-    _lprintf(DBG_RELAY)( "color %d %d %d %d %d %d", bias[0], bias[1], point[0], point[1], surface->width, surface->height );
-    BlatColor( surface
-              , bias[0] + point[0] - (SPOT_SIZE-1)
-              , bias[1] + point[1] - (SPOT_SIZE-1)
-                 // one would fiture that this would be -2 (one for left, one for right)
-             // but we have to add back in 1 for here cause we're based at here+ and here-
-              , (SPOT_SIZE*2)-1, (SPOT_SIZE*2)-1
-              , hot?Color( 255, 0, 0 ):Color(255,255,255) );
+	//_lprintf(DBG_RELAY)( "color %d %d %d %d %d %d", bias[0], bias[1], point[0], point[1], surface->width, surface->height );
+	BlatColor( surface
+				, bias[0] + point[0] - (SPOT_SIZE-1)
+				, bias[1] + point[1] - (SPOT_SIZE-1)
+				 // one would fiture that this would be -2 (one for left, one for right)
+				 // but we have to add back in 1 for here cause we're based at here+ and here-
+				, (SPOT_SIZE*2)-1, (SPOT_SIZE*2)-1
+				, hot?Color( 255, 0, 0 ):Color(255,255,255) );
 }
 
 //---------------------------------------------------------------------------

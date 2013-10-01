@@ -350,7 +350,7 @@ static int CPROC FrameKeyProc( PTRSZVAL psvFrame, _32 key )
 				lprintf( WIDE("invoking control use... for %s"), pc->pTypeName );
 			InvokeResultingMethod( result, pf->EditState.pCurrent, _KeyProc, ( pf->EditState.pCurrent, key ) );
 			if( g.flags.bLogKeyEvents )
-				lprintf( "Result was %d", result );
+				lprintf( WIDE("Result was %d"), result );
 			DeleteUse( pf->EditState.pCurrent );
 		}
 		else if( pf->pFocus )
@@ -363,7 +363,7 @@ static int CPROC FrameKeyProc( PTRSZVAL psvFrame, _32 key )
 			//	lprintf( WIDE("dispatch a key event to focused contro... ") );
 			InvokeResultingMethod( result, pf->pFocus, _KeyProc, ( pf->pFocus, key ) );
 			if( g.flags.bLogKeyEvents )
-				lprintf( "Result was %d", result );
+				lprintf( WIDE("Result was %d"), result );
 			DeleteUse( pf->pFocus );
 		}
 	}
@@ -375,7 +375,7 @@ static int CPROC FrameKeyProc( PTRSZVAL psvFrame, _32 key )
 			lprintf( WIDE("Invoking control key method. %s"), pc->pTypeName );
 		InvokeResultingMethod( result, pc, _KeyProc, (pc,key));
 		if( g.flags.bLogKeyEvents )
-			lprintf( "Result was %d", result );
+			lprintf( WIDE("Result was %d"), result );
 	}
 	if( !result )
 	{

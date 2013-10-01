@@ -907,7 +907,7 @@ POINTER  DequeLink ( PLINKQUEUE *pplq )
 				keep_lock = 1;
 				break;
 			}
-			lprintf( "waiting on lock %d %p", priorline, pplq );
+			//lprintf( WIDE("waiting on lock %d %p"), priorline, pplq );
 			Relinquish();
 		}
 	}

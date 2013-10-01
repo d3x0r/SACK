@@ -441,11 +441,11 @@ PTRSZVAL CPROC TerminateProgram( PTASK_INFO task )
 				// try using ctrl-c, ctrl-break to end process...
 				if( !StopProgram( task ) )
 				{
-					xlprintf(LOG_DEBUG+1)( "Program did not respond to ctrl-c or ctrl-break..." );
+					xlprintf(LOG_DEBUG+1)( WIDE("Program did not respond to ctrl-c or ctrl-break...") );
 					// if ctrl-c fails, try finding the window, and sending exit (systray close)
 					if( EndTaskWindow( task ) )
 					{
-						xlprintf(LOG_DEBUG+1)( "failed to find task window to send postquitmessage..." );
+						xlprintf(LOG_DEBUG+1)( WIDE("failed to find task window to send postquitmessage...") );
 						// didn't find the window - result was continue_enum with no more (1)
                   // so didn't find the window - nothing to wait for, fall through
 						nowait = 1;
@@ -453,7 +453,7 @@ PTRSZVAL CPROC TerminateProgram( PTASK_INFO task )
 				}
 				if( nowait || ( WaitForSingleObject( task->pi.hProcess, 500 ) != WAIT_OBJECT_0 ) )
 				{
-					xlprintf(LOG_DEBUG+1)( "Terminating process...." );
+					xlprintf(LOG_DEBUG+1)( WIDE("Terminating process....") );
 					bDontCloseProcess = 1;
 					if( !TerminateProcess( task->pi.hProcess, 0xD1E ) )
 					{
@@ -1123,7 +1123,7 @@ void InvokeLibraryLoad( void )
 {
 	void (CPROC *f)(void);
 	PCLASSROOT data = NULL;
-	PCLASSROOT event_root = GetClassRoot( "SACK/system/library/load_event" );
+	PCLASSROOT event_root = GetClassRoot( WIDE("SACK/system/library/load_event") );
 	CTEXTSTR name;
 	for( name = GetFirstRegisteredName( event_root, &data );
 		 name;

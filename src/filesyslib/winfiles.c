@@ -357,7 +357,7 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 	TEXTSTR fullname;
 
 	if( l.flags.bLogOpenClose )
-		lprintf( "Prepend to {%s} %p %d", real_filename, group, groupid );
+		lprintf( WIDE("Prepend to {%s} %p %d"), real_filename, group, groupid );
 
 	if( l.groups )
 	{
@@ -371,7 +371,7 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 	if( !group || ( filename && ( IsAbsolutePath( real_filename ) ) ) )
 	{
 		if( l.flags.bLogOpenClose )
-			lprintf( "already an absolute path.  [%s]", real_filename );
+			lprintf( WIDE("already an absolute path.  [%s]"), real_filename );
 		return real_filename;
 	}
 
@@ -381,7 +381,7 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 		tmp_path = ExpandPath( group->base_path );
 		fullname = NewArray( TEXTCHAR, len = StrLen( filename ) + StrLen(tmp_path) + 2 );
 		if( l.flags.bLogOpenClose )
-			lprintf("prepend %s[%s] with %s", group->base_path, tmp_path, filename );
+			lprintf(WIDE("prepend %s[%s] with %s"), group->base_path, tmp_path, filename );
 		snprintf( fullname, len * sizeof( TEXTCHAR ), WIDE("%s/%s"), tmp_path, real_filename );
 #if __ANDROID__
 		{
@@ -399,7 +399,7 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 				len = 0;
 
 			if( l.flags.bLogOpenClose )
-				lprintf( "Fix dots in [%s]", fullname );
+				lprintf( WIDE("Fix dots in [%s]"), fullname );
 			for( ofs = len+1; fullname[ofs]; ofs++ )
 			{
 				if( fullname[ofs] == '/' )
@@ -410,7 +410,7 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 		}
 #endif
 		if( l.flags.bLogOpenClose )
-			lprintf( "result %s", fullname );
+			lprintf( WIDE("result %s"), fullname );
 		Release( tmp_path );
       Release( real_filename );
 	}
