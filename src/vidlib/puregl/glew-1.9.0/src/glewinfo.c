@@ -43,6 +43,12 @@
 #include <GL/Regal.h>
 #endif
 
+#ifdef _UNICODE
+#define WIDE(a) L##a
+#else
+#define WIDE(a) a
+#endif
+
 static FILE* f;
 
 #ifdef GLEW_MX
@@ -9840,10 +9846,10 @@ GLboolean glewCreateContext (int* pixelformat)
   ZeroMemory(&wc, sizeof(WNDCLASS));
   wc.hInstance = GetModuleHandle(NULL);
   wc.lpfnWndProc = DefWindowProc;
-  wc.lpszClassName = "GLEW";
+  wc.lpszClassName = WIDE("GLEW");
   if (0 == RegisterClass(&wc)) return GL_TRUE;
   /* create window */
-  wnd = CreateWindow("GLEW", "GLEW", 0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 
+  wnd = CreateWindow(WIDE("GLEW"), WIDE("GLEW"), 0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
                      CW_USEDEFAULT, NULL, NULL, GetModuleHandle(NULL), NULL);
   if (NULL == wnd) return GL_TRUE;
   /* get the device context */
@@ -9874,7 +9880,7 @@ void glewDestroyContext ()
   if (NULL != rc) wglDeleteContext(rc);
   if (NULL != wnd && NULL != dc) ReleaseDC(wnd, dc);
   if (NULL != wnd) DestroyWindow(wnd);
-  UnregisterClass("GLEW", GetModuleHandle(NULL));
+  UnregisterClass(WIDE("GLEW"), GetModuleHandle(NULL));
 }
 
 /* ------------------------------------------------------------------------ */
