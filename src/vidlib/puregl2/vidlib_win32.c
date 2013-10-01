@@ -62,7 +62,7 @@ ATEXIT( ExitTest )
 			PostThreadMessage (l.dwThreadID, WM_USER_SHUTDOWN, 0, 0);
 			while(l.bThreadRunning)
 			{
-				lprintf( "waiting..." );
+				lprintf( WIDE("waiting...") );
 				Relinquish();
 			}
 		}
@@ -1195,7 +1195,7 @@ WM_DROPFILES
 		if( l.redraw_timer_id  == wParam )
 		{
 			if( l.flags.bLogRenderTiming )
-				lprintf( "Begin Draw Tick" );
+				lprintf( WIDE("Begin Draw Tick") );
 			Move( l.origin );
 
 			{
@@ -1233,14 +1233,14 @@ WM_DROPFILES
 					{
 						INDEX idx2;
 						struct plugin_reference *reference;
-                  //lprintf( "camera is in first_draw..." );
+                  //lprintf( WIDE("camera is in first_draw...") );
 						LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
 						{
-                     //lprintf( "so reset plugin... is there one?" );
+                     //lprintf( WIDE("so reset plugin... is there one?") );
 							reference->flags.did_first_draw = 0;
 						}
 					}
-               //lprintf( "Render camera %p", camera );
+               //lprintf( WIDE("Render camera %p"), camera );
 					// drawing may cause subsequent draws; so clear this first
 					Render3D( camera );
                camera->flags.first_draw = 0;
@@ -1253,13 +1253,13 @@ WM_DROPFILES
 			if( l.flags.mouse_on && l.last_mouse_update )
 			{
 #ifdef LOG_MOUSE_HIDE_IDLE
-				lprintf( "Pending mouse away... %d", timeGetTime() - ( l.last_mouse_update ) );
+				lprintf( WIDE("Pending mouse away... %d"), timeGetTime() - ( l.last_mouse_update ) );
 #endif
 				if( ( l.last_mouse_update + 1000 ) < timeGetTime() )
 				{
 					int x;
 #ifdef LOG_MOUSE_HIDE_IDLE
-					lprintf( "OFF!" );
+					lprintf( WIDE("OFF!") );
 #endif
 					l.flags.mouse_on = 0;
 					//l.last_mouse_update = 0;
@@ -1267,7 +1267,7 @@ WM_DROPFILES
 					{
 					}
 #ifdef LOG_MOUSE_HIDE_IDLE
-					lprintf( "Show count %d %d", x, GetLastError() );
+					lprintf( WIDE("Show count %d %d"), x, GetLastError() );
 #endif
 					SetCursor( NULL );
 				}
@@ -1614,9 +1614,9 @@ void OpenWin32Camera( struct display_camera *camera )
 		hMe = GetModuleHandle (_WIDE(TARGETNAME));
 
 		if( !camera->display )
-			snprintf( window_name, 128, "%s:3D View", GetProgramName() );
+			snprintf( window_name, 128, WIDE("%s:3D View"), GetProgramName() );
 		else
-			snprintf( window_name, 128, "%s:3D View(%d)", GetProgramName(), camera->display );
+			snprintf( window_name, 128, WIDE("%s:3D View(%d)"), GetProgramName(), camera->display );
 		camera->hWndInstance = CreateWindowEx (0
 	#ifndef NO_DRAG_DROP
 														| WS_EX_ACCEPTFILES

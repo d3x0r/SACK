@@ -69,7 +69,7 @@ void WantRender3D( void )
 	struct plugin_reference *reference;
 	int first_draw;
 	if( l.flags.bLogRenderTiming )
-		lprintf( "Begin Render" );
+		lprintf( WIDE("Begin Render") );
 
 	{
 		PRENDERER other = NULL;
@@ -106,7 +106,7 @@ void Render3D( struct display_camera *camera )
 	struct plugin_reference *reference;
 	int first_draw;
 	if( l.flags.bLogRenderTiming )
-		lprintf( "Begin Render" );
+		lprintf( WIDE("Begin Render") );
 
 
 	// do OpenGL Frame
@@ -153,7 +153,7 @@ void Render3D( struct display_camera *camera )
 				if( first_draw )
 				{
 					if( l.flags.bLogRenderTiming )
-						lprintf( "Send first draw" );
+						lprintf( WIDE("Send first draw") );
 					if( reference->FirstDraw3d )
 						reference->FirstDraw3d( reference->psv );
 				}
@@ -209,7 +209,7 @@ void Render3D( struct display_camera *camera )
 #endif
 
 		if( l.flags.bLogRenderTiming )
-			lprintf( "Begin drawing from bottom up" );
+			lprintf( WIDE("Begin drawing from bottom up") );
 		for( hVideo = l.bottom; hVideo; hVideo = hVideo->pBelow )
 		{
 			if( l.flags.bLogRenderTiming )
@@ -275,7 +275,7 @@ void Render3D( struct display_camera *camera )
 			hVideo->flags.bRendering = 0;
 		}
 		if( l.flags.bLogRenderTiming )
-			lprintf( "Begin Render (plugins)" );
+			lprintf( WIDE("Begin Render (plugins)") );
 
 		{
 			INDEX idx;
@@ -287,7 +287,7 @@ void Render3D( struct display_camera *camera )
 			}
 		}
 		if( l.flags.bLogRenderTiming )
-			lprintf( "End Render" );
+			lprintf( WIDE("End Render") );
 	}
 #ifdef _OPENGL_DRIVER
 	SetActiveGLDisplay( NULL );
