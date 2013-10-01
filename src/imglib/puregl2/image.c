@@ -62,18 +62,18 @@ static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 #endif
 	tmp = 123;
 	glGetBooleanv( GL_SHADER_COMPILER, &tmp );
-	//lprintf( "Shader Compiler = %d", tmp );
+	//lprintf( WIDE("Shader Compiler = %d"), tmp );
 	if( !tmp )
 	{
-		lprintf( "No Shader Compiler" );
+		lprintf( WIDE("No Shader Compiler") );
 	}
 	else
 	{
-		l.simple_shader = GetShader( "Simple Shader", InitSuperSimpleShader );
-		l.simple_texture_shader = GetShader( "Simple Texture", InitSimpleTextureShader );
-		l.simple_shaded_texture_shader = GetShader( "Simple Shaded Texture", InitSimpleShadedTextureShader );
-		l.simple_multi_shaded_texture_shader = GetShader( "Simple MultiShaded Texture", InitSimpleMultiShadedTextureShader );
-		//l.simple_inverse_texture_shader = GetShader( "Simple Inverse Texture", InitSimpleShadedTextureShader );
+		l.simple_shader = GetShader( WIDE("Simple Shader"), InitSuperSimpleShader );
+		l.simple_texture_shader = GetShader( WIDE("Simple Texture"), InitSimpleTextureShader );
+		l.simple_shaded_texture_shader = GetShader( WIDE("Simple Shaded Texture"), InitSimpleShadedTextureShader );
+		l.simple_multi_shaded_texture_shader = GetShader( WIDE("Simple MultiShaded Texture"), InitSimpleMultiShadedTextureShader );
+		//l.simple_inverse_texture_shader = GetShader( WIDE("Simple Inverse Texture"), InitSimpleShadedTextureShader );
 	}
 }
 
@@ -129,7 +129,7 @@ static PTRSZVAL CPROC ReleaseTexture( POINTER p, PTRSZVAL psv )
 			(struct glSurfaceImageData *)GetLink( &image->glSurface, glSurface->index );
 		if( image_data && image_data->glIndex )
 		{
-			lprintf( "Release Texture %d", image_data->glIndex );
+			lprintf( WIDE("Release Texture %d"), image_data->glIndex );
 			glDeleteTextures( 1, &image_data->glIndex );
 			image_data->glIndex = 0;
 		}
@@ -140,7 +140,7 @@ static PTRSZVAL CPROC ReleaseTexture( POINTER p, PTRSZVAL psv )
 		struct glSurfaceImageData * image_data;
 		LIST_FORALL( image->glSurface, idx, struct glSurfaceImageData *, image_data )
 		{
-			lprintf( "Release Texture %d", image_data->glIndex );
+			lprintf( WIDE("Release Texture %d"), image_data->glIndex );
 			glDeleteTextures( 1, &image_data->glIndex );
 			image_data->glIndex = 0;
 		}
@@ -156,9 +156,9 @@ static void ReleaseTextures( struct glSurfaceData *glSurface )
 static void OnClose3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psvInit )
 {
 	struct glSurfaceData *glSurface = (struct glSurfaceData *)psvInit;
-	lprintf( "Should be cleaning up shaders here..." );
+	lprintf( WIDE("Should be cleaning up shaders here...") );
 	CloseShaders( glSurface );
-   lprintf( "and we need to release our textures; so they can be recreated" );
+   lprintf( WIDE("and we need to release our textures; so they can be recreated") );
    ReleaseTextures( glSurface );
 }
 
@@ -205,7 +205,7 @@ int ReloadOpenGlTexture( Image child_image, int option )
 					lprintf( WIDE( "gen text %d or bad surafce" ), glGetError() );
 					return 0;
 				}
-            lprintf( "texture is %d", image_data->glIndex );
+            lprintf( WIDE("texture is %d"), image_data->glIndex );
             image_data->flags.updated = 1;
 			}
 			if( image_data->flags.updated )
@@ -534,7 +534,7 @@ void  BlatColorAlpha ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color 
 		scale( v[vi][2], v[vi][2], l.scale );
 		scale( v[vi][3], v[vi][3], l.scale );
 
-		EnableShader( GetShader( "Simple Shader", NULL ), v[vi], _color );
+		EnableShader( GetShader( WIDE("Simple Shader"), NULL ), v[vi], _color );
 		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 		CheckErr();
 	}
@@ -597,7 +597,7 @@ void CPROC cplotraw( Image pi, S_32 x, S_32 y, CDATA c )
 		v[0] = (float)(x/l.scale);
 		v[1] = (float)(y/l.scale);
 		v[2] = 0.0f;
-		EnableShader( GetShader( "Simple Shader", NULL ), v, _color );
+		EnableShader( GetShader( WIDE("Simple Shader"), NULL ), v, _color );
 
       glDrawArrays( GL_POINTS, 0, 1 );
 		CheckErr();
@@ -631,7 +631,7 @@ void CPROC cplot( Image pi, S_32 x, S_32 y, CDATA c )
 			v[0] = (float)(x/l.scale);
 			v[1] = (float)(y/l.scale);
 			v[2] = 0.0f;
-			EnableShader( GetShader( "Simple Shader", NULL ), v, _color );
+			EnableShader( GetShader( WIDE("Simple Shader"), NULL ), v, _color );
 
 			glDrawArrays( GL_POINTS, 0, 1 );
 		}
@@ -691,7 +691,7 @@ void CPROC cplotalpha( Image pi, S_32 x, S_32 y, CDATA c )
 			v[0] = (float)(x/l.scale);
 			v[1] = (float)(y/l.scale);
 			v[2] = 0.0f;
-			EnableShader( GetShader( "Simple Shader", NULL ), v, _color );
+			EnableShader( GetShader( WIDE("Simple Shader"), NULL ), v, _color );
 
 			glDrawArrays( GL_POINTS, 0, 1 );
 		}
@@ -1049,7 +1049,7 @@ void Render3dImage( Image pifSrc, LOGICAL render_pixel_scaled )
 		tmp->v_image[3][0] = tmp->x_size;
 		tmp->v_image[3][1] = tmp->y_size;
 
-		EnableShader( GetShader( "Simple Texture Shader", NULL ), tmp->v[tmp->vi], tmp->v_image, pifSrc->glActiveSurface );
+		EnableShader( GetShader( WIDE("Simple Texture Shader"), NULL ), tmp->v[tmp->vi], tmp->v_image, pifSrc->glActiveSurface );
 		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 
 		Deallocate( struct workspace *, tmp );

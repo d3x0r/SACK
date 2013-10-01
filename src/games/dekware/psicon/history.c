@@ -19,7 +19,7 @@ PHISTORYBLOCK DestroyRawHistoryBlock( PHISTORYBLOCK pHistory )
 	PHISTORYBLOCK next;
 	for( i = 0; i < pHistory->nLinesUsed; i++ )
 	{
-		if( pHistory->pLines[i].pLine == 0xFeeefeee )
+		if( pHistory->pLines[i].pLine == (PTEXT)0xFeeefeee )
 		{
 			lprintf( "a deleted line is in history %d", i );
 		}

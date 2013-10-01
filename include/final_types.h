@@ -122,6 +122,7 @@
 //#        define snprintf snprintf
 //#        define vsnprintf vsnprintf
 #      endif
+#        define snwprintf  _snwprintf
 
 #endif // __WATCOMC__
 

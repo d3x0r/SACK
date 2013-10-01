@@ -91,15 +91,15 @@ void EnableShader( PImageShaderTracker tracker, ... )
 			tracker->Init( tracker );
 		if( !tracker->glProgramId )
 		{
-			lprintf( "Shader initialization failed to produce a program; marking shader broken so we don't retry" );
+			lprintf( WIDE("Shader initialization failed to produce a program; marking shader broken so we don't retry") );
 			tracker->flags.failed = 1;
 			return;
 		}
 	}
 
-	//xlprintf( LOG_NOISE+1 )( "Enable shader %s", tracker->name );
+	//xlprintf( LOG_NOISE+1 )( WIDE("Enable shader %s"), tracker->name );
 	glUseProgram( tracker->glProgramId );
-	CheckErrf( "Failed glUseProgram (%s)", tracker->name );
+	CheckErrf( WIDE("Failed glUseProgram (%s)"), tracker->name );
 	if( !tracker->flags.set_matrix )
 	{
 		if( !l.flags.worldview_read )
@@ -110,7 +110,7 @@ void EnableShader( PImageShaderTracker tracker, ... )
 
 		//PrintMatrix( l.worldview );
 		glUniformMatrix4fv( tracker->worldview, 1, GL_FALSE, (RCOORD*)l.worldview );
-		CheckErrf( " (%s)", tracker->name );
+		CheckErrf( WIDE(" (%s)"), tracker->name );
 				
 		//PrintMatrix( l.glActiveSurface->M_Projection );
 		glUniformMatrix4fv( tracker->projection, 1, GL_FALSE, (RCOORD*)l.glActiveSurface->M_Projection );
@@ -129,13 +129,13 @@ void EnableShader( PImageShaderTracker tracker, ... )
 static void SetupCommon( PImageShaderTracker tracker )
 {
 	tracker->projection
-		= glGetUniformLocation(tracker->glProgramId, "Projection");
+		= glGetUniformLocation(tracker->glProgramId, WIDE("Projection"));
 	CheckErr();
 	tracker->worldview
-		= glGetUniformLocation(tracker->glProgramId, "worldView");
+		= glGetUniformLocation(tracker->glProgramId, WIDE("worldView"));
 	CheckErr();
 	tracker->modelview
-		= glGetUniformLocation(tracker->glProgramId, "modelView");
+		= glGetUniformLocation(tracker->glProgramId, WIDE("modelView"));
 	CheckErr();
 
 	if( tracker->glFragProgramId )
@@ -154,12 +154,12 @@ void DumpAttribs( PImageShaderTracker tracker, int program )
 {
 	int n;
 	int m;
-	lprintf( "---- Program %s(%d) -----", tracker->name, program );
+	lprintf( WIDE("---- Program %s(%d) -----"), tracker->name, program );
 
 	glGetProgramiv( program, GL_ACTIVE_ATTRIBUTES, &m );
 	for( n = 0; n < m; n++ )
 	{
-		TEXTCHAR tmp[64];
+		char tmp[64];
 		size_t length;
 		int size;
 		int type;
@@ -167,18 +167,18 @@ void DumpAttribs( PImageShaderTracker tracker, int program )
 
 		glGetActiveAttrib( program, n, 64, &length, &size, &type, tmp );
 		index = glGetAttribLocation(program, tmp );
-		lprintf( "attribute [%s] %d %d %d", tmp, index, size, type );
+		lprintf( WIDE("attribute [%s] %d %d %d"), tmp, index, size, type );
 	}
 
 	glGetProgramiv( program, GL_ACTIVE_UNIFORMS, &m );
 	for( n = 0; n < m; n++ )
 	{
-		TEXTCHAR tmp[64];
+		char tmp[64];
 		size_t length;
 		int size;
 		int type;
 		glGetActiveUniform( program, n, 64, &length, &size, &type, tmp );
-		lprintf( "uniform [%s] %d %d", tmp, size, type );
+		lprintf( WIDE("uniform [%s] %d %d"), tmp, size, type );
 	}
 }
 
@@ -192,12 +192,12 @@ int CompileShaderEx( PImageShaderTracker tracker
 
 	if( result = glGetError() )
 	{
-		lprintf( "unhandled error before shader" );
+		lprintf( WIDE("unhandled error before shader") );
 	}
 
 	//Obtain a valid handle to a vertex shader object.
 	tracker->glVertexProgramId = glCreateShader(GL_VERTEX_SHADER);
-	CheckErrf("vertex shader fail");
+	CheckErrf(WIDE("vertex shader fail"));
 
 	//Now, compile the shader source. 
 	//Note that glShaderSource takes an array of chars. This is so that one can load multiple vertex shader files at once.
@@ -224,10 +224,10 @@ int CompileShaderEx( PImageShaderTracker tracker
 			GLsizei final;
 			char *buffer;
 			//We failed to compile.
-			lprintf("Vertex shader 'program A' failed compilation.\n");
+			lprintf(WIDE("Vertex shader 'program A' failed compilation.\n"));
 			//Attempt to get the length of our error log.
 #ifdef USE_GLES2
-			lprintf( "length starts at %d", length );
+			lprintf( WIDE("length starts at %d"), length );
 			glGetShaderiv(tracker->glVertexProgramId, GL_INFO_LOG_LENGTH, &length);
 
 #else
@@ -244,30 +244,30 @@ int CompileShaderEx( PImageShaderTracker tracker
 			glGetInfoLogARB(tracker->glVertexProgramId, length, &final, buffer);
 #endif
 			//Convert our buffer into a string.
-			lprintf( "message: (%d of %d)%s",  final, length, buffer );
+			lprintf( WIDE("message: (%d of %d)%s"),  final, length, buffer );
 
 
 			if (final > length)
 			{
 				//The buffer does not contain all the shader log information.
-				printf("Shader Log contained more information!\n");
+				lprintf(WIDE("Shader Log contained more information!\n"));
 			}
 			Deallocate( char*, buffer );
 		}
 	}
 
 	tracker->glFragProgramId = glCreateShader(GL_FRAGMENT_SHADER);
-	CheckErrf("create shader");
+	CheckErrf(WIDE("create shader"));
 	glShaderSource(
 		tracker->glFragProgramId, //The handle to our shader
 		frag_blocks, //The number of files.
 		frag_code, //An array of const char * data, which represents the source code of theshaders
 		NULL); //An array of string lengths. For have null terminated strings, pass NULL.
-	CheckErrf("set source fail");
+	CheckErrf(WIDE("set source fail"));
 	 
 	//Attempt to compile the shader.
 	glCompileShader(tracker->glFragProgramId);
-	CheckErrf("compile fail %d", tracker->glFragProgramId);
+	CheckErrf(WIDE("compile fail %d"), tracker->glFragProgramId);
 
 	{
 		//Error checking.
@@ -282,7 +282,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 			GLsizei final;
 			char *buffer;
 			//We failed to compile.
-			lprintf("Vertex shader 'program B' failed compilation.\n");
+			lprintf(WIDE("Vertex shader 'program B' failed compilation.\n"));
 			//Attempt to get the length of our error log.
 #ifdef USE_GLES2
 			glGetShaderiv(tracker->glFragProgramId, GL_INFO_LOG_LENGTH, &length);
@@ -300,40 +300,40 @@ int CompileShaderEx( PImageShaderTracker tracker
 			glGetInfoLogARB(tracker->glFragProgramId, length, &final, buffer);
 #endif
 			//Convert our buffer into a string.
-			lprintf( "message: %s", buffer );
+			lprintf( WIDE("message: %s"), buffer );
 
 
 			if (final > length)
 			{
 				//The buffer does not contain all the shader log information.
-				printf("Shader Log contained more information!\n");
+				printf(WIDE("Shader Log contained more information!\n"));
 			}
 			Deallocate( char*, buffer );
 		
 		}
 	}
 	tracker->glProgramId = glCreateProgram();
-	CheckErrf("create fail %d", tracker->glProgramId);
+	CheckErrf(WIDE("create fail %d"), tracker->glProgramId);
 #ifdef USE_GLES2
 	glAttachShader(tracker->glProgramId, tracker->glVertexProgramId );
 #else
 	glAttachObjectARB(tracker->glProgramId, tracker->glVertexProgramId );
 #endif
-	CheckErrf("attach fail");
+	CheckErrf(WIDE("attach fail"));
 #ifdef USE_GLES2
 	glAttachShader(tracker->glProgramId, tracker->glFragProgramId );
 #else
 	glAttachObjectARB(tracker->glProgramId, tracker->glFragProgramId );
 #endif
-	CheckErrf( " attach2 fail" );
+	CheckErrf( WIDE(" attach2 fail") );
 
 	{
 		int n;
 		for( n = 0; n < nAttribs; n++ )
 		{
-			lprintf( "Bind Attrib Location: %d %s", attrib_order[n].n, attrib_order[n].name );
+			lprintf( WIDE("Bind Attrib Location: %d %s"), attrib_order[n].n, attrib_order[n].name );
 			glBindAttribLocation(tracker->glProgramId, attrib_order[n].n, attrib_order[n].name );
-			CheckErrf( "bind attrib location" );
+			CheckErrf( WIDE("bind attrib location") );
 		}
 	}
 
@@ -359,10 +359,10 @@ void SetShaderModelView( PImageShaderTracker tracker, RCOORD *matrix )
 	if( tracker )
 	{
 		glUseProgram(tracker->glProgramId);
-		CheckErrf( "SetModelView for (%s)", tracker->name );
+		CheckErrf( WIDE("SetModelView for (%s)"), tracker->name );
 
 		glUniformMatrix4fv( tracker->modelview, 1, GL_FALSE, matrix );
-		CheckErrf( "SetModelView for (%s)", tracker->name );
+		CheckErrf( WIDE("SetModelView for (%s)"), tracker->name );
 
 		tracker->flags.set_modelview = 1;
 	}

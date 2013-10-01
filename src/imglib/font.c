@@ -520,11 +520,11 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 #  ifdef PURE_OPENGL2_ENABLED
 			if( background )
 			{
-				EnableShader( GetShader( "Simple Shader", NULL ), v2[vi], _back_color );
+				EnableShader( GetShader( WIDE("Simple Shader"), NULL ), v2[vi], _back_color );
 				glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 			}
 
-			EnableShader( GetShader( "Simple Shaded Texture", NULL ), v[vi], pifSrc->glActiveSurface, texture_v, _color );
+			EnableShader( GetShader( WIDE("Simple Shaded Texture"), NULL ), v[vi], pifSrc->glActiveSurface, texture_v, _color );
 			glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 			// Back Face
 #  endif  // ifdef OPENGL2
@@ -582,7 +582,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 
 					pData[n].fU1 = texture_v[n][vRight];
 					pData[n].fV1 = texture_v[n][vUp];
-					//lprintf( "point %d  %g,%g,%g   %g,%g  %08x"
+					//lprintf( WIDE("point %d  %g,%g,%g   %g,%g  %08x")
 					//		 , n
 					//		 , pData[n].fX
 					//		 , pData[n].fY
@@ -646,7 +646,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 
 					pData[n].fU1 = texture_v[n][vRight];
 					pData[n].fV1 = texture_v[n][vUp];
-					//lprintf( "point %d  %g,%g,%g   %g,%g  %08x"
+					//lprintf( WIDE("point %d  %g,%g,%g   %g,%g  %08x")
 					//		 , n
 					//		 , pData[n].fX
 					//		 , pData[n].fY
