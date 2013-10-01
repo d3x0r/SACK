@@ -920,17 +920,17 @@ static void PlotArbitrary( Image dest
 					right.idx++;
 				}
 			}
-         //lprintf( "end line." );
+         //lprintf( WIDE("end line.") );
 		}
 		while( left.idx < 3 && right.idx < 3 );
 #ifdef DEBUG_TIMING
-		lprintf( "lines : %" _32f " cols: %" _32f " output: %d", lines, cols, output );
+		lprintf( WIDE("lines : %") _32f WIDE(" cols: %") _32f WIDE(" output: %d"), lines, cols, output );
 		{
 			char buf[256];
 			int ofs = 0;
 			int n;
 			for( n = 0; n < 20; n++ )
-				ofs += snprintf( buf + ofs, sizeof( buf ) - ofs, "L(%d)=%d ", n, loops[n] );
+				ofs += snprintf( buf + ofs, sizeof( buf ) - ofs, WIDE("L(%d)=%d "), n, loops[n] );
 			lprintf( buf );
 		}
 #endif
@@ -957,7 +957,7 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 	static _32 lock;
 	static PTRANSFORM transform;
 	S_32 xd, yd;
-	//lprintf( "-- Begin Transform" );
+	//lprintf( WIDE("-- Begin Transform") );
 	while( LockedExchange( &lock, 1 ) ) Relinquish();
 	if( !transform )
 		transform = CreateNamedTransform( NULL );
@@ -1031,23 +1031,23 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 			// save it, restore it, and restore the original clipping rectangle...
 			// wow what magic this is...
 #ifdef DEBUG_TIMING
-			//lprintf( "save portion? ");
+			//lprintf( WIDE("save portion? "));
 #endif
 			SavePortion( sprite->pSpriteMethod
 						  , sprite->minx, sprite->miny
 						  , (sprite->maxx - sprite->minx) + 1
 						  , (sprite->maxy - sprite->miny) + 1 );
 #ifdef DEBUG_TIMING
-			//lprintf( "saved.." );
+			//lprintf( WIDE("saved..") );
 #endif
 		}
 	}
 	if( !(dest->flags & IF_FLAG_FINAL_RENDER ) )
 	{
 #ifdef DEBUG_TIMING
-		lprintf( "Output arbitrary" );
+		lprintf( WIDE("Output arbitrary") );
 #endif
-		//lprintf( "plot arbitraty..." );
+		//lprintf( WIDE("plot arbitraty...") );
 		PlotArbitrary( dest, sprite->image
 						 , x1, y1
 						 , x2, y2
@@ -1056,9 +1056,9 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 						 , 0
 						 , BLOT_COPY
 						 , 0, 0, 0 );
-		//lprintf( "done plott..." );
+		//lprintf( WIDE("done plott...") );
 #ifdef DEBUG_TIMING
-		lprintf( "arbitrary out" );
+		lprintf( WIDE("arbitrary out") );
 #endif
 	}
 	else
@@ -1141,7 +1141,7 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 				texture_v[3][1] = y_size2;
 
 				ReloadOpenGlTexture( topmost_parent, 0 );
-				EnableShader( GetShader( "Simple Texture", NULL ), v[vi], topmost_parent->glActiveSurface, texture_v );
+				EnableShader( GetShader( WIDE("Simple Texture"), NULL ), v[vi], topmost_parent->glActiveSurface, texture_v );
 			}
 			glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 	}

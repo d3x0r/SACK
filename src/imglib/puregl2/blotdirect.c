@@ -589,7 +589,7 @@ namespace image {
 			/**///glBindTexture(GL_TEXTURE_2D, pifSrc->glActiveSurface);				// Select Our Texture
 			if( method == BLOT_COPY )
 			{
-				EnableShader( GetShader( "Simple Texture", NULL ), v[vi], pifSrc->glActiveSurface, texture_v );
+				EnableShader( GetShader( WIDE("Simple Texture"), NULL ), v[vi], pifSrc->glActiveSurface, texture_v );
 			}
 			else if( method == BLOT_SHADED )
 			{
@@ -600,7 +600,7 @@ namespace image {
 				_color[2] = BlueVal( tmp ) / 255.0f;
 				_color[3] = AlphaVal( tmp ) / 255.0f;
 
-				EnableShader( GetShader( "Simple Shaded Texture", NULL ), v[vi], pifSrc->glActiveSurface, texture_v, _color );
+				EnableShader( GetShader( WIDE("Simple Shaded Texture"), NULL ), v[vi], pifSrc->glActiveSurface, texture_v, _color );
 			}
 			else if( method == BLOT_MULTISHADE )
 			{
@@ -623,7 +623,7 @@ namespace image {
 				b_color[2] = BlueVal( b ) / 255.0f;
 				b_color[3] = AlphaVal( b ) / 255.0f;
 
-				EnableShader( GetShader( "Simple MultiShaded Texture", NULL ), v[vi], pifSrc->glActiveSurface, texture_v, r_color, g_color, b_color );
+				EnableShader( GetShader( WIDE("Simple MultiShaded Texture"), NULL ), v[vi], pifSrc->glActiveSurface, texture_v, r_color, g_color, b_color );
 			}
 			else if( method == BLOT_INVERTED )
 			{
