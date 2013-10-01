@@ -47,11 +47,11 @@ void CPROC SpriteDrawProc( PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32
 	{
 		if( sprite[n].ttl )
 		{
-			//lprintf( "------------- (BEGIN SPRITE)" );
+			//lprintf( WIDE("------------- (BEGIN SPRITE)") );
 			rotate_scaled_sprite( GetDisplayImage( renderer ), sprite[n].sprite, rot, 0x10000, 0x10000 );
-			//lprintf( "------------- (BEGIN BLOT)" );
+			//lprintf( WIDE("------------- (BEGIN BLOT)") );
 			//BlotImage( GetDisplayImage( renderer ), sprite[n].sprite->image, sprite[n].sprite->curx, sprite[n].sprite->cury );
-			//lprintf( "------------- (DONE)" );
+			//lprintf( WIDE("------------- (DONE)") );
 		}
 	}
 
@@ -66,13 +66,13 @@ void CPROC DrawProc( PTRSZVAL psv, PRENDERER renderer )
    BlotScaledImage( GetDisplayImage( renderer ), background );
 	//ClearDisplay( renderer );
   // ProcessMotion();
-	//printf( "... %d\n", rot >> 16 );
-	//lprintf( "image" );
+	//printf( WIDE("... %d\n"), rot >> 16 );
+	//lprintf( WIDE("image") );
 	//for( n = 0; n < MAX_SPRITES; n++ )
 	{
 		//BlotImage( GetDisplayImage( renderer ), sprite[n]->image, sprite[n]->curx, sprite[n]->cury );
 	}
-	lprintf( "done" );
+	lprintf( WIDE("done") );
 }
 
 /*
@@ -81,23 +81,23 @@ void CPROC DrawProc( PTRSZVAL psv, PRENDERER renderer )
    int n;
 	ClearDisplay( renderer );
    ProcessMotion();
-	//printf( "... %d\n", rot >> 16 );
-	//lprintf( "image" );
+	//printf( WIDE("... %d\n"), rot >> 16 );
+	//lprintf( WIDE("image") );
 	//for( n = 0; n < MAX_SPRITES; n++ )
 	{
 		//BlotImage( GetDisplayImage( renderer ), sprite[n]->image, sprite[n]->curx, sprite[n]->cury );
 	}
-   lprintf( "sprite" );
+   lprintf( WIDE("sprite") );
 	for( n = 0; n < MAX_SPRITES; n++ )
 	{
       if( sprite[n].ttl )
 			rotate_scaled_sprite( GetDisplayImage( renderer ), sprite[n].sprite, rot, 0x10000 );
 	}
-	lprintf( "done" );
+	lprintf( WIDE("done") );
 }
 */
 
-void CPROC MouseProc( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
+int CPROC MouseProc( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
 {
 	int n;
    static int _b;
@@ -114,6 +114,7 @@ void CPROC MouseProc( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
 		}
 	}
 	_b = b;
+   return 1;
 }
 
 
@@ -123,20 +124,20 @@ void CPROC Tick( PTRSZVAL psv )
 	//for( n = 0; n < 16; n++ )
 	{
 		rot = rot + 0x10000000;
-      Log( "BeginDraw (tick, this is idle time)" );
+      Log( WIDE("BeginDraw (tick, this is idle time)") );
 		ProcessMotion();
 		//DrawProc( 0, render );
-		//Log( "EndDraw" );
+		//Log( WIDE("EndDraw") );
 		UpdateDisplay( render );
-      Log( "EndUpdate" );
+      Log( WIDE("EndUpdate") );
 	}
 }
 
 
 SaneWinMain( argc, argv )
 {
-	Image image = LoadImageFile( "images/firestar2.png" );
-   background = LoadImageFile( "images/sky.jpg" );
+	Image image = LoadImageFile( WIDE("images/firestar2.png") );
+   background = LoadImageFile( WIDE("images/sky.jpg") );
 	SystemLogTime( SYSLOG_TIME_CPU| SYSLOG_TIME_DELTA );
 	SetBlotMethod( BLOT_MMX );
 	if( !image )
@@ -168,7 +169,7 @@ SaneWinMain( argc, argv )
 				sprite[n].sprite->hotx = image->width / 2;
 				sprite[n].sprite->hoty = image->height / 2;
 			}
-			printf( "%d, %d\n", image->width, image->height );
+			lprintf( WIDE("%d, %d\n"), image->width, image->height );
 			rot = rot + 0x10000 * 19;
 			if( rot == 0x1000000 )
 				rot = 0;

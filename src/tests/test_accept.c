@@ -163,7 +163,7 @@ int main( void )
 
 		//if( ( n % 100 ) == 0 )
 		{
-			printf( "\rconections: %d of %d", d, n );
+			printf( WIDE("\rconections: %d of %d"), d, n );
 			fflush( stdout );
 		}
 	}
