@@ -52,22 +52,22 @@ PTRSZVAL CPROC LongWaitTrans( PTHREAD thread )
    return 0;
 }
 
-int main( int argc, char **argv )
+SaneWinMain( argc, argv )
 {
 	// dumps to log.
 	DumpServiceList();
 	if( argc > 1 )
 	{
-		char logname[64];
+		TEXTCHAR logname[64];
 		if( argc > 2 )
-			sprintf( logname, WIDE("service_client_%s.log"), argv[2] );
+			snprintf( logname, 64, WIDE("service_client_%s.log"), DupCharToText( argv[2] ) );
 		else
-			sprintf( logname, WIDE("service_client_%s.log"), argv[1] );
+			snprintf( logname, 64, WIDE("service_client_%s.log"), DupCharToText( argv[1] ) );
 		SetSystemLog( SYSLOG_FILENAME, logname );
 	}
 	if( argc > 3 )
 	{
-		OtherBaseID = LoadService( argv[3], EventHandler );
+		OtherBaseID = LoadService( DupCharToText( argv[3] ), EventHandler );
 		ThreadTo( LongWaitTrans, 0 );
 	}
 	else
@@ -78,14 +78,14 @@ int main( int argc, char **argv )
 			ThreadTo( LongWaitTrans, 0 );
 		}
 		else
-			lprintf( "Failed to connect to first service" );
+			lprintf( WIDE("Failed to connect to first service") );
 	}
-	BaseID = LoadService( (argc < 2)?"Test Service 1":argv[1], EventHandler );
+	BaseID = LoadService( (argc < 2)?WIDE("Test Service 1"):DupCharToText( argv[1] ), EventHandler );
 	if( BaseID )
 	{
 		_32 msgs = 0;
 		_32 endat = GetTickCount() + 3000;
-		printf( "Starting 3 second wait... sending messages and validating responses...\n" );
+		printf( WIDE("Starting 3 second wait... sending messages and validating responses...\n") );
 		while( endat > GetTickCount() )
 		{
 			_32 buffer[32];
@@ -125,3 +125,4 @@ int main( int argc, char **argv )
 		printf( WIDE("Failed to connect to second service\n") );
    return 0;
 }
+EndSaneWinMain()

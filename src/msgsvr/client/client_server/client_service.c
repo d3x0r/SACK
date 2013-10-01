@@ -90,18 +90,18 @@ SERVER_FUNCTION functions[] =
 , ServerFunctionEntry( ServiceFunction2 )
 };
 
-int main( int argc, char **argv )
+SaneWinMain( argc, argv )
 {
-	printf( "Usage: %s <first service>\n", GetProgramName() );
-	printf( "   <if no service, registers 'Test Service 1'  Service has two methods\n" );
-	printf( "     method 1 - reply with same data\n" );
-	printf( "     method 2 - reply with same data after wiating 333 milliseconds\n" );
-	printf( "      (uses function table registration)\n" );
-	printf( "   <if service, registers  Service has two methods\n" );
-	printf( "     method 1 - reply with same data\n" );
-	printf( "     method 2 - reply with same data after wiating 1000 milliseconds\n" );
-	printf( "      (uses handler function registration)\n" );
-	printf( "both attempt to dump current service log...\n" );
+	printf( WIDE("Usage: %s <first service>\n"), GetProgramName() );
+	printf( WIDE("   <if no service, registers 'Test Service 1'  Service has two methods\n") );
+	printf( WIDE("     method 1 - reply with same data\n") );
+	printf( WIDE("     method 2 - reply with same data after wiating 333 milliseconds\n") );
+	printf( WIDE("      (uses function table registration)\n") );
+	printf( WIDE("   <if service, registers  Service has two methods\n") );
+	printf( WIDE("     method 1 - reply with same data\n") );
+	printf( WIDE("     method 2 - reply with same data after wiating 1000 milliseconds\n") );
+	printf( WIDE("      (uses handler function registration)\n") );
+	printf( WIDE("both attempt to dump current service log...\n") );
 
 	if( argc < 2 )
 	{
@@ -117,10 +117,10 @@ int main( int argc, char **argv )
 	}
 	else
 	{
-		char logname[64];
-		sprintf( logname, WIDE("client_service_%s.log"), argv[1] );
+		TEXTCHAR logname[64];
+		snprintf( logname, 64, WIDE("client_service_%s.log"), DupCharToText( argv[1] ) );
 		SetSystemLog( SYSLOG_FILENAME, logname );
-		if( BaseID = RegisterServiceHandler( argv[1], MessageHandler ) )
+		if( BaseID = RegisterServiceHandler( DupCharToText( argv[1] ), MessageHandler ) )
 		{
 			// dumps to log.
 			DumpServiceList();
@@ -132,3 +132,4 @@ int main( int argc, char **argv )
 	}
 	return 1;
 }
+EndSaneWinMain()

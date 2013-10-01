@@ -41,7 +41,7 @@ PSI_CONTROL CreateListTester( PSI_CONTROL parent )
 	GetMemStats( &free, &used, &blocks, &freeblocks );
 	//SetCriticalLogging( 2 );
 
-	printf( "Mem Stats: %" c_32f " %" c_32f " %" c_32f " %" c_32f "\n"
+	printf( WIDE("Mem Stats: %") c_32f WIDE(" %") c_32f WIDE(" %") c_32f WIDE(" %") c_32f WIDE("\n")
 			, used, free, blocks, freeblocks );
 
 	for( n = 0; n < 1; n++ )
@@ -96,7 +96,7 @@ PSI_CONTROL CreateListTester( PSI_CONTROL parent )
 //	DestroyFrame( pf );
 
 	GetMemStats( &free, &used, &blocks, &freeblocks );
-	printf( "Mem Stats: %" c_32f " %" c_32f " %" c_32f " %" c_32f "\n", used, free, blocks, freeblocks );
+	printf( WIDE("Mem Stats: %") c_32f WIDE(" %") c_32f WIDE(" %") c_32f WIDE(" %") c_32f WIDE("\n"), used, free, blocks, freeblocks );
 	if( used )
 	{
 		DebugDumpMemFile( WIDE("memory.dump") );

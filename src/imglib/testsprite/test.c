@@ -39,31 +39,31 @@ void ProcessMotion( void )
 void CPROC SpriteDrawProc( PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h )
 {
 	int n;
-   lprintf( "Update sprites..." );
+   lprintf( WIDE("Update sprites...") );
 	for( n = 0; n < sprites; n++ )
 	{
 		rotate_scaled_sprite( GetDisplayImage( renderer ), sprite[n].sprite, rot, 0x10000, 0x10000 );
 	}
-   lprintf( "Updated sprites..." );
+   lprintf( WIDE("Updated sprites...") );
 
 }
 
 void CPROC DrawProc( PTRSZVAL psv, PRENDERER renderer )
 {
 	int n;
-   lprintf( "uhmm nothing I guess" );
+   lprintf( WIDE("uhmm nothing I guess") );
    if( background )
 		BlotScaledImage( GetDisplayImage( renderer ), background );
 //   BlotImage( GetDisplayImage( renderer ), background, 0, 0 );
 	//ClearDisplay( renderer );
   // ProcessMotion();
-	//printf( "... %d\n", rot >> 16 );
-	//lprintf( "image" );
+	//printf( WIDE("... %d\n"), rot >> 16 );
+	//lprintf( WIDE("image") );
 	//for( n = 0; n < 50; n++ )
 	{
 		//BlotImage( GetDisplayImage( renderer ), sprite[n]->image, sprite[n]->curx, sprite[n]->cury );
 	}
-	lprintf( "done" );
+	lprintf( WIDE("done") );
 }
 
 void CPROC Tick( PTRSZVAL psv )
@@ -73,18 +73,18 @@ void CPROC Tick( PTRSZVAL psv )
 	{
 		rot = rot + 0x1000000;
 		//ProcessMotion();
-      Log( "BeginDraw" );
+      Log( WIDE("BeginDraw") );
 		//DrawProc( 0, render );
-		Log( "EndDraw" );
+		Log( WIDE("EndDraw") );
 		UpdateDisplay( render );
-      Log( "EndUpdate" );
+      Log( WIDE("EndUpdate") );
 	}
 }
 
 SaneWinMain( argc, argv )
 {
-	Image image = LoadImageFile( "images/firestar2.png" );
-	background = LoadImageFile( "images/sky.jpg" );
+	Image image = LoadImageFile( WIDE("images/firestar2.png") );
+	background = LoadImageFile( WIDE("images/sky.jpg") );
    SetSystemLoggingLevel( LOG_NOISE + 1000 );
 	SystemLogTime( SYSLOG_TIME_CPU| SYSLOG_TIME_DELTA );
 	SetBlotMethod( BLOT_MMX );
@@ -116,7 +116,7 @@ SaneWinMain( argc, argv )
 				sprite[n].sprite->hotx = image->width / 2;
 				sprite[n].sprite->hoty = image->height / 2;
 			}
-			printf( "%d, %d\n", image->width, image->height );
+			lprintf( WIDE("%d, %d\n"), image->width, image->height );
 			rot = rot + 0x10000 * 19;
 			if( rot == 0x1000000 )
 				rot = 0;

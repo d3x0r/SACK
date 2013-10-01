@@ -220,7 +220,11 @@ endmacro( add_executable_force_source )
 
 macro( sack_add_executable project optional_style )
   add_executable( ${project} ${optional_style} ${ARGN} )
-  SET_PROPERTY( TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "NO_DEADSTART_DLLMAIN;" )
+  SET_PROPERTY( TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "NO_DEADSTART_DLLMAIN" )
+  if( optional_style STREQUAL WIN32 )
+  else( optional_style STREQUAL WIN32 )
+	 SET_PROPERTY( TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "CONSOLE_SHELL" )
+  endif( optional_style STREQUAL WIN32 )
 endmacro( sack_add_executable )
 
 
