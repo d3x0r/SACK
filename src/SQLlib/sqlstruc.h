@@ -20,8 +20,8 @@ enum {
       , SQL_HANDLE_STMT
 };
 #else
-#include <sql.h>
-#include <sqlext.h>
+#  include <sql.h>
+#  include <sqlext.h>
 #endif
 #include <msgclient.h>
 #include <msgprotocol.h>
@@ -215,6 +215,11 @@ int OpenSQL( DBG_VOIDPASS );
 #    define FIXREF2
 #    define FIXDEREF2
 #  endif
+#else
+#  define FIXREF
+#  define FIXDEREF
+#  define FIXREF2
+#  define FIXDEREF2
 #endif
 
 struct sqlite_interface
@@ -255,7 +260,7 @@ int (FIXREF2*sqlite3_db_config)(sqlite3*, int op, ...);
 
 };
 
-#ifdef USES_SQLITE_INTERFACE
+#ifdef USE_SQLITE_INTERFACE
 #  ifndef DEFINES_SQLITE_INTERFACE
 extern
 #  endif
