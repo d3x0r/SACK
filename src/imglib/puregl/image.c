@@ -137,7 +137,7 @@ int ReloadOpenGlTexture( Image child_image, int option )
 				gl_error = glGetError() ;
 				if( gl_error )
 				{
-					lprintf( "Previous error" );
+					lprintf( WIDE("Previous error") );
 				}
 				glGenTextures(1, &image_data->glIndex);			// Create One Texture
 				if( ( gl_error = glGetError() ) || !image_data->glIndex)
