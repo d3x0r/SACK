@@ -86,7 +86,7 @@ int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
    {
 		PrintVector( R1 );
 		PrintVector( R2 );
-		lprintf( "too far from the same... %g %g ", t1, t2 );
+		lprintf( WIDE("too far from the same... %g %g "), t1, t2 );
       return FALSE;
    }
    *pT2 = t2;
@@ -122,7 +122,7 @@ int Parallel( PVECTOR pv1, PVECTOR pv2 )
        a > -0.0001 )  // near zero is sufficient...
 	{
 #ifdef DEBUG_PLANE_INTERSECTION
-		Log( "Planes are not parallel" );
+		Log( WIDE("Planes are not parallel") );
 #endif
       return FALSE; // not parallel..
    }
@@ -135,7 +135,7 @@ int Parallel( PVECTOR pv1, PVECTOR pv2 )
 
    cosTheta = a / ( b * c );
 #ifdef FULL_DEBUG
-   lprintf( " a: %g b: %g c: %g cos: %g \n", a, b, c, cosTheta );
+   lprintf( WIDE(" a: %g b: %g c: %g cos: %g \n"), a, b, c, cosTheta );
 #endif
    if( cosTheta > 0.99999 ||
        cosTheta < -0.999999 ) // not near 0degrees or 180degrees (aligned or opposed)
@@ -167,7 +167,7 @@ RCOORD IntersectLineWithPlane( PCVECTOR Slope, PCVECTOR Origin,  // line m, b
 
    if( !a )
 	{
-		//Log1( DBG_FILELINEFMT "Bad choice - slope vs normal is 0" DBG_RELAY, 0 );
+		//Log1( DBG_FILELINEFMT WIDE("Bad choice - slope vs normal is 0") DBG_RELAY, 0 );
 		//PrintVector( Slope );
       //PrintVector( n );
       return FALSE;
@@ -282,7 +282,7 @@ int InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, RCOORD 
 			SetPoint( v1, v2 );
 		ApplyInverse( camera->origin_camera, v2, v1 );
 
-		//lprintf( "%g,%g,%g  from %g,%g,%g ", v1[0], v1[1], v1[2], v2[0], v2[1] , v2[2] );
+		//lprintf( WIDE("%g,%g,%g  from %g,%g,%g "), v1[0], v1[1], v1[2], v2[0], v2[1] , v2[2] );
 
 		// so this puts the point back in world space
 		{
@@ -293,12 +293,12 @@ int InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, RCOORD 
 			v4[2] = 1.0;
 
 			cosphi = IntersectLineWithPlane( v2, _0, _Z, v4, &t );
-			//lprintf( "t is %g  cosph = %g", t, cosphi );
+			//lprintf( WIDE("t is %g  cosph = %g"), t, cosphi );
 			if( cosphi != 0 )
 				addscaled( v1, _0, v2, t );
 		}
 
-		//lprintf( "%g,%g became like %g,%g,%g or %g,%g", x, y
+		//lprintf( WIDE("%g,%g became like %g,%g,%g or %g,%g"), x, y
    		//		 , v1[0], v1[1], v1[2]
 		//		 , (v1[0]/2.5 * l.viewport[2]) + (l.viewport[2]/2)
 		//		 , (l.viewport[3]/2) - (v1[1]/(2.5/l.aspect) * l.viewport[3])
@@ -374,7 +374,7 @@ int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 				//PrintVector( target_surface_point );
 				newx = (int)target_surface_point[0];
 				newy = (int)target_surface_point[1];
-				//lprintf( "Is %d,%d in %d,%d(%dx%d) to %d,%d"
+				//lprintf( WIDE("Is %d,%d in %d,%d(%dx%d) to %d,%d")
 				//   	 ,newx, newy
 				//   	 ,check->pWindowPos.x, check->pWindowPos.y
 				//   	 ,check->pWindowPos.cx, check->pWindowPos.cy

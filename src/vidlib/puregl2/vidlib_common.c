@@ -344,10 +344,10 @@ void LoadOptions( void )
    	l.flags.bLogRenderTiming = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Log Render Timing"), 0, TRUE );
 	l.flags.bView360 = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/360 view"), 0, TRUE );
 
-	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Image Library/Scale", 10 );
+	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Image Library/Scale"), 10 );
 	if( l.scale == 0.0 )
 	{
-		l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Image Library/Inverse Scale", 2 );
+		l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Image Library/Inverse Scale"), 2 );
 		if( l.scale == 0.0 )
 			l.scale = 1;
 	}
@@ -515,11 +515,11 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 		  name = GetNextRegisteredName( &data ) )
 	{
 		LOGICAL already_inited;
-		snprintf( optname, 64, "%s/%d", name, camera->nCamera );
-		already_inited = GetRegisteredIntValueEx( data, optname, "Executed" );
+		snprintf( optname, 64, WIDE("%s/%d"), name, camera->nCamera );
+		already_inited = GetRegisteredIntValueEx( data, optname, WIDE("Executed") );
 		if( already_inited )
 			continue;
-		RegisterIntValueEx( data, optname, "Executed", 1 );
+		RegisterIntValueEx( data, optname, WIDE("Executed"), 1 );
 		Init3d = GetRegisteredProcedureExx( data,(CTEXTSTR)name,PTRSZVAL,WIDE("ExtraInit3d"),(PMatrix,PTRANSFORM,RCOORD*,RCOORD*));
 
 		if( Init3d )
@@ -725,7 +725,7 @@ PVIDEO  OpenDisplaySizedAt (_32 attr, _32 wx, _32 wy, S_32 x, S_32 y) // if nati
 	MemSet (hNextVideo, 0, sizeof (VIDEO));
 	InitializeCriticalSec( &hNextVideo->cs );
 
-   lprintf( "(don't know from where)CreateWindow at %d,%d %dx%d", x, y, wx, wy );
+   lprintf( WIDE("(don't know from where)CreateWindow at %d,%d %dx%d"), x, y, wx, wy );
 #ifdef _OPENGL_ENABLED
 	hNextVideo->_prior_fracture = -1;
 #endif
@@ -794,7 +794,7 @@ PVIDEO  OpenDisplayAboveSizedAt (_32 attr, _32 wx, _32 wy,
 	PVIDEO newvid = OpenDisplaySizedAt (attr, wx, wy, x, y);
 	if (parent)
 	{
-		lprintf( "Want to reposition; had a parent to put this window above" );
+		lprintf( WIDE("Want to reposition; had a parent to put this window above") );
 		PutDisplayAbove (newvid, parent);
 	}
 	return newvid;
@@ -831,7 +831,7 @@ PVIDEO  OpenDisplayAboveUnderSizedAt (_32 attr, _32 wx, _32 wy,
 	}
 	if (parent)
 	{
-		lprintf( "Want to reposition; had a parent to put this window above" );
+		lprintf( WIDE("Want to reposition; had a parent to put this window above") );
 		PutDisplayAbove (newvid, parent);
 	}
 	return newvid;
@@ -1277,7 +1277,7 @@ void RestoreDisplayEx(PVIDEO hVideo DBG_PASS )
 
 void  GetDisplaySize (_32 * width, _32 * height)
 {
-   lprintf( "GetDisplaySize (this will pause for a display to be given to us...)" );
+   lprintf( WIDE("GetDisplaySize (this will pause for a display to be given to us...)") );
    GetDisplaySizeEx( 0, NULL, NULL, width, height );
 }
 
@@ -1737,7 +1737,7 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 	   WIDE("d3d2.render.3d")
 	   , GetDisplay3dInterface, DropDisplay3dInterface );
 #endif
-	l.gl_image_interface = (PIMAGE_INTERFACE)GetInterface( "image" );
+	l.gl_image_interface = (PIMAGE_INTERFACE)GetInterface( WIDE("image") );
 
 #ifndef __ANDROID__
 #ifndef UNDER_CE
