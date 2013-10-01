@@ -341,7 +341,7 @@ PTRSZVAL CPROC HandleServiceMessages( PTHREAD thread )
 				}
 				else
 				{
-					lprintf( "Failed to find target service for message." );
+					lprintf( WIDE("Failed to find target service for message.") );
 				}
 			}
 #if defined(_DEBUG) && defined( LOG_HANDLED_MESSAGES )

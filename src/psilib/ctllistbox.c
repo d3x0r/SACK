@@ -1099,7 +1099,7 @@ static int OnKeyCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 		}
 	}
 	else
-      lprintf( "No listbox?" );
+      lprintf( WIDE("No listbox?") );
    return handled;
 }	
 

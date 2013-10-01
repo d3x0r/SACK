@@ -71,7 +71,7 @@ PSI_PROC( PMENU, CreatePopup )( void )
 #endif
 #ifndef __NO_OPTIONS__
 	local_popup_data.flags.bCustomMenuEnable = SACK_GetProfileIntEx( GetProgramName()
-																						, "SACK/PSI/menus/Use Custom Popups"
+																						, WIDE("SACK/PSI/menus/Use Custom Popups")
 																						, local_popup_data.flags.bCustomMenuEnable
 																						, TRUE );
 #endif

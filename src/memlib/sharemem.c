@@ -535,14 +535,14 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 		// or 2) there was not someone waiting...
 		pcs->dwLocks++;
 		if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-			lprintf( "Locks are %08lx", pcs->dwLocks );
+			lprintf( WIDE("Locks are %08lx"), pcs->dwLocks );
 #ifdef DEBUG_CRITICAL_SECTIONS
 		if( ( pcs->dwLocks & 0xFFFFF ) > 1 )
 		{
 			if( pFile != __FILE__ )
 			{
 				if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-					_xlprintf( 1 DBG_RELAY )("!!!!  %p  Multiple Double entery! %"_32fx, pcs, pcs->dwLocks );
+					_xlprintf( 1 DBG_RELAY )( WIDE("!!!!  %p  Multiple Double entery! %")_32fx, pcs, pcs->dwLocks );
 			}
 		}
 		pcs->pFile = pFile;
@@ -551,7 +551,7 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 		pcs->dwThreadID = dwCurProc;
 		pcs->dwUpdating = 0;
 		if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-			lprintf( "Entered, and unlocked for entry" );
+			lprintf( WIDE("Entered, and unlocked for entry") );
 		//nEntry--;
 		return 1;
 	}
@@ -562,7 +562,7 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 			pcs->dwLocks |= SECTION_LOGGED_WAIT;
 #ifdef DEBUG_CRITICAL_SECTIONS
 			if( g.bLogCritical )
-				lprintf( WIDE("Waiting on critical section owned by %s(%d) %08lx %016Lx."), (pcs->pFile)?(pcs->pFile):"Unknown", pcs->nLine, pcs->dwLocks, pcs->dwThreadID );
+				lprintf( WIDE("Waiting on critical section owned by %s(%d) %08lx %016Lx."), (pcs->pFile)?(pcs->pFile):WIDE("Unknown"), pcs->nLine, pcs->dwLocks, pcs->dwThreadID );
 #endif
 		}
 		// if the prior is wante to be saved...
@@ -572,7 +572,7 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 			{
 				if( pcs->dwThreadWaiting != dwCurProc )
 				{
-					lprintf( "thread to wake is not this one... fail. %016Lx %016Lx", pcs->dwThreadWaiting, dwCurProc );
+					lprintf( WIDE("thread to wake is not this one... fail. %016Lx %016Lx"), pcs->dwThreadWaiting, dwCurProc );
 					// assume that someone else kept our waiting ID...
 					// cause we're not the one waiting, and we have someone elses ID..
 					// we are awake out of order..
@@ -586,7 +586,7 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 				{
 #ifdef DEBUG_CRITICAL_SECTIONS
 					if( g.bLogCritical )
-						lprintf( "Setting prior to %016Lx and prior was %016Lx", pcs->dwThreadWaiting, (*prior) );
+						lprintf( WIDE("Setting prior to %016Lx and prior was %016Lx"), pcs->dwThreadWaiting, (*prior) );
 #endif
 					*prior = pcs->dwThreadWaiting;
 				}
@@ -627,7 +627,7 @@ static LOGICAL LeaveCriticalSecNoWakeEx( PCRITICALSECTION pcs DBG_PASS )
 	while( XCHG( &pcs->dwUpdating, 1 ) )
 		Relinquish();
 	if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-		_lprintf(DBG_RELAY)( "Locked %p for leaving...", pcs );
+		_lprintf(DBG_RELAY)( WIDE("Locked %p for leaving..."), pcs );
 	if( !( pcs->dwLocks & ~SECTION_LOGGED_WAIT ) )
 	{
 		if( g.bLogCritical > 0 && g.bLogCritical < 2 )
@@ -1017,8 +1017,10 @@ PTRSZVAL GetFileSize( int fd )
 {
 	POINTER pMem = NULL;
 	static _32 bOpening;
+#ifndef USE_SIMPLE_LOCK_ON_OPEN
 	static CRITICALSECTION cs;
 	static int first = 1;
+#endif
 	int readonly = FALSE;
 	if( !g.bInit )
 	{

@@ -568,7 +568,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 					// tmp needs to point to the next top.
 					SetPos( tmp, realsize );
 					pStoreMsg = (PMSGDATA)pmq->data;
-					lprintf( "pStoreMsg = %p, %d", pStoreMsg, pmq->Top );
+					lprintf( WIDE("pStoreMsg = %p, %d"), pStoreMsg, pmq->Top );
 				}
 				else
 				{
@@ -834,7 +834,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, _32 o
 #endif
 			if( pReadMsg->msg.ttl < now )
 			{
-				lprintf( "Message TTL Expired in queue..." );
+				lprintf( WIDE("Message TTL Expired in queue...") );
 				LogBinary( pReadMsg, pReadMsg->msg.length & ACTUAL_LEN_MASK );
 				pReadMsg->msg.length |= MARK_MESSAGE_ALREADY_READ;
 			}
@@ -882,11 +882,16 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, _32 o
 				// with no further consideration.
 				if( pLastReadMsg && ( pLastReadMsg->msg.length & MARK_MESSAGE_ALREADY_READ ) )
 				{
-					lprintf( "Collapsing two already read messages prior length was %d(%d) and %d(%d) (%s)", pLastReadMsg->msg.length& ACTUAL_LEN_MASK, (PTRSZVAL)pLastReadMsg-(PTRSZVAL)pmq->data, pReadMsg->msg.length& ACTUAL_LEN_MASK, (PTRSZVAL)pReadMsg-(PTRSZVAL)pmq->data, (pReadMsg->msg.length&MARK_END_OF_QUE)?"end":"" );
+					lprintf( WIDE("Collapsing two already read messages prior length was %d(%d) and %d(%d) (%s)")
+							 , pLastReadMsg->msg.length& ACTUAL_LEN_MASK
+							 , (PTRSZVAL)pLastReadMsg-(PTRSZVAL)pmq->data
+							 , pReadMsg->msg.length& ACTUAL_LEN_MASK
+							 , (PTRSZVAL)pReadMsg-(PTRSZVAL)pmq->data
+							 , (pReadMsg->msg.length&MARK_END_OF_QUE)?WIDE("end"):WIDE("") );
 						// prior message was read; collapse this one into it.
 					pLastReadMsg->msg.length |= (pReadMsg->msg.length & MARK_END_OF_QUE);
 					pLastReadMsg->msg.length += (pReadMsg->msg.length & ACTUAL_LEN_MASK);
-					lprintf( "Result in %d %p   (tmp is %d,t:%d,b:%d)", pLastReadMsg->msg.length & ACTUAL_LEN_MASK
+					lprintf( WIDE("Result in %d %p   (tmp is %d,t:%d,b:%d)"), pLastReadMsg->msg.length & ACTUAL_LEN_MASK
 						, (PTRSZVAL)pmq->data + (pLastReadMsg->msg.length & ACTUAL_LEN_MASK)
 						, tmp
 						, pmq->Top

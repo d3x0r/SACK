@@ -88,7 +88,7 @@ static int GetAMessageEx( MSGQ_TYPE msgq, MSGIDTYPE MsgFilter, CTEXTSTR q, int f
 			{
 				if( MessageIn->dest.process_id == 0 )
 				{
-					lprintf( "---------- DO NOT BE HERE ----------------" );
+					lprintf( WIDE("---------- DO NOT BE HERE ----------------") );
 					HandleCoreMessage( MessageIn, (MessageLen-(sizeof(QMSG)-sizeof(MSGIDTYPE))) DBG_SRC );
 				}
 			}

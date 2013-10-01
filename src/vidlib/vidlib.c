@@ -1161,7 +1161,7 @@ LRESULT CALLBACK
 		HWND hWndFore = GetForegroundWindow();
 		ATOM aThisClass;
 
-		lprintf( "window's %p %p %p", hWndFocus, hWndFore, hWndActive );
+		lprintf( WIDE("window's %p %p %p"), hWndFocus, hWndFore, hWndActive );
 		if( code == HC_NOREMOVE )
 		{
 			{
@@ -1896,16 +1896,16 @@ static void InvokeSurfaceInput( int nPoints, PINPUT_POINT points )
 {
 	CTEXTSTR name;
 	PCLASSROOT data = NULL;
-	for( name = GetFirstRegisteredName( "sack/render/surface input/SurfaceInput", &data );
+	for( name = GetFirstRegisteredName( WIDE("sack/render/surface input/SurfaceInput"), &data );
 		 name;
 		  name = GetNextRegisteredName( &data ) )
 	{
 		void (CPROC *f)(int,PINPUT_POINT);
 		{
 			PCLASSROOT root = GetClassRootEx( data, name );
-			CTEXTSTR file = GetRegisteredValue( (CTEXTSTR)root, "Source File" );
-			int line = (int)(PTRSZVAL)GetRegisteredValueEx( (CTEXTSTR)root, "Source Line", TRUE );
-			lprintf( "Surface input event handler %s at %s(%d)", name, file, line );
+			CTEXTSTR file = GetRegisteredValue( (CTEXTSTR)root, WIDE("Source File") );
+			int line = (int)(PTRSZVAL)GetRegisteredValueEx( (CTEXTSTR)root, WIDE("Source Line"), TRUE );
+			lprintf( WIDE("Surface input event handler %s at %s(%d)"), name, file, line );
 		}
 
 		f = GetRegisteredProcedure2( (CTEXTSTR)data, void, name, (int,PINPUT_POINT) );
@@ -2226,7 +2226,7 @@ WM_DROPFILES
 			}
 #ifdef LOG_ORDERING_REFOCUS
 			if( l.flags.bLogFocus )
-				Log ("Got setfocus...");
+				Log (WIDE("Got setfocus..."));
 #endif
 			//SetWindowPos( l.hWndInstance, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE );
 			//SetWindowPos( hWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE );
@@ -2270,7 +2270,7 @@ WM_DROPFILES
    case WM_KILLFOCUS:
       {
 #ifdef LOG_ORDERING_REFOCUS
-         lprintf("Got Killfocus new focus to %p %p", hWnd, wParam);
+         lprintf(WIDE("Got Killfocus new focus to %p %p"), hWnd, wParam);
 #endif
          l.hVidFocused = NULL;
          hVideo = (PVIDEO) GetWindowLongPtr (hWnd, WD_HVIDEO);
@@ -2356,14 +2356,14 @@ WM_DROPFILES
    case WM_ACTIVATEAPP:
 #ifdef OTHER_EVENTS_HERE
 		if( l.flags.bLogMessages )
-			lprintf( "activate app on this window? %d", wParam );
+			lprintf( WIDE("activate app on this window? %d"), wParam );
 #endif
 	   break;
 #endif
    case WM_ACTIVATE:
 		if( hWnd == l.hWndInstance ) {
 #ifdef LOG_ORDERING_REFOCUS
-			Log2 ("Activate: %08x %08x", wParam, lParam);
+			Log2 (WIDE("Activate: %08x %08x"), wParam, lParam);
 #endif
 			if (LOWORD (wParam) == WA_ACTIVE || LOWORD (wParam) == WA_CLICKACTIVE)
 			{
@@ -2371,12 +2371,12 @@ WM_DROPFILES
 				if (hVideo)
 				{
 #ifdef LOG_ORDERING_REFOCUS
-					Log2 ("Window %08x is below %08x", hVideo, hVideo->pBelow);
+					Log2 (WIDE("Window %08x is below %08x"), hVideo, hVideo->pBelow);
 #endif
 					if (hVideo->pBelow && hVideo->pBelow->flags.bShown)
 					{
 #ifdef LOG_ORDERING_REFOCUS
-						Log ("Setting active window the the lower(upper?) one...");
+						Log (WIDE("Setting active window the the lower(upper?) one..."));
 #endif
 						SetActiveWindow (hVideo->pBelow->hWndOutput);
 					}

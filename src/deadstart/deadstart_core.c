@@ -330,7 +330,7 @@ void InvokeDeadstart( void )
 	if( bSuspend )
 	{
 		if( l.flags.bLog )
-			lprintf( "Suspended, first proc is %s", proc_schedule?proc_schedule->func:"No First" );
+			lprintf( WIDE("Suspended, first proc is %s"), proc_schedule?proc_schedule->func:WIDE("No First") );
 		return;
 	}
 #ifdef WIN32

@@ -63,7 +63,7 @@ void New4EnumOptions( PODBC odbc
 	pending = odbc;
 
 	// first should check the exisiting loaded family tree....
-	lprintf( "Enumerating for %p %p %s %s", parent, parent->guid, parent->guid, parent->name_guid );
+	lprintf( WIDE("Enumerating for %p %p %s %s"), parent, parent->guid, parent->guid, parent->name_guid );
 
 	{
 		struct new4_enum_params params;

@@ -233,7 +233,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, 
 					OpenWriter( tree );
 					if( SQLCommandf( tree->odbc_writer
 										, WIDE( "Insert into " )OPTION4_MAP WIDE( "(`option_id`,`parent_option_id`,`name_id`) values ('%s','%s','%s')" )
-										, parent?parent->guid:"00000000-0000-0000-0000-000000000000"
+										, parent?parent->guid:WIDE("00000000-0000-0000-0000-000000000000")
 										, node->guid, node->name_guid ) )
 					{
 					}
@@ -387,7 +387,7 @@ size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR 
 	{
 		if( !pvtResult )
          pvtResult = VarTextCreate();
-		vtprintf( pvtResult, "%s", result );
+		vtprintf( pvtResult, WIDE("%s"), result );
 
 		//lprintf( WIDE(" query succeeded....") );
 	}
@@ -517,10 +517,10 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 int ResolveOptionName( POPTION_TREE options, CTEXTSTR parent_id, CTEXTSTR option_id, CTEXTSTR name_id, CTEXTSTR option_name, TEXTSTR output_buffer, size_t output_buffer_size )
 {
 	CTEXTSTR *results;
-	if( StrCaseCmp( parent_id, "00000000-0000-0000-0000-000000000000" ) == 0 )
+	if( StrCaseCmp( parent_id, WIDE("00000000-0000-0000-0000-000000000000") ) == 0 )
 	{
 		output_buffer[0] = 0;
-		return snprintf( output_buffer, output_buffer_size, "%s", option_name );
+		return snprintf( output_buffer, output_buffer_size, WIDE("%s"), option_name );
 	}
 	PushSQLQueryEx( options->odbc ); 
 	for( SQLRecordQueryf( options->odbc, NULL, &results, NULL
@@ -533,7 +533,7 @@ int ResolveOptionName( POPTION_TREE options, CTEXTSTR parent_id, CTEXTSTR option
 		offset = ResolveOptionName( options, results[0], results[1], results[2], results[3]
 					, output_buffer, output_buffer_size );
 		PopODBCEx( options->odbc ); 
-		return offset + snprintf( output_buffer + offset, output_buffer_size - offset, "/%s", option_name );
+		return offset + snprintf( output_buffer + offset, output_buffer_size - offset, WIDE("/%s"), option_name );
 	}
 	return 0;
 }

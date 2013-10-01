@@ -17,7 +17,7 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, P_8 p
 	size_t length_out = length + 2; // minimum additional is the opcode and tiny payload length (2 bytes)
 	if( ( opcode & 8 ) && ( length > 125 ) )
 	{
-		lprintf( "Invalid send, control packet with large payload. (opcode %d  length %d)", opcode, length );
+		lprintf( WIDE("Invalid send, control packet with large payload. (opcode %d  length %d)"), opcode, length );
 		return;
 	}
 

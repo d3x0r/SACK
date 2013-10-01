@@ -1733,11 +1733,11 @@ static TEXTSTR SubstituteNameVars( CTEXTSTR name )
 		// allow specifying %% for a single %.
 		// emit the stuff from start to the variable
 		if( start < this_var )
-			vtprintf( pvt, "%*.*s", this_var-start, this_var-start, start );
+			vtprintf( pvt, WIDE("%*.*s"), this_var-start, this_var-start, start );
 
 		if( this_var[1] == '%' )
 		{
-			vtprintf( pvt, "%%" );
+			VarTextAddCharacter( pvt, '%' );
 			start = this_var + 2;
 			continue;
 		}
@@ -1746,20 +1746,20 @@ static TEXTSTR SubstituteNameVars( CTEXTSTR name )
 		{
 			TEXTCHAR *tmpvar = NewArray( TEXTCHAR, end - this_var );
 			CTEXTSTR envvar;
-			snprintf( tmpvar, end-this_var, "%*.*s", end-this_var-1, end-this_var-1, this_var + 1 );
+			snprintf( tmpvar, end-this_var, WIDE("%*.*s"), end-this_var-1, end-this_var-1, this_var + 1 );
 			envvar = OSALOT_GetEnvironmentVariable( tmpvar );
 			if( envvar )
-				vtprintf( pvt, "%s", OSALOT_GetEnvironmentVariable( tmpvar ) );
+				vtprintf( pvt, WIDE("%s"), OSALOT_GetEnvironmentVariable( tmpvar ) );
 			else
-				lprintf( "failed to find environment variable '%s'", tmpvar );
+				lprintf( WIDE("failed to find environment variable '%s'"), tmpvar );
 			Release( tmpvar );
 			start = end + 1;
 		}
 		else
-			lprintf( "Bad framing on environment variable %%var%% syntax got [%s]", start );
+			lprintf( WIDE("Bad framing on environment variable %%var%% syntax got [%s]"), start );
 	}
 	if( start[0] )
-		vtprintf( pvt, "%s", start );
+		vtprintf( pvt, WIDE("%s"), start );
 	{
 		TEXTSTR result = StrDup( GetText( VarTextPeek( pvt ) ) );
 		VarTextDestroy( &pvt );

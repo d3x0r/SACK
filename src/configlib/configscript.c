@@ -1772,7 +1772,7 @@ int IsAnyVarEx( PCONFIG_ELEMENT pce, PTEXT *start DBG_PASS )
 		return FALSE;
 	}
 	if( g.flags.bLogTrace )
-		_lprintf(DBG_RELAY)( "IsAnyVar" );
+		_lprintf(DBG_RELAY)( WIDE("IsAnyVar") );
 	return( ( IsConstText( pce, start ) ) ||
 			 ( IsBooleanVar( pce, start ) ) ||
 			 ( IsBinaryVar( pce, start ) ) ||
