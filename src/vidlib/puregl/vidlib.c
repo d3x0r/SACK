@@ -1276,7 +1276,7 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 	PTRSZVAL (CPROC *Init3d)(PMatrix,PTRANSFORM,RCOORD*,RCOORD*);
 	PCLASSROOT data = NULL;
 	CTEXTSTR name;
-   lprintf( "Invoke Init3d" );
+   lprintf( WIDE("Invoke Init3d") );
 	for( name = GetFirstRegisteredName( WIDE("sack/render/puregl/init3d"), &data );
 		  name;
 		  name = GetNextRegisteredName( &data ) )
@@ -1481,7 +1481,7 @@ static void WantRenderGL( void )
 	struct plugin_reference *reference;
 	int first_draw;
 	if( l.flags.bLogRenderTiming )
-		lprintf( "Begin Render" );
+		lprintf( WIDE("Begin Render") );
 
 	{
 		PRENDERER other = NULL;
@@ -1518,7 +1518,7 @@ static void RenderGL( struct display_camera *camera )
 	struct plugin_reference *reference;
 	int first_draw;
 	if( l.flags.bLogRenderTiming )
-		lprintf( "Begin Render" );
+		lprintf( WIDE("Begin Render") );
 
 	if( !camera->flags.did_first_draw )
 	{
@@ -1620,10 +1620,10 @@ static void RenderGL( struct display_camera *camera )
 	}
 
 	if( l.flags.bLogRenderTiming )
-		lprintf( "Done external drawing" );
+		lprintf( WIDE("Done external drawing") );
 	SetActiveGLDisplay( NULL );
 	if( l.flags.bLogRenderTiming )
-		lprintf( "Done output." );
+		lprintf( WIDE("Done output.") );
 }
 
 
@@ -2646,7 +2646,7 @@ WM_DROPFILES
 		if( l.redraw_timer_id  == wParam )
 		{
 			if( l.flags.bLogRenderTiming )
-				lprintf( "Begin Draw Tick" );
+				lprintf( WIDE("Begin Draw Tick") );
 			Move( l.origin );
 
 			{
@@ -2689,13 +2689,13 @@ WM_DROPFILES
 			if( l.flags.mouse_on && l.last_mouse_update )
 			{
 #ifdef LOG_MOUSE_HIDE_IDLE
-				lprintf( "Pending mouse away... %d", timeGetTime() - ( l.last_mouse_update ) );
+				lprintf( WIDE("Pending mouse away... %d"), timeGetTime() - ( l.last_mouse_update ) );
 #endif
 				if( ( l.last_mouse_update + 1000 ) < timeGetTime() )
 				{
 					int x;
 #ifdef LOG_MOUSE_HIDE_IDLE
-					lprintf( "OFF!" );
+					lprintf( WIDE("OFF!") );
 #endif
 					l.flags.mouse_on = 0;
 					//l.last_mouse_update = 0;
@@ -2703,7 +2703,7 @@ WM_DROPFILES
 					{
 					}
 #ifdef LOG_MOUSE_HIDE_IDLE
-					lprintf( "Show count %d %d", x, GetLastError() );
+					lprintf( WIDE("Show count %d %d"), x, GetLastError() );
 #endif
 					SetCursor( NULL );
 				}
@@ -2842,10 +2842,10 @@ static void LoadOptions( void )
 	l.flags.bLogRenderTiming = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/Log Render Timing"), 0, TRUE );
 	l.flags.bView360 = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/360 view"), 0, TRUE );
 
-	l.scale = (RCOORD)SACK_GetOptionInt( option, GetProgramName(), "SACK/Image Library/Scale", 10 );
+	l.scale = (RCOORD)SACK_GetOptionInt( option, GetProgramName(), WIDE("SACK/Image Library/Scale"), 10 );
 	if( l.scale == 0.0 )
 	{
-		l.scale = (RCOORD)SACK_GetOptionInt( option, GetProgramName(), "SACK/Image Library/Inverse Scale", 2 );
+		l.scale = (RCOORD)SACK_GetOptionInt( option, GetProgramName(), WIDE("SACK/Image Library/Inverse Scale"), 2 );
 		if( l.scale == 0.0 )
 			l.scale = 1;
 	}
@@ -3462,9 +3462,9 @@ static struct display_camera *OpenCameras( void )
 			camera->viewport[2] = (int)w;
 			camera->viewport[3] = (int)h;
          if( !idx )
-				snprintf( window_name, 128, "%s:3D View", GetProgramName() );
+				snprintf( window_name, 128, WIDE("%s:3D View"), GetProgramName() );
          else
-				snprintf( window_name, 128, "%s:3D View(%d)", GetProgramName(), idx );
+				snprintf( window_name, 128, WIDE("%s:3D View(%d)"), GetProgramName(), idx );
 
 			camera->hWndInstance = CreateWindowEx (0
 	#ifndef NO_DRAG_DROP
@@ -5677,7 +5677,7 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 	   WIDE("puregl.render.3d")
 	   , GetDisplay3dInterface, DropDisplay3dInterface );
 
-	l.gl_image_interface = (PIMAGE_INTERFACE)GetInterface( "image" );
+	l.gl_image_interface = (PIMAGE_INTERFACE)GetInterface( WIDE("image") );
 
 	BindEventToKey( NULL, KEY_F4, KEY_MOD_RELEASE|KEY_MOD_ALT, DefaultExit, 0 );
 	BindEventToKey( NULL, KEY_SCROLL_LOCK, 0, EnableRotation, 0 );
@@ -5717,9 +5717,9 @@ static void CPROC SavePortion( PSPRITE_METHOD psm, _32 x, _32 y, _32 w, _32 h )
 	location.y = y;
 	location.w = w;
 	location.h = h;
-	//lprintf( "Save Portion %d,%d %d,%d", x, y, w, h );
+	//lprintf( WIDE("Save Portion %d,%d %d,%d"), x, y, w, h );
 	EnqueData( &psm->saved_spots, &location );
-	//lprintf( "Save Portion %d,%d %d,%d", x, y, w, h );
+	//lprintf( WIDE("Save Portion %d,%d %d,%d"), x, y, w, h );
 }
 
 PRELOAD( InitSetSavePortion )
