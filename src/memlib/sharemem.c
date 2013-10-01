@@ -419,7 +419,7 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 	dwCurProc = GetMyThreadID();
 
 	if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-		_lprintf( DBG_RELAY )( " [%16"_64fx"] Attempt enter critical Section %p %08lx"
+		_lprintf( DBG_RELAY )( WIDE(" [%16")_64fx WIDE("] Attempt enter critical Section %p %08lx")
 									, dwCurProc
 									, pcs
 									, pcs->dwLocks );
@@ -2451,6 +2451,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 			TEXTCHAR byDebug[256];
 			snprintf( byDebug, sizeof( byDebug ), WIDE("FirstFree : %p"),
 						pMem->pFirstFree );
+         byDebug[255] = 0;
 			fprintf( file, WIDE("%s\n"), byDebug );
 		}
 
@@ -2470,6 +2471,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 						 pc, pc->dwSize, pc->dwSize,
 						 pc->pPrior,
 						 pc->next );
+					byDebug[255] = 0;
 				}
 				else
 				{
@@ -2477,6 +2479,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 					snprintf( byDebug, sizeof(byDebug), WIDE("Used at %p size: %") _32f WIDE("(%") _32fx WIDE(") Prior:%p"),
 						 pc, pc->dwSize, pc->dwSize,
 						 pc->pPrior );
+					byDebug[255] = 0;
 				}
 #ifdef _DEBUG
 				if( !g.bDisableDebug && !(pCurMem->dwFlags & HEAP_FLAG_NO_DEBUG ) )
@@ -2509,6 +2512,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 			{
 				snprintf( byDebug, sizeof(byDebug), WIDE("Free at %p size: %") _32f WIDE("(%") _32fx WIDE(") "),
 				 			pc, pc->dwSize, pc->dwSize );
+				byDebug[255] = 0;
 
 	#ifdef _DEBUG
 				if( /*!g.bDisableDebug && */ !(pCurMem->dwFlags & HEAP_FLAG_NO_DEBUG ) )
@@ -2527,6 +2531,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 		snprintf( byDebug, sizeof(byDebug), WIDE("Total Free: %d  TotalUsed: %d  TotalChunks: %d TotalMemory:%lu"),
 					nTotalFree, nTotalUsed, nChunks,
 					(long unsigned)(nTotalFree + nTotalUsed + nChunks * CHUNK_SIZE) );
+		byDebug[255] = 0;
 		fprintf( file, WIDE("%s\n"), byDebug );
 		//Relinquish();
 		DropMem( pMem );

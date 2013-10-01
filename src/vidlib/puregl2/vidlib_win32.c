@@ -1816,7 +1816,7 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 	return 0;
 }
 
-static void OnLibraryLoad( "Video Render PureGL 2" )( void )
+static void OnLibraryLoad( WIDE("Video Render PureGL 2") )( void )
 {
 	if( l.bThreadRunning )
 		SACK_Vidlib_OpenCameras();
