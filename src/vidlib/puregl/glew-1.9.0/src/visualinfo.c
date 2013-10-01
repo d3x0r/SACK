@@ -41,6 +41,12 @@
 #include <GL/glxew.h>
 #endif
 
+#ifdef _UNICODE
+#define WIDE(a) L##a
+#else
+#define WIDE(a) a
+#endif
+
 #ifdef GLEW_MX
 GLEWContext _glewctx;
 #  define glewGetContext() (&_glewctx)
@@ -995,10 +1001,10 @@ GLboolean CreateContext (GLContext* ctx)
   ZeroMemory(&wc, sizeof(WNDCLASS));
   wc.hInstance = GetModuleHandle(NULL);
   wc.lpfnWndProc = DefWindowProc;
-  wc.lpszClassName = "GLEW";
+  wc.lpszClassName = WIDE("GLEW");
   if (0 == RegisterClass(&wc)) return GL_TRUE;
   /* create window */
-  ctx->wnd = CreateWindow("GLEW", "GLEW", 0, CW_USEDEFAULT, CW_USEDEFAULT, 
+  ctx->wnd = CreateWindow(WIDE("GLEW"), WIDE("GLEW"), 0, CW_USEDEFAULT, CW_USEDEFAULT,
                           CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, 
                           GetModuleHandle(NULL), NULL);
   if (NULL == ctx->wnd) return GL_TRUE;
@@ -1031,7 +1037,7 @@ void DestroyContext (GLContext* ctx)
   if (NULL != ctx->rc) wglDeleteContext(wglGetCurrentContext());
   if (NULL != ctx->wnd && NULL != ctx->dc) ReleaseDC(ctx->wnd, ctx->dc);
   if (NULL != ctx->wnd) DestroyWindow(ctx->wnd);
-  UnregisterClass("GLEW", GetModuleHandle(NULL));
+  UnregisterClass(WIDE("GLEW"), GetModuleHandle(NULL));
 }
 
 /* ------------------------------------------------------------------------ */
