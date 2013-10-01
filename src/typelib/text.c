@@ -331,7 +331,12 @@ PTEXT SegCreateFromIntEx( int value DBG_PASS )
 {
 	PTEXT pResult;
 	pResult = SegCreateEx( 12 DBG_RELAY);
-	pResult->data.size = snprintf( pResult->data.data, 12*sizeof(TEXTCHAR), WIDE("%d"), value );
+#ifdef _UNICODE
+	pResult->data.size = snwprintf( pResult->data.data, 12, WIDE("%d"), value );
+#else
+	pResult->data.size = snprintf( pResult->data.data, 12, WIDE("%d"), value );
+#endif
+	pResult->data.data[11] = 0;
 	return pResult;
 }
 
@@ -339,10 +344,15 @@ PTEXT SegCreateFromIntEx( int value DBG_PASS )
 
 PTEXT SegCreateFrom_64Ex( S_64 value DBG_PASS )
 {
-   PTEXT pResult;
-   pResult = SegCreateEx( 32 DBG_RELAY);
-	pResult->data.size = snprintf( pResult->data.data, 32*sizeof(TEXTCHAR), WIDE("%")_64f, value );
-   return pResult;
+	PTEXT pResult;
+	pResult = SegCreateEx( 32 DBG_RELAY);
+#ifdef _UNICODE
+	pResult->data.size = snwprintf( pResult->data.data, 32, WIDE("%")_64f, value );
+#else
+	pResult->data.size = snprintf( pResult->data.data, 32, WIDE("%")_64f, value );
+#endif
+pResult->data.data[31] = 0;
+	return pResult;
 }
 
 //---------------------------------------------------------------------------
@@ -351,7 +361,12 @@ PTEXT SegCreateFromFloatEx( float value DBG_PASS )
 {
    PTEXT pResult;
    pResult = SegCreateEx( 32 DBG_RELAY);
-   pResult->data.size = snprintf( pResult->data.data, 32*sizeof(TEXTCHAR), WIDE("%f"), value );
+#ifdef _UNICODE
+	pResult->data.size = snwprintf( pResult->data.data, 32, WIDE("%f"), value );
+#else
+	pResult->data.size = snprintf( pResult->data.data, 32, WIDE("%f"), value );
+#endif
+   pResult->data.data[31] = 0;
    return pResult;
 }
 

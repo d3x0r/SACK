@@ -101,6 +101,7 @@
 #        define snprintf _snprintf
 #        define vsnprintf _vsnprintf
 #      endif
+#    define snwprintf _snwprintf
 #    endif// suffer_with_warnings
 
 #    ifdef _UNICODE

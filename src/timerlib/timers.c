@@ -340,7 +340,8 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 		PTHREAD_EVENT thread_event;
 		TEXTCHAR name[64];
 		snprintf( name, 64, WIDE("%s:%08lX:%08lX"), event_name, (_32)(thread->thread_ident >> 32)
-				 , (_32)(thread->thread_ident & 0xFFFFFFFF) );
+				  , (_32)(thread->thread_ident & 0xFFFFFFFF) );
+		name[sizeof(name)/sizeof(name[0])-1] = 0;
 #ifdef LOG_CREATE_EVENT_OBJECT
 		lprintf( WIDE("Thread Event created is: %s everyone should use this..."), name );
 #endif
@@ -510,7 +511,8 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 		{
 			snprintf( name, sizeof(name), WIDE("%s:%08lX:%08lX")
 					  , thread->thread_event_name, (_32)(thread->thread_ident >> 32)
-					 , (_32)(thread->thread_ident & 0xFFFFFFFF));
+					  , (_32)(thread->thread_ident & 0xFFFFFFFF));
+			name[sizeof(name)/sizeof(name[0])-1] = 0;
 			LIST_FORALL( g.thread_events, idx, PTHREAD_EVENT, thread_event )
 			{
 				if( StrCmp( thread_event->name, name ) == 0 )
@@ -2017,7 +2019,7 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 	THREAD_ID prior = 0;
 #ifdef _DEBUG
 	if( global_timer_structure && g.flags.bLogCriticalSections )
-		_lprintf( DBG_RELAY )( "Enter critical section %p %"_64fx, pcs, GetMyThreadID() );
+		_lprintf( DBG_RELAY )( WIDE("Enter critical section %p %")_64fx, pcs, GetMyThreadID() );
 #endif
 	do
 	{
@@ -2079,7 +2081,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 	_32 curtick = timeGetTime();//GetTickCount();
 #endif
 	if( global_timer_structure && g.flags.bLogCriticalSections )
-		_xlprintf( LOG_NOISE DBG_RELAY )( "Begin leave critical section %p %"_64fx, pcs, GetMyThreadID() );
+		_xlprintf( LOG_NOISE DBG_RELAY )( WIDE("Begin leave critical section %p %") _64fx, pcs, GetMyThreadID() );
 	while( LockedExchange( &pcs->dwUpdating, 1 ) 
 #ifdef _DEBUG
 			&& ( (curtick+2000) > timeGetTime() )//GetTickCount() )

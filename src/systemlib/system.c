@@ -131,6 +131,7 @@ void OSALOT_AppendEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 	}
 	newpath = NewArray( TEXTCHAR, length = (_32)(strlen( oldpath ) + 2 + strlen(value)) );
 	snprintf( newpath, length, WIDE("%s;%s"), oldpath, value );
+   newpath[length] = 0;
 	SetEnvironmentVariable( name, newpath );
 	ReleaseEx( newpath DBG_SRC );
 	ReleaseEx( oldpath DBG_SRC );
@@ -158,6 +159,7 @@ void OSALOT_PrependEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 	}
 	newpath = NewArray( TEXTCHAR, length = (_32)(strlen( oldpath ) + 2 + strlen(value)) );
 	snprintf( newpath, length, WIDE("%s;%s"), value, oldpath );
+   newpath[length] = 0;
 	SetEnvironmentVariable( name, newpath );
 	ReleaseEx( newpath DBG_SRC );
 	ReleaseEx( oldpath DBG_SRC );
@@ -1162,7 +1164,8 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		if( !IsAbsolutePath( libname ) )
 		{
 			library->name = library->full_name
-							  + snprintf( library->full_name, maxlen, WIDE("%s/"), l.load_path );
+				+ snprintf( library->full_name, maxlen, WIDE("%s/"), l.load_path );
+         library->full_name[maxlen-1] = 0;
 			snprintf( library->name
 				, maxlen - (library->name-library->full_name)
 				, WIDE("%s"), libname );
@@ -1245,6 +1248,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			int len;
 			function = NewPlus( FUNCTION, (len=(sizeof(TEXTCHAR)*( (_32)strlen( funcname ) + 1 ) ) ) );
 			snprintf( function->name, len, WIDE( "%s" ), funcname );
+         function->name[len] = 0;
 			function->library = library;
 			function->references = 0;
 #ifdef _WIN32
@@ -1267,6 +1271,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			{
 				TEXTCHAR tmpname[128];
 				snprintf( tmpname, sizeof( tmpname ), WIDE("_%s"), funcname );
+            tmpname[127] = 0;
 #ifdef __cplusplus_cli
 				char *procname = CStrDup( tmpname );
 				if( l.flags.bLog )
