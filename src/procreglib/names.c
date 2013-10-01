@@ -2026,7 +2026,7 @@ void ReadConfiguration( void )
 			size_t len;
 			int success = FALSE;
 			if( !filepath )
-				filepath = WIDE(".");
+				filepath = WIDE("@");
 			if( l.config_filename )
 			{
 				success = ProcessConfigurationFile( pch, l.config_filename, 0 );
@@ -2036,9 +2036,23 @@ void ReadConfiguration( void )
 			}
 			if( !success )
 			{
+				TEXTCHAR *dot;
 				loadname = NewArray( TEXTCHAR, (_32)(len = StrLen( filepath ) + StrLen( GetProgramName() ) + StrLen( WIDE("interface.conf") ) + 3) );
 				snprintf( loadname, len, WIDE("%s/%s.%s"), filepath, GetProgramName(), WIDE("interface.conf") );
 				success = ProcessConfigurationFile( pch, loadname, 0 );
+				if( !success )
+					dot = GetProgramName();
+				while( !success )
+				{
+					TEXTCHAR *dot = StrChr( dot + 1, '.' );
+					if( dot )
+					{
+						snprintf( loadname, len, WIDE("%s/%s.%s"), filepath, dot+1, WIDE("interface.conf") );
+						success = ProcessConfigurationFile( pch, loadname, 0 );
+					}
+					else
+						break;
+				}
 			}
 			if( !success )
 			{
