@@ -1574,7 +1574,7 @@ retry:
 								{
 									int c;
 									vtprintf( pvtCreate, WIDE("%sCONSTRAINT `%s` UNIQUE (")
-											  , first?"":","
+											  , first?WIDE(""):WIDE(",")
 											  , table->keys.key[n].name
 											  );
 									for( c = 0; table->keys.key[n].colnames[c]; c++ )
@@ -1643,18 +1643,18 @@ retry:
 							}
 							vtprintf( pvtCreate, WIDE(")%s %s")
 
-									  , table->constraints.constraint[n].flags.cascade_on_update?"ON UPDATE CASCADE"
-										:table->constraints.constraint[n].flags.restrict_on_update?"ON UPDATE RESTRICT"
-										:table->constraints.constraint[n].flags.setnull_on_update?"ON UPDATE SET NULL"
-										:table->constraints.constraint[n].flags.setdefault_on_update?"ON UPDATE SET DEFAULT"
-										:table->constraints.constraint[n].flags.noaction_on_update?"ON UPDATE NO ACTION"
-										:""
-									  , table->constraints.constraint[n].flags.cascade_on_delete?"ON DELETE CASCADE"
-										:table->constraints.constraint[n].flags.restrict_on_delete?"ON DELETE RESTRICT"
-										:table->constraints.constraint[n].flags.setnull_on_delete?"ON DELETE SET NULL"
-										:table->constraints.constraint[n].flags.setdefault_on_delete?"ON DELETE SET DEFAULT"
-										:table->constraints.constraint[n].flags.noaction_on_delete?"ON DELETE NO ACTION"
-										:""
+									  , table->constraints.constraint[n].flags.cascade_on_update?WIDE("ON UPDATE CASCADE")
+										:table->constraints.constraint[n].flags.restrict_on_update?WIDE("ON UPDATE RESTRICT")
+										:table->constraints.constraint[n].flags.setnull_on_update?WIDE("ON UPDATE SET NULL")
+										:table->constraints.constraint[n].flags.setdefault_on_update?WIDE("ON UPDATE SET DEFAULT")
+										:table->constraints.constraint[n].flags.noaction_on_update?WIDE("ON UPDATE NO ACTION")
+										:WIDE("")
+									  , table->constraints.constraint[n].flags.cascade_on_delete?WIDE("ON DELETE CASCADE")
+										:table->constraints.constraint[n].flags.restrict_on_delete?WIDE("ON DELETE RESTRICT")
+										:table->constraints.constraint[n].flags.setnull_on_delete?WIDE("ON DELETE SET NULL")
+										:table->constraints.constraint[n].flags.setdefault_on_delete?WIDE("ON DELETE SET DEFAULT")
+										:table->constraints.constraint[n].flags.noaction_on_delete?WIDE("ON DELETE NO ACTION")
+										:WIDE("")
 									  );
  							first = 0;
 						}
