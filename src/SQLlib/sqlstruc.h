@@ -271,27 +271,27 @@ PRIORITY_PRELOAD( LoadSQLiteInterface, SQL_PRELOAD_PRIORITY-1 )
    sqlite_iface = (struct sqlite_interface*)GetInterface( WIDE("sqlite3") );
 }
 #  endif
-#endif
 
-#ifndef BUILDS_INTERFACE
-#define sqlite3_result_text          (FIXDEREF2 (sqlite_iface->sqlite3_result_text))
-#define sqlite3_user_data            (FIXDEREF (sqlite_iface->sqlite3_user_data))
-#define sqlite3_last_insert_rowid    (FIXDEREF2 (sqlite_iface->sqlite3_last_insert_rowid))
-#define sqlite3_create_function      (FIXDEREF (sqlite_iface->sqlite3_create_function))
-#define sqlite3_get_autocommit       (FIXDEREF2 (sqlite_iface->sqlite3_get_autocommit))
-#define sqlite3_open(a,b)            (sqlite_iface)?(FIXDEREF2((sqlite_iface)->sqlite3_open))(a,b):SQLITE_ERROR
-#define sqlite3_errmsg(db)           (sqlite_iface)?(FIXDEREF2((sqlite_iface)->sqlite3_errmsg))(db):"No Sqlite3 Interface"
-#define sqlite3_finalize             (FIXDEREF2 (sqlite_iface->sqlite3_finalize))
-#define sqlite3_close                (FIXDEREF2 (sqlite_iface->sqlite3_close))
-#define sqlite3_prepare_v2           (FIXDEREF2 (sqlite_iface->sqlite3_prepare_v2))
-#define sqlite3_step                 (FIXDEREF2 (sqlite_iface->sqlite3_step))
-#define sqlite3_column_name          (FIXDEREF2 (sqlite_iface->sqlite3_column_name))
-#define sqlite3_column_text          (FIXDEREF (sqlite_iface->sqlite3_column_text))
-#define sqlite3_column_bytes         (FIXDEREF2 (sqlite_iface->sqlite3_column_bytes))
-#define sqlite3_column_type          (FIXDEREF (sqlite_iface->sqlite3_column_type))
-#define sqlite3_column_count         (FIXDEREF2 (sqlite_iface->sqlite3_column_count))
-#define sqlite3_config               (FIXDEREF2 (sqlite_iface->sqlite3_config))
-#define sqlite3_db_config            (FIXDEREF2 (sqlite_iface->sqlite3_db_config))
+#  ifndef BUILDS_INTERFACE
+#    define sqlite3_result_text          (FIXDEREF2 (sqlite_iface->sqlite3_result_text))
+#    define sqlite3_user_data            (FIXDEREF (sqlite_iface->sqlite3_user_data))
+#    define sqlite3_last_insert_rowid    (FIXDEREF2 (sqlite_iface->sqlite3_last_insert_rowid))
+#    define sqlite3_create_function      (FIXDEREF (sqlite_iface->sqlite3_create_function))
+#    define sqlite3_get_autocommit       (FIXDEREF2 (sqlite_iface->sqlite3_get_autocommit))
+#    define sqlite3_open(a,b)            (sqlite_iface)?(FIXDEREF2((sqlite_iface)->sqlite3_open))(a,b):SQLITE_ERROR
+#    define sqlite3_errmsg(db)           (sqlite_iface)?(FIXDEREF2((sqlite_iface)->sqlite3_errmsg))(db):"No Sqlite3 Interface"
+#    define sqlite3_finalize             (FIXDEREF2 (sqlite_iface->sqlite3_finalize))
+#    define sqlite3_close                (FIXDEREF2 (sqlite_iface->sqlite3_close))
+#    define sqlite3_prepare_v2           (FIXDEREF2 (sqlite_iface->sqlite3_prepare_v2))
+#    define sqlite3_step                 (FIXDEREF2 (sqlite_iface->sqlite3_step))
+#    define sqlite3_column_name          (FIXDEREF2 (sqlite_iface->sqlite3_column_name))
+#    define sqlite3_column_text          (FIXDEREF (sqlite_iface->sqlite3_column_text))
+#    define sqlite3_column_bytes         (FIXDEREF2 (sqlite_iface->sqlite3_column_bytes))
+#    define sqlite3_column_type          (FIXDEREF (sqlite_iface->sqlite3_column_type))
+#    define sqlite3_column_count         (FIXDEREF2 (sqlite_iface->sqlite3_column_count))
+#    define sqlite3_config               (FIXDEREF2 (sqlite_iface->sqlite3_config))
+#    define sqlite3_db_config            (FIXDEREF2 (sqlite_iface->sqlite3_db_config))
+#  endif
 #endif
 
 //-----------------------------------------------
