@@ -2290,7 +2290,13 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 					 , format );
 #endif
 			if( len >= destlen )
+			{
+				// vsnwprintf() for NULL and 0 length returns -1
+				// so, make length be something larger than -1, and keep expanding by that much.
+				if( len == -1 )
+					len = 256;
 				VarTextExpand( pvt, len + pvt->expand_by );
+			}
 		} while( len >= destlen );
 	}
 #else
