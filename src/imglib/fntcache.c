@@ -434,7 +434,7 @@ PSIZE_FILE AddSizeFileEx( PFONT_STYLE pfs
 				//Log( WIDE("Duplicate found - storing as alterate.") );
 				Deallocate( PSIZE_FILE, psf );
 				AddAlternateSizeFile( psfCheck, path, file );
-            return NULL;
+				return NULL;
 			}
 		}
 	}
@@ -443,7 +443,7 @@ PSIZE_FILE AddSizeFileEx( PFONT_STYLE pfs
 		pfs->nFiles++;
 		AddLink( &pfs->files, psf );
 	}
-   return psf;
+	return psf;
 }
 
 //-------------------------------------------------------------------------
@@ -451,29 +451,29 @@ PSIZE_FILE AddSizeFileEx( PFONT_STYLE pfs
 #ifndef _PSI_INCLUSION_
 void DumpFontCache( void )
 {
-   LoadAllFonts();
+	LoadAllFonts();
 	{
 		INDEX idx;
 		for( idx = 0; idx < fg.nFonts; idx++ )
 		{
 			PFONT_ENTRY pfe;
-         int s;
+			int s;
 			PFONT_STYLE pfs;
 			pfe = fg.pFontCache + idx;
 			if( pfe->flags.unusable )
 				continue;
-         for( s = 0; s < pfe->nStyles; s++ )
+			for( s = 0; s < pfe->nStyles; s++ )
 			{
 				PSHORT_SIZE_FILE file;
 				int f;
 				pfs = ((PFONT_STYLE)pfe->styles) + s;
-            for( f = 0; f < pfs->nFiles; f++ )
+				for( f = 0; f < pfs->nFiles; f++ )
 				{
-               int sz;
+					int sz;
 					file = ((PSHORT_SIZE_FILE)pfs->files) + f;
 					for( sz = 0; sz < file->nSizes; sz++ )
 					{
-                  PSIZES size = ((PSIZES)file->sizes) + sz;
+						PSIZES size = ((PSIZES)file->sizes) + sz;
 						lprintf( WIDE("%s[%s] = %s/%s (%dx%d)"), pfe->name, pfs->name, file->path, file->file, size->width, size->height );
 					}
 				}
@@ -724,26 +724,28 @@ void CPROC ListFontFile( PTRSZVAL psv, CTEXTSTR name, int flags )
 
 		{
 			PDICT_ENTRY pStyle;
+			TEXTSTR style_name = DupCharToText( face->style_name?face->style_name:"no-style-name");
 			TEXTCHAR buffer[256];
 			
-			snprintf( buffer, sizeof( buffer ), WIDE("%s+Italic"), face->style_name );
+			snprintf( buffer, sizeof( buffer ), WIDE("%s+Italic"), style_name );
 			pStyle = AddDictEntry( &build.pStyles, buffer );
 			pfs[1] = AddFontStyle( pfe, pStyle );
 			pfs[1]->flags.mono = ( ( face->face_flags & FT_FACE_FLAG_FIXED_WIDTH ) != 0 );
 			pfs[1]->flags.italic = 1;
 
-			snprintf( buffer, sizeof( buffer ), WIDE("%s+Bold"), face->style_name );
+			snprintf( buffer, sizeof( buffer ), WIDE("%s+Bold"), style_name );
 			pStyle = AddDictEntry( &build.pStyles, buffer );
 			pfs[2] = AddFontStyle( pfe, pStyle );
 			pfs[2]->flags.mono = ( ( face->face_flags & FT_FACE_FLAG_FIXED_WIDTH ) != 0 );
 			pfs[2]->flags.bold = 1;
 
-			snprintf( buffer, sizeof( buffer ), WIDE("%s+Bold-Italic"), face->style_name );
+			snprintf( buffer, sizeof( buffer ), WIDE("%s+Bold-Italic"), style_name );
 			pStyle = AddDictEntry( &build.pStyles, buffer );
 			pfs[3] = AddFontStyle( pfe, pStyle );
 			pfs[3]->flags.mono = ( ( face->face_flags & FT_FACE_FLAG_FIXED_WIDTH ) != 0 );
 			pfs[3]->flags.italic = 1;
 			pfs[3]->flags.bold = 1;
+         Deallocate( TEXTSTR, style_name );
 		}
 
 		if( face->face_flags & FT_FACE_FLAG_FIXED_SIZES &&
@@ -959,9 +961,9 @@ void OutputFontCache( void )
 			INDEX idx;
 			newlen = snprintf( outbuf, sizeof( outbuf ), WIDE("!%") _32f WIDE("*%s%s%s,%") _32f WIDE("")
 								 , pfs->name->ID
-								 , pfs->flags.mono?"m":""
-								 , pfs->flags.italic?"i":""
-								 , pfs->flags.bold?"b":""
+								 , pfs->flags.mono?WIDE("m"):WIDE("")
+								 , pfs->flags.italic?WIDE("i"):WIDE("")
+								 , pfs->flags.bold?WIDE("b"):WIDE("")
 								 , pfs->nFiles );
 			if( ( newlen + linelen ) >= 80 )
 			{
