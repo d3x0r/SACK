@@ -1122,7 +1122,27 @@ if( CMAKE_COMPILER_IS_GNUCC )
            bin
          RENAME interface.conf
        )
-    else( __QNX__ )
+    elseif( WIN32 )
+       if( BUILD_UNICODE)
+          INSTALL(
+            FILES
+              data/interface.conf.puregl.gcc.unicode
+            DESTINATION
+              # this could also be /etc
+              bin
+            RENAME interface.conf
+          )
+       else( BUILD_UNICODE)
+          INSTALL(
+            FILES
+              data/interface.conf.puregl.gcc
+            DESTINATION
+              # this could also be /etc
+              bin
+            RENAME interface.conf
+          )
+       endif( BUILD_UNICODE)
+    else( )
 
        INSTALL(
          FILES
