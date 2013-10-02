@@ -1205,11 +1205,15 @@ LOGICAL CPROC CheckMySQLODBCTable( PODBC odbc, PTABLE table, _32 options )
 	buflen = 0;
 #ifdef USE_SQLITE
 	if( odbc->flags.bSQLite_native )
-		buflen += snprintf( cmd+buflen , 1024-buflen*sizeof(TEXTCHAR),WIDE("select tbl_name,sql from sqlite_master where type='table' and name='%s'")
+		buflen += snprintf( cmd+buflen , 1024-buflen,WIDE("select tbl_name,sql from sqlite_master where type='table' and name='%s'")
 								, table->name );
 	else
 #endif
-		buflen += snprintf( cmd+buflen , 1024-buflen*sizeof(TEXTCHAR),WIDE("show create table `%s`") ,table->name);
+		buflen += snprintf( cmd+buflen , 1024-buflen,WIDE("show create table `%s`") ,table->name);
+   if( buflen < 1024 )
+		cmd[buflen] = 0;
+	else
+      cmd[1023] = 0;
 	retry = 0;
 retry:
 	PushSQLQueryEx( odbc );
