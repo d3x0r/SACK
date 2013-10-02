@@ -490,7 +490,7 @@ PTEXT SegExpandEx(PTEXT source, INDEX nSize DBG_PASS)
 {
 	PTEXT temp;
 	//Log1( WIDE("SegExpand...%d"), nSize );
-	temp = SegCreateEx( sizeof( TEXTCHAR)*( GetTextSize( source ) + nSize ) DBG_RELAY );
+	temp = SegCreateEx( GetTextSize( source ) + nSize  DBG_RELAY );
 	if( source )
 	{
 		MemCpy( temp->data.data, source->data.data, sizeof( TEXTCHAR)*(GetTextSize( source ) + 1) );
