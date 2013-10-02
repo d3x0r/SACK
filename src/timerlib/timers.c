@@ -1756,7 +1756,7 @@ static int CPROC ProcessTimers( PTRSZVAL psvForce )
 #endif
 #endif
 			}
-			if( g.flags.bExited )
+			if( !global_timer_structure || g.flags.bExited )
 				return -1;
 		}
 		// else no timers - go back up to the top - where we sleep.
