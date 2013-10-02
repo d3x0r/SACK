@@ -5,58 +5,57 @@
 
 #include "shaders.h"
 
+IMAGE_NAMESPACE
 
 //const char *gles_
-static const CTEXTSTR gles_simple_v_shader =
+	static char const * gles_simple_v_shader[]  = {
 
-   WIDE( "struct VS_INPUT\n" )
-   WIDE( "{\n" )
-   WIDE( "    float4 vPosition : POSITION;\n" )
-   WIDE( "    float3 vColor : COLOR0;\n" )
-   WIDE( "};\n" )
-   WIDE( "\n" )
-   WIDE( "struct VS_OUTPUT\n" )
-   WIDE( "{\n" )
-   WIDE( "    float4  vPosition : POSITION;\n" )
-   WIDE( "    float4  vDiffuse : COLOR;\n" )
-   WIDE( "};\n" )
-   WIDE( "\n" )
-   WIDE( "float4x4 mWld1;\n" )
-   WIDE( "float4x4 mWld2;\n" )
-   WIDE( "float4x4 mWld3;\n" )
-   WIDE( "float4x4 mWld4;\n" )
-   WIDE( "\n" )
-   WIDE( "VS_OUTPUT main(VS_INPUT v)\n" )
-   WIDE( "{\n" )
-   WIDE( "    VS_OUTPUT out;\n" )
-   WIDE( "\n" )
-   WIDE( "    // Skin position (to world space)\n" )
-   WIDE( "    float3 vPosition = \n" )
-   WIDE( "        mul(v.vPosition, (float4x3) mWld1) +\n" )
-   WIDE( "        mul(v.vPosition, (float4x3) mWld2) +\n" )
-   WIDE( "        mul(v.vPosition, (float4x3) mWld3) +\n" )
-   WIDE( "        mul(v.vPosition, (float4x3) mWld4) ;\n" )
-   WIDE( "    \n" )
-   WIDE( "    // Output stuff\n" )
-   WIDE( "    out.vPosition    = vPosition;\n" )
-   WIDE( "    out.vDiffuse  = vColor;\n" )
-   WIDE( "\n" )
-   WIDE( "    return out;\n" )
-   WIDE( "}\n" );
+   ( "struct VS_INPUT\n" )
+   ( "{\n" )
+   ( "    float4 vPosition : POSITION;\n" )
+   ( "};\n" )
+   ( "\n" )
+   ( "struct VS_OUTPUT\n" )
+   ( "{\n" )
+   ( "    float4  vPosition : POSITION;\n" )
+   ( "};\n" )
+   ( "\n" )
+   ( "float4x4 mWld1 : register(c0);\n" )
+   ( "float4x4 mWld2 : register(c4);\n" )
+   ( "float4x4 mWld3 : register(c8);\n" )
+   ( "float4x4 mWld4 : register(c12);\n" )
+   ( "\n" )
+   ( "VS_OUTPUT main(VS_INPUT v)\n" )
+   ( "{\n" )
+   ( "    VS_OUTPUT vout;\n" )
+   ( "\n" )
+   ( "    // Skin position (to world space)\n" )
+   ( "    float4 vPosition = \n" )
+   ( "        mul( (mWld1 * mWld2 /** mWld3*/), v.vPosition );\n" )
+   ( "    \n" )
+   ( "    // Output stuff\n" )
+   ( "    vout.vPosition    = vPosition;\n" )
+   ( "\n" )
+   ( "    return vout;\n" )
+			( "}\n" )
+	};
 
 
-static const CTEXTSTR gles_simple_p_shader =
-   WIDE( "struct PS_OUTPUT\n" )
-   WIDE( "{\n" )
-   WIDE( "    float4 Color : COLOR0;\n" )
-   WIDE( "};\n" )
-   WIDE( "\n" )
-   WIDE( "PS_OUTPUT main(void)\n" )
-   WIDE( "{\n" )
-   WIDE( "    PS_OUTPUT out;\n" )
-   WIDE( "  out.Color = vDiffuse\n" )
-   WIDE( "    return out;\n" )
-   WIDE( "}\n" );
+static char const * gles_simple_p_shader[] = {
+   ( "float4  vDiffuse : register( c16 );\n" )
+   ( "\n" )
+   ( "struct PS_OUTPUT\n" )
+   ( "{\n" )
+   ( "    float4 Color : COLOR0;\n" )
+   ( "};\n" )
+   ( "\n" )
+   ( "PS_OUTPUT main( void)\n" )
+   ( "{\n" )
+   ( "    PS_OUTPUT pout;\n" )
+   ( "    pout.Color = vDiffuse;\n" )
+   ( "    return pout;\n" )
+		( "}\n" )
+};
 
 
 
@@ -66,25 +65,24 @@ void CPROC EnableSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv, va_lis
 	float *color = va_arg( args, float * );
 
 	g_d3d_device->SetStreamSource( 0, verts, 0, sizeof( float ) * 3 );
-
-//	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );
-   g_d3d_device->SetVertexShaderConstantF( 0, color, 1 );
-
+	g_d3d_device->SetVertexShaderConstantF( 16, color, 1 );
 }
 
 void InitSuperSimpleShader( PImageShaderTracker tracker )
 {
-	const char *v_codeblocks[2];
-	const char *p_codeblocks[2];
-	int color_attrib;
+	D3DVERTEXELEMENT9 decl[] = {{0,
+                             0,
+                             D3DDECLTYPE_FLOAT3,
+                             D3DDECLMETHOD_DEFAULT,
+                             D3DDECLUSAGE_POSITION,
+                             0}
+                            , D3DDECL_END()};
+	g_d3d_device->CreateVertexDeclaration(decl, &tracker->vertexDecl);
 
-	v_codeblocks[0] = gles_simple_v_shader;
-	v_codeblocks[1] = NULL;
-	p_codeblocks[0] = gles_simple_p_shader;
-	p_codeblocks[1] = NULL;
-	if( CompileShader( tracker, v_codeblocks, 1, p_codeblocks, 1 ) )
+	if( CompileShader( tracker, gles_simple_v_shader, 1
+		, gles_simple_p_shader, 1 ) )
 	{
-		//color_attrib = glGetUniformLocation(tracker->glProgramId, "in_Color" );
-		SetShaderEnable( tracker, EnableSimpleShader, color_attrib );
+		SetShaderEnable( tracker, EnableSimpleShader, 0 );
 	}
 }
+IMAGE_NAMESPACE_END

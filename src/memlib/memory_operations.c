@@ -365,7 +365,7 @@ size_t StrLen( CTEXTSTR s )
 	return l;	
 }
 
-size_t CStrLen( char *s )
+size_t CStrLen( char const*const s )
 {
 	size_t l;
 	if( !s )

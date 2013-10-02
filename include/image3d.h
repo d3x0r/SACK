@@ -20,11 +20,11 @@ typedef struct image_3d_interface_tag
 {
 	IMAGE_PROC_PTR( PImageShaderTracker, ImageGetShader)         ( CTEXTSTR name, void (CPROC*Init)(PImageShaderTracker) );
 	IMAGE_PROC_PTR( int, ImageCompileShader )( PImageShaderTracker shader
-														  , char **vertex_code, int vert_blocks
-														  , char **frag_code, int frag_blocks );
+														  , char const*const*vertex_code, int vert_blocks
+														  , char const*const*frag_code, int frag_blocks );
 	IMAGE_PROC_PTR( int, ImageCompileShaderEx )( PImageShaderTracker shader
-															 , char **vertex_code, int vert_blocks
-															 , char **frag_code, int frag_blocks
+															 , char const*const*vertex_code, int vert_blocks
+															 , char const*const*frag_code, int frag_blocks
 															 , struct image_shader_attribute_order *attribs, int nAttribs  );
 	IMAGE_PROC_PTR( void, ImageEnableShader )( PImageShaderTracker tarcker, ... );
 	IMAGE_PROC_PTR( void, ImageSetShaderEnable )( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker, PTRSZVAL psv, va_list args ), PTRSZVAL psv );

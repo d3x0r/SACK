@@ -97,7 +97,7 @@ void EnableShader( PImageShaderTracker tracker, ... )
 			tracker->Init( tracker );
 		if( !tracker->VertexProgram )
 		{
-			lprintf( "Shader initialization failed to produce a program; marking shader broken so we don't retry" );
+			lprintf( WIDE("Shader initialization failed to produce a program; marking shader broken so we don't retry") );
 			tracker->flags.failed = 1;
 			return;
 		}
@@ -136,27 +136,57 @@ void EnableShader( PImageShaderTracker tracker, ... )
 
 
 int CompileShaderEx( PImageShaderTracker tracker
-						 , CTEXTSTR vertex_code, size_t vertex_length
-                    , CTEXTSTR frag_code, size_t frag_length
-					  , struct image_shader_attribute_order *attrib_order, int nAttribs )
+						 , char const *const* vertex_code_blocks, int vertex_blocks
+						 , char const *const* frag_code_blocks, int frag_blocks
+						 , struct image_shader_attribute_order *attrib_order, int nAttribs )
 {
 	HRESULT result=123;
+	char * vertex_code;
+	size_t vertex_length;
+	char * frag_code;
+	size_t frag_length;
+
+	int n;
+   size_t length = 0;
+   size_t new_length = 0;
+	for( n = 0; n < vertex_blocks; n++ )
+		length += CStrLen( vertex_code_blocks[n] );
+	vertex_code = NewArray( char, length + 1 );
+   length = 0;
+	for( n = 0; n < vertex_blocks; n++ )
+	{
+      MemCpy( vertex_code + length, vertex_code_blocks[n], ( new_length + 1 ) );
+		length += new_length;
+	}
+   vertex_length = length;
 
 
-   // example of defines
-	//D3D_SHADER_MACRO Shader_Macros[1] = { "zero", "0"  };
+	for( n = 0; n < frag_blocks; n++ )
+		length += CStrLen( frag_code_blocks[n] );
+	frag_code = NewArray( char, length + 1 );
+   length = 0;
+	for( n = 0; n < frag_blocks; n++ )
+	{
+		MemCpy( frag_code + length, frag_code_blocks[n], ( new_length + 1 ) );
+		length += new_length;
+	}
+   frag_length = length;
+
+	// example of defines
+	//D3D_SHADER_MACRO Shader_Macros[1] = { WIDE("zero"), WIDE("0")  };
 	// required if shader uses #include
 	// #define D3D_COMPILE_STANDARD_FILE_INCLUDE ((ID3DInclude*)(UINT_PTR)1)
 	ID3DBlob *vert_blob;
 	ID3DBlob *errors;
+   char *tmp;
 	result = D3DCompile(
 							  vertex_code
 							  , vertex_length  //in       SIZE_T SrcDataSize,
-							  , tracker->name  //in_opt   LPCSTR pSourceName,  /* used for error message output */
+							  , DupTextToChar( tracker->name )  //in_opt   LPCSTR pSourceName,  /* used for error message output */
 							  , NULL      //in_opt   const D3D_SHADER_MACRO *pDefines,
 							  , NULL      //in_opt   ID3DInclude *pInclude,
-							 , "main"       //in       LPCSTR pEntrypoint,  /* ignored by d3dcompile*/
-							 , "vs_2_0"   // in       LPCSTR pTarget,
+							 , ("main")       //in       LPCSTR pEntrypoint,  /* ignored by d3dcompile*/
+							 , ("vs_2_0")   // in       LPCSTR pTarget,
 							 , 0          // in       UINT Flags1,  // comile options
 							 , 0          //  in       UINT Flags2, /* unused for source compiles*/
 							 , &vert_blob //  out      ID3DBlob **ppCode,
@@ -164,7 +194,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 							 );
 	if( result )
 	{
-		lprintf( "%s", errors->GetBufferPointer() ); 
+		lprintf( WIDE("%s"), errors->GetBufferPointer() );
 	}
 	else
 	{
@@ -176,11 +206,11 @@ int CompileShaderEx( PImageShaderTracker tracker
 	result = D3DCompile(
 							  frag_code
 							  , frag_length  //in       SIZE_T SrcDataSize,
-							  , tracker->name  //in_opt   LPCSTR pSourceName,  /* used for error message output */
+							  , DupTextToChar( tracker->name )  //in_opt   LPCSTR pSourceName,  /* used for error message output */
 							  , NULL      //in_opt   const D3D_SHADER_MACRO *pDefines,
 							  , NULL      //in_opt   ID3DInclude *pInclude,
-							 , "main"     //in       LPCSTR pEntrypoint,  /* ignored by d3dcompile*/
-							 , "ps_2_0"   // in       LPCSTR pTarget,
+							 , ("main")     //in       LPCSTR pEntrypoint,  /* ignored by d3dcompile*/
+							 , ("ps_2_0")   // in       LPCSTR pTarget,
 							 , 0          // in       UINT Flags1,  // comile options
 							 , 0          //  in       UINT Flags2, /* unused for source compiles*/
 							 , &vert_blob //  out      ID3DBlob **ppCode,
@@ -194,14 +224,14 @@ int CompileShaderEx( PImageShaderTracker tracker
 		vert_blob->Release();
 	}
 	else
-		lprintf( "%s", errors->GetBufferPointer() ); 
+		lprintf( WIDE("%s"), errors->GetBufferPointer() ); 
 	
 
 	{
 		int n;
 		for( n = 0; n < nAttribs; n++ )
 		{
-			lprintf( "Bind Attrib Location: %d %s", attrib_order[n].n, attrib_order[n].name );
+			lprintf( WIDE("Bind Attrib Location: %d %s"), attrib_order[n].n, attrib_order[n].name );
 			//glBindAttribLocation(tracker->glProgramId, attrib_order[n].n, attrib_order[n].name );
 		}
 	}
@@ -210,8 +240,8 @@ int CompileShaderEx( PImageShaderTracker tracker
 }
 
 
-int CompileShader( PImageShaderTracker tracker, CTEXTSTR vertex_code, size_t vertex_blocks
-					                      , CTEXTSTR frag_code, size_t frag_length
+int CompileShader( PImageShaderTracker tracker, char const *const* vertex_code, int vertex_blocks
+					                      , char const *const* frag_code, int frag_length
 					  )
 {
    return CompileShaderEx( tracker, vertex_code, vertex_blocks, frag_code, frag_length, NULL, 0 );
@@ -222,10 +252,10 @@ void SetShaderModelView( PImageShaderTracker tracker, RCOORD *matrix )
 	if( tracker )
 	{
 		//glUseProgram(tracker->glProgramId);
-		//CheckErrf( "SetModelView for (%s)", tracker->name );
+		//CheckErrf( WIDE("SetModelView for (%s)"), tracker->name );
 
 		//glUniformMatrix4fv( tracker->modelview, 1, GL_FALSE, matrix );
-		//CheckErrf( "SetModelView for (%s)", tracker->name );
+		//CheckErrf( WIDE("SetModelView for (%s)"), tracker->name );
 
 		tracker->flags.set_modelview = 1;
 	}

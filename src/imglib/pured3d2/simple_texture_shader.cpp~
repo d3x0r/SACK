@@ -5,51 +5,125 @@
 
 #include "shaders.h"
 
+IMAGE_NAMESPACE
 
 //const char *gles_
-static const CTEXTSTR gles_simple_v_shader =
-    WIDE( "attribute vec4 vPosition;\n" )
-	WIDE( "attribute vec2 in_texCoord;\n" )
-	WIDE( "uniform mat4 modelView;\n" )
-	WIDE( "uniform mat4 worldView;\n" )
-	WIDE( "uniform mat4 Projection;\n" )
-	WIDE( " varying vec2 out_texCoord;\n" )
-    WIDE("void main() {\n" )
-    WIDE("  gl_Position = Projection * worldView * modelView * vPosition;\n" )
-	WIDE( "out_texCoord = in_texCoord;\n" )
-    WIDE("}\n"); 
+static const char * gles_simple_v_shader =
+   "struct VS_INPUT\n"
+   "{\n"
+   "    float4 vPosition : POSITION;\n"
+   "    float2 Texture    : TEXCOORD0;\n"
+   "};\n"
+   "\n"
+   "struct VS_OUTPUT\n"
+   "{\n"
+   "    float4  vPosition : POSITION;\n"
+   "    float2 Texture    : TEXCOORD0;\n"
+   "};\n"
+   "\n"
+   "float4x4 mWld1;\n"
+   "float4x4 mWld2;\n"
+   "float4x4 mWld3;\n"
+   "float4x4 mWld4;\n"
+   "\n"
+   "VS_OUTPUT main(VS_INPUT v)\n"
+   "{\n"
+   "    VS_OUTPUT vout;\n"
+   "\n"
+   "    // Skin position (to world space)\n"
+   "    float4 vPosition = \n"
+   "        mul(v.vPosition, mWld1) +\n"
+   "        mul(v.vPosition, mWld2) +\n"
+   "        mul(v.vPosition, mWld3) +\n"
+   "        mul(v.vPosition, mWld4) ;\n"
+   "    \n"
+   "    // Output stuff\n"
+   "    vout.vPosition    = vPosition;\n"
+   "    vout.Texture = v.Texture;\n"
+   "\n"
+   "    return vout;\n"
+   "}\n";
 
-static const CTEXTSTR gles_simple_p_shader =
-    //WIDE( "precision mediump float;\n" )
-	WIDE( " varying vec2 out_texCoord;\n" )
-	WIDE( " uniform sampler2D tex;\n" )
-	WIDE( "void main() {\n" )
-	WIDE( "   gl_FragColor = texture2D( tex, out_texCoord );\n" )
-    WIDE( "}\n" );
+static const char *gles_simple_p_shader =
+	"sampler2D Tex0;\n"
+   "struct PS_INPUT\n"
+   "{\n"
+   "    float2 Texture    : TEXCOORD0;\n"
+   "};\n"
+   "\n"
+   "struct PS_OUTPUT\n"
+   "{\n"
+   "    float4 Color : COLOR0;\n"
+   "};\n"
+   "\n"
+   "PS_OUTPUT main( PS_INPUT v )\n"
+   "{\n"
+   "    PS_OUTPUT pout;\n"
+   "    pout.Color = tex2D(Tex0, v.Texture);\n"
+   "    return pout;\n"
+   "}\n";
 
 
 //const char *gles_
-static const CTEXTSTR gles_simple_v_shader_shaded_texture =
-    WIDE( "attribute vec4 vPosition;\n" )
-	 WIDE( "attribute vec2 in_texCoord;\n" )
-	 WIDE( "uniform mat4 modelView;\n" )
-	 WIDE( "uniform mat4 worldView;\n" )
-	 WIDE( "uniform mat4 Projection;\n" )
-	 WIDE( "varying vec2 out_texCoord;\n" )
-	 WIDE( "\n" )
-    WIDE("void main() {\n" )
-    WIDE("  gl_Position = Projection * worldView * modelView * vPosition;\n" )
-	 WIDE( " out_texCoord = in_texCoord;\n" )
-    WIDE("}"); 
+static const char *gles_simple_v_shader_shaded_texture =
+   "struct VS_INPUT\n"
+   "{\n"
+   "    float4 vPosition : POSITION;\n"
+   "    float4 vColor : COLOR0;\n"
+   "    float2 Texture    : TEXCOORD0;\n"
+   "};\n"
+   "\n"
+   "struct VS_OUTPUT\n"
+   "{\n"
+   "    float4  vPosition : POSITION;\n"
+   "    float4  vDiffuse : COLOR0;\n"
+   "    float2 Texture    : TEXCOORD0;\n"
+   "};\n"
+   "\n"
+   "float4x4 mWld1;\n"
+   "float4x4 mWld2;\n"
+   "float4x4 mWld3;\n"
+   "float4x4 mWld4;\n"
+   "\n"
+   "VS_OUTPUT main(VS_INPUT v)\n"
+   "{\n"
+   "    VS_OUTPUT vout;\n"
+   "\n"
+   "    // Skin position (to world space)\n"
+   "    float4 vPosition = \n"
+   "        mul(v.vPosition, mWld1) +\n"
+   "        mul(v.vPosition, mWld2) +\n"
+   "        mul(v.vPosition, mWld3) +\n"
+   "        mul(v.vPosition, mWld4) ;\n"
+   "    \n"
+   "    // Output stuff\n"
+   "    vout.vPosition    = vPosition;\n"
+   "    vout.Texture = v.Texture;\n"
+   "    vout.vDiffuse  = v.vColor;\n"
+   "\n"
+   "    return vout;\n"
+   "}\n";
 
-static const CTEXTSTR gles_simple_p_shader_shaded_texture =
-    //WIDE( "precision mediump float;\n" )
-	WIDE( "uniform vec4 in_Color;\n" )
-	WIDE( " varying vec2 out_texCoord;\n" )
-	WIDE( " uniform sampler2D tex;\n" )
-	WIDE( "void main() {\n" )
-	WIDE( "   gl_FragColor = in_Color * texture2D( tex, out_texCoord );\n" )
-    WIDE( "}\n" );
+
+static const char *gles_simple_p_shader_shaded_texture =
+	"sampler2D Tex0;\n"
+   "struct PS_INPUT\n"
+   "{\n"
+   "    float4  vDiffuse : COLOR0;\n"
+   "    float2 Texture    : TEXCOORD0;\n"
+   "};\n"
+   "\n"
+   "struct PS_OUTPUT\n"
+   "{\n"
+   "    float4 Color : COLOR0;\n"
+   "};\n"
+   "\n"
+   "PS_OUTPUT main( PS_INPUT v )\n"
+   "{\n"
+   "    PS_OUTPUT pout;\n"
+   "    pout.Color = tex2D(Tex0, v.Texture)*v.vDiffuse;\n"
+   "    return pout;\n"
+   "}\n";
 
 
 struct private_shader_data
@@ -60,27 +134,13 @@ struct private_shader_data
 
 static void CPROC SimpleTextureEnable( PImageShaderTracker tracker, PTRSZVAL psv_userdata, va_list args )
 {
-	float *verts = va_arg( args, float *);
-	int texture = va_arg( args, int);
-	float *texture_verts = va_arg( args, float *);
+	IDirect3DVertexBuffer9 *verts = va_arg( args, IDirect3DVertexBuffer9 *);
+	Image texture = va_arg( args, Image );
 	struct private_shader_data *data = (struct private_shader_data *)psv_userdata;
-#if 0
-	//glUniform4fv( tracker->color_attrib, 1, GL_FALSE, color );
-	glEnableVertexAttribArray(0);
 
-	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );
-	CheckErr();
-	glEnableVertexAttribArray(data->texture_attrib);	CheckErr();
-	glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, texture_verts );            
-	CheckErr();
-	glActiveTexture(GL_TEXTURE0 + 0);
-	CheckErr();
-	glBindTexture(GL_TEXTURE_2D+0, texture);
-	CheckErr();
-	glUniform1i( data->texture, 0 );
-	CheckErr();
-#endif
-
+	g_d3d_device->SetStreamSource( 0, verts, 0, sizeof( float ) * 5 );
+	ReloadD3DTexture( texture, 0 );
+	g_d3d_device->SetTexture( 0, texture->pActiveSurface );
 }
 
 void InitSimpleTextureShader( PImageShaderTracker tracker )
@@ -89,14 +149,28 @@ void InitSimpleTextureShader( PImageShaderTracker tracker )
 	const char *p_codeblocks[2];
 	struct private_shader_data *data = New( struct private_shader_data );
 	struct image_shader_attribute_order attribs[] = { { 0, "vPosition" }, { 1, "in_TexCoord" } };
+	D3DVERTEXELEMENT9 decl[] = {{0,
+                             0,
+                             D3DDECLTYPE_FLOAT3,
+                             D3DDECLMETHOD_DEFAULT,
+                             D3DDECLUSAGE_POSITION,
+                             0},
+                            {0,
+                             12,
+                             D3DDECLTYPE_FLOAT2,
+                             D3DDECLMETHOD_DEFAULT,
+                             D3DDECLUSAGE_TEXCOORD,
+                             0},
+                            D3DDECL_END()};
+	g_d3d_device->CreateVertexDeclaration(decl, &tracker->vertexDecl);
 
 	SetShaderEnable( tracker, SimpleTextureEnable, (PTRSZVAL)data );
 
-	v_codeblocks[0] = gles_simple_v_shader;
-	v_codeblocks[1] = NULL;
+   v_codeblocks[0] = gles_simple_v_shader;
 	p_codeblocks[0] = gles_simple_p_shader;
-	p_codeblocks[1] = NULL;
-	if( CompileShaderEx( tracker, v_codeblocks, 1, p_codeblocks, 1, attribs, 2 ) )
+
+	if( CompileShaderEx( tracker, v_codeblocks, 1
+		, p_codeblocks, 1, attribs, 2 ) )
 	{
 		//data->texture = glGetUniformLocation(tracker->glProgramId, "tex");
 		//data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
@@ -108,51 +182,53 @@ void InitSimpleTextureShader( PImageShaderTracker tracker )
 
 static void CPROC SimpleTextureEnable2( PImageShaderTracker tracker, PTRSZVAL psv, va_list args )
 {
-	float *verts = va_arg( args, float *);
-	int texture = va_arg( args, int );
-	float *texture_verts = va_arg( args, float *);
+	IDirect3DVertexBuffer9 *verts = va_arg( args, IDirect3DVertexBuffer9 *);
+	Image texture = va_arg( args, Image );
 	float *color = va_arg( args, float *);
 
 	struct private_shader_data *data = (struct private_shader_data *)psv;
-#if 0
-	glEnableVertexAttribArray(0);	CheckErr();
-	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );  
-	
-	glEnableVertexAttribArray(data->texture_attrib);	CheckErr();
-	glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, texture_verts );  
 
-	glUniform1i(data->texture, 0); //Texture unit 0 is for base images.
-
-	//When rendering an objectwith this program.
-	glActiveTexture(GL_TEXTURE0 + 0);
-	glBindTexture(GL_TEXTURE_2D+0, texture);
-	glUniform1i( data->texture, 0 );
-
-	glUniform4fv( tracker->color_attrib, 1, color );
-#endif
-
+	g_d3d_device->SetStreamSource( 0, verts, 0, sizeof( float ) * 5 );
+	g_d3d_device->SetVertexShaderConstantF( 16, color, 1 );
+	ReloadD3DTexture( texture, 0 );
+	g_d3d_device->SetTexture( 0, texture->pActiveSurface );
 }
 
 
 void InitSimpleShadedTextureShader( PImageShaderTracker tracker )
 {
-	const char *v_codeblocks[2];
-	const char *p_codeblocks[2];
 	struct private_shader_data *data = New( struct private_shader_data );
 	struct image_shader_attribute_order attribs[] = { { 0, "vPosition" }, { 1, "in_TexCoord" }, { 2, "in_Color" } };
 
+	D3DVERTEXELEMENT9 decl[] = {{0,
+                             0,
+                             D3DDECLTYPE_FLOAT3,
+                             D3DDECLMETHOD_DEFAULT,
+                             D3DDECLUSAGE_POSITION,
+                             0},
+                            {0,
+                             12,
+                             D3DDECLTYPE_FLOAT2,
+                             D3DDECLMETHOD_DEFAULT,
+                             D3DDECLUSAGE_TEXCOORD,
+                             0},
+                            D3DDECL_END()};
+	g_d3d_device->CreateVertexDeclaration(decl, &tracker->vertexDecl);
+
 	SetShaderEnable( tracker, SimpleTextureEnable2, (PTRSZVAL)data );
 
-	v_codeblocks[0] = gles_simple_v_shader_shaded_texture;
-	v_codeblocks[1] = NULL;
+	const char *v_codeblocks[2];
+	const char *p_codeblocks[2];
+   v_codeblocks[0] = gles_simple_v_shader_shaded_texture;
 	p_codeblocks[0] = gles_simple_p_shader_shaded_texture;
-	p_codeblocks[1] = NULL;
-
-	if( CompileShaderEx( tracker, v_codeblocks, 1, p_codeblocks, 1, attribs, 3 ) )
+	if( CompileShaderEx( tracker, gles_simple_v_shader_shaded_texture, 1
+		, gles_simple_p_shader_shaded_texture, 1, attribs, 3 ) )
 	{
 		//tracker->color_attrib = glGetUniformLocation(tracker->glProgramId, "in_Color" );
 		//data->texture = glGetUniformLocation(tracker->glProgramId, "tex");
 		//data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
 	}
 }
+
+IMAGE_NAMESPACE_END
 

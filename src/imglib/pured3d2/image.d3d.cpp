@@ -54,10 +54,10 @@ static void OnFirstDraw3d( WIDE( "@00 DirectX Image Library" ) )( PTRSZVAL psv )
 {
 	l.d3dActiveSurface = (struct d3dSurfaceData *)psv;
 	{
-		l.simple_shader = GetShader( "Simple Shader", InitSuperSimpleShader );
-		l.simple_texture_shader = GetShader( "Simple Texture", InitSimpleTextureShader );
-		l.simple_shaded_texture_shader = GetShader( "Simple Shaded Texture", InitSimpleShadedTextureShader );
-		l.simple_multi_shaded_texture_shader = GetShader( "Simple MultiShaded Texture", InitSimpleMultiShadedTextureShader );
+		l.simple_shader = GetShader( WIDE("Simple Shader"), InitSuperSimpleShader );
+		l.simple_texture_shader = GetShader( WIDE("Simple Texture"), InitSimpleTextureShader );
+		l.simple_shaded_texture_shader = GetShader( WIDE("Simple Shaded Texture"), InitSimpleShadedTextureShader );
+		l.simple_multi_shaded_texture_shader = GetShader( WIDE("Simple MultiShaded Texture"), InitSimpleMultiShadedTextureShader );
 	}
 }
 
@@ -145,8 +145,8 @@ IDirect3DBaseTexture9 *ReloadD3DTexture( Image child_image, int option )
 				TEXTCHAR filename[64];
 				FILE *file;
 				PngImageFile( image, &buf, &size );
-				snprintf( filename, 64, "update-%04d.png", n++ );
-				file = fopen( filename, "wb" );
+				snprintf( filename, 64, WIDE("update-%04d.png"), n++ );
+				file = fopen( filename, WIDE("wb") );
 				if( file )
 				{
 					fwrite( buf, 1, size, file );
@@ -165,7 +165,7 @@ IDirect3DBaseTexture9 *ReloadD3DTexture( Image child_image, int option )
 				}
 			}
 			image_data->d3tex->UnlockRect(0);
-			//lprintf( "Remade texture %p for image %p", image_data->d3tex, image );
+			//lprintf( WIDE("Remade texture %p for image %p"), image_data->d3tex, image );
 		}
 		image->pActiveSurface = image_data->d3dTexture;
 		child_image->pActiveSurface = image->pActiveSurface;
@@ -197,7 +197,7 @@ void MarkImageUpdated( Image child_image )
 			}
 			if( image_data->d3dTexture )
 			{
-				//lprintf( "releasing texture %p for image %p", image_data->d3dTexture, image );
+				//lprintf( WIDE("releasing texture %p for image %p"), image_data->d3dTexture, image );
 				image_data->d3dTexture->Release();
 				//textureToDelete->Release
 				//glDeleteTextures( 1, &image_data->d3dTexture );
@@ -544,7 +544,7 @@ void CPROC cplotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 {
 	if( pi->flags & IF_FLAG_FINAL_RENDER )
 	{
-		lprintf( "plot not implemented in d3d yet..." );
+		lprintf( WIDE("plot not implemented in d3d yet...") );
 	}
 	else
 	{
@@ -561,7 +561,7 @@ void CPROC cplot( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 	{
 		if( pi->flags & IF_FLAG_FINAL_RENDER )
 		{
-         lprintf( "plot not implemented in d3d yet..." );
+         lprintf( WIDE("plot not implemented in d3d yet...") );
 		}
 		else if( pi->image )
 		{
@@ -602,7 +602,7 @@ void CPROC cplotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 	{
 		if( pi->flags & IF_FLAG_FINAL_RENDER )
 		{
-         lprintf( "plot not implemented in d3d yet..." );
+         lprintf( WIDE("plot not implemented in d3d yet...") );
 		}
 		else if( pi->image )
 		{
