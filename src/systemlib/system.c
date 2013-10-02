@@ -1145,13 +1145,18 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 {
 	static int nLibrary;
 	PLIBRARY library = libraries;
+	{
+		char *tmp2 = DupTextToChar( WIDE("ABC") );
+		Deallocate( char*, tmp2 );
+	}
+
 	while( library )
 	{
 		if( StrCmp( library->name, libname ) == 0 )
 			break;
 		library = library->next;
 	}
-   // don't really NEED anything else, in case we need to start before deadstart invokes.
+	// don't really NEED anything else, in case we need to start before deadstart invokes.
 	if( !l.load_path )
 	{
 		lprintf( WIDE( "Init Load Path" ) );
@@ -1165,7 +1170,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		{
 			library->name = library->full_name
 				+ snprintf( library->full_name, maxlen, WIDE("%s/"), l.load_path );
-         library->full_name[maxlen-1] = 0;
+			library->full_name[maxlen-1] = 0;
 			snprintf( library->name
 				, maxlen - (library->name-library->full_name)
 				, WIDE("%s"), libname );
@@ -1248,7 +1253,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			int len;
 			function = NewPlus( FUNCTION, (len=(sizeof(TEXTCHAR)*( (_32)strlen( funcname ) + 1 ) ) ) );
 			snprintf( function->name, len, WIDE( "%s" ), funcname );
-         function->name[len] = 0;
+			function->name[len] = 0;
 			function->library = library;
 			function->references = 0;
 #ifdef _WIN32
@@ -1258,11 +1263,15 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 				lprintf( WIDE( "Get:%s" ), procname );
 			if( !(function->function = (generic_function)GetProcAddress( library->library, procname )) )
 #else
+#ifdef _UNICODE
+			{
+			char *tmp;
+#endif
   			if( l.flags.bLog )
   				lprintf( WIDE( "Get:%s" ), function->name );
 			if( !(function->function = (generic_function)GetProcAddress( library->library
 #ifdef _UNICODE
-																						  , WcharConvert( function->name )
+																						  , tmp = DupTextToChar( function->name )
 #else
 																						  , function->name
 #endif
@@ -1271,7 +1280,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			{
 				TEXTCHAR tmpname[128];
 				snprintf( tmpname, sizeof( tmpname ), WIDE("_%s"), funcname );
-            tmpname[127] = 0;
+				tmpname[127] = 0;
 #ifdef __cplusplus_cli
 				char *procname = CStrDup( tmpname );
 				if( l.flags.bLog )
@@ -1292,6 +1301,10 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			}
 #ifdef __cplusplus_cli
 			ReleaseEx( procname DBG_SRC );
+#endif
+#ifdef _UNICODE
+			Deallocate( char *, tmp );
+			}
 #endif
 			if( !function->function )
 			{

@@ -2665,16 +2665,16 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 	int err;
 #endif
 	char    *ch;
-	sizeInBytes = ((len + 1) * sizeof( wchar_t ));
+	sizeInBytes = (len + 1);
 	err = 0;
 	ch = NewArray( char, sizeInBytes);
 #if defined( _MSC_VER )
 	err = wcstombs_s(&convertedChars, 
                     ch, sizeInBytes,
-						  wch, sizeInBytes);
+						  wch, len );
 #else
 	convertedChars = wcstombs( ch, wch, sizeInBytes);
-   err = ( convertedChars == -1 );
+	err = ( convertedChars == -1 );
 #endif
 	if (err != 0)
 		lprintf(WIDE( "wcstombs_s  failed!\n" ));
