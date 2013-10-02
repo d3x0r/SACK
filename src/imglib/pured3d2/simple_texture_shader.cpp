@@ -8,122 +8,122 @@
 IMAGE_NAMESPACE
 
 //const char *gles_
-static const CTEXTSTR gles_simple_v_shader =
-   WIDE( "struct VS_INPUT\n" )
-   WIDE( "{\n" )
-   WIDE( "    float4 vPosition : POSITION;\n" )
-   WIDE( "    float2 Texture    : TEXCOORD0;\n" )
-   WIDE( "};\n" )
-   WIDE( "\n" )
-   WIDE( "struct VS_OUTPUT\n" )
-   WIDE( "{\n" )
-   WIDE( "    float4  vPosition : POSITION;\n" )
-   WIDE( "    float2 Texture    : TEXCOORD0;\n" )
-   WIDE( "};\n" )
-   WIDE( "\n" )
-   WIDE( "float4x4 mWld1;\n" )
-   WIDE( "float4x4 mWld2;\n" )
-   WIDE( "float4x4 mWld3;\n" )
-   WIDE( "float4x4 mWld4;\n" )
-   WIDE( "\n" )
-   WIDE( "VS_OUTPUT main(VS_INPUT v)\n" )
-   WIDE( "{\n" )
-   WIDE( "    VS_OUTPUT vout;\n" )
-   WIDE( "\n" )
-   WIDE( "    // Skin position (to world space)\n" )
-   WIDE( "    float4 vPosition = \n" )
-   WIDE( "        mul(v.vPosition, mWld1) +\n" )
-   WIDE( "        mul(v.vPosition, mWld2) +\n" )
-   WIDE( "        mul(v.vPosition, mWld3) +\n" )
-   WIDE( "        mul(v.vPosition, mWld4) ;\n" )
-   WIDE( "    \n" )
-   WIDE( "    // Output stuff\n" )
-   WIDE( "    vout.vPosition    = vPosition;\n" )
-   WIDE( "    vout.Texture = v.Texture;\n" )
-   WIDE( "\n" )
-   WIDE( "    return vout;\n" )
-   WIDE( "}\n" );
+static const char * gles_simple_v_shader =
+   "struct VS_INPUT\n"
+   "{\n"
+   "    float4 vPosition : POSITION;\n"
+   "    float2 Texture    : TEXCOORD0;\n"
+   "};\n"
+   "\n"
+   "struct VS_OUTPUT\n"
+   "{\n"
+   "    float4  vPosition : POSITION;\n"
+   "    float2 Texture    : TEXCOORD0;\n"
+   "};\n"
+   "\n"
+   "float4x4 mWld1;\n"
+   "float4x4 mWld2;\n"
+   "float4x4 mWld3;\n"
+   "float4x4 mWld4;\n"
+   "\n"
+   "VS_OUTPUT main(VS_INPUT v)\n"
+   "{\n"
+   "    VS_OUTPUT vout;\n"
+   "\n"
+   "    // Skin position (to world space)\n"
+   "    float4 vPosition = \n"
+   "        mul(v.vPosition, mWld1) +\n"
+   "        mul(v.vPosition, mWld2) +\n"
+   "        mul(v.vPosition, mWld3) +\n"
+   "        mul(v.vPosition, mWld4) ;\n"
+   "    \n"
+   "    // Output stuff\n"
+   "    vout.vPosition    = vPosition;\n"
+   "    vout.Texture = v.Texture;\n"
+   "\n"
+   "    return vout;\n"
+   "}\n";
 
-static const CTEXTSTR gles_simple_p_shader =
-	WIDE( "sampler2D Tex0;\n" )
-   WIDE( "struct PS_INPUT\n" )
-   WIDE( "{\n" )
-   WIDE( "    float2 Texture    : TEXCOORD0;\n" )
-   WIDE( "};\n" )
-   WIDE( "\n" )
-   WIDE( "struct PS_OUTPUT\n" )
-   WIDE( "{\n" )
-   WIDE( "    float4 Color : COLOR0;\n" )
-   WIDE( "};\n" )
-   WIDE( "\n" )
-   WIDE( "PS_OUTPUT main( PS_INPUT v )\n" )
-   WIDE( "{\n" )
-   WIDE( "    PS_OUTPUT pout;\n" )
-   WIDE( "    pout.Color = tex2D(Tex0, v.Texture);\n" )
-   WIDE( "    return pout;\n" )
-   WIDE( "}\n" );
+static const char *gles_simple_p_shader =
+	"sampler2D Tex0;\n"
+   "struct PS_INPUT\n"
+   "{\n"
+   "    float2 Texture    : TEXCOORD0;\n"
+   "};\n"
+   "\n"
+   "struct PS_OUTPUT\n"
+   "{\n"
+   "    float4 Color : COLOR0;\n"
+   "};\n"
+   "\n"
+   "PS_OUTPUT main( PS_INPUT v )\n"
+   "{\n"
+   "    PS_OUTPUT pout;\n"
+   "    pout.Color = tex2D(Tex0, v.Texture);\n"
+   "    return pout;\n"
+   "}\n";
 
 
 //const char *gles_
-static const CTEXTSTR gles_simple_v_shader_shaded_texture =
-   WIDE( "struct VS_INPUT\n" )
-   WIDE( "{\n" )
-   WIDE( "    float4 vPosition : POSITION;\n" )
-   WIDE( "    float4 vColor : COLOR0;\n" )
-   WIDE( "    float2 Texture    : TEXCOORD0;\n" )
-   WIDE( "};\n" )
-   WIDE( "\n" )
-   WIDE( "struct VS_OUTPUT\n" )
-   WIDE( "{\n" )
-   WIDE( "    float4  vPosition : POSITION;\n" )
-   WIDE( "    float4  vDiffuse : COLOR0;\n" )
-   WIDE( "    float2 Texture    : TEXCOORD0;\n" )
-   WIDE( "};\n" )
-   WIDE( "\n" )
-   WIDE( "float4x4 mWld1;\n" )
-   WIDE( "float4x4 mWld2;\n" )
-   WIDE( "float4x4 mWld3;\n" )
-   WIDE( "float4x4 mWld4;\n" )
-   WIDE( "\n" )
-   WIDE( "VS_OUTPUT main(VS_INPUT v)\n" )
-   WIDE( "{\n" )
-   WIDE( "    VS_OUTPUT vout;\n" )
-   WIDE( "\n" )
-   WIDE( "    // Skin position (to world space)\n" )
-   WIDE( "    float4 vPosition = \n" )
-   WIDE( "        mul(v.vPosition, mWld1) +\n" )
-   WIDE( "        mul(v.vPosition, mWld2) +\n" )
-   WIDE( "        mul(v.vPosition, mWld3) +\n" )
-   WIDE( "        mul(v.vPosition, mWld4) ;\n" )
-   WIDE( "    \n" )
-   WIDE( "    // Output stuff\n" )
-   WIDE( "    vout.vPosition    = vPosition;\n" )
-   WIDE( "    vout.Texture = v.Texture;\n" )
-   WIDE( "    vout.vDiffuse  = v.vColor;\n" )
-   WIDE( "\n" )
-   WIDE( "    return vout;\n" )
-   WIDE( "}\n" );
+static const char *gles_simple_v_shader_shaded_texture =
+   "struct VS_INPUT\n"
+   "{\n"
+   "    float4 vPosition : POSITION;\n"
+   "    float4 vColor : COLOR0;\n"
+   "    float2 Texture    : TEXCOORD0;\n"
+   "};\n"
+   "\n"
+   "struct VS_OUTPUT\n"
+   "{\n"
+   "    float4  vPosition : POSITION;\n"
+   "    float4  vDiffuse : COLOR0;\n"
+   "    float2 Texture    : TEXCOORD0;\n"
+   "};\n"
+   "\n"
+   "float4x4 mWld1;\n"
+   "float4x4 mWld2;\n"
+   "float4x4 mWld3;\n"
+   "float4x4 mWld4;\n"
+   "\n"
+   "VS_OUTPUT main(VS_INPUT v)\n"
+   "{\n"
+   "    VS_OUTPUT vout;\n"
+   "\n"
+   "    // Skin position (to world space)\n"
+   "    float4 vPosition = \n"
+   "        mul(v.vPosition, mWld1) +\n"
+   "        mul(v.vPosition, mWld2) +\n"
+   "        mul(v.vPosition, mWld3) +\n"
+   "        mul(v.vPosition, mWld4) ;\n"
+   "    \n"
+   "    // Output stuff\n"
+   "    vout.vPosition    = vPosition;\n"
+   "    vout.Texture = v.Texture;\n"
+   "    vout.vDiffuse  = v.vColor;\n"
+   "\n"
+   "    return vout;\n"
+   "}\n";
 
 
-static const CTEXTSTR gles_simple_p_shader_shaded_texture =
-	WIDE( "sampler2D Tex0;\n" )
-   WIDE( "struct PS_INPUT\n" )
-   WIDE( "{\n" )
-   WIDE( "    float4  vDiffuse : COLOR0;\n" )
-   WIDE( "    float2 Texture    : TEXCOORD0;\n" )
-   WIDE( "};\n" )
-   WIDE( "\n" )
-   WIDE( "struct PS_OUTPUT\n" )
-   WIDE( "{\n" )
-   WIDE( "    float4 Color : COLOR0;\n" )
-   WIDE( "};\n" )
-   WIDE( "\n" )
-   WIDE( "PS_OUTPUT main( PS_INPUT v )\n" )
-   WIDE( "{\n" )
-   WIDE( "    PS_OUTPUT pout;\n" )
-   WIDE( "    pout.Color = tex2D(Tex0, v.Texture)*v.vDiffuse;\n" )
-   WIDE( "    return pout;\n" )
-   WIDE( "}\n" );
+static const char *gles_simple_p_shader_shaded_texture =
+	"sampler2D Tex0;\n"
+   "struct PS_INPUT\n"
+   "{\n"
+   "    float4  vDiffuse : COLOR0;\n"
+   "    float2 Texture    : TEXCOORD0;\n"
+   "};\n"
+   "\n"
+   "struct PS_OUTPUT\n"
+   "{\n"
+   "    float4 Color : COLOR0;\n"
+   "};\n"
+   "\n"
+   "PS_OUTPUT main( PS_INPUT v )\n"
+   "{\n"
+   "    PS_OUTPUT pout;\n"
+   "    pout.Color = tex2D(Tex0, v.Texture)*v.vDiffuse;\n"
+   "    return pout;\n"
+   "}\n";
 
 
 struct private_shader_data
@@ -166,8 +166,11 @@ void InitSimpleTextureShader( PImageShaderTracker tracker )
 
 	SetShaderEnable( tracker, SimpleTextureEnable, (PTRSZVAL)data );
 
-	if( CompileShaderEx( tracker, gles_simple_v_shader, StrLen(gles_simple_v_shader)
-		, gles_simple_p_shader, StrLen(gles_simple_p_shader), attribs, 2 ) )
+   v_codeblocks[0] = gles_simple_v_shader;
+	p_codeblocks[0] = gles_simple_p_shader;
+
+	if( CompileShaderEx( tracker, v_codeblocks, 1
+		, p_codeblocks, 1, attribs, 2 ) )
 	{
 		//data->texture = glGetUniformLocation(tracker->glProgramId, "tex");
 		//data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
@@ -214,8 +217,12 @@ void InitSimpleShadedTextureShader( PImageShaderTracker tracker )
 
 	SetShaderEnable( tracker, SimpleTextureEnable2, (PTRSZVAL)data );
 
-	if( CompileShaderEx( tracker, gles_simple_v_shader_shaded_texture, StrLen(gles_simple_v_shader_shaded_texture)
-		, gles_simple_p_shader_shaded_texture, StrLen(gles_simple_p_shader_shaded_texture), attribs, 3 ) )
+	const char *v_codeblocks[2];
+	const char *p_codeblocks[2];
+   v_codeblocks[0] = gles_simple_v_shader_shaded_texture;
+	p_codeblocks[0] = gles_simple_p_shader_shaded_texture;
+	if( CompileShaderEx( tracker, v_codeblocks, 1
+		, p_codeblocks, 1, attribs, 3 ) )
 	{
 		//tracker->color_attrib = glGetUniformLocation(tracker->glProgramId, "in_Color" );
 		//data->texture = glGetUniformLocation(tracker->glProgramId, "tex");

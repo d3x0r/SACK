@@ -4910,7 +4910,7 @@ void  HideDisplay (PVIDEO hVideo)
 #undef RestoreDisplay
 void RestoreDisplay( PVIDEO hVideo  )
 {
-   lprintf( "We should not be here!" );
+   lprintf( WIDE("We should not be here!") );
    RestoreDisplayEx( hVideo DBG_SRC );
 }
 

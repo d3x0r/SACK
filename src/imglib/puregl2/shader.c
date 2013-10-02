@@ -184,8 +184,8 @@ void DumpAttribs( PImageShaderTracker tracker, int program )
 
 
 int CompileShaderEx( PImageShaderTracker tracker
-					  , char **vertex_code, int vertex_blocks
-					  , char **frag_code, int frag_blocks
+					  , char const*const*vertex_code, int vertex_blocks
+					  , char const*const*frag_code, int frag_blocks
 					  , struct image_shader_attribute_order *attrib_order, int nAttribs )
 {
 	GLint result=123;
@@ -349,7 +349,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 }
 
 
-int CompileShader( PImageShaderTracker tracker, char **vertex_code, int vertex_blocks, char **frag_code, int frag_blocks )
+int CompileShader( PImageShaderTracker tracker, char const*const*vertex_code, int vertex_blocks, char const*const* frag_code, int frag_blocks )
 {
    return CompileShaderEx( tracker, vertex_code, vertex_blocks, frag_code, frag_blocks, NULL, 0 );
 }

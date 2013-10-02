@@ -8,52 +8,54 @@
 IMAGE_NAMESPACE
 
 //const char *gles_
-static const CTEXTSTR gles_simple_v_shader =
+	static char const * gles_simple_v_shader[]  = {
 
-   WIDE( "struct VS_INPUT\n" )
-   WIDE( "{\n" )
-   WIDE( "    float4 vPosition : POSITION;\n" )
-   WIDE( "};\n" )
-   WIDE( "\n" )
-   WIDE( "struct VS_OUTPUT\n" )
-   WIDE( "{\n" )
-   WIDE( "    float4  vPosition : POSITION;\n" )
-   WIDE( "};\n" )
-   WIDE( "\n" )
-   WIDE( "float4x4 mWld1 : register(c0);\n" )
-   WIDE( "float4x4 mWld2 : register(c4);\n" )
-   WIDE( "float4x4 mWld3 : register(c8);\n" )
-   WIDE( "float4x4 mWld4 : register(c12);\n" )
-   WIDE( "\n" )
-   WIDE( "VS_OUTPUT main(VS_INPUT v)\n" )
-   WIDE( "{\n" )
-   WIDE( "    VS_OUTPUT vout;\n" )
-   WIDE( "\n" )
-   WIDE( "    // Skin position (to world space)\n" )
-   WIDE( "    float4 vPosition = \n" )
-   WIDE( "        mul( (mWld1 * mWld2 /** mWld3*/), v.vPosition );\n" )
-   WIDE( "    \n" )
-   WIDE( "    // Output stuff\n" )
-   WIDE( "    vout.vPosition    = vPosition;\n" )
-   WIDE( "\n" )
-   WIDE( "    return vout;\n" )
-   WIDE( "}\n" );
+   "struct VS_INPUT\n"
+   "{\n"
+   "    float4 vPosition : POSITION;\n"
+   "};\n"
+   "\n"
+   "struct VS_OUTPUT\n"
+   "{\n"
+   "    float4  vPosition : POSITION;\n"
+   "};\n"
+   "\n"
+   "float4x4 mWld1 : register(c0);\n"
+   "float4x4 mWld2 : register(c4);\n"
+   "float4x4 mWld3 : register(c8);\n"
+   "float4x4 mWld4 : register(c12);\n"
+   "\n"
+   "VS_OUTPUT main(VS_INPUT v)\n"
+   "{\n"
+   "    VS_OUTPUT vout;\n"
+   "\n"
+   "    // Skin position (to world space)\n"
+   "    float4 vPosition = \n"
+   "        mul( (mWld1 * mWld2 /** mWld3*/), v.vPosition );\n"
+   "    \n"
+   "    // Output stuff\n"
+   "    vout.vPosition    = vPosition;\n"
+   "\n"
+   "    return vout;\n"
+			"}\n"
+	};
 
 
-static const CTEXTSTR gles_simple_p_shader =
-   WIDE( "float4  vDiffuse : register( c16 );\n" )
-   WIDE( "\n" )
-   WIDE( "struct PS_OUTPUT\n" )
-   WIDE( "{\n" )
-   WIDE( "    float4 Color : COLOR0;\n" )
-   WIDE( "};\n" )
-   WIDE( "\n" )
-   WIDE( "PS_OUTPUT main( void)\n" )
-   WIDE( "{\n" )
-   WIDE( "    PS_OUTPUT pout;\n" )
-   WIDE( "    pout.Color = vDiffuse;\n" )
-   WIDE( "    return pout;\n" )
-   WIDE( "}\n" );
+static char const * gles_simple_p_shader[] = {
+   "float4  vDiffuse : register( c16 );\n"
+   "\n"
+   "struct PS_OUTPUT\n"
+   "{\n"
+   "    float4 Color : COLOR0;\n"
+   "};\n"
+   "\n"
+   "PS_OUTPUT main( void)\n"
+   "{\n"
+   "    PS_OUTPUT pout;\n"
+   "    pout.Color = vDiffuse;\n"
+   "    return pout;\n"
+		"}\n"
+};
 
 
 
@@ -77,8 +79,8 @@ void InitSuperSimpleShader( PImageShaderTracker tracker )
                             , D3DDECL_END()};
 	g_d3d_device->CreateVertexDeclaration(decl, &tracker->vertexDecl);
 
-	if( CompileShader( tracker, gles_simple_v_shader, StrLen( gles_simple_v_shader )
-		, gles_simple_p_shader, StrLen( gles_simple_p_shader ) ) )
+	if( CompileShader( tracker, gles_simple_v_shader, 1
+		, gles_simple_p_shader, 1 ) )
 	{
 		SetShaderEnable( tracker, EnableSimpleShader, 0 );
 	}
