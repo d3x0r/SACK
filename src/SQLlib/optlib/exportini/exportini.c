@@ -41,6 +41,8 @@ int CPROC FillList( PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags
 {
    PLISTFILL plf = (PLISTFILL)psv;
 	LISTFILL lf = *plf;
+	if( StrCmp( name, WIDE(".") ) == 0 )
+      return TRUE;
 	lf.nLevel++;
    lf.flags.bSecondLevel = 1;
 	lprintf( WIDE("%d - %s (%p)"), plf->nLevel, name, ID );

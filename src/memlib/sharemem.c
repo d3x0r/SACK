@@ -1669,7 +1669,7 @@ POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS )
 	{
 		PMALLOC_CHUNK pc;
 #ifdef ENABLE_NATIVE_MALLOC_PROTECTOR
-		pc = (PCHUNK)malloc( sizeof( MALLOC_CHUNK ) + dwSize + sizeof( pc->LeadProtect ) );
+		pc = (PMALLOC_CHUNK)malloc( sizeof( MALLOC_CHUNK ) + dwSize + sizeof( pc->LeadProtect ) );
 		if( !pc )
 			DebugBreak();
 		MemSet( pc->LeadProtect, 0xbabecafe, sizeof( pc->LeadProtect ) );
@@ -2033,6 +2033,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			pc->dwOwners--;
 			if( !pc->dwOwners )
 			{
+				extern int  MemChk ( POINTER p, PTRSZVAL val, size_t sz );
 				if( g.bLogAllocate )
 					_lprintf(DBG_RELAY)( WIDE( "Release %p(%p)" ), pc, pc->byData );
 #ifdef ENABLE_NATIVE_MALLOC_PROTECTOR
