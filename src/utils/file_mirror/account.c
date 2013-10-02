@@ -2552,8 +2552,8 @@ ATEXIT( WaitForTasks )
 {
 	while( g.threads )
 	{
-		lprintf( "Waiting for %d task threads to finish", g.threads );
-		Idle();
+		//lprintf( WIDE( "Waiting for %d task threads to finish" ), g.threads );
+		IdleFor( 100 );
 	}
 }
 
