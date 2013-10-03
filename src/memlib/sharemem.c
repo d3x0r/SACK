@@ -43,7 +43,7 @@
 #endif
 #endif
 
-//#define ENABLE_NATIVE_MALLOC_PROTECTOR
+#define ENABLE_NATIVE_MALLOC_PROTECTOR
 
 #define MEMORY_STRUCT_DEFINED
 #define DEFINE_MEMORY_STRUCT
@@ -137,14 +137,14 @@ static void CPROC InitGlobalData( POINTER p, _32 size )
 {
 	struct global_memory_tag *global = (struct global_memory_tag *)p;
 	global->bCustomAllocer = 0;
-	global->bLogAllocate = 0;
+	global->bLogAllocate = 1;
 	global->bLogAllocateWithHold = 0;
 #ifdef UNDER_CE
-	global->bDisableAutoCheck = 1;
+	global->bDisableAutoCheck = 0;
 #endif
 #    ifndef _DEBUG
 	global->bDisableDebug = 1;
-	global->bDisableAutoCheck = 1;
+	global->bDisableAutoCheck = 0;
 #ifdef DEBUG_CRITICAL_SECTIONS
    global->bLogCritical = 1;
 #endif
@@ -168,7 +168,7 @@ PRIORITY_PRELOAD( InitGlobal, GLOBAL_INIT_PRELOAD_PRIORITY-1 )
 
 #else
 #  ifdef _DEBUG
-struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 1/*auto check*/
+struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 0/*auto check*/
 #    ifdef DEBUG_CRITICAL_SECTIONS
 															 , 1
 #    else
@@ -176,7 +176,7 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 1/*auto check
 #    endif
 
 															 , 0, 0
-															 , 0 /*log allocates*/
+															 , 1 /*log allocates*/
 															 , 0 /* logging too */
 															 , 0 /* custom allocer*/ };
 // this one has memory logging enabled by default...
@@ -444,7 +444,7 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 	}
 	else
 		if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-			_lprintf(DBG_RELAY)( "Locked....for enter" );
+			_lprintf(DBG_RELAY)( WIDE("Locked....for enter") );
 #endif
 
 	if( !pcs->dwThreadID )
@@ -456,12 +456,12 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 			if( pcs->dwThreadWaiting != dwCurProc )
 			{
 #ifdef DEBUG_CRITICAL_SECTIONS
-				lprintf( "waiter is not myself... someone else wanted to own this section (more recently) than me." );
+				lprintf( WIDE("waiter is not myself... someone else wanted to own this section (more recently) than me.") );
 #endif
 				if( prior && !(*prior) )
 				{
 #ifdef DEBUG_CRITICAL_SECTIONS
-					lprintf( "Inserting myself as waiter..." );
+					lprintf( WIDE("Inserting myself as waiter...") );
 #endif
 					(*prior) = pcs->dwThreadWaiting;
 					pcs->dwThreadWaiting = dwCurProc;
@@ -486,7 +486,7 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 
 #ifdef DEBUG_CRITICAL_SECTIONS
 				if( g.bLogCritical )
-					lprintf( "Was woken up as wrong thread.. %016Lx %016Lx %016Lx", dwCurProc, pcs->dwThreadWaiting, prior?(*prior):0 );
+					lprintf( WIDE("Was woken up as wrong thread.. %016Lx %016Lx %016Lx"), dwCurProc, pcs->dwThreadWaiting, prior?(*prior):0 );
 #endif
 				// wake the correct thread...
 				if( prior && !( *prior ) )
@@ -496,7 +496,7 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 #ifdef DEBUG_CRITICAL_SECTIONS
 				else if( prior )
 				{
-               lprintf( "Already saved the prior waiter and are setting self as waiter." );
+               lprintf( WIDE("Already saved the prior waiter and are setting self as waiter.") );
 				}
 #endif
 				pcs->dwThreadWaiting = dwCurProc;
@@ -510,13 +510,13 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 			{
 #ifdef DEBUG_CRITICAL_SECTIONS
 				if( g.bLogCritical )
-					lprintf( "Was woken up as correct thread.. %016Lx %016Lx %016Lx", dwCurProc, pcs->dwThreadWaiting, prior?(*prior):0 );
+					lprintf( WIDE("Was woken up as correct thread.. %016Lx %016Lx %016Lx"), dwCurProc, pcs->dwThreadWaiting, prior?(*prior):0 );
 #endif
             // is me... unowned section, and prior waiter is me.
 				if( prior && (*prior ) )
 				{
 #ifdef DEBUG_CRITICAL_SECTIONS
-					lprintf( "Moving prior into waiting... %08x %08x", pcs->dwThreadWaiting, *prior );
+					lprintf( WIDE("Moving prior into waiting... %08x %08x"), pcs->dwThreadWaiting, *prior );
 #endif
 					pcs->dwThreadWaiting = *prior;
 					*prior = 0;

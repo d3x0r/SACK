@@ -158,6 +158,10 @@ OPTION( USE_ASSEMBLY "Use Assembly files as available.  NASM required for this."
 OPTION( BUILD_MONOLITHIC "Build one giant library" ${BUILD_MONOLITHIC} )
 OPTION( BUILD_UNICODE "Build All as Unicode" ${BUILD_UNICODE} )
 
+# default itnerface output path... (override if __CLR__)
+# should make this a common target variable instead also...
+set( INTERFACE_OUTPUT_DIR ${BINARY_OUTPUT_DIR} )
+
 if( MSVC )
   if( FORCE_MSVCRT )
     set( extra_link_flags "${extra_link_flags} /NODEFAULTLIB" )
@@ -165,6 +169,7 @@ if( MSVC )
   endif( FORCE_MSVCRT )
 add_definitions( -D_CRT_SECURE_NO_WARNINGS -wd4995 -wd4996 )
 if( __CLR__ )
+  set( INTERFACE_OUTPUT_DIR . )
   set( BUILD_UNICODE ON )
   string( REPLACE "/EHsc" "" CMAKE_CXX_FLAGS_INIT ${CMAKE_CXX_FLAGS_INIT} )
   string( REPLACE "/EHsc" "" CMAKE_C_FLAGS_INIT ${CMAKE_C_FLAGS_INIT} )
@@ -174,6 +179,7 @@ if( __CLR__ )
   # cannot set CLR for C code anyway
   #string( REPLACE "/RTC1" "/CLR" CMAKE_C_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG} )
   set( FORCE_CXX ON )
+else( __CLR__ )
 endif( __CLR__ )
 endif( MSVC )
 
@@ -376,13 +382,15 @@ endif( WIN32 )
 if( NOT __NO_CPLUSPLUS )
 
 if( WATCOM )
-set( SACK_BAG_PLUSPLUS sack_bag_pp )
-set( BAG_PLUSPLUS bag_pp )
-set( BAG_PSI_PLUSPLUS bag.psi_pp )
+  set( SACK_BAG_PLUSPLUS sack_bag_pp )
+  set( BAG_PLUSPLUS bag_pp )
+  set( BAG_PSI_PLUSPLUS bag.psi_pp )
 else(WATCOM)
-set( SACK_BAG_PLUSPLUS sack_bag++ )
-set( BAG_PLUSPLUS bag++ )
-set( BAG_PSI_PLUSPLUS bag.psi++ )
+  if( NOT __CLR__ )
+    set( SACK_BAG_PLUSPLUS sack_bag++ )
+    set( BAG_PLUSPLUS bag++ )
+    set( BAG_PSI_PLUSPLUS bag.psi++ )
+  endif( NOT __CLR__ )
 endif(WATCOM)
 
 FOREACH(SOURCE ${SACK_PLUSPLUS_HEADERS})
@@ -649,68 +657,34 @@ endif( NOT __NO_CPLUSPLUS )
 
 if( CMAKE_COMPILER_IS_GNUCC AND NOT MINGW)
 if( __CLR__ )
-INSTALL(
-  FILES
-    data/interface.conf.new
-  DESTINATION
-    # this could also be /etc
-    bin
-  RENAME interface.conf
-)
+       set( INTERFACE_CONFIGURATION data/interface.conf.new )
 else( __CLR__ )
-INSTALL(
-  FILES
-    data/interface.conf.new
-  DESTINATION
-    # this could also be /etc
-    bin
-  RENAME interface.conf
-)
+       set( INTERFACE_CONFIGURATION data/interface.conf.new )
 endif(__CLR__)
 else( CMAKE_COMPILER_IS_GNUCC )
    if( BUILD_UNICODE )
-INSTALL(
-  FILES
-    data/interface.conf.unicode
-  DESTINATION
-    # this could also be /etc
-    bin
-  RENAME interface.conf
-)
+       set( INTERFACE_CONFIGURATION data/interface.conf.unicode )
    else( BUILD_UNICODE )
       if( SUPPORTS_PARALLEL_BUILD_TYPE )
         if( __CLR__ )
-          INSTALL(
-            FILES
-              data/interface.conf
-            DESTINATION
-              # this could also be /etc
-              .
-            RENAME interface.conf
-          )
+          set( INTERFACE_CONFIGURATION data/interface.conf )
         else( __CLR__ )
-          INSTALL(
-            FILES
-              data/interface.conf
-            DESTINATION
-              # this could also be /etc
-              bin
-            RENAME interface.conf
-          )
+          set( INTERFACE_CONFIGURATION data/interface.conf )
         endif( __CLR__ )
       else( SUPPORTS_PARALLEL_BUILD_TYPE )
-        INSTALL(
-          FILES
-            data/interface.conf
-          DESTINATION
-            # this could also be /etc
-            bin
-          RENAME interface.conf
-        )
+        set( INTERFACE_CONFIGURATION data/interface.conf )
       endif( SUPPORTS_PARALLEL_BUILD_TYPE )
    endif( BUILD_UNICODE )
 endif( CMAKE_COMPILER_IS_GNUCC AND NOT MINGW)
 
+INSTALL(
+  FILES
+    ${INTERFACE_CONFIGURATION}
+  DESTINATION
+    # this could also be /etc
+    ${INTERFACE_OUTPUT_DIR}
+  RENAME interface.conf
+)
 
 
 
@@ -1135,30 +1109,21 @@ else( CMAKE_COMPILER_IS_GNUCC )
 
 endif( CMAKE_COMPILER_IS_GNUCC )
 
-set( INTERFACE_TARGETS 
-   interface.conf
-   d3d.interface.conf
-   d3d2.interface.conf
-   d3d3.interface.conf
-   gl.interface.conf
-   gl1.5.interface.conf
-   gl2.interface.conf
-   )
 
 set( INTERFACE_TARGET windows )
-configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/bin/interface.conf )
+configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/${INTERFACE_OUTPUT_DIR}/interface.conf )
 set( INTERFACE_TARGET opengl )
-configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/bin/${INTERFACE_TARGET}.interface.conf )
+configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/${INTERFACE_OUTPUT_DIR}/${INTERFACE_TARGET}.interface.conf )
 set( INTERFACE_TARGET opengl1.5 )
-configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/bin/${INTERFACE_TARGET}.interface.conf )
+configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/${INTERFACE_OUTPUT_DIR}/${INTERFACE_TARGET}.interface.conf )
 set( INTERFACE_TARGET opengl2 )
-configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/bin/${INTERFACE_TARGET}.interface.conf )
+configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/${INTERFACE_OUTPUT_DIR}/${INTERFACE_TARGET}.interface.conf )
 set( INTERFACE_TARGET d3d )
-configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/bin/${INTERFACE_TARGET}.interface.conf )
+configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/${INTERFACE_OUTPUT_DIR}/${INTERFACE_TARGET}.interface.conf )
 set( INTERFACE_TARGET d3d2 )
-configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/bin/${INTERFACE_TARGET}.interface.conf )
+configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/${INTERFACE_OUTPUT_DIR}/${INTERFACE_TARGET}.interface.conf )
 set( INTERFACE_TARGET d3d3 )
-configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/bin/${INTERFACE_TARGET}.interface.conf )
+configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/${INTERFACE_OUTPUT_DIR}/${INTERFACE_TARGET}.interface.conf )
 
 
 
@@ -1169,7 +1134,7 @@ endif( NOT BUILD_MONOLITHIC AND NOT __NO_GUI__ )
 add_subdirectory( src/libvlc/2.0.1 )
 
 # parts of SDK ...
-set( INSTALL_FRAME_BORDER bin/images )
+set( INSTALL_FRAME_BORDER ${INTERFACE_OUTPUT_DIR}/images )
 add_subdirectory( data )
 add_subdirectory( include )
 add_subdirectory( src/utils/runner )
@@ -1256,11 +1221,7 @@ SET( CMAKE_INSTALL_DEBUG_LIBRARIES_ONLY 1 )
 endif( ${CMAKE_BUILD_TYPE} MATCHES "[dD][eE][bB][uU][gG]" )
 
 INCLUDE(InstallRequiredSystemLibraries)
-if( __CLR__ )
-INSTALL( FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION . )
-else( __CLR__ )
-INSTALL( FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin )
-endif( __CLR__ )
+INSTALL( FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION ${BINARY_OUTPUT_DIR} )
 
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "SACK Layer 1")
 SET(CPACK_PACKAGE_VENDOR "Freedom Collective")
@@ -1282,16 +1243,16 @@ IF(WIN32 AND NOT UNIX)
   # There is a bug in NSI that does not handle full unix paths properly. Make
   # sure there is at least one set of four (4) backlasshes.
   SET(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/doc\\\\BlankButton.jpg")
-  SET(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\sack_bag.dll")
+  SET(CPACK_NSIS_INSTALLED_ICON_NAME "${BINARY_OUTPUT_DIR}\\\\sack_bag.dll")
   SET(CPACK_NSIS_DISPLAY_NAME "SACK ${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
   SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\code.google.com\\\\p\\\\c-system-abstraction-component-gui")
   SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\code.google.com\\\\p\\\\c-system-abstraction-component-gui")
   SET(CPACK_NSIS_CONTACT "d3ck0r@gmail.com")
-  SET(CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '\$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Set Build Mode.lnk' '\$INSTDIR\\\\bin\\\\${VERSION_TYPE}\\\\sack_deploy.exe'" )
-  SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "ExecWait '\\\"\$INSTDIR\\\\bin\\\\${VERSION_TYPE}\\\\sack_deploy.exe\\\"'")
+  SET(CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '\$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Set Build Mode.lnk' '\$INSTDIR\\\\${BINARY_OUTPUT_DIR}\\\\${VERSION_TYPE}\\\\sack_deploy.exe'" )
+  SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "ExecWait '\\\"\$INSTDIR\\\\${BINARY_OUTPUT_DIR}\\\\${VERSION_TYPE}\\\\sack_deploy.exe\\\"'")
   SET(CPACK_NSIS_MODIFY_PATH ON)
 ELSE(WIN32 AND NOT UNIX)
-  SET(CPACK_STRIP_FILES "bin/MyExecutable")
+  SET(CPACK_STRIP_FILES "${BINARY_OUTPUT_DIR}/MyExecutable")
   SET(CPACK_SOURCE_STRIP_FILES "")
 ENDIF(WIN32 AND NOT UNIX)
 #SET(CPACK_PACKAGE_EXECUTABLES "" "My Executable")

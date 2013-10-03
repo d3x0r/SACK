@@ -767,8 +767,8 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
 	plq = *pplq;
 	if( _link_queue_local )
 		_link_queue_local->thread = MakeThread();
-	else
-		s_link_queue_local.thread = MakeThread();
+	//else
+	//	s_link_queue_local.thread = MakeThread();
 	if( link )
 	{
       tmp = plq->Top + 1;
@@ -915,8 +915,8 @@ POINTER  DequeLink ( PLINKQUEUE *pplq )
 		return NULL;
 	if( _link_queue_local )
 		_link_queue_local->thread = MakeThread();
-	else
-		s_link_queue_local.thread = MakeThread();
+	//else
+	//	s_link_queue_local.thread = MakeThread();
 	p = NULL;
 	if( (*pplq)->Bottom != (*pplq)->Top )
 	{

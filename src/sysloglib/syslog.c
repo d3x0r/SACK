@@ -1578,8 +1578,14 @@ RealLogFunction _xlprintf( _32 level DBG_PASS )
 #ifndef __STATIC_GLOBALS__
 	if( !syslog_local )
 	{
-		return _null_lprintf;
+		static int opening;
+		if( !opening )
+			opening = 1;
+		else
+			return _null_lprintf;
+		//return _null_lprintf;
 		InitSyslog( 1 );
+		opening = 0;
 	}
 #endif
 #if _DEBUG
