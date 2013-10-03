@@ -14,6 +14,7 @@
 
 #include "shaders.h"
 
+IMAGE_NAMESPACE
 
 //const char *gles_
 static const char *gles_simple_v_shader =
@@ -65,3 +66,5 @@ void InitSuperSimpleShader( PImageShaderTracker tracker )
 		SetShaderEnable( tracker, EnableSimpleShader, color_attrib );
 	}
 }
+
+IMAGE_NAMESPACE_END

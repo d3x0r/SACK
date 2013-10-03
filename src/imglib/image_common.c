@@ -56,6 +56,8 @@ int bGLColorMode = 0; // this gets set if we're working with BGR native or RGB n
 
 #include "blotproto.h"
 
+#define REQUIRE_GLUINT
+#include "image_common.h"
 
 #ifndef __arm__
 
@@ -1256,8 +1258,11 @@ void RotateImageAbout( Image pImage, int edge_flag, RCOORD offset_x, RCOORD offs
 
 void MarkImageDirty( Image pImage )
 {
-#if defined( _D3D_DRIVER ) || defined( _OPENGL_DRIVER )
+#if defined( _D3D_DRIVER )
 	extern void MarkImageUpdated( Image child_image );
+#endif
+#if defined( _OPENGL_DRIVER )
+	extern struct glSurfaceImageData * MarkImageUpdated( Image child_image );
 #endif
 	MarkImageUpdated( pImage );
 }

@@ -64,10 +64,14 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 if( __ANDROID__ )
 target_link_libraries( ${project} ${SACK_CORE_LIBRARY} )
 else( __ANDROID__ )
-target_link_libraries( ${project} ${SACK_CORE_LIBRARY} )
+target_link_libraries( ${project} ${SACK_LIBRARIES} )
 endif( __ANDROID__ )
 
-target_link_libraries( ${project} ${BAG_PSI_PLUSPLUS} d3dcompiler )
+if( NOT FORCE_CXX )
+  # if forced to cxx, don't need extra libraries.
+  target_link_libraries( ${project} ${BAG_PSI_PLUSPLUS} )
+endif( NOT FORCE_CXX )
+target_link_libraries( ${project} d3dcompiler )
 
 install_mode_dest( ${project} )
 

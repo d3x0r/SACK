@@ -1189,7 +1189,7 @@ void DoSystemLog( const TEXTCHAR *buffer )
 	{
 #  ifdef __cplusplus_cli
 		// requires referenced xperdex.classes... if this doesn't compile, please add the reference
-		xperdex::classes::Log::log( gcnew System::String( buffer ) );
+		//xperdex::classes::Log::log( gcnew System::String( buffer ) );
 		//System::Console::WriteLine( gcnew System::String( buffer ) );
 		//System::Diagnostics::Debug
 #  else
@@ -1199,10 +1199,11 @@ void DoSystemLog( const TEXTCHAR *buffer )
 		OutputDebugString( buffer );
 		OutputDebugString( WIDE("\n") );
 #    endif
-	}
 #  endif
+	} 
+	else 
 #endif
-	else if( logtype == SYSLOG_CALLBACK )
+	if( logtype == SYSLOG_CALLBACK )
 		UserCallback( buffer );
 }
 

@@ -33,11 +33,7 @@
 #include "blotproto.h"
 #include "shaders.h"
 #include "../image_common.h"
-#ifdef __cplusplus
-namespace sack {
-namespace image {
-#endif
-
+IMAGE_NAMESPACE
 
 //---------------------------------------------------------------------------
 
@@ -729,60 +725,4 @@ void  BlotImageEx ( ImageFile *pifDest, ImageFile *pifSrc, S_32 xd, S_32 yd, _32
                                       , r,g,b
                                     );
 }
-#ifdef __cplusplus
-}; //namespace sack::image {
-}; //namespace sack::image {
-#endif
-
-
-// $Log: blotdirect.c,v $
-// Revision 1.21  2003/12/13 08:26:57  panther
-// Fix blot direct for image bound having been set (break natural?)
-//
-// Revision 1.20  2003/09/21 20:47:26  panther
-// Removed noisy logging messages.
-//
-// Revision 1.19  2003/09/21 16:25:28  panther
-// Removed much noisy logging, all in the interest of sheet controls.
-// Fixed some linking of services.
-// Fixed service close on dead client.
-//
-// Revision 1.18  2003/09/12 14:37:55  panther
-// Fix another overflow in drawing sources rects greater than source image
-//
-// Revision 1.17  2003/09/12 14:12:54  panther
-// Fix apparently blotting image problem...
-//
-// Revision 1.16  2003/08/30 10:05:01  panther
-// Fix clipping blotted images beyond dest boundries
-//
-// Revision 1.15  2003/08/14 11:57:48  panther
-// Okay - so this blotdirect code definatly works....
-//
-// Revision 1.14  2003/08/13 16:24:22  panther
-// Well - found what was broken...
-//
-// Revision 1.13  2003/08/13 16:14:11  panther
-// Remove stupid timing...
-//
-// Revision 1.12  2003/07/31 08:55:30  panther
-// Fix blotscaled boundry calculations - perhaps do same to blotdirect
-//
-// Revision 1.11  2003/07/25 00:08:31  panther
-// Fixeup all copyies, scaled and direct for watcom
-//
-// Revision 1.10  2003/07/01 08:54:13  panther
-// Fix seg fault when blotting soft cursor over bottom of screen
-//
-// Revision 1.9  2003/04/25 08:33:09  panther
-// Okay move the -1's back out of IMG_ADDRESS
-//
-// Revision 1.8  2003/04/24 00:03:49  panther
-// Added ColorAverage to image... Fixed a couple macros
-//
-// Revision 1.7  2003/03/30 18:39:03  panther
-// Update image blotters to use IMG_ADDRESS
-//
-// Revision 1.6  2003/03/25 08:45:51  panther
-// Added CVS logging tag
-//
+IMAGE_NAMESPACE_END

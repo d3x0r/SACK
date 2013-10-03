@@ -5,6 +5,21 @@ ASM_IMAGE_NAMESPACE_END
 
 IMAGE_NAMESPACE
 
+#ifndef _D3D_DRIVER
+#ifdef REQUIRE_GLUINT
+typedef unsigned int GLuint;
+#endif
+
+// this is actually specific, and is not common, but common needs it in CLR
+// because of tight typechecking.
+struct glSurfaceImageData {
+	struct {
+		BIT_FIELD updated : 1;
+	} flags;
+	GLuint glIndex;
+};
+#endif
+
 void  CPROC cSetColorAlpha( PCDATA po, int oo, int w, int h, CDATA color );
 void  CPROC cSetColor( PCDATA po, int oo, int w, int h, CDATA color );
 

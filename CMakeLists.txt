@@ -165,15 +165,15 @@ if( MSVC )
   endif( FORCE_MSVCRT )
 add_definitions( -D_CRT_SECURE_NO_WARNINGS -wd4995 -wd4996 )
 if( __CLR__ )
-set( CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/output/${CMAKE_BUILD_TYPE}/x86/V4.0 )
-set( BUILD_UNICODE ON )
-string( REPLACE "/EHsc" "" CMAKE_CXX_FLAGS_INIT ${CMAKE_CXX_FLAGS_INIT} )
-string( REPLACE "/EHsc" "" CMAKE_C_FLAGS_INIT ${CMAKE_C_FLAGS_INIT} )
-string( REPLACE "/EHs" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_INIT} )
-string( REPLACE "/EHs" "" CMAKE_C_FLAGS_INIT ${CMAKE_C_FLAGS_INIT} )
-string( REPLACE "/RTC1" "/CLR" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG} )
-string( REPLACE "/RTC1" "/CLR" CMAKE_C_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG} )
-set( FORCE_CXX ON )
+  set( BUILD_UNICODE ON )
+  string( REPLACE "/EHsc" "" CMAKE_CXX_FLAGS_INIT ${CMAKE_CXX_FLAGS_INIT} )
+  string( REPLACE "/EHsc" "" CMAKE_C_FLAGS_INIT ${CMAKE_C_FLAGS_INIT} )
+  string( REPLACE "/EHs" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_INIT} )
+  string( REPLACE "/EHs" "" CMAKE_C_FLAGS_INIT ${CMAKE_C_FLAGS_INIT} )
+  string( REPLACE "/RTC1" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG} )
+  # cannot set CLR for C code anyway
+  #string( REPLACE "/RTC1" "/CLR" CMAKE_C_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG} )
+  set( FORCE_CXX ON )
 endif( __CLR__ )
 endif( MSVC )
 
@@ -711,6 +711,9 @@ INSTALL(
    endif( BUILD_UNICODE )
 endif( CMAKE_COMPILER_IS_GNUCC AND NOT MINGW)
 
+
+
+
 if( NOT NEED_PNG ) 
   my_target_link_libraries( sack_bag png )
   if( SACK_BUILD_STATIC_LIBS )
@@ -769,6 +772,10 @@ add_library( bag SHARED
     ${BAG_SQLITE_INTERFACE}
   ${LAST_GCC_LIBRARY_SOURCE}  
 )
+
+if( FORCE_CXX )
+set( ExtraFlags ${ExtraFlags} /CLR )
+endif( FORCE_CXX )
 
 SET_TARGET_PROPERTIES(bag PROPERTIES 
                   DEFINE_SYMBOL SACK_BAG_EXPORTS
@@ -837,18 +844,19 @@ if( __ARM__ )
      my_target_link_libraries( bag ${PLATFORM_LIBRARIES} )
      if( NOT __NO_CPLUSPLUS )
        my_target_link_libraries( ${BAG_PLUSPLUS} ${PLATFORM_LIBRARIES} )
+       my_target_link_libraries( ${BAG_PLUSPLUS} bag.externals )
      endif( NOT __NO_CPLUSPLUS )
   endif( NOT __ANDROID__ )
 else()
   my_target_link_libraries( bag ${ODBC_LIBRARY} ${SOCKET_LIBRARIES} ${WIN_SYS_LIBS} ${SQLITE3_LIBRARIES} ${PLATFORM_LIBRARIES})
   if( NOT __NO_CPLUSPLUS )
     if( NOT FORCE_CXX )
-      my_target_link_libraries( ${BAG_PLUSPLUS} ${ODBC_LIBRARY} ${SOCKET_LIBRARIES} ${WIN_SYS_LIBS} ${SQLITE3_LIBRARIES} ${PLATFORM_LIBRARIES})
+       my_target_link_libraries( ${BAG_PLUSPLUS} ${ODBC_LIBRARY} ${SOCKET_LIBRARIES} ${WIN_SYS_LIBS} ${SQLITE3_LIBRARIES} ${PLATFORM_LIBRARIES})
+       my_target_link_libraries( ${BAG_PLUSPLUS} bag.externals )
     endif( NOT FORCE_CXX )
   endif( NOT __NO_CPLUSPLUS )
 endif()
 
-my_target_link_libraries( ${BAG_PLUSPLUS} bag.externals )
 
 if( NOT __NO_CPLUSPLUS )
   if( FORCE_CXX )
@@ -1016,7 +1024,7 @@ endif( WATCOM )
     #endif( __ANDROID__ )
 
 
-IF(EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
+IF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
   if( WATCOM )
     message( "bullet is not watcom friendly" )
   else( WATCOM )
@@ -1072,7 +1080,7 @@ IF(EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
   endif( WATCOM )
 else()
   set( __BULLET_ENABLED__ OFF )
-ENDIF(EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
+endIF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
 
 #if( !MSVC )
 #add_subdirectory( src/displaylib )
@@ -1105,91 +1113,57 @@ set(DIRECTX_SDK "" CACHE STRING "directx sdk path to build d3d parts")
 
 if( CMAKE_COMPILER_IS_GNUCC )
     if( __ANDROID__ )
-       INSTALL(
-         FILES
-           data/interface.conf.puregl.android
-         DESTINATION
-           # this could also be /etc
-           bin
-         RENAME interface.conf
-       )
+       set( INTERFACE_CONFIGURATION data/interface.conf.puregl.android )
     elseif( __QNX__ )
-       INSTALL(
-         FILES
-           data/interface.conf.puregl.qnx
-         DESTINATION
-           # this could also be /etc
-           bin
-         RENAME interface.conf
-       )
+       set( INTERFACE_CONFIGURATION data/interface.conf.puregl.qnx )
     elseif( WIN32 )
        if( BUILD_UNICODE)
-          INSTALL(
-            FILES
-              data/interface.conf.puregl.gcc.unicode
-            DESTINATION
-              # this could also be /etc
-              bin
-            RENAME interface.conf
-          )
+          set( INTERFACE_CONFIGURATION data/interface.conf.puregl.gcc.unicode )
        else( BUILD_UNICODE)
-          INSTALL(
-            FILES
-              data/interface.conf.puregl.gcc
-            DESTINATION
-              # this could also be /etc
-              bin
-            RENAME interface.conf
-          )
+          set( INTERFACE_CONFIGURATION data/interface.conf.puregl.gcc )
        endif( BUILD_UNICODE)
     else( )
-
-       INSTALL(
-         FILES
-           data/interface.conf.puregl.lnx
-         DESTINATION
-           # this could also be /etc
-           bin
-         RENAME interface.conf
-       )
+        set( INTERFACE_CONFIGURATION data/interface.conf.puregl.lnx )
     endif( __ANDROID__ )
 
 else( CMAKE_COMPILER_IS_GNUCC )
   if( BUILD_UNICODE )
-    if( __CLR__ )
-    INSTALL(
-      FILES
-        data/interface.conf.puregl.vc.unicode
-      DESTINATION
-        # this could also be /etc
-        .
-      RENAME interface.conf
-    )
-    else( __CLR__ )
-    
-    INSTALL(
-      FILES
-        data/interface.conf.puregl.vc.unicode
-      DESTINATION
-        # this could also be /etc
-        bin
-      RENAME interface.conf
-    )
-    endif( __CLR__ )
-   else( BUILD_UNICODE )
-    INSTALL(
-      FILES
-        data/interface.conf.puregl.vc
-      DESTINATION
-        # this could also be /etc
-        bin
-      RENAME interface.conf
-    )
-   endif( BUILD_UNICODE )
+     set( INTERFACE_CONFIGURATION data/interface.conf.puregl.vc.unicode )
+  else( BUILD_UNICODE )
+     set( INTERFACE_CONFIGURATION data/interface.conf.puregl.vc )
+  endif( BUILD_UNICODE )
 
 endif( CMAKE_COMPILER_IS_GNUCC )
 
+set( INTERFACE_TARGETS 
+   interface.conf
+   d3d.interface.conf
+   d3d2.interface.conf
+   d3d3.interface.conf
+   gl.interface.conf
+   gl1.5.interface.conf
+   gl2.interface.conf
+   )
+
+set( INTERFACE_TARGET windows )
+configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/bin/interface.conf )
+set( INTERFACE_TARGET opengl )
+configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/bin/${INTERFACE_TARGET}.interface.conf )
+set( INTERFACE_TARGET opengl1.5 )
+configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/bin/${INTERFACE_TARGET}.interface.conf )
+set( INTERFACE_TARGET opengl2 )
+configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/bin/${INTERFACE_TARGET}.interface.conf )
+set( INTERFACE_TARGET d3d )
+configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/bin/${INTERFACE_TARGET}.interface.conf )
+set( INTERFACE_TARGET d3d2 )
+configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/bin/${INTERFACE_TARGET}.interface.conf )
+set( INTERFACE_TARGET d3d3 )
+configure_file( ${INTERFACE_CONFIGURATION} ${CMAKE_INSTALL_PREFIX}/bin/${INTERFACE_TARGET}.interface.conf )
+
+
+
 endif( NOT BUILD_MONOLITHIC AND NOT __NO_GUI__ )
+
 
 #add_subdirectory( src/libvlc/1.1.6 )
 add_subdirectory( src/libvlc/2.0.1 )
@@ -1257,11 +1231,8 @@ add_subdirectory( src/utils/deploy )
   add_subdirectory( src/utils/unicode_ascii )
   add_subdirectory( src/SQLlib/optlib/setoptions )
   
-  if( NOT __CLR__ )
-    # have some issues unicode/ascii here...
-    add_subdirectory( src/SQLlib/optlib/importini )
-    add_subdirectory( src/SQLlib/optlib/exportini )
-  endif( NOT __CLR__ )
+  add_subdirectory( src/SQLlib/optlib/importini )
+  add_subdirectory( src/SQLlib/optlib/exportini )
   
  endif( USE_OPTIONS )
 

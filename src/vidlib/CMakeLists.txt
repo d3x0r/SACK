@@ -2,6 +2,10 @@
 # because sources are common to monolithic build mode
 # they are already defined in a variable calld VIDLIB_SOURCES (defined in CMakeSources.lst)
 
+if( FORCE_CXX )
+    set_source_files_properties( ${VIDLIB_SOURCES}  PROPERTIES LANGUAGE CXX )
+endif( FORCE_CXX )
+
 add_library( bag.video SHARED 
   ${FIRST_GCC_LIBRARY_SOURCE} 
   ${VIDLIB_SOURCES} 

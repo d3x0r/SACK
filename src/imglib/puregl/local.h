@@ -26,12 +26,6 @@ struct glSurfaceData {
 	} shader;
 };
 
-struct glSurfaceImageData {
-	struct {
-		BIT_FIELD updated : 1;
-	} flags;
-	GLuint glIndex;
-};
 
 #ifndef IMAGE_LIBRARY_SOURCE_MAIN
 extern

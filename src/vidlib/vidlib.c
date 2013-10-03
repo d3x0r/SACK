@@ -108,11 +108,12 @@ struct sprite_method_tag
 };
 IMAGE_NAMESPACE_END
 
-RENDER_NAMESPACE
 
 // move local into render namespace.
 #define VIDLIB_MAIN
 #include "local.h"
+
+RENDER_NAMESPACE
 
 extern KEYDEFINE KeyDefs[];
 

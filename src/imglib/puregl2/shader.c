@@ -1,9 +1,11 @@
 
 #include <stdhdrs.h>
-struct glSurfaceData;
+
 #include "local.h"
 
 #include "shaders.h"
+
+IMAGE_NAMESPACE
 
 PImageShaderTracker GetShader( CTEXTSTR name, void (CPROC*Init)(PImageShaderTracker) )
 {
@@ -206,8 +208,8 @@ int CompileShaderEx( PImageShaderTracker tracker
 	glShaderSource(
 		tracker->glVertexProgramId, //The handle to our shader
 		vertex_blocks, //The number of files.
-		vertex_code, //An array of const char * data, which represents the source code of theshaders
-		NULL); //An array of string leng7ths. For have null terminated strings, pass NULL.
+		(const GLchar **)vertex_code, //An array of const char * data, which represents the source code of theshaders
+		(const GLint *)NULL); //An array of string leng7ths. For have null terminated strings, pass NULL.
 	 
 	//Attempt to compile the shader.
 	glCompileShader(tracker->glVertexProgramId);
@@ -261,8 +263,8 @@ int CompileShaderEx( PImageShaderTracker tracker
 	glShaderSource(
 		tracker->glFragProgramId, //The handle to our shader
 		frag_blocks, //The number of files.
-		frag_code, //An array of const char * data, which represents the source code of theshaders
-		NULL); //An array of string lengths. For have null terminated strings, pass NULL.
+		(const GLchar **)frag_code, //An array of const char * data, which represents the source code of theshaders
+		(const GLint *)NULL); //An array of string lengths. For have null terminated strings, pass NULL.
 	CheckErrf(WIDE("set source fail"));
 	 
 	//Attempt to compile the shader.
@@ -367,3 +369,5 @@ void SetShaderModelView( PImageShaderTracker tracker, RCOORD *matrix )
 		tracker->flags.set_modelview = 1;
 	}
 }
+
+IMAGE_NAMESPACE_END

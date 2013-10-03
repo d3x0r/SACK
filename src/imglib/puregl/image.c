@@ -32,13 +32,11 @@
 #include <image.h>
 #include <render3d.h>
 #include "../image_common.h"
-#ifdef __cplusplus
-using namespace sack::image::loader;
-#endif
+
 #include "local.h"
 #include "blotproto.h"
 
-
+IMAGE_NAMESPACE 
 struct glSurfaceImageData * MarkImageUpdated( Image child_image )
 {
 	Image image;
@@ -223,11 +221,15 @@ int ReloadOpenGlMultiShadedTexture( Image child_image, int option, CDATA r, CDAT
 				}
 
 }
+IMAGE_NAMESPACE_END
+ASM_IMAGE_NAMESPACE
 extern void  (CPROC*BlatPixelsAlpha)( PCDATA po, int oo, int w, int h
                   , CDATA color );
 
 extern void  (CPROC*BlatPixels)( PCDATA po, int oo, int w, int h
                   , CDATA color );
+ASM_IMAGE_NAMESPACE_END
+IMAGE_NAMESPACE
 
 //---------------------------------------------------------------------------
 // This routine fills a rectangle with a solid color
