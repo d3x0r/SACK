@@ -8,6 +8,9 @@ if( NOT PROJECT_NAME )
 project( Sack.all )
 endif( NOT PROJECT_NAME )
 
+# include this so default output paths get defined.
+include( ${CMAKE_CURRENT_SOURCE_DIR}/../makefiles/cmake/DefaultInstall.cmake )
+
 if( MSVC10 )
 IF(NOT CMAKE_CROSSCOMPILING)
   FIND_PROGRAM(REAL_CMAKE_MAKE_PROGRAM
@@ -164,7 +167,7 @@ if( NOT __ANDROID__ )
   # this calls sack_deploy to build cmakepackage
   # on android ended up making a cmake-configured-cmake-script to make this file.
   Add_custom_command( TARGET Build${PROJECT} 
-	COMMAND ${SACK_SDK_ROOT_PATH}/bin/sack_deploy${CMAKE_EXECUTABLE_SUFFIX} -nr
+	COMMAND ${SACK_SDK_ROOT_PATH}/${BINARY_OUTPUT_DIR}/sack_deploy${CMAKE_EXECUTABLE_SUFFIX} -nr
 	WORKING_DIRECTORY ${SACK_SDK_ROOT_PATH}
   )                
 endif( NOT __ANDROID__ )

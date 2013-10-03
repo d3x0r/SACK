@@ -11,7 +11,7 @@
 
 // debugging only gets you the ordering(priority) logging and something else...
 // useful logging is now controlled with l.flags.bLog
-#define DISABLE_DEBUG_REGISTER_AND_DISPATCH
+//#define DISABLE_DEBUG_REGISTER_AND_DISPATCH
 //#define DEBUG_SHUTDOWN
 #define LOG_ALL 0
 
@@ -170,8 +170,8 @@ void EnqueStartupProc( PSTARTUP_PROC *root, PSTARTUP_PROC proc )
 						 , proc->func
 						 , proc - procs
 						 , check->func
-						 , (check->me==root)?"Is First":((PSTARTUP_PROC)check->me)->func
-						 , (*root)?(*root)->func:"First"
+						 , (check->me==root)?WIDE("Is First"):((PSTARTUP_PROC)check->me)->func
+						 , (*root)?(*root)->func:WIDE("First")
 						 );
 #endif
 				proc->next = check;

@@ -1,4 +1,17 @@
 
+if( WIN32 )
+  if( __CLR__ )
+    set( BINARY_OUTPUT_DIR . )
+    set( SHARED_LIBRARY_OUTPUT_DIR . )
+  else( __CLR__ )
+    set( BINARY_OUTPUT_DIR bin )
+    set( SHARED_LIBRARY_OUTPUT_DIR bin )
+  endif( __CLR__ )
+else( WIN32 )
+    set( BINARY_OUTPUT_DIR bin )
+    set( SHARED_LIBRARY_OUTPUT_DIR lib )
+endif( WIN32 )
+
 SET( HEADER_INSTALL_PREFIX include )
 SET( DATA_INSTALL_PREFIX resources )
 
@@ -7,17 +20,10 @@ if( TARGET_BINARY_PATH )
 if( WIN32 )
 	# On Windows platforms, the dynamic libs should
 	# go in the same dir as the executables.
-if( __CLR__ )
 	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION ./${TARGET_BINARY_PATH}
-		LIBRARY DESTINATION ./${TARGET_BINARY_PATH}
+		RUNTIME DESTINATION ${TARGET_BINARY_PATH}
+		LIBRARY DESTINATION ${TARGET_BINARY_PATH}
 		ARCHIVE DESTINATION lib )
-else( __CLR__ )
-	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION bin/${TARGET_BINARY_PATH}
-		LIBRARY DESTINATION bin/${TARGET_BINARY_PATH}
-		ARCHIVE DESTINATION lib )
-endif( __CLR__ )
 else( WIN32 )
 	install( TARGETS ${ARGV}
 		RUNTIME DESTINATION bin/${TARGET_BINARY_PATH}
@@ -193,11 +199,13 @@ macro( add_library_force_source project optional_style )
   if( optional_style STREQUAL SHARED )
     if( FORCE_CXX )
       set_source_files_properties(${ARGN} PROPERTIES LANGUAGE CXX )
+      set_source_files_properties( ${ARGN} PROPERTIES COMPILE_FLAGS /CLR )
     endif( FORCE_CXX )
 
   else( optional_style STREQUAL SHARED )
     if( FORCE_CXX )
       set_source_files_properties( ${optional_style} ${ARGN} PROPERTIES LANGUAGE CXX )
+      set_source_files_properties( ${optional_style} ${ARGN} PROPERTIES COMPILE_FLAGS /CLR )
     endif( FORCE_CXX )
 
   endif( optional_style STREQUAL SHARED )
@@ -209,10 +217,12 @@ macro( add_executable_force_source project optional_style )
   if( optional_style STREQUAL WIN32 )
     if( FORCE_CXX )
       set_source_files_properties(${ARGN} PROPERTIES LANGUAGE CXX )
+      set_source_files_properties( ${ARGN} PROPERTIES COMPILE_FLAGS /CLR )
     endif( FORCE_CXX )
   else( optional_style STREQUAL WIN32 )
     if( FORCE_CXX )
       set_source_files_properties( ${optional_style} ${ARGN} PROPERTIES LANGUAGE CXX )
+      set_source_files_properties( ${optional_style} ${ARGN} PROPERTIES COMPILE_FLAGS /CLR )
     endif( FORCE_CXX )
   endif( optional_style STREQUAL WIN32 )
   add_executable( ${project} ${optional_style} ${ARGN} )

@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
-project( ImageUtils )
 
-project( crossfade )
+set( project crossfade )
 
 include_directories( ${SACK_ROOT_}/sdk/include )
 
@@ -21,16 +20,16 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable(${PROJECT_NAME} WIN32 ${BASE_SOURCES} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT_NAME}" 
+add_program(${project} WIN32 ${BASE_SOURCES} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+COMPILE_FLAGS  "-DTARGET_LABEL=${project}" 
                   FOLDER utils/crossfade
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES})
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project} ${SACK_LIBRARIES})
+install_default_dest( ${project} )
 
 
-project( crossfade_vid )
+set( project crossfade_vid )
 
 include_directories( ../../InterShell/vlc_hook )
 
@@ -40,16 +39,16 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable(${PROJECT_NAME} WIN32 ${BASE_SOURCES} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT_NAME}" 
+add_program(${project} WIN32 ${BASE_SOURCES} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+COMPILE_FLAGS  "-DTARGET_LABEL=${project}" 
                   FOLDER utils/crossfade
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} vlc_interface)
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project} ${SACK_LIBRARIES} vlc_interface)
+install_default_dest( ${project} )
 
 
-project( crossfade_vid_playlist )
+set( project crossfade_vid_playlist )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
@@ -57,15 +56,15 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable(${PROJECT_NAME} WIN32 ${BASE_SOURCES} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT_NAME}" 
+add_program(${project} WIN32 ${BASE_SOURCES} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+COMPILE_FLAGS  "-DTARGET_LABEL=${project}" 
                   FOLDER utils/crossfade
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} vlc_interface)
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project} ${SACK_LIBRARIES} vlc_interface)
+install_default_dest( ${project} )
 
-project( crossfade_vid_trigger )
+set( project crossfade_vid_trigger )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
@@ -73,14 +72,15 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable(${PROJECT_NAME} WIN32 ${BASE_SOURCES} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT_NAME}" 
+add_program(${project} WIN32 ${BASE_SOURCES} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+COMPILE_FLAGS  "-DTARGET_LABEL=${project}" 
                   FOLDER utils/crossfade
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} winmm )
-install_default_dest( ${PROJECT_NAME} )
-project( bounce )
+target_link_libraries( ${project} ${SACK_LIBRARIES} winmm )
+install_default_dest( ${project} )
+
+set( project bounce )
 
 
 set(BASE_SOURCES
@@ -89,15 +89,15 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable(${PROJECT_NAME} WIN32 ${BASE_SOURCES} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT_NAME}" 
+add_program(${project} WIN32 ${BASE_SOURCES} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+COMPILE_FLAGS  "-DTARGET_LABEL=${project}" 
                   FOLDER utils
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project} ${SACK_LIBRARIES} )
+install_default_dest( ${project} )
 
-project( bounce2 )
+set( project bounce2 )
 
 
 set(BASE_SOURCES
@@ -106,11 +106,11 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable(${PROJECT_NAME} WIN32 ${BASE_SOURCES} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT_NAME}" 
+add_program(${project} WIN32 ${BASE_SOURCES} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+COMPILE_FLAGS  "-DTARGET_LABEL=${project}" 
                   FOLDER utils
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project} ${SACK_LIBRARIES} )
+install_default_dest( ${project} )
 
