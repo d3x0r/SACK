@@ -1,7 +1,7 @@
 #ifndef SQL_PASSWORD_GLOBAL_DEFINED
 #define SQL_PASSWORD_GLOBAL_DEFINED
 
-#include <InterShell/intershell_export.h>
+#include "../intershell_export.h"
 #include <pssql.h>
 
 typedef struct sql_password SQL_PASSWORD;

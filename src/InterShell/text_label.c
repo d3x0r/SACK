@@ -239,14 +239,14 @@ int GetHighlight( PTRSZVAL psv, PMENU_BUTTON button )
 static CTEXTSTR TestParam1( S_64 arg )
 {
 	static TEXTCHAR val[32];
-	snprintf( val, 32, "%lld", arg * 2 );
+	snprintf( val, 32, WIDE("%lld"), arg * 2 );
 	return val;
 }
 
 static CTEXTSTR TestParam2( S_64 arg )
 {
 	static TEXTCHAR val[32];
-	snprintf( val, 32, "%lld", arg * 3 );
+	snprintf( val, 32, WIDE("%lld"), arg * 3 );
 	return val;
 }
 

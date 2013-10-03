@@ -81,7 +81,7 @@ void AddSecurityContextToken( PTRSZVAL button, CTEXTSTR module, CTEXTSTR token )
 	TEXTCHAR tmpname[256];
 	void (CPROC*f)(PTRSZVAL,CTEXTSTR);
 	snprintf( tmpname, 256, WIDE( "intershell/common/security/Add Security Token/%s" ), module );
-	f = GetRegisteredProcedure2( tmpname, void, "add_token", (PTRSZVAL,CTEXTSTR) );
+	f = GetRegisteredProcedure2( tmpname, void, WIDE("add_token"), (PTRSZVAL,CTEXTSTR) );
 	if( f )
 		f( button, token );
 }
@@ -91,7 +91,7 @@ void GetSecurityContextTokens( PTRSZVAL button, CTEXTSTR module, PLIST *ppList )
 	TEXTCHAR tmpname[256];
 	void (CPROC*f)(PTRSZVAL,PLIST*);
 	snprintf( tmpname, 256, WIDE( "intershell/common/security/Get Security Tokens/%s" ), module );
-	f = GetRegisteredProcedure2( tmpname, void, "get_tokens", (PTRSZVAL,PLIST*) );
+	f = GetRegisteredProcedure2( tmpname, void, WIDE("get_tokens"), (PTRSZVAL,PLIST*) );
 	if( f )
 		f( button, ppList );
 }
@@ -230,7 +230,7 @@ OnSaveCommon( WIDE( "@10 EditSecurity" ) )( FILE *file )
 
 static PTRSZVAL CPROC BeginGlobalEditPerms( PTRSZVAL psv, arg_list args )
 {
-	lprintf( "Setting psv to single_frame %p, adding security plugin rules", g.single_frame );
+	lprintf( WIDE("Setting psv to single_frame %p, adding security plugin rules"), g.single_frame );
 	InterShell_ReloadSecurityInformation( InterShell_GetCurrentConfigHandler() );
    // change/set what the psv is for global paramters.
    return (PTRSZVAL)g.single_frame;

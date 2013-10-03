@@ -308,7 +308,7 @@ static int OnDrawCommon( WIDE("Video Control") )( PSI_CONTROL pc )
 
 void CPROC KilTaskOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
-   lprintf( "%s", buffer );
+   lprintf( WIDE("%s"), buffer );
    // pskill output; don't really care
 }
 

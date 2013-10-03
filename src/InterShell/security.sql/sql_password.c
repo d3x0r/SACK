@@ -11,15 +11,12 @@
 #define DEFINES_INTERSHELL_INTERFACE
 
 #include <stdhdrs.h>
+#include <sqlgetoption.h>
 #include <pssql.h>
 #include <sha1.h>
-#include <futgetpr.h>
-#include <futcal.h>
-//#include <getoption.h>
-#include <InterShell/widgets/banner.h>
-#include <InterShell/intershell_registry.h>
-#include <InterShell/intershell_export.h>
-#include "comn_util.h"
+#include "../widgets/include/banner.h"
+#include "../intershell_registry.h"
+#include "../intershell_export.h"
 
 /* get permisison creation time option... */
 #include "global.h"
@@ -37,161 +34,161 @@ enum {
 
 PRIORITY_PRELOAD( RegisterUserPasswordControls, DEFAULT_PRELOAD_PRIORITY - 2 )
 {
-	CTEXTSTR permission_tokens = "CREATE TABLE `permission_tokens` ("
-	"`permission_id` int(11) NOT NULL AUTO_INCREMENT,"
-	"`name` varchar(100) NOT NULL DEFAULT '',"
-	"`log` int(11) NOT NULL DEFAULT '0',"
-	"`description` varchar(255) DEFAULT '',"
-	"PRIMARY KEY (`permission_id`),"
-	"KEY `token` (`name`)"
-	") ENGINE=MyISAM AUTO_INCREMENT=827 DEFAULT CHARSET=latin1 COMMENT='Name detail of permission_id'";
+	CTEXTSTR permission_tokens = WIDE("CREATE TABLE `permission_tokens` (")
+	WIDE("`permission_id` int(11) NOT NULL AUTO_INCREMENT,")
+	WIDE("`name` varchar(100) NOT NULL DEFAULT '',")
+	WIDE("`log` int(11) NOT NULL DEFAULT '0',")
+	WIDE("`description` varchar(255) DEFAULT '',")
+	WIDE("PRIMARY KEY (`permission_id`),")
+	WIDE("KEY `token` (`name`)")
+	WIDE(") ENGINE=MyISAM AUTO_INCREMENT=827 DEFAULT CHARSET=latin1 COMMENT='Name detail of permission_id'");
 
-	CTEXTSTR permission_set = "CREATE TABLE `permission_set` ("
-	"`permission_group_id` int(11) NOT NULL DEFAULT '0',"
-	"`permission_id` int(11) NOT NULL DEFAULT '0',"
-	"PRIMARY KEY (`permission_group_id`,`permission_id`),"
-	"KEY `group` (`permission_group_id`),"
-	"KEY `token` (`permission_id`)"
-	") ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='relate permission_group_id to permission_id'";
+	CTEXTSTR permission_set = WIDE("CREATE TABLE `permission_set` (")
+	WIDE("`permission_group_id` int(11) NOT NULL DEFAULT '0',")
+	WIDE("`permission_id` int(11) NOT NULL DEFAULT '0',")
+	WIDE("PRIMARY KEY (`permission_group_id`,`permission_id`),")
+	WIDE("KEY `group` (`permission_group_id`),")
+	WIDE("KEY `token` (`permission_id`)")
+	WIDE(") ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='relate permission_group_id to permission_id'");
 
-	CTEXTSTR permission_group = "CREATE TABLE `permission_group` ("
-	"`permission_group_id` int(11) NOT NULL AUTO_INCREMENT,"
-	"`name` varchar(100) NOT NULL DEFAULT '',"
-	"`hall_id` int(11) NOT NULL DEFAULT '0',"
-	"`dummy_timestamp` timestamp,"
-	"`charity_id` int(11) NOT NULL DEFAULT '0',"
-	"`description` varchar(255) DEFAULT '',"
-	"PRIMARY KEY (`permission_group_id`)"
-	") ENGINE=MyISAM AUTO_INCREMENT=39 DEFAULT CHARSET=latin1 COMMENT='USAGE: Groups in which tokens are assigned to & then groups '";
+	CTEXTSTR permission_group = WIDE("CREATE TABLE `permission_group` (")
+	WIDE("`permission_group_id` int(11) NOT NULL AUTO_INCREMENT,")
+	WIDE("`name` varchar(100) NOT NULL DEFAULT '',")
+	WIDE("`hall_id` int(11) NOT NULL DEFAULT '0',")
+	WIDE("`dummy_timestamp` timestamp,")
+	WIDE("`charity_id` int(11) NOT NULL DEFAULT '0',")
+	WIDE("`description` varchar(255) DEFAULT '',")
+	WIDE("PRIMARY KEY (`permission_group_id`)")
+	WIDE(") ENGINE=MyISAM AUTO_INCREMENT=39 DEFAULT CHARSET=latin1 COMMENT='USAGE: Groups in which tokens are assigned to & then groups '");
 
-	CTEXTSTR permission_user = "CREATE TABLE `permission_user` ("
-	"`permission_group_id` int(11) NOT NULL DEFAULT '0',"
-	"`user_id` int(11) NOT NULL DEFAULT '0',"
-	"PRIMARY KEY (`permission_group_id`,`user_id`),"
-	"KEY `user` (`user_id`),"
-	"KEY `group` (`permission_group_id`)"
-	") ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='relate permission_group_id to user_id'";
+	CTEXTSTR permission_user = WIDE("CREATE TABLE `permission_user` (")
+	WIDE("`permission_group_id` int(11) NOT NULL DEFAULT '0',")
+	WIDE("`user_id` int(11) NOT NULL DEFAULT '0',")
+	WIDE("PRIMARY KEY (`permission_group_id`,`user_id`),")
+	WIDE("KEY `user` (`user_id`),")
+	WIDE("KEY `group` (`permission_group_id`)")
+	WIDE(") ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='relate permission_group_id to user_id'");
 
-	CTEXTSTR permission_user_info = "CREATE TABLE `permission_user_info` ("
-	"`user_id` int(11) NOT NULL AUTO_INCREMENT,"
-	"`hall_id` int(11) NOT NULL DEFAULT '0',"
-	"`charity_id` int(11) NOT NULL DEFAULT '0',"
-	"`default_room_id` int(11) unsigned NOT NULL DEFAULT '0',"
-	"`first_name` varchar(100) NOT NULL DEFAULT '',"
-	"`last_name` varchar(100) NOT NULL DEFAULT '',"
-	"`name` varchar(100) NOT NULL DEFAULT '',"
-	"`system_user_name` varchar(255) DEFAULT '',"
-	"`staff_id` varchar(100) NOT NULL DEFAULT '',"
-	"`pin` varchar(42) DEFAULT NULL,"
-	"`password` varchar(42) NOT NULL DEFAULT '',"
-	"`password_creation_datestamp` date DEFAULT NULL,"
-	"`key_code` varchar(100) DEFAULT NULL,"
-	"`terminate` int(11) DEFAULT '0',"
-	"`lot_container` tinyint(4) unsigned NOT NULL DEFAULT '0',"
-	"`locale_id` int(11) NOT NULL DEFAULT '0',"
-	"`card` varchar(25) DEFAULT NULL,"
-	"PRIMARY KEY (`user_id`),"
-	"KEY `PINsearch` (`pin`),"
-	"KEY `permission_user_info_terminate_idx` (`terminate`),"
-	"KEY `permuserinfo_locale_idx` (`locale_id`)"
-	") ENGINE=MyISAM AUTO_INCREMENT=22 DEFAULT CHARSET=latin1 COMMENT='USAGE: Stores all users in all systems, there passwords, ids'";
+	CTEXTSTR permission_user_info = WIDE("CREATE TABLE `permission_user_info` (")
+	WIDE("`user_id` int(11) NOT NULL AUTO_INCREMENT,")
+	WIDE("`hall_id` int(11) NOT NULL DEFAULT '0',")
+	WIDE("`charity_id` int(11) NOT NULL DEFAULT '0',")
+	WIDE("`default_room_id` int(11) unsigned NOT NULL DEFAULT '0',")
+	WIDE("`first_name` varchar(100) NOT NULL DEFAULT '',")
+	WIDE("`last_name` varchar(100) NOT NULL DEFAULT '',")
+	WIDE("`name` varchar(100) NOT NULL DEFAULT '',")
+	WIDE("`system_user_name` varchar(255) DEFAULT '',")
+	WIDE("`staff_id` varchar(100) NOT NULL DEFAULT '',")
+	WIDE("`pin` varchar(42) DEFAULT NULL,")
+	WIDE("`password` varchar(42) NOT NULL DEFAULT '',")
+	WIDE("`password_creation_datestamp` date DEFAULT NULL,")
+	WIDE("`key_code` varchar(100) DEFAULT NULL,")
+	WIDE("`terminate` int(11) DEFAULT '0',")
+	WIDE("`lot_container` tinyint(4) unsigned NOT NULL DEFAULT '0',")
+	WIDE("`locale_id` int(11) NOT NULL DEFAULT '0',")
+	WIDE("`card` varchar(25) DEFAULT NULL,")
+	WIDE("PRIMARY KEY (`user_id`),")
+	WIDE("KEY `PINsearch` (`pin`),")
+	WIDE("KEY `permission_user_info_terminate_idx` (`terminate`),")
+	WIDE("KEY `permuserinfo_locale_idx` (`locale_id`)")
+	WIDE(") ENGINE=MyISAM AUTO_INCREMENT=22 DEFAULT CHARSET=latin1 COMMENT='USAGE: Stores all users in all systems, there passwords, ids'");
 
-	CTEXTSTR permission_user_password = "CREATE TABLE `permission_user_password` ("
-	"`user_password_id` int(11) NOT NULL AUTO_INCREMENT,"
-	"`user_id` int(11) NOT NULL DEFAULT '0',"
-	"`password` varchar(42) NOT NULL DEFAULT '',"
-	"`description` varchar(255) NOT NULL DEFAULT '',"
-	"`creation_datestamp` timestamp,"
-	"PRIMARY KEY (`user_password_id`),"
-	"KEY `user_password_key` (`password`,`user_id`)"
-	") ENGINE=MyISAM AUTO_INCREMENT=23 DEFAULT CHARSET=latin1";
+	CTEXTSTR permission_user_password = WIDE("CREATE TABLE `permission_user_password` (")
+	WIDE("`user_password_id` int(11) NOT NULL AUTO_INCREMENT,")
+	WIDE("`user_id` int(11) NOT NULL DEFAULT '0',")
+	WIDE("`password` varchar(42) NOT NULL DEFAULT '',")
+	WIDE("`description` varchar(255) NOT NULL DEFAULT '',")
+	WIDE("`creation_datestamp` timestamp,")
+	WIDE("PRIMARY KEY (`user_password_id`),")
+	WIDE("KEY `user_password_key` (`password`,`user_id`)")
+	WIDE(") ENGINE=MyISAM AUTO_INCREMENT=23 DEFAULT CHARSET=latin1");
 
-	CTEXTSTR permission_user_type = "CREATE TABLE `permission_user_type` ("
-	"`permission_user_type_id` int(11) NOT NULL AUTO_INCREMENT,"
-	"`permission_user_type_name` varchar(100) NOT NULL DEFAULT '',"
-	"`permission_token_name` varchar(100) NOT NULL DEFAULT '',"
-	"PRIMARY KEY (`permission_user_type_id`)"
-	") ENGINE=MyISAM DEFAULT CHARSET=latin1";
+	CTEXTSTR permission_user_type = WIDE("CREATE TABLE `permission_user_type` (")
+	WIDE("`permission_user_type_id` int(11) NOT NULL AUTO_INCREMENT,")
+	WIDE("`permission_user_type_name` varchar(100) NOT NULL DEFAULT '',")
+	WIDE("`permission_token_name` varchar(100) NOT NULL DEFAULT '',")
+	WIDE("PRIMARY KEY (`permission_user_type_id`)")
+	WIDE(") ENGINE=MyISAM DEFAULT CHARSET=latin1");
 
-	CTEXTSTR system_exception_type = "CREATE TABLE `system_exception_type` ("
-	"`system_exception_type_id` int(11) NOT NULL,"
-	"`system_exception_type_name` varchar(255) NOT NULL,"
-	"PRIMARY KEY (`system_exception_type_id`)"
-	") ENGINE=InnoDB DEFAULT CHARSET=latin1";
+	CTEXTSTR system_exception_type = WIDE("CREATE TABLE `system_exception_type` (")
+	WIDE("`system_exception_type_id` int(11) NOT NULL,")
+	WIDE("`system_exception_type_name` varchar(255) NOT NULL,")
+	WIDE("PRIMARY KEY (`system_exception_type_id`)")
+	WIDE(") ENGINE=InnoDB DEFAULT CHARSET=latin1");
 
-	CTEXTSTR system_exceptions = "CREATE TABLE `system_exceptions` ("
-	"`system_exception_id` int(11) NOT NULL AUTO_INCREMENT,"
-	"`system_exception_category_id` int(11) NOT NULL,"
-	"`system_exception_type_id` int(11) NOT NULL,"
-	"`user_id` int(11) DEFAULT NULL,"
-	"`system_id` int(11) DEFAULT NULL,"
-	"`program_id` int(11) DEFAULT NULL,"
-	"`initial_value` tinytext,"
-	"`new_value` tinytext,"
-	"`description` tinytext,"
-	"`log_whenstamp` timestamp,"
-	"PRIMARY KEY (`system_exception_id`)"
-	") ENGINE=InnoDB AUTO_INCREMENT=283 DEFAULT CHARSET=latin1";
+	CTEXTSTR system_exceptions = WIDE("CREATE TABLE `system_exceptions` (")
+	WIDE("`system_exception_id` int(11) NOT NULL AUTO_INCREMENT,")
+	WIDE("`system_exception_category_id` int(11) NOT NULL,")
+	WIDE("`system_exception_type_id` int(11) NOT NULL,")
+	WIDE("`user_id` int(11) DEFAULT NULL,")
+	WIDE("`system_id` int(11) DEFAULT NULL,")
+	WIDE("`program_id` int(11) DEFAULT NULL,")
+	WIDE("`initial_value` tinytext,")
+	WIDE("`new_value` tinytext,")
+	WIDE("`description` tinytext,")
+	WIDE("`log_whenstamp` timestamp,")
+	WIDE("PRIMARY KEY (`system_exception_id`)")
+	WIDE(") ENGINE=InnoDB AUTO_INCREMENT=283 DEFAULT CHARSET=latin1");
 
-	CTEXTSTR system_exception_category = "CREATE TABLE `system_exception_category` ("
-	"`system_exception_category_id` int(11) NOT NULL,"
-	"`system_exception_category_name` varchar(255) NOT NULL,"
-	"PRIMARY KEY (`system_exception_category_id`)"
-	") ENGINE=InnoDB DEFAULT CHARSET=latin1";
+	CTEXTSTR system_exception_category = WIDE("CREATE TABLE `system_exception_category` (")
+	WIDE("`system_exception_category_id` int(11) NOT NULL,")
+	WIDE("`system_exception_category_name` varchar(255) NOT NULL,")
+	WIDE("PRIMARY KEY (`system_exception_category_id`)")
+	WIDE(") ENGINE=InnoDB DEFAULT CHARSET=latin1");
 
-	CTEXTSTR program_identifiers = "CREATE TABLE `program_identifiers` ("
-	"`program_id` int(11) NOT NULL AUTO_INCREMENT,"
-	"`program_name` varchar(100) NOT NULL DEFAULT '',"
-	"PRIMARY KEY (`program_id`),"
-	"KEY `prog_name` (`program_name`)"
-	") ENGINE=MyISAM AUTO_INCREMENT=61 DEFAULT CHARSET=latin1";
+	CTEXTSTR program_identifiers = WIDE("CREATE TABLE `program_identifiers` (")
+	WIDE("`program_id` int(11) NOT NULL AUTO_INCREMENT,")
+	WIDE("`program_name` varchar(100) NOT NULL DEFAULT '',")
+	WIDE("PRIMARY KEY (`program_id`),")
+	WIDE("KEY `prog_name` (`program_name`)")
+	WIDE(") ENGINE=MyISAM AUTO_INCREMENT=61 DEFAULT CHARSET=latin1");
 
-	CTEXTSTR login_history = "CREATE TABLE `login_history` ("
-	"`login_id` int(11) NOT NULL AUTO_INCREMENT,"
-	"`actual_login_id` int(11) DEFAULT '0',"
-	"`bingoday` date DEFAULT NULL,"
-	"`session` int(11) DEFAULT '0',"
-	"`system_id` int(11) NOT NULL DEFAULT '0',"
-	"`program_id` int(11) NOT NULL DEFAULT '0',"
-	"`user_id` int(11) NOT NULL DEFAULT '0',"
-	"`group_id` int(11) NOT NULL DEFAULT '0',"
-	"`hall_id` int(11) NOT NULL DEFAULT '0',"
-	"`charity_id` int(11) NOT NULL DEFAULT '0',"
-	"`login_whenstamp` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',"
-	"`logout_whenstamp` datetime NOT NULL DEFAULT '1111-11-11 11:11:11',"
-	"PRIMARY KEY (`login_id`),"
-	"KEY `sesskey` (`session`),"
-	"KEY `bingoday` (`bingoday`,`session`,`user_id`),"
-	"KEY `loginkey` (`login_id`),"
-	"KEY `prog` (`program_id`),"
-	"KEY `logout` (`logout_whenstamp`),"
-	"KEY `3columns` (`system_id`,`program_id`,`logout_whenstamp`),"
-	"KEY `login_hist_idx` (`logout_whenstamp`,`program_id`,`system_id`),"
-	"KEY `login_history_user_id_idx` (`user_id`),"
-	"KEY `login_history_actual_login_id_idx` (`actual_login_id`),"
-	"KEY `login_history_actual_login_whenstamp_idx` (`login_whenstamp`)"
-	") ENGINE=MyISAM AUTO_INCREMENT=3830 DEFAULT CHARSET=latin1 COMMENT='USAGE: keeps track of all logins from all systems and progam'";
+	CTEXTSTR login_history = WIDE("CREATE TABLE `login_history` (")
+	WIDE("`login_id` int(11) NOT NULL AUTO_INCREMENT,")
+	WIDE("`actual_login_id` int(11) DEFAULT '0',")
+	WIDE("`bingoday` date DEFAULT NULL,")
+	WIDE("`session` int(11) DEFAULT '0',")
+	WIDE("`system_id` int(11) NOT NULL DEFAULT '0',")
+	WIDE("`program_id` int(11) NOT NULL DEFAULT '0',")
+	WIDE("`user_id` int(11) NOT NULL DEFAULT '0',")
+	WIDE("`group_id` int(11) NOT NULL DEFAULT '0',")
+	WIDE("`hall_id` int(11) NOT NULL DEFAULT '0',")
+	WIDE("`charity_id` int(11) NOT NULL DEFAULT '0',")
+	WIDE("`login_whenstamp` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',")
+	WIDE("`logout_whenstamp` datetime NOT NULL DEFAULT '1111-11-11 11:11:11',")
+	WIDE("PRIMARY KEY (`login_id`),")
+	WIDE("KEY `sesskey` (`session`),")
+	WIDE("KEY `bingoday` (`bingoday`,`session`,`user_id`),")
+	WIDE("KEY `loginkey` (`login_id`),")
+	WIDE("KEY `prog` (`program_id`),")
+	WIDE("KEY `logout` (`logout_whenstamp`),")
+	WIDE("KEY `3columns` (`system_id`,`program_id`,`logout_whenstamp`),")
+	WIDE("KEY `login_hist_idx` (`logout_whenstamp`,`program_id`,`system_id`),")
+	WIDE("KEY `login_history_user_id_idx` (`user_id`),")
+	WIDE("KEY `login_history_actual_login_id_idx` (`actual_login_id`),")
+	WIDE("KEY `login_history_actual_login_whenstamp_idx` (`login_whenstamp`)")
+	WIDE(") ENGINE=MyISAM AUTO_INCREMENT=3830 DEFAULT CHARSET=latin1 COMMENT='USAGE: keeps track of all logins from all systems and progam'");
 
-	CTEXTSTR systems = "CREATE TABLE `systems` ("
-	"`system_id` int(11) NOT NULL AUTO_INCREMENT,"
-	"`name` varchar(64) NOT NULL DEFAULT '',"
-	"`address` varchar(64) NOT NULL DEFAULT '',"
-	"`login_failure_count` int(11) NOT NULL DEFAULT '0',"
-	"`login_failure_lockout_until` datetime DEFAULT NULL,"
-	"PRIMARY KEY (`system_id`),"
-	"KEY `namekey` (`name`)"
-	") ENGINE=MyISAM AUTO_INCREMENT=32 DEFAULT CHARSET=latin1 COMMENT='address must be determined by running the User()'";
+	CTEXTSTR systems = WIDE("CREATE TABLE `systems` (")
+	WIDE("`system_id` int(11) NOT NULL AUTO_INCREMENT,")
+	WIDE("`name` varchar(64) NOT NULL DEFAULT '',")
+	WIDE("`address` varchar(64) NOT NULL DEFAULT '',")
+	WIDE("`login_failure_count` int(11) NOT NULL DEFAULT '0',")
+	WIDE("`login_failure_lockout_until` datetime DEFAULT NULL,")
+	WIDE("PRIMARY KEY (`system_id`),")
+	WIDE("KEY `namekey` (`name`)")
+	WIDE(") ENGINE=MyISAM AUTO_INCREMENT=32 DEFAULT CHARSET=latin1 COMMENT='address must be determined by running the User()'");
 
-	CTEXTSTR permission_user_log = "CREATE TABLE `permission_user_log` ("
-	"`log_ID` int(11) NOT NULL AUTO_INCREMENT,"
-	"`login_id` int(11) DEFAULT '0',"
-	"`description` varchar(255) DEFAULT NULL,"
-	"`permission_id` int(11) NOT NULL DEFAULT '0',"
-	"`logtype` char(48) NOT NULL DEFAULT '0',"
-	"`log_whenstamp` datetime DEFAULT NULL,"
-	"PRIMARY KEY (`log_ID`),"
-	"KEY `permission_user_log_login_id_idx` (`login_id`)"
-	") ENGINE=MyISAM AUTO_INCREMENT=11031 DEFAULT CHARSET=latin1 COMMENT='USAGE: Logs systems access'";
+	CTEXTSTR permission_user_log = WIDE("CREATE TABLE `permission_user_log` (")
+	WIDE("`log_ID` int(11) NOT NULL AUTO_INCREMENT,")
+	WIDE("`login_id` int(11) DEFAULT '0',")
+	WIDE("`description` varchar(255) DEFAULT NULL,")
+	WIDE("`permission_id` int(11) NOT NULL DEFAULT '0',")
+	WIDE("`logtype` char(48) NOT NULL DEFAULT '0',")
+	WIDE("`log_whenstamp` datetime DEFAULT NULL,")
+	WIDE("PRIMARY KEY (`log_ID`),")
+	WIDE("KEY `permission_user_log_login_id_idx` (`login_id`)")
+	WIDE(") ENGINE=MyISAM AUTO_INCREMENT=11031 DEFAULT CHARSET=latin1 COMMENT='USAGE: Logs systems access'");
 	
 	PTABLE table;
 
@@ -254,23 +251,23 @@ PRIORITY_PRELOAD( RegisterUserPasswordControls, DEFAULT_PRELOAD_PRIORITY - 2 )
 	{
 		CTEXTSTR *result;
       // code to fix OLD permission_user_log
-		if( DoSQLRecordQueryf( NULL, &result, NULL, "show create table permission_user_log" ) && result && result[1] )
-			if( StrStr( result[1], "enum" ) )
+		if( DoSQLRecordQueryf( NULL, &result, NULL, WIDE("show create table permission_user_log") ) && result && result[1] )
+			if( StrStr( result[1], WIDE("enum") ) )
 			{
-				DoSQLCommandf( "ALTER TABLE `permission_user_log` MODIFY COLUMN `logtype` CHAR(48) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT 0" );
+				DoSQLCommandf( WIDE("ALTER TABLE `permission_user_log` MODIFY COLUMN `logtype` CHAR(48) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT 0") );
 			}
 	}
 
-	EasyRegisterResourceRange( "User Keypad", BTN_PASSKEY, 36, NORMAL_BUTTON_NAME );
-	//EasyRegisterResourceRange( "User Keypad", BTN_PASSKEY, 36, CUSTOM_BUTTON_NAME );
-	EasyRegisterResource( "MILK/Security/SQL", PERMISSIONS, LISTBOX_CONTROL_NAME );
-	EasyRegisterResource( "User Keypad", PASSCODE, STATIC_TEXT_NAME );
-	EasyRegisterResource( "MILK/Security/SQL", REQUIRED_PERMISSIONS, LISTBOX_CONTROL_NAME );
+	EasyRegisterResourceRange( WIDE("User Keypad"), BTN_PASSKEY, 36, NORMAL_BUTTON_NAME );
+	//EasyRegisterResourceRange( WIDE("User Keypad"), BTN_PASSKEY, 36, CUSTOM_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/Security/SQL"), PERMISSIONS, LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( WIDE("User Keypad"), PASSCODE, STATIC_TEXT_NAME );
+	EasyRegisterResource( WIDE("InterShell/Security/SQL"), REQUIRED_PERMISSIONS, LISTBOX_CONTROL_NAME );
 
-   EasyRegisterResource( "MILK/Security/SQL", CHECKBOX_REQUIRE_PARENT_LOGIN, RADIO_BUTTON_NAME );
-	EasyRegisterResource( "MILK/Security/SQL", CHECKBOX_OVERRIDE_PARENT_REQUIRED, RADIO_BUTTON_NAME );
-	EasyRegisterResource( "MILK/Security/SQL", TEXT_EDIT_REQUIRED_PERMISSION, EDIT_FIELD_NAME );
-	EasyRegisterResource( "MILK/Security/SQL", TEXT_EDIT_OVERRIDE_REQUIRED_PERMISSION, EDIT_FIELD_NAME );
+   EasyRegisterResource( WIDE("InterShell/Security/SQL"), CHECKBOX_REQUIRE_PARENT_LOGIN, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/Security/SQL"), CHECKBOX_OVERRIDE_PARENT_REQUIRED, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/Security/SQL"), TEXT_EDIT_REQUIRED_PERMISSION, EDIT_FIELD_NAME );
+	EasyRegisterResource( WIDE("InterShell/Security/SQL"), TEXT_EDIT_OVERRIDE_REQUIRED_PERMISSION, EDIT_FIELD_NAME );
 
 }
 
@@ -301,15 +298,15 @@ void ResolveToken( PTOKEN *ppToken, CTEXTSTR *target, CTEXTSTR permission )
 		int n;
 		PTOKEN token;
       if( (*target) )
-			Release( *target );
-      lprintf( "New permission is %s", permission );
+			Release( (POINTER)*target );
+      lprintf( WIDE("New permission is %s"), permission );
 		if( permission && permission[0] )
 		{
 			(*target) = StrDup( permission );
 			LIST_FORALL( g.tokens, n, PTOKEN , token )
 			{
-            lprintf( "is [%s]==[%s]", permission, token->name );
-				if( stricmp( permission, token->name ) == 0 )
+            lprintf( WIDE("is [%s]==[%s]"), permission, token->name );
+				if( StrCaseCmp( permission, token->name ) == 0 )
 				{
 					(*ppToken) = token;
 					break;
@@ -329,14 +326,14 @@ static PTRSZVAL CPROC AddButtonSecurity( PTRSZVAL psv, arg_list args )
 	PARAM( args, CTEXTSTR, permission );
 	PTRSZVAL last_loading = psv;
 	PSQL_PASSWORD pls = GetButtonSecurity( last_loading, TRUE );
-	//lprintf( "load context %p(%p)", pls, last_loading );
+	//lprintf( WIDE("load context %p(%p)"), pls, last_loading );
 	if( pls )
 	{
 		int n;
 		PTOKEN token;		
 		LIST_FORALL( g.tokens, n, PTOKEN , token )
 		{
-			if( stricmp( permission, token->name ) == 0 )
+			if( StrCaseCmp( permission, token->name ) == 0 )
 			{				
 				pls->pTokens = Reallocate( pls->pTokens, sizeof( TEXTSTR ) * (++pls->nTokens) );				
 				pls->pTokens[pls->nTokens-1] = StrDup( token->name );				
@@ -353,7 +350,7 @@ static PTRSZVAL CPROC AddButtonSecurityRequire( PTRSZVAL psv, arg_list args )
 	PARAM( args, CTEXTSTR, permission );
 	PTRSZVAL last_loading = psv;
 	PSQL_PASSWORD pls = GetButtonSecurity( last_loading, TRUE );
-	lprintf( "load context %p(%p)", pls, last_loading );
+	lprintf( WIDE("load context %p(%p)"), pls, last_loading );
 	if( pls )
 	{
       ResolveToken( &pls->required_token_token, &pls->required_token, permission );
@@ -366,7 +363,7 @@ static PTRSZVAL CPROC AddButtonSecurityOverride( PTRSZVAL psv, arg_list args )
 	PARAM( args, CTEXTSTR, permission );
 	PTRSZVAL last_loading = psv;
 	PSQL_PASSWORD pls = GetButtonSecurity( last_loading, TRUE );
-	//lprintf( "load context %p(%p)", pls, last_loading );
+	//lprintf( WIDE("load context %p(%p)"), pls, last_loading );
 	if( pls )
 	{
       ResolveToken( &pls->override_required_token_token, &pls->override_required_token, permission );
@@ -374,17 +371,17 @@ static PTRSZVAL CPROC AddButtonSecurityOverride( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static void OnAddSecurityContextToken( "SQL Password" )( PTRSZVAL context, CTEXTSTR permission )
+static void OnAddSecurityContextToken( WIDE("SQL Password") )( PTRSZVAL context, CTEXTSTR permission )
 {
 	PSQL_PASSWORD pls = GetButtonSecurity( context, TRUE );
-	//lprintf( "load context %p(%p)", pls, context );
+	//lprintf( WIDE("load context %p(%p)"), pls, context );
 	if( pls )
 	{
 		int n;
 		PTOKEN token;		
 		LIST_FORALL( g.tokens, n, PTOKEN , token )
 		{
-			if( stricmp( permission, token->name ) == 0 )
+			if( StrCaseCmp( permission, token->name ) == 0 )
 			{				
 				pls->pTokens = Reallocate( pls->pTokens, sizeof( TEXTSTR ) * (++pls->nTokens) );				
 				pls->pTokens[pls->nTokens-1] = StrDup( token->name );				
@@ -395,7 +392,7 @@ static void OnAddSecurityContextToken( "SQL Password" )( PTRSZVAL context, CTEXT
 	}	
 }
 
-static void OnGetSecurityContextTokens( "SQL Password" )( PTRSZVAL context, PLIST *list )
+static void OnGetSecurityContextTokens( WIDE("SQL Password") )( PTRSZVAL context, PLIST *list )
 {
 	PSQL_PASSWORD pls = GetButtonSecurity( context, TRUE );
 	EmptyList( list );
@@ -411,17 +408,17 @@ static void OnGetSecurityContextTokens( "SQL Password" )( PTRSZVAL context, PLIS
 }
 
 
-static void OnLoadSecurityContext( "SQL Password" )( PCONFIG_HANDLER pch )
+static void OnLoadSecurityContext( WIDE("SQL Password") )( PCONFIG_HANDLER pch )
 {
-   AddConfigurationMethod( pch, "SQL password security=%m", AddButtonSecurity );
-   AddConfigurationMethod( pch, "SQL password required login=%m", AddButtonSecurityRequire );
-   AddConfigurationMethod( pch, "SQL password required login override=%m", AddButtonSecurityOverride );
+   AddConfigurationMethod( pch, WIDE("SQL password security=%m"), AddButtonSecurity );
+   AddConfigurationMethod( pch, WIDE("SQL password required login=%m"), AddButtonSecurityRequire );
+   AddConfigurationMethod( pch, WIDE("SQL password required login override=%m"), AddButtonSecurityOverride );
 }
 
-static void OnSaveSecurityContext( "SQL Password" )( FILE *file, PTRSZVAL button )
+static void OnSaveSecurityContext( WIDE("SQL Password") )( FILE *file, PTRSZVAL button )
 {
 	PSQL_PASSWORD pls = GetButtonSecurity( button, FALSE );
-   //lprintf( "save context %p", pls );
+   //lprintf( WIDE("save context %p"), pls );
 	if( pls )
 	{
 		int n;
@@ -429,39 +426,39 @@ static void OnSaveSecurityContext( "SQL Password" )( FILE *file, PTRSZVAL button
 		LIST_FORALL( g.tokens, n, PTOKEN , token )
 		{
 			if( TESTFLAG( pls->permissions, n ) )
-            fprintf( file, "%sSQL password security=%s\n", InterShell_GetSaveIndent(), token->name );
+            fprintf( file, WIDE("%sSQL password security=%s\n"), InterShell_GetSaveIndent(), token->name );
 		}
 		if( pls->required_token && pls->required_token[0] )
 		{
-			fprintf( file, "%sSQL password required login=%s\n", InterShell_GetSaveIndent(), pls->required_token );
+			fprintf( file, WIDE("%sSQL password required login=%s\n"), InterShell_GetSaveIndent(), pls->required_token );
 			if( pls->override_required_token && pls->override_required_token[0] )
-				fprintf( file, "%sSQL password required login override=%s\n", InterShell_GetSaveIndent(), pls->override_required_token );
+				fprintf( file, WIDE("%sSQL password required login override=%s\n"), InterShell_GetSaveIndent(), pls->override_required_token );
 		}
 	}
 }
 
 //--------------------------------------------------------------------------------
 
-static PTRSZVAL TestSecurityContext( "SQL Password" )( PTRSZVAL button )
+static PTRSZVAL TestSecurityContext( WIDE("SQL Password") )( PTRSZVAL button )
 {	
 	TEXTSTR current_user;
 	PTRSZVAL result;
 	PSQL_PASSWORD pls = GetButtonSecurity( button, FALSE );
 	if( pls )
 	{
-   		//lprintf( "load context %p(%p)", pls, button );
+   		//lprintf( WIDE("load context %p(%p)"), pls, button );
    	
 		g.current_user = NULL;
 		if( current_user = getCurrentUser() )
 		{
 			PUSER user;
 			INDEX idx;	
-			lprintf( "Have a current user?!" );
+			lprintf( WIDE("Have a current user?!") );
 			LIST_FORALL( g.users, idx, PUSER, user )
 			{
-				if( strcmp( user->name, current_user ) == 0 )
+				if( StrCmp( user->name, current_user ) == 0 )
 				{
-					lprintf( "Setting current user to ....?" );
+					lprintf( WIDE("Setting current user to ....?") );
 					g.current_user = user;
 				}
 			}
@@ -480,7 +477,7 @@ static PTRSZVAL TestSecurityContext( "SQL Password" )( PTRSZVAL button )
 	return 0; /* no security... */
 }
 
-static void  EndSecurityContext( "SQL Password" ) ( PTRSZVAL button, PTRSZVAL psv )
+static void  EndSecurityContext( WIDE("SQL Password") ) ( PTRSZVAL button, PTRSZVAL psv )
 {
 	struct password_info *pi = (struct password_info *)psv;
 	if( pi )
@@ -528,13 +525,13 @@ void CPROC OnItemDoubleClickRequired( PTRSZVAL psv, PSI_CONTROL pc, PLISTITEM pl
 
 //--------------------------------------------------------------------------------
 
-static void OnEditSecurityContext( "SQL Password" )( PTRSZVAL button )
+static void OnEditSecurityContext( WIDE("SQL Password") )( PTRSZVAL button )
 {
 	PSQL_PASSWORD pls = GetButtonSecurity( button, TRUE );
 	if( pls )
 	{
 		PSI_CONTROL frame = LoadXMLFrameOver( NULL
-														, "EditSQLButtonSecurity.Frame" );
+														, WIDE("EditSQLButtonSecurity.Frame") );
 		if( frame )
 		{
 			int okay = 0;
@@ -617,14 +614,14 @@ PTOKEN FindToken( INDEX id, CTEXTSTR name )
 		{
 			if( id != token->id )
 			{
-				lprintf( "Token ID does not match (multiple definition?!" );
+				lprintf( WIDE("Token ID does not match (multiple definition?!") );
 			}
 			break;
 		}
 	}
 	if( !token )
 	{
-		lprintf( "Added new token %d(%s)", id, name );
+		lprintf( WIDE("Added new token %d(%s)"), id, name );
 		token = New( struct sql_token );
 		token->name = StrDup( name );
 		token->id = id;
@@ -643,7 +640,7 @@ PGROUP FindGroup( INDEX id, CTEXTSTR name )
 		{
 			if( id != group->id )
 			{
-				lprintf( "Group ID does not match (multiple definition?!" );
+				lprintf( WIDE("Group ID does not match (multiple definition?!") );
 			}
          break;
 		}
@@ -714,26 +711,26 @@ void ReloadUserCache( PODBC odbc )
 	CTEXTSTR *result_user;
 	CTEXTSTR *result_group;
 	CTEXTSTR *result_token;
-	lprintf(" UnloadUserCache");
+	lprintf(WIDE(" UnloadUserCache"));
 	UnloadUserCache();
-	lprintf(" ReloadUserCache");
+	lprintf(WIDE(" ReloadUserCache"));
 
-	for( SQLRecordQueryf( odbc, NULL, &result_group, NULL, "select permission_group_id,name from permission_group"  )
+	for( SQLRecordQueryf( odbc, NULL, &result_group, NULL, WIDE("select permission_group_id,name from permission_group")  )
 		; result_group
 		; FetchSQLRecord( odbc, &result_group ) )
 	{
-		INDEX group_id = strtoul( result_group[0], NULL, 10 );
+		INDEX group_id = IntCreateFromText( result_group[0] );
 		PGROUP group = FindGroup( group_id, result_group[1] );
 	}
 
 
 	for( SQLRecordQueryf( odbc, NULL, &result_user, NULL
-							  , "select user_id,first_name,last_name,name,password_creation_datestamp,date_add(password_creation_datestamp,interval %d day),staff_id from permission_user_info order by first_name"
+							  , WIDE("select user_id,first_name,last_name,name,password_creation_datestamp,date_add(password_creation_datestamp,interval %d day),staff_id from permission_user_info order by first_name")
 							  , g.pass_expr_interval )
 		 ; result_user
 		  ; FetchSQLRecord( odbc, &result_user ) )
 	{
-		INDEX user_id = strtoul( result_user[0], NULL, 10 );
+		INDEX user_id = IntCreateFromText( result_user[0] );
 		PUSER user = FindUser( user_id );
 		PushSQLQueryEx( odbc );
 
@@ -742,7 +739,7 @@ void ReloadUserCache( PODBC odbc )
 			user->staff = StrDup( result_user[6] );			
 
 		else
-			user->staff = " ";
+			user->staff = WIDE(" ");
 			
 
 		//
@@ -750,28 +747,28 @@ void ReloadUserCache( PODBC odbc )
 			user->first_name = StrDup( result_user[1] );
 
 		else
-			user->first_name = " ";
+			user->first_name = WIDE(" ");
 
 		//
 		if( result_user[2] && result_user[2][0] != '\0' )
 			user->last_name = StrDup( result_user[2] );			
 
 		else
-			user->last_name = " ";
+			user->last_name = WIDE(" ");
 		
 		//
 		if( result_user[3] && result_user[3][0] != '\0' )
 			user->name = StrDup( result_user[3] );
 			
 		else
-			user->name = " ";
+			user->name = WIDE(" ");
 				
 		// first, last [1], [2]
 		{
 			int len;
 			len = StrLen( user->first_name ) + StrLen( user->last_name ) + StrLen( user->staff ) + 5;
 			user->full_name = NewArray( TEXTCHAR, len );
-			snprintf( user->full_name, len, "%s\t%s\t(%s)", user->first_name, user->last_name, user->staff );
+			snprintf( user->full_name, len, WIDE("%s\t%s\t(%s)"), user->first_name, user->last_name, user->staff );
 		}
 		
 		{
@@ -782,7 +779,10 @@ void ReloadUserCache( PODBC odbc )
 				if( yr == 0 || mo == 0 || dy == 0 )
 					user->dwFutTime_Updated_Password = 0;
 				else
-					user->dwFutTime_Updated_Password = CAL_FDATETIME_OF_YMDHMS( yr,mo,dy,hr,mn,sc) ;
+				{
+               lprintf(WIDE(" not saving time result...") );
+					user->dwFutTime_Updated_Password = 1;
+				}
 			}
 			else
 				user->dwFutTime_Updated_Password = 0;
@@ -792,28 +792,31 @@ void ReloadUserCache( PODBC odbc )
 				if( yr == 0 || mo == 0 || dy == 0 )
 					user->dwFutTime = 0;
 				else
-					user->dwFutTime = CAL_FDATETIME_OF_YMDHMS( yr,mo,dy,hr,mn,sc) ;
+				{
+               lprintf(WIDE(" not saving time result...") );
+					user->dwFutTime = 1;
+				}
 			}
 			else
 				user->dwFutTime = 0;
 			user->dwFutTime_Created = 0;
 		}
-		for( SQLRecordQueryf( odbc, NULL, &result_group, NULL, "select permission_group_id,name from permission_user join permission_group using(permission_group_id) where user_id=%s", result_user[0]  )
+		for( SQLRecordQueryf( odbc, NULL, &result_group, NULL, WIDE("select permission_group_id,name from permission_user join permission_group using(permission_group_id) where user_id=%s"), result_user[0]  )
 			 ; result_group
 			  ; FetchSQLRecord( odbc, &result_group ) )
 		{
-			INDEX group_id = strtoul( result_group[0], NULL, 10 );
+			INDEX group_id = IntCreateFromText( result_group[0] );
 			PGROUP group = FindGroup( group_id, result_group[1] );
 			if( !group->tokens )
 			{
 				PushSQLQueryEx( odbc );
-				for( SQLRecordQueryf( odbc, NULL, &result_token, NULL, "select permission_id,name from permission_set join permission_tokens using(permission_id) where permission_group_id=%s order by permission_id", result_group[0]  )
+				for( SQLRecordQueryf( odbc, NULL, &result_token, NULL, WIDE("select permission_id,name from permission_set join permission_tokens using(permission_id) where permission_group_id=%s order by permission_id"), result_group[0]  )
 					 ; result_token
 					  ; FetchSQLRecord( odbc, &result_token ) )
 				{
-					INDEX token_id = strtoul( result_token[0], NULL, 10 );
+					INDEX token_id = IntCreateFromText( result_token[0] );
 					PTOKEN token = FindToken( token_id, result_token[1] );
-					//lprintf( "Adding token %s to group %s", token->name, group->name );
+					//lprintf( WIDE("Adding token %s to group %s"), token->name, group->name );
 					AddLink( &group->tokens, token );
 				}
 				PopODBCEx( odbc );
@@ -821,7 +824,7 @@ void ReloadUserCache( PODBC odbc )
 			AddLink( &user->groups, group );
 		}
 		PopODBCEx( odbc );
-		//lprintf( "Adding group %s to user %s", group->name, user->name );
+		//lprintf( WIDE("Adding group %s to user %s"), group->name, user->name );
 	}	
 }
 
@@ -829,7 +832,7 @@ PRELOAD( InitSQLPassword )
 {
 	CTEXTSTR *result;
 	for( DoSQLRecordQueryf( NULL, &result, NULL
-								 , "select permission_id, name from permission_tokens order by permission_id"
+								 , WIDE("select permission_id, name from permission_tokens order by permission_id")
 								 );
 		  result;
 		  GetSQLRecord( &result ) )
@@ -841,9 +844,9 @@ PRELOAD( InitSQLPassword )
 		g.permission_count++; // should stay in sync with list...
 	}
 	ReloadUserCache( NULL );
-	//ReadNameTableExx( WIDE("names"), WIDE("program_identifiers"), WIDE("program_id"), WIDE("menu login"), NULL );
+	//ReadNameTableExx( WIDE(WIDE("names")), WIDE(WIDE("program_identifiers")), WIDE(WIDE("program_id")), WIDE(WIDE("menu login")), NULL );
 	
-	g.flags.bPrintAccountCreated = FutGetProfileInt( "PASSWORD", "Report Account Creation", 0 );
+	g.flags.bPrintAccountCreated = SACK_GetProfileInt( WIDE("PASSWORD"), WIDE("Report Account Creation"), 0 );
 
 }
 
@@ -851,7 +854,7 @@ ATEXIT( CloseLogins )
 {
    // is responsible for root logins, therefore close all on system.
    if( g.flags.bInitializeLogins )
-		DoSQLCommandf( "update login_history set logout_whenstamp=now() where system_id=%d and logout_whenstamp=11111111111111", g.system_id );
+		DoSQLCommandf( WIDE("update login_history set logout_whenstamp=now() where system_id=%d and logout_whenstamp=11111111111111"), g.system_id );
 }
 
 #if ( __WATCOMC__ < 1291 )

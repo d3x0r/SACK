@@ -42,13 +42,13 @@ static LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 		return TRUE;
 	case UWM_PASSWORD_CHECK_TOKEN:
 		{
-			char atom_buf[256];
+			TEXTCHAR atom_buf[256];
 			static CTEXTSTR *token_list;
          PUSER user;
          CTEXTSTR token_start;
          int token_count;
 			GlobalGetAtomName( (ATOM)lParam, atom_buf, sizeof( atom_buf ) );
-			lprintf( "Token check for : %d %s", lParam, atom_buf );
+			lprintf( WIDE("Token check for : %d %s"), lParam, atom_buf );
 			GlobalDeleteAtom( (ATOM)lParam );
 			token_start = atom_buf;
 			if( token_start )
@@ -67,18 +67,18 @@ static LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 				int nToken;
 				INDEX idx;
 				PGROUP group;
-            lprintf( "Checking current user..." );
+            lprintf( WIDE("Checking current user...") );
 				LIST_FORALL( user->groups, idx, PGROUP, group )
 				{
 					INDEX idx2;
 					PTOKEN token;
-					lprintf( "User has group : %s", group->name );
+					lprintf( WIDE("User has group : %s"), group->name );
 					LIST_FORALL( group->tokens, idx2, PTOKEN, token )
 					{
-						lprintf( "which has token : %s", token->name );
+						lprintf( WIDE("which has token : %s"), token->name );
 						for( nToken = 0; nToken < token_count; nToken++ )
 						{
-                     lprintf( "COmpare %s vs %s", token_list[nToken], token->name );
+                     lprintf( WIDE("COmpare %s vs %s"), token_list[nToken], token->name );
 							if( StrCaseCmp( token_list[nToken], token->name ) == 0 )
                         return 1;
 						}
@@ -96,7 +96,7 @@ static LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 			TEXTSTR token_start;
 			int token_count;
 			GlobalGetAtomName( (ATOM)lParam, atom_buf, sizeof( atom_buf ) );
-			lprintf( "Login request for : %d %s", lParam, atom_buf );
+			lprintf( WIDE("Login request for : %d %s"), lParam, atom_buf );
 			GlobalDeleteAtom( (ATOM)lParam );
 			// safe to cast to textstr, it's actually a char buffer above...
 			token_start = (TEXTSTR)StrChr( atom_buf, ':' );
@@ -119,18 +119,18 @@ static LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 				int nToken;
 				INDEX idx;
 				PGROUP group;
-				lprintf( "Had a current user... %s", g.current_user->name );
+				lprintf( WIDE("Had a current user... %s"), g.current_user->name );
 				LIST_FORALL( g.current_user->groups, idx, PGROUP, group )
 				{
 					INDEX idx2;
 					PTOKEN token;
-					lprintf( "User has group : %s", group->name );
+					lprintf( WIDE("User has group : %s"), group->name );
 					LIST_FORALL( group->tokens, idx2, PTOKEN, token )
 					{
-						lprintf( "which has token : %s", token->name );
+						lprintf( WIDE("which has token : %s"), token->name );
 						for( nToken = 0; nToken < token_count; nToken++ )
 						{
-							lprintf( "Compare %s vs %s", token_list[nToken], token->name );
+							lprintf( WIDE("Compare %s vs %s"), token_list[nToken], token->name );
 							if( StrCaseCmp( token_list[nToken], token->name ) == 0 )
 								break;
 						}
@@ -166,28 +166,28 @@ static LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 					}
 					else
 					{
-						lprintf( "This should NEVER happen; something asking for a password, but there is no current user for the button launch" );
+						lprintf( WIDE("This should NEVER happen; something asking for a password, but there is no current user for the button launch") );
 						g.current_user = external_user;
 						g.current_user_login_id = external_login_id;
 					}
 
 					if( g.current_user_login_id )
 					{
-						DoSQLRecordQueryf( NULL, &results, NULL, "select login_id from login_history where actual_login_id=%d and system_id=%ld order by login_id desc limit 1"
+						DoSQLRecordQueryf( NULL, &results, NULL, WIDE("select login_id from login_history where actual_login_id=%d and system_id=%ld order by login_id desc limit 1")
 											  , g.current_user_login_id
 											  , g.system_id );
 						if( results )
-							DoSQLCommandf( "update login_history set actual_login_id=%s where login_id=%ld", results[0], login_id );
+							DoSQLCommandf( WIDE("update login_history set actual_login_id=%s where login_id=%ld"), results[0], login_id );
 					}
 					else
 					{
-						DoSQLCommandf( "update login_history set actual_login_id=%ld where login_id=%ld", g.current_user_login_id, login_id );
+						DoSQLCommandf( WIDE("update login_history set actual_login_id=%ld where login_id=%ld"), g.current_user_login_id, login_id );
 					}
 
 					g.temp_user_login_id = login_id;
 
 					results = NULL;
-					if( DoSQLRecordQueryf( NULL, &results, NULL, "select name from permission_user_info join login_history using(user_id) where login_id=%ld", login_id ) )
+					if( DoSQLRecordQueryf( NULL, &results, NULL, WIDE("select name from permission_user_info join login_history using(user_id) where login_id=%ld"), login_id ) )
 					{
 						ATOM aResult = GlobalAddAtom( results[0] );
 						SQLEndQuery( NULL );
@@ -202,8 +202,8 @@ static LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 	case UWM_PASSWORD_LOGOUT:
 		if( g.current_user_login_id )
 		{
-			lprintf( "Logout %d", lParam );
-			DoSQLCommandf( "udpate login_history set logout_whenstamp=now() where login_id=%ld", g.current_user_login_id );
+			lprintf( WIDE("Logout %d"), lParam );
+			DoSQLCommandf( WIDE("udpate login_history set logout_whenstamp=now() where login_id=%ld"), g.current_user_login_id );
 		}
 		return TRUE;
 	case UWM_PASSWORD_LOG_ACTION:
@@ -212,7 +212,7 @@ static LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 			TEXTCHAR tmp2[256];
          GlobalGetAtomName( (ATOM)wParam, tmp1, 256 );
 			GlobalGetAtomName( (ATOM)lParam, tmp2, 256 );
-			DoSQLCommandf( "insert into permission_user_log (login_id,description,logtype,log_whenstamp) values (%lu,\'%s\',\'%s\',now())"
+			DoSQLCommandf( WIDE("insert into permission_user_log (login_id,description,logtype,log_whenstamp) values (%lu,\'%s\',\'%s\',now())")
 							 , g.temp_user
 							  ? g.temp_user_login_id
 							  : g.current_user
@@ -228,8 +228,8 @@ static LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 	case UWM_PASSWORD_LOGOUT_TEMP:
 		if( g.temp_user_login_id )
 		{
-			lprintf( "Logout temporary login (override login)" );
-			DoSQLCommandf( "update login_history set logout_whenstamp=now() where login_id=%ld", g.temp_user_login_id );
+			lprintf( WIDE("Logout temporary login (override login)") );
+			DoSQLCommandf( WIDE("update login_history set logout_whenstamp=now() where login_id=%ld"), g.temp_user_login_id );
 			g.temp_user_login_id = 0;
          g.temp_user = NULL;
 		}
@@ -249,7 +249,7 @@ static int MakeProxyWindow( void )
 		wc.lpfnWndProc = (WNDPROC)WndProc;
 		wc.hInstance = GetModuleHandle(NULL);
 		wc.hbrBackground = 0;
-		wc.lpszClassName = "SQLSecurityProxyClass";
+		wc.lpszClassName = WIDE("SQLSecurityProxyClass");
 		aClass = RegisterClass( &wc );
 		if( !aClass )
 		{
@@ -259,8 +259,8 @@ static int MakeProxyWindow( void )
 	}
 
 	g.hWndProxy = CreateWindowEx( 0,
-								 (char*)aClass,
-								 "SQLSecurityProxy",
+								 aClass,
+								 WIDE("SQLSecurityProxy"),
 								 0,
 								 0,
 								 0,

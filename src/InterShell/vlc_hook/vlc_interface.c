@@ -1302,14 +1302,14 @@ void PlayItem( struct my_vlc_interface *pmyi )
 {
 	if( !pmyi )
 	{
-		lprintf( "Invalid player to play." );
+		lprintf( WIDE("Invalid player to play.") );
       return;
 	}
-	lprintf( "Start PLAY" );
+	lprintf( WIDE("Start PLAY") );
 	/* play the media_player */
 	if( !pmyi->flags.bStarted )
 	{
-		lprintf( "mark that we want to start, when available" );
+		lprintf( WIDE("mark that we want to start, when available") );
 		pmyi->flags.bWantPlay = 1;
 	}
 	else if( pmyi->mp )
@@ -1356,7 +1356,7 @@ void BindAllEvents( struct my_vlc_interface *pmyi )
 		result = vlc.libvlc_event_attach( pmyi->mpev, n
 												  , PlayerEvent, pmyi PASS_EXCEPT_PARAM );
       if( result )
-			lprintf( "attach event %d %d", n, result );
+			lprintf( WIDE("attach event %d %d"), n, result );
 	}
 	for( n = libvlc_MediaListItemAdded; n <= libvlc_MediaListWillDeleteItem; n++ )
 	{
@@ -1494,7 +1494,7 @@ struct my_vlc_interface * PlayItemInEx( PSI_CONTROL pc, CTEXTSTR input, CTEXTSTR
 				vlc.libvlc_media_player_stop (pmyi->mp PASS_EXCEPT_PARAM);
 				pmyi->flags.bNeedsStop = 0;
 			}
-			lprintf( "play" );
+			lprintf( WIDE("play") );
 			vlc.libvlc_media_player_play( pmyi->mp PASS_EXCEPT_PARAM);
 			pmyi->flags.bStarted = 1;
 		}
@@ -2170,7 +2170,7 @@ PTRSZVAL CPROC PlaySoundItemOnThread( PTHREAD thread )
 	vlc.libvlc_media_release (pmyi->m);
 
 	/* play the media_player */
-	lprintf( "play");
+	lprintf( WIDE("play"));
     vlc.libvlc_media_player_play (pmyi->mp PASS_EXCEPT_PARAM);
     RAISE( vlc, &pmyi->ex );
 

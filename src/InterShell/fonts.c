@@ -256,7 +256,7 @@ SFTFont* CreateACanvasFont( PSI_CONTROL pc_canvas, CTEXTSTR name, SFTFont font, 
 #undef CreateAFont
 SFTFont* CreateAFont( CTEXTSTR name, SFTFont font, POINTER data, size_t datalen )
 {
-   lprintf( "Depricated CreateAFont()." );
+   lprintf( WIDE("Depricated CreateAFont().") );
    return CreateACanvasFont( g.single_frame, name, font, data, datalen );
 }
 
@@ -302,7 +302,6 @@ static void CPROC CreatePageFont( PTRSZVAL psv, PSI_CONTROL pc )
 		{
 			PLISTITEM pli;
 			PFONT_PRESET font_preset;
-			lprintf( "..." );
 			font_preset =  _CreateAFont( canvas, name_buffer
 																, font
 																, tmp

@@ -1040,27 +1040,27 @@ static void CPROC KeyPressed( PTRSZVAL psv, PKEY_BUTTON key )
 			break;
 		case -1:
 			if( pKeyPad->flags.bAlphaNum )
-				InvokeMagicSequences( pKeyPad->frame, "\\L" );  // Shift-Lock
+				InvokeMagicSequences( pKeyPad->frame, WIDE("\\L") );  // Shift-Lock
 			else
-				InvokeMagicSequences( pKeyPad->frame, "\\C" );  // Clear/Correct
+				InvokeMagicSequences( pKeyPad->frame, WIDE("\\C") );  // Clear/Correct
 			break;
 		case -2:
-			InvokeMagicSequences( pKeyPad->frame, "\\E" );
+			InvokeMagicSequences( pKeyPad->frame, WIDE("\\E") );
 			break;
 		case -3: // shift
 			if( pKeyPad->flags.bAlphaNum )
-				InvokeMagicSequences( pKeyPad->frame, "\\S" );
+				InvokeMagicSequences( pKeyPad->frame, WIDE("\\S") );
 			// there is no -3 on numeric pad.  (only 2 special keys)
 			break;
 		default:
 			if( string[0] == '\\' )
-				InvokeMagicSequences( pKeyPad->frame, "\\\\" );
+				InvokeMagicSequences( pKeyPad->frame, WIDE("\\\\") );
 			else
 				InvokeMagicSequences( pKeyPad->frame, string );
 			break;
 		}
 	}
-	//lprintf( "keypressed %p %p", key, string );
+	//lprintf( WIDE("keypressed %p %p"), key, string );
 	if( pKeyPad->flags.bAlphaNum )
 	{
 		if( string == (TEXTCHAR*)-3 )
@@ -1650,15 +1650,15 @@ static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
 			}
 			else
 			{
-				//lprintf( "Was just a shift toggle, don't shift now?" );
+				//lprintf( WIDE("Was just a shift toggle, don't shift now?") );
             /*
 				if( pKeyPad->shifted )
 				{
-               lprintf( "was shifted?" );
+               lprintf( WIDE("was shifted?") );
 					KeyPressed( psv, button = pKeyPad->keys[39].key );
 				}
 				else
-				lprintf( "wasn't shifted?" );
+				lprintf( WIDE("wasn't shifted?") );
             */
 			}
          break;

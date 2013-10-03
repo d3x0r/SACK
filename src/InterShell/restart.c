@@ -62,7 +62,7 @@ int main( int argc, char **argv )
 				if( IsWindow( video->hWndOutput ) )
 #define WM_EXIT_PLEASE 0xd1e
 					if( !SendMessage( video->hWndOutput, WM_QUERYENDSESSION, 0, 0 ) )
-						printf( "Failed to post queyendsession." );
+						lprintf( WIDE( "Failed to post queyendsession." ) );
 			}
 #endif
 		}
@@ -90,7 +90,7 @@ int main( int argc, char **argv )
 	else
 		lprintf( WIDE("lock region not found.") );
 	{
-		snprintf( lockname, 256, "@/%s.exe", myname );
+		snprintf( lockname, 256, WIDE("@/%s.exe"), myname );
 		LaunchProgram( lockname, NULL, NULL );
 	}
 	return 0;
