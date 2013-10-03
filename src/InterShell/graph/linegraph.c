@@ -655,7 +655,7 @@ static void CPROC ButtonAddGraphLine( PTRSZVAL psv, PSI_CONTROL button )
 		(TARGET_ADDRESS)GetItemData( GetSelectedItem( GetNearControl( button, LST_TARGET_NAMES ) ) );
 	if( !graph_line->target )
 	{
-		SimpleMessageBox( NULL, "Bad Selection", "Must Select a target Server" );
+		SimpleMessageBox( NULL, WIDE("Bad Selection"), WIDE("Must Select a target Server") );
 		Deallocate( struct graph_line_struct, graph_line );
 		return;
 	}

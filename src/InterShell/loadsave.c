@@ -821,7 +821,7 @@ PTRSZVAL CPROC SetMenuRowCols( PTRSZVAL psv, arg_list args )
 			InvokePageChange();
 		}
 	}
-	lprintf( "Page %p gets rows/cols %d/%d", canvas->current_page, (_32)rows, (_32)cols );
+	lprintf( WIDE("Page %p gets rows/cols %d/%d"), canvas->current_page, (_32)rows, (_32)cols );
 	button_space = 0;
 	button_rows = (_32)rows;
 	button_cols = (_32)cols;
@@ -1057,7 +1057,7 @@ void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 			TEXTSTR alt_filename = NewArray( TEXTCHAR, namelen = ( StrLen( filename ) + 6 ) );
 			FILE *out;
 
-			snprintf( alt_filename, namelen, "%s.sql", filename );
+			snprintf( alt_filename, namelen, WIDE("%s.sql"), filename );
 			Banner2NoWait( WIDE("Read SQL Config...") );
 #ifndef __NO_OPTIONS__
 #ifndef __NO_SQL__
@@ -1238,7 +1238,7 @@ void DumpCommonButton( FILE *file, PMENU_BUTTON button )
 		{
 			TEXTCHAR theme[12];
 			if( idx )
-				snprintf( theme, 12, ".%d", idx );
+				snprintf( theme, 12, WIDE(".%d"), idx );
 			else
 				theme[0] = 0;
 			fprintf( file, WIDE("%scolor%s=%s\n"), InterShell_GetSaveIndent(), theme, FormatColor( colors->color ) );
@@ -1698,7 +1698,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 
 	if( g.flags.bSQLConfig )
 	{
-		snprintf( alt_filename, namelen, "%s.tmp", filename );
+		snprintf( alt_filename, namelen, WIDE("%s.tmp"), filename );
 		filename = alt_filename;
 	}
 	RenameConfig( filename, filename, strlen( filename ), 1 );
@@ -1822,7 +1822,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 					PTRSZVAL size2 = 0;
 					TEXTCHAR tmpname2[256];
 					POINTER mem2;
-					snprintf( tmpname2, 256, "%s.sql", tmpname );
+					snprintf( tmpname2, 256, WIDE("%s.sql"), tmpname );
 					mem2 = OpenSpace( NULL, tmpname2, &size2 );
 					// if !mem2, then there was no reload from sql.
 					if( mem2 
@@ -1833,13 +1833,13 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 						if( size2 != buflen ||
 							MemCmp( buffer, mem2, size2 ) )
 						{
-							if( !Banner2TopYesNo( NULL, "SQL Configuration and loaded configuration are different.  Are you sure you want to save?\nPossible loss of changes." ) )
+							if( !Banner2TopYesNo( NULL, WIDE("SQL Configuration and loaded configuration are different.  Are you sure you want to save?\nPossible loss of changes.") ) )
 							{
 								// get out of here, don't do anything else.
-								if( Banner2TopYesNo( NULL, "Reload Configuration Now?" ) )
+								if( Banner2TopYesNo( NULL, WIDE("Reload Configuration Now?") ) )
 								{
 									TEXTSTR tmpname3;
-									snprintf( tmpname2, 256, "@/%s.restart.exe", GetProgramName() );
+									snprintf( tmpname2, 256, WIDE("@/%s.restart.exe"), GetProgramName() );
 									System( tmpname3 = ExpandPath( tmpname2 ), NULL, 0 );
 									Release( tmpname3 );
 								}
@@ -1853,7 +1853,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 					{
 						// okay, we're allowed to update, so make sure our current local file is
 						// updated to match, or the second changes thinks it's invalid.
-						FILE *new_sql = fopen( tmpname2, WIDE("wb")
+						FILE *new_sql = sack_fopen( 0, tmpname2, WIDE("wb")
 #ifdef _UNICODE
 													 WIDE(", ccs=UNICODE")
 #endif

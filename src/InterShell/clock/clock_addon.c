@@ -281,7 +281,7 @@ static PTRSZVAL CPROC SetClockAnalogImageDesc( PTRSZVAL psv, arg_list args )
 	}
 	else
 	{
-      		lprintf( "size of struct was %d not %d", size, sizeof( struct clock_image_thing ) );
+      		lprintf( WIDE("size of struct was %d not %d"), size, sizeof( struct clock_image_thing ) );
 	}
    return psv;
 }

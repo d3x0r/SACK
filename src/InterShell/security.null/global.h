@@ -1,7 +1,7 @@
 #ifndef NULL_PASSWORD_GLOBAL_DEFINED
 #define NULL_PASSWORD_GLOBAL_DEFINED
 
-#include <InterShell/intershell_export.h>
+#include "../intershell_export.h"
 #include <pssql.h>
 
 typedef struct null_password NULL_PASSWORD;

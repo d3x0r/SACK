@@ -5758,7 +5758,7 @@ OnKeyPressEvent( WIDE( "InterShell/Reset SQL Configuration" ) )( PTRSZVAL psv )
 	TEXTCHAR cmd[256];
    CTEXTSTR args[4];
 	TEXTCHAR *tmp_path = ExpandPath( g.config_filename );
-	args[0] = "@/set_config";
+	args[0] = WIDE("@/set_config");
 	args[1] = tmp_path;
 	args[2] = NULL;
    dirty_variable_task_done = 0;
@@ -5788,7 +5788,7 @@ OnKeyPressEvent( WIDE( "InterShell/Restart Application" ) )( PTRSZVAL psv )
 	CTEXTSTR cmd[256];
    CTEXTSTR args[4];
 	Banner2NoWaitAlpha( WIDE("Restarting...") );
-	snprintf( cmd, 256, "@/%s.restart.exe", GetProgramName() );
+	snprintf( cmd, 256, WIDE("@/%s.restart.exe"), GetProgramName() );
 	args[0] = cmd;
 	args[1] = NULL;
 	if( !LaunchProgramEx( args[0], NULL, args, TaskEnded, 0 ) )

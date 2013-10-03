@@ -1,6 +1,5 @@
 
-cmake_minimum_required(VERSION 2.8)
-project( sack_widgets ) 
+set( project sack_widgets ) 
 
 set(SOURCES 
    banner/banner.c 
@@ -13,29 +12,29 @@ add_definitions(
 	-DBANNER_SOURCE  -DKEYPAD_SOURCE
 )
 
-add_library_force_source( ${PROJECT_NAME} SHARED 
+add_library_force_source( ${project} SHARED 
    ${FIRST_GCC_LIBRARY_SOURCE}
       ${SOURCES} 
    ${LAST_GCC_LIBRARY_SOURCE}
 )
 
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-                  COMPILE_DEFINITIONS "TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}\""
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+                  COMPILE_DEFINITIONS "TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${project}${CMAKE_SHARED_LIBRARY_SUFFIX}\""
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
                   FOLDER InterShell
 )
 
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES})
+target_link_libraries( ${project} ${SACK_LIBRARIES})
 
-install_default_dest( ${PROJECT_NAME} )
+install_default_dest( ${project} )
 
 if( INSTALL_TO_SACK_SDK )
-install_sack_sdk_dest( ${PROJECT_NAME} )
+install_sack_sdk_dest( ${project} )
 endif( INSTALL_TO_SACK_SDK )
 
 if( WIN32 )
-target_link_libraries( ${PROJECT_NAME} winmm )
+target_link_libraries( ${project} winmm )
 endif( WIN32 )
 
 SET( WIDGET_SDK

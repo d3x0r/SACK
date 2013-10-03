@@ -248,25 +248,43 @@
 # define PATH_MAX MAXPATH
 #endif
 
-#ifdef _WIN32
-#  ifdef CONSOLE_SHELL
-#    define SaneWinMain(a,b) int main( int a, char **b ) {
-#    define EndSaneWinMain() }
+#ifdef _UNICODE
+#  ifdef _WIN32
+#    ifdef CONSOLE_SHELL
+#      define SaneWinMain(a,b) int main( int a, char **argv_real ) { int n; TEXTCHAR **b; b = NewArray( TEXTSTR, a + 1 ); for( n = 0; n < a; n++ ) b[n] = DupCharToText( argv_real[n] ); b[n] = NULL; {
+#      define EndSaneWinMain() } }
+#    else
+#      define SaneWinMain(a,b) int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmdShow ) { int a; TEXTCHAR **b; ParseIntoArgs( GetCommandLine(), &a, &b ); {
+#      define EndSaneWinMain() } }
+#    endif
 #  else
-#    define SaneWinMain(a,b) int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmdShow ) { int a; TEXTCHAR **b; ParseIntoArgs( GetCommandLine(), &a, &b );
-#    define EndSaneWinMain() }
+#    ifdef __ANDROID__
+#      define SaneWinMain(a,b) int SACK_Main( int a, char **b )
+#      define EndSaneWinMain() }
+#    else
+#      define SaneWinMain(a,b) int main( int a, char **b ) { int n; TEXTCHAR **b; b = NewArray( TEXTSTR, a + 1 ); for( n = 0; n < a; n++ ) b[n] = DupCharToText( argv_real[n] ); b[n] = NULL; {
+#      define EndSaneWinMain() } }
+#    endif
 #  endif
 #else
-#  ifdef __ANDROID__
-#    define SaneWinMain(a,b) int SACK_Main( int a, char **b )
-#    define EndSaneWinMain()
+#  ifdef _WIN32
+#    ifdef CONSOLE_SHELL
+#      define SaneWinMain(a,b) int main( int a, char **b ) {
+#      define EndSaneWinMain() }
+#    else
+#      define SaneWinMain(a,b) int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmdShow ) { int a; TEXTCHAR **b; ParseIntoArgs( GetCommandLine(), &a, &b ); {
+#      define EndSaneWinMain() } }
+#    endif
 #  else
-#    define SaneWinMain(a,b) int main( int a, char **b )
-#    define EndSaneWinMain()
+#    ifdef __ANDROID__
+#      define SaneWinMain(a,b) int SACK_Main( int a, char **b )
+#      define EndSaneWinMain()
+#    else
+#      define SaneWinMain(a,b) int main( int a, char **b )
+#      define EndSaneWinMain()
+#    endif
 #  endif
-
 #endif
-
 
 
 #include <final_types.h>

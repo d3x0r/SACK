@@ -1,9 +1,9 @@
 #include <stdhdrs.h>
 
-static char hex[] = "0123456789abcdef";
-static char HEX[] = "0123456789ABCDEF";
+static TEXTCHAR hex[] = WIDE("0123456789abcdef");
+static TEXTCHAR HEX[] = WIDE("0123456789ABCDEF");
 
-void ConvertFromBinary( char *out, unsigned char *in, int sz )
+void ConvertFromBinary( TEXTCHAR *out, TEXTCHAR *in, int sz )
 {
 	int n;
 	for( n = 0; n < sz; n++ )
@@ -19,12 +19,12 @@ void ConvertToBinary( TEXTSTR out, CTEXTSTR in, int sz )
 	int n;
 	for( n = 0; in[0] && n < sz; n++ )
 	{
-		char *p1;
+		TEXTCHAR const *p1;
       int lo, hi;
-		p1 = strchr( hex, in[0] );
+		p1 = StrChr( hex, in[0] );
 		if( !p1 )
 		{
-			p1 = strchr( HEX, in[0] );
+			p1 = StrChr( HEX, in[0] );
          if( p1 )
 				hi = p1 - HEX;
 			else
@@ -32,10 +32,10 @@ void ConvertToBinary( TEXTSTR out, CTEXTSTR in, int sz )
 		}
 		else
 			hi = p1 - hex;
-		p1 = strchr( hex, in[1] );
+		p1 = StrChr( hex, in[1] );
 		if( !p1 )
 		{
-			p1 = strchr( HEX, in[1] );
+			p1 = StrChr( HEX, in[1] );
          if( p1 )
 				lo = p1 - HEX;
 			else
@@ -55,3 +55,9 @@ void ConvertToBinary( TEXTSTR out, CTEXTSTR in, int sz )
 
 
 }
+
+int GetProgramID( CTEXTSTR program)
+{
+   return 1;
+}
+

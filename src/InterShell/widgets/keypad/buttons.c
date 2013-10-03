@@ -8,13 +8,10 @@
 //#define MULTI_LAYER_BUTTONS
 
 //GetImageInterface()
-
+#include <stdhdrs.h>
 #include <controls.h>
 #include <psi.h>
-#include <sharemem.h>
-#include <logging.h>
 #include <sqlgetoption.h>
-#include <timers.h>
 #define BUTTON_KEY_STRUCTURE_DEFINED
 
 #include "../include/buttons.h"

@@ -2130,36 +2130,36 @@ static void DumpTask( FILE *file, PLOAD_TASK pTask, int sub )
 		if( sub )
 		{
 			if( ( p = EscapeMenuString( pTask->pName ) ) )
-				fprintf( file, WIDE("%sname=%s\n"), sub?"\t":InterShell_GetSaveIndent(), p );
+				fprintf( file, WIDE("%sname=%s\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), p );
 		}
 		if( ( p = EscapeMenuString( pTask->pPath ) ) )
-			fprintf( file, WIDE("%spath=%s\n"), sub?"\t":InterShell_GetSaveIndent(), p );
+			fprintf( file, WIDE("%spath=%s\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), p );
 		if( ( p =  EscapeMenuString( pTask->pTask ) ) )
-			fprintf( file, WIDE("%sprogram=%s\n"), sub?"\t":InterShell_GetSaveIndent(), p );
+			fprintf( file, WIDE("%sprogram=%s\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), p );
 		if( ( p =  EscapeMenuString( GetTaskArgs( pTask, FALSE ) ) ) )
-			fprintf( file, WIDE("%sargs=%s\n"), sub?"\t":InterShell_GetSaveIndent(), p );
+			fprintf( file, WIDE("%sargs=%s\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), p );
 		if( ( p = EscapeMenuString( pTask->pShutdownPath ) ) )
-			fprintf( file, WIDE("%sshutdown path=%s\n"), sub?"\t":InterShell_GetSaveIndent(), p );
+			fprintf( file, WIDE("%sshutdown path=%s\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), p );
 		if( ( p =  EscapeMenuString( pTask->pShutdownTask ) ) )
-			fprintf( file, WIDE("%sshutdown program=%s\n"), sub?"\t":InterShell_GetSaveIndent(), p );
+			fprintf( file, WIDE("%sshutdown program=%s\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), p );
 		if( ( p =  EscapeMenuString( GetTaskArgs( pTask, TRUE ) ) ) )
-			fprintf( file, WIDE("%sshutdown args=%s\n"), sub?"\t":InterShell_GetSaveIndent(), p );
+			fprintf( file, WIDE("%sshutdown args=%s\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), p );
       if( pTask->flags.bLaunchAtLeast )
-			fprintf( file, WIDE("%slaunch at least %d by %d\n"), sub?"\t":InterShell_GetSaveIndent(), pTask->launch_width, pTask->launch_height );
+			fprintf( file, WIDE("%slaunch at least %d by %d\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), pTask->launch_width, pTask->launch_height );
 		if( pTask->flags.bLaunchAt )
-			fprintf( file, WIDE("%slaunch at %d by %d\n"), sub?"\t":InterShell_GetSaveIndent(), pTask->launch_width, pTask->launch_height );
+			fprintf( file, WIDE("%slaunch at %d by %d\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), pTask->launch_width, pTask->launch_height );
 		else
-			fprintf( file, WIDE("%slaunch at 0 by 0\n"), sub?"\t":InterShell_GetSaveIndent(), pTask->launch_width, pTask->launch_height );
+			fprintf( file, WIDE("%slaunch at 0 by 0\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), pTask->launch_width, pTask->launch_height );
 
 		//if( !pTask->flags.bButton )
-		fprintf( file, WIDE("%srestart %s\n"), sub?"\t":InterShell_GetSaveIndent(), pTask->flags.bRestart?WIDE("Yes"):WIDE("No") );
-		fprintf( file, WIDE("%snon-exclusive %s\n"), sub?"\t":InterShell_GetSaveIndent(), (!pTask->flags.bExclusive)?WIDE("Yes"):WIDE("No") );
-		fprintf( file, WIDE("%swait for task %s\n"), sub?"\t":InterShell_GetSaveIndent(), pTask->flags.bWaitForTask?WIDE("Yes"):WIDE("No") );
-		fprintf( file, WIDE("%sbackground %s\n"), sub?"\t":InterShell_GetSaveIndent(), pTask->flags.bBackground?WIDE("Yes"):WIDE("No") );
-		fprintf( file, WIDE("%sone time %s\n"), sub?"\t":InterShell_GetSaveIndent(), pTask->flags.bOneLaunch?WIDE("Yes"):WIDE("No") );
-		fprintf( file, WIDE("%sclick to stop %s\n"), sub?"\t":InterShell_GetSaveIndent(), pTask->flags.bOneLaunchClickStop?WIDE("Yes"):WIDE("No") );
-		fprintf( file, WIDE("%sCapture task output?%s\n" ), sub?"\t":InterShell_GetSaveIndent(), pTask->flags.bCaptureOutput?WIDE("Yes"):WIDE("No") );
-		fprintf( file, WIDE("%sForce Hide Display?%s\n" ), sub?"\t":InterShell_GetSaveIndent(), pTask->flags.bHideCanvas?WIDE("Yes"):WIDE("No") );
+		fprintf( file, WIDE("%srestart %s\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), pTask->flags.bRestart?WIDE("Yes"):WIDE("No") );
+		fprintf( file, WIDE("%snon-exclusive %s\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), (!pTask->flags.bExclusive)?WIDE("Yes"):WIDE("No") );
+		fprintf( file, WIDE("%swait for task %s\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), pTask->flags.bWaitForTask?WIDE("Yes"):WIDE("No") );
+		fprintf( file, WIDE("%sbackground %s\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), pTask->flags.bBackground?WIDE("Yes"):WIDE("No") );
+		fprintf( file, WIDE("%sone time %s\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), pTask->flags.bOneLaunch?WIDE("Yes"):WIDE("No") );
+		fprintf( file, WIDE("%sclick to stop %s\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), pTask->flags.bOneLaunchClickStop?WIDE("Yes"):WIDE("No") );
+		fprintf( file, WIDE("%sCapture task output?%s\n" ), sub?WIDE("\t"):InterShell_GetSaveIndent(), pTask->flags.bCaptureOutput?WIDE("Yes"):WIDE("No") );
+		fprintf( file, WIDE("%sForce Hide Display?%s\n" ), sub?WIDE("\t"):InterShell_GetSaveIndent(), pTask->flags.bHideCanvas?WIDE("Yes"):WIDE("No") );
 		{
 			INDEX idx;
 			INDEX idx2;
@@ -2170,7 +2170,7 @@ static void DumpTask( FILE *file, PLOAD_TASK pTask, int sub )
 				GetSecurityContextTokens( (PTRSZVAL)&pTask->security_modules, module->name, &module->tokens );
 				LIST_FORALL( module->tokens, idx2, CTEXTSTR, token )
 				{
-					fprintf( file, WIDE("%sSecurity Token for [%s]%s\n"), sub?"\t":InterShell_GetSaveIndent(), module->name, token );
+					fprintf( file, WIDE("%sSecurity Token for [%s]%s\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), module->name, token );
 				}
 			}
 		}
@@ -2178,16 +2178,16 @@ static void DumpTask( FILE *file, PLOAD_TASK pTask, int sub )
 			INDEX idx;
 			CTEXTSTR sysname;
 			LIST_FORALL( pTask->allowed_run_on, idx, CTEXTSTR, sysname )
-				fprintf( file, WIDE("%sRun task on %s\n" ), sub?"\t":InterShell_GetSaveIndent(), sysname );
+				fprintf( file, WIDE("%sRun task on %s\n" ), sub?WIDE("\t"):InterShell_GetSaveIndent(), sysname );
 			LIST_FORALL( pTask->disallowed_run_on, idx, CTEXTSTR, sysname )
-				fprintf( file, WIDE("%sDisallow task on %s\n" ), sub?"\t":InterShell_GetSaveIndent(), sysname );
+				fprintf( file, WIDE("%sDisallow task on %s\n" ), sub?WIDE("\t"):InterShell_GetSaveIndent(), sysname );
 		}
 		//if( pTask->flags.bButton )
-		//fprintf( file, WIDE("%ssecurity=%s\n"), sub?"\t":InterShell_GetSaveIndent(), GetTaskSecurity( pTask ) );
+		//fprintf( file, WIDE("%ssecurity=%s\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), GetTaskSecurity( pTask ) );
 		//if( pTask->pImage && pTask->pImage[0] )
 		//	fprintf( file, WIDE("image=%s\n"), EscapeMenuString( pTask->pImage ) );
 		if( sub )
-			fprintf( file, WIDE( "%sTask Done\n" ), sub?"":(InterShell_GetSaveIndent()+1) ); // drop back one level
+			fprintf( file, WIDE( "%sTask Done\n" ), sub?WIDE(""):(InterShell_GetSaveIndent()+1) ); // drop back one level
 	}
 }
 

@@ -31,7 +31,7 @@ set( BASE_SOURCES
 	    driver/usbpulse100drvr.cpp
 	${LAST_GCC_LIBRARY_SOURCE}
 )
-
+message( "LINK ${SACK_LIBRARIES}" )
 add_library(${project} SHARED ${BASE_SOURCES} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
 COMPILE_FLAGS  "-DTARGET_LABEL=${project}" 

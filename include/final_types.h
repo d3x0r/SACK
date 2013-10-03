@@ -114,10 +114,12 @@
 
 #ifdef __WATCOMC__
 #      if defined( _UNICODE )
+#        ifndef NO_UNICODE_C
 //&& !defined( NO_UNICODE_C )
-#        define snprintf  _snwprintf
-#        define vsnprintf _vsnwprintf
-#        define sscanf     swscanf
+#           define snprintf  _snwprintf
+#           define vsnprintf _vsnwprintf
+#           define sscanf     swscanf
+#        endif
 #      else
 //#        define snprintf snprintf
 //#        define vsnprintf vsnprintf
