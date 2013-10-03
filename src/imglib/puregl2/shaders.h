@@ -41,7 +41,7 @@
 
 #include <image3d.h>
 
-
+IMAGE_NAMESPACE
 typedef struct image_shader_tracker ImageShaderTracker;
 
 struct image_shader_tracker
@@ -96,4 +96,5 @@ void DumpAttribs( PImageShaderTracker tracker, int program );
 
 void CloseShaders( struct glSurfaceData *glSurface );
 
+IMAGE_NAMESPACE_END
 #endif

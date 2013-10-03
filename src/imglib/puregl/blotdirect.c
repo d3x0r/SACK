@@ -26,7 +26,7 @@
 
 #include <imglib/imagestruct.h>
 #include <image.h>
-
+#include "../image_common.h"
 #include "local.h"
 #define NEED_ALPHA2
 #include "blotproto.h"

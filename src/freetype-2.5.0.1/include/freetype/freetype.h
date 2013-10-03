@@ -936,7 +936,7 @@ FT_BEGIN_HEADER
 
     FT_Int            num_charmaps;
     FT_CharMap*       charmaps;
-
+#define generic ft_generic
     FT_Generic        generic;
 
     /*# The following member variables (down to `underline_thickness') */

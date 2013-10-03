@@ -8,9 +8,10 @@
 #include <render.h>
 #include "keybrd.h"  // includes vidlib
 
+#include "local.h"
+
 RENDER_NAMESPACE
 
-#include "local.h"
 
 //------------------------------------------------------------------------
 

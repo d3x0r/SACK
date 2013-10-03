@@ -16,9 +16,14 @@
 #endif
 
 #include <vidlib/vidstruc.h>
-RENDER_NAMESPACE
 // have to include local.h in render namespace.
+#ifdef _OPENGL_DRIVER
+#include "puregl/local.h"
+#else
 #include "local.h"
+#endif
+
+RENDER_NAMESPACE
 
 extern int myTypeID;
 
@@ -26,10 +31,6 @@ enum{
    KS_DELETE
 };
 
-#ifdef __cplusplus
-#else
-//TEXT DELETE_STROKE = DEFTEXT( WIDE("\x7f") );
-#endif
 
 KEYDEFINE KeyDefs[256];
 //----------------------------------------------------------------------------

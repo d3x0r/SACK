@@ -7,7 +7,7 @@
 #include <render.h>
 #include <image.h>
 
-
+RENDER_NAMESPACE
 #ifdef MINGW_SUX
 typedef struct tagUPDATELAYEREDWINDOWINFO {
     DWORD               cbSize;
@@ -109,5 +109,6 @@ extern
    PRENDERER last_mouse_update_display;
 } l;
 
+RENDER_NAMESPACE_END
 
 

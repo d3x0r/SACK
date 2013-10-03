@@ -2,13 +2,18 @@
 # because sources are common to monolithic build mode
 # they are already defined in a variable calld VIDLIB_SOURCES (defined in CMakeSources.lst)
 
+if( FORCE_CXX )
+    set_source_files_properties( ${IMAGE_SOURCES}  PROPERTIES LANGUAGE CXX )
+endif( FORCE_CXX )
+
 add_library( bag.image SHARED 
   ${FIRST_GCC_LIBRARY_SOURCE} 
   ${IMAGE_SOURCES} 
   ${LAST_GCC_LIBRARY_SOURCE} 
 )
+
 SET_TARGET_PROPERTIES(bag.image PROPERTIES
-                  COMPILE_FLAGS  "-DTARGET_LABEL=bag_image ${ExtraFlags} ${ImageExtraFlags}"
+                  COMPILE_FLAGS  "-DTARGET_LABEL=bag_image ${ExtraFlags} ${ImageExtraFlags} -DMAKE_RCOORD_SINGLE"                  
                   FOLDER "Image Library" 
                   LINK_FLAGS "${extra_link_flags}"
 )

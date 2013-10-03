@@ -33,9 +33,6 @@
 #include <render3d.h>
 
 
-#ifdef __cplusplus
-using namespace sack::image::loader;
-#endif
 #include "local.h"
 #include "shaders.h"
 #include "blotproto.h"
@@ -303,11 +300,15 @@ struct glSurfaceImageData * MarkImageUpdated( Image child_image )
 	}
 }
 
+IMAGE_NAMESPACE_END
+ASM_IMAGE_NAMESPACE
 extern void  (CPROC*BlatPixelsAlpha)( PCDATA po, int oo, int w, int h
                   , CDATA color );
 
 extern void  (CPROC*BlatPixels)( PCDATA po, int oo, int w, int h
                   , CDATA color );
+ASM_IMAGE_NAMESPACE_END
+IMAGE_NAMESPACE
 
 //---------------------------------------------------------------------------
 // This routine fills a rectangle with a solid color

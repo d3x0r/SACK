@@ -5,13 +5,13 @@
 
 SaneWinMain( argc, argv )
 {
-   FLAGSETTYPE flags = 0;
+	FLAGSETTYPE flags = 0;
 	SystemLogTime( 0 );
-   SetSyslogOptions( &flags );
+	SetSyslogOptions( &flags );
 	SetSystemLog( SYSLOG_FILE, stdout );
-   lprintf( WIDE("if the size is not a fixed size, it is shown as -1") );
+	lprintf( WIDE("if the size is not a fixed size, it is shown as -1") );
 	DumpFontCache();
-   SetSystemLog( SYSLOG_NONE, 0 );
-   return;
+	SetSystemLog( SYSLOG_NONE, 0 );
+	return 0;
 }
 EndSaneWinMain()

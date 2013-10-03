@@ -14,21 +14,14 @@
 #include <imglib/imagestruct.h>
 #include <vidlib/vidstruc.h>
 #include <render.h>
-//#define LOG_OPENGL_CONTEXT
 
-//#define ENABLE_ON_DC_LAYERED hDCFakeWindow
 #define ENABLE_ON_DC_LAYERED hDCFakeWindow
 #define ENABLE_ON_DC_NORMAL hDCOutput
 
-//#define ENABLE_ON_DC hDCBitmap
-//#define ENABLE_ON_DC hDCOutput
-//hDCBitmap
-
-RENDER_NAMESPACE
 
 #include "local.h"
 
-
+RENDER_NAMESPACE
 
 void ReadBuffer( PPBO_Info pbo );
 PPBO_Info SetupPBO( Image dest_buffer );

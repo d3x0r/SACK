@@ -29,6 +29,7 @@
 #endif
 
 #endif
+#define REQUIRE_GLUINT
 #include "image_common.h"
 #ifdef _D3D_DRIVER
 #include <d3d11.h>

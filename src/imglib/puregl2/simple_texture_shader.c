@@ -14,6 +14,7 @@
 
 #include "shaders.h"
 
+IMAGE_NAMESPACE
 
 //const char *gles_
 static const char *gles_simple_v_shader =
@@ -172,3 +173,4 @@ void InitSimpleShadedTextureShader( PImageShaderTracker tracker )
 	}
 }
 
+IMAGE_NAMESPACE_END

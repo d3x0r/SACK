@@ -72,6 +72,8 @@ DEFINE_DEFAULT( GENERATOR_BUILD_ALL_NOW  OFF )
 DEFINE_DEFAULT( GENERATOR_BUILD_INSTALL_NOW  OFF )
 DEFINE_DEFAULT( GENERATOR_BUILD_PACKAGE_NOW  OFF )
 DEFINE_DEFAULT( DIRECTX_SDK "" )
+DEFINE_DEFAULT( __CLR__ 0 )
+
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   if( CMAKE_BINARY_DIR MATCHES ${CMAKE_BUILD_TYPE}_solution\$ )
   SET(CMAKE_INSTALL_PREFIX
@@ -96,17 +98,18 @@ option( BUILD_UNICODE "Enable building everything as unicode" ${BUILD_UNICODE} )
 option( __ANDROID__ "Enable target to android" ${__ANDROID__} )
 
 if( DIRECTX_SDK )
-set( DDIRECTX_SDK -DDIRECTX_SDK=${DIRECTX_SDK} )
+# if directx had to be passed as an environment variable (has spaces)
+# then it's already set, and don't have to pass it... otherwise we couldn't pass it.
+  set( DDIRECTX_SDK \"-DDIRECTX_SDK=${DIRECTX_SDK}\" )
 endif( DIRECTX_SDK )
 
 if( BUILD_TESTS )
 SET( DBUILD_TESTS -DBUILD_TESTS=${BUILD_TESTS} )
 endif( BUILD_TESTS )
 
-if( DIRECTX_SDK )
-SET( DDX_SDK -DDIRECTX_SDK=${DIRECTX_SDK} )
-endif( DIRECTX_SDK )
-
+if( __CLR__ )
+SET( D__CLR__ -D__CLR__=${__CLR__} )
+endif( __CLR__ )
 
 if( __LINUX__ )
 SET( D__LINUX__ -D__LINUX__=${__LINUX__} )
@@ -128,8 +131,8 @@ endif( BUILD_UNICODE )
 
 SET( SACK_REQUIREMENTS -DNEED_FREETYPE=${NEED_FREETYPE} -DNEED_JPEG=${NEED_JPEG} -DNEED_PNG=${NEED_PNG} -DNEED_ZLIB=${NEED_ZLIB} )
 if( UNIX )
-message( "Not win32, but MINGW="${MINGW}" maybe android?" )
-set( SACK_REQUIREMENTS -D__LINUX__=${__LINUX__} -D__ARM__=${__ARM__} ${D__ANDROID__} )
+message( "Not win32, but MINGW="${MINGW}" maybe android? ; not passing need_externals" )
+set( SACK_REQUIREMENTS )
 endif( UNIX )
 
 IF(EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
@@ -144,7 +147,7 @@ endIF(EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
 set( PROJECT core )
 set( EXTRA_FLAGS -DBUILD_MONOLITHIC=${BUILD_MONOLITHIC}
 			-D__NO_ODBC__=${__NO_ODBC__}
-			${DDIRECTX_SDK} 
+			${DDIRECTX_SDK}
         	        ${SACK_REQUIREMENTS} 
                 	${DFORCE_MSVCRT} 
 	                ${DBUILD_TESTS} 
@@ -153,6 +156,7 @@ set( EXTRA_FLAGS -DBUILD_MONOLITHIC=${BUILD_MONOLITHIC}
                         ${D__ARM__}
                         ${D__LINUX__}
                         ${D__ANDROID__}
+                        ${D__CLR__}
                         ${DDX_SDK}
                 )
 BuildProject( ${PROJECT} sack ${CMAKE_CURRENT_LIST_DIR}/.. SACK_SDK_ROOT_PATH ${EXTRA_FLAGS} )

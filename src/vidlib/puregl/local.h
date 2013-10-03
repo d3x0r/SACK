@@ -29,7 +29,6 @@
 
 RENDER_NAMESPACE
 
-
 #define CheckErr()  				{    \
 					GLenum err = glGetError();  \
 					if( err )                   \

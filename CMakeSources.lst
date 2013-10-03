@@ -114,21 +114,21 @@ endif( WIN32 )
 
 if( NOT __NO_ODBC__ OR USE_SQLITE )
 
-set( ODBC_SOURCES
-  ${SOURCES_ROOT}src/SQLlib/sqlparse3.c
-  ${SOURCES_ROOT}src/SQLlib/sqlstub.c
-  ${SOURCES_ROOT}src/SQLlib/guid.c
-  ${SOURCES_ROOT}src/SQLlib/sqlutil.c
-  ${SOURCES_ROOT}src/SQLlib/sqlwrap.c
-)
-if( FORCE_CXX )
-endif( FORCE_CXX )
+  set( ODBC_SOURCES
+    ${SOURCES_ROOT}src/SQLlib/sqlparse3.c
+    ${SOURCES_ROOT}src/SQLlib/sqlstub.c
+    ${SOURCES_ROOT}src/SQLlib/guid.c
+    ${SOURCES_ROOT}src/SQLlib/sqlutil.c
+    ${SOURCES_ROOT}src/SQLlib/sqlwrap.c
+  )
 
-if( __CLR__ )
-set( ODBC_SOURCES ${ODBC_SOURCES} ${SOURCES_ROOT}src/SQLlib/sql_ref_class.cpp )
-endif( __CLR__ )
-SET_SOURCE_FILES_PROPERTIES( ${ODBC_SOURCES} PROPERTIES 
+  if( __CLR__ )
+    set( ODBC_SOURCES ${ODBC_SOURCES} ${SOURCES_ROOT}src/SQLlib/sql_ref_class.cpp )
+  endif( __CLR__ )
+
+  SET_SOURCE_FILES_PROPERTIES( ${ODBC_SOURCES} PROPERTIES 
 		FOLDER "Source Files\\ODBC" )
+
 endif( NOT __NO_ODBC__ OR USE_SQLITE )
 
 if( NOT __NO_ODBC__ OR USE_SQLITE )
@@ -169,6 +169,7 @@ SET_SOURCE_FILES_PROPERTIES( ${OPTION_SOURCE} PROPERTIES
 		FOLDER "Source Files\\Option Library" )
 
   if( FORCE_CXX )
+set_source_files_properties(${BAG_SQLITE_INTERFACE} PROPERTIES LANGUAGE CXX )
   endif( FORCE_CXX )
 
 endif( NOT __NO_ODBC__ OR USE_SQLITE )

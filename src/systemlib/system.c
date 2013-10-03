@@ -1301,10 +1301,11 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			}
 #ifdef __cplusplus_cli
 			ReleaseEx( procname DBG_SRC );
-#endif
+#else
 #ifdef _UNICODE
 			Deallocate( char *, tmp );
 			}
+#endif
 #endif
 			if( !function->function )
 			{
