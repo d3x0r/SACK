@@ -5,8 +5,8 @@ ASM_IMAGE_NAMESPACE_END
 
 IMAGE_NAMESPACE
 
-#ifndef _D3D_DRIVER
-#ifdef REQUIRE_GLUINT
+#if !defined( _D3D_DRIVER )
+#if defined( REQUIRE_GLUINT ) && !defined( _OPENGL_DRIVER )
 typedef unsigned int GLuint;
 #endif
 
