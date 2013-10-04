@@ -47,7 +47,7 @@ endif( WIN32 )
 install_default_dest( ${PROJECT_NAME} )
 
 PROJECT( ipof )
-add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} 
+sack_add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} 
 ipof 
 ${LAST_GCC_PROGRAM_SOURCE}
 )
