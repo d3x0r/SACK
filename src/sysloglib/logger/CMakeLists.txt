@@ -8,7 +8,6 @@ ${LAST_GCC_PROGRAM_SOURCE}
 )
 
 sack_add_executable(${project} ${BASE_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${project} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER utils
 )
