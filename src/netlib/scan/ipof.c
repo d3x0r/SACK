@@ -10,7 +10,7 @@
 #endif
 
 
-int main( int argc, char **argv )
+SaneWinMain( argc, argv )
 {
 	if( argc < 1 )
 	{
@@ -34,7 +34,7 @@ int main( int argc, char **argv )
       printf( WIDE("Failed to enable network.") );
 	return 0;
 }
-
+EndSaneWinMain()
 
 //
 //

@@ -1,3 +1,4 @@
+#define NO_UNICODE_C
 #include <stdhdrs.h>
 #include <network.h>
 
@@ -7,27 +8,27 @@ void PingResult( _32 dwIP, CTEXTSTR name
 						, int drop, int hops )
 {
 	if( dwIP ) // else was a timeout.
-	printf( WIDE("Result: %25s(%12s) %d %d %d\n"), name, inet_ntoa( *(struct in_addr*)&dwIP )
+	printf( "Result: %25s(%12s) %d %d %d\n", name, inet_ntoa( *(struct in_addr*)&dwIP )
                  							, min, max, avg );
 }
 
-int main( int argc, char **argv )
+SaneWinMain( argc, argv )
 {
 	if( argc < 2 )
 	{
-		printf( WIDE("Please enter a IP - class c will be scanned\n") );
+		printf( "Please enter a IP - class c will be scanned\n" );
 		return 0;
 	}
    NetworkWait(NULL,2000,4);
 	{
-		char address[256];
+		TEXTCHAR address[256];
 		_32 IP;
-		IP = inet_addr(argv[1]);
+		IP = inet_addr(CStrDup(argv[1]));
 		IP = ntohl( IP );
 		for( ; ( IP & 0xFFff ) != 0xFFFF ; IP++ )
 		{
 			_32 junk = htonl(IP);
-			strcpy( address, inet_ntoa( *(struct in_addr*)&junk ) );
+			StrCpy( address, DupCStr( inet_ntoa( *(struct in_addr*)&junk ) ) );
 			//printf( WIDE("Trying %s...\n"), address );
 			 DoPing( address, 
       	         0,  // no ttl - just ping
@@ -40,6 +41,7 @@ int main( int argc, char **argv )
 	}
 	return 0;
 }
+EndSaneWinMain()
 
 
 // $Log: pinger.c,v $
