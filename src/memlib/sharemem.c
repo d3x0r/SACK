@@ -168,7 +168,7 @@ PRIORITY_PRELOAD( InitGlobal, GLOBAL_INIT_PRELOAD_PRIORITY-1 )
 
 #else
 #  ifdef _DEBUG
-struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 0/*auto check*/
+struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 1/*auto check*/
 #    ifdef DEBUG_CRITICAL_SECTIONS
 															 , 1
 #    else
@@ -176,7 +176,7 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 0/*auto check
 #    endif
 
 															 , 0, 0
-															 , 1 /*log allocates*/
+															 , 0 /*log allocates*/
 															 , 0 /* logging too */
 															 , 0 /* custom allocer*/ };
 // this one has memory logging enabled by default...

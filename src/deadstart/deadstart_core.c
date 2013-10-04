@@ -11,7 +11,7 @@
 
 // debugging only gets you the ordering(priority) logging and something else...
 // useful logging is now controlled with l.flags.bLog
-//#define DISABLE_DEBUG_REGISTER_AND_DISPATCH
+#define DISABLE_DEBUG_REGISTER_AND_DISPATCH
 //#define DEBUG_SHUTDOWN
 #define LOG_ALL 0
 
