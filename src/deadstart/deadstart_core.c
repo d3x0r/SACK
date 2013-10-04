@@ -706,6 +706,7 @@ LOGICAL IsRootDeadstartComplete( void )
 #endif
 }
 
+#if !defined( __cplusplus_cli )
 #if !defined( NO_DEADSTART_DLLMAIN ) && !defined( BUILD_PORTABLE_EXECUTABLE )
 #  if !defined( __LINUX__ ) && !defined( __GNUC__ )
 #    ifdef __cplusplus
@@ -728,6 +729,7 @@ void RootDestructor( void )
    InvokeExits();
 }
 #  endif
+#endif
 #endif
 
 SACK_DEADSTART_NAMESPACE_END
