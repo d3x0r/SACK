@@ -1,6 +1,6 @@
 
 PROJECT( scan_ports )
-add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} 
+sack_add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} 
 scanner 
 ${LAST_GCC_PROGRAM_SOURCE}
 )
@@ -16,7 +16,7 @@ install_default_dest( ${PROJECT_NAME} )
 
 if( NOT __ARM__ )
 PROJECT( scan_addresses )
-add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} 
+sack_add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} 
 pinger 
 ${LAST_GCC_PROGRAM_SOURCE}
 )
@@ -32,7 +32,7 @@ install_default_dest( ${PROJECT_NAME} )
 endif( NOT __ARM__ )
 
 PROJECT( nameof )
-add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} 
+sack_add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} 
 nameof 
 ${LAST_GCC_PROGRAM_SOURCE}
 )

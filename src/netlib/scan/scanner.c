@@ -5,7 +5,7 @@
 PCLIENT gpc[65536];
 
 int nOpen;
-char *pAddress;
+TEXTCHAR *pAddress;
 
 void ConnectProc( PCLIENT pc, int n )
 {
@@ -36,7 +36,7 @@ void ConnectProc( PCLIENT pc, int n )
 	nOpen--;
 }
 
-int main( int argc, char **argv )
+SaneWinMain( argc, argv )
 {
 	int i, start, stop;
 	if( argc < 2 ) 
@@ -59,7 +59,7 @@ int main( int argc, char **argv )
 		gpc[i] = OpenTCPClientExx( argv[1], (_16)i, NULL, NULL, NULL, (cConnectCallback)ConnectProc );
 		if( !gpc[i] )
 		{
-			fprintf( stderr,"\rBad Failure: %d\n", WSAGetLastError() ) ;
+			fprintf( stderr,WIDE("\rBad Failure: %d\n"), WSAGetLastError() ) ;
 		}
 		else
 		{
@@ -96,6 +96,7 @@ int main( int argc, char **argv )
 	}
    return 0;
 }
+EndSaneWinMain()
 
 // $Log: scanner.c,v $
 // Revision 1.8  2005/01/27 07:37:11  panther
