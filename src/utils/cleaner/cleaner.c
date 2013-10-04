@@ -6,7 +6,7 @@ int level;
 static void CPROC ProcessFile( PTRSZVAL psv, CTEXTSTR name, int flags )
 {
    level++;
-   printf( "%3d - %s\n", level, name );
+   printf( WIDE("%3d - %s\n"), level, name );
 	if( flags & SFF_DIRECTORY )
 	{
 		TEXTCHAR tmp[4];
@@ -19,29 +19,29 @@ static void CPROC ProcessFile( PTRSZVAL psv, CTEXTSTR name, int flags )
 		for( n = 0; n < 26; n++ )
 		{
 			tmp[2] = 'a' + n;
-         lprintf( "rename %s to %s?", name, tmp + 2 );
+         lprintf( WIDE("rename %s to %s?"), name, tmp + 2 );
 			if( sack_rename( name, tmp + 2 ) )
 			{
             use_name = tmp;
-            lprintf( "go to %s", tmp );
+            lprintf( WIDE("go to %s"), tmp );
 				if( !SetCurrentPath( tmp ) )
-               printf( "Failed?" );
+               printf( WIDE("Failed?") );
 			}
 			else
 			{
             use_name = name;
-				printf( "set path ..." );
-            lprintf( "go to %s", name );
+				printf( WIDE("set path ...") );
+            lprintf( WIDE("go to %s"), name );
 				if( !SetCurrentPath( name ) )
-               printf( "Failed?" );
+               printf( WIDE("Failed?") );
             break;
 
 			}
 		}
-		while( ScanFiles( ".", NULL, &info, ProcessFile, SFF_DIRECTORIES|SFF_NAMEONLY|SFF_SUBPATHONLY
+		while( ScanFiles( WIDE("."), NULL, &info, ProcessFile, SFF_DIRECTORIES|SFF_NAMEONLY|SFF_SUBPATHONLY
 							 , 0 ) );
 
-      SetCurrentPath( ".." );
+      SetCurrentPath( WIDE("..") );
 		sack_rmdir( 0, use_name );
 
 	}
@@ -57,7 +57,7 @@ int main( int argc, char **argv )
 {
 	POINTER info = NULL;
 
-	while( ScanFiles( ".", NULL, &info, ProcessFile, SFF_DIRECTORIES|SFF_NAMEONLY|SFF_SUBPATHONLY
+	while( ScanFiles( WIDE("."), NULL, &info, ProcessFile, SFF_DIRECTORIES|SFF_NAMEONLY|SFF_SUBPATHONLY
                     , 0 ) );
 
    return 0;

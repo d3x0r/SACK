@@ -262,15 +262,15 @@
 #      define SaneWinMain(a,b) int SACK_Main( int a, char **b )
 #      define EndSaneWinMain() }
 #    else
-#      define SaneWinMain(a,b) int main( int a, char **b ) { int n; TEXTCHAR **b; b = NewArray( TEXTSTR, a + 1 ); for( n = 0; n < a; n++ ) b[n] = DupCharToText( argv_real[n] ); b[n] = NULL; {
+#      define SaneWinMain(a,b) int main( int a, char **real_argv ) { int n; TEXTCHAR **b; b = NewArray( TEXTSTR, a + 1 ); for( n = 0; n < a; n++ ) b[n] = DupCharToText( argv_real[n] ); b[n] = NULL; {
 #      define EndSaneWinMain() } }
 #    endif
 #  endif
 #else
 #  ifdef _WIN32
 #    ifdef CONSOLE_SHELL
-#      define SaneWinMain(a,b) int main( int a, char **b ) {
-#      define EndSaneWinMain() }
+#      define SaneWinMain(a,b) int main( int a, char **b ) { char **real_argv = b; {
+#      define EndSaneWinMain() } }
 #    else
 #      define SaneWinMain(a,b) int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmdShow ) { int a; TEXTCHAR **b; ParseIntoArgs( GetCommandLine(), &a, &b ); {
 #      define EndSaneWinMain() } }
@@ -280,8 +280,8 @@
 #      define SaneWinMain(a,b) int SACK_Main( int a, char **b )
 #      define EndSaneWinMain()
 #    else
-#      define SaneWinMain(a,b) int main( int a, char **b )
-#      define EndSaneWinMain()
+#      define SaneWinMain(a,b) int main( int a, char **b ) { char **real_argv = b; {
+#      define EndSaneWinMain() } }
 #    endif
 #  endif
 #endif

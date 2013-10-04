@@ -2,6 +2,9 @@
 #include <sack_types.h>
 #define SUFFER_WITH_NO_SNPRINTF
 #include <final_types.h>
+#ifdef __WATCOMC__
+#undef snprintf
+#endif
 #include <stdio.h>
 #include <string.h>
 

@@ -17,14 +17,14 @@
 #define NL_BUFFER  2 // pointer to buffer reading into....
 
 typedef struct route_output_tag {
-	char name[256];
+	TEXTCHAR name[256];
    SOCKADDR *socket_addr;
 	PCLIENT socket;
    PLIST sendto;
 } ROUTE_OUTPUT, *PROUTE_OUTPUT;
 
 typedef struct route_tag {
-	char name[256];
+	TEXTCHAR name[256];
 	SOCKADDR *listen_addr;//, *sendto;
 	SOCKADDR *bind_addr;//, *sendto;
    //PLIST out_address;
@@ -59,9 +59,9 @@ void CPROC UDPClose( PCLIENT pc )
 
 //---------------------------------------------------------------------------
 
- void BuildAddr( char *addr, SOCKADDR *sa )
+ void BuildAddr( TEXTCHAR *addr, size_t buflen, SOCKADDR *sa )
 {
-	sprintf( addr, WIDE("%d.%d.%d.%d:%d"),
+	snprintf( addr, buflen, WIDE("%d.%d.%d.%d:%d"),
     				*(((unsigned char *)sa)+4),
     				*(((unsigned char *)sa)+5),
     				*(((unsigned char *)sa)+6),
@@ -193,7 +193,7 @@ void RemoveOutputRoute( PROUTE input, PROUTE_OUTPUT route )
 
 //---------------------------------------------------------------------------
 
-PROUTE_OUTPUT CreateOutput( char *name, SOCKADDR *addr, SOCKADDR *sendto )
+PROUTE_OUTPUT CreateOutput( TEXTCHAR *name, SOCKADDR *addr, SOCKADDR *sendto )
 {
 	PROUTE_OUTPUT route;
 	INDEX idx;
@@ -206,12 +206,12 @@ PROUTE_OUTPUT CreateOutput( char *name, SOCKADDR *addr, SOCKADDR *sendto )
 	{
 		route = (PROUTE_OUTPUT)Allocate( sizeof( *route ) );
 		MemSet( route, 0, sizeof( *route ) );
-		snprintf( route->name, sizeof( route->name ), "%s", name?name:"unnamed" );
+		snprintf( route->name, sizeof( route->name ), WIDE("%s"), name?name:WIDE("unnamed") );
       /*
 		{
 			TEXTCHAR saFrom[32];
 			BuildAddr( saFrom, addr );
-			lprintf( "Output socket = %s", saFrom );
+			lprintf( WIDE("Output socket = %s"), saFrom );
 			}
          */
 		route->socket_addr = addr;
@@ -225,7 +225,7 @@ PROUTE_OUTPUT CreateOutput( char *name, SOCKADDR *addr, SOCKADDR *sendto )
 
 //---------------------------------------------------------------------------
 
-PROUTE CreateInput( char *name, SOCKADDR *addr )
+PROUTE CreateInput( TEXTCHAR *name, SOCKADDR *addr )
 {
 	PROUTE route;
 	INDEX idx;
@@ -233,7 +233,7 @@ PROUTE CreateInput( char *name, SOCKADDR *addr )
 	{
 		_16 port;
 		GetAddressParts( addr, NULL, &port );
-		bind_addr = CreateSockAddress( "0.0.0.0", port );
+		bind_addr = CreateSockAddress( WIDE("0.0.0.0"), port );
 	}
 	LIST_FORALL( inputs, idx, PROUTE, route )
 	{
@@ -244,7 +244,7 @@ PROUTE CreateInput( char *name, SOCKADDR *addr )
 	{
 		route = (PROUTE)Allocate( sizeof( *route ) );
 		MemSet( route, 0, sizeof( *route ) );
-		snprintf( route->name, sizeof( route->name ), "%s", name?name:"unnamed" );
+		snprintf( route->name, sizeof( route->name ), WIDE("%s"), name?name:WIDE("unnamed") );
 		route->listen_addr = addr;
 		{
 			_16 port;
@@ -260,10 +260,10 @@ PROUTE CreateInput( char *name, SOCKADDR *addr )
 
 //---------------------------------------------------------------------------
 
-void AddRoute( char *route_name
-					, char *src_name, int src_port
-				 , char *dest_name, int dest_port // send from socket.
-				 , char *ipto, int to_port )
+void AddRoute( TEXTCHAR *route_name
+					, TEXTCHAR *src_name, int src_port
+				 , TEXTCHAR *dest_name, int dest_port // send from socket.
+				 , TEXTCHAR *ipto, int to_port )
 {
    SOCKADDR *in = CreateSockAddress( src_name, src_port );
 	PROUTE route = CreateInput( route_name, in );// = (PROUTE)Allocate( sizeof( ROUTE ) );
@@ -273,7 +273,7 @@ void AddRoute( char *route_name
 	{
 		TEXTCHAR blah[32];
       BuildAddr( blah, out );
-		lprintf( "output bind addr %s:%d= %s", dest_name, dest_port, blah );
+		lprintf( WIDE("output bind addr %s:%d= %s"), dest_name, dest_port, blah );
 		}
       */
 	output = CreateOutput( route_name
@@ -283,9 +283,9 @@ void AddRoute( char *route_name
 
 	lprintf( WIDE("Adding Route %s: %s:%d %s:%d sendto %s:%d")
 			 , route_name
-			 , src_name?src_name:"0.0.0.0", src_port
-			 , dest_name?dest_name:"0.0.0.0", dest_port
-			 , ipto?ipto:"BAD ADDRESS", to_port);
+			 , src_name?src_name:WIDE("0.0.0.0"), src_port
+			 , dest_name?dest_name:WIDE("0.0.0.0"), dest_port
+			 , ipto?ipto:WIDE("BAD ADDRESS"), to_port);
 
   // route->in = CreateSockAddress( src_name, src_port );
 
@@ -319,9 +319,9 @@ void BeginRouting( void )
 					{
                   /*
 						{
-							char szAddr[54];
+							TEXTCHAR szAddr[54];
 							BuildAddr( szAddr, other->socket_addr );
-                     lprintf( "serving at %s", szAddr );
+                     lprintf( WIDE("serving at %s"), szAddr );
 							}
                      */
 						other->socket = ServeUDPAddr( other->socket_addr, UDPRead, UDPClose );
@@ -355,11 +355,11 @@ void BeginRouting( void )
 
 void ReadConfig( FILE *file )
 {
-	char buffer[256];
+	TEXTCHAR buffer[256];
 	size_t len;
 	while( fgets( buffer, 255, file ) )
 	{
-		char *start, *end
+		TEXTCHAR *start, *end
 		   , *name
 		   , *addr1
          , *addr2
@@ -435,7 +435,7 @@ void ReadConfig( FILE *file )
 				end[0] = 0;
 			addr3 = start;
 
-			lprintf( "3 things : [%s][%s][%s]", addr1, addr2, addr3 );
+			lprintf( WIDE("3 things : [%s][%s][%s]"), addr1, addr2, addr3 );
 			AddRoute( name, addr1, 25001, addr2, 25004, addr3, 25001 );
 		}
 	}
@@ -443,17 +443,16 @@ void ReadConfig( FILE *file )
 
 //---------------------------------------------------------------------------
 
-int main( int argc, char **argv )
+SaneWinMain( argc, argv )
 {
-
 	FILE *file;
-	char *filename;
+	TEXTCHAR *filename;
 	if( argc < 2 )
-		filename = "forward.conf";
+		filename = WIDE("forward.conf");
 	else
 		filename = argv[1];
 
-   file = fopen( filename, WIDE("rb") );
+   file = sack_fopen( 0, filename, WIDE("rb") );
 
 	SetSystemLog( SYSLOG_FILE, stdout );
    SystemLogTime( SYSLOG_TIME_HIGH|SYSLOG_TIME_DELTA );
@@ -479,17 +478,5 @@ int main( int argc, char **argv )
 		Sleep( 100000 );
 	return 0;
 }
+EndSaneWinMain()
 
-// $Log: forward.c,v $
-// Revision 1.10  2003/07/24 22:50:10  panther
-// Updates to make watcom happier
-//
-// Revision 1.9  2003/06/04 11:39:31  panther
-// Stripped carriage returns
-//
-// Revision 1.8  2003/04/28 00:43:18  panther
-// Remove double ;; which causes out of band declarations things
-//
-// Revision 1.7  2003/03/25 08:45:55  panther
-// Added CVS logging tag
-//

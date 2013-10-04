@@ -1,5 +1,7 @@
+#define NO_UNICODE_C
 #include <stdhdrs.h>
 #include <stdio.h>
+#undef stricmp
 
 void DoReboot( char *mode )
 {
@@ -99,7 +101,7 @@ int main( int argc, char **argv )
 #endif
 {
 #ifndef DEDICATE_REBOOT
-	RegisterIcon( (char*)ICO_REBOOT );
+	RegisterIcon( (TEXTCHAR*)ICO_REBOOT );
 	NetworkStart();
    while( !OpenTCPServerEx( 16661, Connection ) )
    	Sleep( 2 );
