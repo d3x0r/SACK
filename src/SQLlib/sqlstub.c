@@ -230,7 +230,6 @@ static void SQLiteGetLastInsertID(sqlite3_context*onwhat,int n,sqlite3_value**so
 	static TEXTCHAR str[20];
 	PODBC odbc = (PODBC)sqlite3_user_data(onwhat);
 	snprintf( str, sizeof( str ), WIDE( "%Ld" ), sqlite3_last_insert_rowid( odbc->db ) );
-	printf( WIDE( "x = %s" ), str );
 #ifdef _UNICODE
 	{
 		char *tmp_str = WcharConvert( str );
@@ -2950,7 +2949,12 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
                // do the same thing as < colsize
 					if( ( ResultLen & 0x8000000 )
 							   || ( (SQLUINTEGER)ResultLen < colsize ) )
-						byResult[ResultLen] = 0;
+					{
+						if( (int)ResultLen < 0 )
+							byResult[0] = 0;
+						else
+							byResult[ResultLen] = 0;
+					}
 					else
 					{
 						lprintf( WIDE( "SQL overflow (no room for nul character) %d of %d" ), ResultLen, colsize );
