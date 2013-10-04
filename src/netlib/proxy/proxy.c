@@ -22,7 +22,7 @@
 	} PATH, *PPATH;
 
 typedef struct route_tag {
-	char name[256];
+	TEXTCHAR name[256];
 	struct {
       // if set - send IP as first 4 bytes to new connection
 		_32 ip_transmit : 1;
@@ -282,15 +282,15 @@ void RemoveRoute( PROUTE route )
 
 void AddRoute( int set_ip_transmit
 				 , int set_ip_route
-				 , char *route_name
-				 , char *src_name, int src_port
-				 , char *dest_name, int dest_port )
+				 , TEXTCHAR *route_name
+				 , TEXTCHAR *src_name, int src_port
+				 , TEXTCHAR *dest_name, int dest_port )
 {
 	PROUTE route = (PROUTE)Allocate( sizeof( ROUTE ) );
 	xlprintf( 2100 )( WIDE("Adding Route %s: %s:%d %s:%d")
 					, route_name
-					, src_name?src_name:"0.0.0.0", src_port
-					, dest_name?dest_name:"0.0.0.0", dest_port );
+					, src_name?src_name:WIDE("0.0.0.0"), src_port
+					, dest_name?dest_name:WIDE("0.0.0.0"), dest_port );
 	if( route_name )
 		StrCpyEx( route->name, route_name, sizeof( route->name ) );
 	else
@@ -330,13 +330,13 @@ void BeginRouting( void )
 
 void ReadConfig( FILE *file )
 {
-	char buffer[256];
+	TEXTCHAR buffer[256];
 	size_t len;
 	while( fgets( buffer, 255, file ) )
 	{
 		int set_ip_transmit = 0;
       int set_ip_route = 0;
-		char *start, *end
+		TEXTCHAR *start, *end
 		   , *name
 		   , *addr1
 		   , *addr2;
@@ -377,7 +377,7 @@ void ReadConfig( FILE *file )
 			end++;
 		}
 
-		if( !strncmp( end, WIDE("ip"), 2 ) )
+		if( !StrCaseCmpEx( end, WIDE("ip"), 2 ) )
 		{
          set_ip_transmit = 1;
          end += 2;
@@ -387,7 +387,7 @@ void ReadConfig( FILE *file )
          end[0] = 0;
 			end++;
 		}
-		if( !strncmp( end, WIDE("switch"), 6 ) )
+		if( !StrCaseCmpEx( end, WIDE("switch"), 6 ) )
 		{
 			set_ip_route = 1;
 			end += 6;
@@ -423,7 +423,7 @@ void ReadConfig( FILE *file )
 		}
 		else if( !strcmp( start, WIDE("timeout") ) )
 		{
-			dwTimeout = atol( end );
+			dwTimeout = IntCreateFromText( end );
 			if( !dwTimeout )
 				dwTimeout = DEFAULT_TIMEOUT;
 			xlprintf( 2100 )( WIDE("Setting socket connect timeout to %")_32f WIDE(" milliseconds"), dwTimeout );
@@ -532,18 +532,18 @@ void CPROC MyTaskEnd( PTRSZVAL psv, PTASK_INFO task )
 }
 void CPROC GetOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, _32 length )
 {
-   xlprintf( 2100 )( "%s", buffer );
+   xlprintf( 2100 )( WIDE("%s"), buffer );
 }
 
 //---------------------------------------------------------------------------
-static char *filename;
+static TEXTCHAR *filename;
 
 static void CPROC Start( void )
 {
 	FILE *file;
 	// should clear all routes here, and reload them.
 	file = sack_fopen( 0, filename, WIDE("rb") );
-	xlprintf( 2100 )( "config would be [%s]", filename );
+	xlprintf( 2100 )( WIDE("config would be [%s]"), filename );
 
 	if( !l.flags.not_first_run )
 	{
@@ -574,7 +574,7 @@ static void CPROC Start( void )
 	}
 	else
 	{
-		xlprintf( 2100 )( "Might want to re-read configuration and do something with it." );
+		xlprintf( 2100 )( WIDE("Might want to re-read configuration and do something with it.") );
       fclose( file );
 	}
 
@@ -582,23 +582,23 @@ static void CPROC Start( void )
 
 //---------------------------------------------------------------------------
 
-int main( int argc, char **argv )
+SaneWinMain( argc, argv )
 {
    int normal = 1;
    int ofs = 0;
 #ifdef BUILD_SERVICE
    normal = 0;
-	if( argc > (1) && StrCaseCmp( argv[1], "install" ) == 0 )
+	if( argc > (1) && StrCaseCmp( argv[1], WIDE("install") ) == 0 )
 	{
 		ServiceInstall( GetProgramName() );
 		return 0;
 	}
-	else if( argc > (1) && StrCaseCmp( argv[1], "uninstall" ) == 0 )
+	else if( argc > (1) && StrCaseCmp( argv[1], WIDE("uninstall") ) == 0 )
 	{
 		ServiceUninstall( GetProgramName() );
 		return 0;
 	}
-	else if( argc > 1 && StrCaseCmp( argv[1], "normal" ) == 0 )
+	else if( argc > 1 && StrCaseCmp( argv[1], WIDE("normal") ) == 0 )
 	{
 		normal = 1;
       ofs = 1;
@@ -607,7 +607,7 @@ int main( int argc, char **argv )
 	{
 		{
 			static TEXTCHAR tmp[256];
-			snprintf( tmp, sizeof( tmp ), "%s/%s.conf", GetProgramPath(), GetProgramName() );
+			snprintf( tmp, sizeof( tmp ), WIDE("%s/%s.conf"), GetProgramPath(), GetProgramName() );
 			filename = tmp;
 		}
 		// for some reason service registration requires a non-const string.  pretty sure it doesn't get modified....
@@ -619,7 +619,7 @@ int main( int argc, char **argv )
 		if( argc < (2 + ofs ) )
 		{
 			static TEXTCHAR tmp[256];
-			snprintf( tmp, sizeof( tmp ), "%s/%s.conf", GetProgramPath(), GetProgramName() );
+			snprintf( tmp, sizeof( tmp ), WIDE("%s/%s.conf"), GetProgramPath(), GetProgramName() );
 			filename = tmp;
 		}
 		else
@@ -633,4 +633,4 @@ int main( int argc, char **argv )
 
 	return 0;
 }
-
+EndSaneWinMain()
