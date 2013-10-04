@@ -1,19 +1,19 @@
 #include <stdhdrs.h>
 #include <filesys.h>
 
-char *curdir=".";
+TEXTCHAR *curdir=WIDE(".");
 
 typedef struct path_mask_tag
 {
 	struct  {
 		_32 ignore : 1;
 	}flags;
-	char *mask;
+	TEXTCHAR *mask;
 } MASK, *PMASK;
 
 PDATALIST masks;
 
-char *base;
+TEXTCHAR *base;
 
 FILE *in, *out;
 
@@ -39,7 +39,7 @@ int tab	 // set to collapse spaces into N spaces per tab
 
 
 
-unsigned char linebuffer[1024 * 64];
+TEXTCHAR linebuffer[1024 * 64];
 
 #ifdef _WIN32
 #define KEEP_CASE FALSE
@@ -50,7 +50,7 @@ unsigned char linebuffer[1024 * 64];
 void CPROC process( PTRSZVAL psv, CTEXTSTR file, int flags )
 {
 	static int count; // used for fix_double processing.
-	char outfile[256];
+	TEXTCHAR outfile[256];
 	int collect_idx, at_start = 1;
 	int idx, nonewline = 0;
 	{
@@ -109,21 +109,21 @@ void CPROC process( PTRSZVAL psv, CTEXTSTR file, int flags )
 			case TYPE_H:
 				fprintf( out, WIDE("/* Expanding tabs %d tabbing to %d %s '\r's */%s")
 								, detab, tab
-								, (carriage)?"with":"without"
-								, (carriage)?"\r\n":"\n" );
+								, (carriage)?WIDE("with"):WIDE("without")
+								, (carriage)?WIDE("\r\n"):WIDE("\n") );
 				break;
 			case TYPE_CPP:
 			case TYPE_HPP:
 				fprintf( out, WIDE("// Expanding tabs %d tabbing to %d %s '\r's%s")
 								, detab, tab
-								, (carriage)?"with":"without"
-								, (carriage)?"\r\n":"\n" );
+								, (carriage)?WIDE("with"):WIDE("without")
+								, (carriage)?WIDE("\r\n"):WIDE("\n") );
 				break;
 			case TYPE_MAKEFILE:
 				fprintf( out, WIDE("# Expanding tabs %d tabbing to %d %s '\r's%s")
 								, detab, tab
-								, (carriage)?"with":"without"
-								, (carriage)?"\r\n":"\n" );
+								, (carriage)?WIDE("with"):WIDE("without")
+								, (carriage)?WIDE("\r\n"):WIDE("\n") );
 				break;
 			case TYPE_UNKNOWN:
 			default:
@@ -220,7 +220,7 @@ void CPROC process( PTRSZVAL psv, CTEXTSTR file, int flags )
 				// we should add this to make it happy.
 				//if( !nonewline )
 				{
-					unsigned char *line_start = linebuffer;
+					TEXTCHAR *line_start = linebuffer;
 					int len = idx;
 					while( line_start[0] &&							 ( line_start[0] == '\t' || line_start[0] == ' ' ) )
 					{
@@ -248,15 +248,15 @@ void CPROC process( PTRSZVAL psv, CTEXTSTR file, int flags )
 		}
 		fclose( out );
 		fclose( in );
-		remove( file );
-		rename( outfile, file );
+		sack_unlink( 0, file );
+		sack_rename( outfile, file );
 	}
 	else
 		fprintf( stderr, WIDE("%s is not a file.\n"), file );
 }
 
 
-int main( int argc, char **argv )
+SaneWinMain( argc, argv )
 {
 	int argstart = 1;
 	int all_ignored = 1;
@@ -339,7 +339,7 @@ int main( int argc, char **argv )
 				if( strchr( argv[argstart], '*' )
 				  ||strchr( argv[argstart], '?' ) )
 				{
-					base = ".";
+					base = WIDE(".");
 				}
 				else
 				{
@@ -367,7 +367,7 @@ int main( int argc, char **argv )
 	if( !masks->Cnt || all_ignored )
 	{
 		MASK mask;
-		mask.mask = "*";
+		mask.mask = WIDE("*");
 		mask.flags.ignore = 0;
 		AddDataItem( &masks, &mask );
 	}
@@ -383,16 +383,4 @@ int main( int argc, char **argv )
 	}
 	return argstart;
 }
-
-//-------------------------------------------------------------------
-// $Log: strip.c,v $
-// Revision 1.11	2004/12/17 23:23:30	d3x0r
-// Cleanup warnings
-//
-// Revision 1.10	2003/04/27 01:20:36	panther
-// Oops operator typo
-//
-// Revision 1.9  2003/04/27 01:20:09  panther
-// Added CVS logging.  Added if all are ignored, add implicit *, and do all but what's ignored
-//
-//
+EndSaneWinMain()
