@@ -24,6 +24,18 @@
 #include <image.h>
 
 #ifdef _OPENGL_DRIVER
+#if defined( USE_GLES )
+#include <GLES/gl.h>
+#endif
+#if defined( USE_GLES2 )
+//#include <GLES/gl.h>
+#include <GLES2/gl2.h>
+#else
+#define USE_OPENGL
+#include <GL/glew.h>
+#include <GL/gl.h>         // Header File For The OpenGL32 Library
+#endif
+
 int bGLColorMode = 1; // this gets set if we're working with BGR native or RGB native... (low byte is BLUE naturally)
 #else
 int bGLColorMode = 0; // this gets set if we're working with BGR native or RGB native... (low byte is BLUE naturally)
