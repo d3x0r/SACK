@@ -1,6 +1,6 @@
 PROJECT( proxy )
 
-add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} proxy.c ${LAST_GCC_PROGRAM_SOURCE} )
+sack_add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} proxy.c ${LAST_GCC_PROGRAM_SOURCE} )
 target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} ${WIN_SYS_LIBS}
 )
 

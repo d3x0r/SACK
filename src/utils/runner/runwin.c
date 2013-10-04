@@ -186,7 +186,7 @@ SaneWinMain( argc, argv )
 		}
 #endif
 		my_argc = argc;
-      my_argv = argv;
+		my_argv = argv;
 
 #ifdef BUILD_SERVICE
 		{
