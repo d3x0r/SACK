@@ -60,14 +60,14 @@ SaneWinMain( argc, argv )
 	{
 		TEXTCHAR logname[64];
 		if( argc > 2 )
-			snprintf( logname, 64, WIDE("service_client_%s.log"), DupCharToText( argv[2] ) );
+			snprintf( logname, 64, WIDE("service_client_%s.log"), argv[2] );
 		else
-			snprintf( logname, 64, WIDE("service_client_%s.log"), DupCharToText( argv[1] ) );
+			snprintf( logname, 64, WIDE("service_client_%s.log"), argv[1] );
 		SetSystemLog( SYSLOG_FILENAME, logname );
 	}
 	if( argc > 3 )
 	{
-		OtherBaseID = LoadService( DupCharToText( argv[3] ), EventHandler );
+		OtherBaseID = LoadService( argv[3], EventHandler );
 		ThreadTo( LongWaitTrans, 0 );
 	}
 	else
@@ -80,7 +80,7 @@ SaneWinMain( argc, argv )
 		else
 			lprintf( WIDE("Failed to connect to first service") );
 	}
-	BaseID = LoadService( (argc < 2)?WIDE("Test Service 1"):DupCharToText( argv[1] ), EventHandler );
+	BaseID = LoadService( (argc < 2)?WIDE("Test Service 1"):argv[1], EventHandler );
 	if( BaseID )
 	{
 		_32 msgs = 0;

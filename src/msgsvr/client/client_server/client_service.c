@@ -118,9 +118,9 @@ SaneWinMain( argc, argv )
 	else
 	{
 		TEXTCHAR logname[64];
-		snprintf( logname, 64, WIDE("client_service_%s.log"), DupCharToText( argv[1] ) );
+		snprintf( logname, 64, WIDE("client_service_%s.log"), argv[1] );
 		SetSystemLog( SYSLOG_FILENAME, logname );
-		if( BaseID = RegisterServiceHandler( DupCharToText( argv[1] ), MessageHandler ) )
+		if( BaseID = RegisterServiceHandler( argv[1], MessageHandler ) )
 		{
 			// dumps to log.
 			DumpServiceList();
