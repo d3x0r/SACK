@@ -2826,11 +2826,17 @@ LOGICAL ParseIntVector( CTEXTSTR data, int **pData, int *nData )
 		end = data;
 		do
 		{
-
-			start = end;
-#ifdef _UNICODE
-#define sscanf swscanf
+#ifndef _MSC_VER
+#if defined( _UNICODE )
+#   define sscanf     swscanf
 #endif
+#else
+#if defined( _UNICODE )
+#   undef sscanf
+#   define sscanf     swscanf_s
+#endif
+#endif
+			start = end;
 			sscanf( start, WIDE("%d"), (*pData) + count );
 			count++;
 			end = StrChr( start, ',' );

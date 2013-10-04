@@ -463,7 +463,15 @@ if( WIN32 )
 LIST(APPEND BASE_SOURCES
    ${SOURCES_ROOT}src/netlib/net_winsock2.c
 )
-LIST(APPEND BASE_SOURCES     all_resources.rc )
+if( NOT __CLR__ )
+  LIST(APPEND BASE_SOURCES     all_resources.rc )
+  if( __CLR__ )
+     set_source_files_properties( all_resources.rc 
+  				PROPERTIES
+                                COMPILE_DEFINITIONS "__CLR__"
+  			)
+   endif( __CLR__ )
+endif( NOT __CLR__ )
 
   SET( SNPRINTF_SOURCES src/snprintf_2.2/snprintf.c )
   set_source_files_properties( ${SNPRINTF_SOURCES} 
