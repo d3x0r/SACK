@@ -214,7 +214,7 @@ SaneWinMain(argc, argv )
 
 	for( x = 0; x < argc; x++ )
 	{
-		lprintf("[%u] %s", x, argv[x] );
+		lprintf(WIDE("[%u] %s"), x, argv[x] );
 	}
 	y = x  = 0;
 
@@ -222,10 +222,10 @@ SaneWinMain(argc, argv )
 	{
 	case 7:
 		{
-			w = atol( argv[2] );
-			h = atol( argv[3] );
-			x = atol( argv[4] );
-			y = atol( argv[5] );
+			w = IntCreateFromText( argv[2] );
+			h = IntCreateFromText( argv[3] );
+			x = IntCreateFromText( argv[4] );
+			y = IntCreateFromText( argv[5] );
 			if( strchr( argv[6] , '-' ) )
 			{
             lprintf( WIDE("\n\n %s was passed as seconds parameter.  Setting it to zero, which will be sleep forever"), argv[6]);
@@ -233,37 +233,37 @@ SaneWinMain(argc, argv )
 			}
 			else
 			{
-				z = atol( argv[6] );
+				z = IntCreateFromText( argv[6] );
 			}
 
 		}
 		break;
 	case 6:
 		{
-			w = atol( argv[2] );
-			h = atol( argv[3] );
-			x = atol( argv[4] );
-			y = atol( argv[5] );
+			w = IntCreateFromText( argv[2] );
+			h = IntCreateFromText( argv[3] );
+			x = IntCreateFromText( argv[4] );
+			y = IntCreateFromText( argv[5] );
 		}
 		break;
 	case 4:
 		{
-			w = atol( argv[2] );
-			h = atol( argv[3] );
+			w = IntCreateFromText( argv[2] );
+			h = IntCreateFromText( argv[3] );
 		}
 		break;
 	case 2:
 		{
-			if( !( strnicmp( argv[1], "--help", 6 ) ) )
+			if( !( StrCaseCmpEx( argv[1], WIDE("--help"), 6 ) ) )
 			{
 				lprintf( WIDE("\n\n\tThere is no help.\n") );
-				printf("\n\n\tThere is no help. Try examining shoimg.log.\n");
+				printf(WIDE("\n\n\tThere is no help. Try examining shoimg.log.\n"));
 				SuccessOrFailure = FALSE;
 			}
-			else if( !( strnicmp( argv[1], "--ver", 5 ) ) )
+			else if( !( StrCaseCmpEx( argv[1], WIDE("--ver"), 5 ) ) )
 			{
             lprintf( WIDE("\n\n\tThere is only one version.\n") );
-				printf("\n\n\tThere is only one version.\n");
+				printf(WIDE("\n\n\tThere is only one version.\n"));
             SuccessOrFailure = FALSE;
 			}
 			else

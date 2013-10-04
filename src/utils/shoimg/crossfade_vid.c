@@ -269,7 +269,7 @@ SaneWinMain(argc, argv )
 			}
 			else if( argv[arg][0] == '@' )
 			{
-				FILE *file = fopen( argv[arg] + 1, "rt" );
+				FILE *file = fopen( argv[arg] + 1, WIDE("rt") );
 				TEXTCHAR filename[256];
 				while( fgets( filename, sizeof( filename ), file ) )
 				{
@@ -287,11 +287,11 @@ SaneWinMain(argc, argv )
 						filename[StrLen( filename )-1] = 0;
 
 					{
-						if( StrCaseStr( filename, ".jpg" ) ||
-							StrCaseStr( filename, ".jpeg" ) ||
-							StrCaseStr( filename, ".bmp" ) ||
-							StrCaseStr( filename, ".png" ) ||
-							StrCaseStr( filename, ".tga" ) )
+						if( StrCaseStr( filename, WIDE(".jpg") ) ||
+							StrCaseStr( filename, WIDE(".jpeg") ) ||
+							StrCaseStr( filename, WIDE(".bmp") ) ||
+							StrCaseStr( filename, WIDE(".png") ) ||
+							StrCaseStr( filename, WIDE(".tga") ) )
 						{
 							Image img = LoadImageFile( filename );
 							if( img )
@@ -311,11 +311,11 @@ SaneWinMain(argc, argv )
 			}
 			else
 			{
-				if( StrCaseStr( argv[arg], ".jpg" ) ||
-					StrCaseStr( argv[arg], ".jpeg" ) ||
-					StrCaseStr( argv[arg], ".bmp" ) ||
-					StrCaseStr( argv[arg], ".png" ) ||
-					StrCaseStr( argv[arg], ".tga" ) )
+				if( StrCaseStr( argv[arg], WIDE(".jpg") ) ||
+					StrCaseStr( argv[arg], WIDE(".jpeg") ) ||
+					StrCaseStr( argv[arg], WIDE(".bmp") ) ||
+					StrCaseStr( argv[arg], WIDE(".png") ) ||
+					StrCaseStr( argv[arg], WIDE(".tga") ) )
 				{
 					Image img = LoadImageFile( argv[arg] );
 					if( img )
@@ -358,7 +358,7 @@ SaneWinMain(argc, argv )
 		}
 		else
 		{
-			//lprintf( "Show the first and only the first image." );
+			//lprintf( WIDE("Show the first and only the first image.") );
 			if( GetLink( &g.image_type, 0 ) == (POINTER)1 )
 			{
 				g.is_up[0] = 1;
@@ -376,7 +376,7 @@ SaneWinMain(argc, argv )
 	}
 	else
 	{
-      printf( "No Images to display, exiting\n" );
+      printf( WIDE("No Images to display, exiting\n") );
 	}
    return 0;
 }
