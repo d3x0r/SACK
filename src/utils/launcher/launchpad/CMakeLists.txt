@@ -34,7 +34,7 @@ ADD_CUSTOM_TARGET( "generate_foo${project}" DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/
 endif()
 
 
-add_executable_force_source(${project} WIN32 ${BASE_SOURCES} )
+sack_add_executable(${project} WIN32 ${BASE_SOURCES} )
 
 if( WATCOM )
 ADD_DEPENDENCIES( ${project} "generate_foo${project}" )
