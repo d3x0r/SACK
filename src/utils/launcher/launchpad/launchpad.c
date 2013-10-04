@@ -783,7 +783,7 @@ static void CPROC Start( void )
 	}
 }
 
-int main( int argc, char **argv )
+SaneWinMain( argc, argv )
 {
 	int ofs = 0;
 	int did_arg = 0;
@@ -802,7 +802,7 @@ int main( int argc, char **argv )
 			static TEXTCHAR option[256];
 			int arg_ofs;
 			int arg_c;
-			char **arg_v;
+			TEXTCHAR **arg_v;
 #ifndef __NO_OPTIONS__
 			SACK_GetProfileString( GetProgramName(), WIDE("Command Line Arguments"), WIDE(""), option, sizeof( option ) );
 #else
@@ -872,14 +872,9 @@ int main( int argc, char **argv )
 	SetupService( (TEXTSTR)GetProgramName(), Start );
    return 0;
 }
+EndSaneWinMain()
+#elif defined( ISHELL_PLUGIN )
 
-#elif defined( MILK_PLUGIN ) || defined( ISHELL_PLUGIN )
-
-
-#  if defined( MILK_PLUGIN )
-#    include <milk_export.h>
-#    include <milk_registry.h>
-#  endif
 
 #  if defined( ISHELL_PLUGIN )
 #    include "../../../InterShell/intershell_export.h"
@@ -897,27 +892,13 @@ OnFinishInit( WIDE("Launchpad") )( void )
 	AddTimer( 2500, ExpireSequences, 0 );
 }
 #else
-#  ifdef WIN32
-int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nCmdShow )
+
+SaneWinMain( argc, argv )
 {
-	int argc;
-	char **argv;
-	ParseIntoArgs( GetCommandLine(), &argc, &argv );
-#if 0 // debugging
-	{
-		int n;
-		for( n = 0; n < argc; n++ )
-			lprintf( WIDE("Arg %d=%s"), n, argv[n] );
-	}
-#endif
 #    ifndef __NO_GUI__
 	TerminateIcon();
 	RegisterIcon( WIDE("PadIcon") );
 #    endif
-#  else
-	int main( int argc, char **argv )
-#  endif
-	{
 		{
 			int arg_ofs;
 			for( arg_ofs = 1; arg_ofs < argc; arg_ofs++ )
@@ -1015,8 +996,7 @@ int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nCmdSho
 			WakeableSleep( SLEEP_FOREVER );
 
 		return 0;
-	}
-#ifdef WIN32
 }
-#endif
+EndSaneWinMain()
+
 #endif

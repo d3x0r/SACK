@@ -1,7 +1,5 @@
 
-cmake_minimum_required(VERSION 2.8)
-
-project( launchcmd )
+set( project launchcmd )
 
 
 set(BASE_SOURCES
@@ -10,17 +8,17 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT_NAME}" 
-COMPILE_DEFINITIONS "TARGETNAME=\"${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}\""
+sack_add_executable(${project} ${BASE_SOURCES} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+COMPILE_FLAGS  "-DTARGET_LABEL=${project}" 
+COMPILE_DEFINITIONS "TARGETNAME=\"${project}${CMAKE_EXECUTABLE_SUFFIX}\""
                   FOLDER utils/launcher
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project} ${SACK_LIBRARIES} )
+install_default_dest( ${project} )
 
 if( WIN32 )
-project( launchwin )
+set( project launchwin )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE}
@@ -28,14 +26,14 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable(${PROJECT_NAME} WIN32 ${BASE_SOURCES} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT_NAME} -DWINDOWS_MODE" 
-COMPILE_DEFINITIONS "TARGETNAME=\"${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}\""
+sack_add_executable(${project} WIN32 ${BASE_SOURCES} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+COMPILE_FLAGS  "-DTARGET_LABEL=${project} -DWINDOWS_MODE" 
+COMPILE_DEFINITIONS "TARGETNAME=\"${project}${CMAKE_EXECUTABLE_SUFFIX}\""
                   FOLDER utils/launcher
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-install_default_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project} ${SACK_LIBRARIES} )
+install_default_dest( ${project} )
 
 endif( WIN32 )
 
