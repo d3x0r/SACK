@@ -11,7 +11,6 @@ ${LAST_GCC_PROGRAM_SOURCE}
 sack_add_executable(${project} ${BASE_SOURCES} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
 COMPILE_FLAGS  "-DTARGET_LABEL=${project}" 
-COMPILE_DEFINITIONS "TARGETNAME=\"${project}${CMAKE_EXECUTABLE_SUFFIX}\""
                   FOLDER utils/launcher
 )
 target_link_libraries( ${project} ${SACK_LIBRARIES} )
@@ -29,7 +28,6 @@ ${LAST_GCC_PROGRAM_SOURCE}
 sack_add_executable(${project} WIN32 ${BASE_SOURCES} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
 COMPILE_FLAGS  "-DTARGET_LABEL=${project} -DWINDOWS_MODE" 
-COMPILE_DEFINITIONS "TARGETNAME=\"${project}${CMAKE_EXECUTABLE_SUFFIX}\""
                   FOLDER utils/launcher
 )
 target_link_libraries( ${project} ${SACK_LIBRARIES} )
