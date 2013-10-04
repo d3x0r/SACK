@@ -25,14 +25,6 @@ SaneWinMain( argc, argv )
    int nowait = 0;
 	int pos = 0;
 	int noinput = 0;
-#ifdef __WATCOMC__
-	TEXTCHAR **newargv = NewArray( TEXTCHAR*, argc + 1 );
-   int cp_argv;
-	for( cp_argv = 0; cp_argv < argc; cp_argv++ )
-		newargv[cp_argv] = argv[cp_argv];
-	newargv[cp_argv] = NULL;
-#define argv newargv
-#endif
 	if( argc < 2 )
 	{
 #ifdef WIN32
