@@ -119,7 +119,7 @@ SaneWinMain( argc, argv )
 	FILE *input;
 	if( argc > 1 )
 	{
-		input = fopen( argv[1], "rb+" );
+		input = fopen( CStrDup( argv[1] ), "rb+" );
 		if( input )
 		{
 			if( 1 )
