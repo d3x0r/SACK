@@ -14,7 +14,11 @@
 #include <GL/gl.h>         // Header File For The OpenGL32 Library
 #endif
 
+IMAGE_NAMESPACE
 struct glSurfaceData;
+IMAGE_NAMESPACE_END
+
+#include "../image_common.h"
 #include "shaders.h"
 
 IMAGE_NAMESPACE
@@ -23,7 +27,8 @@ IMAGE_NAMESPACE
 	DeclareSet( ImageFile );
 typedef ImageFile *PImageFile;// for get from set
 
- {
+struct glSurfaceData 
+{
 	PMatrix M_Projection;
 	PTRANSFORM T_Camera;
 	RCOORD *identity_depth;

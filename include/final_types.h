@@ -104,7 +104,7 @@
 #    define snwprintf _snwprintf
 #    endif// suffer_with_warnings
 
-#    ifdef _UNICODE
+#    if defined( _UNICODE ) && !defined( NO_UNICODE_C )
 #    define sscanf swscanf_s
 #    else
 #    define sscanf sscanf_s
@@ -119,6 +119,7 @@
 #           define snprintf  _snwprintf
 #           define vsnprintf _vsnwprintf
 #           define sscanf     swscanf
+#        else
 #        endif
 #      else
 //#        define snprintf snprintf
