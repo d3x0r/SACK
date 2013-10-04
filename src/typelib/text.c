@@ -2278,6 +2278,9 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 #endif
 			args[0] = _args[0];
 			//va_start( args, format );
+#ifdef _UNICODE
+#define vsnprintf _vsnwprintf
+#endif
 			len = vsnprintf( pvt->collect_text + pvt->collect_used
 								, destlen = pvt->collect_avail - pvt->collect_used
 								, format, args );
@@ -2825,6 +2828,9 @@ LOGICAL ParseIntVector( CTEXTSTR data, int **pData, int *nData )
 		{
 
 			start = end;
+#ifdef _UNICODE
+#define sscanf swscanf
+#endif
 			sscanf( start, WIDE("%d"), (*pData) + count );
 			count++;
 			end = StrChr( start, ',' );
