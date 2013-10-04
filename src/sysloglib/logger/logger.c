@@ -15,7 +15,7 @@ void CPROC LogRead( PCLIENT pc, POINTER buffer, size_t nSize, SOCKADDR *sa )
 	}
 	else
 	{
-		char msgtime[12];
+		TEXTCHAR msgtime[12];
 		fwrite( msgtime, snprintf( msgtime, 12, WIDE("%04") _32f WIDE("|"), tick - _tick ), 1, stdout );
 		_tick = tick;
 		fwrite( buffer, nSize, 1, stdout );
@@ -29,7 +29,7 @@ void CPROC LogRead( PCLIENT pc, POINTER buffer, size_t nSize, SOCKADDR *sa )
 // command line option
 //  time
 //  output file...
-int main( int argc, char **argv )
+SaneWinMain( argc, argv )
 {
 	NetworkStart();
 	pcListen = ServeUDP( WIDE("0.0.0.0"), 514, LogRead, NULL );
@@ -37,3 +37,4 @@ int main( int argc, char **argv )
 	printf( WIDE("Failed to start.") );
 	return 1;
 }
+EndSaneWinMain()
