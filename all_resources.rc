@@ -1,4 +1,3 @@
-#if 0
 // Microsoft Visual C++ generated resource script.
 //
 
@@ -78,4 +77,3 @@ PROXY_BACKUP            ICON                    "src/SQLlib/bck.ico"
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 
-#endif
