@@ -8,143 +8,63 @@ if( WIN32 )
     set( SHARED_LIBRARY_OUTPUT_DIR bin )
   endif( __CLR__ )
 else( WIN32 )
-    set( BINARY_OUTPUT_DIR bin )
-    set( SHARED_LIBRARY_OUTPUT_DIR lib )
+   if( __LINUX64__ )
+      set( BINARY_OUTPUT_DIR bin )
+      set( SHARED_LIBRARY_OUTPUT_DIR lib64 )
+   else( __LINUX64__ )
+      set( BINARY_OUTPUT_DIR bin )
+      set( SHARED_LIBRARY_OUTPUT_DIR lib )
+   endif( __LINUX64__ )
 endif( WIN32 )
 
 SET( HEADER_INSTALL_PREFIX include )
 SET( DATA_INSTALL_PREFIX resources )
 
 macro( install_default_dest )
-if( TARGET_BINARY_PATH )
-if( WIN32 )
-	# On Windows platforms, the dynamic libs should
-	# go in the same dir as the executables.
+   if( TARGET_BINARY_PATH )
 	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION ${TARGET_BINARY_PATH}
-		LIBRARY DESTINATION ${TARGET_BINARY_PATH}
+		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}/${TARGET_BINARY_PATH}
+		LIBRARY DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR}/${TARGET_BINARY_PATH}
 		ARCHIVE DESTINATION lib )
-else( WIN32 )
+   else( TARGET_BINARY_PATH )
 	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION bin/${TARGET_BINARY_PATH}
-		LIBRARY DESTINATION lib/${TARGET_BINARY_PATH}
+		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}
+		LIBRARY DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR}
 		ARCHIVE DESTINATION lib )
-endif( WIN32 )
-else( TARGET_BINARY_PATH )
-if( WIN32 )
-	# On Windows platforms, the dynamic libs should
-	# go in the same dir as the executables.
-if( __CLR__ )
-	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION .
-		LIBRARY DESTINATION .
-		ARCHIVE DESTINATION lib )
-else( __CLR__ )
-	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION bin
-		LIBRARY DESTINATION bin
-		ARCHIVE DESTINATION lib )
-endif( __CLR__ )
-else( WIN32 )
-	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION bin
-		LIBRARY DESTINATION lib
-		ARCHIVE DESTINATION lib )
-endif( WIN32 )
-endif( TARGET_BINARY_PATH )
+   endif( TARGET_BINARY_PATH )
 endmacro( install_default_dest )
 
 macro( install_mode_dest )
-if( __CLR__ )
-	# On Windows platforms, the dynamic libs should
-	# go in the same dir as the executables.
+    if( __LINUX64__ )
 	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION .
-		LIBRARY DESTINATION .
-		ARCHIVE DESTINATION lib )
-else( __CLR__ )
-if( WIN32 )
-	# On Windows platforms, the dynamic libs should
-	# go in the same dir as the executables.
-	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION bin
-		LIBRARY DESTINATION bin
-		ARCHIVE DESTINATION lib )
-elseif( __LINUX64__ )
-	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION bin
-		LIBRARY DESTINATION lib64
+		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}
+		LIBRARY DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR}
 		ARCHIVE DESTINATION lib64 )
-elseif( __LINUX__ )
+    else( __LINUX64__ )
 	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION bin
-		LIBRARY DESTINATION lib
+		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}
+		LIBRARY DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR}
 		ARCHIVE DESTINATION lib )
-endif( WIN32 )
-endif( __CLR__ )
+    endif( __LINUX64__ )
 endmacro( install_mode_dest )
 
 macro( install_sack_sdk_dest )
-if( WIN32 )
-if( __CLR__ )
-	# On Windows platforms, the dynamic libs should
-	# go in the same dir as the executables.
 	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION ${SACK_BASE}
-		LIBRARY DESTINATION ${SACK_BASE}
+		RUNTIME DESTINATION ${SACK_BASE}/${BINARY_OUTPUT_DIR} 
+		LIBRARY DESTINATION ${SACK_BASE}/${SHARED_LIBRARY_OUTPUT_DIR}
 		ARCHIVE DESTINATION ${SACK_BASE}/lib )
-else( __CLR__ )
-	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION ${SACK_BASE}/bin
-		LIBRARY DESTINATION ${SACK_BASE}/bin
-		ARCHIVE DESTINATION ${SACK_BASE}/lib )
-endif( __CLR__ )
-else( WIN32 )
-	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION ${SACK_BASE}/bin 
-		LIBRARY DESTINATION ${SACK_BASE}/lib
-		ARCHIVE DESTINATION ${SACK_BASE}/lib )
-endif( WIN32 )
 endmacro( install_sack_sdk_dest )
 
 
 macro( install_default_dest_binary )
 if( TARGET_BINARY_PATH )
-if( WIN32 )
-	# On Windows platforms, the dynamic libs should
-	# go in the same dir as the executables.
-if( __CLR__ )
 	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION .
-		LIBRARY DESTINATION .)
-else( __CLR__ )
-	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION bin/${TARGET_BINARY_PATH} 
-		LIBRARY DESTINATION bin/${TARGET_BINARY_PATH} )
-endif( __CLR__ )
-else( WIN32 )
-	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION bin 
-		LIBRARY DESTINATION lib )
-endif( WIN32 )
+		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}/${TARGET_BINARY_PATH} 
+		LIBRARY DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR}/${TARGET_BINARY_PATH} )
 else( TARGET_BINARY_PATH )
-if( WIN32 )
-	# On Windows platforms, the dynamic libs should
-	# go in the same dir as the executables.
-if( __CLR__ )
 	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION .
-		LIBRARY DESTINATION . )
-else( __CLR__ )
-	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION bin 
-		LIBRARY DESTINATION bin )
-endif( __CLR__ )
-else( WIN32 )
-	install( TARGETS ${ARGV}
-		RUNTIME DESTINATION bin 
-		LIBRARY DESTINATION lib )
-endif( WIN32 )
+		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR} 
+		LIBRARY DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR} )
 endif( TARGET_BINARY_PATH )
 endmacro( install_default_dest_binary )
 
@@ -169,14 +89,14 @@ else( __ANDROID__ )
       install( TARGETS ${proj} RUNTIME DESTINATION ./${project_target} 
 	)
     else( __CLR__ )
-      install( TARGETS ${proj} RUNTIME DESTINATION bin/${project_target}
+      install( TARGETS ${proj} RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}/${project_target}
 			ARCHIVE DESTINATION lib		
 	)
     endif( __CLR__ )
   else( WIN32 )
     install( TARGETS ${proj} 
-	RUNTIME DESTINATION bin/${project_target} 
-	LIBRARY DESTINATION bin/${project_target} 
+	RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}/${project_target} 
+	LIBRARY DESTINATION ${BINARY_OUTPUT_DIR}/${project_target} 
         ARCHIVE DESTINATION lib
 	)
 endif()
@@ -189,8 +109,8 @@ macro( install_default_project proj project_target )
 if( WIN32 )
   install( TARGETS ${proj} RUNTIME DESTINATION ${project_target} )
 else( WIN32 )
-  install( TARGETS ${proj} LIBRARY DESTINATION bin/${project_target} 
-  		RUNTIME DESTINATION bin/${project_target} 
+  install( TARGETS ${proj} LIBRARY DESTINATION ${BINARY_OUTPUT_DIR}/${project_target} 
+  		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}/${project_target} 
 	)
 endif()
 endmacro( install_default_project )
@@ -280,6 +200,7 @@ set( SACK_SOURCES_ROOT ${SOURCES_ROOT}/src/deadstart )
 endif( NOT SOURCES_ROOT )
 
 	if( __ANDROID__ )
+       		set( ExtraDefinitions "${ExtraDefinitions};CONSOLE_SHELL" )
 		if( ${option1} STREQUAL WIN32 )
 			if( portable )
 				set( ExtraDefinitions "${ExtraDefinitions};BUILD_PORTABLE_EXECUTABLE" )
@@ -299,8 +220,8 @@ endif( NOT SOURCES_ROOT )
 		my_target_link_libraries( ${targetname} android log )
 		string( REPLACE "." "_" TARGET_LABEL ${targetname} )
 		my_target_link_libraries( ${targetname}.code ${SACK_LIBRARIES} ${SACK_PLATFORM_LIBRARIES} )
-		set_target_properties( ${targetname}.code PROPERTIES COMPILE_DEFINITIONS "${ExtraDefinitions};WINDOWS_SHELL;TARGETNAME=\"${targetname}.code\";TARGET_LABEL=${TARGET_LABEL}_code" )
-		set_target_properties( ${targetname} PROPERTIES COMPILE_DEFINITIONS "${ExtraDefinitions};WINDOWS_SHELL;TARGETNAME=\"${targetname}\";TARGET_LABEL=${TARGET_LABEL}" )
+		set_target_properties( ${targetname}.code PROPERTIES COMPILE_DEFINITIONS "${ExtraDefinitions};ANDROID_SHELL;TARGETNAME=\"${targetname}.code\";TARGET_LABEL=${TARGET_LABEL}_code" )
+		set_target_properties( ${targetname} PROPERTIES COMPILE_DEFINITIONS "${ExtraDefinitions};ANDROID_SHELL;TARGETNAME=\"${targetname}\";TARGET_LABEL=${TARGET_LABEL}" )
 		if( MAKING_SACK_CORE )
 			install_mode_dest( ${targetname}.code )
 			install_mode_dest( ${targetname} )
@@ -314,7 +235,7 @@ endif( NOT SOURCES_ROOT )
                         if( FORCE_CXX )
 				if( NOT ${option1} STREQUAL WIN32 )
 	                        	set_source_files_properties( ${option1} PROPERTIES LANGUAGE CXX )
-	                        	set_source_files_properties( ${option1} PROPERTIES COMPILE_FLAGS /CLR )
+	                        	set_source_files_properties( ${option1} APPEND PROPERTIES COMPILE_FLAGS /CLR )
 				endif( NOT ${option1} STREQUAL WIN32 )
                         	set_source_files_properties(${SOURCES_ROOT}src/deadstart/deadstart_core.c ${ARGN} PROPERTIES LANGUAGE CXX )
                                	set_source_files_properties(${SOURCES_ROOT}src/deadstart/deadstart_core.c ${ARGN} PROPERTIES COMPILE_FLAGS /CLR )

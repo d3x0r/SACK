@@ -18,34 +18,15 @@ PROJECT( stock_market )
 
 #ADD_DEFINITIONS( -DVIRTUALITY_LIBRARY_SOURCE ) 
 include_directories( "../include" )
-ADD_EXECUTABLE( ${PROJECT_NAME} 
+
+add_program( ${PROJECT_NAME} 
 ${FIRST_GCC_PROGRAM_SOURCE} 
    board.c global.c input.c main.c player.c stocks.c
 ${LAST_GCC_PROGRAM_SOURCE}
 )
-TARGET_LINK_LIBRARIES( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-                  COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
-)
 
+message( "project ${PROJECT_NAME} needs better install path" )
 install( FILES 
 	Board.Data Stocks.Data
         	DESTINATION bin
                 )
-
-if( WIN32 )
-	# On Windows platforms, the dynamic libs should
-	# go in the same dir as the executables.
-	install( TARGETS ${PROJECT_NAME}
-	        RUNTIME DESTINATION bin                     
-        	LIBRARY DESTINATION bin
-	        ARCHIVE DESTINATION lib )
-else( WIN32 )
-	install( TARGETS ${PROJECT_NAME}
-	        RUNTIME DESTINATION bin 
-        	LIBRARY DESTINATION lib
-	        ARCHIVE DESTINATION lib )
-endif( WIN32 )
-
-

@@ -25,7 +25,7 @@ typedef struct player_tag {
 	int wins;
 	int count; // maybe check this for win/loss?
 	int computer;
-	char name[64];
+	TEXTCHAR name[64];
 } PLAYER, *PPLAYER;
 
 

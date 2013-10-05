@@ -12,14 +12,14 @@ extern CONTROL_REGISTRATION player_token;
 
 #define MAX_ARCHTYPES ( sizeof( archtypes ) / sizeof( ARCHTYPE ) )
 
-ARCHTYPE archtypes[] = { { "red", 0, { 0 } }
-                       , { "blue", 0, { 0 } }
-                       , { "green", 0, { 0 } }
-                       , { "yellow", 0, { 0 } }
-                       , { "orange", 0, { 0 } }
-                       , { "black", 0, { 0 } }
-                       , { "white" , 0, { 0 } }
-                       , { "purple", 0, { 0 } }
+ARCHTYPE archtypes[] = { { WIDE("red"), 0, { 0 } }
+                       , { WIDE("blue"), 0, { 0 } }
+                       , { WIDE("green"), 0, { 0 } }
+                       , { WIDE("yellow"), 0, { 0 } }
+                       , { WIDE("orange"), 0, { 0 } }
+                       , { WIDE("black"), 0, { 0 } }
+                       , { WIDE("white") , 0, { 0 } }
+                       , { WIDE("purple"), 0, { 0 } }
                        };
 
 enum player_controls {
@@ -32,11 +32,11 @@ enum player_controls {
 
 void UpdatePlayerDialog( void )
 {
-	char txt[64];
+	TEXTCHAR txt[64];
 	SetCommonText( GetControl( g.Player, TXT_PLAYER ), g.pCurrentPlayer->name );
-	snprintf( txt, sizeof( txt ), "$%ld", g.pCurrentPlayer->Cash );
+	snprintf( txt, sizeof( txt ), WIDE("$%ld"), g.pCurrentPlayer->Cash );
 	SetCommonText( GetControl( g.Player, TXT_CASH ), txt );
-	snprintf( txt, sizeof( txt ), "$%ld", g.pCurrentPlayer->NetValue );
+	snprintf( txt, sizeof( txt ), WIDE("$%ld"), g.pCurrentPlayer->NetValue );
 	SetCommonText( GetControl( g.Player, TXT_VALUE ), txt );
 	UpdateCommon( g.Player );
 }
@@ -80,10 +80,10 @@ int CPROC PlayerMouse( PCOMMON pc, S_32 x, S_32 y, _32 b )
 		{
 			if( pCheck == pPlayer )
 			{
-				char select[4];
-				snprintf( select, sizeof( select ), "%ld%s"
+				TEXTCHAR select[4];
+				snprintf( select, sizeof( select ), WIDE("%ld%s")
 						 , idx + 1
-						 , g.flags.bChoiceNeedsEnter?"\n":"" );
+						 , g.flags.bChoiceNeedsEnter?WIDE("\n"):WIDE("") );
 				EnqueStrokes( select );
 				break;
 			}
@@ -103,7 +103,7 @@ int CPROC InitToken( PCOMMON pc, POINTER userdata )
 	return TRUE;
 }
 
-CONTROL_REGISTRATION player_token = { "StockMarket Player Token"
+CONTROL_REGISTRATION player_token = { WIDE("StockMarket Player Token")
 												, { { 16, 16 }, sizeof( PLAYER ), BORDER_NONE }
 // this is a deliberate abuse.  It is created iwth MakeControlparam which passes a different init routine signature
 												, (int(CPROC*)(PCOMMON))InitToken
@@ -142,7 +142,7 @@ void AllowCurrentPlayerSell( void )
 			AddRollToPossible();
 			AddSellToPossible();
 			StartFlash();
-			printf( "Do you wish to sell stocks?" );
+			printf( WIDE("Do you wish to sell stocks?") );
 			yes = GetYesNo();
 			g.flags.bAllowSell = 0;
 			StopFlash();
@@ -151,7 +151,7 @@ void AllowCurrentPlayerSell( void )
 			{
 				_32 cash;
 				cash = SellStocks( &g.pCurrentPlayer->portfolio, 0, FALSE );
-				printf( "%s sold stocks for a profit of $%ld\n"
+				printf( WIDE("%s sold stocks for a profit of $%ld\n")
 						, g.pCurrentPlayer->name
 						, cash );
 				g.pCurrentPlayer->Cash += cash;
@@ -190,15 +190,15 @@ void ResetPlayers( void )
 void ChoosePlayerColor( PPLAYER pPlayer )
 {
     int i, n, color;
-	 char buffer[32];
+	 TEXTCHAR buffer[32];
 	 pPlayer->archtype = NULL;
 
     do
     {
-        printf( "Enter a name for player %d:", pPlayer->id );
+        printf( WIDE("Enter a name for player %d:"), pPlayer->id );
         GetAString( pPlayer->name, sizeof( pPlayer->name ) );
         pPlayer->name[strlen(pPlayer->name)-1] = 0; // kill \n
-        printf( "Player %d is %s, right?", pPlayer->id, pPlayer->name );
+        printf( WIDE("Player %d is %s, right?"), pPlayer->id, pPlayer->name );
         buffer[0] = GetYesNo();
         if( buffer[0] )
             break;
@@ -208,9 +208,9 @@ void ChoosePlayerColor( PPLAYER pPlayer )
 		 for( n = 1, i = 0; i < MAX_ARCHTYPES; i++ )
 		 {
         if( !archtypes[i].flags.used )
-			  printf( "%d > %s\n", n++, archtypes[i].colorname );
+			  printf( WIDE("%d > %s\n"), n++, archtypes[i].colorname );
 		 }
-		 printf( "Select %s's color:", pPlayer->name );
+		 printf( WIDE("Select %s's color:"), pPlayer->name );
 		 color = GetANumber();
 		 for( n = 1, i = 0; i < MAX_ARCHTYPES; i++ )
 		 {
@@ -265,7 +265,7 @@ void StepNextPlayer( void )
 	}
 	LIST_NEXTALL( g.Players, g.iCurrentPlayer, PPLAYER, g.pCurrentPlayer )
 	{
-		printf( "Setting current player to %d %s\n", g.iCurrentPlayer, g.pCurrentPlayer->name );
+		printf( WIDE("Setting current player to %d %s\n"), g.iCurrentPlayer, g.pCurrentPlayer->name );
 		break;
 	}
 	if( !g.pCurrentPlayer )
@@ -275,11 +275,11 @@ void StepNextPlayer( void )
 void ShowCurrentPlayer( void )
 {
 	UpdatePlayerDialog();
-    printf( "Player: %15s Color: %s\n"
+    printf( WIDE("Player: %15s Color: %s\n")
             , g.pCurrentPlayer->name
             , g.pCurrentPlayer->archtype->colorname
             );
-    printf( "Current Value: $%ld $(%ld)\n"
+    printf( WIDE("Current Value: $%ld $(%ld)\n")
             , g.pCurrentPlayer->Cash
             , g.pCurrentPlayer->NetValue
 			 );
@@ -300,7 +300,7 @@ void ChoosePlayerProfessions( void )
 		{
             if( !player->pCurrentSpace )
             {
-                printf( "%s(%s) is not on any space...\n"
+                printf( WIDE("%s(%s) is not on any space...\n")
                             , player->name
                             , player->archtype->colorname
 							 );
@@ -309,7 +309,7 @@ void ChoosePlayerProfessions( void )
             if( player->pCurrentSpace->type == SPACE_PROFESSION )
 			{
 				AddLink( &g.PossiblePlayers, player );
-				printf( "%d> %s(%s) $%ld is on %s\n"
+				printf( WIDE("%d> %s(%s) $%ld is on %s\n")
 							, ++n // incrememnt then display
 							, player->name
 							, player->archtype->colorname
@@ -319,13 +319,13 @@ void ChoosePlayerProfessions( void )
         }
 		if( !n ) // noone's on a profession space...
 			return;
-		printf( "Enter player to move... L to list, 0 to continue");
+		printf( WIDE("Enter player to move... L to list, 0 to continue"));
 		fflush( stdout );
 		g.flags.bSelectPlayer = 1;
 		AddRollToPossible();
         StartFlash();
 		ch = GetCh();
-		printf( "\n" );
+		printf( WIDE("\n") );
         StopFlash();
         g.flags.bSelectPlayer = 0;
 		  if( ch == '0' || ch == '\r' || ch == '\n' )
@@ -379,7 +379,7 @@ void EvaluatePlayerValue( int bAtStart )
     }
 }
 
-CONTROL_REGISTRATION portfolio = { "StockMarket portfolio"
+CONTROL_REGISTRATION portfolio = { WIDE("StockMarket portfolio")
 											, { { 520, 320 }, 0, BORDER_THIN|BORDER_INVERT }
 											, NULL
 											, NULL
@@ -401,20 +401,20 @@ void InitPlayer( void )
 	archtypes[6].color = Color( 192, 192, 192 );
 	archtypes[7].color = Color( 128, 0, 128 );
 
-   AddSheet( g.Panel, g.Player = CreateFrame( "Status"
+   AddSheet( g.Panel, g.Player = CreateFrame( WIDE("Status")
 									 , 0, 0
 									 , g.PanelWidth, g.PanelHeight
 														  , BORDER_NOCAPTION|BORDER_NONE|BORDER_WITHIN, NULL ) );
    SetControlID( g.Player, PANEL_PLAYER );
    //DisableSheet( g.Panel, PANEL_PLAYER, TRUE );
-	MakeTextControl( g.Player, 5, 5, 55, 15, TXT_STATIC, "Player:", 0 );
+	MakeTextControl( g.Player, 5, 5, 55, 15, TXT_STATIC, WIDE("Player:"), 0 );
 	MakeTextControl( g.Player
 						, 65, 5
-						, 100, 15, TXT_PLAYER, "Bob", 0 );
-	MakeTextControl( g.Player, 5, 22, 45, 15, TXT_STATIC, "Cash", 0 );
-	MakeTextControl( g.Player, 55, 22, 75, 15, TXT_CASH, "$99999", 0 );
-	MakeTextControl( g.Player, 135, 22, 45, 15, TXT_STATIC, "Value", 0 );
-	MakeTextControl( g.Player, 185, 22, 100, 15, TXT_VALUE, "$999999", 0 );
+						, 100, 15, TXT_PLAYER, WIDE("Bob"), 0 );
+	MakeTextControl( g.Player, 5, 22, 45, 15, TXT_STATIC, WIDE("Cash"), 0 );
+	MakeTextControl( g.Player, 55, 22, 75, 15, TXT_CASH, WIDE("$99999"), 0 );
+	MakeTextControl( g.Player, 135, 22, 45, 15, TXT_STATIC, WIDE("Value"), 0 );
+	MakeTextControl( g.Player, 185, 22, 100, 15, TXT_VALUE, WIDE("$999999"), 0 );
 	{
       Image Surface = GetFrameSurface( g.Player );
 		PCONTROL pc = MakeControl( g.Player

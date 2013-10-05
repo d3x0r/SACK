@@ -1,4 +1,4 @@
-#include <stdhdrs.h>
+r#include <stdhdrs.h>
 #include <stdio.h>
 #include <network.h>
 #include <logging.h>
@@ -10,7 +10,7 @@ PCLIENT pcControl;
 
 void CPROC CloseCallback(PCLIENT pc)
 {
-	printf( "\n*** Connection to relay is terminated ***\n" );
+	lprintf( WIDE("\n*** Connection to relay is terminated ***\n") );
 	pcControl = NULL;
 }
 
@@ -25,79 +25,79 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, int size )
     }
     else
     {
-        ((char*)buffer)[size] = 0;
+        ((TEXTCHAR*)buffer)[size] = 0;
         if( !LastMessage )
         {
-            Log1( "Message is: %8.8s", buffer );
-            if( *(_64*)buffer == *(_64*)"USERLIST" )
+            Log1( WIDE("Message is: %8.8s"), buffer );
+            if( *(_64*)buffer == *(_64*)WIDE("USERLIST") )
             {
                 ToRead = 2;
                 LastMessage = *(_64*)buffer;
             }
-            else if( *(_64*)buffer == *(_64*)"USERDEAD" )
+            else if( *(_64*)buffer == *(_64*)WIDE("USERDEAD") )
             {
-                Log( "User has been terminated!\n" );
+                Log( WIDE("User has been terminated!\n") );
                 RemoveClient( pc );
                 return;
             }
-            else if( *(_64*)buffer == *(_64*)"ALL DONE" )
+            else if( *(_64*)buffer == *(_64*)WIDE("ALL DONE") )
             {
                 RemoveClient( pc );
                 return;
             }
-            else if( *(_64*)buffer == *(_64*)"MESSAGE!" )
+            else if( *(_64*)buffer == *(_64*)WIDE("MESSAGE!") )
             {
                 ToRead = 1;
                 LastMessage = *(_64*)buffer;
             }
-            else if( *(_64*)buffer == *(_64*)"MASTERIS" )
+            else if( *(_64*)buffer == *(_64*)WIDE("MASTERIS") )
             {
                 LastMessage = *(_64*)buffer;
             }
             else
             {
-                printf( "Unknown responce from relay: %8.8s", buffer );
+                printf( WIDE("Unknown responce from relay: %8.8s"), buffer );
             }
         }
         else
         {
-            Log1( "Continuing message: %8.8s", &LastMessage );
-            if( LastMessage == *(_64*)"MESSAGE!" )
+            Log1( WIDE("Continuing message: %8.8s"), &LastMessage );
+            if( LastMessage == *(_64*)WIDE("MESSAGE!") )
             {
-                Log( "(1)" );
+                Log( WIDE("(1)") );
                 ToRead = *(_8*)buffer;
                 LastMessage++;
             }
-            else if( (test = ((*(_64*)"MESSAGE!")+1)), (LastMessage == test) )
+            else if( (test = ((*(_64*)WIDE("MESSAGE!"))+1)), (LastMessage == test) )
             {
-                Log( "(2)" );
-                printf( "Relay Message:%s", buffer );
+                Log( WIDE("(2)") );
+                printf( WIDE("Relay Message:%s"), buffer );
                 LastMessage = 0;
             }
-            else if( LastMessage == *(_64*)"MASTERIS" )
+            else if( LastMessage == *(_64*)WIDE("MASTERIS") )
             {
-                printf( "Game Master is: %s", buffer );
+                printf( WIDE("Game Master is: %s"), buffer );
                 LastMessage = 0;
                 RemoveClient( pc );
             }
-            else if( LastMessage == (*(_64*)"USERLIST") )
+            else if( LastMessage == (*(_64*)WIDE("USERLIST")) )
             {
-                Log( "(3)" );
+                Log( WIDE("(3)") );
                 ToRead = *(_16*)buffer;
-                Log1( "User list with size of %d", ToRead );
+                Log1( WIDE("User list with size of %d"), ToRead );
                 LastMessage++;
             }
-            else if(  (test = ((*(_64*)"USERLIST")+1) ), (LastMessage == test) )
+            else if(  (test = ((*(_64*)WIDE("USERLIST"))+1) ), (LastMessage == test) )
             {
-                char *userlist = (char*)buffer;
+                TEXTCHAR *userlist = (TEXTCHAR*)buffer;
                 userlist[size] = 0;
-                printf( "User List:\n%s", userlist );
+                printf( WIDE("User List:\n%s"), userlist );
                 LastMessage = 0;
                 RemoveClient( pc );
             }
             else
             {
-                Log1( "Unknown Continuation state for %8.8s", &LastMessage );
+                Log1( WIDE("Unknown Continuation state for %8.8s"), &LastMessage );
             }
         }
     }
@@ -106,20 +106,20 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, int size )
 
 void usage( void )
 {
-   printf( "Commands are:\n"
-      		"  update - send files specified in common to all connected\n"
-      		"  who    - list who is currently connected\n"
-      		"  kill   - terminate relay program\n"
-      		"  time   - Get current time (unimplemented result)\n"
-      		"  logoff - specify user to terminate\n"
-          "  scan   - tell remote to scan his directories\n"
-          "  status - get game master's status\n"
-          "  reboot - tell remote to reboot >:)\n"
-          "  winners - force a scan of the winners...\n"
+   printf( WIDE("Commands are:\n")
+      		WIDE("  update - send files specified in common to all connected\n")
+      		WIDE("  who    - list who is currently connected\n")
+      		WIDE("  kill   - terminate relay program\n")
+      		WIDE("  time   - Get current time (unimplemented result)\n")
+      		WIDE("  logoff - specify user to terminate\n")
+          WIDE("  scan   - tell remote to scan his directories\n")
+          WIDE("  status - get game master's status\n")
+          WIDE("  reboot - tell remote to reboot >:)\n")
+          WIDE("  winners - force a scan of the winners...\n")
       	);
 }
 
-int main( int argc, char **argv )
+SaneWinMain( argc, argv )
 {
    SetSystemLog( SYSLOG_FILE, stdout );
    if( argc < 2 )
@@ -128,64 +128,64 @@ int main( int argc, char **argv )
       return 0;
    }
    NetworkWait( NULL, 6, 4 );
-   pcControl = OpenTCPClientEx( "127.0.0.1", 3001, ReadComplete, CloseCallback, NULL );
+   pcControl = OpenTCPClientEx( WIDE("127.0.0.1"), 3001, ReadComplete, CloseCallback, NULL );
    if( !pcControl )
-   	printf( "Relay was not running?\n" );
+   	printf( WIDE("Relay was not running?\n") );
    else
    {
       {
-         if( strcmp( argv[1], "update" ) == 0 )
+         if( strcmp( argv[1], WIDE("update") ) == 0 )
          {
          	char msg[256];
          	int len;
-         	len = sprintf( msg, "UPDATE  %s", argv[2]?argv[2]:"" );
+         	len = sprintf( msg, WIDE("UPDATE  %s"), argv[2]?argv[2]:WIDE("") );
 	         SendTCP( pcControl, msg, len );
          }
-         else if( strcmp( argv[1], "who" ) == 0 )
+         else if( strcmp( argv[1], WIDE("who") ) == 0 )
          {
-         	printf( "Requesting active user list from relay.\n" );
-         	SendTCP( pcControl, "LISTUSER", 8 );
+         	printf( WIDE("Requesting active user list from relay.\n") );
+         	SendTCP( pcControl, WIDE("LISTUSER"), 8 );
          }
-         else if( strcmp( argv[1], "time" ) == 0 )
+         else if( strcmp( argv[1], WIDE("time") ) == 0 )
          {
-         	SendTCP( pcControl, "GET TIME", 8 );
+         	SendTCP( pcControl, WIDE("GET TIME"), 8 );
          }
-         else if( strcmp( argv[1], "kill" ) == 0 )
+         else if( strcmp( argv[1], WIDE("kill") ) == 0 )
          {
-	         SendTCP( pcControl, "DIE NOW!", 8 );
+	         SendTCP( pcControl, WIDE("DIE NOW!"), 8 );
          }
-         else if( strcmp( argv[1], "scan" ) == 0 )
+         else if( strcmp( argv[1], WIDE("scan") ) == 0 )
          {
          	char msg[256];
          	int len;
-         	len = sprintf( msg, "DO SCAN!%s", argv[2]?argv[2]:"" );
+         	len = sprintf( msg, WIDE("DO SCAN!%s"), argv[2]?argv[2]:WIDE("") );
 	         SendTCP( pcControl, msg, len );
          }
-         else if( strcmp( argv[1], "reboot" ) == 0 )
+         else if( strcmp( argv[1], WIDE("reboot") ) == 0 )
          {
          	char msg[256];
          	int len;
-         	len = sprintf( msg, "REBOOT!!%s", argv[2] );
+         	len = sprintf( msg, WIDE("REBOOT!!%s"), argv[2] );
 	         SendTCP( pcControl, msg, len );
          }
-         else if( strcmp( argv[1], "status" ) == 0 )
+         else if( strcmp( argv[1], WIDE("status") ) == 0 )
          {
-	         SendTCP( pcControl, "MASTER??", 8 );
+	         SendTCP( pcControl, WIDE("MASTER??"), 8 );
          }
-         else if( strcmp( argv[1], "winners" ) == 0 )
+         else if( strcmp( argv[1], WIDE("winners") ) == 0 )
          {
-	         SendTCP( pcControl, "WINNERS!", 8 );
+	         SendTCP( pcControl, WIDE("WINNERS!"), 8 );
          }
-         else if( strcmp( argv[1], "logoff" ) == 0 )
+         else if( strcmp( argv[1], WIDE("logoff") ) == 0 )
          {
          	char msg[256];
          	int len;
-         	len = sprintf( msg, "KILLUSER%s", argv[2] );
+         	len = sprintf( msg, WIDE("KILLUSER%s"), argv[2] );
 	         SendTCP( pcControl, msg, len );
          }
-         else if( strcmp( argv[1], "memory" ) == 0 )
+         else if( strcmp( argv[1], WIDE("memory") ) == 0 )
          {
-             SendTCP( pcControl, "MEM DUMP", 8 );
+             SendTCP( pcControl, WIDE("MEM DUMP"), 8 );
          }
          else
          {
@@ -193,7 +193,7 @@ int main( int argc, char **argv )
             return 0;
          }
       }
-	   //printf( "Relay found, command issued - waiting for close.\n" );
+	   //printf( WIDE("Relay found, command issued - waiting for close.\n") );
    }
    // no wait - wait doesn't work right on unix :(
 //#ifdef _WIN32
@@ -201,43 +201,5 @@ int main( int argc, char **argv )
       Sleep(10);
 //#endif
 }
+EndSaneWinMain()
 
-// Checked in by: $Author: jim $
-// $Revision: 1.14 $
-// $Log: rcontrol.c,v $
-// Revision 1.14  2003/07/25 15:57:44  jim
-// Update to make watcom compile happy
-//
-// Revision 1.13  2003/06/02 19:05:58  jim
-// Restored some logging... Added som elogging, handled failures better
-//
-// Revision 1.12  2003/04/08 19:16:21  jim
-// initial commit
-//
-// Revision 1.11  2002/07/10 22:51:56  panther
-// Removed some logging messages, added feature to ./rcontrol memory.
-//
-// Revision 1.10  2002/04/29 19:52:30  panther
-// Added command to force scan winners should something bad happen
-//
-// Revision 1.9  2002/04/23 17:33:57  panther
-// *** empty log message ***
-//
-// Revision 1.8  2002/04/23 17:16:06  panther
-// Wait doesn't work on unix? huh?
-//
-// Revision 1.7  2002/04/23 16:50:29  panther
-// *** empty log message ***
-//
-// Revision 1.6  2002/04/22 13:35:48  panther
-// Fixes for actual Linux usage...
-//
-// Revision 1.5  2002/04/19 00:49:26  panther
-// *** empty log message ***
-//
-// Revision 1.4  2002/04/19 00:35:49  panther
-// First pass protocol updates.
-//
-// Revision 1.3  2002/04/15 16:26:39  panther
-// Added revision tags.
-//

@@ -55,7 +55,7 @@ typedef struct space_tag {
          FRACTION ratio;
       } split;
 		struct {
-			char *name;
+			TEXTCHAR *name;
 			FLAGSET( payon, 12 );
 			_32 pay;
          CDATA color;

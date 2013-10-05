@@ -13,11 +13,11 @@
 
 void CPROC ButtonRollDice( PTRSZVAL psv, PCONTROL pc )
 {
-	char number[4];
+	TEXTCHAR number[4];
 	if( psv )
-		snprintf( number, sizeof( number ), "%ld\n", psv );
+		snprintf( number, sizeof( number ), WIDE("%ld\n"), psv );
 	else
-		snprintf( number, sizeof( number ), "0" );
+		snprintf( number, sizeof( number ), WIDE("0") );
 	EnqueStrokes( number );
 }
 
@@ -29,30 +29,30 @@ int Init( void )
 	g.scale = 28; // assuming 800x600 at least.
 	g.pImg = GetImageInterface();
 	g.pRend = GetDisplayInterface();
-	ReadStockDefinitions( "Stocks.Data" );
-	ReadBoardDefinitions( "Board.Data" );
+	ReadStockDefinitions( WIDE("Stocks.Data") );
+	ReadBoardDefinitions( WIDE("Board.Data") );
 	if( !g.board )
 		return FALSE;
 	if( !g.flags.bRandomRoll )
 	{
-		AddSheet( g.Panel, g.RollDice = CreateFrame( "Dice Cup"
+		AddSheet( g.Panel, g.RollDice = CreateFrame( WIDE("Dice Cup")
 																 , 0, 0
 																 , g.PanelWidth, g.PanelHeight
 																 , BORDER_NOCAPTION|BORDER_WITHIN|BORDER_NONE, NULL ) );
 		SetControlID( g.RollDice, PANEL_ROLL );
 		DisableSheet( g.Panel, PANEL_ROLL, FALSE );
-		MakeButton( g.RollDice, 5, 5, 50, 20, -1, "2", 0, ButtonRollDice, 2 );
-		MakeButton( g.RollDice, 5, 27, 50, 20, -1, "3", 0, ButtonRollDice, 3 );
-		MakeButton( g.RollDice, 5, 49, 50, 20, -1, "4", 0, ButtonRollDice, 4 );
-		MakeButton( g.RollDice, 5, 71, 50, 20, -1, "5", 0, ButtonRollDice, 5 );
-		MakeButton( g.RollDice, 5, 93, 50, 20, -1, "6", 0, ButtonRollDice, 6 );
-		MakeButton( g.RollDice, 5, 115, 50, 20, -1, "7", 0, ButtonRollDice, 7 );
-		MakeButton( g.RollDice, 57, 5, 50, 20, -1, "8", 0, ButtonRollDice, 8 );
-		MakeButton( g.RollDice, 57, 27, 50, 20, -1, "9", 0, ButtonRollDice, 9 );
-		MakeButton( g.RollDice, 57, 49, 50, 20, -1, "10", 0, ButtonRollDice, 10 );
-		MakeButton( g.RollDice, 57, 71, 50, 20, -1, "11", 0, ButtonRollDice, 11 );
-		MakeButton( g.RollDice, 57,  93, 50, 20, -1, "12", 0, ButtonRollDice, 12 );
-		MakeButton( g.RollDice, 57, 115, 50, 20, -1, "Random", 0, ButtonRollDice, 0 );
+		MakeButton( g.RollDice, 5, 5, 50, 20, -1, WIDE("2"), 0, ButtonRollDice, 2 );
+		MakeButton( g.RollDice, 5, 27, 50, 20, -1, WIDE("3"), 0, ButtonRollDice, 3 );
+		MakeButton( g.RollDice, 5, 49, 50, 20, -1, WIDE("4"), 0, ButtonRollDice, 4 );
+		MakeButton( g.RollDice, 5, 71, 50, 20, -1, WIDE("5"), 0, ButtonRollDice, 5 );
+		MakeButton( g.RollDice, 5, 93, 50, 20, -1, WIDE("6"), 0, ButtonRollDice, 6 );
+		MakeButton( g.RollDice, 5, 115, 50, 20, -1, WIDE("7"), 0, ButtonRollDice, 7 );
+		MakeButton( g.RollDice, 57, 5, 50, 20, -1, WIDE("8"), 0, ButtonRollDice, 8 );
+		MakeButton( g.RollDice, 57, 27, 50, 20, -1, WIDE("9"), 0, ButtonRollDice, 9 );
+		MakeButton( g.RollDice, 57, 49, 50, 20, -1, WIDE("10"), 0, ButtonRollDice, 10 );
+		MakeButton( g.RollDice, 57, 71, 50, 20, -1, WIDE("11"), 0, ButtonRollDice, 11 );
+		MakeButton( g.RollDice, 57,  93, 50, 20, -1, WIDE("12"), 0, ButtonRollDice, 12 );
+		MakeButton( g.RollDice, 57, 115, 50, 20, -1, WIDE("Random"), 0, ButtonRollDice, 0 );
 	}
 	InitPlayer();
 	InitStockDialogs();
@@ -60,7 +60,7 @@ int Init( void )
 	//UpdateControl( g.board );
 	do
 	{
-		printf( "How many players? " );
+		printf( WIDE("How many players? ") );
 		players = GetANumber();
 	} while( players < 2 || players > 8 );
 
@@ -112,7 +112,7 @@ void EnterDiceRoll( void )
 	int accum;
 	if( !g.flags.bRandomRoll )
 	{
-		printf( "Enter Die Roll (0 = roll):" );
+		printf( WIDE("Enter Die Roll (0 = roll):") );
 		accum = GetANumber();
 	}
 	else
@@ -123,7 +123,7 @@ void EnterDiceRoll( void )
 		roll1 = ( ( rand() >> 8 ) % 6 ) + 1;
 		roll2 = ( ( rand() >> 8 ) % 6 ) + 1;
 		accum = roll1 + roll2;
-		printf( "Automatic roll: %d (%d + %d)\n", accum, roll1, roll2 );
+		printf( WIDE("Automatic roll: %d (%d + %d)\n"), accum, roll1, roll2 );
 	}
 	g.nCurrentRoll = accum;
 }
@@ -131,15 +131,15 @@ void EnterDiceRoll( void )
 
 
 
-int main( int argc, char **argv )
+SaneWinMain( argc, argv )
 {
 	int first;
-	//SetSystemLog( SYSLOG_FILE, fopen( "stockmarket.log", "wt" ) );
+	//SetSystemLog( SYSLOG_FILE, fopen( WIDE("stockmarket.log"), WIDE("wt") ) );
 	if( argc > 1 )
 		SetInputFile( argv[1] );
 	if( argc > 2 )
 		SetOutputFile( argv[2] );
-	//printf( "Shall we play a game?\n" );
+	//printf( WIDE("Shall we play a game?\n") );
 
 	if( Init() )
 	{
@@ -168,3 +168,4 @@ int main( int argc, char **argv )
 	}
 	return 0;
 }
+EndSaneWinMain()

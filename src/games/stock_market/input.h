@@ -1,9 +1,9 @@
 
-void SetInputFile( char *file );
-void SetOutputFile( char *file );
-void EnqueStrokes( const char *strokes );
+void SetInputFile( TEXTCHAR *file );
+void SetOutputFile( TEXTCHAR *file );
+void EnqueStrokes( const TEXTCHAR *strokes );
 
 int GetCh( void );
 int GetANumber( void );
 int GetYesNo( void );
-int GetAString( char *buffer, int buflen );
+int GetAString( TEXTCHAR *buffer, int buflen );

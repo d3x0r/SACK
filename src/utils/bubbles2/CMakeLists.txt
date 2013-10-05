@@ -1,9 +1,5 @@
-cmake_minimum_required(VERSION 2.8)
 
-project( BubbleScreenSaver )
-
-project( bubbles )
-
+set( project BubbleScreenSaver )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
@@ -11,12 +7,11 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT_NAME}" 
+add_program(${project} ${BASE_SOURCES} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER utils
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-install_default_dest( ${PROJECT_NAME} )
 
+message( "project ${project} needs better install path" )
+install( FILES *.png DESTINATION ${BINARY_OUTPUT_DIR} )
 
