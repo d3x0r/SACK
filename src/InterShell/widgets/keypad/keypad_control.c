@@ -2285,15 +2285,15 @@ static PTRSZVAL CPROC SetBackgroundColor( PTRSZVAL psv, arg_list args )
 static PTRSZVAL CPROC SetKeypadStyleConfig( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, S_64, style );
-   SetKeypadStyle( (PSI_CONTROL)(*ppsv), style );
-   return psv;
+	SetKeypadStyle( (PSI_CONTROL)(*ppsv), (enum keypad_styles)style );
+	return psv;
 }
 
 static PTRSZVAL CPROC SetKeypadFormatConfig( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, format );
-   KeypadSetDisplayFormat( (PSI_CONTROL)(*ppsv), format );
-   return psv;
+	KeypadSetDisplayFormat( (PSI_CONTROL)(*ppsv), format );
+	return psv;
 }
 
 

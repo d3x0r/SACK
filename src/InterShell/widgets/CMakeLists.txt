@@ -18,14 +18,10 @@ add_library_force_source( ${project} SHARED
    ${LAST_GCC_LIBRARY_SOURCE}
 )
 
-string( REPLACE "." "_" TARGET_LABEL ${project} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
-                  COMPILE_DEFINITIONS "TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${project}${CMAKE_SHARED_LIBRARY_SUFFIX}\""
-                  COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
                   FOLDER InterShell
 )
-
-target_link_libraries( ${project} ${SACK_LIBRARIES})
+target_link_libraries( ${project} ${SACK_LIBRARIES} )
 
 install_default_dest( ${project} )
 

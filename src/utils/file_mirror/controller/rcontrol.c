@@ -1,4 +1,4 @@
-r#include <stdhdrs.h>
+#include <stdhdrs.h>
 #include <stdio.h>
 #include <network.h>
 #include <logging.h>
@@ -14,7 +14,7 @@ void CPROC CloseCallback(PCLIENT pc)
 	pcControl = NULL;
 }
 
-void CPROC ReadComplete( PCLIENT pc, POINTER buffer, int size )
+void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
 {
     static _64 LastMessage; // this is safe - only ONE connection EVER
     _64 test;
@@ -56,7 +56,7 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, int size )
             }
             else
             {
-                printf( WIDE("Unknown responce from relay: %8.8s"), buffer );
+                lprintf( WIDE("Unknown responce from relay: %8.8s"), buffer );
             }
         }
         else
@@ -71,12 +71,12 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, int size )
             else if( (test = ((*(_64*)WIDE("MESSAGE!"))+1)), (LastMessage == test) )
             {
                 Log( WIDE("(2)") );
-                printf( WIDE("Relay Message:%s"), buffer );
+                lprintf( WIDE("Relay Message:%s"), buffer );
                 LastMessage = 0;
             }
             else if( LastMessage == *(_64*)WIDE("MASTERIS") )
             {
-                printf( WIDE("Game Master is: %s"), buffer );
+                lprintf( WIDE("Game Master is: %s"), buffer );
                 LastMessage = 0;
                 RemoveClient( pc );
             }
@@ -91,7 +91,7 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, int size )
             {
                 TEXTCHAR *userlist = (TEXTCHAR*)buffer;
                 userlist[size] = 0;
-                printf( WIDE("User List:\n%s"), userlist );
+                lprintf( WIDE("User List:\n%s"), userlist );
                 LastMessage = 0;
                 RemoveClient( pc );
             }
@@ -106,7 +106,7 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, int size )
 
 void usage( void )
 {
-   printf( WIDE("Commands are:\n")
+   lprintf( WIDE("Commands are:\n")
       		WIDE("  update - send files specified in common to all connected\n")
       		WIDE("  who    - list who is currently connected\n")
       		WIDE("  kill   - terminate relay program\n")
@@ -124,13 +124,13 @@ SaneWinMain( argc, argv )
    SetSystemLog( SYSLOG_FILE, stdout );
    if( argc < 2 )
    {
-   	usage();
-      return 0;
+   		usage();
+		return 0;
    }
    NetworkWait( NULL, 6, 4 );
    pcControl = OpenTCPClientEx( WIDE("127.0.0.1"), 3001, ReadComplete, CloseCallback, NULL );
    if( !pcControl )
-   	printf( WIDE("Relay was not running?\n") );
+   		lprintf( WIDE("Relay was not running?\n") );
    else
    {
       {
@@ -138,12 +138,12 @@ SaneWinMain( argc, argv )
          {
          	char msg[256];
          	int len;
-         	len = sprintf( msg, WIDE("UPDATE  %s"), argv[2]?argv[2]:WIDE("") );
+         	len = sprintf( msg, "UPDATE  %s", argv[2]?argv[2]:WIDE("") );
 	         SendTCP( pcControl, msg, len );
          }
          else if( strcmp( argv[1], WIDE("who") ) == 0 )
          {
-         	printf( WIDE("Requesting active user list from relay.\n") );
+         	lprintf( WIDE("Requesting active user list from relay.\n") );
          	SendTCP( pcControl, WIDE("LISTUSER"), 8 );
          }
          else if( strcmp( argv[1], WIDE("time") ) == 0 )
@@ -158,14 +158,14 @@ SaneWinMain( argc, argv )
          {
          	char msg[256];
          	int len;
-         	len = sprintf( msg, WIDE("DO SCAN!%s"), argv[2]?argv[2]:WIDE("") );
+         	len = sprintf( msg, "DO SCAN!%s", argv[2]?argv[2]:WIDE("") );
 	         SendTCP( pcControl, msg, len );
          }
          else if( strcmp( argv[1], WIDE("reboot") ) == 0 )
          {
          	char msg[256];
          	int len;
-         	len = sprintf( msg, WIDE("REBOOT!!%s"), argv[2] );
+         	len = sprintf( msg, "REBOOT!!%s", argv[2] );
 	         SendTCP( pcControl, msg, len );
          }
          else if( strcmp( argv[1], WIDE("status") ) == 0 )
@@ -180,12 +180,12 @@ SaneWinMain( argc, argv )
          {
          	char msg[256];
          	int len;
-         	len = sprintf( msg, WIDE("KILLUSER%s"), argv[2] );
+         	len = sprintf( msg, "KILLUSER%s", argv[2] );
 	         SendTCP( pcControl, msg, len );
          }
          else if( strcmp( argv[1], WIDE("memory") ) == 0 )
          {
-             SendTCP( pcControl, WIDE("MEM DUMP"), 8 );
+             SendTCP( pcControl, "MEM DUMP", 8 );
          }
          else
          {
@@ -193,7 +193,7 @@ SaneWinMain( argc, argv )
             return 0;
          }
       }
-	   //printf( WIDE("Relay found, command issued - waiting for close.\n") );
+	   //lprintf( WIDE("Relay found, command issued - waiting for close.\n") );
    }
    // no wait - wait doesn't work right on unix :(
 //#ifdef _WIN32

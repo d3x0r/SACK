@@ -206,7 +206,7 @@ void LoadVideo( CTEXTSTR file )
 													, g.x //0
 													, g.y //0
 													);
-	player->vlc = PlayItemOnEx( player->surface, file, "--repeat --loop" );
+	player->vlc = PlayItemOnEx( player->surface, file, WIDE("--repeat --loop") );
 	SetStopEvent( player->vlc, OnStopFade, (PTRSZVAL)player );
 
    // only used if there is only 1 video - just show video.
@@ -261,15 +261,15 @@ SaneWinMain(argc, argv )
 					g.fade_in = atoi( argv[arg]+1 );
 					break;
 				case 6:
-               g.next_fade_in = atoi( argv[arg]+1 );
-               state--; // stay at state 6
-               break;
+					g.next_fade_in = atoi( argv[arg]+1 );
+					state--; // stay at state 6
+					break;
 				}
-            state++;
+				state++;
 			}
 			else if( argv[arg][0] == '@' )
 			{
-				FILE *file = fopen( argv[arg] + 1, WIDE("rt") );
+				FILE *file = sack_fopen( 0, argv[arg] + 1, WIDE("rt") );
 				TEXTCHAR filename[256];
 				while( fgets( filename, sizeof( filename ), file ) )
 				{

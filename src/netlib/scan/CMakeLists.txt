@@ -1,62 +1,35 @@
 
-PROJECT( scan_ports )
-sack_add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} 
+add_program( scan_ports ${FIRST_GCC_PROGRAM_SOURCE} 
 scanner 
 ${LAST_GCC_PROGRAM_SOURCE}
 )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-                  COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
-)
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-if( WIN32 )
-target_link_libraries( ${PROJECT_NAME} wsock32 )
-endif( WIN32 )
-install_default_dest( ${PROJECT_NAME} )
+SET_TARGET_PROPERTIES(scan_ports PROPERTIES FOLDER "Network Examples" )
+
 
 if( NOT __ARM__ )
-PROJECT( scan_addresses )
-sack_add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} 
-pinger 
+
+add_program( scan_addresses ${FIRST_GCC_PROGRAM_SOURCE} 
+      pinger 
 ${LAST_GCC_PROGRAM_SOURCE}
 )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-                  COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
-)
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-if( WIN32 )
-target_link_libraries( ${PROJECT_NAME} wsock32 )
-endif( WIN32 )
-install_default_dest( ${PROJECT_NAME} )
+SET_TARGET_PROPERTIES(scan_addresses PROPERTIES  FOLDER "Network Examples")
+
+
 endif( NOT __ARM__ )
 
 PROJECT( nameof )
-sack_add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} 
-nameof 
+add_program( nameof ${FIRST_GCC_PROGRAM_SOURCE} 
+      nameof 
 ${LAST_GCC_PROGRAM_SOURCE}
 )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-                  COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
-)
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-if( WIN32 )
-target_link_libraries( ${PROJECT_NAME} wsock32 )
-endif( WIN32 )
-install_default_dest( ${PROJECT_NAME} )
+SET_TARGET_PROPERTIES(nameof PROPERTIES		FOLDER "Network Examples" )
 
-PROJECT( ipof )
-sack_add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} 
-ipof 
-${LAST_GCC_PROGRAM_SOURCE}
+add_program( ipof ${FIRST_GCC_PROGRAM_SOURCE} 
+    ipof 
+  ${LAST_GCC_PROGRAM_SOURCE}
 )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-                  COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
-)
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-install_default_dest( ${PROJECT_NAME} )
+SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES FOLDER "Network Examples" )
+
 
 
 add_subdirectory( portable )

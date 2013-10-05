@@ -13,7 +13,6 @@ include_directories( ../../InterShell/vlc_hook )
 include_directories( ../../libvlc/1.1.6/sdk/include )
 
 
-
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
     crossfade.c
@@ -58,7 +57,6 @@ ${LAST_GCC_PROGRAM_SOURCE}
 
 add_program(${project} WIN32 ${BASE_SOURCES} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
-COMPILE_FLAGS  "-DTARGET_LABEL=${project}" 
                   FOLDER utils/crossfade
 )
 target_link_libraries( ${project} ${SACK_LIBRARIES} vlc_interface)
@@ -74,7 +72,6 @@ ${LAST_GCC_PROGRAM_SOURCE}
 
 add_program(${project} WIN32 ${BASE_SOURCES} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
-COMPILE_FLAGS  "-DTARGET_LABEL=${project}" 
                   FOLDER utils/crossfade
 )
 target_link_libraries( ${project} ${SACK_LIBRARIES} winmm )
@@ -91,7 +88,6 @@ ${LAST_GCC_PROGRAM_SOURCE}
 
 add_program(${project} WIN32 ${BASE_SOURCES} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
-COMPILE_FLAGS  "-DTARGET_LABEL=${project}" 
                   FOLDER utils
 )
 target_link_libraries( ${project} ${SACK_LIBRARIES} )
@@ -108,7 +104,6 @@ ${LAST_GCC_PROGRAM_SOURCE}
 
 add_program(${project} WIN32 ${BASE_SOURCES} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
-COMPILE_FLAGS  "-DTARGET_LABEL=${project}" 
                   FOLDER utils
 )
 target_link_libraries( ${project} ${SACK_LIBRARIES} )

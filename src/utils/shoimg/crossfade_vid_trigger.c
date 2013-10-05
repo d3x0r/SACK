@@ -8,27 +8,27 @@ static int BeginNetwork( void )
 {
 	if( !NetworkStart() )
 		return 0;
-	pcCommand = ConnectUDP( NULL, 3021, "255.255.255.255", 3020, NULL, NULL );
+	pcCommand = ConnectUDP( NULL, 3021, WIDE("255.255.255.255"), 3020, NULL, NULL );
 	if( !pcCommand )
-		pcCommand = ConnectUDP( NULL, 3022, "255.255.255.255", 3020, NULL, NULL );
+		pcCommand = ConnectUDP( NULL, 3022, WIDE("255.255.255.255"), 3020, NULL, NULL );
 	if( !pcCommand )
-		pcCommand = ConnectUDP( NULL, 3023, "255.255.255.255", 3020, NULL, NULL );
+		pcCommand = ConnectUDP( NULL, 3023, WIDE("255.255.255.255"), 3020, NULL, NULL );
 	if( !pcCommand )
-		pcCommand = ConnectUDP( NULL, 3024, "255.255.255.255", 3020, NULL, NULL );
+		pcCommand = ConnectUDP( NULL, 3024, WIDE("255.255.255.255"), 3020, NULL, NULL );
 	if( !pcCommand )
-		pcCommand = ConnectUDP( NULL, 3025, "255.255.255.255", 3020, NULL, NULL );
+		pcCommand = ConnectUDP( NULL, 3025, WIDE("255.255.255.255"), 3020, NULL, NULL );
 	if( !pcCommand )
-		pcCommand = ConnectUDP( NULL, 3026, "255.255.255.255", 3020, NULL, NULL );
+		pcCommand = ConnectUDP( NULL, 3026, WIDE("255.255.255.255"), 3020, NULL, NULL );
 	if( !pcCommand )
 	{
 		srand( GetTickCount() );
-		pcCommand = ConnectUDP( NULL, (_16)(3000 + rand() % 10000), "255.255.255.255", 3020, NULL, NULL );
+		pcCommand = ConnectUDP( NULL, (_16)(3000 + rand() % 10000), WIDE("255.255.255.255"), 3020, NULL, NULL );
 	}
 
 
 	if( !pcCommand )
 	{
-		lprintf( "Failed to bind to any port!\n" );
+		lprintf( WIDE("Failed to bind to any port!\n") );
 		return 0;
 	}
 	return 1;
