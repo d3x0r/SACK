@@ -6,6 +6,8 @@
 #include "history.h"
 #include "WinLogic.h"
 
+PSI_CONSOLE_NAMESPACE
+
 
 
 void FormatTextToBlock( CTEXTSTR input, CTEXTSTR *output, int char_width, int char_height )
@@ -138,5 +140,7 @@ void FormatTextToBlock( CTEXTSTR input, CTEXTSTR *output, int char_width, int ch
 
    Release( console );
 }
+
+PSI_CONSOLE_NAMESPACE_END
 
 

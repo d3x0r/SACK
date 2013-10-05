@@ -69,11 +69,11 @@ add_subpath( ../src/utils/launcher )
 add_subpath( ../src/sysloglib/logger )
 add_subpath( ../src/utils/systray_shell )
 
-if( NOT __ANDROID__ )
+if( NOT __ANDROID__ AND NOT __CLR__ )
 # some things just don't make sense to build for android... (it's a good line stripper/tabber-detabber)
 add_subpath( ../src/utils/strip )
 add_subpath( ../src/filesyslib/filemon/filemonitor )
-endif( NOT __ANDROID__ )
+endif( NOT __ANDROID__ AND NOT __CLR__ )
 
 
 if( WIN32 )
@@ -83,7 +83,10 @@ add_subpath( ../src/utils/top_picker )
 # this is pretty useless :)
 #add_subpath( ../src/utils/rotor/harmonic )
 
+if( NOT __CLR__ AND NOT BUILD_UNICODE )
+# this is just too mixed-char-ascii to convert easily
 add_subpath( ../src/utils/file_mirror )
+endif( NOT __CLR__ AND NOT BUILD_UNICODE )
 add_subpath( ../src/InterShell/widgets )
 add_subpath( ../src/commlib )
 if( BUILD_TESTS )

@@ -5,8 +5,8 @@
 #include <logging.h>
 #endif
 #include <controls.h>
-
-int main( char argc, char **argv )
+#include "local.h"
+SaneWinMain( argc, argv )
 {
 #ifdef _DEBUG
 //	SetCriticalLogging( TRUE );
@@ -15,10 +15,11 @@ int main( char argc, char **argv )
 #endif
 	AlignBaseToWindows();
 	SetControlInterface( GetDisplayInterface() );
-   SetControlImageInterface( GetImageInterface() );
+	SetControlImageInterface( GetImageInterface() );
 	DoController();
 	return 0;
 }
+EndSaneWinMain()
 // Checked in by: $Author: panther $
 // $Revision: 1.6 $
 // $Log: main.c,v $

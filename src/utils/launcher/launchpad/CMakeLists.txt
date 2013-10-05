@@ -3,7 +3,11 @@ if( NOT BUILD_INTERSHELL )
 
 set( project launchpad )
 
-set( RESOURCES launchpad.rc )
+if( NOT __CLR__ )
+    # have to do better resources I guess
+    set( RESOURCES launchpad.rc )
+endif( NOT __CLR__ )
+
 if( MINGW OR MSVC )
 set( MORE_SOURCES ${RESOURCES} )
 endif( MINGW OR MSVC )
@@ -34,7 +38,7 @@ ADD_CUSTOM_TARGET( "generate_foo${project}" DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/
 endif()
 
 
-sack_add_executable(${project} WIN32 ${BASE_SOURCES} )
+add_program(${project} WIN32 ${BASE_SOURCES} )
 
 if( WATCOM )
 ADD_DEPENDENCIES( ${project} "generate_foo${project}" )
@@ -43,8 +47,6 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 endif( WATCOM )
 
 SET_TARGET_PROPERTIES(${project} PROPERTIES
-          COMPILE_FLAGS  "-DTARGET_LABEL=${project}" 
-          COMPILE_DEFINITIONS "TARGETNAME=\"${project}${CMAKE_EXECUTABLE_SUFFIX}\""
                   FOLDER utils/launcher
 )
 target_link_libraries( ${project} ${SACK_LIBRARIES} )
@@ -81,26 +83,4 @@ add_subdirectory( frames )
 
 endif( NOT BUILD_INTERSHELL )
 
-if( altanik_is_built )
-set( project launchpad.isom ) 
-
-set(BASE_SOURCES3
-${FIRST_GCC_PROGRAM_SOURCE} 
-    launchpad milk_plugin
-${LAST_GCC_PROGRAM_SOURCE}
-)
-
-add_library_force_source(${project} SHARED ${BASE_SOURCES3} )
-string( REPLACE "." "_" TARGET_LABEL ${project} )
-SET_TARGET_PROPERTIES(${project} PROPERTIES
-                  COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags} -DISHELL_PLUGIN"
-                  PREFIX ""
-                  SUFFIX ""
-                  FOLDER utils/launcher
-)
-target_link_libraries( ${project} ${SACK_LIBRARIES} )
-install_default_dest( ${project} )
-add_subdirectory( frames )
-
-endif()
 

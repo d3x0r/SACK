@@ -41,18 +41,18 @@ project( reboot.monitor )
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
     reboot.c
-    reboot.rc
 ${LAST_GCC_PROGRAM_SOURCE}
 )
-sack_add_executable(${PROJECT_NAME} WIN32 ${BASE_SOURCES} )
-build_resource( reboot.rc )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
+
+if( NOT __CLR__ )
+  set( BASE_SOURCES ${BASE_SOURCES}     reboot.rc )
+  build_resource( reboot.rc )
+endif( NOT __CLR__ )
+
+add_program(${PROJECT_NAME} WIN32 ${BASE_SOURCES} )
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}" 
                   FOLDER utils
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-install_default_dest( ${PROJECT_NAME} )
 
 
 add_subdirectory( portable )

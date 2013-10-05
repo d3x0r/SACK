@@ -108,23 +108,22 @@ void CPROC Ticker( PTRSZVAL psv )
 	Redraw( l.render );
 }
 
-
-int main( int argc, char **argv )
+SaneWinMain( argc, argv )
 {
 	int x, y, w, h;
 	x = argc > 1?atoi(argv[1]):0;
 	y = argc > 2?atoi(argv[2]):0;
 	w = argc > 3?atoi(argv[3]):0;
 	h = argc > 4?atoi(argv[4]):0;
-	l.shadow = LoadImageFile( "117.png" );
-	l.cover = LoadImageFile( "123.png" );
-	l.shaded = LoadImageFile( "121.png" );
+	l.shadow = LoadImageFile( WIDE("117.png") );
+	l.cover = LoadImageFile( WIDE("123.png") );
+	l.shaded = LoadImageFile( WIDE("121.png") );
 	{
 		GetDisplaySize( &l.w, &l.h );
 		if( w )
 			l.w = w;
 		if( h )
-         l.h = h;
+			l.h = h;
 		l.render = OpenDisplaySizedAt( DISPLAY_ATTRIBUTE_NO_AUTO_FOCUS|DISPLAY_ATTRIBUTE_NO_MOUSE|DISPLAY_ATTRIBUTE_CHILD|DISPLAY_ATTRIBUTE_LAYERED
 											  , l.w, l.h, x, y );
 		SetRedrawHandler( l.render, UpdateImage, 0 );
@@ -142,7 +141,7 @@ int main( int argc, char **argv )
 				while( bubble->x > 1650 )
 				{
 					bubble->x -= 1650;
-               bubble->y += 160;
+					bubble->y += 160;
 				}
 				AddLink( &l.bubbles, bubble );
 			}
@@ -155,4 +154,4 @@ int main( int argc, char **argv )
 	}
 	return 0;
 }
-
+EndSaneWinMain()

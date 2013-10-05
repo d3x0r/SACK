@@ -3,6 +3,8 @@
 #include <controls.h>
 #include "resources.h"
 
+#include "local.h"
+
 PCONTROL frame;
 
 
@@ -27,15 +29,15 @@ void DoController( void )
 {
 	int done = 0, okay = 0;
 	TEXTCHAR defaultaddress[128];
-   {
-	   FILE *file = fopen( WIDE( "LastConnection.data" ), WIDE( "rb" ) );
-	   if( file )
-	   {
-		   fgets( defaultaddress, 128, file );
-   		fclose( file );
-   	}
-   	else
-   		StrCpyEx( defaultaddress, WIDE("127.0.0.1"), sizeof( defaultaddress ) / sizeof( defaultaddress[0] ) );
+	{
+		FILE *file = sack_fopen( 0, WIDE( "LastConnection.data" ), WIDE( "rb" ) );
+		if( file )
+		{
+			fgets( defaultaddress, 128, file );
+   			fclose( file );
+   		}
+   		else
+   			StrCpyEx( defaultaddress, WIDE("127.0.0.1"), sizeof( defaultaddress ) / sizeof( defaultaddress[0] ) );
    }
 
 	frame = CreateFrame( WIDE( "Relay Control" ), 0, 0, 530, 256, 0, (0) );
@@ -56,7 +58,7 @@ void DoController( void )
 	MakeTextControl( frame, COLUMN1, 201, 180, 16, CHK_MASTER, WIDE( "Game Master is ..." ), TEXT_NORMAL );
    
 	AddCommonButtons( frame, &done, &okay );
-   DisplayFrame( frame );
+	DisplayFrame( frame );
 	CommonLoop( &done, &okay );
 }
 // Checked in by: $Author: jim $
