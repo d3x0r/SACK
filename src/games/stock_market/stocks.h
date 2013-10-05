@@ -18,7 +18,7 @@ _32 SellStock( PORTFOLIO portfolio
 				 , _32 amount );
 _32 CountShares( PORTFOLIO portfolio );
 
-int ReadStockDefinitions( char *filename );
+int ReadStockDefinitions( TEXTCHAR *filename );
 PSTOCK GetStockByID( _16 ID );
 
 void DumpStocks( void );

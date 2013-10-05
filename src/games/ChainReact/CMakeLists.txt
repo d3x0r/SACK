@@ -22,7 +22,9 @@ PROJECT( ChainReaction )
 include_directories( ${SACK_INCLUDE_DIR} )
 LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
 
-ADD_PROGRAM( ${PROJECT_NAME} WIN32
+# this is a bad thing to override.
+set( BINARY_OUTPUT_DIR bin )
+add_program( ${PROJECT_NAME} WIN32
 ${FIRST_GCC_PROGRAM_SOURCE} 
   chain.c logic.c player.c 
 ${LAST_GCC_PROGRAM_SOURCE} 

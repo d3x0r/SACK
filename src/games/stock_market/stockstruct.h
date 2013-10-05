@@ -9,8 +9,8 @@
 typedef struct stock_tag {
 	struct    stock_tag *next;
 	struct    stock_tag **me;
-	char      name[64];
-	char      Symbol[4]; // 4 characters NO terminator.
+	TEXTCHAR      name[64];
+	TEXTCHAR      Symbol[4]; // 4 characters NO terminator.
 	struct {
 		_32 inverse : 1;
 	} flags;

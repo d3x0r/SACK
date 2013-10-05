@@ -1,7 +1,7 @@
 #ifndef BOARD_FUNCTIONS_DEFINED
 #define BOARD_FUNCTIONS_DEFINED
 
-void ReadBoardDefinitions( char *filename );
+void ReadBoardDefinitions( TEXTCHAR *filename );
 
 void SetPlayerSpace( PSPACE pSpace, PPLAYER player );
 PSPACE ChooseProfessionSpace( PPLAYER player );

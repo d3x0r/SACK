@@ -54,7 +54,7 @@ extern PLAYER players[];
 
 void CPROC AddPlayerButton( PTRSZVAL psv, PCONTROL pc )
 {
-	char buffer[256];
+	TEXTCHAR buffer[256];
 	PCOMMON frame = GetFrame( pc );
 	(nPlayers)++;
 
@@ -81,7 +81,7 @@ void CPROC AddPlayerButton( PTRSZVAL psv, PCONTROL pc )
 	else
 	{
 		SetCheckState( GetControl( frame, CHK_COMPUTER ), players[nPlayers+1].computer );
-		sprintf( buffer, "Configure Player #%d", (nPlayers)+1 );
+		snprintf( buffer, 256, WIDE("Configure Player #%d"), (nPlayers)+1 );
 		SetControlText( GetControl( frame, TXT_CONFIGNUM ), buffer );
 		SetControlText( GetControl( frame, EDT_NAME )
 						  , players[nPlayers+1].name );
@@ -105,7 +105,7 @@ void CPROC AddPlayerButton( PTRSZVAL psv, PCONTROL pc )
 		}
 		PressButton( pcColor, TRUE );
 	}
-	sprintf( buffer, "Players: %d", nPlayers );
+	snprintf( buffer, 256, WIDE("Players: %d"), nPlayers );
 	SetControlText( GetControl( frame, TXT_PLAYERS ), buffer );
 
 }
@@ -160,16 +160,16 @@ int ConfigurePlayers( void )
 //                       , 0, Color( 255,255,255)
 //      						, Colors[n] );
 	}
-	pFrame = CreateFrame( "Config Player", 0, 0, 275, 125, BORDER_NORMAL, (PCOMMON)0 );
+	pFrame = CreateFrame( WIDE("Config Player"), 0, 0, 275, 125, BORDER_NORMAL, (PCOMMON)0 );
 	pPlayerFrame = pFrame;
 	MoveFrame( pFrame, 50, 50 );
-	MakeButton( pFrame, 255, 5, 15, 15, BTN_QUIT, "X", 0, QuitGame, 0 );
-	MakeTextControl( pFrame, 5, 10, 150, 15, TXT_CONFIGNUM, "Configure Player #1", 0 );
-	MakeTextControl( pFrame, 5, 25, 150, 15, TXT_PLAYERS, "Players: 0 ", 0 );
-	MakeTextControl( pFrame, 5, 40, 35, 11, TXT_STATIC, "Name:", 0 );
-	MakeTextControl( pFrame, 5, 58, 100, 13, TXT_STATIC, "Select Color", 0 );
+	MakeButton( pFrame, 255, 5, 15, 15, BTN_QUIT, WIDE("X"), 0, QuitGame, 0 );
+	MakeTextControl( pFrame, 5, 10, 150, 15, TXT_CONFIGNUM, WIDE("Configure Player #1"), 0 );
+	MakeTextControl( pFrame, 5, 25, 150, 15, TXT_PLAYERS, WIDE("Players: 0 "), 0 );
+	MakeTextControl( pFrame, 5, 40, 35, 11, TXT_STATIC, WIDE("Name:"), 0 );
+	MakeTextControl( pFrame, 5, 58, 100, 13, TXT_STATIC, WIDE("Select Color"), 0 );
 	MakeEditControl( pFrame, 43, 39, 84, 14, EDT_NAME, players[1].name, 0 );
-	MakeCheckButton( pFrame, 131, 40, 80, 14, CHK_COMPUTER, "Computer", 0, NULL, 0 );
+	MakeCheckButton( pFrame, 131, 40, 80, 14, CHK_COMPUTER, WIDE("Computer"), 0, NULL, 0 );
 	MakeImageButton( pFrame, 5, 71, 26, 26,   BTN_COLOR1, pImages[0], 0, SetPlayerColor, 0 );
 	MakeImageButton( pFrame, 35, 71, 26, 26,  BTN_COLOR2, pImages[1], 0, SetPlayerColor, 0 );
 	MakeImageButton( pFrame, 65, 71, 26, 26,  BTN_COLOR3, pImages[2], 0, SetPlayerColor, 0 );
@@ -179,9 +179,9 @@ int ConfigurePlayers( void )
 	MakeImageButton( pFrame, 185, 71, 26, 26, BTN_COLOR7, pImages[6], 0, SetPlayerColor, 0 );
 	MakeImageButton( pFrame, 215, 71, 26, 26, BTN_COLOR8, pImages[7], 0, SetPlayerColor, 0 );
 	MakeImageButton( pFrame, 245, 71, 26, 26, BTN_COLOR9, pImages[8], 0, SetPlayerColor, 0 );
-	MakeButton( pFrame, 202, 100, 59, 20, BTN_HELP, "Help?", 0, ShowSomeHelp, 0 );
-	MakeButton( pFrame, 108, 100, 82, 20, BTN_ADD, "Add Player", 0, AddPlayerButton,  (PTRSZVAL)&nPlayers);
-	MakeButton( pFrame, 14, 100, 82, 20, BTN_PLAY, "Play Game", 0, PlayGameButton, (PTRSZVAL)&done );
+	MakeButton( pFrame, 202, 100, 59, 20, BTN_HELP, WIDE("Help?"), 0, ShowSomeHelp, 0 );
+	MakeButton( pFrame, 108, 100, 82, 20, BTN_ADD, WIDE("Add Player"), 0, AddPlayerButton,  (PTRSZVAL)&nPlayers);
+	MakeButton( pFrame, 14, 100, 82, 20, BTN_PLAY, WIDE("Play Game"), 0, PlayGameButton, (PTRSZVAL)&done );
 	EnableControl( GetControl( pFrame, BTN_PLAY ), FALSE );
 	SetCommonFocus( GetControl( pFrame, EDT_NAME ) );
 	LastColor = players[1].color;
@@ -235,20 +235,20 @@ static int CPROC DrawMimicBoard( PCOMMON pc )
 
 void CPROC SliderUpdatedX( PTRSZVAL psv, PCONTROL pc, int val )
 {
-//	printf( "Value: %d\n", val );
+//	printf( WIDE("Value: %d\n"), val );
 	BOARD_X = val;
    SmudgeCommon( pcBoard );
 }
 
 void CPROC SliderUpdatedY( PTRSZVAL psv, PCONTROL pc, int val )
 {
-//	printf( "Value: %d\n", val );
+//	printf( WIDE("Value: %d\n"), val );
 	BOARD_Y = val;
    SmudgeCommon( pcBoard );
 }
 
 #include <psi.h>
-CONTROL_REGISTRATION MimicBoard = { "Chain Reaction Board Sizer"
+CONTROL_REGISTRATION MimicBoard = { WIDE("Chain Reaction Board Sizer")
 											 , { { 150, 150 }, 0, BORDER_INVERT|BORDER_THIN }
 											 , NULL
 											 , NULL
@@ -260,15 +260,15 @@ void ConfigureBoard( int *animate )
 {
 	PCOMMON pFrame;
 	PCONTROL pc;
-	pFrame = CreateFrame( "Config Board", 0, 0, 275, 275, BORDER_NORMAL, (PCOMMON)0 );
+	pFrame = CreateFrame( WIDE("Config Board"), 0, 0, 275, 275, BORDER_NORMAL, (PCOMMON)0 );
 	MoveFrame( pFrame, 50, 50 );
 	pcBoard = MakeControl( pFrame, MimicBoard.TypeID, 23, 23, 150, 150, TXT_STATIC );
 	pc = MakeSlider( pFrame, 20, 5, 153, 15, SLD_BOARD_X, SLIDER_HORIZ, SliderUpdatedX, 0 );
 	SetSliderValues( pc, 3, BOARD_X, MAX_BOARD_X );
 	pc = MakeSlider( pFrame, 5, 20, 15, 153, SLD_BOARD_Y, SLIDER_VERT, SliderUpdatedY, 0 );
 	SetSliderValues( pc, 4, BOARD_Y, MAX_BOARD_Y );
-	MakeButton( pFrame, 14, 200, 82, 20, BTN_PLAY, "Done", 0, PlayGameButton, (PTRSZVAL)&done );
-	SetCheckState( MakeCheckButton( pFrame, 131, 200, 80, 14, CHK_ANIMATE, "Animate", 0, NULL, 0 ), 1 );
+	MakeButton( pFrame, 14, 200, 82, 20, BTN_PLAY, WIDE("Done"), 0, PlayGameButton, (PTRSZVAL)&done );
+	SetCheckState( MakeCheckButton( pFrame, 131, 200, 80, 14, CHK_ANIMATE, WIDE("Animate"), 0, NULL, 0 ), 1 );
 	//SetControlDraw( pcBoard, DrawMimicBoard, 0 );
 	//DrawMimicBoard( pcBoard );
 

@@ -8,7 +8,7 @@
 
 
 typedef struct archtype_tag {
-	char *colorname;
+	TEXTCHAR *colorname;
 	CDATA color;
 	// maybe info like - shape info...
 	struct {
@@ -22,7 +22,7 @@ typedef struct player_tag {
 		_32 GoingLeft : 1; // else going right.
 		_32 bRemote : 1; // player is under remote control
 	} flags;
-	char name[32];
+	TEXTCHAR name[32];
 	INDEX id;
 	PARCHTYPE archtype;
 	_32 Cash;
