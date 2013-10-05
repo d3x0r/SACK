@@ -694,7 +694,7 @@ void FillGroupList( PSI_CONTROL listbox )
 
 //--------------------------------------------------------------------------------
 // 
-OnShowControl( "SQL Users/Permission Group Selection Control List" )( PTRSZVAL psv )
+OnShowControl( WIDE("SQL Users/Permission Group Selection Control List") )( PTRSZVAL psv )
 {
 	INDEX idx;
 	PSI_CONTROL listbox;
@@ -1213,7 +1213,7 @@ OnCreateMenuButton( WIDE( "SQL Users/Cancel Generic" ) )( PMENU_BUTTON button )
 	return (PTRSZVAL)button;
 }
 
-OnKeyPressEvent( "SQL Users/Cancel Generic" )( PTRSZVAL psv )
+OnKeyPressEvent( WIDE("SQL Users/Cancel Generic") )( PTRSZVAL psv )
 {	
 	l.done = TRUE;
 }

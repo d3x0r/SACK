@@ -102,19 +102,13 @@ ${LAST_GCC_PROGRAM_SOURCE}
 )
 
 
-sack_add_executable(${project} WIN32 ${BASE_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${project} )
+add_portable_executable(${project} WIN32 ${BASE_SOURCES} )
 build_resource( portable.reboot.rc ../reboot.rc )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;TARGETNAME=\"${project}${CMAKE_EXECUTABLE_SUFFIX}\"" )
-
 SET_TARGET_PROPERTIES(${project} PROPERTIES
-   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}" 
                   FOLDER utils
 )
-if( WIN32 )
-#ws2_32 wsock32 
-target_link_libraries( ${project} ws2_32 wsock32 winmm)
-endif( WIN32 )
+
 install_default_dest( ${project} )
 
 

@@ -1070,7 +1070,7 @@ void BRAINBOARD::LoadPeices( TEXTCHAR *file )
 	if( !ProcessConfigurationFile( pch, file, (PTRSZVAL)this ) )
 	{
 		TEXTCHAR otherfile[256];
-		snprintf( otherfile, 256, "%%resources%%/%s", file );
+		snprintf( otherfile, 256, WIDE("%%resources%%/%s"), file );
 		ProcessConfigurationFile( pch, otherfile, (PTRSZVAL)this );
 	}
 	DestroyConfigurationHandler( pch );

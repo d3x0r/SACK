@@ -21,7 +21,7 @@ void PopulateBulletGround( struct BulletInfo *_bullet )
                 groundRigidBodyCI(0,groundMotionState,groundShape,btVector3(0,0,0));
 	  //groundRigidBodyCI.m_restitution
         _bullet->groundRigidBody = new btRigidBody(groundRigidBodyCI);
-		lprintf( "old was %g", _bullet->groundRigidBody->getRestitution()  );
+		lprintf( WIDE("old was %g"), _bullet->groundRigidBody->getRestitution()  );
 		_bullet->groundRigidBody->setRestitution( 1.0f );
 		_bullet->groundRigidBody->setFriction( 10.0f );
 
@@ -41,7 +41,7 @@ void CreateBody( void )
 	body_part *body = new body_part();
 
 	body->shape = new btBoxShape( btVector3( 3, 1, 7 ) );
-	body->name = "Left Foot";
+	body->name = WIDE("Left Foot");
 
 		btDefaultMotionState* fallMotionState =
                 new btDefaultMotionState(btTransform(btQuaternion(0,0,0,1),btVector3(0,1.1,0)));
@@ -62,7 +62,7 @@ void CreateBody( void )
 	prior_left =
 		prior = body;
 	body = new body_part();
-	body->name = "Left Ankle";
+	body->name = WIDE("Left Ankle");
 	
 	body->shape = new btBoxShape( btVector3( 3, 1, 3 ) );
 
@@ -94,7 +94,7 @@ void CreateBody( void )
 	prior_left =
 		prior = body;
 	body = new body_part();
-	body->name = "Left Calf";
+	body->name = WIDE("Left Calf");
 	
 	body->shape = new btBoxShape( btVector3( 3, 12, 3 ) );
 
@@ -124,7 +124,7 @@ void CreateBody( void )
 	prior_left =
 		prior = body;
 	body = new body_part();
-	body->name = "Left Thigh";
+	body->name = WIDE("Left Thigh");
 	
 	body->shape = new btBoxShape( btVector3( 3, 15, 3 ) );
 
@@ -158,7 +158,7 @@ void CreateBody( void )
 	prior_right =
 		prior =
 		body = new body_part();
-	body->name = "Right Foot";
+	body->name = WIDE("Right Foot");
 
 	body->shape = new btBoxShape( btVector3( 3, 1, 7 ) );
 
@@ -179,7 +179,7 @@ void CreateBody( void )
 	prior_right =
 		prior = body;
 	body = new body_part();
-	body->name = "Right Ankle";
+	body->name = WIDE("Right Ankle");
 	
 	body->shape = new btBoxShape( btVector3( 2, 0.5, 2 ) );
 
@@ -210,7 +210,7 @@ void CreateBody( void )
 	prior_right =
 		prior = body;
 	body = new body_part();
-	body->name = "Right Calf";
+	body->name = WIDE("Right Calf");
 	
 	body->shape = new btBoxShape( btVector3( 3, 12, 3 ) );
 
@@ -241,7 +241,7 @@ void CreateBody( void )
 	prior_right =
 		prior = body;
 	body = new body_part();
-	body->name = "Right Thigh";
+	body->name = WIDE("Right Thigh");
 	
 	body->shape = new btBoxShape( btVector3( 3, 15, 3 ) );
 
@@ -274,7 +274,7 @@ void CreateBody( void )
 
 	prior = body;
 	body = new body_part();
-	body->name = "Hips";
+	body->name = WIDE("Hips");
 	
 	body->shape = new btBoxShape( btVector3( 6, 2, 3 ) );
 
@@ -310,7 +310,7 @@ void CreateBody( void )
 
 	prior = body;
 	body = new body_part();
-	body->name = "abdomen";
+	body->name = WIDE("abdomen");
 	
 	body->shape = new btBoxShape( btVector3( 5, 4, 2.5 ) );
 
@@ -338,7 +338,7 @@ void CreateBody( void )
 
 	prior = body;
 	body = new body_part();
-	body->name = "Chest Tilt";
+	body->name = WIDE("Chest Tilt");
 	
 	body->shape = new btBoxShape( btVector3( 5, 3, 5 ) );
 
@@ -369,7 +369,7 @@ void CreateBody( void )
 
 	prior = body;
 	body = new body_part();
-	body->name = "Chest";
+	body->name = WIDE("Chest");
 	
 	body->shape = new btBoxShape( btVector3( 9, 8, 4.5 ) );
 
@@ -400,7 +400,7 @@ void CreateBody( void )
 	prior = body;
 
 	body = new body_part();
-	body->name = "Left Arm";
+	body->name = WIDE("Left Arm");
 	
 	body->shape = new btBoxShape( btVector3( 2, 11, 2 ) );
 
@@ -426,7 +426,7 @@ void CreateBody( void )
 	prior_left = body;
 
 	body = new body_part();
-	body->name = "Left Lower Arm";
+	body->name = WIDE("Left Lower Arm");
 	
 	body->shape = new btBoxShape( btVector3( 2, 11, 2 ) );
 
@@ -456,7 +456,7 @@ void CreateBody( void )
 
 
 	body = new body_part();
-	body->name = "Right Arm";
+	body->name = WIDE("Right Arm");
 	
 	body->shape = new btBoxShape( btVector3( 2, 11, 2 ) );
 
@@ -483,7 +483,7 @@ void CreateBody( void )
 	prior_right = body;
 
 	body = new body_part();
-	body->name = "Right Lower Arm";
+	body->name = WIDE("Right Lower Arm");
 	
 	body->shape = new btBoxShape( btVector3( 2, 11, 2 ) );
 

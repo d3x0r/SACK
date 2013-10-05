@@ -1432,7 +1432,7 @@ void ParseImage( Image image, int rows, int cols )
 		{
 			l.numbers.coords[r][c][0] = (( -(c/divisions) + ((HEX_SIZE-(c%divisions)) + (divisions*(c/divisions)) ))/((double)cols*(HEX_SIZE)));
 			if( 0 )
-			lprintf( "%d %d %d", c%divisions
+			lprintf( WIDE("%d %d %d"), c%divisions
 				,  (HEX_SIZE-(c%divisions))
 				, ((divisions*(c/divisions)) )
 				);
@@ -1456,7 +1456,7 @@ static void CPROC UpdateSliderVal( PTRSZVAL psv, PSI_CONTROL pc, int val )
 
 static void CPROC SaveColors( PTRSZVAL psv, PSI_CONTROL pc )
 {
-	FILE *file = sack_fopen( 0, "values.dat", "wb" );
+	FILE *file = sack_fopen( 0, WIDE("values.dat"), WIDE("wb") );
 	if( file )
 	{
       fwrite( l.values, sizeof( l.values ), 1, file );
@@ -1466,7 +1466,7 @@ static void CPROC SaveColors( PTRSZVAL psv, PSI_CONTROL pc )
 
 static void CPROC LoadColors( PTRSZVAL psv, PSI_CONTROL pc )
 {
-	FILE *file = sack_fopen( 0, "values.dat", "rb" );
+	FILE *file = sack_fopen( 0, WIDE("values.dat"), WIDE("rb") );
 	if( file )
 	{
       fread( l.values, sizeof( l.values ), 1, file );
@@ -1484,17 +1484,17 @@ static void CPROC LoadColors( PTRSZVAL psv, PSI_CONTROL pc )
 static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
    int n;
-	l.frame = CreateFrame( "Light Slider Controls", 0, 0, 1024, 768, 0, NULL );
+	l.frame = CreateFrame( WIDE("Light Slider Controls"), 0, 0, 1024, 768, 0, NULL );
 	for( n = 0; n < 40; n++ )
 	{
       PSI_CONTROL pc;
 		l.sliders[n] = MakeSlider( l.frame, 5 + 25*n, 5, 20, 420, 1, 0, UpdateSliderVal, n );
 		SetSliderValues( l.sliders[n], 0, 128, 256 );
-      pc = MakeButton( l.frame, 5, 430, 45, 15, 0, "Save", 0, SaveColors, 0 );
-      pc = MakeButton( l.frame, 55, 430, 45, 15, 0, "Load", 0, LoadColors, 0 );
+      pc = MakeButton( l.frame, 5, 430, 45, 15, 0, WIDE("Save"), 0, SaveColors, 0 );
+      pc = MakeButton( l.frame, 55, 430, 45, 15, 0, WIDE("Load"), 0, LoadColors, 0 );
 	}
    DisplayFrame( l.frame );
-	l.numbers.image = LoadImageFile( "NewBallTextGrid.png" );
+	l.numbers.image = LoadImageFile( WIDE("NewBallTextGrid.png") );
 	ParseImage( l.numbers.image, 10, 10 );
 	{
 		PTRANSFORM transform = CreateNamedTransform( WIDE("render.camera") );

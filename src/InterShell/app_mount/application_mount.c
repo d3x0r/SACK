@@ -561,7 +561,7 @@ static void OnRevealCommon( WIDE("Application Mount") )( PSI_CONTROL pc )
 	}
 }
 
-static void OnCloneControl( "Application Mount" )( PTRSZVAL copy,PTRSZVAL original)
+static void OnCloneControl( WIDE("Application Mount") )( PTRSZVAL copy,PTRSZVAL original)
 {
 	PSI_CONTROL pc_copy = (PSI_CONTROL)copy;
 	PSI_CONTROL pc_original = (PSI_CONTROL)original;
