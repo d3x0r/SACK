@@ -1,7 +1,6 @@
 
-cmake_minimum_required(VERSION 2.8)
 
-project( rebootnow )
+set( project rebootnow )
 
 
 macro( build_resource rcfile ) 
@@ -15,8 +14,8 @@ if( WATCOM )
  )
     ADD_CUSTOM_TARGET( generate_foo${rcfile} DEPENDS ${PROJECT_BINARY_DIR}/${rcfile_out})
   endif( NOT TARGET generate_foo${rcfile} )
-  ADD_DEPENDENCIES( ${PROJECT_NAME} generate_foo${rcfile} )
-  SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES LINK_FLAGS "option resource=${rcfile_out}")
+  ADD_DEPENDENCIES( ${project} generate_foo${rcfile} )
+  SET_TARGET_PROPERTIES(${project} PROPERTIES LINK_FLAGS "option resource=${rcfile_out}")
 else( WATCOM )
 endif( WATCOM )
 endmacro( build_resource ) 
@@ -27,16 +26,14 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-sack_add_executable(${PROJECT_NAME} ${BASE_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
-COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} -DDEDICATE_REBOOT"
-                  FOLDER utils
-)
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-install_default_dest( ${PROJECT_NAME} )
+sack_add_executable(${project} ${BASE_SOURCES} )
+SET_PROPERTY( TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "DEDICATE_REBOOT" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES         FOLDER utils  )
 
-project( reboot.monitor )
+target_link_libraries( ${project} ${SACK_LIBRARIES} )
+install_default_dest( ${project} )
+
+set( project reboot.monitor )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
@@ -44,13 +41,13 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
+add_program(${project} WIN32 ${BASE_SOURCES} )
 if( NOT __CLR__ )
   set( BASE_SOURCES ${BASE_SOURCES}     reboot.rc )
   build_resource( reboot.rc )
 endif( NOT __CLR__ )
 
-add_program(${PROJECT_NAME} WIN32 ${BASE_SOURCES} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER utils
 )
 

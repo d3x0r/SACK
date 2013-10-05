@@ -17,6 +17,13 @@ else( WIN32 )
    endif( __LINUX64__ )
 endif( WIN32 )
 
+if( __ANDROID__ )
+else( __ANDROID__ )
+    set( DEFAULT_WORKING_DIRECTORY ${BINARY_OUTPUT_DIR} )
+endif( __ANDROID__ )
+
+
+
 SET( HEADER_INSTALL_PREFIX include )
 SET( DATA_INSTALL_PREFIX resources )
 

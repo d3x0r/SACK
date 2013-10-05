@@ -13,5 +13,6 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 )
 
 message( "project ${project} needs better install path" )
-install( FILES *.png DESTINATION ${BINARY_OUTPUT_DIR} )
-
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+    DESTINATION "${DEFAULT_WORKING_DIRECTORY}"
+    FILES_MATCHING PATTERN "*.png" )
