@@ -1,3 +1,5 @@
+#define NO_FILEOP_ALIAS
+#define NO_UNICODE_C
 #include <stdhdrs.h>
 #include <configscript.h>
 #define DEFINE_DEFAULT_IMAGE_INTERFACE
@@ -171,12 +173,12 @@ void ParseURI( CTEXTSTR string )
 			continue;  // skip ahead  and try new state;
 			break;
 		case GET_COMMAND:
-			if( TextLike( words, "GET" ) )
+			if( TextLike( words, WIDE("GET") ) )
 			{
 				state = GET_FILENAME;
 				//flags.bGet = TRUE;
 			}
-			else if( TextLike( words, "POST" ) )
+			else if( TextLike( words, WIDE("POST") ) )
 			{
 				state = GET_FILENAME;
 				//flags.bPost = TRUE;
@@ -187,14 +189,14 @@ void ParseURI( CTEXTSTR string )
 			}
 			break;
 		case GET_FILENAME:
-			if( !filename && TextIs( words, "/" ) )
+			if( !filename && TextIs( words, WIDE("/") ) )
 			{
 				// this is rude, and should never be done,
 				// however this filter consumes all data anyhow, SO
 				// mangling this will not hurt much...
 				words->format.position.offset.spaces = 0;
 			}
-			if( TextIs( words, "?" ) || words->format.position.offset.spaces )
+			if( TextIs( words, WIDE("?") ) || words->format.position.offset.spaces )
 			{
 				if( !words->format.position.offset.spaces )
 					state = GET_CGI;
@@ -221,19 +223,19 @@ void ParseURI( CTEXTSTR string )
 			}
 			else
 			{
-				if( TextIs( words, "=" ) )
+				if( TextIs( words, WIDE("=") ) )
 				{
 					HTTPCollapse( &varname );
 					flags.bValue = 1;
 				}
-				else if( TextIs( words, "&" ) )
+				else if( TextIs( words, WIDE("&") ) )
 				{
 				AddCGIVariable:
 					HTTPCollapse( &varvalue );
 					HTTPCollapse( &varname );
-					if( TextLike( varname, "content-length" ) )
+					if( TextLike( varname, WIDE("content-length") ) )
 					{
-						content_length= atoi( GetText( varvalue ) );
+						content_length= IntCreateFromText( GetText( varvalue ) );
 					}
 					{
 						struct VAR *v = New( struct VAR );
@@ -265,7 +267,7 @@ void ParseURI( CTEXTSTR string )
 			}
 			break;
 		case GET_HTTP_VERSION:
-			if( TextIs( words, "HTTP" ) )
+			if( TextIs( words, WIDE("HTTP") ) )
 					{
 						// okay - don't really do anything... next word is the version...
 					}
@@ -285,7 +287,7 @@ void ParseURI( CTEXTSTR string )
 					break;
 				case GET_HTTP_METAVAR:
 					{
-						if( !flags.bValue && TextIs( words, ":" ) )
+						if( !flags.bValue && TextIs( words, WIDE(":") ) )
 						{
                      flags.bValue = TRUE;
 						}
@@ -351,7 +353,7 @@ void DumpValue( void )
 	struct VAR *v;
 	LIST_FORALL( l.vars, idx, struct VAR*, v )
 	{
-      lprintf( "%s=%s", GetText( v->varname ), GetText( v->varvalue ) );
+      lprintf( WIDE("%s=%s"), GetText( v->varname ), GetText( v->varvalue ) );
 	}
 }
 CTEXTSTR GetValue( CTEXTSTR name )
@@ -435,17 +437,17 @@ int main( void )
 			if( image )
 			{
 				Image out = MakeImageFile( width, height );
-            lprintf("%s %s %s", GetText( red ), GetText( green) , GetText( blue ) );
+            lprintf(WIDE("%s %s %s"), GetText( red ), GetText( green) , GetText( blue ) );
 				if( !GetColorVar( &red, &cred ) )
-               lprintf( "FAIL RED" );
+               lprintf( WIDE("FAIL RED") );
 				if( !GetColorVar( &blue, &cblue ) )
-					lprintf( "FAIL BLUE" );
+					lprintf( WIDE("FAIL BLUE") );
 
 				if( !GetColorVar( &green, &cgreen ) )
-					lprintf( "FAIL gREEN" );
+					lprintf( WIDE("FAIL gREEN") );
 
 				ClearImage( out );
-				lprintf( "uhmm... %08x %08x %08x", cred, cgreen, cblue );
+				lprintf( WIDE("uhmm... %08x %08x %08x"), cred, cgreen, cblue );
 				BlotImageSizedEx( out, image, 0, 0, x, y, width, height, ALPHA_TRANSPARENT, BLOT_MULTISHADE, cred, cgreen, cblue );
 
 				//BlotImageMultiShaded( out, image, 0, 0, cred, cgreen, cblue );
@@ -475,10 +477,5 @@ int main( void )
          printf( "Bad arguments." );
 		}
 	}
-
-
-
-
-
 	return 0;
 }
