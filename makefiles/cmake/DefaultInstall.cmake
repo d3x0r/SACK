@@ -137,6 +137,8 @@ macro( add_library_force_source project optional_style )
 
   endif( optional_style STREQUAL SHARED )
   add_library( ${project} ${optional_style} ${ARGN} )
+  string( REPLACE "." "_" TARGET_LABEL ${project} )
+  SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS TARGET_LABEL=${TARGET_LABEL}" )
 endmacro( add_library_force_source )
 
 
