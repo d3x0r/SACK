@@ -1,0 +1,38 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<p><a href="script.html">Back to scripts...</a>
+<p>More information about macros: <a href="macros.html">Macros</a>
+<p>Some very important things to remember!  Once a macro is defined it cannot
+be re-created without first destroying it.  If you attempt to create a macro
+with a name that is already a macro in a script, all the commands following the 
+command '/macro duplicate_name' will be executed and not recorded as a macro.
+It is advised that you first issue a /destroy command before defining a macro.
+<menu>
+/destroy newmac<br>
+/macro newmac<br>
+/echo Hello, World.<br>
+/endmac<br>
+</menu>
+Macros may be defined to have parameters...
+<MENU>
+/macro test name password
+</MENU>
+The previous command will start recording a macro named test with parameters
+name and password.  If creating a macro at a command prompt, the macro name
+will show in parentheses after your current object and current location.
+Parameters are referenced within a macro by preceeding 
+their name with a '%'.  In this case %name would be the first parameter, and
+%password the second.  Also parameters may be referenced by position %0 being
+the first, %1, %2, etc. being susequent parameters.  Any line entered after
+the /macro statement will be added to the macro.  
+<menu>
+/endmacro
+</menu>
+The previous command stops recording the macro.  The command processor in
+Nexus will accept partial match of commands.  Any macros which have been defined
+must be executed with their entire name.
+<p>Several commands in Nexus are only available within a macro: Label, Goto, if, 
+else, Endif, and return.
+</BODY>
+</HTML>

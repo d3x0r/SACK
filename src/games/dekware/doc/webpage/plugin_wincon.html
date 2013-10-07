@@ -1,0 +1,66 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<FONT size=+3><center></center></font><br>
+<a href="plugins.html" OnMouseOver="window.status='Other plugins';return true" OnMouseOut="window.status=''">Return to Plugins</A><br>
+<center><u>Devices</u></center>
+<menu>
+   window
+   <menu>
+      No additional parameters are required to invoke a window console parser.
+      Window consoles have a history buffer.  History is accessable by using
+      PageUp, PageDn, and shift-up/down arrows.  The default font is settable
+      on the main window, and each individual window may change its font.
+      Font selection for console windows is accessed by right clicking on them.
+      The menu heading of New Object creates an object of the name specified,
+      wakes it up, and supplies a command console for it.
+   </menu>
+   example: /command window<br>
+   example: /parse window<br> 
+   
+</menu>
+<center><u>Using the Windows Console Interface</u></center>
+<menu>
+   Page Up recalls data saved into the history buffer. Page Down goes down
+   a page of history data.  Shift up and down arrow move the history display
+   one line.  The END key will go to the end of the history buffer.  
+   <p>Right clicking on the object's interface window brings up a popup menu.
+   Here you can set the current font, set the current foreground/background
+   color, and set the amount of the display to show the history buffer in.
+   By default the window uses 50% of the lines to show history in, so any 
+   incoming data is still shown in the bottom portion of the window, while
+   the history can be browsed in the top portion of the window.
+   <p>Any change in the font of a window is saved for any window create for
+   an object of the same name, the same font is used.
+   <p>The Default font - on the main
+   menu of the interface, there are options, one of the options is to set
+   the default font for any new window created.
+
+   <p>The same command history keys work, up arrow recalls the previous commands...
+   (see console plugin for more information)
+</menu>
+<center><u>Additional Methods</u></center>
+<menu>
+   SETCOLOR [foreground] [background]
+   <menu>
+      Sets the default and current color of the display to the foreground
+      and background specified.  If the background color is omitted, the
+      current background is used, and only the foreground color changes.
+      Possible colors: black, blue, green, cyan, red, brown, magenta, grey,
+      darkgrey, lightblue, lightgreen, lightcyan, lightred, lightmagenta,
+      yellow, white.
+   </menu><br>           
+   HISTORY
+   <menu>
+      Shows the current number of lines stored in the history buffer.
+   </menu><br>
+   KEYBIND
+   <menu>
+      See <a href="plugin_console.html">console plugin</a> for more information.
+   </menu><br>
+   KEYUNBIND
+   <menu>
+      See <a href="plugin_console.html">console plugin</a> for more information.
+   </menu><br>
+</BODY>
+</HTML>

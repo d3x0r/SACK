@@ -1,0 +1,1 @@
+gcc -DGCC -D__UNIX__ -o timertest -g -I../../../include -D__STATIC__ timertest.c -L../../../lib/debug -ltimerss -lshmems -lsyslogs -lpthread

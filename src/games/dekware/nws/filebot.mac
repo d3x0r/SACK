@@ -1,0 +1,27 @@
+/mac next
+	/decl file
+	/label again
+	/getline %file
+	/if fail
+   	/echo no more files to process....
+		/endparse
+	/else
+      /compare %file eol
+      /if success
+          /goto again
+      /endif
+
+      /compare %file is %filelist
+      /if success
+       	/goto again
+		/endif
+
+		/reply /pfile %file
+	/endif
+/endmac
+
+/mac dodir
+	/parse file %filelist
+   /reply /tell %me /next
+/endmac
+

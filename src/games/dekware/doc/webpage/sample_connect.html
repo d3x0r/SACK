@@ -1,0 +1,81 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<center><font size=+1>Sample Script to Connect to Network Address</font></center>
+<a href="script.html">Return to Script Contents</a>
+<hr>
+<p>This script is usually a file called 'connect'.&nbsp; The first thing one
+must do, is destroy any prior reference to the macro.&nbsp; If the macro 
+already does exist, subsequent commands will be added to it, but will probably
+never be executed.
+<menu>
+/dest connect<br>
+#create macro with one parameter named 'where'<br>
+/mac connect where
+<menu>
+	#Open the data channel to a TCP device <br>
+   #using the parameter 'where' passed to the macro.<br>
+	/parse tcp %where<br>
+   #If the connection is established,<br>
+   #the command succeeds...<br>
+	/if success
+   <menu>
+   	#turn on formatted input (line mode parse)<br>
+   	/format on<br>
+      #declare a blank variable called 'line'<br>
+		/decl line<br>
+      #mark this as a potential place to /GOTO<br>
+  		/label top
+      <menu>
+         #get a line from the data channel<br>
+	   	/getline %line<br>
+         #if there was a line, this<br>
+         #command succeeds<br>
+   		/if success
+         <menu>
+         	#this macro ignores blank lines.<br>
+            /compare %line blank<br>
+            #if it FAILS being blank...<br>
+            /if fail
+            <menu>
+            	#use formatted echo to show<br>
+               #the line input.<br>
+            	/fecho %line<br>
+               #make line BLANK<br>
+               /decl line
+            </menu>
+            /endif
+         </menu>
+         /else
+         <menu>
+            #there as no data available to <br>
+            #get from the data channel.<br>
+            #test to see if the device <br>
+            #is still connected.<br>
+				/compare connected<br>
+				/if fail
+            <menu>
+            	#Device was disconnected.<br>
+					/echo Connection closed.<br>
+					/goto done
+            </menu>
+	         /endif
+         </menu>
+         /endif
+      </menu>
+      #jump up to the beginning<br>
+      #constant loop while connected.<br>
+		/goto top
+   </menu>
+	/endif<br>
+	/label done<br>
+   #close the data channel<br>
+   /endparse<br>
+</menu>
+/endmac
+</menu>
+
+<a href="script.html">Return to Script Contents</a>
+
+</BODY>
+</HTML>

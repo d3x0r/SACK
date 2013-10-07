@@ -1,0 +1,197 @@
+<HTML><HEAD><TITLE>System Message and Logging Library</TITLE></HEAD>
+
+<BODY>
+<CENTER><FONT size=+2>SYSLOG</FONT></CENTER><br>
+<hr>
+<menu>Used for a common point to control program logging.  On the fly, the 
+target for any logging messages may be changed.  Options also include time
+stamp on all messages either in delta or absolute format.  Resolution of times
+can be from CPU ticks to seconds.  Debug mode code generates messages which include
+__FILE__(__LINE__): prefixes by default.
+<p>By default logging is only generated when using a debug target (debug, static_debug).
+When building a release target, unless otherwise specified, all logging will be omitted.
+You can define DO_LOGGING before including logging.h which will force logging to be done
+regardless of the mode.  Also, NO_LOGGING may be defined which will force logging to not
+be done regardless of the mode.
+<pre>
+// example to force logging
+#define DO_LOGGING
+#include &lt;logging.h&gt;
+</pre>
+
+<pre>
+// example to disable logging
+#define NO_LOGGING
+#include &lt;logging.h&gt;
+</pre>
+
+<pre>
+// example to use logging in default mode
+#include &lt;logging.h&gt;
+</pre>
+
+</menu>
+
+<h2>Include</h2>
+#include &lt;logging.h&gt;<br>
+<h2>Library</h2>
+syslog
+<h2>Required Libraries</h2>
+(none)
+<h2>Project Location</h2>
+src/sysloglib
+<h2>Defines</h2>
+these symbols are actually defined in <a href="containers.html">&lt;types.h&gt;</a> which is bound to conflict
+at some point, and will have to be renamed.
+In debug mode - the following symbols are defined as...<br><br>
+<table border=1>
+<tr><td>Symbol</td><td>Equates to</td><td>Used when...</td></tr>
+<tr><td>DBG_SRC</td><td>, __FILE__, __LINE__</td><td>passing 'here' to a routine expecting DBG_PASS (after 1 or more paramters)</td></tr>
+<tr><td>DBG_LEADSRC</td><td>__FILE__, __LINE__, </td><td>passing 'here' to a routine expecting DBG_LEADPASS (before 1 or more paramters)</td></tr>
+<tr><td>DBG_VOIDSRC</td><td>__FILE__, __LINE__</td><td>passing 'here' to a routine expecting DBG_VOIDPASS when otherwise the function has no (void) paramters.</td></tr>
+<tr><td>DBG_PASS</td><td>, CTEXTSTR pFile, _32 nLine</td><td>Defining that a routine accepts a 'here' from the caller after 1 or more paramters.</td></tr>
+<tr><td>DBG_LEADPASS</td><td>CTEXTSTR pFile, _32 nLine, </td><td>Defining that a routine accepts a 'here' from the caller before 1 or more paramters.</td></tr>
+<tr><td>DBG_VOIDPASS</td><td>CTEXTSTR pFile, _32 nLine</td><td>Defining that a routine accepts a 'here' from the caller when otherwise no (void) paramters are used.</td></tr>
+<tr><td>DBG_RELAY</td><td>, pFile, nLine</td><td>Used to foward information passed in to a DBG_PASS to a routine expecting DBG_PASS (after 1 or more parameters)</td></tr>
+<tr><td>DBG_LEADRELAY</td><td>pFile, nLine, </td><td>Used to foward information passed in to a DBG_LEADPASS to a routine expecting DBG_LEADPASS (before 1 or more parameters)</td></tr>
+<tr><td>DBG_VOIDRELAY</td><td>pFile, nLine</td><td>Used to foward information passed in to a DBG_VOIDPASS to a routine expecting DBG_VOIDPASS to a function otherwise expecing no (void) paramters.</td></tr>
+<tr><td>DBG_FILELINEFMT</td><td>"%s(%ld): "</td><td>Used to define optional paramter to a printf type format routine.</td></tr>
+</table>
+<br>In release mode - the following symbols are defined as...<br><br>
+<table border=1>
+<tr><td>Symbol</td><td>Equates to</td><td>Used when...</td></tr>
+<tr><td>DBG_SRC</td><td>[nothing]</td><td>passing 'here' to a routine expecting DBG_PASS (after 1 or more paramters)</td></tr>
+<tr><td>DBG_LEADSRC</td><td>[nothing]</td><td>passing 'here' to a routine expecting DBG_LEADPASS (before 1 or more paramters)</td></tr>
+<tr><td>DBG_VOIDSRC</td><td>[nothing]</td><td>passing 'here' to a routine expecting DBG_VOIDPASS when otherwise the function has no (void) paramters.</td></tr>
+<tr><td>DBG_PASS</td><td>[nothing]</td><td>Defining that a routine accepts a 'here' from the caller after 1 or more paramters.</td></tr>
+<tr><td>DBG_LEADPASS</td><td>[nothing]</td><td>Defining that a routine accepts a 'here' from the caller before 1 or more paramters.</td></tr>
+<tr><td>DBG_VOIDPASS</td><td>void</td><td>Defining that a routine accepts a 'here' from the caller when otherwise no (void) paramters are used.</td></tr>
+<tr><td>DBG_RELAY</td><td>[nothing]</td><td>Used to foward information passed in to a DBG_PASS to a routine expecting DBG_PASS (after 1 or more parameters)</td></tr>
+<tr><td>DBG_LEADRELAY</td><td>[nothing]</td><td>Used to foward information passed in to a DBG_LEADPASS to a routine expecting DBG_LEADPASS (before 1 or more parameters)</td></tr>
+<tr><td>DBG_VOIDRELAY</td><td>[nothing]</td><td>Used to foward information passed in to a DBG_VOIDPASS to a routine expecting DBG_VOIDPASS to a function otherwise expecing no (void) paramters.</td></tr>
+<tr><td>DBG_FILELINEFMT</td><td>[nothing]</td><td>Used to define optional paramter to a printf type format routine.</td></tr>
+</table>
+Some things to note - when using these, leading and trailing commas are NOT written in the code 
+which uses the define, this allows the comma to come and go depending on the mode
+compiled... It is preferred to use the trailing functions and NOT the LEAD functions.  Assuming (and 
+apparently this has become a BIG assumption) that a standard C stack frame is used, this allows 
+debug mode code to use release mode libraries.  A standard C stack assumes that the last parameters are
+passed onto the stack first.  Therefore, if the release libraries are not expecting to have the extra
+parameters whether they are present because of the debug mode program or not does not matter.  However,
+If the paramters are placed first, then there is NO interoperability between release and debug code.
+<br><br>
+Some examples of usage...<br><br>
+<pre>
+void function( DBG_VOIDPASS )
+{
+   printf( DBG_FILELINEFMT "This line marked %d times" DBG_PASS, i );
+   printf( DBG_FILELINEFMT "called this..." DBG_RELAY );
+}
+void another( int a, int b DBG_PASS )
+{
+   function( DBG_VOIDRELAY );
+}
+void prefixed( DBG_LEADPASS int a, int b )
+{
+   another( a, b DBG_PASS );
+   another( a, b DBG_SRC );
+}
+
+//becomes in debug mode...
+void function( CTEXTSTR pFile, _32 nLine )
+{
+   printf( "%s(%ld): This line marked %d times", __FILE__, __LINE__, i );
+   printf( "%s(%ld): called this...", pFile, nLine );
+}
+void another( int a, int b , CTEXTSTR pFile, _32 nLine )
+{
+   function( pFile, nLine );
+}
+void prefixed( CTEXTSTR pFile, _32 nLine, int a, int b )
+{
+   another( a, b, pFile, nLine );
+   another( a, b, __FILE__, __LINE__ );
+}
+
+//becomes in release mode...
+void function( void )
+{
+   printf( "This line marked %d times", i );
+   printf( "called this..." );
+}
+void another( int a, int b )
+{
+   function( );
+}
+void prefixed( int a, int b )
+{
+   another( a, b );
+   another( a, b );
+}
+</pre>
+
+
+<h2>Routines</h2>
+
+<menu>
+<h3>void SetSystemLog( int type, ... )</h3>
+<menu>
+	Set the current target of logging.  The library itself, if unspecified defaults to 
+        SYSLOG_NONE in all modes.  The 'type' parameter is one of the following values.
+        <menu>
+        <table>
+        <tr valign=top>
+        <td>SYSLOG_NONE</td><td>Disables any logging output anywhere.</td>
+        </tr><tr valign=top>
+        <td>SYSLOG_FILE</td><td>Optional parameter is a FILE* indicating a previously opened file.  
+        stdout, stderr are good examples of this.</td>
+        </tr><tr valign=top>
+        <td>SYSLOG_FILENAME</td><td>Optional paramter is a char* which is the name of a file 
+        to open using fopen("wt").</td>
+        </tr><tr valign=top>
+        <td>SYSLOG_UDP</td><td>Logging is generated to localhost:514.</td>
+        </tr><tr valign=top>
+        <td>SYSLOG_UDPBROADCAST</td><td>Logging is generated to 255.255.255.255:514</td>
+        </tr>
+        </table>
+        </menu>
+</menu></menu>
+
+<menu>
+<h3>void lprintf(format,...)</h3>
+<menu>
+This generates a logging message using vsnprintf internally.  The buffer it writes into 
+dynamically expands to meet any space requirement.  Standard printf type formatting applies.
+A final newline is NOT required or desired, after every message a newline is forced.  Since
+every message automatically gets a newline, the log would be double spaced if you put a new
+in the format.  GCC supports this all by itself.  Other compilers use PPC (Panther's Preproccesor for C)
+to preprocess .c files into .i files, which are then passed to the compiler.
+</menu></menu>
+<menu>
+<h3>void Log(char *string)<br>
+void Log1(char *format,param1)<br>
+....<br>
+void Log10(format,param1, ..., param10)<br>
+</h3>
+<menu>
+Before __VA_ARGS__ was well supported logging had to have an exact count of paramters.  
+These macros still exist, any LogX value between 1 and 10 may be used, in which case the
+first paramter is a format string.  Log() alone passes the string as a literal, and no
+format operations are done on it.  This method may still be used for supporting systems
+which cannot run PPC or are not using GCC.
+</menu></menu>
+
+<menu>
+<h3>void SystemLog( char* )<br>
+void SystemLogEx( char* DBG_PASS )</h3>
+<menu>
+This behaves much like Log(), and passes a literal string to be logged.  The ...Ex version
+maybe be used to pass some other file/line information other than the default 'here'.
+
+</menu></menu>
+
+</BODY>
+</HTML>
+
+
+

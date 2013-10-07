@@ -1,0 +1,20 @@
+
+
+
+<html><head><title>Choose a table</title></head>
+<body>
+<form method="post" action="jointable.dht" >
+/mac tables
+
+/foreach table in gameroom
+<input type="radio" name="table" value="%table">%table <br>
+/step next
+/endmac
+/run tables
+<input type="hidden" name="session" value="%session">
+<input type="submit">
+</form>
+
+</body>
+</html>
+

@@ -1,0 +1,19 @@
+<control caption="Edit Button Images" edit="1" position="0,0" size="502,413" type="Frame">
+<control IDName="InterShell/glareset/Button/GLARESET_APPLY_CHANGES" PrivateData="#ff356059" caption="Apply" position="354,223" size="97,31" type="Button"></control>
+<control IDName="InterShell/glareset/Button/GLARESET_ADD_THEME" PrivateData="#ff356059" caption="Add Theme" position="354,147" size="97,31" type="Button"></control>
+<control IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" caption="Cancel" position="354,268" size="96,31" type="Button"></control>
+<control IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" caption="Okay" position="355,309" size="94,29" type="Button"></control>
+<control IDName="InterShell/glareset/Button/GLARESET_CREATE" PrivateData="#ff356059" caption="New Glares" position="353,182" size="95,32" type="Button"></control>
+<control IDName="InterShell/glareset/ListBox/LISTBOX_GLARE_SETS" caption="" position="20,15" size="288,105" type="ListBox"></control>
+<control IDName="InterShell/glareset/EditControl/EDIT_GLARESET_GLARE" caption="" position="115,135" size="233,21" type="EditControl"></control>
+<control IDName="InterShell/glareset/EditControl/EDIT_GLARESET_UP" caption="" position="116,169" size="228,22" type="EditControl"></control>
+<control IDName="InterShell/glareset/EditControl/EDIT_GLARESET_DOWN" caption="" position="116,200" size="226,22" type="EditControl"></control>
+<control IDName="InterShell/glareset/EditControl/EDIT_GLARESET_MASK" caption="" position="114,233" size="227,21" type="EditControl"></control>
+<control caption="Glare" position="18,135" size="73,21" type="TextControl"></control>
+<control caption="Normal" position="16,171" size="90,21" type="TextControl"></control>
+<control caption="Pressed" position="17,205" size="80,21" type="TextControl"></control>
+<control caption="Mask" position="17,229" size="73,21" type="TextControl"></control>
+<control IDName="InterShell/glareset/CheckButton/CHECKBOX_GLARESET_SHADE" caption="Mono Shade" position="29,272" size="121,21" type="CheckButton"></control>
+<control IDName="InterShell/glareset/CheckButton/CHECKBOX_GLARESET_MULTISHADE" caption="Multi Shade" position="29,292" size="124,21" type="CheckButton"></control>
+<control IDName="InterShell/glareset/CheckButton/CHECKBOX_GLARESET_FIXED" caption="No Shading" position="29,312" size="121,21" type="CheckButton"></control>
+</control>

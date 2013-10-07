@@ -1,0 +1,6 @@
+
+FILE( GLOB TMP_FRAMES  * ) 
+LIST( REMOVE_ITEM TMP_FRAMES CMakeLists.txt )
+
+INSTALL( FILES ${TMP_FRAMES} DESTINATION Resources/images/brainboard )
+
