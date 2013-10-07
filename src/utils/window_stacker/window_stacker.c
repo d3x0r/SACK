@@ -88,17 +88,17 @@ static void CheckWindow( PENUM_STATE enum_state, HWND hWnd )
 							extension[0] = 0;
 
 						if( l.flags.bLog )
-							lprintf( "%s", szEXEName );
+							lprintf( WIDE("%s"), szEXEName );
 
 						for( tracker = l.window_tracker_root; tracker; tracker = NextThing( tracker ) )
 						{
-							//lprintf( "is %s==%s", tracker->name, szEXEName );
+							//lprintf( WIDE("is %s==%s"), tracker->name, szEXEName );
 							if( StrCaseCmp( tracker->name, szEXEName ) == 0 )
 							{
 								INDEX idx2;
 								HWND hWndCheck;
 								if( l.flags.bLog )
-									lprintf( "Found Process in my list... %s", tracker->name );
+									lprintf( WIDE("Found Process in my list... %s"), tracker->name );
 								LIST_FORALL( tracker->windows, idx2, HWND, hWndCheck )
 								{
 									if( hWndCheck == hWnd )
@@ -107,7 +107,7 @@ static void CheckWindow( PENUM_STATE enum_state, HWND hWnd )
 								if( !hWndCheck )
 								{
 									if( l.flags.bLog )
-										lprintf( "Adding window %p to %s", hWnd, tracker->name );
+										lprintf( WIDE("Adding window %p to %s"), hWnd, tracker->name );
 									AddLink( &tracker->windows, hWnd );
 								}
 
@@ -122,7 +122,7 @@ static void CheckWindow( PENUM_STATE enum_state, HWND hWnd )
 								{
 									if( enum_state->prior_tracker != tracker )
 									{
-										lprintf( "Windows are inter-mixed." );
+										lprintf( WIDE("Windows are inter-mixed.") );
 									}
 								}
 								enum_state->prior_tracker = tracker;
@@ -132,11 +132,11 @@ static void CheckWindow( PENUM_STATE enum_state, HWND hWnd )
 				}
 			}
 			else
-				lprintf( "failed unermate process handles? %d(need %d)", GetLastError(), cbNeeded );
+				lprintf( WIDE("failed unermate process handles? %d(need %d)"), GetLastError(), cbNeeded );
 		}
 		else
 		{
-			lprintf( "Failed to get handle?" );
+			lprintf( WIDE("Failed to get handle?") );
 		}
 	}
 }
@@ -236,11 +236,11 @@ static PTRSZVAL CPROC MonitorWindows( PTHREAD thread )
 	while( 1 )
 	{
       if( l.flags.bLog )
-			lprintf( "-------- BEGIN WINDOW SCAN -------" );
+			lprintf( WIDE("-------- BEGIN WINDOW SCAN -------") );
 		LocateWindows();
 		// if there was an update, then scan immediate, otherwise wait a couple seconds
 		if( l.flags.bLog )
-			lprintf( "-------- BEGIN WINDOW UPDATE(?) -------" );
+			lprintf( WIDE("-------- BEGIN WINDOW UPDATE(?) -------") );
 		if( !UpdateWindows() )
 			WakeableSleep( 2000 );
 	}
@@ -263,22 +263,22 @@ static void ProcessOrderList( void )
 {
 	PCONFIG_HANDLER pch;
 	pch = CreateConfigurationHandler();
-	AddConfigurationMethod( pch, "process name <%m>", AddWindow );
+	AddConfigurationMethod( pch, WIDE("process name <%m>"), AddWindow );
 	ProcessConfigurationFile( pch, l.window_list, 0 );
 }
 
 static void Usage( void )
 {
-	static char buf[256];
-	snprintf( buf, 256, "%s [-l] @<window_list.txt>\n"
-				"-l  : enable logging\n"
-				"Play list lines look like \n"
-				"process name <name>\n"
-				"\n"
-				"the first in the list is the program to keep bottom most;\n"
-				"each subsequent process is above the prior..." 
+	static TEXTCHAR buf[256];
+	snprintf( buf, 256, WIDE("%s [-l] @<window_list.txt>\n")
+				WIDE("-l  : enable logging\n")
+				WIDE("Play list lines look like \n")
+				WIDE("process name <name>\n")
+				WIDE("\n")
+				WIDE("the first in the list is the program to keep bottom most;\n")
+				WIDE("each subsequent process is above the prior...") 
 			  , GetProgramName() );
-   MessageBox( NULL, buf, "blah", MB_OK );
+   MessageBox( NULL, buf, WIDE("blah"), MB_OK );
 }
 
 SaneWinMain( argc, argv )
@@ -292,7 +292,7 @@ SaneWinMain( argc, argv )
 	{
 		if( argv[arg][0] == '@' )
 		{
-			l.window_list = DupCharToText( argv[arg]+1 );
+			l.window_list = StrDup( argv[arg]+1 );
 		}
 		if( argv[arg][0] == '-' )
 		{

@@ -228,16 +228,7 @@ int HandleArgs( int argc, TEXTCHAR **argv )
    return 1;
 }
 
-#ifdef UNDER_CE
-int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPWSTR lpCmd, int nCmdShow )
-{
-	int argc; 
-	TEXTCHAR **argv;
-	ParseIntoArgs( lpCmd, &argc, &argv );
-
-#else
-int main( int argc, char **argv )
-#endif
+SaneWinMain( argc, argv )
 {
    int result;
 	PBANNER banner = NULL;
@@ -272,6 +263,4 @@ int main( int argc, char **argv )
 
    return 0;
 }
-#ifdef UNDER_CE
-}
-#endif
+EndSaneWinMain()

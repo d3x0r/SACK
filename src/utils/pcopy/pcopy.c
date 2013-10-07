@@ -462,25 +462,25 @@ int ScanFile( PFILESOURCE pfs )
 					+ sizeof( MY_IMAGE_NT_HEADERS ) 
 					+ sizeof( MY_IMAGE_SECTION_HEADER ) * nt_header.FileHeader.NumberOfSections;
 				int section_size;
-				char *sections;
+				TEXTCHAR *sections;
 				value = 1;
 				count = 0;
 				for( fread( &value, 1, sizeof( _64), file ); value; fread( &value, 1, sizeof( _64), file ) )
 					count++;
 				//fread( buffer, 1, sizeof( buffer ), file );
 				offset += count * sizeof( _64 );
-				sections = NewArray( char, section_size = ( nt_optional_header.PE64.SizeOfHeaders - offset ) );
+				sections = NewArray( TEXTCHAR, section_size = ( nt_optional_header.PE64.SizeOfHeaders - offset ) );
 				
 				//fseek( file, offset, SEEK_SET );
 				fread( sections, 1, section_size, file );
 				{
-					char *name = sections;
+					TEXTCHAR *name = sections;
 					while( name[0] && ( (name-sections) < section_size )
 						  && ( ( name[0] <= 127 ) && ( name[0] >= 33 ) )
 						)
 					{
 						AddDependCopy( pfs, name );
-						name = name + strlen( name ) + 1;
+						name = name + StrLen( name ) + 1;
 					}
 				}
 			}

@@ -1,12 +1,12 @@
+#include <stdhdrs.h>
 #include <windows.h>
 #include <stdio.h>
 
-#define WIDE(a) a
 
-static int SetRegistryItem( HKEY hRoot, char *pPrefix,
-                     char *pKey, 
+static int SetRegistryItem( HKEY hRoot, TCHAR *pPrefix,
+                     TCHAR *pKey, 
                      DWORD dwType,
-                     char *pValue, int nSize )
+                     TCHAR *pValue, int nSize )
 {
    DWORD dwStatus;
    HKEY hTemp;
@@ -19,7 +19,7 @@ static int SetRegistryItem( HKEY hRoot, char *pPrefix,
       DWORD dwDisposition;
       dwStatus = RegCreateKeyEx( hRoot, 
                                  pPrefix, 0
-                             , WIDE("")
+                             , TEXT("")
                              , REG_OPTION_NON_VOLATILE
                              , KEY_WRITE
                              , NULL
@@ -28,7 +28,7 @@ static int SetRegistryItem( HKEY hRoot, char *pPrefix,
       if( dwStatus )   // ERROR_SUCCESS == 0 
          return FALSE; 
       if( dwDisposition == REG_OPENED_EXISTING_KEY )
-         OutputDebugString( WIDE("Failed to open, then could open???") );
+         lprintf( TEXT("Failed to open, then could open???") );
    }
    if( (dwStatus == ERROR_SUCCESS) && hTemp )
    {
@@ -45,23 +45,23 @@ static int SetRegistryItem( HKEY hRoot, char *pPrefix,
 }
 
 
-static void Usage( char **argv )
+static void Usage( TCHAR **argv )
 {
-	printf( "%s [<STRING/DWORD> <registry root> <registry path> <entry name> <value>] ...\n"
-			 " registry root values : HKEY_LOCAL_MACHINE\n"
+	printf( TEXT("%s [<STRING/DWORD> <registry root> <registry path> <entry name> <value>] ...\n")
+			 TEXT(" registry root values : HKEY_LOCAL_MACHINE\n")
 			, argv[0] );
 
 }
 
-int main( int argc, char **argv )
+SaneWinMain( argc, argv )
 {
 	int arg;
 	int state = 0;
 
    DWORD dwType;
-	char * reg_path;
-   char * reg_value;
-   char * reg_entry;
+	TCHAR * reg_path;
+   TCHAR * reg_value;
+   TCHAR * reg_entry;
 	HKEY hkey_root;
 	if( argc < 2 )
 	{
@@ -73,31 +73,31 @@ int main( int argc, char **argv )
 		switch( state )
 		{
 		case 0:
-			if( stricmp( argv[arg], "STRING" ) == 0 )
+			if( StrCaseCmp( argv[arg], TEXT("STRING") ) == 0 )
 			{
 				dwType = REG_SZ;
 				state++;
 			}
-			else if( stricmp( argv[arg], "DWORD" ) == 0 )
+			else if( StrCaseCmp( argv[arg], TEXT("DWORD") ) == 0 )
 			{
 				dwType = REG_DWORD;
 				state++;
 			}
 			else
 			{
-				printf( "Bad value type [%s] at position %d\n", argv[arg], arg );
+				printf( TEXT("Bad value type [%s] at position %d\n"), argv[arg], arg );
 				return 0;
 			}
 			break;
 		case 1:
-			if( stricmp( argv[arg], "HKEY_LOCAL_MACHINE" ) == 0 )
+			if( StrCaseCmp( argv[arg], TEXT("HKEY_LOCAL_MACHINE") ) == 0 )
 			{
 				hkey_root = HKEY_LOCAL_MACHINE;
 				state++;
 			}
 			else
 			{
-				printf( "Bad registry root value [%s] at position %d\n", argv[arg], arg );
+				printf( TEXT("Bad registry root value [%s] at position %d\n"), argv[arg], arg );
 				return 0;
 			}
 			break;
@@ -114,13 +114,13 @@ int main( int argc, char **argv )
 			{
 			case REG_SZ:
 				if( !SetRegistryItem( hkey_root, reg_path, reg_entry, dwType, argv[arg], strlen( argv[arg] ) ) )
-					printf( "Failed to set string item: %d", GetLastError() );
+					printf( TEXT("Failed to set string item: %d"), GetLastError() );
 				break;
 			case REG_DWORD:
 				{
 					DWORD dwVal = atoi( argv[arg] );
-					if( !SetRegistryItem( hkey_root, reg_path, reg_entry, dwType, (char*)&dwVal, 4 ) )
-						printf( "Failed to set dword item: %d", GetLastError() );
+					if( !SetRegistryItem( hkey_root, reg_path, reg_entry, dwType, (TCHAR*)&dwVal, 4 ) )
+						printf( TEXT("Failed to set dword item: %d"), GetLastError() );
 
 				}
 				break;
@@ -131,5 +131,6 @@ int main( int argc, char **argv )
 	}
    return 0;
 }
+EndSaneWinMain()
 
 
