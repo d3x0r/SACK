@@ -58,6 +58,7 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 set( project reboot.monitor.portable )
 
 set(BASE_SOURCES
+    ${FIRST_GCC_PROGRAM_SOURCE}
 	../reboot.c
 	../reboot.rc
     ${NETWORK_SOURCES}
@@ -67,6 +68,7 @@ set(BASE_SOURCES
     ${ExtraSources}
     ${FILESYSTEM_SOURCES}
     ${SYSTRAY_SOURCES}
+    ${LAST_GCC_PROGRAM_SOURCE}
 )
 
 set( NO_AUTO_DEADSTART_CORE ON )
