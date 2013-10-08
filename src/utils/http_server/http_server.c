@@ -7,10 +7,10 @@ LOGICAL CPROC FallbackHandler( PTRSZVAL psv, struct HttpState *state )
 	PTEXT resource = GetHttpResource( state );
 	PTEXT result;
 	_32 result_size = GetSizeofFile( GetText( resource ) + 1, NULL );
-	lprintf( "Serve resource: %s", GetText( resource ) );
+	lprintf( WIDE("Serve resource: %s"), GetText( resource ) );
 	if( result_size != (_32)-1 )
 	{
-		FILE *input = sack_fopen( 0, GetText( resource ) + 1, "rb" );
+		FILE *input = sack_fopen( 0, GetText( resource ) + 1, WIDE("rb") );
 		if( input )
 		{
 			int x;
@@ -18,7 +18,7 @@ LOGICAL CPROC FallbackHandler( PTRSZVAL psv, struct HttpState *state )
 			x = fread( GetText( result ), 1, result_size, input );
 			SetTextSize( result, result_size );
 			//SendHttpMessage( state, NULL, result );
-			SendHttpResponse( state, NULL, 200, "OK", "text/html", result );
+			SendHttpResponse( state, NULL, 200, WIDE("OK"), WIDE("text/html"), result );
 			LineRelease( result );
 			fclose( input );
 			return TRUE;
@@ -29,7 +29,7 @@ LOGICAL CPROC FallbackHandler( PTRSZVAL psv, struct HttpState *state )
 
 static void LoadPlugins( CTEXTSTR listfile )
 {
-	FILE *input = sack_fopen( 0, listfile, "rt" );
+	FILE *input = sack_fopen( 0, listfile, WIDE("rt") );
 	if( input )
 	{
 		TEXTCHAR buf[256];

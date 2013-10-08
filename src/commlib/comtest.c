@@ -9,7 +9,7 @@ void CPROC callback( PTRSZVAL psv, int com, POINTER buffer, int len )
 }
 
 
-int main( int argc, char **argv )
+SaneWinMain( argc, argv )
 {
 	int port = SackOpenComm( argv[1], 0, 0 );
 	SetSystemLog( SYSLOG_FILE, stdout );
@@ -18,3 +18,4 @@ int main( int argc, char **argv )
 		WakeableSleep( 100000 );
 	return 0;
 }
+EndSaneWinMain()

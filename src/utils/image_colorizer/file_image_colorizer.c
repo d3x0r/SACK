@@ -17,12 +17,13 @@ IMAGE_NAMESPACE_END
 #ifdef __cplusplus
 using namespace sack::image::loader;
 #endif
-int main( int argc,  char **argv )
+
+SaneWinMain( argc, argv )
 {
 	//printf( "content-type:plain/text\r\n\r\n" );
    if( argc > 5 )
 	{
-		const char *file = argv[1];
+		const TEXTCHAR *file = argv[1];
       PTEXT red = SegCreateFromText( argv[2] );
       PTEXT green = SegCreateFromText( argv[3] );
 		PTEXT blue = SegCreateFromText( argv[4] );
@@ -48,16 +49,16 @@ int main( int argc,  char **argv )
 			if( image )
 			{
 				Image out = MakeImageFile( width, height );
-            lprintf("%s %s %s", GetText( red ), GetText( green) , GetText( blue ) );
+            lprintf(WIDE("%s %s %s"), GetText( red ), GetText( green) , GetText( blue ) );
 				if( !GetColorVar( &red, &cred ) )
-               lprintf( "FAIL RED" );
+               lprintf( WIDE("FAIL RED") );
 				if( !GetColorVar( &blue, &cblue ) )
-					lprintf( "FAIL BLUE" );
+					lprintf( WIDE("FAIL BLUE") );
 				if( !GetColorVar( &green, &cgreen ) )
-					lprintf( "FAIL gREEN" );
+					lprintf( WIDE("FAIL gREEN") );
 
 				ClearImage( out );
-				//lprintf( "uhmm... %08x %08x %08x", cred, cgreen, cblue );
+				//lprintf( WIDE("uhmm... %08x %08x %08x"), cred, cgreen, cblue );
 				BlotImageSizedEx( out, image, 0, 0, x, y, width, height, ALPHA_TRANSPARENT, BLOT_MULTISHADE, cred, cgreen, cblue );
 
 				{
@@ -65,7 +66,7 @@ int main( int argc,  char **argv )
 					_8 *buf;
 					if( PngImageFile( out, &buf, &size ) )
 					{
-						FILE *output = fopen( argv[5], "wb" );
+						FILE *output = sack_fopen( 0, argv[5], WIDE("wb") );
 						fwrite( buf, 1, size, output );
 					}
 				}
@@ -74,9 +75,9 @@ int main( int argc,  char **argv )
 	}
 	else
 	{
-		fprintf( stderr, "%s [input image] [red] [green] [blue] [out image] <x> <y> <width> <height>\n", argv[0] );
-		fprintf( stderr, " [...] arguments are not optional.\n" );
-      fprintf( stderr, " <...> arguments must all be specified else all are ignored\n" );
+		fprintf( stderr, WIDE("%s [input image] [red] [green] [blue] [out image] <x> <y> <width> <height>\n"), argv[0] );
+		fprintf( stderr, WIDE(" [...] arguments are not optional.\n") );
+      fprintf( stderr, WIDE(" <...> arguments must all be specified else all are ignored\n") );
 	}
 
 
@@ -84,3 +85,4 @@ int main( int argc,  char **argv )
 
 	return 0;
 }
+EndSaneWinMain()
