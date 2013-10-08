@@ -308,7 +308,7 @@ MEM_PROC  void MEM_API  DebugDumpHeapMemFile ( PMEM pHeap, CTEXTSTR pFilename );
    \ \                                                        */
 MEM_PROC  void MEM_API  DebugDumpMemFile ( CTEXTSTR pFilename );
 
-#ifdef GCC
+#ifdef __GNUC__
 MEM_PROC  POINTER MEM_API  HeapAllocateEx ( PMEM pHeap, PTRSZVAL nSize DBG_PASS ) __attribute__((malloc));
 MEM_PROC  POINTER MEM_API  AllocateEx ( PTRSZVAL nSize DBG_PASS ) __attribute__((malloc));
 #else

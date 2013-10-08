@@ -112,6 +112,24 @@
 
 #  endif // _MSC_VER
 
+#ifdef  __GNUC__
+#      if defined( _UNICODE )
+#        ifndef NO_UNICODE_C
+//&& !defined( NO_UNICODE_C )
+#           define snprintf   snwprintf
+#           define vsnprintf  vsnwprintf
+#           define sscanf     swscanf
+#        else
+#        endif
+#      else
+//#        define snprintf snprintf
+//#        define vsnprintf vsnprintf
+#      endif
+#        define snwprintf  _snwprintf
+
+#endif // __GNUC__
+
+
 #ifdef __WATCOMC__
 #      if defined( _UNICODE )
 #        ifndef NO_UNICODE_C
