@@ -17,6 +17,7 @@ IMAGE_NAMESPACE_END
 #ifdef __cplusplus
 using namespace sack::image::loader;
 #endif
+
 SaneWinMain( argc, argv )
 {
 	//printf( "content-type:plain/text\r\n\r\n" );
