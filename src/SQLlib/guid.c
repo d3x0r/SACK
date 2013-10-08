@@ -21,6 +21,7 @@ PRELOAD( InitCo )
 	RPC_STATUS RPC_ENTRY UuidCreate(
 											  UUID __RPC_FAR *Uuid
 											 );
+#ifndef MINGW_SUX
 	RPC_STATUS RPC_ENTRY UuidToString(
 												 UUID __RPC_FAR *Uuid ,
 												 unsigned char __RPC_FAR * __RPC_FAR *StringUuid
@@ -29,6 +30,7 @@ PRELOAD( InitCo )
 													unsigned char __RPC_FAR *StringUuid,
 													UUID __RPC_FAR *Uuid
 												  );
+#endif
 #ifdef __cplusplus
 	}
 #endif
