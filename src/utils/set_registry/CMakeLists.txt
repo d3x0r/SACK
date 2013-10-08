@@ -23,6 +23,6 @@ endif( WATCOM )
 
 PROJECT( set_registry )
 
-add_executable( set_registry set_registry.c )
+add_program( set_registry set_registry.c )
 target_link_libraries( set_registry ${SACK_LIBRARIES} )
 install_default_dest( set_registry )
