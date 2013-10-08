@@ -309,7 +309,7 @@ _64 GetCPUTick(void )
 			_64 tick;
 			PREFIX_PACKED struct { _32 low, high; } PACKED parts;
 		}tick;
-		asm( WIDE("rdtsc\n") : "=a"(tick.parts.low), "=d"(tick.parts.high) );
+		asm( "rdtsc\n" : "=a"(tick.parts.low), "=d"(tick.parts.high) );
 		if( !l.lasttick )
 			l.lasttick = tick.tick;
 		else if( tick.tick < l.lasttick )

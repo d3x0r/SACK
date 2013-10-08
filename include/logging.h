@@ -187,12 +187,12 @@ SYSLOG_PROC  void SYSLOG_API  SetSystemLoggingLevel ( _32 nLevel );
 // int result is useless... but allows this to be
 // within expressions, which with this method should be easy.
 typedef INDEX (CPROC*RealVLogFunction)(CTEXTSTR format, va_list args )
-#ifdef GCC
-	__attribute__ ((__format__ (__printf__, 1, 2)))
-#endif
+//#if defined( __GNUC__ ) && !defined( _UNICODE )
+//	__attribute__ ((__format__ (__vprintf__, 1, 2)))
+//#endif
 	;
 typedef INDEX (CPROC*RealLogFunction)(CTEXTSTR format,...)
-#ifdef GCC
+#if defined( __GNUC__ ) && !defined( _UNICODE )
 	__attribute__ ((__format__ (__printf__, 1, 2)))
 #endif
 	;

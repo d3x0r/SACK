@@ -2240,6 +2240,9 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 		va_list tmp_args;
 		va_copy( tmp_args, args );
 #endif
+#ifdef _UNICODE
+#define vsnprintf vsnwprintf
+#endif
 		// len returns number of characters (not NUL)
 		len = vsnprintf( NULL, 0, format
 #ifdef __GNUC__
