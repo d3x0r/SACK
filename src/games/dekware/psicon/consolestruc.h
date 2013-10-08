@@ -16,6 +16,11 @@
 #if defined( _WIN32 ) 
 #include <windows.h>
 #include "keybrd.h"
+#ifdef __WATCOMC__
+// this should be included by commdlg.h
+//   for some reason, the line including this file is being skipped.
+#include <prsht.h>
+#endif
 #include <commdlg.h>
 #include <controls.h>
 #else
