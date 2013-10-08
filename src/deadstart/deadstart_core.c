@@ -443,11 +443,11 @@ static void RegisterStartups( void ) __attribute__((constructor));
 // I wonder whose fault that is....
 void RegisterStartups( void )
 {
-#  ifndef paste
-#    define paste(a,b) a##b
+#  ifndef token_paste
+#    define token_paste(a,b) a##b
 #  endif
-#  define paste2(a,b) paste(a,b)
-#  define DeclareList(n) paste2(n,TARGET_LABEL)
+#  define token_paste2(a,b) token_paste(a,b)
+#  define DeclareList(n) token_paste2(n,TARGET_LABEL)
    extern struct rt_init DeclareList( begin_deadstart_ );
    extern struct rt_init DeclareList( end_deadstart_ );
 	struct rt_init *begin = &DeclareList( begin_deadstart_ );
