@@ -39,14 +39,16 @@ else( WATCOM )
 endif( WATCOM )
 endmacro( build_resource ) 
 
-set( SOURCES_ROOT ../../../../ )
-
+set( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ )
+include( ${CMAKE_CURRENT_SOURCE_DIR}/../../../../CMakeSources.lst )
 
 set( BASE_SOURCES ../reboot.c )
 
 
+
+set( NO_AUTO_DEADSTART_CORE ON )
 add_portable_program(${project} ${BASE_SOURCES} )
-SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;DEDICATE_REBOOT\"" )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;DEDICATE_REBOOT" )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER utils
 )
@@ -56,6 +58,7 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 set( project reboot.monitor.portable )
 
 set(BASE_SOURCES
+    ${FIRST_GCC_PROGRAM_SOURCE}
 	../reboot.c
 	../reboot.rc
     ${NETWORK_SOURCES}
@@ -64,12 +67,14 @@ set(BASE_SOURCES
     ${SYSTEM_LIBRARY_SOURCES}
     ${ExtraSources}
     ${FILESYSTEM_SOURCES}
+    ${SYSTRAY_SOURCES}
+    ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-
+set( NO_AUTO_DEADSTART_CORE ON )
 add_portable_program(${project} WIN32 ${BASE_SOURCES} )
 build_resource( ${project} portable.reboot.rc ../reboot.rc )
-SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__\"" )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__" )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER utils
 )

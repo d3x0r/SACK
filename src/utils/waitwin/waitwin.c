@@ -12,11 +12,11 @@ int main( int argc, char **argv )
 			if( stricmp( argv[2], "started" ) == 0 )
 			{
 				wait_exit = 0;
-				while( !FindWindow( NULL, argv[1] ) )
+				while( !FindWindowA( NULL, argv[1] ) )
 					Sleep( 250 );
 			}
       if( wait_exit )
-			while( FindWindow( NULL, argv[1] ) )
+			while( FindWindowA( NULL, argv[1] ) )
 				Sleep( 250 );
 	}
 	else
