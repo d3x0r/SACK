@@ -13,7 +13,7 @@ int APIENTRY DllMain( HANDLE hDLL, DWORD dwReason, void *pReserved )
    return TRUE; // success whatever the reason...
 }
 #endif
-#define OptionLike(text,string) ( strnicmp( GetText(text), string, GetTextSize( text ) ) == 0 )
+#define OptionLike(text,string) ( StrCaseCmpEx( GetText(text), string, GetTextSize( text ) ) == 0 )
 
 size_t iCardDeck, iHand, iTable;
 int CPROC Create(PSENTIENT ps, PENTITY pe, PTEXT parameters);

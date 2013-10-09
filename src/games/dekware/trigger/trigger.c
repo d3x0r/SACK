@@ -116,47 +116,6 @@ typedef struct triggerset_tag {
 #define TF_MULTIARG 0x80000000
 
 static int DestroyTrigger( PSENTIENT ps, PTRIGGERSET pSet, PTRIGGER pTrigger, int bAlias );
-//--------------------------------------------------------------------------
-#if !defined( WIN32 ) && !defined( _WIN32 )
-#ifndef stricmp
-static int stricmp(const TEXTCHAR * dst, const TEXTCHAR * src)
-{
-	int f,l;
-	do {
-		if ( ((f = (TEXTCHAR)(*(dst++))) >= 'A') && (f <= 'Z') )
-			f -= ('A' - 'a');
-		
-			if ( ((l = (TEXTCHAR)(*(src++))) >= 'A') && (l <= 'Z') )
-				l -= ('A' - 'a');
-	} while ( f && (f == l) );
-
-	return(f - l);
-}
-#endif
-#ifndef strnicmp
-static int strnicmp (
-				  const TEXTCHAR * first,
-				  const TEXTCHAR * last,
-        size_t count
-        )
-{
-	int f,l;
-	if ( count )
-	{
-		do {
-			if ( ((f = (TEXTCHAR)(*(first++))) >= 'A') &&
-				 (f <= 'Z') )
-				f -= 'A' - 'a';
-			if ( ((l = (TEXTCHAR)(*(last++))) >= 'A') &&
-				 (l <= 'Z') )
-				l -= 'A' - 'a';
-		} while ( --count && f && (f == l) );
-		return( f - l );
-	}
-	return( 0 );
-}
-#endif
-#endif
 
 //--------------------------------------------------------------------------
 
@@ -388,7 +347,7 @@ static int TestTriggerTemplate( PTEXT *ppArgs, int *nArg
             }
             else
 	         {
-               if( !stricmp( GetText( pWord ), GetText( pTestWord ) ) )
+               if( !StrCaseCmp( GetText( pWord ), GetText( pTestWord ) ) )
       	      {
          	      pTestWord = NEXTLINE( pTestWord );
             	}

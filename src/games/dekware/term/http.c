@@ -48,7 +48,7 @@ static PTEXT ParseURL( PTEXT pURL )
       len = strlen( text );
       text[len-1] = 0; // early terminate last quote...
    }
-   if( !strnicmp( text, WIDE("http://"), 7 ) )
+   if( !StrCaseCmpEx( text, WIDE("http://"), 7 ) )
    {
       text += 7;
    }

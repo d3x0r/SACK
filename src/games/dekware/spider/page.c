@@ -68,7 +68,7 @@ PBYTE Begin( PPAGE pp, PBYTE pBuffer, int BufLen )
          if( ( pp->HdrSepCount & 1 ) && pBuffer[c] == '\n' )
          {
             pp->HdrSepCount++;
-            if( !strnicmp( "Content-Length", (char*)(pBuffer + c + 1), 14 ) )
+            if( !StrCaseCmpEx( "Content-Length", (char*)(pBuffer + c + 1), 14 ) )
             {
                pp->PageLength = atoi( (char*)(pBuffer + c + 16) );
             }

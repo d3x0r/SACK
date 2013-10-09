@@ -1096,7 +1096,7 @@ int IsObjectTypeOf( PSENTIENT ps, PTEXT entity, PTEXT form )
 			CTEXTSTR name;
 			LIST_FORALL( ExtensionNames, idx, CTEXTSTR, name )
 			{
-				if( stricmp( name, GetText( form ) ) == 0 )
+				if( StrCaseCmp( name, GetText( form ) ) == 0 )
 				{
                if( GetLink( &pe->pPlugin, idx ) )
 						return TRUE;
@@ -1236,7 +1236,7 @@ PMACROSTATE InvokeBehavior( TEXTCHAR *name, PENTITY peActor, PSENTIENT psInvokeO
 		return NULL;
 	LIST_FORALL( global.behaviors, idx, PTEXT, testname )
 	{
-		if( !stricmp( name, GetText( testname ) ) )
+		if( !StrCaseCmp( name, GetText( testname ) ) )
 		{
 			ppBehaviors = &psInvokeOn->Current->pGlobalBehaviors;
 			break;
@@ -1246,7 +1246,7 @@ PMACROSTATE InvokeBehavior( TEXTCHAR *name, PENTITY peActor, PSENTIENT psInvokeO
 	{
 		LIST_FORALL( psInvokeOn->Current->behaviors, idx, PTEXT, testname )
 		{
-			if( !stricmp( name, GetText( testname ) ) )
+			if( !StrCaseCmp( name, GetText( testname ) ) )
 			{
 				ppBehaviors = &psInvokeOn->Current->pBehaviors;
 				break;
