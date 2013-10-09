@@ -2264,8 +2264,6 @@ Recheck:
 		PDATAPATH pdp;
 		DECLTEXT( dev, WIDE("system") );
 		DECLTEXT( devname, WIDE("system") );
-		DECLTEXT( dev2a, WIDE("token") );
-		DECLTEXT( devname2a, WIDE("line tokens") );
 		DECLTEXT( dev2, WIDE("ansi") );
 		DECLTEXT( dev2opt, WIDE("inbound newline") );
 		DECLTEXT( dev2name, WIDE("system parse") );
