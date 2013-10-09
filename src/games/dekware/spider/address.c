@@ -279,25 +279,25 @@ int BuildCGI( PADDRESS pa, char **ppc, int bPost, int nFields, FIELD *FormData )
       case FT_INPUT:
          FormData[i].used = TRUE; // set to make next pass with no option fields fail bStep
 
-         if( !strnicmp( FormData[i].pType, "reset", 5 ) ) // never include "reset"
+         if( !StrCaseCmpEx( FormData[i].pType, "reset", 5 ) ) // never include "reset"
             break;
-         if( !strnicmp( FormData[i].pType, "submit", 6 ) ) // don't include "submit" without "name"
+         if( !StrCaseCmpEx( FormData[i].pType, "submit", 6 ) ) // don't include "submit" without "name"
          {
             break;
          }
 
-         if( !strnicmp( FormData[i].pType, "text", 4 ) )
+         if( !StrCaseCmpEx( FormData[i].pType, "text", 4 ) )
          {
 //            MessageBox( NULL, "May Require user Input", "More?", MB_OK );
          }
-         else if( !strnicmp( FormData[i].pType, "checkbox", 8 ) ) // radio buttons name=value (of selected button)
+         else if( !StrCaseCmpEx( FormData[i].pType, "checkbox", 8 ) ) // radio buttons name=value (of selected button)
          {
             if( bDoneOne )
                if( bPost )
                   pc += CGIcpy( pc, "\r\n" );
                else
                   *(pc++) = '&';
-            if( !strnicmp( FormData[i].pValue, "checked", 7 ) )
+            if( !StrCaseCmpEx( FormData[i].pValue, "checked", 7 ) )
             {
                pc += CGIcpy( pc, FormData[i].pName );
                pc += CGIcpy( pc, "=checked" );

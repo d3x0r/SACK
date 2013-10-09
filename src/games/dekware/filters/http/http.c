@@ -545,7 +545,7 @@ static int HandleOption( WIDE("http"), WIDE("flush"), WIDE("Sends all gathered o
 
 //---------------------------------------------------------------------------
 
-#define OptionLike(text,string) ( strnicmp( GetText(text), string, GetTextSize( text ) ) == 0 )
+#define OptionLike(text,string) ( StrCaseCmpEx( GetText(text), string, GetTextSize( text ) ) == 0 )
 
 static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
 {

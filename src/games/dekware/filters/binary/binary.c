@@ -146,7 +146,7 @@ static int CPROC Close( PMYDATAPATH pdp )
 
 //--------------------------------------------------------------------------
 
-#define OptionLike(text,string) ( strnicmp( GetText(text), string, GetTextSize( text ) ) == 0 )
+#define OptionLike(text,string) ( StrCaseCmpEx( GetText(text), string, GetTextSize( text ) ) == 0 )
 
 static PDATAPATH CPROC CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
 {
