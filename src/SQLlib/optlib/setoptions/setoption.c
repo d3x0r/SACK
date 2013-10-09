@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <sqlgetoption.h>
 
-int main( int argc, TEXTCHAR **argv )
+SaneWinMain( argc, argv )
 {
 	if( argc < 5 )
 	{
@@ -20,3 +20,4 @@ int main( int argc, TEXTCHAR **argv )
 		SACK_WriteProfileString( argv[2], argv[3], argv[4] );
     return 0;
 }
+EndSaneWinMain()
