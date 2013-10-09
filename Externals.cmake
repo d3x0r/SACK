@@ -116,6 +116,7 @@ source_group("Source Files\\Freetype-2.5.0.1 Library" FILES ${FREETYPE_SOURCE})
 
 endif( NOT __NO_GUI__ )
 
-
+if( BUILD_EXTRAS )
 add_subdirectory( src/shapelib-1.3.0 )
+endif( BUILD_EXTRAS )
 
