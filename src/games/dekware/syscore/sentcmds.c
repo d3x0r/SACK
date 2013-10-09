@@ -679,7 +679,6 @@ int CPROC CMD_LIST( PSENTIENT ps, PTEXT parameters )
 		{
 			INDEX idx;
 			PMACRO behavior;
-			LOGICAL didone = FALSE;
 			temp = GetParam( ps, &parameters );
 			LIST_FORALL( ps->Current->pGlobalBehaviors, idx, PMACRO, behavior )
 			{
