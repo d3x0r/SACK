@@ -43,7 +43,7 @@ int write_ascii( FILE *input )
 int write_unicode( FILE *input )
 {
 	fseek( input, 0, SEEK_SET );
-   fwrite( "\xFEFF", 1, 2, input );
+   fwrite( "\xFE\xFF", 1, 2, input );
    fwrite( l.wchar_buffer, 1, l.wchar_buffer_len, input );
    return 0;
 }
