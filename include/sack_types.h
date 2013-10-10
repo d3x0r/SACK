@@ -1067,24 +1067,25 @@ typedef wchar_t X_16;
 /* This is a pointer to wchar_t. A 16 bit value that is
    character data, and is not signed or unsigned.       */
 typedef wchar_t *PX_16;
+
 #if defined( UNICODE ) || defined( SACK_COM_OBJECT )
 //should also consider revisiting code that was updated for TEXTCHAR to char conversion methods...
-#ifdef _MSC_VER
-#ifdef UNDER_CE
-#define NULTERM 
-#else
-#define NULTERM __nullterminated
-#endif
-#else
-#define NULTERM
-#endif
+#  ifdef _MSC_VER
+#    ifdef UNDER_CE
+#      define NULTERM 
+#    else
+#      define NULTERM __nullterminated
+#    endif
+#  else
+#    define NULTERM
+#  endif
 #define WIDE(s)  L##s
 #define _WIDE(s)  WIDE(s)
 #define cWIDE(s)  s
 #define _cWIDE(s)  cWIDE(s)
 typedef NULTERM          const X_16      *CTEXTSTR; // constant text string content
 typedef NULTERM          CTEXTSTR        *PCTEXTSTR; // pointer to constant text string content
-typedef NULTERM          PX_16            TEXTSTR;  
+typedef NULTERM          X_16            *TEXTSTR;  
 /* a text 16 bit character  */
 typedef X_16             TEXTCHAR;
 
