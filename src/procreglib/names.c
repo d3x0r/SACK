@@ -481,6 +481,7 @@ PRIORITY_PRELOAD( InitProcreg, NAMESPACE_PRELOAD_PRIORITY )
 #else
 	l.flags.bDisableMemoryLogging = 1;
 #endif
+   lprintf( WIDE("read config?") );
 #ifndef __NO_DEFAULT_INTERFACES__
 	if( !l.flags.bReadConfiguration )
 	{
