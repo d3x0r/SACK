@@ -64,10 +64,7 @@ void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar)
 
 void WantRender3D( void )
 {
-	INDEX idx;
-	PRENDERER hVideo;
 	struct plugin_reference *reference;
-	int first_draw;
 	if( l.flags.bLogRenderTiming )
 		lprintf( WIDE("Begin Render") );
 
@@ -102,7 +99,6 @@ void WantRender3D( void )
 void Render3D( struct display_camera *camera )
 {
 	INDEX idx;
-	PRENDERER hVideo;
 	struct plugin_reference *reference;
 	int first_draw;
 	if( l.flags.bLogRenderTiming )

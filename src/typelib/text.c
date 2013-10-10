@@ -2771,7 +2771,7 @@ LOGICAL ParseStringVector( CTEXTSTR data, CTEXTSTR **pData, int *nData )
 		do
 		{
 
-         int len;
+			size_t len;
 			start = end;
 			end = StrChr( start, ',' );
 			if( end )

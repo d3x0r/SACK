@@ -56,16 +56,15 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 {
 	if( pImage->flags & IF_FLAG_FINAL_RENDER )
 	{
-      int glDepth = 1;
+		int glDepth = 1;
 		VECTOR v1[2], v2[2];
 		VECTOR v3[2], v4[2];
 		VECTOR slope;
-      RCOORD tmp;
-      VECTOR normal;
+		RCOORD tmp;
 		int v = 0;
 
-      TranslateCoord( pImage, (S_32*)&x1, (S_32*)&y1 );
-      TranslateCoord( pImage, (S_32*)&x2, (S_32*)&y2 );
+		TranslateCoord( pImage, (S_32*)&x1, (S_32*)&y1 );
+		TranslateCoord( pImage, (S_32*)&x2, (S_32*)&y2 );
 		v1[v][0] = x1;
 		v1[v][1] = y1;
 		v1[v][2] = 0.0;
@@ -79,15 +78,15 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 		slope[0] = -slope[1];
 		slope[1] = tmp;
 
-      addscaled( v1[v], v1[v], slope, -0.5 );
-      addscaled( v4[v], v1[v], slope, 1.0 );
-      addscaled( v2[v], v2[v], slope, -0.5 );
-      addscaled( v3[v], v2[v], slope, 1.0 );
+		addscaled( v1[v], v1[v], slope, -0.5 );
+		addscaled( v4[v], v1[v], slope, 1.0 );
+		addscaled( v2[v], v2[v], slope, -0.5 );
+		addscaled( v3[v], v2[v], slope, 1.0 );
 
 		while( pImage && pImage->pParent )
 		{
-         glDepth = 0;
-         if(pImage->transform )
+			glDepth = 0;
+			if(pImage->transform )
 			{
 				Apply( pImage->transform, v1[1-v], v1[v] );
 				Apply( pImage->transform, v2[1-v], v2[v] );
@@ -205,16 +204,15 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 {
 	if( pImage->flags & IF_FLAG_FINAL_RENDER )
 	{
-      int glDepth = 1;
+		int glDepth = 1;
 		VECTOR v1[2], v2[2];
 		VECTOR v3[2], v4[2];
 		VECTOR slope;
-      RCOORD tmp;
-      VECTOR normal;
+		RCOORD tmp;
 		int v = 0;
 
-      TranslateCoord( pImage, (S_32*)&x1, (S_32*)&y1 );
-      TranslateCoord( pImage, (S_32*)&x2, (S_32*)&y2 );
+		TranslateCoord( pImage, (S_32*)&x1, (S_32*)&y1 );
+		TranslateCoord( pImage, (S_32*)&x2, (S_32*)&y2 );
 		v1[v][0] = x1;
 		v1[v][1] = y1;
 		v1[v][2] = 0.0;
@@ -228,15 +226,15 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 		slope[0] = -slope[1];
 		slope[1] = tmp;
 
-      addscaled( v1[v], v1[v], slope, -0.5 );
-      addscaled( v4[v], v1[v], slope, 1.0 );
-      addscaled( v2[v], v2[v], slope, -0.5 );
-      addscaled( v3[v], v2[v], slope, 1.0 );
+		addscaled( v1[v], v1[v], slope, -0.5 );
+		addscaled( v4[v], v1[v], slope, 1.0 );
+		addscaled( v2[v], v2[v], slope, -0.5 );
+		addscaled( v3[v], v2[v], slope, 1.0 );
 
 		while( pImage && pImage->pParent )
 		{
-         glDepth = 0;
-         if(pImage->transform )
+			glDepth = 0;
+			if(pImage->transform )
 			{
 				Apply( pImage->transform, v1[1-v], v1[v] );
 				Apply( pImage->transform, v2[1-v], v2[v] );

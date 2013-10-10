@@ -126,7 +126,6 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 			}
 			else if( touches[0].flags.end_event )
 			{
-				int n;
 				touch_info.one.x = touches[1].x;
 				touch_info.one.y = touches[1].y;
 				touch_info.two.x = touches[2].x;
@@ -134,7 +133,6 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 			}
 			else if( touches[1].flags.end_event )
 			{
-				int n;
 				touch_info.one.x = touches[0].x;
 				touch_info.one.y = touches[0].y;
 				touch_info.two.x = touches[2].x;
@@ -142,7 +140,6 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 			}
 			else if( touches[2].flags.end_event )
 			{
-				int n;
 				touch_info.one.x = touches[0].x;
 				touch_info.one.y = touches[0].y;
 				touch_info.two.x = touches[1].x;
@@ -165,22 +162,22 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 			if( touches[1].flags.new_event )
 			{
 				VECTOR v1, v2, v3;
-            v1[vRight] = touches[0].x;
+				v1[vRight] = touches[0].x;
 				v1[vUp] = touches[0].y;
-            v1[vForward] = 0;
-            v2[vRight] = touches[1].x;
-            v2[vUp] = touches[1].y;
+				v1[vForward] = 0;
+				v2[vRight] = touches[1].x;
+				v2[vUp] = touches[1].y;
 				v2[vForward] = 0;
-            sub( v3, v1, v2 );
+				sub( v3, v1, v2 );
 				touch_info.two.x = touches[1].x;
 				touch_info.two.y = touches[1].y;
-            touch_info.two.begin_length = Length( v3 );
+				touch_info.two.begin_length = Length( v3 );
 			}
 			else if( touches[0].flags.end_event )
 			{
-            // otherwise, next move will cause screen to 'pop'...
-            touch_info.one.x = touches[1].x;
-            touch_info.one.y = touches[1].y;
+				// otherwise, next move will cause screen to 'pop'...
+				touch_info.one.x = touches[1].x;
+				touch_info.one.y = touches[1].y;
 			}
 			else if( touches[1].flags.end_event )
 			{

@@ -1476,10 +1476,7 @@ static int CPROC Handle3DTouches( PRENDERER hVideo, PTOUCHINPUT touches, int nTo
 
 static void WantRenderGL( void )
 {
-	INDEX idx;
-	PRENDERER hVideo;
 	struct plugin_reference *reference;
-	int first_draw;
 	if( l.flags.bLogRenderTiming )
 		lprintf( WIDE("Begin Render") );
 

@@ -52,7 +52,7 @@ static void AppendBuffer( CTEXTSTR *output, CTEXTSTR seperator, CTEXTSTR input )
 	TEXTSTR newout;
 	if( *output )
 	{
-		int len;
+		size_t len;
 		len = StrLen( *output ) + StrLen( tmpbuf ) + 1;
 		if( seperator )
 			len += StrLen( seperator );

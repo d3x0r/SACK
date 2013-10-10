@@ -246,7 +246,7 @@ typedef struct ImagePngRawDataWriter_tag
 	// The buffer to "read" from
 	_8 **r_data;
 	// The buffer size
-	int *r_size;
+	size_t *r_size;
 	int alloced;  // need more info on the write side.
 }ImagePngRawDataWriter;
 
@@ -294,7 +294,7 @@ void CPROC NotSoFatalError2( png_structp png_ptr, png_const_charp c )
 	lprintf( WIDE("Error in PNG stuff: %s"), c );
 }
 
-LOGICAL PngImageFile ( Image pImage, _8 ** buf, int *size)
+LOGICAL PngImageFile ( Image pImage, _8 ** buf, size_t *size)
 {
    png_structp png_ptr;
    png_infop info_ptr;
@@ -315,7 +315,6 @@ LOGICAL PngImageFile ( Image pImage, _8 ** buf, int *size)
    info_ptr = png_create_info_struct(png_ptr);
    if (!info_ptr)
    {
-no_mem2:
       png_destroy_write_struct(&png_ptr,
          (png_infopp)NULL);
       return FALSE;

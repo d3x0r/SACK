@@ -1613,7 +1613,7 @@ XML_GetBuffer(XML_Parser parser, size_t len)
 
   if (len > bufferLim - bufferEnd) {
     /* FIXME avoid integer overflow */
-    int neededSize = len + (int)(bufferEnd - bufferPtr);
+    size_t neededSize = len + (bufferEnd - bufferPtr);
 #ifdef XML_CONTEXT_BYTES
     int keep = (int)(bufferPtr - buffer);
 

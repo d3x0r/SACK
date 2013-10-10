@@ -318,7 +318,7 @@ static CTEXTSTR SaveName( CTEXTSTR name )
 		size_t len = StrLen( name );
 		TEXTSTR stripped = NewArray( TEXTCHAR, len + 2 );
 		size_t n;
-		stripped[0] = len + 2;
+		stripped[0] = (TEXTCHAR)(len + 2);
 		for( n = 0; n < len; n++ )
 			if( name[n] == '\\' || name[n] == '/' )
 			{
@@ -328,7 +328,7 @@ static CTEXTSTR SaveName( CTEXTSTR name )
 		Release( stripped );
 		stripped = NewArray( TEXTCHAR, len + 2 );
 		StrCpyEx( stripped + 1, name, len + 1 ); // allow +1 length for null after string; otherwise strcpy dropps the nul early
-		stripped[0] = len + 2;
+		stripped[0] = (TEXTCHAR)(len + 2);
 		//lprintf( "Created stripped..." );
 		{
 			CTEXTSTR result = DoSaveName( stripped + 1, len );
@@ -365,7 +365,7 @@ CTEXTSTR SaveNameConcatN( CTEXTSTR name1, ... )
 		newlen++;
 		len += newlen;
 	}
-	_stripbuffer[0] = len + 2;
+	_stripbuffer[0] = (TEXTCHAR)(len + 2);
    // and add another - final part of string is \0\0
 	//stripbuffer[len] = 0;
    //len++;
@@ -380,7 +380,7 @@ CTEXTSTR SaveText( CTEXTSTR text )
 	TEXTSTR stripped = NewArray( TEXTCHAR, len + 2 );
 	CTEXTSTR result;
 	StrCpyEx( stripped + 1, text, len + 1 );
-	stripped[0] = len + 2;
+	stripped[0] = (TEXTCHAR)(len + 2);
 	result = DoSaveName( stripped + 1, len);
 	Release( stripped );
 	return result;
