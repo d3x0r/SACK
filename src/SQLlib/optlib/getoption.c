@@ -446,9 +446,20 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 		//, IDName; // Name to lookup
 		if( og.flags.bUseProgramDefault )
 		{
-			if( !_program )
-				_program = GetProgramName();
-			program = _program;
+			if( ( StrCaseCmp( pINIFile, DEFAULT_PUBLIC_KEY ) != 0 )
+				|| ( StrCaseCmp( pBranch, GetProgramName() ) != 0 ) )
+			{
+				if( !_program )
+					_program = GetProgramName();
+				program = _program;
+			}
+			else
+			{
+				// default options were SACK_GetProfileXX( GetProgramName(), Branch, ... )
+				// so this should be that condition, with aw NULL file, which gwets promoted to DEFAULT_PUBLIC_KEY
+				// before being called, and section will already be programname, and pValue will
+            // just be the string default.
+			}
 		}
 		if( og.flags.bUseSystemDefault )
 		{
