@@ -25,7 +25,7 @@ static int CPROC CustomEditButton( PCOMMON pc )
 
 PRELOAD( RegisterExtraInits )
 {
-	SimpleRegisterMethod( "psi/control/" "generic control name" "/rtti"
-							  , CustomEditButton, "int", "extra init", "(PCOMMON)" );
+	SimpleRegisterMethod( WIDE("psi/control/") WIDE("generic control name") WIDE("/rtti")
+							  , CustomEditButton, WIDE("int"), WIDE("extra init"), WIDE("(PCOMMON)") );
 }
 
