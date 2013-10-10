@@ -93,7 +93,7 @@ static void PNGCAPI my_png_longjmp_ptr3(jmp_buf b, int i)
 }
 #endif
 
-ImageFile *ImagePngFile (_8 * buf, long size)
+ImageFile *ImagePngFile (_8 * buf, size_t size)
 {
    ImageFile *pImage;
    png_structp png_ptr;
