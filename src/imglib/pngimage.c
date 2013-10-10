@@ -68,7 +68,7 @@ void ImagePngRead (png_structp png, png_bytep data, png_size_t size)
 
 void NotSoFatalError( png_structp png_ptr, png_const_charp c )
 {
-	lprintf( WIDE("Error in PNG stuff: %s"), c );
+	lprintf( WIDE("Error in PNG stuff: %S"), c );
 }
 
 // this is specific to a compiler so it needs to be non-decorated in any way.
