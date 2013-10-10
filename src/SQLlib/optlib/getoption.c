@@ -417,19 +417,48 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 														 , const TEXTCHAR *pValue
 														 , int bCreate, int bIKnowItDoesntExist DBG_PASS )
 {
+	static const TEXTCHAR *_program = NULL;
+	const TEXTCHAR *program = NULL;
+	static const TEXTCHAR *_system = NULL;
+	const TEXTCHAR *system = NULL;
 	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
 	if( !parent )
 		parent = tree->root;
 
+	if( og.flags.bUseProgramDefault )
+	{
+		if( ( StrCaseCmp( file, DEFAULT_PUBLIC_KEY ) != 0 )
+			|| ( StrCaseCmp( pBranch, GetProgramName() ) != 0 ) )
+		{
+			if( !_program )
+				_program = GetProgramName();
+         program = file;
+			file = _program;
+		}
+		else
+		{
+				// default options were SACK_GetProfileXX( GetProgramName(), Branch, ... )
+			// so this should be that condition, with aw NULL file, which gwets promoted to DEFAULT_PUBLIC_KEY
+			// before being called, and section will already be programname, and pValue will
+			// just be the string default.
+		}
+	}
+	if( og.flags.bUseSystemDefault )
+	{
+		if( !_system )
+			_system = GetSystemName();
+		system = _system;
+	}
+	lprintf( WIDE("GetOptionIndex for %s %s %s"), program?program:WIDE("NO PROG"), file, pBranch );
 	if( tree->flags.bVersion4 )
 	{
 		//lprintf( "... %p %s %s %ws", parent, file, pBranch, pValue );
-		return New4GetOptionIndexExxx( odbc, parent, file, pBranch, pValue, bCreate, bIKnowItDoesntExist DBG_RELAY );
+		return New4GetOptionIndexExxx( odbc, tree, parent, system, program, file, pBranch, pValue, bCreate, bIKnowItDoesntExist DBG_RELAY );
 	}
 	else if( tree->flags.bNewVersion )
 	{
 		//lprintf( "... %p %s %s %ws", parent, file, pBranch, pValue );
-		return NewGetOptionIndexExxx( odbc, parent, file, pBranch, pValue, bCreate, bIKnowItDoesntExist DBG_RELAY );
+		return NewGetOptionIndexExxx( odbc, tree, parent, system, program, file, pBranch, pValue, bCreate, bIKnowItDoesntExist DBG_RELAY );
 	}
 	else 
 	{
@@ -437,36 +466,9 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 		TEXTCHAR namebuf[256];
 		TEXTCHAR query[256];
 		const TEXTCHAR *p;
-		static const TEXTCHAR *_program = NULL;
-		const TEXTCHAR *program = NULL;
-		static const TEXTCHAR *_system = NULL;
-		const TEXTCHAR *system = NULL;
 		CTEXTSTR *result = NULL;
 		INDEX ID;
 		//, IDName; // Name to lookup
-		if( og.flags.bUseProgramDefault )
-		{
-			if( ( StrCaseCmp( pINIFile, DEFAULT_PUBLIC_KEY ) != 0 )
-				|| ( StrCaseCmp( pBranch, GetProgramName() ) != 0 ) )
-			{
-				if( !_program )
-					_program = GetProgramName();
-				program = _program;
-			}
-			else
-			{
-				// default options were SACK_GetProfileXX( GetProgramName(), Branch, ... )
-				// so this should be that condition, with aw NULL file, which gwets promoted to DEFAULT_PUBLIC_KEY
-				// before being called, and section will already be programname, and pValue will
-            // just be the string default.
-			}
-		}
-		if( og.flags.bUseSystemDefault )
-		{
-			if( !_system )
-				_system = GetSystemName();
-			system = _system;
-		}
 
 		// resets the search/browse cursor... not empty...
 		FamilyTreeReset( &tree->option_tree );
@@ -479,24 +481,23 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 			{
 				if( program )
 					start = &program;
-				if( !start && system )
+				else if( system )
 					start = &system;
-
-				if( !start && file )
+				else if( file )
 				{
 #ifdef DETAILED_LOGGING
 					lprintf( WIDE("Token parsing at FILE") );
 #endif
 					start = &file;
 				}
-				if( !start && pBranch )
+				else if( pBranch )
 				{
 #ifdef DETAILED_LOGGING
 					lprintf( WIDE("Token parsing at branch") );
 #endif
 					start = &pBranch;
 				}
-				if( !start && pValue )
+				else if( pValue )
 				{
 #ifdef DETAILED_LOGGING
 					lprintf( WIDE("Token parsing at value") );
@@ -1850,15 +1851,21 @@ PRIORITY_PRELOAD( AllocateOptionGlobal, CONFIG_SCRIPT_PRELOAD_PRIORITY )
 
 PRIORITY_PRELOAD(RegisterSQLOptionInterface, SQL_PRELOAD_PRIORITY + 1 )
 {
+   // have a multiple test because of C++ and C playing together with shared global; not threading issue
 	if( !og.flags.bRegistered )
 	{
 		og.flags.bRegistered = 1;
-
 		RegisterInterface( WIDE("SACK_SQL_Options"), (POINTER(CPROC *)(void))GetOptionInterface, (void(CPROC *)(POINTER))DropOptionInterface );
-		og.flags.bUseProgramDefault = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/SQL/Options/Options Use Program Name Default" ), 0, TRUE );
-		og.flags.bUseSystemDefault = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/SQL/Options/Options Use System Name Default" ), 0, TRUE );
 		og.flags.bEnableSystemMapping = 2;
 	}
+}
+
+// delay reading options until after interface configuration is processed which has option defaults.
+PRIORITY_PRELOAD( ReadOptionOptions, NAMESPACE_PRELOAD_PRIORITY + 1 )
+{
+   lprintf( WIDE("Read optoins") );
+	og.flags.bUseProgramDefault = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/SQL/Options/Options Use Program Name Default" ), 0, TRUE );
+	og.flags.bUseSystemDefault = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/SQL/Options/Options Use System Name Default" ), 0, TRUE );
 }
 
 

@@ -118,33 +118,15 @@ CTEXTSTR New4ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR tab
 //#define OPTION_ROOT_VALUE INVALID_INDEX
 #define OPTION_ROOT_VALUE 0
 
-POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, const TEXTCHAR *file, const TEXTCHAR *pBranch, const TEXTCHAR *pValue, int bCreate, int bIKnowItDoesntExist DBG_PASS )
+POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION_TREE_NODE parent, const TEXTCHAR *system, const TEXTCHAR *program, const TEXTCHAR *file, const TEXTCHAR *pBranch, const TEXTCHAR *pValue, int bCreate, int bIKnowItDoesntExist DBG_PASS )
 //#define GetOptionIndex( f,b,v ) GetOptionIndexEx( OPTION_ROOT_VALUE, f, b, v, FALSE )
 {
 	const TEXTCHAR **start = NULL;
 	TEXTCHAR namebuf[256];
 	TEXTCHAR query[256];
 	const TEXTCHAR *p;
-	static const TEXTCHAR *_program = NULL;
-	const TEXTCHAR *program = NULL;
-	static const TEXTCHAR *_system = NULL;
-	const TEXTCHAR *system = NULL;
 	CTEXTSTR *result = NULL;
 	CTEXTSTR ID = NULL;
-	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
-	//, IDName; // Name to lookup
-	if( og.flags.bUseProgramDefault )
-	{
-		if( !_program )
-			_program = GetProgramName();
-		program = _program;
-	}
-	if( og.flags.bUseSystemDefault )
-	{
-		if( !_system )
-			_system = GetSystemName();
-		system = _system;
-	}
 
 	// resets the search/browse cursor... not empty...
 	FamilyTreeReset( &tree->option_tree );

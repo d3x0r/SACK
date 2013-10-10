@@ -95,8 +95,8 @@ POPTION_TREE_NODE New4DuplicateValue( PODBC odbc, POPTION_TREE_NODE iOriginalVal
 PFAMILYTREE* GetOptionTree( PODBC odbc );
 
 
-POPTION_TREE_NODE NewGetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, CTEXTSTR file, CTEXTSTR pBranch, CTEXTSTR pValue, int bCreate, int bIKnowItDoesntExist DBG_PASS );
-POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent, CTEXTSTR file, CTEXTSTR pBranch, CTEXTSTR pValue, int bCreate, int bIKnowItDoesntExist DBG_PASS );
+POPTION_TREE_NODE NewGetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION_TREE_NODE parent, CTEXTSTR system, CTEXTSTR program, CTEXTSTR file, CTEXTSTR pBranch, CTEXTSTR pValue, int bCreate, int bIKnowItDoesntExist DBG_PASS );
+POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION_TREE_NODE parent, CTEXTSTR system, CTEXTSTR program, CTEXTSTR file, CTEXTSTR pBranch, CTEXTSTR pValue, int bCreate, int bIKnowItDoesntExist DBG_PASS );
 size_t NewGetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *buffer, size_t len DBG_PASS );
 size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *buffer, size_t len DBG_PASS );
 LOGICAL NewCreateValue( POPTION_TREE odbc, POPTION_TREE_NODE value, CTEXTSTR pValue );
