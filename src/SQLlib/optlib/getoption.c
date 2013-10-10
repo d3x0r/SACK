@@ -449,7 +449,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 			_system = GetSystemName();
 		system = _system;
 	}
-	lprintf( WIDE("GetOptionIndex for %s %s %s"), program?program:WIDE("NO PROG"), file, pBranch );
+	//lprintf( WIDE("GetOptionIndex for %s %s %s"), program?program:WIDE("NO PROG"), file, pBranch );
 	if( tree->flags.bVersion4 )
 	{
 		//lprintf( "... %p %s %s %ws", parent, file, pBranch, pValue );
@@ -1863,7 +1863,6 @@ PRIORITY_PRELOAD(RegisterSQLOptionInterface, SQL_PRELOAD_PRIORITY + 1 )
 // delay reading options until after interface configuration is processed which has option defaults.
 PRIORITY_PRELOAD( ReadOptionOptions, NAMESPACE_PRELOAD_PRIORITY + 1 )
 {
-   lprintf( WIDE("Read optoins") );
 	og.flags.bUseProgramDefault = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/SQL/Options/Options Use Program Name Default" ), 0, TRUE );
 	og.flags.bUseSystemDefault = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/SQL/Options/Options Use System Name Default" ), 0, TRUE );
 }
