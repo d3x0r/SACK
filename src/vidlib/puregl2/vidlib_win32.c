@@ -1231,19 +1231,18 @@ WM_DROPFILES
 						continue;
 					if( camera->flags.first_draw )
 					{
-						INDEX idx2;
 						struct plugin_reference *reference;
-                  //lprintf( WIDE("camera is in first_draw...") );
+						//lprintf( WIDE("camera is in first_draw...") );
 						LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
 						{
-                     //lprintf( WIDE("so reset plugin... is there one?") );
+							//lprintf( WIDE("so reset plugin... is there one?") );
 							reference->flags.did_first_draw = 0;
 						}
 					}
-               //lprintf( WIDE("Render camera %p"), camera );
+					//lprintf( WIDE("Render camera %p"), camera );
 					// drawing may cause subsequent draws; so clear this first
 					Render3D( camera );
-               camera->flags.first_draw = 0;
+					camera->flags.first_draw = 0;
 				}
 				l.flags.bUpdateWanted = 0;
 			}

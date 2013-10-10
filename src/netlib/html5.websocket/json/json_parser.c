@@ -212,9 +212,7 @@ LOGICAL json_parse_message( struct json_context_object *format
 	/* I guess this is a good parser */
 	PLIST elements = NULL;
 	struct json_context_object_element *element;
-	INDEX idx;
 	size_t n = 0; // character index;
-	PTEXT value;
 	int word;
 	TEXTCHAR c;
 	TEXTCHAR quote = 0;
@@ -225,21 +223,21 @@ LOGICAL json_parse_message( struct json_context_object *format
 	PLINKSTACK context_stack = NULL;
 
 	PLINKQUEUE array_values = NULL;
-	struct array_element *new_array_element;
+	//struct array_element *new_array_element;
 
 	LOGICAL first_token = TRUE;
-	enum json_parse_state state;
+	//enum json_parse_state state;
 
 	int parse_context = CONTEXT_UNKNOWN;
 	struct json_value_container val;
 
 	POINTER msg_output;
 	if( !_msg_output )
-      return FALSE;
+		return FALSE;
 	msg_output = (*_msg_output);
-   if( !msg_output )
+	if( !msg_output )
 		msg_output = (*_msg_output)
-         = NewArray( _8, format->object_size );
+		           = NewArray( _8, format->object_size );
 
 
 	val.result_value = 0;

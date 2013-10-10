@@ -457,7 +457,7 @@ void DumpFontCache( void )
 		for( idx = 0; idx < fg.nFonts; idx++ )
 		{
 			PFONT_ENTRY pfe;
-			int s;
+			_32 s;
 			PFONT_STYLE pfs;
 			pfe = fg.pFontCache + idx;
 			if( pfe->flags.unusable )
@@ -465,11 +465,11 @@ void DumpFontCache( void )
 			for( s = 0; s < pfe->nStyles; s++ )
 			{
 				PSHORT_SIZE_FILE file;
-				int f;
+				_32 f;
 				pfs = ((PFONT_STYLE)pfe->styles) + s;
 				for( f = 0; f < pfs->nFiles; f++ )
 				{
-					int sz;
+					_32 sz;
 					file = ((PSHORT_SIZE_FILE)pfs->files) + f;
 					for( sz = 0; sz < file->nSizes; sz++ )
 					{
@@ -490,7 +490,7 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 	TEXTSTR temp_filename = NULL;
 	TEXTSTR font_style;
 	LOGICAL style_set = FALSE;
-	int temp_filename_len = 0;
+	size_t temp_filename_len = 0;
 	PTRSZVAL size = 0;
 	LOGICAL logged_error;
 	if( !font_memory )
@@ -538,14 +538,14 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 		{
 			PFONT_ENTRY pfe;
 			PFONT_STYLE pfs;
-			int s;
+			_32 s;
 			pfe = fg.pFontCache + idx;
 			if( pfe->flags.unusable )
 				continue;
 			for( s = 0; s < pfe->nStyles; s++ )
 			{
 				PSHORT_SIZE_FILE file;
-				int f;
+				_32 f;
 				pfs = ((PFONT_STYLE)pfe->styles) + s;
 				for( f = 0; f < pfs->nFiles; f++ )
 				{

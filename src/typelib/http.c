@@ -668,7 +668,6 @@ static LOGICAL InvokeMethod( PCLIENT pc, struct HttpServer *server, struct HttpS
 	PTEXT request = TextParse( pHttpState->response_status, WIDE( "?#" ), WIDE( " " ), 1, 1 DBG_SRC );
 	if( TextLike( request, WIDE( "get" ) ) || TextLike( request, WIDE( "post" ) ) )
 	{
-		CTEXTSTR name;
 		PCLASSROOT data = NULL;
 		//lprintf( "is a get or post? ");
 		{
