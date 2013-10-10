@@ -1093,7 +1093,7 @@ int RegisterWindows( void )
                           | CF_EFFECTS
                           | CF_INITTOLOGFONTSTRUCT ;
       cfDefaultFont.rgbColors = RGB( 0, 0, 0 );
-      cfDefaultFont.lpszStyle = (LPSTR)NULL;
+      cfDefaultFont.lpszStyle = NULL;
       cfDefaultFont.nFontType = SCREEN_FONTTYPE;
    }
    hPenNormal = CreatePen( PS_SOLID, 0, GetSysColor( COLOR_3DFACE ) );
@@ -1125,12 +1125,12 @@ void UnregisterWindows( void )
 	if( aClassFrame )
 	{
 		UnregisterClass( (TEXTCHAR*)aClassFrame, hInstMe );
-      aClassFrame = NULL;
+      aClassFrame = 0;
 	}
 	if( aClassChild )
 	{
 		UnregisterClass( (TEXTCHAR*)aClassChild, hInstMe );
-      aClassChild = NULL;
+      aClassChild = 0;
 	}
 	if( hChildMenu )
 	{
@@ -1166,7 +1166,6 @@ int UpdateStatusBar( PSENTIENT ps, PTEXT parameters )
 //void CPROC WinconPrompt( PCONSOLE_INFO pdp )
 void CPROC WinconPrompt( PDATAPATH pdp )
 {
-   PCONSOLE_INFO pmdp = (PCONSOLE_INFO)pdp;
    //lprintf( WIDE("rendering command line - had a prompt issued...") );
     //RenderCommandLine( (PCONSOLE_INFO)pdp );
 #ifdef __DEKWARE_PLUGIN__
