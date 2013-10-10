@@ -42,7 +42,8 @@ int write_ascii( FILE *input )
 
 int write_unicode( FILE *input )
 {
-   fseek( input, 0, SEEK_SET );
+	fseek( input, 0, SEEK_SET );
+   fwrite( "\xFEFF", 1, 2, input );
    fwrite( l.wchar_buffer, 1, l.wchar_buffer_len, input );
    return 0;
 }
@@ -117,19 +118,18 @@ void ascii_to_unicode( void )
 SaneWinMain( argc, argv )
 {
 	FILE *input;
-	if( argc > 1 )
+	if( argc > 2 )
 	{
-		input = fopen( CStrDup( argv[1] ), "rb+" );
+		input = sack_fopen( 0, argv[0], "rb+" );
 		if( input )
 		{
-			if( 1 )
+			if( StrCaseCmp( argv[1], "u", 1 ) == 0 )
 			{
 				read_ascii( input );
 				ascii_to_unicode();
 				write_unicode( input );
 			}
-
-			if( 0 )
+         else
 			{
 				read_unicode( input );
 				unicode_to_ascii();
@@ -137,6 +137,13 @@ SaneWinMain( argc, argv )
 			}
 			fclose( input );
 		}
+	}
+	else
+	{
+		printf( "Usage: %s [u/a] [filename]\n", argv[0] );
+		printf( "  u or a is unicode or ascii mode; unicode translates from ascii to unicode\n" );
+		printf( "  ascii translates from unicode to ascii\n" );
+      printf( "  file will be written back in-place\n" );
 	}
 	return 0;
 }
