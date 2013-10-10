@@ -39,7 +39,7 @@ void ChooseColorDest( PBUBBLE bubble )
 	{
 		bubble->base = bubble->dest;
 		bubble->step = 0;
-		bubble->length = ( rand() * 12L / RAND_MAX ) + 1;
+		bubble->length = ( rand() * 50L / RAND_MAX ) + 1;
 		bubble->dest = AColor( rand() * 256 / RAND_MAX
 									, rand() * 256 / RAND_MAX
 									, rand() * 256 / RAND_MAX
@@ -58,13 +58,13 @@ void MoveBubbles( void )
 	{
       bubble->x += bubble->delx;
 		bubble->y += bubble->dely;
-		if( !bubble->delx || bubble->x > l.w )
+		if( !bubble->delx || (bubble->x > (int)l.w) )
          bubble->delx = -((rand() * 12 / RAND_MAX)+1);
-		if( !bubble->dely || bubble->y > l.h )
+		if( !bubble->dely || (bubble->y > (int)l.h) )
          bubble->dely = -((rand() * 12 / RAND_MAX)+1);
-		if( bubble->x < 0 )
-         bubble->delx = ((rand() * 12 / RAND_MAX)+1);
-		if( bubble->y < 0 )
+		if( bubble->x < -150 )
+			bubble->delx = ((rand() * 12 / RAND_MAX)+1);
+		if( bubble->y < -150 )
 			bubble->dely = ((rand() * 12 / RAND_MAX)+1);
 
 	}
@@ -111,10 +111,9 @@ void CPROC Ticker( PTRSZVAL psv )
 SaneWinMain( argc, argv )
 {
 	int x, y, w, h;
-	x = argc > 1?atoi(argv[1]):0;
-	y = argc > 2?atoi(argv[2]):0;
-	w = argc > 3?atoi(argv[3]):0;
-	h = argc > 4?atoi(argv[4]):0;
+	if( argc > 1 )
+		GetDisplaySizeEx( atoi( argv[1] ), &x, &y, &w, &h );
+
 	l.shadow = LoadImageFile( WIDE("117.png") );
 	l.cover = LoadImageFile( WIDE("123.png") );
 	l.shaded = LoadImageFile( WIDE("121.png") );
@@ -129,6 +128,7 @@ SaneWinMain( argc, argv )
 		SetRedrawHandler( l.render, UpdateImage, 0 );
 		MakeTopmost( l.render );
 		UpdateDisplay( l.render );
+		MakeTopmost( l.render );
 		{
 			int n;
 			int x;
