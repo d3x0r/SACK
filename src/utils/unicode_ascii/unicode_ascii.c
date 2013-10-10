@@ -120,10 +120,10 @@ SaneWinMain( argc, argv )
 	FILE *input;
 	if( argc > 2 )
 	{
-		input = sack_fopen( 0, argv[0], "rb+" );
+		input = sack_fopen( 0, argv[2], WIDE("rb+") );
 		if( input )
 		{
-			if( StrCaseCmp( argv[1], "u", 1 ) == 0 )
+			if( StrCaseCmpEx( argv[1], WIDE("u"), 1 ) == 0 )
 			{
 				read_ascii( input );
 				ascii_to_unicode();
@@ -140,10 +140,10 @@ SaneWinMain( argc, argv )
 	}
 	else
 	{
-		printf( "Usage: %s [u/a] [filename]\n", argv[0] );
-		printf( "  u or a is unicode or ascii mode; unicode translates from ascii to unicode\n" );
-		printf( "  ascii translates from unicode to ascii\n" );
-      printf( "  file will be written back in-place\n" );
+		printf( WIDE("Usage: %s [u/a] [filename]\n"), argv[0] );
+		printf( WIDE("  u or a is unicode or ascii mode; unicode translates from ascii to unicode\n") );
+		printf( WIDE("  ascii translates from unicode to ascii\n") );
+		printf( WIDE("  file will be written back in-place\n") );
 	}
 	return 0;
 }
