@@ -1156,7 +1156,7 @@ int CountLinesSpanned( _32 cols, PTEXT countseg )
 			// part of this segment has already been skipped.
 			// ComputeNextOffset can do this.
 			if( nLen & 0x80000000)
-				lprintf( "Inverted Segment : %d", nLen );
+				lprintf( WIDE("Inverted Segment : %d"), nLen );
 			else
 			{
 				if( nShown > nLen )
