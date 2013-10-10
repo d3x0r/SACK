@@ -418,6 +418,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 														 , int bCreate, int bIKnowItDoesntExist DBG_PASS )
 {
 	static const TEXTCHAR *_program = NULL;
+	static size_t _program_length = 0;
 	const TEXTCHAR *program = NULL;
 	static const TEXTCHAR *_system = NULL;
 	const TEXTCHAR *system = NULL;
@@ -427,11 +428,11 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 
 	if( og.flags.bUseProgramDefault )
 	{
+		if( !_program )
+         _program_length = StrLen( _program = GetProgramName() );
 		if( ( StrCaseCmp( file, DEFAULT_PUBLIC_KEY ) != 0 )
-			|| ( StrCaseCmp( pBranch, GetProgramName() ) != 0 ) )
+			|| ( StrCaseCmpEx( pBranch, _program, _program_length ) != 0 ) )
 		{
-			if( !_program )
-				_program = GetProgramName();
          program = file;
 			file = _program;
 		}
