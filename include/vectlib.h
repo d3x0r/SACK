@@ -201,7 +201,11 @@ struct orthoarea_tag {
 #ifndef M_PI
 /* symbol to define a double precision value for PI if it
    doesn't exist in the compiler.                         */
-#define M_PI (3.1415926535)
+#ifdef MAKE_RCOORD_SINGLE
+#  define M_PI (3.1415926535f)
+#else
+#  define M_PI (3.1415926535)
+#endif
 #endif
 
 /* a hard coded define that represents a 5 degree angle in
