@@ -11,10 +11,8 @@ set(BASE_SOURCES
     ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_program(${project} ${BASE_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${project} )
+add_program(${project} WIN32 ${BASE_SOURCES} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
-                  COMPILE_DEFINITIONS  "TARGET_LABEL=${TARGET_LABEL}"
                   FOLDER tests/PSI
 )
 target_link_libraries( ${project} ${SACK_LIBRARIES})

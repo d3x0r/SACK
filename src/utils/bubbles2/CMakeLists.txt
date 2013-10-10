@@ -7,7 +7,7 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_program(${project} ${BASE_SOURCES} )
+add_program(${project} WIN32 ${BASE_SOURCES} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER utils
 )

@@ -1,9 +1,8 @@
 
 #include <psi/clock.h>
 
-int main( int argc, char **argv )
+SaneWinMain( argc, argv )
 {
-
 	PSI_CONTROL frame;
 	PSI_CONTROL clock;
 	if( argc > 1 )
@@ -15,12 +14,11 @@ int main( int argc, char **argv )
 		SetCommonText( frame, WIDE("CLock Test Widet") );
 	SetCommonText( clock, WIDE("CLock Test Widet") );
    if( !frame )
-   SetCommonBorder( clock,BORDER_RESIZABLE|BORDER_NORMAL );
+		SetCommonBorder( clock,BORDER_RESIZABLE|BORDER_NORMAL );
 	DisplayFrame( frame?frame:clock );
    MakeClockAnalog( clock );
 	while( 1 )
       WakeableSleep( 1000 );
 
 }
-
-
+EndSaneWinMain()
