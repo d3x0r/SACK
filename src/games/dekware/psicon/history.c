@@ -21,7 +21,7 @@ PHISTORYBLOCK DestroyRawHistoryBlock( PHISTORYBLOCK pHistory )
 	{
 		if( pHistory->pLines[i].pLine == (PTEXT)0xFeeefeee )
 		{
-			lprintf( "a deleted line is in history %d", i );
+			lprintf( WIDE("a deleted line is in history %d"), i );
 		}
 		LineRelease( pHistory->pLines[i].pLine );
 	}
@@ -484,7 +484,7 @@ PTEXTLINE PutSegmentOut( PHISTORY_LINE_CURSOR phc
 		CreateHistoryBlock( &phc->region->pHistory.root );
 
 	if( GetTextSize( segment ) & 0x80000000)
-		lprintf( "(original input)Inverted Segment : %d", GetTextSize( segment ) );
+		lprintf( WIDE("(original input)Inverted Segment : %d"), GetTextSize( segment ) );
 
 	//lprintf( WIDE("Okay after much layering... need to fix some....") );
    //lprintf( WIDE("Put a segment out!") );
@@ -557,7 +557,7 @@ PTEXTLINE PutSegmentOut( PHISTORY_LINE_CURSOR phc
    }
 
 			if( GetTextSize( text ) & 0x80000000)
-				lprintf( "(After processing) Inverted Segment : %d", GetTextSize( text ) );
+				lprintf( WIDE("(After processing) Inverted Segment : %d"), GetTextSize( text ) );
    // expects 'text' to be the start of the correct segment.
    if( segment->flags & TF_FORMATEX )
 	{
@@ -1639,7 +1639,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 					nLen = GetTextSize( pText );
 
 					if( nLen & 0x80000000)
-						lprintf( "Inverted Segment : %d %p %p", nLen, NEXTLINE( pText ), PRIORLINE( pText ) );
+						lprintf( WIDE("Inverted Segment : %d %p %p"), nLen, NEXTLINE( pText ), PRIORLINE( pText ) );
 					else
 					{
 						// shown - show part of this segment... but not the whole segment...
