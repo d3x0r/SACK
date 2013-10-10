@@ -1,3 +1,7 @@
+#ifdef __cplusplus
+#include <btBulletDynamicsCommon.h>
+#include "../Demos/OpenGL/GlDebugDrawer.h"
+#endif
 
 #define NO_FILEOP_ALIAS
 #include <stdhdrs.h>
@@ -8,10 +12,6 @@
 #include <render3d.h>
 
 
-#ifdef __cplusplus
-#include <btBulletDynamicsCommon.h>
-#include "../Demos/OpenGL/GlDebugDrawer.h"
-#endif
 
 #include <GL/gl.h>
 #include <GL/glu.h>

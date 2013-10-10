@@ -19,13 +19,13 @@ RAGDOLL_NAMESPACE
 }       
 
 
-static void OnDraw3d( "Ragdoll Physics" )( PTRSZVAL psv )
+static void OnDraw3d( WIDE("Ragdoll Physics") )( PTRSZVAL psv )
 {
 
 	l.bullet.dynamicsWorld->debugDrawWorld();
 }
 
-static void OnBeginDraw3d( "Ragdoll Physics" )( PTRSZVAL psv, PTRANSFORM camera )
+static void OnBeginDraw3d( WIDE("Ragdoll Physics") )( PTRSZVAL psv, PTRANSFORM camera )
 {
 	//ClearTransform( camera );
 	//MoveForward( camera, -20 );
@@ -34,7 +34,7 @@ static void OnBeginDraw3d( "Ragdoll Physics" )( PTRSZVAL psv, PTRANSFORM camera 
 	
 }
 
-static PTRSZVAL OnInit3d( "Ragdoll physics" )( PMatrix projection, PTRANSFORM camera, RCOORD *unit_distance, RCOORD *aspect )
+static PTRSZVAL OnInit3d( WIDE("Ragdoll physics") )( PMatrix projection, PTRANSFORM camera, RCOORD *unit_distance, RCOORD *aspect )
 {
 	if( !l.origin )
 	{

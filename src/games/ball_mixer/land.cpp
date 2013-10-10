@@ -45,6 +45,7 @@
  *
  */
 
+#include <btBulletDynamicsCommon.h>
 #define NO_FILEOP_ALIAS
 #include <stdhdrs.h>
 #define USE_RENDER_INTERFACE l.pri
@@ -60,7 +61,6 @@
 #include <sharemem.h>
 #include <psi.h>
 
-#include <btBulletDynamicsCommon.h>
 
 #include <GL/glew.h>
 #include <GL/gl.h>
@@ -901,7 +901,7 @@ int DrawSphereThing( PHEXPATCH patch, int mode )
 		RCOORD target1 = 40;
 		RCOORD target2 = 540;
 		RCOORD real_factor = (target1 * scale + target2 * (1.0-scale));
-		lprintf( "scale is %g   %g", scale, real_factor );
+		lprintf( WIDE("scale is %g   %g"), scale, real_factor );
 
 		glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 		glPushMatrix();
@@ -1823,8 +1823,8 @@ static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFO
 	l.numbers.image = LoadImageFile( l.numbers.image_name );
 	l.numbers.bump_image = LoadImageFile( l.numbers.bump_image_name );
 	ParseImage( l.numbers.image, l.hex_size						
-		, SACK_GetPrivateProfileInt( "Ball Animation", "Ball Numbers Rows", 11, "flashdrive.ini" ) 
-		, SACK_GetPrivateProfileInt( "Ball Animation", "Ball Numbers Cols", 10, "flashdrive.ini" ) 
+		, SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Ball Numbers Rows"), 11 )
+		, SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Ball Numbers Cols"), 10 )
 		);
 
 	l.logo = LoadImageFile( l.logo_name );
@@ -2045,8 +2045,8 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 				
 					l.hex_size = l.hex_size + 1;
 					ParseImage( l.numbers.image, l.hex_size
-						, SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("Ball Numbers Rows"), 11, WIDE("flashdrive.ini") ) 
-						, SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("Ball Numbers Cols"), 10, WIDE("flashdrive.ini") ) 
+						, SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Ball Numbers Rows"), 11 ) 
+						, SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Ball Numbers Cols"), 10 ) 
 						);
 						{
 							INDEX idx;
@@ -2072,8 +2072,8 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvInit )
 					{
 						l.hex_size = l.hex_size / 2;
 						ParseImage( l.numbers.image, l.hex_size
-							, SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("Ball Numbers Rows"), 11, WIDE("flashdrive.ini") ) 
-							, SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("Ball Numbers Cols"), 10, WIDE("flashdrive.ini") ) 
+							, SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Ball Numbers Rows"), 11 ) 
+							, SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Ball Numbers Cols"), 10 ) 
 							);
 						{
 							INDEX idx;
@@ -2749,7 +2749,7 @@ PRELOAD( InitDisplay )
 	//PopulateBulletTest( &l.bullet );
 	//TestPopulatedBullet( &l.bullet );
 
-	if( SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("Enable Demo Mode"), 1, WIDE("flashdrive.ini") ) )
+	if( SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Enable Demo Mode"), 1 ) )
 	{
 		AddTimer( 100, tick, 0 );
 	}
@@ -2759,60 +2759,60 @@ PRELOAD( InitDisplay )
 	//l.active_ball = 20;
 	//l.active_ball_forward_tick = timeGetTime();
 	
-	l.time_to_home = SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("time to home position"), 750, WIDE("flashdrive.ini") );
+	l.time_to_home = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("time to home position"), 750 );
 	l.time_to_home = 4000;
-	l.time_to_track = SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("time to track ball"), 1500, WIDE("flashdrive.ini") );
-	l.time_to_rack = SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("time to rack ball"), 1800, WIDE("flashdrive.ini") );
-	l.time_to_approach = SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("time to approach ball"), 1500, WIDE("flashdrive.ini") );
-	l.time_to_turn_ball = SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("time to turn ball"), 800, WIDE("flashdrive.ini") );
-   l.time_to_watch_ball = SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("time to watch ball"), 4000, WIDE("flashdrive.ini") );
+	l.time_to_track = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("time to track ball"), 1500 );
+	l.time_to_rack = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("time to rack ball"), 1800 );
+	l.time_to_approach = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("time to approach ball"), 1500 );
+	l.time_to_turn_ball = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("time to turn ball"), 800 );
+   l.time_to_watch_ball = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("time to watch ball"), 4000 );
 
 		 
-	l.demo_time_wait_after_drop  = SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("Demo Mode/time to pick first ball"), 12000, WIDE("flashdrive.ini") );
+	l.demo_time_wait_after_drop  = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Demo Mode/time to pick first ball"), 12000 );
    // this also is time to watch, time to approach plus some time.
-	l.demo_time_wait_turn = SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("Demo Mode/time to wait on back"), 3200, WIDE("flashdrive.ini") );
-	l.demo_time_wait_front = SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("Demo Mode/time to wait on front"), 5000, WIDE("flashdrive.ini") );
-	l.demo_time_to_pick_ball = SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("Demo Mode/time to pick a new ball"), 7000, WIDE("flashdrive.ini") );
+	l.demo_time_wait_turn = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Demo Mode/time to wait on back"), 3200 );
+	l.demo_time_wait_front = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Demo Mode/time to wait on front"), 5000 );
+	l.demo_time_to_pick_ball = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Demo Mode/time to pick a new ball"), 7000 );
 
 
-	l.flags.nextball_mode = SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("Display as Nextball mode"), 0, WIDE("flashdrive.ini") );
+	l.flags.nextball_mode = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Display as Nextball mode"), 0 );
 	if( !l.flags.nextball_mode )
-		l.show_ball_time = SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("Show Ball For How long"), 8000, WIDE("flashdrive.ini") );
+		l.show_ball_time = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Show Ball For How long"), 8000 );
 	else
-		l.show_back_time = SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("Show Ball back For How long"), 2000, WIDE("flashdrive.ini") );
+		l.show_back_time = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Show Ball back For How long"), 2000 );
 
-	l.fade_duration = SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("Called balls fade in how long"), 1300, WIDE("flashdrive.ini") );
-	l.hex_size = SACK_GetPrivateProfileInt( WIDE("Ball Animation"), WIDE("Ball Resolution"), 9, WIDE("flashdrive.ini") );
-	SACK_GetPrivateProfileString( WIDE("Ball Animation"), WIDE("Images/Player Appreciation"), WIDE("Images/balls/PlayerBall.png"), name, 256, WIDE("flashdrive.ini") );
+	l.fade_duration = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Called balls fade in how long"), 1300 );
+	l.hex_size = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Ball Resolution"), 9 );
+	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Player Appreciation"), WIDE("Images/balls/PlayerBall.png"), name, 256 );
 	l.player_image = LoadImageFile( name );
-	SACK_GetPrivateProfileString( WIDE("Ball Animation"), WIDE("Images/Wild Ball"), WIDE("Images/balls/wild.png"), name, 256, WIDE("flashdrive.ini") );
+	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Wild Ball"), WIDE("Images/balls/wild.png"), name, 256 );
 	l.wild_image = LoadImageFile( name );
-	SACK_GetPrivateProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 1"), WIDE("Images/balls/hotballtext.png"), name, 256, WIDE("flashdrive.ini") );
+	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 1"), WIDE("Images/balls/hotballtext.png"), name, 256 );
 	l.hotball_image[0] = LoadImageFile( name );
-	SACK_GetPrivateProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 2"), WIDE("Images/balls/troll.png"), name, 256, WIDE("flashdrive.ini") );
+	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 2"), WIDE("Images/balls/troll.png"), name, 256 );
 	l.hotball_image[1] = LoadImageFile( name );
-	SACK_GetPrivateProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 3"), WIDE("Images/balls/hotballtext.png"), name, 256, WIDE("flashdrive.ini") );
+	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 3"), WIDE("Images/balls/hotballtext.png"), name, 256 );
 	l.hotball_image[2] = LoadImageFile( name );
-	SACK_GetPrivateProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 4"), WIDE("Images/balls/hotballtext.png"), name, 256, WIDE("flashdrive.ini") );
+	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 4"), WIDE("Images/balls/hotballtext.png"), name, 256 );
 	l.hotball_image[3] = LoadImageFile( name );
-	SACK_GetPrivateProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 5"), WIDE("Images/balls/hotballtext.png"), name, 256, WIDE("flashdrive.ini") );
+	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 5"), WIDE("Images/balls/hotballtext.png"), name, 256 );
 	l.hotball_image[4] = LoadImageFile( name );
-	SACK_GetPrivateProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 6"), WIDE("Images/balls/hotballtext.png"), name, 256, WIDE("flashdrive.ini") );
+	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 6"), WIDE("Images/balls/hotballtext.png"), name, 256 );
 	l.hotball_image[5] = LoadImageFile( name );
-	SACK_GetPrivateProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 7"), WIDE("Images/balls/hotballtext.png"), name, 256, WIDE("flashdrive.ini") );
+	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 7"), WIDE("Images/balls/hotballtext.png"), name, 256 );
 	l.hotball_image[6] = LoadImageFile( name );
-	SACK_GetPrivateProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 8"), WIDE("Images/balls/hotballtext.png"), name, 256, WIDE("flashdrive.ini") );
+	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 8"), WIDE("Images/balls/hotballtext.png"), name, 256 );
 	l.hotball_image[7] = LoadImageFile( name );
-	SACK_GetPrivateProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 9"), WIDE("Images/balls/hotballtext.png"), name, 256, WIDE("flashdrive.ini") );
+	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 9"), WIDE("Images/balls/hotballtext.png"), name, 256 );
 	l.hotball_image[8] = LoadImageFile( name );
-	SACK_GetPrivateProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 10"), WIDE("Images/balls/hotballtext.png"), name, 256, WIDE("flashdrive.ini") );
+	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 10"), WIDE("Images/balls/hotballtext.png"), name, 256 );
 	l.hotball_image[9] = LoadImageFile( name );
-	SACK_GetPrivateProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 11"), WIDE("Images/balls/hotballtext.png"), name, 256, WIDE("flashdrive.ini") );
+	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 11"), WIDE("Images/balls/hotballtext.png"), name, 256 );
 	l.hotball_image[10] = LoadImageFile( name );
 
-	SACK_GetPrivateProfileString( WIDE("Ball Animation"), WIDE("Images/Ball Logo"), WIDE("Images/balls/bingostarlogo.png"), l.logo_name, 256, WIDE("flashdrive.ini") );
-	SACK_GetPrivateProfileString( WIDE("Ball Animation"), WIDE("Images/Ball Numbers"), WIDE("Images/balls/NewBallTextGrid.png"), l.numbers.image_name, 256, WIDE("flashdrive.ini") );
-	SACK_GetPrivateProfileString( WIDE("Ball Animation"), WIDE("Images/Ball Numbers Normal"), WIDE("Images/balls/roughbump.png"), l.numbers.bump_image_name, 256, WIDE("flashdrive.ini") );
+	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Ball Logo"), WIDE("Images/balls/bingostarlogo.png"), l.logo_name, 256 );
+	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Ball Numbers"), WIDE("Images/balls/NewBallTextGrid.png"), l.numbers.image_name, 256 );
+	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Ball Numbers Normal"), WIDE("Images/balls/roughbump.png"), l.numbers.bump_image_name, 256 );
 
 
 	InitializeCriticalSec( &csUpdate );
