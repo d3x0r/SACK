@@ -299,7 +299,7 @@ void LoadPlugins( CTEXTSTR base )
    pInfo = NULL;
    // this *.nex is ignored except in windows pattern search support...
 #ifndef __ANDROID__
-   GetCurrentPath( savepath, savepath );
+   GetCurrentPath( savepath, 256 );
    SetCurrentPath( base );
 #endif
 
@@ -901,9 +901,9 @@ CORE_PROC( void,  UnregisterObject )( TEXTCHAR *pName )
 
 //--------------------------------------------------------------------------
 
-CORE_PROC( void, RegisterObjectEx )( TEXTCHAR *pName
-											  , TEXTCHAR *pDescription
-											  , int (CPROC *Init)( PSENTIENT ps, PENTITY pe, PTEXT parameters )
+CORE_PROC( void, RegisterObjectEx )( CTEXTSTR pName
+											  , CTEXTSTR pDescription
+											  , ObjectInit Init
 												DBG_PASS )
 {
    // should confirm the names... and delete duplicates...
