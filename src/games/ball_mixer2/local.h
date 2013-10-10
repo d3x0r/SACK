@@ -1,3 +1,5 @@
+// bullet instance is defined in l....
+#include <btBulletDynamicsCommon.h>
 
 #define MAKE_RCOORD_SINGLE
 #include <render.h>
@@ -14,7 +16,7 @@
 #define CheckErr()  				{    \
 					GLenum err = glGetError();  \
 					if( err )                   \
-						lprintf( "err=%d",err ); \
+						lprintf( WIDE("err=%d"),err ); \
 				}                               \
 
 struct BulletInfo

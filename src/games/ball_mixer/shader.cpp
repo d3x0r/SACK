@@ -1,3 +1,5 @@
+#include <btBulletDynamicsCommon.h>
+
 #define NO_FILEOP_ALIAS
 #include <stdhdrs.h>
 #define USE_RENDER_INTERFACE l.pri
@@ -12,7 +14,6 @@
 #include <sharemem.h>
 #include <psi.h>
 
-#include <btBulletDynamicsCommon.h>
 
 #include <GL/glew.h>
 #include <GL/gl.h>
@@ -261,7 +262,7 @@ void InitShader( void )
 				GLsizei final;
 				char *buffer;
 				//We failed to compile.
-				lprintf("Vertex shader 'program A' failed compilation.\n");
+				lprintf(WIDE("Vertex shader 'program A' failed compilation.\n"));
 				//Attempt to get the length of our error log.
 				glGetObjectParameterivARB(l.shader.simple_shader.vert_shader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
 				buffer = NewArray( char, length );
@@ -270,13 +271,13 @@ void InitShader( void )
 				//Used to get the final length of the log.
 				glGetInfoLogARB(l.shader.simple_shader.vert_shader, length, &final, buffer);
 				//Convert our buffer into a string.
-				lprintf( "message: %s", buffer );
+				lprintf( WIDE("message: %s"), buffer );
 
 
 				if (final > length)
 				{
 					//The buffer does not contain all the shader log information.
-					printf("Shader Log contained more information!\n");
+					printf(WIDE("Shader Log contained more information!\n"));
 				}
 		
 			}
@@ -302,7 +303,7 @@ void InitShader( void )
 				GLsizei final;
 				char *buffer;
 				//We failed to compile.
-				lprintf("Vertex shader 'program B' failed compilation.\n");
+				lprintf(WIDE("Vertex shader 'program B' failed compilation.\n"));
 				//Attempt to get the length of our error log.
 				glGetObjectParameterivARB(l.shader.simple_shader.frag_shader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
 				buffer = NewArray( char, length );
@@ -311,13 +312,13 @@ void InitShader( void )
 				//Used to get the final length of the log.
 				glGetInfoLogARB(l.shader.simple_shader.frag_shader, length, &final, buffer);
 				//Convert our buffer into a string.
-				lprintf( "message: %s", buffer );
+				lprintf( WIDE("message: %s"), buffer );
 
 
 				if (final > length)
 				{
 					//The buffer does not contain all the shader log information.
-					printf("Shader Log contained more information!\n");
+					printf(WIDE("Shader Log contained more information!\n"));
 				}
 		
 			}
@@ -414,7 +415,7 @@ void InitShader( void )
 				GLsizei final;
 				char *buffer;
 				//We failed to compile.
-				lprintf("Vertex shader 'program A' failed compilation.\n");
+				lprintf(WIDE("Vertex shader 'program A' failed compilation.\n"));
 				//Attempt to get the length of our error log.
 				glGetObjectParameterivARB(l.shader.normal_shader.vert_shader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
 				buffer = NewArray( char, length );
@@ -423,13 +424,13 @@ void InitShader( void )
 				//Used to get the final length of the log.
 				glGetInfoLogARB(l.shader.normal_shader.vert_shader, length, &final, buffer);
 				//Convert our buffer into a string.
-				lprintf( "message: %s", buffer );
+				lprintf( WIDE("message: %s"), buffer );
 
 
 				if (final > length)
 				{
 					//The buffer does not contain all the shader log information.
-					printf("Shader Log contained more information!\n");
+					printf(WIDE("Shader Log contained more information!\n"));
 				}
 		
 			}
@@ -455,7 +456,7 @@ void InitShader( void )
 				GLsizei final;
 				char *buffer;
 				//We failed to compile.
-				lprintf("Vertex shader 'program B' failed compilation.\n");
+				lprintf(WIDE("Vertex shader 'program B' failed compilation.\n"));
 				//Attempt to get the length of our error log.
 				glGetObjectParameterivARB(fragmentHandle, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
 				buffer = NewArray( char, length );
@@ -464,13 +465,13 @@ void InitShader( void )
 				//Used to get the final length of the log.
 				glGetInfoLogARB(fragmentHandle, length, &final, buffer);
 				//Convert our buffer into a string.
-				lprintf( "message: %s", buffer );
+				lprintf( WIDE("message: %s"), buffer );
 
 
 				if (final > length)
 				{
 					//The buffer does not contain all the shader log information.
-					printf("Shader Log contained more information!\n");
+					printf(WIDE("Shader Log contained more information!\n"));
 				}
 		
 			}

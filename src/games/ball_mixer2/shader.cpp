@@ -1,3 +1,5 @@
+#include <btBulletDynamicsCommon.h>
+
 #define NO_FILEOP_ALIAS
 #include <stdhdrs.h>
 #define USE_RENDER_INTERFACE l.pri
@@ -13,7 +15,6 @@
 #include <sharemem.h>
 #include <psi.h>
 
-#include <btBulletDynamicsCommon.h>
 
 #ifdef __ANDROID__
 #include <GLES/gl.h>
@@ -32,24 +33,24 @@
 
 
 //const char *gles_
-const CTEXTSTR gles_simple_v_shader =
-    WIDE( "attribute vec4 vPosition;" )
-	WIDE( "attribute vec4 in_Color;" )
-	WIDE( "uniform mat4 modelView;\n" )
-	WIDE( "uniform mat4 worldView;\n" )
-	WIDE( "uniform mat4 Projection;\n" )
-	WIDE( " varying vec4 vColor;" )
-    WIDE("void main() {" )
-    WIDE("  gl_Position = Projection * worldView * modelView * vPosition;" )
-	WIDE( " vColor = in_Color;" )
-    WIDE("}"); 
+const char *gles_simple_v_shader =
+     "attribute vec4 vPosition;" 
+	 "attribute vec4 in_Color;" 
+	 "uniform mat4 modelView;\n" 
+	 "uniform mat4 worldView;\n" 
+	 "uniform mat4 Projection;\n" 
+	 " varying vec4 vColor;" 
+    "void main() {" 
+    "  gl_Position = Projection * worldView * modelView * vPosition;" 
+	 " vColor = in_Color;" 
+    "}"; 
 
-const CTEXTSTR gles_simple_p_shader =
-    WIDE( "precision mediump float;" )
-	WIDE( " varying vec4 vColor;" )
-    WIDE( "void main() {" )
-    WIDE( "  gl_FragColor = vColor;" )
-    WIDE( "}" );
+const char *gles_simple_p_shader =
+     "precision mediump float;" 
+	 " varying vec4 vColor;" 
+     "void main() {" 
+     "  gl_FragColor = vColor;" 
+     "}" ;
 
 void CPROC EnableSuperSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv, va_list args )
 {
@@ -722,7 +723,7 @@ void RenderBumpTextureFragment( Image texture
 		{
 			SetShader = TRUE;
 			SetLights();
-			lprintf( "Use program" );
+			lprintf( WIDE("Use program") );
 			glUseProgram( l.shader.normal_shader.shader);
 
 			glVertexAttrib4fv((GLuint)2, background); // set constant color attribute
@@ -757,7 +758,7 @@ void RenderBumpTextureFragment( Image texture
 	{
 		SetShader = TRUE;
 
-		//lprintf( "Use program" );
+		//lprintf( WIDE("Use program") );
 		glUseProgram( l.shader.simple_shader.shader );
 		glUniform4fv( l.shader.simple_shader.material.ambient, 1, background );
 		//glUniform4fv( l.shader.simple_shader.material.diffuse, 1, background );
@@ -773,7 +774,7 @@ void RenderBumpTextureFragment( Image texture
 
 	if( SetShader )
 	{
-		lprintf( "disable program" );
+		lprintf( WIDE("disable program") );
 	}
 
 	glBindVertexArray(0);
