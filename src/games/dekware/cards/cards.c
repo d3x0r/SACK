@@ -11,29 +11,29 @@
 
 #include <procreg.h>
 #undef StrDup
-#define StrDup(s) SaveNameConcatN( s, NULL ); /*if( strcmp( s, "Table" ) == 0 )DebugBreak();*/
+#define StrDup(s) SaveNameConcatN( s, NULL ); /*if( strcmp( s, WIDE("Table") ) == 0 )DebugBreak();*/
 
 
-static TEXTCHAR *suits[SUITS] = { "H", "C", "D", "S" };
-static TEXTCHAR *suits2[SUITS] = { "h", "c", "d", "s" };
-TEXTCHAR *suitlongnames[SUITS] = { "Hearts", "Clubs", "Diamonds", "Spades" };
+static TEXTCHAR *suits[SUITS] = { WIDE("H"), WIDE("C"), WIDE("D"), WIDE("S") };
+static TEXTCHAR *suits2[SUITS] = { WIDE("h"), WIDE("c"), WIDE("d"), WIDE("s") };
+TEXTCHAR *suitlongnames[SUITS] = { WIDE("Hearts"), WIDE("Clubs"), WIDE("Diamonds"), WIDE("Spades") };
 
 // include A for name of high card ace
 // and 1 for name of low card ace
-static TEXTCHAR *cardnames[14] = { "1", "2", "3"
-                      , "4", "5", "6"
-                      , "7", "8", "9"
-							 , "10", "11", "12", "13", "A" };
+static TEXTCHAR *cardnames[14] = { WIDE("1"), WIDE("2"), WIDE("3")
+                      , WIDE("4"), WIDE("5"), WIDE("6")
+                      , WIDE("7"), WIDE("8"), WIDE("9")
+							 , WIDE("10"), WIDE("11"), WIDE("12"), WIDE("13"), WIDE("A") };
 
-static TEXTCHAR *cardnames_char[14] = { "1", "2", "3"
-                      , "4", "5", "6"
-                      , "7", "8", "9"
-							 , "T", "J", "Q", "K", "A" };
+static TEXTCHAR *cardnames_char[14] = { WIDE("1"), WIDE("2"), WIDE("3")
+                      , WIDE("4"), WIDE("5"), WIDE("6")
+                      , WIDE("7"), WIDE("8"), WIDE("9")
+							 , WIDE("T"), WIDE("J"), WIDE("Q"), WIDE("K"), WIDE("A") };
 
-TEXTCHAR *cardlongnames[14] = { "1", "2", "3"
-                          , "4", "5", "6"
-                          , "7", "8", "9"
-                          , "Ten", "Jack", "Queen", "King", "Ace" };
+TEXTCHAR *cardlongnames[14] = { WIDE("1"), WIDE("2"), WIDE("3")
+                          , WIDE("4"), WIDE("5"), WIDE("6")
+                          , WIDE("7"), WIDE("8"), WIDE("9")
+                          , WIDE("Ten"), WIDE("Jack"), WIDE("Queen"), WIDE("King"), WIDE("Ace") };
 
 static struct {
 	struct {
@@ -51,9 +51,9 @@ PCARD_STACK GetCardStack( PDECK deck, CTEXTSTR name )
 	if( !deck || !name )
 	{
       if( !deck )
-			lprintf( "no deck..." );
+			lprintf( WIDE("no deck...") );
       if( !name )
-			lprintf( "no name..." );
+			lprintf( WIDE("no name...") );
 		return NULL;
 	}
 	LIST_FORALL( deck->card_stacks, idx, PCARD_STACK, stack )
@@ -149,7 +149,7 @@ void InvokeUpdates( PCARD_STACK stack )
 PCARD PickACard( PDECK deck, int ID )
 {
 	// no matter where the card is, this can grab it.
-   //lprintf( "Uhmm %p %p %d", deck, deck->card, ID );
+   //lprintf( WIDE("Uhmm %p %p %d"), deck, deck->card, ID );
 	GrabCard( deck->card + ID );
    return deck->card + ID;
 }
@@ -173,7 +173,7 @@ PDECK CreateDeck( CTEXTSTR card_iter_name, IterateHand iter )
 			}
 		}
 	}
-	//lprintf( "Creating a deck ? %s", card_iter_name );
+	//lprintf( WIDE("Creating a deck ? %s"), card_iter_name );
 	if( !deck )
 	{
 		unsigned int i;
@@ -189,7 +189,7 @@ PDECK CreateDeck( CTEXTSTR card_iter_name, IterateHand iter )
 		// allocate all cards on the draw pile.
 		deck->card = NewArray( CARD, deck->faces * deck->suits );
 		{
-			PCARD_STACK draw = GetCardStack( deck, "Draw" );
+			PCARD_STACK draw = GetCardStack( deck, WIDE("Draw") );
 			for( i = 0; i < deck->faces * deck->suits; i++ )
 			{
 				// create cards, put all in the draw deck.
@@ -234,7 +234,7 @@ CARDS_PROC( PHAND, CreateHand )( PDECK deck )
 CARDS_PROC( void, Discard )( PDECK pDeck, PCARD *pCards )
 {
 	PCARD pLast;
-	PCARD_STACK discard = GetCardStack( pDeck, "Discard" );
+	PCARD_STACK discard = GetCardStack( pDeck, WIDE("Discard") );
 	if( !pCards ) // don't blow up
 		return;
 	if( pCards == &discard->cards ) // might be able to discard from discard to discard... so, don't.
@@ -276,7 +276,7 @@ CARDS_PROC( void, DeckDiscard )( PDECK pDeck, PCARD pCard )
 		return;
 	{
 
-		PCARD_STACK discard = GetCardStack( pDeck, "Discard" );
+		PCARD_STACK discard = GetCardStack( pDeck, WIDE("Discard") );
 		// wth am I doing?
 		GrabCard( pCard );
 		if( ( pCard->next = discard->cards ) )
@@ -378,7 +378,7 @@ void TurnTopCard( PCARD_STACK stack )
 
 void DeckPlayCard( PDECK pDeck, PCARD pCard )
 {
-	PCARD_STACK stack = GetCardStack( pDeck, "Table" );
+	PCARD_STACK stack = GetCardStack( pDeck, WIDE("Table") );
 	if( stack )
 	{
 		MoveCard( &stack->cards, &pCard );
@@ -392,15 +392,15 @@ void HandAdd( PHAND pHand, PCARD pCard )
 {
 	if( !pHand || !pCard )
 		return;
-	if( pCard == GetCardStackFromHand( pHand, "Cards" )->cards )
+	if( pCard == GetCardStackFromHand( pHand, WIDE("Cards") )->cards )
 	{
 		DebugBreak();
-		lprintf( "FATALITY!" );
+		lprintf( WIDE("FATALITY!") );
 	}
-	if( pCard->next = GetCardStackFromHand( pHand, "Cards" )->cards )
+	if( pCard->next = GetCardStackFromHand( pHand, WIDE("Cards") )->cards )
 		pCard->next->me = &pCard->next;
-	pCard->me = &GetCardStackFromHand( pHand, "Cards" )->cards;
-	GetCardStackFromHand( pHand, "Cards" )->cards = pCard;
+	pCard->me = &GetCardStackFromHand( pHand, WIDE("Cards") )->cards;
+	GetCardStackFromHand( pHand, WIDE("Cards") )->cards = pCard;
 }
 
 //---------------------------------------------------------------------
@@ -420,7 +420,7 @@ void DeleteHand( PHAND *ppHand )
             Release( stack );
 			}
 		}
-		InvokeUpdates( GetCardStack( hand->Deck, "Discard" ) );
+		InvokeUpdates( GetCardStack( hand->Deck, WIDE("Discard") ) );
 
 		i = FindLink( &hand->Deck->Hands, hand );
 		SetLink( &hand->Deck->Hands, i, NULL );
@@ -448,7 +448,7 @@ void DeleteDeck( PDECK *ppDeck )
 			Release( deck->card );
 			// already have all cards from all hands...
 			//GatherCards( deck ); // puts them all in the draw stack for easy deletion
-			//for( pc = GetCardStack( deck, "Draw" )->cards; pc; pc= pnext )
+			//for( pc = GetCardStack( deck, WIDE("Draw") )->cards; pc; pc= pnext )
 			//{
 			//	pnext = pc->next;
 			//	Release( pc );
@@ -465,7 +465,7 @@ void GatherCards( PDECK deck )
 	INDEX hand;
 	PCARD pc;
 	PHAND pHand;
-	PCARD_STACK Draw = GetCardStack( deck, "Draw" );
+	PCARD_STACK Draw = GetCardStack( deck, WIDE("Draw") );
 
 	LIST_FORALL( deck->Hands, hand, PHAND, pHand )
 	{
@@ -507,7 +507,7 @@ int CountCards( PHAND ph )
    INDEX count;
    if( !ph )
       return 0;
-   for( count = 0, pc = GetCardStackFromHand( ph, "Cards" )->cards; pc; pc = pc->next, count++ );
+   for( count = 0, pc = GetCardStackFromHand( ph, WIDE("Cards") )->cards; pc; pc = pc->next, count++ );
    return count;
 }
 
@@ -523,27 +523,27 @@ PTEXT ListCards( PHAND ph )
 	if( !ph )
 		return NULL;
 	pvt = VarTextCreate();
-	for( count = 0, pc = GetCardStackFromHand( ph, "Cards" )->cards; pc; pc = pc->next, count++ );
+	for( count = 0, pc = GetCardStackFromHand( ph, WIDE("Cards") )->cards; pc; pc = pc->next, count++ );
 	if( count )
 	{
 		if( !pDeck->flags.bHold )
 		{
-			for( count = 1, pc = GetCardStackFromHand( ph, "Cards" )->cards; pc; pc = pc->next, count++ )
+			for( count = 1, pc = GetCardStackFromHand( ph, WIDE("Cards") )->cards; pc; pc = pc->next, count++ )
 			{
 				int cardval = CARD_NUMBER( pc->id );
 				if( !pDeck->flags.bLowball && !cardval )
 					cardval = 13;
-		      vtprintf( pvt, "%s%s%s", count>1?",":""
+		      vtprintf( pvt, WIDE("%s%s%s"), count>1?WIDE(","):WIDE("")
 				                       , cardnames[cardval]
 					                    , suits2[pc->id/13]);
 			}
 		}
-		else for( count = 1, pc = GetCardStackFromHand( ph, "Cards" )->cards; pc; pc = pc->next, count++ )
+		else for( count = 1, pc = GetCardStackFromHand( ph, WIDE("Cards") )->cards; pc; pc = pc->next, count++ )
 		{
 			int cardval = CARD_NUMBER( pc->id );
 			if( !pDeck->flags.bLowball && !cardval )
 				cardval = 13;
-			vtprintf( pvt, "%s%ld:%s%s", count>1?",":""
+			vtprintf( pvt, WIDE("%s%ld:%s%s"), count>1?WIDE(","):WIDE("")
                                       , count
                                       , cardnames[cardval]
                                       , suits2[pc->id/13]);
@@ -551,7 +551,7 @@ PTEXT ListCards( PHAND ph )
 	}
 	else
 	{
-		vtprintf( pvt, "No cards." );
+		vtprintf( pvt, WIDE("No cards.") );
 	}
 	pt = VarTextGet( pvt );
 	VarTextDestroy( &pvt );
@@ -573,7 +573,7 @@ PTEXT ListGameCards( PHAND ph )
 	if( !ph )
 		return NULL;
 	pvt = VarTextCreate();
-	for( count = 0, pc = GetCardStackFromHand( ph, "Cards" )->cards; pc; pc = pc->next, count++ );
+	for( count = 0, pc = GetCardStackFromHand( ph, WIDE("Cards") )->cards; pc; pc = pc->next, count++ );
 	if( count )
 	{
 		for( count = 1, pc = pDeck->_HandIterator( ph, 0, TRUE );
@@ -583,14 +583,14 @@ PTEXT ListGameCards( PHAND ph )
 			int cardval = CARD_NUMBER( pc->id );
 			if( !pDeck->flags.bLowball && !cardval )
 				cardval = 13;
-			vtprintf( pvt, "%s%s%s", count>1?", ":""
+			vtprintf( pvt, WIDE("%s%s%s"), count>1?WIDE(", "):WIDE("")
 					  , cardnames[cardval]
 					  , suits2[pc->id/13]);
 		}
 	}
 	else
 	{
-		vtprintf( pvt, "No cards." );
+		vtprintf( pvt, WIDE("No cards.") );
 	}
 	pt = VarTextGet( pvt );
 	VarTextDestroy( &pvt );
@@ -650,7 +650,7 @@ void Shuffle( PDECK pDeck )
 
 	tree = NULL;
 
-	while( card = GetCardStack( pDeck, "Draw" )->cards )
+	while( card = GetCardStack( pDeck, WIDE("Draw") )->cards )
 	{
    		if( *card->me = card->next )
    			card->next->me = card->me;
@@ -659,8 +659,8 @@ void Shuffle( PDECK pDeck )
 		tree = sort( tree, card, rand() );
 	}
 
-	FoldTree( &GetCardStack( pDeck, "Draw" )->cards, tree );
-	InvokeUpdates( GetCardStack( pDeck, "Draw" ) );
+	FoldTree( &GetCardStack( pDeck, WIDE("Draw") )->cards, tree );
+	InvokeUpdates( GetCardStack( pDeck, WIDE("Draw") ) );
 
 }
 
@@ -671,7 +671,7 @@ PTEXT CardName( PCARD card )
 {
 	PVARTEXT pvt = VarTextCreate();
 	PTEXT name;
-	vtprintf( pvt, "%s%s"
+	vtprintf( pvt, WIDE("%s%s")
 			  , cardnames[card->id%13]
 			  , suits2[card->id/13]);
 	name = VarTextGet( pvt );
@@ -685,7 +685,7 @@ PTEXT CardLongName( PCARD card )
 {
 	PVARTEXT pvt = VarTextCreate();
 	PTEXT name;
-	vtprintf( pvt, "%s of %s"
+	vtprintf( pvt, WIDE("%s of %s")
 			  , cardlongnames[(card->id%13)?(card->id%13):13]
 			  , suitlongnames[card->id/13]);
 	name = VarTextGet( pvt );
@@ -696,28 +696,28 @@ PTEXT CardLongName( PCARD card )
 
 void DealTo( PDECK pd, PHAND ph, LOGICAL bPlayTo )
 {
-	PCARD pc = GetCardStack( pd, "Draw" )->cards;
+	PCARD pc = GetCardStack( pd, WIDE("Draw") )->cards;
 	if( pc )
 	{
 		PCARD *ppDest;
 		// unlink from the draw list
-		if( GetCardStack( pd, "Draw" )->cards = pc->next )
-			pc->next->me = &GetCardStack( pd, "Draw" )->cards;
+		if( GetCardStack( pd, WIDE("Draw") )->cards = pc->next )
+			pc->next->me = &GetCardStack( pd, WIDE("Draw") )->cards;
 
 		if( !ph )
 		{
 			if( bPlayTo )
-				ppDest = &GetCardStack( pd, "Table" )->cards;
+				ppDest = &GetCardStack( pd, WIDE("Table") )->cards;
 			else
-				ppDest = &GetCardStack( pd, "Discard" )->cards;
+				ppDest = &GetCardStack( pd, WIDE("Discard") )->cards;
 		}
 		else
 		{
 			// determine destination to link card to
 			if( bPlayTo )
-				ppDest = &GetCardStackFromHand( ph, "Showing" )->cards;
+				ppDest = &GetCardStackFromHand( ph, WIDE("Showing") )->cards;
 			else
-				ppDest = &GetCardStackFromHand( ph, "Cards" )->cards;
+				ppDest = &GetCardStackFromHand( ph, WIDE("Cards") )->cards;
 		}
 		// link card into new list.
 		if( pc->next = *ppDest )
