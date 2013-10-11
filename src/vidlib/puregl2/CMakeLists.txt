@@ -78,6 +78,8 @@ if( DIRECTX_SDK )
   SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES
 	FOLDER "Video Renderer"  
   )
+  
+  
   set( PROJECT bag.video.pured3d10 )
   sack_add_library( ${PROJECT} SHARED
        ${FIRST_GCC_LIBRARY_SOURCE}
@@ -88,6 +90,21 @@ if( DIRECTX_SDK )
   target_link_libraries( ${PROJECT} bag.image.pured3d ${SACK_CORE_LIBRARY} d3d10_1 d3dx10 )
   install_mode_dest( ${PROJECT} )
   SET_PROPERTY(TARGET ${PROJECT} APPEND PROPERTY COMPILE_DEFINITIONS "RENDER_LIBRARY_SOURCE;_D3D10_DRIVER;MAKE_RCOORD_SINGLE;_INCLUDE_NLS" )
+  SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES
+	FOLDER "Video Renderer"  
+  )
+  
+
+  set( PROJECT bag.video.pured3d11 )
+  sack_add_library( ${PROJECT} SHARED
+       ${FIRST_GCC_LIBRARY_SOURCE}
+            ${COMMON_CPP_SOURCES}
+            d3d11.cpp
+       ${LAST_GCC_LIBRARY_SOURCE}
+     )
+  target_link_libraries( ${PROJECT} bag.image.pured3d ${SACK_CORE_LIBRARY} d3dx11 )
+  install_mode_dest( ${PROJECT} )
+  SET_PROPERTY(TARGET ${PROJECT} APPEND PROPERTY COMPILE_DEFINITIONS "RENDER_LIBRARY_SOURCE;_D3D11_DRIVER;MAKE_RCOORD_SINGLE;_INCLUDE_NLS" )
   SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES
 	FOLDER "Video Renderer"  
   )

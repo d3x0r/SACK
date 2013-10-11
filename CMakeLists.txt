@@ -1080,6 +1080,7 @@ add_subdirectory( src/vidlib/pured3d )
 add_subdirectory( src/imglib/pured3d )
 add_subdirectory( src/imglib/pured3d2 )
 add_subdirectory( src/imglib/pured3d10 )
+add_subdirectory( src/imglib/pured3d11 )
 endif( WIN32 AND NOT CMAKE_COMPILER_IS_GNUCC AND NOT WATCOM AND NOT __NO_GUI__ )
 endif( DIRECTX_SDK )
 

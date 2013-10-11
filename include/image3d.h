@@ -13,7 +13,7 @@ typedef struct image_shader_tracker *PImageShaderTracker;
 struct image_shader_attribute_order
 {
 	int n;
-   char *name;  // opengl value;
+	char *name;  // opengl value;
 };
 
 typedef struct image_3d_interface_tag
