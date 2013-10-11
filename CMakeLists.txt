@@ -1072,17 +1072,27 @@ if( NOT __QNX__ )
   #standard OpenGL; mostly windows-centric
   add_subdirectory( src/imglib/puregl )
 endif( NOT __QNX__ )
-add_subdirectory( src/vidlib/puregl2 )
-add_subdirectory( src/vidlib/puregl )
-if( DIRECTX_SDK )
-if( WIN32 AND NOT CMAKE_COMPILER_IS_GNUCC AND NOT WATCOM AND NOT __NO_GUI__ )
-add_subdirectory( src/vidlib/pured3d )
-add_subdirectory( src/imglib/pured3d )
-add_subdirectory( src/imglib/pured3d2 )
-add_subdirectory( src/imglib/pured3d10 )
-add_subdirectory( src/imglib/pured3d11 )
-endif( WIN32 AND NOT CMAKE_COMPILER_IS_GNUCC AND NOT WATCOM AND NOT __NO_GUI__ )
-endif( DIRECTX_SDK )
+
+  GET_FILENAME_COMPONENT(WIN8_SDK "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft SDKs\\Windows\\v8.0;InstallationFolder]" ABSOLUTE )
+  if( NOT WIN8_SDK OR ( WIN8_SDK STREQUAL "/registry" ) )
+    GET_FILENAME_COMPONENT(WIN8_SDK "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows\\v8.0;InstallationFolder]" ABSOLUTE )
+  endif( NOT WIN8_SDK OR ( WIN8_SDK STREQUAL "/registry" ) )
+
+  add_subdirectory( src/vidlib/puregl2 )
+  add_subdirectory( src/vidlib/puregl )
+  if( DIRECTX_SDK )
+    if( WIN32 AND NOT CMAKE_COMPILER_IS_GNUCC AND NOT WATCOM AND NOT __NO_GUI__ )
+      add_subdirectory( src/vidlib/pured3d )
+      add_subdirectory( src/imglib/pured3d )
+      add_subdirectory( src/imglib/pured3d2 )
+      add_subdirectory( src/imglib/pured3d10 )
+
+      if( WIN8_SDK )
+        add_subdirectory( src/imglib/pured3d11 )
+      endif( WIN8_SDK )
+
+    endif( WIN32 AND NOT CMAKE_COMPILER_IS_GNUCC AND NOT WATCOM AND NOT __NO_GUI__ )
+  endif( DIRECTX_SDK )
 
 set(DIRECTX_SDK "" CACHE STRING "directx sdk path to build d3d parts") 
 
