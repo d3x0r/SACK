@@ -53,8 +53,8 @@ int SetActiveD3DDisplayView( PVIDEO hVideo, int nFracture )
 		else
 		{
 			_hVideo = hVideo;
-			Render3d.current_device = hVideo->d3ddev;
-			if( ! hVideo->d3ddev )
+			Render3d.current_device = hVideo->camera->d3ddev;
+			if( ! hVideo->camera->d3ddev )
 			{
 				LeaveCriticalSec( &cs );
 				return FALSE;
@@ -120,12 +120,12 @@ static void BeginVisPersp( struct display_camera *camera )
 			dmx.m[0][n] = l.fProjection[0][n];
 	}
 	//D3DXMatrixPerspectiveLH( &dmx, camera->hVidCore->pWindowPos.cx, camera->hVidCore->pWindowPos.cy, 0.1f, 30000.0f );
-	camera->hVidCore->d3ddev->SetTransform( D3DTS_PROJECTION, &dmx );
+	camera->d3ddev->SetTransform( D3DTS_PROJECTION, &dmx );
 
 	{
 		D3DXMATRIX dmx2;
 		D3DXMatrixIdentity( &dmx2 );
-		camera->hVidCore->d3ddev->SetTransform( D3DTS_VIEW, &dmx2 );
+		camera->d3ddev->SetTransform( D3DTS_VIEW, &dmx2 );
 	}
 }
 
@@ -166,7 +166,8 @@ RENDER_PROC( int, EnableOpenD3DView )( PVIDEO hVideo, int x, int y, int w, int h
 
 int EnableD3D( PVIDEO hVideo )
 {
-    hVideo->d3d = Direct3DCreate9(D3D_SDK_VERSION);    // create the Direct3D interface
+	struct display_camera *camera = hVideo->camera;
+    camera->d3d = Direct3DCreate9(D3D_SDK_VERSION);    // create the Direct3D interface
 
     D3DPRESENT_PARAMETERS d3dpp;    // create a struct to hold various device information
 
@@ -174,22 +175,22 @@ int EnableD3D( PVIDEO hVideo )
     d3dpp.Windowed = TRUE;    // program windowed, not fullscreen
     d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;    // discard old frames
 	//d3dpp.SwapEffect = D3DSWAPEFFECT_COPY;
-	d3dpp.hDeviceWindow = hVideo->hWndOutput;    // set the window to be used by Direct3D
+	d3dpp.hDeviceWindow = camera->hVidCore->hWndOutput;    // set the window to be used by Direct3D
 
     d3dpp.BackBufferFormat = D3DFMT_A8R8G8B8;    // set the back buffer format to 32-bit
-	d3dpp.BackBufferWidth = hVideo->pWindowPos.cx;    // set the width of the buffer
-    d3dpp.BackBufferHeight = hVideo->pWindowPos.cy;    // set the height of the buffer
+	d3dpp.BackBufferWidth = camera->w;    // set the width of the buffer
+    d3dpp.BackBufferHeight = camera->h;    // set the height of the buffer
 
 	d3dpp.EnableAutoDepthStencil = TRUE;
 	d3dpp.AutoDepthStencilFormat = D3DFMT_D16;
 
     // create a device class using this information and information from the d3dpp stuct
-    hVideo->d3d->CreateDevice(D3DADAPTER_DEFAULT,
+    camera->d3d->CreateDevice(D3DADAPTER_DEFAULT,
                       D3DDEVTYPE_HAL,
                       hVideo->hWndOutput,
 					  D3DCREATE_HARDWARE_VERTEXPROCESSING,
                       &d3dpp,
-                      &hVideo->d3ddev);
+                      &hVideo->camera->d3ddev);
 
 	hVideo->flags.bD3D = 1;
 	LeaveCriticalSec( &hVideo->cs );

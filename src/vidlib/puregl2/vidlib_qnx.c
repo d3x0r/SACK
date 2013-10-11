@@ -128,8 +128,8 @@ void FindPixelFormat( struct display_camera *camera )
 	};
 	int i;
 	ResolveDeviceID( camera->display, &device, &display );
-	if (gf_layer_query(camera->hVidCore->pLayer, l.qnx_display_info[device][display].main_layer_index
-				, &camera->hVidCore->layer_info) == GF_ERR_OK) 
+	if (gf_layer_query(camera->pLayer, l.qnx_display_info[device][display].main_layer_index
+				, &camera->layer_info) == GF_ERR_OK) 
 	{
 		lprintf("found a compatible frame "
 				"buffer configuration on layer %d\n", l.qnx_display_info[device][display].main_layer_index);
@@ -137,7 +137,7 @@ void FindPixelFormat( struct display_camera *camera )
 	for (i = 0; ; i++) 
 	{
 		/* Walk through all possible pixel formats for this layer */
-		if (gf_layer_query(camera->hVidCore->pLayer, i, &camera->hVidCore->layer_info) != GF_ERR_OK) 
+		if (gf_layer_query(camera->pLayer, i, &camera->layer_info) != GF_ERR_OK) 
 		{
 			lprintf("Couldn't find a compatible frame "
 					"buffer configuration on layer %d\n", i);
@@ -148,15 +148,15 @@ void FindPixelFormat( struct display_camera *camera )
 		 * We want the color buffer format to match the layer format,
 		 * so request the layer format through EGL_NATIVE_VISUAL_ID.
 		 */
-		attribute_list[1] = camera->hVidCore->layer_info.format;
+		attribute_list[1] = camera->layer_info.format;
 
 		/* Look for a compatible EGL frame buffer configuration */
-		if (eglChooseConfig(camera->hVidCore->display
-			,attribute_list, &camera->hVidCore->config, 1, &camera->hVidCore->num_config) == EGL_TRUE)
+		if (eglChooseConfig(camera->display
+			,attribute_list, &camera->config, 1, &camera->num_config) == EGL_TRUE)
 		{
-			if (camera->hVidCore->num_config > 0) 
+			if (camera->num_config > 0) 
 			{
-				lprintf( "multiple configs? %d", camera->hVidCore->num_config );
+				lprintf( "multiple configs? %d", camera->num_config );
 				break;
 			}
 			else
@@ -182,9 +182,9 @@ void CreateQNXOutputForCamera( struct display_camera *camera )
 	lprintf( "create output surface for ..." );
 
 	/* get an EGL display connection */
-	camera->hVidCore->displayWindow=eglGetDisplay((EGLNativeDisplayType)l.qnx_display[device][display]);
+	camera->displayWindow=eglGetDisplay((EGLNativeDisplayType)l.qnx_display[device][display]);
 
-	if(camera->hVidCore->display == EGL_NO_DISPLAY)
+	if(camera->display == EGL_NO_DISPLAY)
 	{
 		lprintf("ERROR: eglGetDisplay()\n");
 		return;
@@ -195,10 +195,10 @@ void CreateQNXOutputForCamera( struct display_camera *camera )
 	}
 
 		
-		OpenEGL( camera, camera->hVidCore->displayWindow );
+		OpenEGL( camera, camera->displayWindow );
 
 	/* initialize the EGL display connection */
-	if(eglInitialize(camera->hVidCore->display, NULL, NULL) != EGL_TRUE)
+	if(eglInitialize(camera->display, NULL, NULL) != EGL_TRUE)
 	{
 		lprintf( "ERROR: eglInitialize: error 0x%x\n", eglGetError());
 		return;
@@ -209,7 +209,7 @@ void CreateQNXOutputForCamera( struct display_camera *camera )
 		lprintf( "SUCCESS: eglInitialize()\n");
 	};
 
-	err = gf_layer_attach( &camera->hVidCore->pLayer, l.qnx_display[device][display], 0, GF_LAYER_ATTACH_PASSIVE );
+	err = gf_layer_attach( &camera->pLayer, l.qnx_display[device][display], 0, GF_LAYER_ATTACH_PASSIVE );
 	if( err != GF_ERR_OK )
 	{
 		lprintf( "Error attaching layer(%d): %d", camera->display, err );
@@ -217,9 +217,9 @@ void CreateQNXOutputForCamera( struct display_camera *camera )
 	}
 	else
 	{
-		gf_layer_enable( camera->hVidCore->pLayer );
-		//gf_surface_create_layer( &camera->hVidCore->pSurface
-		//						, &camera->hVidCore->pLayer, 1, 0
+		gf_layer_enable( camera->pLayer );
+		//gf_surface_create_layer( &camera->pSurface
+		//						, &camera->pLayer, 1, 0
 		//						, camera->w, camera->h
 		//						, 
 	}
@@ -231,8 +231,8 @@ void CreateQNXOutputForCamera( struct display_camera *camera )
 	// the list of surfacs should be 2 if manually created
 	// cann pass null so surfaces are automatically created
 	// (should remove necessicty to get pixel mode?
-	if ( ( err = gf_3d_target_create(&camera->hVidCore->pTarget, camera->hVidCore->pLayer,
-		NULL, 0, camera->w, camera->h, camera->hVidCore->layer_info.format) ) != GF_ERR_OK) 
+	if ( ( err = gf_3d_target_create(&camera->pTarget, camera->pLayer,
+		NULL, 0, camera->w, camera->h, camera->layer_info.format) ) != GF_ERR_OK) 
 	{
 		lprintf("Unable to create rendering target:%d\n",err );
 	}
@@ -240,18 +240,18 @@ void CreateQNXOutputForCamera( struct display_camera *camera )
 
 
 	/* create an EGL window surface */
-	camera->hVidCore->surface = eglCreateWindowSurface(camera->hVidCore->display
-		, camera->hVidCore->config, camera->hVidCore->pTarget, NULL);
+	camera->surface = eglCreateWindowSurface(camera->display
+		, camera->config, camera->pTarget, NULL);
 
-	if (camera->hVidCore->surface == EGL_NO_SURFACE) 
+	if (camera->surface == EGL_NO_SURFACE) 
 	{
 		lprintf("Create surface failed: 0x%x\n", eglGetError());
 		return;
 	}
 
 	// icing?
-	gf_layer_set_src_viewport(camera->hVidCore->pLayer, 0, 0, camera->w-1, camera->h-1);
-	gf_layer_set_dst_viewport(camera->hVidCore->pLayer, 0, 0, camera->w-1, camera->h-1);
+	gf_layer_set_src_viewport(camera->pLayer, 0, 0, camera->w-1, camera->h-1);
+	gf_layer_set_dst_viewport(camera->pLayer, 0, 0, camera->w-1, camera->h-1);
    
 }
 

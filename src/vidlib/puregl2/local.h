@@ -128,6 +128,20 @@ struct display_camera
 #elif defined( _WIN32 )
 	HWND hWndInstance;
 #endif
+#    if defined( __QNX__ )
+	gf_surface_t pSurface;
+	gf_layer_t pLayer;
+	gf_layer_info_t layer_info;
+	gf_3d_target_t pTarget;
+
+#    endif
+#    if defined( USE_EGL )
+	EGLint num_config;
+	EGLConfig config;
+	EGLDisplay display;
+	EGLSurface surface;
+	EGLContext econtext;
+#    endif
 #if defined( USE_EGL )
    NativeWindowType displayWindow;
 #endif
@@ -144,6 +158,14 @@ struct display_camera
 	//hr = g_pd3dDevice->QueryInterface(__uuidof(IDXGIDevice), (void **)&pDXGIDevice);
       
 #    endif
+#ifdef _D3D_DRIVER
+    LPDIRECT3D9 d3d;    // the pointer to our Direct3D interface
+	LPDIRECT3DDEVICE9 d3ddev;    // the pointer to the device class
+// function prototypes
+//void initD3D(HWND hWnd);    // sets up and initializes Direct3D
+//void render_frame(void);    // renders a single frame
+//void cleanD3D(void);    // closes Direct3D and releases memory
+#endif
 	RAY mouse_ray;
 	struct {
 		BIT_FIELD extra_init : 1;
