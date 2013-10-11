@@ -5,6 +5,15 @@
 #include <d3d9.h>
 #endif
 
+#ifdef _D3D10_DRIVER
+#include <D3D10_1.h>
+#include <D3D10.h>
+#endif
+
+#ifdef _D3D11_DRIVER
+#include <D3D11.h>
+#endif
+
 #include <vectlib.h>
 
 #if defined( _WIN32 ) && !defined( _INVERT_IMAGE ) && !defined( _OPENGL_DRIVER ) && !defined( _D3D_DRIVER )
@@ -111,7 +120,7 @@ struct ImageFile_tag
 		 information like update region.                         */
 			IMAGE_RECTANGLE auxrect;
 //DOM-IGNORE-BEGIN
-#if defined( _OPENGL_DRIVER ) || defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER )
+#if defined( __3D__ )
 	PTRANSFORM transform;
 #endif
 
@@ -124,6 +133,10 @@ struct ImageFile_tag
 #ifdef _D3D10_DRIVER
 	PLIST Surfaces;
 	ID3D10Texture2D *pActiveSurface;
+#endif
+#ifdef _D3D11_DRIVER
+	PLIST Surfaces;
+	ID3D11Texture2D *pActiveSurface;
 #endif
 #ifdef _D3D_DRIVER
 	/* gl context? */
