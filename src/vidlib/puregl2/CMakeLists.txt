@@ -85,7 +85,7 @@ if( DIRECTX_SDK )
             d3d10.cpp
        ${LAST_GCC_LIBRARY_SOURCE}
      )
-  target_link_libraries( ${PROJECT} bag.image.pured3d ${SACK_CORE_LIBRARY} d3d10_1 )
+  target_link_libraries( ${PROJECT} bag.image.pured3d ${SACK_CORE_LIBRARY} d3d10_1 d3dx10 )
   install_mode_dest( ${PROJECT} )
   SET_PROPERTY(TARGET ${PROJECT} APPEND PROPERTY COMPILE_DEFINITIONS "RENDER_LIBRARY_SOURCE;_D3D10_DRIVER;MAKE_RCOORD_SINGLE;_INCLUDE_NLS" )
   SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES

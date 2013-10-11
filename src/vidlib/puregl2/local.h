@@ -7,7 +7,6 @@
 #endif
 
 #if defined( _D3D10_DRIVER )
-#define _CONVERSION_DONT_USE_THREAD_LOCALE
 #include <atlbase.h>
 #include <D3D10_1.h>
 #include <D2d1.h> // only took them (1996-2008... 12 years) to get direct draw right LOL
