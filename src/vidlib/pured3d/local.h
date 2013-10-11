@@ -44,6 +44,14 @@ struct display_camera
 	HWND hWndInstance;
 	RAY mouse_ray;
 	int viewport[4];
+#ifdef _D3D_DRIVER
+    LPDIRECT3D9 d3d;    // the pointer to our Direct3D interface
+	LPDIRECT3DDEVICE9 d3ddev;    // the pointer to the device class
+// function prototypes
+//void initD3D(HWND hWnd);    // sets up and initializes Direct3D
+//void render_frame(void);    // renders a single frame
+//void cleanD3D(void);    // closes Direct3D and releases memory
+#endif
 	struct {
 		BIT_FIELD init : 1;
 		BIT_FIELD did_first_draw : 1;

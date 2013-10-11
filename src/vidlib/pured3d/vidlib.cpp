@@ -1508,7 +1508,7 @@ static void RenderD3D( struct display_camera *camera )
 			D3DXVECTOR3 up(tmp[4], tmp[5], tmp[6] );
 			at += eye;
 			D3DXMatrixLookAtLH(&out, &eye, &at, &up);
-			camera->hVidCore->d3ddev->SetTransform( D3DTS_WORLD, &out );
+			camera->d3ddev->SetTransform( D3DTS_WORLD, &out );
 		}
 	}
 

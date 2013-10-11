@@ -185,26 +185,13 @@ typedef struct HVIDEO_tag
 		HGLRC    hRC;     // Permanent Rendering Context
 	} *pFractures;
 #endif
+
 #  if defined( _OPENGL_DRIVER ) || defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER )
 	struct display_camera *camera;
 	MATRIX fModelView;
 	PTRANSFORM transform;
-#    if defined( __QNX__ )
-	gf_surface_t pSurface;
-	gf_layer_t pLayer;
-	gf_layer_info_t layer_info;
-	gf_3d_target_t pTarget;
-
-#    endif
-#    if defined( USE_EGL )
-	EGLint num_config;
-	EGLConfig config;
-	EGLDisplay display;
-	EGLSurface surface;
-	EGLContext econtext;
-#    endif
-
 #  endif
+
 #  ifdef _OPENGL_DRIVER
 	Image pAppImage; // this is the image returned for the application's reference.  The real image is a larger surface than this.
 	GLuint		texture[1]; // texture that is this real image...
@@ -303,14 +290,6 @@ typedef struct HVIDEO_tag
 #ifdef _OPENGL_ENABLED
    HGLRC    hRC;     // Permanent Rendering Context
 #endif
-#ifdef _D3D_DRIVER
-    LPDIRECT3D9 d3d;    // the pointer to our Direct3D interface
-	LPDIRECT3DDEVICE9 d3ddev;    // the pointer to the device class
-// function prototypes
-//void initD3D(HWND hWnd);    // sets up and initializes Direct3D
-//void render_frame(void);    // renders a single frame
-//void cleanD3D(void);    // closes Direct3D and releases memory
-#endif
 	PLIST sprites; // list of methods to draw sprites on this surface.
 #ifdef WIN32
 	HWND hWndContainer;
@@ -337,82 +316,3 @@ RENDER_NAMESPACE_END
 
 #endif
 
-// $Log: vidstruc.h,v $
-// Revision 1.14  2005/03/28 09:44:12  panther
-// Use single surface to project surround-o-vision.  This btw has the benefit of uniform output.
-//
-// Revision 1.13  2005/03/13 23:34:35  panther
-// Focus and mouse capture issues resolved for windows libraries... need to tinker with this same function within Linux.
-//
-// Revision 1.12  2005/03/13 10:02:39  panther
-// Define hidden flag for video surfaces.
-//
-// Revision 1.11  2004/12/19 15:44:57  panther
-// Extended set methods to interact with raw index numbers
-//
-// Revision 1.10  2004/12/13 11:08:17  panther
-// Checkpoint, minor tweaks
-//
-// Revision 1.9  2004/12/04 01:09:20  panther
-// Set destroy flag to avoid dispatch killfocus during destruction
-//
-// Revision 1.8  2004/10/02 19:49:54  d3x0r
-// Fix logging... trying to track down multiple update display issues.... keys are queued, events are locally queued...
-//
-// Revision 1.7  2004/09/30 01:14:47  d3x0r
-// Cleaned up consistancy of PID and thread ID... extended message service a bit to supply event PID both ways.
-//
-// Revision 1.6  2004/09/23 00:36:00  d3x0r
-// Implement key and mouse messages across message system... soon to allow applications to catch these directly instead of callback methods.
-//
-// Revision 1.5  2004/09/22 20:28:44  d3x0r
-// Updated to have a pid
-//
-// Revision 1.4  2004/09/01 03:27:20  d3x0r
-// Control updates video display issues?  Image blot message go away...
-//
-// Revision 1.3  2004/08/11 12:00:37  d3x0r
-// Migrate to new, more common keystruct...
-//
-// Revision 1.2  2004/08/11 11:41:07  d3x0r
-// Begin seperation of key and render
-//
-// Revision 1.1  2004/06/21 07:47:37  d3x0r
-// Checkpoint - make system rouding out nicly.
-//
-// Revision 1.16  2004/06/21 07:39:36  d3x0r
-// use moved include files for image structures
-//
-// Revision 1.15  2004/06/16 21:13:53  d3x0r
-// Cleanups for keybind duplication between here and vidlib... that's all been cleaned...
-//
-// Revision 1.14  2004/05/03 06:15:39  d3x0r
-// Define buffered render read
-//
-// Revision 1.13  2004/05/02 05:44:38  d3x0r
-// Implement  BindEventToKey and UnbindKey
-//
-// Revision 1.12  2004/04/29 11:16:41  d3x0r
-// Reformat, collect global data into a structure
-//
-// Revision 1.11  2004/04/27 21:14:30  d3x0r
-// Fix nasty thread problem
-//
-// Revision 1.10  2004/04/27 09:55:11  d3x0r
-// Add keydef to keyhandler path
-//
-// Revision 1.9  2003/09/01 20:04:37  panther
-// Added OpenGL Interface to windows video lib, Modified RCOORD comparison
-//
-// Revision 1.8  2003/03/29 22:52:00  panther
-// New render/image layering ability.  Added support to Display for WIN32 usage (native not SDL)
-//
-// Revision 1.7  2003/03/29 17:21:06  panther
-// Focus problems, mouse message problems resolved... Focus works through to the client side now
-//
-// Revision 1.6  2003/03/25 20:41:00  panther
-// Fix what CVS logging addition broke
-//
-// Revision 1.5  2003/03/25 08:45:58  panther
-// Added CVS logging tag
-//
