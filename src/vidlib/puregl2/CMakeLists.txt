@@ -91,7 +91,7 @@ if( DIRECTX_SDK )
             d3d10.cpp
        ${LAST_GCC_LIBRARY_SOURCE}
      )
-  target_link_libraries( ${PROJECT} bag.image.pured3d ${SACK_CORE_LIBRARY} d3d10_1 d3dx10 )
+  target_link_libraries( ${PROJECT} bag.image.pured3d ${SACK_CORE_LIBRARY} d3d10_1 d3d10 )
   install_mode_dest( ${PROJECT} )
   SET_PROPERTY( TARGET ${PROJECT} APPEND PROPERTY INCLUDE_DIRECTORIES ${DXINCLUDE} )
   SET_PROPERTY( TARGET ${PROJECT} APPEND PROPERTY LINK_DIRECTORIES ${DXLIB} )
@@ -110,7 +110,7 @@ if( DIRECTX_SDK )
             d3d11.cpp
        ${LAST_GCC_LIBRARY_SOURCE}
      )
-    target_link_libraries( ${PROJECT} bag.image.pured3d ${SACK_CORE_LIBRARY} d3dx11 )
+    target_link_libraries( ${PROJECT} bag.image.pured3d ${SACK_CORE_LIBRARY} d3d11 )
     install_mode_dest( ${PROJECT} )
     SET_PROPERTY( TARGET ${PROJECT} APPEND PROPERTY INCLUDE_DIRECTORIES ${WIN8_SDK}/include/um;${WIN8_SDK}/include/shared )
     if( __64__ )
