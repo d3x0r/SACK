@@ -43,6 +43,8 @@ VIDLIB_NAMESPACE_END
 	using namespace sack::image::render;
 #ifdef _D3D_DRIVER
 using namespace sack::image::render::d3d::vidlib;
+#elif defined( _D3D10_DRIVER )
+using namespace sack::image::render::d3d10::vidlib;
 #else
 using namespace sack::image::render::vidlib;
 #endif
