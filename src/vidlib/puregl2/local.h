@@ -6,7 +6,16 @@
 #define USE_IMAGE_INTERFACE l.gl_image_interface
 #endif
 
-#if defined( _D3D10_DRIVER )
+#if defined( _D3D11_DRIVER )
+#include <atlbase.h>
+#include <D3D11.h>
+#include <D2d1.h> // only took them (1996-2008... 12 years) to get direct draw right LOL
+//#include <D3D11Misc.h>
+#include <DirectXMath.h>
+
+// transparent window support ( not needed if solid output?)
+#include <Wincodec.h>
+#elif defined( _D3D10_DRIVER )
 #include <atlbase.h>
 #include <D3D10_1.h>
 #include <D2d1.h> // only took them (1996-2008... 12 years) to get direct draw right LOL
@@ -144,6 +153,19 @@ struct display_camera
 #if defined( USE_EGL )
    NativeWindowType displayWindow;
 #endif
+#    ifdef _D3D11_DRIVER
+	IDXGIDevice     *pDXGIDevice;
+
+	ID3D11Device    *device;
+	ID3D11Texture2D *texture;
+	IDXGISurface    *surface;
+	ID2D1RenderTarget  *target;
+	IWICBitmap         *bitmap;
+	IWICImagingFactory *factory;
+
+	//hr = g_pd3dDevice->QueryInterface(__uuidof(IDXGIDevice), (void **)&pDXGIDevice);
+      
+#    endif
 #    ifdef _D3D10_DRIVER
 	IDXGIDevice     *pDXGIDevice;
 

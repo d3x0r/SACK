@@ -105,7 +105,7 @@ static void OnBeginDraw3d( WIDE( "@00 DirectX Image Library" ) )( PTRSZVAL psvIn
 	l.glImageIndex = l.d3dActiveSurface->index;
 }
 
-ID3D10Texture2D *ReloadD3DTexture( Image child_image, int option )
+ID3D11Texture2D *ReloadD3DTexture( Image child_image, int option )
 {
 	Image image;
 	if( !g_d3d_device )
@@ -129,7 +129,7 @@ ID3D10Texture2D *ReloadD3DTexture( Image child_image, int option )
 		// should be checked outside.
 		if( !image_data->d3dTexture )
 		{
-			D3D10_TEXTURE2D_DESC desc;
+			D3D11_TEXTURE2D_DESC desc;
 			ZeroMemory( &desc, sizeof(desc) );
 			desc.Width = 256;
 			desc.Height = 256;
@@ -137,8 +137,8 @@ ID3D10Texture2D *ReloadD3DTexture( Image child_image, int option )
 			desc.ArraySize = 1;
 			desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 			desc.SampleDesc.Count = 1;
-			desc.Usage = D3D10_USAGE_DEFAULT;
-			desc.BindFlags = D3D10_BIND_RENDER_TARGET | D3D10_BIND_SHADER_RESOURCE;
+			desc.Usage = D3D11_USAGE_DEFAULT;
+			desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
 			//lprintf( "Create texture %d,%d %d", image->width, image->height, image->pwidth );
 			g_d3d_device->CreateTexture2D( &desc
@@ -162,8 +162,9 @@ ID3D10Texture2D *ReloadD3DTexture( Image child_image, int option )
 				}
 			}
 #endif
+#if 0
 			{
-				D3D10_MAPPED_TEXTURE2D mappedTex;
+				D3D11_MAPPED_TEXTURE2D mappedTex;
 				image_data->d3dTexture->Map( D3D10CalcSubresource(0, 0, 1)
 						, D3D10_MAP_WRITE_DISCARD, 0, &mappedTex );
 
@@ -176,8 +177,9 @@ ID3D10Texture2D *ReloadD3DTexture( Image child_image, int option )
 									, image->width*sizeof(CDATA)
 									);
 				}
-				image_data->d3dTexture->Unmap( D3D10CalcSubresource(0, 0, 1) );
+				//image_data->d3dTexture->Unmap( D3D10CalcSubresource(0, 0, 1) );
 			}
+#endif
 			//lprintf( WIDE("Remade texture %p for image %p"), image_data->d3tex, image );
 		}
 		image->pActiveSurface = image_data->d3dTexture;
@@ -333,13 +335,13 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 
 		if( g_d3d_device )
 		{
-			static ID3D10Buffer *pQuadVB;
+			static ID3D11Buffer *pQuadVB;
 			if( !pQuadVB )
 			{
-				D3D10_BUFFER_DESC bufferDesc;
-				bufferDesc.Usage            = D3D10_USAGE_DEFAULT;
+				D3D11_BUFFER_DESC bufferDesc;
+				bufferDesc.Usage            = D3D11_USAGE_DEFAULT;
 				bufferDesc.ByteWidth        = sizeof( D3DPOSVERTEX ) * 4;
-				bufferDesc.BindFlags        = D3D10_BIND_VERTEX_BUFFER;
+				bufferDesc.BindFlags        = D3D11_BIND_VERTEX_BUFFER;
 				bufferDesc.CPUAccessFlags   = 0;
 				bufferDesc.MiscFlags        = 0;
 	
@@ -347,7 +349,7 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 			}
 			D3DPOSVERTEX* pData;
 			//lock buffer (NEW)
-			pQuadVB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**)&pData);
+			//pQuadVB->Map(D3D11_MAP_WRITE_DISCARD, 0, (void**)&pData);
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
@@ -363,7 +365,7 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 				pData[3].fY = v4[v][vUp] * l.scale;
 				pData[3].fZ = v4[v][vForward] * l.scale;
 			}
-			pQuadVB->Unmap();
+			//pQuadVB->Unmap();
 
 			float _color[4];
 			_color[0] = RedVal( color ) / 255.0f;
@@ -477,13 +479,13 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 			v = 1-v;
 		}
 
-			static ID3D10Buffer *pQuadVB;
+			static ID3D11Buffer *pQuadVB;
 			if( !pQuadVB )
 			{
-				D3D10_BUFFER_DESC bufferDesc;
-				bufferDesc.Usage            = D3D10_USAGE_DEFAULT;
+				D3D11_BUFFER_DESC bufferDesc;
+				bufferDesc.Usage            = D3D11_USAGE_DEFAULT;
 				bufferDesc.ByteWidth        = sizeof( D3DPOSVERTEX ) * 4;
-				bufferDesc.BindFlags        = D3D10_BIND_VERTEX_BUFFER;
+				bufferDesc.BindFlags        = D3D11_BIND_VERTEX_BUFFER;
 				bufferDesc.CPUAccessFlags   = 0;
 				bufferDesc.MiscFlags        = 0;
 	
@@ -491,7 +493,7 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 			}
 		D3DPOSVERTEX* pData;
 		//lock buffer (NEW)
-		pQuadVB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**)&pData);
+		//pQuadVB->Map(D3D11_MAP_WRITE_DISCARD, 0, (void**)&pData);
 		//copy data to buffer (NEW)
 		{
 			pData[0].fX = v1[v][vRight] * l.scale;
@@ -511,7 +513,7 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 			pData[3].fZ = v4[v][vForward] * l.scale;
 		}
 		//unlock buffer (NEW)
-		pQuadVB->Unmap();
+		//pQuadVB->Unmap();
 			float _color[4];
 			_color[0] = RedVal( color ) / 255.0f;
 			_color[1] = GreenVal( color ) / 255.0f;

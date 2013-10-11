@@ -200,6 +200,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 	else
 	{
 		g_d3d_device->CreateVertexShader((DWORD*)vert_blob->GetBufferPointer(), vert_blob->GetBufferSize()
+			, NULL /* ID3D11ClassLinkage*  */
 												  , &tracker->VertexProgram);
 		vert_blob->Release();
 		vert_blob = NULL;
@@ -221,6 +222,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 	if( !result )
 	{
 		g_d3d_device->CreatePixelShader((DWORD*)vert_blob->GetBufferPointer(), vert_blob->GetBufferSize()
+			, NULL /* ID3D11ClassLinkage */
 											  , &tracker->FragProgram);
 		vert_blob->Release();
 	}

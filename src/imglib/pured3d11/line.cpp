@@ -103,13 +103,13 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 			v = 1-v;
 		}
 
-			static ID3D10Buffer *pQuadVB;
+			static ID3D11Buffer *pQuadVB;
 			if( !pQuadVB )
 			{
-				D3D10_BUFFER_DESC bufferDesc;
-				bufferDesc.Usage            = D3D10_USAGE_DEFAULT;
+				D3D11_BUFFER_DESC bufferDesc;
+				bufferDesc.Usage            = D3D11_USAGE_DEFAULT;
 				bufferDesc.ByteWidth        = sizeof( D3DPOSVERTEX ) * 4;
-				bufferDesc.BindFlags        = D3D10_BIND_VERTEX_BUFFER;
+				bufferDesc.BindFlags        = D3D11_BIND_VERTEX_BUFFER;
 				bufferDesc.CPUAccessFlags   = 0;
 				bufferDesc.MiscFlags        = 0;
 	
@@ -117,7 +117,7 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 			}
 			D3DPOSVERTEX* pData;
 			//lock buffer (NEW)
-			pQuadVB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**)&pData);
+			//g_d3d_device->Map(D3D11_MAP_WRITE_DISCARD, 0, (void**)&pData);
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
@@ -134,7 +134,7 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 				pData[3].fZ = v3[v][vForward] * l.scale;
 			}
 			//unlock buffer (NEW)
-			pQuadVB->Unmap();
+			//pQuadVB->Unmap();
 			float _color[4];
 			_color[0] = RedVal( d ) / 255.0f;
 			_color[1] = GreenVal( d ) / 255.0f;
@@ -275,13 +275,13 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 		}
 
 
-			static ID3D10Buffer *pQuadVB;
+			static ID3D11Buffer *pQuadVB;
 			if( !pQuadVB )
 			{
-				D3D10_BUFFER_DESC bufferDesc;
-				bufferDesc.Usage            = D3D10_USAGE_DEFAULT;
+				D3D11_BUFFER_DESC bufferDesc;
+				bufferDesc.Usage            = D3D11_USAGE_DEFAULT;
 				bufferDesc.ByteWidth        = sizeof( D3DPOSVERTEX ) * 4;
-				bufferDesc.BindFlags        = D3D10_BIND_VERTEX_BUFFER;
+				bufferDesc.BindFlags        = D3D11_BIND_VERTEX_BUFFER;
 				bufferDesc.CPUAccessFlags   = 0;
 				bufferDesc.MiscFlags        = 0;
 	
@@ -289,7 +289,7 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 			}
 			D3DPOSVERTEX* pData;
 			//lock buffer (NEW)
-			pQuadVB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**)&pData);
+			//pQuadVB->Map(D3D11_MAP_WRITE_DISCARD, 0, (void**)&pData);
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
@@ -306,7 +306,7 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 				pData[3].fZ = v3[v][vForward] * l.scale;
 			}
 			//unlock buffer (NEW)
-			pQuadVB->Unmap();
+			//pQuadVB->Unmap();
 
 			float _color[4];
 			_color[0] = RedVal( d ) / 255.0f;

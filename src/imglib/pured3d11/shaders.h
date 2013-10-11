@@ -29,12 +29,12 @@ struct image_shader_tracker
 	} flags;
 	CTEXTSTR name;
 
-	D3D10_INPUT_ELEMENT_DESC *layout;
-	ID3D10Effect *effect;
+	D3D11_INPUT_ELEMENT_DESC *layout;
+	//ID3D11Effect *effect;
 
-	ID3D10Buffer *vertexDecl;
-	ID3D10PixelShader  * FragProgram;
-	ID3D10VertexShader  * VertexProgram;
+	ID3D11Buffer *vertexDecl;
+	ID3D11PixelShader  * FragProgram;
+	ID3D11VertexShader  * VertexProgram;
 
 	int eye_point;
 	int position_attrib;

@@ -69,7 +69,7 @@
 #        define IMAGE_PROC_D  IMPORT_METHOD
 #     endif
 
-#if defined( _WIN32 ) && !defined( _OPENGL_DRIVER ) && !defined( _D3D_DRIVER ) && !defined( _D3D10_DRIVER )
+#if defined( _WIN32 ) && !defined( _OPENGL_DRIVER ) && !defined( _D3D_DRIVER ) && !defined( _D3D10_DRIVER ) && !defined( _D3D11_DRIVER )
 #define _INVERT_IMAGE
 #endif
 
@@ -86,6 +86,13 @@
 #elif defined( _D3D10_DRIVER )
 #define IMAGE_NAMESPACE namespace sack { namespace image { namespace d3d10 {
 #define _IMAGE_NAMESPACE namespace image { namespace d3d10 {
+#define BASE_IMAGE_NAMESPACE namespace image {
+/* Define the namespace of image routines, when building under
+   C++. This ends a namespace.                                 */
+#define IMAGE_NAMESPACE_END }}}
+#elif defined( _D3D11_DRIVER )
+#define IMAGE_NAMESPACE namespace sack { namespace image { namespace d3d11 {
+#define _IMAGE_NAMESPACE namespace image { namespace d3d11 {
 #define BASE_IMAGE_NAMESPACE namespace image {
 /* Define the namespace of image routines, when building under
    C++. This ends a namespace.                                 */
@@ -2150,6 +2157,8 @@ _INTERFACE_NAMESPACE_END
 	using namespace sack::image::d3d::Interface;
 #elif defined( _D3D10_DRIVER )
 	using namespace sack::image::d3d10::Interface;
+#elif defined( _D3D11_DRIVER )
+	using namespace sack::image::d3d11::Interface;
 #else
 	using namespace sack::image::Interface;
 #endif
@@ -2502,6 +2511,8 @@ IMAGE_NAMESPACE_END
 using namespace sack::image::d3d;
 #elif defined( _D3D10_DRIVER )
 using namespace sack::image::d3d10;
+#elif defined( _D3D11_DRIVER )
+using namespace sack::image::d3d11;
 #else
 using namespace sack::image;
 #endif
