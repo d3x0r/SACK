@@ -6,7 +6,18 @@
 #define USE_IMAGE_INTERFACE l.gl_image_interface
 #endif
 
-#ifdef _D3D_DRIVER
+#if defined( _D3D10_DRIVER )
+#define _CONVERSION_DONT_USE_THREAD_LOCALE
+#include <atlbase.h>
+#include <D3D10_1.h>
+#include <D2d1.h> // only took them (1996-2008... 12 years) to get direct draw right LOL
+#include <D3D10Misc.h>
+//#include <d3dx10.h>
+#include <D3dx10math.h>
+
+// transparent window support ( not needed if solid output?)
+#include <Wincodec.h>
+#elif defined( _D3D_DRIVER )
 #include <d3d9.h>
 #include <d3dx9.h>
 #include <D3dx9math.h>
@@ -120,6 +131,19 @@ struct display_camera
 #if defined( USE_EGL )
    NativeWindowType displayWindow;
 #endif
+#    ifdef _D3D10_DRIVER
+	IDXGIDevice     *pDXGIDevice;
+
+	ID3D10Device1    *device;
+	ID3D10Texture2D *texture;
+	IDXGISurface    *surface;
+	ID2D1RenderTarget  *target;
+	IWICBitmap         *bitmap;
+	IWICImagingFactory *factory;
+
+	//hr = g_pd3dDevice->QueryInterface(__uuidof(IDXGIDevice), (void **)&pDXGIDevice);
+      
+#    endif
 	RAY mouse_ray;
 	struct {
 		BIT_FIELD extra_init : 1;
@@ -311,6 +335,7 @@ extern
 	  RENDER3D_INTERFACE Render3d;
 #  endif
 #endif
+
 
 // ---------- vidlib win32 - share dsymbols for keymap win32
 #define WD_HVIDEO   0   // WindowData_HVIDEO

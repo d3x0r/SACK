@@ -484,7 +484,7 @@ void LoadOptions( void )
 		l.flags.bLogKeyEvent = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/log key event"), 0, TRUE );
 		l.flags.bLogMouseEvent = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/log mouse event"), 0, TRUE );
 #ifdef _D3D_DRIVER
-#  define LAYERED_DEFAULT 1
+#  define LAYERED_DEFAULT 0
 #else
 		// opengl output to layered (transparent) windows is impracticle, and requires an extra move from video memory, or render to
       // conventional memroy and then a push to video memory;  tiny surfaces may work (those things... toolbar widgets)
