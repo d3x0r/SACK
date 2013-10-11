@@ -69,9 +69,9 @@ endif( __ANDROID__ )
 
 if( NOT FORCE_CXX )
   # if forced to cxx, don't need extra libraries.
-  target_link_libraries( ${project} ${BAG_PSI_PLUSPLUS} d3dx10_1 d3dx10 )
+  target_link_libraries( ${project} ${BAG_PSI_PLUSPLUS} d3d10_1 d3d10 )
 endif( NOT FORCE_CXX )
-target_link_libraries( ${project}  )
+target_link_libraries( ${project} d3dcompiler )
 
 install_mode_dest( ${project} )
 

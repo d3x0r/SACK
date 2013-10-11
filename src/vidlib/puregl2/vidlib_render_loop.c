@@ -223,7 +223,7 @@ void Render3D( struct display_camera *camera )
 				D3DXVECTOR3 at(tmp[8], tmp[9], tmp[10]);
 				D3DXVECTOR3 up(tmp[4], tmp[5], tmp[6] );
 				at += eye;
-				D3DXMatrixLookAtLH(&out, &eye, &at, &up);
+				//D3DXMatrixLookAtLH(&out, &eye, &at, &up);
 				//Remder3d.current_device->SetTransform( D3DTS_WORLD, &out );
 			}
 		}
@@ -252,6 +252,44 @@ void Render3D( struct display_camera *camera )
 		Render3d.current_device->OMSetBlendState( g_pBlendState, 0, 0xffffffff);
 #endif
 
+#ifdef _D3D11_DRIVER
+		{
+			PC_POINT tmp = GetAxis( camera->origin_camera, 0 );
+			{
+				//D3DXMATRIX out;
+				//D3DXVECTOR3 eye(tmp[12], tmp[13], tmp[14]);
+				//D3DXVECTOR3 at(tmp[8], tmp[9], tmp[10]);
+				//D3DXVECTOR3 up(tmp[4], tmp[5], tmp[6] );
+				//at += eye;
+				//D3DXMatrixLookAtLH(&out, &eye, &at, &up);
+				//Remder3d.current_device->SetTransform( D3DTS_WORLD, &out );
+			}
+		}
+
+		static ID3D11BlendState* g_pBlendState = NULL;
+		if( g_pBlendState )
+		{
+#if 0
+			D3D11_BLEND_DESC BlendState;
+			ZeroMemory(&BlendState, sizeof(D3D11_BLEND_DESC));
+ 
+			BlendState.BlendEnable[0] = TRUE;
+			BlendState.SrcBlend = D3D11_BLEND_SRC_ALPHA;
+			BlendState.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+			BlendState.BlendOp = D3D11_BLEND_OP_ADD;
+			BlendState.SrcBlendAlpha = D3D11_BLEND_ZERO;
+			BlendState.DestBlendAlpha = D3D11_BLEND_ZERO;
+			BlendState.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+			BlendState.RenderTargetWriteMask[0] = D3D10_COLOR_WRITE_ENABLE_ALL;
+ 
+			Render3d.current_device->CreateBlendState(&BlendState, &g_pBlendState);
+#endif
+		}
+
+
+      /* some kinda init; no? */
+	  // Render3d.current_device->OMSetBlendState( g_pBlendState, 0, 0xffffffff);
+#endif
 
 		if( l.flags.bLogRenderTiming )
 			lprintf( WIDE("Begin drawing from bottom up") );
