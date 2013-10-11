@@ -59,10 +59,6 @@ int SetActiveD3DDisplayView( PVIDEO hVideo, int nFracture )
 				LeaveCriticalSec( &cs );
 				return FALSE;
 			}
-			 float pBackgroundColour[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-		
-			Render3d.current_device->ClearRenderTargetView( Render3d.current_target, pBackgroundColour);
-			//Render3d.current_device->BeginScene();    // begins the 3D scene
 		}
 	}
 	else
@@ -73,9 +69,8 @@ int SetActiveD3DDisplayView( PVIDEO hVideo, int nFracture )
 			lprintf( "Prior GL Context being released." );
 #endif
 			//lprintf( "swapping buffer..." );
-			Render3d.current_chain->Present(0, 0);
+			//Render3d.current_chain->Present(0, 0);
 			//Render3d.current_device = NULL;
-
 		}
 		LeaveCriticalSec( &cs );
 	}

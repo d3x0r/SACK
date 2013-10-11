@@ -348,7 +348,7 @@ int InitGL( struct display_camera *camera );										// All Setup For OpenGL Go
 void SACK_Vidlib_ToggleInputDevice( void );
 
 
-#ifdef _D3D_DRIVER
+#if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER )
 int SetActiveD3DDisplay( PVIDEO hVideo );
 int SetActiveD3DDisplayView( PVIDEO hVideo, int nFracture );
 int InitD3D( struct display_camera *camera ); // begin drawing (setup projection)

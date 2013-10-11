@@ -47,7 +47,7 @@ void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar)
 
     m[0][0] = cotangent / aspect;
 	 m[1][1] = cotangent;
-#ifdef _D3D_DRIVER
+#if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER )
     m[2][2] = (zFar + zNear) / deltaZ;
     m[2][3] = 1.0f;
     m[3][2] = -1.0f * zNear * zFar / deltaZ;
@@ -120,6 +120,15 @@ void Render3D( struct display_camera *camera )
 											, 1.0f
 											, 0);
 #endif
+#ifdef _D3D10_DRIVER
+	if( !SetActiveD3DDisplay( camera->hVidCore ) )  // BeginScene()
+		return;
+
+	InitD3D( camera );
+	float pBackgroundColour[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+	Render3d.current_device->ClearRenderTargetView( Render3d.current_target, pBackgroundColour);
+#endif
 
 	//lprintf( "Called init for camera.." );
 	{
@@ -175,6 +184,7 @@ void Render3D( struct display_camera *camera )
 			RotateRight( camera->origin_camera, vForward, vRight );
 			break;
 		case 5:
+
 			RotateRight( camera->origin_camera, -1, -1 );
 			break;
 		}
@@ -188,7 +198,7 @@ void Render3D( struct display_camera *camera )
 				D3DXVECTOR3 up(tmp[4], tmp[5], tmp[6] );
 				at += eye;
 				D3DXMatrixLookAtLH(&out, &eye, &at, &up);
-				camera->hVidCore->d3ddev->SetTransform( D3DTS_WORLD, &out );
+				Render3d.current_device->SetTransform( D3DTS_WORLD, &out );
 			}
 		}
          /* some kinda init; no? */
@@ -203,6 +213,45 @@ void Render3D( struct display_camera *camera )
 		Render3d.current_device->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_DIFFUSE);
 		Render3d.current_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_DIFFUSE);
 #endif
+
+#ifdef _D3D10_DRIVER
+		{
+			PC_POINT tmp = GetAxis( camera->origin_camera, 0 );
+			{
+				D3DXMATRIX out;
+				D3DXVECTOR3 eye(tmp[12], tmp[13], tmp[14]);
+				D3DXVECTOR3 at(tmp[8], tmp[9], tmp[10]);
+				D3DXVECTOR3 up(tmp[4], tmp[5], tmp[6] );
+				at += eye;
+				D3DXMatrixLookAtLH(&out, &eye, &at, &up);
+				//Remder3d.current_device->SetTransform( D3DTS_WORLD, &out );
+			}
+		}
+
+		static ID3D10BlendState* g_pBlendState = NULL;
+		if( g_pBlendState )
+		{
+ 
+			D3D10_BLEND_DESC BlendState;
+			ZeroMemory(&BlendState, sizeof(D3D10_BLEND_DESC));
+ 
+			BlendState.BlendEnable[0] = TRUE;
+			BlendState.SrcBlend = D3D10_BLEND_SRC_ALPHA;
+			BlendState.DestBlend = D3D10_BLEND_INV_SRC_ALPHA;
+			BlendState.BlendOp = D3D10_BLEND_OP_ADD;
+			BlendState.SrcBlendAlpha = D3D10_BLEND_ZERO;
+			BlendState.DestBlendAlpha = D3D10_BLEND_ZERO;
+			BlendState.BlendOpAlpha = D3D10_BLEND_OP_ADD;
+			BlendState.RenderTargetWriteMask[0] = D3D10_COLOR_WRITE_ENABLE_ALL;
+ 
+			Render3d.current_device->CreateBlendState(&BlendState, &g_pBlendState);
+		}
+
+
+      /* some kinda init; no? */
+		Render3d.current_device->OMSetBlendState( g_pBlendState, 0, 0xffffffff);
+#endif
+
 
 		if( l.flags.bLogRenderTiming )
 			lprintf( WIDE("Begin drawing from bottom up") );
@@ -247,6 +296,13 @@ void Render3D( struct display_camera *camera )
 #endif
 			Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 0 );
 #endif
+#ifdef _D3D10_DRIVER
+#if 0
+			//Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 1 );
+			//ClearImageTo( hVideo->pImage, 0 );
+#endif
+			//Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 0 );
+#endif
 
 			if( hVideo->pRedrawCallback )
 			{
@@ -259,6 +315,9 @@ void Render3D( struct display_camera *camera )
 #endif
 #ifdef _D3D_DRIVER
 			Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 1 );
+#endif
+#ifdef _D3D10_DRIVER
+			//Render3d.current_device->SetRenderState( D3DRS_ZENABLE, 1 );
 #endif
 			{
 				INDEX idx;
@@ -290,6 +349,9 @@ void Render3D( struct display_camera *camera )
 #endif
 #ifdef _D3D_DRIVER
 	SetActiveD3DDisplay( NULL ); // EndScene
+#endif
+#ifdef _D3D10_DRIVER
+	Render3d.current_chain->Present(0, 0);
 #endif
 }
 
