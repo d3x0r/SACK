@@ -268,6 +268,8 @@ RENDER_NAMESPACE_END
      using namespace sack::image::render::d3d::keyboard;
 #  elif defined( _D3D10_DRIVER )
      using namespace sack::image::render::d3d10::keyboard;
+#  elif defined( _D3D11_DRIVER )
+     using namespace sack::image::render::d3d11::keyboard;
 #  else
      using namespace sack::image::render::keyboard;
 #  endif

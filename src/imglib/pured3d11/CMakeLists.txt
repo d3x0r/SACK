@@ -67,7 +67,7 @@ else( __ANDROID__ )
 target_link_libraries( ${project} ${SACK_LIBRARIES} )
 endif( __ANDROID__ )
 
-target_link_libraries( ${project} ${BAG_PSI_PLUSPLUS} d3dx11 )
+target_link_libraries( ${project} ${BAG_PSI_PLUSPLUS} d3dx11 D3dcompiler )
 target_link_libraries( ${project}  )
 
 install_mode_dest( ${project} )

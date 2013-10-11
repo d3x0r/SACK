@@ -1125,13 +1125,13 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 
 				ReloadD3DTexture( topmost_parent, 0 );
 
-			static ID3D10Buffer *pQuadVB;
+			static ID3D11Buffer *pQuadVB;
 			if( !pQuadVB )
 			{
-				D3D10_BUFFER_DESC bufferDesc;
-				bufferDesc.Usage            = D3D10_USAGE_DEFAULT;
+				D3D11_BUFFER_DESC bufferDesc;
+				bufferDesc.Usage            = D3D11_USAGE_DEFAULT;
 				bufferDesc.ByteWidth        = sizeof( D3DTEXTUREDVERTEX ) * 4;
-				bufferDesc.BindFlags        = D3D10_BIND_VERTEX_BUFFER;
+				bufferDesc.BindFlags        = D3D11_BIND_VERTEX_BUFFER;
 				bufferDesc.CPUAccessFlags   = 0;
 				bufferDesc.MiscFlags        = 0;
 	
@@ -1139,7 +1139,7 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 			}
 			D3DTEXTUREDVERTEX* pData;
 			//lock buffer (NEW)
-			pQuadVB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**)&pData);
+			//pQuadVB->Map(D3D11_MAP_WRITE_DISCARD, 0, (void**)&pData);
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v[vi][0][vRight] * l.scale;
@@ -1164,7 +1164,7 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 				pData[3].fV1 = y_size2;
 			}
 			//unlock buffer (NEW)
-			pQuadVB->Unmap();
+			//pQuadVB->Unmap();
 
 			EnableShader( l.simple_texture_shader, pQuadVB, topmost_parent );
 			//g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);

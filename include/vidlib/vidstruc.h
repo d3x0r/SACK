@@ -46,6 +46,9 @@
 #elif defined( _D3D10_DRIVER )
 #  define RENDER_NAMESPACE namespace sack { namespace image { namespace render { namespace d3d10 {
 #  define RENDER_NAMESPACE_END }}}}
+#elif defined( _D3D11_DRIVER )
+#  define RENDER_NAMESPACE namespace sack { namespace image { namespace render { namespace d3d11 {
+#  define RENDER_NAMESPACE_END }}}}
 #else
 #  define RENDER_NAMESPACE namespace sack { namespace image { namespace render {
 #  define RENDER_NAMESPACE_END }}}
@@ -186,7 +189,7 @@ typedef struct HVIDEO_tag
 	} *pFractures;
 #endif
 
-#  if defined( _OPENGL_DRIVER ) || defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER )
+#  if defined( __3D__ )
 	struct display_camera *camera;
 	MATRIX fModelView;
 	PTRANSFORM transform;

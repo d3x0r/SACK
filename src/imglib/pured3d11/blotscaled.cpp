@@ -551,13 +551,13 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				v = 1-v;
 			}
 
-			static ID3D10Buffer *pQuadVB;
+			static ID3D11Buffer *pQuadVB;
 			if( !pQuadVB )
 			{
-				D3D10_BUFFER_DESC bufferDesc;
-				bufferDesc.Usage            = D3D10_USAGE_DEFAULT;
+				D3D11_BUFFER_DESC bufferDesc;
+				bufferDesc.Usage            = D3D11_USAGE_DEFAULT;
 				bufferDesc.ByteWidth        = sizeof( D3DTEXTUREDVERTEX ) * 4;
-				bufferDesc.BindFlags        = D3D10_BIND_VERTEX_BUFFER;
+				bufferDesc.BindFlags        = D3D11_BIND_VERTEX_BUFFER;
 				bufferDesc.CPUAccessFlags   = 0;
 				bufferDesc.MiscFlags        = 0;
 	
@@ -567,7 +567,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			//lock buffer (NEW)
 
 			// Lock the vertex buffer.
-			pQuadVB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**)&pData);
+			//pQuadVB->Map(D3D11_MAP_WRITE_DISCARD, 0, (void**)&pData);
 
 			//copy data to buffer (NEW)
 			{
@@ -593,7 +593,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				pData[3].fV1 = y_size2;
 			}
 			// Unlock the vertex buffer.
-			pQuadVB->Unmap();
+			//pQuadVB->Unmap();
 
 
 			if( method == BLOT_COPY )
@@ -648,13 +648,13 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				offset = 0;
 			
 				// Set the vertex buffer to active in the input assembler so it can be rendered.
-				g_d3d_device->IASetVertexBuffers(0, 1, &pQuadVB, &stride, &offset);
+				//g_d3d_device->IASetVertexBuffers(0, 1, &pQuadVB, &stride, &offset);
 
 				// Set the index buffer to active in the input assembler so it can be rendered.
-				g_d3d_device->IASetIndexBuffer(pQuadVB, DXGI_FORMAT_R32_UINT, 0);
+				//g_d3d_device->IASetIndexBuffer(pQuadVB, DXGI_FORMAT_R32_UINT, 0);
 
 				// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
-				g_d3d_device->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+				//g_d3d_device->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			}
 		}
 	}

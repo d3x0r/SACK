@@ -6,6 +6,8 @@ if( __ANDROID__ OR __QNX__ )
 ADD_DEFINITIONS( -DUSE_GLES2 -DUSE_EGL )
 endif( __ANDROID__ OR __QNX__ )
 
+ADD_DEFINITIONS( -D__3D__ )
+
 if( __ANDROID__ )
 ADD_DEFINITIONS( -D__ANDROID__ )
 endif( __ANDROID__ )
