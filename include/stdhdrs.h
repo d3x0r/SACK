@@ -20,7 +20,12 @@
 #include <stddef.h>
 #include <stdio.h>
 
+#if _MSC_VER 
+#define _INTSAFE_H_INCLUDED_
+#endif //_MSC_VER 
+
 #if _MSC_VER > 100000
+// I don't use these limit anyway... so not having them should be harmless
 #include <stdint.h>
 #endif
 
