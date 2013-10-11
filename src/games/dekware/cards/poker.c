@@ -94,7 +94,7 @@ int HighCard( PHAND pHand, PCARD pWild )
         else // if not wild, then grab this card's value.
         {
 			  val = CARD_NUMBER( pCard->id ) + 1;
-           //lprintf( "Checking card %d in %08x", val, result );
+           //lprintf( WIDE("Checking card %d in %08x"), val, result );
             if( val == 1 )  // aces are high.
                 val = 14;
         }
@@ -119,7 +119,7 @@ int HighCard( PHAND pHand, PCARD pWild )
       }
      	result <<= 4;
 		result += (max);
-      //lprintf( "Result is now %08x", result );
+      //lprintf( WIDE("Result is now %08x"), result );
    }
    return 0x0000000 | result;
 }
@@ -147,7 +147,7 @@ int IsPair( PHAND pHand, PCARD pWild )
 			  pCheck2 = iter( pHand, 1, ITERATE_NEXT ) )
       {
 			val2 = CARD_NUMBER( pCheck2->id );
-         //lprintf( "checking to see if %d=%d", val2, val1 );
+         //lprintf( WIDE("checking to see if %d=%d"), val2, val1 );
          if( !val2 )
             val2 = 13;
 	      if( IsWild( pCheck2, pWild ) )
@@ -169,7 +169,7 @@ int IsPair( PHAND pHand, PCARD pWild )
 				{
 					// all 2 of these are wild, MUST be a pair.
 					// max=13;
-               //lprintf( "More than a pair - failed is pair." );
+               //lprintf( WIDE("More than a pair - failed is pair.") );
 					return 0x10D; // 3 of a kind ace high.
 				}
          }
@@ -369,7 +369,7 @@ int IsStraight( PHAND pHand, PCARD pWild )
             }
         }
     }
-    //Log4( "Length: %d start: %d  maxlen: %d  maxstart : %d", length, start, maxlength, maxstart );
+    //Log4( WIDE("Length: %d start: %d  maxlen: %d  maxstart : %d"), length, start, maxlength, maxstart );
     if( length >= 5 )
     {
         if( wilds )
@@ -389,7 +389,7 @@ int IsFlush( PHAND pHand, PCARD pWild )
 {
 	HandIterator iter = pHand->Deck->_HandIterator;	
 	int number = 0, val, match = 0;
-	PCARD card, start = GetCardStackFromHand( pHand, "Cards" )->cards;
+	PCARD card, start = GetCardStackFromHand( pHand, WIDE("Cards") )->cards;
 	for( start = iter( pHand, 0, ITERATE_START );
 		  start && ( match < 5 );
 		  start = iter( pHand, 0, ITERATE_NEXT ) )
@@ -430,7 +430,7 @@ int IsFullHouse( PHAND pHand, PCARD pWild )
 	HandIterator iter = pHand->Deck->_HandIterator;
 	if( nWilds > 2 )
 	{
-		Log( " we're in trouble... we have more than 2 wilds in a full house?" );
+		Log( WIDE(" we're in trouble... we have more than 2 wilds in a full house?") );
 		return 0;
 	}
 
@@ -498,7 +498,7 @@ int Is4Kind( PHAND pHand, PCARD pWild )
 	HandIterator iter = pHand->Deck->_HandIterator;
 	int last_kicker = 0;
 	int kicker = 0;
-	PCARD start = GetCardStackFromHand( pHand, "Cards" )->cards;
+	PCARD start = GetCardStackFromHand( pHand, WIDE("Cards") )->cards;
 	PCARD card;
 	for( start = iter( pHand, 0, ITERATE_START ); start; start = iter( pHand, 0, ITERATE_NEXT ) )
 	{
@@ -567,7 +567,6 @@ int IsStraightFlush( PHAND pHand, PCARD pWild )
 int Is5Kind( PHAND pHand, PCARD pWild )
 {
 	int nWild = CountWild( pHand, pWild );
-	HandIterator iter = pHand->Deck->_HandIterator;
 	int count;
 	// must have at least one wild to consider this hand.
 	if( !nWild )
@@ -576,7 +575,7 @@ int Is5Kind( PHAND pHand, PCARD pWild )
 		int number = 0;
 		PCARD card;
 		count = 0;
-		for( card = GetCardStackFromHand( pHand, "Cards" )->cards; card; card = card->next )
+		for( card = GetCardStackFromHand( pHand, WIDE("Cards") )->cards; card; card = card->next )
 			if( !IsWild( card, pWild ) ) // if it's wild we don't care.
 			{
 				if( !number )
@@ -651,48 +650,48 @@ PTEXT GetPokerHandName( PHAND pHand, PTEXT *ppLastValue )
 	value = ValuePokerHand( pHand, NULL, TRUE );
 	if( !value )
 	{
-		vtprintf( pvt, "No hand" );
+		vtprintf( pvt, WIDE("No hand") );
 	}
 	else switch( value >> 20 )
 	{
 	case 0:
-		vtprintf( pvt, "High Card - %s", cardlongnames[ ((value>>16)&0xF)-1 ] );
+		vtprintf( pvt, WIDE("High Card - %s"), cardlongnames[ ((value>>16)&0xF)-1 ] );
 		break;
 	case 1:
-		vtprintf( pvt, "A Pair of %ss", cardlongnames[ (value&0xF) ] );
+		vtprintf( pvt, WIDE("A Pair of %ss"), cardlongnames[ (value&0xF) ] );
 		break;
 	case 2:
-		vtprintf( pvt, "2 Pair %ss and %ss"
+		vtprintf( pvt, WIDE("2 Pair %ss and %ss")
 						, cardlongnames[ (value&0xF0)>>4] 
 						, cardlongnames[ (value&0xF) ] 
 						 );
 		break;
 	case 3:
-		vtprintf( pvt, "3 of a Kind %ss", cardlongnames[ (value&0xF) ] );
+		vtprintf( pvt, WIDE("3 of a Kind %ss"), cardlongnames[ (value&0xF) ] );
 		break;
 	case 4:
-		vtprintf( pvt, "Straight" );
+		vtprintf( pvt, WIDE("Straight") );
 		break;
 	case 5:
-		vtprintf( pvt, "Flush" );
+		vtprintf( pvt, WIDE("Flush") );
 		break;
 	case 6:
-		vtprintf( pvt, "Full House %ss over %ss"
+		vtprintf( pvt, WIDE("Full House %ss over %ss")
 						, cardlongnames[ (value&0xF0)>>4] 
 						, cardlongnames[ (value&0xF) ] 
 						);
 		break;
 	case 7:
-		vtprintf( pvt, "4 of a Kind %ss", cardlongnames[(value&0xF0)>>4] );
+		vtprintf( pvt, WIDE("4 of a Kind %ss"), cardlongnames[(value&0xF0)>>4] );
 		break;
 	case 8:
-		vtprintf( pvt, "Straight Flush" );
+		vtprintf( pvt, WIDE("Straight Flush") );
 		break;
 	case 9:
-		vtprintf( pvt, "Royal Flush" );
+		vtprintf( pvt, WIDE("Royal Flush") );
 		break;
 	case 10:
-		vtprintf( pvt, "5 of a Kind %ss", cardlongnames[value&0xF] );
+		vtprintf( pvt, WIDE("5 of a Kind %ss"), cardlongnames[value&0xF] );
 		break;
 	}
 	*ppLastValue = VarTextGet( pvt );
@@ -704,12 +703,12 @@ PTEXT GetPokerHandName( PHAND pHand, PTEXT *ppLastValue )
 
 PCARD IterateHoldemHand( PHAND hand, int level, int bStart )
 {
-	//lprintf( "Iterate start: %d level: %d", bStart, level );
+	//lprintf( WIDE("Iterate start: %d level: %d"), bStart, level );
 	if( bStart != ITERATE_NEXT )
 	{
 		if( bStart == ITERATE_START )
 		{
-			hand->card[level] = GetCardStackFromHand( hand, "Cards" )->cards;;
+			hand->card[level] = GetCardStackFromHand( hand, WIDE("Cards") )->cards;;
 			hand->iStage[level] = 0;
 		}
 		else
@@ -739,12 +738,12 @@ PCARD IterateHoldemHand( PHAND hand, int level, int bStart )
 			while( hand->iStage[level] < 1 &&
 					!hand->card[level] )
 			{
-				hand->card[level] = GetCardStack( hand->Deck, "Table" )->cards;
+				hand->card[level] = GetCardStack( hand->Deck, WIDE("Table") )->cards;
 				hand->iStage[level]++;
 			}
 		}
 	}
-	//lprintf( "Result: %p", hand->card[level] );
+	//lprintf( WIDE("Result: %p"), hand->card[level] );
 	return hand->card[level];
 }
 
@@ -754,7 +753,7 @@ PCARD IterateStudHand( PHAND hand, int level, int bStart )
 {
 	if( bStart )
 	{
-		hand->card[level] = GetCardStackFromHand( hand, "Cards" )->cards;;
+		hand->card[level] = GetCardStackFromHand( hand, WIDE("Cards") )->cards;;
 		hand->iStage[level] = 0;
 	}
 	else
@@ -763,7 +762,7 @@ PCARD IterateStudHand( PHAND hand, int level, int bStart )
 		while( hand->iStage[level] < 1 &&
 			   !hand->card[level] )
 		{
-			hand->card[level] = GetCardStackFromHand( hand, "Showing" )->cards;
+			hand->card[level] = GetCardStackFromHand( hand, WIDE("Showing") )->cards;
 			hand->iStage[level]++;
 		}
 	}
