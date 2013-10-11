@@ -27,6 +27,7 @@
 #include <png.h>
 #endif
 
+#include <signed_unsigned_comparisons.h>
 #define IMAGE_LIBRARY_SOURCE
 #include <imglib/imagestruct.h>
 #include <image.h>
@@ -209,19 +210,19 @@ no_mem2:
    // else
    //    png_set_invert_alpha(png_ptr);
       pImage = MakeImageFile( Width, Height );
-      {
+		{
          size_t rowbytes;
-		 int row;
+			int row;
          png_bytep * const row_pointers = (png_bytep*const)NewArray( png_bytep, pImage->height );
 
          rowbytes = png_get_rowbytes (png_ptr, info_ptr);
-         if (rowbytes != pImage->pwidth*4 )
-         {
-            Log2(WIDE(" bytes generated and bytes allocated mismatched! %d %d\n"), rowbytes, pImage->pwidth*4 );
-            if( rowbytes > pImage->pwidth * 4 )
-            goto no_mem2;                        // Yuck! Something went wrong!
-            Log( WIDE("We're okay as long as what it wants is less...(first number)") );
-         }
+			if (rowbytes != pImage->pwidth*4 )
+			{
+				Log2(WIDE(" bytes generated and bytes allocated mismatched! %d %d\n"), rowbytes, pImage->pwidth*4 );
+            if( USS_GT( rowbytes, size_t, pImage->pwidth * 4, int ) )
+					goto no_mem2;                        // Yuck! Something went wrong!
+				Log( WIDE("We're okay as long as what it wants is less...(first number)") );
+			}
          for( row = 0; row < pImage->height; row++ )
          {
 				if( pImage->flags & IF_FLAG_INVERTED )
@@ -247,7 +248,7 @@ typedef struct ImagePngRawDataWriter_tag
 	_8 **r_data;
 	// The buffer size
 	size_t *r_size;
-	int alloced;  // need more info on the write side.
+	size_t alloced;  // need more info on the write side.
 }ImagePngRawDataWriter;
 
 

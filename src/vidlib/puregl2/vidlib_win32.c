@@ -1620,6 +1620,9 @@ void OpenWin32Camera( struct display_camera *camera )
 	#ifndef NO_DRAG_DROP
 														| WS_EX_ACCEPTFILES
 	#endif
+#ifndef NO_TRANSPARENCY
+															| (camera->hVidCore->flags.bLayeredWindow?WS_EX_LAYERED:0)
+#endif
 	#ifdef UNICODE
 													  , (LPWSTR)l.aClass
 	#else
