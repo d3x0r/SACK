@@ -4,7 +4,7 @@
 static int done;
 static PTHREAD pThread;
 
-void CPROC OutputHandle( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, _32 size )
+void CPROC OutputHandle( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
    //lprintf( "output %s", buffer );
    pcprintf( (PSI_CONTROL)psv, WIDE("%s"), buffer );
