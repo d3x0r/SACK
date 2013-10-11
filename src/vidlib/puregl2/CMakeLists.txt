@@ -50,29 +50,14 @@ ${FIRST_GCC_LIBRARY_SOURCE}
 ${LAST_GCC_LIBRARY_SOURCE}
 )
 
-string( REPLACE "." "_" TARGET_LABEL bag.video.puregl2 )
-
 # _OPENGL_ENABLED flag controls member additions to the vidlib structure; HRC for instance
-SET_TARGET_PROPERTIES( bag.video.puregl2 PROPERTIES
-	COMPILE_DEFINITIONS "TARGETNAME=\"${CMAKE_LIBRARY_PREFIX}${PROJECTNAME}${CMAKE_LIBRARY_SUFFIX}\";TARGET_LABEL=${TARGET_LABEL};RENDER_LIBRARY_SOURCE;_OPENGL_ENABLED;_OPENGL_DRIVER;MAKE_RCOORD_SINGLE" 
-	FOLDER "Video Renderer"  
-)
+  SET_PROPERTY(TARGET bag.video.puregl2 APPEND PROPERTY COMPILE_DEFINITIONS "RENDER_LIBRARY_SOURCE;_OPENGL_ENABLED;_OPENGL_DRIVER;MAKE_RCOORD_SINGLE" )
+SET_TARGET_PROPERTIES( bag.video.puregl2 PROPERTIES FOLDER "Video Renderer"   )
+
 
 if( DIRECTX_SDK )
   set( PROJECT bag.video.pured3d2 )
   INCLUDE_DIRECTORIES( ${DIRECTX_SDK}/include )
-
-  add_library( ${PROJECT} SHARED
-       ${FIRST_GCC_LIBRARY_SOURCE}
-            ${COMMON_CPP_SOURCES}
-            d3d.cpp
-       ${LAST_GCC_LIBRARY_SOURCE}
-     )
-  string( REPLACE "." "_" TARGET_LABEL ${PROJECT} )
-  SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES
-	COMPILE_DEFINITIONS "TARGETNAME=\"${CMAKE_LIBRARY_PREFIX}${PROJECTNAME}${CMAKE_LIBRARY_SUFFIX}\";TARGET_LABEL=${TARGET_LABEL};RENDER_LIBRARY_SOURCE;_D3D_DRIVER;MAKE_RCOORD_SINGLE" 
-	FOLDER "Video Renderer"  
-  )
   if( __64__ )
     SET( LIBDIR ${DIRECTX_SDK}/Lib/x64 )
     LINK_DIRECTORIES( ${DIRECTX_SDK}/Lib/x64 )
@@ -80,12 +65,37 @@ if( DIRECTX_SDK )
     SET( LIBDIR ${DIRECTX_SDK}/Lib/x86 )
     LINK_DIRECTORIES( ${DIRECTX_SDK}/Lib/x86 )
   endif( __64__ )
+
+  sack_add_library( ${PROJECT} SHARED
+       ${FIRST_GCC_LIBRARY_SOURCE}
+            ${COMMON_CPP_SOURCES}
+            d3d.cpp
+       ${LAST_GCC_LIBRARY_SOURCE}
+     )
   target_link_libraries( ${PROJECT} bag.image.pured3d ${SACK_CORE_LIBRARY} ${LIBDIR}/d3dx9.lib d3d9 )
   install_mode_dest( ${PROJECT} )
+  SET_PROPERTY(TARGET ${PROJECT} APPEND PROPERTY COMPILE_DEFINITIONS "RENDER_LIBRARY_SOURCE;_D3D_DRIVER;MAKE_RCOORD_SINGLE" )
+  SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES
+	FOLDER "Video Renderer"  
+  )
+  set( PROJECT bag.video.pured3d10 )
+  sack_add_library( ${PROJECT} SHARED
+       ${FIRST_GCC_LIBRARY_SOURCE}
+            ${COMMON_CPP_SOURCES}
+            d3d10.cpp
+       ${LAST_GCC_LIBRARY_SOURCE}
+     )
+  target_link_libraries( ${PROJECT} bag.image.pured3d ${SACK_CORE_LIBRARY} d3d10_1 )
+  install_mode_dest( ${PROJECT} )
+  SET_PROPERTY(TARGET ${PROJECT} APPEND PROPERTY COMPILE_DEFINITIONS "RENDER_LIBRARY_SOURCE;_D3D10_DRIVER;MAKE_RCOORD_SINGLE;_INCLUDE_NLS" )
+  SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES
+	FOLDER "Video Renderer"  
+  )
+  
 endif( DIRECTX_SDK )
            
 if( __ANDROID__ OR __QNX__ )
-  # glOrthof is GLES1 and is used by 'glues' project
+  # glOrthof is GLES1 and is used by 'glues' PROJECT
   my_target_link_libraries( bag.video.puregl2 ${SACK_CORE_LIBRARY} EGL GLESv2 GLESv1_CM android log )
   #DD_DEFINITIONS( -D__USE_FREEGLUT__ )
   #nclude_directories( ${SOURCES_ROOT}src/freeglut/freeglut-SVN/include )

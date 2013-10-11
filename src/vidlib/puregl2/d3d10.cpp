@@ -53,13 +53,16 @@ int SetActiveD3DDisplayView( PVIDEO hVideo, int nFracture )
 		else
 		{
 			_hVideo = hVideo;
-			Render3d.current_device = hVideo->d3ddev;
-			if( ! hVideo->d3ddev )
+			Render3d.current_device = hVideo->camera->device;
+			if( ! hVideo->camera->device )
 			{
 				LeaveCriticalSec( &cs );
 				return FALSE;
 			}
-			Render3d.current_device->BeginScene();    // begins the 3D scene
+			 float pBackgroundColour[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+		
+			Render3d.current_device->ClearRenderTargetView( Render3d.current_target, pBackgroundColour);
+			//Render3d.current_device->BeginScene();    // begins the 3D scene
 		}
 	}
 	else
@@ -70,10 +73,8 @@ int SetActiveD3DDisplayView( PVIDEO hVideo, int nFracture )
 			lprintf( "Prior GL Context being released." );
 #endif
 			//lprintf( "swapping buffer..." );
-			Render3d.current_device->EndScene();    // ends the 3D scene
-
-			Render3d.current_device->Present(NULL, NULL, NULL, NULL);   // displays the created frame on the screen
-			Render3d.current_device = NULL;
+			Render3d.current_chain->Present(0, 0);
+			//Render3d.current_device = NULL;
 
 		}
 		LeaveCriticalSec( &cs );
@@ -120,12 +121,13 @@ static void BeginVisPersp( struct display_camera *camera )
 			dmx.m[0][n] = l.fProjection[0][n];
 	}
 	//D3DXMatrixPerspectiveLH( &dmx, camera->hVidCore->pWindowPos.cx, camera->hVidCore->pWindowPos.cy, 0.1f, 30000.0f );
-	camera->hVidCore->d3ddev->SetTransform( D3DTS_PROJECTION, &dmx );
+
+	//camera->hVidCore->d3ddev->SetTransform( D3DTS_PROJECTION, &dmx );
 
 	{
 		D3DXMATRIX dmx2;
 		D3DXMatrixIdentity( &dmx2 );
-		camera->hVidCore->d3ddev->SetTransform( D3DTS_VIEW, &dmx2 );
+	//	camera->hVidCore->d3ddev->SetTransform( D3DTS_VIEW, &dmx2 );
 	}
 }
 
@@ -145,7 +147,6 @@ int InitD3D( struct display_camera *camera )										// All Setup For OpenGL Go
 
 RENDER_PROC( int, EnableOpenD3DView )( PVIDEO hVideo, int x, int y, int w, int h )
 {
-
 	// enable a partial opengl area on a single window surface
 	// actually turns out it's just a memory context anyhow...
 	int nFracture;
@@ -166,19 +167,83 @@ RENDER_PROC( int, EnableOpenD3DView )( PVIDEO hVideo, int x, int y, int w, int h
 
 int EnableD3D( PVIDEO hVideo )
 {
-    hVideo->d3d = Direct3DCreate9(D3D_SDK_VERSION);    // create the Direct3D interface
+	struct display_camera *camera  = hVideo->camera;
+	D3D10CreateDevice1(
+										  0, // adapter
+										  D3D10_DRIVER_TYPE_HARDWARE,
+										  0, // reserved
+										  D3D10_CREATE_DEVICE_BGRA_SUPPORT,
+										  D3D10_FEATURE_LEVEL_10_0,
+										  D3D10_1_SDK_VERSION,
+										  &camera->device);
 
+	D3D10_TEXTURE2D_DESC description = {};
+	description.ArraySize = 1;
+	description.BindFlags =
+		D3D10_BIND_RENDER_TARGET;
+	description.Format =
+		DXGI_FORMAT_B8G8R8A8_UNORM;
+	description.Width = camera->w;
+	description.Height = camera->h;
+	description.MipLevels = 1;
+	description.SampleDesc.Count = 1;
+	description.MiscFlags =
+		D3D10_RESOURCE_MISC_GDI_COMPATIBLE;
+
+	camera->device->CreateTexture2D(
+											 &description,
+											 0, // no initial data
+											 &camera->texture);
+
+
+	camera->texture->QueryInterface(&camera->surface);
+	CComPtr<ID2D1Factory> factory;
+	factory.CoCreateInstance(CLSID_WICImagingFactory);
+
+
+	IWICBitmap *bitmap;
+
+	const D2D1_PIXEL_FORMAT format =
+		D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM,
+								D2D1_ALPHA_MODE_PREMULTIPLIED);
+
+	const D2D1_RENDER_TARGET_PROPERTIES properties =
+		D2D1::RenderTargetProperties(
+											  D2D1_RENDER_TARGET_TYPE_DEFAULT,
+											  format);
+
+
+	const D2D1_RENDER_TARGET_PROPERTIES properties2 =
+		D2D1::RenderTargetProperties(
+											  D2D1_RENDER_TARGET_TYPE_DEFAULT,
+											  format,
+											  0.0f, // default dpi
+											  0.0f, // default dpi
+											  D2D1_RENDER_TARGET_USAGE_GDI_COMPATIBLE);
+
+
+	factory->CreateDxgiSurfaceRenderTarget(
+																 camera->surface,
+																 &properties,
+																 &camera->target);
+
+
+
+
+
+
+#if _OLD_D3D
     D3DPRESENT_PARAMETERS d3dpp;    // create a struct to hold various device information
 
     ZeroMemory(&d3dpp, sizeof(d3dpp));    // clear out the struct for use
     d3dpp.Windowed = TRUE;    // program windowed, not fullscreen
     d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;    // discard old frames
 	//d3dpp.SwapEffect = D3DSWAPEFFECT_COPY;
-	d3dpp.hDeviceWindow = hVideo->hWndOutput;    // set the window to be used by Direct3D
+	d3dpp.hDeviceWindow = camera->hWndOutput;    // set the window to be used by Direct3D
 
     d3dpp.BackBufferFormat = D3DFMT_A8R8G8B8;    // set the back buffer format to 32-bit
-	d3dpp.BackBufferWidth = hVideo->pWindowPos.cx;    // set the width of the buffer
-    d3dpp.BackBufferHeight = hVideo->pWindowPos.cy;    // set the height of the buffer
+	d3dpp.BackBufferWidth = camera->pWindowPos.cx;    // set the width of the buffer
+    d3dpp.BackBufferHeight = camera->pWindowPos.cy;    // set the height of the buffer
 
 	d3dpp.EnableAutoDepthStencil = TRUE;
 	d3dpp.AutoDepthStencilFormat = D3DFMT_D16;
@@ -193,6 +258,7 @@ int EnableD3D( PVIDEO hVideo )
 
 	hVideo->flags.bD3D = 1;
 	LeaveCriticalSec( &hVideo->cs );
+#endif
 	return TRUE;
 }
 
