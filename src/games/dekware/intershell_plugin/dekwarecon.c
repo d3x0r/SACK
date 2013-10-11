@@ -10,7 +10,7 @@ PRELOAD( LoadConsole )
 {
    TEXTCHAR buffer[256];
 	lprintf( WIDE("Loaded the actual console... which loads dekware.core (probably)") );
-   snprintf( buffer, 256, "%s/dekware.core", GetProgramPath() );
+   snprintf( buffer, 256, WIDE("%s/dekware.core"), GetProgramPath() );
 	LoadFunction( buffer, NULL );
 	//LoadFunction( WIDE("psicon.nex"), NULL );
 }
