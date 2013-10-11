@@ -65,8 +65,8 @@ struct d3dSurfaceImageData {
 	struct {
 		BIT_FIELD updated : 1;
 	} flags;
-	LPDIRECT3DTEXTURE9 d3tex;
-	IDirect3DBaseTexture9 *d3dTexture;
+	//ID3D10Resource *d3tex;
+	ID3D10Texture2D  *d3dTexture;
 };
 
 #ifndef IMAGE_MAIN
@@ -100,7 +100,7 @@ struct {
 void InitShader( void );
  
 Image AllocateCharacterSpaceByFont( SFTFont font, PCHARACTER character );
-IDirect3DBaseTexture9 *ReloadD3DTexture( Image image, int option );
+ID3D10Texture2D *ReloadD3DTexture( Image image, int option );
 void TranslateCoord( Image image, S_32 *x, S_32 *y );
 void MarkImageUpdated( Image image );
 

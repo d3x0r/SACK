@@ -69,16 +69,9 @@ endif( __ANDROID__ )
 
 if( NOT FORCE_CXX )
   # if forced to cxx, don't need extra libraries.
-  target_link_libraries( ${project} ${BAG_PSI_PLUSPLUS} )
+  target_link_libraries( ${project} ${BAG_PSI_PLUSPLUS} d3dx10_1 d3dx10 )
 endif( NOT FORCE_CXX )
-target_link_libraries( ${project} d3dcompiler )
+target_link_libraries( ${project}  )
 
 install_mode_dest( ${project} )
 
-if( MSVC11 )
-  if( __64__ )
-    install( FILES redist.vs11/D3D/x64/d3dcompiler_46.dll DESTINATION bin )
-  else( __64__ )
-    install( FILES redist.vs11/D3D/x86/d3dcompiler_46.dll DESTINATION bin )
-  endif( __64__ )
-endif( MSVC11 )

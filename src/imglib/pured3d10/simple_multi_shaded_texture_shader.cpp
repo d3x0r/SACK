@@ -93,7 +93,7 @@ struct private_mst_shader_data
 
 static void CPROC SimpleMultiShadedTextureEnable( PImageShaderTracker tracker, PTRSZVAL psv, va_list args )
 {
-	IDirect3DVertexBuffer9 *verts = va_arg( args, IDirect3DVertexBuffer9 *);
+	ID3D10Buffer *verts = va_arg( args, ID3D10Buffer *);
 	Image texture = va_arg( args, Image );
 	float *r_color = va_arg( args, float *);
 	float *g_color = va_arg( args, float *);

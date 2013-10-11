@@ -23,7 +23,8 @@
 #define FIX_RELEASE_COM_COLLISION
 #include <stdhdrs.h>
 
-#include <d3d9.h>
+#include <d3d10.h>
+#include <D3DX10math.h>
 
 #include <sharemem.h>
 #include <imglib/imagestruct.h>
@@ -549,17 +550,24 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				v = 1-v;
 			}
 
-			static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
+			static ID3D10Buffer *pQuadVB;
 			if( !pQuadVB )
-				g_d3d_device->CreateVertexBuffer(sizeof( D3DTEXTUREDVERTEX )*4,
-															D3DUSAGE_WRITEONLY,
-															D3DFVF_CUSTOMTEXTUREDVERTEX,
-															D3DPOOL_MANAGED,
-															&pQuadVB,
-															NULL);
+			{
+				D3D10_BUFFER_DESC bufferDesc;
+				bufferDesc.Usage            = D3D10_USAGE_DEFAULT;
+				bufferDesc.ByteWidth        = sizeof( D3DTEXTUREDVERTEX ) * 4;
+				bufferDesc.BindFlags        = D3D10_BIND_VERTEX_BUFFER;
+				bufferDesc.CPUAccessFlags   = 0;
+				bufferDesc.MiscFlags        = 0;
+	
+				g_d3d_device->CreateBuffer( &bufferDesc, NULL/*&InitData*/, &pQuadVB);
+			}
 			D3DTEXTUREDVERTEX* pData;
 			//lock buffer (NEW)
-			pQuadVB->Lock(0,0,(void**)&pData,0);
+
+			// Lock the vertex buffer.
+			pQuadVB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**)&pData);
+
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
@@ -583,8 +591,8 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				pData[3].fU1 = x_size2;
 				pData[3].fV1 = y_size2;
 			}
-			//unlock buffer (NEW)
-			pQuadVB->Unlock();
+			// Unlock the vertex buffer.
+			pQuadVB->Unmap();
 
 
 			if( method == BLOT_COPY )
@@ -628,8 +636,25 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			{
 				//EnableShader( l.simple_inverted_texture_shader, pQuadVB, pifSrc );
 			}
-			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
-			//pQuadVB->Release();
+
+			{
+				unsigned int stride;
+				unsigned int offset;
+
+
+				// Set vertex buffer stride and offset.
+				stride = sizeof(D3DTEXTUREDVERTEX); 
+				offset = 0;
+			
+				// Set the vertex buffer to active in the input assembler so it can be rendered.
+				g_d3d_device->IASetVertexBuffers(0, 1, &pQuadVB, &stride, &offset);
+
+				// Set the index buffer to active in the input assembler so it can be rendered.
+				g_d3d_device->IASetIndexBuffer(pQuadVB, DXGI_FORMAT_R32_UINT, 0);
+
+				// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
+				g_d3d_device->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			}
 		}
 	}
 	else

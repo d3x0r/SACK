@@ -29,7 +29,7 @@
 #include "image.h"
 #include "../sprite_local.h"
 
-#include <d3d9.h>
+#include <d3d10.h>
 #include "local.h"
 
 //#define DEBUG_TIMING
@@ -1125,17 +1125,21 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 
 				ReloadD3DTexture( topmost_parent, 0 );
 
-			static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
+			static ID3D10Buffer *pQuadVB;
 			if( !pQuadVB )
-				g_d3d_device->CreateVertexBuffer(sizeof( D3DTEXTUREDVERTEX )*4,
-															D3DUSAGE_WRITEONLY,
-															D3DFVF_CUSTOMTEXTUREDVERTEX,
-															D3DPOOL_MANAGED,
-															&pQuadVB,
-															NULL);
+			{
+				D3D10_BUFFER_DESC bufferDesc;
+				bufferDesc.Usage            = D3D10_USAGE_DEFAULT;
+				bufferDesc.ByteWidth        = sizeof( D3DTEXTUREDVERTEX ) * 4;
+				bufferDesc.BindFlags        = D3D10_BIND_VERTEX_BUFFER;
+				bufferDesc.CPUAccessFlags   = 0;
+				bufferDesc.MiscFlags        = 0;
+	
+				g_d3d_device->CreateBuffer( &bufferDesc, NULL/*&InitData*/, &pQuadVB);
+			}
 			D3DTEXTUREDVERTEX* pData;
 			//lock buffer (NEW)
-			pQuadVB->Lock(0,0,(void**)&pData,0);
+			pQuadVB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**)&pData);
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v[vi][0][vRight] * l.scale;
@@ -1160,7 +1164,7 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 				pData[3].fV1 = y_size2;
 			}
 			//unlock buffer (NEW)
-			pQuadVB->Unlock();
+			pQuadVB->Unmap();
 
 			EnableShader( l.simple_texture_shader, pQuadVB, topmost_parent );
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);

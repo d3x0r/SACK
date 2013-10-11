@@ -19,7 +19,7 @@ typedef struct render_3d_interface_tag
 #endif
 } RENDER3D_INTERFACE, *PRENDER3D_INTERFACE;
 
-#ifdef _D3D_DRIVER
+#if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER )
 #define g_d3d_device  (USE_RENDER3D_INTERFACE)->current_device
 #endif
 

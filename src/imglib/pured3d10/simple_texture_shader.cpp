@@ -134,7 +134,7 @@ struct private_shader_data
 
 static void CPROC SimpleTextureEnable( PImageShaderTracker tracker, PTRSZVAL psv_userdata, va_list args )
 {
-	IDirect3DVertexBuffer9 *verts = va_arg( args, IDirect3DVertexBuffer9 *);
+	ID3D10Buffer *verts = va_arg( args, ID3D10Buffer *);
 	Image texture = va_arg( args, Image );
 	struct private_shader_data *data = (struct private_shader_data *)psv_userdata;
 
