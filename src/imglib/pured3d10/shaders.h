@@ -4,6 +4,8 @@
 #define __need___va_list
 #include <stdarg.h>
 
+#include <D3D10Shader.h>
+
 #ifdef __ANDROID__
 #define va_list __va_list
 #else
@@ -26,9 +28,9 @@ struct image_shader_tracker
 	} flags;
 	CTEXTSTR name;
 
-	LPDIRECT3DVERTEXDECLARATION9 vertexDecl;
-	IDirect3DPixelShader9* FragProgram;
-	IDirect3DVertexShader9* VertexProgram;
+	ID3D10Buffer *vertexDecl;
+	ID3D10PixelShader  * FragProgram;
+	ID3D10VertexShader  * VertexProgram;
 
 	int eye_point;
 	int position_attrib;

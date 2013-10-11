@@ -22,7 +22,7 @@
 #define FIX_RELEASE_COM_COLLISION
 #include <stdhdrs.h>
 
-#include <d3d9.h>
+#include <d3d10.h>
 #include <imglib/imagestruct.h>
 #include <image.h>
 
@@ -102,18 +102,21 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 			v = 1-v;
 		}
 
-			static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
-
+			static ID3D10Buffer *pQuadVB;
 			if( !pQuadVB )
-				g_d3d_device->CreateVertexBuffer(sizeof( D3DPOSVERTEX )*4,
-															D3DUSAGE_WRITEONLY,
-															D3DFVF_XYZ,
-															D3DPOOL_MANAGED,
-															&pQuadVB,
-															NULL);
+			{
+				D3D10_BUFFER_DESC bufferDesc;
+				bufferDesc.Usage            = D3D10_USAGE_DEFAULT;
+				bufferDesc.ByteWidth        = sizeof( D3DPOSVERTEX ) * 4;
+				bufferDesc.BindFlags        = D3D10_BIND_VERTEX_BUFFER;
+				bufferDesc.CPUAccessFlags   = 0;
+				bufferDesc.MiscFlags        = 0;
+	
+				g_d3d_device->CreateBuffer( &bufferDesc, NULL/*&InitData*/, &pQuadVB);
+			}
 			D3DPOSVERTEX* pData;
 			//lock buffer (NEW)
-			pQuadVB->Lock(0,0,(void**)&pData,0);
+			pQuadVB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**)&pData);
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
@@ -130,7 +133,7 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 				pData[3].fZ = v3[v][vForward] * l.scale;
 			}
 			//unlock buffer (NEW)
-			pQuadVB->Unlock();
+			pQuadVB->Unmap();
 			float _color[4];
 			_color[0] = RedVal( d ) / 255.0f;
 			_color[1] = GreenVal( d ) / 255.0f;
@@ -271,18 +274,21 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 		}
 
 
-		static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
-
-		if( !pQuadVB )
-			g_d3d_device->CreateVertexBuffer(sizeof( D3DPOSVERTEX )*4,
-														D3DUSAGE_WRITEONLY,
-														D3DFVF_XYZ,
-														D3DPOOL_MANAGED,
-														&pQuadVB,
-														NULL);
+			static ID3D10Buffer *pQuadVB;
+			if( !pQuadVB )
+			{
+				D3D10_BUFFER_DESC bufferDesc;
+				bufferDesc.Usage            = D3D10_USAGE_DEFAULT;
+				bufferDesc.ByteWidth        = sizeof( D3DPOSVERTEX ) * 4;
+				bufferDesc.BindFlags        = D3D10_BIND_VERTEX_BUFFER;
+				bufferDesc.CPUAccessFlags   = 0;
+				bufferDesc.MiscFlags        = 0;
+	
+				g_d3d_device->CreateBuffer( &bufferDesc, NULL/*&InitData*/, &pQuadVB);
+			}
 			D3DPOSVERTEX* pData;
 			//lock buffer (NEW)
-			pQuadVB->Lock(0,0,(void**)&pData,0);
+			pQuadVB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**)&pData);
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
@@ -299,7 +305,7 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 				pData[3].fZ = v3[v][vForward] * l.scale;
 			}
 			//unlock buffer (NEW)
-			pQuadVB->Unlock();
+			pQuadVB->Unmap();
 
 			float _color[4];
 			_color[0] = RedVal( d ) / 255.0f;

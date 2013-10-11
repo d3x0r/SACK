@@ -123,7 +123,7 @@ struct ImageFile_tag
 #endif
 #ifdef _D3D10_DRIVER
 	PLIST Surfaces;
-	//IDirect3DBaseTexture10 *pActiveSurface;
+	ID3D10Texture2D *pActiveSurface;
 #endif
 #ifdef _D3D_DRIVER
 	/* gl context? */

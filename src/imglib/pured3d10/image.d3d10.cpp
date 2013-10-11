@@ -11,7 +11,7 @@
 #define FIX_RELEASE_COM_COLLISION
 #include <stdhdrs.h>
 #include <deadstart.h>
-#include <d3d9.h>
+#include <d3d10.h>
 
 // have to include image.h first to get INVERT_IMAGE definition
 #include <image.h>
@@ -104,7 +104,7 @@ static void OnBeginDraw3d( WIDE( "@00 DirectX Image Library" ) )( PTRSZVAL psvIn
 	l.glImageIndex = l.d3dActiveSurface->index;
 }
 
-IDirect3DBaseTexture9 *ReloadD3DTexture( Image child_image, int option )
+ID3D10Texture2D *ReloadD3DTexture( Image child_image, int option )
 {
 	Image image;
 	if( !g_d3d_device )
@@ -128,15 +128,22 @@ IDirect3DBaseTexture9 *ReloadD3DTexture( Image child_image, int option )
 		// should be checked outside.
 		if( !image_data->d3dTexture )
 		{
-			D3DLOCKED_RECT rect;
+			D3D10_TEXTURE2D_DESC desc;
+			ZeroMemory( &desc, sizeof(desc) );
+			desc.Width = 256;
+			desc.Height = 256;
+			desc.MipLevels = 1;
+			desc.ArraySize = 1;
+			desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			desc.SampleDesc.Count = 1;
+			desc.Usage = D3D10_USAGE_DEFAULT;
+			desc.BindFlags = D3D10_BIND_RENDER_TARGET | D3D10_BIND_SHADER_RESOURCE;
+
 			//lprintf( "Create texture %d,%d %d", image->width, image->height, image->pwidth );
-			g_d3d_device->CreateTexture( image->width, image->height, 1
-				, D3DUSAGE_DYNAMIC
-				, D3DFORMAT::D3DFMT_A8R8G8B8
-				, D3DPOOL::D3DPOOL_DEFAULT
-				, &image_data->d3tex, NULL );
-			image_data->d3dTexture = image_data->d3tex;
-			image_data->d3tex->LockRect(0, &rect, NULL, D3DLOCK_DISCARD);
+			g_d3d_device->CreateTexture2D( &desc
+				, NULL
+				, &image_data->d3dTexture );
+
 #ifdef DEBUG_IMAGE_UPDATE
 			{
 				_8 *buf;
@@ -155,16 +162,21 @@ IDirect3DBaseTexture9 *ReloadD3DTexture( Image child_image, int option )
 			}
 #endif
 			{
-				int line;
-				for( line = 0; line < image->height; line++ )
+				D3D10_MAPPED_TEXTURE2D mappedTex;
+				image_data->d3dTexture->Map( D3D10CalcSubresource(0, 0, 1)
+						, D3D10_MAP_WRITE_DISCARD, 0, &mappedTex );
+
+				UCHAR* pTexels = (UCHAR*)mappedTex.pData;
+				for( UINT row = 0; row < desc.Height; row++ )
 				{
-					CopyMemory( (P_8)rect.pBits + line * rect.Pitch
-								 , image->image + line * image->pwidth
-								 , image->width*sizeof(CDATA)
-								 );
+					UINT rowStart = row * mappedTex.RowPitch;
+					MemCpy( (P_8)pTexels + rowStart
+									, image->image + row * image->pwidth
+									, image->width*sizeof(CDATA)
+									);
 				}
+				image_data->d3dTexture->Unmap( D3D10CalcSubresource(0, 0, 1) );
 			}
-			image_data->d3tex->UnlockRect(0);
 			//lprintf( WIDE("Remade texture %p for image %p"), image_data->d3tex, image );
 		}
 		image->pActiveSurface = image_data->d3dTexture;
@@ -322,16 +334,21 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 
 		if( g_d3d_device )
 		{
+			static ID3D10Buffer *pQuadVB;
 			if( !pQuadVB )
-				g_d3d_device->CreateVertexBuffer(sizeof( D3DPOSVERTEX )*4,
-															D3DUSAGE_WRITEONLY,
-															D3DFVF_XYZ,
-															D3DPOOL_MANAGED,
-															&pQuadVB,
-															NULL);
+			{
+				D3D10_BUFFER_DESC bufferDesc;
+				bufferDesc.Usage            = D3D10_USAGE_DEFAULT;
+				bufferDesc.ByteWidth        = sizeof( D3DPOSVERTEX ) * 4;
+				bufferDesc.BindFlags        = D3D10_BIND_VERTEX_BUFFER;
+				bufferDesc.CPUAccessFlags   = 0;
+				bufferDesc.MiscFlags        = 0;
+	
+				g_d3d_device->CreateBuffer( &bufferDesc, NULL/*&InitData*/, &pQuadVB);
+			}
 			D3DPOSVERTEX* pData;
 			//lock buffer (NEW)
-			pQuadVB->Lock(0,0,(void**)&pData,0);
+			pQuadVB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**)&pData);
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
@@ -347,7 +364,7 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 				pData[3].fY = v4[v][vUp] * l.scale;
 				pData[3].fZ = v4[v][vForward] * l.scale;
 			}
-			pQuadVB->Unlock();
+			pQuadVB->Unmap();
 
 			float _color[4];
 			_color[0] = RedVal( color ) / 255.0f;
@@ -461,17 +478,21 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 			v = 1-v;
 		}
 
-		static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
-		if( !pQuadVB )
-			g_d3d_device->CreateVertexBuffer(sizeof( D3DPOSVERTEX )*4,
-														D3DUSAGE_WRITEONLY,
-														D3DFVF_CUSTOMVERTEX,
-														D3DPOOL_MANAGED,
-														&pQuadVB,
-														NULL);
+			static ID3D10Buffer *pQuadVB;
+			if( !pQuadVB )
+			{
+				D3D10_BUFFER_DESC bufferDesc;
+				bufferDesc.Usage            = D3D10_USAGE_DEFAULT;
+				bufferDesc.ByteWidth        = sizeof( D3DPOSVERTEX ) * 4;
+				bufferDesc.BindFlags        = D3D10_BIND_VERTEX_BUFFER;
+				bufferDesc.CPUAccessFlags   = 0;
+				bufferDesc.MiscFlags        = 0;
+	
+				g_d3d_device->CreateBuffer( &bufferDesc, NULL/*&InitData*/, &pQuadVB);
+			}
 		D3DPOSVERTEX* pData;
 		//lock buffer (NEW)
-		pQuadVB->Lock(0,0,(void**)&pData,0);
+		pQuadVB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**)&pData);
 		//copy data to buffer (NEW)
 		{
 			pData[0].fX = v1[v][vRight] * l.scale;
@@ -491,7 +512,7 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 			pData[3].fZ = v4[v][vForward] * l.scale;
 		}
 		//unlock buffer (NEW)
-		pQuadVB->Unlock();
+		pQuadVB->Unmap();
 			float _color[4];
 			_color[0] = RedVal( color ) / 255.0f;
 			_color[1] = GreenVal( color ) / 255.0f;
