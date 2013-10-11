@@ -157,6 +157,8 @@ struct display_camera
 	IDXGIDevice     *pDXGIDevice;
 
 	ID3D11Device    *device;
+	D3D_FEATURE_LEVEL result_feature_level;
+	ID3D11DeviceContext *device_context;
 	ID3D11Texture2D *texture;
 	IDXGISurface    *surface;
 	ID2D1RenderTarget  *target;

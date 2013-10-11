@@ -106,22 +106,22 @@ void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar)
 
 static void BeginVisPersp( struct display_camera *camera )
 {
-	D3DXMATRIX  dmx;
+	DirectX::XMMATRIX  dmx;
 	/* init fProjection */
 	//D3DXMatrixPerspectiveFovLH( &dmx, 90.0/180.0*3.1415926, camera->aspect, 1.0f, 30000.0f );
 	MygluPerspective(90.0f,camera->aspect,1.0f,30000.0f);
 	{
 		int n;
-		for( n = 0; n < 16; n++ )
-			dmx.m[0][n] = l.fProjection[0][n];
+		for( n = 0; n < 4; n++ )
+			;//DirectX::XMStoreFloat4( dmx.r[n], l.fProjection[n] );
 	}
 	//D3DXMatrixPerspectiveLH( &dmx, camera->hVidCore->pWindowPos.cx, camera->hVidCore->pWindowPos.cy, 0.1f, 30000.0f );
 
 	//camera->hVidCore->d3ddev->SetTransform( D3DTS_PROJECTION, &dmx );
 
 	{
-		D3DXMATRIX dmx2;
-		D3DXMatrixIdentity( &dmx2 );
+		DirectX::XMMATRIX dmx2;
+		dmx2 = DirectX::XMMatrixIdentity();
 	//	camera->hVidCore->d3ddev->SetTransform( D3DTS_VIEW, &dmx2 );
 	}
 }
@@ -163,19 +163,24 @@ RENDER_PROC( int, EnableOpenD3DView )( PVIDEO hVideo, int x, int y, int w, int h
 int EnableD3D( PVIDEO hVideo )
 {
 	struct display_camera *camera  = hVideo->camera;
-	D3D10CreateDevice1(
+	D3D_FEATURE_LEVEL levels[] = { D3D_FEATURE_LEVEL_11_0};
+	D3D11CreateDevice(
 										  0, // adapter
-										  D3D10_DRIVER_TYPE_HARDWARE,
+										  D3D_DRIVER_TYPE_HARDWARE,
 										  0, // reserved
-										  D3D10_CREATE_DEVICE_BGRA_SUPPORT,
-										  D3D10_FEATURE_LEVEL_10_0,
-										  D3D10_1_SDK_VERSION,
-										  &camera->device);
+										  D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+										  levels,
+										  1, 
+										  D3D11_SDK_VERSION,
+										  &camera->device
+										  , &camera->result_feature_level
+										  , &camera->device_context
+										  );
 
-	D3D10_TEXTURE2D_DESC description = {};
+	D3D11_TEXTURE2D_DESC description = {};
 	description.ArraySize = 1;
 	description.BindFlags =
-		D3D10_BIND_RENDER_TARGET;
+		D3D11_BIND_RENDER_TARGET;
 	description.Format =
 		DXGI_FORMAT_B8G8R8A8_UNORM;
 	description.Width = camera->w;
@@ -183,7 +188,7 @@ int EnableD3D( PVIDEO hVideo )
 	description.MipLevels = 1;
 	description.SampleDesc.Count = 1;
 	description.MiscFlags =
-		D3D10_RESOURCE_MISC_GDI_COMPATIBLE;
+		D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
 
 	camera->device->CreateTexture2D(
 											 &description,
