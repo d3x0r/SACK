@@ -127,19 +127,29 @@ macro( add_library_force_source project optional_style )
     if( FORCE_CXX )
       set_source_files_properties(${ARGN} PROPERTIES LANGUAGE CXX )
       set_source_files_properties( ${ARGN} PROPERTIES COMPILE_FLAGS /CLR )
-    endif( FORCE_CXX )
-
+    endif( FORCE_CXX )
   else( optional_style STREQUAL SHARED )
     if( FORCE_CXX )
       set_source_files_properties( ${optional_style} ${ARGN} PROPERTIES LANGUAGE CXX )
       set_source_files_properties( ${optional_style} ${ARGN} PROPERTIES COMPILE_FLAGS /CLR )
     endif( FORCE_CXX )
+  endif( optional_style STREQUAL SHARED )
 
-  endif( optional_style STREQUAL SHARED )
   add_library( ${project} ${optional_style} ${ARGN} )
   string( REPLACE "." "_" TARGET_LABEL ${project} )
-  SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS TARGET_LABEL=${TARGET_LABEL} )
+  SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "TARGET_LABEL=${TARGET_LABEL};TARGETNAME=\"${CMAKE_LIBRARY_PREFIX}${project}${CMAKE_LIBRARY_SUFFIX}\"" )
 endmacro( add_library_force_source )
+
+
+macro( sack_add_library project optional_style )
+  add_library( ${project} ${optional_style} ${ARGN} )
+  string( REPLACE "." "_" TARGET_LABEL ${project} )
+  if( optional_style STREQUAL SHARED )
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "TARGET_LABEL=${TARGET_LABEL};TARGETNAME=\"${CMAKE_LIBRARY_PREFIX}${project}${CMAKE_LIBRARY_SUFFIX}\"" )
+  else( optional_style STREQUAL SHARED )
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "TARGET_LABEL=${TARGET_LABEL};TARGETNAME=\"${CMAKE_LIBRARY_PREFIX}${project}${CMAKE_LIBRARY_SUFFIX}\"" )
+  endif( optional_style STREQUAL SHARED )
+endmacro( sack_add_library )
 
 
 macro( add_executable_force_source project optional_style )

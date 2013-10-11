@@ -119,6 +119,10 @@
 #define RENDER_NAMESPACE namespace sack { namespace image { namespace render { namespace d3d {
 #define _RENDER_NAMESPACE namespace render { namespace d3d {
 #define RENDER_NAMESPACE_END }}}}
+#elif defined( _D3D10_DRIVER )
+#define RENDER_NAMESPACE namespace sack { namespace image { namespace render { namespace d3d10 {
+#define _RENDER_NAMESPACE namespace render { namespace d3d10 {
+#define RENDER_NAMESPACE_END }}}}
 #else
 #define RENDER_NAMESPACE namespace sack { namespace image { namespace render {
 /* <copy render.h>
@@ -1779,6 +1783,8 @@ typedef int check_this_variable;
 #ifdef __cplusplus
 #ifdef _D3D_DRIVER
 	using namespace sack::image::render::d3d::Interface;
+#elif defined( _D3D10_DRIVER )
+	using namespace sack::image::render::d3d10::Interface;
 #else
 	using namespace sack::image::render::Interface;
 #endif
@@ -1854,6 +1860,8 @@ RENDER_NAMESPACE_END
 #ifdef __cplusplus
 #ifdef _D3D_DRIVER
 	using namespace sack::image::render::d3d;
+#elif defined( _D3D10_DRIVER )
+	using namespace sack::image::render::d3d10;
 #else
 	using namespace sack::image::render;
 #endif

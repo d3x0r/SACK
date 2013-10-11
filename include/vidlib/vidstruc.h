@@ -26,6 +26,12 @@
 
 #endif
 
+#if defined( _D3D10_DRIVER )
+#include <D3D10_1.h>
+#include <D2D1.h>
+#include <wincodec.h>
+#endif
+
 #if defined( __QNX__ )
 #include <gf/gf.h>
 #include <gf/gf3d.h>
@@ -34,8 +40,11 @@
 
 #ifndef RENDER_NAMESPACE
 # ifdef __cplusplus
-#ifdef _D3D_DRIVER
+#if defined( _D3D_DRIVER )
 #  define RENDER_NAMESPACE namespace sack { namespace image { namespace render { namespace d3d {
+#  define RENDER_NAMESPACE_END }}}}
+#elif defined( _D3D10_DRIVER )
+#  define RENDER_NAMESPACE namespace sack { namespace image { namespace render { namespace d3d10 {
 #  define RENDER_NAMESPACE_END }}}}
 #else
 #  define RENDER_NAMESPACE namespace sack { namespace image { namespace render {
@@ -176,7 +185,7 @@ typedef struct HVIDEO_tag
 		HGLRC    hRC;     // Permanent Rendering Context
 	} *pFractures;
 #endif
-#  if defined( _OPENGL_DRIVER ) || defined( _D3D_DRIVER )
+#  if defined( _OPENGL_DRIVER ) || defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER )
 	struct display_camera *camera;
 	MATRIX fModelView;
 	PTRANSFORM transform;
@@ -199,8 +208,6 @@ typedef struct HVIDEO_tag
 #  ifdef _OPENGL_DRIVER
 	Image pAppImage; // this is the image returned for the application's reference.  The real image is a larger surface than this.
 	GLuint		texture[1]; // texture that is this real image...
-#  endif
-#  ifdef _D3D_DRIVER
 #  endif
 #ifdef _WIN32
 #  ifndef _OPENGL_DRIVER

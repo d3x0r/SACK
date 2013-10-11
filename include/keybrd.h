@@ -266,6 +266,8 @@ RENDER_NAMESPACE_END
 #ifdef __cplusplus
 #  ifdef _D3D_DRIVER
      using namespace sack::image::render::d3d::keyboard;
+#  elif defined( _D3D10_DRIVER )
+     using namespace sack::image::render::d3d10::keyboard;
 #  else
      using namespace sack::image::render::keyboard;
 #  endif

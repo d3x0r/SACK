@@ -111,18 +111,24 @@ struct ImageFile_tag
 		 information like update region.                         */
 			IMAGE_RECTANGLE auxrect;
 //DOM-IGNORE-BEGIN
+#if defined( _OPENGL_DRIVER ) || defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER )
+	PTRANSFORM transform;
+#endif
+
 #ifdef _OPENGL_DRIVER
 	/* gl context? */
 	PLIST glSurface;
 	int glActiveSurface; // most things will still use this, since reload image is called first, reload will set active
-	PTRANSFORM transform;
 	VECTOR coords[4];  // updated with SetTransformRelation, otherwise defaults to image size.
+#endif
+#ifdef _D3D10_DRIVER
+	PLIST Surfaces;
+	//IDirect3DBaseTexture10 *pActiveSurface;
 #endif
 #ifdef _D3D_DRIVER
 	/* gl context? */
 	PLIST Surfaces;
 	IDirect3DBaseTexture9 *pActiveSurface;
-	PTRANSFORM transform;
 #endif
 #ifdef __cplusplus
 #ifndef __WATCOMC__ // watcom limits protections in structs to protected and public

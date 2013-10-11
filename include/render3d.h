@@ -12,6 +12,11 @@ typedef struct render_3d_interface_tag
 #ifdef _D3D_DRIVER
 	IDirect3DDevice9 *current_device;
 #endif
+#ifdef _D3D10_DRIVER
+	ID3D10Device *current_device;
+	ID3D10RenderTargetView *current_target;
+	IDXGISwapChain *current_chain;
+#endif
 } RENDER3D_INTERFACE, *PRENDER3D_INTERFACE;
 
 #ifdef _D3D_DRIVER
