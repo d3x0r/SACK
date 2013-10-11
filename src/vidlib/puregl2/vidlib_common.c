@@ -477,13 +477,22 @@ void LoadOptions( void )
 		//lprintf( "Set default to %p", default_camera );
 		SetLink( &l.cameras, 0, default_camera );
 	}
-	l.flags.bLogMessageDispatch = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log message dispatch"), 0, TRUE );
-	l.flags.bLogFocus = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log focus event"), 0, TRUE );
-	l.flags.bLogKeyEvent = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log key event"), 0, TRUE );
-	l.flags.bLogMouseEvent = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/log mouse event"), 0, TRUE );
-	l.flags.bLayeredWindowDefault = 0;
-	l.flags.bLogWrites = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Log Video Output"), 0, TRUE );
-
+	{
+		PODBC option = GetOptionODBC( NULL, 0 );
+		l.flags.bLogMessageDispatch = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/log message dispatch"), 0, TRUE );
+		l.flags.bLogFocus = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/log focus event"), 0, TRUE );
+		l.flags.bLogKeyEvent = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/log key event"), 0, TRUE );
+		l.flags.bLogMouseEvent = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/log mouse event"), 0, TRUE );
+#ifdef _D3D_DRIVER
+#  define LAYERED_DEFAULT 1
+#else
+		// opengl output to layered (transparent) windows is impracticle, and requires an extra move from video memory, or render to
+      // conventional memroy and then a push to video memory;  tiny surfaces may work (those things... toolbar widgets)
+#  define LAYERED_DEFAULT 0
+#endif
+		l.flags.bLayeredWindowDefault = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Default windows are layered" ), LAYERED_DEFAULT, TRUE )?TRUE:FALSE;
+		l.flags.bLogWrites = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/Log Video Output"), 0, TRUE );
+	}
 #endif
 
 	if( !l.origin )
@@ -583,6 +592,8 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 			MemSet (camera->hVidCore, 0, sizeof (VIDEO));
 			InitializeCriticalSec( &camera->hVidCore->cs );
 			camera->hVidCore->camera = camera;
+			camera->hVidCore->flags.bLayeredWindow = l.flags.bLayeredWindowDefault;
+
 		}
 
 		/* CreateWindowEx */
