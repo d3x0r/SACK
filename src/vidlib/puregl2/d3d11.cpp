@@ -141,18 +141,19 @@ int InitD3D( struct display_camera *camera )										// All Setup For OpenGL Go
 
 
 
-RENDER_PROC( int, EnableOpenD3DView )( PVIDEO hVideo, int x, int y, int w, int h )
+RENDER_PROC( int, EnableOpenD3DView )( struct display_camera *camera, int x, int y, int w, int h )
 {
 	// enable a partial opengl area on a single window surface
 	// actually turns out it's just a memory context anyhow...
 	int nFracture;
 
-	if( !hVideo->flags.bD3D )
+	if( !camera->hVidCore->flags.bD3D )
 	{
-		if( !EnableD3D( hVideo ) )
+		if( !EnableD3D( camera ) )
          return 0;
 	}
-	nFracture = CreatePartialDrawingSurface( hVideo, x, y, w, h );
+	//nFracture = CreatePartialDrawingSurface( hVideo, x, y, w, h );
+	nFracture = 0;
 	if( nFracture )
 	{
 		nFracture -= 1;
@@ -161,9 +162,8 @@ RENDER_PROC( int, EnableOpenD3DView )( PVIDEO hVideo, int x, int y, int w, int h
 	return 0;
 }
 
-int EnableD3D( PVIDEO hVideo )
+int EnableD3D( struct display_camera *camera )
 {
-	struct display_camera *camera  = hVideo->camera;
 	D3D_FEATURE_LEVEL levels[] = { D3D_FEATURE_LEVEL_11_0};
 	D3D11CreateDevice(
 										  0, // adapter

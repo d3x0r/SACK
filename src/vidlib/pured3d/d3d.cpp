@@ -181,19 +181,21 @@ int InitD3D( struct display_camera *camera )										// All Setup For OpenGL Go
 
 
 
-RENDER_PROC( int, EnableOpenD3DView )( PVIDEO hVideo, int x, int y, int w, int h )
+RENDER_PROC( int, EnableOpenD3DView )( struct display_camera *camera, int x, int y, int w, int h )
 {
 
 	// enable a partial opengl area on a single window surface
 	// actually turns out it's just a memory context anyhow...
 	int nFracture;
 
-	if( !hVideo->flags.bD3D )
+	if( !camera->hVidCore->flags.bD3D )
 	{
-		if( !EnableD3D( hVideo ) )
+		if( !EnableD3D( camera ) )
          return 0;
 	}
-	nFracture = CreatePartialDrawingSurface( hVideo, x, y, w, h );
+	// need a method to create the viewport correctly.
+	//nFracture = CreatePartialDrawingSurface( hVideo, x, y, w, h );
+	nFracture = 0;
 	if( nFracture )
 	{
 		nFracture -= 1;
@@ -202,9 +204,8 @@ RENDER_PROC( int, EnableOpenD3DView )( PVIDEO hVideo, int x, int y, int w, int h
 	return 0;
 }
 
-int EnableD3D( PVIDEO hVideo )
+int EnableD3D( struct display_camera *camera )
 {
-   struct display_camera *camera = hVideo->camera;
     camera->d3d = Direct3DCreate9(D3D_SDK_VERSION);    // create the Direct3D interface
 
     D3DPRESENT_PARAMETERS d3dpp;    // create a struct to hold various device information
@@ -230,8 +231,7 @@ int EnableD3D( PVIDEO hVideo )
                       &d3dpp,
                       &camera->d3ddev);
 
-	hVideo->flags.bD3D = 1;
-	LeaveCriticalSec( &hVideo->cs );
+	camera->hVidCore->flags.bD3D = 1;
 	return TRUE;
 }
 
