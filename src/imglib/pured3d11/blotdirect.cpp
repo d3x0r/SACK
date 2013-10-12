@@ -571,6 +571,9 @@ IMAGE_NAMESPACE
 				g_d3d_device->CreateBuffer( &bufferDesc, NULL/*&InitData*/, &pQuadVB);
 			}
 			D3DTEXTUREDVERTEX* pData;
+			D3D11_MAPPED_SUBRESOURCE resource;
+			g_d3d_device_context->Map( pQuadVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource );
+			pData = (D3DTEXTUREDVERTEX*)resource.pData;
 
 			//lock buffer (NEW)
 			//pQuadVB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**)&pData);
@@ -598,7 +601,7 @@ IMAGE_NAMESPACE
 				pData[3].fV1 = y_size2;
 			}
 			//unlock buffer (NEW)
-			//pQuadVB->Unmap();
+			g_d3d_device_context->Unmap( pQuadVB, 0 );
 
 			if( method == BLOT_COPY )
 			{

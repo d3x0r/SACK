@@ -14,27 +14,32 @@
 #include <imglib/imagestruct.h>
 #include <image.h>
 
+#ifdef __3D__
 #ifdef _OPENGL_DRIVER
-#ifdef USE_GLES2
-//#include <GLES/gl.h>
-#include <GLES2/gl2.h>
-#else
-#include <GL/glew.h>
-#include <GL/gl.h>         // Header File For The OpenGL32 Library
+#  ifdef USE_GLES2
+#    include <GLES2/gl2.h>
+#  else
+#   include <GL/glew.h>
+#   include <GL/gl.h>         // Header File For The OpenGL32 Library
+#  endif
+#endif
 #ifdef PURE_OPENGL2_ENABLED
 #include "puregl2/local.h"
+#elif defined( _D3D11_DRIVER )
+#include "local.h"
+#elif defined( _D3D10_DRIVER )
+#include "local.h"
+#elif defined( _D3D2_DRIVER )
+#include "local.h"
+#elif defined( _D3D_DRIVER )
+#include "local.h"
 #else
 #include "puregl/local.h"
 #endif
 #endif
 
-#endif
 #define REQUIRE_GLUINT
 #include "image_common.h"
-#ifdef _D3D_DRIVER
-#include <d3d11.h>
-#include "local.h"
-#endif
 
 //#ifdef UNNATURAL_ORDER
 // use this as natural - to avoid any confusion about signs...
@@ -190,7 +195,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 
 	//lprintf( "output %c at %d,%d", c, x, y );
 
-#if defined( _OPENGL_DRIVER ) || defined( _D3D_DRIVER )
+#if defined( __3D__ )
 	if( !UseFont->character[c]->cell && ( pImage->flags & IF_FLAG_FINAL_RENDER ) )
 	{
 		Image image = AllocateCharacterSpaceByFont( UseFont, UseFont->character[c] );
@@ -248,7 +253,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			return 0;
 		}
 #endif
-#ifdef _D3D_DRIVER
+#if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER ) || defined( _D3D11_DRIVER )
 		ReloadD3DTexture( pifSrc, 0 );
 		if( !pifSrc->pActiveSurface )
 		{
@@ -530,7 +535,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			// Back Face
 #  endif  // ifdef OPENGL2
 #endif
-#ifdef _D3D_DRIVER
+#if defined( _D3D_DRIVER ) || defined( _D3D11_DRIVER )
 #  ifdef _D3D_DRIVER2
 			static LPDIRECT3DVERTEXBUFFER9 pQuadVB_back;
 			static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
@@ -605,6 +610,8 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 
 			g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
 			//pQuadVB->Release();
+#  elif defined( _D3D10_DRIVER )
+#  elif defined( _D3D11_DRIVER )
 #  else
 			static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
 			if( !pQuadVB )
@@ -736,7 +743,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			if( 0 )
 				lprintf( WIDE("%d %d %d"), UseFont->baseline - pchar->ascent, y, UseFont->baseline - pchar->descent );
 			// bias the left edge of the character
-#if defined( _D3D_DRIVER ) || defined( _OPENGL_DRIVER )
+#if defined( __3D__ )
 			for(line = 0;
 				 line <= UseFont->baseline - pchar->descent;
 				 line++ )
@@ -759,7 +766,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				data += inc;
 			}
 		}
-#if defined( _D3D_DRIVER ) || defined( _OPENGL_DRIVER )
+#if defined( __3D__ )
 		MarkImageUpdated( pImage );
 #endif
 	}

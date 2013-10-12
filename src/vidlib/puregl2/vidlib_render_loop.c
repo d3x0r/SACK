@@ -24,14 +24,13 @@ void Redraw( PVIDEO hVideo )
 }
 
 
-#define __glPi 3.14159265358979323846
 
 void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar)
 {
 #define m l.fProjection
     //GLfloat m[4][4];
     GLfloat sine, cotangent, deltaZ;
-    GLfloat radians=(GLfloat)(fovy/2.0f*__glPi/180.0f);
+    GLfloat radians=(GLfloat)(fovy/2.0f*M_PI/180.0f);
 
     /*m[0][0] = 1.0f;*/ m[0][1] = 0.0f; m[0][2] = 0.0f; m[0][3] = 0.0f;
     m[1][0] = 0.0f; /*m[1][1] = 1.0f;*/ m[1][2] = 0.0f; m[1][3] = 0.0f;
@@ -105,32 +104,9 @@ void Render3D( struct display_camera *camera )
 	if( l.flags.bLogRenderTiming )
 		lprintf( WIDE("Begin Render") );
 
-
-	// do OpenGL Frame
-#ifdef _OPENGL_DRIVER
-	SetActiveGLDisplay( camera->hVidCore );
-	InitGL( camera );
+#ifdef __3D__
+	Init3D( camera );
 #endif
-#ifdef _D3D_DRIVER
-	if( !SetActiveD3DDisplay( camera->hVidCore ) )  // BeginScene()
-		return;
-
-	InitD3D( camera );
-	Render3d.current_device->Clear(0, NULL, D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER
-											, D3DCOLOR_XRGB(0, 40, 100)
-											, 1.0f
-											, 0);
-#endif
-#ifdef _D3D10_DRIVER
-	if( !SetActiveD3DDisplay( camera->hVidCore ) )  // BeginScene()
-		return;
-
-	InitD3D( camera );
-	float pBackgroundColour[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-	Render3d.current_device->ClearRenderTargetView( Render3d.current_target, pBackgroundColour);
-#endif
-
 	//lprintf( "Called init for camera.." );
 	{
 		PRENDERER hVideo = camera->hVidCore;
@@ -189,6 +165,10 @@ void Render3D( struct display_camera *camera )
 			RotateRight( camera->origin_camera, -1, -1 );
 			break;
 		}
+
+#ifdef __3D__
+		SetupPositionMatrix( camera );
+#endif
 #ifdef _D3D_DRIVER
 		{
 			PC_POINT tmp = GetAxis( camera->origin_camera, 0 );
@@ -318,7 +298,6 @@ void Render3D( struct display_camera *camera )
 				lprintf( WIDE("------ BEGIN A REAL DRAW -----------") );
 
 #ifdef _OPENGL_DRIVER
-
 #if 0
 			glEnable( GL_DEPTH_TEST );
 			// put out a black rectangle
@@ -383,15 +362,7 @@ void Render3D( struct display_camera *camera )
 		if( l.flags.bLogRenderTiming )
 			lprintf( WIDE("End Render") );
 	}
-#ifdef _OPENGL_DRIVER
-	SetActiveGLDisplay( NULL );
-#endif
-#ifdef _D3D_DRIVER
-	SetActiveD3DDisplay( NULL ); // EndScene
-#endif
-#ifdef _D3D10_DRIVER
-	Render3d.current_chain->Present(0, 0);
-#endif
+	EndActive3D( camera );
 }
 
 

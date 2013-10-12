@@ -1,3 +1,7 @@
+/* reference code is http://www.rastertek.com/dx11tut03.html  */
+
+
+
 #define NO_UNICODE_C
 #ifndef UNDER_CE
 #define NEED_REAL_IMAGE_STRUCTURE
@@ -39,14 +43,12 @@ void KillGLWindow( void )
 extern RENDER3D_INTERFACE Render3d;
 
 
-int SetActiveD3DDisplayView( PVIDEO hVideo, int nFracture )
+int SetActiveD3DDisplayView( struct display_camera *hVideo, int nFracture )
 {
 	static CRITICALSECTION cs;
-	static PVIDEO _hVideo; // last display with a lock.
+	static struct display_camera *_hVideo; // last display with a lock.
 	if( hVideo )
 	{
-		EnterCriticalSec( &cs );
-		EnterCriticalSec( &hVideo->cs );
 		if( nFracture )
 		{
 			nFracture -= 1;
@@ -54,10 +56,11 @@ int SetActiveD3DDisplayView( PVIDEO hVideo, int nFracture )
 		else
 		{
 			_hVideo = hVideo;
-			Render3d.current_device = hVideo->camera->device;
-			if( ! hVideo->camera->device )
+			Render3d.current_device = hVideo->device;
+			Render3d.current_device_context = hVideo->device_context;
+
+			if( ! hVideo->device )
 			{
-				LeaveCriticalSec( &cs );
 				return FALSE;
 			}
 		}
@@ -69,16 +72,25 @@ int SetActiveD3DDisplayView( PVIDEO hVideo, int nFracture )
 #ifdef LOG_OPENGL_CONTEXT
 			lprintf( "Prior GL Context being released." );
 #endif
+			// Present as fast as possible.
+			if( _hVideo->flags.vsync )
+			{
+				// Lock to screen refresh rate.
+				_hVideo->swap_chain->Present(1, 0);
+			}
+			else
+			{
+				// Present as fast as possible.
+				_hVideo->swap_chain->Present(0, 0);
+			}
+			_hVideo = NULL;
 			//lprintf( "swapping buffer..." );
-			//Render3d.current_chain->Present(0, 0);
-			//Render3d.current_device = NULL;
 		}
-		LeaveCriticalSec( &cs );
 	}
 	return TRUE;
 }
 
-int SetActiveD3DDisplay( PVIDEO hVideo )
+int SetActiveD3DDisplay( struct display_camera *hVideo )
 {
    return SetActiveD3DDisplayView( hVideo, 0 );
 }
@@ -128,56 +140,177 @@ static void BeginVisPersp( struct display_camera *camera )
 }
 
 
-int InitD3D( struct display_camera *camera )										// All Setup For OpenGL Goes Here
+int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goes Here
 {
-	if( !camera->flags.init )
-	{
-		BeginVisPersp( camera );
-		lprintf( WIDE("First GL Init Done.") );
-		camera->flags.init = 1;
-	}
-	return TRUE;										// Initialization Went OK
+	// called as the first thing, when doing a render pass to this camera;
+	// setup default parameters for state.
+
+	BeginVisPersp( camera );
+
+	if( !SetActiveD3DDisplay( camera ) )  // BeginScene()
+		return FALSE;
+
+	float pBackgroundColour[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+	// Clear the back buffer.
+	camera->device_context->ClearRenderTargetView( camera->render_target_view, pBackgroundColour);
+    
+	// Clear the depth buffer.
+	camera->device_context->ClearDepthStencilView( camera->depth_stencil_view, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+	return TRUE;
+}
+
+void SetupPositionMatrix( struct display_camera *camera )
+{
+	// camera->origin_camera is valid eye position matrix
+}
+
+void EndActive3D( struct display_camera *camera ) // does appropriate EndActiveXXDisplay
+{
+	SetActiveD3DDisplay( NULL );
 }
 
 
-
-RENDER_PROC( int, EnableOpenD3DView )( struct display_camera *camera, int x, int y, int w, int h )
+void DisableD3d( struct display_camera *camera )
 {
-	// enable a partial opengl area on a single window surface
-	// actually turns out it's just a memory context anyhow...
-	int nFracture;
+	// Before shutting down set to windowed mode or when you release the swap chain it will throw an exception.
+	if( camera->swap_chain)
+	{
+		camera->swap_chain->SetFullscreenState(false, NULL);
+	}
 
-	if( !camera->hVidCore->flags.bD3D )
+	if( camera->raster_state)
 	{
-		if( !EnableD3D( camera ) )
-         return 0;
+		camera->raster_state->Release();
+		camera->raster_state = 0;
 	}
-	//nFracture = CreatePartialDrawingSurface( hVideo, x, y, w, h );
-	nFracture = 0;
-	if( nFracture )
+
+	if( camera->depth_stencil_view)
 	{
-		nFracture -= 1;
-		return nFracture + 1;
+		camera->depth_stencil_view->Release();
+		camera->depth_stencil_view = 0;
 	}
-	return 0;
+
+	if( camera->depth_stencil_state)
+	{
+		camera->depth_stencil_state->Release();
+		camera->depth_stencil_state = 0;
+	}
+
+	if( camera->depth_stencil_buffer )
+	{
+		camera->depth_stencil_buffer->Release();
+		camera->depth_stencil_buffer = 0;
+	}
+
+	if(camera->render_target_view)
+	{
+		camera->render_target_view->Release();
+		camera->render_target_view = 0;
+	}
+
+	if( camera->device_context )
+	{
+		camera->device_context->Release();
+		camera->device_context = 0;
+	}
+
+	if(camera->device)
+	{
+		camera->device->Release();
+		camera->device = 0;
+	}
+
+	if(camera->swap_chain)
+	{
+		camera->swap_chain->Release();
+		camera->swap_chain = 0;
+	}
 }
 
-int EnableD3D( struct display_camera *camera )
+int EnableD3d( struct display_camera *camera )
 {
 	D3D_FEATURE_LEVEL levels[] = { D3D_FEATURE_LEVEL_11_0};
-	D3D11CreateDevice(
-										  0, // adapter
-										  D3D_DRIVER_TYPE_HARDWARE,
-										  0, // reserved
-										  D3D11_CREATE_DEVICE_BGRA_SUPPORT,
-										  levels,
-										  1, 
-										  D3D11_SDK_VERSION,
-										  &camera->device
-										  , &camera->result_feature_level
-										  , &camera->device_context
-										  );
+	HRESULT result;
+	DXGI_SWAP_CHAIN_DESC swapChainDesc;
+	D3D_FEATURE_LEVEL featureLevel;
 
+	// Initialize the swap chain description.
+	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
+
+	// Set to a single back buffer.
+	swapChainDesc.BufferCount = 1;
+
+	// Set the width and height of the back buffer.
+	swapChainDesc.BufferDesc.Width = camera->h;
+	swapChainDesc.BufferDesc.Height = camera->w;
+
+	// Set regular 32-bit surface for the back buffer.
+	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+		// Set the refresh rate of the back buffer.
+	if(camera->flags.vsync)
+	{
+		swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;//numerator;
+		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;//denominator;
+	}
+	else
+	{
+		swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
+		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
+	}
+
+	// Set the usage of the back buffer.
+	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+
+	// Set the handle for the window to render to.
+	swapChainDesc.OutputWindow = camera->hWndInstance;
+
+	// Turn multisampling off.
+	swapChainDesc.SampleDesc.Count = 1;
+	swapChainDesc.SampleDesc.Quality = 0;
+
+	// Set to full screen or windowed mode.
+	if( 0 /*&& fullscreen*/ )
+	{
+		swapChainDesc.Windowed = false;
+	}
+	else
+	{
+		swapChainDesc.Windowed = true;
+	}
+
+	// Set the scan line ordering and scaling to unspecified.
+	swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+	swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+
+	// Discard the back buffer contents after presenting.
+	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+
+	// Don't set the advanced flags.
+	swapChainDesc.Flags = 0;
+
+
+	// Set the feature level to DirectX 11.
+	featureLevel = D3D_FEATURE_LEVEL_11_0;
+		result = D3D11CreateDeviceAndSwapChain(NULL
+					, D3D_DRIVER_TYPE_REFERENCE //D3D_DRIVER_TYPE_HARDWARE
+					, NULL
+					, 0
+					, &featureLevel
+					, 1
+					, D3D11_SDK_VERSION
+					, &swapChainDesc
+					, &camera->swap_chain
+					, &camera->device
+					, NULL
+					, &camera->device_context);
+	if( result )
+	{
+		lprintf( WIDE("Failed to create device.") );
+		return FALSE;
+	}
 	D3D11_TEXTURE2D_DESC description = {};
 	description.ArraySize = 1;
 	description.BindFlags =
@@ -222,46 +355,42 @@ int EnableD3D( struct display_camera *camera )
 											  0.0f, // default dpi
 											  D2D1_RENDER_TARGET_USAGE_GDI_COMPATIBLE);
 
-
+	lprintf( WIDE("don't know what to do with a target anyway (yet)") );
+	/*
+	  
 	factory->CreateDxgiSurfaceRenderTarget(
 																 camera->surface,
 																 &properties,
 																 &camera->target);
+    */
 
-
-
-
-
-
-#if _OLD_D3D
-    D3DPRESENT_PARAMETERS d3dpp;    // create a struct to hold various device information
-
-    ZeroMemory(&d3dpp, sizeof(d3dpp));    // clear out the struct for use
-    d3dpp.Windowed = TRUE;    // program windowed, not fullscreen
-    d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;    // discard old frames
-	//d3dpp.SwapEffect = D3DSWAPEFFECT_COPY;
-	d3dpp.hDeviceWindow = camera->hWndOutput;    // set the window to be used by Direct3D
-
-    d3dpp.BackBufferFormat = D3DFMT_A8R8G8B8;    // set the back buffer format to 32-bit
-	d3dpp.BackBufferWidth = camera->pWindowPos.cx;    // set the width of the buffer
-    d3dpp.BackBufferHeight = camera->pWindowPos.cy;    // set the height of the buffer
-
-	d3dpp.EnableAutoDepthStencil = TRUE;
-	d3dpp.AutoDepthStencilFormat = D3DFMT_D16;
-
-    // create a device class using this information and information from the d3dpp stuct
-    hVideo->d3d->CreateDevice(D3DADAPTER_DEFAULT,
-                      D3DDEVTYPE_HAL,
-                      hVideo->hWndOutput,
-					  D3DCREATE_HARDWARE_VERTEXPROCESSING,
-                      &d3dpp,
-                      &hVideo->d3ddev);
-
-	hVideo->flags.bD3D = 1;
-	LeaveCriticalSec( &hVideo->cs );
-#endif
 	return TRUE;
 }
+
+
+int EnableD3dView( struct display_camera *camera, int x, int y, int w, int h )
+{
+	// enable a partial opengl area on a single window surface
+	// actually turns out it's just a memory context anyhow...
+	int nFracture;
+
+	if( !camera->hVidCore->flags.bD3D )
+	{
+		if( !EnableD3d( camera ) )
+         return 0;
+	}
+	//nFracture = CreatePartialDrawingSurface( hVideo, x, y, w, h );
+	nFracture = 0;
+	if( nFracture )
+	{
+		nFracture -= 1;
+		return nFracture + 1;
+	}
+	return 0;
+}
+
+
+
 
 RENDER_NAMESPACE_END
 

@@ -12,6 +12,7 @@
 #include <D2d1.h> // only took them (1996-2008... 12 years) to get direct draw right LOL
 //#include <D3D11Misc.h>
 #include <DirectXMath.h>
+using namespace DirectX;
 
 // transparent window support ( not needed if solid output?)
 #include <Wincodec.h>
@@ -154,16 +155,29 @@ struct display_camera
    NativeWindowType displayWindow;
 #endif
 #    ifdef _D3D11_DRIVER
-	IDXGIDevice     *pDXGIDevice;
+	IDXGIDevice             *pDXGIDevice;
 
-	ID3D11Device    *device;
-	D3D_FEATURE_LEVEL result_feature_level;
-	ID3D11DeviceContext *device_context;
-	ID3D11Texture2D *texture;
-	IDXGISurface    *surface;
-	ID2D1RenderTarget  *target;
-	IWICBitmap         *bitmap;
-	IWICImagingFactory *factory;
+	ID3D11Device            *device;
+	D3D_FEATURE_LEVEL        result_feature_level;
+	ID3D11DeviceContext     *device_context;
+	IDXGISwapChain          *swap_chain;
+	ID3D11RenderTargetView  *render_target_view;
+	ID3D11Texture2D         *depth_stencil_buffer;
+	ID3D11DepthStencilState *depth_stencil_state;
+	ID3D11DepthStencilView  *depth_stencil_view;
+	ID3D11RasterizerState   *raster_state;
+	ID3D11Texture2D         *texture;
+	IDXGISurface            *surface;
+	ID2D1RenderTarget       *target;
+	IWICBitmap              *bitmap;
+	IWICImagingFactory      *factory;
+
+
+	int m_videoCardMemory;
+	char m_videoCardDescription[128];
+	XMMATRIX m_projectionMatrix;
+	XMMATRIX m_worldMatrix;
+	XMMATRIX m_orthoMatrix;
 
 	//hr = g_pd3dDevice->QueryInterface(__uuidof(IDXGIDevice), (void **)&pDXGIDevice);
       
@@ -195,6 +209,7 @@ struct display_camera
 		BIT_FIELD init : 1;
 		BIT_FIELD topmost : 1;
 		BIT_FIELD first_draw : 1;
+		BIT_FIELD vsync : 1; 
 	} flags;
 	PLIST plugins; // each camera has plugins that might attach more render and mouse methods
 	int type;
@@ -370,11 +385,22 @@ int InitGL( struct display_camera *camera );										// All Setup For OpenGL Go
 // ------ android keymap -------------
 void SACK_Vidlib_ToggleInputDevice( void );
 
+#ifdef __3D__
+// this has the ability to fail, becuase it enables the context
+int Init3D( struct display_camera *camera ); // begin drawing (setup projection); also does SetActiveXXXDIsplay
+void EndActive3D( struct display_camera *camera ); // does appropriate EndActiveXXDisplay
+void SetupPositionMatrix( struct display_camera *camera );
+#endif
 
-#if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER )
-int SetActiveD3DDisplay( PVIDEO hVideo );
-int SetActiveD3DDisplayView( PVIDEO hVideo, int nFracture );
-int InitD3D( struct display_camera *camera ); // begin drawing (setup projection)
+#if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER ) || defined( _D3D11_DRIVER )
+int EnableD3d( struct display_camera *camera );
+int EnableD3dView( struct display_camera *camera, int x, int y, int w, int h );
+void DisableD3d( struct display_camera *camera );
+
+int SetActiveD3DDisplay( struct display_camera *hVideo );
+int SetActiveD3DDisplayView( struct display_camera *hVideo, int nFracture );
+
+
 #  ifndef VIDLIB_INTERFACE_DEFINED
 extern
 	  RENDER3D_INTERFACE Render3d;
