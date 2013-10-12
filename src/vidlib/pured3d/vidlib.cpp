@@ -3451,7 +3451,7 @@ BOOL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 			lprintf( WIDE( "Created Real window...Stuff.." ) );
 	#endif
 			camera->hVidCore->hWndOutput = (HWND)camera->hWndInstance;
-			EnableD3D( camera->hVidCore );
+			EnableD3D( camera );
 			ShowWindow( camera->hWndInstance, SW_SHOWNORMAL );
 			lprintf( WIDE( "ShowWindow error: %d" ), GetLastError() );
 			while( !camera->hVidCore->flags.bReady )

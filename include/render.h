@@ -942,7 +942,7 @@ enum DisplayAttributes {
 	    hVideo :  a display surface to enable opengl on.
 	    
 	     */
-	 RENDER_PROC( int, EnableD3D )           ( PRENDERER hVideo );
+	 RENDER_PROC( int, EnableD3D )           ( struct display_camera *camera );
 	 /* Enables a view on a display. This is a sub-region where the
 	    openGL is drawn into just a part of the display.
 	    Parameters
