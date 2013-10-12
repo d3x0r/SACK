@@ -101,6 +101,13 @@
 #        define snprintf _snprintf
 #        define vsnprintf _vsnprintf
 #      endif
+#      if defined( _UNICODE )
+#        define tnprintf _snwprintf
+#        define vtnprintf _vsnwprintf
+#      else
+#        define tnprintf _snprintf
+#        define vtnprintf _vsnprintf
+#      endif
 #    define snwprintf _snwprintf
 #    endif// suffer_with_warnings
 
@@ -114,14 +121,17 @@
 
 #ifdef  __GNUC__
 #      if defined( _UNICODE )
-#        ifndef NO_UNICODE_C
-//&& !defined( NO_UNICODE_C )
+#        define tnprintf _snwprintf
+#        define vtnprintf _vsnwprintf
+#        ifndef NO_UNICODE_C && !defined( NO_UNICODE_C )
 #           define snprintf   snwprintf
 #           define vsnprintf  vsnwprintf
 #           define sscanf     swscanf
 #        else
 #        endif
 #      else
+#        define tnprintf snprintf
+#        define vtnprintf vsnprintf
 //#        define snprintf snprintf
 //#        define vsnprintf vsnprintf
 #      endif
@@ -132,14 +142,17 @@
 
 #ifdef __WATCOMC__
 #      if defined( _UNICODE )
-#        ifndef NO_UNICODE_C
-//&& !defined( NO_UNICODE_C )
+#        define tnprintf  _snwprintf
+#        define vtnprintf _vsnwprintf
+#        ifndef NO_UNICODE_C && !defined( NO_UNICODE_C )
 #           define snprintf  _snwprintf
 #           define vsnprintf _vsnwprintf
 #           define sscanf     swscanf
 #        else
 #        endif
 #      else
+#         define tnprintf  snprintf
+#         define vtnprintf vsnprintf
 //#        define snprintf snprintf
 //#        define vsnprintf vsnprintf
 #      endif
