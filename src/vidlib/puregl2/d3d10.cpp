@@ -1,3 +1,4 @@
+#define NO_UNICODE_C
 #ifndef UNDER_CE
 #define NEED_REAL_IMAGE_STRUCTURE
 
