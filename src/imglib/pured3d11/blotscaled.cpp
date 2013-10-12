@@ -564,12 +564,10 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				g_d3d_device->CreateBuffer( &bufferDesc, NULL/*&InitData*/, &pQuadVB);
 			}
 			D3DTEXTUREDVERTEX* pData;
-			//lock buffer (NEW)
+			D3D11_MAPPED_SUBRESOURCE resource;
+			g_d3d_device_context->Map( pQuadVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource );
+			pData = (D3DTEXTUREDVERTEX*)resource.pData;
 
-			// Lock the vertex buffer.
-			//pQuadVB->Map(D3D11_MAP_WRITE_DISCARD, 0, (void**)&pData);
-
-			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
 				pData[0].fY = v1[v][vUp] * l.scale;
@@ -593,9 +591,8 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				pData[3].fV1 = y_size2;
 			}
 			// Unlock the vertex buffer.
-			//pQuadVB->Unmap();
-
-
+			g_d3d_device_context->Unmap( pQuadVB, 0 );
+	
 			if( method == BLOT_COPY )
 			{
 				EnableShader( l.simple_texture_shader, pQuadVB, pifSrc );

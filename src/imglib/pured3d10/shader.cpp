@@ -103,9 +103,9 @@ void EnableShader( PImageShaderTracker tracker, ... )
 		}
 	}
 
+	//g_d3d_device_context->VSSetShader( tracker->VertexProgram, 0, 0);
+	//g_d3d_device_context->PSSetShader( tracker->FragProgram, 0, 0);
 	//g_d3d_device->SetVertexDeclaration( tracker->vertexDecl );
-	//g_d3d_device->SetVertexShader( tracker->VertexProgram );
-	//g_d3d_device->SetPixelShader( tracker->FragProgram );
 	//g_d3d_device->SetPix
 
 	if( !tracker->flags.set_matrix )

@@ -339,7 +339,7 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 			if( !pQuadVB )
 			{
 				D3D11_BUFFER_DESC bufferDesc;
-				bufferDesc.Usage            = D3D11_USAGE_DEFAULT;
+				bufferDesc.Usage            = D3D11_USAGE_DYNAMIC;
 				bufferDesc.ByteWidth        = sizeof( D3DPOSVERTEX ) * 4;
 				bufferDesc.BindFlags        = D3D11_BIND_VERTEX_BUFFER;
 				bufferDesc.CPUAccessFlags   = 0;
@@ -348,6 +348,9 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 				g_d3d_device->CreateBuffer( &bufferDesc, NULL/*&InitData*/, &pQuadVB);
 			}
 			D3DPOSVERTEX* pData;
+			D3D11_MAPPED_SUBRESOURCE resource;
+			g_d3d_device_context->Map( pQuadVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource );
+			pData = (D3DPOSVERTEX*)resource.pData;
 			//lock buffer (NEW)
 			//pQuadVB->Map(D3D11_MAP_WRITE_DISCARD, 0, (void**)&pData);
 			//copy data to buffer (NEW)
@@ -365,6 +368,7 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 				pData[3].fY = v4[v][vUp] * l.scale;
 				pData[3].fZ = v4[v][vForward] * l.scale;
 			}
+			g_d3d_device_context->Unmap( pQuadVB, 0 );
 			//pQuadVB->Unmap();
 
 			float _color[4];
@@ -373,8 +377,6 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 			_color[2] = BlueVal( color ) / 255.0f;
 			_color[3] = AlphaVal( color ) / 255.0f;
 			EnableShader( l.simple_shader, pQuadVB, _color );
-			//g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
-			//pQuadVB->Release();
 		}
 	}
 	else
@@ -492,9 +494,9 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 				g_d3d_device->CreateBuffer( &bufferDesc, NULL/*&InitData*/, &pQuadVB);
 			}
 		D3DPOSVERTEX* pData;
-		//lock buffer (NEW)
-		//pQuadVB->Map(D3D11_MAP_WRITE_DISCARD, 0, (void**)&pData);
-		//copy data to buffer (NEW)
+		D3D11_MAPPED_SUBRESOURCE resource;
+		g_d3d_device_context->Map( pQuadVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource );
+		pData = (D3DPOSVERTEX*)resource.pData;
 		{
 			pData[0].fX = v1[v][vRight] * l.scale;
 			pData[0].fY = v1[v][vUp] * l.scale;
@@ -512,9 +514,9 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 			pData[3].fY = v4[v][vUp] * l.scale;
 			pData[3].fZ = v4[v][vForward] * l.scale;
 		}
-		//unlock buffer (NEW)
-		//pQuadVB->Unmap();
-			float _color[4];
+		g_d3d_device_context->Unmap( pQuadVB, 0 );
+
+		float _color[4];
 			_color[0] = RedVal( color ) / 255.0f;
 			_color[1] = GreenVal( color ) / 255.0f;
 			_color[2] = BlueVal( color ) / 255.0f;

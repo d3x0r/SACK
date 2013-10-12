@@ -38,14 +38,12 @@ void KillGLWindow( void )
 extern RENDER3D_INTERFACE Render3d;
 
 
-int SetActiveD3DDisplayView( PVIDEO hVideo, int nFracture )
+int SetActiveD3DDisplayView( struct display_camera *hVideo, int nFracture )
 {
 	static CRITICALSECTION cs;
-	static PVIDEO _hVideo; // last display with a lock.
+	static struct display_camera *_hVideo; // last display with a lock.
 	if( hVideo )
 	{
-		EnterCriticalSec( &cs );
-		EnterCriticalSec( &hVideo->cs );
 		if( nFracture )
 		{
 			nFracture -= 1;
@@ -53,8 +51,8 @@ int SetActiveD3DDisplayView( PVIDEO hVideo, int nFracture )
 		else
 		{
 			_hVideo = hVideo;
-			Render3d.current_device = hVideo->camera->d3ddev;
-			if( ! hVideo->camera->d3ddev )
+			Render3d.current_device = hVideo->d3ddev;
+			if( ! hVideo->d3ddev )
 			{
 				LeaveCriticalSec( &cs );
 				return FALSE;
@@ -81,10 +79,17 @@ int SetActiveD3DDisplayView( PVIDEO hVideo, int nFracture )
 	return TRUE;
 }
 
-int SetActiveD3DDisplay( PVIDEO hVideo )
+int SetActiveD3DDisplay( struct display_camera *hVideo )
 {
    return SetActiveD3DDisplayView( hVideo, 0 );
 }
+
+
+void EndActive3D( struct display_camera *camera ) // does appropriate EndActiveXXDisplay
+{
+	SetActiveD3DDisplay( NULL );
+}
+
 
 //----------------------------------------------------------------------------
 
@@ -130,42 +135,32 @@ static void BeginVisPersp( struct display_camera *camera )
 }
 
 
-int InitD3D( struct display_camera *camera )										// All Setup For OpenGL Goes Here
+int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goes Here
 {
-	if( !camera->flags.init )
-	{
-		BeginVisPersp( camera );
-		lprintf( WIDE("First GL Init Done.") );
-		camera->flags.init = 1;
-	}
-	return TRUE;										// Initialization Went OK
+	if( !SetActiveD3DDisplay( camera ) )  // BeginScene()
+		return FALSE;
+
+	BeginVisPersp( camera );
+
+	Render3d.current_device->Clear(0, NULL, D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER
+											, D3DCOLOR_XRGB(0, 40, 100)
+											, 1.0f
+											, 0);
+
+	/* clear scene, do enable context to simplify renderloop */
+	return TRUE;
 }
 
-
-
-RENDER_PROC( int, EnableOpenD3DView )( struct display_camera *camera, int x, int y, int w, int h )
+void SetupPositionMatrix( struct display_camera *camera )
 {
-
-	// enable a partial opengl area on a single window surface
-	// actually turns out it's just a memory context anyhow...
-	int nFracture;
-
-	if( !camera->hVidCore->flags.bD3D )
-	{
-		if( !EnableD3D( camera ) )
-         return 0;
-	}
-	//nFracture = CreatePartialDrawingSurface( camera, x, y, w, h );
-	nFracture = 0;
-	if( nFracture )
-	{
-		nFracture -= 1;
-		return nFracture + 1;
-	}
-	return 0;
+	// camera->origin_camera is valid eye position matrix
 }
 
-int EnableD3D( struct display_camera *camera )
+void DisableD3d( struct display_camera *camera )
+{
+}
+
+int EnableD3d( struct display_camera *camera )
 {
     camera->d3d = Direct3DCreate9(D3D_SDK_VERSION);    // create the Direct3D interface
 
@@ -195,6 +190,31 @@ int EnableD3D( struct display_camera *camera )
 	camera->hVidCore->flags.bD3D = 1;
 	return TRUE;
 }
+
+
+int EnableOpenD3dView( struct display_camera *camera, int x, int y, int w, int h )
+{
+
+	// enable a partial opengl area on a single window surface
+	// actually turns out it's just a memory context anyhow...
+	int nFracture;
+
+	if( !camera->hVidCore->flags.bD3D )
+	{
+		if( !EnableD3d( camera ) )
+         return 0;
+	}
+	//nFracture = CreatePartialDrawingSurface( camera, x, y, w, h );
+	nFracture = 0;
+	if( nFracture )
+	{
+		nFracture -= 1;
+		return nFracture + 1;
+	}
+	return 0;
+}
+
+
 
 RENDER_NAMESPACE_END
 

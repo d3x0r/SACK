@@ -35,11 +35,12 @@ static void BeginVisPersp( struct display_camera *camera )
 	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 }
 
-
-
-
-int InitGL( struct display_camera *camera )										// All Setup For OpenGL Goes Here
+int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goes Here
 {
+	if( !SetActiveGLDisplay( camera ) )
+		return FALSE;
+
+
 	if( !camera->flags.init )
 	{
 		glShadeModel(GL_SMOOTH);							// Enable Smooth Shading
@@ -68,6 +69,8 @@ int InitGL( struct display_camera *camera )										// All Setup For OpenGL Goe
 		camera->flags.init = 1;
 		camera->hVidCore->flags.bReady = TRUE;
 	}
+
+
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);				// Black Background
 	glClearDepth(1.0f);									// Depth Buffer Setup
 	glClear(GL_COLOR_BUFFER_BIT
@@ -78,11 +81,18 @@ int InitGL( struct display_camera *camera )										// All Setup For OpenGL Goe
 }
 
 
+void SetupPositionMatrix( struct display_camera *camera )
+{
+	// camera->origin_camera is valid eye position matrix
+}
 
 
-RENDER_PROC( int, SetActiveGLDisplayView )( PVIDEO hDisplay, int nFracture )
+
+
+int SetActiveGLDisplayView( struct display_camera *camera, int nFracture )
 {
 #ifdef _WIN32 
+	PRENDERER hDisplay = camera->hVidCore;
 	static CRITICALSECTION cs;
 	static int first = 1;
 	static PVIDEO _hDisplay; // last display with a lock.
@@ -96,8 +106,6 @@ RENDER_PROC( int, SetActiveGLDisplayView )( PVIDEO hDisplay, int nFracture )
 		HDC hdcEnable;
 		//if( !IsVidThread() )
 		//	return 0;
-		EnterCriticalSec( &cs );
-		EnterCriticalSec( &hDisplay->cs );
 		if( nFracture )
 		{
 			nFracture -= 1;
@@ -201,11 +209,9 @@ RENDER_PROC( int, SetActiveGLDisplayView )( PVIDEO hDisplay, int nFracture )
 
 			_hDisplay->_prior_fracture = -1;
 			//lprintf( "lock-1" );
-			LeaveCriticalSec( &_hDisplay->cs );
 			_hDisplay = NULL;
 			//LeaveCriticalSec( &cs );
 		}
-		LeaveCriticalSec( &cs );
 	}
 	return TRUE;
 #elif defined( __LINUX__ )
@@ -213,7 +219,7 @@ RENDER_PROC( int, SetActiveGLDisplayView )( PVIDEO hDisplay, int nFracture )
 #endif
 }
 
-RENDER_PROC( int, SetActiveGLDisplay )( PVIDEO hDisplay )
+RENDER_PROC( int, SetActiveGLDisplay )( struct display_camera *hDisplay )
 {
    return SetActiveGLDisplayView( hDisplay, 0 );
 }
@@ -428,6 +434,13 @@ RENDER_PROC( int, EnableOpenGL )( PVIDEO hVideo )
 	LeaveCriticalSec( &hVideo->cs );
 #endif
 	return TRUE;
+}
+
+
+
+void EndActive3D( struct display_camera *camera ) // does appropriate EndActiveXXDisplay
+{
+	SetActiveGLDisplay( NULL );
 }
 
 

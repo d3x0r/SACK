@@ -1648,8 +1648,8 @@ void OpenWin32Camera( struct display_camera *camera )
 #ifdef _OPENGL_DRIVER
 			EnableOpenGL( camera->hVidCore );
 #endif
-#ifdef _D3D_DRIVER
-			EnableD3D( camera );
+#if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER ) || defined( _D3D11_DRIVER )
+			EnableD3d( camera );
 #endif
 			ShowWindow( camera->hWndInstance, SW_SHOWNORMAL );
 

@@ -1749,6 +1749,22 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 	   WIDE("d3d2.render.3d")
 	   , GetDisplay3dInterface, DropDisplay3dInterface );
 #endif
+#ifdef _D3D10_DRIVER
+	RegisterInterface( 
+	   WIDE("d3d10.render")
+	   , GetDisplayInterface, DropDisplayInterface );
+	RegisterInterface( 
+	   WIDE("d3d10.render.3d")
+	   , GetDisplay3dInterface, DropDisplay3dInterface );
+#endif
+#ifdef _D3D11_DRIVER
+	RegisterInterface( 
+	   WIDE("d3d11.render")
+	   , GetDisplayInterface, DropDisplayInterface );
+	RegisterInterface( 
+	   WIDE("d3d11.render.3d")
+	   , GetDisplay3dInterface, DropDisplay3dInterface );
+#endif
 	l.gl_image_interface = (PIMAGE_INTERFACE)GetInterface( WIDE("image") );
 
 #ifndef __ANDROID__

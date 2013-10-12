@@ -117,7 +117,9 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 			}
 			D3DPOSVERTEX* pData;
 			//lock buffer (NEW)
-			//g_d3d_device->Map(D3D11_MAP_WRITE_DISCARD, 0, (void**)&pData);
+			D3D11_MAPPED_SUBRESOURCE resource;
+			g_d3d_device_context->Map( pQuadVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource );
+			pData = (D3DPOSVERTEX*)resource.pData;
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
@@ -133,6 +135,7 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 				pData[3].fY = v3[v][vUp] * l.scale;
 				pData[3].fZ = v3[v][vForward] * l.scale;
 			}
+			g_d3d_device_context->Unmap( pQuadVB, 0 );
 			//unlock buffer (NEW)
 			//pQuadVB->Unmap();
 			float _color[4];
@@ -289,7 +292,9 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 			}
 			D3DPOSVERTEX* pData;
 			//lock buffer (NEW)
-			//pQuadVB->Map(D3D11_MAP_WRITE_DISCARD, 0, (void**)&pData);
+			D3D11_MAPPED_SUBRESOURCE resource;
+			g_d3d_device_context->Map( pQuadVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource );
+			pData = (D3DPOSVERTEX*)resource.pData;
 			//copy data to buffer (NEW)
 			{
 				pData[0].fX = v1[v][vRight] * l.scale;
@@ -306,7 +311,7 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 				pData[3].fZ = v3[v][vForward] * l.scale;
 			}
 			//unlock buffer (NEW)
-			//pQuadVB->Unmap();
+			g_d3d_device_context->Unmap( pQuadVB, 0 );
 
 			float _color[4];
 			_color[0] = RedVal( d ) / 255.0f;
@@ -507,28 +512,3 @@ void CPROC do_vlineAlphac( ImageFile *pImage, int x, int yfrom, int yto, CDATA c
 }; //namespace sack {
 #endif
 
-// $Log: line.c,v $
-// Revision 1.14  2004/06/21 07:47:13  d3x0r
-// Account for newly moved structure files.
-//
-// Revision 1.13  2003/07/24 16:56:41  panther
-// Updates to expliclity define C procedure model for callbacks and assembly modules - incomplete
-//
-// Revision 1.12  2003/03/31 01:11:28  panther
-// Tweaks to work better under service application
-//
-// Revision 1.11  2003/03/30 18:18:02  panther
-// More clip fixes
-//
-// Revision 1.10  2003/03/30 06:24:56  panther
-// Turns out I had badly implemented clipping...
-//
-// Revision 1.9  2003/03/27 10:50:59  panther
-// Display - enable resize that works.  Image - remove hline failed message.  Display - Removed some logging messages.
-//
-// Revision 1.8  2003/03/25 23:35:59  panther
-// Base INVERT_IMAGE off off real_height.  Also updated to use more base ComputeImageData
-//
-// Revision 1.7  2003/03/25 08:45:51  panther
-// Added CVS logging tag
-//
