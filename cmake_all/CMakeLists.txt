@@ -103,7 +103,7 @@ option( __ANDROID__ "Enable target to android" ${__ANDROID__} )
 if( DIRECTX_SDK )
 # if directx had to be passed as an environment variable (has spaces)
 # then it's already set, and don't have to pass it... otherwise we couldn't pass it.
-  set( DDIRECTX_SDK \"-DDIRECTX_SDK=${DIRECTX_SDK}\" )
+  STRING( REPLACE "\\" "/" DDIRECTX_SDK -DDIRECTX_SDK=\"${DIRECTX_SDK}\" )
 endif( DIRECTX_SDK )
 
 if( BUILD_TESTS )
