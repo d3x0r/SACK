@@ -1,3 +1,4 @@
+#define NO_UNICODE_C
 #define VIDLIB_INTERFACE_DEFINED
 #define FIX_RELEASE_COM_COLLISION
 #include <stdhdrs.h>

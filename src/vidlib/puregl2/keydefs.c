@@ -1,3 +1,4 @@
+#define NO_UNICODE_C
 #define NO_OPEN_MACRO
 #define FIX_RELEASE_COM_COLLISION
 

@@ -37,6 +37,7 @@
 #endif
 #endif
 
+#define NO_UNICODE_C
 #define FIX_RELEASE_COM_COLLISION
 
 #define NEED_REAL_IMAGE_STRUCTURE
@@ -270,7 +271,7 @@ LOGICAL CreateDrawingSurface (PVIDEO hVideo)
 	if( !hVideo->transform )
 	{
 		TEXTCHAR name[64];
-		snprintf( name, sizeof( name ), WIDE( "render.display.%p" ), hVideo );
+		tnprintf( name, sizeof( name ), WIDE( "render.display.%p" ), hVideo );
 		//lprintf( WIDE( "making initial transform" ) );
 		hVideo->transform = hVideo->pImage->transform = CreateTransformMotion( CreateNamedTransform( name ) );
 	}
@@ -385,19 +386,19 @@ void LoadOptions( void )
          camera->nCamera = n + 1;
 			camera->origin_camera = CreateTransform();
 
-			snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Display is topmost"), n+1 );
+			tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Display is topmost"), n+1 );
 			camera->flags.topmost = SACK_GetProfileIntEx( GetProgramName(), tmp, 0, TRUE );
 
 #if defined( __QNX__ ) || defined( __ANDROID__ )
 			custom_pos = 0;
 #else
-			snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Use Custom Position"), n+1 );
+			tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Use Custom Position"), n+1 );
 			custom_pos = SACK_GetProfileIntEx( GetProgramName(), tmp, l.flags.bView360?1:0, TRUE );
 #endif
 			if( custom_pos )
 			{
 				camera->display = -1;
-				snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/x"), n+1 );
+				tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/x"), n+1 );
 				camera->x = SACK_GetProfileIntEx( GetProgramName(), tmp, (
 					nDisplays==4
 						?n==0?0:n==1?400:n==2?0:n==3?400:0
@@ -406,7 +407,7 @@ void LoadOptions( void )
 					:nDisplays==1
 						?0
 					:0), TRUE );
-				snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/y"), n+1 );
+				tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/y"), n+1 );
 				camera->y = SACK_GetProfileIntEx( GetProgramName(), tmp, (
 					nDisplays==4
 						?n==0?0:n==1?0:n==2?300:n==3?300:0
@@ -415,7 +416,7 @@ void LoadOptions( void )
 					:nDisplays==1
 						?0
 					:0), TRUE );
-				snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/width"), n+1 );
+				tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/width"), n+1 );
 				camera->w = SACK_GetProfileIntEx( GetProgramName(), tmp, (
 					nDisplays==4
 						?400
@@ -424,7 +425,7 @@ void LoadOptions( void )
 					:nDisplays==1
 						?800
 					:0), TRUE );
-				snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/height"), n+1 );
+				tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/height"), n+1 );
 				camera->h = SACK_GetProfileIntEx( GetProgramName(), tmp, (
 					nDisplays==4
 						?300
@@ -434,7 +435,7 @@ void LoadOptions( void )
 						?600
 					:0), TRUE );
 				/*
-				snprintf( tmp, sizeof( tmp ), "SACK/Video Render/Display %d/Position/Direction", n+1 );
+				tnprintf( tmp, sizeof( tmp ), "SACK/Video Render/Display %d/Position/Direction", n+1 );
 				camera->direction = SACK_GetProfileIntEx( GetProgramName(), tmp, (
 					nDisplays==4
 						?n==0?0:n==1?1:n==2?2:n==3?3:0
@@ -447,7 +448,7 @@ void LoadOptions( void )
 			}
 			else
 			{
-				snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Use Display"), n+1 );
+				tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Use Display"), n+1 );
 				camera->display = SACK_GetProfileIntEx( GetProgramName(), tmp, nDisplays>1?n+1:0, TRUE );
 				GetDisplaySizeEx( camera->display, &camera->x, &camera->y, &camera->w, &camera->h );
 			}
@@ -460,7 +461,7 @@ void LoadOptions( void )
 				camera->aspect = ((float)camera->w/(float)camera->h);
 			}
 
-			snprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Camera Type"), n+1 );
+			tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Camera Type"), n+1 );
 			camera->type = SACK_GetProfileIntEx( GetProgramName(), tmp, (nDisplays==6)?n:2, TRUE );
 			if( camera->type == 2 && !default_camera )
 			{
@@ -524,7 +525,7 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 		  name = GetNextRegisteredName( &data ) )
 	{
 		LOGICAL already_inited;
-		snprintf( optname, 64, WIDE("%s/%d"), name, camera->nCamera );
+		tnprintf( optname, 64, WIDE("%s/%d"), name, camera->nCamera );
 		already_inited = GetRegisteredIntValueEx( data, optname, WIDE("Executed") );
 		if( already_inited )
 			continue;
@@ -662,7 +663,7 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 					if( !hVideo->transform )
 					{
 						TEXTCHAR name[64];
-						snprintf( name, sizeof( name ), WIDE( "render.display.%p" ), hVideo );
+						tnprintf( name, sizeof( name ), WIDE( "render.display.%p" ), hVideo );
 						lprintf( WIDE( "making initial transform" ) );
 						hVideo->transform = hVideo->pImage->transform = CreateTransformMotion( CreateNamedTransform( name ) );
 					}

@@ -1,3 +1,4 @@
+#define NO_UNICODE_C
 #define FIX_RELEASE_COM_COLLISION
 
 #ifdef UNDER_CE
