@@ -1,3 +1,4 @@
+#define NO_UNICODE_C
 
 #define FIX_RELEASE_COM_COLLISION
 
@@ -1495,13 +1496,13 @@ void HandleMessage (MSG Msg)
 
 			{
 				RAWINPUT* raw = (RAWINPUT*)lpb;
-				char szTempOutput[256];
+				TEXTCHAR szTempOutput[256];
 				HRESULT hResult;
 
 				if (raw->header.dwType == RIM_TYPEKEYBOARD)
 				{
                /*
-					snprintf(szTempOutput, sizeof( szTempOutput ), TEXT(" Kbd: make=%04x Flags:%04x Reserved:%04x ExtraInformation:%08x, msg=%04x VK=%04x \n"),
+					tnprintf(szTempOutput, sizeof( szTempOutput ), TEXT(" Kbd: make=%04x Flags:%04x Reserved:%04x ExtraInformation:%08x, msg=%04x VK=%04x \n"),
 											 raw->data.keyboard.MakeCode,
 											 raw->data.keyboard.Flags,
 											 raw->data.keyboard.Reserved,
@@ -1513,7 +1514,7 @@ void HandleMessage (MSG Msg)
 				}
 				else if (raw->header.dwType == RIM_TYPEMOUSE)
 				{
-					snprintf(szTempOutput,sizeof( szTempOutput ) , TEXT("Mouse: usFlags=%04x ulButtons=%04x usButtonFlags=%04x usButtonData=%04x ulRawButtons=%04x lLastX=%04x lLastY=%04x ulExtraInformation=%04x\r\n"),
+					tnprintf(szTempOutput,sizeof( szTempOutput ) , TEXT("Mouse: usFlags=%04x ulButtons=%04x usButtonFlags=%04x usButtonData=%04x ulRawButtons=%04x lLastX=%04x lLastY=%04x ulExtraInformation=%04x\r\n"),
 											 raw->data.mouse.usFlags,
 											 raw->data.mouse.ulButtons,
 											 raw->data.mouse.usButtonFlags,
@@ -1613,9 +1614,9 @@ void OpenWin32Camera( struct display_camera *camera )
 		hMe = GetModuleHandle (_WIDE(TARGETNAME));
 
 		if( !camera->display )
-			snprintf( window_name, 128, WIDE("%s:3D View"), GetProgramName() );
+			tnprintf( window_name, 128, WIDE("%s:3D View"), GetProgramName() );
 		else
-			snprintf( window_name, 128, WIDE("%s:3D View(%d)"), GetProgramName(), camera->display );
+			tnprintf( window_name, 128, WIDE("%s:3D View(%d)"), GetProgramName(), camera->display );
 		camera->hWndInstance = CreateWindowEx (0
 	#ifndef NO_DRAG_DROP
 														| WS_EX_ACCEPTFILES
@@ -1894,7 +1895,7 @@ RENDER_PROC (void, GetDisplaySizeEx) ( int nDisplay
 			for( v_test = 0; !found && ( v_test < 2 ); v_test++ )
 			{
             // go ahead and try to find V devices too... not sure what they are, but probably won't get to use them.
-				snprintf( teststring, 20, WIDE( "\\\\.\\DISPLAY%s%d" ), (v_test==1)?"V":"", nDisplay );
+				tnprintf( teststring, 20, WIDE( "\\\\.\\DISPLAY%s%d" ), (v_test==1)?"V":"", nDisplay );
 				for( i = 0;
 					 !found && EnumDisplayDevices( NULL // all devices
 														  , i
