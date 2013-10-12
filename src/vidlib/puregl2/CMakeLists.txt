@@ -100,9 +100,11 @@ if( DIRECTX_SDK )
 	FOLDER "Video Renderer"  
   )
   
-  if( WIN8_SDK )
+  if( WIN8_SDK OR MSVC11 )
+    if( WIN8_SDK )
     INCLUDE_DIRECTORIES( ${WIN8_SDK}/include/um )
     INCLUDE_DIRECTORIES( ${WIN8_SDK}/include/shared )
+    endif( WIN8_SDK )
     set( PROJECT bag.video.pured3d11 )
     sack_add_library( ${PROJECT} SHARED
        ${FIRST_GCC_LIBRARY_SOURCE}
@@ -112,12 +114,15 @@ if( DIRECTX_SDK )
      )
     target_link_libraries( ${PROJECT} bag.image.pured3d ${SACK_CORE_LIBRARY} d3d11 )
     install_mode_dest( ${PROJECT} )
+    if( WIN8_SDK )
+    
     SET_PROPERTY( TARGET ${PROJECT} APPEND PROPERTY INCLUDE_DIRECTORIES ${WIN8_SDK}/include/um;${WIN8_SDK}/include/shared )
     if( __64__ )
       SET_PROPERTY( TARGET ${PROJECT} APPEND PROPERTY LINK_DIRECTORIES ${WIN8_SDK}/lib/win8/um/x64 )
     else( __64__ )
       SET_PROPERTY( TARGET ${PROJECT} APPEND PROPERTY LINK_DIRECTORIES ${WIN8_SDK}/lib/win8/um/x86 )
     endif( __64__ )
+    endif( WIN8_SDK )
     SET_PROPERTY(TARGET ${PROJECT} APPEND PROPERTY COMPILE_DEFINITIONS "RENDER_LIBRARY_SOURCE;_D3D11_DRIVER;MAKE_RCOORD_SINGLE;_INCLUDE_NLS" )
     SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES
 	FOLDER "Video Renderer"  

@@ -11,10 +11,6 @@ endmacro( DEFINE_DEFAULT variable )
     set( TOOLCHAIN -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} )
   endif( CMAKE_TOOLCHAIN_FILE )
 
-if( DIRECTX_SDK )
-  set( DDXSDK -DDIRECTX_SDK=${DIRECTX_SDK} )
-endif( DIRECTX_SDK )
-
 macro( BuildProject PROJECT SOLUTION PROJECT_SOURCE INSTALL_RESULT )
 string( TOLOWER "${CMAKE_BUILD_TYPE}" cmake_build_type_lower )
 string( TOLOWER "${CMAKE_BINARY_DIR}" cmake_binary_dir_lower )
