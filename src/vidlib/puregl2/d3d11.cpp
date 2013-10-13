@@ -293,7 +293,7 @@ int EnableD3d( struct display_camera *camera )
 					, D3D_DRIVER_TYPE_HARDWARE
 					, NULL
 					, 0
-					, NULL // defaults to a list of all feature levels
+					, NULL // defaults to a list of all feature levels (allows shaders?!)
 					, 0
 					, D3D11_SDK_VERSION
 					, &swapChainDesc
@@ -308,7 +308,7 @@ int EnableD3d( struct display_camera *camera )
 					, D3D_DRIVER_TYPE_REFERENCE //D3D_DRIVER_TYPE_HARDWARE
 					, NULL
 					, 0
-					, NULL // defaults to a list of all feature levels
+					, NULL // defaults to a list of all feature levels (allows shaders?!)
 					, 0
 					, D3D11_SDK_VERSION
 					, &swapChainDesc

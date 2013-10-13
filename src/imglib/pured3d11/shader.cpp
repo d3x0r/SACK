@@ -194,7 +194,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 	ID3DBlob *errors;
 	char *tmp;
 	char *vs_trylist[] = { "vs_5_0", "vs_4_0", "vs_3_0", "vs_2_0", NULL };
-	char *ps_trylist[] = { "vs_5_0", "vs_4_0", "vs_3_0", "vs_2_0", NULL };
+	char *ps_trylist[] = { "ps_5_0", "ps_4_0", "ps_3_0", "ps_2_0", NULL };
 	for( n = 0; vs_trylist[n] && !tracker->VertexProgram; n++ )
 	{
 		result = D3DCompile( vertex_code
@@ -215,7 +215,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 		}
 		else
 		{
-			LogBinary( vert_blob->GetBufferPointer(), vert_blob->GetBufferSize() );
+			//LogBinary( vert_blob->GetBufferPointer(), vert_blob->GetBufferSize() );
 			result = g_d3d_device->CreateVertexShader(vert_blob->GetBufferPointer(), vert_blob->GetBufferSize()
 														, NULL /* ID3D11ClassLinkage*  */
 													  , &tracker->VertexProgram);
@@ -229,42 +229,43 @@ int CompileShaderEx( PImageShaderTracker tracker
 	}
 	if( !tracker->VertexProgram )
 		return 0;
-
-	result = D3DCompile(
-							  frag_code
-							  , frag_length  //in       SIZE_T SrcDataSize,
-							  , DupTextToChar( tracker->name )  //in_opt   LPCSTR pSourceName,  /* used for error message output */
-							  , NULL      //in_opt   const D3D_SHADER_MACRO *pDefines,
-							  , NULL      //in_opt   ID3DInclude *pInclude,
-							 , ("main")     //in       LPCSTR pEntrypoint,  /* ignored by d3dcompile*/
-							 , ("ps_2_0")   // in       LPCSTR pTarget,
-							 , 0          // in       UINT Flags1,  // comile options
-							 , 0          //  in       UINT Flags2, /* unused for source compiles*/
-							 , &vert_blob //  out      ID3DBlob **ppCode,
-							 , &errors    // out_opt  ID3DBlob **ppErrorMsgs
-							 );
-
-	if( !result )
+	for( n = 0; ps_trylist[n] && !tracker->FragProgram; n++ )
 	{
-		LogBinary( vert_blob->GetBufferPointer(), vert_blob->GetBufferSize() );
-		result = g_d3d_device->CreatePixelShader(vert_blob->GetBufferPointer(), vert_blob->GetBufferSize()
-			, NULL /* ID3D11ClassLinkage */
-											  , &tracker->FragProgram);
-		if( result )
-		{
-			lprintf( WIDE("failed to create fragment shader from compled shader blob %08x"), result );
-		}
-		vert_blob->Release();
-	}
-	else
-		lprintf( WIDE("%s"), errors->GetBufferPointer() ); 
-	
+		result = D3DCompile(
+								  frag_code
+								  , frag_length  //in       SIZE_T SrcDataSize,
+								  , DupTextToChar( tracker->name )  //in_opt   LPCSTR pSourceName,  /* used for error message output */
+								  , NULL      //in_opt   const D3D_SHADER_MACRO *pDefines,
+								  , NULL      //in_opt   ID3DInclude *pInclude,
+								 , ("main")     //in       LPCSTR pEntrypoint,  /* ignored by d3dcompile*/
+								 , ps_trylist[n] // in       LPCSTR pTarget,
+								 , 0          // in       UINT Flags1,  // comile options
+								 , 0          //  in       UINT Flags2, /* unused for source compiles*/
+								 , &vert_blob //  out      ID3DBlob **ppCode,
+								 , &errors    // out_opt  ID3DBlob **ppErrorMsgs
+								 );
 
+		if( !result )
+		{
+			//LogBinary( vert_blob->GetBufferPointer(), vert_blob->GetBufferSize() );
+			result = g_d3d_device->CreatePixelShader(vert_blob->GetBufferPointer(), vert_blob->GetBufferSize()
+				, NULL /* ID3D11ClassLinkage */
+												  , &tracker->FragProgram);
+			if( result )
+			{
+				lprintf( WIDE("failed to create fragment shader from compled shader blob %08x"), result );
+			}
+			vert_blob->Release();
+		}
+		else
+			lprintf( WIDE("%S"), errors->GetBufferPointer() ); 
+	
+	}
 	{
 		int n;
 		for( n = 0; n < nAttribs; n++ )
 		{
-			lprintf( WIDE("Bind Attrib Location: %d %s"), attrib_order[n].n, attrib_order[n].name );
+			lprintf( WIDE("Bind Attrib Location: %d %S"), attrib_order[n].n, attrib_order[n].name );
 			//glBindAttribLocation(tracker->glProgramId, attrib_order[n].n, attrib_order[n].name );
 		}
 	}
