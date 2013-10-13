@@ -7,9 +7,12 @@
 #endif
 
 #if defined( _D3D11_DRIVER )
+
 #include <atlbase.h>
 #include <D3D11.h>
 #include <D2d1.h> // only took them (1996-2008... 12 years) to get direct draw right LOL
+#include <dcomp.h>
+
 //#include <D3D11Misc.h>
 #include <DirectXMath.h>
 using namespace DirectX;
@@ -124,6 +127,24 @@ struct plugin_reference
 	void (CPROC *Resume3d)(void);
 };
 
+#if defined( _D3D11_DRIVER )
+struct dxgi_adapter_output
+{
+	unsigned int ID;
+	IDXGIOutput* adapterOutput;
+	DXGI_OUTPUT_DESC adapterOutputDesc;
+	unsigned int numModes;
+	DXGI_MODE_DESC* displayModeList;
+};
+struct dxgi_adapter
+{
+	unsigned int ID;
+	IDXGIAdapter *adapter;
+	DXGI_ADAPTER_DESC adapterDesc;
+	PLIST adapter_outputs; // list of struct dxgi_adapter_output
+};
+#endif
+
 struct display_camera
 {
 	S_32 x, y;
@@ -156,12 +177,15 @@ struct display_camera
 #endif
 #    ifdef _D3D11_DRIVER
 	IDXGIDevice             *pDXGIDevice;
-
+#if ( NTDDI_VERSION >= 0x06020000 /*NTDDI_WIN8*/ )
+	IDCompositionDevice     *m_pDCompDevice;
+#endif
 	ID3D11Device            *device;
 	D3D_FEATURE_LEVEL        result_feature_level;
 	ID3D11DeviceContext     *device_context;
 	IDXGISwapChain          *swap_chain;
 	ID3D11RenderTargetView  *render_target_view;
+
 	ID3D11Texture2D         *depth_stencil_buffer;
 	ID3D11DepthStencilState *depth_stencil_state;
 	ID3D11DepthStencilView  *depth_stencil_view;
@@ -259,8 +283,13 @@ extern
 	ATOM aClass;      // keep reference of window class....
 	ATOM aClass2;      // keep reference of window class.... (opengl minimal)
 #endif
+#if defined( _D3D11_DRIVER )
+	IDXGIFactory  *dxgi_factory;
+	ID2D1Factory  *d2d1_factory;
+	PLIST adapters;  // list of struct dxgi_adapter
+#endif
 #if defined( __QNX__ )
-   int nDevices;
+	int nDevices;
 	gf_dev_t qnx_dev[64];
 	gf_dev_info_t qnx_dev_info[64];
 	gf_display_t* qnx_display[64];

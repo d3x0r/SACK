@@ -491,7 +491,7 @@ void LoadOptions( void )
       // conventional memroy and then a push to video memory;  tiny surfaces may work (those things... toolbar widgets)
 #  define LAYERED_DEFAULT 0
 #endif
-		l.flags.bLayeredWindowDefault = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Default windows are layered" ), LAYERED_DEFAULT, TRUE )?TRUE:FALSE;
+		l.flags.bLayeredWindowDefault = 1;//SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Default windows are layered" ), LAYERED_DEFAULT, TRUE )?TRUE:FALSE;
 		l.flags.bLogWrites = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/Log Video Output"), 0, TRUE );
 	}
 #endif

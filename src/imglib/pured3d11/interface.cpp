@@ -144,8 +144,20 @@ IMAGE_INTERFACE RealImageInterface = {
                                      , MarkImageDirty
 };
 
+IMAGE_3D_INTERFACE Image3dInterface = {
+	GetShader,
+      CompileShader,
+      CompileShaderEx,
+		EnableShader,
+		SetShaderEnable,
+		SetShaderModelView,
+};
+
 #undef GetImageInterface
 #undef DropImageInterface
+#undef GetImage3dInterface
+
+
 static POINTER CPROC _ImageGetImageInterface( void )
 {
    //RealImageInterface._global_font_data = GetGlobalFonts();
@@ -155,6 +167,16 @@ static POINTER CPROC _ImageGetImageInterface( void )
  PIMAGE_INTERFACE  GetImageInterface ( void )
 {
    return (PIMAGE_INTERFACE)_ImageGetImageInterface();
+}
+
+static POINTER CPROC GetImage3dInterface( void )
+{
+	return &Image3dInterface;
+}
+
+static void  CPROC DropImage3dInterface ( POINTER p )
+{
+	;
 }
 
 
@@ -179,6 +201,7 @@ static void CPROC _ImageDropImageInterface( POINTER p )
 PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 {
 	RegisterInterface( WIDE("d3d11.image"), _ImageGetImageInterface, _ImageDropImageInterface );
+	RegisterInterface( WIDE("d3d11.image.3d"), GetImage3dInterface, DropImage3dInterface );
 	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Image Library/Scale"), 10 );
 	if( l.scale == 0.0 )
 	{

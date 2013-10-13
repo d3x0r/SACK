@@ -34,6 +34,7 @@ struct image_shader_tracker
 	ID3D11Buffer *vertexDecl;
 	ID3D11PixelShader  * FragProgram;
 	ID3D11VertexShader  * VertexProgram;
+	ID3D11InputLayout   *input_layout;
 	// most every shader program will have some constants (matrixes, etc)
 	// each shader must fill this on its own; 
 	ID3D11Buffer *vertex_constant_buffer;
@@ -65,7 +66,7 @@ int CPROC CompileShader( PImageShaderTracker shader
 							  , char const *const*frag_code, int frag_length );
 void CPROC ClearShaders( void );
 
-void CPROC EnableShader( PImageShaderTracker tracker, ID3D11Buffer  *verts, unsigned int stride, ... );
+void CPROC EnableShader( PImageShaderTracker tracker/*, ID3D11Buffer  *verts, unsigned int stride*/, ... );
 
 
 // verts and a single color

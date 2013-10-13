@@ -604,7 +604,7 @@ IMAGE_NAMESPACE
 
 			if( method == BLOT_COPY )
 			{
-				EnableShader( l.simple_texture_shader, pQuadVB, sizeof( pData[0] ), pifSrc );
+				EnableShader( l.simple_texture_shader, pifSrc );
 			}
 			else if( method == BLOT_SHADED )
 			{
@@ -614,7 +614,7 @@ IMAGE_NAMESPACE
 				_color[1] = GreenVal( color ) / 255.0f;
 				_color[2] = BlueVal( color ) / 255.0f;
 				_color[3] = AlphaVal( color ) / 255.0f;
-				EnableShader( l.simple_shaded_texture_shader, pQuadVB, sizeof( pData[0] ), pifSrc, _color );
+				EnableShader( l.simple_shaded_texture_shader, pifSrc, _color );
 			}
 			else if( method == BLOT_MULTISHADE )
 			{
@@ -637,7 +637,7 @@ IMAGE_NAMESPACE
 				b_color[1] = GreenVal( b ) / 255.0f;
 				b_color[2] = BlueVal( b ) / 255.0f;
 				b_color[3] = AlphaVal( b ) / 255.0f;
-				EnableShader( l.simple_multi_shaded_texture_shader, pQuadVB, sizeof( pData[0] ), pifSrc, r_color, g_color, b_color );
+				EnableShader( l.simple_multi_shaded_texture_shader, pifSrc, r_color, g_color, b_color );
 			}
 			else if( method == BLOT_INVERTED )
 			{
@@ -653,14 +653,9 @@ IMAGE_NAMESPACE
 				stride = sizeof(D3DTEXTUREDVERTEX); 
 				offset = 0;
 			
-				// Set the vertex buffer to active in the input assembler so it can be rendered.
-				//g_d3d_device->IASetVertexBuffers(0, 1, &pQuadVB, &stride, &offset);
-
-				// Set the index buffer to active in the input assembler so it can be rendered.
-				//g_d3d_device->IASetIndexBuffer(pQuadVB, DXGI_FORMAT_R32_UINT, 0);
-
-				// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
-				//g_d3d_device->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+				g_d3d_device_context->IASetVertexBuffers(0, 1, &pQuadVB, &stride, &offset);
+				g_d3d_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+				g_d3d_device_context->Draw( 4, 0 );
 			}
 		}
 	}

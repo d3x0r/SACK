@@ -612,6 +612,62 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			//pQuadVB->Release();
 #  elif defined( _D3D10_DRIVER )
 #  elif defined( _D3D11_DRIVER )
+			D3DPOSVERTEX* pData_back;
+			D3DTEXTUREDVERTEX* pData;
+			static ID3D11Buffer *pQuadVB_back;
+			static ID3D11Buffer *pQuadVB;
+			if( !pQuadVB_back )
+			{
+				D3D11_BUFFER_DESC bufferDesc;
+				bufferDesc.Usage            = D3D11_USAGE_DYNAMIC;
+				bufferDesc.ByteWidth        = sizeof( D3DPOSVERTEX ) * 4;
+				bufferDesc.BindFlags        = D3D11_BIND_VERTEX_BUFFER;
+				bufferDesc.CPUAccessFlags   = D3D11_CPU_ACCESS_WRITE;
+				bufferDesc.MiscFlags        = 0;
+				bufferDesc.StructureByteStride = sizeof( D3DPOSVERTEX );
+	
+				g_d3d_device->CreateBuffer( &bufferDesc, NULL/*&InitData*/, &pQuadVB_back);
+			}
+			if( !pQuadVB )
+			{
+				D3D11_BUFFER_DESC bufferDesc;
+				bufferDesc.Usage            = D3D11_USAGE_DYNAMIC;
+				bufferDesc.ByteWidth        = sizeof( D3DTEXTUREDVERTEX ) * 4;
+				bufferDesc.BindFlags        = D3D11_BIND_VERTEX_BUFFER;
+				bufferDesc.CPUAccessFlags   = D3D11_CPU_ACCESS_WRITE;
+				bufferDesc.MiscFlags        = 0;
+				bufferDesc.StructureByteStride = sizeof( D3DTEXTUREDVERTEX );
+	
+				g_d3d_device->CreateBuffer( &bufferDesc, NULL/*&InitData*/, &pQuadVB);
+			}
+			D3D11_MAPPED_SUBRESOURCE resource;
+			g_d3d_device_context->Map( pQuadVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource );
+			pData = (D3DTEXTUREDVERTEX*)resource.pData;
+
+			g_d3d_device_context->Map( pQuadVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource );
+			pData_back = (D3DPOSVERTEX*)resource.pData;
+
+			unsigned int stride = sizeof( pData[0] );
+			unsigned int offset = 0;
+			float _color[4];
+			if( background )
+			{
+				_color[0] = RedVal( background ) / 255.0f;
+				_color[1] = GreenVal( background ) / 255.0f;
+				_color[2] = BlueVal( background ) / 255.0f;
+				_color[3] = AlphaVal( background ) / 255.0f;
+				EnableShader( l.simple_shader, _color );
+			}
+			_color[0] = RedVal( color ) / 255.0f;
+			_color[1] = GreenVal( color ) / 255.0f;
+			_color[2] = BlueVal( color ) / 255.0f;
+			_color[3] = AlphaVal( color ) / 255.0f;
+			
+			EnableShader( l.simple_texture_shader, pifSrc, _color );
+
+			g_d3d_device_context->IASetVertexBuffers(0, 1, &pQuadVB, &stride, &offset);
+			g_d3d_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			g_d3d_device_context->Draw( 4, 0 );
 #  else
 			static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
 			if( !pQuadVB )
@@ -684,7 +740,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 		}
 	}
 	else
-#endif  // defined ( D3D OR OPENGL )
+#endif  // defined ( __3D__ )
 	{
 		// need a physical color buffer attached...
 		if( !pImage->image )

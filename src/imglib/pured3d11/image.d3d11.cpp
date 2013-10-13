@@ -377,7 +377,13 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 			_color[1] = GreenVal( color ) / 255.0f;
 			_color[2] = BlueVal( color ) / 255.0f;
 			_color[3] = AlphaVal( color ) / 255.0f;
-			EnableShader( l.simple_shader, pQuadVB, sizeof( pData[0] ), _color );
+			EnableShader( l.simple_shader, _color );
+
+			unsigned int stride = sizeof( pData[0] );
+			unsigned int offset = 0;
+			g_d3d_device_context->IASetVertexBuffers(0, 1, &pQuadVB, &stride, &offset);
+			g_d3d_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			g_d3d_device_context->Draw( 4, 0 );
 		}
 	}
 	else
@@ -523,8 +529,13 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 		_color[1] = GreenVal( color ) / 255.0f;
 		_color[2] = BlueVal( color ) / 255.0f;
 		_color[3] = AlphaVal( color ) / 255.0f;
-		EnableShader( l.simple_shader, pQuadVB, sizeof( pData[0] ), _color );
+		EnableShader( l.simple_shader, _color );
   		//g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
+		unsigned int stride = sizeof( pData[0] );
+		unsigned int offset = 0;
+		g_d3d_device_context->IASetVertexBuffers(0, 1, &pQuadVB, &stride, &offset);
+		g_d3d_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		g_d3d_device_context->Draw( 4, 0 );
 	}
 	else
 	{              

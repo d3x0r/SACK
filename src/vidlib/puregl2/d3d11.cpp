@@ -1,5 +1,5 @@
 /* reference code is http://www.rastertek.com/dx11tut03.html  */
-
+/* see also http://msdn.microsoft.com/en-us/library/windows/desktop/hh437378(v=vs.85).aspx */
 
 
 #define NO_UNICODE_C
@@ -150,7 +150,7 @@ int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goe
 	if( !SetActiveD3DDisplay( camera ) )  // BeginScene()
 		return FALSE;
 
-	float pBackgroundColour[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	float pBackgroundColour[4] = { 0.0f, 0.2f, 0.5f, 0.2f };
 
 	// Clear the back buffer.
 	camera->device_context->ClearRenderTargetView( camera->render_target_view, pBackgroundColour);
@@ -229,11 +229,119 @@ void DisableD3d( struct display_camera *camera )
 	}
 }
 
+
+int InitDxDisplays( struct display_camera *camera )
+{
+	HRESULT result;
+
+	if( l.adapters )
+		return 1;
+
+	// Create a DirectX graphics interface factory.
+	result = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&l.dxgi_factory);
+
+	if(FAILED(result))
+	{
+		return false;
+	}
+	unsigned int nAdapters = 0;
+	struct dxgi_adapter *adapter;
+	do
+	{
+		adapter = New( struct dxgi_adapter );
+		adapter->ID = nAdapters;
+		adapter->adapter_outputs = NULL;
+		// Use the factory to create an adapter for the primary graphics interface (video card).
+		result = l.dxgi_factory->EnumAdapters(nAdapters++, &adapter->adapter);
+		if( result )
+		{
+			Deallocate( struct dxgi_adapter *, adapter );
+			if( result != DXGI_ERROR_NOT_FOUND )
+				lprintf( WIDE("Fatal no adapaters?  enumerated %d %x"), nAdapters, result );
+			break;
+		}
+		else
+		{
+			adapter->adapter->GetDesc( &adapter->adapterDesc );
+			lprintf( WIDE("Found adapter [%s]"), adapter->adapterDesc.Description );
+			AddLink( &l.adapters, adapter );
+		}
+	}
+	while( result != DXGI_ERROR_NOT_FOUND );
+
+	INDEX idx;
+	LIST_FORALL( l.adapters, idx, struct dxgi_adapter *, adapter )
+	{
+		struct dxgi_adapter_output *output;
+		unsigned int nOutput = 0;
+		do
+		{
+			output = New( struct dxgi_adapter_output );
+			output->ID = nOutput;
+			// Enumerate the primary adapter output (monitor).
+			result = adapter->adapter->EnumOutputs(nOutput++, &output->adapterOutput);
+			if(FAILED(result))
+			{
+				Deallocate( struct dxgi_adapter_output *, output );
+				break;
+			}
+			else
+			{
+				output->adapterOutput->GetDesc( &output->adapterOutputDesc );
+				lprintf( WIDE("Found output on [%s]%s"), adapter->adapterDesc.Description, output->adapterOutputDesc.DeviceName );
+				AddLink( &adapter->adapter_outputs, output );
+			}
+		}while( result != DXGI_ERROR_NOT_FOUND );
+
+		INDEX idx2;
+		LIST_FORALL( adapter->adapter_outputs, idx2, struct dxgi_adapter_output *, output )
+		{
+			// Get the number of modes that fit the DXGI_FORMAT_R8G8B8A8_UNORM display format for the adapter output (monitor).
+			result = output->adapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &output->numModes, NULL);
+			if(FAILED(result))
+			{
+				return false;
+			}
+
+			// Create a list to hold all the possible display modes for this monitor/video card combination.
+			output->displayModeList = new DXGI_MODE_DESC[output->numModes];
+			if(!output->displayModeList)
+			{
+				return false;
+			}
+
+			// Now fill the display mode list structures.
+			result = output->adapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &output->numModes, output->displayModeList);
+			if(FAILED(result))
+			{
+				return false;
+			}
+
+			// Now go through all the display modes and find the one that matches the screen width and height.
+			// When a match is found store the numerator and denominator of the refresh rate for that monitor.
+			for(int i=0; i<output->numModes; i++)
+			{
+				if(output->displayModeList[i].Width == (unsigned int)camera->w)
+				{
+					if(output->displayModeList[i].Height == (unsigned int)camera->h)
+					{
+						//numerator = displayModeList[i].RefreshRate.Numerator;
+						//denominator = displayModeList[i].RefreshRate.Denominator;
+					}
+				}
+			}
+		}
+	}
+	return 1;
+}
+
 int EnableD3d( struct display_camera *camera )
 {
 	HRESULT result;
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
 
+	InitDxDisplays( camera );
+	
 	// Initialize the swap chain description.
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
 
@@ -264,20 +372,11 @@ int EnableD3d( struct display_camera *camera )
 
 	// Set the handle for the window to render to.
 	swapChainDesc.OutputWindow = camera->hWndInstance;
+	swapChainDesc.Windowed = 1;
 
 	// Turn multisampling off.
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.SampleDesc.Quality = 0;
-
-	// Set to full screen or windowed mode.
-	if( 0 /*&& fullscreen*/ )
-	{
-		swapChainDesc.Windowed = false;
-	}
-	else
-	{
-		swapChainDesc.Windowed = true;
-	}
 
 	// Set the scan line ordering and scaling to unspecified.
 	swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
@@ -289,10 +388,12 @@ int EnableD3d( struct display_camera *camera )
 	// Don't set the advanced flags.
 	swapChainDesc.Flags = 0;
 
-		result = D3D11CreateDeviceAndSwapChain( NULL
+	result = D3D11CreateDeviceAndSwapChain( ((struct dxgi_adapter*)GetLink( &l.adapters, 0 ))->adapter
 					, D3D_DRIVER_TYPE_HARDWARE
 					, NULL
-					, 0
+					, D3D11_CREATE_DEVICE_SINGLETHREADED                                 
+					| D3D11_CREATE_DEVICE_BGRA_SUPPORT
+					//| 
 					, NULL // defaults to a list of all feature levels (allows shaders?!)
 					, 0
 					, D3D11_SDK_VERSION
@@ -322,6 +423,18 @@ int EnableD3d( struct display_camera *camera )
 			return FALSE;
 		}
 	}
+
+#if 0
+   // dcomp is only available on windows 8, 8.1; windows 8.1 isn't available until 4 days from NOW.
+	// 8.1 makes the interface perhaps desktop friendly; the shell has good features, but clumbsy 
+	// legacy habit interface.
+	camera->device->QueryInterface(&camera->pDXGIDevice);
+
+	result  = DCompositionCreateDevice(camera->pDXGIDevice, 
+                __uuidof(IDCompositionDevice), 
+                reinterpret_cast<void **>(&camera->m_pDCompDevice));
+#endif
+
 	D3D11_TEXTURE2D_DESC description = {};
 	description.ArraySize = 1;
 	description.BindFlags =
@@ -342,9 +455,9 @@ int EnableD3d( struct display_camera *camera )
 
 
 	camera->texture->QueryInterface(&camera->surface);
-	CComPtr<ID2D1Factory> factory;
-	factory.CoCreateInstance(CLSID_WICImagingFactory);
 
+	D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED,
+		__uuidof(ID2D1Factory),0,(void**)&l.d2d1_factory);
 
 	IWICBitmap *bitmap;
 
@@ -353,27 +466,52 @@ int EnableD3d( struct display_camera *camera )
 								D2D1_ALPHA_MODE_PREMULTIPLIED);
 
 	const D2D1_RENDER_TARGET_PROPERTIES properties =
-		D2D1::RenderTargetProperties(
-											  D2D1_RENDER_TARGET_TYPE_DEFAULT,
-											  format);
+		D2D1::RenderTargetProperties(  D2D1_RENDER_TARGET_TYPE_DEFAULT,
+									  format);
 
-
-	const D2D1_RENDER_TARGET_PROPERTIES properties2 =
-		D2D1::RenderTargetProperties(
-											  D2D1_RENDER_TARGET_TYPE_DEFAULT,
-											  format,
-											  0.0f, // default dpi
-											  0.0f, // default dpi
-											  D2D1_RENDER_TARGET_USAGE_GDI_COMPATIBLE);
 
 	lprintf( WIDE("don't know what to do with a target anyway (yet)") );
-	/*
-	  
-	factory->CreateDxgiSurfaceRenderTarget(
+	  	l.d2d1_factory->CreateDxgiSurfaceRenderTarget(
 																 camera->surface,
 																 &properties,
 																 &camera->target);
-    */
+
+	ID3D11Texture2D *pBackBuffer;
+    camera->swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
+	if( pBackBuffer )
+	{
+		// use the back buffer address to create the render target
+		camera->device->CreateRenderTargetView(pBackBuffer, NULL, &camera->render_target_view);
+		pBackBuffer->Release();
+		// set the render target as the back buffer
+		camera->device_context->OMSetRenderTargets(1, &camera->render_target_view, camera->depth_stencil_view );
+	}
+	else
+		lprintf( WIDE("Fatal gettigg backbuffer.") );
+
+
+	D3D11_RASTERIZER_DESC rasterDesc;
+	// Setup the raster description which will determine how and what polygons will be drawn.
+	rasterDesc.AntialiasedLineEnable = false;
+	rasterDesc.CullMode = D3D11_CULL_NONE;  // usually cull_back
+	rasterDesc.DepthBias = 0;
+	rasterDesc.DepthBiasClamp = 0.0f;
+	rasterDesc.DepthClipEnable = false;  // usually enabled
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.FrontCounterClockwise = false;
+	rasterDesc.MultisampleEnable = false;
+	rasterDesc.ScissorEnable = false;
+	rasterDesc.SlopeScaledDepthBias = 0.0f;
+
+	// Create the rasterizer state from the description we just filled out.
+	result = camera->device->CreateRasterizerState(&rasterDesc, &camera->raster_state);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
+	// Now set the rasterizer state.
+	camera->device_context->RSSetState(camera->raster_state);
 
 #if 0
 	// another bit of coe that looked like a shader resource dictionary or something

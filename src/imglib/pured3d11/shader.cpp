@@ -80,8 +80,9 @@ void ClearShaders( void )
 }
 
 
-void EnableShader( PImageShaderTracker tracker, ID3D11Buffer  *verts, unsigned int stride, ... )
+void EnableShader( PImageShaderTracker tracker, ... )
 {
+
 	if( !tracker )
 		return;
 
@@ -102,12 +103,16 @@ void EnableShader( PImageShaderTracker tracker, ID3D11Buffer  *verts, unsigned i
 		}
 	}
 
+	g_d3d_device_context->VSSetShader( tracker->VertexProgram, NULL, 0 );
+	g_d3d_device_context->PSSetShader( tracker->FragProgram, NULL, 0 );
+
 	if( tracker->Enable )
 	{
 		va_list args;
 		va_start( args, tracker );
 		tracker->Enable( tracker, tracker->psv_userdata, args );
 	}
+	g_d3d_device_context->IASetInputLayout(tracker->input_layout);
 
 	// enable fills constant buffers; so update the buffers here
 	if( tracker->vertex_constant_buffer )
@@ -117,20 +122,6 @@ void EnableShader( PImageShaderTracker tracker, ID3D11Buffer  *verts, unsigned i
 	if( tracker->geometry_constant_buffer )
 		g_d3d_device_context->GSSetConstantBuffers( 0, 1, &tracker->geometry_constant_buffer );
 
-
-	unsigned int offset;
-	// Set vertex buffer stride and offset.
-	offset = 0;
-	// Set the vertex buffer to active in the input assembler so it can be rendered.
-	g_d3d_device_context->IASetVertexBuffers(0, 1, &verts, &stride, &offset);
-
-	// Set the index buffer to active in the input assembler so it can be rendered.
-	//g_d3d_device_context->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-	// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
-	g_d3d_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-
-	g_d3d_device_context->Draw( 4, 0 );
 }
 
 
@@ -178,6 +169,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 	// required if shader uses #include
 	// #define D3D_COMPILE_STANDARD_FILE_INCLUDE ((ID3DInclude*)(UINT_PTR)1)
 	ID3DBlob *vert_blob;
+	ID3DBlob *frag_blob;
 	ID3DBlob *errors;
 	char *tmp;
 	char *vs_trylist[] = { "vs_5_0", "vs_4_0", "vs_3_0", "vs_2_0", NULL };
@@ -209,9 +201,9 @@ int CompileShaderEx( PImageShaderTracker tracker
 			if( result )
 			{
 				lprintf( WIDE("failed to create vertex shader from compled shader blob mode %S:%08x"), vs_trylist[n], result );
+				vert_blob->Release();
+				vert_blob = NULL;
 			}
-			vert_blob->Release();
-			vert_blob = NULL;
 		}
 	}
 	if( !tracker->VertexProgram )
@@ -228,21 +220,22 @@ int CompileShaderEx( PImageShaderTracker tracker
 								 , ps_trylist[n] // in       LPCSTR pTarget,
 								 , 0          // in       UINT Flags1,  // comile options
 								 , 0          //  in       UINT Flags2, /* unused for source compiles*/
-								 , &vert_blob //  out      ID3DBlob **ppCode,
+								 , &frag_blob //  out      ID3DBlob **ppCode,
 								 , &errors    // out_opt  ID3DBlob **ppErrorMsgs
 								 );
 
 		if( !result )
 		{
-			//LogBinary( vert_blob->GetBufferPointer(), vert_blob->GetBufferSize() );
-			result = g_d3d_device->CreatePixelShader(vert_blob->GetBufferPointer(), vert_blob->GetBufferSize()
+			//LogBinary( frag_blob->GetBufferPointer(), vert_blob->GetBufferSize() );
+			result = g_d3d_device->CreatePixelShader(vert_blob->GetBufferPointer(), frag_blob->GetBufferSize()
 				, NULL /* ID3D11ClassLinkage */
 												  , &tracker->FragProgram);
 			if( result )
 			{
 				lprintf( WIDE("failed to create fragment shader from compled shader blob mode %S : %08x"), ps_trylist[n], result );
+				frag_blob->Release();
+				frag_blob = NULL;
 			}
-			vert_blob->Release();
 		}
 		else
 			lprintf( WIDE("Fragment Shader error mode %S : %S"), ps_trylist[n], errors->GetBufferPointer() ); 
@@ -250,6 +243,35 @@ int CompileShaderEx( PImageShaderTracker tracker
 	}
 	if( !tracker->FragProgram )
 		return 0;
+
+	{
+		int n;
+		int offset = 0;
+		D3D11_INPUT_ELEMENT_DESC *ied = NewArray( D3D11_INPUT_ELEMENT_DESC, nAttribs );
+		MemSet( ied, 0, sizeof( D3D11_INPUT_ELEMENT_DESC ) * nAttribs );
+		for( n = 0; n < nAttribs; n++ )
+		{
+			ied[n].SemanticName = attrib_order[n].name;
+			ied[n].Format = (DXGI_FORMAT)attrib_order[n].format;
+			ied[n].AlignedByteOffset = offset;
+			ied[n].InputSlotClass = (D3D11_INPUT_CLASSIFICATION)attrib_order[n].input_class;
+			offset += attrib_order[n].size;
+		}
+		g_d3d_device->CreateInputLayout(ied, 2, vert_blob->GetBufferPointer(), vert_blob->GetBufferSize(), &tracker->input_layout);
+
+	}
+
+	if( vert_blob )
+	{
+		vert_blob->Release();
+		vert_blob = NULL;
+	}
+	if( frag_blob )
+	{
+		frag_blob->Release();
+		frag_blob = NULL;
+	}
+
 
 	return (tracker != NULL);
 }
