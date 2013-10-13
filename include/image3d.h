@@ -14,6 +14,9 @@ struct image_shader_attribute_order
 {
 	int n;
 	char *name;  // opengl value;
+	int format;
+	int size;
+	int input_class;
 };
 
 typedef struct image_3d_interface_tag
@@ -25,7 +28,8 @@ typedef struct image_3d_interface_tag
 	IMAGE_PROC_PTR( int, ImageCompileShaderEx )( PImageShaderTracker shader
 															 , char const*const*vertex_code, int vert_blocks
 															 , char const*const*frag_code, int frag_blocks
-															 , struct image_shader_attribute_order *attribs, int nAttribs  );
+															 , struct image_shader_attribute_order *attribs, int nAttribs 
+															 );
 	IMAGE_PROC_PTR( void, ImageEnableShader )( PImageShaderTracker tarcker, ... );
 	IMAGE_PROC_PTR( void, ImageSetShaderEnable )( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker, PTRSZVAL psv, va_list args ), PTRSZVAL psv );
 	IMAGE_PROC_PTR( void, ImageSetShaderModelView )( PImageShaderTracker tracker, RCOORD *matrix );

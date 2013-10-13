@@ -1166,7 +1166,12 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 			//unlock buffer (NEW)
 			//pQuadVB->Unmap();
 
-			EnableShader( l.simple_texture_shader, pQuadVB, sizeof( pData[0] ), topmost_parent );
+			EnableShader( l.simple_texture_shader, topmost_parent );
+			unsigned int stride = sizeof( pData[0] );
+			unsigned int offset = 0;
+			g_d3d_device_context->IASetVertexBuffers(0, 1, &pQuadVB, &stride, &offset);
+			g_d3d_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			g_d3d_device_context->Draw( 4, 0 );
 			//g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
 	}
 

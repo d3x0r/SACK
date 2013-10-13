@@ -9,6 +9,8 @@ if( __ANDROID__ )
 ADD_DEFINITIONS( -D__ANDROID__ )
 endif( __ANDROID__ )
 
+#define NTDDI_VERSION   0x06020000
+
 if( DIRECTX_SDK )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 set( COMMON_SOURCES
@@ -77,7 +79,9 @@ set( COMMON_SOURCES
 			${COMMON_SOURCES} vidlib_win32.c keymap_win32.c
        ${LAST_GCC_LIBRARY_SOURCE}
      )
-    target_link_libraries( ${PROJECT} bag.image.pured3d ${SACK_CORE_LIBRARY} d3d11 )
+	# if NTDDI_VERSION>=0x06020000 /* NTDDI_WIN8 */
+	# dcomp
+    target_link_libraries( ${PROJECT} bag.image.pured3d ${SACK_CORE_LIBRARY} d3d11 DXGI d2d1 )
     install_mode_dest( ${PROJECT} )
     if( WIN8_SDK )
     
@@ -88,6 +92,8 @@ set( COMMON_SOURCES
       SET_PROPERTY( TARGET ${PROJECT} APPEND PROPERTY LINK_DIRECTORIES ${WIN8_SDK}/lib/win8/um/x86 )
     endif( __64__ )
     endif( WIN8_SDK )
+	# if building for win8 target
+	# ;NTDDI_VERSION=0x06020000
     SET_PROPERTY(TARGET ${PROJECT} APPEND PROPERTY COMPILE_DEFINITIONS "RENDER_LIBRARY_SOURCE;_D3D11_DRIVER;MAKE_RCOORD_SINGLE;_INCLUDE_NLS" )
     SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES FOLDER "Video Renderer"    )
   endif( WIN8_SDK OR MSVC11 )
