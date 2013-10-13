@@ -342,8 +342,9 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 				bufferDesc.Usage            = D3D11_USAGE_DYNAMIC;
 				bufferDesc.ByteWidth        = sizeof( D3DPOSVERTEX ) * 4;
 				bufferDesc.BindFlags        = D3D11_BIND_VERTEX_BUFFER;
-				bufferDesc.CPUAccessFlags   = 0;
+				bufferDesc.CPUAccessFlags   = D3D11_CPU_ACCESS_WRITE;
 				bufferDesc.MiscFlags        = 0;
+				bufferDesc.StructureByteStride = sizeof( D3DPOSVERTEX );
 	
 				g_d3d_device->CreateBuffer( &bufferDesc, NULL/*&InitData*/, &pQuadVB);
 			}

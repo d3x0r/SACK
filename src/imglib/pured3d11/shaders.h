@@ -4,9 +4,8 @@
 #define __need___va_list
 #include <stdarg.h>
 
-#include <D3D10Shader.h>
-// createeffeectfromfile
-//#include <d3dx10async.h>
+#include <imglib/imagestruct.h>
+
 #ifdef __ANDROID__
 #define va_list __va_list
 #else

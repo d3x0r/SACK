@@ -23,14 +23,12 @@
 #define FIX_RELEASE_COM_COLLISION
 #include <stdhdrs.h>
 
-#include <d3d10_1.h>
-#include <d3d10.h>
-#include <D3DX10math.h>
-
 #include <sharemem.h>
 #include <imglib/imagestruct.h>
 #include <colordef.h>
-#include "image.h"
+#include <render3d.h>
+#include <image.h>
+
 #include "local.h"
 #define NEED_ALPHA2
 #include "blotproto.h"

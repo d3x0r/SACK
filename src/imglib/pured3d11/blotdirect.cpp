@@ -19,11 +19,9 @@
 #include <stdhdrs.h>
 #include <sharemem.h>
 
-#include <d3d10_1.h>
-#include <d3d10.h>
-
 #include <imglib/imagestruct.h>
 #include <image.h>
+#include <render3d.h>
 
 #include "local.h"
 #define NEED_ALPHA2
