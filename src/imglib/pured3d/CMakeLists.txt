@@ -51,4 +51,4 @@ if( NOT FORCE_CXX )
   # if forced to cxx, don't need extra libraries.
   target_link_libraries( ${project} ${BAG_PSI_PLUSPLUS} )
 endif( NOT FORCE_CXX )
-
+install_mode_dest( ${project} )

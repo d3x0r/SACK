@@ -51,5 +51,5 @@ SET_PROPERTY(TARGET ${project} APPEND PROPERTY  COMPILE_DEFINITIONS "_D3D11_DRIV
 SET_TARGET_PROPERTIES(${project} PROPERTIES  FOLDER "Image Library" )
 
 target_link_libraries( ${project} ${BAG_PSI_PLUSPLUS} d3dx11 D3dcompiler )
-
+install_mode_dest( ${project} )
 
