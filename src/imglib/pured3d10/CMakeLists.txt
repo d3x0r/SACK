@@ -56,5 +56,5 @@ if( NOT FORCE_CXX )
   target_link_libraries( ${project} ${BAG_PSI_PLUSPLUS} d3d10_1 d3d10 )
 endif( NOT FORCE_CXX )
 target_link_libraries( ${project} d3dcompiler )
-
+install_mode_dest( ${project} )
 
