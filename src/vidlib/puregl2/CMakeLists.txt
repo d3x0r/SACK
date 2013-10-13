@@ -20,15 +20,7 @@ set( COMMON_SOURCES
         vidlib_3d_mouse.c  # mouse utilties; reverse map points into screen
         vidlib_render_loop.c  # dispach draw to all windows in a camera
    )     
-
-foreach( SOURCE ${COMMON_SOURCES} vidlib_win32.c keymap_win32.c )
-   if( ${SOURCE} MATCHES "(.*)\\.c$" )
-      set( BASENAME ${CMAKE_MATCH_1} )
-   endif()
-   EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE} ${CMAKE_BINARY_DIR}/vidlib.pured3d/${BASENAME}.cpp )
-   set( COMMON_CPP_SOURCES ${COMMON_CPP_SOURCES} ${CMAKE_BINARY_DIR}/vidlib.pured3d/${BASENAME}.cpp )
-endforeach( SOURCE )
-EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/local.h ${CMAKE_BINARY_DIR}/vidlib.pured3d/local.h )
+  set_source_files_properties( ${COMMON_SOURCES} vidlib_win32.c keymap_win32.c PROPERTIES LANGUAGE CXX)
 
 
 
@@ -55,7 +47,6 @@ EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/l
   SET_PROPERTY( TARGET ${PROJECT} APPEND PROPERTY LINK_DIRECTORIES ${DXLIB} )
   SET_PROPERTY(TARGET ${PROJECT} APPEND PROPERTY COMPILE_DEFINITIONS "RENDER_LIBRARY_SOURCE;_D3D_DRIVER;MAKE_RCOORD_SINGLE" )
   SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES	FOLDER "Video Renderer"    )
-  set_source_files_properties( ${COMMON_SOURCES} vidlib_win32.c keymap_win32.c PROPERTIES HEADER_FILE_ONLY TRUE)
   
   
   set( PROJECT bag.video.pured3d10 )
@@ -72,7 +63,6 @@ EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/l
   SET_PROPERTY( TARGET ${PROJECT} APPEND PROPERTY LINK_DIRECTORIES ${DXLIB} )
   SET_PROPERTY(TARGET ${PROJECT} APPEND PROPERTY COMPILE_DEFINITIONS "RENDER_LIBRARY_SOURCE;_D3D10_DRIVER;MAKE_RCOORD_SINGLE;_INCLUDE_NLS" )
   SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES	FOLDER "Video Renderer"    )
-  set_source_files_properties( ${COMMON_SOURCES} vidlib_win32.c keymap_win32.c PROPERTIES HEADER_FILE_ONLY TRUE)
   
   if( WIN8_SDK OR MSVC11 )
     if( WIN8_SDK )
@@ -100,7 +90,6 @@ EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/l
     endif( WIN8_SDK )
     SET_PROPERTY(TARGET ${PROJECT} APPEND PROPERTY COMPILE_DEFINITIONS "RENDER_LIBRARY_SOURCE;_D3D11_DRIVER;MAKE_RCOORD_SINGLE;_INCLUDE_NLS" )
     SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES FOLDER "Video Renderer"    )
-    set_source_files_properties( ${COMMON_SOURCES} vidlib_win32.c keymap_win32.c PROPERTIES HEADER_FILE_ONLY TRUE)
   endif( WIN8_SDK OR MSVC11 )
   
 endif( DIRECTX_SDK )
