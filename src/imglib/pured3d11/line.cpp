@@ -144,7 +144,7 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 			_color[1] = GreenVal( d ) / 255.0f;
 			_color[2] = BlueVal( d ) / 255.0f;
 			_color[3] = AlphaVal( d ) / 255.0f;
-			EnableShader( l.simple_shader, pQuadVB, _color );
+			EnableShader( l.simple_shader, pQuadVB, sizeof( pData[0] ), _color );
 			//g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
 	}
 	else
@@ -320,7 +320,7 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 			_color[1] = GreenVal( d ) / 255.0f;
 			_color[2] = BlueVal( d ) / 255.0f;
 			_color[3] = AlphaVal( d ) / 255.0f;
-			EnableShader( l.simple_shader, pQuadVB, _color );
+			EnableShader( l.simple_shader, pQuadVB, sizeof( pData[0] ), _color );
 
 			//g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
 	}

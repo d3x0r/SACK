@@ -604,7 +604,7 @@ IMAGE_NAMESPACE
 
 			if( method == BLOT_COPY )
 			{
-				EnableShader( l.simple_texture_shader, pQuadVB, pifSrc );
+				EnableShader( l.simple_texture_shader, pQuadVB, sizeof( pData[0] ), pifSrc );
 			}
 			else if( method == BLOT_SHADED )
 			{
@@ -614,7 +614,7 @@ IMAGE_NAMESPACE
 				_color[1] = GreenVal( color ) / 255.0f;
 				_color[2] = BlueVal( color ) / 255.0f;
 				_color[3] = AlphaVal( color ) / 255.0f;
-				EnableShader( l.simple_shaded_texture_shader, pQuadVB, pifSrc, _color );
+				EnableShader( l.simple_shaded_texture_shader, pQuadVB, sizeof( pData[0] ), pifSrc, _color );
 			}
 			else if( method == BLOT_MULTISHADE )
 			{
@@ -637,7 +637,7 @@ IMAGE_NAMESPACE
 				b_color[1] = GreenVal( b ) / 255.0f;
 				b_color[2] = BlueVal( b ) / 255.0f;
 				b_color[3] = AlphaVal( b ) / 255.0f;
-				EnableShader( l.simple_multi_shaded_texture_shader, pQuadVB, pifSrc, r_color, g_color, b_color );
+				EnableShader( l.simple_multi_shaded_texture_shader, pQuadVB, sizeof( pData[0] ), pifSrc, r_color, g_color, b_color );
 			}
 			else if( method == BLOT_INVERTED )
 			{

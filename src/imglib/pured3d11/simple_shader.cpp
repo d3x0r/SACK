@@ -61,11 +61,10 @@ static char const * gles_simple_p_shader[] = {
 
 void CPROC EnableSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv, va_list args )
 {
-	ID3D10Buffer  *verts = va_arg( args, ID3D10Buffer * );
 	float *color = va_arg( args, float * );
 
 	//g_d3d_device->SetStreamSource( 0, verts, 0, sizeof( float ) * 3 );
-	//g_d3d_device->SetVertexShaderConstantF( 16, color, 1 );
+	//g_d3d_device_context->SetVertexShaderConstantF( 16, color, 1 );
 }
 
 void InitSuperSimpleShader( PImageShaderTracker tracker )

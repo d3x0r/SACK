@@ -2,8 +2,15 @@
 set( project bag.image.pured3d11 )
 
 ADD_DEFINITIONS( -D__3D__ )
-INCLUDE_DIRECTORIES( ${DIRECTX_SDK}/include )
-LINK_DIRECTORIES( ${DIRECTX_SDK}/lib/${TARGET_ARCH} )
+
+    if( WIN8_SDK )
+		INCLUDE_DIRECTORIES( ${WIN8_SDK}/include/um )
+		INCLUDE_DIRECTORIES( ${WIN8_SDK}/include/shared )
+		LINK_DIRECTORIES( ${WIN8_SDK}/lib/win8/um/${TARGET_ARCH} )
+    else( WIN8_SDK )
+		INCLUDE_DIRECTORIES( ${DIRECTX_SDK}/include )
+		LINK_DIRECTORIES( ${DIRECTX_SDK}/lib/${TARGET_ARCH} )
+    endif( WIN8_SDK )
 
 set( COMMON_CPP_SOURCES   blotscaled.cpp blotdirect.cpp image.d3d11.cpp 
   line.cpp interface.cpp sprite.cpp 
@@ -50,6 +57,6 @@ SET_SOURCE_FILES_PROPERTIES( ${font_sources} PROPERTIES LANGUAGE CXX )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY  COMPILE_DEFINITIONS "_D3D11_DRIVER" )
 SET_TARGET_PROPERTIES(${project} PROPERTIES  FOLDER "Image Library" )
 
-target_link_libraries( ${project} ${BAG_PSI_PLUSPLUS} d3dx11 D3dcompiler )
+target_link_libraries( ${project} ${BAG_PSI_PLUSPLUS} d3d11 D3dcompiler )
 install_mode_dest( ${project} )
 
