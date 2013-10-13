@@ -34,6 +34,11 @@ struct image_shader_tracker
 	ID3D11Buffer *vertexDecl;
 	ID3D11PixelShader  * FragProgram;
 	ID3D11VertexShader  * VertexProgram;
+	// most every shader program will have some constants (matrixes, etc)
+	// each shader must fill this on its own; 
+	ID3D11Buffer *vertex_constant_buffer;
+	ID3D11Buffer *fragment_constant_buffer;
+	ID3D11Buffer *geometry_constant_buffer;
 
 	int eye_point;
 	int position_attrib;

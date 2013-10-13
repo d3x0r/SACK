@@ -17,7 +17,7 @@
 #include <render.h>
 #include <render3d.h>
 
-#include <GL/glew.h>
+//#include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 

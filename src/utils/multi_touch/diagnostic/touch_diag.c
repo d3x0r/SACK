@@ -5,7 +5,7 @@
 
 static struct {
 	PRENDER_INTERFACE pri;
-   PIMAGE_INTERFACE pii;
+	PIMAGE_INTERFACE pii;
 } l;
 
 int CPROC touch_events( PTRSZVAL psv, PTOUCHINPUT pTouches, int nTouches )

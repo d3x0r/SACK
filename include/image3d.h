@@ -18,7 +18,7 @@ struct image_shader_attribute_order
 
 typedef struct image_3d_interface_tag
 {
-	IMAGE_PROC_PTR( PImageShaderTracker, ImageGetShader)         ( CTEXTSTR name, void (CPROC*Init)(PImageShaderTracker) );
+	IMAGE_PROC_PTR( PImageShaderTracker, ImageGetShader)         ( CTEXTSTR name, void (CPROC*Init)(PImageShaderTracker) );	
 	IMAGE_PROC_PTR( int, ImageCompileShader )( PImageShaderTracker shader
 														  , char const*const*vertex_code, int vert_blocks
 														  , char const*const*frag_code, int frag_blocks );

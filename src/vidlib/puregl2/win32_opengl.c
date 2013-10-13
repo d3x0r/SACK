@@ -92,20 +92,11 @@ void SetupPositionMatrix( struct display_camera *camera )
 int SetActiveGLDisplayView( struct display_camera *camera, int nFracture )
 {
 #ifdef _WIN32 
-	PRENDERER hDisplay = camera->hVidCore;
-	static CRITICALSECTION cs;
-	static int first = 1;
+	PRENDERER hDisplay = camera?camera->hVidCore:NULL;
 	static PVIDEO _hDisplay; // last display with a lock.
-	if( first )
-	{
-		InitializeCriticalSec( &cs );
-		first = 0;
-	}
 	if( hDisplay )
 	{
 		HDC hdcEnable;
-		//if( !IsVidThread() )
-		//	return 0;
 		if( nFracture )
 		{
 			nFracture -= 1;

@@ -1173,10 +1173,16 @@ add_subdirectory( data )
 add_subdirectory( include )
 add_subdirectory( src/utils/runner )
 
-
 if( BUILD_TESTS )
    add_subdirectory( src/netlib/html5.websocket/server )
    #add_subdirectory( src/netlib/html5.websocket/client )
+   
+   # these opengl plugins used GLEW, and did their program at very low level
+   # ment to be tests based on binary target output
+   #add_subdirectory( src/games/simple_vector_tester )
+   #add_subdirectory( src/games/simple_array_tester )
+   
+   add_subdirectory( src/games/simple_vector_tester/d3d )
    add_subdirectory( src/netlib/html5.websocket/json/tests )
    add_subdirectory( src/psilib/console/cmdshell )
    add_subdirectory( src/msgsvr/client/client_server )
