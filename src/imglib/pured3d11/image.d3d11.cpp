@@ -377,7 +377,7 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 			_color[1] = GreenVal( color ) / 255.0f;
 			_color[2] = BlueVal( color ) / 255.0f;
 			_color[3] = AlphaVal( color ) / 255.0f;
-			EnableShader( l.simple_shader, pQuadVB, _color );
+			EnableShader( l.simple_shader, pQuadVB, sizeof( pData[0] ), _color );
 		}
 	}
 	else
@@ -523,7 +523,7 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 		_color[1] = GreenVal( color ) / 255.0f;
 		_color[2] = BlueVal( color ) / 255.0f;
 		_color[3] = AlphaVal( color ) / 255.0f;
-		EnableShader( l.simple_shader, pQuadVB, _color );
+		EnableShader( l.simple_shader, pQuadVB, sizeof( pData[0] ), _color );
   		//g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
 	}
 	else

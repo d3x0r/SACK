@@ -3,8 +3,7 @@
 #define FIX_RELEASE_COM_COLLISION
 
 #include <stdhdrs.h>
-#include <d3d11.h>
-#include <d3d10effect.h>
+#include <imglib/imagestruct.h>
 #include <D3Dcompiler.h>
 #include "local.h"
 #include "shaders.h"
@@ -81,7 +80,7 @@ void ClearShaders( void )
 }
 
 
-void EnableShader( PImageShaderTracker tracker, ... )
+void EnableShader( PImageShaderTracker tracker, ID3D11Buffer  *verts, unsigned int stride, ... )
 {
 	if( !tracker )
 		return;
@@ -132,6 +131,19 @@ void EnableShader( PImageShaderTracker tracker, ... )
 		va_start( args, tracker );
 		tracker->Enable( tracker, tracker->psv_userdata, args );
 	}
+
+	unsigned int offset;
+	// Set vertex buffer stride and offset.
+	offset = 0;
+	// Set the vertex buffer to active in the input assembler so it can be rendered.
+	g_d3d_device_context->IASetVertexBuffers(0, 1, &verts, &stride, &offset);
+
+	// Set the index buffer to active in the input assembler so it can be rendered.
+	//g_d3d_device_context->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+	// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
+	g_d3d_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
 }
 
 
@@ -156,7 +168,8 @@ int CompileShaderEx( PImageShaderTracker tracker
 	length = 0;
 	for( n = 0; n < vertex_blocks; n++ )
 	{
-		MemCpy( vertex_code + length, vertex_code_blocks[n], ( new_length + 1 ) );
+		
+		MemCpy( vertex_code + length, vertex_code_blocks[n], ( ( new_length = CStrLen( vertex_code_blocks[n] ) ) + 1 ) );
 		length += new_length;
 	}
 	vertex_length = length;
@@ -168,7 +181,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 	length = 0;
 	for( n = 0; n < frag_blocks; n++ )
 	{
-		MemCpy( frag_code + length, frag_code_blocks[n], ( new_length + 1 ) );
+		MemCpy( frag_code + length, frag_code_blocks[n], ( ( new_length = CStrLen( frag_code_blocks[n] ) ) + 1 ) );
 		length += new_length;
 	}
 	frag_length = length;
@@ -180,31 +193,43 @@ int CompileShaderEx( PImageShaderTracker tracker
 	ID3DBlob *vert_blob;
 	ID3DBlob *errors;
 	char *tmp;
-	result = D3DCompile(
-							  vertex_code
-							  , vertex_length  //in       SIZE_T SrcDataSize,
-							  , DupTextToChar( tracker->name )  //in_opt   LPCSTR pSourceName,  /* used for error message output */
-							  , NULL      //in_opt   const D3D_SHADER_MACRO *pDefines,
-							  , NULL      //in_opt   ID3DInclude *pInclude,
-							 , ("main")       //in       LPCSTR pEntrypoint,  /* ignored by d3dcompile*/
-							 , ("vs_2_0")   // in       LPCSTR pTarget,
-							 , 0          // in       UINT Flags1,  // comile options
-							 , 0          //  in       UINT Flags2, /* unused for source compiles*/
-							 , &vert_blob //  out      ID3DBlob **ppCode,
-							 , &errors    // out_opt  ID3DBlob **ppErrorMsgs
-							 );
-	if( result )
+	char *vs_trylist[] = { "vs_5_0", "vs_4_0", "vs_3_0", "vs_2_0", NULL };
+	char *ps_trylist[] = { "vs_5_0", "vs_4_0", "vs_3_0", "vs_2_0", NULL };
+	for( n = 0; vs_trylist[n] && !tracker->VertexProgram; n++ )
 	{
-		lprintf( WIDE("%s"), errors->GetBufferPointer() );
+		result = D3DCompile( vertex_code
+								  , vertex_length  //in       SIZE_T SrcDataSize,
+								  , DupTextToChar( tracker->name )  //in_opt   LPCSTR pSourceName,  /* used for error message output */
+								  , NULL      //in_opt   const D3D_SHADER_MACRO *pDefines,
+								  , NULL      //in_opt   ID3DInclude *pInclude,
+								 , ("main")       //in       LPCSTR pEntrypoint,  /* ignored by d3dcompile*/
+								 , vs_trylist[n]   // in       LPCSTR pTarget,
+								 , 0          // in       UINT Flags1,  // comile options
+								 , 0          //  in       UINT Flags2, /* unused for source compiles*/
+								 , &vert_blob //  out      ID3DBlob **ppCode,
+								 , &errors    // out_opt  ID3DBlob **ppErrorMsgs
+								 );
+		if( result )
+		{
+			lprintf( WIDE("%s"), errors->GetBufferPointer() );
+		}
+		else
+		{
+			LogBinary( vert_blob->GetBufferPointer(), vert_blob->GetBufferSize() );
+			result = g_d3d_device->CreateVertexShader(vert_blob->GetBufferPointer(), vert_blob->GetBufferSize()
+														, NULL /* ID3D11ClassLinkage*  */
+													  , &tracker->VertexProgram);
+			if( result )
+			{
+				lprintf( WIDE("failed to create vertex shader from compled shader blob %08x"), result );
+			}
+			vert_blob->Release();
+			vert_blob = NULL;
+		}
 	}
-	else
-	{
-		g_d3d_device->CreateVertexShader((DWORD*)vert_blob->GetBufferPointer(), vert_blob->GetBufferSize()
-			, NULL /* ID3D11ClassLinkage*  */
-												  , &tracker->VertexProgram);
-		vert_blob->Release();
-		vert_blob = NULL;
-	}
+	if( !tracker->VertexProgram )
+		return 0;
+
 	result = D3DCompile(
 							  frag_code
 							  , frag_length  //in       SIZE_T SrcDataSize,
@@ -221,9 +246,14 @@ int CompileShaderEx( PImageShaderTracker tracker
 
 	if( !result )
 	{
-		g_d3d_device->CreatePixelShader((DWORD*)vert_blob->GetBufferPointer(), vert_blob->GetBufferSize()
+		LogBinary( vert_blob->GetBufferPointer(), vert_blob->GetBufferSize() );
+		result = g_d3d_device->CreatePixelShader(vert_blob->GetBufferPointer(), vert_blob->GetBufferSize()
 			, NULL /* ID3D11ClassLinkage */
 											  , &tracker->FragProgram);
+		if( result )
+		{
+			lprintf( WIDE("failed to create fragment shader from compled shader blob %08x"), result );
+		}
 		vert_blob->Release();
 	}
 	else

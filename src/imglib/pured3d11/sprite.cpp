@@ -1166,7 +1166,7 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 			//unlock buffer (NEW)
 			//pQuadVB->Unmap();
 
-			EnableShader( l.simple_texture_shader, pQuadVB, topmost_parent );
+			EnableShader( l.simple_texture_shader, pQuadVB, sizeof( pData[0] ), topmost_parent );
 			//g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
 	}
 

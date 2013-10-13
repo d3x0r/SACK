@@ -231,10 +231,8 @@ void DisableD3d( struct display_camera *camera )
 
 int EnableD3d( struct display_camera *camera )
 {
-	D3D_FEATURE_LEVEL levels[] = { D3D_FEATURE_LEVEL_11_0};
 	HRESULT result;
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
-	D3D_FEATURE_LEVEL featureLevel;
 
 	// Initialize the swap chain description.
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
@@ -291,25 +289,38 @@ int EnableD3d( struct display_camera *camera )
 	// Don't set the advanced flags.
 	swapChainDesc.Flags = 0;
 
-
-	// Set the feature level to DirectX 11.
-	featureLevel = D3D_FEATURE_LEVEL_11_0;
-		result = D3D11CreateDeviceAndSwapChain(NULL
-					, D3D_DRIVER_TYPE_REFERENCE //D3D_DRIVER_TYPE_HARDWARE
+		result = D3D11CreateDeviceAndSwapChain( NULL
+					, D3D_DRIVER_TYPE_HARDWARE
 					, NULL
 					, 0
-					, &featureLevel
-					, 1
+					, NULL // defaults to a list of all feature levels
+					, 0
 					, D3D11_SDK_VERSION
 					, &swapChainDesc
 					, &camera->swap_chain
 					, &camera->device
 					, NULL
 					, &camera->device_context);
+
 	if( result )
 	{
-		lprintf( WIDE("Failed to create device.") );
-		return FALSE;
+		result = D3D11CreateDeviceAndSwapChain(NULL
+					, D3D_DRIVER_TYPE_REFERENCE //D3D_DRIVER_TYPE_HARDWARE
+					, NULL
+					, 0
+					, NULL // defaults to a list of all feature levels
+					, 0
+					, D3D11_SDK_VERSION
+					, &swapChainDesc
+					, &camera->swap_chain
+					, &camera->device
+					, NULL
+					, &camera->device_context);
+		if( result )
+		{
+			lprintf( WIDE("Failed to create device.") );
+			return FALSE;
+		}
 	}
 	D3D11_TEXTURE2D_DESC description = {};
 	description.ArraySize = 1;
@@ -364,6 +375,36 @@ int EnableD3d( struct display_camera *camera )
 																 &camera->target);
     */
 
+#if 0
+	// another bit of coe that looked like a shader resource dictionary or something
+
+	// Shader-resource buffer
+	D3D11_BUFFER_DESC bufferDesc = {0};
+	bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	bufferDesc.ByteWidth = 4 * 4 * 2;// 2 float4
+	bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+
+	// [0, 3] = texCoords, [4, 7] = positions
+	const float coords[8] = {
+		0.0f, 0.0f, 1.0f, 1.0f,
+		-0.5f, -0.5f, 0.5f, 0.5f
+	};
+
+	D3D11_SUBRESOURCE_DATA bufferData = {0};
+	bufferData.pSysMem = coords;
+
+	ID3D11Buffer *pBuffer;
+	camera->device->CreateBuffer(&bufferDesc, &bufferData, &pBuffer);
+	
+	D3D11_SHADER_RESOURCE_VIEW_DESC bufferSRVDesc;
+	ZeroMemory(&bufferSRVDesc, sizeof(bufferSRVDesc));
+	bufferSRVDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	bufferSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+	bufferSRVDesc.Buffer.ElementWidth = 2;// 2 float4
+	
+	ID3D11ShaderResourceView *pBufferSRV;
+	camera->device->CreateShaderResourceView(pBuffer, &bufferSRVDesc, &pBufferSRV);
+#endif
 	return TRUE;
 }
 

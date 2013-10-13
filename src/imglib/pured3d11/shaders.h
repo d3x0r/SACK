@@ -60,7 +60,7 @@ int CPROC CompileShader( PImageShaderTracker shader
 							  , char const *const*frag_code, int frag_length );
 void CPROC ClearShaders( void );
 
-void CPROC EnableShader( PImageShaderTracker shader, ... );
+void CPROC EnableShader( PImageShaderTracker tracker, ID3D11Buffer  *verts, unsigned int stride, ... );
 
 
 // verts and a single color
