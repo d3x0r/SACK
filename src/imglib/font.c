@@ -26,13 +26,13 @@
 #ifdef PURE_OPENGL2_ENABLED
 #include "puregl2/local.h"
 #elif defined( _D3D11_DRIVER )
-#include "local.h"
+#include "pured3d11/local.h"
 #elif defined( _D3D10_DRIVER )
-#include "local.h"
+#include "pured3d10/local.h"
 #elif defined( _D3D2_DRIVER )
-#include "local.h"
+#include "pured3d2/local.h"
 #elif defined( _D3D_DRIVER )
-#include "local.h"
+#include "pured3d/local.h"
 #else
 #include "puregl/local.h"
 #endif
@@ -536,7 +536,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 #  endif  // ifdef OPENGL2
 #endif
 #if defined( _D3D_DRIVER ) || defined( _D3D11_DRIVER )
-#  ifdef _D3D_DRIVER2
+#  ifdef _D3D2_DRIVER
 			static LPDIRECT3DVERTEXBUFFER9 pQuadVB_back;
 			static LPDIRECT3DVERTEXBUFFER9 pQuadVB;
 			if( !pQuadVB_back )

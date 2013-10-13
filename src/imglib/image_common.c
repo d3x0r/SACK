@@ -518,7 +518,7 @@ static void SmearFlag( Image image, int flag )
 	p->glSurface = NULL;
 	p->transform = NULL;
 #endif
-#if defined( _D3D_DRIVER )
+#if defined( _D3D_DRIVER ) || defined( _D3D2_DRIVER ) || defined( _D3D10_DRIVER ) || defined( _D3D11_DRIVER )
 	p->Surfaces = NULL;
 	p->transform = NULL;
 #endif
