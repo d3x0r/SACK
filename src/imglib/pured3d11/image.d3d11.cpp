@@ -486,11 +486,12 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 			if( !pQuadVB )
 			{
 				D3D11_BUFFER_DESC bufferDesc;
-				bufferDesc.Usage            = D3D11_USAGE_DEFAULT;
+				bufferDesc.Usage            = D3D11_USAGE_DYNAMIC;
 				bufferDesc.ByteWidth        = sizeof( D3DPOSVERTEX ) * 4;
 				bufferDesc.BindFlags        = D3D11_BIND_VERTEX_BUFFER;
-				bufferDesc.CPUAccessFlags   = 0;
+				bufferDesc.CPUAccessFlags   = D3D11_CPU_ACCESS_WRITE;
 				bufferDesc.MiscFlags        = 0;
+				bufferDesc.StructureByteStride = sizeof( D3DTEXTUREDVERTEX );
 	
 				g_d3d_device->CreateBuffer( &bufferDesc, NULL/*&InitData*/, &pQuadVB);
 			}
@@ -518,11 +519,11 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 		g_d3d_device_context->Unmap( pQuadVB, 0 );
 
 		float _color[4];
-			_color[0] = RedVal( color ) / 255.0f;
-			_color[1] = GreenVal( color ) / 255.0f;
-			_color[2] = BlueVal( color ) / 255.0f;
-			_color[3] = AlphaVal( color ) / 255.0f;
-			EnableShader( l.simple_shader, pQuadVB, _color );
+		_color[0] = RedVal( color ) / 255.0f;
+		_color[1] = GreenVal( color ) / 255.0f;
+		_color[2] = BlueVal( color ) / 255.0f;
+		_color[3] = AlphaVal( color ) / 255.0f;
+		EnableShader( l.simple_shader, pQuadVB, _color );
   		//g_d3d_device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,2);
 	}
 	else
