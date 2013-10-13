@@ -102,35 +102,21 @@ void EnableShader( PImageShaderTracker tracker, ID3D11Buffer  *verts, unsigned i
 		}
 	}
 
-	//g_d3d_device->SetVertexDeclaration( tracker->vertexDecl );
-	//g_d3d_device->SetVertexShader( tracker->VertexProgram );
-	//g_d3d_device->SetPixelShader( tracker->FragProgram );
-	//g_d3d_device->SetPix
-
-	if( !tracker->flags.set_matrix )
-	{
-		if( !l.flags.worldview_read )
-		{
-			GetGLCameraMatrix( l.d3dActiveSurface->T_Camera, l.worldview );
-			l.flags.worldview_read = 1;
-		}
-
-		PrintMatrix( (MATRIX)l.worldview );
-		//mWld2
-		//g_d3d_device->SetVertexShaderConstantF( 4, (RCOORD*)l.worldview, 4 );
-				
-		PrintMatrix( l.d3dActiveSurface->M_Projection[0] );
-		//mWld1
-		//g_d3d_device->SetVertexShaderConstantF( 0, (float*)l.d3dActiveSurface->M_Projection, 4 );
-		tracker->flags.set_matrix = 1;
-	}
-
 	if( tracker->Enable )
 	{
 		va_list args;
 		va_start( args, tracker );
 		tracker->Enable( tracker, tracker->psv_userdata, args );
 	}
+
+	// enable fills constant buffers; so update the buffers here
+	if( tracker->vertex_constant_buffer )
+		g_d3d_device_context->VSSetConstantBuffers( 0, 1, &tracker->vertex_constant_buffer );
+	if( tracker->fragment_constant_buffer )
+		g_d3d_device_context->PSSetConstantBuffers( 0, 1, &tracker->fragment_constant_buffer );
+	if( tracker->geometry_constant_buffer )
+		g_d3d_device_context->GSSetConstantBuffers( 0, 1, &tracker->geometry_constant_buffer );
+
 
 	unsigned int offset;
 	// Set vertex buffer stride and offset.
@@ -144,6 +130,7 @@ void EnableShader( PImageShaderTracker tracker, ID3D11Buffer  *verts, unsigned i
 	// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
 	g_d3d_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
+	g_d3d_device_context->Draw( 4, 0 );
 }
 
 
@@ -211,7 +198,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 								 );
 		if( result )
 		{
-			lprintf( WIDE("%s"), errors->GetBufferPointer() );
+			lprintf( WIDE("Vertex Shader Error with mode %S : %S"), vs_trylist[n], errors->GetBufferPointer() );
 		}
 		else
 		{
@@ -221,7 +208,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 													  , &tracker->VertexProgram);
 			if( result )
 			{
-				lprintf( WIDE("failed to create vertex shader from compled shader blob %08x"), result );
+				lprintf( WIDE("failed to create vertex shader from compled shader blob mode %S:%08x"), vs_trylist[n], result );
 			}
 			vert_blob->Release();
 			vert_blob = NULL;
@@ -253,22 +240,16 @@ int CompileShaderEx( PImageShaderTracker tracker
 												  , &tracker->FragProgram);
 			if( result )
 			{
-				lprintf( WIDE("failed to create fragment shader from compled shader blob %08x"), result );
+				lprintf( WIDE("failed to create fragment shader from compled shader blob mode %S : %08x"), ps_trylist[n], result );
 			}
 			vert_blob->Release();
 		}
 		else
-			lprintf( WIDE("%S"), errors->GetBufferPointer() ); 
+			lprintf( WIDE("Fragment Shader error mode %S : %S"), ps_trylist[n], errors->GetBufferPointer() ); 
 	
 	}
-	{
-		int n;
-		for( n = 0; n < nAttribs; n++ )
-		{
-			lprintf( WIDE("Bind Attrib Location: %d %S"), attrib_order[n].n, attrib_order[n].name );
-			//glBindAttribLocation(tracker->glProgramId, attrib_order[n].n, attrib_order[n].name );
-		}
-	}
+	if( !tracker->FragProgram )
+		return 0;
 
 	return (tracker != NULL);
 }

@@ -1,3 +1,5 @@
+if( NOT BUILD_TESTS )
+
 cmake_minimum_required(VERSION 2.8)
 
 if( NOT SACK_SDK_ROOT_PATH )
@@ -22,7 +24,9 @@ LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
 INSTALL_SACK( bin )
 INSTALL_SACK_BINARY( systray_shell bin )
 
-PROJECT( simple_vector_tester )
+endif( NOT BUILD_TESTS )
+
+PROJECT( simple_shader_tester )
 
 
 ADD_LIBRARY( ${PROJECT_NAME} SHARED
@@ -38,13 +42,16 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
                   COMPILE_DEFINITIONS "TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}\""
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} -DWINDOWS_MODE"
 )
+set_target_properties( ${PROJECT_NAME} PROPERTIES FOLDER "tests/opengl plugin" )
 
 configure_file( project.interface.conf.cm ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.interface.conf.tmp )
 EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.interface.conf.tmp ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.interface.conf )
 install( FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.interface.conf DESTINATION bin )
 
+if( NOT BUILD_TESTS )
 LIST( GET systray_shell_targets 0 shell_target )
 install( FILES ${shell_target}  DESTINATION bin RENAME ${PROJECT_NAME}.exe )
+endif( NOT BUILD_TESTS )
 
 if( WIN32 )
 	# On Windows platforms, the dynamic libs should
@@ -61,6 +68,7 @@ else( WIN32 )
 endif( WIN32 )
 
 
+if( NOT BUILD_TESTS )
 # get the system libraries..
 SET( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP 1 )
 if( ${CMAKE_BUILD_TYPE} MATCHES "[dD][eE][bB][uU][gG]" )
@@ -70,4 +78,5 @@ endif( ${CMAKE_BUILD_TYPE} MATCHES "[dD][eE][bB][uU][gG]" )
 
 INCLUDE(InstallRequiredSystemLibraries)
 INSTALL( FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin )
+endif( NOT BUILD_TESTS )
 
