@@ -168,7 +168,7 @@ RENDER_PROC( int, SetActiveGLDisplayView )( PVIDEO hDisplay, int nFracture )
 #endif
 }
 
-RENDER_PROC( int, SetActiveGLDisplay )( PVIDEO hDisplay )
+int SetActiveGLDisplay( PVIDEO hDisplay )
 {
    return SetActiveGLDisplayView( hDisplay, 0 );
 }

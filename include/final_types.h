@@ -144,7 +144,7 @@
 #      if defined( _UNICODE )
 #        define tnprintf  _snwprintf
 #        define vtnprintf _vsnwprintf
-#        ifndef NO_UNICODE_C && !defined( NO_UNICODE_C )
+#        if !defined( NO_UNICODE_C )
 #           define snprintf  _snwprintf
 #           define vsnprintf _vsnwprintf
 #           define sscanf     swscanf
