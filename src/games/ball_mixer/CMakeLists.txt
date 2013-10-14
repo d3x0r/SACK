@@ -36,17 +36,21 @@ INSTALL_INTERSHELL_WIDGETS( bin )
 
 PROJECT( ball_mixer )
 
+if( NOT BUILD_UNICODE )
 if( EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../altanik )
 SET( ALTANIK_ROOT  ${CMAKE_CURRENT_SOURCE_DIR}/../../../../altanik )
 SET( EXTRA_SOURCES remote_hook.cpp )
 ADD_DEFINITIONS( -DALTANIK_EXISTS )
 endif( EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../altanik )
-ADD_DEFINITIONS( -DMAKE_RCOORD_SINGLE )
-
-include_directories( ../include )
 if( EXTRA_SOURCES )
 include_directories( ${ALTANIK_ROOT}/include )
 endif( EXTRA_SOURCES )
+
+endif( NOT BUILD_UNICODE )
+
+ADD_DEFINITIONS( -DMAKE_RCOORD_SINGLE )
+
+include_directories( ../include )
 
 
 include_directories( ${BULLET_SOURCE}/src )
@@ -95,19 +99,21 @@ else( WIN32 )
 	        ARCHIVE DESTINATION lib )
 endif( WIN32 )
 
-if( ALTANIK_ROOT )
-set( MILK2_SYSTEM ON )
-set( MILK_PATH milk2 )
-set( USE_SACK_WIDGETS ON )
+if( NOT BUILD_UNICODE )
+  if( ALTANIK_ROOT )
+    set( MILK2_SYSTEM ON )
+    set( MILK_PATH milk2 )
+    set( USE_SACK_WIDGETS ON )
 
-# set this to install altanik_core in correct directory
-set( INSTALL_ALONG bin )
+    # set this to install altanik_core in correct directory
+    set( INSTALL_ALONG bin )
 
-# set WIDGET_LIBRARY_ONLY; do not install full resources
-set( WIDGET_LIBRARY_ONLY ON )
-add_subdirectory( ${ALTANIK_ROOT}/src/fut altanik_core )
-add_subdirectory( ${ALTANIK_ROOT}/src/fut/flashdrive flashdrive )
-endif( ALTANIK_ROOT )
+    # set WIDGET_LIBRARY_ONLY; do not install full resources
+    set( WIDGET_LIBRARY_ONLY ON )
+    add_subdirectory( ${ALTANIK_ROOT}/src/fut altanik_core )
+    add_subdirectory( ${ALTANIK_ROOT}/src/fut/flashdrive flashdrive )
+  endif( ALTANIK_ROOT )
+endif( NOT BUILD_UNICODE )
 
 
 

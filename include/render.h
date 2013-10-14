@@ -955,7 +955,8 @@ enum DisplayAttributes {
 	    Returns
 	    \Returns an index to the view, which can be used in <link sack::image::render::SetActiveGLDisplayView@PRENDERER@int, SetActiveGLDisplayView>. */
 	 RENDER_PROC( int, EnableOpenGLView )           ( PRENDERER hVideo, int x, int y, int w, int h );
-    /* Sets the current active view for opengl drawing. if view
+	 /* *DEPRICATED*  use an appropriate 3d view driver instead...
+		   Sets the current active view for opengl drawing. if view
        index 1+ is passed, that view is enabled. If 0 is passed, if
        NULL is passed as the display to activate, the OpenGL
        contexts are all de-activated, and the opengl pipe is
@@ -965,14 +966,15 @@ enum DisplayAttributes {
                     display.
        nFracture :  0 to enable opengl on the whole window, 1+ to
                     activate just a view fracture.                    */
-    RENDER_PROC( int, SetActiveGLDisplayView )     ( PRENDERER hDisplay, int nFracture );
+    //RENDER_PROC( int, SetActiveGLDisplayView )     ( PRENDERER hDisplay, int nFracture );
 
-	 /* <combine sack::image::render::SetActiveGLDisplayView@PRENDERER@int>
+ 	 /* *DEPRICATED*  use an appropriate 3d view driver instead...
+       <combine sack::image::render::SetActiveGLDisplayView@PRENDERER@int>
 	    
 	    \ \ 
 	    Note
 	    SetActiveGLDisplay passes 0 as the fracture ID.                     */
-	 RENDER_PROC( int, SetActiveGLDisplay )     ( PRENDERER hDisplay );
+	 //RENDER_PROC( int, SetActiveGLDisplay )     ( PRENDERER hDisplay );
 	 // makes an opengl texture type from an image...
 	 // uhmm not sure what else we can do about this...
 	 // but there are possibly issues such as power of 2 limitations
