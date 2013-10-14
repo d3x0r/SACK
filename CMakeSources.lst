@@ -23,9 +23,9 @@ set(UNSORTED_SOURCES
 )
 
 if( NOT __ANDROID__ )
-  set( COMM_SOURCES src/commlib/sackcomm.c )
+  set( COMM_SOURCES ${SOURCES_ROOT}src/commlib/sackcomm.c )
   if( NOT __LINUX__ )
-    set( COMM_SOURCES ${COMM_SOURCES} src/windows_hardware_library/listports.c )
+    set( COMM_SOURCES ${COMM_SOURCES} ${SOURCES_ROOT}src/windows_hardware_library/listports.c )
   endif( NOT __LINUX__ )
 
 endif( NOT __ANDROID__ )
@@ -34,7 +34,7 @@ if( WIN32 )
 set(MORE_NETWORK_SOURCES
   ${SOURCES_ROOT}src/netlib/net_winsock2.c
 )
-set( SERVICE_STUB_SOURCES src/utils/service/service_stub.c )
+set( SERVICE_STUB_SOURCES ${SOURCES_ROOT}src/utils/service/service_stub.c )
 endif( WIN32 )
 
 if( NOT __ARM__ )
@@ -451,7 +451,7 @@ set(BASE_SOURCES  ${BASE_SOURCES}
 )
 
 if( NOT __LINUX__ )
-  set( BASE_SOURCES  ${BASE_SOURCES} src/windows_hardware_library/listhids.c )
+  set( BASE_SOURCES  ${BASE_SOURCES} ${SOURCES_ROOT}src/windows_hardware_library/listhids.c )
 endif( NOT __LINUX__ )
 
 if( NOT __ARM__ )
@@ -467,16 +467,16 @@ LIST(APPEND BASE_SOURCES
    ${SOURCES_ROOT}src/netlib/net_winsock2.c
 )
 if( NOT __CLR__ )
-  LIST(APPEND BASE_SOURCES     all_resources.rc )
+  LIST(APPEND BASE_SOURCES     ${SOURCES_ROOT}all_resources.rc )
   if( __CLR__ )
-     set_source_files_properties( all_resources.rc 
+     set_source_files_properties( ${SOURCES_ROOT}all_resources.rc 
   				PROPERTIES
                                 COMPILE_DEFINITIONS "__CLR__"
   			)
    endif( __CLR__ )
 endif( NOT __CLR__ )
 
-  SET( SNPRINTF_SOURCES src/snprintf_2.2/snprintf.c )
+  SET( SNPRINTF_SOURCES ${SOURCES_ROOT}src/snprintf_2.2/snprintf.c )
   set_source_files_properties( ${SNPRINTF_SOURCES} 
   				PROPERTIES
                                 COMPILE_DEFINITIONS "SNPRINTF_LONGLONG_SUPPORT;PREFER_PORTABLE_SNPRINTF"
