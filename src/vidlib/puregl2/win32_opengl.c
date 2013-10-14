@@ -35,59 +35,6 @@ static void BeginVisPersp( struct display_camera *camera )
 	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 }
 
-int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goes Here
-{
-	if( !SetActiveGLDisplay( camera ) )
-		return FALSE;
-
-
-	if( !camera->flags.init )
-	{
-		glShadeModel(GL_SMOOTH);							// Enable Smooth Shading
-
-		glEnable( GL_ALPHA_TEST );
-		glEnable( GL_BLEND );
- 		glEnable(GL_DEPTH_TEST);							// Enables Depth Testing
-		glEnable( GL_TEXTURE_2D );
- 		glDepthFunc(GL_LEQUAL);								// The Type Of Depth Testing To Do
-		glEnable(GL_NORMALIZE); // glNormal is normalized automatically....
-#ifndef __ANDROID__
-		//glEnable( GL_POLYGON_SMOOTH );
-		//glEnable( GL_POLYGON_SMOOTH_HINT );
-		glEnable( GL_LINE_SMOOTH );
-		//glEnable( GL_LINE_SMOOTH_HINT );
-		glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
-		glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-		glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-#endif
- 		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculations
- 
-		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
- 
-		BeginVisPersp( camera );
-		lprintf( WIDE("First GL Init Done.") );
-		camera->flags.init = 1;
-		camera->hVidCore->flags.bReady = TRUE;
-	}
-
-
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);				// Black Background
-	glClearDepth(1.0f);									// Depth Buffer Setup
-	glClear(GL_COLOR_BUFFER_BIT
-			  | GL_DEPTH_BUFFER_BIT
-			 );	// Clear Screen And Depth Buffer
-
-	return TRUE;										// Initialization Went OK
-}
-
-
-void SetupPositionMatrix( struct display_camera *camera )
-{
-	// camera->origin_camera is valid eye position matrix
-}
-
-
-
 
 int SetActiveGLDisplayView( struct display_camera *camera, int nFracture )
 {
@@ -214,6 +161,59 @@ RENDER_PROC( int, SetActiveGLDisplay )( struct display_camera *hDisplay )
 {
    return SetActiveGLDisplayView( hDisplay, 0 );
 }
+
+int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goes Here
+{
+	if( !SetActiveGLDisplay( camera ) )
+		return FALSE;
+
+
+	if( !camera->flags.init )
+	{
+		glShadeModel(GL_SMOOTH);							// Enable Smooth Shading
+
+		glEnable( GL_ALPHA_TEST );
+		glEnable( GL_BLEND );
+ 		glEnable(GL_DEPTH_TEST);							// Enables Depth Testing
+		glEnable( GL_TEXTURE_2D );
+ 		glDepthFunc(GL_LEQUAL);								// The Type Of Depth Testing To Do
+		glEnable(GL_NORMALIZE); // glNormal is normalized automatically....
+#ifndef __ANDROID__
+		//glEnable( GL_POLYGON_SMOOTH );
+		//glEnable( GL_POLYGON_SMOOTH_HINT );
+		glEnable( GL_LINE_SMOOTH );
+		//glEnable( GL_LINE_SMOOTH_HINT );
+		glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+		glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+		glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+#endif
+ 		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculations
+ 
+		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+ 
+		BeginVisPersp( camera );
+		lprintf( WIDE("First GL Init Done.") );
+		camera->flags.init = 1;
+		camera->hVidCore->flags.bReady = TRUE;
+	}
+
+
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);				// Black Background
+	glClearDepth(1.0f);									// Depth Buffer Setup
+	glClear(GL_COLOR_BUFFER_BIT
+			  | GL_DEPTH_BUFFER_BIT
+			 );	// Clear Screen And Depth Buffer
+
+	return TRUE;										// Initialization Went OK
+}
+
+
+void SetupPositionMatrix( struct display_camera *camera )
+{
+	// camera->origin_camera is valid eye position matrix
+}
+
+
 
 //----------------------------------------------------------------------------
 

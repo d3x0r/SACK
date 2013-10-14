@@ -421,6 +421,10 @@ void EndActive3D( struct display_camera *camera ); // does appropriate EndActive
 void SetupPositionMatrix( struct display_camera *camera );
 #endif
 
+#if defined( _OPENGL_DRIVER )
+int SetActiveGLDisplayView( struct display_camera *camera, int nFracture );
+#endif
+
 #if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER ) || defined( _D3D11_DRIVER )
 int EnableD3d( struct display_camera *camera );
 int EnableD3dView( struct display_camera *camera, int x, int y, int w, int h );

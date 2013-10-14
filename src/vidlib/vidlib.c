@@ -1807,11 +1807,11 @@ static void SendApplicationDraw( PVIDEO hVideo )
 			}
 			//lprintf( WIDE( "Allowed to draw..." ) );
 #ifdef _OPENGL_ENABLED
-			if( !SetActiveGLDisplay( hVideo ) )
-			{
+			//if( !SetActiveGLDisplay( hVideo ) )
+			//{
 				// if the opengl failed, dont' let the application draw.
-				return;
-			}
+			//	return;
+			//}
 #endif
 		}
 		hVideo->flags.event_dispatched = 1;
@@ -1862,11 +1862,11 @@ static void SendApplicationDraw( PVIDEO hVideo )
 			lprintf( WIDE( "Auto disable (swap) window GL" ) );
 #endif
 #ifdef _OPENGL_ENABLED
-			SetActiveGLDisplay( NULL );
-			if( hVideo->flags.bLayeredWindow )
-			{
-				UpdateDisplay( hVideo );
-			}
+			//SetActiveGLDisplay( NULL );
+			//if( hVideo->flags.bLayeredWindow )
+			//{
+			//	UpdateDisplay( hVideo );
+			//}
 #endif
 		}
 		// might have 'controls' over the open...
@@ -5452,8 +5452,8 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
                                        , BeginCalibration
 													, SyncRender   // sync
 #ifdef _OPENGL_ENABLED
-													, EnableOpenGL
-                                       , SetActiveGLDisplay
+													, NULL //EnableOpenGL
+                                       , NULL //SetActiveGLDisplay
 #else
                                        , NULL
                                        , NULL
