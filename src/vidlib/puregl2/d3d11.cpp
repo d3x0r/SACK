@@ -426,7 +426,7 @@ int EnableD3d( struct display_camera *camera )
 		}
 	}
 
-#if 0
+#if ( NTDDI_VERSION >= NTDDI_WIN8 )
    // dcomp is only available on windows 8, 8.1; windows 8.1 isn't available until 4 days from NOW.
 	// 8.1 makes the interface perhaps desktop friendly; the shell has good features, but clumbsy 
 	// legacy habit interface.

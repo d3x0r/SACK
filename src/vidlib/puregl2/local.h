@@ -11,7 +11,13 @@
 #include <atlbase.h>
 #include <D3D11.h>
 #include <D2d1.h> // only took them (1996-2008... 12 years) to get direct draw right LOL
-#include <dcomp.h>
+
+#ifndef NTDDI_WIN8
+#  define WINDDI_WIN8 0x06020000
+#endif
+#if ( NTDDI_VERSION >= NTDDI_WIN8 )
+#  include <dcomp.h>
+#endif
 
 //#include <D3D11Misc.h>
 #include <DirectXMath.h>
