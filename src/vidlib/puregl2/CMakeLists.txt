@@ -9,6 +9,7 @@ if( __ANDROID__ )
 ADD_DEFINITIONS( -D__ANDROID__ )
 endif( __ANDROID__ )
 
+OPTION( WIN8_TARGET "Enable directx 11 target (directcomposition also)" ON )
 #define NTDDI_VERSION   0x06020000
 
 if( DIRECTX_SDK )
@@ -21,6 +22,7 @@ set( COMMON_SOURCES
         vidlib_interface.c  # common interface export
         vidlib_3d_mouse.c  # mouse utilties; reverse map points into screen
         vidlib_render_loop.c  # dispach draw to all windows in a camera
+		local.h # common data and routine declarations
    )     
   set_source_files_properties( ${COMMON_SOURCES} vidlib_win32.c keymap_win32.c PROPERTIES LANGUAGE CXX)
 
@@ -79,12 +81,19 @@ set( COMMON_SOURCES
 			${COMMON_SOURCES} vidlib_win32.c keymap_win32.c
        ${LAST_GCC_LIBRARY_SOURCE}
      )
+	
 	# if NTDDI_VERSION>=0x06020000 /* NTDDI_WIN8 */
-	# dcomp
-    target_link_libraries( ${PROJECT} bag.image.pured3d ${SACK_CORE_LIBRARY} d3d11 DXGI d2d1 )
+	# if building for win8 target
+	# ;NTDDI_VERSION=0x06020000
+	if( WIN8_TARGET )
+	   SET( MOREFLAGS NTDDI_VERSION=0x06020000 )
+	   set( MORELIBS dcomp )
+	endif( WIN8_TARGET )
+    target_link_libraries( ${PROJECT} bag.image.pured3d ${SACK_CORE_LIBRARY} d3d11 DXGI d2d1 ${MORELIBS} )
     install_mode_dest( ${PROJECT} )
     if( WIN8_SDK )
     
+
     SET_PROPERTY( TARGET ${PROJECT} APPEND PROPERTY INCLUDE_DIRECTORIES ${WIN8_SDK}/include/um;${WIN8_SDK}/include/shared )
     if( __64__ )
       SET_PROPERTY( TARGET ${PROJECT} APPEND PROPERTY LINK_DIRECTORIES ${WIN8_SDK}/lib/win8/um/x64 )
@@ -92,9 +101,7 @@ set( COMMON_SOURCES
       SET_PROPERTY( TARGET ${PROJECT} APPEND PROPERTY LINK_DIRECTORIES ${WIN8_SDK}/lib/win8/um/x86 )
     endif( __64__ )
     endif( WIN8_SDK )
-	# if building for win8 target
-	# ;NTDDI_VERSION=0x06020000
-    SET_PROPERTY(TARGET ${PROJECT} APPEND PROPERTY COMPILE_DEFINITIONS "RENDER_LIBRARY_SOURCE;_D3D11_DRIVER;MAKE_RCOORD_SINGLE;_INCLUDE_NLS" )
+    SET_PROPERTY(TARGET ${PROJECT} APPEND PROPERTY COMPILE_DEFINITIONS "RENDER_LIBRARY_SOURCE;_D3D11_DRIVER;MAKE_RCOORD_SINGLE;_INCLUDE_NLS;${MOREFLAGS}" )
     SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES FOLDER "Video Renderer"    )
   endif( WIN8_SDK OR MSVC11 )
   
