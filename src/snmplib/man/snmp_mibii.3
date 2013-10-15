@@ -1,0 +1,63 @@
+.TH SNMP_MIBII 3 "Mon Jan 25 23:11:51 1999"
+.UC 4
+.SH NAME
+snmpInASNParseErrs, snmpInASNParseErrs_Add,
+snmpInBadVersions, snmpInBadVersions_Add,
+.SH SYNOPSIS
+.B cc
+.RI "[ " "flag" " \|.\|.\|. ] " "file" " \|.\|.\|."
+.B \-lsnmp
+.RI "[ " "library" " \|.\|.\|. ]"
+.LP
+.B #include <sys/types.h>
+.br
+.B #include <snmp/snmp.h>
+.LP
+.B "int snmpInASNParseErrs(void);"
+.LP
+.BI "int snmpInASNParseErrs_Add(int " "Num" );
+.LP
+.B "int snmpInBadVersions(void);"
+.LP
+.BI "int snmpInBadVersions_Add(int " "Num" );
+.SH DESCRIPTION
+.B snmpInASNParseErrs(\|)
+and
+.B snmpInBadVersions(\|)
+return the number of ASN parsing errors, and bad SNMP versions,
+encountered by the library.
+.LP
+.B snmpInASNParseErrs_Add(\|)
+and
+.B snmpInBadVersions_Add(\|)
+allow a program to increment the appropriate counter by
+.I Num
+occurances.
+.SH "RETURN VALUES"
+All functions return the (new) total number of errors.
+.SH "RFCS"
+Related RFCs: 1065, 1066, 1067
+.br
+Related SNMPv2 RFCs: 1901, 1902, 1902, 1904, 1905, 1906, 1907, 1908, 1909
+.SH "RELATED URLS"
+CMU Networking Group: http://www.net.cmu.edu/
+.br
+CMU SNMP Home Page: http://www.net.cmu.edu/projects/snmp
+.SH "SEE ALSO"
+.BR snmp_api (3),
+.BR snmp_api_errors (3),
+.BR snmp_client (3),
+.BR snmp_coexistance (3),
+.BR snmp_error (3),
+.BR snmp_extra (3),
+.BR snmp_mib (3),
+.BR snmp_mibii (3),
+.BR snmp_mini_client (3),
+.BR snmp_msg (3),
+.BR snmp_packet_dump (3),
+.BR snmp_pdu (3),
+.BR snmp_sess_api (3),
+.BR snmp_vars (3),
+.BR snmp_version_info (3),
+.BR snmp_oid (5)
+.BR snmp (3)

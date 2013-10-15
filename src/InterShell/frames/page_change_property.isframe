@@ -1,0 +1,19 @@
+<control ID="-1" caption="Page Change Button Properties" position="8,31" size="549,367" type="Frame" edit="1">
+<control ID="2798" IDName="InterShell/Color Well/CLR_BACKGROUND" caption="" position="177,146" size="30,30" type="Color Well"></control>
+<control ID="2807" IDName="InterShell/Color Well/CLR_RING_BACKGROUND" caption="" position="221,146" size="30,30" type="Color Well"></control>
+<control ID="2802" IDName="InterShell/Color Well/CLR_TEXT_COLOR" caption="" position="176,103" size="30,30" type="Color Well"></control>
+<control ID="-1" caption="Text Color" position="22,105" size="124,23" type="TextControl"></control>
+<control ID="-1" caption="Background Color" position="27,146" size="136,21" type="TextControl"></control>
+<control ID="1" IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" caption="Ok" position="377,235" size="71,19" type="Button"></control>
+<control ID="2" IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" caption="Cancel" position="377,264" size="71,19" type="Button"></control>
+<control ID="2808" IDName="InterShell/ListBox/LST_PAGES" caption="" position="292,48" size="190,182" type="ListBox">
+<control ID="114" position="173,0" size="15,180" type="ScrollBar">
+<control ID="100" PrivateData="#ff356059" position="0,0" size="15,15" type="CustomDrawnButton"></control>
+<control ID="101" PrivateData="#ff356059" position="0,165" size="15,15" type="CustomDrawnButton"></control></control>
+<control ID="100" caption="" position="154,226" size="180,19" type="EditControl"></control>
+<control ID="-1" caption="Button Text" position="35,225" size="104,21" type="TextControl"></control></control>
+<control ID="2794" IDName="InterShell/EditControl/TXT_CONTROL_TEXT" caption="Start Over" position="16,52" size="251,21" type="EditControl"></control>
+<control ID="2813" IDName="InterShell/ListBox/LST_BUTTON_STYLE" caption="" position="26,197" size="237,95" type="ListBox"></control>
+<control ID="-1" caption="Button Text" position="25,28" size="195,24" type="TextControl"></control>
+<control ID="-1" caption="Set Next Page" position="296,20" size="182,19" type="TextControl"></control>
+<control ID="-1" caption="Button Style" position="24,174" size="125,21" type="TextControl"></control></control>

@@ -1,0 +1,68 @@
+
+---- any notes on the make system are OBSOLETE --
+---- Please do bear with me while we reconstruct ----
+
+
+This project directory is meant to be at the root of the development
+drive.  This can be accomplished with the 'subst' command...
+
+	 mkdir c:\development
+	 : assuming you have no real M drive you could do....
+	 subst M: c:\development
+	 : thereby making M:\ be the root of the development
+
+unzip (with directories) common.zip into c:\development OR M:\
+
+MAKING Projects
+--------------------------
+	Supported systems now include Linux, LCC, CYGWIN, FreeBSD
+
+	Basic library building is merely running ../makeset from the project
+	directory.  Now, depending on your system, and compiler, there are several
+	makesets available.  
+
+		Makefile - 
+
+	4(four) versions the each library are built.  Release, Debug, both of
+	these are shared library or dll versions.  Static release, debug, 
+	both of these are used for static linking.  Debug information included
+	in debug versions is specific for each development system.  
+
+	The previous makeset files are merely four(4) make -f ..\makefile.xxxxxx
+	script lines.  *.fbsd is for freebsd, *.lnx if for LInux, *.lcc is for
+	LCC compiler (using GNU make), and .cyg is for cygwin compiler.  Each
+	of these first includes makefile.cm1 and makefile.cm2 in each project
+	directory.  makefile.cm1 details names to build, and objects required
+	to build.  makefile.cm2 are the make rules required to build each object.
+
+	On a linux/freebsd system libraries are built with lib<name> format.
+	With LCC, libraries are built without the lib prefix.  Each static version
+	is built with an 's' appended to the name... ie network librarie is built
+	libnetwork.so, libnetworks.a on linux/freebsd/cygwin; network.dll
+	, networks.lib is built using LCC.
+
+	Some projects - Image require nasm, and LCC to build on windows.  
+	library has not been tested on Linux since Vidlib does not compile - there
+	is no way to display images on a linux system.  
+
+Other Documents
+--------------------------
+	Memory.Doc describes the memory library
+
+	Network.doc describes the netlib, networking
+
+	Image.doc describes the image library
+		( somewhat requires jpeg-6b, png, zlib )
+
+	Vectlib.doc describes the vector transformation library
+
+	jpeg, png, and zlib contain their own documentaion and may be
+	   downloaded in somewhat original form... mind you the makefile.cm1, 
+	   makefile.cm2 have been written to facilitate compatible versions for
+	   linking with the image library.
+
+	Vidlib.doc - describes the video output functions written for Windows.
+	   Uses the image library, and displays images built with it into
+	   a window.  Includes the beginnings of a GDI which is platform
+	   non-specific.
+

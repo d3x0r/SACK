@@ -1,0 +1,25 @@
+
+
+
+
+
+#ifndef FIRST_SYMBOL_VALUE
+#define FIRST_SYMBOL_VALUE 1024
+#endif
+
+enum resource_enum {
+
+BTN_STOP  = FIRST_SYMBOL_VALUE
+, BTN_START
+, BTN_SUSPEND
+,  LST_TASKS
+						 ,  BTN_CREATE_TASK
+						 , LIST_REQUIRED
+                   , LIST_SUGGESTED
+,  TXT_CONTROL_TEXT   
+,  TXT_TASK_NAME      
+, TXT_TASK_PATH
+,  TXT_TASK_ARGS      
+
+};
+

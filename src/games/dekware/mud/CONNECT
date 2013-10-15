@@ -1,0 +1,88 @@
+/dest sounds
+/mac sounds word
+	/compare %word is obliterate
+   /if success
+      /sound "oblit.wav"
+      /return
+   /endif
+   /compare %word is massacre
+   /if success
+      /sound "massacre.wav"
+      /return
+   /endmac
+   /compare %word is hard
+   /compare %word is 
+/endmac
+/mac scan 
+
+/dest connect
+/mac connect where
+	/parse tcp %where
+	/if success
+		/decl line
+	   /decl word
+  		/label top
+	   /getword %word
+   		/if success
+            /compare %word eol
+            /if success
+                /compare %line blank
+                /if fail
+ 						 #/tell scan /scan %line
+	                /echo %line
+   	             /decl line
+                /endif
+                /goto top
+            /endif
+     			/push %line %word
+   		/else
+         		/getpartial %word
+
+	         	/if success
+	            		/push %line %word
+ 		         /endif
+
+      			/compare %line blank
+         		/if fail
+						#/tell scan /scan %line
+	   				/echo %line
+   	   			/decl line
+         		/endif
+         /endif
+			/compare connected
+			/if fail
+				/echo %line
+				/echo %word
+				/echo Connection closed.
+				/goto done
+			/endif
+		/goto top
+	/endif
+	/label done
+   /endparse
+/endmac
+
+/dest scan
+/create scan
+/wake scan
+/tell scan echo scan alive.
+///decl stop no
+///mac scan line
+///compare %%%stop like no
+///if success
+///burst %%%line
+///decl word
+///label top
+///getword %word
+///if success
+///compare %word like jaka
+///if success
+///tell MOOSE kill jaka
+///tell scan /decl stop yes
+///return
+///endif
+///goto top
+///endif
+///endmac
+
+

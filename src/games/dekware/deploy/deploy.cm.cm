@@ -1,0 +1,26 @@
+
+	set( BASE_PATH ${CMAKE_INSTALL_PREFIX} )
+	set( FILEOUT ${BASE_PATH}/CMakePackage )
+
+
+		 FILE( WRITE ${FILEOUT} "set( DEKWARE_BASE {BASE_PATH})\n" )
+		 FILE( APPEND ${FILEOUT} "set( DEKWARE_INCLUDE_DIR $""{DEKWARE_BASE}/include/dekware )\n" )
+
+		 FILE( APPEND ${FILEOUT} "set( DEKWARE_LIBRARY_DIR $""{DEKWARE_BASE}/lib )\n" )
+		 FILE( APPEND ${FILEOUT} "\n" )
+
+		 FILE( APPEND ${FILEOUT} "macro( INSTALL_DEKWARE dest data_dest )\n" )
+		 FILE( APPEND ${FILEOUT} "FILE(GLOB Dekware_Binaries \"$""{DEKWARE_BASE}/bin/dekware.exe $""{DEKWARE_BASE}/bin/dekware.core\" )\n" )
+		 FILE( APPEND ${FILEOUT} "FILE(GLOB Dekware_Plugins \"$""{DEKWARE_BASE}/bin/plugins/*.nex\" )\n" )
+		 FILE( APPEND ${FILEOUT} "FILE(GLOB Dekware_Plugins2 \"$""{DEKWARE_BASE}/bin/plugins/*.dll\" )\n" )
+		 FILE( APPEND ${FILEOUT} "install( FILES $""{Dekware_Binaries} DESTINATION $""{dest}/bin )\n" )
+		 FILE( APPEND ${FILEOUT} "install( FILES $""{Dekware_Plugins} DESTINATION $""{dest}/bin/plugins )\n" )
+		 FILE( APPEND ${FILEOUT} "install( FILES $""{Dekware_Plugins2} DESTINATION $""{dest}/bin/plugins )\n" )
+		 FILE( APPEND ${FILEOUT} "install(DIRECTORY $""{DEKWARE_BASE}/bin/scripts/ DESTINATION $""{dest}/bin/scripts )\n" )
+
+		 FILE( APPEND ${FILEOUT} "ENDMACRO( INSTALL_DEKWARE )\n" )
+		 FILE( APPEND ${FILEOUT} "\n" )
+		 FILE( APPEND ${FILEOUT} "set(CMAKE_BUILD_TYPE \"${CMAKE_BUILD_TYPE}\" CACHE STRING \"Set build type\")\n" )
+		 FILE( APPEND ${FILEOUT} "set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS $""{CMAKE_CONFIGURATION_TYPES} )\n" )
+
+		 FILE( APPEND ${FILEOUT} "\n" )

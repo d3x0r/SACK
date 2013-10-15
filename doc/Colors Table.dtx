@@ -1,0 +1,255 @@
+﻿
+@@Colors
+<unfinished>
+
+\ \ 
+<table>
+Color(r,g,b)              \                 Generates a CDATA value
+                                             which has the specified
+                                             color and level 255
+                                             alpha.
+AColor(a,r,g,b)                             Generates a CDATA value
+                                             which has the specified
+                                             color and level
+                                             specified level of
+                                             alpha.
+SetAlpha(rgb, a)                            Retains the color info
+                                             portion of CDATA and
+                                             replaces the alpha
+                                             value.
+RedVal(color)                               Fetches the red byte
+                                             value of CDATA
+BlueVal(color)                              Fetches the blue byte
+                                             value of CDATA
+GreenVal(color)                             Fetches the green byte
+                                             value of CDATA
+AlphaVal(color)                             Fetches the alpha byte
+                                             value of CDATA
+BASE_COLOR_BLACK          Color( 0,0,0 )    A color
+BASE_COLOR_BLUE           Color( 0, 0,      A color
+                           128 )             
+BASE_COLOR_GREEN          Color( 0, 128,    A color
+                           0 )               
+BASE_COLOR_CYAN           Color( 0, 128,    A color
+                           128 )             
+BASE_COLOR_RED            Color( 192, 32,   A color
+                           32 )              
+BASE_COLOR_BROWN          Color( 140, 0,    A color
+                           140 )             
+BASE_COLOR_MAGENTA        Color( 160,       A color
+                           160, 0 )          
+BASE_COLOR_LIGHTGREY      Color( 192,       A color
+                           192, 192 )        
+BASE_COLOR_DARKGREY       Color( 128,       A color
+                           128, 128 )        
+BASE_COLOR_LIGHTBLUE      Color( 0, 0,      A color
+                           255 )             
+BASE_COLOR_LIGHTGREEN     Color( 0, 255,    A color
+                           0 )               
+BASE_COLOR_LIGHTCYAN      Color( 0, 255,    A color
+                           255 )             
+BASE_COLOR_LIGHTRED       Color( 255, 0,    A color
+                           0 )               
+BASE_COLOR_LIGHTMAGENTA   Color( 255, 0,    A color
+                           255 )             
+BASE_COLOR_YELLOW         Color( 255,       A color
+                           255, 0 )          
+BASE_COLOR_WHITE          Color( 255,       A color
+                           255, 255 )        
+</table>
+<emit \<table border=1\>\\n\<COL\>\<COL\>\<COL width="50%"\>\\n\<tr\>\<td\>Color(r\,g\,b)\</td\>\<td\>\</td\>\<td scope=col \>Generates a CDATA value which has the specified color and level 255 alpha.\</td\>\</tr\>\\n\<tr\>\<td\>AColor(a\,r\,g\,b)\</td\>\<td\>\</td\>\<td\>Generates a CDATA value which has the specified color and level specified level of alpha.\</td\>\</tr\>\\n\<tr\>\<td\>SetAlpha(rgb\, a)\</td\>\<td\>\</td\>\<td\>Retains the color info portion of CDATA and replaces the alpha value.\</td\>\</tr\>\\n\<tr\>\<td\>RedVal(color)\</td\>\<td\>\</td\>\<td\>Fetches the red byte value of CDATA\</td\>\</tr\>                                 \\n\<tr\>\<td\>BlueVal(color)\</td\>\<td\>\</td\>\<td\>Fetches the blue byte value of CDATA\</td\>\</tr\>                                 \\n\<tr\>\<td\>GreenVal(color)\</td\>\<td\>\</td\>\<td\>Fetches the green byte value of CDATA\</td\>\</tr\>                                 \\n\<tr\>\<td\>AlphaVal(color)\</td\>\<td\>\</td\>\<td\>Fetches the alpha byte value of CDATA\</td\>\</tr\>                                 \\n\<tr\>\<td\> BASE_COLOR_BLACK        \</td\>\<td\>Color( 0\,0\,0 )\</td\>\<td bgcolor=#000000\>A color\</td\>\</tr\>\\n\<tr\>\<td\> BASE_COLOR_BLUE         \</td\>\<td\>Color( 0\, 0\, 128 )\</td\>\<td bgcolor=#000080\>A color\</td\>\</tr\>\\n\<tr\>\<td\> BASE_COLOR_GREEN        \</td\>\<td\>Color( 0\, 128\, 0 )\</td\>\<td bgcolor=#008000\>A color\</td\>\</tr\>\\n\<tr\>\<td\> BASE_COLOR_CYAN         \</td\>\<td\>Color( 0\, 128\, 128 )\</td\>\<td bgcolor=#008080\>A color\</td\>\</tr\>\\n\<tr\>\<td\> BASE_COLOR_RED          \</td\>\<td\>Color( 192\, 32\, 32 )\</td\>\<td bgcolor=#c02020\>A color\</td\>\</tr\>\\n\<tr\>\<td\> BASE_COLOR_BROWN        \</td\>\<td\>Color( 140\, 0\, 140 )\</td\>\<td bgcolor=#8c008c\>A color\</td\>\</tr\>\\n\<tr\>\<td\> BASE_COLOR_MAGENTA      \</td\>\<td\>Color( 160\, 160\, 0 )\</td\>\<td bgcolor=#8c8c00\>A color\</td\>\</tr\>\\n\<tr\>\<td\> BASE_COLOR_LIGHTGREY    \</td\>\<td\>Color( 192\, 192\, 192 )\</td\>\<td bgcolor=#c0c0c0\>A color\</td\>\</tr\>\\n\<tr\>\<td\> BASE_COLOR_DARKGREY     \</td\>\<td\>Color( 128\, 128\, 128 )\</td\>\<td bgcolor=#808080\>A color\</td\>\</tr\>\\n\<tr\>\<td\> BASE_COLOR_LIGHTBLUE    \</td\>\<td\>Color( 0\, 0\, 255 )\</td\>\<td bgcolor=#0000FF\>A color\</td\>\</tr\>\\n\<tr\>\<td\> BASE_COLOR_LIGHTGREEN   \</td\>\<td\>Color( 0\, 255\, 0 )\</td\>\<td bgcolor=#00FF00\>A color\</td\>\</tr\>\\n\<tr\>\<td\> BASE_COLOR_LIGHTCYAN    \</td\>\<td\>Color( 0\, 255\, 255 )\</td\>\<td bgcolor=#00FFFF\>A color\</td\>\</tr\>\\n\<tr\>\<td\> BASE_COLOR_LIGHTRED     \</td\>\<td\>Color( 255\, 0\, 0 )\</td\>\<td bgcolor=#FF0000\>A color\</td\>\</tr\>\\n\<tr\>\<td\> BASE_COLOR_LIGHTMAGENTA \</td\>\<td\>Color( 255\, 0\, 255 )\</td\>\<td bgcolor=#FF00FF\>A color\</td\>\</tr\>\\n\<tr\>\<td\> BASE_COLOR_YELLOW       \</td\>\<td\>Color( 255\, 255\, 0 )\</td\>\<td bgcolor=#FFFF00\>A color\</td\>\</tr\>\\n\<tr\>\<td\> BASE_COLOR_WHITE        \</td\>\<td\>Color( 255\, 255\, 255 )\</td\>\<td bgcolor=#FFFFFF\>A color\</td\>\</tr\>\\n\</table\>>
+
+@@sack::image::BASE_COLOR_BLUE
+An opaque normal blue.
+See Also
+<link Colors>
+
+@@sack::image::BASE_COLOR_PURPLE
+An opaque normal purple (magenta).
+See Also
+<link Colors>
+
+@@sack::image::BASE_COLOR_LIGHTGREY
+An opaque normal grey (gray?).
+See Also
+<link Colors>
+
+@@sack::image::BASE_COLOR_ORANGE
+An opaque normal orange.
+See Also
+<link Colors>
+
+@@sack::image::BASE_COLOR_MAGENTA
+An opaque normal Magenta - a lighter, more red purple.
+See Also
+<link Colors>
+
+@@sack::image::ResizeImage
+<combine sack::image::RemakeImageEx@Image@PCOLOR@_32@_32 height>
+
+\ \ 
+
+@@sack::image::BlotImageAlpha
+\ \ 
+
+@@sack::image::BlotImageMultiShaded
+\ \ 
+
+@@sack::image::BlotImageMultiShadedSized
+\ \ 
+
+@@sack::image::AdoptSubImage@Image@Image
+\ \ 
+
+@@PASTE
+This is a macro used for building name changes for
+interfaces.
+
+@@IMAGE_NAMESPACE
+Define the namespace of image routines, when building under
+C++.
+
+@@IMAGE_API
+Define the default call type of image routines. CPROC is
+__cdecl.
+
+@@ASM_IMAGE_NAMESPACE_END
+Define the namespace of image routines, when building under
+C++. This ends the namespace. Assembly routines only have the
+ability to export C names, so extern"c" { } is used instead
+of namespace ___ { }.
+
+@@ASM_IMAGE_NAMESPACE
+Define the namespace of image routines, when building under
+C++. This ends the namespace. Assembly routines only have the
+ability to export C names, so extern"c" { } is used instead
+of namespace ___ { }.
+
+@@IMAGE_NAMESPACE_END
+Define the namespace of image routines, when building under
+C++. This ends a namespace.
+
+@@IMAGE_PROC
+Define the linkage type of the routine... probably
+__declspec(dllimport) if not building the library.
+
+@@sack::image::BlatColorAlpha@Image@S_32@S_32@_32@_32@CDATA
+\ \ 
+
+@@sack::image::BlotImage
+\ \ 
+
+@@sack::image::BlotImageShaded
+\ \ 
+
+@@!!FUNCTIONS_sack::containers::list
+\ \ 
+
+@@sack::image::IMG_ADDRESS
+A macro to compute the address of a pixel in the color buffer
+by x, y.
+Parameters
+i :  Image to get the color buffer address of
+x :  x coordinate of pixel to get address of
+y :  y coordinate of pixel to get address of
+
+Returns
+The address of the pixel in the color buffer.
+ 
+@@!!MACROS_sack::image::render
+These are internal messages to pass to the display handling
+thread. most are unimplemented.
+
+@@!!RECORDS_sack::image
+<combine sack::image::font_global_tag>
+
+\ \ 
+
+@@sack::image::FONT_GLOBAL
+<combine sack::image::font_global_tag>
+
+\ \ 
+
+@@sack::image::PALT_SIZE_FILE
+<combine sack::image::alt_size_file_tag>
+
+\ \ 
+
+@@sack::image::FontMagicIdentifiers
+Magic values to determine if a structure is a PFONTDATA or a
+PRENDER_FONTDATA.
+ 
+@@sack::image::FontMagicIdentifiers::MAGIC_RENDER_FONT
+used to indicate the block is a PRENDER_FONTDATA.
+ 
+@@sack::image::FontMagicIdentifiers::MAGIC_PICK_FONT
+Used to specify the block is a PFONTDATA.
+
+@@sack::image::font_entry_tag::flags@1
+<combine sack::image::font_entry_tag::flags>
+
+\ \ 
+
+@@sack::image::font_entry_tag::name
+name of the font family entry. Data appended to this
+structure.
+
+@@sack::image::font_entry_tag::flags
+Flags about this font family.
+
+@@sack::image::font_entry_tag::nStyles
+number of styles this font entry has.
+
+@@sack::image::file_size_tag::file
+filename of the font.
+
+@@sack::image::file_size_tag::path
+path to the file.
+
+@@sack::image::file_size_tag::nSizes
+number of SIZES lists contained.
+
+@@sack::image::file_size_tag::pAlternate
+Alternate files that this font might be.
+
+@@sack::image::render::PRENDERER
+This is the type that the sack::image::render primarily deals
+with. This is used to put Image to physical display. It can
+be a truly alpha transparent surface on Windows XP+, and the
+transparent surface can do region updates in Windows Vista+.
+
+
+
+This typename is aliased to different real structures
+depending on context. The application should just regard this
+type as a simple value and never ever try to delve into it.
+See Also
+<link render.h>
+
+@@sack::image::render::RedrawCallback
+Defines type function signature required for a user callback
+to handle Redraw(resize) event.
+
+@@sack::image::render::LoseFocusCallback
+Defines type function signature required for a user callback
+to handle lose focus event.
+
+@@sack::image::render::CloseCallback
+Defines type function signature required for a user callback
+to handle window close event.
+
+@@sack::image::render::dropped_file_acceptor
+Defines type function signature required for a user callback
+to handle drop file event.
+
+
+
+
+ 
+@@sack::image::render::keyboard::KeyUpDownState::KEYISUP
+Value of keyupdown when key is up.
+ @@sack::image::render::keyboard::KeyUpDownState::KEYISDOWN
+Value of keyupdown when key is down.
+
+@@!!SYMREF
+asdf

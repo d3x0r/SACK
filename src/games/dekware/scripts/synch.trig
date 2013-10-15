@@ -1,0 +1,85 @@
+
+#to tick 24
+/trigger create ticksynch1 Darkness engulfs the world as the moon sets.
+/ticksynch
+/endmac
+/trigger opt ticksynch1 anchor
+
+#this may be controlled by clerics and cause bad synch...
+/trigger create ticksynch2 the clouds dissappear
+/ticksynch
+/endmac
+/trigger opt ticksynch2 anchor dis 
+
+/trigger create ticksynch2a the sky begins to blacken.
+/ticksynch
+/endmac
+/trigger opt ticksynch2a anchor dis 
+
+
+/trigger create ticksynch3 &who's head clears.
+/ticksynch
+/endmac
+/trigger opt ticksynch3 anchor
+
+/trigger create ticksynch4 &who's head is starting to clear.
+/ticksynch
+/endmac
+/trigger opt ticksynch4 anchor
+
+#to hour 5
+/trigger create ticksynch5 The sun begins to rise from the eastern horizon.
+/ticksynch
+/endmac
+/trigger opt ticksynch5 anchor
+
+#to hour 6
+/trigger creat ticksynch6 The day has begun
+/ticksynch 
+/endmac
+/trigger opt ticksynch6 anchor
+
+#to hour 10
+/trigger create ticksynch7 The sun slowly dissappears on the western horizon.
+/ticksynch
+/endmac
+/trigger opt ticksynch7 anchor
+
+#to tick 11
+/trigger create ticksynch8 Night settles upon the world.
+/ticksynch
+/endmac
+/trigger opt ticksynch8 anchor
+
+#to tick 17
+/trigger create ticksynch8a The full moon slowly rises from the northern horizon
+/ticksynch
+/endmac
+
+
+
+/trigger create ticksynch9 the aura around your body flickers slightly.
+/ticksynch
+/endmac
+/trigger opt ticksynch9 anchor
+
+/trigger create ticksynch10 the aura around your body fades.
+/ticksynch
+/endmac
+/trigger opt ticksynch10 anchor
+
+
+/trigger create ticksynch11 you feel a bit weaker.
+/ticksynch
+/endmac
+/trigger opt ticksynch11 anchor
+
+/trigger create ticksynch12 you don't feel as strong.
+/ticksynch
+/endmac
+/trigger opt ticksynch12 anchor
+
+/trigger create ticksynch13 you are now sober.
+/ticksynch
+/endmac
+/trigger opt ticksynch13 anchor

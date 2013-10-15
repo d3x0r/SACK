@@ -1,0 +1,9 @@
+<control caption="CommonTaskProperties.Frame" edit="1" position="0,0" size="509,327" type="Frame">
+<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_CALLER_WAIT" caption="Wait For Caller?" position="20,20" size="213,21" type="CheckButton"></control>
+<control IDName="InterShell/Tasks/ListBox/LISTBOX_AUTO_TASKS" caption="" position="19,87" size="372,162" type="ListBox"></control>
+<control caption="Auto Loaded Tasks" position="15,61" size="156,21" type="TextControl"></control>
+<control IDName="InterShell/Tasks/Button/BUTTON_EDIT_TASK_PROPERTIES" PrivateData="#ff356059" caption="Edit Task" position="19,268" size="126,43" type="Button"></control>
+<control IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" caption="Okay" position="416,254" size="73,21" type="Button"></control>
+<control IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" caption="Cancel" position="421,199" size="73,21" type="Button"></control>
+<control IDName="InterShell/Tasks/Button/BUTTON_CREATE_AUTO_TASK" PrivateData="#ff356059" caption="Create Task" position="154,268" size="125,43" type="Button"></control>
+<control IDName="InterShell/Tasks/Button/BUTTON_DESTROY_AUTO_TASK" PrivateData="#ff356059" caption="Destroy Task" position="286,267" size="121,45" type="Button"></control></control>

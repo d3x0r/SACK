@@ -1,0 +1,172 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: netlib - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "E:\TEMP\RSP52.tmp" with contents
+[
+/nologo /Zp1 /MD /W3 /GX /O2 /I "\common\include" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fo"Release/" /Fd"Release/" /FD /c 
+"M:\common\src\netlib\Network.c"
+]
+Creating command line "cl.exe @E:\TEMP\RSP52.tmp" 
+Creating command line "link.exe -lib /nologo /out:"Release\netlib.lib"  .\Release\Network.obj .\Release\Ping.obj .\Release\whois.obj "
+<h3>Output Window</h3>
+Compiling...
+Network.c
+M:\common\src\netlib\Network.c(142): Cheating to get csTCPWrite.  Poorly contained variable.
+Creating library...
+<h3>
+--------------------Configuration: snmplib - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "E:\TEMP\RSP53.tmp" with contents
+[
+advapi32.lib wsock32.lib ws2_32.lib user32.lib /nologo /dll /incremental:no /pdb:"Release/snmplib.pdb" /machine:I386 /def:".\snmplib.def" /out:"Release/snmplib.dll" /implib:"Release/snmplib.lib" 
+.\Release\asn1.obj
+.\Release\coexistance.obj
+.\Release\mib.obj
+.\Release\mibii.obj
+".\Release\mini-client.obj"
+".\Release\new-parse.obj"
+.\Release\parse.obj
+.\Release\snmp_api.obj
+.\Release\snmp_api_error.obj
+.\Release\snmp_api_util.obj
+.\Release\snmp_client.obj
+.\Release\snmp_dump.obj
+.\Release\snmp_error.obj
+.\Release\snmp_extra.obj
+.\Release\snmp_msg.obj
+.\Release\snmp_pdu.obj
+.\Release\snmp_vars.obj
+.\Release\version.obj
+..\netlib\Release\netlib.lib
+]
+Creating command line "link.exe @E:\TEMP\RSP53.tmp"
+<h3>Output Window</h3>
+Linking...
+   Creating library Release/snmplib.lib and object Release/snmplib.exp
+<h3>
+--------------------Configuration: Common - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "E:\TEMP\RSP57.bat" with contents
+[
+@echo off
+copy .\src\netlib\Release\netlib.lib .\lib
+]
+Creating command line "E:\TEMP\RSP57.bat"
+Creating temporary file "E:\TEMP\RSP58.bat" with contents
+[
+@echo off
+copy .\src\snmplib\Release\snmplib.lib .\lib
+]
+Creating command line "E:\TEMP\RSP58.bat"
+Creating temporary file "E:\TEMP\RSP59.bat" with contents
+[
+@echo off
+copy .\src\snmplib\Release\snmplib.dll .\dll
+]
+Creating command line "E:\TEMP\RSP59.bat"
+<h3>Output Window</h3>
+Updating .\src\netlib\Release\netlib.lib to .\lib
+        1 file(s) copied.
+Updating .\src\snmplib\Release\snmplib.lib to .\lib
+        1 file(s) copied.
+Updating .\src\snmplib\Release\snmplib.dll to .\dll
+        1 file(s) copied.
+
+
+
+<h3>Results</h3>
+Common - 0 error(s), 0 warning(s)
+<h3>
+--------------------Configuration: netlib - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "E:\TEMP\RSP5A.tmp" with contents
+[
+/nologo /Zp1 /MDd /W3 /Gm /GX /ZI /Od /I "\common\include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"M:\common\src\netlib\Network.c"
+]
+Creating command line "cl.exe @E:\TEMP\RSP5A.tmp" 
+Creating command line "link.exe -lib /nologo /out:"Debug\netlibd.lib"  .\Debug\Network.obj .\Debug\Ping.obj .\Debug\whois.obj "
+<h3>Output Window</h3>
+Compiling...
+Network.c
+m:\common\src\netlib\network.c(142): Cheating to get csTCPWrite.  Poorly contained variable.
+Creating library...
+Creating command line "bscmake.exe /nologo /o"Debug/netlib.bsc"  .\Debug\Network.sbr .\Debug\Ping.sbr .\Debug\whois.sbr"
+Creating browse info file...
+<h3>Output Window</h3>
+<h3>
+--------------------Configuration: snmplib - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "E:\TEMP\RSP5B.tmp" with contents
+[
+advapi32.lib wsock32.lib ws2_32.lib user32.lib /nologo /dll /incremental:yes /pdb:"Debug/snmplibd.pdb" /debug /machine:I386 /def:".\snmplibd.def" /out:"Debug/snmplibd.dll" /implib:"Debug/snmplibd.lib" /pdbtype:sept 
+.\Debug\asn1.obj
+.\Debug\coexistance.obj
+.\Debug\mib.obj
+.\Debug\mibii.obj
+".\Debug\mini-client.obj"
+".\Debug\new-parse.obj"
+.\Debug\parse.obj
+.\Debug\snmp_api.obj
+.\Debug\snmp_api_error.obj
+.\Debug\snmp_api_util.obj
+.\Debug\snmp_client.obj
+.\Debug\snmp_dump.obj
+.\Debug\snmp_error.obj
+.\Debug\snmp_extra.obj
+.\Debug\snmp_msg.obj
+.\Debug\snmp_pdu.obj
+.\Debug\snmp_vars.obj
+.\Debug\version.obj
+..\netlib\Debug\netlibd.lib
+]
+Creating command line "link.exe @E:\TEMP\RSP5B.tmp"
+<h3>Output Window</h3>
+Linking...
+   Creating library Debug/snmplibd.lib and object Debug/snmplibd.exp
+<h3>
+--------------------Configuration: Common - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "E:\TEMP\RSP5F.bat" with contents
+[
+@echo off
+copy .\src\netlib\Debug\netlibd.lib .\lib
+]
+Creating command line "E:\TEMP\RSP5F.bat"
+Creating temporary file "E:\TEMP\RSP60.bat" with contents
+[
+@echo off
+copy .\src\snmplib\Debug\snmplibd.lib .\lib
+]
+Creating command line "E:\TEMP\RSP60.bat"
+Creating temporary file "E:\TEMP\RSP61.bat" with contents
+[
+@echo off
+copy .\src\snmplib\Debug\snmplibd.dll .\dll
+]
+Creating command line "E:\TEMP\RSP61.bat"
+<h3>Output Window</h3>
+Updating .\src\netlib\Debug\netlibd.lib to .\lib
+        1 file(s) copied.
+Updating .\src\snmplib\Debug\snmplibd.lib to .\lib
+        1 file(s) copied.
+Updating .\src\snmplib\Debug\snmplibd.dll to .\dll
+        1 file(s) copied.
+
+
+
+<h3>Results</h3>
+Common - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

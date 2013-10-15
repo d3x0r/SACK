@@ -1,0 +1,10 @@
+
+
+include_directories( ${SACK_BASE}/${PBASEDIR} )
+
+set( PNG_SOURCE
+	${PBASEDIR}/png.c  ${PBASEDIR}/pngset.c  ${PBASEDIR}/pngget.c  ${PBASEDIR}/pngrutil.c  ${PBASEDIR}/pngtrans.c  ${PBASEDIR}/pngwutil.c
+	 ${PBASEDIR}/pngmem.c  ${PBASEDIR}/pngpread.c  ${PBASEDIR}/pngread.c  ${PBASEDIR}/pngerror.c  ${PBASEDIR}/pngwrite.c
+	  ${PBASEDIR}/pngrtran.c  ${PBASEDIR}/pngwtran.c  ${PBASEDIR}/pngrio.c  ${PBASEDIR}/pngwio.c )
+          
+Set( ExternalExtraDefinitions ${ExternalExtraDefinitions};__PNG_LIBRARY_SOURCE__;PNG_BUILD_DLL )

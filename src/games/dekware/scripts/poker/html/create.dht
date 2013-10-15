@@ -1,0 +1,22 @@
+
+
+
+
+<html>
+<head><title>Create Account</title></head>
+<body>
+<form action="registeraccount.dht" method="post">
+Please Fill out form: <br> 
+firstname:<input type="text" name="username"><br>
+lastname:<input type="text" name="lastname"><br>
+password:<input type="password" name="password"><br>
+confirm password:<input type="password" name="password_confirm"><br>
+email <input type="text" name="Email"><br>
+<input type="submit" Value="Login" >
+</form>
+<br>
+<a href="html/create.dht">Create Account</a>
+</body>
+</html>
+
+
