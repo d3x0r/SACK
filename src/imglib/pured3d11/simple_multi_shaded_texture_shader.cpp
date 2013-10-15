@@ -49,10 +49,10 @@ static char *const gles_simple_v_multi_shader[] = {
 		"}\n" };
 
 static char *const gles_simple_p_multi_shader[] = {
-	"sampler2D Tex0;\n"
+	"cbuffer global { Texture2D Tex0;\n"
        "float4 multishade_r;\n"
        "float4 multishade_g;\n"
-       "float4 multishade_b;\n"
+	   "float4 multishade_b;};\n"
    "struct PS_INPUT\n"
    "{\n"
    "    float4  vDiffuse : COLOR0;\n"
@@ -61,14 +61,21 @@ static char *const gles_simple_p_multi_shader[] = {
    "\n"
    "struct PS_OUTPUT\n"
    "{\n"
-   "    float4 Color : COLOR0;\n"
+   "    float4 Color : SV_Target0;\n"
+   "};\n"
+   "\n"
+   "SamplerState MeshTextureSampler\n"
+   "{\n"
+   "    Filter = MIN_MAG_MIP_LINEAR;\n"
+   "    AddressU = Wrap;\n"
+   "    AddressV = Wrap;\n"
    "};\n"
    "\n"
    "PS_OUTPUT main( PS_INPUT v )\n"
    "{\n"
    "    PS_OUTPUT pout;\n"
-   "    pout.Color = tex2D(Tex0, v.Texture)*v.vDiffuse;\n"
-       "    float4 color = tex2D(Tex0, v.Texture);\n"
+   "    pout.Color = Tex0.Sample(MeshTextureSampler,v.Texture)*v.vDiffuse;\n"
+       "    float4 color = Tex0.Sample(MeshTextureSampler, v.Texture);\n"
        "	pout.Color = float4( (color.b * multishade_b.r) + (color.g * multishade_g.r) + (color.r * multishade_r.r)\n"
        "		,(color.b * multishade_b.g) + (color.g * multishade_g.g) + (color.r * multishade_r.g)\n"
        "		,(color.b * multishade_b.b) + (color.g * multishade_g.b) + (color.r * multishade_r.b)\n"
@@ -141,7 +148,7 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 	}
 
 	if( CompileShaderEx( tracker, gles_simple_v_multi_shader, 1
-		, gles_simple_p_multi_shader, 1, attribs, 2 ) )
+		, gles_simple_p_multi_shader, 1, attribs, 0 ) )
 	{
 		//data->r_color_attrib = glGetUniformLocation(tracker->glProgramId, "multishade_r" );
 		//data->g_color_attrib = glGetUniformLocation(tracker->glProgramId, "multishade_g" );

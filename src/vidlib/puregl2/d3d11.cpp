@@ -393,6 +393,8 @@ int EnableD3d( struct display_camera *camera )
 					, NULL
 					, D3D11_CREATE_DEVICE_SINGLETHREADED                                 
 					| D3D11_CREATE_DEVICE_BGRA_SUPPORT
+					| D3D11_CREATE_DEVICE_DEBUGGABLE
+					| D3D11_CREATE_DEVICE_DEBUG
 					//| 
 					, NULL // defaults to a list of all feature levels (allows shaders?!)
 					, 0
@@ -434,7 +436,7 @@ int EnableD3d( struct display_camera *camera )
                 __uuidof(IDCompositionDevice), 
                 reinterpret_cast<void **>(&camera->m_pDCompDevice));
 #endif
-
+#if BUILD_D2D_TARGET_SURFACE
 	D3D11_TEXTURE2D_DESC description = {};
 	description.ArraySize = 1;
 	description.BindFlags =
@@ -470,12 +472,12 @@ int EnableD3d( struct display_camera *camera )
 									  format);
 
 
-	lprintf( WIDE("don't know what to do with a target anyway (yet)") );
+	lprintf( WIDE("don't know what to do with a target anyway (yet); set it as a render target I suppose.") );
 	  	l.d2d1_factory->CreateDxgiSurfaceRenderTarget(
 																 camera->surface,
 																 &properties,
 																 &camera->target);
-
+#endif
 	ID3D11Texture2D *pBackBuffer;
     camera->swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
 	if( pBackBuffer )

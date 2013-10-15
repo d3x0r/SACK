@@ -190,15 +190,14 @@ struct display_camera
 	ID3D11DepthStencilState *depth_stencil_state;
 	ID3D11DepthStencilView  *depth_stencil_view;
 	ID3D11RasterizerState   *raster_state;
+
+#if BUILD_D2D_TARGET_SURFACE
 	ID3D11Texture2D         *texture;
 	IDXGISurface            *surface;
 	ID2D1RenderTarget       *target;
 	IWICBitmap              *bitmap;
 	IWICImagingFactory      *factory;
-
-
-	int m_videoCardMemory;
-	char m_videoCardDescription[128];
+#endif
 	XMMATRIX m_projectionMatrix;
 	XMMATRIX m_worldMatrix;
 	XMMATRIX m_orthoMatrix;

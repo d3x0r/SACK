@@ -106,10 +106,10 @@ static const char *gles_simple_v_shader_shaded_texture =
 
 
 static const char *gles_simple_p_shader_shaded_texture =
-	"sampler2D Tex0;\n"
+	"cbuffer global{ Texture2D Tex0; };\n"
    "struct PS_INPUT\n"
    "{\n"
-   "    float4  vDiffuse : COLOR0;\n"
+   "    float4  vDiffuse : SV_Target0;\n"
    "    float2 Texture    : TEXCOORD0;\n"
    "};\n"
    "\n"
@@ -118,10 +118,17 @@ static const char *gles_simple_p_shader_shaded_texture =
    "    float4 Color : COLOR0;\n"
    "};\n"
    "\n"
+   "SamplerState MeshTextureSampler\n"
+   "{\n"
+   "    Filter = MIN_MAG_MIP_LINEAR;\n"
+   "    AddressU = Wrap;\n"
+   "    AddressV = Wrap;\n"
+   "};\n"
+   "\n"
    "PS_OUTPUT main( PS_INPUT v )\n"
    "{\n"
    "    PS_OUTPUT pout;\n"
-   "    pout.Color = tex2D(Tex0, v.Texture)*v.vDiffuse;\n"
+   "    pout.Color = Tex0.Sample(MeshTextureSampler,v.Texture)*v.vDiffuse;\n"
    "    return pout;\n"
    "}\n";
 
@@ -199,7 +206,11 @@ static void CPROC SimpleTextureEnable2( PImageShaderTracker tracker, PTRSZVAL ps
 void InitSimpleShadedTextureShader( PImageShaderTracker tracker )
 {
 	struct private_shader_data *data = New( struct private_shader_data );
-	struct image_shader_attribute_order attribs[] = { { 0, "vPosition" }, { 1, "in_TexCoord" }, { 2, "in_Color" } };
+	struct image_shader_attribute_order attribs[] = { 
+		{ 0, "vPosition" }
+		, { 1, "in_TexCoord" }
+		, { 2, "in_Color" } 
+	};
 #if 0
 	D3DVERTEXELEMENT9 decl[] = {{0,
                              0,

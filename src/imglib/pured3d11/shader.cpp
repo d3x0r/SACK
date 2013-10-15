@@ -227,7 +227,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 		if( !result )
 		{
 			//LogBinary( frag_blob->GetBufferPointer(), vert_blob->GetBufferSize() );
-			result = g_d3d_device->CreatePixelShader(vert_blob->GetBufferPointer(), frag_blob->GetBufferSize()
+			result = g_d3d_device->CreatePixelShader(frag_blob->GetBufferPointer(), frag_blob->GetBufferSize()
 				, NULL /* ID3D11ClassLinkage */
 												  , &tracker->FragProgram);
 			if( result )
@@ -244,6 +244,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 	if( !tracker->FragProgram )
 		return 0;
 
+	if( nAttribs && attrib_order )
 	{
 		int n;
 		int offset = 0;
@@ -257,7 +258,11 @@ int CompileShaderEx( PImageShaderTracker tracker
 			ied[n].InputSlotClass = (D3D11_INPUT_CLASSIFICATION)attrib_order[n].input_class;
 			offset += attrib_order[n].size;
 		}
-		g_d3d_device->CreateInputLayout(ied, 2, vert_blob->GetBufferPointer(), vert_blob->GetBufferSize(), &tracker->input_layout);
+		result = g_d3d_device->CreateInputLayout(ied, 2, vert_blob->GetBufferPointer(), vert_blob->GetBufferSize(), &tracker->input_layout);
+		if( result )
+		{
+			lprintf( WIDE( "layout failed to match vertex shader..." ) );
+		}
 
 	}
 
