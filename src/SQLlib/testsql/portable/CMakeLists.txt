@@ -78,14 +78,12 @@ else( NOT __ODBC__ )
 endif( NOT __NO_ODBC__ )
 
 
+set_source_files_properties( ${BASE_SOURCES} COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;__STATIC__;__NO_GUI__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;${MoreDefinitions};USE_SQLITE;__DISABLE_UDP_SYSLOG__;__NO_MSGSVR__;NO_DEADSTART_DLLMAIN" )
+
 sack_add_executable(${project} ${BASE_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${project} )
-SET_PROPERTY(TARGET ${project} APPEND PROPERTY
-                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;__STATIC__;__NO_GUI__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;${MoreDefinitions};USE_SQLITE;__DISABLE_UDP_SYSLOG__;__NO_MSGSVR__;NO_DEADSTART_DLLMAIN" )
-SET_TARGET_PROPERTIES(${project} PROPERTIES
-    COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}" 
-                  FOLDER utils
-)
+
+SET_TARGET_PROPERTIES(${project} PROPERTIES        FOLDER utils   )
+
 target_link_libraries( ${project}  ${SACK_PLATFORM_LIBRARIES} )
 if( WIN32 )
 #target_link_libraries( ${project} winmm wsock32 ws2_32 )

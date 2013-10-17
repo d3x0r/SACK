@@ -410,102 +410,8 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 }
 
 #endif
-RENDER_PROC( int, EnableOpenGLView )( PVIDEO hVideo, int x, int y, int w, int h )
-{
 
-	// enable a partial opengl area on a single window surface
-	// actually turns out it's just a memory context anyhow...
-   int nFracture;
-   static GLuint      PixelFormat;         // Holds The Results After Searching For A Match
-   static   PIXELFORMATDESCRIPTOR pfd=          // pfd Tells Windows How We Want Things To Be
-   {
-      sizeof(PIXELFORMATDESCRIPTOR)          // Size Of This Pixel Format Descriptor
-      ,1                               // Version Number
-      ,PFD_DRAW_TO_BITMAP                 // Format Must Support Window
-      |PFD_SUPPORT_OPENGL                 // Format Must Support OpenGL
-      //| PFD_DOUBLEBUFFER                   // Must Support Double Buffering
-      , PFD_TYPE_RGBA                        // Request An RGBA Format
-      ,0,                              // Select Our Color Depth
-      0, 0, 0, 0, 0, 0,                   // Color Bits Ignored
-      8,                               // No Alpha Buffer
-      0,                               // Shift Bit Ignored
-      0,                               // No Accumulation Buffer
-      0, 0, 0, 0,                         // Accumulation Bits Ignored
-      0,                                 // 16Bit Z-Buffer (Depth Buffer)  
-      0,                               // No Stencil Buffer
-      0,                               // No Auxiliary Buffer
-      PFD_MAIN_PLANE,                        // Main Drawing Layer
-      0,                               // Reserved
-      0, 0, 0                             // Layer Masks Ignored
-   };
-	// there is no choice but to use 32 bits here (64?)
-
-	if( !hVideo->hWndOutputFake )
-	{
-		static HMODULE hMe;
-		if( hMe == NULL )
-			hMe = GetModuleHandle (_WIDE(TARGETNAME));
-		hVideo->hWndOutputFake = CreateWindowEx( 0
-						  , (TEXTCHAR*)l.aClass2
-						  , WIDE("InvisiGlWindow")
-						  , WS_POPUP
-						  , x, y
-						  , w
-						  , h
-						  , NULL //hVideo->hWndContainer //(HWND)l.hWndInstance  // Parent
-						  , NULL     // Menu
-						  , hMe
-						  , (void *) hVideo);
-
-		hVideo->hDCFakeWindow = GetWindowDC (hVideo->hWndOutputFake );
-		hVideo->hDCFakeBitmap = CreateCompatibleDC( hVideo->hDCFakeWindow );
-		hVideo->hOldFakeBm = (HBITMAP)SelectObject( hVideo->hDCFakeBitmap
-													, hVideo->hBm );
-	}
-
-	if( !hVideo->flags.bOpenGL )
-	{
-		if( !EnableOpenGL( hVideo ) )
-         return 0;
-	}
-	nFracture = CreatePartialDrawingSurface( hVideo, x, y, w, h );
-	if( nFracture )
-	{
-      nFracture -= 1;
-		if( !pfd.cColorBits )
-		{
-			pfd.cColorBits = 32;
-			if (!(PixelFormat=ChoosePixelFormat((HDC)hVideo->pFractures[nFracture].hDCBitmap,&pfd)))  // Did Windows Find A Matching Pixel Format?
-			{
-				DebugBreak();
-				KillGLWindow();                        // Reset The Display
-				MessageBox(NULL,WIDE("Can't Find A Suitable PixelFormat."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
-				return nFracture + 1;                       // Return FALSE
-			}
-		}
-		if(!SetPixelFormat((HDC)hVideo->pFractures[nFracture].hDCBitmap,PixelFormat,&pfd))     // Are We Able To Set The Pixel Format?
-		{
-			DebugBreak();
-				
-			KillGLWindow();                        // Reset The Display
-			MessageBox(NULL,WIDE("Can't Set The PixelFormat."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
-			return FALSE;                       // Return FALSE
-		}
-
-		if (!(hVideo->pFractures[nFracture].hRC=wglCreateContext((HDC)hVideo->pFractures[nFracture].hDCBitmap)))           // Are We Able To Get A Rendering Context?
-		{
-			DebugBreak();
-				
-			KillGLWindow();                        // Reset The Display
-			MessageBox(NULL,WIDE("Can't Create A GL Rendering Context."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
-			return FALSE;                       // Return FALSE
-		}
-      return nFracture + 1;
-	}
-   return 0;
-}
-
-RENDER_PROC( int, EnableOpenGL )( PVIDEO hVideo )
+int EnableOpenGL( PVIDEO hVideo )
 {
 	GLuint      PixelFormat;         // Holds The Results After Searching For A Match
    HDC hdcEnable;
@@ -620,6 +526,102 @@ RENDER_PROC( int, EnableOpenGL )( PVIDEO hVideo )
 	LeaveCriticalSec( &hVideo->cs );
    return TRUE;
 }
+
+RENDER_PROC( int, EnableOpenGLView )( PVIDEO hVideo, int x, int y, int w, int h )
+{
+
+	// enable a partial opengl area on a single window surface
+	// actually turns out it's just a memory context anyhow...
+   int nFracture;
+   static GLuint      PixelFormat;         // Holds The Results After Searching For A Match
+   static   PIXELFORMATDESCRIPTOR pfd=          // pfd Tells Windows How We Want Things To Be
+   {
+      sizeof(PIXELFORMATDESCRIPTOR)          // Size Of This Pixel Format Descriptor
+      ,1                               // Version Number
+      ,PFD_DRAW_TO_BITMAP                 // Format Must Support Window
+      |PFD_SUPPORT_OPENGL                 // Format Must Support OpenGL
+      //| PFD_DOUBLEBUFFER                   // Must Support Double Buffering
+      , PFD_TYPE_RGBA                        // Request An RGBA Format
+      ,0,                              // Select Our Color Depth
+      0, 0, 0, 0, 0, 0,                   // Color Bits Ignored
+      8,                               // No Alpha Buffer
+      0,                               // Shift Bit Ignored
+      0,                               // No Accumulation Buffer
+      0, 0, 0, 0,                         // Accumulation Bits Ignored
+      0,                                 // 16Bit Z-Buffer (Depth Buffer)  
+      0,                               // No Stencil Buffer
+      0,                               // No Auxiliary Buffer
+      PFD_MAIN_PLANE,                        // Main Drawing Layer
+      0,                               // Reserved
+      0, 0, 0                             // Layer Masks Ignored
+   };
+	// there is no choice but to use 32 bits here (64?)
+
+	if( !hVideo->hWndOutputFake )
+	{
+		static HMODULE hMe;
+		if( hMe == NULL )
+			hMe = GetModuleHandle (_WIDE(TARGETNAME));
+		hVideo->hWndOutputFake = CreateWindowEx( 0
+						  , (TEXTCHAR*)l.aClass2
+						  , WIDE("InvisiGlWindow")
+						  , WS_POPUP
+						  , x, y
+						  , w
+						  , h
+						  , NULL //hVideo->hWndContainer //(HWND)l.hWndInstance  // Parent
+						  , NULL     // Menu
+						  , hMe
+						  , (void *) hVideo);
+
+		hVideo->hDCFakeWindow = GetWindowDC (hVideo->hWndOutputFake );
+		hVideo->hDCFakeBitmap = CreateCompatibleDC( hVideo->hDCFakeWindow );
+		hVideo->hOldFakeBm = (HBITMAP)SelectObject( hVideo->hDCFakeBitmap
+													, hVideo->hBm );
+	}
+
+	if( !hVideo->flags.bOpenGL )
+	{
+		if( !EnableOpenGL( hVideo ) )
+         return 0;
+	}
+	nFracture = CreatePartialDrawingSurface( hVideo, x, y, w, h );
+	if( nFracture )
+	{
+      nFracture -= 1;
+		if( !pfd.cColorBits )
+		{
+			pfd.cColorBits = 32;
+			if (!(PixelFormat=ChoosePixelFormat((HDC)hVideo->pFractures[nFracture].hDCBitmap,&pfd)))  // Did Windows Find A Matching Pixel Format?
+			{
+				DebugBreak();
+				KillGLWindow();                        // Reset The Display
+				MessageBox(NULL,WIDE("Can't Find A Suitable PixelFormat."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+				return nFracture + 1;                       // Return FALSE
+			}
+		}
+		if(!SetPixelFormat((HDC)hVideo->pFractures[nFracture].hDCBitmap,PixelFormat,&pfd))     // Are We Able To Set The Pixel Format?
+		{
+			DebugBreak();
+				
+			KillGLWindow();                        // Reset The Display
+			MessageBox(NULL,WIDE("Can't Set The PixelFormat."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+			return FALSE;                       // Return FALSE
+		}
+
+		if (!(hVideo->pFractures[nFracture].hRC=wglCreateContext((HDC)hVideo->pFractures[nFracture].hDCBitmap)))           // Are We Able To Get A Rendering Context?
+		{
+			DebugBreak();
+				
+			KillGLWindow();                        // Reset The Display
+			MessageBox(NULL,WIDE("Can't Create A GL Rendering Context."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+			return FALSE;                       // Return FALSE
+		}
+      return nFracture + 1;
+	}
+   return 0;
+}
+
 
 struct {
 	CTEXTSTR vendor;
