@@ -2,10 +2,10 @@
 #include <sharemem.h>
 #include <filesys.h>
 
-#include <ft2build.h>
-#ifdef FT_FREETYPE_H
-
-#include FT_FREETYPE_H
+//#include <ft2build.h>
+//#ifdef FT_FREETYPE_H
+#if 1
+//#include FT_FREETYPE_H
 
 #include "global.h"
 
@@ -874,67 +874,3 @@ PSI_PROC( SFTFont, PickFont )( S_32 x, S_32 y
 
 #endif
 PSI_FONTS_NAMESPACE_END
-// $Log: fntdlg.c,v $
-// Revision 1.20  2005/03/21 20:41:35  panther
-// Protect against super large fonts, remove edit frame from palette, and clean up some warnings.
-//
-// Revision 1.19  2005/02/09 21:23:44  panther
-// Update macros and function definitions to follow the common MakeControl parameter ordering.
-//
-// Revision 1.18  2004/12/20 19:45:15  panther
-// Fixes for protected sheet control init
-//
-// Revision 1.17  2004/12/15 03:00:19  panther
-// Begin coding to only show valid, renderable fonts in dialog, and update cache, turns out that we'll have to postprocess the cache to remove unused dictionary entries
-//
-// Revision 1.16  2004/12/14 14:40:23  panther
-// Fix slider control to handle the attr flags again for direction.  Fixed font selector dialog to close coorectly, update between controls correctly, etc
-//
-// Revision 1.15  2004/10/25 10:39:58  d3x0r
-// Linux compilation cleaning requirements...
-//
-// Revision 1.14  2004/10/24 20:09:47  d3x0r
-// Sync to psilib2... stable enough to call it mainstream.
-//
-// Revision 1.4  2004/10/12 23:55:10  d3x0r
-// checkpoint
-//
-// Revision 1.3  2004/10/08 13:07:42  d3x0r
-// Okay beginning to look a lot like PRO-GRESS
-//
-// Revision 1.2  2004/10/06 09:52:16  d3x0r
-// checkpoint... total conversion... now how does it work?
-//
-// Revision 1.1  2004/09/19 19:22:31  d3x0r
-// Begin version 2 psilib...
-//
-// Revision 1.13  2004/05/27 09:17:48  d3x0r
-// Add font alpha depth to font choice dialog
-//
-// Revision 1.12  2003/10/07 00:37:34  panther
-// Prior commit in error - Begin render fonts in multi-alpha.
-//
-// Revision 1.11  2003/09/22 10:45:08  panther
-// Implement tree behavior in standard list control
-//
-// Revision 1.10  2003/09/11 13:09:25  panther
-// Looks like we maintained integrety while overhauling the Make/Create/Init/Config interface for controls
-//
-// Revision 1.9  2003/08/27 07:58:39  panther
-// Lots of fixes from testing null pointers in listbox, font generation exception protection
-//
-// Revision 1.8  2003/08/21 13:34:42  panther
-// include font render project with windows since there's now freetype
-//
-// Revision 1.7  2003/07/03 12:19:21  panther
-// Define RenderFontFile for those places that doen't
-//
-// Revision 1.6  2003/06/16 10:17:42  panther
-// Export nearly usable renderfont routine... filename, size
-//
-// Revision 1.5  2003/05/01 21:55:48  panther
-// Update server/client interfaces
-//
-// Revision 1.4  2003/03/25 08:45:56  panther
-// Added CVS logging tag
-//
