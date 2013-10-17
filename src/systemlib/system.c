@@ -164,7 +164,7 @@ void OSALOT_PrependEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 #else
 	TEXTCHAR *oldpath = getenv( name );
 	TEXTCHAR *newpath;
-	int lenght;
+	int length;
 	newpath = NewArray( TEXTCHAR, length = strlen( oldpath ) + strlen( value ) + 1 );
 	snprintf( newpath, length, WIDE("%s:%s"), value, oldpath );
 	setenv( name, newpath, TRUE );
