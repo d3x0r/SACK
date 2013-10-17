@@ -428,6 +428,7 @@ void SetupPositionMatrix( struct display_camera *camera );
 #endif
 
 #if defined( _OPENGL_DRIVER )
+int EnableOpenGL( struct display_camera *camera );
 int SetActiveGLDisplayView( struct display_camera *camera, int nFracture );
 #endif
 #if defined( USE_EGL )

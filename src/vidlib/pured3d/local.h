@@ -150,6 +150,7 @@ int SetActiveD3DDisplay( PVIDEO hDisplay );
 
 // in D3D.cpp
 int InitD3D( struct display_camera *camera );										// All Setup For OpenGL Goes Here
+int EnableD3D( struct display_camera *camera );
 
 #ifndef VIDLIB_MAIN
 extern
