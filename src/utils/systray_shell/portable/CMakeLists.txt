@@ -9,6 +9,7 @@ SET( PROJECT systray_shell.portable )
 macro( build_resource rcfile realfile ) 
 
     string( REPLACE "." "_" rc_file_stripped ${rcfile} )
+    string( REPLACE ":" "_" rc_file_stripped ${rc_file_stripped} )
     string( REPLACE "\\" "_" rc_file_stripped ${rc_file_stripped} )
     string( REPLACE "/" "_" rc_file_stripped ${rc_file_stripped} )
     

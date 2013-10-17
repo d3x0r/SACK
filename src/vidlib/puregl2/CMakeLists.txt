@@ -9,8 +9,7 @@ if( __ANDROID__ )
 ADD_DEFINITIONS( -D__ANDROID__ )
 endif( __ANDROID__ )
 
-OPTION( WIN8_TARGET "Enable directx 11 target (directcomposition also)" ON )
-#define NTDDI_VERSION   0x06020000
+OPTION( WIN8_TARGET "Enable directx 11 target (directcomposition also)" ${MSVC11} )
 
 if( DIRECTX_SDK )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
