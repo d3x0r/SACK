@@ -58,7 +58,7 @@ set( NEED_UUID 1 )
 endif( __ANDROID__ )
 
 
-set( SOURCES_ROOT ../../../../ )
+set( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ )
 set( USE_SQLITE ON )
 include( ../../../../CMakeSources.lst )
 

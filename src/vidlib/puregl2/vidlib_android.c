@@ -222,7 +222,7 @@ void SACK_Vidlib_DoRenderPass( void )
 					Render3D( camera );
 #ifdef USE_EGL
 					//lprintf( "doing swap buffer..." );
-					eglSwapBuffers( camera->display, camera->surface );
+					eglSwapBuffers( camera->egl_display, camera->surface );
 #endif
 				}
 			}

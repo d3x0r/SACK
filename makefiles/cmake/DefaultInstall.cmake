@@ -168,6 +168,9 @@ macro( add_executable_force_source project optional_style )
 endmacro( add_executable_force_source )
 
 macro( sack_add_executable project optional_style )
+  if( __ANDROID__ )
+  	add_program( ${project} ${optional_style} ${ARGN} )
+  else( __ANDROID__ )
   add_executable( ${project} ${optional_style} ${ARGN} )
   string( REPLACE "." "_" TARGET_LABEL ${project} )
   SET_PROPERTY( TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "TARGETNAME=\"${project}${CMAKE_EXECUTABLE_SUFFIX}\";TARGET_LABEL=${TARGET_LABEL}" )
@@ -178,6 +181,7 @@ macro( sack_add_executable project optional_style )
   else( ${optional_style} STREQUAL "WIN32" )
      SET_PROPERTY( TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "CONSOLE_SHELL" )
   endif( ${optional_style} STREQUAL "WIN32" )
+  endif( __ANDROID__ )
 endmacro( sack_add_executable )
 
 
@@ -212,11 +216,13 @@ endmacro()
 
 
 macro( add_portable_program_ex portable targetname option1 )
+message( "SOURCES_ROOT is ${SOURCES_ROOT}" )
 if( NOT SOURCES_ROOT )
 set( SACK_SOURCES_ROOT ${SACK_BASE}/src/sack )
 else( NOT SOURCES_ROOT )
 set( SACK_SOURCES_ROOT ${SOURCES_ROOT}/src/deadstart )
 endif( NOT SOURCES_ROOT )
+message( "SACK_SOURCES_ROOT is ${SACK_SOURCES_ROOT}" )
 
 	if( __ANDROID__ )
        		set( ExtraDefinitions "${ExtraDefinitions};CONSOLE_SHELL" )

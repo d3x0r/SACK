@@ -117,7 +117,6 @@ endif( UNIX )
 
 if( __ANDROID__ )
 	set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} android log )
-        message( "PLATFORM=${PLATFORM_LIBRARIES}" )
 endif( __ANDROID__ )
 
 
