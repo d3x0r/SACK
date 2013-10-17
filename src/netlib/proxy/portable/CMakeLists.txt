@@ -22,7 +22,7 @@ set( project proxy.portable )
 set( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../.. )
 
 if( WIN32 )
-set( NET_SOURCES     ${SOURCES_ROOT]/src/netlib/net_winsock2.c  ) 
+set( NET_SOURCES     ${SOURCES_ROOT}/src/netlib/net_winsock2.c  ) 
 endif( WIN32 )
 
 if( WIN32 )
@@ -81,11 +81,11 @@ if( WIN32 )
 set( project proxy.service )
 if( WIN32 )
 set( NET_SOURCES     ${SOURCES_ROOT}/src/netlib/net_winsock2.c  ) 
-set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/systemlib/oswin.c )
+set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/src/systemlib/oswin.c )
 endif( WIN32 )
 
 if( MSVC ) 
-SET( ExtraSources ${SOURCES_ROOT}/systemlib/args.c )
+SET( ExtraSources ${SOURCES_ROOT}/src/systemlib/args.c )
 endif( MSVC )
 
 
@@ -95,29 +95,29 @@ sack_add_executable( ${project} ${FIRST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/src/netlib/udpnetwork.c 
     ${SOURCES_ROOT}/src/netlib/tcpnetwork.c 
     ${NET_SOURCES}
-    ${SOURCES_ROOT}/memlib/sharemem.c
-    ${SOURCES_ROOT}/memlib/memory_operations.c
-    ${SOURCES_ROOT}/timerlib/timers.c
-    ${SOURCES_ROOT}/idlelib/idle.c
-    ${SOURCES_ROOT}/procreglib/names.c
-    ${SOURCES_ROOT}/configlib/configscript.c
-    ${SOURCES_ROOT}/sysloglib/syslog.c
+    ${SOURCES_ROOT}/src/memlib/sharemem.c
+    ${SOURCES_ROOT}/src/memlib/memory_operations.c
+    ${SOURCES_ROOT}/src/timerlib/timers.c
+    ${SOURCES_ROOT}/src/idlelib/idle.c
+    ${SOURCES_ROOT}/src/procreglib/names.c
+    ${SOURCES_ROOT}/src/configlib/configscript.c
+    ${SOURCES_ROOT}/src/sysloglib/syslog.c
     ${ExtraSources}
-    ${SOURCES_ROOT}/systemlib/system.c
+    ${SOURCES_ROOT}/src/systemlib/system.c
     ${MORE_SYSTEM_SOURCES}
-    ${SOURCES_ROOT}/typelib/typecode.c
-    ${SOURCES_ROOT}/typelib/text.c
-    ${SOURCES_ROOT}/typelib/sets.c
-    ${SOURCES_ROOT}/typelib/binarylist.c
-    ${SOURCES_ROOT}/filesyslib/filescan.c
-    ${SOURCES_ROOT}/filesyslib/pathops.c
-    ${SOURCES_ROOT}/filesyslib/winfiles.c
-    ${SOURCES_ROOT}/utils/service/service_stub.c
-    ${SOURCES_ROOT}/systemlib/args.c
-    ${SOURCES_ROOT}/systemlib/spawntask.c
+    ${SOURCES_ROOT}/src/typelib/typecode.c
+    ${SOURCES_ROOT}/src/typelib/text.c
+    ${SOURCES_ROOT}/src/typelib/sets.c
+    ${SOURCES_ROOT}/src/typelib/binarylist.c
+    ${SOURCES_ROOT}/src/filesyslib/filescan.c
+    ${SOURCES_ROOT}/src/filesyslib/pathops.c
+    ${SOURCES_ROOT}/src/filesyslib/winfiles.c
+    ${SOURCES_ROOT}/src/utils/service/service_stub.c
+    ${SOURCES_ROOT}/src/systemlib/args.c
+    ${SOURCES_ROOT}/src/systemlib/spawntask.c
     ${SNPRINTF_SOURCES}
 ${LAST_GCC_PROGRAM_SOURCE} 
-    ${SOURCES_ROOT}/deadstart/deadstart_core.c
+    ${SOURCES_ROOT}/src/deadstart/deadstart_core.c
 )
 target_link_libraries( ${project} wsock32 ws2_32 winmm )
 

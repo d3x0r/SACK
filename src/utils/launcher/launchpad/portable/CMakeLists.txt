@@ -131,8 +131,6 @@ if( WIN32 )
 set( project launchpad.portable.service )
 
 
-set( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../.. )
-
 if( SNPRINTF_SOURCES )
 set( SNPRINTF_SOURCES    ${SOURCES_ROOT}/src/../${SNPRINTF_SOURCES} )
 endif(SNPRINTF_SOURCES)
