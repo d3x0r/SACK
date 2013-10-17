@@ -16,7 +16,9 @@
 
 #ifdef __3D__
 #ifdef _OPENGL_DRIVER
-#  ifdef USE_GLES2
+#  if defined( USE_GLES )
+#    include <GLES/gl.h>
+#  elif defined( USE_GLES2 )
 #    include <GLES2/gl2.h>
 #  else
 #   include <GL/glew.h>

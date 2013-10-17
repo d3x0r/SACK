@@ -11,7 +11,7 @@
 #include <atlbase.h>
 #include <D3D11.h>
 #include <D2d1.h> // only took them (1996-2008... 12 years) to get direct draw right LOL
-
+#include <Dwmapi.h>
 #ifndef NTDDI_WIN8
 #  define WINDDI_WIN8 0x06020000
 #endif
@@ -174,7 +174,7 @@ struct display_camera
 #    if defined( USE_EGL )
 	EGLint num_config;
 	EGLConfig config;
-	EGLDisplay display;
+	EGLDisplay egl_display;
 	EGLSurface surface;
 	EGLContext econtext;
 #    endif
@@ -185,6 +185,7 @@ struct display_camera
 	IDXGIDevice             *pDXGIDevice;
 #if ( NTDDI_VERSION >= 0x06020000 /*NTDDI_WIN8*/ )
 	IDCompositionDevice     *m_pDCompDevice;
+	IDCompositionTarget		*m_pCompTarget;
 #endif
 	ID3D11Device            *device;
 	D3D_FEATURE_LEVEL        result_feature_level;
@@ -428,6 +429,9 @@ void SetupPositionMatrix( struct display_camera *camera );
 
 #if defined( _OPENGL_DRIVER )
 int SetActiveGLDisplayView( struct display_camera *camera, int nFracture );
+#endif
+#if defined( USE_EGL )
+void EnableEGLContext( struct display_camera *camera );
 #endif
 
 #if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER ) || defined( _D3D11_DRIVER )

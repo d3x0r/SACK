@@ -215,14 +215,14 @@ void SACK_Vidlib_DoRenderPass( void )
 					// drawing may cause subsequent draws; so clear this first
 					// do OpenGL Frame
 #ifdef USE_EGL
-					EnableEGLContext( camera->hVidCore );
+					EnableEGLContext( camera );
 #else
-					SetActiveGLDisplay( camera->hVidCore );
+					SetActiveGLDisplay( camera );
 #endif
 					Render3D( camera );
 #ifdef USE_EGL
 					//lprintf( "doing swap buffer..." );
-					eglSwapBuffers( camera->hVidCore->display, camera->hVidCore->surface );
+					eglSwapBuffers( camera->display, camera->surface );
 #endif
 				}
 			}

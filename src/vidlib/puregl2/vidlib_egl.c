@@ -72,14 +72,14 @@ void OpenEGL( struct display_camera *camera, NativeWindowType displayWindow )
 	EGLint majorVersion, minorVersion;
 	int numConfigs;
 
-	if( camera->display )
+	if( camera->egl_display )
 	{
 		lprintf( "EGL Context already initialized for camera" );
 		return;
 	}
 
-	camera->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-	lprintf("GL display: %x", camera->display);
+	camera->egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	lprintf("GL display: %x", camera->egl_display);
 
 #ifdef __ANDROID__
 	// Window surface that covers the entire screen, from libui.
@@ -133,10 +133,10 @@ void OpenEGL( struct display_camera *camera, NativeWindowType displayWindow )
 	}
 #endif
 
-	eglInitialize(camera->display, &majorVersion, &minorVersion);
+	eglInitialize(camera->egl_display, &majorVersion, &minorVersion);
 	lprintf("GL version: %d.%d",majorVersion,minorVersion);
 
-	if (!eglChooseConfig(camera->display, configXbpp, &camera->config, 1, &numConfigs))
+	if (!eglChooseConfig(camera->egl_display, configXbpp, &camera->config, 1, &numConfigs))
 	{
 		lprintf("eglChooseConfig failed");
 		if (camera->econtext==0) lprintf("Error code: %x", eglGetError());
@@ -145,7 +145,7 @@ void OpenEGL( struct display_camera *camera, NativeWindowType displayWindow )
 	{
 		EGLint context_attribs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
 
-		camera->econtext = eglCreateContext(camera->display,
+		camera->econtext = eglCreateContext(camera->egl_display,
 																	 camera->config,
 																	 EGL_NO_CONTEXT,
 																	 context_attribs);
@@ -154,7 +154,7 @@ void OpenEGL( struct display_camera *camera, NativeWindowType displayWindow )
 	}
 	//ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
 
-	camera->surface = eglCreateWindowSurface(camera->display,
+	camera->surface = eglCreateWindowSurface(camera->egl_display,
 																		camera->config,
 																		camera->displayWindow,
 																		NULL);
@@ -163,22 +163,22 @@ void OpenEGL( struct display_camera *camera, NativeWindowType displayWindow )
 
    lprintf( "First swap..." );
 	// makes it go black as soon as ready
-	eglSwapBuffers(camera->display, camera->surface);
+	eglSwapBuffers(camera->egl_display, camera->surface);
 
 }
 
-void EnableEGLContext( PRENDERER hVidCore )
+void EnableEGLContext( struct display_camera *camera )
 {
    static EGLDisplay prior_display;
-	//lprintf( "Enable context %p", hVidCore );
-	if( hVidCore )
+	//lprintf( "Enable context %p", camera );
+	if( camera )
 	{
 		/* connect the context to the surface */
-		prior_display = hVidCore->display;
-		if (eglMakeCurrent(hVidCore->display
-								, hVidCore->surface
-								, hVidCore->surface
-								, hVidCore->econtext)==EGL_FALSE)
+		prior_display = camera->egl_display;
+		if (eglMakeCurrent(camera->egl_display
+								, camera->surface
+								, camera->surface
+								, camera->econtext)==EGL_FALSE)
 		{
 			lprintf( "Make current failed: 0x%x\n", eglGetError());
 			return;
@@ -190,7 +190,7 @@ void EnableEGLContext( PRENDERER hVidCore )
 		//eglWaitGL(); // same as glFinish();
 
 		// swap should be done at end of render phase.
-		//eglSwapBuffers(hVidCore->display,hVidCore->surface);
+		//eglSwapBuffers(camera->egl_display,camera->surface);
 		if( prior_display )
 		{
 			if (eglMakeCurrent(prior_display, EGL_NO_SURFACE, EGL_NO_SURFACE,  EGL_NO_CONTEXT)==EGL_FALSE)
@@ -210,20 +210,20 @@ void SACK_Vidlib_SuspendDisplayEx( INDEX idx )
    struct display_camera *camera = ( struct display_camera *)GetLink( &l.cameras, idx );
 	EnableEGLContext( NULL );
 
-   if( camera->flags.bReady )
+   if( camera->hVidCore->flags.bReady )
 	{
       // default camera is listed twice.
-		camera->flags.bReady = 0;
+		camera->hVidCore->flags.bReady = 0;
 		{
 			if (camera->surface != EGL_NO_SURFACE)
 			{
-				eglDestroySurface(camera->display, camera->surface);
+				eglDestroySurface(camera->egl_display, camera->surface);
 				camera->surface = EGL_NO_SURFACE;
 			}
-			if (camera->display != EGL_NO_DISPLAY)
+			if (camera->egl_display != EGL_NO_DISPLAY)
 			{
-				eglTerminate(camera->display);
-				camera->display = EGL_NO_DISPLAY;
+				eglTerminate(camera->egl_display);
+				camera->egl_display = EGL_NO_DISPLAY;
 			}
 		}
 	}
@@ -273,7 +273,7 @@ void SACK_Vidlib_CloseDisplay( void )
       // what happens if you put a context on a dissimilar surface?
 		if (camera->econtext != EGL_NO_CONTEXT)
 		{
-			eglDestroyContext(camera->display, camera->econtext);
+			eglDestroyContext(camera->egl_display, camera->econtext);
 			camera->econtext = EGL_NO_CONTEXT;
 		}
 
@@ -281,14 +281,14 @@ void SACK_Vidlib_CloseDisplay( void )
 		// this will already be destroyed by suspend surface
 		if (camera->surface != EGL_NO_SURFACE)
 		{
-			eglDestroySurface(camera->display, camera->surface);
+			eglDestroySurface(camera->egl_display, camera->surface);
 			camera->surface = EGL_NO_SURFACE;
 		}
-		if (camera->display != EGL_NO_DISPLAY)
+		if (camera->egl_display != EGL_NO_DISPLAY)
 		{
 			// this will already be destroyed by suspend surface
-			eglTerminate(camera->display);
-			camera->display = EGL_NO_DISPLAY;
+			eglTerminate(camera->egl_display);
+			camera->egl_display = EGL_NO_DISPLAY;
 		}
 	}
 }

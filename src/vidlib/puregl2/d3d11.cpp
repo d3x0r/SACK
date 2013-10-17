@@ -227,6 +227,22 @@ void DisableD3d( struct display_camera *camera )
 		camera->swap_chain->Release();
 		camera->swap_chain = 0;
 	}
+
+	if(camera->pDXGIDevice )
+	{
+		camera->pDXGIDevice->Release();
+		camera->pDXGIDevice = 0;
+	}
+	if(camera->m_pDCompDevice )
+	{
+		camera->m_pDCompDevice->Release();
+		camera->m_pDCompDevice = 0;
+	}
+	//if(camera-> )
+	{
+		//camera->m_pDCompDevice->Release();
+		//camera->m_pDCompDevice = 0;
+	}
 }
 
 
@@ -339,6 +355,7 @@ int EnableD3d( struct display_camera *camera )
 {
 	HRESULT result;
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
+	D3D_FEATURE_LEVEL result_feature_level;
 
 	InitDxDisplays( camera );
 	
@@ -388,6 +405,68 @@ int EnableD3d( struct display_camera *camera )
 	// Don't set the advanced flags.
 	swapChainDesc.Flags = 0;
 
+		result = D3D11CreateDevice( ((struct dxgi_adapter*)GetLink( &l.adapters, 0 ))->adapter
+					, D3D_DRIVER_TYPE_HARDWARE
+					, NULL
+					, D3D11_CREATE_DEVICE_SINGLETHREADED                                 
+					| D3D11_CREATE_DEVICE_BGRA_SUPPORT
+					//| D3D11_CREATE_DEVICE_DEBUGGABLE
+					//| D3D11_CREATE_DEVICE_DEBUG
+					//| 
+					, NULL // defaults to a list of all feature levels (allows shaders?!)
+					, 0
+					, D3D11_SDK_VERSION
+					, &camera->device
+					, &result_feature_level
+					, &camera->device_context);
+
+
+#if ( NTDDI_VERSION >= NTDDI_WIN8 )
+		if( camera->hVidCore->flags.bLayeredWindow )
+		{
+		   // dcomp is only available on windows 8, 8.1; windows 8.1 isn't available until 4 days from NOW.
+			// 8.1 makes the interface perhaps desktop friendly; the shell has good features, but clumbsy 
+			// legacy habit interface.
+			camera->device->QueryInterface(&camera->pDXGIDevice);
+
+			result  = DCompositionCreateDevice(camera->pDXGIDevice, 
+						__uuidof(IDCompositionDevice), 
+						reinterpret_cast<void **>(&camera->m_pDCompDevice));
+			// this look useful.
+			 //hr = m_pDevice->CreateTargetForHwnd(m_hMainWindow, TRUE, &m_pHwndRenderTarget); 
+
+			{
+				IDCompositionVisual *pVisual = nullptr;
+				IUnknown* pSurface    = nullptr;
+				HRESULT hr;
+				hr = camera->m_pDCompDevice->CreateVisual(&pVisual);
+				if (SUCCEEDED(hr))
+				{
+					hr = camera->m_pDCompDevice->CreateSurfaceFromHwnd(camera->hWndInstance
+																		, &pSurface);
+				}
+
+				if (SUCCEEDED(hr))
+				{
+					hr = pVisual->SetContent(pSurface);
+				}
+
+				if (SUCCEEDED(hr))
+				{
+					hr = camera->m_pCompTarget->SetRoot(pVisual);
+				}
+
+				BOOL fCloak = TRUE;
+				DwmSetWindowAttribute(camera->hWndInstance,
+					DWMWA_CLOAK,
+					&fCloak,
+					sizeof(fCloak));
+			}
+		}
+
+#endif
+
+
 	result = D3D11CreateDeviceAndSwapChain( ((struct dxgi_adapter*)GetLink( &l.adapters, 0 ))->adapter
 					, D3D_DRIVER_TYPE_HARDWARE
 					, NULL
@@ -426,16 +505,6 @@ int EnableD3d( struct display_camera *camera )
 		}
 	}
 
-#if ( NTDDI_VERSION >= NTDDI_WIN8 )
-   // dcomp is only available on windows 8, 8.1; windows 8.1 isn't available until 4 days from NOW.
-	// 8.1 makes the interface perhaps desktop friendly; the shell has good features, but clumbsy 
-	// legacy habit interface.
-	camera->device->QueryInterface(&camera->pDXGIDevice);
-
-	result  = DCompositionCreateDevice(camera->pDXGIDevice, 
-                __uuidof(IDCompositionDevice), 
-                reinterpret_cast<void **>(&camera->m_pDCompDevice));
-#endif
 #if BUILD_D2D_TARGET_SURFACE
 	D3D11_TEXTURE2D_DESC description = {};
 	description.ArraySize = 1;

@@ -26,12 +26,12 @@
 #ifdef _OPENGL_DRIVER
 #if defined( USE_GLES )
 #include <GLES/gl.h>
-#endif
-#if defined( USE_GLES2 )
+#elif defined( USE_GLES2 )
 //#include <GLES/gl.h>
 #include <GLES2/gl2.h>
 #else
 #define USE_OPENGL
+// why do we need this anyway?
 #include <GL/glew.h>
 #include <GL/gl.h>         // Header File For The OpenGL32 Library
 #endif
