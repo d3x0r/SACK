@@ -22,11 +22,11 @@ set( project proxy.portable )
 set( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../.. )
 
 if( WIN32 )
-set( NET_SOURCES     ../../net_winsock2.c  ) 
+set( NET_SOURCES     ${SOURCES_ROOT]/src/netlib/net_winsock2.c  ) 
 endif( WIN32 )
 
 if( WIN32 )
-set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/systemlib/oswin.c )
+set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/src/systemlib/oswin.c )
 endif( WIN32 )
 
 if( SNPRINTF_SOURCES )
@@ -34,16 +34,16 @@ set( SNPRINTF_SOURCES    ${SOURCES_ROOT}/../${SNPRINTF_SOURCES} )
 endif(SNPRINTF_SOURCES)
 
 if( MSVC ) 
-SET( ExtraSources ${SOURCES_ROOT}/systemlib/args.c )
+SET( ExtraSources ${SOURCES_ROOT}/src/systemlib/args.c )
 endif( MSVC )
 
 
 
 sack_add_executable( ${project} ${FIRST_GCC_PROGRAM_SOURCE} 
     ../proxy.c 
-    ../../network.c 
-    ../../udpnetwork.c 
-    ../../tcpnetwork.c 
+    ${SOURCES_ROOT}/src/netlib/network.c 
+    ${SOURCES_ROOT}/src/netlib/udpnetwork.c 
+    ${SOURCES_ROOT}/src/netlib/tcpnetwork.c 
     ${NET_SOURCES}
     ${SOURCES_ROOT}/src/memlib/sharemem.c
     ${SOURCES_ROOT}/src/memlib/memory_operations.c
@@ -80,7 +80,7 @@ if( WIN32 )
 
 set( project proxy.service )
 if( WIN32 )
-set( NET_SOURCES     ../../net_winsock2.c  ) 
+set( NET_SOURCES     ${SOURCES_ROOT}/src/netlib/net_winsock2.c  ) 
 set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/systemlib/oswin.c )
 endif( WIN32 )
 
@@ -91,9 +91,9 @@ endif( MSVC )
 
 sack_add_executable( ${project} ${FIRST_GCC_PROGRAM_SOURCE} 
     ../proxy.c 
-    ../../network.c 
-    ../../udpnetwork.c 
-    ../../tcpnetwork.c 
+    ${SOURCES_ROOT}/src/netlib/network.c 
+    ${SOURCES_ROOT}/src/netlib/udpnetwork.c 
+    ${SOURCES_ROOT}/src/netlib/tcpnetwork.c 
     ${NET_SOURCES}
     ${SOURCES_ROOT}/memlib/sharemem.c
     ${SOURCES_ROOT}/memlib/memory_operations.c

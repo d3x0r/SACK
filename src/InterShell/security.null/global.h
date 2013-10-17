@@ -54,7 +54,7 @@ struct _global_null_password {
 	PLIST tokens; // list of struct sql_token *'s
 	PLIST groups; // list of groups
 	struct {
-      // set group when selecting... otherwise just select group.
+		// set group when selecting... otherwise just select group.
 		BIT_FIELD bSetGroup : 1;
 		BIT_FIELD bPrintAccountCreated : 1;
 		BIT_FIELD bSetTokens : 1;
@@ -67,14 +67,13 @@ struct _global_null_password {
 	int fDays;
 
 	PTHREAD pWindowThread;
-	HWND hWndProxy;
 
 	PUSER current_user;
-   INDEX current_user_login_id;
+	INDEX current_user_login_id;
 	PUSER temp_user;
-   INDEX temp_user_login_id;
+	INDEX temp_user_login_id;
 
-   INDEX system_id;
+	INDEX system_id;
 };
 
 #ifndef NULL_PASSWORD_MAIN
