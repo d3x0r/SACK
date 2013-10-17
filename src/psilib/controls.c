@@ -4602,18 +4602,6 @@ void EndUpdate( PSI_CONTROL pc )
       pc->flags.bDirectUpdating = 0;
 }
 
-void EnableControlOpenGL( PSI_CONTROL pc )
-{
-#ifndef UNDER_CE
-	pc->flags.bOpenGL = 1;
-#ifdef USE_INTERFACES
-	GetMyInterface();
-#endif
-	EnableOpenGL( GetFrameRenderer( pc ) );
-#endif
-
-}
-
 
 PSI_NAMESPACE_END
 
