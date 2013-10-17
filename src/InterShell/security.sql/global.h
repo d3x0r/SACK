@@ -70,15 +70,17 @@ struct _global_sql_password {
 	int fDays;
 
 	PTHREAD pWindowThread;
+#if WIN32
 	HWND hWndProxy;
+#endif
 
 	PUSER root_user;    // eventually this should be filled by the initial login (permarun from windows)
-   INDEX root_user_login_id;
+	INDEX root_user_login_id;
 
 	PUSER current_user;
-   INDEX current_user_login_id;
+	INDEX current_user_login_id;
 	PUSER temp_user;
-   INDEX temp_user_login_id;
+	INDEX temp_user_login_id;
 
 	INDEX system_id;
 
