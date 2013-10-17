@@ -59,6 +59,8 @@ if( FORCE_CXX )
 #set_source_files_properties(${PNG_SOURCE} PROPERTIES LANGUAGE CXX )
 endif( FORCE_CXX )
 source_group("Source Files\\libpng-1.6.6 Library" FILES ${PNG_SOURCE})
+# PNG_RESTRICT is defined here (and as blank) because if not defined, it gets defined to __restrict which made watcom fail
+#set_source_files_properties(${PNG_SOURCE} PROPERTIES COMPILE_DEFINITIONS "PNG_RESTRICT" )
 endif( NEED_PNG )
 
 
@@ -117,6 +119,9 @@ source_group("Source Files\\Freetype-2.5.0.1 Library" FILES ${FREETYPE_SOURCE})
 endif( NOT __NO_GUI__ )
 
 if( BUILD_EXTRAS )
-add_subdirectory( src/shapelib-1.3.0 )
+  IF( NOT __ANDROID__ )
+     # Android math.h puked when building this.
+     add_subdirectory( src/shapelib-1.3.0 )
+  ENDIF( NOT __ANDROID__ )
 endif( BUILD_EXTRAS )
 
