@@ -349,8 +349,8 @@ void EnableEGLContext( struct display_camera *camera )
 	if( camera )
 	{
 		/* connect the context to the surface */
-         prior_display = camera->display;
-		if (eglMakeCurrent(camera->display
+         prior_display = camera->egl_display;
+		if (eglMakeCurrent(camera->egl_display
 				, camera->surface
 				, camera->surface
 				, camera->econtext)==EGL_FALSE)
@@ -365,7 +365,7 @@ void EnableEGLContext( struct display_camera *camera )
 		//eglWaitGL(); // same as glFinish();
 
 		// swap should be done at end of render phase.
-		//eglSwapBuffers(camera->display,camera->surface);
+		//eglSwapBuffers(camera->egl_display,camera->surface);
 		if (eglMakeCurrent(prior_display, EGL_NO_SURFACE, EGL_NO_SURFACE,  EGL_NO_CONTEXT)==EGL_FALSE)
 		{
 			lprintf( "Make current failed: 0x%x\n", eglGetError());
@@ -2229,7 +2229,7 @@ void SACK_Vidlib_DoRenderPass( void )
 					// drawing may cause subsequent draws; so clear this first
 					// do OpenGL Frame
 #ifdef USE_EGL
-					EnableEGLContext( camera->hVidCore );
+					EnableEGLContext( camera );
 #else
 					SetActiveGLDisplay( camera->hVidCore );
 #endif

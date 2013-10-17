@@ -20,55 +20,55 @@ endif( WATCOM )
 
 set( project sqlcmd.portable )
 
-set( SOURCES_ROOT ../../.. )
+set( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../.. )
 
 if( WIN32 )
-set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/systemlib/oswin.c )
-set(NET_SOURCES   ${SOURCES_ROOT}/netlib/net_winsock2.c )
+set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/src/systemlib/oswin.c )
+set(NET_SOURCES   ${SOURCES_ROOT}/src/netlib/net_winsock2.c )
 endif( WIN32 )
 
 if( SNPRINTF_SOURCES )
-set( SNPRINTF_SOURCES    ${SOURCES_ROOT}/../${SNPRINTF_SOURCES} )
+set( SNPRINTF_SOURCES    ${SOURCES_ROOT}/src/../${SNPRINTF_SOURCES} )
 endif(SNPRINTF_SOURCES)
 
 
 SET( SQLITE_VERSION 3.7.16.2 )
-SET( SQLITE_SOURCES ${BAG_SQLITE_INTERFACE} ${SOURCES_ROOT}/sqlite/${SQLITE_VERSION}/sqlite3.c )
-include_directories( ${SOURCES_ROOT}/sqlite/${SQLITE_VERSION} )
+SET( SQLITE_SOURCES ${BAG_SQLITE_INTERFACE} ${SOURCES_ROOT}/src/sqlite/${SQLITE_VERSION}/sqlite3.c )
+include_directories( ${SOURCES_ROOT}/src/sqlite/${SQLITE_VERSION} )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
     ../sqlcmd
-#    ${SOURCES_ROOT}/netlib/network.c 
-#    ${SOURCES_ROOT}/netlib/udpnetwork.c 
-#    ${SOURCES_ROOT}/netlib/tcpnetwork.c 
+#    ${SOURCES_ROOT}/src/netlib/network.c 
+#    ${SOURCES_ROOT}/src/netlib/udpnetwork.c 
+#    ${SOURCES_ROOT}/src/netlib/tcpnetwork.c 
 #    ${NET_SOURCES} 
-#    ${SOURCES_ROOT}/msgsvr/client/client.c
-    ${SOURCES_ROOT}/SQLlib/sqlstub.c
-    ${SOURCES_ROOT}/SQLlib/sqlutil.c
-    ${SOURCES_ROOT}/SQLlib/sqlwrap.c
-    ${SOURCES_ROOT}/SQLlib/sqlparse3.c
+#    ${SOURCES_ROOT}/src/msgsvr/client/client.c
+    ${SOURCES_ROOT}/src/SQLlib/sqlstub.c
+    ${SOURCES_ROOT}/src/SQLlib/sqlutil.c
+    ${SOURCES_ROOT}/src/SQLlib/sqlwrap.c
+    ${SOURCES_ROOT}/src/SQLlib/sqlparse3.c
     ${SQLITE_SOURCES}
-    ${SOURCES_ROOT}/memlib/sharemem.c
-    ${SOURCES_ROOT}/memlib/memory_operations.c
-    ${SOURCES_ROOT}/timerlib/timers.c
-    ${SOURCES_ROOT}/idlelib/idle.c
-    ${SOURCES_ROOT}/procreglib/names.c
-    ${SOURCES_ROOT}/configlib/configscript.c
-    ${SOURCES_ROOT}/sysloglib/syslog.c
-    ${SOURCES_ROOT}/systemlib/system.c
+    ${SOURCES_ROOT}/src/memlib/sharemem.c
+    ${SOURCES_ROOT}/src/memlib/memory_operations.c
+    ${SOURCES_ROOT}/src/timerlib/timers.c
+    ${SOURCES_ROOT}/src/idlelib/idle.c
+    ${SOURCES_ROOT}/src/procreglib/names.c
+    ${SOURCES_ROOT}/src/configlib/configscript.c
+    ${SOURCES_ROOT}/src/sysloglib/syslog.c
+    ${SOURCES_ROOT}/src/systemlib/system.c
     ${MORE_SYSTEM_SOURCES}
-    ${SOURCES_ROOT}/typelib/typecode.c
-    ${SOURCES_ROOT}/typelib/text.c
-    ${SOURCES_ROOT}/typelib/sets.c
-    ${SOURCES_ROOT}/typelib/binarylist.c
-    ${SOURCES_ROOT}/typelib/msgqueue.c
-    ${SOURCES_ROOT}/filesyslib/filescan.c
-    ${SOURCES_ROOT}/filesyslib/pathops.c
-    ${SOURCES_ROOT}/filesyslib/winfiles.c
+    ${SOURCES_ROOT}/src/typelib/typecode.c
+    ${SOURCES_ROOT}/src/typelib/text.c
+    ${SOURCES_ROOT}/src/typelib/sets.c
+    ${SOURCES_ROOT}/src/typelib/binarylist.c
+    ${SOURCES_ROOT}/src/typelib/msgqueue.c
+    ${SOURCES_ROOT}/src/filesyslib/filescan.c
+    ${SOURCES_ROOT}/src/filesyslib/pathops.c
+    ${SOURCES_ROOT}/src/filesyslib/winfiles.c
     ${SNPRINTF_SOURCES}
 ${LAST_GCC_PROGRAM_SOURCE}
-    ${SOURCES_ROOT}/deadstart/deadstart_core.c 
+    ${SOURCES_ROOT}/src/deadstart/deadstart_core.c 
 )
 
 if( NOT __NO_ODBC__ )
