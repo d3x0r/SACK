@@ -359,7 +359,7 @@ int EnableOpenGL( struct display_camera *camera )
 
 int EnableOpenGLView( struct display_camera *camera, int x, int y, int w, int h )
 {
-   HVIDEO hVideo = camera->hVidCore;
+   PVIDEO hVideo = camera->hVidCore;
 #ifdef _WIN32
 	// enable a partial opengl area on a single window surface
 	// actually turns out it's just a memory context anyhow...
