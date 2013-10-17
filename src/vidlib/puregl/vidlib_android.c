@@ -248,14 +248,14 @@ void OpenEGL( struct display_camera *camera )
 	EGLint majorVersion, minorVersion;
 	int numConfigs;
 
-	if( camera->hVidCore->display )
+	if( camera->egl_display )
 	{
 		lprintf( "EGL Context already initialized for camera" );
 		return;
 	}
 
-	camera->hVidCore->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-	lprintf("GL display: %x", camera->hVidCore->display);
+	camera->egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	lprintf("GL display: %x", camera->egl_display);
 
 #ifdef __ANDROID__
 	// Window surface that covers the entire screen, from libui.
@@ -308,52 +308,52 @@ void OpenEGL( struct display_camera *camera )
 	}
 #endif
 
-	eglInitialize(camera->hVidCore->display, &majorVersion, &minorVersion);
+	eglInitialize(camera->egl_display, &majorVersion, &minorVersion);
 	lprintf("GL version: %d.%d",majorVersion,minorVersion);
 
-	if (!eglChooseConfig(camera->hVidCore->display, configXbpp, &camera->hVidCore->config, 1, &numConfigs))
+	if (!eglChooseConfig(camera->egl_display, configXbpp, &camera->config, 1, &camera->num_config))
 	{
 		lprintf("eglChooseConfig failed");
-		if (camera->hVidCore->econtext==0) lprintf("Error code: %x", eglGetError());
+		if (camera->econtext==0) lprintf("Error code: %x", eglGetError());
 	}
-	lprintf( "configs = %d", numConfigs );
+	lprintf( "configs = %d", camera->num_config );
 	{
 		EGLint context_attribs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
 
-		camera->hVidCore->econtext = eglCreateContext(camera->hVidCore->display,
-																	 camera->hVidCore->config,
+		camera->econtext = eglCreateContext(camera->egl_display,
+																	 camera->config,
 																	 EGL_NO_CONTEXT,
 																	 context_attribs);
-		lprintf("GL context: %x", camera->hVidCore->econtext);
-		if (camera->hVidCore->econtext==0) lprintf("Error code: %x", eglGetError());
+		lprintf("GL context: %x", camera->econtext);
+		if (camera->econtext==0) lprintf("Error code: %x", eglGetError());
 	}
 	//ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
 
-	camera->hVidCore->surface = eglCreateWindowSurface(camera->hVidCore->display,
-																		camera->hVidCore->config,
+	camera->surface = eglCreateWindowSurface(camera->egl_display,
+																		camera->config,
 																		camera->displayWindow,
 																		NULL);
-	lprintf("GL surface: %x", camera->hVidCore->surface);
-	if (camera->hVidCore->surface==0) lprintf("Error code: %x", eglGetError());
+	lprintf("GL surface: %x", camera->surface);
+	if (camera->surface==0) lprintf("Error code: %x", eglGetError());
 
    lprintf( "First swap..." );
 	// makes it go black as soon as ready
-	eglSwapBuffers(camera->hVidCore->display, camera->hVidCore->surface);
+	eglSwapBuffers(camera->egl_display, camera->surface);
 
 }
 
-void EnableEGLContext( PRENDERER hVidCore )
+void EnableEGLContext( struct display_camera *camera )
 {
    static EGLDisplay prior_display;
-	//lprintf( "Enable context %p", hVidCore );
-	if( hVidCore )
+	//lprintf( "Enable context %p", camera );
+	if( camera )
 	{
 		/* connect the context to the surface */
-         prior_display = hVidCore->display;
-		if (eglMakeCurrent(hVidCore->display
-				, hVidCore->surface
-				, hVidCore->surface
-				, hVidCore->econtext)==EGL_FALSE)
+         prior_display = camera->display;
+		if (eglMakeCurrent(camera->display
+				, camera->surface
+				, camera->surface
+				, camera->econtext)==EGL_FALSE)
 		{
 			lprintf( "Make current failed: 0x%x\n", eglGetError());
 			return;
@@ -365,7 +365,7 @@ void EnableEGLContext( PRENDERER hVidCore )
 		//eglWaitGL(); // same as glFinish();
 
 		// swap should be done at end of render phase.
-		//eglSwapBuffers(hVidCore->display,hVidCore->surface);
+		//eglSwapBuffers(camera->display,camera->surface);
 		if (eglMakeCurrent(prior_display, EGL_NO_SURFACE, EGL_NO_SURFACE,  EGL_NO_CONTEXT)==EGL_FALSE)
 		{
 			lprintf( "Make current failed: 0x%x\n", eglGetError());
@@ -397,23 +397,23 @@ void SACK_Vidlib_CloseDisplay( void )
 
 
 		{
-			if (camera->hVidCore->display != EGL_NO_DISPLAY)
+			if (camera->egl_display != EGL_NO_DISPLAY)
 			{
 				EnableEGLContext( NULL );
-				if (camera->hVidCore->econtext != EGL_NO_CONTEXT)
+				if (camera->econtext != EGL_NO_CONTEXT)
 				{
-					eglDestroyContext(camera->hVidCore->display, camera->hVidCore->econtext);
+					eglDestroyContext(camera->egl_display, camera->econtext);
 				}
-				if (camera->hVidCore->surface != EGL_NO_SURFACE)
+				if (camera->surface != EGL_NO_SURFACE)
 				{
-					eglDestroySurface(camera->hVidCore->display, camera->hVidCore->surface);
+					eglDestroySurface(camera->egl_display, camera->surface);
 				}
-				eglTerminate(camera->hVidCore->display);
+				eglTerminate(camera->egl_display);
 			}
 			//engine->animating = 0;
-			camera->hVidCore->display = EGL_NO_DISPLAY;
-			camera->hVidCore->econtext = EGL_NO_CONTEXT;
-			camera->hVidCore->surface = EGL_NO_SURFACE;
+			camera->egl_display = EGL_NO_DISPLAY;
+			camera->econtext = EGL_NO_CONTEXT;
+			camera->surface = EGL_NO_SURFACE;
 
 		}
 
@@ -550,8 +550,8 @@ void FindPixelFormat( struct display_camera *camera )
 	};
 	int i;
 	ResolveDeviceID( camera->display, &device, &display );
-	if (gf_layer_query(camera->hVidCore->pLayer, l.qnx_display_info[device][display].main_layer_index
-				, &camera->hVidCore->layer_info) == GF_ERR_OK) 
+	if (gf_layer_query(camera->pLayer, l.qnx_display_info[device][display].main_layer_index
+				, &camera->layer_info) == GF_ERR_OK) 
 	{
 		lprintf("found a compatible frame "
 				"buffer configuration on layer %d\n", l.qnx_display_info[device][display].main_layer_index);
@@ -559,7 +559,7 @@ void FindPixelFormat( struct display_camera *camera )
 	for (i = 0; ; i++) 
 	{
 		/* Walk through all possible pixel formats for this layer */
-		if (gf_layer_query(camera->hVidCore->pLayer, i, &camera->hVidCore->layer_info) != GF_ERR_OK) 
+		if (gf_layer_query(camera->pLayer, i, &camera->layer_info) != GF_ERR_OK) 
 		{
 			lprintf("Couldn't find a compatible frame "
 					"buffer configuration on layer %d\n", i);
@@ -570,15 +570,15 @@ void FindPixelFormat( struct display_camera *camera )
 		 * We want the color buffer format to match the layer format,
 		 * so request the layer format through EGL_NATIVE_VISUAL_ID.
 		 */
-		attribute_list[1] = camera->hVidCore->layer_info.format;
+		attribute_list[1] = camera->layer_info.format;
 
 		/* Look for a compatible EGL frame buffer configuration */
-		if (eglChooseConfig(camera->hVidCore->display
-			,attribute_list, &camera->hVidCore->config, 1, &camera->hVidCore->num_config) == EGL_TRUE)
+		if (eglChooseConfig(camera->egl_display
+			,attribute_list, &camera->config, 1, &camera->num_config) == EGL_TRUE)
 		{
-			if (camera->hVidCore->num_config > 0) 
+			if (camera->num_config > 0) 
 			{
-				lprintf( "multiple configs? %d", camera->hVidCore->num_config );
+				lprintf( "multiple configs? %d", camera->num_config );
 				break;
 			}
 			else
@@ -604,9 +604,9 @@ void CreateQNXOutputForCamera( struct display_camera *camera )
 	lprintf( "create output surface for ..." );
 
 	/* get an EGL display connection */
-	camera->hVidCore->display=eglGetDisplay((EGLNativeDisplayType)l.qnx_display[device][display]);
+	camera->egl_display=eglGetDisplay((EGLNativeDisplayType)l.qnx_display[device][display]);
 
-	if(camera->hVidCore->display == EGL_NO_DISPLAY)
+	if(camera->egl_display == EGL_NO_DISPLAY)
 	{
 		lprintf("ERROR: eglGetDisplay()\n");
 		return;
@@ -618,7 +618,7 @@ void CreateQNXOutputForCamera( struct display_camera *camera )
 
 	
 	/* initialize the EGL display connection */
-	if(eglInitialize(camera->hVidCore->display, NULL, NULL) != EGL_TRUE)
+	if(eglInitialize(camera->egl_display, NULL, NULL) != EGL_TRUE)
 	{
 		lprintf( "ERROR: eglInitialize: error 0x%x\n", eglGetError());
 		return;
@@ -629,7 +629,7 @@ void CreateQNXOutputForCamera( struct display_camera *camera )
 		lprintf( "SUCCESS: eglInitialize()\n");
 	};
 
-	err = gf_layer_attach( &camera->hVidCore->pLayer, l.qnx_display[device][display], 0, GF_LAYER_ATTACH_PASSIVE );
+	err = gf_layer_attach( &camera->pLayer, l.qnx_display[device][display], 0, GF_LAYER_ATTACH_PASSIVE );
 	if( err != GF_ERR_OK )
 	{
 		lprintf( "Error attaching layer(%d): %d", camera->display, err );
@@ -637,9 +637,9 @@ void CreateQNXOutputForCamera( struct display_camera *camera )
 	}
 	else
 	{
-		gf_layer_enable( camera->hVidCore->pLayer );
-		//gf_surface_create_layer( &camera->hVidCore->pSurface
-		//						, &camera->hVidCore->pLayer, 1, 0
+		gf_layer_enable( camera->pLayer );
+		//gf_surface_create_layer( &camera->pSurface
+		//						, &camera->pLayer, 1, 0
 		//						, camera->w, camera->h
 		//						, 
 	}
@@ -651,8 +651,8 @@ void CreateQNXOutputForCamera( struct display_camera *camera )
 	// the list of surfacs should be 2 if manually created
 	// cann pass null so surfaces are automatically created
 	// (should remove necessicty to get pixel mode?
-	if ( ( err = gf_3d_target_create(&camera->hVidCore->pTarget, camera->hVidCore->pLayer,
-		NULL, 0, camera->w, camera->h, camera->hVidCore->layer_info.format) ) != GF_ERR_OK) 
+	if ( ( err = gf_3d_target_create(&camera->pTarget, camera->pLayer,
+		NULL, 0, camera->w, camera->h, camera->layer_info.format) ) != GF_ERR_OK) 
 	{
 		lprintf("Unable to create rendering target:%d\n",err );
 	}
@@ -660,18 +660,18 @@ void CreateQNXOutputForCamera( struct display_camera *camera )
 
 
 	/* create an EGL window surface */
-	camera->hVidCore->surface = eglCreateWindowSurface(camera->hVidCore->display
-		, camera->hVidCore->config, camera->hVidCore->pTarget, NULL);
+	camera->surface = eglCreateWindowSurface(camera->egl_display
+		, camera->config, camera->pTarget, NULL);
 
-	if (camera->hVidCore->surface == EGL_NO_SURFACE) 
+	if (camera->surface == EGL_NO_SURFACE) 
 	{
 		lprintf("Create surface failed: 0x%x\n", eglGetError());
 		return;
 	}
 
 	// icing?
-	gf_layer_set_src_viewport(camera->hVidCore->pLayer, 0, 0, camera->w-1, camera->h-1);
-	gf_layer_set_dst_viewport(camera->hVidCore->pLayer, 0, 0, camera->w-1, camera->h-1);
+	gf_layer_set_src_viewport(camera->pLayer, 0, 0, camera->w-1, camera->h-1);
+	gf_layer_set_dst_viewport(camera->pLayer, 0, 0, camera->w-1, camera->h-1);
    
 }
 
@@ -2236,7 +2236,7 @@ void SACK_Vidlib_DoRenderPass( void )
 					RenderGL( camera );
 #ifdef USE_EGL
 					//lprintf( "doing swap buffer..." );
-					eglSwapBuffers( camera->hVidCore->display, camera->hVidCore->surface );
+					eglSwapBuffers( camera->egl_display, camera->surface );
 #endif
 				}
 			}

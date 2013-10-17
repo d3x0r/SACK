@@ -86,6 +86,11 @@ struct display_camera
 #endif
 #if defined( USE_EGL )
    NativeWindowType displayWindow;
+	EGLint num_config;
+	EGLConfig config;
+	EGLDisplay egl_display;
+	EGLSurface surface;
+	EGLContext econtext;
 #endif
 	RAY mouse_ray;
 	int viewport[4];

@@ -95,10 +95,12 @@
 #    endif
 #  endif
 
+
 // INCLUDE WINDOWS.H
 #  ifdef __WATCOMC__
 #undef _WINDOWS_
 #  endif
+
 #  ifdef UNDER_CE
 // just in case windows.h also fails after undef WIN32
 // these will be the correct order for primitives we require.
@@ -106,14 +108,14 @@
 #include <windef.h>
 #include <winnt.h>
 #include <winbase.h>
-//#error blah
 #include <wingdi.h>
 #include <wtypes.h>
 #include <winuser.h>
 #undef WIN32
 #  endif
-
+#define _WINSOCKAPI_
 #include <windows.h>
+#undef _WINSOCKAPI_
 
 #include <windowsx.h>
 // we like timeGetTime() instead of GetTickCount()
@@ -124,15 +126,9 @@
 #include <shellapi.h>
 #endif
 
-
 #ifdef NEED_V4W
 #include <vfw.h>
 #endif
-//#  ifdef __cplusplus
-//// including these first will help with the Release() macro redefinition.
-//#    include <objbase.h>
-//#    include <ocidl.h>
-//#  endif
 
 // incldue this first so we avoid a conflict.
 // hopefully this comes from sack system?

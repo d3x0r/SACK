@@ -934,7 +934,7 @@ enum DisplayAttributes {
 	    
 	    See Also
 	    <link sack::image::render::SetActiveGLDisplay@PRENDERER, SetActiveGLDisplay> */
-	 RENDER_PROC( int, EnableOpenGL )           ( PRENDERER hVideo );
+	 //RENDER_PROC( int, EnableOpenGL )           ( PRENDERER hVideo );
 	 /* Enables D3D rendering on a display surface. This may be
 	    used in conjunction with conventional image drawing (but
 	    probably shouldn't)
@@ -942,7 +942,7 @@ enum DisplayAttributes {
 	    hVideo :  a display surface to enable opengl on.
 	    
 	     */
-	 RENDER_PROC( int, EnableD3D )           ( struct display_camera *camera );
+	 //RENDER_PROC( int, EnableD3D )           ( struct display_camera *camera );
 	 /* Enables a view on a display. This is a sub-region where the
 	    openGL is drawn into just a part of the display.
 	    Parameters
@@ -954,7 +954,7 @@ enum DisplayAttributes {
 	    
 	    Returns
 	    \Returns an index to the view, which can be used in <link sack::image::render::SetActiveGLDisplayView@PRENDERER@int, SetActiveGLDisplayView>. */
-	 RENDER_PROC( int, EnableOpenGLView )           ( PRENDERER hVideo, int x, int y, int w, int h );
+	 //RENDER_PROC( int, EnableOpenGLView )           ( PRENDERER hVideo, int x, int y, int w, int h );
 	 /* *DEPRICATED*  use an appropriate 3d view driver instead...
 		   Sets the current active view for opengl drawing. if view
        index 1+ is passed, that view is enabled. If 0 is passed, if
@@ -983,7 +983,7 @@ enum DisplayAttributes {
 	 // and or parts of the image ... depending on how the image can be
 	 // broken up to make valid opengl images -- opengl 2.0 - rumor has it
     // power of 2 textures are no longer required.
-	 RENDER_PROC( int, LoadGLImage )( Image image, int *result );
+	 //RENDER_PROC( int, LoadGLImage )( Image image, int *result );
 
 /* Makes a display topmost. There isn't a way to un-topmost a
    window.
@@ -1476,13 +1476,9 @@ struct render_interface_tag
        
        \ \                                                 */
     RENDER_PROC_PTR( void, SyncRender )            ( PRENDERER pDisplay );
-    /* <combine sack::image::render::EnableOpenGL@PRENDERER>
-       
-       \ \                                                   */
+    /* DEPRICATED; left in structure for compatibility.  Removed define and export definition. */
     RENDER_PROC_PTR( int, EnableOpenGL )           ( PRENDERER hVideo );
-    /* <combine sack::image::render::SetActiveGLDisplay@PRENDERER>
-       
-       \ \                                                         */
+    /* DEPRICATED; left in structure for compatibility.  Removed define and export definition. */
     RENDER_PROC_PTR( int, SetActiveGLDisplay )     ( PRENDERER hDisplay );
 
 	 /* <combine sack::image::render::MoveSizeDisplay@PRENDERER@S_32@S_32@S_32@S_32>
@@ -1650,7 +1646,12 @@ struct render_interface_tag
        \ \                                                                             */
     RENDER_PROC_PTR( void, SetRestoreHandler)      ( PRENDERER, HideAndRestoreCallback, PTRSZVAL );
 		 RENDER_PROC_PTR( void, RestoreDisplayEx )   ( PRENDERER hVideo DBG_PASS );
+		 /* added for android extensions; call to enable showing the keyboard in the correct thread
+        ; may have applications for windows tablets 
+		  */
        RENDER_PROC_PTR( void, SACK_Vidlib_ShowInputDevice )( void );
+		 /* added for android extensions; call to enable hiding the keyboard in the correct thread
+		  ; may have applications for windows tablets */
        RENDER_PROC_PTR( void, SACK_Vidlib_HideInputDevice )( void );
 
 };
@@ -1758,9 +1759,14 @@ typedef int check_this_variable;
 #define BeginCalibration          REND_PROC_ALIAS(BeginCalibration)
 #define SyncRender                REND_PROC_ALIAS(SyncRender)
 #define OkaySyncRender                REND_PROC_ALIAS(OkaySyncRender)
-#define EnableOpenGL              REND_PROC_ALIAS(EnableOpenGL)
-#define EnableOpenD3D              REND_PROC_ALIAS(EnableOpenD3d)
-#define SetActiveGLDisplay        REND_PROC_ALIAS(SetActiveGLDisplay )
+
+//  --- Enable 3D display functions have been depricated in mode
+//  to enable 3d; load a 3d driver; window size/display mode is controled in option database
+//#define EnableOpenGL              REND_PROC_ALIAS(EnableOpenGL)
+//  --- Enable 3D display functions have been depricated in mode
+//  to enable 3d; load a 3d driver; window size/display mode is controled in option database
+//#define SetActiveGLDisplay        REND_PROC_ALIAS(SetActiveGLDisplay )
+
 #define HideDisplay               REND_PROC_ALIAS(HideDisplay)
 #define IsDisplayHidden               REND_PROC_ALIAS(IsDisplayHidden)
 /* <combine sack::image::render::GetNativeHandle@PRENDERER>
@@ -1851,8 +1857,9 @@ typedef int check_this_variable;
 #define MSG_BeginCalibration           MSG_ID(BeginCalibration)
 #define MSG_SyncRender                 MSG_ID(SyncRender)
 #define MSG_OkaySyncRender                 MSG_ID(OkaySyncRender)
-#define MSG_EnableOpenGL               MSG_ID(EnableOpenGL)
-#define MSG_SetActiveGLDisplay         MSG_ID(SetActiveGLDisplay)
+   // these functions were depricated...
+//#define MSG_EnableOpenGL               MSG_ID(EnableOpenGL)
+//#define MSG_SetActiveGLDisplay         MSG_ID(SetActiveGLDisplay)
 #define MSG_HideDisplay               MSG_ID(HideDisplay)
 #define MSG_IsDisplayHidden               MSG_ID(IsDisplayHidden)
 #define MSG_RestoreDisplay             MSG_ID(RestoreDisplay)

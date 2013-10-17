@@ -9,6 +9,9 @@ set( font_sources ../font.c ../fntcache.c ../fntrender.c ../lucidaconsole.c )
 
 if( NOT __ANDROID__ )
   INCLUDE_DIRECTORIES( ../../vidlib/puregl/glew-1.9.0/include )
+else( NOT __ANDROID__ )
+ADD_DEFINITIONS( -DUSE_GLES )
+
 endif( NOT __ANDROID__ )
 
 add_library_force_source( ${project} SHARED

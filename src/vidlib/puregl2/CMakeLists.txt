@@ -25,6 +25,7 @@ set( COMMON_SOURCES
 		local.h # common data and routine declarations
    )     
   set_source_files_properties( ${COMMON_SOURCES} vidlib_win32.c keymap_win32.c PROPERTIES LANGUAGE CXX)
+  set_source_files_properties( local.h PROPERTIES HEADER_FILE_ONLY ON )
 
 
 
