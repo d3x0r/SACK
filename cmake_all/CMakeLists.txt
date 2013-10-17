@@ -134,7 +134,7 @@ endif( BUILD_UNICODE )
 
 SET( SACK_REQUIREMENTS -DNEED_FREETYPE=${NEED_FREETYPE} -DNEED_JPEG=${NEED_JPEG} -DNEED_PNG=${NEED_PNG} -DNEED_ZLIB=${NEED_ZLIB} )
 if( UNIX )
-message( "Not win32, but MINGW="${MINGW}" maybe android? ; not passing need_externals" )
+message( "Not win32, but MINGW=\"${MINGW}\" maybe android? ; not passing need_externals" )
 set( SACK_REQUIREMENTS )
 endif( UNIX )
 
