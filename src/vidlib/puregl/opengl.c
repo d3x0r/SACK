@@ -358,6 +358,7 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 
 int EnableOpenGL( PVIDEO hVideo )
 {
+#ifdef _WIN32
 	GLuint      PixelFormat;         // Holds The Results After Searching For A Match
 	HDC hdcEnable;
 	static   PIXELFORMATDESCRIPTOR pfd=          // pfd Tells Windows How We Want Things To Be
@@ -445,9 +446,9 @@ int EnableOpenGL( PVIDEO hVideo )
 
 RENDER_PROC( int, EnableOpenGLView )( PVIDEO hVideo, int x, int y, int w, int h )
 {
-#ifdef _WIN32
 	// enable a partial opengl area on a single window surface
 	// actually turns out it's just a memory context anyhow...
+#ifdef _WIN32
 	int nFracture;
 	static GLuint      PixelFormat;         // Holds The Results After Searching For A Match
 	static   PIXELFORMATDESCRIPTOR pfd=          // pfd Tells Windows How We Want Things To Be
@@ -512,6 +513,7 @@ RENDER_PROC( int, EnableOpenGLView )( PVIDEO hVideo, int x, int y, int w, int h 
 		}
 		return nFracture + 1;
 	}
+#endif
 	return 0;
 }
 

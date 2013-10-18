@@ -17,11 +17,15 @@
 #include <render.h>
 #include <render3d.h>
 
-#ifndef SOMETHING_GOES_HERE
-#include <GL/glew.h>
+#ifdef __ANDROID__
+#  include <GLES2/gl2.h>
+#else
+#  ifndef SOMETHING_GOES_HERE
+#    include <GL/glew.h>
+#  endif
+#  include <GL/gl.h>
+#  include <GL/glu.h>
 #endif
-#include <GL/gl.h>
-#include <GL/glu.h>
 
 #include "local.h"
 
