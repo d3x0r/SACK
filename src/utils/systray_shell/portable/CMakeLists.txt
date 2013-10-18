@@ -5,6 +5,7 @@ SET( PROJECT systray_shell.portable )
 #########################################################
 #### CMake Fixes for RC compilation 
 #########################################################
+set( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ )
 
 macro( build_resource rcfile realfile ) 
 
@@ -18,10 +19,10 @@ if( WATCOM )
   if( NOT TARGET generate_foo${rc_file_stripped} )
     string( REPLACE "/" "\\" WATCOM_PROJECT_BINARY_DIR ${PROJECT_BINARY_DIR} )
     string( REPLACE "/" "\\" WATCOM_CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR} )
+    string( REPLACE "/" "\\" WATCOM_SOURCES_ROOT ${SOURCES_ROOT} )
     add_custom_command( OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../${realfile}
-                     DEPENDS ${rcfile} 
-                     COMMAND echo ${CMAKE_RC_COMPILER} -i${WATCOM_CMAKE_CURRENT_SOURCE_DIR}\\..\\..\\..\\.. -i${WATCOM_CMAKE_CURRENT_SOURCE_DIR} -fo${CMAKE_CURRENT_BINARY_DIR}\\${realfile} ${WATCOM_CMAKE_CURRENT_SOURCE_DIR}\\${rcfile}
-                     COMMAND ${CMAKE_RC_COMPILER} -i${WATCOM_CMAKE_CURRENT_SOURCE_DIR}\\..\\..\\..\\.. -i${WATCOM_CMAKE_CURRENT_SOURCE_DIR} -fo${CMAKE_CURRENT_BINARY_DIR}\\..\\${realfile} ${WATCOM_CMAKE_CURRENT_SOURCE_DIR}\\${rcfile}
+                     DEPENDS ${SOURCES_ROOT}/${rcfile} 
+                     COMMAND ${CMAKE_RC_COMPILER} -i${WATCOM_CMAKE_CURRENT_SOURCE_DIR}\\..\\..\\..\\.. -i${WATCOM_CMAKE_CURRENT_SOURCE_DIR} -fo${CMAKE_CURRENT_BINARY_DIR}\\..\\${realfile} ${WATCOM_SOURCES_ROOT}\\${rcfile}
  )
   ADD_CUSTOM_TARGET( generate_foo${rc_file_stripped} DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../${realfile})
   endif( NOT TARGET generate_foo${rc_file_stripped} )
@@ -59,7 +60,6 @@ set( NEED_UUID 1 )
 endif( __ANDROID__ )
 
 
-set( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ )
 set( USE_SQLITE ON )
 include( ../../../../CMakeSources.lst )
 
@@ -98,7 +98,7 @@ add_portable_program(${PROJECT} WIN32
 	${BASE_SOURCES}
 	${LAST_GCC_PROGRAM_SOURCE}
 )
-build_resource(  ${SOURCES_ROOT}/all_resources.rc all_resources.res )
+build_resource(  all_resources.rc all_resources.res )
 target_link_libraries( ${PROJECT}  ${SACK_PLATFORM_LIBRARIES} )
 
 
