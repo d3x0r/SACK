@@ -21,7 +21,7 @@
 #include <stdio.h>
 
 #if _MSC_VER 
-#  ifdef WIN8_SDK
+#  ifdef EXCLUDE_SAFEINT_H
 #    define _INTSAFE_H_INCLUDED_
 #  endif
 #endif //_MSC_VER 
