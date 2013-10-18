@@ -21,7 +21,9 @@
 #include <stdio.h>
 
 #if _MSC_VER 
-#define _INTSAFE_H_INCLUDED_
+#  ifdef WIN8_SDK
+#    define _INTSAFE_H_INCLUDED_
+#  endif
 #endif //_MSC_VER 
 
 #if _MSC_VER > 100000
