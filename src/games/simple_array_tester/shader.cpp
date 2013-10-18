@@ -17,7 +17,9 @@
 #include <render.h>
 #include <render3d.h>
 
-//#include <GL/glew.h>
+#ifndef SOMETHING_GOES_HERE
+#include <GL/glew.h>
+#endif
 #include <GL/gl.h>
 #include <GL/glu.h>
 
