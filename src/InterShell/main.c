@@ -5129,13 +5129,8 @@ PRIORITY_PRELOAD( ProgramLock, DEFAULT_PRELOAD_PRIORITY+2 )
 	if( g.flags.bSQLConfig )
 	{
 		int version;
-		SACK_GetProfileStringEx( GetProgramName(), WIDE("Use SQL DSN for Configuration")
-#ifdef __ANDROID_
-									  , WIDE("./option.db")
-#else
-									  , WIDE("@/option.db")
-#endif
-								  , g.configuration_dsn, 256, TRUE );
+		SACK_GetProfileStringEx( GetProgramName(), WIDE("Use SQL DSN for Configuration"), GetDefaultOptionDatabaseDSN()
+									  , g.configuration_dsn, 256, TRUE );
 		g.configuration_version = SACK_GetProfileIntEx( GetProgramName(), WIDE("Use SQL Option Database Version"), 4, TRUE );
 
 	}
