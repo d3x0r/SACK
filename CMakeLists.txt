@@ -1182,10 +1182,10 @@ if( BUILD_TESTS )
    # ment to be tests based on binary target output
    #add_subdirectory( src/games/simple_vector_tester )
    #add_subdirectory( src/games/simple_array_tester )
-   if( NOT BUILD_MONOLITHIC )   
+   if( NOT BUILD_MONOLITHIC AND DIRECTX_SDK )   
       # monolithic has interfaces forced off; so we can't get the shader compiler interface
       add_subdirectory( src/games/simple_vector_tester/d3d )
-   endif( NOT BUILD_MONOLITHIC )   
+   endif( NOT BUILD_MONOLITHIC AND DIRECTX_SDK )   
    add_subdirectory( src/netlib/html5.websocket/json/tests )
    add_subdirectory( src/psilib/console/cmdshell )
    add_subdirectory( src/msgsvr/client/client_server )
