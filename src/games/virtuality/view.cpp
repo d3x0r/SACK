@@ -649,7 +649,10 @@ PVIEW CreateViewWithUpdateLockEx( int nType, ViewMouseCallback pMC, TEXTCHAR *Ti
 			pv->hVideo = hv;
 
 			if( !RequiresDrawAll() )
-				pv->nFracture = EnableOpenGL( pv->hVideo );
+			{
+            lprintf( "using non 3d driver (probably); needed EnableOpenGL" );
+				//pv->nFracture = EnableOpenGL( pv->hVideo );
+			}
 		}
 		///if( !( pv->nFracture = EnableOpenGLView( pv->hVideo, 0, 0, /*sx * winsz, sy * winsz, */winsz, winsz ) ) )
 
