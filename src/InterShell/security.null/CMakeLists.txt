@@ -1,5 +1,5 @@
 
-set( project security.null..isp )
+set( project security.null.isp )
 
 set( SOURCES
 ${FIRST_GCC_LIBRARY_SOURCE} 
