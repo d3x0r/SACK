@@ -547,7 +547,7 @@ static void KeypadAccumUpdated( PTRSZVAL psvKeypad, PACCUMULATOR accum )
 
 static int resize_keys( PKEYPAD keypad )
 {
-   unsigned int w, h;
+	unsigned int w, h;
 	int row, col, rows, cols;
 	FRACTION posy, posx, tmp;
 	S_32 keyx, keyy, keywidth, keyheight;
@@ -577,7 +577,7 @@ static int resize_keys( PKEYPAD keypad )
 			posy = pKeySizing->KeySpacingY;
 		}
 
-      //lprintf( "New font render at %d,%d", keywidth - keywidth/3, keyheight - keyheight/3 );
+		//lprintf( "New font render at %d,%d", keywidth - keywidth/3, keyheight - keyheight/3 );
 		RerenderFont( keypad->font, keywidth - keywidth/3, keyheight - keyheight/4, NULL, NULL );
 		if( keypad->flags.bDisplay )
 		{
@@ -635,9 +635,7 @@ static int resize_keys( PKEYPAD keypad )
 			}
 		}
 	}
-//cpg27dec2006 keypad\keypad.c(354): Warning! W107: Missing return value for function 'resize_keys'
-
-   return 1;//cpg27dec2006
+   return 1;
 }
 
 
@@ -2668,6 +2666,18 @@ void KeypadAddMagicKeySequence( PSI_CONTROL pc_keypad, CTEXTSTR sequence, void (
 		magic_sequence->event_proc = event_proc;
 		magic_sequence->psv_sequence = psv_sequence;
 		AddLink( &keypad->magic_sequences, magic_sequence );
+	}
+}
+
+void KeypadSetAccumulator( PSI_CONTROL pc, CTEXTSTR name )
+{
+	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, pc );
+	if( keypad )
+	{
+		keypad->accum = GetAccumulator( name
+												, keypad->flags.bAlphaNum?ACCUM_TEXT
+												 : (keypad->flags.bEntry?0:ACCUM_DOLLARS) );
+		SetAccumulatorUpdateProc( keypad->accum, KeypadAccumUpdated, (PTRSZVAL)keypad );
 	}
 }
 

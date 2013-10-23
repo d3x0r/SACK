@@ -15,6 +15,14 @@ typedef struct accumulator_tag *PACCUMULATOR;
 #define HEAP_BASE 0x20000
 #endif
 
+typedef struct accumulator_update_tag
+{
+	struct accumulator_update_tag *next;
+	struct accumulator_update_tag **me;
+	void (*Updated)( PTRSZVAL psv, PACCUMULATOR accum );
+	PTRSZVAL psvUpdated;
+} ACCUMULATOR_UPDATE, *PACCUMULATOR_UPDATE;
+
 typedef struct accumulator_tag
 {
 	S_64 value;
@@ -29,8 +37,7 @@ typedef struct accumulator_tag
 	} flags;
 	struct accumulator_tag *next;
 	struct accumulator_tag **me;
-	void (*Updated)( PTRSZVAL psv, PACCUMULATOR accum );
-	PTRSZVAL psvUpdated;
+	struct accumulator_update_tag *updates;
 	_64 digit_mod_mask;
 	TEXTCHAR name[];
 
@@ -40,13 +47,21 @@ typedef struct accumulator_tag
 static PMEM pHeap;
 static PACCUMULATOR Accumulators;
 
+static void InvokeUpdates( PACCUMULATOR accum )
+{
+	ACCUMULATOR_UPDATE *update = accum->updates;
+	while( update )
+	{
+		update->Updated( update->psvUpdated, accum );
+		update = update->next;
+	}
+}
 
 PACCUMULATOR SetAccumulator( PACCUMULATOR accum, S_64 value )
 {
 	accum->value = value;
-	if( accum->Updated )
-		accum->Updated( accum->psvUpdated, accum );
-   return accum;
+	InvokeUpdates( accum );
+	return accum;
 }
 
 S_64 GetAccumulatorValue( PACCUMULATOR accum )
@@ -57,6 +72,7 @@ S_64 GetAccumulatorValue( PACCUMULATOR accum )
 void KeyIntoAccumulator( PACCUMULATOR accum, S_64 val, _32 base )
 {
 	// adds in to accumulator as if keyed in...
+   //lprintf( "Accumulator %s  add %" _64fs "(%d)", accum->name, val, base );
    /*
 	if( accum->flags.bHaveDecimal )
 	{
@@ -72,7 +88,7 @@ void KeyIntoAccumulator( PACCUMULATOR accum, S_64 val, _32 base )
 	*/
 	if( accum->flags.bText )
 	{
-      vtprintf( accum->pvt_text, WIDE( "%lld" ), val );
+      vtprintf( accum->pvt_text, WIDE("%")_64fs, val );
 	}
 	else
 	{
@@ -89,12 +105,12 @@ void KeyIntoAccumulator( PACCUMULATOR accum, S_64 val, _32 base )
 			accum->value += val;
 		}
 	}
-	if( accum->Updated )
-		accum->Updated( accum->psvUpdated, accum );
+	InvokeUpdates( accum );
 }
 
 void KeyDecimalIntoAccumulator( PACCUMULATOR accum )
 {
+	//lprintf( "Accumulator %s  add '.'", accum->name );
 	if( accum->flags.bText )
 	{
       KeyTextIntoAccumulator( accum, WIDE( "." ) );
@@ -111,8 +127,7 @@ void KeyDecimalIntoAccumulator( PACCUMULATOR accum )
 				accum->dec_base = 1;
 		}
 	}
-	if( accum->Updated )
-      accum->Updated( accum->psvUpdated, accum );
+	InvokeUpdates( accum );
 }
 
 void ClearAccumulatorDigit( PACCUMULATOR accum, _32 base )
@@ -126,9 +141,9 @@ void ClearAccumulatorDigit( PACCUMULATOR accum, _32 base )
 		// adds in to accumulator as if keyed in...
 		accum->value /= base;
 	}
-	if( accum->Updated )
-		accum->Updated( accum->psvUpdated, accum );
+	InvokeUpdates( accum );
 }
+
 
 void ClearAccumulator( PACCUMULATOR accum )
 {
@@ -140,8 +155,7 @@ void ClearAccumulator( PACCUMULATOR accum )
 		accum->value = 0;
 		accum->decimal = 0;
 	}
-	if( accum->Updated )
-      accum->Updated( accum->psvUpdated, accum );
+	InvokeUpdates( accum );
 }
 
 PACCUMULATOR AddAcummulator( PACCUMULATOR accum_dest, PACCUMULATOR accum_source )
@@ -151,20 +165,19 @@ PACCUMULATOR AddAcummulator( PACCUMULATOR accum_dest, PACCUMULATOR accum_source 
 		if( accum_source->flags.bText )
 		{
 			PTEXT text = VarTextPeek( accum_source->pvt_text );
-         vtprintf( accum_dest->pvt_text, WIDE( "%s" ), GetText( text ) );
+			vtprintf( accum_dest->pvt_text, WIDE( "%s" ), GetText( text ) );
 		}
 		else
 		{
-         vtprintf( accum_dest->pvt_text, WIDE( "%Ld" ), accum_source->value );
+			vtprintf( accum_dest->pvt_text, WIDE("%")_64fs, accum_source->value );
 		}
 	}
 	else
 	{
 		accum_dest->value += accum_source->value;
 	}
-	if( accum_dest->Updated )
-      accum_dest->Updated( accum_dest->psvUpdated, accum_dest );
-   return accum_dest;
+	InvokeUpdates( accum_dest );
+	return accum_dest;
 }
 
 PACCUMULATOR TransferAccumluator( PACCUMULATOR accum_dest, PACCUMULATOR accum_source )
@@ -175,11 +188,11 @@ PACCUMULATOR TransferAccumluator( PACCUMULATOR accum_dest, PACCUMULATOR accum_so
 		{
 			PTEXT text = VarTextGet( accum_source->pvt_text );
 			vtprintf( accum_dest->pvt_text, WIDE( "%s" ), accum_source->pvt_text );
-         Release( text );
+			Release( text );
 		}
 		else
 		{
-         vtprintf( accum_dest->pvt_text, WIDE( "%Ld" ), accum_source->value );
+			vtprintf( accum_dest->pvt_text, WIDE("%")_64fs, accum_source->value );
 			accum_source->value = 0;
 		}
 	}
@@ -188,11 +201,9 @@ PACCUMULATOR TransferAccumluator( PACCUMULATOR accum_dest, PACCUMULATOR accum_so
 		accum_dest->value += accum_source->value;
 		accum_source->value = 0;
 	}
-	if( accum_source->Updated )
-      accum_source->Updated( accum_source->psvUpdated, accum_source );
-	if( accum_dest->Updated )
-      accum_dest->Updated( accum_dest->psvUpdated, accum_dest );
-   return accum_dest;
+	InvokeUpdates( accum_source );
+	InvokeUpdates( accum_dest );
+	return accum_dest;
 }
 
 size_t GetAccumulatorText( PACCUMULATOR accum, TEXTCHAR *text, int nLen )
@@ -208,11 +219,11 @@ size_t GetAccumulatorText( PACCUMULATOR accum, TEXTCHAR *text, int nLen )
 		}
 	}
 	else if( accum->flags.bDollars )
-		len = snprintf( text, nLen, WIDE("$%lld.%02lld")
+		len = snprintf( text, nLen, WIDE("$%") _64fs WIDE(".%02") _64fs
 				 , accum->value / 100
 				  , accum->value % 100 );
 	else
-		len = snprintf( text, nLen, WIDE("%lld"), accum->value );
+		len = snprintf( text, nLen,  WIDE("%") _64fs, accum->value );
 	return len;
 }
 
@@ -269,9 +280,10 @@ PACCUMULATOR GetAccumulator( CTEXTSTR name, _32 flags )
 			accum->pvt_text = NULL;
 			accum->flags.bText = 0;
 		}
-		accum->Updated = NULL;
+		accum->updates = NULL;
 		if(( accum->next = Accumulators ))
-			Accumulators->me = &accum->next;
+			Accumulators->me = &Accumulators->next;
+		Accumulators = accum;
 	}
 	return accum;
 }
@@ -283,8 +295,13 @@ void SetAccumulatorUpdateProc( PACCUMULATOR accum
 {
 	if( accum )
 	{
-        accum->Updated = Updated;
-        accum->psvUpdated = psvUser;
+		ACCUMULATOR_UPDATE *update = (PACCUMULATOR_UPDATE)HeapAllocate( pHeap, sizeof( ACCUMULATOR_UPDATE )  );
+        update->Updated = Updated;
+        update->psvUpdated = psvUser;
+		if( update->next = accum->updates )
+			accum->updates->me = &update->next;
+		accum->me = &accum->updates;
+		accum->updates = update;
 	}
 }
 
@@ -295,16 +312,17 @@ void KeyTextIntoAccumulator( PACCUMULATOR accum, CTEXTSTR value ) // works with 
 		if( accum->flags.bText )
 		{
 			CTEXTSTR p = value;
+			//lprintf( "Accumulator %s add '%s'", accum->name, value );
 			while( p[0] )
 			{
 				VarTextAddCharacter( accum->pvt_text, p[0] );
 				p++;
 			}
-			if( accum->Updated )
-				accum->Updated( accum->psvUpdated, accum );
+			InvokeUpdates( accum );
 		}
 		else
 		{
+			lprintf( "Accumulator %s is not for text... do not add %s", accum->name, value );
          // evaluate value and operate on numbers
 		}
 	}

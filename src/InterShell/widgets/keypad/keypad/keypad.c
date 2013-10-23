@@ -473,6 +473,8 @@ OnEditControl( WIDE( "Keypad 2" ) )( PTRSZVAL psv, PSI_CONTROL pc_parent )
 					if( buffer[0] != '-' )
 					{
 						keypad->keypad_type = StrDup( buffer );
+						KeypadSetAccumulator( keypad->keypad, buffer );
+
 					}
 					else
 					{
@@ -559,7 +561,10 @@ static PTRSZVAL CPROC MySetKeypadType( PTRSZVAL psv, arg_list args )
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 
 	if( StrCmp( name, WIDE( "." ) ) )
+	{
 		keypad->keypad_type = StrDup( name );
+		KeypadSetAccumulator( keypad->keypad, name );
+	}
 
 	l.psv_read_keypad = (PTRSZVAL)keypad->keypad;
 
@@ -632,6 +637,7 @@ OnEditControl( WIDE( "Keyboard 2" ) )( PTRSZVAL psv, PSI_CONTROL pc_parent )
 					if( buffer[0] != '-' )
 					{
 						keypad->keypad_type = StrDup( buffer );
+						KeypadSetAccumulator( keypad->keypad, buffer );
 						// builds the control attached to keypad thing for typename (only one per type)
 					}
 
@@ -819,14 +825,12 @@ OnSaveControl( WIDE( "Keypad Hotkey 2" ) )( FILE *file, PTRSZVAL psv )
 
 	if( hotkey )
 	{
-      if( hotkey->preset_name )
-		  fprintf( file, WIDE( "hotkey font=%s\n" ), hotkey->preset_name );
 
-	  if( hotkey->flags.bNegative )
-		  fprintf( file, WIDE( "hotkey is negative sign\n" ) );
-
-	  else
-		  fprintf( file, WIDE( "hotkey value=%Ld\n" ), hotkey->value );
+		if( hotkey->flags.bNegative )
+			fprintf( file, WIDE( "%shotkey is negative sign\n" ), InterShell_GetSaveIndent() );
+		else
+			fprintf( file, WIDE( "%shotkey value=%Ld\n" ), InterShell_GetSaveIndent(), hotkey->value );
+		fprintf( file, WIDE( "%shotkey target keypad type=%s\n"), InterShell_GetSaveIndent(), hotkey->keypad_type );
 	}
 }
 
@@ -859,11 +863,30 @@ static PTRSZVAL CPROC SetHotkeyNegative( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
+static PTRSZVAL CPROC SetHotkeyTarget( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, CTEXTSTR, name );
+	PHOTKEY hotkey = (PHOTKEY)psv;
+	
+	if( hotkey->keypad_type )
+	{
+		Deallocate( TEXTSTR, hotkey->keypad_type );
+		hotkey->keypad_type = NULL;
+	}
+	if( StrCmp( name, WIDE( "." ) ) )
+	{
+		hotkey->keypad_type = StrDup( name );
+	}
+
+	return psv;
+}
+
 OnLoadControl( WIDE( "Keypad Hotkey 2" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
 	AddConfigurationMethod( pch, WIDE( "hotkey font=%m" ), SetHotkeyFontByName );
 	AddConfigurationMethod( pch, WIDE( "hotkey value=%i" ), SetHotkeyValue );
 	AddConfigurationMethod( pch, WIDE( "hotkey is negative sign" ), SetHotkeyNegative );
+	AddConfigurationMethod( pch, WIDE( "hotkey target keypad type=%m" ), SetHotkeyTarget );
 }
 
 
@@ -905,6 +928,7 @@ PUBLIC( void, SetKeypadType )( PSI_CONTROL keypad, CTEXTSTR type )
 			Deallocate( TEXTSTR, (TEXTSTR)real_keypad->keypad_type );
 
 		real_keypad->keypad_type = StrDup( type );
+		KeypadSetAccumulator( real_keypad->keypad, type );
 	}
 }
 
