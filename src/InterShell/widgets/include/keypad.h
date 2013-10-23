@@ -98,6 +98,7 @@ KEYPAD_PROC( void, KeypadSetC_KeyTextColor )( PSI_CONTROL keypad, CDATA color );
 KEYPAD_PROC( void, KeypadSetupConfig )( PCONFIG_HANDLER pch, PTRSZVAL *ppsv );
 KEYPAD_PROC( void, KeypadWriteConfig )( FILE *file, CTEXTSTR indent, PSI_CONTROL pc_keypad );
 KEYPAD_PROC( void, KeypadAddMagicKeySequence )( PSI_CONTROL keypad, CTEXTSTR sequence, void (CPROC*event_proc)( PTRSZVAL ), PTRSZVAL psv_sequence );
+KEYPAD_PROC( void, KeypadSetAccumulator )( PSI_CONTROL pc, CTEXTSTR name );
 
 
 enum keypad_styles
