@@ -70,9 +70,12 @@ using namespace DirectX;
 #include <vectlib.h>
 
 #if defined( __64__ ) && defined( _WIN32 )
+#undef SetWindowLong
 #define SetWindowLong(a,b,c)   SetWindowLongPtr(a,b,(LONG_PTR)(c))
+#undef GetWindowLong
 #define GetWindowLong   GetWindowLongPtr
 #else
+#undef SetWindowLong
 #define SetWindowLong(a,b,c)   SetWindowLong(a,b,(long)(c))
 #endif
 
