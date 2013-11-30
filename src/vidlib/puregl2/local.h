@@ -69,6 +69,13 @@ using namespace DirectX;
 #include <image.h>
 #include <vectlib.h>
 
+#if defined( __64__ ) && defined( _WIN32 )
+#define SetWindowLong(a,b,c)   SetWindowLongPtr(a,b,(LONG_PTR)(c))
+#define GetWindowLong   GetWindowLongPtr
+#else
+#define SetWindowLong(a,b,c)   SetWindowLong(a,b,(long)(c))
+#endif
+
 IMAGE_NAMESPACE
 struct sprite_method_tag
 {

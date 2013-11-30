@@ -103,7 +103,6 @@ static RENDER_INTERFACE VidInterface = { NULL //InitDisplay
 
 RENDER3D_INTERFACE Render3d = {
 	GetRenderTransform
-
 };
 
 #undef GetDisplayInterface
