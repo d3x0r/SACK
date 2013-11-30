@@ -4,6 +4,7 @@
 #define WORLD_SOURCE
 
 #include <stdhdrs.h>
+#include <network.h>
 #include <deadstart.h>
 
 #include <timers.h>
@@ -50,25 +51,20 @@ struct worldscape_client
 	_32 tracker_count;
 	PCLIENT_WORLD_TRACKER world_trackers;
 	SERVICE_ROUTE pid;
-   PCLIENT pc; // websocket that connected here
+	PCLIENT pc; // websocket that connected here
 };
 
 typedef struct json_context *PJC;
 typedef struct json_context_object *PJCO;
 typedef struct world_server_mesasge {
 	CTEXTSTR opcode;
-   POINTER data;
+	POINTER data;
 } WorldServerMessage, *PWorldServerMessage;
 
-typedef struct world_server_mesasge {
-	CTEXTSTR opcode;
-   CTEXTSTR data;
-} WorldServerMessage, *PWorldServerMessage;
-
-typedef struct world_server_mesasge {
+typedef struct world_server_mesasge_simple_array {
 	CTEXTSTR opcode;
 	int nData;
-   POINTER pData;
+	POINTER pData;
 } WorldServerMessageSimpleArray, *PWorldServerMessageSimpleArray;
 
 
@@ -76,10 +72,10 @@ static struct worldscape_server_local
 {
 	_32 SrvrMsgBase;
 	PLIST clients; // list of PWORLDSCAPE_CLIENTs
-   PCLASSROOT server_opcodes;
+	PCLASSROOT server_opcodes;
 	PJC pjc_world_server;
 	PJCO pjco_world_server_message; // for WorldServerMessage
-   PJCO pjco_world_server_message_list_world_reply; // maps to a WorldServerMessageSimpleArray
+	PJCO pjco_world_server_message_list_world_reply; // maps to a WorldServerMessageSimpleArray
 }l;
 //#if 0
 

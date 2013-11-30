@@ -20,6 +20,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
+#include "../include/virtuality/plane.h"
 //#include "local.h"
 
 
@@ -32,6 +33,7 @@ struct {
 
 static struct local_information {
 	int frame;
+   RCOORD time_scale;
    struct particle *particles;
    struct particle *last_particle;  // can initialize this to &particles and have a circular list
 } l;
@@ -69,6 +71,91 @@ struct particle
    void (*deflection)( RCOORD **result, RCOORD *velocity );
 };
 
+// all of these are results of a veleocity applied. these are the rates of change, not the end
+//
+struct dollardite
+{
+	// ratio of physical to metric dimension
+   //
+	RCOORD time;  // metrical
+	RCOORD space;  // metrical
+
+	// change in dielectric induction is current in I (amps)
+	// PSI/t = I
+   /// I can be a displacment curernt or a conduction current
+	RCOORD dielctricity;  // physical
+   RCOORD PSI; // couloumb
+	// change in magnetic induction is voltage in E (volts)
+	// PHI/t = E
+	// E can be a kinetic force
+   // E can be a static potential
+
+
+	RCOORD magnetism;   // physical
+
+	// Q/PSI = electric induction Couloumb
+   // Q/PHI = electric induction weber
+
+   // change in magnetic / change in dielectric is impedance in Ohms
+	// PHI/PSI = Z in Ohms
+   // E = IR ( R = E/I)
+
+   // PHI *(cross product) PSI = Q (power) which is counterspace in per-cm
+
+	// dielectric/magnetic is admittance Y in Seimens
+   // Y = PSI/PHI
+
+	// Q in Planks is a union of two inductions
+	//  magnetic induction
+   //  dielectric induction
+	// a union is a multiplication.
+	// much like the union of two masses in gravitation is a multiplication
+   //
+
+
+	// S 1 = length   S2 = area  S3 = volume
+	// S-1 = span  S-2 = density S-3 = concentration
+	//  per-cm       per area           per volume
+
+
+
+
+
+};
+
+struct delta_dollardite
+{
+	// ratio of physical to metric dimension
+   //
+	RCOORD time;  // metrical
+	RCOORD space;  // metrical
+	// change in dielectric induction is current in I (amps)
+	// PSI/t = I
+	RCOORD dielctricity;  // physical
+
+
+	RCOORD magnetism;   // physical
+
+	// Q in Planks is a union of two inductions
+	//  magnetic induction
+   //  dielectric induction
+	// a union is a multiplication.
+	// much like the union of two masses in gravitation is a multiplication
+   //
+
+}
+
+
+static void NormalizeValues( RCOORD *a, RCOORD *b )
+{
+	RCOORD l = sqrt( (a[0] * a[0] ) + (b[0] + b[0] ) );
+	// sin/cos(a/b)...
+   // each scaled vector must be on the circle.
+   (*a) = (*a) / l;
+   (*b) = (*b) / l;
+
+}
+
 static LOGICAL ApplyProcess( struct particle *particle, struct particle *other_particle )
 {
 	RCOORD here_to_there[DIMENSIONS];
@@ -94,6 +181,8 @@ static LOGICAL ApplyProcess( struct particle *particle, struct particle *other_p
 		RCOORD accel[DIMENSIONS];
 		RCOORD tmp;
 		particle->gravity_falloff( &tmp, distance );
+		tmp = tmp * l.time_scale;
+
 		add_scaled( accel, particle->velocity, here_to_there, particle->mass * other_particle->mass * tmp );
 
       // falloffs are all the same, so just use the same result for now
@@ -101,12 +190,30 @@ static LOGICAL ApplyProcess( struct particle *particle, struct particle *other_p
 		add_scaled( accel, particle->velocity, here_to_there
 					 , -particle->charge * other_particle->charge * tmp ); // negative is away, if same sign, repel
 
+
+
+
+		if( CosAngle( here_to_there, particle->north ) > 0.707 )
+		{
+		}
       // falloffs are all the same, so just use the same result for now
 		//particle->charge_falloff( &tmp, distance );
 		add_scaled( accel, particle->velocity, here_to_there
 					 , particle->magnetism * other_particle->magnetism * tmp
 					  * CosAngle( particle->north, other_particle->north ) );
 		// at 180, north and north oppose, so -1 is away..
+
+		RAY north_plane;
+		RAY south_plane;
+      VECTOR tmp_v;
+		AddScaled( north_plane.o, particle->location, particle->north, particle->size / 2 );
+      SetPoint( north_plane.n, particle->north );
+		AddScaled( south_plane.o, particle->location, particle->north, -particle->size / 2 );
+		SetPoint( south_plane.n, particle->north );
+		Invert( south_plane.n );
+
+      if( AbovePlane( other_particle->north, add( tmp_v, other_particle->location, other_particle->north ), south_plane.n
+
 
 
 	}
@@ -231,19 +338,19 @@ static void ProcessParticles( void )
 
 static void gravity_falloff( RCOORD *result, RCOORD distance )
 {
-   return 1/distance;
+   return 1/(distance*distance);
 }
 
 
 static void charge_falloff( RCOORD *result, RCOORD distance )
 {
-   return 1/distance;
+   return 1/(distance*distance);
 }
 
 
 static void magnetism_falloff( RCOORD *result, RCOORD distance )
 {
-   return 1/distance;
+   return 1/(distance*distance*distance);
 }
 
 struct particle *SummonParticle( void )
