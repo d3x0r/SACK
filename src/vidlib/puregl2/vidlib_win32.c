@@ -1367,7 +1367,7 @@ WM_DROPFILES
 					hVideo = &l.hDialogVid[(l.nControlVid++) & 0xf];
 				}
 
-				SetWindowLong (hWnd, WD_HVIDEO, (long) hVideo);
+				SetWindowLong (hWnd, WD_HVIDEO, hVideo);
 
 				if (hVideo->flags.bFull)
 					hVideo->hDCOutput = GetWindowDC (hWnd);
@@ -1847,7 +1847,7 @@ PRELOAD( HostSystem_InitDisplayInfo )
 		wc.hInstance = GetModuleHandle (_WIDE(TARGETNAME));
 		wc.hbrBackground = (HBRUSH) (COLOR_WINDOW + 1);
 		wc.lpszClassName = WIDE( "GLVideoOutputClass" );
-		wc.cbWndExtra = 4;   // one extra DWORD
+		wc.cbWndExtra = sizeof( PVIDEO );   // one extra DWORD
 
 		l.aClass = RegisterClass (&wc);
 		if (!l.aClass)
