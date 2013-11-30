@@ -96,6 +96,14 @@
 
 #include <keybrd.h>
 
+
+#if defined( __64__ ) && defined( _WIN32 )
+#define SetWindowLong(a,b,c)   SetWindowLongPtr(a,b,(LONG_PTR)(c))
+#define GetWindowLong   GetWindowLongPtr
+#else
+#define SetWindowLong(a,b,c)   SetWindowLong(a,b,(long)(c))
+#endif
+
 static int stop;
 //HWND     hWndLastFocus;
 
@@ -2674,8 +2682,9 @@ WM_DROPFILES
 					if( !camera->plugins && !l.flags.bUpdateWanted )
 						continue;
 					
-					if( !camera->hVidCore || !camera->hVidCore->flags.bReady )
-						continue;
+					//if( !camera->hVidCore || !camera->hVidCore->flags.bReady )
+					//	continue;
+
 					// drawing may cause subsequent draws; so clear this first
 					RenderGL( camera );
 				}
@@ -2798,8 +2807,7 @@ WM_DROPFILES
 					// probably )... grab a static PVIDEO for this...
 					hVideo = &l.hDialogVid[(l.nControlVid++) & 0xf];
 				}
-
-				SetWindowLong (hWnd, WD_HVIDEO, (long) hVideo);
+				SetWindowLong (hWnd, WD_HVIDEO, hVideo);
 
 				if (hVideo->flags.bFull)
 					hVideo->hDCOutput = GetWindowDC (hWnd);
@@ -3495,6 +3503,7 @@ static struct display_camera *OpenCameras( void )
 								 | SWP_NOSIZE
 								);
 			}
+			/*
 			while( !camera->hVidCore->flags.bReady )
 			{
 				MSG Msg;
@@ -3505,6 +3514,7 @@ static struct display_camera *OpenCameras( void )
 					HandleMessage (Msg);
 				}
 			}
+			*/
 			if (!camera->hWndInstance)
 			{
 				return FALSE;
@@ -4122,7 +4132,7 @@ int  InitDisplay (void)
 		wc.hInstance = GetModuleHandle (_WIDE(TARGETNAME));
 		wc.hbrBackground = (HBRUSH) (COLOR_WINDOW + 1);
 		wc.lpszClassName = WIDE( "GLVideoOutputClass" );
-		wc.cbWndExtra = 4;   // one extra DWORD
+		wc.cbWndExtra = sizeof(PVIDEO);   // one extra DWORD
 
 		l.aClass = RegisterClass (&wc);
 		if (!l.aClass)
