@@ -89,7 +89,7 @@ set( COMMON_SOURCES
 	   SET( MOREFLAGS NTDDI_VERSION=0x06020000 )
 	   set( MORELIBS dcomp )
 	endif( WIN8_TARGET )
-    target_link_libraries( ${PROJECT} bag.image.pured3d ${SACK_CORE_LIBRARY} d3d11 DXGI d2d1 ${MORELIBS} )
+    target_link_libraries( ${PROJECT} bag.image.pured3d ${SACK_CORE_LIBRARY} d3d11 DXGI d2d1 ${MORELIBS} Dwmapi )
     install_mode_dest( ${PROJECT} )
     if( WIN8_SDK )
     
