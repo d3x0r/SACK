@@ -7,4 +7,6 @@ set( PNG_SOURCE
 	 ${PBASEDIR}/pngmem.c  ${PBASEDIR}/pngpread.c  ${PBASEDIR}/pngread.c  ${PBASEDIR}/pngerror.c  ${PBASEDIR}/pngwrite.c
 	  ${PBASEDIR}/pngrtran.c  ${PBASEDIR}/pngwtran.c  ${PBASEDIR}/pngrio.c  ${PBASEDIR}/pngwio.c )
           
-Set( ExternalExtraDefinitions ${ExternalExtraDefinitions};__PNG_LIBRARY_SOURCE__;PNG_BUILD_DLL )
+Set( ExternalExtraDefinitions ${ExternalExtraDefinitions};__PNG_LIBRARY_SOURCE__ )
+
+set_Source_files_properties( ${PNG_SOURCE}  APPEND PROPERTIES COMPILER_DEFINITIONS "SACK_PNG;PNG_BUILD_DLL" )
