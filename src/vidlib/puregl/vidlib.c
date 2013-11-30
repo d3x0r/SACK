@@ -2656,12 +2656,18 @@ WM_DROPFILES
 
 			{
 				INDEX idx;
+				int hadone = 0;
 				Update3dProc proc;
 				LIST_FORALL( l.update, idx, Update3dProc, proc )
 				{
+					hadone = 1;
 					if( proc( l.origin ) )
 						l.flags.bUpdateWanted = TRUE;
 				}
+				// for simple plugins that don't know any better
+				if( l.update && !hadone )
+					l.flags.bUpdateWanted = TRUE;
+
 			}
 
          // no reason to check this if an update is already wanted.
