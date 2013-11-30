@@ -16,8 +16,8 @@ MasterAvatarSandboxPassword = asdf
 
 #define MyRegion WIDE("Pantero")
 //#define MyIP WIDE("0.0.0.0")
-#define center_point_x 178
-#define center_point_y 173
+#define center_point_x 9910
+#define center_point_y 9929
 #define sub_uuid WIDE("bb29")
 #define center_point_uuid 584
 
@@ -45,9 +45,9 @@ int main( void )
          // use ports 9000 and above, don't center on port
          fprintf( output, WIDE("InternalPort = %d\n"), 9000 + (x*h+y) );
          fprintf( output, WIDE("AllowAlternatePorts = False\n") );
-         fprintf( output, WIDE("ExternalHostName = 127.0.0.1\n") );
-         fprintf( output, WIDE("MasterAvatarFirstName = master\n") );
-         fprintf( output, WIDE("MasterAvatarLastName = moose\n") );
+         fprintf( output, WIDE("ExternalHostName = d3x0r.org\n") );
+         fprintf( output, WIDE("MasterAvatarFirstName = Decker\n") );
+         fprintf( output, WIDE("MasterAvatarLastName = Thornfoot\n") );
 			fprintf( output, WIDE("MasterAvatarSandboxPassword = sandB0><\n") );
 			fprintf( output, WIDE(";NonphysicalPrimMax = 0\n") );
 			fprintf( output, WIDE(";PhysicalPrimMax = 0\n") );
@@ -56,5 +56,6 @@ int main( void )
          fprintf( output, WIDE("\n") );
 		}
 	}
+	fclose( output );
    return 0;
 }
