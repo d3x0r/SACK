@@ -19,6 +19,7 @@ typedef struct render_3d_interface_tag
 #endif
 #ifdef _D3D11_DRIVER
 	ID3D11Device *current_device;
+	ID3D11DeviceContext *current_device_context;
 	ID3D11RenderTargetView *current_target;
 	IDXGISwapChain *current_chain;
 #endif
@@ -26,6 +27,7 @@ typedef struct render_3d_interface_tag
 
 #if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER ) || defined( _D3D11_DRIVER )
 #define g_d3d_device  (USE_RENDER3D_INTERFACE)->current_device
+#define g_d3d_device_context  (USE_RENDER3D_INTERFACE)->current_device_context
 #endif
 
 // static PTRSZVAL OnInit3d( "Virtuality" )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
