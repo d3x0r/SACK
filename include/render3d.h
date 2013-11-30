@@ -19,14 +19,14 @@ typedef struct render_3d_interface_tag
 #endif
 #ifdef _D3D11_DRIVER
 	ID3D11Device *current_device;
-	ID3D11DeviceContext *current_device_context;
 	ID3D11RenderTargetView *current_target;
 	IDXGISwapChain *current_chain;
 #endif
 } RENDER3D_INTERFACE, *PRENDER3D_INTERFACE;
 
-#define g_d3d_device          (USE_RENDER3D_INTERFACE)->current_device
-#define g_d3d_device_context  (USE_RENDER3D_INTERFACE)->current_device_context
+#if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER ) || defined( _D3D11_DRIVER )
+#define g_d3d_device  (USE_RENDER3D_INTERFACE)->current_device
+#endif
 
 // static PTRSZVAL OnInit3d( "Virtuality" )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 // each Init is called once for each display that is opened; the application recevies the reference
@@ -75,21 +75,22 @@ typedef struct render_3d_interface_tag
 	__DefineRegistryMethod(WIDE("sack/render/puregl"),FirstDraw3d,WIDE("draw3d"),name,WIDE("FirstDraw3d"),void,(PTRSZVAL psvInit ),__LINE__)
 
 
-// static void OnDraw3d( "Virtuality" )( PTRSZVAL psvInit, PRAY mouse )
+// static void OnBeginDraw3d( "Virtuality" )( PTRSZVAL psvInit, PTRANSFORM camera )
 // this is called once for each display that is opened, and for each OnInit3d that did not return 0.
 // the psvInit is the init value returned, the mouse is the mouse as it is; it will be NULL if the mouse
 // is not in the current display and we are just drawing.
+// opportunity to override the camera position.
 #define OnBeginDraw3d(name) \
 	__DefineRegistryMethod(WIDE("sack/render/puregl"),BeginDraw3d,WIDE("draw3d"),name,WIDE("ExtraBeginDraw3d"),void,(PTRSZVAL psvUser,PTRANSFORM camera),__LINE__)
 
-// static void OnDraw3d( "Virtuality" )( PTRSZVAL psvInit, PRAY mouse )
+// static void OnDraw3d( "Virtuality" )( PTRSZVAL psvInit )
 // this is called once for each display that is opened, and for each OnInit3d that did not return 0.
 // the psvInit is the init value returned, the mouse is the mouse as it is; it will be NULL if the mouse
 // is not in the current display and we are just drawing.
 #define OnDraw3d(name) \
 	__DefineRegistryMethod(WIDE("sack/render/puregl"),Draw3d,WIDE("draw3d"),name,WIDE("ExtraDraw3d"),void,(PTRSZVAL psvUser),__LINE__)
 
-// static void OnMouse3d( "Virtuality" )( PTRSZVAL psvInit, PRAY mouse, _32 b )
+// static LOGICAL OnMouse3d( "Virtuality" )( PTRSZVAL psvInit, PRAY mouse, _32 b )
 // this is a real mouse event that is in a display that you returned non 0 during Init3d.
 // PRAY is the line represenging the point that the user has the mouse over at the moemnt.
 // mouse buttons are passed. for mouse state (may also be key state)
