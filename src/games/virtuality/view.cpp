@@ -126,8 +126,8 @@ void DrawLine( PCVECTOR p, PCVECTOR m, RCOORD t1, RCOORD t2, CDATA c )
 	VECTOR v1,v2;
 	glBegin( GL_LINES );
 	glColor4ubv( (unsigned char *)&c );
-	glVertex3dv( add( v1, scale( v1, m, t1 ), p ) );
-	glVertex3dv( add( v2, scale( v2, m, t2 ), p ) );
+	glVertex3fv( add( v1, scale( v1, m, t1 ), p ) );
+	glVertex3fv( add( v2, scale( v2, m, t2 ), p ) );
 	glEnd();
 }
 
@@ -767,15 +767,15 @@ if( 0 )
 	// be used for mast tracking.
 		glBegin( GL_LINE_STRIP );
 		glColor4ub( 255,255,255,255 );
-		//glVertex3dv( GetOrigin( T_camera ) );
-		glVertex3dv( GetOrigin( po->Ti ) );
-		glVertex3dv( VectorConst_0 );//GetOrigin( T_camera ) );	
+		//glVertex3fv( GetOrigin( T_camera ) );
+		glVertex3fv( GetOrigin( po->Ti ) );
+		glVertex3fv( VectorConst_0 );//GetOrigin( T_camera ) );	
 		glColor4ub( 255,0,0,255 );
-		glVertex3dv( VectorConst_X );//GetOrigin( T_camera ) );	
+		glVertex3fv( VectorConst_X );//GetOrigin( T_camera ) );	
 		glColor4ub( 255,0,255,255 );
-		glVertex3dv( VectorConst_Y );//GetOrigin( T_camera ) );	
+		glVertex3fv( VectorConst_Y );//GetOrigin( T_camera ) );	
 		glColor4ub( 255,255,0,255 );
-		glVertex3dv( VectorConst_Z );//GetOrigin( T_camera ) );	
+		glVertex3fv( VectorConst_Z );//GetOrigin( T_camera ) );	
 		glEnd();
 }
 		if( invert )
@@ -837,12 +837,12 @@ if( 0 )
 				if( l < normals )
 				{
 					Apply( (PCTRANSFORM)po->Ti, v, pvNormals[l] );
-					glNormal3dv( v );
+					glNormal3fv( v );
 				}
 
 				Apply( (PCTRANSFORM)po->Ti, v, pvPoints[l] );
 				//SetPoint( pvPoints[l], v );				
-				glVertex3dv( v );
+				glVertex3fv( v );
 			}
 			glEnd();
 		}
@@ -857,10 +857,10 @@ if( 0 )
 				//lprintf( WIDE("Vertex..") );
             //PrintVector(pvPoints[l] );
 				Apply( (PCTRANSFORM)po->Ti, v, pvPoints[l] );
-				glVertex3dv( v );
+				glVertex3fv( v );
 			}
 			Apply( (PCTRANSFORM)po->Ti, v, pvPoints[0] );
-			glVertex3dv( v );
+			glVertex3fv( v );
 			glEnd();
 		}
 #ifdef REPRESENT_OBJECT_FACET_NORMALS
@@ -870,10 +870,10 @@ if( 0 )
 			glBegin( GL_LINE_STRIP );
 			glColor4ub( 255,0,0,255 );
 			Apply( (PCTRANSFORM)po->Ti, v, pf->d.o );
-			glVertex3dv( v );
+			glVertex3fv( v );
 			ApplyRotation( (PCTRANSFORM)po->Ti, v2, pf->d.n );
 			addscaled( v, v, v2, 20 );
-			glVertex3dv( v );
+			glVertex3fv( v );
 			glEnd();
 		}
 #endif

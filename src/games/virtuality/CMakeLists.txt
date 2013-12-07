@@ -14,6 +14,7 @@ endif( __ANDROID__ )
 
 
 PROJECT( virtuality )
+ADD_DEFINITIONS( -DMAKE_RCOORD_SINGLE )
 
 ADD_DEFINITIONS( -DVIRTUALITY_LIBRARY_SOURCE ) 
 include_directories( "../include" )
