@@ -6,6 +6,7 @@
 #include <stdhdrs.h>
 #define USE_RENDER_INTERFACE l.pri
 #define USE_IMAGE_INTERFACE l.pii
+#define USE_RENDER_3D_INTERFACE l.pr3i
 #define NEED_VECTLIB_COMPARE
 
 // define local instance.
@@ -23,22 +24,30 @@
 #include <virtuality.h>
 //#include "local.h"
 
+#include "Sliders.h"
 
 static struct local_info
 {
 	PLIST loops;
 	PIMAGE_INTERFACE pii;
+	PRENDER3D_INTERFACE pr3i;
+	SliderFrame *sliders;
 } l;
 
+// loop requires l.pii
 #include "loop.h"
-
 
 static PTRSZVAL OnInit3d( "Seg Renderer" )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	l.pii = GetImageInterface();
-	Loop *loop = new Loop();
-	loop->MakeFlatRing( 9, 10, 32, _0, _Z );
-	AddLink( &l.loops, loop );
+	l.pr3i = GetRender3dInterface();
+
+	Loop *loop;
+	l.sliders = new SliderFrame();
+
+	//loop = new Loop();
+	//loop->MakeFlatRing( 9, 10, 32, _0, _Z );
+	//AddLink( &l.loops, loop );
 
 	RCOORD height = 4;
 	RCOORD R1_IN = 4;
@@ -54,6 +63,59 @@ static PTRSZVAL OnInit3d( "Seg Renderer" )( PMatrix projection, PTRANSFORM camer
 	// 4, 7, 10, 13
 	SetPoint( top, _0 );
 	top[vUp] = height;
+
+	if( 0 )
+	{
+		VECTOR v;
+		SetPoint( v, _Y );
+		Invert( v );
+
+		//loop->SetColor( MakeAlphaColor( 0, 5, 0, 64 ) );
+		loop = new Loop();
+		loop->MakeToneTower( top, v, 15, 0.612, 1.612 //2, 12 //0.5, 3
+			, 0, -12  // low-high
+			, 16, 16 ); // segment counts
+		AddLink( &l.loops, loop );
+	}
+
+	
+	{
+		int n;
+		PTRANSFORM t = CreateTransform();
+		int pt = 0;
+			VECTOR v[2];
+			VECTOR v1;
+			VECTOR o[2];
+			v[pt][vRight] = 1;
+			v[pt][vUp] = 5;
+			v[pt][vForward] = -2;
+			o[pt][vRight] = 1.0;
+			o[pt][vUp] = 0;
+			o[pt][vForward] = 0;
+		RotateAbs( t, 0, 3.14159 / 6, 0 );
+		for( n = 0; n < 12; n++ )
+		{
+			Apply( t, o[1-pt], o[pt] );						
+			Apply( t, v[1-pt], v[pt] );
+			pt = 1 - pt;
+			loop = new Loop();
+			loop->MakeFlatRing( 9, 10, 32, o[pt], v[pt] );
+			AddLink( &l.loops, loop );
+		}
+		for( n = 0; n < 12; n++ )
+		{
+			Apply( t, o[1-pt], o[pt] );						
+			Apply( t, v[1-pt], v[pt] );
+			pt = 1 - pt;
+
+			loop = new Loop();
+			loop->color = BASE_COLOR_RED;
+			loop->MakeVerticalRing( 9, 0.5, -0.5, 32, o[pt], v[pt] );
+			AddLink( &l.loops, loop );
+		}
+	}
+
+/*
 	AddLink( &l.loops, new Loop( R1_IN, R1_IN+(R1_OUT-R1_IN)*13/34, 32, top, _Y, BASE_COLOR_DARKGREY ) );
 	AddLink( &l.loops, new Loop( R1_IN+(R1_OUT-R1_IN)*13/34, R1_IN+(R1_OUT-R1_IN)*23/34, 32, top, _Y, BASE_COLOR_LIGHTGREY ) );
 	AddLink( &l.loops, new Loop( R1_IN+(R1_OUT-R1_IN)*23/34, R1_IN+(R1_OUT-R1_IN)*30/34, 32, top, _Y, BASE_COLOR_ORANGE ) );
@@ -170,6 +232,7 @@ static PTRSZVAL OnInit3d( "Seg Renderer" )( PMatrix projection, PTRANSFORM camer
 		loop->MakeFlatRing( 9, 10, 32, _0, v );
 		AddLink( &l.loops, loop );
 	}
+	*/
 	return 1;
 }
 
@@ -182,7 +245,109 @@ static void OnBeginDraw3d( "Seg Renderer" )( PTRSZVAL psvInit, PTRANSFORM camera
 
 }
 
-void OnDraw3d( "Seg Renderer" )( PTRSZVAL psvInit )
+static LOGICAL OnUpdate3d( "Seg Renderer" )( PTRANSFORM origin )
+{
+	PTRANSFORM pt_sliders = GetRenderTransform( GetFrameRenderer( l.sliders->frame ) );
+	VECTOR v;
+	VECTOR v2;
+	v[vForward] = 10;
+	v[vRight] = 50;
+	v[vUp] = -20;
+	GetOriginV( origin, v );
+	ApplyInverse( origin, v2, v );
+	ApplyRotationT( origin, pt_sliders, (PTRANSFORM)_I );
+	TranslateV( pt_sliders, v2 );
+	Invert( (P_POINT)GetAxis( pt_sliders, vUp ) );
+	MoveRight( pt_sliders, 250 );
+	MoveUp( pt_sliders, -250 );
+
+	//MoveForward( pt_sliders, 10 );
+	//MoveRight( pt_sliders, 50 );
+
+	{
+		static struct anim_state {
+			int t;
+			int target;
+			int span;
+			int mode; // 0 == expand origin
+		} a;
+		static int frame;
+		static int start_time;
+		int n;
+
+		if( !start_time )
+		{
+			start_time = timeGetTime();
+
+		}
+		frame++;
+		if( frame % 100 == 0 )
+		{
+			lprintf( "fps = %g", (float)frame / ((float)timeGetTime() - (float)start_time) );
+		}
+		if( !a.t )
+		{
+			a.t = timeGetTime();
+			a.mode = 0;
+			a.span = 2000;
+			a.target = a.t + a.span;
+		}
+		else
+		{
+			a.t = timeGetTime();
+			switch( a.mode )
+			{
+			case 0:
+				if( a.t > a.target )
+				{
+					a.mode = 0;
+					a.span = 3000;
+					a.target = a.t + a.span;
+				}
+				break;
+			}
+		}
+
+		PTRANSFORM t = CreateTransform();
+		int pt = 0;
+			VECTOR v[2];
+			VECTOR v1;
+			VECTOR o[2];
+			v[pt][vRight] = (l.sliders->values[0] - 128) / 50.0;
+			v[pt][vUp] = (l.sliders->values[1] - 128) / 50.0;
+			v[pt][vForward] = (l.sliders->values[2] - 128) / 50.0;
+			normalize( v[pt] );
+
+			//if( a.mode == 0 )
+			{
+				o[pt][vRight] = (l.sliders->values[3] - 128) / 8.0; //11.0 - ( 20.0 * (a.target-a.t) / a.span );
+				o[pt][vUp] = 0;
+				o[pt][vForward] = 0;
+			}
+			if( 0 )
+			{
+				o[pt][vRight] = 1.0;
+				o[pt][vUp] = 0;
+				o[pt][vForward] = 0;
+			}
+		RotateAbs( t, 0, 3.14159 / 6, 0 );
+		Loop *loop;
+		LIST_FORALL( l.loops, n, Loop *, loop )
+		{
+			Apply( t, o[1-pt], o[pt] );						
+			Apply( t, v[1-pt], v[pt] );
+			pt = 1 - pt;
+			if( n >= 12 )
+				loop->MakeVerticalRing( 9, 0.5, -0.5, 32, o[pt], v[pt] );
+			else
+				loop->MakeFlatRing( 9, 10, 32, o[pt], v[pt] );
+		}
+		DestroyTransform( t );
+	}
+	return TRUE;
+}
+
+static void OnDraw3d( "Seg Renderer" )( PTRSZVAL psvInit )
 {
 	INDEX idx;
 	Loop *loop;
