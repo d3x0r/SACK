@@ -1646,7 +1646,7 @@ void OpenWin32Camera( struct display_camera *camera )
 				l.redraw_timer_id = SetTimer( camera->hWndInstance, (UINT_PTR)1, 16, NULL );
 			}
 #ifdef _OPENGL_DRIVER
-			EnableOpenGL( camera->hVidCore );
+			EnableOpenGL( camera );
 #endif
 #if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER ) || defined( _D3D11_DRIVER )
 			EnableD3d( camera );
