@@ -4343,10 +4343,10 @@ RENDER_PROC( void, SetDisplayNoMouse )( PVIDEO hVideo, int bNoMouse )
 #ifndef NO_MOUSE_TRANSPARENCY
 			if( bNoMouse )
 			{
-				SetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE, GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) | WS_EX_TRANSPARENT );
+				SetWindowLongPtr( hVideo->hWndOutput, GWL_EXSTYLE, GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) | WS_EX_TRANSPARENT );
 			}
 			else
-				SetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE, GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) & ~WS_EX_TRANSPARENT );
+				SetWindowLongPtr( hVideo->hWndOutput, GWL_EXSTYLE, GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) & ~WS_EX_TRANSPARENT );
 #endif
 		}
 

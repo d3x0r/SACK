@@ -788,10 +788,10 @@ PVIDEO  OpenDisplaySizedAt (_32 attr, _32 wx, _32 wy, S_32 x, S_32 y) // if nati
 #ifndef NO_MOUSE_TRANSPARENCY
 			if( bNoMouse )
 			{
-				//SetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE, GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) | WS_EX_TRANSPARENT );
+				//_SetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE, _GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) | WS_EX_TRANSPARENT );
 			}
 			else
-				;//SetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE, GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) & ~WS_EX_TRANSPARENT );
+				;//_SetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE, _GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) & ~WS_EX_TRANSPARENT );
 #endif
 		}
 
