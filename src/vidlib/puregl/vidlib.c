@@ -98,10 +98,10 @@
 
 
 #if defined( __64__ ) && defined( _WIN32 )
-#define SetWindowLong(a,b,c)   SetWindowLongPtr(a,b,(LONG_PTR)(c))
+#define _SetWindowLong(a,b,c)   SetWindowLongPtr(a,b,(LONG_PTR)(c))
 #define GetWindowLong   GetWindowLongPtr
 #else
-#define SetWindowLong(a,b,c)   SetWindowLong(a,b,(long)(c))
+#define _SetWindowLong(a,b,c)   SetWindowLong(a,b,(long)(c))
 #endif
 
 static int stop;
@@ -377,7 +377,7 @@ void DoDestroy (PVIDEO hVideo)
    {
 #ifdef _WIN32
       hVideo->hWndOutput = NULL; // release window... (disallows FreeVideo in user call)
-      SetWindowLong (hVideo->hWndOutput, WD_HVIDEO, 0);
+      _SetWindowLong (hVideo->hWndOutput, WD_HVIDEO, 0);
 #endif
       if (hVideo->pWindowClose)
       {
@@ -2813,7 +2813,7 @@ WM_DROPFILES
 					// probably )... grab a static PVIDEO for this...
 					hVideo = &l.hDialogVid[(l.nControlVid++) & 0xf];
 				}
-				SetWindowLong (hWnd, WD_HVIDEO, hVideo);
+				_SetWindowLong (hWnd, WD_HVIDEO, hVideo);
 
 				if (hVideo->flags.bFull)
 					hVideo->hDCOutput = GetWindowDC (hWnd);
@@ -3639,7 +3639,7 @@ int CPROC VideoEventHandler( _32 MsgID, _32 *params, _32 paramlen )
 				{
 					if( !hVideo->flags.bInDestroy )
 					{
-						SetWindowLong( hVideo->hWndOutput, WD_HVIDEO, 0 );
+						_SetWindowLong( hVideo->hWndOutput, WD_HVIDEO, 0 );
 						Release( hVideo ); // last event in queue, should be safe to go away now...
 					}
 					SetLink( &l.pInactiveList, idx, NULL );
@@ -4434,7 +4434,7 @@ PVIDEO  MakeDisplayFrom (HWND hWnd)
 	Release( hNextVideo );
 	return NULL;
 #if 0
-	SetWindowLong( hWnd, GWL_WNDPROC, (DWORD)VideoWindowProc );
+	_SetWindowLong( hWnd, GWL_WNDPROC, (DWORD)VideoWindowProc );
 	{
 		CREATESTRUCT cs;
 		cs.lpCreateParams = (void*)hNextVideo;
@@ -4507,10 +4507,10 @@ PVIDEO  OpenDisplaySizedAt (_32 attr, _32 wx, _32 wy, S_32 x, S_32 y) // if nati
 #ifndef NO_MOUSE_TRANSPARENCY
 			if( bNoMouse )
 			{
-				SetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE, GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) | WS_EX_TRANSPARENT );
+				_SetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE, GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) | WS_EX_TRANSPARENT );
 			}
 			else
-				SetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE, GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) & ~WS_EX_TRANSPARENT );
+				_SetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE, GetWindowLong( hVideo->hWndOutput, GWL_EXSTYLE ) & ~WS_EX_TRANSPARENT );
 #endif
 		}
 

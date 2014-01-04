@@ -236,7 +236,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			HDROP hDrop = (HDROP)wParam;
 			// messages are thread safe.
 			static TEXTCHAR buffer[2048];
-			PVIDEO hVideo = (PVIDEO)GetWindowLong( hWnd, WD_HVIDEO );
+			PVIDEO hVideo = (PVIDEO)_GetWindowLong( hWnd, WD_HVIDEO );
 			INDEX nFiles = DragQueryFile( hDrop, INVALID_INDEX, NULL, 0 );
 			INDEX iFile;
 			POINT pt;
@@ -458,7 +458,7 @@ WM_DROPFILES
 				lprintf(WIDE("Got Killfocus new focus to %p %p"), hWnd, wParam);
 #endif
          l.hVidPhysicalFocused = NULL;
-         hVideo = (PVIDEO) GetWindowLong (hWnd, WD_HVIDEO);
+         hVideo = (PVIDEO) _GetWindowLong (hWnd, WD_HVIDEO);
 			if (hVideo)
 			{
 				if( hVideo->flags.bDestroy )
@@ -478,7 +478,7 @@ WM_DROPFILES
 					{
 						// don't really have a purpose for secondary argument...
 						PVIDEO hVidRecv =
-							(PVIDEO) GetWindowLong ((HWND) wParam, WD_HVIDEO);
+							(PVIDEO) _GetWindowLong ((HWND) wParam, WD_HVIDEO);
 						if (!hVidRecv)
 							hVidRecv = (PVIDEO) 1;
 						else
@@ -551,7 +551,7 @@ WM_DROPFILES
 #endif
 			if (LOWORD (wParam) == WA_ACTIVE || LOWORD (wParam) == WA_CLICKACTIVE)
 			{
-				hVideo = (PVIDEO) GetWindowLong (hWnd, WD_HVIDEO);
+				hVideo = (PVIDEO) _GetWindowLong (hWnd, WD_HVIDEO);
 				if (hVideo)
 				{
 #ifdef LOG_ORDERING_REFOCUS
@@ -585,7 +585,7 @@ WM_DROPFILES
 		break;
 #ifndef UNDER_CE
    case WM_NCPAINT:
-      hVideo = (PVIDEO) GetWindowLong (hWnd, WD_HVIDEO);
+      hVideo = (PVIDEO) _GetWindowLong (hWnd, WD_HVIDEO);
 		if (hVideo && hVideo->flags.bFull)   // do not allow system draw...
 		{
 			Return 0;
@@ -596,7 +596,7 @@ WM_DROPFILES
    case WM_WINDOWPOSCHANGING:
 	   {
 			LPWINDOWPOS pwp;
-			hVideo = (PVIDEO) GetWindowLong (hWnd, WD_HVIDEO);
+			hVideo = (PVIDEO) _GetWindowLong (hWnd, WD_HVIDEO);
 			if( !hVideo )
 			{
 #ifdef NOISY_LOGGING
@@ -745,7 +745,7 @@ WM_DROPFILES
 			// global hVideo is pPrimary Video...
 			LPWINDOWPOS pwp;
 			pwp = (LPWINDOWPOS) lParam;
-			hVideo = (PVIDEO) GetWindowLong (hWnd, WD_HVIDEO);
+			hVideo = (PVIDEO) _GetWindowLong (hWnd, WD_HVIDEO);
  #ifdef LOG_ORDERING_REFOCUS
 			if( !pwp->hwndInsertAfter )
 			{
@@ -826,7 +826,7 @@ WM_DROPFILES
 				TOUCHINPUT inputs[20];
 				struct input_point outputs[20];
 				int count = LOWORD(wParam);
-				PVIDEO hVideo = (PVIDEO)GetWindowLong( hWnd, WD_HVIDEO );
+				PVIDEO hVideo = (PVIDEO)_GetWindowLong( hWnd, WD_HVIDEO );
 				if( count > 20 )
 					count = 20;
 				l.GetTouchInputInfo( (HTOUCHINPUT)lParam, count, inputs, sizeof( TOUCHINPUT ) );
@@ -951,7 +951,7 @@ WM_DROPFILES
 			l.mouse_b = ( l.mouse_b & ~(MK_LBUTTON|MK_RBUTTON|MK_MBUTTON) ) | (int)wParam;
 		}
 		//hWndLastFocus = hWnd;
-		hVideo = (PVIDEO) GetWindowLong (hWnd, WD_HVIDEO);
+		hVideo = (PVIDEO) _GetWindowLong (hWnd, WD_HVIDEO);
 		if (!hVideo)
 		{
 			Return 0;
@@ -1100,7 +1100,7 @@ WM_DROPFILES
 		}
 			Return 0;         // don't allow windows to think about this...
 	case WM_SHOWWINDOW:
-		hVideo = (PVIDEO) GetWindowLong (hWnd, WD_HVIDEO);
+		hVideo = (PVIDEO) _GetWindowLong (hWnd, WD_HVIDEO);
 		if( hVideo )
 		{
 			//lprintf( "Show Window hidden = %d (%d)", wParam, !wParam );
@@ -1147,7 +1147,7 @@ WM_DROPFILES
 #ifdef LOG_DESTRUCTION
 		Log( WIDE("Destroying a window...") );
 #endif
-		hVideo = (PVIDEO) GetWindowLong (hWnd, WD_HVIDEO);
+		hVideo = (PVIDEO) _GetWindowLong (hWnd, WD_HVIDEO);
 		if (hVideo)
 		{
 #ifdef LOG_DESTRUCTION
@@ -1367,7 +1367,7 @@ WM_DROPFILES
 					hVideo = &l.hDialogVid[(l.nControlVid++) & 0xf];
 				}
 
-				SetWindowLong (hWnd, WD_HVIDEO, hVideo);
+				_SetWindowLong(hWnd, WD_HVIDEO, hVideo);
 
 				if (hVideo->flags.bFull)
 					hVideo->hDCOutput = GetWindowDC (hWnd);
