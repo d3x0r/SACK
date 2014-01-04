@@ -9,4 +9,4 @@ set( PNG_SOURCE
           
 Set( ExternalExtraDefinitions ${ExternalExtraDefinitions};__PNG_LIBRARY_SOURCE__ )
 
-set_Source_files_properties( ${PNG_SOURCE}  APPEND PROPERTIES COMPILER_DEFINITIONS "SACK_PNG;PNG_BUILD_DLL" )
+set_Source_files_properties( ${PNG_SOURCE}  APPEND PROPERTIES COMPILE_DEFINITIONS "SACK_PNG;PNG_BUILD_DLL" )
