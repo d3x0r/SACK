@@ -12,6 +12,14 @@
 #include "regaccess.h"
 extern HINSTANCE hInstMe;
 
+#if defined( __64__ ) && defined( _WIN32 )
+#define _SetWindowLong(a,b,c)   SetWindowLongPtr(a,b,(LONG_PTR)(c))
+#define _GetWindowLong   GetWindowLongPtr
+#else
+#define _SetWindowLong(a,b,c)   SetWindowLong(a,b,(long)(c))
+#define _GetWindowLong(a,b)   GetWindowLong(a,b)
+#endif
+
 //----------------------------------------------------------------------------
 // only one master copy of this is really needed...
 static COLORREF crColorTable[16] = { RGB( 0,0,0 ), RGB( 0, 0, 128 ), RGB( 0, 128, 0 )
@@ -278,7 +286,7 @@ int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       break;
    case WM_KILLFOCUS:
     {
-         pdp = (PCONSOLE_INFO)GetWindowLong( hWnd, WD_CONSOLE_INFO );
+         pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
          if( pdp )
             pdp->dwControlKeyState = 0;
        }
@@ -286,7 +294,7 @@ int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       break;
    case WM_DESTROY:
       {
-         pdp = (PCONSOLE_INFO)GetWindowLong( hWnd, WD_CONSOLE_INFO );
+         pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
          if( pdp ) // check this to avoid double destruction
          {
              pdp->wincon.hWnd = NULL; // clear this so it's not double destroyed...
@@ -295,7 +303,7 @@ int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 // magic happens here cause common is first thing in structure.
            	DestroyDataPath( (PDATAPATH)&(pdp->common) );
 #endif
-           	SetWindowLong( pdp->wincon.hWnd, WD_CONSOLE_INFO, 0 );
+           	_SetWindowLong( pdp->wincon.hWnd, WD_CONSOLE_INFO, 0 );
         }
       }
       break;
@@ -324,7 +332,7 @@ int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       if( ( LOWORD( wParam ) >= MNU_BKBLACK ) &&
           ( LOWORD( wParam ) <= MNU_BKWHITE ) )
       {
-         pdp = (PCONSOLE_INFO)GetWindowLong( hWnd, WD_CONSOLE_INFO );
+         pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
          lprintf( WIDE("Set Default COlor background") );
          SetHistoryDefaultBackground( pdp->pCursor, LOWORD( wParam ) - MNU_BKBLACK );
          {
@@ -338,7 +346,7 @@ int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       else if( ( LOWORD( wParam ) >= MNU_BLACK ) &&
                ( LOWORD( wParam ) <= MNU_WHITE ) )
       {
-         pdp = (PCONSOLE_INFO)GetWindowLong( hWnd, WD_CONSOLE_INFO );
+         pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
          lprintf( WIDE("Set Default COlor Foreground") );
          SetHistoryDefaultForeground( pdp->pCursor, LOWORD( wParam ) - MNU_BKBLACK );
          {
@@ -353,7 +361,7 @@ int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       {
       case MNU_DIRECT:
          {
-            pdp = (PCONSOLE_INFO)GetWindowLong( hWnd, WD_CONSOLE_INFO );
+            pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
             pdp->flags.bDirect ^= 1;
             {
 #ifdef __DEKWARE_PLUGIN__
@@ -372,7 +380,7 @@ int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       case MNU_HISTORYSIZE75:
       case MNU_HISTORYSIZE100:
          {
-            pdp = (PCONSOLE_INFO)GetWindowLong( hWnd, WD_CONSOLE_INFO );
+            pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
 				pdp->nHistoryPercent =  LOWORD( wParam ) - MNU_HISTORYSIZE25;
             EnterCriticalSec( &pdp->Lock );
             WinLogicCalculateHistory( pdp );
@@ -388,7 +396,7 @@ int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
          break;
       case MNU_FONT:
          {
-            pdp = (PCONSOLE_INFO)GetWindowLong( hWnd, WD_CONSOLE_INFO );
+            pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
             pdp->wincon.cfFont.hwndOwner = hWnd;
             if( ChooseFont( &pdp->wincon.cfFont ) )
             {
@@ -436,7 +444,7 @@ int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       {
          int cmd;
          POINT mpos;
-         pdp = (PCONSOLE_INFO)GetWindowLong( hWnd, WD_CONSOLE_INFO );
+         pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
          GetCursorPos( &mpos );
          CheckMenuItem( hHistoryMenu
                        , MNU_HISTORYSIZE25+pdp->nHistoryPercent
@@ -460,7 +468,7 @@ int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         {   
             RECT r;
             int row, col, xPos, yPos;
-          pdp = (PCONSOLE_INFO)GetWindowLong( hWnd, WD_CONSOLE_INFO );
+			pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
             GetWindowRect( hWnd, &r );
             xPos = LOWORD(lParam) - r.left; 
             yPos = HIWORD(lParam) - r.top; 
@@ -468,7 +476,7 @@ int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             if( 0 )
    case WM_LBUTTONDOWN:
             {   
-              pdp = (PCONSOLE_INFO)GetWindowLong( hWnd, WD_CONSOLE_INFO );
+				pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
                 xPos = LOWORD(lParam); 
                 yPos = HIWORD(lParam); 
             }
@@ -489,13 +497,13 @@ int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
     case WM_NCLBUTTONUP:
             mouse_buttons &= ~MK_LBUTTON;
             GetWindowRect( hWnd, &r );
-            pdp = (PCONSOLE_INFO)GetWindowLong( hWnd, WD_CONSOLE_INFO );
+            pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
             xPos = LOWORD(lParam) - r.left; 
             yPos = HIWORD(lParam) - r.top; 
             if( 0 )
             {
     case WM_LBUTTONUP:
-                pdp = (PCONSOLE_INFO)GetWindowLong( hWnd, WD_CONSOLE_INFO );
+                pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
                 mouse_buttons = wParam;
                 xPos = LOWORD(lParam); 
                 yPos = HIWORD(lParam); 
@@ -583,7 +591,7 @@ do_mark_copy:
             RECT r;
             //static int _row, _col;
             GetWindowRect( hWnd, &r );
-				pdp = (PCONSOLE_INFO)GetWindowLong( hWnd, WD_CONSOLE_INFO );
+				pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
 				xPos = ( LOWORD(lParam) - r.left ) - ( GetSystemMetrics( SM_CXSIZE ) +
 															 GetSystemMetrics( SM_CXBORDER ) +
 																  GetSystemMetrics( SM_CXFRAME ) );
@@ -604,7 +612,7 @@ do_mark_copy:
             if( 0 )
             {
     case WM_MOUSEMOVE:
-				pdp = (PCONSOLE_INFO)GetWindowLong( hWnd, WD_CONSOLE_INFO );
+				pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
                 xPos = LOWORD(lParam); 
                 yPos = HIWORD(lParam); 
                 mouse_buttons = wParam;
@@ -675,7 +683,7 @@ do_mark_copy:
 		{
 			//LPWINDOWPOS pos = (LPWINDOWPOS)lParam;
 			// can get pos changed when destroyed.
-			pdp = (PCONSOLE_INFO)GetWindowLong( hWnd, WD_CONSOLE_INFO );
+			pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
 			if( pdp )
 			{
 				GetClientRect( pdp->wincon.hWnd, &pdp->rArea );
@@ -686,12 +694,15 @@ do_mark_copy:
 		break;
    case WM_PAINT:
 		{
-			pdp = (PCONSOLE_INFO)GetWindowLong( hWnd, WD_CONSOLE_INFO );
-			//Log( WIDE("Attempt enter painting...") );
-			EnterCriticalSec( &pdp->Lock );
-			RenderConsole( pdp );
-			LeaveCriticalSec( &pdp->Lock );
-			//Log( WIDE("Left critical section pdp") );
+			pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
+			if( pdp )
+			{
+				//Log( WIDE("Attempt enter painting...") );
+				EnterCriticalSec( &pdp->Lock );
+				RenderConsole( pdp );
+				LeaveCriticalSec( &pdp->Lock );
+				//Log( WIDE("Left critical section pdp") );
+			}
 		}
 		break;
 
@@ -705,7 +716,7 @@ do_mark_copy:
 #ifdef __DEKWARE_PLUGIN__
 				SetWindowText( hWnd, GetText( GetName( pdp->common.Owner->Current ) ) );
 #endif
-            SetWindowLong( hWnd, WD_CONSOLE_INFO, (LONG)pdp );
+            _SetWindowLong( hWnd, WD_CONSOLE_INFO, (PTRSZVAL)pdp );
             {
                pdp->wincon.hbrBackground = CreateSolidBrush( pdp->wincon.crBackground );
                pdp->wincon.hbrCommandBackground = CreateSolidBrush( pdp->wincon.crCommandBackground );
@@ -769,7 +780,7 @@ int CALLBACK FrameWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       {
     case MNU_PASTE:
         {
-          PCONSOLE_INFO pdp = (PCONSOLE_INFO)GetWindowLong( hWndFocused, WD_CONSOLE_INFO );
+          PCONSOLE_INFO pdp = (PCONSOLE_INFO)_GetWindowLong( hWndFocused, WD_CONSOLE_INFO );
             KeystrokePaste( pdp );
         }
         break;
@@ -945,7 +956,7 @@ static LRESULT CALLBACK KeyHook(
          ker.uChar.UnicodeChar = 0;
          ker.dwControlKeyState = 0;
 
-         KeyEventProc( (PCONSOLE_INFO)GetWindowLong( GetFocus(), WD_CONSOLE_INFO ), ker );
+         KeyEventProc( (PCONSOLE_INFO)_GetWindowLong( GetFocus(), WD_CONSOLE_INFO ), ker );
    }
    return CallNextHookEx( hKeyHook, code, wParam, lParam );
 }
@@ -978,29 +989,28 @@ void CreateFrameWindow( void )
 static int WindowRegistered;
 int RegisterWindows( void )
 {
-   WNDCLASS wc;
+	WNDCLASS wc;
 //   WindowBorderHeight = ( GetSystemMetrics( SM_CYBORDER ) * 2 )
 //                      + GetSystemMetrics( SM_CYCAPTION );
-   if( WindowRegistered )
-      return TRUE;
-   if( !aClassFrame )
-   {
-      memset( &wc, 0, sizeof(WNDCLASS) );
-      wc.style = CS_OWNDC | CS_GLOBALCLASS;
+	if( WindowRegistered )
+		return TRUE;
+	if( !aClassFrame )
+	{
+		memset( &wc, 0, sizeof(WNDCLASS) );
+		wc.style = CS_OWNDC | CS_GLOBALCLASS;
 
-      wc.lpfnWndProc = (WNDPROC)FrameWindowProc;
-      wc.hInstance = hInstMe; // GetModuleHandle(NULL);
-      wc.hbrBackground = (HBRUSH)( COLOR_WINDOW + 1);
-      wc.hCursor = LoadCursor( NULL, IDC_ARROW );
-      wc.lpszClassName = WIDE("DekwareFrameClass");
-      wc.lpszMenuName = WIDE("FRAME_MENU");
-      wc.cbWndExtra = 4;  // one extra DWORD
+		wc.lpfnWndProc = (WNDPROC)FrameWindowProc;
+		wc.hInstance = hInstMe; // GetModuleHandle(NULL);
+		wc.hbrBackground = (HBRUSH)( COLOR_WINDOW + 1);
+		wc.hCursor = LoadCursor( NULL, IDC_ARROW );
+		wc.lpszClassName = WIDE("DekwareFrameClass");
+		wc.lpszMenuName = WIDE("FRAME_MENU");
+		wc.cbWndExtra = sizeof( PTRSZVAL );  // one extra POINTER
 
-
-      aClassFrame = RegisterClass( &wc );
-      if( !aClassFrame )
-         return FALSE;
-   }
+		aClassFrame = RegisterClass( &wc );
+		if( !aClassFrame )
+			return FALSE;
+	}
    if( !aClassChild )
    {
       memset( &wc, 0, sizeof(WNDCLASS) );
@@ -1018,7 +1028,7 @@ int RegisterWindows( void )
          //wc.hbrBackground = (HBRUSH)(COLOR_BTNFACE+1);
       }
       wc.lpszClassName = WIDE("DekwareChildClass");
-      wc.cbWndExtra = 4;  // one extra DWORD
+      wc.cbWndExtra = sizeof( PTRSZVAL );  // one extra POINTER
 
       aClassChild = RegisterClass( &wc );
       if( !aClassChild )
@@ -1198,10 +1208,10 @@ static int CPROC Close( PDATAPATH pPath )
 	DestroyHistoryBrowser( pdp->pCurrentDisplay );
 	DestroyHistoryBrowser( pdp->pHistoryDisplay );
 
-   pdp->CurrentMarkInfo = NULL;
+	pdp->CurrentMarkInfo = NULL;
 	pdp->CurrentLineInfo = NULL;
 
-	SetWindowLong( pdp->wincon.hWnd, WD_CONSOLE_INFO, 0 );
+	_SetWindowLong( pdp->wincon.hWnd, WD_CONSOLE_INFO, 0 );
 	if( pdp->wincon.hWnd )
 	{
 		SendMessage( hWndMDI, WM_MDIDESTROY, (WPARAM)pdp->wincon.hWnd, 0 );

@@ -37,12 +37,12 @@ typedef void (CPROC *MainFunction )( int argc, TEXTCHAR **argv, int bConsole );
 //--------------------------------------------------------------------------
 
 typedef struct plugin_tag {
-   TEXTCHAR pName[64];
 	//   HANDLE hModule;
 	RegisterRoutinesProc RegisterRoutines;
    UnloadPluginProc Unload;
 // maybe track all device_tags and routine_tags registered...
    struct plugin_tag *pNext, *pPrior;
+   TEXTCHAR pName[];
 } PLUGIN, *PPLUGIN;
 
 static PPLUGIN pPlugins, pPluginLoading; // list of modules we loaded....
@@ -70,9 +70,9 @@ void DumpLoadedPluginList( PSENTIENT ps )
 PPLUGIN AddPlugin( CTEXTSTR pName, RegisterRoutinesProc RegisterRoutines, void (CPROC *Unload)(void) )
 {
    PPLUGIN pPlugin;
-   pPlugin = New( PLUGIN );
+   pPlugin = NewPlus( PLUGIN, StrLen( pName ) );
    MemSet( pPlugin, 0, sizeof( PLUGIN ) );
-	strcpy( pPlugin->pName, pName );
+	StrCpy( pPlugin->pName, pName );
    pPlugin->RegisterRoutines = RegisterRoutines;
    pPlugin->Unload = Unload;
    pPluginLoading = pPlugin;
@@ -435,7 +435,7 @@ Function GetRoutineRegistered( TEXTSTR prefix, PTEXT Command )
 	if( prefix )
 		snprintf( tmp, sizeof( tmp ), WIDE("dekware/commands/%s"), prefix );
 	else
-		strcpy( tmp, WIDE("dekware/commands") );
+		StrCpy( tmp, WIDE("dekware/commands") );
 
 	f = GetRegisteredProcedure2( tmp, int, GetText(Command), (PSENTIENT,PTEXT) );
 	//if( !f )
