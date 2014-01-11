@@ -35,6 +35,9 @@ CORE_CPROC( PDATAPATH, DestroyDataPathEx)( PDATAPATH pdp DBG_PASS);
 CORE_CPROC( void, SetDatapathType )( PDATAPATH pdp, int nType );
 
 void LoadPlugin( CTEXTSTR pFile, PSENTIENT ps, PTEXT parameters );
+// callback for ScanFiles; calls LoadPlugin with ps=NULL and parameters=NULL
+// called from scanfiles in syscmds too right now...
+void CPROC LoadAPlugin( PTRSZVAL psv, CTEXTSTR name, int flags );
 void Unload    ( PTEXT pCommandName );
 void DumpLoadedPluginList( PSENTIENT ps );
 

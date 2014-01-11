@@ -144,6 +144,7 @@ void LoadPlugin( CTEXTSTR pFile, PSENTIENT ps, PTEXT parameters )
    RegisterRoutinesProc RegisterRoutines;
    TEXTCHAR *pVersion;
    gpFile = pFile;
+
    //Log1( WIDE("Loading Plugin %s"), pFile );
    if( pFile )
 	{
@@ -237,7 +238,7 @@ void LoadPlugin( CTEXTSTR pFile, PSENTIENT ps, PTEXT parameters )
    CommitPlugin();
 }
 
-static void CPROC LoadAPlugin( PTRSZVAL psv, CTEXTSTR name, int flags )
+void CPROC LoadAPlugin( PTRSZVAL psv, CTEXTSTR name, int flags )
 {
    LoadPlugin( name, NULL, NULL );
 }

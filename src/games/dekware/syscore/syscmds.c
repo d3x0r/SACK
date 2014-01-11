@@ -306,10 +306,28 @@ int CPROC SAVE( PSENTIENT ps, PTEXT parameters )
 int CPROC PLUGIN( PSENTIENT ps, PTEXT parameters )
 {
 	PTEXT temp;
-   if( ( temp = GetParam( ps, &parameters ) ) )
-   {
-      LoadPlugin( GetText( temp ), ps, parameters );
-   }
+	if( ( temp = GetFileName( ps, &parameters ) ) )
+	{
+		POINTER pInfo = NULL;
+		TEXTSTR base = StrDup( GetText( temp ) );
+		TEXTSTR mask = pathrchr( base );
+		if( mask )
+		{
+			mask[0] = 0;
+			mask++;
+		}
+		else
+		{
+			mask = base;
+			base = NULL;
+		}
+		while( ScanFiles( base, mask, &pInfo, LoadAPlugin, 0, 0 ) );
+		if( base ) 
+			Release( base );
+		else
+			Release( mask );
+		//LoadPlugin( GetText( temp ), ps, parameters );
+	}
 	return FALSE;
 }
 
