@@ -293,22 +293,22 @@ PRELOAD( InitLoginMon )
 
 		// Check if logging is to be turned on
 		l.flags.bLog = SACK_GetPrivateProfileInt( GetProgramName(), WIDE( "SQL Password/Do Logging" ), 0, WIDE( "security.ini" ) );
-		l.flags.bLogSleeps = SACK_GetPrivateProfileInt( GetProgramName(), WIDE( "SQL Password/Do Logging (Sleeps)" ), 0, WIDE( "security.ini" ) );
+		l.flags.bLogSleeps = SACK_GetPrivateProfileInt( GetProgramName(), WIDE( "SQL Password/Do Logging (Sleeps)" ), 0, NULL );
 		lprintf( WIDE(" Inactivity Service has been started.") );
 
 		// Set up for pulling options
-		SACK_GetPrivateProfileString( GetProgramName(), WIDE( "DSN" ), WIDE( "MySQL" ), l.option_dsn, sizeof( l.option_dsn ), WIDE( "security.ini" ) );
+		SACK_GetPrivateProfileString( GetProgramName(), WIDE( "DSN" ), WIDE( "MySQL" ), l.option_dsn, sizeof( l.option_dsn ), NULL );
 		odbc = GetOptionODBC( l.option_dsn, 1 );
 
 		// Get Idle Time ( Minutes )
-		l.iIdleTime = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Timeouts"), WIDE("idle"), 30, WIDE("AIMS_SL") );
+		l.iIdleTime = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Timeouts"), WIDE("idle"), 30, NULL );
 		lprintf( WIDE(" Idle Time: %d minutes"), l.iIdleTime );
 
 		// If option enabled
 		if( l.iIdleTime )
 		{
 			// Get Screen Saver Wait Time ( Seconds )
-			l.iScreenSaverWaitTime = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Timeouts"), WIDE("message time"), 10, WIDE("AIMS_SL") );
+			l.iScreenSaverWaitTime = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Timeouts"), WIDE("message time"), 10, NULL );
 			lprintf( WIDE(" Screen Saver Wait Time: %d seconds"), l.iScreenSaverWaitTime );
 
 			// Get Process List
@@ -333,12 +333,12 @@ ATEXIT( ExitLoginMon )
 {
 	if( g.flags.bInitializeLogins )
 	{
-	// Log Service Stopped
-	lprintf( WIDE(" Inactivity Service has stopped.") );
-	
-	// Unhook hooks
-	UnhookWindowsHookEx( l.gMouseHook );
-	UnhookWindowsHookEx( l.gKeyboardHook );
+		// Log Service Stopped
+		lprintf( WIDE(" Inactivity Service has stopped.") );
+
+		// Unhook hooks
+		UnhookWindowsHookEx( l.gMouseHook );
+		UnhookWindowsHookEx( l.gKeyboardHook );
 	}
 }
 
