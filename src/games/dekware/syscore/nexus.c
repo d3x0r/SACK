@@ -1372,6 +1372,11 @@ int InitSpace( const TEXTCHAR *command_line )
 		LineRelease( temp );
 		AddMacroCommand( global.script, cmd);
 		
+		vtprintf( pvt, WIDE("/endif") );
+		cmd = burst( temp = VarTextGet( pvt ) );
+		LineRelease( temp );
+		AddMacroCommand( global.script, cmd);
+		
 		vtprintf( pvt, WIDE("/endmac") );
 		cmd = burst( temp = VarTextGet( pvt ) );
 		LineRelease( temp );
