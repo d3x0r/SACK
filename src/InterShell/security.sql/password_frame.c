@@ -37,7 +37,7 @@ struct user_list_user_tracker
 		BIT_FIELD bHasOverride : 1;
 	} flags;
 	CTEXTSTR required_login_id;
-	CTEXTSTR required_login_session;
+	CTEXTSTR required_login_shift;
 };
 
 //--------------------------------------------------------------------------------
@@ -383,8 +383,8 @@ void FillList( CTEXTSTR *tokens, int nTokens, PSQL_PASSWORD pls )
 		{
 			if( user->required_login_id )
 				Release( user->required_login_id );
-			if( user->required_login_session )
-				Release( user->required_login_session );
+			if( user->required_login_shift )
+				Release( user->required_login_shift );
 			Release( user );
 		}
 		EmptyList( &l.selectable_users );
@@ -395,7 +395,7 @@ void FillList( CTEXTSTR *tokens, int nTokens, PSQL_PASSWORD pls )
 	{
 		PVARTEXT pvt_query = VarTextCreate();
 		CTEXTSTR *results;
-		vtprintf( pvt_query, WIDE("select user_id,login_id,session,bingoday from login_history ")
+		vtprintf( pvt_query, WIDE("select user_id,login_id,shift,fiscalday from login_history ")
 					WIDE("join program_identifiers using (program_id) ")
 					WIDE("where logout_whenstamp=11111111111111 ")
 					WIDE("and program_name='%s'"),
@@ -421,7 +421,7 @@ void FillList( CTEXTSTR *tokens, int nTokens, PSQL_PASSWORD pls )
 						user_entry->flags.bHasOverride = 0;
 						user_entry->flags.bHasLogin = 1;
 						user_entry->required_login_id = StrDup( results[1] );
-						user_entry->required_login_session = StrDup( results[2] );
+						user_entry->required_login_shift = StrDup( results[2] );
 						{
 							TEXTCHAR tmp[128];
 							snprintf( tmp, 128, WIDE("%s\t%s\tS:%s"), user->full_name, results[3], results[2] );
@@ -460,7 +460,7 @@ void FillList( CTEXTSTR *tokens, int nTokens, PSQL_PASSWORD pls )
 							user_entry->flags.bHasOverride = 1;
 							user_entry->flags.bHasLogin = 0;
 							user_entry->required_login_id = NULL;
-							user_entry->required_login_session = NULL;
+							user_entry->required_login_shift = NULL;
 							SetItemData( AddListItem( l.user_list, user->full_name ), (PTRSZVAL)user_entry );
 							break;
 						}
@@ -504,7 +504,7 @@ void FillList( CTEXTSTR *tokens, int nTokens, PSQL_PASSWORD pls )
 				user_entry->flags.bHasOverride = 0;
 				user_entry->flags.bHasLogin = 0;
 				user_entry->required_login_id = NULL;
-				user_entry->required_login_session = NULL;
+				user_entry->required_login_shift = NULL;
 				SetItemData( AddListItem( l.user_list, user->full_name ), (PTRSZVAL)user_entry );	
 			}
 		}		
@@ -521,7 +521,7 @@ void FillList( CTEXTSTR *tokens, int nTokens, PSQL_PASSWORD pls )
 			user_entry->flags.bHasOverride = 0;
 			user_entry->flags.bHasLogin = 0;
 			user_entry->required_login_id = NULL;
-			user_entry->required_login_session = NULL;
+			user_entry->required_login_shift = NULL;
 			SetItemData( AddListItem( l.user_list, user->full_name ), (PTRSZVAL)user_entry );				
 		}	
 
@@ -998,9 +998,9 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 					if( l.selected_user_item->flags.bHasLogin )
 					{
                   password_info->actual_login_id = atoi( l.selected_user_item->required_login_id );
-						DoSQLCommandf( WIDE("insert into login_history (actual_login_id,session,bingoday,system_id,program_id,user_id,login_whenstamp) values (%s,%s,%s,%d,%d,%d,now())")
+						DoSQLCommandf( WIDE("insert into login_history (actual_login_id,shift,fiscalday,system_id,program_id,user_id,login_whenstamp) values (%s,%s,%s,%d,%d,%d,now())")
 							, l.selected_user_item->required_login_id
-							, l.selected_user_item->required_login_session
+							, l.selected_user_item->required_login_shift
 							, GetSQLOffsetDate( NULL, WIDE("Fiscal"), 5 )
 							, g.system_id
 							, program?GetProgramID( program ):l.program_id
@@ -1010,7 +1010,7 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 					else
 					{
 						// override, and normal login, use this, not a chain login
-						DoSQLCommandf( WIDE("insert into login_history (bingoday,system_id,program_id,user_id,login_whenstamp) values (%s,%d,%d,%d,now())")
+						DoSQLCommandf( WIDE("insert into login_history (fiscalday,system_id,program_id,user_id,login_whenstamp) values (%s,%d,%d,%d,now())")
 										 , GetSQLOffsetDate( NULL, WIDE("Fiscal"), 5 ), g.system_id, program?GetProgramID( program ):l.program_id, l.user->id );
 					}
 					// Get Login ID
@@ -4142,7 +4142,12 @@ PRIORITY_PRELOAD( Init_password_frame, DEFAULT_PRELOAD_PRIORITY-1 )
 	CreateKeypadType( WIDE("Create Token Keypad") );
 	CreateKeypadType( WIDE("Create User Keypad") );	
 
-	g.flags.bInitializeLogins = SACK_GetProfileInt( GetProgramName(), WIDE("SECURITY/Initialize Logins"), 1 );
+#ifdef _DEBUG
+#define DEFAULT_LOGIN_INIT 0
+#else
+#define DEFAULT_LOGIN_INIT 1
+#endif
+	g.flags.bInitializeLogins = SACK_GetProfileInt( GetProgramName(), WIDE("SECURITY/Initialize Logins"), DEFAULT_LOGIN_INIT );
 	l.flags.bCreateSystemLogin = SACK_GetProfileInt( GetProgramName(), WIDE("SECURITY/Create System Login"), 0 );
 
 	l.displays_wide = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Expected displays wide"), 1, TRUE );
@@ -4155,41 +4160,41 @@ PRIORITY_PRELOAD( Init_password_frame, DEFAULT_PRELOAD_PRIORITY-1 )
 		odbc = GetOptionODBC( option_dsn, 1 );
 	}
 	 	
-	l.bad_login_limit = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/SYSTEM/Login Failure"), WIDE("Limit"), 5, WIDE("AIMS_SL") );	
+	l.bad_login_limit = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/SYSTEM/Login Failure"), WIDE("Limit"), 5, NULL );
 	lprintf( WIDE(" Login attempt limit for locking a user account: %d"), l.bad_login_limit );	
 
-	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password"), WIDE("Lock Interval"), WIDE("30 MINUTE"), buf2, 20, WIDE("AIMS_SL") );
+	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password"), WIDE("Lock Interval"), WIDE("30 MINUTE"), buf2, 20, NULL );
 	l.bad_login_interval = StrDup(buf2);
 	lprintf( WIDE(" Time interval to keep user locked out for: %s"), l.bad_login_interval );		
 
-	l.flags.does_pass_expr = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password Expires"), WIDE("Enabled"), 1, WIDE("AIMS_SL") );
+	l.flags.does_pass_expr = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password Expires"), WIDE("Enabled"), 1, NULL );
 	lprintf( WIDE(" Does Password Expire: %u"), l.flags.does_pass_expr );
 
-	g.pass_expr_interval = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password Expires"), WIDE("Days"), 30, WIDE("AIMS_SL") );
+	g.pass_expr_interval = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password Expires"), WIDE("Days"), 30, NULL );
 	lprintf( WIDE(" Time interval for password expiration ( days ): %d"), g.pass_expr_interval );
 	  
-	l.pass_check_num = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password Reusable"), WIDE("Number"), 8, WIDE("AIMS_SL") );	
+	l.pass_check_num = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password Reusable"), WIDE("Number"), 8, NULL );	
 	lprintf( WIDE(" The number of old passwords to check against: %d"), l.pass_check_num );
 	
-	l.pass_check_days = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password Reusable"), WIDE("Days"), 90, WIDE("AIMS_SL") );	
+	l.pass_check_days = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password Reusable"), WIDE("Days"), 90, NULL );	
 	lprintf( WIDE(" The days before an old password can be used: %d"), l.pass_check_days );
 
-	l.pass_min_length = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password"), WIDE("MinLength"), 8, WIDE("AIMS_SL") );		
+	l.pass_min_length = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password"), WIDE("MinLength"), 8, NULL );		
 	lprintf( WIDE(" The minimum password length: %d"), l.pass_min_length );	
 
-	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password/Upper Case"), WIDE("Required"), WIDE("TRUE"), buf, 10, WIDE("AIMS_SL") );
+	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password/Upper Case"), WIDE("Required"), WIDE("TRUE"), buf, 10, NULL );
 	l.flags.does_pass_req_upper = ( StrCmp( buf, WIDE("TRUE") ) == 0 ) ? 1 : 0;		
 	lprintf( WIDE(" Does password require upper case: %u"), l.flags.does_pass_req_upper );
 
-	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password/Lower Case"), WIDE("Required"), WIDE("TRUE"), buf, 10, WIDE("AIMS_SL") );	
+	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password/Lower Case"), WIDE("Required"), WIDE("TRUE"), buf, 10, NULL );	
 	l.flags.does_pass_req_lower = ( StrCmp( buf, WIDE("TRUE") ) == 0 ) ? 1 : 0;
 	lprintf( WIDE(" Does password require lower case: %u"), l.flags.does_pass_req_lower );
 
-	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password/Special Characters"), WIDE("Required"), WIDE("TRUE"), buf, 10, WIDE("AIMS_SL") );	
+	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password/Special Characters"), WIDE("Required"), WIDE("TRUE"), buf, 10, NULL );	
 	l.flags.does_pass_req_spec = ( StrCmp( buf, WIDE("TRUE") ) == 0 ) ? 1 : 0;
 	lprintf( WIDE(" Does password require special characters: %u"), l.flags.does_pass_req_spec );
 
-	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password/Numeric Characters"), WIDE("Required"), WIDE("TRUE"), buf, 10, WIDE("AIMS_SL") );	
+	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password/Numeric Characters"), WIDE("Required"), WIDE("TRUE"), buf, 10, NULL );	
 	l.flags.does_pass_req_num = ( StrCmp( buf, WIDE("TRUE") ) == 0 ) ? 1 : 0;
 	lprintf( WIDE(" Does password require numeric characters: %u"), l.flags.does_pass_req_num );
 
