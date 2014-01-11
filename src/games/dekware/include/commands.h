@@ -39,6 +39,7 @@ typedef struct command_entry
 //   DECLTEXTSZ(extended_help, 256);
 }command_entry;
 
+// static int HandleCommand( "Command Text", "..." )(PSENTIENT,PTEXT)
 #define HandleCommand( name, desc )   \
 	__DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleExtendedCommand,WIDE("commands"),name,desc,int,(PSENTIENT,PTEXT),__LINE__)
 

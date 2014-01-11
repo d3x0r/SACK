@@ -512,19 +512,19 @@ int CPROC NOALIGN( PSENTIENT ps, PTEXT parameters )
 
 int CPROC INCREMENT( PSENTIENT ps, PTEXT parameters )
 {
-   PTEXT pAmount, temp, varname;
-   varname = temp = GetParam( ps, &parameters );
-   if( temp )
+	PTEXT pAmount, temp, varname;
+	varname = temp = GetParam( ps, &parameters );
+	if( temp )
 	{
 		struct {
 			_32 bIntNumber : 1;
 			_32 bIntAmount : 1;
 		} flags;
-      S_64 iNumber, iAmount;
+		S_64 iNumber, iAmount;
 		double fNumber, fAmount;
-      int bInt;
+		int bInt;
 		PTEXT pResult;
-      GET_NUMBERS( +, GET_AMOUNT_DEFAULT_INT, 1 );
+		GET_NUMBERS( +, GET_AMOUNT_DEFAULT_INT, 1 );
 		if( varname->flags & TF_INDIRECT )
 		{
 			PTEXT pInd;
@@ -534,8 +534,8 @@ int CPROC INCREMENT( PSENTIENT ps, PTEXT parameters )
 		}
 		else
 			SegSubst( temp, pResult ); // self modifying code... :)
-   }
-   return FALSE;
+	}
+	return FALSE;
 }
 //--------------------------------------
 int CPROC DECREMENT( PSENTIENT ps, PTEXT parameters )
@@ -576,11 +576,11 @@ int CPROC MULTIPLY( PSENTIENT ps, PTEXT parameters )
 			_32 bIntNumber : 1;
 			_32 bIntAmount : 1;
 		} flags;
-      S_64 iNumber, iAmount;
+		S_64 iNumber, iAmount;
 		double fNumber, fAmount;
-      int bInt;
+		int bInt;
 		PTEXT pResult;
-      GET_NUMBERS( *, GET_AMOUNT, 0 );
+		GET_NUMBERS( *, GET_AMOUNT, 0 );
 
 		if( temp->flags & TF_INDIRECT )
 		{
