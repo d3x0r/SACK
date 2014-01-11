@@ -1,6 +1,6 @@
 # Get current source repository Revision:
 execute_process( COMMAND hg id -i WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE CURRENT_REPO_REVISION )
-message( "Source revision: "${CURRENT_REPO_REVISION} )
+message( "Source revision: " ${CURRENT_REPO_REVISION} )
 # output build info to files
 file(WRITE ${CMAKE_BINARY_DIR}/info_out.tmp/ver.txt "${CURRENT_REPO_REVISION}" )
 file(WRITE ${CMAKE_BINARY_DIR}/info_out.tmp/type.txt "${CMAKE_BUILD_TYPE}" )
