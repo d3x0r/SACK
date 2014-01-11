@@ -4156,7 +4156,7 @@ PRIORITY_PRELOAD( Init_password_frame, DEFAULT_PRELOAD_PRIORITY-1 )
 	{
 		// Set Up for pulling options
 		TEXTCHAR option_dsn[64];
-		SACK_GetProfileString( WIDE("MILK/SQL Passwords"), WIDE("password DSN"), WIDE("mysql"), option_dsn, sizeof( option_dsn ) );
+		SACK_GetProfileString( WIDE("SECURITY/SQL Passwords"), WIDE("password DSN"), WIDE("sqlite.db"), option_dsn, sizeof( option_dsn ) );
 		odbc = GetOptionODBC( option_dsn, 1 );
 	}
 	 	
