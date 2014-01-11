@@ -297,8 +297,8 @@ PRELOAD( InitLoginMon )
 		lprintf( WIDE(" Inactivity Service has been started.") );
 
 		// Set up for pulling options
-		SACK_GetPrivateProfileString( GetProgramName(), WIDE( "DSN" ), WIDE( "sqlite.db" ), l.option_dsn, sizeof( l.option_dsn ), NULL );
-		odbc = GetOptionODBC( l.option_dsn, 1 );
+		SACK_GetProfileString( WIDE("SECURITY/SQL Passwords"), WIDE( "password DSN" ), GetDefaultOptionDatabaseDSN, l.option_dsn, sizeof( l.option_dsn ), NULL );
+		odbc = GetOptionODBC( l.option_dsn, 0 );
 
 		// Get Idle Time ( Minutes )
 		l.iIdleTime = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Timeouts"), WIDE("idle"), 30, NULL );
