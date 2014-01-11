@@ -172,6 +172,24 @@ _32 GetTextFlags( PTEXT segment )
 
 //---------------------------------------------------------------------------
 
+void SegCopyFormat( PTEXT to_this, PTEXT copy_this )
+{
+	if( to_this && copy_this )
+	{
+      if( copy_this && !( copy_this->flags & TF_FORMATPOS ) )
+		{
+			to_this->format.position.offset.tabs = copy_this->format.position.offset.tabs;
+			to_this->format.position.offset.spaces = copy_this->format.position.offset.spaces;
+		}
+		else
+		{
+         // copy absolute positioning...
+		}
+	}
+}
+
+//---------------------------------------------------------------------------
+
 PTEXT SegDuplicateEx( PTEXT pText DBG_PASS )
 {
 	PTEXT t;
@@ -2432,8 +2450,10 @@ static void BuildTextFlags( PVARTEXT vt, PTEXT pSeg )
 				, pSeg->format.position.coords.x
 				, pSeg->format.position.coords.y  );
 	else
-		vtprintf( vt, WIDE( "%d spaces " )
-				, pSeg->format.position.offset.spaces );
+		vtprintf( vt, WIDE( "%d tabs %d spaces" )
+				  , pSeg->format.position.offset.tabs
+				  , pSeg->format.position.offset.spaces
+				  );
 	
 	if( pSeg->flags & TF_FORMATEX )
 		vtprintf( vt, WIDE( "format extended(%s) length:%d" )
