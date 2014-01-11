@@ -292,12 +292,12 @@ PRELOAD( InitLoginMon )
 		PODBC odbc;
 
 		// Check if logging is to be turned on
-		l.flags.bLog = SACK_GetPrivateProfileInt( GetProgramName(), WIDE( "SQL Password/Do Logging" ), 0, WIDE( "security.ini" ) );
-		l.flags.bLogSleeps = SACK_GetPrivateProfileInt( GetProgramName(), WIDE( "SQL Password/Do Logging (Sleeps)" ), 0, NULL );
+		l.flags.bLog = SACK_GetPrivateProfileInt( GetProgramName(), WIDE( "SECURITY/Do Logging" ), 0, WIDE( "security.ini" ) );
+		l.flags.bLogSleeps = SACK_GetPrivateProfileInt( GetProgramName(), WIDE( "SECURITY/SQL Password/Do Logging (Sleeps)" ), 0, NULL );
 		lprintf( WIDE(" Inactivity Service has been started.") );
 
 		// Set up for pulling options
-		SACK_GetPrivateProfileString( GetProgramName(), WIDE( "DSN" ), WIDE( "MySQL" ), l.option_dsn, sizeof( l.option_dsn ), NULL );
+		SACK_GetPrivateProfileString( GetProgramName(), WIDE( "DSN" ), WIDE( "sqlite.db" ), l.option_dsn, sizeof( l.option_dsn ), NULL );
 		odbc = GetOptionODBC( l.option_dsn, 1 );
 
 		// Get Idle Time ( Minutes )
