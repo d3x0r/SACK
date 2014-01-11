@@ -1821,11 +1821,10 @@ TYPELIB_PROC  int TYPELIB_CALLTYPE  TextSimilar  ( PTEXT pText, CTEXTSTR text );
    went with strcasecmp() and strncasecmp()                  */
 #define stricmp strcasecmp
 #endif
-//#define LikeText( l1, l2 )  ( strnicmp( GetText(l1), GetText(l2), textmin( GetTextSize(l1),
-//                                                                        GetTextSize(l2) ) ) )
-//#define TextIs(text,string) ( !stricmp( GetText(text), string ) )
-//#define TextLike(text,string) ( !stricmp( GetText(text), string ) )
 
+/* Copy segment formatting to another segment... */
+TYPELIB_PROC  void TYPELIB_CALLTYPE  SegCopyFormat( PTEXT to_this, PTEXT copy_this );
+/* Create a text segment of sepecified size; inclues one more character for NUL terminator */
 TYPELIB_PROC  PTEXT TYPELIB_CALLTYPE  SegCreateEx( size_t nSize DBG_PASS );
 /* Create a PTEXT with specified number of character capacity.
    
