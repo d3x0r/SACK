@@ -71,7 +71,7 @@ static int RollDice( int count, int sides )
 
 //--------------------------------------------------------------------------
 
-static int HandleCommand( WIDE("Roll"), WIDE("Roll dice stored in macro result") )( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand( WIDE("Dice"),WIDE("Roll"), WIDE("Roll dice stored in macro result") )( PSENTIENT ps, PTEXT parameters )
 {
    TEXTCHAR *p;
 	PTEXT pDice;

@@ -710,16 +710,16 @@ static int CPROC Close( PDATAPATH pdpX )
 //--------------------------------------------------------------------------
 
 command_entry commands[]={
-  {DEFTEXT(WIDE("Help")),0,4  ,DEFTEXT(WIDE("Show this command list...")),(Function)HELP}
+  {DEFTEXT(WIDE("Help")),DEFTEXT(WIDE("TRIGGER/Commands")),0,4  ,DEFTEXT(WIDE("Show this command list...")),(Function)HELP}
 
- ,{DEFTEXT(WIDE("Clear")),0,5  ,DEFTEXT(WIDE("Erase all triggers")),(Function)CLEAR}
- ,{DEFTEXT(WIDE("Create")),0,6  ,DEFTEXT(WIDE("Create a new trigger")),(Function)TRIGGER_CREATE}
+ ,{DEFTEXT(WIDE("Clear")),DEFTEXT(WIDE("TRIGGER/Commands")),0,5  ,DEFTEXT(WIDE("Erase all triggers")),(Function)CLEAR}
+ ,{DEFTEXT(WIDE("Create")),DEFTEXT(WIDE("TRIGGER/Commands")),0,6  ,DEFTEXT(WIDE("Create a new trigger")),(Function)TRIGGER_CREATE}
 // ,{DEFTEXT(WIDE("Describe")),0,8  ,DEFTEXT(WIDE("Describe a trigger for LIST")),DESCRIBE}
- ,{DEFTEXT(WIDE("List")),0,4  ,DEFTEXT(WIDE("List present triggers... or a trigger")),(Function)LISTTRIGGERS}
- ,{DEFTEXT(WIDE("Destroy")),0,7  ,DEFTEXT(WIDE("Destroy a trigger")),(Function)DESTROY}
- ,{DEFTEXT(WIDE("Options")),0,7  ,DEFTEXT(WIDE("Set options for a trigger")),(Function)OPTIONS}
-// ,{DEFTEXT(WIDE("Trip"))   ,0,4  ,DEFTEXT(WIDE("Invoke a trigger now")),TRIP}
- ,{DEFTEXT(WIDE("Store"))  ,0,5  ,DEFTEXT(WIDE("Store triggers, and variables associated.")), (Function)TRIGGER_STORE }
+ ,{DEFTEXT(WIDE("List")),DEFTEXT(WIDE("TRIGGER/Commands")),0,4  ,DEFTEXT(WIDE("List present triggers... or a trigger")),(Function)LISTTRIGGERS}
+ ,{DEFTEXT(WIDE("Destroy")),DEFTEXT(WIDE("TRIGGER/Commands")),0,7  ,DEFTEXT(WIDE("Destroy a trigger")),(Function)DESTROY}
+ ,{DEFTEXT(WIDE("Options")),DEFTEXT(WIDE("TRIGGER/Commands")),0,7  ,DEFTEXT(WIDE("Set options for a trigger")),(Function)OPTIONS}
+// ,{DEFTEXT(WIDE("Trip"))   ,DEFTEXT(WIDE("TRIGGER/Commands")),0,4  ,DEFTEXT(WIDE("Invoke a trigger now")),TRIP}
+ ,{DEFTEXT(WIDE("Store"))  ,DEFTEXT(WIDE("TRIGGER/Commands")),0,5  ,DEFTEXT(WIDE("Store triggers, and variables associated.")), (Function)TRIGGER_STORE }
 };
 
 #define NUM_COMMANDS (sizeof(commands)/sizeof(command_entry))
@@ -1228,16 +1228,16 @@ static int HELP(PSENTIENT ps, PTEXT parameters, int bAlias )
 {
 	if( bAlias )
 	{
-	   DECLTEXT( leader, WIDE(" --- Alias Builtin Commands ---") );
-   	EnqueLink( &ps->Command->Output, &leader );
+		DECLTEXT( leader, WIDE(" --- Alias Builtin Commands ---") );
+   		EnqueLink( &ps->Command->Output, &leader );
 	}
 	else
 	{
-	   DECLTEXT( leader, WIDE(" --- Trigger Builtin Commands ---") );
-   	EnqueLink( &ps->Command->Output, &leader );
+		DECLTEXT( leader, WIDE(" --- Trigger Builtin Commands ---") );
+   		EnqueLink( &ps->Command->Output, &leader );
 	}
-   WriteCommandList2( &ps->Command->Output, WIDE("dekware/commands/TRIGGER/Commands"), NULL );
-   return FALSE;
+	WriteCommandList2( &ps->Command->Output, WIDE("dekware/commands/TRIGGER/Commands"), NULL );
+	return FALSE;
 }
 
 //--------------------------------------------------------------------------
@@ -1383,7 +1383,7 @@ static int OPTIONS(PSENTIENT ps, PTEXT parameters, int bAlias )
 
 //--------------------------------------------------------------------------
 
-static int HandleCommand( WIDE("TRIGGER"), WIDE("Trigger macro commands - handle data filter on input") )( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand(WIDE("IO"), WIDE("TRIGGER"), WIDE("Trigger macro commands - handle data filter on input") )( PSENTIENT ps, PTEXT parameters )
 //static int CPROC Trigger( PSENTIENT ps, PTEXT parameters )
 {
    PTEXT op;
@@ -1408,7 +1408,7 @@ static int HandleCommand( WIDE("TRIGGER"), WIDE("Trigger macro commands - handle
 
 //--------------------------------------------------------------------------
 
-static int HandleCommand( WIDE("ALIAS"), WIDE("Alias macro commands - handle command filter on input") )( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand( WIDE("IO"), WIDE("ALIAS"), WIDE("Alias macro commands - handle command filter on input") )( PSENTIENT ps, PTEXT parameters )
 //static int CPROC Alias( PSENTIENT ps, PTEXT parameters )
 {
    PTEXT op;

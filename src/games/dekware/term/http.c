@@ -179,7 +179,7 @@ FinalCheck:
    return pHeader;
 }
 
-static int HandleCommand(WIDE("HTTP"), WIDE("Perform http command operation..."))( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand(WIDE("IO"), WIDE("HTTP"), WIDE("Perform http command operation..."))( PSENTIENT ps, PTEXT parameters )
 {
    // HTTP GET <varname> <URL>
    // HTTP <OTHER> <...>
@@ -295,7 +295,7 @@ void SendBinaryWork( PLINKQUEUE *pplq, PTEXT segment )
 	}
 }
 
-static int HandleCommand(WIDE("SendData"), WIDE("Send binary data to socket connection"))( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand(WIDE("IO"), WIDE("SendData"), WIDE("Send binary data to socket connection"))( PSENTIENT ps, PTEXT parameters )
 {
 	PTEXT segment;
 	while( segment = GetParam( ps, &parameters ) )
@@ -306,7 +306,7 @@ static int HandleCommand(WIDE("SendData"), WIDE("Send binary data to socket conn
    return 0;
 }
 
-static int HandleCommand(WIDE("ReadData"), WIDE("Read binary data from socket connection"))( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand(WIDE("IO"), WIDE("ReadData"), WIDE("Read binary data from socket connection"))( PSENTIENT ps, PTEXT parameters )
 {
    return 0;
 }

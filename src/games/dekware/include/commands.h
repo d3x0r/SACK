@@ -28,9 +28,11 @@ FunctionProto  UNIMPLEMENTED;
 
 typedef int (CPROC *RoutineAddress)( PSENTIENT ps, PTEXT params );
 
+// this is depricated, use appropriate inline declarators instead...
 typedef struct command_entry
 {
    DECLTEXTSZTYPE(name, 32);
+   DECLTEXTSZTYPE(classname, 25);   
    S_8 significant; // minimum match
    S_8 maxlen;      // maximum usable characters
    DECLTEXTSZTYPE(description, 128);
@@ -39,9 +41,25 @@ typedef struct command_entry
 //   DECLTEXTSZ(extended_help, 256);
 }command_entry;
 
+
+#define ___DefineRegistryMethod3P(priority,task,name,classtype,classname,methodname,desc,returntype,argtypes,line)   \
+	CPROC paste(name,line)argtypes;       \
+	PRIORITY_PRELOAD( paste(paste(paste(Register,name),Method),line), priority ) {  \
+	SimpleRegisterMethod( task WIDE("/") classtype, paste(name,line)  \
+	, _WIDE(#returntype), methodname, _WIDE(#argtypes) ); \
+   RegisterValue( task WIDE("/") classtype WIDE("/") methodname, WIDE("Description"), desc ); \
+   RegisterValue( task WIDE("/") classtype WIDE("/") methodname, WIDE("Command Class"), classname ); \
+}                                                                          \
+	static returntype CPROC paste(name,line)
+
+#define __DefineRegistryMethod3P(priority,task,name,classtype,classname,methodname,desc,returntype,argtypes,line)   \
+	___DefineRegistryMethod3P(priority,task,name,classtype,classname,methodname,desc,returntype,argtypes,line)
+
+
+
 // static int HandleCommand( "Command Text", "..." )(PSENTIENT,PTEXT)
-#define HandleCommand( name, desc )   \
-	__DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleExtendedCommand,WIDE("commands"),name,desc,int,(PSENTIENT,PTEXT),__LINE__)
+#define HandleCommand( classname, name, desc )   \
+	__DefineRegistryMethod3P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleExtendedCommand,WIDE("commands"),classname,name,desc,int,(PSENTIENT,PTEXT),__LINE__)
 
 #define OnCreateObject( name, desc )   \
 	__DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleCreateObject,WIDE("objects"),name,desc,int,(PSENTIENT,PENTITY,PTEXT),__LINE__)

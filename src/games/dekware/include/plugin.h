@@ -16,7 +16,7 @@ typedef struct registered_device_tag
 	PTEXT description;   
 	PDATAPATH (CPROC *Open)( PDATAPATH *ppChannel, PSENTIENT ps, PTEXT params );
 	option_entry *pOptions;
-   INDEX nOptions;
+	INDEX nOptions;
 	PLIST pOpenPaths;   
 	int   TypeID;   
 	struct registered_device_tag *pNext;
