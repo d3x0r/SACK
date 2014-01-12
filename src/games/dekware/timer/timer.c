@@ -7,12 +7,6 @@ int CPROC MarkTime( PSENTIENT ps, PTEXT parameters );
 int CPROC ReportTime( PSENTIENT ps, PTEXT parameters );
 int CPROC StopTime( PSENTIENT ps, PTEXT parameters );
 
-static command_entry methods[] = { { DEFTEXT( WIDE("mark") ), 1, 4, DEFTEXT( WIDE("Set now as the start time") ), NULL/*MarkTime*/ }
-                        , { DEFTEXT( WIDE("elapse") ), 1, 6, DEFTEXT( WIDE("Report how much time has elapsed since mark") ), NULL/*ReportTime*/ }
-                        , { DEFTEXT( WIDE("stop") ), 1, 4, DEFTEXT( WIDE("Lock the last time from mark?") ), NULL/*StopTime*/ }
-                        , { DEFTEXT( WIDE("fire") ), 1, 4, DEFTEXT( WIDE("Set a delay to fire an event macro") ), NULL }
-                        , { DEFTEXT( WIDE("next") ), 1, 4, DEFTEXT( WIDE("Something about when next event would happen") ), NULL }
-                        };
 // declare these with spaces so that they are
 // not easily referenced from within the terminal...
 DECLTEXT( mark, WIDE("mark time") );
@@ -492,17 +486,14 @@ static int ObjectMethod( WIDE("Timer"), WIDE("Elapse"), WIDE("Show current time 
 static int OnCreateObject( WIDE("clock"), WIDE("Your basic chronometer") )( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 //int CPROC InitClock( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 {
-   // this routine is passed an object already named, with the default 
-   // description copied...
-   // the sentience passed is the creator of the new object...
-   // passed for referencig paramters from...
-   PSENTIENT ps2;
-   ps2 = CreateAwareness( pe );
-   //AddMethod( pe, methods );
-   //AddMethod( pe, methods + 1 );
-   //AddMethod( pe, methods + 2 );
+	// this routine is passed an object already named, with the default 
+	// description copied...
+	// the sentience passed is the creator of the new object...
+	// passed for referencig paramters from...
+	PSENTIENT ps2;
+	ps2 = CreateAwareness( pe );
 	UnlockAwareness( ps2 );
-   return 0;
+	return 0;
 }
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )

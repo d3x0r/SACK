@@ -159,9 +159,9 @@
 #define NUM_COMMANDS (sizeof(commands)/sizeof(command_entry))
  // NAME used is name of interpreted command and also name of function
  // to call taking paramters( PSENTIENT, PTEXT )
-#define DEFCMD( name,desc ) { DEFTEXT(WIDE(#name)),0,(sizeof(WIDE(#name))/sizeof(TEXTCHAR))-1,DEFTEXT(desc),name }
+#define DEFCMD( name,desc ) { DEFTEXT(WIDE(#name)),DEFTEXT(WIDE("Nexus Core")),0,(sizeof(WIDE(#name))/sizeof(TEXTCHAR))-1,DEFTEXT(desc),name }
  // the function to call and the name interpreted do not match...
-#define DEFCMDEX( name,desc,func) { DEFTEXT(WIDE(#name)),0,(sizeof(WIDE(#name))/sizeof(TEXTCHAR))-1,DEFTEXT(desc),func }
+#define DEFCMDEX( name,desc,func) { DEFTEXT(WIDE(#name)),DEFTEXT(WIDE("Nexus Core")),0,(sizeof(WIDE(#name))/sizeof(TEXTCHAR))-1,DEFTEXT(desc),func }
 
  command_entry commands[]={ DEFCMDEX(?,WIDE(""),HELP )
                           , DEFCMDEX(MACRO, WIDE("Create new macro."), CMD_MACRO)
@@ -529,15 +529,16 @@ void RegisterCommands(CTEXTSTR device, command_entry *cmds, INDEX nCommands)
 				  , device?device:WIDE("") );
 		if( CheckClassRoot( tmp ) )
 		{
-         lprintf( WIDE("%s already registered"), tmp );
+			lprintf( WIDE("%s already registered"), tmp );
 			continue;
 		}
-      //lprintf( WIDE("regsiter %s"), tmp );
+		//lprintf( WIDE("regsiter %s"), tmp );
 		SimpleRegisterMethod( tmp2, cmds[i].function
 								  , WIDE("int"), name, WIDE("(PSENTIENT,PTEXT)") );
 		RegisterValue( tmp, WIDE("Description"), GetText( (PTEXT)&cmds[i].description ) );
+		RegisterValue( tmp, WIDE("Command Class"), GetText( (PTEXT)&cmds[i].classname ) );
 	}
-   lock--;
+	lock--;
 }
 
 void RegisterOptions(CTEXTSTR device, option_entry *cmds, INDEX nCommands)
@@ -2765,7 +2766,7 @@ CORE_PROC( LOGICAL, Process )( PSENTIENT ps, TEXTCHAR *cmd, ... )
 	return vProcess( ps, cmd, args );
 }
 
-static int HandleCommand( WIDE("dumpnames"), WIDE("Call DumpRegisteredNames()") )( PSENTIENT ps, PTEXT params )
+static int HandleCommand( WIDE("debug"),WIDE("dumpnames"), WIDE("Call DumpRegisteredNames()") )( PSENTIENT ps, PTEXT params )
 {
 	DumpRegisteredNames();
 	return 0;

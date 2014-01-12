@@ -1016,7 +1016,7 @@ int Assimilate( PENTITY pe, PSENTIENT ps, CTEXTSTR name, PTEXT parameters )
    return 0;
 }
 
-static int HandleCommand( WIDE("Assimilate"), WIDE("This object inherits being an objec to some type") )( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand( WIDE("Object"), WIDE("Assimilate"), WIDE("This object inherits being an objec to some type") )( PSENTIENT ps, PTEXT parameters )
 {
 	PTEXT type = GetParam( ps, &parameters );
 	if( !type )

@@ -57,25 +57,25 @@ static int DoFunction(PSENTIENT  ps, PTEXT parameters, double (*f)(double) )
 }
 
 
-static int HandleCommand( "sin", "usage: sin variable; result replaces variable" )(PSENTIENT ps,PTEXT parameters)
+static int HandleCommand( "Math", "sin", "usage: sin variable; result replaces variable" )(PSENTIENT ps,PTEXT parameters)
 {
 	DoFunction( ps, parameters, sin );
 	return FALSE;
 }
 
-static int HandleCommand( "cos", "usage: cos variable; result replaces variable" )(PSENTIENT ps,PTEXT parameters)
+static int HandleCommand( "Math", "cos", "usage: cos variable; result replaces variable" )(PSENTIENT ps,PTEXT parameters)
 {
 	DoFunction( ps, parameters, cos );
 	return FALSE;
 }
 
-static int HandleCommand( "tan", "usage: tan variable; result replaces variable" )(PSENTIENT ps,PTEXT parameters)
+static int HandleCommand( "Math", "tan", "usage: tan variable; result replaces variable" )(PSENTIENT ps,PTEXT parameters)
 {
 	DoFunction( ps, parameters, tan );
 	return FALSE;
 }
 
-static int HandleCommand( "sqrt", "usage: sqrt variable; result replaces variable" )(PSENTIENT ps,PTEXT parameters)
+static int HandleCommand( "Math", "sqrt", "usage: sqrt variable; result replaces variable" )(PSENTIENT ps,PTEXT parameters)
 {
 	DoFunction( ps, parameters, sqrt );
 	return FALSE;

@@ -774,14 +774,14 @@ static PDATAPATH OnInitDevice(WIDE("udp"), WIDE("UDP datagram connection..."))( 
 
 //---------------------------------------------------------------------------
 
-static int HandleCommand( WIDE("getaddr") , WIDE("Get network address from message..."))( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand( WIDE("Network"), WIDE("getaddr") , WIDE("Get network address from message..."))( PSENTIENT ps, PTEXT parameters )
 {
    return 0;
 }
 
 //---------------------------------------------------------------------------
 
-static int HandleCommand(WIDE("getip") , WIDE("Get network address from message..."))( PSENTIENT ps, PTEXT parameters )   // input is %textaddr %outvar
+static int HandleCommand(WIDE("Network"), WIDE("getip") , WIDE("Get network address from message..."))( PSENTIENT ps, PTEXT parameters )   // input is %textaddr %outvar
 {
    PTEXT var1, var2, save, pPort;
    save = parameters;
@@ -862,7 +862,7 @@ static int HandleCommand(WIDE("getip") , WIDE("Get network address from message.
 
 //---------------------------------------------------------------------------
 
-static int HandleCommand(WIDE("getport") , WIDE("Get network address from message..."))( PSENTIENT ps, PTEXT parameters ) // input is %textaddr %outvar
+static int HandleCommand(WIDE("Network"), WIDE("getport") , WIDE("Get network address from message..."))( PSENTIENT ps, PTEXT parameters ) // input is %textaddr %outvar
 {
    PTEXT var1, var2, save, pPort;
    save = parameters;
@@ -944,7 +944,7 @@ static int HandleCommand(WIDE("getport") , WIDE("Get network address from messag
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
-static int HandleCommand(WIDE("whois"), WIDE("Perform whois query on listed names."))( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand(WIDE("Network"), WIDE("whois"), WIDE("Perform whois query on listed names."))( PSENTIENT ps, PTEXT parameters )
 {
 	PTEXT temp;
 #undef byOutput // ... yuck.
@@ -986,7 +986,7 @@ static int HandleCommand(WIDE("whois"), WIDE("Perform whois query on listed name
 	return 0;
 }
 
-static int HandleCommand(WIDE("ping"), WIDE("Ping a network address..."))( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand(WIDE("Network"), WIDE("ping"), WIDE("Ping a network address..."))( PSENTIENT ps, PTEXT parameters )
 {
    PTEXT temp;
    PVARTEXT pvt = VarTextCreate();
@@ -1023,7 +1023,7 @@ static int HandleCommand(WIDE("ping"), WIDE("Ping a network address..."))( PSENT
 	return 0;
 }
 
-static int HandleCommand(WIDE("trace"), WIDE("Route trace a network address..."))( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand(WIDE("Network"), WIDE("trace"), WIDE("Route trace a network address..."))( PSENTIENT ps, PTEXT parameters )
 {
    PTEXT temp;
    PVARTEXT pvt = VarTextCreate();
@@ -1119,7 +1119,7 @@ PTRSZVAL CPROC PortScanner( PTHREAD thread )
    return 0;
 }
 
-static int HandleCommand(WIDE("portscan"), WIDE("scan first 2000 ports at an address..."))( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand(WIDE("Network"), WIDE("portscan"), WIDE("scan first 2000 ports at an address..."))( PSENTIENT ps, PTEXT parameters )
 {
    PTEXT temp;
    PSENTIENT psOld;
