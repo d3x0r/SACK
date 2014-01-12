@@ -907,19 +907,19 @@ void SetImageTransformRelation( Image pImage, enum image_translation_relation re
 		break;
 	case IMAGE_TRANSFORM_RELATIVE_CENTER:
 		pImage->coords[0][0] = 0 - (pImage->width/2);
-		pImage->coords[0][1] = 0 - (pImage->height/2);
+		pImage->coords[0][1] = pImage->height - (pImage->height/2);
 		pImage->coords[0][2] = 0;
 
 		pImage->coords[1][0] = pImage->width - (pImage->width/2);
-		pImage->coords[1][1] = 0 - (pImage->height/2);
+		pImage->coords[1][1] = pImage->height - (pImage->height/2);
 		pImage->coords[1][2] = 0;
 
-		pImage->coords[2][0] = pImage->width - (pImage->width/2);
-		pImage->coords[2][1] = pImage->height - (pImage->height/2);
+		pImage->coords[2][0] = 0 - (pImage->width/2);
+		pImage->coords[2][1] = 0 - (pImage->height/2);
 		pImage->coords[2][2] = 0;
 
-		pImage->coords[3][0] = 0 - (pImage->width/2);
-		pImage->coords[3][1] = pImage->height - (pImage->height/2);
+		pImage->coords[3][0] = pImage->width - (pImage->width/2);
+		pImage->coords[3][1] = 0 - (pImage->height/2);
 		pImage->coords[3][2] = 0;
 		break;
 	case IMAGE_TRANSFORM_RELATIVE_OTHER:
@@ -1042,15 +1042,15 @@ void Render3dImage( Image pifSrc, LOGICAL render_pixel_scaled )
 		}
 
 		tmp->v_image[0][0] = tmp->x_size;
-		tmp->v_image[0][1] = tmp->y_size2;
+		tmp->v_image[0][1] = tmp->y_size;
 		tmp->v_image[1][0] = tmp->x_size2;
-		tmp->v_image[1][1] = tmp->y_size2;
-		tmp->v_image[2][0] = tmp->x_size2;
-		tmp->v_image[2][1] = tmp->y_size;
-		tmp->v_image[3][0] = tmp->x_size;
-		tmp->v_image[3][1] = tmp->y_size;
+		tmp->v_image[1][1] = tmp->y_size;
+		tmp->v_image[2][0] = tmp->x_size;
+		tmp->v_image[2][1] = tmp->y_size2;
+		tmp->v_image[3][0] = tmp->x_size2;
+		tmp->v_image[3][1] = tmp->y_size2;
 
-		EnableShader( GetShader( WIDE("Simple Texture Shader"), NULL ), tmp->v[tmp->vi], tmp->v_image, pifSrc->glActiveSurface );
+		EnableShader( GetShader( WIDE("Simple Texture"), NULL ), tmp->v[tmp->vi], pifSrc->glActiveSurface, tmp->v_image );
 		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 
 		Deallocate( struct workspace *, tmp );
