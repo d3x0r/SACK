@@ -2411,7 +2411,7 @@ Recheck:
 				{
 					if( StrCaseCmp( GetText( Command ), name ) == 0 ) // command was on THIS object...
 					{
-						Function f = GetRegisteredProcedure2( root, int, name, (PSENTIENT,PTEXT) );
+						ObjectFunction f = GetRegisteredProcedure2( root, int, name, (PSENTIENT,PENTITY,PTEXT) );
 						//if( CanProcess( ps, f ) )
 						{
 							if( gbTrace ||
@@ -2427,16 +2427,13 @@ Recheck:
 								ps->CurrentMacro->state.flags.bSuccess = FALSE;
 							}
 							if( f )
-								f( ps, NEXTLINE( Command ) );
+								f( ps, pe, NEXTLINE( Command ) );
 
 							// here we found a method, ran it, and return.
 							if( EndLine )
 								SegAppend( *RealCommand, EndLine );
 							return TRUE;
 						}
-						//if( EndLine )
-						//	SegAppend( *RealCommand, EndLine );
-						//return FALSE;
 					}
 				}
 			}
