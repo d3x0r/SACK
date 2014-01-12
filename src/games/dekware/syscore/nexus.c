@@ -1273,7 +1273,7 @@ int InitSpace( const TEXTCHAR *command_line )
 {
 //   pg = Allocate( sizeof( GLOBAL ) );
 	//   MemSet( pg, 0, sizeof( GLOBAL ) );
-	global.flags.bLogAllCommands = SACK_GetProfileInt( WIDE("/Dekware/options"), WIDE("Log All Commands"), 0 );
+	global.flags.bLogAllCommands = SACK_GetProfileInt( WIDE("options"), WIDE("Log All Commands"), 0 );
 	THE_VOID = Big_Bang( SegCreateFromText( WIDE("The Void") ) );
 	{
 		PTEXT tmp = SegCreateFromText( command_line );
