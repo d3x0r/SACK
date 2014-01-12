@@ -138,7 +138,7 @@ _SQL_NAMESPACE
    }
 	</code>                                                                                 */
 
-#if !defined( ALTANIK_SQL_STUB_DEFINED ) || !defined( __GNUC__ )
+#if !defined( __GNUC__ )
    // GCC doesn't identify this as exactly the same declaration
 	typedef struct odbc_handle_tag *PODBC;
 #endif
