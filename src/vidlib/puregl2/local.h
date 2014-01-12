@@ -165,6 +165,7 @@ struct display_camera
 	_32 w, h;
 	int display;
 	RCOORD aspect;
+   RCOORD depth; // far field
 	RCOORD identity_depth;
 	PTRANSFORM origin_camera;
 	PRENDERER hVidCore; // common, invisible surface behind all windows (application container)
@@ -370,6 +371,7 @@ extern
 	PTRANSFORM origin;
 	RCOORD scale;
 
+	struct display_camera *current_render_camera;  // setcursorpos can only happen during a mouse event, please.
 	struct display_camera *current_mouse_event_camera;  // setcursorpos can only happen during a mouse event, please.
 
 	PIMAGE_INTERFACE gl_image_interface;
@@ -416,6 +418,8 @@ int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
 								, RCOORD *pT2, PVECTOR s2, PVECTOR o2 );
 // this uses coordiantes in l.mouse_x and l.mouse_y and computes the current mouse ray in all displays
 void UpdateMouseRays( S_32 x, S_32 y );
+#undef GetViewVolume
+void GetViewVolume( PRAY *planes );
 
 //-------------------  render utility ------------
 void Render3D( struct display_camera *camera );

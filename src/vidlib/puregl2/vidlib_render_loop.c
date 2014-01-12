@@ -104,6 +104,7 @@ void Render3D( struct display_camera *camera )
 	if( l.flags.bLogRenderTiming )
 		lprintf( WIDE("Begin Render") );
 
+   l.current_render_camera = camera;
 #ifdef __3D__
 	Init3D( camera );
 #endif

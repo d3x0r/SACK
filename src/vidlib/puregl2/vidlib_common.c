@@ -383,7 +383,8 @@ void LoadOptions( void )
 			int custom_pos;
 			struct display_camera *camera = New( struct display_camera );
 			MemSet( camera, 0, sizeof( *camera ) );
-         camera->nCamera = n + 1;
+			camera->nCamera = n + 1;
+         camera->depth = 30000.0f;
 			camera->origin_camera = CreateTransform();
 
 			tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Display is topmost"), n+1 );
