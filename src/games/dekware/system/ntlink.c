@@ -17,8 +17,8 @@ int CPROC MakeProcess( PSENTIENT ps, PENTITY peInit, PTEXT parameters );
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
 #ifndef __LINUX__
-   RegisterRoutine( WIDE("Shutdown"), WIDE("Windows System Shutdown..."), SystemShutdown );
-   RegisterRoutine( WIDE("sound"), WIDE("Play a sound using windows multimedia..."), Sound );
+   RegisterRoutine( WIDE("System"), WIDE("Shutdown"), WIDE("Windows System Shutdown..."), SystemShutdown );
+   RegisterRoutine( WIDE("System"), WIDE("sound"), WIDE("Play a sound using windows multimedia..."), Sound );
    srand( GetTickCount() );
 #endif
 	nSystemID = RegisterDevice( WIDE("system"), WIDE("Launch a system command for use with IO commands"), SysCommand );

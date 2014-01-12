@@ -403,26 +403,26 @@ static void CPROC ServerContacted( PCLIENT pListen,PCLIENT pNew  )
 		psNew = CreateAwareness( pe );
 		//Assimilate( psNew, tmp = SegCreateFromText( WIDE("net device") ) );
       //LineRelease( tmp );
-      psNew->flags.bHoldCommands = TRUE;
-      if( bCommand )
+		psNew->flags.bHoldCommands = TRUE;
+		if( bCommand )
 		{
 			// and we really should keep it around...
-         // even though this is eally a fancy forced-opening...
-         //DestroyDataPath( psNew->Command ); // new sentients have one already...
+			// even though this is eally a fancy forced-opening...
+			//DestroyDataPath( psNew->Command ); // new sentients have one already...
 			pdp = CreateDataPath( &psNew->Command, MYDATAPATH );
-         pdp->common.pName = SegCreateFromText( WIDE("cmd") );
-      }
-      else
-      {
-         DeleteLinkQueue( &psNew->Command->Output );
-         pdp = CreateDataPath( &psNew->Data, MYDATAPATH );
-         pdp->common.pName = SegCreateFromText( WIDE("data") );
-      }
+			pdp->common.pName = SegCreateFromText( WIDE("cmd") );
+		}
+		else
+		{
+			DeleteLinkQueue( &psNew->Command->Output );
+			pdp = CreateDataPath( &psNew->Data, MYDATAPATH );
+			pdp->common.pName = SegCreateFromText( WIDE("data") );
+		}
 		pdp->common.Owner = psNew;
 		{
 			PMACROSTATE pms;
 			// case doesn't matter, and we'll prove it.
-         pms = InvokeBehavior( WIDE("accept_tcp"), ps->Current, psNew, NULL );
+			pms = InvokeBehavior( WIDE("accept_tcp"), ps->Current, psNew, NULL );
 			if( !pms )
 			{
 				PMACRO match;
@@ -434,32 +434,32 @@ static void CPROC ServerContacted( PCLIENT pListen,PCLIENT pNew  )
 					pms = (PMACROSTATE)PeekData( &psNew->MacroStack );
 				}
 			}
-         if( pms )
+			if( pms )
 				pms->MacroEnd = ClearCommandHold;
 
-	   }
-      // else psNew->Data does not exist....
-      //EnqueLink( psNew->Command->ppInput, burst( (PTEXT)&accept ) );
-      //SetDatapathType( &pdp->common, myTypeID );
-      pdp->common.Close = Close;
-      pdp->common.Write = TerminalTransmit;
-      pdp->common.Read = AutoRelay; // not needed cause data appears magically...
-      pdp->bCommandOut = bCommand; // output from command stream very likely...
-      pdp->handle = pNew;
-      pdp->Buffer = SegCreate( 4096 ); // buffer size...
-      pdp->CommandInfo.InputHistory = CreateLinkQueue();
-      pdp->CommandInfo.nHistory = -1;
+		}
+		// else psNew->Data does not exist....
+		//EnqueLink( psNew->Command->ppInput, burst( (PTEXT)&accept ) );
+		//SetDatapathType( &pdp->common, myTypeID );
+		pdp->common.Close = Close;
+		pdp->common.Write = TerminalTransmit;
+		pdp->common.Read = AutoRelay; // not needed cause data appears magically...
+		pdp->bCommandOut = bCommand; // output from command stream very likely...
+		pdp->handle = pNew;
+		pdp->Buffer = SegCreate( 4096 ); // buffer size...
+		pdp->CommandInfo.InputHistory = CreateLinkQueue();
+		pdp->CommandInfo.nHistory = -1;
 
 		pdp->common.flags = pdpserver->common.flags;
-      pdp->flags = pdpserver->flags;
+		pdp->flags = pdpserver->flags;
 
 		SetNetworkReadComplete( pNew, ServerRecieve );
-      SetNetworkCloseCallback( pNew, ClientDisconnected );
-      SetNetworkLong( pNew, CONTROLLING_SENTIENCE, (_32)psNew );
-      SetNetworkLong( pNew, DATA_PATH, (_32)pdp );
-      UnlockAwareness( psNew );
-   }
-   // upon return if read callback is defined, then it will be called NULL, 0
+		SetNetworkCloseCallback( pNew, ClientDisconnected );
+		SetNetworkLong( pNew, CONTROLLING_SENTIENCE, (PTRSZVAL)psNew );
+		SetNetworkLong( pNew, DATA_PATH, (PTRSZVAL)pdp );
+		UnlockAwareness( psNew );
+	}
+	// upon return if read callback is defined, then it will be called NULL, 0
 }
 
 //---------------------------------------------------------------------------
@@ -481,34 +481,34 @@ static PDATAPATH OnInitDevice( WIDE("tcpserver"), WIDE("Telnet server socket con
       return NULL;
    }
 
-   pdp = CreateDataPath( pChannel, MYDATAPATH );
+	pdp = CreateDataPath( pChannel, MYDATAPATH );
 
 	pAddress = GetParam( ps, &parameters );
-   if( pAddress )
-   {
-      SOCKADDR *sa;
-	   sa = CreateSockAddress( GetText( pAddress ), 23 );
+	if( pAddress )
+	{
+		SOCKADDR *sa;
+		sa = CreateSockAddress( GetText( pAddress ), 23 );
 		pdp->handle = OpenTCPListenerAddrEx( sa, ServerContacted );
 		ReleaseAddress( sa );
-      if( !pdp->handle )
+		if( !pdp->handle )
 		{
-         DECLTEXT( msg, WIDE("Couldn't listen at network address\n") );
-         EnqueLink( &ps->Command->Output, &msg );
-         DestroyDataPath( (PDATAPATH)pdp );
-         return NULL;
+			DECLTEXT( msg, WIDE("Couldn't listen at network address\n") );
+			EnqueLink( &ps->Command->Output, &msg );
+			DestroyDataPath( (PDATAPATH)pdp );
+			return NULL;
 		}
 		else
 		{
 			AddBehavior( ps->Current, WIDE("accept_tcp"), WIDE("This is a new connected, just now accepted") );
 			AddBehavior( ps->Current, WIDE("close_tcp"), WIDE("Datapath has closed (multiple same-type datapaths fail") );
 		}
-      pdp->common.Type = 1;//myTypeID2;
-      pdp->common.Close = Close;
-      pdp->common.Write = serverwrite;
-      pdp->common.Read = NULL; // not needed cause data appears magically...
-      //pdp->common.flags.KeepCR = TRUE;
-      SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (_32)ps );
-      SetNetworkLong( pdp->handle, DATA_PATH, (_32)pdp );
+		pdp->common.Type = 1;//myTypeID2;
+		pdp->common.Close = Close;
+		pdp->common.Write = serverwrite;
+		pdp->common.Read = NULL; // not needed cause data appears on a separate thread...
+		//pdp->common.flags.KeepCR = TRUE;
+		SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (PTRSZVAL)ps );
+		SetNetworkLong( pdp->handle, DATA_PATH, (PTRSZVAL)pdp );
    }
    return (PDATAPATH)pdp;
 }
@@ -517,13 +517,13 @@ static PDATAPATH OnInitDevice( WIDE("tcpserver"), WIDE("Telnet server socket con
 
 static void  CPROC TerminalConnect( PCLIENT pClient, int nError )
 {
-   if( nError )
-   {
-   	Log1( WIDE("Aborted connect after return : %d"), nError );
-      TerminalCloseCallback( pClient ); // calls remove client..
-   }
-   else
-      ReadComplete( pClient, NULL, 0 ); // intial read queue...
+	if( nError )
+	{
+   		Log1( WIDE("Aborted connect after return : %d"), nError );
+		TerminalCloseCallback( pClient ); // calls remove client..
+	}
+	else
+		ReadComplete( pClient, NULL, 0 ); // intial read queue...
 }
 
 //---------------------------------------------------------------------------
@@ -567,8 +567,8 @@ static PDATAPATH OnInitDevice(WIDE("tcp"), WIDE("Telnet type clear text socket c
          pdp->nParams = 0;
          pdp->ParamSet[0] = 0;
          pdp->flags.bNewLine = FALSE; // start with NEWLINE...
-         SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (_32)ps );
-         SetNetworkLong( pdp->handle, DATA_PATH, (_32)pdp );
+         SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (PTRSZVAL)ps );
+         SetNetworkLong( pdp->handle, DATA_PATH, (PTRSZVAL)pdp );
       }
       else
       {
@@ -703,8 +703,8 @@ static PDATAPATH OnInitDevice(WIDE("udpserver"), WIDE("UDP datagram connection..
          pdp->common.Write = UDPTransmit;
          pdp->common.Read = NULL; // not needed cause data appears magically...
          //pdp->common.flags.KeepCR = TRUE;
-         SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (_32)ps );
-         SetNetworkLong( pdp->handle, DATA_PATH, (_32)pdp );
+         SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (PTRSZVAL)ps );
+         SetNetworkLong( pdp->handle, DATA_PATH, (PTRSZVAL)pdp );
          SetNetworkReadComplete( pdp->handle, (cReadComplete)UDPReceive );
          UDPReceive( pdp->handle, NULL, 0, NULL ); // intial read queue...
       }
@@ -761,8 +761,8 @@ static PDATAPATH OnInitDevice(WIDE("udp"), WIDE("UDP datagram connection..."))( 
          pdp->common.Write = UDPTransmit;
          pdp->common.Read = NULL; // not needed cause data appears magically...
          //pdp->common.flags.KeepCR = TRUE;
-         SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (_32)ps );
-         SetNetworkLong( pdp->handle, DATA_PATH, (_32)pdp );
+         SetNetworkLong( pdp->handle, CONTROLLING_SENTIENCE, (PTRSZVAL)ps );
+         SetNetworkLong( pdp->handle, DATA_PATH, (PTRSZVAL)pdp );
          SetNetworkReadComplete( pdp->handle, (cReadComplete)UDPReceive );
          UDPReceive( pdp->handle, NULL, 0, NULL ); // intial read queue...
       }

@@ -762,12 +762,12 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
    myTypeID = RegisterDeviceOpts( WIDE("file"), WIDE("File based operations..."), Open, FileOptions, NUM_OPTIONS );
    myTypeID2 = RegisterDevice( WIDE("log"), WIDE("datapath logging device"), NULL );
-   RegisterRoutine( WIDE("LoadFile"), WIDE("Load file as a binary variable"), LoadFile );
-   RegisterRoutine( WIDE("StoreFile"), WIDE("Save File from binary variable"), StoreFile );
-   RegisterRoutine( WIDE("SaveFile"), WIDE("Save File from binary variable"), StoreFile );
-   RegisterRoutine( WIDE("Log"), WIDE("Begin logging the data datapath to a file"), OpenLog );
-	RegisterRoutine( WIDE("EndLog"), WIDE("End Logging the data datapath to a file"), CloseLog );
-   RegisterObject( WIDE("file monitor"), WIDE("File monitor object... provides on new, modify, deleted"), CreateFileMonitor );
+   RegisterRoutine( WIDE("IO/File"), WIDE("LoadFile"), WIDE("Load file as a binary variable"), LoadFile );
+   RegisterRoutine( WIDE("IO/File"), WIDE("StoreFile"), WIDE("Save File from binary variable"), StoreFile );
+   RegisterRoutine( WIDE("IO/File"), WIDE("SaveFile"), WIDE("Save File from binary variable"), StoreFile );
+   RegisterRoutine( WIDE("IO/File"), WIDE("Log"), WIDE("Begin logging the data datapath to a file"), OpenLog );
+	RegisterRoutine( WIDE("IO/File"), WIDE("EndLog"), WIDE("End Logging the data datapath to a file"), CloseLog );
+   RegisterObject( WIDE("IO/File"), WIDE("file monitor"), WIDE("File monitor object... provides on new, modify, deleted"), CreateFileMonitor );
 	return DekVersion;
 }
 
