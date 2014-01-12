@@ -97,8 +97,9 @@ typedef struct facet_tag
       unsigned int bInvert:1;  // plane's visible side is the back
       unsigned int bDual:1;  // both sides of the plane are visible...
       unsigned int bShared:1; // both sides are transparent?
-	  unsigned int bPointNormal:1;
-	  unsigned int bNormalSurface : 1; // lines on plane make up points of texture with light normals.
+		unsigned int bPointNormal:1;
+		unsigned int bNormalSurface : 1; // lines on plane make up points of texture with light normals.
+		unsigned int bClipOnly : 1; // only clips another plane, is not visible.
    }flags;
    // this can/will be used at one point - but is not now...
    /*

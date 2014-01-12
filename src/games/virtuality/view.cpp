@@ -1,3 +1,4 @@
+#define USE_RENDER3D_INTERFACE l.pr3i
 #include <stdhdrs.h>
 
 //#define USE_RENDER_INTERFACE l.pri
@@ -72,7 +73,7 @@ static struct local_view_data
 	  {
 		  g.pii = GetImageInterface();
 		  g.pri = GetDisplayInterface();
-
+        g.pr3i = GetRender3dInterface();
 	  }
 
    void UpdateCursorPos( PVIEW pv, int x, int y )
@@ -718,6 +719,40 @@ void GetRealPoint( Image pImage, PVECTOR vresult, IMAGE_POINT pt )
    vresult[1] = ((pImage->height/2) - pt[1] ) * (vresult[2] * 2.0f) / ((RCOORD)pImage->height);
 }
 
+PTRSZVAL CPROC RenderFacet(  POBJECT po
+						   , PFACET pf );
+
+void RenderOpenFacet( POBJECT po, PFACET pf )
+{
+	static POBJECT view_volume;
+	static PFACET the_plane;
+   static PFACET volume_facets[6];
+	PRAY planes;
+	int n;
+	if( !view_volume )
+	{
+		view_volume = CreateObject();
+		the_plane = AddPlaneToSet( view_volume->objinfo, pf->d.o, pf->d.n, 1 );
+		GetViewVolume( &planes );
+		for( n = 0; n < 6; n++ )
+		{
+			volume_facets[n] = AddPlaneToSet( po->objinfo, planes[n].o, planes[n].n, 1 );
+         volume_facets[n]->flags.bClipOnly = 1;
+		}
+	}
+	else
+	{
+      SetRay( &the_plane->d, &pf->d );
+		GetViewVolume( &planes );
+		for( n = 0; n < 6; n++ )
+		{
+         SetRay( &volume_facets[n]->d, &planes[n] );
+		}
+	}
+	IntersectObjectPlanes( view_volume );
+   RenderFacet( view_volume, the_plane );
+//      CreateLine(  NULL, planes[n].o, planes[n].n,
+}
 
 PTRSZVAL CPROC RenderFacet(  POBJECT po
 						   , PFACET pf )

@@ -440,8 +440,11 @@ PMYLINESEG CreateLine( OBJECTINFO *oi,
                   	PCVECTOR po, PCVECTOR pn,
                   	RCOORD rFrom, RCOORD rTo )
 {
-   PMYLINESEG pl;
-   pl = GetFromSet( MYLINESEG, oi->ppLinePool );
+	PMYLINESEG pl;
+   if( oi )
+		pl = GetFromSet( MYLINESEG, oi->ppLinePool );
+	else
+      pl = GetFromSet( MYLINESEG, g.ppLinePool );
    AddLink( &oi->lines, pl );
    pl->bDraw = TRUE;
    pl->l.dFrom = rFrom;
@@ -549,6 +552,56 @@ PMYLINESEG CreateLineBetweenFacets( OBJECTINFO *oi, PFACET pp1, PFACET pp2 )
       AddLineToPlane( oi, pp1, pl );
       AddLineToPlane( oi, pp2, pl );
       //lprintf( WIDE("...") );
+
+      return pl; // could return pl2 (?)
+   }
+   else
+   {
+      Log( WIDE("NON-SYMMETRIC!\n") );
+   }
+   return NULL;
+}
+
+PMYLINESEG CreateLineBetweenPlanes( OBJECTINFO *oi, PRAY pr1, PRAY pr2 )
+{
+   MYLINESEG t; // m (slope) of (Int)ersection
+//   LINESEG l1, l2;
+   PMYLINESEG pl;
+   VECTOR tv;
+   //PFACET pp1 = &oi->FacetPool.pFacets[oi->FacetSetPool.pFacetSets[nfs].pFacets[np1].nFacet]
+   //	  , pp2 = &oi->FacetPool.pFacets[oi->FacetSetPool.pFacetSets[nfs].pFacets[np2].nFacet];
+   // t is the slope of the plane which each normal and a 0,0,0
+   // origin create.
+#ifdef PRINT_LINES
+   lprintf(WIDE("Line: p1.Normal, p1.Origin, p2.Normal p2.Origin\n"));
+#endif
+  // slope of the intersection
+
+  if( Parallel( pr1->n, pr2->n ) )
+  {
+#ifdef FULL_DEBUG
+     Log( WIDE("ABORTION! \n"));
+#endif
+     return NULL;
+  }
+  if( FillLine( pr1->o, pr1->n,
+               pr2->o, pr2->n,
+               &t.l.r,
+               tv ) == 2 )
+   {
+		//lprintf( WIDE("...") );
+		if( oi )
+		{
+			pl = GetFromSet( MYLINESEG, oi->ppLinePool );
+			AddLink( &oi->lines, pl );
+		}
+		else
+         pl = GetFromSet( MYLINESEG, g.ppLinePool );
+
+      // current alogrithm does max setting.
+      pl->l.dFrom = NEG_INFINITY;
+      pl->l.dTo = POS_INFINITY;
+      pl->l.r = t.l.r;
 
       return pl; // could return pl2 (?)
    }
@@ -1225,6 +1278,8 @@ int IntersectPlanes( OBJECTINFO *oi, int bAll )
 	{
 		PFACET pf2;
 		j = i;
+		if( pf->flags.bClipOnly )
+         continue;
 		LIST_NEXTALL( oi->facets, j, PFACET, pf2 )
 		{
 			PFACET pf3;
