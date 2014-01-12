@@ -60,7 +60,7 @@ struct dekware_interface RealDekwareInterface =
 	CORE_PROC_PTR( void,  UnregisterRoutine    )( CTEXTSTR pName ),
 	CORE_PROC_PTR( void,  UnregisterObject     )( CTEXTSTR pName ),
 
-	CORE_PROC_PTR( void,  RegisterRoutine      )( CTEXTSTR pName, CTEXTSTR pDescription, RoutineAddress Routine ),
+	CORE_PROC_PTR( void,  RegisterRoutine      )( CTEXTSTR *pClassname, CTEXTSTR pName, CTEXTSTR pDescription, RoutineAddress Routine ),
 	CORE_PROC_PTR( int,   RegisterDevice       )( CTEXTSTR pNext, CTEXTSTR pDescription, DeviceOpenDevice Open ),
 	CORE_PROC_PTR( int,   RegisterDeviceOpts       )( CTEXTSTR pNext, CTEXTSTR pDescription, DeviceOpenDevice Open, option_entry *pOptions, _32 nOptions ),
 

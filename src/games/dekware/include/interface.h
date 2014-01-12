@@ -54,7 +54,7 @@ struct dekware_interface {
 	CORE_PROC_PTR( void,  UnregisterRoutine    )( TEXTCHAR *pName );
 	CORE_PROC_PTR( void,  UnregisterObject     )( TEXTCHAR *pName );
 
-	CORE_PROC_PTR( void,  RegisterRoutine      )( TEXTCHAR *pName, TEXTCHAR *pDescription, RoutineAddress Routine );
+	CORE_PROC_PTR( void,  RegisterRoutine      )( TEXTCHAR *pClassname, TEXTCHAR *pName, TEXTCHAR *pDescription, RoutineAddress Routine );
 	CORE_PROC_PTR( int,   RegisterDevice       )( TEXTCHAR *pNext, TEXTCHAR *pDescription, DeviceOpenDevice Open );
 	CORE_PROC_PTR( int,   RegisterDeviceOpts       )( TEXTCHAR *pNext, TEXTCHAR *pDescription, DeviceOpenDevice Open, option_entry *pOptions, _32 nOptions );
 

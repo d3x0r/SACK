@@ -403,7 +403,7 @@ void Unload( PTEXT pCommandName )
 //--------------------------------------------------------------------------
 
 
-CORE_PROC( void, RegisterRoutine )( TEXTCHAR *pName, TEXTCHAR *pDescription, RoutineAddress Routine )
+CORE_PROC( void, RegisterRoutine )( TEXTCHAR *pClassname, TEXTCHAR *pName, TEXTCHAR *pDescription, RoutineAddress Routine )
 {
 	//PREGROUTINE prr;
    TEXTCHAR tmp[256];
@@ -412,10 +412,11 @@ CORE_PROC( void, RegisterRoutine )( TEXTCHAR *pName, TEXTCHAR *pDescription, Rou
       Log1( WIDE("Cannot Register routines except when plugin is loading...%p\n"), pPluginLoading );
       //return;
 	}
-   snprintf( tmp, sizeof( tmp ), WIDE("Dekware/commands/%s"), pName );
+	snprintf( tmp, sizeof( tmp ), WIDE("Dekware/commands/%s"), pName );
 	SimpleRegisterMethod( WIDE("Dekware/commands"), Routine
 							  , WIDE("int"), pName, WIDE("(PSENTIENT,PTEXT)") );
 	RegisterValue( tmp, WIDE("Description"), pDescription );
+	RegisterValue( tmp, WIDE("Command Class"), pClassname );
 }
 
 //--------------------------------------------------------------------------
@@ -1024,7 +1025,7 @@ static int HandleCommand( WIDE("Object"), WIDE("Assimilate"), WIDE("This object 
 		DECLTEXT( msg, WIDE("Must specify type of object to make...") );
 		EnqueLink( &ps->Command->Output, &msg );
 		ListRegisteredObjects( ps, NULL );
-		return 0;
+		return 0;	
 	}
 	return Assimilate( ps->Current, ps, GetText( type ), parameters );
 }
