@@ -312,6 +312,72 @@ int InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, RCOORD 
 	return 1;
 }
 
+void GetViewVolume( PRAY *planes )
+{
+	static PRAY buffer;
+	if( !buffer )
+	{
+      buffer = NewArray( RAY, 6 );
+	}
+	planes[0] = buffer;
+
+   // front/back planes
+	buffer[0].o[vRight] = 0;
+   buffer[0].o[vUp] = 0;
+   buffer[0].o[vForward] = -1;
+   buffer[0].n[vRight] = 0;
+   buffer[0].n[vUp] = 0;
+	buffer[0].n[vForward] = 1;
+
+	buffer[1].o[vRight] = 0;
+   buffer[1].o[vUp] = 0;
+   buffer[1].o[vForward] = l.current_render_camera->depth; // far plane
+   buffer[1].n[vRight] = 0;
+   buffer[1].n[vUp] = 0;
+	buffer[1].n[vForward] = -1;
+
+   // left/right planes
+	buffer[2].o[vRight] = 0;
+   buffer[2].o[vUp] = 0;
+	buffer[2].o[vForward] = 0;
+	if( l.current_render_camera->aspect > 1.0 )
+	{
+		buffer[2].n[vRight] = 123*l.current_render_camera->aspect;
+		buffer[3].n[vRight] = -123*l.current_render_camera->aspect;
+		buffer[4].n[vUp] = 123;
+		buffer[5].n[vUp] = -123;
+	}
+   else
+	{
+		buffer[2].n[vRight] = 123;
+		buffer[3].n[vRight] = -123;
+		buffer[4].n[vUp] = 123/l.current_render_camera->aspect;
+		buffer[5].n[vUp] = -123/l.current_render_camera->aspect;
+	}
+   buffer[2].n[vUp] = 0;
+	buffer[2].n[vForward] = -123;
+
+	buffer[3].o[vRight] = 0;
+   buffer[3].o[vUp] = 0;
+   buffer[3].o[vForward] = 0;
+   buffer[3].n[vUp] = 0;
+	buffer[3].n[vForward] = -123;
+
+
+   // top/bottom planes
+	buffer[4].o[vRight] = 0;
+   buffer[4].o[vUp] = 0;
+   buffer[4].o[vForward] = 0;
+   buffer[4].n[vRight] = 0;
+	buffer[4].n[vForward] = -123;
+
+	buffer[5].o[vRight] = 0;
+   buffer[5].o[vUp] = 0;
+   buffer[5].o[vForward] = 0;
+   buffer[5].n[vRight] = 0;
+	buffer[5].n[vForward] = -123;
+
+}
 
 int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 {

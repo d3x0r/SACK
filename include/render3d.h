@@ -9,6 +9,7 @@ typedef struct render_3d_interface_tag
 	RENDER_PROC_PTR( PTRANSFORM, GetRenderTransform)         ( PRENDERER );
 	// returns TRUE if at least one of the points is inside the camera clip
 	RENDER_PROC_PTR( LOGICAL, ClipPoints)         ( P_POINT points, int nPoints );
+	RENDER_PROC_PTR( void, GetViewVolume )( PRAY *planes );
 #ifdef _D3D_DRIVER
 	IDirect3DDevice9 *current_device;
 #endif
@@ -110,6 +111,7 @@ typedef struct render_3d_interface_tag
 
 #  define GetRenderTransform             REND3D_PROC_ALIAS(GetRenderTransform)
 #  define ClipPoints             REND3D_PROC_ALIAS(ClipPoints)
+#  define GetViewVolume             REND3D_PROC_ALIAS(GetViewVolume)
 #endif
 
 #endif // __RENDER3D_EXTENSIONS_DEFINED__
