@@ -1,0 +1,36 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<p><a href="script.html">Back to scripts...</a>
+<p>It is possible to do a lot without any additional objects.&nbsp;  The first
+aware object, MOOSE, can be useful by itself.  
+<p>/script "filename"
+<p>SCRIPT allows commands to be input from a file.&nbsp; Before the first 
+command from a user is able to be processed, MOOSE performs a
+"/script macros" command.&nbsp;
+The commands from the file 'macros' are read, and queued to be processed.&nbsp;
+SCRIPT commands are treated as if they were entered at a command prompt.&nbsp;
+If there is a '#' on a line, the remaining portion of the line is ignored,
+allowing script files to have comments.
+
+<p>/macro test&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#Define a test macro<br>
+#/echo test entered<br>
+/endmac&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#end the test macro
+<p>The prior set of commands creates an empty macro called test in the current
+active object.&nbsp;  Macros are stored on/in objects, not in the awareness
+controlling them.
+<p>/declare one Hello<br>
+/declare two World<br>
+<p>DECLARE creates named variables in an object.&nbsp; Variables are referenced
+by putting a '%' before their name. '%one' would essentially be the same
+as 'Hello'.&nbsp; 
+<p>/destroy test #remove previous definition (if any) of test.<br>
+/macro test param1 param2<br>
+/decl local I'm a purple mouse!<br>
+/echo %one %two. %local<br> 
+/echo %param1 %param2<br>
+/endmac
+<p>DECLARE when used in a macro creates a variable which is only valid 
+during the time of the macro.&nbsp; 
+</BODY>
+</HTML>

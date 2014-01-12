@@ -1,0 +1,73 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: shell - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "E:\TEMP\RSP137.tmp" with contents
+[
+/nologo /Zp1 /MD /W3 /GX /O2 /I "..\..\include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /Fo"Release/" /Fd"Release/" /FD /c 
+"M:\common\src\vidlib\VIDLIB.C"
+]
+Creating command line "cl.exe @E:\TEMP\RSP137.tmp" 
+Creating command line "link.exe -lib /nologo /out:"Release\shell.lib"  .\Release\GIFIMAGE.OBJ .\Release\IMAGE.OBJ .\Release\KEY.OBJ .\Release\line.obj .\Release\MATH.OBJ .\Release\SPRITE.OBJ .\Release\VIDLIB.OBJ "
+<h3>Output Window</h3>
+Compiling...
+VIDLIB.C
+Creating library...
+<h3>
+--------------------Configuration: Common - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "E:\TEMP\RSP138.bat" with contents
+[
+@echo off
+copy .\src\vidlib\Release\shell.lib .\lib
+]
+Creating command line "E:\TEMP\RSP138.bat"
+<h3>Output Window</h3>
+Updating .\src\vidlib\Release\shell.lib to .\lib
+        1 file(s) copied.
+
+
+
+<h3>Results</h3>
+Common - 0 error(s), 0 warning(s)
+<h3>
+--------------------Configuration: shell - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "E:\TEMP\RSP139.tmp" with contents
+[
+/nologo /Zp1 /MDd /W3 /GX /Z7 /Od /I "..\..\include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /c 
+"M:\common\src\vidlib\VIDLIB.C"
+]
+Creating command line "cl.exe @E:\TEMP\RSP139.tmp" 
+Creating command line "link.exe -lib /nologo /out:"Debug\shelld.lib"  .\Debug\GIFIMAGE.OBJ .\Debug\IMAGE.OBJ .\Debug\KEY.OBJ .\Debug\line.obj .\Debug\MATH.OBJ .\Debug\SPRITE.OBJ .\Debug\VIDLIB.OBJ "
+<h3>Output Window</h3>
+Compiling...
+VIDLIB.C
+Creating library...
+<h3>
+--------------------Configuration: Common - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "E:\TEMP\RSP13A.bat" with contents
+[
+@echo off
+copy .\src\vidlib\Debug\shelld.lib .\lib
+]
+Creating command line "E:\TEMP\RSP13A.bat"
+<h3>Output Window</h3>
+Updating .\src\vidlib\Debug\shelld.lib to .\lib
+        1 file(s) copied.
+
+
+
+<h3>Results</h3>
+Common - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

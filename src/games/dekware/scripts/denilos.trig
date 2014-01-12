@@ -1,0 +1,105 @@
+/trigger dest daggerjunk
+/trigger create daggerjunk a small dagger sits on the ground
+.get all.dagger
+.junk all.dagger
+/endmac
+
+#/trigger dest daggerjunkmany
+#/trigger create daggerjunkmany a small dagger sits on the ground.[&number]
+#.get all.dagger
+#.junk all.dagger
+#/endmac
+
+/trigger dest rose
+/trigger creat rose This stone is sort of a dusty rose color and very pretty
+.get all.rose
+.junk all.rose
+/endmac
+
+#/trigger dest rosemany
+#/trigger creat rosemany This stone is sort of a dusty rose color and very pretty.[&number]
+#.get all.rose
+#.junk all.rose
+#/endmac
+
+/trigger dest white
+/trigger create white This pearly white stone would probably sell for a good price
+.get all.white
+.junk all.white
+/endmac
+#
+#/trigger dest whitemany
+#/trigger create whitemany This pearly white stone would probably sell for a good price.[&number]
+#.get all.white
+#.junk all.white
+#/endmac
+
+/trigger dest scarlet
+/trigger create scarlet A pretty scarlet and blue stone has been dropped here
+.get all.scarlet
+.junk all.scarlet
+/endmac
+
+#/trigger dest scarletmany
+#/trigger create scarletmany A pretty scarlet and blue stone has been dropped here.[&number]
+#.get all.scarlet
+#.junk all.scarlet
+#/endmac
+
+/trigger dest red
+/trigger create red Someone has left a deep red stone here
+.get all.red
+.junk all.red
+/endmac
+
+#/trigger dest redmany
+#/trigger create redmany Someone has left a deep red stone here.[&number]
+#.get all.red
+#.junk all.red
+#/endmac
+
+/trigger dest grey
+/trigger create grey You can barely make out a dull grey stone on the ground
+.get all.grey
+.junk all.grey
+/endmac
+
+#/trigger dest greymany
+#/trigger create greymany You can barely make out a dull grey stone on the ground.[&number]
+#.get all.grey
+#.junk all.grey
+#/endmac
+
+/trigger dest incandescnt
+/trigger crea incandescnt A small incandescent blue stone lies here
+.get all.incandescent
+.junk all.incandescent
+/endmac
+
+#/trigger dest incandescntmany
+#/trigger crea incandescntmany A small incandescent blue stone lies here.[&number]
+#.get all.incandescent
+#.junk all.incandescent
+#/endmac
+
+/trigger dest blue
+/trigger create blue A pale blue stone sits here
+.get all.pale-blue
+.junk all.pale-blue
+/endmac
+
+#/trigger dest bluemany
+#/trigger create bluemany A pale blue stone sits here.[&number]
+#.get all.pale-blue
+#.junk all.pale-blue
+#/endmac
+
+
+/mac savedruid
+/trigger opt bluemany dis
+/trigger opt blue dis
+/trigger opt greymany dis
+/trigger opt grey dis
+/trigger opt redmany dis
+/trigger opt red dis
+/endmac

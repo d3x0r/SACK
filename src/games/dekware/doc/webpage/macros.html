@@ -1,0 +1,64 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<center><font size=+3>Macros</font></center>
+<br>
+<p>More information about macros: <a href="script_macros.html">Macros</a>
+<p>Macros are sets of commands which are executed when the macro name is
+used.&nbsp;  They may also be considered a way of adding more commands built
+from already existing commands.&nbsp;  Macros execute in a stack.
+That is, the most recently executed macro
+is put on the top of the stack, and it will finish all of its instructions
+before the prior macro will continue.  While running a macro, a currnet macro
+state is kept.  This allows certain commands to return success or failure.
+Some commands, such as IF, LABEL, GOTO, will only be used in a macro.
+<p>A macro is created using the /MACRO command.  All commands which are entered
+after a valid /MACRO command are recorded into the macro.  A command recorded
+into a macro does not require a leading '/', it is assumed that it is a command.
+To end a macro, the
+/ENDMACRO command may be used.  While a macro is being recorded, the current
+macro name is displayed on the command prompt.  
+<menu>
+/macro first<br>
+/echo this is a simple macro...<br>
+/endmac<br>
+<br>
+<u>To call this macro...</u><br>
+/first<br>
+<br>
+<u>Output</u><br>
+this is a simple macro...
+</menu>
+
+If more words after the macro name are specified, these will be the names
+of local variables.  
+If a
+macro uses the /DECLARE command, new variables will be created only for the
+current state the macro runs in.  If the variable existed in the object before
+the macro ran, the value in the object will be updated, and a new variable
+will not be created.  A macro may use the alternate form - /DECLARE in Object -
+to define a new variable in its own object(%me), or another object.  Macro
+parameters are checked first when referencing values, then values in the 
+current macro state, finally variables defined in the object are checked.
+If the name exists prior to a /DECLARE then that variable is updated.
+<menu>
+
+</menu>
+<p>When used in a macro the /REPLY command will send a command like a /TELL 
+to the object which invoked this macro via a /TELL command.
+<p>COMPARE may be used in a macro to test the value of variables compared
+with either a constant value or another variable.  After executing a /COMPARE
+the result is tested with /IF.  There are only two outcomes for a compare... 
+SUCCESS or FAIL.  Many commands will also set the SUCCESS flag when they work,
+and all commands(except /IF) clear the flag before being executed.  
+<p>LABEL may be used to mark a spot in a macro to jump to.  GOTO can be used
+to go to any LABEL defined in this macro.  If a label is defined more than
+one time, only the top one will be valid to jump to.  
+<p>RESULT may be used to return a value from a macro.  Upon returning, the
+calling macro may use GETRESULT to retreive this value.  If the result is 
+not re-set, the last RESULT will be present for all calling macros.
+<menu>
+
+</menu>
+</BODY>
+</HTML>

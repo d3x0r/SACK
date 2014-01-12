@@ -1,0 +1,15 @@
+
+ZEROSTAMPDEPENDS=$(SACK_BASE)/makefiles/prog/zerostamp/Makefile \
+       $(SACK_BASE)/makefiles/prog/zerostamp/makefile.$(COMPILER) \
+		           $(SACK_BASE)/makefiles/prog/zerostamp/zerostamp.c
+
+$(SACK_BASE)/makefiles/prog/zerostamp/zerostamp.c: ;
+
+$(SACK_BASE)/makefiles/prog/zerostamp/makefile.$(COMPILER): ;
+
+$(SACK_BASE)/makefiles/prog/zerostamp/makefile.depends: ;
+
+
+$(SACK_BASE)/makefiles/$(RINTDEST)/zerostamp$(PROGEXT): $(ZEROSTAMPDEPENDS)
+	make -C $(SACK_BASE)/makefiles/prog/zerostamp -f makefile.$(COMPILER) $(filter distclean,$(MAKECMDGOALS))
+	-cp $(SACK_BASE)/makefiles/prog/ppc/zerostamp$(PROGEXT) $@

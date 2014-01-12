@@ -1,0 +1,21 @@
+
+/decl drinkcount 0
+/decl count 1
+/trigger creat fount1 you are hungry
+/incr %drinkcount
+/compare %drinkcount morethan 6
+/if success
+/echo go ahead! take a drink! you know you want to...
+/echo 
+/endif
+/endmac
+
+/trigger create fount3 you drink from the fountain.
+/decl in %me %count %drinkcount
+/decl drinkcount 0
+/incr %count
+/endmac
+
+/trigger crea fount2 nothing seems to happen
+.cast 'nat'
+/endmac

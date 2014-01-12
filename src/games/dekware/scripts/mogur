@@ -1,0 +1,97 @@
+/scr common.trig
+/scr weapon.macros
+/scr hp2
+/scr mogur.stats
+
+/scr spells
+
+/mac makefood
+/decl lastspell 'create food'
+/decl lasttarget 
+/decl lastaction
+/decl on_pending recast
+/endmac
+
+/mac heal who
+/decl lastspell 'cure serious'
+/decl lasttarget %who
+/decl lastaction
+/recast
+/endmac
+
+/mac bless who
+/decl lastspell 'bless'
+/decl lasttarget %who
+/decl lastaction
+/recast
+/endmac
+
+/mac spirit who
+/decl lastspell 'spirit armor'
+/decl lasttarget %who
+/decl lastaction
+/recast
+/endmac
+
+/mac blind who
+/decl lastspell 'blind'
+/decl lasttarget %who
+/decl lastaction
+/recast
+/endmac
+
+
+/mac eat
+/decl hungry false
+.eat mushroom
+/makefood
+/endmac
+
+/alias create raise raise
+.:raises his monobrow in question.
+/endmac
+
+/decl primary lion-blade
+/decl seconary flaming-sword
+
+/mac bracelets which
+.remove all.bracelet
+.remove bags
+.get all.%which-bracelet bags
+.wear %which-bracelet
+.wear %which-bracelet
+.put all.bracelet bags
+.wear bags
+/endmac
+
+
+/mac pack
+    remove bags
+    put all.token bags
+    put all.bracelet bags
+    put all.ring bags
+    put shoes bags
+    put sleeves bags
+    put hood bags
+    put halo bags
+    put scarf bags
+    put halo bags
+    put dirty bags
+    put boots bags
+    put white bags
+    put firestone bags
+    remove scarf
+    put scarf bags
+    wear bags
+    remove sack
+    put ogre sack
+    put bullwhip sack
+    put tail sack
+    put all.beer sack
+    put robe sack
+    put cloak sack
+    put shard sack
+    /s
+    hold sack
+/endmac
+

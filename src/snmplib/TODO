@@ -1,0 +1,34 @@
+* Implement the following types:
+
+	1. Counter64
+	2. ASN_BITS
+
+* Test the V2 -> V1 conversion functions
+
+* Exception information:
+
+  We also haven't made any changes to the print_type function in mib.c,
+  so these values can't be printed. Otherwise, no other changes to the
+  library should be necessary because of the inclusion of the support for
+  so these values can't be printed. Otherwise, no other changes to the
+  library should be necessary because of the inclusion of the support for
+  the exceptions.
+
+- We haven't made any modifications to the man files. Nor have we fixed 
+  the snmp_sync_response bug.
+
+* HTML Documentation
+
+* Fix parser bug in which no two subids may have the same name.  Right
+  now, .iso.org.foo.spam and .iso.org.bar.spam conflict, and cause
+  problems.
+
+* WIN32: Make this library threaded
+
+* WIN32: Installer
+
+* WIN32: Pull the version number from the library compilation process,
+  don't hardcode it.  (Settings : Link : Output; version.c )
+
+* WIN32: myaddress() always returns 0, instead of your IP address.
+

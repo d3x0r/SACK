@@ -1,0 +1,55 @@
+.SH NAME
+snmp_msg_Encode, snmp_msg_Decode \- Encode and Decode an ASN1/BER
+encoded SNMP packet
+.SH SYNOPSIS
+.B cc
+.RI "[ " "flag" " \|.\|.\|. ] " "file" " \|.\|.\|."
+.B \-lsnmp
+.RI "[ " "library" " \|.\|.\|. ]"
+.LP
+.B #include <sys/types.h>
+.br
+.B #include <snmp/snmp.h>
+.LP
+.BI "unsigned char *snmp_msg_Encode(unsigned char * " "Buf" ,
+.BI "int * " "BufLenP" ,
+.BI "unsigned char * " "Community" ,
+.BI "int " "CommLen" ,
+.BI "int " "Version" ,
+.BI "struct snmp_pdu * " "PDU" );
+.LP
+.BI "unsigned char *snmp_msg_Decode(unsigned char * " "Buf" ,
+.BI "int * " "BufLenP" ,
+.BI "unsigned char * " "Community" ,
+.BI "int *" "CommLen" ,
+.BI "int *" "Version" ,
+.BI "struct snmp_pdu * " "PDU" );
+.SH DESCRIPTION
+These functions encode/decode an SNMP PDU to/from an ASN1/BER stream.
+.I Buf
+points to a buffer containing (or about to contain) the stream, and
+.I BuflenP
+points to the number of bytes left in the buffer.
+.I Community
+is the community string to use (length
+.IR CommLen ).
+When decoding, this buffer is filled, and must contain enough space
+for the data. 
+.I Version
+is the version (or is set to the version) of this SNMP transaction.
+.I PDU
+is an empty PDU structure to fill in with the decoded data.
+.SH "RETURN VALUES"
+Upon error, both functions return
+.BR NULL .
+Otherwise, they return a pointer to the next byte in Buf, and set
+BufLenP to the number of bytes remaining in the buffer.
+.SH ERRORS
+If any of these return unsuccessfully, 
+.B snmp_api_error(\|)
+will be set.
+.SH NOTES
+ASN parsing errors are counted and available via
+.BR snmpInASNParseErrs(3)
+and
+.BR snmpInBadVersions(3)

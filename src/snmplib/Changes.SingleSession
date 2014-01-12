@@ -1,0 +1,356 @@
+Single Session API
+
+Introduction
+
+This document describes the changes made by Internet Security Systems,
+Inc. ("ISS") to the SNMP library ("Library") to singly manage SNMP
+sessions in a multi-threaded application.  
+
+Familiarity with the Library API is required.
+
+To provide a reference for this monologue, let the previously existing
+SNMP session API be known as the Traditional API, and let the new
+single SNMP session API be known as the Single API.
+
+The Library does not support multi-threaded applications because :
+
+  1)  The Traditional API functions traverse a shared list of
+      internal data structures, exposing the Library's resources
+      to corruption in a multi-threaded application.
+
+  2)  The Traditional API functions that manage the message reception
+      logic do not provide an interface for one of many sessions.
+
+  3)  Errors discovered by the Library are not associated with the
+      session in which the error occurred.
+
+The motivation for the described changes include :
+
+  1)  Manage a single SNMP session safely, in multi-threaded or
+      non-threaded applications; supporting multiple platforms;
+      and do this so that the Library source code is manageable.
+
+  2)  Associate errors with the session context for threaded
+      and non-threaded applications.
+
+
+The presentation will describe in general terms what the Traditional API
+does, and how the Single API accomplishes similar actions, but for a
+single SNMP session.
+
+Additional functions are described that make managing easier for applications that use the Traditional and/or Single API.
+
+The document ends with a list of restrictions for using the Single API
+in a multi-threaded application.
+
+
+Disclaimer
+
+ISS DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
+ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
+ISS BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR
+ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+SOFTWARE.
+
+
+Managing SNMP Sessions
+
+The Traditional API consists of these functions :
+	struct snmp_session *
+           snmp_open           (struct snmp_session *)
+	snmp_send                (struct snmp_session *,...)
+	snmp_async_send          (struct snmp_session *,...)
+	snmp_synch_response      (struct snmp_session *,...)
+	snmp_select_info         (struct snmp_session *,...)
+	snmp_read                (fd_set *)
+	snmp_timeout             ()
+	snmp_close               (struct snmp_session *)
+
+The Single API consists of these functions :
+	void * snmp_sess_open    (struct snmp_session *)
+	snmp_sess_send           (void *,...)
+	snmp_sess_async_send     (void *,...)
+	snmp_sess_synch_response (void *,...)
+	snmp_sess_select_info    (void *,...)
+	snmp_sess_read           (void *)
+	snmp_sess_timeout        (void *)
+	snmp_sess_close          (void *)
+	struct snmp_session *
+           snmp_sess_session   (void *)
+
+
+Implementation Details
+ 
+The Library manages SNMP sessions through the use of its internal
+data structures ("IDS") and configurable session data ("CFG").
+The IDS points to the CFG and other session control information,
+including SNMP requests that may be expecting response messages.
+When a session is opened, the application supplies a CFG.  An IDS and
+a new CFG are created.  The application may modify the new CFG to
+re-configure an opened session.
+
+The Traditional API functions use the pointer to new CFG to find the IDS.
+In doing so, these functions must traverse a singly-linked list,
+the Sessions list, to match the CFG with each IDS pointer to CFG.
+The IDS is inserted into the Sessions list when snmp_open() is called.
+The IDS is removed from the Sessions list when snmp_close() is called.
+Snmp_select_info(), snmp_read(), snmp_timeout(), and by their inclusion,
+snmp_synch_response(), search the Sessions list on behalf of all SNMP
+sessions that expect one or more reply messages.
+
+If multiple threads are waiting on the same set of input sources,
+the shared resources [the Sessions list, the per session request lists]
+must be mutex locked to prevent corruption when input is received.
+Resource locking is expensive in a non-Windows NT environment, and is
+not addressed presently by the Library changes.
+
+The Single API functions address the IDS directly using a pointer to void.
+Since the Single API does not use the Sessions list to find an IDS,
+there is no resource that needs locking when managing multiple sessions
+from multiple threads.
+
+In most cases, the Traditional API functions trivially reduce to "for"
+loops that traverse the Sessions list and call Single API functions.
+It is no accident that the opaque pointer addresses the same structure
+as a member of the Sessions list.  However, this fact cannot be
+exploited through the Traditional nor Single APIs; the IDS
+is not defined by the header files.
+
+
+Initial Session Configuration
+
+The snmp_sess_init() function was introduced to simplify the setting
+of default configuration information.  The snmp_synch_reset() function
+was introduced to be the complement to snmp_synch_setup().
+All three functions require using a CFG that is input to snmp_sess_open()
+or snmp_open(), depending on the API used.
+ 
+Once a thread is initialized, it should call snmp_sess_init() to
+initialize the session data. It can then adjust session parameters
+such as the remote UDP port or the local UDP port, which must be
+set prior to creating the SNMP session.
+If the thread will send SNMP messages that require responses to be
+synchronously received, the thread must call snmp_synch_setup()
+before opening the SNMP session.
+ 
+
+Using the Single Session API
+ 
+A single thread must call snmp_sess_open() to create an SNMP session.
+Snmp_sess_session() returns the CFG pointer should the application
+need to adjust parameters such as the session timeout or the community
+string.
+ 
+The application can then call snmp_sess_send() or snmp_sess_async_send()
+to build and send an SNMP message to the remote device. If a response is
+expected, the application should call snmp_sess_synch_response() instead.
+
+When the thread is finished using the session, it should call
+snmp_synch_reset() only if it had called snmp_synch_setup().
+
+Then, the thread should call snmp_sess_close() when the services
+of the SNMP session are no longer needed.
+ 
+The functions in the following table are functionally equivalent,
+with the exception of these behaviors:
+- The Traditional API manages many sessions
+- The Traditional API passes a CFG pointer, and finds the IDS
+       on the Sessions list
+- The Single API manages only one session
+- The Single API passes an opaque pointer, and does not use Sessions list
+ 
+  Traditional        Single Session            Single Session Comment
+  ===========        ==============            =======
+  snmp_sess_init     snmp_sess_init            Both APIs can use
+  snmp_synch_setup   snmp_synch_setup          Call before the open
+  snmp_open          snmp_sess_open            Not on Sessions list
+                     snmp_sess_session         Exposes session pointer
+  snmp_send          snmp_sess_send            Opaque pointer
+  snmp_async_send    snmp_sess_async_send      Opaque pointer
+  snmp_select_info   snmp_sess_select_info     Adds opaque pointer
+  snmp_read          snmp_sess_read            Adds opaque pointer
+  snmp_timeout       snmp_sess_timeout         Adds opaque pointer
+  snmp_close         snmp_sess_close           Not on Sessions list
+  snmp_synch_setup   snmp_synch_setup          Both APIs can use
+  snmp_synch_reset   snmp_synch_reset          Both APIs can use
+ snmp_synch_response snmp_sess_synch_response  Opaque pointer
+  snmp_synch_reset   snmp_synch_reset          Call before the close
+  snmp_error         snmp_sess_error           Opaque pointer
+
+ 
+Additional Functions
+ 
+Several convenience functions were added.  These can be used in
+sessions managed using the Traditional API and/or the Single API.
+ 
+Snmp_sess_init() prepares the input session data.  It supplies
+the common initialization that existing applications perform.
+The first call to snmp_sess_init() initializes the Library,
+including the MIB parse trees, before any SNMP sessions are created.
+Applications that call snmp_sess_init() do not need to read MIBs
+nor setup environment variables to utilize the Library.
+Snmp_sess_init() accepts the calling argument to snmp_open()
+or snmp_sess_open().
+ 
+Snmp_synch_reset() is the complement to snmp_synch_setup(). It should be
+called before snmp_close() or snmp_sess_close(), and only if
+snmp_synch_setup() was called for this session.
+Both snmp_synch_setup() and snmp_synch_reset() should use the address of
+the structure which is the input parameter to snmp_open()
+or snmp_sess_open().
+ 
+Error Processing
+
+The use of these variables and functions are obsolete and supported only
+for backward compatibility :
+  int    snmp_errno
+  char * snmp_detail
+  snmp_set_detail()
+  snmp_api_errstring()
+ 
+Two calls were added : snmp_error() and snmp_sess_error() return the
+"errno" and "snmp_errno" values from the per session data, and a string
+that describes the errors that they represent.  The string must be freed
+by the caller.
+
+Use snmp_error() to process failures after Traditional API calls,
+or snmp_sess_error() to process failure after Single API calls.
+In the special case where an SNMP session could not be opened,
+call snmp_error() using the calling argument to either snmp_open()
+or snmp_sess_open().
+
+
+Example 1 : Traditional API use.
+
+    #include "snmp_api.h"
+      ...
+      int liberr, syserr;
+      char *errstr;
+      struct snmp_session Session, *sptr;
+      ...
+      snmp_sess_init(&Session);
+      Session.peername = "foo.bar.net";
+      snmp_synch_setup(&Session);
+      sptr = snmp_open(&Session);
+      if (sptr == NULL) {
+          /* Error codes found in open calling argument */
+          snmp_error(&Session, &liberr, &syserr, &errstr);
+          printf("SNMP create error %s.\n", errstr);
+          free(errstr);
+          return 0;
+      }
+      /* Pass sptr to snmp_error from here forward */
+      ...
+      /* Change the community name */
+      free(sptr->community);
+      sptr->community = strdup("public");
+      sptr->community_len = strlen("public");
+      ...
+      if (0 == snmp_send(sptr, pdu)) {
+          snmp_error(sptr, &liberr, &syserr, &errstr);
+          printf("SNMP write error %s.\n", errstr);
+          free(errstr);
+          return 0;
+      }
+      snmp_synch_reset(&Session);
+      snmp_close(sptr);
+
+
+Example 2 : Single API use.
+
+    #include "snmp_api.h"
+      ...
+      int liberr, syserr;
+      char *errstr;
+      void *sessp;  /* <-- an opaque pointer, not a struct pointer */
+      struct snmp_session Session, *sptr;
+      ...
+      snmp_sess_init(&Session);
+      Session.peername = "foo.bar.net";
+      snmp_synch_setup(&Session);
+      sessp = snmp_sess_open(&Session);
+      if (sessp == NULL) {
+          /* Error codes found in open calling argument */
+          snmp_error(&Session, &liberr, &syserr, &errstr);
+          printf("SNMP create error %s.\n", errstr);
+          free(errstr);
+          return 0;
+      }
+      sptr = snmp_sess_session(sessp); /* <-- get the snmp_session pointer */
+
+      /* Pass sptr to snmp_sess_error from here forward */
+      ...
+      /* Change the community name */
+      free(sptr->community);
+      sptr->community = strdup("public");
+      sptr->community_len = strlen("public");
+      ...
+      if (0 == snmp_sess_send(sessp, pdu)) {
+          snmp_sess_error(sessp, &liberr, &syserr, &errstr);
+          printf("SNMP write error %s.\n", errstr);
+          free(errstr);
+          return 0;
+      }
+      snmp_synch_reset(&Session);
+      snmp_sess_close(sessp);
+ 
+Example 3. Differences Between Traditional API and Single API Usage
+5a6
+>       void *sessp;  /* <-- an opaque pointer, not a struct pointer */
+11,13c12,14
+<       sptr = snmp_open(&Session);
+<       if (sptr == NULL) {
+---
+>       sessp = snmp_sess_open(&Session);
+>       if (sessp == NULL) {
+19c20,22
+<       /* Pass sptr to snmp_error from here forward */
+---
+>       sptr = snmp_sess_session(sessp); /* <-- get the snmp_session pointer */
+> 
+>       /* Pass sptr to snmp_sess_error from here forward */
+26,27c29,30
+<       if (0 == snmp_send(sptr, pdu)) {
+<           snmp_error(sptr, &liberr, &syserr, &errstr);
+---
+>       if (0 == snmp_sess_send(sessp, pdu)) {
+>           snmp_sess_error(sessp, &liberr, &syserr, &errstr);
+33c36
+<       snmp_close(sptr);
+---
+>       snmp_sess_close(sessp);
+
+
+Restrictions on Multi-threaded Use of the SNMP Library
+
+  1. Invoke SOCK_STARTUP or SOCK_CLEANUP from the main thread only.
+
+  2. Read the MIB files before an SNMP session is created.
+     The MIB parsing functions use global shared data and are not
+     multi-thread safe when the MIB tree is under construction.
+     Once the tree is built, the data can be safely referenced from
+     any thread.  There is no provision for freeing the MIB tree.
+     CAUTION: Reading MIB files has not been tested in a multi-threaded
+     Windows NT application.
+
+  3. Invoke the SNMPv2 initialization before an SNMP session is created,
+     for reasons similar to reading the MIB file.
+     The SNMPv2 structures should be available to all SNMP sessions.
+     CAUTION: These structures have not been tested in a multi-threaded
+     Windows NT application.
+
+  4. Sessions created using the Single API do not interact with other
+     SNMP sessions.  If you choose to use Traditional API calls, call
+     them from a single thread.  The Library cannot reference an SNMP
+     session using both Traditional and Single API calls.
+
+  5. Note that the single session API uses the existing callback mechanisms
+     in the SNMP library. This means a callback function cannot use the
+     Single API calls to further process the session.
+
+  6. Whether it uses the Traditional API or the Single API, the
+     snmp_synch_setup() function should be called BEFORE snmp_open()
+     or snmp_sess_open().
+

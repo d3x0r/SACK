@@ -1,0 +1,45 @@
+
+
+/decl page_title "Some Title goes here"
+
+/decl sesssion 50
+
+/echo -----------------------------
+/vars
+
+<HTML><HEAD><TITLE>
+%page_title
+</TITLE>
+<BODY>
+/echo *********************************
+/vars
+/dump %me
+
+/create a b c d e
+/wake a b c d e 
+/make deck cards
+/deck/shuffle
+/deck/status
+/decl tablename table %table
+/collapse %tablename
+/enter %tablename
+/deck/dealto a b c d e 
+/deck/dealto a b c d e 
+/deck/dealto a b c d e 
+/deck/dealto a b c d e 
+/deck/dealto a b c d e 
+<table>
+.<tr><td> player 1: </td><td>%(a)hand </td><td>%(a)pokerhand </td></tr>
+.<tr><td> player 2: </td><td>%(b)hand </td><td>%(b)pokerhand </td></tr>
+.<tr><td> player 3: </td><td>%(c)hand </td><td>%(c)pokerhand </td></tr>
+.<tr><td> player 4: </td><td>%(d)hand </td><td>%(d)pokerhand </td></tr>
+.<tr><td> player 5: </td><td>%(e)hand </td><td>%(e)pokerhand </td></tr>
+</table>
+
+<form action="discard" >
+</form>
+ %contents
+<Br>
+<a href=\"index.html?session=%session\">TABLE NAME</a>
+</BODY>
+
