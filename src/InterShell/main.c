@@ -5679,17 +5679,7 @@ PRIORITY_PRELOAD( StartTSR, DEFAULT_PRELOAD_PRIORITY+5 )
 
 PRIORITY_PRELOAD( RegisterInterShellInterface, DEFAULT_PRELOAD_PRIORITY-4 )
 {
-
 	RegisterInterface( WIDE( "InterShell" ), LoadInterShellInterface, UnloadInterShellInterface );
-#ifndef __NO_OPTIONS__
-	//if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "Alias InterShell for MILK" ), 1, TRUE) )
-#endif
-	{
-		RegisterClassAlias( WIDE( "system/interfaces/InterShell" ), WIDE( "system/interfaces/MILK" ));
-		RegisterClassAlias( WIDE( "InterShell" ), WIDE( "MILK" ) );
-		RegisterClassAlias( WIDE( "sack/widgets" ), WIDE( "altanik/widgets" ) );
-		RegisterClassAlias( WIDE( "psi/Resources/InterShell" ), WIDE( "psi/Resources/MILK" ) );
-	}
 
 #undef SYMNAME
 #define SYMNAME( a,b) EasyRegisterResource( WIDE( "intershell/visibility" ), a, b );

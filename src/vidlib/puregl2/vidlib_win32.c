@@ -64,7 +64,8 @@ ATEXIT( ExitTest )
 			while(l.bThreadRunning)
 			{
 				lprintf( WIDE("waiting...") );
-				Relinquish();
+            WakeableSleep( 10 );
+				//Relinquish();
 			}
 		}
 	}

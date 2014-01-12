@@ -4,7 +4,7 @@
 #include <sack_types.h>
 
 #if 0 /* This header file is going in SACK only now, so forget this */
-    /* This should help this library be used in Altanik or Eltanin */
+    /* This should help this library*/
     #ifdef USE_SACK
         #include <sack_types.h>
     #else

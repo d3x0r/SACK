@@ -207,7 +207,7 @@ int main( int argc, char **argv )
 		}
 	}
    EndBatchUpdate();
-   return 0;//cpg27dec2006
+   return 0;
 }
 
-//cpg27dec2006 c:\work\altanik\src\fut\getoption\importini\importini.c(145): Warning! W107: Missing return value for function 'main'
+
