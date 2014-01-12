@@ -13,6 +13,7 @@
 #include "space.h"
 
 typedef int (CPROC *Function)( PSENTIENT ps, PTEXT parameters );
+typedef int (CPROC *ObjectFunction)( PSENTIENT ps, PENTITY pe, PTEXT parameters );
 typedef int (CPROC FunctionProto)( PSENTIENT ps, PTEXT parameters );
 
 typedef PTEXT (CPROC *GetVariableFunc)( PENTITY pe
@@ -57,15 +58,17 @@ typedef struct command_entry
 
 
 
-// static int HandleCommand( "Command Text", "..." )(PSENTIENT,PTEXT)
+// static int HandleCommand( "Command Text", "..." )(PSENTIENT ps,PTEXT parameters)
 #define HandleCommand( classname, name, desc )   \
 	__DefineRegistryMethod3P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleExtendedCommand,WIDE("commands"),classname,name,desc,int,(PSENTIENT,PTEXT),__LINE__)
 
+// static int OnCreateObject( WIDE("object_type"), WIDE( "Friendly description") )(PSENTIENT ps,PENTITY pe_created,PTEXT parameters)
 #define OnCreateObject( name, desc )   \
 	__DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleCreateObject,WIDE("objects"),name,desc,int,(PSENTIENT,PENTITY,PTEXT),__LINE__)
 
+// static int ObjectMethod( WIDE("object_type"), WIDE( "command" ), WIDE( "Friendly command description") )(PSENTIENT ps, PENTITY pe_object, PTEXT parameters)
 #define ObjectMethod( object, name, desc )   \
-	__DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleObjectMethod,WIDE("objects/")object WIDE("/methods"),name,desc,int,(PSENTIENT,PTEXT),__LINE__)
+	__DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleObjectMethod,WIDE("objects/")object WIDE("/methods"),name,desc,int,(PSENTIENT,PENTITY,PTEXT),__LINE__)
 
 #define DeviceMethod( object, name, desc )   \
 	__DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleObjectMethod,WIDE("devices/")object WIDE("/methods"),name,desc,int,(PSENTIENT,PTEXT),__LINE__)
@@ -191,7 +194,6 @@ CORE_PROC( void, QueueCommand )( PSENTIENT ps, TEXTCHAR *Command );
 #define MacroDuplicateEx(e,t,eol,subst) MacroDuplicateExx( e,t,eol,subst,NULL DBG_SRC )
 #define MacroDuplicate(e,t) MacroDuplicateEx(e,t,FALSE,TRUE)
 #define WriteList(s, leader, Output) WriteListNot( s, NULL, leader, Output )
-#define IsNumber(p) IsSegAnyNumberEx( &(p), NULL, NULL, NULL, 0 )
 // if IsNumber returns true, text token is updated
 #define IsNumber(p) IsSegAnyNumberEx( &(p), NULL, NULL, NULL, 0 )
 //CORE_PROC( int, IsNumber )( PTEXT *pText, double *dNumber, S_64 *iNumber, int *bIntNumber );

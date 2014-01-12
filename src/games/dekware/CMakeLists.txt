@@ -98,6 +98,14 @@ add_subdirectory( intershell_plugin )
 #add_subdirectory( spider ) 
 #add_subdirectory( video )
 
+# extend to get brains and 3D objects again...
+add_subdirectory( ../automaton automaton) 
+include_directories( ../automaton/brain )
+include_directories( ../automaton/board ) 
+add_subdirectory( ../virtuality virtuality_library ) 
+add_subdirectory( virtuality )
+
+
 # get the libraries..
 SET( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP 1 )
 if( ${CMAKE_BUILD_TYPE} MATCHES "[dD][eE][bB][uU][gG]" )
