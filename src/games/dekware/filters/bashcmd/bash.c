@@ -375,8 +375,17 @@ reevaluate_character:
 					case '%':
 					case '/':
 					case '*':
+						if( 0 )
+						{
 					case '+':
 					case '-':
+						if( ( n < ( len - 1 ) )
+							&& ( text[n+1] >= '0' ) && ( text[n+1] <= '9' ) )
+							{
+								VarTextAddCharacter( pdp->vartext, character );
+								break;
+							}
+						}
 					case '^':
 					case '|':
 					case '=':
