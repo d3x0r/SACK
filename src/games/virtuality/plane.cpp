@@ -22,12 +22,12 @@
 
 //#define NO_LOGGING
 
-#define DEBUG_EVERYTHING
+//#define DEBUG_EVERYTHING
 #ifdef DEBUG_EVERYTHING
 #define PRINT_FACETS
 #define PRINT_LINES
 #define PRINT_LINESEGS
-#define FULL_DEBUG
+//#define FULL_DEBUG
 #define DEBUG_LINK_LINES
 #define DEBUG_PLANE_INTERSECTION
 #endif
@@ -811,7 +811,9 @@ void OrderFacetLines( OBJECTINFO *oi )
 			PLINESEGP plsp = GetUsedSetMember( LINESEGP, pplps, nl );
 			if( !plsp )
 			{
+#ifdef DEBUG_LINK_LINES
 				lprintf( WIDE("Failed linked order... ") );
+#endif
 				break ;
 			}
 			if( !plsp->pLine )
@@ -871,7 +873,9 @@ void OrderFacetLines( OBJECTINFO *oi )
 			PLINESEGP plsp = GetUsedSetMember( LINESEGP, pplps, nfirst );
 			if( !plsp )
 			{
+#ifdef DEBUG_LINK_LINES
 				lprintf( WIDE("line at %d failed..."), nfirst );
+#endif
             break;
 			}
 			if( plsp->nLineFrom == nfrom )
@@ -994,7 +998,9 @@ PTRSZVAL CPROC TestLinkLines2( POINTER p, PTRSZVAL psv )
 		if( data->retry )
 		{
 			_POINT tmp;
+#ifdef DEBUG_LINK_LINES
 			lprintf( "in retry; applying rotation to get second match" );
+#endif
 			Apply( tFailureRotation, tmp, to2 );
 			SetPoint( to2, tmp );
 		}
@@ -1149,8 +1155,8 @@ PTRSZVAL CPROC TestLinked( POINTER p, PTRSZVAL psv )
 		{
 #ifdef DEBUG_LINK_LINES
 			//lprintf( WIDE("...%d"), nl1 );
-#endif
 			lprintf( WIDE("... delete line %p"), pLine );
+#endif
          DeleteFromSet( LINESEGP, *data->pplps, pLine );
 		}
 	}
@@ -1310,7 +1316,9 @@ int IntersectPlanes( OBJECTINFO *oi, int bAll )
 					SetPoint( n, pf3->d.n );
 					if( pf3->flags.bInvert )
 						Invert( n );
+#ifdef DEBUG_LINK_LINES
 					lprintf( "End point 1 with facet %d", k );
+#endif
 					if( s = IntersectLineWithPlane( pl->l.r.n
 															, pl->l.r.o
 															, n
@@ -1362,15 +1370,17 @@ int IntersectPlanes( OBJECTINFO *oi, int bAll )
       					if( AbovePlane( pf3->d.n
       					              , pf3->d.o
       					              , pl->l.r.o ) )
-      					{
-      						// setup conditions to have the line deleted.
-							//k = pfps->nUsedFacets;
-							lprintf( WIDE("Above plane %d %g %g"), k, pl->l.dFrom, pl->l.dTo );
-							PrintVector( pl->l.r.o );
-							PrintVector( pf3->d.o );
-							PrintVector( pf3->d.n );
-      						pl->l.dFrom = 1;
-      						pl->l.dTo = 0;
+							{
+								// setup conditions to have the line deleted.
+								//k = pfps->nUsedFacets;
+#ifdef DEBUG_LINK_LINES
+								lprintf( WIDE("Above plane %d %g %g"), k, pl->l.dFrom, pl->l.dTo );
+								PrintVector( pl->l.r.o );
+								PrintVector( pf3->d.o );
+								PrintVector( pf3->d.n );
+#endif
+								pl->l.dFrom = 1;
+								pl->l.dTo = 0;
       						break;
       					}
 #ifdef FULL_DEBUG
@@ -1384,9 +1394,11 @@ int IntersectPlanes( OBJECTINFO *oi, int bAll )
 					(pl->l.dFrom >  pl->l.dTo) )
 				{
 					//DebugBreak();
+#ifdef DEBUG_LINK_LINES
 					lprintf( WIDE("DELETEING LINE - IS NOT LINKED - above plane %d"), k );
 					DeleteLine( oi, pf, pl );
 					DeleteLine( oi, pf2, pl );
+#endif
 					continue;
 				}
 			}
@@ -1463,7 +1475,9 @@ RCOORD PointToPlaneT( PVECTOR n, PVECTOR o, PVECTOR p ) {
    SetPoint( i, n );
    Invert( i );
 	IntersectLineWithPlane( i, p, n, o, &t );
-   lprintf( WIDE("PointToPlaneT=%g"), t );
+#ifdef DEBUG_LINK_LINES
+	lprintf( WIDE("PointToPlaneT=%g"), t );
+#endif
    return t;
 }
 
@@ -1538,7 +1552,7 @@ int GetPoints( PFACET pf, int *nPoints, VECTOR ppv[] )
 		}
 		if( np >= *nPoints )
 		{
-         Log1( WIDE("No more points to fill.. %d"), np );
+         lprintf( WIDE("No more points to fill.. %d"), np );
 			return  FALSE;
 		}
 		if( nl < 0 )

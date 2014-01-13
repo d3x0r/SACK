@@ -322,7 +322,7 @@ static void OnDraw3d( WIDE("Virtuality") )( PTRSZVAL psvView )
 
 		//glFlush();
 		//SetActiveGLDisplay( NULL );
-		if( timeGetTime() != time )
+		if( timeGetTime() != time && ( (frames %30 ) == 0 ))
 		{
 			//Image pImage = GetDisplayImage( v->hVideo );
 			TEXTCHAR buf[256];
