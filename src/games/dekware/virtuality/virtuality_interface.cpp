@@ -30,6 +30,7 @@ struct virtuality_object
 	Image label;
 };
 
+static Image tmp ;
 static PTRSZVAL OnInit3d( WIDE( "Virtuality interface" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	l.pr3i = GetRender3dInterface();
@@ -38,8 +39,10 @@ static PTRSZVAL OnInit3d( WIDE( "Virtuality interface" ) )( PMatrix projection, 
 	l.transform = camera;
 	{
 		POBJECT root_object = Virtuality_MakeCube();
-		Image tmp = LoadImageFile( "%resources%/images/AN00236511_001_l.jpg" );
-		SetObjectColor( root_object, BASE_COLOR_CYAN );
+		//Image 
+			tmp = LoadImageFile( "%resources%/images/AN00236511_001_l.jpg" );
+	SetImageTransformRelation( tmp, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
+		SetObjectColor( root_object, BASE_COLOR_RED );
 		SetRootObject( root_object );
 
 		POBJECT floor_plane = CreateObject();

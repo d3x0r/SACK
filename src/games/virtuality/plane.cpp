@@ -1367,6 +1367,8 @@ int IntersectPlanes( OBJECTINFO *oi, int bAll )
                   		// didn't form a point - but the line resulting above 
                   		// cannot be above any other plane SO... test for 
                   		// line above plane...
+#if 0
+					  /* This is an invalid test; just because the origin is above/below the plane, doesn't mean the line is... the line could still cross the plane*/
       					if( AbovePlane( pf3->d.n
       					              , pf3->d.o
       					              , pl->l.r.o ) )
@@ -1383,6 +1385,7 @@ int IntersectPlanes( OBJECTINFO *oi, int bAll )
 								pl->l.dTo = 0;
       						break;
       					}
+#endif
 #ifdef FULL_DEBUG
                      //lprintf( WIDE("okay Facets %d, %d and %d do not form a point.\n"), i,  j, k ) ;
 #endif
