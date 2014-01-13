@@ -367,3 +367,40 @@ POBJECT MakeGlider( void )
 	return po;
 }
 
+
+POBJECT MakeCube( void )
+{
+	POBJECT po;
+	po = CreateScaledInstance( CubeNormals, CUBE_SIDES, 10.0
+									 , VectorConst_0
+									 , VectorConst_Z
+									 , VectorConst_X
+									 , VectorConst_Y
+									 );
+	{
+		int n;
+		INDEX idx;
+		PFACET pf;
+		n = 0;
+		LIST_FORALL( po->objinfo->facets, idx, PFACET, pf )
+		{
+			switch( n++ )
+			{
+			case 0:
+				pf->color = BASE_COLOR_YELLOW;
+				break;
+			case 1:
+				pf->color = BASE_COLOR_BLUE;
+				break;
+			case 2:
+				pf->color = BASE_COLOR_RED;
+				break;
+			case 3:
+				pf->color = BASE_COLOR_GREEN;
+				break;
+			}
+		}
+	}
+
+   return po;
+}

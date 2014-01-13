@@ -27,7 +27,7 @@
 #define PRINT_FACETS
 #define PRINT_LINES
 #define PRINT_LINESEGS
-//#define FULL_DEBUG
+#define FULL_DEBUG
 #define DEBUG_LINK_LINES
 #define DEBUG_PLANE_INTERSECTION
 #endif
@@ -270,7 +270,7 @@ int Parallel( PVECTOR pv1, PVECTOR pv2 )
 
    cosTheta = a / ( b * c );
 #ifdef FULL_DEBUG
-   lprintf( WIDE(" a: %g b: %g c: %g cos: %g \n"), a, b, c, cosTheta );
+   lprintf( WIDE(" a: %g b: %g c: %g cos: %g"), a, b, c, cosTheta );
 #endif
    if( cosTheta > 0.99999 ||
        cosTheta < -0.999999 ) // not near 0degrees or 180degrees (aligned or opposed)
@@ -994,6 +994,7 @@ PTRSZVAL CPROC TestLinkLines2( POINTER p, PTRSZVAL psv )
 		if( data->retry )
 		{
 			_POINT tmp;
+			lprintf( "in retry; applying rotation to get second match" );
 			Apply( tFailureRotation, tmp, to2 );
 			SetPoint( to2, tmp );
 		}
@@ -1309,7 +1310,7 @@ int IntersectPlanes( OBJECTINFO *oi, int bAll )
 					SetPoint( n, pf3->d.n );
 					if( pf3->flags.bInvert )
 						Invert( n );
-
+					lprintf( "End point 1 with facet %d", k );
 					if( s = IntersectLineWithPlane( pl->l.r.n
 															, pl->l.r.o
 															, n
@@ -1355,19 +1356,19 @@ int IntersectPlanes( OBJECTINFO *oi, int bAll )
                   }
                   else
                   {
-                  	// didn't form a point - but the line resulting above 
-                  	// cannot be above any other plane SO... test for 
-                  	// line above plane...
+                  		// didn't form a point - but the line resulting above 
+                  		// cannot be above any other plane SO... test for 
+                  		// line above plane...
       					if( AbovePlane( pf3->d.n
       					              , pf3->d.o
       					              , pl->l.r.o ) )
       					{
       						// setup conditions to have the line deleted.
-								//k = pfps->nUsedFacets;
-								lprintf( WIDE("Above plane %d %g %g"), k, pl->l.dFrom, pl->l.dTo );
-                        PrintVector( pl->l.r.o );
-                        PrintVector( pf3->d.o );
-                        PrintVector( pf3->d.n );
+							//k = pfps->nUsedFacets;
+							lprintf( WIDE("Above plane %d %g %g"), k, pl->l.dFrom, pl->l.dTo );
+							PrintVector( pl->l.r.o );
+							PrintVector( pf3->d.o );
+							PrintVector( pf3->d.n );
       						pl->l.dFrom = 1;
       						pl->l.dTo = 0;
       						break;
@@ -1382,14 +1383,15 @@ int IntersectPlanes( OBJECTINFO *oi, int bAll )
 				if( pf3 &&
 					(pl->l.dFrom >  pl->l.dTo) )
 				{
-               //DebugBreak();
-					lprintf( WIDE("DELETEING LINE - IS NOT LINKED - above plane") );
+					//DebugBreak();
+					lprintf( WIDE("DELETEING LINE - IS NOT LINKED - above plane %d"), k );
 					DeleteLine( oi, pf, pl );
 					DeleteLine( oi, pf2, pl );
+					continue;
 				}
 			}
 #ifdef DEBUG_LINK_LINES
-         lprintf( WIDE("Resulting line....") );
+			lprintf( WIDE("Resulting line....") );
 			DumpLine( pl );
 #endif
 		}
