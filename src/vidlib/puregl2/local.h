@@ -249,6 +249,7 @@ struct display_camera
 		BIT_FIELD topmost : 1;
 		BIT_FIELD first_draw : 1;
 		BIT_FIELD vsync : 1; 
+		BIT_FIELD opening : 1; // prevent re-opening the same camera
 	} flags;
 	PLIST plugins; // each camera has plugins that might attach more render and mouse methods
 	int type;
