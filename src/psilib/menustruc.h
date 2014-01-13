@@ -35,7 +35,7 @@ typedef struct menu_tag {
     struct menuitem_tag *selected;
     S_16   height, width;
     struct {
-        _16    x, y; // display x and y
+        S_32    x, y; // display x and y
     } display;
     SFTFont  font;
     PCOMMON image;
