@@ -160,7 +160,7 @@ POBJECT PullOut( POBJECT out )
 		out->pIn = NULL;
       out->pOn = NULL;
 	}
-   return out;
+	return out;
 }
 
 //-----------------------------------------------------------
@@ -175,7 +175,8 @@ POBJECT PutIn( POBJECT _this, POBJECT in )
 		_this->pIn = in;
 		LinkThing( in->pHolds, _this );
 	}
-   return _this;
+	IntersectObjectPlanes( _this );
+	return _this;
 }
 
 //-----------------------------------------------------------
@@ -231,7 +232,7 @@ POBJECT CreateScaledInstance( BASIC_PLANE *pDefs, int nDefs, RCOORD fSize,
 	//TranslateV( po->T, pv );
 //   RotateTo( po->T, pforward, pright );
 
-	IntersectPlanes( po->objinfo, TRUE ); // no transformation nicluded....
+	IntersectPlanes( po->objinfo, po->pIn?po->pIn->objinfo:NULL, TRUE ); // no transformation nicluded....
 	MarkTick( ticks[tick++] );
 
    //  137619656380044, 1101158|train@object.c(179):3000 4422 17653 543025 608 465565 47066 3833 61 -137619656379692 0 0
@@ -553,7 +554,7 @@ LOGICAL ObjectOn( POBJECT po,
 
 int IntersectObjectPlanes( POBJECT object )
 {
-	return IntersectPlanes( object->objinfo, TRUE ); // no transformation nicluded....
+	return IntersectPlanes( object->objinfo, object->pIn?object->pIn->objinfo:NULL, TRUE ); // no transformation nicluded....
 }
 
 static void _VirtualityUpdate( POBJECT object )

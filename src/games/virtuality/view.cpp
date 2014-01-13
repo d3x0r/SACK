@@ -392,7 +392,7 @@ void CPROC TimerProc2( PTRSZVAL psv )
 				SetRotation( EditInfo.TEdit, KeyRotation );
 				Move( EditInfo.TEdit );
 				ComputePlaneRay( &GetEditFacet()->d );
-				IntersectPlanes( EditInfo.pEditObject->objinfo, TRUE );
+				IntersectPlanes( EditInfo.pEditObject->objinfo, EditInfo.pEditObject->pIn?EditInfo.pEditObject->pIn->objinfo:NULL, TRUE );
 			}
 		}
 	}

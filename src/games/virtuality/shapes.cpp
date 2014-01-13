@@ -368,10 +368,10 @@ POBJECT Virtuality_MakeGlider( void )
 }
 
 
-POBJECT Virtuality_MakeCube( void )
+POBJECT Virtuality_MakeCube( RCOORD scale )
 {
 	POBJECT po;
-	po = CreateScaledInstance( CubeNormals, CUBE_SIDES, 10.0
+	po = CreateScaledInstance( CubeNormals, CUBE_SIDES, scale
 									 , VectorConst_0
 									 , VectorConst_Z
 									 , VectorConst_X
