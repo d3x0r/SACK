@@ -1256,9 +1256,10 @@ PTRSZVAL CPROC DeleteLinePSeg( POINTER p, PTRSZVAL psv )
    return 0;
 }
 
-int IntersectPlanes( OBJECTINFO *oi, int bAll )
+int IntersectPlanes( OBJECTINFO *oi, OBJECTINFO *oi_container, int bAll )
 {
 	int i, j, k;
+	int f1_object, f2_object;
 	//PFACETPSET pfps;
 	PFACET pf;
 	PMYLINESEG  pl;
@@ -1281,134 +1282,166 @@ int IntersectPlanes( OBJECTINFO *oi, int bAll )
 	// for all combinations of planes intersect them.
 	tick = 0;
 	MarkTick( ticks[tick++] );
+
 	LIST_FORALL( oi->facets, i, PFACET, pf )
 	{
 		PFACET pf2;
+		PLIST scan_list;
 		j = i;
 		if( pf->flags.bClipOnly )
-         continue;
-		LIST_NEXTALL( oi->facets, j, PFACET, pf2 )
+			continue;
+		for( f1_object = 0; f1_object < 2; f1_object++ )
 		{
-			PFACET pf3;
-#ifdef FULL_DEBUG
-         lprintf( WIDE("------------------------------------------------------------\n"));
-         lprintf( WIDE("Between facet %d and facet %d"), i, j );
-#endif
-         // if NO line exists between said planes, line will not be created...
-         pl = CreateLineBetweenFacets( oi, pf, pf2 );
-                           // link 2 lines together...
-                           // create all possible intersections
-			if( !pl )  // no line intersecting...
+			if( f1_object == 0 )
 			{
-            //lprintf( WIDE("plane intersection failed... %d %d\n"), i, j );
-				continue;
+				j = i;
+				scan_list = oi->facets;
 			}
+			if( f1_object == 1 )
 			{
-				k = j;
-				LIST_FORALL( oi->facets, k, PFACET, pf3 )
-				{
-					//pl->frs
-					RCOORD time, s;
-					VECTOR n;
-					// don't compare either plane itself.
-					if( k == i || k == j )
-						continue;
-					SetPoint( n, pf3->d.n );
-					if( pf3->flags.bInvert )
-						Invert( n );
-#ifdef DEBUG_LINK_LINES
-					lprintf( "End point 1 with facet %d", k );
-#endif
-					if( s = IntersectLineWithPlane( pl->l.r.n
-															, pl->l.r.o
-															, n
-															, pf3->d.o
-															, &time ) )
-					{
-						RCOORD dp;
-
-#ifdef DEBUG_LINK_LINES
-							{
-								VECTOR x;
-								lprintf( WIDE("object %p facet %d %d and %d Intersect time %g"), oi, i, j, k, time );
-								addscaled( x, pl->l.r.o, pl->l.r.n, time );
-								PrintVector( x );
-							}
-#endif
-#define MIN_RANGE
-#ifdef MIN_RANGE
-                  	if( ( dp = dotproduct( pl->l.r.n, n ) ) > 0 )
-                  	{
-                  		if( time < pl->l.dTo )
-                  		{
-	                  		pl->l.dTo = time;
-	                  	}
-	                }
-                  	else
-                  	{
-                  		if( time > pl->l.dFrom )
-                  		{
-                  			pl->l.dFrom = time;
-                  		}
-							}
-#else
-                  		if( time < pl->l.dFrom )
-                  		{
-	                  		pl->l.dFrom= time;
-	                  	}
-                  		if( time > pl->l.dTo )
-                  		{
-                  			pl->l.dTo = time;
-								}
-#endif
-                  }
-                  else
-                  {
-                  		// didn't form a point - but the line resulting above 
-                  		// cannot be above any other plane SO... test for 
-                  		// line above plane...
-#if 0
-					  /* This is an invalid test; just because the origin is above/below the plane, doesn't mean the line is... the line could still cross the plane*/
-      					if( AbovePlane( pf3->d.n
-      					              , pf3->d.o
-      					              , pl->l.r.o ) )
-							{
-								// setup conditions to have the line deleted.
-								//k = pfps->nUsedFacets;
-#ifdef DEBUG_LINK_LINES
-								lprintf( WIDE("Above plane %d %g %g"), k, pl->l.dFrom, pl->l.dTo );
-								PrintVector( pl->l.r.o );
-								PrintVector( pf3->d.o );
-								PrintVector( pf3->d.n );
-#endif
-								pl->l.dFrom = 1;
-								pl->l.dTo = 0;
-      						break;
-      					}
-#endif
+				if( !oi_container )
+					continue;
+				scan_list = oi_container->facets;
+				j = -1;
+			}
+			LIST_NEXTALL( scan_list, j, PFACET, pf2 )
+			{
+				PFACET pf3;
 #ifdef FULL_DEBUG
-                     //lprintf( WIDE("okay Facets %d, %d and %d do not form a point.\n"), i,  j, k ) ;
+				lprintf( WIDE("------------------------------------------------------------\n"));
+				lprintf( WIDE("Between facet %d and facet %d"), i, j );
 #endif
-						}
-				}
-				// pf3 will be NULL at end of loop, or at empty list...
-				// otherwise non-null pf3 indicates a bail.
-				if( pf3 &&
-					(pl->l.dFrom >  pl->l.dTo) )
+				 // if NO line exists between said planes, line will not be created...
+				 pl = CreateLineBetweenFacets( oi, pf, pf2 );
+								   // link 2 lines together...
+								   // create all possible intersections
+				if( !pl )  // no line intersecting...
 				{
-					//DebugBreak();
-#ifdef DEBUG_LINK_LINES
-					lprintf( WIDE("DELETEING LINE - IS NOT LINKED - above plane %d"), k );
-					DeleteLine( oi, pf, pl );
-					DeleteLine( oi, pf2, pl );
-#endif
+				//lprintf( WIDE("plane intersection failed... %d %d\n"), i, j );
 					continue;
 				}
+				{
+					PLIST scan_list2;
+					k = j;
+
+					for( f2_object = 0; f2_object < 2; f2_object++ )
+					{
+						if( f2_object == 0 )
+						{
+							scan_list2 = oi->facets;
+						}
+						if( f2_object == 1 )
+						{
+							if( !oi_container )
+								continue;
+							scan_list2 = oi_container->facets;
+						}
+						LIST_FORALL( scan_list2, k, PFACET, pf3 )
+						{
+							//pl->frs
+							RCOORD time, s;
+							VECTOR n;
+							// don't compare either plane itself.
+							if( k == i || k == j )
+								continue;
+							SetPoint( n, pf3->d.n );
+							if( pf3->flags.bInvert )
+								Invert( n );
+		#ifdef DEBUG_LINK_LINES
+							lprintf( "End point 1 with facet %d", k );
+		#endif
+							if( s = IntersectLineWithPlane( pl->l.r.n
+																	, pl->l.r.o
+																	, n
+																	, pf3->d.o
+																	, &time ) )
+							{
+								RCOORD dp;
+
+		#ifdef DEBUG_LINK_LINES
+									{
+										VECTOR x;
+										lprintf( WIDE("object %p facet %d %d and %d Intersect time %g"), oi, i, j, k, time );
+										addscaled( x, pl->l.r.o, pl->l.r.n, time );
+										PrintVector( x );
+									}
+		#endif
+		#define MIN_RANGE
+		#ifdef MIN_RANGE
+                  			if( ( dp = dotproduct( pl->l.r.n, n ) ) > 0 )
+                  			{
+                  				if( time < pl->l.dTo )
+                  				{
+	                  				pl->l.dTo = time;
+	                  			}
+							}
+                  			else
+                  			{
+                  				if( time > pl->l.dFrom )
+                  				{
+                  					pl->l.dFrom = time;
+                  				}
+									}
+		#else
+                  				if( time < pl->l.dFrom )
+                  				{
+	                  				pl->l.dFrom= time;
+	                  			}
+                  				if( time > pl->l.dTo )
+                  				{
+                  					pl->l.dTo = time;
+										}
+		#endif
+							}
+							else
+							{
+                  				// didn't form a point - but the line resulting above 
+                  				// cannot be above any other plane SO... test for 
+                  				// line above plane...
+		#if 0
+								/* This is an invalid test; just because the origin is above/below the plane, doesn't mean the line is... the line could still cross the plane*/
+      							if( AbovePlane( pf3->d.n
+      											, pf3->d.o
+      											, pl->l.r.o ) )
+									{
+										// setup conditions to have the line deleted.
+										//k = pfps->nUsedFacets;
+		#ifdef DEBUG_LINK_LINES
+										lprintf( WIDE("Above plane %d %g %g"), k, pl->l.dFrom, pl->l.dTo );
+										PrintVector( pl->l.r.o );
+										PrintVector( pf3->d.o );
+										PrintVector( pf3->d.n );
+		#endif
+										pl->l.dFrom = 1;
+										pl->l.dTo = 0;
+      								break;
+      							}
+		#endif
+		#ifdef FULL_DEBUG
+								//lprintf( WIDE("okay Facets %d, %d and %d do not form a point.\n"), i,  j, k ) ;
+		#endif
+							}
+						}
+					}
+					// pf3 will be NULL at end of loop, or at empty list...
+					// otherwise non-null pf3 indicates a bail.
+					if( pf3 &&
+						(pl->l.dFrom >  pl->l.dTo) )
+					{
+						//DebugBreak();
+	#ifdef DEBUG_LINK_LINES
+						lprintf( WIDE("DELETEING LINE - IS NOT LINKED - above plane %d"), k );
+						DeleteLine( oi, pf, pl );
+						DeleteLine( oi, pf2, pl );
+	#endif
+						continue;
+					}
+				}
+	#ifdef DEBUG_LINK_LINES
+				lprintf( WIDE("Resulting line....") );
+				DumpLine( pl );
+	#endif
 			}
-#ifdef DEBUG_LINK_LINES
-			lprintf( WIDE("Resulting line....") );
-			DumpLine( pl );
-#endif
 		}
 	}
 #ifdef DEBUG_LINK_LINES

@@ -38,18 +38,22 @@ static PTRSZVAL OnInit3d( WIDE( "Virtuality interface" ) )( PMatrix projection, 
 	l.pi3i = GetImage3dInterface();
 	l.transform = camera;
 	{
-		POBJECT root_object = Virtuality_MakeCube();
+		POBJECT root_object = Virtuality_MakeCube( 1000 );
 		//Image 
 			tmp = LoadImageFile( "%resources%/images/AN00236511_001_l.jpg" );
-	SetImageTransformRelation( tmp, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
-		SetObjectColor( root_object, BASE_COLOR_RED );
+		SetImageTransformRelation( tmp, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
+		SetObjectColor( root_object, BASE_COLOR_BLUE );
 		SetRootObject( root_object );
 
 		POBJECT floor_plane = CreateObject();
 		PFACET floor_plane_facet = AddPlane( floor_plane, _0, _Y, 0 );
 		floor_plane_facet->color = BASE_COLOR_BROWN;
 		floor_plane_facet->image = tmp;
-		PutIn( root_object, floor_plane );
+		PutIn( floor_plane, root_object );
+
+		PutIn( floor_plane = Virtuality_MakeCube( 10 ), root_object );
+		floor_plane->color = BASE_COLOR_NICE_ORANGE;
+
 	}
 	return 1;
 }

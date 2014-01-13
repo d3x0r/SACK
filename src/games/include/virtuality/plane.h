@@ -91,33 +91,33 @@ DeclareSet( LINESEGPSET );
 
 typedef struct facet_tag
 {
-   struct {
-      unsigned int bUsed:1; // facet allocated, and contains usable data
-      unsigned int bDraw:1; // flag that it's not clipped? or that it's visible side is...
-      unsigned int bInvert:1;  // plane's visible side is the back
-      unsigned int bDual:1;  // both sides of the plane are visible...
-      unsigned int bShared:1; // both sides are transparent?
+	struct facet_flags {
+		unsigned int bUsed:1; // facet allocated, and contains usable data
+		unsigned int bDraw:1; // flag that it's not clipped? or that it's visible side is...
+		unsigned int bInvert:1;  // plane's visible side is the back
+		unsigned int bDual:1;  // both sides of the plane are visible...
+		unsigned int bShared:1; // both sides are transparent?
 		unsigned int bPointNormal:1;
 		unsigned int bNormalSurface : 1; // lines on plane make up points of texture with light normals.
 		unsigned int bClipOnly : 1; // only clips another plane, is not visible.
-   }flags;
-   // this can/will be used at one point - but is not now...
-   /*
-   int nBrain; // peirce sensor to brain....
+	}flags;
+	// this can/will be used at one point - but is not now...
+	/*
+	int nBrain; // peirce sensor to brain....
                // shrug - collistion value for now...
-   */
-   RAY d;
+	*/
+	RAY d;
 	CDATA color; // if zero then uses object color.
 	Image image;  // if not NULL, use this image instead of color; if color is also not zero, use that as a single-light shader
-   // TEXTURE texture; // includes coordinate on texture and texture reference.
+	// TEXTURE texture; // includes coordinate on texture and texture reference.
 
-   // lines on a plane are the resulting boundry created
-   // from intersections with other planes, or loaded from
-   // a file.  if a plane is a loaded entity - possibly omit
-   // normal and origin information... disallow modifications.
-   PLINESEGPSET pLineSet; // line references in object line pool...
+	// lines on a plane are the resulting boundry created
+	// from intersections with other planes, or loaded from
+	// a file.  if a plane is a loaded entity - possibly omit
+	// normal and origin information... disallow modifications.
+	PLINESEGPSET pLineSet; // line references in object line pool...
    
-   //b2World *world;
+	//b2World *world;
 
 } FACET, *PFACET;
 
@@ -186,7 +186,7 @@ PFACET AddPlaneToSet( OBJECTINFO *oi, PCVECTOR origin, PCVECTOR norm, int d );
 //int CreateLineBetweenFacets( OBJECTINFO *oi, int nfs, int np1, int np2 );
 
 
-int IntersectPlanes( OBJECTINFO *oi, int bAll );
+int IntersectPlanes( OBJECTINFO *oi, OBJECTINFO *oi_container, int bAll );
 
 void DeletePlane( PFACETSET pp, PFACET pDel );
 

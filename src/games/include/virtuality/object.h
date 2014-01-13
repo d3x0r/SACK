@@ -18,7 +18,10 @@ struct object_tag
 	// must be first for linking purposes...
    // sorry charly - this one's fancy.
 	DeclareLink( struct object_tag );
-   Image hud_icon; // this is rendered true size true depth. transformed to the object origin.
+	struct {
+		BIT_FIELD container_changed : 1;
+	} flags;
+	Image hud_icon; // this is rendered true size true depth. transformed to the object origin.
 	PTRANSFORM T;  // My Base Transform... when this gets updated update Ti...
 	PTRANSFORM Ti; // My Transform applied with all containers
 	POBJECTINFO objinfo;
@@ -26,7 +29,7 @@ struct object_tag
 	struct {
    		int bInvert:1;
 	};
-   struct object_tag *pHolds, // pointer to objects 'in' this one
+	struct object_tag *pHolds, // pointer to objects 'in' this one
                      *pIn,  // points to object which 'holds' this one
                      *pHas, // points to objects 'On' this one
                      *pOn;  // pointer to object which 'has' this one
@@ -78,7 +81,7 @@ VIRTUALITY_EXPORT POBJECT MakeScaledInstance( POBJECT pDefs
 
 // ----------------------  SIMPLE SHAPES --------------------
 VIRTUALITY_EXPORT POBJECT Virtuality_MakeGlider( void );
-VIRTUALITY_EXPORT POBJECT Virtuality_MakeCube( void );
+VIRTUALITY_EXPORT POBJECT Virtuality_MakeCube( RCOORD scale );
 
 //POBJECT CreateScaledInstance( BASIC_PLANE *pDefs, int nDefs, RCOORD fSize, PVECTOR pv );
 VIRTUALITY_EXPORT void SetObjectColor( POBJECT po, CDATA c ); // dumb routine!
