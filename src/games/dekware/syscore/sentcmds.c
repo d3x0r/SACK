@@ -420,7 +420,7 @@ int CPROC MONITOR( PSENTIENT ps, PTEXT parameters )
 		{
 			DECLTEXT( msg, WIDE("You are now act as that object.") );
 			ps =
-				PLAYER = pe->pControlledBy;
+				global.PLAYER = pe->pControlledBy;
 			EnqueLink( &ps->Command->Output, &msg );
 		}
 	}

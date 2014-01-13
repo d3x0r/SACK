@@ -598,7 +598,7 @@ CORE_PROC( PENTITY, CreateEntityIn )( PENTITY Location, PTEXT pName )
 {
 	PENTITY pTemp, peCreator;
 	if( !Location )
-		peCreator = THE_VOID;
+		peCreator = global.THE_VOID;
 	else
 	{
 		peCreator = Location;
@@ -699,7 +699,7 @@ CORE_PROC( void, DestroyEntityEx )( PENTITY pe DBG_PASS )
    //#ifdef _DEBUG
    _xlprintf( 1 DBG_RELAY )( WIDE("Destroying an entity(%s)"), GetText( GetName( pe ) ) );
    //#endif
-   if( pe == THE_VOID )
+   if( pe == global.THE_VOID )
    {
 		if( !gbExitNow )
 		{
@@ -708,7 +708,7 @@ CORE_PROC( void, DestroyEntityEx )( PENTITY pe DBG_PASS )
 			WakeThreadID( GetThreadID( pMainThread ) );
 			return;
 		}
-		THE_VOID = NULL;
+		global.THE_VOID = NULL;
    }
    if( !pe )
       return; // bad bad error - why ?!?
@@ -834,8 +834,8 @@ CORE_PROC( void, DestroyEntityEx )( PENTITY pe DBG_PASS )
 
    if( pe->pControlledBy )
    {
-      if( pe->pControlledBy == PLAYER )
-         PLAYER = NULL;
+      if( pe->pControlledBy == global.PLAYER )
+         global.PLAYER = NULL;
 
       if( !DestroyAwarenessEx( pe->pControlledBy DBG_RELAY ) )
       {
@@ -899,7 +899,7 @@ PENTITY showall( PLINKQUEUE *ppOutput, PENTITY object)
 
    if( !object )
       return NULL;
-   if( object == THE_VOID )
+   if( object == global.THE_VOID )
       level = 0;
 //   nPos = 0;
    pLine = SegCreate( 256 );
@@ -1229,7 +1229,7 @@ PENTITY Big_Bang( PTEXT pName )
 
 CORE_PROC( PENTITY, GetTheVoid )( void )
 {
-	return THE_VOID;
+	return global.THE_VOID;
 }
 
 //--------------------------------------------------------------------------
@@ -1274,7 +1274,7 @@ int InitSpace( const TEXTCHAR *command_line )
 //   pg = Allocate( sizeof( GLOBAL ) );
 	//   MemSet( pg, 0, sizeof( GLOBAL ) );
 	global.flags.bLogAllCommands = SACK_GetProfileInt( WIDE("options"), WIDE("Log All Commands"), 0 );
-	THE_VOID = Big_Bang( SegCreateFromText( WIDE("The Void") ) );
+	global.THE_VOID = Big_Bang( SegCreateFromText( WIDE("The Void") ) );
 	{
 		PTEXT tmp = SegCreateFromText( command_line );
 		global_command_line = burst( tmp );
@@ -1287,7 +1287,7 @@ int InitSpace( const TEXTCHAR *command_line )
 		}
 		LineRelease( tmp );
 	}
-	THE_VOID->pDescription = SegCreateFromText( WIDE("Transparent black clouds swirl about.") );
+	global.THE_VOID->pDescription = SegCreateFromText( WIDE("Transparent black clouds swirl about.") );
 	RegisterTextExtension( TF_SENTIENT_FLAG, GetSentientName, 0 );
 	RegisterTextExtension( TF_ENTITY_FLAG, GetEntityName, 0 );
 	AddCommonBehavior( WIDE("Enter"), WIDE("invoked on entity being entered by an entity") );
@@ -2327,14 +2327,14 @@ void Startup( TEXTCHAR *lpCmdLine )
 		// if during the course of a plugin, the master operator
 		// was not created, we have to have something aware to be able
 		// to process commands... let's wake up the void :)
-		if( !PLAYER )
+		if( !global.PLAYER )
 		{
-			PLAYER = CreateAwareness( THE_VOID );
-			UnlockAwareness( PLAYER );
+			global.PLAYER = CreateAwareness( global.THE_VOID );
+			UnlockAwareness( global.PLAYER );
 
 			//DoCommandf( PLAYER, WIDE("/debug") );
-			DoCommandf( PLAYER, WIDE("/echo /script macros") );
-			DoCommandf( PLAYER, WIDE("/script macros") );
+			DoCommandf( global.PLAYER, WIDE("/echo /script macros") );
+			DoCommandf( global.PLAYER, WIDE("/script macros") );
 		}
 		Log( WIDE("Start one sentience...") );
 		WakeAThread( NULL );
@@ -2372,9 +2372,9 @@ void Cleanup( void )
 				INDEX idx;
 				do
 				{
-					LIST_FORALL( THE_VOID->pContains, idx, PENTITY, pe )
+					LIST_FORALL( global.THE_VOID->pContains, idx, PENTITY, pe )
 					{
-						if( pe != THE_VOID )
+						if( pe != global.THE_VOID )
 						{
 							DestroyEntity( pe );
 							break;
@@ -2383,8 +2383,8 @@ void Cleanup( void )
 				}
 				while( pe );
 			}
-			pullout( THE_VOID, THE_VOID );
-			DestroyEntity( THE_VOID );
+			pullout( global.THE_VOID, global.THE_VOID );
+			DestroyEntity( global.THE_VOID );
 			// for all Sentients, close all datapaths....
 			{
 				PSENTIENT ps;

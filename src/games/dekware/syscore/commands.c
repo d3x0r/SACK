@@ -2458,7 +2458,7 @@ Recheck:
 
 			if( ( match = LocateMacro( ps->Current, GetText(Command) ) ) ||
                 ( match = LocateMacro( ps->Current->pWithin, GetText(Command) ) ) ||
-			    ( match = LocateMacro( THE_VOID, GetText(Command) ) ) )
+			    ( match = LocateMacro( global.THE_VOID, GetText(Command) ) ) )
 			{
 				PTEXT argline;
 				PTEXT pArgs;
@@ -2732,7 +2732,7 @@ CORE_PROC( void, vExecute )( PSENTIENT ps, TEXTCHAR *cmd, va_list args )
 	PVARTEXT pvt;
 	PTEXT cmdt, temp;
 	if( !ps )
-		ps = PLAYER;
+		ps = global.PLAYER;
 	pvt = VarTextCreate();
 	vvtprintf( pvt, cmd, args );
 	cmdt = burst( temp = VarTextGet( pvt ) );
