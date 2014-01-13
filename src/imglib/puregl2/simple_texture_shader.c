@@ -85,14 +85,10 @@ static void CPROC SimpleTextureEnable( PImageShaderTracker tracker, PTRSZVAL psv
 	CheckErr();
 	glActiveTexture(GL_TEXTURE0 + 0);
 	CheckErr();
-	glTexParameteri(GL_TEXTURE_2D+0, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D+0, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glBindTexture(GL_TEXTURE_2D+0, texture);
 	CheckErr();
 	glUniform1i( data->texture, 0 );
 	CheckErr();
-
-
 }
 
 void InitSimpleTextureShader( PImageShaderTracker tracker )

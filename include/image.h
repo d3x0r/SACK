@@ -1860,9 +1860,11 @@ IMAGE_PROC_PTR( void, MarkImageDirty )( Image pImage );
 
 IMAGE_PROC_PTR( void, DumpFontCache )( void );
 IMAGE_PROC_PTR( void, RerenderFont )( SFTFont font, S_32 width, S_32 height, PFRACTION width_scale, PFRACTION height_scale );
-
+// option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
 IMAGE_PROC_PTR( int, ReloadTexture )( Image child_image, int option );
+// option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
 IMAGE_PROC_PTR( int, ReloadShadedTexture )( Image child_image, int option, CDATA color );
+// option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
 IMAGE_PROC_PTR( int, ReloadMultiShadedTexture )( Image child_image, int option, CDATA red, CDATA green, CDATA blue );
 
 IMAGE_PROC_PTR( void, SetImageTransformRelation )( Image pImage, enum image_translation_relation relation, PRCOORD aux );
@@ -1982,8 +1984,11 @@ IMAGE_PROC_PTR( void, DumpFontFile )( CTEXTSTR name, SFTFont font_to_dump );
 #define RenderScaledFontEx              PROC_ALIAS(RenderScaledFontEx)
 #define DumpFontCache              PROC_ALIAS(DumpFontCache)
 #define RerenderFont              PROC_ALIAS(RerenderFont)
+// option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
 #define ReloadTexture              PROC_ALIAS(ReloadTexture)
+// option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
 #define ReloadShadedTexture              PROC_ALIAS(ReloadShadedTexture)
+// option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
 #define ReloadMultiShadedTexture              PROC_ALIAS(ReloadMultiShadedTexture)
 #define DestroyFont              PROC_ALIAS(DestroyFont)
 #define GetFontRenderData              PROC_ALIAS(GetFontRenderData)
