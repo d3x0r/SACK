@@ -112,7 +112,7 @@ void SYNAPSE::Init( CTEXTSTR name, NATIVE Gain )
 	{
 		static int nDefault = 1;
 		TEXTCHAR tmpname[32];
-		Name = (TEXTSTR)Allocate( snprintf( tmpname, sizeof( tmpname ), WIDE("Synapse %d"), nDefault ) );
+		Name = (TEXTSTR)Allocate( snprintf( tmpname, sizeof( tmpname ), WIDE("Synapse %d"), nDefault ) + 1 );
 		strcpy( Name, tmpname );
 	}
    // set the type...

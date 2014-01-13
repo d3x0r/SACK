@@ -6,8 +6,8 @@
 //#include "links.h"  // PDATA
 #include "text.h"
 
-#define byOutput Buffer.data.data
-#define nOutput &Buffer.data.size
+//#define byOutput Buffer.data.data
+//#define nOutput &Buffer.data.size
 #define DECLOUTBUF(size) DECLTEXTSZ( Buffer, (size) )
 
 #include "space.h"

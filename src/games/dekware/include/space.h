@@ -429,8 +429,8 @@ extern
 #endif
 
 //#ifndef PLUGIN_MODULE
-#define THE_VOID global.THE_VOID
-#define PLAYER global.PLAYER
+//#define THE_VOID global.THE_VOID
+//#define ROOT_PLAYER global.PLAYER
 #define AwareEntities global.AwareEntities
 //#endif
 #ifdef CORE_SOURCE

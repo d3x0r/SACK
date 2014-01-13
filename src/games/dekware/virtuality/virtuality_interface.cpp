@@ -13,6 +13,9 @@
 #include <render3d.h>
 #include <image3d.h>
 
+#include <brain.hpp>
+#include <brainshell.hpp>
+
 
 static struct local_virtuality_interface_tag
 {
@@ -26,8 +29,11 @@ static struct local_virtuality_interface_tag
 
 struct virtuality_object
 {
-	VECTOR o;
-	Image label;
+	VECTOR o;// objects actually origins already
+	Image label;  // objects actually have labels already
+	POBJECT object;
+	PBRAIN brain;
+	PBRAINBOARD brain_board;
 };
 
 static Image tmp ;
@@ -51,6 +57,8 @@ static PTRSZVAL OnInit3d( WIDE( "Virtuality interface" ) )( PMatrix projection, 
 		floor_plane_facet->image = tmp;
 		PutIn( floor_plane, root_object );
 
+
+		
 		PutIn( floor_plane = Virtuality_MakeCube( 10 ), root_object );
 		floor_plane->color = BASE_COLOR_NICE_ORANGE;
 
@@ -163,6 +171,10 @@ static int OnCreateObject( WIDE("Point Label"), WIDE( "This is a point in space 
 		UpdateLabel( vobj, "Label" );
 		SetPoint( vobj->o, _0 );
 		vobj->o[vForward] = 0;
+
+		vobj->brain = new BRAIN();
+		vobj->brain_board = CreateBrainBoard( vobj->brain );
+
 		AddLink( &l.objects, vobj );
 
 		{

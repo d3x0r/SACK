@@ -1129,7 +1129,7 @@ void BRAINBOARD::InitMenus( void )
 	hMenu = CreatePopup();
 	AppendPopupItem( hMenu, MF_STRING, MNU_ADDNEURON, WIDE("Add &Neuron") );
    
-	AppendPopupItem( hMenu,MF_STRING|MF_POPUP, (_32)(hMenuComponents=CreatePopup()), WIDE("Add &Component") );
+	AppendPopupItem( hMenu,MF_STRING|MF_POPUP, (PTRSZVAL)(hMenuComponents=CreatePopup()), WIDE("Add &Component") );
 	{
 		int n = 0;
 		PBRAIN_STEM pbs;
@@ -1144,7 +1144,7 @@ void BRAINBOARD::InitMenus( void )
 	AppendPopupItem( hMenu,MF_SEPARATOR,0,0 );
 	{
 		PMENU hPopup;
-		AppendPopupItem( hMenu,MF_STRING|MF_POPUP, (_32)(hPopup = CreatePopup()), WIDE("Zoom") );
+		AppendPopupItem( hMenu,MF_STRING|MF_POPUP, (PTRSZVAL)(hPopup = CreatePopup()), WIDE("Zoom") );
 		AddLink( &menus, hPopup );
 
 		//hPopup = (PMENU)GetPopupData( hMenu, 6 );

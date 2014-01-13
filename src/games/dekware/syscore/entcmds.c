@@ -1003,7 +1003,7 @@ int CPROC MAP( PSENTIENT ps, PTEXT parameters )
        vt = VarTextCreate( );
        vtprintf( vt, WIDE("All Objects from -The Void-") );
        EnqueLink( &ps->Command->Output, VarTextGet(vt) );
-       showall( &ps->Command->Output, THE_VOID);
+       showall( &ps->Command->Output, global.THE_VOID);
    }
    else
    {
