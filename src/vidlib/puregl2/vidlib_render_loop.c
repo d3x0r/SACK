@@ -301,12 +301,12 @@ void Render3D( struct display_camera *camera )
 				lprintf( WIDE("------ BEGIN A REAL DRAW -----------") );
 
 #ifdef _OPENGL_DRIVER
-#if 0
+//#if 0
 			glEnable( GL_DEPTH_TEST );
 			// put out a black rectangle
 			// should clear stensil buffer here so we can do remaining drawing only on polygon that's visible.
 			ClearImageTo( hVideo->pImage, 0 );
-#endif
+//#endif
 			glDisable(GL_DEPTH_TEST);							// Enables Depth Testing
 
 #endif
