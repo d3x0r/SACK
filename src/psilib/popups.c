@@ -41,6 +41,7 @@ PSI_MENU_NAMESPACE
 	static struct {
 		struct {
 			BIT_FIELD bCustomMenuEnable : 1;
+			BIT_FIELD bDisplayBoundless : 1;
 		} flags;
 	} local_popup_data;
 
@@ -68,11 +69,16 @@ PSI_PROC( PMENU, CreatePopup )( void )
 	local_popup_data.flags.bCustomMenuEnable = 1;
 #else
 	local_popup_data.flags.bCustomMenuEnable = RequiresDrawAll();
+	local_popup_data.flags.bDisplayBoundless = RequiresDrawAll();
 #endif
 #ifndef __NO_OPTIONS__
 	local_popup_data.flags.bCustomMenuEnable = SACK_GetProfileIntEx( GetProgramName()
 																						, WIDE("SACK/PSI/menus/Use Custom Popups")
 																						, local_popup_data.flags.bCustomMenuEnable
+																						, TRUE );
+	local_popup_data.flags.bDisplayBoundless = SACK_GetProfileIntEx( GetProgramName()
+																						, WIDE("SACK/PSI/menus/Do not clip to display")
+																						, local_popup_data.flags.bDisplayBoundless
 																						, TRUE );
 #endif
 
@@ -719,7 +725,6 @@ void ShowMenu( PMENU pm, int x, int y, LOGICAL bWait, PSI_CONTROL parent )
 #ifdef DEBUG_MENUS
 	Log2( WIDE("ShowMenu %d,%d"), x, y );
 #endif
-	GetDisplaySize( (P_32)&cx, (P_32)&cy );
 	if( pm->flags.changed )
 	{
 #ifdef DEBUG_MENUS
@@ -727,28 +732,38 @@ void ShowMenu( PMENU pm, int x, int y, LOGICAL bWait, PSI_CONTROL parent )
 #endif
 		CalculateMenuItems( pm );
 	}
-	if( ( x + pm->width + FrameBorderX( pm->image, BORDER_NORMAL) ) >= cx )
+	if( !local_popup_data.flags.bDisplayBoundless )
 	{
-		if( pm->parent )
+		GetDisplaySize( (P_32)&cx, (P_32)&cy );
+		if( ( x + pm->width + FrameBorderX( pm->image, BORDER_NORMAL) ) >= cx )
 		{
-			dx = pm->parent->display.x - pm->width;
+			if( pm->parent )
+			{
+				dx = pm->parent->display.x - pm->width;
+			}
+			else
+			{
+				dx = cx - ( pm->width  + FrameBorderX( pm->image, BORDER_NORMAL) );
+			}
 		}
 		else
-		{
-			dx = cx - ( pm->width  + FrameBorderX( pm->image, BORDER_NORMAL) );
-		}
-	}
-	else
-		dx = x;
+			dx = x;
 
-	if( ( y + pm->height  + FrameBorderY(NULL, BORDER_NORMAL, NULL) ) >= cy )
-	{
-		dy = cy - ( pm->height + FrameBorderY(NULL, BORDER_NORMAL, NULL) );
+		if( ( y + pm->height  + FrameBorderY(NULL, BORDER_NORMAL, NULL) ) >= cy )
+		{
+			dy = cy - ( pm->height + FrameBorderY(NULL, BORDER_NORMAL, NULL) );
+		}
+		else
+			dy = y;
+		pm->display.x = (_16)dx;
+		pm->display.y = (_16)dy;
 	}
 	else
-		dy = y;
-	pm->display.x = (_16)dx;
-	pm->display.y = (_16)dy;
+	{
+		 pm->display.x = x;
+		 pm->display.y = y;
+	}
+
 	MoveCommon( pm->image, pm->display.x, pm->display.y );
 	if( pm->parent )
 		display_parent = pm->parent->image;
