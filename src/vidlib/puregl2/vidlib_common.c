@@ -588,6 +588,10 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 	{
 		if( !idx ) // default camera is a duplicate of another camera
 			continue;
+
+		if( camera->flags.opening )
+			continue;
+
 		if( !camera->hVidCore )
 		{
 			camera->hVidCore = New( VIDEO );
@@ -606,6 +610,7 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 		camera->displayWindow = l.displayWindow;
 		OpenEGL( camera, camera->displayWindow );
 #else
+		camera->flags.opening = 1;
 		//lprintf( "Open win32 camera..." );
 		OpenWin32Camera( camera );
 #endif
@@ -615,7 +620,7 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 #endif
       // trigger first draw logic for camera
 		camera->flags.first_draw = 1;
-
+		camera->flags.opening = 0;
 		// extra init iterates through registered plugins and
 		// loads their initial callbacks; the actual OnIni3d() has many more params
 		InvokeExtraInit( camera, camera->origin_camera );
