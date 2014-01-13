@@ -331,7 +331,7 @@ PRELOAD( InitShapes )
 
 }
 
-POBJECT MakeGlider( void )
+POBJECT Virtuality_MakeGlider( void )
 {
 	POBJECT po;
 	po = CreateScaledInstance( Glider, 4, 10.0
@@ -368,7 +368,7 @@ POBJECT MakeGlider( void )
 }
 
 
-POBJECT MakeCube( void )
+POBJECT Virtuality_MakeCube( void )
 {
 	POBJECT po;
 	po = CreateScaledInstance( CubeNormals, CUBE_SIDES, 10.0
@@ -377,30 +377,6 @@ POBJECT MakeCube( void )
 									 , VectorConst_X
 									 , VectorConst_Y
 									 );
-	{
-		int n;
-		INDEX idx;
-		PFACET pf;
-		n = 0;
-		LIST_FORALL( po->objinfo->facets, idx, PFACET, pf )
-		{
-			switch( n++ )
-			{
-			case 0:
-				pf->color = BASE_COLOR_YELLOW;
-				break;
-			case 1:
-				pf->color = BASE_COLOR_BLUE;
-				break;
-			case 2:
-				pf->color = BASE_COLOR_RED;
-				break;
-			case 3:
-				pf->color = BASE_COLOR_GREEN;
-				break;
-			}
-		}
-	}
-
+   po->color = AColor( 32, 32, 32, 255 );
    return po;
 }
