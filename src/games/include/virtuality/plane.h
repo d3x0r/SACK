@@ -108,6 +108,7 @@ typedef struct facet_tag
    */
    RAY d;
 	CDATA color; // if zero then uses object color.
+	Image image;  // if not NULL, use this image instead of color; if color is also not zero, use that as a single-light shader
    // TEXTURE texture; // includes coordinate on texture and texture reference.
 
    // lines on a plane are the resulting boundry created

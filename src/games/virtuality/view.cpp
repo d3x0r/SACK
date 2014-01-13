@@ -714,6 +714,7 @@ void RenderOpenFacet( POBJECT po, PFACET pf )
 		}
 	}
 	the_plane->color = SetAlphaValue( pf->color, GetAlphaValue( pf->color ) * 0.25 );
+	the_plane->image = pf->image;
 	IntersectObjectPlanes( view_volume );
 	RenderFacet( view_volume, the_plane );
 //      CreateLine(  NULL, planes[n].o, planes[n].n,
@@ -860,7 +861,46 @@ if( 0 )
 				//glVertex3fv( v );
 			}
 			//glEnd();
-			ImageEnableShader( ImageGetShader( "Simple Shader", NULL ), v, gl_color );
+			if( pf->image )
+			{
+				float *image_v;
+				image_v = NewArray( float, 2*points );
+				for( l = 0; l < points; l++ )
+				{
+					image_v[l*2+0] = v[l][0] / 20000;
+					image_v[l*2+1] = v[l][2] / 20000;
+				}
+				l = 0;
+				image_v[l++] = 0;
+				image_v[l++] = 0;
+				image_v[l++] = 1;
+				image_v[l++] = 0;
+				image_v[l++] = 1;
+				if( l < points*2 )
+				image_v[l++] = 1;
+				if( l < points*2 )
+				image_v[l++] = 0;
+				if( l < points*2 )
+				image_v[l++] = 1;
+				if( l < points*2 )
+				image_v[l++] = 0;
+				if( l < points*2 )
+				image_v[l++] = 0;
+				if( l < points*2 )
+				image_v[l++] = -1;
+				if( l < points*2 )
+				image_v[l++] = 0;
+				if( l < points*2 )
+				image_v[l++] = -1;
+				if( l < points*2 )
+				image_v[l++] = -1;
+				ImageEnableShader( ImageGetShader( "Simple Texture", NULL ), v, ReloadTexture( pf->image, 0 ), image_v );
+				Deallocate( float *, image_v );
+			}
+			else
+			{
+				ImageEnableShader( ImageGetShader( "Simple Shader", NULL ), v, gl_color );
+			}
 			glDrawArrays( GL_POLYGON, 0, points );
 			Release( v );
 

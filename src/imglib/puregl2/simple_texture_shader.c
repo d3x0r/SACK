@@ -73,7 +73,7 @@ static void CPROC SimpleTextureEnable( PImageShaderTracker tracker, PTRSZVAL psv
 	float *verts = va_arg( args, float *);
 	int texture = va_arg( args, int);
 	float *texture_verts = va_arg( args, float *);
-	struct private_shader_data *data = (struct private_shader_data *)psv_userdata;
+	struct private_shader_data *data	= (struct private_shader_data *)psv_userdata;
 
 	//glUniform4fv( tracker->color_attrib, 1, GL_FALSE, color );
 	glEnableVertexAttribArray(0);
@@ -85,6 +85,8 @@ static void CPROC SimpleTextureEnable( PImageShaderTracker tracker, PTRSZVAL psv
 	CheckErr();
 	glActiveTexture(GL_TEXTURE0 + 0);
 	CheckErr();
+	glTexParameteri(GL_TEXTURE_2D+0, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D+0, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glBindTexture(GL_TEXTURE_2D+0, texture);
 	CheckErr();
 	glUniform1i( data->texture, 0 );
