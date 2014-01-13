@@ -38,12 +38,14 @@ static PTRSZVAL OnInit3d( WIDE( "Virtuality interface" ) )( PMatrix projection, 
 	l.transform = camera;
 	{
 		POBJECT root_object = MakeCube();
+		Image tmp = LoadImageFile( "%resources%/images/AN00236511_001_l.jpg" );
 		SetObjectColor( root_object, BASE_COLOR_CYAN );
 		SetRootObject( root_object );
 
 		POBJECT floor_plane = CreateObject();
 		PFACET floor_plane_facet = AddPlane( floor_plane, _0, _Y, 0 );
 		floor_plane_facet->color = BASE_COLOR_BROWN;
+		floor_plane_facet->image = tmp;
 		PutIn( root_object, floor_plane );
 	}
 	return 1;
