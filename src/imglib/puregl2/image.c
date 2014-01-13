@@ -208,33 +208,35 @@ int ReloadOpenGlTexture( Image child_image, int option )
 			if( image_data->flags.updated )
 			{
 				int err;
-				if( option & 2 )
-				{
-
-					//glPixelTransferf(GL_RED_SCALE,0.5f);                // Scale RGB By 50%, So That We Have Only
-					//glPixelTransferf(GL_GREEN_SCALE,0.5f);              // Half Intenstity
-					//glPixelTransferf(GL_BLUE_SCALE,0.5f);
-#ifndef USE_GLES2
-					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP);  // No Wrapping, Please!
-					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);
-#endif
-					//glGenTextures(3, bump); 
-				}
 				//lprintf( WIDE( "gen text %d" ), glGetError() );
 				// Create Linear Filtered Texture
 				glBindTexture(GL_TEXTURE_2D, image_data->glIndex);
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-				/**///glColor4ub( 255, 255, 255, 255 );
 #ifdef USE_GLES2
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->real_width, image->real_height
 								, 0, GL_RGBA, GL_UNSIGNED_BYTE
 								, image->image );
 #else
 				glTexImage2D(GL_TEXTURE_2D, 0, 4, image->real_width, image->real_height
-								, 0, option?GL_BGRA_EXT:GL_RGBA, GL_UNSIGNED_BYTE
+								, 0, (option&1)?GL_BGRA_EXT:GL_RGBA, GL_UNSIGNED_BYTE
 								, image->image );
 #endif
+				if( option & 2 )
+				{
+#ifndef USE_GLES2
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP);  // No Wrapping, Please!
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);
+#endif
+				}
+				if( option & 4 )
+				{
+#ifndef USE_GLES2
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);  // No Wrapping, Please!
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+#endif
+				}
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+				/**///glColor4ub( 255, 255, 255, 255 );
 				if( err = glGetError() )
 				{
 					lprintf( WIDE( "gen text error %d" ), err );
