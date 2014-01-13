@@ -104,7 +104,8 @@ void Render3D( struct display_camera *camera )
 	if( l.flags.bLogRenderTiming )
 		lprintf( WIDE("Begin Render") );
 
-   l.current_render_camera = camera;
+   	l.current_render_camera = camera;
+	l.flags.bViewVolumeUpdated = 1;
 #ifdef __3D__
 	Init3D( camera );
 #endif
@@ -166,6 +167,7 @@ void Render3D( struct display_camera *camera )
 			RotateRight( camera->origin_camera, -1, -1 );
 			break;
 		}
+		l.flags.bViewVolumeUpdated = 1;
 
 #ifdef __3D__
 		SetupPositionMatrix( camera );

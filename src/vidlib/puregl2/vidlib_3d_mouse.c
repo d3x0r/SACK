@@ -262,6 +262,7 @@ void UpdateMouseRays( S_32 x, S_32 y )
 	{
 		ComputeMouseRay( camera, TRUE, &camera->mouse_ray, x, y );
 	}
+	l.flags.bViewVolumeUpdated = 1;
 }
 
 
@@ -315,68 +316,84 @@ int InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, RCOORD 
 void GetViewVolume( PRAY *planes )
 {
 	static PRAY buffer;
+	static PRAY tmp_buffer;
 	if( !buffer )
 	{
-      buffer = NewArray( RAY, 6 );
+		buffer = NewArray( RAY, 6 );
+		tmp_buffer = NewArray( RAY, 6 );
 	}
 	planes[0] = buffer;
-
-   // front/back planes
-	buffer[0].o[vRight] = 0;
-   buffer[0].o[vUp] = 0;
-   buffer[0].o[vForward] = -1;
-   buffer[0].n[vRight] = 0;
-   buffer[0].n[vUp] = 0;
-	buffer[0].n[vForward] = 1;
-
-	buffer[1].o[vRight] = 0;
-   buffer[1].o[vUp] = 0;
-   buffer[1].o[vForward] = l.current_render_camera->depth; // far plane
-   buffer[1].n[vRight] = 0;
-   buffer[1].n[vUp] = 0;
-	buffer[1].n[vForward] = -1;
-
-   // left/right planes
-	buffer[2].o[vRight] = 0;
-   buffer[2].o[vUp] = 0;
-	buffer[2].o[vForward] = 0;
-	if( l.current_render_camera->aspect > 1.0 )
+	// this gets computed once per render frame.
+	// additional optimization may include if the camera does
+	// not move... this provides the current viewing volume planes
+   // in 6 point-normal planes expressed as an array of 6 RAYs.
+	if( l.flags.bViewVolumeUpdated )
 	{
-		buffer[2].n[vRight] = 123*l.current_render_camera->aspect;
-		buffer[3].n[vRight] = -123*l.current_render_camera->aspect;
-		buffer[4].n[vUp] = 123;
-		buffer[5].n[vUp] = -123;
+		l.flags.bViewVolumeUpdated = 0;
+
+		// front/back planes
+		tmp_buffer[0].o[vRight] = 0;
+		tmp_buffer[0].o[vUp] = 0;
+		tmp_buffer[0].o[vForward] = 5;
+		tmp_buffer[0].n[vRight] = 0;
+		tmp_buffer[0].n[vUp] = 0;
+		tmp_buffer[0].n[vForward] = -1;
+
+		tmp_buffer[1].o[vRight] = 0;
+		tmp_buffer[1].o[vUp] = 0;
+		tmp_buffer[1].o[vForward] = l.current_render_camera->depth; // far plane
+		tmp_buffer[1].n[vRight] = 0;
+		tmp_buffer[1].n[vUp] = 0;
+		tmp_buffer[1].n[vForward] = 1;
+
+		// left/right planes
+		tmp_buffer[2].o[vRight] = 0;//tmp_buffer[0].o[vForward];
+		tmp_buffer[2].o[vUp] = 0;
+		tmp_buffer[2].o[vForward] = 0;
+		tmp_buffer[3].o[vRight] = 0;//-tmp_buffer[0].o[vForward];
+		tmp_buffer[3].o[vUp] = 0;
+		tmp_buffer[3].o[vForward] = 0;
+		tmp_buffer[4].o[vRight] = 0;
+		tmp_buffer[4].o[vUp] = 0;//tmp_buffer[0].o[vForward];
+		tmp_buffer[4].o[vForward] = 0;
+		tmp_buffer[5].o[vRight] = 0;
+		tmp_buffer[5].o[vUp] = 0;//-tmp_buffer[0].o[vForward];
+		tmp_buffer[5].o[vForward] = 0;
+
+		if( l.current_render_camera->aspect < 1.0 )
+		{
+			tmp_buffer[2].n[vRight] = 128/l.current_render_camera->aspect ;
+			tmp_buffer[3].n[vRight] = -128/l.current_render_camera->aspect;
+			tmp_buffer[4].n[vUp] = 128;
+			tmp_buffer[5].n[vUp] = -128;
+		}
+		else
+		{
+			tmp_buffer[2].n[vRight] = 128;
+			tmp_buffer[3].n[vRight] = -128;
+			tmp_buffer[4].n[vUp] = 128*l.current_render_camera->aspect;
+			tmp_buffer[5].n[vUp] = -128*l.current_render_camera->aspect;
+		}
+		tmp_buffer[2].n[vUp] = 0;
+		tmp_buffer[2].n[vForward] = -128*1.76;
+
+		tmp_buffer[3].n[vUp] = 0;
+		tmp_buffer[3].n[vForward] = -128*1.76;
+
+
+		// top/bottom planes
+		tmp_buffer[4].n[vRight] = 0;
+		tmp_buffer[4].n[vForward] = -128*1.74;
+
+		tmp_buffer[5].n[vRight] = 0;
+		tmp_buffer[5].n[vForward] = -128*1.74;
+
+		{
+			int n;
+			for( n = 0; n < 6; n++ )
+				ApplyR( l.current_render_camera->origin_camera, buffer+n, tmp_buffer+n );
+		}
 	}
-   else
-	{
-		buffer[2].n[vRight] = 123;
-		buffer[3].n[vRight] = -123;
-		buffer[4].n[vUp] = 123/l.current_render_camera->aspect;
-		buffer[5].n[vUp] = -123/l.current_render_camera->aspect;
-	}
-   buffer[2].n[vUp] = 0;
-	buffer[2].n[vForward] = -123;
-
-	buffer[3].o[vRight] = 0;
-   buffer[3].o[vUp] = 0;
-   buffer[3].o[vForward] = 0;
-   buffer[3].n[vUp] = 0;
-	buffer[3].n[vForward] = -123;
-
-
-   // top/bottom planes
-	buffer[4].o[vRight] = 0;
-   buffer[4].o[vUp] = 0;
-   buffer[4].o[vForward] = 0;
-   buffer[4].n[vRight] = 0;
-	buffer[4].n[vForward] = -123;
-
-	buffer[5].o[vRight] = 0;
-   buffer[5].o[vUp] = 0;
-   buffer[5].o[vForward] = 0;
-   buffer[5].n[vRight] = 0;
-	buffer[5].n[vForward] = -123;
-
 }
 
 int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )

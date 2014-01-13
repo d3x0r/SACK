@@ -76,7 +76,9 @@ VIRTUALITY_EXPORT POBJECT MakeScaledInstance( POBJECT pDefs
                                  PCVECTOR pright,
                                  PCVECTOR pup );
 
+// ----------------------  SIMPLE SHAPES --------------------
 VIRTUALITY_EXPORT POBJECT MakeGlider( void );
+VIRTUALITY_EXPORT POBJECT MakeCube( void );
 
 //POBJECT CreateScaledInstance( BASIC_PLANE *pDefs, int nDefs, RCOORD fSize, PVECTOR pv );
 VIRTUALITY_EXPORT void SetObjectColor( POBJECT po, CDATA c ); // dumb routine!

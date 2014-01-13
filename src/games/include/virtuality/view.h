@@ -10,7 +10,7 @@
 #define ZERO_PLANE_DISTANCE (0.0)  // offset for far away...
 #define FIELD_OF_VIEW ( 600.0 )
 
-typedef void (*ViewMouseCallback)( PRENDERER hWnd, PCVECTOR vforward, 
+typedef LOGICAL (*ViewMouseCallback)( PRENDERER hWnd, PCVECTOR vforward, 
                                                        PCVECTOR vright, 
                                                        PCVECTOR vup, 
                                                        PCVECTOR vorigin, int b );
@@ -56,7 +56,7 @@ typedef struct view_tag
 
 void UpdateCursorPos( PVIEW pv, int x, int y);
 void UpdateThisCursorPos( void );
-void DoMouse( PVIEW pv );
+int DoMouse( PVIEW pv );
 VIRTUALITY_EXPORT PVIEW CreateView( ViewMouseCallback pMC, char *Title );
 
    // to accomidate dislocated views - need

@@ -1,4 +1,5 @@
-#define USE_RENDER3D_INTERFACE l.pr3i
+#define USE_RENDER3D_INTERFACE g.pr3i
+#define USE_IMAGE_3D_INTERFACE g.pi3i
 #include <stdhdrs.h>
 
 //#define USE_RENDER_INTERFACE l.pri
@@ -53,7 +54,6 @@ EDIT_INFO EditInfo;
 
 static struct local_view_data
 {
-	PRENDER_INTERFACE pri;
 	PVIEW view;
 } local_view_data;
 #define l local_view_data
@@ -73,7 +73,8 @@ static struct local_view_data
 	  {
 		  g.pii = GetImageInterface();
 		  g.pri = GetDisplayInterface();
-        g.pr3i = GetRender3dInterface();
+			g.pr3i = GetRender3dInterface();
+			g.pi3i = GetImage3dInterface();
 	  }
 
    void UpdateCursorPos( PVIEW pv, int x, int y )
@@ -107,19 +108,20 @@ static struct local_view_data
    }
 
 
-void DoMouse( PVIEW pv )
+int DoMouse( PVIEW pv )
 {
 
-   // only good for direct ahead manipulation....
+	// only good for direct ahead manipulation....
 
-   // no deviation from forward....
-   if( pv->MouseMethod )
-      pv->MouseMethod( pv->hVideo, 
+	// no deviation from forward....
+	if( pv->MouseMethod )
+		return pv->MouseMethod( pv->hVideo, 
                            mouse_vforward, 
                            mouse_vright, 
                            mouse_vup, 
                            mouse_origin, 
                            mouse_buttons);
+	return 0;
 }
 
 void DrawLine( PCVECTOR p, PCVECTOR m, RCOORD t1, RCOORD t2, CDATA c )
@@ -270,50 +272,13 @@ static LOGICAL OnMouse3d( WIDE("Virtuality") )( PTRSZVAL psvView, PRAY mouse, _3
    // should pass x and y to update cursor pos...
    //UpdateCursorPos( v, x, y ); // this view.... this mouse eventing
 
-		DoMouse( v );
-return 1;
+	if(	DoMouse( v ) )
+		return 1;
+	return 0;
 }
 
 int bDump;
 
-
-#define MODE_UNKNOWN 0
-#define MODE_PERSP 1
-#define MODE_ORTHO 2
-int mode = MODE_UNKNOWN;
-
-void BeginVisPersp( void )
-{
-	//if( mode != MODE_PERSP )
-	{
-		mode = MODE_PERSP;
-		glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-		glLoadIdentity();									// Reset The Projection Matrix
-		// Calculate The Aspect Ratio Of The Window
-		gluPerspective(90.0f,1.0f,0.1f,30000.0f);
-		glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
-		//glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-		//glLoadIdentity();									// Reset The Modelview Matrix
-	}
-}
-
-
-int InitGL( void )										// All Setup For OpenGL Goes Here
-{
-	glShadeModel(GL_SMOOTH);							// Enable Smooth Shading
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);				// Black Background
-	glClearDepth(1.0f);									// Depth Buffer Setup
-	glClear(GL_COLOR_BUFFER_BIT
-			  | GL_DEPTH_BUFFER_BIT
-			 );	// Clear Screen And Depth Buffer
-	glEnable(GL_DEPTH_TEST);							// Enables Depth Testing
-	glDepthFunc(GL_LEQUAL);								// The Type Of Depth Testing To Do
-	glEnable(GL_NORMALIZE); // glNormal is normalized automatically....
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculations
-
-	BeginVisPersp();
-	return TRUE;										// Initialization Went OK
-}
 
 
 int frames;
@@ -326,7 +291,6 @@ static void OnDraw3d( WIDE("Virtuality") )( PTRSZVAL psvView )
 
    //lprintf( "Begin Frame." );
    // cannot count that the camera state is relative for how we want to show?
-	//InitGL();
 
 	//lprintf( WIDE("Show everythign.") );
 	ShowObjects(  );
@@ -726,31 +690,32 @@ void RenderOpenFacet( POBJECT po, PFACET pf )
 {
 	static POBJECT view_volume;
 	static PFACET the_plane;
-   static PFACET volume_facets[6];
+	static PFACET volume_facets[6];
 	PRAY planes;
 	int n;
 	if( !view_volume )
 	{
 		view_volume = CreateObject();
-		the_plane = AddPlaneToSet( view_volume->objinfo, pf->d.o, pf->d.n, 1 );
+		the_plane = AddPlaneToSet( view_volume->objinfo, pf->d.o, pf->d.n, 0 );
 		GetViewVolume( &planes );
 		for( n = 0; n < 6; n++ )
 		{
-			volume_facets[n] = AddPlaneToSet( po->objinfo, planes[n].o, planes[n].n, 1 );
-         volume_facets[n]->flags.bClipOnly = 1;
+			volume_facets[n] = AddPlaneToSet( view_volume->objinfo, planes[n].o, planes[n].n, 1 );
+			volume_facets[n]->flags.bClipOnly = 1;
 		}
 	}
 	else
 	{
-      SetRay( &the_plane->d, &pf->d );
+		SetRay( &the_plane->d, &pf->d );
 		GetViewVolume( &planes );
 		for( n = 0; n < 6; n++ )
 		{
          SetRay( &volume_facets[n]->d, &planes[n] );
 		}
 	}
+	the_plane->color = SetAlphaValue( pf->color, GetAlphaValue( pf->color ) * 0.25 );
 	IntersectObjectPlanes( view_volume );
-   RenderFacet( view_volume, the_plane );
+	RenderFacet( view_volume, the_plane );
 //      CreateLine(  NULL, planes[n].o, planes[n].n,
 }
 
@@ -764,7 +729,11 @@ PTRSZVAL CPROC RenderFacet(  POBJECT po
 	RAY rvl;
 	int t, p;
 	POBJECT pi; // pIn Tree...
-
+	if( !pf->pLineSet )
+	{
+		RenderOpenFacet( po, pf );
+		return 0;
+	}
 //#if 0
 	if( !pf->flags.bDual )
 	{
@@ -849,54 +818,77 @@ if( 0 )
 		VECTOR pvPoints[10];
 		int normals;
 		VECTOR pvNormals[20]; // normals are 2x the points....there's an approach normal and a leave normal.
-		VECTOR v;
+		VECTOR *v;
+		float gl_color[4];
 		points = 10;
 		normals = 20;
 		GetPoints( pf, &points, pvPoints );
-		GetNormals( pf, &normals, pvNormals );
-		if(1) // solid fill first...
+		//GetNormals( pf, &normals, pvNormals );
+		if(points) // solid fill first...
 		{
-			CDATA gl_color;
-			glBegin( GL_POLYGON );
+			//glBegin( GL_POLYGON );
 			//lprintf( WIDE("glpolygon..") );
 			//glColor3f(1.0f,1.0f,0.0f);
 			// Set The Color To Yellow
 			if( pf->color )
-				gl_color = pf->color;
+			{
+				 gl_color[0] = RedVal( pf->color ) / 255.0f;
+				gl_color[1] = GreenVal( pf->color ) / 255.0f;
+				gl_color[2] = BlueVal( pf->color ) / 255.0f;
+				gl_color[3] = AlphaVal( pf->color ) / 255.0f;	
+			}
 			else
-				gl_color = po->color;
-			
+			{
+				 gl_color[0] = RedVal( po->color ) / 255.0f;
+				gl_color[1] = GreenVal( po->color ) / 255.0f;
+				gl_color[2] = BlueVal( po->color ) / 255.0f;
+				gl_color[3] = AlphaVal( po->color ) / 255.0f;	
+			}
+			v = NewArray( VECTOR, points );
+
 			glColor4ubv( (unsigned char *)&gl_color );
 			for( l = 0; l < points; l++ )
 			{
-				if( l < normals )
+				//if( l < normals )
 				{
-					Apply( (PCTRANSFORM)po->Ti, v, pvNormals[l] );
-					glNormal3fv( v );
+					//Apply( (PCTRANSFORM)po->Ti, v, pvNormals[l] );
+					//glNormal3fv( v );
 				}
 
-				Apply( (PCTRANSFORM)po->Ti, v, pvPoints[l] );
+				Apply( (PCTRANSFORM)po->Ti, v[l], pvPoints[l] );
 				//SetPoint( pvPoints[l], v );				
-				glVertex3fv( v );
+				//glVertex3fv( v );
 			}
-			glEnd();
+			//glEnd();
+			ImageEnableShader( ImageGetShader( "Simple Shader", NULL ), v, gl_color );
+			glDrawArrays( GL_POLYGON, 0, points );
+			Release( v );
+
 		}
 		//#if defined WIREFRAME
 		// do wireframe white line along edge....
-		//if(0)
+		if( points )
 		{
-			glBegin( GL_LINE_STRIP );
-			glColor4ub( 255,255,255,255 );
+			//glBegin( GL_LINE_STRIP );
+			//glColor4ub( 255,255,255,255 );
+			v = NewArray( VECTOR, points+1 );
 			for( l = 0; l < points; l++ )
 			{
 				//lprintf( WIDE("Vertex..") );
             //PrintVector(pvPoints[l] );
-				Apply( (PCTRANSFORM)po->Ti, v, pvPoints[l] );
-				glVertex3fv( v );
+				Apply( (PCTRANSFORM)po->Ti, v[l], pvPoints[l] );
+				//glVertex3fv( v[l] );
 			}
-			Apply( (PCTRANSFORM)po->Ti, v, pvPoints[0] );
-			glVertex3fv( v );
-			glEnd();
+			Apply( (PCTRANSFORM)po->Ti, v[l], pvPoints[0] );
+			//glVertex3fv( v );
+			//glEnd();
+			gl_color[0] = 1.0;
+			gl_color[1] = 1.0;
+			gl_color[2] = 1.0;
+			gl_color[3] = 1.0;
+			ImageEnableShader( ImageGetShader( "Simple Shader", NULL ), v, gl_color);
+			glDrawArrays( GL_LINE_STRIP, 0, points+1 );
+			Release( v );
 		}
 #ifdef REPRESENT_OBJECT_FACET_NORMALS
 		{
