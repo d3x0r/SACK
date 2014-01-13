@@ -827,6 +827,7 @@ if( 0 )
 		//GetNormals( pf, &normals, pvNormals );
 		if(points) // solid fill first...
 		{
+				float *image_v;
 			//glBegin( GL_POLYGON );
 			//lprintf( WIDE("glpolygon..") );
 			//glColor3f(1.0f,1.0f,0.0f);
@@ -863,45 +864,25 @@ if( 0 )
 			//glEnd();
 			if( pf->image )
 			{
-				float *image_v;
 				image_v = NewArray( float, 2*points );
 				for( l = 0; l < points; l++ )
 				{
-					image_v[l*2+0] = v[l][0] / 20000;
-					image_v[l*2+1] = v[l][2] / 20000;
+					image_v[l*2+0] = v[l][0] / pf->image->width;
+					image_v[l*2+1] = v[l][2] / pf->image->height;
 				}
-				l = 0;
-				image_v[l++] = 0;
-				image_v[l++] = 0;
-				image_v[l++] = 1;
-				image_v[l++] = 0;
-				image_v[l++] = 1;
-				if( l < points*2 )
-				image_v[l++] = 1;
-				if( l < points*2 )
-				image_v[l++] = 0;
-				if( l < points*2 )
-				image_v[l++] = 1;
-				if( l < points*2 )
-				image_v[l++] = 0;
-				if( l < points*2 )
-				image_v[l++] = 0;
-				if( l < points*2 )
-				image_v[l++] = -1;
-				if( l < points*2 )
-				image_v[l++] = 0;
-				if( l < points*2 )
-				image_v[l++] = -1;
-				if( l < points*2 )
-				image_v[l++] = -1;
-				ImageEnableShader( ImageGetShader( "Simple Texture", NULL ), v, ReloadTexture( pf->image, 0 ), image_v );
-				Deallocate( float *, image_v );
+				lprintf( "Texture with %d points", points );
+				ImageEnableShader( ImageGetShader( "Simple Texture", NULL ), v, ReloadTexture( pf->image, 4 ), image_v );
 			}
 			else
 			{
 				ImageEnableShader( ImageGetShader( "Simple Shader", NULL ), v, gl_color );
 			}
-			glDrawArrays( GL_POLYGON, 0, points );
+			if( points == 4 )
+				glDrawArrays( GL_QUADS, 0, points );
+			else
+				glDrawArrays( GL_POLYGON, 0, points );
+			if( pf->image )
+				Deallocate( float *, image_v );
 			Release( v );
 
 		}
