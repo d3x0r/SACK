@@ -37,7 +37,7 @@ static PTRSZVAL OnInit3d( WIDE( "Virtuality interface" ) )( PMatrix projection, 
 	l.pi3i = GetImage3dInterface();
 	l.transform = camera;
 	{
-		POBJECT root_object = MakeCube();
+		POBJECT root_object = Virtuality_MakeCube();
 		Image tmp = LoadImageFile( "%resources%/images/AN00236511_001_l.jpg" );
 		SetObjectColor( root_object, BASE_COLOR_CYAN );
 		SetRootObject( root_object );
