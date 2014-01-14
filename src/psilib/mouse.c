@@ -737,6 +737,7 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 		lprintf( WIDE("Mouse Event: %p %d %d %d"), pf, x, y, b );
 #endif
 	// need to handle - click to raise window in display list...
+#if 0
 	if( !pc->flags.bFocused )
 	{
 #ifdef DETAILED_MOUSE_DEBUG
@@ -749,6 +750,7 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 																		 , b ) );
 		return result;
 	}
+#endif
 	if( ( pf->_b & MK_LBUTTON ) &&
 		( b & MK_LBUTTON ) )
 	{
@@ -1435,7 +1437,7 @@ int IsMouseInCurrent( PSI_CONTROL pfc, S_32 x, S_32 y, _32 is_surface, _32 b )
 		if( pf->CurrentBias.flags.bias_is_surface )
 		{
 			// use tolerance to make the border wider
-			if( (S_64)x >= tolerance[0] && (S_64)y >= tolerance[0]  &&
+			if( (S_64)x >= tolerance[0] && (S_64)y >= tolerance[0] &&
 				(S_64)x < ( pf->pCurrent->surface_rect.width - 2*tolerance[0] ) &&
 				(S_64)y < ( pf->pCurrent->surface_rect.height - 2*tolerance[1] )  )
 			{
@@ -1508,9 +1510,9 @@ int IsMouseInCurrent( PSI_CONTROL pfc, S_32 x, S_32 y, _32 is_surface, _32 b )
 #ifdef DETAILED_MOUSE_DEBUG
 					if( g.flags.bLogDetailedMouse )
 						lprintf( WIDE("Outside of control bounds... not in current.") );
-					//if( pf->common->BorderType & BORDER_RESIZABLE )
-					//	InvokeMouseMethod( pfc, x, y, b );
 #endif
+					if( pf->common->BorderType & BORDER_RESIZABLE )
+						return FALSE;
 					return TRUE;
 				}
 				break; // return FALSE.  the mouse has fallen well outside of tolerant distance.

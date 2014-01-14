@@ -800,7 +800,7 @@ void ShowMenu( PMENU pm, int x, int y, LOGICAL bWait, PSI_CONTROL parent )
 #endif
 
 // int DeleteMenu(...)
-PSI_PROC( PMENUITEM, DeletePopupItem )( PMENU pm, _32 dwID, _32 state )
+PSI_PROC( PMENUITEM, DeletePopupItem )( PMENU pm, PTRSZVAL dwID, _32 state )
 {
 	if( local_popup_data.flags.bCustomMenuEnable )
 	{
@@ -980,7 +980,7 @@ PSI_PROC( PMENUITEM, AppendPopupItem )( PMENU pm, int type, PTRSZVAL dwID, CPOIN
 
 //----------------------------------------------------------------------
 //int CheckMenuItem( HMENU, dwID, state )
-PSI_PROC( PMENUITEM, CheckPopupItem )( PMENU pm, _32 dwID, _32 state )
+PSI_PROC( PMENUITEM, CheckPopupItem )( PMENU pm, PTRSZVAL dwID, _32 state )
 {
 	if( local_popup_data.flags.bCustomMenuEnable )
 	{

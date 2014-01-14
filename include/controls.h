@@ -1829,13 +1829,13 @@ PSI_PROC( PMENUITEM, AppendPopupItem)( PMENU pm, int type, PTRSZVAL dwID, CPOINT
    pm :     menu containing the item to check
    dwID :   ID of the item to check
    state :  (MF_CHECKED, MF_UNCHECKED?)       */
-PSI_PROC( PMENUITEM, CheckPopupItem)( PMENU pm, _32 dwID, _32 state );
+PSI_PROC( PMENUITEM, CheckPopupItem)( PMENU pm, PTRSZVAL dwID, _32 state );
 /* Delete a single item from a menu.
    Parameters
    pm :     menu containing the item to delete
    dwID :   ID of the item to delete
    state :  (?)                                */
-PSI_PROC( PMENUITEM, DeletePopupItem)( PMENU pm, _32 dwID, _32 state );
+PSI_PROC( PMENUITEM, DeletePopupItem)( PMENU pm, PTRSZVAL dwID, _32 state );
 /* This Shows a popup on the screen, and waits until it returns
    with a result. I guess this is actually the internal routine
    used for handling selected popup items on popup menus.
