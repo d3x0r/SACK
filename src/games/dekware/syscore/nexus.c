@@ -872,8 +872,8 @@ CORE_PROC( void, DestroyEntityEx )( PENTITY pe DBG_PASS )
 		DestroyMacro( pe, macro );
    DeleteList( &pe->pGlobalBehaviors );
 
-   LIST_FORALL( pe->behaviors, idx, PTEXT, text )
-		LineRelease( text );
+   LIST_FORALL( pe->behaviors, idx, TEXTSTR, text )
+		Release( text );
    DeleteList( &pe->behaviors );
 
 	LIST_FORALL( pe->pVars, idx, PTEXT, text )

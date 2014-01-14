@@ -284,6 +284,46 @@ int bDump;
 int frames;
 int time;
 
+static void UpdateObject( POBJECT po )
+{
+   POBJECT pCurObj;
+   if( !po )
+		return;
+   FORALLOBJ( po, pCurObj )
+   {
+		Move( pCurObj->Ti );
+		if( pCurObj->pHolds )
+		{
+			//lprintf( WIDE("Show holds"));
+			UpdateObject( pCurObj->pHolds );
+		}
+		if( pCurObj->pHas )
+		{
+			//lprintf( WIDE("Show has") );
+			UpdateObject( pCurObj->pHas );
+		}
+   }
+}
+
+static void UpdateObjects( void )
+{
+   POBJECT po = (POBJECT)pFirstObject; // some object..........
+   while( po && ( po->pIn || po->pOn ) ) // go to TOP of tree...
+   {
+      if( po->pIn )
+         po = po->pIn;
+      else if( po->pOn )
+         po = po->pOn;
+	}
+	UpdateObject( po );
+}
+
+static LOGICAL OnUpdate3d( WIDE( "Virtuality" ) )( PTRANSFORM origin )
+{
+	UpdateObjects();
+	return TRUE;
+}
+
 static void OnDraw3d( WIDE("Virtuality") )( PTRSZVAL psvView )
 {
    PVIEW pv = (PVIEW)psvView;
