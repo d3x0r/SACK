@@ -1086,31 +1086,32 @@ void BuildBrainstemMenus( PMENU hMenuComponents, PBRAIN_STEM pbs
 		PMENU comp_menu, menu;
 		//for( pbs = brain->first(); pbs; pbs = brain->next() )
 		{
+			INDEX idx;
 			PCONNECTOR connector;
 			PBRAIN_STEM module;
 			AppendPopupItem( hMenuComponents
 									, MF_STRING|MF_POPUP
-									, (_32)(comp_menu = CreatePopup())
+									, (PTRSZVAL)(comp_menu = CreatePopup())
 									, pbs->name() );
 			AddLink( menus, (POINTER)comp_menu );
-			AppendPopupItem( comp_menu, MF_STRING|MF_POPUP, (_32)(menu = CreatePopup() ), WIDE("inputs") );
+			AppendPopupItem( comp_menu, MF_STRING|MF_POPUP, (PTRSZVAL)(menu = CreatePopup() ), WIDE("inputs") );
 			AddLink( menus, (POINTER)menu );
 			
-			for( connector = pbs->first_input(); connector; idx++, connector = pbs->next_input() )
+			LIST_FORALL( pbs->Inputs.list, idx, PCONNECTOR, connector )
 			{
-				AppendPopupItem( menu, MF_STRING, MNU_ADD_INPUT_START + idx + ( n * 80 ), connector->name() );
 				AddLink( connectors, (POINTER)connector );
+				AppendPopupItem( menu, MF_STRING, MNU_ADD_INPUT_START + FindLink( connectors, (POINTER)connector) + ( n * 80 ), connector->name() );
 			}
-			AppendPopupItem( comp_menu, MF_STRING|MF_POPUP, (_32)(menu = CreatePopup() ), WIDE("outputs") );
+			AppendPopupItem( comp_menu, MF_STRING|MF_POPUP, (PTRSZVAL)(menu = CreatePopup() ), WIDE("outputs") );
 			AddLink( menus, (POINTER)menu );
 			
-			for( connector = pbs->first_output(); connector; idx++, connector = pbs->next_output() )
+			LIST_FORALL( pbs->Outputs.list, idx, PCONNECTOR, connector )
 			{
-				AppendPopupItem( menu, MF_STRING, MNU_ADD_OUTPUT_START + idx + ( n * 80 ), connector->name() );
 				AddLink( connectors, (POINTER)connector );
+				AppendPopupItem( menu, MF_STRING, MNU_ADD_OUTPUT_START + FindLink( connectors, (POINTER)connector) + ( n * 80 ), connector->name() );
 			}
 			
-			AppendPopupItem( comp_menu, MF_STRING|MF_POPUP, (_32)(menu = CreatePopup() ), WIDE("module") );
+			AppendPopupItem( comp_menu, MF_STRING|MF_POPUP, (PTRSZVAL)(menu = CreatePopup() ), WIDE("module") );
 			AddLink( menus, (POINTER)menu );
 			
 			for( module = pbs->first_module(); module; idx++, module = pbs->next_module() )
@@ -1132,8 +1133,9 @@ void BRAINBOARD::InitMenus( void )
 	AppendPopupItem( hMenu,MF_STRING|MF_POPUP, (PTRSZVAL)(hMenuComponents=CreatePopup()), WIDE("Add &Component") );
 	{
 		int n = 0;
+		INDEX idx;
 		PBRAIN_STEM pbs;
-		for( pbs = brain->first(); pbs; pbs = brain->next() )
+		LIST_FORALL( brain->BrainStems.list, idx, PBRAIN_STEM, pbs )
 		{
 			BuildBrainstemMenus( hMenuComponents, pbs, &menus, &connectors, 0 );
 		}

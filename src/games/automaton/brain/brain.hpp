@@ -95,9 +95,12 @@ class BRAIN_STEM // allocated by the body.
 private:
    // when cycle updates, set outputs to 0.
 	_32 nCycle;
+public:
+	// lists had to be made public because iterator didn't work (not thread safe)
 	iList Inputs; // list of PCONNECTORs
 	iList Outputs;  // list of PCONNECTORs
 	iList Modules;  // brainstems provide a good way to glob things...
+private:
 	int nGroups;
 	PBRAIN_STEM *group; // array of connector groups... 
 	PBRAIN_STEM parent; // is a module within another stem.
@@ -174,10 +177,12 @@ public:
    };
    //long nLock; // count of locks...
    float k; // sigmoid global K for brain...
+
+   // ended up exposing this, iList iterator failed to work practically
+   iList BrainStems;  // contained by body.
 private:
    _32 dwThreadId;  // perhaps this should be a handle...
 
-   iList BrainStems;  // contained by body.
 	PNEURONSET NeuronPool;
 	PSYNAPSESET SynapsePool;
 
