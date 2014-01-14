@@ -918,10 +918,13 @@ void  SizeDisplayRel (PVIDEO hVideo, S_32 delw, S_32 delh)
 		S_32 cx, cy;
 		cx = hVideo->pWindowPos.cx + delw;
 		cy = hVideo->pWindowPos.cy + delh;
-		if (hVideo->pWindowPos.cx < 50)
-			hVideo->pWindowPos.cx = 50;
-		if (hVideo->pWindowPos.cy < 20)
-			hVideo->pWindowPos.cy = 20;
+		if (cx < 50)
+			cx = 50;
+		if (cy < 20)
+			cy = 20;
+		hVideo->pWindowPos.cx = cx;
+		hVideo->pWindowPos.cy = cy;
+
 #ifdef LOG_RESIZE
 		Log2 (WIDE( "Resized display to %d,%d" ), hVideo->pWindowPos.cx,
             hVideo->pWindowPos.cy);
@@ -929,7 +932,8 @@ void  SizeDisplayRel (PVIDEO hVideo, S_32 delw, S_32 delh)
 #ifdef LOG_ORDERING_REFOCUS
 		lprintf( WIDE( "size display relative" ) );
 #endif
-   }
+		CreateDrawingSurface( hVideo );
+	}
 }
 
 //----------------------------------------------------------------------------

@@ -106,15 +106,15 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE         EmptyList      ( PLIST *pList );
    aren't much different.                                        */
 typedef class iList
 {
+public:
 	PLIST list;
 	INDEX idx;
-public:
 	inline iList() { list = CreateListEx( DBG_VOIDSRC ); }
 	inline ~iList() { DeleteListEx( &list DBG_SRC ); }
 	inline iList &operator+=( POINTER &p ){ AddLinkEx( &list, p DBG_SRC ); return *this; }
 	inline void add( POINTER p ) { AddLinkEx( &list, p DBG_SRC ); }
-	inline POINTER first( void ) { POINTER p; for( idx = 0, p = NULL;list && (idx < list->Cnt) && (( p = GetLink( &list, idx ) )!=0); idx++ ); return p; }
-	inline POINTER next( void ) { POINTER p; for( idx++;list && (( p = GetLink( &list, idx ) )!=0) && idx < list->Cnt; idx++ ); return p; }
+	inline POINTER first( void ) { POINTER p; for( idx = 0, p = NULL;list && (idx < list->Cnt) && (( p = GetLink( &list, idx ) )==0); idx++ ); return p; }
+	inline POINTER next( void ) { POINTER p; for( idx++;list && (( p = GetLink( &list, idx ) )==0) && idx < list->Cnt; idx++ ); return p; }
 	inline POINTER get(INDEX idx) { return GetLink( &list, idx ); }
 } *piList;
 #endif
