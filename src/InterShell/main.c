@@ -2757,7 +2757,8 @@ static int OnMouseCommon( WIDE( "Menu Canvas" ) )( PCOMMON pc, S_32 x, S_32 y, _
 	_b = b;
 	_x = x;
 	_y = y;
-	return 1;
+	// this didn't really use this ....
+	return 0;
 }
 
 
