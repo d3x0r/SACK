@@ -1138,7 +1138,7 @@ void KeyPressHandler( PCONSOLE_INFO pdp
 			//Log( WIDE("Key data_defined") );
 			{
 				extern void CPROC WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke );
-				WinLogicDoStroke( pdp, (PTEXT)&KeyDefs[key_index].op[mod].data.pStroke );
+				WinLogicDoStroke( pdp, KeyDefs[key_index].op[mod].data.pStroke );
 			}
 			result = UPDATE_NOTHING; // unsure about this - recently added.
 			// well it would appear that the stroke results in whether to update
