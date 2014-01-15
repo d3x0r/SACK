@@ -19,6 +19,7 @@
     /build_portal_room
     /prompt
     /look
+    /scr user.macros
     
     #/dest common_start         
 /endmac
@@ -84,4 +85,3 @@
 
 
 # and - begin the world...
-/scr user.macros
