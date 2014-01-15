@@ -28,8 +28,10 @@ PSI_NAMESPACE
 
 #ifdef __cplusplus
 #define PSI_ROOT_REGISTRY WIDE("psi++")
+#define PSI_ROOT_REGISTRY_OTHER WIDE("psi")
 #else
 #define PSI_ROOT_REGISTRY WIDE("psi")
+#define PSI_ROOT_REGISTRY_OTHER WIDE("psi++")
 #endif
 
 #ifdef __cplusplus

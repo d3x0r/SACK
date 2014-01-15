@@ -256,13 +256,30 @@ int DoRegisterControl( PCONTROL_REGISTRATION pcr, int nSize )
 		pcr->TypeID = (int)(long)GetRegisteredValueExx( root, NULL, WIDE("Type"), TRUE );
 		if( !pcr->TypeID && (StrCaseCmp( pcr->name, WIDE("FRAME") )!=0) )
 		{
+			ControlID = (_32)GetRegisteredValueExx( WIDE("PSI/Controls"), NULL, WIDE("User Type ID"), TRUE);
+			if( !ControlID )
+			{
+#ifdef __cplusplus_cli
+				ControlID = USER_CONTROL + 2000;
+#else
+				ControlID = USER_CONTROL;
+#endif
+			}
+
 			pcr->TypeID = ControlID;
 			snprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f
 					  , ControlID );
 			root = RegisterClassAlias( namebuf2, namebuf );
 			RegisterValueExx( root, NULL, WIDE("Type"), FALSE, pcr->name );
 			RegisterValueExx( root, NULL, WIDE("Type"), TRUE, (CTEXTSTR)ControlID );
+			snprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY_OTHER WIDE("/control/%") _32f
+					  , ControlID );
+			root = RegisterClassAlias( namebuf2, namebuf );
+			snprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY_OTHER WIDE("/control/%s")
+				, pcr->name );
+			root = RegisterClassAlias( namebuf2, namebuf );
 			ControlID++; // new control type registered...
+			RegisterIntValueEx( (PCLASSROOT)WIDE("PSI/Controls"), NULL, WIDE("User Type ID"), (PTRSZVAL)ControlID );
 		}
 		else
 		{
@@ -401,6 +418,13 @@ PRIORITY_PRELOAD( InitPSILibrary, PSI_PRELOAD_PRIORITY )
 			RegisterValue( namebuf2, WIDE("Type"), name##_NAME ); \
 			RegisterIntValue( namebuf2, WIDE("Type"), name ); \
 		}
+#define REG2(name,number) {   \
+			snprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY WIDE("/control/%d"), number ); \
+			snprintf( namebuf2, sizeof( namebuf2 ), PSI_ROOT_REGISTRY WIDE("/control/%s"), name );             \
+			RegisterClassAlias( namebuf2, namebuf );  \
+			RegisterValue( namebuf2, WIDE("Type"), name ); \
+			RegisterIntValue( namebuf2, WIDE("Type"), number ); \
+		}
 		//lprintf( "Begin registering controls..." );
 		REG(CONTROL_FRAME );
 		REG(UNDEFINED_CONTROL );
@@ -418,6 +442,15 @@ PRIORITY_PRELOAD( InitPSILibrary, PSI_PRELOAD_PRIORITY )
 		REG(CONSOLE_CONTROL );
 		REG(SHEET_CONTROL );
 		REG(COMBOBOX_CONTROL );
+		REG2(WIDE("Shade Well"),14 );
+		REG2(WIDE("Color Well"),15 );
+		REG2(WIDE("Color Matrix"),16 );
+		REG2(WIDE("Font Sample"), 17 );
+		REG2(WIDE("Font Size Control"), 18 );
+		REG2(WIDE("Popup Menu"), 19 );
+		REG2(WIDE("Basic Clock Widget"), 20 );
+		REG2(WIDE("Scroll Knob"), 21 );
+		REG2(WIDE("PSI Console"), 22 );
 		{
 			int nResources = sizeof( resource_names ) / sizeof( resource_names[0] );
 			int n;
@@ -3534,7 +3567,7 @@ PSI_CONTROL CreateCommonExxx( PSI_CONTROL pContainer
 					int (CPROC *CustomInit)(PSI_CONTROL);
 					// dispatch for a common proc that is registered to handle extra init for
                // any control...
-					for( name = GetFirstRegisteredName( PSI_ROOT_REGISTRY WIDE("/control/rtti/extra init"), &data );
+					for( name = GetFirstRegisteredName( WIDE("psi/control/rtti/extra init"), &data );
 						 name;
 						  name = GetNextRegisteredName( &data ) )
 					{
@@ -3795,7 +3828,7 @@ void DestroyCommonExx( PSI_CONTROL *ppc, int level DBG_PASS )
 					TEXTCHAR mydef[256];
 					CTEXTSTR name;
 					PCLASSROOT data = NULL;
-					snprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/rtti/extra destroy") );
+					snprintf( mydef, sizeof( mydef ), WIDE("psi/control/rtti/extra destroy") );
 					for( name = GetFirstRegisteredName( mydef, &data );
 						 name;
 						  name = GetNextRegisteredName( &data ) )
