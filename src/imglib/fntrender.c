@@ -741,7 +741,8 @@ void RenderGreyChar( PFONT font
 	{
 		PCHARACTER character = NewPlus( CHARACTER,
 												  + ( bitmap->rows
-													  * (bitmap->width+(bits==8?0:bits==2?3:7)/(8/bits)) ) );
+													  * (bitmap->width+(bits==8?0:bits==2?3:7)/(8/bits)) )
+												  + 512 );
 		INDEX bit, line, linetop, linebottom;
 		INDEX charleft, charright;
 		INDEX lines;
@@ -1089,7 +1090,8 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 			INDEX idx;
 			PFONT font;
 			font = (PFONT)renderer->ResultFont;
-
+			if( !font )
+				return NULL;
 			renderer->max_ascent = 0;
 			renderer->min_descent = 0;
 
