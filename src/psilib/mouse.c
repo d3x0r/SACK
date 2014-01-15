@@ -760,8 +760,8 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 #endif
 		if( pf->flags.bDragging )
 		{
-			int dx = x - pf->_x
-		, dy = y - pf->_y;
+			int dx = x - pf->_x;
+			int dy = y - pf->_y;
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
 			{
@@ -774,8 +774,8 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 		}
 		else if( pf->flags.bSizing )
 		{
-			int dx = x - pf->_x
-		, dy = y - pf->_y;
+			int dx = x - pf->_x;
+			int dy = y - pf->_y;
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
 				lprintf( WIDE("sizing by %d,%d"), dx, dy );
