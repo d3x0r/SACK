@@ -1,0 +1,4 @@
+/echo this is user.macros script in %script_path
+/echo Begin User macros script...
+
+/make label "Point label"
