@@ -10,7 +10,7 @@ int SYNAPSE::DetachSource( void )
 	{
 		*SourceReference = NULL;
 		SourceReference = NULL;
-      Source = NULL;
+		Source = NULL;
 		return TRUE;
 	}
 	return FALSE;
@@ -22,10 +22,10 @@ int SYNAPSE::DetachDestination( void )
 	{
 		*DestinationReference = NULL;
 		DestinationReference = NULL;
-      Destination = NULL;
-      return TRUE;
+		Destination = NULL;
+		return TRUE;
 	}
-   return FALSE;
+	return FALSE;
 }
 
 int SYNAPSE::AttachDestination( PNEURON neuron, PSYNAPSE*ppSyn )
@@ -40,7 +40,7 @@ int SYNAPSE::AttachDestination( PNEURON neuron, PSYNAPSE*ppSyn )
 		DestinationReference = ppSyn;
 		*DestinationReference = this;
 		Destination = neuron;
-      return TRUE;
+		return TRUE;
 	}
 	return FALSE;
 }
@@ -115,10 +115,10 @@ void SYNAPSE::Init( CTEXTSTR name, NATIVE Gain )
 		Name = (TEXTSTR)Allocate( snprintf( tmpname, sizeof( tmpname ), WIDE("Synapse %d"), nDefault ) + 1 );
 		strcpy( Name, tmpname );
 	}
-   // set the type...
+	// set the type...
 	SYNAPSE::Gain.set( VAL_NATIVE, (NATIVE)Gain );
 	//SYNAPSE::Gain.set( VAL_NATIVE, (NATIVE)0 );
-   // then set the value...
+	// then set the value...
 	//SYNAPSE::Gain.set( Gain );
 }
 
@@ -145,7 +145,7 @@ SYNAPSE::SYNAPSE()
 SYNAPSE::SYNAPSE( PSYNAPSE default_synapse )
 {
 	Init( NULL, 0 );
-   Gain = default_synapse->Gain;
+	Gain = default_synapse->Gain;
 }
 
 SYNAPSE::~SYNAPSE()
@@ -160,21 +160,21 @@ SYNAPSE::~SYNAPSE()
 
 CTEXTSTR SYNAPSE::name( void )
 {
-   return Name;
+	return Name;
 }
 
 //----------------------------------------------------------------------
 
 void SYNAPSE::set( NATIVE gain )
 {
-   Gain.set( gain );
+	Gain.set( gain );
 }
 
 //----------------------------------------------------------------------
 
 void SYNAPSE::get( PNATIVE gain, PNATIVE level, PNATIVE range )
 {
-   if( gain )
+	if( gain )
 		*gain = Gain.get();
 	Source->get( NULL, range, level );
 }
@@ -190,7 +190,7 @@ NATIVE SYNAPSE::Collect( _32 cycle )
 
 NATIVE SYNAPSE::gain( void )
 {
-   return Gain.get();
+	return Gain.get();
 }
 
 //----------------------------------------------------------------------
