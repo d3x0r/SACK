@@ -2655,7 +2655,7 @@ void CreateBodies( POBJECT pWorld )
 	VECTOR v;
 	for( n = 0; n < BODY_COUNT; n++ )
 	{
-		AddLink( &gliders, glider = MakeGlider() );
+		AddLink( &gliders, glider = Virtuality_MakeGlider(1.0) );
 		PutIn( pWorld, glider );
 		scale( v, VectorConst_Z, (3000/3600)/100 ); // 3 k/hr
 		CreateTransformMotion( glider->Ti );
@@ -2676,8 +2676,8 @@ void CreateBodies( POBJECT pWorld )
 		
 			AddLink( &bodies, body = new Glider( glider ) );
 	}
-	AddLink( &gliders, glider = MakeGlider() );
-	AddLink( &cycles, glider = MakeGlider() );
+	AddLink( &gliders, glider = Virtuality_MakeGlider(1.0) );
+	AddLink( &cycles, glider = Virtuality_MakeGlider(1.0) );
 	PutIn( pWorld, glider );
 	scale( v, VectorConst_Z, (3000/3600)/100 ); // 3 k/hr
 	CreateTransformMotion( glider->Ti );
@@ -2685,14 +2685,14 @@ void CreateBodies( POBJECT pWorld )
 	//SetSpeed( glider->Ti, VectorConst_Y );
 	Translate( glider->Ti, 0, SPHERE_SIZE, 0 );
 	AddLink( &bodies, body = new CyberCycle( glider ) );
-	AddLink( &bodies, body = new CyberCycle( MakeGlider() ) );
-	AddLink( &bodies, body = new CyberCycle( MakeGlider() ) );
-	AddLink( &bodies, body = new CyberCycle( MakeGlider() ) );
-	AddLink( &bodies, body = new CyberCycle( MakeGlider() ) );
-	AddLink( &bodies, body = new CyberCycle( MakeGlider() ) );
-	AddLink( &bodies, body = new CyberCycle( MakeGlider() ) );
-	AddLink( &bodies, body = new CyberCycle( MakeGlider() ) );
-	AddLink( &bodies, body = new CyberCycle( MakeGlider() ) );
+	AddLink( &bodies, body = new CyberCycle( Virtuality_MakeGlider(1.0) ) );
+	AddLink( &bodies, body = new CyberCycle( Virtuality_MakeGlider(1.0) ) );
+	AddLink( &bodies, body = new CyberCycle( Virtuality_MakeGlider(1.0) ) );
+	AddLink( &bodies, body = new CyberCycle( Virtuality_MakeGlider(1.0) ) );
+	AddLink( &bodies, body = new CyberCycle( Virtuality_MakeGlider(1.0) ) );
+	AddLink( &bodies, body = new CyberCycle( Virtuality_MakeGlider(1.0) ) );
+	AddLink( &bodies, body = new CyberCycle( Virtuality_MakeGlider(1.0) ) );
+	AddLink( &bodies, body = new CyberCycle( Virtuality_MakeGlider(1.0) ) );
 	bwait_move_gliders = 0;
 }
 
