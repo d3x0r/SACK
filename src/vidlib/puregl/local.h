@@ -175,6 +175,7 @@ extern
 	PVIDEO hVidPhysicalFocused;  // this is the physical renderer with focus
 	PVIDEO hVidVirtualFocused;   // this is the virtual window (application surface) with focus
 	PVIDEO hCaptured;
+	PVIDEO hCapturedPrior; // to track reset when unused mouse event happens on a layered frame
 	// kbd.key == KeyboardState
 	KEYBOARD kbd;
 	_32 dwMsgBase;

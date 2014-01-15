@@ -375,18 +375,18 @@ void GetViewVolume( PRAY *planes )
 			tmp_buffer[5].n[vUp] = -128*l.current_render_camera->aspect;
 		}
 		tmp_buffer[2].n[vUp] = 0;
-		tmp_buffer[2].n[vForward] = -128*1.76;
+		tmp_buffer[2].n[vForward] = -128*1.76f;
 
 		tmp_buffer[3].n[vUp] = 0;
-		tmp_buffer[3].n[vForward] = -128*1.76;
+		tmp_buffer[3].n[vForward] = -128*1.76f;
 
 
 		// top/bottom planes
 		tmp_buffer[4].n[vRight] = 0;
-		tmp_buffer[4].n[vForward] = -128*1.74;
+		tmp_buffer[4].n[vForward] = -128*1.74f;
 
 		tmp_buffer[5].n[vRight] = 0;
-		tmp_buffer[5].n[vForward] = -128*1.74;
+		tmp_buffer[5].n[vForward] = -128*1.74f;
 
 		{
 			int n;
@@ -477,11 +477,21 @@ int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 						l.current_mouse_event_camera = camera;
 						if( !l.flags.bManuallyCapturedMouse )
 						{
-							l.hCapturedPrior = l.hCaptured;
 							if( MAKE_SOMEBUTTONS( b ) )
-								l.hCaptured = check;
+							{
+								if( !l.hCaptured )
+								{
+									l.hCapturedPrior = l.hCaptured;
+									l.hCaptured = check;
+								}
+							}
 							else
-								l.hCaptured = NULL;
+							{
+								lprintf( "Released captured here...." );
+								l.hCapturedPrior 
+									= l.hCaptured 
+									= NULL;
+							}
 						}
 						used = check->pMouseCallback( check->dwMouseData
 													, newx
@@ -491,6 +501,14 @@ int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 						if( !used && !l.flags.bManuallyCapturedMouse )
 						{
 							lprintf( "not used; not manual... reset %p to %p", l.hCaptured, l.hCapturedPrior );
+							if( l.hCaptured == NULL && l.hCapturedPrior != NULL )
+							{
+								lprintf( "This is an abnormality!" );
+							}
+							if( l.hCaptured == l.hCapturedPrior && l.hCaptured )
+							{
+								break;
+							}
 							l.hCaptured = l.hCapturedPrior;
 						}
 						l.current_mouse_event_camera = NULL;
