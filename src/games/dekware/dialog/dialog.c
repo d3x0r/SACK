@@ -229,7 +229,7 @@ static void DumpMacros( PVARTEXT vt, PENTITY pe )
 		if( peCheck->pPlugin )
 		{
 			PCOMMON_TRACKER pctCheck = (PCOMMON_TRACKER)GetLink( &peCheck->pPlugin, g.iCommon );
-         // and 099.99% of the time it won't be... fuhk
+			// and 099.99% of the time it won't be... fuhk
 			//lprintf( WIDE("this list may be orphaned... %p"), pctCheck );
 			if( pctCheck )
 			{
@@ -345,7 +345,7 @@ static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
 		pc = pct->control.pc;
 	}
 	else
-      pc = NULL;
+		pc = NULL;
 	//if( pc )
 	//{
 		//lprintf( WIDE("hmm... create a child of the frame... but within or without?") );
@@ -353,6 +353,7 @@ static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
    //   return 0;
 	//}
 	//else
+	if( !pc )
 	{
 		control_type = GetText( GetParam( ps, &params ) );
 		if( !control_type )
@@ -378,10 +379,11 @@ static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
 			}
 			EnqueLink( &ps->Command->Output, VarTextGet( pvt ) );
 			VarTextDestroy( &pvt );
-         return 1;
+			return 1;
 		}
 
 	}
+	if( pc == NULL )
 	{
 		TEXTCHAR *caption = GetText( GetParam( ps, &params ) );
 		if( caption )
@@ -427,10 +429,9 @@ static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
 				if( !pc )
 					AddMethod( peNew, dialog_commands+3 );
 #endif
-
 				AddLink( &peNew->pDestroy, DestroyAControl );
 				// add custom methods here?
-            // add a init method?
+				// add a init method?
 
 				// these don't really need awareness?
 				// they do need a method of invoking ON events...
@@ -439,14 +440,13 @@ static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
 				// allow control to specify /on methods
 				// or query the control registration tree for possibilities...
 				// on click...
-
-            return 0;
+				return 0;
 			}
 		}
 		else
 		{
 			DECLTEXT( msg, WIDE("Must supply a caption for the frame.") );
-         EnqueLink( &ps->Command->Output, &msg );
+			EnqueLink( &ps->Command->Output, &msg );
 		}
 	}
 	return 1; // abort creation for now.
