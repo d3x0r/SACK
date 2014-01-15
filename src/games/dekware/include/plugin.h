@@ -1,8 +1,12 @@
 #ifndef PLUGIN_DEFINITION
 #define PLUGIN_DEFINITION
 // plugin export table defined here...
+
+// include standard headers...
+#include <stdhdrs.h>
 #include "sharemem.h"
 
+// include nexus core header
 #include "space.h" // space.h, and all private headers...
 
 #include "my_ver.h"

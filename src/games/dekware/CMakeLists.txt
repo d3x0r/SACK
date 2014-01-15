@@ -105,6 +105,8 @@ include_directories( ../automaton/board )
 add_subdirectory( ../virtuality virtuality_library ) 
 add_subdirectory( virtuality )
 
+install( DIRECTORY defaults DESTINATION bin )
+
 
 # get the libraries..
 SET( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP 1 )
