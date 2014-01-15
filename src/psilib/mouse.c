@@ -1558,6 +1558,7 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 {
 	PPHYSICAL_DEVICE pf = (PPHYSICAL_DEVICE)psvCommon;
 	//PFRAME pf = (PFRAME)psvCommon;
+	int result = 0;
 	PSI_CONTROL pc = pf->common;
 	PSI_CONTROL pcIn;
 	extern void DumpFrameContents( PSI_CONTROL );
@@ -1601,11 +1602,11 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 #endif
 		if( !pc->flags.bDestroy )
 		{
-			InvokeMouseMethod( pc, x, y, b );
+			result = InvokeMouseMethod( pc, x, y, b );
 		}
 		pf->_b = b;
 		DeleteUse( pc );
-		return TRUE;
+		return result;
 	}
 	if( pf->flags.bCurrentOwns )
 	{
@@ -1613,7 +1614,7 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 		if( g.flags.bLogDetailedMouse )
 			lprintf( WIDE( "Current owns flag is set?" ) );
 #endif
-		InvokeMouseMethod( pc, x, y, b );
+		result = InvokeMouseMethod( pc, x, y, b );
 		pf = pc->device;
 		if( pf && !pf->flags.bApplicationOwned && BREAK_LASTBUTTON( b, pf->_b ) )
 		{
@@ -1625,7 +1626,7 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 			pf->_b = b;
 			// no longer owned, but event was already dispatched.
 			DeleteUse( pc );
-			return TRUE;
+			return result;
 		}
 		else
 		{
@@ -1636,7 +1637,7 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 			if( pf )
 				pf->_b = b;
 			DeleteUse( pc );
-			return TRUE;
+			return FALSE;
 		}
 	}
 	if( IsMouseInCurrent( pc
@@ -1667,7 +1668,7 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 		}
 	retry1:
 		// mouseincurrent invokes mouse...
-		if( pf->pCurrent && !InvokeMouseMethod( pc, x, y, b ) )
+		if( pf->pCurrent && !( result = InvokeMouseMethod( pc, x, y, b ) ) )
 		{
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
@@ -1738,7 +1739,7 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 					SetCommonFocus( pf->pCurrent );
 				}
 			retry:
-				if( pf->pCurrent && !InvokeMouseMethod( pc, x, y, b ) )
+				if( pf->pCurrent && !( result = InvokeMouseMethod( pc, x, y, b ) ) )
 				{
 #ifdef DETAILED_MOUSE_DEBUG
 					if( g.flags.bLogDetailedMouse )
@@ -1797,7 +1798,7 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 					SetCommonFocus( pf->pCurrent );
 				}
 			retry3:
-				if( pf->pCurrent && !InvokeMouseMethod( pc, x, y, b ) )
+				if( pf->pCurrent && !( result = InvokeMouseMethod( pc, x, y, b ) ) )
 				{
 #ifdef DETAILED_MOUSE_DEBUG
 					if( g.flags.bLogDetailedMouse )
@@ -1811,11 +1812,11 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 					pf->CurrentBias.x -= pf->pCurrent->rect.x;
 					pf->CurrentBias.y -= pf->pCurrent->rect.y;
 					pf->pCurrent = pf->pCurrent->parent;
-               goto retry3;
+					goto retry3;
 				}
 				if( pc->BorderType & BORDER_WANTMOUSE )
 				{
-					InvokeMouseMethod( pc, x, y, b );
+					result = InvokeMouseMethod( pc, x, y, b );
 					pf = pc->device;
 				}
 			}
@@ -1825,7 +1826,7 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
  		pf->_b = b;
 	//lprintf("releasing %p", pc );
 	DeleteUse( pc );
-	return TRUE;
+	return result;
 }
 
 //---------------------------------------------------------------------------

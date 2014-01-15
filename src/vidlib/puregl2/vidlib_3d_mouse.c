@@ -471,12 +471,14 @@ int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 				{
 					if( check && check->pMouseCallback)
 					{
+						PRENDERER prior_capture;
 						if( l.flags.bLogMouseEvent )
 							lprintf( WIDE("Sent Mouse Proper. %d,%d %08x"), newx, newy, b );
 						//InverseOpenGLMouse( camera, check, newx, newy, NULL, NULL );
 						l.current_mouse_event_camera = camera;
 						if( !l.flags.bManuallyCapturedMouse )
 						{
+							prior_capture = l.hCaptured;
 							if( MAKE_SOMEBUTTONS( b ) )
 								l.hCaptured = check;
 							else
@@ -486,6 +488,9 @@ int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 													, newx
 													, newy
 													, b );
+						// if it is used; keep the auto capture
+						if( !used && !l.flags.bManuallyCapturedMouse )
+							l.hCaptured = prior_capture;
 						l.current_mouse_event_camera = NULL;
 						if( used )
 							break;
