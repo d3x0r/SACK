@@ -334,6 +334,7 @@ extern
 	PVIDEO hVidPhysicalFocused;  // this is the physical renderer with focus
 	PVIDEO hVidVirtualFocused;   // this is the virtual window (application surface) with focus
 	PVIDEO hCaptured;
+	PVIDEO hCapturedPrior; // reset on unused event
 	// kbd.key == KeyboardState
 	KEYBOARD kbd;
 	_32 dwMsgBase;

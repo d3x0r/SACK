@@ -109,7 +109,8 @@ static void CPROC CloneElement( PTRSZVAL psv, PSI_CONTROL control )
 	PSI_CONTROL list = GetNearControl( control, LIST_MACRO_ELEMENTS );
 	PLISTITEM pli = GetSelectedItem( list );
 	PMACRO_ELEMENT pme = (PMACRO_ELEMENT)GetItemData( pli );
-	InterShell_SetCloneButton( pme->button );
+	if( pme )
+		InterShell_SetCloneButton( pme->button );
 }
 
 

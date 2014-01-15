@@ -222,13 +222,10 @@ BRAIN_STEM::~BRAIN_STEM()
 		node = (PBRAIN_STEM)Modules.next() )
 		delete node;
 	PCONNECTOR conn;
-	for( conn = (PCONNECTOR)Inputs.first();
-		conn;
-		conn = (PCONNECTOR)Inputs.next() )
+	INDEX idx;
+	LIST_FORALL( Inputs.list, idx, PCONNECTOR, conn )
 		delete conn;
-	for( conn = (PCONNECTOR)Outputs.first();
-		conn;
-		conn = (PCONNECTOR)Outputs.next() )
+	LIST_FORALL( Outputs.list, idx, PCONNECTOR, conn )
 		delete conn;
 	//Release(  );
 	Release( this->Name );
