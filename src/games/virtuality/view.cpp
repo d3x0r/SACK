@@ -910,7 +910,6 @@ if( 0 )
 					image_v[l*2+0] = v[l][0] / pf->image->width;
 					image_v[l*2+1] = v[l][2] / pf->image->height;
 				}
-				lprintf( "Texture with %d points", points );
 				ImageEnableShader( ImageGetShader( "Simple Texture", NULL ), v, ReloadTexture( pf->image, 4 ), image_v );
 			}
 			else
