@@ -1,4 +1,12 @@
-/echo this is user.macros script in %script_path
+/echo this is user.macros script in %core_path
+
 /echo Begin User macros script...
 
+
+
+#make a virtual object label...
 /make label "Point label"
+
+/echo edit this file "!start notepad user.macros"
+
+/echo /quit to exit
