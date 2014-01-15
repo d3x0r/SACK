@@ -1,0 +1,26 @@
+/dest doit
+/mac doit
+/parse file points
+/decl x1
+/decl y1
+/decl x2
+/decl y2
+/decl junk
+/getword %x1 
+/getword %y1 
+/getword %junk
+
+/label top
+/getword %x2 
+/if fail 
+	/return
+/endif
+/getword %y2 
+/getword %junk
+#/memo
+/virtuality line %x1 %y1 %x2 %y2
+/decl x1 %x2
+/decl y1 %y2
+/goto top
+/endmac
+

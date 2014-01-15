@@ -1,0 +1,186 @@
+
+
+#http://itemdb.delvern.com/cgi-bin/search.pl?keyword=dark+cape&method=and&field=Name
+
+/decl lookuppage
+/decl pagedata
+/decl pageword
+/decl lookupoutput
+
+/mac findname
+/decl lookupoutput
+/label finditemname
+/head %pagedata %pageword
+/if success
+	/compare %pageword is Object
+	/if success
+		#/echo found Object
+		/label findsinglequote
+		/head %pagedata %pageword
+		/if success
+			/compare %pageword is '
+			/if fail
+				/goto findsinglequote
+			/endif
+			#/echo found first '
+		/else
+			/result false
+			/return
+		/endif
+		/label findclosequote
+		/head %pagedata %pageword
+		/if success
+			/compare %pageword is '
+			/if fail
+				/push %lookupoutput %pageword
+				/goto findclosequote
+			/endif
+			/result true
+			/return
+		/endif
+	/endif
+	/goto finditemname
+/endif
+/result false
+/endmac
+
+/mac findbreak
+	label continuefind
+	head %pagedata %pageword
+	if success
+		compare %pageword is <
+		if success
+			goto continuefind
+	   endif
+		compare %pageword is BR
+		if fail
+			push %lookupoutput %pageword
+			goto continuefind
+		endif
+	endif
+/endmac
+
+/mac findthing called
+label find
+head %pagedata %pageword
+if success
+	#echo is %pageword %called ?
+	compare %pageword is %called
+	if success
+		decl lookupoutput %called
+		findbreak
+		echo %lookupoutput
+		decl lookupoutput
+	else
+		goto find
+	endif	
+endif
+/endmac
+
+/mac findthingalt called orcalled
+label find
+#/dumpvar %called
+#/dumpvar %orcalled
+#/echo looking for %called or %orcalled
+head %pagedata %pageword
+if success
+	#echo is %pageword %called ?
+	compare %pageword is %called
+	if success
+		decl lookupoutput %called
+		findbreak
+		echo %lookupoutput
+		decl lookupoutput
+	else
+		#echo is %pageword %orcalled?
+		compare %pageword is %orcalled
+		if success
+			decl lookupoutput %orcalled
+			findbreak
+			echo %lookupoutput
+			decl lookupoutput
+		else
+			goto find
+		endif
+	endif	
+endif
+/endmac
+
+/decl acthing AC-Apply
+/decl damthing Damage
+
+/mac finddata
+#echo looking for item name in: %pagedata
+	findthing Type
+	findthing Ego
+	findthing Weight
+	findthingalt %acthing %damthing
+	findthing Item
+	findthing Worn
+	findthing Affects
+	findthing Loads
+/endmac
+
+
+
+
+/mac lookup ...
+	decl temp %...
+	decl plus +
+	lalign %plus
+	ralign %plus
+	decl word 
+	decl keyword
+	label fetchword
+	head %temp %word
+	push %keyword %word
+	compare %temp blank
+	if fail
+		push %keyword %plus
+		goto fetchword
+	endif
+	echo Looking up item %...
+
+	decl first true         
+	http get lookuppage www.delvern.com/itemdb/search.php?keyword=%...&method=and&field=Name
+	if success
+		echo compiling results....
+		decl stuff
+		label findpage
+		head %lookuppage %stuff
+		echo %stuff
+		if success
+			compare %stuff blank
+			if fail
+				echo not binary
+				goto findpage
+			endif
+			goto findpage
+			#/echo found page body itself! going to burst...
+			burst %stuff pagedata
+			label findanother
+			findname
+			getresult result
+			compare %result is true
+			if success
+				compare %first is true
+				if success
+					echo ----------------------------------
+					decl first false
+				endif
+				echo Item: %lookupoutput
+				finddata
+				echo ----------------------------------
+				goto findanother
+			endif
+
+			compare %first is true
+			if success
+				echo No such item.
+			endif
+		endif
+	else
+		echo Get item page failed...
+	endif
+	echo
+/endmac

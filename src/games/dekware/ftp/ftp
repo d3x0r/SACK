@@ -1,0 +1,50 @@
+
+
+
+/decl nextopen 
+/decl nextobj
+/decl nextcommand
+
+/dest ls
+/mac ls 
+/crea lister
+/wake lister
+/decl nextobj lister
+/decl nextcommand list
+.pasv
+/endmac
+
+/decl ftppass
+/decl ftpuser
+
+/dest ftp
+/mac ftp where user pass
+	/parse tcp %where
+	/if success
+	/scr ftp.trig
+	/decl ftpuser %user
+	/decl ftppass %pass
+   	/format on
+	/decl line
+  	/label top
+      	/wait
+	/getline %line
+   	/if success
+           	/fecho %line
+                /decl line
+         /else
+		/compare connected
+		/if fail
+			/echo Connection closed.
+			/goto done
+	         /endif
+         /endif
+	 /goto top
+   /else
+   	/echo Connect Failed.
+        /prompt
+   /endif
+   /label done             
+   /endparse
+
+/endmac

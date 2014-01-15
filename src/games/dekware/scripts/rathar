@@ -1,0 +1,170 @@
+/scr common.trig
+/scr rathar.trig
+
+/decl container sack
+/decl wmode  dual
+/decl primary mace
+/decl secondary stone-dagger
+/decl cloaked true 	#left this way from last rent...
+
+/dest `
+/dest 1
+/dest 2
+/dest 3
+/dest 4
+/dest 5
+/dest s
+/dest e
+
+/mac `
+	.get %primary
+/endmac
+/mac 1
+	.get %secondary
+/endmac
+/mac 2
+	.wield %primary
+/endmac
+/mac 3
+	.wield %secondary sec
+/endmac
+
+/mac 4
+   /1
+   /3
+/endmac
+
+/mac 5
+	/`
+	/1
+	/2
+	/3
+/endmac
+
+/mac s
+   /compare %wmode is dual
+   /if success
+		.she %primary %location
+		.she %secondary
+   	.wear shield
+	   .hold burning-boots
+   /else
+   .she %primary %location
+   /endif
+   /cloak
+/endmac
+
+
+/mac e
+	/uncloak
+   .draw %primary
+   /compare %wmode is dual
+   /if success
+		.remove shield
+   	.remove burning-boots
+      /compare %primary like %secondary
+      /if success
+      	/echo same
+      	/send draw 2.%secondary sec
+      /else
+      	/echo diff
+			/send draw %secondary sec
+      /endif
+   /else
+   /endif
+/endmac
+
+/dest cloak
+/mac cloak
+/compare %cloaked is true
+/if fail
+	.cloak
+	/decl cloaked true
+/endif
+/endmac
+
+/dest uncloak
+/mac uncloak
+/compare %cloaked is true
+/if success
+	.uncloak
+	/decl cloaked false
+/endif
+/endmac
+
+/dest opencloak
+/mac opencloak
+/compare %cloaked is true
+/if success
+	.uncloak
+/endif
+/endmac
+
+/dest closecloak
+/mac closecloak
+/compare %cloaked is true
+/if success
+	.cloak
+/endif
+/endmac
+
+/dest raise
+/mac raise
+	.:seems rather confused by the whole situation.
+/endmac
+
+/dest panic
+/mac panic
+	.:panics, and attempts to flee.
+/endmac
+
+/dest primary
+/macro primary what where
+/decl primary %what
+/decl location %where
+/endmac
+
+/dest sec
+/macro sec what
+/compare secondary is %what
+
+/endmac
+
+/dest dual
+/mac dual
+	/compare %wmode is dual
+	/if fail
+		/decl wmode dual
+		.remove shield
+		.remove burning-boots
+      /compare %primary is %secondary
+      /if success
+			.draw 2.%secondary sec
+      /else
+			.draw %secondary sec
+      /endif
+	/endif
+/endmac
+
+/dest single
+/mac single
+	/compare %wmode is single
+	/if fail
+		/decl wmode single
+		.she %secondary
+		.wear shield
+		.hold burning-boots
+	/endif
+/endmac
+
+/dest r
+/mac r
+.rec recall
+/endmac
+
+
+
+/trigger dest slap
+/trigger create slap you are slapped by &who
+.gl %who
+/endmac

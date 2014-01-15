@@ -1,0 +1,58 @@
+/trigger create ucs1 a large iridescent stone
+/uncurse iridescent
+/endmac
+
+/trigger create gucs1 an iridescent stone briefly glows blue.
+.get iridescent
+.junk iridescent
+/endmac
+
+/trigger create ucs2 a bright pink and green stone
+/uncurse pink-green
+/endmac
+
+/trigger create gucs2 a pink and green stone briefly glows blue.
+.get pink-green
+.junk pink-green
+/endmac
+
+/trigger create ucs3 a beautiful pale lavender stone
+/uncurse lavender
+/endmac
+
+/trigger create gucs3 a pale lavender stone briefly glows blue.
+.get lavender
+.junk lavender
+/endmac
+
+/trigger create ucs4 a stunning lavender and green stone
+/uncurse lavender-green
+/endmac
+
+/trigger create gucs4 a lavender and green stone briefly glows blue.
+.get lavender-green
+.junk lavender-green
+/endmac
+
+/trigger create ucs5 a stunningly vibrant purple stone
+/uncurse purple
+/endmac
+
+/trigger create gucs5 a vibrant purple stone briefly glows blue.
+.get purple
+.junk purple
+/endmac
+
+/trigger create ucs6 a odd clear stone
+/uncurse clear
+/endmac
+
+/trigger create gucs6 a clear stone briefly glows blue.
+.get clear
+.junk clear
+/endmac
+
+/trigger create meat1 a large chunk of venison
+.get all.venison
+.junk all.venison
+/endmac

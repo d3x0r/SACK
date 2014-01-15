@@ -1,0 +1,12 @@
+/scr common.trig
+/scr hero.trig
+/scr rif.trig
+
+/scr weapon.macros
+
+
+/dest r
+/mac r
+.get recall sack
+.rec recall
+/endmac

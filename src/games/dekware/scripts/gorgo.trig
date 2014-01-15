@@ -1,0 +1,221 @@
+/decl meditating false
+/decl brokenmed false
+
+/trigger create prompt <&hit &move>
+/decl skipeatdrink false
+/decl curhit %hit
+/decl curmove %move
+/compare %curhit lessthan %maxhit
+/if success
+   /decl lowhit true
+/endif
+/compare %curhit is %maxhit
+/if success
+   /compare %lowhit is true
+   /if success
+      /sound ding
+      /decl lowhit false
+   /endif
+/endif
+/dopending
+/endmac
+
+/mac repo
+. :reports: I have %curhit/%maxhit hp, %curmove/%maxmove move.
+/endmac
+
+/mac dopending
+/compare %searching is true
+/if success
+/return
+/endif
+/decl doingany false
+
+/compare %hungry is true
+/if success
+   /decl doingeat true
+   /decl doingany true
+/else
+   /decl doingeat false
+/endif
+
+/compare %thirsty is true
+/if success
+   /decl doingdrink true
+   /decl doingany true
+/else
+   /decl doingdrink false
+/endif
+
+/compare %sober is true
+/if success
+   /decl doingsober true
+   /decl doingany true
+/else
+   /decl doingsober false
+/endif
+
+/compare %doswim is true
+/if success
+   /decl doingswim true
+   /decl doingany true
+/else
+   /decl doingswim false
+/endif
+/compare %dosearch is true
+/if success
+   /decl doingsearch true
+   /decl doingany true
+/else
+   /decl doingsearch false
+/endif
+
+/compare %doingany is true
+/if success
+   /compare %doingeat is true
+   /if success
+      /eat
+   /endif
+   /compare %doingdrink is true
+   /if success
+      /drink
+   /endif
+   /compare %doingsober is true
+   /if success
+      /drunk
+   /endif
+   /compare %doingswim is true
+   /if success
+      /swim
+   /endif
+   /compare %dosearch is true
+   /if success
+      /decl dosearch false
+      .search %searchdir
+   /endif
+/endif
+
+   /compare %meditating is true
+   /if success
+      /compare %brokenmed is true
+      /if success
+         /decl brokenmed false
+         .medita
+      /endif
+   /endif
+
+/endmac
+
+/trigger crea brokenmed you feel somewhat refreshed
+/decl brokenmed true
+/endmac
+
+/trigger crea eatfail you can't find it!
+/compare %hungry is true
+/if success
+/echo DUDE! Warrior needs FOOD badly!
+/decl hungry false
+/endif
+/if success
+/echo DUDE! Warrior needs DRINK badly!
+/decl thirsty false
+/endif
+/endmac
+
+/trigger crea unhunger you are full
+/decl hungry false
+/endmac
+
+/decl food meat
+/decl foodbag sack
+/mac eat
+.eat %food
+.get %food %foodbag
+/decl hungry false
+/endmac
+
+/decl thirsty2 false
+
+/trigger crea drink2 you drink the water.
+/decl thirsty true
+/endmac
+
+/trigger crea unthirst you do not feel thirsty
+/decl thirsty false
+/endmac
+
+/mac drink
+.drink water
+/decl thirsty false
+/endmac
+
+/trigger create sitmed you sit down
+/decl meditating true
+.medita
+/endmac
+/trigger create sitmed2 you're sitting already
+/decl meditating true
+.medita
+/endmac
+/trigger create sitmed3 you stop resting, and sit up.
+/decl meditating true
+.medita
+/endmac
+/trigger create sitmed4 you wake, and sit up.
+/decl meditating true
+.medita
+/endmac
+
+/trigger crea standup you stand up.
+/decl meditating false
+/decl brokenmed false
+/endmac
+
+/trigger create nosneak you are no longer sneaky
+.sneak
+/endmac
+
+#disable yank bash sprawl...
+/trigger opt yank3 dis 
+/trigger opt bashstand dis
+/trigger opt standtrip dis
+
+/decl lastdoor nothing
+/trigger create opendoor the &what seems to be closed.
+/decl lastdoor %what
+.open %what
+/endmac
+
+/trigger create bashdoor it seems to be locked
+.knock %lastdoor
+/endmac
+
+#/trigger crea aurafade the white glow around *what body fades.
+#/echo %what lost sanc!
+#/smash
+#/endmac
+
+/trigger create followbeck &who beckons you 
+. say You ask, Gorgo go.
+. fol %who
+/endmac
+/trigger opt followbeck anchor
+
+/trigger create group &who starts following you
+. group %who
+/endmac
+
+/trigger create steal &who tries to steal something from &target
+. say hey, %who, don't steal! You're dead now...
+. say I'll get them for you, %target!
+/folkill %who
+/autokill %who
+.kill %who
+/endmac
+
+/trigger create steal2 &who tried to steal something from you
+. say hey, %who, don't steal! You're dead now...
+/folkill %who
+/autokill %who
+.kill %who
+/endmac

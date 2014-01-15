@@ -1,0 +1,306 @@
+
+For notes on DBG_PASS, DBG_RELAY, et al, please consult typelib.doc.
+
+/common/src/memlib (shmem/libshmem)
+
+This library supports basic allocation... 
+
+#include "sharemem.h" // located on /common/include
+
+The 'shared' part of this library is rather limited...
+but one should be able to allocate an actual shared memory
+space (on windows - unix mmap mimic isn't implemented) and 
+use Allocate and Release between each process...
+
+This libaray defines the following functions
+-----------------------------------------
+   void *Allocate( int nSize )
+      Allocates a block of memory similar to malloc().  This block is not
+      initialized to any value, and is considered to be filled with noise.
+	also:
+	   POINTER HeapAllocate( PMEM *ppHeap, size );
+	      Heap functions will allocate from a specified memory heap.
+	      Such a heap's creation and use are discussed near the end.
+
+
+   POINTER Release( POINTER pMemory )
+      When you are done with a block, you call Release to release it.  If
+      the pointer result is not NULL, then someone still owns the memory block.
+
+
+   POINTER Hold( POINTER pMemory )
+      This increments the number of times a block is held.  This prevents
+      a Release from actually returning the block to the free memory pool
+      until it has been Released as many times as it was held.
+
+   POINTER Reallocate( POINTER, _32 newsize )
+   	This will allocate a new block of the size specified (may be larger
+   	or smaller than the existing memory block's size.  The existing
+   	memory's content is copied to the new block.  If the new size
+   	is larger, the excess space will be 0 filled.  The pointer passed in
+   	may be NULL, in which case a new block of memory is created, and
+   	is initialized to zero.
+	also:
+		POINTER HeapReallocate( PMEM pHeap, POINTER, _32 size );
+			A block MAY be reallocated into a specified heap, even if the 
+			original block was not from that heap.
+
+   int Defragment( void **ppMemory ) 
+      This routine checks to see if the block of memory immediately pre-
+      ceeding the block poited by the passed variable is free.  If the
+      block IS free, the memory block is moved down to the beginning
+      of the free memory block, the pointer is updated, and the function
+      returns the value TRUE.  ANY other variables which pointed to this
+      block MUST be updated by the USER to reference the new value.
+      If the memory block was not moved, the function returns FALSE, and
+      no additional changes are needed.      
+
+	_32 SizeOfMemBlock( POINTER pData )
+		The size of a memory block allocated may be discovered using this
+		on a pointer returned from either Allocate or Reallocate.
+
+
+   DEBUG MODE CODE CHANGE:
+      These routines actually translates to 
+         AlocateEx( int size DBG_PASS )
+         ReleaseEx( void *p DBG_PASS )
+         HoldEx( void *p DBG_PASS ) 
+
+      and assumes to pass DBG_SRC or DBG_RELAY
+      to the function.  This expansion is only valid when _DEBUG is defined
+      and or the debug version of the library is used.
+      
+
+Functions added because of prior badly coded libraries
+-----------------------------------------
+   void MemSet( void *p, int value, int size ) (int assumed 32 bit)
+      sets the integer value into memory (not a byte value ) but 
+      every 4 bytes in the memory will match the value in a...
+      any odd bytes at the end will not have the assumed partial, but
+      may have the low short and low byte duplicated.....
+
+   void MemCpy( void *pTo, void *pFrom, int size )
+      Copies memory from the location pointed to by pFrom into the 
+      location pointed at by pTo for "size" bytes... This function
+      copies from the lowest address to the highest address, and does
+      not consider that the memory may overlap.
+
+Functions to query statistics and information about memory
+-----------------------------------------
+   void SetAllocateDebug( BOOL bDisable )
+      This function only changes the code if the library was compiled
+      with _DEBUG... If the library is set to debug, then this will/can
+      disable : 
+         -(IF compiled with STRONG_DIAGNOSTIC or MEMTRACKING )
+            The creation of an additional file for additional dianostic
+            and tracking information.
+
+         -(IF compiled with STRONG_DIAGNOSTIC )
+            The calling of DiagMem() after a memory allocation.
+            calling WriteDebugLog() during DebugDumpMemEx( );
+
+         -Calling GetMemStats() before and after each Allocate(), and 
+            Release()
+
+         -Adding an addition 4 bytes at the end of each memory block to store
+            0x12345678; this is purposed to watch for application memory 
+            overflow.
+
+         -Logging of pFile, and nLine in the blocks allocated, 
+            released, or held.
+
+         -When a block is released, it is cleared to the value 0xFACEBEAD
+
+   void SetAllocateLogging( BOOL bTrueFalse )
+      Enables(TRUE) or Disables(FALSE) a continual logging of allocates,
+      releases, and holds performed.  On Windows - this information is
+      logged using OutputDebugString, on unix it is logged to stderr.
+
+
+   void GetMemStats( DWORD *pFree, DWORD *pUsed
+                   , DWORD *pChunks, DWORD *pFreeChunks )      
+      This routine is designed to give the internal accounting of how
+      memory is currently allocated.  *pFree returns the total size 
+      of free memory which exists; it is the sum of all free blocks.
+      *pUsed returns the total size of memory allocated; it is the sum
+      of the size of all allocated blocks.  *pChunks is an absolute 
+      count of how many blocks of memory both free and allocated exist.
+      *pFreeChunks is the count of how many blocks of free memory exist.
+      The number of actual allocated chunks may be computed by subtracting
+      *pFreeChunks from *pChunks.  If any of these are NULL the value 
+      is NOT returned, otherwise they are assumed to be valid pointers 
+      to an unsigned 32 bit variable.
+
+      This routine is also a diagnostic, since all memory blocks
+      MUST be valid, and each free block must be chained together, 
+      this routine can fail BADLY if the application messed up the
+      block linkages... MOST places where it would fall off memory
+      have been accounted for and are avoided.
+
+
+   void DebugDumpMemEx( BOOL bVerbose )
+      On Windows - this function outputs using OutputDebugString(), on 
+      a unix type system this is logged to stderr.  It logs each memory 
+      block allocated, or released, and it's size.  If the debug 
+      version of the file is being used and SetAllocateDebug
+      has not disabled the debug info, the File and Line of the 
+      allocator, or releaser of the block is logged.
+
+Additional Memory Related Functions
+-----------------------------------------
+   These functions are considered low level system services, but
+   are used first in this library to coordinate ownership of the meory.
+
+   unsigned long LockedExchange( unsigned long *p, unsigned long val )
+      This function performs in a single CPU clock (with memory locked)
+      an exchange of the value passed with the value pointed to by p.
+      The previous value is returned in p.  This is useful for simple
+      mutual exclusion locking.
+
+   --------- Critical Code Section Control -------------
+      
+   void InitializeCriticalSec( PCRITICALSECTION pcs )
+      Clears the memory associated with a CRITICALSECTION function.
+      Although these functions all accept a PCRITICALSECTION pointer
+      to critical section, the critical section must be allocated
+      by the caller, and the address passed to these funtions.
+
+   void DeleteCriticalSec( PCRITICALSECTION pcs )
+   	Results in nothing - no system objects are used for these
+   	critical sections.
+
+   int EnterCriticalSec( PCRITICALSECTION pcs )
+      returns TRUE (non zero) when the code may proceed through the 
+      section.  This prevents multple threads in the same process 
+      ( or multiple processes using the same shared memory region )
+      from executing.
+
+   int LeaveCriticalSec( PCRITICALSECTION pcs )
+      When a thread completes a section of code which other threads 
+      may/must be locked out of, this routine is called to allow 
+      other waiting threads to continue.
+
+Opening Shared Memory Spaces
+----------------------------------------
+PMEM OpenSpace( CTEXTSTR pWhat, CTEXTSTR pWhere, P_32 dwSize )
+   pWhat - a string name of the mapping object for a common name
+           to open between processes...(named region)
+   pWhere - is the name of a file to use as the memory....
+   *dwSize - is initially set the the size of the memory to open, 
+             and results with the size of the memory actually opened.
+
+   if pWhat and pWhere are BOTH NULL - the memory space is opened
+   non shared- and is backed in the system page file.
+   if pWhere is NULL, the pWhat MAY point to a valid memory retion 
+   already open, if such a region is not open, this function will fail.
+   if pWhat is NULL, and pWhere is a name - the file will be opened 
+   and mapped into memory, but will not be sharable between processes.
+
+   Results: 
+   	NULL - space is not opened, however...
+   		if the dwSize pointer is NULL, you'll get back NULL.
+   		if the dwSize passed is 0, then on resulting NULL
+   		    if dwSize is still 0, then the pWhere filename could not be opened.
+   		    if dwSize is still 0, then the name pWhat for the named region may not have opened.
+   		    if dwSize is 1, then the file did not exist, but could exist.
+   		    if dwSize is larger, then the file existed, and the result is the size.
+      not NULL - space has been opened
+         dwSize should reflect the size of the object mapped.  UNTESTED case
+         if the region opened existed as a named region, not sure if the size
+         is updated.
+         
+
+PMEM OpenSpaceEx( CTEXTSTR pWhat, CTEXTSTR pWhere, _32 address, P_32 dwSize )
+
+_32 GetSpaceSize( POINTER pMem )
+	This will result in the size of the memory area allocated (opened).
+
+void  CloseSpace( PBYTE pMem )
+   Unmap a file which has been opened... MAY work and probably will
+
+DWORD GetSpaceSize( PBYTE pMem )
+   Forgot the size of the thing you allocated? ask for it again.
+
+void InitHeap( PMEM pMem, DWORD dwSize )
+	This sets up a memory block to be initialized and able to be passed
+	as a ppHeap.  The dwSize should be the size resulting from an OpenSpace.
+
+	
+
+Changing the Compilation by modifying internal #DEFINES
+-----------------------------------------
+   #ifdef _DEBUG // ONLY if this flag is defined do the following 
+                 // have any effect...
+   // may define one or the other of these but NOT both
+   #define STRONG_DIAGNOSTIC 
+      // logs allocs, holds, and release ordered queue...
+   #define MEM_TRACKING  
+      // logs allocs, holds, and releases with an accounthing list
+
+
+   if YOU are worried about using these - YOU can search through the 
+   one single file sharemem.c and figure out where they are used...
+   the code was rough and is badly documented by only a couple dozen
+   lines so it shouldn't be too bad to figure out.
+
+   Both of these were more for figuring out errors the library was
+   making, not errors that the application may cause to the memory
+   system.
+
+
+Alternative Heap Usage
+-----------------------------------------------------
+	struct {
+		_32 dwMemorySize;
+		POINTER pMemory;
+	} g;
+
+	....
+
+	g.dwMemorySize = 64000;
+	g.pMemory = OpenSpaceEx( "Display Object Heap"
+	                     , "display.memory"
+	                     , 0xC000000 // some arbitrary constant address
+	                     , &g.dwMemorySize );
+	// hmm - may need some sort of information/signature 
+	// as to whether the memory already existed...
+	// OpenSpace will not modify any content of the memory returned.
+	// As a static ram, InitHeap should be called once and ONLY once
+	// if the region did not previously exist.
+	if( g.pMemory )
+		InitHeap( g.pMemory, g.dwMemorySize );
+
+	...
+
+	POINTER p = HeapAllocate( &g.pMemory, 768 );
+	p = Release( p ); // normal release can be used on any memory.
+
+	....
+
+	CloseSpace( g.pMemory );
+
+
+	This idea allows portions of memory to be mapped to static file, and 
+	use the operating system to make sure that the file content is the same
+	as the memory.  (Should check into methods to force synchronization at
+	critical steps)
+
+
+POINTER HeapMove( PMEM pNewHeap, POINTER )
+	This reallocates the exact size of the pointer passed.  This is most 
+	useful to move a memory object to a specialized heap.  Could be done
+	with Reallocate, but then SizeOfMemBlock() would need to be used.
+
+
+POINTER GetFirstUsedBlock( PMEM pHeap )
+	This results in the very first block of memory (if it's free or used is
+	not of consequence.)
+
+
+	As it so happens, The first allocation in a memory region will be first
+	physically, logically, etc.  So, when using custom heaps, if you 'wisely' 
+	choose a good thing (the global data structure) to allocate first, then
+	you can receive that on responce.
+
+	When using OpenSpace, there are several results... 
+		Please see OpenSpace(above).
