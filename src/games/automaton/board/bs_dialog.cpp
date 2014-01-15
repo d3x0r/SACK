@@ -1,5 +1,5 @@
 #define DEFINE_DEFAULT_IMAGE_INTERFACE
-
+#define DEFINE_DEFAULT_RENDER_INTERFACE
 #include <controls.h>
 #include <timers.h>
 #include "bs_dialog.h"
@@ -10,9 +10,9 @@
 
 typedef struct neuron_dialog_data_tag
 {
-   PCOMMON frame;
+	PCOMMON frame;
 	PNEURON neuron;
-   PSYNAPSE synapse;
+	PSYNAPSE synapse;
 } DIALOG_DATA, *PDIALOG_DATA;
 
 typedef struct local_tag
@@ -37,8 +37,8 @@ int ActiveNeurons( void )
 {
 	INDEX idx;
 	int cnt = 0;
-   PTRSZVAL psv;
-  LIST_FORALL( l.neurons, idx, PTRSZVAL, psv )
+	PTRSZVAL psv;
+	LIST_FORALL( l.neurons, idx, PTRSZVAL, psv )
 		cnt++;
    return cnt;
 }
@@ -97,11 +97,11 @@ void CPROC RefreshFrame( PTRSZVAL psv )
 void CPROC SliderChanged( PTRSZVAL psv, PCOMMON pc, int val )
 {
 	PDIALOG_DATA pndd = (PDIALOG_DATA)psv;
-   if( pndd->neuron )
+	if( pndd->neuron )
 		pndd->neuron->set( (NATIVE)val );
 	if( pndd->synapse )
-      pndd->synapse->set( (NATIVE)val );
-   return;
+		pndd->synapse->set( (NATIVE)val );
+	return;
 }
 
 void CPROC SetNeuronTypeButton( PTRSZVAL psv, PSI_CONTROL pc )
@@ -132,16 +132,18 @@ static PTRSZVAL CPROC _ShowPropertyDialog( PTHREAD thread )
 	l.neuron_timer = AddTimer( 166, RefreshFrame, 0 );
 	do
 	{
+		S_32 x, y;
+		GetMouseState( &x, &y, NULL );
 		LIST_FORALL( l.add_neurons, idx, PNEURON, neuron )
 		{
-         // remove from list of neurons to add
+			// remove from list of neurons to add
 			SetLink( &l.add_neurons, idx, 0 );
 			pndd = (PDIALOG_DATA)Allocate( sizeof( DIALOG_DATA ) );
 			AddLink( &l.neurons, pndd );
 			pndd->neuron = neuron;
 			pndd->synapse = NULL;
 			snprintf( title, sizeof( title ), WIDE("%s Properties"), neuron->name() );
-			pndd->frame = CreateFrame( title, 150, 150, 256, 128, BORDER_NORMAL, NULL );
+			pndd->frame = CreateFrame( title, x, y, 256, 128, BORDER_NORMAL, NULL );
 			SetCommonUserData( pndd->frame, (PTRSZVAL)pndd );
 			MakeCaptionedControl( pndd->frame, STATIC_TEXT, 5, 33, 73, 18, TEXT_VALUE1, WIDE("00") );
 			MakeCaptionedControl( pndd->frame, STATIC_TEXT, 5, 56, 73, 18, TEXT_VALUE2, WIDE("00") );
@@ -171,14 +173,14 @@ static PTRSZVAL CPROC _ShowPropertyDialog( PTHREAD thread )
 		}
 		LIST_FORALL( l.add_synapses, idx, PSYNAPSE, synapse )
 		{
-         // remove from list of synapses to add
+			// remove from list of synapses to add
 			SetLink( &l.add_synapses, idx, 0 );
 			pndd = (PDIALOG_DATA)Allocate( sizeof( DIALOG_DATA ) );
 			AddLink( &l.synapses, pndd );
-         pndd->neuron = NULL;
+			pndd->neuron = NULL;
 			pndd->synapse = synapse;
 			snprintf( title, sizeof( title ), WIDE("%s Properties"), synapse->name() );
-			pndd->frame = CreateFrame( title, 150, 150, 256, 128, BORDER_NORMAL, NULL );
+			pndd->frame = CreateFrame( title, x, y, 256, 128, BORDER_NORMAL, NULL );
 			MakeCaptionedControl( pndd->frame, STATIC_TEXT, 5, 33, 73, 18, TEXT_VALUE1, WIDE("00") );
 			SetSliderValues( MakeSlider( pndd->frame, 5, 5, 246, 24, -1
 												, SLIDER_HORIZ
@@ -206,21 +208,21 @@ static PTRSZVAL CPROC _ShowPropertyDialog( PTHREAD thread )
 			SetLink( &l.done_neurons, idx, 0 );
 			DeleteLink( &l.neurons, pndd );
 			DestroyCommon( &pndd->frame );
-         Release( pndd );
+			Release( pndd );
 		}
 		LIST_FORALL( l.done_synapses, idx, PDIALOG_DATA, pndd )
 		{
 			SetLink( &l.done_synapses, idx, 0 );
 			DeleteLink( &l.synapses, pndd );
 			DestroyCommon( &pndd->frame );
-         Release( pndd );
+			Release( pndd );
 		}
 
 	} while( ActiveNeurons() || ActiveSynapses() );
 	RemoveTimer( l.neuron_timer );
-   l.prop_thread = 0;
+	l.prop_thread = 0;
 	LeaveCriticalSec( &l.cs );
-   return 0;
+	return 0;
 }
 
 int CPROC ActiveNeuron( PNEURON neuron )

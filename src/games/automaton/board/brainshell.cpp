@@ -595,13 +595,13 @@ public:
 	}
 	int OnRightClick( PTRSZVAL psv, S_32 x, S_32 y )
 	{
-      ShowNeuronDialog( (PNEURON)psv );
-      return 1;
+		ShowNeuronDialog( (PNEURON)psv );
+		return 1;
 	}
 
 	int OnClick( PTRSZVAL psv, S_32 x, S_32 y )
 	{
-      lprintf( WIDE("click on neuron! at %d,%d"), x, y );
+		lprintf( WIDE("click on neuron! at %d,%d"), x, y );
 		if( x == 0 && y == 0 )
 		{
 			// this is implied to be the current peice that
