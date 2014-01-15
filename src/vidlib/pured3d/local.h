@@ -113,6 +113,7 @@ typedef struct vidlib_local_tag
 	PVIDEO hVideoPool;      // linked list of active windows
 	PVIDEO hVidFocused;
 	PVIDEO hCaptured;
+	PVIDEO hCapturedPrior;
 	// kbd.key == KeyboardState
 	KEYBOARD kbd;
 	_32 dwMsgBase;

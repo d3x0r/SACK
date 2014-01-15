@@ -1125,7 +1125,10 @@ void DoDestroy (PVIDEO hVideo)
 		// unlink from the stack of windows...
 		UnlinkVideo (hVideo);
 		if( l.hCaptured == hVideo )
+		{
+			l.hCapturedPrior = NULL;
 			l.hCaptured = NULL;
+		}
 		//Log (WIDE( "Cleared hVideo - is NOW !bReady" ));
 		if( !hVideo->flags.event_dispatched )
 		{
@@ -5271,6 +5274,7 @@ RENDER_PROC (void, OwnMouseEx) (PVIDEO hVideo, _32 own DBG_PASS)
 			lprintf( WIDE("No more capture.") );
 			//ReleaseCapture ();
 			hVideo->flags.bCaptured = 0;
+			l.hCapturedPrior = NULL;
 			l.hCaptured = NULL;
 		}
 	}

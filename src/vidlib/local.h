@@ -85,6 +85,7 @@ extern
 	PVIDEO hVidFocused;
 	PVIDEO hVidCore; // common, invisible surface behind all windows (application container)
 	PVIDEO hCaptured;
+	PVIDEO hCapturedPrior;
 	// kbd.key == KeyboardState
 	KEYBOARD kbd;
 	_32 dwMsgBase;
