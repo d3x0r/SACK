@@ -988,10 +988,10 @@ WM_DROPFILES
 #ifdef LOG_MOUSE_EVENTS
 			lprintf( WIDE("Mouse position %d,%d"), p.x, p.y );
 #endif
-			p.x -= (dx =(l.hCaptured?l.hCaptured:hVideo)->cursor_bias.x);
-			p.y -= (dy=(l.hCaptured?l.hCaptured:hVideo)->cursor_bias.y);
+			p.x -= (dx =(hVideo)->cursor_bias.x);
+			p.y -= (dy=(hVideo)->cursor_bias.y);
 #ifdef LOG_MOUSE_EVENTS
-			lprintf( WIDE("Mouse position results %d,%d %d,%d"), dx, dy, p.x, p.y );
+			lprintf( WIDE("Mouse position results %d,%d %d,%d %p"), dx, dy, p.x, p.y, l.hCaptured );
 #endif
 
 //			if (!(l.hCaptured?l.hCaptured:hVideo)->flags.bFull)
@@ -1020,7 +1020,6 @@ WM_DROPFILES
 			l.mouse_b != l._mouse_b ||
 		   l.mouse_last_vid != hVideo ) // this hvideo!= last hvideo?
 		{
-			_32 msg[4];
 			if( (!hVideo->flags.mouse_on || !l.flags.mouse_on ) && !hVideo->flags.bNoMouse)
 			{
 				int x;
@@ -1035,7 +1034,7 @@ WM_DROPFILES
 #endif
 				SetCursor (hCursor);
 				l.flags.mouse_on = 1;
-            hVideo->flags.mouse_on = 1;
+				hVideo->flags.mouse_on = 1;
 			}
 			if( hVideo->flags.bIdleMouse )
 			{
@@ -1045,17 +1044,20 @@ WM_DROPFILES
 #endif
 			}
 			l.mouse_last_vid = hVideo;
-			msg[0] = (_32)(l.hCaptured?l.hCaptured:hVideo);
-			msg[1] = l.mouse_x;
-			msg[2] = l.mouse_y;
-			msg[3] = l.mouse_b;
 #ifdef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
+			{
+				_32 msg[4];
+				msg[0] = (_32)(l.hCaptured?l.hCaptured:hVideo);
+				msg[1] = l.mouse_x;
+				msg[2] = l.mouse_y;
+				msg[3] = l.mouse_b;
 #ifdef LOG_MOUSE_EVENTS
-			lprintf( WIDE("Generate mouse message %p(%p?) %d %d,%08x %d+%d=%d"), l.hCaptured, hVideo, l.mouse_x, l.mouse_y, l.mouse_b, l.dwMsgBase, MSG_MouseMethod, l.dwMsgBase + MSG_MouseMethod );
+				lprintf( WIDE("Generate mouse message %p(%p?) %d %d,%08x %d+%d=%d"), l.hCaptured, hVideo, l.mouse_x, l.mouse_y, l.mouse_b, l.dwMsgBase, MSG_MouseMethod, l.dwMsgBase + MSG_MouseMethod );
 #endif
-			SendServiceEvent( 0, l.dwMsgBase + MSG_MouseMethod
+				SendServiceEvent( 0, l.dwMsgBase + MSG_MouseMethod
 								 , msg
 								 , sizeof( msg ) );
+			}
 #endif
 
 			if( l.flags.bRotateLock  )
