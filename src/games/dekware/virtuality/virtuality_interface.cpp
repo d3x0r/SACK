@@ -205,7 +205,6 @@ static int OnCreateObject( WIDE("Point Label"), WIDE( "This is a point in space 
 
 		vobj->brain_board = CreateBrainBoard( vobj->brain );
 
-		AddLink( &l.objects, vobj );
 
 
 		PutIn( vobj->object = Virtuality_MakeCube( 10 ), l.root_object );
@@ -217,6 +216,8 @@ static int OnCreateObject( WIDE("Point Label"), WIDE( "This is a point in space 
 				TranslateV( vobj->object->Ti, pos );
 		}
 
+		// don't put in objects until it's finished...
+		AddLink( &l.objects, vobj );
 	}
 	return 0;
 }
