@@ -105,7 +105,7 @@ include_directories( ../automaton/board )
 add_subdirectory( ../virtuality virtuality_library ) 
 add_subdirectory( virtuality )
 
-install( DIRECTORY defaults DESTINATION bin )
+install( DIRECTORY defaults/ DESTINATION bin )
 
 
 # get the libraries..
