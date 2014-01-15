@@ -1223,9 +1223,13 @@ void  EmptyDataQueue ( PDATAQUEUE *ppdq )
 PRIORITY_UNLOAD( InitLocals, SYSLOG_PRELOAD_PRIORITY-1 )
 {
 	Deallocate( POINTER, _list_local );
+	_list_local = NULL;
 	Deallocate( POINTER, _data_list_local );
+	_data_list_local = NULL;
 	Deallocate( POINTER, _link_queue_local );
+	_link_queue_local = NULL;
 	Deallocate( POINTER, _data_queue_local );
+	_data_queue_local = NULL;
 }
 PRIORITY_PRELOAD( InitLocals, NAMESPACE_PRELOAD_PRIORITY + 1 )
 {
