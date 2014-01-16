@@ -45,7 +45,7 @@ PTEXT ShowTable( PTRSZVAL psv, PENTITY pe, PTEXT *ppLastValue )
 	return *ppLastValue;
 }
 
-static int ObjectMethod( WIDE("Cards"), WIDE("PlayCard"), WIDE("Take a card from hand or deck and put into play.") )( PSENTIENT ps, PTEXT params )
+static int ObjectMethod( WIDE("Cards"), WIDE("PlayCard"), WIDE("Take a card from hand or deck and put into play.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int PlayCard( PSENTIENT ps, PTEXT pCard )
 {
 	PHAND pHand = (PHAND)GetLink( &ps->Current->pPlugin, iHand );
@@ -68,7 +68,7 @@ static int ObjectMethod( WIDE("Cards"), WIDE("PlayCard"), WIDE("Take a card from
 }
 
 
-static int ObjectMethod( WIDE("Hand"), WIDE("PlayCard"), WIDE("Take a card from hand or deck and put into play.") )( PSENTIENT ps, PTEXT params )
+static int ObjectMethod( WIDE("Hand"), WIDE("PlayCard"), WIDE("Take a card from hand or deck and put into play.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int PlayCard( PSENTIENT ps, PTEXT pCard )
 {
 	PHAND pHand = (PHAND)GetLink( &ps->Current->pPlugin, iHand );
@@ -93,7 +93,7 @@ static int ObjectMethod( WIDE("Hand"), WIDE("PlayCard"), WIDE("Take a card from 
 //---------------------------------------------------------------------
 
 //static int ObjectMethod( WIDE("Hand"), WIDE("Discard"), WIDE("Take card from hand or put into discard.") )( PSENTIENT ps, PTEXT params )
-static int DoDiscard( PSENTIENT ps, PTEXT pCards )
+static int DoDiscard( PSENTIENT ps, PENTITY pe, PTEXT pCards )
 {
    PTEXT pCard;
    PCARD pcCard;
@@ -171,18 +171,18 @@ static int DoDiscard( PSENTIENT ps, PTEXT pCards )
    return 0;
 }
 
-static int ObjectMethod( WIDE("Hand"), WIDE("Discard"), WIDE("Take card from hand, put into discard.") )( PSENTIENT ps, PTEXT params )
+static int ObjectMethod( WIDE("Hand"), WIDE("Discard"), WIDE("Take card from hand, put into discard.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
 {
-   return DoDiscard( ps, params );
+   return DoDiscard( ps, pe, params );
 }
-static int ObjectMethod( WIDE("Cards"), WIDE("Discard"), WIDE("Take card from deck, put into discard.") )( PSENTIENT ps, PTEXT params )
+static int ObjectMethod( WIDE("Cards"), WIDE("Discard"), WIDE("Take card from deck, put into discard.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
 {
-   return DoDiscard( ps, params );
+   return DoDiscard( ps, pe, params );
 }
 
 //---------------------------------------------------------------------
 
-static int ObjectMethod( WIDE("Hand"), WIDE("draw"), WIDE("Draw a card from the deck.") )( PSENTIENT ps, PTEXT params )
+static int ObjectMethod( WIDE("Hand"), WIDE("draw"), WIDE("Draw a card from the deck.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int DrawACard( PSENTIENT ps, PTEXT pNames )
 {
 	PHAND ph = (PHAND)GetLink( &ps->Current->pPlugin, iHand );
@@ -312,7 +312,7 @@ int DealPlayTo( PSENTIENT ps, PTEXT pNames, int bPlayTo )
 
 //---------------------------------------------------------------------
 
-static int ObjectMethod( WIDE("Cards"), WIDE("DealTo"), WIDE("deal a card to an object.") )( PSENTIENT ps, PTEXT params )
+static int ObjectMethod( WIDE("Cards"), WIDE("DealTo"), WIDE("deal a card to an object.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int DealTo( PSENTIENT ps, PTEXT pNames )
 {
    return DealPlayTo( ps, params, FALSE );
@@ -320,7 +320,7 @@ static int ObjectMethod( WIDE("Cards"), WIDE("DealTo"), WIDE("deal a card to an 
 
 //---------------------------------------------------------------------
 
-static int ObjectMethod( WIDE("Cards"), WIDE("PlayTo"), WIDE("deal a card to an object (on table, face up).") )( PSENTIENT ps, PTEXT params )
+static int ObjectMethod( WIDE("Cards"), WIDE("PlayTo"), WIDE("deal a card to an object (on table, face up).") )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int PlayTo( PSENTIENT ps, PTEXT pNames )
 {
    return DealPlayTo( ps, params, TRUE );
@@ -489,7 +489,7 @@ static PTEXT ObjectVolatileVariableSet( WIDE("cards"), WIDE("Rules"), WIDE("Show
 
 //---------------------------------------------------------------------
 
-static int ObjectMethod( WIDE("Cards"), WIDE("shuffle"), WIDE("Gather and shuffle all cards.") )( PSENTIENT ps, PTEXT params )
+static int ObjectMethod( WIDE("Cards"), WIDE("shuffle"), WIDE("Gather and shuffle all cards.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int DoShuffle( PSENTIENT ps, PTEXT params )
 {
    PDECK pd;
@@ -520,7 +520,7 @@ void EntDeleteDeck( PENTITY pe )
 
 //---------------------------------------------------------------------
 
-static int ObjectMethod( WIDE("Cards"), WIDE("status"), WIDE("Show status of the deck.") )( PSENTIENT ps, PTEXT params )
+static int ObjectMethod( WIDE("Cards"), WIDE("status"), WIDE("Show status of the deck.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int DoStatus( PSENTIENT ps, PTEXT pNothing )
 {
    int CardsLeft = 0;

@@ -203,7 +203,7 @@ void ShowTime( PSENTIENT ps, SYSTEMTIME *st )
 #endif
 //-----------------------------------------------------------------------------
 
-static int ObjectMethod( WIDE("Timer"), WIDE("StopTimer"), WIDE("Show current time from last mark.") )( PSENTIENT ps, PTEXT params )
+static int ObjectMethod( WIDE("Timer"), WIDE("StopTimer"), WIDE("Show current time from last mark.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int CPROC StopTime( PSENTIENT ps, PTEXT parameters )
 {
    DECLTEXTSZ( systime, sizeof( SYSTEMTIME ) );
@@ -220,7 +220,7 @@ static int ObjectMethod( WIDE("Timer"), WIDE("StopTimer"), WIDE("Show current ti
 
 //-----------------------------------------------------------------------------
 
-static int ObjectMethod( WIDE("Timer"), WIDE("Mark"), WIDE("Mark current time as start of elapse.") )( PSENTIENT ps, PTEXT params )
+static int ObjectMethod( WIDE("Timer"), WIDE("Mark"), WIDE("Mark current time as start of elapse.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int CPROC MarkTime( PSENTIENT ps, PTEXT parameters )
 {
    DECLTEXTSZ( systime, sizeof( SYSTEMTIME ) );
@@ -318,7 +318,7 @@ int MonthDayofYear( int year, int doy, P_16 Month, P_16 Day )
 
 //-----------------------------------------------------------------------------
 
-static int ObjectMethod( WIDE("Timer"), WIDE("Elapse"), WIDE("Show current time from last mark.") )( PSENTIENT ps, PTEXT params )
+static int ObjectMethod( WIDE("Timer"), WIDE("Elapse"), WIDE("Show current time from last mark.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int CPROC ReportTime( PSENTIENT ps, PTEXT parameters )
 {
    SYSTEMTIME stHolder, *stNow, *stThen, stDel;

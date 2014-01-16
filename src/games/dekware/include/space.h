@@ -485,6 +485,7 @@ void Story( PLINKQUEUE *Output );
 CORE_PROC( void, ExitNexus )( void );
 
 void LoadPlugins( CTEXTSTR base );
+ObjectInit ScanRegisteredObjects( PENTITY pe, CTEXTSTR for_name );
 
 #endif
 

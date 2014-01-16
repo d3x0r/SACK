@@ -58,7 +58,7 @@ CORE_PROC( void, RemoveMethod      	)( PENTITY pe, command_entry *pce );
 //CORE_PROC( void, AddVolatileVariable)( PENTITY pe, volatile_variable_entry *pve );
 //CORE_PROC( void, RemoveVolatileVariable)( PENTITY pe, volatile_variable_entry *pve );
 
-CORE_CPROC( void, RegisterRoutine  )( TEXTCHAR *pName, TEXTCHAR *pDescription, RoutineAddress Routine );
+CORE_CPROC( void, RegisterRoutine  )( TEXTCHAR *pClassname, TEXTCHAR *pName, TEXTCHAR *pDescription, RoutineAddress Routine );
 CORE_CPROC( void, RegisterCommands )(CTEXTSTR device, command_entry *cmds, INDEX nCommands);
 CORE_CPROC( void, RegisterOptions )(CTEXTSTR device, option_entry *cmds, INDEX nCommands);
 CORE_PROC( Function, GetRoutineRegistered )( TEXTSTR prefix, PTEXT Command );

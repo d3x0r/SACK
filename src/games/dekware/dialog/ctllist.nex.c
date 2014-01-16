@@ -29,7 +29,7 @@ void CPROC DoSelectionChanged ( PTRSZVAL psvUser, PCOMMON pc, PLISTITEM hli )
 
 static int ObjectMethod( WIDE("psi_listbox"), WIDE("add"), WIDE("Add an item to a list") )
 //static int CPROC AddItem
-( PSENTIENT ps, PTEXT parameters )
+( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 {
 	PCOMMON_TRACKER pct = (PCOMMON_TRACKER)GetLink( &ps->Current->pPlugin, g.iCommon );
 	PCOMMON pc = pct->control.pc;
@@ -42,7 +42,7 @@ static int ObjectMethod( WIDE("psi_listbox"), WIDE("add"), WIDE("Add an item to 
 
 static int ObjectMethod( WIDE("psi_listbox"), WIDE("tree"), WIDE("Add an item to a list") )
 //static int CPROC SetTree
-( PSENTIENT ps, PTEXT parameters )
+( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 {
 	PTEXT temp = GetParam( ps, &parameters );
 	PCOMMON_TRACKER pct = (PCOMMON_TRACKER)GetLink( &ps->Current->pPlugin, g.iCommon );
