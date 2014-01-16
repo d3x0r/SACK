@@ -103,6 +103,8 @@ struct dekware_interface {
 
 	CORE_PROC_PTR( void, DoCommandf )( PSENTIENT ps, CTEXTSTR f, ... );
 	CORE_PROC_PTR( int, DestroyAwarenessEx      )( PSENTIENT ps DBG_PASS );
+	CORE_PROC_PTR( ObjectInit, ScanRegisteredObjects )( PENTITY pe, CTEXTSTR for_name );
+
 };
 
 
@@ -196,7 +198,7 @@ PRIORITY_PRELOAD( InitDekwareInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 
 #define CreateAwareness                                ( !DekwareInterface )?NULL:DekwareInterface->CreateAwareness
 #define CreateEntity                                ( !DekwareInterface )?NULL:DekwareInterface->CreateEntity
-
+#define ScanRegisteredObjects                       ( !DekwareInterface )?NULL:DekwareInterface->ScanRegisteredObjects
 
 #define AddBehavior                                if( DekwareInterface ) DekwareInterface->AddBehavior
 #define AddCommonBehavior                                ( !DekwareInterface )?NULL:DekwareInterface->AddCommonBehavior

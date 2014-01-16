@@ -26,7 +26,7 @@ command_entry dialog_commands[] = { { DEFTEXT( WIDE("display") ), 4, 7, DEFTEXT(
 
 static int ObjectMethod( WIDE("psi_control"), WIDE("save"), WIDE("Save Control (frame)") )
 //int DoSaveCommon
-( PSENTIENT ps, PTEXT params )
+( PSENTIENT ps, PENTITY pe, PTEXT params )
 {
 	PTEXT filename = GetFileName( ps, &params );
 	if( filename )
@@ -60,7 +60,7 @@ static int ObjectMethod( WIDE("psi_control"), WIDE("save"), WIDE("Save Control (
 
 static int ObjectMethod( WIDE("psi_control"), WIDE("edit"), WIDE("Edit Control (frame)") )
 //int DoEditCommon
-( PSENTIENT ps, PTEXT params )
+( PSENTIENT ps, PENTITY pe, PTEXT params )
 {
 	PCOMMON_TRACKER pct = (PCOMMON_TRACKER)GetLink( &ps->Current->pPlugin, g.iCommon );
 	PCOMMON pc = pct->control.pc;
@@ -77,7 +77,7 @@ static int ObjectMethod( WIDE("psi_control"), WIDE("edit"), WIDE("Edit Control (
 //--------------------------------------------------------------------------
 static int ObjectMethod( WIDE("psi_control"), WIDE("hide"), WIDE("Hide Control (frame)") )
 //int DoHideCommon
-	( PSENTIENT ps, PTEXT params )
+	( PSENTIENT ps, PENTITY pe, PTEXT params )
 {
 	PCOMMON_TRACKER pct = (PCOMMON_TRACKER)GetLink( &ps->Current->pPlugin, g.iCommon );
 	PCOMMON pc = pct->control.pc;
@@ -92,7 +92,7 @@ static int ObjectMethod( WIDE("psi_control"), WIDE("hide"), WIDE("Hide Control (
 
 static int ObjectMethod( WIDE("psi_control"), WIDE("show"), WIDE("Show Control (frame)") )
 //int DoShowCommon
-( PSENTIENT ps, PTEXT params )
+( PSENTIENT ps, PENTITY pe, PTEXT params )
 {
 	PCOMMON_TRACKER pct = (PCOMMON_TRACKER)GetLink( &ps->Current->pPlugin, g.iCommon );
 	PCOMMON pc = pct->control.pc;
@@ -321,6 +321,7 @@ PENTITY CommonInitControl( PCOMMON pc )
 				else
                lprintf( WIDE("Failed to create entity for control...") );
 			}
+			ScanRegisteredObjects( peNew, WIDE("psi_control") );
 			// this needs to be done so that buttons may perform 'on' commands.
 			//UnlockAwareness( CreateAwareness( peNew ) );
 			LeaveCriticalSec( &g.csCreating );

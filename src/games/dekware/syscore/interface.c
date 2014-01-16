@@ -108,6 +108,7 @@ struct dekware_interface RealDekwareInterface =
 	ExitNexus,
    DoCommandf,
    DestroyAwarenessEx,
+   ScanRegisteredObjects,
 };
 
 
