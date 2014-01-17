@@ -17,6 +17,10 @@
 #include <render3d.h>
 #include <image3d.h>
 
+#ifdef __cplusplus
+#undef bool
+#endif
+
 #include <brain.hpp>
 #include <brainshell.hpp>
 

@@ -5,10 +5,10 @@
 struct macro_info_struct
 {
 	PMACROSTATE pms; // is NULL if not running
-   PMACRO macro;
+	PMACRO macro;
 	PENTITY pe_running;
-   LOGICAL running;  // have to clear running before it will run again..
-   struct virtuality_object *vobj;
+	LOGICAL running;  // have to clear running before it will run again..
+	struct virtuality_object *vobj;
 
 };
 
@@ -16,13 +16,13 @@ struct macro_info_struct
 static NATIVE GetMacroRunning( PTRSZVAL psv )
 {
 	struct macro_info_struct *mis = (struct macro_info_struct *)psv;
-   return ( mis->pms != NULL ) || mis->running;
+	return ( mis->pms != NULL ) || mis->running;
 }
 
 // Event callback from the InvokeMacroEx call
 static void MacroEnded( PTRSZVAL psv, PMACROSTATE pms_ending )
 {
-   struct macro_info_struct *mis = (struct macro_info_struct *)psv;
+	struct macro_info_struct *mis = (struct macro_info_struct *)psv;
 	mis->pms = NULL;
 }
 
@@ -75,7 +75,7 @@ static void ObjectMacroCreated( WIDE("Point Label"), WIDE("AddMacro"), WIDE( "Ad
 			mis->macro = macro;
 			mis->pe_running = pe_object;
 			mis->running = FALSE;
-         mis->vobj = vobj;
+			mis->vobj = vobj;
 			pbs->AddInput( new value(GetMacroRunning, (PTRSZVAL)mis ), WIDE( "Is Running" ) );
 			pbs->AddOutput( new value(StartRunMacro, (PTRSZVAL)mis ), WIDE( "Start" ) );
 			pbs->AddOutput( new value(StopRunMacro, (PTRSZVAL)mis ), WIDE( "Stop" ) );

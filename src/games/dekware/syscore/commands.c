@@ -2612,19 +2612,28 @@ PMACRO CreateMacro( PENTITY pEnt, PLINKQUEUE *ppOutput, PTEXT name ) /*FOLD00*/
 			PCLASSROOT current = NULL;
 			CTEXTSTR name2;
 			CTEXTSTR root;
-			PVARTEXT pvt = VarTextCreate();
-			vtprintf( pvt, WIDE("dekware/objects/%s/macro/create"), GetText( name ) );
-			for( name2 = GetFirstRegisteredName( root = GetText( VarTextPeek( pvt ) ), &current );
-		 		name2;
-				  name2 = GetNextRegisteredName( &current ) )
+			INDEX idx;
+
+			CTEXTSTR extension_name;
+			LIST_FORALL( global.ExtensionNames, idx, CTEXTSTR, extension_name )
 			{
-				MacroCreateFunction f = GetRegisteredProcedure2( root, void, name2, (PENTITY,PMACRO) );
-				if( f )
+				if( GetLink( &pEnt->pPlugin, idx ) )
 				{
-					f( pEnt, pMacro );
+					PVARTEXT pvt = VarTextCreate();
+					vtprintf( pvt, WIDE("dekware/objects/%s/macro/create"), extension_name );
+					for( name2 = GetFirstRegisteredName( root = GetText( VarTextPeek( pvt ) ), &current );
+				 		name2;
+					  name2 = GetNextRegisteredName( &current ) )
+					{
+						MacroCreateFunction f = GetRegisteredProcedure2( root, void, name2, (PENTITY,PMACRO) );
+						if( f )
+						{
+							f( pEnt, pMacro );
+						}
+					}
+					VarTextDestroy( &pvt );
 				}
 			}
-			VarTextDestroy( &pvt );
 		}
 
       if( pEnt )

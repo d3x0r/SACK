@@ -72,7 +72,7 @@ typedef struct command_entry
 	__DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleObjectMethod,WIDE("objects/")object WIDE("/methods"),name,desc,int,(PSENTIENT,PENTITY,PTEXT),__LINE__)
 
 #define ObjectMacroCreated( object, name, desc )   \
-	__DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleObjectMethod,WIDE("objects/")object WIDE("/methods"),name,desc,void,(PENTITY,PMACRO),__LINE__)
+	__DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleObjectMethod,WIDE("objects/")object WIDE("/macro/create"),name,desc,void,(PENTITY,PMACRO),__LINE__)
 
 #define DeviceMethod( object, name, desc )   \
 	__DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleObjectMethod,WIDE("devices/")object WIDE("/methods"),name,desc,int,(PSENTIENT,PTEXT),__LINE__)
