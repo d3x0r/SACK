@@ -116,6 +116,7 @@ public:
 	void DefinePeiceColors( arg_list args );
 	void DefineABlock( arg_list args );
 	void DefineABlockNoOpt( arg_list args );
+	void RebuildComponentPopups( void );
 
 };
 
@@ -783,8 +784,11 @@ public:
 		brainboard->board->LockDrag();
 		return TRUE;
 	}
+
 	int OnRightClick( PTRSZVAL psv, S_32 x, S_32 y )
 	{
+      brainboard->RebuildComponentPopups();
+
 		_32 result = TrackPopup( brainboard->hMenu, NULL );
 		//DebugBreak();
 		if( result >= MNU_ADD_INPUT_START && result < MNU_ADD_OUTPUT_START )
@@ -907,6 +911,7 @@ PTRSZVAL DefineAColor( PTRSZVAL psv, arg_list args )
    Set( OUTPUT_LEVEL_HIGH  )
 }
 #endif
+
 
 //---------------------------------------------------
 
@@ -1124,6 +1129,22 @@ void BuildBrainstemMenus( PMENU hMenuComponents, PBRAIN_STEM pbs
 		}
 	}
 }
+
+//---------------------------------------------------
+
+void BRAINBOARD::RebuildComponentPopups()
+	{
+		{
+			int n = 0;
+			INDEX idx;
+			PBRAIN_STEM pbs;
+         ResetPopup( hMenuComponents );
+			LIST_FORALL( brain->BrainStems.list, idx, PBRAIN_STEM, pbs )
+			{
+				BuildBrainstemMenus( hMenuComponents, pbs, &menus, &connectors, 0 );
+			}
+		}
+	}
 
 void BRAINBOARD::InitMenus( void )
 {
