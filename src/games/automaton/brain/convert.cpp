@@ -283,15 +283,19 @@ void value::set( enum type type, ... )
 		break;
 	case VAL_EXTERNINPUT:
 		value::data.Input = va_arg( args, InputFunction);
+		value::aux = va_arg( args, PTRSZVAL );
 		break;
 	case VAL_EXTERNOUTPUT:
 		value::data.Output = va_arg( args, OutputFunction);
+		value::aux = va_arg( args, PTRSZVAL );
 		break;
 	case VAL_EXTERNTHRUPUT:
 		value::data.Thruput = va_arg( args, ThruputFunction);
+		value::aux = va_arg( args, PTRSZVAL );
 		break;
 	case VAL_EXTERNTRIGGER:
 		value::data.Trigger = va_arg( args, TriggerFunction);
+		value::aux = va_arg( args, PTRSZVAL );
 		break;
 	case VAL_PANYVALUE:
 		value::data.pany = va_arg( args, PANYVALUE);
