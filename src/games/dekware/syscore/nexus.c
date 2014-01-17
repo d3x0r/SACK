@@ -1533,7 +1533,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 					if( ps->flags.resume_run && pms && pms->state.flags.macro_suspend )
 					{
 						ps->flags.resume_run = 0;
-                  pms->state.flags.macro_suspend = 0;
+						pms->state.flags.macro_suspend = 0;
 					}
 					if( pms &&       // a macro is available...
 						!pms->state.flags.bInputWait && // and is not in /WAIT
@@ -1542,7 +1542,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 						PLIST pCommands;
 						_32 ticks;
 						//SystemLog( WIDE("Found a macro to run...") );
-                  //SystemLog( GetText( GetName( pms->pMacro ) ) );
+						//SystemLog( GetText( GetName( pms->pMacro ) ) );
 						if( !pms->state.flags.macro_delay
 							|| ( (ticks=GetTickCount()) >= pms->state.flags.data.delay_end ) )
 						{
@@ -1551,35 +1551,35 @@ int ProcessSentients( THREAD_ID ThreadID )
 								ps->CurrentMacro->state.flags.data.delay_end -= ticks;
 								pms->state.flags.macro_delay = FALSE;
 							}
-                     //SystemLog( WIDE("Getting a normal command...") );
+							//SystemLog( WIDE("Getting a normal command...") );
 							if( ( pCommands = pms->pMacro->pCommands ) )
 							{
 								if( pms->nCommand < pms->pMacro->nCommands )
 								{
 									//SystemLog( WIDE("Macro has commands to do...") );
-                           //_lprintf( 0, WIDE("pCommands->pNode[pms->nCommand=%d]=%p"), pms->nCommand, pCommands->pNode[pms->nCommand] );
+									//_lprintf( 0, WIDE("pCommands->pNode[pms->nCommand=%d]=%p"), pms->nCommand, pCommands->pNode[pms->nCommand] );
 									pCommand = (PTEXT)pCommands->pNode[pms->nCommand];
 									ppCommand = (PTEXT*)(pCommands->pNode + pms->nCommand);
 									pms->nCommand++;
 								}
 								else
 								{
-                           //SystemLog( WIDE("Macro has ended... getting the last command.") );
+									//SystemLog( WIDE("Macro has ended... getting the last command.") );
 									// end macro most probably ?!
 									ppCommand = (PTEXT*)(pCommands->pNode + pms->pMacro->nCommands - 1);
 									pCommand = (*ppCommand);
 								}
 							}
 							//else
-                     //   SystemLog( WIDE("Macro has no commands?") );
+							//   SystemLog( WIDE("Macro has no commands?") );
 							// _this pCommand is static and must remain.
-                     //lprintf( WIDE("Do not free this...") );
+							//lprintf( WIDE("Do not free this...") );
 							bFree = FALSE;
 						}
 						else
 						{
 							// hmm woke up too soon, reschedule timer.
-                     //SystemLog( WIDE("Woke up too soon?? huh?") );
+							//SystemLog( WIDE("Woke up too soon?? huh?") );
 							if( !ps->flags.scheduled )
 							{
 								AddTimerEx( pms->state.flags.data.delay_end - ticks, 0, TimerWake, (PTRSZVAL)ps );
@@ -1598,22 +1598,22 @@ int ProcessSentients( THREAD_ID ThreadID )
 						// the result of _this code since it was implmeented originally to handle
 						// /input, resets the input wait, which will not be set
 						// if macro_suspend is set.
-                  // /suspend can be used to wait for a /on close event to wake up and resume closing the data path
+						// /suspend can be used to wait for a /on close event to wake up and resume closing the data path
 
-                  //SystemLog( WIDE("Uhmm No command...") );
+						//SystemLog( WIDE("Uhmm No command...") );
 						if( ps->Data ) // cannot wait if data channel is not open.
 						{
 							if( ps->Data->Read )
 								ps->Data->Read( ps->Data );
 							if( !IsQueueEmpty( &ps->Data->Input ) )
 							{
-                        lprintf( WIDE("Queue is not empty now, we may proceed and get the data.") );
+								lprintf( WIDE("Queue is not empty now, we may proceed and get the data.") );
 								pms->state.flags.bInputWait = FALSE;
 							}
 							else // queue is empty...
 								if( ps->Data->flags.Closed )
 								{
-                           // go ahead and close it?
+									// go ahead and close it?
 									pms->state.flags.bInputWait = FALSE;
 									//DestroyDataPath( ps->Data );
 									//InvokeBehavior( WIDE("Close"), ps->Current, ps, NULL );

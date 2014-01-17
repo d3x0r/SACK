@@ -118,25 +118,25 @@ int CPROC CMD_RUN( PSENTIENT ps, PTEXT parameters )
 	          VarTextDestroy( &vt );
              return FALSE; // return...
           }
-          if( i > match->nArgs )
-          {
-             DECLTEXT( msg, WIDE("Extra parameters passed to macro. Continuing but ignoring extra.") );
-             EnqueLink( &ps->Command->Output, &msg );
-          }
-       }
+			if( i > match->nArgs )
+			{
+				DECLTEXT( msg, WIDE("Extra parameters passed to macro. Continuing but ignoring extra.") );
+				EnqueLink( &ps->Command->Output, &msg );
+			}
+		}
 
-       if( match->nArgs < 0 )
-       {
-             // duplicate singles of negative number...
-             // then add one indirect to the remainder...
-          pArgs = SegCreateIndirect( MacroDuplicateEx( ps, parameters, TRUE, TRUE ) );
-       }
-       else
-       {
-          pArgs = MacroDuplicateEx( ps, parameters, TRUE, TRUE );
-       }
-       pms = InvokeMacro( ps, match, pArgs );
-		 pms->state.flags.forced_run = 1;
+		if( match->nArgs < 0 )
+		{
+			// duplicate singles of negative number...
+			// then add one indirect to the remainder...
+			pArgs = SegCreateIndirect( MacroDuplicateEx( ps, parameters, TRUE, TRUE ) );
+		}
+		else
+		{
+			pArgs = MacroDuplicateEx( ps, parameters, TRUE, TRUE );
+		}
+		pms = InvokeMacro( ps, match, pArgs );
+		pms->state.flags.forced_run = 1;
 	}
 	return 0;
 }
@@ -620,17 +620,24 @@ int CPROC CMD_ENDMACRO( PSENTIENT ps, PTEXT parameters )
    return FALSE;
 }
 //--------------------------------------
-int CPROC CMD_STOP( PSENTIENT ps, PTEXT parameters )
+void TerminateMacro( PMACROSTATE pms )
 {
-	PMACROSTATE pms;
-	pms = (PMACROSTATE)PeekData( &ps->MacroStack );
 	if( pms )
 	{
 		// jump macro to /ENDMAC statement.
 		pms->nCommand = pms->pMacro->nCommands - 1;
 		pms->state.flags.macro_delay = FALSE;
 	}
-	//ps->flags.macro_suspend = FALSE;
+}
+
+int CPROC CMD_STOP( PSENTIENT ps, PTEXT parameters )
+{
+	PMACROSTATE pms;
+	pms = (PMACROSTATE)PeekData( &ps->MacroStack );
+	if( pms )
+	{
+		TerminateMacro( pms );
+	}
 	return FALSE;
 }
 

@@ -9,7 +9,7 @@ struct macro_info_struct
 	PENTITY pe_running;
 	LOGICAL running;  // have to clear running before it will run again..
 	struct virtuality_object *vobj;
-
+	LOGICAL stopping; // make sure we have to stop-stopping before running new.
 };
 
 // result to brain if this is running...
@@ -31,11 +31,16 @@ static void StartRunMacro( PTRSZVAL psv, NATIVE value )
 	if( value > 0 )
 	{
 		struct macro_info_struct *mis = (struct macro_info_struct *)psv;
-		if( !mis->running )
+		if( !mis->running && !mis->stopping )
 		{
 			mis->running = 1;
-         mis->pms = InvokeMacroEx( mis->vobj->ps, mis->macro, NULL, MacroEnded, (PTRSZVAL)mis );
+			mis->pms = InvokeMacroEx( mis->vobj->ps, mis->macro, NULL, MacroEnded, (PTRSZVAL)mis );
 		}
+	}
+	else
+	{
+		struct macro_info_struct *mis = (struct macro_info_struct *)psv;
+		mis->running = 0;
 	}
 }
 
@@ -45,15 +50,17 @@ static void StopRunMacro( PTRSZVAL psv, NATIVE value )
 		if( value > 0 )
 		{
 			struct macro_info_struct *mis = (struct macro_info_struct *)psv;
-			if( mis->pms )
+			if( mis->pms && !mis->stopping )
 			{
-            mis->pms->state.flags.macro_terminate = 1;
+				TerminateMacro( mis->pms );
 			}
-			else
-				mis->running = 0;
+			mis->stopping = 1;
 		}
 		else
 		{
+			struct macro_info_struct *mis = (struct macro_info_struct *)psv;
+			if( mis )
+				mis->stopping = 0;
 		}
 	}
 }

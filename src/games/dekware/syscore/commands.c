@@ -2054,27 +2054,27 @@ CORE_PROC( PMACRO, LocateMacro )( PENTITY pe, TEXTCHAR *name ) /*FOLD00*/
 
 PMACROSTATE InvokeMacroEx( PSENTIENT ps, PMACRO pMacro, PTEXT pArgs, void (CPROC*StopEvent)(PTRSZVAL psvUser, PMACROSTATE pms ), PTRSZVAL psv ) /*FOLD00*/
 {
-   MACROSTATE MacState;
-   // Begin Macro
-   MacState.nCommand = 0;
-   // this needs to duplicate pMacro -nArgs then
-   // append an indirect to the remainder of the line...
-   MacState.pArgs = pArgs;
-   MacState.pVars = NULL;
-   pMacro->flags.un.macro.bUsed = TRUE;
-   MacState.pMacro = pMacro;
-   MemSet( &MacState.state.flags, 0, sizeof( MacState.state.flags ) );
+	MACROSTATE MacState;
+	// Begin Macro
+	MacState.nCommand = 0;
+	// this needs to duplicate pMacro -nArgs then
+	// append an indirect to the remainder of the line...
+	MacState.pArgs = pArgs;
+	MacState.pVars = NULL;
+	pMacro->flags.un.macro.bUsed = TRUE;
+	MacState.pMacro = pMacro;
+	MemSet( &MacState.state.flags, 0, sizeof( MacState.state.flags ) );
 	//MacState.state.flags. = 0;
 	MacState.state.flags.macro_suspend = 0;
-   MacState.peInvokedOn = ps->Current;
-   MacState.state.flags.data.levels = 0; // overflow
+	MacState.peInvokedOn = ps->Current;
+	MacState.state.flags.data.levels = 0; // overflow
 	MacState.pdsForEachState = CreateDataStack( sizeof( FOREACH_STATE ) );
-   MacState.pInvokedBy = ps->pToldBy; // might have multiple leaders...
+	MacState.pInvokedBy = ps->pToldBy; // might have multiple leaders...
 	MacState.MacroEnd = NULL;
 	MacState.StopEvent = StopEvent;
    MacState.psv_StopEvent = psv;
-   PushData( &ps->MacroStack, &MacState ); // changes address of all data content...
-   return (PMACROSTATE)PeekData( &ps->MacroStack );
+	PushData( &ps->MacroStack, &MacState ); // changes address of all data content...
+	return (PMACROSTATE)PeekData( &ps->MacroStack );
 }
 
 #undef InvokeMacro
