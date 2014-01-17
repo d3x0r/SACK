@@ -110,6 +110,7 @@ BLOBTYPE macro_state_state_flags {
          bool forced_run; // will run preempting natural command entry.
          BLOBREF macro_state_flag_data data;
 		bool macro_suspend; // lock flag to prevent macro processing...
+		bool macro_terminate; // set this to end the macro next statement; abort signal
 };
 BLOBTYPE macro_state_state{
 	BLOBREF macro_state_state_flags flags;
@@ -129,7 +130,7 @@ typedef BLOBTYPE macro_state_tag
    PSENTIENT pInvokedBy; 
    // this routine must PopData from ps->MacroStack
    // if it is used.... otherwise default processing removes 
-   // the data from  he macrostack...
+   // the data from the macrostack...
    void (*MacroEnd)( PSENTIENT ps// sentient processing macro
                    , PMACROSTATE pMacState ); // saves extra peek...
 	void *Data; // used by macroEnd to find the wrapping structure....
@@ -138,7 +139,9 @@ typedef BLOBTYPE macro_state_tag
    //----------- To Be Implemented
 	// struct { INDEX nLabelCmd+1; PTEXT name } Label;
 	//   PDATASTACK pdsLabelStack; // as labels are encountered, save this... otherwise we have to runt he macro to get there
-   //-----------
+	//-----------
+	void (CPROC*StopEvent)(PTRSZVAL psvUser, PMACROSTATE pms );
+	PTRSZVAL psv_StopEvent;
 } MACROSTATE;
 
 
@@ -273,6 +276,7 @@ public:
    PLIST pVariables; // list member is a pointer to an array of volatile_variable entries
 } ENTITY;
 
+// getname works for PENTITY or PMACRO types
 CORE_CPROC( PTEXT, GetName )( void *pe );
 CORE_CPROC( PTEXT, GetDescription )( void *pe );
 CORE_CPROC( void, SetDescription )( void *pe, PTEXT desc );

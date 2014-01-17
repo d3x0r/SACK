@@ -104,6 +104,7 @@ struct dekware_interface {
 	CORE_PROC_PTR( void, DoCommandf )( PSENTIENT ps, CTEXTSTR f, ... );
 	CORE_PROC_PTR( int, DestroyAwarenessEx      )( PSENTIENT ps DBG_PASS );
 	CORE_PROC_PTR( ObjectInit, ScanRegisteredObjects )( PENTITY pe, CTEXTSTR for_name );
+	CORE_PROC_PTR( PMACROSTATE, InvokeMacroEx )( PSENTIENT ps, PMACRO pMacro, PTEXT pArgs, void (CPROC*StopEvent)(PTRSZVAL psvUser, PMACROSTATE pms ), PTRSZVAL psv );
 
 };
 
@@ -180,7 +181,8 @@ PRIORITY_PRELOAD( InitDekwareInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 #define UnlockAwareness                                if( DekwareInterface ) DekwareInterface->UnlockAwareness
 #define SetDatapathType                                if( DekwareInterface ) DekwareInterface->SetDatapathType
 #define LocateMacro                                ( !DekwareInterface )?NULL:DekwareInterface->LocateMacro
-#define InvokeMacro                                ( !DekwareInterface )?NULL:DekwareInterface->InvokeMacro
+#define InvokeMacroEx                                ( !DekwareInterface )?NULL:DekwareInterface->InvokeMacroEx
+#define InvokeMacro(ps,pm,arg) InvokeMacroEx( ps,pm,arg,NULL,0 )
 #define GatherLineEx                                ( !DekwareInterface )?NULL:DekwareInterface->GatherLineEx
 
 #define RelayOutput                                ( !DekwareInterface )?0:DekwareInterface->RelayOutput
