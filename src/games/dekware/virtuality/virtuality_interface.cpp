@@ -1,43 +1,5 @@
-#define FIX_RELEASE_COM_COLLISION
-#define MAKE_RCOORD_SINGLE
-#define USE_IMAGE_INTERFACE l.pii
-#define USE_IMAGE_3D_INTERFACE l.pi3i
-#define USE_RENDER3D_INTERFACE l.pr3i
-
-#define DEFINES_DEKWARE_INTERFACE
-#define PLUGIN_MODULE
-
-#include <plugin.h>
-#include <vectlib.h>
-#include <virtuality.h>
-#include <render3d.h>
-#include <image3d.h>
-
-#include <brain.hpp>
-#include <brainshell.hpp>
-
-
-static struct local_virtuality_interface_tag
-{
-   INDEX extension;
-   PIMAGE_INTERFACE pii;
-   PIMAGE_3D_INTERFACE pi3i;
-   PRENDER3D_INTERFACE pr3i;
-   PTRANSFORM transform;
-   PLIST objects;
-   POBJECT root_object;
-} l;
-
-struct virtuality_object
-{
-	//VECTOR o;// objects actually origins already
-	Image label;  // objects actually have labels already
-	POBJECT object;
-	PBRAIN brain;
-	PBRAINBOARD brain_board;
-	VECTOR speed;
-	VECTOR rotation_speed;
-};
+#define MAIN_SOURCE
+#include "local.h"
 
 PRELOAD( Init )
 {
@@ -174,7 +136,6 @@ static int GetVector( VECTOR pos, PSENTIENT ps, PTEXT *parameters, LOGICAL log_e
 	return 1;
 }
 
-
 static int OnCreateObject( WIDE("Point Label"), WIDE( "This is a point in space that has text") )(PSENTIENT ps,PENTITY pe_created,PTEXT parameters)
 {
 	if( !l.extension )
@@ -188,24 +149,7 @@ static int OnCreateObject( WIDE("Point Label"), WIDE( "This is a point in space 
 		vobj->label = MakeImageFile( 0, 0 );
 		UpdateLabel( vobj, "Label" );
 
-		vobj->brain = new BRAIN();
-		PBRAIN_STEM pbs = new BRAIN_STEM( WIDE("Object Motion") );
-		vobj->brain->AddBrainStem( pbs );
-
-		pbs->AddOutput( new value(&vobj->speed[vForward]), WIDE("Forward -Backwards") );
-		pbs->AddOutput( new value(&vobj->speed[vRight]), WIDE("Right -Left") );
-		pbs->AddOutput( new value(&vobj->speed[vUp]), WIDE("Up -Down") );
-
-		pbs = new BRAIN_STEM( WIDE("Object Rotation") );
-		vobj->brain->AddBrainStem( pbs );
-
-		pbs->AddOutput( new value(&vobj->rotation_speed[vForward]), WIDE("around Forward axis") );
-		pbs->AddOutput( new value(&vobj->rotation_speed[vRight]), WIDE("around Right axis") );
-		pbs->AddOutput( new value(&vobj->rotation_speed[vUp]), WIDE("around Up axis") );
-
-		vobj->brain_board = CreateBrainBoard( vobj->brain );
-
-
+      ExtendEntityWithBrain( pe_created );
 
 		PutIn( vobj->object = Virtuality_MakeCube( 10 ), l.root_object );
 		CreateTransformMotionEx( vobj->object->Ti, 0 );
@@ -255,10 +199,12 @@ static PTEXT ObjectVolatileVariableSet( WIDE("Point Label"), WIDE("position"), W
 		Translate( vobj->object->Ti,vals[0],vals[1], vals[2] );
 	}
 	LineRelease( line );
-	return NULL;
+	return 0;
 }
 
-static int ObjectMethod( WIDE("Point Label"), WIDE("move"), WIDE( "Friendly description") )(PSENTIENT ps, PENTITY pe_object, PTEXT parameters)
+
+
+static int ObjectMethod( WIDE("Point Label"), WIDE("move"), WIDE( "set the position of the object") )(PSENTIENT ps, PENTITY pe_object, PTEXT parameters)
 {
 	VECTOR pos;
 	struct virtuality_object *vobj = (struct virtuality_object *)GetLink( &pe_object->pPlugin, l.extension );
