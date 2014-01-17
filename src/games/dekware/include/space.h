@@ -9,6 +9,8 @@
 
 #ifndef __cplusplus
 typedef LOGICAL bool;
+#else
+#define bool LOGICAL
 #endif
 
 #ifdef CORE_SOURCE
@@ -412,6 +414,9 @@ typedef struct global_vars {
 	{
 		BIT_FIELD bLogAllCommands : 1;
 	} flags;
+	INDEX ExtensionCount;
+	PLIST ExtensionNames;
+
 } GLOBAL, *PGLOBAL;
 
 #ifndef PLUGIN_MODULE

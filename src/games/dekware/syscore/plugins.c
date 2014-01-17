@@ -835,12 +835,10 @@ int CloseDevice( PDATAPATH pdp )
 
 //--------------------------------------------------------------------------
 
-static INDEX ExtensionCount;
-static PLIST ExtensionNames;
 CORE_PROC( INDEX, RegisterExtension )( CTEXTSTR pName )
 {
-	SetLink( &ExtensionNames, ExtensionCount, StrDup( pName ) );
-	return ExtensionCount++;
+	SetLink( &global.ExtensionNames, global.ExtensionCount, StrDup( pName ) );
+	return global.ExtensionCount++;
 }
 
 //--------------------------------------------------------------------------
@@ -1096,7 +1094,7 @@ int IsObjectTypeOf( PSENTIENT ps, PTEXT entity, PTEXT form )
 		{
 			INDEX idx;
 			CTEXTSTR name;
-			LIST_FORALL( ExtensionNames, idx, CTEXTSTR, name )
+			LIST_FORALL( global.ExtensionNames, idx, CTEXTSTR, name )
 			{
 				if( StrCaseCmp( name, GetText( form ) ) == 0 )
 				{
@@ -1127,7 +1125,7 @@ int CPROC ListExtensions( PSENTIENT ps, PTEXT parameters )
 	INDEX idx;
 	int first = 1;
 	CTEXTSTR name;
-	LIST_FORALL( ExtensionNames, idx, CTEXTSTR, name )
+	LIST_FORALL( global.ExtensionNames, idx, CTEXTSTR, name )
 	{
 		vtprintf(  pvt, WIDE("%s%s")
 				  , first?WIDE(""):WIDE(", ")
