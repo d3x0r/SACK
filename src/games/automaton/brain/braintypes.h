@@ -34,8 +34,8 @@ enum type {
    , VAL_PTRUSHORT				, VAL_pus      		 = VAL_PTRUSHORT
    , VAL_PTRULONG					, VAL_pul     			 = VAL_PTRULONG
    , VAL_PTRULONGLONG			, VAL_pull        	 = VAL_PTRULONGLONG
-   , VAL_EXTERNINPUT
-   , VAL_EXTERNOUTPUT
+   , VAL_EXTERNINPUT          , VAL_Input           = VAL_EXTERNINPUT
+   , VAL_EXTERNOUTPUT         , VAL_Output          = VAL_EXTERNOUTPUT
    , VAL_EXTERNTHRUPUT
 			 , VAL_EXTERNTRIGGER
           , VAL_PANYVALUE
@@ -81,6 +81,7 @@ struct value {
       struct value       *pany;
 	} data;
 #define VALUE_CONSTRUCTOR( val_type, name ) value(val_type *name){ data.name=name; value::type=VAL_##name; }
+#define FVALUE_CONSTRUCTOR( val_type, name ) value(val_type name, PTRSZVAL psv){ data.name=name; value::type=VAL_##name; value::aux=psv; }
 	VALUE_CONSTRUCTOR( bool            ,   pb );
 	VALUE_CONSTRUCTOR( float           ,   pf );
 	VALUE_CONSTRUCTOR( double          ,   pd );
@@ -92,6 +93,8 @@ struct value {
 	VALUE_CONSTRUCTOR( unsigned short  ,  pus );
 	VALUE_CONSTRUCTOR( unsigned long   ,  pul );
 	VALUE_CONSTRUCTOR( _64             , pull );
+	FVALUE_CONSTRUCTOR( InputFunction   , Input );
+	FVALUE_CONSTRUCTOR( OutputFunction  , Output );
 		//InputFunction       Input;
 		//OutputFunction      Output;
       //ThruputFunction     Thruput;
