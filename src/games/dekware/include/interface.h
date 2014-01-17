@@ -105,7 +105,7 @@ struct dekware_interface {
 	CORE_PROC_PTR( int, DestroyAwarenessEx      )( PSENTIENT ps DBG_PASS );
 	CORE_PROC_PTR( ObjectInit, ScanRegisteredObjects )( PENTITY pe, CTEXTSTR for_name );
 	CORE_PROC_PTR( PMACROSTATE, InvokeMacroEx )( PSENTIENT ps, PMACRO pMacro, PTEXT pArgs, void (CPROC*StopEvent)(PTRSZVAL psvUser, PMACROSTATE pms ), PTRSZVAL psv );
-
+	CORE_PROC_PTR( void, TerminateMacro )( PMACROSTATE pms );
 };
 
 
@@ -207,6 +207,7 @@ PRIORITY_PRELOAD( InitDekwareInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 #define InvokeBehavior                                ( !DekwareInterface )?NULL:DekwareInterface->InvokeBehavior
 #define GetParam                                ( !DekwareInterface )?NULL:DekwareInterface->GetParam
 #define DoCommandf                                if( DekwareInterface ) DekwareInterface->DoCommandf
+#define TerminateMacro                                if( DekwareInterface ) DekwareInterface->TerminateMacro
 #define GetVariable                                ( !DekwareInterface )?NULL:DekwareInterface->GetVariable
 #define GetFileName                                ( !DekwareInterface )?NULL:DekwareInterface->GetFileName
 #undef CreateDataPath

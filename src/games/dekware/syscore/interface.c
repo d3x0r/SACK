@@ -18,13 +18,13 @@ struct dekware_interface RealDekwareInterface =
 	CORE_PROC_PTR( PTEXT, GetParam )( PSENTIENT pEntity, PTEXT *from ),
 	CORE_PROC_PTR( PTEXT, GetFileName )( PSENTIENT ps, PTEXT *parameters ),
 	CORE_PROC_PTR( PTEXT, GetVariable )( PSENTIENT ps, CTEXTSTR text ),
-   CORE_PROC_PTR( PTEXT, MacroDuplicateExx )( BLOBTYPE sentient_tag *pEntity, PTEXT pText, int bKeepEOL, int bSubst, PTEXT args DBG_PASS),
+	CORE_PROC_PTR( PTEXT, MacroDuplicateExx )( BLOBTYPE sentient_tag *pEntity, PTEXT pText, int bKeepEOL, int bSubst, PTEXT args DBG_PASS),
 	CORE_PROC_PTR( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *params, PENTITY Around, int type, int *foundtype
 												, PTEXT *pObject, PTEXT *pResult DBG_PASS ),
 	CORE_PROC_PTR( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsLen, PENTITY pe ),
 
 
-   CORE_PROC_PTR( PTEXT, MakeNumberText )( size_t val ),
+	CORE_PROC_PTR( PTEXT, MakeNumberText )( size_t val ),
 	CORE_PROC_PTR( PDATAPATH, CreateDataPath   )( PDATAPATH *ppWhere, int nExtra ),
 
 	CORE_PROC_PTR( PMACROSTATE, InvokeBehavior )( CTEXTSTR name, PENTITY peActor, PSENTIENT psInvokeOn, PTEXT parameters ),
@@ -37,7 +37,7 @@ struct dekware_interface RealDekwareInterface =
 	CORE_PROC_PTR( PSHADOW_OBJECT, CreateShadowIn     )( PENTITY pContainer, PENTITY pe ),
 	CORE_PROC_PTR( void   , DestroyEntityEx    )( PENTITY pe DBG_PASS ),
 	CORE_PROC_PTR( PDATAPATH, DestroyDataPathEx)( PDATAPATH pdp DBG_PASS),
-   CORE_PROC_PTR( void, SetDatapathType )( PDATAPATH pdp, int nType ),
+	CORE_PROC_PTR( void, SetDatapathType )( PDATAPATH pdp, int nType ),
 
 
 	CORE_PROC_PTR( void, WakeAThreadEx )( PSENTIENT ps DBG_PASS ),
@@ -106,9 +106,10 @@ struct dekware_interface RealDekwareInterface =
 	CORE_PROC_PTR( int, CreateRegisteredObject )( PSENTIENT ps, PTEXT parameters ),
 	GetTheVoid,
 	ExitNexus,
-   DoCommandf,
-   DestroyAwarenessEx,
-   ScanRegisteredObjects,
+	DoCommandf,
+	DestroyAwarenessEx,
+	ScanRegisteredObjects,
+	TerminateMacro,
 };
 
 

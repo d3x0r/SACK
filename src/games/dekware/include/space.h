@@ -43,20 +43,20 @@ typedef BLOBTYPE macro_tag *PMACRO;
 //#define 
 
 BLOBTYPE macro_flags {
-         bool bDelete;  // when used is cleared, delete if delete set
-         bool bUsed;    // macro is running, must set delete and leave.
-         bool bRunLock; // provided only for trigger.nex...
+	bool bDelete;  // when used is cleared, delete if delete set
+	bool bUsed;    // macro is running, must set delete and leave.
+	bool bRunLock; // provided only for trigger.nex...
 };
 
 typedef BLOBTYPE entity_flag_tag {
-   bool bShadow;  // this is a shadow entity reference...
-   bool bMacro; // is a macro reference.... *frown*
+	bool bShadow;  // this is a shadow entity reference...
+	bool bMacro; // is a macro reference.... *frown*
 	bool bStructure; // structure reference...
 	bool bText;
-   bool bDestroy; // destroyed/destroying.  allow certain failures during destruction.
-   union {
+	bool bDestroy; // destroyed/destroying.  allow certain failures during destruction.
+	union {
 		BLOBREF macro_flags macro;
-   }un;
+	}un;
 } ENTITY_FLAGS;
 
 typedef BLOBTYPE macro_tag
@@ -82,15 +82,15 @@ typedef struct foreach_state_tag
 	} flags;
 	INDEX nForEachTopMacroCmd;
 	// list of entities (or tokens)
-   // entities will be indirect TF_BINARY|TF_ENTITY segment
+	// entities will be indirect TF_BINARY|TF_ENTITY segment
 	// entities will be indirect TF_BINARY|TF_SENTIENTS segment
 	// or else is text tokens
 	//   different token types may potentially step differently...
-   // foreach phrase ... foreach token ...
+	// foreach phrase ... foreach token ...
 	PTEXT list_next, list_prior; // prior list, next list after and before item...
 	PTEXT item; // will step through tokens in list at a top-only fashion
-   PTEXT after;
-   PTEXT variablename; // pointer to a segment which is the name of the variable to set at start and at /step
+	PTEXT after;
+	PTEXT variablename; // pointer to a segment which is the name of the variable to set at start and at /step
 } FOREACH_STATE, *PFOREACH_STATE;
 
 BLOBTYPE macro_state_flag_data {
@@ -101,18 +101,17 @@ BLOBTYPE macro_state_flag_data {
 };
 
 BLOBTYPE macro_state_state_flags {
-         bool bSuccess; 
-         bool bFindElse;
-         bool bFindEndIf;
-         bool bRecord; // set if a macro is begun within a macro.
-         bool bFindLabel;
-         bool bTrace; // print out macros as they execute...
-         bool bInputWait; // /wait command issued...
-         bool macro_delay; // /DELAY command... delay_end is next resume time.
-         bool forced_run; // will run preempting natural command entry.
-         BLOBREF macro_state_flag_data data;
-		bool macro_suspend; // lock flag to prevent macro processing...
-		bool macro_terminate; // set this to end the macro next statement; abort signal
+	bool bSuccess; 
+	bool bFindElse;
+	bool bFindEndIf;
+	bool bRecord; // set if a macro is begun within a macro.
+	bool bFindLabel;
+	bool bTrace; // print out macros as they execute...
+	bool bInputWait; // /wait command issued...
+	bool macro_delay; // /DELAY command... delay_end is next resume time.
+	bool forced_run; // will run preempting natural command entry.
+	BLOBREF macro_state_flag_data data;
+	bool macro_suspend; // lock flag to prevent macro processing...
 };
 BLOBTYPE macro_state_state{
 	BLOBREF macro_state_state_flags flags;
@@ -120,25 +119,25 @@ BLOBTYPE macro_state_state{
 
 typedef BLOBTYPE macro_state_tag
 {
-   PMACRO pMacro;     // Macro to run
-   PTEXT pArgs;       // current arguments for macro
-   PLIST pVars;       // variables which this macro has. runtime state.
-   INDEX nCommand;    // current command index (within macro)
-   BLOBREF macro_state_state state;
-   //union state_tag{        // current machine state...
-   //};
-   //   _32 dwFlags; 
-   //}state;
-   PSENTIENT pInvokedBy; 
-   // this routine must PopData from ps->MacroStack
-   // if it is used.... otherwise default processing removes 
+	PMACRO pMacro;     // Macro to run
+	PTEXT pArgs;       // current arguments for macro
+	PLIST pVars;       // variables which this macro has. runtime state.
+	INDEX nCommand;    // current command index (within macro)
+	BLOBREF macro_state_state state;
+	//union state_tag{        // current machine state...
+	//};
+	//   _32 dwFlags; 
+	//}state;
+	PSENTIENT pInvokedBy; 
+	// this routine must PopData from ps->MacroStack
+	// if it is used.... otherwise default processing removes 
    // the data from the macrostack...
-   void (*MacroEnd)( PSENTIENT ps// sentient processing macro
-                   , PMACROSTATE pMacState ); // saves extra peek...
+	void (*MacroEnd)( PSENTIENT ps// sentient processing macro
+	               , PMACROSTATE pMacState ); // saves extra peek...
 	void *Data; // used by macroEnd to find the wrapping structure....
 	PDATASTACK pdsForEachState; // sizeof( FOREACH_STATE )
-   PENTITY peInvokedOn; // entity which this was originally invoked on... NULL is self.
-   //----------- To Be Implemented
+	PENTITY peInvokedOn; // entity which this was originally invoked on... NULL is self.
+	//----------- To Be Implemented
 	// struct { INDEX nLabelCmd+1; PTEXT name } Label;
 	//   PDATASTACK pdsLabelStack; // as labels are encountered, save this... otherwise we have to runt he macro to get there
 	//-----------
@@ -149,23 +148,23 @@ typedef BLOBTYPE macro_state_tag
 
 typedef BLOBTYPE shadow_tag
 {
-   ENTITY_FLAGS flags;
+	ENTITY_FLAGS flags;
 	// this does not have the name members
 	// a shadow uses the actual name of what it shadows
 	// the only information which a shadow has is
 	//   1> it's location, it's contents, and unique relationship with all entities
 	//   2> a reference of the entity it shadows, which in turn
-   //      has a list containing each shadow.
+	//      has a list containing each shadow.
 	PENTITY pCreatedBy;
-   PENTITY pWithin;    // single entity this one is in.
+	PENTITY pWithin;    // single entity this one is in.
 	PENTITY pShadowOf;
 
-   PLIST pContains;    // list of entities contained within
-   PLIST pAttached;    // mutual attachment links peer stuff
-   // end comment...
+	PLIST pContains;    // list of entities contained within
+	PLIST pAttached;    // mutual attachment links peer stuff
+	// end comment...
 	PENTITY pForm; // actual object...
 
-   // a shadow may have a unique awareness, or lack any awareness
+	// a shadow may have a unique awareness, or lack any awareness
 	PSENTIENT pControlledBy;
 
 	// all behaviors, methods, variables, etc are all shared.
@@ -175,7 +174,7 @@ typedef BLOBTYPE shadow_tag
 	// plugin references which are passed shadow objects...
 	// for instance /make deck cards
 	//    /shadow deck shadow_deck
-   //    /shadow_deck /dealto bob
+	//    /shadow_deck /dealto bob
 	//    /dest deck # hmm well of course the shadow will go away...
 	// would seem that shadows will be the same deck
 	// if a shadow deck is used at another table, the cards will be the same
@@ -294,42 +293,42 @@ CORE_CPROC( void, SetDescription )( void *pe, PTEXT desc );
 
 BLOBTYPE sentient_flags
 {
-//	   struct {
-      bool  macro_input;  // macro command wishes next input line...
+//		struct {
+		bool  macro_input;  // macro command wishes next input line...
 		//bool  macro_suspend; // lock flag to prevent macro processing...
-      bool  resume_run;    // resume issued while not suspended... resume while running
-      //bool  macro_delay;
-      bool  commanded;  // set when command was ever issued..,
-      bool  prompt;  // input flag whether prompt needed...
-      bool  command_recording; // command line is recording not macro...
-      //bool  input_wait;  // waiting for Data.Input to be available...
-      bool  destroy;     // this is scheduled to be deleted
-      bool  force_destroy; // locked, AND can delete....
-      bool  destroy_object;
-      bool  master_operator; // set if can execute raw commands...
-               // otherwiese, must execute macro aliases of base commands 
-               // if provided... those methods in this or the room...
-               // base object which entity was cloned from determines the 
-               // command set then... and location...
-      bool  decker; // this entity may create new scripts... 
-                     // using only those methods it may access
+		bool  resume_run;    // resume issued while not suspended... resume while running
+		//bool  macro_delay;
+		bool  commanded;  // set when command was ever issued..,
+		bool  prompt;  // input flag whether prompt needed...
+		bool  command_recording; // command line is recording not macro...
+		//bool  input_wait;  // waiting for Data.Input to be available...
+		bool  destroy;     // this is scheduled to be deleted
+		bool  force_destroy; // locked, AND can delete....
+		bool  destroy_object;
+		bool  master_operator; // set if can execute raw commands...
+		        // otherwiese, must execute macro aliases of base commands 
+		        // if provided... those methods in this or the room...
+		        // base object which entity was cloned from determines the 
+		        // command set then... and location...
+		bool  decker; // this entity may create new scripts... 
+		              // using only those methods it may access
 
-                     //must associate a command level
-                     // to available command list...
+		             //must associate a command level
+		             // to available command list...
 
-      bool  user; // may use room commands in addtion to self commands...
-      bool  bot; // this entity may only execute it's own macros...
-                  // macros may not be created
-      bool  var_subst;
-      bool  var_prefix;
-      bool  no_prompt; 
-      bool bRelay;
+		bool  user; // may use room commands in addtion to self commands...
+		bool  bot; // this entity may only execute it's own macros...
+		          // macros may not be created
+		bool  var_subst;
+		bool  var_prefix;
+		bool  no_prompt; 
+		bool bRelay;
 		bool bHoldCommands;
 		bool scheduled;
 		// the pLastTell assocaited with a posted
-      // command should be checked to see if it si waiting
+		// command should be checked to see if it si waiting
 		bool waiting_for_someone;
-      PTRSZVAL delay_end;   // number of milli seconds to wait....
+		PTRSZVAL delay_end;   // number of milli seconds to wait....
 //	}flags;
 
 };
@@ -340,7 +339,7 @@ public:
 #endif
 	// no sentience may exist without an entity
 	// a body may exist without a sentience
-   //
+	//
 	PENTITY     Current;       /* This is the entity/avatar of this sentience. */
 
 	// NOW: a sentience may never move from one entity to another entity
@@ -353,24 +352,24 @@ public:
 	//    could not be part of the equation.
 	//   One could perhaps build entities such that when they lose
 	//   their sentience they will self destruct?  what could that
-   //   imply?
-   //PLINKSTACK  pBecame;    // list/stack of objects player has become
+	//   imply?
+	//PLINKSTACK  pBecame;    // list/stack of objects player has become
 
-   PMACROSTATE CurrentMacro;
-   PTEXT       pLastResult;  // store result from macro here... 
-   PDATASTACK  MacroStack; // stack of MACROSTATEs...
+	PMACROSTATE CurrentMacro;
+	PTEXT       pLastResult;  // store result from macro here... 
+	PDATASTACK  MacroStack; // stack of MACROSTATEs...
 
-   PMACRO      pRecord;        // macro we are recording for this sentient's Entity
+	PMACRO      pRecord;        // macro we are recording for this sentient's Entity
 	int         nRecord; // levels of recording...
 	// this list should be PLIST(PDATAPATH) and its first two
 	// entires should be &Command, &Data.  Further data paths may be opened
 	//  there has for a time now been problems with having single data paths.
 	//  Passing data to other objects on the command channel ... (well it's sorta all
-   //     that can/is done now)
+	//     that can/is done now)
 	PLIST       pDataPath; // 0 - command
-    // 1-n data paths...
-   // 1 is the default for current output...
-   PDATAPATH   Data;
+	// 1-n data paths...
+	// 1 is the default for current output...
+	PDATAPATH   Data;
 	PDATAPATH   Command;
 //#define S_MSG( ps, msg, ... ) { PVARTEXT pvt; pvt = VarTextCreate(); vtprintf( pvt, msg,##__VA_ARGS__ ); EnqueLink(&(ps)->Command->Output,VarTextGet( pvt )); VarTextDestroy( &pvt ); }
 //#define D_MSG( pd, msg, ... ) { PVARTEXT pvt; pvt = VarTextCreate(); vtprintf( pvt, msg,##__VA_ARGS__ ); EnqueLink(&(pd)->Output,VarTextGet( pvt )); VarTextDestroy( &pvt ); }
@@ -379,35 +378,35 @@ public:
 	// this is parsed from the command received in the input queue.
 	// The command handler/dispatcher parses this from the header of
 	// the message dequeued... Once the message has been resolved
-   // this member is no longer valid.
+	// this member is no longer valid.
 	PSENTIENT pToldBy;   // used for command level tells
-   PENTITY pInactedBy;  // used for behaviors... object which is invoking the macro...
-   BLOBREF sentient_flags flags;
+	PENTITY pInactedBy;  // used for behaviors... object which is invoking the macro...
+	BLOBREF sentient_flags flags;
 
 
-   _32  ProcessLock; // Locked from executing.  Unlock sets this...
-   _32  ProcessingLock; // currently in use by a process loop...
-   _32  StepLock;    // if locked ->Next and/or ->Prior are invalid...
+	_32  ProcessLock; // Locked from executing.  Unlock sets this...
+	_32  ProcessingLock; // currently in use by a process loop...
+	_32  StepLock;    // if locked ->Next and/or ->Prior are invalid...
 	PSENTIENT Next;
 	PSENTIENT Prior;  // next and prior sentients in list...
-   // macro variable waiting for input (macrostate?)
-   PTEXT MacroInputVar;
-   //THREAD_ID LastThreadID; // this is the last thread that tried this and is long sleeping
+	// macro variable waiting for input (macrostate?)
+	PTEXT MacroInputVar;
+	//THREAD_ID LastThreadID; // this is the last thread that tried this and is long sleeping
 } SENTIENT;
 
 #include "commands.h"
 
 
 typedef struct global_vars {
-   PENTITY THE_VOID;   /* this is the root of all cookies. */
-   PSENTIENT PLAYER;   // first sentient(active) object.
+	PENTITY THE_VOID;   /* this is the root of all cookies. */
+	PSENTIENT PLAYER;   // first sentient(active) object.
 	PSENTIENT AwareEntities; // all sentient entities...
 	// this script is written by code
 	// it might as well have been implemented in code...
 	// but then it might not be as fixable.
 	// This script command is really the only 'macro'
 	// command which is really based on other commands...
-   // all other commands serve their purpose alone...
+	// all other commands serve their purpose alone...
 	PMACRO script;
 	PLIST behaviors; // list of behavior names...(CTEXTSTR)
 	struct dekware_global_flags
