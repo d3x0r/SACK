@@ -14,6 +14,7 @@
 
 typedef int (CPROC *Function)( PSENTIENT ps, PTEXT parameters );
 typedef int (CPROC *ObjectFunction)( PSENTIENT ps, PENTITY pe, PTEXT parameters );
+typedef void (CPROC *MacroCreateFunction)( PENTITY pe, PMACRO macro ); // event when a new macro is created
 typedef int (CPROC FunctionProto)( PSENTIENT ps, PTEXT parameters );
 
 typedef PTEXT (CPROC *GetVariableFunc)( PENTITY pe
@@ -69,6 +70,9 @@ typedef struct command_entry
 // static int ObjectMethod( WIDE("object_type"), WIDE( "command" ), WIDE( "Friendly command description") )(PSENTIENT ps, PENTITY pe_object, PTEXT parameters)
 #define ObjectMethod( object, name, desc )   \
 	__DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleObjectMethod,WIDE("objects/")object WIDE("/methods"),name,desc,int,(PSENTIENT,PENTITY,PTEXT),__LINE__)
+
+#define ObjectMacroCreated( object, name, desc )   \
+	__DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleObjectMethod,WIDE("objects/")object WIDE("/methods"),name,desc,void,(PENTITY,PMACRO),__LINE__)
 
 #define DeviceMethod( object, name, desc )   \
 	__DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleObjectMethod,WIDE("devices/")object WIDE("/methods"),name,desc,int,(PSENTIENT,PTEXT),__LINE__)
@@ -148,7 +152,10 @@ CORE_CPROC( PTEXT, GetVariable )( PSENTIENT ps, CTEXTSTR text );
 // you CAN - set ps->Current to the new object (and restore it when done!)
 CORE_PROC( PTEXT, MacroDuplicateExx )( BLOBTYPE sentient_tag *pEntity, PTEXT pText, int bKeepEOL, int bSubst, PTEXT args DBG_PASS);
 CORE_PROC( PMACRO, LocateMacro )( PENTITY pe, TEXTCHAR *name );
+CORE_PROC( PMACROSTATE, InvokeMacroEx )( PSENTIENT ps, PMACRO pMacro, PTEXT pArgs, void (CPROC*StopEvent)(PTRSZVAL psvUser, PMACROSTATE pms ), PTRSZVAL psv );
 CORE_PROC( PMACROSTATE, InvokeMacro )( BLOBTYPE sentient_tag *ps, PMACRO pMacro, PTEXT pArgs );
+#define InvokeMacro(ps,pm,arg) InvokeMacroEx( ps,pm,arg,NULL,0 )
+
 void EnqueCommandProcess( PTEXT pName, PLINKQUEUE *ppOutput, PTEXT pCommand );
  /*FOLD00*/
 //-------------- PLUGINS Support -----------------------

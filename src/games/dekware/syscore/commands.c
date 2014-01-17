@@ -2052,7 +2052,7 @@ CORE_PROC( PMACRO, LocateMacro )( PENTITY pe, TEXTCHAR *name ) /*FOLD00*/
 
 //--------------------------------------------------------------------------
 
-CORE_PROC( PMACROSTATE, InvokeMacro )( PSENTIENT ps, PMACRO pMacro, PTEXT pArgs ) /*FOLD00*/
+PMACROSTATE InvokeMacroEx( PSENTIENT ps, PMACRO pMacro, PTEXT pArgs, void (CPROC*StopEvent)(PTRSZVAL psvUser, PMACROSTATE pms ), PTRSZVAL psv ) /*FOLD00*/
 {
    MACROSTATE MacState;
    // Begin Macro
@@ -2070,11 +2070,18 @@ CORE_PROC( PMACROSTATE, InvokeMacro )( PSENTIENT ps, PMACRO pMacro, PTEXT pArgs 
    MacState.state.flags.data.levels = 0; // overflow
 	MacState.pdsForEachState = CreateDataStack( sizeof( FOREACH_STATE ) );
    MacState.pInvokedBy = ps->pToldBy; // might have multiple leaders...
-   MacState.MacroEnd = NULL;
+	MacState.MacroEnd = NULL;
+	MacState.StopEvent = StopEvent;
+   MacState.psv_StopEvent = psv;
    PushData( &ps->MacroStack, &MacState ); // changes address of all data content...
    return (PMACROSTATE)PeekData( &ps->MacroStack );
 }
 
+#undef InvokeMacro
+CORE_PROC( PMACROSTATE, InvokeMacro )( PSENTIENT ps, PMACRO pMacro, PTEXT pArgs )
+{
+   return InvokeMacroEx( ps, pMacro, pArgs, NULL, 0 );
+}
 //--------------------------------------------------------------------------
 
 int SendLiteral( PSENTIENT ps, PTEXT *RealCommand, PTEXT Command, PTEXT EndLine )
@@ -2510,7 +2517,7 @@ Recheck:
 					}
 				}
 				pArgs = MacroDuplicateExx( ps, argline, TRUE, TRUE, match->pArgs DBG_SRC);
-				InvokeMacro( ps, match, pArgs );
+				InvokeMacroEx( ps, match, pArgs, NULL, 0 );
 				return TRUE;
 			}
 
@@ -2600,6 +2607,26 @@ PMACRO CreateMacro( PENTITY pEnt, PLINKQUEUE *ppOutput, PTEXT name ) /*FOLD00*/
       pMacro->pName = name;
       pMacro->pDescription = NULL;
       pMacro->pCommands = NULL;
+
+		{
+			PCLASSROOT current = NULL;
+			CTEXTSTR name2;
+			CTEXTSTR root;
+			PVARTEXT pvt = VarTextCreate();
+			vtprintf( pvt, WIDE("dekware/objects/%s/macro/create"), GetText( name ) );
+			for( name2 = GetFirstRegisteredName( root = GetText( VarTextPeek( pvt ) ), &current );
+		 		name2;
+				  name2 = GetNextRegisteredName( &current ) )
+			{
+				MacroCreateFunction f = GetRegisteredProcedure2( root, void, name2, (PENTITY,PMACRO) );
+				if( f )
+				{
+					f( pEnt, pMacro );
+				}
+			}
+			VarTextDestroy( &pvt );
+		}
+
       if( pEnt )
       {
          AddLink( &pEnt->pMacros, pMacro );

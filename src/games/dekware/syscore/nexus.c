@@ -1159,6 +1159,8 @@ CORE_PROC( int, DestroyAwarenessEx )( PSENTIENT ps DBG_PASS )
 		pms->pVars = NULL;
 		LineRelease( pms->pArgs );
 		pms->pArgs = NULL;
+		if( pms->StopEvent )
+			pms->StopEvent( pms->psv_StopEvent, pms );
 		if( pms->MacroEnd )
 		{
 			pms->MacroEnd( ps, pms );
@@ -1709,6 +1711,8 @@ int ProcessSentients( THREAD_ID ThreadID )
 								{
 									S_MSG( ps, WIDE("ELSE definition is missing...") );
 								}
+								if( pms->StopEvent )
+									pms->StopEvent( pms->psv_StopEvent, pms );
 								if( pms->MacroEnd )
 								{
 									pms->MacroEnd( ps, pms );
