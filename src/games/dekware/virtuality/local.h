@@ -4,7 +4,11 @@
 #define USE_IMAGE_3D_INTERFACE l.pi3i
 #define USE_RENDER3D_INTERFACE l.pr3i
 
+#ifdef MAIN_SOURCE
 #define DEFINES_DEKWARE_INTERFACE
+#else
+#define USES_DEKWARE_INTERFACE
+#endif
 #define PLUGIN_MODULE
 
 #include <plugin.h>
@@ -40,6 +44,7 @@ struct virtuality_object
 	PBRAINBOARD brain_board;
 	VECTOR speed;
 	VECTOR rotation_speed;
+   PSENTIENT ps;
 };
 
 void ExtendEntityWithBrain( PENTITY pe_created );

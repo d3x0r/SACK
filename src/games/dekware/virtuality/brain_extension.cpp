@@ -3,8 +3,9 @@
 
 void ExtendEntityWithBrain( PENTITY pe_created )
 {
+	struct virtuality_object *vobj = (struct virtuality_object *)GetLink( &pe_created->pPlugin, l.extension );
 	// if a brain is added, going to need a command processor on the object also...
-      UnlockAwareness( CreateAwareness( pe_created ) );
+      UnlockAwareness( vobj->ps = CreateAwareness( pe_created ) );
 
 		vobj->brain = new BRAIN();
 		PBRAIN_STEM pbs = new BRAIN_STEM( WIDE("Object Motion") );
