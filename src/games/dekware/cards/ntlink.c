@@ -229,11 +229,11 @@ void EntDeleteHand( PENTITY pe )
 
 int DealPlayTo( PSENTIENT ps, PTEXT pNames, int bPlayTo )
 {
-   PTEXT pName, pNameList;
-   PVARTEXT pvt;
+	PTEXT pName, pNameList;
+	PVARTEXT pvt;
 	PDECK pd;
-   pvt = VarTextCreate();
-   pd = (PDECK)GetLink( &ps->Current->pPlugin, iCardDeck );
+	pvt = VarTextCreate();
+	pd = (PDECK)GetLink( &ps->Current->pPlugin, iCardDeck );
    if( !pd )
    {
       vtprintf( pvt, WIDE("%s is not a deck of cards."), GetText( GetName( ps->Current ) ) );
@@ -252,10 +252,11 @@ int DealPlayTo( PSENTIENT ps, PTEXT pNames, int bPlayTo )
 
       for( pName = pNameList; pName; pName = bLoop?NEXTLINE( pName ):NULL )
       {
+		  PTEXT next_param = pName;
          PENTITY pe;
          PHAND ph;
          PCARD pc;
-         pe = (PENTITY)FindThing( ps, &pName, ps->Current, FIND_VISIBLE, NULL );
+         pe = (PENTITY)FindThing( ps, &next_param, ps->Current, FIND_VISIBLE, NULL );
          if( pe )
          {
             if( !(ph = (PHAND)GetLink( &pe->pPlugin, iHand ) ) )
@@ -264,24 +265,25 @@ int DealPlayTo( PSENTIENT ps, PTEXT pNames, int bPlayTo )
 					{
 						vtprintf( pvt, WIDE("%s is not aware...."), GetText( pName ) );
 						EnqueLink( &ps->Command->Output, VarTextGet( pvt ) );
-                  break;
+						break;
 					}
-               pe->pControlledBy->pToldBy = ps;
+					pe->pControlledBy->pToldBy = ps;
 					Assimilate( pe, ps, WIDE("Hand"), NULL );
+					ph = (PHAND)GetLink( &pe->pPlugin, iHand );
             }
             pc = GetCardStack( pd, WIDE("Draw") )->cards;
             if( pc )
-				{
-					PCARD *ppDest;
-					// unlink from the draw list
-					if( GetCardStack( pd, WIDE("Draw") )->cards = pc->next )
+			{
+				PCARD *ppDest;
+				// unlink from the draw list
+				if( GetCardStack( pd, WIDE("Draw") )->cards = pc->next )
                		pc->next->me = &GetCardStack( pd, WIDE("Draw") )->cards;
 
-					// determine destination to link card to
-					if( bPlayTo )
-						ppDest = &GetCardStackFromHand( ph, WIDE("Showing") )->cards;
-					else
-						ppDest = &GetCardStackFromHand( ph, WIDE("Cards") )->cards;
+				// determine destination to link card to
+				if( bPlayTo )
+					ppDest = &GetCardStackFromHand( ph, WIDE("Showing") )->cards;
+				else
+					ppDest = &GetCardStackFromHand( ph, WIDE("Cards") )->cards;
 
 					// link card into new list.
 					if( pc->next = *ppDest )
@@ -303,10 +305,11 @@ int DealPlayTo( PSENTIENT ps, PTEXT pNames, int bPlayTo )
             vtprintf( pvt, WIDE("Could not see %s to deal to."), GetText( pName ) );
             EnqueLink( &ps->Command->Output, VarTextGet( pvt ) );
          }
+			pName = next_param;
 		}
 	}
-   VarTextDestroy( &pvt );
-   return 0;
+	VarTextDestroy( &pvt );
+	return 0;
 }
 
 
@@ -656,9 +659,9 @@ static int OnCreateObject( WIDE("Hand"), WIDE("A player hand of cards") )(PSENTI
       return 1;
 	if( !GetLink( &pe->pPlugin, iHand ) )
 	{
-		PSENTIENT ps_deck = ps->pToldBy;
+		PSENTIENT ps_deck = NULL;//ps->pToldBy;
 		if( !ps_deck )
-         ps_deck = ps;
+			ps_deck = ps;
 		if( ps_deck )
 		{
 			PHAND ph;
@@ -674,9 +677,9 @@ static int OnCreateObject( WIDE("Hand"), WIDE("A player hand of cards") )(PSENTI
 			DECLTEXT( msg, WIDE("Only a deck of cards can cause assimilation of a hand...") );
 			EnqueLink( &ps->Command->Output, &msg );
 		}
-      return 0;
+		return 0;
 	}
-   return 1;
+	return 1;
 }
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
