@@ -434,9 +434,6 @@ public:
 		// result with psvInstance....
 		//PNEURON neuron = (PNEURON)psv;
 		CTEXTSTR *result;
-		
-		//DebugBreak();
-		PushSQLQueryEx( odbc );
 		if( SQLRecordQueryf( odbc, NULL, &result, NULL, WIDE("select connector_name from brain_connectors where parent_id=%ld")
 								, iInstance )
 			&& result ) 

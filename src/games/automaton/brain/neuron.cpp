@@ -351,7 +351,6 @@ INDEX NEURON::Save( PODBC odbc, INDEX iParent )
 LOGICAL NEURON::Load( PODBC odbc, INDEX iInstance )
 {
 	CTEXTSTR *result;
-	PushSQLQueryEx( odbc );
 	if( SQLRecordQueryf( odbc, NULL, &result, NULL, WIDE("select threshold,type,min_output,max_output,brain_neuron_id from brain_neuron where brain_neuron_id=%lu")
 		, iInstance )
 		&& result )
@@ -373,10 +372,9 @@ LOGICAL NEURON::Load( PODBC odbc, INDEX iInstance )
 		type(load_type);
 		//min.set( atof( result[0] ) );
 		//max.set( atof( result[0] ) );
-		PopODBCEx( odbc );
+		SQLEndQuery( odbc );
 		return TRUE;
 	}
-	PopODBCEx( odbc );
 	return FALSE;	
 }
 

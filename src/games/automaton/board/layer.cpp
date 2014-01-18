@@ -461,7 +461,6 @@ LAYER::LAYER( PODBC odbc, PLIST peices, INDEX iLoadLayer )
 	}
 	{
 		CTEXTSTR *results;
-		PushSQLQueryEx( odbc );
 		if( SQLRecordQueryf( odbc, NULL, &results, NULL
 					  , WIDE("select x,y,min_x,min_y,width,height,linked_from_id,linked_from_x,linked_from_y,linked_to_id,linked_to_x,linked_to_y,route,peice_info_id,peice_type from board_layer where board_layer_id=%lu")
 					  , iLoadLayer
@@ -518,6 +517,7 @@ LAYER::LAYER( PODBC odbc, PLIST peices, INDEX iLoadLayer )
 
 			//}
 		}
+		SQLEndQuery( odbc );
 		for( SQLRecordQueryf( odbc, NULL, &results, NULL, WIDE("select x,y,fore,back from board_layer_path where board_layer_id=%lu order by board_layer_path_id desc"), iLoadLayer );
 			results;
 			FetchSQLRecord( odbc, &results ) )
@@ -530,7 +530,6 @@ LAYER::LAYER( PODBC odbc, PLIST peices, INDEX iLoadLayer )
 			node.flags.BackDir = atoi( results[3] );
 			PushData( &pds_path, &node );
 		}
-		PopODBCEx( odbc );
 	}
    //return iLayer;
 }

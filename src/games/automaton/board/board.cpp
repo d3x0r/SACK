@@ -838,29 +838,8 @@ void BOARD::DrawLayer( PLAYER layer )
 	update->add( SCREEN_PAD + ( board_origin_x + (layer->x) ) * cell_width
 		, SCREEN_PAD + ( board_origin_y + (layer->y) ) * cell_height
 		, cell_width, cell_height );
-	//S_32 hotx, hoty;
-	//_32 rows, cols;
-   //PIPEICE peice = layer->GetPeice();
-	//peice->gethotspot( &hotx, &hoty );
-	// later, when I get more picky, only draw those cells that changed
-   // which may include an offset
-	//peice->getsize( &rows, &cols );
-   //lprintf( WIDE("Drawing layer at %d,%d (%d,%d) origin at %d,%d"), layer->x, layer->y, hotx, hoty, board_origin_x, board_origin_y );
-	//peice->methods->Draw( layer->pLayerData->psvInstance
-	//						  , GetDisplayImage( pDisplay )
-	//						  , SCREEN_PAD + ( board_origin_x + (layer->x) ) * cell_width
-	//						  , SCREEN_PAD + ( board_origin_y + (layer->y) ) * cell_height
-	//						  , rows, cols );
 }
 
-/*
-PTRSZVAL CPROC faisDrawLayer( void *layer, PTRSZVAL psv )
-{
-	BOARD *_this = (BOARD*)psv;
-	_this->DrawLayer( (PLAYER)layer );
-   return 0;
-}
-*/
 void BOARD::BoardRefresh( void )  // put current board on screen.
 	{
 		int x,y;
@@ -908,7 +887,6 @@ void BOARD::BoardRefresh( void )  // put current board on screen.
 			for( x = sx; x < (signed)board_width; x += cols )
 				for( y = sy; y < (signed)board_height; y += rows )
 				{
-					//lprintf( WIDE("background") );
 					default_peice->methods->Draw( default_peice_instance
 														 , pImage
 														 , default_peice->getimage(scale)
@@ -916,9 +894,8 @@ void BOARD::BoardRefresh( void )  // put current board on screen.
 														 , y * cell_height + SCREEN_PAD
 														 );
 				}
-			//UpdateDisplay( pDisplay );
 		}
-      if( LayerPool )
+		if( LayerPool )
 		{
 			PLAYER layer = GetSetMember( LAYER, &LayerPool, 0 );
 			while( layer && (layer = layer->prior) )
@@ -930,7 +907,6 @@ void BOARD::BoardRefresh( void )  // put current board on screen.
 		//ForAllInSet( LAYER, LayerPool, faisDrawLayer, (PTRSZVAL)this );
 		update->flush();
 		LeaveCriticalSec( &cs );
-      //UpdateDisplay( pDisplay );
 	}
 
 void BOARD::Close( void )
@@ -1068,7 +1044,7 @@ INDEX BOARD::Save( PODBC odbc, CTEXTSTR boardname )
 		&& result )
 	{
 		save_struct.iBoard = atoi( result );
-		PopODBCEx(odbc);
+		SQLEndQuery(odbc);
 	}
 	else
 	{
@@ -1131,7 +1107,7 @@ LOGICAL BOARD::Load( PODBC odbc, CTEXTSTR boardname )
 							, WIDE("select board_layer_id from board_layer_link where board_info_id=%s order by board_layer_id")
 							, result );
 				results;
-				GetSQLRecord( &results ) )
+				FetchSQLRecord( odbc, &results ) )
 			{
 				//PIPEICE peice_type = GetPeice( peices, results[1] );
 				INDEX iLayer = IntCreateFromText( results[0] );
@@ -1139,15 +1115,11 @@ LOGICAL BOARD::Load( PODBC odbc, CTEXTSTR boardname )
 				//(PLAYER)this->LayerPool->forall( CheckIsLayer, iLayer );
 				if( !pl )
 				{
-					PushSQLQueryEx( odbc );
 					pl = new(&LayerPool,&LayerDataPool) LAYER( odbc, peices, (INDEX)atoi(results[0]) );
-					//LAYER( peice_type, psv );
-
-					//pl->Load( odbc, atoi( results[0] ) );
-					PopODBCEx( odbc );
 				}
 			}
 		}
+		SQLEndQuery( odbc );
 		LeaveCriticalSec( &cs );
 		return TRUE;
 	}
