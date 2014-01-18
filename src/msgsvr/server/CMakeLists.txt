@@ -1,9 +1,5 @@
 
-
-cmake_minimum_required(VERSION 2.8)
-
-
-project( sack.msgsvr.service.plugin )
+set( project sack.msgsvr.service.plugin. )
 
 
 set(SOURCES 
@@ -13,20 +9,20 @@ ${LAST_GCC_LIBRARY_SOURCE}
 )
 
 
-add_library_force_source( ${PROJECT_NAME} SHARED ${SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+add_library_force_source( ${project} SHARED ${SOURCES} )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
                   PREFIX ""
                   SUFFIX ""
                   FOLDER "Message Service"
 )
 
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
-install_mode_dest( ${PROJECT_NAME} )
+target_link_libraries( ${project} ${SACK_LIBRARIES} )
+install_mode_dest( ${project} )
 
 
-project( msgsvr )
+set( project msgsvr )
 
 set(SERVER_SOURCES 
 ${FIRST_GCC_PROGRAM_SOURCE}
@@ -34,19 +30,19 @@ server3
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable_force_source( ${PROJECT_NAME} WIN32 ${SERVER_SOURCES} )
+add_executable_force_source( ${project} WIN32 ${SERVER_SOURCES} )
 
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} -DSERVERMSG_SOURCE -DBAG"
                   FOLDER "Message Service"
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
+target_link_libraries( ${project} ${SACK_LIBRARIES} )
 
-install_mode_dest( ${PROJECT_NAME} )
+install_mode_dest( ${project} )
 
 if( NOT __LINUX__ )
-project( sack.msgsvr.service )
+set( project sack.msgsvr.service )
 
 set(SERVER_SOURCES 
 ${FIRST_GCC_PROGRAM_SOURCE}
@@ -54,15 +50,15 @@ server_service
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable_force_source( ${PROJECT_NAME} WIN32 ${SERVER_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+add_executable_force_source( ${project} WIN32 ${SERVER_SOURCES} )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} -DSERVERMSG_SOURCE -DBAG"
                   FOLDER "Message Service"
 )
-target_link_libraries( ${PROJECT_NAME} ${SACK_LIBRARIES} )
+target_link_libraries( ${project} ${SACK_LIBRARIES} )
 
-install_mode_dest( ${PROJECT_NAME} )
+install_mode_dest( ${project} )
 
 endif( NOT __LINUX__ )
 
