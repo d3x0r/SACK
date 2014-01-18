@@ -4783,6 +4783,23 @@ OnCreateMenuButton( WIDE( "InterShell/Show Names" ) )( PMENU_BUTTON button )
 }
 
 //------------------------------------------------------
+OnKeyPressEvent( WIDE( "InterShell/Edit Options" ) )( PTRSZVAL psv )
+{
+	int (*EditOptions)( PODBC odbc );
+	EditOptions = (int (*)( PODBC odbc ))LoadFunction( "EditOptions.plugin", "EditOptions" );
+	if( EditOptions )
+		EditOptions( NULL );
+}
+
+OnCreateMenuButton( WIDE( "InterShell/Edit Options" ) )( PMENU_BUTTON button )
+{
+	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_ORANGE, BASE_COLOR_BLACK, 0 );
+	button->text = StrDup( WIDE("Edit_Options") );
+	button->glare_set = GetGlareSet( WIDE("bicolor square") );
+	return (PTRSZVAL)button;
+}
+
+//------------------------------------------------------
 OnKeyPressEvent( WIDE( "InterShell/Generate Exception" ) )( PTRSZVAL psv )
 {
    *(int*)0 = 0;
