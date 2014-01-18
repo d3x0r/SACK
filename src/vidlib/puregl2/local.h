@@ -284,7 +284,8 @@ extern
 		BIT_FIELD bForceUnaryAspect : 1;
 		BIT_FIELD bLogRenderTiming : 1;
 		BIT_FIELD bHookTouchEvents : 1;
-		BIT_FIELD bManuallyCapturedMouse : 1;
+		BIT_FIELD bCameraManuallyCapturedMouse : 1;
+		BIT_FIELD bVirtualManuallyCapturedMouse : 1;
 		BIT_FIELD bViewVolumeUpdated : 1;
 	} flags;
 	PRENDERER mouse_last_vid;
@@ -333,8 +334,10 @@ extern
 	PVIDEO hVideoPool;      // linked list of active windows
 	PVIDEO hVidPhysicalFocused;  // this is the physical renderer with focus
 	PVIDEO hVidVirtualFocused;   // this is the virtual window (application surface) with focus
-	PVIDEO hCaptured;
-	PVIDEO hCapturedPrior; // reset on unused event
+	PVIDEO hCameraCaptured;
+	PVIDEO hCameraCapturedPrior; // reset on unused event
+	PVIDEO hVirtualCaptured;
+	PVIDEO hVirtualCapturedPrior; // reset on unused event
 	// kbd.key == KeyboardState
 	KEYBOARD kbd;
 	_32 dwMsgBase;

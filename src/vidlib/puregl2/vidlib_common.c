@@ -312,11 +312,17 @@ void DoDestroy (PVIDEO hVideo)
 		//hVideo->flags.bReady = FALSE;
       // unlink from the stack of windows...
 		UnlinkVideo (hVideo);
-		if( l.hCaptured == hVideo )
+		if( l.hVirtualCaptured == hVideo )
 		{
-			l.hCaptured = NULL;
-			l.hCapturedPrior = NULL; // make sure to clear this so it doesn't get reset to invalid
-			l.flags.bManuallyCapturedMouse = 0;
+			l.hVirtualCaptured = NULL;
+			l.hVirtualCapturedPrior = NULL; // make sure to clear this so it doesn't get reset to invalid
+			l.flags.bVirtualManuallyCapturedMouse = 0;
+		}
+		if( l.hCameraCaptured == hVideo )
+		{
+			l.hCameraCaptured = NULL;
+			l.hCameraCapturedPrior = NULL; // make sure to clear this so it doesn't get reset to invalid
+			l.flags.bCameraManuallyCapturedMouse = 0;
 		}
 		//Log (WIDE( "Cleared hVideo - is NOW !bReady" ));
 		if( !hVideo->flags.event_dispatched )
@@ -1268,11 +1274,17 @@ void  HideDisplay (PVIDEO hVideo)
 //#endif
 	if( hVideo )
 	{
-		if( l.hCaptured == hVideo )
+		if( l.hVirtualCaptured == hVideo )
 		{
-			l.hCaptured = NULL;
-			l.hCapturedPrior = NULL; // make sure to clear this so it doesn't get reset to invalid
-			l.flags.bManuallyCapturedMouse = 0;
+			l.hVirtualCaptured = NULL;
+			l.hVirtualCapturedPrior = NULL; // make sure to clear this so it doesn't get reset to invalid
+			l.flags.bVirtualManuallyCapturedMouse = 0;
+		}
+		if( l.hCameraCaptured == hVideo )
+		{
+			l.hCameraCaptured = NULL;
+			l.hCameraCapturedPrior = NULL; // make sure to clear this so it doesn't get reset to invalid
+			l.flags.bCameraManuallyCapturedMouse = 0;
 		}
 		hVideo->flags.bHidden = 1;
 		UnlinkVideo( hVideo );  // might as well take it out of the list, no keys, mouse or output allowed.
@@ -1397,44 +1409,50 @@ void  OwnMouseEx (PVIDEO hVideo, _32 own DBG_PASS)
 	if (own)
 	{
 		lprintf( WIDE("Capture is set on %p"),hVideo );
-		if( !l.hCaptured )
+		if( hVideo->camera )
 		{
-			l.hCaptured = hVideo;
-			l.hCapturedPrior = hVideo; // make sure to set this so it doesn't get reset to invalid
-			hVideo->flags.bCaptured = 1;
-			l.flags.bManuallyCapturedMouse = 1;
 		}
 		else
 		{
-			if( l.hCaptured != hVideo )
+			if( !l.hVirtualCaptured )
 			{
-				lprintf( WIDE("Another window now wants to capture the mouse... the prior window will ahve the capture stolen.") );
-				l.hCaptured = hVideo;
-				l.hCapturedPrior = hVideo; // make sure to set this so it doesn't get reset to invalid
+				l.hVirtualCaptured = hVideo;
+				l.hVirtualCapturedPrior = hVideo; // make sure to set this so it doesn't get reset to invalid
 				hVideo->flags.bCaptured = 1;
-				l.flags.bManuallyCapturedMouse = 1;
+				l.flags.bVirtualManuallyCapturedMouse = 1;
 			}
 			else
 			{
-				if( !hVideo->flags.bCaptured )
+				if( l.hVirtualCaptured != hVideo )
 				{
-					lprintf( WIDE("This should NEVER happen!") );
-					*(int*)0 = 0;
+					lprintf( WIDE("Another window now wants to capture the mouse... the prior window will ahve the capture stolen.") );
+					l.hVirtualCaptured = hVideo;
+					l.hVirtualCapturedPrior = hVideo; // make sure to set this so it doesn't get reset to invalid
+					hVideo->flags.bCaptured = 1;
+					l.flags.bVirtualManuallyCapturedMouse = 1;
 				}
-				// should already have the capture...
+				else
+				{
+					if( !hVideo->flags.bCaptured )
+					{
+						lprintf( WIDE("This should NEVER happen!") );
+						*(int*)0 = 0;
+					}
+					// should already have the capture...
+				}
 			}
 		}
 	}
 	else
 	{
-		if( l.hCaptured == hVideo )
+		if( l.hVirtualCaptured == hVideo )
 		{
 			lprintf( WIDE("No more capture.") );
 			//ReleaseCapture ();
 			hVideo->flags.bCaptured = 0;
-			l.hCaptured = NULL;
-			l.hCapturedPrior = hVideo; // make sure to set this so it doesn't get reset to invalid
-			l.flags.bManuallyCapturedMouse = 0;
+			l.hVirtualCaptured = NULL;
+			l.hVirtualCapturedPrior = hVideo; // make sure to set this so it doesn't get reset to invalid
+			l.flags.bVirtualManuallyCapturedMouse = 0;
 		}
 	}
 }
