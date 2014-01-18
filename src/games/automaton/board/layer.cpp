@@ -628,7 +628,7 @@ int LAYER::IsLayerAt( S_32 *x, S_32 *y )
 	int n;
 	// width of 3.. offset 1, should be -1 and +1 of the x, y... not -1 and +2 (3)
 	// difference is really only 2 when comparing as a corrdinate
-   lprintf( WIDE("layer test %d,%d within %d,%d-%d,%d"), *x, *y, min_x, min_y, w, h );
+	//lprintf( WIDE("layer test %d,%d within %d,%d-%d,%d"), *x, *y, min_x, min_y, w, h );
 	if( flags.bRoot ||
 		(LAYER::min_x+(signed)LAYER::w) <= (*x) ||
 		(LAYER::min_y+(signed)LAYER::h) <= (*y) ||
