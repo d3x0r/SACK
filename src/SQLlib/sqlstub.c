@@ -3598,8 +3598,8 @@ int SQLRecordQueryEx( PODBC odbc
 #endif
 			use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
 		}
-
-
+		// if it was temporary, it shouldn't be anymore
+		use_odbc->collection->flags.bTemporary = 0;
 		// ask the collector to build the type of result set we want...
 		use_odbc->collection->flags.bBuildResultArray = 1;
 		// this will do an open, and delay queue processing and all sorts
