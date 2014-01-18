@@ -447,14 +447,14 @@ void DumpAllODBCInfo( void )
 	INDEX idx;
 	PODBC odbc;
 	LIST_FORALL( g.pOpenODBC, idx, PODBC, odbc )
-      DumpODBCInfo( odbc );
+		DumpODBCInfo( odbc );
 }
 
 //----------------------------------------------------------------------
 
 void SQLSetFeedbackHandler( void (CPROC*HandleSQLFeedback)(CTEXTSTR message) )
 {
-   g.feedback_handler = HandleSQLFeedback;
+	g.feedback_handler = HandleSQLFeedback;
 }
 //----------------------------------------------------------------------
 #ifdef LOG_COLLECTOR_STATES
@@ -464,7 +464,7 @@ static PCOLLECT CreateCollectorEx( PSERVICE_ROUTE SourceID, PODBC odbc, LOGICAL 
 #define CreateCollector(s,o,t) CreateCollectorEx( s,o,t DBG_SRC )
 {
 	PCOLLECT pCollect;
-   LOGICAL pushed;
+	LOGICAL pushed;
 	if( !odbc )
 		odbc = g.odbc;
 	if( !odbc )
@@ -473,7 +473,7 @@ static PCOLLECT CreateCollectorEx( PSERVICE_ROUTE SourceID, PODBC odbc, LOGICAL 
 		DebugBreak();
 		return NULL;
 	}
-	pushed = odbc->collection?odbc->collection->flags.bPushed:0;
+	pushed = odbc->collection?odbc->collection->flags.bPushed:odbc->flags.bPushed;
 #ifdef LOG_COLLECTOR_STATES
 	lprintf( WIDE( "Creating [%s][%s] collector" ), bTemporary?WIDE( "temp" ):WIDE( "" ), odbc->collection?odbc->collection->flags.bPushed?WIDE( "pushed" ):WIDE( "" ):WIDE( "" ) );
 #endif
@@ -481,9 +481,9 @@ static PCOLLECT CreateCollectorEx( PSERVICE_ROUTE SourceID, PODBC odbc, LOGICAL 
 	if( pushed && pCollect && pCollect->flags.bPushed )
 	{
 #ifdef LOG_COLLECTOR_STATES
-      lprintf( WIDE( "New collector should be 'pushed', and prior is pushed (might be end of file query temp)" ) );
+		lprintf( WIDE( "New collector should be 'pushed', and prior is pushed (might be end of file query temp)" ) );
 #endif
-      // don't do anything, but definatly don't do temproary promotions.
+		// don't do anything, but definatly don't do temproary promotions.
 	}
 	else
 	{
@@ -495,6 +495,7 @@ static PCOLLECT CreateCollectorEx( PSERVICE_ROUTE SourceID, PODBC odbc, LOGICAL 
 			if( odbc->flags.bPushed )
 			{
 				pCollect->flags.bPushed = 1;
+				pCollect->flags.bTemporary = 1; 
 				odbc->flags.bPushed = 0;
 			}
 			return pCollect; // already have a temp available.. use it.
@@ -510,6 +511,7 @@ static PCOLLECT CreateCollectorEx( PSERVICE_ROUTE SourceID, PODBC odbc, LOGICAL 
 			if( odbc->flags.bPushed )
 			{
 				pCollect->flags.bPushed = 1;
+				pCollect->flags.bTemporary = 1; 
 				odbc->flags.bPushed = 0;
 			}
 			return pCollect;
@@ -552,6 +554,7 @@ static PCOLLECT CreateCollectorEx( PSERVICE_ROUTE SourceID, PODBC odbc, LOGICAL 
 	if( odbc->flags.bPushed )
 	{
 		pCollect->flags.bPushed = 1;
+		pCollect->flags.bTemporary = 1; 
 		odbc->flags.bPushed = 0;
 	}
 	return pCollect;
@@ -566,7 +569,7 @@ PTEXT CPROC TranslateINICrypt( PTEXT buffer )
 {
 	size_t n;
 	TEXTSTR out = GetText( buffer );
-   size_t len = GetTextSize( buffer );
+	size_t len = GetTextSize( buffer );
 	for( n = 0; n < len; n++ )
 		out[n] = BYTEOP_DECODE( out[n] );
 	return buffer;
@@ -660,7 +663,7 @@ static PTRSZVAL CPROC SetRequireConnection( PTRSZVAL psv, arg_list args )
 static PTRSZVAL CPROC SetRequireBackupConnection( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bRequired );
-   g.Backup.flags.bForceConnection = bRequired;
+	g.Backup.flags.bForceConnection = bRequired;
 	return psv;
 }
 
@@ -817,15 +820,15 @@ void InitLibrary( void )
 		// never get deleted....as only those with priors
 		// deleted when popped.
 		if( g.feedback_handler ) g.feedback_handler( WIDE("Loading ODBC") );
-		CreateCollector( 0, &g.Primary, FALSE );
-		CreateCollector( 0, &g.Backup, FALSE );
+		//CreateCollector( 0, &g.Primary, FALSE );
+		//CreateCollector( 0, &g.Backup, FALSE );
 #ifdef __ANDROID__
 		g.OptionDb.info.pDSN = StrDup( WIDE( "./option.db" ) );
 #else
 		g.OptionDb.info.pDSN = StrDup( WIDE( "@/option.db" ) );
 #endif
-      // default to new option database.
-      g.OptionVersion = 4;
+		// default to new option database.
+		g.OptionVersion = 4;
 #ifndef __NO_OPTIONS__
 		//SetOptionDatabaseOption( &g.OptionDb, TRUE );
 #endif
@@ -1902,13 +1905,13 @@ PODBC ConnectToDatabaseExx( CTEXTSTR DSN, LOGICAL bRequireConnection DBG_PASS )
 	PODBC pODBC;
 	InitLibrary();
 	pODBC = New( ODBC );
-   AddLink( &g.pOpenODBC, pODBC );
+	AddLink( &g.pOpenODBC, pODBC );
 	MemSet( pODBC, 0, sizeof( ODBC ) );
 	pODBC->info.pDSN = StrDup( DSN );
 	pODBC->flags.bForceConnection = bRequireConnection;
 	// source ID is not known...
 	// is probably static link to library, rather than proxy operation
-	CreateCollector( 0, pODBC, FALSE );
+	//CreateCollector( 0, pODBC, FALSE );
 	OpenSQLConnectionEx( pODBC DBG_RELAY );
 	return pODBC;
 }
@@ -2343,7 +2346,9 @@ int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 			collection->stmt = NULL;
 		}
 		GenerateResponce( collection, result_code );
-		//DumpODBCInfo( odbc );
+#ifdef LOG_COLLECTOR_STATES
+		DumpODBCInfo( odbc );
+#endif
 	}
 #endif
 #ifdef USE_ODBC
@@ -3593,10 +3598,20 @@ int SQLRecordQueryEx( PODBC odbc
 		// we ill need one, so make at least one.
 		if( !use_odbc->collection || !use_odbc->collection->flags.bTemporary )
 		{
+			if( use_odbc->collection && use_odbc->collection->flags.bTemporary )
+			{
 #ifdef LOG_COLLECTOR_STATES
-			lprintf( WIDE( "creating collector..." ) );
+				lprintf( WIDE( "using existing collector..." ) );
 #endif
-			use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
+				use_odbc->collection->flags.bTemporary = 0;
+			}
+			else
+			{
+#ifdef LOG_COLLECTOR_STATES
+				lprintf( WIDE( "creating collector..." ) );
+#endif
+				use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
+			}
 		}
 		// if it was temporary, it shouldn't be anymore
 		use_odbc->collection->flags.bTemporary = 0;
@@ -3759,7 +3774,8 @@ int PushSQLQueryExEx( PODBC odbc DBG_PASS )
 		lprintf( WIDE( "creating collector..." ) );
 #endif
 		CreateCollectorEx( 0, odbc, FALSE DBG_RELAY );
-      odbc->collection->flags.bPushed = 1;
+		odbc->collection->flags.bPushed = 1;
+		odbc->collection->flags.bTemporary = 1; 
 #ifdef LOG_COLLECTOR_STATES
 		_lprintf(DBG_RELAY)( WIDE("pushing the query onto stack... creating new state.") );
 #endif
