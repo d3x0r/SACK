@@ -212,7 +212,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		lprintf( WIDE( "No, thanx, you don't need to activate." ) );
 #endif
 #ifndef UNDER_CE
-		Return MA_NOACTIVATE;
+		Return MA_ACTIVATE;
 #endif
 #ifndef UNDER_CE
 
@@ -957,7 +957,7 @@ WM_DROPFILES
 		{
 			Return 0;
 		}
-		if( l.hCaptured )
+		if( l.hCameraCaptured )
 		{
 #ifdef LOG_MOUSE_EVENTS
 			lprintf( WIDE("Captured mouse already - don't do anything?") );
@@ -970,13 +970,13 @@ WM_DROPFILES
 #ifdef LOG_MOUSE_EVENTS
 				lprintf( WIDE("Auto owning mouse to surface which had the mouse clicked DOWN.") );
 #endif
-				if( !l.hCaptured )
+				if( !l.hCameraCaptured )
 					SetCapture( hWnd );
 			}
 			else if( ( (l.mouse_b & (MK_LBUTTON|MK_RBUTTON|MK_MBUTTON)) == 0 ) )
 			{
 				//lprintf( WIDE("Auto release mouse from surface which had the mouse unclicked.") );
-				if( !l.hCaptured )
+				if( !l.hCameraCaptured )
 					ReleaseCapture();
 			}
 		}

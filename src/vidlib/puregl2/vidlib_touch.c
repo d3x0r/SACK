@@ -283,18 +283,18 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 		{
 			if( touches[0].flags.new_event )
 			{
-            PRENDERER used;
-            lprintf( WIDE("begin  (is it a touch on a window?)") );
+				PRENDERER used;
+				lprintf( WIDE("begin  (is it a touch on a window?)") );
 				// begin touch
 				l.mouse_x
 					= touch_info.one.x = touches[0].x;
-            l.mouse_y
+				l.mouse_y
 					= touch_info.one.y = touches[0].y;
 				if( used = (PRENDERER)OpenGLMouse( (PTRSZVAL)camera, l.mouse_x, l.mouse_y, MK_LBUTTON ) )
 				{
-               l.hCaptured = used;
+					l.hCameraCaptured = used;
 					touch_info.owning_surface = used;
-               touch_info.flags.owned_by_surface = 1;
+					touch_info.flags.owned_by_surface = 1;
 				}
 				else
 				{
@@ -305,7 +305,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				if( touch_info.flags.owned_by_surface )
 				{
 					OpenGLMouse( (PTRSZVAL)camera, l.mouse_x, l.mouse_y, 0 );
-					l.hCaptured = NULL;
+					l.hCameraCaptured = NULL;
 					touch_info.owning_surface = NULL;
 					touch_info.flags.owned_by_surface = 0;
 				}

@@ -1665,7 +1665,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		lprintf( WIDE( "No, thanx, you don't need to activate." ) );
 #endif
 #ifndef UNDER_CE
-		Return MA_NOACTIVATE;
+		Return MA_ACTIVATE;
 #endif
 #ifndef UNDER_CE
 

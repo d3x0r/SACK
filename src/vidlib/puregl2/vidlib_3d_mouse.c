@@ -422,8 +422,8 @@ int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 		for( check = l.top; check ;check = check->pAbove)
 		{
 			VECTOR target_point;
-			if( l.hCaptured )
-				if( check != l.hCaptured )
+			if( l.hVirtualCaptured )
+				if( check != l.hVirtualCaptured )
 					continue;
 			if( check->flags.bHidden || (!check->flags.bShown) )
 				continue;
@@ -465,7 +465,7 @@ int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 				//   	 , check->pWindowPos.x+ check->pWindowPos.cx
 				//   	 , check->pWindowPos.y+ check->pWindowPos.cy );
 
-				if( check == l.hCaptured ||
+				if( check == l.hVirtualCaptured ||
 					( ( newx >= 0 && newx < (check->pWindowPos.cx ) )
 					 && ( newy >= 0 && newy < (check->pWindowPos.cy ) ) ) )
 				{
@@ -475,21 +475,21 @@ int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 							lprintf( WIDE("Sent Mouse Proper. %d,%d %08x"), newx, newy, b );
 						//InverseOpenGLMouse( camera, check, newx, newy, NULL, NULL );
 						l.current_mouse_event_camera = camera;
-						if( !l.flags.bManuallyCapturedMouse )
+						if( !l.flags.bVirtualManuallyCapturedMouse )
 						{
 							if( MAKE_SOMEBUTTONS( b ) )
 							{
-								if( !l.hCaptured )
+								if( !l.hVirtualCaptured )
 								{
-									l.hCapturedPrior = l.hCaptured;
-									l.hCaptured = check;
+									l.hVirtualCapturedPrior = l.hVirtualCaptured;
+									l.hVirtualCaptured = check;
 								}
 							}
 							else
 							{
 								lprintf( "Released captured here...." );
-								l.hCapturedPrior 
-									= l.hCaptured 
+								l.hVirtualCapturedPrior 
+									= l.hVirtualCaptured 
 									= NULL;
 							}
 						}
@@ -497,19 +497,20 @@ int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 													, newx
 													, newy
 													, b );
+						lprintf( "Mouse event to %p %d,%d %08x is %d", check, newx, newy, b, used );
 						// if it is used; keep the auto capture
-						if( !used && !l.flags.bManuallyCapturedMouse )
+						if( !used && !l.flags.bVirtualManuallyCapturedMouse )
 						{
-							lprintf( "not used; not manual... reset %p to %p", l.hCaptured, l.hCapturedPrior );
-							if( l.hCaptured == NULL && l.hCapturedPrior != NULL )
+							lprintf( "not used; not manual... reset %p to %p", l.hVirtualCaptured, l.hVirtualCapturedPrior );
+							if( l.hVirtualCaptured == NULL && l.hVirtualCapturedPrior != NULL )
 							{
 								lprintf( "This is an abnormality!" );
 							}
-							if( l.hCaptured == l.hCapturedPrior && l.hCaptured )
+							if( l.hVirtualCaptured == l.hVirtualCapturedPrior && l.hVirtualCaptured )
 							{
 								break;
 							}
-							l.hCaptured = l.hCapturedPrior;
+							l.hVirtualCaptured = l.hVirtualCapturedPrior;
 						}
 						l.current_mouse_event_camera = NULL;
 						if( used )
