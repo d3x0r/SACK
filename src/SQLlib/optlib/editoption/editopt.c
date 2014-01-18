@@ -309,11 +309,17 @@ static void CPROC FindEntry( PTRSZVAL psv, PCOMMON pc )
 	}
 }
 
-int EditOptions( PODBC odbc )
+#ifdef EDITOPTION_PLUGIN
+PUBLIC( int, EditOptions )
+#else
+int EditOptions
+#endif
+                  ( PODBC odbc )
 {
 	PCOMMON frame;// = LoadFrame( WIDE("edit.frame"), NULL, NULL, 0 );
 	int done = FALSE;
-
+	if( !odbc )
+		odbc = GetOptionODBC( NULL, 0 );
 
 	//if( !frame )
 	frame = CreateOptionFrame( odbc, TRUE, &done );
@@ -325,6 +331,7 @@ int EditOptions( PODBC odbc )
 	return 1;
 }
 
+#ifndef EDITOPTION_PLUGIN
 SaneWinMain( argc, argv )
 {
 	PODBC o = NULL;
@@ -354,3 +361,4 @@ SaneWinMain( argc, argv )
 	return 0;
 }
 EndSaneWinMain()
+#endif
