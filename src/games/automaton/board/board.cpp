@@ -385,11 +385,11 @@ void DoMouse( int X, int Y, int b )
 
 	wX = SCRN_TO_GRID_X( X );
 	wY = SCRN_TO_GRID_Y( Y );
-	lprintf( WIDE("mouse at %d,%d"), wX, wY );
+	//lprintf( WIDE("mouse at %d,%d"), wX, wY );
 	{
-		S_32 x = wX, y = wY;
-		PLAYER_DATA pld = GetLayerDataAt( &x, &y );
-		lprintf( WIDE("%s at %d,%d"), pld?WIDE("something"):WIDE("nothing"), x, y );
+		//S_32 x = wX, y = wY;
+		//PLAYER_DATA pld = GetLayerDataAt( &x, &y );
+		//lprintf( WIDE("%s at %d,%d"), pld?WIDE("something"):WIDE("nothing"), x, y );
 	}
 
 #ifdef __WINDOWS__

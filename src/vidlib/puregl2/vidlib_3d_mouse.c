@@ -487,7 +487,7 @@ int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 							}
 							else
 							{
-								lprintf( "Released captured here...." );
+								//lprintf( "Released captured here...." );
 								l.hVirtualCapturedPrior 
 									= l.hVirtualCaptured 
 									= NULL;
@@ -497,11 +497,11 @@ int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 													, newx
 													, newy
 													, b );
-						lprintf( "Mouse event to %p %d,%d %08x is %d", check, newx, newy, b, used );
+						//lprintf( "Mouse event to %p %d,%d %08x is %d", check, newx, newy, b, used );
 						// if it is used; keep the auto capture
 						if( !used && !l.flags.bVirtualManuallyCapturedMouse )
 						{
-							lprintf( "not used; not manual... reset %p to %p", l.hVirtualCaptured, l.hVirtualCapturedPrior );
+							//lprintf( "not used; not manual... reset %p to %p", l.hVirtualCaptured, l.hVirtualCapturedPrior );
 							if( l.hVirtualCaptured == NULL && l.hVirtualCapturedPrior != NULL )
 							{
 								lprintf( "This is an abnormality!" );
