@@ -162,7 +162,7 @@ static int OnMouseCommon( SLIDER_CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y,
 					ps->current = ps->max;
 				if( ps->SliderUpdated )
 					ps->SliderUpdated( ps->psvUser, pc, ps->current );
-            SmudgeCommon( pc );
+				SmudgeCommon( pc );
 			}
 		}
 		else if( !(ps->_b & MK_LBUTTON ) )
@@ -225,7 +225,7 @@ static int OnMouseCommon( SLIDER_CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y,
 	}
 
 	ps->_b = b;
-   return 1;
+	return 1;
 }
 
 //---------------------------------------------------------------------------
