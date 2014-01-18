@@ -1637,7 +1637,7 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 			if( pf )
 				pf->_b = b;
 			DeleteUse( pc );
-			return FALSE;
+			return result;
 		}
 	}
 	if( IsMouseInCurrent( pc
@@ -1702,7 +1702,7 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 		{
 			// it's on the frame of this frame (redunant eh?)
 			//lprintf( WIDE("Outside the surface, on border or frame... invoke frame handler.") );
-			FirstFrameMouse( pf, x, y, b, TRUE );
+			result = FirstFrameMouse( pf, x, y, b, TRUE );
 			pf->CurrentBias.x = 0;
 			pf->CurrentBias.y = 0;
 			pf->CurrentBias.flags.bias_is_surface = 0;
