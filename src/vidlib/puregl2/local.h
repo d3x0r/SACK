@@ -425,7 +425,7 @@ int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
 // this uses coordiantes in l.mouse_x and l.mouse_y and computes the current mouse ray in all displays
 void UpdateMouseRays( S_32 x, S_32 y );
 #undef GetViewVolume
-void GetViewVolume( PRAY *planes );
+void CPROC GetViewVolume( PRAY *planes );
 
 //-------------------  render utility ------------
 void Render3D( struct display_camera *camera );

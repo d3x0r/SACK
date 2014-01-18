@@ -138,7 +138,7 @@ _SQL_NAMESPACE
    }
 	</code>                                                                                 */
 
-#if !defined( __GNUC__ )
+#if !defined( __GNUC__ ) || !defined( SQLSTUB_SOURCE )
    // GCC doesn't identify this as exactly the same declaration
 	typedef struct odbc_handle_tag *PODBC;
 #endif
