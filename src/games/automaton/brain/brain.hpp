@@ -16,9 +16,9 @@ typedef void *PBRAIN_OUTPUT;
 #include "neuron.h"
 
 //#include "3dlib.h"
-   // max nerons fills a board of around 128x128
+	// max nerons fills a board of around 128x128
 
-#define MAX_NEURONS   1024 // then start radio connection
+#define MAX_NEURONS	1024 // then start radio connection
 #define MAX_SYNAPSES  4*MAX_NEURONS // 2 spots per neuron consumed
 
 //#define MAX_INPUTS 32
@@ -34,14 +34,14 @@ typedef class BRAIN_STEM *PBRAIN_STEM;
 typedef class connector *PCONNECTOR, CONNECTOR;
 class connector:public value{
 public:
-   TEXTCHAR c_name[MAX_NAME_LEN]; // always make this last
+	TEXTCHAR c_name[MAX_NAME_LEN]; // always make this last
 	IMPORT CTEXTSTR name(void);
 	IMPORT connector()
 #ifdef BRAIN_SOURCE
-   :value()
+	:value()
 	{ strcpy( c_name, WIDE("unnamed") ); }
 #else
-   ;
+	;
 #endif
 	connector(CTEXTSTR conn_name, value *pvalue )
 		:value(pvalue)
@@ -68,24 +68,24 @@ public:
 		// it's like all the save/load code is skewed... I vaguely remember something like that...
 	//};
 #else
-   ;
+	;
 #endif
 //#ifdef BRAIN_SOURCE
 #define CONNECTOR_CONSTRUCTOR( conn_type, type_name ) 	connector( CTEXTSTR conn_name, conn_type *type_name ):value(type_name) { strcpy( connector::c_name, conn_name ); }
 //#else
 //#define CONNECTOR_CONSTRUCTOR( conn_type, type_name ) 	IMPORT connector( CTEXTSTR conn_name, conn_type *type_name );
 //#endif
-	CONNECTOR_CONSTRUCTOR( float           ,   pf );
-	CONNECTOR_CONSTRUCTOR( double          ,   pd );
-	CONNECTOR_CONSTRUCTOR( char            ,   pc );
-	CONNECTOR_CONSTRUCTOR( short           ,   ps );
-	CONNECTOR_CONSTRUCTOR( long            ,   pl );
-	CONNECTOR_CONSTRUCTOR( S_64            ,  pll );
-	CONNECTOR_CONSTRUCTOR( unsigned char   ,  puc );
+	CONNECTOR_CONSTRUCTOR( float			  ,	pf );
+	CONNECTOR_CONSTRUCTOR( double			 ,	pd );
+	CONNECTOR_CONSTRUCTOR( char				,	pc );
+	CONNECTOR_CONSTRUCTOR( short			  ,	ps );
+	CONNECTOR_CONSTRUCTOR( long				,	pl );
+	CONNECTOR_CONSTRUCTOR( S_64				,  pll );
+	CONNECTOR_CONSTRUCTOR( unsigned char	,  puc );
 	CONNECTOR_CONSTRUCTOR( unsigned short  ,  pus );
-	CONNECTOR_CONSTRUCTOR( unsigned long   ,  pul );
-	CONNECTOR_CONSTRUCTOR( _64             , pull );
-	CONNECTOR_CONSTRUCTOR( bool            , pb );
+	CONNECTOR_CONSTRUCTOR( unsigned long	,  pul );
+	CONNECTOR_CONSTRUCTOR( _64				 , pull );
+	CONNECTOR_CONSTRUCTOR( bool				, pb );
 };
 #pragma pack()
 
@@ -93,7 +93,7 @@ public:
 class BRAIN_STEM // allocated by the body.
 {
 private:
-   // when cycle updates, set outputs to 0.
+	// when cycle updates, set outputs to 0.
 	_32 nCycle;
 public:
 	// lists had to be made public because iterator didn't work (not thread safe)
@@ -135,6 +135,7 @@ public:
 	IMPORT void update( _32 cycle )
 #ifdef BRAIN_SOURCE
 	{
+		if( 0 )
 		if( cycle != nCycle )
 		{
 			nCycle = cycle;
@@ -155,7 +156,7 @@ public:
 	connector *getoutput( int idx ) { return ((connector*)Outputs.get(idx)); }
 	connector *getinput( int idx ) { return ((connector*)Outputs.get(idx)); }
 
-   friend class BRAIN;
+	friend class BRAIN;
 };
 #endif
 // definitions for passing to Component...
@@ -170,48 +171,48 @@ public:
 typedef class BRAIN *PBRAIN;
 class BRAIN {
 public:
-   struct {
-      int bExit:1;    // set to end brain thread
-      int bReleased:1;// set by thread when exited.
-      int bHalt:1; // run/stop state for brain
-   };
-   //long nLock; // count of locks...
-   float k; // sigmoid global K for brain...
+	struct {
+		int bExit:1;	 // set to end brain thread
+		int bReleased:1;// set by thread when exited.
+		int bHalt:1; // run/stop state for brain
+	};
+	//long nLock; // count of locks...
+	float k; // sigmoid global K for brain...
 
-   // ended up exposing this, iList iterator failed to work practically
-   iList BrainStems;  // contained by body.
+	// ended up exposing this, iList iterator failed to work practically
+	iList BrainStems;  // contained by body.
 private:
-   _32 dwThreadId;  // perhaps this should be a handle...
+	_32 dwThreadId;  // perhaps this should be a handle...
 
 	PNEURONSET NeuronPool;
 	PSYNAPSESET SynapsePool;
 
-   int nCycle;
+	int nCycle;
 
-   int nVersion; // current version of this brain...
+	int nVersion; // current version of this brain...
 
-   void GatherValues( PNEURON pn ); // get sum of previous nOutputValues
-   void ProcessInput( PNEURON pn ); // get value, set first level..
-   void DeleteComponents( void );
+	void GatherValues( PNEURON pn ); // get sum of previous nOutputValues
+	void ProcessInput( PNEURON pn ); // get value, set first level..
+	void DeleteComponents( void );
 
 	CRITICALSECTION cs;
 	inline void Lock( void ) { EnterCriticalSec( &cs ); }
 	inline void Unlock( void ) { LeaveCriticalSec( &cs ); }
-   inline void End( void ) {
-      bExit = TRUE;
-      while( !bReleased ) // wait for brain to end...
-         Idle(); 
+	inline void End( void ) {
+		bExit = TRUE;
+		while( !bReleased ) // wait for brain to end...
+			Idle(); 
 	}
 public:
 	IMPORT void Run( void );
 	IMPORT void Stop( void );
 
-   void Process( void );
-   IMPORT void Reset( void );
-   IMPORT void Init(void);
+	void Process( void );
+	IMPORT void Reset( void );
+	IMPORT void Init(void);
 	IMPORT BRAIN(); // must have a body in a 'known' configuration....
 	IMPORT BRAIN( PBRAIN_STEM pbs ); // must have a body in a 'known' configuration....
-   IMPORT ~BRAIN();
+	IMPORT ~BRAIN();
 
 	IMPORT PBRAIN_STEM first_stem( void );
 	IMPORT PBRAIN_STEM next_stem( void );
@@ -228,21 +229,22 @@ public:
 	IMPORT void ReleaseNeuron( PNEURON pn );
 	IMPORT void ReleaseSynapse( PSYNAPSE ps );
 
-   IMPORT int LinkSynapseFrom( PSYNAPSE pSyn, PNEURON pn,  int n );
-   IMPORT int LinkSynapseTo( PSYNAPSE pSyn, PNEURON pn,  int n );
-   IMPORT int LinkSynapseFrom( PSYNAPSE pSyn, PNEURON pn );
-   IMPORT int LinkSynapseTo( PSYNAPSE pSyn, PNEURON pn );
-   IMPORT void UnLinkSynapseTo( PSYNAPSE pSyn );
-   IMPORT void UnLinkSynapseFrom( PSYNAPSE pSyn );
+	IMPORT int LinkSynapseFrom( PSYNAPSE pSyn, PNEURON pn,  int n );
+	IMPORT int LinkSynapseTo( PSYNAPSE pSyn, PNEURON pn,  int n );
+	IMPORT int LinkSynapseFrom( PSYNAPSE pSyn, PNEURON pn );
+	IMPORT int LinkSynapseTo( PSYNAPSE pSyn, PNEURON pn );
+	IMPORT void UnLinkSynapseTo( PSYNAPSE pSyn );
+	IMPORT void UnLinkSynapseFrom( PSYNAPSE pSyn );
 
 	IMPORT void AddBrainStem( PBRAIN_STEM pStem );
-   IMPORT PBRAIN_STEM AddComponent(int n, CTEXTSTR name, ...);
-   IMPORT PBRAIN_STEM AddComponent(int n, CTEXTSTR name, arg_list  args);
+	IMPORT void RemoveBrainStem( PBRAIN_STEM pStem );
+	IMPORT PBRAIN_STEM AddComponent(int n, CTEXTSTR name, ...);
+	IMPORT PBRAIN_STEM AddComponent(int n, CTEXTSTR name, arg_list  args);
 
-   IMPORT LOGICAL Load( PODBC odbc, INDEX idx );
-   //IMPORT INDEX Save( PODBC odbc );
-   IMPORT INDEX Save( PODBC odbc, CTEXTSTR brainname ); // SQL Save
-   //IMPORT _32 Load( FILE *File );
+	IMPORT LOGICAL Load( PODBC odbc, INDEX idx );
+	//IMPORT INDEX Save( PODBC odbc );
+	IMPORT INDEX Save( PODBC odbc, CTEXTSTR brainname ); // SQL Save
+	//IMPORT _32 Load( FILE *File );
 	IMPORT PBRAIN_STEM first( void );
 	IMPORT PBRAIN_STEM next( void );
 	IMPORT PBRAIN_STEM GetBrainStem( INDEX id_stem );
@@ -269,31 +271,31 @@ typedef struct brain_interface {
 #endif
 	BRAIN_PROC( PBRAIN, CreateBrain )(void); // must have a body in a 'known' configuration....
 	BRAIN_PROC( void, DestroyBrain )(PBRAIN); // must have a body in a 'known' configuration....
-   BRAIN_PROC( void, Reset )( PBRAIN );
+	BRAIN_PROC( void, Reset )( PBRAIN );
 
 	BRAIN_PROC( PNEURON, GetNeuron )( PBRAIN );
 	BRAIN_PROC( PNEURON, DupNeuron )( PBRAIN,PNEURON default_neuron );
 	BRAIN_PROC( PNEURON, GetInputNeuron )( PBRAIN,PBRAIN_STEM pbs, int nInput );
 	BRAIN_PROC( PNEURON, GetOutputNeuron )( PBRAIN,PBRAIN_STEM pbs, int nOutput );
 	//BRAIN_PROC( PNEURON, GetOutputNeuron )( connector *nOutput );
-   BRAIN_PROC( PSYNAPSE, GetSynapse )( PBRAIN );
-   BRAIN_PROC( PSYNAPSE, DupSynapse )( PBRAIN, PSYNAPSE default_synapse );
+	BRAIN_PROC( PSYNAPSE, GetSynapse )( PBRAIN );
+	BRAIN_PROC( PSYNAPSE, DupSynapse )( PBRAIN, PSYNAPSE default_synapse );
 	BRAIN_PROC( void, ReleaseNeuron )( PBRAIN,PNEURON pn );
 	BRAIN_PROC( void, ReleaseSynapse )( PBRAIN,PSYNAPSE ps );
 
-   BRAIN_PROC( int, LinkSynapseFromPos )( PBRAIN,PSYNAPSE pSyn, PNEURON pn,  int n );
-   BRAIN_PROC( int, LinkSynapseToPos )( PBRAIN,PSYNAPSE pSyn, PNEURON pn,  int n );
-   BRAIN_PROC( int, LinkSynapseFrom )( PBRAIN,PSYNAPSE pSyn, PNEURON pn );
-   BRAIN_PROC( int, LinkSynapseTo )( PBRAIN,PSYNAPSE pSyn, PNEURON pn );
-   BRAIN_PROC( void, UnLinkSynapseTo )( PBRAIN,PSYNAPSE pSyn );
-   BRAIN_PROC( void, UnLinkSynapseFrom )( PBRAIN,PSYNAPSE pSyn );
+	BRAIN_PROC( int, LinkSynapseFromPos )( PBRAIN,PSYNAPSE pSyn, PNEURON pn,  int n );
+	BRAIN_PROC( int, LinkSynapseToPos )( PBRAIN,PSYNAPSE pSyn, PNEURON pn,  int n );
+	BRAIN_PROC( int, LinkSynapseFrom )( PBRAIN,PSYNAPSE pSyn, PNEURON pn );
+	BRAIN_PROC( int, LinkSynapseTo )( PBRAIN,PSYNAPSE pSyn, PNEURON pn );
+	BRAIN_PROC( void, UnLinkSynapseTo )( PBRAIN,PSYNAPSE pSyn );
+	BRAIN_PROC( void, UnLinkSynapseFrom )( PBRAIN,PSYNAPSE pSyn );
 
 	BRAIN_PROC( void, AddBrainStem )( PBRAIN,PBRAIN_STEM pStem );
-   BRAIN_PROC( PBRAIN_STEM, AddComponent )(PBRAIN,int n, CTEXTSTR name, arg_list args );
+	BRAIN_PROC( PBRAIN_STEM, AddComponent )(PBRAIN,int n, CTEXTSTR name, arg_list args );
 	//BRAIN_PROC( PBRAIN_STEM, AddComponent )(int n, CTEXTSTR name, va_list args );
 
-   //BRAIN_PROC( _32, Save )( PBRAIN,HANDLE hFile );
-   //BRAIN_PROC( _32, Load )( PBRAIN,HANDLE hFile );
+	//BRAIN_PROC( _32, Save )( PBRAIN,HANDLE hFile );
+	//BRAIN_PROC( _32, Load )( PBRAIN,HANDLE hFile );
 	BRAIN_PROC( PBRAIN_STEM, first )( PBRAIN );
 	BRAIN_PROC( PBRAIN_STEM, next )( PBRAIN );
 	// once used in menus, the index is knowable... 

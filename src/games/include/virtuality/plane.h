@@ -170,9 +170,9 @@ int GetFacetSet( OBJECTINFO *oi );
 int GetFacetP( OBJECTINFO *oi, int nfs );
 int GetFacet( OBJECTINFO *oi );
 
-int GetLineSeg( OBJECTINFO *oi );
+INDEX GetLineSeg( OBJECTINFO *oi );
 
-int GetLineSegP( PLINESEGPSETSET *pplpss, PLINESEGPSET *pplps );
+INDEX GetLineSegP( PLINESEGPSETSET *pplpss, PLINESEGPSET *pplps );
 
 PMYLINESEG CreateLine( OBJECTINFO *oi, 
                   PCVECTOR po, PCVECTOR pn,

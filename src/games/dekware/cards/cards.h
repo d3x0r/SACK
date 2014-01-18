@@ -101,7 +101,7 @@ CARDS_PROC( void, DeckPlayCard )( PDECK, PCARD );
 CARDS_PROC( void, DeckDiscard )( PDECK pDeck, PCARD pCard );
 CARDS_PROC( void, HandAdd )( PHAND pHand, PCARD pCard );
 CARDS_PROC( void, DeleteHand )( PHAND* );
-CARDS_PROC( int, CountCards )( PHAND ph );
+CARDS_PROC( INDEX, CountCards )( PHAND ph );
 CARDS_PROC( PTEXT, ListCards )( PHAND ph );
 CARDS_PROC( PTEXT, ListGameCards )( PHAND ph );
 CARDS_PROC( void, Shuffle )( PDECK pDeck );
@@ -154,8 +154,6 @@ CARDS_PROC( PCARD, IterateStudHand )( PHAND hand, int level, int bStart );
 CARDS_PROC( PCARD, PickACard )( PDECK deck, int ID );
 CARDS_PROC( void, HandAdd )( PHAND, PCARD );
 CARDS_PROC( PCARD, GrabCard )( PCARD );
-CARDS_PROC( int, CountCards )( PHAND );
-CARDS_PROC( PTEXT, ListCards )( PHAND );
 
 CARDS_PROC( PCARD_STACK, GetCardStack )( PDECK deck, CTEXTSTR name );
 CARDS_PROC( PCARD_STACK, GetCardStackFromHand )( PHAND deck, CTEXTSTR name );

@@ -214,9 +214,9 @@ public:
 									  , (int)(value*1200), 1000 );
 
 		BlotImageShaded( image
-								  , cell //master->getcell(cellx, celly)
-								  , x, y
-								  , cPrimary );
+		               , cell //master->getcell(cellx, celly)
+		               , x, y
+		               , cPrimary );
 	}
 	int ConnectEnd( PTRSZVAL psv_to_instance, S_32 x, S_32 y
 									  , PIPEICE peice_from, PTRSZVAL psv_from_instance )
@@ -410,8 +410,8 @@ public:
 			{
 				// attempt to grab existing path...
 				// current position, and current layer
-            // will already be known by the grab path method
-            //brainboard->board->GrabPath();
+				// will already be known by the grab path method
+				//brainboard->board->GrabPath();
 			}
 		}
 		// so far there's nothing on this cell to do....
@@ -517,7 +517,7 @@ public:
 
 		threshold = (2*(threshold - base)) / range;
 		threshold -= 1.0;
-      // threshold is now -1.0 to 1.0 biased.
+		// threshold is now -1.0 to 1.0 biased.
 
 		value = ( 2 * ( value - base ) ) / range;
 		value -= 1.0;
@@ -555,17 +555,17 @@ public:
 
 	void Update( PTRSZVAL psv, _32 cycle )
 	{
-      lprintf( WIDE("updating color information for a neuron...") );
+		lprintf( WIDE("updating color information for a neuron...") );
 	}
 
 	int ConnectEnd( PTRSZVAL psv_to_instance, S_32 x, S_32 y
 									  , PIPEICE peice_from, PTRSZVAL psv_from_instance )
 	{
-      int n;
+		int n;
 		//if( peice_from == brainboard->NerveMethods )
 		// maybe...
 		PSYNAPSE synapse = (PSYNAPSE)psv_from_instance;
-      PNEURON neuron = (PNEURON)psv_to_instance;
+		PNEURON neuron = (PNEURON)psv_to_instance;
 		// validate that peice_from is a nerve_method type
 		for( n = 0; n < 8; n++ )
 			if( DirDeltaMap[n].x == x && DirDeltaMap[n].y == y )
@@ -573,9 +573,9 @@ public:
 		if( n < 8 )
 		{
 			int success = brainboard->brain->LinkSynapseTo( synapse, neuron, n );
-         return success;
+			return success;
 		}
-      return FALSE;
+		return FALSE;
 	}
 
 	int ConnectBegin( PTRSZVAL psv_to_instance, S_32 x, S_32 y
@@ -607,7 +607,7 @@ public:
 		{
 			// this is implied to be the current peice that
 			// has been clicked on...
-         // will receive further OnMove events...
+			// will receive further OnMove events...
 			brainboard->board->LockPeiceDrag();
 			return TRUE;
 		}
@@ -617,8 +617,8 @@ public:
 			{
 				// attempt to grab existing path...
 				// current position, and current layer
-            // will already be known by the grab path method
-            //brainboard->board->GrabPath();
+				// will already be known by the grab path method
+				//brainboard->board->GrabPath();
 			}
 		}
 		// so far there's nothing on this cell to do....
@@ -699,7 +699,6 @@ PRELOAD( register_control_ids )
 CTEXTSTR PickBoardName( PODBC odbc, int bMustExist )
 {
 	PSI_CONTROL frame = LoadXMLFrame( WIDE("PickBoardName.frame") );
-DumpRegisteredNames();
 	if( frame )
 	{
 		static TEXTCHAR newname[256];
@@ -787,7 +786,7 @@ public:
 
 	int OnRightClick( PTRSZVAL psv, S_32 x, S_32 y )
 	{
-      brainboard->RebuildComponentPopups();
+		brainboard->RebuildComponentPopups();
 
 		_32 result = TrackPopup( brainboard->hMenu, NULL );
 		//DebugBreak();
@@ -1138,7 +1137,7 @@ void BRAINBOARD::RebuildComponentPopups()
 			int n = 0;
 			INDEX idx;
 			PBRAIN_STEM pbs;
-         ResetPopup( hMenuComponents );
+			ResetPopup( hMenuComponents );
 			LIST_FORALL( brain->BrainStems.list, idx, PBRAIN_STEM, pbs )
 			{
 				BuildBrainstemMenus( hMenuComponents, pbs, &menus, &connectors, 0 );

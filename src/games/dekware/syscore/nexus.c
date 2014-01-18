@@ -34,32 +34,32 @@ PTHREAD pMainThread;
 
 CORE_PROC( PTEXT, GetName )( void *p )
 {
-   DECLTEXT( other, WIDE("No name") );
-   PENTITY pe = (PENTITY)p;
-   if( pe )
-   {
-      if( pe->flags.bShadow )
-         return GetName( ((PSHADOW_OBJECT)pe)->pForm );
-      else if ( pe->flags.bMacro )
-         return ((PMACRO)p)->pName;
-      return pe->pName;
+	DECLTEXT( other, WIDE("No name") );
+	PENTITY pe = (PENTITY)p;
+	if( pe )
+	{
+		if( pe->flags.bShadow )
+			return GetName( ((PSHADOW_OBJECT)pe)->pForm );
+		else if ( pe->flags.bMacro )
+			return ((PMACRO)p)->pName;
+		return pe->pName;
 	}
-   DebugBreak();
-   return (PTEXT)&other;
+	DebugBreak();
+	return (PTEXT)&other;
 }
 
 //--------------------------------------------------------------------------
 
 CORE_PROC( PTEXT, GetDescription )( void *p )
 {
-   DECLTEXT( other, WIDE("Nothing Special.") );
+	DECLTEXT( other, WIDE("Nothing Special.") );
 	PENTITY pe = (PENTITY)p;
 	if( pe )
 	{
 		if( pe->flags.bShadow )
 			return GetDescription( ((PSHADOW_OBJECT)pe)->pForm );
 		else if( pe->flags.bMacro )
-      {
+		{
 			if( ((PMACRO)p)->pDescription )
 				return ((PMACRO)p)->pDescription;
 		}
@@ -117,22 +117,22 @@ PENTITY pullout(PENTITY that,PENTITY _this)
 
 PLIST BuildAttachedListEx( PENTITY also_ignore, PLIST *ppList, PENTITY source, int max_levels )
 {
-   INDEX idx, idx2;
-   PLIST pAttached = NULL;
-   PENTITY pCurrent, pTest;
-   int bPresent;
+	INDEX idx, idx2;
+	PLIST pAttached = NULL;
+	PENTITY pCurrent, pTest;
+	int bPresent;
 	if( !ppList )
-      ppList = &pAttached;
+		ppList = &pAttached;
 	if( max_levels == 1 ) // 1 level has already been added, and that's all we can do...
-      return NULL;
-   LIST_FORALL( source->pAttached, idx, PENTITY, pCurrent )
+		return NULL;
+	LIST_FORALL( source->pAttached, idx, PENTITY, pCurrent )
 	{
 		bPresent = FALSE;
 		// if the attached list is lengthy...
 		// such as a road attached to an intersection, etc
 		// may want to consider a level Limitation.
 		if( also_ignore == pCurrent )
-         continue;
+			continue;
 		pAttached = *ppList;
 		LIST_FORALL( pAttached, idx2, PENTITY, pTest )
 			if( pTest == pCurrent )
@@ -145,8 +145,8 @@ PLIST BuildAttachedListEx( PENTITY also_ignore, PLIST *ppList, PENTITY source, i
 			AddLink( ppList, pCurrent );
 			BuildAttachedListEx( also_ignore, ppList, pCurrent, max_levels?max_levels--:0 );
 		}
-   }
-   return *ppList;
+	}
+	return *ppList;
 }
 
 //--------------------------------------------------------------------------
@@ -198,53 +198,53 @@ PTEXT _GetContents( PTRSZVAL psv, PENTITY pe, PTEXT *last )
 PENTITY FindContainerEx( PENTITY source
 							  , PENTITY *mount_point )
 {
-   PENTITY pCurrent, pResult;
-   PLIST pAttached;
-   INDEX idx;
+	PENTITY pCurrent, pResult;
+	PLIST pAttached;
+	INDEX idx;
 	if( ( pResult = source->pWithin ) )
 	{
-      if( mount_point )
+		if( mount_point )
 			*mount_point = source;
 		return pResult;
 	}
-   pAttached = BuildAttachedList( source );
-   LIST_FORALL( pAttached, idx, PENTITY, pCurrent )
-   {
+	pAttached = BuildAttachedList( source );
+	LIST_FORALL( pAttached, idx, PENTITY, pCurrent )
+	{
 		if( ( pResult = pCurrent->pWithin ) )
 		{
 			if( mount_point )
-            *mount_point = pCurrent;
+				*mount_point = pCurrent;
 			break;
 		}
-   }
-   DeleteList( &pAttached );
-   return pResult;
+	}
+	DeleteList( &pAttached );
+	return pResult;
 }
 
 //--------------------------------------------------------------------------
 
 PENTITY attach(PENTITY obj1,PENTITY obj2)
 {
-   // if and only if obj1 and obj2 are not already attached...
-   if( obj1 && obj2 )
+	// if and only if obj1 and obj2 are not already attached...
+	if( obj1 && obj2 )
 	{
-      AddLink( &obj1->pAttached, obj2 );
-      AddLink( &obj2->pAttached, obj1 );
-   }
-   return obj1;
+		AddLink( &obj1->pAttached, obj2 );
+		AddLink( &obj2->pAttached, obj1 );
+	}
+	return obj1;
 }
 
 //--------------------------------------------------------------------------
 
 PENTITY detach(PENTITY obj1,PENTITY obj2)
 {
-   //if and only if obj1 and obj2 are attached...
-   if( obj1 && obj2 )
-   {
-      DeleteLink( &obj1->pAttached, obj2 );
-      DeleteLink( &obj2->pAttached, obj1 );
-   }
-   return obj2;
+	//if and only if obj1 and obj2 are attached...
+	if( obj1 && obj2 )
+	{
+		DeleteLink( &obj1->pAttached, obj2 );
+		DeleteLink( &obj2->pAttached, obj1 );
+	}
+	return obj2;
 }
 
 //--------------------------------------------------------------------------
@@ -252,151 +252,151 @@ PENTITY detach(PENTITY obj1,PENTITY obj2)
 
 PENTITY findbynameEx( PLIST list, size_t *count, TEXTCHAR *name )
 {
-   INDEX idx;
-   INDEX cnt;
-   PENTITY workobject;
-   if( count )
-      cnt = *count;
-   else
-      cnt = 0;
+	INDEX idx;
+	INDEX cnt;
+	PENTITY workobject;
+	if( count )
+		cnt = *count;
+	else
+		cnt = 0;
 
-   LIST_FORALL(list,idx,PENTITY, workobject)
+	LIST_FORALL(list,idx,PENTITY, workobject)
 	{
-      //lprintf( WIDE("Is %s==%s?"), GetText( GetName( workobject ) ), name );
-      if( NameIs( workobject, name) )
-      {
-         if( cnt )
-            cnt--;
-         if( !cnt )
-            return(workobject);
-      }
-   }
-   if( count )
-      *count = cnt;
-   return((PENTITY)NULL);
+		//lprintf( WIDE("Is %s==%s?"), GetText( GetName( workobject ) ), name );
+		if( NameIs( workobject, name) )
+		{
+			if( cnt )
+				cnt--;
+			if( !cnt )
+				return(workobject);
+		}
+	}
+	if( count )
+		*count = cnt;
+	return((PENTITY)NULL);
 }
 
 //--------------------------------------------------------------------------
 
 POINTER DoFindThing( PENTITY Around, int type, int *foundtype, size_t *count, TEXTCHAR *t )
 {
-   PENTITY pContainer;
-   POINTER p;
-   static int level;
+	PENTITY pContainer;
+	POINTER p;
+	static int level;
 	int junk;
-   if( !foundtype )
+	if( !foundtype )
 		foundtype = &junk;
 	p = NULL;
-   //lprintf( WIDE("Set found type to %d"), type );
-   *foundtype = type; // ugly, and confusing location for _this...
-                      // because of recursive nature, last test which
+	//lprintf( WIDE("Set found type to %d"), type );
+	*foundtype = type; // ugly, and confusing location for _this...
+							 // because of recursive nature, last test which
 	// succeeds leaves _this value set...
-   level++;
-   if( Around )
-   {
-      switch( type )
-      {
+	level++;
+	if( Around )
+	{
+		switch( type )
+		{
 		case FIND_VISIBLE:
-         //lprintf( WIDE("(%d)Find visible..."), level );
-         if( !p ) p = DoFindThing( Around, FIND_GRABBABLE, foundtype, count, t );
-         if( !p ) p = DoFindThing( Around, FIND_AROUND, foundtype, count, t );
+			//lprintf( WIDE("(%d)Find visible..."), level );
+			if( !p ) p = DoFindThing( Around, FIND_GRABBABLE, foundtype, count, t );
+			if( !p ) p = DoFindThing( Around, FIND_AROUND, foundtype, count, t );
 			if( !p ) p = DoFindThing( Around, FIND_ANYTHING_NEAR, foundtype, count, t );
-         break;
-      case FIND_GRABBABLE:
-         //lprintf( WIDE("(%d)Find grabbable..."), level );
-         if( !p ) p = DoFindThing( Around, FIND_NEAR, foundtype, count, t );
+			break;
+		case FIND_GRABBABLE:
+			//lprintf( WIDE("(%d)Find grabbable..."), level );
+			if( !p ) p = DoFindThing( Around, FIND_NEAR, foundtype, count, t );
 			if( !p ) p = DoFindThing( Around, FIND_WITHIN, foundtype, count, t );
-         if( !p ) p = DoFindThing( Around, FIND_ON, foundtype, count, t );
-         break;
+			if( !p ) p = DoFindThing( Around, FIND_ON, foundtype, count, t );
+			break;
 		case FIND_IN:
 			{
 				//lprintf( WIDE("(%d)Find in..."), level );
 				p = findbynameEx(Around->pContains,count,t);
 			}
-         break;
+			break;
 		case FIND_WITHIN:
 			{
 				PLIST pList = NULL;
 				INDEX idx;
-            PENTITY pe;
+				PENTITY pe;
 				//lprintf( WIDE("(%d)Find within..."), level );
 				LIST_FORALL( Around->pContains, idx, PENTITY, pe )
 				{
-               //lprintf( WIDE("adding a link to the list...") );
+					//lprintf( WIDE("adding a link to the list...") );
 					AddLink( &pList, pe );
-               BuildAttachedListEx( NULL, &pList, pe, 0 );
+					BuildAttachedListEx( NULL, &pList, pe, 0 );
 				}
 				p = findbynameEx( pList, count, t);
-            DeleteList( &pList );
+				DeleteList( &pList );
 				if( p == Around )
 					p = NULL;
 			}
-         break;
+			break;
 		case FIND_ON:
 			{
-            PLIST pList;
+				PLIST pList;
 				//lprintf( WIDE("(%d)Find on..."), level );
 				p = findbynameEx(pList=BuildAttachedList(Around),count,t);
 				if( p == Around )
-               p = NULL;
+					p = NULL;
 				DeleteList( &pList );
 			}
-         break;
-      case FIND_NEAR:
+			break;
+		case FIND_NEAR:
 			//lprintf( WIDE("(%d)Find near..."), level );
-         if( ( pContainer = FindContainer( Around ) ) )
+			if( ( pContainer = FindContainer( Around ) ) )
 			{
 				p = findbynameEx( pContainer->pContains, count, t);
 				if( p == Around )
 					p = NULL;
 			}
-         break;
-      case FIND_ANYTHING_NEAR:
+			break;
+		case FIND_ANYTHING_NEAR:
 			//lprintf( WIDE("(%d)Find anything near..."), level );
-         if( ( pContainer = FindContainer( Around ) ) )
+			if( ( pContainer = FindContainer( Around ) ) )
 			{
 				PLIST pList = NULL;
 				INDEX idx;
-            PENTITY pe;
+				PENTITY pe;
 				AddLink( &pList, Around );
 				LIST_FORALL( pContainer->pContains, idx, PENTITY, pe )
 				{
 					AddLink( &pList, pe );
-               BuildAttachedListEx( Around, &pList, pe, 0 );
+					BuildAttachedListEx( Around, &pList, pe, 0 );
 				}
 				p = findbynameEx( pList, count, t);
-            DeleteList( &pList );
+				DeleteList( &pList );
 				if( p == Around )
 					p = NULL;
-         }
-         break;
-      case FIND_AROUND:
+			}
+			break;
+		case FIND_AROUND:
 			//lprintf( WIDE("(%d)Find around..."), level );
 			if( ( pContainer = FindContainer( Around ) ) )
 			{
 				if( !p ) p = findbynameEx(pContainer->pAttached,count,t);
 				if( !p )
 					if( NameIs( pContainer, t ) )
-                  p = pContainer;
+						p = pContainer;
 			}
 			break;
 		case FIND_MACRO:
 			//lprintf( WIDE("(%d)Find macro..."), level );
-         p = findbynameEx(Around->pMacros, count, t );
-         break;
-      case FIND_MACRO_INDEX:
-         {
-            INDEX idx;
-            PENTITY workobject;
-            LIST_FORALL(Around->pMacros,idx,PENTITY, workobject)
-               if( NameIs( workobject, t ) )
-                  return (POINTER)idx;
-         }
-         return (POINTER)-1;
-      }
+			p = findbynameEx(Around->pMacros, count, t );
+			break;
+		case FIND_MACRO_INDEX:
+			{
+				INDEX idx;
+				PENTITY workobject;
+				LIST_FORALL(Around->pMacros,idx,PENTITY, workobject)
+					if( NameIs( workobject, t ) )
+						return (POINTER)idx;
+			}
+			return (POINTER)-1;
+		}
 	}
-   level--;
-   return p;
+	level--;
+	return p;
 }
 
 //------------------------------------------------------------------------
@@ -411,21 +411,21 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 {
 	TEXTCHAR *t, *sep;
 	PTEXT pText;
-   PVARTEXT vt = NULL;
+	PVARTEXT vt = NULL;
 	POINTER p = NULL;
 	// at one point we get an extra token
 	// which we created... _this needs to be
-   // destroyed.  Data from GetParam is considered static/const (readonly)
+	// destroyed.  Data from GetParam is considered static/const (readonly)
 	PTEXT delete_seg = NULL;
 	PTEXT _tokens = *tokens;
-   size_t cnt;
+	size_t cnt;
 	S_64 long_cnt = 1; // by default find the first.
 	{
-      //PTEXT line = BuildLine( *tokens );
+		//PTEXT line = BuildLine( *tokens );
 		//lprintf( WIDE("finding [%s]"), GetText( line ) );
 		//LineRelease( line );
 	}
-   // find one thing only.
+	// find one thing only.
 	do
 	{
 		( ( pText = GetParam( ps, tokens ) ) );
@@ -437,8 +437,8 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 		if( pText && (pText->flags & TF_INDIRECT) )
 		{
 			// a literal name of an object such as %me or %room
-         // will never be indirect.
-         delete_seg = pText = BuildLine( GetIndirect( pText ) );
+			// will never be indirect.
+			delete_seg = pText = BuildLine( GetIndirect( pText ) );
 		}
 		{
 			//PTEXT line = BuildLine( *tokens );
@@ -449,9 +449,9 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 		{
 			// matches %me (?) well it's a proper name whoever it is...
 			// and it's something we know SO....
-         if( foundtype )
+			if( foundtype )
 				*foundtype = FIND_SELF;
-         return Around;
+			return Around;
 		}
 		if( pObject )
 		{
@@ -464,20 +464,20 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 		{
 			if( ( sep = strchr( t, '.' ) ) )
 			{
-            lprintf( WIDE("Has or is a '.', and uhmm something.") );
+				lprintf( WIDE("Has or is a '.', and uhmm something.") );
 				if( ( sep == t ) && ( GetTextSize( pText ) == 1 ) )
 				{
-               continue;
+					continue;
 				}
-            else if( t[0] >= '0' && t[0] <= '9' )
+				else if( t[0] >= '0' && t[0] <= '9' )
 				{
-               lprintf( WIDE("it's a count at the start....") );
+					lprintf( WIDE("it's a count at the start....") );
 					sep[0] = 0;
 					cnt = atoi( t );
 					t = sep + 1;
 					//p = DoFindThing( Around, type, foundtype, &cnt, t );
 					sep[0] = '.';
-               lprintf( WIDE("Object count is now %d . %s"), cnt, t );
+					lprintf( WIDE("Object count is now %d . %s"), cnt, t );
 				}
 			}
 			else if( IsIntNumber( pText, &long_cnt )  )
@@ -486,56 +486,56 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 				continue;
 			}
 			else
-            cnt = (int)long_cnt;
+				cnt = (int)long_cnt;
 			if( !p ) p = DoFindThing( Around, type, foundtype, &cnt, t );
-         //lprintf( WIDE("And we managed to find... %p"), p );
+			//lprintf( WIDE("And we managed to find... %p"), p );
 		}
-      break;
+		break;
 	}
 	while( 1 );
 	if( delete_seg )
-      LineRelease( delete_seg );
+		LineRelease( delete_seg );
 	if( pObject )
 	{
 		if( *pObject )
-         LineRelease( *pObject );
+			LineRelease( *pObject );
 		*pObject = VarTextGet( vt );
-      VarTextDestroy( &vt );
+		VarTextDestroy( &vt );
 	}
 	if( pResult )
-      *pResult = *tokens;
+		*pResult = *tokens;
 	if( !p )
 		*tokens = _tokens;
-   //lprintf( WIDE("And we still have %p"), p );
-   return p;
+	//lprintf( WIDE("And we still have %p"), p );
+	return p;
 }
 
 //--------------------------------------------------------------------------
 
 PENTITY GetEntity( void *pe )
 {
-   while( ((PSHADOW_OBJECT)pe)->flags.bShadow )
-      pe = (void *)GetEntity( ((PSHADOW_OBJECT)pe)->pForm );
-   return (PENTITY)pe;
+	while( ((PSHADOW_OBJECT)pe)->flags.bShadow )
+		pe = (void *)GetEntity( ((PSHADOW_OBJECT)pe)->pForm );
+	return (PENTITY)pe;
 }
 
 //--------------------------------------------------------------------------
 
 PSHADOW_OBJECT CreateShadowIn( PENTITY pContainer, PENTITY pe )
 {
-   PSHADOW_OBJECT pShadow;
-   pShadow = New( SHADOW_OBJECT );
-   MemSet( pShadow, 0, sizeof( SHADOW_OBJECT ) );
-   pShadow->flags.bShadow = TRUE;
-   
-   pe = GetEntity( pe ); // always shadow the real object never shadow a shadow
-   pShadow->pForm = pe;
+	PSHADOW_OBJECT pShadow;
+	pShadow = New( SHADOW_OBJECT );
+	MemSet( pShadow, 0, sizeof( SHADOW_OBJECT ) );
+	pShadow->flags.bShadow = TRUE;
+	
+	pe = GetEntity( pe ); // always shadow the real object never shadow a shadow
+	pShadow->pForm = pe;
 
-   pShadow->pShadowOf = pe;
-   AddLink( &pe->pShadows, pShadow );
-   if( pContainer )
-      putin( pContainer, (PENTITY)pShadow );
-   return pShadow;
+	pShadow->pShadowOf = pe;
+	AddLink( &pe->pShadows, pShadow );
+	if( pContainer )
+		putin( pContainer, (PENTITY)pShadow );
+	return pShadow;
 }
 
 //--------------------------------------------------------------------------
@@ -556,7 +556,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("scriptfile"),
 //--------------------------------------------------------------------------
 
 //volatile_variable_entry pveContents = { DEFTEXT( WIDE("contents") ), GetContents, NULL, NULL };
-//volatile_variable_entry pveScript   = { DEFTEXT( WIDE("scriptfile") )
+//volatile_variable_entry pveScript	= { DEFTEXT( WIDE("scriptfile") )
 //													, GetScriptName, NULL, NULL };
 //volatile_variable_entry pveContents = { DEFTEXT( WIDE("contents") ), GetContents, NULL, NULL };
 
@@ -564,8 +564,8 @@ static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("scriptfile"),
 
 static int OnCreateObject( WIDE("core object"), WIDE("Basic core object variables and methods.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
 {
-   // nothing really special... just registering the object extension really...
-   return 0;
+	// nothing really special... just registering the object extension really...
+	return 0;
 }
 
 static PENTITY CreateEntity( PTEXT pName )
@@ -579,17 +579,17 @@ static PENTITY CreateEntity( PTEXT pName )
 	pe->pName = pName;
 	Assimilate( pe, NULL, WIDE("core object"), NULL );
 #if 0
-   AddVolatileVariable( pe, &pveContents, 0 );
+	AddVolatileVariable( pe, &pveContents, 0 );
 	AddVolatileVariable( pe, &pveScript, 0 );
 	{
 		int n;
 		extern int nStandardVVE;
 		extern volatile_variable_entry standard_vves[];
-      for( n = 0; n < nStandardVVE; n++ )
+		for( n = 0; n < nStandardVVE; n++ )
 			AddVolatileVariable( pe, standard_vves + n, 0 );
 	}
 #endif
-   return pe;
+	return pe;
 }
 
 //--------------------------------------------------------------------------
@@ -625,59 +625,59 @@ CORE_PROC( PENTITY, Duplicate )(PENTITY object)
 	// but does not create the awarenesses....
 	// each entity should get a on Duplicate method also
 	// and if such a method is defined, the copied object
-   // will also be made aware to process _this startup....????
-   PENTITY pNew, pDup;
-   INDEX idx;
-   PMACRO pm;
-   PTEXT pVar;
-   PLIST pList;
+	// will also be made aware to process _this startup....????
+	PENTITY pNew, pDup;
+	INDEX idx;
+	PMACRO pm;
+	PTEXT pVar;
+	PLIST pList;
 
-   object = GetEntity( object );
+	object = GetEntity( object );
 
-   pNew = CreateEntity( LineDuplicate( object->pName ) );
+	pNew = CreateEntity( LineDuplicate( object->pName ) );
 	pNew->pDescription = LineDuplicate( object->pDescription );
 
-   pNew->pCreatedBy = object;
-   AddLink( &object->pCreated, pNew );
+	pNew->pCreatedBy = object;
+	AddLink( &object->pCreated, pNew );
 
-   // copy macros on _this object
-   pList = object->pMacros;
-   LIST_FORALL( pList, idx, PMACRO, pm )
-   {
-      AddLink( &pNew->pMacros, DuplicateMacro( pm ) );
-   }
+	// copy macros on _this object
+	pList = object->pMacros;
+	LIST_FORALL( pList, idx, PMACRO, pm )
+	{
+		AddLink( &pNew->pMacros, DuplicateMacro( pm ) );
+	}
 
 	// copy Behavior macros
 	{
-      PTEXT name;
+		PTEXT name;
 		pList = object->behaviors;
 		LIST_FORALL( pList, idx, PTEXT, name )
 		{
 			SetLink( &pNew->behaviors, idx, SegDuplicate( name ) );
 		}
 	}
-   pList = object->pBehaviors;
-   LIST_FORALL( pList, idx, PMACRO, pm )
+	pList = object->pBehaviors;
+	LIST_FORALL( pList, idx, PMACRO, pm )
 	{
-      SetLink( &pNew->pBehaviors, idx, DuplicateMacro( pm ) );
-   }
-   pList = object->pGlobalBehaviors;
-   LIST_FORALL( pList, idx, PMACRO, pm )
-   {
-      SetLink( &pNew->pGlobalBehaviors, idx, DuplicateMacro( pm ) );
-   }
+		SetLink( &pNew->pBehaviors, idx, DuplicateMacro( pm ) );
+	}
+	pList = object->pGlobalBehaviors;
+	LIST_FORALL( pList, idx, PMACRO, pm )
+	{
+		SetLink( &pNew->pGlobalBehaviors, idx, DuplicateMacro( pm ) );
+	}
 
-   // copy local variables
-   pList = object->pVars;
-   LIST_FORALL( pList, idx, PTEXT, pVar )
-   {
-      AddLink( &pNew->pVars, TextDuplicate( pVar, FALSE ) );
-   }
+	// copy local variables
+	pList = object->pVars;
+	LIST_FORALL( pList, idx, PTEXT, pVar )
+	{
+		AddLink( &pNew->pVars, TextDuplicate( pVar, FALSE ) );
+	}
 
-   putin( FindContainer( object ), pNew );
-   // duplicate all contents.
-   LIST_FORALL( object->pContains, idx, PENTITY, pDup )
-      putin( pNew, Duplicate( pDup ) );
+	putin( FindContainer( object ), pNew );
+	// duplicate all contents.
+	LIST_FORALL( object->pContains, idx, PENTITY, pDup )
+		putin( pNew, Duplicate( pDup ) );
 
   	{
   		void (*DupMethod)( PENTITY peSource, PENTITY peNew );
@@ -686,21 +686,22 @@ CORE_PROC( PENTITY, Duplicate )(PENTITY object)
 			DupMethod( object, pNew );
 		}
 	}
-   return(pNew);
+	return(pNew);
 }
 //--------------------------------------------------------------------------
 
 CORE_PROC( void, DestroyEntityEx )( PENTITY pe DBG_PASS )
 {
-   INDEX idx;
-   PENTITY object, pWithin;
-   PMACRO macro;
-   PTEXT text;
-   //#ifdef _DEBUG
-   _xlprintf( 1 DBG_RELAY )( WIDE("Destroying an entity(%s)"), GetText( GetName( pe ) ) );
-   //#endif
-   if( pe == global.THE_VOID )
-   {
+	INDEX idx;
+	PENTITY object, pWithin;
+	PMACRO macro;
+	PTEXT text;
+	TEXTSTR string;
+	//#ifdef _DEBUG
+	_xlprintf( 1 DBG_RELAY )( WIDE("Destroying an entity(%s)"), GetText( GetName( pe ) ) );
+	//#endif
+	if( pe == global.THE_VOID )
+	{
 		if( !gbExitNow )
 		{
 			gbExitNow = TRUE;
@@ -709,37 +710,37 @@ CORE_PROC( void, DestroyEntityEx )( PENTITY pe DBG_PASS )
 			return;
 		}
 		global.THE_VOID = NULL;
-   }
-   if( !pe )
-      return; // bad bad error - why ?!?
+	}
+	if( !pe )
+		return; // bad bad error - why ?!?
 
 	if( pe->flags.bDestroy )
 	{
-      // if it's been destroyed, how are we here?
+		// if it's been destroyed, how are we here?
 		// DebugBreak();
 		// it could be destroyed already... and corrupt memory
-      // this will still fail if someone thinks it knows a reference to this object.
+		// this will still fail if someone thinks it knows a reference to this object.
 		return;
 	}
 
 	pe->flags.bDestroy = TRUE;
 
-   if( pe->flags.bShadow )
-   {
-      PSHADOW_OBJECT pshadow = (PSHADOW_OBJECT)pe;
-      // uhmm stuff here...
-      // remove from room contents...
-      pullout( pshadow->pWithin, (PENTITY)pshadow );
-      LIST_FORALL( pshadow->pAttached, idx, PENTITY, object )
-      {
-         detach( (PENTITY)pshadow, object );
-      }
+	if( pe->flags.bShadow )
+	{
+		PSHADOW_OBJECT pshadow = (PSHADOW_OBJECT)pe;
+		// uhmm stuff here...
+		// remove from room contents...
+		pullout( pshadow->pWithin, (PENTITY)pshadow );
+		LIST_FORALL( pshadow->pAttached, idx, PENTITY, object )
+		{
+			detach( (PENTITY)pshadow, object );
+		}
 
-      DeleteLink( &pe->pShadowOf->pShadows, pe );
+		DeleteLink( &pe->pShadowOf->pShadows, pe );
 
-      ReleaseEx( pshadow DBG_RELAY );
-      return;
-   }
+		ReleaseEx( pshadow DBG_RELAY );
+		return;
+	}
 
 
 	{
@@ -777,10 +778,10 @@ CORE_PROC( void, DestroyEntityEx )( PENTITY pe DBG_PASS )
 		DeleteList( &pList );
 	}
 
-   lprintf( WIDE("within %p pe->pWithin %p"), pWithin, pe->pWithin );
-   if( pe->pWithin )
-      pullout( pe->pWithin, pe );
-   pe->pWithin = pWithin;
+	lprintf( WIDE("within %p pe->pWithin %p"), pWithin, pe->pWithin );
+	if( pe->pWithin )
+		pullout( pe->pWithin, pe );
+	pe->pWithin = pWithin;
 
 
 	LIST_FORALL( pe->pShadows, idx, PENTITY, object )
@@ -788,13 +789,13 @@ CORE_PROC( void, DestroyEntityEx )( PENTITY pe DBG_PASS )
 
 
 	if( pe->pShadowOf )
-      DeleteLink( &pe->pShadowOf->pShadows, pe );
-   // delete _this from the creator's list...
+		DeleteLink( &pe->pShadowOf->pShadows, pe );
+	// delete _this from the creator's list...
 	if( pe->pCreatedBy )
 	{
 		// also at this point...
-		//   I'm being destroyed from other external event
-		//   and being destroyed as the universe is being unmade.
+		//	I'm being destroyed from other external event
+		//	and being destroyed as the universe is being unmade.
 
 
 		// since I grab the list, I have created nothing
@@ -829,25 +830,25 @@ CORE_PROC( void, DestroyEntityEx )( PENTITY pe DBG_PASS )
 	}
 
 	// the contents of pmethods are the statis tree portions in procreg...
-   // just delete the list, the contents are persistant
+	// just delete the list, the contents are persistant
 	DeleteList( &pe->pMethods );
 
-   if( pe->pControlledBy )
-   {
-      if( pe->pControlledBy == global.PLAYER )
-         global.PLAYER = NULL;
+	if( pe->pControlledBy )
+	{
+		if( pe->pControlledBy == global.PLAYER )
+			global.PLAYER = NULL;
 
-      if( !DestroyAwarenessEx( pe->pControlledBy DBG_RELAY ) )
-      {
-         // Destruction will fail if processing or being destroyed...
-         // _this entity could may already be being destroyed....
-         pe->pControlledBy->flags.destroy_object = TRUE;
-         return;
-      }
-   }
+		if( !DestroyAwarenessEx( pe->pControlledBy DBG_RELAY ) )
+		{
+			// Destruction will fail if processing or being destroyed...
+			// _this entity could may already be being destroyed....
+			pe->pControlledBy->flags.destroy_object = TRUE;
+			return;
+		}
+	}
 
-   // plugins may set methods on object if deleted...
-   {
+	// plugins may set methods on object if deleted...
+	{
 		void (*DeleteMethod)(PENTITY pe, INDEX iPlugin);
 		{
 			PLIST pList = (PLIST)LockedExchangePtrSzVal( (PVPTRSZVAL)&pe->pDestroy, 0 );
@@ -858,32 +859,32 @@ CORE_PROC( void, DestroyEntityEx )( PENTITY pe DBG_PASS )
 			}
 			DeleteList( &pList );
 		}
-   }
+	}
 
-   LIST_FORALL( pe->pMacros, idx, PMACRO, macro )
-      DestroyMacro( pe, macro );
-   DeleteList( &pe->pMacros );
+	LIST_FORALL( pe->pMacros, idx, PMACRO, macro )
+		DestroyMacro( pe, macro );
+	DeleteList( &pe->pMacros );
 
 	LIST_FORALL( pe->pBehaviors, idx, PMACRO, macro )
 		DestroyMacro( pe, macro );
-   DeleteList( &pe->pBehaviors );
+	DeleteList( &pe->pBehaviors );
 
-   LIST_FORALL( pe->pGlobalBehaviors, idx, PMACRO, macro )
+	LIST_FORALL( pe->pGlobalBehaviors, idx, PMACRO, macro )
 		DestroyMacro( pe, macro );
-   DeleteList( &pe->pGlobalBehaviors );
+	DeleteList( &pe->pGlobalBehaviors );
 
-   LIST_FORALL( pe->behaviors, idx, TEXTSTR, text )
+	LIST_FORALL( pe->behaviors, idx, TEXTSTR, string )
 		Release( text );
-   DeleteList( &pe->behaviors );
+	DeleteList( &pe->behaviors );
 
 	LIST_FORALL( pe->pVars, idx, PTEXT, text )
-      LineReleaseEx( text  DBG_RELAY );
-   DeleteListEx( &pe->pVars DBG_RELAY );
+		LineReleaseEx( text  DBG_RELAY );
+	DeleteListEx( &pe->pVars DBG_RELAY );
 
-   LineReleaseEx( pe->pName DBG_RELAY );
-   LineReleaseEx( pe->pDescription DBG_RELAY );
+	LineReleaseEx( pe->pName DBG_RELAY );
+	LineReleaseEx( pe->pDescription DBG_RELAY );
 
-   Release( pe );
+	Release( pe );
 }
 
 //------------------------------------------------------------------------
@@ -892,60 +893,58 @@ INDEX level=0;
 
 PENTITY showall( PLINKQUEUE *ppOutput, PENTITY object)
 {
-   PENTITY next;
-   INDEX idx;
-   PTEXT pLine;
-//   int nPos;
+	PENTITY next;
+	INDEX idx;
+	PTEXT pLine;
 
-   if( !object )
-      return NULL;
-   if( object == global.THE_VOID )
-      level = 0;
-//   nPos = 0;
-   pLine = SegCreate( 256 );
-   pLine->data.size = 0;
-   for (idx=0;idx<level;idx++)
-   {
-      pLine->data.size += snprintf( pLine->data.data + pLine->data.size, (256-pLine->data.size)*sizeof(TEXTCHAR), WIDE("   ") );
-   }
+	if( !object )
+		return NULL;
+	if( object == global.THE_VOID )
+		level = 0;
+	pLine = SegCreate( 256 );
+	pLine->data.size = 0;
+	for (idx=0;idx<level;idx++)
+	{
+		pLine->data.size += snprintf( pLine->data.data + pLine->data.size, (256-pLine->data.size)*sizeof(TEXTCHAR), WIDE("	") );
+	}
 
-   // bad should be enqued copies of these strings...
-   pLine->data.size += snprintf( pLine->data.data + pLine->data.size, (256-pLine->data.size)*sizeof(TEXTCHAR), WIDE("%s"), GetText( GetName(object) ) );
-   EnqueLink( ppOutput, pLine );
+	// bad should be enqued copies of these strings...
+	pLine->data.size += snprintf( pLine->data.data + pLine->data.size, (256-pLine->data.size)*sizeof(TEXTCHAR), WIDE("%s"), GetText( GetName(object) ) );
+	EnqueLink( ppOutput, pLine );
 
-   LIST_FORALL( object->pContains, idx, PENTITY, next )
-   {
-      if (next!=object)  /* the void screws us all the time! */
-      {
-         level++;
-         showall( ppOutput, next);
-         level--;
-      }
-   }
-   return NULL;
+	LIST_FORALL( object->pContains, idx, PENTITY, next )
+	{
+		if (next!=object)  /* the void screws us all the time! */
+		{
+			level++;
+			showall( ppOutput, next);
+			level--;
+		}
+	}
+	return NULL;
 }
 
 //--------------------------------------------------------------------------
 #undef CreateDataPath
 CORE_PROC( PDATAPATH, CreateDataPath )( PDATAPATH *ppChannel, int nExtra )
 {
-   PDATAPATH pdp;
-   pdp = NewPlus( DATAPATH, nExtra );
-   MemSet( pdp, 0, sizeof( DATAPATH ) + nExtra );
-   pdp->ppMe     = ppChannel;
-   //Log( WIDE("Linking in new path? ") );
-   if( ppChannel )
-   {
-	   pdp->pPrior   = *ppChannel;
-	   if( pdp->pPrior )
-	   	pdp->pPrior->ppMe = &pdp->pPrior;
-	   *ppChannel    = pdp;
+	PDATAPATH pdp;
+	pdp = NewPlus( DATAPATH, nExtra );
+	MemSet( pdp, 0, sizeof( DATAPATH ) + nExtra );
+	pdp->ppMe	  = ppChannel;
+	//Log( WIDE("Linking in new path? ") );
+	if( ppChannel )
+	{
+		pdp->pPrior	= *ppChannel;
+		if( pdp->pPrior )
+			pdp->pPrior->ppMe = &pdp->pPrior;
+		*ppChannel	 = pdp;
 	}
 	else
 	{
 		// *0 = 0; // CRASH!!!
 	}
-   return pdp;
+	return pdp;
 }
 
 //--------------------------------------------------------------------------
@@ -981,9 +980,9 @@ CORE_PROC( PDATAPATH, DestroyDataPathEx )( PDATAPATH pdp DBG_PASS )
 #ifdef _DEBUG
 		{
 			PTEXT out = BuildLine( p );
-		   	Log1( WIDE("Trashing output line: %s"), GetText( out ) );
-		   	LineRelease( out );
-	   	}
+				Log1( WIDE("Trashing output line: %s"), GetText( out ) );
+				LineRelease( out );
+			}
 #endif
 		LineRelease( p );
 	}
@@ -993,7 +992,7 @@ CORE_PROC( PDATAPATH, DestroyDataPathEx )( PDATAPATH pdp DBG_PASS )
 	LineRelease( pdp->Partial );
 	LineRelease( pdp->CurrentLine );
 	if( pdp->pPrior )
-   		pdp->pPrior->ppMe = pdp->ppMe;
+			pdp->pPrior->ppMe = pdp->ppMe;
 
 	if( pdp->ppMe )
 		*(pdp->ppMe) = pdp->pPrior;
@@ -1016,8 +1015,8 @@ static int CPROC DefaultCommandOutput( PDATAPATH pdp )
 		PENTITY peForwardTo;
 		PTEXT pReQue, pOrig;
 		pReQue = SegAppend( SegAppend( TextDuplicate( Current->pName, FALSE )
-                                   , SegCreateIndirect( (PTEXT)&msg ) )
-                        , pOrig = (PTEXT)DequeLink( &pdp->Output ) );
+											  , SegCreateIndirect( (PTEXT)&msg ) )
+								, pOrig = (PTEXT)DequeLink( &pdp->Output ) );
 		// I dunno - seems output from a sub object should be
 		// line oriented even if it's instructed to be noreturn/formatted
 		// cause it's still gonna get mucked about with the output
@@ -1037,7 +1036,7 @@ static int CPROC DefaultCommandOutput( PDATAPATH pdp )
 			peForwardTo->pCreatedBy->pControlledBy )
 		{
 			 EnqueLink( &peForwardTo->pCreatedBy->pControlledBy->Command->Output
-                  , pReQue );
+						, pReQue );
 		}
 		else
 		{
@@ -1060,56 +1059,56 @@ static int CPROC DefaultCommandOutput( PDATAPATH pdp )
 
 CORE_PROC( PSENTIENT, CreateAwareness )( PENTITY pEntity )
 {
-   PSENTIENT ps;
+	PSENTIENT ps;
 
-   if( pEntity->pControlledBy )
-   {
-      //DECLTEXT( msg, WIDE("Attempt to reawaken you...\n") );
-      //EnqueLink( pEntity->pControlledBy->Command->ppOutput, (PTEXT)&msg );
-      return NULL;
-   }
+	if( pEntity->pControlledBy )
+	{
+		//DECLTEXT( msg, WIDE("Attempt to reawaken you...\n") );
+		//EnqueLink( pEntity->pControlledBy->Command->ppOutput, (PTEXT)&msg );
+		return NULL;
+	}
 
-   ps = New( SENTIENT );
+	ps = New( SENTIENT );
 	MemSet( ps, 0, sizeof( SENTIENT ) ); // must zero !
-   ps->ProcessLock = 1; // LOCKED; // creator of awareness MUST unlock!
-   ps->StepLock = 1;    // step locked.
-   ps->Current = pEntity;
-   pEntity->pControlledBy = ps;
+	ps->ProcessLock = 1; // LOCKED; // creator of awareness MUST unlock!
+	ps->StepLock = 1;	 // step locked.
+	ps->Current = pEntity;
+	pEntity->pControlledBy = ps;
 
-   // note _this syntax is different from plugins...
-   CreateDataPath( &ps->Command, 0 );
-   ps->Command->Owner = ps;
-   ps->Command->Write = DefaultCommandOutput;
+	// note _this syntax is different from plugins...
+	CreateDataPath( &ps->Command, 0 );
+	ps->Command->Owner = ps;
+	ps->Command->Write = DefaultCommandOutput;
 	ps->Command->pName = SegCreateFromText( WIDE("Default") );
 
-   ps->MacroStack = CreateDataStack( sizeof(MACROSTATE) );
+	ps->MacroStack = CreateDataStack( sizeof(MACROSTATE) );
 
-   ps->Next = AwareEntities;
+	ps->Next = AwareEntities;
 
-   if( AwareEntities )
-   {
-      while( LockedExchange( &AwareEntities->StepLock, 1 ) )
-         Sleep(0);
-      AwareEntities->Prior = ps;
-      AwareEntities->StepLock = 0;
-   }
-   {
-      DECLTEXT( prompt, WIDE("prompt") );
-      DECLTEXT( prompt_default, WIDE("[%%room/%%me]:") );
-      PTEXT pDefault = burst( (PTEXT)&prompt_default );
-      AddVariable( ps, ps->Current, (PTEXT)&prompt, pDefault );
-      LineRelease( pDefault );
-   }
-   AwareEntities = ps;
-   ps->StepLock = 0; // easy to clear....
-   return ps;
+	if( AwareEntities )
+	{
+		while( LockedExchange( &AwareEntities->StepLock, 1 ) )
+			Sleep(0);
+		AwareEntities->Prior = ps;
+		AwareEntities->StepLock = 0;
+	}
+	{
+		DECLTEXT( prompt, WIDE("prompt") );
+		DECLTEXT( prompt_default, WIDE("[%%room/%%me]:") );
+		PTEXT pDefault = burst( (PTEXT)&prompt_default );
+		AddVariable( ps, ps->Current, (PTEXT)&prompt, pDefault );
+		LineRelease( pDefault );
+	}
+	AwareEntities = ps;
+	ps->StepLock = 0; // easy to clear....
+	return ps;
 }
 
 //--------------------------------------------------------------------------
 
 CORE_PROC( void, UnlockAwareness )( PSENTIENT ps )
 {
-   if( ps )
+	if( ps )
 		ps->ProcessLock = 0;
 }
 
@@ -1121,25 +1120,25 @@ CORE_PROC( int, DestroyAwarenessEx )( PSENTIENT ps DBG_PASS )
 	INDEX idx;
 	PMACROSTATE pms;
 	if( ps->ProcessingLock &&
-       !ps->flags.force_destroy )
+		 !ps->flags.force_destroy )
 	{
 		ps->flags.destroy = TRUE;
 		return FALSE;
 	}
 	// lock the object NOW...
 	while( !ps->flags.force_destroy &&
-          LockedExchange( &ps->ProcessingLock, 1 ) ) Sleep(0);
+			 LockedExchange( &ps->ProcessingLock, 1 ) ) Sleep(0);
 
 	ps->Current->pControlledBy = NULL;
 
 	do
 	{
-   		DestroyDataPath( ps->Data );
+			DestroyDataPath( ps->Data );
 	} while( ps->Data );
 
 	do
 	{
-	   DestroyDataPath( ps->Command );
+		DestroyDataPath( ps->Command );
 	} while( ps->Command );
 
 
@@ -1169,62 +1168,62 @@ CORE_PROC( int, DestroyAwarenessEx )( PSENTIENT ps DBG_PASS )
 		{
 			pms->pMacro->flags.un.macro.bUsed = FALSE;
 			if( pms->pMacro->flags.un.macro.bDelete )
-   				DestroyMacro( ps->Current, pms->pMacro );
+					DestroyMacro( ps->Current, pms->pMacro );
 		}
 		PopData( &ps->MacroStack );
 	}
 	DeleteDataStack( &ps->MacroStack );
 
-   if( ps->Prior )
-   {
-      while( LockedExchange( &ps->Prior->StepLock, 1 ) )
-         Sleep(0);
-      ps->Prior->Next = ps->Next;
-      ps->Prior->StepLock = 0; // easy to clear....
-   }
-   else
-      AwareEntities = ps->Next;
+	if( ps->Prior )
+	{
+		while( LockedExchange( &ps->Prior->StepLock, 1 ) )
+			Sleep(0);
+		ps->Prior->Next = ps->Next;
+		ps->Prior->StepLock = 0; // easy to clear....
+	}
+	else
+		AwareEntities = ps->Next;
 
-   if( ps->Next )
-   {
-      while( LockedExchange( &ps->Next->StepLock, 1 ) )
-         Sleep(0);
-      ps->Next->Prior = ps->Prior;
-      ps->Next->StepLock = 0; // easy to clear....
-   }
-   if( ps->flags.destroy_object )
-      DestroyEntityEx( ps->Current DBG_RELAY );
+	if( ps->Next )
+	{
+		while( LockedExchange( &ps->Next->StepLock, 1 ) )
+			Sleep(0);
+		ps->Next->Prior = ps->Prior;
+		ps->Next->StepLock = 0; // easy to clear....
+	}
+	if( ps->flags.destroy_object )
+		DestroyEntityEx( ps->Current DBG_RELAY );
 
-   ReleaseEx( ps DBG_RELAY );
-   return TRUE; // success!!!
+	ReleaseEx( ps DBG_RELAY );
+	return TRUE; // success!!!
 }
 
 //--------------------------------------------------------------------------
 
 void Story( PLINKQUEUE *ppOutput )
 {
-   INDEX idx;
-   PTEXT pWork;
-   for (idx=0;idx<NUMLINES;idx++)
-   {
-      pWork = SegCreateFromText( storytext[idx] );
-      EnqueLink( ppOutput, pWork );
-   }
+	INDEX idx;
+	PTEXT pWork;
+	for (idx=0;idx<NUMLINES;idx++)
+	{
+		pWork = SegCreateFromText( storytext[idx] );
+		EnqueLink( ppOutput, pWork );
+	}
 }
 
 //--------------------------------------------------------------------------
 
 PENTITY Big_Bang( PTEXT pName )
 {
-   /* _this routine plays funny games to set up an initial starting place for the
-      universe to come... Kids, do not try _this at home :> */
-   PENTITY pTemp;
+	/* _this routine plays funny games to set up an initial starting place for the
+		universe to come... Kids, do not try _this at home :> */
+	PENTITY pTemp;
 
-   pTemp=CreateEntity( pName );
+	pTemp=CreateEntity( pName );
 
-   putin(pTemp,pTemp);
-   // attach(pTemp,pTemp); // no maybe don't attach the universe to itself...
-   return pTemp;
+	putin(pTemp,pTemp);
+	// attach(pTemp,pTemp); // no maybe don't attach the universe to itself...
+	return pTemp;
 }
 
 //--------------------------------------------------------------------------
@@ -1241,15 +1240,15 @@ CORE_PROC( PENTITY, GetTheVoid )( void )
 
 static PTEXT CPROC GetSentientName( PTRSZVAL psv, POINTER p )
 {
-   PSENTIENT ps = (PSENTIENT)p;
-   return GetName( ps->Current );
+	PSENTIENT ps = (PSENTIENT)p;
+	return GetName( ps->Current );
 }
 //--------------------------------------------------------------------------
 
 static PTEXT CPROC GetEntityName( PTRSZVAL psv, POINTER p )
 {
-   PENTITY pe = (PENTITY)p;
-   return GetName( pe );
+	PENTITY pe = (PENTITY)p;
+	return GetName( pe );
 }
 
 
@@ -1258,14 +1257,14 @@ static PTEXT CPROC GetEntityName( PTRSZVAL psv, POINTER p )
 void DoCommandf( PSENTIENT ps, CTEXTSTR f, ... )
 {
 	PVARTEXT pvt = VarTextCreate();
-   PTEXT cmd, temp;
+	PTEXT cmd, temp;
 	va_list args;
 	va_start( args, f );
 	vvtprintf( pvt, f, args );
 	cmd = burst( temp = VarTextGet( pvt ) );
 	LineRelease( temp );
 	EnqueLink( &ps->Command->Input, cmd);
-   WakeAThread( ps );
+	WakeAThread( ps );
 }
 //--------------------------------------------------------------------------
 
@@ -1273,8 +1272,8 @@ PTEXT global_command_line;
 
 int InitSpace( const TEXTCHAR *command_line )
 {
-//   pg = Allocate( sizeof( GLOBAL ) );
-	//   MemSet( pg, 0, sizeof( GLOBAL ) );
+//	pg = Allocate( sizeof( GLOBAL ) );
+	//	MemSet( pg, 0, sizeof( GLOBAL ) );
 	global.flags.bLogAllCommands = SACK_GetProfileInt( WIDE("options"), WIDE("Log All Commands"), 0 );
 	global.THE_VOID = Big_Bang( SegCreateFromText( WIDE("The Void") ) );
 	{
@@ -1392,59 +1391,59 @@ int InitSpace( const TEXTCHAR *command_line )
 
 //--------------------------------------------------------------------------
 #define StepNextSentient() { while( LockedExchange( &ps->StepLock, 1 ) ) \
-                        Sleep(0);        \
-                     pNext = ps->Next;   \
-                     ps->StepLock = 0; }
+								Sleep(0);		  \
+							pNext = ps->Next;	\
+							ps->StepLock = 0; }
 
 
 int ProcessSentients( THREAD_ID ThreadID )
 {
 	extern int gbTrace;
-   PENTITY peMe;
-   PSENTIENT ps, pNext;
-   PTEXT pCommand;
+	PENTITY peMe;
+	PSENTIENT ps, pNext;
+	PTEXT pCommand;
 	PMACROSTATE pms = NULL;
-   int total;
-   int bFree;
-   total = 0;
-   pNext = AwareEntities;
+	int total;
+	int bFree;
+	total = 0;
+	pNext = AwareEntities;
 	while( ( ps = pNext ) )
 	{
 		int n = 0;
 		//SystemLog( WIDE("Process Sentient.") );
 		pCommand = NULL;
-      if( ps->ProcessLock || LockedExchange( &ps->ProcessingLock, 1 ) )
-      {
-         StepNextSentient();
-         continue;
+		if( ps->ProcessLock || LockedExchange( &ps->ProcessingLock, 1 ) )
+		{
+			StepNextSentient();
+			continue;
 		}
-      if( ps->flags.destroy )
-      {
-         ps->flags.force_destroy = TRUE;
-         DestroyAwareness( ps );
-         // can't step from _this - cause it's now gone - must restart...
-         return total + 1; // might not end up asleep yet...
-      }
+		if( ps->flags.destroy )
+		{
+			ps->flags.force_destroy = TRUE;
+			DestroyAwareness( ps );
+			// can't step from _this - cause it's now gone - must restart...
+			return total + 1; // might not end up asleep yet...
+		}
 
-      /*
+		/*
 		if( ps->flags.waiting_for_someone )
 		{
-         lprintf( WIDE("sentience is waiting on a posted command to complete") );
-         StepNextSentient();
+			lprintf( WIDE("sentience is waiting on a posted command to complete") );
+			StepNextSentient();
 			continue;
 			}
 			*/
-      if( gbTrace )
+		if( gbTrace )
 			lprintf( WIDE("---- PROCESS %p(%s)"), ps, GetText( GetName( ps->Current ) ) );
 		do
 		{
-			if( !ps->flags.bRelay   // not relay
-				|| !ps->Data         // no datapath
+			if( !ps->flags.bRelay	// not relay
+				|| !ps->Data			// no datapath
 				|| PeekData( &ps->MacroStack ) // running a macro - gotta end _this...
 			  )
 			{
 				PTEXT *ppCommand = &pCommand;
-            //lprintf( WIDE("Do free this command.") );
+				//lprintf( WIDE("Do free this command.") );
 				bFree = TRUE;
 				ps->CurrentMacro = NULL; // gets restored next command....
 				{
@@ -1523,7 +1522,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 						ps->flags.commanded = TRUE; // may indicate issue prompt
 				}
 			do_macro_command:
-				if( !pCommand &&   // did not get command from command queue
+				if( !pCommand &&	// did not get command from command queue
 					!ps->flags.macro_input /*&&  // /INPUT command has been issued...
 					!ps->flags.macro_suspend*/ ) // flag prevents any macro processing
 				{
@@ -1535,7 +1534,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 						ps->flags.resume_run = 0;
 						pms->state.flags.macro_suspend = 0;
 					}
-					if( pms &&       // a macro is available...
+					if( pms &&		 // a macro is available...
 						!pms->state.flags.bInputWait && // and is not in /WAIT
 						!pms->state.flags.macro_suspend )
 					{
@@ -1571,7 +1570,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 								}
 							}
 							//else
-							//   SystemLog( WIDE("Macro has no commands?") );
+							//	SystemLog( WIDE("Macro has no commands?") );
 							// _this pCommand is static and must remain.
 							//lprintf( WIDE("Do not free this...") );
 							bFree = FALSE;
@@ -1624,14 +1623,14 @@ int ProcessSentients( THREAD_ID ThreadID )
 							pms->state.flags.bInputWait = FALSE;
 						}
 						// uhmm - _this has changed state, we
-                  // therefore need to re-evaluate for a command.
+						// therefore need to re-evaluate for a command.
 						if( !pms->state.flags.bInputWait )
 						{
 							continue; // re-scan from top - now we can get commands...
 						}
 					}
 				}
-         
+			
 				if( pCommand ) // got command from main queue or from a macro.
 				{
 					//if( gbTrace )
@@ -1741,7 +1740,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 					}
 				}
 				//else
-            //   SystemLog( WIDE("No command from macro... or input.") );
+				//	SystemLog( WIDE("No command from macro... or input.") );
 			}
 			else
 			{
@@ -1758,7 +1757,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 			break;
 		} while(1);
 
-		if( ps->Data &&   // data channel open and...
+		if( ps->Data &&	// data channel open and...
 			( !( pms = (PMACROSTATE)PeekData( &ps->MacroStack ) )
 			  || pms->state.flags.macro_suspend) )// not running a macro
 		{
@@ -1771,9 +1770,9 @@ int ProcessSentients( THREAD_ID ThreadID )
 			// something was processed.... but don't eat the data
 			// the macro may want it.
 			// which is an intersting problem.......
-			//   /trigger <some data>
+			//	/trigger <some data>
 			//  (data is held)
-         //    /macro ;/input %data ; will be the line that invoked the macro itself.
+			//	 /macro ;/input %data ; will be the line that invoked the macro itself.
 			if( !pms && PeekData( &ps->MacroStack ) )
 				n++;
 			while( !IsQueueEmpty( &ps->Data->Input ) && 
@@ -1885,15 +1884,15 @@ int ProcessSentients( THREAD_ID ThreadID )
 
 		if( !n &&
 			 !ps->flags.bRelay && // if it's clear relay no prompt noise please
-      	 !ps->flags.prompt && // needs a prompt - ie hasn't prompted yet.
-          !ps->flags.no_prompt && // prompt not supressed
-          !ps->Data &&            // don't prompt if datapath is open
-          ps->Command &&
-          ps->Command->Type   // command path is open....
-        )  // and is using it's own queue...
+			 !ps->flags.prompt && // needs a prompt - ie hasn't prompted yet.
+			 !ps->flags.no_prompt && // prompt not supressed
+			 !ps->Data &&				// don't prompt if datapath is open
+			 ps->Command &&
+			 ps->Command->Type	// command path is open....
+		  )  // and is using it's own queue...
 		{
-		   ps->flags.prompt = TRUE;
-		   // commanded is - issued a prompt which causes a prompt
+			ps->flags.prompt = TRUE;
+			// commanded is - issued a prompt which causes a prompt
 			ps->flags.commanded = FALSE; // uncommand ... in case was /prompt
 			if( ps->Command->CommandInfo &&
 				 ps->Command->CommandInfo->Prompt )
@@ -1926,43 +1925,43 @@ static PPROCESS_THREAD processing, sleeping;
 
 PTRSZVAL CPROC ObjectProcessThread( PTHREAD thread )
 {
-   int delay = 0, n;
+	int delay = 0, n;
 	PPROCESS_THREAD pMyThread = (PPROCESS_THREAD)GetThreadParam( thread );
-   // some of these threads may have loaded DLLs
-   // for now it is safe to assume that they did not - and do not
-   // have to unload the plugins themselves...
-   // but the DLL must remain for the UnloadPlugins() to work...
-   while( !pMyThread->thread )
-   	Relinquish(); // think _this might happen...
-   while( !gbExitNow )
+	// some of these threads may have loaded DLLs
+	// for now it is safe to assume that they did not - and do not
+	// have to unload the plugins themselves...
+	// but the DLL must remain for the UnloadPlugins() to work...
+	while( !pMyThread->thread )
+		Relinquish(); // think _this might happen...
+	while( !gbExitNow )
 	{
-      if( ( n = ProcessSentients( GetThreadID( thread ) ) ) )
-      {
-         delay += n;
-         if( delay > 500 ) // 500 instructions on all sentients...
-         {
-            delay = 0;
-            Relinquish(); // delay every 500 instructions
-         }
-      }
-      else
-      {
+		if( ( n = ProcessSentients( GetThreadID( thread ) ) ) )
+		{
+			delay += n;
+			if( delay > 500 ) // 500 instructions on all sentients...
+			{
+				delay = 0;
+				Relinquish(); // delay every 500 instructions
+			}
+		}
+		else
+		{
 			//Log( WIDE("Sleeping forever... should be events laying around...") );
 			while( LockedExchange( &updating_queues, 1 ) )
-            Relinquish();
+				Relinquish();
 			RelinkThing( sleeping, pMyThread );
-         updating_queues = 0;
-         WakeableSleep(5000 /*SLEEP_FOREVER*/); // 20 cycles a second idle...
-      }
+			updating_queues = 0;
+			WakeableSleep(5000 /*SLEEP_FOREVER*/); // 20 cycles a second idle...
+		}
 	}
 	Log( WIDE("Found out we're to exit - so we do.") );
-   Release( UnlinkThing( pMyThread ) );
+	Release( UnlinkThing( pMyThread ) );
 	return 0;
 }
 //#undef WakeAThread
 //CORE_PROC( void, WakeAThread )( PSENTIENT ps )
 //{
-//   WakeAThreadEx( ps DBG_SRC );
+//	WakeAThreadEx( ps DBG_SRC );
 //}
 
 CORE_PROC( void, WakeAThreadEx )( PSENTIENT ps DBG_PASS )
@@ -1982,7 +1981,7 @@ CORE_PROC( void, WakeAThreadEx )( PSENTIENT ps DBG_PASS )
 	//lprintf( WIDE("Waking a thread...")DBG_FORMAT DBG_RELAY );
 	if( ps )
 	{
-      		ps->ProcessLock = 0; // someone woke this up.  Do something.
+				ps->ProcessLock = 0; // someone woke this up.  Do something.
 	}
 	if( sleeping )
 	{
@@ -2005,7 +2004,7 @@ CORE_PROC( void, WakeAThreadEx )( PSENTIENT ps DBG_PASS )
 		while( LockedExchange( &updating_queues, 1 ) )
 			Relinquish();
 		LinkThing( processing, thread );
-      updating_queues = 0;
+		updating_queues = 0;
 		thread->thread = ThreadTo( ObjectProcessThread, (PTRSZVAL)thread );
 	}
 }
@@ -2020,7 +2019,7 @@ CORE_CPROC( void, TimerWake )( PTRSZVAL psv )
 
 CORE_PROC( void, ExitNexus )( void )
 {
-   gbExitNow = TRUE;
+	gbExitNow = TRUE;
 	WakeThread( pMainThread );
 }
 
@@ -2035,41 +2034,41 @@ CORE_PROC( void, ExitNexus )( void )
 
 PTEXT get_line(FILE *source) /*FOLD00*/
 {
-   #define WORKSPACE 1024  // character for workspace
-   PTEXT workline=(PTEXT)NULL, tmp;
-   int length;
-   TEXTCHAR *data;
-   if( !source )
-      return NULL;
-   do
-   {
-      // create a workspace to read input from the file.
-      SegAppend(workline,tmp=SegCreate(WORKSPACE));
-      workline=tmp;
-      data = GetText(workline);
-      // read a line of input from the file.
-      if( !fgets( data, WORKSPACE, source) ) // if no input read.
-      {
-         if (PRIORLINE(workline)) // if we've read some.
-         {
-            PTEXT t;
-            workline=PRIORLINE(workline); // go back one.
-            SegBreak(t = NEXTLINE(workline));
-            LineRelease(t);  // destroy the current segment.
-         }
-         else
-         {
-            LineRelease(workline);            // destory only segment.
-            workline = NULL;
-         }
-         break;  // get out of the loop- there is no more to read.
-      }
-      workline->data.size = length=strlen(data);  // get the length of the line.
-   }
-   while( data[length-1] != '\n' ); //while not at the end of the line.
-   if( workline )  // if I got a line, and there was some length to it.
-      SetStart( workline );   // set workline to the beginning.
-   return( workline );      // return the line read from the file.
+	#define WORKSPACE 1024  // character for workspace
+	PTEXT workline=(PTEXT)NULL, tmp;
+	int length;
+	TEXTCHAR *data;
+	if( !source )
+		return NULL;
+	do
+	{
+		// create a workspace to read input from the file.
+		SegAppend(workline,tmp=SegCreate(WORKSPACE));
+		workline=tmp;
+		data = GetText(workline);
+		// read a line of input from the file.
+		if( !fgets( data, WORKSPACE, source) ) // if no input read.
+		{
+			if (PRIORLINE(workline)) // if we've read some.
+			{
+				PTEXT t;
+				workline=PRIORLINE(workline); // go back one.
+				SegBreak(t = NEXTLINE(workline));
+				LineRelease(t);  // destroy the current segment.
+			}
+			else
+			{
+				LineRelease(workline);				// destory only segment.
+				workline = NULL;
+			}
+			break;  // get out of the loop- there is no more to read.
+		}
+		workline->data.size = length=strlen(data);  // get the length of the line.
+	}
+	while( data[length-1] != '\n' ); //while not at the end of the line.
+	if( workline )  // if I got a line, and there was some length to it.
+		SetStart( workline );	// set workline to the beginning.
+	return( workline );		// return the line read from the file.
 }
 
 //----------------------------------------------------------------------
@@ -2080,47 +2079,47 @@ int bInputPause = FALSE;
 int bInputPending = FALSE;
 void UserInputThread( void )
 {
-   PTEXT command, p;
+	PTEXT command, p;
 #include <sys/types.h>
 #include <sys/time.h>
-   fd_set rfds;
-   struct timeval tval;
+	fd_set rfds;
+	struct timeval tval;
 
-   while( TRUE )
-   {
-      while( bInputPause )
-         Sleep( 50 );
-      bInputPending = TRUE;
-      command = (PTEXT)get_line( stdin );
-      bInputPending = FALSE;
-      if( !command ) // may be end of file... may be termination...
-         continue; 
-      if( bOutputPause )
-      {
-         bOutputPause = FALSE;
-         LineRelease( command );
-         continue;
-      }
-      p = burst( command );
-      if( p )
-      {
-//       printf( WIDE("enquing command...\n"));
-         EnqueLink( &PLAYER->Command->Input, p );
-      }
-      LineRelease( command );
-   }
+	while( TRUE )
+	{
+		while( bInputPause )
+			Sleep( 50 );
+		bInputPending = TRUE;
+		command = (PTEXT)get_line( stdin );
+		bInputPending = FALSE;
+		if( !command ) // may be end of file... may be termination...
+			continue; 
+		if( bOutputPause )
+		{
+			bOutputPause = FALSE;
+			LineRelease( command );
+			continue;
+		}
+		p = burst( command );
+		if( p )
+		{
+//		 printf( WIDE("enquing command...\n"));
+			EnqueLink( &PLAYER->Command->Input, p );
+		}
+		LineRelease( command );
+	}
 }
 
 void OutputText( PTEXT pText )
 {
-   if( pText && GetTextSize( pText ) )
-   {
-      fprintf( stderr, WIDE("%s"), GetText( pText ) );
-   }
-   else
-   {
-      fprintf( stderr, WIDE("\n") );
-   }
+	if( pText && GetTextSize( pText ) )
+	{
+		fprintf( stderr, WIDE("%s"), GetText( pText ) );
+	}
+	else
+	{
+		fprintf( stderr, WIDE("\n") );
+	}
 }
 
 int ConsoleWrite( PDATAPATH pdp )
@@ -2172,7 +2171,7 @@ int ConsoleWrite( PDATAPATH pdp )
 
 CORE_PROC( void, S_MSG )( PSENTIENT ps, CTEXTSTR msg, ... ) 
 { 
-	PVARTEXT pvt;     
+	PVARTEXT pvt;	  
 	va_list args;
 	va_start( args, msg );
 	pvt = VarTextCreate(); 
@@ -2188,11 +2187,11 @@ CORE_PROC( void, D_MSG )( PDATAPATH pd, CTEXTSTR msg, ... )
 	pvt = VarTextCreate();
 	vvtprintf( pvt, msg, args );
 	EnqueLink(&(pd)->Output,VarTextGet( pvt ));
-   WakeAThread( NULL );
+	WakeAThread( NULL );
 	VarTextDestroy( &pvt );
 }
 CORE_PROC( void, Q_MSG )( PLINKQUEUE *po, CTEXTSTR msg, ... ) 
-{ PVARTEXT pvt;     va_list args;
+{ PVARTEXT pvt;	  va_list args;
 	 va_start( args, msg );
 pvt = VarTextCreate(); vvtprintf( pvt, msg, args ); EnqueLink((po),VarTextGet( pvt )); VarTextDestroy( &pvt ); }
 
@@ -2438,21 +2437,21 @@ static PTRSZVAL CPROC DekwareThread( PTHREAD thread )
 		Log( WIDE("Goodnight!") );
 		WakeableSleep( SLEEP_FOREVER );
 	}
-   Cleanup();
-   return 0;
+	Cleanup();
+	return 0;
 }
 
 PRELOAD( BeginDekwareSpace )
 {
 	SetMinAllocate( sizeof( TEXT ) + 4 );
-   // if dekware is the launcher it will be doing arguments
+	// if dekware is the launcher it will be doing arguments
 	//Startup( NULL );
-   //ThreadTo( DekwareThread, 0 );
+	//ThreadTo( DekwareThread, 0 );
 }
 
 ATEXIT( EndDekwareSpace )
 {
-   Cleanup();
+	Cleanup();
 }
 
 #ifdef __cplusplus
@@ -2464,9 +2463,9 @@ __declspec(dllexport)
 // set bCommand if was run from a console window proc....
 int CPROC Begin( TEXTCHAR *lpCmdLine, int bCommand )
 {
-   // console determines some internal variables to pass to startup scripts for which console to launch
+	// console determines some internal variables to pass to startup scripts for which console to launch
 	IsConsole = bCommand;
-   // we may have command line arguments; call startup
+	// we may have command line arguments; call startup
 	Startup( strchr( lpCmdLine, ' ' ));
 
 	if( !StrStr( lpCmdLine, WIDE("-tsr" ) ) )
@@ -2479,7 +2478,7 @@ int CPROC Begin( TEXTCHAR *lpCmdLine, int bCommand )
 		}
 		Cleanup();
 	}
-   return 0;
+	return 0;
 }
 
 
@@ -2501,24 +2500,24 @@ namespace dekware
 	// Pin memory so GC can't move it while native function is called
 	pin_ptr<const wchar_t> wch = PtrToStringChars(str);
 
-   // Conversion to TEXTCHAR* :
-   // Can just convert wchar_t* to TEXTCHAR* using one of the 
-   // conversion functions such as: 
-   // WideCharToMultiByte()
-   // wcstombs_s()
-   // ... etc
-   size_t convertedChars = 0;
-   size_t  sizeInBytes = ((str->Length + 1) * 2);
-   errno_t err = 0;
-   TEXTCHAR    *ch = NewArray( TEXTCHAR, sizeInBytes);
+	// Conversion to TEXTCHAR* :
+	// Can just convert wchar_t* to TEXTCHAR* using one of the 
+	// conversion functions such as: 
+	// WideCharToMultiByte()
+	// wcstombs_s()
+	// ... etc
+	size_t convertedChars = 0;
+	size_t  sizeInBytes = ((str->Length + 1) * 2);
+	errno_t err = 0;
+	TEXTCHAR	 *ch = NewArray( TEXTCHAR, sizeInBytes);
 
-   err = wcstombs_s(&convertedChars, 
-                    ch, sizeInBytes,
-                    wch, sizeInBytes);
-   //if (err != 0)
-   //   printf_s(WIDE("wcstombs_s  failed!\n"));
+	err = wcstombs_s(&convertedChars, 
+						  ch, sizeInBytes,
+						  wch, sizeInBytes);
+	//if (err != 0)
+	//	printf_s(WIDE("wcstombs_s  failed!\n"));
 	return ch;
-    //printf_s(WIDE("%s\n"), ch);
+	 //printf_s(WIDE("%s\n"), ch);
 }
 
 	};
@@ -2550,7 +2549,7 @@ public: DataPath( )
 		}
 public: DataPath( PSENTIENT ps, System::String ^str )
 	{
-//CORE_PROC( PDATAPATH, CreateDataPath   )( PDATAPATH *ppWhere, int nExtra );
+//CORE_PROC( PDATAPATH, CreateDataPath	)( PDATAPATH *ppWhere, int nExtra );
 //#define CreateDataPath(where, pathname) (P##pathname)CreateDataPath( where, sizeof(pathname) - sizeof( DATAPATH ) )
 //		pdp = CreateDataPath( &sentient->ps->Command, CONSOLE_INFO );
 	}

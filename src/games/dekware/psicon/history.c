@@ -277,17 +277,17 @@ PTEXTLINE GetSomeHistoryLineEx( PHISTORY_REGION region
 {
 	// if history has never had anything...
 	//_xlprintf( 0 DBG_RELAY )(WIDE("Getting some history line: %d"), line );
-   if( !region->pHistory.next )
+	if( !region->pHistory.next )
 		return NULL;
 	if( ( line > 0 ) && start )
 	{
-      return start->pLines + (line-1);
+		return start->pLines + (line-1);
 	}
 	if( !start )
 	{
 		start = region->pHistory.last;
 		line += start->nLinesUsed;
-      //lprintf( WIDE("overriding start, using line as rel index back... now is %d"), line );
+		//lprintf( WIDE("overriding start, using line as rel index back... now is %d"), line );
 	}
 	// if start, and line < 0 then we'll naturally
 	// step back one at a time...
@@ -296,7 +296,7 @@ PTEXTLINE GetSomeHistoryLineEx( PHISTORY_REGION region
 	// at less than 0 we back up a block, add that blocks size,
 	// and result with that blocks, now positive index, and so forth
 	// until there are no blocks, or the index becomes a positive one
-   // in a block...
+	// in a block...
 	{
 		PHISTORYBLOCK pBlock = start;
 		// correct for last block last line index...
@@ -323,7 +323,7 @@ PTEXTLINE GetSomeHistoryLineEx( PHISTORY_REGION region
 				}
 			if( ( pBlock = pBlock->prior ) && *(pBlock->me) )
 			{
-	            //lprintf( WIDE("Adjusting line as we step backward...") );
+				//lprintf( WIDE("Adjusting line as we step backward...") );
 				line += pBlock->nLinesUsed;
 			}
 		}
@@ -336,8 +336,8 @@ PTEXTLINE GetSomeHistoryLineEx( PHISTORY_REGION region
 			}
 			return pBlock->pLines + (line - 1);
 		}
-   }
-   return NULL;
+	}
+	return NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -356,8 +356,8 @@ PTEXTLINE GetNewHistoryLine( PHISTORY_REGION region )
 	{
 		pBlock = CreateHistoryBlock( &region->pHistory.root );
 	}
-   //lprintf( WIDE("INcrementint lines used... returning this line at %d"), pBlock->nLinesUsed );
-   return pBlock->pLines + pBlock->nLinesUsed++;
+	//lprintf( WIDE("INcrementint lines used... returning this line at %d"), pBlock->nLinesUsed );
+	return pBlock->pLines + pBlock->nLinesUsed++;
 }
 
 //----------------------------------------------------------------------------
@@ -445,7 +445,7 @@ PTEXTLINE GetAHistoryLine( PHISTORY_LINE_CURSOR phc, PHISTORY_BROWSER phbr, int 
 				}
 				ptl = GetNewHistoryLine( phbr->region );
 				if( !phbr->pBlock )
-               phbr->pBlock = phbr->region->pHistory.next;
+					phbr->pBlock = phbr->region->pHistory.next;
 				if( !phb )
 					phb = phbr->pBlock;
 				if( phb->next )
@@ -458,7 +458,7 @@ PTEXTLINE GetAHistoryLine( PHISTORY_LINE_CURSOR phc, PHISTORY_BROWSER phbr, int 
 		return phb->pLines + tmp;
 
 	}
-   return NULL;
+	return NULL;
 }
 
 PTEXTLINE GetHistoryLine( PHISTORY_LINE_CURSOR phc )

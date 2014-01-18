@@ -109,6 +109,7 @@ struct dekware_interface RealDekwareInterface =
 	DoCommandf,
 	DestroyAwarenessEx,
 	ScanRegisteredObjects,
+	InvokeMacroEx,
 	TerminateMacro,
 };
 

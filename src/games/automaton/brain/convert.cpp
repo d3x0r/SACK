@@ -14,6 +14,7 @@ value::value( enum type settype, ... )
 value::value( value *cloneme )
 {
 	type = cloneme->type;
+	aux = cloneme->aux;
 	memcpy( &data, &cloneme->data, sizeof( data ) );
 }
 
@@ -222,7 +223,7 @@ void value::set( enum type type, ... )
 	switch( type )
 	{
 	case VAL_FLOAT:
-		value::data.f = va_arg( args, double );
+		value::data.f = (float)va_arg( args, double );
 		break;
 	case VAL_DOUBLE:
 		value::data.d = va_arg( args, double );

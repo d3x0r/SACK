@@ -1,9 +1,6 @@
-#ifdef __WINDOWS__
-//#include <afxwin.h>
-//#include "stdafx.h"
+#define NO_FILEOP_ALIAS
 #include <stdhdrs.h>
-#include <commctrl.h>
-#endif
+
 //#include <windows.h>
 #include <math.h>  // exp()
 //#include <process.h>
@@ -204,6 +201,11 @@ AliasProcVoid( AddBrainStem, ( PBRAIN_STEM pbs ), (pbs) )
    BrainStems.add( (POINTER)pbs );
 }
 
+AliasProcVoid( RemoveBrainStem, ( PBRAIN_STEM pbs ), (pbs) )
+{
+   BrainStems.remove( (POINTER)pbs );
+}
+
 
 BRAIN_STEM::BRAIN_STEM( CTEXTSTR name)
 {
@@ -378,8 +380,8 @@ PRELOAD( RegisterBrain )
 
 PTRSZVAL CPROC DoCollect( void *_this, PTRSZVAL cycle )
 {
-    ((PNEURON)_this)->Collect( (_32)cycle );
-   return 0;
+	((PNEURON)_this)->Collect( (_32)cycle );
+	return 0;
 }
 
 //----------------------------------------------------------------------
