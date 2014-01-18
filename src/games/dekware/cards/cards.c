@@ -463,7 +463,6 @@ void DeleteDeck( PDECK *ppDeck )
 void GatherCards( PDECK deck )
 {
 	INDEX hand;
-	PCARD pc;
 	PHAND pHand;
 	PCARD_STACK Draw = GetCardStack( deck, WIDE("Draw") );
 
@@ -501,14 +500,14 @@ void GatherCards( PDECK deck )
 
 //---------------------------------------------------------------------
 
-int CountCards( PHAND ph )
+INDEX CountCards( PHAND ph )
 {
-   PCARD pc;
-   INDEX count;
-   if( !ph )
-      return 0;
-   for( count = 0, pc = GetCardStackFromHand( ph, WIDE("Cards") )->cards; pc; pc = pc->next, count++ );
-   return count;
+	PCARD pc;
+	INDEX count;
+	if( !ph )
+		return 0;
+	for( count = 0, pc = GetCardStackFromHand( ph, WIDE("Cards") )->cards; pc; pc = pc->next, count++ );
+	return count;
 }
 
 //---------------------------------------------------------------------

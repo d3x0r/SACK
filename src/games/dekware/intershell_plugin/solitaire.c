@@ -322,7 +322,7 @@ static void SetStackCards( PSI_CONTROL pc, Image *images )
 	{
 		FRACTION aspect;
 		FRACTION scale;
-		int scaled_height;
+		_32 scaled_height;
 		// use aspec to compute card height if control_w is used instead of card_w
 		SetFraction( aspect, card_h, card_w );
 		scaled_height = ScaleValue( &aspect, control_w );
@@ -1125,13 +1125,13 @@ static int OnDrawCommon( WIDE("Games/Cards/Card Stack") )( PSI_CONTROL pc )
 				s_width = stack->width;
 				if( card_image )
 				{
-				if( s_width > card_image->width )
-					s_width = card_image->width;
-				s_height = stack->height;
-				if( s_height > card_image->height )
-					s_height = card_image->height;
-				if( stack->active.nCardsSelected )
-				{
+					if( s_width > card_image->width )
+						s_width = card_image->width;
+					s_height = stack->height;
+					if( s_height > card_image->height )
+						s_height = card_image->height;
+					if( stack->active.nCardsSelected )
+					{
 						BlotScaledImageSizedMultiShaded( surface, card_image
 																 , 0//x + col * stack->scaled_step_x
 																 , 0//y + row * stack->scaled_step_y

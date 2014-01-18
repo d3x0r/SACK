@@ -287,20 +287,20 @@ static int CPROC TerminalTransmit( PDATAPATH pdpX )
 							MemCpy( byOutputBuf+ofs
 									, GetText( pSeg )
 									, len );
-                     //lprintf( WIDE("Enque block...") );
-                     //LogBinary( byOutputBuf + ofs, len );
+							//lprintf( WIDE("Enque block...") );
+							//LogBinary( byOutputBuf + ofs, len );
 							ofs += len;
 						}
-                  pSeg = NEXTLINE( pSeg );
+						pSeg = NEXTLINE( pSeg );
 					}
-               if( pSend )
+					if( pSend )
 						LineRelease( pSend );
-      	   }
+				}
 			}
 			LineRelease( pdel );
-      }
-      if( ofs )
-         SendTCP( pdp->handle, byOutputBuf, ofs );
+		}
+		if( ofs )
+			SendTCP( pdp->handle, byOutputBuf, ofs );
 	}
 #if 0
    else

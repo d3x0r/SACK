@@ -502,7 +502,7 @@ CORE_PROC( int, RegisterDeviceOpts )( TEXTCHAR *pName
 
 		if( pOptions && nOptions )
 		{
-			int i;
+			_32 i;
 			for( i = 0; i < nOptions; i++ )
 			{
 				TEXTCHAR tmp[256];
@@ -973,9 +973,6 @@ void DestroyRegisteredObject( PENTITY pe )
 // pe is the object actually assimilatin
 int Assimilate( PENTITY pe, PSENTIENT ps, CTEXTSTR name, PTEXT parameters )
 {
-	PTEXT type;
-	//PARCHTYPE arch;
-	//PENTITY pe = ps->Current;
 	ObjectInit Init;
 	// this is for an exisitng object to become an extended object
 	// problem with this is... if it's already aware ...

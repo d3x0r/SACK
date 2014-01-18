@@ -16,7 +16,7 @@ struct macro_info_struct
 static NATIVE GetMacroRunning( PTRSZVAL psv )
 {
 	struct macro_info_struct *mis = (struct macro_info_struct *)psv;
-	return ( mis->pms != NULL ) || mis->running;
+	return (NATIVE)(( mis->pms != NULL ) || mis->running);
 }
 
 // Event callback from the InvokeMacroEx call
@@ -65,7 +65,7 @@ static void StopRunMacro( PTRSZVAL psv, NATIVE value )
 	}
 }
 
-static void ObjectMacroCreated( WIDE("Point Label"), WIDE("AddMacro"), WIDE( "Add a invokable macro") )(PENTITY pe_object, PMACRO macro)
+static void ObjectMacroCreated( WIDE("Point Label"), WIDE("Brain Interface"), WIDE( "Event on Add a macro") )(PENTITY pe_object, PMACRO macro)
 {
 	struct virtuality_object *vobj = (struct virtuality_object *)GetLink( &pe_object->pPlugin, l.extension );
 	if( vobj )
@@ -81,7 +81,8 @@ static void ObjectMacroCreated( WIDE("Point Label"), WIDE("AddMacro"), WIDE( "Ad
 			mis->pms = NULL;
 			mis->macro = macro;
 			mis->pe_running = pe_object;
-			mis->running = FALSE;
+			mis->running = 0;
+			mis->stopping = 0;
 			mis->vobj = vobj;
 			pbs->AddInput( new value(GetMacroRunning, (PTRSZVAL)mis ), WIDE( "Is Running" ) );
 			pbs->AddOutput( new value(StartRunMacro, (PTRSZVAL)mis ), WIDE( "Start" ) );
@@ -91,6 +92,15 @@ static void ObjectMacroCreated( WIDE("Point Label"), WIDE("AddMacro"), WIDE( "Ad
 }
 
 
-//static void ObjectMacroDestroyed( WIDE("Point Label"), WIDE("AddMacro"), WIDE( "Add a invokable macro") )(PENTITY pe_object, PMACRO macro)
-//{
-//}
+static void ObjectMacroDestroyed( WIDE("Point Label"), WIDE("Brain Interface"), WIDE( "Event on deletion of a macro") )(PENTITY pe_object, PMACRO macro)
+{
+	struct virtuality_object *vobj = (struct virtuality_object *)GetLink( &pe_object->pPlugin, l.extension );
+	if( vobj )
+	{
+		PVARTEXT pvt = VarTextCreate();
+		vtprintf( pvt, WIDE("Run Macro %s"), GetText( GetName( macro ) ) );
+		PBRAIN_STEM pbs = vobj->brain->GetBrainStem( GetText( VarTextPeek( pvt ) ) );
+		vobj->brain->RemoveBrainStem( pbs );
+		delete( pbs );
+	}
+}

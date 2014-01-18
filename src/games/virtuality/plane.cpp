@@ -350,17 +350,17 @@ RCOORD IntersectLineWithPlane( PCVECTOR Slope, PCVECTOR Origin,  // line m, b
 // normal of plane, origin of plane, result time from origin along slope...
 
 
-int GetLineSeg( OBJECTINFO *oi )
+INDEX GetLineSeg( OBJECTINFO *oi )
 {
-   return GetIndexFromSet( MYLINESEG, oi->ppLinePool );
+	return GetIndexFromSet( MYLINESEG, oi->ppLinePool );
 }
 
 
-int GetLineSegP( PLINESEGPSETSET *pplpss, PLINESEGPSET *pplps )
+INDEX GetLineSegP( PLINESEGPSETSET *pplpss, PLINESEGPSET *pplps )
 {
 	PLINESEGP plsp;
 	plsp = GetFromSetPool( LINESEGP, pplpss, pplps );
-   return GetMemberIndex( LINESEGP, pplps, plsp );
+	return GetMemberIndex( LINESEGP, pplps, plsp );
 }
 
 int FillLine( PVECTOR o1, PVECTOR n1,
@@ -688,12 +688,12 @@ void DumpPlane( PFACET pp )
 PTRSZVAL CPROC IfLineDelete( POINTER p, PTRSZVAL pData )
 {
 	struct procdata_tag {
-      PLINESEGPSET *pplsps;
+		PLINESEGPSET *pplsps;
 		PMYLINESEG pl;
-      PFACET facet;
+		PFACET facet;
 	} *thing = (struct procdata_tag *)pData;
 	PLINESEGP plsp = (PLINESEGP)p;
-   int i = GetMemberIndex( LINESEGP, thing->pplsps, plsp );
+	INDEX i = GetMemberIndex( LINESEGP, thing->pplsps, plsp );
 	if( plsp->pLine == thing->pl )
 	{
 #ifdef DEBUG_LINK_LINES
@@ -819,7 +819,7 @@ void OrderFacetLines( OBJECTINFO *oi )
 			if( !plsp->pLine )
 			{
 				lprintf( WIDE("object %p facet %d Invalid line segment %d (%p)... skipping."), oi, idx, nl, plsp->pLine );
-            nl++;
+				nl++;
 				continue;  // unused line...
 			}
 			if( nfirst < 0 )
@@ -832,12 +832,12 @@ void OrderFacetLines( OBJECTINFO *oi )
 #ifdef DEBUG_LINK_LINES
 				lprintf( WIDE("object %p facet %d first = %d from = %d nl = %d"), oi, idx, nfirst, nfrom, nl );
 #endif
-            continue;
+				continue;
 			}
 			if( ( plsp->nLineFrom == nl )
 				|| ( plsp->nLineTo == nl) )
 			{
-            lprintf( WIDE("One end of this line links to itself?") );
+				lprintf( WIDE("One end of this line links to itself?") );
 			}
 			if( plsp->nLineFrom == nfrom )
 				plsp->bOrderFromTo = TRUE;
@@ -846,8 +846,8 @@ void OrderFacetLines( OBJECTINFO *oi )
 			else
 			{
 				lprintf( WIDE("object %p facet %d The line seg at From doesn't link to this one?! %d %d != %d != %d")
-                    , oi
-                    , idx
+			         , oi
+			         , idx
 					 , nl
 					 , plsp->nLineFrom
 					 , nfrom
@@ -855,9 +855,9 @@ void OrderFacetLines( OBJECTINFO *oi )
 					 );
 			}
 			nfrom = nl;
-         if( plsp->bOrderFromTo )
+			if( plsp->bOrderFromTo )
 				nl = plsp->nLineTo;
-         else
+			else
 				nl = plsp->nLineFrom;
 			if( nl > 500 )
             DebugBreak();
@@ -866,7 +866,7 @@ void OrderFacetLines( OBJECTINFO *oi )
 #endif
 			if( nl == nfrom )
 			{
-            lprintf( WIDE("Self referenced line...") );
+				lprintf( WIDE("Self referenced line...") );
 			}
 		}
 		{
@@ -876,7 +876,7 @@ void OrderFacetLines( OBJECTINFO *oi )
 #ifdef DEBUG_LINK_LINES
 				lprintf( WIDE("line at %d failed..."), nfirst );
 #endif
-            break;
+				break;
 			}
 			if( plsp->nLineFrom == nfrom )
 				plsp->bOrderFromTo = TRUE;
@@ -893,15 +893,15 @@ void OrderFacetLines( OBJECTINFO *oi )
 			}
 		}
 #ifdef DEBUG_LINK_LINES
-      //Log1( WIDE("Facet %d"), nf );
+		//Log1( WIDE("Facet %d"), nf );
 		//for( nl = 0; nl < plps->nUsedLines; nl++ )
 		//{
-      //   PLINESEGP plsp = GetSetMember( LINESEGP, pplps, nl );
-      //   if( plsp->bOrderFromTo )
+		//   PLINESEGP plsp = GetSetMember( LINESEGP, pplps, nl );
+		//   if( plsp->bOrderFromTo )
 		//		Log2( WIDE("Resulting links: %d %d")
 		//			 , plsp->nLineFrom
 		//			 , plsp->nLineTo );
-      //   else
+		//   else
 		//		Log2( WIDE("Resulting links: %d %d")
 		//			 , plsp->nLineTo
 		//			 , plsp->nLineFrom );
@@ -922,22 +922,22 @@ PTRSZVAL CPROC TestLinkLines2( POINTER p, PTRSZVAL psv )
       int *pnLineLink;
 		_POINT to1;
 	} *data = (struct pd *)psv;
-   int nl1, nl2;
+	INDEX nl1, nl2;
 	PLINESEGP pLine2 = (PLINESEGP)p;
    //lprintf( WIDE("Compare line %p with %p"), data->pLine1, p );
 	if( pLine2 == data->pLine1 )
 	{
-      // don't compare a line with itself.
-      return 0;
+		// don't compare a line with itself.
+		return 0;
 	}
 	if( !pLine2->pLine )
 	{
-      lprintf( WIDE("this line should have been deleted from the set...") );
+		lprintf( WIDE("this line should have been deleted from the set...") );
 		DebugBreak();
-      return 0;
+		return 0;
 	}
 	nl1 = GetMemberIndex( LINESEGP, data->pplps, data->pLine1 );;
-   nl2 = GetMemberIndex( LINESEGP, data->pplps, pLine2 );
+	nl2 = GetMemberIndex( LINESEGP, data->pplps, pLine2 );
 
 	if( pLine2->nLineTo < 0 )
 	{

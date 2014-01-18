@@ -139,7 +139,7 @@ static void EndCollection( PMYDATAPATH pdp )
 			///}
 
 			EnqueLink( &pdp->Output, pdp->partial );
-   		pdp->flags.enqued = 1;
+		pdp->flags.enqued = 1;
 		}
 		pdp->flags.comment = 0; // out of collecting commented data.
 		pdp->partial = NULL;
@@ -164,17 +164,17 @@ static PTEXT CPROC ParseCommand( PMYDATAPATH pdp, PTEXT buffer )
 		//		Log1( "Read is: %s", GetText( tmp ) );
 		//		LineRelease( tmp );
 		//	}
-    // this should really do it's own full symbolic bursting...
-    // except escapes, tabs, etc are kept intact....
-    // words with '\ ' in them are continuous where a ' ' actually
-    // IS a seperator...
+	// this should really do it's own full symbolic bursting...
+	// except escapes, tabs, etc are kept intact....
+	// words with '\ ' in them are continuous where a ' ' actually
+	// IS a seperator...
 	if( buffer )
-   {
-      PTEXT seg;
-      //Log2( "buffer: %s(%d)", GetText( buffer ), GetTextSize( buffer ) );
-      //LogBinary( buffer );
-      pdp->flags.enqued = 0;
-      seg = buffer;
+	{
+		PTEXT seg;
+		//Log2( "buffer: %s(%d)", GetText( buffer ), GetTextSize( buffer ) );
+		//LogBinary( buffer );
+		pdp->flags.enqued = 0;
+		seg = buffer;
 		while( seg )
 		{
 			TEXTCHAR character, *text;
@@ -291,8 +291,8 @@ reevaluate_character:
 						break;
 					case '\r':
 					case '\n':
-                  // is okay - just ignore this and all will be well...
-                  break;
+						// is okay - just ignore this and all will be well...
+						break;
 					default:
 						Log1( WIDE("Unknown escape passed! \\%c"), character );
 						VarTextAddCharacter( pdp->vartext, '\\' );
@@ -360,7 +360,7 @@ reevaluate_character:
 					case ';':
 						//pdp->flags.added = 1; // fake it out... 
 					case '\n':
-                  if( !pdp->flags.escape )
+						if( !pdp->flags.escape )
 							EndCollection( pdp );
 						break;
 					case '$':
@@ -390,9 +390,9 @@ reevaluate_character:
 					case '|':
 					case '=':
 					case ',':
-               case '&':
-               case '(':
-               case ')':
+					case '&':
+					case '(':
+					case ')':
 						if( !pdp->flags.comment )
 						{
 							BreakCollection( pdp );
@@ -442,7 +442,7 @@ static int CPROC Read( PMYDATAPATH pdp )
 
 static int CPROC Write( PMYDATAPATH pdp )
 {
-   //Log( "BASH Write called to relay data out..." );
+	//Log( "BASH Write called to relay data out..." );
 	return RelayOutput( (PDATAPATH)pdp, NULL );
 }
 
@@ -450,16 +450,13 @@ static int CPROC Write( PMYDATAPATH pdp )
 
 static int CPROC Close( PMYDATAPATH pdp )
 {
-	PTEXT temp;
-   pdp->common.Type = 0;
+	pdp->common.Type = 0;
 	VarTextDestroy( &pdp->vartext );
 	if( pdp->partial )
 		LineRelease( pdp->partial );
 	RelayOutput( (PDATAPATH)pdp, NULL );
-	//while( temp = DequeLink( &pdp->Output ) )
-	//	LineRelease( temp );
 	DeleteLinkQueue( &pdp->Output );
-   return 0;
+	return 0;
 }
 
 //---------------------------------------------------------------------------
@@ -468,32 +465,32 @@ static int CPROC Close( PMYDATAPATH pdp )
 
 static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
 {
-   PMYDATAPATH pdp = NULL;
-   //PTEXT option;
-   // parameters
-   //    none
+	PMYDATAPATH pdp = NULL;
+	//PTEXT option;
+	// parameters
+	//    none
 	PTEXT pText;
-   pdp = CreateDataPath( pChannel, MYDATAPATH );
+	pdp = CreateDataPath( pChannel, MYDATAPATH );
 	while( ( pText = GetParam( ps, &parameters ) ) )
 	{
 		if( OptionLike( pText, WIDE("noblank") ) )
 			pdp->flags.no_blank_lines = 1;
 	}
-   pdp->common.Type = myTypeID;
-   pdp->common.Read = (int(CPROC *)(PDATAPATH))Read;
-   pdp->common.Write = (int(CPROC *)(PDATAPATH))Write;
-   pdp->common.Close = (int(CPROC *)(PDATAPATH))Close;
-   pdp->ps = ps;
-   pdp->vartext = VarTextCreate();
-   return (PDATAPATH)pdp;
+	pdp->common.Type = myTypeID;
+	pdp->common.Read = (int(CPROC *)(PDATAPATH))Read;
+	pdp->common.Write = (int(CPROC *)(PDATAPATH))Write;
+	pdp->common.Close = (int(CPROC *)(PDATAPATH))Close;
+	pdp->ps = ps;
+	pdp->vartext = VarTextCreate();
+	return (PDATAPATH)pdp;
 }
 
 //---------------------------------------------------------------------------
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
-{                           
-   myTypeID = RegisterDevice( WIDE("bash"), WIDE("Parse commands bashlike"), Open );
-   return DekVersion;
+{
+	myTypeID = RegisterDevice( WIDE("bash"), WIDE("Parse commands bashlike"), Open );
+	return DekVersion;
 }
 
 //---------------------------------------------------------------------------

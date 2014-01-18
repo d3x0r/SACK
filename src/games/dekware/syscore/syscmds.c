@@ -310,7 +310,7 @@ int CPROC PLUGIN( PSENTIENT ps, PTEXT parameters )
 	{
 		POINTER pInfo = NULL;
 		TEXTSTR base = StrDup( GetText( temp ) );
-		TEXTSTR mask = pathrchr( base );
+		TEXTSTR mask = (TEXTSTR)pathrchr( base );
 		if( mask )
 		{
 			mask[0] = 0;

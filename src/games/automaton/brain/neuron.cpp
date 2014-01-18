@@ -119,12 +119,16 @@ NEURON::NEURON( int newType, connector *value )
 	case NT_INPUT:
 		//this->pbs = value->pbs;
 		io_node = value;
+		// this is an equate/clone... it makes an indirect to the output for the neuron
 		Input.set( VAL_PANYVALUE, value );
 		break;
 	case NT_OUTPUT:
 		//this->pbs = pbs;
 		io_node = value;
+		// this is an equate/clone... it makes an indirect to the output for the neuron
 		Output.set( VAL_PANYVALUE, value );
+		// this actually sets the value; initialize to 0
+		Output.set( (NATIVE)0 );
 		break;
 	}
 }
@@ -259,17 +263,17 @@ void NEURON::Emit( void )
     {
     case NT_OUTPUT:
         {
-           Output.set( Output.get() + Input.get() );
+           Output.set( Input.get() );
            //lprintf( WIDE("emit value into output ") NATIVE_FORMAT, Input.get() );
         }
         break;
 	 case NT_DIGITAL:
 		 //lprintf( WIDE("emit digital %g %g %g %g"), Threshold.get(), Input.get(), Min.get(), Max.get() );
-        if( Input.get() <= Threshold.get() )
-            Output.set( Min.get() );
-        else
-         Output.set( Max.get() );
-    break;
+		if( Input.get() <= Threshold.get() )
+			Output.set( Min.get() );
+		else
+			Output.set( Max.get() );
+		break;
 	 case NT_ANALOG:
 		 {
 			 NATIVE tmp;

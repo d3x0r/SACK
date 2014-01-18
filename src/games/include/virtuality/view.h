@@ -36,20 +36,20 @@ typedef struct view_tag
 	struct {
 		_32 bInited : 1;
 	} flags;
-   ViewMouseCallback MouseMethod;
-   // used in TimerProc  update...
+	ViewMouseCallback MouseMethod;
+	// used in TimerProc  update...
 	PRENDERER hVideo; // debug mouse purposes....
-   Image hud_surface; // blah - I hate putting this here - you will abuse it.
-   PSI_CONTROL pcVideo;
+	Image hud_surface; // blah - I hate putting this here - you will abuse it.
+	PSI_CONTROL pcVideo;
 	
-   //PTRANSFORM T; // current view matrix...
-   //PTRANSFORM Tglobal; // MY transform plus current object transform
-   //PTRANSFORM TDelta; // computed from current object plus TGlobal plus a delta(?)
+	//PTRANSFORM T; // current view matrix...
+	//PTRANSFORM Tglobal; // MY transform plus current object transform
+	//PTRANSFORM TDelta; // computed from current object plus TGlobal plus a delta(?)
 	//PTRANSFORM Twork; // MY transform plus current object transform
-   //PTRANSFORM Tcamera; // this is given from the display
-   VECTOR r; // constant additional rotation from 'previous'...
-   int Type;
-   struct view_tag *Previous;  
+	//PTRANSFORM Tcamera; // this is given from the display
+	VECTOR r; // constant additional rotation from 'previous'...
+	INDEX Type;
+	struct view_tag *Previous;  
 	int nFracture;
 	PCRITICALSECTION csUpdate;
 } VIEW, *PVIEW;

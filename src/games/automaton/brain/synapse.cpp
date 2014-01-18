@@ -261,7 +261,7 @@ PTRSZVAL SYNAPSE::Load( PODBC odbc, INDEX iParent, INDEX iLoad )
 			//INDEX iDestination = atoi( result[2] );
 
 			// linkage is recovered from outside sources....
-			Gain.set( atof( result[0] ) );
+			Gain.set( (NATIVE)atof( result[0] ) );
 			//if( iSource != Source->Save( odbc, iParent ) )
 			{
 				//UnlinkSynapseFrom();

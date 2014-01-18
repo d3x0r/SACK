@@ -464,12 +464,12 @@ static int CPROC Close( PDATAPATH pdpCommon )
 static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
 {
 	PMYDATAPATH pdp = CreateDataPath( pChannel, MYDATAPATH );
-   pdp->common.Type = iTelnet;
-   pdp->common.Read = Read;
-   pdp->common.Write = Write;
-   pdp->common.Close = Close;
+	pdp->common.Type = iTelnet;
+	pdp->common.Read = Read;
+	pdp->common.Write = Write;
+	pdp->common.Close = Close;
 	pdp->vt = VarTextCreate();
-   return (PDATAPATH)pdp;
+	return (PDATAPATH)pdp;
 }
 
 //---------------------------------------------------------------------------

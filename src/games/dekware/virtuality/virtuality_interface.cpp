@@ -142,6 +142,7 @@ static int OnCreateObject( WIDE("Point Label"), WIDE( "This is a point in space 
 		l.extension = RegisterExtension( WIDE( "Point Label" ) );
 	{
 		struct virtuality_object *vobj = New( struct virtuality_object );
+		MemSet( vobj, 0, sizeof( struct virtuality_object ) );
 		SetLink( &pe_created->pPlugin, l.extension, vobj );
 	}
 	{

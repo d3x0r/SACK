@@ -329,7 +329,7 @@ int GetLocalRegistryBinary( TEXTCHAR *pProduct, TEXTCHAR *pValue,
 int SetRegistryItem( HKEY hRoot, TEXTCHAR *pPrefix,
                      TEXTCHAR *pProduct, TEXTCHAR *pKey, 
                      DWORD dwType,
-                     CTEXTSTR pValue, int nSize )
+                     CTEXTSTR pValue, size_t nSize )
 {
    TEXTCHAR szString[512];
    TEXTCHAR *pszString = szString;
@@ -364,7 +364,7 @@ int SetRegistryItem( HKEY hRoot, TEXTCHAR *pPrefix,
    {
       dwStatus = RegSetValueEx(hTemp, pKey, 0
                                 , dwType
-                                , (P_8)pValue, nSize );
+                                , (P_8)pValue, (DWORD)nSize );
       RegCloseKey( hTemp );
       if( dwStatus == ERROR_SUCCESS )
       {
