@@ -1692,7 +1692,7 @@ retry:
 	if( pvtCreate )
 		VarTextDestroy( &pvtCreate );
 	if( f_odbc )
-      fclose( f_odbc );
+		fclose( f_odbc );
 	return 1;
 }
 
