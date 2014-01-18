@@ -21,9 +21,16 @@ ${LAST_GCC_LIBRARY_SOURCE}
  )
 SET_TARGET_PROPERTIES(${PROJECT}.plugin. PROPERTIES
                   FOLDER utils
-                  COMPILE_DEFINITIONS EDITOPTION_PLUGIN
                   SUFFIX ""
                   PREFIX ""
 )
+SET_PROPERTY( TARGET ${PROJECT}.plugin. APPEND PROPERTY
+                  COMPILE_DEFINITIONS EDITOPTION_PLUGIN
+)
 target_link_libraries( ${PROJECT}.plugin. ${SACK_LIBRARIES} )
+if( GCC )
+SET_TARGET_PROPERTIES(${PROJECT}.plugin. PROPERTIES
+			OUTPUT_NAME ${PROJECT}.plugin
+                        )
+endif( GCC )
 install_mode_dest( ${PROJECT}.plugin. )
