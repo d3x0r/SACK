@@ -3147,7 +3147,7 @@ int FetchSQLRecord( PODBC odbc, CTEXTSTR **result )
 				EnterCriticalSec( &odbc->cs );
 				odbc->nProtect++;
 			}
-			if( odbc->collection && odbc->collection->flags.bTemporary )
+			while( odbc->collection && odbc->collection->flags.bTemporary )
 			{
 				DestroyCollector( odbc->collection );
 			}
@@ -3547,7 +3547,7 @@ void SQLEndQuery( PODBC odbc )
 #ifdef LOG_COLLECTOR_STATES
 				lprintf( WIDE( "Okay, top temporary found, but it was also a query at end of file... set end of file OK. return." ) );
 #endif
-				return;
+				//return;
 			}
 			DestroyCollector( odbc->collection );
 		}
@@ -3591,7 +3591,7 @@ int SQLRecordQueryEx( PODBC odbc
 		}
 		// collection is very important to have - even if we will have to be opened,
 		// we ill need one, so make at least one.
-		if( !use_odbc->collection || use_odbc->collection->flags.bTemporary )
+		if( !use_odbc->collection || !use_odbc->collection->flags.bTemporary )
 		{
 #ifdef LOG_COLLECTOR_STATES
 			lprintf( WIDE( "creating collector..." ) );
