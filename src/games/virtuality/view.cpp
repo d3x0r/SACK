@@ -139,12 +139,12 @@ static LOGICAL OnKey3d( WIDE("Virtuality") )( PTRSZVAL psvView, _32 key )
       		g.EditInfo.pEditObject = (POBJECT)pFirstObject;
       		g.EditInfo.nFacetSet = 0;
       		g.EditInfo.nFacet = 0;
-				if( !g.EditInfo.TEdit )
-				{
-					g.EditInfo.TEdit = CreateTransform();
-				}
-				used = 1;
-      		SetChanged = TRUE;
+			if( !g.EditInfo.TEdit )
+			{
+				g.EditInfo.TEdit = CreateTransform();
+				CreateTransformMotion( g.EditInfo.TEdit );
+			}
+			used = 1;
       	}
       }
       if( g.EditInfo.bEditing )
@@ -185,21 +185,21 @@ static LOGICAL OnKey3d( WIDE("Virtuality") )( PTRSZVAL psvView, _32 key )
 				g.EditInfo.pFacet = (PFACET)GetLink( &g.EditInfo.pEditObject->objinfo->facets, g.EditInfo.nFacet );
 			}
 			used = 1;
-         }
-		 //Invert Plane
-         if( KeyDown( NULL, KEY_I ) )
-         {
-         		g.EditInfo.Invert = !g.EditInfo.Invert;
+		}
+		//Invert Plane
+		if( KeyDown( NULL, KEY_I ) )
+		{
+				g.EditInfo.Invert = !g.EditInfo.Invert;
 				used = 1;
-         }
+		}
 
-		 // New Plane
-         if( KeyDown(  NULL, KEY_N ) )
-         {
-         	int nfs, nf;
-         	PFACET pf;
+		 // New Plane; this does more than it should....
+		if( 0 &&  KeyDown(  NULL, KEY_N ) )
+		{
+			int nfs, nf;
+			PFACET pf;
 				//nfs = GetFacetSet( &g.EditInfo.pEditObject->objinfo );
-         	pf = GetEditFacet();
+			pf = GetEditFacet();
 			nf = GetEditFacetIndex();
 			if( !pf )
 				return FALSE;
@@ -224,17 +224,17 @@ static LOGICAL OnKey3d( WIDE("Virtuality") )( PTRSZVAL psvView, _32 key )
 				   					  , n, 1 );
 				   }
 				}
-         		//g.EditInfo.nFacetSet = nfs;
+				//g.EditInfo.nFacetSet = nfs;
 				g.EditInfo.nFacet = nf;
 			}
 #if 0
-         if( SetChanged )
-         {
+			if( SetChanged )
+			{
 				PFACET pf;
-            PLINESEGP plsp = GetSetMember( LINESEGP, &pf->pLineSet, 0 );
-            PMYLINESEG line = GetSetMember( MYLINESEG, &g.EditInfo.pEditObject->objinfo.LinePool, plsp->nLine );
-         	pf = GetEditFacet();
-		   	RotateTo( g.EditInfo.TEdit, pf->d.n
+				PLINESEGP plsp = GetSetMember( LINESEGP, &pf->pLineSet, 0 );
+				PMYLINESEG line = GetSetMember( MYLINESEG, &g.EditInfo.pEditObject->objinfo.LinePool, plsp->nLine );
+				pf = GetEditFacet();
+				RotateTo( g.EditInfo.TEdit, pf->d.n
 						  , line->r.n );
 				TranslateV( g.EditInfo.TEdit, pf->d.o );
 			}
@@ -242,6 +242,32 @@ static LOGICAL OnKey3d( WIDE("Virtuality") )( PTRSZVAL psvView, _32 key )
 		}
 	return used;
 }
+
+POBJECT TestMouseObject( POBJECT po, PRAY mouse, PFACET *face )
+{
+	LOGICAL status;
+	POBJECT sub;
+	for( ; po; po = po->next )
+	{
+		if( po->pHolds )
+		{
+			sub = TestMouseObject( po->pHolds, mouse, face );
+			if( sub )
+				return sub;
+		}
+		if( po->pHas )
+		{
+			sub = TestMouseObject( po->pHas, mouse, face );
+			if( sub )
+				return sub;
+		}
+		status = ComputeRayIntersectObject( po, mouse, face );
+		if( status )
+			return po;
+	}
+	return NULL;
+}
+
 
 static LOGICAL OnMouse3d( WIDE("Virtuality") )( PTRSZVAL psvView, PRAY mouse, _32 b )
 //int CPROC ViewMouse( PTRSZVAL dwView, S_32 x, S_32 y, _32 b )
@@ -263,7 +289,22 @@ static LOGICAL OnMouse3d( WIDE("Virtuality") )( PTRSZVAL psvView, PRAY mouse, _3
 			//DrawLine( GetDisplayImage( View->hVideo ), b, m, 0, 10, 0x7f0000 );
   */
 
-   mouse_buttons = ( mouse_buttons & 0xF0 ) | b;
+	mouse_buttons = ( mouse_buttons & 0xF0 ) | b;
+
+	if( g.EditInfo.bEditing )
+	{
+		PFACET new_facet;
+		POBJECT new_object = TestMouseObject( g.pFirstRootObject, mouse, &new_facet );
+		if( new_object )
+		{
+			if( g.EditInfo.pEditObject != new_object )
+			{
+				g.EditInfo.pEditObject = new_object;
+				g.EditInfo.pFacet = new_facet;
+			}
+
+		}
+	}
 
 	if(	DoMouse( v ) )
 		return 1;
@@ -279,11 +320,11 @@ int time;
 
 static void UpdateObject( POBJECT po )
 {
-   POBJECT pCurObj;
-   if( !po )
+	POBJECT pCurObj;
+	if( !po )
 		return;
-   FORALLOBJ( po, pCurObj )
-   {
+	FORALLOBJ( po, pCurObj )
+	{
 		Move( pCurObj->Ti );
 		if( pCurObj->pHolds )
 		{
@@ -300,19 +341,59 @@ static void UpdateObject( POBJECT po )
 
 static void UpdateObjects( void )
 {
-   POBJECT po = (POBJECT)pFirstObject; // some object..........
-   while( po && ( po->pIn || po->pOn ) ) // go to TOP of tree...
-   {
-      if( po->pIn )
-         po = po->pIn;
-      else if( po->pOn )
-         po = po->pOn;
+
+	{
+		POBJECT po = (POBJECT)pFirstObject; // some object..........
+		while( po && ( po->pIn || po->pOn ) ) // go to TOP of tree...
+		{
+			if( po->pIn )
+				po = po->pIn;
+			else if( po->pOn )
+				po = po->pOn;
+		}
+		UpdateObject( po );
 	}
-	UpdateObject( po );
 }
 
 static LOGICAL OnUpdate3d( WIDE( "Virtuality" ) )( PTRANSFORM origin )
 {
+	{
+		static VECTOR KeySpeed, KeyRotation;
+		VECTOR ks, kr;
+		if( !time )
+			time = timeGetTime();
+
+		// scan the keyboard, cause ... well ... it needs 
+		// scaled keyspeed and acceleration ticks.
+		ScanKeyboard( NULL, KeySpeed, KeyRotation );
+
+		if( !g.EditInfo.bEditing || IsKeyDown(  NULL, KEY_CONTROL ) )
+		{
+			SetSpeed( origin, KeySpeed );
+			SetRotation( origin, KeyRotation );
+			Move(origin);  // relative rotation...
+
+			//lprintf( WIDE("Updated main view transform.") );
+			//ShowTransform(pMainView->Tglobal );
+		}
+		else if( g.EditInfo.bEditing ) // editing without control key pressed
+		{
+			ks[vRight] = 0;
+			ks[vUp] = 0;
+			kr[vForward] = 0;
+			if( Length( KeyRotation ) || Length( KeySpeed ) )
+			{
+				SetSpeed( g.EditInfo.TEdit, KeySpeed );
+				SetRotation( g.EditInfo.TEdit, KeyRotation );
+				Move( g.EditInfo.TEdit );
+				if( g.EditInfo.pFacet )
+				{
+					ComputePlaneRay( &g.EditInfo.pFacet->d );
+					IntersectPlanes( g.EditInfo.pEditObject->objinfo, g.EditInfo.pEditObject->pIn?g.EditInfo.pEditObject->pIn->objinfo:NULL, TRUE );
+				}
+			}
+		}
+	}
 	UpdateObjects();
 	return TRUE;
 }
@@ -385,157 +466,7 @@ static void OnDraw3d( WIDE("Virtuality") )( PTRSZVAL psvView )
 
 
 
-void CPROC TimerProc2( PTRSZVAL psv )
-{
-	static VECTOR KeySpeed, KeyRotation;
-	VECTOR ks, kr;
-	static int skip;
-	//   static PTRANSFORM SaveT;
-	static POBJECT pCurrent;
-	//MATRIX m;
-	if( !time )
-		time = timeGetTime();
 
-	// scan the keyboard, cause ... well ... it needs 
-	// scaled keyspeed and acceleration ticks.
-	ScanKeyboard( NULL, KeySpeed, KeyRotation );
-
-	skip++;
-	if( skip < 1 )
-		return;
-	skip = 0;
-#if 0
-	if( pMainView )
-	{
-		if( !g.EditInfo.bEditing || IsKeyDown(  NULL, KEY_CONTROL ) )
-		{
-			SetSpeed( pMainView->Tglobal, KeySpeed );
-			SetRotation( pMainView->Tglobal, KeyRotation );
-			Move(pMainView->Tglobal);  // relative rotation...
-			//lprintf( WIDE("Updated main view transform.") );
-			//ShowTransform(pMainView->Tglobal );
-		}
-		else if( !g.EditInfo.bEditing ) // editing without control key pressed
-		{
-			ks[vRight] = 0;
-			ks[vUp] = 0;
-			kr[vForward] = 0;
-			if( Length( KeyRotation ) || Length( KeySpeed ) )
-			{
-				SetSpeed( g.EditInfo.TEdit, KeySpeed );
-				SetRotation( g.EditInfo.TEdit, KeyRotation );
-				Move( g.EditInfo.TEdit );
-				ComputePlaneRay( &GetEditFacet()->d );
-				IntersectPlanes( g.EditInfo.pEditObject->objinfo, g.EditInfo.pEditObject->pIn?g.EditInfo.pEditObject->pIn->objinfo:NULL, TRUE );
-			}
-		}
-	}
-#endif
-}
-
-
-
-
-void CPROC Update( PSI_CONTROL psv )
-{
-	static POBJECT pCurrent;
-	if( pMainView && KeyDown( pMainView->hVideo, KEY_SPACE ) )
-	{
-		exit(0);
-     // mouse_buttons |= KEY_BUTTON1;
-	}
-   /*
-      else
-         mouse_buttons &= ~KEY_BUTTON1;
-   if( KeyDown( KEY_ESC ) )
-   {
-      mouse_buttons |= KEY_BUTTON2;
-   }
-      else
-         mouse_buttons &= ~KEY_BUTTON2;
-      if( KeyDown( KEY_SPACE ) )
-   {
-      mouse_buttons |= KEY_BUTTON3;
-   }
-      else
-         mouse_buttons &= ~KEY_BUTTON3;
-
-    if( KeyDown( KEY_D ) )
-    {
-       bDump = true;
-    }
-    
-    if( KeyDown( KEY_N ) )
-    {
-       if( !pCurrent )
-       {
-          SaveT = pMainView->T;
-          pCurrent = pFirstObject;
-       }
-       else
-          pCurrent = pCurrent->pNext;
-
-       if( !pCurrent )
-          pMainView->T = SaveT;
-    }
-
-    if( KeyDown( KEY_P ) )
-    {
-      if( !pCurrent )
-      {
-         SaveT = pMainView->T;
-         pCurrent = pFirstObject;
-         while( pCurrent && pCurrent->pNext )
-            pCurrent = pCurrent->pNext;
-      }
-      else
-         pCurrent = pCurrent->pPrior;
-
-      if( !pCurrent )
-         pMainView->T = SaveT;
-    }
-    */
-
-   // override mainview transform with current object's persepctive
-
-	{
-		Log( WIDE("VIEW UPDATE") );
-
-
-		{
-			VECTOR m, b;
-			// rotate world into view coordinates... mouse is void(0) coordinates...
-
-			UpdateThisCursorPos(); // no parameter version same x, y...
-			//         View->DoMouse();
-
-			//ApplyInverse( View->T, b, mouse_origin );
-			//ApplyInverseRotation( View->T, m, mouse_vforward );
-			//DrawLine( GetDisplayImage( View->hVideo ), b, m, 0, 10, 0x7f );
-			//ApplyInverseRotation( View->T, m, mouse_vright );
-			//DrawLine( GetDisplayImage( View->hVideo ), b, m, 0, 10, 0x7f00 );
-			//ApplyInverseRotation( View->T, m, mouse_vup );
-			//DrawLine( GetDisplayImage( View->hVideo ), b, m, 0, 10, 0x7f0000 );
-		}
-		//ApplyInverseT( View->T, View->Twork, View->Tglobal );
-		//ApplyT( View->T, View->Twork, View->Tglobal );
-      //TranslateV( View->Twork, GetOrigin( View->Tglobal ));
-	}
-}
-
-void CPROC TimerProc( PTRSZVAL psv )
-{
-   PVIEW View;
-	for( View = pMainView;
-		  View;
-		  View = View->Previous
-		)
-	{
-		//lprintf( WIDE("Tick frame refresh (smuge)") );
-		//UpdateDisplay( View->hVideo );
-		//SmudgeCommon( View->pcVideo );
-	}
-}
 
 
 void CPROC CloseView( PTRSZVAL dwView )
@@ -546,66 +477,10 @@ void CPROC CloseView( PTRSZVAL dwView )
 }
 
 
-void RotateMatrix( int nType, PTRANSFORM T )
-{
-	switch( nType )
-	{
-	case V_FORWARD:
-		break;
-	case V_RIGHT:
-#define MOVE_WORLD_ORIGIN
-#ifdef MOVE_WORLD_ORIGIN
-		RotateRight( T, vRight, vForward );
-#else
-		RotateRight( T, vForward, vRight );
-#endif
-		break;
-	case V_LEFT:
-#ifdef MOVE_WORLD_ORIGIN
-		RotateRight( T, vForward, vRight );
-#else
-		RotateRight( T, vRight, vForward );
-#endif
-		break;
-	case V_UP:
-#ifdef MOVE_WORLD_ORIGIN
-		RotateRight( T, vUp, vForward );
-#else
-		RotateRight( T, vForward, vUp );
-#endif
-		break;
-	case V_DOWN:
-#ifdef MOVE_WORLD_ORIGIN
-		RotateRight( T, vForward, vUp );
-#else
-		RotateRight( T, vUp, vForward );
-#endif
-		break;
-	case V_BACK:
-#ifdef MOVE_WORLD_ORIGIN
-		RotateRight( T, -1, -1 );
-#else
-		RotateRight( T, -1, -1 );
-#endif
-		break;
-	}
-}
-
 static PTRSZVAL OnInit3d( WIDE("Virtuality") )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	PVIEW view = New( VIEW );
 	memset( view, 0, sizeof( VIEW ) );
-	//view->T = CreateTransform();
-	//view->Twork = CreateTransform();
-	view->Type = 0;
-	if( !pMainView )
-	{
-		//AddTimer(  10, TimerProc2, 0 );
-		//view->Tglobal = CreateTransform();
-		//CreateTransformMotion( view->Tglobal );
-	}
-	//else
-	//	view->Tglobal = pMainView->Tglobal;
 	if( !local.view )
 		local.view = view;
 	//view->Tcamera = camera;
