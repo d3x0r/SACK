@@ -48,6 +48,7 @@ struct global_virtuality_data_tag {
 
 	EDIT_INFO EditInfo;
 	POBJECT pFirstRootObject;
+	PTRANSFORM camera;
 } global_virtuality_data;
 
 

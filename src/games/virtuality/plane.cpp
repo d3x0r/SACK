@@ -1651,42 +1651,60 @@ int GetNormals( PFACET pf, int *nPoints, VECTOR ppv[] )
 	return TRUE;
 }
 
-LOGICAL ComputeRayIntersectObject( POBJECT po, PRAY ray, PFACET *face )
+LOGICAL ComputeRayIntersectObject( POBJECT po, PRAY ray, PFACET *face, PVECTOR vmin )
 {
 	LOGICAL success = FALSE;
 	PFACET pf;
 	PMYLINESEG  pl;
 	POBJECTINFO oi = po->objinfo;
 	INDEX idx;
+	RAY ray_test;
+
+	ApplyInverseR( po->Ti, &ray_test, ray );
 	//lprintf( WIDE("...") );
 	//pfps = oi->FacetSetPool.pFacetSets + nfs;
 	// clear all lines used by this facetset 
 	LIST_FORALL( oi->facets, idx, PFACET, pf )
 	{
 		RCOORD t;
-		PrintVector( ray->o );
-		PrintVector( ray->n );
-		if( IntersectLineWithPlane( ray->n, ray->o, pf->d.n, pf->d.o, &t ) && t > 0 )
+		//PrintVector( ray->o );
+		//PrintVector( ray->n );
+		if( IntersectLineWithPlane( ray_test.n, ray_test.o, pf->d.n, pf->d.o, &t ) && t > 0 )
 		{
 			VECTOR p;
-			if( PointToPlaneT( pf->d.n, pf->d.o, ray->o ) > 0 )
+			if( PointToPlaneT( pf->d.n, pf->d.o, ray_test.o ) > 0 )
 			{
-				lprintf( "ray is %g", t );
-				addscaled( p, ray->o, ray->n, t );
-				PrintVector( p );
+				addscaled( p, ray_test.o, ray_test.n, t );
+				//lprintf( "ray is %g", t );
+				//PrintVector( p );
 				if( PointWithin( p, po->objinfo->ppLinePool, &pf->pLineSet ) )
 				{
 					if( face )
-						(*face) = pf;
-					lprintf( "Success." );
+					{
+						if( !(*face) )
+						{
+							SetPoint( vmin, p );
+							(*face) = pf;
+						}
+						else if( Length( p ) < Length( vmin ) )
+						{
+							SetPoint( vmin, p );
+							(*face) = pf;
+						}
+						else
+						{
+							lprintf( "Already had something closer" );
+							return FALSE;
+						}
+					}
+					PrintVector( p );
+					lprintf( "Success. %p   %p", po, pf );
 					return TRUE;
 				}
 			}
 			else
 				lprintf( "Behind plane..." );
 		}
-		else
-			lprintf( "no contact with plane... %g", t );
 	}
 	return success;
 }
