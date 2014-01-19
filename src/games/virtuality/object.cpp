@@ -3,7 +3,7 @@
 
 #define OBJECT_SOURCE
 #include <virtuality.h>
-
+#include "global.h" 
 //----------------------------------------------------------------------
 // variables which ONLY object may reference.
 //----------------------------------------------------------------------
@@ -20,11 +20,11 @@ void SetRootObject( POBJECT po )
 	UnlinkThing( po ); // take it out of whatever it is in..
 	po->pIn = NULL;
 	po->pOn = NULL;
-	LinkThing( FirstObject, po );}
+	LinkThing( g.pFirstRootObject, po );}
 
 void AddRootObject( POBJECT po )
 {
-	LinkThing( FirstObject, po );}
+	LinkThing( g.pFirstRootObject, po );}
 
 //-----------------------------------------------------------
 
@@ -584,7 +584,7 @@ static void _VirtualityUpdate( POBJECT object )
 void VirtualityUpdate( void )
 {
 	//lprintf( WIDE("Begin Update...") );
-	_VirtualityUpdate( FirstObject );
+	_VirtualityUpdate( pFirstObject );
 	//lprintf( WIDE("Done Update...") );
 }
 
