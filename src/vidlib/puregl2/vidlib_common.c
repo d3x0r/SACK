@@ -1757,6 +1757,60 @@ LOGICAL IsDisplayHidden( PVIDEO video )
    return 0;
 }
 
+LOGICAL OnKey3d( "Video Render Common" )( PTRSZVAL psv, _32 key )
+{
+	if( IsKeyPressed( key ) )
+	{
+		if( ( KEY_CODE( key ) == KEY_SCROLL_LOCK ) || ( KEY_CODE( key ) == KEY_F12 ) )
+		{
+			EnableRotation( 0, key );
+			return 1;
+		}
+	}
+	if( l.flags.bRotateLock )
+	{
+		if( KEY_CODE( key ) == KEY_A )
+		{
+			CameraLeft( 0, key );
+			return 1;
+		}
+		else if( KEY_CODE( key ) == KEY_D )
+		{
+			CameraRight( 0, key );
+			return 1;
+		}
+		else if( KEY_CODE( key ) == KEY_W )
+		{
+			CameraForward( 0, key );
+			return 1;
+		}
+		else if( KEY_CODE( key ) == KEY_S )
+		{
+			CameraDown( 0, key );
+			return 1;
+		}
+		else if( KEY_CODE( key ) == KEY_Q )
+		{
+			CameraRollLeft( 0, key );
+			return 1;
+		}
+		else if( KEY_CODE( key ) == KEY_E )
+		{
+			CameraRollRight( 0, key );
+			return 1;
+		}
+	}
+	return 0;
+}
+
+static PTRSZVAL OnInit3d( "Video Render Common" )(PMatrix m,PTRANSFORM c,RCOORD*identity_dept,RCOORD*aspect)
+{
+	// provide one of these so key can get called.
+	return 1;
+}
+
+
+
 #ifdef __WATCOM_CPLUSPLUS__
 #pragma initialize 46
 #endif
@@ -1817,14 +1871,6 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 
 #ifndef __ANDROID__
 	BindEventToKey( NULL, KEY_F4, KEY_MOD_RELEASE|KEY_MOD_ALT, DefaultExit, 0 );
-	BindEventToKey( NULL, KEY_SCROLL_LOCK, 0, EnableRotation, 0 );
-	BindEventToKey( NULL, KEY_F12, 0, EnableRotation, 0 );
-	BindEventToKey( NULL, KEY_A, KEY_MOD_ALL_CHANGES, CameraLeft, 0 );
-	BindEventToKey( NULL, KEY_S, KEY_MOD_ALL_CHANGES, CameraDown, 0 );
-	BindEventToKey( NULL, KEY_D, KEY_MOD_ALL_CHANGES, CameraRight, 0 );
-	BindEventToKey( NULL, KEY_W, KEY_MOD_ALL_CHANGES, CameraForward, 0 );
-	BindEventToKey( NULL, KEY_Q, KEY_MOD_ALL_CHANGES, CameraRollLeft, 0 );
-	BindEventToKey( NULL, KEY_E, KEY_MOD_ALL_CHANGES, CameraRollRight, 0 );
 #endif
 	//EnableLoggingOutput( TRUE );
 }

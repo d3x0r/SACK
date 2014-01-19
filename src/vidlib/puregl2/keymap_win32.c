@@ -81,8 +81,8 @@ int CPROC OpenGLKey( PTRSZVAL psv, _32 keycode )
 			{
 				// if a thing uses a key, lock to that plugin for future keys until it doesn't want a key
 				// (thing like a chat module, first key would lock to it, and it could claim all events;
-            // maybe should implement an interface to manually clear this
-            l.hPluginKeyCapture = ref;
+				// maybe should implement an interface to manually clear this
+				l.hPluginKeyCapture = ref;
 				break;
 			}
 		}
