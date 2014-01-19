@@ -69,7 +69,7 @@ int CPROC OpenGLKey( PTRSZVAL psv, _32 keycode )
 		if( !used )
 			l.hPluginKeyCapture = NULL;
 		else
-         return 1;
+			return 1;
 	}
 
 	LIST_FORALL( camera->plugins, idx, struct plugin_reference *, ref )
@@ -87,7 +87,7 @@ int CPROC OpenGLKey( PTRSZVAL psv, _32 keycode )
 			}
 		}
 	}
-   return used;
+	return used;
 }
 
 #ifdef USE_KEYHOOK
@@ -215,48 +215,48 @@ LRESULT CALLBACK
           BIT_FIELD  down  : 1;
           } keycode;
           */
-         key = ( scancode = (wParam & 0xFF) ) // base keystroke
-            | ((lParam & 0x1000000) >> 16)   // extended key
-            | (lParam & 0x80FF0000) // repeat count? and down status
-            ^ (0x80000000) // not's the single top bit... becomes 'press'
-            ;
-         // lparam MSB is keyup status (strange)
+			key = ( scancode = (wParam & 0xFF) ) // base keystroke
+			    | ((lParam & 0x1000000) >> 16)   // extended key
+			    | (lParam & 0x80FF0000) // repeat count? and down status
+			    ^ (0x80000000) // not's the single top bit... becomes 'press'
+			    ;
+			// lparam MSB is keyup status (strange)
 
-         if (key & 0x80000000)   // test keydown...
-         {
-            l.kbd.key[wParam & 0xFF] |= 0x80;   // set this bit (pressed)
-            l.kbd.key[wParam & 0xFF] ^= 1;   // toggle this bit...
-         }
-         else
-         {
-            l.kbd.key[wParam & 0xFF] &= ~0x80;  //(unpressed)
+			if (key & 0x80000000)   // test keydown...
+			{
+				l.kbd.key[wParam & 0xFF] |= 0x80;   // set this bit (pressed)
+				l.kbd.key[wParam & 0xFF] ^= 1;   // toggle this bit...
 			}
-         //lprintf( WIDE("Set local keyboard %d to %d"), wParam& 0xFF, l.kbd.key[wParam&0xFF]);
+			else
+			{
+				l.kbd.key[wParam & 0xFF] &= ~0x80;  //(unpressed)
+			}
+			//lprintf( WIDE("Set local keyboard %d to %d"), wParam& 0xFF, l.kbd.key[wParam&0xFF]);
 			hVid->kbd.key[wParam & 0xFF] = l.kbd.key[wParam & 0xFF];
 
 			if( (l.kbd.key[VK_LSHIFT]|l.kbd.key[VK_RSHIFT]|l.kbd.key[KEY_SHIFT]) & 0x80)
-         {
-            key |= 0x10000000;
-            l.mouse_b |= MK_SHIFT;
-            keymod |= 1;
-         }
-         else
-            l.mouse_b &= ~MK_SHIFT;
-         if ((l.kbd.key[VK_LCONTROL]|l.kbd.key[VK_RCONTROL]|l.kbd.key[KEY_CTRL]) & 0x80)
-         {
-            key |= 0x20000000;
-            l.mouse_b |= MK_CONTROL;
-            keymod |= 2;
-         }
-         else
-            l.mouse_b &= ~MK_CONTROL;
-         if((l.kbd.key[VK_LMENU]|l.kbd.key[VK_RMENU]|l.kbd.key[KEY_ALT]) & 0x80)
-         {
-            key |= 0x40000000;
-            l.mouse_b |= MK_ALT;
-            keymod |= 4;
-         }
-         else
+			{
+				key |= 0x10000000;
+				l.mouse_b |= MK_SHIFT;
+				keymod |= 1;
+			}
+			else
+				l.mouse_b &= ~MK_SHIFT;
+			if ((l.kbd.key[VK_LCONTROL]|l.kbd.key[VK_RCONTROL]|l.kbd.key[KEY_CTRL]) & 0x80)
+			{
+				key |= 0x20000000;
+				l.mouse_b |= MK_CONTROL;
+				keymod |= 2;
+			}
+			else
+				l.mouse_b &= ~MK_CONTROL;
+			if((l.kbd.key[VK_LMENU]|l.kbd.key[VK_RMENU]|l.kbd.key[KEY_ALT]) & 0x80)
+			{
+				key |= 0x40000000;
+				l.mouse_b |= MK_ALT;
+				keymod |= 4;
+			}
+			else
 				l.mouse_b &= ~MK_ALT;
 
 
@@ -266,7 +266,7 @@ LRESULT CALLBACK
 				return 1;
 			}
 
-#ifndef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
+			if( !dispatch_handled )
 			{
 				PVIDEO hVideo = l.hVidVirtualFocused;
 
@@ -362,15 +362,6 @@ LRESULT CALLBACK
 				//else9
 				//	lprintf( WIDE( "Failed to find active window..." ) );
 			}
-#else
-			{
-				_32 Msg[2];
-				Msg[0] = (_32)hVid;
-				Msg[1] = key;
-				//lprintf( WIDE("Dispatch key from raw handler into event system.") );
-				SendServiceEvent( 0, l.dwMsgBase + MSG_KeyMethod, Msg, sizeof( Msg ) );
-			}
-#endif
 		}
 		// do we REALLY have to call the next hook?!
 		// I mean windows will just fuck us in the next layer....
