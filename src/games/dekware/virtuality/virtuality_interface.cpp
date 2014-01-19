@@ -20,6 +20,7 @@ static PTRSZVAL OnInit3d( WIDE( "Virtuality interface" ) )( PMatrix projection, 
 		tmp = LoadImageFile( "%resources%/images/AN00236511_001_l.jpg" );
 		SetImageTransformRelation( tmp, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
 		SetObjectColor( l.root_object, BASE_COLOR_BLUE );
+		InvertObject( l.root_object );
 		SetRootObject( l.root_object );
 
 		POBJECT floor_plane = CreateObject();

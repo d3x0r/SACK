@@ -391,8 +391,8 @@ IMAGE_NAMESPACE
 			r2.height = (IMAGE_SIZE_COORDINATE)tmp;
 		if( !IntersectRectangle( &rd, &r1, &r2 ) )
 		{
-			lprintf( WIDE( "Images do not overlap. %d,%d %d,%d vs %d,%d %d,%d" ), r1.x,r1.y,r1.width,r1.height
-					 , r2.x,r2.y,r2.width,r2.height);
+			//lprintf( WIDE( "Images do not overlap. %d,%d %d,%d vs %d,%d %d,%d" ), r1.x,r1.y,r1.width,r1.height
+			//		 , r2.x,r2.y,r2.width,r2.height);
 			return;
 		}
 

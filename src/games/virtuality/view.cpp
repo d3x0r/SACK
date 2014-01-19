@@ -23,8 +23,6 @@
 // OPTIONS AFFECTING DISPLAY ARE IN VIEW.H
 //-------------------------------------------------
 
-VIEW *pMainView;
-
 // This module will display an object on the screen
 // or maybe just a polygon
 // because an object may be a BSP tree which describes
@@ -34,22 +32,6 @@ VIEW *pMainView;
 // The camera could also have a 'periferal' view along the
 // edges of the scene viewed.
 
-static struct local_view_data
-{
-	PVIEW view;
-} local_view_data;
-#define local local_view_data
-
- static VECTOR mouse_vforward,  // complete tranlations...
-          mouse_vright, 
-          mouse_vup, 
-          mouse_origin;
- static int mouse_buttons;
-#define KEY_BUTTON1 0x10
-#define KEY_BUTTON2 0x20
-#define KEY_BUTTON3 0x40
-
-      static VIEW *MouseIn;
 
 PRELOAD( InitLocal )
 {
@@ -59,52 +41,7 @@ PRELOAD( InitLocal )
 	g.pi3i = GetImage3dInterface();
 }
 
-   void UpdateCursorPos( PVIEW pv, int x, int y )
-   {
-      VECTOR v;
 
-      MouseIn = pv;
-
-      //GetAxisV( pv->T, mouse_vforward, vForward );
-      //GetAxisV( pv->T, mouse_vright, vRight );
-      //GetAxisV( pv->T, mouse_vup, vUp );
-
-      // v forward should be offsetable by mouse...
-      //scale( v, GetAxis( pv->T, vForward ), 100.0 );
-      //add( mouse_origin, GetOrigin(pv->T), v ); // put it back in world...
-   }
-
-   void UpdateThisCursorPos( void )
-   {
-      VECTOR v;
-      if( MouseIn )
-      {
-         //GetAxisV( MouseIn->T, mouse_vforward, vForward );
-         //GetAxisV( MouseIn->T, mouse_vright, vRight );
-         //GetAxisV( MouseIn->T, mouse_vup, vUp );
-
-         // v forward should be offsetable by mouse...
-         //scale( v, GetAxis( MouseIn->T, vForward ), 100.0 );
-         //add( mouse_origin, GetOrigin(MouseIn->T), v ); // put it back in world...
-      }
-   }
-
-
-int DoMouse( PVIEW pv )
-{
-
-	// only good for direct ahead manipulation....
-
-	// no deviation from forward....
-	if( pv->MouseMethod )
-		return pv->MouseMethod( pv->hVideo, 
-                           mouse_vforward, 
-                           mouse_vright, 
-                           mouse_vup, 
-                           mouse_origin, 
-                           mouse_buttons);
-	return 0;
-}
 
 void DrawLine( PCVECTOR p, PCVECTOR m, RCOORD t1, RCOORD t2, CDATA c )
 {
@@ -130,15 +67,16 @@ static LOGICAL OnKey3d( WIDE("Virtuality") )( PTRSZVAL psvView, _32 key )
 	int used = 0;
 	int SetChanged;
 		SetChanged = FALSE;	
-
-      if( KeyDown(  NULL, KEY_E ) )
-      {
-      	g.EditInfo.bEditing = !g.EditInfo.bEditing;
-      	if( g.EditInfo.bEditing )
-      	{
-      		g.EditInfo.pEditObject = (POBJECT)pFirstObject;
-      		g.EditInfo.nFacetSet = 0;
-      		g.EditInfo.nFacet = 0;
+	if( !IsKeyPressed( key ) )
+		return FALSE;
+	if( KeyDown(  NULL, KEY_E ) )
+	{
+		g.EditInfo.bEditing = !g.EditInfo.bEditing;
+		if( g.EditInfo.bEditing )
+		{
+			g.EditInfo.pEditObject = (POBJECT)pFirstObject;
+			g.EditInfo.nFacetSet = 0;
+			g.EditInfo.nFacet = 0;
 			if( !g.EditInfo.TEdit )
 			{
 				g.EditInfo.TEdit = CreateTransform();
@@ -183,6 +121,16 @@ static LOGICAL OnKey3d( WIDE("Virtuality") )( PTRSZVAL psvView, _32 key )
 			{
 				g.EditInfo.nFacet = 0;
 				g.EditInfo.pFacet = (PFACET)GetLink( &g.EditInfo.pEditObject->objinfo->facets, g.EditInfo.nFacet );
+			}
+
+			if( g.EditInfo.pFacet )
+			{
+				VECTOR other_axis;
+				TranslateV( g.EditInfo.TEdit, g.EditInfo.pFacet->d.o );
+				other_axis[vForward] = g.EditInfo.pFacet->d.n[vForward];
+				other_axis[vRight] = g.EditInfo.pFacet->d.n[vUp];
+				other_axis[vUp] = -g.EditInfo.pFacet->d.n[vRight];
+				RotateTo( g.EditInfo.TEdit, g.EditInfo.pFacet->d.n, other_axis );
 			}
 			used = 1;
 		}
@@ -243,29 +191,32 @@ static LOGICAL OnKey3d( WIDE("Virtuality") )( PTRSZVAL psvView, _32 key )
 	return used;
 }
 
-POBJECT TestMouseObject( POBJECT po, PRAY mouse, PFACET *face )
+POBJECT TestMouseObject( POBJECT po, PRAY mouse, PFACET *face, PVECTOR vmin )
 {
 	LOGICAL status;
 	POBJECT sub;
+	POBJECT result = NULL;
 	for( ; po; po = po->next )
 	{
 		if( po->pHolds )
 		{
-			sub = TestMouseObject( po->pHolds, mouse, face );
+			sub = TestMouseObject( po->pHolds, mouse, face, vmin );
 			if( sub )
-				return sub;
+				result = sub;
 		}
 		if( po->pHas )
 		{
-			sub = TestMouseObject( po->pHas, mouse, face );
+			sub = TestMouseObject( po->pHas, mouse, face, vmin );
 			if( sub )
-				return sub;
+				result = sub;
 		}
-		status = ComputeRayIntersectObject( po, mouse, face );
+		status = ComputeRayIntersectObject( po, mouse, face, vmin );
 		if( status )
-			return po;
+		{
+			result = po;
+		}
 	}
-	return NULL;
+	return result;
 }
 
 
@@ -277,9 +228,6 @@ static LOGICAL OnMouse3d( WIDE("Virtuality") )( PTRSZVAL psvView, PRAY mouse, _3
 			VECTOR m, b;
 			// rotate world into view coordinates... mouse is void(0) coordinates...
 
-			UpdateThisCursorPos(); // no parameter version same x, y...
-			//         View->DoMouse();
-
 			//ApplyInverse( View->T, b, mouse_origin );
 			//ApplyInverseRotation( View->T, m, mouse_vforward );
 			//DrawLine( GetDisplayImage( View->hVideo ), b, m, 0, 10, 0x7f );
@@ -289,25 +237,29 @@ static LOGICAL OnMouse3d( WIDE("Virtuality") )( PTRSZVAL psvView, PRAY mouse, _3
 			//DrawLine( GetDisplayImage( View->hVideo ), b, m, 0, 10, 0x7f0000 );
   */
 
-	mouse_buttons = ( mouse_buttons & 0xF0 ) | b;
-
 	if( g.EditInfo.bEditing )
 	{
-		PFACET new_facet;
-		POBJECT new_object = TestMouseObject( g.pFirstRootObject, mouse, &new_facet );
+		PFACET new_facet = NULL;
+		VECTOR vmin;
+		POBJECT new_object;
+		new_object = TestMouseObject( g.pFirstRootObject, mouse, &new_facet, vmin );
 		if( new_object )
 		{
-			if( g.EditInfo.pEditObject != new_object )
+			g.EditInfo.pEditObject = new_object;
+			g.EditInfo.pFacet = new_facet;
 			{
-				g.EditInfo.pEditObject = new_object;
-				g.EditInfo.pFacet = new_facet;
+				VECTOR other_axis;
+				TranslateV( g.EditInfo.TEdit, g.EditInfo.pFacet->d.o );
+				other_axis[vForward] = g.EditInfo.pFacet->d.n[vForward];
+				other_axis[vRight] = g.EditInfo.pFacet->d.n[vUp];
+				other_axis[vUp] = -g.EditInfo.pFacet->d.n[vRight];
+				RotateTo( g.EditInfo.TEdit, g.EditInfo.pFacet->d.n, other_axis );
 			}
 
 		}
+		return 1;
 	}
 
-	if(	DoMouse( v ) )
-		return 1;
 	return 0;
 }
 
@@ -378,16 +330,16 @@ static LOGICAL OnUpdate3d( WIDE( "Virtuality" ) )( PTRANSFORM origin )
 		}
 		else if( g.EditInfo.bEditing ) // editing without control key pressed
 		{
-			ks[vRight] = 0;
-			ks[vUp] = 0;
-			kr[vForward] = 0;
-			if( Length( KeyRotation ) || Length( KeySpeed ) )
+			if( g.EditInfo.pFacet )
 			{
-				SetSpeed( g.EditInfo.TEdit, KeySpeed );
-				SetRotation( g.EditInfo.TEdit, KeyRotation );
-				Move( g.EditInfo.TEdit );
-				if( g.EditInfo.pFacet )
+				ks[vRight] = 0;
+				ks[vUp] = 0;
+				kr[vForward] = 0;
+				if( Length( KeyRotation ) || Length( KeySpeed ) )
 				{
+					SetSpeed( g.EditInfo.TEdit, KeySpeed );
+					SetRotation( g.EditInfo.TEdit, KeyRotation );
+					Move( g.EditInfo.TEdit );
 					ComputePlaneRay( &g.EditInfo.pFacet->d );
 					IntersectPlanes( g.EditInfo.pEditObject->objinfo, g.EditInfo.pEditObject->pIn?g.EditInfo.pEditObject->pIn->objinfo:NULL, TRUE );
 				}
@@ -398,19 +350,12 @@ static LOGICAL OnUpdate3d( WIDE( "Virtuality" ) )( PTRANSFORM origin )
 	return TRUE;
 }
 
-static void OnDraw3d( WIDE("Virtuality") )( PTRSZVAL psvView )
+static void OnDraw3d( WIDE("Virtuality") )( PTRSZVAL psvUnusedOne )
 {
-   PVIEW pv = (PVIEW)psvView;
-	//lprintf( WIDE("Init GL") );
+	// cannot count that the camera state is relative for how we want to show?
 
-   //lprintf( "Begin Frame." );
-   // cannot count that the camera state is relative for how we want to show?
-
-	//lprintf( WIDE("Show everythign.") );
 	ShowObjects(  );
-	//lprintf( WIDE("done.") );
-	//glFlush();
-	//lprintf( WIDE("Flushed.") );
+
 		if( g.EditInfo.bEditing )
 		{
 			TEXTCHAR buf[256];
@@ -479,118 +424,10 @@ void CPROC CloseView( PTRSZVAL dwView )
 
 static PTRSZVAL OnInit3d( WIDE("Virtuality") )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
-	PVIEW view = New( VIEW );
-	memset( view, 0, sizeof( VIEW ) );
-	if( !local.view )
-		local.view = view;
-	//view->Tcamera = camera;
-	return (PTRSZVAL)view;
+	g.camera = camera;
+	return (PTRSZVAL)1;
 }
 
-PVIEW CreateViewWithUpdateLockEx( int nType, ViewMouseCallback pMC, TEXTCHAR *Title, int sx, int sy, PCRITICALSECTION csUpdate )
-{
-	if( local.view )
-		return local.view;
-	{
-		PRENDERER hv;
-		static PLIST hvs;
-		_32 width, height;
-		PVIEW pv;
-		_32 winsz;
-		pv = New( VIEW );
-		memset( pv, 0, sizeof( VIEW ) );
-		pv->csUpdate = csUpdate;
-		//pv->T = CreateTransform();
-		//pv->Twork = CreateTransform();
-		pv->Type = nType;
-		if( !RequiresDrawAll() )
-		{
-			GetDisplaySize( &width, &height );
-			if( width / 4 < height / 3 )
-				winsz = width / 4;
-			else
-				winsz = height / 3;
-
-			//winsz = 512;  // 800x600 still fits this..
-			//   SetPoint( r, pr );
-
-			//pv->hVideo = OpenDisplaySizedAt( 0, 600, 600, sx, sy  );
-			//if( !hv )
-			//hv = OpenDisplayAboveSizedAt( 0, 500, 500, -250, -250, NULL );
-			hv = OpenDisplayAboveSizedAt( 0, 500, 500, 0, 0, NULL );
-			AddLink( &hvs, hv );
-			//pv->pcVideo = CreateFrameFromRenderer( WIDE("View Window"), BORDER_NONE, hv );
-			pv->hVideo = hv;
-
-			if( !RequiresDrawAll() )
-			{
-            lprintf( WIDE("using non 3d driver (probably); needed EnableOpenGL") );
-				//pv->nFracture = EnableOpenGL( pv->hVideo );
-			}
-		}
-		///if( !( pv->nFracture = EnableOpenGLView( pv->hVideo, 0, 0, /*sx * winsz, sy * winsz, */winsz, winsz ) ) )
-
-		//pv->hVideo = OpenDisplayAboveSizedAt( 0, winsz, winsz, sx * winsz, sy  * winsz, pMainView?pMainView->hVideo:NULL );
-		//if( !( EnableOpenGL( pv->hVideo ) ) )
-		if(0)
-		{
-			CloseDisplay( pv->hVideo );
-			Release( pv );
-			return NULL;
-		}
-
-
-		if( !pMainView )
-		{
-			//AddTimer(  250, TimerProc, 0 );
-			// scan keyboard and move my frame routine...
-		//	AddTimer(  10, TimerProc2, 0 );
-		//	pv->Tglobal = CreateTransform();
-		//	CreateTransformMotion( pv->Tglobal );
-		}
-		//else
-		//	pv->Tglobal = pMainView->Tglobal;
-
-		//SetRedrawHandler( pv->hVideo, _ShowObjects, (PTRSZVAL)pv );
-		//SetCloseHandler( pv->hVideo, CloseView, (PTRSZVAL)pv );
-		//SetMouseHandler( pv->hVideo, ViewMouse, (PTRSZVAL)pv );
-
-		pv->MouseMethod = pMC;
-
-		pv->Previous = pMainView;
-
-		pMainView = pv;
-		// NULL is OK if it's 3d plugin
-		RestoreDisplay( pv->hVideo );
-		local.view = pv;
-		return pv;
-	}
-}
-
-PVIEW CreateViewEx( int nType, ViewMouseCallback pMC, TEXTCHAR *Title, int sx, int sy )
-{
-	return CreateViewWithUpdateLockEx( nType, pMC, Title, sx, sy, NULL );
-}
-
-PVIEW CreateView( ViewMouseCallback pMC, TEXTCHAR *Title )
-{           	
-	return CreateViewEx( V_FORWARD, pMC, Title, 0, 0 );
-}
-
-void GetViewPoint( Image pImage, IMAGE_POINT presult, PVECTOR vo )
-{
-   //presult[0] = ProjectX( vo );
-   //presult[1] = ProjectY( vo );
-}
-
-void GetRealPoint( Image pImage, PVECTOR vresult, IMAGE_POINT pt )
-{
-   if( !vresult[2] )
-      vresult[2] = 1.0f;  // dumb - but protects result...
-   // use vresult Z for unprojection...
-   vresult[0] = (pt[0] - (pImage->width/2)) * (vresult[2] * 2.0f) / ((RCOORD)pImage->width);
-   vresult[1] = ((pImage->height/2) - pt[1] ) * (vresult[2] * 2.0f) / ((RCOORD)pImage->height);
-}
 
 PTRSZVAL CPROC RenderFacet(  POBJECT po
 						   , PFACET pf );
@@ -644,59 +481,23 @@ PTRSZVAL CPROC RenderFacet(  POBJECT po
 		RenderOpenFacet( po, pf );
 		return 0;
 	}
-//#if 0
+
 	if( !pf->flags.bDual )
 	{
-		RAY r, r1;
 		int invert;
-		//Invert( r.o );
-		ApplyR( po->Ti, &r1, &pf->d );
-		//ApplyInverseR( VectorConst_I /*T_camera*/, &r, &r1 ); 
-		//Invert( r.o );
-
-		//ApplyRotation( T_camera, r.n, pf->d.n );
-		//ApplyTranslation( T_camera, r.o, pf->d.o );
-		//r.o[1] = -r.o[1]; // it's like z is backwards.
-		//r.o[0] = -r.o[0]; // it's like z is backwards.
-		//lprintf( WIDE(" ------- facet normal, origin ") );
-		//PrintVector( pf->d.o );
-		//PrintVector( pf->d.n );
-		//ShowTransform( T_camera );
-		//lprintf( WIDE(" --- translated origin, normal...") );
-		//PrintVector( r1.o );
-		//PrintVector( r1.n );
-		//PrintVector( r.o );
-		//PrintVector( r.n );
-		//lprintf( WIDE(" Corss will be %g"), dotproduct( r.o, r.n ) );
-		//ApplyR( po->Ti, &r, &pf->d );
+		ApplyR( po->Ti, &rvl, &pf->d );
 		invert = pf->flags.bInvert;
 		if( g.EditInfo.bEditing && g.EditInfo.Invert )
 			invert = !invert;
 		if( po->bInvert )
 			invert = !invert;
-if( 0 )
-{
-	// draw line from object to world origiin
-	// was a useful debug at one point... can still
-	// be used for mast tracking.
-		glBegin( GL_LINE_STRIP );
-		glColor4ub( 255,255,255,255 );
-		//glVertex3fv( GetOrigin( T_camera ) );
-		glVertex3fv( GetOrigin( po->Ti ) );
-		glVertex3fv( VectorConst_0 );//GetOrigin( T_camera ) );	
-		glColor4ub( 255,0,0,255 );
-		glVertex3fv( VectorConst_X );//GetOrigin( T_camera ) );	
-		glColor4ub( 255,0,255,255 );
-		glVertex3fv( VectorConst_Y );//GetOrigin( T_camera ) );	
-		glColor4ub( 255,255,0,255 );
-		glVertex3fv( VectorConst_Z );//GetOrigin( T_camera ) );	
-		glEnd();
-}
+
 		if( invert )
 		{
-			PrintVector( r.n );
-			PrintVector( r.o );
-			if( dotproduct( r.o, r.n ) > 0 )
+			// invert is to show if is inside.
+			// normal view is from the outside (not this)
+			// projection is very wide because back planes can extend far
+			if( dotproduct( rvl.n, GetAxis( g.camera, vForward ) ) < -0.507 )
 			{
 				// draw plane normal - option at some point....
 				//DrawLine( GetDisplayImage( pv->hVideo ),
@@ -706,9 +507,9 @@ if( 0 )
 		}
 		else
 		{
-			//PrintVector( r.o );
-			//PrintVector( r.n );
-			if( dotproduct( r.o, r.n ) < 0 )
+			// normal view is from the outside (this)
+			// projection is very wide because back planes can extend far
+			if( dotproduct( rvl.n, GetAxis( g.camera, vForward ) ) > 0.507 )
 			{
 				// draw plane normal - option at some point....
 				//DrawLine( GetDisplayImage( pv->hVideo ),
@@ -717,10 +518,10 @@ if( 0 )
 			}
 		}
 	}
-//#endif
+
 	//Log( WIDE("Begin facet...") );
 	// now we know we can show this facet...
-   if( !pf->flags.bShared )
+	if( !pf->flags.bShared )
 	{
 		int l;
 		int lstart = 0;
@@ -794,6 +595,7 @@ if( 0 )
 			Release( v );
 
 		}
+
 		//#if defined WIREFRAME
 		// do wireframe white line along edge....
 		if( points )
@@ -804,7 +606,7 @@ if( 0 )
 			for( l = 0; l < points; l++ )
 			{
 				//lprintf( WIDE("Vertex..") );
-            //PrintVector(pvPoints[l] );
+				//PrintVector(pvPoints[l] );
 				Apply( (PCTRANSFORM)po->Ti, v[l], pvPoints[l] );
 				//glVertex3fv( v[l] );
 			}
@@ -914,7 +716,7 @@ void ShowObjectChildren( POBJECT po )
 				{
 #endif
 #endif
-						RenderFacet( pCurObj, facet );
+					RenderFacet( pCurObj, facet );
 #ifndef __cplusplus
 #ifdef MSC_VER
 				}
@@ -1000,19 +802,3 @@ void ShowObjects( )
 	//	LeaveCriticalSec( pv->csUpdate );
 }
 
-
-
-void DestroyView( PVIEW pv )
-{
-	if( pv )
-	{
-		if( pv->hVideo )  // could already be closed...
-			CloseDisplay( pv->hVideo );
-		Release( pv );   
-	}
-}
-
-void MoveView( PVIEW pv, PCVECTOR v )
-{
-	//TranslateV( pv->T, v );
-}

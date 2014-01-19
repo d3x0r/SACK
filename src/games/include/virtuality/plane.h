@@ -188,7 +188,7 @@ PFACET AddPlaneToSet( OBJECTINFO *oi, PCVECTOR origin, PCVECTOR norm, int d );
 
 
 int IntersectPlanes( OBJECTINFO *oi, OBJECTINFO *oi_container, int bAll );
-LOGICAL ComputeRayIntersectObject( POBJECT po, PRAY ray, PFACET *face );
+LOGICAL ComputeRayIntersectObject( POBJECT po, PRAY ray, PFACET *face, PVECTOR vmin );
 
 void DeletePlane( PFACETSET pp, PFACET pDel );
 
