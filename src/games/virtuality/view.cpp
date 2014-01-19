@@ -142,6 +142,121 @@ void ComputePlaneRay( PRAY out )
 	ApplyR( (PCTRANSFORM)EditInfo.TEdit, out, &in );
 }
 
+static LOGICAL OnKey3d( WIDE("Virtuality") )( PTRSZVAL psvView, _32 key )
+{
+	VIEW *v = (VIEW*)psvView;
+	int used = 0;
+	int SetChanged;
+		SetChanged = FALSE;	
+
+      if( KeyDown(  NULL, KEY_E ) )
+      {
+      	EditInfo.bEditing = !EditInfo.bEditing;
+      	if( EditInfo.bEditing )
+      	{
+      		EditInfo.pEditObject = (POBJECT)pFirstObject;
+      		EditInfo.nFacetSet = 0;
+      		EditInfo.nFacet = 0;
+				if( !EditInfo.TEdit )
+				{
+					EditInfo.TEdit = CreateTransform();
+				}
+				used = 1;
+      		SetChanged = TRUE;
+      	}
+      }
+      if( EditInfo.bEditing )
+      {
+         if( KeyDown(  NULL, KEY_O ) )
+         {
+         	// change editing object
+         	EditInfo.pEditObject = NextLink( EditInfo.pEditObject );
+         	if( !EditInfo.pEditObject )
+         	   EditInfo.pEditObject = (POBJECT)pFirstObject;
+         	EditInfo.nFacetSet = 0;
+         	EditInfo.nFacet = 0;
+			used = 1;
+         	SetChanged = TRUE;
+         }
+      
+         if( KeyDown( NULL, KEY_S ) )
+         {
+				EditInfo.nFacetSet++;
+#if 0
+         	if( EditInfo.nFacetSet >= EditInfo.pEditObject->objinfo->FacetSetPool.nUsedFacetSets )
+         		EditInfo.nFacetSet = 0;	
+				EditInfo.nFacet = 0;
+#endif
+				used = 1;
+        		SetChanged = TRUE;
+         }
+         if( KeyDown( NULL, KEY_F ) )
+         {
+				EditInfo.nFacet++;
+#if 0
+         	if( EditInfo.nFacet >= EditInfo.pEditObject->objinfo.FacetSetPool.pFacetSets[EditInfo.nFacetSet].nUsedFacets )
+					EditInfo.nFacet = 0;
+#endif
+				used = 1;
+         	SetChanged = TRUE;
+         }
+         if( KeyDown( NULL, KEY_I ) )
+         {
+         	EditInfo.Invert = !EditInfo.Invert;
+				used = 1;
+         }
+         if( KeyDown(  NULL, KEY_N ) )
+         {
+         	int nfs, nf, nfp;
+         	PFACET pf;
+				//nfs = GetFacetSet( &EditInfo.pEditObject->objinfo );
+#if 0
+         	pf = GetEditFacet();
+         	nf = AddPlaneToSet( EditInfo.pEditObject->objinfo, pf->d.o, pf->d.n, 1 );
+         	nfp = GetFacetP( EditInfo.pEditObject->objinfo, nfs );
+         	EditInfo.pEditObject->objinfo.FacetSetPool.pFacetSets[nfs].pFacets[nfp].nFacet = 
+         	   EditInfo.pEditObject->objinfo.FacetSetPool.pFacetSets[EditInfo.nFacetSet].pFacets[EditInfo.nFacet].nFacet;
+				EditInfo.pEditObject->objinfo.FacetSetPool.pFacetSets[nfs].pFacets[nfp].bInvert = TRUE;
+				{
+				   int l;
+					PLINESEGPSET *pplps = &pf->pLineSet;
+               int lines = CountUsedInSet( LINESEGP, pf->pLineSet );
+				   for( l = 0; l < lines; l++ )
+				   {
+						VECTOR n, ln;
+                  PLINESEGP plsp = GetSetMember( LINESEGP, pplps, l );
+                  PMYLINESEG line = GetSetMember( MYLINESEG, &EditInfo.pEditObject->objinfo.LinePool, plsp->nLine );
+				   	if( plsp->nLine < 0 )
+				   		continue;
+						SetPoint( ln, line->r.n );
+						if( plsp->bOrderFromTo  )
+							Invert( ln );
+						crossproduct( n, pf->d.n, ln );
+				   	AddPlaneToSet( &EditInfo.pEditObject->objinfo, nfs
+				   					  , line->r.o
+				   					  , n, 1 );
+				   }
+				}
+         	EditInfo.nFacetSet = nfs;
+				EditInfo.nFacet = nf;
+#endif
+			}
+#if 0
+         if( SetChanged )
+         {
+				PFACET pf;
+            PLINESEGP plsp = GetSetMember( LINESEGP, &pf->pLineSet, 0 );
+            PMYLINESEG line = GetSetMember( MYLINESEG, &EditInfo.pEditObject->objinfo.LinePool, plsp->nLine );
+         	pf = GetEditFacet();
+		   	RotateTo( EditInfo.TEdit, pf->d.n
+						  , line->r.n );
+				TranslateV( EditInfo.TEdit, pf->d.o );
+			}
+#endif
+		}
+	return used;
+}
+
 static LOGICAL OnMouse3d( WIDE("Virtuality") )( PTRSZVAL psvView, PRAY mouse, _32 b )
 //int CPROC ViewMouse( PTRSZVAL dwView, S_32 x, S_32 y, _32 b )
 {
@@ -167,7 +282,7 @@ static LOGICAL OnMouse3d( WIDE("Virtuality") )( PTRSZVAL psvView, PRAY mouse, _3
   */
 
 
-      if( KeyDown(  v->hVideo, KEY_E ) )
+      if( KeyDown( v->hVideo, KEY_E ) )
       {
       	EditInfo.bEditing = !EditInfo.bEditing;
       	if( EditInfo.bEditing )
@@ -184,7 +299,7 @@ static LOGICAL OnMouse3d( WIDE("Virtuality") )( PTRSZVAL psvView, PRAY mouse, _3
       }
       if( EditInfo.bEditing )
       {
-         if( KeyDown(  v->hVideo, KEY_O ) )
+         if( KeyDown( v->hVideo, KEY_O ) )
          {
          	// change editing object
          	EditInfo.pEditObject = NextLink( EditInfo.pEditObject );
@@ -355,7 +470,8 @@ static void OnDraw3d( WIDE("Virtuality") )( PTRSZVAL psvView )
 	   			PFACET pf;
 	   			RAY rf;
 	   			pf = GetEditFacet();
-				DrawLine( pf->d.o, pf->d.n, 0, 10, 0x3f5f9f );
+				if( pf )
+					DrawLine( pf->d.o, pf->d.n, 0, 10, 0x3f5f9f );
 			}
 			
 		}
@@ -942,10 +1058,30 @@ if( 0 )
 			Apply( (PCTRANSFORM)po->Ti, v[l], pvPoints[0] );
 			//glVertex3fv( v );
 			//glEnd();
-			gl_color[0] = 1.0;
-			gl_color[1] = 1.0;
-			gl_color[2] = 1.0;
-			gl_color[3] = 1.0;
+			if( EditInfo.bEditing )
+			{
+				if( po == EditInfo.pEditObject )
+				{
+					gl_color[0] = 0.31f;
+					gl_color[1] = 0.61f;
+					gl_color[2] = 1.0f;
+					gl_color[3] = 1.0f;
+				}
+				else
+				{
+					gl_color[0] = 0.01f;
+					gl_color[1] = 0.31f;
+					gl_color[2] = 1.0f;
+					gl_color[3] = 1.0f;
+				}
+			}
+			else
+			{
+				gl_color[0] = 1.0;
+				gl_color[1] = 1.0;
+				gl_color[2] = 1.0;
+				gl_color[3] = 1.0;
+			}
 			ImageEnableShader( ImageGetShader( "Simple Shader", NULL ), v, gl_color);
 			glDrawArrays( GL_LINE_STRIP, 0, points+1 );
 			Release( v );

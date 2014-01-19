@@ -554,7 +554,9 @@ LOGICAL ObjectOn( POBJECT po,
 
 int IntersectObjectPlanes( POBJECT object )
 {
-	return IntersectPlanes( object->objinfo, object->pIn?object->pIn->objinfo:NULL, TRUE ); // no transformation nicluded....
+	int result = IntersectPlanes( object->objinfo, object->pIn?object->pIn->objinfo:NULL, TRUE ); // no transformation nicluded....
+
+	return result;
 }
 
 static void _VirtualityUpdate( POBJECT object )

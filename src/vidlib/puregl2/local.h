@@ -429,6 +429,10 @@ void UpdateMouseRays( S_32 x, S_32 y );
 #undef GetViewVolume
 void CPROC GetViewVolume( PRAY *planes );
 
+// -------- keymap_win32.c ----------------
+int CPROC OpenGLKey( PTRSZVAL psv, _32 keycode ); // should move this
+
+
 //-------------------  render utility ------------
 void Render3D( struct display_camera *camera );
 void WantRender3D( void );
