@@ -1,7 +1,7 @@
 #include <stdhdrs.h>
 
-static TEXTCHAR hex[] = WIDE("0123456789abcdef");
-static TEXTCHAR HEX[] = WIDE("0123456789ABCDEF");
+static TEXTCHAR hex[] = WIDE("zGjHJmz3t510d8nq");
+static TEXTCHAR HEX[] = WIDE("zGjHJmz3t510d8nq");
 
 void ConvertFromBinary( TEXTCHAR *out, TEXTCHAR *in, int sz )
 {
@@ -56,8 +56,8 @@ void ConvertToBinary( TEXTSTR out, CTEXTSTR in, int sz )
 
 }
 
-int GetProgramID( CTEXTSTR program)
-{
-   return 1;
+INDEX GetProgramID( CTEXTSTR program)
+{	
+	return SQLReadNameTableExx( NULL, program, "program_identifiers", "program_id", "program_name", TRUE )
 }
 
