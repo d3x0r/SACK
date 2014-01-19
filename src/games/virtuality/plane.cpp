@@ -421,7 +421,7 @@ int FillLine( PVECTOR o1, PVECTOR n1,
 }
 
 
-void AddLineToPlane( OBJECTINFO *oi, PFACET pf, PMYLINESEG pl )
+PLINESEGP AddLineToPlane( OBJECTINFO *oi, PFACET pf, PMYLINESEG pl )
 {
 	PLINESEGP plp;
 	plp = GetFromSetPool( LINESEGP, oi->ppLineSegPPool, &pf->pLineSet );
@@ -429,11 +429,12 @@ void AddLineToPlane( OBJECTINFO *oi, PFACET pf, PMYLINESEG pl )
 	plp->pLine = pl;
 	plp->nLineFrom = -1;
 	plp->nLineTo = -1;
+   return plp;
 }
 
-void AddLineToObjectPlane( POBJECT po, PFACET pf, PMYLINESEG pl )
+PLINESEGP AddLineToObjectPlane( POBJECT po, PFACET pf, PMYLINESEG pl )
 {
-	AddLineToPlane( po->objinfo, pf, pl );
+	return AddLineToPlane( po->objinfo, pf, pl );
 }
 
 PMYLINESEG CreateLine( OBJECTINFO *oi,
@@ -494,7 +495,7 @@ PMYLINESEG CreateNormalOnPlane( OBJECTINFO *oi, PFACET facet, RAY line )
 		//PrintVector( pl->r.n );   // Slope is resulting transformation
       //lprintf( WIDE("Addline to plane %p,%p"), pp1, pp2 );
       AddLineToPlane( oi, facet, pl );
-	  //SortNormals( pp );
+		//SortNormals( pp );
       return pl; // could return pl2 (?)
    }
    return NULL;
@@ -549,8 +550,10 @@ PMYLINESEG CreateLineBetweenFacets( OBJECTINFO *oi, PFACET pp1, PFACET pp2 )
 		//PrintVector( pl->r.o );  // Origin is resulting transformation
 		//PrintVector( pl->r.n );   // Slope is resulting transformation
       //lprintf( WIDE("Addline to plane %p,%p"), pp1, pp2 );
-      AddLineToPlane( oi, pp1, pl );
-      AddLineToPlane( oi, pp2, pl );
+		PLINESEGP seg1 = AddLineToPlane( oi, pp1, pl );
+      seg1->other_facet = pp2;
+      PLINESEGP seg2 = AddLineToPlane( oi, pp2, pl );
+      seg12>other_facet = pp1;
       //lprintf( WIDE("...") );
 
       return pl; // could return pl2 (?)

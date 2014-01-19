@@ -55,7 +55,7 @@ typedef struct my_line_tag
    // such that when the line is updated all mating lines 
    // in all mating facets may be updated.
 	//PFACETREFSET frs;
-	struct facet_tag *facets[3]; // only in a mathematically perfect world do more than 2 facets make a line.
+	//struct facet_tag *facets[3]; // only in a mathematically perfect world do more than 2 facets make a line.
      	// and landscape-zone-based engines (which has invisible walls at each ground-fracture line.
 } MYLINESEG, *PMYLINESEG;
 
@@ -79,7 +79,8 @@ typedef struct linep_tag
 	//int bOrderFromTo; // while traversing the ordered list of lines
 							// point from is first then point to...
 							// otherwise point to is first and point from is
-							// next...
+	// next...
+   PFACET other_facet;
 } LINESEGP, *PLINESEGP;
 
 #define MAXLINESEGPSPERSET 16
