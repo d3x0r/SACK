@@ -80,7 +80,7 @@ typedef struct linep_tag
 							// point from is first then point to...
 							// otherwise point to is first and point from is
 	// next...
-   PFACET other_facet;
+	struct facet_tag *other_facet;
 } LINESEGP, *PLINESEGP;
 
 #define MAXLINESEGPSPERSET 16
@@ -181,13 +181,14 @@ PMYLINESEG CreateLine( OBJECTINFO *oi,
 PMYLINESEG CopyLine( OBJECTINFO *oi,
                   	 PMYLINESEG orig );
 
-void AddLineToPlane( OBJECTINFO *oi, PFACET pf, PMYLINESEG pl );
+PLINESEGP AddLineToPlane( OBJECTINFO *oi, PFACET pf, PMYLINESEG pl );
 PFACET AddPlaneToSet( OBJECTINFO *oi, PCVECTOR origin, PCVECTOR norm, int d );
 
 //int CreateLineBetweenFacets( OBJECTINFO *oi, int nfs, int np1, int np2 );
 
 
 int IntersectPlanes( OBJECTINFO *oi, OBJECTINFO *oi_container, int bAll );
+LOGICAL ComputeRayIntersectObject( POBJECT po, PRAY ray, PFACET *face );
 
 void DeletePlane( PFACETSET pp, PFACET pDel );
 
@@ -202,7 +203,7 @@ int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
 
 LOGICAL AbovePlane( PVECTOR n, PVECTOR o, PVECTOR p );
 int PointWithin( PCVECTOR p, PMYLINESEGSET *ppls, PLINESEGPSET *pplps );
-RCOORD PointToPlaneT( PVECTOR n, PVECTOR o, PVECTOR p );
+RCOORD PointToPlaneT( PVECTOR n, PVECTOR o, PCVECTOR p );
 void DiagnosticDump( PMYLINESEGSET *ppls, PFACETSET pps );
 
 // returns FALSE  if the number of points from pf exceeds the value

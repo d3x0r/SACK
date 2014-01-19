@@ -58,11 +58,11 @@ RCOORD f(void)
 // set origin of pResult to the intersecting point
 // of pL1, and pL2 assuming they are not skew
 int FindInt3ersection( PVECTOR presult,
-                       PVECTOR s1, PVECTOR o1, 
-                       PVECTOR s2, PVECTOR o2 )
+							  PVECTOR s1, PVECTOR o1, 
+							  PVECTOR s2, PVECTOR o2 )
 {
-   VECTOR R1, R2, denoms;
-   RCOORD t1, t2, denom;
+	VECTOR R1, R2, denoms;
+	RCOORD t1, t2, denom;
 
 #define a (o1[0])
 #define b (o1[1])
@@ -80,56 +80,56 @@ int FindInt3ersection( PVECTOR presult,
 #define ne (s2[1])
 #define nf (s2[2])
 
-   crossproduct( denoms, s1, s2 );
-   denom = denoms[2];
-//   denom = ( nd * nb ) - ( ne * na );
-   if( NearZero( denom ) )
-   {
-      denom = denoms[1];
-//      denom = ( nd * nc ) - (nf * na );
-      if( NearZero( denom ) )
-      {
-         denom = denoms[0];
-//         denom = ( ne * nc ) - ( nb * nf );
-         if( NearZero( denom ) )
-         {
-            SetPoint( presult, VectorConst_0 );
-            return FALSE;
-         }
-         else
-         {
-            t1 = ( ne * ( f - c ) + nf * ( e - b ) ) / -denom;
-            t2 = ( nb * ( c - f ) + nc * ( b - e ) ) / denom;
-         }
-      }
-      else
-      {
-         t1 = ( nd * ( f - c ) + nf * ( d - a ) ) / -denom;
-         t2 = ( na * ( c - f ) + nc * ( a - d ) ) / denom;
-      }
-   }
-   else
-   {
-      t1 = ( nd * ( e - b ) + ne * ( d - a ) ) / -denom;
-      t2 = ( na * ( b - e ) + nb * ( a - d ) ) / denom;
-   }
+	crossproduct( denoms, s1, s2 );
+	denom = denoms[2];
+//	denom = ( nd * nb ) - ( ne * na );
+	if( NearZero( denom ) )
+	{
+		denom = denoms[1];
+//		denom = ( nd * nc ) - (nf * na );
+		if( NearZero( denom ) )
+		{
+			denom = denoms[0];
+//			denom = ( ne * nc ) - ( nb * nf );
+			if( NearZero( denom ) )
+			{
+				SetPoint( presult, VectorConst_0 );
+				return FALSE;
+			}
+			else
+			{
+				t1 = ( ne * ( f - c ) + nf * ( e - b ) ) / -denom;
+				t2 = ( nb * ( c - f ) + nc * ( b - e ) ) / denom;
+			}
+		}
+		else
+		{
+			t1 = ( nd * ( f - c ) + nf * ( d - a ) ) / -denom;
+			t2 = ( na * ( c - f ) + nc * ( a - d ) ) / denom;
+		}
+	}
+	else
+	{
+		t1 = ( nd * ( e - b ) + ne * ( d - a ) ) / -denom;
+		t2 = ( na * ( b - e ) + nb * ( a - d ) ) / denom;
+	}
 
-   scale( R1, s1, t1 );
-   add  ( R1, R1         , o1 );
+	scale( R1, s1, t1 );
+	add  ( R1, R1			, o1 );
 
-   scale( R2, s2, t2 );
-   add  ( R2, R2         , o2 );
+	scale( R2, s2, t2 );
+	add  ( R2, R2			, o2 );
 
 
-   if( ( !COMPARE(R1[0] , R2[0]) ) ||
-       ( !COMPARE(R1[1] , R2[1]) ) ||
-       ( !COMPARE(R1[2] , R2[2]) ) )
-   {
-      SetPoint( presult, VectorConst_0 );
-      return FALSE;
-   }
-   SetPoint( presult, R1);
-   return TRUE;
+	if( ( !COMPARE(R1[0] , R2[0]) ) ||
+		 ( !COMPARE(R1[1] , R2[1]) ) ||
+		 ( !COMPARE(R1[2] , R2[2]) ) )
+	{
+		SetPoint( presult, VectorConst_0 );
+		return FALSE;
+	}
+	SetPoint( presult, R1);
+	return TRUE;
 #undef a
 #undef b
 #undef c
@@ -150,10 +150,10 @@ int FindInt3ersection( PVECTOR presult,
 //int FindIntersectionTime( RCOORD *pT1, LINESEG pL1, RCOORD *pT2, PLINE pL2 )
 
 int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
-                        , RCOORD *pT2, PVECTOR s2, PVECTOR o2 )
+								, RCOORD *pT2, PVECTOR s2, PVECTOR o2 )
 {
-   VECTOR R1, R2, denoms;
-   RCOORD t1, t2, denom;
+	VECTOR R1, R2, denoms;
+	RCOORD t1, t2, denom;
 
 #define a (o1[0])
 #define b (o1[1])
@@ -171,62 +171,62 @@ int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
 #define ne (s2[1])
 #define nf (s2[2])
 
-   crossproduct(denoms, s1, s2 ); // - result...
-   denom = denoms[2];
-//   denom = ( nd * nb ) - ( ne * na );
-   if( NearZero( denom ) )
-   {
-      denom = denoms[1];
-//      denom = ( nd * nc ) - (nf * na );
-      if( NearZero( denom ) )
-      {
-         denom = denoms[0];
-//         denom = ( ne * nc ) - ( nb * nf );
-         if( NearZero( denom ) )
-         {
+	crossproduct(denoms, s1, s2 ); // - result...
+	denom = denoms[2];
+//	denom = ( nd * nb ) - ( ne * na );
+	if( NearZero( denom ) )
+	{
+		denom = denoms[1];
+//		denom = ( nd * nc ) - (nf * na );
+		if( NearZero( denom ) )
+		{
+			denom = denoms[0];
+//			denom = ( ne * nc ) - ( nb * nf );
+			if( NearZero( denom ) )
+			{
 #ifdef FULL_DEBUG
-            lprintf(WIDE("Bad!-------------------------------------------\n"));
+				lprintf(WIDE("Bad!-------------------------------------------\n"));
 #endif
-            return FALSE;
-         }
-         else
-         {
-            DebugBreak();
-            t1 = ( ne * ( c - f ) + nf * ( b - e ) ) / denom;
-            t2 = ( nb * ( c - f ) + nc * ( b - e ) ) / denom;
-         }
-      }
-      else
-      {
-         DebugBreak();
-         t1 = ( nd * ( c - f ) + nf * ( d - a ) ) / denom;
-         t2 = ( na * ( c - f ) + nc * ( d - a ) ) / denom;
-      }
-   }
-   else
-   {
-      // this one has been tested.......
-      t1 = ( nd * ( b - e ) + ne * ( d - a ) ) / denom;
-      t2 = ( na * ( b - e ) + nb * ( d - a ) ) / denom;
-   }
+				return FALSE;
+			}
+			else
+			{
+				//DebugBreak();
+				t1 = ( ne * ( c - f ) + nf * ( b - e ) ) / denom;
+				t2 = ( nb * ( c - f ) + nc * ( b - e ) ) / denom;
+			}
+		}
+		else
+		{
+			//DebugBreak();
+			t1 = ( nd * ( c - f ) + nf * ( d - a ) ) / denom;
+			t2 = ( na * ( c - f ) + nc * ( d - a ) ) / denom;
+		}
+	}
+	else
+	{
+		// this one has been tested.......
+		t1 = ( nd * ( b - e ) + ne * ( d - a ) ) / denom;
+		t2 = ( na * ( b - e ) + nb * ( d - a ) ) / denom;
+	}
 
-   R1[0] = a + na * t1;
-   R1[1] = b + nb * t1;
-   R1[2] = c + nc * t1;
+	R1[0] = a + na * t1;
+	R1[1] = b + nb * t1;
+	R1[2] = c + nc * t1;
 
-   R2[0] = d + nd * t2;
-   R2[1] = e + ne * t2;
-   R2[2] = f + nf * t2;
+	R2[0] = d + nd * t2;
+	R2[1] = e + ne * t2;
+	R2[2] = f + nf * t2;
 
-   if( ( !COMPARE(R1[0],R2[0]) ) ||
-       ( !COMPARE(R1[1],R2[1]) ) ||
-       ( !COMPARE(R1[2],R2[2]) ) )
-   {
-      return FALSE;
-   }
-   *pT2 = t2;
-   *pT1 = t1;
-   return TRUE;
+	if( ( !COMPARE(R1[0],R2[0]) ) ||
+		 ( !COMPARE(R1[1],R2[1]) ) ||
+		 ( !COMPARE(R1[2],R2[2]) ) )
+	{
+		return FALSE;
+	}
+	*pT2 = t2;
+	*pT1 = t1;
+	return TRUE;
 #undef a
 #undef b
 #undef c
@@ -244,106 +244,106 @@ int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
 
 int Parallel( PVECTOR pv1, PVECTOR pv2 )
 {
-   RCOORD a,b,c,cosTheta; // time of intersection
+	RCOORD a,b,c,cosTheta; // time of intersection
 
-   // intersect a line with a plane.
+	// intersect a line with a plane.
 
-//   v € w = (1/2)(|v + w|2 - |v|2 - |w|2) 
-//  (v € w)/(|v| |w|) = cos ß     
+//	v € w = (1/2)(|v + w|2 - |v|2 - |w|2) 
+//  (v € w)/(|v| |w|) = cos ß	  
 
-   a = dotproduct( pv1, pv2 );
+	a = dotproduct( pv1, pv2 );
 
-   if( a < 0.0001 &&
-       a > -0.0001 )  // near zero is sufficient...
+	if( a < 0.0001 &&
+		 a > -0.0001 )  // near zero is sufficient...
 	{
 #ifdef DEBUG_PLANE_INTERSECTION
 		Log( WIDE("Planes are not parallel") );
 #endif
-      return FALSE; // not parallel..
-   }
+		return FALSE; // not parallel..
+	}
 
-   b = Length( pv1 );
-   c = Length( pv2 );
+	b = Length( pv1 );
+	c = Length( pv2 );
 
-   if( !b || !c )
-      return TRUE;  // parallel ..... assumption...
+	if( !b || !c )
+		return TRUE;  // parallel ..... assumption...
 
-   cosTheta = a / ( b * c );
+	cosTheta = a / ( b * c );
 #ifdef FULL_DEBUG
-   lprintf( WIDE(" a: %g b: %g c: %g cos: %g"), a, b, c, cosTheta );
+	lprintf( WIDE(" a: %g b: %g c: %g cos: %g"), a, b, c, cosTheta );
 #endif
-   if( cosTheta > 0.99999 ||
-       cosTheta < -0.999999 ) // not near 0degrees or 180degrees (aligned or opposed)
-   {
-      return TRUE;  // near 1 is 0 or 180... so IS parallel...
-   }
-   return FALSE;
+	if( cosTheta > 0.99999 ||
+		 cosTheta < -0.999999 ) // not near 0degrees or 180degrees (aligned or opposed)
+	{
+		return TRUE;  // near 1 is 0 or 180... so IS parallel...
+	}
+	return FALSE;
 }
 
 // slope and origin of line, 
 // normal of plane, origin of plane, result time from origin along slope...
 RCOORD IntersectLineWithPlane( PCVECTOR Slope, PCVECTOR Origin,  // line m, b
-                            PCVECTOR n, PCVECTOR o,  // plane n, o
+									 PCVECTOR n, PCVECTOR o,  // plane n, o
 										RCOORD *time DBG_PASS )
-#define IntersectLineWithPlane( s,o,n,o2,t ) IntersectLineWithPlane(s,o,n,o2,t DBG_SRC )
+#define IntersectLineWithPlane( slope,origin,normal,origin2,result_time ) IntersectLineWithPlane(slope,origin,normal,origin2,result_time DBG_SRC )
 {
-   RCOORD a,b,c,cosPhi, t; // time of intersection
+	RCOORD a,b,c,cosPhi, t; // time of intersection
 
-   // intersect a line with a plane.
+	// intersect a line with a plane.
 
-//   v € w = (1/2)(|v + w|2 - |v|2 - |w|2) 
-//  (v € w)/(|v| |w|) = cos ß     
+//	v € w = (1/2)(|v + w|2 - |v|2 - |w|2) 
+//  (v € w)/(|v| |w|) = cos ß	  
 
 	//cosPhi = CosAngle( Slope, n );
 
-   a = ( Slope[0] * n[0] +
-         Slope[1] * n[1] +
-         Slope[2] * n[2] );
+	a = ( Slope[0] * n[0] +
+			Slope[1] * n[1] +
+			Slope[2] * n[2] );
 
-   if( !a )
+	if( !a )
 	{
 		//Log1( DBG_FILELINEFMT WIDE("Bad choice - slope vs normal is 0") DBG_RELAY, 0 );
 		//PrintVector( Slope );
-      //PrintVector( n );
-      return FALSE;
-   }
+		//PrintVector( n );
+		return FALSE;
+	}
 
-   b = Length( Slope );
-   c = Length( n );
+	b = Length( Slope );
+	c = Length( n );
 	if( !b || !c )
 	{
-      Log( WIDE("Slope and or n are near 0") );
+		Log( WIDE("Slope and or n are near 0") );
 		return FALSE; // bad vector choice - if near zero length...
 	}
 
-   cosPhi = a / ( b * c );
+	cosPhi = a / ( b * c );
 
-   t = ( n[0] * ( o[0] - Origin[0] ) +
-         n[1] * ( o[1] - Origin[1] ) +
-         n[2] * ( o[2] - Origin[2] ) ) / a;
+	t = ( n[0] * ( o[0] - Origin[0] ) +
+			n[1] * ( o[1] - Origin[1] ) +
+			n[2] * ( o[2] - Origin[2] ) ) / a;
 
-//   lprintf( WIDE(" a: %g b: %g c: %g t: %g cos: %g pldF: %g pldT: %g \n"), a, b, c, t, cosTheta,
-//                  pl->dFrom, pl->dTo );
+//	lprintf( WIDE(" a: %g b: %g c: %g t: %g cos: %g pldF: %g pldT: %g \n"), a, b, c, t, cosTheta,
+//						pl->dFrom, pl->dTo );
 
-//   if( cosTheta > e1 ) //global epsilon... probably something custom
+//	if( cosTheta > e1 ) //global epsilon... probably something custom
 
 //#define 
 
-   if( cosPhi > 0 ||
-       cosPhi < 0 ) // at least some degree of insident angle
-   {
-      *time = t;
-      return cosPhi;
-   }
-   else
+	if( cosPhi > 0 ||
+		 cosPhi < 0 ) // at least some degree of insident angle
+	{
+		*time = t;
+		return cosPhi;
+	}
+	else
 	{
 		Log1( WIDE("Parallel... %g\n"), cosPhi );
 		PrintVector( Slope );
 		PrintVector( n );
 		// plane and line are parallel if slope and normal are perpendicular
-//      lprintf(WIDE("Parallel...\n"));
+//		lprintf(WIDE("Parallel...\n"));
 		return 0;
-   }
+	}
 }
 
 // slope and origin of line, 
@@ -364,39 +364,39 @@ INDEX GetLineSegP( PLINESEGPSETSET *pplpss, PLINESEGPSET *pplps )
 }
 
 int FillLine( PVECTOR o1, PVECTOR n1,
-              PVECTOR o2, PVECTOR n2, 
-              PRAY prl, // alternate of origin1 may be used...
-              PVECTOR o_origin1 )
+				  PVECTOR o2, PVECTOR n2, 
+				  PRAY prl, // alternate of origin1 may be used...
+				  PVECTOR o_origin1 )
 {
-   int ret;
-   RCOORD time;
-   VECTOR vnp1, vnp2; // vector normal perpendicular
+	int ret;
+	RCOORD time;
+	VECTOR vnp1, vnp2; // vector normal perpendicular
 
   if( Parallel( n1, n2 ) )
   {
 #ifdef FULL_DEBUG
-     Log( WIDE("ABORTION! \n"));
+	  Log( WIDE("ABORTION! \n"));
 #endif
-     return 0;
+	  return 0;
   }
-   crossproduct( prl->n, n1, n2 );
+	crossproduct( prl->n, n1, n2 );
 
-   // this is the slope of the normal of the line...
-   // or a perpendicular ray to the line... no origins - just slopes...
+	// this is the slope of the normal of the line...
+	// or a perpendicular ray to the line... no origins - just slopes...
 
-   // this is the line normal on the first plane...
-   crossproduct( vnp1, prl->n, n1 );
+	// this is the line normal on the first plane...
+	crossproduct( vnp1, prl->n, n1 );
 
-   // compute normal in second plane of the line
-   crossproduct( vnp2, prl->n, n2 );
+	// compute normal in second plane of the line
+	crossproduct( vnp2, prl->n, n2 );
 
-   // the origin of the perpendicular vector to the normal vector
-   // is the end of the normal vector.
-   ret = 0;
+	// the origin of the perpendicular vector to the normal vector
+	// is the end of the normal vector.
+	ret = 0;
 
-   if( IntersectLineWithPlane( vnp2, o2,
-                               n1, o1, &time ) )  // unless parallel....
-   {
+	if( IntersectLineWithPlane( vnp2, o2,
+										 n1, o1, &time ) )  // unless parallel....
+	{
 		VECTOR v;
 		scale( v, vnp2, time );
 		add( prl->o, v, o2 ); 
@@ -407,17 +407,17 @@ int FillLine( PVECTOR o1, PVECTOR n1,
 		Log( WIDE("Intersect failed between...") );
 
 	}
-   // this origin should be valid...
+	// this origin should be valid...
 
-   if( IntersectLineWithPlane( vnp1, o1,
-                               n2, o2, &time ) )  // unless parallel....
-   {
-      VECTOR v;
-      scale( v, vnp1, time );
-      add( o_origin1, v, o1 );
-      ret++;
-   }
-   return ret;
+	if( IntersectLineWithPlane( vnp1, o1,
+										 n2, o2, &time ) )  // unless parallel....
+	{
+		VECTOR v;
+		scale( v, vnp1, time );
+		add( o_origin1, v, o1 );
+		ret++;
+	}
+	return ret;
 }
 
 
@@ -438,67 +438,67 @@ PLINESEGP AddLineToObjectPlane( POBJECT po, PFACET pf, PMYLINESEG pl )
 }
 
 PMYLINESEG CreateLine( OBJECTINFO *oi,
-                  	PCVECTOR po, PCVECTOR pn,
-                  	RCOORD rFrom, RCOORD rTo )
+							PCVECTOR po, PCVECTOR pn,
+							RCOORD rFrom, RCOORD rTo )
 {
 	PMYLINESEG pl;
-   if( oi )
+	if( oi )
 		pl = GetFromSet( MYLINESEG, oi->ppLinePool );
 	else
-      pl = GetFromSet( MYLINESEG, g.ppLinePool );
-   AddLink( &oi->lines, pl );
-   pl->bDraw = TRUE;
-   pl->l.dFrom = rFrom;
-   pl->l.dTo = rTo;
-   SetPoint( pl->l.r.o, po );
-   SetPoint( pl->l.r.n, pn );
+		pl = GetFromSet( MYLINESEG, g.ppLinePool );
+	AddLink( &oi->lines, pl );
+	pl->bDraw = TRUE;
+	pl->l.dFrom = rFrom;
+	pl->l.dTo = rTo;
+	SetPoint( pl->l.r.o, po );
+	SetPoint( pl->l.r.n, pn );
 
 
-   return pl;
+	return pl;
 }
 
 PMYLINESEG CopyLine( OBJECTINFO *oi,
-                  	 PMYLINESEG orig )
+							 PMYLINESEG orig )
 {
-   PMYLINESEG pl;
-   pl = GetFromSet( MYLINESEG, oi->ppLinePool );
-   AddLink( &oi->lines, pl );
-   pl->bDraw = TRUE;
-   pl->l = orig->l;
-   return pl;
+	PMYLINESEG pl;
+	pl = GetFromSet( MYLINESEG, oi->ppLinePool );
+	AddLink( &oi->lines, pl );
+	pl->bDraw = TRUE;
+	pl->l = orig->l;
+	return pl;
 }
 
 
 // normal may be non normalized... but segment is always 0-1 for origin/normal
 PMYLINESEG CreateNormalOnPlane( OBJECTINFO *oi, PFACET facet, RAY line )
 {
-   PMYLINESEG pl;
+	PMYLINESEG pl;
 #ifdef PRINT_LINES
-//   lprintf(WIDE("Line: p1.Normal, p1.Origin, p2.Normal p2.Origin\n"));
+//	lprintf(WIDE("Line: p1.Normal, p1.Origin, p2.Normal p2.Origin\n"));
 #endif
   // slope of the intersection
-   if( facet->flags.bNormalSurface )
-   {
-      //lprintf( WIDE("...") );
-      pl = GetFromSet( MYLINESEG, oi->ppLinePool );
+	if( facet->flags.bNormalSurface )
+	{
+		//lprintf( WIDE("...") );
+		pl = GetFromSet( MYLINESEG, oi->ppLinePool );
 		AddLink( &oi->lines, pl );
 
-      // current alogrithm does max setting.
-      pl->l.dFrom = 0;
-      pl->l.dTo = 1;
-      SetPoint( pl->l.r.n, line.n );
-      SetPoint( pl->l.r.o, line.o );
-      // use other origin?
+		// current alogrithm does max setting.
+		pl->l.dFrom = 0;
+		pl->l.dTo = 1;
+		SetPoint( pl->l.r.n, line.n );
+		SetPoint( pl->l.r.o, line.o );
+		// use other origin?
 		// SetPoint( pl1->d.o, tv);
 
 		//PrintVector( pl->r.o );  // Origin is resulting transformation
-		//PrintVector( pl->r.n );   // Slope is resulting transformation
-      //lprintf( WIDE("Addline to plane %p,%p"), pp1, pp2 );
-      AddLineToPlane( oi, facet, pl );
+		//PrintVector( pl->r.n );	// Slope is resulting transformation
+		//lprintf( WIDE("Addline to plane %p,%p"), pp1, pp2 );
+		AddLineToPlane( oi, facet, pl );
 		//SortNormals( pp );
-      return pl; // could return pl2 (?)
-   }
-   return NULL;
+		return pl; // could return pl2 (?)
+	}
+	return NULL;
 }
 
 // create line is passes a base pointer to an array of planes
@@ -509,89 +509,89 @@ PMYLINESEG CreateNormalOnPlane( OBJECTINFO *oi, PFACET facet, RAY line )
   // does not result in any terminal caps on the line....
 PMYLINESEG CreateLineBetweenFacets( OBJECTINFO *oi, PFACET pp1, PFACET pp2 )
 {
-   MYLINESEG t; // m (slope) of (Int)ersection
-//   LINESEG l1, l2;
-   PMYLINESEG pl;
-   VECTOR tv;
-   //PFACET pp1 = &oi->FacetPool.pFacets[oi->FacetSetPool.pFacetSets[nfs].pFacets[np1].nFacet]
-   //	  , pp2 = &oi->FacetPool.pFacets[oi->FacetSetPool.pFacetSets[nfs].pFacets[np2].nFacet];
-   // t is the slope of the plane which each normal and a 0,0,0
-   // origin create.
+	MYLINESEG t; // m (slope) of (Int)ersection
+//	LINESEG l1, l2;
+	PMYLINESEG pl;
+	VECTOR tv;
+	//PFACET pp1 = &oi->FacetPool.pFacets[oi->FacetSetPool.pFacetSets[nfs].pFacets[np1].nFacet]
+	//	  , pp2 = &oi->FacetPool.pFacets[oi->FacetSetPool.pFacetSets[nfs].pFacets[np2].nFacet];
+	// t is the slope of the plane which each normal and a 0,0,0
+	// origin create.
 #ifdef PRINT_LINES
-   lprintf(WIDE("Line: p1.Normal, p1.Origin, p2.Normal p2.Origin\n"));
-   DumpPlane( pp1 );
-   DumpPlane( pp2 );
+	lprintf(WIDE("Line: p1.Normal, p1.Origin, p2.Normal p2.Origin\n"));
+	DumpPlane( pp1 );
+	DumpPlane( pp2 );
 #endif
   // slope of the intersection
 
   if( Parallel( pp1->d.n, pp2->d.n ) )
   {
 #ifdef FULL_DEBUG
-     Log( WIDE("ABORTION! \n"));
+	  Log( WIDE("ABORTION! \n"));
 #endif
-     return NULL;
+	  return NULL;
   }
   if( FillLine( pp1->d.o, pp1->d.n,
-               pp2->d.o, pp2->d.n,
-               &t.l.r,
-               tv ) == 2 )
-   {
-      //lprintf( WIDE("...") );
-      pl = GetFromSet( MYLINESEG, oi->ppLinePool );
-	   AddLink( &oi->lines, pl );
+					pp2->d.o, pp2->d.n,
+					&t.l.r,
+					tv ) == 2 )
+	{
+		//lprintf( WIDE("...") );
+		pl = GetFromSet( MYLINESEG, oi->ppLinePool );
+		AddLink( &oi->lines, pl );
 
-      // current alogrithm does max setting.
-      pl->l.dFrom = NEG_INFINITY;
-      pl->l.dTo = POS_INFINITY;
-      pl->l.r = t.l.r;
-      // use other origin?
+		// current alogrithm does max setting.
+		pl->l.dFrom = NEG_INFINITY;
+		pl->l.dTo = POS_INFINITY;
+		pl->l.r = t.l.r;
+		// use other origin?
 		// SetPoint( pl1->d.o, tv);
 
 		//PrintVector( pl->r.o );  // Origin is resulting transformation
-		//PrintVector( pl->r.n );   // Slope is resulting transformation
-      //lprintf( WIDE("Addline to plane %p,%p"), pp1, pp2 );
+		//PrintVector( pl->r.n );	// Slope is resulting transformation
+		//lprintf( WIDE("Addline to plane %p,%p"), pp1, pp2 );
 		PLINESEGP seg1 = AddLineToPlane( oi, pp1, pl );
       seg1->other_facet = pp2;
       PLINESEGP seg2 = AddLineToPlane( oi, pp2, pl );
-      seg12>other_facet = pp1;
-      //lprintf( WIDE("...") );
+      seg2->other_facet = pp1;
+		//lprintf( WIDE("...") );
 
-      return pl; // could return pl2 (?)
-   }
-   else
-   {
-      Log( WIDE("NON-SYMMETRIC!\n") );
-   }
-   return NULL;
+		return pl; // could return pl2 (?)
+	}
+	else
+	{
+		Log( WIDE("NON-SYMMETRIC!\n") );
+	}
+	return NULL;
 }
 
 PMYLINESEG CreateLineBetweenPlanes( OBJECTINFO *oi, PRAY pr1, PRAY pr2 )
 {
-   MYLINESEG t; // m (slope) of (Int)ersection
-//   LINESEG l1, l2;
-   PMYLINESEG pl;
-   VECTOR tv;
-   //PFACET pp1 = &oi->FacetPool.pFacets[oi->FacetSetPool.pFacetSets[nfs].pFacets[np1].nFacet]
-   //	  , pp2 = &oi->FacetPool.pFacets[oi->FacetSetPool.pFacetSets[nfs].pFacets[np2].nFacet];
-   // t is the slope of the plane which each normal and a 0,0,0
-   // origin create.
+	MYLINESEG t; // m (slope) of (Int)ersection
+//	LINESEG l1, l2;
+	PMYLINESEG pl;
+	VECTOR tv;
+	//PFACET pp1 = &oi->FacetPool.pFacets[oi->FacetSetPool.pFacetSets[nfs].pFacets[np1].nFacet]
+	//	  , pp2 = &oi->FacetPool.pFacets[oi->FacetSetPool.pFacetSets[nfs].pFacets[np2].nFacet];
+	// t is the slope of the plane which each normal and a 0,0,0
+	// origin create.
 #ifdef PRINT_LINES
-   lprintf(WIDE("Line: p1.Normal, p1.Origin, p2.Normal p2.Origin\n"));
+	lprintf(WIDE("Line: p1.Normal, p1.Origin, p2.Normal p2.Origin\n"));
 #endif
   // slope of the intersection
 
   if( Parallel( pr1->n, pr2->n ) )
   {
 #ifdef FULL_DEBUG
-     Log( WIDE("ABORTION! \n"));
+	  Log( WIDE("ABORTION! \n"));
 #endif
-     return NULL;
+	  return NULL;
   }
   if( FillLine( pr1->o, pr1->n,
-               pr2->o, pr2->n,
-               &t.l.r,
-               tv ) == 2 )
-   {
+					pr2->o, pr2->n,
+					&t.l.r,
+					tv ) == 2 )
+	{
 		//lprintf( WIDE("...") );
 		if( oi )
 		{
@@ -599,26 +599,26 @@ PMYLINESEG CreateLineBetweenPlanes( OBJECTINFO *oi, PRAY pr1, PRAY pr2 )
 			AddLink( &oi->lines, pl );
 		}
 		else
-         pl = GetFromSet( MYLINESEG, g.ppLinePool );
+			pl = GetFromSet( MYLINESEG, g.ppLinePool );
 
-      // current alogrithm does max setting.
-      pl->l.dFrom = NEG_INFINITY;
-      pl->l.dTo = POS_INFINITY;
-      pl->l.r = t.l.r;
+		// current alogrithm does max setting.
+		pl->l.dFrom = NEG_INFINITY;
+		pl->l.dTo = POS_INFINITY;
+		pl->l.r = t.l.r;
 
-      return pl; // could return pl2 (?)
-   }
-   else
-   {
-      Log( WIDE("NON-SYMMETRIC!\n") );
-   }
-   return NULL;
+		return pl; // could return pl2 (?)
+	}
+	else
+	{
+		Log( WIDE("NON-SYMMETRIC!\n") );
+	}
+	return NULL;
 }
 
 
 PFACET AddPlane( POBJECT object, PCVECTOR o, PCVECTOR n, int d )
 {
-   return AddPlaneToSet( object->objinfo, o, n, d );
+	return AddPlaneToSet( object->objinfo, o, n, d );
 }
 
 PFACET AddNormalPlane( POBJECT object, PCVECTOR o, PCVECTOR n, int d )
@@ -672,19 +672,19 @@ PFACET AddPlaneToSet( OBJECTINFO *oi,  PCVECTOR origin, PCVECTOR norm, int d )
 void DumpLine( PMYLINESEG pl )
 {
 #ifdef PRINT_LINESEGS
-   lprintf(WIDE(" ---- LINESEG %p ---- "), pl );
-   PrintVector( pl->l.r.o );  // Origin is resulting transformation
-   PrintVector( pl->l.r.n );   // Slope is resulting transformation
-   lprintf(WIDE(" From: %g To: %g\n"), pl->l.dFrom, pl->l.dTo );
+	lprintf(WIDE(" ---- LINESEG %p ---- "), pl );
+	PrintVector( pl->l.r.o );  // Origin is resulting transformation
+	PrintVector( pl->l.r.n );	// Slope is resulting transformation
+	lprintf(WIDE(" From: %g To: %g\n"), pl->l.dFrom, pl->l.dTo );
 #endif
 }
 
 void DumpPlane( PFACET pp )
 {
 #ifdef PRINT_FACETS
-   lprintf(WIDE("  -----  FACET %p -----"), pp );
-   PrintVector( pp->d.o );
-   PrintVector( pp->d.n );
+	lprintf(WIDE("  -----  FACET %p -----"), pp );
+	PrintVector( pp->d.o );
+	PrintVector( pp->d.n );
 #endif
 }
 
@@ -730,10 +730,10 @@ PTRSZVAL CPROC IfLineDelete( POINTER p, PTRSZVAL pData )
 			}
 		}
 		plsp->pLine = NULL;
-      DeleteFromSet( LINESEGP, *thing->pplsps, plsp );
-      return 0;
+		DeleteFromSet( LINESEGP, *thing->pplsps, plsp );
+		return 0;
 	}
-   return 0;
+	return 0;
 }
 
 #if 0
@@ -741,7 +741,7 @@ PTRSZVAL CPROC IfFacetDelete( POINTER p, PTRSZVAL psvData )
 {
 	struct procdata_tag {
 		int nf;
-      int nfs;
+		int nfs;
 	} *data = (struct procdata_tag*)psvData;
 	PFACETREF pfr = (PFACETREF)p;
 	if( pfr->nFacet == data->nf &&
@@ -749,10 +749,10 @@ PTRSZVAL CPROC IfFacetDelete( POINTER p, PTRSZVAL psvData )
 	{
 		pfr->nFacet = -1;
 		pfr->nFacetSet = -1;
-      // found the facet in the set... deleted, done.
-      return 1;
+		// found the facet in the set... deleted, done.
+		return 1;
 	}
-   return 0;
+	return 0;
 }
 #endif
 
@@ -761,8 +761,8 @@ PTRSZVAL CPROC IfSomethingUsed( POINTER p, PTRSZVAL psvUnused )
 {
 	PFACETREF pfr = (PFACETREF)p;
 	if( pfr->nFacet < 0 )
-      return 0;
-   return 1;
+		return 0;
+	return 1;
 }
 #endif
 
@@ -771,7 +771,7 @@ void DeleteLineEx( OBJECTINFO *oi, PFACET facet, PMYLINESEG pl DBG_PASS )
 {
 	//PFACETREFSET *ppfrs;
 	struct procdata_tag {
-      PLINESEGPSET *pplsps;
+		PLINESEGPSET *pplsps;
 		PMYLINESEG pl;
 		PFACET facet;
 	} data;
@@ -786,7 +786,7 @@ void DeleteLineEx( OBJECTINFO *oi, PFACET facet, PMYLINESEG pl DBG_PASS )
 
 	// check to see if the line is still contained in any planes...
 #if 0
-   if( !ForAllInSet( FACETREF, &pLine->frs, IfSomethingUsed, 0 ) )
+	if( !ForAllInSet( FACETREF, &pLine->frs, IfSomethingUsed, 0 ) )
 	{
 		PMYLINESEG pls = GetSetMember( MYLINESEG, oi->ppLinePool, nl );
 		DeleteFromSet( FACETREFSET, oi->FacetRefSetPool, pls->frs );
@@ -831,7 +831,7 @@ void OrderFacetLines( OBJECTINFO *oi )
 				nfrom = nl;
 				nl = plsp->nLineTo;
 				if( nl > 500 )
-               DebugBreak();
+					DebugBreak();
 #ifdef DEBUG_LINK_LINES
 				lprintf( WIDE("object %p facet %d first = %d from = %d nl = %d"), oi, idx, nfirst, nfrom, nl );
 #endif
@@ -849,8 +849,8 @@ void OrderFacetLines( OBJECTINFO *oi )
 			else
 			{
 				lprintf( WIDE("object %p facet %d The line seg at From doesn't link to this one?! %d %d != %d != %d")
-			         , oi
-			         , idx
+						, oi
+						, idx
 					 , nl
 					 , plsp->nLineFrom
 					 , nfrom
@@ -863,7 +863,7 @@ void OrderFacetLines( OBJECTINFO *oi )
 			else
 				nl = plsp->nLineFrom;
 			if( nl > 500 )
-            DebugBreak();
+				DebugBreak();
 #ifdef DEBUG_LINK_LINES
 			Log3( WIDE("first = %d from = %d nl = %d"), nfirst, nfrom, nl );
 #endif
@@ -899,12 +899,12 @@ void OrderFacetLines( OBJECTINFO *oi )
 		//Log1( WIDE("Facet %d"), nf );
 		//for( nl = 0; nl < plps->nUsedLines; nl++ )
 		//{
-		//   PLINESEGP plsp = GetSetMember( LINESEGP, pplps, nl );
-		//   if( plsp->bOrderFromTo )
+		//	PLINESEGP plsp = GetSetMember( LINESEGP, pplps, nl );
+		//	if( plsp->bOrderFromTo )
 		//		Log2( WIDE("Resulting links: %d %d")
 		//			 , plsp->nLineFrom
 		//			 , plsp->nLineTo );
-		//   else
+		//	else
 		//		Log2( WIDE("Resulting links: %d %d")
 		//			 , plsp->nLineTo
 		//			 , plsp->nLineFrom );
@@ -922,12 +922,12 @@ PTRSZVAL CPROC TestLinkLines2( POINTER p, PTRSZVAL psv )
 		PLINESEGPSET *pplps;
 		PLINESEGP pLine1;
 		int retry;
-      int *pnLineLink;
+		int *pnLineLink;
 		_POINT to1;
 	} *data = (struct pd *)psv;
 	INDEX nl1, nl2;
 	PLINESEGP pLine2 = (PLINESEGP)p;
-   //lprintf( WIDE("Compare line %p with %p"), data->pLine1, p );
+	//lprintf( WIDE("Compare line %p with %p"), data->pLine1, p );
 	if( pLine2 == data->pLine1 )
 	{
 		// don't compare a line with itself.
@@ -973,8 +973,8 @@ PTRSZVAL CPROC TestLinkLines2( POINTER p, PTRSZVAL psv )
 			(*data->pnLineLink) = nl2;
 			pLine2->nLineTo = nl1;
 			if( nl2 > 500 || nl1 > 500 )
-            DebugBreak();
-         return 1;
+				DebugBreak();
+			return 1;
 		}
 #ifdef DEBUG_LINK_LINES
 		else
@@ -1024,8 +1024,8 @@ PTRSZVAL CPROC TestLinkLines2( POINTER p, PTRSZVAL psv )
 			(*data->pnLineLink) = nl2;
 			pLine2->nLineFrom = nl1;
 			if( nl2 > 500 || nl1 > 500 )
-            DebugBreak();
-         return 1;
+				DebugBreak();
+			return 1;
 			//break;
 		}
 #ifdef DEBUG_LINK_LINES
@@ -1043,7 +1043,7 @@ PTRSZVAL CPROC TestLinkLines2( POINTER p, PTRSZVAL psv )
 		}
 #endif
 	}
-   return 0;
+	return 0;
 }
 
 
@@ -1059,7 +1059,7 @@ PTRSZVAL CPROC TestLinkLines1( POINTER p, PTRSZVAL psv )
 	} *data = (struct pd *)psv;
 	data->pLine1 = (PLINESEGP)p;
 	data->retry = 0;
-   //lprintf( WIDE("Compare line %p with ..."), p );
+	//lprintf( WIDE("Compare line %p with ..."), p );
 	if( !data->pLine1->pLine )
 	{
 		// this should be removed from the set already...
@@ -1128,21 +1128,21 @@ PTRSZVAL CPROC TestLinkLines1( POINTER p, PTRSZVAL psv )
 		}
 		else if( data->pLine1->nLineFrom >= 0 &&
 				  data->pLine1->nLineTo >= 0 ) // end the retry loop...
-         return 0;
+			return 0;
 			//break;
 		data->retry++;
 	} // end while(retry<2)
-   return 0;
+	return 0;
 }
 
 PTRSZVAL CPROC TestLinked( POINTER p, PTRSZVAL psv )
 {
 	struct pd {
 		OBJECTINFO *oi;
-      PLINESEGPSET *pplps;
-      PLINESEGP pLine1;
+		PLINESEGPSET *pplps;
+		PLINESEGP pLine1;
 		int retry;
-      int *pnLineLink;
+		int *pnLineLink;
 		_POINT to1;
 	} *data = (struct pd *)psv;
 	PLINESEGP pLine = (PLINESEGP)p;
@@ -1160,7 +1160,7 @@ PTRSZVAL CPROC TestLinked( POINTER p, PTRSZVAL psv )
 			//lprintf( WIDE("...%d"), nl1 );
 			lprintf( WIDE("... delete line %p"), pLine );
 #endif
-         DeleteFromSet( LINESEGP, *data->pplps, pLine );
+			DeleteFromSet( LINESEGP, *data->pplps, pLine );
 		}
 	}
 #if 0
@@ -1182,26 +1182,26 @@ PTRSZVAL CPROC TestLinked( POINTER p, PTRSZVAL psv )
 					lprintf( WIDE("Found another unused end to use... faking link.") );
 								pLine->nLineFrom = nl2;
 								plps->pLines[nl2].nLineTo = nl1;
-                        break;
+								break;
 				}
 				else if( pLine->nLineTo < 0 )
 				{
-               lprintf( WIDE("Failed to link TO segment %d"), nl1 );
+					lprintf( WIDE("Failed to link TO segment %d"), nl1 );
 					for( nl2 = nl1 + 1; nl2 < plps->nUsedLines; nl2++ )
 					{
 						if( plps->pLines[nl2].nLineFrom < 0 )
 						{
-                     lprintf( WIDE("Found another unused end to use... faking link.") );
+							lprintf( WIDE("Found another unused end to use... faking link.") );
 								pLine->nLineTo = nl2;
 								plps->pLines[nl2].nLineFrom = nl1;
-                        break;
+								break;
 						}
 						if( plps->pLines[nl2].nLineTo < 0 )
 						{
-                     lprintf( WIDE("Found another unused end to use... faking link.") );
+							lprintf( WIDE("Found another unused end to use... faking link.") );
 								pLine->nLineTo = nl2;
 								plps->pLines[nl2].nLineTo = nl1;
-                        break;
+								break;
 						}
 					}
 				}
@@ -1215,10 +1215,10 @@ void LinkFacetLines( OBJECTINFO *oi )
 {
 	struct pd {
 		OBJECTINFO *oi;
-      PLINESEGPSET *pplps;
+		PLINESEGPSET *pplps;
 		PLINESEGP pLine1;
-      int retry;
-      int *pnLineLink;
+		int retry;
+		int *pnLineLink;
 		_POINT to1;
 	} data ;
 	int nf;
@@ -1227,22 +1227,22 @@ void LinkFacetLines( OBJECTINFO *oi )
 	if( !tFailureRotation )
 	{
 		tFailureRotation = CreateTransform();
-      //ShowTransform( tFailureRotation );
+		//ShowTransform( tFailureRotation );
 		// some arbitrary rotation factor... this allows us to translate
-      // near points bounding origins to spaces where 0 is not involved...
+		// near points bounding origins to spaces where 0 is not involved...
 		RotateAbs( tFailureRotation, 0.5, 0.5, 0.5 );
-      //Translate( tFailureRotation, 1, 1, 1 );
-      //ShowTransform( tFailureRotation );
+		//Translate( tFailureRotation, 1, 1, 1 );
+		//ShowTransform( tFailureRotation );
 	}
-   LIST_FORALL( oi->facets, nf, PFACET, pf )
+	LIST_FORALL( oi->facets, nf, PFACET, pf )
 	{
-      //int retry;
-      // eventually we'll move this to the better set type also...
+		//int retry;
+		// eventually we'll move this to the better set type also...
 		data.oi = oi;
-      // just need to delete the set set...
+		// just need to delete the set set...
 		data.pplps = &pf->pLineSet;
 		data.pLine1 = NULL; // a scratch var, doesn't need init...
-      //lprintf( WIDE("link facet %p"), pf );
+		//lprintf( WIDE("link facet %p"), pf );
 		ForAllInSet( LINESEGP, *data.pplps, TestLinkLines1, (PTRSZVAL)&data );
 		ForAllInSet( LINESEGP, *data.pplps, TestLinked, (PTRSZVAL)&data );
 	}
@@ -1254,9 +1254,9 @@ PTRSZVAL CPROC DeleteLinePSeg( POINTER p, PTRSZVAL psv )
 		PFACET pf;
 		POBJECTINFO oi;
 	} *data = (struct d*)psv;
-   PLINESEGP plsp = (PLINESEGP)p;
-   	DeleteLine( data->oi, data->pf, plsp->pLine );
-   return 0;
+	PLINESEGP plsp = (PLINESEGP)p;
+		DeleteLine( data->oi, data->pf, plsp->pLine );
+	return 0;
 }
 
 int IntersectPlanes( OBJECTINFO *oi, OBJECTINFO *oi_container, int bAll )
@@ -1316,8 +1316,8 @@ int IntersectPlanes( OBJECTINFO *oi, OBJECTINFO *oi_container, int bAll )
 #endif
 				 // if NO line exists between said planes, line will not be created...
 				 pl = CreateLineBetweenFacets( oi, pf, pf2 );
-								   // link 2 lines together...
-								   // create all possible intersections
+									// link 2 lines together...
+									// create all possible intersections
 				if( !pl )  // no line intersecting...
 				{
 				//lprintf( WIDE("plane intersection failed... %d %d\n"), i, j );
@@ -1371,41 +1371,41 @@ int IntersectPlanes( OBJECTINFO *oi, OBJECTINFO *oi_container, int bAll )
 		#endif
 		#define MIN_RANGE
 		#ifdef MIN_RANGE
-                  			if( ( dp = dotproduct( pl->l.r.n, n ) ) > 0 )
-                  			{
-                  				if( time < pl->l.dTo )
-                  				{
-	                  				pl->l.dTo = time;
-	                  			}
+									if( ( dp = dotproduct( pl->l.r.n, n ) ) > 0 )
+									{
+										if( time < pl->l.dTo )
+										{
+											pl->l.dTo = time;
+										}
 							}
-                  			else
-                  			{
-                  				if( time > pl->l.dFrom )
-                  				{
-                  					pl->l.dFrom = time;
-                  				}
+									else
+									{
+										if( time > pl->l.dFrom )
+										{
+											pl->l.dFrom = time;
+										}
 									}
 		#else
-                  				if( time < pl->l.dFrom )
-                  				{
-	                  				pl->l.dFrom= time;
-	                  			}
-                  				if( time > pl->l.dTo )
-                  				{
-                  					pl->l.dTo = time;
+										if( time < pl->l.dFrom )
+										{
+											pl->l.dFrom= time;
+										}
+										if( time > pl->l.dTo )
+										{
+											pl->l.dTo = time;
 										}
 		#endif
 							}
 							else
 							{
-                  				// didn't form a point - but the line resulting above 
-                  				// cannot be above any other plane SO... test for 
-                  				// line above plane...
+										// didn't form a point - but the line resulting above 
+										// cannot be above any other plane SO... test for 
+										// line above plane...
 		#if 0
 								/* This is an invalid test; just because the origin is above/below the plane, doesn't mean the line is... the line could still cross the plane*/
-      							if( AbovePlane( pf3->d.n
-      											, pf3->d.o
-      											, pl->l.r.o ) )
+									if( AbovePlane( pf3->d.n
+													, pf3->d.o
+													, pl->l.r.o ) )
 									{
 										// setup conditions to have the line deleted.
 										//k = pfps->nUsedFacets;
@@ -1417,8 +1417,8 @@ int IntersectPlanes( OBJECTINFO *oi, OBJECTINFO *oi_container, int bAll )
 		#endif
 										pl->l.dFrom = 1;
 										pl->l.dTo = 0;
-      								break;
-      							}
+										break;
+									}
 		#endif
 		#ifdef FULL_DEBUG
 								//lprintf( WIDE("okay Facets %d, %d and %d do not form a point.\n"), i,  j, k ) ;
@@ -1473,61 +1473,40 @@ void OrderObjectLines( POBJECT po )
 
 int PointWithin( PCVECTOR p, PMYLINESEGSET *ppls, PLINESEGPSET *pplps )
 {
-   int l1, l2;
+	int l1, l2;
 	PMYLINESEG pl1, pl2 ;
 	int lines;
-   lines = CountUsedInSet( LINESEGP, *pplps );
-   for( l1 = 0; l1 < lines; l1++ )
-   {
-      VECTOR v;
-		RCOORD tl, tl2;
-      PLINESEGP plsp1 = GetSetMember( LINESEGP, pplps, l1 );
-      pl1 = plsp1->pLine;
-      sub( v, p, pl1->l.r.o );
-      for( l2 = 0; l2 < lines; l2++ )
-      {
-         if( l1 == l2 )
-				continue;
-			else
-			{
-	            PLINESEGP plsp2 = GetSetMember( LINESEGP, pplps, l2 );
-				pl2 = plsp2->pLine;
-				if( FindIntersectionTime( &tl, v, pl1->l.r.o
-												, &tl2, pl2->l.r.n, pl2->l.r.o ) )
-				{
-					if( tl > 0 &&
-						( tl2 > pl2->l.dFrom &&
-						 tl2 < pl2->l.dTo ) )
-						break;
-				}
-			}
-      }
-      if( l2 == lines )
-         return FALSE;
-   }
-   return TRUE;
+	lines = CountUsedInSet( LINESEGP, *pplps );
+	for( l1 = 0; l1 < lines; l1++ )
+	{
+		VECTOR v;
+		PLINESEGP plsp1 = GetSetMember( LINESEGP, pplps, l1 );
+		if( PointToPlaneT( plsp1->other_facet->d.n, plsp1->other_facet->d.o, p ) > 0 )
+			return FALSE;
+	}
+	return TRUE;
 }
 
-RCOORD PointToPlaneT( PVECTOR n, PVECTOR o, PVECTOR p ) {
-   VECTOR i;
-   RCOORD t;
-   SetPoint( i, n );
-   Invert( i );
+RCOORD PointToPlaneT( PVECTOR n, PVECTOR o, PCVECTOR p ) {
+	VECTOR i;
+	RCOORD t;
+	SetPoint( i, n );
+	Invert( i );
 	IntersectLineWithPlane( i, p, n, o, &t );
 #ifdef DEBUG_LINK_LINES
 	lprintf( WIDE("PointToPlaneT=%g"), t );
 #endif
-   return t;
+	return t;
 }
 
 LOGICAL AbovePlane( PVECTOR n, PVECTOR o, PVECTOR p )
 {
-   if( PointToPlaneT( n, o, p ) >= 0 )
-      return TRUE;
-   else
-      return FALSE;
+	if( PointToPlaneT( n, o, p ) >= 0 )
+		return TRUE;
+	else
+		return FALSE;
 }
-       
+		 
 int GetPoints( PFACET pf, int *nPoints, VECTOR ppv[] )
 {
 	int np = 0;
@@ -1557,14 +1536,14 @@ int GetPoints( PFACET pf, int *nPoints, VECTOR ppv[] )
 			break;
 		}
 		//else
-        // lprintf( WIDE("got line %d"), nl );
+		  // lprintf( WIDE("got line %d"), nl );
 		line = pLine->pLine;
-	   	if( pLine->bOrderFromTo )
+			if( pLine->bOrderFromTo )
 		{
 			{
 			add( (PVECTOR)&ppv[np]
 				, scale( (PVECTOR)&ppv[np], (PVECTOR)line->l.r.n
-						           , line->l.dTo )
+									  , line->l.dTo )
 				, line->l.r.o );
 			}
 			//else if( pf->bNormalSurface )
@@ -1572,14 +1551,14 @@ int GetPoints( PFACET pf, int *nPoints, VECTOR ppv[] )
 			//	SetPoint( ppv[np], line->l.r.o );
 			}
 			np++;
-	   		nl = pLine->nLineTo;
+				nl = pLine->nLineTo;
 		}
 		else
 		{
 			{
 				add( (PVECTOR)&ppv[np]
 				, scale( (PVECTOR)&ppv[np], line->l.r.n
-						           , line->l.dFrom )
+									  , line->l.dFrom )
 				, line->l.r.o );
 			}
 			//else if( pf->bNormalSurface )
@@ -1587,11 +1566,11 @@ int GetPoints( PFACET pf, int *nPoints, VECTOR ppv[] )
 			//	SetPoint( ppv[np], line->l.r.o );
 			}
 			np++;
-		   nl = pLine->nLineFrom;	
+			nl = pLine->nLineFrom;	
 		}
 		if( np >= *nPoints )
 		{
-         lprintf( WIDE("No more points to fill.. %d"), np );
+			lprintf( WIDE("No more points to fill.. %d"), np );
 			return  FALSE;
 		}
 		if( nl < 0 )
@@ -1638,15 +1617,15 @@ int GetNormals( PFACET pf, int *nPoints, VECTOR ppv[] )
 			break;
 		}
 		//else
-        // lprintf( WIDE("got line %d"), nl );
+		  // lprintf( WIDE("got line %d"), nl );
 		line = pLine->pLine;
-	   	if( pLine->bOrderFromTo )
+			if( pLine->bOrderFromTo )
 		{
 			SetPoint( ppv[np], line->normals.at_from );
 			np++;
 			//SetPoint( ppv[np], line->normals.at_to );
 			//np++;
-	   		nl = pLine->nLineTo;
+				nl = pLine->nLineTo;
 		}
 		else
 		{
@@ -1668,8 +1647,48 @@ int GetNormals( PFACET pf, int *nPoints, VECTOR ppv[] )
 		}
 	} while( nl != nlStart );
 	//Log1( WIDE("Resulting points: %d"), np );
-   *nPoints = np;
-   return TRUE;
+	*nPoints = np;
+	return TRUE;
+}
+
+LOGICAL ComputeRayIntersectObject( POBJECT po, PRAY ray, PFACET *face )
+{
+	LOGICAL success = FALSE;
+	PFACET pf;
+	PMYLINESEG  pl;
+	POBJECTINFO oi = po->objinfo;
+	INDEX idx;
+	//lprintf( WIDE("...") );
+	//pfps = oi->FacetSetPool.pFacetSets + nfs;
+	// clear all lines used by this facetset 
+	LIST_FORALL( oi->facets, idx, PFACET, pf )
+	{
+		RCOORD t;
+		PrintVector( ray->o );
+		PrintVector( ray->n );
+		if( IntersectLineWithPlane( ray->n, ray->o, pf->d.n, pf->d.o, &t ) && t > 0 )
+		{
+			VECTOR p;
+			if( PointToPlaneT( pf->d.n, pf->d.o, ray->o ) > 0 )
+			{
+				lprintf( "ray is %g", t );
+				addscaled( p, ray->o, ray->n, t );
+				PrintVector( p );
+				if( PointWithin( p, po->objinfo->ppLinePool, &pf->pLineSet ) )
+				{
+					if( face )
+						(*face) = pf;
+					lprintf( "Success." );
+					return TRUE;
+				}
+			}
+			else
+				lprintf( "Behind plane..." );
+		}
+		else
+			lprintf( "no contact with plane... %g", t );
+	}
+	return success;
 }
 
 // mod

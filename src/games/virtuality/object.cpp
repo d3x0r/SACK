@@ -300,12 +300,6 @@ PTRSZVAL CPROC copymyseg( POINTER p, PTRSZVAL psv )
 	int n;
 
 	newseg[0] = lineseg[0];
-	for( n = 0; n < 3; n ++ )
-	{
-		facet = GetMemberIndex( FACET, args->old_object->objinfo->ppFacetPool, newseg[0].facets[0] );
-		if( facet != INVALID_INDEX )
-			newseg[0].facets[0] = GetSetMember( FACET, args->new_object->objinfo->ppFacetPool, facet );
-	}
 	newseg->l.dFrom = lineseg->l.dFrom * args->scale;
 	newseg->l.dTo = lineseg->l.dTo * args->scale;
 	scale( newseg->l.r.o, lineseg->l.r.o, args->scale );
@@ -559,34 +553,6 @@ int IntersectObjectPlanes( POBJECT object )
 	return result;
 }
 
-static void _VirtualityUpdate( POBJECT object )
-{
-	POBJECT pCurObj;
-	if( !object )
-      return;
-	FORALLOBJ( object, pCurObj )
-	{
-		Move( pCurObj->Ti );
-		if( pCurObj->pHolds )
-		{
-			//lprintf( WIDE("update holds"));
-			_VirtualityUpdate( pCurObj->pHolds );
-		}
-		if( pCurObj->pHas )
-      {
-			//lprintf( WIDE("update has") );
-			_VirtualityUpdate( pCurObj->pHas );
-		}
-	}
-
-}
-
-void VirtualityUpdate( void )
-{
-	//lprintf( WIDE("Begin Update...") );
-	_VirtualityUpdate( pFirstObject );
-	//lprintf( WIDE("Done Update...") );
-}
 
 PMYLINESEG CreateFacetLine( POBJECT pobj,
                   	PCVECTOR po, PCVECTOR pn,

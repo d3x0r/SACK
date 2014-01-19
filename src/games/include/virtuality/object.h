@@ -114,7 +114,7 @@ VIRTUALITY_EXPORT PMYLINESEG CreateNormaledFacetLine( POBJECT pobj,
 					, PCVECTOR normal_at_from, PCVECTOR normal_at_to );
 
 VIRTUALITY_EXPORT void OrderObjectLines( POBJECT po );
-VIRTUALITY_EXPORT void AddLineToObjectPlane( POBJECT po, PFACET pf, PMYLINESEG pl );
+VIRTUALITY_EXPORT PLINESEGP AddLineToObjectPlane( POBJECT po, PFACET pf, PMYLINESEG pl );
 
 
 

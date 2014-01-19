@@ -1713,16 +1713,16 @@ static LOGICAL CPROC CameraRollLeft( PTRSZVAL psv, _32 keycode )
 		if( IsKeyPressed( keycode ) )
 		{
 			//VECTOR tmp;
-         //scale(tmp,_Z,1.0 );
+			//scale(tmp,_Z,1.0 );
 			SetRotation( l.origin, _Z );
 		}
-      else
+		else
 			SetRotation( l.origin, _0 );
 //      return 1;
-      UpdateMouseRays( l.mouse_x, l.mouse_y );
+		UpdateMouseRays( l.mouse_x, l.mouse_y );
 	}
 //   return 0;
-   return 1;
+	return 1;
 }
 
 static LOGICAL CPROC CameraDown( PTRSZVAL psv, _32 keycode )
