@@ -22,8 +22,8 @@ typedef struct object_tag OBJECT, *POBJECT;
 #if !defined( DEFINE_SHAPES )&& !defined( VIRTUALITY_LIBRARY_SOURCE )
 // these shapes need to be defined this way cause watcom compiler sucks
 // for data export definitions.
-#define CUBE_SIDES 6
-VIRTUALITY_EXPORT BASIC_PLANE CubeNormals[];
+//#define CUBE_SIDES 6
+//VIRTUALITY_EXPORT BASIC_PLANE CubeNormals[];
 
 #endif
 

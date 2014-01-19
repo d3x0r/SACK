@@ -1,4 +1,4 @@
-
+#define MAKE_RCOORD_SINGLE
 #include <stdhdrs.h>
 #include <deadstart.h>
 #include <logging.h>
@@ -9,11 +9,10 @@
 #include <vectlib.h>
 
 #include <sharemem.h>
-//#include ""
-//#include "view.hpp" // perhaps should just USE view code?
-#include "view.h"
 
-#include "editor.h"
+#include <virtuality.h>
+
+//#include "editor.h"
 
 
 #define CUBE_SIDES 6
@@ -375,7 +374,7 @@ PRELOAD( Real_Main )
 		//InvertObject( pWorld ); // turn object inside out...
 		SetRootObject( pWorld );
 		{
-			PEDITOR pe;
+			//PEDITOR pe;
 			POBJECT po = CreatePlane( VectorConst_0, VectorConst_Z, VectorConst_X, 50, Color( 32, 163, 32 ) );
 			PutIn( po, pWorld );
 			//pe =  CreateEditor( po );
@@ -383,7 +382,7 @@ PRELOAD( Real_Main )
 			{
 				PVIEW pView;
 				//pView = CreateView( NULL, WIDE("World View") );
-				CreateViewEx( V_FORWARD, NULL, WIDE("Forward"), 1, 1 );
+				//CreateViewEx( V_FORWARD, NULL, WIDE("Forward"), 1, 1 );
 				//CreateViewEx( V_UP, NULL, WIDE("Forward"), 1, 0 );
 				//CreateViewEx( V_DOWN, NULL, WIDE("Forward"), 1, 2 );
 				//CreateViewEx( V_LEFT, NULL, WIDE("Forward"), 0, 1 );
