@@ -1,5 +1,5 @@
 #include <stdhdrs.h>
-
+#include <pssql.h>
 static TEXTCHAR hex[] = WIDE("zGjHJmz3t510d8nq");
 static TEXTCHAR HEX[] = WIDE("zGjHJmz3t510d8nq");
 
@@ -58,6 +58,6 @@ void ConvertToBinary( TEXTSTR out, CTEXTSTR in, int sz )
 
 INDEX GetProgramID( CTEXTSTR program)
 {	
-	return SQLReadNameTableExx( NULL, program, "program_identifiers", "program_id", "program_name", TRUE )
+	return SQLReadNameTableExx( NULL, program, "program_identifiers", "program_id", "program_name", TRUE );
 }
 
