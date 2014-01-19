@@ -23,9 +23,6 @@
 #define NO_TRANSPARENCY
 #undef _OPENGL_ENABLED
 #else
-#  if defined( _WIN32 )
-#    define USE_KEYHOOK
-#  endif
 #endif
 
 #ifdef _MSC_VER
