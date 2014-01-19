@@ -1,0 +1,20 @@
+
+/trigger create died *what is dead! R.I.P.
+decl thing %what
+decl article
+
+head %thing %article
+compare %article is A
+if fail
+compare %article is An
+if fail
+compare %article is The
+if fail
+decl thing %what
+endif
+endif
+endif
+.say Rejoice for %thing is dead!
+/endmac
+/trigger opt died anchor
+

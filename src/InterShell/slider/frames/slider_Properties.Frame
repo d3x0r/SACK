@@ -1,0 +1,18 @@
+<control border="4400" caption="Slider Properties" edit="1" position="0,0" size="355,331" type="Frame">
+<control IDName="InterShell/Color Well/CLR_TEXT_COLOR" border="81" caption="" position="153,12" size="32,32" type="Color Well"></control>
+<control border="3" caption="Text Color" position="10,18" size="132,25" type="TextControl"></control>
+<control IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" border="1" caption="Okay" position="233,282" size="73,23" type="Button"></control>
+<control IDName="InterShell/font/Button/BTN_PICKFONT" PrivateData="#ff356059" border="1" caption="Font" position="17,280" size="95,33" type="Button"></control>
+<control IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" border="1" caption="Cancel" position="147,282" size="73,25" type="Button"></control>
+<control IDName="InterShell/Color Well/CLR_BACKGROUND" border="81" caption="" position="153,54" size="32,32" type="Color Well"></control>
+<control border="3" caption="Background" position="12,62" size="126,21" type="TextControl"></control>
+<control border="3" caption="Background Image" position="16,99" size="136,21" type="TextControl"></control>
+<control IDName="InterShell/slider.isp/EditControl/EDIT_BACKGROUND_IMAGE" border="81" caption="" position="152,98" size="155,21" type="EditControl"></control>
+<control IDName="InterShell/slider.isp/CheckButton/CHECKBOX_HORIZONTAL" border="3" caption="Horizontal" position="13,136" size="73,21" type="CheckButton"></control>
+<control IDName="InterShell/slider.isp/CheckButton/CHECKBOX_DRAGGING" border="3" caption="Dragging" position="13,156" size="83,21" type="CheckButton"></control>
+<control border="3" caption="Min" position="13,180" size="100,25" type="TextControl"></control>
+<control border="3" caption="Max" position="13,210" size="100,25" type="TextControl"></control>
+<control border="3" caption="Current" position="13,240" size="132,25" type="TextControl"></control>
+<control IDName="InterShell/slider.isp/EditControl/EDIT_MIN" border="81" caption="Min" position="100,180" size="100,23" type="EditControl"></control>
+<control IDName="InterShell/slider.isp/EditControl/EDIT_MAX" border="81" caption="Max" position="100,210" size="100,23" type="EditControl"></control>
+<control IDName="InterShell/slider.isp/EditControl/EDIT_CURRENT" border="81" caption="Current" position="100,240" size="100,23" type="EditControl"></control></control>

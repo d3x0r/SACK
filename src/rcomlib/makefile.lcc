@@ -1,0 +1,19 @@
+
+OBJS = regacces.obj rc_dialog.obj rcom.res
+
+CFLAGS=-I\common\include -D__LCC__ 
+
+all:rcomlib.dll
+
+rcomlib.dll:$(OBJS)
+	lcclnk -dll -entry DllMain -o rcomlib $(OBJS) rcom.def
+
+regacces.obj: regacces.c
+
+register.obj: register.c
+
+rc_dialog.obj: rc_dialog.c
+
+rcom.rec: rcom.rc
+
+

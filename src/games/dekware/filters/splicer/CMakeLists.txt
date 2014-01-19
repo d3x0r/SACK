@@ -1,0 +1,1 @@
+add_plugin( splicer.filter.nex filters splicer )

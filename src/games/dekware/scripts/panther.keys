@@ -1,0 +1,91 @@
+/option interface keybind f5
+.cast 'gust'
+/endmac
+
+/option interface keybind f6
+.cast 'firest'
+/endmac
+
+/option interface keybind f7
+.cast 'sunray'
+/endmac
+
+#/option interface keybind f1
+#.o followers kill lamia
+#/endmac
+#/option interface keybind f2
+#.o followers kill mimic
+#/endmac
+
+/option interface keybind f3 
+.o followers ass rutan
+/endmac
+
+/option interface keybind f4 
+.o followers drop all.red
+.get all.red
+.o followers drop all.pale-blue
+.get all.pale-blue
+.o followers drop all.grey
+.get all.grey
+.o followers drop all.flute
+.get all.flute
+.o followers drop all.mandolin
+.get all.mandolin
+.o followers drop 100 coins
+.get all.gold
+/endmac
+
+
+/option interface keybind alt s
+/okill skeleton
+/endmac
+
+/option interface keybind alt g
+/okill ghoul
+/endmac
+
+/option interface keybind alt h
+/okill ghast
+/endmac
+
+/option interface keybind alt w
+/okill wight
+/endmac
+
+/option interface keybind alt r
+/okill wraith
+/endmac
+
+/option interface keybind alt z
+/okill zombie
+/endmac
+
+/option interface keybind alt d
+/okill shadow
+/endmac
+
+/option interface keybind alt l
+/okill lord
+/endmac
+
+/option interface keybind alt p
+/okill spectre
+/endmac
+
+/option interface keybind alt m
+/okill marauder
+/endmac
+
+/option interface keybind alt n
+/okill hyena
+/endmac
+
+/option interface keybind alt t
+/okill spectre
+/endmac
+
+/option interface keybind alt u
+/okill mummy
+/endmac
+

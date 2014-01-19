@@ -1,0 +1,40 @@
+##############################
+# Longhand Connect Macro...
+##############################
+
+/mac destroytrigs
+    	/trigger dest loginname
+   	/trigger dest loginpass
+   	/trigger dest loginreturn
+   	/trigger dest loginmenu
+   	/trigger dest loginreconnect
+   	/trigger dest loginusurp
+/endmac
+
+ /mac login where user password   
+   parse tcp %where
+   if success
+   	format ansi
+   	/execute /trigger create loginname what is thy name?
+   	/execute . %user
+   	/execute /endmac
+   	/execute /trigger create loginpass password:
+   	/execute . %password
+   	/execute /endmac
+   	/execute /trigger create loginreturn *** PRESS RETURN ***
+   	/execute .
+   	/execute /endmac
+   	/execute /trigger create loginusurp you take over your body, from some poor fool.
+   	/execute /destroytrigs
+   	/execute /endmac
+
+   	/execute /trigger create loginreconnect Reconnecting.
+   	/execute /destroytrigs
+   	/execute /endmac
+   
+   	/execute /trigger create loginmenu Make your choice:
+   	/execute .1
+   	/execute /destroytrigs
+   	/execute /endmac
+   endif
+/endmac

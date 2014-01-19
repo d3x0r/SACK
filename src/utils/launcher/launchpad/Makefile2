@@ -1,0 +1,22 @@
+
+ifdef __NO_GUI__
+all .DEFAULT: ;
+else
+
+ifdef ALTANIK_BASE
+INCLUDEDIRS+=$(ALTANIK_BASE)/src/apps/milk
+LITERAL_LIBNAME2=launchpad.isom
+SRCS2=launchpad milk_plugin
+CXFLAGS2=-DMILK_PLUGIN -DSACK_CORE_BUILD
+MORELIBS=
+endif
+
+INCLUDEDIRS+=$(SACK_BASE)/src/intershell
+LITERAL_LIBNAME3=launchpad.isp
+SRCS3=launchpad ishell_plugin
+CXFLAGS3=-DISHELL_PLUGIN -DSACK_CORE_BUILD
+MORELIBS=
+
+include $(ALTANIK_BASE)/makefiles/makefile.single
+
+endif

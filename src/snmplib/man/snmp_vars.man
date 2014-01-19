@@ -1,0 +1,116 @@
+.SH NAME
+snmp_var_new, snmp_var_clone, snmp_var_free, snmp_var_EncodeVarBind,
+snmp_var_DecodeVarBind \- SNMP Variable List Operations
+.SH SYNOPSIS
+.B cc
+.RI "[ " "flag" " \|.\|.\|. ] " "file" " \|.\|.\|."
+.B \-lsnmp
+.RI "[ " "library" " \|.\|.\|. ]"
+.LP
+.B #include <sys/types.h>
+.br
+.B #include <snmp/snmp.h>
+.LP
+.BI "struct variable_list *snmp_var_new(oid * " "Name" ,
+.BI "int " "NameLen" );
+.LP
+.BI "struct variable_list *snmp_var_clone(struct variable_list * " "Src" );
+.LP
+.BI "void snmp_var_free(struct variable_list * " "Ptr" );
+.LP
+.BI "u_char *snmp_var_EncodeVarBind(u_char * " "Buf" ,
+.BI "int * " "BufLenP" ,
+.BI "struct variable_list * " "VarList" ,
+.BI "int " "Version" );
+.LP
+.BI "u_char *snmp_var_DecodeVarBind(u_char * " "Buf" ,
+.BI "int * " "BufLenP" ,
+.BI "struct variable_list ** " "VarListP" ,
+.BI "int " "Version" );
+.SH STRUCTURE
+The 
+.B variable_list
+structure is:
+.RS
+.nf
+.ft 3
+.ta 12n 22n
+struct variable_list *next_variable;	/* Next variable, or NULL */
+oid		*name;			/* OID of variable */
+int		name_length;		/* OID Length */
+u_char		type;			/* ASN type of variable */
+union {					/* value of variable */
+	int	*integer;
+	u_char	*string;
+	oid	*objid;
+} val;
+int		val_len;		/* Length of variable data */
+.ft 1
+.fi
+.RE
+.SH DESCRIPTION
+.B snmp_var_new(\|)
+creates a new
+.I variable_list
+structure representing the OID
+.I Name
+of length
+.I NameLen.
+If
+.I Name
+is NULL, the name oid will be empty.
+.LP
+.B snmp_var_clone(\|)
+copies the 
+.I variable_list 
+structure pointed to by
+.I Src.
+If the 
+.I next_variable
+pointer is filled in, it is copied as well, so both the original and
+the clone point to the same next 
+.I variable_list.
+.LP
+.B snmp_var_free(\|)
+frees the 
+.I variable_list
+pointed to by
+.I Ptr.
+It does nothing to the
+.I variable_list 
+pointed to by next_variable.
+.LP
+.B snmp_var_EncodeVarBind(\|)
+and
+.B snmp_var_DecodeVarBind(\|)
+encode and decode the 
+.I variable_list 
+structure into/out of the buffer pointed to by
+.I Buf.
+.I BufLenP
+points to the length of space remaining in
+.I Buf.
+Upon successful completion, these functions return a pointer to the
+next available byte in
+.I Buf
+and adjusts
+.I BufLenP
+to reflect the amount of space left in the buffer after the encoding /
+decoding.
+.I Version
+indicates what version of SNMP encoding should be used.  At this time,
+this is ignored.
+.SH "RETURN VALUES"
+Upon error, all functions (except
+.B snmp_var_free(\|)
+)
+return
+.B NULL.
+Otherwise, the return value is as describe above.
+.SH ERRORS
+If any of these return unsuccessfully, 
+.B snmp_api_error(\|)
+will be set.
+.SH NOTES
+ASN parsing errors are counted and available via
+.BR snmpInASNParseErrs(3) .

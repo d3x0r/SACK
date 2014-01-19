@@ -1,0 +1,8 @@
+<control ID="-1" Edit="0" caption="Page Properties" position="0,0" size="468,286" type="Frame">
+<control ID="2794" IDName="InterShell/EditControl/TXT_CONTROL_TEXT" caption="-" position="95,14" size="155,21" type="EditControl"></control>
+<control ID="1" IDName="core/Button/BTN_OKAY" PrivateData="#ff005191" caption="Okay" position="258,119" size="75,21" type="Button"></control>
+<control ID="2" IDName="core/Button/BTN_CANCEL" PrivateData="#ff005191" caption="Cancel" position="256,89" size="73,21" type="Button"></control>
+<control ID="1011" IDName="InterShell/Button/BTN_PICKFONT" PrivateData="#ff005191" caption="Pick Font" position="235,56" size="94,25" type="Button"></control>
+<control ID="2807" IDName="InterShell/Color Well/CLR_RING_BACKGROUND" caption="" position="161,86" size="32,32" type="Color Well"></control>
+<control ID="2802" IDName="InterShell/Color Well/CLR_TEXT_COLOR" caption="" position="174,53" size="32,32" type="Color Well"></control>
+<control ID="2807" IDName="InterShell/Color Well/CLR_RING_BACKGROUND" caption="" position="170,128" size="32,32" type="Color Well"></control></control>
