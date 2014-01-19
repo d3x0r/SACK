@@ -56,7 +56,39 @@ TEXTCHAR  GetKeyText (int key)
    return ch[0];
 }
 
+int CPROC OpenGLKey( PTRSZVAL psv, _32 keycode )
+{
+	struct display_camera *camera = (struct display_camera *)psv;
+	int used = 0;
+	PRENDERER check = NULL;
+	INDEX idx;
+	struct plugin_reference *ref;
+	if( l.hPluginKeyCapture )
+	{
+		used = l.hPluginKeyCapture->Key3d( l.hPluginKeyCapture->psv, keycode );
+		if( !used )
+			l.hPluginKeyCapture = NULL;
+		else
+         return 1;
+	}
 
+	LIST_FORALL( camera->plugins, idx, struct plugin_reference *, ref )
+	{
+		if( ref->Key3d )
+		{
+			used = ref->Key3d( ref->psv, keycode );
+			if( used )
+			{
+				// if a thing uses a key, lock to that plugin for future keys until it doesn't want a key
+				// (thing like a chat module, first key would lock to it, and it could claim all events;
+            // maybe should implement an interface to manually clear this
+            l.hPluginKeyCapture = ref;
+				break;
+			}
+		}
+	}
+   return used;
+}
 
 #ifdef USE_KEYHOOK
 #ifndef __NO_WIN32API__
@@ -200,11 +232,7 @@ LRESULT CALLBACK
             l.kbd.key[wParam & 0xFF] &= ~0x80;  //(unpressed)
 			}
          //lprintf( WIDE("Set local keyboard %d to %d"), wParam& 0xFF, l.kbd.key[wParam&0xFF]);
-			if( hVid )
-			{
-				hVid->kbd.key[wParam & 0xFF] = l.kbd.key[wParam & 0xFF];
-			}
-
+			hVid->kbd.key[wParam & 0xFF] = l.kbd.key[wParam & 0xFF];
 
 			if( (l.kbd.key[VK_LSHIFT]|l.kbd.key[VK_RSHIFT]|l.kbd.key[KEY_SHIFT]) & 0x80)
          {
@@ -229,111 +257,119 @@ LRESULT CALLBACK
             keymod |= 4;
          }
          else
-            l.mouse_b &= ~MK_ALT;
-#ifndef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
-		{
-			PVIDEO hVideo = l.hVidVirtualFocused;
+				l.mouse_b &= ~MK_ALT;
 
-			if( FindLink( &l.pActiveList, hVideo ) != INVALID_INDEX )
+
+         // this really will be calling OpenGLKey above....
+			if( dispatch_handled = hVid->pKeyProc( hVid->dwKeyData, key ) )
 			{
-				if( hVideo && hVideo->pKeyProc )
+				return 1;
+			}
+
+#ifndef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
+			{
+				PVIDEO hVideo = l.hVidVirtualFocused;
+
+				if( FindLink( &l.pActiveList, hVideo ) != INVALID_INDEX )
 				{
-					hVideo->flags.event_dispatched = 1;
-					if( l.flags.bLogKeyEvent )
-						lprintf( WIDE("Dispatched KEY!") );
-					if( hVideo->flags.key_dispatched )
+					if( hVideo && hVideo->pKeyProc )
 					{
+						hVideo->flags.event_dispatched = 1;
 						if( l.flags.bLogKeyEvent )
-							lprintf( WIDE("already dispatched, delay it.") );
-						EnqueLink( &hVideo->pInput, (POINTER)key );
-					}
-					else
-					{
-						hVideo->flags.key_dispatched = 1;
-						do
+							lprintf( WIDE("Dispatched KEY!") );
+						if( hVideo->flags.key_dispatched )
 						{
 							if( l.flags.bLogKeyEvent )
-								lprintf( WIDE("Dispatching key %08lx"), key );
-							if( keymod & 6 )
-								if( HandleKeyEvents( KeyDefs, key )  )
-								{
-									lprintf( WIDE( "Sent global first." ) );
-									dispatch_handled = 1;
-								}
-
-							if( !dispatch_handled )
+								lprintf( WIDE("already dispatched, delay it.") );
+							EnqueLink( &hVideo->pInput, (POINTER)key );
+						}
+						else
+						{
+							hVideo->flags.key_dispatched = 1;
+							do
 							{
-								// previously this would then dispatch the key event...
-								// but we want to give priority to handled keys.
-								dispatch_handled = hVideo->pKeyProc( hVideo->dwKeyData, key );
 								if( l.flags.bLogKeyEvent )
-									lprintf( WIDE( "Result of dispatch was %ld" ), dispatch_handled );
-								if( FindLink( &l.pActiveList, hVideo ) == INVALID_INDEX )
-									break;
+									lprintf( WIDE("Dispatching key %08lx"), key );
+								if( keymod & 6 )
+									if( HandleKeyEvents( KeyDefs, key )  )
+									{
+										lprintf( WIDE( "Sent global first." ) );
+										dispatch_handled = 1;
+									}
 
 								if( !dispatch_handled )
 								{
+									// previously this would then dispatch the key event...
+									// but we want to give priority to handled keys.
+									dispatch_handled = hVideo->pKeyProc( hVideo->dwKeyData, key );
 									if( l.flags.bLogKeyEvent )
-										lprintf( WIDE("Local Keydefs Dispatch key : %p %08lx"), hVideo, key );
-									if( hVideo && !HandleKeyEvents( hVideo->KeyDefs, key ) )
+										lprintf( WIDE( "Result of dispatch was %ld" ), dispatch_handled );
+									if( FindLink( &l.pActiveList, hVideo ) == INVALID_INDEX )
+										break;
+
+									if( !dispatch_handled )
 									{
 										if( l.flags.bLogKeyEvent )
-											lprintf( WIDE("Global Keydefs Dispatch key : %08lx"), key );
-										if( FindLink( &l.pActiveList, hVideo ) == INVALID_INDEX )
+											lprintf( WIDE("Local Keydefs Dispatch key : %p %08lx"), hVideo, key );
+										if( hVideo && !HandleKeyEvents( hVideo->KeyDefs, key ) )
 										{
 											if( l.flags.bLogKeyEvent )
-												lprintf( WIDE( "lost window..." ) );
-											break;
+												lprintf( WIDE("Global Keydefs Dispatch key : %08lx"), key );
+											if( FindLink( &l.pActiveList, hVideo ) == INVALID_INDEX )
+											{
+												if( l.flags.bLogKeyEvent )
+													lprintf( WIDE( "lost window..." ) );
+												break;
+											}
 										}
 									}
 								}
-							}
-							if( !dispatch_handled )
-							{
-								if( !(keymod & 6) )
-									if( HandleKeyEvents( KeyDefs, key )  )
-									{
-										dispatch_handled = 1;
-									}
-							}
-							if( FindLink( &l.pActiveList, hVideo ) == INVALID_INDEX )
-							{
+								if( !dispatch_handled )
+								{
+									if( !(keymod & 6) )
+										if( HandleKeyEvents( KeyDefs, key )  )
+										{
+											dispatch_handled = 1;
+										}
+								}
+								if( FindLink( &l.pActiveList, hVideo ) == INVALID_INDEX )
+								{
+									if( l.flags.bLogKeyEvent )
+										lprintf( WIDE( "lost active window." ) );
+									break;
+								}
+								key = (_32)DequeLink( &hVideo->pInput );
 								if( l.flags.bLogKeyEvent )
-									lprintf( WIDE( "lost active window." ) );
-								break;
-							}
-							key = (_32)DequeLink( &hVideo->pInput );
+									lprintf( WIDE( "key from deque : %p" ), key );
+							} while( key );
 							if( l.flags.bLogKeyEvent )
-								lprintf( WIDE( "key from deque : %p" ), key );
-						} while( key );
-						if( l.flags.bLogKeyEvent )
-							lprintf( WIDE( "completed..." ) );
-						hVideo->flags.key_dispatched = 0;
+								lprintf( WIDE( "completed..." ) );
+							hVideo->flags.key_dispatched = 0;
+						}
+						hVideo->flags.event_dispatched = 0;
 					}
-					hVideo->flags.event_dispatched = 0;
+					else
+					{
+						HandleKeyEvents( KeyDefs, key ); /* global events, if no keyproc */
+					}
 				}
 				else
 				{
+					if( l.flags.bLogKeyEvent )
+						lprintf( WIDE( "Not active window?" ) );
 					HandleKeyEvents( KeyDefs, key ); /* global events, if no keyproc */
 				}
+				//else9
+				//	lprintf( WIDE( "Failed to find active window..." ) );
 			}
-			else
-			{
-				if( l.flags.bLogKeyEvent )
-					lprintf( WIDE( "Not active window?" ) );
-				HandleKeyEvents( KeyDefs, key ); /* global events, if no keyproc */
-			}
-		   //else9
-			//	lprintf( WIDE( "Failed to find active window..." ) );
-		}
 #else
-				{
-					_32 Msg[2];
-					Msg[0] = (_32)hVid;
-					Msg[1] = key;
-               //lprintf( WIDE("Dispatch key from raw handler into event system.") );
-					SendServiceEvent( 0, l.dwMsgBase + MSG_KeyMethod, Msg, sizeof( Msg ) );
-				}
+			{
+				_32 Msg[2];
+				Msg[0] = (_32)hVid;
+				Msg[1] = key;
+				//lprintf( WIDE("Dispatch key from raw handler into event system.") );
+				SendServiceEvent( 0, l.dwMsgBase + MSG_KeyMethod, Msg, sizeof( Msg ) );
+			}
 #endif
 		}
 		// do we REALLY have to call the next hook?!

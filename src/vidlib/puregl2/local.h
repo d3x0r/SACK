@@ -139,6 +139,7 @@ struct plugin_reference
 	LOGICAL (CPROC *Mouse3d)(PTRSZVAL,PRAY,_32);
 	void (CPROC *ExtraClose3d)(PTRSZVAL);
 	void (CPROC *Resume3d)(void);
+   LOGICAL (CPROC *Key3d)(PTRSZVAL,_32);
 };
 
 #if defined( _D3D11_DRIVER )
@@ -338,6 +339,7 @@ extern
 	PVIDEO hCameraCapturedPrior; // reset on unused event
 	PVIDEO hVirtualCaptured;
 	PVIDEO hVirtualCapturedPrior; // reset on unused event
+   struct plugin_reference *hPluginKeyCapture; // used to track focus of key events to plugin modules
 	// kbd.key == KeyboardState
 	KEYBOARD kbd;
 	_32 dwMsgBase;
