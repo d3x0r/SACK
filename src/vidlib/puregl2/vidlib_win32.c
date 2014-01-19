@@ -1357,6 +1357,8 @@ WM_DROPFILES
 				struct display_camera *camera = (struct display_camera *)pcs->lpCreateParams; // user passed param...
 				camera->hVidCore->pMouseCallback = OpenGLMouse;
 				camera->hVidCore->dwMouseData = (PTRSZVAL)camera;
+				camera->hVidCore->pKeyProc = OpenGLKey;
+				camera->hVidCore->dwKeyData = (PTRSZVAL)camera;
 
 				if( camera )
 				{
