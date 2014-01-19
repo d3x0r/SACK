@@ -102,6 +102,13 @@ typedef struct render_3d_interface_tag
 #define OnMouse3d(name) \
 	__DefineRegistryMethod(WIDE("sack/render/puregl"),Mouse3d,WIDE("draw3d"),name,WIDE("ExtraMouse3d"),LOGICAL,(PTRSZVAL psvUser, PRAY mouse_ray, _32 b),__LINE__)
 
+// static LOGICAL OnKey3d( "Virtuality" )( PTRSZVAL psvInit, _32 key )
+// this is a real key event that is in a display that you returned non 0 during Init3d.
+// return FALSE if you did not use the key.
+// return TRUE if you did use the key, and therefore the event is used and noonne else should make two things happen...
+#define OnKey3d(name) \
+	__DefineRegistryMethod(WIDE("sack/render/puregl"),Key3d,WIDE("draw3d"),name,WIDE("ExtraKey3d"),LOGICAL,(PTRSZVAL psvUser, _32 key),__LINE__)
+
 
 #if !defined( FORCE_NO_INTERFACE ) && !defined( FORCE_NO_RENDER_INTERFACE )
 

@@ -20,6 +20,21 @@
 
 #include <virtuality.h>
 
+
+typedef struct {
+	LOGICAL bEditing;
+	LOGICAL bInit;
+	POBJECT pEditObject;
+	PFACET pFacet;
+	PFACETSET pfs;
+	int nFacetSet;
+	int nFacet;
+	int Invert;
+	PTRANSFORM TEdit;
+} EDIT_INFO, *PEDIT_INFO;
+
+
+
 #ifndef VIEW_MAIN
 extern
 #endif
@@ -31,7 +46,16 @@ struct global_virtuality_data_tag {
 
 	PMYLINESEGSET *ppLinePool; // common pool for utilities
 
+	EDIT_INFO EditInfo;
+	POBJECT pFirstRootObject;
 } global_virtuality_data;
+
 
 #define g global_virtuality_data
 
+
+#define pFirstObject g.pFirstRootObject //FirstObject.next
+
+#define GetEditFacetSet() g.EditInfo.pfs
+#define GetEditFacetIndex() g.EditInfo.nFacet
+#define GetEditFacet() g.EditInfo.pFacet

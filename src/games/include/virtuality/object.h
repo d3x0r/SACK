@@ -40,16 +40,6 @@ struct object_tag
 //#define RESETFLAG(v,n) ( v[(n)>>3] &= ~( 1 << ( (n) & 0x7 ) ) )
 //#define TESTFLAG(v,n)  ( v[(n)>>3] & ( 1 << ( (n) & 0x7 ) ) )
 
-#ifndef OBJECT_SOURCE
-extern
-#endif
-POBJECT //struct first_object{ DeclareLink( struct first_object ); }
-FirstObject
-#ifdef OBJECT_SOURCE
-//={ NULL, &(FirstObject.next) }
-#endif
-;
-#define pFirstObject FirstObject //FirstObject.next
 
 //---------------------------------
 // in object.c
