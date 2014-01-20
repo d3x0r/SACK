@@ -1,4 +1,4 @@
-<control border="4400" caption="ConfigureCardGameStartGame.Frame" position="0,0" size="436,262" type="Frame">
-<control IDName="InterShell/dekware/Games/Cards/ListBox/LISTBOX_POSSIBLE_GAMES" border="81" caption="" position="10,9" size="189,237" type="ListBox"></control>
-<control IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" border="1" caption="Okay" position="235,213" size="73,21" type="Button"></control>
-<control IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" border="1" caption="Cancel" position="233,182" size="73,21" type="Button"></control></control>
+<control caption="ConfigureCardGameStartGame.Frame" position="0,0" size="436,262" type="Frame">
+<control IDName="ListBox/InterShell/Dekware/Games/Cards/LISTBOX_POSSIBLE_GAMES" caption="" position="10,9" size="189,237" type="ListBox"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="235,213" size="73,21" type="Button"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="233,182" size="73,21" type="Button"></control></control>

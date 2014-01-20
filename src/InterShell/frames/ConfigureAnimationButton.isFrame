@@ -1,6 +1,6 @@
 <control caption="Animation Properties" edit="1" position="0,0" size="355,331" type="Frame">
-<control IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" caption="Okay" position="233,282" size="73,23" type="Button"></control>
-<control IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" caption="Cancel" position="147,282" size="73,25" type="Button"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="233,282" size="73,23" type="Button"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="147,282" size="73,25" type="Button"></control>
 <control caption="Animation File:" position="13,22" size="120,21" type="TextControl"></control>
 <control IDName="InterShell/animation/EditControl/EDIT_ANIMATION_NAME" caption="" position="13,58" size="280,21" type="EditControl"></control>
 <control caption="X Value:" position="13,100" size="120,21" type="TextControl"></control>
@@ -10,5 +10,4 @@
 <control IDName="InterShell/animation/EditControl/EDIT_X" caption="X" position="100,100" size="100,23" type="EditControl"></control>
 <control IDName="InterShell/animation/EditControl/EDIT_Y" caption="Y" position="100,130" size="100,23" type="EditControl"></control>
 <control IDName="InterShell/animation/EditControl/EDIT_W" caption="W" position="100,160" size="100,23" type="EditControl"></control>
-<control IDName="InterShell/animation/EditControl/EDIT_H" caption="H" position="100,190" size="100,23" type="EditControl"></control>
-</control>
+<control IDName="InterShell/animation/EditControl/EDIT_H" caption="H" position="100,190" size="100,23" type="EditControl"></control></control>

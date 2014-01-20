@@ -1,4 +1,4 @@
-<control edit="1" ID="-1" caption="Page Properties" position="0,0" size="150,141" type="Frame">
-<control ID="1011" IDName="InterShell/Button/BTN_PICKFONT" PrivateData="#ff356059" caption="Pick Font" position="6,3" size="136,46" type="Button"></control>
-<control ID="1" IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" caption="Okay" position="19,93" size="108,31" type="Button"></control>
-<control ID="2" IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" caption="Cancel" position="19,55" size="107,31" type="Button"></control></control>
+<control caption="Page Properties" edit="1" position="0,0" size="150,141" type="Frame">
+<control IDName="Button/InterShell/BTN_PICKFONT" PrivateData="#ff354c59" caption="Pick Font" position="6,3" size="136,46" type="Button"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="19,93" size="108,31" type="Button"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="19,55" size="107,31" type="Button"></control></control>

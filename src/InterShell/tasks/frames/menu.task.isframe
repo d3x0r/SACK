@@ -1,61 +1,49 @@
 <control caption="Page Properties" edit="1" position="0,0" size="810,523" type="Frame">
-<control IDName="InterShell/Tasks/EditControl/EDIT_TASK_FRIENDLY_NAME" caption="" position="161,6" size="194,25" type="EditControl"></control>
-<control IDName="InterShell/Tasks/EditControl/TXT_TASK_NAME" caption="" position="160,40" size="195,26" type="EditControl"></control>
-<control IDName="InterShell/Tasks/EditControl/TXT_TASK_PATH" caption="." position="160,70" size="194,26" type="EditControl"></control>
-<control IDName="InterShell/Tasks/EditControl/TXT_TASK_ARGS" caption="" position="159,100" size="194,26" type="EditControl"></control>
-<control IDName="InterShell/ListBox/LST_BUTTON_STYLE" caption="" position="18,155" size="170,73" type="ListBox"></control>
-<control IDName="InterShell/Color Well/CLR_TEXT_COLOR" caption="" position="202,159" size="32,32" type="Color Well"></control>
-<control IDName="InterShell/Color Well/CLR_BACKGROUND" caption="" position="202,195" size="32,32" type="Color Well"></control>
-<control IDName="InterShell/Color Well/CLR_RING_BACKGROUND" caption="" position="202,230" size="32,32" type="Color Well"></control>
-<control IDName="InterShell/Color Well/CLR_RING_HIGHLIGHT" caption="" position="202,266" size="32,32" type="Color Well"></control>
-<control IDName="InterShell/Button/BTN_PICKFONT" PrivateData="#ff356059" caption="Pick Font" position="18,254" size="97,31" type="Button"></control>
-<control IDName="InterShell/ListBox/LST_PAGES" caption="" position="380,6" size="204,194" type="ListBox"></control>
+<control IDName="EditControl/InterShell/tasks/EDIT_TASK_FRIENDLY_NAME" caption="" position="161,6" size="194,25" type="EditControl"></control>
+<control IDName="EditControl/InterShell/tasks/TXT_TASK_NAME" caption="" position="160,40" size="195,26" type="EditControl"></control>
+<control IDName="EditControl/InterShell/tasks/TXT_TASK_PATH" caption="." position="160,70" size="194,26" type="EditControl"></control>
+<control IDName="EditControl/InterShell/tasks/TXT_TASK_ARGS" caption="" position="159,100" size="194,26" type="EditControl"></control>
+<control IDName="ListBox/InterShell/LST_BUTTON_STYLE" caption="" position="18,155" size="170,73" type="ListBox"></control>
+<control IDName="Color Well/InterShell/CLR_TEXT_COLOR" caption="" position="202,159" size="32,32" type="Combo Box"></control>
+<control IDName="Color Well/InterShell/CLR_BACKGROUND" caption="" position="202,195" size="32,32" type="Combo Box"></control>
+<control IDName="Color Well/InterShell/CLR_RING_BACKGROUND" caption="" position="202,230" size="32,32" type="Combo Box"></control>
+<control IDName="Color Well/InterShell/CLR_RING_HIGHLIGHT" caption="" position="202,266" size="32,32" type="Combo Box"></control>
+<control IDName="Button/InterShell/BTN_PICKFONT" PrivateData="#ff354c59" caption="Pick Font" position="18,254" size="97,31" type="Button"></control>
+<control IDName="ListBox/InterShell/LST_PAGES" caption="" position="380,6" size="204,194" type="ListBox"></control>
 <control caption="Button Text" position="15,14" size="140,21" type="TextControl"></control>
 <control caption="Program Name" position="15,47" size="133,21" type="TextControl"></control>
 <control caption="Working Path" position="16,77" size="139,21" type="TextControl"></control>
 <control caption="Program Arguments" position="13,107" size="139,21" type="TextControl"></control>
-
-
 <control caption="Shutdown Program Name" position="15,327" size="233,21" type="TextControl"></control>
 <control caption="Shutdown Working Path" position="16,357" size="233,21" type="TextControl"></control>
 <control caption="Shutdown Program Arguments" position="13,383" size="233,21" type="TextControl"></control>
-<control IDName="InterShell/Tasks/EditControl/TXT_SHUTDOWN_TASK_NAME" caption="" position="240,320" size="195,26" type="EditControl"></control>
-<control IDName="InterShell/Tasks/EditControl/TXT_SHUTDOWN_TASK_PATH" caption="." position="240,350" size="194,26" type="EditControl"></control>
-<control IDName="InterShell/Tasks/EditControl/TXT_SHUTDOWN_TASK_ARGS" caption="" position="240,380" size="194,26" type="EditControl"></control>
-
-
-<control IDName="InterShell/EditControl/TXT_IMAGE_NAME" caption="" position="154,440" size="212,21" type="EditControl"></control>
+<control IDName="EditControl/InterShell/tasks/TXT_SHUTDOWN_TASK_NAME" caption="" position="240,320" size="195,26" type="EditControl"></control>
+<control IDName="EditControl/InterShell/tasks/TXT_SHUTDOWN_TASK_PATH" caption="." position="240,350" size="194,26" type="EditControl"></control>
+<control IDName="EditControl/InterShell/tasks/TXT_SHUTDOWN_TASK_ARGS" caption="" position="240,380" size="194,26" type="EditControl"></control>
+<control IDName="EditControl/InterShell/TXT_IMAGE_NAME" caption="" position="154,440" size="212,21" type="EditControl"></control>
 <control caption="Button Image" position="17,441" size="134,21" type="TextControl"></control>
-<control IDName="InterShell/Button/BTN_PICKFILE" PrivateData="#ff356059" caption="..." position="373,442" size="39,21" type="Button"></control>
-
+<control IDName="Button/InterShell/BTN_PICKFILE" PrivateData="#ff354c59" caption="..." position="373,442" size="39,21" type="Button"></control>
 <control caption="(Not Implemented)" position="154,468" size="212,21" type="EditControl"></control>
 <control caption="Task Input File" position="19,470" size="130,21" type="TextControl"></control>
 <control caption="(Req. Captured Output)" position="384,467" size="186,21" type="TextControl"></control>
-
-<control IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" caption="Okay" position="524,487" size="75,30" type="Button"></control>
-<control IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" caption="Cancel" position="441,487" size="73,30" type="Button"></control>
-
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="524,487" size="75,30" type="Button"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="441,487" size="73,30" type="Button"></control>
 <control caption="Launch At" position="32,495" size="93,21" type="TextControl"></control>
-<control IDName="InterShell/Tasks/EditControl/EDIT_TASK_LAUNCH_X" caption="0" position="131,495" size="63,21" type="EditControl"></control>
+<control IDName="EditControl/InterShell/tasks/EDIT_TASK_LAUNCH_X" caption="0" position="131,495" size="63,21" type="EditControl"></control>
 <control caption="by" position="202,495" size="24,21" type="TextControl"></control>
-<control IDName="InterShell/Tasks/EditControl/EDIT_TASK_LAUNCH_Y" caption="0" position="229,495" size="69,21" type="EditControl"></control>
+<control IDName="EditControl/InterShell/tasks/EDIT_TASK_LAUNCH_Y" caption="0" position="229,495" size="69,21" type="EditControl"></control>
 <control caption="(Req. Exclusive)" position="305,495" size="136,21" type="TextControl"></control>
-
-<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_EXCLUSIVE" caption="Exclusive" position="389,206" size="130,21" type="CheckButton"></control>
-<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_ONE_TIME_LAUNCH" caption="One Launch" position="389,227" size="150,21" type="CheckButton"></control>
-<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_ONE_TIME_CLICK_STOP" caption="One Launch-Click to Stop" position="389,248" size="150,21" type="CheckButton"></control>
-<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_CAPTURE_OUTPUT" caption="Capture Task Output" position="388,269" size="192,21" type="CheckButton"></control>
-<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_BACKGROUND" caption="Background" position="388,290" size="149,21" type="CheckButton"></control>
-<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_HIDE_CANVAS" caption="Hide Canvas" position="638,206" size="192,21" type="CheckButton"></control>
-<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_LAUNCH_AT_LEAST" caption="Launch At Least..." position="638,227" size="192,21" type="CheckButton"></control>
-
+<control IDName="CheckButton/InterShell/tasks/CHECKBOX_EXCLUSIVE" caption="Exclusive" position="389,206" size="130,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/tasks/CHECKBOX_ONE_TIME_LAUNCH" caption="One Launch" position="389,227" size="150,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/tasks/CHECKBOX_ONE_TIME_CLICK_STOP" caption="One Launch-Click to Stop" position="389,248" size="150,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/tasks/CHECKBOX_CAPTURE_OUTPUT" caption="Capture Task Output" position="388,269" size="192,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/tasks/CHECKBOX_BACKGROUND" caption="Background" position="388,290" size="149,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/tasks/CHECKBOX_HIDE_CANVAS" caption="Hide Canvas" position="638,206" size="192,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/tasks/CHECKBOX_LAUNCH_AT_LEAST" caption="Launch At Least..." position="638,227" size="192,21" type="CheckButton"></control>
 <control caption="Text" position="247,166" size="73,21" type="TextControl"></control>
 <control caption="Background" position="245,201" size="102,21" type="TextControl"></control>
 <control caption="Ring Normal" position="246,236" size="109,21" type="TextControl"></control>
 <control caption="Ring Highlight" position="245,271" size="121,21" type="TextControl"></control>
-
-<control IDName="InterShell/Button General/security/ListBox/LISTBOX_SECURITY_MODULE" caption="" position="619,48" size="184,73" type="ListBox"></control>
+<control IDName="ListBox/InterShell/Button General/security/LISTBOX_SECURITY_MODULE" caption="" position="619,48" size="184,73" type="ListBox"></control>
 <control caption="Security" position="618,26" size="101,21" type="TextControl"></control>
-<control IDName="InterShell/Button General/security/Button/EDIT_SECURITY" PrivateData="#ff354c59" caption="Edit Security" position="618,139" size="123,21" type="Button"></control>
-
-</control>
+<control IDName="Button/InterShell/Button General/security/EDIT_SECURITY" PrivateData="#ff354c59" caption="Edit Security" position="618,139" size="123,21" type="Button"></control></control>

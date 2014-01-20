@@ -1,5 +1,5 @@
-<control border="4400" caption="BodyInterface.Frame" edit="0" position="0,0" size="392,189" type="Frame">
-<control IDName="terrain/body interface/ListBox/LISTBOX_BODIES" border="81" caption="(null)" position="10,12" size="130,166" type="ListBox"></control>
-<control IDName="terrain/body interface/Button/BUTTON_SHOW_BRAIN" PrivateData="#ff356059" border="1" caption="Show Brain" position="148,16" size="145,44" type="Button"></control>
-<control border="3" caption="Posiition" position="150,78" size="73,21" type="TextControl"></control>
-<control border="3" caption="Health?" position="152,104" size="73,21" type="TextControl"></control></control>
+<control caption="BodyInterface.Frame" edit="0" position="0,0" size="392,189" type="Frame">
+<control IDName="terrain/body interface/ListBox/LISTBOX_BODIES" caption="(null)" position="10,12" size="130,166" type="ListBox"></control>
+<control IDName="terrain/body interface/Button/BUTTON_SHOW_BRAIN" PrivateData="#ff354c59" caption="Show Brain" position="148,16" size="145,44" type="Button"></control>
+<control caption="Posiition" position="150,78" size="73,21" type="TextControl"></control>
+<control caption="Health?" position="152,104" size="73,21" type="TextControl"></control></control>

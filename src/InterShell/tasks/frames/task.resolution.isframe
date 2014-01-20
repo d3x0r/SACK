@@ -1,9 +1,9 @@
 <control caption="Set Screen Resolution" position="0,0" size="438,262" type="Frame">
-<control IDName="InterShell/Tasks/EditControl/EDIT_TASK_LAUNCH_X" caption="" position="186,38" size="73,21" type="EditControl"></control>
-<control IDName="InterShell/Tasks/EditControl/EDIT_TASK_LAUNCH_Y" caption="" position="186,74" size="73,21" type="EditControl"></control>
-<control IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" caption="Okay" position="332,209" size="73,21" type="Button"></control>
+<control IDName="EditControl/InterShell/tasks/EDIT_TASK_LAUNCH_X" caption="" position="186,38" size="73,21" type="EditControl"></control>
+<control IDName="EditControl/InterShell/tasks/EDIT_TASK_LAUNCH_Y" caption="" position="186,74" size="73,21" type="EditControl"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="332,209" size="73,21" type="Button"></control>
 <control caption="Set screen width and height to 0" position="52,140" size="287,21" type="TextControl"></control>
 <control caption="to restore screen to native resolution" position="57,160" size="338,21" type="TextControl"></control>
 <control caption="Screen Width" position="43,42" size="121,21" type="TextControl"></control>
 <control caption="Screen Height" position="42,75" size="122,20" type="TextControl"></control>
-<control IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" caption="Cancel" position="248,209" size="73,21" type="Button"></control></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="248,209" size="73,21" type="Button"></control></control>
