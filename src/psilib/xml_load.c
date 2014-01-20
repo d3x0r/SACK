@@ -58,6 +58,7 @@ void XMLCALL start_tags( void *UserData
 	_32 width, height;
 	TEXTSTR caption = NULL;
 	_32 border = 0;
+	LOGICAL border_set;
 	TEXTSTR font = NULL;
 	TEXTSTR control_data = NULL;
 	TEXTSTR IDName = NULL;
@@ -81,6 +82,7 @@ void XMLCALL start_tags( void *UserData
 		}
 		else if( strcmp( p[0], WIDE("border") ) == 0 )
 		{
+			border_set = TRUE;
 			border = (int)IntCreateFromText( p[1] );
 		}
 		else if( strcmp( p[0], WIDE("size") ) == 0 )
@@ -352,11 +354,9 @@ PSI_CONTROL LoadXMLFrameOverExx( PSI_CONTROL parent, CTEXTSTR file, LOGICAL crea
 			return NULL;
 		}
 	}
-	if( l.frame )
-	{
-		frame = l.frame;
+	// yes this is an assignment
+	if( frame = l.frame )
 		l.frame->save_name = StrDup( filename );
-	}
 	if( delete_filename )
 		Release(delete_filename );
 	LeaveCriticalSec( &l.cs );

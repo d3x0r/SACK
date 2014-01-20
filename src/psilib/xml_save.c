@@ -56,7 +56,8 @@ void WriteCommonData( PSI_CONTROL pc )
 		genxAddAttribute( l.current_context->aPosition, (constUtf8)buf );
 		snprintf( buf, sizeof( buf ), WIDE("%") _32f WIDE(",") WIDE("%") _32f, pc->original_rect.width, pc->original_rect.height );
 		genxAddAttribute( l.current_context->aSize, (constUtf8)buf );
-		snprintf( buf, sizeof( buf ), WIDE("%") _32f WIDE(""), pc->BorderType );
+		if( pc->flags.bSetBorderType )
+			snprintf( buf, sizeof( buf ), WIDE("%") _32f WIDE(""), pc->BorderType );
 		genxAddAttribute( l.current_context->aBorder, (constUtf8)buf );
 
 		// Let's not write the number of this ID anymore...
