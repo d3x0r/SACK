@@ -58,6 +58,7 @@ void XMLCALL start_tags( void *UserData
 	_32 width, height;
 	TEXTSTR caption = NULL;
 	_32 border = 0;
+	LOGICAL border_set;
 	TEXTSTR font = NULL;
 	TEXTSTR control_data = NULL;
 	TEXTSTR IDName = NULL;
@@ -81,6 +82,7 @@ void XMLCALL start_tags( void *UserData
 		}
 		else if( strcmp( p[0], WIDE("border") ) == 0 )
 		{
+			border_set = TRUE;
 			border = (int)IntCreateFromText( p[1] );
 		}
 		else if( strcmp( p[0], WIDE("size") ) == 0 )
@@ -237,7 +239,7 @@ PSI_CONTROL ParseXMLFrameEx( POINTER buffer, size_t size DBG_PASS )
 	return l.frame;
 }
 
-PSI_CONTROL LoadXMLFrameOverEx( PSI_CONTROL parent, CTEXTSTR file DBG_PASS )
+PSI_CONTROL LoadXMLFrameOverExx( PSI_CONTROL parent, CTEXTSTR file, LOGICAL create DBG_PASS )
 //PSI_CONTROL  LoadXMLFrame( char *file )
 {
 	POINTER buffer;
@@ -324,7 +326,7 @@ PSI_CONTROL LoadXMLFrameOverEx( PSI_CONTROL parent, CTEXTSTR file DBG_PASS )
 		Release( buffer );
 	}
 
-	if( !l.frame )
+	if( create && !l.frame )
 	{
 		//create_editable_dialog:
 		{
@@ -352,14 +354,20 @@ PSI_CONTROL LoadXMLFrameOverEx( PSI_CONTROL parent, CTEXTSTR file DBG_PASS )
 			return NULL;
 		}
 	}
-
-	frame = l.frame;
-	l.frame->save_name = StrDup( filename );
+	// yes this is an assignment
+	if( frame = l.frame )
+		l.frame->save_name = StrDup( filename );
 	if( delete_filename )
 		Release(delete_filename );
 	LeaveCriticalSec( &l.cs );
 	return frame;
 }
+
+PSI_CONTROL LoadXMLFrameOverEx( PSI_CONTROL parent, CTEXTSTR file DBG_PASS )
+{
+	return LoadXMLFrameOverExx( parent, file, TRUE DBG_RELAY );
+}
+
 
 PSI_CONTROL LoadXMLFrameEx( CTEXTSTR file DBG_PASS )
 //PSI_CONTROL  LoadXMLFrame( char *file )

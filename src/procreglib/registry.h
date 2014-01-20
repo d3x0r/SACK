@@ -98,6 +98,7 @@ typedef struct tree_def_tag
 		PLIST List; 
 	};
    POINTER cursor;
+   struct proc_name_tag *self;
 } TREEDEF, *PTREEDEF;
 #define MAXTREEDEFSPERSET 256
 DeclareSet( TREEDEF );
@@ -154,6 +155,7 @@ typedef struct proc_name_tag
 		SERVICE    service;
 #endif
 	}data;
+	PTREEDEF parent;
 } NAME, *PNAME;
 
 #define MAXNAMESPERSET 256

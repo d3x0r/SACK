@@ -144,7 +144,7 @@ int GetResourceID( PSI_CONTROL parent, CTEXTSTR name, _32 nIDDefault )
 		// assume search mode to find name... using name as terminal leef, but application and control class are omitted...
 		PCLASSROOT data = NULL;
 		CTEXTSTR name;
-		DebugBreak(); // changed 'name' to data and 'name2' to 'data2' ...
+		//DebugBreak(); // changed 'name' to data and 'name2' to 'data2' ...
 		for( name = GetFirstRegisteredName( PSI_ROOT_REGISTRY WIDE("/resources/"), &data );
 			 name;
 			  name = GetNextRegisteredName( &data ) )
@@ -459,9 +459,10 @@ PRIORITY_PRELOAD( InitPSILibrary, PSI_PRELOAD_PRIORITY )
 				if( resource_names[n].resource_name_id )
 				{
 					TEXTCHAR root[256];
+					TEXTCHAR old_root[256];
 #define TASK_PREFIX WIDE( "core" )
 					snprintf( root, sizeof( root )
-							  , PSI_ROOT_REGISTRY WIDE("/resources/") TASK_PREFIX WIDE("/%s/%s")
+							  , PSI_ROOT_REGISTRY WIDE("/resources/%s/") TASK_PREFIX WIDE("/%s")
 							  , resource_names[n].type_name
 							  , resource_names[n].resource_name );
 					RegisterIntValue( root
@@ -470,10 +471,12 @@ PRIORITY_PRELOAD( InitPSILibrary, PSI_PRELOAD_PRIORITY )
 					RegisterIntValue( root
 										 , WIDE("range")
 										 , resource_names[n].resource_name_range );
-					snprintf( root, sizeof( root ), PSI_ROOT_REGISTRY WIDE("/resources/") TASK_PREFIX WIDE("/%s"), resource_names[n].type_name );
+					snprintf( root, sizeof( root ), PSI_ROOT_REGISTRY WIDE("/resources/%s/") TASK_PREFIX WIDE(""), resource_names[n].type_name );
+					snprintf( old_root, sizeof( old_root ), PSI_ROOT_REGISTRY WIDE("/resources/") TASK_PREFIX WIDE("/%s"), resource_names[n].type_name );
 					RegisterIntValue( root
 										 , resource_names[n].resource_name
 										 , resource_names[n].resource_name_id );
+					RegisterClassAlias( root, old_root );
 				}
 			}
 		}
@@ -2395,6 +2398,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	pc->flags.bInitial = 1;
 	pc->flags.bDirty = 1;
 	SetCommonBorder( pc, BorderType );
+	pc->flags.bSetBorderType = 0;
 
 	SetCommonText( pc, text );
 	if( pContainer )

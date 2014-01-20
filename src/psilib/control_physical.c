@@ -165,7 +165,6 @@ static void CPROC FrameRedraw( PTRSZVAL psvFrame, PRENDERER psvSelf )
 				extern void UpdateSurface( PSI_CONTROL pc );
 				UpdateSurface( pc );
 			}
-			//SetCommonBorder( pc, pc->BorderType );
 			if( pc->DrawBorder )
 			{
 #ifdef DEBUG_BORDER_DRAWING
