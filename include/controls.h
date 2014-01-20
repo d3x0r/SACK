@@ -758,7 +758,15 @@ PSI_PROC( PSI_CONTROL, ParseXMLFrameEx )( POINTER buffer, size_t size DBG_PASS )
 /* <combine sack::PSI::xml::LoadXMLFrameEx@CTEXTSTR file>
    
    \ \                                                    */
+PSI_PROC( PSI_CONTROL, LoadXMLFrameOverExx )( PSI_CONTROL frame, CTEXTSTR file, LOGICAL create DBG_PASS );
+/* <combine sack::PSI::xml::LoadXMLFrameEx@CTEXTSTR file>
+   
+   \ \                                                    */
 PSI_PROC( PSI_CONTROL, LoadXMLFrameOverEx )( PSI_CONTROL frame, CTEXTSTR file DBG_PASS );
+/* <combine sack::PSI::xml::LoadXMLFrameOverEx@PSI_CONTROL@CTEXTSTR file>
+   
+   \ \                                                                    */
+#define LoadXMLFrameOverOption(parent,file,create) LoadXMLFrameOverExx( parent,file,create DBG_SRC )
 /* <combine sack::PSI::xml::LoadXMLFrameOverEx@PSI_CONTROL@CTEXTSTR file>
    
    \ \                                                                    */

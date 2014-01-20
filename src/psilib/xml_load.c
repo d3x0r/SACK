@@ -237,7 +237,7 @@ PSI_CONTROL ParseXMLFrameEx( POINTER buffer, size_t size DBG_PASS )
 	return l.frame;
 }
 
-PSI_CONTROL LoadXMLFrameOverEx( PSI_CONTROL parent, CTEXTSTR file DBG_PASS )
+PSI_CONTROL LoadXMLFrameOverExx( PSI_CONTROL parent, CTEXTSTR file, LOGICAL create DBG_PASS )
 //PSI_CONTROL  LoadXMLFrame( char *file )
 {
 	POINTER buffer;
@@ -324,7 +324,7 @@ PSI_CONTROL LoadXMLFrameOverEx( PSI_CONTROL parent, CTEXTSTR file DBG_PASS )
 		Release( buffer );
 	}
 
-	if( !l.frame )
+	if( create && !l.frame )
 	{
 		//create_editable_dialog:
 		{
@@ -352,14 +352,22 @@ PSI_CONTROL LoadXMLFrameOverEx( PSI_CONTROL parent, CTEXTSTR file DBG_PASS )
 			return NULL;
 		}
 	}
-
-	frame = l.frame;
-	l.frame->save_name = StrDup( filename );
+	if( l.frame )
+	{
+		frame = l.frame;
+		l.frame->save_name = StrDup( filename );
+	}
 	if( delete_filename )
 		Release(delete_filename );
 	LeaveCriticalSec( &l.cs );
 	return frame;
 }
+
+PSI_CONTROL LoadXMLFrameOverEx( PSI_CONTROL parent, CTEXTSTR file DBG_PASS )
+{
+	return LoadXMLFrameOverExx( parent, file, TRUE DBG_RELAY );
+}
+
 
 PSI_CONTROL LoadXMLFrameEx( CTEXTSTR file DBG_PASS )
 //PSI_CONTROL  LoadXMLFrame( char *file )
