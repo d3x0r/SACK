@@ -2398,6 +2398,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	pc->flags.bInitial = 1;
 	pc->flags.bDirty = 1;
 	SetCommonBorder( pc, BorderType );
+	pc->flags.bSetBorderType = 0;
 
 	SetCommonText( pc, text );
 	if( pContainer )
