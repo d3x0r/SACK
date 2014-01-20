@@ -74,6 +74,8 @@ add_subpath( ../src/utils/strip )
 add_subpath( ../src/filesyslib/filemon/filemonitor )
 endif( NOT __ANDROID__ AND NOT __CLR__ )
 
+add_subpath( ../src/utils/frame_id_converter )
+
 
 if( WIN32 )
 add_subpath( ../src/utils/shoimg )
