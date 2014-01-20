@@ -1,12 +1,12 @@
-<control border="4400" caption="Set Launchpad Classname" position="0,0" size="538,477" type="Frame">
-<control IDName="milk/Launchpad/EditControl/TXT_RESPOND_TO" border="71" caption="" position="232,230" size="250,21" type="EditControl"></control>
-<control IDName="milk/Launchpad/EditControl/TXT_SYSTEM_NAME" border="71" caption="" position="231,265" size="252,21" type="EditControl"></control>
-<control border="3" caption="Respond to command class" position="25,231" size="199,21" type="TextControl"></control>
-<control border="3" caption="On System" position="25,265" size="73,21" type="TextControl"></control>
-<control IDName="milk/Launchpad/Button/BTN_ADD_PAIR" PrivateData="#ff356059" border="1" caption="Add Class@System" position="32,308" size="188,34" type="Button"></control>
-<control IDName="milk/Launchpad/Button/BTN_DELETE_PAIR" PrivateData="#ff356059" border="1" caption="Remove Class@System" position="254,307" size="188,34" type="Button"></control>
-<control IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" border="1" caption="Okay" position="315,396" size="73,23" type="Button"></control>
-<control IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" border="1" caption="Cancel" position="405,394" size="73,23" type="Button"></control>
-<control IDName="milk/Launchpad/ListBox/LISTBOX_SYSTEM_CLASS_NAMES" border="71" caption="" position="22,13" size="462,201" type="ListBox"></control>
-<control IDName="InterShell/Launchpad/Button/BTN_ADD_NOT_PAIR" PrivateData="#ff356059" border="1" caption="Add Class^Name" position="32,352" size="188,34" type="Button"></control>
-<control IDName="InterShell/Launchpad/Button/BTN_DELETE_NOT_PAIR" PrivateData="#ff356059" border="1" caption="Remove class^name" position="254,352" size="188,34" type="Button"></control></control>
+<control caption="Set Launchpad Classname" position="0,0" size="538,477" type="Frame">
+<control IDName="milk/Launchpad/EditControl/TXT_RESPOND_TO" caption="" position="232,230" size="250,21" type="EditControl"></control>
+<control IDName="milk/Launchpad/EditControl/TXT_SYSTEM_NAME" caption="" position="231,265" size="252,21" type="EditControl"></control>
+<control caption="Respond to command class" position="25,231" size="199,21" type="TextControl"></control>
+<control caption="On System" position="25,265" size="73,21" type="TextControl"></control>
+<control IDName="milk/Launchpad/Button/BTN_ADD_PAIR" PrivateData="#ff354c59" caption="Add Class@System" position="32,308" size="188,34" type="Button"></control>
+<control IDName="milk/Launchpad/Button/BTN_DELETE_PAIR" PrivateData="#ff354c59" caption="Remove Class@System" position="254,307" size="188,34" type="Button"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="315,396" size="73,23" type="Button"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="405,394" size="73,23" type="Button"></control>
+<control IDName="milk/Launchpad/ListBox/LISTBOX_SYSTEM_CLASS_NAMES" caption="" position="22,13" size="462,201" type="ListBox"></control>
+<control IDName="Button/InterShell/Launchpad/BTN_ADD_NOT_PAIR" PrivateData="#ff354c59" caption="Add Class^Name" position="32,352" size="188,34" type="Button"></control>
+<control IDName="Button/InterShell/Launchpad/BTN_DELETE_NOT_PAIR" PrivateData="#ff354c59" caption="Remove class^name" position="254,352" size="188,34" type="Button"></control></control>

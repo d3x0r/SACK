@@ -1,29 +1,29 @@
-<control border="17408" caption="Configure Keypad Visuals" edit="1" position="0,0" size="586,315" type="Frame">
-<control border="3" caption="background color" position="7,21" size="166,21" type="TextControl"></control>
-<control IDName="InterShell/Keypad/Color Well/COLOR_KEYPAD_BACKGROUND" border="161" caption="(null)" position="196,15" size="32,32" type="Color Well"></control>
-<control border="3" caption="Number Key Color" position="7,67" size="170,21" type="TextControl"></control>
-<control IDName="InterShell/Keypad/Color Well/COLOR_NUMKEYS" border="161" caption="(null)" position="160,60" size="32,32" type="Color Well"></control>
-<control IDName="InterShell/Keypad/Color Well/COLOR_NUMKEYS_TEXT" border="161" caption="(null)" position="197,60" size="32,32" type="Color Well"></control>
-<control border="3" caption="Enter Key Color" position="7,110" size="164,21" type="TextControl"></control>
-<control IDName="InterShell/Keypad/Color Well/COLOR_ENTER" border="161" caption="(null)" position="160,102" size="32,32" type="Color Well"></control>
-<control IDName="InterShell/Keypad/Color Well/COLOR_ENTER_TEXT" border="161" caption="(null)" position="197,102" size="32,32" type="Color Well"></control>
-<control IDName="core/Button/BTN_CANCEL" PrivateData="#ff354c59" border="33" caption="Cancel" position="511,283" size="73,21" type="Button"></control>
-<control IDName="core/Button/BTN_OKAY" PrivateData="#ff354c59" border="33" caption="Okay" position="432,283" size="73,21" type="Button"></control>
-<control border="3" caption="Clear Key Color" position="7,153" size="149,21" type="TextControl"></control>
-<control IDName="InterShell/Keypad/Color Well/COLOR_CANCEL" border="161" caption="(null)" position="160,142" size="32,32" type="Color Well"></control>
-<control IDName="InterShell/Keypad/Color Well/COLOR_CANCEL_TEXT" border="161" caption="(null)" position="197,142" size="32,32" type="Color Well"></control>
-<control IDName="InterShell/Keypad/Color Well/COLOR_DISPLAY_BACKGROUND" border="161" caption="(null)" position="385,90" size="32,32" type="Color Well"></control>
-<control IDName="InterShell/Keypad/Color Well/COLOR_DISPLAY_TEXT" border="161" caption="(null)" position="383,133" size="32,32" type="Color Well"></control>
-<control border="3" caption="Display Bkg" position="272,99" size="100,21" type="TextControl"></control>
-<control border="3" caption="Display Text" position="270,139" size="114,21" type="TextControl"></control>
-<control IDName="InterShell/Keypad/CheckButton/CHECKBOX_INVERT" border="35" caption="Invert" position="15,191" size="100,21" type="CheckButton"></control>
-<control IDName="InterShell/Keypad/CheckButton/CHECKBOX_PASSWORD" border="35" caption="Password" position="15,213" size="100,21" type="CheckButton"></control>
-<control IDName="InterShell/Keypad/CheckButton/RADIO_STYLE_YES_NO" border="35" caption="Yes-No Style" position="13,235" size="145,21" type="CheckButton"></control>
-<control IDName="InterShell/Keypad/CheckButton/RADIO_STYLE_CANCEL_ENTER" border="35" caption="Cancel-Enter Style" position="13,257" size="197,21" type="CheckButton"></control>
-<control IDName="InterShell/Keypad/CheckButton/RADIO_STYLE_CORRECT_ENTER" border="35" caption="Enter-Correct Style" position="13,279" size="187,21" type="CheckButton"></control>
-<control IDName="InterShell/Keypad/CheckButton/RADIO_STYLE_DOUBLE0_CLEAR" border="35" caption="Clear-00 Style" position="228,253" size="187,21" type="CheckButton"></control>
-<control IDName="InterShell/Keypad/CheckButton/RADIO_STYLE_CLEAR_ENTER" border="35" caption="Enter-Clear Style" position="228,275" size="187,21" type="CheckButton"></control>
-<control border="3" caption="Display Format" position="260,13" size="136,21" type="TextControl"></control>
-<control IDName="InterShell/Keypad/EditControl/EDIT_FORMAT" border="32929" caption="###-###-###" position="270,37" size="202,23" type="EditControl"></control>
-<control IDName="InterShell/Keypad/CheckButton/CHECKBOX_ALIGN_LEFT" border="35" caption="Display Align Left" position="266,177" size="194,21" type="CheckButton"></control>
-<control IDName="InterShell/Keypad/CheckButton/CHECKBOX_ALIGN_CENTER" border="35" caption="Display Align Center" position="265,202" size="193,21" type="CheckButton"></control></control>
+<control caption="Configure Keypad Visuals" edit="1" position="0,0" size="586,315" type="Frame">
+<control caption="background color" position="7,21" size="166,21" type="TextControl"></control>
+<control IDName="Color Well/InterShell/keypad/COLOR_KEYPAD_BACKGROUND" position="196,15" size="32,32" type="Combo Box"></control>
+<control caption="Number Key Color" position="7,67" size="170,21" type="TextControl"></control>
+<control IDName="Color Well/InterShell/keypad/COLOR_NUMKEYS" position="160,60" size="32,32" type="Combo Box"></control>
+<control IDName="Color Well/InterShell/keypad/COLOR_NUMKEYS_TEXT" position="197,60" size="32,32" type="Combo Box"></control>
+<control caption="Enter Key Color" position="7,110" size="164,21" type="TextControl"></control>
+<control IDName="Color Well/InterShell/keypad/COLOR_ENTER" position="160,102" size="32,32" type="Combo Box"></control>
+<control IDName="Color Well/InterShell/keypad/COLOR_ENTER_TEXT" position="197,102" size="32,32" type="Combo Box"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="511,283" size="73,21" type="Button"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="432,283" size="73,21" type="Button"></control>
+<control caption="Clear Key Color" position="7,153" size="149,21" type="TextControl"></control>
+<control IDName="Color Well/InterShell/keypad/COLOR_CANCEL" position="160,142" size="32,32" type="Combo Box"></control>
+<control IDName="Color Well/InterShell/keypad/COLOR_CANCEL_TEXT" position="197,142" size="32,32" type="Combo Box"></control>
+<control IDName="Color Well/InterShell/keypad/COLOR_DISPLAY_BACKGROUND" position="385,90" size="32,32" type="Combo Box"></control>
+<control IDName="Color Well/InterShell/keypad/COLOR_DISPLAY_TEXT" position="383,133" size="32,32" type="Combo Box"></control>
+<control caption="Display Bkg" position="272,99" size="100,21" type="TextControl"></control>
+<control caption="Display Text" position="270,139" size="114,21" type="TextControl"></control>
+<control IDName="CheckButton/InterShell/keypad/CHECKBOX_INVERT" caption="Invert" position="15,191" size="100,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/keypad/CHECKBOX_PASSWORD" caption="Password" position="15,213" size="100,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/keypad/RADIO_STYLE_YES_NO" caption="Yes-No Style" position="13,235" size="145,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/keypad/RADIO_STYLE_CANCEL_ENTER" caption="Cancel-Enter Style" position="13,257" size="197,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/keypad/RADIO_STYLE_CORRECT_ENTER" caption="Enter-Correct Style" position="13,279" size="187,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/keypad/RADIO_STYLE_DOUBLE0_CLEAR" caption="Clear-00 Style" position="228,253" size="187,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/keypad/RADIO_STYLE_CLEAR_ENTER" caption="Enter-Clear Style" position="228,275" size="187,21" type="CheckButton"></control>
+<control caption="Display Format" position="260,13" size="136,21" type="TextControl"></control>
+<control IDName="EditControl/InterShell/keypad/EDIT_FORMAT" caption="###-###-###" position="270,37" size="202,23" type="EditControl"></control>
+<control IDName="CheckButton/InterShell/keypad/CHECKBOX_ALIGN_LEFT" caption="Display Align Left" position="266,177" size="194,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/keypad/CHECKBOX_ALIGN_CENTER" caption="Display Align Center" position="265,202" size="193,21" type="CheckButton"></control></control>
