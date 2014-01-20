@@ -391,61 +391,65 @@ void InvertObject( POBJECT po )
 }
 
 //-----------------------------------------------------------
-/*
-DWORD SaveObject( HANDLE hFile, POBJECT po )
+
+_32 SaveObject( CTEXTSTR filename, POBJECT po )
 {
-   DWORD dwWritten;
-   DWORD dwWrite;
-   PFACETSET pps;
-   int p;
-   dwWritten = 0;
+	int p;
+   FILE *file;
 
-   WriteFile( hFile, &po->T, sizeof( po->T ), &dwWrite, NULL );
-
-   dwWritten += dwWrite;
-
-   pps = po->pPlaneSet;
-   
-   WriteFile( hFile, &pps->nUsedPlanes, sizeof( pps->nUsedPlanes ), &dwWrite, NULL );
-   dwWritten += dwWrite;
-   for( p = 0; p < pps->nUsedPlanes; p++ )
-   {
-      WriteFile( hFile, &pps->pPlanes[p].d, sizeof( RAY ), &dwWrite, NULL );
-      dwWritten += dwWrite;
-      WriteFile( hFile, &pps->pPlanes[p].color, sizeof( CDATA ), &dwWrite, NULL );
-      dwWritten += dwWrite;
-   }
-
+   file = sack_fopen( 0, filename, "wb" );
+	if( file )
+	{
+      PFACET pf;
+      _32 tmp = 0;
+		fwrite( &po->T, sizeof( po->T ), 1, file );
+      tmp = 0;
+		LIST_FORALL( po->objinfo->facets, p, PFACET, pf )
+         tmp++;
+		fwrite( &tmp, sizeof( tmp ), 1, file );
+      LIST_FORALL( po->objinfo->facets, p, PFACET, pf )
+		{
+			fwrite( &pf.d, sizeof( RAY ), 1, file );
+			fwrite( &pf.color, sizeof( CDATA ), 1, file );
+		}
+      fclose( file );
+	}
    // shouldn't have to save lines cause we can re-intersect - RIGHT?
-   return dwWritten;
+	return 0;
 }
-*/
+
 //-----------------------------------------------------------
-/*
-POBJECT LoadObject( HANDLE hFile )
+
+POBJECT LoadObject( CTEXTSTR filename )
 {
-   DWORD dwUsed;
+	_32 dwUsed;
+   FILE *file;
 //   PLANE p;
    VECTOR vn, vo;
    PFACET pp;
 
    DWORD c;
    DWORD dwRead;
-   POBJECT po;
-   po = CreateObject();
-   ReadFile( hFile, &po->T, sizeof( po->T ), &dwRead, NULL );
-   ReadFile( hFile, &dwUsed, sizeof( dwUsed ), &dwRead, NULL );
-   for( c = 0; c < dwUsed; c++ )
-   {
-      ReadFile( hFile, vn, sizeof( VECTOR ), &dwRead, NULL );
-      ReadFile( hFile, vo, sizeof( VECTOR ), &dwRead, NULL );
-      pp = AddPlaneToSet( po->pPlaneSet, vo, vn, 0 );
-      ReadFile( hFile, &pp->color, sizeof( CDATA ), &dwRead, NULL );
-   }
-   IntersectPlanes( &po->LinePool, &po->pPlaneSet, TRUE );
-   return po;
+	POBJECT po;
+	file = sack_fopen( 0, filename, "rb" );
+	if( file )
+	{
+		po = CreateObject();
+		fread( &po->T, sizeof( po->T ), 1, file );
+		fread( &dwUsed, sizeof( dwUsed ), 1, file );
+		for( c = 0; c < dwUsed; c++ )
+		{
+			fread( vn, sizeof( VECTOR ), 1, file );
+			fread( vo, sizeof( VECTOR ), 1,file );
+			pp = AddPlaneToSet( po->pPlaneSet, vo, vn, 0 );
+			fread( &pp->color, sizeof( CDATA ), 1, file );
+		}
+		IntersectPlanes( &po->LinePool, &po->pPlaneSet, TRUE );
+		return po;
+	}
+   return NULL;
 }
-*/
+
 //---------------------------------------------------------
 
 // vo is object's origin
@@ -456,7 +460,7 @@ POBJECT LoadObject( HANDLE hFile )
 // i'd imagine that texture mappers will fail.
 POBJECT CreatePlane( PCVECTOR vo, PCVECTOR vn, PCVECTOR vr, RCOORD size, CDATA c ) // not a real plane....
 {
-   POBJECT po;
+	POBJECT po;
    PFACET pf;
    PMYLINESEG pl;
    VECTOR o, n;
@@ -493,7 +497,7 @@ POBJECT CreatePlane( PCVECTOR vo, PCVECTOR vn, PCVECTOR vr, RCOORD size, CDATA c
    Invert( o );
    pl = CreateLine( po->objinfo,
                o, n, -1.0f, 1.0f );
-   AddLineToPlane( po->objinfo, pf, pl );
+	AddLineToPlane( po->objinfo, pf, pl );
 
    return po;
 }
