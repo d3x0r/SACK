@@ -492,6 +492,27 @@ PRIORITY_PRELOAD( InitProcreg, NAMESPACE_PRELOAD_PRIORITY )
 
 //---------------------------------------------------------------------------
 
+int GetClassPath( TEXTSTR out, size_t len, PTREEDEF root )
+{
+	int ofs = 0;
+	PLINKSTACK pls = CreateLinkStack();
+	PTREEDEF current;
+	PNAME name;
+	for( current = root; current->self && current; current = current->self->parent )
+	{
+		PushLink( &pls, current->self );
+	}
+	while( name = (PNAME)PopLink( &pls ) )
+	{
+		//pcr->
+		ofs += snprintf( out + ofs, len - ofs, "/%s", name->name );
+	}
+	DeleteLinkStack( &pls );
+	return ofs;
+}
+
+//---------------------------------------------------------------------------
+
 static PTREEDEF AddClassTree( PTREEDEF class_root, TEXTCHAR *name, PTREEROOT root, int bAlias )
 {
 	if( root && class_root )
@@ -503,7 +524,9 @@ static PTREEDEF AddClassTree( PTREEDEF class_root, TEXTCHAR *name, PTREEROOT roo
 
 		classname->tree.Magic = MAGIC_TREE_NUMBER;
 		classname->tree.Tree = root;
+		classname->tree.self = classname;
 		classname->flags.bTree = TRUE;
+		classname->parent = class_root;
 		//lprintf( WIDE("Adding class tree thing %s to %s"), name, classname->name );
 		if( !AddBinaryNode( class_root->Tree, classname, (PTRSZVAL)classname->name ) )
 		{
@@ -615,6 +638,7 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 														 , start
 														 , alias->Tree
 														 , TRUE );
+						class_root->self = alias->self;
 					}
 					else
 					{
@@ -649,6 +673,7 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 							lprintf( WIDE( "Hell it's not even a tree!" ) );
 						new_root->flags.bAlias = 1;
 						new_root->tree.Tree = alias->Tree;
+						new_root->tree.self = alias->self;
 					}
 					class_root = &new_root->tree;
 				}
@@ -839,10 +864,12 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 				{
 					Log( WIDE("For some reason could not add new name to tree!") );
 					DeleteFromSet( NAME, &l.NameSet, newname );
+					return FALSE;
 				}
 			}
 			{
 				//PTREEDEF root = GetClassRoot( newname );
+				newname->parent = class_root;
 				newname->tree.Magic = MAGIC_TREE_NUMBER;
 				newname->tree.Tree = CreateBinaryTreeExx( 0 // dups okay BT_OPT_NODUPLICATES
 																	 , (int(CPROC *)(PTRSZVAL,PTRSZVAL))MyStrCmp
@@ -1273,6 +1300,7 @@ PROCREG_PROC( int, RegisterValueExx )( PCLASSROOT root, CTEXTSTR name_class, CTE
 			if( name )
 				newname->name = SaveName( name );
 			newname->flags.bValue = 1;
+			newname->parent = class_root;
 			if( bIntVal )
 			{
 				newname->flags.bIntVal = 1;
@@ -1451,6 +1479,7 @@ PROCREG_PROC( PTRSZVAL, RegisterDataTypeEx )( PCLASSROOT root
 		pName->data.data.instances.Tree = CreateBinaryTreeExx( 0 // dups okay BT_OPT_NODUPLICATES
 														, (int(CPROC *)(PTRSZVAL,PTRSZVAL))MyStrCmp
 														, KillName );
+		pName->parent = class_root;
 		if( !AddNode( class_root, pName, (PTRSZVAL)pName->name ) )
 		{
 			DeleteFromSet( NAME, &l.NameSet, pName );
@@ -1770,74 +1799,17 @@ static TEXTSTR SubstituteNameVars( CTEXTSTR name )
 
 static PTRSZVAL CPROC HandleModulePath( PTRSZVAL psv, arg_list args )
 {
-
 	PARAM( args, TEXTSTR, filepath );
+	filepath = ExpandPath( filepath );
 	if( l.flags.bFindEndif || l.flags.bFindElse )
 		return psv;
 
-#ifdef _WIN32
 	{
-		TEXTSTR e1, e2;
-#ifndef UNDER_CE
-		// no environment
-		TEXTSTR oldpath, newpath;
-#endif
-		e1 = strrchr( filepath, '\\' );
-		e2 = strrchr( filepath, '/' );
-		if( e1 && e2 && ( e1 > e2 ) )
-			e1[0] = 0;
-		else if( e1 && e2 )
-         e2[0] = 0;
-		else if( e1 )
-         e1[0] = 0;
-		else if( e2 )
-         e2[0] = 0;
-
 # ifndef UNDER_CE
-		oldpath = (TEXTCHAR*)getenv( WIDE("PATH") );
-		if( !StrStr( oldpath, filepath ) )
-		{
-			int len;
-			newpath = (TEXTCHAR*)Allocate( len=(_32)(StrLen( oldpath ) + 1 + StrLen(filepath)) );
-			snprintf( newpath, sizeof(TEXTCHAR)*len, WIDE("%s;%s"), filepath, oldpath );
-#   ifndef UNDER_CE
-#     ifdef WIN32
-			SetEnvironmentVariable( WIDE("PATH"), newpath );
-#     else
-			setenv( WIDE("PATH"), newpath );
-#     endif
-#   endif
-			lprintf( WIDE("Updated path to %s from %s"), newpath, oldpath );
-			Release( newpath );
-		}
+		OSALOT_AppendEnvironmentVariable( WIDE("PATH"), filepath );
 # endif
 	}
-#elif defined( __LINUX__ )
-	{
-      TEXTCHAR *e1, *e2, *oldpath, *newpath;
-		e1 = strrchr( filepath, '\\' );
-		e2 = strrchr( filepath, '/' );
-		if( e1 && e2 && ( e1 > e2 ) )
-         e1[0] = 0;
-		else if( e1 && e2 )
-         e2[0] = 0;
-		else if( e1 )
-         e1[0] = 0;
-		else if( e2 )
-         e2[0] = 0;
-
-		oldpath = getenv( WIDE("LD_LIBRARY_PATH") );
-		if( !strstr( oldpath, filepath ) )
-		{
-			newpath = (TEXTCHAR*)Allocate( StrLen( oldpath ) + 1 + StrLen(filepath) );
-			sprintf( newpath, WIDE("%s;%s"), filepath, oldpath );
-			setenv( WIDE("LD_LIBRARY_PATH"), newpath, 1 );
-			lprintf( WIDE("Updated library path to %s from %s"), newpath, oldpath );
-			Release( newpath );
-		}
-	}
-
-#endif
+	Release( filepath );
 	return psv;
 }
 
@@ -2013,7 +1985,7 @@ void ReadConfiguration( void )
 #elif defined( __LINUX__ )
 		AddConfigurationMethod( pch, WIDE("linux module path %w"), HandleModulePath );
 #endif
-		AddConfigurationMethod( pch, WIDE("module path %m"), HandleModulePath );
+		AddConfigurationMethod( pch, WIDE("modulepath %m"), HandleModulePath );
 
 		{
 			CTEXTSTR filepath
@@ -2372,6 +2344,7 @@ public ref class ProcReg
 				}
 				else
 				{
+					newname->parent = class_root;
 					if( !AddBinaryNode( class_root->Tree, newname, (PTRSZVAL)newname->name ) )
 					{
 						Log( WIDE("For some reason could not add new name to tree!") );
