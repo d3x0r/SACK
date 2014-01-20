@@ -371,12 +371,14 @@ static void OnDraw3d( WIDE("Virtuality") )( PTRSZVAL psvUnusedOne )
 			*/
 
 			{
-	   			PFACET pf;
-	   			RAY rf;
-	   			pf = GetEditFacet();
-					if( pf )
-                  ApplyR( g.EditInfo.pEditObject->Ti, rf, &pf->d );
+				PFACET pf;
+				RAY rf;
+				pf = GetEditFacet();
+				if( pf )
+				{
+					ApplyR( g.EditInfo.pEditObject->Ti, &rf, &pf->d );
 					DrawLine( rf.o, rf.n, 0, 10, 0x3f5f9f );
+				}
 			}
 			
 		}
