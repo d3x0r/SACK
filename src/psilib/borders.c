@@ -687,6 +687,7 @@ void CPROC DrawThinDentInverted( PCOMMON pc )
 }
 
 //---------------------------------------------------------------------------
+void UpdateSurface( PCOMMON pc );
 
 void CPROC SetDrawBorder( PCOMMON pc )
 {
