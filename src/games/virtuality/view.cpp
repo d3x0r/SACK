@@ -374,8 +374,9 @@ static void OnDraw3d( WIDE("Virtuality") )( PTRSZVAL psvUnusedOne )
 	   			PFACET pf;
 	   			RAY rf;
 	   			pf = GetEditFacet();
-				if( pf )
-					DrawLine( pf->d.o, pf->d.n, 0, 10, 0x3f5f9f );
+					if( pf )
+                  ApplyR( g.EditInfo.pEditObject->Ti, rf, &pf->d );
+					DrawLine( rf.o, rf.n, 0, 10, 0x3f5f9f );
 			}
 			
 		}
@@ -408,18 +409,6 @@ static void OnDraw3d( WIDE("Virtuality") )( PTRSZVAL psvUnusedOne )
 
 }
 
-
-
-
-
-
-
-void CPROC CloseView( PTRSZVAL dwView )
-{
-   VIEW *V;
-   V = (VIEW*)dwView;
-   V->hVideo = (PRENDERER)NULL; // release from window side....
-}
 
 
 static PTRSZVAL OnInit3d( WIDE("Virtuality") )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
@@ -698,18 +687,10 @@ void ShowObjectChildren( POBJECT po )
 		{
 			INDEX idx;
 			PFACET facet;
-			//TRANSFORM T_tmp;
 			PLIST list = pCurObj->objinfo->facets;
-			//ClearTransform( &T_tmp );
-			//ApplyInverseT( T_camera, &T_tmp, po->Ti );
-			//ApplyTranslationT( T_camera, &T_tmp, po->Ti );
-			//ApplyRotationT( T_camera, &T_tmp, po->Ti );
-			//PrintVector( GetOrigin( &T_tmp ) );
-			//lprintf( WIDE("Render object %p"), pCurObj );
 			LIST_FORALL( list, idx, PFACET, facet )
 			{
 				//lprintf( WIDE("Render facet %d(%p)"), idx, facet );
-				//DebugBreak();
 #ifndef __cplusplus
 #ifdef MSC_VER
 				__try 
@@ -743,7 +724,6 @@ void ShowObjectChildren( POBJECT po )
 
 void ShowObjects( )
 {
-	MATRIX m;
 	POBJECT po;
 #ifndef __cplusplus
 #ifdef MSC_VER
@@ -751,31 +731,6 @@ void ShowObjects( )
 	{
 #endif
 #endif
-		/*
-		if( pv->csUpdate )
-		{
-			lprintf( WIDE("Grab update section..") );
-			EnterCriticalSec( pv->csUpdate );
-			lprintf( WIDE("got it.") );
-		}
-		*/
-		if(0)
-		{
-			float lightDiffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};    //red diffuse <==> object has a red color everywhere
-			float lightAmbient[] = {1.0f, 1.0f, 1.0f, 1.0f};    //yellow ambient <==> yellow color where light hit directly the object's surface
-			float lightPosition[]= {0.0f, 0.0f, -7.0f, 1.0f};
-			
-				//Ambient light component
-				glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
-			//Diffuse light component
-			glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
-				//Light position
-				glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
-			
-				//Enable the first light and the lighting mode
-    glEnable(GL_LIGHT0);
-    glEnable(GL_LIGHTING);
-}
    po = (POBJECT)pFirstObject; // some object..........
    while( po && ( po->pIn || po->pOn ) ) // go to TOP of tree...
    {
@@ -796,9 +751,5 @@ void ShowObjects( )
 					}
 #endif
 #endif
-	//WriteToWindow( pv->hVideo, 0, 0, 0, 0 );
-	//lprintf( WIDE("...") );
-	//if( pv->csUpdate )
-	//	LeaveCriticalSec( pv->csUpdate );
 }
 
