@@ -1,25 +1,25 @@
-<control border="4400" caption="Configure Generic Button" edit="1" position="0,0" size="895,534" type="Frame">
-<control IDName="milk/ListBox/LST_BUTTON_STYLE" border="81" caption="" position="12,15" size="276,112" type="ListBox"></control>
-<control IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" border="1" caption="Okay" position="331,397" size="73,21" type="Button"></control>
-<control IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" border="1" caption="Cancel" position="244,399" size="73,21" type="Button"></control>
-<control IDName="milk/Color Well/CLR_TEXT_COLOR" border="81" caption="" position="15,146" size="32,32" type="Color Well"></control>
-<control IDName="milk/Color Well/CLR_BACKGROUND" border="81" caption="" position="54,146" size="32,32" type="Color Well"></control>
-<control IDName="milk/Color Well/CLR_RING_BACKGROUND" border="81" caption="" position="93,146" size="32,32" type="Color Well"></control>
-<control IDName="milk/ListBox/LST_PAGES" border="81" caption="" position="10,227" size="145,116" type="ListBox"></control>
-<control IDName="milk/EditControl/TXT_CONTROL_TEXT" border="81" caption="Banner Me" position="102,189" size="256,21" type="EditControl"></control>
-<control IDName="milk/Button/BTN_PICKFONT" PrivateData="#ff356059" border="1" caption="Font" position="14,190" size="73,21" type="Button"></control>
-<control IDName="milk/visibility/ListBox/LIST_SYSTEMS" border="81" caption="" position="511,112" size="297,73" type="ListBox"></control>
-<control IDName="milk/visibility/ListBox/LIST_ALLOW_SHOW" border="81" caption="" position="510,353" size="175,73" type="ListBox"></control>
-<control IDName="milk/visibility/ListBox/LIST_DISALLOW_SHOW" border="81" caption="" position="518,226" size="167,84" type="ListBox"></control>
-<control IDName="milk/visibility/EditControl/EDIT_SYSTEM_NAME" border="81" caption="" position="488,45" size="172,21" type="EditControl"></control>
-<control IDName="milk/visibility/Button/BTN_ADD_SYSTEM" PrivateData="#ff356059" border="1" caption="Add New System Name" position="670,19" size="177,51" type="Button"></control>
-<control IDName="milk/visibility/Button/BTN_ADD_SYSTEM_TO_ALLOW" PrivateData="#ff356059" border="1" caption="Add Allow" position="696,356" size="119,34" type="Button"></control>
-<control IDName="milk/visibility/Button/BTN_ADD_SYSTEM_TO_DISALLOW" PrivateData="#ff356059" border="1" caption="Add Disallow" position="702,225" size="113,37" type="Button"></control>
-<control border="3" caption="Will not show on these systems" position="483,194" size="318,27" type="TextControl"></control>
-<control border="3" caption="Will Show only on these systems" position="504,322" size="320,25" type="TextControl"></control>
-<control border="3" caption="These are systems you can choose to add" position="487,82" size="322,21" type="TextControl"></control>
-<control border="3" caption="Enter new system name...." position="460,16" size="209,21" type="TextControl"></control>
-<control IDName="milk/visibility/Button/BTN_REMOVE_SYSTEM_FROM_DISALLOW" PrivateData="#ff356059" border="1" caption="Remove Disallow" position="698,271" size="126,33" type="Button"></control>
-<control IDName="milk/visibility/Button/BTN_REMOVE_SYSTEM_FROM_ALLOW" PrivateData="#ff356059" border="1" caption="Remove Allow" position="696,394" size="123,37" type="Button"></control>
-<control IDName="milk/Button General/security/ListBox/LISTBOX_SECURITY_MODULE" border="81" caption="" position="191,227" size="179,73" type="ListBox"></control>
-<control IDName="milk/Button General/security/Button/EDIT_SECURITY" PrivateData="#ff356059" border="1" caption="Edit Security" position="193,315" size="141,21" type="Button"></control></control>
+<control caption="Configure Generic Button" edit="1" position="0,0" size="895,534" type="Frame">
+<control IDName="milk/ListBox/LST_BUTTON_STYLE" caption="" position="12,15" size="276,112" type="ListBox"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="331,397" size="73,21" type="Button"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="244,399" size="73,21" type="Button"></control>
+<control IDName="milk/Color Well/CLR_TEXT_COLOR" caption="" position="15,146" size="32,32" type="Combo Box"></control>
+<control IDName="milk/Color Well/CLR_BACKGROUND" caption="" position="54,146" size="32,32" type="Combo Box"></control>
+<control IDName="milk/Color Well/CLR_RING_BACKGROUND" caption="" position="93,146" size="32,32" type="Combo Box"></control>
+<control IDName="milk/ListBox/LST_PAGES" caption="" position="10,227" size="145,116" type="ListBox"></control>
+<control IDName="milk/EditControl/TXT_CONTROL_TEXT" caption="Banner Me" position="102,189" size="256,21" type="EditControl"></control>
+<control IDName="milk/Button/BTN_PICKFONT" PrivateData="#ff354c59" caption="Font" position="14,190" size="73,21" type="Button"></control>
+<control IDName="milk/visibility/ListBox/LIST_SYSTEMS" caption="" position="511,112" size="297,73" type="ListBox"></control>
+<control IDName="milk/visibility/ListBox/LIST_ALLOW_SHOW" caption="" position="510,353" size="175,73" type="ListBox"></control>
+<control IDName="milk/visibility/ListBox/LIST_DISALLOW_SHOW" caption="" position="518,226" size="167,84" type="ListBox"></control>
+<control IDName="milk/visibility/EditControl/EDIT_SYSTEM_NAME" caption="" position="488,45" size="172,21" type="EditControl"></control>
+<control IDName="milk/visibility/Button/BTN_ADD_SYSTEM" PrivateData="#ff354c59" caption="Add New System Name" position="670,19" size="177,51" type="Button"></control>
+<control IDName="milk/visibility/Button/BTN_ADD_SYSTEM_TO_ALLOW" PrivateData="#ff354c59" caption="Add Allow" position="696,356" size="119,34" type="Button"></control>
+<control IDName="milk/visibility/Button/BTN_ADD_SYSTEM_TO_DISALLOW" PrivateData="#ff354c59" caption="Add Disallow" position="702,225" size="113,37" type="Button"></control>
+<control caption="Will not show on these systems" position="483,194" size="318,27" type="TextControl"></control>
+<control caption="Will Show only on these systems" position="504,322" size="320,25" type="TextControl"></control>
+<control caption="These are systems you can choose to add" position="487,82" size="322,21" type="TextControl"></control>
+<control caption="Enter new system name...." position="460,16" size="209,21" type="TextControl"></control>
+<control IDName="milk/visibility/Button/BTN_REMOVE_SYSTEM_FROM_DISALLOW" PrivateData="#ff354c59" caption="Remove Disallow" position="698,271" size="126,33" type="Button"></control>
+<control IDName="milk/visibility/Button/BTN_REMOVE_SYSTEM_FROM_ALLOW" PrivateData="#ff354c59" caption="Remove Allow" position="696,394" size="123,37" type="Button"></control>
+<control IDName="milk/Button General/security/ListBox/LISTBOX_SECURITY_MODULE" caption="" position="191,227" size="179,73" type="ListBox"></control>
+<control IDName="milk/Button General/security/Button/EDIT_SECURITY" PrivateData="#ff354c59" caption="Edit Security" position="193,315" size="141,21" type="Button"></control></control>
