@@ -815,6 +815,7 @@ PSI_PROC( void, SetCommonBorderEx )( PCOMMON pc, _32 BorderType DBG_PASS )
 {
 	//_xlprintf((LOG_NOISE+2) DBG_RELAY)( WIDE("Setting border for %s to %08x(%08x,%08x) %08x %08x"), pc->pTypeName, pc, pc->parent, pc->device, pc->BorderType, BorderType );
 	pc->BorderType = BorderType;
+	pc->flags.bSetBorderType = 1;
 	UpdateSurface( pc );
 	SetDrawBorder( pc );
 }

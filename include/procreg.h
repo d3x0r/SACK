@@ -208,6 +208,10 @@ PROCREG_PROC( PCLASSROOT, GetClassRoot )( PCLASSROOT class_name );
 PROCREG_PROC( PCLASSROOT, GetClassRootEx )( PCLASSROOT root, PCLASSROOT name_class );
 #endif
 
+/* Fills a string with the path name to the specified node */
+PROCREG_PROC( int, GetClassPath )( TEXTSTR out, size_t len, PCLASSROOT root );
+
+
 PROCREG_PROC( void, SetInterfaceConfigFile )( TEXTCHAR *filename );
 
 

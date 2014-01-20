@@ -9,23 +9,28 @@
 struct page_delay
 {
 	CTEXTSTR page_name;
-   _32 delay;
+	_32 delay;
 };
-
+enum {
+	CHECKBOX_ENABLE = 2000
+};
 static struct page_cycle_local {
 	struct {
 		BIT_FIELD bDisableChange : 1;
+		BIT_FIELD resources_registered : 1;
+		BIT_FIELD allow_cycle : 1;
 	} flags;
-   int nPage;
+	int nPage;
 	PLIST delays;
-   _32 timer;
-   _32 delay;
+	_32 timer;
+	_32 delay;
 } l;
 
 static void CPROC change( PTRSZVAL psv )
 {
-   if( !l.flags.bDisableChange )
-		ShellSetCurrentPage( WIDE("next") );
+	if( l.flags.allow_cycle )
+		if( !l.flags.bDisableChange )
+			ShellSetCurrentPage( WIDE("next") );
 }
 
 OnFinishInit( WIDE("Page Cycler") )( void )
@@ -83,17 +88,54 @@ OnChangePage( WIDE("Page Cycler") )( void )
    return 1;
 }
 
+OnGlobalPropertyEdit( WIDE( "Page Cycle" ) )( PSI_CONTROL parent )
+{
+	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE( "PageCycle.isFrame" ) );
+	if( l.flags.resources_registered )
+	{
+      l.flags.resources_registered = 1;
+		EasyRegisterResource( WIDE("InterShell/Page Cycle"), CHECKBOX_ENABLE          , RADIO_BUTTON_NAME );
+	}
+
+	if( frame )
+	{
+		int okay = 0;
+		int done = 0;
+		SetCommonButtons( frame, &done, &okay );
+      SetCheckState( GetControl( frame, CHECKBOX_ENABLE ), l.flags.allow_cycle );
+		//lprintf( WIDE( "show frame over parent." ) );
+		DisplayFrameOver( frame, parent );
+		//lprintf( WIDE( "Begin waiting..." ) );
+		CommonWait( frame );
+		if( okay )
+		{
+         l.flags.allow_cycle = GetCheckState( GetControl( frame, CHECKBOX_ENABLE ) );
+			//UpdateFromControls( frame );
+		}
+		//ClearControls();
+		DestroyFrame( &frame );
+	}
+}
+
+
 OnSaveCommon( WIDE("Page Cycler") )( FILE *file )
 {
 	INDEX idx;
 	struct page_delay *delay;
+	fprintf( file, WIDE( "Page Cycling is enabled=%s\n" ), l.flags.allow_cycle?"yes":"no" );
 	LIST_FORALL( l.delays, idx, struct page_delay *, delay )
 	{
-      if( delay->page_name )
+		if( delay->page_name )
 			fprintf( file, WIDE("page delay for '%s'=%d\n"), delay->page_name, delay->delay );
 	}
 }
 
+static PTRSZVAL CPROC LoadAllowCycle( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, LOGICAL, enable );
+	l.flags.allow_cycle = enable;
+	return psv;
+}
 static PTRSZVAL CPROC LoadDelay( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
@@ -103,18 +145,18 @@ static PTRSZVAL CPROC LoadDelay( PTRSZVAL psv, arg_list args )
 	LIST_FORALL( l.delays, idx, struct page_delay *, delay )
 	{
 		if( StrCaseCmp( name, delay->page_name ) == 0 )
-         break;
+			break;
 	}
 	if( delay )
 	{
-      delay->delay = (_32)delay_time;
+		delay->delay = (_32)delay_time;
 	}
 	else
 	{
 		delay = New( struct page_delay );
 		delay->page_name = StrDup( name );
 		delay->delay = (_32)delay_time;
-      AddLink( &l.delays, delay );
+		AddLink( &l.delays, delay );
 	}
    return psv;
 }
@@ -122,8 +164,8 @@ static PTRSZVAL CPROC LoadDelay( PTRSZVAL psv, arg_list args )
 OnLoadCommon( WIDE("Page Cycler") )( PCONFIG_HANDLER pch )
 {
 	l.delay = SACK_GetPrivateProfileInt( WIDE("Page Cycler"), WIDE("default delay between pages"), 15000, WIDE("page_changer.ini") );
-
-   AddConfigurationMethod( pch, WIDE("page delay for '%m'=%i"), LoadDelay );
+	AddConfigurationMethod( pch, WIDE( "Page Cycling is enabled=%b" ), LoadAllowCycle );
+	AddConfigurationMethod( pch, WIDE("page delay for '%m'=%i"), LoadDelay );
 }
 
 #if ( __WATCOMC__ < 1291 )

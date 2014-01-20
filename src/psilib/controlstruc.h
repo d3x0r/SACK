@@ -386,6 +386,8 @@ typedef struct common_control_frame
 		BIT_FIELD bCleanedRecently : 1;
 		// this is set by BeginUpdate and EndUpdate to prevent hiding/disable update during update
 		BIT_FIELD bDirectUpdating : 1;
+		// this is set when BorderType is not the same as the inital border type
+		BIT_FIELD bSetBorderType : 1;
 	} flags;
 
 
