@@ -1,0 +1,70 @@
+
+/dest pingtimer
+/make pingtimer clock
+/pingtimer/decl pongtime
+
+/dest sendpingtimer
+/make sendpingtimer clock
+/sendpingtimer/decl pongtime
+
+/alias crea sendping send ping
+/echo setting sendpingtimer
+/sendpingtimer/mark
+/endmac
+/alias opt sendping pass
+
+/alias crea sendprayping pray ping
+.pray sechon ping
+/echo setting sendpingtimer
+/sendpingtimer/mark
+/endmac
+#/alias opt sendping pass
+
+/decl sendelapse
+
+/trigger crea pingping &who tells you, \"ping\" 
+/compare %who is Mogur
+/if success
+echo stoping pingtimer
+/pingtimer/mark
+/endif
+.send pong
+/endmac
+/trigger opt pingping anchor
+
+/trigger crea pingstart you tell &who \"ping\"
+/pingtimer/mark
+/sendpingtimer/stop
+/endmac
+/trigger opt pingstart anchor
+
+/trigger crea praypingstart You offer this prayer: \"ping\"
+/pingtimer/mark
+/sendpingtimer/stop
+/endmac
+/trigger opt praypingstart anchor
+
+/trigger crea pongping &who tells you, \"pong\"
+/decl pongtime
+/pingtimer/elapse
+/pingtimer/getresult pongtime
+/pingtimer/tell %%room /echo result in %%pongtime
+/pingtimer/tell %%room .send result in %%pongtime
+/sendpingtimer/elapse
+/sendpingtimer/getresult pongtime
+/sendpingtimer/tell %%room ooc my result in %%pongtime 
+/endmac
+/trigger opt pongping anchor
+
+
+/alias crea ping ping
+.:flicks his halo making it go Pinnggggg.
+/pingtimer/mark
+/endmac
+
+/trigger create myping flicks his halo making it go Pinnggggg.
+/pingtimer/elapse
+/pingtimer/getresult pongtime
+/pingtimer/tell %%room /echo result in %%pongtime
+/pingtimer/tell %%room .ooc result in %%pongtime
+/endmac

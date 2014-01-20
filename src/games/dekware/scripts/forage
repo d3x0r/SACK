@@ -1,0 +1,162 @@
+
+/decl atwander forage
+/decl numdirs 0
+/decl dirs 
+
+/decl badthings vibrant wilted swirly speckly bumpy grainy smooth wrinkled 
+/decl goodthings small tiny medium big huge healthy amber azure blue translucent yellowish 
+/decl balthings some a an 
+/decl foodthings strawberries blackberries pumpkin fruit leaf nuts seed blackberry flower strip of bark
+
+/trigger create foragegood This seems like a good place to forage.
+/decl dirs look
+/decl numdirs 1
+/endmac
+/trigger create foragegreat This seems like a great place to forage.
+/decl dirs look
+/decl numdirs 1
+/endmac
+
+/trigger crea foragfind you manage to find *thing
+/decl atwander forage
+/wander
+/endmac
+
+/trigger crea foragfail you didn't manage to find anything edible
+/decl atwander forage
+/wander
+/endmac
+
+/trigger crea forastart you stop foraging.
+.fora
+/endmac
+
+/trigger crea foragfindex you manage to find *thing
+/decl found %thing
+/decl list
+/decl word
+/decl test
+/label top
+/head %found %word
+/if success
+    /decl list %badthings
+	 /testlist %word %list
+	 /getresult test 
+	 /compare %test is true 
+	 /if success
+	 	  /setcolor white red
+	     /echo %word is bad!
+ 	 /else
+	    /decl list %goodthings
+		 /testlist %word %list
+		 /getresult test 
+		 /compare %test is true 
+		 /if success
+	 		  /setcolor green black
+		     /echo %word is bad!
+		 /else
+		    /decl list %balthings
+			 /testlist %word %list
+			 /getresult test 
+			 /compare %test is true 
+			 /if fail
+			    /decl list %foodthings
+				 /testlist %word %list
+				 /getresult test
+				 /compare %test is true
+				 /if success
+			 		  /setcolor white red
+				     /echo %word is food!
+				     /goto top
+				 /endif
+	 		    /setcolor white red
+		       /echo %word is unknown!
+			 /endif
+		 /endif
+	 /endif
+/goto top
+/endif
+/setcolor grey black
+/decl atwander forage
+/wander
+/endmac
+/trigger opt foragfindex dis
+
+
+/mac wander
+/decl temp
+/decl localdirs .%dirs
+/decl go
+/decl roll 1d%numdirs
+/collapse %roll
+/roll %roll
+/getresult temp
+/label top
+ /head %localdirs %go 1
+ /decrement %temp
+ /compare %temp morethan 0
+ /if success
+  /goto top
+ /endif
+/head %localdirs %go 1
+/echo auto moving %go
+/echo
+.%go
+/endmac
+
+#/trigger create nogo alas, you cannot go that way
+#/wander
+#/endmac
+
+/mac expanddirs
+/decl temp 10
+/decl final
+/decl finalcount 0
+/label top
+/decl addon %dirs
+/push %final %addon
+/increment %finalcount %numdirs
+/decrement %temp
+/compare %temp morethan 0
+/if success
+/goto top
+/endif
+/decl dirs %final
+/decl numdirs %finalcount
+/endmac
+
+
+/trigger create went Exits: *where
+/decl word
+/decl dirletter
+/decl temp %where
+/decl possible 
+/burst %temp possible
+/decl dirs
+/decl numdirs 0
+/label top
+/head %possible %word
+/if success
+/head %word %dirletter 1
+/push %dirs %dirletter
+/increment %numdirs
+/goto top
+/endif
+/expanddirs
+/compare %atwander blank
+/if fail
+	.%atwander
+	/decl atwander
+/endif
+/endmac
+
+
+/trigger create indark it is very dark in here...
+/compare %atwander blank
+/if fail
+	.%atwander
+	/decl atwander
+/endif
+/endmac
+
+

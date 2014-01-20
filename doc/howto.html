@@ -1,0 +1,67 @@
+
+
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<center><font size=+3><u>My First Program?</u></font></center>
+
+<p>I have to assume that some of several things are true...
+<menu><li>You have a C or C++ compiler.
+<menu><li><a href="http://msdn2.microsoft.com/en-us/visualc/default.aspx">Visual Studio</a>
+<li><a href="http://www.openwatcom.org">Open Watcom</a>
+<li><a href="http://gcc.gnu.org">GCC</a>
+</menu>
+<li><a href="http://sourceforge.net/projects/nasm">NASM</a>, may be needed to compile some assembly portions.
+<li><a href="http://www.gnu.org/software/make/">GNU Make</a>, if not visual studio
+<p>All makefiles are raw GNU make, and require several features specific to this version, others such as wmake or nmake will not work.  BSD make is also a slightly different flavor requiring manual editing to build.
+<p>Makefile make system also uses several binutil type commands, cp, rm, ls, mkdir... these are not easily found. [consider providing a link here to useful native windows ports of fore mentioned tools]
+<li><a href="http://farmanager.com/">Some sort of more useful shell than CMD.EXE (or COMMAND.COM with doskey enabled)<a>
+<li><a href="http://fte.sf.net">A text editor for editing source files.</a>
+<li><a href="environment.html">Environment variables</a>, these should be set on the development system, since under windows, there is no well defined place for things like includes and libraries...
+</menu>
+
+<p>Actively development is being done under Linux with GCC 4.1.1, Windows with OpenWatcom 1.5, and Visual Studio 7.0, 7.1 and 8.0 (may find problems with project files from time to time :) ).
+
+<p>Okay, so now you have some stuff setup, all the above tools (unless Visual Studio is your choice) should be available in your PATH (the directories searched for programs to run by the name entered...)
+<hr>
+<p><font size=+2><center>With Makefiles... (vs projects later)</center></font>
+<p>Create a makefile named Makefile
+<menu>
+Makefile
+<hr>
+<menu>
+<pre><code>
+PROGNAME=my_program_name
+SRCS=my_program_source
+
+include $(SACK_BASE)/makefiles/makefile.single
+</pre></code>
+</menu>
+<hr>
+</menu>
+<p>Create the source file
+<menu>
+my_program_source.c
+<hr>
+<menu>
+<pre><code>
+#include &lt;sack_types.h&gt;
+
+int main( int args, char **argv )
+{
+	SimpleMessageBox( NULL, "Yeah, Hello", "Message Title" );
+	return 1;
+}
+
+</pre></code>
+</menu>
+<hr>
+</menu>
+
+<p>run make.
+
+<p>Okay then where did the program go? how do I get there?
+
+
+
+

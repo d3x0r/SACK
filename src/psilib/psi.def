@@ -1,0 +1,56 @@
+EXPORTS
+   SetControlInterface
+   AlignBaseToWindows
+   CommonLoop
+   TrackPopup
+
+
+   CreatePopup
+   GetPopupData
+   AppendPopupItem
+   CheckPopupItem
+   DeletePopupItem
+   DestroyPopup
+   TrackPopup
+
+; controls.c exports!
+   GetNearControl
+   GetControlTextEx
+   GetCheckState
+   EnableControl
+   SetCheckState
+   SetControlText
+   SetControlFocus
+   IsControlEnabled
+   PressButton
+   GetControlID
+   CreateFrame
+   SizeCommon
+   MoveCommon
+   MakeButton
+   MakeTextControl
+   MakeEditControl
+   MakeCheckButton
+   MakeImageButton
+   MakeCustomDrawnButton
+   GetControl
+   DisplayFrame
+   DestroyFrame
+   GetControlSurface
+   UpdateControl
+   MakeSlider
+   SetSliderValues
+   CreateControl
+   SetCommonDraw
+   SetCommonMouse
+   SetCommonKey
+   DrawBorder
+   MakeListBox
+   GetItemData
+   SetItemData
+   AddListItem
+
+   AddCommonButtons
+
+   PickColor
+

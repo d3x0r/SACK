@@ -1,0 +1,52 @@
+<HTML><HEAD><TITLE>System and vocabulary independant types</TITLE></HEAD>
+
+<BODY>
+<CENTER><FONT size=+2>SACK Homepage</FONT></CENTER><br>
+<hr>
+<p>SACK has been under development for some 5 or 6 years.  It's an interesting beast, but not unlike many other
+products of similar form and function.  Recent developments have extended reach to C++, wherein namespacing was
+introduced to make things somewhat more easy to reference within a sufficiently advanced environment.
+
+<p>Recently I've been doing some silly things, such as there is now an image rendering
+module which renders to a webpage.  Any sack application therefore can be embedded as an 
+image object within a webpage.  The area is bounded by an anchor to provide button event information
+to the application.
+
+<p>Going to have to spend some more time on this webpage... since I've probably only ever spent about 20 hours 
+tops on all this documentation...
+
+<p>Should probably get more to the useful points instead of just being a broad discussion of what this is,
+and what its parts do.  <a href="howto.html">Go here for the quick start</a>
+
+<hr>
+<a href="syslog.html">Program Logging</a><menu>A set of routines which allows
+a rather robust set of options for simple program logigng.</menu>
+
+<a href="memlib.html">Shared Memory</a><menu>A memory allocation library.  Supports
+allocation/release tracking, bounds checking, memory integrity.  Easy opening of shared memory.</menu>
+
+<a href="containers.html">Containers</a><menu>Some might be tempted to call this a 
+Standard Template Library for C</menu>
+
+<a href="image.html">Image</a><menu>A library for manipulation of images, simple drawing, 
+blotting, fonts, 32 bit ARGB format ONLY.  Certain configurations are actually wrapped and perform
+clipping to other images...</menu>
+
+
+<a href="render.html">Image Display/Rendering</a><menu>A set of routines to handle
+the display of images on a physical display.  Also handles input such as keyboard/mouse which is
+naturally associated with a display.</menu>
+
+<a href="psi.html">Control/Interface Library</a><menu>
+A basic gui/widget library which provdes basic windows and controls.</menu>
+
+<a href="msgsvr.html">Message Services Client/Server Library</a><menu>
+Applications may register services by name, and provice a message handling method, which
+services may then connect to.  Message interaction is typically transaction based form client to server
+( client sends a request and the server responds ), and event based from the server to the client ( the server
+sends events to the client, which do not require, and may not have, a responce from the client ).</menu>
+
+<p>more to come...
+
+
+</BODY></HTML>

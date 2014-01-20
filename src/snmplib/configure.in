@@ -1,0 +1,172 @@
+dnl
+dnl Generic Autoconf configure input script
+dnl
+dnl $Id: configure.in,v 1.1.1.1 2001/11/15 01:29:36 panther Exp $
+dnl
+
+dnl A file from the distribution
+AC_INIT(snmp.h)
+
+dnl
+dnl Checks for programs.
+dnl
+
+dnl --- mkdirhier?
+dnl
+AC_PATH_PROG(MKDIRHIER,mkdirhier)
+if test "z${MKDIRHIER}" = "z"; then
+AC_PATH_PROG(mkdir_path,mkdir)
+MKDIRHIER="${mkdir_path} -p"
+fi
+AC_MSG_RESULT([using ${MKDIRHIER}])
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_PROG_RANLIB
+AC_PATH_PROG(PERL,perl5)
+if test "z${PERL}" = "z"; then
+AC_PATH_PROG(PERL,perl)
+fi
+if test "z${PERL}" = "z"; then
+AC_MSG_WARN([Unable to locate perl.  Manpages will not be generated.])
+PERL=echo
+fi
+AC_SUBST(PERL)
+
+dnl
+dnl Checks for header files.
+dnl
+AC_HEADER_STDC
+AC_CHECK_HEADERS(sys/time.h)
+
+dnl
+dnl Checks for typedefs, structures, and compiler characteristics.
+dnl
+AC_HEADER_TIME
+AC_CHECK_HEADERS(unistd.h bstring.h sys/time.h strings.h stdlib.h malloc.h sys/sockio.h sys/select.h)
+
+dnl
+dnl Checks for library functions.
+dnl
+AC_CHECK_FUNCS(gettimeofday select socket srand strdup)
+
+dnl --------------------------------------------------------------------
+
+dnl
+dnl Irix ABI checking, stolen from Rob Earhart <earhat+@cmu.edu>
+dnl
+
+mips_abi=32
+AC_ARG_WITH(mips_abi,
+[  --with-mips-abi=abi     ABI to use for IRIX (32, n32, or 64)],[
+mips_abi="$withval"
+])
+
+ABILIBDIR=
+case "${mips_abi}" in
+        32) abi='-32'; ABILIBDIR=''     ;;
+       o32) abi='-32'; ABILIBDIR=''     ;;
+       n32) abi='-n32'; ABILIBDIR='32'  ;;
+        64) abi='-64'; ABILIBDIR='64'   ;;
+         *) AC_ERROR("Invalid ABI specified") ;;
+esac
+
+case `uname` in
+IRIX)
+	AC_MSG_RESULT([IRIX:  Compiling ${abi}])
+        CFLAGS="${abi} ${CFLAGS}"
+	LDFLAGS="${abi} ${LDFLAGS}"
+	;;
+*)
+	;;
+esac
+
+dnl --------------------------------------------------------------------
+
+PARSER_OBJS="mib.o parse.o new-parse.o"
+
+ENCODE_OBJS="asn1.o coexistance.o snmp_msg.o snmp_pdu.o snmp_vars.o"
+
+CLIENT_OBJS="snmp_client.o snmp_api.o mini-client.o"
+
+LIBOBJS="mibii.o snmp_error.o snmp_extra.o snmp_dump.o ${ENCODE_OBJS} \
+		snmp_api_error.o ${CLIENT_OBJS} \
+		${PARSER_OBJS} version.o snmp_api_util.o"
+
+dnl --------------------------------------------------------------------
+
+dnl Shared library foo.  Uses native compilers and GNU libtool.
+
+AM_PROG_LIBTOOL
+
+dnl The AM_PROG_LIBTOOL  macro sets enable_shared to what the user
+dnl says.  By default, an empty variable is interpreted as "yes", so
+dnl we check for the user's override. 
+
+dnl The three targets "LTLIBOBJS", "LTTARGET", and "LTINSTALL" are
+dnl filled in with valid values if the user wants a shared library.
+dnl If the user says "No shared libraries, please", these variables
+dnl are empty.
+
+# Since default is yes, check for no.
+if test "${enable_shared}" = "no"; then
+
+  LTLIBOBJS=""
+  LTTARGET=""
+  LTINSTALL=""
+else
+
+  dnl Then, create objects
+  LTLIBOBJS=`echo "$LIBOBJS" | sed 's/\.o/.lo/g'`
+
+  dnl Finally, create new targets
+  LTTARGET="libsnmp.la"
+  LTINSTALL="install_shared"
+
+fi
+
+if test "${enable_static}" = "no"; then
+  LIBTARGET=""
+  LIBINSTALL=""
+else
+  LIBTARGET="libsnmp.a"
+  LIBINSTALL="install_static"
+fi
+
+# Shared
+AC_SUBST(LTLIBOBJS)
+AC_SUBST(LTTARGET)
+AC_SUBST(LTINSTALL)
+# Static
+AC_SUBST(LIBOBJS)
+AC_SUBST(LIBTARGET)
+AC_SUBST(LIBINSTALL)
+
+dnl --------------------------------------------------------------------
+
+dnl Help with export substitutions
+
+# V1.12
+VER=`cat VERSION | sed -e 's/d.*$$//'`
+# 1.12
+VERSION=`echo ${VER} | sed -e 's/V//'`
+# 12
+RELEASE=`echo ${VERSION} | sed -e 's/^1\.//'`
+# cmu-snmp-V1.12.tar.gz
+DIST="cmu-snmp-${VER}.tar.gz"
+
+AC_SUBST(VER)
+AC_SUBST(VERSION)
+AC_SUBST(RELEASE)
+AC_SUBST(DIST)
+
+
+dnl --------------------------------------------------------------------
+
+dnl
+dnl Write output
+dnl
+AC_SUBST(INCS)
+AC_SUBST(LIBS)
+AC_SUBST(ABILIBDIR)
+AC_CONFIG_HEADER(config.h)
+AC_OUTPUT(Makefile cmu-snmp-spec)

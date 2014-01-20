@@ -1,0 +1,18 @@
+/mac connect1 where
+   /decl word
+   /label top
+      /wait
+      /getword %word
+      /if success
+         /echo word: %word
+         /decl word
+      /else
+         /compare connected
+         /if fail
+            /goto done
+         /endif
+      /endif
+   /goto top
+/label done
+/echo done?! how?!
+/endmac

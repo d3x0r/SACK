@@ -1,0 +1,66 @@
+
+/scr folkill.trig
+
+/trigger create followbeck &who beckons you 
+. say I'd be glad to follow you, %who.
+. fol %who
+/endmac
+/trigger opt follow anchor
+
+/trigger create group &who starts following you
+. group %who
+/endmac
+
+#restring autowake for lightfoot.
+/trigger create autowake You have been idle, and are pulled into a void.
+:stares up into the heavens.
+/endmac
+
+/mac repo
+. :reports: I have %curhit/%maxhit hp, %curmove/%maxmove move.
+/endmac
+
+/trigger create lookat &who looks at you
+/compare %who like horse
+/if fail
+. say hey, %who, like what you see?
+/endif
+/endmac
+/trigger opt lookat anchor disable
+
+/trigger destroy stealocoins
+/trigger create stealocoins &who tried to steal gold from &target
+. say hey, %who, don't steal %target's money!
+/folkill %who
+/endmac
+
+/trigger destroy stealcoins
+/trigger create stealcoins You discover that &who has his hands in your wallet
+. say hey, %who, don't steal my money!
+/folkill %who
+/endmac
+
+/trigger destroy steal
+/trigger create steal &who tried to steal something from &target
+. say hey, %who, don't steal! You're dead now...
+/compare %target is you
+/if fail
+	. say I'll get them for you, %target!
+/endif
+/folkill %who
+/endmac
+
+/trigger destroy smile
+/trigger create smile &who smiles at you
+/echo insert catchy thing here...
+/endmac
+
+/trigger dest bashdoor
+/trigger create bashdoor it seems to be locked
+.say the %lastdoor seems to be stuck, maybe if I....
+.doorbash %lastdoor
+/endmac
+
+/trigger dest died
+/trigger crea died is dead! R.I.P.
+/endmac

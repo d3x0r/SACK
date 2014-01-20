@@ -1,0 +1,31 @@
+/mac next
+   /decl file
+	/label again
+	/getword %file
+	/if fail
+   	/echo no more files to process....
+		/endparse
+	/else
+      /compare %file eol
+      /if success
+          /goto again
+      /endif
+      /compare %file like %filelist
+      /if success
+       	/goto again
+		/endif
+		/echo Processing %file.
+		/tell %tellwho /pfile %file
+	/endif
+/endmac
+
+/mac dodir
+	/echo directory source from %filelist
+	/parse file %filelist
+   /if success 
+	/next 
+   /else
+   /echo couldn't open the file....
+   /endif
+/endmac
+

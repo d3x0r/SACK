@@ -1,0 +1,8 @@
+/trigger create routemsg *user!*addr PRIVMSG \#\#&chan : *msg
+/decl junkit
+/decl luser %user
+/head %luser %junkit 1
+/decl msgout %msg
+/tail %msgout %junkit
+/tell %chan /echo %luser : %msgout
+/endmac

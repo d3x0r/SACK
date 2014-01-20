@@ -1,0 +1,15 @@
+/mac go
+/open tcp 192.168.1.62
+/open binary in out log
+/open telnet
+/open ansi in
+/open debug in out log
+.panther
+.waterrat
+/delay 500
+.export TERM=ansi
+.ls
+.nano
+/endmac
+
+/go

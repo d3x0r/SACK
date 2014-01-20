@@ -1,0 +1,200 @@
+/dest warning
+/mac warning ttaaii
+/decl junk
+/decl DataType
+/popchar %ttaaii
+#/echo hey - there's a warning to process!  %ttaaii
+
+/compare %ttaaii like A
+/if success
+/decl DataType "Airment"
+/endif
+/compare %ttaaii like C
+/if success
+/decl DataType "Tropical cyclone (SIGMET)"
+/endif
+/compare %ttaaii like E
+/if success
+/decl DataType "Tsunami"
+/endif
+/compare %ttaaii like F
+/if success
+/decl DataType "Tornado"
+/endif
+/compare %ttaaii like G
+/if success
+/decl DataType "Hydrological/River Flood"
+/endif
+/compare %ttaaii like H
+/if success
+/decl DataType "Marine/Coastal Flood"
+/endif
+/compare %ttaaii like O
+/if success
+/decl DataType "Other"
+/endif
+/compare %ttaaii like S
+/if success
+/decl DataType "SIGMET"
+/endif
+/compare %ttaaii like T
+/if success
+/decl DataType "Tropical cyclone (Typhoon/Hurricane)"
+/endif
+/compare %ttaaii like U
+/if success
+/decl DataType "Severe Thunderstorm"
+/endif
+/compare %ttaaii like V
+/if success
+/decl DataType "Volcanic Ash Clouds (SIGMET)"
+/endif
+/compare %ttaaii like W
+/if success
+/decl DataType "Warnings & weather summary"
+/endif
+/compare %DataType blank
+/if success
+#/echo Sorry, W%ttaaii did not decode into a proper T2...
+/return
+/endif
+
+/popchar %ttaaii
+/decode_location %ttaaii %me location
+/getresult location
+/compare %location blank
+/if success
+	#/echo location did not resolve...
+	/return
+/endif
+
+/decl word
+/decl cccc
+/decl time
+/decl line
+/decl form
+/decl zoneinfo
+/decl endtime
+/getword %cccc
+/getword %time
+/getword %word #this better be an end of line...
+/getword %form
+
+#/echo decoding %form
+
+/decode_type %form %me displaytype
+/getresult displaytype
+/compare %displaytype blank
+/if success
+	#/echo report type did not resolve...
+	/return
+/endif
+
+/label getzone
+/getline %zoneinfo
+/if fail
+	/return 
+/endif
+/compare %zoneinfo blank
+/if success
+	/goto getzone
+/endif
+
+# need to gather location area effect stuff...
+
+############################
+# begin capture message text...
+############################
+
+#/echo zoneline is  %zoneinfo
+/decl gotdash no
+/label trimzone
+/tail %zoneinfo %endtime 6
+#/echo tailed %endtime
+/compare %endtime eol
+/if success
+/goto trimzone
+/endif
+/compare %endtime is -
+/if success
+/decl gotdash yes
+/goto trimzone
+/else
+/compare %gotdash is yes
+/if fail
+	/goto getzone
+/endif
+/endif
+
+
+/label top
+	/getword %word
+	/if fail
+		/compare %line blank
+		/if fail
+         /WriteRecord %datatype %location %displaytype %time %endtime %cccc %zoneinfo %line
+		/endif
+		/return
+   /else
+      /compare %word is $$
+      /if success
+       	/WriteRecord %datatype %location %displaytype %time %endtime %cccc %zoneinfo %line
+         /decl line
+         /goto getzone
+      /endif
+	/endif
+	/push %line %word
+/goto top
+
+/endmac
+
+/mac convert_time %nwstime
+
+/endmac
+
+/mac WriteRecord datatype location displaytype time endtime cccc zone_info message
+
+/echo storing record....
+
+/convert %time
+/getresult stime
+/convert %endtime
+/getresult etime
+/decl zoneinfo %zone_info
+/decl zoneleader
+/decl zonenumber
+/decl junk
+/decl product
+
+/decl type %displaytype
+/tail %type %product
+
+/head %zoneinfo %zoneleader 3
+/label nextzone
+/head %zoneinfo %zonenumber 3
+/lalign %zonenumber
+/head %zoneinfo %junk 1  #this should be the dash between...
+
+
+/compare %zonenumber blank
+/if fail
+
+	/tell database /create record
+   /tell database /grab record
+   /tell database /drop record
+   /delay 100 #wait for database to perform it's instructions...
+   /decl in record _table warnings
+   /decl in record Zone %zoneleader%zonenumber
+   /decl in record Location %location 
+   /decl in record WarnType %type
+   /decl in record EndTime %etime
+   /decl in record BeginTime %stime
+   /decl in record CCCC %cccc
+   /decl in record WarnText %message
+   /decl in record Product %product
+
+   #/var record
+   /tell database /odbc store record
+	/goto nextzone
+/endif
+/endmac

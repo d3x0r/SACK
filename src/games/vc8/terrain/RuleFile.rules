@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VisualStudioToolFile
+	Name="Copy Resource Default"
+	Version="8.00"
+	>
+	<Rules>
+		<CustomBuildRule
+			Name="Copy A File"
+			DisplayName="Copy A File"
+			CommandLine="mkdir $(TargetDir)/$(OutSubDir)&#x0D;&#x0A;copy &quot;$(InputDir)$(InputFileName)&quot; &quot;$(TargetDir)$(OutSubDir)&quot;"
+			Outputs="$(TargetDir)/$(InputFileName)"
+			FileExtensions="*.wav;*.png;*.jpg;*.gif"
+			SupportsFileBatching="true"
+			>
+			<Properties>
+				<StringProperty
+					Name="OutSubDir"
+					DisplayName="Destination Path"
+				/>
+			</Properties>
+		</CustomBuildRule>
+	</Rules>
+</VisualStudioToolFile>
