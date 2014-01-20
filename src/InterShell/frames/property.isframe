@@ -1,8 +1,8 @@
-<control ID="-1" caption="Page Properties" position="0,0" size="452,301" type="Frame">
-<control ID="104" caption="" position="168,88" size="32,32" type="Color Well"></control>
-<control ID="113" caption="" position="209,89" size="32,32" type="Color Well"></control>
-<control ID="108" caption="" position="164,151" size="32,32" type="Color Well"></control>
-<control ID="-1" caption="Text Color" position="20,156" size="116,15" type="TextControl"></control>
-<control ID="-1" caption="Background Color" position="15,100" size="136,21" type="TextControl"></control>
-<control ID="1" PrivateData="#ff356059" caption="Ok" position="351,204" size="73,21" type="Button"></control>
-<control ID="2" PrivateData="#ff356059" caption="Cancel" position="355,235" size="73,21" type="Button"></control></control>
+<control caption="Page Properties" position="0,0" size="452,301" type="Frame">
+<control caption="" position="168,88" size="32,32" type="Combo Box"></control>
+<control caption="" position="209,89" size="32,32" type="Combo Box"></control>
+<control caption="" position="164,151" size="32,32" type="Combo Box"></control>
+<control caption="Text Color" position="20,156" size="116,15" type="TextControl"></control>
+<control caption="Background Color" position="15,100" size="136,21" type="TextControl"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Ok" position="351,204" size="73,21" type="Button"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="355,235" size="73,21" type="Button"></control></control>

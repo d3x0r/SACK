@@ -1,5 +1,5 @@
-<control border="4400" caption="PickBoardName.frame" position="0,0" size="408,238" type="Frame">
-<control IDName="application/ListBox/LST_NEWBOARD" border="81" caption="(null)" position="13,19" size="163,138" type="ListBox"></control>
-<control IDName="application/Button/BTN_CREATENAME" PrivateData="#ff356059" border="1" caption="newname" position="185,38" size="103,21" type="Button"></control>
-<control IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" border="1" caption="Okay" position="225,154" size="73,21" type="Button"></control>
-<control IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" border="1" caption="cancel" position="250,109" size="73,32" type="Button"></control></control>
+<control caption="PickBoardName.frame" position="0,0" size="408,238" type="Frame">
+<control IDName="application/ListBox/LST_NEWBOARD" caption="(null)" position="13,19" size="163,138" type="ListBox"></control>
+<control IDName="application/Button/BTN_CREATENAME" PrivateData="#ff354c59" caption="newname" position="185,38" size="103,21" type="Button"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="225,154" size="73,21" type="Button"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="cancel" position="250,109" size="73,32" type="Button"></control></control>

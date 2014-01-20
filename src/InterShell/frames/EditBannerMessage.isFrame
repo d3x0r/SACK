@@ -1,15 +1,15 @@
 <control caption="Banner Message Properties" edit="1" position="0,0" size="494,355" type="Frame">
-<control IDName="InterShell/banner/EditControl/EDIT_BANNER_TEXT" caption="Don't Click Here..." position="16,39" size="382,21" type="EditControl"></control>
+<control IDName="EditControl/InterShell/banner/EDIT_BANNER_TEXT" caption="Don't Click Here..." position="16,39" size="382,21" type="EditControl"></control>
 <control caption="Banner Text" position="14,12" size="120,21" type="TextControl"></control>
-<control IDName="InterShell/banner/CheckButton/CHECKBOX_YESNO" caption="Yes/No" position="16,103" size="118,21" type="CheckButton"></control>
-<control IDName="InterShell/banner/CheckButton/CHECKBOX_OKAYCANCEL" caption="Okay/Cancel" position="16,131" size="118,21" type="CheckButton"></control>
-<control IDName="InterShell/banner/CheckButton/CHECKBOX_TOPMOST" caption="Topmost" position="16,161" size="152,21" type="CheckButton"></control>
-<control IDName="InterShell/banner/CheckButton/CHECKBOX_NOCLICK" caption="No Click to Dismiss" position="16,191" size="188,21" type="CheckButton"></control>
-<control IDName="InterShell/banner/EditControl/EDIT_BANNER_DELAY" caption="0" position="157,287" size="73,21" type="EditControl"></control>
+<control IDName="CheckButton/InterShell/banner/CHECKBOX_YESNO" caption="Yes/No" position="16,103" size="118,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/banner/CHECKBOX_OKAYCANCEL" caption="Okay/Cancel" position="16,131" size="118,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/banner/CHECKBOX_TOPMOST" caption="Topmost" position="16,161" size="152,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/banner/CHECKBOX_NOCLICK" caption="No Click to Dismiss" position="16,191" size="188,21" type="CheckButton"></control>
+<control IDName="EditControl/InterShell/banner/EDIT_BANNER_DELAY" caption="0" position="157,287" size="73,21" type="EditControl"></control>
 <control caption="Timeout" position="38,289" size="92,21" type="TextControl"></control>
-<control IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" caption="Okay" position="292,298" size="73,21" type="Button"></control>
-<control IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" caption="Cancel" position="380,298" size="73,21" type="Button"></control>
-<control IDName="InterShell/banner/CheckButton/CHECKBOX_CONTINUE" caption="Allow continue (macro usage)" position="17,218" size="272,21" type="CheckButton"></control>
-<control IDName="InterShell/banner/EditControl/EDIT_CONTROL_TEXT" caption="" position="180,71" size="218,21" type="EditControl"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="292,298" size="73,21" type="Button"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="380,298" size="73,21" type="Button"></control>
+<control IDName="CheckButton/InterShell/banner/CHECKBOX_CONTINUE" caption="Allow continue (macro usage)" position="17,218" size="272,21" type="CheckButton"></control>
+<control IDName="EditControl/InterShell/banner/EDIT_CONTROL_TEXT" caption="" position="180,71" size="218,21" type="EditControl"></control>
 <control caption="Macro Description" position="13,73" size="156,21" type="TextControl"></control>
-<control IDName="InterShell/banner/CheckButton/CHECKBOX_EXPLORER" caption="Explorer Blocker" position="17,247" size="191,21" type="CheckButton"></control></control>
+<control IDName="CheckButton/InterShell/banner/CHECKBOX_EXPLORER" caption="Explorer Blocker" position="17,247" size="191,21" type="CheckButton"></control></control>

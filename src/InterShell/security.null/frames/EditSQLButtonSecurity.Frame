@@ -1,5 +1,5 @@
-<control border="4400" caption="EditSQLButtonSecurity.Frame" position="0,0" size="412,241" type="Frame">
-<control IDName="milk/security/SQL/ListBox/PERMISSIONS" border="81" caption="" position="12,23" size="176,145" type="ListBox"></control>
-<control IDName="milk/security/SQL/ListBox/REQUIRED_PERMISSIONS" border="81" caption="" position="210,21" size="177,150" type="ListBox"></control>
-<control IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" border="1" caption="Cancel" position="221,212" size="73,21" type="Button"></control>
-<control IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" border="1" caption="Okay" position="310,213" size="73,21" type="Button"></control></control>
+<control caption="EditSQLButtonSecurity.Frame" position="0,0" size="412,241" type="Frame">
+<control IDName="milk/security/SQL/ListBox/PERMISSIONS" caption="" position="12,23" size="176,145" type="ListBox"></control>
+<control IDName="milk/security/SQL/ListBox/REQUIRED_PERMISSIONS" caption="" position="210,21" size="177,150" type="ListBox"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="221,212" size="73,21" type="Button"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="310,213" size="73,21" type="Button"></control></control>

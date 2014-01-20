@@ -1,11 +1,11 @@
-<control ID="-1" caption="New Frame" edit="1" position="0,0" size="728,428" type="Frame">
-<control ID="1001" IDName="application/Button/BTN_NEW_TARGET" PrivateData="#ff356059" caption="New Server" position="10,210" size="105,47" type="Button"></control>
-<control ID="1004" IDName="application/ListBox/LST_TARGET_NAMES" caption="" position="9,14" size="216,186" type="ListBox"></control>
-<control ID="1000" IDName="application/ListBox/LST_GRAPH_TYPE" caption="" position="236,14" size="194,186" type="ListBox"></control>
-<control ID="2" IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" caption="Cancel" position="161,308" size="87,31" type="Button"></control>
-<control ID="1" IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" caption="Okay" position="292,309" size="87,30" type="Button"></control>
-<control ID="1005" IDName="application/ListBox/LST_LINES_ACTIVE" caption="" position="443,15" size="188,186" type="ListBox"></control>
-<control ID="1002" IDName="application/Button/BTN_ADD_LINE" PrivateData="#ff356059" caption="Add Line" position="442,217" size="111,36" type="Button"></control>
-<control ID="1006" IDName="application/Color Well/CLR_LINE_COLOR" caption="" position="225,216" size="32,32" type="Color Well"></control>
-<control ID="1003" IDName="application/Button/BTN_REMOVE_LINE" PrivateData="#ff356059" caption="Remove Line" position="440,277" size="104,34" type="Button"></control>
-<control ID="1007" IDName="application/EditControl/EDIT_GRAPH_TIMESPAN" caption="30.000" position="10,270" size="146,21" type="EditControl"></control></control>
+<control caption="New Frame" edit="1" position="0,0" size="728,428" type="Frame">
+<control IDName="application/Button/BTN_NEW_TARGET" PrivateData="#ff354c59" caption="New Server" position="10,210" size="105,47" type="Button"></control>
+<control IDName="application/ListBox/LST_TARGET_NAMES" caption="" position="9,14" size="216,186" type="ListBox"></control>
+<control IDName="application/ListBox/LST_GRAPH_TYPE" caption="" position="236,14" size="194,186" type="ListBox"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="161,308" size="87,31" type="Button"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="292,309" size="87,30" type="Button"></control>
+<control IDName="application/ListBox/LST_LINES_ACTIVE" caption="" position="443,15" size="188,186" type="ListBox"></control>
+<control IDName="application/Button/BTN_ADD_LINE" PrivateData="#ff354c59" caption="Add Line" position="442,217" size="111,36" type="Button"></control>
+<control IDName="application/Color Well/CLR_LINE_COLOR" caption="" position="225,216" size="32,32" type="Combo Box"></control>
+<control IDName="application/Button/BTN_REMOVE_LINE" PrivateData="#ff354c59" caption="Remove Line" position="440,277" size="104,34" type="Button"></control>
+<control IDName="application/EditControl/EDIT_GRAPH_TIMESPAN" caption="30.000" position="10,270" size="146,21" type="EditControl"></control></control>

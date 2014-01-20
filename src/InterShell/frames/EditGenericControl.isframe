@@ -1,23 +1,23 @@
 <control caption="Configure Generic Control" edit="1" position="0,0" size="903,543" type="Frame">
-<control IDName="InterShell/ListBox/LST_BUTTON_STYLE" caption="" position="12,15" size="276,112" type="ListBox"></control>
-<control IDName="core/Button/BTN_OKAY" PrivateData="#ff356059" caption="Okay" position="362,284" size="73,21" type="Button"></control>
-<control IDName="core/Button/BTN_CANCEL" PrivateData="#ff356059" caption="Cancel" position="364,311" size="73,21" type="Button"></control>
-<control IDName="InterShell/Color Well/CLR_TEXT_COLOR" caption="" position="15,146" size="32,32" type="Color Well"></control>
-<control IDName="InterShell/Color Well/CLR_BACKGROUND" caption="" position="54,146" size="32,32" type="Color Well"></control>
-<control IDName="InterShell/Color Well/CLR_RING_BACKGROUND" caption="" position="93,146" size="32,32" type="Color Well"></control>
-<control IDName="InterShell/ListBox/LST_PAGES" caption="" position="10,227" size="145,116" type="ListBox"></control>
-<control IDName="InterShell/EditControl/TXT_CONTROL_TEXT" caption="%&lt;system name>" position="102,189" size="256,21" type="EditControl"></control>
-<control IDName="InterShell/font/Button/BTN_PICKFONT" PrivateData="#ff356059" caption="Font" position="14,190" size="73,21" type="Button"></control>
-<control IDName="InterShell/visibility/ListBox/LIST_SYSTEMS" caption="" position="511,112" size="297,73" type="ListBox"></control>
-<control IDName="InterShell/visibility/ListBox/LIST_ALLOW_SHOW" caption="" position="510,353" size="175,73" type="ListBox"></control>
-<control IDName="InterShell/visibility/ListBox/LIST_DISALLOW_SHOW" caption="" position="518,226" size="167,84" type="ListBox"></control>
-<control IDName="InterShell/visibility/EditControl/EDIT_SYSTEM_NAME" caption="" position="488,45" size="172,21" type="EditControl"></control>
-<control IDName="InterShell/visibility/Button/BTN_ADD_SYSTEM" PrivateData="#ff356059" caption="Add New System Name" position="670,19" size="177,51" type="Button"></control>
-<control IDName="InterShell/visibility/Button/BTN_ADD_SYSTEM_TO_ALLOW" PrivateData="#ff356059" caption="Add Allow" position="696,356" size="119,34" type="Button"></control>
-<control IDName="InterShell/visibility/Button/BTN_ADD_SYSTEM_TO_DISALLOW" PrivateData="#ff356059" caption="Add Disallow" position="702,225" size="113,37" type="Button"></control>
+<control IDName="ListBox/InterShell/LST_BUTTON_STYLE" caption="" position="12,15" size="276,112" type="ListBox"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="362,284" size="73,21" type="Button"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="364,311" size="73,21" type="Button"></control>
+<control IDName="Color Well/InterShell/CLR_TEXT_COLOR" caption="" position="15,146" size="32,32" type="Combo Box"></control>
+<control IDName="Color Well/InterShell/CLR_BACKGROUND" caption="" position="54,146" size="32,32" type="Combo Box"></control>
+<control IDName="Color Well/InterShell/CLR_RING_BACKGROUND" caption="" position="93,146" size="32,32" type="Combo Box"></control>
+<control IDName="ListBox/InterShell/LST_PAGES" caption="" position="10,227" size="145,116" type="ListBox"></control>
+<control IDName="EditControl/InterShell/TXT_CONTROL_TEXT" caption="%&lt;system name>" position="102,189" size="256,21" type="EditControl"></control>
+<control IDName="Button/InterShell/font/BTN_PICKFONT" PrivateData="#ff354c59" caption="Font" position="14,190" size="73,21" type="Button"></control>
+<control IDName="ListBox/InterShell/visibility/LIST_SYSTEMS" caption="" position="511,112" size="297,73" type="ListBox"></control>
+<control IDName="ListBox/InterShell/visibility/LIST_ALLOW_SHOW" caption="" position="510,353" size="175,73" type="ListBox"></control>
+<control IDName="ListBox/InterShell/visibility/LIST_DISALLOW_SHOW" caption="" position="518,226" size="167,84" type="ListBox"></control>
+<control IDName="EditControl/InterShell/visibility/EDIT_SYSTEM_NAME" caption="" position="488,45" size="172,21" type="EditControl"></control>
+<control IDName="Button/InterShell/visibility/BTN_ADD_SYSTEM" PrivateData="#ff354c59" caption="Add New System Name" position="670,19" size="177,51" type="Button"></control>
+<control IDName="Button/InterShell/visibility/BTN_ADD_SYSTEM_TO_ALLOW" PrivateData="#ff354c59" caption="Add Allow" position="696,356" size="119,34" type="Button"></control>
+<control IDName="Button/InterShell/visibility/BTN_ADD_SYSTEM_TO_DISALLOW" PrivateData="#ff354c59" caption="Add Disallow" position="702,225" size="113,37" type="Button"></control>
 <control caption="Will not show on these systems" position="483,194" size="318,27" type="TextControl"></control>
 <control caption="Will Show only on these systems" position="504,322" size="320,25" type="TextControl"></control>
 <control caption="These are systems you can choose to add" position="487,82" size="322,21" type="TextControl"></control>
 <control caption="Enter new system name...." position="460,16" size="209,21" type="TextControl"></control>
-<control IDName="InterShell/visibility/Button/BTN_REMOVE_SYSTEM_FROM_DISALLOW" PrivateData="#ff356059" caption="Remove Disallow" position="698,271" size="126,33" type="Button"></control>
-<control IDName="InterShell/visibility/Button/BTN_REMOVE_SYSTEM_FROM_ALLOW" PrivateData="#ff356059" caption="Remove Allow" position="696,394" size="123,37" type="Button"></control></control>
+<control IDName="Button/InterShell/visibility/BTN_REMOVE_SYSTEM_FROM_DISALLOW" PrivateData="#ff354c59" caption="Remove Disallow" position="698,271" size="126,33" type="Button"></control>
+<control IDName="Button/InterShell/visibility/BTN_REMOVE_SYSTEM_FROM_ALLOW" PrivateData="#ff354c59" caption="Remove Allow" position="696,394" size="123,37" type="Button"></control></control>

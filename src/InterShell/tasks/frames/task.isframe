@@ -1,33 +1,33 @@
 <control caption="task.frame" edit="1" position="0,0" size="804,338" type="Frame">
-<control IDName="core/Button/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="467,270" size="73,21" type="Button"></control>
-<control IDName="core/Button/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="551,270" size="73,21" type="Button"></control>
-<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_EXCLUSIVE" caption="Exclusive" position="24,22" size="162,21" type="CheckButton"></control>
-<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_LAUNCH_CALLER_READY" caption="Launch When Caller Ready" position="24,43" size="241,21" type="CheckButton"></control>
-<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_RESTART" caption="Auto Restart" position="24,65" size="163,16" type="CheckButton"></control>
-<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_CAPTURE_OUTPUT" caption="Capture Output" position="24,87" size="205,21" type="CheckButton"></control>
-<control IDName="InterShell/Tasks/CheckButton/CHECKBOX_BACKGROUND" caption="Background" position="24,108" size="127,21" type="CheckButton"></control>
-<control IDName="InterShell/tasks/CheckButton/CHECKBOX_HIDE_CANVAS" caption="Force hide canvas" position="21,130" size="227,21" type="CheckButton"></control>
-<control IDName="InterShell/tasks/CheckButton/CHECKBOX_LAUNCH_AT_LEAST" caption="Launch At Least..." position="21,152" size="227,21" type="CheckButton"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="467,270" size="73,21" type="Button"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="551,270" size="73,21" type="Button"></control>
+<control IDName="CheckButton/InterShell/tasks/CHECKBOX_EXCLUSIVE" caption="Exclusive" position="24,22" size="162,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/tasks/CHECKBOX_LAUNCH_CALLER_READY" caption="Launch When Caller Ready" position="24,43" size="241,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/tasks/CHECKBOX_RESTART" caption="Auto Restart" position="24,65" size="163,16" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/tasks/CHECKBOX_CAPTURE_OUTPUT" caption="Capture Output" position="24,87" size="205,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/tasks/CHECKBOX_BACKGROUND" caption="Background" position="24,108" size="127,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/tasks/CHECKBOX_HIDE_CANVAS" caption="Force hide canvas" position="21,130" size="227,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/tasks/CHECKBOX_LAUNCH_AT_LEAST" caption="Launch At Least..." position="21,152" size="227,21" type="CheckButton"></control>
 <control caption="Task Name" position="23,174" size="116,21" type="TextControl"></control>
-<control IDName="InterShell/Tasks/EditControl/EDIT_TASK_FRIENDLY_NAME" caption="Command Shell" position="140,174" size="222,21" type="EditControl"></control>
+<control IDName="EditControl/InterShell/tasks/EDIT_TASK_FRIENDLY_NAME" caption="Command Shell" position="140,174" size="222,21" type="EditControl"></control>
 <control caption="Program" position="23,200" size="73,21" type="TextControl"></control>
-<control IDName="InterShell/Tasks/EditControl/TXT_TASK_NAME" caption="cmd.exe" position="140,200" size="221,21" type="EditControl"></control>
+<control IDName="EditControl/InterShell/tasks/TXT_TASK_NAME" caption="cmd.exe" position="140,200" size="221,21" type="EditControl"></control>
 <control caption="Working Path" position="22,226" size="107,21" type="TextControl"></control>
-<control IDName="InterShell/Tasks/EditControl/TXT_TASK_PATH" caption="." position="140,226" size="218,21" type="EditControl"></control>
+<control IDName="EditControl/InterShell/tasks/TXT_TASK_PATH" caption="." position="140,226" size="218,21" type="EditControl"></control>
 <control caption="Arguments" position="22,252" size="100,21" type="TextControl"></control>
-<control IDName="InterShell/Tasks/EditControl/TXT_TASK_ARGS" caption="" position="140,252" size="221,21" type="EditControl"></control>
+<control IDName="EditControl/InterShell/tasks/TXT_TASK_ARGS" caption="" position="140,252" size="221,21" type="EditControl"></control>
 <control caption="Input File" position="22,278" size="96,21" type="TextControl"></control>
 <control caption="(Unimplemented)" position="140,278" size="220,21" type="EditControl"></control>
 <control caption="Launch At" position="32,309" size="93,21" type="TextControl"></control>
-<control IDName="InterShell/Tasks/EditControl/EDIT_TASK_LAUNCH_X" caption="0" position="131,308" size="63,21" type="EditControl"></control>
+<control IDName="EditControl/InterShell/tasks/EDIT_TASK_LAUNCH_X" caption="0" position="131,308" size="63,21" type="EditControl"></control>
 <control caption="by" position="202,308" size="24,21" type="TextControl"></control>
-<control IDName="InterShell/Tasks/EditControl/EDIT_TASK_LAUNCH_Y" caption="0" position="229,308" size="69,21" type="EditControl"></control>
+<control IDName="EditControl/InterShell/tasks/EDIT_TASK_LAUNCH_Y" caption="0" position="229,308" size="69,21" type="EditControl"></control>
 <control caption="(Req. Exclusive)" position="305,308" size="136,21" type="TextControl"></control>
 <control caption="Run Task On These Systems..." position="383,19" size="251,21" type="TextControl"></control>
-<control IDName="InterShell/Tasks/ListBox/LISTBOX_ALLOW_RUN_ON" caption="" position="396,43" size="199,126" type="ListBox"></control>
-<control IDName="InterShell/Tasks/EditControl/EDIT_SYSTEM_NAME" caption="" position="397,181" size="193,21" type="EditControl"></control>
-<control IDName="InterShell/Tasks/Button/BTN_ADD_SYSTEM" PrivateData="#ff354c59" caption="Add System" position="405,211" size="131,21" type="Button"></control>
-<control IDName="InterShell/Tasks/Button/BTN_REMOVE_SYSTEM" PrivateData="#ff354c59" caption="Remove System" position="404,238" size="131,21" type="Button"></control>
-<control IDName="InterShell/Button General/security/ListBox/LISTBOX_SECURITY_MODULE" position="638,52" size="153,117" type="ListBox"></control>
+<control IDName="ListBox/InterShell/tasks/LISTBOX_ALLOW_RUN_ON" caption="" position="396,43" size="199,126" type="ListBox"></control>
+<control IDName="EditControl/InterShell/tasks/EDIT_SYSTEM_NAME" caption="" position="397,181" size="193,21" type="EditControl"></control>
+<control IDName="Button/InterShell/tasks/BTN_ADD_SYSTEM" PrivateData="#ff354c59" caption="Add System" position="405,211" size="131,21" type="Button"></control>
+<control IDName="Button/InterShell/tasks/BTN_REMOVE_SYSTEM" PrivateData="#ff354c59" caption="Remove System" position="404,238" size="131,21" type="Button"></control>
+<control IDName="ListBox/InterShell/Button General/security/LISTBOX_SECURITY_MODULE" position="638,52" size="153,117" type="ListBox"></control>
 <control caption="Security Modules" position="642,29" size="150,17" type="TextControl"></control>
-<control IDName="InterShell/Button General/security/Button/EDIT_SECURITY" PrivateData="#ff354c59" caption="Edit Security" position="644,182" size="137,21" type="Button"></control></control>
+<control IDName="Button/InterShell/Button General/security/EDIT_SECURITY" PrivateData="#ff354c59" caption="Edit Security" position="644,182" size="137,21" type="Button"></control></control>
