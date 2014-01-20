@@ -83,7 +83,8 @@ void XMLCALL start_tags( void *UserData
 		else if( strcmp( p[0], WIDE("border") ) == 0 )
 		{
 			border_set = TRUE;
-			border = (int)IntCreateFromText( p[1] );
+			//border = (int)IntCreateFromText( p[1] );
+			sscanf( p[1], WIDE("%") _32fx, &border );
 		}
 		else if( strcmp( p[0], WIDE("size") ) == 0 )
 		{
@@ -118,8 +119,7 @@ void XMLCALL start_tags( void *UserData
 		{
 			lprintf( WIDE("Unknown Att Pair = (%s=%s)"), p[0], p[1] );
 		}
-
-      atts += 2;
+		atts += 2;
 	}
 	if( IDName )
 	{
