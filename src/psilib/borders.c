@@ -691,6 +691,7 @@ void CPROC DrawThinDentInverted( PCOMMON pc )
 void CPROC SetDrawBorder( PCOMMON pc )
 {
 	// psv unused...
+	UpdateSurface( pc );
 	switch( pc->BorderType & BORDER_TYPE )
 	{
 	case BORDER_NONE:
@@ -814,9 +815,12 @@ void UpdateSurface( PCOMMON pc )
 PSI_PROC( void, SetCommonBorderEx )( PCOMMON pc, _32 BorderType DBG_PASS )
 {
 	//_xlprintf((LOG_NOISE+2) DBG_RELAY)( WIDE("Setting border for %s to %08x(%08x,%08x) %08x %08x"), pc->pTypeName, pc, pc->parent, pc->device, pc->BorderType, BorderType );
-	pc->BorderType = BorderType;
-	pc->flags.bSetBorderType = 1;
-	UpdateSurface( pc );
+	if( pc->BorderType != BorderType )
+	{
+		pc->BorderType = BorderType;
+		pc->flags.bSetBorderType = 1;
+	}
+	// this is also called when the surface changes....
 	SetDrawBorder( pc );
 }
 PSI_NAMESPACE_END

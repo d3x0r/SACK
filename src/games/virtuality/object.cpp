@@ -409,8 +409,8 @@ _32 SaveObject( CTEXTSTR filename, POBJECT po )
 		fwrite( &tmp, sizeof( tmp ), 1, file );
       LIST_FORALL( po->objinfo->facets, p, PFACET, pf )
 		{
-			fwrite( &pf.d, sizeof( RAY ), 1, file );
-			fwrite( &pf.color, sizeof( CDATA ), 1, file );
+			fwrite( &pf->d, sizeof( RAY ), 1, file );
+			fwrite( &pf->color, sizeof( CDATA ), 1, file );
 		}
       fclose( file );
 	}
@@ -441,10 +441,10 @@ POBJECT LoadObject( CTEXTSTR filename )
 		{
 			fread( vn, sizeof( VECTOR ), 1, file );
 			fread( vo, sizeof( VECTOR ), 1,file );
-			pp = AddPlaneToSet( po->pPlaneSet, vo, vn, 0 );
+			pp = AddPlaneToSet( po->objinfo, vo, vn, 0 );
 			fread( &pp->color, sizeof( CDATA ), 1, file );
 		}
-		IntersectPlanes( &po->LinePool, &po->pPlaneSet, TRUE );
+		IntersectPlanes( po->objinfo, NULL, TRUE );
 		return po;
 	}
    return NULL;

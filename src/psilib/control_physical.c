@@ -611,7 +611,7 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 
 		if( g.BorderImage )
 			SetCommonTransparent( pc, TRUE );
-		SetCommonBorder( pc, pc->BorderType );
+		SetDrawBorder( pc );
 
 		if( device->pActImg )
 		{
