@@ -390,9 +390,9 @@ OnGlobalPropertyEdit( WIDE( "Edit Plugins" ) )( PSI_CONTROL parent )
 		int done = 0;
 		SetCommonButtons( frame, &done, &okay );
 		InitControls( frame );
-		lprintf( WIDE( "show frame over parent." ) );
+		//lprintf( WIDE( "show frame over parent." ) );
 		DisplayFrameOver( frame, parent );
-		lprintf( WIDE( "Begin waiting..." ) );
+		//lprintf( WIDE( "Begin waiting..." ) );
 		CommonWait( frame );
 		if( okay )
 		{

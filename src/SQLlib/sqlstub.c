@@ -3666,13 +3666,24 @@ int SQLQueryEx( PODBC odbc, CTEXTSTR query, CTEXTSTR *result DBG_PASS )
 
 		// this would be hard to come by...
 		// there's a collector stil around from the open command.
-		if( !use_odbc->collection || use_odbc->collection->flags.bTemporary )
+		if( !use_odbc->collection || !use_odbc->collection->flags.bTemporary )
 		{
+			if( use_odbc->collection && use_odbc->collection->flags.bTemporary )
+			{
 #ifdef LOG_COLLECTOR_STATES
-			lprintf( WIDE( "creating collector...: %s" ), query );
+				lprintf( WIDE( "using existing collector..." ) );
 #endif
-			use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
+				use_odbc->collection->flags.bTemporary = 0;
+			}
+			else
+			{
+#ifdef LOG_COLLECTOR_STATES
+				lprintf( WIDE( "creating collector...: %s" ), query );
+#endif
+				use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
+			}
 		}
+		use_odbc->collection->flags.bTemporary = 0;
 
 		// ask the collector GetSQLResult to build our sort of data...
 		use_odbc->collection->flags.bBuildResultArray = 0;
