@@ -1651,7 +1651,7 @@ int GetNormals( PFACET pf, int *nPoints, VECTOR ppv[] )
 	return TRUE;
 }
 
-LOGICAL ComputeRayIntersectObject( POBJECT po, PRAY ray, PFACET *face, PVECTOR vmin )
+LOGICAL ComputeRayIntersectObject( POBJECT po, PRAY ray, PFACET *face, PVECTOR point_result, RCOORD *t_intersect )
 {
 	LOGICAL success = FALSE;
 	PFACET pf;
@@ -1659,51 +1659,51 @@ LOGICAL ComputeRayIntersectObject( POBJECT po, PRAY ray, PFACET *face, PVECTOR v
 	POBJECTINFO oi = po->objinfo;
 	INDEX idx;
 	RAY ray_test;
+	RAY ray_test2;
 
 	ApplyInverseR( po->Ti, &ray_test, ray );
-	//lprintf( WIDE("...") );
-	//pfps = oi->FacetSetPool.pFacetSets + nfs;
-	// clear all lines used by this facetset 
+
 	LIST_FORALL( oi->facets, idx, PFACET, pf )
 	{
 		RCOORD t;
-		//PrintVector( ray->o );
-		//PrintVector( ray->n );
 		if( IntersectLineWithPlane( ray_test.n, ray_test.o, pf->d.n, pf->d.o, &t ) && t > 0 )
 		{
-			VECTOR p;
+			VECTOR p, p2;
 			if( PointToPlaneT( pf->d.n, pf->d.o, ray_test.o ) > 0 )
 			{
 				addscaled( p, ray_test.o, ray_test.n, t );
-				//lprintf( "ray is %g", t );
+				addscaled( p2, ray->o, ray->n, t );
 				//PrintVector( p );
 				if( PointWithin( p, po->objinfo->ppLinePool, &pf->pLineSet ) )
 				{
 					if( face )
 					{
+						VECTOR vdel;
 						if( !(*face) )
 						{
-							SetPoint( vmin, p );
+							// this is the first face found, so use this one.
+							SetPoint( point_result, p2 );
 							(*face) = pf;
+							(*t_intersect) = t;
 						}
-						else if( Length( p ) < Length( vmin ) )
+						else if( t < (*t_intersect) )
 						{
-							SetPoint( vmin, p );
+							// this is closer than the old one, so use the new one
+							SetPoint( point_result, p2 );
 							(*face) = pf;
+							(*t_intersect) = t;
 						}
 						else
 						{
-							lprintf( "Already had something closer" );
+							// already have a closer plane....
 							return FALSE;
 						}
 					}
-					PrintVector( p );
-					lprintf( "Success. %p   %p", po, pf );
 					return TRUE;
 				}
 			}
-			else
-				lprintf( "Behind plane..." );
+			//else
+			//	lprintf( "Behind plane..." );
 		}
 	}
 	return success;

@@ -191,7 +191,7 @@ static LOGICAL OnKey3d( WIDE("Virtuality") )( PTRSZVAL psvView, _32 key )
 	return used;
 }
 
-POBJECT TestMouseObject( POBJECT po, PRAY mouse, PFACET *face, PVECTOR vmin )
+POBJECT TestMouseObject( POBJECT po, PRAY mouse, PFACET *face, PVECTOR vmin, RCOORD *t )
 {
 	LOGICAL status;
 	POBJECT sub;
@@ -200,17 +200,17 @@ POBJECT TestMouseObject( POBJECT po, PRAY mouse, PFACET *face, PVECTOR vmin )
 	{
 		if( po->pHolds )
 		{
-			sub = TestMouseObject( po->pHolds, mouse, face, vmin );
+			sub = TestMouseObject( po->pHolds, mouse, face, vmin, t );
 			if( sub )
 				result = sub;
 		}
 		if( po->pHas )
 		{
-			sub = TestMouseObject( po->pHas, mouse, face, vmin );
+			sub = TestMouseObject( po->pHas, mouse, face, vmin, t );
 			if( sub )
 				result = sub;
 		}
-		status = ComputeRayIntersectObject( po, mouse, face, vmin );
+		status = ComputeRayIntersectObject( po, mouse, face, vmin, t );
 		if( status )
 		{
 			result = po;
@@ -240,9 +240,8 @@ static LOGICAL OnMouse3d( WIDE("Virtuality") )( PTRSZVAL psvView, PRAY mouse, _3
 	if( g.EditInfo.bEditing )
 	{
 		PFACET new_facet = NULL;
-		VECTOR vmin;
 		POBJECT new_object;
-		new_object = TestMouseObject( g.pFirstRootObject, mouse, &new_facet, vmin );
+		new_object = TestMouseObject( g.pFirstRootObject, mouse, &new_facet, g.EditInfo.vmin, &g.EditInfo.t_facet );
 		if( new_object )
 		{
 			g.EditInfo.pEditObject = new_object;
@@ -358,17 +357,19 @@ static void OnDraw3d( WIDE("Virtuality") )( PTRSZVAL psvUnusedOne )
 
 		if( g.EditInfo.bEditing )
 		{
+			TranslateV( GetImageTransformation( g.EditInfo.pEditObject->hud_icon ), g.EditInfo.vmin );
+			Render3dImage( g.EditInfo.pEditObject->hud_icon, FALSE );
 			TEXTCHAR buf[256];
-		  	snprintf( buf, 256, WIDE("Editing: O: %08x FS:%d F:%d")
-      					, g.EditInfo.pEditObject
-      					, g.EditInfo.nFacetSet
-      					, g.EditInfo.nFacet );
-			/*
-			PutString( GetDisplayImage( v->hVideo )
-						, 4, GetDisplayImage( v->hVideo )->height - 11
-						, Color( 255,255,255 ), Color(0,0,0)
-						, buf );
-			*/
+			snprintf( buf, 256, WIDE("Editing: O: %08x FS:%d F:%d")
+			        , g.EditInfo.pEditObject
+			        , g.EditInfo.nFacetSet
+			        , g.EditInfo.nFacet );
+			
+			//PutString( GetDisplayImage( v->hVideo )
+		///				, 4, GetDisplayImage( v->hVideo )->height - 11
+			//			, Color( 255,255,255 ), Color(0,0,0)
+				//		, buf );
+			
 
 			{
 				PFACET pf;

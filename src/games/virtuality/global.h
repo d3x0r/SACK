@@ -31,6 +31,8 @@ typedef struct {
 	int nFacet;
 	int Invert;
 	PTRANSFORM TEdit;
+	VECTOR vmin;
+	RCOORD t_facet; // time along mouse-ray of intersection (closeness test)
 } EDIT_INFO, *PEDIT_INFO;
 
 
