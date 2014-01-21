@@ -1,3 +1,8 @@
+#define USE_RENDER3D_INTERFACE g.pr3i
+#define USE_IMAGE_3D_INTERFACE g.pi3i
+#define USE_IMAGE_INTERFACE g.pii
+
+
 #include <stdhdrs.h>
 #include <sharemem.h>
 
@@ -47,18 +52,18 @@ POBJECT CreateObject( void )
 #ifdef USE_DATA_STORE
 		iCluster         = DataStore_RegisterNamedDataType( WIDE("Object Cluster"), sizeof( CLUSTER ) );
 		iClusterObjects  = DataStore_CreateDataSet( iCluster, OBJECT, objects );
-      iClusterFacets   = DataStore_CreateDataSet( iCluster, FACET, FacetPool );
+		iClusterFacets   = DataStore_CreateDataSet( iCluster, FACET, FacetPool );
 		iClusterLines    = DataStore_CreateDataSet( iCluster, LINE, LinePool );
 		iClusterLineSegs = DataStore_CreateDataSet( iCluster, LINESEGP, LineSegPPool );
 
 		iObject    = DataStore_RegisterNamedDataType( WIDE("Object (Shell)"), sizeof( OBJECT ) );
-      iObjectT   = DataStore_CreateLink( iObject, offsetof( OBJECT, T ), iTransform );
+		iObjectT   = DataStore_CreateLink( iObject, offsetof( OBJECT, T ), iTransform );
 		iObjectTi  = DataStore_CreateLink( iObject, offsetof( OBJECT, Ti ), iTransform );
 
-      iObjectIn     = DataStore_CreateLink( iObject, offsetof( OBJECT, pIn ), iObject );
-      iObjectHolds  = DataStore_CreateLink( iObject, offsetof( OBJECT, pHolds ), iObject );
-      iObjectOn     = DataStore_CreateLink( iObject, offsetof( OBJECT, pOn ), iObject );
-      iObjectHas    = DataStore_CreateLink( iObject, offsetof( OBJECT, pHas ), iObject );
+		iObjectIn     = DataStore_CreateLink( iObject, offsetof( OBJECT, pIn ), iObject );
+		iObjectHolds  = DataStore_CreateLink( iObject, offsetof( OBJECT, pHolds ), iObject );
+		iObjectOn     = DataStore_CreateLink( iObject, offsetof( OBJECT, pOn ), iObject );
+		iObjectHas    = DataStore_CreateLink( iObject, offsetof( OBJECT, pHas ), iObject );
 
 		iObjectInfo        = DataStore_RegisterNamedDataType( WIDE("Object Shape Info"), sizeof( OBJECT_INFO ) );
 		iObjectInfoCluster = DataStore_CreateLink( iObjectInfo, offsetof( OBJECT_INFO, cluster ), iCluster );
@@ -77,10 +82,13 @@ POBJECT CreateObject( void )
 #ifdef USE_DATA_STORE
 	po = CreateDataType( iObject );
 #else
-   po = (POBJECT)Allocate( sizeof( OBJECT ) );
+	po = (POBJECT)Allocate( sizeof( OBJECT ) );
 	memset( po, 0, sizeof( OBJECT ) );
 #endif
 	MarkTick( ticks[tick++] );
+	po->hud_icon = MakeImageFile( 8, 8 );
+	SetImageTransformRelation( po->hud_icon, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
+	ClearImageTo( po->hud_icon, BASE_COLOR_RED );
 
 #ifdef USE_DATA_STORE
 	DataStore_SetLink( iObject, po, iObjectT, iTransform, CreateDataType( iTransform ) );
