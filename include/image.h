@@ -1447,7 +1447,10 @@ IMAGE_PROC  void IMAGE_API SetImageTransformRelation( Image pImage, enum image_t
  Parameters
  render_pixel_scaled : when drawing, reverse compute from the angle of the view, and the depth of the thing to scale orthagonal, but at depth.  (help 3d vision)
  */
-IMAGE_PROC  void IMAGE_API Render3dImage( Image pImage, LOGICAL render_pixel_scaled );
+IMAGE_PROC  void IMAGE_API Render3dImage( Image pImage, VECTOR o, LOGICAL render_pixel_scaled );
+
+IMAGE_PROC  void IMAGE_API Render3dText( CTEXTSTR string, int characters, CDATA color, SFTFont font, PCVECTOR o, LOGICAL render_pixel_scaled );
+
 /* These flags are used in SetImageRotation and RotateImageAbout
    functions - these are part of the 3D driver interface
    extension. They allow for controlling how the rotation is
@@ -1868,8 +1871,9 @@ IMAGE_PROC_PTR( int, ReloadShadedTexture )( Image child_image, int option, CDATA
 IMAGE_PROC_PTR( int, ReloadMultiShadedTexture )( Image child_image, int option, CDATA red, CDATA green, CDATA blue );
 
 IMAGE_PROC_PTR( void, SetImageTransformRelation )( Image pImage, enum image_translation_relation relation, PRCOORD aux );
-IMAGE_PROC_PTR( void, Render3dImage )( Image pImage, LOGICAL render_pixel_scaled );
+IMAGE_PROC_PTR( void, Render3dImage )( Image pImage, PCVECTOR o, LOGICAL render_pixel_scaled );
 IMAGE_PROC_PTR( void, DumpFontFile )( CTEXTSTR name, SFTFont font_to_dump );
+IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA color, SFTFont font, VECTOR o, LOGICAL render_pixel_scaled );
 
 } IMAGE_INTERFACE, *PIMAGE_INTERFACE;
 
@@ -1997,6 +2001,7 @@ IMAGE_PROC_PTR( void, DumpFontFile )( CTEXTSTR name, SFTFont font_to_dump );
 #define GetImageTransformation              PROC_ALIAS(GetImageTransformation)
 #define SetImageTransformRelation      PROC_ALIAS( SetImageTransformRelation )
 #define Render3dImage                  PROC_ALIAS( Render3dImage )
+#define Render3dText                   PROC_ALIAS( Render3dText )
 #define DumpFontFile                   PROC_ALIAS( DumpFontFile )
 //#define global_font_data         (*PROC_ALIAS(global_font_data))
 #endif
