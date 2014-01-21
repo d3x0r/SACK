@@ -1059,6 +1059,20 @@ void Render3dImage( Image pifSrc, LOGICAL render_pixel_scaled )
 	}
 }
 
+{
+	static struct ImageFile_tag output;
+	if( !output->transform )
+	{
+		output->transform = CreateTransform();
+		output.flags = IF_FLAG_FINAL_RENDER;
+
+      output.real_width = 1000;
+		output.real_height = 1000;
+
+	}
+
+}
+
 
 IMAGE_NAMESPACE_END
 
