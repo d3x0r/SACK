@@ -967,7 +967,7 @@ struct workspace
 };
 
 // this is a point-sprite engine too....
-void Render3dImage( Image pifSrc, LOGICAL render_pixel_scaled )
+void Render3dImage( Image pifSrc, VECTOR o, LOGICAL render_pixel_scaled )
 {
 	struct workspace _tmp;
 	struct workspace *tmp = &_tmp;
@@ -1043,6 +1043,15 @@ void Render3dImage( Image pifSrc, LOGICAL render_pixel_scaled )
 			tmp->vi = 1-tmp->vi;
 		}
 
+		if( o )
+		{
+			// offset by the origin passed
+			add( tmp->v[tmp->vi][0], tmp->v[tmp->vi][0], o );
+			add( tmp->v[tmp->vi][1], tmp->v[tmp->vi][1], o );
+			add( tmp->v[tmp->vi][2], tmp->v[tmp->vi][2], o );
+			add( tmp->v[tmp->vi][3], tmp->v[tmp->vi][3], o );
+		}
+
 		tmp->v_image[0][0] = tmp->x_size;
 		tmp->v_image[0][1] = tmp->y_size;
 		tmp->v_image[1][0] = tmp->x_size2;
@@ -1059,19 +1068,24 @@ void Render3dImage( Image pifSrc, LOGICAL render_pixel_scaled )
 	}
 }
 
+void Render3dText( CTEXTSTR string, int characters, CDATA color, SFTFont font, PCVECTOR o, LOGICAL render_pixel_scaled )
 {
 	static struct ImageFile_tag output;
-	if( !output->transform )
+	if( !output.transform )
 	{
-		output->transform = CreateTransform();
+		output.transform = CreateTransform();
 		output.flags = IF_FLAG_FINAL_RENDER;
-
-      output.real_width = 1000;
-		output.real_height = 1000;
-
 	}
 
+	// closed loop to get the top imgae size.
+	//lprintf( WIDE( "use regular texture %p (%d,%d)" ), pifSrc, pifSrc->width, pifSrc->height );
+	GetStringSizeFontEx( string, characters, &output.real_width, &output.real_height, font );
+	SetImageTransformRelation( &output, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
+	ApplyRotationT( l.camera, output.transform, VectorConst_I );
+   TranslateV( output.transform, o );
+	PutStringFontEx( &output, 0, 0, color, 0, string, characters, font );
 }
+
 
 
 IMAGE_NAMESPACE_END
