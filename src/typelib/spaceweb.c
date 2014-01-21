@@ -6,6 +6,9 @@
 #include <vectlib.h>
 #include <image.h>
 
+#include <GL/gl.h>
+#include <render3d.h>
+
 #define DEBUG_MIGRATE 1
 #define CS_PROTECT_NODES
 // should be able to parallel search on a significantly large
@@ -1708,12 +1711,191 @@ static int OnMouseCommon( WIDE("Web Tester") )( PSI_CONTROL pc, S_32 x, S_32 y, 
 
 struct drawdata {
 	Image surface;
+   Image icon;
 	PLIST path;
 	PLIST pathway;
 	PSPACEWEB_NODE prior;
 	int step;
 	int paint;
 };
+
+static void DrawLine( PCVECTOR a, PCVECTOR b, CDATA c )
+{
+	glBegin( GL_LINES );
+	glColor4ubv( (unsigned char *)&c );
+	glVertex3fv( a );
+	glVertex3fv( b );
+	glEnd();
+}
+
+
+static PTRSZVAL something3d( void* thisnode, PTRSZVAL psv )
+{
+	PSPACEWEB_NODE node = (PSPACEWEB_NODE)thisnode;
+	struct drawdata *data = (struct drawdata*)psv;
+	CDATA c, c2;
+	if( !node->flags.bLinked )
+		return 0;
+
+	{
+		TEXTCHAR tmp[32];
+		INDEX idx;
+		PSPACEWEB_NODE zz;
+		int c = 0;
+      int len;
+		LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, zz ) c++;
+
+		len = snprintf( tmp, sizeof( tmp ), WIDE("%d[%d]"), node->paint, NodeIndex( node ) );
+		Render3dText( tmp, len, 0xFFFFFFFF, NULL, node->point, TRUE );
+	}
+
+   ClearImageTo( data->icon, BASE_COLOR_GREEN );
+   Render3dImage( data->icon, node->point, FALSE );
+
+	c = ColorAverage( BASE_COLOR_RED, BASE_COLOR_YELLOW, data->step, 32 );
+	c2 = ColorAverage( BASE_COLOR_GREEN, BASE_COLOR_MAGENTA, data->step, 32 );
+	data->step++;
+	if( data->step > 32 )
+		data->step = 0;
+
+	{
+		static int had_lines = 0;
+		int lines = 0;
+		INDEX idx;
+		PSPACEWEB_NODE dest;
+		PSPACEWEB_LINK link;
+		LIST_FORALL( node->links, idx, PSPACEWEB_LINK, link )
+		{
+			lines++;
+			if( link->data->paint == data->paint )
+				continue;
+			link->data->paint = data->paint;
+			dest = link->node;
+			//lprintf( WIDE("a near node! %d -> %d  v:%d"), NodeIndex( node ), NodeIndex( link->node ), link->data->valence );
+#if ( DEBUG_ALL )
+			lprintf( WIDE("a near node! %d %d %d %d")
+					 ,(int)node->point[vRight], (int)node->point[vForward]
+					 , (int)dest->point[vRight], (int)dest->point[ vUp ] );
+#endif
+         DrawLine( node->point, dest->point, c );
+
+			// draw the perpendicular lines at caps ( 2d perp only)
+			{
+				VECTOR m;
+				RCOORD tmp;
+				VECTOR p1, p2;
+				// get the slop...
+				sub( m, node->point, dest->point );
+				// inverse it (sorta)
+				m[vRight] = -m[vRight];
+				// and swap x/y
+				tmp = m[vForward];
+				m[vForward] = m[vRight];
+				m[vRight] = tmp;
+				addscaled( p1, node->point, m, 0.125 );
+				addscaled( p2, node->point, m, -0.125 );
+				DrawLine( p1, p2, c2 );
+				addscaled( p1, dest->point, m, 0.125 );
+				addscaled( p2, dest->point, m, -0.125 );
+            DrawLine( p1, p2, c2 );
+  		}
+
+			// perpendicular line at these points?
+
+		}
+		{
+			INDEX idx2;
+			PSPACEWEB_NODE is_path;
+			LIST_FORALL( data->path, idx2, PSPACEWEB_NODE, is_path )
+			{
+            RCOORD tmp;
+				VECTOR p1, p2;
+				SetPoint( p1, is_path->point );
+#define AAA 8
+				p1[vRight] -= AAA;
+				p1[vForward] -= AAA;
+				SetPoint( p2, p1 );
+				p2[vRight] += AAA;
+				p2[vForward] += AAA;
+				DrawLine( p1, p2, BASE_COLOR_WHITE );
+            // reverse slope, perpendicular
+				tmp = p1[vForward];
+				p1[vForward] = p2[vRight];
+            p2[vRight] = tmp;
+            DrawLine( p1, p2, BASE_COLOR_WHITE );
+			}
+		}
+		{
+			INDEX idx2;
+			PSPACEWEB_NODE is_path;
+			LIST_FORALL( data->pathway, idx2, PSPACEWEB_NODE, is_path )
+			{
+            RCOORD tmp;
+				VECTOR p1, p2;
+				SetPoint( p1, is_path->point );
+				p1[vRight] -= 3;
+				p1[vForward] -= 4;
+				SetPoint( p2, p1 );
+				p2[vRight] += 3;
+				p2[vForward] += 4;
+				lprintf( WIDE("path %d,%d"), is_path->point[vRight], is_path->point[vForward] );
+            DrawLine( p1, p2, BASE_COLOR_LIGHTCYAN );
+				tmp = p1[vForward];
+				p1[vForward] = p2[vRight];
+            p2[vRight] = tmp;
+            DrawLine( p1, p2, BASE_COLOR_LIGHTCYAN );
+			}
+		}
+		if( !lines )
+		{
+			//lprintf( WIDE("a point has no lines from it!") );
+			if( had_lines )
+				DebugBreak();
+		}
+		else
+			had_lines = 1;
+	}
+
+	if( data->prior )
+	{
+		//do_line( data->surface, data->prior->point[vRight], data->prior->point[vForward]
+		//     , node->point[vRight], node->point[vForward], BASE_COLOR_WHITE );
+	}
+	data->prior = node;
+
+	return 0; // don't end scan.... foreach can be used for searching too.
+}
+
+static void OnDraw3d( WIDE("Web Tester(3d)" ) )( PTRSZVAL psv )
+{
+	if( test.web )
+	{
+		static int paint;
+		// for each node in web, draw it.
+		struct drawdata data;
+		data.icon = MakeImageFile( 1, 1 );
+      ClearImageTo( data.icon, BASE_COLOR_WHITE );
+		data.surface = NULL;
+		data.prior = NULL;
+		data.paint = ++paint;
+		data.path = NULL;
+		data.pathway = NULL;
+		EnterCriticalSec( &test.web->cs );
+		{
+			VECTOR v;
+			v[vRight] = test.x;
+			v[vForward] = test.y;
+			v[vUp] = 0;
+			if( test.pRoot )
+				FindNearest( &data.path, &data.pathway, test.pRoot, v, 0 );
+			//lprintf( WIDE("Draw.") );
+		}
+		ForAllInSet( SPACEWEB_NODE, test.web->nodes, something3d, (PTRSZVAL)&data );
+		DeleteList( &data.path );
+		LeaveCriticalSec( &test.web->cs );
+      UnmakeImageFile( data.icon );
+	}
+}
 
 static PTRSZVAL CPROC something( void* thisnode, PTRSZVAL psv )
 {
@@ -1925,16 +2107,22 @@ void CPROC MoveWeb( PTRSZVAL psv )
 	{
 		if( idx %10 == 0 )
 		{
-		v[vRight] = (rand() %13)-6;
-		v[vForward] = (rand() %13)-6;
-		v[vUp] = 0;
-		add( v, v, node->point );
-		MoveWebNode( node, v );
+			v[vRight] = (rand() %13)-6;
+			v[vForward] = (rand() %13)-6;
+			v[vUp] = (rand() %13)-6;
+			add( v, v, node->point );
+			MoveWebNode( node, v );
 		}
 		//break;
 	}
 	SmudgeCommon( test.tester );
 }
+
+static PTRSZVAL OnInit3d( WIDE("Space Web(3d)" ) )(PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+{
+	return 1;
+}
+
 
 SaneWinMain( argc,argv )
 {
