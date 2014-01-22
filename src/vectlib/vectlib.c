@@ -1293,14 +1293,16 @@ P_POINT GetRotation( PTRANSFORM pt, P_POINT r )
 
  void GetAxisV( PTRANSFORM pt, P_POINT a, int n )
 {
-   SetPoint( a, pt->m[n] );
+	SetPoint( a, pt->m[n] );
 }
 
 //----------------------------------------------------------------
 
  PC_POINT GetAxis( PTRANSFORM pt, int n )
 {
-   return pt->m[n];
+	if( pt )
+		return pt->m[n];
+	return NULL;
 }
 
 //----------------------------------------------------------------
