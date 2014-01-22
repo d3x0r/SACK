@@ -1,6 +1,6 @@
 #include <stdlib.h>
-#include <milk_export.h>
-#include <milk_registry.h>
+#include <InterShell_export.h>
+#include <InterShell_registry.h>
 
 static struct {
 	struct {
@@ -48,7 +48,7 @@ OnShowControl
 {
 	PMY_BUTTON me = (PMY_BUTTON)psv;
    lprintf( "Getting new colors for button..." );
-	MILK_SetButtonColors( me->button
+	InterShell_SetButtonColors( me->button
 							  , 0xFF000000 | (0x1 << ( rand() & 0x7 ) ) | (0x100 << ( rand() & 0x7 ) )| (0x10000 << ( rand() & 0x7 ) )
 							  , 0xFF000000 | (0x1 << ( rand() & 0x7 ) ) | (0x100 << ( rand() & 0x7 ) )| (0x10000 << ( rand() & 0x7 ) )
 							  , 0xFF000000 | (0x1 << ( rand() & 0x7 ) ) | (0x100 << ( rand() & 0x7 ) )| (0x10000 << ( rand() & 0x7 ) )

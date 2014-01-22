@@ -1,8 +1,8 @@
-#define DEFINES_MILK_INTERFACE
-#define USES_MILK_INTERFACE
-#include <milk_export.h>
+#define DEFINES_INTERSHELL_INTERFACE
+#define USES_INTERSHELL_INTERFACE
+#include <InterShell_export.h>
 
-#include <milk_registry.h>
+#include <InterShell_registry.h>
 
 #define MY_CONTROL_TYPE PSI_CONTROL
 

@@ -147,9 +147,9 @@ OnKeyPressEvent( "SQL Password/Users/User Report" )( PTRSZVAL psv )
 
 OnCreateMenuButton( "SQL Password/Users/User Report" )( PMENU_BUTTON button )
 {
-	MILK_SetButtonStyle( button, "bicolor square" );
-	MILK_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_PURPLE, BASE_COLOR_BLACK, 0 );
-	MILK_SetButtonText( button, WIDE("User_Report") );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_PURPLE, BASE_COLOR_BLACK, 0 );
+	InterShell_SetButtonText( button, WIDE("User_Report") );
 	return 1;
 }
 

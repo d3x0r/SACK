@@ -1,8 +1,8 @@
 #include <stdlib.h>
-#define USES_MILK_INTERFACE
-#define DEFINES_MILK_INTERFACE
-#include <milk_export.h>
-#include <milk_registry.h>
+#define USES_INTERSHELL_INTERFACE
+#define DEFINES_INTERSHELL_INTERFACE
+#include <InterShell_export.h>
+#include <InterShell_registry.h>
 
 static struct {
 	struct {
