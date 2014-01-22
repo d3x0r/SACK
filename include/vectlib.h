@@ -562,7 +562,7 @@ MATHLIB_EXPORT void RotateRight( PTRANSFORM pt, int A1, int A2 );
 
 MATHLIB_EXPORT void Apply           ( PCTRANSFORM pt, P_POINT dest, PC_POINT src );
 MATHLIB_EXPORT void ApplyR          ( PCTRANSFORM pt, PRAY dest, PRAY src );
-MATHLIB_EXPORT void ApplyT          ( PCTRANSFORM pt, PTRANSFORM dest, PTRANSFORM src );
+MATHLIB_EXPORT void ApplyT          ( PCTRANSFORM pt, PTRANSFORM dest, PCTRANSFORM src );
 // I know this was a result - unsure how it was implented...
 //void ApplyT              (PTRANFORM pt, PTRANSFORM pt1, PTRANSFORM pt2 );
 
@@ -572,17 +572,17 @@ MATHLIB_EXPORT void ApplyInverseT   ( PCTRANSFORM pt, PTRANSFORM dest, PTRANSFOR
 // again note there was a void ApplyInverseT
 
 MATHLIB_EXPORT void ApplyRotation        ( PCTRANSFORM pt, P_POINT dest, PC_POINT src );
-MATHLIB_EXPORT void ApplyRotationT       ( PCTRANSFORM pt, PTRANSFORM ptd, PTRANSFORM pts );
+MATHLIB_EXPORT void ApplyRotationT       ( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts );
 
 MATHLIB_EXPORT void ApplyInverseRotation ( PCTRANSFORM pt, P_POINT dest, PC_POINT src );
 
-MATHLIB_EXPORT void ApplyInverseRotationT( PCTRANSFORM pt, PTRANSFORM ptd, PTRANSFORM pts );
+MATHLIB_EXPORT void ApplyInverseRotationT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts );
 
 MATHLIB_EXPORT void ApplyTranslation     ( PCTRANSFORM pt, P_POINT dest, PC_POINT src );
-MATHLIB_EXPORT void ApplyTranslationT    ( PCTRANSFORM pt, PTRANSFORM ptd, PTRANSFORM pts );
+MATHLIB_EXPORT void ApplyTranslationT    ( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts );
 
 MATHLIB_EXPORT void ApplyInverseTranslation( PCTRANSFORM pt, P_POINT dest, PC_POINT src );
-MATHLIB_EXPORT void ApplyInverseTranslationT( PCTRANSFORM pt, PTRANSFORM ptd, PTRANSFORM pts );
+MATHLIB_EXPORT void ApplyInverseTranslationT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts );
 
 // after Move() these callbacks are invoked.
 typedef void (*MotionCallback)( PTRSZVAL, PTRANSFORM );

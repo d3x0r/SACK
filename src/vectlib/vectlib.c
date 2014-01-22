@@ -720,7 +720,7 @@ REALFUNC( Apply, ( PCTRANSFORM pt, P_POINT dest, PC_POINT src ), (pt, dest, src 
 
 //----------------------------------------------------------------
 
-void ApplyT( PCTRANSFORM pt, PTRANSFORM ptd, PTRANSFORM pts )
+void ApplyT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 {
 	TRANSFORM t;
 	ClearTransform( &t );
@@ -743,7 +743,7 @@ void ApplyT( PCTRANSFORM pt, PTRANSFORM ptd, PTRANSFORM pts )
 
 //----------------------------------------------------------------
 
-void ApplyCameraT( PCTRANSFORM pt, PTRANSFORM ptd, PTRANSFORM pts )
+void ApplyCameraT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 {
 	TRANSFORM t;
 	ClearTransform( &t );
@@ -766,7 +766,7 @@ void ApplyCameraT( PCTRANSFORM pt, PTRANSFORM ptd, PTRANSFORM pts )
 
 //----------------------------------------------------------------
 
- void ApplyTranslationT( PCTRANSFORM pt, PTRANSFORM ptd, PTRANSFORM pts )
+ void ApplyTranslationT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 {
 	TRANSFORM t;
 	ClearTransform( &t );
@@ -782,7 +782,7 @@ void ApplyCameraT( PCTRANSFORM pt, PTRANSFORM ptd, PTRANSFORM pts )
 // may be called with the same transform for source and dest
 // safely transforms such that the source is not destroyed until
 // the value of dest is computed entirely, which is then set into dest.
- void ApplyRotationT( PCTRANSFORM pt, PTRANSFORM ptd, PTRANSFORM pts )
+ void ApplyRotationT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 {
 	TRANSFORM t;
 	ClearTransform( &t );
@@ -803,7 +803,7 @@ void ApplyCameraT( PCTRANSFORM pt, PTRANSFORM ptd, PTRANSFORM pts )
 
 //----------------------------------------------------------------
 
- void ApplyInverseT( PCTRANSFORM pt, PTRANSFORM ptd, PTRANSFORM pts )
+ void ApplyInverseT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 {
 	TRANSFORM t;
    ClearTransform( &t );
@@ -817,7 +817,7 @@ void ApplyCameraT( PCTRANSFORM pt, PTRANSFORM ptd, PTRANSFORM pts )
 
 //----------------------------------------------------------------
 
- void ApplyInverseTranslationT( PCTRANSFORM pt, PTRANSFORM ptd, PTRANSFORM pts )
+ void ApplyInverseTranslationT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 {
 	TRANSFORM t;
 	ClearTransform( &t );
@@ -830,7 +830,7 @@ void ApplyCameraT( PCTRANSFORM pt, PTRANSFORM ptd, PTRANSFORM pts )
 
 //----------------------------------------------------------------
 
- void ApplyInverseRotationT( PCTRANSFORM pt, PTRANSFORM ptd, PTRANSFORM pts )
+ void ApplyInverseRotationT( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 {
 	TRANSFORM t;
    ClearTransform( &t );
@@ -1284,7 +1284,9 @@ P_POINT GetRotation( PTRANSFORM pt, P_POINT r )
 
  PC_POINT GetOrigin( PTRANSFORM pt  )
 {
-   return pt->m[3];
+	if( pt )
+		return pt->m[3];
+	return NULL;
 }
 
 //----------------------------------------------------------------
