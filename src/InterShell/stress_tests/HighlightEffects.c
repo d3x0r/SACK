@@ -1,10 +1,10 @@
 #include <stdhdrs.h>
 #include <network.h>
 
-#define USES_MILK_INTERFACE
-#define DEFINES_MILK_INTERFACE
-#include "../milk_export.h"
-#include "../milk_registry.h"
+#define USES_INTERSHELL_INTERFACE
+#define DEFINES_INTERSHELL_INTERFACE
+#include "../intershell_export.h"
+#include "../intershell_registry.h"
 
 PCLIENT pc;
 
@@ -29,12 +29,12 @@ void CPROC ReadStuff( PCLIENT pc, POINTER p, int size )
 		for( n = 0; n < size; n++ )
 		{
 			bHighlight = bytes[n] & 1;
-         //MILK_DisablePageUpdate( TRUE );
+         //InterShell_DisablePageUpdate( TRUE );
 			LIST_FORALL( buttons, idx, PMENU_BUTTON, button )
 			{
 				UpdateButton( button );
 			}
-			//MILK_DisablePageUpdate( FALSE );
+			//InterShell_DisablePageUpdate( FALSE );
 		}
 	}
    ReadTCP( pc, p, 256 );
@@ -45,14 +45,14 @@ void CPROC Connected( PCLIENT pcServer, PCLIENT pcNew )
 	SetNetworkReadComplete( pcNew, ReadStuff );
 }
 
-PRELOAD( MilkButtonBlink_Network )
+PRELOAD( InterShellButtonBlink_Network )
 {
    pc = OpenTCPListenerEx( 17899, Connected );
 }
 
 OnShowControl( "Network Highlight(Stress3)" )( PTRSZVAL button )
 {
-	MILK_SetButtonHighlight( (PMENU_BUTTON)button, bHighlight );
+	InterShell_SetButtonHighlight( (PMENU_BUTTON)button, bHighlight );
 }
 
 OnKeyPressEvent( "Network Highlight(Stress3)" )( PTRSZVAL button )

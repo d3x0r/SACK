@@ -2,7 +2,7 @@
 #include <image.h>
 #include <psi.h>
 
-#include "milk_registry.h"
+#include "intershell_registry.h"
 
 typedef struct {
    PSI_CONTROL pc;

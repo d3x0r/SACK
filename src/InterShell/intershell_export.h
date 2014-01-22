@@ -161,7 +161,7 @@ namespace sack {
 	         // the result of creating an invalid control,
 	   // or of creating a control that fails creation
 	   // for one reason or another is NULL, which will in turn
-	   // fails creation of the MILK control.
+	   // fails creation of the InterShell control.
 	   
 	         return (PTRSZVAL)MakeNamedControl( frame
 	                 , “Some PSI Control type-name”
@@ -176,10 +176,10 @@ namespace sack {
 	   
 	   
 	   
-	   // For MILK to be able to hide the control when pages change,
+	   // For InterShell to be able to hide the control when pages change,
 	   // show the control when pages change, move the control to
 	   // a new position, or to resize the control, this method MUST
-	   // be defined for MILK widgets created through OnCreateControl.
+	   // be defined for InterShell widgets created through OnCreateControl.
 	   
 	   
 	   

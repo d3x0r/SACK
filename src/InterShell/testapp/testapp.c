@@ -11,8 +11,8 @@
 #include <stdhdrs.h>
 #include <stdio.h>
 #include <pssql.h>
-#include "milk_export.h"
-#include "milk_registry.h"
+#include "InterShell_export.h"
+#include "InterShell_registry.h"
 #include "widgets/buttons.h"
 
 #define MODULE_NAME "TestApp"
@@ -43,9 +43,9 @@ static struct {
 PRELOAD( RegisterTaskControls )
 {
 
-	EasyRegisterResource( "Milk/TestApp", BTN_PLUS , NORMAL_BUTTON_NAME );
-	EasyRegisterResource( "Milk/TestApp", BTN_MINUS , NORMAL_BUTTON_NAME );
-	EasyRegisterResource( "Milk/TestApp", LISTBOXSAMPLE    , LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( "InterShell/TestApp", BTN_PLUS , NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/TestApp", BTN_MINUS , NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/TestApp", LISTBOXSAMPLE    , LISTBOX_CONTROL_NAME );
 
 	DoSQLCommand("use database");
 
@@ -58,8 +58,8 @@ PRELOAD( RegisterTaskControls )
 
 OnCreateMenuButton( MODULE_NAME "/button plus" )( PMENU_BUTTON button )
 {
-//	MILK_SetButtonImage( button, "images/plus.png");
-//	MILK_SetButtonAnimation( button, "images/AnimationWizard1.mng");
+//	InterShell_SetButtonImage( button, "images/plus.png");
+//	InterShell_SetButtonAnimation( button, "images/AnimationWizard1.mng");
 //	UpdateButton( button );
 
 	return (PTRSZVAL)button;
@@ -69,9 +69,9 @@ OnCreateMenuButton( MODULE_NAME "/button plus" )( PMENU_BUTTON button )
 
 OnCreateMenuButton( MODULE_NAME "/button minus" )( PMENU_BUTTON button )
 {
-//	MILK_SetButtonImage( button, "images/minus.png");
+//	InterShell_SetButtonImage( button, "images/minus.png");
 
-	MILK_SetButtonAnimation( button, "images/AnimationWizard1.mng");
+	InterShell_SetButtonAnimation( button, "images/AnimationWizard1.mng");
 	UpdateButton( button );
 
 	return (PTRSZVAL)button;
@@ -190,9 +190,9 @@ OnKeyPressEvent( MODULE_NAME "/button plus" )( PTRSZVAL psvButton )
 	}
 
 	if(!animplay)
-		MILK_SetButtonAnimation( button, "images/AnimationWizard1.mng");
+		InterShell_SetButtonAnimation( button, "images/AnimationWizard1.mng");
 	else
-		MILK_SetButtonAnimation( button, "");
+		InterShell_SetButtonAnimation( button, "");
 
     ++animplay;
 	animplay &= 1;
