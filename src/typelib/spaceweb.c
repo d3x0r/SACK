@@ -1491,8 +1491,8 @@ void RelinkANode( PSPACEWEB_NODE web, PSPACEWEB_NODE came_from, PSPACEWEB_NODE n
 	int linked = 0;
 	PSPACEWEB_NODE check;
 	PLIST list = NULL;
-	static int paint;
 	static int levels;
+	static int paint;
 	// just mkae sure it's really not linked to anything.
 
 	if( !levels )
@@ -1679,6 +1679,7 @@ static struct {
 	_32 x, y;
 	INDEX root;
 	PSPACEWEB_NODE pRoot;
+	int paint;
 } test;
 
 static int OnMouseCommon( WIDE("Web Tester") )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
@@ -1709,9 +1710,10 @@ static int OnMouseCommon( WIDE("Web Tester") )( PSI_CONTROL pc, S_32 x, S_32 y, 
 	return 1;
 }
 
+
 struct drawdata {
 	Image surface;
-   Image icon;
+	Image icon;
 	PLIST path;
 	PLIST pathway;
 	PSPACEWEB_NODE prior;
@@ -1742,15 +1744,15 @@ static PTRSZVAL something3d( void* thisnode, PTRSZVAL psv )
 		INDEX idx;
 		PSPACEWEB_NODE zz;
 		int c = 0;
-      int len;
+		int len;
 		LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, zz ) c++;
 
 		len = snprintf( tmp, sizeof( tmp ), WIDE("%d[%d]"), node->paint, NodeIndex( node ) );
 		Render3dText( tmp, len, 0xFFFFFFFF, NULL, node->point, TRUE );
 	}
 
-   ClearImageTo( data->icon, BASE_COLOR_GREEN );
-   Render3dImage( data->icon, node->point, FALSE );
+	ClearImageTo( data->icon, BASE_COLOR_GREEN );
+	Render3dImage( data->icon, node->point, TRUE );
 
 	c = ColorAverage( BASE_COLOR_RED, BASE_COLOR_YELLOW, data->step, 32 );
 	c2 = ColorAverage( BASE_COLOR_GREEN, BASE_COLOR_MAGENTA, data->step, 32 );
@@ -1777,7 +1779,7 @@ static PTRSZVAL something3d( void* thisnode, PTRSZVAL psv )
 					 ,(int)node->point[vRight], (int)node->point[vForward]
 					 , (int)dest->point[vRight], (int)dest->point[ vUp ] );
 #endif
-         DrawLine( node->point, dest->point, c );
+			DrawLine( node->point, dest->point, c );
 
 			// draw the perpendicular lines at caps ( 2d perp only)
 			{
@@ -1797,8 +1799,8 @@ static PTRSZVAL something3d( void* thisnode, PTRSZVAL psv )
 				DrawLine( p1, p2, c2 );
 				addscaled( p1, dest->point, m, 0.125 );
 				addscaled( p2, dest->point, m, -0.125 );
-            DrawLine( p1, p2, c2 );
-  		}
+				DrawLine( p1, p2, c2 );
+			}
 
 			// perpendicular line at these points?
 
@@ -1808,7 +1810,7 @@ static PTRSZVAL something3d( void* thisnode, PTRSZVAL psv )
 			PSPACEWEB_NODE is_path;
 			LIST_FORALL( data->path, idx2, PSPACEWEB_NODE, is_path )
 			{
-            RCOORD tmp;
+				RCOORD tmp;
 				VECTOR p1, p2;
 				SetPoint( p1, is_path->point );
 #define AAA 8
@@ -1818,11 +1820,11 @@ static PTRSZVAL something3d( void* thisnode, PTRSZVAL psv )
 				p2[vRight] += AAA;
 				p2[vForward] += AAA;
 				DrawLine( p1, p2, BASE_COLOR_WHITE );
-            // reverse slope, perpendicular
+				// reverse slope, perpendicular
 				tmp = p1[vForward];
 				p1[vForward] = p2[vRight];
-            p2[vRight] = tmp;
-            DrawLine( p1, p2, BASE_COLOR_WHITE );
+				p2[vRight] = tmp;
+				DrawLine( p1, p2, BASE_COLOR_WHITE );
 			}
 		}
 		{
@@ -1830,7 +1832,7 @@ static PTRSZVAL something3d( void* thisnode, PTRSZVAL psv )
 			PSPACEWEB_NODE is_path;
 			LIST_FORALL( data->pathway, idx2, PSPACEWEB_NODE, is_path )
 			{
-            RCOORD tmp;
+				RCOORD tmp;
 				VECTOR p1, p2;
 				SetPoint( p1, is_path->point );
 				p1[vRight] -= 3;
@@ -1839,11 +1841,11 @@ static PTRSZVAL something3d( void* thisnode, PTRSZVAL psv )
 				p2[vRight] += 3;
 				p2[vForward] += 4;
 				lprintf( WIDE("path %d,%d"), is_path->point[vRight], is_path->point[vForward] );
-            DrawLine( p1, p2, BASE_COLOR_LIGHTCYAN );
+				DrawLine( p1, p2, BASE_COLOR_LIGHTCYAN );
 				tmp = p1[vForward];
 				p1[vForward] = p2[vRight];
-            p2[vRight] = tmp;
-            DrawLine( p1, p2, BASE_COLOR_LIGHTCYAN );
+				p2[vRight] = tmp;
+				DrawLine( p1, p2, BASE_COLOR_LIGHTCYAN );
 			}
 		}
 		if( !lines )
@@ -1866,18 +1868,17 @@ static PTRSZVAL something3d( void* thisnode, PTRSZVAL psv )
 	return 0; // don't end scan.... foreach can be used for searching too.
 }
 
-static void OnDraw3d( WIDE("Web Tester(3d)" ) )( PTRSZVAL psv )
+static void OnDraw3d( WIDE("Space Web(3d)") )( PTRSZVAL psv )
 {
 	if( test.web )
 	{
-		static int paint;
 		// for each node in web, draw it.
 		struct drawdata data;
-		data.icon = MakeImageFile( 1, 1 );
-      ClearImageTo( data.icon, BASE_COLOR_WHITE );
+		data.icon = MakeImageFile( 4, 4 );
+		ClearImageTo( data.icon, BASE_COLOR_WHITE );
 		data.surface = NULL;
 		data.prior = NULL;
-		data.paint = ++paint;
+		data.paint = ++test.paint;
 		data.path = NULL;
 		data.pathway = NULL;
 		EnterCriticalSec( &test.web->cs );
@@ -1893,7 +1894,7 @@ static void OnDraw3d( WIDE("Web Tester(3d)" ) )( PTRSZVAL psv )
 		ForAllInSet( SPACEWEB_NODE, test.web->nodes, something3d, (PTRSZVAL)&data );
 		DeleteList( &data.path );
 		LeaveCriticalSec( &test.web->cs );
-      UnmakeImageFile( data.icon );
+		UnmakeImageFile( data.icon );
 	}
 }
 
@@ -2038,12 +2039,11 @@ static int OnDrawCommon( WIDE("Web Tester") )( PSI_CONTROL pc )
 	ClearImageTo( surface, SetAlpha( BASE_COLOR_BLUE, 32 ) );
 	if( test.web )
 	{
-		static int paint;
 		// for each node in web, draw it.
 		struct drawdata data;
 		data.surface = surface;
 		data.prior = NULL;
-		data.paint = ++paint;
+		data.paint = ++test.paint;
 		data.path = NULL;
 		data.pathway = NULL;
 		EnterCriticalSec( &test.web->cs );

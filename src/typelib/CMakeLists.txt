@@ -14,7 +14,7 @@ add_executable(${project} WIN32 ${BASE_SOURCES} )
 string( REPLACE "." "_" TARGET_LABEL ${project} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
            COMPILE_DEFINITIONS  "TARGET_LABEL=${TARGET_LABEL};MAKE_RCOORD_SINGLE"
-           FOLDER utils
+           FOLDER tests
 )
 target_link_libraries( ${project} ${SACK_LIBRARIES} )
 install_default_dest( ${project} )
