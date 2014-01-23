@@ -256,7 +256,7 @@ int DoRegisterControl( PCONTROL_REGISTRATION pcr, int nSize )
 		pcr->TypeID = (int)(long)GetRegisteredValueExx( root, NULL, WIDE("Type"), TRUE );
 		if( !pcr->TypeID && (StrCaseCmp( pcr->name, WIDE("FRAME") )!=0) )
 		{
-			ControlID = (_32)GetRegisteredValueExx( WIDE("PSI/Controls"), NULL, WIDE("User Type ID"), TRUE);
+			ControlID = (_32)(PTRSZVAL)GetRegisteredValueExx( WIDE("PSI/Controls"), NULL, WIDE("User Type ID"), TRUE);
 			if( !ControlID )
 			{
 #ifdef __cplusplus_cli
