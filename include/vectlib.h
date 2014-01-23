@@ -568,7 +568,7 @@ MATHLIB_EXPORT void ApplyT          ( PCTRANSFORM pt, PTRANSFORM dest, PCTRANSFO
 
 MATHLIB_EXPORT void ApplyInverse    ( PCTRANSFORM pt, P_POINT dest, PC_POINT src );
 MATHLIB_EXPORT void ApplyInverseR   ( PCTRANSFORM pt, PRAY dest, PRAY src );
-MATHLIB_EXPORT void ApplyInverseT   ( PCTRANSFORM pt, PTRANSFORM dest, PTRANSFORM src );
+MATHLIB_EXPORT void ApplyInverseT   ( PCTRANSFORM pt, PTRANSFORM dest, PCTRANSFORM src );
 // again note there was a void ApplyInverseT
 
 MATHLIB_EXPORT void ApplyRotation        ( PCTRANSFORM pt, P_POINT dest, PC_POINT src );
