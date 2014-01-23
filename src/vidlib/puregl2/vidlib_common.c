@@ -1757,7 +1757,7 @@ LOGICAL IsDisplayHidden( PVIDEO video )
    return 0;
 }
 
-LOGICAL OnKey3d( "Video Render Common" )( PTRSZVAL psv, _32 key )
+static LOGICAL OnKey3d( "Video Render Common" )( PTRSZVAL psv, _32 key )
 {
 	if( IsKeyPressed( key ) )
 	{
