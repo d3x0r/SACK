@@ -273,6 +273,7 @@ int EnableOpenGL( struct display_camera *camera )
    PVIDEO hVideo = camera->hVidCore;
 	GLuint      PixelFormat;         // Holds The Results After Searching For A Match
 	HDC hdcEnable;
+#ifdef _WIN32
 	static   PIXELFORMATDESCRIPTOR pfd=          // pfd Tells Windows How We Want Things To Be
 	{
 		sizeof(PIXELFORMATDESCRIPTOR)          // Size Of This Pixel Format Descriptor
@@ -292,7 +293,7 @@ int EnableOpenGL( struct display_camera *camera )
 		0,                               // Reserved
 		0, 0, 0                             // Layer Masks Ignored
 	};
-
+#endif
 	if( !hVideo->camera )
 	   return TRUE;
 #ifdef _WIN32
