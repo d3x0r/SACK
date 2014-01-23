@@ -1,3 +1,4 @@
+if( FALSE )
 if( NOT __ANDROID__ )
 
 set( PROJECT apache_shell )
@@ -43,3 +44,4 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
 install_default_project( ${PROJECT} lib )
 
 endif( NOT __ANDROID__ )
+endif( FALSE )
