@@ -526,12 +526,7 @@ void CPROC cplotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 #endif
 	if( pi->flags & IF_FLAG_FINAL_RENDER )
 	{
-		glBegin( GL_POINTS );
-		TranslateCoord( pi, &x, &y );
-		glColor4ub( RedVal(c), GreenVal(c),BlueVal(c), AlphaVal(c) );
-		
-		glVertex3f((float)(x/l.scale), (float)(y/l.scale),  0.0f);	// Bottom Left Of The Texture and Quad
-		glEnd();
+		BlatColor( pi, x, y, 1, 1, c );
 	}
 	else
 	{
@@ -551,11 +546,7 @@ void CPROC cplot( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 #endif
 		if( pi->flags & IF_FLAG_FINAL_RENDER )
 		{
-			glBegin( GL_POINTS );
-			TranslateCoord( pi, &x, &y );
-			glColor4ub( RedVal(c), GreenVal(c),BlueVal(c), 255/*AlphaVal(d)*/ );
-			glVertex3f((float)(x/l.scale), (float)(y/l.scale),  0.0f);	// Bottom Left Of The Texture and Quad
-			glEnd();
+			BlatColor( pi, x, y, 1, 1, c );
 		}
 		else if( pi->image )
 		{
@@ -602,11 +593,7 @@ void CPROC cplotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 #endif
 		if( pi->flags & IF_FLAG_FINAL_RENDER )
 		{
-			glBegin( GL_POINTS );
-			TranslateCoord( pi, &x, &y );
-			glColor4ub( RedVal(c), GreenVal(c),BlueVal(c), AlphaVal(c) );
-			glVertex3f((float)(x/l.scale), (float)(y/l.scale),  0.0f);	// Bottom Left Of The Texture and Quad
-			glEnd();
+			BlatColor( pi, x, y, 1, 1, c );
 		}
 		else if( pi->image )
 		{
@@ -873,7 +860,7 @@ struct workspace
 };
 
 // this is a point-sprite engine too....
-void Render3dImage( Image pifSrc, LOGICAL render_pixel_scaled )
+void Render3dImage( Image pifSrc, PCVECTOR o, LOGICAL render_pixel_scaled )
 {
 	struct workspace _tmp;
 	struct workspace *tmp = &_tmp;
