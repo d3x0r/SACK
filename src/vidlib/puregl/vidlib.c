@@ -99,6 +99,7 @@
 
 #if defined( __64__ ) && defined( _WIN32 )
 #define _SetWindowLong(a,b,c)   SetWindowLongPtr(a,b,(LONG_PTR)(c))
+#undef GetWindowLong
 #define GetWindowLong   GetWindowLongPtr
 #else
 #define _SetWindowLong(a,b,c)   SetWindowLong(a,b,(long)(c))

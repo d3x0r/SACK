@@ -1612,11 +1612,8 @@ void LoadAllFonts( void )
 
 					pfs->nFiles = 0;
 					pfs->appfiles = build.pSizeFileSlab + build.nSizeFile;
-					build.nSizeFile += IntCreateFromText( count );
-					//Allocate( sizeof( APP_SIZE_FILE ) * IntCreateFromText( count ) );
-
-					// find second count...
-					//AddLink( &pfe->styles, pfs );
+					// demote from S_64 to _32
+					build.nSizeFile += (_32)IntCreateFromText( count );
 					if(0)
 					{
 			case '\\':
@@ -1657,11 +1654,11 @@ void LoadAllFonts( void )
 								psfCurrent->file =build.pFileList[IntCreateFromText(file)];
 								psfCurrent->nSizes = 0;
 								psfCurrent->sizes = build.pSizeSlab + build.nSize;
-								build.nSize += IntCreateFromText( count2 );
+								build.nSize += (_32)IntCreateFromText( count2 );
 									//Allocate( sizeof( SIZES ) * IntCreateFromText( count2 ) );
 								psfCurrent->nAlternate = 0;
 								psfCurrent->pAlternate = build.pAltSlab + build.nAlt;
-								build.nAlt += IntCreateFromText( count );
+								build.nAlt += (_32)IntCreateFromText( count );
 							}
 							//Allocate( sizeof( ALT_SIZE_FILE ) * IntCreateFromText(count) );
 

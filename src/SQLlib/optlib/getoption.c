@@ -534,7 +534,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 				continue;
 			// trim trailing spaces from option names.
 			{
-				int n = StrLen( namebuf ) - 1;
+				size_t n = StrLen( namebuf ) - 1;
 				while( n >= 0 && namebuf[n] == ' ' )
 				{
 					namebuf[n] = 0;

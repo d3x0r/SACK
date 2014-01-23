@@ -55,7 +55,7 @@ static LOGICAL ComputeReplyKey2( PVARTEXT pvt_output, HTML5WebSocket socket, PTE
 	int spaces1 = 0;
 	int spaces2 = 0;
 	int c;
-	int len;
+	size_t len;
 	TEXTCHAR *check;
 	// test overrides
 	//key1 = SegCreateFromText( WIDE("4 @1  46546xW%0l 1 5" ) );
