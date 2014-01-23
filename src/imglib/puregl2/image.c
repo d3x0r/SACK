@@ -612,36 +612,23 @@ void CPROC cplotraw( Image pi, S_32 x, S_32 y, CDATA c )
 	}
 }
 
-void CPROC cplot( Image pi, S_32 x, S_32 y, CDATA c )
+void CPROC cplot( Image pifDest, S_32 x, S_32 y, CDATA c )
 {
-   if( !pi ) return;
-   if( ( x >= pi->x ) && ( x < (pi->x + pi->width )) &&
-       ( y >= pi->y ) && ( y < (pi->y + pi->height )) )
+   if( !pifDest ) return;
+   if( ( x >= pifDest->x ) && ( x < (pifDest->x + pifDest->width )) &&
+       ( y >= pifDest->y ) && ( y < (pifDest->y + pifDest->height )) )
    {
 #ifdef _INVERT_IMAGE
-     // y = ( pi->real_height - 1 )- y;
+     // y = ( pifDest->real_height - 1 )- y;
 #endif
-		if( pi->flags & IF_FLAG_FINAL_RENDER )
+		if( pifDest->flags & IF_FLAG_FINAL_RENDER )
 		{
-			VECTOR v;
-			float _color[4];
-
-			_color[0] = RedVal( c )/255.0f;
-			_color[1] = GreenVal( c )/255.0f;
-			_color[2] = BlueVal( c )/255.0f;
-			_color[3] = AlphaVal( c )/255.0f;
-			TranslateCoord( pi, &x, &y );
-			v[0] = (float)(x*l.scale);
-			v[1] = (float)(y*l.scale);
-			v[2] = 0.0f;
-			EnableShader( GetShader( WIDE("Simple Shader"), NULL ), v, _color );
-
-			glDrawArrays( GL_POINTS, 0, 1 );
+			BlatColor( pifDest, x, y, 1, 1, c );
 		}
-		else if( pi->image )
+		else if( pifDest->image )
 		{
-			*IMG_ADDRESS(pi,x,y)= c;
-			MarkImageUpdated( pi );
+			*IMG_ADDRESS(pifDest,x,y)= c;
+			MarkImageUpdated( pifDest );
 		}
    }
 }
@@ -683,20 +670,7 @@ void CPROC cplotalpha( Image pi, S_32 x, S_32 y, CDATA c )
 #endif
 		if( pi->flags & IF_FLAG_FINAL_RENDER )
 		{
-			VECTOR v;
-			float _color[4];
-
-			_color[0] = RedVal( c )/255.0f;
-			_color[1] = GreenVal( c )/255.0f;
-			_color[2] = BlueVal( c )/255.0f;
-			_color[3] = AlphaVal( c )/255.0f;
-			TranslateCoord( pi, &x, &y );
-			v[0] = (float)(x/l.scale);
-			v[1] = (float)(y/l.scale);
-			v[2] = 0.0f;
-			EnableShader( GetShader( WIDE("Simple Shader"), NULL ), v, _color );
-
-			glDrawArrays( GL_POINTS, 0, 1 );
+			BlatColor( pi, x, y, 1, 1, c );
 		}
 		else if( pi->image )
 		{
@@ -1002,7 +976,7 @@ void Render3dImage( Image pifSrc, VECTOR o, LOGICAL render_pixel_scaled )
 		if( render_pixel_scaled )
 		{
 			tmp->origin = GetOrigin( l.camera );
-			tmp->origin2 = GetOrigin( pifSrc->transform );
+			tmp->origin2 = o?o:GetOrigin( pifSrc->transform );
 			if( !tmp->origin2 )
 				tmp->origin2 = VectorConst_0;
 			
@@ -1011,10 +985,10 @@ void Render3dImage( Image pifSrc, VECTOR o, LOGICAL render_pixel_scaled )
 			// no point, it's behind the camera.
 			if( tmp->del < 1.0 )
 				return;
-			scale( tmp->v[1-tmp->vi][0], tmp->v[tmp->vi][0], ( (l.glActiveSurface->aspect[0])*2*tmp->del ) / l.glActiveSurface->identity_depth[0] );
-			scale( tmp->v[1-tmp->vi][1], tmp->v[tmp->vi][1], ( (l.glActiveSurface->aspect[0])*2*tmp->del ) / l.glActiveSurface->identity_depth[0] );
-			scale( tmp->v[1-tmp->vi][2], tmp->v[tmp->vi][2], ( (l.glActiveSurface->aspect[0])*2*tmp->del ) / l.glActiveSurface->identity_depth[0] );
-			scale( tmp->v[1-tmp->vi][3], tmp->v[tmp->vi][3], ( (l.glActiveSurface->aspect[0])*2*tmp->del ) / l.glActiveSurface->identity_depth[0] );
+			scale( tmp->v[1-tmp->vi][0], tmp->v[tmp->vi][0], ( (l.glActiveSurface->aspect[0])*tmp->del ) / l.glActiveSurface->identity_depth[0] );
+			scale( tmp->v[1-tmp->vi][1], tmp->v[tmp->vi][1], ( (l.glActiveSurface->aspect[0])*tmp->del ) / l.glActiveSurface->identity_depth[0] );
+			scale( tmp->v[1-tmp->vi][2], tmp->v[tmp->vi][2], ( (l.glActiveSurface->aspect[0])*tmp->del ) / l.glActiveSurface->identity_depth[0] );
+			scale( tmp->v[1-tmp->vi][3], tmp->v[tmp->vi][3], ( (l.glActiveSurface->aspect[0])*tmp->del ) / l.glActiveSurface->identity_depth[0] );
 			tmp->vi = 1-tmp->vi;
 		}
 
@@ -1075,6 +1049,9 @@ void Render3dText( CTEXTSTR string, int characters, CDATA color, SFTFont font, P
 	static struct ImageFile_tag output;
 	VECTOR o_tmp;
 	VECTOR offset;
+	RCOORD tmp_del = 1.0;
+	RCOORD distance;
+	VECTOR tmp_distance;
 	if( !output.transform )
 	{
 		output.transform = CreateTransform();
@@ -1086,29 +1063,29 @@ void Render3dText( CTEXTSTR string, int characters, CDATA color, SFTFont font, P
 	GetStringSizeFontEx( string, characters, &output.real_width, &output.real_height, font );
 	SetImageTransformRelation( &output, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
 	ApplyRotationT( l.camera, output.transform, VectorConst_I );
+	{
+		// the render3dimage has advnatege of supplying the output coordinates
+		// so the plane stretches in the right ways...
+		if( render_pixel_scaled  )
+		{
+			
+			sub( tmp_distance, o, GetOrigin( l.camera ) );
+			tmp_del = dotproduct( tmp_distance, GetAxis( l.camera, vForward ) );
+			// no point, it's behind the camera.
+			if( tmp_del < 1.0 )
+				return;
+			tmp_del = l.glActiveSurface->identity_depth[0] / tmp_del;
+			Scale( output.transform, tmp_del
+						,  tmp_del, tmp_del
+						);
+			
+		}
+	}
 	offset[vForward] = 0;
 	offset[vRight] = -output.real_width/2;
 	offset[vUp] = -output.real_height/2;
-	addscaled( o_tmp, offset, o, 1/l.scale );
-#if 0
-	{
-		if( render_pixel_scaled )
-		{
-			tmp->origin = GetOrigin( l.camera );
-			
-			sub( tmp->distance, o, tmp->origin );
-			tmp->del = dotproduct( tmp->distance, GetAxis( l.camera, vForward ) );
-			// no point, it's behind the camera.
-			if( tmp->del < 1.0 )
-				return;
-			scale( tmp->v[1-tmp->vi][0], tmp->v[tmp->vi][0], ( (l.glActiveSurface->aspect[0])*2*tmp->del ) / l.glActiveSurface->identity_depth[0] );
-			scale( tmp->v[1-tmp->vi][1], tmp->v[tmp->vi][1], ( (l.glActiveSurface->aspect[0])*2*tmp->del ) / l.glActiveSurface->identity_depth[0] );
-			scale( tmp->v[1-tmp->vi][2], tmp->v[tmp->vi][2], ( (l.glActiveSurface->aspect[0])*2*tmp->del ) / l.glActiveSurface->identity_depth[0] );
-			scale( tmp->v[1-tmp->vi][3], tmp->v[tmp->vi][3], ( (l.glActiveSurface->aspect[0])*2*tmp->del ) / l.glActiveSurface->identity_depth[0] );
-			tmp->vi = 1-tmp->vi;
-		}
-	}
-#endif
+	scale( offset, offset, 1/tmp_del );
+	addscaled( o_tmp, offset, o, 1/(tmp_del) );
 	TranslateV( output.transform, o_tmp );
 	PutStringFontEx( &output, 0, 0, color, 0, string, characters, font );
 }
