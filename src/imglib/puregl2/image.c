@@ -941,7 +941,7 @@ struct workspace
 };
 
 // this is a point-sprite engine too....
-void Render3dImage( Image pifSrc, VECTOR o, LOGICAL render_pixel_scaled )
+void Render3dImage( Image pifSrc, PCVECTOR o, LOGICAL render_pixel_scaled )
 {
 	struct workspace _tmp;
 	struct workspace *tmp = &_tmp;
