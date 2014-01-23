@@ -295,6 +295,7 @@ int EnableOpenGL( struct display_camera *camera )
 
 	if( !hVideo->camera )
 	   return TRUE;
+#ifdef _WIN32
 	pfd.dwFlags =  (hVideo->flags.bLayeredWindow? PFD_DRAW_TO_BITMAP :PFD_DRAW_TO_WINDOW)                // Format Must Support Window
 		|PFD_SUPPORT_OPENGL                 // Format Must Support OpenGL
 		| (hVideo->flags.bLayeredWindow? 0 : PFD_DOUBLEBUFFER )// Must Support Double Buffering
@@ -427,6 +428,7 @@ int EnableOpenGLView( struct display_camera *camera, int x, int y, int w, int h 
 		}
 		return nFracture + 1;
 	}
+#endif
 	return 0;
 }
 
