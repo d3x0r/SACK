@@ -1447,7 +1447,7 @@ IMAGE_PROC  void IMAGE_API SetImageTransformRelation( Image pImage, enum image_t
  Parameters
  render_pixel_scaled : when drawing, reverse compute from the angle of the view, and the depth of the thing to scale orthagonal, but at depth.  (help 3d vision)
  */
-IMAGE_PROC  void IMAGE_API Render3dImage( Image pImage, VECTOR o, LOGICAL render_pixel_scaled );
+IMAGE_PROC  void IMAGE_API Render3dImage( Image pImage, PCVECTOR o, LOGICAL render_pixel_scaled );
 
 IMAGE_PROC  void IMAGE_API Render3dText( CTEXTSTR string, int characters, CDATA color, SFTFont font, PCVECTOR o, LOGICAL render_pixel_scaled );
 
