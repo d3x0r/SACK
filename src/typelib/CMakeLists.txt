@@ -16,7 +16,12 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
            COMPILE_DEFINITIONS  "TARGET_LABEL=${TARGET_LABEL};MAKE_RCOORD_SINGLE"
            FOLDER tests
 )
-target_link_libraries( ${project} ${SACK_LIBRARIES} )
+target_link_libraries( ${project} ${SACK_LIBRARIES} ${SACK_PLATFORM_LIBRARIES} )
+if( UNIX )
+target_link_libraries( ${project} GL)
+
+endif( UNIX )
+
 install_default_dest( ${project} )
 
 
