@@ -1,6 +1,8 @@
 
 #include <render.h>
 #include <render3d.h>
+#include <image3d.h>
+#include <sqlgetoption.h>
 #include <html5.websocket.h>
 #include <json_emitter.h>
 #include "server_local.h"
@@ -71,8 +73,8 @@ static void WebSockSendMessage( enum proxy_message_id message, ... )
 				va_list args;
 				PVPRENDER render;
 				_8 *msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( POINTER ) ) );
-				va_start( args, essage );
-				render = va_start( args, PVPRENDER );
+				va_start( args, message );
+				render = va_arg( args, PVPRENDER );
 				((_32*)msg)[0] = sendlen - 4;
 				msg[4] = message;
 				if( ((POINTER*)(msg+5))[0] = GetLink( &render, idx ) )
@@ -84,7 +86,7 @@ static void WebSockSendMessage( enum proxy_message_id message, ... )
 	}
 }
 
-static void SendMessage( enum proxy_message_id message, ... )
+static void SendTCPMessage( enum proxy_message_id message, ... )
 {
 	INDEX idx;
 	PCLIENT client;
@@ -121,8 +123,8 @@ static void SendMessage( enum proxy_message_id message, ... )
 				va_list args;
 				PVPRENDER render;
 				_8 *msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( POINTER ) ) );
-				va_start( args, essage );
-				render = va_start( args, PVPRENDER );
+				va_start( args, message );
+				render = va_arg( args, PVPRENDER );
 				((_32*)msg)[0] = sendlen - 4;
 				msg[4] = message;
 				if( ((POINTER*)(msg+5))[0] = GetLink( &render, idx ) )
@@ -139,26 +141,26 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, int size )
 	if( !buffer )
 	{
 		buffer = NewArray( _8, 1024 );
-      len = 1024;
+		size = 1024;
 	}
 	else
 	{
 
 	}
-   ReadTCP( pc, buffer, len );
+   ReadTCP( pc, buffer, size );
 }
 
 static void CPROC Connected( PCLIENT pcServer, PCLIENT pcNew )
 {
 	AddLink( &l.clients, pcNew );
-	if( l.application_id )
-		SendMessage( PMID_SetApplicationTitle );
+	if( l.application_title )
+		SendTCPMessage( PMID_SetApplicationTitle );
 	{
 		INDEX idx;
 		PVPRENDER render;
-		LIST_FORALL( l.renderers, idx, PVPRENDERER, render )
+		LIST_FORALL( l.renderers, idx, PVPRENDER, render )
 		{
-			SendMessage( PMID_OpenDisplayAboveSizeAt, render );
+			SendTCPMessage( PMID_OpenDisplayAboveUnderSizedAt, render );
 		}
 	}
 }
@@ -167,14 +169,14 @@ static PTRSZVAL WebSockOpen( PCLIENT pc, PTRSZVAL psv )
 {
 	AddLink( &l.web_clients, pc );
 
-	if( l.application_id )
+	if( l.application_title )
 		WebSockSendMessage( PMID_SetApplicationTitle );
 	{
 		INDEX idx;
 		PVPRENDER render;
-		LIST_FORALL( l.renderers, idx, PVPRENDERER, render )
+		LIST_FORALL( l.renderers, idx, PVPRENDER, render )
 		{
-			WebSockSendMessage( PMID_OpenDisplayAboveSizeAt, render );
+			WebSockSendMessage( PMID_OpenDisplayAboveUnderSizedAt, render );
 		}
 	}
 }
@@ -204,7 +206,6 @@ static void InitService( void )
 													, WebSockClose
 													, WebSockError
 													, 0 );
-      SetNetworkReadComplete(
 	}
 }
 
@@ -213,18 +214,17 @@ static int VidlibProxy_InitDisplay( void )
 	return TRUE;
 }
 
+static void VidlibProxy_SetApplicationIcon( CTEXTSTR title )
+{
+   // no support
+}
 
 static void VidlibProxy_SetApplicationTitle( CTEXTSTR title )
 {
 	if( l.application_title )
 		Release( l.application_title );
 	l.application_title = title;
-   SendMessage( PMID_SetApplicationTitle );
-}
-
-static void VidlibProxy_SetApplicationTitle( Image image )
-{
-
+   SendTCPMessage( PMID_SetApplicationTitle );
 }
 
 static void VidlibProxy_GetDisplaySize( _32 *width, _32 *height )
@@ -237,12 +237,13 @@ static void VidlibProxy_GetDisplaySize( _32 *width, _32 *height )
 
 static void VidlibProxy_SetDisplaySize      ( _32 width, _32 height )
 {
-   SACK_SetProfileInt( "SACK/Vidlib", "Default Display Width", width );
-   SACK_SetProfileInt( "SACK/Vidlib", "Default Display Height", height );
+   SACK_WriteProfileInt( "SACK/Vidlib", "Default Display Width", width );
+   SACK_WriteProfileInt( "SACK/Vidlib", "Default Display Height", height );
 }
 
-static PRENDERER VidlibProxy_OpenDisplayAboveSizedAt( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above )
+static PRENDERER VidlibProxy_OpenDisplayAboveUnderSizedAt( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above, PRENDERER under )
 {
+
 	PVPRENDER Renderer = New( struct vidlib_proxy_renderer );
 	MemSet( Renderer, 0, sizeof( struct vidlib_proxy_renderer ) );
 	Renderer->x = x;
@@ -250,10 +251,16 @@ static PRENDERER VidlibProxy_OpenDisplayAboveSizedAt( _32 attributes, _32 width,
 	Renderer->w = width;
 	Renderer->h = height;
 	Renderer->attributes = attributes;
-	Renderer->above = above;
+	Renderer->above = (PVPRENDER)above;
+	Renderer->under = (PVPRENDER)under;
 	AddLink( &l.renderers, Renderer );
-   SendMessage( PMID_OpenDisplayAboveSizedAt, Renderer );
+   SendTCPMessage( PMID_OpenDisplayAboveUnderSizedAt, Renderer );
 	return (PRENDERER)Renderer;
+}
+
+static PRENDERER VidlibProxy_OpenDisplayAboveSizedAt( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above )
+{
+   return VidlibProxy_OpenDisplayAboveUnderSizedAt( attributes, width, height, x, y, above, NULL );
 }
 
 static PRENDERER VidlibProxy_OpenDisplaySizedAt     ( _32 attributes, _32 width, _32 height, S_32 x, S_32 y )
@@ -263,18 +270,21 @@ static PRENDERER VidlibProxy_OpenDisplaySizedAt     ( _32 attributes, _32 width,
 
 static void  VidlibProxy_CloseDisplay ( PRENDERER Renderer )
 {
-   SendMessage( PMID_CloseDisplay, Renderer );
+   SendTCPMessage( PMID_CloseDisplay, Renderer );
 	DeleteLink( &l.renderers, Renderer );
    Release( Renderer );
 }
 
-static void VidlibProxy_UpdateDisplayPortionEx( PRENDERER, S_32 x, S_32 y, _32 width, _32 height DBG_PASS )
+static void VidlibProxy_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y, _32 width, _32 height DBG_PASS )
 {
+
 }
 
-    RENDER_PROC_PTR( void, VidlibProxy_UpdateDisplayEx)        ( PRENDERER DBG_PASS);
+static void VidlibProxy_UpdateDisplayEx( PRENDERER r DBG_PASS)
+{
+}
                              
-   
+#if 0
     /* <combine sack::image::render::GetDisplayPosition@PRENDERER@S_32 *@S_32 *@_32 *@_32 *>
        
        \ \                                                                                   */
@@ -547,7 +557,7 @@ static void VidlibProxy_UpdateDisplayPortionEx( PRENDERER, S_32 x, S_32 y, _32 w
 		  ; may have applications for windows tablets */
        RENDER_PROC_PTR( void, SACK_Vidlib_HideInputDevice )( void );
 
-
+#endif
 
 static RENDER_INTERFACE ProxyInterface = {
 	VidlibProxy_InitDisplay
@@ -555,7 +565,6 @@ static RENDER_INTERFACE ProxyInterface = {
 													  , VidlibProxy_SetApplicationIcon
                                          , VidlibProxy_GetDisplaySize
 													  , VidlibProxy_SetDisplaySize
-													  , VidlibProxy_ProcessDisplayMessages
 													  , VidlibProxy_OpenDisplaySizedAt
 													  , VidlibProxy_OpenDisplayAboveSizedAt
 													  , VidlibProxy_CloseDisplay
@@ -675,23 +684,26 @@ static RENDER_INTERFACE ProxyInterface = {
 };
 
 static RENDER3D_INTERFACE Proxy3dInterface = {
+   NULL
 };
 
-staic void CPROC VidlibProxy_SetStringBehavior( Image pImage, _32 behavior )
+static void CPROC VidlibProxy_SetStringBehavior( Image pImage, _32 behavior )
 {
 
 }
-static void CPROC SetBlotMethod     ( _32 method )
+static void CPROC VidlibProxy_SetBlotMethod     ( _32 method )
 {
+
 }
 
-static Image CPROC BuildImageFileEx ( PCOLOR pc, _32 width, _32 height DBG_PASS)
+static Image CPROC VidlibProxy_BuildImageFileEx ( PCOLOR pc, _32 width, _32 height DBG_PASS)
 {
 	PVPImage image = New( struct vidlib_proxy_image );
 	MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
-	image->w = Width;
-	image->h = Height;
-	SendMessage( PMID_MakeImageFile );
+   lprintf( "CRITICAL; BuildImageFile is not possible" );
+	image->w = width;
+	image->h = height;
+	SendTCPMessage( PMID_MakeImageFile );
 	AddLink( &l.images, image );
 }
 
@@ -701,7 +713,7 @@ static Image CPROC VidlibProxy_MakeImageFileEx (_32 Width, _32 Height DBG_PASS)
 	MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
 	image->w = Width;
 	image->h = Height;
-	SendMessage( PMID_MakeImageFile );
+	SendTCPMessage( PMID_MakeImageFile );
 	AddLink( &l.images, image );
 }
 
@@ -711,17 +723,17 @@ static Image CPROC VidlibProxy_MakeSubImageEx  ( Image pImage, S_32 x, S_32 y, _
 	MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
 	image->x = x;
 	image->y = y;
-	image->w = Width;
-	image->h = Height;
+	image->w = width;
+	image->h = height;
 
-	image->parent = pImage;
-	if( image->next = pImage->child )
+	image->parent = (PVPImage)pImage;
+	if( image->next = ((PVPImage)pImage)->child )
 		image->next->prior = image;
-	pImage->child = image;
+	((PVPImage)pImage)->child = image;
 
-	SendMessage( PMID_MakeSubImageFile );
+	SendTCPMessage( PMID_MakeSubImageFile );
 
-	return (Image)PVPImage;
+	return (Image)image;
 }
 
 static Image CPROC VidlibProxy_RemakeImageEx    ( Image pImage, PCOLOR pc, _32 width, _32 height DBG_PASS)
@@ -1065,105 +1077,24 @@ IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA col
 
 
 static IMAGE_INTERFACE ProxyImageInterface = {
-/* <combine sack::image::SetStringBehavior@Image@_32>
-   
-   Internal
-   Interface index 4                                  */ IMAGE_PROC_PTR( void, SetStringBehavior) ( Image pImage, _32 behavior );
-/* <combine sack::image::SetBlotMethod@_32>
-   
-   \ \ 
-   Internal
-   Interface index 5                        */ IMAGE_PROC_PTR( void, SetBlotMethod)     ( _32 method );
-
-/*
-   Internal
-   Interface index 6*/   IMAGE_PROC_PTR( Image,BuildImageFileEx) ( PCOLOR pc, _32 width, _32 height DBG_PASS);
-/* <combine sack::image::MakeImageFileEx@_32@_32 Height>
-   
-   Internal
-   Interface index 7*/  IMAGE_PROC_PTR( Image,MakeImageFileEx)  (_32 Width, _32 Height DBG_PASS);
-/* <combine sack::image::MakeSubImageEx@Image@S_32@S_32@_32@_32 height>
-   
-   Internal
-   Interface index 8                                                                    */   IMAGE_PROC_PTR( Image,MakeSubImageEx)   ( Image pImage, S_32 x, S_32 y, _32 width, _32 height DBG_PASS );
-/* <combine sack::image::RemakeImageEx@Image@PCOLOR@_32@_32 height>
-   
-   \ \ 
-   
-   <b>Internal</b>
-   
-   Interface index 9                                                */   IMAGE_PROC_PTR( Image,RemakeImageEx)    ( Image pImage, PCOLOR pc, _32 width, _32 height DBG_PASS);
-/* <combine sack::image::LoadImageFileEx@CTEXTSTR name>
-   
-   Internal
-   Interface index 10                                                   */  IMAGE_PROC_PTR( Image,LoadImageFileEx)  ( CTEXTSTR name DBG_PASS );
-/* <combine sack::image::UnmakeImageFileEx@Image pif>
-   
-   Internal
-   Interface index 11                                                 */  IMAGE_PROC_PTR( void,UnmakeImageFileEx) ( Image pif DBG_PASS );
-#define UnmakeImageFile(pif) UnmakeImageFileEx( pif DBG_SRC )
-/* <combine sack::image::SetImageBound@Image@P_IMAGE_RECTANGLE>
-   
-   Internal
-   Interface index 12                                                           */  IMAGE_PROC_PTR( void ,SetImageBound)    ( Image pImage, P_IMAGE_RECTANGLE bound );
-/* <combine sack::image::FixImagePosition@Image>
-   
-   Internal
-   Interface index 13
-   
-   reset clip rectangle to the full image (subimage part ) Some
-   operations (move, resize) will also reset the bound rect,
-   this must be re-set afterwards. ALSO - one SHOULD be nice and
-   reset the rectangle when done, otherwise other people may not
-   have checked this.
-                                                                 */  IMAGE_PROC_PTR( void ,FixImagePosition) ( Image pImage );
-
-//-----------------------------------------------------
-
-/* <combine sack::image::ResizeImageEx@Image@S_32@S_32 height>
-   
-   Internal
-   Interface index 14                                                          */  IMAGE_PROC_PTR( void,ResizeImageEx)     ( Image pImage, S_32 width, S_32 height DBG_PASS);
-/* <combine sack::image::MoveImage@Image@S_32@S_32>
-   
-   Internal
-   Interface index 15                                               */   IMAGE_PROC_PTR( void,MoveImage)         ( Image pImage, S_32 x, S_32 y );
-
-//-----------------------------------------------------
-
-/* <combine sack::image::BlatColor@Image@S_32@S_32@_32@_32@CDATA>
-   
-   Internal
-   Interface index 16                                                             */   IMAGE_PROC_PTR( void,BlatColor)     ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color );
-/* <combine sack::image::BlatColorAlpha@Image@S_32@S_32@_32@_32@CDATA>
-   
-   Internal
-   Interface index 17                                                                  */   IMAGE_PROC_PTR( void,BlatColorAlpha)( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color );
-
-/* <combine sack::image::BlotImageEx@Image@Image@S_32@S_32@_32@_32@...>
-                                                                                                                   
-   Internal
-	Interface index 18*/   IMAGE_PROC_PTR( void,BlotImageEx)     ( Image pDest, Image pIF, S_32 x, S_32 y, _32 nTransparent, _32 method, ... );
-
- /* <combine sack::image::BlotImageSizedEx@Image@Image@S_32@S_32@S_32@S_32@_32@_32@_32@_32@...>
-
-   Internal
-	Interface index 19*/   IMAGE_PROC_PTR( void,BlotImageSizedEx)( Image pDest, Image pIF, S_32 x, S_32 y, S_32 xs, S_32 ys, _32 wd, _32 ht, _32 nTransparent, _32 method, ... );
-
-/* <combine sack::image::BlotScaledImageSizedEx@Image@Image@S_32@S_32@_32@_32@S_32@S_32@_32@_32@_32@_32@...>
-   
-  Internal
-   Interface index  20                                                                                                        */   IMAGE_PROC_PTR( void,BlotScaledImageSizedEx)( Image pifDest, Image pifSrc
-                                   , S_32 xd, S_32 yd
-                                   , _32 wd, _32 hd
-                                   , S_32 xs, S_32 ys
-                                   , _32 ws, _32 hs
-                                   , _32 nTransparent
-                                   , _32 method, ... );
-
-
-/*Internal
-   Interface index 21*/   DIMAGE_PROC_PTR( void,plot)      ( Image pi, S_32 x, S_32 y, CDATA c );
+	VidlibProxy_SetStringBehavior,
+		VidlibProxy_SetBlotMethod,
+		VidlibProxy_BuildImageFileEx,
+		VidlibProxy_MakeImageFileEx,
+		VidlibProxy_MakeSubImageEx,
+		VidlibProxy_RemakeImageEx,
+#if 0
+		VidlibProxy_LoadImageFileEx,
+		VidlibProxy_UnmakeImageFileEx,
+		VidlibProxy_SetImageBound,
+		VidlibProxy_FixImagePosition,
+		VidlibProxy_ResizeImageEx,
+		VidlibProxy_MoveImage,
+		VidlibProxy_BlatColor,
+		VidlibProxy_BlatColorAlpha,
+		VidlibProxy_BlotImageEx,
+		VidlibProxy_BlotImageSizedEx,
+		VidlibProxy_plot)      ( Image pi, S_32 x, S_32 y, CDATA c );
 /*Internal
    Interface index 22*/   DIMAGE_PROC_PTR( void,plotalpha) ( Image pi, S_32 x, S_32 y, CDATA c );
 /*Internal
@@ -1429,9 +1360,11 @@ IMAGE_PROC_PTR( void, SetImageTransformRelation )( Image pImage, enum image_tran
 IMAGE_PROC_PTR( void, Render3dImage )( Image pImage, PCVECTOR o, LOGICAL render_pixel_scaled );
 IMAGE_PROC_PTR( void, DumpFontFile )( CTEXTSTR name, SFTFont font_to_dump );
 IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA color, SFTFont font, VECTOR o, LOGICAL render_pixel_scaled );
+#endif
 };
 
 static IMAGE_3D_INTERFACE Proxy3dImageInterface = {
+   NULL
 };
 
 static POINTER CPROC GetProxyDisplayInterface( void )

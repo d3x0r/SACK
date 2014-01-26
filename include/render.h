@@ -1325,10 +1325,6 @@ struct render_interface_tag
        
        \ \                                                   */
     RENDER_PROC_PTR( void , SetDisplaySize)      ( _32 width, _32 height );
-    /* \Internal Function - used when idling on the thread from the
-       video render process. This is handled by calling Idle() to
-       wait.                                                        */
-    RENDER_PROC_PTR( int , ProcessDisplayMessages)      (void);
 
     /* <combine sack::image::render::OpenDisplaySizedAt@_32@_32@_32@S_32@S_32>
        
@@ -1694,7 +1690,6 @@ typedef int check_this_variable;
 #define MarkDisplayUpdated            REND_PROC_ALIAS(MarkDisplayUpdated)
 #define SetDisplaySize            REND_PROC_ALIAS(SetDisplaySize)
 #define GetDisplayPosition        REND_PROC_ALIAS(GetDisplayPosition)
-#define ProcessDisplayMessages    REND_PROC_ALIAS(ProcessDisplayMessages)
 #define IssueUpdateLayeredEx      REND_PROC_ALIAS(IssueUpdateLayeredEx)
 
 #define MakeDisplayFrom        REND_PROC_ALIAS(MakeDisplayFrom)
@@ -1807,7 +1802,6 @@ typedef int check_this_variable;
 #define MSG_GetDisplaySize            MSG_ID(GetDisplaySize)
 #define MSG_SetDisplaySize            MSG_ID(SetDisplaySize)
 #define MSG_GetDisplayPosition        MSG_ID(GetDisplayPosition)
-//, #define MSG_ProcessDisplayMessage
 #define MSG_OpenDisplaySizedAt        MSG_ID(OpenDisplaySizedAt)
 #define MSG_OpenDisplayAboveSizedAt   MSG_ID(OpenDisplayAboveSizedAt)
 #define MSG_CloseDisplay              MSG_ID(CloseDisplay)

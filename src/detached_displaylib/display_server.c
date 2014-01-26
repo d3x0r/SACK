@@ -723,7 +723,6 @@ static SERVER_FUNCTION MyMessageHandlerTable[] = {
 , ServerFunctionEntry( DoNothing )
 , ServerFunctionEntry( ServerGetDisplaySize )
 , ServerFunctionEntry( ServerSetDisplaySize )
-, ServerFunctionEntry( DoNothing ) // this is ProcessDisplayMessages() - will never be activated client-side.
 , ServerFunctionEntry( ServerOpenDisplaySizedAt )
 , ServerFunctionEntry( ServerOpenDisplayAboveSizedAt )
 , ServerFunctionEntry( ServerCloseDisplay )

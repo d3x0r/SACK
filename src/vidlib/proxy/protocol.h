@@ -38,7 +38,7 @@ enum proxy_message_id{
 							, PMID_SetApplicationTitle
                      , PMID_SetApplicationIcon
 
-							, PMID_OpenDisplayAboveSizedAt
+							, PMID_OpenDisplayAboveUnderSizedAt
 							, PMID_CloseDisplay
 #if 0
     RENDER_PROC_PTR( void, UpdateDisplayPortionEx) ( PRENDERER, S_32 x, S_32 y, _32 width, _32 height DBG_PASS );
@@ -351,4 +351,7 @@ enum proxy_message_id{
 							, PMID_GetRenderTransform = PMID_LAST_PROXY_MESSAGE
 							, PMID_ClipPoints
 							, PMID_GetViewVolume
+
+							, PMID_MakeImageFile
+                     , PMID_MakeSubImageFile
 };

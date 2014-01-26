@@ -2419,10 +2419,7 @@ RENDER_PROC( int, ProcessDisplayMessages )( PTRSZVAL idleproc )
 	}
 	return 1;
 #else // not __SDL__ (therefore windwos?)
-	if( g.RenderInterface
-	  && g.RenderInterface->_ProcessDisplayMessages )
-		return g.RenderInterface->_ProcessDisplayMessages();
-   return 0;
+	return 0;
 #endif
 }
 #endif
