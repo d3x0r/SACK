@@ -852,7 +852,6 @@ RENDER_INTERFACE MyDisplayInterface = {
 , SetApplicationIcon
 , GetDisplaySize
 , SetDisplaySize
-, ProcessDisplayMessages
 , OpenDisplaySizedAt
 , OpenDisplayAboveSizedAt
 , CloseDisplay

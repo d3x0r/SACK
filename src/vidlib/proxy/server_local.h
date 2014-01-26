@@ -2,7 +2,7 @@
 #include <network.h>
 #include "protocol.h"
 
-struct vidlib_proxy_image
+typedef struct vidlib_proxy_image
 {
 	int x, y, w, h;
 	int string_mode;
@@ -21,11 +21,12 @@ struct vidlib_proxy_image
 
 } *PVPImage;
 
-struct vidlib_proxy_renderer
+typedef struct vidlib_proxy_renderer
 {
 	_32 w, h;
 	S_32 x, y;
 	_32 attributes;
+   struct vidlib_proxy_renderer *above, *under;
    PLIST remote_render_id;  // this is synced with same index as l.clients
 } *PVPRENDER;
 

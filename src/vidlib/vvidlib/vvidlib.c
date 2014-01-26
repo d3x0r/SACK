@@ -607,7 +607,6 @@ PRELOAD( InitMe )
 	RENDER_PROC_PTR( void , SetApplicationIcon)  (Image Icon) )DoNothing; //
 	RENDER_PROC_PTR( void , GetDisplaySize)      ( _32 *width, _32 *height ) )GetDisplaySize;
 	RENDER_PROC_PTR( void , SetDisplaySize)      ( _32 width, _32 height ) )DoNothing;
-	RENDER_PROC_PTR( int , ProcessDisplayMessages)      (void) )DoNothing;
 
 	RENDER_PROC_PTR( PRENDERER , OpenDisplaySizedAt)     ( _32 attributes, _32 width, _32 height, S_32 x, S_32 y ) )OpenDisplaySizedAt;
 	RENDER_PROC_PTR( PRENDERER , OpenDisplayAboveSizedAt)( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above ) )OpenDisplayAboveSizedAt;

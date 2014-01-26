@@ -290,8 +290,6 @@ mng_bool MNG_DECL my_mng_refresh (mng_handle hHandle
 	//UpdateDisplay( renderer );
 	UpdateDisplayPortion(renderer, animation->ix, animation->iy, animation->iw, animation->ih);
 
-	//	ProcessDisplayMessages();
-
 #ifdef DEBUG_TIMING
 	Log( "EndUpdate" );
 #endif

@@ -3431,7 +3431,6 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
                                        , (void (CPROC*)(Image)) SetApplicationIcon
                                        , GetDisplaySize
                                        , SetDisplaySize
-                                       , ProcessDisplayMessages
                                        , (PRENDERER (CPROC*)(_32, _32, _32, S_32, S_32)) OpenDisplaySizedAt
                                        , (PRENDERER (CPROC*)(_32, _32, _32, S_32, S_32, PRENDERER)) OpenDisplayAboveSizedAt
                                        , (void (CPROC*)(PRENDERER)) CloseDisplay

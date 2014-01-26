@@ -303,7 +303,6 @@ RENDER_DATA( RENDER_INTERFACE, VideoInterface ) =
 	,SetApplicationIcon 
 	,GetDisplaySize
 	,SetDisplaySize     
-	,NULL//ProcessDisplayMessages
                    
 	,(PRENDERER  CPROC (*)( _32, _32, _32, S_32, S_32 ))OpenDisplaySizedAt
 	,(PRENDERER  CPROC (*)( _32, _32, _32, S_32, S_32, PRENDERER ))OpenDisplayAboveSizedAt
