@@ -64,7 +64,6 @@ void CPROC DrawProc( PTRSZVAL psv, PRENDERER renderer )
 	int n;
    if( background )
    BlotScaledImage( GetDisplayImage( renderer ), background );
-	//ClearDisplay( renderer );
   // ProcessMotion();
 	//printf( WIDE("... %d\n"), rot >> 16 );
 	//lprintf( WIDE("image") );
@@ -79,7 +78,6 @@ void CPROC DrawProc( PTRSZVAL psv, PRENDERER renderer )
 void CPROC DrawProc( PTRSZVAL psv, PRENDERER renderer )
 {
    int n;
-	ClearDisplay( renderer );
    ProcessMotion();
 	//printf( WIDE("... %d\n"), rot >> 16 );
 	//lprintf( WIDE("image") );

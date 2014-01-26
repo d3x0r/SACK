@@ -659,14 +659,8 @@ enum DisplayAttributes {
 	    physical display.
 	                                                          */
 	 RENDER_PROC( void , UpdateDisplayEx)        ( PRENDERER DBG_PASS );
-/* <combine sack::image::render::UpdateDisplayEx@PRENDERER>
-   
-   \ \                                                      */
-#define UpdateDisplay(v) UpdateDisplayEx( v DBG_SRC )
-                             
-    RENDER_PROC( void , ClearDisplay)         ( PRENDERER ); // ClearTo(0), Update
-   
-    /* Gets the current location and size of a display.
+#define UpdateDisplay(r) UpdateDisplayEx(r DBG_SRC)
+/* Gets the current location and size of a display.
        Parameters
        hVideo :  display to get the position of
        x :       pointer to a signed 32 bit value to get the left
@@ -1358,10 +1352,6 @@ struct render_interface_tag
        \ \                                                      */
     RENDER_PROC_PTR( void, UpdateDisplayEx)        ( PRENDERER DBG_PASS);
                              
-    RENDER_PROC_PTR( void, ClearDisplay)         ( PRENDERER ); /* <combine sack::image::render::ClearDisplay@PRENDERER>
-                                                   
-                                                   \ \                                                   */
-   
     /* <combine sack::image::render::GetDisplayPosition@PRENDERER@S_32 *@S_32 *@_32 *@_32 *>
        
        \ \                                                                                   */
@@ -1714,7 +1704,6 @@ typedef int check_this_variable;
 #define CloseDisplay              REND_PROC_ALIAS(CloseDisplay)
 #define UpdateDisplayPortionEx    REND_PROC_ALIAS(UpdateDisplayPortionEx)
 #define UpdateDisplayEx             REND_PROC_ALIAS(UpdateDisplayEx)
-#define ClearDisplay              REND_PROC_ALIAS(ClearDisplay)
 #define SetMousePosition          REND_PROC_ALIAS(SetMousePosition)
 #define GetMousePosition          REND_PROC_ALIAS(GetMousePosition)
 #define GetMouseState          REND_PROC_ALIAS(GetMouseState)
@@ -1824,7 +1813,6 @@ typedef int check_this_variable;
 #define MSG_CloseDisplay              MSG_ID(CloseDisplay)
 #define MSG_UpdateDisplayPortionEx    MSG_ID(UpdateDisplayPortionEx)
 #define MSG_UpdateDisplay             MSG_ID(UpdateDisplayEx)
-#define MSG_ClearDisplay              MSG_ID(ClearDisplay)
 #define MSG_SetMousePosition          MSG_ID(SetMousePosition)
 #define MSG_GetMousePosition          MSG_ID(GetMousePosition)
 #define MSG_GetMouseState             MSG_ID(GetMouseState )

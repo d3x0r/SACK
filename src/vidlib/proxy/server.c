@@ -274,9 +274,6 @@ static void VidlibProxy_UpdateDisplayPortionEx( PRENDERER, S_32 x, S_32 y, _32 w
 
     RENDER_PROC_PTR( void, VidlibProxy_UpdateDisplayEx)        ( PRENDERER DBG_PASS);
                              
-    RENDER_PROC_PTR( void, VidlibProxy_ClearDisplay)         ( PRENDERER ); /* <combine sack::image::render::ClearDisplay@PRENDERER>
-                                                   
-                                                   \ \                                                   */
    
     /* <combine sack::image::render::GetDisplayPosition@PRENDERER@S_32 *@S_32 *@_32 *@_32 *>
        
@@ -562,10 +559,9 @@ static RENDER_INTERFACE ProxyInterface = {
 													  , VidlibProxy_OpenDisplaySizedAt
 													  , VidlibProxy_OpenDisplayAboveSizedAt
 													  , VidlibProxy_CloseDisplay
+#if 0
 													  , VidlibProxy_UpdateDisplayPortionEx
 													  , VidlibProxy_UpdateDisplayEx
-
-													  , VidlibProxy_ClearDisplay
 													  , VidlibProxy_GetDisplayPosition
 													  , VidlibProxy_MoveDisplay
 													  , VidlibProxy_MoveDisplayRel
@@ -675,7 +671,7 @@ static RENDER_INTERFACE ProxyInterface = {
 		 /* added for android extensions; call to enable hiding the keyboard in the correct thread
 		  ; may have applications for windows tablets */
        RENDER_PROC_PTR( void, SACK_Vidlib_HideInputDevice )( void );
-
+#endif
 };
 
 static RENDER3D_INTERFACE Proxy3dInterface = {

@@ -254,16 +254,6 @@ static int CPROC ServerUpdateDisplay( _32 *params, _32 param_length
    return TRUE;
 }
 
-static int CPROC ServerClearDisplay( _32 *params, _32 param_length
-										, _32 *result, _32 *result_length )
-{
-	PDISPLAY_TRACKING display = GetTrackedDisplay(  params[0] );;
-   if( display )
-		ClearDisplay( display->hDisplay );
-   *result_length = INVALID_INDEX;
-   return TRUE;
-}
-
 static int CPROC ServerMoveDisplay( _32 *params, _32 param_length
 									  , _32 *result, _32 *result_length )
 {
@@ -738,7 +728,6 @@ static SERVER_FUNCTION MyMessageHandlerTable[] = {
 , ServerFunctionEntry( ServerCloseDisplay )
 , ServerFunctionEntry( ServerUpdateDisplayPortionEx )
 , ServerFunctionEntry( ServerUpdateDisplay )
-, ServerFunctionEntry( ServerClearDisplay )
 , ServerFunctionEntry( DoNothing )
 , ServerFunctionEntry( ServerMoveDisplay )
 , ServerFunctionEntry( ServerMoveDisplayRel )

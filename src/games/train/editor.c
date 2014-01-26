@@ -293,7 +293,7 @@ void EditResizeCallback( PTRSZVAL dwUser  )
 	int l;
    Image pImage = GetDisplayImage( pe->hVideo );
    // ShowCurrent();
-   ClearDisplay( pe->hVideo );
+   ClearImage( pImage );
    {
       RECT r;
       GetWindowRect( GetNativeHandle( pe->hVideo ), &r );

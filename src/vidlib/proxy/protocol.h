@@ -47,7 +47,6 @@ enum proxy_message_id{
        \ \                                                      */
     RENDER_PROC_PTR( void, UpdateDisplayEx)        ( PRENDERER DBG_PASS);
                              
-    RENDER_PROC_PTR( void, ClearDisplay)         ( PRENDERER ); /* <combine sack::image::render::ClearDisplay@PRENDERER>
                                                    
                                                    \ \                                                   */
    

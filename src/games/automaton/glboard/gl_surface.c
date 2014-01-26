@@ -29,7 +29,6 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
                                        , (void CPROC (*)(PRENDERER)) CloseDisplay
                                        , (void CPROC (*)(PRENDERER, S_32, S_32, _32, _32 DBG_PASS)) UpdateDisplayPortionEx
                                        , (void CPROC (*)(PRENDERER)) UpdateDisplay
-                                       , (void CPROC (*)(PRENDERER)) ClearDisplay
                                        , GetDisplayPosition
                                        , (void CPROC (*)(PRENDERER, S_32, S_32)) MoveDisplay
                                        , (void CPROC (*)(PRENDERER, S_32, S_32)) MoveDisplayRel
