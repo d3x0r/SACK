@@ -658,11 +658,11 @@ void json_add_object_member_array_pointer( struct json_context_object *object
 
 //----------------------------------------------------------------------------------------------
 
-CTEXTSTR json_build_message( struct json_context_object *object
+TEXTSTR json_build_message( struct json_context_object *object
 									, POINTER msg )
 {
 	struct json_context *context = object->context;
-	CTEXTSTR result;
+	TEXTSTR result;
 	int n;
 	INDEX idx;
 	struct json_context_object_element *member;
