@@ -1,15 +1,46 @@
 
+#ifdef _MSC_VER
+#pragma pack (push, 1)
+#endif
+#ifndef UNALIGNED
+#define UNALIGNED
+#endif
+
+#define MSGBLOCK(type,...) struct commsg_##type { __VA_ARGS__ } type
+
+PREFIX_PACKED struct common_message {
+	_8 message_id;
+	union
+	{
+		TEXTCHAR UNALIGNED text[1];  // actually is more than one
+		MSGBLOCK( version,
+					_8 bits;
+					 _8 unicode;
+					 _8 number; );
+		MSGBLOCK( open_display,
+					POINTER server_display_id;
+					 S_32 x, y;
+					 S_32 w, h;
+					 _32 attr;
+					 POINTER above;
+					 POINTER under;
+				  );
+		MSGBLOCK( open_display_reply,  POINTER server_display_id; );
+	} data;
+} PACKED;
+
+#ifdef _MSC_VER
+#pragma pack (pop)
+#endif
+
 enum proxy_message_id{
-	, PMID_Version
+	     PMID_Version
 							, PMID_SetApplicationTitle
                      , PMID_SetApplicationIcon
 
 							, PMID_OpenDisplayAboveSizedAt
 							, PMID_CloseDisplay
-
-    /* <combine sack::image::render::UpdateDisplayPortionEx@PRENDERER@S_32@S_32@_32@_32 height>
-       
-       \ \                                                                                      */
+#if 0
     RENDER_PROC_PTR( void, UpdateDisplayPortionEx) ( PRENDERER, S_32 x, S_32 y, _32 width, _32 height DBG_PASS );
     /* <combine sack::image::render::UpdateDisplayEx@PRENDERER>
        
@@ -312,8 +343,8 @@ enum proxy_message_id{
 		  ; may have applications for windows tablets */
        RENDER_PROC_PTR( void, SACK_Vidlib_HideInputDevice )( void );
 
-
-							, LAST_PROXY_MESSAGE
+#endif
+							, PMID_LAST_PROXY_MESSAGE
 
 							//};
 

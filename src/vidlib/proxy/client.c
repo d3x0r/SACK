@@ -1,6 +1,9 @@
 #include <stdhdrs.h>
 
-#define USE_RENDER_INTERFACE
+#define USE_RENDER_INTERFACE l.pri
+#define USE_IMAGE_INTERFACE l.pii
+#define USE_RENDER3D_INTERFACE l.pr3i
+#define USE_IMAGE_3D_INTERFACE l.pi3i
 #include <render.h>
 #include <render3d.h>
 
@@ -34,18 +37,12 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, int size )
 		}
 		else
 		{
-			PACKED_PREFIX struct common_message {
-				_8 message_id;
-				union
-				{
-               TEXTCHAR text[1];  // actually is more than one
-				} data;
-			} PACKED *msg = (struct common_message*)state->buffer;
+			struct common_message *msg = (struct common_message*)state->buffer;
 			state->flags.get_length = 1;
 			switch( msg->message_id )
 			{
 			case PMID_SetApplicationTitle:
-            SetApplicationTitle( msg.data.text );
+            SetApplicationTitle( msg->data.text );
             break;
 			}
 		}
@@ -64,8 +61,8 @@ static void CPROC SocketClose( PCLIENT pc )
 
 SaneWinMain( argc, argv )
 {
-	StartNetwork();
-	l.service = OpenTCPClientExx( argv[1]?argv[1]:"127.0.0.1", 4241, SocketRead, SocketClose, NULL );
+	NetworkStart();
+	l.service = OpenTCPClientExx( argv[1]?argv[1]:WIDE("127.0.0.1"), 4241, SocketRead, SocketClose, NULL, NULL );
 	while( l.service )
 	{
 		l.pri = GetDisplayInterface();
@@ -78,5 +75,5 @@ SaneWinMain( argc, argv )
 	}
    return 0;
 }
-
+EndSaneWinMain()
 

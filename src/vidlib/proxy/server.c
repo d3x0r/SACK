@@ -1,18 +1,20 @@
 
 #include <render.h>
 #include <render3d.h>
-
+#include <html5.websocket.h>
+#include <json_emitter.h>
 #include "server_local.h"
 
 static struct json_context_object *WebSockInitJson( enum proxy_message_id message )
 {
 	struct json_create_object *cto;
+	struct json_create_object *cto_data;
 	if( !l.json_context )
 		l.json_context = json_create_context();
 	cto = json_create_object( l.json_context, 0 );
-	SetLink( &l.messages, ctc );
-	json_add_object_member( ctc, WIDE("MsgID"), 0, JSON_Element_Unsigned_Integer_8, 0 );
-	struct json_create_object *cto_data = json_add_object_member( ctc, WIDE( "data" ), 0, JSON_Element_Object, 0 );
+	SetLink( &l.messages, (int)message, cto );
+	json_add_object_member( cto, WIDE("MsgID"), 0, JSON_Element_Unsigned_Integer_8, 0 );
+	cto_data = json_add_object_member( cto, WIDE( "data" ), 0, JSON_Element_Object, 0 );
 	switch( message )
 	{
 	case PMID_Version:

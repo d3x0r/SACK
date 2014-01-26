@@ -17,7 +17,7 @@ struct vidlib_proxy_image
 
 	size_t available;
 	size_t used;
-	P_8 draw_commands;
+	P_8 draw_command_buffer;
 
 } *PVPImage;
 
@@ -34,11 +34,13 @@ struct vidlib_proxy_local
 	PCLIENT listener;
 	PCLIENT web_listener;
 	PLIST clients;
+   PLIST web_clients;
 	TEXTSTR application_title;
 	PLIST renderers;
 	PLIST web_renderers;
 	PLIST images;
 	struct json_context *json_context;
+   PLIST messages;
 } l;
 
 

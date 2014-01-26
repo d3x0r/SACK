@@ -74,6 +74,7 @@ service_hook.h
 html5.canvas.h
 html5.websocket.h
 html5.websocket.client.h
+json_emitter.h
 )
 
 # sqlite3.h
