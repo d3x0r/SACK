@@ -352,6 +352,8 @@ enum proxy_message_id{
 							, PMID_ClipPoints
 							, PMID_GetViewVolume
 
-							, PMID_MakeImageFile
-                     , PMID_MakeSubImageFile
+						, PMID_MakeImageFile
+						, PMID_MakeSubImageFile
+						, PMID_LoadImageFileFromGroup
+						, PMID_UnmakeImageFile
 };

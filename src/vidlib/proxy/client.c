@@ -10,20 +10,20 @@
 #include "client_local.h"
 
 
-static void CPROC SocketRead( PCLIENT pc, POINTER buffer, int size )
+static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 {
 	struct client_socket_state *state;
 	if( !buffer )
 	{
-		struct client_socket_state *state = New(struct client_socket_state);
+		state = New(struct client_socket_state);
 		MemSet( state, 0, sizeof( struct client_socket_state ) );
 		state->flags.get_length = 1;
 		state->buffer = NewArray( _8, 1024 );
-      SetNetworkLong( pc, 0, (PTRSZVAL)state );
+		SetNetworkLong( pc, 0, (PTRSZVAL)state );
 	}
 	else
 	{
-		struct client_socket_state *state = (struct client_socket_state*)GetNetworkLong( pc, 0 );
+		state = (struct client_socket_state*)GetNetworkLong( pc, 0 );
 		if( state->flags.get_length )
 		{
 			if( state->read_length < 255 )
@@ -47,16 +47,16 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, int size )
 			}
 		}
 	}
-   if( state->flags.get_length )
+	if( state->flags.get_length )
 		ReadTCPMsg( pc, &state->read_length, 4 );
-   else
+	else
 		ReadTCP( pc, state->buffer, state->read_length );
 }
 
 static void CPROC SocketClose( PCLIENT pc )
 {
 	l.service = NULL;
-   WakeThread( l.main );
+	WakeThread( l.main );
 }
 
 SaneWinMain( argc, argv )
