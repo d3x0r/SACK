@@ -1,5 +1,6 @@
 
 #include <network.h>
+#include <image3d.h>
 #include "protocol.h"
 
 struct client_socket_state
