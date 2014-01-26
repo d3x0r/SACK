@@ -1,5 +1,6 @@
 
 enum proxy_message_id{
+	, PMID_Version
 							, PMID_SetApplicationTitle
                      , PMID_SetApplicationIcon
 

@@ -100,7 +100,7 @@ JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_object )
 
 
 // take a object format and a pointer to data and return a json message string
-JSON_EMITTER_PROC( CTEXTSTR, json_build_message )( struct json_context_object *format
+JSON_EMITTER_PROC( TEXTSTR, json_build_message )( struct json_context_object *format
 																 , POINTER msg );
 
 // take a json string and a format and fill in a structure from the text.
