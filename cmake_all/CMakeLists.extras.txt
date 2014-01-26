@@ -31,6 +31,10 @@ set( PROJECT ChainReaction )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/ChainReact INSTALL ${EXTRA_FLAGS} )
 add_dependencies( ${LAST_TARGET} Buildcore )
 
+set( PROJECT VidlibProxy )
+BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/vidlib/proxy INSTALL ${EXTRA_FLAGS} )
+add_dependencies( ${LAST_TARGET} Buildcore )
+
 if( NOT MINGW )
 set( PROJECT router )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/router INSTALL ${EXTRA_FLAGS} )
