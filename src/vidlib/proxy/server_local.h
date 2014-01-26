@@ -18,7 +18,10 @@ typedef struct vidlib_proxy_image
 	size_t available;
 	size_t used;
 	P_8 draw_command_buffer;
-
+	
+	INDEX filegroup;
+	TEXTSTR filename;
+	Image image;
 } *PVPImage;
 
 typedef struct vidlib_proxy_renderer
@@ -26,8 +29,8 @@ typedef struct vidlib_proxy_renderer
 	_32 w, h;
 	S_32 x, y;
 	_32 attributes;
-   struct vidlib_proxy_renderer *above, *under;
-   PLIST remote_render_id;  // this is synced with same index as l.clients
+	struct vidlib_proxy_renderer *above, *under;
+	PLIST remote_render_id;  // this is synced with same index as l.clients
 } *PVPRENDER;
 
 struct vidlib_proxy_local
@@ -35,13 +38,14 @@ struct vidlib_proxy_local
 	PCLIENT listener;
 	PCLIENT web_listener;
 	PLIST clients;
-   PLIST web_clients;
+	PLIST web_clients;
 	TEXTSTR application_title;
 	PLIST renderers;
 	PLIST web_renderers;
 	PLIST images;
 	struct json_context *json_context;
-   PLIST messages;
+	PLIST messages;
+	PIMAGE_INTERFACE real_interface;
 } l;
 
 

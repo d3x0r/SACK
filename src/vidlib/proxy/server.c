@@ -9,8 +9,8 @@
 
 static struct json_context_object *WebSockInitJson( enum proxy_message_id message )
 {
-	struct json_create_object *cto;
-	struct json_create_object *cto_data;
+	struct json_context_object *cto;
+	struct json_context_object *cto_data;
 	if( !l.json_context )
 		l.json_context = json_create_context();
 	cto = json_create_object( l.json_context, 0 );
@@ -29,112 +29,110 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 	return cto;
 }
 
-static void WebSockSendMessage( enum proxy_message_id message, ... )
+
+static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id message, va_list args )
 {
 	INDEX idx;
 	PCLIENT client;
 	TEXTSTR json_msg;
-	struct json_context_object *cto = GetLink( &l.messages, message );
-	if( !cto )
-		cto = WebSockInitJson( message );
-	LIST_FORALL( l.web_clients, idx, PCLIENT, client )
+	struct json_context_object *cto;
+	if( websock )
 	{
-		switch( message )
-		{
-		case PMID_Version:
-			{
-				int sendlen;
-				_8 *msg = NewArray( _8, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
-				StrCpy( msg + 1, l.application_title );
-				((_32*)msg)[0] = sendlen - 4;
-				msg[4] = message;
-				json_msg = json_build_message( cto, msg );
-				WebSocketSendText( client, json_msg, StrLen( json_msg ) );
-				Release( msg );
-				Release( json_msg );
-			}
-			break;
-		case PMID_SetApplicationTitle:
-			{
-				int sendlen;
-				_8 *msg = NewArray( _8, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
-				StrCpy( msg + 1, l.application_title );
-				((_32*)msg)[0] = sendlen - 4;
-				msg[4] = message;
-				json_msg = json_build_message( cto, msg );
-				WebSocketSendText( client, json_msg, StrLen( json_msg ) );
-				Release( msg );
-				Release( json_msg );
-			}
-			break;
-		case PMID_CloseDisplay:
-			{
-				int sendlen;
-				va_list args;
-				PVPRENDER render;
-				_8 *msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( POINTER ) ) );
-				va_start( args, message );
-				render = va_arg( args, PVPRENDER );
-				((_32*)msg)[0] = sendlen - 4;
-				msg[4] = message;
-				if( ((POINTER*)(msg+5))[0] = GetLink( &render, idx ) )
-					SendTCP( client, msg, sendlen );
-				Release( msg );
-			}
-			break;
-		}
+		cto = (struct json_context_object *)GetLink( &l.messages, message );
+		if( !cto )
+			cto = WebSockInitJson( message );
 	}
-}
-
-static void SendTCPMessage( enum proxy_message_id message, ... )
-{
-	INDEX idx;
-	PCLIENT client;
+	else
+		cto = NULL;
 	LIST_FORALL( l.clients, idx, PCLIENT, client )
 	{
 		switch( message )
 		{
 		case PMID_Version:
 			{
-				int sendlen;
+				size_t sendlen;
 				_8 *msg = NewArray( _8, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
 				StrCpy( msg + 1, l.application_title );
-				((_32*)msg)[0] = sendlen - 4;
+				((_32*)msg)[0] = (_32)(sendlen - 4);
 				msg[4] = message;
-				SendTCP( client, msg, sendlen );
+				if( websock )
+				{
+					json_msg = json_build_message( cto, msg );
+					WebSocketSendText( client, json_msg, StrLen( json_msg ) );
+					Release( json_msg );
+				}
+				else
+					SendTCP( client, msg, sendlen );
 				Release( msg );
-
 			}
 			break;
 		case PMID_SetApplicationTitle:
 			{
-				int sendlen;
+				size_t sendlen;
 				_8 *msg = NewArray( _8, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
 				StrCpy( msg + 1, l.application_title );
-				((_32*)msg)[0] = sendlen - 4;
+				((_32*)msg)[0] = (_32)(sendlen - 4);
 				msg[4] = message;
-				SendTCP( client, msg, sendlen );
+				if( websock )
+				{
+					json_msg = json_build_message( cto, msg );
+					WebSocketSendText( client, json_msg, StrLen( json_msg ) );
+					Release( json_msg );
+				}
+				else
+					SendTCP( client, msg, sendlen );
 				Release( msg );
 			}
 			break;
 		case PMID_CloseDisplay:
 			{
 				int sendlen;
-				va_list args;
 				PVPRENDER render;
 				_8 *msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( POINTER ) ) );
-				va_start( args, message );
 				render = va_arg( args, PVPRENDER );
 				((_32*)msg)[0] = sendlen - 4;
 				msg[4] = message;
-				if( ((POINTER*)(msg+5))[0] = GetLink( &render, idx ) )
-					SendTCP( client, msg, sendlen );
+				if( ((POINTER*)(msg+5))[0] = GetLink( &render->remote_render_id, idx ) )
+					if( websock )
+					{
+						json_msg = json_build_message( cto, msg );
+						WebSocketSendText( client, json_msg, StrLen( json_msg ) );
+						Release( json_msg );
+					}
+					else
+						SendTCP( client, msg, sendlen );
 				Release( msg );
 			}
 			break;
 		}
 	}
 }
+
+static void SendTCPMessageV( PCLIENT pc, LOGICAL websock, enum proxy_message_id message, ... )
+{
+	va_list args;
+	va_start( args, message );
+	SendTCPMessage( pc, websock, message, args );
+}
+
+static void SendClientMessage( enum proxy_message_id message, ... )
+{
+	INDEX idx;
+	PCLIENT client;
+	LIST_FORALL( l.clients, idx, PCLIENT, client )
+	{
+		va_list args;
+		va_start( args, message );
+		SendTCPMessage( client, FALSE, message, args );
+	}
+	LIST_FORALL( l.web_clients, idx, PCLIENT, client )
+	{
+		va_list args;
+		va_start( args, message );
+		SendTCPMessage( client, TRUE, message, args );
+	}
+}
+
 
 static void CPROC SocketRead( PCLIENT pc, POINTER buffer, int size )
 {
@@ -147,20 +145,20 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, int size )
 	{
 
 	}
-   ReadTCP( pc, buffer, size );
+	ReadTCP( pc, buffer, size );
 }
 
 static void CPROC Connected( PCLIENT pcServer, PCLIENT pcNew )
 {
 	AddLink( &l.clients, pcNew );
 	if( l.application_title )
-		SendTCPMessage( PMID_SetApplicationTitle );
+		SendClientMessage( PMID_SetApplicationTitle );
 	{
 		INDEX idx;
 		PVPRENDER render;
 		LIST_FORALL( l.renderers, idx, PVPRENDER, render )
 		{
-			SendTCPMessage( PMID_OpenDisplayAboveUnderSizedAt, render );
+			SendClientMessage( PMID_OpenDisplayAboveUnderSizedAt, render );
 		}
 	}
 }
@@ -170,13 +168,13 @@ static PTRSZVAL WebSockOpen( PCLIENT pc, PTRSZVAL psv )
 	AddLink( &l.web_clients, pc );
 
 	if( l.application_title )
-		WebSockSendMessage( PMID_SetApplicationTitle );
+		SendTCPMessageV( pc, TRUE, PMID_SetApplicationTitle );
 	{
 		INDEX idx;
 		PVPRENDER render;
 		LIST_FORALL( l.renderers, idx, PVPRENDER, render )
 		{
-			WebSockSendMessage( PMID_OpenDisplayAboveUnderSizedAt, render );
+			SendTCPMessageV( pc, TRUE, PMID_OpenDisplayAboveUnderSizedAt, render );
 		}
 	}
 }
@@ -199,7 +197,7 @@ static void InitService( void )
 	if( !l.listener )
 	{
 		NetworkStart();
-		l.listener = OpenTCPListenerAddrEx( CreateSockAddress( "0.0.0.0", 4241 ), Connected, 0 );
+		l.listener = OpenTCPListenerAddrEx( CreateSockAddress( "0.0.0.0", 4241 ), Connected );
 		l.web_listener = WebSocketCreate( "0.0.0.0:4240/Sack/Vidlib/Proxy"
 													, WebSockOpen
 													, WebSockEvent
@@ -214,17 +212,22 @@ static int VidlibProxy_InitDisplay( void )
 	return TRUE;
 }
 
-static void VidlibProxy_SetApplicationIcon( CTEXTSTR title )
+static void VidlibProxy_SetApplicationIcon( Image icon )
 {
-   // no support
+	// no support
+}
+
+static LOGICAL VidlibProxy_RequiresDrawAll( void )
+{
+	return TRUE;
 }
 
 static void VidlibProxy_SetApplicationTitle( CTEXTSTR title )
 {
 	if( l.application_title )
 		Release( l.application_title );
-	l.application_title = title;
-   SendTCPMessage( PMID_SetApplicationTitle );
+	l.application_title = StrDup( title );
+	SendClientMessage( PMID_SetApplicationTitle );
 }
 
 static void VidlibProxy_GetDisplaySize( _32 *width, _32 *height )
@@ -237,8 +240,8 @@ static void VidlibProxy_GetDisplaySize( _32 *width, _32 *height )
 
 static void VidlibProxy_SetDisplaySize      ( _32 width, _32 height )
 {
-   SACK_WriteProfileInt( "SACK/Vidlib", "Default Display Width", width );
-   SACK_WriteProfileInt( "SACK/Vidlib", "Default Display Height", height );
+	SACK_WriteProfileInt( "SACK/Vidlib", "Default Display Width", width );
+	SACK_WriteProfileInt( "SACK/Vidlib", "Default Display Height", height );
 }
 
 static PRENDERER VidlibProxy_OpenDisplayAboveUnderSizedAt( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above, PRENDERER under )
@@ -247,20 +250,20 @@ static PRENDERER VidlibProxy_OpenDisplayAboveUnderSizedAt( _32 attributes, _32 w
 	PVPRENDER Renderer = New( struct vidlib_proxy_renderer );
 	MemSet( Renderer, 0, sizeof( struct vidlib_proxy_renderer ) );
 	Renderer->x = x;
-   Renderer->y = y;
+	Renderer->y = y;
 	Renderer->w = width;
 	Renderer->h = height;
 	Renderer->attributes = attributes;
 	Renderer->above = (PVPRENDER)above;
 	Renderer->under = (PVPRENDER)under;
 	AddLink( &l.renderers, Renderer );
-   SendTCPMessage( PMID_OpenDisplayAboveUnderSizedAt, Renderer );
+	SendClientMessage( PMID_OpenDisplayAboveUnderSizedAt, Renderer );
 	return (PRENDERER)Renderer;
 }
 
 static PRENDERER VidlibProxy_OpenDisplayAboveSizedAt( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above )
 {
-   return VidlibProxy_OpenDisplayAboveUnderSizedAt( attributes, width, height, x, y, above, NULL );
+	return VidlibProxy_OpenDisplayAboveUnderSizedAt( attributes, width, height, x, y, above, NULL );
 }
 
 static PRENDERER VidlibProxy_OpenDisplaySizedAt     ( _32 attributes, _32 width, _32 height, S_32 x, S_32 y )
@@ -270,7 +273,7 @@ static PRENDERER VidlibProxy_OpenDisplaySizedAt     ( _32 attributes, _32 width,
 
 static void  VidlibProxy_CloseDisplay ( PRENDERER Renderer )
 {
-   SendTCPMessage( PMID_CloseDisplay, Renderer );
+   SendClientMessage( PMID_CloseDisplay, Renderer );
 	DeleteLink( &l.renderers, Renderer );
    Release( Renderer );
 }
@@ -563,7 +566,7 @@ static RENDER_INTERFACE ProxyInterface = {
 	VidlibProxy_InitDisplay
 													  , VidlibProxy_SetApplicationTitle
 													  , VidlibProxy_SetApplicationIcon
-                                         , VidlibProxy_GetDisplaySize
+													  , VidlibProxy_GetDisplaySize
 													  , VidlibProxy_SetDisplaySize
 													  , VidlibProxy_OpenDisplaySizedAt
 													  , VidlibProxy_OpenDisplayAboveSizedAt
@@ -644,18 +647,6 @@ static RENDER_INTERFACE ProxyInterface = {
 	/* Provides a way for applications to cause the window to flush
 	   to the display (if it's a transparent window)                */
 	RENDER_PROC_PTR( void, IssueUpdateLayeredEx )( PRENDERER hVideo, LOGICAL bContent, S_32 x, S_32 y, _32 w, _32 h DBG_PASS );
-	/* Check to see if the render mode is always redraw; changes how
-	   smudge works in PSI. If always redrawn, then the redraw isn't
-	   done during the smudge, and instead is delayed until a draw
-	   is triggered at which time all controls are drawn.
-	   
-	   
-	   
-	   
-	   Returns
-	   TRUE if full screen needs to be drawn during a draw,
-	   otherwise partial updates may be done.                        */
-	RENDER_PROC_PTR( LOGICAL, RequiresDrawAll )( void );
 #ifndef NO_TOUCH
 		/* <combine sack::image::render::SetTouchHandler@PRENDERER@fte inc asdfl;kj
 		 fteTouchCallback@PTRSZVAL>
@@ -683,6 +674,12 @@ static RENDER_INTERFACE ProxyInterface = {
 #endif
 };
 
+static void InitProxyInterface( void )
+{
+	ProxyInterface._RequiresDrawAll = VidlibProxy_RequiresDrawAll;
+
+}
+
 static RENDER3D_INTERFACE Proxy3dInterface = {
    NULL
 };
@@ -700,11 +697,12 @@ static Image CPROC VidlibProxy_BuildImageFileEx ( PCOLOR pc, _32 width, _32 heig
 {
 	PVPImage image = New( struct vidlib_proxy_image );
 	MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
-   lprintf( "CRITICAL; BuildImageFile is not possible" );
+	lprintf( "CRITICAL; BuildImageFile is not possible" );
 	image->w = width;
 	image->h = height;
-	SendTCPMessage( PMID_MakeImageFile );
+	SendClientMessage( PMID_MakeImageFile, image );
 	AddLink( &l.images, image );
+	return (Image)image;
 }
 
 static Image CPROC VidlibProxy_MakeImageFileEx (_32 Width, _32 Height DBG_PASS)
@@ -713,8 +711,9 @@ static Image CPROC VidlibProxy_MakeImageFileEx (_32 Width, _32 Height DBG_PASS)
 	MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
 	image->w = Width;
 	image->h = Height;
-	SendTCPMessage( PMID_MakeImageFile );
+	SendClientMessage( PMID_MakeImageFile, image );
 	AddLink( &l.images, image );
+	return (Image)image;
 }
 
 static Image CPROC VidlibProxy_MakeSubImageEx  ( Image pImage, S_32 x, S_32 y, _32 width, _32 height DBG_PASS )
@@ -731,26 +730,60 @@ static Image CPROC VidlibProxy_MakeSubImageEx  ( Image pImage, S_32 x, S_32 y, _
 		image->next->prior = image;
 	((PVPImage)pImage)->child = image;
 
-	SendTCPMessage( PMID_MakeSubImageFile );
+	SendClientMessage( PMID_MakeSubImageFile, image );
 
 	return (Image)image;
 }
 
 static Image CPROC VidlibProxy_RemakeImageEx    ( Image pImage, PCOLOR pc, _32 width, _32 height DBG_PASS)
 {
+	PVPImage image;
+	if( !(image = (PVPImage)pImage ) )
+	{
+		image = New( struct vidlib_proxy_image );
+		MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
+	}
+	lprintf( "CRITICAL; RemakeImageFile is not possible" );
+	image->w = width;
+	image->h = height;
+	if( !pImage )
+		SendClientMessage( PMID_MakeImageFile, image );
+	AddLink( &l.images, image );
+	return (Image)image;
 }
+
+static Image CPROC VidlibProxy_LoadImageFileFromGroupEx( INDEX group, CTEXTSTR filename DBG_PASS )
+{
+	PVPImage image = New( struct vidlib_proxy_image );
+	MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
+	image->filegroup = group;
+	image->filename = StrDup( filename );
+	image->image = l.real_interface->_LoadImageFileFromGroupEx( group, filename DBG_RELAY );
+	image->w = image->image->actual_width;
+	image->h = image->image->actual_height;
+	SendClientMessage( PMID_LoadImageFileFromGroup, image );
+	AddLink( &l.images, image );
+	return (Image)image;
+}
+
+static Image CPROC VidlibProxy_LoadImageFileEx( CTEXTSTR filename DBG_PASS )
+{
+	return VidlibProxy_LoadImageFileFromGroupEx( 0, filename DBG_RELAY );
+}
+
+
+
 /* <combine sack::image::LoadImageFileEx@CTEXTSTR name>
    
    Internal
    Interface index 10                                                   */  IMAGE_PROC_PTR( Image,VidlibProxy_LoadImageFileEx)  ( CTEXTSTR name DBG_PASS );
-/* <combine sack::image::UnmakeImageFileEx@Image pif>
-   
-   Internal
-   Interface index 11                                                 */  IMAGE_PROC_PTR( void,VidlibProxy_UnmakeImageFileEx) ( Image pif DBG_PASS );
-/* <combine sack::image::SetImageBound@Image@P_IMAGE_RECTANGLE>
-   
-   Internal
-   Interface index 12                                                           */  IMAGE_PROC_PTR( void ,VidlibProxy_SetImageBound)    ( Image pImage, P_IMAGE_RECTANGLE bound );
+static  void CPROC VidlibProxy_UnmakeImageFileEx( Image pif DBG_PASS )
+{
+	SendClientMessage( PMID_UnmakeImageFile, pif );
+
+	Release( pif );
+}
+ IMAGE_PROC_PTR( void ,VidlibProxy_SetImageBound)    ( Image pImage, P_IMAGE_RECTANGLE bound );
 /* <combine sack::image::FixImagePosition@Image>
    
    Internal
@@ -1039,8 +1072,6 @@ IMAGE_PROC_PTR( struct font_global_tag *, GetGlobalFonts)( void );
    \ \                                                                                                                                                                     */
 IMAGE_PROC_PTR( _32, GetStringRenderSizeFontEx )( CTEXTSTR pString, size_t nLen, _32 *width, _32 *height, _32 *charheight, SFTFont UseFont );
 
-IMAGE_PROC_PTR( Image, LoadImageFileFromGroupEx )( INDEX group, CTEXTSTR filename DBG_PASS );
-
 IMAGE_PROC_PTR( SFTFont, RenderScaledFont )( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags );
 IMAGE_PROC_PTR( SFTFont, RenderScaledFontEx )( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags, size_t *pnFontDataSize, POINTER *pFontData );
 
@@ -1083,9 +1114,9 @@ static IMAGE_INTERFACE ProxyImageInterface = {
 		VidlibProxy_MakeImageFileEx,
 		VidlibProxy_MakeSubImageEx,
 		VidlibProxy_RemakeImageEx,
-#if 0
 		VidlibProxy_LoadImageFileEx,
 		VidlibProxy_UnmakeImageFileEx,
+#if 0
 		VidlibProxy_SetImageBound,
 		VidlibProxy_FixImagePosition,
 		VidlibProxy_ResizeImageEx,
@@ -1363,8 +1394,68 @@ IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA col
 #endif
 };
 
+static COLOR_CHANNEL CPROC VidlibProxy_GetRedValue( CDATA color )
+{
+	return (color & 0xFF ) >> 0;
+}
+
+static COLOR_CHANNEL CPROC VidlibProxy_GetGreenValue( CDATA color )
+{
+	return (COLOR_CHANNEL)((color & 0xFF00 ) >> 8);
+}
+
+static COLOR_CHANNEL CPROC VidlibProxy_GetBlueValue( CDATA color )
+{
+	return (COLOR_CHANNEL)((color & 0x00FF0000 ) >> 16);
+}
+
+static COLOR_CHANNEL CPROC VidlibProxy_GetAlphaValue( CDATA color )
+{
+	return (COLOR_CHANNEL)((color & 0xFF000000 ) >> 24);
+}
+
+static CDATA CPROC VidlibProxy_MakeAlphaColor( COLOR_CHANNEL r, COLOR_CHANNEL grn, COLOR_CHANNEL b, COLOR_CHANNEL alpha )
+{
+#  ifdef _WIN64
+#    define _AND_FF &0xFF
+#  else
+/* This is a macro to cure a 64bit warning in visual studio. */
+#    define _AND_FF
+#  endif
+#define _AColor( r,g,b,a ) (((_32)( ((_8)((b)_AND_FF))|((_16)((_8)((g))_AND_FF)<<8))|(((_32)((_8)((r))_AND_FF)<<16)))|(((a)_AND_FF)<<24))
+	return _AColor( r, grn, b, alpha );
+}
+
+static CDATA CPROC VidlibProxy_MakeColor( COLOR_CHANNEL r, COLOR_CHANNEL grn, COLOR_CHANNEL b )
+{
+	return VidlibProxy_MakeAlphaColor( r,grn,b, 0xFF );
+}
+
+static CDATA CPROC VidlibProxy_getpixel( Image image, S_32 x, S_32 y )
+{
+	PVPImage my_image = (PVPImage)image;
+	if( my_image )
+	{
+		return (*l.real_interface->_getpixel)( my_image->image, x, y );
+	}
+	return 0;
+}
+
+static void InitImageInterface( void )
+{
+	static CDATA (CPROC* _getpixel)( Image image, S_32 x, S_32 y ) =  VidlibProxy_getpixel;
+	ProxyImageInterface._GetRedValue = VidlibProxy_GetRedValue;
+	ProxyImageInterface._GetGreenValue = VidlibProxy_GetGreenValue;
+	ProxyImageInterface._GetBlueValue = VidlibProxy_GetBlueValue;
+	ProxyImageInterface._GetAlphaValue = VidlibProxy_GetAlphaValue;
+	ProxyImageInterface._MakeColor = VidlibProxy_MakeColor;
+	ProxyImageInterface._MakeAlphaColor = VidlibProxy_MakeAlphaColor;
+	ProxyImageInterface._LoadImageFileFromGroupEx = VidlibProxy_LoadImageFileFromGroupEx;
+	ProxyImageInterface._getpixel = &_getpixel;
+}
+
 static IMAGE_3D_INTERFACE Proxy3dImageInterface = {
-   NULL
+	NULL
 };
 
 static POINTER CPROC GetProxyDisplayInterface( void )
@@ -1405,13 +1496,16 @@ static void CPROC Drop3dProxyImageInterface( POINTER i )
    // close connections
 }
 
-PRELOAD( RegisterProxyInterface )
+PRIORITY_PRELOAD( RegisterProxyInterface, VIDLIB_PRELOAD_PRIORITY )
 {
-   	RegisterInterface( WIDE( "sack.image.proxy.server" ), GetProxyImageInterface, DropProxyImageInterface );
-   	RegisterInterface( WIDE( "sack.image.3d.proxy.server" ), Get3dProxyImageInterface, Drop3dProxyImageInterface );
-   	RegisterInterface( WIDE( "sack.render.proxy.server" ), GetProxyDisplayInterface, DropProxyDisplayInterface );
-   	RegisterInterface( WIDE( "sack.render.3d.proxy.server" ), Get3dProxyDisplayInterface, Drop3dProxyDisplayInterface );
-
+	InitProxyInterface();
+	InitImageInterface();
+	LoadFunction( "bag.image.dll", NULL );
+	l.real_interface = (PIMAGE_INTERFACE)GetInterface( WIDE( "sack.image" ) );
+	RegisterInterface( WIDE( "sack.image.proxy.server" ), GetProxyImageInterface, DropProxyImageInterface );
+	RegisterInterface( WIDE( "sack.image.3d.proxy.server" ), Get3dProxyImageInterface, Drop3dProxyImageInterface );
+	RegisterInterface( WIDE( "sack.render.proxy.server" ), GetProxyDisplayInterface, DropProxyDisplayInterface );
+	RegisterInterface( WIDE( "sack.render.3d.proxy.server" ), Get3dProxyDisplayInterface, Drop3dProxyDisplayInterface );
 }
 
 
