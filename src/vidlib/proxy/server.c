@@ -730,6 +730,9 @@ static Image CPROC VidlibProxy_MakeSubImageEx  ( Image pImage, S_32 x, S_32 y, _
 		image->next->prior = image;
 	((PVPImage)pImage)->child = image;
 
+	if( ((PVPImage)pImage)->image )
+		image->image = l.real_interface->_MakeSubImageEx( ((PVPImage)pImage)->image, x, y, width, height DBG_RELAY );
+
 	SendClientMessage( PMID_MakeSubImageFile, image );
 
 	return (Image)image;
@@ -860,18 +863,24 @@ static  void CPROC VidlibProxy_UnmakeImageFileEx( Image pif DBG_PASS )
 /*Internal
    Interface index 29*/   DIMAGE_PROC_PTR( void,do_vlineAlpha)( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
 
-/* <combine sack::image::GetDefaultFont>
-   
-   Internal
-   Interface index 30                    */   IMAGE_PROC_PTR( SFTFont,GetDefaultFont) ( void );
-/* <combine sack::image::GetFontHeight@SFTFont>
-   
-   Internal
-   Interface index 31                                        */   IMAGE_PROC_PTR( _32 ,GetFontHeight)  ( SFTFont );
-/* <combine sack::image::GetStringSizeFontEx@CTEXTSTR@size_t@_32 *@_32 *@SFTFont>
-   
-   Internal
-   Interface index 32                                                          */   IMAGE_PROC_PTR( _32 ,GetStringSizeFontEx)( CTEXTSTR pString, size_t len, _32 *width, _32 *height, SFTFont UseFont );
+static SFTFont CPROC VidlibProxy_GetDefaultFont ( void )
+{
+	return NULL;
+}
+
+static _32 CPROC VidlibProxy_GetFontHeight  ( SFTFont font )
+{
+	return 12;
+}
+
+static _32 CPROC VidlibProxy_GetStringSizeFontEx( CTEXTSTR pString, size_t len, _32 *width, _32 *height, SFTFont UseFont )
+{
+	if( width )
+		(*width) = len*12;
+	if( height )
+		(*height) = 12;
+	return 12;
+}
 
 /* <combine sack::image::PutCharacterFont@Image@S_32@S_32@CDATA@CDATA@_32@SFTFont>
    
@@ -1452,6 +1461,8 @@ static void InitImageInterface( void )
 	ProxyImageInterface._MakeAlphaColor = VidlibProxy_MakeAlphaColor;
 	ProxyImageInterface._LoadImageFileFromGroupEx = VidlibProxy_LoadImageFileFromGroupEx;
 	ProxyImageInterface._getpixel = &_getpixel;
+	ProxyImageInterface._GetStringSizeFontEx = VidlibProxy_GetStringSizeFontEx;
+	ProxyImageInterface._GetFontHeight = VidlibProxy_GetFontHeight;
 }
 
 static IMAGE_3D_INTERFACE Proxy3dImageInterface = {
