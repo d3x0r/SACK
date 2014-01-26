@@ -1035,14 +1035,6 @@ void  UpdateDisplayEx (PVIDEO hVideo DBG_PASS )
 
 //----------------------------------------------------------------------------
 
-void  ClearDisplay (PVIDEO hVideo)
-{
-   // since we're in always draw mode, it's clear, or it's got appropriate background already
-   //ClearImage( hVideo->pImage );
-}
-
-//----------------------------------------------------------------------------
-
 void  SetMousePosition (PVIDEO hVid, S_32 x, S_32 y)
 {
 	if( !hVid )
@@ -1520,7 +1512,7 @@ void  ForceDisplayFocus ( PRENDERER pRender )
 //----------------------------------------------------------------------------
 
 #undef UpdateDisplay
-void  UpdateDisplay (PVIDEO hVideo )
+void  UpdateDisplay (PRENDERER hVideo )
 {
    //DebugBreak();
    UpdateDisplayEx( hVideo DBG_SRC );

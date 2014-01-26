@@ -76,8 +76,6 @@ struct sprite_method_tag
 
 #undef Allocate
 #define Allocate(n)  HeapAllocate(pDisplayHeap, n )
-RENDER_PROC( void, ClearDisplayEx )( PPANEL pPanel DBG_PASS );
-#define ClearDisplay(d) ClearDisplayEx(d DBG_SRC)
 RENDER_PROC( void, UpdateDisplayEx )( PPANEL pPanel DBG_PASS );
 //#define UpdateDisplay(d) UpdateDisplayEx(d DBG_SRC )
 
@@ -3026,7 +3024,6 @@ RENDER_PROC( void, MovePanelAbove )( PPANEL panel, PPANEL above )
 void CPROC ClearBackground( PTRSZVAL unused, PPANEL panel )
 {
    //lprintf( WIDE("Clearing background on root image...") );
-	ClearDisplay( panel );
    //DrawSpaces2();
 }
 
@@ -3594,27 +3591,6 @@ RENDER_PROC(PRENDERER, OpenDisplayAboveUnderSizedAt)(_32 Attributes, _32 width, 
 
 //---------------------------------------------------------------------------
 
-RENDER_PROC( void, ClearDisplayEx )( PPANEL pPanel DBG_PASS )
-{
-   //_xlprintf( 1 DBG_RELAY )( WIDE("clear display %p... uhh... root %p?"), pPanel, g.pRootPanel );
-	DisplayBlatColor(pPanel->common.StableImage
-						 ,0 ,0
-						 ,(pPanel->common.StableImage)->real_width
-						 ,(pPanel->common.StableImage)->real_height
-						 , pPanel->common.background.Color );
-	//if( !g.flags.in_mouse )
-	// if it is in mouse, then this is scheduled only...
-	// when this gets down and dirty, perhaps we should walk the space tree
-	// and get only what's been updated to draw... clear root panel
-	// will result in an entire screen redraw, when it may not
-   // have been all that much dirtied...
-	//UpdateDisplay( pPanel );
-}
-#undef ClearDisplay
-RENDER_PROC( void, ClearDisplay )( PPANEL pPanel )
-{
-   ClearDisplayEx( pPanel DBG_SRC );
-}
 
 RENDER_PROC( void, CloseDisplay )( PPANEL pPanel )
 {

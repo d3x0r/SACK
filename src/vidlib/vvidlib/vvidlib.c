@@ -617,7 +617,6 @@ PRELOAD( InitMe )
 	RENDER_PROC_PTR( void, UpdateDisplayPortionEx) ( PRENDERER, S_32 x, S_32 y, _32 width, _32 height DBG_PASS ) )UpdateDisplayPortionEx;
 	RENDER_PROC_PTR( void, UpdateDisplayEx)        ( PRENDERER DBG_PASS) )UpdateDisplayEx;
 
-	RENDER_PROC_PTR( void, ClearDisplay)         ( PRENDERER ) )DoNothing; // ClearTo(0), Update
 
 	RENDER_PROC_PTR( void, GetDisplayPosition)   ( PRENDERER, S_32 *x, S_32 *y, _32 *width, _32 *height ) )DoNothing;
 	RENDER_PROC_PTR( void, MoveDisplay)          ( PRENDERER, S_32 x, S_32 y ) )DoNothing;

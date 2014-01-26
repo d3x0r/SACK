@@ -148,8 +148,6 @@ void CPROC _ShowObjects( PTRSZVAL dwView, PRENDERER hVideo )
   VIEW *View = (VIEW*)dwView;
 
       
-      ClearDisplay( View->hVideo );
-
       {
          VECTOR m, b;
 
@@ -267,8 +265,6 @@ extern POBJECT pFirstObject;
       Redraw( View->hVideo );
 /*
       
-      ClearDisplay( View->hVideo );
-
       {
          VECTOR m, b;
 

@@ -313,8 +313,6 @@ RENDER_DATA( RENDER_INTERFACE, VideoInterface ) =
 	,(void CPROC (*)(PRENDERER,S_32,S_32,_32,_32 DBG_PASS))UpdateDisplayPortionEx
 	,(void CPROC (*)(PRENDERER DBG_PASS))UpdateDisplayEx
                    
-	,(void CPROC (*)(PRENDERER))ClearDisplay              
-
 	,GetDisplayPosition
 	,(void CPROC (*)(PRENDERER,S_32,S_32))MoveDisplay
 	,(void CPROC (*)(PRENDERER,S_32,S_32))MoveDisplayRel

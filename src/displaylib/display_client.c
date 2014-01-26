@@ -453,13 +453,6 @@ RENDER_PROC( void, UpdateDisplayEx )( PRENDERER renderer DBG_PASS )
 
 }
                              
-RENDER_PROC( void, ClearDisplay)              ( PRENDERER renderer ) // ClearTo(0), Update
-{
-	PDISPLAY display = (PDISPLAY)renderer;
-	TransactServerMessage( MSG_ClearDisplay, &display->hDisplay, sizeof( display->hDisplay )
-								, NULL, NULL, NULL );
-}
-
 RENDER_PROC( void, GetDisplayPosition )       ( PRENDERER renderer, S_32 *x, S_32 *y, _32 *width, _32 *height )
 {
 	if( !renderer )
@@ -855,7 +848,6 @@ RENDER_INTERFACE MyDisplayInterface = {
 , CloseDisplay
 , UpdateDisplayPortionEx
 , UpdateDisplayEx
-, ClearDisplay
 , GetDisplayPosition
 , MoveDisplay
 , MoveDisplayRel

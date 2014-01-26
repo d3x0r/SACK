@@ -361,7 +361,7 @@ void CPROC EditResizeCallback( PTRSZVAL dwUser  )
    PMYLINESEG pl;
    int l;
    // ShowCurrent();
-   ClearDisplay( pe->hVideo );
+   ClearImage( pImage );
    {
 		//RECT r;
 		GetDisplayPosition( pe->hVideo, pe->ptUpperLeft, pe->ptUpperLeft + 1, NULL, NULL );
