@@ -5438,8 +5438,6 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
 													, (void (CPROC*)(S_32 *, S_32 *)) GetMousePosition
 													, (void (CPROC*)(PRENDERER, S_32, S_32)) SetMousePosition
 													, HasFocus  // has focus
-													, NULL			// SendMessage
-													, NULL			// CrateMessage
 													, GetKeyText
 													, IsKeyDown
 													, KeyDown
@@ -5485,6 +5483,8 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
 													, SetHideHandler
 													, SetRestoreHandler
 													, RestoreDisplayEx
+													, NULL // show input device
+													, NULL // hide input device
 };
 
 #undef GetDisplayInterface

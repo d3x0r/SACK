@@ -106,7 +106,16 @@ JSON_EMITTER_PROC( TEXTSTR, json_build_message )( struct json_context_object *fo
 																 , POINTER msg );
 
 // take a json string and a format and fill in a structure from the text.
-JSON_EMITTER_PROC( LOGICAL, json_parse_message )( struct json_context_object *format
+// tests all formats, to first-match; 
+JSON_EMITTER_PROC( LOGICAL, json_parse_message )( struct json_context *format
+                                             , CTEXTSTR msg
+															, POINTER *msg_data_out
+															);
+// take a json string and a format and fill in a structure from the text.
+// if object does not fit all members (may have extra, but must have at least all members in message in format to return TRUE)
+// then it returns false; that is if a member is in the 'msg' parameter that is not in
+// the format, then the result is FALSE.
+JSON_EMITTER_PROC( LOGICAL, json_parse_message_format )( struct json_context_object *format
                                              , CTEXTSTR msg
 															, POINTER *msg_data_out
 															);

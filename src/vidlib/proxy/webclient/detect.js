@@ -1,4 +1,5 @@
 
+var default_connect_address = "ws://localhost:4240/Sack/Vidlib/Proxy"
 var Detect = {};
 
 Detect.supportsWebSocket = function() {
@@ -12,7 +13,7 @@ function WebSocketTest()
 	if( "WebSocketDraft" in window )
   	{
 		alert( "Draft websocket availabe" );
-     		ws = new WebSocket("ws://localhost:9998/echo");
+     		ws = new WebSocket( default_connect_address );
   	}
   	if( "MozWebSocket" in window )
   	{
@@ -20,7 +21,7 @@ function WebSocketTest()
      
 		try
                 {
-	  		var moztest = MozWebSocket( "ws://localhost:4240/Sack/Vidlib/Proxy" );
+	  		var moztest = MozWebSocket( default_connect_address );
 		}
 		catch( err )
 		{
@@ -33,7 +34,7 @@ function WebSocketTest()
   {
      alert("WebSocket is supported by your Browser!");
      // Let us open a web socket
-     ws = new WebSocket("ws://localhost:9998/echo");
+     ws = new WebSocket( default_connect_address );
   }
   if( ws === undefined )
   {

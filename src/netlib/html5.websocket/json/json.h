@@ -21,7 +21,8 @@ struct json_context_object
 	struct json_context *context;
 	PLIST members;   // list of members of this object
 	int is_array; // if set is an array format, otherwise is an object format.
-   size_t object_size;
+	size_t object_size;
+	LOGICAL keep_phrase;  // this is not a root object
 };
 
 struct json_context

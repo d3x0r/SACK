@@ -259,7 +259,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 						key2 = GetHTTPField( socket->http_state, WIDE( "Sec-WebSocket-Key2" ) );
 						if( key1 && key2 )
 							socket->flags.rfc6455 = 0;
-                  else
+						else
 							socket->flags.rfc6455 = 1;
 
 						if( key1 && key2 )
@@ -409,6 +409,7 @@ PCLIENT WebSocketCreate( CTEXTSTR hosturl
 							, web_socket_error on_error
 							, PTRSZVAL psv )
 {
+	struct url_data *url;
 	HTML5WebSocket socket = New( struct html5_web_socket );
 	NetworkStart();
 	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
@@ -418,9 +419,9 @@ PCLIENT WebSocketCreate( CTEXTSTR hosturl
 	socket->input_state.on_close = on_closed;
 	socket->input_state.on_error = on_error;
 	socket->input_state.psv_on = psv;
-
-	socket->pc = //CreateHttpServer( "localhost:9998", "WebSockets", "url", HandleRequest, 0 );
-		OpenTCPListenerEx( 9998, connected );
+	url = SACK_URLParse( hosturl );
+	socket->pc = OpenTCPListenerAddrEx( CreateSockAddress( url->host, url->port ), connected );
+	SACK_ReleaseURL( url );
 	socket->http_state = CreateHttpState();
 	SetNetworkLong( socket->pc, 0, (PTRSZVAL)socket );
 	SetNetworkLong( socket->pc, 1, (PTRSZVAL)&socket->output_state );

@@ -214,10 +214,46 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 										PTEXT tmp;
 										PTEXT resource_path = NULL;
 										PTEXT next;
+										if( TextSimilar( request, WIDE( "GET" ) ) )
+										{
+											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
+										}
+										if( TextSimilar( request, WIDE( "POST" ) ) )
+										{
+											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
+											lprintf( "probably shouldn't post final until content length is also received..." );
+										}
 										for( tmp = NEXTLINE( request ); tmp; tmp = next )
 										{
 											//lprintf( WIDE( "word %s" ), GetText( tmp ) );
 											next = NEXTLINE( tmp );
+											//lprintf( "Line : %s", GetText( pLine ) );
+											if( TextSimilar( tmp, WIDE("HTTP/") ) )
+											{
+												TEXTCHAR *tmp2 = (TEXTCHAR*)StrChr( GetText( tmp ), '.' );
+												pHttpState->response_version = ( atoi( GetText( tmp ) + 5 ) * 100 ) + atoi( tmp2 + 1 );
+												{
+													PTEXT nextword = next;
+													if( nextword )
+													{
+														next = NEXTLINE( nextword );
+														// cast from S_64
+														pHttpState->numeric_code = (int)IntCreateFromText( GetText( nextword ) );
+														nextword = next;
+														if( nextword )
+														{
+															next = NEXTLINE( nextword );
+															if( pHttpState->text_code )
+																Release( pHttpState->text_code );
+															pHttpState->text_code = StrDup( GetText( nextword ) );
+														}
+													}
+													else
+													{
+														lprintf( WIDE( "failed to find result code in %s" ), line );
+													}
+												}
+											}
 											if( GetText(tmp)[0] == '?' )
 											{
 												ProcessURL_CGI( pHttpState, next );
@@ -240,31 +276,6 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 										pHttpState->resource = resource_path;
 									}
 									LineRelease( request );
-								}
-								//lprintf( "Line : %s", GetText( pLine ) );
-								if( TextSimilar( pLine, WIDE("HTTP/") ) )
-								{
-									TEXTCHAR *tmp = (TEXTCHAR*)StrChr( GetText( pLine ), '.' );
-									pHttpState->response_version = ( atoi( GetText( pLine ) + 5 ) * 100 ) + atoi( tmp + 1 );
-									{
-										TEXTCHAR *space = (TEXTCHAR*)StrChr( line, ' ' );
-										if( space )
-										{
-											space++;
-											// cast from S_64
-											pHttpState->numeric_code = (int)IntCreateFromText( space );
-											{
-												TEXTCHAR *code = (TEXTCHAR*)StrChr( space, ' ' );
-												if( pHttpState->text_code )
-													Release( pHttpState->text_code );
-												pHttpState->text_code = StrDup( code );
-											}
-										}
-										else
-										{
-											lprintf( WIDE( "failed to find result code in %s" ), line );
-										}
-									}
 								}
 								//else
 								//	lprintf( "Not Http header?" );
@@ -353,7 +364,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 			return HTTP_STATE_RESOURCE_NOT_FOUND;
 		if( pHttpState->numeric_code == 400 )
 			return HTTP_STATE_BAD_REQUEST;
-      return pHttpState->numeric_code;
+		return pHttpState->numeric_code;
 	}
 	return HTTP_STATE_RESULT_NOTHING;
 }

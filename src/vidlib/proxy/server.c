@@ -13,13 +13,15 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 {
 	struct json_context_object *cto;
 	struct json_context_object *cto_data;
-   int ofs;
+	int ofs = 4;  // first thing is length, but that is not encoded..
 	if( !l.json_context )
 		l.json_context = json_create_context();
 	cto = json_create_object( l.json_context, 0 );
 	SetLink( &l.messages, (int)message, cto );
 	json_add_object_member( cto, WIDE("MsgID"), 0, JSON_Element_Unsigned_Integer_8, 0 );
-	cto_data = json_add_object_member( cto, WIDE( "data" ), 0, JSON_Element_Object, 0 );
+	cto_data = json_add_object_member( cto, WIDE( "data" ), 1, JSON_Element_Object, 0 );
+
+	ofs = 0;
 	switch( message )
 	{
 	case PMID_Version:
@@ -29,33 +31,31 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 		json_add_object_member( cto_data, WIDE("title"), 0, JSON_Element_CharArray, 0 );
 		break;
 	case PMID_OpenDisplayAboveUnderSizedAt:
-      json_add_object_member( cto_data, WIDE("x"), ofs = 0, JSON_Element_Integer_32, 0 );
-      json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
-      json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(S_32), JSON_Element_Unsigned_Integer_32, 0 );
-      json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("x"), ofs = 0, JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(S_32), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
 		json_add_object_member( cto_data, WIDE("attrib"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
-      json_add_object_member( cto_data, WIDE("server_render_id"), ofs = ofs + sizeof(_32), JSON_Element_PTRSZVAL, 0 );
-      json_add_object_member( cto_data, WIDE("over_render_id"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL_BLANK_0, 0 );
-      json_add_object_member( cto_data, WIDE("under_render_id"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL_BLANK_0, 0 );
+		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = ofs + sizeof(_32), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("over_render_id"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL_BLANK_0, 0 );
+		json_add_object_member( cto_data, WIDE("under_render_id"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL_BLANK_0, 0 );
 		break;
 	case PMID_CloseDisplay:
-      json_add_object_member( cto_data, WIDE("client_render_id"), 0, JSON_Element_PTRSZVAL, 0 );
-      break;
+		json_add_object_member( cto_data, WIDE("client_render_id"), 0, JSON_Element_PTRSZVAL, 0 );
+		break;
 	}
 	return cto;
 }
 
 
-static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id message, va_list args )
+static void SendTCPMessage( PCLIENT pc, INDEX idx, LOGICAL websock, enum proxy_message_id message, va_list args )
 {
-	INDEX idx;
-	PCLIENT client;
 	TEXTSTR json_msg;
 	struct json_context_object *cto;
 	size_t sendlen;
 	// often used; sometimes unused...
 	PVPRENDER render;
-	_8 *msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( POINTER ) ) );
+	_8 *msg;
 	if( websock )
 	{
 		cto = (struct json_context_object *)GetLink( &l.messages, message );
@@ -64,124 +64,113 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 	}
 	else
 		cto = NULL;
-	LIST_FORALL( l.clients, idx, PCLIENT, client )
+	switch( message )
 	{
-		switch( message )
+	case PMID_Version:
 		{
-		case PMID_Version:
+			msg = NewArray( _8, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
+			StrCpy( msg + 1, l.application_title );
+			((_32*)msg)[0] = (_32)(sendlen - 4);
+			msg[4] = message;
+			if( websock )
 			{
-				msg = NewArray( _8, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
-				StrCpy( msg + 1, l.application_title );
-				((_32*)msg)[0] = (_32)(sendlen - 4);
-				msg[4] = message;
-				if( websock )
-				{
-					json_msg = json_build_message( cto, msg );
-					WebSocketSendText( client, json_msg, StrLen( json_msg ) );
-					Release( json_msg );
-				}
-				else
-					SendTCP( client, msg, sendlen );
-				Release( msg );
+				json_msg = json_build_message( cto, msg );
+				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
+				Release( json_msg );
 			}
-			break;
-		case PMID_SetApplicationTitle:
-			{
-				msg = NewArray( _8, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
-				StrCpy( msg + 1, l.application_title );
-				((_32*)msg)[0] = (_32)(sendlen - 4);
-				msg[4] = message;
-				if( websock )
-				{
-					json_msg = json_build_message( cto, msg );
-					WebSocketSendText( client, json_msg, StrLen( json_msg ) );
-					Release( json_msg );
-				}
-				else
-					SendTCP( client, msg, sendlen );
-				Release( msg );
-			}
-			break;
-		case PMID_OpenDisplayAboveUnderSizedAt:
-			{
-				render = va_arg( args, PVPRENDER );
-
-				msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct opendisplay_data ) ) );
-				render = va_arg( args, PVPRENDER );
-				((_32*)msg)[0] = (_32)(sendlen - 4);
-				msg[4] = message;
-
-				((struct opendisplay_data*)(msg+5))->x = render->x;
-				((struct opendisplay_data*)(msg+5))->y = render->y;
-				((struct opendisplay_data*)(msg+5))->w = render->w;
-				((struct opendisplay_data*)(msg+5))->h = render->h;
-				((struct opendisplay_data*)(msg+5))->attr = render->attributes;
-				((struct opendisplay_data*)(msg+5))->server_display_id = (PTRSZVAL)render;
-
-				if( render->above )
-					((struct opendisplay_data*)(msg+5))->over = (PTRSZVAL)(GetLink( &render->above->remote_render_id, idx ) );
-				else
-					((struct opendisplay_data*)(msg+5))->over = 0;
-				if( render->under )
-					((struct opendisplay_data*)(msg+5))->under = (PTRSZVAL)(GetLink( &render->under->remote_render_id, idx ) );
-				else
-					((struct opendisplay_data*)(msg+5))->under = 0;
-
-				if( websock )
-				{
-					json_msg = json_build_message( cto, msg );
-					WebSocketSendText( client, json_msg, StrLen( json_msg ) );
-					Release( json_msg );
-				}
-				else
-					SendTCP( client, msg, sendlen );
-				Release( msg );
-			}
-			break;
-		case PMID_CloseDisplay:
-			{
-				msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( POINTER ) ) );
-				render = va_arg( args, PVPRENDER );
-				((_32*)msg)[0] = (_32)(sendlen - 4);
-				msg[4] = message;
-				if( ((POINTER*)(msg+5))[0] = GetLink( &render->remote_render_id, idx ) )
-					if( websock )
-					{
-						json_msg = json_build_message( cto, msg );
-						WebSocketSendText( client, json_msg, StrLen( json_msg ) );
-						Release( json_msg );
-					}
-					else
-						SendTCP( client, msg, sendlen );
-				Release( msg );
-			}
-			break;
+			else
+				SendTCP( pc, msg, sendlen );
+			Release( msg );
 		}
+		break;
+	case PMID_SetApplicationTitle:
+		{
+			msg = NewArray( _8, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
+			StrCpy( msg + 1, l.application_title );
+			((_32*)msg)[0] = (_32)(sendlen - 4);
+			msg[4] = message;
+			if( websock )
+			{
+				json_msg = json_build_message( cto, msg );
+				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
+				Release( json_msg );
+			}
+			else
+				SendTCP( pc, msg, sendlen );
+			Release( msg );
+		}
+		break;
+	case PMID_OpenDisplayAboveUnderSizedAt:
+		{
+			render = va_arg( args, PVPRENDER );
+			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct opendisplay_data ) ) );
+			((_32*)msg)[0] = (_32)(sendlen - 4);
+			msg[4] = message;
+
+			((struct opendisplay_data*)(msg+5))->x = render->x;
+			((struct opendisplay_data*)(msg+5))->y = render->y;
+			((struct opendisplay_data*)(msg+5))->w = render->w;
+			((struct opendisplay_data*)(msg+5))->h = render->h;
+			((struct opendisplay_data*)(msg+5))->attr = render->attributes;
+			((struct opendisplay_data*)(msg+5))->server_display_id = (PTRSZVAL)render;
+
+			if( render->above )
+				((struct opendisplay_data*)(msg+5))->over = (PTRSZVAL)(GetLink( &render->above->remote_render_id, idx ) );
+			else
+				((struct opendisplay_data*)(msg+5))->over = 0;
+			if( render->under )
+				((struct opendisplay_data*)(msg+5))->under = (PTRSZVAL)(GetLink( &render->under->remote_render_id, idx ) );
+			else
+				((struct opendisplay_data*)(msg+5))->under = 0;
+
+			if( websock )
+			{
+				json_msg = json_build_message( cto, msg + 4 );
+				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
+				Release( json_msg );
+			}
+			else
+				SendTCP( pc, msg, sendlen );
+			Release( msg );
+		}
+		break;
+	case PMID_CloseDisplay:
+		{
+			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( POINTER ) ) );
+			render = va_arg( args, PVPRENDER );
+			((_32*)msg)[0] = (_32)(sendlen - 4);
+			msg[4] = message;
+			if( ((POINTER*)(msg+5))[0] = GetLink( &render->remote_render_id, idx ) )
+				if( websock )
+				{
+					json_msg = json_build_message( cto, msg + 4 );
+					WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
+					Release( json_msg );
+				}
+				else
+					SendTCP( pc, msg, sendlen );
+			Release( msg );
+		}
+		break;
 	}
 }
 
-static void SendTCPMessageV( PCLIENT pc, LOGICAL websock, enum proxy_message_id message, ... )
+static void SendTCPMessageV( PCLIENT pc, INDEX idx, LOGICAL websock, enum proxy_message_id message, ... )
 {
 	va_list args;
 	va_start( args, message );
-	SendTCPMessage( pc, websock, message, args );
+	SendTCPMessage( pc, idx, websock, message, args );
 }
 
 static void SendClientMessage( enum proxy_message_id message, ... )
 {
 	INDEX idx;
-	PCLIENT client;
-	LIST_FORALL( l.clients, idx, PCLIENT, client )
+	struct server_proxy_client *client;
+	LIST_FORALL( l.clients, idx, struct server_proxy_client*, client )
 	{
 		va_list args;
 		va_start( args, message );
-		SendTCPMessage( client, FALSE, message, args );
-	}
-	LIST_FORALL( l.web_clients, idx, PCLIENT, client )
-	{
-		va_list args;
-		va_start( args, message );
-		SendTCPMessage( client, TRUE, message, args );
+		SendTCPMessage( client->pc, idx, client->websock, message, args );
 	}
 }
 
@@ -202,33 +191,43 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, int size )
 
 static void CPROC Connected( PCLIENT pcServer, PCLIENT pcNew )
 {
-	AddLink( &l.clients, pcNew );
+	struct server_proxy_client *client = New( struct server_proxy_client );
+	INDEX idx;
+	client->pc = pcNew;
+	client->websock = TRUE;
+	AddLink( &l.clients, client );
+	idx = FindLink ( &l.clients, client );
 	if( l.application_title )
-		SendClientMessage( PMID_SetApplicationTitle );
+		SendTCPMessageV( pcNew, idx, FALSE, PMID_SetApplicationTitle );
 	{
 		INDEX idx;
 		PVPRENDER render;
 		LIST_FORALL( l.renderers, idx, PVPRENDER, render )
 		{
-			SendClientMessage( PMID_OpenDisplayAboveUnderSizedAt, render );
+			SendTCPMessageV( pcNew, idx, FALSE, PMID_OpenDisplayAboveUnderSizedAt, render );
 		}
 	}
 }
 
 static PTRSZVAL WebSockOpen( PCLIENT pc, PTRSZVAL psv )
 {
-	AddLink( &l.web_clients, pc );
-
+	struct server_proxy_client *client = New( struct server_proxy_client );
+	INDEX idx;
+	client->pc = pc;
+	client->websock = TRUE;
+	AddLink( &l.clients, client );
+	idx = FindLink( &l.clients, client );
 	if( l.application_title )
-		SendTCPMessageV( pc, TRUE, PMID_SetApplicationTitle );
+		SendTCPMessageV( pc, idx, TRUE, PMID_SetApplicationTitle );
 	{
 		INDEX idx;
 		PVPRENDER render;
 		LIST_FORALL( l.renderers, idx, PVPRENDER, render )
 		{
-			SendTCPMessageV( pc, TRUE, PMID_OpenDisplayAboveUnderSizedAt, render );
+			SendTCPMessageV( pc, idx, TRUE, PMID_OpenDisplayAboveUnderSizedAt, render );
 		}
 	}
+	return (PTRSZVAL)1;
 }
 
 static void WebSockClose( PCLIENT pc, PTRSZVAL psv )
@@ -241,6 +240,11 @@ static void WebSockError( PCLIENT pc, PTRSZVAL psv, int error )
 
 static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 {
+	POINTER *msg;
+	if( json_parse_message( l.json_context, buffer, &msg ) )
+	{
+		lprintf( "Success" );
+	}
 }
 
 
@@ -250,7 +254,7 @@ static void InitService( void )
 	{
 		NetworkStart();
 		l.listener = OpenTCPListenerAddrEx( CreateSockAddress( "0.0.0.0", 4241 ), Connected );
-		l.web_listener = WebSocketCreate( "0.0.0.0:4240/Sack/Vidlib/Proxy"
+		l.web_listener = WebSocketCreate( "ws://0.0.0.0:4240/Sack/Vidlib/Proxy"
 													, WebSockOpen
 													, WebSockEvent
 													, WebSockClose
@@ -290,7 +294,7 @@ static void VidlibProxy_GetDisplaySize( _32 *width, _32 *height )
 		(*height) = SACK_GetProfileInt( "SACK/Vidlib", "Default Display Height", 768 );
 }
 
-static void VidlibProxy_SetDisplaySize      ( _32 width, _32 height )
+static void VidlibProxy_SetDisplaySize		( _32 width, _32 height )
 {
 	SACK_WriteProfileInt( "SACK/Vidlib", "Default Display Width", width );
 	SACK_WriteProfileInt( "SACK/Vidlib", "Default Display Height", height );
@@ -334,7 +338,7 @@ static PRENDERER VidlibProxy_OpenDisplayAboveSizedAt( _32 attributes, _32 width,
 	return VidlibProxy_OpenDisplayAboveUnderSizedAt( attributes, width, height, x, y, above, NULL );
 }
 
-static PRENDERER VidlibProxy_OpenDisplaySizedAt     ( _32 attributes, _32 width, _32 height, S_32 x, S_32 y )
+static PRENDERER VidlibProxy_OpenDisplaySizedAt	  ( _32 attributes, _32 width, _32 height, S_32 x, S_32 y )
 {
 	return VidlibProxy_OpenDisplayAboveUnderSizedAt( attributes, width, height, x, y, NULL, NULL );
 }
@@ -369,7 +373,7 @@ static void VidlibProxy_GetDisplayPosition ( PRENDERER r, S_32 *x, S_32 *y, _32 
 		(*height) = pRender->h;
 }
 
-static void CPROC VidlibProxy_MoveDisplay        ( PRENDERER r, S_32 x, S_32 y )
+static void CPROC VidlibProxy_MoveDisplay		  ( PRENDERER r, S_32 x, S_32 y )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	pRender->x = x;
@@ -398,8 +402,8 @@ static void CPROC VidlibProxy_SizeDisplayRel( PRENDERER r, S_32 delw, S_32 delh 
 }
 
 static void CPROC VidlibProxy_MoveSizeDisplayRel( PRENDERER r
-                                                 , S_32 delx, S_32 dely
-                                                 , S_32 delw, S_32 delh )
+																 , S_32 delx, S_32 dely
+																 , S_32 delw, S_32 delh )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	pRender->w += delw;
@@ -409,8 +413,8 @@ static void CPROC VidlibProxy_MoveSizeDisplayRel( PRENDERER r
 }
 
 static void CPROC VidlibProxy_MoveSizeDisplay( PRENDERER r
-                                        , S_32 x, S_32 y
-                                        , S_32 w, S_32 h )
+													 , S_32 x, S_32 y
+													 , S_32 w, S_32 h )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	pRender->x = x;
@@ -419,7 +423,7 @@ static void CPROC VidlibProxy_MoveSizeDisplay( PRENDERER r
 	pRender->h = h;
 }
 
-static void CPROC VidlibProxy_PutDisplayAbove      ( PRENDERER r, PRENDERER above )
+static void CPROC VidlibProxy_PutDisplayAbove		( PRENDERER r, PRENDERER above )
 {
 	lprintf( "window ordering is not implemented" );
 }
@@ -430,7 +434,7 @@ static Image CPROC VidlibProxy_GetDisplayImage( PRENDERER r )
 	return pRender->image;
 }
 
-static void CPROC VidlibProxy_SetCloseHandler    ( PRENDERER r, CloseCallback c, PTRSZVAL p )
+static void CPROC VidlibProxy_SetCloseHandler	 ( PRENDERER r, CloseCallback c, PTRSZVAL p )
 {
 }
 
@@ -442,7 +446,7 @@ static void CPROC VidlibProxy_SetRedrawHandler  ( PRENDERER r, RedrawCallback c,
 {
 }
 
-static void CPROC VidlibProxy_SetKeyboardHandler   ( PRENDERER r, KeyProc c, PTRSZVAL p )
+static void CPROC VidlibProxy_SetKeyboardHandler	( PRENDERER r, KeyProc c, PTRSZVAL p )
 {
 }
 
@@ -450,7 +454,7 @@ static void CPROC VidlibProxy_SetLoseFocusHandler  ( PRENDERER r, LoseFocusCallb
 {
 }
 
-static void CPROC VidlibProxy_GetMousePosition   ( S_32 *x, S_32 *y )
+static void CPROC VidlibProxy_GetMousePosition	( S_32 *x, S_32 *y )
 {
 }
 
@@ -458,22 +462,22 @@ static void CPROC VidlibProxy_SetMousePosition  ( PRENDERER r, S_32 x, S_32 y )
 {
 }
 
-static LOGICAL CPROC VidlibProxy_HasFocus       ( PRENDERER  r )
+static LOGICAL CPROC VidlibProxy_HasFocus		 ( PRENDERER  r )
 {
 	return TRUE;
 }
 
-static TEXTCHAR CPROC VidlibProxy_GetKeyText       ( int key )
+static TEXTCHAR CPROC VidlibProxy_GetKeyText		 ( int key )
 { 
 	return 0;
 }
 
-static _32 CPROC VidlibProxy_IsKeyDown        ( PRENDERER r, int key )
+static _32 CPROC VidlibProxy_IsKeyDown		  ( PRENDERER r, int key )
 {
 	return 0;
 }
 
-static _32 CPROC VidlibProxy_KeyDown        ( PRENDERER r, int key )
+static _32 CPROC VidlibProxy_KeyDown		  ( PRENDERER r, int key )
 {
 	return 0;
 }
@@ -501,7 +505,7 @@ static void CPROC VidlibProxy_MakeTopmost  ( PRENDERER r )
 {
 }
 
-static void CPROC VidlibProxy_HideDisplay    ( PRENDERER r )
+static void CPROC VidlibProxy_HideDisplay	 ( PRENDERER r )
 {
 }
 
@@ -621,8 +625,8 @@ static void CPROC VidlibProxy_IssueUpdateLayeredEx( PRENDERER r, LOGICAL bConten
 #ifndef NO_TOUCH
 		/* <combine sack::image::render::SetTouchHandler@PRENDERER@fte inc asdfl;kj
 		 fteTouchCallback@PTRSZVAL>
-       
-       \ \                                                                             */
+		 
+		 \ \																									  */
 static void CPROC VidlibProxy_SetTouchHandler  ( PRENDERER r, TouchCallback c, PTRSZVAL p )
 {
 }
@@ -632,7 +636,7 @@ static void CPROC VidlibProxy_MarkDisplayUpdated( PRENDERER r  )
 {
 }
 
-static void CPROC VidlibProxy_SetHideHandler      ( PRENDERER r, HideAndRestoreCallback c, PTRSZVAL p )
+static void CPROC VidlibProxy_SetHideHandler		( PRENDERER r, HideAndRestoreCallback c, PTRSZVAL p )
 {
 }
 
@@ -677,9 +681,9 @@ static RENDER_INTERFACE ProxyInterface = {
 													  , VidlibProxy_SetMouseHandler
 													  , VidlibProxy_SetRedrawHandler
 													  , VidlibProxy_SetKeyboardHandler
-    /* <combine sack::image::render::SetLoseFocusHandler@PRENDERER@LoseFocusCallback@PTRSZVAL>
-       
-       \ \                                                                                     */
+	 /* <combine sack::image::render::SetLoseFocusHandler@PRENDERER@LoseFocusCallback@PTRSZVAL>
+		 
+		 \ \																												 */
 													  , VidlibProxy_SetLoseFocusHandler
 			 ,  0  //POINTER junk1;
 													  , VidlibProxy_GetMousePosition
@@ -748,14 +752,14 @@ static void InitProxyInterface( void )
 }
 
 static RENDER3D_INTERFACE Proxy3dInterface = {
-   NULL
+	NULL
 };
 
 static void CPROC VidlibProxy_SetStringBehavior( Image pImage, _32 behavior )
 {
 
 }
-static void CPROC VidlibProxy_SetBlotMethod     ( _32 method )
+static void CPROC VidlibProxy_SetBlotMethod	  ( _32 method )
 {
 
 }
@@ -795,7 +799,7 @@ static Image CPROC VidlibProxy_MakeSubImageEx  ( Image pImage, S_32 x, S_32 y, _
 	return (Image)image;
 }
 
-static Image CPROC VidlibProxy_RemakeImageEx    ( Image pImage, PCOLOR pc, _32 width, _32 height DBG_PASS)
+static Image CPROC VidlibProxy_RemakeImageEx	 ( Image pImage, PCOLOR pc, _32 width, _32 height DBG_PASS)
 {
 	PVPImage image;
 	if( !(image = (PVPImage)pImage ) )
@@ -835,79 +839,106 @@ static Image CPROC VidlibProxy_LoadImageFileEx( CTEXTSTR filename DBG_PASS )
 
 
 /* <combine sack::image::LoadImageFileEx@CTEXTSTR name>
-   
-   Internal
-   Interface index 10                                                   */  IMAGE_PROC_PTR( Image,VidlibProxy_LoadImageFileEx)  ( CTEXTSTR name DBG_PASS );
+	
+	Internal
+	Interface index 10																	*/  IMAGE_PROC_PTR( Image,VidlibProxy_LoadImageFileEx)  ( CTEXTSTR name DBG_PASS );
 static  void CPROC VidlibProxy_UnmakeImageFileEx( Image pif DBG_PASS )
 {
 	SendClientMessage( PMID_UnmakeImageFile, pif );
-
 	Release( pif );
 }
 
-//-----------------------------------------------------
+static void CPROC VidlibProxy_ResizeImageEx	  ( Image pImage, S_32 width, S_32 height DBG_PASS)
+{
+	PVPImage image = (PVPImage)pImage;
+	image->w = width;
+	image->h = height;
+	l.real_interface->_ResizeImageEx( image->image, width, height DBG_RELAY );
+}
 
-/* <combine sack::image::ResizeImageEx@Image@S_32@S_32 height>
-   
-   Internal
-   Interface index 14                                                          */  IMAGE_PROC_PTR( void,ResizeImageEx)     ( Image pImage, S_32 width, S_32 height DBG_PASS);
-/* <combine sack::image::MoveImage@Image@S_32@S_32>
-   
-   Internal
-   Interface index 15                                               */   IMAGE_PROC_PTR( void,MoveImage)         ( Image pImage, S_32 x, S_32 y );
+static void CPROC VidlibProxy_MoveImage			( Image pImage, S_32 x, S_32 y )
+{
+	PVPImage image = (PVPImage)pImage;
+	if( image->x != x || image->y != y )
+	{
+		image->x = x;
+		image->y = y;
+		l.real_interface->_MoveImage( image->image, x, y );
+	}
+}
 
-//-----------------------------------------------------
+static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
+{
 
-/* <combine sack::image::BlatColor@Image@S_32@S_32@_32@_32@CDATA>
-   
-   Internal
-   Interface index 16                                                             */   IMAGE_PROC_PTR( void,BlatColor)     ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color );
-/* <combine sack::image::BlatColorAlpha@Image@S_32@S_32@_32@_32@CDATA>
-   
-   Internal
-   Interface index 17                                                                  */   IMAGE_PROC_PTR( void,BlatColorAlpha)( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color );
+}
 
-/* <combine sack::image::BlotImageEx@Image@Image@S_32@S_32@_32@_32@...>
-                                                                                                                   
-   Internal
-	Interface index 18*/   IMAGE_PROC_PTR( void,BlotImageEx)     ( Image pDest, Image pIF, S_32 x, S_32 y, _32 nTransparent, _32 method, ... );
+static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
+{
+}
 
- /* <combine sack::image::BlotImageSizedEx@Image@Image@S_32@S_32@S_32@S_32@_32@_32@_32@_32@...>
+static void CPROC VidlibProxy_BlotImageEx	  ( Image pDest, Image pIF, S_32 x, S_32 y, _32 nTransparent, _32 method, ... )
+{
+}
 
-   Internal
-	Interface index 19*/   IMAGE_PROC_PTR( void,BlotImageSizedEx)( Image pDest, Image pIF, S_32 x, S_32 y, S_32 xs, S_32 ys, _32 wd, _32 ht, _32 nTransparent, _32 method, ... );
+static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, S_32 y, S_32 xs, S_32 ys, _32 wd, _32 ht, _32 nTransparent, _32 method, ... )
+{
+}
 
-/* <combine sack::image::BlotScaledImageSizedEx@Image@Image@S_32@S_32@_32@_32@S_32@S_32@_32@_32@_32@_32@...>
-   
-  Internal
-   Interface index  20                                                                                                        */   IMAGE_PROC_PTR( void,BlotScaledImageSizedEx)( Image pifDest, Image pifSrc
-                                   , S_32 xd, S_32 yd
-                                   , _32 wd, _32 hd
-                                   , S_32 xs, S_32 ys
-                                   , _32 ws, _32 hs
-                                   , _32 nTransparent
-                                   , _32 method, ... );
+static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSrc
+											  , S_32 xd, S_32 yd
+											  , _32 wd, _32 hd
+											  , S_32 xs, S_32 ys
+											  , _32 ws, _32 hs
+											  , _32 nTransparent
+											  , _32 method, ... )
+{
+}
 
 
-/*Internal
-   Interface index 21*/   DIMAGE_PROC_PTR( void,plot)      ( Image pi, S_32 x, S_32 y, CDATA c );
-/*Internal
-   Interface index 22*/   DIMAGE_PROC_PTR( void,plotalpha) ( Image pi, S_32 x, S_32 y, CDATA c );
-/*Internal
-   Interface index 23*/   DIMAGE_PROC_PTR( CDATA,getpixel) ( Image pi, S_32 x, S_32 y );
-/*Internal
-   Interface index 24*/   DIMAGE_PROC_PTR( void,do_line)     ( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color );  // d is color data...
-/*Internal
-   Interface index 25*/   DIMAGE_PROC_PTR( void,do_lineAlpha)( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color);  // d is color data...
+#define DIMAGE_DATA_PROC(type,name,args)  static type (CPROC VidlibProxy2_##name)args;static type (CPROC* VidlibProxy_##name)args = VidlibProxy2_##name; type (CPROC VidlibProxy2_##name)args
 
-/*Internal
-   Interface index 26*/   DIMAGE_PROC_PTR( void,do_hline)     ( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
-/*Internal
-   Interface index 27*/   DIMAGE_PROC_PTR( void,do_vline)     ( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
-/*Internal
-   Interface index 28*/   DIMAGE_PROC_PTR( void,do_hlineAlpha)( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
-/*Internal
-   Interface index 29*/   DIMAGE_PROC_PTR( void,do_vlineAlpha)( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
+DIMAGE_DATA_PROC( void,plot,		( Image pi, S_32 x, S_32 y, CDATA c ))
+{
+}
+
+DIMAGE_DATA_PROC( void,plotalpha, ( Image pi, S_32 x, S_32 y, CDATA c ))
+{
+}
+
+DIMAGE_DATA_PROC( CDATA,getpixel, ( Image pi, S_32 x, S_32 y ))
+{
+	PVPImage my_image = (PVPImage)pi;
+	if( my_image )
+	{
+		return (*l.real_interface->_getpixel)( my_image->image, x, y );
+	}
+	return 0;
+}
+
+DIMAGE_DATA_PROC( void,do_line,	  ( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color ))
+{
+}
+
+DIMAGE_DATA_PROC( void,do_lineAlpha,( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color))
+{
+}
+
+
+DIMAGE_DATA_PROC( void,do_hline,	  ( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color ))
+{
+}
+
+DIMAGE_DATA_PROC( void,do_vline,	  ( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color ))
+{
+}
+
+DIMAGE_DATA_PROC( void,do_hlineAlpha,( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color ))
+{
+}
+
+DIMAGE_DATA_PROC( void,do_vlineAlpha,( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color ))
+{
+}
 
 static SFTFont CPROC VidlibProxy_GetDefaultFont ( void )
 {
@@ -928,139 +959,155 @@ static _32 CPROC VidlibProxy_GetStringSizeFontEx( CTEXTSTR pString, size_t len, 
 	return 12;
 }
 
-static void CPROC VidlibProxy_PutCharacterFont        ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
+static void CPROC VidlibProxy_PutCharacterFont		  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
 }
 
 /* <combine sack::image::PutCharacterVerticalFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@SFTFont>
-   
-   Internal
-   Interface index 34                                                                                        */   IMAGE_PROC_PTR( void,PutCharacterVerticalFont)      ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
+	
+	Internal
+	Interface index 34																													 */	IMAGE_PROC_PTR( void,PutCharacterVerticalFont)		( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
 /* <combine sack::image::PutCharacterInvertFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@SFTFont>
-   
-   Internal
-   Interface index 35                                                                                      */   IMAGE_PROC_PTR( void,PutCharacterInvertFont)        ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
+	
+	Internal
+	Interface index 35																												  */	IMAGE_PROC_PTR( void,PutCharacterInvertFont)		  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
 /* <combine sack::image::PutCharacterVerticalInvertFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@SFTFont>
-   
-   Internal
-   Interface index 36                                                                                              */   IMAGE_PROC_PTR( void,PutCharacterVerticalInvertFont)( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
+	
+	Internal
+	Interface index 36																															 */	IMAGE_PROC_PTR( void,PutCharacterVerticalInvertFont)( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
 
 /* <combine sack::image::PutStringFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@SFTFont>
-   
-   Internal
-   Interface index 37                                                                                   */   IMAGE_PROC_PTR( void,PutStringFontEx)              ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
+	
+	Internal
+	Interface index 37																											  */	IMAGE_PROC_PTR( void,PutStringFontEx)				  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
 /* <combine sack::image::PutStringVerticalFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@SFTFont>
-   
-   Internal
-   Interface index 38                                                                                           */   IMAGE_PROC_PTR( void,PutStringVerticalFontEx)      ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
+	
+	Internal
+	Interface index 38																														 */	IMAGE_PROC_PTR( void,PutStringVerticalFontEx)		( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
 /* <combine sack::image::PutStringInvertFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@SFTFont>
-   
-   Internal
-   Interface index 39                                                                                         */   IMAGE_PROC_PTR( void,PutStringInvertFontEx)        ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
+	
+	Internal
+	Interface index 39																													  */	IMAGE_PROC_PTR( void,PutStringInvertFontEx)		  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
 /* <combine sack::image::PutStringInvertVerticalFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@SFTFont>
-   
-   Internal
-   Interface index 40                                                                                                 */   IMAGE_PROC_PTR( void,PutStringInvertVerticalFontEx)( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
+	
+	Internal
+	Interface index 40																																 */	IMAGE_PROC_PTR( void,PutStringInvertVerticalFontEx)( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
 
 /* <combine sack::image::GetMaxStringLengthFont@_32@SFTFont>
-   
-   Internal
-   Interface index 41                                     */   IMAGE_PROC_PTR( _32, GetMaxStringLengthFont )( _32 width, SFTFont UseFont );
+	
+	Internal
+	Interface index 41												 */	IMAGE_PROC_PTR( _32, GetMaxStringLengthFont )( _32 width, SFTFont UseFont );
 
 /* <combine sack::image::GetImageSize@Image@_32 *@_32 *>
-   
-   Internal
-   Interface index 42                                                    */   IMAGE_PROC_PTR( void, GetImageSize)                ( Image pImage, _32 *width, _32 *height );
+	
+	Internal
+	Interface index 42																	 */	IMAGE_PROC_PTR( void, GetImageSize)					 ( Image pImage, _32 *width, _32 *height );
 /* <combine sack::image::LoadFont@SFTFont>
-   
-   Internal
-   Interface index 43                                   */   IMAGE_PROC_PTR( SFTFont, LoadFont )                   ( SFTFont font );
-         /* <combine sack::image::UnloadFont@SFTFont>
-            
-            \ \                                    */
-         IMAGE_PROC_PTR( void, UnloadFont )                 ( SFTFont font );
+	
+	Internal
+	Interface index 43											  */	IMAGE_PROC_PTR( SFTFont, LoadFont )						 ( SFTFont font );
+			/* <combine sack::image::UnloadFont@SFTFont>
+				
+				\ \												*/
+			IMAGE_PROC_PTR( void, UnloadFont )					  ( SFTFont font );
 
 /* Internal
-   Interface index 44
-   
-   This is used by internal methods to transfer image and font
-   data to the render agent.                                   */   IMAGE_PROC_PTR( DataState, BeginTransferData )    ( _32 total_size, _32 segsize, CDATA data );
+	Interface index 44
+	
+	This is used by internal methods to transfer image and font
+	data to the render agent.											  */	IMAGE_PROC_PTR( DataState, BeginTransferData )	 ( _32 total_size, _32 segsize, CDATA data );
 /* Internal
-   Interface index 45
-   
-   Used internally to transfer data to render agent. */   IMAGE_PROC_PTR( void, ContinueTransferData )      ( DataState state, _32 segsize, CDATA data );
+	Interface index 45
+	
+	Used internally to transfer data to render agent. */	IMAGE_PROC_PTR( void, ContinueTransferData )		( DataState state, _32 segsize, CDATA data );
 /* Internal
-   Interface index 46
-   
-   Command issues at end of data transfer to decode the data
-   into an image.                                            */   IMAGE_PROC_PTR( Image, DecodeTransferredImage )    ( DataState state );
+	Interface index 46
+	
+	Command issues at end of data transfer to decode the data
+	into an image.														  */	IMAGE_PROC_PTR( Image, DecodeTransferredImage )	 ( DataState state );
 /* After a data transfer decode the information as a font.
-   Internal
-   Interface index 47                                      */   IMAGE_PROC_PTR( SFTFont, AcceptTransferredFont )     ( DataState state );
-/*Internal
-   Interface index 48*/   DIMAGE_PROC_PTR( CDATA, ColorAverage )( CDATA c1, CDATA c2
-                                              , int d, int max );
+	Internal
+	Interface index 47												  */	IMAGE_PROC_PTR( SFTFont, AcceptTransferredFont )	  ( DataState state );
+
+DIMAGE_DATA_PROC( CDATA, ColorAverage,( CDATA c1, CDATA c2
+													, int d, int max ))
+{
+	return c1;
+}
 /* <combine sack::image::SyncImage>
-   
-   Internal
-   Interface index 49               */   IMAGE_PROC_PTR( void, SyncImage )                 ( void );
-         /* <combine sack::image::GetImageSurface@Image>
-            
-            \ \                                          */
-         IMAGE_PROC_PTR( PCDATA, GetImageSurface )       ( Image pImage );
-         /* <combine sack::image::IntersectRectangle@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *>
-            
-            \ \                                                                                             */
-         IMAGE_PROC_PTR( int, IntersectRectangle )      ( IMAGE_RECTANGLE *r, IMAGE_RECTANGLE *r1, IMAGE_RECTANGLE *r2 );
-   /* <combine sack::image::MergeRectangle@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *>
-      
-      \ \                                                                                         */
-   IMAGE_PROC_PTR( int, MergeRectangle )( IMAGE_RECTANGLE *r, IMAGE_RECTANGLE *r1, IMAGE_RECTANGLE *r2 );
-   /* <combine sack::image::GetImageAuxRect@Image@P_IMAGE_RECTANGLE>
-      
-      \ \                                                            */
-   IMAGE_PROC_PTR( void, GetImageAuxRect )   ( Image pImage, P_IMAGE_RECTANGLE pRect );
-   /* <combine sack::image::SetImageAuxRect@Image@P_IMAGE_RECTANGLE>
-      
-      \ \                                                            */
-   IMAGE_PROC_PTR( void, SetImageAuxRect )   ( Image pImage, P_IMAGE_RECTANGLE pRect );
-   /* <combine sack::image::OrphanSubImage@Image>
-      
-      \ \                                         */
-   IMAGE_PROC_PTR( void, OrphanSubImage )  ( Image pImage );
-   /* <combine sack::image::AdoptSubImage@Image@Image>
-      
-      \ \                                              */
-   IMAGE_PROC_PTR( void, AdoptSubImage )   ( Image pFoster, Image pOrphan );
+	
+	Internal
+	Interface index 49					*/	IMAGE_PROC_PTR( void, SyncImage )					  ( void );
+			/* <combine sack::image::GetImageSurface@Image>
+				
+				\ \														*/
+			IMAGE_PROC_PTR( PCDATA, GetImageSurface )		 ( Image pImage );
+			/* <combine sack::image::IntersectRectangle@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *>
+				
+				\ \																															*/
+			IMAGE_PROC_PTR( int, IntersectRectangle )		( IMAGE_RECTANGLE *r, IMAGE_RECTANGLE *r1, IMAGE_RECTANGLE *r2 );
+	/* <combine sack::image::MergeRectangle@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *>
+		
+		\ \																													  */
+	IMAGE_PROC_PTR( int, MergeRectangle )( IMAGE_RECTANGLE *r, IMAGE_RECTANGLE *r1, IMAGE_RECTANGLE *r2 );
+	/* <combine sack::image::GetImageAuxRect@Image@P_IMAGE_RECTANGLE>
+		
+		\ \																				*/
+	IMAGE_PROC_PTR( void, GetImageAuxRect )	( Image pImage, P_IMAGE_RECTANGLE pRect );
+	/* <combine sack::image::SetImageAuxRect@Image@P_IMAGE_RECTANGLE>
+		
+		\ \																				*/
+	IMAGE_PROC_PTR( void, SetImageAuxRect )	( Image pImage, P_IMAGE_RECTANGLE pRect );
+
+static void CPROC VidlibProxy_OrphanSubImage ( Image pImage )
+{
+	PVPImage image = (PVPImage)pImage;
+	if( image )
+	{
+		if( image->image )
+			l.real_interface->_OrphanSubImage( image->image );
+	}
+}
+
+static void CPROC VidlibProxy_AdoptSubImage ( Image pFoster, Image pOrphan )
+{
+	PVPImage foster = (PVPImage)pFoster;
+	PVPImage orphan = (PVPImage)pOrphan;
+	if( foster && orphan )
+	{
+		if( foster->image && orphan->image )
+			l.real_interface->_AdoptSubImage( foster->image, orphan->image );
+	}
+}
 	/* <combine sack::image::MakeSpriteImageFileEx@CTEXTSTR fname>
-	   
-	   \ \                                                         */
+		
+		\ \																			*/
 	IMAGE_PROC_PTR( PSPRITE, MakeSpriteImageFileEx )( CTEXTSTR fname DBG_PASS );
 	/* <combine sack::image::MakeSpriteImageEx@Image image>
-	   
-	   \ \                                                  */
+		
+		\ \																  */
 	IMAGE_PROC_PTR( PSPRITE, MakeSpriteImageEx )( Image image DBG_PASS );
 	/* <combine sack::image::rotate_scaled_sprite@Image@PSPRITE@fixed@fixed@fixed>
-	   
-	   \ \                                                                         */
-	IMAGE_PROC_PTR( void   , rotate_scaled_sprite )(Image bmp, PSPRITE sprite, fixed angle, fixed scale_width, fixed scale_height);
+		
+		\ \																								 */
+	IMAGE_PROC_PTR( void	, rotate_scaled_sprite )(Image bmp, PSPRITE sprite, fixed angle, fixed scale_width, fixed scale_height);
 	/* <combine sack::image::rotate_sprite@Image@PSPRITE@fixed>
-	   
-	   \ \                                                      */
-	IMAGE_PROC_PTR( void   , rotate_sprite )(Image bmp, PSPRITE sprite, fixed angle);
+		
+		\ \																		*/
+	IMAGE_PROC_PTR( void	, rotate_sprite )(Image bmp, PSPRITE sprite, fixed angle);
  /* <combine sack::image::BlotSprite@Image@PSPRITE>
-	                                                  
+																	  
 	 Internal
-   Interface index 61                                              */
-		IMAGE_PROC_PTR( void   , BlotSprite )( Image pdest, PSPRITE ps );
-    /* <combine sack::image::DecodeMemoryToImage@P_8@_32>
-       
-       \ \                                                */
-    IMAGE_PROC_PTR( Image, DecodeMemoryToImage )( P_8 buf, _32 size );
+	Interface index 61															 */
+		IMAGE_PROC_PTR( void	, BlotSprite )( Image pdest, PSPRITE ps );
+	 /* <combine sack::image::DecodeMemoryToImage@P_8@_32>
+		 
+		 \ \																*/
+	 IMAGE_PROC_PTR( Image, DecodeMemoryToImage )( P_8 buf, _32 size );
 
-   /* <combine sack::image::InternalRenderFontFile@CTEXTSTR@S_32@S_32@_32>
-      
-      \returns a SFTFont                                                      */
+	/* <combine sack::image::InternalRenderFontFile@CTEXTSTR@S_32@S_32@_32>
+		
+		\returns a SFTFont																		*/
 	IMAGE_PROC_PTR( SFTFont, InternalRenderFontFile )( CTEXTSTR file
 																 , S_32 nWidth
 																 , S_32 nHeight
@@ -1068,9 +1115,9 @@ static void CPROC VidlibProxy_PutCharacterFont        ( Image pImage, S_32 x, S_
 																		, PFRACTION height_scale
 																 , _32 flags 
 																 );
-   /* <combine sack::image::InternalRenderFont@_32@_32@_32@S_32@S_32@_32>
-      
-      requires knowing the font cache....                                 */
+	/* <combine sack::image::InternalRenderFont@_32@_32@_32@S_32@S_32@_32>
+		
+		requires knowing the font cache....											*/
 	IMAGE_PROC_PTR( SFTFont, InternalRenderFont )( _32 nFamily
 															, _32 nStyle
 															, _32 nFile
@@ -1081,50 +1128,50 @@ static void CPROC VidlibProxy_PutCharacterFont        ( Image pImage, S_32 x, S_
 															, _32 flags
 															);
 /* <combine sack::image::RenderScaledFontData@PFONTDATA@PFRACTION@PFRACTION>
-   
-   \ \                                                                       */
+	
+	\ \																							  */
 IMAGE_PROC_PTR( SFTFont, RenderScaledFontData)( PFONTDATA pfd, PFRACTION width_scale, PFRACTION height_scale );
 /* <combine sack::image::RenderFontFileEx@CTEXTSTR@_32@_32@_32@P_32@POINTER *>
-   
-   \ \                                                                         */
+	
+	\ \																								 */
 IMAGE_PROC_PTR( SFTFont, RenderFontFileScaledEx )( CTEXTSTR file, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags, size_t *size, POINTER *pFontData );
 /* <combine sack::image::DestroyFont@SFTFont *>
-   
-   \ \                                       */
+	
+	\ \													*/
 IMAGE_PROC_PTR( void, DestroyFont)( SFTFont *font );
 /* <combine sack::image::GetGlobalFonts>
-   
-   global_font_data in interface is really a global font data. Don't
-   have to call GetGlobalFont to get this.                           */
+	
+	global_font_data in interface is really a global font data. Don't
+	have to call GetGlobalFont to get this.									*/
 struct font_global_tag *_global_font_data;
 /* <combine sack::image::GetFontRenderData@SFTFont@POINTER *@_32 *>
-   
-   \ \                                                           */
+	
+	\ \																			  */
 IMAGE_PROC_PTR( int, GetFontRenderData )( SFTFont font, POINTER *fontdata, size_t *fontdatalen );
 /* <combine sack::image::SetFontRendererData@SFTFont@POINTER@_32>
-   
-   \ \                                                         */
+	
+	\ \																			*/
 IMAGE_PROC_PTR( void, SetFontRendererData )( SFTFont font, POINTER pResult, size_t size );
 /* <combine sack::image::SetSpriteHotspot@PSPRITE@S_32@S_32>
-   
-   \ \                                                       */
+	
+	\ \																		 */
 IMAGE_PROC_PTR( PSPRITE, SetSpriteHotspot )( PSPRITE sprite, S_32 x, S_32 y );
 /* <combine sack::image::SetSpritePosition@PSPRITE@S_32@S_32>
-   
-   \ \                                                        */
+	
+	\ \																		  */
 IMAGE_PROC_PTR( PSPRITE, SetSpritePosition )( PSPRITE sprite, S_32 x, S_32 y );
 	/* <combine sack::image::UnmakeImageFileEx@Image pif>
-	   
-	   \ \                                                */
+		
+		\ \																*/
 	IMAGE_PROC_PTR( void, UnmakeSprite )( PSPRITE sprite, int bForceImageAlso );
 /* <combine sack::image::GetGlobalFonts>
-   
-   \ \                                   */
+	
+	\ \											  */
 IMAGE_PROC_PTR( struct font_global_tag *, GetGlobalFonts)( void );
 
 /* <combinewith sack::image::GetStringRenderSizeFontEx@CTEXTSTR@_32@_32 *@_32 *@_32 *@SFTFont, sack::image::GetStringRenderSizeFontEx@CTEXTSTR@size_t@_32 *@_32 *@_32 *@SFTFont>
-   
-   \ \                                                                                                                                                                     */
+	
+	\ \																																																							*/
 IMAGE_PROC_PTR( _32, GetStringRenderSizeFontEx )( CTEXTSTR pString, size_t nLen, _32 *width, _32 *height, _32 *charheight, SFTFont UseFont );
 
 IMAGE_PROC_PTR( SFTFont, RenderScaledFont )( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags );
@@ -1171,242 +1218,74 @@ static IMAGE_INTERFACE ProxyImageInterface = {
 		VidlibProxy_RemakeImageEx,
 		VidlibProxy_LoadImageFileEx,
 		VidlibProxy_UnmakeImageFileEx,
-#if 0
 		VidlibProxy_ResizeImageEx,
 		VidlibProxy_MoveImage,
-		VidlibProxy_BlatColor,
-		VidlibProxy_BlatColorAlpha,
-		VidlibProxy_BlotImageEx,
-		VidlibProxy_BlotImageSizedEx,
-		VidlibProxy_plot)      ( Image pi, S_32 x, S_32 y, CDATA c );
-/*Internal
-   Interface index 22*/   DIMAGE_PROC_PTR( void,plotalpha) ( Image pi, S_32 x, S_32 y, CDATA c );
-/*Internal
-   Interface index 23*/   DIMAGE_PROC_PTR( CDATA,getpixel) ( Image pi, S_32 x, S_32 y );
-/*Internal
-   Interface index 24*/   DIMAGE_PROC_PTR( void,do_line)     ( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color );  // d is color data...
-/*Internal
-   Interface index 25*/   DIMAGE_PROC_PTR( void,do_lineAlpha)( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color);  // d is color data...
+		VidlibProxy_BlatColor
+		, VidlibProxy_BlatColorAlpha
+		, VidlibProxy_BlotImageEx
+		, VidlibProxy_BlotImageSizedEx
+		, VidlibProxy_BlotScaledImageSizedEx
+		, &VidlibProxy_plot
+		, &VidlibProxy_plotalpha
+		, &VidlibProxy_getpixel
+		, &VidlibProxy_do_line
+		, &VidlibProxy_do_lineAlpha
+		, &VidlibProxy_do_hline
+		, &VidlibProxy_do_vline
+		, &VidlibProxy_do_hlineAlpha
+		, &VidlibProxy_do_vlineAlpha
+		, VidlibProxy_GetDefaultFont
+		, VidlibProxy_GetFontHeight
+		, VidlibProxy_GetStringSizeFontEx
+		, VidlibProxy_PutCharacterFont
+#if 0
 
-/*Internal
-   Interface index 26*/   DIMAGE_PROC_PTR( void,do_hline)     ( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
-/*Internal
-   Interface index 27*/   DIMAGE_PROC_PTR( void,do_vline)     ( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
-/*Internal
-   Interface index 28*/   DIMAGE_PROC_PTR( void,do_hlineAlpha)( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color );
-/*Internal
-   Interface index 29*/   DIMAGE_PROC_PTR( void,do_vlineAlpha)( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color );
-
-/* <combine sack::image::GetDefaultFont>
-   
-   Internal
-   Interface index 30                    */   IMAGE_PROC_PTR( SFTFont,GetDefaultFont) ( void );
-/* <combine sack::image::GetFontHeight@SFTFont>
-   
-   Internal
-   Interface index 31                                        */   IMAGE_PROC_PTR( _32 ,GetFontHeight)  ( SFTFont );
-/* <combine sack::image::GetStringSizeFontEx@CTEXTSTR@size_t@_32 *@_32 *@SFTFont>
-   
-   Internal
-   Interface index 32                                                          */   IMAGE_PROC_PTR( _32 ,GetStringSizeFontEx)( CTEXTSTR pString, size_t len, _32 *width, _32 *height, SFTFont UseFont );
-
-/* <combine sack::image::PutCharacterFont@Image@S_32@S_32@CDATA@CDATA@_32@SFTFont>
-   
-   Internal
-   Interface index 33                                                           */   IMAGE_PROC_PTR( void,PutCharacterFont)              ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
-/* <combine sack::image::PutCharacterVerticalFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@SFTFont>
-   
-   Internal
-   Interface index 34                                                                                        */   IMAGE_PROC_PTR( void,PutCharacterVerticalFont)      ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
-/* <combine sack::image::PutCharacterInvertFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@SFTFont>
-   
-   Internal
-   Interface index 35                                                                                      */   IMAGE_PROC_PTR( void,PutCharacterInvertFont)        ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
-/* <combine sack::image::PutCharacterVerticalInvertFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@SFTFont>
-   
-   Internal
-   Interface index 36                                                                                              */   IMAGE_PROC_PTR( void,PutCharacterVerticalInvertFont)( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
-
-/* <combine sack::image::PutStringFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@SFTFont>
-   
-   Internal
-   Interface index 37                                                                                   */   IMAGE_PROC_PTR( void,PutStringFontEx)              ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
-/* <combine sack::image::PutStringVerticalFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@SFTFont>
-   
-   Internal
-   Interface index 38                                                                                           */   IMAGE_PROC_PTR( void,PutStringVerticalFontEx)      ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
-/* <combine sack::image::PutStringInvertFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@SFTFont>
-   
-   Internal
-   Interface index 39                                                                                         */   IMAGE_PROC_PTR( void,PutStringInvertFontEx)        ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
-/* <combine sack::image::PutStringInvertVerticalFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@SFTFont>
-   
-   Internal
-   Interface index 40                                                                                                 */   IMAGE_PROC_PTR( void,PutStringInvertVerticalFontEx)( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
-
-/* <combine sack::image::GetMaxStringLengthFont@_32@SFTFont>
-   
-   Internal
-   Interface index 41                                     */   IMAGE_PROC_PTR( _32, GetMaxStringLengthFont )( _32 width, SFTFont UseFont );
-
-/* <combine sack::image::GetImageSize@Image@_32 *@_32 *>
-   
-   Internal
-   Interface index 42                                                    */   IMAGE_PROC_PTR( void, GetImageSize)                ( Image pImage, _32 *width, _32 *height );
-/* <combine sack::image::LoadFont@SFTFont>
-   
-   Internal
-   Interface index 43                                   */   IMAGE_PROC_PTR( SFTFont, LoadFont )                   ( SFTFont font );
-         /* <combine sack::image::UnloadFont@SFTFont>
-            
-            \ \                                    */
-         IMAGE_PROC_PTR( void, UnloadFont )                 ( SFTFont font );
-
-/* Internal
-   Interface index 44
-   
-   This is used by internal methods to transfer image and font
-   data to the render agent.                                   */   IMAGE_PROC_PTR( DataState, BeginTransferData )    ( _32 total_size, _32 segsize, CDATA data );
-/* Internal
-   Interface index 45
-   
-   Used internally to transfer data to render agent. */   IMAGE_PROC_PTR( void, ContinueTransferData )      ( DataState state, _32 segsize, CDATA data );
-/* Internal
-   Interface index 46
-   
-   Command issues at end of data transfer to decode the data
-   into an image.                                            */   IMAGE_PROC_PTR( Image, DecodeTransferredImage )    ( DataState state );
-/* After a data transfer decode the information as a font.
-   Internal
-   Interface index 47                                      */   IMAGE_PROC_PTR( SFTFont, AcceptTransferredFont )     ( DataState state );
-/*Internal
-   Interface index 48*/   DIMAGE_PROC_PTR( CDATA, ColorAverage )( CDATA c1, CDATA c2
-                                              , int d, int max );
-/* <combine sack::image::SyncImage>
-   
-   Internal
-   Interface index 49               */   IMAGE_PROC_PTR( void, SyncImage )                 ( void );
-         /* <combine sack::image::GetImageSurface@Image>
-            
-            \ \                                          */
-         IMAGE_PROC_PTR( PCDATA, GetImageSurface )       ( Image pImage );
-         /* <combine sack::image::IntersectRectangle@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *>
-            
-            \ \                                                                                             */
-         IMAGE_PROC_PTR( int, IntersectRectangle )      ( IMAGE_RECTANGLE *r, IMAGE_RECTANGLE *r1, IMAGE_RECTANGLE *r2 );
-   /* <combine sack::image::MergeRectangle@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *>
-      
-      \ \                                                                                         */
-   IMAGE_PROC_PTR( int, MergeRectangle )( IMAGE_RECTANGLE *r, IMAGE_RECTANGLE *r1, IMAGE_RECTANGLE *r2 );
-   /* <combine sack::image::GetImageAuxRect@Image@P_IMAGE_RECTANGLE>
-      
-      \ \                                                            */
-   IMAGE_PROC_PTR( void, GetImageAuxRect )   ( Image pImage, P_IMAGE_RECTANGLE pRect );
-   /* <combine sack::image::SetImageAuxRect@Image@P_IMAGE_RECTANGLE>
-      
-      \ \                                                            */
-   IMAGE_PROC_PTR( void, SetImageAuxRect )   ( Image pImage, P_IMAGE_RECTANGLE pRect );
-   /* <combine sack::image::OrphanSubImage@Image>
-      
-      \ \                                         */
-   IMAGE_PROC_PTR( void, OrphanSubImage )  ( Image pImage );
-   /* <combine sack::image::AdoptSubImage@Image@Image>
-      
-      \ \                                              */
-   IMAGE_PROC_PTR( void, AdoptSubImage )   ( Image pFoster, Image pOrphan );
-	/* <combine sack::image::MakeSpriteImageFileEx@CTEXTSTR fname>
-	   
-	   \ \                                                         */
-	IMAGE_PROC_PTR( PSPRITE, MakeSpriteImageFileEx )( CTEXTSTR fname DBG_PASS );
-	/* <combine sack::image::MakeSpriteImageEx@Image image>
-	   
-	   \ \                                                  */
-	IMAGE_PROC_PTR( PSPRITE, MakeSpriteImageEx )( Image image DBG_PASS );
-	/* <combine sack::image::rotate_scaled_sprite@Image@PSPRITE@fixed@fixed@fixed>
-	   
-	   \ \                                                                         */
-	IMAGE_PROC_PTR( void   , rotate_scaled_sprite )(Image bmp, PSPRITE sprite, fixed angle, fixed scale_width, fixed scale_height);
-	/* <combine sack::image::rotate_sprite@Image@PSPRITE@fixed>
-	   
-	   \ \                                                      */
-	IMAGE_PROC_PTR( void   , rotate_sprite )(Image bmp, PSPRITE sprite, fixed angle);
- /* <combine sack::image::BlotSprite@Image@PSPRITE>
-	                                                  
-	 Internal
-   Interface index 61                                              */
-		IMAGE_PROC_PTR( void   , BlotSprite )( Image pdest, PSPRITE ps );
-    /* <combine sack::image::DecodeMemoryToImage@P_8@_32>
-       
-       \ \                                                */
-    IMAGE_PROC_PTR( Image, DecodeMemoryToImage )( P_8 buf, _32 size );
-
-   /* <combine sack::image::InternalRenderFontFile@CTEXTSTR@S_32@S_32@_32>
-      
-      \returns a SFTFont                                                      */
-	IMAGE_PROC_PTR( SFTFont, InternalRenderFontFile )( CTEXTSTR file
-																 , S_32 nWidth
-																 , S_32 nHeight
-																		, PFRACTION width_scale
-																		, PFRACTION height_scale
-																 , _32 flags 
-																 );
-   /* <combine sack::image::InternalRenderFont@_32@_32@_32@S_32@S_32@_32>
-      
-      requires knowing the font cache....                                 */
-	IMAGE_PROC_PTR( SFTFont, InternalRenderFont )( _32 nFamily
-															, _32 nStyle
-															, _32 nFile
-															, S_32 nWidth
-															, S_32 nHeight
-																		, PFRACTION width_scale
-																		, PFRACTION height_scale
-															, _32 flags
-															);
-/* <combine sack::image::RenderScaledFontData@PFONTDATA@PFRACTION@PFRACTION>
-   
-   \ \                                                                       */
-IMAGE_PROC_PTR( SFTFont, RenderScaledFontData)( PFONTDATA pfd, PFRACTION width_scale, PFRACTION height_scale );
-/* <combine sack::image::RenderFontFileEx@CTEXTSTR@_32@_32@_32@P_32@POINTER *>
-   
-   \ \                                                                         */
-IMAGE_PROC_PTR( SFTFont, RenderFontFileScaledEx )( CTEXTSTR file, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags, size_t *size, POINTER *pFontData );
-/* <combine sack::image::DestroyFont@SFTFont *>
-   
-   \ \                                       */
-IMAGE_PROC_PTR( void, DestroyFont)( SFTFont *font );
-/* <combine sack::image::GetGlobalFonts>
-   
-   global_font_data in interface is really a global font data. Don't
-   have to call GetGlobalFont to get this.                           */
-struct font_global_tag *_global_font_data;
-/* <combine sack::image::GetFontRenderData@SFTFont@POINTER *@_32 *>
-   
-   \ \                                                           */
-IMAGE_PROC_PTR( int, GetFontRenderData )( SFTFont font, POINTER *fontdata, size_t *fontdatalen );
-/* <combine sack::image::SetFontRendererData@SFTFont@POINTER@_32>
-   
-   \ \                                                         */
-IMAGE_PROC_PTR( void, SetFontRendererData )( SFTFont font, POINTER pResult, size_t size );
-/* <combine sack::image::SetSpriteHotspot@PSPRITE@S_32@S_32>
-   
-   \ \                                                       */
-IMAGE_PROC_PTR( PSPRITE, SetSpriteHotspot )( PSPRITE sprite, S_32 x, S_32 y );
-/* <combine sack::image::SetSpritePosition@PSPRITE@S_32@S_32>
-   
-   \ \                                                        */
-IMAGE_PROC_PTR( PSPRITE, SetSpritePosition )( PSPRITE sprite, S_32 x, S_32 y );
-	/* <combine sack::image::UnmakeImageFileEx@Image pif>
-	   
-	   \ \                                                */
-	IMAGE_PROC_PTR( void, UnmakeSprite )( PSPRITE sprite, int bForceImageAlso );
-/* <combine sack::image::GetGlobalFonts>
-   
-   \ \                                   */
-IMAGE_PROC_PTR( struct font_global_tag *, GetGlobalFonts)( void );
+		, VidlibProxy_PutCharacterVerticalFont
+		, VidlibProxy_PutCharacterInvertFont
+		, VidlibProxy_PutCharacterVerticalInvertFont
+		, VidlibProxy_PutStringFontEx
+		, VidlibProxy_PutStringVerticalFontEx
+		, VidlibProxy_PutStringInvertFontEx
+		, VidlibProxy_PutStringInvertVerticalFontEx
+		, VidlibProxy_GetMaxStringLengthFont
+		, VidlibProxy_GetImageSize
+		, VidlibProxy_LoadFont
+		, VidlibProxy_UnloadFont
+		, VidlibProxy_BeginTransferData
+		, VidlibProxy_ContinueTransferData
+		, VidlibProxy_DecodeTransferredImage
+		, VidlibProxy_AcceptTransferredFont
+		, &VidlibProxy_ColorAverage
+		, VidlibProxy_SyncImage
+		, VidlibProxy_GetImageSurface
+		, VidlibProxy_IntersectRectangle
+		, VidlibProxy_MergeRectangle
+		, VidlibProxy_GetImageAuxRect
+		, VidlibProxy_SetImageAuxRect
+		, VidlibProxy_OrphanSubImage
+		, VidlibProxy_AdoptSubImage
+		, VidlibProxy_MakeSpriteImageFileEx
+		, VidlibProxy_MakeSpriteImageEx
+		, VidlibProxy_rotate_scaled_sprite
+		, VidlibProxy_rotate_sprite
+		, VidlibProxy_BlotSprite
+		, VidlibProxy_DecodeMemoryToImage
+		, VidlibProxy_InternalRenderFontFile
+		, VidlibProxy_InternalRenderFont
+		, VidlibProxy_RenderScaledFontData
+		, VidlibProxy_RenderFontFileScaledEx
+		, VidlibProxy_DestroyFont
+		, NULL
+		, VidlibProxy_GetFontRenderData
+		, VidlibProxy_SetFontRendererData
+		, VidlibProxy_SetSpriteHotspot
+		, VidlibProxy_SetSpritePosition
+		, VidlibProxy_UnmakeSprite
+		, NULL //VidlibProxy_struct font_global_tag *, GetGlobalFonts)( void );
 
 /* <combinewith sack::image::GetStringRenderSizeFontEx@CTEXTSTR@_32@_32 *@_32 *@_32 *@SFTFont, sack::image::GetStringRenderSizeFontEx@CTEXTSTR@size_t@_32 *@_32 *@_32 *@SFTFont>
-   
-   \ \                                                                                                                                                                     */
+	
+	\ \																																																							*/
 IMAGE_PROC_PTR( _32, GetStringRenderSizeFontEx )( CTEXTSTR pString, size_t nLen, _32 *width, _32 *height, _32 *charheight, SFTFont UseFont );
 
 IMAGE_PROC_PTR( Image, LoadImageFileFromGroupEx )( INDEX group, CTEXTSTR filename DBG_PASS );
@@ -1470,10 +1349,10 @@ static COLOR_CHANNEL CPROC VidlibProxy_GetAlphaValue( CDATA color )
 static CDATA CPROC VidlibProxy_MakeAlphaColor( COLOR_CHANNEL r, COLOR_CHANNEL grn, COLOR_CHANNEL b, COLOR_CHANNEL alpha )
 {
 #  ifdef _WIN64
-#    define _AND_FF &0xFF
+#	 define _AND_FF &0xFF
 #  else
 /* This is a macro to cure a 64bit warning in visual studio. */
-#    define _AND_FF
+#	 define _AND_FF
 #  endif
 #define _AColor( r,g,b,a ) (((_32)( ((_8)((b)_AND_FF))|((_16)((_8)((g))_AND_FF)<<8))|(((_32)((_8)((r))_AND_FF)<<16)))|(((a)_AND_FF)<<24))
 	return _AColor( r, grn, b, alpha );
@@ -1484,19 +1363,8 @@ static CDATA CPROC VidlibProxy_MakeColor( COLOR_CHANNEL r, COLOR_CHANNEL grn, CO
 	return VidlibProxy_MakeAlphaColor( r,grn,b, 0xFF );
 }
 
-static CDATA CPROC VidlibProxy_getpixel( Image image, S_32 x, S_32 y )
-{
-	PVPImage my_image = (PVPImage)image;
-	if( my_image )
-	{
-		return (*l.real_interface->_getpixel)( my_image->image, x, y );
-	}
-	return 0;
-}
-
 static void InitImageInterface( void )
 {
-	static CDATA (CPROC* _getpixel)( Image image, S_32 x, S_32 y ) =  VidlibProxy_getpixel;
 	ProxyImageInterface._GetRedValue = VidlibProxy_GetRedValue;
 	ProxyImageInterface._GetGreenValue = VidlibProxy_GetGreenValue;
 	ProxyImageInterface._GetBlueValue = VidlibProxy_GetBlueValue;
@@ -1504,9 +1372,11 @@ static void InitImageInterface( void )
 	ProxyImageInterface._MakeColor = VidlibProxy_MakeColor;
 	ProxyImageInterface._MakeAlphaColor = VidlibProxy_MakeAlphaColor;
 	ProxyImageInterface._LoadImageFileFromGroupEx = VidlibProxy_LoadImageFileFromGroupEx;
-	ProxyImageInterface._getpixel = &_getpixel;
 	ProxyImageInterface._GetStringSizeFontEx = VidlibProxy_GetStringSizeFontEx;
 	ProxyImageInterface._GetFontHeight = VidlibProxy_GetFontHeight;
+	ProxyImageInterface._OrphanSubImage = VidlibProxy_OrphanSubImage;
+	ProxyImageInterface._AdoptSubImage = VidlibProxy_AdoptSubImage;
+
 }
 
 static IMAGE_3D_INTERFACE Proxy3dImageInterface = {
@@ -1515,40 +1385,40 @@ static IMAGE_3D_INTERFACE Proxy3dImageInterface = {
 
 static POINTER CPROC GetProxyDisplayInterface( void )
 {
-   // open server socket
-   return &ProxyInterface;
+	// open server socket
+	return &ProxyInterface;
 }
 static void CPROC DropProxyDisplayInterface( POINTER i )
 {
-   // close connections
+	// close connections
 }
 static POINTER CPROC Get3dProxyDisplayInterface( void )
 {
-   // open server socket
-   return &Proxy3dInterface;
+	// open server socket
+	return &Proxy3dInterface;
 }
 static void CPROC Drop3dProxyDisplayInterface( POINTER i )
 {
-   // close connections
+	// close connections
 }
 
 static POINTER CPROC GetProxyImageInterface( void )
 {
-   // open server socket
-   return &ProxyImageInterface;
+	// open server socket
+	return &ProxyImageInterface;
 }
 static void CPROC DropProxyImageInterface( POINTER i )
 {
-   // close connections
+	// close connections
 }
 static POINTER CPROC Get3dProxyImageInterface( void )
 {
-   // open server socket
-   return &Proxy3dImageInterface;
+	// open server socket
+	return &Proxy3dImageInterface;
 }
 static void CPROC Drop3dProxyImageInterface( POINTER i )
 {
-   // close connections
+	// close connections
 }
 
 PRIORITY_PRELOAD( RegisterProxyInterface, VIDLIB_PRELOAD_PRIORITY )
@@ -1561,6 +1431,9 @@ PRIORITY_PRELOAD( RegisterProxyInterface, VIDLIB_PRELOAD_PRIORITY )
 	RegisterInterface( WIDE( "sack.image.3d.proxy.server" ), Get3dProxyImageInterface, Drop3dProxyImageInterface );
 	RegisterInterface( WIDE( "sack.render.proxy.server" ), GetProxyDisplayInterface, DropProxyDisplayInterface );
 	RegisterInterface( WIDE( "sack.render.3d.proxy.server" ), Get3dProxyDisplayInterface, Drop3dProxyDisplayInterface );
+
+	// wanted to delay-init; until a renderer is actually open..
+	InitService();
 }
 
 
