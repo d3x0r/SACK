@@ -4,3 +4,4 @@
 // returns internal image data; used to create the data if it doesn't exist on reload texture....
 // mostly just a event called by draw routines to non IF_FLAG_FINAL_RENDER images
 void MarkImageUpdated( Image child_image );
+Image AllocateCharacterSpaceByFont( SFTFont font, PCHARACTER character );

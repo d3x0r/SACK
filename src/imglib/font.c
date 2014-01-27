@@ -210,6 +210,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 
 	if( pImage->flags & IF_FLAG_FINAL_RENDER )
 	{
+		int orientation = 0;
 		S_32 xd;
 		S_32 yd;
 		S_32 yd_back;
@@ -229,26 +230,36 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			yd_back = y;
 			break;
 		case OrderPointsInvert:
+			orientation = BLOT_ORIENT_INVERT;
 			xd = x;
 			yd = y- UseFont->baseline + pchar->ascent;
 			xd_back = xd;
 			yd_back = y;
 			break;
 		case OrderPointsVertical:
+			orientation = BLOT_ORIENT_VERTICAL;
 			xd = x - (UseFont->baseline - pchar->ascent);
 			yd = y;
 			xd_back = x;
 			yd_back = yd;
 			break;
 		case OrderPointsVerticalInvert:
+			orientation = BLOT_ORIENT_VERTICAL_INVERT;
 			xd = x + (UseFont->baseline - pchar->ascent);
 			yd = y;
 			xd_back = x;
 			yd_back = yd;
 			break;
 		}
-		
+#if !defined( __3D__ )
+
+		if( background )
+			BlatColorAlpha( pImage, xd, yd, pchar->cell->real_width, pchar->cell->real_height, background );
+		BlotImageSizedEx( pImage, pifSrc, xd, yd, xs, ys, pchar->cell->real_width, pchar->cell->real_height, TRUE, BLOT_SHADED|orientation, color );
+#else
+
 		for( pifSrcReal = pifSrc; pifSrcReal->pParent; pifSrcReal = pifSrcReal->pParent );
+
 #ifdef _OPENGL_DRIVER
 		ReloadOpenGlTexture( pifSrc, 0 );
 		if( !pifSrc->glActiveSurface )
@@ -290,7 +301,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			_back_color[2] = BlueVal( background ) / 255.0f;
 			_back_color[3] = AlphaVal( background ) / 255.0f;
 #endif
-#if defined( __3D__ )
+
 			switch( order )
 			{
 			default:
@@ -741,8 +752,8 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			//pQuadVB->Release();
 #  endif // _D3D11_DRIVER elseif
 #endif // __OPENGLDriver__ if/else
-#endif // __3D__
 		}
+#endif // __3D__
 	}
 	else
 	{
