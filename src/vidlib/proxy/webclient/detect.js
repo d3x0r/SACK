@@ -62,6 +62,31 @@ function WebSocketTest()
      ws.onmessage = function (evt) 
      { 
         var received_msg = evt.data;
+        var msg = JSON.parse(evt.data);
+     	switch( msg.MsgID )
+        {
+        case 0: // PMID_Version
+        	
+        	break;
+        case 1: // PMID_SetApplicationTitle
+                break;
+        case 2: // PMID_SetApplicationIcon
+        	break;
+        case 3: // PMID_OpenDisplayAboveUnderSizedAt
+        	var canvas = document.createElement('canvas');
+		canvas.id     = "Render" + msg.data.server_render_id;
+		canvas.width  = msg.data.width;
+		canvas.height = msg.data.height;
+		canvas.style.zIndex   = 8;
+		canvas.style.position = "absolute";
+		canvas.style.border   = "1px solid";
+                document.body.appendChild(canvas);
+	        break;
+        case 4: // PMID_CloseDisplay
+        	var canvas = document.getElementById("Render" + msg.data.server_render_id);
+                document.body.removeChild( canvas );
+        	break;
+        }
         alert("Message is received..." + evt.data );
      };
      ws.onclose = function( evt )
