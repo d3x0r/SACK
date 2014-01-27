@@ -1,6 +1,6 @@
 /*
  *  Crafted by Jim Buckeyne
- *   (c)1999-2006++ Freedom Collective
+ *	(c)1999-2006++ Freedom Collective
  *
  *  Support for putting one image on another without scaling.
  *
@@ -28,116 +28,116 @@ namespace image {
 
 //---------------------------------------------------------------------------
 
-#define StartLoop oo /= 4;    \
-   oi /= 4;                   \
-   {                          \
-      _32 row= 0;             \
-      while( row < hs )       \
-      {                       \
-         _32 col=0;           \
-         while( col < ws )    \
-         {                    \
-            {
+#define StartLoop oo /= 4;	 \
+	oi /= 4;						 \
+	{								  \
+		_32 row= 0;				 \
+		while( row < hs )		 \
+		{							  \
+			_32 col=0;			  \
+			while( col < ws )	 \
+			{						  \
+				{
 
-#define EndLoop   }           \
+#define EndLoop	}			  \
 /*lprintf( "in %08x out %08x", ((CDATA*)pi)[0], ((CDATA*)po)[1] );*/ \
-            po++;             \
-            pi++;             \
-            col++;            \
-         }                    \
-         pi += oi;            \
-         po += oo;            \
-         row++;               \
-      }                       \
-   }
+				po++;				 \
+				pi++;				 \
+				col++;				\
+			}						  \
+			pi += oi;				\
+			po += oo;				\
+			row++;					\
+		}							  \
+	}
 
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
 void CPROC cCopyPixelsT0( PCDATA po, PCDATA  pi
-                          , S_32 oo, S_32 oi
-                          , _32 ws, _32 hs
-                           )
+								  , S_32 oo, S_32 oi
+								  , _32 ws, _32 hs
+									)
 {
-   StartLoop
-            *po = *pi;
-   EndLoop
+	StartLoop
+				*po = *pi;
+	EndLoop
 }
 
 //---------------------------------------------------------------------------
 
  void CPROC cCopyPixelsT1( PCDATA po, PCDATA  pi
-                          , S_32 oo, S_32 oi
-                          , _32 ws, _32 hs
-                           )
+								  , S_32 oo, S_32 oi
+								  , _32 ws, _32 hs
+									)
 {
-   StartLoop
-            CDATA cin;
-            if( (cin = *pi) )
-            {
-               *po = cin;
-            }
-   EndLoop
+	StartLoop
+				CDATA cin;
+				if( (cin = *pi) )
+				{
+					*po = cin;
+				}
+	EndLoop
 }
 
 //---------------------------------------------------------------------------
 
  void CPROC cCopyPixelsTA( PCDATA po, PCDATA  pi
-                          , S_32 oo, S_32 oi
-                          , _32 ws, _32 hs
-                          , _32 nTransparent )
+								  , S_32 oo, S_32 oi
+								  , _32 ws, _32 hs
+								  , _32 nTransparent )
 {
-   StartLoop
-            CDATA cin;
-            if( (cin = *pi) )
+	StartLoop
+				CDATA cin;
+				if( (cin = *pi) )
 				{
 					*po = DOALPHA2( *po
 									  , cin
 									  , nTransparent );
-            }
-   EndLoop
+				}
+	EndLoop
 }
 
 //---------------------------------------------------------------------------
 
  void CPROC cCopyPixelsTImgA( PCDATA po, PCDATA  pi
-                          , S_32 oo, S_32 oi
-                          , _32 ws, _32 hs
-                          , _32 nTransparent )
+								  , S_32 oo, S_32 oi
+								  , _32 ws, _32 hs
+								  , _32 nTransparent )
 {
-   StartLoop
-            _32 alpha;
-            CDATA cin;
-            if( (cin = *pi) )
-            {
-               alpha = ( cin & 0xFF000000 ) >> 24;
-               alpha += nTransparent;
-               *po = DOALPHA2( *po, cin, alpha );
-            }
-   EndLoop
+	StartLoop
+				_32 alpha;
+				CDATA cin;
+				if( (cin = *pi) )
+				{
+					alpha = ( cin & 0xFF000000 ) >> 24;
+					alpha += nTransparent;
+					*po = DOALPHA2( *po, cin, alpha );
+				}
+	EndLoop
 }
 //---------------------------------------------------------------------------
 
  void CPROC cCopyPixelsTImgAI( PCDATA po, PCDATA  pi
-                          , S_32 oo, S_32 oi
-                          , _32 ws, _32 hs
-                          , _32 nTransparent )
+								  , S_32 oo, S_32 oi
+								  , _32 ws, _32 hs
+								  , _32 nTransparent )
 {
-   StartLoop
-            S_32 alpha;
+	StartLoop
+				S_32 alpha;
 
-            CDATA cin;
-            if( (cin = *pi) )
-            {
-               alpha = ( cin & 0xFF000000 ) >> 24;
-               alpha -= nTransparent;
-               if( alpha > 1 )
-               {
-                  *po = DOALPHA2( *po, cin, alpha );
-               }
-            }
-   EndLoop
+				CDATA cin;
+				if( (cin = *pi) )
+				{
+					alpha = ( cin & 0xFF000000 ) >> 24;
+					alpha -= nTransparent;
+					if( alpha > 1 )
+					{
+						*po = DOALPHA2( *po, cin, alpha );
+					}
+				}
+	EndLoop
 }
 
 //---------------------------------------------------------------------------
@@ -145,88 +145,88 @@ void CPROC cCopyPixelsT0( PCDATA po, PCDATA  pi
 //---------------------------------------------------------------------------
 
 void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
-                          , S_32 oo, S_32 oi
-                          , _32 ws, _32 hs
-                           )
+								  , S_32 oo, S_32 oi
+								  , _32 ws, _32 hs
+									)
 {
-   StartLoop
-            *po = INVERTPIXEL(*pi);
-   EndLoop
+	StartLoop
+				*po = INVERTPIXEL(*pi);
+	EndLoop
 }
 
 //---------------------------------------------------------------------------
 
  void CPROC cInvertPixelsT1( PCDATA po, PCDATA  pi
-                          , S_32 oo, S_32 oi
-                          , _32 ws, _32 hs
-                           )
+								  , S_32 oo, S_32 oi
+								  , _32 ws, _32 hs
+									)
 {
-   StartLoop
-            CDATA cin;
-            if( (cin = *pi) )
-            {
-               *po = INVERTPIXEL(cin);
-            }
-   EndLoop
+	StartLoop
+				CDATA cin;
+				if( (cin = *pi) )
+				{
+					*po = INVERTPIXEL(cin);
+				}
+	EndLoop
 }
 
 //---------------------------------------------------------------------------
 
  void CPROC cInvertPixelsTA( PCDATA po, PCDATA  pi
-                          , S_32 oo, S_32 oi
-                          , _32 ws, _32 hs
-                          , _32 nTransparent )
+								  , S_32 oo, S_32 oi
+								  , _32 ws, _32 hs
+								  , _32 nTransparent )
 {
-   StartLoop
-            CDATA cin;
-            if( (cin = INVERTPIXEL(*pi)) )
+	StartLoop
+				CDATA cin;
+				if( (cin = INVERTPIXEL(*pi)) )
 				{
 					*po = DOALPHA2( *po
 									  , cin
 									  , nTransparent );
-            }
-   EndLoop
+				}
+	EndLoop
 }
 
 //---------------------------------------------------------------------------
 
  void CPROC cInvertPixelsTImgA( PCDATA po, PCDATA  pi
-                          , S_32 oo, S_32 oi
-                          , _32 ws, _32 hs
-                          , _32 nTransparent )
+								  , S_32 oo, S_32 oi
+								  , _32 ws, _32 hs
+								  , _32 nTransparent )
 {
-   StartLoop
-            _32 alpha;
-            CDATA cin;
-            if( (cin = INVERTPIXEL(*pi)) )
-            {
-               alpha = ( cin & 0xFF000000 ) >> 24;
-               alpha += nTransparent;
-               *po = DOALPHA2( *po, cin, alpha );
-            }
-   EndLoop
+	StartLoop
+				_32 alpha;
+				CDATA cin;
+				if( (cin = INVERTPIXEL(*pi)) )
+				{
+					alpha = ( cin & 0xFF000000 ) >> 24;
+					alpha += nTransparent;
+					*po = DOALPHA2( *po, cin, alpha );
+				}
+	EndLoop
 }
 //---------------------------------------------------------------------------
 
  void CPROC cInvertPixelsTImgAI( PCDATA po, PCDATA  pi
-                          , S_32 oo, S_32 oi
-                          , _32 ws, _32 hs
-                          , _32 nTransparent )
+								  , S_32 oo, S_32 oi
+								  , _32 ws, _32 hs
+								  , _32 nTransparent )
 {
-   StartLoop
-            S_32 alpha;
+	StartLoop
+				S_32 alpha;
 
-            CDATA cin;
-            if( (cin = INVERTPIXEL(*pi)) )
-            {
-               alpha = ( cin & 0xFF000000 ) >> 24;
-               alpha -= nTransparent;
-               if( alpha > 1 )
-               {
-                  *po = DOALPHA2( *po, cin, alpha );
-               }
-            }
-   EndLoop
+				CDATA cin;
+				if( (cin = INVERTPIXEL(*pi)) )
+				{
+					alpha = ( cin & 0xFF000000 ) >> 24;
+					alpha -= nTransparent;
+					if( alpha > 1 )
+					{
+						*po = DOALPHA2( *po, cin, alpha );
+					}
+				}
+	EndLoop
 }
 
 //---------------------------------------------------------------------------
@@ -234,188 +234,188 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 //---------------------------------------------------------------------------
 
  void CPROC cCopyPixelsShadedT0( PCDATA po, PCDATA  pi
-                            , S_32 oo, S_32 oi
-                            , _32 ws, _32 hs
-                            , CDATA c )
+									 , S_32 oo, S_32 oi
+									 , _32 ws, _32 hs
+									 , CDATA c )
 {
-   StartLoop
-            _32 pixel;
-            pixel = *pi;
-            *po = SHADEPIXEL(pixel, c);
-   EndLoop
+	StartLoop
+				_32 pixel;
+				pixel = *pi;
+				*po = SHADEPIXEL(pixel, c);
+	EndLoop
 }
 
 //---------------------------------------------------------------------------
  void CPROC cCopyPixelsShadedT1( PCDATA po, PCDATA  pi
-                            , S_32 oo, S_32 oi
-                            , _32 ws, _32 hs
-                            , CDATA c )
+									 , S_32 oo, S_32 oi
+									 , _32 ws, _32 hs
+									 , CDATA c )
 {
-   StartLoop
-            _32 pixel;
-            if( (pixel = *pi) )
-            {
-               *po = SHADEPIXEL(pixel, c);
-            }
-   EndLoop
+	StartLoop
+				_32 pixel;
+				if( (pixel = *pi) )
+				{
+					*po = SHADEPIXEL(pixel, c);
+				}
+	EndLoop
 }
 //---------------------------------------------------------------------------
 
  void CPROC cCopyPixelsShadedTA( PCDATA po, PCDATA  pi
-                            , S_32 oo, S_32 oi
-                            , _32 ws, _32 hs
-                            , _32 nTransparent
-                            , CDATA c )
+									 , S_32 oo, S_32 oi
+									 , _32 ws, _32 hs
+									 , _32 nTransparent
+									 , CDATA c )
 {
-   StartLoop
-            _32 pixel, pixout;
-            if( (pixel = *pi) )
-            {
-               pixout = SHADEPIXEL(pixel, c);
-               *po = DOALPHA2( *po, pixout, nTransparent );
-            }
-   EndLoop
+	StartLoop
+				_32 pixel, pixout;
+				if( (pixel = *pi) )
+				{
+					pixout = SHADEPIXEL(pixel, c);
+					*po = DOALPHA2( *po, pixout, nTransparent );
+				}
+	EndLoop
 }
 
 //---------------------------------------------------------------------------
  void CPROC cCopyPixelsShadedTImgA( PCDATA po, PCDATA  pi
-                            , S_32 oo, S_32 oi
-                            , _32 ws, _32 hs
-                            , _32 nTransparent
-                            , CDATA c )
+									 , S_32 oo, S_32 oi
+									 , _32 ws, _32 hs
+									 , _32 nTransparent
+									 , CDATA c )
 {
-   StartLoop
-            _32 pixel, pixout;
-            if( (pixel = *pi) )
-            {
-               _32 alpha;
-               pixout = SHADEPIXEL(pixel, c);
-               alpha = ( pixel & 0xFF000000 ) >> 24;
-               alpha += nTransparent;
-               *po = DOALPHA2( *po, pixout, alpha );
-            }
-   EndLoop
+	StartLoop
+				_32 pixel, pixout;
+				if( (pixel = *pi) )
+				{
+					_32 alpha;
+					pixout = SHADEPIXEL(pixel, c);
+					alpha = ( pixel & 0xFF000000 ) >> 24;
+					alpha += nTransparent;
+					*po = DOALPHA2( *po, pixout, alpha );
+				}
+	EndLoop
 }
 
 //---------------------------------------------------------------------------
  void CPROC cCopyPixelsShadedTImgAI( PCDATA po, PCDATA  pi
-                            , S_32 oo, S_32 oi
-                            , _32 ws, _32 hs
-                            , _32 nTransparent
-                            , CDATA c )
+									 , S_32 oo, S_32 oi
+									 , _32 ws, _32 hs
+									 , _32 nTransparent
+									 , CDATA c )
 {
-   StartLoop
-            _32 pixel, pixout;
-            if( (pixel = *pi) )
-            {
-               _32 alpha;
-               alpha = ( pixel & 0xFF000000 ) >> 24;
-               alpha -= nTransparent;
-               if( alpha > 1 )
-               {
-                  pixout = SHADEPIXEL(pixel, c);
-                  *po = DOALPHA2( *po, pixout, alpha );
-               }
-            }
-   EndLoop
+	StartLoop
+				_32 pixel, pixout;
+				if( (pixel = *pi) )
+				{
+					_32 alpha;
+					alpha = ( pixel & 0xFF000000 ) >> 24;
+					alpha -= nTransparent;
+					if( alpha > 1 )
+					{
+						pixout = SHADEPIXEL(pixel, c);
+						*po = DOALPHA2( *po, pixout, alpha );
+					}
+				}
+	EndLoop
 }
 
 
 //---------------------------------------------------------------------------
 
  void CPROC cCopyPixelsMultiT0( PCDATA po, PCDATA  pi
-                            , S_32 oo, S_32 oi
-                            , _32 ws, _32 hs
-                            , CDATA r, CDATA g, CDATA b )
+									 , S_32 oo, S_32 oi
+									 , _32 ws, _32 hs
+									 , CDATA r, CDATA g, CDATA b )
 {
-   StartLoop
-            _32 pixel, pixout;
-            {
-               _32 rout, gout, bout;
-               pixel = *pi;
-               pixout = MULTISHADEPIXEL( pixel, r,g,b);
-            }
-            *po = pixout;
-   EndLoop
+	StartLoop
+				_32 pixel, pixout;
+				{
+					_32 rout, gout, bout;
+					pixel = *pi;
+					pixout = MULTISHADEPIXEL( pixel, r,g,b);
+				}
+				*po = pixout;
+	EndLoop
 }
 
 //---------------------------------------------------------------------------
  void CPROC cCopyPixelsMultiT1( PCDATA po, PCDATA  pi
-                            , S_32 oo, S_32 oi
-                            , _32 ws, _32 hs
-                            , CDATA r, CDATA g, CDATA b )
+									 , S_32 oo, S_32 oi
+									 , _32 ws, _32 hs
+									 , CDATA r, CDATA g, CDATA b )
 {
-   StartLoop
-            _32 pixel, pixout;
-            if( (pixel = *pi) )
-            {
-               _32 rout, gout, bout;
-               pixout = MULTISHADEPIXEL( pixel, r,g,b);
+	StartLoop
+				_32 pixel, pixout;
+				if( (pixel = *pi) )
+				{
+					_32 rout, gout, bout;
+					pixout = MULTISHADEPIXEL( pixel, r,g,b);
 
-               *po = pixout;
-            }
-   EndLoop
+					*po = pixout;
+				}
+	EndLoop
 }
 //---------------------------------------------------------------------------
  void CPROC cCopyPixelsMultiTA( PCDATA po, PCDATA  pi
-                            , S_32 oo, S_32 oi
-                            , _32 ws, _32 hs
-                            , _32 nTransparent
-                            , CDATA r, CDATA g, CDATA b )
+									 , S_32 oo, S_32 oi
+									 , _32 ws, _32 hs
+									 , _32 nTransparent
+									 , CDATA r, CDATA g, CDATA b )
 {
-   StartLoop
-            _32 pixel, pixout;
-            if( (pixel = *pi) )
-            {
-               _32 rout, gout, bout;
-               pixout = MULTISHADEPIXEL( pixel, r,g,b);
-               *po = DOALPHA2( *po, pixout, nTransparent );
-            }
-   EndLoop
+	StartLoop
+				_32 pixel, pixout;
+				if( (pixel = *pi) )
+				{
+					_32 rout, gout, bout;
+					pixout = MULTISHADEPIXEL( pixel, r,g,b);
+					*po = DOALPHA2( *po, pixout, nTransparent );
+				}
+	EndLoop
 }
 //---------------------------------------------------------------------------
  void CPROC cCopyPixelsMultiTImgA( PCDATA po, PCDATA  pi
-                            , S_32 oo, S_32 oi
-                            , _32 ws, _32 hs
-                            , _32 nTransparent
-                            , CDATA r, CDATA g, CDATA b )
+									 , S_32 oo, S_32 oi
+									 , _32 ws, _32 hs
+									 , _32 nTransparent
+									 , CDATA r, CDATA g, CDATA b )
 {
-   StartLoop
-            _32 pixel, pixout;
-            if( (pixel = *pi) )
-            {
-               _32 rout, gout, bout;
-               _32 alpha;
-               alpha = ( pixel & 0xFF000000 ) >> 24;
-               alpha += nTransparent;
-               pixout = MULTISHADEPIXEL( pixel, r,g,b);
-               //lprintf( "pixel %08x pixout %08x r %08x g %08x b %08x", pixel, pixout, r,g,b);
-               *po = DOALPHA2( *po, pixout, alpha );
-            }
-   EndLoop
+	StartLoop
+				_32 pixel, pixout;
+				if( (pixel = *pi) )
+				{
+					_32 rout, gout, bout;
+					_32 alpha;
+					alpha = ( pixel & 0xFF000000 ) >> 24;
+					alpha += nTransparent;
+					pixout = MULTISHADEPIXEL( pixel, r,g,b);
+					//lprintf( "pixel %08x pixout %08x r %08x g %08x b %08x", pixel, pixout, r,g,b);
+					*po = DOALPHA2( *po, pixout, alpha );
+				}
+	EndLoop
 }
 //---------------------------------------------------------------------------
  void CPROC cCopyPixelsMultiTImgAI( PCDATA po, PCDATA  pi
-                            , S_32 oo, S_32 oi
-                            , _32 ws, _32 hs
-                            , _32 nTransparent
-                            , CDATA r, CDATA g, CDATA b )
+									 , S_32 oo, S_32 oi
+									 , _32 ws, _32 hs
+									 , _32 nTransparent
+									 , CDATA r, CDATA g, CDATA b )
 {
-   StartLoop
-            _32 pixel, pixout;
-            if( (pixel = *pi) )
-            {
-               _32 rout, gout, bout;
-               _32 alpha;
-               alpha = ( pixel & 0xFF000000 ) >> 24;
-               alpha -= nTransparent;
-               if( alpha > 1 )
-               {
-                  pixout = MULTISHADEPIXEL( pixel, r,g,b);
-                  *po = DOALPHA2( *po, pixout, alpha );
-               }
-            }
-   EndLoop
+	StartLoop
+				_32 pixel, pixout;
+				if( (pixel = *pi) )
+				{
+					_32 rout, gout, bout;
+					_32 alpha;
+					alpha = ( pixel & 0xFF000000 ) >> 24;
+					alpha -= nTransparent;
+					if( alpha > 1 )
+					{
+						pixout = MULTISHADEPIXEL( pixel, r,g,b);
+						*po = DOALPHA2( *po, pixout, alpha );
+					}
+				}
+	EndLoop
 }
 
 
@@ -426,62 +426,62 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 // default behavior is to omit copying 0 pixels for transparency
 // overlays....
  void  BlotImageSizedEx ( ImageFile *pifDest, ImageFile *pifSrc
-                              , S_32 xd, S_32 yd
-                              , S_32 xs, S_32 ys
-                              , _32 ws, _32 hs
-                              , _32 nTransparent
-                              , _32 method
-                              , ... )
+										, S_32 xd, S_32 yd
+										, S_32 xs, S_32 ys
+										, _32 ws, _32 hs
+										, _32 nTransparent
+										, _32 method
+										, ... )
 {
 #define BROKEN_CODE
-   PCDATA po, pi;
-   int  hd, wd;
-   S_32 oo, oi; // treated as an adder... it is unsigned by math, but still results correct offset?
-   static _32 lock;
+	PCDATA po, pi;
+	int  hd, wd;
+	S_32 oo, oi; // treated as an adder... it is unsigned by math, but still results correct offset?
+	static _32 lock;
 	va_list colors;
 	va_start( colors, method );
-   if( nTransparent > ALPHA_TRANSPARENT_MAX )
-      return;
+	if( nTransparent > ALPHA_TRANSPARENT_MAX )
+		return;
 
-   if(  !pifSrc
-     || !pifSrc->image
-     || !pifDest
-     || !pifDest->image )
-      return;
-   //lprintf( "BlotImageSized %d,%d to %d,%d by %d,%d", xs, ys, xd, yd, ws, hs );
+	if(  !pifSrc
+	  || !pifSrc->image
+	  || !pifDest
+	  || !pifDest->image )
+		return;
+	//lprintf( "BlotImageSized %d,%d to %d,%d by %d,%d", xs, ys, xd, yd, ws, hs );
 
-   wd = pifDest->width + pifDest->x;
+	wd = pifDest->width + pifDest->x;
 	hd = pifDest->height + pifDest->y;
 	{
 //cpg26dec2006 c:\work\sack\src\imglib\blotdirect.c(348): Warning! W202: Symbol 'r' has been defined, but not referenced
 //cpg26dec2006  	IMAGE_RECTANGLE r;
 		IMAGE_RECTANGLE r1;
 		IMAGE_RECTANGLE r2;
-      IMAGE_RECTANGLE rs;
+		IMAGE_RECTANGLE rs;
 		IMAGE_RECTANGLE rd;
-      int tmp;
-      //IMAGE_RECTANGLE r3;
-      r1.x = xd;
-      r1.y = yd;
-      r1.width = ws;
-      r1.height = hs;
-      r2.x = pifDest->eff_x;
+		int tmp;
+		//IMAGE_RECTANGLE r3;
+		r1.x = xd;
+		r1.y = yd;
+		r1.width = ws;
+		r1.height = hs;
+		r2.x = pifDest->eff_x;
 		r2.y = pifDest->eff_y;
 		tmp = (pifDest->eff_maxx - pifDest->eff_x) + 1;
 		if( tmp < 0 )
 			r2.width = 0;
 		else
-         r2.width = (IMAGE_SIZE_COORDINATE)tmp;
+			r2.width = (IMAGE_SIZE_COORDINATE)tmp;
 		tmp = (pifDest->eff_maxy - pifDest->eff_y) + 1;
 		if( tmp < 0 )
 			r2.height = 0;
 		else
-         r2.height = (IMAGE_SIZE_COORDINATE)tmp;
+			r2.height = (IMAGE_SIZE_COORDINATE)tmp;
 		if( !IntersectRectangle( &rd, &r1, &r2 ) )
 		{
 			//lprintf( "Images do not overlap. %d,%d %d,%d vs %d,%d %d,%d", r1.x,r1.y,r1.width,r1.height
 			//		 , r2.x,r2.y,r2.width,r2.height);
-         return;
+			return;
 		}
 
 		//lprintf( "Correcting coordinates by %d,%d"
@@ -489,7 +489,7 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 		//		 , rd.y - yd
 		//		 );
 
-      xs += rd.x - xd;
+		xs += rd.x - xd;
 		ys += rd.y - yd;
 		tmp = rd.x - xd;
 		if( tmp > 0 && (unsigned)tmp > ws )
@@ -511,29 +511,29 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 			else
 				hs -= (unsigned)tmp;
 		}
-      //lprintf( "Resulting dest is %d,%d %d,%d", rd.x,rd.y,rd.width,rd.height );
+		//lprintf( "Resulting dest is %d,%d %d,%d", rd.x,rd.y,rd.width,rd.height );
 		xd = rd.x;
-      yd = rd.y;
-      r1.x = xs;
-      r1.y = ys;
-      r1.width = ws;
-      r1.height = hs;
-      r2.x = pifSrc->eff_x;
+		yd = rd.y;
+		r1.x = xs;
+		r1.y = ys;
+		r1.width = ws;
+		r1.height = hs;
+		r2.x = pifSrc->eff_x;
 		r2.y = pifSrc->eff_y;
 		tmp = (pifSrc->eff_maxx - pifSrc->eff_x) + 1;
 		if( tmp < 0 )
 			r2.width = 0;
-      else
+		else
 			r2.width = (IMAGE_SIZE_COORDINATE)tmp;
 		tmp = (pifSrc->eff_maxy - pifSrc->eff_y) + 1;
 		if( tmp < 0 )
 			r2.height = 0;
 		else
-         r2.height = (IMAGE_SIZE_COORDINATE)tmp;
+			r2.height = (IMAGE_SIZE_COORDINATE)tmp;
 		if( !IntersectRectangle( &rs, &r1, &r2 ) )
 		{
-         //lprintf( "Desired Output does not overlap..." );
-         return;
+			//lprintf( "Desired Output does not overlap..." );
+			return;
 		}
 		//lprintf( "Resulting dest is %d,%d %d,%d", rs.x,rs.y,rs.width,rs.height );
 		ws = rs.width<rd.width?rs.width:rd.width;
@@ -544,11 +544,11 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 		//lprintf( "Resulting rect is %d,%d to %d,%d dim: %d,%d", xs, ys, xd, yd, ws, hs );
 	}
 	//lprintf( WIDE("Doing image (%d,%d)-(%d,%d) (%d,%d)-(%d,%d)"), xs, ys, ws, hs, xd, yd, wd, hd );
-   if( (S_32)ws <= 0 ||
-       (S_32)hs <= 0 ||
-       (S_32)wd <= 0 ||
-       (S_32)hd <= 0 )
-      return;
+	if( (S_32)ws <= 0 ||
+		 (S_32)hs <= 0 ||
+		 (S_32)wd <= 0 ||
+		 (S_32)hd <= 0 )
+		return;
 	if( pifSrc->flags & IF_FLAG_INVERTED )
 	{
 		// set pointer in to the starting x pixel
@@ -557,7 +557,7 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 		//po = IMG_ADDRESS( pifDest, xd, yd );
 		pi = IMG_ADDRESS( pifSrc, xs, ys );
 		po = IMG_ADDRESS( pifDest, xd, yd );
-		oo = 4*-(int)(ws+pifDest->pwidth);     // w is how much we can copy...
+		oo = 4*-(int)(ws+pifDest->pwidth);	  // w is how much we can copy...
 		oi = 4*-(int)(ws+pifSrc->pwidth); // adding remaining width...
 	}
 	else
@@ -566,58 +566,58 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 		// on the first line of the image to be copied...
 		pi = IMG_ADDRESS( pifSrc, xs, ys );
 		po = IMG_ADDRESS( pifDest, xd, yd );
-		oo = 4*(pifDest->pwidth - ws);     // w is how much we can copy...
+		oo = 4*(pifDest->pwidth - ws);	  // w is how much we can copy...
 		oi = 4*(pifSrc->pwidth - ws); // adding remaining width...
 	}
 	//lprintf( WIDE("Doing image (%d,%d)-(%d,%d) (%d,%d)-(%d,%d)"), xs, ys, ws, hs, xd, yd, wd, hd );
-	//oo = 4*(pifDest->pwidth - ws);     // w is how much we can copy...
+	//oo = 4*(pifDest->pwidth - ws);	  // w is how much we can copy...
 	//oi = 4*(pifSrc->pwidth - ws); // adding remaining width...
 	while( LockedExchange( &lock, 1 ) )
 		Relinquish();
 	{
-      switch( method )
-      {
-      case BLOT_COPY:
-         if( !nTransparent )
-            CopyPixelsT0( po, pi, oo, oi, ws, hs );
-         else if( nTransparent == 1 )
-            CopyPixelsT1( po, pi, oo, oi, ws, hs );
-         else if( nTransparent & ALPHA_TRANSPARENT )
-            CopyPixelsTImgA( po, pi, oo, oi, ws, hs, nTransparent & 0xFF);
-         else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-            CopyPixelsTImgAI( po, pi, oo, oi, ws, hs, nTransparent & 0xFF );
-         else
-            CopyPixelsTA( po, pi, oo, oi, ws, hs, nTransparent );
-         break;
-      case BLOT_INVERTED:
-         if( !nTransparent )
-            InvertPixelsT0( po, pi, oo, oi, ws, hs );
-         else if( nTransparent == 1 )
-            InvertPixelsT1( po, pi, oo, oi, ws, hs );
-         else if( nTransparent & ALPHA_TRANSPARENT )
-            InvertPixelsTImgA( po, pi, oo, oi, ws, hs, nTransparent & 0xFF);
-         else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-            InvertPixelsTImgAI( po, pi, oo, oi, ws, hs, nTransparent & 0xFF );
-         else
-            InvertPixelsTA( po, pi, oo, oi, ws, hs, nTransparent );
-         break;
-      case BLOT_SHADED:
-         if( !nTransparent )
-            CopyPixelsShadedT0( po, pi, oo, oi, ws, hs
-                           , va_arg( colors, CDATA ) );
-         else if( nTransparent == 1 )
-            CopyPixelsShadedT1( po, pi, oo, oi, ws, hs
-                           , va_arg( colors, CDATA ) );
-         else if( nTransparent & ALPHA_TRANSPARENT )
-            CopyPixelsShadedTImgA( po, pi, oo, oi, ws, hs, nTransparent & 0xFF
-                           , va_arg( colors, CDATA ) );
-         else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-            CopyPixelsShadedTImgAI( po, pi, oo, oi, ws, hs, nTransparent & 0xFF
-                           , va_arg( colors, CDATA ) );
-         else
-            CopyPixelsShadedTA( po, pi, oo, oi, ws, hs, nTransparent
-                           , va_arg( colors, CDATA ) );
-         break;
+		switch( method )
+		{
+		case BLOT_COPY:
+			if( !nTransparent )
+				CopyPixelsT0( po, pi, oo, oi, ws, hs );
+			else if( nTransparent == 1 )
+				CopyPixelsT1( po, pi, oo, oi, ws, hs );
+			else if( nTransparent & ALPHA_TRANSPARENT )
+				CopyPixelsTImgA( po, pi, oo, oi, ws, hs, nTransparent & 0xFF);
+			else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
+				CopyPixelsTImgAI( po, pi, oo, oi, ws, hs, nTransparent & 0xFF );
+			else
+				CopyPixelsTA( po, pi, oo, oi, ws, hs, nTransparent );
+			break;
+		case BLOT_INVERTED:
+			if( !nTransparent )
+				InvertPixelsT0( po, pi, oo, oi, ws, hs );
+			else if( nTransparent == 1 )
+				InvertPixelsT1( po, pi, oo, oi, ws, hs );
+			else if( nTransparent & ALPHA_TRANSPARENT )
+				InvertPixelsTImgA( po, pi, oo, oi, ws, hs, nTransparent & 0xFF);
+			else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
+				InvertPixelsTImgAI( po, pi, oo, oi, ws, hs, nTransparent & 0xFF );
+			else
+				InvertPixelsTA( po, pi, oo, oi, ws, hs, nTransparent );
+			break;
+		case BLOT_SHADED:
+			if( !nTransparent )
+				CopyPixelsShadedT0( po, pi, oo, oi, ws, hs
+									, va_arg( colors, CDATA ) );
+			else if( nTransparent == 1 )
+				CopyPixelsShadedT1( po, pi, oo, oi, ws, hs
+									, va_arg( colors, CDATA ) );
+			else if( nTransparent & ALPHA_TRANSPARENT )
+				CopyPixelsShadedTImgA( po, pi, oo, oi, ws, hs, nTransparent & 0xFF
+									, va_arg( colors, CDATA ) );
+			else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
+				CopyPixelsShadedTImgAI( po, pi, oo, oi, ws, hs, nTransparent & 0xFF
+									, va_arg( colors, CDATA ) );
+			else
+				CopyPixelsShadedTA( po, pi, oo, oi, ws, hs, nTransparent
+									, va_arg( colors, CDATA ) );
+			break;
 		case BLOT_MULTISHADE:
 			{
 				CDATA r,g,b;
@@ -642,10 +642,10 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 										  , r, g, b );
 			}
 			break;
-      }
+		}
 	}
-   lock = 0;
-   //lprintf( "Image done.." );
+	lock = 0;
+	//lprintf( "Image done.." );
 }
 // copy all of pifSrc to the destination - placing the upper left
 // corner of pifSrc on the point specified.
@@ -662,7 +662,7 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 		g = va_arg( colors, CDATA );
 		b = va_arg( colors, CDATA );
 		BlotImageSizedEx( pifDest, pifSrc, xd, yd, 0, 0
-					   , pifSrc->real_width, pifSrc->real_height, nTransparent, method
+						, pifSrc->real_width, pifSrc->real_height, nTransparent, method
 										  , r,g,b
 										);
 	}

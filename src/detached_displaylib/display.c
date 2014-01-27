@@ -321,7 +321,6 @@ void DrawSpace( void *panel, PSPACEPOINT min, PSPACEPOINT max, CDATA color )
 //#define IMG g.pRootPanel->common.RealImage
 	//if( min[0] == 0 && min[1] == 0 )
 //   DebugBreak();
-   FixImagePosition( IMG );
 	g.ImageInterface->_BlatColorAlpha( IMG, min[0], min[1], max[0] - min[0]+1, max[1]-min[1]+1, color );
 
 	if( color )

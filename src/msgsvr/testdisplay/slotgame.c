@@ -235,7 +235,7 @@ void DrawReel( int nReel )
 		rect.width = REEL_WIDTH;
 		rect.height = REEL_HEIGHT;
 //#ifndef __ARM__
-		SetImageBound( g.surface, &rect );
+		//SetImageBound( g.surface, &rect );
 //#endif
 //  		for( i = 0; i < NUM_PICS+2; i++ )
 		for( i = 0; i < NUM_PICS; i++ )
@@ -244,7 +244,7 @@ void DrawReel( int nReel )
 		}
 	}
 //#ifndef __ARM__
-	FixImagePosition( g.surface );
+	//FixImagePosition( g.surface );
 //#endif
 }
 
@@ -376,8 +376,8 @@ void DrawSpinningReels( LOGICAL init )
 									rect.y = 0;//REEL_OFSY;
 									rect.width = REEL_WIDTH;
 									rect.height = REEL_HEIGHT;
-									FixImagePosition( g.subsurface[n] );
-									SetImageBound( g.subsurface[n], &rect );
+									//FixImagePosition( g.subsurface[n] );
+									//SetImageBound( g.subsurface[n], &rect );
 								}
 								bInit[n] = FALSE;
 								count[n] = 0;

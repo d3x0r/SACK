@@ -859,11 +859,6 @@ void UpdateSomeControls( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 		clip.height = pc->surface_rect.width;
 		if( IntersectRectangle( &surf_rect, pRect, &clip ) )
 		{
-			//SetImageBound( pc->Window, &wind_rect );
-			//surf_rect.x -= pc->surface_rect.x;
-			//surf_rect.y -= pc->surface_rect.y;
-			// bound surface rect
-			//SetImageBound( pc->Surface, &surf_rect );
 			surf_rect.x += pc->surface_rect.x;
 			surf_rect.y += pc->surface_rect.y;
 			while( pc && pc->parent && !pc->device )
@@ -946,19 +941,16 @@ void SmudgeSomeControlsWork( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 		 wind_rect.x -= pc->rect.x;
 		 wind_rect.y -= pc->rect.y;
 		 // bound window rect (frame update)
-       // The update region may be
+			// The update region may be
 		 if( IntersectRectangle( &surf_rect, &wind_rect, &pc->surface_rect ) )
 		 {
-            //SetImageBound( pc->Window, &wind_rect );
-            surf_rect.x -= pc->surface_rect.x;
-            surf_rect.y -= pc->surface_rect.y;
-            // bound surface rect
-				//SetImageBound( pc->Surface, &surf_rect );
+			surf_rect.x -= pc->surface_rect.x;
+			surf_rect.y -= pc->surface_rect.y;
 #ifdef DEBUG_UPDAATE_DRAW
 				if( g.flags.bLogDebugUpdate )
 					lprintf( WIDE("Some controls using normal updatecommon to draw...") );
 #endif
-            // enabled minimal update region...
+			// enabled minimal update region...
 			pc->dirty_rect = surf_rect;
 			SmudgeCommon( pc ); // and all children, if dirtied...
         }
@@ -968,7 +960,6 @@ void SmudgeSomeControlsWork( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 		  // and the window's bounds, but none of the surface
 		  // setting the image bound to this will short many things like blotting the
            //fancy image borders.
-            //SetImageBound( pc->Window, &wind_rect );
             // yes redundant with above, but need to fix the image pos
 				// AFTER the update... and well....
 				//Log( WIDE("Hit the rectange, but didn't hit the content... so update border only.") );
@@ -988,8 +979,6 @@ void SmudgeSomeControlsWork( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 #endif
 					DrawFrameCaption( pc );
 				}
-            // reset image boundry for further drawing.
-				//FixImagePosition( pc->Window );
         }
     }
 }

@@ -920,64 +920,6 @@ enum DisplayAttributes {
        Parameters
        display :  display to flush                                   */
     RENDER_PROC( void, SyncRender )            ( PRENDERER display );
-	 /* Enables opengl rendering on a display surface. This may be
-	    used in conjunction with conventional image drawing (but
-	    probably shouldn't)
-	    Parameters
-	    hVideo :  a display surface to enable opengl on.
-	    
-	    See Also
-	    <link sack::image::render::SetActiveGLDisplay@PRENDERER, SetActiveGLDisplay> */
-	 //RENDER_PROC( int, EnableOpenGL )           ( PRENDERER hVideo );
-	 /* Enables D3D rendering on a display surface. This may be
-	    used in conjunction with conventional image drawing (but
-	    probably shouldn't)
-	    Parameters
-	    hVideo :  a display surface to enable opengl on.
-	    
-	     */
-	 //RENDER_PROC( int, EnableD3D )           ( struct display_camera *camera );
-	 /* Enables a view on a display. This is a sub-region where the
-	    openGL is drawn into just a part of the display.
-	    Parameters
-	    hVideo :  display to enable an opengl view on
-	    x :       left coordinate of the region.
-	    y :       top coordinate of the region
-	    w :       width of the region
-	    h :       height of the region
-	    
-	    Returns
-	    \Returns an index to the view, which can be used in <link sack::image::render::SetActiveGLDisplayView@PRENDERER@int, SetActiveGLDisplayView>. */
-	 //RENDER_PROC( int, EnableOpenGLView )           ( PRENDERER hVideo, int x, int y, int w, int h );
-	 /* *DEPRICATED*  use an appropriate 3d view driver instead...
-		   Sets the current active view for opengl drawing. if view
-       index 1+ is passed, that view is enabled. If 0 is passed, if
-       NULL is passed as the display to activate, the OpenGL
-       contexts are all de-activated, and the opengl pipe is
-       flushed, and swapped to the display.
-       Parameters
-       hDisplay :   display to activate or NULL to flush prior active
-                    display.
-       nFracture :  0 to enable opengl on the whole window, 1+ to
-                    activate just a view fracture.                    */
-    //RENDER_PROC( int, SetActiveGLDisplayView )     ( PRENDERER hDisplay, int nFracture );
-
- 	 /* *DEPRICATED*  use an appropriate 3d view driver instead...
-       <combine sack::image::render::SetActiveGLDisplayView@PRENDERER@int>
-	    
-	    \ \ 
-	    Note
-	    SetActiveGLDisplay passes 0 as the fracture ID.                     */
-	 //RENDER_PROC( int, SetActiveGLDisplay )     ( PRENDERER hDisplay );
-	 // makes an opengl texture type from an image...
-	 // uhmm not sure what else we can do about this...
-	 // but there are possibly issues such as power of 2 limitations
-	 // that may mean this has to return some sort of structure
-	 // that can contain the actual image within a virtual blankness
-	 // and or parts of the image ... depending on how the image can be
-	 // broken up to make valid opengl images -- opengl 2.0 - rumor has it
-    // power of 2 textures are no longer required.
-	 //RENDER_PROC( int, LoadGLImage )( Image image, int *result );
 
 /* Makes a display topmost. There isn't a way to un-topmost a
    window.
@@ -1425,15 +1367,6 @@ struct render_interface_tag
        \ \                                               */
     RENDER_PROC_PTR( LOGICAL, HasFocus)          ( PRENDERER );
 
-#if ACTIVE_MESSAGE_IMPLEMENTED
-    RENDER_PROC_PTR( int, SendActiveMessage)     ( PRENDERER dest, PACTIVEMESSAGE msg );
-    RENDER_PROC_PTR( PACTIVEMESSAGE , CreateActiveMessage) ( int ID, int size, ... );
-#else
-	 /* Just a place holder value. Some function used to be here. */
-	 POINTER junk2;
-	 /* Place Holder value - depricated functions in interface. */
-	 POINTER junk3;
-#endif
     /* <combine sack::image::render::GetKeyText@int>
        
        \ \                                           */
@@ -1463,9 +1396,6 @@ struct render_interface_tag
        \ \                                                 */
     RENDER_PROC_PTR( void, SyncRender )            ( PRENDERER pDisplay );
     /* DEPRICATED; left in structure for compatibility.  Removed define and export definition. */
-    RENDER_PROC_PTR( int, EnableOpenGL )           ( PRENDERER hVideo );
-    /* DEPRICATED; left in structure for compatibility.  Removed define and export definition. */
-    RENDER_PROC_PTR( int, SetActiveGLDisplay )     ( PRENDERER hDisplay );
 
 	 /* <combine sack::image::render::MoveSizeDisplay@PRENDERER@S_32@S_32@S_32@S_32>
 	    
@@ -1744,12 +1674,6 @@ typedef int check_this_variable;
 #define SyncRender                REND_PROC_ALIAS(SyncRender)
 #define OkaySyncRender                REND_PROC_ALIAS(OkaySyncRender)
 
-//  --- Enable 3D display functions have been depricated in mode
-//  to enable 3d; load a 3d driver; window size/display mode is controled in option database
-//#define EnableOpenGL              REND_PROC_ALIAS(EnableOpenGL)
-//  --- Enable 3D display functions have been depricated in mode
-//  to enable 3d; load a 3d driver; window size/display mode is controled in option database
-//#define SetActiveGLDisplay        REND_PROC_ALIAS(SetActiveGLDisplay )
 
 #define HideDisplay               REND_PROC_ALIAS(HideDisplay)
 #define IsDisplayHidden               REND_PROC_ALIAS(IsDisplayHidden)
@@ -1839,9 +1763,6 @@ typedef int check_this_variable;
 #define MSG_BeginCalibration           MSG_ID(BeginCalibration)
 #define MSG_SyncRender                 MSG_ID(SyncRender)
 #define MSG_OkaySyncRender                 MSG_ID(OkaySyncRender)
-   // these functions were depricated...
-//#define MSG_EnableOpenGL               MSG_ID(EnableOpenGL)
-//#define MSG_SetActiveGLDisplay         MSG_ID(SetActiveGLDisplay)
 #define MSG_HideDisplay               MSG_ID(HideDisplay)
 #define MSG_IsDisplayHidden               MSG_ID(IsDisplayHidden)
 #define MSG_RestoreDisplay             MSG_ID(RestoreDisplay)

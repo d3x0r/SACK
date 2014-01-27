@@ -24,9 +24,6 @@ IMAGE_INTERFACE RealImageInterface = {
 , LoadImageFileEx
 , UnmakeImageFileEx              
 
-, SetImageBound
-, FixImagePosition
-
 , ResizeImageEx                  
 , MoveImage                      
 

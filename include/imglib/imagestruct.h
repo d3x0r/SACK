@@ -52,7 +52,8 @@ IF_FLAG_USER1    =     0x10000, // please #define user flag to this
 IF_FLAG_USER2    =     0x20000, /* An extra flag that can be used by users of the image library. */
 
 IF_FLAG_USER3    =     0x40000, /* An extra flag that can be used by users of the image library. */
-IF_FLAG_FINAL_RENDER = 0x200, // output should render to opengl target (with transform)
+IF_FLAG_FINAL_RENDER = 0x200, // output should render to opengl target (with transform); also used with proxy
+IF_FLAG_UPDATED = 0x400, // set when a operation has changed the surface of a local image; requires update to remote device(s)
 	};
 //#define _DRAWPOINT_X 0
 //#define _DRAWPOINT_Y 1

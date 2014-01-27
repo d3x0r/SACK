@@ -10,7 +10,6 @@
  *
  */
 
-
 #ifdef IMAGE_MAIN
 #define BLOT_EXTERN
 #else

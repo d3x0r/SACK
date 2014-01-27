@@ -38,6 +38,8 @@
 #else
 #include "puregl/local.h"
 #endif
+#else
+#include "local.h"
 #endif
 
 #define REQUIRE_GLUINT
@@ -197,7 +199,6 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 
 	//lprintf( "output %c at %d,%d", c, x, y );
 
-#if defined( __3D__ )
 	if( !UseFont->character[c]->cell && ( pImage->flags & IF_FLAG_FINAL_RENDER ) )
 	{
 		Image image = AllocateCharacterSpaceByFont( UseFont, UseFont->character[c] );
@@ -289,6 +290,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			_back_color[2] = BlueVal( background ) / 255.0f;
 			_back_color[3] = AlphaVal( background ) / 255.0f;
 #endif
+#if defined( __3D__ )
 			switch( order )
 			{
 			default:
@@ -737,12 +739,12 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			g_d3d_device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_DIFFUSE);
 			g_d3d_device->SetTexture( 0, NULL );
 			//pQuadVB->Release();
-#  endif
-#endif  // _D3D_DRIVER
+#  endif // _D3D11_DRIVER elseif
+#endif // __OPENGLDriver__ if/else
+#endif // __3D__
 		}
 	}
 	else
-#endif  // defined ( __3D__ )
 	{
 		// need a physical color buffer attached...
 		if( !pImage->image )
@@ -824,9 +826,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				data += inc;
 			}
 		}
-#if defined( __3D__ )
 		MarkImageUpdated( pImage );
-#endif
 	}
 	return pchar->width;
 }
@@ -871,7 +871,7 @@ static _32 _PutCharacterVerticalInvertFont( ImageFile *pImage
 void PutCharacterFont( ImageFile *pImage
 											  , S_32 x, S_32 y
 											  , CDATA color, CDATA background
-											  , _32 c, PFONT UseFont )
+											  , TEXTCHAR c, PFONT UseFont )
 {
 	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
 						  , OrderPointsVerticalInvert, StepXNormal, StepYNormal );
@@ -880,7 +880,7 @@ void PutCharacterFont( ImageFile *pImage
 void PutCharacterVerticalFont( ImageFile *pImage
                              , S_32 x, S_32 y
                              , CDATA color, CDATA background
-                             , _32 c, PFONT UseFont )
+                             , TEXTCHAR c, PFONT UseFont )
 {
 	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
 						  , OrderPoints, StepXVertical, StepYVertical );
@@ -890,7 +890,7 @@ void PutCharacterVerticalFont( ImageFile *pImage
 void PutCharacterInvertFont( ImageFile *pImage
                            , S_32 x, S_32 y
                            , CDATA color, CDATA background
-                           , _32 c, PFONT UseFont )
+                           , TEXTCHAR c, PFONT UseFont )
 {
 	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
 						  , OrderPointsInvert, StepXInvert, StepYInvert );
@@ -899,7 +899,7 @@ void PutCharacterInvertFont( ImageFile *pImage
 void PutCharacterVerticalInvertFont( ImageFile *pImage
                                    , S_32 x, S_32 y
                                    , CDATA color, CDATA background
-                                   , _32 c, PFONT UseFont )
+                                   , TEXTCHAR c, PFONT UseFont )
 {
 	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
 						  , OrderPointsVerticalInvert, StepXInvertVertical, StepYInvertVertical );

@@ -35,8 +35,6 @@ static RENDER_INTERFACE VidInterface = { NULL //InitDisplay
                                        , (void (CPROC*)(S_32 *, S_32 *)) GetMousePosition
                                        , (void (CPROC*)(PRENDERER, S_32, S_32)) SetMousePosition
                                        , HasFocus  // has focus
-                                       , NULL         // SendMessage
-													, NULL         // CrateMessage
                                        , GetKeyText
                                        , IsKeyDown
                                        , KeyDown
@@ -44,13 +42,6 @@ static RENDER_INTERFACE VidInterface = { NULL //InitDisplay
                                        , OwnMouseEx
                                        , BeginCalibration
 													, SyncRender   // sync
-#ifdef _OPENGL_ENABLED
-													, NULL //EnableOpenGL
-                                       , NULL //SetActiveEGLDisplay
-#else
-                                       , NULL
-                                       , NULL
-#endif
                                        , MoveSizeDisplay
                                        , MakeTopmost
                                        , HideDisplay

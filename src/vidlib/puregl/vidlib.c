@@ -5430,13 +5430,6 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
                                        , OwnMouseEx
                                        , BeginCalibration
 													, SyncRender   // sync
-#ifdef _OPENGL_ENABLED
-													, NULL //EnableOpenGL
-                                       , NULL //SetActiveGLDisplay
-#else
-                                       , NULL
-                                       , NULL
-#endif
                                        , MoveSizeDisplay
                                        , MakeTopmost
                                        , HideDisplay

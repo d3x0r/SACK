@@ -104,7 +104,7 @@ void DrawReel( int nReel )
 		rect.width = 96;
 		rect.height = 288;
 //#ifndef __ARM__
-		SetImageBound( g.surface, &rect );
+		//SetImageBound( g.surface, &rect );
 //#endif
 		for( i = 0; i < NUM_PICS+2; i++ )
 		{

@@ -627,7 +627,6 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
 // this must be re-set afterwards.  
 // ALSO - one SHOULD be nice and reset the rectangle when done, 
 // otherwise other people may not have checked this.
-   IMAGE_PROC  void  IMAGE_API FixImagePosition ( Image pImage );
 
 /* Change the size of an image, reallocating the color buffer as
    necessary.
@@ -968,7 +967,7 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
    IMAGE_PROC  void IMAGE_API PutCharacterFont              ( Image pImage
                                                   , S_32 x, S_32 y
                                                   , CDATA color, CDATA background,
-                                                   _32 c, SFTFont font );
+                                                   TEXTCHAR c, SFTFont font );
    /* Outputs a string in the specified font, from the specified
       point, text is drawn from the point up, with the characters
       aligned with the top to the left; it goes up from the point.
@@ -982,7 +981,7 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
       c :           the character to output
       font :        the font to use. NULL use an internal default
                     font.                                          */
-   IMAGE_PROC  void IMAGE_API PutCharacterVerticalFont      ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
+   IMAGE_PROC  void IMAGE_API PutCharacterVerticalFont      ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
    /* Outputs a string in the specified font, from the specified
       point, text is drawn from the point to the left, with the
       characters aligned with the top to the left; it goes up from
@@ -998,14 +997,14 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
       nLen :        length of text to output
       font :        the font to use. NULL use an internal default
                     font.                                           */
-   IMAGE_PROC  void IMAGE_API PutCharacterInvertFont        ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
+   IMAGE_PROC  void IMAGE_API PutCharacterInvertFont        ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
    /* Outputs a character in the specified font, from the specified
       point, text is drawn from the point up, with the characters
       aligned with the top to the left; it goes up from the point. the
       point becomes the bottom left of the rectangle output.
       Parameters
                                                                        */
-   IMAGE_PROC  void IMAGE_API PutCharacterVerticalInvertFont( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
+   IMAGE_PROC  void IMAGE_API PutCharacterVerticalInvertFont( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
 
    /* Outputs a string in the specified font, from the specified
       point, text is drawn right side up and godes from left to
@@ -1547,22 +1546,6 @@ typedef struct image_interface_tag
    Internal
    Interface index 11                                                 */  IMAGE_PROC_PTR( void,UnmakeImageFileEx) ( Image pif DBG_PASS );
 #define UnmakeImageFile(pif) UnmakeImageFileEx( pif DBG_SRC )
-/* <combine sack::image::SetImageBound@Image@P_IMAGE_RECTANGLE>
-   
-   Internal
-   Interface index 12                                                           */  IMAGE_PROC_PTR( void ,SetImageBound)    ( Image pImage, P_IMAGE_RECTANGLE bound );
-/* <combine sack::image::FixImagePosition@Image>
-   
-   Internal
-   Interface index 13
-   
-   reset clip rectangle to the full image (subimage part ) Some
-   operations (move, resize) will also reset the bound rect,
-   this must be re-set afterwards. ALSO - one SHOULD be nice and
-   reset the rectangle when done, otherwise other people may not
-   have checked this.
-                                                                 */  IMAGE_PROC_PTR( void ,FixImagePosition) ( Image pImage );
-
 //-----------------------------------------------------
 
 /* <combine sack::image::ResizeImageEx@Image@S_32@S_32 height>
@@ -1643,19 +1626,19 @@ typedef struct image_interface_tag
 /* <combine sack::image::PutCharacterFont@Image@S_32@S_32@CDATA@CDATA@_32@SFTFont>
    
    Internal
-   Interface index 33                                                           */   IMAGE_PROC_PTR( void,PutCharacterFont)              ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
+   Interface index 33                                                           */   IMAGE_PROC_PTR( void,PutCharacterFont)              ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
 /* <combine sack::image::PutCharacterVerticalFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@SFTFont>
    
    Internal
-   Interface index 34                                                                                        */   IMAGE_PROC_PTR( void,PutCharacterVerticalFont)      ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
+   Interface index 34                                                                                        */   IMAGE_PROC_PTR( void,PutCharacterVerticalFont)      ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
 /* <combine sack::image::PutCharacterInvertFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@SFTFont>
    
    Internal
-   Interface index 35                                                                                      */   IMAGE_PROC_PTR( void,PutCharacterInvertFont)        ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
+   Interface index 35                                                                                      */   IMAGE_PROC_PTR( void,PutCharacterInvertFont)        ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
 /* <combine sack::image::PutCharacterVerticalInvertFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@SFTFont>
    
    Internal
-   Interface index 36                                                                                              */   IMAGE_PROC_PTR( void,PutCharacterVerticalInvertFont)( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
+   Interface index 36                                                                                              */   IMAGE_PROC_PTR( void,PutCharacterVerticalInvertFont)( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
 
 /* <combine sack::image::PutStringFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@SFTFont>
    
@@ -1927,8 +1910,6 @@ IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA col
 #define RemakeImageEx                      PROC_ALIAS(RemakeImageEx )
 #define ResizeImageEx                      PROC_ALIAS(ResizeImageEx )
 #define MoveImage                          PROC_ALIAS(MoveImage )
-#define SetImageBound                      PROC_ALIAS(SetImageBound )
-#define FixImagePosition                   PROC_ALIAS(FixImagePosition )
 #define LoadImageFileEx                    PROC_ALIAS(LoadImageFileEx )
 #define DecodeMemoryToImage                PROC_ALIAS(DecodeMemoryToImage )
 #define UnmakeImageFileEx                  PROC_ALIAS(UnmakeImageFileEx )
@@ -2026,8 +2007,6 @@ IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA col
 #define MSG_ResizeImageEx                      MSG_ID( ResizeImageEx )
 #define DecodeMemoryToImage                    MSG_ID( DecodeMemoryToImage )
 #define MSG_MoveImage                          MSG_ID( MoveImage )
-#define MSG_SetImageBound                      MSG_ID( SetImageBound )
-#define MSG_FixImagePosition                   MSG_ID( FixImagePosition )
 #define MSG_BlatColor                          MSG_ID( BlatColor )
 #define MSG_BlatColorAlpha                     MSG_ID( BlatColorAlpha )
 #define MSG_BlotImageSizedEx                   MSG_ID( BlotImageSizedEx )
