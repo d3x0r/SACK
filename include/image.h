@@ -336,6 +336,12 @@ enum BlotOperation {
  BLOT_MULTISHADE = 2,
    /* copy the pixels from one image to another with simple color inversion transform*/
  BLOT_INVERTED = 3,
+ /* orientation blots for fonts to 3D and external displays */
+ BLOT_ORIENT_NORMAL = 0x00,
+ BLOT_ORIENT_INVERT = 0x04,
+ BLOT_ORIENT_VERTICAL = 0x08,
+ BLOT_ORIENT_VERTICAL_INVERT = 0x0C,
+ BLOT_ORIENTATTION = 0x0C,
 };
 
 

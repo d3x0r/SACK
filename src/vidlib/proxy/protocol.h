@@ -12,6 +12,7 @@ PREFIX_PACKED struct opendisplay_data
 					S_32 x, y;
 					_32 w, h;
 					_32 attr;
+					PTRSZVAL server_display_id;
 					PTRSZVAL over;
 					PTRSZVAL under;
 				} PACKED;
