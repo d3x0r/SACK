@@ -40,29 +40,15 @@ function WebSocketTest()
   {
   	alert( "No Support works." );
   }
+  
      ws.onopen = function()
      {
         // Web Socket is connected, send data using send()
-        ws.send("Message to send");
-        alert("Message is sent...");
-        
-  // Construct a msg object containing the data the server needs to process the message from the chat client.  
-  var msg = {  
-    type: "message",  
-    text: "banana_form_text",  
-    id:   1324,  
-    date: Date.now()  
-  };  
-  
-  // Send the msg object as a JSON-formatted string.  
-  ws.send(JSON.stringify(msg));  
-    
-       ws.send('say', {name:'foo', text:'baa'});
-        alert("other Message is sent...");
      };
+    
      ws.onmessage = function (evt) 
      { 
-        var received_msg = evt.data;
+        //alert("Message is received..." + evt.data );
         var msg = JSON.parse(evt.data);
      	switch( msg.MsgID )
         {
@@ -74,6 +60,7 @@ function WebSocketTest()
         case 2: // PMID_SetApplicationIcon
         	break;
         case 3: // PMID_OpenDisplayAboveUnderSizedAt
+          
         	var canvas = document.createElement('canvas');
 		canvas.id     = "Render" + msg.data.server_render_id;
 		canvas.width  = msg.data.width;
@@ -88,7 +75,6 @@ function WebSocketTest()
                 document.body.removeChild( canvas );
         	break;
         }
-        alert("Message is received..." + evt.data );
      };
      ws.onclose = function( evt )
      { 
