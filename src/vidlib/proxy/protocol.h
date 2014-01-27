@@ -8,14 +8,14 @@
 
 #define MSGBLOCK(type,...) struct commsg_##type { __VA_ARGS__ } type
 PREFIX_PACKED struct opendisplay_data 
-				{
-					S_32 x, y;
-					_32 w, h;
-					_32 attr;
-					PTRSZVAL server_display_id;
-					PTRSZVAL over;
-					PTRSZVAL under;
-				} PACKED;
+{
+	S_32 x, y;
+	_32 w, h;
+	_32 attr;
+	PTRSZVAL server_display_id;
+	PTRSZVAL over;
+	PTRSZVAL under;
+} PACKED;
 
 PREFIX_PACKED struct common_message {
 	_8 message_id;
@@ -27,14 +27,6 @@ PREFIX_PACKED struct common_message {
 					 _8 unicode;
 					 _8 number; );
 		struct opendisplay_data opendisplay_data;
-		MSGBLOCK( open_display,
-					POINTER server_display_id;
-					 S_32 x, y;
-					 S_32 w, h;
-					 _32 attr;
-					 POINTER above;
-					 POINTER under;
-				  );
 		MSGBLOCK( open_display_reply,  POINTER server_display_id; );
 	} data;
 } PACKED;

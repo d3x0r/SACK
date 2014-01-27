@@ -38,12 +38,17 @@ typedef struct vidlib_proxy_renderer
 	} flags;
 } *PVPRENDER;
 
+struct server_proxy_client
+{
+	PCLIENT pc;
+	LOGICAL websock;
+};
+
 struct vidlib_proxy_local
 {
 	PCLIENT listener;
 	PCLIENT web_listener;
-	PLIST clients;
-	PLIST web_clients;
+	PLIST clients; // list of struct server_proxy_client
 	TEXTSTR application_title;
 	PLIST renderers;
 	PLIST web_renderers;

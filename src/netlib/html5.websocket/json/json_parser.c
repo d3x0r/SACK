@@ -205,7 +205,7 @@ static void FillDataToElement( struct json_context_object_element *element
 
 }
 
-LOGICAL json_parse_message( struct json_context_object *format
+LOGICAL json_parse_message_format( struct json_context_object *format
                            , CTEXTSTR msg
 									, POINTER *_msg_output )
 {
@@ -690,6 +690,21 @@ LOGICAL json_parse_message( struct json_context_object *format
 	}
    return TRUE;
 }
+
+LOGICAL json_parse_message( struct json_context *format
+                           , CTEXTSTR msg
+									, POINTER *_msg_output )
+{
+	struct json_context_object *object;
+	INDEX idx;
+	LIST_FORALL( format->object_types, idx, struct json_context_object *, object )
+	{
+		if( json_parse_message_format( object, msg, _msg_output ) )
+			return TRUE;
+	}
+	return FALSE;
+}
+
 
 #ifdef __cplusplus
 } } SACK_NAMESPACE_END

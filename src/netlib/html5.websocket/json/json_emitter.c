@@ -494,9 +494,10 @@ struct json_context_object *json_create_object( struct json_context *context, si
 {
 	struct json_context_object *format = New( struct json_context_object );
 	format->context = context;
-   format->object_size = object_size;
+	format->object_size = object_size;
 	format->members = NULL;
 	format->is_array = FALSE;
+	format->keep_phrase = FALSE;
 	// keep a reference for cleanup
 	AddLink( &context->object_types, format );
 	return format;
@@ -556,6 +557,7 @@ struct json_context_object *json_add_object_member_array( struct json_context_ob
 	case JSON_Element_Object:
 	case JSON_Element_ObjectPointer:
 		member->object = json_create_object( context, object_size );
+		member->object->keep_phrase = TRUE;
 		break;
 	}
 	AddLink( &format->members, member );
@@ -666,7 +668,8 @@ TEXTSTR json_build_message( struct json_context_object *object
 	int n;
 	INDEX idx;
 	struct json_context_object_element *member;
-	VarTextEmpty( context->pvt );
+	if( !object->keep_phrase )
+		VarTextEmpty( context->pvt );
 	n = 0;
 	LIST_FORALL( object->members, idx, struct json_context_object_element *, member )
 	{
@@ -684,7 +687,7 @@ TEXTSTR json_build_message( struct json_context_object *object
 		case JSON_Element_Integer_64:
 			if( member->count )
 				json_add_int_64_value_array( context, member->name, (S_64*)(((PTRSZVAL)msg)+member->offset), member->count );
-			else if( member->count_offset >= 0 )
+			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_int_64_value_array( context, member->name
 										, *(S_64**)(((PTRSZVAL)msg)+member->offset)
 										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
@@ -695,7 +698,7 @@ TEXTSTR json_build_message( struct json_context_object *object
 		case JSON_Element_Integer_32:
 			if( member->count )
 				json_add_int_32_value_array( context, member->name, (S_32*)(((PTRSZVAL)msg)+member->offset), member->count );
-			else if( member->count_offset >= 0 )
+			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_int_32_value_array( context, member->name
 										, *(S_32**)(((PTRSZVAL)msg)+member->offset)
 										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
@@ -706,7 +709,7 @@ TEXTSTR json_build_message( struct json_context_object *object
 		case JSON_Element_Integer_16:
 			if( member->count )
 				json_add_int_16_value_array( context, member->name, (S_16*)(((PTRSZVAL)msg)+member->offset), member->count );
-			else if( member->count_offset >= 0 )
+			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_int_16_value_array( context, member->name
 										, *(S_16**)(((PTRSZVAL)msg)+member->offset)
 										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
@@ -717,7 +720,7 @@ TEXTSTR json_build_message( struct json_context_object *object
 		case JSON_Element_Integer_8:
 			if( member->count )
 				json_add_int_8_value_array( context, member->name, (S_8*)(((PTRSZVAL)msg)+member->offset), member->count );
-			else if( member->count_offset >= 0 )
+			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_int_8_value_array( context, member->name
 										, *(S_8**)(((PTRSZVAL)msg)+member->offset)
 										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
@@ -728,7 +731,7 @@ TEXTSTR json_build_message( struct json_context_object *object
 		case JSON_Element_Unsigned_Integer_64:
 			if( member->count )
 				json_add_uint_64_value_array( context, member->name, (_64*)(((PTRSZVAL)msg)+member->offset), member->count );
-			else if( member->count_offset >= 0 )
+			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_uint_64_value_array( context, member->name
 										, *(_64**)(((PTRSZVAL)msg)+member->offset)
 										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
@@ -739,7 +742,7 @@ TEXTSTR json_build_message( struct json_context_object *object
 		case JSON_Element_Unsigned_Integer_32:
 			if( member->count )
 				json_add_uint_32_value_array( context, member->name, (_32*)(((PTRSZVAL)msg)+member->offset), member->count );
-			else if( member->count_offset >= 0 )
+			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_uint_32_value_array( context, member->name
 										, *(_32**)(((PTRSZVAL)msg)+member->offset)
 										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
@@ -750,7 +753,7 @@ TEXTSTR json_build_message( struct json_context_object *object
 		case JSON_Element_Unsigned_Integer_16:
 			if( member->count )
 				json_add_uint_16_value_array( context, member->name, (_16*)(((PTRSZVAL)msg)+member->offset), member->count );
-			else if( member->count_offset >= 0 )
+			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_uint_16_value_array( context, member->name
 										, *(_16**)(((PTRSZVAL)msg)+member->offset)
 										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
@@ -761,7 +764,7 @@ TEXTSTR json_build_message( struct json_context_object *object
 		case JSON_Element_Unsigned_Integer_8:
 			if( member->count )
 				json_add_uint_8_value_array( context, member->name, (_8*)(((PTRSZVAL)msg)+member->offset), member->count );
-			else if( member->count_offset >= 0 )
+			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_uint_8_value_array( context, member->name
 										, *(_8**)(((PTRSZVAL)msg)+member->offset)
 										, *(size_t*)(((PTRSZVAL)msg)+member->count_offset)
@@ -773,7 +776,7 @@ TEXTSTR json_build_message( struct json_context_object *object
 		case JSON_Element_String:
 			if( member->count )
 				json_add_value_array( context, member->name, (CTEXTSTR*)(((PTRSZVAL)msg)+member->offset), member->count );
-			else if( member->count_offset >= 0 )
+			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_value_array( context, member->name
 										, (CTEXTSTR*)(((PTRSZVAL)msg)+member->offset)
 										, *(int*)(((PTRSZVAL)msg)+member->count_offset)
@@ -782,16 +785,17 @@ TEXTSTR json_build_message( struct json_context_object *object
 				json_add_value( context, member->name, (CTEXTSTR)(((PTRSZVAL)msg)+member->offset) );
          break;
 		case JSON_Element_ObjectPointer:
-
+			{
+				vtprintf( context->pvt, WIDE("\"%s\":")
+						  , member->name );
+				json_build_message( member->object, *((POINTER*)(((PTRSZVAL)msg)+member->offset)) );
+			}
          break;
 		case JSON_Element_Object:
 			{
-				TEXTSTR tmp;
-				vtprintf( context->pvt, WIDE("\"%s\":%s")
-						  , member->name
-						  , tmp = (TEXTSTR)json_build_message( member->object, *((POINTER*)(((PTRSZVAL)msg)+member->offset)) )
-						  );
-				Release( tmp );
+				vtprintf( context->pvt, WIDE("\"%s\":")
+						  , member->name );
+				json_build_message( member->object, (POINTER)(((PTRSZVAL)msg)+member->offset) );
 			}
 			break;
 		case JSON_Element_PTRSZVAL:
@@ -818,12 +822,15 @@ TEXTSTR json_build_message( struct json_context_object *object
    else
 		json_end_object( context );
 
+	if( !object->keep_phrase )
 	{
 		PTEXT tmp = VarTextGet( context->pvt );
 		result = StrDup( GetText( tmp ) );
 		LineRelease( tmp );
 		return result;
 	}
+	// will be incomplete... 
+	return NULL; 
 }
 
 //----------------------------------------------------------------------------------------------
