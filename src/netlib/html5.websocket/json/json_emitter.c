@@ -19,32 +19,32 @@
  padding is an optional number that is minimum offset in the object (structure)
  offset is an optional number before the type; otherwise the offset is relative from prior members
  count is an optional number after the type for array types (is the size of the array)
-    if count is (*) then the next member describes the array length
-    if count is (-*) then the prior member describes the array length
+	 if count is (*) then the next member describes the array length
+	 if count is (-*) then the prior member describes the array length
 
  type can be one of
-      i  (integer)
-      ip (integer array (int*) )
-      ia (integer array (int[]) )
-      s  (string (char*))
+		i  (integer)
+		ip (integer array (int*) )
+		ia (integer array (int[]) )
+		s  (string (char*))
 		sa (string array (char**))
-      c  (char; unused?)
+		c  (char; unused?)
 		ca (char aray (string, but not from a pointer)(char[]))
 		f  (float)
 		fa (float array float[])
-      fp (float array float* )
+		fp (float array float* )
 		d  (float)
 		da (float array float[])
-      dp (float array float* )
+		dp (float array float* )
 
-      o  (object) (begin another level of breakdown (void*) )
-      op  (object) (begin another level of breakdown (void*) )
+		o  (object) (begin another level of breakdown (void*) )
+		op  (object) (begin another level of breakdown (void*) )
 
 
 		struct outer {
-          int a;
-		    struct inner {
-              char *name;
+			 int a;
+			 struct inner {
+				  char *name;
 			 } *substruct;
 			 }
 
@@ -77,7 +77,7 @@ void json_begin_object( struct json_context *context, CTEXTSTR name )
 		vtprintf( context->pvt, WIDE("%*.*s\"%s\":{\n")
 				  , context->levels, context->levels, tab_filler
 				  , name );
-   else
+	else
 		vtprintf( context->pvt, WIDE("%*.*s{\n")
 				  , context->levels, context->levels, tab_filler );
 	context->levels++;
@@ -101,7 +101,7 @@ void json_begin_array( struct json_context *context, CTEXTSTR name )
 		vtprintf( context->pvt, WIDE("%*.*s\"%s\":[\n")
 				  , context->levels, context->levels, tab_filler
 				  , name );
-   else
+	else
 		vtprintf( context->pvt, WIDE("%*.*s[\n")
 				  , context->levels, context->levels, tab_filler );
 	context->levels++;
@@ -402,7 +402,7 @@ PTRSZVAL ParseFormat( struct json_context *context, CTEXTSTR format, PTRSZVAL ob
 		current_obj_ofs = ((PTRSZVAL)object)+member_offset;
 
 
-#define padded_add(n)   ((n)<padding?padding:(n))
+#define padded_add(n)	((n)<padding?padding:(n))
 	switch( start[0] )
 	{
 	case 'i':
@@ -436,19 +436,19 @@ PTRSZVAL ParseFormat( struct json_context *context, CTEXTSTR format, PTRSZVAL ob
 				}
 			}
 		}
-      break;
+		break;
 	case 's':
-      current_obj_ofs += padded_add( sizeof(char*) );
-      break;
+		current_obj_ofs += padded_add( sizeof(char*) );
+		break;
 	case 'c':
 		current_obj_ofs += padded_add( sizeof(char) );
-      break;
+		break;
 	case 'f':
-      current_obj_ofs += padded_add( sizeof(float) );
-      break;
+		current_obj_ofs += padded_add( sizeof(float) );
+		break;
 	case 'd':
-      current_obj_ofs += padded_add( sizeof(double) );
-      break;
+		current_obj_ofs += padded_add( sizeof(double) );
+		break;
 	case 'o':
 		switch( start[1] )
 		{
@@ -479,7 +479,7 @@ PTRSZVAL ParseFormat( struct json_context *context, CTEXTSTR format, PTRSZVAL ob
 
 PTRSZVAL json_add_object( struct json_context *context, CTEXTSTR name, struct json_context_object *format, POINTER object )
 {
-   return 0;
+	return 0;
 }
 
 //----------------------------------------------------------------------------------------------
@@ -573,7 +573,7 @@ struct json_context_object *json_add_object_member( struct json_context_object *
 																  , size_t offset, int type
 																  , size_t object_size )
 {
-   return json_add_object_member_array( format, name, offset, type, object_size, 0, JSON_NO_OFFSET );
+	return json_add_object_member_array( format, name, offset, type, object_size, 0, JSON_NO_OFFSET );
 }
 
 // adds a reference to a PLIST as an array with the content of the array specified as the type
@@ -585,7 +585,7 @@ struct json_context_object *json_add_object_member_list( struct json_context_obj
 																		 )
 {
 	// this is a double pointer... implement as a specific type?
-   //return json_add_object_member_array( format, name, offset, content_type, object_size, 0, offsetof(
+	//return json_add_object_member_array( format, name, offset, content_type, object_size, 0, offsetof(
 	struct json_context *context = object->context;
 	struct json_context_object_element *member = New( struct json_context_object_element );
 	member->name = StrDup( name );
@@ -617,7 +617,7 @@ JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_object_a
 	member->offset = offset;
 	member->type = type;
 	member->count = count;
-   member->count_offset = count_offset;
+	member->count_offset = count_offset;
 	switch( type )
 	{
 	case JSON_Element_Object:
@@ -625,8 +625,8 @@ JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_object_a
 		member->object = child_object;
 		break;
 	default:
-      lprintf( WIDE("incompatible type") );
-      break;
+		lprintf( WIDE("incompatible type") );
+		break;
 	}
 	AddLink( &object->members, member );
 	if( member->object )
@@ -642,7 +642,7 @@ JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_object )
 																								 , struct json_context_object *child_object
 																								 )
 {
-   return json_add_object_member_object_array( object, name, offset, type, child_object, 0, JSON_NO_OFFSET );
+	return json_add_object_member_object_array( object, name, offset, type, child_object, 0, JSON_NO_OFFSET );
 }
 //----------------------------------------------------------------------------------------------
 void json_add_object_member_array_pointer( struct json_context_object *object
@@ -665,23 +665,21 @@ TEXTSTR json_build_message( struct json_context_object *object
 {
 	struct json_context *context = object->context;
 	TEXTSTR result;
-	int n;
+	int n = 0;
 	INDEX idx;
 	struct json_context_object_element *member;
 	if( !object->keep_phrase )
 		VarTextEmpty( context->pvt );
-	n = 0;
-	LIST_FORALL( object->members, idx, struct json_context_object_element *, member )
-	{
-		n++;
-	}
 	if( object->is_array )
 		json_begin_array( context, NULL );
-   else
+	else
 		json_begin_object( context, NULL );
 
 	LIST_FORALL( object->members, idx, struct json_context_object_element *, member )
 	{
+		if( n && ( member->type != JSON_Element_PTRSZVAL_BLANK_0 ) )
+			vtprintf( context->pvt, WIDE(",") );
+		n++;
 		switch( member->type )
 		{
 		case JSON_Element_Integer_64:
@@ -783,14 +781,14 @@ TEXTSTR json_build_message( struct json_context_object *object
 										);
 			else
 				json_add_value( context, member->name, (CTEXTSTR)(((PTRSZVAL)msg)+member->offset) );
-         break;
+			break;
 		case JSON_Element_ObjectPointer:
 			{
 				vtprintf( context->pvt, WIDE("\"%s\":")
 						  , member->name );
 				json_build_message( member->object, *((POINTER*)(((PTRSZVAL)msg)+member->offset)) );
 			}
-         break;
+			break;
 		case JSON_Element_Object:
 			{
 				vtprintf( context->pvt, WIDE("\"%s\":")
@@ -804,22 +802,30 @@ TEXTSTR json_build_message( struct json_context_object *object
 #else
 			json_add_uint_32_value( context, member->name, *(S_32*)(((PTRSZVAL)msg)+member->offset) );
 #endif
-         break;
+			break;
 		case JSON_Element_PTRSZVAL_BLANK_0:
 #ifdef __64__
-         if( *(S_64*)(((PTRSZVAL)msg)+member->offset) )
+			if( *(S_64*)(((PTRSZVAL)msg)+member->offset) )
+			{
+				if( n )
+					vtprintf( context->pvt, WIDE(",") );
 				json_add_uint_64_value( context, member->name, *(S_64*)(((PTRSZVAL)msg)+member->offset) );
+			}
 #else
-         if( *(S_32*)(((PTRSZVAL)msg)+member->offset) )
+			if( *(S_32*)(((PTRSZVAL)msg)+member->offset) )
+			{
+				if( n )
+					vtprintf( context->pvt, WIDE(",") );
 				json_add_uint_32_value( context, member->name, *(S_32*)(((PTRSZVAL)msg)+member->offset) );
+			}
 #endif
-         break;
+			break;
 		}
 	}
 
 	if( object->is_array )
 		json_end_array( context );
-   else
+	else
 		json_end_object( context );
 
 	if( !object->keep_phrase )

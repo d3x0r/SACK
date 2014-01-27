@@ -125,6 +125,9 @@ static void SendTCPMessage( PCLIENT pc, INDEX idx, LOGICAL websock, enum proxy_m
 
 			if( websock )
 			{
+
+			}
+
 				json_msg = json_build_message( cto, msg + 4 );
 				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
 				Release( json_msg );
