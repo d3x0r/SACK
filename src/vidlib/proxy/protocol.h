@@ -43,12 +43,14 @@ PREFIX_PACKED struct common_message {
 #endif
 
 enum proxy_message_id{
-	     PMID_Version
-							, PMID_SetApplicationTitle
-                     , PMID_SetApplicationIcon
+	     PMID_Version   // 0
+							, PMID_SetApplicationTitle   //1
+                     , PMID_SetApplicationIcon  // 2
 
-							, PMID_OpenDisplayAboveUnderSizedAt
-							, PMID_CloseDisplay
+							, PMID_OpenDisplayAboveUnderSizedAt  // 3
+							, PMID_CloseDisplay  // 4
+
+
 #if 0
     RENDER_PROC_PTR( void, UpdateDisplayPortionEx) ( PRENDERER, S_32 x, S_32 y, _32 width, _32 height DBG_PASS );
     /* <combine sack::image::render::UpdateDisplayEx@PRENDERER>

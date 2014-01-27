@@ -13,6 +13,7 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 {
 	struct json_context_object *cto;
 	struct json_context_object *cto_data;
+   int ofs;
 	if( !l.json_context )
 		l.json_context = json_create_context();
 	cto = json_create_object( l.json_context, 0 );
@@ -28,14 +29,18 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 		json_add_object_member( cto_data, WIDE("title"), 0, JSON_Element_CharArray, 0 );
 		break;
 	case PMID_OpenDisplayAboveUnderSizedAt:
-		json_add_object_member( cto_data, WIDE( "x" ), 0, JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE( "y" ), 0, JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE( "w" ), 0, JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE( "h" ), 0, JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE( "attributes" ), 0, JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE( "over" ), 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE( "under" ), 0, JSON_Element_PTRSZVAL, 0 );
+      json_add_object_member( cto_data, WIDE("x"), ofs = 0, JSON_Element_Integer_32, 0 );
+      json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
+      json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(S_32), JSON_Element_Unsigned_Integer_32, 0 );
+      json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("attrib"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
+      json_add_object_member( cto_data, WIDE("server_render_id"), ofs = ofs + sizeof(_32), JSON_Element_PTRSZVAL, 0 );
+      json_add_object_member( cto_data, WIDE("over_render_id"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL, 0 );
+      json_add_object_member( cto_data, WIDE("under_render_id"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL, 0 );
 		break;
+	case PMID_CloseDisplay:
+      json_add_object_member( cto_data, WIDE("client_render_id"), 0, JSON_Element_PTRSZVAL, 0 );
+      break;
 	}
 	return cto;
 }
