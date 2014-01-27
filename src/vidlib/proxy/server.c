@@ -1,4 +1,6 @@
 
+#include <imglib/imagestruct.h>
+
 #include <render.h>
 #include <render3d.h>
 #include <image3d.h>
@@ -25,6 +27,15 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 	case PMID_SetApplicationTitle:
 		json_add_object_member( cto_data, WIDE("title"), 0, JSON_Element_CharArray, 0 );
 		break;
+	case PMID_OpenDisplayAboveUnderSizedAt:
+		json_add_object_member( cto_data, WIDE( "x" ), 0, JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE( "y" ), 0, JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE( "w" ), 0, JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE( "h" ), 0, JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE( "attributes" ), 0, JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE( "over" ), 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE( "under" ), 0, JSON_Element_PTRSZVAL, 0 );
+		break;
 	}
 	return cto;
 }
@@ -36,6 +47,10 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 	PCLIENT client;
 	TEXTSTR json_msg;
 	struct json_context_object *cto;
+	size_t sendlen;
+	// often used; sometimes unused...
+	PVPRENDER render;
+	_8 *msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( POINTER ) ) );
 	if( websock )
 	{
 		cto = (struct json_context_object *)GetLink( &l.messages, message );
@@ -50,8 +65,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 		{
 		case PMID_Version:
 			{
-				size_t sendlen;
-				_8 *msg = NewArray( _8, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
+				msg = NewArray( _8, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
 				StrCpy( msg + 1, l.application_title );
 				((_32*)msg)[0] = (_32)(sendlen - 4);
 				msg[4] = message;
@@ -68,8 +82,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			break;
 		case PMID_SetApplicationTitle:
 			{
-				size_t sendlen;
-				_8 *msg = NewArray( _8, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
+				msg = NewArray( _8, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
 				StrCpy( msg + 1, l.application_title );
 				((_32*)msg)[0] = (_32)(sendlen - 4);
 				msg[4] = message;
@@ -84,13 +97,45 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 				Release( msg );
 			}
 			break;
+		case PMID_OpenDisplayAboveUnderSizedAt:
+			{
+				render = va_arg( args, PVPRENDER );
+
+				msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct opendisplay_data ) ) );
+				render = va_arg( args, PVPRENDER );
+				((_32*)msg)[0] = (_32)(sendlen - 4);
+				msg[4] = message;
+
+				((struct opendisplay_data*)(msg+5))->x = render->x;
+				((struct opendisplay_data*)(msg+5))->y = render->y;
+				((struct opendisplay_data*)(msg+5))->w = render->w;
+				((struct opendisplay_data*)(msg+5))->h = render->h;
+				((struct opendisplay_data*)(msg+5))->attr = render->attributes;
+				if( render->above )
+					((struct opendisplay_data*)(msg+5))->over = (PTRSZVAL)(GetLink( &render->above->remote_render_id, idx ) );
+				else
+					((struct opendisplay_data*)(msg+5))->over = 0;
+				if( render->under )
+					((struct opendisplay_data*)(msg+5))->under = (PTRSZVAL)(GetLink( &render->under->remote_render_id, idx ) );
+				else
+					((struct opendisplay_data*)(msg+5))->under = 0;
+
+				if( websock )
+				{
+					json_msg = json_build_message( cto, msg );
+					WebSocketSendText( client, json_msg, StrLen( json_msg ) );
+					Release( json_msg );
+				}
+				else
+					SendTCP( client, msg, sendlen );
+				Release( msg );
+			}
+			break;
 		case PMID_CloseDisplay:
 			{
-				int sendlen;
-				PVPRENDER render;
-				_8 *msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( POINTER ) ) );
+				msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( POINTER ) ) );
 				render = va_arg( args, PVPRENDER );
-				((_32*)msg)[0] = sendlen - 4;
+				((_32*)msg)[0] = (_32)(sendlen - 4);
 				msg[4] = message;
 				if( ((POINTER*)(msg+5))[0] = GetLink( &render->remote_render_id, idx ) )
 					if( websock )
@@ -207,17 +252,17 @@ static void InitService( void )
 	}
 }
 
-static int VidlibProxy_InitDisplay( void )
+static int CPROC VidlibProxy_InitDisplay( void )
 {
 	return TRUE;
 }
 
-static void VidlibProxy_SetApplicationIcon( Image icon )
+static void CPROC VidlibProxy_SetApplicationIcon( Image icon )
 {
 	// no support
 }
 
-static LOGICAL VidlibProxy_RequiresDrawAll( void )
+static LOGICAL CPROC VidlibProxy_RequiresDrawAll( void )
 {
 	return TRUE;
 }
@@ -244,6 +289,20 @@ static void VidlibProxy_SetDisplaySize      ( _32 width, _32 height )
 	SACK_WriteProfileInt( "SACK/Vidlib", "Default Display Height", height );
 }
 
+
+static Image CPROC VidlibProxy_MakeImageFileEx (_32 Width, _32 Height DBG_PASS)
+{
+	PVPImage image = New( struct vidlib_proxy_image );
+	MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
+	image->w = Width;
+	image->h = Height;
+	image->image = l.real_interface->_MakeImageFileEx( Width, Height DBG_RELAY );
+	SendClientMessage( PMID_MakeImageFile, image );
+	AddLink( &l.images, image );
+	return (Image)image;
+}
+
+
 static PRENDERER VidlibProxy_OpenDisplayAboveUnderSizedAt( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above, PRENDERER under )
 {
 
@@ -256,6 +315,8 @@ static PRENDERER VidlibProxy_OpenDisplayAboveUnderSizedAt( _32 attributes, _32 w
 	Renderer->attributes = attributes;
 	Renderer->above = (PVPRENDER)above;
 	Renderer->under = (PVPRENDER)under;
+	Renderer->image = VidlibProxy_MakeImageFileEx( width, height DBG_SRC );
+	Renderer->image->flags |= IF_FLAG_FINAL_RENDER;
 	AddLink( &l.renderers, Renderer );
 	SendClientMessage( PMID_OpenDisplayAboveUnderSizedAt, Renderer );
 	return (PRENDERER)Renderer;
@@ -268,299 +329,323 @@ static PRENDERER VidlibProxy_OpenDisplayAboveSizedAt( _32 attributes, _32 width,
 
 static PRENDERER VidlibProxy_OpenDisplaySizedAt     ( _32 attributes, _32 width, _32 height, S_32 x, S_32 y )
 {
-   return VidlibProxy_OpenDisplayAboveSizedAt( attributes, width, height, x, y, NULL );
+	return VidlibProxy_OpenDisplayAboveUnderSizedAt( attributes, width, height, x, y, NULL, NULL );
 }
 
 static void  VidlibProxy_CloseDisplay ( PRENDERER Renderer )
 {
-   SendClientMessage( PMID_CloseDisplay, Renderer );
+	SendClientMessage( PMID_CloseDisplay, Renderer );
 	DeleteLink( &l.renderers, Renderer );
-   Release( Renderer );
+	Release( Renderer );
 }
 
 static void VidlibProxy_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y, _32 width, _32 height DBG_PASS )
 {
-
+	// no-op; it will ahve already displayed(?)
 }
 
 static void VidlibProxy_UpdateDisplayEx( PRENDERER r DBG_PASS)
 {
+	// no-op; it will ahve already displayed(?)
 }
-                             
-#if 0
-    /* <combine sack::image::render::GetDisplayPosition@PRENDERER@S_32 *@S_32 *@_32 *@_32 *>
-       
-       \ \                                                                                   */
-    RENDER_PROC_PTR( void, VidlibProxy_GetDisplayPosition)   ( PRENDERER, S_32 *x, S_32 *y, _32 *width, _32 *height );
-    /* <combine sack::image::render::MoveDisplay@PRENDERER@S_32@S_32>
-       
-       \ \                                                            */
-    RENDER_PROC_PTR( void, VidlibProxy_MoveDisplay)          ( PRENDERER, S_32 x, S_32 y );
-    /* <combine sack::image::render::MoveDisplayRel@PRENDERER@S_32@S_32>
-       
-       \ \                                                               */
-    RENDER_PROC_PTR( void, VidlibProxy_MoveDisplayRel)       ( PRENDERER, S_32 delx, S_32 dely );
-    /* <combine sack::image::render::SizeDisplay@PRENDERER@_32@_32>
-       
-       \ \                                                          */
-    RENDER_PROC_PTR( void, VidlibProxy_SizeDisplay)          ( PRENDERER, _32 w, _32 h );
-    /* <combine sack::image::render::SizeDisplayRel@PRENDERER@S_32@S_32>
-       
-       \ \                                                               */
-    RENDER_PROC_PTR( void, VidlibProxy_SizeDisplayRel)       ( PRENDERER, S_32 delw, S_32 delh );
-    /* <combine sack::image::render::MoveSizeDisplayRel@PRENDERER@S_32@S_32@S_32@S_32>
-       
-       \ \                                                                             */
-    RENDER_PROC_PTR( void, VidlibProxy_MoveSizeDisplayRel )  ( PRENDERER hVideo
+
+static void VidlibProxy_GetDisplayPosition ( PRENDERER r, S_32 *x, S_32 *y, _32 *width, _32 *height )
+{
+	PVPRENDER pRender = (PVPRENDER)r;
+	if( x )
+		(*x) = pRender->x;
+	if( y )
+		(*y) = pRender->y;
+	if( width )
+		(*width) = pRender->w;
+	if( height ) 
+		(*height) = pRender->h;
+}
+
+static void CPROC VidlibProxy_MoveDisplay        ( PRENDERER r, S_32 x, S_32 y )
+{
+	PVPRENDER pRender = (PVPRENDER)r;
+	pRender->x = x;
+	pRender->y = y;
+}
+
+static void CPROC VidlibProxy_MoveDisplayRel( PRENDERER r, S_32 delx, S_32 dely )
+{
+	PVPRENDER pRender = (PVPRENDER)r;
+	pRender->x += delx;
+	pRender->y += dely;
+}
+
+static void CPROC VidlibProxy_SizeDisplay( PRENDERER r, _32 w, _32 h )
+{
+	PVPRENDER pRender = (PVPRENDER)r;
+	pRender->w = w;
+	pRender->h = h;
+}
+
+static void CPROC VidlibProxy_SizeDisplayRel( PRENDERER r, S_32 delw, S_32 delh )
+{
+	PVPRENDER pRender = (PVPRENDER)r;
+	pRender->w += delw;
+	pRender->h += delh;
+}
+
+static void CPROC VidlibProxy_MoveSizeDisplayRel( PRENDERER r
                                                  , S_32 delx, S_32 dely
-                                                 , S_32 delw, S_32 delh );
-    RENDER_PROC_PTR( void, VidlibProxy_PutDisplayAbove)      ( PRENDERER, PRENDERER ); /* <combine sack::image::render::PutDisplayAbove@PRENDERER@PRENDERER>
-                                                              
-                                                              \ \                                                                */
- 
-    /* <combine sack::image::render::GetDisplayImage@PRENDERER>
-       
-       \ \                                                      */
-    RENDER_PROC_PTR( Image, VidlibProxy_GetDisplayImage)     ( PRENDERER );
+                                                 , S_32 delw, S_32 delh )
+{
+	PVPRENDER pRender = (PVPRENDER)r;
+	pRender->w += delw;
+	pRender->h += delh;
+	pRender->x += delx;
+	pRender->y += dely;
+}
 
-    /* <combine sack::image::render::SetCloseHandler@PRENDERER@CloseCallback@PTRSZVAL>
-       
-       \ \                                                                             */
-    RENDER_PROC_PTR( void, VidlibProxy_SetCloseHandler)      ( PRENDERER, CloseCallback, PTRSZVAL );
-    /* <combine sack::image::render::SetMouseHandler@PRENDERER@MouseCallback@PTRSZVAL>
-       
-       \ \                                                                             */
-    RENDER_PROC_PTR( void, VidlibProxy_SetMouseHandler)      ( PRENDERER, MouseCallback, PTRSZVAL );
-    /* <combine sack::image::render::SetRedrawHandler@PRENDERER@RedrawCallback@PTRSZVAL>
-       
-       \ \                                                                               */
-    RENDER_PROC_PTR( void, VidlibProxy_SetRedrawHandler)     ( PRENDERER, RedrawCallback, PTRSZVAL );
-    /* <combine sack::image::render::SetKeyboardHandler@PRENDERER@KeyProc@PTRSZVAL>
-       
-       \ \                                                                          */
-    RENDER_PROC_PTR( void, VidlibProxy_SetKeyboardHandler)   ( PRENDERER, KeyProc, PTRSZVAL );
-    /* <combine sack::image::render::SetLoseFocusHandler@PRENDERER@LoseFocusCallback@PTRSZVAL>
-       
-       \ \                                                                                     */
-    RENDER_PROC_PTR( void, VidlibProxy_SetLoseFocusHandler)  ( PRENDERER, LoseFocusCallback, PTRSZVAL );
-    /* <combine sack::image::render::SetDefaultHandler@PRENDERER@GeneralCallback@PTRSZVAL>
-       
-       \ \                                                                                 */
-    RENDER_PROC_PTR( void, VidlibProxy_GetMousePosition)     ( S_32 *x, S_32 *y );
-    /* <combine sack::image::render::SetMousePosition@PRENDERER@S_32@S_32>
-       
-       \ \                                                                 */
-    RENDER_PROC_PTR( void, VidlibProxy_SetMousePosition)     ( PRENDERER, S_32 x, S_32 y );
-
-    /* <combine sack::image::render::HasFocus@PRENDERER>
-       
-       \ \                                               */
-    RENDER_PROC_PTR( LOGICAL, VidlibProxy_HasFocus)          ( PRENDERER );
-
-    RENDER_PROC_PTR( TEXTCHAR, VidlibProxy_GetKeyText)           ( int key );
-    /* <combine sack::image::render::IsKeyDown@PRENDERER@int>
-       
-       \ \                                                    */
-    RENDER_PROC_PTR( _32, VidlibProxy_IsKeyDown )        ( PRENDERER display, int key );
-    /* <combine sack::image::render::KeyDown@PRENDERER@int>
-       
-       \ \                                                  */
-    RENDER_PROC_PTR( _32, VidlibProxy_KeyDown )         ( PRENDERER display, int key );
-    /* <combine sack::image::render::DisplayIsValid@PRENDERER>
-       
-       \ \                                                     */
-    RENDER_PROC_PTR( LOGICAL, VidlibProxy_DisplayIsValid )  ( PRENDERER display );
-    /* <combine sack::image::render::OwnMouseEx@PRENDERER@_32 bOwn>
-       
-       \ \                                                          */
-    RENDER_PROC_PTR( void, VidlibProxy_OwnMouseEx )            ( PRENDERER display, _32 Own DBG_PASS);
-    /* <combine sack::image::render::BeginCalibration@_32>
-       
-       \ \                                                 */
-    RENDER_PROC_PTR( int, VidlibProxy_BeginCalibration )       ( _32 points );
-    /* <combine sack::image::render::SyncRender@PRENDERER>
-       
-       \ \                                                 */
-    RENDER_PROC_PTR( void, SyncRender )            ( PRENDERER pDisplay );
-    /* DEPRICATED; left in structure for compatibility.  Removed define and export definition. */
-    RENDER_PROC_PTR( int, EnableOpenGL )           ( PRENDERER hVideo );
-    /* DEPRICATED; left in structure for compatibility.  Removed define and export definition. */
-    RENDER_PROC_PTR( int, SetActiveGLDisplay )     ( PRENDERER hDisplay );
-
-	 /* <combine sack::image::render::MoveSizeDisplay@PRENDERER@S_32@S_32@S_32@S_32>
-	    
-	    \ \                                                                          */
-	 RENDER_PROC_PTR( void, VidlibProxy_MoveSizeDisplay )( PRENDERER hVideo
+static void CPROC VidlibProxy_MoveSizeDisplay( PRENDERER r
                                         , S_32 x, S_32 y
-                                        , S_32 w, S_32 h );
-   /* <combine sack::image::render::MakeTopmost@PRENDERER>
-      
-      \ \                                                  */
-   RENDER_PROC_PTR( void, MakeTopmost )    ( PRENDERER hVideo );
-   /* <combine sack::image::render::HideDisplay@PRENDERER>
-      
-      \ \                                                  */
-   RENDER_PROC_PTR( void, HideDisplay )      ( PRENDERER hVideo );
-   /* <combine sack::image::render::RestoreDisplay@PRENDERER>
-      
-      \ \                                                     */
-   RENDER_PROC_PTR( void, RestoreDisplay )   ( PRENDERER hVideo );
+                                        , S_32 w, S_32 h )
+{
+	PVPRENDER pRender = (PVPRENDER)r;
+	pRender->x = x;
+	pRender->y = y;
+	pRender->w = w;
+	pRender->h = h;
+}
 
-	/* <combine sack::image::render::ForceDisplayFocus@PRENDERER>
-	   
-	   \ \                                                        */
-	RENDER_PROC_PTR( void, ForceDisplayFocus )( PRENDERER display );
-	/* <combine sack::image::render::ForceDisplayFront@PRENDERER>
-	   
-	   \ \                                                        */
-	RENDER_PROC_PTR( void, ForceDisplayFront )( PRENDERER display );
-	/* <combine sack::image::render::ForceDisplayBack@PRENDERER>
-	   
-	   \ \                                                       */
-	RENDER_PROC_PTR( void, ForceDisplayBack )( PRENDERER display );
+static void CPROC VidlibProxy_PutDisplayAbove      ( PRENDERER r, PRENDERER above )
+{
+	lprintf( "window ordering is not implemented" );
+}
 
-	/* <combine sack::image::render::BindEventToKey@PRENDERER@_32@_32@KeyTriggerHandler@PTRSZVAL>
-	   
-	   \ \                                                                                        */
-	RENDER_PROC_PTR( int, BindEventToKey )( PRENDERER pRenderer, _32 scancode, _32 modifier, KeyTriggerHandler trigger, PTRSZVAL psv );
-	/* <combine sack::image::render::UnbindKey@PRENDERER@_32@_32>
-	   
-	   \ \                                                        */
-	RENDER_PROC_PTR( int, UnbindKey )( PRENDERER pRenderer, _32 scancode, _32 modifier );
-	/* <combine sack::image::render::IsTopmost@PRENDERER>
-	   
-	   \ \                                                */
-	RENDER_PROC_PTR( int, IsTopmost )( PRENDERER hVideo );
-	/* Used as a point to sync between applications and the message
-	   display server; Makes sure that all draw commands which do
-	   not have a response are done.
-	   
-	   
-	   
-	   Waits until all commands are processed; which is wait until
-	   this command is processed.                                   */
-	RENDER_PROC_PTR( void, OkaySyncRender )            ( void );
-   /* <combine sack::image::render::IsTouchDisplay>
-      
-      \ \                                           */
-   RENDER_PROC_PTR( int, IsTouchDisplay )( void );
-	/* <combine sack::image::render::GetMouseState@S_32 *@S_32 *@_32 *>
-	   
-	   \ \                                                              */
-	RENDER_PROC_PTR( void , GetMouseState )        ( S_32 *x, S_32 *y, _32 *b );
-	/* <combine sack::image::render::EnableSpriteMethod@PRENDERER@void__cdecl*RenderSpritesPTRSZVAL psv\, PRENDERER renderer\, S_32 x\, S_32 y\, _32 w\, _32 h@PTRSZVAL>
-	   
-	   \ \                                                                                                                                                               */
-	RENDER_PROC_PTR ( PSPRITE_METHOD, EnableSpriteMethod )(PRENDERER render, void(CPROC*RenderSprites)(PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h ), PTRSZVAL psv );
-	/* <combine sack::image::render::WinShell_AcceptDroppedFiles@PRENDERER@dropped_file_acceptor@PTRSZVAL>
-	   
-	   \ \                                                                                                 */
-	RENDER_PROC_PTR( void, WinShell_AcceptDroppedFiles )( PRENDERER renderer, dropped_file_acceptor f, PTRSZVAL psvUser );
-	/* <combine sack::image::render::PutDisplayIn@PRENDERER@PRENDERER>
-	   
-	   \ \                                                             */
-	RENDER_PROC_PTR(void, PutDisplayIn) (PRENDERER hVideo, PRENDERER hContainer);
+static Image CPROC VidlibProxy_GetDisplayImage( PRENDERER r )
+{
+	PVPRENDER pRender = (PVPRENDER)r;
+	return pRender->image;
+}
+
+static void CPROC VidlibProxy_SetCloseHandler    ( PRENDERER r, CloseCallback c, PTRSZVAL p )
+{
+}
+
+static void CPROC VidlibProxy_SetMouseHandler  ( PRENDERER r, MouseCallback c, PTRSZVAL p )
+{
+}
+
+static void CPROC VidlibProxy_SetRedrawHandler  ( PRENDERER r, RedrawCallback c, PTRSZVAL p )
+{
+}
+
+static void CPROC VidlibProxy_SetKeyboardHandler   ( PRENDERER r, KeyProc c, PTRSZVAL p )
+{
+}
+
+static void CPROC VidlibProxy_SetLoseFocusHandler  ( PRENDERER r, LoseFocusCallback c, PTRSZVAL p )
+{
+}
+
+static void CPROC VidlibProxy_GetMousePosition   ( S_32 *x, S_32 *y )
+{
+}
+
+static void CPROC VidlibProxy_SetMousePosition  ( PRENDERER r, S_32 x, S_32 y )
+{
+}
+
+static LOGICAL CPROC VidlibProxy_HasFocus       ( PRENDERER  r )
+{
+	return TRUE;
+}
+
+static TEXTCHAR CPROC VidlibProxy_GetKeyText       ( int key )
+{ 
+	return 0;
+}
+
+static _32 CPROC VidlibProxy_IsKeyDown        ( PRENDERER r, int key )
+{
+	return 0;
+}
+
+static _32 CPROC VidlibProxy_KeyDown        ( PRENDERER r, int key )
+{
+	return 0;
+}
+
+static LOGICAL CPROC VidlibProxy_DisplayIsValid ( PRENDERER r )
+{
+	return (r != NULL);
+}
+
+static void CPROC VidlibProxy_OwnMouseEx ( PRENDERER r, _32 Own DBG_PASS)
+{
+
+}
+
+static int CPROC VidlibProxy_BeginCalibration ( _32 points )
+{
+	return 0;
+}
+
+static void CPROC VidlibProxy_SyncRender( PRENDERER pDisplay )
+{
+}
+
+static void CPROC VidlibProxy_MakeTopmost  ( PRENDERER r )
+{
+}
+
+static void CPROC VidlibProxy_HideDisplay    ( PRENDERER r )
+{
+}
+
+static void CPROC VidlibProxy_RestoreDisplay  ( PRENDERER r )
+{
+}
+
+static void CPROC VidlibProxy_ForceDisplayFocus ( PRENDERER r )
+{
+}
+
+static void CPROC VidlibProxy_ForceDisplayFront( PRENDERER r )
+{
+}
+
+static void CPROC VidlibProxy_ForceDisplayBack( PRENDERER r )
+{
+}
+
+static int CPROC  VidlibProxy_BindEventToKey( PRENDERER pRenderer, _32 scancode, _32 modifier, KeyTriggerHandler trigger, PTRSZVAL psv )
+{
+	return 0;
+}
+
+static int CPROC VidlibProxy_UnbindKey( PRENDERER pRenderer, _32 scancode, _32 modifier )
+{
+	return 0;
+}
+
+static int CPROC VidlibProxy_IsTopmost( PRENDERER r )
+{
+	return 0;
+}
+
+static void CPROC VidlibProxy_OkaySyncRender( void )
+{
+	// redundant thing?
+}
+
+static int CPROC VidlibProxy_IsTouchDisplay( void )
+{
+	return 0;
+}
+
+static void CPROC VidlibProxy_GetMouseState( S_32 *x, S_32 *y, _32 *b )
+{
+}
+
+static PSPRITE_METHOD CPROC VidlibProxy_EnableSpriteMethod(PRENDERER render, void(CPROC*RenderSprites)(PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h ), PTRSZVAL psv )
+{
+	return NULL;
+}
+
+static void CPROC VidlibProxy_WinShell_AcceptDroppedFiles( PRENDERER renderer, dropped_file_acceptor f, PTRSZVAL psvUser )
+{
+}
+
+static void CPROC VidlibProxy_PutDisplayIn(PRENDERER r, PRENDERER hContainer)
+{
+}
+
+static void CPROC VidlibProxy_SetRendererTitle( PRENDERER render, const TEXTCHAR *title )
+{
+}
+
+static void CPROC VidlibProxy_DisableMouseOnIdle(PRENDERER r, LOGICAL bEnable )
+{
+}
+
+static void CPROC VidlibProxy_SetDisplayNoMouse( PRENDERER r, int bNoMouse )
+{
+}
+
+static void CPROC VidlibProxy_Redraw( PRENDERER r )
+{
+}
+
+static void CPROC VidlibProxy_MakeAbsoluteTopmost(PRENDERER r)
+{
+}
+
+static void CPROC VidlibProxy_SetDisplayFade( PRENDERER r, int level )
+{
+}
+
+static LOGICAL CPROC VidlibProxy_IsDisplayHidden( PRENDERER r )
+{
+	PVPRENDER pRender = (PVPRENDER)r;
+	return pRender->flags.hidden;
+}
+
 #ifdef WIN32
-	/* <combine sack::image::render::MakeDisplayFrom@HWND>
-	   
-	   \ \                                                 */
-			RENDER_PROC_PTR (PRENDERER, MakeDisplayFrom) (HWND hWnd) ;
-#else
-      POINTER junk4;
+static HWND CPROC VidlibProxy_GetNativeHandle( PRENDERER r )
+{
+}
 #endif
-	/* <combine sack::image::render::SetRendererTitle@PRENDERER@TEXTCHAR *>
-	   
-	   \ \                                                                  */
-	RENDER_PROC_PTR( void , SetRendererTitle) ( PRENDERER render, const TEXTCHAR *title );
-	/* <combine sack::image::render::DisableMouseOnIdle@PRENDERER@LOGICAL>
-	   
-	   \ \                                                                 */
-	RENDER_PROC_PTR (void, DisableMouseOnIdle) (PRENDERER hVideo, LOGICAL bEnable );
-	/* <combine sack::image::render::OpenDisplayAboveUnderSizedAt@_32@_32@_32@S_32@S_32@PRENDERER@PRENDERER>
-	   
-	   \ \                                                                                                   */
-	RENDER_PROC_PTR( PRENDERER, OpenDisplayAboveUnderSizedAt)( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above, PRENDERER under );
-	/* <combine sack::image::render::SetDisplayNoMouse@PRENDERER@int>
-	   
-	   \ \                                                            */
-	RENDER_PROC_PTR( void, SetDisplayNoMouse )( PRENDERER hVideo, int bNoMouse );
-	/* <combine sack::image::render::Redraw@PRENDERER>
-	   
-	   \ \                                             */
-	RENDER_PROC_PTR( void, Redraw )( PRENDERER hVideo );
-	/* <combine sack::image::render::MakeAbsoluteTopmost@PRENDERER>
-	   
-	   \ \                                                          */
-	RENDER_PROC_PTR(void, MakeAbsoluteTopmost) (PRENDERER hVideo);
-	/* <combine sack::image::render::SetDisplayFade@PRENDERER@int>
-	   
-	   \ \                                                         */
-	RENDER_PROC_PTR( void, SetDisplayFade )( PRENDERER hVideo, int level );
-	/* <combine sack::image::render::IsDisplayHidden@PRENDERER>
-	   
-	   \ \                                                      */
-	RENDER_PROC_PTR( LOGICAL, IsDisplayHidden )( PRENDERER video );
-#ifdef WIN32
-	/* <combine sack::image::render::GetNativeHandle@PRENDERER>
-	   
-	   \ \                                                      */
-	RENDER_PROC_PTR( HWND, GetNativeHandle )( PRENDERER video );
-#endif
-		 /* <combine sack::image::render::GetDisplaySizeEx@int@S_32 *@S_32 *@_32 *@_32 *>
-		    
-		    \ \                                                                           */
-		 RENDER_PROC_PTR (void, GetDisplaySizeEx) ( int nDisplay
+
+static void CPROC VidlibProxy_GetDisplaySizeEx( int nDisplay
 														  , S_32 *x, S_32 *y
-														  , _32 *width, _32 *height);
+														  , _32 *width, _32 *height)
+{
+}
 
-	/* Locks a video display. Applications shouldn't be locking
-	   this, but if for some reason they require it; use this
-	   function.                                                */
-	RENDER_PROC_PTR( void, LockRenderer )( PRENDERER render );
-	/* Release renderer lock critical section. Applications
-	   shouldn't be locking this surface.                   */
-	RENDER_PROC_PTR( void, UnlockRenderer )( PRENDERER render );
-	/* Provides a way for applications to cause the window to flush
-	   to the display (if it's a transparent window)                */
-	RENDER_PROC_PTR( void, IssueUpdateLayeredEx )( PRENDERER hVideo, LOGICAL bContent, S_32 x, S_32 y, _32 w, _32 h DBG_PASS );
-	/* Check to see if the render mode is always redraw; changes how
-	   smudge works in PSI. If always redrawn, then the redraw isn't
-	   done during the smudge, and instead is delayed until a draw
-	   is triggered at which time all controls are drawn.
-	   
-	   
-	   
-	   
-	   Returns
-	   TRUE if full screen needs to be drawn during a draw,
-	   otherwise partial updates may be done.                        */
-	RENDER_PROC_PTR( LOGICAL, RequiresDrawAll )( void );
+static void CPROC VidlibProxy_LockRenderer( PRENDERER render )
+{
+}
+
+static void CPROC VidlibProxy_UnlockRenderer( PRENDERER render )
+{
+}
+
+static void CPROC VidlibProxy_IssueUpdateLayeredEx( PRENDERER r, LOGICAL bContent, S_32 x, S_32 y, _32 w, _32 h DBG_PASS )
+{
+}
+
+
 #ifndef NO_TOUCH
 		/* <combine sack::image::render::SetTouchHandler@PRENDERER@fte inc asdfl;kj
 		 fteTouchCallback@PTRSZVAL>
        
        \ \                                                                             */
-			RENDER_PROC_PTR( void, SetTouchHandler)      ( PRENDERER, TouchCallback, PTRSZVAL );
+static void CPROC VidlibProxy_SetTouchHandler  ( PRENDERER r, TouchCallback c, PTRSZVAL p )
+{
+}
 #endif
-    RENDER_PROC_PTR( void, MarkDisplayUpdated )( PRENDERER );
-    /* <combine sack::image::render::SetHideHandler@PRENDERER@HideAndRestoreCallback@PTRSZVAL>
-       
-       \ \                                                                             */
-    RENDER_PROC_PTR( void, SetHideHandler)      ( PRENDERER, HideAndRestoreCallback, PTRSZVAL );
-    /* <combine sack::image::render::SetRestoreHandler@PRENDERER@HideAndRestoreCallback@PTRSZVAL>
-       
-       \ \                                                                             */
-    RENDER_PROC_PTR( void, SetRestoreHandler)      ( PRENDERER, HideAndRestoreCallback, PTRSZVAL );
-		 RENDER_PROC_PTR( void, RestoreDisplayEx )   ( PRENDERER hVideo DBG_PASS );
-		 /* added for android extensions; call to enable showing the keyboard in the correct thread
-        ; may have applications for windows tablets 
-		  */
-       RENDER_PROC_PTR( void, SACK_Vidlib_ShowInputDevice )( void );
-		 /* added for android extensions; call to enable hiding the keyboard in the correct thread
-		  ; may have applications for windows tablets */
-       RENDER_PROC_PTR( void, SACK_Vidlib_HideInputDevice )( void );
 
-#endif
+static void CPROC VidlibProxy_MarkDisplayUpdated( PRENDERER r  )
+{
+}
+
+static void CPROC VidlibProxy_SetHideHandler      ( PRENDERER r, HideAndRestoreCallback c, PTRSZVAL p )
+{
+}
+
+static void CPROC VidlibProxy_SetRestoreHandler  ( PRENDERER r, HideAndRestoreCallback c, PTRSZVAL p )
+{
+}
+
+static void CPROC VidlibProxy_RestoreDisplayEx ( PRENDERER r DBG_PASS )
+{
+}
+
+// android extension
+PUBLIC( void, SACK_Vidlib_ShowInputDevice )( void )
+{
+}
+
+PUBLIC( void, SACK_Vidlib_HideInputDevice )( void )
+{
+}
+
 
 static RENDER_INTERFACE ProxyInterface = {
 	VidlibProxy_InitDisplay
@@ -571,7 +656,6 @@ static RENDER_INTERFACE ProxyInterface = {
 													  , VidlibProxy_OpenDisplaySizedAt
 													  , VidlibProxy_OpenDisplayAboveSizedAt
 													  , VidlibProxy_CloseDisplay
-#if 0
 													  , VidlibProxy_UpdateDisplayPortionEx
 													  , VidlibProxy_UpdateDisplayEx
 													  , VidlibProxy_GetDisplayPosition
@@ -585,93 +669,69 @@ static RENDER_INTERFACE ProxyInterface = {
 													  , VidlibProxy_SetCloseHandler
 													  , VidlibProxy_SetMouseHandler
 													  , VidlibProxy_SetRedrawHandler
-    RENDER_PROC_PTR( void, SetKeyboardHandler)   ( PRENDERER, KeyProc, PTRSZVAL );
+													  , VidlibProxy_SetKeyboardHandler
     /* <combine sack::image::render::SetLoseFocusHandler@PRENDERER@LoseFocusCallback@PTRSZVAL>
        
        \ \                                                                                     */
-    RENDER_PROC_PTR( void, SetLoseFocusHandler)  ( PRENDERER, LoseFocusCallback, PTRSZVAL );
+													  , VidlibProxy_SetLoseFocusHandler
 			 ,  0  //POINTER junk1;
-    RENDER_PROC_PTR( void, GetMousePosition)     ( S_32 *x, S_32 *y );
-    RENDER_PROC_PTR( void, SetMousePosition)     ( PRENDERER, S_32 x, S_32 y );
-    RENDER_PROC_PTR( LOGICAL, HasFocus)          ( PRENDERER );
+													  , VidlibProxy_GetMousePosition
+													  , VidlibProxy_SetMousePosition
+													  , VidlibProxy_HasFocus
 
-	 , 0// POINTER junk2;
-	 , 0// POINTER junk3;
+													  , VidlibProxy_GetKeyText
+													  , VidlibProxy_IsKeyDown
+													  , VidlibProxy_KeyDown
+													  , VidlibProxy_DisplayIsValid
+													  , VidlibProxy_OwnMouseEx
+													  , VidlibProxy_BeginCalibration
+													  , VidlibProxy_SyncRender
 
-    RENDER_PROC_PTR( TEXTCHAR, GetKeyText)           ( int key );
-    RENDER_PROC_PTR( _32, IsKeyDown )        ( PRENDERER display, int key );
-    RENDER_PROC_PTR( _32, KeyDown )         ( PRENDERER display, int key );
-    RENDER_PROC_PTR( LOGICAL, DisplayIsValid )  ( PRENDERER display );
-    RENDER_PROC_PTR( void, OwnMouseEx )            ( PRENDERER display, _32 Own DBG_PASS);
-    RENDER_PROC_PTR( int, BeginCalibration )       ( _32 points );
-    RENDER_PROC_PTR( void, SyncRender )            ( PRENDERER pDisplay );
-    , 0 //RENDER_PROC_PTR( int, EnableOpenGL )           ( PRENDERER hVideo );
-    , 0 //RENDER_PROC_PTR( int, SetActiveGLDisplay )     ( PRENDERER hDisplay );
-
-	 RENDER_PROC_PTR( void, MoveSizeDisplay )( PRENDERER hVideo
-                                        , S_32 x, S_32 y
-                                        , S_32 w, S_32 h );
-   RENDER_PROC_PTR( void, MakeTopmost )    ( PRENDERER hVideo );
-   RENDER_PROC_PTR( void, HideDisplay )      ( PRENDERER hVideo );
-   RENDER_PROC_PTR( void, RestoreDisplay )   ( PRENDERER hVideo );
-	RENDER_PROC_PTR( void, ForceDisplayFocus )( PRENDERER display );
-	RENDER_PROC_PTR( void, ForceDisplayFront )( PRENDERER display );
-	RENDER_PROC_PTR( void, ForceDisplayBack )( PRENDERER display );
-	RENDER_PROC_PTR( int, BindEventToKey )( PRENDERER pRenderer, _32 scancode, _32 modifier, KeyTriggerHandler trigger, PTRSZVAL psv );
-	RENDER_PROC_PTR( int, UnbindKey )( PRENDERER pRenderer, _32 scancode, _32 modifier );
-	RENDER_PROC_PTR( int, IsTopmost )( PRENDERER hVideo );
-	RENDER_PROC_PTR( void, OkaySyncRender )            ( void );
-   RENDER_PROC_PTR( int, IsTouchDisplay )( void );
-	RENDER_PROC_PTR( void , GetMouseState )        ( S_32 *x, S_32 *y, _32 *b );
-	RENDER_PROC_PTR ( PSPRITE_METHOD, EnableSpriteMethod )(PRENDERER render, void(CPROC*RenderSprites)(PTRSZVAL psv, PRENDERER renderer, S_32 x, S_32 y, _32 w, _32 h ), PTRSZVAL psv );
-	RENDER_PROC_PTR( void, WinShell_AcceptDroppedFiles )( PRENDERER renderer, dropped_file_acceptor f, PTRSZVAL psvUser );
-	RENDER_PROC_PTR(void, PutDisplayIn) (PRENDERER hVideo, PRENDERER hContainer);
-			RENDER_PROC_PTR (PRENDERER, MakeDisplayFrom) (HWND hWnd) ;
-	RENDER_PROC_PTR( void , SetRendererTitle) ( PRENDERER render, const TEXTCHAR *title );
-	RENDER_PROC_PTR (void, DisableMouseOnIdle) (PRENDERER hVideo, LOGICAL bEnable );
-	RENDER_PROC_PTR( PRENDERER, OpenDisplayAboveUnderSizedAt)( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above, PRENDERER under );
-	RENDER_PROC_PTR( void, SetDisplayNoMouse )( PRENDERER hVideo, int bNoMouse );
-	RENDER_PROC_PTR( void, Redraw )( PRENDERER hVideo );
-	RENDER_PROC_PTR(void, MakeAbsoluteTopmost) (PRENDERER hVideo);
-	RENDER_PROC_PTR( void, SetDisplayFade )( PRENDERER hVideo, int level );
-	RENDER_PROC_PTR( LOGICAL, IsDisplayHidden )( PRENDERER video );
+													  , VidlibProxy_MoveSizeDisplay
+													  , VidlibProxy_MakeTopmost
+													  , VidlibProxy_HideDisplay
+													  , VidlibProxy_RestoreDisplay
+													  , VidlibProxy_ForceDisplayFocus
+													  , VidlibProxy_ForceDisplayFront
+													  , VidlibProxy_ForceDisplayBack
+													  , VidlibProxy_BindEventToKey
+													  , VidlibProxy_UnbindKey
+													  , VidlibProxy_IsTopmost
+													  , VidlibProxy_OkaySyncRender
+													  , VidlibProxy_IsTouchDisplay
+													  , VidlibProxy_GetMouseState
+													  , VidlibProxy_EnableSpriteMethod
+													  , VidlibProxy_WinShell_AcceptDroppedFiles
+													  , VidlibProxy_PutDisplayIn
 #ifdef WIN32
-	RENDER_PROC_PTR( HWND, GetNativeHandle )( PRENDERER video );
+													  , NULL // make renderer from native handle
 #endif
-		 RENDER_PROC_PTR (void, GetDisplaySizeEx) ( int nDisplay
-														  , S_32 *x, S_32 *y
-														  , _32 *width, _32 *height);
+													  , VidlibProxy_SetRendererTitle
+													  , VidlibProxy_DisableMouseOnIdle
+													  , VidlibProxy_OpenDisplayAboveUnderSizedAt
+													  , VidlibProxy_SetDisplayNoMouse
+													  , VidlibProxy_Redraw
+													  , VidlibProxy_MakeAbsoluteTopmost
+													  , VidlibProxy_SetDisplayFade
+													  , VidlibProxy_IsDisplayHidden
+#ifdef WIN32
+													, NULL // get native handle from renderer
+#endif
+													  , VidlibProxy_GetDisplaySizeEx
 
-	RENDER_PROC_PTR( void, LockRenderer )( PRENDERER render );
-	RENDER_PROC_PTR( void, UnlockRenderer )( PRENDERER render );
-	/* Provides a way for applications to cause the window to flush
-	   to the display (if it's a transparent window)                */
-	RENDER_PROC_PTR( void, IssueUpdateLayeredEx )( PRENDERER hVideo, LOGICAL bContent, S_32 x, S_32 y, _32 w, _32 h DBG_PASS );
+													  , VidlibProxy_LockRenderer
+													  , VidlibProxy_UnlockRenderer
+													  , VidlibProxy_IssueUpdateLayeredEx
+													  , VidlibProxy_RequiresDrawAll
 #ifndef NO_TOUCH
-		/* <combine sack::image::render::SetTouchHandler@PRENDERER@fte inc asdfl;kj
-		 fteTouchCallback@PTRSZVAL>
-       
-       \ \                                                                             */
-			RENDER_PROC_PTR( void, SetTouchHandler)      ( PRENDERER, TouchCallback, PTRSZVAL );
+													  , VidlibProxy_SetTouchHandler
 #endif
-    RENDER_PROC_PTR( void, MarkDisplayUpdated )( PRENDERER );
-    /* <combine sack::image::render::SetHideHandler@PRENDERER@HideAndRestoreCallback@PTRSZVAL>
-       
-       \ \                                                                             */
-    RENDER_PROC_PTR( void, SetHideHandler)      ( PRENDERER, HideAndRestoreCallback, PTRSZVAL );
-    /* <combine sack::image::render::SetRestoreHandler@PRENDERER@HideAndRestoreCallback@PTRSZVAL>
-       
-       \ \                                                                             */
-    RENDER_PROC_PTR( void, SetRestoreHandler)      ( PRENDERER, HideAndRestoreCallback, PTRSZVAL );
-		 RENDER_PROC_PTR( void, RestoreDisplayEx )   ( PRENDERER hVideo DBG_PASS );
-		 /* added for android extensions; call to enable showing the keyboard in the correct thread
-        ; may have applications for windows tablets 
-		  */
-       RENDER_PROC_PTR( void, SACK_Vidlib_ShowInputDevice )( void );
-		 /* added for android extensions; call to enable hiding the keyboard in the correct thread
-		  ; may have applications for windows tablets */
-       RENDER_PROC_PTR( void, SACK_Vidlib_HideInputDevice )( void );
-#endif
+													  , VidlibProxy_MarkDisplayUpdated
+													  , VidlibProxy_SetHideHandler
+													  , VidlibProxy_SetRestoreHandler
+													  , VidlibProxy_RestoreDisplayEx
+												, SACK_Vidlib_ShowInputDevice
+												, SACK_Vidlib_HideInputDevice
 };
 
 static void InitProxyInterface( void )
@@ -700,18 +760,9 @@ static Image CPROC VidlibProxy_BuildImageFileEx ( PCOLOR pc, _32 width, _32 heig
 	lprintf( "CRITICAL; BuildImageFile is not possible" );
 	image->w = width;
 	image->h = height;
-	SendClientMessage( PMID_MakeImageFile, image );
-	AddLink( &l.images, image );
-	return (Image)image;
-}
-
-static Image CPROC VidlibProxy_MakeImageFileEx (_32 Width, _32 Height DBG_PASS)
-{
-	PVPImage image = New( struct vidlib_proxy_image );
-	MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
-	image->w = Width;
-	image->h = Height;
-	SendClientMessage( PMID_MakeImageFile, image );
+	image->image = l.real_interface->_BuildImageFileEx( pc, width, height DBG_RELAY );
+	// don't really need to make this; if it needs to be updated to the client it will be handled later
+	//SendClientMessage( PMID_MakeImageFile, image );
 	AddLink( &l.images, image );
 	return (Image)image;
 }
@@ -724,15 +775,14 @@ static Image CPROC VidlibProxy_MakeSubImageEx  ( Image pImage, S_32 x, S_32 y, _
 	image->y = y;
 	image->w = width;
 	image->h = height;
+	image->image = l.real_interface->_MakeSubImageEx( ((PVPImage)pImage)->image, x, y, width, height DBG_RELAY );
 
 	image->parent = (PVPImage)pImage;
 	if( image->next = ((PVPImage)pImage)->child )
 		image->next->prior = image;
 	((PVPImage)pImage)->child = image;
 
-	if( ((PVPImage)pImage)->image )
-		image->image = l.real_interface->_MakeSubImageEx( ((PVPImage)pImage)->image, x, y, width, height DBG_RELAY );
-
+	// don't really need to make this; if it needs to be updated to the client it will be handled later
 	SendClientMessage( PMID_MakeSubImageFile, image );
 
 	return (Image)image;
@@ -749,8 +799,8 @@ static Image CPROC VidlibProxy_RemakeImageEx    ( Image pImage, PCOLOR pc, _32 w
 	lprintf( "CRITICAL; RemakeImageFile is not possible" );
 	image->w = width;
 	image->h = height;
-	if( !pImage )
-		SendClientMessage( PMID_MakeImageFile, image );
+	image->image = l.real_interface->_RemakeImageEx( image->image, pc, width, height DBG_RELAY );
+
 	AddLink( &l.images, image );
 	return (Image)image;
 }
@@ -764,6 +814,7 @@ static Image CPROC VidlibProxy_LoadImageFileFromGroupEx( INDEX group, CTEXTSTR f
 	image->image = l.real_interface->_LoadImageFileFromGroupEx( group, filename DBG_RELAY );
 	image->w = image->image->actual_width;
 	image->h = image->image->actual_height;
+	// don't really need to make this; if it needs to be updated to the client it will be handled later
 	SendClientMessage( PMID_LoadImageFileFromGroup, image );
 	AddLink( &l.images, image );
 	return (Image)image;
@@ -786,18 +837,6 @@ static  void CPROC VidlibProxy_UnmakeImageFileEx( Image pif DBG_PASS )
 
 	Release( pif );
 }
- IMAGE_PROC_PTR( void ,VidlibProxy_SetImageBound)    ( Image pImage, P_IMAGE_RECTANGLE bound );
-/* <combine sack::image::FixImagePosition@Image>
-   
-   Internal
-   Interface index 13
-   
-   reset clip rectangle to the full image (subimage part ) Some
-   operations (move, resize) will also reset the bound rect,
-   this must be re-set afterwards. ALSO - one SHOULD be nice and
-   reset the rectangle when done, otherwise other people may not
-   have checked this.
-                                                                 */  IMAGE_PROC_PTR( void ,FixImagePosition) ( Image pImage );
 
 //-----------------------------------------------------
 
@@ -876,16 +915,16 @@ static _32 CPROC VidlibProxy_GetFontHeight  ( SFTFont font )
 static _32 CPROC VidlibProxy_GetStringSizeFontEx( CTEXTSTR pString, size_t len, _32 *width, _32 *height, SFTFont UseFont )
 {
 	if( width )
-		(*width) = len*12;
+		(*width) = (_32)(len*12);
 	if( height )
 		(*height) = 12;
 	return 12;
 }
 
-/* <combine sack::image::PutCharacterFont@Image@S_32@S_32@CDATA@CDATA@_32@SFTFont>
-   
-   Internal
-   Interface index 33                                                           */   IMAGE_PROC_PTR( void,PutCharacterFont)              ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
+static void CPROC VidlibProxy_PutCharacterFont        ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
+{
+}
+
 /* <combine sack::image::PutCharacterVerticalFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@SFTFont>
    
    Internal
@@ -1126,8 +1165,6 @@ static IMAGE_INTERFACE ProxyImageInterface = {
 		VidlibProxy_LoadImageFileEx,
 		VidlibProxy_UnmakeImageFileEx,
 #if 0
-		VidlibProxy_SetImageBound,
-		VidlibProxy_FixImagePosition,
 		VidlibProxy_ResizeImageEx,
 		VidlibProxy_MoveImage,
 		VidlibProxy_BlatColor,

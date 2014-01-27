@@ -31,6 +31,11 @@ typedef struct vidlib_proxy_renderer
 	_32 attributes;
 	struct vidlib_proxy_renderer *above, *under;
 	PLIST remote_render_id;  // this is synced with same index as l.clients
+	Image image;  // representation of the output surface
+	struct vidlib_proxy_renderer_flags
+	{
+		BIT_FIELD hidden : 1;
+	} flags;
 } *PVPRENDER;
 
 struct vidlib_proxy_local

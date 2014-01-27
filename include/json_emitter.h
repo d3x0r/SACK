@@ -31,6 +31,8 @@ enum JSON_ObjectElementTypes
    JSON_Element_ObjectPointer,
    JSON_Element_List,
    JSON_Element_Text,  // ptext type
+   JSON_Element_PTRSZVAL,  
+   JSON_Element_PTRSZVAL_BLANK_0,
    //JSON_Element_StaticText,  // text type; doesn't happen very often.
 };
 
