@@ -475,6 +475,48 @@ PTRSZVAL ParseFormat( struct json_context *context, CTEXTSTR format, PTRSZVAL ob
 	return current_obj_ofs;
 }
 
+
+GetDefaultObjectSize( enum JSON_ObjectElementTypes type )
+{
+	switch( type )
+	{
+	case JSON_Element_Integer_8:
+		return sizeof( S_8 );
+	case JSON_Element_Integer_16:
+		return sizeof( S_16 );
+	case JSON_Element_Integer_32:
+ 		return sizeof( S_32 );
+	case JSON_Element_Integer_64:
+ 		return sizeof( S_64 );
+	case JSON_Element_Unsigned_Integer_8:
+ 		return sizeof( _8 );
+	case JSON_Element_Unsigned_Integer_16:
+		return sizeof( _16 );
+	case JSON_Element_Unsigned_Integer_32:
+		return sizeof( _32 );
+	case JSON_Element_Unsigned_Integer_64:
+		return sizeof( _64 );
+	case JSON_Element_String:
+		return sizeof( POINTER );
+	case JSON_Element_CharArray:
+		return 0;
+	case JSON_Element_Float:
+		return sizeof( float );
+	case JSON_Element_Double:
+		return sizeof( double );
+	case JSON_Element_Object:
+		return 0;
+	case JSON_Element_ObjectPointer:
+	case JSON_Element_List:
+	case JSON_Element_Text:  // ptext type
+		return sizeof( POINTER );
+	case JSON_Element_PTRSZVAL:  
+	case JSON_Element_PTRSZVAL_BLANK_0:
+		return sizeof( PTRSZVAL );
+		break;
+	}
+	return 0;
+}
 //----------------------------------------------------------------------------------------------
 
 PTRSZVAL json_add_object( struct json_context *context, CTEXTSTR name, struct json_context_object *format, POINTER object )
@@ -493,11 +535,12 @@ void json_add_object_array( struct json_context *context, CTEXTSTR name, struct 
 struct json_context_object *json_create_object( struct json_context *context, size_t object_size )
 {
 	struct json_context_object *format = New( struct json_context_object );
+	MemSet( format, 0, sizeof( struct json_context_object ) );
 	format->context = context;
-	format->object_size = object_size;
-	format->members = NULL;
-	format->is_array = FALSE;
-	format->keep_phrase = FALSE;
+	if( object_size )
+		format->object_size = object_size;
+	else
+		format->flags.dynamic_size = 1;
 	// keep a reference for cleanup
 	AddLink( &context->object_types, format );
 	return format;
@@ -520,6 +563,7 @@ struct json_context_object *json_create_array( struct json_context *context
 	{
 		struct json_context_object_element *element;
 		element = New( struct json_context_object_element );
+		MemSet( element, 0, sizeof( struct json_context_object_element ) );
 		element->name = NULL;
 		element->object = format;
 		element->offset = offset;
@@ -547,6 +591,17 @@ struct json_context_object *json_add_object_member_array( struct json_context_ob
 {
 	struct json_context *context = format->context;
 	struct json_context_object_element *member = New( struct json_context_object_element );
+	MemSet( member, 0, sizeof( struct json_context_object_element ) );
+	if( !object_size )
+		object_size = GetDefaultObjectSize(type);
+	if( format->flags.dynamic_size )
+	{
+		struct json_context_object *parent;
+		for( parent = format; parent; parent = parent->parent )
+		{
+			parent->object_size += object_size;
+		}
+	}
 	member->name = StrDup( name );
 	member->offset = offset;
 	member->type = type;
@@ -557,7 +612,9 @@ struct json_context_object *json_add_object_member_array( struct json_context_ob
 	case JSON_Element_Object:
 	case JSON_Element_ObjectPointer:
 		member->object = json_create_object( context, object_size );
-		member->object->keep_phrase = TRUE;
+		member->object->parent = format;
+		member->object->offset = offset;
+		member->object->flags.keep_phrase = TRUE;
 		break;
 	}
 	AddLink( &format->members, member );
@@ -570,7 +627,7 @@ struct json_context_object *json_add_object_member_array( struct json_context_ob
 
 struct json_context_object *json_add_object_member( struct json_context_object *format
 																  , CTEXTSTR name
-																  , size_t offset, int type
+																  , size_t offset, enum JSON_ObjectElementTypes type
 																  , size_t object_size )
 {
 	return json_add_object_member_array( format, name, offset, type, object_size, 0, JSON_NO_OFFSET );
@@ -580,7 +637,7 @@ struct json_context_object *json_add_object_member( struct json_context_object *
 struct json_context_object *json_add_object_member_list( struct json_context_object *object
 																		 , CTEXTSTR name
 																		 , size_t offset
-																		 , int content_type
+																		 , enum JSON_ObjectElementTypes content_type
 																		 , size_t object_size
 																		 )
 {
@@ -588,7 +645,15 @@ struct json_context_object *json_add_object_member_list( struct json_context_obj
 	//return json_add_object_member_array( format, name, offset, content_type, object_size, 0, offsetof(
 	struct json_context *context = object->context;
 	struct json_context_object_element *member = New( struct json_context_object_element );
+	MemSet( member, 0, sizeof( struct json_context_object_element ) );
 	member->name = StrDup( name );
+	if( object->flags.dynamic_size )
+	{
+		struct json_context_object *parent;
+		for( parent = object; parent; parent = parent->parent )
+			parent->object_size += object_size;
+	}
+	member->object_size = object_size;
 	member->offset = offset;
 	member->type = JSON_Element_List;
 	member->content_type = content_type;
@@ -605,7 +670,7 @@ struct json_context_object *json_add_object_member_list( struct json_context_obj
 JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_object_array )( struct json_context_object *object
 																												  , CTEXTSTR name
 																												  , size_t offset
-																												  , int type
+																												  , enum JSON_ObjectElementTypes type
 																												  , struct json_context_object *child_object
 																												  , int count
 																												  , int count_offset
@@ -613,6 +678,7 @@ JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_object_a
 {
 	struct json_context *context = object->context;
 	struct json_context_object_element *member = New( struct json_context_object_element );
+	MemSet( member, 0, sizeof( struct json_context_object_element ) );
 	member->name = StrDup( name );
 	member->offset = offset;
 	member->type = type;
@@ -638,7 +704,7 @@ JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_object_a
 JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_object )( struct json_context_object *object
 																								 , CTEXTSTR name
 																								 , size_t offset
-																								 , int type
+																								 , enum JSON_ObjectElementTypes type
 																								 , struct json_context_object *child_object
 																								 )
 {
@@ -647,11 +713,12 @@ JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_object )
 //----------------------------------------------------------------------------------------------
 void json_add_object_member_array_pointer( struct json_context_object *object
 													  , CTEXTSTR name
-													  , int offset, int type
+													  , int offset, enum JSON_ObjectElementTypes type
 													  , int count_offset )
 {
 	struct json_context *context = object->context;
 	struct json_context_object_element *member = New( struct json_context_object_element );
+	MemSet( member, 0, sizeof( struct json_context_object_element ) );
 	member->name = StrDup( name );
 	member->offset = offset;
 	member->type = type;
@@ -668,7 +735,7 @@ TEXTSTR json_build_message( struct json_context_object *object
 	int n = 0;
 	INDEX idx;
 	struct json_context_object_element *member;
-	if( !object->keep_phrase )
+	if( !object->flags.keep_phrase )
 		VarTextEmpty( context->pvt );
 	if( object->is_array )
 		json_begin_array( context, NULL );
@@ -828,7 +895,7 @@ TEXTSTR json_build_message( struct json_context_object *object
 	else
 		json_end_object( context );
 
-	if( !object->keep_phrase )
+	if( !object->flags.keep_phrase )
 	{
 		PTEXT tmp = VarTextGet( context->pvt );
 		result = StrDup( GetText( tmp ) );

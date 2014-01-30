@@ -22,6 +22,14 @@ typedef struct vidlib_proxy_image
 	INDEX filegroup;
 	TEXTSTR filename;
 	Image image;
+	INDEX id;
+
+	P_8 buffer;
+	size_t sendlen;
+	size_t buf_avail;
+	P_8 websock_buffer;
+	size_t websock_sendlen;
+	size_t websock_buf_avail;
 } *PVPImage;
 
 typedef struct vidlib_proxy_renderer
@@ -36,6 +44,7 @@ typedef struct vidlib_proxy_renderer
 	{
 		BIT_FIELD hidden : 1;
 	} flags;
+	INDEX id;
 } *PVPRENDER;
 
 struct server_proxy_client

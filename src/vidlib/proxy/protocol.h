@@ -17,6 +17,36 @@ PREFIX_PACKED struct opendisplay_data
 	PTRSZVAL under;
 } PACKED;
 
+PREFIX_PACKED struct make_image_data 
+{
+	_32 w, h;
+	// what the server calls this image; for all further draw ops
+	PTRSZVAL server_image_id;
+	// so the client can know which to output surface attach to
+	PTRSZVAL server_display_id;
+} PACKED;
+
+PREFIX_PACKED struct make_image_data 
+{
+	S_32 x, y;
+	_32 w, h;
+	PTRSZVAL server_parent_image_id;
+	PTRSZVAL server_image_id;
+} PACKED;
+
+PREFIX_PACKED struct __tmp
+{
+	_32 data;
+} PACKED;
+
+PREFIX_PACKED struct blatcolor_data
+{
+	PTRSZVAL server_image_id;
+	S_32 x, y;
+	_32 w, h;
+	CDATA color;
+} PACKED;
+
 PREFIX_PACKED struct common_message {
 	_8 message_id;
 	union
@@ -27,7 +57,8 @@ PREFIX_PACKED struct common_message {
 					 _8 unicode;
 					 _8 number; );
 		struct opendisplay_data opendisplay_data;
-		MSGBLOCK( open_display_reply,  POINTER server_display_id; );
+		struct blatcolor_data blatcolor;
+		MSGBLOCK( open_display_reply,  PTRSZVAL server_display_id; PTRSZVAL client_display_id; );
 	} data;
 } PACKED;
 
@@ -42,7 +73,13 @@ enum proxy_message_id{
 
 							, PMID_OpenDisplayAboveUnderSizedAt  // 3
 							, PMID_CloseDisplay  // 4
+							, PMID_Reply_OpenDisplayAboveUnderSizedAt  // 5
 
+							, PMID_MakeImage // 6
+							, PMID_MakeSubImage // 7
+							
+							, PMID_BlatColor // 8
+							, PMID_BlatColorAlpha // 9
 
 #if 0
     RENDER_PROC_PTR( void, UpdateDisplayPortionEx) ( PRENDERER, S_32 x, S_32 y, _32 width, _32 height DBG_PASS );
