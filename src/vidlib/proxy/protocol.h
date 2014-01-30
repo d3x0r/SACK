@@ -26,7 +26,15 @@ PREFIX_PACKED struct make_image_data
 	PTRSZVAL server_display_id;
 } PACKED;
 
-PREFIX_PACKED struct make_image_data 
+PREFIX_PACKED struct image_data_data 
+{
+	// what the server calls this image; for all further draw ops
+	PTRSZVAL server_image_id;
+	// so the client can know which to output surface attach to
+	TEXTCHAR data[1];
+} PACKED;
+
+PREFIX_PACKED struct make_subimage_data 
 {
 	S_32 x, y;
 	_32 w, h;
@@ -47,6 +55,25 @@ PREFIX_PACKED struct blatcolor_data
 	CDATA color;
 } PACKED;
 
+PREFIX_PACKED struct blot_image_data
+{
+	PTRSZVAL server_image_id;
+	S_32 x, y;
+	_32 w, h;
+	S_32 xs, ys;
+	PTRSZVAL image_id;
+} PACKED;
+
+PREFIX_PACKED struct blot_scaled_image_data
+{
+	PTRSZVAL server_image_id;
+	S_32 x, y;
+	_32 w, h;
+	S_32 xs, ys;
+	_32 ws, hs;
+	PTRSZVAL image_id;
+} PACKED;
+
 PREFIX_PACKED struct common_message {
 	_8 message_id;
 	union
@@ -58,6 +85,11 @@ PREFIX_PACKED struct common_message {
 					 _8 number; );
 		struct opendisplay_data opendisplay_data;
 		struct blatcolor_data blatcolor;
+		struct make_image_data make_image;
+		struct make_subimage_data make_subimage;
+		struct image_data_data image_data;
+		struct blot_image_data blot_image;
+		struct blot_scaled_image_data blot_scaled_image;
 		MSGBLOCK( open_display_reply,  PTRSZVAL server_display_id; PTRSZVAL client_display_id; );
 	} data;
 } PACKED;
@@ -69,7 +101,7 @@ PREFIX_PACKED struct common_message {
 enum proxy_message_id{
 	     PMID_Version   // 0
 							, PMID_SetApplicationTitle   //1
-                     , PMID_SetApplicationIcon  // 2
+							, PMID_SetApplicationIcon  // 2
 
 							, PMID_OpenDisplayAboveUnderSizedAt  // 3
 							, PMID_CloseDisplay  // 4
@@ -79,7 +111,10 @@ enum proxy_message_id{
 							, PMID_MakeSubImage // 7
 							
 							, PMID_BlatColor // 8
-							, PMID_BlatColorAlpha // 9
+							, PMID_BlatColorAlpha // 9 
+							, PMID_ImageData // 10 - transfer local image data to client
+							, PMID_BlotImageSizedTo  // 11 
+							, PMID_BlotScaledImageSizedTo // 12
 
 #if 0
     RENDER_PROC_PTR( void, UpdateDisplayPortionEx) ( PRENDERER, S_32 x, S_32 y, _32 width, _32 height DBG_PASS );

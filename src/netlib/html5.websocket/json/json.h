@@ -14,6 +14,7 @@ struct json_context_object_element
 	CTEXTSTR name; // name of this element in the object
 	size_t count; // at offset, this number of these is there; (array)
 	size_t count_offset; // at count_offset, is the number of elements that the pointer at this offset
+	void (*user_formatter)(PVARTEXT pvt_output,CPOINTER msg_data);
 	struct json_context_object *object;
 };
 

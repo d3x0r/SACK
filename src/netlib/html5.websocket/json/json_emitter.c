@@ -65,7 +65,8 @@ struct json_context *json_create_context( void )
 {
 	struct json_context *context = New( struct json_context );
 	MemSet( context, 0, sizeof( struct json_context ) );
-	context->pvt = VarTextCreate();
+	context->pvt = VarTextCreateExx( 1024, 2048 );
+	
 	return context;
 }
 
@@ -583,7 +584,7 @@ struct json_context_object *json_create_array( struct json_context *context
 struct json_context_object *json_add_object_member_array( struct json_context_object *format
 																		  , CTEXTSTR name
 																		  , size_t offset
-																		  , int type
+																		  , enum JSON_ObjectElementTypes type
 																		  , size_t object_size
 																		  , size_t count
 																		  , size_t count_offset
@@ -621,6 +622,34 @@ struct json_context_object *json_add_object_member_array( struct json_context_ob
 	if( member->object )
 		return member->object;
 	return format;
+}
+
+struct json_context_object *json_add_object_member_user_routine( struct json_context_object *object
+																, CTEXTSTR name
+																  , size_t offset, enum JSON_ObjectElementTypes type
+																  , size_t object_size 
+																  , void (*user_formatter)(PVARTEXT,CPOINTER) )
+{
+	struct json_context_object *new_object = json_add_object_member_array( object
+	                                                                     , name
+	                                                                     , offset
+	                                                                     , JSON_Element_UserRoutine
+	                                                                     , object_size?object_size:GetDefaultObjectSize( type )
+	                                                                     , 0
+	                                                                     , JSON_NO_OFFSET );
+	struct json_context_object_element *last_element = NULL;
+	struct json_context_object_element *element;
+	INDEX idx;
+	LIST_FORALL( object->members, idx, struct json_context_object_element *, element )
+	{
+		last_element = element;
+	}
+	if( last_element )
+	{
+		last_element->content_type = type;
+		last_element->user_formatter = user_formatter;
+	}
+	return new_object;
 }
 
 //----------------------------------------------------------------------------------------------
@@ -840,6 +869,17 @@ TEXTSTR json_build_message( struct json_context_object *object
 
 		case JSON_Element_String:
 			if( member->count )
+				json_add_value_array( context, member->name, *(CTEXTSTR**)(((PTRSZVAL)msg)+member->offset), member->count );
+			else if( member->count_offset != JSON_NO_OFFSET )
+				json_add_value_array( context, member->name
+										, (CTEXTSTR*)(((PTRSZVAL)msg)+member->offset)
+										, *(int*)(((PTRSZVAL)msg)+member->count_offset)
+										);
+			else
+				json_add_value( context, member->name, *(CTEXTSTR*)(((PTRSZVAL)msg)+member->offset) );
+			break;
+		case JSON_Element_CharArray:
+			if( member->count )
 				json_add_value_array( context, member->name, (CTEXTSTR*)(((PTRSZVAL)msg)+member->offset), member->count );
 			else if( member->count_offset != JSON_NO_OFFSET )
 				json_add_value_array( context, member->name
@@ -864,28 +904,51 @@ TEXTSTR json_build_message( struct json_context_object *object
 			}
 			break;
 		case JSON_Element_PTRSZVAL:
+			{
+				PTRSZVAL psv;
+
 #ifdef __64__
-			json_add_uint_64_value( context, member->name, *(S_64*)(((PTRSZVAL)msg)+member->offset) );
+				if( ( psv = *(S_64*)(((PTRSZVAL)msg)+member->offset) ) == INVALID_INDEX )
+					json_add_int_64_value( context, member->name, *(S_64*)(((PTRSZVAL)msg)+member->offset) );
+				else
+					json_add_uint_64_value( context, member->name, *(S_64*)(((PTRSZVAL)msg)+member->offset) );
 #else
-			json_add_uint_32_value( context, member->name, *(S_32*)(((PTRSZVAL)msg)+member->offset) );
+				if( ( psv = *(S_32*)(((PTRSZVAL)msg)+member->offset) ) == INVALID_INDEX )
+					json_add_int_32_value( context, member->name, *(S_32*)(((PTRSZVAL)msg)+member->offset) );
+				else
+					json_add_uint_32_value( context, member->name, *(S_32*)(((PTRSZVAL)msg)+member->offset) );
 #endif
+			}
 			break;
 		case JSON_Element_PTRSZVAL_BLANK_0:
+			{
+				PTRSZVAL psv;
 #ifdef __64__
-			if( *(S_64*)(((PTRSZVAL)msg)+member->offset) )
-			{
-				if( n )
-					vtprintf( context->pvt, WIDE(",") );
-				json_add_uint_64_value( context, member->name, *(S_64*)(((PTRSZVAL)msg)+member->offset) );
-			}
+				if( psv = *(S_64*)(((PTRSZVAL)msg)+member->offset) )
+				{
+					if( n )
+						vtprintf( context->pvt, WIDE(",") );
+					if( psv == INVALID_INDEX )
+						json_add_int_64_value( context, member->name, psv );
+					else
+						json_add_uint_64_value( context, member->name, psv );
+				}
 #else
-			if( *(S_32*)(((PTRSZVAL)msg)+member->offset) )
-			{
-				if( n )
-					vtprintf( context->pvt, WIDE(",") );
-				json_add_uint_32_value( context, member->name, *(S_32*)(((PTRSZVAL)msg)+member->offset) );
-			}
+				if( psv = *(S_32*)(((PTRSZVAL)msg)+member->offset) )
+				{
+					if( n )
+						vtprintf( context->pvt, WIDE(",") );
+					if( psv == INVALID_INDEX )
+						json_add_int_32_value( context, member->name, psv );
+					else
+						json_add_uint_32_value( context, member->name, psv );
+				}
 #endif
+			}
+			break;
+		case JSON_Element_UserRoutine:
+			vtprintf( context->pvt, WIDE("\"%s\":"), member->name );
+			member->user_formatter( context->pvt, (CPOINTER)(((PTRSZVAL)msg)+member->offset) );
 			break;
 		}
 	}
