@@ -50,7 +50,10 @@ int main( void )
 	printf( WIDE("result:\n") );
 	printf( WIDE("%s\n"), output );
 	MemSet( &msg1, 0, sizeof( msg1 ) );
-	json_parse_message( object1, output, &msg1 );
+	{
+		struct json_context_object *format;
+		json_parse_message( context, output, StrLen( output ), &format, &msg1 );
+	}
 
 
 	return 0;

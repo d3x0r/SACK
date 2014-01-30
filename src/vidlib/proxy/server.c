@@ -40,13 +40,39 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 		json_add_object_member( cto_data, WIDE("over_render_id"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL_BLANK_0, 0 );
 		json_add_object_member( cto_data, WIDE("under_render_id"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL_BLANK_0, 0 );
 		break;
+	case PMID_Reply_OpenDisplayAboveUnderSizedAt:
+		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("client_render_id"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL, 0 );
+		break;
 	case PMID_CloseDisplay:
 		json_add_object_member( cto_data, WIDE("client_render_id"), 0, JSON_Element_PTRSZVAL, 0 );
+		break;
+	case PMID_MakeImage:
+		json_add_object_member( cto_data, WIDE("width"), ofs = 0, JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = ofs + sizeof(_32), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("server_display_id"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL, 0 );
+		break;
+	case PMID_MakeSubImage:
+		json_add_object_member( cto_data, WIDE("x"), ofs = 0, JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(S_32), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("server_parent_image_id"), ofs = ofs + sizeof(_32), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL, 0 );
+		break;
+	case PMID_BlatColor:
+	case PMID_BlatColorAlpha:
+		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(S_32), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("color"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
 		break;
 	}
 	return cto;
 }
-
 
 static void SendTCPMessage( PCLIENT pc, INDEX idx, LOGICAL websock, enum proxy_message_id message, va_list args )
 {
@@ -112,7 +138,7 @@ static void SendTCPMessage( PCLIENT pc, INDEX idx, LOGICAL websock, enum proxy_m
 			((struct opendisplay_data*)(msg+5))->w = render->w;
 			((struct opendisplay_data*)(msg+5))->h = render->h;
 			((struct opendisplay_data*)(msg+5))->attr = render->attributes;
-			((struct opendisplay_data*)(msg+5))->server_display_id = (PTRSZVAL)render;
+			((struct opendisplay_data*)(msg+5))->server_display_id = (PTRSZVAL)FindLink( &l.renderers, render );
 
 			if( render->above )
 				((struct opendisplay_data*)(msg+5))->over = (PTRSZVAL)(GetLink( &render->above->remote_render_id, idx ) );
@@ -125,9 +151,6 @@ static void SendTCPMessage( PCLIENT pc, INDEX idx, LOGICAL websock, enum proxy_m
 
 			if( websock )
 			{
-
-			}
-
 				json_msg = json_build_message( cto, msg + 4 );
 				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
 				Release( json_msg );
@@ -230,7 +253,7 @@ static PTRSZVAL WebSockOpen( PCLIENT pc, PTRSZVAL psv )
 			SendTCPMessageV( pc, idx, TRUE, PMID_OpenDisplayAboveUnderSizedAt, render );
 		}
 	}
-	return (PTRSZVAL)1;
+	return (PTRSZVAL)client;
 }
 
 static void WebSockClose( PCLIENT pc, PTRSZVAL psv )
@@ -243,10 +266,36 @@ static void WebSockError( PCLIENT pc, PTRSZVAL psv, int error )
 
 static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 {
-	POINTER *msg;
-	if( json_parse_message( l.json_context, buffer, &msg ) )
+	POINTER msg = NULL;
+	struct server_proxy_client *client= (struct server_proxy_client *)psv;
+	struct json_context_object *json_object;
+	((char*)buffer)[msglen] = 0;
+	if( json_parse_message( l.json_context, buffer, msglen, &json_object, &msg ) )
 	{
+		struct common_message *message = (struct common_message *)msg;
+		switch( message->message_id )
+		{
+		case PMID_Reply_OpenDisplayAboveUnderSizedAt:
+			{
+				PVPRENDER render = GetLink( &l.renderers, message->data.open_display_reply.server_display_id );
+				SetLink( &render->remote_render_id, FindLink( &l.clients, client ), message->data.open_display_reply.client_display_id );
+			}
+			{
+				INDEX idx;
+				PVPImage image;
+				LIST_FORALL( l.images, idx, PVPImage, image )
+				{
+					if( image->websock_buffer && image->websock_sendlen )
+					{
+						image->websock_buffer[image->websock_sendlen] = ']';
+						WebSocketSendText( pc, image->websock_buffer, image->websock_sendlen + 1 );
+					}
+				}
+			}
+			break;
+		}
 		lprintf( "Success" );
+		json_dispose_message( json_object,  msg );
 	}
 }
 
@@ -278,7 +327,8 @@ static void CPROC VidlibProxy_SetApplicationIcon( Image icon )
 
 static LOGICAL CPROC VidlibProxy_RequiresDrawAll( void )
 {
-	return TRUE;
+	// force application to mostly draw itself...
+	return FALSE;
 }
 
 static void VidlibProxy_SetApplicationTitle( CTEXTSTR title )
@@ -313,6 +363,7 @@ static Image CPROC VidlibProxy_MakeImageFileEx (_32 Width, _32 Height DBG_PASS)
 	image->image = l.real_interface->_MakeImageFileEx( Width, Height DBG_RELAY );
 	SendClientMessage( PMID_MakeImageFile, image );
 	AddLink( &l.images, image );
+	image->id = FindLink( &l.images, image );
 	return (Image)image;
 }
 
@@ -778,6 +829,7 @@ static Image CPROC VidlibProxy_BuildImageFileEx ( PCOLOR pc, _32 width, _32 heig
 	// don't really need to make this; if it needs to be updated to the client it will be handled later
 	//SendClientMessage( PMID_MakeImageFile, image );
 	AddLink( &l.images, image );
+	image->id = FindLink( &l.images, image );
 	return (Image)image;
 }
 
@@ -816,6 +868,7 @@ static Image CPROC VidlibProxy_RemakeImageEx	 ( Image pImage, PCOLOR pc, _32 wid
 	image->image = l.real_interface->_RemakeImageEx( image->image, pc, width, height DBG_RELAY );
 
 	AddLink( &l.images, image );
+	image->id = FindLink( &l.images, image );
 	return (Image)image;
 }
 
@@ -831,6 +884,7 @@ static Image CPROC VidlibProxy_LoadImageFileFromGroupEx( INDEX group, CTEXTSTR f
 	// don't really need to make this; if it needs to be updated to the client it will be handled later
 	SendClientMessage( PMID_LoadImageFileFromGroup, image );
 	AddLink( &l.images, image );
+	image->id = FindLink( &l.images, image );
 	return (Image)image;
 }
 
@@ -848,6 +902,7 @@ static Image CPROC VidlibProxy_LoadImageFileEx( CTEXTSTR filename DBG_PASS )
 static  void CPROC VidlibProxy_UnmakeImageFileEx( Image pif DBG_PASS )
 {
 	SendClientMessage( PMID_UnmakeImageFile, pif );
+	SetLink( &l.images, ((PVPImage)pif)->id, NULL );
 	Release( pif );
 }
 
@@ -870,13 +925,104 @@ static void CPROC VidlibProxy_MoveImage			( Image pImage, S_32 x, S_32 y )
 	}
 }
 
+P_8 GetMessageBuf( PVPImage image, size_t size )
+{
+	P_8 resultbuf;
+	if( image->buf_avail < size )
+	{
+		P_8 newbuf;
+		image->buf_avail += size + 256;
+		newbuf = NewArray( _8, image->buf_avail );
+		if( image->buffer )
+		{
+			MemCpy( newbuf, image->buffer, image->sendlen );
+			Release( image->buffer );
+		}
+		image->buffer = newbuf;
+	}
+	resultbuf = image->buffer + image->sendlen;
+	image->sendlen += size;
+
+	return resultbuf + 4;
+}
+
+static void AppendJSON( PVPImage image, CTEXTSTR msg )
+{
+	P_8 resultbuf;
+	size_t size = StrLen( msg );
+	if( image->websock_buf_avail < size )
+	{
+		P_8 newbuf;
+		image->websock_buf_avail += size + 256;
+		newbuf = NewArray( _8, image->websock_buf_avail );
+		if( image->websock_buffer )
+		{
+			MemCpy( newbuf, image->websock_buffer, image->websock_sendlen );
+			Release( image->websock_buffer );
+		}
+		image->websock_buffer = newbuf;
+	}
+	if( image->websock_sendlen == 0 )
+	{
+		image->websock_buffer[0] = '[';
+		image->websock_sendlen++;
+	}
+	else
+	{
+		image->websock_buffer[image->websock_sendlen] = ',';
+		image->websock_sendlen++;
+	}
+	MemCpy( image->websock_buffer + image->websock_sendlen, msg, size );
+	image->websock_sendlen += size;
+}
+
 static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 {
+	struct json_context_object *cto;
+	PVPImage image = (PVPImage)pifDest;
+	struct common_message *outmsg;
+	cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlatColor );
+	if( !cto )
+		cto = WebSockInitJson( PMID_BlatColor );
+
+	outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blatcolor_data ) ) );
+	outmsg->message_id = PMID_BlatColor;
+	outmsg->data.blatcolor.x = x;
+	outmsg->data.blatcolor.y = y;
+	outmsg->data.blatcolor.w = w;
+	outmsg->data.blatcolor.h = h;
+	outmsg->data.blatcolor.color = color;
+	outmsg->data.blatcolor.server_image_id = image->id;
+	{
+		TEXTSTR json_msg = json_build_message( cto, outmsg );
+		AppendJSON( image, json_msg );
+		Release( json_msg );
+	}
 
 }
 
 static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 {
+	struct json_context_object *cto;
+	PVPImage image = (PVPImage)pifDest;
+	struct common_message *outmsg;
+	cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlatColorAlpha );
+	if( !cto )
+		cto = WebSockInitJson( PMID_BlatColor );
+
+	outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blatcolor_data ) ) );
+	outmsg->message_id = PMID_BlatColorAlpha;
+	outmsg->data.blatcolor.x = x;
+	outmsg->data.blatcolor.y = y;
+	outmsg->data.blatcolor.w = w;
+	outmsg->data.blatcolor.h = h;
+	outmsg->data.blatcolor.color = color;
+	outmsg->data.blatcolor.server_image_id = image->id;
+	{
+		TEXTSTR json_msg = json_build_message( cto, outmsg );
+		AppendJSON( image, json_msg );
+		Release( json_msg );
+	}
 }
 
 static void CPROC VidlibProxy_BlotImageEx	  ( Image pDest, Image pIF, S_32 x, S_32 y, _32 nTransparent, _32 method, ... )
@@ -966,49 +1112,50 @@ static void CPROC VidlibProxy_PutCharacterFont		  ( Image pImage, S_32 x, S_32 y
 {
 }
 
-/* <combine sack::image::PutCharacterVerticalFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@SFTFont>
-	
-	Internal
-	Interface index 34																													 */	IMAGE_PROC_PTR( void,PutCharacterVerticalFont)		( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
-/* <combine sack::image::PutCharacterInvertFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@SFTFont>
-	
-	Internal
-	Interface index 35																												  */	IMAGE_PROC_PTR( void,PutCharacterInvertFont)		  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
-/* <combine sack::image::PutCharacterVerticalInvertFont@Image@S_32@S_32@CDATA@CDATA@TEXTCHAR@SFTFont>
-	
-	Internal
-	Interface index 36																															 */	IMAGE_PROC_PTR( void,PutCharacterVerticalInvertFont)( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, _32 c, SFTFont font );
+static void CPROC VidlibProxy_PutCharacterVerticalFont( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
+{
+}
 
-/* <combine sack::image::PutStringFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@SFTFont>
-	
-	Internal
-	Interface index 37																											  */	IMAGE_PROC_PTR( void,PutStringFontEx)				  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
-/* <combine sack::image::PutStringVerticalFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@SFTFont>
-	
-	Internal
-	Interface index 38																														 */	IMAGE_PROC_PTR( void,PutStringVerticalFontEx)		( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
-/* <combine sack::image::PutStringInvertFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@SFTFont>
-	
-	Internal
-	Interface index 39																													  */	IMAGE_PROC_PTR( void,PutStringInvertFontEx)		  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
-/* <combine sack::image::PutStringInvertVerticalFontEx@Image@S_32@S_32@CDATA@CDATA@CTEXTSTR@_32@SFTFont>
-	
-	Internal
-	Interface index 40																																 */	IMAGE_PROC_PTR( void,PutStringInvertVerticalFontEx)( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
+static void CPROC VidlibProxy_PutCharacterInvertFont  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
+{
+}
 
-/* <combine sack::image::GetMaxStringLengthFont@_32@SFTFont>
-	
-	Internal
-	Interface index 41												 */	IMAGE_PROC_PTR( _32, GetMaxStringLengthFont )( _32 width, SFTFont UseFont );
+static void CPROC VidlibProxy_PutCharacterVerticalInvertFont( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
+{
+}
 
-/* <combine sack::image::GetImageSize@Image@_32 *@_32 *>
-	
-	Internal
-	Interface index 42																	 */	IMAGE_PROC_PTR( void, GetImageSize)					 ( Image pImage, _32 *width, _32 *height );
-/* <combine sack::image::LoadFont@SFTFont>
-	
-	Internal
-	Interface index 43											  */	IMAGE_PROC_PTR( SFTFont, LoadFont )						 ( SFTFont font );
+static void CPROC VidlibProxy_PutStringFontEx  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
+{
+}
+
+static void CPROC VidlibProxy_PutStringVerticalFontEx		( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
+{
+}
+
+static void CPROC VidlibProxy_PutStringInvertFontEx		  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
+{
+}
+
+static void CPROC VidlibProxy_PutStringInvertVerticalFontEx( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
+{
+}
+
+static _32 CPROC VidlibProxy_GetMaxStringLengthFont( _32 width, SFTFont UseFont )
+{
+	return 1;
+}
+
+static void CPROC VidlibProxy_GetImageSize ( Image pImage, _32 *width, _32 *height )
+{
+	if( width )
+		(*width) = ((PVPImage)pImage)->w;
+	if( height )
+		(*height) = ((PVPImage)pImage)->h;
+}
+
+static SFTFont CPROC VidlibProxy_LoadFont ( SFTFont font )
+{
+}
 			/* <combine sack::image::UnloadFont@SFTFont>
 				
 				\ \												*/
@@ -1241,8 +1388,6 @@ static IMAGE_INTERFACE ProxyImageInterface = {
 		, VidlibProxy_GetFontHeight
 		, VidlibProxy_GetStringSizeFontEx
 		, VidlibProxy_PutCharacterFont
-#if 0
-
 		, VidlibProxy_PutCharacterVerticalFont
 		, VidlibProxy_PutCharacterInvertFont
 		, VidlibProxy_PutCharacterVerticalInvertFont
@@ -1252,6 +1397,8 @@ static IMAGE_INTERFACE ProxyImageInterface = {
 		, VidlibProxy_PutStringInvertVerticalFontEx
 		, VidlibProxy_GetMaxStringLengthFont
 		, VidlibProxy_GetImageSize
+#if 0
+
 		, VidlibProxy_LoadFont
 		, VidlibProxy_UnloadFont
 		, VidlibProxy_BeginTransferData
@@ -1437,6 +1584,10 @@ PRIORITY_PRELOAD( RegisterProxyInterface, VIDLIB_PRELOAD_PRIORITY )
 
 	// wanted to delay-init; until a renderer is actually open..
 	InitService();
+
+	// have to init all of the reply message formats;
+	// sends will be initialized on-demand
+	WebSockInitJson( PMID_Reply_OpenDisplayAboveUnderSizedAt );
 }
 
 
