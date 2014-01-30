@@ -477,7 +477,7 @@ PTRSZVAL ParseFormat( struct json_context *context, CTEXTSTR format, PTRSZVAL ob
 }
 
 
-GetDefaultObjectSize( enum JSON_ObjectElementTypes type )
+static size_t GetDefaultObjectSize( enum JSON_ObjectElementTypes type )
 {
 	switch( type )
 	{
@@ -552,7 +552,7 @@ struct json_context_object *json_create_object( struct json_context *context, si
 
 struct json_context_object *json_create_array( struct json_context *context
 															, size_t offset
-															, int type
+															, enum JSON_ObjectElementTypes type
 															, size_t count
 															, size_t count_offset
 											 )
