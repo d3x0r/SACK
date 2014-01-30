@@ -337,6 +337,11 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 									n++;
 									break;
 								}
+								else
+								{
+									lprintf( "Error; object type does not have an object" );
+									status = FALSE;
+								}
 							}
 							else
 							{

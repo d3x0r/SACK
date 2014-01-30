@@ -1149,7 +1149,7 @@ static void CPROC VidlibProxy_MoveImage			( Image pImage, S_32 x, S_32 y )
 P_8 GetMessageBuf( PVPImage image, size_t size )
 {
 	P_8 resultbuf;
-	if( image->buf_avail < size )
+	if( ( image->buf_avail - image->sendlen ) < size )
 	{
 		P_8 newbuf;
 		image->buf_avail += size + 256;
@@ -1170,7 +1170,7 @@ P_8 GetMessageBuf( PVPImage image, size_t size )
 static void AppendJSON( PVPImage image, CTEXTSTR msg )
 {
 	size_t size = StrLen( msg );
-	if( image->websock_buf_avail < size )
+	if( (image->websock_buf_avail - image->websock_sendlen) < size )
 	{
 		P_8 newbuf;
 		image->websock_buf_avail += size + 256;
