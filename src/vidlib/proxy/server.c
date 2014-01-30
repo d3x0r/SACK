@@ -438,11 +438,6 @@ static void SendInitialImage( PCLIENT pc, PLIST *sent, PVPImage image )
 		SendTCPMessageV( pc, 0, TRUE, PMID_MakeImage, image, image->render_id );
 
 	AddLink( sent,  image );
-	if( image->websock_buffer && image->websock_sendlen )
-	{
-		image->websock_buffer[image->websock_sendlen] = ']';
-		WebSocketSendText( pc, image->websock_buffer, image->websock_sendlen + 1 );
-	}
 }
 
 static PTRSZVAL WebSockOpen( PCLIENT pc, PTRSZVAL psv )
@@ -470,6 +465,14 @@ static PTRSZVAL WebSockOpen( PCLIENT pc, PTRSZVAL psv )
 			LIST_FORALL( l.images, idx, PVPImage, image )
 			{
 				SendInitialImage( pc, &sent, image );
+			}
+			LIST_FORALL( sent, idx, PVPImage, image )
+			{
+				if( image->websock_buffer && image->websock_sendlen )
+				{
+					image->websock_buffer[image->websock_sendlen] = ']';
+					WebSocketSendText( pc, image->websock_buffer, image->websock_sendlen + 1 );
+				}
 			}
 			DeleteList( &sent );
 		}
