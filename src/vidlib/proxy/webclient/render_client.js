@@ -1,4 +1,3 @@
-
 function render_surface( remote_id, canvas )
 {
 	this.server_id = remote_id;
@@ -38,8 +37,9 @@ function OpenServer()
 		{
 			//console.log( "is " + image_list[idx].server_id +"=="+ server_id + " ?" );
 			if( image_list[idx].server_id == server_id )
-				return image;
-		}		
+				return image_list[idx];
+		}	
+		console.log( "did not find image " + server_id );		
 		return null;
 	}	
 	
@@ -51,7 +51,7 @@ function OpenServer()
 		for( idx = 0; idx < render_list.length; idx++ )
 		{
 			if( render_list[idx].server_id == server_id )
-				return render;
+				return render_list[idx];
 		}		
 		return null;
 	}	
@@ -106,6 +106,10 @@ function OpenServer()
 			canvas = find_render( msg.data.server_render_id );
 			console.log( "canvas result:" + canvas );
 			image_list.push( image = new proxy_image() );
+			if( canvas == null )
+			{
+				image.image = new Image();
+			}
 			image.server_id = msg.data.server_image_id;
 			console.log( "image id = " + msg.data.server_image_id );
 			image.width = msg.data.width;
@@ -115,7 +119,7 @@ function OpenServer()
 		case 7: // PMID_MakeSubImage
 			image_list.push( image = new proxy_image() );
 			image.server_id = msg.data.server_image_id;
-			console.log( "image id = " + msg.data.server_image_id );
+			console.log( "image id = " + image + " " + msg.data.server_image_id );
 			image.x = msg.data.x;
 			image.y = msg.data.y;
 			image.width = msg.data.width;
@@ -123,10 +127,16 @@ function OpenServer()
 			image.parent = find_image( msg.data.server_parent_image_id );
 			if( image.parent != null )			
 			{
+				console.log( "linking image..." );
 				if( ( image.next = image.parent.child ) != null )
-					image.next.prior = image;
+				{
+					console.log( "linking image2..." );
+								image.next.prior = image;
+				}
+				console.log( "linking image3..." );
 				image.parent.child = image;
 			}
+			
 			break;
         case 8: // PMID_BlatColor
         case 9: // PMID_BlatColorAlpha
@@ -146,15 +156,17 @@ function OpenServer()
 			ctx.fillRect(ofs_x + msg.data.x, ofs_y + msg.data.y, msg.data.width, msg.data.height );
 			break;
 		case 10: // PMID_ImageData
-			image = find_image( msg.data.server_image_id );		
+			image = find_image( msg.data.server_image_id );	
 			image.image.src = msg.data.data;
 			break;
 		case 11: // PMID_BlotImageSizedTo
 			image = find_image( msg.data.server_image_id );
 			parent_image = image;
+			src_image = parent_src_image =  find_image( msg.data.image_id );
 			ofs_x = 0;
 			ofs_y = 0;
-			console.log( "blot to image: " + image  );
+			ofs_xs = 0;
+			ofs_ys = 0;
 			while( parent_image.parent != null )
 			{
 				ofs_x += parent_image.x;
@@ -162,14 +174,56 @@ function OpenServer()
 				parent_image = parent_image.parent;
 			}
 			
+			while( parent_src_image.parent != null )
+			{
+				ofs_xs += parent_src_image.x;
+				ofs_ys += parent_src_image.y;
+				parent_src_image = parent_src_image.parent;
+			}
+			
 			render = parent_image.renderer;
 			var ctx= render.canvas.getContext("2d");
 			source_image = find_image( msg.data.image_id );
-			console.log( "source image:" + source_image + source_image.image );
-			ctx.drawImage( source_image.image, ofs_x + msg.data.x, ofs_y + msg.data.y, msg.data.width, msg.data.height );
+			ctx.drawImage( parent_src_image.image
+				, ofs_xs + msg.data.xs, ofs_ys + msg.data.ys 
+				, msg.data.width, msg.data.height
+				, ofs_x + msg.data.x, ofs_y + msg.data.y
+				, msg.data.width, msg.data.height
+				);
 		
 		    break;
 		case 12: // PMID_BlotScaledImageSizedTo
+			image = find_image( msg.data.server_image_id );
+			parent_image = image;
+			src_image = parent_src_image =  find_image( msg.data.image_id );
+			ofs_x = 0;
+			ofs_y = 0;
+			ofs_xs = 0;
+			ofs_ys = 0;
+			while( parent_image.parent != null )
+			{
+				ofs_x += parent_image.x;
+				ofs_y += parent_image.y;
+				parent_image = parent_image.parent;
+			}
+			
+			while( parent_src_image.parent != null )
+			{
+				ofs_xs += parent_src_image.x;
+				ofs_ys += parent_src_image.y;
+				parent_src_image = parent_src_image.parent;
+			}
+			
+			render = parent_image.renderer;
+			var ctx= render.canvas.getContext("2d");
+			source_image = find_image( msg.data.image_id );
+			ctx.drawImage( parent_src_image.image
+				, ofs_xs + msg.data.xs, ofs_ys + msg.data.ys 
+				, msg.data.ws, msg.data.hs
+				, ofs_x + msg.data.x, ofs_y + msg.data.y
+				, msg.data.width, msg.data.height
+				);
+		
 			
 			break;
         }
