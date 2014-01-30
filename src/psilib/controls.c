@@ -2339,12 +2339,12 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 		pc->Window = MakeSubImage( pContainer->Surface, x, y, w, h );
 		if( !pc->Window )
 		{
-         DebugBreak();
+			DebugBreak();
 		}
 	}
 	else
 	{
-      // need some kinda window here...
+		// need some kinda window here...
 		pc->Window = BuildImageFile( NULL, w, h );
 		if( !pc->Window )
 		{

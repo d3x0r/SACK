@@ -2041,9 +2041,11 @@ void VarTextEmptyEx( PVARTEXT pvt DBG_PASS )
 {
 	if( pvt )
 	{
+		size_t expand = pvt->expand_by;
 		LineReleaseEx( pvt->collect DBG_RELAY );
 		LineReleaseEx( pvt->commit DBG_RELAY );
 		MemSet( pvt, 0, sizeof( VARTEXT ) );
+		pvt->expand_by = expand;
 	}
 }
 

@@ -22,6 +22,7 @@ typedef struct vidlib_proxy_image
 	INDEX filegroup;
 	TEXTSTR filename;
 	Image image;
+	INDEX render_id;
 	INDEX id;
 
 	P_8 buffer;
@@ -39,7 +40,7 @@ typedef struct vidlib_proxy_renderer
 	_32 attributes;
 	struct vidlib_proxy_renderer *above, *under;
 	PLIST remote_render_id;  // this is synced with same index as l.clients
-	Image image;  // representation of the output surface
+	struct vidlib_proxy_image *image;  // representation of the output surface
 	struct vidlib_proxy_renderer_flags
 	{
 		BIT_FIELD hidden : 1;
@@ -63,6 +64,7 @@ struct vidlib_proxy_local
 	PLIST web_renderers;
 	PLIST images;
 	struct json_context *json_context;
+	struct json_context *json_reply_context; // shorter list to search for input messages
 	PLIST messages;
 	PIMAGE_INTERFACE real_interface;
 } l;

@@ -33,6 +33,7 @@ enum JSON_ObjectElementTypes
    JSON_Element_Text,  // ptext type
    JSON_Element_PTRSZVAL,  
    JSON_Element_PTRSZVAL_BLANK_0,
+   JSON_Element_UserRoutine,
    //JSON_Element_StaticText,  // text type; doesn't happen very often.
 };
 
@@ -100,6 +101,11 @@ JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_object )
 																										  , struct json_context_object *child_object
 																										  );
 
+JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_user_routine )( struct json_context_object *object
+																, CTEXTSTR name
+																  , size_t offset, enum JSON_ObjectElementTypes type
+																  , size_t object_size 
+																  , void (*user_formatter)(PVARTEXT,CPOINTER) );
 
 // take a object format and a pointer to data and return a json message string
 JSON_EMITTER_PROC( TEXTSTR, json_build_message )( struct json_context_object *format
