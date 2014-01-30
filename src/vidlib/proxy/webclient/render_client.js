@@ -104,14 +104,12 @@ function OpenServer()
 		case 6: // PMID_MakeImage
 			var canvas = null;
 			canvas = find_render( msg.data.server_render_id );
-			console.log( "canvas result:" + canvas );
 			image_list.push( image = new proxy_image() );
 			if( canvas == null )
 			{
 				image.image = new Image();
 			}
 			image.server_id = msg.data.server_image_id;
-			console.log( "image id = " + msg.data.server_image_id );
 			image.width = msg.data.width;
 			image.height = msg.data.height;
 			image.renderer = canvas;
@@ -119,7 +117,6 @@ function OpenServer()
 		case 7: // PMID_MakeSubImage
 			image_list.push( image = new proxy_image() );
 			image.server_id = msg.data.server_image_id;
-			console.log( "image id = " + image + " " + msg.data.server_image_id );
 			image.x = msg.data.x;
 			image.y = msg.data.y;
 			image.width = msg.data.width;
@@ -127,13 +124,10 @@ function OpenServer()
 			image.parent = find_image( msg.data.server_parent_image_id );
 			if( image.parent != null )			
 			{
-				console.log( "linking image..." );
 				if( ( image.next = image.parent.child ) != null )
 				{
-					console.log( "linking image2..." );
-								image.next.prior = image;
+					image.next.prior = image;
 				}
-				console.log( "linking image3..." );
 				image.parent.child = image;
 			}
 			
@@ -231,7 +225,7 @@ function OpenServer()
 	
      ws.onmessage = function (evt) 
      { 
-	 console.log( evt.data );
+		//console.log( evt.data );
         var msg = JSON.parse(evt.data);
 		if(  Object.prototype.toString.call(msg) === '[object Array]' )
 		{ 
