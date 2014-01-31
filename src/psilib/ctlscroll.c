@@ -170,7 +170,7 @@ void MoveScrollBar( PCONTROL pc, int type )
 
 static int CPROC ScrollBarMouse( PCONTROL pc, S_32 x, S_32 y, _32 b )
 {
-   ValidatedControlData( PSCROLLBAR, SCROLLBAR_CONTROL, psb, pc );
+	ValidatedControlData( PSCROLLBAR, SCROLLBAR_CONTROL, psb, pc );
 	if( psb )
 	{
 		if( b & MK_SCROLL_DOWN )
@@ -187,33 +187,33 @@ static int CPROC ScrollBarMouse( PCONTROL pc, S_32 x, S_32 y, _32 b )
 				psb->scrollflags.bDragging = FALSE;
 			else
 			{
-			   int desired_top;
-			   if( psb->scrollflags.bHorizontal )
-			   {
-			   	// this is effectively -1 * the delta - so the scroll
-			   	// goes 'increasing' to the right
-			   	x -= psb->height;
+				int desired_top;
+				if( psb->scrollflags.bHorizontal )
+				{
+					// this is effectively -1 * the delta - so the scroll
+					// goes 'increasing' to the right
+					x -= psb->height;
 					desired_top = ( psb->grabbed_x - x );
 					desired_top = ( desired_top * psb->max ) / psb->width;
 					if( desired_top > ( psb->max - psb->range ) )
 						desired_top = psb->max - psb->range;
-				   else if( desired_top < psb->min )
-				   	desired_top = psb->min;
+					else if( desired_top < psb->min )
+						desired_top = psb->min;
 					if( psb->current != desired_top )
 					{
 						psb->current = desired_top;
-                  MoveScrollBar( pc, UPD_THUMBTO );
+						MoveScrollBar( pc, UPD_THUMBTO );
 					}
-			   }
-			   else
-			   {
-			   	y -= psb->width;
+				}
+				else
+				{
+					y -= psb->width;
 					desired_top = ( y - psb->grabbed_y );
 					desired_top = ( desired_top * psb->max ) / psb->height;
 					if( desired_top > ( psb->max - psb->range ) )
 						desired_top = psb->max - psb->range;
-				   else if( desired_top < psb->min )
-				   	desired_top = psb->min;
+					else if( desired_top < psb->min )
+						desired_top = psb->min;
 					if( psb->current != desired_top )
 					{
 						psb->current = desired_top;
@@ -237,8 +237,8 @@ static int CPROC ScrollBarMouse( PCONTROL pc, S_32 x, S_32 y, _32 b )
 				}
 				else // was on the thumb...
 				{
-		         psb->grabbed_x = x - psb->top; // top/left *shrug*
-	   	      psb->grabbed_y = y - psb->top;
+					psb->grabbed_x = x - psb->top; // top/left *shrug*
+					psb->grabbed_y = y - psb->top;
 					psb->scrollflags.bDragging = TRUE;
 				}
 			}
@@ -264,7 +264,7 @@ static int CPROC ScrollBarMouse( PCONTROL pc, S_32 x, S_32 y, _32 b )
 		psb->y = y;
 		psb->b = b;
 	}	
-   return 1;
+	return 1;
 
 }
 
@@ -284,12 +284,12 @@ static void CPROC DrawBottomButton( PTRSZVAL psv, PSI_CONTROL pc )
 	{
 		int mx = pc->surface_rect.width/2;
 		int cx = pc->surface_rect.width/4
-	, cy = pc->surface_rect.height/3;
+		  , cy = pc->surface_rect.height/3;
 		BlatColorAlpha( surface, 0, 0, surface->width, surface->height, basecolor(pc)[NORMAL] );
 		if( IsButtonPressed( pc ) )
 		{
 			cx++;
-         cy++;
+			cy++;
 		}
 #define fline(s,x1,y1,x2,y2,c,a) do_lineAlpha(s,x1,y1,x2,y2,SetAlpha(c,a))
 		fline( surface, mx, 2*cy+1, cx, cy+1, basecolor(pc)[SHADOW], 255 );
@@ -309,8 +309,8 @@ static void CPROC DrawRightButton( PTRSZVAL psv, PCONTROL pc )
 	if( surface )
 	{
 		int cx = pc->surface_rect.width/2
-	, cy = pc->surface_rect.height/2;
-      BlatColorAlpha( surface, 0, 0, surface->width, surface->height, basecolor(pc)[NORMAL] );
+		  , cy = pc->surface_rect.height/2;
+		BlatColorAlpha( surface, 0, 0, surface->width, surface->height, basecolor(pc)[NORMAL] );
 		if( IsButtonPressed( pc ) )
 			cx++;
 		do_line( surface, cy - 2, cx - 3, cy + 1, cx  , basecolor(pc)[SHADE] );
@@ -340,7 +340,7 @@ static void CPROC DrawTopButton( PTRSZVAL psv, PCONTROL pc )
 		int mx = pc->surface_rect.width/2;
 		int cx = pc->surface_rect.width/4
 		  , cy = pc->surface_rect.height/3;
-      BlatColorAlpha( surface, 0, 0, surface->width, surface->height, basecolor(pc)[NORMAL] );
+		BlatColorAlpha( surface, 0, 0, surface->width, surface->height, basecolor(pc)[NORMAL] );
 		if( IsButtonPressed( pc ) )
 			cx++;
 		c = basecolor(pc)[SHADE];

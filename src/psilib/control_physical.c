@@ -630,6 +630,7 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 			// these methods should aready be set by the creation above...
 			// have to attach the mouse events to this frame...
 		}
+		Redraw( device->pActImg );
 	}
 	if( pc )
 		return pc->device;

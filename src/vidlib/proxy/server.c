@@ -119,6 +119,14 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
 		json_add_object_member( cto_data, WIDE("data"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_CharArray, 0 );
 		break;
+	case PMID_DrawLine:
+		json_add_object_member( cto_data, WIDE("server_image_id"), ofs, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("x1"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("y1"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("x2"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("y2"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
+		json_add_object_member_user_routine( cto_data, WIDE("color"), ofs = ofs + sizeof(S_32), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
+		break;
 	}
 	return cto;
 }
@@ -713,10 +721,16 @@ static void CPROC VidlibProxy_SetCloseHandler	 ( PRENDERER r, CloseCallback c, P
 
 static void CPROC VidlibProxy_SetMouseHandler  ( PRENDERER r, MouseCallback c, PTRSZVAL p )
 {
+	PVPRENDER render = (PVPRENDER)r;
+	render->mouse_callback = c;
+	render->psv_mouse_callback = p;
 }
 
 static void CPROC VidlibProxy_SetRedrawHandler  ( PRENDERER r, RedrawCallback c, PTRSZVAL p )
 {
+	PVPRENDER render = (PVPRENDER)r;
+	render->redraw = c;
+	render->psv_redraw = p;
 }
 
 static void CPROC VidlibProxy_SetKeyboardHandler	( PRENDERER r, KeyProc c, PTRSZVAL p )
@@ -854,6 +868,9 @@ static void CPROC VidlibProxy_SetDisplayNoMouse( PRENDERER r, int bNoMouse )
 
 static void CPROC VidlibProxy_Redraw( PRENDERER r )
 {
+	PVPRENDER render = (PVPRENDER)r;
+	if( render->redraw )
+		render->redraw( render->psv_redraw, render );
 }
 
 static void CPROC VidlibProxy_MakeAbsoluteTopmost(PRENDERER r)
@@ -1356,29 +1373,56 @@ DIMAGE_DATA_PROC( CDATA,getpixel, ( Image pi, S_32 x, S_32 y ))
 	return 0;
 }
 
-DIMAGE_DATA_PROC( void,do_line,	  ( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color ))
+DIMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color ))
 {
+	struct json_context_object *cto;
+	PVPImage image = (PVPImage)pifDest;
+	struct common_message *outmsg;
+	cto = (struct json_context_object *)GetLink( &l.messages, PMID_DrawLine );
+	if( !cto )
+		cto = WebSockInitJson( PMID_DrawLine );
+
+	outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blot_scaled_image_data ) ) );
+	outmsg->message_id = PMID_DrawLine;
+	outmsg->data.line.server_image_id = image->id;
+	outmsg->data.line.x1 = x;
+	outmsg->data.line.y1 = y;
+	outmsg->data.line.x2 = xto;
+	outmsg->data.line.y2 = yto;
+	outmsg->data.line.color = color;
+	{
+		TEXTSTR json_msg = json_build_message( cto, outmsg );
+		AppendJSON( image, json_msg );
+		lprintf( "json: %p", json_msg );
+		Release( json_msg );
+	}
+
 }
 
 DIMAGE_DATA_PROC( void,do_lineAlpha,( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color))
 {
+	VidlibProxy2_do_line( pBuffer, x, y, xto, yto, color );
 }
 
 
 DIMAGE_DATA_PROC( void,do_hline,	  ( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color ))
 {
+	VidlibProxy2_do_line( pImage, xfrom, y, xto, y, color );
 }
 
 DIMAGE_DATA_PROC( void,do_vline,	  ( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color ))
 {
+	VidlibProxy2_do_line( pImage, x, yfrom, x, yto, color );
 }
 
 DIMAGE_DATA_PROC( void,do_hlineAlpha,( Image pImage, S_32 y, S_32 xfrom, S_32 xto, CDATA color ))
 {
+	VidlibProxy2_do_line( pImage, xfrom, y, xto, y, color );
 }
 
 DIMAGE_DATA_PROC( void,do_vlineAlpha,( Image pImage, S_32 x, S_32 yfrom, S_32 yto, CDATA color ))
 {
+	VidlibProxy2_do_line( pImage, x, yfrom, x, yto, color );
 }
 
 static SFTFont CPROC VidlibProxy_GetDefaultFont ( void )
@@ -1651,14 +1695,6 @@ IMAGE_PROC_PTR( _32, GetStringRenderSizeFontEx )( CTEXTSTR pString, size_t nLen,
 IMAGE_PROC_PTR( SFTFont, RenderScaledFont )( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags );
 IMAGE_PROC_PTR( SFTFont, RenderScaledFontEx )( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags, size_t *pnFontDataSize, POINTER *pFontData );
 
-IMAGE_PROC_PTR( COLOR_CHANNEL, GetRedValue )( CDATA color ) ;
-IMAGE_PROC_PTR( COLOR_CHANNEL, GetGreenValue )( CDATA color );
-IMAGE_PROC_PTR( COLOR_CHANNEL, GetBlueValue )( CDATA color );
-IMAGE_PROC_PTR( COLOR_CHANNEL, GetAlphaValue )( CDATA color );
-IMAGE_PROC_PTR( CDATA, SetRedValue )( CDATA color, COLOR_CHANNEL r ) ;
-IMAGE_PROC_PTR( CDATA, SetGreenValue )( CDATA color, COLOR_CHANNEL green );
-IMAGE_PROC_PTR( CDATA, SetBlueValue )( CDATA color, COLOR_CHANNEL b );
-IMAGE_PROC_PTR( CDATA, SetAlphaValue )( CDATA color, COLOR_CHANNEL a );
 IMAGE_PROC_PTR( CDATA, MakeColor )( COLOR_CHANNEL r, COLOR_CHANNEL green, COLOR_CHANNEL b );
 IMAGE_PROC_PTR( CDATA, MakeAlphaColor )( COLOR_CHANNEL r, COLOR_CHANNEL green, COLOR_CHANNEL b, COLOR_CHANNEL a );
 
@@ -1767,16 +1803,16 @@ IMAGE_PROC_PTR( Image, LoadImageFileFromGroupEx )( INDEX group, CTEXTSTR filenam
 IMAGE_PROC_PTR( SFTFont, RenderScaledFont )( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags );
 IMAGE_PROC_PTR( SFTFont, RenderScaledFontEx )( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags, size_t *pnFontDataSize, POINTER *pFontData );
 
-IMAGE_PROC_PTR( COLOR_CHANNEL, GetRedValue )( CDATA color ) ;
-IMAGE_PROC_PTR( COLOR_CHANNEL, GetGreenValue )( CDATA color );
-IMAGE_PROC_PTR( COLOR_CHANNEL, GetBlueValue )( CDATA color );
-IMAGE_PROC_PTR( COLOR_CHANNEL, GetAlphaValue )( CDATA color );
-IMAGE_PROC_PTR( CDATA, SetRedValue )( CDATA color, COLOR_CHANNEL r ) ;
-IMAGE_PROC_PTR( CDATA, SetGreenValue )( CDATA color, COLOR_CHANNEL green );
-IMAGE_PROC_PTR( CDATA, SetBlueValue )( CDATA color, COLOR_CHANNEL b );
-IMAGE_PROC_PTR( CDATA, SetAlphaValue )( CDATA color, COLOR_CHANNEL a );
-IMAGE_PROC_PTR( CDATA, MakeColor )( COLOR_CHANNEL r, COLOR_CHANNEL green, COLOR_CHANNEL b );
-IMAGE_PROC_PTR( CDATA, MakeAlphaColor )( COLOR_CHANNEL r, COLOR_CHANNEL green, COLOR_CHANNEL b, COLOR_CHANNEL a );
+, NULL //IMAGE_PROC_PTR( COLOR_CHANNEL, GetRedValue )( CDATA color ) ;
+, NULL //IMAGE_PROC_PTR( COLOR_CHANNEL, GetGreenValue )( CDATA color );
+, NULL //IMAGE_PROC_PTR( COLOR_CHANNEL, GetBlueValue )( CDATA color );
+, NULL //IMAGE_PROC_PTR( COLOR_CHANNEL, GetAlphaValue )( CDATA color );
+, NULL //IMAGE_PROC_PTR( CDATA, SetRedValue )( CDATA color, COLOR_CHANNEL r ) ;
+, NULL //IMAGE_PROC_PTR( CDATA, SetGreenValue )( CDATA color, COLOR_CHANNEL green );
+, NULL //IMAGE_PROC_PTR( CDATA, SetBlueValue )( CDATA color, COLOR_CHANNEL b );
+, NULL //IMAGE_PROC_PTR( CDATA, SetAlphaValue )( CDATA color, COLOR_CHANNEL a );
+, NULL //IMAGE_PROC_PTR( CDATA, MakeColor )( COLOR_CHANNEL r, COLOR_CHANNEL green, COLOR_CHANNEL b );
+, NULL //IMAGE_PROC_PTR( CDATA, MakeAlphaColor )( COLOR_CHANNEL r, COLOR_CHANNEL green, COLOR_CHANNEL b, COLOR_CHANNEL a );
 
 
 IMAGE_PROC_PTR( PTRANSFORM, GetImageTransformation )( Image pImage );
@@ -1799,6 +1835,23 @@ IMAGE_PROC_PTR( void, DumpFontFile )( CTEXTSTR name, SFTFont font_to_dump );
 IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA color, SFTFont font, VECTOR o, LOGICAL render_pixel_scaled );
 #endif
 };
+
+static CDATA CPROC VidlibProxy_SetRedValue( CDATA color, COLOR_CHANNEL r )
+{
+	return ( ((color)&0xFFFFFF00) | ( ((r)&0xFF)<<0 ) );
+}
+static CDATA CPROC VidlibProxy_SetGreenValue( CDATA color, COLOR_CHANNEL green )
+{
+	return ( ((color)&0xFFFF00FF) | ( ((green)&0xFF)<<8 ) );
+}
+static CDATA CPROC VidlibProxy_SetBlueValue( CDATA color, COLOR_CHANNEL b )
+{
+	return ( ((color)&0xFF00FFFF) | ( ((b)&0xFF)<<16 ) );
+}
+static CDATA CPROC VidlibProxy_SetAlphaValue( CDATA color, COLOR_CHANNEL a )
+{
+	return ( ((color)&0xFFFFFF) | ( (a)<<24 ) );
+}
 
 static COLOR_CHANNEL CPROC VidlibProxy_GetRedValue( CDATA color )
 {
@@ -1843,6 +1896,10 @@ static void InitImageInterface( void )
 	ProxyImageInterface._GetGreenValue = VidlibProxy_GetGreenValue;
 	ProxyImageInterface._GetBlueValue = VidlibProxy_GetBlueValue;
 	ProxyImageInterface._GetAlphaValue = VidlibProxy_GetAlphaValue;
+	ProxyImageInterface._SetRedValue = VidlibProxy_SetRedValue;
+	ProxyImageInterface._SetGreenValue = VidlibProxy_SetGreenValue;
+	ProxyImageInterface._SetBlueValue = VidlibProxy_SetBlueValue;
+	ProxyImageInterface._SetAlphaValue = VidlibProxy_SetAlphaValue;
 	ProxyImageInterface._MakeColor = VidlibProxy_MakeColor;
 	ProxyImageInterface._MakeAlphaColor = VidlibProxy_MakeAlphaColor;
 	ProxyImageInterface._LoadImageFileFromGroupEx = VidlibProxy_LoadImageFileFromGroupEx;
