@@ -62,7 +62,9 @@ function OpenServer()
         // Web Socket is connected, send data using send()
      };
     
-	function getPosition(event)
+	var b = 0;
+	
+	function mousedown(event)
 	{
 		var x = event.x;
 		var y = event.y;
@@ -70,18 +72,61 @@ function OpenServer()
 		var n;
 		for( n = 0; n < render_list.length; n++ )
 		{
-			var canvas = render_list[n].canvas;
+			var render = render_list[n];
+			var canvas = render.canvas;
 			if( x < canvas.offsetLeft || y < canvas.offsetTop )
 			  continue;
 			if( ( x - canvas.offsetLeft ) > canvas.offsetWidth || ( y - canvas.offsetTop ) > canvas.offsetHeight )
 			  continue;
 			x -= canvas.offsetLeft;
 			y -= canvas.offsetTop;
-
-			console.log( "click on render " + render_list[n].server_id + " x:" + x + " y:" + y);
+			b |= 1 << ( event.which - 1 );
+            ws.send( JSON.stringify( 
+					{
+                       	MsgID:15 /*PMID_Event_Mouse*/,
+						data: {
+							server_render_id:render.server_id,
+							x:x,
+							y:y,
+							b:b
+						}
+					} )  );
+        	
+			//console.log( "click on render " + render_list[n].server_id + " x:" + x + " y:" + y);
 		}
 	}
-	function mousemover(event)
+	function mouseup(event)
+	{
+		var x = event.x;
+		var y = event.y;
+
+		var n;
+		for( n = 0; n < render_list.length; n++ )
+		{
+			var render = render_list[n];
+			var canvas = render.canvas;
+			if( x < canvas.offsetLeft || y < canvas.offsetTop )
+			  continue;
+			if( ( x - canvas.offsetLeft ) > canvas.offsetWidth || ( y - canvas.offsetTop ) > canvas.offsetHeight )
+			  continue;
+			x -= canvas.offsetLeft;
+			y -= canvas.offsetTop;
+			b &= ~(1 << ( event.which - 1 ));
+            ws.send( JSON.stringify( 
+					{
+                       	MsgID:15 /*PMID_Event_Mouse*/,
+						data: {
+							server_render_id:render.server_id,
+							x:x,
+							y:y,
+							b:b
+						}
+					} )  );
+        	
+			//console.log( "unclick on render " + render_list[n].server_id + " x:" + x + " y:" + y);
+		}
+	}
+	function mousemove(event)
 	{
 		var x = event.x;
 		var y = event.y;
@@ -97,19 +142,26 @@ function OpenServer()
 			x -= canvas.offsetLeft;
 			y -= canvas.offsetTop;
 
-			console.log( "move on render " + render_list[n].server_id + " x:" + x + " y:" + y);
+            ws.send( JSON.stringify( 
+					{
+                       	MsgID:15 /*PMID_Event_Mouse*/,
+						data: {
+							server_render_id:render.server_id,
+							x:x,
+							y:y,
+							b:b
+						}
+					} )  );
+			//console.log( "move on render " + render_list[n].server_id + " x:" + x + " y:" + y);
 		}
 	}
 	
 	function HandleMessage( msg )
 	{
-	  console.log( "message:" + msg.MsgID );
-//		if( msg.MsgID > 3 )
-	//		console.log("Message is received..." + evt.data );
+		//console.log( "message:" + msg.MsgID );
      	switch( msg.MsgID )
         {
         case 0: // PMID_Version
-        	
         	break;
         case 1: // PMID_SetApplicationTitle
                 break;
@@ -117,27 +169,35 @@ function OpenServer()
         	break;
         case 3: // PMID_OpenDisplayAboveUnderSizedAt
            //ws.send(JSON.stringify(new Buffer(fs.readFileSync('./frame_border.png'), 'binary').toString('base64')));
-		  
-		  
-        	var canvas = document.createElement('canvas');
-			canvas.id     = "Render" + msg.data.server_render_id;
-			canvas.width  = msg.data.width;
-			canvas.height = msg.data.height;
-			canvas.style.zIndex   = 8;
-			canvas.style.position = "absolute";
-			canvas.style.border   = "1px solid";
-			canvas.addEventListener("mousedown", getPosition, false);
-			canvas.addEventListener("mousemove", mousemover, false);
-			document.body.appendChild(canvas);
-            render_list.push( render = new render_surface( msg.data.server_render_id, canvas ) );
-            ws.send( JSON.stringify( 
-					{
-                       	MsgID:5 /*PMID_Reply_OpenDisplayAboveUnderSizedAt*/,
-						data: {
-                           	client_render_id:render.local_id,
-							server_render_id:msg.data.server_render_id
-						}
-					} )  );
+        	var canvas = document.getElementById("Render" + msg.data.server_render_id);
+
+			// IE doesn't have document.contains
+			if( 1 )//window.attachEvent || !document.contains( canvas ) )
+			{
+				canvas = document.createElement('canvas');
+				canvas.id     = "Render" + msg.data.server_render_id;
+				canvas.width  = msg.data.width;
+				canvas.height = msg.data.height;
+				canvas.style.zIndex   = 8;
+				canvas.style.position = "absolute";
+				canvas.style.border   = "1px solid";
+
+				canvas.addEventListener("mousedown", mousedown, false);
+				canvas.addEventListener("mouseup", mouseup, false);
+				canvas.addEventListener("mousemove", mousemove, false);
+			
+				document.body.appendChild(canvas);
+				render_list.push( render = new render_surface( msg.data.server_render_id, canvas ) );
+			}
+			else
+			{
+				//console.log( "render already exists:" + render_list.length );
+				if( find_render( msg.data.server_render_id ) == null )
+				{
+				    //console.log( "Internal tracking didn't have the control." );
+					render_list.push( render = new render_surface( msg.data.server_render_id, canvas ) );
+				}
+			}
 	        break;
         case 4: // PMID_CloseDisplay
         	var canvas = document.getElementById("Render" + msg.data.server_render_id);
@@ -216,9 +276,24 @@ function OpenServer()
 				ofs_ys += parent_src_image.y;
 				parent_src_image = parent_src_image.parent;
 			}
-			
 			render = parent_image.renderer;
 			var ctx= render.canvas.getContext("2d");
+
+			switch( msg.data.orientation )
+			{
+			case 0:
+				context.save();
+				context.translate(newx, newy);
+				context.rotate(-Math.PI/2);
+				context.textAlign = "center";
+				context.fillText("Your Label Here", labelXposition, 0);
+				context.restore();
+				break;
+			case 1:
+				
+				break;
+			}
+			
 			source_image = find_image( msg.data.image_id );
 			ctx.drawImage( parent_src_image.image
 				, ofs_xs + msg.data.xs, ofs_ys + msg.data.ys 
@@ -290,7 +365,7 @@ function OpenServer()
 	
      ws.onmessage = function (evt) 
      { 
-		console.log( evt.data );
+		//console.log( evt.data );
         var msg = JSON.parse(evt.data);
 		if(  Object.prototype.toString.call(msg) === '[object Array]' )
 		{ 

@@ -322,31 +322,47 @@ static PLIST fonts;
 
 //-------------------------------------------------------------------------
 
-void UpdateRendererImage( PFONT_RENDERER renderer, int char_width, int char_height )
+void UpdateRendererImage( Image image, PFONT_RENDERER renderer, int char_width, int char_height )
 {
 	if( !renderer->surface )
 	{
-		renderer->surface = MakeImageFile( char_width * 3, char_height * 3 );
-		ClearImage( renderer->surface );
+		if( image->reverse_interface )
+		{
+			renderer->surface = image->reverse_interface->_MakeImageFileEx( char_width * 3, char_height * 3 DBG_SRC );
+			image->reverse_interface->_BlatColor(renderer->surface,0,0,(renderer->surface)->width,(renderer->surface)->height, 0 );
+		}
+		else
+		{
+			renderer->surface = MakeImageFile( char_width * 3, char_height * 3 );
+			ClearImage( renderer->surface );
+		}
 	}
 	else
 	{
 		Image tmp;
-		Image new_surface = MakeImageFile( renderer->surface->real_width * 2, renderer->surface->real_height * 2 );
-		ClearImage( new_surface );
-		BlotImage( new_surface, renderer->surface, 0, 0 );
-		while( tmp = renderer->surface->pChild )
+		Image new_surface;
+		if( image->reverse_interface )
 		{
-			OrphanSubImage( tmp );
-			AdoptSubImage( new_surface, tmp );
+			new_surface = image->reverse_interface->_MakeImageFileEx( renderer->surface->real_width * 2, renderer->surface->real_height * 2 DBG_SRC );
+			image->reverse_interface->_BlatColor( new_surface,0,0,new_surface->width,new_surface->height, 0 );
+			image->reverse_interface->_BlotImageEx( new_surface, renderer->surface, 0, 0, 1, BLOT_COPY );
+			image->reverse_interface->_TransferSubImages( new_surface, renderer->surface );
+			image->reverse_interface->_UnmakeImageFileEx( renderer->surface DBG_SRC );
 		}
-		UnmakeImageFile( renderer->surface );
+		else
+		{
+			new_surface = MakeImageFile( renderer->surface->real_width * 2, renderer->surface->real_height * 2 );
+			ClearImage( new_surface );
+			BlotImage( new_surface, renderer->surface, 0, 0 );
+			TransferSubImages( new_surface, renderer->surface );
+			UnmakeImageFile( renderer->surface );
+		}
 		renderer->surface = new_surface;
-      // need to recompute character floating point values for existing characters.
+		// need to recompute character floating point values for existing characters.
 	}
 }
 
-Image AllocateCharacterSpace( PFONT_RENDERER renderer, PCHARACTER character )
+Image AllocateCharacterSpace( Image target_image, PFONT_RENDERER renderer, PCHARACTER character )
 {
 	int height;
 	int line;
@@ -386,7 +402,12 @@ Image AllocateCharacterSpace( PFONT_RENDERER renderer, PCHARACTER character )
                //lprintf( "Fits in this line, create at %d,%d   %d width", new_line_start + 1, last_line_top + 1
 					//										, character->width );
 					check->next_in_line = character;
-					character->cell = MakeSubImage( renderer->surface
+					if( target_image->reverse_interface )
+						character->cell = target_image->reverse_interface->_MakeSubImageEx( renderer->surface
+															, new_line_start + 1, last_line_top + 1
+															, character->width, height DBG_SRC );
+					else
+						character->cell = MakeSubImage( renderer->surface
 															, new_line_start + 1, last_line_top + 1
 															, character->width, height );
 					//lprintf( "Result %d,%d", character->cell->real_x, character->cell->real_y );
@@ -401,14 +422,14 @@ Image AllocateCharacterSpace( PFONT_RENDERER renderer, PCHARACTER character )
 		{
 			//lprintf( WIDE( "make new image" ) );
 			// gonna need lines and character chain starts too... don't continue
-			UpdateRendererImage( renderer, character->width, height );
+			UpdateRendererImage( target_image, renderer, character->width, height );
 		}
 
 		// this should NOT go more than once.... but it could with nasty fonts...
 		if( ( last_line_top + height ) > renderer->surface->real_height )
 		{
 			//lprintf( WIDE( "expand font image %d %d %d" ), last_line_top, height, renderer->surface->real_height );
-			UpdateRendererImage( renderer, character->width, height );
+			UpdateRendererImage( target_image, renderer, character->width, height );
 			continue; // go to top of while loop;
 		}
 
@@ -424,18 +445,25 @@ Image AllocateCharacterSpace( PFONT_RENDERER renderer, PCHARACTER character )
 
 		renderer->pLineStarts[line] = height;
 		renderer->ppCharacterLineStarts[line] = character;
-      //lprintf( "added new line; this is at %d,%d high", 1, last_line_top + 1 );
-		character->cell = MakeSubImage( renderer->surface
-												, 0+1, last_line_top+1
-												, character->width, height
-												);
+		//lprintf( "added new line; this is at %d,%d high", 1, last_line_top + 1 );
+		if( target_image->reverse_interface )
+			character->cell = target_image->reverse_interface->_MakeSubImageEx( renderer->surface
+													, 0+1, last_line_top+1
+													, character->width, height
+													DBG_SRC
+													);
+		else
+			character->cell = MakeSubImage( renderer->surface
+													, 0+1, last_line_top+1
+													, character->width, height
+													);
 		break;
 	} while( 1 );
 	//lprintf( WIDE( "Result %d,%d" ), character->cell->real_x, character->cell->real_y );
 	return character->cell;
 }
 
-Image AllocateCharacterSpaceByFont( SFTFont font, PCHARACTER character )
+Image AllocateCharacterSpaceByFont( Image image, SFTFont font, PCHARACTER character )
 {
 	PFONT_RENDERER renderer;
 	INDEX idx;
@@ -457,7 +485,7 @@ Image AllocateCharacterSpaceByFont( SFTFont font, PCHARACTER character )
 			renderer->font = font;
 			AddLink( &fonts, renderer );
 		}
-		return AllocateCharacterSpace( renderer, character );
+		return AllocateCharacterSpace( image, renderer, character );
 	}
 	return NULL;
 }

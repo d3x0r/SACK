@@ -2240,7 +2240,7 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 		if( len == STRSAFE_E_INSUFFICIENT_BUFFER )
 		{
 			tries++;
-			if( tries == 10 )
+			if( tries == 100 )
 			{
 				lprintf( WIDE( "Single buffer expanded more then %d" ), tries * ( (256<pvt->expand_by)?pvt->expand_by:(256+pvt->expand_by) ) );
 				return 0; // didn't add any

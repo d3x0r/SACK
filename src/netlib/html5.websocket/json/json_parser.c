@@ -223,21 +223,13 @@ static void FillDataToElement( struct json_context_object_element *element
 			case VALUE_NUMBER:
 				if( val->float_result )
 				{
-					if( element->type == JSON_Element_Float )
-						((PTRSZVAL*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = (PTRSZVAL)val->result_d;
-					else
-						((PTRSZVAL*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = (PTRSZVAL)val->result_d;
-
+					lprintf( WIDE("warning received float, converting to int (PTRSZVAL)") );
+					((PTRSZVAL*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = (PTRSZVAL)val->result_d;
 				}
 				else
 				{
-               // this is probably common (0 for instance)
-					lprintf( WIDE("warning received int, converting to float") );
-					if( element->type == JSON_Element_Float )
-						((PTRSZVAL*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = (PTRSZVAL)val->result_n;
-					else
-						((PTRSZVAL*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = (PTRSZVAL)val->result_n;
-
+					// this is probably common (0 for instance)
+					((PTRSZVAL*)( ((PTRSZVAL)msg_output) + element->offset + object_offset ))[0] = (PTRSZVAL)val->result_n;
 				}
 				break;
 			}
@@ -278,9 +270,12 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 	if( !_msg_output )
 		return FALSE;
 	msg_output = (*_msg_output);
+
+	// messae is allcoated +7 bytes in case last part is a _8 type
+	// all integer stores use _64 type to store the collected value.
 	if( !msg_output )
 		msg_output = (*_msg_output)
-		           = NewArray( _8, format->object_size );
+		           = NewArray( _8, format->object_size + 7  ); 
 
 
 	val.result_value = 0;
@@ -492,7 +487,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 				{
 					// collect a string
 					int escape = 0;
-					while( c = msg[++n] )
+					while( ( c = msg[++n] ) && ( n < msglen ) )
 					{
 						if( c == '\\' )
 						{
@@ -683,7 +678,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
                // keep it set to determine what sort of value is ready.
 					val.float_result = 0;
 					VarTextAddCharacter( val.pvt_collector, c );
-					while( c = msg[++n] )
+					while( ( c = msg[++n] ) && ( n < msglen ) )
 					{
 						// leading zeros should be forbidden.
 						if( ( c >= '0' && c <= '9' )

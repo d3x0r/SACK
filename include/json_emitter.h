@@ -125,6 +125,7 @@ JSON_EMITTER_PROC( LOGICAL, json_parse_message )( struct json_context *format
 // the format, then the result is FALSE.
 JSON_EMITTER_PROC( LOGICAL, json_parse_message_format )( struct json_context_object *format
                                              , CTEXTSTR msg
+											 , size_t msglen
                                              , POINTER *msg_data_out
                                              );
 // any allocate mesage parts are released.

@@ -26,6 +26,23 @@
 
 IMAGE_NAMESPACE
 
+#ifdef __cplusplus
+	namespace Interface
+{
+	struct image_interface_tag;
+}
+#ifdef _D3D_DRIVER
+	using namespace sack::image::d3d::Interface;
+#elif defined( _D3D10_DRIVER )
+	using namespace sack::image::d3d10::Interface;
+#elif defined( _D3D11_DRIVER )
+	using namespace sack::image::d3d11::Interface;
+#else
+	using namespace sack::image::Interface;
+#endif
+#endif
+
+
 #ifndef PSPRITE_METHOD
 #define PSPRITE_METHOD PSPRITE_METHOD
 /* pointer to a structure defining a sprite draw method this should be defined in render namespace...*/
@@ -123,7 +140,7 @@ struct ImageFile_tag
 	// fonts need a way to output the font character subimages to the real image...
 	// or for 3D; to reverse scale appropriately
 	struct image_interface_tag  *reverse_interface;
-	void (*set_reverse_interface)();
+	POINTER reverse_interface_instance; // what the interface thinks this is... 
 //DOM-IGNORE-BEGIN
 #if defined( __3D__ )
 	PTRANSFORM transform;

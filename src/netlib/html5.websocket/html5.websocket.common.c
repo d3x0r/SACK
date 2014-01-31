@@ -24,7 +24,16 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, P_8 p
 	if( length > 125 )
 	{
 		if( length > 32767 )
+		{
+			int block;
+			for( block = 0; block < ( length / 8100 ); block++ )
+			{
+				SendWebSocketMessage( pc, block == 0 ?opcode:0, 0, do_mask, payload + block * 8100, 8100);
+			}
+			SendWebSocketMessage( pc, 0, final, do_mask, payload + block * 8100, length - block * 8100 );
+			return;
 			length_out += 8; // need 8 more bytes for a really long length
+		}
 		else
 			length_out += 2; // need 2 more bytes for a longer length
 	}
@@ -231,8 +240,12 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, s
 			websock->input_msg_state++;
 			// fall through, no break statement; add the byte to the buffer
 		case 17:
-			websock->fragment_collection[websock->fragment_collection_length++]
-				= msg[n] ^ websock->mask_key[(websock->fragment_collection_index++) % 4];
+			// if there was no data, then there's nothing to demask
+			if( websock->fragment_collection )
+			{
+				websock->fragment_collection[websock->fragment_collection_length++]
+					= msg[n] ^ websock->mask_key[(websock->fragment_collection_index++) % 4];
+			}
 
 			// if final packet, and we have all the bytes for this packet
 			// dispatch the opcode.
@@ -279,10 +292,10 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, s
 					{
 						struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
 						SendWebSocketMessage( pc, 0x08, 1, output->flags.expect_masking, websock->fragment_collection, websock->frame_length );
-                  websock->flags.closed = 1;
+						websock->flags.closed = 1;
 					}
 					if( websock->on_close )
-                  websock->on_close( pc, websock->psv_on );
+						websock->on_close( pc, websock->psv_on );
 					websock->fragment_collection_length = 0;
 					break;
 				case 0x09: // ping
@@ -294,8 +307,8 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, s
 					break;
 				case 0x0A: // pong
 					{
-                  // this is for the ping routine to wait (or rather to end wait)
-                  websock->flags.received_pong = 1;
+						// this is for the ping routine to wait (or rather to end wait)
+						websock->flags.received_pong = 1;
 					}
 					websock->fragment_collection_length = 0;
 					break;
@@ -303,7 +316,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, s
 					lprintf( WIDE("Bad WebSocket opcode: %d"), websock->opcode );
 					return;
 				}
-            // after processing any opcode (this is IN final, and length match) we're done, start next message
+				// after processing any opcode (this is IN final, and length match) we're done, start next message
 				ResetInputState( websock );
 			}
 			break;

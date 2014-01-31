@@ -99,10 +99,10 @@ struct {
 
 void InitShader( void );
  
-Image AllocateCharacterSpaceByFont( SFTFont font, PCHARACTER character );
+Image AllocateCharacterSpaceByFont( Image target_image, SFTFont font, PCHARACTER character );
 IDirect3DBaseTexture9 *ReloadD3DTexture( Image image, int option );
 void TranslateCoord( Image image, S_32 *x, S_32 *y );
-void MarkImageUpdated( Image image );
+void CPROC MarkImageUpdated( Image image );
 
 IMAGE_NAMESPACE_END
 
