@@ -253,9 +253,19 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 		}
 #if !defined( __3D__ )
 
-		if( background )
-			BlatColorAlpha( pImage, xd, yd, pchar->cell->real_width, pchar->cell->real_height, background );
-		BlotImageSizedEx( pImage, pifSrc, xd, yd, xs, ys, pchar->cell->real_width, pchar->cell->real_height, TRUE, BLOT_SHADED|orientation, color );
+		if( pImage->reverse_interface )
+		{
+			if( background )
+				pImage->reverse_interface->_BlatColorAlpha( pImage, xd, yd, pchar->cell->real_width, pchar->cell->real_height, background );
+			pImage->reverse_interface->_BlotImageSizedEx( pImage, pifSrc, xd, yd, xs, ys, pchar->cell->real_width, pchar->cell->real_height, TRUE, BLOT_SHADED|orientation, color );
+		}
+		else
+		{
+			if( background )
+				BlatColorAlpha( pImage, xd, yd, pchar->cell->real_width, pchar->cell->real_height, background );
+			BlotImageSizedEx( pImage, pifSrc, xd, yd, xs, ys, pchar->cell->real_width, pchar->cell->real_height, TRUE, BLOT_SHADED|orientation, color );
+		}
+
 #else
 
 		for( pifSrcReal = pifSrc; pifSrcReal->pParent; pifSrcReal = pifSrcReal->pParent );

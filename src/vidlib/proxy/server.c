@@ -190,6 +190,17 @@ static TEXTSTR EncodeImage( Image image, size_t *outsize )
 	return real_output;
 }
 
+static void ClearDirtyFlag( PVPImage image )
+{
+	for( ; image; image = image->next )
+	{
+		image->image->flags &= ~IF_FLAG_UPDATED;
+		ClearDirtyFlag( image->child );
+	}
+}
+
+
+
 static void SendTCPMessageV( PCLIENT pc, INDEX idx, LOGICAL websock, enum proxy_message_id message, ... );
 static void SendTCPMessage( PCLIENT pc, INDEX idx, LOGICAL websock, enum proxy_message_id message, va_list args )
 {
@@ -353,6 +364,9 @@ static void SendTCPMessage( PCLIENT pc, INDEX idx, LOGICAL websock, enum proxy_m
 			TEXTSTR encoded_image;
 			size_t outlen;
 			image = va_arg( args, PVPImage );
+			while( image && image->parent ) 
+				image = image->parent;
+			ClearDirtyFlag( image );
 			encoded_image = EncodeImage( image->image, &outlen );
 			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct image_data_data ) + outlen ) );
 			((_32*)msg)[0] = (_32)(sendlen - 4);
@@ -583,7 +597,9 @@ static PVPImage Internal_MakeImageFileEx ( INDEX iRender, _32 Width, _32 Height 
 	image->h = Height;
 	image->render_id = iRender;
 	image->image = l.real_interface->_MakeImageFileEx( Width, Height DBG_RELAY );
-	SendClientMessage( PMID_MakeImageFile, image, iRender );
+	if( iRender != INVALID_INDEX )
+		image->image->flags |= IF_FLAG_FINAL_RENDER;
+	SendClientMessage( PMID_MakeImage, image, iRender );
 	AddLink( &l.images, image );
 	image->id = FindLink( &l.images, image );
 	return image;
@@ -610,6 +626,7 @@ static PRENDERER VidlibProxy_OpenDisplayAboveUnderSizedAt( _32 attributes, _32 w
 	Renderer->above = (PVPRENDER)above;
 	Renderer->under = (PVPRENDER)under;
 	Renderer->image = Internal_MakeImageFileEx( Renderer->id, width, height DBG_SRC );
+	
 	SendClientMessage( PMID_OpenDisplayAboveUnderSizedAt, Renderer );
 	return (PRENDERER)Renderer;
 }
@@ -1088,7 +1105,7 @@ static Image CPROC VidlibProxy_MakeSubImageEx  ( Image pImage, S_32 x, S_32 y, _
 	AddLink( &l.images, image );
 	image->id = FindLink( &l.images, image );
 	// don't really need to make this; if it needs to be updated to the client it will be handled later
-	SendClientMessage( PMID_MakeSubImageFile, image );
+	SendClientMessage( PMID_MakeSubImage, image );
 
 	return (Image)image;
 }
@@ -1123,7 +1140,8 @@ static Image CPROC VidlibProxy_LoadImageFileFromGroupEx( INDEX group, CTEXTSTR f
 	image->h = image->image->actual_height;
 	image->render_id = INVALID_INDEX;
 	// don't really need to make this; if it needs to be updated to the client it will be handled later
-	SendClientMessage( PMID_LoadImageFileFromGroup, image );
+	SendClientMessage( PMID_MakeImage, image );
+	SendClientMessage( PMID_ImageData, image );
 	AddLink( &l.images, image );
 	image->id = FindLink( &l.images, image );
 	return (Image)image;
@@ -1142,7 +1160,7 @@ static Image CPROC VidlibProxy_LoadImageFileEx( CTEXTSTR filename DBG_PASS )
 	Interface index 10																	*/  IMAGE_PROC_PTR( Image,VidlibProxy_LoadImageFileEx)  ( CTEXTSTR name DBG_PASS );
 static  void CPROC VidlibProxy_UnmakeImageFileEx( Image pif DBG_PASS )
 {
-	SendClientMessage( PMID_UnmakeImageFile, pif );
+	SendClientMessage( PMID_UnmakeImage, pif );
 	SetLink( &l.images, ((PVPImage)pif)->id, NULL );
 	Release( pif );
 }
@@ -1274,6 +1292,10 @@ static void CPROC VidlibProxy_BlotImageEx	  ( Image pDest, Image pIF, S_32 x, S_
 	if( !cto )
 		cto = WebSockInitJson( PMID_BlotImageSizedTo );
 
+	// sending this clears the flag.
+	if( ((PVPImage)pIF)->image->flags & IF_FLAG_UPDATED )
+		SendClientMessage( PMID_ImageData, pIF );
+
 	outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blot_image_data ) ) );
 	outmsg->message_id = PMID_BlotImageSizedTo;
 	outmsg->data.blot_image.x = x;
@@ -1299,6 +1321,10 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 	cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlotImageSizedTo );
 	if( !cto )
 		cto = WebSockInitJson( PMID_BlotImageSizedTo );
+
+	// sending this clears the flag.
+	if( ((PVPImage)pIF)->image->flags & IF_FLAG_UPDATED )
+		SendClientMessage( PMID_ImageData, pIF );
 
 	outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blot_image_data ) ) );
 	outmsg->message_id = PMID_BlotImageSizedTo;
@@ -1332,6 +1358,10 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 	if( !cto )
 		cto = WebSockInitJson( PMID_BlotScaledImageSizedTo );
 
+	// sending this clears the flag.
+	if( ((PVPImage)pifSrc)->image->flags & IF_FLAG_UPDATED )
+		SendClientMessage( PMID_ImageData, pifSrc );
+
 	outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blot_scaled_image_data ) ) );
 	outmsg->message_id = PMID_BlotScaledImageSizedTo;
 	outmsg->data.blot_scaled_image.x = xd;
@@ -1357,18 +1387,38 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 
 DIMAGE_DATA_PROC( void,plot,		( Image pi, S_32 x, S_32 y, CDATA c ))
 {
+	if( ((PVPImage)pi)->render_id != INVALID_INDEX )
+	{
+	}
+	else
+	{
+		l.real_interface->_plot[0]( ((PVPImage)pi)->image, x, y, c );
+	}
 }
 
 DIMAGE_DATA_PROC( void,plotalpha, ( Image pi, S_32 x, S_32 y, CDATA c ))
 {
+	if( ((PVPImage)pi)->render_id != INVALID_INDEX )
+	{
+	}
+	else
+	{
+		l.real_interface->_plot[0]( ((PVPImage)pi)->image, x, y, c );
+	}
 }
 
 DIMAGE_DATA_PROC( CDATA,getpixel, ( Image pi, S_32 x, S_32 y ))
 {
-	PVPImage my_image = (PVPImage)pi;
-	if( my_image )
+	if( ((PVPImage)pi)->render_id != INVALID_INDEX )
 	{
-		return (*l.real_interface->_getpixel)( my_image->image, x, y );
+	}
+	else
+	{
+		PVPImage my_image = (PVPImage)pi;
+		if( my_image )
+		{
+			return (*l.real_interface->_getpixel)( my_image->image, x, y );
+		}
 	}
 	return 0;
 }
@@ -1446,34 +1496,43 @@ static _32 CPROC VidlibProxy_GetStringSizeFontEx( CTEXTSTR pString, size_t len, 
 
 static void CPROC VidlibProxy_PutCharacterFont		  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
+	l.real_interface->_PutCharacterFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
 }
 
 static void CPROC VidlibProxy_PutCharacterVerticalFont( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
+	l.real_interface->_PutCharacterVerticalFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
 }
 
 static void CPROC VidlibProxy_PutCharacterInvertFont  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
+	l.real_interface->_PutCharacterInvertFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
 }
 
 static void CPROC VidlibProxy_PutCharacterVerticalInvertFont( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
+	l.real_interface->_PutCharacterVerticalInvertFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
 }
 
-static void CPROC VidlibProxy_PutStringFontEx  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
+static void CPROC VidlibProxy_PutStringFontEx  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background
+												, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
+	l.real_interface->_PutStringFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
 }
 
 static void CPROC VidlibProxy_PutStringVerticalFontEx		( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
+	l.real_interface->_PutStringVerticalFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
 }
 
 static void CPROC VidlibProxy_PutStringInvertFontEx		  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
+	l.real_interface->_PutStringInvertFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
 }
 
 static void CPROC VidlibProxy_PutStringInvertVerticalFontEx( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
+	l.real_interface->_PutStringInvertVerticalFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
 }
 
 static _32 CPROC VidlibProxy_GetMaxStringLengthFont( _32 width, SFTFont UseFont )
@@ -1574,7 +1633,8 @@ static void SmearRenderFlag( PVPImage image )
 {
 	for( ; image; image = image->next )
 	{
-		image->remote_image_id = image->parent->remote_image_id;
+		if( image->image && ( ( image->render_id = image->parent->render_id ) != INVALID_INDEX ) )
+			image->image->flags |= IF_FLAG_FINAL_RENDER;
 		SmearRenderFlag( image->child );
 	}
 }

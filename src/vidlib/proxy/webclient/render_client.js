@@ -62,8 +62,48 @@ function OpenServer()
         // Web Socket is connected, send data using send()
      };
     
+	function getPosition(event)
+	{
+		var x = event.x;
+		var y = event.y;
+
+		var n;
+		for( n = 0; n < render_list.length; n++ )
+		{
+			var canvas = render_list[n].canvas;
+			if( x < canvas.offsetLeft || y < canvas.offsetTop )
+			  continue;
+			if( ( x - canvas.offsetLeft ) > canvas.offsetWidth || ( y - canvas.offsetTop ) > canvas.offsetHeight )
+			  continue;
+			x -= canvas.offsetLeft;
+			y -= canvas.offsetTop;
+
+			console.log( "click on render " + render_list[n].server_id + " x:" + x + " y:" + y);
+		}
+	}
+	function mousemover(event)
+	{
+		var x = event.x;
+		var y = event.y;
+
+		var n;
+		for( n = 0; n < render_list.length; n++ )
+		{
+			var canvas = render_list[n].canvas;
+			if( x < canvas.offsetLeft || y < canvas.offsetTop )
+			  continue;
+			if( ( x - canvas.offsetLeft ) > canvas.offsetWidth || ( y - canvas.offsetTop ) > canvas.offsetHeight )
+			  continue;
+			x -= canvas.offsetLeft;
+			y -= canvas.offsetTop;
+
+			console.log( "move on render " + render_list[n].server_id + " x:" + x + " y:" + y);
+		}
+	}
+	
 	function HandleMessage( msg )
 	{
+	  console.log( "message:" + msg.MsgID );
 //		if( msg.MsgID > 3 )
 	//		console.log("Message is received..." + evt.data );
      	switch( msg.MsgID )
@@ -86,6 +126,8 @@ function OpenServer()
 			canvas.style.zIndex   = 8;
 			canvas.style.position = "absolute";
 			canvas.style.border   = "1px solid";
+			canvas.addEventListener("mousedown", getPosition, false);
+			canvas.addEventListener("mousemove", mousemover, false);
 			document.body.appendChild(canvas);
             render_list.push( render = new render_surface( msg.data.server_render_id, canvas ) );
             ws.send( JSON.stringify( 
@@ -221,7 +263,6 @@ function OpenServer()
 		case 13: //PMID_DrawLine
 			image = find_image( msg.data.server_image_id );
 			parent_image = image;
-			src_image = parent_src_image =  find_image( msg.data.image_id );
 			ofs_x = 0;
 			ofs_y = 0;
 			ofs_xs = 0;
@@ -241,12 +282,15 @@ function OpenServer()
 			ctx.lineTo( ofs_x + msg.data.x2, ofs_y + msg.data.y2 );
 			ctx.stroke();
 			break;
+		
         }
 	}
+
+	
 	
      ws.onmessage = function (evt) 
      { 
-		//console.log( evt.data );
+		console.log( evt.data );
         var msg = JSON.parse(evt.data);
 		if(  Object.prototype.toString.call(msg) === '[object Array]' )
 		{ 

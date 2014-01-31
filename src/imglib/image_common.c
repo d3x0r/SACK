@@ -514,6 +514,7 @@ static void SmearFlag( Image image, int flag )
 	p->pElder = NULL;
 	p->image = NULL; // set it to nothing for now ComputeData will fix
 	p->flags |= (pImage->flags & IF_FLAG_FINAL_RENDER);
+	p->reverse_interface = pImage->reverse_interface;
 #if defined( _OPENGL_DRIVER )
 	p->glSurface = NULL;
 	p->transform = NULL;
@@ -554,6 +555,7 @@ static void SmearFlag( Image image, int flag )
 	p->pChild = NULL;
 	p->pElder = NULL;
 	p->pYounger = NULL;
+	p->reverse_interface = NULL;
 	// assume external colors...
 	p->flags |= IF_FLAG_EXTERN_COLORS;
 
@@ -603,6 +605,7 @@ static void SmearFlag( Image image, int flag )
 			pImage->eff_maxy = ( pImage->real_height - 1 );
 			pImage->eff_x = 0;
 			pImage->eff_y = 0;
+			pImage->reverse_interface = NULL;
 			// recomput children associated with this image...
 			// have a new suface - MUST move child surfaces...
 			//ComputeImageData( pImage );
