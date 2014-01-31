@@ -74,6 +74,14 @@ PREFIX_PACKED struct blot_scaled_image_data
 	PTRSZVAL image_id;
 } PACKED;
 
+PREFIX_PACKED struct line_data
+{
+	PTRSZVAL server_image_id;
+	S_32 x1, y1;
+	S_32 x2, y2;
+	CDATA color;
+} PACKED;
+
 PREFIX_PACKED struct common_message {
 	_8 message_id;
 	union
@@ -90,6 +98,7 @@ PREFIX_PACKED struct common_message {
 		struct image_data_data image_data;
 		struct blot_image_data blot_image;
 		struct blot_scaled_image_data blot_scaled_image;
+		struct line_data line;
 		MSGBLOCK( open_display_reply,  PTRSZVAL server_display_id; PTRSZVAL client_display_id; );
 	} data;
 } PACKED;
@@ -115,7 +124,7 @@ enum proxy_message_id{
 							, PMID_ImageData // 10 - transfer local image data to client
 							, PMID_BlotImageSizedTo  // 11 
 							, PMID_BlotScaledImageSizedTo // 12
-
+							, PMID_DrawLine // 13
 #if 0
     RENDER_PROC_PTR( void, UpdateDisplayPortionEx) ( PRENDERER, S_32 x, S_32 y, _32 width, _32 height DBG_PASS );
     /* <combine sack::image::render::UpdateDisplayEx@PRENDERER>

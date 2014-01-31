@@ -217,8 +217,29 @@ function OpenServer()
 				, ofs_x + msg.data.x, ofs_y + msg.data.y
 				, msg.data.width, msg.data.height
 				);
-		
+			break;
+		case 13: //PMID_DrawLine
+			image = find_image( msg.data.server_image_id );
+			parent_image = image;
+			src_image = parent_src_image =  find_image( msg.data.image_id );
+			ofs_x = 0;
+			ofs_y = 0;
+			ofs_xs = 0;
+			ofs_ys = 0;
+			while( parent_image.parent != null )
+			{
+				ofs_x += parent_image.x;
+				ofs_y += parent_image.y;
+				parent_image = parent_image.parent;
+			}
+			render = parent_image.renderer;
+			var ctx= render.canvas.getContext("2d");
 			
+			ctx.strokeStyle = msg.data.color;
+			ctx.beginPath();
+			ctx.moveTo( ofs_x + msg.data.x1, ofs_y + msg.data.y1 );
+			ctx.lineTo( ofs_x + msg.data.x2, ofs_y + msg.data.y2 );
+			ctx.stroke();
 			break;
         }
 	}

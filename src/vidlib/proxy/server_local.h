@@ -46,6 +46,10 @@ typedef struct vidlib_proxy_renderer
 		BIT_FIELD hidden : 1;
 	} flags;
 	INDEX id;
+	MouseCallback mouse_callback;
+	PTRSZVAL psv_mouse_callback;
+	RedrawCallback redraw;
+	PTRSZVAL psv_redraw;
 } *PVPRENDER;
 
 struct server_proxy_client
