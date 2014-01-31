@@ -104,7 +104,7 @@ struct ImageFile_tag
 	   are found by following the pElder link of the pChild.         */
 	/* This points at a more recently created sub-image. (another
 	   sub image within the same parent, but younger)             */
-			struct ImageFile_tag *pParent, *pChild, *pElder, *pYounger;
+	struct ImageFile_tag *pParent, *pChild, *pElder, *pYounger;
 	   // effective x - clipped by reality real coordinate. 
 	           // (often eff_x = -real_x )
 	int eff_x; 
@@ -112,14 +112,18 @@ struct ImageFile_tag
 	   the image is. If the sub-image spans a boundry of a parent
 	   image, then the effective Y that will be worked with is only
 	   a part of the subimage.                                      */
-		int eff_y;
+	int eff_y;
 		// effective max - maximum coordinate...
-		int eff_maxx;
+	int eff_maxx;
 		// effective maximum Y
-		int eff_maxy;
+	int eff_maxy;
 		/* An extra rectangle that can be used to carry additional
 		 information like update region.                         */
-			IMAGE_RECTANGLE auxrect;
+	IMAGE_RECTANGLE auxrect;
+	// fonts need a way to output the font character subimages to the real image...
+	// or for 3D; to reverse scale appropriately
+	struct image_interface_tag  *reverse_interface;
+	void (*set_reverse_interface)();
 //DOM-IGNORE-BEGIN
 #if defined( __3D__ )
 	PTRANSFORM transform;

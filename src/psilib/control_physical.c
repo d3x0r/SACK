@@ -561,7 +561,7 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 																  , pc->rect.x
 																  , pc->rect.y
 																  , (over&&over->device)?over->device->pActImg:NULL
-																		 , (under&&under->device)?under->device->pActImg:NULL);
+																 , (under&&under->device)?under->device->pActImg:NULL);
 			if( device->pActImg )
 			{
 #ifdef WIN32

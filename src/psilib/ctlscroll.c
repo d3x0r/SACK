@@ -326,7 +326,7 @@ static void CPROC DrawRightButton( PTRSZVAL psv, PCONTROL pc )
 
 static void CPROC TopPushed( PTRSZVAL psvBar, PCONTROL pc )
 {
-   MoveScrollBar( (PCONTROL)psvBar, UPD_1UP );
+	MoveScrollBar( (PCONTROL)psvBar, UPD_1UP );
 }
 
 //---------------------------------------------------------------------------
