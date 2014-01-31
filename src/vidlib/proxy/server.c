@@ -181,6 +181,12 @@ static TEXTSTR EncodeImage( Image image, size_t *outsize )
 			MemCpy( color_out + image->width * n, image->image + image->pwidth * n, sizeof( CDATA ) * image->width );
 	}
 
+	{
+		FILE *out = fopen( "blah.bmp", "wt" );
+		fwrite( header, 1, length, out );
+		fclose( out );
+	}
+
 	real_output = NewArray( char, 22 + ( length * 4 / 3 ) + 1 );
 	StrCpy( real_output, "data:image/bmp;base64," );
 	{
@@ -1114,6 +1120,8 @@ static Image CPROC VidlibProxy_MakeSubImageEx  ( Image pImage, S_32 x, S_32 y, _
 	image->h = height;
 	image->render_id = ((PVPImage)pImage)->render_id;
 	image->image = l.real_interface->_MakeSubImageEx( ((PVPImage)pImage)->image, x, y, width, height DBG_RELAY );
+	image->image->reverse_interface = &ProxyImageInterface;
+	image->image->reverse_interface_instance = image;
 	image->parent = (PVPImage)pImage;
 	if( image->next = ((PVPImage)pImage)->child )
 		image->next->prior = image;
@@ -1800,6 +1808,11 @@ static void CPROC VidlibProxy_MarkImageDirty ( Image pImage )
 {
 }
 
+static Image CPROC VidlibProxy_GetNativeImage( Image pImage )
+{
+	return ((PVPImage)pImage)->image;
+}
+
 IMAGE_PROC_PTR( void, DumpFontCache )( void );
 IMAGE_PROC_PTR( void, RerenderFont )( SFTFont font, S_32 width, S_32 height, PFRACTION width_scale, PFRACTION height_scale );
 // option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
@@ -2005,6 +2018,7 @@ static void InitImageInterface( void )
 	ProxyImageInterface._AdoptSubImage = VidlibProxy_AdoptSubImage;
 	ProxyImageInterface._TransferSubImages = VidlibProxy_TransferSubImages;
 	ProxyImageInterface._MarkImageDirty = VidlibProxy_MarkImageDirty;
+	ProxyImageInterface._GetNativeImage = VidlibProxy_GetNativeImage;
 }
 
 static IMAGE_3D_INTERFACE Proxy3dImageInterface = {
