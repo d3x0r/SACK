@@ -136,7 +136,7 @@ IMAGE_INTERFACE RealImageInterface = {
 												 , GetImageTransformation
 												 , SetImageRotation
 												 , RotateImageAbout
-												 , MarkImageDirty
+												 , MarkImageUpdated
 
                                      , NULL  // DumpFontCache
                                      , NULL  // RerenderFont

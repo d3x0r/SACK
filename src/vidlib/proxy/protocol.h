@@ -82,6 +82,14 @@ PREFIX_PACKED struct line_data
 	CDATA color;
 } PACKED;
 
+
+PREFIX_PACKED struct mouse_event_data
+{
+	PTRSZVAL server_render_id;
+	S_32 x, y;
+	_32 b;
+} PACKED;
+
 PREFIX_PACKED struct common_message {
 	_8 message_id;
 	union
@@ -99,6 +107,7 @@ PREFIX_PACKED struct common_message {
 		struct blot_image_data blot_image;
 		struct blot_scaled_image_data blot_scaled_image;
 		struct line_data line;
+		struct mouse_event_data mouse_event;
 		MSGBLOCK( open_display_reply,  PTRSZVAL server_display_id; PTRSZVAL client_display_id; );
 	} data;
 } PACKED;
@@ -127,6 +136,8 @@ enum proxy_message_id{
 							, PMID_DrawLine // 13
 
 							, PMID_UnmakeImage // 14
+							, PMID_Event_Mouse // 15 (from client to server)
+							, PMID_Event_Key // 16 (from client to server)
 							, PMID_
 
 							, PMID_LAST_PROXY_MESSAGE
@@ -136,6 +147,7 @@ enum proxy_message_id{
 							, PMID_GetRenderTransform = PMID_LAST_PROXY_MESSAGE
 							, PMID_ClipPoints
 							, PMID_GetViewVolume
+							, 
 
 
 };

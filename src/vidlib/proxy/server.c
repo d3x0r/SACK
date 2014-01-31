@@ -9,6 +9,9 @@
 #include <json_emitter.h>
 #include "server_local.h"
 
+static IMAGE_INTERFACE ProxyImageInterface;
+
+
 static void FormatColor( PVARTEXT pvt, CPOINTER data )
 {
 	vtprintf( pvt, "\"rgba(%u,%u,%u,%g)\""
@@ -37,6 +40,13 @@ static struct json_context_object *WebSockInitReplyJson( enum proxy_message_id m
 	case PMID_Reply_OpenDisplayAboveUnderSizedAt:
 		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
 		json_add_object_member( cto_data, WIDE("client_render_id"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL, 0 );
+		break;
+	case PMID_Event_Mouse:
+		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("b"), ofs = ofs + sizeof(S_32), JSON_Element_Unsigned_Integer_32, 0 );
+
 		break;
 	}
 	return cto;
@@ -516,16 +526,23 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 	POINTER msg = NULL;
 	struct server_proxy_client *client= (struct server_proxy_client *)psv;
 	struct json_context_object *json_object;
-	((char*)buffer)[msglen] = 0;
+	lprintf( "Received:%s", buffer );
 	if( json_parse_message( l.json_reply_context, buffer, msglen, &json_object, &msg ) )
 	{
 		struct common_message *message = (struct common_message *)msg;
 		switch( message->message_id )
 		{
-		case PMID_Reply_OpenDisplayAboveUnderSizedAt:
+		case PMID_Reply_OpenDisplayAboveUnderSizedAt:  // depricated; server does not keep client IDs
 			{
 				PVPRENDER render = GetLink( &l.renderers, message->data.open_display_reply.server_display_id );
 				SetLink( &render->remote_render_id, FindLink( &l.clients, client ), message->data.open_display_reply.client_display_id );
+			}
+			break;
+		case PMID_Event_Mouse:
+			{
+				PVPRENDER render = GetLink( &l.renderers, message->data.mouse_event.server_render_id );
+				if( render->mouse_callback )
+					render->mouse_callback( render->psv_mouse_callback, message->data.mouse_event.x, message->data.mouse_event.y, message->data.mouse_event.b );
 			}
 			break;
 		}
@@ -597,6 +614,8 @@ static PVPImage Internal_MakeImageFileEx ( INDEX iRender, _32 Width, _32 Height 
 	image->h = Height;
 	image->render_id = iRender;
 	image->image = l.real_interface->_MakeImageFileEx( Width, Height DBG_RELAY );
+	image->image->reverse_interface = &ProxyImageInterface;
+	image->image->reverse_interface_instance = image;
 	if( iRender != INVALID_INDEX )
 		image->image->flags |= IF_FLAG_FINAL_RENDER;
 	SendClientMessage( PMID_MakeImage, image, iRender );
@@ -887,7 +906,7 @@ static void CPROC VidlibProxy_Redraw( PRENDERER r )
 {
 	PVPRENDER render = (PVPRENDER)r;
 	if( render->redraw )
-		render->redraw( render->psv_redraw, render );
+		render->redraw( render->psv_redraw, (PRENDERER)render );
 }
 
 static void CPROC VidlibProxy_MakeAbsoluteTopmost(PRENDERER r)
@@ -1055,7 +1074,6 @@ static RENDER_INTERFACE ProxyInterface = {
 static void InitProxyInterface( void )
 {
 	ProxyInterface._RequiresDrawAll = VidlibProxy_RequiresDrawAll;
-
 }
 
 static RENDER3D_INTERFACE Proxy3dInterface = {
@@ -1096,7 +1114,6 @@ static Image CPROC VidlibProxy_MakeSubImageEx  ( Image pImage, S_32 x, S_32 y, _
 	image->h = height;
 	image->render_id = ((PVPImage)pImage)->render_id;
 	image->image = l.real_interface->_MakeSubImageEx( ((PVPImage)pImage)->image, x, y, width, height DBG_RELAY );
-
 	image->parent = (PVPImage)pImage;
 	if( image->next = ((PVPImage)pImage)->child )
 		image->next->prior = image;
@@ -1123,7 +1140,8 @@ static Image CPROC VidlibProxy_RemakeImageEx	 ( Image pImage, PCOLOR pc, _32 wid
 	image->w = width;
 	image->h = height;
 	image->image = l.real_interface->_RemakeImageEx( image->image, pc, width, height DBG_RELAY );
-
+	image->image->reverse_interface = &ProxyImageInterface;
+	image->image->reverse_interface_instance = image;
 	AddLink( &l.images, image );
 	image->id = FindLink( &l.images, image );
 	return (Image)image;
@@ -1635,6 +1653,8 @@ static void SmearRenderFlag( PVPImage image )
 	{
 		if( image->image && ( ( image->render_id = image->parent->render_id ) != INVALID_INDEX ) )
 			image->image->flags |= IF_FLAG_FINAL_RENDER;
+		image->image->reverse_interface = &ProxyImageInterface;
+		image->image->reverse_interface_instance = image;
 		SmearRenderFlag( image->child );
 	}
 }
@@ -1657,6 +1677,19 @@ static void CPROC VidlibProxy_AdoptSubImage ( Image pFoster, Image pOrphan )
 			l.real_interface->_AdoptSubImage( foster->image, orphan->image );
 	}
 }
+
+static void CPROC VidlibProxy_TransferSubImages( Image pImageTo, Image pImageFrom )
+{
+	PVPImage tmp;
+	while( tmp = ((PVPImage)pImageFrom)->child )
+	{
+		// moving a child allows it to keep all of it's children too?
+		// I think this is broken in that case; Orphan removes from the family entirely?
+		VidlibProxy_OrphanSubImage( (Image)tmp );
+		VidlibProxy_AdoptSubImage( (Image)pImageTo, (Image)tmp );
+	}
+}
+
 	/* <combine sack::image::MakeSpriteImageFileEx@CTEXTSTR fname>
 		
 		\ \																			*/
@@ -1762,7 +1795,10 @@ IMAGE_PROC_PTR( CDATA, MakeAlphaColor )( COLOR_CHANNEL r, COLOR_CHANNEL green, C
 IMAGE_PROC_PTR( PTRANSFORM, GetImageTransformation )( Image pImage );
 IMAGE_PROC_PTR( void, SetImageRotation )( Image pImage, int edge_flag, RCOORD offset_x, RCOORD offset_y, RCOORD rx, RCOORD ry, RCOORD rz );
 IMAGE_PROC_PTR( void, RotateImageAbout )( Image pImage, int edge_flag, RCOORD offset_x, RCOORD offset_y, PVECTOR vAxis, RCOORD angle );
-IMAGE_PROC_PTR( void, MarkImageDirty )( Image pImage );
+
+static void CPROC VidlibProxy_MarkImageDirty ( Image pImage )
+{
+}
 
 IMAGE_PROC_PTR( void, DumpFontCache )( void );
 IMAGE_PROC_PTR( void, RerenderFont )( SFTFont font, S_32 width, S_32 height, PFRACTION width_scale, PFRACTION height_scale );
@@ -1779,7 +1815,7 @@ IMAGE_PROC_PTR( void, DumpFontFile )( CTEXTSTR name, SFTFont font_to_dump );
 IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA color, SFTFont font, VECTOR o, LOGICAL render_pixel_scaled );
 
 
-static IMAGE_INTERFACE ProxyImageInterface = {
+ IMAGE_INTERFACE ProxyImageInterface = {
 	VidlibProxy_SetStringBehavior,
 		VidlibProxy_SetBlotMethod,
 		VidlibProxy_BuildImageFileEx,
@@ -1967,7 +2003,8 @@ static void InitImageInterface( void )
 	ProxyImageInterface._GetFontHeight = VidlibProxy_GetFontHeight;
 	ProxyImageInterface._OrphanSubImage = VidlibProxy_OrphanSubImage;
 	ProxyImageInterface._AdoptSubImage = VidlibProxy_AdoptSubImage;
-
+	ProxyImageInterface._TransferSubImages = VidlibProxy_TransferSubImages;
+	ProxyImageInterface._MarkImageDirty = VidlibProxy_MarkImageDirty;
 }
 
 static IMAGE_3D_INTERFACE Proxy3dImageInterface = {
@@ -2028,7 +2065,8 @@ PRIORITY_PRELOAD( RegisterProxyInterface, VIDLIB_PRELOAD_PRIORITY )
 
 	// have to init all of the reply message formats;
 	// sends will be initialized on-demand
-	WebSockInitReplyJson( PMID_Reply_OpenDisplayAboveUnderSizedAt );
+	//WebSockInitReplyJson( PMID_Reply_OpenDisplayAboveUnderSizedAt );
+	WebSockInitReplyJson( PMID_Event_Mouse );
 }
 
 

@@ -48,9 +48,9 @@ int CPROC ReloadOpenGlTexture( Image child_image, int option );
 int CPROC ReloadOpenGlShadedTexture( Image child_image, int option, CDATA color );
 int CPROC ReloadOpenGlMultiShadedTexture( Image child_image, int option, CDATA r, CDATA g, CDATA b );
 
-Image AllocateCharacterSpaceByFont( SFTFont font, PCHARACTER character );
+Image AllocateCharacterSpaceByFont( Image target_image, SFTFont font, PCHARACTER character );
 int ReloadOpenGlTexture( Image image, int option );
 void TranslateCoord( Image image, S_32 *x, S_32 *y );
-struct glSurfaceImageData * MarkImageUpdated( Image image );
+struct glSurfaceImageData * CPROC MarkImageUpdated( Image image );
 
 IMAGE_NAMESPACE_END

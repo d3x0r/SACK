@@ -15,6 +15,8 @@
 
 IMAGE_NAMESPACE
 
+extern void MarkImageUpdated( Image child_image );
+
 IMAGE_INTERFACE RealImageInterface = {
   SetStringBehavior
 , SetBlotMethod
@@ -138,7 +140,7 @@ IMAGE_INTERFACE RealImageInterface = {
 												 , GetImageTransformation
 												 , SetImageRotation
 												 , RotateImageAbout
-                                     , MarkImageDirty
+                                     , MarkImageUpdated
 };
 
 #undef GetImageInterface

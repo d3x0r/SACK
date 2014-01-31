@@ -1206,10 +1206,6 @@ void RotateImageAbout( Image pImage, int edge_flag, RCOORD offset_x, RCOORD offs
 	// no-op
 }
 
-void MarkImageDirty( Image pImage )
-{
-	// no-op
-}
 #else
 PTRANSFORM GetImageTransformation( Image pImage )
 {
@@ -1271,16 +1267,6 @@ void RotateImageAbout( Image pImage, int edge_flag, RCOORD offset_x, RCOORD offs
 	DestroyTransform( trans );
 }
 
-void MarkImageDirty( Image pImage )
-{
-#if defined( _D3D_DRIVER )
-	extern void MarkImageUpdated( Image child_image );
-#endif
-#if defined( _OPENGL_DRIVER )
-	extern struct glSurfaceImageData * MarkImageUpdated( Image child_image );
-#endif
-	MarkImageUpdated( pImage );
-}
 #endif
 
 //---------------------------------------------------------------------------
@@ -1604,6 +1590,18 @@ Image GetShadedImage( Image child_image, CDATA red, CDATA green, CDATA blue )
 	}
 }
 
+void TransferSubImages( Image pImageTo, Image pImageFrom )
+{
+	Image tmp;
+	while( tmp = pImageFrom->pChild )
+	{
+		// moving a child allows it to keep all of it's children too?
+		// I think this is broken in that case; Orphan removes from the family entirely?
+		OrphanSubImage( tmp );
+		AdoptSubImage( pImageTo, tmp );
+	}
+
+}
 
 
 

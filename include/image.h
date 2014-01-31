@@ -1456,6 +1456,13 @@ IMAGE_PROC  void IMAGE_API Render3dImage( Image pImage, PCVECTOR o, LOGICAL rend
 
 IMAGE_PROC  void IMAGE_API Render3dText( CTEXTSTR string, int characters, CDATA color, SFTFont font, PCVECTOR o, LOGICAL render_pixel_scaled );
 
+/* 
+  Utilized by fonts with images with reverse_interface set to transfer child images;
+  may be generally useful; but had to be exposed through interface
+  Might be a shallow move....
+ */
+IMAGE_PROC  void IMAGE_API TransferSubImages( Image pImageTo, Image pImageFrom );
+
 /* These flags are used in SetImageRotation and RotateImageAbout
    functions - these are part of the 3D driver interface
    extension. They allow for controlling how the rotation is
@@ -1863,6 +1870,10 @@ IMAGE_PROC_PTR( void, SetImageTransformRelation )( Image pImage, enum image_tran
 IMAGE_PROC_PTR( void, Render3dImage )( Image pImage, PCVECTOR o, LOGICAL render_pixel_scaled );
 IMAGE_PROC_PTR( void, DumpFontFile )( CTEXTSTR name, SFTFont font_to_dump );
 IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA color, SFTFont font, VECTOR o, LOGICAL render_pixel_scaled );
+
+// transfer all sub images to new image using appropriate methods
+// extension for internal fonts to be utilized by external plugins...
+IMAGE_PROC_PTR( void, TransferSubImages )( Image pImageTo, Image pImageFrom );
 
 } IMAGE_INTERFACE, *PIMAGE_INTERFACE;
 

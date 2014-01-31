@@ -82,28 +82,28 @@ PFONT GetDefaultFont( void )
 	return &DEFAULTFONT;
 }
 
-#define CharPlotAlpha(pImage,x,y,color) plotalpha( pImage, x, y, color )
+#define CharPlotAlpha(pRealImage,pImage,x,y,color) ( pRealImage->reverse_interface? pRealImage->reverse_interface->_plotalpha[0]( (Image)pRealImage->reverse_interface_instance, x, y, color ) : plotalpha( pImage, x, y, color ) )
 
 //---------------------------------------------------------------------------
-void CharPlotAlpha8( ImageFile *pImage, S_32 x, S_32 y, _32 data, CDATA fore, CDATA back )
+void CharPlotAlpha8( Image pRealImage, ImageFile *pImage, S_32 x, S_32 y, _32 data, CDATA fore, CDATA back )
 {
 	if( back )
-		CharPlotAlpha( pImage, x, y, back );
+		CharPlotAlpha( pRealImage, pImage, x, y, back );
 	if( data )
-		CharPlotAlpha( pImage, x, y, ( fore & 0xFFFFFF ) | ( (((_32)data*AlphaVal(fore))&0xFF00) << 16 ) );
+		CharPlotAlpha( pRealImage, pImage, x, y, ( fore & 0xFFFFFF ) | ( (((_32)data*AlphaVal(fore))&0xFF00) << 16 ) );
 }
 _32 CharData8( _8 *bits, _8 bit )
 {
 	return bits[bit];
 }
 //---------------------------------------------------------------------------
-void CharPlotAlpha2( ImageFile *pImage, S_32 x, S_32 y, _32 data, CDATA fore, CDATA back )
+void CharPlotAlpha2( Image pRealImage, ImageFile *pImage, S_32 x, S_32 y, _32 data, CDATA fore, CDATA back )
 {
 	if( back )
-		CharPlotAlpha( pImage, x, y, back );
+		CharPlotAlpha( pRealImage, pImage, x, y, back );
 	if( data )
 	{
-		CharPlotAlpha( pImage, x, y, ( fore & 0xFFFFFF ) | ( (((_32)((data&3)+1)*(AlphaVal(fore)))&0x03FC) << 22 ) );
+		CharPlotAlpha( pRealImage, pImage, x, y, ( fore & 0xFFFFFF ) | ( (((_32)((data&3)+1)*(AlphaVal(fore)))&0x03FC) << 22 ) );
 	}
 }
 _32 CharData2( _8 *bits, _8 bit )
@@ -111,12 +111,17 @@ _32 CharData2( _8 *bits, _8 bit )
 	return (bits[bit>>2] >> (2*(bit&3)))&3;
 }
 //---------------------------------------------------------------------------
-void CharPlotAlpha1( ImageFile *pImage, S_32 x, S_32 y, _32 data, CDATA fore, CDATA back )
+void CharPlotAlpha1( Image pRealImage, ImageFile *pImage, S_32 x, S_32 y, _32 data, CDATA fore, CDATA back )
 {
+	lprintf( "plot %d %d", x, y );
+	if( x ==1 && y == 3 )
+	{
+		int a = 3;
+	}
 	if( data )
-		CharPlotAlpha( pImage, x, y, fore );
+		CharPlotAlpha( pRealImage, pImage, x, y, fore );
 	else if( back )
-		CharPlotAlpha( pImage, x, y, back );
+		CharPlotAlpha( pRealImage, pImage, x, y, back );
 }
 _32 CharData1( _8 *bits, _8 bit )
 {
@@ -168,7 +173,8 @@ enum order_type {
 	OrderPoints,OrderPointsVertical,OrderPointsInvert,OrderPointsVerticalInvert
 };
 
-static _32 PutCharacterFontX ( ImageFile *pImage
+static _32 PutCharacterFontX ( ImageFile *pRealImage
+							  , ImageFile *pImage
 									  , S_32 x, S_32 y
 									  , CDATA color, CDATA background
 									  , _32 c, PFONT UseFont
@@ -184,7 +190,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 	PCHARACTER pchar;
 	P_8 data;
 	P_8 dataline;
-	void (*CharPlotAlphax)( ImageFile *pImage, S_32 x, S_32 y, _32 data, CDATA fore, CDATA back );
+	void (*CharPlotAlphax)( Image pRealImage, ImageFile *pImage, S_32 x, S_32 y, _32 data, CDATA fore, CDATA back );
 	_32 (*CharDatax)( _8 *bits, _8 bit );
 	if( !UseFont )
 		UseFont = &DEFAULTFONT;
@@ -201,11 +207,11 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 
 	if( !UseFont->character[c]->cell && ( pImage->flags & IF_FLAG_FINAL_RENDER ) )
 	{
-		Image image = AllocateCharacterSpaceByFont( UseFont, UseFont->character[c] );
+		Image image = AllocateCharacterSpaceByFont( pImage, UseFont, UseFont->character[c] );
 		// it's the same characteristics... so we should just pass same step XY
 		// oh wait - that's like for lines for sideways stuff... uhmm...should get direction and render 4 bitmaps
 		//lprintf( "Render to image this character... %p", image );
-		PutCharacterFontX( image, 0, 0, BASE_COLOR_WHITE, 0, c, UseFont, OrderPoints, StepXNormal, StepYNormal );
+		PutCharacterFontX( pImage, image, 0, 0, BASE_COLOR_WHITE, 0, c, UseFont, OrderPoints, StepXNormal, StepYNormal );
 	}
 
 	if( pImage->flags & IF_FLAG_FINAL_RENDER )
@@ -253,11 +259,11 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 		}
 #if !defined( __3D__ )
 
-		if( pImage->reverse_interface )
+		if( pRealImage->reverse_interface )
 		{
 			if( background )
-				pImage->reverse_interface->_BlatColorAlpha( pImage, xd, yd, pchar->cell->real_width, pchar->cell->real_height, background );
-			pImage->reverse_interface->_BlotImageSizedEx( pImage, pifSrc, xd, yd, xs, ys, pchar->cell->real_width, pchar->cell->real_height, TRUE, BLOT_SHADED|orientation, color );
+				pRealImage->reverse_interface->_BlatColorAlpha( (Image)pImage->reverse_interface_instance, xd, yd, pchar->cell->real_width, pchar->cell->real_height, background );
+			pRealImage->reverse_interface->_BlotImageSizedEx( (Image)pImage->reverse_interface_instance, pifSrc, xd, yd, xs, ys, pchar->cell->real_width, pchar->cell->real_height, TRUE, BLOT_SHADED|orientation, color );
 		}
 		else
 		{
@@ -799,24 +805,24 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			for( line = 0; line < UseFont->baseline - pchar->ascent; line++ )
 			{
 				for( col = 0; col < pchar->width; col++ )
-					CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col), background );
+					CharPlotAlpha( pRealImage, pImage, StepX(x,col,line), StepY(y,line,col), background );
 			}
 			for( ; line <= UseFont->baseline - pchar->descent ; line++ )
 			{
 				dataline = data;
 				col = 0;
 				for( col = 0; col < pchar->offset; col++ )
-					CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col), background );
+					CharPlotAlpha( pRealImage, pImage, StepX(x,col,line), StepY(y,line,col), background );
 				for( bit = 0; bit < size; col++, bit++ )
-					CharPlotAlphax( pImage, StepX(x,col,line), StepY(y,line,col), CharDatax( data, bit ), color, background );
+					CharPlotAlphax( pRealImage, pImage, StepX(x,col,line), StepY(y,line,col), CharDatax( data, bit ), color, background );
 				for( ; col < width; col++ )
-					CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col),background );
+					CharPlotAlpha( pRealImage, pImage, StepX(x,col,line), StepY(y,line,col),background );
 				data += inc;
 			}
 			for( ; line < UseFont->height; line++ )
 			{
 				for( col = 0; col < pchar->width; col++ )
-					CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col), background );
+					CharPlotAlpha( pRealImage, pImage, StepX(x,col,line), StepY(y,line,col), background );
 			}
 		}
 		else
@@ -840,14 +846,17 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				{
 					_8 chardata = (_8)CharDatax( data, bit );
 					if( chardata )
-						CharPlotAlphax( pImage, StepX(x,col,line), StepY(y,line,col)
+						CharPlotAlphax( pRealImage, pImage, StepX(x,col,line), StepY(y,line,col)
 										  , chardata
 										  , color, 0 );
 				}
 				data += inc;
 			}
 		}
-		MarkImageUpdated( pImage );
+		if( pRealImage->reverse_interface )
+			pRealImage->reverse_interface->_MarkImageDirty( (Image)pRealImage->reverse_interface_instance );
+		else
+			MarkImageUpdated( pImage );
 	}
 	return pchar->width;
 }
@@ -857,7 +866,7 @@ static _32 _PutCharacterFont( ImageFile *pImage
 											  , CDATA color, CDATA background
 											  , _32 c, PFONT UseFont )
 {
-	return PutCharacterFontX( pImage, x, y, color, background, c, UseFont, OrderPoints
+	return PutCharacterFontX( pImage, pImage, x, y, color, background, c, UseFont, OrderPoints
 									 , StepXNormal, StepYNormal );
 }
 
@@ -866,7 +875,7 @@ static _32 _PutCharacterVerticalFont( ImageFile *pImage
 														 , CDATA color, CDATA background
 														 , _32 c, PFONT UseFont )
 {
-	return PutCharacterFontX( pImage, x, y, color, background, c, UseFont
+	return PutCharacterFontX( pImage, pImage, x, y, color, background, c, UseFont
 									 , OrderPointsVertical, StepXVertical, StepYVertical );
 }
 
@@ -876,7 +885,7 @@ static _32 _PutCharacterInvertFont( ImageFile *pImage
 													, CDATA color, CDATA background
 													, _32 c, PFONT UseFont )
 {
-	return PutCharacterFontX( pImage, x, y, color, background, c, UseFont
+	return PutCharacterFontX( pImage, pImage, x, y, color, background, c, UseFont
 									, OrderPointsInvert, StepXInvert, StepYInvert );
 }
 
@@ -885,7 +894,7 @@ static _32 _PutCharacterVerticalInvertFont( ImageFile *pImage
 													, CDATA color, CDATA background
 													, _32 c, PFONT UseFont )
 {
-	return PutCharacterFontX( pImage, x, y, color, background, c, UseFont
+	return PutCharacterFontX( pImage, pImage, x, y, color, background, c, UseFont
 									, OrderPointsVerticalInvert, StepXInvertVertical, StepYInvertVertical );
 }
 
@@ -894,7 +903,7 @@ void PutCharacterFont( ImageFile *pImage
 											  , CDATA color, CDATA background
 											  , TEXTCHAR c, PFONT UseFont )
 {
-	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
+	PutCharacterFontX( pImage, pImage, x, y, color, background, c, UseFont
 						  , OrderPointsVerticalInvert, StepXNormal, StepYNormal );
 }
 
@@ -903,7 +912,7 @@ void PutCharacterVerticalFont( ImageFile *pImage
                              , CDATA color, CDATA background
                              , TEXTCHAR c, PFONT UseFont )
 {
-	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
+	PutCharacterFontX( pImage, pImage, x, y, color, background, c, UseFont
 						  , OrderPoints, StepXVertical, StepYVertical );
 }
 
@@ -913,7 +922,7 @@ void PutCharacterInvertFont( ImageFile *pImage
                            , CDATA color, CDATA background
                            , TEXTCHAR c, PFONT UseFont )
 {
-	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
+	PutCharacterFontX( pImage, pImage, x, y, color, background, c, UseFont
 						  , OrderPointsInvert, StepXInvert, StepYInvert );
 }
 
@@ -922,7 +931,7 @@ void PutCharacterVerticalInvertFont( ImageFile *pImage
                                    , CDATA color, CDATA background
                                    , TEXTCHAR c, PFONT UseFont )
 {
-	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
+	PutCharacterFontX( pImage, pImage, x, y, color, background, c, UseFont
 						  , OrderPointsVerticalInvert, StepXInvertVertical, StepYInvertVertical );
 }
 

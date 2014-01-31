@@ -13,12 +13,12 @@ function WebSocketTest()
    	var ws = undefined;
 	if( "WebSocketDraft" in window )
   	{
-		alert( "Draft websocket availabe" );
+		//alert( "Draft websocket availabe" );
      		ws = new WebSocket( default_connect_address );
   	}
   	if( "MozWebSocket" in window )
   	{
-     		alert( "mozwebsocket..." );
+     		//alert( "mozwebsocket..." );
      
 		try
                 {
@@ -33,14 +33,14 @@ function WebSocketTest()
   		alert( "mozwebsocket..." );
   if ("WebSocket" in window)
   {
-     alert("WebSocket is supported by your Browser!");
+     //alert("WebSocket is supported by your Browser!");
      // Let us open a web socket
      ws = new WebSocket( default_connect_address );
   }
   
   if( ws === undefined )
   {
-  	alert( "No Support works." );
+  	alert( "No WebSocket Support... ?" );
   }
   return ws;
 } 

@@ -9,6 +9,9 @@
 
 IMAGE_NAMESPACE
 
+extern void CPROC MarkImageUpdated( Image child_image );
+
+
 void CPROC Nothing( void )
 {
    return;
@@ -137,7 +140,7 @@ IMAGE_INTERFACE RealImageInterface = {
 												 , GetImageTransformation
 												 , SetImageRotation
 												 , RotateImageAbout
-                                     , MarkImageDirty
+                                     , MarkImageUpdated
 
 												 , DumpFontCache
 												 , RerenderFont

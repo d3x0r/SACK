@@ -702,7 +702,7 @@ JSON_EMITTER_PROC( struct json_context_object *, json_add_object_member_object_a
 																												  , enum JSON_ObjectElementTypes type
 																												  , struct json_context_object *child_object
 																												  , int count
-																												  , int count_offset
+																												  , size_t count_offset
 																												  )
 {
 	struct json_context *context = object->context;
