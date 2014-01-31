@@ -25,13 +25,16 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, P_8 p
 	{
 		if( length > 32767 )
 		{
-			int block;
-			for( block = 0; block < ( length / 8100 ); block++ )
+			if( 1 ) // auto fragment large packets
 			{
-				SendWebSocketMessage( pc, block == 0 ?opcode:0, 0, do_mask, payload + block * 8100, 8100);
+				int block;
+				for( block = 0; block < ( length / 8100 ); block++ )
+				{
+					SendWebSocketMessage( pc, block == 0 ?opcode:0, 0, do_mask, payload + block * 8100, 8100);
+				}
+				SendWebSocketMessage( pc, 0, final, do_mask, payload + block * 8100, length - block * 8100 );
+				return;
 			}
-			SendWebSocketMessage( pc, 0, final, do_mask, payload + block * 8100, length - block * 8100 );
-			return;
 			length_out += 8; // need 8 more bytes for a really long length
 		}
 		else

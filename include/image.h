@@ -1874,7 +1874,9 @@ IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA col
 // transfer all sub images to new image using appropriate methods
 // extension for internal fonts to be utilized by external plugins...
 IMAGE_PROC_PTR( void, TransferSubImages )( Image pImageTo, Image pImageFrom );
-
+// when using reverse interfaces, need a way to get the real image
+// from the fake image (proxy image) 
+IMAGE_PROC_PTR( Image, GetNativeImage )( Image pImageTo );
 } IMAGE_INTERFACE, *PIMAGE_INTERFACE;
 
 
