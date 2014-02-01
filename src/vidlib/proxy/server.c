@@ -174,13 +174,13 @@ static TEXTSTR EncodeImage( Image image, size_t *outsize )
 		_8 *buf;
 		if( PngImageFile( image, &buf, &length ) )
 		{
-			if( 0 ) 
 			{
 				TEXTCHAR tmpname[32];
 				static int n;
 				FILE *out;
+				lprintf( "Image length %d =%d", n, length );
 				snprintf( tmpname, 32, "blah%d.png", n++ );
-				out = fopen( tmpname, "wt" );
+				out = fopen( tmpname, "wb" );
 				fwrite( buf, 1, length, out );
 				fclose( out );
 			}
@@ -235,7 +235,7 @@ static TEXTSTR EncodeImage( Image image, size_t *outsize )
 			static int n;
 			FILE *out;
 			snprintf( tmpname, 32, "blah%d.bmp", n++ );
-			out = fopen( tmpname, "wt" );
+			out = fopen( tmpname, "wb" );
 			fwrite( header, 1, length, out );
 			fclose( out );
 		}
