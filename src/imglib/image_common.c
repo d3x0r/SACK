@@ -1434,6 +1434,7 @@ struct shade_cache_image
 
 struct image_common_local_data_tag {
 	PTREEROOT shade_cache;
+	PTREEROOT tint_cache;
 	//GLuint glImageIndex;
 	//PLIST glSurface; // list of struct glSurfaceData *
 	//struct glSurfaceData *glActiveSurface;
@@ -1583,6 +1584,74 @@ Image GetShadedImage( Image child_image, CDATA red, CDATA green, CDATA blue )
 			ce->age = timeGetTime();
 			ce->inverted = 0;
 			BlotImageSizedEx( ce->image, ci->image, 0, 0, 0, 0, image->real_width, image->real_height, 0, BLOT_MULTISHADE, red, green, blue );
+			//ReloadOpenGlTexture( ce->image, 0 );
+			AddLink( &ci->elements, ce );
+			return ce->image;
+		}
+	}
+}
+
+Image GetTintedImage( Image child_image, CDATA color )
+{
+	Image image;
+   if( !l.tint_cache )
+		l.tint_cache = CreateBinaryTreeExtended( 0, ComparePointer, NULL DBG_SRC );
+
+   // go to topmost parent image.
+	for( image = child_image; image && image->pParent; image = image->pParent );
+
+	{
+		POINTER node = FindInBinaryTree( l.tint_cache, (PTRSZVAL)image );
+		struct shade_cache_image *ci = (struct shade_cache_image *)node;
+		struct shade_cache_element *ce;
+
+		if( node )
+		{
+			INDEX idx;
+			int count = 0;
+			struct shade_cache_element *oldest = NULL;
+
+			LIST_FORALL( ci->elements, idx, struct shade_cache_element *, ce )
+			{
+				if( !oldest )
+					oldest = ce;
+				else
+					if( ce->age < oldest->age )
+						oldest = ce;
+				count++;
+				if( ce->r == color )
+				{
+					ce->age = timeGetTime();
+					//ReloadOpenGlTexture( ce->image, 0 );
+					return ce->image;
+				}
+			}
+			if( count > 16 )
+			{
+				// overwrite the oldest image... usually isn't that many
+				ce = oldest;
+			}
+			else
+			{
+				ce = New( struct shade_cache_element );
+				ce->image = MakeImageFile( image->real_width, image->real_height );
+			}
+		}
+		else
+		{
+			ci = New( struct shade_cache_image );
+			ce = New( struct shade_cache_element );
+			ci->image = image;
+			ci->elements = NULL;
+			AddBinaryNode( l.tint_cache, ci, (PTRSZVAL)image );
+
+			ce->image = MakeImageFile( image->real_width, image->real_height );
+		}
+		{
+			ce->r = color;
+			ce->age = timeGetTime();
+			ce->inverted = 0;
+			BlotImageSizedEx( ce->image, ci->image, 0, 0, 0, 0, image->real_width, image->real_height, 0, BLOT_SHADED, color );
 			//ReloadOpenGlTexture( ce->image, 0 );
 			AddLink( &ci->elements, ce );
 			return ce->image;

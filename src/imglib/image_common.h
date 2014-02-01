@@ -11,6 +11,7 @@ IMAGE_NAMESPACE
 typedef unsigned int GLuint;
 #endif
 
+#if defined( __3D__ )
 // this is actually specific, and is not common, but common needs it in CLR
 // because of tight typechecking.
 struct glSurfaceImageData {
@@ -20,12 +21,14 @@ struct glSurfaceImageData {
 	GLuint glIndex;
 };
 #endif
+#endif
 
 void  CPROC cSetColorAlpha( PCDATA po, int oo, int w, int h, CDATA color );
 void  CPROC cSetColor( PCDATA po, int oo, int w, int h, CDATA color );
 
-Image GetInvertedImage( Image child_image );
-Image GetShadedImage( Image child_image, CDATA red, CDATA green, CDATA blue );
+Image CPROC GetInvertedImage( Image child_image );
+Image CPROC GetShadedImage( Image child_image, CDATA red, CDATA green, CDATA blue );
+Image CPROC GetTintedImage( Image child_image, CDATA color );
 
 
 IMAGE_NAMESPACE_END
