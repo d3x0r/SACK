@@ -1108,11 +1108,11 @@ static int OnKeyCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 //CONTROL_PROC_DEF( LISTBOX_CONTROL, LISTBOX, ListBox, (_32 attr) )
 int CPROC InitListBox( PSI_CONTROL pc )
 {
-   //ARG( _32, attr );
+	//ARG( _32, attr );
 	// there are no args to listbox...
 	// there are options though - tree list, etc...
-   // they should be passed!
-   ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
+	// they should be passed!
+	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	if( plb )
 	{
 		S_32 width = 15;
@@ -1122,25 +1122,25 @@ int CPROC InitListBox( PSI_CONTROL pc )
 												 , 0, 0
 												 , pc->surface_rect.width - width
 												 , pc->surface_rect.height );
-      //plb->attr = 0; //attr;
+		//plb->attr = 0; //attr;
 		// test options here... but for now
 		// we only need SINGLE Select - which should
 		// be a 0 flag when choice is made.
 		//if( plb->attr & LISTOPT_TREE )
-	   //	plb->flags.bTree = TRUE;
+		//	plb->flags.bTree = TRUE;
 		plb->flags.bSingle = TRUE;
 		plb->flags.bNoUpdate = TRUE;
 		plb->flags.bInitial = TRUE;
-      plb->flags.bLazyMulti = FALSE;
+		plb->flags.bLazyMulti = FALSE;
 		plb->pcScroll = MakePrivateControl( pc, SCROLLBAR_CONTROL
 													 , pc->surface_rect.width-width, 0
 													 , width, pc->surface_rect.height
 													 , pc->nID );
 		SetScrollUpdateMethod( plb->pcScroll, ScrollBarUpdate, (PTRSZVAL)pc );
 		SetNoFocus( plb->pcScroll );
-      return TRUE;
+		return TRUE;
 	}
-   return FALSE;
+	return FALSE;
 }
 
 //---------------------------------------------------------------------------

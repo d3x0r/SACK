@@ -2587,6 +2587,7 @@ PSI_PROC( void, DisplayFrameOverOnUnder )( PSI_CONTROL pc, PSI_CONTROL over, PRE
 		if( g.flags.bLogDebugUpdate )
 			lprintf( WIDE("-------- OPEN DEVICE") );
 #endif
+		pc->flags.bInitial = FALSE;
 		pf = OpenPhysicalDevice( pc, over, pActImg, under );
 #ifdef DEBUG_UPDAATE_DRAW
 		if( g.flags.bLogDebugUpdate )
