@@ -70,7 +70,7 @@ int bGLColorMode = 0; // this gets set if we're working with BGR native or RGB n
 
 #define REQUIRE_GLUINT
 #include "image_common.h"
-
+#include "local.h"
 #ifndef __arm__
 
 ASM_IMAGE_NAMESPACE
@@ -1623,7 +1623,7 @@ Image GetTintedImage( Image child_image, CDATA color )
 				{
 					ce->age = timeGetTime();
 					if( child_image->flags & IF_FLAG_UPDATED )
-						MarkImageDirty( ce->image );
+						MarkImageUpdated( ce->image );
 
 					//ReloadOpenGlTexture( ce->image, 0 );
 					return ce->image;
@@ -1655,7 +1655,7 @@ Image GetTintedImage( Image child_image, CDATA color )
 			ce->age = timeGetTime();
 			ce->inverted = 0;
 			BlotImageSizedEx( ce->image, ci->image, 0, 0, 0, 0, image->real_width, image->real_height, 0, BLOT_SHADED, color );
-			MarkImageDirty( ce->image );
+			MarkImageUpdated( ce->image );
 			//ReloadOpenGlTexture( ce->image, 0 );
 			AddLink( &ci->elements, ce );
 			return ce->image;
