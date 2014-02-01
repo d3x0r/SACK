@@ -6,7 +6,7 @@
 #undef IMAGE_SOURCE
 #include <image.h>
 #include "fntglobal.h"
-
+#include "image_common.h"
 IMAGE_NAMESPACE
 
 extern void CPROC MarkImageUpdated( Image child_image );
@@ -150,6 +150,11 @@ IMAGE_INTERFACE RealImageInterface = {
 												 , NULL // set image transofrm
 												 , NULL // render 3d image
                                      , DumpFontFile
+									 , NULL //IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA color, SFTFont font, VECTOR o, LOGICAL render_pixel_scaled );
+									 , NULL //IMAGE_PROC_PTR( void, TransferSubImages )( Image pImageTo, Image pImageFrom );
+									 , NULL //IMAGE_PROC_PTR( Image, GetNativeImage )( Image pImageTo );
+									 , GetTintedImage
+									, GetShadedImage 
 };
 
 #undef GetImageInterface

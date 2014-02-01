@@ -1877,6 +1877,11 @@ IMAGE_PROC_PTR( void, TransferSubImages )( Image pImageTo, Image pImageFrom );
 // when using reverse interfaces, need a way to get the real image
 // from the fake image (proxy image) 
 IMAGE_PROC_PTR( Image, GetNativeImage )( Image pImageTo );
+
+// low level support for proxy; this exposes some image_common.c routines
+IMAGE_PROC_PTR( Image, GetTintedImage )( Image child_image, CDATA color );
+IMAGE_PROC_PTR( Image, GetShadedImage )( Image child_image, CDATA red, CDATA green, CDATA blue );
+
 } IMAGE_INTERFACE, *PIMAGE_INTERFACE;
 
 

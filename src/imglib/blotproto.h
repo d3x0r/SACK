@@ -44,7 +44,8 @@ static _32 _XXr, _XXg, _XXb, aout, atmp, atmp2;
 
 #define SHADEPIXEL(pixel, c ) ( ( ( ( ( (pixel)&0xFF ) * ((c) & 0xFF) ) >> 8 ) & 0xFF )                \
    				       | ( ( ( ( ( ((pixel)>>8)&0xFF ) * (((c)>>8) & 0xFF) ) >> 8 ) & 0xFF ) << 8 )     \
-	   			       | ( ( ( ( ( ((pixel)>>16)&0xFF ) * (((c)>>16) & 0xFF) ) >> 8 ) & 0xFF ) << 16 ) )
+	   			       | ( ( ( ( ( ((pixel)>>16)&0xFF ) * (((c)>>16) & 0xFF) ) >> 8 ) & 0xFF ) << 16 ) \
+					   | ( (pixel) & 0xFF000000 ) )
 
 #define INVERTPIXEL(pixel ) ( ( 255 - ( (pixel)&0xFF ) )           \
    				       | ( ( 255 - ( ((pixel)>>8)&0xFF ) ) << 8 )   \
