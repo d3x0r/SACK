@@ -288,7 +288,7 @@ endif( __LINUX64__ )
 
 # this is where external image libraries are added for windows native builds
 if( NEED_JPEG OR NEED_PNG OR NEED_FREETYPE )
-include( Externals.cmake )
+include( CmakeExternal.txt )
 endif()
 
 
@@ -1077,6 +1077,7 @@ endif( NOT __QNX__ )
     GET_FILENAME_COMPONENT(WIN8_SDK "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows\\v8.0;InstallationFolder]" ABSOLUTE )
   endif( NOT WIN8_SDK OR ( WIN8_SDK STREQUAL "/registry" ) )
 
+  add_subdirectory( src/vidlib/proxy )
   add_subdirectory( src/vidlib/puregl2 )
   add_subdirectory( src/vidlib/puregl )
   if( DIRECTX_SDK )
@@ -1157,6 +1158,8 @@ if( NOT __ANDROID__ )
   set( INTERFACE_TARGET d3d2 )
   DO_CONFIGURE_FILE( ${INTERFACE_CONFIGURATION} ${INTERFACE_TARGET}.interface.conf )
   set( INTERFACE_TARGET d3d3 )
+  DO_CONFIGURE_FILE( ${INTERFACE_CONFIGURATION} ${INTERFACE_TARGET}.interface.conf )
+  set( INTERFACE_TARGET headless )
   DO_CONFIGURE_FILE( ${INTERFACE_CONFIGURATION} ${INTERFACE_TARGET}.interface.conf )
 endif( NOT __ANDROID__ )
 

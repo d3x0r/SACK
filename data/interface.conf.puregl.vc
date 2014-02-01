@@ -9,6 +9,14 @@ OPTION DEFAULT /DEFAULT/System Settings/Map INI Local/comports.ini=1
 #option default SACK/Video Render/360 view = 1
 option default sack/vidlib/use interface = ${INTERFACE_TARGET}
 
+if sack/vidlib/use interface == headless
+module bag.image.dll
+module bag.video.proxy.server.dll
+
+alias service render sack.render.proxy.server
+alias service image sack.image.proxy.server
+endif
+
 if sack/vidlib/use interface == message
 module bag.display.image.client.plugin
 module bag.display.render.client.plugin
