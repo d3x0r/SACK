@@ -170,6 +170,7 @@ static TEXTSTR EncodeImage( Image image, size_t *outsize )
 {
 	TEXTSTR real_output;
 	size_t length = 0;
+	if( image )
 	{
 		_8 *buf;
 		if( PngImageFile( image, &buf, &length ) )
@@ -201,7 +202,11 @@ static TEXTSTR EncodeImage( Image image, size_t *outsize )
 			Release( buf );
 		}
 	}
-
+	else
+	{
+		(*outsize) = 0;
+		return NULL;
+	}
 	if( 0 )
 	{
 		BITMAPFILEHEADER *header;
@@ -264,7 +269,8 @@ static void ClearDirtyFlag( PVPImage image )
 {
 	for( ; image; image = image->next )
 	{
-		image->image->flags &= ~IF_FLAG_UPDATED;
+		if( image->image )
+			image->image->flags &= ~IF_FLAG_UPDATED;
 		ClearDirtyFlag( image->child );
 	}
 }
@@ -435,6 +441,8 @@ static void SendTCPMessage( PCLIENT pc, INDEX idx, LOGICAL websock, enum proxy_m
 			TEXTSTR encoded_image;
 			size_t outlen;
 			image = va_arg( args, PVPImage );
+			if( !image->image )
+				break;
 			while( image && image->parent ) 
 				image = image->parent;
 			ClearDirtyFlag( image );
@@ -1013,6 +1021,14 @@ static void CPROC VidlibProxy_GetDisplaySizeEx( int nDisplay
 														  , S_32 *x, S_32 *y
 														  , _32 *width, _32 *height)
 {
+	if( x )
+		(*x) = 0;
+	if( y )
+		(*y) = 0;
+	if( width )
+		(*width) = 1024;
+	if( height )
+		(*height) = 768;
 }
 
 static void CPROC VidlibProxy_LockRenderer( PRENDERER render )
@@ -1194,9 +1210,12 @@ static Image CPROC VidlibProxy_MakeSubImageEx  ( Image pImage, S_32 x, S_32 y, _
 	image->w = width;
 	image->h = height;
 	image->render_id = ((PVPImage)pImage)->render_id;
-	image->image = l.real_interface->_MakeSubImageEx( ((PVPImage)pImage)->image, x, y, width, height DBG_RELAY );
-	image->image->reverse_interface = &ProxyImageInterface;
-	image->image->reverse_interface_instance = image;
+	if( ((PVPImage)pImage)->image )
+	{
+		image->image = l.real_interface->_MakeSubImageEx( ((PVPImage)pImage)->image, x, y, width, height DBG_RELAY );
+		image->image->reverse_interface = &ProxyImageInterface;
+		image->image->reverse_interface_instance = image;
+	}
 	image->parent = (PVPImage)pImage;
 	if( image->next = ((PVPImage)pImage)->child )
 		image->next->prior = image;
@@ -1238,8 +1257,11 @@ static Image CPROC VidlibProxy_LoadImageFileFromGroupEx( INDEX group, CTEXTSTR f
 	image->filegroup = group;
 	image->filename = StrDup( filename );
 	image->image = l.real_interface->_LoadImageFileFromGroupEx( group, filename DBG_RELAY );
-	image->w = image->image->actual_width;
-	image->h = image->image->actual_height;
+	if( image->image )
+	{
+		image->w = image->image->actual_width;
+		image->h = image->image->actual_height;
+	}
 	image->render_id = INVALID_INDEX;
 	// don't really need to make this; if it needs to be updated to the client it will be handled later
 	SendClientMessage( PMID_MakeImage, image );
@@ -1429,6 +1451,8 @@ static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32
 
 static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, S_32 y, S_32 xs, S_32 ys, _32 wd, _32 ht, _32 nTransparent, _32 method, ... )
 {
+	if( !((PVPImage)pIF)->image )
+		return;
 	if( ((PVPImage)pDest)->render_id != INVALID_INDEX )
 	{
 		struct json_context_object *cto;
@@ -1555,6 +1579,8 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 	PVPImage image = (PVPImage)pifDest;
 	struct common_message *outmsg;
 	size_t sendlen;
+	if( !((PVPImage)pifSrc)->image )
+		return;
 	cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlotScaledImageSizedTo );
 	if( !cto )
 		cto = WebSockInitJson( PMID_BlotScaledImageSizedTo );
@@ -1899,7 +1925,11 @@ static void CPROC VidlibProxy_TransferSubImages( Image pImageTo, Image pImageFro
 	 /* <combine sack::image::DecodeMemoryToImage@P_8@_32>
 		 
 		 \ \																*/
-	 IMAGE_PROC_PTR( Image, DecodeMemoryToImage )( P_8 buf, _32 size );
+static Image CPROC VidlibProxy_DecodeMemoryToImage ( P_8 buf, _32 size )
+{
+	Image real_image = l.real_interface->_DecodeMemoryToImage( buf, size );
+	return (Image)WrapImageFile( real_image );
+}
 
 /* <combine sack::image::GetFontRenderData@SFTFont@POINTER *@_32 *>
 	
@@ -2029,7 +2059,7 @@ IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA col
 		, NULL // *****   VidlibProxy_rotate_scaled_sprite
 		, NULL // *****   VidlibProxy_rotate_sprite
 		, NULL // *****   VidlibProxy_BlotSprite
-		, NULL // *****   VidlibProxy_DecodeMemoryToImage
+		, VidlibProxy_DecodeMemoryToImage
 		, NULL//VidlibProxy_InternalRenderFontFile
 		, NULL//VidlibProxy_InternalRenderFont
 		, NULL//VidlibProxy_RenderScaledFontData
@@ -2186,7 +2216,8 @@ static void InitImageInterface( void )
 	ProxyImageInterface._DestroyFont = l.real_interface->_DestroyFont;
 	ProxyImageInterface._global_font_data = l.real_interface->_global_font_data;
 	ProxyImageInterface._GetGlobalFonts = l.real_interface->_GetGlobalFonts;
-
+	ProxyImageInterface._InternalRenderFontFile = l.real_interface->_InternalRenderFontFile;
+	ProxyImageInterface._InternalRenderFont = l.real_interface->_InternalRenderFont;
 }
 
 static IMAGE_3D_INTERFACE Proxy3dImageInterface = {
@@ -2233,16 +2264,16 @@ static void CPROC Drop3dProxyImageInterface( POINTER i )
 
 PRIORITY_PRELOAD( RegisterProxyInterface, VIDLIB_PRELOAD_PRIORITY )
 {
+	RegisterInterface( WIDE( "sack.image.proxy.server" ), GetProxyImageInterface, DropProxyImageInterface );
+	RegisterInterface( WIDE( "sack.image.3d.proxy.server" ), Get3dProxyImageInterface, Drop3dProxyImageInterface );
+	RegisterInterface( WIDE( "sack.render.proxy.server" ), GetProxyDisplayInterface, DropProxyDisplayInterface );
+	RegisterInterface( WIDE( "sack.render.3d.proxy.server" ), Get3dProxyDisplayInterface, Drop3dProxyDisplayInterface );
 	LoadFunction( "bag.image.dll", NULL );
 	l.real_interface = (PIMAGE_INTERFACE)GetInterface( WIDE( "sack.image" ) );
 
 	InitProxyInterface();
 	// needs sack.image loaded before; fonts are passed to this
 	InitImageInterface();
-	RegisterInterface( WIDE( "sack.image.proxy.server" ), GetProxyImageInterface, DropProxyImageInterface );
-	RegisterInterface( WIDE( "sack.image.3d.proxy.server" ), Get3dProxyImageInterface, Drop3dProxyImageInterface );
-	RegisterInterface( WIDE( "sack.render.proxy.server" ), GetProxyDisplayInterface, DropProxyDisplayInterface );
-	RegisterInterface( WIDE( "sack.render.3d.proxy.server" ), Get3dProxyDisplayInterface, Drop3dProxyDisplayInterface );
 
 	// wanted to delay-init; until a renderer is actually open..
 	InitService();
