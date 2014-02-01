@@ -17,6 +17,8 @@ function proxy_image()
 	var renderer;  // which render_surface this represents (null if static resource, uses image)
 	var server_id; // what the server calls this image (low number probably) 
 	var image; // actual Image() instance
+	var on_document = false;
+	var server_render_id; // the image may be created before the renderer...
 }
 
 function OpenServer()
@@ -188,6 +190,16 @@ function OpenServer()
 			
 				document.body.appendChild(canvas);
 				render_list.push( render = new render_surface( msg.data.server_render_id, canvas ) );
+				var i;
+				for( i = 0; i < image_list.length; i++ )
+				{
+					if( image_list[i].server_render_id == render.server_id )
+					{
+						console.log( "Fixed image reference" );
+						image_list[i].image = null;
+						image_list[i].renderer = render;
+					}
+				}
 			}
 			else
 			{
@@ -205,12 +217,13 @@ function OpenServer()
         	break;
 		case 6: // PMID_MakeImage
 			var canvas = null;
-			canvas = find_render( msg.data.server_render_id );
+			canvas = find_render( msg.data.server_render_id );			
 			image_list.push( image = new proxy_image() );
 			if( canvas == null )
 			{
 				image.image = new Image();
 			}
+			image.server_render_id = msg.data.server_render_id;
 			image.server_id = msg.data.server_image_id;
 			image.width = msg.data.width;
 			image.height = msg.data.height;
@@ -253,10 +266,12 @@ function OpenServer()
 			break;
 		case 10: // PMID_ImageData
 			image = find_image( msg.data.server_image_id );	
+			console.log( "Updated image source.... "  + msg.data.server_image_id );
+			if( image.on_document )
+				document.body.removeChild(image.image);
 			image.image.src = msg.data.data;
-			
+			image.on_document = true;
 			document.body.appendChild(image.image);
-
 			break;
 		case 11: // PMID_BlotImageSizedTo
 			image = find_image( msg.data.server_image_id );
@@ -362,7 +377,7 @@ function OpenServer()
 			break;
 		
         }
-	}
+	};
 
 	
 	

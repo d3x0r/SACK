@@ -1646,8 +1646,11 @@ Image GetTintedImage( Image child_image, CDATA color )
 				{
 					ce->age = timeGetTime();
 					if( child_image->flags & IF_FLAG_UPDATED )
+					{
+						lprintf( "Last blot to %p(real)  for %08x", ce->image, ce->r );
+						BlotImageSizedEx( ce->image, ci->image, 0, 0, 0, 0, image->real_width, image->real_height, 0, BLOT_SHADED, ce->r );
 						MarkImageUpdated( ce->image );
-
+					}
 					//ReloadOpenGlTexture( ce->image, 0 );
 					return ce->image;
 				}

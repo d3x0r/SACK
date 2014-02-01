@@ -1937,7 +1937,7 @@ static void CPROC VidlibProxy_MarkImageDirty ( Image pImage )
 {
 	// this library tracks the IF_FLAG_UPDATED which is set by native routine;native routine marks child and all parents.
 	l.real_interface->_MarkImageDirty( ((PVPImage)pImage)->image );
-	if( 1 )
+	if( 0 )
 	{
 		size_t outlen;
 		TEXTSTR encoded_image;

@@ -210,8 +210,9 @@ PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 	}
 	else
 		l.scale = 1.0f / l.scale;
-   // this initializes some of the interface methods
-   SetBlotMethod( BLOT_C );
+	// this initializes some of the interface methods
+	SetBlotMethod( BLOT_C );
+	RealImageInterface._IsImageTargetFinal = IsImageTargetFinal;
 }
 
 int link_interface_please;
