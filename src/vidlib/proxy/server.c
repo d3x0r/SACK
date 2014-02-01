@@ -178,7 +178,6 @@ static TEXTSTR EncodeImage( Image image, size_t *outsize )
 				TEXTCHAR tmpname[32];
 				static int n;
 				FILE *out;
-				lprintf( "Image length %d =%d", n, length );
 				snprintf( tmpname, 32, "blah%d.png", n++ );
 				out = fopen( tmpname, "wb" );
 				fwrite( buf, 1, length, out );
@@ -401,6 +400,7 @@ static void SendTCPMessage( PCLIENT pc, INDEX idx, LOGICAL websock, enum proxy_m
 			else
 				SendTCP( pc, msg, sendlen );
 			Release( msg );
+
 			if( image->render_id == INVALID_INDEX )
 				SendTCPMessageV( pc, idx, websock, PMID_ImageData, image );
 		}
@@ -446,7 +446,7 @@ static void SendTCPMessage( PCLIENT pc, INDEX idx, LOGICAL websock, enum proxy_m
 			outmsg->data.image_data.server_image_id = image->id;
 			// include nul in copy
 			MemCpy( outmsg->data.image_data.data, encoded_image, outlen + 1 );
-
+			lprintf( "Send Image %p %d ", image, image->id );
 			if( websock )
 			{
 				json_msg = json_build_message( cto, outmsg );
@@ -680,6 +680,7 @@ static PVPImage Internal_MakeImageFileEx ( INDEX iRender, _32 Width, _32 Height 
 		image->image->flags |= IF_FLAG_FINAL_RENDER;
 	AddLink( &l.images, image );
 	image->id = FindLink( &l.images, image );
+	lprintf( "Make proxy image %p %d(%d,%d)", image, image->id, Width, Height );
 	SendClientMessage( PMID_MakeImage, image, iRender );
 	return image;
 }
@@ -696,6 +697,7 @@ static PVPImage WrapImageFile( Image native )
 	image->image->reverse_interface_instance = image;
 	AddLink( &l.images, image );
 	image->id = FindLink( &l.images, image );
+	lprintf( "Make wrapped proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
 	SendClientMessage( PMID_MakeImage, image, INVALID_INDEX );
 	SendClientMessage( PMID_ImageData, image );
 	return image;
@@ -1179,6 +1181,7 @@ static Image CPROC VidlibProxy_BuildImageFileEx ( PCOLOR pc, _32 width, _32 heig
 	//SendClientMessage( PMID_MakeImageFile, image );
 	AddLink( &l.images, image );
 	image->id = FindLink( &l.images, image );
+	lprintf( "Make built proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
 	return (Image)image;
 }
 
@@ -1201,6 +1204,7 @@ static Image CPROC VidlibProxy_MakeSubImageEx  ( Image pImage, S_32 x, S_32 y, _
 
 	AddLink( &l.images, image );
 	image->id = FindLink( &l.images, image );
+	lprintf( "Make sub proxy image %p %d(%d,%d)  on %p %d", image, image->id, image->w, image->w, ((PVPImage)pImage), ((PVPImage)pImage)->id  );
 	// don't really need to make this; if it needs to be updated to the client it will be handled later
 	SendClientMessage( PMID_MakeSubImage, image );
 
@@ -1242,6 +1246,7 @@ static Image CPROC VidlibProxy_LoadImageFileFromGroupEx( INDEX group, CTEXTSTR f
 	SendClientMessage( PMID_ImageData, image );
 	AddLink( &l.images, image );
 	image->id = FindLink( &l.images, image );
+	lprintf( "loaded proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
 	return (Image)image;
 }
 
@@ -1260,8 +1265,16 @@ static  void CPROC VidlibProxy_UnmakeImageFileEx( Image pif DBG_PASS )
 {
 	if( pif )
 	{
+		PVPImage image = (PVPImage)pif;
 		SendClientMessage( PMID_UnmakeImage, pif );
+		lprintf( "UNMake proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
 		SetLink( &l.images, ((PVPImage)pif)->id, NULL );
+		if( ((PVPImage)pif)->image->reverse_interface )
+		{
+			((PVPImage)pif)->image->reverse_interface = NULL;
+			((PVPImage)pif)->image->reverse_interface_instance = 0;
+			l.real_interface->_UnmakeImageFileEx( ((PVPImage)pif)->image DBG_RELAY );
+		}
 		Release( pif );
 	}
 }
@@ -1455,6 +1468,7 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 				if( !shaded_image->reverse_interface )
 				{
 					// new image, and we need to reverse track it....
+					lprintf( "wrap shaded image for %p %d", ((PVPImage)pIF), ((PVPImage)pIF)->id );
 					actual_image = WrapImageFile( shaded_image );
 				}
 				else
@@ -1564,7 +1578,6 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 	{
 		TEXTSTR json_msg = json_build_message( cto, outmsg );
 		AppendJSON( image, json_msg, outmsg, sendlen );
-		lprintf( "json: %p", json_msg );
 		Release( json_msg );
 	}
 }
@@ -1631,7 +1644,6 @@ DIMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, S_32 x, S_32 y, S_32 xto, S_3
 	{
 		TEXTSTR json_msg = json_build_message( cto, outmsg );
 		AppendJSON( image, json_msg, outmsg, sendlen );
-		lprintf( "json: %p", json_msg );
 		Release( json_msg );
 	}
 
@@ -1923,8 +1935,9 @@ IMAGE_PROC_PTR( void, RotateImageAbout )( Image pImage, int edge_flag, RCOORD of
 
 static void CPROC VidlibProxy_MarkImageDirty ( Image pImage )
 {
+	// this library tracks the IF_FLAG_UPDATED which is set by native routine;native routine marks child and all parents.
 	l.real_interface->_MarkImageDirty( ((PVPImage)pImage)->image );
-	if( 0 )
+	if( 1 )
 	{
 		size_t outlen;
 		TEXTSTR encoded_image;
@@ -2122,6 +2135,14 @@ static CDATA CPROC VidlibProxy_MakeColor( COLOR_CHANNEL r, COLOR_CHANNEL grn, CO
 	return VidlibProxy_MakeAlphaColor( r,grn,b, 0xFF );
 }
 
+static LOGICAL CPROC VidlibProxy_IsImageTargetFinal( Image image )
+{
+	if( image )
+		return ( ((PVPImage)image)->render_id != INVALID_INDEX );
+	return 0;
+}
+
+
 static void InitImageInterface( void )
 {
 	ProxyImageInterface._GetRedValue = VidlibProxy_GetRedValue;
@@ -2142,6 +2163,7 @@ static void InitImageInterface( void )
 	ProxyImageInterface._TransferSubImages = VidlibProxy_TransferSubImages;
 	ProxyImageInterface._MarkImageDirty = VidlibProxy_MarkImageDirty;
 	ProxyImageInterface._GetNativeImage = VidlibProxy_GetNativeImage;
+	ProxyImageInterface._IsImageTargetFinal = VidlibProxy_IsImageTargetFinal;
 
 	// ============= FONT Support ============================
 	// these should go through real_interface

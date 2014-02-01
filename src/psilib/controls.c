@@ -1633,7 +1633,7 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 							 , pc->flags.bParentCleaned
 							 , pc->flags.bTransparent );
 #endif
-				if( !g.flags.always_draw )
+				if( !g.flags.always_draw && !IsImageTargetFinal( pc->Window ) )
 				{
 					if( ( ((pc->parent&&!pc->device) && pc->parent->flags.bDirty ) || pc->flags.bParentCleaned ) && pc->flags.bTransparent )//&& pc->flags.bFirstCleaning )
 					{

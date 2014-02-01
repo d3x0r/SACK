@@ -1462,6 +1462,7 @@ IMAGE_PROC  void IMAGE_API Render3dText( CTEXTSTR string, int characters, CDATA 
   Might be a shallow move....
  */
 IMAGE_PROC  void IMAGE_API TransferSubImages( Image pImageTo, Image pImageFrom );
+IMAGE_PROC  LOGICAL IMAGE_API IsImageTargetFinal( Image image );
 
 /* These flags are used in SetImageRotation and RotateImageAbout
    functions - these are part of the 3D driver interface
@@ -1881,7 +1882,8 @@ IMAGE_PROC_PTR( Image, GetNativeImage )( Image pImageTo );
 // low level support for proxy; this exposes some image_common.c routines
 IMAGE_PROC_PTR( Image, GetTintedImage )( Image child_image, CDATA color );
 IMAGE_PROC_PTR( Image, GetShadedImage )( Image child_image, CDATA red, CDATA green, CDATA blue );
-
+// test for IF_FLAG_FINAL_RENDER (non physical surface/prevent local copy-restore)
+IMAGE_PROC_PTR( LOGICAL, IsImageTargetFinal )( Image image );
 } IMAGE_INTERFACE, *PIMAGE_INTERFACE;
 
 
@@ -2008,6 +2010,8 @@ IMAGE_PROC_PTR( Image, GetShadedImage )( Image child_image, CDATA red, CDATA gre
 #define Render3dImage                  PROC_ALIAS( Render3dImage )
 #define Render3dText                   PROC_ALIAS( Render3dText )
 #define DumpFontFile                   PROC_ALIAS( DumpFontFile )
+#define IsImageTargetFinal                   PROC_ALIAS( IsImageTargetFinal )
+
 //#define global_font_data         (*PROC_ALIAS(global_font_data))
 #endif
 
