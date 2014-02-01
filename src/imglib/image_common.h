@@ -23,6 +23,34 @@ struct glSurfaceImageData {
 #endif
 #endif
 
+struct shade_cache_element {
+	CDATA r,grn,b;
+	Image image;
+	_32 age;
+	LOGICAL inverted;
+};
+
+struct shade_cache_image
+{
+	PLIST elements;
+	Image image;
+};
+
+#ifndef IMAGE_MAIN
+extern
+#endif
+struct image_common_local_data_tag {
+	PTREEROOT shade_cache;
+	PTREEROOT tint_cache;
+	//GLuint glImageIndex;
+	//PLIST glSurface; // list of struct glSurfaceData *
+	//struct glSurfaceData *glActiveSurface;
+	//RCOORD scale;
+	//PTRANSFORM camera; // active camera at begindraw
+} image_common_local;
+//#define l image_common_local
+
+
 void  CPROC cSetColorAlpha( PCDATA po, int oo, int w, int h, CDATA color );
 void  CPROC cSetColor( PCDATA po, int oo, int w, int h, CDATA color );
 
