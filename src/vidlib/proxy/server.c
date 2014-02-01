@@ -1458,7 +1458,11 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 					actual_image = WrapImageFile( shaded_image );
 				}
 				else
+				{
 					actual_image = (PVPImage)shaded_image->reverse_interface_instance;
+					if( shaded_image->flags & IF_FLAG_UPDATED )
+						SendClientMessage( PMID_ImageData, actual_image );
+				}
 				outmsg->data.blot_image.image_id = actual_image->id;
 			}
 			break;
@@ -1482,7 +1486,11 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 					actual_image = WrapImageFile( shaded_image );
 				}
 				else
+				{
 					actual_image = (PVPImage)shaded_image->reverse_interface_instance;
+					if( shaded_image->flags & IF_FLAG_UPDATED )
+						SendClientMessage( PMID_ImageData, actual_image );
+				}
 				outmsg->data.blot_image.image_id = actual_image->id;
 			}
 			break;

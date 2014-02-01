@@ -1622,6 +1622,9 @@ Image GetTintedImage( Image child_image, CDATA color )
 				if( ce->r == color )
 				{
 					ce->age = timeGetTime();
+					if( child_image->flags & IF_FLAG_UPDATED )
+						MarkImageDirty( ce->image );
+
 					//ReloadOpenGlTexture( ce->image, 0 );
 					return ce->image;
 				}
@@ -1652,6 +1655,7 @@ Image GetTintedImage( Image child_image, CDATA color )
 			ce->age = timeGetTime();
 			ce->inverted = 0;
 			BlotImageSizedEx( ce->image, ci->image, 0, 0, 0, 0, image->real_width, image->real_height, 0, BLOT_SHADED, color );
+			MarkImageDirty( ce->image );
 			//ReloadOpenGlTexture( ce->image, 0 );
 			AddLink( &ci->elements, ce );
 			return ce->image;
