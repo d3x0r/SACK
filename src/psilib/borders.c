@@ -470,7 +470,7 @@ void CPROC DrawThinFrame( PCOMMON pc )
 	Image window = pc->Window;
 	_32 width = window->width;
 	_32 height = window->height;
-	if( pc->flags.bInitial || pc->flags.bHidden ) 
+	if( /*pc->flags.bInitial ||*/ pc->flags.bHidden ) 
 		return;
 	do_hline( window, 0, 0, width-1, basecolor(pc)[HIGHLIGHT] );
 	do_vline( window, 0, 0, height-1, basecolor(pc)[HIGHLIGHT] );
@@ -484,7 +484,7 @@ void CPROC DrawThinFrameInverted( PCOMMON pc )
 	Image window = pc->Window;
 	_32 width = window->width;
 	_32 height = window->height;
-	if( pc->flags.bInitial || pc->flags.bHidden ) return;
+	if( /*pc->flags.bInitial ||*/ pc->flags.bHidden ) return;
 	do_hline( window, 0, 0, width-1, basecolor(pc)[SHADOW] );
 	do_vline( window, 0, 0, height-1, basecolor(pc)[SHADOW] );
 	do_vline( window, width -1, 0, height-1, basecolor(pc)[HIGHLIGHT] );
@@ -531,7 +531,7 @@ void DrawThinFrameInset( PSI_CONTROL pc, Image window, int bInvert, int amount )
 void DrawFrameCaption( PCOMMON pc )
 {
 	if( !pc ) return;
-	if( pc->flags.bInitial || pc->flags.bHidden ) return;
+	if( /*pc->flags.bInitial ||*/ pc->flags.bHidden ) return;
 	if( pc->BorderType & BORDER_NOCAPTION ) return;
 	if( ( pc->BorderType & BORDER_TYPE ) == BORDER_NONE ) return;
 	{

@@ -254,6 +254,9 @@ function OpenServer()
 		case 10: // PMID_ImageData
 			image = find_image( msg.data.server_image_id );	
 			image.image.src = msg.data.data;
+			
+			document.body.appendChild(image.image);
+
 			break;
 		case 11: // PMID_BlotImageSizedTo
 			image = find_image( msg.data.server_image_id );

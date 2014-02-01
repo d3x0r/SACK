@@ -9,6 +9,20 @@
 #include <json_emitter.h>
 #include "server_local.h"
 
+IMAGE_NAMESPACE
+#ifdef __cplusplus
+namespace loader {
+#endif
+extern LOGICAL PngImageFile ( Image pImage, _8 ** buf, size_t *size);
+#ifdef __cplusplus
+};
+#endif
+IMAGE_NAMESPACE_END
+#ifdef __cplusplus
+using namespace sack::image::loader;
+#endif
+
+
 static IMAGE_INTERFACE ProxyImageInterface;
 
 
@@ -154,55 +168,94 @@ static void encodeblock( unsigned char in[3], char out[4], int len )
 
 static TEXTSTR EncodeImage( Image image, size_t *outsize )
 {
-	BITMAPFILEHEADER *header;
-	BITMAPV5HEADER *output;
 	TEXTSTR real_output;
 	size_t length;
-	header = (BITMAPFILEHEADER*)NewArray( _8, length = ( ( image->width * image->height * sizeof( CDATA ) ) + sizeof( BITMAPV5HEADER ) + sizeof( BITMAPFILEHEADER ) ) );
-	MemSet( header, 0, sizeof( BITMAPFILEHEADER ) + sizeof( BITMAPV5HEADER ) );
-	header->bfType = 'MB';
-	header->bfSize = (DWORD)length;
-	header->bfOffBits = sizeof( BITMAPV5HEADER ) + sizeof( BITMAPFILEHEADER );
-	output = (BITMAPV5HEADER*)(header + 1);
-
-	output->bV5Size = sizeof( BITMAPV5HEADER );
-	output->bV5Width = image->width;
-	output->bV5Height = image->height;
-	output->bV5Planes = 1;
-	output->bV5BitCount = 32;
-	output->bV5XPelsPerMeter = 120;
-	output->bV5YPelsPerMeter = 120;
-	//output->bV5Intent = LCS_CALIBRATED_RGB;   // 0
-	output->bV5CSType = LCS_sRGB;
 	{
-		PCDATA color_out = (PCDATA)(output + 1);
-		int n;
-		for( n = 0; n < image->height; n++ )
-			MemCpy( color_out + image->width * n, image->image + image->pwidth * n, sizeof( CDATA ) * image->width );
-	}
-
-	{
-		FILE *out = fopen( "blah.bmp", "wt" );
-		fwrite( header, 1, length, out );
-		fclose( out );
-	}
-
-	real_output = NewArray( char, 22 + ( length * 4 / 3 ) + 1 );
-	StrCpy( real_output, "data:image/bmp;base64," );
-	{
-		int n;
-		for( n = 0; n < (length)/3; n++ )
+		_8 *buf;
+		PngImageFile( image, &buf, &length );
+		if( 0 ) 
 		{
-			int blocklen;
-			blocklen = length - n*3;
-			if( blocklen > 3 )
-				blocklen = 3;
-			encodeblock( ((P_8)header) + n * 3, real_output + 22 + n*4, blocklen );
+			TEXTCHAR tmpname[32];
+			static int n;
+			FILE *out;
+			snprintf( tmpname, 32, "blah%d.png", n++ );
+			out = fopen( tmpname, "wt" );
+			fwrite( buf, 1, length, out );
+			fclose( out );
 		}
-		(*outsize) = 22 + n*4;
-		real_output[22 + n*4] = 0;
+		real_output = NewArray( char, 22 + ( length * 4 / 3 ) + 1 );
+		StrCpy( real_output, "data:image/png;base64," );
+		{
+			size_t n;
+			for( n = 0; n < (length)/3; n++ )
+			{
+				int blocklen;
+				blocklen = length - n*3;
+				if( blocklen > 3 )
+				blocklen = 3;
+				encodeblock( ((P_8)buf) + n * 3, real_output + 22 + n*4, blocklen );
+			}
+			(*outsize) = 22 + n*4;
+			real_output[22 + n*4] = 0;
+		}
+		Release( buf );
 	}
-	Release( output );
+
+	if( 0 )
+	{
+		BITMAPFILEHEADER *header;
+		BITMAPV5HEADER *output;
+		header = (BITMAPFILEHEADER*)NewArray( _8, length = ( ( image->width * image->height * sizeof( CDATA ) ) + sizeof( BITMAPV5HEADER ) + sizeof( BITMAPFILEHEADER ) ) );
+		MemSet( header, 0, sizeof( BITMAPFILEHEADER ) + sizeof( BITMAPV5HEADER ) );
+		header->bfType = 'MB';
+		header->bfSize = (DWORD)length;
+		header->bfOffBits = sizeof( BITMAPV5HEADER ) + sizeof( BITMAPFILEHEADER );
+		output = (BITMAPV5HEADER*)(header + 1);
+
+		output->bV5Size = sizeof( BITMAPV5HEADER );
+		output->bV5Width = image->width;
+		output->bV5Height = image->height;
+		output->bV5Planes = 1;
+		output->bV5BitCount = 32;
+		output->bV5XPelsPerMeter = 120;
+		output->bV5YPelsPerMeter = 120;
+		//output->bV5Intent = LCS_CALIBRATED_RGB;   // 0
+		output->bV5CSType = LCS_sRGB;
+		{
+			PCDATA color_out = (PCDATA)(output + 1);
+			int n;
+			for( n = 0; n < image->height; n++ )
+				MemCpy( color_out + image->width * n, image->image + image->pwidth * n, sizeof( CDATA ) * image->width );
+		}
+
+		{
+			TEXTCHAR tmpname[32];
+			static int n;
+			FILE *out;
+			snprintf( tmpname, 32, "blah%d.bmp", n++ );
+			out = fopen( tmpname, "wt" );
+			fwrite( header, 1, length, out );
+			fclose( out );
+		}
+
+		real_output = NewArray( char, 22 + ( length * 4 / 3 ) + 1 );
+		StrCpy( real_output, "data:image/bmp;base64," );
+		{
+			size_t n;
+			for( n = 0; n < (length)/3; n++ )
+			{
+				int blocklen;
+				blocklen = length - n*3;
+				if( blocklen > 3 )
+					blocklen = 3;
+				encodeblock( ((P_8)header) + n * 3, real_output + 22 + n*4, blocklen );
+			}
+			(*outsize) = 22 + n*4;
+			real_output[22 + n*4] = 0;
+		}
+		Release( header );
+	}
+
 	return real_output;
 }
 
@@ -547,7 +600,7 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 		case PMID_Event_Mouse:
 			{
 				PVPRENDER render = GetLink( &l.renderers, message->data.mouse_event.server_render_id );
-				if( render->mouse_callback )
+				if( render && render->mouse_callback )
 					render->mouse_callback( render->psv_mouse_callback, message->data.mouse_event.x, message->data.mouse_event.y, message->data.mouse_event.b );
 			}
 			break;
@@ -1186,9 +1239,12 @@ static Image CPROC VidlibProxy_LoadImageFileEx( CTEXTSTR filename DBG_PASS )
 	Interface index 10																	*/  IMAGE_PROC_PTR( Image,VidlibProxy_LoadImageFileEx)  ( CTEXTSTR name DBG_PASS );
 static  void CPROC VidlibProxy_UnmakeImageFileEx( Image pif DBG_PASS )
 {
-	SendClientMessage( PMID_UnmakeImage, pif );
-	SetLink( &l.images, ((PVPImage)pif)->id, NULL );
-	Release( pif );
+	if( pif )
+	{
+		SendClientMessage( PMID_UnmakeImage, pif );
+		SetLink( &l.images, ((PVPImage)pif)->id, NULL );
+		Release( pif );
+	}
 }
 
 static void CPROC VidlibProxy_ResizeImageEx	  ( Image pImage, S_32 width, S_32 height DBG_PASS)
@@ -1262,110 +1318,147 @@ static void AppendJSON( PVPImage image, CTEXTSTR msg )
 
 static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 {
-	struct json_context_object *cto;
-	PVPImage image = (PVPImage)pifDest;
-	struct common_message *outmsg;
-	cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlatColor );
-	if( !cto )
-		cto = WebSockInitJson( PMID_BlatColor );
-
-	outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blatcolor_data ) ) );
-	outmsg->message_id = PMID_BlatColor;
-	outmsg->data.blatcolor.x = x;
-	outmsg->data.blatcolor.y = y;
-	outmsg->data.blatcolor.w = w;
-	outmsg->data.blatcolor.h = h;
-	outmsg->data.blatcolor.color = color;
-	outmsg->data.blatcolor.server_image_id = image->id;
+	if( ((PVPImage)pifDest)->render_id != INVALID_INDEX )
 	{
-		TEXTSTR json_msg = json_build_message( cto, outmsg );
-		AppendJSON( image, json_msg );
-		Release( json_msg );
+		struct json_context_object *cto;
+		PVPImage image = (PVPImage)pifDest;
+		struct common_message *outmsg;
+		cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlatColor );
+		if( !cto )
+			cto = WebSockInitJson( PMID_BlatColor );
+
+		outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blatcolor_data ) ) );
+		outmsg->message_id = PMID_BlatColor;
+		outmsg->data.blatcolor.x = x;
+		outmsg->data.blatcolor.y = y;
+		outmsg->data.blatcolor.w = w;
+		outmsg->data.blatcolor.h = h;
+		outmsg->data.blatcolor.color = color;
+		outmsg->data.blatcolor.server_image_id = image->id;
+		{
+			TEXTSTR json_msg = json_build_message( cto, outmsg );
+			AppendJSON( image, json_msg );
+			Release( json_msg );
+		}
+	}
+	else
+	{
+		l.real_interface->_BlatColor( ((PVPImage)pifDest)->image, x, y, w, h, color );
 	}
 
 }
 
 static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 {
-	struct json_context_object *cto;
-	PVPImage image = (PVPImage)pifDest;
-	struct common_message *outmsg;
-	cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlatColorAlpha );
-	if( !cto )
-		cto = WebSockInitJson( PMID_BlatColor );
-
-	outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blatcolor_data ) ) );
-	outmsg->message_id = PMID_BlatColorAlpha;
-	outmsg->data.blatcolor.x = x;
-	outmsg->data.blatcolor.y = y;
-	outmsg->data.blatcolor.w = w;
-	outmsg->data.blatcolor.h = h;
-	outmsg->data.blatcolor.color = color;
-	outmsg->data.blatcolor.server_image_id = image->id;
+	if( ((PVPImage)pifDest)->render_id != INVALID_INDEX )
 	{
-		TEXTSTR json_msg = json_build_message( cto, outmsg );
-		AppendJSON( image, json_msg );
-		Release( json_msg );
+		struct json_context_object *cto;
+		PVPImage image = (PVPImage)pifDest;
+		struct common_message *outmsg;
+		cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlatColorAlpha );
+		if( !cto )
+			cto = WebSockInitJson( PMID_BlatColor );
+
+		outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blatcolor_data ) ) );
+		outmsg->message_id = PMID_BlatColorAlpha;
+		outmsg->data.blatcolor.x = x;
+		outmsg->data.blatcolor.y = y;
+		outmsg->data.blatcolor.w = w;
+		outmsg->data.blatcolor.h = h;
+		outmsg->data.blatcolor.color = color;
+		outmsg->data.blatcolor.server_image_id = image->id;
+		{
+			TEXTSTR json_msg = json_build_message( cto, outmsg );
+			AppendJSON( image, json_msg );
+			Release( json_msg );
+		}
+	}
+	else
+	{
+		l.real_interface->_BlatColorAlpha( ((PVPImage)pifDest)->image, x, y, w, h, color );
 	}
 }
 
 static void CPROC VidlibProxy_BlotImageEx	  ( Image pDest, Image pIF, S_32 x, S_32 y, _32 nTransparent, _32 method, ... )
 {
-	struct json_context_object *cto;
-	PVPImage image = (PVPImage)pDest;
-	struct common_message *outmsg;
-	cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlotImageSizedTo );
-	if( !cto )
-		cto = WebSockInitJson( PMID_BlotImageSizedTo );
-
-	// sending this clears the flag.
-	if( ((PVPImage)pIF)->image->flags & IF_FLAG_UPDATED )
-		SendClientMessage( PMID_ImageData, pIF );
-
-	outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blot_image_data ) ) );
-	outmsg->message_id = PMID_BlotImageSizedTo;
-	outmsg->data.blot_image.x = x;
-	outmsg->data.blot_image.y = y;
-	outmsg->data.blot_image.w = ((PVPImage)pIF)->w;
-	outmsg->data.blot_image.h = ((PVPImage)pIF)->h;
-	outmsg->data.blot_image.xs = 0;
-	outmsg->data.blot_image.ys = 0;
-	outmsg->data.blot_image.image_id = ((PVPImage)pIF)->id;
-	outmsg->data.blot_image.server_image_id = image->id;
+	if( ((PVPImage)pDest)->render_id != INVALID_INDEX )
 	{
-		TEXTSTR json_msg = json_build_message( cto, outmsg );
-		AppendJSON( image, json_msg );
-		Release( json_msg );
+		struct json_context_object *cto;
+		PVPImage image = (PVPImage)pDest;
+		struct common_message *outmsg;
+		cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlotImageSizedTo );
+		if( !cto )
+			cto = WebSockInitJson( PMID_BlotImageSizedTo );
+
+		// sending this clears the flag.
+		if( ((PVPImage)pIF)->image->flags & IF_FLAG_UPDATED )
+			SendClientMessage( PMID_ImageData, pIF );
+
+		outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blot_image_data ) ) );
+		outmsg->message_id = PMID_BlotImageSizedTo;
+		outmsg->data.blot_image.x = x;
+		outmsg->data.blot_image.y = y;
+		outmsg->data.blot_image.w = ((PVPImage)pIF)->w;
+		outmsg->data.blot_image.h = ((PVPImage)pIF)->h;
+		outmsg->data.blot_image.xs = 0;
+		outmsg->data.blot_image.ys = 0;
+		outmsg->data.blot_image.image_id = ((PVPImage)pIF)->id;
+		outmsg->data.blot_image.server_image_id = image->id;
+		{
+			TEXTSTR json_msg = json_build_message( cto, outmsg );
+			AppendJSON( image, json_msg );
+			Release( json_msg );
+		}
+	}
+	else
+	{
+		va_list args;
+		va_start( args, method );
+		l.real_interface->_BlotImageEx( ((PVPImage)pDest)->image, ((PVPImage)pIF)->image, x, y, nTransparent
+					, method
+					, va_arg( args, CDATA ), va_arg( args, CDATA ), va_arg( args, CDATA ) );
 	}
 }
 
 static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, S_32 y, S_32 xs, S_32 ys, _32 wd, _32 ht, _32 nTransparent, _32 method, ... )
 {
-	struct json_context_object *cto;
-	PVPImage image = (PVPImage)pDest;
-	struct common_message *outmsg;
-	cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlotImageSizedTo );
-	if( !cto )
-		cto = WebSockInitJson( PMID_BlotImageSizedTo );
-
-	// sending this clears the flag.
-	if( ((PVPImage)pIF)->image->flags & IF_FLAG_UPDATED )
-		SendClientMessage( PMID_ImageData, pIF );
-
-	outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blot_image_data ) ) );
-	outmsg->message_id = PMID_BlotImageSizedTo;
-	outmsg->data.blot_image.x = x;
-	outmsg->data.blot_image.y = y;
-	outmsg->data.blot_image.w = wd;
-	outmsg->data.blot_image.h = ht;
-	outmsg->data.blot_image.xs = xs;
-	outmsg->data.blot_image.ys = ys;
-	outmsg->data.blot_image.image_id = ((PVPImage)pIF)->id;
-	outmsg->data.blot_image.server_image_id = image->id;
+	if( ((PVPImage)pDest)->render_id != INVALID_INDEX )
 	{
-		TEXTSTR json_msg = json_build_message( cto, outmsg );
-		AppendJSON( image, json_msg );
-		Release( json_msg );
+		struct json_context_object *cto;
+		PVPImage image = (PVPImage)pDest;
+		struct common_message *outmsg;
+		cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlotImageSizedTo );
+		if( !cto )
+			cto = WebSockInitJson( PMID_BlotImageSizedTo );
+
+		// sending this clears the flag.
+		if( ((PVPImage)pIF)->image->flags & IF_FLAG_UPDATED )
+			SendClientMessage( PMID_ImageData, pIF );
+
+		outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blot_image_data ) ) );
+		outmsg->message_id = PMID_BlotImageSizedTo;
+		outmsg->data.blot_image.x = x;
+		outmsg->data.blot_image.y = y;
+		outmsg->data.blot_image.w = wd;
+		outmsg->data.blot_image.h = ht;
+		outmsg->data.blot_image.xs = xs;
+		outmsg->data.blot_image.ys = ys;
+		outmsg->data.blot_image.image_id = ((PVPImage)pIF)->id;
+		outmsg->data.blot_image.server_image_id = image->id;
+		{
+			TEXTSTR json_msg = json_build_message( cto, outmsg );
+			AppendJSON( image, json_msg );
+			Release( json_msg );
+		}
+	}
+	else
+	{
+		va_list args;
+		va_start( args, method );
+		l.real_interface->_BlotImageEx( ((PVPImage)pDest)->image, ((PVPImage)pIF)->image, x, y, xs, ys, wd, ht
+					, nTransparent
+					, method
+					, va_arg( args, CDATA ), va_arg( args, CDATA ), va_arg( args, CDATA ) );
 	}
 }
 
@@ -1503,21 +1596,17 @@ DIMAGE_DATA_PROC( void,do_vlineAlpha,( Image pImage, S_32 x, S_32 yfrom, S_32 yt
 
 static SFTFont CPROC VidlibProxy_GetDefaultFont ( void )
 {
-	return NULL;
+	return l.real_interface->_GetDefaultFont( );
 }
 
 static _32 CPROC VidlibProxy_GetFontHeight  ( SFTFont font )
 {
-	return 12;
+	return l.real_interface->_GetFontHeight( font );
 }
 
 static _32 CPROC VidlibProxy_GetStringSizeFontEx( CTEXTSTR pString, size_t len, _32 *width, _32 *height, SFTFont UseFont )
 {
-	if( width )
-		(*width) = (_32)(len*12);
-	if( height )
-		(*height) = 12;
-	return 12;
+	return l.real_interface->_GetStringSizeFontEx( pString, len, width, height, UseFont );
 }
 
 static void CPROC VidlibProxy_PutCharacterFont		  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
@@ -1563,7 +1652,7 @@ static void CPROC VidlibProxy_PutStringInvertVerticalFontEx( Image pImage, S_32 
 
 static _32 CPROC VidlibProxy_GetMaxStringLengthFont( _32 width, SFTFont UseFont )
 {
-	return 1;
+	return l.real_interface->_GetMaxStringLengthFont( width, UseFont );
 }
 
 static void CPROC VidlibProxy_GetImageSize ( Image pImage, _32 *width, _32 *height )
@@ -1609,11 +1698,18 @@ DIMAGE_DATA_PROC( CDATA, ColorAverage,( CDATA c1, CDATA c2
 	
 	Internal
 	Interface index 49					*/	IMAGE_PROC_PTR( void, SyncImage )					  ( void );
-			/* <combine sack::image::GetImageSurface@Image>
-				
-				\ \														*/
-			IMAGE_PROC_PTR( PCDATA, GetImageSurface )		 ( Image pImage );
-			/* <combine sack::image::IntersectRectangle@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *>
+
+static PCDATA CPROC VidlibProxy_GetImageSurface 		 ( Image pImage )
+{
+	if( pImage )
+	{
+		if( ((PVPImage)pImage)->render_id == INVALID_INDEX )
+			return l.real_interface->_GetImageSurface( ((PVPImage)pImage)->image );
+	}
+	return NULL;
+}
+
+/* <combine sack::image::IntersectRectangle@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *>
 				
 				\ \																															*/
 			IMAGE_PROC_PTR( int, IntersectRectangle )		( IMAGE_RECTANGLE *r, IMAGE_RECTANGLE *r1, IMAGE_RECTANGLE *r2 );
@@ -1724,56 +1820,9 @@ static void CPROC VidlibProxy_TransferSubImages( Image pImageTo, Image pImageFro
 		 \ \																*/
 	 IMAGE_PROC_PTR( Image, DecodeMemoryToImage )( P_8 buf, _32 size );
 
-	/* <combine sack::image::InternalRenderFontFile@CTEXTSTR@S_32@S_32@_32>
-		
-		\returns a SFTFont																		*/
-	IMAGE_PROC_PTR( SFTFont, InternalRenderFontFile )( CTEXTSTR file
-																 , S_32 nWidth
-																 , S_32 nHeight
-																		, PFRACTION width_scale
-																		, PFRACTION height_scale
-																 , _32 flags 
-																 );
-	/* <combine sack::image::InternalRenderFont@_32@_32@_32@S_32@S_32@_32>
-		
-		requires knowing the font cache....											*/
-	IMAGE_PROC_PTR( SFTFont, InternalRenderFont )( _32 nFamily
-															, _32 nStyle
-															, _32 nFile
-															, S_32 nWidth
-															, S_32 nHeight
-																		, PFRACTION width_scale
-																		, PFRACTION height_scale
-															, _32 flags
-															);
-/* <combine sack::image::RenderScaledFontData@PFONTDATA@PFRACTION@PFRACTION>
-	
-	\ \																							  */
-IMAGE_PROC_PTR( SFTFont, RenderScaledFontData)( PFONTDATA pfd, PFRACTION width_scale, PFRACTION height_scale );
-/* <combine sack::image::RenderFontFileEx@CTEXTSTR@_32@_32@_32@P_32@POINTER *>
-	
-	\ \																								 */
-IMAGE_PROC_PTR( SFTFont, RenderFontFileScaledEx )( CTEXTSTR file, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags, size_t *size, POINTER *pFontData );
-/* <combine sack::image::DestroyFont@SFTFont *>
-	
-	\ \													*/
-IMAGE_PROC_PTR( void, DestroyFont)( SFTFont *font );
-/* <combine sack::image::GetGlobalFonts>
-	
-	global_font_data in interface is really a global font data. Don't
-	have to call GetGlobalFont to get this.									*/
-struct font_global_tag *_global_font_data;
 /* <combine sack::image::GetFontRenderData@SFTFont@POINTER *@_32 *>
 	
 	\ \																			  */
-IMAGE_PROC_PTR( int, GetFontRenderData )( SFTFont font, POINTER *fontdata, size_t *fontdatalen );
-/* <combine sack::image::SetFontRendererData@SFTFont@POINTER@_32>
-	
-	\ \																			*/
-IMAGE_PROC_PTR( void, SetFontRendererData )( SFTFont font, POINTER pResult, size_t size );
-/* <combine sack::image::SetSpriteHotspot@PSPRITE@S_32@S_32>
-	
-	\ \																		 */
 IMAGE_PROC_PTR( PSPRITE, SetSpriteHotspot )( PSPRITE sprite, S_32 x, S_32 y );
 /* <combine sack::image::SetSpritePosition@PSPRITE@S_32@S_32>
 	
@@ -1786,7 +1835,6 @@ IMAGE_PROC_PTR( PSPRITE, SetSpritePosition )( PSPRITE sprite, S_32 x, S_32 y );
 /* <combine sack::image::GetGlobalFonts>
 	
 	\ \											  */
-IMAGE_PROC_PTR( struct font_global_tag *, GetGlobalFonts)( void );
 
 /* <combinewith sack::image::GetStringRenderSizeFontEx@CTEXTSTR@_32@_32 *@_32 *@_32 *@SFTFont, sack::image::GetStringRenderSizeFontEx@CTEXTSTR@size_t@_32 *@_32 *@_32 *@SFTFont>
 	
@@ -1806,6 +1854,18 @@ IMAGE_PROC_PTR( void, RotateImageAbout )( Image pImage, int edge_flag, RCOORD of
 
 static void CPROC VidlibProxy_MarkImageDirty ( Image pImage )
 {
+	l.real_interface->_MarkImageDirty( ((PVPImage)pImage)->image );
+	if( 0 )
+	{
+		size_t outlen;
+		TEXTSTR encoded_image;
+	
+		if( ((PVPImage)pImage)->parent )
+			encoded_image = EncodeImage( ((PVPImage)pImage)->parent->image, &outlen );
+		else
+			encoded_image = EncodeImage( ((PVPImage)pImage)->image, &outlen );
+		Release( encoded_image );
+	}
 }
 
 static Image CPROC VidlibProxy_GetNativeImage( Image pImage )
@@ -1866,51 +1926,47 @@ IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA col
 		, VidlibProxy_PutStringInvertVerticalFontEx
 		, VidlibProxy_GetMaxStringLengthFont
 		, VidlibProxy_GetImageSize
-#if 0
 
-		, VidlibProxy_LoadFont
-		, VidlibProxy_UnloadFont
-		, VidlibProxy_BeginTransferData
-		, VidlibProxy_ContinueTransferData
-		, VidlibProxy_DecodeTransferredImage
-		, VidlibProxy_AcceptTransferredFont
+		, NULL//VidlibProxy_LoadFont
+		, NULL//VidlibProxy_UnloadFont
+		, NULL//VidlibProxy_BeginTransferData
+		, NULL//VidlibProxy_ContinueTransferData
+		, NULL//VidlibProxy_DecodeTransferredImage
+		, NULL//VidlibProxy_AcceptTransferredFont
 		, &VidlibProxy_ColorAverage
-		, VidlibProxy_SyncImage
+		, NULL//VidlibProxy_SyncImage
 		, VidlibProxy_GetImageSurface
-		, VidlibProxy_IntersectRectangle
-		, VidlibProxy_MergeRectangle
-		, VidlibProxy_GetImageAuxRect
-		, VidlibProxy_SetImageAuxRect
+		, NULL//VidlibProxy_IntersectRectangle
+		, NULL//VidlibProxy_MergeRectangle
+		, NULL// ** VidlibProxy_GetImageAuxRect
+		, NULL// ** VidlibProxy_SetImageAuxRect
 		, VidlibProxy_OrphanSubImage
 		, VidlibProxy_AdoptSubImage
-		, VidlibProxy_MakeSpriteImageFileEx
-		, VidlibProxy_MakeSpriteImageEx
-		, VidlibProxy_rotate_scaled_sprite
-		, VidlibProxy_rotate_sprite
-		, VidlibProxy_BlotSprite
-		, VidlibProxy_DecodeMemoryToImage
-		, VidlibProxy_InternalRenderFontFile
-		, VidlibProxy_InternalRenderFont
-		, VidlibProxy_RenderScaledFontData
-		, VidlibProxy_RenderFontFileScaledEx
-		, VidlibProxy_DestroyFont
+		, NULL // *****   VidlibProxy_MakeSpriteImageFileEx
+		, NULL // *****   VidlibProxy_MakeSpriteImageEx
+		, NULL // *****   VidlibProxy_rotate_scaled_sprite
+		, NULL // *****   VidlibProxy_rotate_sprite
+		, NULL // *****   VidlibProxy_BlotSprite
+		, NULL // *****   VidlibProxy_DecodeMemoryToImage
+		, NULL//VidlibProxy_InternalRenderFontFile
+		, NULL//VidlibProxy_InternalRenderFont
+		, NULL//VidlibProxy_RenderScaledFontData
+		, NULL//VidlibProxy_RenderFontFileScaledEx
+		, NULL//VidlibProxy_DestroyFont
 		, NULL
-		, VidlibProxy_GetFontRenderData
-		, VidlibProxy_SetFontRendererData
-		, VidlibProxy_SetSpriteHotspot
-		, VidlibProxy_SetSpritePosition
-		, VidlibProxy_UnmakeSprite
+		, NULL//VidlibProxy_GetFontRenderData
+		, NULL//VidlibProxy_SetFontRendererData
+		, NULL //VidlibProxy_SetSpriteHotspot
+		, NULL //VidlibProxy_SetSpritePosition
+		, NULL //VidlibProxy_UnmakeSprite
 		, NULL //VidlibProxy_struct font_global_tag *, GetGlobalFonts)( void );
 
-/* <combinewith sack::image::GetStringRenderSizeFontEx@CTEXTSTR@_32@_32 *@_32 *@_32 *@SFTFont, sack::image::GetStringRenderSizeFontEx@CTEXTSTR@size_t@_32 *@_32 *@_32 *@SFTFont>
-	
-	\ \																																																							*/
-IMAGE_PROC_PTR( _32, GetStringRenderSizeFontEx )( CTEXTSTR pString, size_t nLen, _32 *width, _32 *height, _32 *charheight, SFTFont UseFont );
+, NULL //IMAGE_PROC_PTR( _32, GetStringRenderSizeFontEx )( CTEXTSTR pString, size_t nLen, _32 *width, _32 *height, _32 *charheight, SFTFont UseFont );
 
-IMAGE_PROC_PTR( Image, LoadImageFileFromGroupEx )( INDEX group, CTEXTSTR filename DBG_PASS );
+, NULL //IMAGE_PROC_PTR( Image, LoadImageFileFromGroupEx )( INDEX group, CTEXTSTR filename DBG_PASS );
 
-IMAGE_PROC_PTR( SFTFont, RenderScaledFont )( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags );
-IMAGE_PROC_PTR( SFTFont, RenderScaledFontEx )( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags, size_t *pnFontDataSize, POINTER *pFontData );
+, NULL //IMAGE_PROC_PTR( SFTFont, RenderScaledFont )( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags );
+, NULL //IMAGE_PROC_PTR( SFTFont, RenderScaledFontEx )( CTEXTSTR name, _32 width, _32 height, PFRACTION width_scale, PFRACTION height_scale, _32 flags, size_t *pnFontDataSize, POINTER *pFontData );
 
 , NULL //IMAGE_PROC_PTR( COLOR_CHANNEL, GetRedValue )( CDATA color ) ;
 , NULL //IMAGE_PROC_PTR( COLOR_CHANNEL, GetGreenValue )( CDATA color );
@@ -1923,26 +1979,24 @@ IMAGE_PROC_PTR( SFTFont, RenderScaledFontEx )( CTEXTSTR name, _32 width, _32 hei
 , NULL //IMAGE_PROC_PTR( CDATA, MakeColor )( COLOR_CHANNEL r, COLOR_CHANNEL green, COLOR_CHANNEL b );
 , NULL //IMAGE_PROC_PTR( CDATA, MakeAlphaColor )( COLOR_CHANNEL r, COLOR_CHANNEL green, COLOR_CHANNEL b, COLOR_CHANNEL a );
 
+, NULL //IMAGE_PROC_PTR( PTRANSFORM, GetImageTransformation )( Image pImage );
+, NULL //IMAGE_PROC_PTR( void, SetImageRotation )( Image pImage, int edge_flag, RCOORD offset_x, RCOORD offset_y, RCOORD rx, RCOORD ry, RCOORD rz );
+, NULL //IMAGE_PROC_PTR( void, RotateImageAbout )( Image pImage, int edge_flag, RCOORD offset_x, RCOORD offset_y, PVECTOR vAxis, RCOORD angle );
+, NULL //IMAGE_PROC_PTR( void, MarkImageDirty )( Image pImage );
 
-IMAGE_PROC_PTR( PTRANSFORM, GetImageTransformation )( Image pImage );
-IMAGE_PROC_PTR( void, SetImageRotation )( Image pImage, int edge_flag, RCOORD offset_x, RCOORD offset_y, RCOORD rx, RCOORD ry, RCOORD rz );
-IMAGE_PROC_PTR( void, RotateImageAbout )( Image pImage, int edge_flag, RCOORD offset_x, RCOORD offset_y, PVECTOR vAxis, RCOORD angle );
-IMAGE_PROC_PTR( void, MarkImageDirty )( Image pImage );
+, NULL //IMAGE_PROC_PTR( void, DumpFontCache )( void );
+, NULL //IMAGE_PROC_PTR( void, RerenderFont )( SFTFont font, S_32 width, S_32 height, PFRACTION width_scale, PFRACTION height_scale );
+// option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
+, NULL //IMAGE_PROC_PTR( int, ReloadTexture )( Image child_image, int option );
+// option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
+, NULL //IMAGE_PROC_PTR( int, ReloadShadedTexture )( Image child_image, int option, CDATA color );
+// option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
+, NULL //IMAGE_PROC_PTR( int, ReloadMultiShadedTexture )( Image child_image, int option, CDATA red, CDATA green, CDATA blue );
 
-IMAGE_PROC_PTR( void, DumpFontCache )( void );
-IMAGE_PROC_PTR( void, RerenderFont )( SFTFont font, S_32 width, S_32 height, PFRACTION width_scale, PFRACTION height_scale );
-// option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
-IMAGE_PROC_PTR( int, ReloadTexture )( Image child_image, int option );
-// option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
-IMAGE_PROC_PTR( int, ReloadShadedTexture )( Image child_image, int option, CDATA color );
-// option(1) == use GL_RGBA_EXT; option(2)==clamp; option(4)==repeat
-IMAGE_PROC_PTR( int, ReloadMultiShadedTexture )( Image child_image, int option, CDATA red, CDATA green, CDATA blue );
-
-IMAGE_PROC_PTR( void, SetImageTransformRelation )( Image pImage, enum image_translation_relation relation, PRCOORD aux );
-IMAGE_PROC_PTR( void, Render3dImage )( Image pImage, PCVECTOR o, LOGICAL render_pixel_scaled );
-IMAGE_PROC_PTR( void, DumpFontFile )( CTEXTSTR name, SFTFont font_to_dump );
-IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA color, SFTFont font, VECTOR o, LOGICAL render_pixel_scaled );
-#endif
+, NULL //IMAGE_PROC_PTR( void, SetImageTransformRelation )( Image pImage, enum image_translation_relation relation, PRCOORD aux );
+, NULL //IMAGE_PROC_PTR( void, Render3dImage )( Image pImage, PCVECTOR o, LOGICAL render_pixel_scaled );
+, NULL // IMAGE_PROC_PTR( void, DumpFontFile )( CTEXTSTR name, SFTFont font_to_dump );
+, NULL //IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA color, SFTFont font, VECTOR o, LOGICAL render_pixel_scaled );
 };
 
 static CDATA CPROC VidlibProxy_SetRedValue( CDATA color, COLOR_CHANNEL r )
@@ -2019,6 +2073,29 @@ static void InitImageInterface( void )
 	ProxyImageInterface._TransferSubImages = VidlibProxy_TransferSubImages;
 	ProxyImageInterface._MarkImageDirty = VidlibProxy_MarkImageDirty;
 	ProxyImageInterface._GetNativeImage = VidlibProxy_GetNativeImage;
+
+	// ============= FONT Support ============================
+	// these should go through real_interface
+	ProxyImageInterface._RenderFontFileScaledEx = l.real_interface->_RenderFontFileScaledEx;
+	ProxyImageInterface._RenderScaledFont = l.real_interface->_RenderScaledFont;
+	ProxyImageInterface._RenderScaledFontData = l.real_interface->_RenderScaledFontData;
+	ProxyImageInterface._RerenderFont = l.real_interface->_RerenderFont;
+	ProxyImageInterface._RenderScaledFontEx = l.real_interface->_RenderScaledFontEx;
+	ProxyImageInterface._DumpFontCache = l.real_interface->_DumpFontCache;
+	ProxyImageInterface._DumpFontFile = l.real_interface->_DumpFontFile;
+
+	ProxyImageInterface._GetFontHeight = l.real_interface->_GetFontHeight;
+
+	ProxyImageInterface._GetFontRenderData = l.real_interface->_GetFontRenderData;
+	ProxyImageInterface._GetStringRenderSizeFontEx = l.real_interface->_GetStringRenderSizeFontEx;
+	ProxyImageInterface._GetStringSizeFontEx = l.real_interface->_GetStringSizeFontEx;
+
+	// this is part of the old interface; and isn't used anymore
+	//ProxyImageInterface._UnloadFont = l.real_interface->_UnloadFont;
+	ProxyImageInterface._DestroyFont = l.real_interface->_DestroyFont;
+	ProxyImageInterface._global_font_data = l.real_interface->_global_font_data;
+	ProxyImageInterface._GetGlobalFonts = l.real_interface->_GetGlobalFonts;
+
 }
 
 static IMAGE_3D_INTERFACE Proxy3dImageInterface = {
@@ -2065,10 +2142,12 @@ static void CPROC Drop3dProxyImageInterface( POINTER i )
 
 PRIORITY_PRELOAD( RegisterProxyInterface, VIDLIB_PRELOAD_PRIORITY )
 {
-	InitProxyInterface();
-	InitImageInterface();
 	LoadFunction( "bag.image.dll", NULL );
 	l.real_interface = (PIMAGE_INTERFACE)GetInterface( WIDE( "sack.image" ) );
+
+	InitProxyInterface();
+	// needs sack.image loaded before; fonts are passed to this
+	InitImageInterface();
 	RegisterInterface( WIDE( "sack.image.proxy.server" ), GetProxyImageInterface, DropProxyImageInterface );
 	RegisterInterface( WIDE( "sack.image.3d.proxy.server" ), Get3dProxyImageInterface, Drop3dProxyImageInterface );
 	RegisterInterface( WIDE( "sack.render.proxy.server" ), GetProxyDisplayInterface, DropProxyDisplayInterface );
