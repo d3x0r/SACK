@@ -18,7 +18,7 @@ PROJECT( bag.video.proxy )
 ADD_DEFINITIONS( -DMAKE_RCOORD_SINGLE )
 
 set( PROJECT bag.video.proxy.server )
-sack_add_library( ${PROJECT} SHARED server.c )
+sack_add_library( ${PROJECT} SHARED server.c imagepng.c )
 target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
 install_default_dest( ${PROJECT} )
 

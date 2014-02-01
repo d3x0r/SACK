@@ -175,6 +175,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 									  , enum order_type order
 									  , S_32 (*StepX)(S_32 base1,S_32 delta1,S_32 delta2)
 									  , S_32 (*StepY)(S_32 base1,S_32 delta1,S_32 delta2)
+                              , LOGICAL internal_render
 									  )
 {
 	int bit, col, inc;
@@ -206,9 +207,9 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 		// oh wait - that's like for lines for sideways stuff... uhmm...should get direction and render 4 bitmaps
 		//lprintf( "Render to image this character... %p", image );
 		if( pImage->reverse_interface )
-			PutCharacterFontX( pImage->reverse_interface->_GetNativeImage( image ), 0, 0, BASE_COLOR_WHITE, 0, c, UseFont, OrderPoints, StepXNormal, StepYNormal );
+			PutCharacterFontX( pImage->reverse_interface->_GetNativeImage( image ), 0, 0, BASE_COLOR_WHITE, 0, c, UseFont, OrderPoints, StepXNormal, StepYNormal, TRUE );
 		else
-			PutCharacterFontX( image, 0, 0, BASE_COLOR_WHITE, 0, c, UseFont, OrderPoints, StepXNormal, StepYNormal );
+			PutCharacterFontX( image, 0, 0, BASE_COLOR_WHITE, 0, c, UseFont, OrderPoints, StepXNormal, StepYNormal, TRUE );
 	}
 
 	if( pImage->flags & IF_FLAG_FINAL_RENDER )
@@ -259,13 +260,13 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 		if( pImage->reverse_interface )
 		{
 			if( background )
-				pImage->reverse_interface->_BlatColorAlpha( (Image)pImage->reverse_interface_instance, xd, yd, pchar->cell->real_width, pchar->cell->real_height, background );
+				pImage->reverse_interface->_BlatColorAlpha( (Image)pImage->reverse_interface_instance, xd_back, yd_back, pchar->width, UseFont->height, background );
 			pImage->reverse_interface->_BlotImageSizedEx( (Image)pImage->reverse_interface_instance, pifSrc, xd, yd, xs, ys, pchar->cell->real_width, pchar->cell->real_height, TRUE, BLOT_SHADED|orientation, color );
 		}
 		else
 		{
 			if( background )
-				BlatColorAlpha( pImage, xd, yd, pchar->cell->real_width, pchar->cell->real_height, background );
+				BlatColorAlpha( pImage, xd, yd, pchar->width, UseFont->height, background );
 			BlotImageSizedEx( pImage, pifSrc, xd, yd, xs, ys, pchar->cell->real_width, pchar->cell->real_height, TRUE, BLOT_SHADED|orientation, color );
 		}
 
@@ -827,12 +828,17 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			if( 0 )
 				lprintf( WIDE("%d %d %d"), UseFont->baseline - pchar->ascent, y, UseFont->baseline - pchar->descent );
 			// bias the left edge of the character
+
+			if( internal_render )
+				line = 0;
+			else
+				line = UseFont->baseline - pchar->ascent;
 #if defined( __3D__ )
-			for(line = 0;
+			for(;
 				 line <= UseFont->baseline - pchar->descent;
 				 line++ )
 #else
-			for(line = UseFont->baseline - pchar->ascent;
+			for(;
 				 line <= UseFont->baseline - pchar->descent;
 				 line++ )
 #endif
@@ -864,7 +870,7 @@ static _32 _PutCharacterFont( ImageFile *pImage
 											  , _32 c, PFONT UseFont )
 {
 	return PutCharacterFontX( pImage, x, y, color, background, c, UseFont, OrderPoints
-									 , StepXNormal, StepYNormal );
+									 , StepXNormal, StepYNormal, FALSE );
 }
 
 static _32 _PutCharacterVerticalFont( ImageFile *pImage
@@ -873,7 +879,7 @@ static _32 _PutCharacterVerticalFont( ImageFile *pImage
 														 , _32 c, PFONT UseFont )
 {
 	return PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-									 , OrderPointsVertical, StepXVertical, StepYVertical );
+									 , OrderPointsVertical, StepXVertical, StepYVertical, FALSE );
 }
 
 
@@ -883,7 +889,7 @@ static _32 _PutCharacterInvertFont( ImageFile *pImage
 													, _32 c, PFONT UseFont )
 {
 	return PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-									, OrderPointsInvert, StepXInvert, StepYInvert );
+									, OrderPointsInvert, StepXInvert, StepYInvert, FALSE );
 }
 
 static _32 _PutCharacterVerticalInvertFont( ImageFile *pImage
@@ -892,7 +898,7 @@ static _32 _PutCharacterVerticalInvertFont( ImageFile *pImage
 													, _32 c, PFONT UseFont )
 {
 	return PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-									, OrderPointsVerticalInvert, StepXInvertVertical, StepYInvertVertical );
+									, OrderPointsVerticalInvert, StepXInvertVertical, StepYInvertVertical, FALSE );
 }
 
 void PutCharacterFont( ImageFile *pImage
@@ -901,7 +907,7 @@ void PutCharacterFont( ImageFile *pImage
 											  , TEXTCHAR c, PFONT UseFont )
 {
 	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-						  , OrderPointsVerticalInvert, StepXNormal, StepYNormal );
+						  , OrderPointsVerticalInvert, StepXNormal, StepYNormal, FALSE );
 }
 
 void PutCharacterVerticalFont( ImageFile *pImage
@@ -910,7 +916,7 @@ void PutCharacterVerticalFont( ImageFile *pImage
                              , TEXTCHAR c, PFONT UseFont )
 {
 	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-						  , OrderPoints, StepXVertical, StepYVertical );
+						  , OrderPoints, StepXVertical, StepYVertical, FALSE );
 }
 
 
@@ -920,7 +926,7 @@ void PutCharacterInvertFont( ImageFile *pImage
                            , TEXTCHAR c, PFONT UseFont )
 {
 	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-						  , OrderPointsInvert, StepXInvert, StepYInvert );
+						  , OrderPointsInvert, StepXInvert, StepYInvert, FALSE );
 }
 
 void PutCharacterVerticalInvertFont( ImageFile *pImage
@@ -929,7 +935,7 @@ void PutCharacterVerticalInvertFont( ImageFile *pImage
                                    , TEXTCHAR c, PFONT UseFont )
 {
 	PutCharacterFontX( pImage, x, y, color, background, c, UseFont
-						  , OrderPointsVerticalInvert, StepXInvertVertical, StepYInvertVertical );
+						  , OrderPointsVerticalInvert, StepXInvertVertical, StepYInvertVertical, FALSE );
 }
 
 
