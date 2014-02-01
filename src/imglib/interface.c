@@ -155,6 +155,7 @@ IMAGE_INTERFACE RealImageInterface = {
 									 , NULL //IMAGE_PROC_PTR( Image, GetNativeImage )( Image pImageTo );
 									 , GetTintedImage
 									, GetShadedImage 
+									, IsImageTargetFinal
 };
 
 #undef GetImageInterface

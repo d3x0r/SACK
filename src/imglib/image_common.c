@@ -653,6 +653,52 @@ static void SmearFlag( Image image, int flag )
 {
 	if( pif )
 	{
+		if( image_common_local.tint_cache )
+		{
+			POINTER node = FindInBinaryTree( image_common_local.tint_cache, (PTRSZVAL)pif );
+			struct shade_cache_image *ci = (struct shade_cache_image *)node;
+			struct shade_cache_element *ce;
+			if( node )
+			{
+				INDEX idx;
+				LIST_FORALL( ci->elements, idx, struct shade_cache_element *, ce )
+				{
+					UnmakeImageFileEx( ce->image DBG_RELAY );
+					Deallocate( struct shade_cache_element*, ce );
+				}
+				DeleteList( &ci->elements );
+				RemoveBinaryNode( image_common_local.tint_cache, ci, (PTRSZVAL)pif );
+				Deallocate( struct shade_cache_image *, ci );
+			}
+		}
+		if( image_common_local.shade_cache )
+		{
+			POINTER node = FindInBinaryTree( image_common_local.shade_cache, (PTRSZVAL)pif );
+			struct shade_cache_image *ci = (struct shade_cache_image *)node;
+			struct shade_cache_element *ce;
+			if( node )
+			{
+				INDEX idx;
+				LIST_FORALL( ci->elements, idx, struct shade_cache_element *, ce )
+				{
+					UnmakeImageFileEx( ce->image DBG_RELAY );
+					Deallocate( struct shade_cache_element*, ce );
+				}
+				DeleteList( &ci->elements );
+				RemoveBinaryNode( image_common_local.tint_cache, ci, (PTRSZVAL)pif );
+				Deallocate( struct shade_cache_image *, ci );
+			}
+		}
+
+		if( pif->reverse_interface )
+		{
+			PIMAGE_INTERFACE interfc = pif->reverse_interface;
+			Image instance = (Image)pif->reverse_interface_instance;
+			// don't have an image to release...
+			pif->reverse_interface = NULL;
+			pif->reverse_interface_instance = 0;
+			interfc->_UnmakeImageFileEx( instance DBG_RELAY );
+		}
 		if( pif->pChild ) // if there were sub images... cannot release yet
 		{
 			pif->flags |= IF_FLAG_FREE;
@@ -1653,7 +1699,12 @@ void TransferSubImages( Image pImageTo, Image pImageFrom )
 
 }
 
-
+LOGICAL IsImageTargetFinal( Image image )
+{
+	if( image )
+		return ( image->flags & IF_FLAG_FINAL_RENDER ) != 0;
+	return 0;
+}
 
 #ifdef __cplusplus_cli
 // provide a trigger point for onload code
