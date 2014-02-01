@@ -480,6 +480,17 @@ static void SendClientMessage( enum proxy_message_id message, ... )
 	}
 }
 
+static void SendClientAMessage( enum proxy_message_id message, POINTER msg, size_t length )
+{
+	INDEX idx;
+	struct server_proxy_client *client;
+	LIST_FORALL( l.clients, idx, struct server_proxy_client*, client )
+	{
+		va_list args;
+		va_start( args, message );
+		SendTCPMessage( client->pc, idx, client->websock, message, args );
+	}
+}
 
 static void CPROC SocketRead( PCLIENT pc, POINTER buffer, int size )
 {
@@ -1287,7 +1298,7 @@ P_8 GetMessageBuf( PVPImage image, size_t size )
 	return resultbuf + 4;
 }
 
-static void AppendJSON( PVPImage image, CTEXTSTR msg )
+static void AppendJSON( PVPImage image, TEXTSTR msg, POINTER outmsg, size_t sendlen )
 {
 	size_t size = StrLen( msg );
 	if( (image->websock_buf_avail - image->websock_sendlen) < size )
@@ -1314,6 +1325,19 @@ static void AppendJSON( PVPImage image, CTEXTSTR msg )
 	}
 	MemCpy( image->websock_buffer + image->websock_sendlen, msg, size );
 	image->websock_sendlen += size;
+
+	{
+		INDEX idx;
+		struct server_proxy_client *client;
+		LIST_FORALL( l.clients, idx, struct server_proxy_client*, client )
+		{
+			if( client->websock )
+				WebSocketSendText( client->pc, msg, StrLen( msg ) );
+			else
+				SendTCP( client->pc, outmsg, sendlen );
+		}
+	}
+
 }
 
 static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
@@ -1323,11 +1347,12 @@ static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w
 		struct json_context_object *cto;
 		PVPImage image = (PVPImage)pifDest;
 		struct common_message *outmsg;
+		size_t sendlen;
 		cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlatColor );
 		if( !cto )
 			cto = WebSockInitJson( PMID_BlatColor );
 
-		outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blatcolor_data ) ) );
+		outmsg = (struct common_message*)GetMessageBuf( image, sendlen=( 4 + 1 + sizeof( struct blatcolor_data ) ) );
 		outmsg->message_id = PMID_BlatColor;
 		outmsg->data.blatcolor.x = x;
 		outmsg->data.blatcolor.y = y;
@@ -1337,9 +1362,10 @@ static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w
 		outmsg->data.blatcolor.server_image_id = image->id;
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
-			AppendJSON( image, json_msg );
+			AppendJSON( image, json_msg, outmsg, sendlen );
 			Release( json_msg );
 		}
+
 	}
 	else
 	{
@@ -1355,11 +1381,12 @@ static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32
 		struct json_context_object *cto;
 		PVPImage image = (PVPImage)pifDest;
 		struct common_message *outmsg;
+		size_t sendlen;
 		cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlatColorAlpha );
 		if( !cto )
 			cto = WebSockInitJson( PMID_BlatColor );
 
-		outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blatcolor_data ) ) );
+		outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct blatcolor_data ) ) );
 		outmsg->message_id = PMID_BlatColorAlpha;
 		outmsg->data.blatcolor.x = x;
 		outmsg->data.blatcolor.y = y;
@@ -1369,7 +1396,7 @@ static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32
 		outmsg->data.blatcolor.server_image_id = image->id;
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
-			AppendJSON( image, json_msg );
+			AppendJSON( image, json_msg, outmsg, sendlen );
 			Release( json_msg );
 		}
 	}
@@ -1386,6 +1413,7 @@ static void CPROC VidlibProxy_BlotImageEx	  ( Image pDest, Image pIF, S_32 x, S_
 		struct json_context_object *cto;
 		PVPImage image = (PVPImage)pDest;
 		struct common_message *outmsg;
+		size_t sendlen;
 		cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlotImageSizedTo );
 		if( !cto )
 			cto = WebSockInitJson( PMID_BlotImageSizedTo );
@@ -1394,7 +1422,7 @@ static void CPROC VidlibProxy_BlotImageEx	  ( Image pDest, Image pIF, S_32 x, S_
 		if( ((PVPImage)pIF)->image->flags & IF_FLAG_UPDATED )
 			SendClientMessage( PMID_ImageData, pIF );
 
-		outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blot_image_data ) ) );
+		outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct blot_image_data ) ) );
 		outmsg->message_id = PMID_BlotImageSizedTo;
 		outmsg->data.blot_image.x = x;
 		outmsg->data.blot_image.y = y;
@@ -1406,7 +1434,7 @@ static void CPROC VidlibProxy_BlotImageEx	  ( Image pDest, Image pIF, S_32 x, S_
 		outmsg->data.blot_image.server_image_id = image->id;
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
-			AppendJSON( image, json_msg );
+			AppendJSON( image, json_msg, outmsg, sendlen );
 			Release( json_msg );
 		}
 	}
@@ -1427,6 +1455,7 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 		struct json_context_object *cto;
 		PVPImage image = (PVPImage)pDest;
 		struct common_message *outmsg;
+		size_t sendlen;
 		cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlotImageSizedTo );
 		if( !cto )
 			cto = WebSockInitJson( PMID_BlotImageSizedTo );
@@ -1435,7 +1464,7 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 		if( ((PVPImage)pIF)->image->flags & IF_FLAG_UPDATED )
 			SendClientMessage( PMID_ImageData, pIF );
 
-		outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blot_image_data ) ) );
+		outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct blot_image_data ) ) );
 		outmsg->message_id = PMID_BlotImageSizedTo;
 		outmsg->data.blot_image.x = x;
 		outmsg->data.blot_image.y = y;
@@ -1447,7 +1476,7 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 		outmsg->data.blot_image.server_image_id = image->id;
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
-			AppendJSON( image, json_msg );
+			AppendJSON( image, json_msg, outmsg, sendlen );
 			Release( json_msg );
 		}
 	}
@@ -1473,6 +1502,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 	struct json_context_object *cto;
 	PVPImage image = (PVPImage)pifDest;
 	struct common_message *outmsg;
+	size_t sendlen;
 	cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlotScaledImageSizedTo );
 	if( !cto )
 		cto = WebSockInitJson( PMID_BlotScaledImageSizedTo );
@@ -1481,7 +1511,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 	if( ((PVPImage)pifSrc)->image->flags & IF_FLAG_UPDATED )
 		SendClientMessage( PMID_ImageData, pifSrc );
 
-	outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blot_scaled_image_data ) ) );
+	outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct blot_scaled_image_data ) ) );
 	outmsg->message_id = PMID_BlotScaledImageSizedTo;
 	outmsg->data.blot_scaled_image.x = xd;
 	outmsg->data.blot_scaled_image.y = yd;
@@ -1495,7 +1525,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 	outmsg->data.blot_scaled_image.server_image_id = image->id;
 	{
 		TEXTSTR json_msg = json_build_message( cto, outmsg );
-		AppendJSON( image, json_msg );
+		AppendJSON( image, json_msg, outmsg, sendlen );
 		lprintf( "json: %p", json_msg );
 		Release( json_msg );
 	}
@@ -1547,11 +1577,12 @@ DIMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, S_32 x, S_32 y, S_32 xto, S_3
 	struct json_context_object *cto;
 	PVPImage image = (PVPImage)pifDest;
 	struct common_message *outmsg;
+	size_t sendlen;
 	cto = (struct json_context_object *)GetLink( &l.messages, PMID_DrawLine );
 	if( !cto )
 		cto = WebSockInitJson( PMID_DrawLine );
 
-	outmsg = (struct common_message*)GetMessageBuf( image, ( 4 + 1 + sizeof( struct blot_scaled_image_data ) ) );
+	outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct blot_scaled_image_data ) ) );
 	outmsg->message_id = PMID_DrawLine;
 	outmsg->data.line.server_image_id = image->id;
 	outmsg->data.line.x1 = x;
@@ -1561,7 +1592,7 @@ DIMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, S_32 x, S_32 y, S_32 xto, S_3
 	outmsg->data.line.color = color;
 	{
 		TEXTSTR json_msg = json_build_message( cto, outmsg );
-		AppendJSON( image, json_msg );
+		AppendJSON( image, json_msg, outmsg, sendlen );
 		lprintf( "json: %p", json_msg );
 		Release( json_msg );
 	}
