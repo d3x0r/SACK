@@ -24,7 +24,7 @@
 
 // alpha macro is here
 #include "blotproto.h"
-
+#include "image_common.h"
 
 ASM_IMAGE_NAMESPACE
 extern unsigned char AlphaTable[256][256];
@@ -87,9 +87,39 @@ void  CPROC cSetColorAlpha( PCDATA po, int oo, int w, int h, CDATA color )
 void MarkImageUpdated( Image child_image )
 {
 	Image image;
-	for( image = child_image; image && image->pParent; image = image->pParent )
-		image->flags |= IF_FLAG_UPDATED;
+	for( image = child_image; image && image->pParent; image = image->pParent );
 
+	{
+		if( image_common_local.tint_cache )
+		{
+			POINTER node = FindInBinaryTree( image_common_local.tint_cache, (PTRSZVAL)image );
+			struct shade_cache_image *ci = (struct shade_cache_image *)node;
+			struct shade_cache_element *ce;
+			if( node )
+			{
+				INDEX idx;
+				LIST_FORALL( ci->elements, idx, struct shade_cache_element *, ce )
+				{
+					MarkImageUpdated( ce->image );
+				}
+			}
+		}
+		if( image_common_local.shade_cache )
+		{
+			POINTER node = FindInBinaryTree( image_common_local.shade_cache, (PTRSZVAL)image );
+			struct shade_cache_image *ci = (struct shade_cache_image *)node;
+			struct shade_cache_element *ce;
+			if( node )
+			{
+				INDEX idx;
+				LIST_FORALL( ci->elements, idx, struct shade_cache_element *, ce )
+				{
+					MarkImageUpdated( ce->image );
+				}
+			}
+		}
+		image->flags |= IF_FLAG_UPDATED;
+	}
 	;;
 
 	{

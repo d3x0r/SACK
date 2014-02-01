@@ -1419,29 +1419,6 @@ PCDATA  ImageAddress ( Image i, S_32 x, S_32 y )
 // Utility functions to make copies of images that are shaded (in case there's no shader code)
 //-----------------------------------------------------------------------
 
-struct shade_cache_element {
-	CDATA r,grn,b;
-	Image image;
-	_32 age;
-	LOGICAL inverted;
-};
-
-struct shade_cache_image
-{
-	PLIST elements;
-	Image image;
-};
-
-struct image_common_local_data_tag {
-	PTREEROOT shade_cache;
-	PTREEROOT tint_cache;
-	//GLuint glImageIndex;
-	//PLIST glSurface; // list of struct glSurfaceData *
-	//struct glSurfaceData *glActiveSurface;
-	//RCOORD scale;
-	//PTRANSFORM camera; // active camera at begindraw
-} image_common_local;
-#define l image_common_local
 
 static int CPROC ComparePointer( PTRSZVAL oldnode, PTRSZVAL newnode )
 {
@@ -1456,13 +1433,13 @@ static int CPROC ComparePointer( PTRSZVAL oldnode, PTRSZVAL newnode )
 Image GetInvertedImage( Image child_image )
 {
 	Image image;
-   if( !l.shade_cache )
-		l.shade_cache = CreateBinaryTreeExtended( 0, ComparePointer, NULL DBG_SRC );
+   if( !image_common_local.shade_cache )
+		image_common_local.shade_cache = CreateBinaryTreeExtended( 0, ComparePointer, NULL DBG_SRC );
 
 	for( image = child_image; image && image->pParent; image = image->pParent );
 
 	{
-		POINTER node = FindInBinaryTree( l.shade_cache, (PTRSZVAL)image );
+		POINTER node = FindInBinaryTree( image_common_local.shade_cache, (PTRSZVAL)image );
 		struct shade_cache_image *ci = (struct shade_cache_image *)node;
 		struct shade_cache_element *ce;
 		if( node )
@@ -1502,7 +1479,7 @@ Image GetInvertedImage( Image child_image )
 			ci = New( struct shade_cache_image );
 			ci->image = image;
 			ci->elements = NULL;
-			AddBinaryNode( l.shade_cache, ci, (PTRSZVAL)image );
+			AddBinaryNode( image_common_local.shade_cache, ci, (PTRSZVAL)image );
 			ce = New( struct shade_cache_element );
 			ce->image = MakeImageFile( image->real_width, image->real_height );
 		}
@@ -1524,14 +1501,14 @@ Image GetInvertedImage( Image child_image )
 Image GetShadedImage( Image child_image, CDATA red, CDATA green, CDATA blue )
 {
 	Image image;
-   if( !l.shade_cache )
-		l.shade_cache = CreateBinaryTreeExtended( 0, ComparePointer, NULL DBG_SRC );
+   if( !image_common_local.shade_cache )
+		image_common_local.shade_cache = CreateBinaryTreeExtended( 0, ComparePointer, NULL DBG_SRC );
 
    // go to topmost parent image.
 	for( image = child_image; image && image->pParent; image = image->pParent );
 
 	{
-		POINTER node = FindInBinaryTree( l.shade_cache, (PTRSZVAL)image );
+		POINTER node = FindInBinaryTree( image_common_local.shade_cache, (PTRSZVAL)image );
 		struct shade_cache_image *ci = (struct shade_cache_image *)node;
 		struct shade_cache_element *ce;
 
@@ -1573,7 +1550,7 @@ Image GetShadedImage( Image child_image, CDATA red, CDATA green, CDATA blue )
 			ce = New( struct shade_cache_element );
 			ci->image = image;
 			ci->elements = NULL;
-			AddBinaryNode( l.shade_cache, ci, (PTRSZVAL)image );
+			AddBinaryNode( image_common_local.shade_cache, ci, (PTRSZVAL)image );
 
 			ce->image = MakeImageFile( image->real_width, image->real_height );
 		}
@@ -1594,14 +1571,14 @@ Image GetShadedImage( Image child_image, CDATA red, CDATA green, CDATA blue )
 Image GetTintedImage( Image child_image, CDATA color )
 {
 	Image image;
-   if( !l.tint_cache )
-		l.tint_cache = CreateBinaryTreeExtended( 0, ComparePointer, NULL DBG_SRC );
+   if( !image_common_local.tint_cache )
+		image_common_local.tint_cache = CreateBinaryTreeExtended( 0, ComparePointer, NULL DBG_SRC );
 
    // go to topmost parent image.
 	for( image = child_image; image && image->pParent; image = image->pParent );
 
 	{
-		POINTER node = FindInBinaryTree( l.tint_cache, (PTRSZVAL)image );
+		POINTER node = FindInBinaryTree( image_common_local.tint_cache, (PTRSZVAL)image );
 		struct shade_cache_image *ci = (struct shade_cache_image *)node;
 		struct shade_cache_element *ce;
 
@@ -1646,7 +1623,7 @@ Image GetTintedImage( Image child_image, CDATA color )
 			ce = New( struct shade_cache_element );
 			ci->image = image;
 			ci->elements = NULL;
-			AddBinaryNode( l.tint_cache, ci, (PTRSZVAL)image );
+			AddBinaryNode( image_common_local.tint_cache, ci, (PTRSZVAL)image );
 
 			ce->image = MakeImageFile( image->real_width, image->real_height );
 		}
