@@ -18,9 +18,9 @@
 #include <zlib.h>
 #include <png.h>
 #else
-#include <zlib/zlib.h>
+#include <zlib.h>
 #include <setjmp.h>
-#include <png/png.h>
+#include <png.h>
 #endif
 #include <logging.h>
 #include <sharemem.h>
