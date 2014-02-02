@@ -52,25 +52,25 @@ IMAGE_NAMESPACE
 
 	/* Flags which may be combined in <link sack::image::ImageFile_tag::flags, Image.flags> */
 	enum ImageFlags {
-IF_FLAG_FREE   =0x01, // this has been freed - but contains sub images
-IF_FLAG_HIDDEN =0x02, // moved beyond parent image's bound
-IF_FLAG_EXTERN_COLORS =0x04, // built with a *image from external sources
-IF_FLAG_HAS_CLIPS     =0x08, // pay attention to (clips) array.
+IF_FLAG_FREE   =0x00001, // this has been freed - but contains sub images
+IF_FLAG_HIDDEN =0x00002, // moved beyond parent image's bound
+IF_FLAG_EXTERN_COLORS =0x00004, // built with a *image from external sources
+IF_FLAG_HAS_CLIPS     =0x00008, // pay attention to (clips) array.
 
 // with no _X_STRING flag - characters are shown as literal character glyph.
-IF_FLAG_C_STRING      =0x10, // strings on this use 'c' processing
-IF_FLAG_MENU_STRING   =0x20, // strings on this use menu processing ( &underline )
-IF_FLAG_CONTROL_STRING= 0x40, // strings use control chars (newline, tab)
-IF_FLAG_OWN_DATA =  0x80, // this has been freed - but contains sub images
-IF_FLAG_INVERTED =  0x100,  // image is inverted (standard under windows, but this allows images to be configured dynamically - a hack to match SDL lameness )
+IF_FLAG_C_STRING       = 0x00010, // strings on this use 'c' processing
+IF_FLAG_MENU_STRING    = 0x00020, // strings on this use menu processing ( &underline )
+IF_FLAG_CONTROL_STRING = 0x00040, // strings use control chars (newline, tab)
+IF_FLAG_OWN_DATA       = 0x00080, // this has been freed - but contains sub images
+IF_FLAG_INVERTED       = 0x00100,  // image is inverted (standard under windows, but this allows images to be configured dynamically - a hack to match SDL lameness )
 // DisplayLib uses this flag - indicates panel root
-IF_FLAG_USER1    =     0x10000, // please #define user flag to this
+IF_FLAG_USER1          = 0x10000, // please #define user flag to this
 // DisplayLib uses this flag - indicates is part of a displayed panel
-IF_FLAG_USER2    =     0x20000, /* An extra flag that can be used by users of the image library. */
+IF_FLAG_USER2          = 0x20000, /* An extra flag that can be used by users of the image library. */
 
-IF_FLAG_USER3    =     0x40000, /* An extra flag that can be used by users of the image library. */
-IF_FLAG_FINAL_RENDER = 0x200, // output should render to opengl target (with transform); also used with proxy
-IF_FLAG_UPDATED = 0x400, // set when a operation has changed the surface of a local image; requires update to remote device(s)
+IF_FLAG_USER3          = 0x40000, /* An extra flag that can be used by users of the image library. */
+IF_FLAG_FINAL_RENDER   = 0x00200, // output should render to opengl target (with transform); also used with proxy
+IF_FLAG_UPDATED        = 0x00400, // set when a operation has changed the surface of a local image; requires update to remote device(s)
 	};
 //#define _DRAWPOINT_X 0
 //#define _DRAWPOINT_Y 1

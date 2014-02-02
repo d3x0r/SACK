@@ -198,8 +198,6 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 	pchar = UseFont->character[c];
 	if( !pchar ) return 0;
 
-	//lprintf( "output %c at %d,%d", c, x, y );
-
 	if( !UseFont->character[c]->cell && ( pImage->flags & IF_FLAG_FINAL_RENDER ) )
 	{
 		Image image = AllocateCharacterSpaceByFont( pImage, UseFont, UseFont->character[c] );
@@ -856,6 +854,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				data += inc;
 			}
 		}
+		//lprintf( "Set dirty on image...." );
 		if( pImage->reverse_interface )
 			pImage->reverse_interface->_MarkImageDirty( (Image)pImage->reverse_interface_instance );
 		else

@@ -1503,7 +1503,7 @@ Image GetInvertedImage( Image child_image )
 					if( ce->age < oldest->age )
 						oldest = ce;
 				count++;
-				if( ce->inverted )
+				if( ce->flags.inverted )
 				{
 					ce->age = timeGetTime();
 					return ce->image;
@@ -1535,7 +1535,7 @@ Image GetInvertedImage( Image child_image )
 			ce->grn = 0;
 			ce->b = 0;
 			ce->age = timeGetTime();
-			ce->inverted = TRUE;
+			ce->flags.inverted = TRUE;
 			BlotImageSizedEx( ce->image, ci->image, 0, 0, 0, 0, image->real_width, image->real_height, 0, BLOT_INVERTED );
 			//ReloadOpenGlTexture( ce->image, 0 );
 			AddLink( &ci->elements, ce );
@@ -1605,7 +1605,7 @@ Image GetShadedImage( Image child_image, CDATA red, CDATA green, CDATA blue )
 			ce->grn = green;
 			ce->b = blue;
 			ce->age = timeGetTime();
-			ce->inverted = 0;
+			ce->flags.inverted = 0;
 			BlotImageSizedEx( ce->image, ci->image, 0, 0, 0, 0, image->real_width, image->real_height, 0, BLOT_MULTISHADE, red, green, blue );
 			//ReloadOpenGlTexture( ce->image, 0 );
 			AddLink( &ci->elements, ce );
@@ -1645,9 +1645,9 @@ Image GetTintedImage( Image child_image, CDATA color )
 				if( ce->r == color )
 				{
 					ce->age = timeGetTime();
-					if( child_image->flags & IF_FLAG_UPDATED )
+					if( ce->flags.parent_was_dirty )
 					{
-						lprintf( "Last blot to %p(real)  for %08x", ce->image, ce->r );
+						ce->flags.parent_was_dirty = 0; // this is now updated
 						BlotImageSizedEx( ce->image, ci->image, 0, 0, 0, 0, image->real_width, image->real_height, 0, BLOT_SHADED, ce->r );
 						MarkImageUpdated( ce->image );
 					}
@@ -1679,7 +1679,8 @@ Image GetTintedImage( Image child_image, CDATA color )
 		{
 			ce->r = color;
 			ce->age = timeGetTime();
-			ce->inverted = 0;
+			ce->flags.inverted = 0;
+			ce->flags.parent_was_dirty = 0; // this is now updated
 			BlotImageSizedEx( ce->image, ci->image, 0, 0, 0, 0, image->real_width, image->real_height, 0, BLOT_SHADED, color );
 			MarkImageUpdated( ce->image );
 			//ReloadOpenGlTexture( ce->image, 0 );
