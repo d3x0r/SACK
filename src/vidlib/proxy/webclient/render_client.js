@@ -65,6 +65,38 @@ function OpenServer()
      };
     
 	var b = 0;
+	var last_mouse_down = null;
+	function keydown(event)
+	{
+		//if( last_mosue_down )
+		console.debug(  event  );
+            ws.send( JSON.stringify( 
+					{
+                       	MsgID:16 /*PMID_Event_Key*/,
+						data: {
+							server_render_id:last_mosue_down.server_id,
+							key: event.keyCode,
+							pressed: 1
+						}
+					} )  );
+		
+	}
+
+	function keyup(event)
+	{
+		console.debug( event );
+            ws.send( JSON.stringify( 
+					{
+                       	MsgID:16 /*PMID_Event_Key*/,
+						data: {
+							server_render_id:last_mosue_down.server_id,
+							key: event.keyCode,
+							pressed: 0
+						}
+					} )  );
+		
+	}
+
 	
 	function mousedown(event)
 	{
@@ -143,7 +175,7 @@ function OpenServer()
 			  continue;
 			x -= canvas.offsetLeft;
 			y -= canvas.offsetTop;
-
+			last_mosue_down = render_list[n];
             ws.send( JSON.stringify( 
 					{
                        	MsgID:15 /*PMID_Event_Mouse*/,
@@ -177,6 +209,7 @@ function OpenServer()
 			if( 1 )//window.attachEvent || !document.contains( canvas ) )
 			{
 				canvas = document.createElement('canvas');
+				canvas.tabindex = 1;
 				canvas.id     = "Render" + msg.data.server_render_id;
 				canvas.width  = msg.data.width;
 				canvas.height = msg.data.height;
@@ -187,6 +220,8 @@ function OpenServer()
 				canvas.addEventListener("mousedown", mousedown, false);
 				canvas.addEventListener("mouseup", mouseup, false);
 				canvas.addEventListener("mousemove", mousemove, false);
+				document.addEventListener("keydown", keydown, false);
+				document.addEventListener("keyup", keyup, false);
 			
 				document.body.appendChild(canvas);
 				render_list.push( render = new render_surface( msg.data.server_render_id, canvas ) );

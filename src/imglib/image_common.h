@@ -15,7 +15,7 @@ typedef unsigned int GLuint;
 // this is actually specific, and is not common, but common needs it in CLR
 // because of tight typechecking.
 struct glSurfaceImageData {
-	struct {
+	struct glSurfaceImageData_flags{
 		BIT_FIELD updated : 1;
 	} flags;
 	GLuint glIndex;
@@ -27,7 +27,11 @@ struct shade_cache_element {
 	CDATA r,grn,b;
 	Image image;
 	_32 age;
-	LOGICAL inverted;
+	struct shade_cache_element_flags
+	{
+		BIT_FIELD parent_was_dirty : 1;
+		BIT_FIELD inverted : 1;
+	}flags;
 };
 
 struct shade_cache_image

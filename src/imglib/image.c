@@ -100,7 +100,7 @@ void MarkImageUpdated( Image child_image )
 				INDEX idx;
 				LIST_FORALL( ci->elements, idx, struct shade_cache_element *, ce )
 				{
-					MarkImageUpdated( ce->image );
+					ce->flags.parent_was_dirty = 1;
 				}
 			}
 		}
@@ -114,7 +114,7 @@ void MarkImageUpdated( Image child_image )
 				INDEX idx;
 				LIST_FORALL( ci->elements, idx, struct shade_cache_element *, ce )
 				{
-					MarkImageUpdated( ce->image );
+					ce->flags.parent_was_dirty = 1;
 				}
 			}
 		}

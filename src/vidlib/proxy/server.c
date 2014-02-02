@@ -267,11 +267,16 @@ static TEXTSTR EncodeImage( Image image, size_t *outsize )
 
 static void ClearDirtyFlag( PVPImage image )
 {
+	//lprintf( "Clear dirty on %p  (%p) %08x", image, (image)?image->image:NULL, image?image->image->flags:0 );
 	for( ; image; image = image->next )
 	{
 		if( image->image )
+		{
 			image->image->flags &= ~IF_FLAG_UPDATED;
-		ClearDirtyFlag( image->child );
+			//lprintf( "Clear dirty on %08x", (image)?(image)->image->flags:0 );
+		}
+      if( image->child )
+			ClearDirtyFlag( image->child );
 	}
 }
 
@@ -454,7 +459,7 @@ static void SendTCPMessage( PCLIENT pc, INDEX idx, LOGICAL websock, enum proxy_m
 			outmsg->data.image_data.server_image_id = image->id;
 			// include nul in copy
 			MemCpy( outmsg->data.image_data.data, encoded_image, outlen + 1 );
-			lprintf( "Send Image %p %d ", image, image->id );
+			//lprintf( "Send Image %p %d ", image, image->id );
 			if( websock )
 			{
 				json_msg = json_build_message( cto, outmsg );
@@ -1406,6 +1411,16 @@ static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w
 		outmsg->data.blatcolor.h = h;
 		outmsg->data.blatcolor.color = color;
 		outmsg->data.blatcolor.server_image_id = image->id;
+		if( w == image->w && h == image->h )
+		{
+			lprintf( "clear buffer; full color : %08x", color );
+			image->websock_sendlen = 0;
+         image->sendlen = 0;
+		}
+		else
+		{
+			lprintf( "w:%d w:%d h:%d h:%d full color : %08x", w, image->w, h, image->h, color );
+		}
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
 			AppendJSON( image, json_msg, outmsg, sendlen );
@@ -1440,6 +1455,16 @@ static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32
 		outmsg->data.blatcolor.h = h;
 		outmsg->data.blatcolor.color = color;
 		outmsg->data.blatcolor.server_image_id = image->id;
+		if( w == image->w && h == image->h )
+		{
+			lprintf( "clear buffer; full color : %08x", color );
+			image->websock_sendlen = 0;
+         image->sendlen = 0;
+		}
+		else
+		{
+			lprintf( "w:%d w:%d h:%d h:%d full color : %08x", w, image->w, h, image->h, color );
+		}
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
 			AppendJSON( image, json_msg, outmsg, sendlen );
@@ -1504,7 +1529,6 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 				if( !shaded_image->reverse_interface )
 				{
 					// new image, and we need to reverse track it....
-					lprintf( "wrap shaded image for %p %d", ((PVPImage)pIF), ((PVPImage)pIF)->id );
 					actual_image = WrapImageFile( shaded_image );
 				}
 				else
@@ -2049,6 +2073,7 @@ IMAGE_PROC_PTR( void, RotateImageAbout )( Image pImage, int edge_flag, RCOORD of
 static void CPROC VidlibProxy_MarkImageDirty ( Image pImage )
 {
 	// this library tracks the IF_FLAG_UPDATED which is set by native routine;native routine marks child and all parents.
+   lprintf( "Mark image %p dirty", pImage );
 	l.real_interface->_MarkImageDirty( ((PVPImage)pImage)->image );
 	if( 0 )
 	{
