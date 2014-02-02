@@ -20,6 +20,8 @@ struct vidlib_proxy_local
 	PIMAGE_INTERFACE pii;
 	PRENDER3D_INTERFACE pr3i;
 	PIMAGE_3D_INTERFACE pi3i;
-} l;
+	PLIST renderers;
+	PLIST images;
+} proxy_client_local;
 
 

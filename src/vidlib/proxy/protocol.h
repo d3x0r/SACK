@@ -17,6 +17,12 @@ PREFIX_PACKED struct opendisplay_data
 	PTRSZVAL under;
 } PACKED;
 
+
+PREFIX_PACKED struct close_display_data 
+{
+	PTRSZVAL server_display_id;
+} PACKED;
+
 PREFIX_PACKED struct make_image_data 
 {
 	_32 w, h;
@@ -30,8 +36,13 @@ PREFIX_PACKED struct image_data_data
 {
 	// what the server calls this image; for all further draw ops
 	PTRSZVAL server_image_id;
-	// so the client can know which to output surface attach to
-	TEXTCHAR data[1];
+	_8 data[1];
+} PACKED;
+
+PREFIX_PACKED struct unmake_image_data
+{
+	// what the server calls this image; for all further draw ops
+	PTRSZVAL server_image_id;
 } PACKED;
 
 PREFIX_PACKED struct make_subimage_data 
@@ -90,6 +101,13 @@ PREFIX_PACKED struct mouse_event_data
 	_32 b;
 } PACKED;
 
+PREFIX_PACKED struct key_event_data
+{
+	PTRSZVAL server_render_id;
+	_32 key;
+	_32 pressed;
+} PACKED;
+
 PREFIX_PACKED struct common_message {
 	_8 message_id;
 	union
@@ -108,6 +126,9 @@ PREFIX_PACKED struct common_message {
 		struct blot_scaled_image_data blot_scaled_image;
 		struct line_data line;
 		struct mouse_event_data mouse_event;
+		struct key_event_data key_event;
+		struct unmake_image_data unmake_image;
+		struct close_display_data close_display;
 		MSGBLOCK( open_display_reply,  PTRSZVAL server_display_id; PTRSZVAL client_display_id; );
 	} data;
 } PACKED;
