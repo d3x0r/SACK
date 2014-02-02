@@ -25,6 +25,10 @@ typedef struct vidlib_proxy_image
 	INDEX render_id;
 	INDEX id;
 
+	struct vidlib_proxy_image_flags {
+		BIT_FIELD bUsed : 1;
+	} flags;
+
 	P_8 buffer;
 	size_t sendlen;
 	size_t buf_avail;

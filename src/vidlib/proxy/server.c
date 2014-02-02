@@ -406,9 +406,9 @@ static void SendTCPMessage( PCLIENT pc, INDEX idx, LOGICAL websock, enum proxy_m
 			else
 				SendTCP( pc, msg, sendlen );
 			Release( msg );
-
 			if( image->render_id == INVALID_INDEX )
-				SendTCPMessageV( pc, idx, websock, PMID_ImageData, image );
+				//if( image->flags.bUsed )
+					SendTCPMessageV( pc, idx, websock, PMID_ImageData, image );
 		}
 		break;
 	case PMID_MakeSubImage:
@@ -748,8 +748,32 @@ static PRENDERER VidlibProxy_OpenDisplaySizedAt	  ( _32 attributes, _32 width, _
 	return VidlibProxy_OpenDisplayAboveUnderSizedAt( attributes, width, height, x, y, NULL, NULL );
 }
 
+
+/* <combine sack::image::LoadImageFileEx@CTEXTSTR name>
+	
+	Internal
+	Interface index 10																	*/  IMAGE_PROC_PTR( Image,VidlibProxy_LoadImageFileEx)  ( CTEXTSTR name DBG_PASS );
+static  void CPROC VidlibProxy_UnmakeImageFileEx( Image pif DBG_PASS )
+{
+	if( pif )
+	{
+		PVPImage image = (PVPImage)pif;
+		SendClientMessage( PMID_UnmakeImage, pif );
+		lprintf( "UNMake proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
+		SetLink( &l.images, ((PVPImage)pif)->id, NULL );
+		if( ((PVPImage)pif)->image->reverse_interface )
+		{
+			((PVPImage)pif)->image->reverse_interface = NULL;
+			((PVPImage)pif)->image->reverse_interface_instance = 0;
+			l.real_interface->_UnmakeImageFileEx( ((PVPImage)pif)->image DBG_RELAY );
+		}
+		Release( pif );
+	}
+}
+
 static void  VidlibProxy_CloseDisplay ( PRENDERER Renderer )
 {
+	VidlibProxy_UnmakeImageFileEx( (Image)(((PVPRENDER)Renderer)->image) DBG_SRC );
 	SendClientMessage( PMID_CloseDisplay, Renderer );
 	DeleteLink( &l.renderers, Renderer );
 	Release( Renderer );
@@ -1068,6 +1092,7 @@ static void CPROC VidlibProxy_SetRestoreHandler  ( PRENDERER r, HideAndRestoreCa
 
 static void CPROC VidlibProxy_RestoreDisplayEx ( PRENDERER r DBG_PASS )
 {
+	((PVPRENDER)r)->redraw( ((PVPRENDER)r)->psv_redraw, r );
 }
 
 // android extension
@@ -1279,28 +1304,6 @@ static Image CPROC VidlibProxy_LoadImageFileEx( CTEXTSTR filename DBG_PASS )
 
 
 
-/* <combine sack::image::LoadImageFileEx@CTEXTSTR name>
-	
-	Internal
-	Interface index 10																	*/  IMAGE_PROC_PTR( Image,VidlibProxy_LoadImageFileEx)  ( CTEXTSTR name DBG_PASS );
-static  void CPROC VidlibProxy_UnmakeImageFileEx( Image pif DBG_PASS )
-{
-	if( pif )
-	{
-		PVPImage image = (PVPImage)pif;
-		SendClientMessage( PMID_UnmakeImage, pif );
-		lprintf( "UNMake proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
-		SetLink( &l.images, ((PVPImage)pif)->id, NULL );
-		if( ((PVPImage)pif)->image->reverse_interface )
-		{
-			((PVPImage)pif)->image->reverse_interface = NULL;
-			((PVPImage)pif)->image->reverse_interface_instance = 0;
-			l.real_interface->_UnmakeImageFileEx( ((PVPImage)pif)->image DBG_RELAY );
-		}
-		Release( pif );
-	}
-}
-
 static void CPROC VidlibProxy_ResizeImageEx	  ( Image pImage, S_32 width, S_32 height DBG_PASS)
 {
 	PVPImage image = (PVPImage)pImage;
@@ -1449,6 +1452,15 @@ static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32
 	}
 }
 
+static void SetImageUsed( PVPImage image )
+{
+	while( image  )
+	{
+		image->flags.bUsed = 1;
+		image = image->parent;
+	}
+}
+
 static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, S_32 y, S_32 xs, S_32 ys, _32 wd, _32 ht, _32 nTransparent, _32 method, ... )
 {
 	if( !((PVPImage)pIF)->image )
@@ -1463,7 +1475,6 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 		if( !cto )
 			cto = WebSockInitJson( PMID_BlotImageSizedTo );
 
-
 		outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct blot_image_data ) ) );
 		outmsg->message_id = PMID_BlotImageSizedTo;
 		outmsg->data.blot_image.w = wd;
@@ -1474,6 +1485,7 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 			// sending this clears the flag.
 			if( ((PVPImage)pIF)->image->flags & IF_FLAG_UPDATED )
 				SendClientMessage( PMID_ImageData, pIF );
+			SetImageUsed( (PVPImage)pIF );
 			outmsg->data.blot_image.image_id = ((PVPImage)pIF)->id;
 			break;
 		case BLOT_SHADED:
@@ -1501,6 +1513,7 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 					if( shaded_image->flags & IF_FLAG_UPDATED )
 						SendClientMessage( PMID_ImageData, actual_image );
 				}
+				SetImageUsed( actual_image );
 				outmsg->data.blot_image.image_id = actual_image->id;
 			}
 			break;
@@ -1529,6 +1542,7 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 					if( shaded_image->flags & IF_FLAG_UPDATED )
 						SendClientMessage( PMID_ImageData, actual_image );
 				}
+				SetImageUsed( actual_image );
 				outmsg->data.blot_image.image_id = actual_image->id;
 			}
 			break;
@@ -1591,6 +1605,75 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 
 	outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct blot_scaled_image_data ) ) );
 	outmsg->message_id = PMID_BlotScaledImageSizedTo;
+
+	switch( method & 3 )
+	{
+	case BLOT_COPY:
+		// sending this clears the flag.
+		if( ((PVPImage)pifSrc)->image->flags & IF_FLAG_UPDATED )
+			SendClientMessage( PMID_ImageData, pifSrc );
+		SetImageUsed( (PVPImage)pifSrc );
+		outmsg->data.blot_scaled_image.image_id = ((PVPImage)pifSrc)->id;
+		break;
+	case BLOT_SHADED:
+		{
+			va_list args;
+			Image shaded_image;
+			PVPImage actual_image;
+			va_start( args, method );
+			while( ((PVPImage)pifSrc)->parent )
+			{
+				xs += ((PVPImage)pifSrc)->x;
+				ys += ((PVPImage)pifSrc)->y;
+				pifSrc = (Image)(((PVPImage)pifSrc)->parent);
+			}
+			shaded_image = l.real_interface->_GetTintedImage( ((PVPImage)pifSrc)->image, va_arg( args, CDATA ) );
+			if( !shaded_image->reverse_interface )
+			{
+				// new image, and we need to reverse track it....
+				lprintf( "wrap shaded image for %p %d", ((PVPImage)pifSrc), ((PVPImage)pifSrc)->id );
+				actual_image = WrapImageFile( shaded_image );
+			}
+			else
+			{
+				actual_image = (PVPImage)shaded_image->reverse_interface_instance;
+				if( shaded_image->flags & IF_FLAG_UPDATED )
+					SendClientMessage( PMID_ImageData, actual_image );
+			}
+			SetImageUsed( actual_image );
+			outmsg->data.blot_scaled_image.image_id = actual_image->id;
+		}
+		break;
+	case BLOT_MULTISHADE:
+		{
+			va_list args;
+			Image shaded_image;
+			PVPImage actual_image;
+			va_start( args, method );
+
+			while( ((PVPImage)pifSrc)->parent )
+			{
+				xs += ((PVPImage)pifSrc)->x;
+				ys += ((PVPImage)pifSrc)->y;
+				pifSrc = (Image)(((PVPImage)pifSrc)->parent);
+			}
+			shaded_image = l.real_interface->_GetShadedImage( ((PVPImage)pifSrc)->image, va_arg( args, CDATA ), va_arg( args, CDATA ), va_arg( args, CDATA ) );
+			if( !shaded_image->reverse_interface )
+			{
+				// new image, and we need to reverse track it....
+				actual_image = WrapImageFile( shaded_image );
+			}
+			else
+			{
+				actual_image = (PVPImage)shaded_image->reverse_interface_instance;
+				if( shaded_image->flags & IF_FLAG_UPDATED )
+					SendClientMessage( PMID_ImageData, actual_image );
+			}
+			SetImageUsed( actual_image );
+			outmsg->data.blot_scaled_image.image_id = actual_image->id;
+		}
+		break;
+	}
 	outmsg->data.blot_scaled_image.x = xd;
 	outmsg->data.blot_scaled_image.y = yd;
 	outmsg->data.blot_scaled_image.w = wd;
@@ -1599,7 +1682,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 	outmsg->data.blot_scaled_image.ys = ys;
 	outmsg->data.blot_scaled_image.ws = ws;
 	outmsg->data.blot_scaled_image.hs = hs;
-	outmsg->data.blot_scaled_image.image_id = ((PVPImage)pifSrc)->id;
+	//outmsg->data.blot_scaled_image.image_id = ((PVPImage)pifSrc)->id;
 	outmsg->data.blot_scaled_image.server_image_id = image->id;
 	{
 		TEXTSTR json_msg = json_build_message( cto, outmsg );
