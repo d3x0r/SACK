@@ -15,12 +15,12 @@
 #include <imglib/imagestruct.h>
 #include <image.h>
 #ifdef __LINUX__
-#include <zlib.h>
-#include <png.h>
+#  include <zlib.h>
+#  include <png.h>
 #else
-#include <zlib.h>
-#include <setjmp.h>
-#include <png.h>
+#  include <zlib/zlib.h>
+#  include <setjmp.h>
+#  include <png/png.h>
 #endif
 #include <logging.h>
 #include <sharemem.h>

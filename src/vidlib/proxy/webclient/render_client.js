@@ -329,6 +329,7 @@ function OpenServer()
 			ofs_y = 0;
 			ofs_xs = 0;
 			ofs_ys = 0;
+			//console.log( "scaled image " + msg.data.image_id + " " + parent_src_image );
 			while( parent_image.parent != null )
 			{
 				ofs_x += parent_image.x;

@@ -13,6 +13,8 @@ include_directories( ${SACK_INCLUDE_DIR} )
 LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
 
 INSTALL_SACK( bin )
+include_directories( ${SACK_INCLUDE_DIR}/zlib )
+include_directories( ${SACK_INCLUDE_DIR}/png )
 endif( NOT MAKING_SACK_CORE )
 
 

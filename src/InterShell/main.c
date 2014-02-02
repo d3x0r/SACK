@@ -4591,7 +4591,7 @@ void DisplayMenuCanvas( PSI_CONTROL pc_canvas, PRENDERER under, _32 width, _32 h
 
 #ifndef UNDER_CE
 #ifdef WIN32
-	(((PRENDERER)g.mem_lock)[0]) = canvas->renderer[0];
+	//(((PRENDERER)g.mem_lock)[0]) = canvas->renderer[0];
 #endif
 #endif
 
