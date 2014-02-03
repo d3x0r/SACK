@@ -4,12 +4,6 @@
    
    Image building tracking, and simple manipulations.        */
 
-
-
-// this library will be locked out by image.h
-// and likewise image.h will be locked out by this.
-// this is DESIRED - DO NOT FIX.
-
 // if the library is to have it's own idea of what
 // an image is - then it should have included
 // the definition for 'SFTFont', and 'Image' before 

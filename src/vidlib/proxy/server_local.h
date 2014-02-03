@@ -52,6 +52,8 @@ typedef struct vidlib_proxy_renderer
 	INDEX id;
 	MouseCallback mouse_callback;
 	PTRSZVAL psv_mouse_callback;
+	KeyProc key_callback;
+	PTRSZVAL psv_key_callback;
 	RedrawCallback redraw;
 	PTRSZVAL psv_redraw;
 } *PVPRENDER;

@@ -62,6 +62,11 @@ static struct json_context_object *WebSockInitReplyJson( enum proxy_message_id m
 		json_add_object_member( cto_data, WIDE("b"), ofs = ofs + sizeof(S_32), JSON_Element_Unsigned_Integer_32, 0 );
 
 		break;
+	case PMID_Event_Key:
+		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("key"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("pressed"), ofs = ofs + sizeof(S_32), JSON_Element_Unsigned_Integer_32, 0 );
+		break;
 	}
 	return cto;
 }
@@ -512,6 +517,21 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, int size )
 	ReadTCP( pc, buffer, size );
 }
 
+static void SendInitialImage( PCLIENT pc, LOGICAL websock, PLIST *sent, PVPImage image )
+{
+	if( image->parent )
+	{
+		if( FindLink( sent, image->parent ) == INVALID_INDEX )
+		{
+			SendInitialImage( pc, websock, sent, image->parent );
+		}
+		SendTCPMessageV( pc, 0, websock, PMID_MakeSubImage, image );
+	}
+	else
+		SendTCPMessageV( pc, 0, websock, PMID_MakeImage, image, image->render_id );
+	AddLink( sent,  image );
+}
+
 static void CPROC Connected( PCLIENT pcServer, PCLIENT pcNew )
 {
 	struct server_proxy_client *client = New( struct server_proxy_client );
@@ -529,23 +549,24 @@ static void CPROC Connected( PCLIENT pcServer, PCLIENT pcNew )
 		{
 			SendTCPMessageV( pcNew, idx, FALSE, PMID_OpenDisplayAboveUnderSizedAt, render );
 		}
-	}
-}
-
-static void SendInitialImage( PCLIENT pc, PLIST *sent, PVPImage image )
-{
-	if( image->parent )
-	{
-		if( FindLink( sent, image->parent ) == INVALID_INDEX )
 		{
-			SendInitialImage( pc, sent, image->parent );
+			PLIST sent = NULL;
+			INDEX idx;
+			PVPImage image;
+			LIST_FORALL( l.images, idx, PVPImage, image )
+			{
+				SendInitialImage( pcNew, FALSE, &sent, image );
+			}
+			LIST_FORALL( sent, idx, PVPImage, image )
+			{
+				if( image->buffer && image->sendlen )
+				{
+					SendTCP( pcNew, image->buffer, image->sendlen );
+				}
+			}
+			DeleteList( &sent );
 		}
-		SendTCPMessageV( pc, 0, TRUE, PMID_MakeSubImage, image );
 	}
-	else
-		SendTCPMessageV( pc, 0, TRUE, PMID_MakeImage, image, image->render_id );
-
-	AddLink( sent,  image );
 }
 
 static PTRSZVAL WebSockOpen( PCLIENT pc, PTRSZVAL psv )
@@ -572,7 +593,7 @@ static PTRSZVAL WebSockOpen( PCLIENT pc, PTRSZVAL psv )
 			PVPImage image;
 			LIST_FORALL( l.images, idx, PVPImage, image )
 			{
-				SendInitialImage( pc, &sent, image );
+				SendInitialImage( pc, TRUE, &sent, image );
 			}
 			LIST_FORALL( sent, idx, PVPImage, image )
 			{
@@ -619,6 +640,13 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 				PVPRENDER render = (PVPRENDER)GetLink( &l.renderers, message->data.mouse_event.server_render_id );
 				if( render && render->mouse_callback )
 					render->mouse_callback( render->psv_mouse_callback, message->data.mouse_event.x, message->data.mouse_event.y, message->data.mouse_event.b );
+			}
+			break;
+		case PMID_Event_Key:
+			{
+				PVPRENDER render = (PVPRENDER)GetLink( &l.renderers, message->data.key_event.server_render_id );
+				if( render && render->key_callback )
+					render->key_callback( render->psv_key_callback, (message->data.key_event.pressed?KEY_PRESSED:0)|message->data.key_event.key );
 			}
 			break;
 		}
@@ -891,6 +919,9 @@ static void CPROC VidlibProxy_SetRedrawHandler  ( PRENDERER r, RedrawCallback c,
 
 static void CPROC VidlibProxy_SetKeyboardHandler	( PRENDERER r, KeyProc c, PTRSZVAL p )
 {
+	PVPRENDER render = (PVPRENDER)r;
+	render->key_callback = c;
+	render->psv_key_callback = p;
 }
 
 static void CPROC VidlibProxy_SetLoseFocusHandler  ( PRENDERER r, LoseFocusCallback c, PTRSZVAL p )
