@@ -164,53 +164,62 @@ static void encodeblock( unsigned char in[3], char out[4], size_t len )
 	out[3] = (len > 2 ? base64[ in[2] & 0x3f ] : 0);
 }
 
-
-
-static TEXTSTR EncodeImage( Image image, size_t *outsize )
+static TEXTSTR Encode64Image( P_8 buf, LOGICAL bmp, size_t length, size_t *outsize )
 {
 	TEXTSTR real_output;
-	size_t length = 0;
-	if( image )
-	{
-		_8 *buf;
-		if( PngImageFile( image, &buf, &length ) )
-		{
-			{
-				TEXTCHAR tmpname[32];
-				static int n;
-				FILE *out;
-				snprintf( tmpname, 32, "blah%d.png", n++ );
-				out = fopen( tmpname, "wb" );
-				fwrite( buf, 1, length, out );
-				fclose( out );
-			}
-			real_output = NewArray( char, 22 + ( length * 4 / 3 ) + 1 );
-			StrCpy( real_output, "data:image/png;base64," );
-			{
-				size_t n;
-				for( n = 0; n < (length)/3; n++ )
-				{
-					size_t blocklen;
-					blocklen = length - n*3;
-					if( blocklen > 3 )
-					blocklen = 3;
-					encodeblock( ((P_8)buf) + n * 3, real_output + 22 + n*4, blocklen );
-				}
-				(*outsize) = 22 + n*4;
-				real_output[22 + n*4] = 0;
-			}
-			Release( buf );
-		}
-	}
+
+	real_output = NewArray( char, 22 + ( length * 4 / 3 ) + 1 );
+	if( bmp )
+		StrCpy( real_output, "data:image/bmp;base64," );
 	else
+		StrCpy( real_output, "data:image/png;base64," );
 	{
+		size_t n;
+		for( n = 0; n < (length)/3; n++ )
+		{
+			size_t blocklen;
+			blocklen = length - n*3;
+			if( blocklen > 3 )
+			blocklen = 3;
+			encodeblock( ((P_8)buf) + n * 3, real_output + 22 + n*4, blocklen );
+		}
+		(*outsize) = 22 + n*4 + 1;
+		real_output[22 + n*4] = 0;
+	}
+	return real_output;
+}
+
+static P_8 EncodeImage( Image image, LOGICAL bmp, size_t *outsize )
+{
+	if( !bmp )
+	{
+		if( image )
+		{
+			_8 *buf;
+			if( PngImageFile( image, &buf, outsize ) )
+			{
+				if( 0 )
+				{
+					TEXTCHAR tmpname[32];
+					static int n;
+					FILE *out;
+					snprintf( tmpname, 32, "blah%d.png", n++ );
+					out = fopen( tmpname, "wb" );
+					fwrite( buf, 1, *outsize, out );
+					fclose( out );
+				}
+				return buf;
+			}
+		}
 		(*outsize) = 0;
 		return NULL;
 	}
-	if( 0 )
+	else
 	{
+		// code to generate raw bitmap; 32 bit bitmaps still don't have alpha channel in browsers; weak.
 		BITMAPFILEHEADER *header;
 		BITMAPV5HEADER *output;
+		size_t length;
 		header = (BITMAPFILEHEADER*)NewArray( _8, length = ( ( image->width * image->height * sizeof( CDATA ) ) + sizeof( BITMAPV5HEADER ) + sizeof( BITMAPFILEHEADER ) ) );
 		MemSet( header, 0, sizeof( BITMAPFILEHEADER ) + sizeof( BITMAPV5HEADER ) );
 		header->bfType = 'MB';
@@ -234,6 +243,7 @@ static TEXTSTR EncodeImage( Image image, size_t *outsize )
 				MemCpy( color_out + image->width * n, image->image + image->pwidth * n, sizeof( CDATA ) * image->width );
 		}
 
+		if( 0 )
 		{
 			TEXTCHAR tmpname[32];
 			static int n;
@@ -244,25 +254,8 @@ static TEXTSTR EncodeImage( Image image, size_t *outsize )
 			fclose( out );
 		}
 
-		real_output = NewArray( char, 22 + ( length * 4 / 3 ) + 1 );
-		StrCpy( real_output, "data:image/bmp;base64," );
-		{
-			size_t n;
-			for( n = 0; n < (length)/3; n++ )
-			{
-				size_t blocklen;
-				blocklen = length - n*3;
-				if( blocklen > 3 )
-					blocklen = 3;
-				encodeblock( ((P_8)header) + n * 3, real_output + 22 + n*4, blocklen );
-			}
-			(*outsize) = 22 + n*4;
-			real_output[22 + n*4] = 0;
-		}
-		Release( header );
+		return (P_8)header;
 	}
-
-	return real_output;
 }
 
 static void ClearDirtyFlag( PVPImage image )
@@ -443,6 +436,7 @@ static void SendTCPMessage( PCLIENT pc, INDEX idx, LOGICAL websock, enum proxy_m
 		break;
 	case PMID_ImageData:
 		{
+			P_8 raw_image;
 			TEXTSTR encoded_image;
 			size_t outlen;
 			image = va_arg( args, PVPImage );
@@ -451,14 +445,25 @@ static void SendTCPMessage( PCLIENT pc, INDEX idx, LOGICAL websock, enum proxy_m
 			while( image && image->parent ) 
 				image = image->parent;
 			ClearDirtyFlag( image );
-			encoded_image = EncodeImage( image->image, &outlen );
-			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct image_data_data ) + outlen ) );
+			raw_image = EncodeImage( image->image, FALSE, &outlen );
+			if( websock )
+			{
+				encoded_image = Encode64Image( raw_image, FALSE, outlen, &outlen );
+				msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct image_data_data ) + outlen ) );
+				outmsg = (struct common_message*)(msg + 4);
+				MemCpy( outmsg->data.image_data.data, encoded_image, outlen );
+			}
+			else
+			{
+				msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct image_data_data ) - 1 + outlen ) );
+				outmsg = (struct common_message*)(msg + 4);
+				MemCpy( outmsg->data.image_data.data, raw_image, outlen );
+			}
 			((_32*)msg)[0] = (_32)(sendlen - 4);
 			outmsg = (struct common_message*)(msg + 4);
 			outmsg->message_id = message;
 			outmsg->data.image_data.server_image_id = image->id;
 			// include nul in copy
-			MemCpy( outmsg->data.image_data.data, encoded_image, outlen + 1 );
 			//lprintf( "Send Image %p %d ", image, image->id );
 			if( websock )
 			{
@@ -469,8 +474,6 @@ static void SendTCPMessage( PCLIENT pc, INDEX idx, LOGICAL websock, enum proxy_m
 			else
 				SendTCP( pc, msg, sendlen );
 			Release( msg );
-
-
 		}
 		break;
 	}
@@ -2078,12 +2081,12 @@ static void CPROC VidlibProxy_MarkImageDirty ( Image pImage )
 	if( 0 )
 	{
 		size_t outlen;
-		TEXTSTR encoded_image;
+		P_8 encoded_image;
 	
 		if( ((PVPImage)pImage)->parent )
-			encoded_image = EncodeImage( ((PVPImage)pImage)->parent->image, &outlen );
+			encoded_image = EncodeImage( ((PVPImage)pImage)->parent->image, FALSE, &outlen );
 		else
-			encoded_image = EncodeImage( ((PVPImage)pImage)->image, &outlen );
+			encoded_image = EncodeImage( ((PVPImage)pImage)->image, FALSE, &outlen );
 		Release( encoded_image );
 	}
 }
