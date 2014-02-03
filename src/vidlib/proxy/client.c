@@ -87,6 +87,7 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 				}
 				break;
 			case PMID_MakeSubImage: // 7
+				lprintf( "make sub on %p", GetLink( &proxy_client_local.images, msg->data.make_subimage.server_parent_image_id ) );
 				SetLink( &proxy_client_local.images, msg->data.make_subimage.server_image_id
 				    , MakeSubImage( (Image)GetLink( &proxy_client_local.images, msg->data.make_subimage.server_parent_image_id )
 				                    , msg->data.make_subimage.x
@@ -130,7 +131,9 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 						   );
 				}
 				break;
-			case PMID_BlotImageSizedTo:  // 11 
+			case PMID_BlotImageSizedTo:  // 11
+				lprintf( "Ouptut 5o %p",  GetLink( &proxy_client_local.images, msg->data.blot_image.server_image_id ) );
+            lprintf( "Might output to %p", GetDisplayImage( GetLink( &proxy_client_local.renderers, 0 ) ) );
 				BlotImageSizedEx( (Image)GetLink( &proxy_client_local.images, msg->data.blot_image.server_image_id )
 					, (Image)GetLink( &proxy_client_local.images, msg->data.blot_image.image_id )
 				        , msg->data.blot_image.x

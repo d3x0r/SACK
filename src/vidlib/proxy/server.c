@@ -1378,6 +1378,7 @@ P_8 GetMessageBuf( PVPImage image, size_t size )
 		image->buffer = newbuf;
 	}
 	resultbuf = image->buffer + image->sendlen;
+   ((_32*)resultbuf)[0] = size - 4;
 	image->sendlen += size;
 
 	return resultbuf + 4;
