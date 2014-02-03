@@ -502,7 +502,11 @@ static void SmearFlag( Image image, int flag )
 	p->width = p->real_width = width;
 	p->height = p->real_height = height;
 	if( pImage )
+	{
 		p->pwidth = pImage->pwidth;
+		p->flags |= (pImage->flags & IF_FLAG_FINAL_RENDER);
+		p->reverse_interface = pImage->reverse_interface;
+	}
 	else
 		p->pwidth = 0;
 	p->x = 0;
@@ -513,8 +517,6 @@ static void SmearFlag( Image image, int flag )
 	p->pYounger = NULL;
 	p->pElder = NULL;
 	p->image = NULL; // set it to nothing for now ComputeData will fix
-	p->flags |= (pImage->flags & IF_FLAG_FINAL_RENDER);
-	p->reverse_interface = pImage->reverse_interface;
 #if defined( _OPENGL_DRIVER )
 	p->glSurface = NULL;
 	p->transform = NULL;

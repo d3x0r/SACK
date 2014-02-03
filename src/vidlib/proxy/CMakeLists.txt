@@ -29,7 +29,7 @@ install_default_dest( ${PROJECT} )
   SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES	FOLDER "Video Renderer"    )
 
 set( PROJECT bag.video.proxy.client )
-add_program( ${PROJECT} WIN32 client.c )
+sack_add_executable( ${PROJECT} WIN32 ${FIRST_GCC_PROGRAM_SOURCE} client.c ${LAST_GCC_PROGRAM_SOURCE} )
 install_default_dest( ${PROJECT} )
 target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
   SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES	FOLDER "Video Renderer"    )
