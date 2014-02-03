@@ -3,6 +3,12 @@
 #include <image3d.h>
 #include "protocol.h"
 
+struct client_proxy_image
+{
+	Image image;
+   INDEX render_id;
+};
+
 struct client_socket_state
 {
 	struct client_socket_flags {
@@ -20,8 +26,8 @@ struct vidlib_proxy_local
 	PIMAGE_INTERFACE pii;
 	PRENDER3D_INTERFACE pr3i;
 	PIMAGE_3D_INTERFACE pi3i;
-	PLIST renderers;
-	PLIST images;
+	PLIST renderers;  // list of PRENDERER
+	PLIST images;  // list of struct client_socket_state
 } proxy_client_local;
-
+#define l proxy_client_local
 

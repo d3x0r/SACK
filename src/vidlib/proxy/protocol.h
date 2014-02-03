@@ -17,7 +17,8 @@ PREFIX_PACKED struct opendisplay_data
 	PTRSZVAL under;
 } PACKED;
 
-
+// also usedf for Flush_display command
+// only info needed is the server_display_ID
 PREFIX_PACKED struct close_display_data 
 {
 	PTRSZVAL server_display_id;
@@ -159,7 +160,8 @@ enum proxy_message_id{
 							, PMID_UnmakeImage // 14
 							, PMID_Event_Mouse // 15 (from client to server)
 							, PMID_Event_Key // 16 (from client to server)
-							, PMID_
+							, PMID_Flush_Draw // 17 swap buffers... update display... commit changes....
+                     , PMID_
 
 							, PMID_LAST_PROXY_MESSAGE
 
