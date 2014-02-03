@@ -347,8 +347,11 @@ void WebSocketPing( PCLIENT pc, _32 timeout )
 void WebSocketSendText( PCLIENT pc, POINTER buffer, size_t length ) // UTF8 RFC3629
 {
 	struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
-	SendWebSocketMessage( pc, output->flags.sent_type?0:1, 1, output->flags.expect_masking, (P_8)buffer, length );
-	output->flags.sent_type = 0;
+	if( output )
+	{
+		SendWebSocketMessage( pc, output->flags.sent_type?0:1, 1, output->flags.expect_masking, (P_8)buffer, length );
+		output->flags.sent_type = 0;
+	}
 }
 
 // there is a control bit for whether the content is text or binary or a continuation
