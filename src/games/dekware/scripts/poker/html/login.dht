@@ -1,0 +1,76 @@
+
+<html>
+<head><title>Login account</title></head>
+<body>
+
+/mac registerPlayer
+
+/decl query select * from players_info where (first_name='%username' and last_name='%lastname') or (alias='%username')
+/db/query user %query
+/grab user db
+
+/compare %(user)rows is 0
+/if success
+Account does not exist.<br>
+<a href="create.dht">Please create account.</a>
+/else
+/compare %password is %(user)password
+
+/if success
+password OKAY.<br>
+/else
+password BAD.<br>
+/endif
+
+Account Active already<br>
+
+/decl query select * from player_account where player_id=%(user)player_id
+/db/query account %query
+/grab account db
+
+/echo have account here...
+/compare %(account)rows is 0
+
+/if success
+
+You have no deposited money, please add some money...<br>
+<form method="post" action="depositmoney.dht">
+You need some money please deposit $<input type="text" name="money" value="500">
+<input type="hidden" name="player_id"  value="%(user)player_id">
+<input type="submit">
+</form>
+
+/else
+
+/decl cmd update player_login set logout=now() where player_account_id=%(account)player_account_id
+/db/cmd %cmd
+
+/decl cmd insert into player_login (player_account_id) values( %(account)player_account_id )
+/db/cmd %cmd
+
+/decl query select * from player_login where player_account_id=%(account)player_account_id and logout is NULL
+/db/query last %query
+/grab last db
+
+<form method="post" action="picktable.dht">
+<input type="hidden" name="session" value="%(last)player_login_id"
+<input type="submit" value="Go to Table.">
+</form>
+
+/endif
+/endif
+
+/dest user
+/dest account
+/dest last
+
+/endmac
+
+/run registerPlayer
+
+</body>
+
+</html>
+
+
+ 

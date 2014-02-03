@@ -1,0 +1,723 @@
+<HTML><HEAD><TITLE>Image handling library</TITLE></HEAD>
+
+<BODY>
+<CENTER><FONT size=+2>Image Methods and Types</FONT></CENTER><br>
+<hr>
+The image library handles images in memory.  The only format for these
+images is 32 bit ARGB (alpha,red,green,blue).  It has an interface which
+may be used.  Interfaces are single pointers to tables of functions.  This
+library and the <a href="display.html">display</a> library may be dynamically
+switched using interfaces.  Three libraries currently implement these functions.
+Image, built from src/imglib; Display, built from src/display; cimage, also
+built from src/display.  Display and cimage both implement additional 
+wrappers on most of these functions such that independant images clip
+other images... This also brings a close relation to 
+<a href="render.html">render.h</a>.
+
+<h2>Include</h2>
+#include &lt;image.h&gt;
+
+<h2>Project Location</h2>
+src/imglib<br>
+-or-<br>
+<a href="display.html">src/displaylib</a>
+
+<h2>Library</h2>
+image<br>
+-or-<br>
+<a href="display.html">cimage</a> -or- <a href="display.html">display</a><br>
+-or-<br>
+interface
+
+<h2>Required Libraries</h2>
+<a href="memlib.html">shmem</a>, <a href="syslog.html">syslog</a><br>
+(for display/cimage) <a href="client.html">msgclient</a>
+
+<h2>Types</h2>
+<table border=1>
+<tr><td>IMAGE_INTERFACE PIMAGE_INTERFACE</td><td>The table of functions to 
+interface to this library.  Defining the symbol USE_IMAGE_INTERFACE to the name 
+of a variable of type PIMAGE_INTERFACE, will cause all calls generated to 
+be called through this interface pointer.</td></tr>
+<tr><td>Image</td><td>Contains information about an image.  The application has a limited knowledge of this
+structure detailing its position and size.</td></tr>
+<tr><td>Font</td><td>Contains a font.  The application has no knowledge of the content of this structure.</td></tr>
+<tr><td>CDATA, COLOR</td><td>A color reference.  CDATA is a flat _32 bit value, COLOR is an array of colors.  Most
+routines use CDATA now, since color was difficult to actually use.  They may still be converted to each other</td></tr>
+<tr><td>PCDATA</td><td>A pointer to a color (often as a 2 dimensional array of colors ie. An image surface.</td></tr>
+<tr><td>PCOLOR</td><td>A very difficult value to use - a pointer to an array of bytes detailing color</td></tr>
+</table>
+
+<h2>Defines</h2>
+<h3>Colors</h3>
+<menu>
+Color macros are defined in &lt;colordef.h&gt;.
+<table border=1>
+<COL><COL><COL width="50%">
+<tr><td>Color(r,g,b)</td><td></td><td scope=col >Generates a CDATA value which has the specified color and level 255 alpha.</td></tr>
+<tr><td>AColor(a,r,g,b)</td><td></td><td>Generates a CDATA value which has the specified color and level specified level of alpha.</td></tr>
+<tr><td>SetAlpha(rgb, a)</td><td></td><td>Retains the color info portion of CDATA and replaces the alpha value.</td></tr>
+<tr><td>RedVal(color)</td><td></td><td>Fetches the red byte value of CDATA</td></tr>                                 
+<tr><td>BlueVal(color)</td><td></td><td>Fetches the blue byte value of CDATA</td></tr>                                 
+<tr><td>GreenVal(color)</td><td></td><td>Fetches the green byte value of CDATA</td></tr>                                 
+<tr><td>AlphaVal(color)</td><td></td><td>Fetches the alpha byte value of CDATA</td></tr>                                 
+<tr><td> BASE_COLOR_BLACK        </td><td>Color( 0,0,0 )</td><td bgcolor=#000000>A color</td></tr>
+<tr><td> BASE_COLOR_BLUE         </td><td>Color( 0, 0, 128 )</td><td bgcolor=#000080>A color</td></tr>
+<tr><td> BASE_COLOR_GREEN        </td><td>Color( 0, 128, 0 )</td><td bgcolor=#008000>A color</td></tr>
+<tr><td> BASE_COLOR_CYAN         </td><td>Color( 0, 128, 128 )</td><td bgcolor=#008080>A color</td></tr>
+<tr><td> BASE_COLOR_RED          </td><td>Color( 192, 32, 32 )</td><td bgcolor=#c02020>A color</td></tr>
+<tr><td> BASE_COLOR_BROWN        </td><td>Color( 140, 0, 140 )</td><td bgcolor=#8c008c>A color</td></tr>
+<tr><td> BASE_COLOR_MAGENTA      </td><td>Color( 160, 160, 0 )</td><td bgcolor=#8c8c00>A color</td></tr>
+<tr><td> BASE_COLOR_LIGHTGREY    </td><td>Color( 192, 192, 192 )</td><td bgcolor=#c0c0c0>A color</td></tr>
+<tr><td> BASE_COLOR_DARKGREY     </td><td>Color( 128, 128, 128 )</td><td bgcolor=#808080>A color</td></tr>
+<tr><td> BASE_COLOR_LIGHTBLUE    </td><td>Color( 0, 0, 255 )</td><td bgcolor=#0000FF>A color</td></tr>
+<tr><td> BASE_COLOR_LIGHTGREEN   </td><td>Color( 0, 255, 0 )</td><td bgcolor=#00FF00>A color</td></tr>
+<tr><td> BASE_COLOR_LIGHTCYAN    </td><td>Color( 0, 255, 255 )</td><td bgcolor=#00FFFF>A color</td></tr>
+<tr><td> BASE_COLOR_LIGHTRED     </td><td>Color( 255, 0, 0 )</td><td bgcolor=#FF0000>A color</td></tr>
+<tr><td> BASE_COLOR_LIGHTMAGENTA </td><td>Color( 255, 0, 255 )</td><td bgcolor=#FF00FF>A color</td></tr>
+<tr><td> BASE_COLOR_YELLOW       </td><td>Color( 255, 255, 0 )</td><td bgcolor=#FFFF00>A color</td></tr>
+<tr><td> BASE_COLOR_WHITE        </td><td>Color( 255, 255, 255 )</td><td bgcolor=#FFFFFF>A color</td></tr>
+</table>
+<h3>Alpha Values and Use</h3>
+<table border=1>
+<tr>
+<td>ALPHA_TRANSPARENT</td><td>0x100</td><td>Beginnging of use alpha channel.  Any value more than
+this base will increase opacity up to completely solid.</td></tr>
+<td>ALPHA_TRANSPARENT_INVERT</td><td>0x200</td><td>Use Alpha channel.  Any value more than this 
+subtracts from the base opacity up to completely transparent.</td></tr>
+<td>ALPHA_TRANSPARENT_MAX</td><td> 0x2FF</td><td> more than this clips to total transparency
+                                     for line, plot more than 255 will 
+                                     be total opaque... this max only 
+                                     applies to blotted images</td></tr>
+</table>
+
+<a name="transparencytable">
+Transparecy values and effects
+<table border=1>
+<col><col width="65%">
+<tr><td> 0       </td><td> no transparency - completely opaque</td></tr>
+<tr><td>1<br>(TRUE)</td><td>  0 value colors (absolute transparency) only</td></tr>
+<tr><td> 2-255 <br>(0x02-0xff)  </td><td> 0 value color transparent, plus transparency factor applied to all<br>
+           2 - mostly almost completely transparent<br>
+           255 not transparent (opaque)</td></tr>
+<tr><td> ALPHA_TRANSPARENT+n<br> 
+         (257-511)<br>(0x100-0x1ff) </td><td> alpha transparency in pixel plus transparency value - 256 <br>
+         0 value pixels will be transparent<br>
+          257 - slightly more opaquen than the original<br>
+          511 - image totally opaque - alpha will be totally overriden<br>
+          no addition 511 nearly completely transparent</td></tr>
+<tr><td> ALPHA_TRANSPARENT_INVERT+n<br>(512-767)<br>(0x200-0x2ff)</td><td> the low byte of this is subtracted from the alpha of the image
+          this allows images to be more transparent than they were originally<br>
+          512 - no modification alpha imge normal<br>
+          600 - mid range... more transparent</br>
+          767 - totally transparent</td></tr>
+<tr><td> ALPHA_TRANSPARENT_MAX+<br>(768+)<br>(0x300+)</td><td>any value of transparent greater than the max will be clipped to max
+ this will make very high values opaque totally...</td></tr>
+</table>
+<hr>
+
+<a name="shadetable">
+<table border=1>
+<caption>Blot Methods</caption>
+<col><col width="75%">
+<tr><td>BLOT_COPY</td><td>Image data is copied directly.  No extra parameters required.</td></tr>
+<tr><td>BLOT_SHADED</td><td>Image data is shaded according to one color.  
+This works best for grey scale images, but can be applied to multi color images.
+One extra parameter is expected which is a CDATA type, only RGB components are used(?)</td></tr>
+<tr><td>BLOT_MULTISHADE</td><td>Image data is treated as 3 independant grey scale channels. 
+Each channel is applied as a scalar to a color component.  3 CDATA type values
+are required when using this.  The first is RED, second GREEN, third BLUE. 
+These colors are scaled according to the appropriate (RGB) channel, and
+summed.  This may seem like a silly thing to do, and I have yet to explain
+it to anyone such that it makes sense. 
+<p>I usually use only 2 channels, one application used all 3.
+Suppose you have an image, a blue circle, and a green shade on it resembling
+a specular.  The circle is entirely the same, uniform level of blue. 
+The green specular is a varying shade of green.  Together, the image looks
+like a blue circule with a semi-cyan specular - as each channel is indepenantly
+added together.  Now, apply to the blue channel (which is for argument a constant 192)
+some other color.  Scale this color between black and full intensity according
+to the blue channel.  Pick this color as brown.  Now the blue circle is brown,
+constant.  Next, apply the green channel to some other color, say white.  Now
+adding a white specular upon the brown circle causes a shiny stone like thing
+to be present.  The circle color could easily be adjusted to red, blue,
+pink, brown, grey, and maintaining a white specular, which quickly uses
+one image to be many different colors (peices in a game?).
+<p>This may seem like a lot of work to do, but in actuality, doesn't cause
+as much overhead as one might expect, it's a rather simple operation to do,
+nearly approaching a simple shift and add.</td></tr>
+</table>
+<h2>Routines</h2>
+
+<menu>
+
+<hr>
+
+<h3>PIMAGE_INTERFACE GetImageInterface( void )</h3>
+<menu>
+Results in the pointer to the interface table for this library.  Use of
+dynamic library load routines, and the request of this routine, makes for
+simple interfacing to the entire image library, and based on configuration
+may switch between libraries....
+</menu>
+<hr>
+<h3>void DropImageInterface( void )</h3>
+<menu>
+Release reference count of the library.  There's normally not much in the way of
+cleanup that can be done.  However, if image is being used as a service, then
+there is quite a bit of cleanup that needs to be done.
+</menu>
+<hr>
+<h3>void SetBlotMethod( _32 method )</h3>
+<menu>
+method is one of 3 values...
+<menu><table><caption>methods</caption>
+<tr><td>BLOT_C</td><td>use C routines for all operations.</td></tr>
+<tr><td>BLOT_ASM</td><td>use assembly routines for operations which could take advantage of assembly.</td></tr>
+<tr><td>BLOT_MMX</td><td>use MMX for computing alpha transparcy.  Requires assembly.</td></tr>
+</table></menu>
+<p>If assembly was not available, the library will default to using C routines.  These
+will always work, if slowly.
+</menu>
+
+<hr>
+<h3>void SetStringBehavior( Image image, _32 method )</h3>
+<menu>
+Unimplemented - intent....
+<menu><table><caption>methods</caption>
+<tr><td>STRING_PRINT_RAW </td><td> every character assumed to have a glyph-including '\0'</td></tr>
+<tr><td>STRING_PRINT_CONTROL </td><td> control characters perform 'typical' actions - newline, tab, backspace...</td></tr>
+<tr><td>STRING_PRINT_C</td><td> c style escape characters are handled \n \b \x# - literal text </td></tr>
+<tr><td>STRING_PRINT_MENU </td><td> & performs an underline, also does C style handling. \& == &</td></tr>
+</table></menu>
+Each image has a default rendering mode.  If NULL is specified as the image to
+set the method for, then this becomes the default string rendering mode for 
+all images which don't otherwise specify.
+</menu>
+
+<hr>
+<h3>CDATA ColorAverage( CDATA c1, CDATA c2, int d, int max)</h3>
+<menu>
+Returns a color between c1 and c2.  Max specifies the max range of d, 
+and d is the marker inbetween which specifies how much of each color.
+<menu><table>
+<tr><td>c1</td><td>Color one.</td></tr>
+<tr><td>c2</td><td>Color two.</td></tr>
+<tr><td>d</td><td>distance from 0 to max for the resulting color.</td></tr>
+<tr><td>max</td><td>maximum distance (resolution) of d</td></tr>
+</table></menu>
+<br>
+if d == 0, result is c1.<br>
+if d == max, result is c2.<br>
+else result is ( c1 * ( max - d ) + c2 * ( d ) ) / max
+<br><br>
+max = 2, d = 1, result exact average of colors.<br>
+max = 256, d = 64, result is 3/4 of c1 and 1/4 c2...<br>
+</menu>
+
+<hr>
+<h3>Image MakeImageFileEx( _32 width, _32 height DBG_PASS)</h3>
+<h5>also referenced by these macros</h5>
+<h4>MakeImageFile( width, height )</h4>
+<menu>
+Creates an image.  Width and height are unsigned values detailing
+how big to make the image.  If either is 0, NULL image results, as an
+image which has no size is not an image.
+</menu>
+
+<hr>
+<table>
+<tr><td><h3>Image MakeSubImageEx</td><td><h3>( Image image
+<tr><td></td><td><h3>, S_32 x, S_32 y
+<tr><td></td><td><h3>, _32 width, _32 height
+<tr><td></td><td><h3>DBG_PASS)</h3>
+</table>
+<h5>also referenced by these macros</h5>
+<h4>MakeSubImage( image, x, y, width, height )</h4>
+<menu>
+Creates an image within an existing image.  The position is specified with x, y; the
+size is specified with width, height.  An image is allowed to be created such that
+it is beyond the bounds of the containing image.  It may be larger, or positioned
+such that parts of it are beyond the parent.  Any part of the sub image which is
+not within the parent is clipped to the parent.
+</menu>
+
+<hr>
+<h3>Image LoadImageFileEx( char *name DBG_PASS)</h3>
+<h5>also referenced by these macros</h5>
+<h4>LoadImageFile( name )</h4>
+<menu>
+Load an image from a file.  Supported file type are bitmap(windows/os2), jpeg,
+PNG, GIF, (tiff/tga?).  
+The content of the file is analyzed to determine the type of the image, so the
+name of the image does not matter.  Gif images support single color transparency.
+PNG images will load an alpha channel if data is available.  Most draw operations
+optionally treat any 0 color (black) as transparent, so a single color transparency
+may be created with bmp and jpeg images also.  This however restricts the use of
+black, and therefore would need to be not quite black Color(0,0,1) for instance.
+</menu>
+
+<hr>
+<h3>Image DecodeMemoryToImage( char *buf, _32 size )</h3>
+<menu>
+If a buffer exists in memory which resembles loading a file off of a disk, this
+routine may be used to decode the image data into an image.  LoadImageFile actually
+loads the image into a temporary buffer, and then calls this.  buf is a pointer
+to the data to decode and size is the extent of the buffer.
+</menu>
+
+<hr>
+<h3>Image UnmakeImageFileEx( Image image DBG_PASS )</h3>
+<h5>also referenced by these macros</h5>
+<h4>UnmakeImageFile(image )</h4>
+<menu>
+Destroy an image.  If sub images exist, the image is not entirely destroyed. 
+Instead it is marked as destroyed, and once all sub images have been unmade, 
+then the containing image is destroyed.
+</menu>
+
+<hr>
+<h3>Image BuildImageFileEx( PCDATA pc, _32 width, _32 height DBG_PASS)</h3>
+<h5>also referenced by these macros</h5>
+<h4>BuildImageFile( pc, width, height )</h4>
+<menu>
+If you have a buffer which you would wish to use for an image surface (which 
+expects to have 32 bit ARGB color information).  The specified buffer, width
+and height determine an image.
+</menu>
+
+<hr>
+<h3>Image RemakeImageEx( Image image, PCDATA pc, _32 width, _32 height DBG_PASS )</h4>
+<h5>also referenced by these macros</h5>
+<h4>RemakeImage( image, pc, width, height )</h4>
+<menu>
+Do a build image, but swap out the buffer, and redimension to specified width
+and height.  An instance of this - under Windows, when the window is resized,
+the backed store DIB is resized, so that needs to be swapped out from the existing
+image which represents the window's surface.
+</menu>
+
+<hr>
+<h3>void OrphanSubImage( Image image )</h3>
+<menu>
+The specified image must be a sub-image, with a parent.  The image is dis-related
+from its parent.  It becomes a hidden image, with no surface, since it has
+lost a relationship to a master image's buffer.
+</menu>
+
+<hr>
+<h3>void AdoptSubImage( Image foster, Image orphan )</h3>
+<menu>
+The specified orphan must not have any parents.  The orphan image is adopted
+by the foster image.  The orphan's x, y position remain the same as before it
+was orphaned, unless modified in the meantime.
+</menu>
+
+<hr>
+<h3>void SetImageBound( Image image, P_IMAGE_RECTANGLE bound )</h3>
+<menu>
+This sets the region on an image which can be drawn into.  Any operation 
+beyond the bounds of the specified rectangle is clipped, and does not affect
+the image.
+</menu>
+
+<hr>
+<h3>void FixImagePosition( Image image )</h3>
+<menu>
+Resets any clipping boundries previously set.
+</menu>
+
+<hr>
+<h3>void ResizeImageEx( Image image, S_32 width, S_32 height DBG_PASS )</h3>
+<h5>also referenced by these macros</h5>
+<h4>ResizeImage( image, width, height )</h4>
+<menu>
+Modifies the size of an image to the specified width and height.  If it is
+a top level image (has no parents), the buffer is resized.  Any sub images are updated to
+this new surface.
+</menu>
+
+<hr>
+<h3>void MoveImage( Image image, S_32 x, S_32 y )</h3>
+<menu>
+This has no real effect on top level images.  But for sub images, this will
+cause them to be relocated within their parent image.
+</menu>
+
+<hr>
+<table>
+<tr><td><h3>void BlatColor</td><td><h3>( Image image
+<tr><td></td><td><h3>, S_32 x, S_32 y
+<tr><td></td><td><h3>, _32 width, _32 height
+<tr><td></td><td><h3>, CDATA color )<br>
+<tr><td><h3>void BlatAlphaColor</td><td><h3>( Image image
+<tr><td></td><td><h3>, S_32 x, S_32 y
+<tr><td></td><td><h3>, _32 width, _32 height
+<tr><td></td><td><h3>, CDATA color )<br>
+</table>
+<h4>also referenced by these macros</h4>
+ClearImage( image )<br>
+ClearImageTo( image,color )</h3>
+<menu>
+Sets the color of the specified rectangle to the specified color.  The rectangle's 
+position is set by x, y, and its extent by width, height.  If Alpha version is used,
+then when the color is applied, it will be (probably) semi transparent, leaving
+what was already on the image, and shading the pixels to the current color.
+<p>
+ClearImage(image) is a macro which calls BlatColor( image, 0, 0, image.width, image.height, 0 ).
+<p>
+ClearImage(image,color) is a macro which calls BlatColor( image, 0, 0, image.width, image.height, color ).
+</menu>
+
+<hr>
+<table>
+<tr><td><h3>void BlotImageEx</td><td><h3>( Image dest
+<tr><td></td><td><h3>, Image src
+<tr><td></td><td><h3>, S_32 x, S_32 y
+<tr><td></td><td><h3>, _32 transparent
+<tr><td></td><td><h3>, _32 method, ... )<br>
+<tr><td><h3>void BlotImageSizedEx</td><td><h3>( Image dest
+<tr><td></td><td><h3>, Image src
+<tr><td></td><td><h3>, S_32 x, S_32 y
+<tr><td></td><td><h3>, S_32 xs, S_32 ys
+<tr><td></td><td><h3>, _32 width, _32 height
+<tr><td></td><td><h3>, _32 transparent
+<tr><td></td><td><h3>, _32 method, ... )</h3>
+</table>
+<h5>also referenced by these macros</h5>
+<h4>
+<center>copy blots</center>
+BlotImage( pd, ps, x, y )<br>
+BlotImageAlpha( pd, ps, x, y, a )<br>
+BlotImageSized( pd, ps, x, y, w, h )<br>
+BlotImageSizedTo( pd, ps, xd, yd, xs, ys, w, h )<br>
+<center>shade blots</center>
+BlotImageShaded( pd, ps, x, y, c )<br>
+BlotImageShadedSized( pd, ps, xd, yd, xs, ys, w, h )<br>
+<center>multi-shade blots</center>
+BlotImageMultiShaded( pd, ps, x, y, r, g, b )<br>
+BlotImageMultiShadedSized( pd, ps, xd, yd, xs, ys, w, h, r, g, b )
+</h4>
+
+<menu>
+These routines copy one image (src) to another image (dest) without scaling.
+<table>
+<tr><td>dest, pd</td><td>Destination image</td></tr>
+<tr><td>src, ps</td><td>Source image</td></tr>
+<tr><td>x, y</td><td>Destination coordinate</td></tr>
+<tr><td>xd, yd</td><td>Destination coordinate</td></tr>
+<tr><td>xs, ys</td><td>Source coordinate</td></tr>
+<tr><td>w, h</td><td>size of area to copy</td></tr>
+<tr><td>width, height</td><td>size of area to copy</td></tr>
+<tr><td>transparent</td><td>How to apply transparency effects.  See <a href="#transparencytable">table</a>.</td></tr>
+<tr><td>method</td><td>Optional parameters may follow.  See <a href="#shadetable">table</a>.</td></tr>
+<tr><td>...</td><td>optional parameters based on the BLOT_ mode. See <a href="#shadetable">table</a></td></tr>.
+<tr><td>a</td><td>Alpha value to apply.  See <a href="#transparencytable">table</a>.</td></tr>
+<tr><td>c</td><td>a single color - the shade parameter</td></tr>
+<tr><td>r</td><td>the color to apply the red channel to</td></tr>
+<tr><td>g</td><td>the color to apply the green channel to</td></tr>
+<tr><td>b</td><td>the color to apply the blue channel to</td></tr>
+</table>
+</menu>
+
+<hr>
+<h3><table><tr><td><h3>void BlotScaledImageSizedEx</td><td><h3>( Image pifDest, Image pifSrc</td></tr>
+                                   <tr><td><h3></td><td><h3>, S_32 xd, S_32 yd</td></tr>
+                                   <tr><td><h3></td><td><h3>, _32 wd, _32 hd</td></tr>
+                                   <tr><td><h3></td><td><h3>, S_32 xs, S_32 ys</td></tr>
+                                   <tr><td><h3></td><td><h3>, _32 ws, _32 hs</td></tr>
+                                   <tr><td><h3></td><td><h3>, _32 nTransparent</td></tr>
+                                   <tr><td><h3></td><td><h3>, _32 method, ... )</td></tr></table></h3>
+<h5>also referenced by these macros</h5>
+<h4>
+<center>copy blots</center>
+BlotScaledImageSized( pd, ps, xd, yd, wd, hd, xs, ys, ws, hs ) <br>
+BlotScaledImageSizedTo( pd, ps, xd, yd, wd, hd) <br>
+BlotScaledImageSizedToAlpha( pd, ps, xd, yd, wd, hd, a)  <br>
+BlotScaledImageAlpha( pd, ps, t )  <br>
+BlotScaledImage( pd, ps )  <br>
+BlotScaledImageTo( pd, ps )  <br>
+<center>shade blots</center>
+BlotScaledImageSizedToShaded( pd, ps, xd, yd, wd, hd, shade)  <br>
+BlotScaledImageSizedToShadedAlpha( pd, ps, xd, yd, wd, hd, a, shade) <br>
+BlotScaledImageShadedAlpha( pd, ps, t, shade )  <br>
+BlotScaledImageShaded( pd, ps, shade ) <br>
+<center>multi-shade blots</center>
+BlotScaledImageSizedToMultiShaded( pd, ps, xd, yd, wd, hd, t, r, g, b)  <br>
+BlotScaledImageSizedToMultiShadedAlpha( pd, ps, xd, yd, wd, hd, a, r, g, b) <br>
+BlotScaledImageMultiShadedAlpha( pd, ps, t, r, g, b )  <br>
+BlotScaledImageMultiShaded( pd, ps, r, g, b ) <br>
+</h4>
+<menu>
+These routines copy one image (src) to another image (dest) scaled.
+<table>
+<col><col width="70%">
+<tr><td>pifDest; pd</td><td>Destination image</td></tr>
+<tr><td>pifSrc; ps</td><td>Source image</td></tr>
+<tr><td>xd, yd</td><td>Destination coordinate</td></tr>
+<tr><td>wd, hd</td><td>size of area to copy to</td></tr>
+<tr><td>xs, ys</td><td>Source coordinate</td></tr>
+<tr><td>ws, hs</td><td>size of area to copy from</td></tr>
+<tr><td>transparent; a; t</td><td>How to apply transparency effects.  See <a href="#transparencytable">table</a>.</td></tr>
+<tr><td>method</td><td>Optional parameters may follow.  See <a href="#shadetable">table</a>.</td></tr>
+<tr><td>...</td><td>optional parameters based on the BLOT_ mode. See <a href="#shadetable">table</a></td></tr>.
+<tr><td>c; shade</td><td>a single color - the shade parameter</td></tr>
+<tr><td>r</td><td>the color to apply the red channel to</td></tr>
+<tr><td>g</td><td>the color to apply the green channel to</td></tr>
+<tr><td>b</td><td>the color to apply the blue channel to</td></tr>
+</table>
+</menu>
+<hr>
+<h3>void plot( Image image, S_32 x, S_32 y, CDATA c)<br>
+void plotalpha( Image image, S_32 x, S_32 y, CDATA c)</h3>
+<menu>
+Puts a pixel of color 'c' at (x, y) on 'image'.  The color is stored exactly.
+If the alpha version is used, then the alpha channel on the pixel is applied
+to compute the resulting pixel based on prior content plus the new pixel.
+</menu>
+<hr>
+<h3>CDATA getpixel( Image image, S_32 x, S_32 y )</h3>
+<menu>
+Returns the pixel which is at (x, y) on image.
+</menu>
+<hr>
+<h3>void do_line( Image image, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color)<br>
+void do_lineAlpha( Image image, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color)
+</h3>
+<menu>
+Draws a line no more than 1 pixel thick from x, y to xto, yto.  This is always
+done from top to bottom, and left to right.  Reversing the coordinates results in
+the same line.  If the Alpha version is used, the color is applied according to 
+its alpha channel value.  Otherwise, the color is literally set.
+</menu>
+<hr>
+<h3>void do_hline( Image image, S_32 y, S_32 xfrom, S_32 xto, CDATA color )<br>
+void do_hlineAlpha( Image image, S_32 y, S_32 xfrom, S_32 xto, CDATA color )</h3>
+<menu>
+Specialized line algorithm to do horizontal lines.
+</menu>
+<hr>
+<h3>void do_vline( Image image, S_32 x, S_32 yfrom, S_32 yto, CDATA color )<br>
+void do_vlineAlpha( Image image, S_32 x, S_32 yfrom, S_32 yto, CDATA color )</h3>
+<menu>
+Specialized line algorithm to do vertical lines.
+</menu>
+<hr>
+
+<hr>
+<h3>Font GetDefaultFont( void )</h3>
+<menu>
+Returns a handle which may be used for fonts.  A font of NULL may also be
+passed to all functions which expect a font, in which case, this font handle
+is used.
+</menu>
+<hr>
+<h3>_32 GetFontHeight( Font )</h3>
+<menu>
+Returns the height of the font.  This height member should be available
+for application reference in the Font structure?
+</menu>
+<hr>
+<h3>_32 GetStringSizeFontEx( CTEXTSTR pString, _32 len, _32 *width, _32 *height, Font UseFont )</h3>
+<h5>also referenced by these macros</h5>
+<h4>
+GetStringSizeEx(s,len,pw,ph) <br>
+GetStringSize(s,pw,ph)       <br>
+GetStringSizeFont(s,pw,ph,f) <br>
+</h4>
+<menu>
+Gets the size of a string of length.  If Width is non NULL the width of the 
+string is set into that variable.  If height is non NULL the height of the
+string is set into that variable. The font to use to calculate for is 
+passed as UseFont.  The width of the string is returned.  This should 
+reference StringMethods... doesn't, especially since methods are per image 
+and not global anymore.....
+<li>GetStringSizeEx - uses default font to calculate string size
+<li>GetStringSize - calls strlen() on the string passed, uses default font.
+<li>GetStringSizeFont - Calls strlen() on string passed, uses specified font.
+</menu>
+
+<hr>
+<table><tr><td><h3>_32 PutCharacterFont</td><td><h3>( Image pImage</td></tr>
+     			      <tr><td></td><td><h3>, S_32 x, S_32 y</td></tr>
+       			      <tr><td></td><td><h3>, CDATA color, CDATA background</td></tr>
+       			      <tr><td></td><td><h3>, unsigned char c, Font font );</td></tr>
+       <tr><td><h3>_32 PutCharacterInvertFont</td><td><h3>( Image pImage</td></tr>
+     			      <tr><td></td><td><h3>, S_32 x, S_32 y</td></tr>
+       			      <tr><td></td><td><h3>, CDATA color, CDATA background</td></tr>
+       			      <tr><td></td><td><h3>, unsigned char c, Font font );</td></tr>
+       <tr><td><h3>_32 PutCharacterVerticalFont</td><td><h3>( Image pImage</td></tr>
+     			      <tr><td></td><td><h3>, S_32 x, S_32 y</td></tr>
+       			      <tr><td></td><td><h3>, CDATA color, CDATA background</td></tr>
+       			      <tr><td></td><td><h3>, unsigned char c, Font font );</td></tr>
+       <tr><td><h3>_32 PutCharacterVerticalInvertFont</td><td><h3>( Image pImage</td></tr>
+     			      <tr><td></td><td><h3>, S_32 x, S_32 y</td></tr>
+       			      <tr><td></td><td><h3>, CDATA color, CDATA background</td></tr>
+       			      <tr><td></td><td><h3>, unsigned char c, Font font );</td></tr>
+                              </table>
+<h5>also referenced by these macros</h5>
+<h4>
+PutCharacter(img,x,y,fore,back,c)<br>
+PutCharacterVertical(img,x,y,fore,back,c)<br>
+PutCharacterInvert(img,x,y,fore,back,c)<br>
+PutCharacterInvertVertical(img,x,y,fore,back,c)<br>
+</h4>
+<menu>
+Output a character, using the specifed font, or the default font.  The background, if
+0 RGB (alpha does not matter), then the background will not be output, only
+the character in foreground color.
+<p>All of the macros use the default font (pass a NULL as font parameter).
+<p>The (x,y) coordinate always references the top/left pixel of the character,
+if viewing the font in 'normal', 'right-side-up' orientation.
+<p>Vertical modification draws the character 90 degrees clockwise rotated,
+using the x, y point to start from.
+<p>Invert modification draws the character 180 degrees clockwise rotated,
+using the x, y point to start from.
+<p>Invert and Vertical modifications draws the character 270 degrees clockwise rotated,
+using the x, y point to start from.
+<p>The value returned is the width of the character, going along in a left-to
+right direction, assuming the first character is the 'left'.
+</menu>
+
+<hr>
+<table>
+<tr><td><h3>_32 PutStringFontEx</td><td><h3>( Image pImage</td></tr>
+<tr><td></td><td><h3>, S_32 x, S_32 y</td></tr>
+<tr><td></td><td><h3>, CDATA color, CDATA background</td></tr>
+<tr><td></td><td><h3>, char *pc, _32 nLen</td></tr>
+<tr><td></td><td><h3>, Font font )</td></tr>
+<tr><td><h3>_32 PutStringVerticalFontEx</td><td><h3>( Image pImage</td></tr>
+<tr><td></td><td><h3>, S_32 x, S_32 y</td></tr>
+<tr><td></td><td><h3>, CDATA color, CDATA background</td></tr>
+<tr><td></td><td><h3>, char *pc, _32 nLen</td></tr>
+<tr><td></td><td><h3>, Font font )</td></tr>
+<tr><td><h3>_32 PutStringInvertFontEx</td><td><h3>( Image pImage</td></tr>
+<tr><td></td><td><h3>, S_32 x, S_32 y</td></tr>
+<tr><td></td><td><h3>, CDATA color, CDATA background</td></tr>
+<tr><td></td><td><h3>, char *pc, _32 nLen</td></tr>
+<tr><td></td><td><h3>, Font font )</td></tr>
+<tr><td><h3>_32 PutStringInvertVerticalFontEx</td><td><h3>( Image pImage</td></tr>
+<tr><td></td><td><h3>, S_32 x, S_32 y</td></tr>
+<tr><td></td><td><h3>, CDATA color, CDATA background</td></tr>
+<tr><td></td><td><h3>, char *pc, _32 nLen</td></tr>
+<tr><td></td><td><h3>, Font font )</td></tr>
+</table>
+<h5>also referenced by these macros</h5>
+<h4>
+PutString(pi,x,y,fore,back,pc)<br>
+PutStringEx(pi,x,y,color,back,pc,len)<br>
+PutStringFont(pi,x,y,fore,back,pc,font)<br>
+PutStringVertical(pi,x,y,fore,back,pc)<br>
+PutStringVerticalEx(pi,x,y,color,back,pc,len)<br>
+PutStringVerticalFont(pi,x,y,fore,back,pc,font)<br>
+PutStringInvert(pi,x,y,fore,back,pc)<br>
+PutStringInvertEx(pi,x,y,color,back,pc,len)<br>
+PutStringInvertFont(pi,x,y,fore,back,pc,font)<br>
+PutStringInvertVertical(pi,x,y,fore,back,pc)<br>
+PutStringInvertVerticalEx(pi,x,y,color,back,pc,len)<br>
+PutStringInvertVerticalFont(pi,x,y,fore,back,pc,font)<br>
+</h4>
+<menu>
+This outputs a string, using the (x,y) coordinate as the achor of the 
+top left corner of the first character, assuming the character is aligned 
+normally, upright.
+<li>Ex - denotes that the length of the string is also passed
+<li>Font - denotes that the font is specified
+<li>FontEx - Both the font and the length of the string are specified.
+<li>Vertical - Rotate 90 degrees clockwise around the (x,y) point is still 
+the upper-left of the first character in normal orientation..
+<li>Invert - Rotate 180 degrees clockwise around the (x,y) point is still 
+the upper-left of the first character in normal orientation..
+<li>InvertVertical - Rotate 270 degrees clockwise around the (x,y) point is still 
+the upper-left of the first character in normal orientation..
+</menu>
+<hr>
+<h3></h3>
+<menu>
+</menu>
+<hr>
+<h3>_32 GetMaxStringLengthFont( S_32 width, Font font )</h3>
+<menu>
+Based on the average size of the font's characters, result in the maximum
+string length that may be shown in this width using this font.
+</menu>
+<hr>
+<h3>void GetImageSize( Image image, P_32 width, P_32 height )</h3>
+<menu>
+Results in the size of the image.  Although this information is readily
+available by dereferencing the image pointer, this is the preferred way
+to get the information.  However, due to the number of macros which 
+reference for defaults the width and height, this has been left public
+information.
+</menu>
+
+<hr>
+<h3>PCDATA GetImageSurface( Image image )</h3>
+<menu>
+Returns the current surface buffer of an image.  It could be used to
+get a memory mapped image of the buffer for direct use by a client(?).
+</menu>
+
+<hr>
+<h3>Font LoadFont( Font )</h3>
+<menu>
+Transfers a font to the server, and results in a font handle appropriate for
+use in further text operations.
+</menu>
+<hr>
+<h3>void UnloadFont( Font )</h3>
+<menu>
+A previously transferred font is unloaded from the server.
+</menu>
+<hr>
+<h3>void SyncImage( void )</h3>
+<menu>
+When used as a service, this makes sure that all outstanding image operations
+have completed, and then control is returned to the caller.
+</menu>
+<hr>
+<table>
+<tr><td><h3>int IntersectRectangle</td><td><h3>( P_IMAGE_RECTANGLE result
+<tr><td></td><td><h3>, P_IMAGE_RECTANGLE r1
+<tr><td></td><td><h3>, P_IMAGE_RECTANGLE r2 )</h3>
+</table>
+<menu>
+Result rectangle is the intersection of r1, r2.  That is, it is the area which both
+rectangles have in common.  Result is TRUE if there is something in result, 
+otherwise the result is FALSE.
+</menu>
+<hr>
+<table>
+<tr><td><h3>int MergeRectangle</td><td><h3>( P_IMAGE_RECTANGLE result
+<tr><td></td><td><h3>, P_IMAGE_RECTANGLE r1
+<tr><td></td><td><h3>, P_IMAGE_RECTANGLE r2 )</h3>
+</table>
+<menu>
+Result rectangle is the union of r1, r2.  That is, it is the area which
+includes both rectangles.  This will often be substantially larger than
+either rectangle individually.  Result is undefined.
+</menu>
+<hr>
+<h3>void GetImageAuxRect( Image image, P_IMAGE_RECTANGLE rect )</h3>
+<menu>
+Each image has a user rectangle associated with it.  The <a href="display.html">display</a> library
+uses this to keep information about partial image clipping. This routine gets
+the auxiliary rectangle.
+</menu>
+<hr>
+<h3>void SetImageAuxRect( Image image, P_IMAGE_RECTANGLE rect )</h3>
+<menu>
+Each image has a user rectangle associated with it.  The <a href="display.html">display</a> library
+uses this to keep information about partial image clipping. This routine sets 
+the auxiliary rectangle.
+</menu>
+
+
+<hr>
+<h3></h3>
+<menu>
+</menu>
+
+</menu>
+
+</BODY></HTML>

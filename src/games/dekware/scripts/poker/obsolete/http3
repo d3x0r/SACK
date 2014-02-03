@@ -1,0 +1,12 @@
+
+
+/create game_server
+/wake game_server
+/game_server/parse request tcpserver 81
+//mac Accept
+//parse http http
+//scr http3.alias
+//endmac
+
+
+

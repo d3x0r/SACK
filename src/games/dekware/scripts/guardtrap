@@ -1,0 +1,59 @@
+
+
+/decl mobcount 0
+/trigger crea arrive1  has arrived from the west.
+/incr %mobcount
+.open door u
+.close door w
+/endmac
+
+/trigger crea arrive2  has arrived from above.
+/incr %mobcount
+/endmac
+
+/trigger crea leave1 leaves up.
+/decr %mobcount
+/compare %mobcount is 0
+/if success
+.close door u
+.open door w
+/endif
+/endmac
+
+/mac fixdoors
+/compare %mobcount morethan 0
+/if success
+.open door u
+/else
+.open door w
+/endif
+/endmac
+
+/create doorfixer
+/wake doorfixer
+/doorfixer/mac loop
+//label top
+//tell %me /fixdoors
+//delay 300000
+//goto top
+//endmac
+//loop
+
+/mac disabletrap
+/trigger opt leave1 dis
+/trigger opt arrive1 dis
+/trigger opt arrive2 dis
+/endmac
+
+/mac enabletrap
+/trigger opt leave1 en
+/trigger opt arrive1 en
+/trigger opt arrive2 en
+/endmac
+
+/trigger crea promptsave < &hit &mana &move >
+/compare %hit lessthan 200
+/if success
+   .rec recall
+/endif
+/endmac

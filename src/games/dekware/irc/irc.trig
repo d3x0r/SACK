@@ -1,0 +1,49 @@
+
+/trigger parse loose
+
+/trigger crea PING PING *number
+.PONG %number
+/endmac
+/trigger opt PING consume 
+
+/trigger create routemsg :*user!*addr PRIVMSG \#\#&chan : *msg
+	decl junkit
+	decl msgout %msg
+	tail %msgout %junkit
+	compare %junkit is eol
+	if fail
+		push %msgout %junkit
+	endif
+
+	sendto %chan %user : %msgout
+
+/endmac
+
+/trigger create routepart :*user!*addr PART \#\#&chan
+
+	sendto %chan %user has left the channel.
+/endmac
+/trigger opt routepart con
+
+/trigger create routejoin :*user!*addr JOIN :\#\#&chan
+	sendto %chan %user has joined the channel.
+/endmac
+/trigger opt routejoin con
+
+/trigger create routenick :*user!*addr NICK :*newnick
+	/echo %user is now known as %newnick 
+/endmac
+/trigger opt routenick con
+
+
+/mac ijoin what
+	.join \#\#%what
+	create %what
+	wake %what
+
+# should figure out how to determine what my device is...
+	tell %what/command window
+	tell %what/scr ircin
+/endmac
+
+

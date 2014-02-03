@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>HTML5 Canvas For Absolute Beginners | onlyWebPro.com</title>
+ 
+        <script type="text/javascript">
+            var canvas;
+            var ctx;
+            var x = 284;
+            var y = 130;
+            var mx = 0;
+            var my = 0;
+            var WIDTH = 568;
+            var HEIGHT = 262;
+ 
+function circle(x,y,r) {
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI*2, true);
+  ctx.fill();
+}
+ 
+function clear() {
+  ctx.clearRect(0, 0, WIDTH, HEIGHT);
+}
+ 
+function init() {
+  canvas = document.getElementById("myCanvas");
+  ctx = canvas.getContext("2d");
+  window.onkeydown = keydownControl;
+  window.onmousemove = getPosition;
+  setInterval(draw, 10);
+}
+ 
+function draw() {
+  clear();
+  circle(x, y, 20);
+ 
+  if (x + mx > WIDTH || x + mx < 0)
+    mx = -mx;
+  if (y + my > HEIGHT || y + my < 0)
+    my = -my;
+ 
+  x += mx;
+  y += my;
+ 
+}
+
+function getPosition(event)
+{
+  var lx = event.x;
+  var ly = event.y;
+  x = lx;
+  y = ly;
+
+  lx -= canvas.offsetLeft;
+  ly -= canvas.offsetTop;
+
+  circle( lx, ly, 10 );
+  //alert("x:" + lx + " y:" + ly);
+} 
+ 
+function keydownControl(e) {
+    if(e.keyCode==37) {
+        mx = -2;
+        my = 0;
+    } else
+    if (e.keyCode==38) {
+        mx = 0;
+        my = -2;
+    } else if
+    (e.keyCode==39) {
+        mx = 2;
+        my = 0;
+    } else
+    if (e.keyCode==40) {
+        mx = 0;
+        my = 2;
+    }
+}
+ 
+ 
+        </script>
+    </head>
+ 
+    <body>
+        <canvas id="myCanvas" width="568" height="262">
+            <!-- Insert fallback content here -->
+            Sorry, your browser doesn't support canvas technology
+        </canvas>
+        <script type="text/javascript">init();</script>
+ 
+    </body>
+</html>

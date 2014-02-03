@@ -1,0 +1,78 @@
+
+View port definition
+
+Objects can of course have visual properties, rather than just abstract text.
+
+
+Objects
+	Facets
+		Lines
+			Points
+
+Objects
+	PointPool
+	LinePool
+	Facets
+		Lines(from LinePool )
+			Points( from pointpool )
+
+Objects -> (linking facet) -> Other Object
+(is not bidirectional nessecarily...)
+
+Facet -> (linking line) -> Other Facet
+(is not bi directional nessecarily? )
+
+Objects
+	Contained Objects
+
+The Void - is a root object, without any facets, lines, or even points.
+
+Using object relations internal to nexus, objects may be related within a frame,
+but... REAL objects would be suject to independant inertia...
+meaning a box holding a bunch of balls that accellerated would leave
+the contents behind, or cause the contents to move... but only as it's 
+own force appliced through itself...
+
+if they were suspended in a liquid, the transfer of momentum would be more
+exact... and their resistance is an increased MASS...
+
+Increased mass leads of course leads to more resistance on the outer object.
+
+This leads to the concept that each individual atom would have to be 
+accelerated individually all atoms adding to the total MASS of an object.
+Densitiy of course relates to the number of these in an area... a certain 
+maximum of total particales within that space per element, and electron 
+field which may supply some distance.  Of course neutral particles ... well 
+I'm not discussing chemistry/quata physics here....
+
+So an entity is either loosly or tightly contained... that is it either 
+reacts because of a collision with it's internal surface, or that it is
+mounted to the thing and therefore adds its mass to the object total, and 
+it's translation is immediately updated as the parent is.  ....
+
+
+Now the other important aspect of this is view control....
+three(?) views are to be supported... 
+	one - full window primary look forward view
+	two -sideways T view of 360 degress surround-o-vision
+	three - Full window with peripheral vision (partial up/left/right/down)
+
+Then primary motion control....
+
+
+Ok - new plugin has been started....
+
+however it exports no commands, so now we get to detail the command 
+layout....
+
+Well - using new capabilities of extending object methods, should be
+easy enough to extend the features over what they were...
+
+So objects have named parts also... 
+
+First - this plugin has nothing resembling device context... 
+although objects may themselves open devices....
+
+
+
+
