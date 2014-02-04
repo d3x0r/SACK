@@ -37,6 +37,15 @@ typedef struct vidlib_proxy_image
 	size_t websock_buf_avail;
 } *PVPImage;
 
+struct server_socket_state
+{
+	struct server_socket_flags {
+		BIT_FIELD get_length : 1;
+	} flags;
+	POINTER buffer;
+	int read_length;
+};
+
 typedef struct vidlib_proxy_renderer
 {
 	_32 w, h;
