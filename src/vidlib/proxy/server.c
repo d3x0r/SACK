@@ -604,6 +604,16 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 			case PMID_Event_Key:
 				{
 					PVPRENDER render = (PVPRENDER)GetLink( &l.renderers, msg->data.mouse_event.server_render_id );
+					if (msg->data.key_event.pressed)	// test keydown...
+					{
+						l.key_states[msg->data.key_event.key & 0xFF] |= 0x80;	// set this bit (pressed)
+						l.key_states[msg->data.key_event.key & 0xFF] ^= 1;	// toggle this bit...
+					}
+					else
+					{
+						l.key_states[msg->data.key_event.key & 0xFF] &= ~0x80;  //(unpressed)
+					}
+
 					if( render && render->key_callback )
 						render->key_callback( render->psv_key_callback, (msg->data.key_event.pressed?KEY_PRESSED:0)|msg->data.key_event.key );
 				}
@@ -756,6 +766,15 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 		case PMID_Event_Key:
 			{
 				PVPRENDER render = (PVPRENDER)GetLink( &l.renderers, message->data.key_event.server_render_id );
+				if (message->data.key_event.pressed)	// test keydown...
+				{
+					l.key_states[message->data.key_event.key & 0xFF] |= 0x80;	// set this bit (pressed)
+					l.key_states[message->data.key_event.key & 0xFF] ^= 1;	// toggle this bit...
+				}
+				else
+				{
+					l.key_states[message->data.key_event.key & 0xFF] &= ~0x80;  //(unpressed)
+				}
 				if( render && render->key_callback )
 					render->key_callback( render->psv_key_callback, (message->data.key_event.pressed?KEY_PRESSED:0)|message->data.key_event.key );
 			}
@@ -764,6 +783,8 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 		lprintf( "Success" );
 		json_dispose_message( json_object,  msg );
 	}
+	else
+		lprintf( "Failed to reverse map message..." );
 }
 
 
@@ -1078,7 +1099,37 @@ static LOGICAL CPROC VidlibProxy_HasFocus		 ( PRENDERER  r )
 
 static TEXTCHAR CPROC VidlibProxy_GetKeyText		 ( int key )
 { 
-	return 0;
+	int c;
+	char ch[5];
+	if( key & KEY_MOD_DOWN )
+		return 0;
+	key ^= 0x80000000;
+
+	c =  
+#ifndef UNDER_CE
+		ToAscii (key & 0xFF, ((key & 0xFF0000) >> 16) | (key & 0x80000000),
+					l.key_states, (unsigned short *) ch, 0);
+#else
+		key;
+#endif
+	if (!c)
+	{
+		// check prior key bindings...
+		//printf( WIDE("no translation\n") );
+		return 0;
+	}
+	else if (c == 2)
+	{
+		//printf( WIDE("Key Translated: %d %d\n"), ch[0], ch[1] );
+		return 0;
+	}
+	else if (c < 0)
+	{
+		//printf( WIDE("Key Translation less than 0\n") );
+		return 0;
+	}
+	//printf( WIDE("Key Translated: %d(%c)\n"), ch[0], ch[0] );
+	return ch[0];
 }
 
 static _32 CPROC VidlibProxy_IsKeyDown		  ( PRENDERER r, int key )
@@ -2577,6 +2628,7 @@ PRIORITY_PRELOAD( RegisterProxyInterface, VIDLIB_PRELOAD_PRIORITY )
 	// sends will be initialized on-demand
 	//WebSockInitReplyJson( PMID_Reply_OpenDisplayAboveUnderSizedAt );
 	WebSockInitReplyJson( PMID_Event_Mouse );
+	WebSockInitReplyJson( PMID_Event_Key );
 }
 
 
