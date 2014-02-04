@@ -809,8 +809,9 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 	//lprintf( WIDE(WIDE( "FinishPendingRead of %d" )), lpClient->RecvPending.dwAvail );
 	if( !( lpClient->dwFlags & CF_READPENDING ) )
 	{
+		//lpClient->dwFlags |= CF_READREADY; // read ready is set if FinishPendingRead returns 0; and it's from the core read...
 		lprintf( WIDE( "Finish pending - return, no pending read. %08x" ), lpClient->dwFlags );
-      // without a pending read, don't read, the buffers are not correct.
+		// without a pending read, don't read, the buffers are not correct.
 		return 0;
 	}
 	while( lpClient->RecvPending.dwAvail )  // if any room is availiable.
@@ -927,7 +928,7 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 #ifdef LOG_PENDING
 					lprintf( WIDE( "back from applciation... (loop to next)" ) ); // new read probably pending ehre...
 #endif
-               continue;
+					continue;
 				}
 			}
 			//lprintf( WIDE("Back from application") );
