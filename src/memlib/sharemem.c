@@ -64,8 +64,18 @@ namespace sack {
 	
 #endif
 
-#if defined( __LINUX__ ) && !defined( __CYGWIN__ )
+#ifdef __64__
+#define CLEAR_MEMORY_TAG 0xDEADBEEFDEADBEEFULL
+#define FREE_MEMORY_TAG 0xFACEBEADFACEBEADULL
+#define LEAD_PROTECT_TAG 0xbabecafebabecafeULL
+#define LEAD_PROTECT_BLOCK_TAIL 0xbeefcafebeefcafeULL
+#else
+#define CLEAR_MEMORY_TAG 0xDEADBEEFUL
+#define FREE_MEMORY_TAG 0xFACEBEADUL
+#define LEAD_PROTECT_TAG 0xbabecafeUL
+#define LEAD_PROTECT_BLOCK_TAIL 0xbeefcafeUL
 #endif
+
 
 // last entry in space tracking array will ALWAYS be
 // another space tracking array (if used)
@@ -1672,8 +1682,8 @@ POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS )
 		pc = (PMALLOC_CHUNK)malloc( sizeof( MALLOC_CHUNK ) + dwSize + sizeof( pc->LeadProtect ) );
 		if( !pc )
 			DebugBreak();
-		MemSet( pc->LeadProtect, 0xbabecafe, sizeof( pc->LeadProtect ) );
-		MemSet( pc->byData + dwSize, 0xbeefcafe, sizeof( pc->LeadProtect ) );
+		MemSet( pc->LeadProtect, LEAD_PROTECT_TAG, sizeof( pc->LeadProtect ) );
+		MemSet( pc->byData + dwSize, LEAD_PROTECT_BLOCK_TAIL, sizeof( pc->LeadProtect ) );
 #else
 		pc = (PMALLOC_CHUNK)malloc( sizeof( MALLOC_CHUNK ) + dwSize );
 #endif
@@ -1825,13 +1835,6 @@ POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS )
 			// set end of block tag(s).
 			// without disabling memory entirely, blocks are
 			// still tagged and trashed in debug mode.
-#ifdef __64__
-#define CLEAR_MEMORY_TAG 0xDEADBEEFDEADBEEFULL
-#define FREE_MEMORY_TAG 0xFACEBEADFACEBEADULL
-#else
-#define CLEAR_MEMORY_TAG 0xDEADBEEFUL
-#define FREE_MEMORY_TAG 0xFACEBEADUL
-#endif
 			MemSet( pc->byData, CLEAR_MEMORY_TAG, pc->dwSize );
 			BLOCK_TAG(pc) = BLOCK_TAG_ID;
 		}
@@ -2037,8 +2040,8 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 				if( g.bLogAllocate )
 					_lprintf(DBG_RELAY)( WIDE( "Release %p(%p)" ), pc, pc->byData );
 #ifdef ENABLE_NATIVE_MALLOC_PROTECTOR
-				if( !MemChk( pc->LeadProtect, 0xbabecafe, sizeof( pc->LeadProtect ) ) ||
-					!MemChk( pc->byData + pc->dwSize, 0xbeefcafe, sizeof( pc->LeadProtect ) ) )
+				if( !MemChk( pc->LeadProtect, LEAD_PROTECT_TAG, sizeof( pc->LeadProtect ) ) ||
+					!MemChk( pc->byData + pc->dwSize, LEAD_PROTECT_BLOCK_TAIL, sizeof( pc->LeadProtect ) ) )
 				{
 					lprintf( WIDE( "overflow block (%p) %p" ), pData, pc );
 					DebugBreak();
