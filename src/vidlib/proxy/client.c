@@ -137,14 +137,17 @@ static LOGICAL PrestoreMessage( struct common_message *msg, size_t size )
 				if(  image->image && 
 					msg->data.blatcolor.w == image->image->width && 
 					msg->data.blatcolor.h == image->image->height )
+				{
+					//lprintf( "Clear exisitng data on %p", image );
 					image->sendlen = 0;
+				}
 			}
 		case PMID_BlotImageSizedTo:  // 11
 		case PMID_BlotScaledImageSizedTo: // 12
 		case PMID_DrawLine: // 13
 			{
 				struct client_proxy_image *image = (struct client_proxy_image *)GetLink( &l.images, msg->data.unmake_image.server_image_id );
-				lprintf( "Store message on %d", msg->data.unmake_image.server_image_id );
+				//lprintf( "Store message on %d", msg->data.unmake_image.server_image_id );
 				if( image )
 				{
 					GetMessageBuf( image, msg, size );
@@ -295,6 +298,7 @@ void HandleMessage( PCLIENT pc, struct common_message*msg, size_t size )
 		{
 			struct client_proxy_image *image = (struct client_proxy_image *)GetLink( &l.images, msg->data.blatcolor.server_image_id );
 			Image real_image = image->image?image->image:GetDisplayImage( ((struct client_proxy_render*) GetLink( &l.renderers, image->render_id ))->render );
+			//lprintf( "blat color to %p", image );
 			BlatColorAlpha( real_image
 								, msg->data.blatcolor.x
 								, msg->data.blatcolor.y
@@ -322,6 +326,11 @@ void HandleMessage( PCLIENT pc, struct common_message*msg, size_t size )
 			struct client_proxy_image *image_source = (struct client_proxy_image *)GetLink( &l.images, msg->data.blot_image.image_id );
 			Image real_image = image->image?image->image:GetDisplayImage( ((struct client_proxy_render*) GetLink( &l.renderers, image->render_id ))->render );
 			Image real_image_source = image_source->image?image_source->image:GetDisplayImage( ((struct client_proxy_render*) GetLink( &l.renderers, image_source->render_id ))->render );
+			//lprintf( "output image %p to %p  %d,%d  %d,%d", image_source, image
+			//						, msg->data.blot_image.x
+			//						, msg->data.blot_image.y
+			//						, msg->data.blot_image.w
+			//						, msg->data.blot_image.h );
 			BlotImageSizedEx( real_image
 									, real_image_source
 									, msg->data.blot_image.x
