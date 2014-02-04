@@ -339,7 +339,6 @@ void UpdateRendererImage( Image image, PFONT_RENDERER renderer, int char_width, 
 	}
 	else
 	{
-		Image tmp;
 		Image new_surface;
 		if( image->reverse_interface )
 		{

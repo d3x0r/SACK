@@ -289,8 +289,8 @@ typedef struct render_font_data_tag {
 void LoadAllFonts( void );
 /* internal function to unload fonts */
 void UnloadAllFonts( void );
-#undef DumpFontFile
-void DumpFontFile( CTEXTSTR name, SFTFont font_to_dump );
+//#undef DumpFontFile
+//void DumpFontFile( CTEXTSTR name, SFTFont font_to_dump );
 
 #ifndef STRUCT_ONLY
 
