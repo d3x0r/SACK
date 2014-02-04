@@ -44,6 +44,8 @@ struct vidlib_proxy_local
 	PIMAGE_3D_INTERFACE pi3i;
 	PLIST renderers;  // list of PRENDERER
 	PLIST images;  // list of struct client_socket_state
+	PLINKQUEUE events;
+	PTHREAD event_thread;
 } proxy_client_local;
 #define l proxy_client_local
 

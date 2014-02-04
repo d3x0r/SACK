@@ -931,11 +931,14 @@ static void  VidlibProxy_CloseDisplay ( PRENDERER Renderer )
 static void VidlibProxy_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y, _32 width, _32 height DBG_PASS )
 {
 	// no-op; it will ahve already displayed(?)
+	SendClientMessage( PMID_Flush_Draw, r );
 }
 
 static void VidlibProxy_UpdateDisplayEx( PRENDERER r DBG_PASS)
 {
 	// no-op; it will ahve already displayed(?)
+	SendClientMessage( PMID_Flush_Draw, r );
+
 }
 
 static void VidlibProxy_GetDisplayPosition ( PRENDERER r, S_32 *x, S_32 *y, _32 *width, _32 *height )
@@ -1190,6 +1193,7 @@ static void CPROC VidlibProxy_Redraw( PRENDERER r )
 	PVPRENDER render = (PVPRENDER)r;
 	if( render->redraw )
 		render->redraw( render->psv_redraw, (PRENDERER)render );
+	SendClientMessage( PMID_Flush_Draw, render );
 }
 
 static void CPROC VidlibProxy_MakeAbsoluteTopmost(PRENDERER r)
@@ -1945,7 +1949,7 @@ DIMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, S_32 x, S_32 y, S_32 xto, S_3
 	if( !cto )
 		cto = WebSockInitJson( PMID_DrawLine );
 
-	outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct blot_scaled_image_data ) ) );
+	outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct line_data ) ) );
 	outmsg->message_id = PMID_DrawLine;
 	outmsg->data.line.server_image_id = image->id;
 	outmsg->data.line.x1 = x;

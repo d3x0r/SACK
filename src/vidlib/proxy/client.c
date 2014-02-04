@@ -53,44 +53,53 @@ static void CPROC RedrawEvent( PTRSZVAL psv, PRENDERER r )
 	UpdateDisplay( render->render );
 }
 
+static PTRSZVAL CPROC EventThread( PTHREAD thread )
+{
+	while( 1 )
+	{
+		struct event_msg *msg;
+		WakeableSleep( 10000000 );
+		while( msg = (struct event_msg*)DequeLink( &l.events ) )
+		{
+			SendTCP( msg->pc, &msg->sendlen, msg->sendlen+4 );
+			Release( msg );
+		}
+	}
+	return 0;
+}
+
 static int CPROC MouseEvent( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
 {
 	size_t sendlen;
-	struct common_message *outmsg;
-	// often used; sometimes unused...
-	_8 *msg;
+	struct event_msg *event = (struct event_msg*)NewArray( _8, sizeof( PCLIENT ) + ( sendlen = ( 4 + 1 + sizeof( struct mouse_event_data ) ) ) );
+	struct common_message *outmsg = &event->msg;
 	struct client_proxy_render *render = (struct client_proxy_render *)psv;
-
-	msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct mouse_event_data ) ) );
-	((_32*)msg)[0] = (_32)(sendlen - 4);
-	outmsg = (struct common_message*)(msg + 4);
+	event->pc = render->pc;
+	event->sendlen = (_32)(sendlen - 4);
 	outmsg->message_id = PMID_Event_Mouse;
 	outmsg->data.mouse_event.server_render_id = render->id;
 	outmsg->data.mouse_event.x = x;
 	outmsg->data.mouse_event.y = y;
 	outmsg->data.mouse_event.b = b;
-	SendTCP( render->pc, msg, sendlen );
-	Release( msg );
+	EnqueLink( &l.events, event );
+	WakeThread( l.event_thread );
 	return 1;
 }
 
 static int CPROC KeyEvent( PTRSZVAL psv, _32 key )
 {
 	size_t sendlen;
-	struct common_message *outmsg;
-	// often used; sometimes unused...
-	_8 *msg;
+	struct event_msg *event = (struct event_msg*)NewArray( _8, sizeof( PCLIENT ) + ( sendlen = ( 4 + 1 + sizeof( struct key_event_data ) ) ) );
+	struct common_message *outmsg = &event->msg;
 	struct client_proxy_render *render = (struct client_proxy_render *)psv;
-
-	msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct key_event_data ) ) );
-	((_32*)msg)[0] = (_32)(sendlen - 4);
-	outmsg = (struct common_message*)(msg + 4);
+	event->pc = render->pc;
+	event->sendlen = (_32)(sendlen - 4);
 	outmsg->message_id = PMID_Event_Mouse;
 	outmsg->data.mouse_event.server_render_id = render->id;
 	outmsg->data.key_event.key = KEY_CODE( key );
 	outmsg->data.key_event.pressed = IsKeyPressed( key )?1:0;
-	SendTCP( render->pc, msg, sendlen );
-	Release( msg );
+	EnqueLink( &l.events, event );
+	WakeThread( l.event_thread );
 	return 1;
 }
 
@@ -123,6 +132,13 @@ static LOGICAL PrestoreMessage( struct common_message *msg, size_t size )
 	{
 		case PMID_BlatColor: // 8
 		case PMID_BlatColorAlpha: // 9 
+			{
+				struct client_proxy_image *image = (struct client_proxy_image *)GetLink( &l.images, msg->data.unmake_image.server_image_id );
+				if(  image->image && 
+					msg->data.blatcolor.w == image->image->width && 
+					msg->data.blatcolor.h == image->image->height )
+					image->sendlen = 0;
+			}
 		case PMID_BlotImageSizedTo:  // 11
 		case PMID_BlotScaledImageSizedTo: // 12
 		case PMID_DrawLine: // 13
@@ -429,6 +445,7 @@ static void CPROC SocketClose( PCLIENT pc )
 SaneWinMain( argc, argv )
 {
 	NetworkStart();
+	l.event_thread = ThreadTo( EventThread, 0 );
 	l.service = OpenTCPClientExx( argv[1]?argv[1]:WIDE("127.0.0.1"), 4241, SocketRead, SocketClose, NULL, NULL );
 	while( l.service )
 	{
