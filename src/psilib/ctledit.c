@@ -341,21 +341,24 @@ void CutEditText( PEDIT pe, PTEXT *caption )
 	// any selected text is now deleted... the buffer is shortened...
     if( pe->flags.bSelectSet )
 	{
-		pe->nCaptionUsed -= (pe->select_end - pe->select_start) + 1;
-		if( pe->nCaptionUsed && pe->nCaptionUsed > pe->select_start )
+		if( pe->select_end < GetTextSize( *caption ) )
 		{
-			MemCpy( GetText( *caption ) + pe->select_start
-			       , GetText( *caption ) + pe->select_end+1
-			       , pe->nCaptionUsed - pe->select_start );
-			SetTextSize( *caption, pe->nCaptionUsed );
-			GetText( *caption )[pe->nCaptionUsed] = 0;
+			pe->nCaptionUsed -= (pe->select_end - pe->select_start) + 1;
+			if( pe->nCaptionUsed && pe->nCaptionUsed > pe->select_start )
+			{
+				MemCpy( GetText( *caption ) + pe->select_start
+					   , GetText( *caption ) + pe->select_end+1
+					   , pe->nCaptionUsed - pe->select_start );
+				SetTextSize( *caption, pe->nCaptionUsed );
+				GetText( *caption )[pe->nCaptionUsed] = 0;
+			}
+			else
+			{
+				SetTextSize( *caption, pe->nCaptionUsed );
+				GetText( *caption )[pe->select_start] = 0;
+			}
+			pe->cursor_pos = pe->select_start;
 		}
-		else
-		{
-			SetTextSize( *caption, pe->nCaptionUsed );
-			GetText( *caption )[pe->select_start] = 0;
-		}
-		pe->cursor_pos = pe->select_start;
 	}
 	pe->flags.bSelectSet = 0;
 }
@@ -693,14 +696,11 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, _32 key )
 			}
 			else
 			{
-				if( pe->cursor_pos != pe->cursor_pos )
-				{
-					pe->flags.bSelectSet = 1;
-					pe->select_end =
-						pe->select_start = pe->cursor_pos;
-					CutEditText( pe, &pc->caption.text );
-					updated = 1;
-				}
+				pe->flags.bSelectSet = 1;
+				pe->select_end =
+					pe->select_start = pe->cursor_pos;
+				CutEditText( pe, &pc->caption.text );
+				updated = 1;
 			}
 			if( updated )
 				SmudgeCommon( pc );
