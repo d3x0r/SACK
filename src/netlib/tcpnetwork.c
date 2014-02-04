@@ -791,167 +791,180 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 #ifdef VERBOSE_DEBUG
 	nCount = 0;
 #endif
-	do
-	{
-	if( lpClient->bDraining )
-	{
-		lprintf(WIDE( "LOG:ERROR trying to read during a drain state..." ) );
-		return -1; // why error on draining with pending finish??
-	}
-
-	if( !(lpClient->dwFlags & CF_CONNECTED)  )
-	{
-#ifdef VERBOSE_DEBUG
-		lprintf( WIDE( "Finsih pending - return, not connected." ) );
-#endif
-		return lpClient->RecvPending.dwUsed; // amount of data available...
-	}
-	//lprintf( WIDE(WIDE( "FinishPendingRead of %d" )), lpClient->RecvPending.dwAvail );
 	if( !( lpClient->dwFlags & CF_READPENDING ) )
 	{
 		//lpClient->dwFlags |= CF_READREADY; // read ready is set if FinishPendingRead returns 0; and it's from the core read...
 		lprintf( WIDE( "Finish pending - return, no pending read. %08x" ), lpClient->dwFlags );
-		// without a pending read, don't read, the buffers are not correct.
-		return 0;
 	}
-	while( lpClient->RecvPending.dwAvail )  // if any room is availiable.
+
+	do
 	{
-#ifdef VERBOSE_DEBUG
-		nCount++;
-		_lprintf( DBG_RELAY )( WIDE("FinishPendingRead %d %") _32f WIDE(""), nCount
-									, lpClient->RecvPending.dwAvail );
-#endif
-		nRecv = recv(lpClient->Socket,
-						 (char*)lpClient->RecvPending.buffer.p +
-						 lpClient->RecvPending.dwUsed,
-						 (int)lpClient->RecvPending.dwAvail,0);
-		if (nRecv == SOCKET_ERROR)
+		if( lpClient->bDraining )
 		{
-			dwError = WSAGetLastError();
-			switch( dwError)
+			lprintf(WIDE( "LOG:ERROR trying to read during a drain state..." ) );
+			return -1; // why error on draining with pending finish??
+		}
+
+		if( !(lpClient->dwFlags & CF_CONNECTED)  )
+		{
+#ifdef VERBOSE_DEBUG
+			lprintf( WIDE( "Finsih pending - return, not connected." ) );
+#endif
+			return lpClient->RecvPending.dwUsed; // amount of data available...
+		}
+		//lprintf( WIDE(WIDE( "FinishPendingRead of %d" )), lpClient->RecvPending.dwAvail );
+		if( !( lpClient->dwFlags & CF_READPENDING ) )
+		{
+			//lpClient->dwFlags |= CF_READREADY; // read ready is set if FinishPendingRead returns 0; and it's from the core read...
+			lprintf( WIDE( "Finish pending - return, no pending read. %08x" ), lpClient->dwFlags );
+			// without a pending read, don't read, the buffers are not correct.
+			return 0;
+		}
+		while( lpClient->RecvPending.dwAvail )  // if any room is availiable.
+		{
+#ifdef VERBOSE_DEBUG
+			nCount++;
+			_lprintf( DBG_RELAY )( WIDE("FinishPendingRead %d %") _32f WIDE(""), nCount
+										, lpClient->RecvPending.dwAvail );
+#endif
+			nRecv = recv(lpClient->Socket,
+							 (char*)lpClient->RecvPending.buffer.p +
+							 lpClient->RecvPending.dwUsed,
+							 (int)lpClient->RecvPending.dwAvail,0);
+			if (nRecv == SOCKET_ERROR)
 			{
-			case WSAEWOULDBLOCK: // no data avail yet...
-				//lprintf( WIDE("Pending Receive would block...") );
-				lpClient->dwFlags &= ~CF_READREADY;
-				return lpClient->RecvPending.dwAvail;
+				dwError = WSAGetLastError();
+				switch( dwError)
+				{
+				case WSAEWOULDBLOCK: // no data avail yet...
+					//lprintf( WIDE("Pending Receive would block...") );
+					lpClient->dwFlags &= ~CF_READREADY;
+					return lpClient->RecvPending.dwAvail;
 #ifdef __LINUX__
-			case ECONNRESET:
+				case ECONNRESET:
 #else
-			case WSAECONNRESET:
-			case WSAECONNABORTED:
+				case WSAECONNRESET:
+				case WSAECONNABORTED:
 #endif
 #ifdef LOG_DEBUG_CLOSING
-				lprintf( WIDE("Read from reset connection - closing. %p"), lpClient );
+					lprintf( WIDE("Read from reset connection - closing. %p"), lpClient );
 #endif
-				if(0)
-				{
-				default:
-					Log5( WIDE("Failed reading from %d (err:%d) into %p %") _32f WIDE(" bytes %") _32f WIDE(" read already."),
-						  lpClient->Socket,
-						  WSAGetLastError(),
-						  lpClient->RecvPending.buffer.p,
-						  lpClient->RecvPending.dwAvail,
-						  lpClient->RecvPending.dwUsed );
-					lprintf(WIDE("LOG:ERROR FinishPending discovered unhandled error (closing connection) %") _32f WIDE(""), dwError );
+					if(0)
+					{
+					default:
+						Log5( WIDE("Failed reading from %d (err:%d) into %p %") _32f WIDE(" bytes %") _32f WIDE(" read already."),
+							  lpClient->Socket,
+							  WSAGetLastError(),
+							  lpClient->RecvPending.buffer.p,
+							  lpClient->RecvPending.dwAvail,
+							  lpClient->RecvPending.dwUsed );
+						lprintf(WIDE("LOG:ERROR FinishPending discovered unhandled error (closing connection) %") _32f WIDE(""), dwError );
+					}
+					//InternalRemoveClient( lpClient );  // invalid channel now.
+					lpClient->dwFlags |= CF_TOCLOSE;
+					return -1;   // return pending finished...
 				}
-				//InternalRemoveClient( lpClient );  // invalid channel now.
+			}
+			else if (!nRecv) // channel closed if received 0 bytes...
+			{           // otherwise WSAEWOULDBLOCK would be generated.
+				//_lprintf( DBG_RELAY )( WIDE("Closing closed socket... Hope there's also an event... "));
 				lpClient->dwFlags |= CF_TOCLOSE;
-				return -1;   // return pending finished...
+				break; // while dwAvail... try read...
+				//return -1;
+			}
+			else
+			{
+				if( g.flags.bShortLogReceivedData )
+				{
+					LogBinary( (P_8)lpClient->RecvPending.buffer.p +
+							 lpClient->RecvPending.dwUsed, min( nRecv, 64 ) );
+				}
+				if( g.flags.bLogReceivedData )
+				{
+					LogBinary( (P_8)lpClient->RecvPending.buffer.p +
+							 lpClient->RecvPending.dwUsed, nRecv );
+				}
+				if( lpClient->RecvPending.s.bStream )
+					lpClient->dwFlags &= ~CF_READREADY;
+				lpClient->RecvPending.dwLastRead = nRecv;
+				lpClient->RecvPending.dwAvail -= nRecv;
+				lpClient->RecvPending.dwUsed  += nRecv;
+				if( lpClient->RecvPending.s.bStream &&
+					lpClient->RecvPending.dwAvail )
+					break;
+				//else
+				//	lprintf( WIDE("Was not a stream read - try reading more...") );
 			}
 		}
-		else if (!nRecv) // channel closed if received 0 bytes...
-		{           // otherwise WSAEWOULDBLOCK would be generated.
-			//_lprintf( DBG_RELAY )( WIDE("Closing closed socket... Hope there's also an event... "));
-			lpClient->dwFlags |= CF_TOCLOSE;
-			break; // while dwAvail... try read...
-			//return -1;
+
+		// if read notification okay - then do callback.
+		if( !( lpClient->dwFlags & CF_READWAITING ) )
+		{
+#ifdef LOG_PENDING
+			lprintf( WIDE("Waiting on a queued read... result to callback.") );
+#endif
+			if( ( !lpClient->RecvPending.dwAvail || // completed all of the read
+				  ( lpClient->RecvPending.dwUsed &&   // or completed some of the read
+					lpClient->RecvPending.s.bStream ) ) )
+			{
+#ifdef LOG_PENDING
+				lprintf( WIDE("Sending completed read to application") );
+#endif
+				lpClient->dwFlags &= ~CF_READPENDING;
+				if( lpClient->read.ReadComplete )  // and there's a read complete callback available
+				{
+					// need to clear dwUsed...
+					// otherwise the on-close notificatino can cause this to dispatch again.
+					size_t length = lpClient->RecvPending.dwUsed;
+					lpClient->RecvPending.dwUsed = 0;
+					if( lpClient->dwFlags & CF_CPPREAD )
+					{
+						lpClient->read.CPPReadComplete( lpClient->psvRead
+																, lpClient->RecvPending.buffer.p
+																, length );
+					}
+					else
+					{
+#ifdef LOG_PENDING
+						lprintf( WIDE( "Send to application...." ) );
+#endif
+						lpClient->read.ReadComplete( lpClient,
+															 lpClient->RecvPending.buffer.p,
+															 length );
+#ifdef LOG_PENDING
+						lprintf( WIDE( "back from applciation... (loop to next)" ) ); // new read probably pending ehre...
+#endif
+						if( !(lpClient->dwFlags & CF_READPENDING ) )
+						{
+							lprintf( "somehow we didn't get a good read." );
+						}
+						continue;
+					}
+				}
+			}
+			if( !( lpClient->dwFlags & CF_READPENDING ) )
+			{
+				lprintf( "somehow we didn't get a good read." );
+			}
 		}
 		else
 		{
-			if( g.flags.bShortLogReceivedData )
+#ifdef LOG_PENDING
+			lprintf( WIDE("Client is waiting for this data... should we wake him? %d"), lpClient->RecvPending.s.bStream );
+#endif
+			if( ( !lpClient->RecvPending.dwAvail || // completed all of the read
+				  ( lpClient->RecvPending.dwUsed &&   // or completed some of the read
+					lpClient->RecvPending.s.bStream ) ) )
 			{
-				LogBinary( (P_8)lpClient->RecvPending.buffer.p +
-						 lpClient->RecvPending.dwUsed, min( nRecv, 64 ) );
+				lprintf( WIDE("Wake waiting thread... clearing pending read flag.") );
+				lpClient->dwFlags &= ~CF_READPENDING;
+				if( lpClient->pWaiting )
+					WakeThread( lpClient->pWaiting );
 			}
-			if( g.flags.bLogReceivedData )
-			{
-				LogBinary( (P_8)lpClient->RecvPending.buffer.p +
-						 lpClient->RecvPending.dwUsed, nRecv );
-			}
-			if( lpClient->RecvPending.s.bStream )
-				lpClient->dwFlags &= ~CF_READREADY;
-			lpClient->RecvPending.dwLastRead = nRecv;
-			lpClient->RecvPending.dwAvail -= nRecv;
-			lpClient->RecvPending.dwUsed  += nRecv;
-			if( lpClient->RecvPending.s.bStream &&
-				lpClient->RecvPending.dwAvail )
-				break;
-			//else
-			//	lprintf( WIDE("Was not a stream read - try reading more...") );
 		}
-	}
-
-	// if read notification okay - then do callback.
-	if( !( lpClient->dwFlags & CF_READWAITING ) )
-	{
-#ifdef LOG_PENDING
-		lprintf( WIDE("Waiting on a queued read... result to callback.") );
-#endif
-		if( ( !lpClient->RecvPending.dwAvail || // completed all of the read
-			  ( lpClient->RecvPending.dwUsed &&   // or completed some of the read
-				lpClient->RecvPending.s.bStream ) ) )
-		{
-#ifdef LOG_PENDING
-			lprintf( WIDE("Sending completed read to application") );
-#endif
-			lpClient->dwFlags &= ~CF_READPENDING;
-			if( lpClient->read.ReadComplete )  // and there's a read complete callback available
-			{
-				// need to clear dwUsed...
-            // otherwise the on-close notificatino can cause this to dispatch again.
-				size_t length = lpClient->RecvPending.dwUsed;
-				lpClient->RecvPending.dwUsed = 0;
-				if( lpClient->dwFlags & CF_CPPREAD )
-				{
-					lpClient->read.CPPReadComplete( lpClient->psvRead
-															, lpClient->RecvPending.buffer.p
-															, length );
-				}
-				else
-				{
-#ifdef LOG_PENDING
-					lprintf( WIDE( "Send to application...." ) );
-#endif
-					lpClient->read.ReadComplete( lpClient,
-														 lpClient->RecvPending.buffer.p,
-														 length );
-#ifdef LOG_PENDING
-					lprintf( WIDE( "back from applciation... (loop to next)" ) ); // new read probably pending ehre...
-#endif
-					continue;
-				}
-			}
-			//lprintf( WIDE("Back from application") );
-		}
-	}
-	else
-	{
-#ifdef LOG_PENDING
-		lprintf( WIDE("Client is waiting for this data... should we wake him? %d"), lpClient->RecvPending.s.bStream );
-#endif
-		if( ( !lpClient->RecvPending.dwAvail || // completed all of the read
-			  ( lpClient->RecvPending.dwUsed &&   // or completed some of the read
-				lpClient->RecvPending.s.bStream ) ) )
-		{
-			lprintf( WIDE("Wake waiting thread... clearing pending read flag.") );
-			lpClient->dwFlags &= ~CF_READPENDING;
-			if( lpClient->pWaiting )
-				WakeThread( lpClient->pWaiting );
-		}
-	}
-	if( lpClient->dwFlags & CF_TOCLOSE )
-		return -1;
-	return (int)lpClient->RecvPending.dwUsed; // returns amount of information which is available NOW.
+		if( lpClient->dwFlags & CF_TOCLOSE )
+			return -1;
+		return (int)lpClient->RecvPending.dwUsed; // returns amount of information which is available NOW.
 	} while ( 1 );
 }
 
@@ -1000,6 +1013,7 @@ NETWORK_PROC( size_t, doReadExx2)(PCLIENT lpClient,POINTER lpBuffer,size_t nByte
 		NetworkUnlock( lpClient );
 		return -1;
 	}
+	//lprintf( "read %d", nBytes );
 	if( nBytes )   // only worry if there IS data to read.
 	{
 		// we can assume there is nothing now pending...
@@ -1007,7 +1021,6 @@ NETWORK_PROC( size_t, doReadExx2)(PCLIENT lpClient,POINTER lpBuffer,size_t nByte
 		lpClient->RecvPending.dwAvail = nBytes;
 		lpClient->RecvPending.dwUsed = 0;
 		lpClient->RecvPending.s.bStream = bIsStream;
-
 		// if the pending finishes it will call the ReadComplete Callback.
 		// otherwise there will be more data to read...
 		//lprintf( WIDE("Ok ... buffers set up - now we can handle read events") );
@@ -1030,7 +1043,7 @@ NETWORK_PROC( size_t, doReadExx2)(PCLIENT lpClient,POINTER lpBuffer,size_t nByte
 		//				, lpClient->Socket);
 		if( lpClient->dwFlags & CF_READREADY )
 		{
-			//lprintf( WIDE("Data already present for read...") );
+			lprintf( WIDE("Data already present for read...") );
 			FinishPendingRead( lpClient DBG_SRC );
 		}
 #ifdef __LINUX__
@@ -1063,7 +1076,7 @@ NETWORK_PROC( size_t, doReadExx2)(PCLIENT lpClient,POINTER lpBuffer,size_t nByte
 	}
 	else
 	{
-      lprintf( WIDE( "zero byte read...." ) );
+		lprintf( WIDE( "zero byte read...." ) );
 		if( !bWait )
 		{
 			if( lpClient->read.ReadComplete )  // and there's a read complete callback available
