@@ -86,6 +86,7 @@ struct vidlib_proxy_local
 	struct json_context *json_reply_context; // shorter list to search for input messages
 	PLIST messages;
 	PIMAGE_INTERFACE real_interface;
+	_8 key_states[256];
 } l;
 
 

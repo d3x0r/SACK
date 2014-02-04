@@ -94,7 +94,7 @@ static int CPROC KeyEvent( PTRSZVAL psv, _32 key )
 	struct client_proxy_render *render = (struct client_proxy_render *)psv;
 	event->pc = render->pc;
 	event->sendlen = (_32)(sendlen - 4);
-	outmsg->message_id = PMID_Event_Mouse;
+	outmsg->message_id = PMID_Event_Key;
 	outmsg->data.mouse_event.server_render_id = render->id;
 	outmsg->data.key_event.key = KEY_CODE( key );
 	outmsg->data.key_event.pressed = IsKeyPressed( key )?1:0;
