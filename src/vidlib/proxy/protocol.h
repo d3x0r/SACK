@@ -143,6 +143,15 @@ PREFIX_PACKED struct common_message {
 	} data;
 } PACKED;
 
+PREFIX_PACKED struct event_msg
+{
+	PCLIENT pc;
+	_32 sendlen;
+	struct common_message msg;
+} PACKED;
+
+
+
 #ifdef _MSC_VER
 #pragma pack (pop)
 #endif
