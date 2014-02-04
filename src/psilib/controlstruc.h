@@ -224,6 +224,7 @@ struct physical_device_interface
 	EDIT_STATE EditState;
 	//PRENDERER pActImg;
 	//PTRSZVAL psvUser; // user data...
+	int drag_x, drag_y; // position drag was started; for absolute motion
 	int _x, _y;
 	_32 _b; // last button state...
 	// these two buttons override controls which have the ID BTN_OKAY, BTN_CANCEL
