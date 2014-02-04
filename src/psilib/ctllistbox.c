@@ -23,9 +23,9 @@ struct listitem_tag
 	// top == -1 if not show, or not shown yet
 	// else top == pixel offset of the top of the item
 	S_32 top; // top of the item in the listbox...
-	         // makes for quick rendering of custom items
-	         // also can use this to push current down
-	         // when inserting sorted items...
+				// makes for quick rendering of custom items
+				// also can use this to push current down
+				// when inserting sorted items...
 	_32 height; // height of the line...
 	int nLevel; // level of the tree item...
 	Image icon;
@@ -45,7 +45,7 @@ typedef struct listcolumn_tag LISTCOL, *PLISTCOL;
 struct listcolumn_tag
 {
 	struct {
-      // this column label is meant ot be vertical.
+		// this column label is meant ot be vertical.
 		BIT_FIELD bVertical : 1;
 	} flags;
 	CTEXTSTR header;
@@ -55,15 +55,15 @@ struct listcolumn_tag
 
 typedef struct listbox_tag
 {
-   //_32 attr;
+	//_32 attr;
 	Image  ListSurface;
 	PLISTITEM items // first item
 				, last // last item
 				, current // current (focus cursor on this)
 				, firstshown // first item shown
 				, lastshown  // last item shown
-            , mouseon // item the mouse first clicked on (for popup menu support)
-            , first_selected; // first item selected for shift-click multi-select
+				, mouseon // item the mouse first clicked on (for popup menu support)
+				, first_selected; // first item selected for shift-click multi-select
 	PLISTITEM _pli; // last state - used for dispatch item (which if deleted, needs to not resend)
 	struct {
 		_32 bSingle : 1; // alternative multiple selections can be made
@@ -101,11 +101,11 @@ void CPROC SetListBoxTabStops( PSI_CONTROL pc, int nStops, int *pStops )
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	if( nStops > 30 )
 	{
-      lprintf( WIDE("Only setting first 30 stops") );
+		lprintf( WIDE("Only setting first 30 stops") );
 		nStops = 30;
 	}
 	for( n = 0; ( plb->nTabstop[n] = pStops[n]),(n < nStops); n++ );
-   plb->nTabstops = nStops;
+	plb->nTabstops = nStops;
 }
 
 //---------------------------------------------------------------------------
@@ -171,15 +171,15 @@ void DeleteListItem( PSI_CONTROL pc, PLISTITEM hli )
 PSI_PROC( void, ResetList )( PSI_CONTROL pc )
 {
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
-   if( plb )
+	if( plb )
 	{
-      plb->flags.bDestroying = 1; // fake it...
-      while( plb->items )
+		plb->flags.bDestroying = 1; // fake it...
+		while( plb->items )
 			DeleteListItem( pc, (PLISTITEM)plb->items );
 
-      plb->flags.bDestroying = 0; // okay we're not really ...
+		plb->flags.bDestroying = 0; // okay we're not really ...
 		SmudgeCommon( pc );
-   }
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -187,7 +187,7 @@ PSI_PROC( void, ResetList )( PSI_CONTROL pc )
 static void CPROC DestroyListBox( PSI_CONTROL pc )
 {
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
-   if( plb )
+	if( plb )
 	{
 		plb->flags.bDestroying = TRUE;
 		UnmakeImageFile( plb->ListSurface );
@@ -240,7 +240,7 @@ static void AdjustItemsIntoBox( PSI_CONTROL pc )
 		// current will still fit integrally on the listbox
 		// back up firstshown....
 		while( plb->firstshown->prior && 
-		       ( SUS_LT( y, int, (pc->surface_rect.height - (h-1)),_32) ) )
+				 ( SUS_LT( y, int, (pc->surface_rect.height - (h-1)),_32) ) )
 		{
 			y += h;
 			plb->firstshown = plb->firstshown->prior;
@@ -252,27 +252,27 @@ static void AdjustItemsIntoBox( PSI_CONTROL pc )
 
 //---------------------------------------------------------------------------
 
-static int RenderRelationLines( PSI_CONTROL pc, PLISTITEM pli, int drawthis )
+static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, int drawthis )
 {
-   //ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
+	//ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	PLISTITEM pliNextUpLevel;
-   int x, y, ymin, ymax;
+	int x, y, ymin, ymax;
 	pliNextUpLevel = pli->next;
 	x = pli->nLevel * BRANCH_WIDTH + (BRANCH_WIDTH/2);
 	y = pli->top + ( pli->height / 2 );
 	ymin = pli->top;
 	ymax = pli->top + pli->height - 1;
-   if( pli->nLevel )
+	if( pli->nLevel )
 	{
 		PLISTITEM pliParent = pli->prior;
 		while( pliParent && pliParent->nLevel >= pli->nLevel )
 		{
-         pliParent = pliParent->prior;
+			pliParent = pliParent->prior;
 		}
 		if( pliParent && !pliParent->flags.bOpen )
 		{
 			// parent is not open, therefore do not draw lines...
-         // also - x offset is irrelavent return..
+			// also - x offset is irrelavent return..
 			return 0;
 		}
 
@@ -283,13 +283,13 @@ static int RenderRelationLines( PSI_CONTROL pc, PLISTITEM pli, int drawthis )
 			pliNextUpLevel = pliNextUpLevel->next;
 		if( pliNextUpLevel && ( pliNextUpLevel->nLevel == pli->nLevel ) )
 		{
-			do_hline( pc->Surface, y, x, x + (BRANCH_WIDTH/2)-1, basecolor(pc)[SHADE] );
-			do_vline( pc->Surface, x, ymin, ymax, basecolor(pc)[SHADE] );
+			do_hline( surface, y, x, x + (BRANCH_WIDTH/2)-1, basecolor(pc)[SHADE] );
+			do_vline( surface, x, ymin, ymax, basecolor(pc)[SHADE] );
 		}
 		else
 		{
-			do_hline( pc->Surface, y, x, x + (BRANCH_WIDTH/2)-1, basecolor(pc)[SHADE] );
-			do_vline( pc->Surface, x, ymin, y, basecolor(pc)[SHADE] );
+			do_hline( surface, y, x, x + (BRANCH_WIDTH/2)-1, basecolor(pc)[SHADE] );
+			do_vline( surface, x, ymin, y, basecolor(pc)[SHADE] );
 		}
 	}
 	pliNextUpLevel = pli->next;
@@ -299,19 +299,19 @@ static int RenderRelationLines( PSI_CONTROL pc, PLISTITEM pli, int drawthis )
 			pliNextUpLevel = pliNextUpLevel->next;
 		if( pliNextUpLevel )
 		{
-			do_vline( pc->Surface
+			do_vline( surface
 					  , pliNextUpLevel->nLevel * BRANCH_WIDTH + (BRANCH_WIDTH/2)
 					  , ymin, ymax
 					  , basecolor(pc)[SHADE] );
 		}
-      pli = pliNextUpLevel;
+		pli = pliNextUpLevel;
 	}
-   return x + BRANCH_WIDTH/2;
+	return x + BRANCH_WIDTH/2;
 }
 
 //---------------------------------------------------------------------------
 
-static int RenderItemKnob( PSI_CONTROL pc, PLISTITEM pli )
+static int RenderItemKnob( PSI_CONTROL pc, Image surface, PLISTITEM pli )
 {
 	PLISTITEM pliNextUpLevel;
 	//ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
@@ -319,13 +319,13 @@ static int RenderItemKnob( PSI_CONTROL pc, PLISTITEM pli )
 	if( !pli->next || ( pli->next->nLevel <= pli->nLevel ) )
 	{
 		// this is not an openable item, therefore
-      // just draw some lines...
-		return RenderRelationLines( pc, pli, TRUE );
+		// just draw some lines...
+		return RenderRelationLines( pc, surface, pli, TRUE );
 	}
 	else
 	{
-      // render lines to the left of here but not including here...
-		RenderRelationLines( pc, pli, FALSE );
+		// render lines to the left of here but not including here...
+		RenderRelationLines( pc, surface, pli, FALSE );
 	}
 	pliNextUpLevel = pli->next;
 	while( pliNextUpLevel && ( pliNextUpLevel->nLevel > pli->nLevel ) )
@@ -333,32 +333,32 @@ static int RenderItemKnob( PSI_CONTROL pc, PLISTITEM pli )
 	x = pli->nLevel * BRANCH_WIDTH + (BRANCH_WIDTH/2);
 	y = pli->top + ( pli->height / 2 );
 
-   // this draws the box with a + in it...
-	do_hlineAlpha( pc->Surface, y - 5, x-5, x+5, basecolor(pc)[SHADE] );
-	do_hlineAlpha( pc->Surface, y + 5, x-5, x+5, basecolor(pc)[SHADE] );
-	do_vlineAlpha( pc->Surface, x - 5, y-5, y+5, basecolor(pc)[SHADE] );
-	do_vlineAlpha( pc->Surface, x + 5, y-5, y+5, basecolor(pc)[SHADE] );
+	// this draws the box with a + in it...
+	do_hlineAlpha(surface, y - 5, x-5, x+5, basecolor(pc)[SHADE] );
+	do_hlineAlpha( surface, y + 5, x-5, x+5, basecolor(pc)[SHADE] );
+	do_vlineAlpha( surface, x - 5, y-5, y+5, basecolor(pc)[SHADE] );
+	do_vlineAlpha( surface, x + 5, y-5, y+5, basecolor(pc)[SHADE] );
 	if( !pli->flags.bOpen )
 	{
-		do_hlineAlpha( pc->Surface, y, x-3, x+3, basecolor(pc)[SHADOW] );
-		do_vlineAlpha( pc->Surface, x, y-3, y+3, basecolor(pc)[SHADOW] );
+		do_hlineAlpha( surface, y, x-3, x+3, basecolor(pc)[SHADOW] );
+		do_vlineAlpha( surface, x, y-3, y+3, basecolor(pc)[SHADOW] );
 	}
 	else
 	{
-		do_hlineAlpha( pc->Surface, y, x-3, x+3, basecolor(pc)[SHADOW] );
+		do_hlineAlpha( surface, y, x-3, x+3, basecolor(pc)[SHADOW] );
 	}
 
-   // draw line leading in (top) and out (right)
-   do_vlineAlpha( pc->Surface, x, y - 5, pli->top, basecolor(pc)[SHADE] );
-	do_hlineAlpha( pc->Surface, y, x + 5, x + (BRANCH_WIDTH/2)-1, basecolor(pc)[SHADE] );
+	// draw line leading in (top) and out (right)
+	do_vlineAlpha( surface, x, y - 5, pli->top, basecolor(pc)[SHADE] );
+	do_hlineAlpha( surface, y, x + 5, x + (BRANCH_WIDTH/2)-1, basecolor(pc)[SHADE] );
 
-   // optionally draw line leading down (bottom)
+	// optionally draw line leading down (bottom)
 	if( pliNextUpLevel && ( pliNextUpLevel->nLevel == pli->nLevel ) )
 	{
-      // next item is on this level, extend branch line down.
-      do_vlineAlpha( pc->Surface, y, y + 5, pli->top + pli->height - 1, basecolor(pc)[SHADE] );
+		// next item is on this level, extend branch line down.
+		do_vlineAlpha( surface, y, y + 5, pli->top + pli->height - 1, basecolor(pc)[SHADE] );
 	}
-   return x + BRANCH_WIDTH/2;
+	return x + BRANCH_WIDTH/2;
 }
 
 //---------------------------------------------------------------------------
@@ -368,7 +368,7 @@ static void UpdateScrollForList//Ex
 )
 //#define UpdateScrollForList(pc) UpdateScrollForListEx( pc DBG_SRC )
 {
-   ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
+	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	int current = -1, onview = -1, count = 0;
 	PLISTITEM pli = plb->items;
 	if( plb->firstshown && plb->lastshown )
@@ -396,33 +396,33 @@ static void UpdateScrollForList//Ex
 				pli = pli->next;
 		}
 	}
-   //_xlprintf(LOG_ALWAYS DBG_RELAY)( WIDE("Set scroll params %d %d %d %d"), 0, current, onview, count );
-   SetScrollParams( plb->pcScroll, 0, current, onview, count );
+	//_xlprintf(LOG_ALWAYS DBG_RELAY)( WIDE("Set scroll params %d %d %d %d"), 0, current, onview, count );
+	SetScrollParams( plb->pcScroll, 0, current, onview, count );
 }
 
 //---------------------------------------------------------------------------
 
 static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 {
-   int bFirstDraw;
+	int bFirstDraw;
 	_32 w, h;
 	int x, y, maxchars;
 	PLISTITEM pli;
-   ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
-   SFTFont font;
+	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
+	SFTFont font;
 	Image pSurface = plb->ListSurface;
-   //lprintf( "Drawing listbox using font %p", GetFrameFont( pc ) );
+	//lprintf( "Drawing listbox using font %p", GetFrameFont( pc ) );
 	if( plb->flags.bInitial )
 	{
-      bFirstDraw = TRUE;
+		bFirstDraw = TRUE;
 		plb->flags.bInitial = FALSE;
-      plb->flags.bNoUpdate = FALSE;
+		plb->flags.bNoUpdate = FALSE;
 	}
 	else
 		bFirstDraw = FALSE;
-   BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor(pc)[EDIT_BACKGROUND] );
+	BlatColorAlpha( plb->ListSurface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor(pc)[EDIT_BACKGROUND] );
 	//ClearImageTo( pSurface, basecolor(pc)[EDIT_BACKGROUND] );
-   font = GetFrameFont( pc );
+	font = GetFrameFont( pc );
 	GetStringSizeFont( WIDE("X"), &w, &h, font );
 	//lprintf( "Measure returned %d %d", w, h );
 
@@ -432,7 +432,7 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 	w = pc->surface_rect.width;
 	pli = plb->items;
 	if( !plb->firstshown )
-      plb->firstshown = plb->items;
+		plb->firstshown = plb->items;
 	while( pli != plb->firstshown )
 	{
 		pli->top = -1;
@@ -448,7 +448,7 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 		pli->height = h;
 		if( plb->flags.bTree )
 		{
-			x = RenderItemKnob( pc, pli );
+			x = RenderItemKnob( pc, plb->ListSurface, pli );
 		}
 		if( pli->flags.bSelected )
 		{
@@ -466,9 +466,9 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 				if( column < 0 )
 					column = -column;
 			}
-         //lprintf( "tab stop was %d", column );
+			//lprintf( "tab stop was %d", column );
 			ScaleCoords( pc, &column, NULL );
-         //lprintf( "tab stop is %d", column );
+			//lprintf( "tab stop is %d", column );
 			end = strchr( start, '\t' );
 			if( !end )
 				end = start + strlen( start );
@@ -492,10 +492,10 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 			if( end[0] )
 				start = end+1;
 			else
-            start = NULL;
+				start = NULL;
 		}
 		if( pc->flags.bFocused &&
-		    plb->current == pli )
+			 plb->current == pli )
 			do_line( pSurface, x + 1, y + h-2, w - 6, y + h - 2, basecolor(pc)[SHADE] );
 		y += h;
 		//xlprintf(LOG_ALWAYS)( "y is %ld and height is %ld", y , pc->surface_rect.height );
@@ -526,7 +526,7 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 	{
 		UpdateScrollForList( pc );
 	}
-   return 1;
+	return 1;
 }
 
 //---------------------------------------------------------------------------
@@ -554,51 +554,51 @@ void MoveListItemEx( PSI_CONTROL pc, PLISTITEM pli, int level_direction, int dir
 {
 	if( pli )
 	{
-      int grouped_item_count = 0;
-      PLISTITEM pliLast;
+		int grouped_item_count = 0;
+		PLISTITEM pliLast;
 		ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 		int pliIndex = GetItemIndex( plb, pli );
 		{
-         // find start and end of group (may be a tree'd control and have levels on items)
+			// find start and end of group (may be a tree'd control and have levels on items)
 			PLISTITEM pliGroupStart, pliGroupEnd;
 			if( ( pli == plb->items ) && ( direction < 0 ) )
 			{
-            // item is already at the top of the list
+				// item is already at the top of the list
 				return;
 			}
 
 			pliGroupStart = pliGroupEnd = pli;
 
 			// keep the prior end, which becomes the last item of the group.
-         // (may be same as pli)
+			// (may be same as pli)
 			grouped_item_count++;
 			pliLast = pliGroupEnd;
 			pliGroupEnd = pliGroupEnd->next;
 			while( pliGroupEnd && pliGroupEnd->nLevel > pliGroupStart->nLevel )
 			{
 				grouped_item_count++;
-            pliLast = pliGroupEnd;
+				pliLast = pliGroupEnd;
 				pliGroupEnd = pliGroupEnd->next;
 			}
 			if( !pliGroupEnd && direction > 0 )
 			{
-            // item is already at the end, cannot move any further down.
+				// item is already at the end, cannot move any further down.
 				return;
 			}
 			if( plb->firstshown == pli )
 				plb->firstshown = pli->prior;
 			if( plb->lastshown == pli )
-            plb->lastshown = pliLast->next;
+				plb->lastshown = pliLast->next;
 			if( pli->prior )
 				pli->prior->next = pliGroupEnd;
 			else
-            plb->items = pliLast->next;
+				plb->items = pliLast->next;
 			if( pliGroupEnd )
 				pliGroupEnd->prior = pli->prior;
 			if( !pliLast->next ) // nothing left - update end of list.
-            plb->last = pli->prior;
+				plb->last = pli->prior;
 			pli->prior = NULL;
-         pliLast->next = NULL;
+			pliLast->next = NULL;
 		}
 		if( ( direction < 0 ) && SUS_GTE( -direction, int, pliIndex, INDEX ) )
 		{
@@ -608,7 +608,7 @@ void MoveListItemEx( PSI_CONTROL pc, PLISTITEM pli, int level_direction, int dir
 				plb->last = pliLast;
 			pliLast->next = plb->items;
 			if( plb->items == plb->firstshown )
-            plb->firstshown = pli;
+				plb->firstshown = pli;
 			plb->items = pli;
 		}
 		else
@@ -624,33 +624,33 @@ void MoveListItemEx( PSI_CONTROL pc, PLISTITEM pli, int level_direction, int dir
 				}
 				else
 				{
-               // list was empty - put group back in.
+					// list was empty - put group back in.
 					plb->items = pli;
-               plb->last = pliLast;
+					plb->last = pliLast;
 				}
 			}
 			else
 			{
 				PLISTITEM pliInsertBefore = pliInsertAfter;
-            pliInsertBefore = pliInsertBefore->next;
+				pliInsertBefore = pliInsertBefore->next;
 				while( pliInsertBefore && (pliInsertBefore->nLevel > pliInsertAfter->nLevel) )
 				{
-               pliInsertBefore = pliInsertBefore->next;
+					pliInsertBefore = pliInsertBefore->next;
 				}
 				if( pliInsertBefore )
 				{
 					pliInsertBefore->prior->next = pli;
-               pli->prior = pliInsertBefore->prior;
-               pliLast->next = pliInsertBefore;
+					pli->prior = pliInsertBefore->prior;
+					pliLast->next = pliInsertBefore;
 					pliInsertBefore->prior = pliLast;
 				}
 				else
 				{
-               // insert at end of list after group of insertafter.
+					// insert at end of list after group of insertafter.
 					if( plb->last )
 					{
 						pli->prior = plb->last;
-                  plb->last->next = pli;
+						plb->last->next = pli;
 						plb->last = pliLast;
 					}
 					else
@@ -659,20 +659,20 @@ void MoveListItemEx( PSI_CONTROL pc, PLISTITEM pli, int level_direction, int dir
 						// have already run across conditions which should have
 						// handled this.
 						plb->last = pliLast;
-                  plb->items = pli;
+						plb->items = pli;
 					}
 				}
 			}
 		}
 	}
-   SmudgeCommon( pc );
+	SmudgeCommon( pc );
 }
 
 //---------------------------------------------------------------------------
 
 void MoveListItem( PSI_CONTROL pc, PLISTITEM pli, int direction )
 {
-   MoveListItemEx( pc, pli, 0, direction );
+	MoveListItemEx( pc, pli, 0, direction );
 }
 
 //---------------------------------------------------------------------------
@@ -683,7 +683,7 @@ PLISTITEM GetNthTreeItem( PSI_CONTROL pc, PLISTITEM pli, int level, int idx )
 {
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	PLISTITEM _pli;
-   lprintf( WIDE("This function is unfinished in implementation.") );
+	lprintf( WIDE("This function is unfinished in implementation.") );
 	_pli = pli = plb->items;
 	while( idx && pli )
 	{
@@ -753,7 +753,7 @@ int GetItemCount( PLISTBOX plb )
 
 static void CPROC ScrollBarUpdate( PTRSZVAL psvList, int type, int current )
 {
-   PSI_CONTROL pc = (PSI_CONTROL)psvList;
+	PSI_CONTROL pc = (PSI_CONTROL)psvList;
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	if( pc->nType == LISTBOX_CONTROL )
 	{
@@ -839,8 +839,8 @@ static int OnMouseCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y
 															, pc
 															, pli
 															, pli->flags.bOpen );
-                     // restore prior disable state...
-                     DisableUpdateListBox( pc, bDisable );
+							// restore prior disable state...
+							DisableUpdateListBox( pc, bDisable );
 						}
 						SmudgeCommon( pc );
 						UpdateScrollForList( pc );
@@ -921,7 +921,7 @@ static int OnMouseCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y
 					{
 						// need to update the state NOW - may come back around
 						// and have to deal with this...
-                  plb->mouseon = NULL;
+						plb->mouseon = NULL;
 						plb->x = x;
 						plb->y = y;
 						plb->b = b;
@@ -930,7 +930,7 @@ static int OnMouseCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y
 							if( result != (_32)-1 )
 								pli->MenuProc( pli->psvContextMenu, pli, result );
 						}
-                  return 1;
+						return 1;
 					}
 				}
 			}
@@ -940,7 +940,7 @@ static int OnMouseCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y
 		plb->y = y;
 		plb->b = b;
 	}
-   return 1;
+	return 1;
 }
 
 //---------------------------------------------------------------------------
@@ -956,20 +956,20 @@ static LOGICAL IsParentOpen( PLISTITEM pli )
 			if( prior->flags.bOpen )
 				return TRUE;
 			else
-            return FALSE;
+				return FALSE;
 		}
 	}
-   return TRUE;
+	return TRUE;
 }
 
 
 static int OnKeyCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 {
-   int handled = 0;
+	int handled = 0;
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
-   if( plb )
+	if( plb )
 	{
-      PLISTITEM pli;
+		PLISTITEM pli;
 		//printf( WIDE("%08x\n"), key );
 		if( key & 0x80000000 )
 		{
@@ -980,18 +980,18 @@ static int OnKeyCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 				{
 
 				}
-            handled = 1;
-            break;
+				handled = 1;
+				break;
 			case KEY_RIGHT:
 				if( plb->flags.bTree )
 				{
 				}
-            handled = 1;
-            break;
+				handled = 1;
+				break;
 			case KEY_UP:
 				pli = plb->current;
 				if( GetItemIndex( plb, plb->current ) < GetItemIndex( plb, plb->firstshown ) )
-			   		plb->firstshown = plb->current;
+						plb->firstshown = plb->current;
 				if( GetItemIndex( plb, plb->current ) > GetItemIndex( plb, plb->lastshown ) )
 					plb->firstshown = plb->current;
 				if( plb->current && plb->current->prior )
@@ -1039,7 +1039,7 @@ static int OnKeyCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 				{
 					// scroll another item into the list.
 					if( plb->current->next == plb->lastshown && ( plb->lastshown != plb->last ) )
-			   		{
+						{
 							plb->firstshown = plb->firstshown->next;
 						}
 					pli = plb->current;
@@ -1048,7 +1048,7 @@ static int OnKeyCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 						pli = pli->next;
 					} while( pli && plb->flags.bTree && !IsParentOpen( pli ) );
 					if( !pli )
-                  pli = plb->current;
+						pli = plb->current;
 				}
 				else
 					if( !plb->current )
@@ -1099,8 +1099,8 @@ static int OnKeyCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 		}
 	}
 	else
-      lprintf( WIDE("No listbox?") );
-   return handled;
+		lprintf( WIDE("No listbox?") );
+	return handled;
 }	
 
 //---------------------------------------------------------------------------
@@ -1156,7 +1156,7 @@ PSI_PROC( PSI_CONTROL, SetListboxIsTree )( PSI_CONTROL pc, int bTree )
 			plb->flags.bTree = FALSE;
 		SmudgeCommon( pc );
 	}
-   return pc;
+	return pc;
 }
 
 //---------------------------------------------------------------------------
@@ -1192,7 +1192,7 @@ PLISTITEM InsertListItem( PSI_CONTROL pc, PLISTITEM pPrior, CTEXTSTR text )
 			else
 			{
 				plb->firstshown = NULL;
-            plb->lastshown = NULL;
+				plb->lastshown = NULL;
 			}
 		}
 		else
@@ -1211,9 +1211,9 @@ PLISTITEM InsertListItem( PSI_CONTROL pc, PLISTITEM pPrior, CTEXTSTR text )
 		}
 		if( !plb->flags.bNoUpdate )
 		{
-         //Log( WIDE("Added an item, therefore update this list?!") );
-         // should only auto adjust when adding items...
-         AdjustItemsIntoBox( pc );
+			//Log( WIDE("Added an item, therefore update this list?!") );
+			// should only auto adjust when adding items...
+			AdjustItemsIntoBox( pc );
 			plb->flags.bInitial = TRUE;
 			SmudgeCommon( pc );
 		}
@@ -1271,10 +1271,10 @@ PLISTITEM AddListItemEx( PSI_CONTROL pc, int nLevel, const TEXTCHAR *text )
 				parent = pli->prior;
 				while( parent && parent->nLevel >= nLevel )
 					parent = parent->prior;
-            if( parent )
+				if( parent )
 					bOpen = parent->flags.bOpen;
 				else
-               bOpen = TRUE; // ROOT of tree is always open..
+					bOpen = TRUE; // ROOT of tree is always open..
 			}
 			//Log( WIDE("Added an item, therefore update this list?!") );
 			// should only auto adjust when adding items...
@@ -1503,7 +1503,7 @@ PSI_PROC( int, DisableUpdateListBox )( PSI_CONTROL pc, LOGICAL bDisable )
 		bSaved = plb->flags.bNoUpdate;
 		if( !bDisable && plb->flags.bNoUpdate )
 		{
-         //Log( WIDE("Reenabling scrollbar updates causes an update... ") );
+			//Log( WIDE("Reenabling scrollbar updates causes an update... ") );
 			// duh - must render before we know min/max/range...
 			SmudgeCommon( pc );
 			UpdateScrollForList( pc );
@@ -1535,13 +1535,13 @@ void EnumSelectedListItems( PSI_CONTROL pc
 			{
 				if( pli->nLevel == nLevel )
 				{
-               if( pli->flags.bSelected )
+					if( pli->flags.bSelected )
 						if( HandleListItem )
 							HandleListItem( psv, pc, pli );
 				}
 				if( pli->nLevel < nLevel )
 					break;
-            pli = pli->next;
+				pli = pli->next;
 			}
 		}
 	}
@@ -1557,7 +1557,7 @@ void EnumSelectedListItems( PSI_CONTROL pc
 				if( pli->flags.bSelected )
 					if( HandleListItem )
 						HandleListItem( psv, pc, pli );
-            pli = pli->next;
+				pli = pli->next;
 			}
 		}
 	}
@@ -1574,23 +1574,23 @@ void EnumListItems( PSI_CONTROL pc
 	if( plb->flags.bTree )
 	{
 		PLISTITEM pli = pliStart;
-      int nLevel;
+		int nLevel;
 		if( !pli )
 			pli =  plb->items;
 		if( pli )
 		{
-         pli = pli->next;
+			pli = pli->next;
 			nLevel = pli->nLevel;
 			while( pli )
 			{
 				if( pli->nLevel == nLevel )
 				{
 					if( HandleListItem )
-                  HandleListItem( psv, pc, pli );
+						HandleListItem( psv, pc, pli );
 				}
 				if( pli->nLevel < nLevel )
 					break;
-            pli = pli->next;
+				pli = pli->next;
 			}
 		}
 	}
@@ -1615,8 +1615,8 @@ void EnumListItems( PSI_CONTROL pc
 PSI_PROC( void, SetListItemLevel )( PSI_CONTROL pc, int nLevel )
 {
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
-   if( plb )
-      plb->nLastLevel = nLevel;
+	if( plb )
+		plb->nLastLevel = nLevel;
 }
 
 //---------------------------------------------------------------------------
@@ -1637,7 +1637,7 @@ PSI_PROC( int, OpenListItem )( PLISTITEM pli, int bOpen )
 PSI_PROC( void, SetListItemOpenHandler )( PSI_CONTROL pc, ListItemOpened proc, PTRSZVAL psvUser )
 {
 	// this routine is called before the branch is actually opened and rendered...
-   // allowing an application to fill in the tree dynamically....
+	// allowing an application to fill in the tree dynamically....
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	if( plb )
 	{
@@ -1651,27 +1651,27 @@ PSI_PROC( void, SetListItemOpenHandler )( PSI_CONTROL pc, ListItemOpened proc, P
 PSI_CONTROL SetListboxSort( PSI_CONTROL pc, int bSortTrue ) // may someday add SORT_INVERSE?
 {
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
-   if( plb )
+	if( plb )
 	{
-      plb->flags.bSortNormal = 0;
+		plb->flags.bSortNormal = 0;
 		if( bSortTrue == 1 )
 		{
-         plb->flags.bSortNormal = 1;
+			plb->flags.bSortNormal = 1;
 		}
 
 	}
-   return pc;
+	return pc;
 }
 
 PSI_CONTROL SetListboxMultiSelectEx( PSI_CONTROL pc, int bEnable, int bLazy )
 {
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
-   if( plb )
+	if( plb )
 	{
 		plb->flags.bSingle = !bEnable;
-      plb->flags.bLazyMulti = bLazy;
+		plb->flags.bLazyMulti = bLazy;
 	}
-   return pc;
+	return pc;
 }
 
 PSI_CONTROL SetListboxMultiSelect( PSI_CONTROL pc, int bEnable )
@@ -1682,7 +1682,7 @@ PSI_CONTROL SetListboxMultiSelect( PSI_CONTROL pc, int bEnable )
 int GetListboxMultiSelectEx( PSI_CONTROL pc, int *multi, int *lazy )
 {
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
-   if( plb )
+	if( plb )
 	{
 		if( multi )
 			(*multi) = !plb->flags.bSingle;
@@ -1690,7 +1690,7 @@ int GetListboxMultiSelectEx( PSI_CONTROL pc, int *multi, int *lazy )
 			(*lazy) = !plb->flags.bLazyMulti;
 		return !plb->flags.bSingle;
 	}
-   return 0;
+	return 0;
 }
 int GetListboxMultiSelect( PSI_CONTROL pc )
 {
@@ -1700,8 +1700,8 @@ int GetListboxMultiSelect( PSI_CONTROL pc )
 PSI_CONTROL GetItemListbox( PLISTITEM pli )
 {
 	if( pli )
-      return pli->within_list;
-   return NULL;
+		return pli->within_list;
+	return NULL;
 }
 
 //---------------------------------------------------------------------------
@@ -1713,7 +1713,7 @@ listbox = { LISTBOX_CONTROL_NAME
 			 , InitListBox
 			 , NULL
 			 , NULL //RenderListBox
-          , NULL //MouseListBox
+			 , NULL //MouseListBox
 			 , NULL //KeyListControl
 			 , DestroyListBox
 };
@@ -1721,7 +1721,7 @@ listbox = { LISTBOX_CONTROL_NAME
 static void OnSizeCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begin_move )
 {
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
-   //lprintf( "Resize listbox" );
+	//lprintf( "Resize listbox" );
 	if( plb )
 	{
 		S_32 width = 15;
@@ -1736,7 +1736,7 @@ static void OnSizeCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begin_
 static void OnScaleCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 {
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
-   //lprintf( "Rescale listbox" );
+	//lprintf( "Rescale listbox" );
 	if( plb )
 	{
 		S_32 width = 15;
@@ -1750,7 +1750,7 @@ static void OnScaleCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 
 PRIORITY_PRELOAD( RegisterListbox, PSI_PRELOAD_PRIORITY )
 {
-   DoRegisterControl( &listbox );
+	DoRegisterControl( &listbox );
 }
 
 PSI_LISTBOX_NAMESPACE_END
