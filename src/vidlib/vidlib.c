@@ -4588,12 +4588,23 @@ RENDER_PROC (void, MoveSizeDisplay) (PVIDEO hVideo, S_32 x, S_32 y, S_32 w,
 												 S_32 h)
 {
 	S_32 cx, cy;
+	UINT moveflags = SWP_NOZORDER|SWP_NOACTIVATE;
 	if( !hVideo )
 		return;
-	hVideo->pWindowPos.x = x;
-	hVideo->pWindowPos.y = y;
-	hVideo->pWindowPos.cx = w;
-	hVideo->pWindowPos.cy = h;
+	if( hVideo->pWindowPos.x == x && hVideo->pWindowPos.y == y )
+		moveflags |= SWP_NOMOVE;
+	else
+	{
+		hVideo->pWindowPos.x = x;
+		hVideo->pWindowPos.y = y;
+	}
+	if( hVideo->pWindowPos.cx == w && hVideo->pWindowPos.cy == h )
+		moveflags |= SWP_NOSIZE;
+	else
+	{
+		hVideo->pWindowPos.cx = w;
+		hVideo->pWindowPos.cy = h;
+	}
 	cx = w;
 	cy = h;
 	if (cx < 50)
