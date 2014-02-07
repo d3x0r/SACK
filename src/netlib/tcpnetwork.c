@@ -1353,7 +1353,7 @@ NETWORK_PROC( LOGICAL, doTCPWriteExx)( PCLIENT lpClient
 		{
 			return FALSE;
 		}
-		Relinquish();
+		Idle();
 	}
    if( !(lpClient->dwFlags & CF_ACTIVE ) )
    {

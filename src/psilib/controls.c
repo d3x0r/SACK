@@ -392,6 +392,7 @@ void GetMyInterface( void )
 			lprintf( WIDE("Fail render load once...") );
 		}
 		g.flags.always_draw = RequiresDrawAll();
+		g.flags.allow_threaded_draw = AllowsAnyThreadToUpdate();
 	}
 
 }
@@ -1990,9 +1991,21 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 			_lprintf(DBG_RELAY)( WIDE( "%p(%s) wanted to draw..." ), pc, pc->pTypeName );
 		return;
 	}
-
-
-	if(pc)
+	else if( !g.flags.allow_threaded_draw )
+	{
+		PSI_CONTROL frame = GetFrame( pc );
+		PPHYSICAL_DEVICE device = frame?frame->device:NULL;
+		if( device )
+		{
+			AddLink( &device->pending_dirty_controls, pc );
+			if( !g.flags.sent_redraw )
+			{
+				g.flags.sent_redraw = 1;
+				Redraw( device->pActImg );
+			}
+		}
+	}
+	else if(pc)
 	{
 		if( pc->flags.bDestroy )
 			return;
@@ -2111,15 +2124,6 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 					lprintf( WIDE( "pc->flags.bInitial is true..." ) );
 #endif
 		}
-#if 0
-#ifdef DEBUG_UPDAATE_DRAW
-		else // of if ( !inuse && !child in use )
-		{
-			if( g.flags.bLogDebugUpdate )
-				lprintf( WIDE( "not actually updating" ) );
-		}
-#endif
-#endif
 	}
 }
 

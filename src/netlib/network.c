@@ -3133,6 +3133,7 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient DBG_PASS )
 #else
 			LeaveCriticalSecEx( &g.csNetwork  DBG_RELAY);
 #endif
+			Idle();
 			goto start_lock;
 		}
 		//EnterCriticalSec( &lpClient->csLock );

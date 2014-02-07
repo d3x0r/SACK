@@ -111,6 +111,7 @@ static void CPROC FrameRedraw( PTRSZVAL psvFrame, PRENDERER psvSelf )
 	if( g.flags.bLogDebugUpdate )
 		lprintf( WIDE( " ------------- BEGIN FRAME DRAW -----------------" ) );
 #endif
+
 	pc->flags.bShown = 1;
 	GetCurrentDisplaySurface(pf);
 	if( g.flags.always_draw || pc->flags.bDirty || pc->flags.bResizedDirty )
@@ -194,11 +195,43 @@ static void CPROC FrameRedraw( PTRSZVAL psvFrame, PRENDERER psvSelf )
 	}
 	else
 	{
+		if( pf->pending_dirty_controls )
+		{
+			PSI_CONTROL pc;
+			INDEX idx;
+			int loops = 0;
+			LOGICAL updated;
 #ifdef DEBUG_UPDAATE_DRAW
-		if( g.flags.bLogDebugUpdate )
-			lprintf( WIDE( "trusting that the frame is already drawn to the stable buffer..." ) );
+			if( g.flags.bLogDebugUpdate )
+				lprintf( WIDE( "sending update for each dirty control...." ) );
 #endif
-		UpdateDisplay( pf->pActImg );
+			do
+			{
+				loops++;
+				if( loops > 5 )
+				{
+					lprintf( WIDE( "Infinite recursion in drawing??" ) );
+					break;
+				}
+				updated = FALSE;
+				LIST_FORALL( pf->pending_dirty_controls, idx, PSI_CONTROL, pc )
+				{
+					updated = TRUE;
+					UpdateCommonEx( pc, TRUE DBG_SRC );
+					SetLink( &pf->pending_dirty_controls, idx, 0 );
+				}
+			}
+			while( updated );
+			g.flags.sent_redraw = 0;
+		}
+		else
+		{
+#ifdef DEBUG_UPDAATE_DRAW
+			if( g.flags.bLogDebugUpdate )
+				lprintf( WIDE( "trusting that the frame is already drawn to the stable buffer..." ) );
+#endif
+			UpdateDisplay( pf->pActImg );
+		}
 		pc->flags.bRestoring = 0;
 	}
 }

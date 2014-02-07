@@ -819,6 +819,11 @@ static LOGICAL CPROC VidlibProxy_RequiresDrawAll( void )
 	return FALSE;
 }
 
+static LOGICAL CPROC VidlibProxy_AllowsAnyThreadToUpdate( void )
+{
+	return FALSE;
+}
+
 static void VidlibProxy_SetApplicationTitle( CTEXTSTR title )
 {
 	if( l.application_title )
@@ -1416,6 +1421,7 @@ static RENDER_INTERFACE ProxyInterface = {
 													  , VidlibProxy_RestoreDisplayEx
 												, SACK_Vidlib_ShowInputDevice
 												, SACK_Vidlib_HideInputDevice
+												, VidlibProxy_AllowsAnyThreadToUpdate
 };
 
 static void InitProxyInterface( void )
@@ -1529,7 +1535,7 @@ static Image CPROC VidlibProxy_LoadImageFileFromGroupEx( INDEX group, CTEXTSTR f
 
 static Image CPROC VidlibProxy_LoadImageFileEx( CTEXTSTR filename DBG_PASS )
 {
-	return VidlibProxy_LoadImageFileFromGroupEx( 0, filename DBG_RELAY );
+	return VidlibProxy_LoadImageFileFromGroupEx( GetFileGroup( WIDE("Images"), WIDE("./images") ), filename DBG_RELAY );
 }
 
 

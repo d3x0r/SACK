@@ -647,11 +647,11 @@ int main( void )
 //	blank = LoadImageFile( WIDE("blankimage.jpg"));
 	blank = MakeImageFile(96,96);
    ClearImageTo( blank, BASE_COLOR_CYAN );
-	g.playagain=LoadImageFile( WIDE("playagain.jpg"));
-	g.playing  =LoadImageFile( WIDE("playing.jpg"));
-   g.background = LoadImageFile( WIDE("background.jpg") );
+	g.playagain=LoadImageFile( WIDE("%image%/playagain.jpg"));
+	g.playing  =LoadImageFile( WIDE("%image%/playing.jpg"));
+   g.background = LoadImageFile( WIDE("%image%/background.jpg") );
 //   g.background = blank;
-	g.strip = LoadImageFile( WIDE("slot_strip.jpg") );
+	g.strip = LoadImageFile( WIDE("%image%/slot_strip.jpg") );
 	g.nReels = NUM_REELS;
 
 

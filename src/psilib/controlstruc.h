@@ -249,6 +249,7 @@ struct physical_device_interface
 	// this is unused yet...
 	//int (CPROC*InitControl)(PTRSZVAL, struct common_control_frame *, _32);// match ControlInitProc(controls.h)
 	PTRSZVAL psvInit;
+	PLIST pending_dirty_controls; // optimized search list for (allow_threaded_draw == FALSE)
 //DOM-IGNORE-END
 };
 typedef struct physical_device_interface PHYSICAL_DEVICE;
