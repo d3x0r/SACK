@@ -42,12 +42,14 @@ endmacro(add_subpath)
 
 add_subpath( ../src/psilib/paltst )
 
+if( BUILD_TESTS )
 # includes some testdata in tstdisplay...
 # the test programs do not have install targets, but they will end up building...
  if( NOT __NO_GUI__ )
   add_subpath( ../src/msgsvr/testdisplay )
  endif( NOT __NO_GUI__ )
 #add_subpath( ../src/bench/mem )
+endif( BUILD_TESTS )
 
 
 if( WIN32 )

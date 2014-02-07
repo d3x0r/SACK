@@ -5370,6 +5370,9 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
 													, SetHideHandler
 													, SetRestoreHandler
                                        , RestoreDisplayEx
+									   , NULL
+									   , NULL
+									   , NULL 
 };
 
 RENDER3D_INTERFACE Render3d = {

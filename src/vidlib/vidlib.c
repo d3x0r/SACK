@@ -5413,6 +5413,11 @@ LOGICAL RequiresDrawAll ( void )
 	return FALSE;
 }
 
+static LOGICAL CPROC AllowsAnyThreadToUpdate( void )
+{
+	return TRUE;
+}
+
 void MarkDisplayUpdated( PRENDERER renerer )
 {
 
@@ -5496,6 +5501,7 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
 													, RestoreDisplayEx
 													, NULL // show input device
 													, NULL // hide input device
+													, AllowsAnyThreadToUpdate
 };
 
 #undef GetDisplayInterface

@@ -276,7 +276,7 @@ PTRSZVAL CPROC ReadInput( PTHREAD thread )
 void CPROC DrawReels( PTRSZVAL psv )
 {
 	int n;
-   for( n = 0; n < NUM_REELS; n++ )
+	for( n = 0; n < NUM_REELS; n++ )
 		SmudgeCommon( g.reel_pc[n] );
 }
 
@@ -484,19 +484,19 @@ int main( void )
 
 	ThreadTo( ReadInput, 0 );
 	//SetStatus( g.status_pc, TRUE ); // playing....
-   AddTimer( 10, ComputeReels, 0 );
+	AddTimer( 10, ComputeReels, 0 );
 	AddTimer( 200, DrawReels, 0 );
 	{
 		_32 start = GetTickCount();
 		xlprintf(LOG_NOISE)("Started at %lu"
 								 , start);
-      g.ofs = 0;
+		g.ofs = 0;
 		while( 1 )
 		{
-         int n;
+			int n;
 #ifndef __ARM__
-         // scale to approx unit speeds..
-  			WakeableSleep( 250 );
+			// scale to approx unit speeds..
+			WakeableSleep( 250 );
 			//WakeableSleep( 33);
 #endif
 		}

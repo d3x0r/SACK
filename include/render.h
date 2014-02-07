@@ -1538,9 +1538,6 @@ struct render_interface_tag
 	   done during the smudge, and instead is delayed until a draw
 	   is triggered at which time all controls are drawn.
 	   
-	   
-	   
-	   
 	   Returns
 	   TRUE if full screen needs to be drawn during a draw,
 	   otherwise partial updates may be done.                        */
@@ -1570,6 +1567,22 @@ struct render_interface_tag
 		  ; may have applications for windows tablets */
        RENDER_PROC_PTR( void, SACK_Vidlib_HideInputDevice )( void );
 
+	/* Check to see if the render mode is allows updates from any thread.
+	   If supported can simplify updates (requiring less scheduling queues).
+	   If it is not supported (such as an X display where only a single thread
+	   can write to the server, otherwise the socket state gets confused) then
+	   Redraw() should be used to dispatch appriorately.  PSI Implements this 
+	   internally, so smudge() on a control will behave appriopriately.
+	   
+	   If RequiresDrawAll() this is irrelavent.
+	   
+	   
+	   
+	   Returns
+	   TRUE if any thread is allowed to generate UpdateDisplayPortion().
+	   otherwise must call Redraw() on the surface to get a event in the 
+	   correct thread.*/
+	RENDER_PROC_PTR( LOGICAL, AllowsAnyThreadToUpdate )( void );
 };
 
 #ifdef DEFINE_DEFAULT_RENDER_INTERFACE
@@ -1650,6 +1663,7 @@ typedef int check_this_variable;
 #define SetMouseHandler           REND_PROC_ALIAS(SetMouseHandler)
 #define SetHideHandler           REND_PROC_ALIAS(SetHideHandler)
 #define SetRestoreHandler           REND_PROC_ALIAS(SetRestoreHandler)
+#define AllowsAnyThreadToUpdate           REND_PROC_ALIAS(AllowsAnyThreadToUpdate)
 #ifndef __LINUX__
 #define SetTouchHandler           REND_PROC_ALIAS(SetTouchHandler)
 #endif

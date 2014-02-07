@@ -81,8 +81,10 @@ static int CPROC MouseEvent( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
 	outmsg->data.mouse_event.x = x;
 	outmsg->data.mouse_event.y = y;
 	outmsg->data.mouse_event.b = b;
-	EnqueLink( &l.events, event );
-	WakeThread( l.event_thread );
+	SendTCP( render->pc, &event->sendlen, event->sendlen + 4 );
+	//EnqueLink( &l.events, event );
+	//WakeThread( l.event_thread );
+	Release( event );
 	return 1;
 }
 
@@ -98,8 +100,10 @@ static int CPROC KeyEvent( PTRSZVAL psv, _32 key )
 	outmsg->data.mouse_event.server_render_id = render->id;
 	outmsg->data.key_event.key = KEY_CODE( key );
 	outmsg->data.key_event.pressed = IsKeyPressed( key )?1:0;
-	EnqueLink( &l.events, event );
-	WakeThread( l.event_thread );
+	SendTCP( render->pc, &event->sendlen, event->sendlen + 4 );
+	//EnqueLink( &l.events, event );
+	//WakeThread( l.event_thread );
+	Release( event );
 	return 1;
 }
 
