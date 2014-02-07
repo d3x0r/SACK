@@ -553,7 +553,7 @@ int CPROC DrawReel( PSI_CONTROL pc )
 	{
 		int n = GetControlID( pc );
 		ValidatedControlData( PREEL, reel_control.TypeID, reel, pc );
-
+		ClearImage( GetControlSurface( pc ) );
 		// if one wanted to go horizontally. one would rewrite the following code
 		// with an option for x instead of Y
 		{

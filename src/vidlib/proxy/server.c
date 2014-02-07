@@ -587,7 +587,7 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 				{
 					PVPRENDER render = (PVPRENDER)GetLink( &l.renderers, msg->data.mouse_event.server_render_id );
 					if( render && render->redraw )
-						render->redraw( render->psv_redraw, render );
+						render->redraw( render->psv_redraw, (PRENDERER)render );
 					SendTCPMessageV( pc, FALSE, PMID_Flush_Draw, render );
 				}
 				break;
@@ -1454,6 +1454,7 @@ static Image CPROC VidlibProxy_BuildImageFileEx ( PCOLOR pc, _32 width, _32 heig
 	//SendClientMessage( PMID_MakeImageFile, image );
 	AddLink( &l.images, image );
 	image->id = FindLink( &l.images, image );
+	SendClientMessage( PMID_MakeImage, image );
 	lprintf( "%p(%p) is %d", image, image->image, image->id );
 	lprintf( "Make built proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
 	return (Image)image;
@@ -1955,6 +1956,23 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 	}
 }
 
+static void CPROC VidlibProxy_MarkImageDirty ( Image pImage )
+{
+	// this library tracks the IF_FLAG_UPDATED which is set by native routine;native routine marks child and all parents.
+   lprintf( "Mark image %p dirty", pImage );
+	l.real_interface->_MarkImageDirty( ((PVPImage)pImage)->image );
+	if( 0 )
+	{
+		size_t outlen;
+		P_8 encoded_image;
+	
+		if( ((PVPImage)pImage)->parent )
+			encoded_image = EncodeImage( ((PVPImage)pImage)->parent->image, FALSE, &outlen );
+		else
+			encoded_image = EncodeImage( ((PVPImage)pImage)->image, FALSE, &outlen );
+		Release( encoded_image );
+	}
+}
 
 #define DIMAGE_DATA_PROC(type,name,args)  static type (CPROC VidlibProxy2_##name)args;static type (CPROC* VidlibProxy_##name)args = VidlibProxy2_##name; type (CPROC VidlibProxy2_##name)args
 
@@ -1966,6 +1984,7 @@ DIMAGE_DATA_PROC( void,plot,		( Image pi, S_32 x, S_32 y, CDATA c ))
 	else
 	{
 		l.real_interface->_plot[0]( ((PVPImage)pi)->image, x, y, c );
+		VidlibProxy_MarkImageDirty( pi );
 	}
 }
 
@@ -2314,23 +2333,6 @@ IMAGE_PROC_PTR( PTRANSFORM, GetImageTransformation )( Image pImage );
 IMAGE_PROC_PTR( void, SetImageRotation )( Image pImage, int edge_flag, RCOORD offset_x, RCOORD offset_y, RCOORD rx, RCOORD ry, RCOORD rz );
 IMAGE_PROC_PTR( void, RotateImageAbout )( Image pImage, int edge_flag, RCOORD offset_x, RCOORD offset_y, PVECTOR vAxis, RCOORD angle );
 
-static void CPROC VidlibProxy_MarkImageDirty ( Image pImage )
-{
-	// this library tracks the IF_FLAG_UPDATED which is set by native routine;native routine marks child and all parents.
-   lprintf( "Mark image %p dirty", pImage );
-	l.real_interface->_MarkImageDirty( ((PVPImage)pImage)->image );
-	if( 0 )
-	{
-		size_t outlen;
-		P_8 encoded_image;
-	
-		if( ((PVPImage)pImage)->parent )
-			encoded_image = EncodeImage( ((PVPImage)pImage)->parent->image, FALSE, &outlen );
-		else
-			encoded_image = EncodeImage( ((PVPImage)pImage)->image, FALSE, &outlen );
-		Release( encoded_image );
-	}
-}
 
 static Image CPROC VidlibProxy_GetNativeImage( Image pImage )
 {
