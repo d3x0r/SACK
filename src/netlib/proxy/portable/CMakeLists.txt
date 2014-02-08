@@ -71,7 +71,7 @@ target_link_libraries( ${project} ${SACK_PLATFORM_LIBRARIES} )
 string( REPLACE "." "_" TARGET_LABEL ${project} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;__NO_GUI__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__STATIC__;NO_DEADSTART_DLLMAIN" )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
-                  FOLDER "Network examples"
+                  FOLDER "Network Examples"
 )
 target_link_libraries( ${project} ${SOCKET_LIBRARIES} ${WIN_SYS_LIBS} )
 install_default_dest( ${project} )
@@ -125,7 +125,7 @@ SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "SACK_BAG_EXP
 string( REPLACE "." "_" TARGET_LABEL ${project} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
-                  FOLDER "Network examples"
+                  FOLDER "Network Examples"
 )
 install_default_dest( ${project} )
 
