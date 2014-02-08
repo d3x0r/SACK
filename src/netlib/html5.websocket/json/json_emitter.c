@@ -65,7 +65,7 @@ struct json_context *json_create_context( void )
 {
 	struct json_context *context = New( struct json_context );
 	MemSet( context, 0, sizeof( struct json_context ) );
-	context->pvt = VarTextCreateExx( 1024, 2048 );
+	context->pvt = VarTextCreateExx( 1024, 16384 );
 	
 	return context;
 }

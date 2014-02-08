@@ -19,7 +19,7 @@
 #define NUM_BLURS 1
 #define NUM_REELS 3
 #define NUM_ITERATIONS 15
-#define REEL_LENGTH 173
+#define REEL_LENGTH 25
 #define NUM_ICONS 10
 #define ITERATIONS_OFFSET 3
 
@@ -431,7 +431,7 @@ int main( void )
 			//SetSystemLog( SYSLOG_FILE, stdout );
    SetSystemLoggingLevel( 1000 + LOG_NOISE);
 	GetDisplaySize( &width, &height );;
-	g.frame = CreateFrame( "slot game ...", 0, 0, width, height, BORDER_NORMAL|BORDER_RESIZABLE, NULL );
+	g.frame = CreateFrame( "slot game ...", 0, 0, 640, 480, BORDER_NORMAL|BORDER_RESIZABLE, NULL );
    AddCommonDraw( g.frame, DrawBackground );
 	//g.render = OpenDisplaySizedAt( 0, width, height, 0, 0 );
 	g.surface = GetControlSurface( g.frame );

@@ -210,7 +210,7 @@ static P_8 EncodeImage( Image image, LOGICAL bmp, size_t *outsize )
 			_8 *buf;
 			if( PngImageFile( image, &buf, outsize ) )
 			{
-				if( 0 )
+				if( 1 )
 				{
 					TEXTCHAR tmpname[32];
 					static int n;
@@ -298,6 +298,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 	PVPRENDER render;
 	PVPImage image;
 	_8 *msg;
+	EnterCriticalSec( &l.message_formatter );
 	if( websock )
 	{
 		cto = (struct json_context_object *)GetLink( &l.messages, message );
@@ -501,6 +502,10 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			if( websock )
 			{
 				encoded_image = Encode64Image( raw_image, FALSE, outlen, &outlen );
+				if( outlen < 200 )
+				{
+					int a = 3;
+				}
 				msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct image_data_data ) + outlen ) );
 				outmsg = (struct common_message*)(msg + 4);
 				MemCpy( outmsg->data.image_data.data, encoded_image, outlen );
@@ -529,6 +534,8 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 		}
 		break;
 	}
+	LeaveCriticalSec( &l.message_formatter );
+
 }
 
 void SendTCPMessageV( PCLIENT pc, LOGICAL websock, enum proxy_message_id message, ... )
@@ -699,6 +706,7 @@ static PTRSZVAL WebSockOpen( PCLIENT pc, PTRSZVAL psv )
 	client->websock = TRUE;
 	AddLink( &l.clients, client );
 	idx = FindLink( &l.clients, client );
+	EnterCriticalSec( &l.message_formatter );
 	if( l.application_title )
 		SendTCPMessageV( pc, TRUE, PMID_SetApplicationTitle );
 	{
@@ -728,6 +736,7 @@ static PTRSZVAL WebSockOpen( PCLIENT pc, PTRSZVAL psv )
 			DeleteList( &sent );
 		}
 	}
+	LeaveCriticalSec( &l.message_formatter );
 	return (PTRSZVAL)client;
 }
 
@@ -1643,6 +1652,18 @@ static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w
 		PVPImage image = (PVPImage)pifDest;
 		struct common_message *outmsg;
 		size_t sendlen;
+		IMAGE_RECTANGLE r, r1;
+ 		// build rectangle of what we want to show
+		r1.x      = x;
+		r1.width  = w;
+		r1.y      = y;
+		r1.height = h;
+		if( !FixArea( &r, &r1, image ) )
+		{
+			return;
+		}
+
+		EnterCriticalSec( &l.message_formatter );
 		cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlatColor );
 		if( !cto )
 			cto = WebSockInitJson( PMID_BlatColor );
@@ -1655,22 +1676,10 @@ static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w
 
 		outmsg = (struct common_message*)GetMessageBuf( image, sendlen=( 4 + 1 + sizeof( struct blatcolor_data ) ) );
 		outmsg->message_id = PMID_BlatColor;
-		{
-			IMAGE_RECTANGLE r, r1, r2;
- 			// build rectangle of what we want to show
-			r1.x      = x;
-			r1.width  = w;
-			r1.y      = y;
-			r1.height = h;
-			if( !FixArea( &r, &r1, image ) )
-			{
-				return;
-			}
-			outmsg->data.blatcolor.x = r.x;
-			outmsg->data.blatcolor.y = r.y;
-			outmsg->data.blatcolor.w = r.width;
-			outmsg->data.blatcolor.h = r.height;
-		}
+		outmsg->data.blatcolor.x = r.x;
+		outmsg->data.blatcolor.y = r.y;
+		outmsg->data.blatcolor.w = r.width;
+		outmsg->data.blatcolor.h = r.height;
 		outmsg->data.blatcolor.color = color;
 		outmsg->data.blatcolor.server_image_id = image->id;
 		if( w == image->w && h == image->h )
@@ -1686,6 +1695,7 @@ static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w
 			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
 			Release( json_msg );
 		}
+		LeaveCriticalSec( &l.message_formatter );
 
 	}
 	else
@@ -1699,6 +1709,7 @@ static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32
 {
 	if( ((PVPImage)pifDest)->render_id != INVALID_INDEX )
 	{
+		IMAGE_RECTANGLE r, r1;
 		struct json_context_object *cto;
 		PVPImage image = (PVPImage)pifDest;
 		struct common_message *outmsg;
@@ -1707,6 +1718,17 @@ static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32
 		if( !cto )
 			cto = WebSockInitJson( PMID_BlatColor );
 
+		// build rectangle of what we want to show
+		r1.x      = x;
+		r1.width  = w;
+		r1.y      = y;
+		r1.height = h;
+		// build rectangle which is presently visible on image
+		if( !FixArea( &r, &r1, image ) )
+		{
+			return;
+		}
+		EnterCriticalSec( &l.message_formatter );
 		if( w == image->w && h == image->h )
 		{
 			image->websock_sendlen = 0;
@@ -1715,23 +1737,10 @@ static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32
 
 		outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct blatcolor_data ) ) );
 		outmsg->message_id = PMID_BlatColorAlpha;
-		{
-			IMAGE_RECTANGLE r, r1;
-			// build rectangle of what we want to show
-			r1.x      = x;
-			r1.width  = w;
-			r1.y      = y;
-			r1.height = h;
-			// build rectangle which is presently visible on image
-			if( !FixArea( &r, &r1, image ) )
-			{
-				return;
-			}
-			outmsg->data.blatcolor.x = r.x;
-			outmsg->data.blatcolor.y = r.y;
-			outmsg->data.blatcolor.w = r.width;
-			outmsg->data.blatcolor.h = r.height;
-		}
+		outmsg->data.blatcolor.x = r.x;
+		outmsg->data.blatcolor.y = r.y;
+		outmsg->data.blatcolor.w = r.width;
+		outmsg->data.blatcolor.h = r.height;
 		outmsg->data.blatcolor.color = color;
 		outmsg->data.blatcolor.server_image_id = image->id;
 		if( w == image->w && h == image->h )
@@ -1747,6 +1756,7 @@ static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32
 			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
 			Release( json_msg );
 		}
+		LeaveCriticalSec( &l.message_formatter );
 	}
 	else
 	{
@@ -1774,12 +1784,11 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 		struct json_context_object *cto;
 		struct common_message *outmsg;
 		size_t sendlen;
+		EnterCriticalSec( &l.message_formatter );
 		cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlotImageSizedTo );
 		if( !cto )
 			cto = WebSockInitJson( PMID_BlotImageSizedTo );
 
-		outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct blot_image_data ) ) );
-		outmsg->message_id = PMID_BlotImageSizedTo;
 		{
 			IMAGE_RECTANGLE r1;
 			// build rectangle of what we want to show
@@ -1789,8 +1798,13 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 			r1.height = ht;
 			// build rectangle which is presently visible on image
 			if( !FixArea( &r, &r1, image ) )
+			{
+				LeaveCriticalSec( &l.message_formatter );
 				return;
+			}
 		}
+		outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct blot_image_data ) ) );
+		outmsg->message_id = PMID_BlotImageSizedTo;
 		if( x != r.x )
 		{
 			xs += (r.x-x);
@@ -1878,6 +1892,7 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
 			Release( json_msg );
 		}
+		LeaveCriticalSec( &l.message_formatter );
 	}
 	else
 	{
@@ -1910,195 +1925,208 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 											  , _32 nTransparent
 											  , _32 method, ... )
 {
-	struct json_context_object *cto;
 	PVPImage image = (PVPImage)pifDest;
-	struct common_message *outmsg;
-	size_t sendlen;
-	IMAGE_RECTANGLE r;
-	_32 dhd, dwd, dhs, dws;
-   int errx, erry;
-	if( ( xd > ( pifDest->x + pifDest->width ) )
-		|| ( yd > ( pifDest->y + pifDest->height ) )
-		|| ( ( xd + (signed)wd ) < pifDest->x )
-		|| ( ( yd + (signed)hd ) < pifDest->y ) )
+	if( image->render_id != INVALID_INDEX )
 	{
-		return;
-	}
-	dhd = hd;
-	dhs = hs;
-	dwd = wd;
-	dws = ws;
-
-	// ok - how to figure out how to do this
-	// need to update the position and width to be within the 
-	// the bounds of pifDest....
-	//	lprintf(" begin scaled output..." );
-	errx = -(signed)dwd;
-	erry = -(signed)dhd;
-
-	if( ( xd < pifDest->x ) || ( (xd+wd) > pifDest->width ) )
-	{
-		int x = xd;
-		int w = 0;
-		while( x < pifDest->x )
+		struct json_context_object *cto;
+		struct common_message *outmsg;
+		size_t sendlen;
+		_32 dhd, dwd, dhs, dws;
+		int errx, erry;
+		if( !((PVPImage)pifSrc)->image )
+			return;
+		if( ( xd > ( pifDest->x + pifDest->width ) )
+			|| ( yd > ( pifDest->y + pifDest->height ) )
+			|| ( ( xd + (signed)wd ) < 0/*pifDest->x*/ )
+			|| ( ( yd + (signed)hd ) < 0/*pifDest->y*/ ) )
 		{
-			errx += (signed)dws;
-			while( errx >= 0 )
-			{
-				errx -= (signed)dwd;
-				ws--;
-				xs++;
-			}
-			wd--;
-			x++;
+			return;
 		}
-		xd = x;
+		dhd = hd;
+		dhs = hs;
+		dwd = wd;
+		dws = ws;
 
-		while( x < pifDest->width && w < wd )
+		// ok - how to figure out how to do this
+		// need to update the position and width to be within the 
+		// the bounds of pifDest....
+		//	lprintf(" begin scaled output..." );
+		errx = -(signed)dwd;
+		erry = -(signed)dhd;
+
+		if( ( xd < 0 ) || ( (xd+(S_32)(wd&0x7FFFFFFF)) > image->w ) )
 		{
-			errx += (signed)dws;
-			while( errx >= 0 )
+			int x = xd;
+			int w = 0;
+			while( x < pifDest->x )
 			{
-				errx -= (signed)dwd;
-				w++;
+				errx += (signed)dws;
+				while( errx >= 0 )
+				{
+					errx -= (signed)dwd;
+					ws--;
+					xs++;
+				}
+				wd--;
+				x++;
 			}
-			x++;
+			xd = x;
+
+			while( x < pifDest->width && SUS_GT( w, int, wd, _32 ) )
+			{
+				errx += (signed)dws;
+				while( errx >= 0 )
+				{
+					errx -= (signed)dwd;
+					w++;
+				}
+				x++;
+			}
+			wd = w;
 		}
-		wd = w;
-	}
-	//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
-	//		 xs, ys, ws, hs, xd, yd, wd, hd );
-	if( ( yd < pifDest->y ) || ( ( yd + hd ) > pifDest->height ) )
-	{
-		int y = yd;
-		int h = 0;
-		while( yd < pifDest->y )
+		//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
+		//		 xs, ys, ws, hs, xd, yd, wd, hd );
+		if( ( yd < 0 ) || ( yd +(S_32)(hd&0x7FFFFFFF) ) > pifDest->height )
 		{
-			erry += (signed)dhs;
-			while( erry >= 0 )
+			int y = yd;
+			int h = 0;
+			while( yd < pifDest->y )
 			{
-				erry -= (signed)dhd;
-				hs--;
-				ys++;
+				erry += (signed)dhs;
+				while( erry >= 0 )
+				{
+					erry -= (signed)dhd;
+					hs--;
+					yd++;
+				}
+				hd--;
+				y++;
 			}
-			hd--;
-			y++;
-		}
-		while( y < pifDest->height && h < hd )
-		{
-			erry += (signed)dhs;
-			while( erry >= 0 )
+			while( y < pifDest->height && h < (int)hd )
 			{
-				erry -= (signed)dhd;
-				h++;
+				erry += (signed)dhs;
+				while( erry >= 0 )
+				{
+					erry -= (signed)dhd;
+					h++;
+				}
+				y++;
 			}
-			y++;
+			hd = h;
 		}
-		hd = h;
-	}
 
-	if( !((PVPImage)pifSrc)->image )
-		return;
-	cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlotScaledImageSizedTo );
-	if( !cto )
-		cto = WebSockInitJson( PMID_BlotScaledImageSizedTo );
+		EnterCriticalSec( &l.message_formatter );
+		cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlotScaledImageSizedTo );
+		if( !cto )
+			cto = WebSockInitJson( PMID_BlotScaledImageSizedTo );
 
-	// sending this clears the flag.
-	if( ((PVPImage)pifSrc)->image->flags & IF_FLAG_UPDATED )
-		SendClientMessage( PMID_ImageData, pifSrc );
-
-	outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct blot_scaled_image_data ) ) );
-	outmsg->message_id = PMID_BlotScaledImageSizedTo;
-
-	switch( method & 3 )
-	{
-	case BLOT_COPY:
 		// sending this clears the flag.
 		if( ((PVPImage)pifSrc)->image->flags & IF_FLAG_UPDATED )
 			SendClientMessage( PMID_ImageData, pifSrc );
-		SetImageUsed( (PVPImage)pifSrc );
-		outmsg->data.blot_scaled_image.image_id = ((PVPImage)pifSrc)->id;
-		break;
-	case BLOT_SHADED:
-		{
-			va_list args;
-			Image shaded_image;
-			PVPImage actual_image;
-			va_start( args, method );
-			while( ((PVPImage)pifSrc)->parent )
-			{
-				xs += ((PVPImage)pifSrc)->x;
-				ys += ((PVPImage)pifSrc)->y;
-				pifSrc = (Image)(((PVPImage)pifSrc)->parent);
-			}
-			shaded_image = l.real_interface->_GetTintedImage( ((PVPImage)pifSrc)->image, va_arg( args, CDATA ) );
-			if( !shaded_image->reverse_interface )
-			{
-				// new image, and we need to reverse track it....
-				lprintf( "wrap shaded image for %p %d", ((PVPImage)pifSrc), ((PVPImage)pifSrc)->id );
-				actual_image = WrapImageFile( shaded_image );
-			}
-			else
-			{
-				actual_image = (PVPImage)shaded_image->reverse_interface_instance;
-				if( shaded_image->flags & IF_FLAG_UPDATED )
-					SendClientMessage( PMID_ImageData, actual_image );
-			}
-			SetImageUsed( actual_image );
-			outmsg->data.blot_scaled_image.image_id = actual_image->id;
-		}
-		break;
-	case BLOT_MULTISHADE:
-		{
-			va_list args;
-			Image shaded_image;
-			PVPImage actual_image;
-			va_start( args, method );
 
-			while( ((PVPImage)pifSrc)->parent )
+		outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct blot_scaled_image_data ) ) );
+		outmsg->message_id = PMID_BlotScaledImageSizedTo;
+
+		switch( method & 3 )
+		{
+		case BLOT_COPY:
+			// sending this clears the flag.
+			if( ((PVPImage)pifSrc)->image->flags & IF_FLAG_UPDATED )
+				SendClientMessage( PMID_ImageData, pifSrc );
+			SetImageUsed( (PVPImage)pifSrc );
+			outmsg->data.blot_scaled_image.image_id = ((PVPImage)pifSrc)->id;
+			break;
+		case BLOT_SHADED:
 			{
-				xs += ((PVPImage)pifSrc)->x;
-				ys += ((PVPImage)pifSrc)->y;
-				pifSrc = (Image)(((PVPImage)pifSrc)->parent);
+				va_list args;
+				Image shaded_image;
+				PVPImage actual_image;
+				va_start( args, method );
+				while( ((PVPImage)pifSrc)->parent )
+				{
+					xs += ((PVPImage)pifSrc)->x;
+					ys += ((PVPImage)pifSrc)->y;
+					pifSrc = (Image)(((PVPImage)pifSrc)->parent);
+				}
+				shaded_image = l.real_interface->_GetTintedImage( ((PVPImage)pifSrc)->image, va_arg( args, CDATA ) );
+				if( !shaded_image->reverse_interface )
+				{
+					// new image, and we need to reverse track it....
+					lprintf( "wrap shaded image for %p %d", ((PVPImage)pifSrc), ((PVPImage)pifSrc)->id );
+					actual_image = WrapImageFile( shaded_image );
+				}
+				else
+				{
+					actual_image = (PVPImage)shaded_image->reverse_interface_instance;
+					if( shaded_image->flags & IF_FLAG_UPDATED )
+						SendClientMessage( PMID_ImageData, actual_image );
+				}
+				SetImageUsed( actual_image );
+				outmsg->data.blot_scaled_image.image_id = actual_image->id;
 			}
-			shaded_image = l.real_interface->_GetShadedImage( ((PVPImage)pifSrc)->image, va_arg( args, CDATA ), va_arg( args, CDATA ), va_arg( args, CDATA ) );
-			if( !shaded_image->reverse_interface )
+			break;
+		case BLOT_MULTISHADE:
 			{
-				// new image, and we need to reverse track it....
-				actual_image = WrapImageFile( shaded_image );
+				va_list args;
+				Image shaded_image;
+				PVPImage actual_image;
+				va_start( args, method );
+
+				while( ((PVPImage)pifSrc)->parent )
+				{
+					xs += ((PVPImage)pifSrc)->x;
+					ys += ((PVPImage)pifSrc)->y;
+					pifSrc = (Image)(((PVPImage)pifSrc)->parent);
+				}
+				shaded_image = l.real_interface->_GetShadedImage( ((PVPImage)pifSrc)->image, va_arg( args, CDATA ), va_arg( args, CDATA ), va_arg( args, CDATA ) );
+				if( !shaded_image->reverse_interface )
+				{
+					// new image, and we need to reverse track it....
+					actual_image = WrapImageFile( shaded_image );
+				}
+				else
+				{
+					actual_image = (PVPImage)shaded_image->reverse_interface_instance;
+					if( shaded_image->flags & IF_FLAG_UPDATED )
+						SendClientMessage( PMID_ImageData, actual_image );
+				}
+				SetImageUsed( actual_image );
+				outmsg->data.blot_scaled_image.image_id = actual_image->id;
 			}
-			else
-			{
-				actual_image = (PVPImage)shaded_image->reverse_interface_instance;
-				if( shaded_image->flags & IF_FLAG_UPDATED )
-					SendClientMessage( PMID_ImageData, actual_image );
-			}
-			SetImageUsed( actual_image );
-			outmsg->data.blot_scaled_image.image_id = actual_image->id;
+			break;
 		}
-		break;
+		outmsg->data.blot_scaled_image.x = xd;
+		outmsg->data.blot_scaled_image.y = yd;
+		outmsg->data.blot_scaled_image.w = wd;
+		outmsg->data.blot_scaled_image.h = hd;
+		outmsg->data.blot_scaled_image.xs = xs;
+		outmsg->data.blot_scaled_image.ys = ys;
+		outmsg->data.blot_scaled_image.ws = ws;
+		outmsg->data.blot_scaled_image.hs = hs;
+		//outmsg->data.blot_scaled_image.image_id = ((PVPImage)pifSrc)->id;
+		outmsg->data.blot_scaled_image.server_image_id = image->id;
+		{
+			TEXTSTR json_msg = json_build_message( cto, outmsg );
+			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
+			Release( json_msg );
+		}
+		LeaveCriticalSec( &l.message_formatter );
 	}
-	outmsg->data.blot_scaled_image.x = xd;
-	outmsg->data.blot_scaled_image.y = yd;
-	outmsg->data.blot_scaled_image.w = wd;
-	outmsg->data.blot_scaled_image.h = hd;
-	outmsg->data.blot_scaled_image.xs = xs;
-	outmsg->data.blot_scaled_image.ys = ys;
-	outmsg->data.blot_scaled_image.ws = ws;
-	outmsg->data.blot_scaled_image.hs = hs;
-	//outmsg->data.blot_scaled_image.image_id = ((PVPImage)pifSrc)->id;
-	outmsg->data.blot_scaled_image.server_image_id = image->id;
+	else
 	{
-		TEXTSTR json_msg = json_build_message( cto, outmsg );
-		AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
-		Release( json_msg );
+		va_list args;
+		va_start( args, method );
+		l.real_interface->_BlotScaledImageSizedEx( image->image, ((PVPImage)pifSrc)->image, xd, yd, wd, hd, xs, ys, ws, hs
+					, nTransparent
+					, method
+					, va_arg( args, CDATA ), va_arg( args, CDATA ), va_arg( args, CDATA ) );
 	}
 }
 
 static void CPROC VidlibProxy_MarkImageDirty ( Image pImage )
 {
 	// this library tracks the IF_FLAG_UPDATED which is set by native routine;native routine marks child and all parents.
-   lprintf( "Mark image %p dirty", pImage );
+	//lprintf( "Mark image %p dirty", pImage );
 	l.real_interface->_MarkImageDirty( ((PVPImage)pImage)->image );
 	if( 0 )
 	{
@@ -2156,28 +2184,36 @@ DIMAGE_DATA_PROC( CDATA,getpixel, ( Image pi, S_32 x, S_32 y ))
 
 DIMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color ))
 {
-	struct json_context_object *cto;
 	PVPImage image = (PVPImage)pifDest;
-	struct common_message *outmsg;
-	size_t sendlen;
-	cto = (struct json_context_object *)GetLink( &l.messages, PMID_DrawLine );
-	if( !cto )
-		cto = WebSockInitJson( PMID_DrawLine );
-
-	outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct line_data ) ) );
-	outmsg->message_id = PMID_DrawLine;
-	outmsg->data.line.server_image_id = image->id;
-	outmsg->data.line.x1 = x;
-	outmsg->data.line.y1 = y;
-	outmsg->data.line.x2 = xto;
-	outmsg->data.line.y2 = yto;
-	outmsg->data.line.color = color;
+	if( image->render_id != INVALID_INDEX )
 	{
-		TEXTSTR json_msg = json_build_message( cto, outmsg );
-		AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
-		Release( json_msg );
-	}
+		struct json_context_object *cto;
+		struct common_message *outmsg;
+		size_t sendlen;
+		EnterCriticalSec( &l.message_formatter );
+		cto = (struct json_context_object *)GetLink( &l.messages, PMID_DrawLine );
+		if( !cto )
+			cto = WebSockInitJson( PMID_DrawLine );
 
+		outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct line_data ) ) );
+		outmsg->message_id = PMID_DrawLine;
+		outmsg->data.line.server_image_id = image->id;
+		outmsg->data.line.x1 = x;
+		outmsg->data.line.y1 = y;
+		outmsg->data.line.x2 = xto;
+		outmsg->data.line.y2 = yto;
+		outmsg->data.line.color = color;
+		{
+			TEXTSTR json_msg = json_build_message( cto, outmsg );
+			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
+			Release( json_msg );
+		}
+		LeaveCriticalSec( &l.message_formatter );
+	}
+	else
+	{
+		l.real_interface->_do_line[0]( image->image, x, y, xto, yto, color );
+	}
 }
 
 DIMAGE_DATA_PROC( void,do_lineAlpha,( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color))
@@ -2757,6 +2793,7 @@ static void CPROC Drop3dProxyImageInterface( POINTER i )
 
 PRIORITY_PRELOAD( RegisterProxyInterface, VIDLIB_PRELOAD_PRIORITY )
 {
+	InitializeCriticalSec( &l.message_formatter );
 	RegisterInterface( WIDE( "sack.image.proxy.server" ), GetProxyImageInterface, DropProxyImageInterface );
 	RegisterInterface( WIDE( "sack.image.3d.proxy.server" ), Get3dProxyImageInterface, Drop3dProxyImageInterface );
 	RegisterInterface( WIDE( "sack.render.proxy.server" ), GetProxyDisplayInterface, DropProxyDisplayInterface );

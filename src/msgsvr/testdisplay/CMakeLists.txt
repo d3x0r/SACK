@@ -8,6 +8,8 @@ INSTALL(
     ${DATA_INSTALL_PREFIX}/images
 )
 
+#-------------------------------------------------------------------
+
 SET( PROJECT test_display1 )
 SET( PROJECT_SOURCES test )
 
@@ -17,6 +19,8 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES COMPILE_FLAGS  "-DTARGET_LABEL=${PRO
 )
 TARGET_LINK_LIBRARIES( ${PROJECT} ${SACK_LIBRARIES} )
 install_default_dest( ${PROJECT} )
+
+#-------------------------------------------------------------------
 
 SET( PROJECT test_display2 )
 SET( PROJECT_SOURCES test2 )
@@ -29,6 +33,8 @@ TARGET_LINK_LIBRARIES( ${PROJECT} ${SACK_LIBRARIES} )
 install_default_dest( ${PROJECT} )
 
 
+#-------------------------------------------------------------------
+
 SET( PROJECT test_display3 )
 SET( PROJECT_SOURCES test3 )
 
@@ -38,6 +44,8 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES COMPILE_FLAGS  "-DTARGET_LABEL=${PRO
 )
 TARGET_LINK_LIBRARIES( ${PROJECT} ${SACK_LIBRARIES} )
 install_default_dest( ${PROJECT} )
+
+#-------------------------------------------------------------------
 
 SET( PROJECT test_display4 )
 SET( PROJECT_SOURCES test4 )
@@ -50,6 +58,8 @@ TARGET_LINK_LIBRARIES( ${PROJECT} ${SACK_LIBRARIES} )
 install_default_dest( ${PROJECT} )
 
 
+#-------------------------------------------------------------------
+
 SET( PROJECT test_slot_game )
 SET( PROJECT_SOURCES slotgame.c )
 
@@ -58,6 +68,9 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES COMPILE_FLAGS  "-DTARGET_LABEL=${PRO
                   FOLDER tests
 )
 TARGET_LINK_LIBRARIES( ${PROJECT} ${SACK_LIBRARIES} )
+install_default_dest( ${PROJECT} )
+
+#-------------------------------------------------------------------
 
 SET( PROJECT test_slot_game2 )
 SET( PROJECT_SOURCES slotgame2.c )
@@ -68,6 +81,8 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES COMPILE_FLAGS  "-DTARGET_LABEL=${PRO
 )
 TARGET_LINK_LIBRARIES( ${PROJECT} ${SACK_LIBRARIES} )
 install_default_dest( ${PROJECT} )
+
+#-------------------------------------------------------------------
 
 SET( PROJECT test_blur )
 SET( PROJECT_SOURCES testblur.c )

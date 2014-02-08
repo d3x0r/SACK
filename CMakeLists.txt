@@ -1181,6 +1181,11 @@ if( BUILD_TESTS )
    add_subdirectory( src/netlib/html5.websocket/server )
    #add_subdirectory( src/netlib/html5.websocket/client )
    
+   #add_subdirectory( src/bench/mem )
+ if( NOT __NO_GUI__ )
+  add_subdirectory( src/msgsvr/testdisplay )
+ endif( NOT __NO_GUI__ )
+   add_subdirectory( src/configlib/test1 )
    # these opengl plugins used GLEW, and did their program at very low level
    # ment to be tests based on binary target output
    #add_subdirectory( src/games/simple_vector_tester )
