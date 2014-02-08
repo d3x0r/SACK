@@ -391,8 +391,8 @@ void GetMyInterface( void )
 			}
 			lprintf( WIDE("Fail render load once...") );
 		}
-		g.flags.always_draw = RequiresDrawAll();
-		g.flags.allow_threaded_draw = AllowsAnyThreadToUpdate();
+		if( !(g.flags.always_draw = RequiresDrawAll()) )
+			g.flags.allow_threaded_draw = AllowsAnyThreadToUpdate();
 	}
 
 }
