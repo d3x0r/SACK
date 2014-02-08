@@ -621,7 +621,9 @@ PTRSZVAL CPROC ReadInput( PTHREAD thread )
 
 int main( void )
 {
-	_32 width, height, imagecount = 0, testimagesatinitialization =0;
+	_32 width, height;
+	_32 imagecount = 0;
+	_32 testimagesatinitialization = 0;
 	Image blank;
 
 	srand( time( NULL ) );
@@ -647,11 +649,11 @@ int main( void )
 //	blank = LoadImageFile( WIDE("blankimage.jpg"));
 	blank = MakeImageFile(96,96);
    ClearImageTo( blank, BASE_COLOR_CYAN );
-	g.playagain=LoadImageFile( WIDE("%image%/playagain.jpg"));
-	g.playing  =LoadImageFile( WIDE("%image%/playing.jpg"));
-   g.background = LoadImageFile( WIDE("%image%/background.jpg") );
+	g.playagain=LoadImageFile( WIDE("%images%/playagain.jpg"));
+	g.playing  =LoadImageFile( WIDE("%images%/playing.jpg"));
+   g.background = LoadImageFile( WIDE("%images%/background.jpg") );
 //   g.background = blank;
-	g.strip = LoadImageFile( WIDE("%image%/slot_strip.jpg") );
+	g.strip = LoadImageFile( WIDE("%images%/slot_strip.jpg") );
 	g.nReels = NUM_REELS;
 
 
@@ -662,7 +664,7 @@ int main( void )
 
 		for( n = 0; n < NUM_ICONS; n++ )
 		{
-         icons[n] = MakeSubImage( g.strip, 96 * n, 0, 96, 96 );
+			icons[n] = MakeSubImage( g.strip, 96 * n, 0, 96, 96 );
 		}
 		n =  width = imagecount = height = 0;
 		while(imagecount < NUM_IMAGES )

@@ -40,16 +40,8 @@ add_subdirectory( ${base} ${base2} )
 endmacro(add_subpath)
 
 
+# not really a test; just a utility
 add_subpath( ../src/psilib/paltst )
-
-if( BUILD_TESTS )
-# includes some testdata in tstdisplay...
-# the test programs do not have install targets, but they will end up building...
- if( NOT __NO_GUI__ )
-  add_subpath( ../src/msgsvr/testdisplay )
- endif( NOT __NO_GUI__ )
-#add_subpath( ../src/bench/mem )
-endif( BUILD_TESTS )
 
 
 if( WIN32 )
@@ -92,9 +84,6 @@ add_subpath( ../src/utils/file_mirror )
 endif( NOT __CLR__ AND NOT BUILD_UNICODE )
 add_subpath( ../src/InterShell/widgets )
 add_subpath( ../src/commlib )
-if( BUILD_TESTS )
-add_subpath( ../src/configlib/test1 )
-endif( BUILD_TESTS )
 add_subpath( ../src/InterShell/widgets/banner/banner_cmd )
 add_subpath( ../src/psilib/console/cmdshell )
 #add_subpath( ../src/utils/http_post )
