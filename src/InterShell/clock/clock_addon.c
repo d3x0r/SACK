@@ -19,7 +19,7 @@ enum {
 	  , CHECKBOX_SINGLE_LINE
 	  , CHECKBOX_DAY_OF_WEEK
 	  , EDIT_BACKGROUND_IMAGE
-     , EDIT_ANALOG_IMAGE
+	  , EDIT_ANALOG_IMAGE
 	  , CHECKBOX_AM_PM
 };
 
@@ -38,30 +38,30 @@ typedef struct clock_info_tag
 
 	//SFTFont *font;
 
-   /* this control may be destroyed and recreated based on other options */
+	/* this control may be destroyed and recreated based on other options */
 	PSI_CONTROL control;
-   TEXTSTR image_name;
+	TEXTSTR image_name;
 	Image image;
-   TEXTSTR analog_image_name;
-   struct clock_image_thing image_desc;
+	TEXTSTR analog_image_name;
+	struct clock_image_thing image_desc;
 } CLOCK_INFO, *PCLOCK_INFO;
 
 PRELOAD( RegisterExtraClockConfig )
 {
-   EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), CHECKBOX_DATE, RADIO_BUTTON_NAME );
-   EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), CHECKBOX_DAY_OF_WEEK, RADIO_BUTTON_NAME );
-   EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), CHECKBOX_ANALOG, RADIO_BUTTON_NAME );
-   EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), CHECKBOX_DATE, RADIO_BUTTON_NAME );
-   EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), EDIT_BACKGROUND_IMAGE, EDIT_FIELD_NAME );
-   EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), EDIT_ANALOG_IMAGE, EDIT_FIELD_NAME );
-   EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), CHECKBOX_AM_PM, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), CHECKBOX_DATE, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), CHECKBOX_DAY_OF_WEEK, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), CHECKBOX_ANALOG, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), CHECKBOX_DATE, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), EDIT_BACKGROUND_IMAGE, EDIT_FIELD_NAME );
+	EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), EDIT_ANALOG_IMAGE, EDIT_FIELD_NAME );
+	EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), CHECKBOX_AM_PM, RADIO_BUTTON_NAME );
 }
 
-OnCreateControl(WIDE("Clock"))
+static PTRSZVAL OnCreateControl(WIDE("Clock"))
 /*PTRSZVAL CPROC CreateClock*/( PSI_CONTROL frame, S_32 x, S_32 y, _32 w, _32 h )
 {
 	PCLOCK_INFO info = New( CLOCK_INFO );
-   MemSet( info, 0, sizeof( *info ) );
+	MemSet( info, 0, sizeof( *info ) );
 	info->color = BASE_COLOR_WHITE;
 
 	info->control = MakeNamedControl( frame
@@ -73,12 +73,12 @@ OnCreateControl(WIDE("Clock"))
 											  , -1
 											  );
 
-   // none of these are accurate values, they are just default WHITE and nothing.
+	// none of these are accurate values, they are just default WHITE and nothing.
 	InterShell_SetButtonColors( NULL, info->color, info->backcolor, 0, 0 );
 	SetClockColor( info->control, info->color );
 	SetClockBackColor( info->control, info->backcolor );
 	// need to supply extra information about the image, location of hands and face in image
-   // and the spots...
+	// and the spots...
 	//MakeClockAnalog( info->control );
 	//info->font = InterShell_GetCurrentButtonFont();
 	//if( info->font )
@@ -87,18 +87,17 @@ OnCreateControl(WIDE("Clock"))
 	return (PTRSZVAL)info;
 }
 
-OnShowControl( WIDE("Clock") )( PTRSZVAL psv )
+static void OnShowControl( WIDE("Clock") )( PTRSZVAL psv )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
-   SetClockAmPm( info->control, info->flags.bAmPm );
-   SetClockDate( info->control, info->flags.bDate );
-   SetClockDayOfWeek( info->control, info->flags.bDayOfWeek );
-   SetClockSingleLine( info->control, info->flags.bSingleLine );
+	SetClockAmPm( info->control, info->flags.bAmPm );
+	SetClockDate( info->control, info->flags.bDate );
+	SetClockDayOfWeek( info->control, info->flags.bDayOfWeek );
+	SetClockSingleLine( info->control, info->flags.bSingleLine );
 	StartClock( info->control );
 }
 
-OnConfigureControl( WIDE("Clock") )( PTRSZVAL psv, PSI_CONTROL parent_frame )
-//PTRSZVAL CPROC ConfigureClock( PTRSZVAL psv )
+static PTRSZVAL OnConfigureControl( WIDE("Clock") )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
 	{
@@ -128,11 +127,11 @@ OnConfigureControl( WIDE("Clock") )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 				CommonWait( frame );
 				if( okay )
 				{
-               		TEXTCHAR buffer[256];
+							TEXTCHAR buffer[256];
 					GetCommonButtonControls( frame );
 					//info->font = InterShell_GetCurrentButtonFont();
 					//if( info->font )
-                  			//SetCommonFont( info->control, (*info->font ) );
+									//SetCommonFont( info->control, (*info->font ) );
 					info->color = GetColorFromWell( GetControl( frame, CLR_TEXT_COLOR ) );
 					info->backcolor = GetColorFromWell( GetControl( frame, CLR_BACKGROUND ) );
 					{
@@ -161,11 +160,11 @@ OnConfigureControl( WIDE("Clock") )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 			}
 		}
 	}
-   return psv;
+	return psv;
 }
 
 
-OnSaveControl( WIDE( "Clock" ) )( FILE *file,PTRSZVAL psv )
+static void OnSaveControl( WIDE( "Clock" ) )( FILE *file,PTRSZVAL psv )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
 	fprintf( file, WIDE("%sClock color=$%02lX%02lX%02lX%02lX\n")
@@ -192,7 +191,7 @@ OnSaveControl( WIDE( "Clock" ) )( FILE *file,PTRSZVAL psv )
 	fprintf( file, WIDE("%sClock analog image=%s\n" ), InterShell_GetSaveIndent(), info->analog_image_name?info->analog_image_name:WIDE("images/Clock.png") );
 	{
 		TEXTSTR out;
-      EncodeBinaryConfig( &out, &info->image_desc, sizeof( info->image_desc ) );
+		EncodeBinaryConfig( &out, &info->image_desc, sizeof( info->image_desc ) );
 		fprintf( file, WIDE("%sClock analog description=%s\n" ), InterShell_GetSaveIndent(), out );
 		Release( out );
 	}
@@ -206,16 +205,16 @@ static PTRSZVAL CPROC ReloadClockColor( PTRSZVAL psv, arg_list args )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
 	PARAM( args, CDATA, color );
-   info->color = color;
-   return psv;
+	info->color = color;
+	return psv;
 }
 
 static PTRSZVAL CPROC ReloadClockBackColor( PTRSZVAL psv, arg_list args )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
 	PARAM( args, CDATA, color );
-   info->backcolor = color;
-   return psv;
+	info->backcolor = color;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetClockAnalog( PTRSZVAL psv, arg_list args )
@@ -223,35 +222,35 @@ static PTRSZVAL CPROC SetClockAnalog( PTRSZVAL psv, arg_list args )
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
 	PARAM( args, LOGICAL, bAnalog );
 	info->flags.bAnalog = bAnalog;
-   return psv;
+	return psv;
 }
 static PTRSZVAL CPROC ConfigSetClockAmPm( PTRSZVAL psv, arg_list args )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
 	PARAM( args, LOGICAL, yes_no );
 	info->flags.bAmPm = !yes_no;
-   return psv;
+	return psv;
 }
 static PTRSZVAL CPROC ConfigSetClockDate( PTRSZVAL psv, arg_list args )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
 	PARAM( args, LOGICAL, yes_no );
 	info->flags.bDate = yes_no;
-   return psv;
+	return psv;
 }
 static PTRSZVAL CPROC ConfigSetClockDayOfWeek( PTRSZVAL psv, arg_list args )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
 	PARAM( args, LOGICAL, yes_no );
 	info->flags.bDayOfWeek = yes_no;
-   return psv;
+	return psv;
 }
 static PTRSZVAL CPROC ConfigSetClockSingleLine( PTRSZVAL psv, arg_list args )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
 	PARAM( args, LOGICAL, yes_no );
 	info->flags.bSingleLine = yes_no;
-   return psv;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetClockAnalogImage( PTRSZVAL psv, arg_list args )
@@ -260,7 +259,7 @@ static PTRSZVAL CPROC SetClockAnalogImage( PTRSZVAL psv, arg_list args )
 	PARAM( args, CTEXTSTR, name );
 	info->analog_image_name = StrDup( name );
 
-   return psv;
+	return psv;
 }
 static PTRSZVAL CPROC SetClockBackgroundImage( PTRSZVAL psv, arg_list args )
 {
@@ -268,7 +267,7 @@ static PTRSZVAL CPROC SetClockBackgroundImage( PTRSZVAL psv, arg_list args )
 	PARAM( args, CTEXTSTR, name );
 	info->image_name = StrDup( name );
 
-   return psv;
+	return psv;
 }
 static PTRSZVAL CPROC SetClockAnalogImageDesc( PTRSZVAL psv, arg_list args )
 {
@@ -281,12 +280,12 @@ static PTRSZVAL CPROC SetClockAnalogImageDesc( PTRSZVAL psv, arg_list args )
 	}
 	else
 	{
-      		lprintf( WIDE("size of struct was %d not %d"), size, sizeof( struct clock_image_thing ) );
+				lprintf( WIDE("size of struct was %d not %d"), size, sizeof( struct clock_image_thing ) );
 	}
-   return psv;
+	return psv;
 }
 
-OnLoadControl( WIDE( "Clock" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE( "Clock" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
 	InterShell_AddCommonButtonConfig( pch );
 
@@ -302,7 +301,7 @@ OnLoadControl( WIDE( "Clock" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 	AddConfigurationMethod( pch, WIDE("Clock analog description=%B" ), SetClockAnalogImageDesc );
 }
 
-OnFixupControl( WIDE("Clock") )(  PTRSZVAL psv )
+static void OnFixupControl( WIDE("Clock") )(  PTRSZVAL psv )
 //void CPROC FixupClock(  PTRSZVAL psv )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
@@ -314,14 +313,14 @@ OnFixupControl( WIDE("Clock") )(  PTRSZVAL psv )
 	}
 }
 
-OnGetControl( WIDE("Clock") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Clock") )( PTRSZVAL psv )
 //PSI_CONTROL CPROC GetClockControl( PTRSZVAL psv )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
-   return info->control;
+	return info->control;
 }
 
-OnEditEnd( WIDE("Clock") )(PTRSZVAL psv )
+static void OnEditEnd( WIDE("Clock") )(PTRSZVAL psv )
 //void CPROC ResumeClock( PTRSZVAL psv)
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
@@ -329,7 +328,7 @@ OnEditEnd( WIDE("Clock") )(PTRSZVAL psv )
 	StartClock( info->control );
 }
 
-OnEditBegin( WIDE("Clock") )( PTRSZVAL psv )
+static void OnEditBegin( WIDE("Clock") )( PTRSZVAL psv )
 //void CPROC PauseClock( PTRSZVAL psv)
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
@@ -337,7 +336,7 @@ OnEditBegin( WIDE("Clock") )( PTRSZVAL psv )
 	StopClock( info->control );
 }
 
-OnQueryShowControl( WIDE("Clock") )( PTRSZVAL psv )
+static LOGICAL OnQueryShowControl( WIDE("Clock") )( PTRSZVAL psv )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
 	if( info->flags.bAnalog )

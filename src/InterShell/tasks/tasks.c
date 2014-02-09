@@ -25,7 +25,7 @@ static struct {
 	PLOAD_TASK power_shell;
 	PLOAD_TASK power_shell_ise;
 	PLOAD_TASK windows_shell;
-   //PSI_CONTROL frame; // this should be the same as the global frame (to hide when launching task)
+	//PSI_CONTROL frame; // this should be the same as the global frame (to hide when launching task)
 	struct {
 		_32 bExit : 4; // this needs to be set someday... it comes from intershell_main
 		_32 wait_for_caller : 1;
@@ -41,29 +41,29 @@ static struct {
 enum {
 	EDIT_TASK_LAUNCH_X = 2000
 	  , EDIT_TASK_LAUNCH_Y
-     , LISTBOX_AUTO_TASKS
+	  , LISTBOX_AUTO_TASKS
 	  , BUTTON_EDIT_TASK_PROPERTIES
 	  , BUTTON_CREATE_AUTO_TASK
 	  , CHECKBOX_RESTART
 	  , CHECKBOX_ONE_TIME_LAUNCH
 	  , CHECKBOX_EXCLUSIVE
 	  , CHECKBOX_LAUNCH_CALLER_READY
-     , CHECKBOX_CALLER_WAIT
-     , CHECKBOX_CAPTURE_OUTPUT // dos prompt, get the input and do something with it...
+	  , CHECKBOX_CALLER_WAIT
+	  , CHECKBOX_CAPTURE_OUTPUT // dos prompt, get the input and do something with it...
 	  , LISTBOX_ALLOW_RUN_ON
 	  , LISTBOX_DISALLOW_RUN_ON
 	  , EDIT_SYSTEM_NAME
 	  , BTN_ADD_SYSTEM
-     , BTN_REMOVE_SYSTEM
+	  , BTN_REMOVE_SYSTEM
 	  , TXT_TASK_NAME
 	  , TXT_TASK_PATH
 	  , TXT_TASK_ARGS
-     , EDIT_TASK_FRIENDLY_NAME
+	  , EDIT_TASK_FRIENDLY_NAME
 	  , BUTTON_DESTROY_AUTO_TASK
 	  , CHECKBOX_BACKGROUND
-     , CHECKBOX_HIDE_CANVAS
+	  , CHECKBOX_HIDE_CANVAS
 	  , BTN_ADD_DISALLOW_SYSTEM
-     , BTN_REMOVE_DISALLOW_SYSTEM
+	  , BTN_REMOVE_DISALLOW_SYSTEM
 	  , CHECKBOX_LAUNCH_AT_LEAST
 	  , CHECKBOX_WAIT_FOR_TASK
 	  , LABEL_TEXT_COLOR
@@ -126,7 +126,7 @@ static void SetWithFindMode( LPDEVMODE mode, int bRestoreOnCrash )
 					{
 						if( check.dmDisplayFrequency == mode->dmDisplayFrequency ||
 							check.dmDisplayFrequency == 0 ||
-						   check.dmDisplayFrequency == 1
+							check.dmDisplayFrequency == 1
 						  )
 						{
 							lprintf( WIDE(" ---- Updating best to current ---- ") );
@@ -262,7 +262,7 @@ static void SetWithFindMode( LPDEVMODE mode, int bRestoreOnCrash )
 			{
 				//lprintf( WIDE("Success setting enumerated bestfit %d %d")
 				//		 , mode->dmPelsWidth
-				//   	 , mode->dmPelsHeight );
+				//		 , mode->dmPelsHeight );
 				break;
 			}
 		}
@@ -358,9 +358,9 @@ void ResetResolution( PLOAD_TASK task )
 PRELOAD( RegisterTaskControls )
 {
 
-	EasyRegisterResource( WIDE("InterShell/tasks"), LABEL_TEXT_COLOR           , STATIC_TEXT_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), LABEL_BACKGROUND_COLOR     , STATIC_TEXT_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), LABEL_RING_COLOR           , STATIC_TEXT_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), LABEL_TEXT_COLOR			  , STATIC_TEXT_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), LABEL_BACKGROUND_COLOR	  , STATIC_TEXT_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), LABEL_RING_COLOR			  , STATIC_TEXT_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), LABEL_RING_HIGHLIGHT_COLOR , STATIC_TEXT_NAME );
 
 	EasyRegisterResource( WIDE("InterShell/tasks"), TXT_TASK_NAME, EDIT_FIELD_NAME );
@@ -371,30 +371,30 @@ PRELOAD( RegisterTaskControls )
 	EasyRegisterResource( WIDE("InterShell/tasks"), TXT_SHUTDOWN_TASK_ARGS, EDIT_FIELD_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), EDIT_TASK_LAUNCH_X, EDIT_FIELD_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), EDIT_TASK_LAUNCH_Y, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), LISTBOX_AUTO_TASKS          , LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), LISTBOX_AUTO_TASKS			 , LISTBOX_CONTROL_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), BUTTON_EDIT_TASK_PROPERTIES , NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), BUTTON_CREATE_AUTO_TASK     , NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), BUTTON_DESTROY_AUTO_TASK     , NORMAL_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), BUTTON_CREATE_AUTO_TASK	  , NORMAL_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), BUTTON_DESTROY_AUTO_TASK	  , NORMAL_BUTTON_NAME );
 
-	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_RESTART            , RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_EXCLUSIVE          , RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_WAIT_FOR_TASK       , RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_BACKGROUND         , RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_RESTART				, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_EXCLUSIVE			 , RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_WAIT_FOR_TASK		 , RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_BACKGROUND			, RADIO_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_LAUNCH_CALLER_READY, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_CALLER_WAIT        , RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_ONE_TIME_LAUNCH    , RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_CALLER_WAIT		  , RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_ONE_TIME_LAUNCH	 , RADIO_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_ONE_TIME_CLICK_STOP, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_CAPTURE_OUTPUT     , RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_HIDE_CANVAS        , RADIO_BUTTON_NAME );
-   EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_LAUNCH_AT_LEAST    , RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_CAPTURE_OUTPUT	  , RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_HIDE_CANVAS		  , RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_LAUNCH_AT_LEAST	 , RADIO_BUTTON_NAME );
 
-	EasyRegisterResource( WIDE("InterShell/tasks"), LISTBOX_ALLOW_RUN_ON    , LISTBOX_CONTROL_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), LISTBOX_DISALLOW_RUN_ON    , LISTBOX_CONTROL_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), EDIT_SYSTEM_NAME    , EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), BTN_ADD_SYSTEM     , NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), BTN_REMOVE_SYSTEM     , NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), BTN_ADD_DISALLOW_SYSTEM     , NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), BTN_REMOVE_DISALLOW_SYSTEM     , NORMAL_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), LISTBOX_ALLOW_RUN_ON	 , LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), LISTBOX_DISALLOW_RUN_ON	 , LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), EDIT_SYSTEM_NAME	 , EDIT_FIELD_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), BTN_ADD_SYSTEM	  , NORMAL_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), BTN_REMOVE_SYSTEM	  , NORMAL_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), BTN_ADD_DISALLOW_SYSTEM	  , NORMAL_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), BTN_REMOVE_DISALLOW_SYSTEM	  , NORMAL_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), EDIT_TASK_FRIENDLY_NAME, EDIT_FIELD_NAME );
 
 	{
@@ -460,9 +460,9 @@ PLOAD_TASK CPROC CreateTask( PMENU_BUTTON button )
 	return task;
 }
 
-OnCreateMenuButton( WIDE("Task") )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( WIDE("Task") )( PMENU_BUTTON button )
 {
-   PLOAD_TASK task = CreateTask( button );
+	PLOAD_TASK task = CreateTask( button );
 	task->flags.bButton = 1;
 	task->button = button;
 	InterShell_SetButtonStyle( button, WIDE("bicolor square") );
@@ -470,7 +470,7 @@ OnCreateMenuButton( WIDE("Task") )( PMENU_BUTTON button )
 }
 //---------------------------------------------------------------------------
 
-OnDestroyMenuButton( WIDE("Task") )( PTRSZVAL psv )
+static void OnDestroyMenuButton( WIDE("Task") )( PTRSZVAL psv )
 {
 	// destory button... destroy associated task information...
 }
@@ -574,7 +574,7 @@ static void CPROC RemoveSystemAllow( PTRSZVAL psv, PSI_CONTROL pc_button )
 	pli = GetSelectedItem( list );
 	if( pli )
 	{
-      DeleteListItem( list, pli );
+		DeleteListItem( list, pli );
 	}
 }
 
@@ -588,7 +588,7 @@ static void CPROC RemoveSystemDisallow( PTRSZVAL psv, PSI_CONTROL pc_button )
 	pli = GetSelectedItem( list );
 	if( pli )
 	{
-      DeleteListItem( list, pli );
+		DeleteListItem( list, pli );
 	}
 }
 
@@ -643,7 +643,7 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 		SetCheckState( GetControl( frame, CHECKBOX_CAPTURE_OUTPUT ), pTask->flags.bCaptureOutput );
 		SetCheckState( GetControl( frame, CHECKBOX_HIDE_CANVAS ), pTask->flags.bHideCanvas );
 		SetCheckState( GetControl( frame, CHECKBOX_LAUNCH_AT_LEAST ), pTask->flags.bLaunchAtLeast );
-      
+		
 		{
 			PSI_CONTROL list;
 			list = GetControl( frame, LISTBOX_ALLOW_RUN_ON );
@@ -685,7 +685,7 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 		GetControlText( GetControl( frame, TXT_SHUTDOWN_TASK_NAME ), pTask->pShutdownTask, sizeof( pTask->pShutdownTask ) );
 		GetControlText( GetControl( frame, TXT_SHUTDOWN_TASK_PATH ), pTask->pShutdownPath, sizeof( pTask->pShutdownPath ) );
 		GetControlText( GetControl( frame, EDIT_TASK_FRIENDLY_NAME ), menuname, sizeof( menuname ) );
-      InterShell_SetButtonText( pTask->button, menuname );
+		InterShell_SetButtonText( pTask->button, menuname );
 		GetControlText( GetControl( frame, EDIT_TASK_LAUNCH_X ), args, sizeof( args ) );
 		pTask->launch_width = atoi( args );
 		GetControlText( GetControl( frame, EDIT_TASK_LAUNCH_Y ), args, sizeof( args ) );
@@ -718,7 +718,7 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 				if( checkbox ) pTask->flags.bLaunchAtLeast = GetCheckState( checkbox );
 			}
 			else
-            pTask->flags.bLaunchAtLeast = 0;
+				pTask->flags.bLaunchAtLeast = 0;
 			{
 				PSI_CONTROL list;
 				list = GetControl( frame, LISTBOX_ALLOW_RUN_ON );
@@ -746,7 +746,7 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 								break;
 							}
 							//else
-							//   lprintf( "failure..." );
+							//	lprintf( "failure..." );
 						}
 						if( !system )
 						{
@@ -779,7 +779,7 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 								break;
 							}
 							//else
-							//   lprintf( "failure..." );
+							//	lprintf( "failure..." );
 						}
 						if( !system )
 						{
@@ -801,7 +801,7 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 	else
 	{
 		if( created )
-         DestroyTask( &pTask );
+			DestroyTask( &pTask );
 	}
 	DestroyFrame( &frame );
 }
@@ -903,9 +903,9 @@ static LOGICAL IsTaskRunning( PLOAD_TASK pTask )
 	INDEX idx;
 	LIST_FORALL( pTask->spawns, idx, PTASK_INFO, task )
 	{
-      return TRUE;
+		return TRUE;
 	}
-   return FALSE;
+	return FALSE;
 }
 
 
@@ -956,7 +956,7 @@ void RunATask( PLOAD_TASK pTask, int bWaitInRoutine, LOGICAL bShutdown )
 			}
 			lprintf( WIDE("Re-hide frame - tasks still running.") );
 			// shouldn't be showing to launch anything...
-         	InterShell_Hide( InterShell_GetButtonCanvas( pTask->button ) );
+				InterShell_Hide( InterShell_GetButtonCanvas( pTask->button ) );
 			return;
 		}
 		//lprintf( WIDE("Launching task %s"), pTask->pTask );
@@ -1046,7 +1046,7 @@ void RunATask( PLOAD_TASK pTask, int bWaitInRoutine, LOGICAL bShutdown )
 		{
 			int n;
 			for( n = 0; args[n]; n++ )
-            Release( (POINTER)args[n] );
+				Release( (POINTER)args[n] );
 			Release( (POINTER)args );
 		}
 	}
@@ -1153,10 +1153,10 @@ void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task_ended )
 		Relinquish();
 	{
 		TEXTCHAR buf[64];
-      if( pTask->button )
+		if( pTask->button )
 			InterShell_GetButtonText( pTask->button, buf, 64 );
 		else
-         StrCpyEx( buf, pTask->pName, 64 );
+			StrCpyEx( buf, pTask->pName, 64 );
 		lprintf( WIDE("%s ended - refocus menu..."), buf );
 	}
 	for( tmp = l.tasklist; (!marked) && tmp; tmp = tmp->next )
@@ -1192,7 +1192,7 @@ void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task_ended )
 			SetLink( &pTask->spawns, idx, NULL );
 			// reset resolution (if applicable)
 			{
-            // not marked - no other spawn is on any other button either.
+				// not marked - no other spawn is on any other button either.
 				if( !marked )
 					ResetResolution( pTask );
 			}
@@ -1246,7 +1246,7 @@ void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task_ended )
 	}
 	if( !task )
 	{
-      lprintf( WIDE("Failed to find task which ended.") );
+		lprintf( WIDE("Failed to find task which ended.") );
 	}
  
 	lprintf( WIDE("and task is done...") );
@@ -1360,7 +1360,7 @@ static void KillSpawnedProgram( PLOAD_TASK tasks )
 //---------------------------------------------------------------------------
 
 // should get auto innited to button proc...
-OnKeyPressEvent(  WIDE("Task") )( PTRSZVAL psv )
+static void OnKeyPressEvent(  WIDE("Task") )( PTRSZVAL psv )
 {
 	PLOAD_TASK pTask = (PLOAD_TASK)psv;
 	if( pTask->flags.bOneLaunch && pTask->flags.bOneLaunchClickStop && TaskHasSpawns( pTask ) )
@@ -1392,10 +1392,10 @@ void InvokeTaskLaunchComplete( void )
 		LIST_FORALL( l.autoload, idx, PLOAD_TASK, task )
 		{
 			if( !task->spawns )
-            break;
+				break;
 		}
 		if( task )
-         return;
+			return;
 	}
 	l.flags.bSentLaunchComplete = 1;
 	for( name = GetFirstRegisteredName( TASK_PREFIX WIDE( "/common/task launch complete" ), &data );
@@ -1414,7 +1414,7 @@ void InvokeTaskLaunchComplete( void )
 static void KillSpawnedPrograms( void )
 {
 	PLOAD_TASK tasks = l.tasklist;
-   // need to kill autolaunched things too...
+	// need to kill autolaunched things too...
 	while( tasks )
 	{
 		KillSpawnedProgram( tasks );
@@ -1425,7 +1425,7 @@ static void KillSpawnedPrograms( void )
 }
 
 
-OnInterShellShutdown( WIDE("DOKillSpawnedPrograms") )(void)
+static void OnInterShellShutdown( WIDE("DOKillSpawnedPrograms") )(void)
 {
 	Banner2NoWaitAlpha( WIDE("Ending Tasks...") );
 	l.flags.bExit = 2; // magic number indicating we're quitting for sure.
@@ -1486,9 +1486,9 @@ int LaunchAutoTasks( int bCaller )
 			RunATask( task, (task->flags.bWaitForTask||task->flags.bExclusive )&&!task->flags.bBackground, FALSE );
 		}
 	}
-   if( launched )
+	if( launched )
 		InvokeTaskLaunchComplete();
-   return launched;
+	return launched;
 }
 
 #ifdef _WIN32
@@ -1519,7 +1519,7 @@ PTRSZVAL CPROC WaitForCallerThread( PTHREAD thread )
 
 	if( bWaiting )
 	{
-      lprintf( WIDE("already waiting for drives") );
+		lprintf( WIDE("already waiting for drives") );
 		return 0;
 	}
 	bWaiting = 1;
@@ -1553,8 +1553,8 @@ PTRSZVAL CPROC WaitForCallerThread( PTHREAD thread )
 #else
 PTRSZVAL CPROC WaitForCallerThread( PTHREAD thread )
 {
-   // shrug - in a linux world, how do we know?
-   return 0;
+	// shrug - in a linux world, how do we know?
+	return 0;
 }
 #endif
 
@@ -1564,11 +1564,11 @@ static PTRSZVAL CPROC AutoTaskStarter( PTHREAD thread )
 	return 0;
 }
 
-OnFinishAllInit( WIDE("tasks") )( void )
+static void OnFinishAllInit( WIDE("tasks") )( void )
 {
 	PLOAD_TASK tmp;
 	// for consistancy for all task buttons, set the task name in the PLOAD_TASK
-   // to the button text.  Other tasks have their own names (auto task/auto caller task)
+	// to the button text.  Other tasks have their own names (auto task/auto caller task)
 	for( tmp = l.tasklist; tmp; tmp = tmp->next )
 	{
 	}
@@ -1671,10 +1671,10 @@ static LOGICAL CPROC PressDosKey( PTRSZVAL psv, _32 key )
 		break;
 
 	}
-   return 1;
+	return 1;
 }
 
-OnFinishInit( WIDE("TasksShellKeys") )( void )
+static void OnFinishInit( WIDE("TasksShellKeys") )( void )
 //PRELOAD( SetTaskKeys )
 {
 	BindEventToKey( NULL, KEY_D, KEY_MOD_ALT, PressDosKey, (PTRSZVAL)'D' );
@@ -1690,8 +1690,8 @@ OnFinishInit( WIDE("TasksShellKeys") )( void )
 //---------------------------------------------------------------------------
 
 
-#define PSV_PARAM   PLOAD_TASK pTask;                       \
-	   pTask = (PLOAD_TASK)psv;
+#define PSV_PARAM	PLOAD_TASK pTask;							  \
+		pTask = (PLOAD_TASK)psv;
 
 
 static PTRSZVAL CPROC ConfigSetTaskName( PTRSZVAL psv, arg_list args )
@@ -1899,7 +1899,7 @@ static PTRSZVAL CPROC SetTaskRunOn( PTRSZVAL psv, arg_list args )
 	CTEXTSTR my_system = InterShell_GetSystemName();
 	PSV_PARAM;
 	AddLink( &pTask->allowed_run_on, StrDup( system ) );
-   //lprintf( "Compare %s vs %s", system, my_system );
+	//lprintf( "Compare %s vs %s", system, my_system );
 	if( CompareMask( system, my_system, FALSE ) )
 	{
 		//lprintf( "Task allowed..." );
@@ -1922,7 +1922,7 @@ static PTRSZVAL CPROC SetTaskNoRunOn( PTRSZVAL psv, arg_list args )
 	CTEXTSTR my_system = InterShell_GetSystemName();
 	PSV_PARAM;
 	AddLink( &pTask->disallowed_run_on, StrDup( system ) );
-   //lprintf( "Compare %s vs %s", system, my_system );
+	//lprintf( "Compare %s vs %s", system, my_system );
 	if( CompareMask( system, my_system, FALSE ) )
 	{
 		pTask->flags.bDisallowedRun = 1;
@@ -1933,13 +1933,13 @@ static PTRSZVAL CPROC SetTaskNoRunOn( PTRSZVAL psv, arg_list args )
 PTRSZVAL CPROC BeginButtonTaskInfo( PTRSZVAL psv, arg_list args )
 {
 	//BeginSubConfiguration( NULL, WIDE("Task Done") );
-   return psv;
+	return psv;
 }
 
 
 void AddTaskConfigs( PCONFIG_HANDLER pch )
 {
-   //lprintf( WIDE("Adding configuration handling for a task....") );
+	//lprintf( WIDE("Adding configuration handling for a task....") );
 	AddConfigurationMethod( pch, WIDE("name=%m"), ConfigSetTaskName );
 	AddConfigurationMethod( pch, WIDE("path=%m"), SetTaskPath );
 	AddConfigurationMethod( pch, WIDE("program=%m"), SetTaskTask );
@@ -1966,25 +1966,25 @@ void AddTaskConfigs( PCONFIG_HANDLER pch )
 PTRSZVAL  CPROC FinishConfigTask( PTRSZVAL psv, arg_list args )
 {
 	// just return NULL here, so there's no object to process
-   // EndConfig?  how does the pushed state recover?
-   return 0;
+	// EndConfig?  how does the pushed state recover?
+	return 0;
 }
 
 /* place holder for common subconfiguration start. */
-OnLoadControl( WIDE("TaskInfo") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("TaskInfo") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
 	lprintf( WIDE("Begin sub for task...") );
 	AddTaskConfigs( pch );
 }
 
-OnLoadControl( WIDE("Task") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("Task") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
 	//lprintf( "Begin sub for task..." );
 	AddTaskConfigs( pch );
 	//BeginSubConfiguration( WIDE( "TaskInfo" ), WIDE("Task Done") );
 }
 
-OnInterShellShutdown( WIDE("Task") )( void )
+static void OnInterShellShutdown( WIDE("Task") )( void )
 {
 	KillSpawnedPrograms();
 }
@@ -2079,8 +2079,8 @@ PTRSZVAL CPROC AddAdditionalPath( PTRSZVAL psv, arg_list args )
 #ifdef HAVE_ENVIRONMENT
 	OSALOT_AppendEnvironmentVariable( WIDE( "PATH" ), path );
 #endif
-   l.more_path = StrDup( path );
-   return psv;
+	l.more_path = StrDup( path );
+	return psv;
 }
 
 PTRSZVAL CPROC AddPrependPath( PTRSZVAL psv, arg_list args )
@@ -2089,11 +2089,11 @@ PTRSZVAL CPROC AddPrependPath( PTRSZVAL psv, arg_list args )
 #ifdef HAVE_ENVIRONMENT
 	OSALOT_PrependEnvironmentVariable( WIDE( "PATH" ), path );
 #endif
-   l.less_path = StrDup( path );
-   return psv;
+	l.less_path = StrDup( path );
+	return psv;
 }
 
-OnLoadCommon( WIDE("Tasks") )( PCONFIG_HANDLER pch )
+static void OnLoadCommon( WIDE("Tasks") )( PCONFIG_HANDLER pch )
 {
 	/* standard tasks, these will get task_info prefix to compliment task done suffix */
 	AddConfigurationMethod( pch, WIDE("auto caller task"), CreateNewAutoCallerTask );
@@ -2121,7 +2121,7 @@ TEXTCHAR *GetTaskSecurity( PLOAD_TASK pTask )
 
 static void DumpTask( FILE *file, PLOAD_TASK pTask, int sub )
 {
-   //PLOAD_TASK pTask = (PLOAD_TASK)psv;
+	//PLOAD_TASK pTask = (PLOAD_TASK)psv;
 	if( pTask )
 	{
 		CTEXTSTR p;
@@ -2144,7 +2144,7 @@ static void DumpTask( FILE *file, PLOAD_TASK pTask, int sub )
 			fprintf( file, WIDE("%sshutdown program=%s\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), p );
 		if( ( p =  EscapeMenuString( GetTaskArgs( pTask, TRUE ) ) ) )
 			fprintf( file, WIDE("%sshutdown args=%s\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), p );
-      if( pTask->flags.bLaunchAtLeast )
+		if( pTask->flags.bLaunchAtLeast )
 			fprintf( file, WIDE("%slaunch at least %d by %d\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), pTask->launch_width, pTask->launch_height );
 		if( pTask->flags.bLaunchAt )
 			fprintf( file, WIDE("%slaunch at %d by %d\n"), sub?WIDE("\t"):InterShell_GetSaveIndent(), pTask->launch_width, pTask->launch_height );
@@ -2191,12 +2191,12 @@ static void DumpTask( FILE *file, PLOAD_TASK pTask, int sub )
 	}
 }
 
-OnSaveControl( WIDE("Task") )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE("Task") )( FILE *file, PTRSZVAL psv )
 {
-   DumpTask( file, (PLOAD_TASK)psv, 0 );
+	DumpTask( file, (PLOAD_TASK)psv, 0 );
 }
 
-OnSaveCommon( WIDE("Tasks") )( FILE *file )
+static void OnSaveCommon( WIDE("Tasks") )( FILE *file )
 {
 		int bWroteAutoCaller = FALSE;
 		int bWroteAuto = FALSE;
@@ -2318,7 +2318,7 @@ void CPROC DestroyAutoTaskProperties( PTRSZVAL psv, PSI_CONTROL button )
 }
 
 
-OnGlobalPropertyEdit( WIDE("Tasks") )( PSI_CONTROL parent )
+static void OnGlobalPropertyEdit( WIDE("Tasks") )( PSI_CONTROL parent )
 {
 	PSI_CONTROL frame = LoadXMLFrame( WIDE("CommonTaskProperties.isFrame") );
 	if( frame )
@@ -2402,7 +2402,7 @@ struct resolution_button
 	PMENU_BUTTON button;
 };
 
-OnKeyPressEvent( WIDE("Task Util/Set Resolution") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Task Util/Set Resolution") )( PTRSZVAL psv )
 {
 	struct resolution_button *resbut = (struct resolution_button *)psv;
 	if( resbut->width && resbut->height )
@@ -2411,7 +2411,7 @@ OnKeyPressEvent( WIDE("Task Util/Set Resolution") )( PTRSZVAL psv )
 		ResetResolution( NULL );
 }
 
-OnCreateMenuButton( WIDE("Task Util/Set Resolution") )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( WIDE("Task Util/Set Resolution") )( PMENU_BUTTON button )
 {
 	struct resolution_button *resbut = New( struct resolution_button );
 	resbut->width = 0;
@@ -2420,7 +2420,7 @@ OnCreateMenuButton( WIDE("Task Util/Set Resolution") )( PMENU_BUTTON button )
 	return (PTRSZVAL)resbut;
 }
 
-OnEditControl( WIDE("Task Util/Set Resolution") )( PTRSZVAL psv, PSI_CONTROL parent_frame )
+static PTRSZVAL OnEditControl( WIDE("Task Util/Set Resolution") )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 {
 	PCOMMON frame = LoadXMLFrame( WIDE( "task.resolution.isframe" ) );
 	int okay = 0;
@@ -2445,10 +2445,10 @@ OnEditControl( WIDE("Task Util/Set Resolution") )( PTRSZVAL psv, PSI_CONTROL par
 		}
 		DestroyFrame( &frame );
 	}
-   return psv;
+	return psv;
 }
 
-OnSaveControl( WIDE("Task Util/Set Resolution") )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE("Task Util/Set Resolution") )( FILE *file, PTRSZVAL psv )
 {
 	struct resolution_button *resbut = (struct resolution_button *)psv;
 	fprintf( file, WIDE("launch at %d by %d\n"), resbut->width, resbut->height );
@@ -2469,7 +2469,7 @@ PTRSZVAL CPROC SetLaunchResolution2( PTRSZVAL psv, arg_list args )
 
 
 
-OnLoadControl( WIDE("Task Util/Set Resolution") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("Task Util/Set Resolution") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
 	AddConfigurationMethod( pch, WIDE("Launch at %i by %i"), SetLaunchResolution2 );
 }

@@ -560,7 +560,7 @@ void RenderPingDropped( PTRSZVAL psv, PDATALIST *points, _32 from, _32 to, _32 r
 	}
 }
 
-OnLoadCommon( WIDE("Ping Graph Registry") )( PCONFIG_HANDLER pch )
+static void OnLoadCommon( WIDE("Ping Graph Registry") )( PCONFIG_HANDLER pch )
 {
 	// just use this to init our structures that we might want to use
 	//RegisterLineType( WIDE("Ping Min"), NULL );
@@ -585,14 +585,14 @@ OnLoadCommon( WIDE("Ping Graph Registry") )( PCONFIG_HANDLER pch )
 
 }
 
-OnLoadControl( WIDE("Ping Status Graph") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("Ping Status Graph") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
 	AddConfigurationMethod( pch, WIDE("graph line server:\'%m\' status:\'%m\'"), ReloadGraphTarget );
 	AddConfigurationMethod( pch, WIDE("graph line server:\'%m\' status:\'%m\' sub: \'%m\' color:%c"), NewReloadGraphSubTarget );
 	AddConfigurationMethod( pch, WIDE("graph line server:\'%m\' status:\'%m\' color:%c"), NewReloadGraphTarget );
 	AddConfigurationMethod( pch, WIDE("graph timespan:%i"), ReloadGraphTimespan );
 }
-OnSaveControl( WIDE("Ping Status Graph") )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE("Ping Status Graph") )( FILE *file, PTRSZVAL psv )
 {
 	INDEX idx;
 	GRAPH_LINE line;
@@ -608,12 +608,12 @@ OnSaveControl( WIDE("Ping Status Graph") )( FILE *file, PTRSZVAL psv )
 	fprintf( file, WIDE("graph timespan:%ld\n"), graph->timespan );
 }
 
-OnLoadCommon( WIDE("Ping Status Graph Targets") )( PCONFIG_HANDLER pch )
+static void OnLoadCommon( WIDE("Ping Status Graph Targets") )( PCONFIG_HANDLER pch )
 {
 	AddConfigurationMethod( pch, WIDE("ping target=%m"), ReloadTarget );
 }
 
-OnSaveCommon( WIDE("Ping Status Graph Targets") )( FILE *file )
+static void OnSaveCommon( WIDE("Ping Status Graph Targets") )( FILE *file )
 {
 	INDEX idx;
 	TARGET_ADDRESS target;
@@ -821,7 +821,7 @@ OnEditControl( WIDE("Ping Status Graph") )( PTRSZVAL psv, PSI_CONTROL parent )
 	return psv;
 }
 
-OnGetControl( WIDE("Ping Status Graph") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Ping Status Graph") )( PTRSZVAL psv )
 {
 	GRAPH graph = (GRAPH)psv;
 	return graph->pc;
@@ -833,7 +833,7 @@ void CPROC UpdateGraph( PTRSZVAL psv )
 	SmudgeCommon( graph->pc );
 }
 
-OnCreateControl( WIDE("Ping Status Graph") )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static PTRSZVAL OnCreateControl( WIDE("Ping Status Graph") )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
 {
 	//NEW(struct graph_struct,graph);
    //DebugBreak();
@@ -850,7 +850,7 @@ OnCreateControl( WIDE("Ping Status Graph") )( PSI_CONTROL parent, S_32 x, S_32 y
 	}
 }
 
-OnDestroyControl( WIDE("Ping Status Graph") )( PTRSZVAL psv )
+static void OnDestroyControl( WIDE("Ping Status Graph") )( PTRSZVAL psv )
 {
 	GRAPH graph = (GRAPH)psv;
 	SetControlData( GRAPH, graph->pc, NULL );

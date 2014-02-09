@@ -23,7 +23,7 @@ static void CPROC Easter2( PTRSZVAL psv )
 }
 
 
-OnFinishAllInit( WIDE("Calculator") )( void )
+static void OnFinishAllInit( WIDE("Calculator") )( void )
 {
 	PLIST keypads = NULL;
 	PSI_CONTROL keypad;

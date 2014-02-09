@@ -8,14 +8,14 @@
 
 struct sendbutton {
 	PMENU_BUTTON button;
-   CTEXTSTR page;
+	CTEXTSTR page;
 };
 
 static struct page_cycle_local {
 	PCLIENT udp_server;
-   SOCKADDR *saBroadcast;
+	SOCKADDR *saBroadcast;
 	_32 delay;
-   _32 last_msg;
+	_32 last_msg;
 } l;
 
 static void CPROC NetEvent( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR *saSource )
@@ -30,7 +30,7 @@ static void CPROC NetEvent( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR *s
 			// someday pay attention to command between buffer and end...
 			if( end )
 			{
-	            end++;
+					end++;
 				ShellSetCurrentPage( end );
 			}
 			l.last_msg = tmp;
@@ -43,7 +43,7 @@ static void CPROC NetEvent( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR *s
 	ReadUDP( pc, buffer, 256 );
 }
 
-OnFinishInit( WIDE("Net Page Changer") )( void )
+static void OnFinishInit( WIDE("Net Page Changer") )( void )
 {
 	TEXTCHAR tmp[256];
 	SACK_GetPrivateProfileString( WIDE("Network Page Changer"), WIDE("listen on interface"), WIDE("0.0.0.0:7636"), tmp, sizeof( tmp ), WIDE("page_changer.ini") );
@@ -54,7 +54,7 @@ OnFinishInit( WIDE("Net Page Changer") )( void )
 	}
  }
 
-OnKeyPressEvent(  WIDE("page/send page change") )( PTRSZVAL psv )
+static void OnKeyPressEvent(  WIDE("page/send page change") )( PTRSZVAL psv )
 {
 	struct sendbutton *button = (struct sendbutton *)psv;
 	PVARTEXT pvt = VarTextCreate();
@@ -68,7 +68,7 @@ OnKeyPressEvent(  WIDE("page/send page change") )( PTRSZVAL psv )
 	VarTextDestroy( &pvt );
 }
 
-OnCreateMenuButton( WIDE("page/send page change") )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( WIDE("page/send page change") )( PMENU_BUTTON button )
 {
 	struct sendbutton *newbutton = New( struct sendbutton );
 	newbutton->button = button;
@@ -85,16 +85,16 @@ static PTRSZVAL CPROC SetSendPage( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-OnLoadControl( WIDE("page/send page change") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("page/send page change") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
 	struct sendbutton *button = (struct sendbutton *)psv;
 	AddConfigurationMethod( pch, WIDE("send page='%m'"), SetSendPage );
 }
 
-OnSaveControl( WIDE("page/send page change") )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE("page/send page change") )( FILE *file, PTRSZVAL psv )
 {
-   struct sendbutton *button = (struct sendbutton *)psv;
-   fprintf( file, WIDE("send page='%s'\n"), button->page );
+	struct sendbutton *button = (struct sendbutton *)psv;
+	fprintf( file, WIDE("send page='%s'\n"), button->page );
 }
 
 PUBLIC( void, ExportedSymbolToMakeWatcomHappy )( void )

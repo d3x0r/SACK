@@ -46,7 +46,7 @@ typedef struct font_select_tag
 
 static struct intershell_font_local
 {
-   PLIST canvas;
+	PLIST canvas;
 #define l local_font_data
 }local_font_data;
 
@@ -200,7 +200,7 @@ SFTFont *CreateACanvasFont2( PSI_CONTROL pc_canvas, CTEXTSTR name, CTEXTSTR font
 			AddLink( &canvas->fonts, font_preset );
 	}
 	else
-      return &font_preset->font;
+		return &font_preset->font;
 
 #ifdef DEBUG_FONT_CREATION
 	lprintf( "Rendering %s", fontfilename );
@@ -256,8 +256,8 @@ SFTFont* CreateACanvasFont( PSI_CONTROL pc_canvas, CTEXTSTR name, SFTFont font, 
 #undef CreateAFont
 SFTFont* CreateAFont( CTEXTSTR name, SFTFont font, POINTER data, size_t datalen )
 {
-   lprintf( WIDE("Depricated CreateAFont().") );
-   return CreateACanvasFont( g.single_frame, name, font, data, datalen );
+	lprintf( WIDE("Depricated CreateAFont().") );
+	return CreateACanvasFont( g.single_frame, name, font, data, datalen );
 }
 
 void CPROC SetCurrentPreset( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM pli )
@@ -350,7 +350,7 @@ SFTFont * UseACanvasFont( PSI_CONTROL pc_canvas, CTEXTSTR name )
 #undef UseAFont
 SFTFont * UseAFont( CTEXTSTR name )
 {
-   return UseACanvasFont( g.single_frame, name );
+	return UseACanvasFont( g.single_frame, name );
 }
 
 
@@ -427,13 +427,13 @@ SFTFont *SelectACanvasFont( PSI_CONTROL pc_canvas, PSI_CONTROL parent, CTEXTSTR*
 
 SFTFont *SelectAFont( PSI_CONTROL parent, CTEXTSTR*default_name )
 {
-   return SelectACanvasFont( g.single_frame, parent, default_name );
+	return SelectACanvasFont( g.single_frame, parent, default_name );
 }
 
 
-OnSaveCommon( WIDE( "Common Fonts" ) )( FILE *out )
+static void OnSaveCommon( WIDE( "Common Fonts" ) )( FILE *out )
 {
-   PCanvasData canvas = g.current_saving_canvas;
+	PCanvasData canvas = g.current_saving_canvas;
 	PFONT_PRESET preset;
 	INDEX idx;
 	LIST_FORALL( canvas->fonts, idx, PFONT_PRESET, preset )
@@ -451,7 +451,7 @@ OnSaveCommon( WIDE( "Common Fonts" ) )( FILE *out )
 						 , data );
 				Release( data );
 			}
-         // if there's no data, don't bother saving anything.
+			// if there's no data, don't bother saving anything.
 			//else
 			//	fprintf( out, WIDE("font preset %s={}\n"), theme_preset->name );
 		}
@@ -471,7 +471,7 @@ static PTRSZVAL CPROC RecreateFont( PTRSZVAL psv, arg_list args )
 	return 0;
 }
 
-OnLoadCommon( WIDE( "Common Fonts" ) )( PCONFIG_HANDLER pch )
+static void OnLoadCommon( WIDE( "Common Fonts" ) )( PCONFIG_HANDLER pch )
 {
 	AddConfigurationMethod( pch, WIDE("font preset %m=%B"), RecreateFont );
 }
@@ -534,7 +534,7 @@ void UpdateFontScaling( PCanvasData canvas )
 		LIST_FORALL( (*font_preset->font_theme), theme_idx, PFONT_PRESET, theme_font )
 		{
 			RerenderFont( theme_font->font
-                     , 0, 0
+							, 0, 0
 							, &canvas->width_scale, &canvas->height_scale );
 
 		}

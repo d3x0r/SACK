@@ -33,22 +33,22 @@ static void CPROC change( PTRSZVAL psv )
 			ShellSetCurrentPage( WIDE("next") );
 }
 
-OnFinishInit( WIDE("Page Cycler") )( void )
+static void OnFinishInit( WIDE("Page Cycler") )( void )
 {
    l.timer = AddTimer( l.delay, change, 0 );
 }
 
-OnEditModeBegin( WIDE("Page Cycler") )( void )
+static void OnEditModeBegin( WIDE("Page Cycler") )( void )
 {
    l.flags.bDisableChange = 1;
 }
 
-OnEditModeEnd( WIDE("Page Cycler") )( void )
+static void OnEditModeEnd( WIDE("Page Cycler") )( void )
 {
    l.flags.bDisableChange = 0;
 }
 
-OnChangePage( WIDE("Page Cycler") )( void )
+static int OnChangePage( WIDE("Page Cycler") )( void )
 {
 	PPAGE_DATA page = ShellGetCurrentPage();
 	INDEX idx;
@@ -88,7 +88,7 @@ OnChangePage( WIDE("Page Cycler") )( void )
    return 1;
 }
 
-OnGlobalPropertyEdit( WIDE( "Page Cycle" ) )( PSI_CONTROL parent )
+static void OnGlobalPropertyEdit( WIDE( "Page Cycle" ) )( PSI_CONTROL parent )
 {
 	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE( "PageCycle.isFrame" ) );
 	if( l.flags.resources_registered )
@@ -118,7 +118,7 @@ OnGlobalPropertyEdit( WIDE( "Page Cycle" ) )( PSI_CONTROL parent )
 }
 
 
-OnSaveCommon( WIDE("Page Cycler") )( FILE *file )
+static void OnSaveCommon( WIDE("Page Cycler") )( FILE *file )
 {
 	INDEX idx;
 	struct page_delay *delay;
@@ -161,7 +161,7 @@ static PTRSZVAL CPROC LoadDelay( PTRSZVAL psv, arg_list args )
    return psv;
 }
 
-OnLoadCommon( WIDE("Page Cycler") )( PCONFIG_HANDLER pch )
+static void OnLoadCommon( WIDE("Page Cycler") )( PCONFIG_HANDLER pch )
 {
 	l.delay = SACK_GetPrivateProfileInt( WIDE("Page Cycler"), WIDE("default delay between pages"), 15000, WIDE("page_changer.ini") );
 	AddConfigurationMethod( pch, WIDE( "Page Cycling is enabled=%b" ), LoadAllowCycle );

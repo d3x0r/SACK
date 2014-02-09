@@ -30,17 +30,17 @@ struct sequence_data {
 	_32 sequence;
 	_32 tick;
 	/* we might end up with the same sequence for different packets...
-    * happens when we launch two processes at the same time... */
+	 * happens when we launch two processes at the same time... */
 	POINTER packet;
-   int packet_length; // paramter to network callback is int
+	int packet_length; // paramter to network callback is int
 };
 
-enum network_states   {
+enum network_states	{
 	NETWORK_STATE_GET_SIZE,
 	NETWORK_STATE_GET_COMMAND,
 };
 struct task_output_network_state {
-   enum network_states state;
+	enum network_states state;
 	size_t toread;
 	size_t bufsize;
 	POINTER buffer;
@@ -282,16 +282,16 @@ static void CPROC RemoteReverseConnected( PCLIENT pc, int error_code )
 	//lprintf( "reverse connect complete. %d", error_code );
 	if( error_code )
 	{
-      // didn't actually connect....
+		// didn't actually connect....
 	}
 }
 
 // packet format
 				// [~option][~option]...
-				//   option value supported now...
-//      'capture' - result to the invoking command the tasks's output
-//      'path'<string>% - set start in path
-//      'hide' - hide the program instead of show normal(?)
+				//	option value supported now...
+//		'capture' - result to the invoking command the tasks's output
+//		'path'<string>% - set start in path
+//		'hide' - hide the program instead of show normal(?)
 //
 // [$classname]
 // [^sequence]
@@ -327,7 +327,7 @@ static PTRSZVAL CPROC RemoteBackConnect( PTHREAD thread )
 
 	if( args->bCaptureOutput && !pc_output )
 	{
-      //lprintf( "Want to capture task output, so back-connect." );
+		//lprintf( "Want to capture task output, so back-connect." );
 		//SetAddressPort( sa, capture_port );
 		//DumpAddr( "connect to", sa );
 		pc_output = OpenTCPClientAddrExx( args->sa
@@ -426,7 +426,7 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 	if( inbuf[0] == '~' )
 	{
 		// some error condition - bad option?  bad end of path?
-      return;
+		return;
 	}
 	/* check to see if the message has a class assicated, if not, process as normal */
 	if( inbuf[0] == '$' )
@@ -511,14 +511,14 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 					{
 						if( pSeq->packet_length == size )
 							if( MemCmp( pSeq->packet, buffer, size ) == 0 )
-                        return;
+								return;
 					}
 				}
 				if( pSeq ) // bail out of do{}while(0)
 				{
 					if( bLogPacketReceive )
 						lprintf( WIDE("received duplicate, ignoring.") );
-               return;
+					return;
 				}
 				{
 					struct sequence_data *new_seq = New( struct sequence_data );
@@ -588,7 +588,7 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 							tmp_args->sa = sa;
 							tmp_args->bCaptureOutput = bCaptureOutput;
 							tmp_args->restart = restart;
-                     tmp_args->pc_task_reply = pc_reply;
+							tmp_args->pc_task_reply = pc_reply;
 							lprintf( WIDE("Capturing task output to send back... begin back connect.") );
 							ThreadTo( RemoteBackConnect, (PTRSZVAL)tmp_args );
 						}
@@ -724,36 +724,36 @@ void  SetTaskLogOutput(void)
 
 static PTRSZVAL CPROC TaskComplete( PTRSZVAL psv, arg_list args )
 {
-   return psv;
+	return psv;
 }
 
 static PTRSZVAL CPROC TaskBegin( PTRSZVAL psv, arg_list args )
 {
-   return psv;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetTaskProgramName( PTRSZVAL psv, arg_list args )
 {
-   return psv;
+	return psv;
 
 }
 
 static PTRSZVAL CPROC SetTaskArguments( PTRSZVAL psv, arg_list args )
 {
 
-   return psv;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetTaskPath( PTRSZVAL psv, arg_list args )
 {
 
-   return psv;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetTaskRestart( PTRSZVAL psv, arg_list args )
 {
 
-   return psv;
+	return psv;
 }
 
 
@@ -862,31 +862,31 @@ SaneWinMain( argc, argv )
 								SetSyslogOptions( options );
 							}
 						}
-                  break;
+						break;
 					}
 				}
 			}
 		}
 	}
-   // for some reason service registration requires a non-const string.  pretty sure it doesn't get modified....
+	// for some reason service registration requires a non-const string.  pretty sure it doesn't get modified....
 	SetupService( (TEXTSTR)GetProgramName(), Start );
-   return 0;
+	return 0;
 }
 EndSaneWinMain()
 #elif defined( ISHELL_PLUGIN )
 
 
 #  if defined( ISHELL_PLUGIN )
-#    include "../../../InterShell/intershell_export.h"
-#    include "../../../InterShell/intershell_registry.h"
+#	 include "../../../InterShell/intershell_export.h"
+#	 include "../../../InterShell/intershell_registry.h"
 #  endif
 
-OnFinishInit( WIDE("Launchpad") )( void )
+static void OnFinishInit( WIDE("Launchpad") )( void )
 {
-   lprintf( WIDE("Begin launchpad init.") );
+	lprintf( WIDE("Begin launchpad init.") );
 	if( !BeginNetwork() )
 	{
-      xlprintf(LOG_ALWAYS)( WIDE("Fatal error starting network portion of LaunchPad") );
+		xlprintf(LOG_ALWAYS)( WIDE("Fatal error starting network portion of LaunchPad") );
 		return;
 	}
 	AddTimer( 2500, ExpireSequences, 0 );
@@ -895,10 +895,10 @@ OnFinishInit( WIDE("Launchpad") )( void )
 
 SaneWinMain( argc, argv )
 {
-#    ifndef __NO_GUI__
+#	 ifndef __NO_GUI__
 	TerminateIcon();
 	RegisterIcon( WIDE("PadIcon") );
-#    endif
+#	 endif
 		{
 			int arg_ofs;
 			for( arg_ofs = 1; arg_ofs < argc; arg_ofs++ )

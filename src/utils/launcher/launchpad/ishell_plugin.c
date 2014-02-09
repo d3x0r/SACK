@@ -88,7 +88,7 @@ static int OnMouseCommon( WIDE("Launcher Launchpad") )( PSI_CONTROL pc, S_32 x, 
 
 //-------------------------------------------------------------------------
 
-OnCreateControl( WIDE("Launcher Launchpad") )( PSI_CONTROL frame, S_32 x, S_32 y, _32 w, _32 h )
+static PTRSZVAL OnCreateControl( WIDE("Launcher Launchpad") )( PSI_CONTROL frame, S_32 x, S_32 y, _32 w, _32 h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( frame
@@ -103,14 +103,14 @@ OnCreateControl( WIDE("Launcher Launchpad") )( PSI_CONTROL frame, S_32 x, S_32 y
    return (PTRSZVAL) pc;
 }
 
-OnDestroyControl( WIDE("Launcher Launchpad") )( PTRSZVAL psv )
+static void OnDestroyControl( WIDE("Launcher Launchpad") )( PTRSZVAL psv )
 {
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
 	DeleteLink( &l.icons, pc );
 	DestroyCommon( &pc );
 }
 
-OnGetControl( WIDE("Launcher Launchpad") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Launcher Launchpad") )( PTRSZVAL psv )
 {
 	return (PSI_CONTROL)psv;
 }
@@ -292,7 +292,7 @@ static void CPROC DeleteNotPair( PTRSZVAL psv, PSI_CONTROL button )
 {
 }
 
-OnFinishInit( WIDE("@Launchpad") )( void )
+static void OnFinishInit( WIDE("@Launchpad") )( void )
 {
 	INDEX idx;
 	struct system_class_tag *system_class_name;
@@ -334,7 +334,7 @@ OnFinishInit( WIDE("@Launchpad") )( void )
 
 }
 
-OnGlobalPropertyEdit( WIDE("Launcher Launchpad") )( PSI_CONTROL parent )
+static void OnGlobalPropertyEdit( WIDE("Launcher Launchpad") )( PSI_CONTROL parent )
 {
 	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE("ConfigureLaunchpad.Frame") );
 	if( frame )
@@ -402,7 +402,7 @@ OnGlobalPropertyEdit( WIDE("Launcher Launchpad") )( PSI_CONTROL parent )
 	}
 }
 
-OnSaveCommon( WIDE("Launcher Launchpad") )( FILE *file )
+static void OnSaveCommon( WIDE("Launcher Launchpad") )( FILE *file )
 {
 	struct system_class_tag *system_class_name;
 	INDEX idx;
@@ -447,14 +447,14 @@ static PTRSZVAL CPROC SetLaunchpadInterface( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-OnLoadCommon( WIDE("Launcher Launchpad") )( PCONFIG_HANDLER pch )
+static void OnLoadCommon( WIDE("Launcher Launchpad") )( PCONFIG_HANDLER pch )
 {
 	AddConfigurationMethod( pch, WIDE("Launchpad class=%m@%m"), SetLaunchpadClass );
 	AddConfigurationMethod( pch, WIDE("Launchpad no class=%m@%m"), SetLaunchpadNotClass );
 	AddConfigurationMethod( pch, WIDE("Launchpad Interface=%m"), SetLaunchpadInterface );
 }
 
-OnLoadControl( WIDE("Launcher Launchpad") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("Launcher Launchpad") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
 	AddConfigurationMethod( pch, WIDE("Launchpad class=%m@%m"), SetLaunchpadClass );
 }

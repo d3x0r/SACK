@@ -17,13 +17,13 @@ OnGlobalPropertyEdit( WIDE( "Edit Plugins" ) )( PSI_CONTROL parent )
 	{
 		int okay = 0;
 		int done = 0;
-      SetCommonButtons( frame, &done, &okay );
+		SetCommonButtons( frame, &done, &okay );
 		DisplayFrame( frame );
 		CommonWait( frame );
 		if( okay )
 		{
 		}
-      DestroyFrame( &frame );
+		DestroyFrame( &frame );
 	}
 }
 */
@@ -39,7 +39,7 @@ struct configured_plugin {
 	PLIST pNoLoadOn; // systems to load this plugin on (with wildcard support, don't need disallow as much
 	CTEXTSTR plugin_full_name;
 	CTEXTSTR plugin_mask;
-   CTEXTSTR plugin_extra_path;
+	CTEXTSTR plugin_extra_path;
 	PLISTITEM pli; // the list item this is...
 	generic_function function;
 };
@@ -62,7 +62,7 @@ enum {
 	  , REMOVE_PLUGIN
 	  , ADD_SYSTEM
 	  , REMOVE_SYSTEM
-     , LISTBOX_NO_SYSTEMS
+	  , LISTBOX_NO_SYSTEMS
 	  , ADD_NO_SYSTEM
 	  , REMOVE_NO_SYSTEM
 };
@@ -88,12 +88,12 @@ struct configured_plugin *GetPlugin( CTEXTSTR plugin_mask )
 
 	struct configured_plugin *plugin;
 	INDEX idx;
-   TEXTSTR full_name = StrDup( plugin_mask );
+	TEXTSTR full_name = StrDup( plugin_mask );
 	TEXTSTR extra_path = (TEXTSTR)StrChr( plugin_mask, ';' );
 	if( extra_path )
 	{
 		extra_path[0] = 0;
-      extra_path++;
+		extra_path++;
 	}
 	LIST_FORALL( l.plugins, idx, struct configured_plugin*, plugin )
 	{
@@ -104,20 +104,20 @@ struct configured_plugin *GetPlugin( CTEXTSTR plugin_mask )
 	if( !plugin )
 	{
 		plugin = New( struct configured_plugin );
-      plugin->plugin_full_name = full_name;
+		plugin->plugin_full_name = full_name;
 		plugin->plugin_mask = StrDup( plugin_mask );
-      plugin->plugin_extra_path = StrDup( extra_path );
+		plugin->plugin_extra_path = StrDup( extra_path );
 		plugin->pLoadOn = NULL;
 		plugin->pNoLoadOn = NULL;
 		plugin->pli = NULL;
-      plugin->flags.bDelete = FALSE;
-      plugin->flags.bLoaded = FALSE;
-      plugin->flags.bNoLoad = FALSE;
+		plugin->flags.bDelete = FALSE;
+		plugin->flags.bLoaded = FALSE;
+		plugin->flags.bNoLoad = FALSE;
 		AddLink( &l.plugins, plugin );
 	}
-   else
+	else
 		Release( full_name );
-   return plugin;
+	return plugin;
 }
 
 //-------------------------------------------------------------------------------
@@ -286,7 +286,7 @@ static void CPROC RemovePlugin( PTRSZVAL psv, PSI_CONTROL button )
 		DeleteList( &plugin->pLoadOn );
 		Release( (TEXTSTR)plugin->plugin_full_name );
 		Release( (TEXTSTR)plugin->plugin_mask );
-      Release( (TEXTSTR)plugin->plugin_extra_path );
+		Release( (TEXTSTR)plugin->plugin_extra_path );
 		Release( plugin );
 		DeleteListItem( list, pli );
 		l.current_plugin = NULL; // clean this up after the config handlers above...
@@ -327,7 +327,7 @@ static void InitControls( PSI_CONTROL frame )
 		{
 			SetItemData( plugin->pli = AddListItem( list, plugin->plugin_full_name ), (PTRSZVAL)plugin );
 		}
-      SetSelChangeHandler( list, PluginPicked, 0 );
+		SetSelChangeHandler( list, PluginPicked, 0 );
 	}
 
 	SetButtonPushMethod( GetControl( frame, ADD_PLUGIN ), AddPlugin, 0 );
@@ -381,7 +381,7 @@ void ClearControls( void )
 	l.current_plugin = NULL;
 }
 
-OnGlobalPropertyEdit( WIDE( "Edit Plugins" ) )( PSI_CONTROL parent )
+static void OnGlobalPropertyEdit( WIDE( "Edit Plugins" ) )( PSI_CONTROL parent )
 {
 	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE( "EditPlugins.isFrame" ) );
 	if( frame )
@@ -422,7 +422,7 @@ static PTRSZVAL CPROC NoLoadConfigPluginOn( PTRSZVAL psv, arg_list args )
 		AddLink( &l.current_plugin->pNoLoadOn, StrDup( systemmask ) );
 		if( CompareMask( systemmask, InterShell_GetSystemName(), FALSE ) )
 		{
-         l.current_plugin->flags.bNoLoad = TRUE;
+			l.current_plugin->flags.bNoLoad = TRUE;
 			// add just this libraries global config stuff....
 		}
 	}
@@ -454,10 +454,10 @@ static PTRSZVAL CPROC LoadConfigPluginOn( PTRSZVAL psv, arg_list args )
 
 // load at a high priority... so that plugins loaded by this might have a chance
 // to register their own load common things, before the line happens in the file
-OnLoadCommon( WIDE( "@00 Plugins" ) )( PCONFIG_HANDLER pch )
+static void OnLoadCommon( WIDE( "@00 Plugins" ) )( PCONFIG_HANDLER pch )
 {
 	AddConfigurationMethod( pch, WIDE( "<plugin filemask='%m'>" ), LoadConfigPlugin );
-   AddConfigurationMethod( pch, WIDE( "<plugin_load system='%m'>" ), LoadConfigPluginOn );
+	AddConfigurationMethod( pch, WIDE( "<plugin_load system='%m'>" ), LoadConfigPluginOn );
 	AddConfigurationMethod( pch, WIDE( "<plugin_no_load system='%m'>" ), NoLoadConfigPluginOn );
 
 }
@@ -465,10 +465,10 @@ OnLoadCommon( WIDE( "@00 Plugins" ) )( PCONFIG_HANDLER pch )
 //-------------------------------------------------------------------------------
 // save at a high priority... so that plugins loaded by this might have a chance
 // to register their own load common things...
-OnSaveCommon( WIDE( "@00 Plugins" ) )( FILE *file )
+static void OnSaveCommon( WIDE( "@00 Plugins" ) )( FILE *file )
 {
-   struct configured_plugin *plugin;
-   INDEX idx;
+	struct configured_plugin *plugin;
+	INDEX idx;
 	LIST_FORALL( l.plugins, idx, struct configured_plugin*, plugin )
 	{
 		INDEX idx;
@@ -476,18 +476,18 @@ OnSaveCommon( WIDE( "@00 Plugins" ) )( FILE *file )
   		fprintf( file, WIDE( "<plugin filemask=\'%s\'>\n" ), EscapeMenuString( plugin->plugin_full_name ) );
 		LIST_FORALL( plugin->pNoLoadOn, idx, CTEXTSTR, system )
 		{
-         fprintf( file, WIDE( "<plugin_no_load system=\'%s\'>\n" ), EscapeMenuString( system ) );
+			fprintf( file, WIDE( "<plugin_no_load system=\'%s\'>\n" ), EscapeMenuString( system ) );
 		}
 		LIST_FORALL( plugin->pLoadOn, idx, CTEXTSTR, system )
 		{
-         fprintf( file, WIDE( "<plugin_load system=\'%s\'>\n" ), EscapeMenuString( system ) );
+			fprintf( file, WIDE( "<plugin_load system=\'%s\'>\n" ), EscapeMenuString( system ) );
 		}
 	}
 }
 
 
 //-------------------------------------------------------------------------------
-OnFinishInit( WIDE( "Plugins" ) )( void )
+static void OnFinishInit( WIDE( "Plugins" ) )( void )
 {
-   l.current_plugin = NULL; // clean this up after the config handlers above...
+	l.current_plugin = NULL; // clean this up after the config handlers above...
 }

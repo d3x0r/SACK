@@ -184,7 +184,7 @@ int InitSpriteEngine( void )
 
 }
 
-OnFinishInit( WIDE("Sprite") )( void )
+static void OnFinishInit( WIDE("Sprite") )( void )
 {
 #ifdef DISABLE_SPRITES
 	return;
