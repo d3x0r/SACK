@@ -1,8 +1,9 @@
+#define USE_WIN32_KEY_DEFINES
 
 #include <stdhdrs.h>
-#include <android/keycodes.h>
+#include <keybrd.h>
 
-#include "local.h"
+#include "server_local.h"
 
 #include <psi/console.h>
 // androi
@@ -64,12 +65,12 @@ PSIKEYDEFINE LinuxKeyDefs[256] =
                       //, [KEY_END]={WIDE("end"), 0, 0, {{COMMANDKEY, (PTEXT)KeyEndCmd}}}
 							, [KEY_HOME]={WIDE("home"), 0, 0 }
 
-                      , [KEY_DPAD_LEFT]={WIDE("left"), 0, 0 }
+                      , [KEY_LEFT]={WIDE("left"), 0, 0 }
 
-                      , [KEY_DPAD_UP]={"up" , 0, 0 }
-                      , [KEY_DPAD_RIGHT]={WIDE("right"), 0, 0 }
-                      , [KEY_DPAD_DOWN]={WIDE("down"), 0, 0 }
-                      , [KEY_DPAD_CENTER]={WIDE("center"), 0, 0 }
+                      , [KEY_UP]={"up" , 0, 0 }
+                      , [KEY_RIGHT]={WIDE("right"), 0, 0 }
+                      , [KEY_DOWN]={WIDE("down"), 0, 0 }
+                      , [KEY_CENTER]={WIDE("center"), 0, 0 }
                       //, {"select"}
                       //, [KEY_PRINT]={"print"}
                       //, {"execute"}
@@ -159,74 +160,43 @@ static struct keymap_state
 
 //----------------------------------------------------------------------------
 
-TEXTCHAR  GetKeyText (int key)
+PRELOAD( dump_Table )
 {
-   if( l.current_key_text )
-		return l.current_key_text[0];
-   return 0;
+   int n;
+   for( n = 0; n < 255; n++ )
+   {
+ 
+      lprintf( "key %d = %s", n, LinuxKeyDefs[n].name1?LinuxKeyDefs[n].name1:"NULL" );
+   }
 }
 
-
-PTEXT SACK_Vidlib_GetKeyText( int pressed, int key_index, int *used )
+CTEXTSTR SACK_Vidlib_GetKeyText( int pressed, int key_index, int *used )
 {
-   int used = 0;
 	// check current keyboard override...
 	int mod = keymap_local.flags.bShifted?1:0;
 	{
 		int result = 0;
-		//Log1( WIDE("Keyfunc = %d"), KeyDefs[key_index].op[mod].bFunction );
+		lprintf( WIDE("Keyfunc = %d  %d   %d"), key_index, mod, LinuxKeyDefs[key_index].op[mod].bFunction );
 		switch( LinuxKeyDefs[key_index].op[mod].bFunction )
 		{
 		case KEY_COMMAND_SHIFT:
-         if( pressed )
+			if( pressed )
 				keymap_local.flags.bShifted = 1;
-         else
+			else
 				keymap_local.flags.bShifted = 0;
-			used = 1;
-         break;
+			(*used) = 1;
+			 break;
 		case KEYDATA:
 			if( pressed )
+			{
+				(*used) = 1;
 				return LinuxKeyDefs[key_index].op[mod].pStroke;
-         break;
+			}
+			 break;
 		}
 	}
    return NULL;
 }
 
-
-void SACK_Vidlib_SetTriggerKeyboard( void (*show)(void), void(*hide)(void))
-{
-	keymap_local.show_keyboard = show;
-	keymap_local.hide_keyboard = hide;
-}
-
-void SACK_Vidlib_ShowInputDevice( void )
-{
-   keymap_local.flags.bShowing = 1;
-	if( keymap_local.show_keyboard )
-      keymap_local.show_keyboard();
-}
-
-void SACK_Vidlib_HideInputDevice( void )
-{
-   keymap_local.flags.bShowing = 0;
-	if( keymap_local.hide_keyboard )
-      keymap_local.hide_keyboard();
-}
-
-void SACK_Vidlib_ToggleInputDevice( void )
-{
-   keymap_local.flags.bShowing = !keymap_local.flags.bShowing;
-	if( keymap_local.flags.bShowing )
-	{
-		if( keymap_local.show_keyboard )
-			keymap_local.show_keyboard();
-	}
-   else
-	{
-		if( keymap_local.hide_keyboard )
-			keymap_local.hide_keyboard();
-	}
-}
 
 RENDER_NAMESPACE_END
