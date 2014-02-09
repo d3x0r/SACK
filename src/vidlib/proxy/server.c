@@ -756,7 +756,7 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 	POINTER msg = NULL;
 	struct server_proxy_client *client= (struct server_proxy_client *)psv;
 	struct json_context_object *json_object;
-	lprintf( "Received:%s", buffer );
+	//lprintf( "Received:%s", buffer );
 	if( json_parse_message( l.json_reply_context, buffer, msglen, &json_object, &msg ) )
 	{
 		struct common_message *message = (struct common_message *)msg;
@@ -792,7 +792,7 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 			}
 			break;
 		}
-		lprintf( "Success" );
+		//lprintf( "Success" );
 		json_dispose_message( json_object,  msg );
 	}
 	else
@@ -1122,11 +1122,11 @@ static TEXTCHAR CPROC VidlibProxy_GetKeyText		 ( int key )
 		return 0;
 #ifdef __LINUX__
 	{
-      int used = 0;
-		PTEXT text = SACK_Vidlib_GetKeyText( IsKeyPressed( key ), KEY_CODE( key ), &used );
+		int used = 0;
+		CTEXTSTR text = SACK_Vidlib_GetKeyText( IsKeyPressed( key ), KEY_CODE( key ), &used );
 		if( used && text )
 		{
-         return GetText(text)[0];
+			return text[0];
 		}
 	}
    return 0;

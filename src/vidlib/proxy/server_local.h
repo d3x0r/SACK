@@ -90,6 +90,6 @@ struct vidlib_proxy_local
 	CRITICALSECTION message_formatter;
 } l;
 
-PTEXT SACK_Vidlib_GetKeyText( int pressed, int key_index, int *used );
+CTEXTSTR SACK_Vidlib_GetKeyText( int pressed, int key_index, int *used );
 
 

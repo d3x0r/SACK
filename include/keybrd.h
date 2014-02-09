@@ -37,7 +37,7 @@
 #define KEY_CODE(key)       ( (key) & 0xFF )
 #define IsKeyExtended(key)  ( ( (key) & 0x00000100 ) >> 8 )
 
-#if defined( _WIN32 ) || defined( WIN32 ) || defined( __CYGWIN__ )
+#if defined( _WIN32 ) || defined( WIN32 ) || defined( __CYGWIN__ ) || defined( USE_WIN32_KEY_DEFINES )
 // mirrored KEY_ definitions from allegro.H library....
 //#include <windows.h>
 #include <stdhdrs.h>
@@ -52,6 +52,8 @@
 #define KEY_SHIFT        16
 #define KEY_LEFT_SHIFT   0x10
 #define KEY_RIGHT_SHIFT  0x10 // maybe?
+#define KEY_SHIFT_LEFT KEY_LEFT_SHIFT
+#define KEY_SHIFT_RIGHT KEY_RIGHT_SHIFT
 #define KEY_CTRL         17
 #define KEY_CONTROL      17
 #define KEY_LEFT_CONTROL  17
@@ -63,7 +65,9 @@
 #define KEY_ESC          27
 #define KEY_ESCAPE       27
 #define KEY_PGUP         33
+#define KEY_PAGE_UP     KEY_PGUP
 #define KEY_PGDN         34
+#define KEY_PAGE_DOWN   KEY_PGDN
 #define KEY_END          35
 #define KEY_HOME         36
 #define KEY_LEFT         37
@@ -162,6 +166,15 @@
 #define KEY_8         '8'
 #define KEY_9         '9'
 #define KEY_0         '0'
+#define KEY_MINUS    KEY_DASH
+
+#define VK_OEM_1   ';'
+#define VK_OEM_2   '\''
+#define VK_OEM_4   '['
+#define VK_OEM_6   ']'
+#define VK_OEM_5   '\\'
+
+#define VK_OEM_MINUS  '-'
 
 #define KEY_SEMICOLON     VK_OEM_1
 #define KEY_QUOTE         VK_OEM_7
@@ -171,7 +184,10 @@
 //'-'
 #define KEY_DASH     VK_OEM_MINUS 
 #define KEY_EQUAL   '='
+#define KEY_EQUALS   KEY_EQUAL
 #define KEY_ACCENT '`'
+#define KEY_GRAVE  KEY_ACCENT
+#define KEY_APOSTROPHE  KEY_ACCENT
 
 #define KEY_F1  VK_F1
 #define KEY_F2  VK_F2
@@ -221,7 +237,7 @@
 #define KEY_PAD_DELETE VK_SEPARATOR
 #define KEY_PAD_MINUS VK_SUBTRACT
 
-#endif
+#else
 
 RENDER_NAMESPACE
    _RENDER_KEYBOARD_NAMESPACE
@@ -274,6 +290,7 @@ RENDER_NAMESPACE_END
      using namespace sack::image::render::keyboard;
 #  endif
 #endif
+
 
 #if defined( __ANDROID__ )
 
@@ -490,6 +507,7 @@ RENDER_NAMESPACE_END
 #define KEY_GREY_UP       98
 
 #define KEY_PGUP          0xFA
+#define KEY_PAGE_UP       KEY_PGUP
 #define KEY_PAD_9         81
 #define KEY_PAD_PGUP      81
 #define KEY_GREY_PGUP     99
@@ -520,9 +538,11 @@ RENDER_NAMESPACE_END
 #define KEY_GREY_DOWN     104
 
 #define KEY_PGDN          0xF4
+#define KEY_PAGE_DOWN     KEY_PGDN
 #define KEY_PAD_3         89
 #define KEY_PAD_PGDN      89
 #define KEY_GREY_PGDN     105
+
 
 #define KEY_INSERT        0xF3
 #define KEY_PAD_0         90
@@ -530,6 +550,7 @@ RENDER_NAMESPACE_END
 #define KEY_GREY_INSERT   106
 
 #define KEY_DELETE        0xF2
+#define KEY_DEL           KEY_DELETE
 #define KEY_PAD_DOT       91
 #define KEY_PAD_DELETE    91
 #define KEY_GREY_DELETE   107
@@ -573,7 +594,12 @@ RENDER_NAMESPACE_END
 #define KEY_BACKSLASH     51
 #define KEY_DASH          20
 #define KEY_EQUAL         21
+#define KEY_EQUALS       KEY_EQUAL
 #define KEY_ACCENT        49
+#define KEY_APOSTROPHE    KEY_QUOTE
+#define KEY_GRAVE        KEY_ACCENT
+#define KEY_SHIFT_LEFT   KEY_LEFT_SHIFT
+#define KEY_SHIFT_RIGHT  KEY_RIGHT_SHIFT
 
 #define KEY_1         10
 #define KEY_2         11
@@ -966,7 +992,7 @@ RENDER_NAMESPACE_END
 
 #endif
 
-
+#endif
 #endif
 
 #elif defined( DEFINE_HARDWARE_SCANCODES )
