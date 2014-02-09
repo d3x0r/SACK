@@ -1,3 +1,4 @@
+#define MAKE_RCOORD_SINGLE
 #include <stdhdrs.h>
 #define USE_RENDER_INTERFACE l.pri
 #define USE_IMAGE_INTERFACE l.pii
@@ -823,7 +824,7 @@ class Radar
 		/* make a timer to call tick callback with this parameter....*/
 		/* this is a total hack, and works under MSVC only, so far. */
 		{
-#ifdef __WATCOMC__
+#if defined( __WATCOMC__ ) or defined( __GNUC__ )
 #define __thiscall
 #endif
 			union {
@@ -1135,15 +1136,15 @@ public:
 			for( idx = 0; PeekDataQueueEx( &position_history, struct position_history, &curpos, idx ); idx++ )
 			{
 				//PrintVector( curpos.origin );
-				glVertex3dv( curpos.origin );
+				glVertex3fv( curpos.origin );
 				addscaled( v, curpos.origin, curpos.up, 20.0 );
 				//PrintVector( v );
-				glVertex3dv( v );
+				glVertex3fv( v );
 			}
 			//PrintVector( pos.origin );
-			glVertex3dv( pos.origin );
+			glVertex3fv( pos.origin );
 			addscaled( v, pos.origin, pos.up, 20.0 );
-			glVertex3dv( v );
+			glVertex3fv( v );
 			glEnd();
          /*
 			glBegin( GL_LINE_STRIP );
@@ -2059,7 +2060,7 @@ void BeginVisPersp( void )
 	}
 }
 
-int InitGL(GLvoid)										// All Setup For OpenGL Goes Here
+int InitGL(void)										// All Setup For OpenGL Goes Here
 {
 	glShadeModel(GL_SMOOTH);							// Enable Smooth Shading
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);				// Black Background
@@ -2728,6 +2729,7 @@ public:
 VirtualityTester *VTest;
 #endif
 
+#ifdef _MSC_VER
 static int EvalExcept( int n )
 {
 	switch( n )
@@ -2742,6 +2744,7 @@ static int EvalExcept( int n )
 	}
 	return EXCEPTION_CONTINUE_EXECUTION;
 }
+#endif
 
 PTRANSFORM T_camera = NULL;
 PHEXPATCH patch;
@@ -2888,8 +2891,8 @@ CRITICALSECTION csUpdate;
 
 static void CPROC UpdatePositions( PTRSZVAL psv )
 {
-	EnterCriticalSec( &csUpdate );
-	VirtualityUpdate();
+//	EnterCriticalSec( &csUpdate );
+//	VirtualityUpdate();
 #if 0
 			if( current )
 			{
@@ -2908,7 +2911,7 @@ static void CPROC UpdatePositions( PTRSZVAL psv )
 				ApplyT( current->Ti, TCam, TDelta2 );
 			}
 #endif
-	LeaveCriticalSec( &csUpdate );
+//	LeaveCriticalSec( &csUpdate );
 
 }
 
