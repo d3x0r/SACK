@@ -718,7 +718,7 @@ LOGICAL DoMoveCards( PSI_CONTROL pc_from, PSI_CONTROL pc_to )
 	return FALSE;
 }
 
-OnSaveControl( WIDE("Games/Cards/Card Stack") )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE("Games/Cards/Card Stack") )( FILE *file, PTRSZVAL psv )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
 	fprintf( file, WIDE("Card stack game is \'%s\'\n"), stack->game->name );
@@ -908,7 +908,7 @@ MakeSetFlag( bMustPlayWhenEmpty );
 MakeSetFlag( bOnlySame );
 
 
-OnLoadControl( WIDE("Games/Cards/Card Stack") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("Games/Cards/Card Stack") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
 	//MyValidatedControlData( struct card_stack_control *, stack, psv );
 	MakeAddFlag( WIDE("Card Stack Select"), bSelectSameSuit );
@@ -1360,7 +1360,7 @@ void FillCanMoveTo( PSI_CONTROL frame, struct card_stack_control *stack )
 	}
 }
 
-OnEditControl( WIDE("Games/Cards/Card Stack") )( PTRSZVAL psv, PSI_CONTROL parent )
+static PTRSZVAL OnEditControl( WIDE("Games/Cards/Card Stack") )( PTRSZVAL psv, PSI_CONTROL parent )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
 	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE("ConfigureGameCardStack.isFrame") );
@@ -1516,7 +1516,7 @@ static int OnCreateCommon( WIDE("Games/Cards/Card Stack") )( PSI_CONTROL pc )
 	return TRUE;
 }
 
-OnCreateControl( WIDE("Games/Cards/Card Stack") )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static PTRSZVAL OnCreateControl( WIDE("Games/Cards/Card Stack") )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
 {
 	PSI_CONTROL pc = MakeControl( parent, MyControlID, x, y, w, h, -1 );
 	//MyValidatedControlData( struct card_stack_control *, stack, pc );
@@ -1524,12 +1524,12 @@ OnCreateControl( WIDE("Games/Cards/Card Stack") )( PSI_CONTROL parent, S_32 x, S
 	return (PTRSZVAL)pc;
 }
 
-OnGetControl( WIDE("Games/Cards/Card Stack") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Games/Cards/Card Stack") )( PTRSZVAL psv )
 {
 	return (PSI_CONTROL)psv;
 }
 
-OnGlobalPropertyEdit( WIDE("Card Game") )( PSI_CONTROL parent_frame )
+static void OnGlobalPropertyEdit( WIDE("Card Game") )( PSI_CONTROL parent_frame )
 {
 	PSI_CONTROL frame = LoadXMLFrameOver( parent_frame, WIDE("ConfigureCardGame.isFrame") );
 	if( frame )
@@ -1576,7 +1576,7 @@ static void OnCloneControl( WIDE("Games/Cards/Card Stack") )( PTRSZVAL psvNew, P
 	// other paramters are computed... (during draw time)
 }
 
-OnKeyPressEvent( WIDE("Games/Cards/Start Game") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Games/Cards/Start Game") )( PTRSZVAL psv )
 {
 	struct card_game *game = (struct card_game *)psv;
 	Shuffle( game->deck );
@@ -1623,12 +1623,12 @@ OnKeyPressEvent( WIDE("Games/Cards/Start Game") )( PTRSZVAL psv )
 }
 
 
-OnCreateMenuButton( WIDE("Games/Cards/Start Game") )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( WIDE("Games/Cards/Start Game") )( PMENU_BUTTON button )
 {
 	return (PTRSZVAL)GetGame( WIDE("Stud") ); // default button
 }
 
-OnEditControl( WIDE("Games/Cards/Start Game") )( PTRSZVAL psv, PSI_CONTROL parent )
+static PTRSZVAL OnEditControl( WIDE("Games/Cards/Start Game") )( PTRSZVAL psv, PSI_CONTROL parent )
 {
 	//TEXTCHAR buffer[256];
 	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE("ConfigureCardGameStartGame.isFrame") );
@@ -1657,7 +1657,7 @@ OnEditControl( WIDE("Games/Cards/Start Game") )( PTRSZVAL psv, PSI_CONTROL paren
 }
 
 
-OnSaveControl( WIDE("Games/Cards/Start Game") )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE("Games/Cards/Start Game") )( FILE *file, PTRSZVAL psv )
 {
 	struct card_game *game = (struct card_game *)psv;
 	fprintf( file, WIDE("Start card game button game=\'%s\'\n"), game->name );
@@ -1669,7 +1669,7 @@ static PTRSZVAL CPROC SetStartButtonGame( PTRSZVAL psv, arg_list args )
 	return (PTRSZVAL)GetGame( name ); // hrm I wonder if this actually gets set to the right place?
 }
 
-OnLoadControl( WIDE("Games/Cards/Start Game") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("Games/Cards/Start Game") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
 	//struct card_game *game = (struct card_game *)psv;
 	AddConfigurationMethod( pch, WIDE("Start card game button game=\'%m\'"), SetStartButtonGame );
@@ -1682,7 +1682,7 @@ OnLoadControl( WIDE("Games/Cards/Start Game") )( PCONFIG_HANDLER pch, PTRSZVAL p
 
 ////-------------------------------------------------------------------------
 
-OnKeyPressEvent( WIDE("Games/Cards/Deal Game") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Games/Cards/Deal Game") )( PTRSZVAL psv )
 {
 	struct card_game *game = (struct card_game *)psv;
 	//Shuffle( game->deck );
@@ -1719,12 +1719,12 @@ OnKeyPressEvent( WIDE("Games/Cards/Deal Game") )( PTRSZVAL psv )
 }
 
 
-OnCreateMenuButton( WIDE("Games/Cards/Deal Game") )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( WIDE("Games/Cards/Deal Game") )( PMENU_BUTTON button )
 {
 	return (PTRSZVAL)GetGame( WIDE("Stud") ); // default button
 }
 
-OnEditControl( WIDE("Games/Cards/Deal Game") )( PTRSZVAL psv, PSI_CONTROL parent )
+static PTRSZVAL OnEditControl( WIDE("Games/Cards/Deal Game") )( PTRSZVAL psv, PSI_CONTROL parent )
 {
 	//TEXTCHAR buffer[256];
 	PSI_CONTROL frame = LoadXMLFrame( WIDE("ConfigureCardGameStartGame.isFrame") );
@@ -1753,13 +1753,13 @@ OnEditControl( WIDE("Games/Cards/Deal Game") )( PTRSZVAL psv, PSI_CONTROL parent
 }
 
 
-OnSaveControl( WIDE("Games/Cards/Deal Game") )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE("Games/Cards/Deal Game") )( FILE *file, PTRSZVAL psv )
 {
 	struct card_game *game = (struct card_game *)psv;
 	fprintf( file, WIDE("Start card game button game=\'%s\'\n"), game->name );
 }
 
-OnLoadControl( WIDE("Games/Cards/Deal Game") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("Games/Cards/Deal Game") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
 	//struct card_game *game = (struct card_game *)psv;
 	AddConfigurationMethod( pch, WIDE("Start card game button game=\'%m\'"), SetStartButtonGame );
