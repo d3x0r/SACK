@@ -38,8 +38,8 @@ set( BUILD_INTERSHELL 1 )
 
 add_subdirectory( ../../data __/__/data )
 add_subdirectory( widgets )
-INSTALL( DIRECTORY config/ DESTINATION Resources )
-INSTALL( DIRECTORY frames DESTINATION Resources )
+INSTALL( DIRECTORY config/ DESTINATION resources )
+INSTALL( DIRECTORY frames DESTINATION resources )
 
 set( PROJECT_OUTPUT InterShell.core )
 
@@ -101,7 +101,7 @@ SET( INTERSHELL_SDK
   pages.h
 )
 
-INSTALL( DIRECTORY images DESTINATION Resources )
+INSTALL( DIRECTORY images DESTINATION resources )
 
 INSTALL( 
   FILES

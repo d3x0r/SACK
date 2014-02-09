@@ -36,5 +36,5 @@ endif( WIN32 )
 
 install_default_project( ${project} bin/plugins ) 
 
-INSTALL( DIRECTORY frames DESTINATION Resources ) 
+INSTALL( DIRECTORY frames DESTINATION resources ) 
 

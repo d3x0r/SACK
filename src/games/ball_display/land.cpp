@@ -904,14 +904,20 @@ void RenderBandPatch( void )
    int col;
 	VECTOR tmp_patch1, tmp_patch2;
 	VECTOR patch1, patch2;
+#ifdef _WIN32
 	SYSTEMTIME st;
+#endif
 	//VECTOR ref_point;
 	//InitBandPatch();
 	float tmpval[4];
 	float tmpval_diff[4];
 	float tmpval_amb[4];
+#ifdef _WIN32
 	GetSystemTime( &st );
 	number = st.wSecond;
+#else
+	number = 10;
+#endif
 	row = (number-1)/l.numbers.cols;
 	col = (number-1)%l.numbers.cols;
 
@@ -1396,6 +1402,7 @@ PRELOAD( RegisterResources )
 	l.pii = GetImageInterface();
 }
 
+#ifdef _MSC_VER
 
 static int EvalExcept( int n )
 {
@@ -1411,7 +1418,7 @@ static int EvalExcept( int n )
 	}
 	return EXCEPTION_CONTINUE_EXECUTION;
 }
-
+#endif
 
 void ParseImage( Image image, int rows, int cols )
 {
