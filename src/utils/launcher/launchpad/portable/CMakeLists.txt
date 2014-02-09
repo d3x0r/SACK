@@ -37,6 +37,9 @@ set( NET_SOURCES     ${SOURCES_ROOT}/src/netlib/net_winsock2.c  )
 set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/src/systemlib/oswin.c 
     ${SOURCES_ROOT}/src/systraylib/systray.c
 )
+else( WIN32 )
+set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/src/systraylib/systray_client.c 
+)
 endif( WIN32 )
 
 if( MSVC ) 

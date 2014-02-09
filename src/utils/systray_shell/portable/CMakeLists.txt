@@ -80,6 +80,7 @@ set( BASE_SOURCES
         ${NETWORK_SOURCES}
         ${UNSORTED_SOURCES} 
         ${ODBC_SOURCES}
+        ${UUID_SOURCES}
         ${OPTION_SOURCE}
         ${SQLITE_SOURCES}
         ${SYSTRAY_SOURCES}
