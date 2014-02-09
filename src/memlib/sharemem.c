@@ -1097,7 +1097,7 @@ PTRSZVAL GetFileSize( int fd )
 			bTemp = TRUE;
 		}
 
-		lprintf( "Open Space: %s", filename?filename:"anonymous" );
+		//lprintf( "Open Space: %s", filename?filename:"anonymous" );
 
 		if( !pMem && filename )
 		{

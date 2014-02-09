@@ -5,16 +5,18 @@ Enable Trace = off
 # set 'options' interface default to sack_sql
 win32 alias service options sack_sql_options
 
-option default sack/vidlib/use interface = windows
+option default sack/vidlib/use interface = headless
 
-if sack/vidlib/use interface == d3d
-#module libbag.video.pured3d.so
-#module libbag.image.pured3d.so
+modulepath ../lib64
 
-alias service render d3d.render
-alias service image d3d.image
+if sack/vidlib/use interface == headless
+module libbag.image.so
+module libbag.video.proxy.server.so
 
-alias service render.3d d3d.render.3d
+
+alias service render sack.render.proxy.server
+alias service image sack.image.proxy.server
+
 endif
 
 if sack/vidlib/use interface == opengl

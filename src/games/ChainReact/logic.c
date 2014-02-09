@@ -1,6 +1,6 @@
 
 #include <stdlib.h>
-#include <stdio.H>
+#include <stdio.h>
 #include "chain.h"
 
 
