@@ -27,10 +27,10 @@ endmacro( build_package_include )
 build_package_include()
   
 
-if( __ANDROID__ )
+if( __ANDROID__ OR UNIX )
   configure_file( deploy.cm.cm ${CMAKE_BINARY_DIR}/deploy.cm.tmp @ONLY )
   include( ${CMAKE_BINARY_DIR}/deploy.cm.tmp )
-else( __ANDROID__ )
+else( __ANDROID__ OR UNIX )
   configure_file( deploy.cm.c ${CMAKE_BINARY_DIR}/deploy.c.tmp )
   EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_BINARY_DIR}/deploy.c.tmp ${CMAKE_BINARY_DIR}/deploy.c )
   sack_add_executable( ${PROJECT} ${CMAKE_BINARY_DIR}/deploy.c )
@@ -48,6 +48,6 @@ else( __ANDROID__ )
   	        RUNTIME DESTINATION .
   	)
   endif( WIN32 )
-endif( __ANDROID__ )
+endif( __ANDROID__ OR UNIX )
 
 add_subdirectory( info )

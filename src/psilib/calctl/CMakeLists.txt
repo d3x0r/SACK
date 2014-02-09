@@ -18,5 +18,5 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 target_link_libraries( ${project} ${SACK_LIBRARIES})
 install_mode_dest( ${project} )
 
-install( FILES clock.png clock_face_1.png DESTINATION bin/images )
+install( FILES Clock.png clock_face_1.png DESTINATION bin/images )
 install( FILES ${project}.interface.conf DESTINATION bin )

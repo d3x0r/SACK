@@ -226,6 +226,7 @@ static P_8 EncodeImage( Image image, LOGICAL bmp, size_t *outsize )
 		(*outsize) = 0;
 		return NULL;
 	}
+#if defined( WIN32 )
 	else
 	{
 		// code to generate raw bitmap; 32 bit bitmaps still don't have alpha channel in browsers; weak.
@@ -268,6 +269,8 @@ static P_8 EncodeImage( Image image, LOGICAL bmp, size_t *outsize )
 
 		return (P_8)header;
 	}
+#endif
+    return NULL;
 }
 
 static void ClearDirtyFlag( PVPImage image )
@@ -2529,7 +2532,7 @@ IMAGE_PROC_PTR( void, DumpFontFile )( CTEXTSTR name, SFTFont font_to_dump );
 IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA color, SFTFont font, VECTOR o, LOGICAL render_pixel_scaled );
 
 
- IMAGE_INTERFACE ProxyImageInterface = {
+static IMAGE_INTERFACE ProxyImageInterface = {
 	VidlibProxy_SetStringBehavior,
 		VidlibProxy_SetBlotMethod,
 		VidlibProxy_BuildImageFileEx,
