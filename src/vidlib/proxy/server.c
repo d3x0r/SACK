@@ -633,12 +633,12 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 	}
 	if( state->flags.get_length )
 	{
-		lprintf( "Read next length..." );
+		//lprintf( "Read next length..." );
 		ReadTCPMsg( pc, &state->read_length, 4 );
 	}
 	else
 	{
-		lprintf( "read message %d", state->read_length );
+		//lprintf( "read message %d", state->read_length );
 		ReadTCPMsg( pc, state->buffer, state->read_length );
 	}
 }
@@ -682,7 +682,7 @@ static void CPROC Connected( PCLIENT pcServer, PCLIENT pcNew )
 			PVPImage image;
 			LIST_FORALL( l.images, idx, PVPImage, image )
 			{
-				lprintf( "Send Image %p(%d)", image, image->id );
+				//lprintf( "Send Image %p(%d)", image, image->id );
 				SendInitialImage( pcNew, FALSE, &sent, image );
 			}
 			LIST_FORALL( sent, idx, PVPImage, image )
@@ -873,8 +873,8 @@ static PVPImage Internal_MakeImageFileEx ( INDEX iRender, _32 Width, _32 Height 
 		image->image->flags |= IF_FLAG_FINAL_RENDER;
 	AddLink( &l.images, image );
 	image->id = FindLink( &l.images, image );
-	lprintf( "%p(%p) is %d", image, image->image, image->id );
-	lprintf( "Make proxy image %p %d(%d,%d)", image, image->id, Width, Height );
+	//lprintf( "%p(%p) is %d", image, image->image, image->id );
+	//lprintf( "Make proxy image %p %d(%d,%d)", image, image->id, Width, Height );
 	SendClientMessage( PMID_MakeImage, image, iRender );
 	return image;
 }
@@ -891,8 +891,8 @@ static PVPImage WrapImageFile( Image native )
 	image->image->reverse_interface_instance = image;
 	AddLink( &l.images, image );
 	image->id = FindLink( &l.images, image );
-	lprintf( "%p(%p) is %d", image, image->image, image->id );
-	lprintf( "Make wrapped proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
+	//lprintf( "%p(%p) is %d", image, image->image, image->id );
+	//lprintf( "Make wrapped proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
 	SendClientMessage( PMID_MakeImage, image, INVALID_INDEX );
 	SendClientMessage( PMID_ImageData, image );
 	return image;
@@ -946,7 +946,7 @@ static  void CPROC VidlibProxy_UnmakeImageFileEx( Image pif DBG_PASS )
 	{
 		PVPImage image = (PVPImage)pif;
 		SendClientMessage( PMID_UnmakeImage, pif );
-		lprintf( "UNMake proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
+		//lprintf( "UNMake proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
 		SetLink( &l.images, ((PVPImage)pif)->id, NULL );
 		if( ((PVPImage)pif)->image->reverse_interface )
 		{
@@ -1456,7 +1456,7 @@ static Image CPROC VidlibProxy_BuildImageFileEx ( PCOLOR pc, _32 width, _32 heig
 {
 	PVPImage image = New( struct vidlib_proxy_image );
 	MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
-	lprintf( "CRITICAL; BuildImageFile is not possible" );
+	//lprintf( "CRITICAL; BuildImageFile is not possible" );
 	image->w = width;
 	image->h = height;
 	image->image = l.real_interface->_BuildImageFileEx( pc, width, height DBG_RELAY );
@@ -1465,8 +1465,8 @@ static Image CPROC VidlibProxy_BuildImageFileEx ( PCOLOR pc, _32 width, _32 heig
 	AddLink( &l.images, image );
 	image->id = FindLink( &l.images, image );
 	SendClientMessage( PMID_MakeImage, image );
-	lprintf( "%p(%p) is %d", image, image->image, image->id );
-	lprintf( "Make built proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
+	//lprintf( "%p(%p) is %d", image, image->image, image->id );
+	//lprintf( "Make built proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
 	return (Image)image;
 }
 
@@ -1508,16 +1508,16 @@ static Image CPROC VidlibProxy_RemakeImageEx	 ( Image pImage, PCOLOR pc, _32 wid
 		image = New( struct vidlib_proxy_image );
 		MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
 		image->render_id = INVALID_INDEX;
+		AddLink( &l.images, image );
 	}
-	lprintf( "CRITICAL; RemakeImageFile is not possible" );
+	//lprintf( "CRITICAL; RemakeImageFile is not possible" );
 	image->w = width;
 	image->h = height;
 	image->image = l.real_interface->_RemakeImageEx( image->image, pc, width, height DBG_RELAY );
 	image->image->reverse_interface = &ProxyImageInterface;
 	image->image->reverse_interface_instance = image;
-	AddLink( &l.images, image );
 	image->id = FindLink( &l.images, image );
-	lprintf( "%p(%p) is %d", image, image->image, image->id );
+	//lprintf( "%p(%p) is %d", image, image->image, image->id );
 	return (Image)image;
 }
 
@@ -1539,8 +1539,8 @@ static Image CPROC VidlibProxy_LoadImageFileFromGroupEx( INDEX group, CTEXTSTR f
 	SendClientMessage( PMID_ImageData, image );
 	AddLink( &l.images, image );
 	image->id = FindLink( &l.images, image );
-	lprintf( "%p(%p) is %d", image, image->image, image->id );
-	lprintf( "loaded proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
+	//lprintf( "%p(%p) is %d", image, image->image, image->id );
+	//lprintf( "loaded proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
 	return (Image)image;
 }
 
@@ -1685,11 +1685,11 @@ static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w
 		outmsg->data.blatcolor.server_image_id = image->id;
 		if( w == image->w && h == image->h )
 		{
-			lprintf( "clear buffer; full color : %08x", color );
+			//lprintf( "clear buffer; full color : %08x", color );
 		}
 		else
 		{
-			lprintf( "w:%d w:%d h:%d h:%d full color : %08x", w, image->w, h, image->h, color );
+			//lprintf( "w:%d w:%d h:%d h:%d full color : %08x", w, image->w, h, image->h, color );
 		}
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
@@ -1746,11 +1746,11 @@ static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32
 		outmsg->data.blatcolor.server_image_id = image->id;
 		if( w == image->w && h == image->h )
 		{
-			lprintf( "clear buffer; full color : %08x", color );
+			//lprintf( "clear buffer; full color : %08x", color );
 		}
 		else
 		{
-			lprintf( "w:%d w:%d h:%d h:%d full color : %08x", w, image->w, h, image->h, color );
+			//lprintf( "w:%d w:%d h:%d h:%d full color : %08x", w, image->w, h, image->h, color );
 		}
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
