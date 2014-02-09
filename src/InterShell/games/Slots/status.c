@@ -115,7 +115,7 @@ PRELOAD( RegisterReel)
 
 static PTRSZVAL OnCreateControl( WIDE("Games/Slots/Status Patch"))(PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
 {
-	return MakeNamedControl( parent, reel_control.name, x, y, w, h, status_local.ID++ );
+	return (PTRSZVAL)MakeNamedControl( parent, reel_control.name, x, y, w, h, status_local.ID++ );
 }
 
  static PSI_CONTROL OnGetControl(WIDE("Games/Slots/Status Patch"))(PTRSZVAL psvInit)

@@ -3857,9 +3857,9 @@ void CPROC AbortConfigureKeys( PSI_CONTROL pc, _32 keycode )
 		lprintf( WIDE("And having enabled them... then...") );
 	}
 	InvokeEndEditMode();
-	if( g.psv_security )
+	if( g.psv_edit_security )
 	{
-		CloseSecurityContext( (PTRSZVAL)pc, (PTRSZVAL)g.psv_security );
+		CloseSecurityContext( (PTRSZVAL)pc, (PTRSZVAL)g.psv_edit_security );
 	}
 }
 
@@ -3891,10 +3891,10 @@ void CPROC ConfigureKeys( PSI_CONTROL pc, _32 keycode )
 		return;
 	}
 	{
-		g.psv_security = CreateSecurityContext( (PTRSZVAL)pc );
-		if( g.psv_security != INVALID_INDEX )
+		g.psv_edit_security = CreateSecurityContext( (PTRSZVAL)pc );
+		if( g.psv_edit_security != INVALID_INDEX )
 		{
-			if( g.psv_security )
+			if( g.psv_edit_security )
 			{
 				//Log Password Action, enable configuration
 			}
