@@ -54,7 +54,11 @@ if( __ANDROID__ )
    DEFINE_DEFAULT( BUILD_EXTRAS ON )
 else( __ANDROID_ )
    DEFINE_DEFAULT( __ARM__ OFF )
+if( UNIX )
+   DEFINE_DEFAULT( BUILD_MONOLITHIC OFF )
+else( UNIX )
    DEFINE_DEFAULT( BUILD_MONOLITHIC ON )
+endif( UNIX )
    DEFINE_DEFAULT( BUILD_EXTRAS OFF )
 endif( __ANDROID__ )
 
@@ -63,11 +67,18 @@ DEFINE_DEFAULT( NEED_FREETYPE ON )
 DEFINE_DEFAULT( NEED_JPEG ON )
 DEFINE_DEFAULT( NEED_PNG ON )
 DEFINE_DEFAULT( NEED_ZLIB ON )
+DEFINE_DEFAULT( NEED_UUID OFF )
 else( WIN32 OR __ANDROID__ )
 DEFINE_DEFAULT( NEED_FREETYPE OFF )
 DEFINE_DEFAULT( NEED_JPEG OFF )
 DEFINE_DEFAULT( NEED_PNG OFF )
 DEFINE_DEFAULT( NEED_ZLIB OFF )
+set( __NO_ODBC__ 0 )  # someday port unixodbc library?  But then the mysql driver needs to be ported
+set( __LINUX__ ON )
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+  set( __LINUX64__ ON)
+endif()
+DEFINE_DEFAULT( NEED_UUID ON )
 endif( WIN32 OR __ANDROID__ )
 
 DEFINE_DEFAULT( BUILD_TESTS OFF )
@@ -119,6 +130,10 @@ if( __LINUX__ )
 SET( D__LINUX__ -D__LINUX__=${__LINUX__} )
 endif( __LINUX__ )
 
+if( __LINUX64__ )
+SET( D__LINUX64__ -D__LINUX64__=${__LINUX64__} )
+endif( __LINUX64__ )
+
 if( __ARM__ )
 SET( D__ARM__ -D__ARM__=${__ARM__} )
 endif( __ARM__ )
@@ -136,7 +151,7 @@ endif( BUILD_UNICODE )
 SET( SACK_REQUIREMENTS -DNEED_FREETYPE=${NEED_FREETYPE} -DNEED_JPEG=${NEED_JPEG} -DNEED_PNG=${NEED_PNG} -DNEED_ZLIB=${NEED_ZLIB} )
 if( UNIX )
 message( "Not win32, but MINGW=\"${MINGW}\" maybe android? ; not passing need_externals" )
-set( SACK_REQUIREMENTS )
+set( SACK_REQUIREMENTS -DNEED_UUID=ON )
 endif( UNIX )
 
 IF(EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
@@ -159,6 +174,7 @@ set( EXTRA_FLAGS -DBUILD_MONOLITHIC=${BUILD_MONOLITHIC}
                         ${DBULLET_SOURCE}
                         ${D__ARM__}
                         ${D__LINUX__}
+                        ${D__LINUX64__}
                         ${D__ANDROID__}
                         ${D__CLR__}
                         ${DDX_SDK}

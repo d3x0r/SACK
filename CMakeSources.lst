@@ -432,6 +432,8 @@ set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS}
         ${SOURCES_ROOT}src/psilib/console/WinLogic.h
         ${SOURCES_ROOT}src/genx/genx.h
         ${SOURCES_ROOT}src/msgsvr/client/global.h
+        ${SOURCES_ROOT}src/imglib/local.h
+        ${SOURCES_ROOT}src/uuid-1.6.2/uuid.h
 )
 
 set(BASE_SOURCES  ${BASE_SOURCES}
