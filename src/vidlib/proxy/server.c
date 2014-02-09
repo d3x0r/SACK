@@ -1404,9 +1404,7 @@ static RENDER_INTERFACE ProxyInterface = {
 													  , VidlibProxy_EnableSpriteMethod
 													  , VidlibProxy_WinShell_AcceptDroppedFiles
 													  , VidlibProxy_PutDisplayIn
-#ifdef WIN32
-													  , NULL // make renderer from native handle
-#endif
+													  , NULL // make renderer from native handle (junk4)
 													  , VidlibProxy_SetRendererTitle
 													  , VidlibProxy_DisableMouseOnIdle
 													  , VidlibProxy_OpenDisplayAboveUnderSizedAt
@@ -2801,7 +2799,9 @@ PRIORITY_PRELOAD( RegisterProxyInterface, VIDLIB_PRELOAD_PRIORITY )
 	RegisterInterface( WIDE( "sack.image.3d.proxy.server" ), Get3dProxyImageInterface, Drop3dProxyImageInterface );
 	RegisterInterface( WIDE( "sack.render.proxy.server" ), GetProxyDisplayInterface, DropProxyDisplayInterface );
 	RegisterInterface( WIDE( "sack.render.3d.proxy.server" ), Get3dProxyDisplayInterface, Drop3dProxyDisplayInterface );
+#ifdef _WIN32
 	LoadFunction( "bag.image.dll", NULL );
+#endif
 	l.real_interface = (PIMAGE_INTERFACE)GetInterface( WIDE( "sack.image" ) );
 
 	InitProxyInterface();
