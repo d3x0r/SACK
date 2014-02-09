@@ -214,7 +214,7 @@ typedef struct myconsolestruc {
 		// this is what this union has if nothing else defined
       // winlogic should need no member herein....
 		//_32 dwInterfaceData[32];
-#ifndef __ANDROID__
+#if !defined( __ANDROID__ ) && !defined( __LINUX__ )
       // windows native MDI console
 		struct {
 			HWND         hWnd;

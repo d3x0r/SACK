@@ -47,7 +47,7 @@ void LAYER_DATA::operator delete( void *ptr )
 	PLAYER_DATASET *ppls = layer->pool;
 	DeleteFromSet( LAYER_DATA, (*ppls), layer );
 }
-#if defined( _MSC_VER ) || defined( __ANDROID__ )
+#if defined( _MSC_VER ) || defined( __ANDROID__ ) || defined( __LINUX__ )
 void LAYER_DATA::operator delete( void *ptr, struct LAYER_DATAset_tag **frompool )
 {
 	DeleteFromSet( LAYER_DATA, frompool, ptr );
@@ -329,6 +329,17 @@ void LAYER::operator delete( void *ptr )
 		DeleteFromSet( LAYER, (*ppls),( layer ) );
 }
 
+//--------------------------------------------------------------------------
+#ifdef __LINUX__
+void LAYER::operator delete( void *ptr, struct LAYERset_tag **frompool )
+{
+	PLAYER layer = (PLAYER)ptr;
+	PLAYERSET *ppls = layer->pool;
+	layer->isolate();
+	if( ppls )
+		DeleteFromSet( LAYER, frompool,( layer ) );
+}
+#endif
 //--------------------------------------------------------------------------
 #ifdef _MSC_VER
 void LAYER::operator delete( void *ptr, struct LAYERset_tag **frompool, struct LAYER_DATAset_tag **fromdatapool )

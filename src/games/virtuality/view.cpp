@@ -267,7 +267,7 @@ int bDump;
 
 
 int frames;
-int time;
+int frame_time;
 
 static void UpdateObject( POBJECT po )
 {
@@ -311,8 +311,8 @@ static LOGICAL OnUpdate3d( WIDE( "Virtuality" ) )( PTRANSFORM origin )
 	{
 		static VECTOR KeySpeed, KeyRotation;
 		VECTOR ks, kr;
-		if( !time )
-			time = timeGetTime();
+		if( !frame_time )
+			frame_time = timeGetTime();
 
 		// scan the keyboard, cause ... well ... it needs 
 		// scaled keyspeed and acceleration ticks.
@@ -386,12 +386,12 @@ static void OnDraw3d( WIDE("Virtuality") )( PTRSZVAL psvUnusedOne )
 
 		//glFlush();
 		//SetActiveGLDisplay( NULL );
-		if( timeGetTime() != time && ( (frames %30 ) == 0 ))
+		if( timeGetTime() != frame_time && ( (frames %30 ) == 0 ))
 		{
 			//Image pImage = GetDisplayImage( v->hVideo );
 			TEXTCHAR buf[256];
 			snprintf( buf, 256, WIDE("fps : %d  (x10)")
-      					, frames * 10000 /( timeGetTime() - time )
+      					, frames * 10000 /( timeGetTime() - frame_time )
 					 );
 			lprintf( WIDE("%s"), buf );
 			/*
@@ -405,7 +405,7 @@ static void OnDraw3d( WIDE("Virtuality") )( PTRSZVAL psvUnusedOne )
       frames++;
 		if( frames > 200 )
 		{
-			time = timeGetTime();
+			frame_time = timeGetTime();
 			frames = 0;
 		}
    //lprintf( "End Frame." );
@@ -666,6 +666,7 @@ PTRSZVAL CPROC RenderFacet(  POBJECT po
 return 0;
 }
 
+#ifdef MSC_VER
 static int EvalExcept( int n )
 {
 	switch( n )
@@ -680,6 +681,7 @@ static int EvalExcept( int n )
 	}
 	return EXCEPTION_CONTINUE_EXECUTION;
 }
+#endif
 void ShowObjectChildren( POBJECT po )
 {
    POBJECT pCurObj;

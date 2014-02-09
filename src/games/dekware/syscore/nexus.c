@@ -2104,7 +2104,7 @@ void UserInputThread( void )
 		if( p )
 		{
 //		 printf( WIDE("enquing command...\n"));
-			EnqueLink( &PLAYER->Command->Input, p );
+			EnqueLink( &global.PLAYER->Command->Input, p );
 		}
 		LineRelease( command );
 	}
