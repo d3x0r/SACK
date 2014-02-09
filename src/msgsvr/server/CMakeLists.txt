@@ -13,6 +13,7 @@ add_library_force_source( ${project} SHARED ${SOURCES} )
 string( REPLACE "." "_" TARGET_LABEL ${project} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
+                  OUTPUT_NAME "sack.msgsvr.service.plugin"
                   PREFIX ""
                   SUFFIX ""
                   FOLDER "Message Service"

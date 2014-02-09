@@ -37,7 +37,7 @@ BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/route
 add_dependencies( ${LAST_TARGET} Buildcore Buildintershell )
 
 set( PROJECT Automaton )
-BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/Automaton INSTALL ${EXTRA_FLAGS} )
+BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/automaton INSTALL ${EXTRA_FLAGS} )
 add_dependencies( ${LAST_TARGET} Buildcore Buildintershell )
 
 # F&R depends on brains

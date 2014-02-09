@@ -56,10 +56,10 @@ add_subdirectory( portable )
 
 else( NOT BUILD_INTERSHELL )
 
-set( project launchpad.isp ) 
+set( project launchpad.isp )
 
 set(BASE_SOURCES2
-${FIRST_GCC_LIBRARY_SOURCE} 
+${FIRST_GCC_LIBRARY_SOURCE}
     launchpad ishell_plugin
 ${LAST_GCC_LIBRARY_SOURCE}
 )
