@@ -87,12 +87,13 @@ if( UNIX )
 	  WORKING_DIRECTORY ${BUILD}
           ${ADD_SOURCES}
   )
-endif( UNIX )  
+else( UNIX )  
   add_custom_target( Build${PROJECT} ALL
           COMMAND ${SCRIPTNAME}
 	  WORKING_DIRECTORY ${BUILD}
           ${ADD_SOURCES}
   )
+endif( UNIX )
 if( __ANDROID__ )  
 endif( __ANDROID__ )  
 endmacro( BuildProject )
