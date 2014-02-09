@@ -45,8 +45,6 @@ static struct local_page_information
 
 void CreateNamedPage( PSI_CONTROL pc_canvas, CTEXTSTR page_name )
 {
-	if( !pc_canvas )
-		pc_canvas = g.single_frame;
 	if( pc_canvas )
 	{
 		PCanvasData canvas = GetCanvas( pc_canvas );
@@ -91,8 +89,6 @@ PPAGE_DATA GetCurrentCanvasPage( PCanvasData canvas )
 
 PPAGE_DATA ShellGetNamedPage( PSI_CONTROL pc_canvas, CTEXTSTR name )
 {
-	if( !pc_canvas )
-		pc_canvas = g.single_frame;
 	if( pc_canvas )
 	{
 		PCanvasData canvas = GetCanvas( pc_canvas );
@@ -156,7 +152,7 @@ PPAGE_DATA ShellGetNamedPage( PSI_CONTROL pc_canvas, CTEXTSTR name )
 
 //-------------------------------------------------------------------------
 
-PPAGE_DATA ShellGetCurrentPageEx( PSI_CONTROL pc_canvas )
+PPAGE_DATA ShellGetCurrentPage( PSI_CONTROL pc_canvas )
 {
 	if( pc_canvas )
 	{
@@ -171,18 +167,8 @@ PPAGE_DATA ShellGetCurrentPageEx( PSI_CONTROL pc_canvas )
 
 //-------------------------------------------------------------------------
 
-PPAGE_DATA ShellGetCurrentPage( void )
+void ClearPageList( PSI_CONTROL pc_canvas )
 {
-	return ShellGetCurrentPageEx( g.single_frame );
-}
-
-//-------------------------------------------------------------------------
-
-void ClearPageList( void )
-{
-	PSI_CONTROL pc_canvas = NULL;
-	if( !pc_canvas )
-		pc_canvas = g.single_frame;
 	if( pc_canvas )
 	{
 		PCanvasData canvas = GetCanvas( pc_canvas );
@@ -573,9 +559,8 @@ void ChangePagesEx( PSI_CONTROL pc_canvas, PPAGE_DATA page DBG_PASS )
 	bChanging = FALSE;
 }
 
-void ShellReturnCurrentPage( void )
+void ShellReturnCurrentPage( PSI_CONTROL pc_canvas )
 {
-	PSI_CONTROL pc_canvas = g.single_frame;
 	if( pc_canvas )
 	{
 		PCanvasData canvas = GetCanvas( pc_canvas );
@@ -680,22 +665,16 @@ void UnDestroyPageID( PSI_CONTROL pc_canvas, _32 ID ) // MNU_DESTROY_PAGE ID (mi
 }
 
 
-int ShellCallSetCurrentPageEx( PSI_CONTROL pc_canvas, CTEXTSTR name )
+int ShellCallSetCurrentPage( PSI_CONTROL pc_canvas, CTEXTSTR name )
 {
 	if( pc_canvas )
 	{
-		return ShellSetCurrentPageEx( pc_canvas, name );
+		return ShellSetCurrentPage( pc_canvas, name );
 	}
 	return 0;
 }
 
-// stuff...
-int ShellCallSetCurrentPage( CTEXTSTR name )
-{
-	return ShellCallSetCurrentPageEx( g.single_frame, name );
-}
-
-int ShellSetCurrentPageEx( PSI_CONTROL pc_canvas, CTEXTSTR name )
+int ShellSetCurrentPage( PSI_CONTROL pc_canvas, CTEXTSTR name )
 {
 	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	//INDEX idx;
@@ -715,10 +694,6 @@ int ShellSetCurrentPageEx( PSI_CONTROL pc_canvas, CTEXTSTR name )
 	return FALSE;
 }
 
-int ShellSetCurrentPage( CTEXTSTR name )
-{
-	return ShellSetCurrentPageEx( g.single_frame, name );
-}
 
 PSI_CONTROL SelectTextWidget( void )
 {
@@ -1069,7 +1044,7 @@ static void UpdateControlPositions( PPAGE_DATA page )
 	INDEX idx;
 	PCanvasData canvas = (PCanvasData)page->canvas;
 
-	InterShell_DisablePageUpdateEx( page->frame, TRUE );
+	InterShell_DisablePageUpdate( page->frame, TRUE );
 	LIST_FORALL( page->controls, idx, PMENU_BUTTON, button )
 	{
 		PSI_CONTROL pc = QueryGetControl( button );
@@ -1079,7 +1054,7 @@ static void UpdateControlPositions( PPAGE_DATA page )
 				, PARTY( button->y ) - page->grid.origin_offset_y);
 					
 	}
-	InterShell_DisablePageUpdateEx( page->frame, FALSE );
+	InterShell_DisablePageUpdate( page->frame, FALSE );
 }
 
 void SetPageOffset( PPAGE_DATA page, int x, int y )

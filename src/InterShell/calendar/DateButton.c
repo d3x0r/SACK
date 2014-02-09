@@ -103,12 +103,12 @@ static void UpdateCalendar( LOGICAL bSetVariablesOnly )
 			LIST_FORALL( l.controls, idx, PMENU_BUTTON, button )
 			{
 				if( !canvas )
-					InterShell_DisablePageUpdateEx( canvas = InterShell_GetButtonCanvas( button ), TRUE );
+					InterShell_DisablePageUpdate( canvas = InterShell_GetButtonCanvas( button ), TRUE );
 				UpdateButton( button );
 			}
 		}
 		if( canvas )
-			InterShell_DisablePageUpdateEx( canvas, FALSE );
+			InterShell_DisablePageUpdate( canvas, FALSE );
 	}
 }
 
@@ -137,7 +137,7 @@ PRELOAD( InitCalendar )
 	UpdateCalendar( TRUE );
 }
 
-static int OnChangePage( WIDE("Calendar") )( void )
+static int OnChangePage( WIDE("Calendar") )( PSI_CONTROL pc_canvas )
 {
 	lprintf( WIDE("Empty List") );
 	EmptyList( &l.controls );
@@ -206,7 +206,7 @@ static void OnKeyPressEvent( WIDE("Calendar/Date Selector") )( PTRSZVAL psv )
 	l.prior_selected = pDay;
 }
 
-OnCreateMenuButton( WIDE("Calendar/Date Selector") )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( WIDE("Calendar/Date Selector") )( PMENU_BUTTON button )
 {
 	struct day_selector_info *pDay = New(struct day_selector_info);
 	MemSet( pDay, 0, sizeof( struct day_selector_info ) );
@@ -227,7 +227,7 @@ static void OnKeyPressEvent( WIDE("Calendar/Previous Month") )( PTRSZVAL button 
 	UpdateCalendar( FALSE );
 }
 
-OnCreateMenuButton( WIDE("Calendar/Previous Month") )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( WIDE("Calendar/Previous Month") )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonText( button, WIDE("Previous_Month") );
 	InterShell_SetButtonStyle( button, WIDE("square") );
@@ -245,7 +245,7 @@ static void OnKeyPressEvent( WIDE("Calendar/Next Month") )( PTRSZVAL button )
 	UpdateCalendar( FALSE );
 }
 
-OnCreateMenuButton( WIDE("Calendar/Next Month") )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( WIDE("Calendar/Next Month") )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonText( button, WIDE("Next_Month") );
 	InterShell_SetButtonStyle( button, WIDE("square") );
@@ -258,7 +258,7 @@ static void OnKeyPressEvent( WIDE("Calendar/Select Today") )( PTRSZVAL button )
 	UpdateCalendar( FALSE );
 }
 
-OnCreateMenuButton( WIDE("Calendar/Select Today") )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( WIDE("Calendar/Select Today") )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonText( button, WIDE("Select_Today") );
 	InterShell_SetButtonStyle( button, WIDE("square") );

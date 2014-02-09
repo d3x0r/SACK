@@ -346,7 +346,7 @@ void ResetResolution( PLOAD_TASK task )
 		{
 			if( !task->flags.bCaptureOutput || task->flags.bHideCanvas )
 			{
-				InterShell_DisablePageUpdateEx( InterShell_GetButtonCanvas( task->button ), FALSE );
+				InterShell_DisablePageUpdate( InterShell_GetButtonCanvas( task->button ), FALSE );
 				lprintf( WIDE("Calling InterShell_Reveal...") );
 				InterShell_Reveal( InterShell_GetButtonCanvas( task->button ) );
 			}
@@ -806,7 +806,7 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 	DestroyFrame( &frame );
 }
 
-OnEditControl( WIDE("Task") )( PTRSZVAL psv, PSI_CONTROL parent_frame )
+static PTRSZVAL OnEditControl( WIDE("Task") )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 {
 	EditTaskProperties( psv, parent_frame, TRUE );
 	return psv;
@@ -1674,7 +1674,7 @@ static LOGICAL CPROC PressDosKey( PTRSZVAL psv, _32 key )
 	return 1;
 }
 
-static void OnFinishInit( WIDE("TasksShellKeys") )( void )
+static void OnFinishInit( WIDE("TasksShellKeys") )( PSI_CONTROL pc_canvas )
 //PRELOAD( SetTaskKeys )
 {
 	BindEventToKey( NULL, KEY_D, KEY_MOD_ALT, PressDosKey, (PTRSZVAL)'D' );
@@ -2475,14 +2475,14 @@ static void OnLoadControl( WIDE("Task Util/Set Resolution") )( PCONFIG_HANDLER p
 }
 
 
-static LOGICAL OnDropAccept( WIDE("Add Task Button") )( CTEXTSTR file, int x, int y )
+static LOGICAL OnDropAccept( WIDE("Add Task Button") )( PSI_CONTROL pc_canvas, CTEXTSTR file, int x, int y )
 {
 	if( StrCaseStr( file, WIDE(".exe") )
 		||StrCaseStr( file, WIDE(".bat") )
 		||StrCaseStr( file, WIDE(".com") )
 		||StrCaseStr( file, WIDE(".cmd") ) )
 	{
-		PTRSZVAL psv = InterShell_CreateControl( WIDE("Task"), x, y, 5, 3 );
+		PTRSZVAL psv = InterShell_CreateControl( pc_canvas, WIDE("Task"), x, y, 5, 3 );
 		PLOAD_TASK pTask = (PLOAD_TASK)psv;
 		if( pTask )
 		{

@@ -116,12 +116,17 @@ namespace sack {
 #define OnQueryShowControl( name )  \
 	  DefineRegistryMethod(TASK_PREFIX,QueryShowControl,WIDE( "control" ),name,WIDE( "query can show" ),LOGICAL,(PTRSZVAL))
 
+// static int OnChangePage(WIDE(""))( PSI_CONTROL pc_canvas )
 #define OnChangePage(name) \
-	  DefineRegistryMethod(TASK_PREFIX,ChangePage,WIDE( "common" ),WIDE( "change page" ),name WIDE( "_on_change_page" ),int,(void))
+	  DefineRegistryMethod(TASK_PREFIX,ChangePage,WIDE( "common" ),WIDE( "change page" ),name WIDE( "_on_change_page" ),int,(PSI_CONTROL))
 
+// static void OnLoadCommon(WIDE(""))(PCONFIG_HANDLER pch )
+// can use InterShell_GetCurrentLoadingCanvas() to get the current canvas being loaded
 #define OnLoadCommon( name )  \
 	  DefineRegistryMethod(TASK_PREFIX,LoadCommon,WIDE( "common" ),WIDE( "common_config" ),name WIDE( "_on_load" ),void,(PCONFIG_HANDLER))
 
+// static void OnSaveCommon(WIDE(""))(FILE*file_out )
+// can use InterShell_GetCurrentSavingCanvas() to get the current canvas being loaded
 #define OnSaveCommon(name) \
 	   DefineRegistryMethod(TASK_PREFIX,SaveCommon,WIDE( "common" ),WIDE( "save common" ),name WIDE( "_on_save_common" ),void,(FILE*))
 
@@ -133,8 +138,9 @@ namespace sack {
 
 // invoked when all other initization is done, and before the main applciation actually runs and displays stuff.
 //
+// static void OnFinishInit(WIDE(""))(PSI_CONTROL pc_canvas);
 #define OnFinishInit( name ) \
-      DefineRegistryMethod(TASK_PREFIX,FinishInit,WIDE( "common" ),WIDE( "finish init" ),name WIDE( "_on_finish_init" ),void,(void))
+      DefineRegistryMethod(TASK_PREFIX,FinishInit,WIDE( "common" ),WIDE( "finish init" ),name WIDE( "_on_finish_init" ),void,(PSI_CONTROL))
 
 // invoked when ALL initialzation is run, just after the menu is shown.  (tasks, first load)
 #define OnFinishAllInit( name ) \
@@ -152,8 +158,9 @@ namespace sack {
 #define OnInterShellShutdown( name ) \
       DefineRegistryMethod(TASK_PREFIX,InterShellShutdown,WIDE( "common" ),WIDE( "intershell shutdown" ),name WIDE( "_on_intershell_shutdown" ),void,(void))
 
+// static LOGICAL OnDropAccept(WIDE(""))(PSI_CONTROL pc_canvas,CTEXTSTR filepath,int x,int y)
 #define OnDropAccept(name) \
-	__DefineRegistryMethod(TASK_PREFIX,DropAccept,WIDE( "common" ),WIDE( "Drop Accept" ),name WIDE( "_on_drop_accept" ),LOGICAL,(CTEXTSTR,int,int),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,DropAccept,WIDE( "common" ),WIDE( "Drop Accept" ),name WIDE( "_on_drop_accept" ),LOGICAL,(PSI_CONTROL,CTEXTSTR,int,int),__LINE__)
 
 //GETALL_REGISTERED( WIDE("issue_pos/common/common_config") )
 

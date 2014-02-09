@@ -1213,6 +1213,7 @@ if( BUILD_TESTS )
    add_subdirectory( src/typelib )
    add_subdirectory( src/imglib/testsprite )
 
+
    if( NOT WATCOM AND NOT UNIX AND NOT MINGW )
       add_subdirectory( src/utils/multi_touch/diagnostic )
       add_subdirectory( src/utils/multi_touch/plotter )
@@ -1229,7 +1230,7 @@ endif( NOT __ANDROID__ )
 if( WIN32 )
    add_subdirectory( src/utils/application_delay )
 endif( WIN32 )
-
+add_subdirectory( makefiles/prog/ppc )
 add_subdirectory( src/utils/seed_random )
 add_subdirectory( src/deadstart )
 add_subdirectory( src/utils/deploy )

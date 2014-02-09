@@ -75,7 +75,7 @@ static PLIST images;
 
 void InterShell_HideEx( PSI_CONTROL pc_canvas DBG_PASS )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas?pc_canvas:g.single_frame );
+	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	_lprintf(DBG_RELAY)( WIDE("Hiding Canvas. %p %p"), pc_canvas, canvas );
 	if( canvas )
 		HideDisplay( canvas->renderer );
@@ -83,7 +83,7 @@ void InterShell_HideEx( PSI_CONTROL pc_canvas DBG_PASS )
 
 void InterShell_RevealEx( PSI_CONTROL pc_canvas DBG_PASS )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas?pc_canvas:g.single_frame );
+	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	if( canvas )
 	{
 		// check to see if a button is processing still before
@@ -106,7 +106,7 @@ PSI_CONTROL InterShell_GetCanvas( PPAGE_DATA page )
 {
 	if( page )
 		return page->frame;
-	return g.single_frame;
+	return NULL;
 }
 
 
@@ -445,8 +445,6 @@ void InvokeEndEditMode( void )
 
 PCanvasData GetCanvas( PSI_CONTROL pc )
 {
-	if( !pc )
-		pc = g.single_frame;
 	{
 		ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
 		if( !canvas )
@@ -525,9 +523,6 @@ void DestroyButton( PMENU_BUTTON button )
 
 PSI_CONTROL InterShell_GetButtonCanvas( PMENU_BUTTON button )
 {
-	if( !button )
-		return g.single_frame;
-
 	button = InterShell_GetPhysicalButton( button );
 	if( button && button->canvas )
 		return button->canvas->pc_canvas;
@@ -1111,7 +1106,7 @@ void FixupButtonEx( PMENU_BUTTON button DBG_PASS )
 		//lprintf( WIDE( "--- updated a button's visual aspects, disable updates..." ) );
 }
 
-void CPROC InterShell_DisablePageUpdateEx( PSI_CONTROL pc_canvas, LOGICAL bDisable )
+void CPROC InterShell_DisablePageUpdate( PSI_CONTROL pc_canvas, LOGICAL bDisable )
 {
 	INDEX idx;
 	INDEX idx_page;
@@ -1154,7 +1149,7 @@ void CPROC InterShell_DisablePageUpdateEx( PSI_CONTROL pc_canvas, LOGICAL bDisab
 	}
 	else
 	{
-		if( ( current_page = ShellGetCurrentPage() ) )
+		if( ( current_page = ShellGetCurrentPage( pc_canvas ) ) )
 		{
 			LIST_FORALL( current_page->controls, idx, PMENU_BUTTON, control )
 			{
@@ -1169,10 +1164,6 @@ void CPROC InterShell_DisablePageUpdateEx( PSI_CONTROL pc_canvas, LOGICAL bDisab
 	}
 }
 
-void InterShell_DisablePageUpdate( LOGICAL bDisable )
-{
-	InterShell_DisablePageUpdateEx( g.single_frame, bDisable );
-}
 
 int InvokeEditEnd( PMENU_BUTTON button )
 {
@@ -1267,7 +1258,7 @@ static void CPROC AllPresses( PTRSZVAL psv, PKEY_BUTTON key )
 
 	{
 		PCanvasData canvas = GetCanvas( NULL );
-		GenerateSprites( GetFrameRenderer( g.single_frame ), PARTX(button->x) + (PARTW(button->x,button->w) /2), PARTY(button->y) + (PARTH(button->y,button->h)/2));
+		GenerateSprites( GetFrameRenderer( canvas->pc_canvas ), PARTX(button->x) + (PARTW(button->x,button->w) /2), PARTY(button->y) + (PARTH(button->y,button->h)/2));
 	}
 
 	if( g.flags.bLogKeypresses )
@@ -1281,7 +1272,7 @@ static void CPROC AllPresses( PTRSZVAL psv, PKEY_BUTTON key )
 		if( canvas && !button->flags.bIgnorePageChange )
 		{
 			//lprintf( WIDE( "Changing pages, but only virtually don't activate the page always" ) );
-			ShellSetCurrentPageEx( canvas->pc_canvas, button->pPageName );
+			ShellSetCurrentPage( canvas->pc_canvas, button->pPageName );
 		}
 		button->flags.bIgnorePageChange = 0;
 	}
@@ -1495,7 +1486,7 @@ static LOGICAL InvokeButtonCreate( PSI_CONTROL pc_canvas, PMENU_BUTTON button, L
 	return TRUE;
 }
 
-PMENU_BUTTON CreateInvisibleControl( TEXTCHAR *name )
+PMENU_BUTTON CreateInvisibleControl( PSI_CONTROL pc_frame, TEXTCHAR *name )
 {
 	if( name )
 	{
@@ -1504,7 +1495,7 @@ PMENU_BUTTON CreateInvisibleControl( TEXTCHAR *name )
 		button->flags.bListbox = FALSE;
 		button->flags.bInvisible = TRUE;
 		button->pTypeName = StrDup( name );
-		button->font_preset = UseACanvasFont( g.single_frame, WIDE("Default") );
+		button->font_preset = UseACanvasFont( pc_frame, WIDE("Default") );
 		button->font_preset_name = StrDup( WIDE("Default") );
 		//lprintf( WIDE( "Creating a virtual control %s" ), name );
 		InvokeButtonCreate( NULL, button, FALSE );
@@ -1548,9 +1539,9 @@ PMENU_BUTTON CPROC CreateSomeControl( PSI_CONTROL pc_canvas, int x, int y, int w
 	return button;
 }
 
-PTRSZVAL  InterShell_CreateControl( CTEXTSTR type, int x, int y, int w, int h )
+PTRSZVAL  InterShell_CreateControl( PSI_CONTROL canvas, CTEXTSTR type, int x, int y, int w, int h )
 {
-	PMENU_BUTTON button = CreateSomeControl( g.single_frame, x, y, w, h, type );
+	PMENU_BUTTON button = CreateSomeControl( canvas, x, y, w, h, type );
 	return button->psvUser;
 }
 
@@ -2054,7 +2045,8 @@ void ApplyCommonButtonControls( PSI_CONTROL frame )
 
 static void CPROC PickMenuControlFont( PTRSZVAL psv, PSI_CONTROL pc )
 {
-	SFTFont *font = SelectAFont( configure_key_dispatch.frame
+	SFTFont *font = SelectACanvasFont( configure_key_dispatch.canvas->pc_canvas 
+		, configure_key_dispatch.frame
 		, &configure_key_dispatch.new_font_name
 		);
 	if( font )
@@ -2715,7 +2707,7 @@ PMENU_BUTTON GetCloneButton( PCanvasData canvas, int px, int py, int bInvisible 
 		// commented bit creates new controled centered on mouse
 		PMENU_BUTTON clone;
 		if( bInvisible || !canvas )
-			clone = CreateInvisibleControl( g.clonebutton->pTypeName );
+			clone = CreateInvisibleControl( canvas->pc_canvas, g.clonebutton->pTypeName );
 		else
 		{
 			lprintf( WIDE( "This is where cloned controls are created." ) );
@@ -3243,7 +3235,7 @@ static int ProcessContextMenu( PCanvasData canvas, PSI_CONTROL pc, S_32 px, S_32
 								EditGlareSets( parent_frame );
 								break;
 							case MNU_EDIT_FONTS:
-								SelectAFont( parent_frame, NULL );
+								SelectACanvasFont( canvas->pc_canvas, parent_frame, NULL );
 								break;
 							case MNU_PAGE_PROPERTIES:
 								EditCurrentPageProperties(parent_frame,canvas);
@@ -3785,6 +3777,12 @@ void CPROC QuitMenu( PSI_CONTROL pc, _32 keycodeUnused )
 	Banner2TopNoWait( WIDE( "Shutting down..." ) );
 	InvokeInterShellShutdown();
 	{
+		PSI_CONTROL canvas;
+		INDEX idx;
+		LIST_FORALL( g.frames, idx, PSI_CONTROL, canvas )
+		{
+			EnableFrameUpdates( canvas, FALSE );
+		}
 		//PMENU_BUTTON button;
 		//INDEX idx;
 		if( g.flags.multi_edit )
@@ -3798,8 +3796,8 @@ void CPROC QuitMenu( PSI_CONTROL pc, _32 keycodeUnused )
 			}
 			*/
 		}
-		else
-			EnableFrameUpdates( g.single_frame, FALSE );
+		//else
+		//	EnableFrameUpdates( g.single_frame, FALSE );
 		//LIST_FORALL( canvas->current_page->controls, idx, PMENU_BUTTON, button )
 		//{
 		//	lprintf( WIDE("Destroy button...") );
@@ -3854,7 +3852,7 @@ void CPROC AbortConfigureKeys( PSI_CONTROL pc, _32 keycode )
 
 		canvas->flags.selected = 0;
 		canvas->nSelected = 0;
-		SaveButtonConfig( g.single_frame, g.config_filename );
+		SaveButtonConfig( pc, g.config_filename );
 		EndEditingPage( pc, canvas->current_page );
 		lprintf( WIDE("And having enabled them... then...") );
 	}
@@ -3965,9 +3963,9 @@ void GetPageSizeEx( PSI_CONTROL pc_canvas, P_32 width, P_32 height )
 	if( !pc_canvas )
 	{
 		if( width )
-			(*width) = g.width;
+			(*width) = 0;
 		if( height )
-			(*height) = g.height;
+			(*height) = 0;
 	}
 	else
 	{
@@ -3986,12 +3984,13 @@ void GetPageSize( P_32 width, P_32 height )
 }
 
 
-void SetupSystemsListAndGlobalSingleFrame(void )
+PSI_CONTROL SetupSystemsListAndGlobalSingleFrame(void )
 {
+	PSI_CONTROL result_canvas = NULL;
 	//SystemLogTime( SYSLOG_TIME_DELTA|SYSLOG_TIME_CPU );
 	//AddTimer( 15000, CheckMemStats, 0 );
 	//Log( WIDE("Menu started\n") );
-
+	_32 width, height;
 	if( !g.systems && g.flags.bSQLConfig )
 	{
 #if 0
@@ -4040,13 +4039,13 @@ void SetupSystemsListAndGlobalSingleFrame(void )
 	if( !SetControlInterface( g.pRenderInterface = GetDisplayInterface() ) )
 	{
 		Log( WIDE("Failed to set display interface...") );
-		return;
+		return NULL;
 	}
 	if( !SetControlImageInterface( g.pImageInterface = GetImageInterface() ) )
 	{
 		Log( WIDE("Failed to set image interface...") );
 		DropDisplayInterface( g.pRenderInterface );
-		return;
+		return NULL;
 	}
 #endif
 #ifndef __NO_OPTIONS__
@@ -4055,31 +4054,29 @@ void SetupSystemsListAndGlobalSingleFrame(void )
 	g.flags.bLogKeypresses = SACK_GetProfileIntEx( GetProgramName(), WIDE( "Intershell/Log button events" ), 0, TRUE );
 #endif
 	SetBlotMethod( BLOT_C );
-	GetDisplaySizeEx( 0, NULL, NULL, &g.width, &g.height );
+	GetDisplaySizeEx( 0, NULL, NULL, &width, &height );
 	if( g.flags.multi_edit )
 	{
-		g.width = g.width * 3 / 8;
-		g.height = g.height * 3 / 8;
+		width = width * 3 / 8;
+		height = height * 3 / 8;
 	}
 
 	// always have at least 1 frame.  and it is a menu canvas
-	InterShell_DisablePageUpdateEx( g.single_frame, TRUE );
+	InterShell_DisablePageUpdate( result_canvas, TRUE );
 	if( !g.flags.bExternalApplicationhost )
 	{
 #ifndef __NO_OPTIONS__
 		if( g.flags.bSpanDisplay )
 		{
-			g.width = g.width*2;
-			g.height = g.height;
-			g.x = 0;
-			g.y = 0;
-			lprintf( WIDE("opening canvas at %d,%d %dx%d"), 0, 0, g.width, g.height );
-			g.single_frame = MakeControl( NULL, menu_surface.TypeID
-												 , g.x, g.y
-												 , g.width, g.height, 0 );
+			width = width*2;
+			height = height;
+			lprintf( WIDE("opening canvas at %d,%d %dx%d"), 0, 0, width, height );
+			result_canvas = MakeControl( NULL, menu_surface.TypeID
+												 , 0, 0
+												 , width, height, 0 );
 		}
 #  ifndef __LINUX__
-		if( !g.single_frame )
+		if( !result_canvas )
 		{
 			int display = SACK_GetProfileIntEx( GetProgramName(), WIDE( "Intershell Layout/Use Screen Number" ), 0, TRUE );
 			if( display > 0 )
@@ -4087,49 +4084,40 @@ void SetupSystemsListAndGlobalSingleFrame(void )
 				_32 w, h;
 				S_32 x, y;
 				GetDisplaySizeEx( display, &x, &y, &w, &h );
-				g.width = w;
-				g.height = h;
-				g.x = x;
-				g.y = y;
 				lprintf( WIDE("opening canvas on screen %d at %d,%d %dx%d"), display, x, y, w, h );
-				g.single_frame = MakeControl( NULL, menu_surface.TypeID
-													 , g.x, g.y
-													 , g.width, g.height, 0 );
+				result_canvas = MakeControl( NULL, menu_surface.TypeID
+													 , x, y
+													 , w, h, 0 );
 			}
 		}
 #  endif
-		if( !g.single_frame )
+		if( !result_canvas )
 		{
 			if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "Intershell Layout/Use Custom Positioning" ), 0, TRUE ) )
 			{
 				int x = SACK_GetProfileInt( GetProgramName(), WIDE( "Intershell Layout/X Position" ), 0 );
 				int y = SACK_GetProfileInt( GetProgramName(), WIDE( "Intershell Layout/Y Position" ), 0 );
-				int _w = SACK_GetProfileInt( GetProgramName(), WIDE( "Intershell Layout/Width" ), g.width );
-				int _h = SACK_GetProfileInt( GetProgramName(), WIDE( "Intershell Layout/Height" ), g.height );
-				g.width = _w;
-				g.height = _h;
-				g.x = x;
-				g.y = y;
+				int _w = SACK_GetProfileInt( GetProgramName(), WIDE( "Intershell Layout/Width" ), width );
+				int _h = SACK_GetProfileInt( GetProgramName(), WIDE( "Intershell Layout/Height" ), height );
 				lprintf( WIDE("opening canvas at %d,%d %dx%d"), x, y, _w, _h );
-				g.single_frame = MakeControl( NULL, menu_surface.TypeID, x, y, _w, _h, 0 );
+				result_canvas = MakeControl( NULL, menu_surface.TypeID, x, y, _w, _h, 0 );
 			}
 			else
 #endif
 			{
-				lprintf( WIDE("opening canvas at 0,0, %dx%d %d"), g.width, g.height, menu_surface.TypeID );
-				g.single_frame = MakeControl( NULL, menu_surface.TypeID, 0, 0, g.width, g.height, 0 );
+				lprintf( WIDE("opening canvas at 0,0, %dx%d %d"), width, height, menu_surface.TypeID );
+				result_canvas = MakeControl( NULL, menu_surface.TypeID, 0, 0, width, height, 0 );
 			}
-			SetCommonText( g.single_frame, g.single_frame_title );
+			SetCommonText( result_canvas, g.single_frame_title );
 #ifndef __NO_OPTIONS__
 		}
 #endif
+		GetDisplayPosition( GetFrameRenderer( result_canvas ), &g.default_page_x, &g.default_page_y, &g.default_page_width, &g.default_page_height );
 		//lprintf( WIDE( "Got single frame. %d,%d" ), g.width, g.height );
-
-		UseACanvasFont( g.single_frame, WIDE("Default") );
-
+		UseACanvasFont( result_canvas, WIDE("Default") );
 	}
-
 	//lprintf( WIDE( "Got single frame. %d,%d" ), g.width, g.height );
+	return result_canvas;
 }
 
 
@@ -4245,14 +4233,16 @@ PMENU MakeControlsMenu( PMENU parent, TEXTCHAR *basename, CTEXTSTR priorname )
 
 int CommonInitCanvas( PSI_CONTROL pc_canvas, PCanvasData canvas )
 {
-	if( !g.single_frame )
+#if defined( ALLOW_GLOBAL_FRAME )
+	if( !g.first_frame )
 	{
 		// this is the first canvas, therefore we assume it's the default.
 		//  a lot of code has moved away from g.single_frame references; but there still remains
 		// places that the global frame is used.
 		//lprintf( WIDE( "Half way through init, and now we set single_frame, could not wait for return to creator." ) );
-		g.single_frame = pc_canvas;
+		g.first_frame = pc_canvas;
 	}
+#endif
 
 	g.flags.bExit = 0;
 
@@ -4350,11 +4340,11 @@ void CPROC AcceptFiles( PSI_CONTROL pc, CTEXTSTR file, S_32 x, S_32 y )
 		name;
 		name = GetNextRegisteredName( &data ) )
 	{
-		LOGICAL (CPROC *f)(CTEXTSTR, int,int);
+		LOGICAL (CPROC *f)(PSI_CONTROL,CTEXTSTR, int,int);
 		//snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/common/save common/%s" ), name );
-		f = GetRegisteredProcedure2( (CTEXTSTR)data, LOGICAL, name, (CTEXTSTR, int,int) );
+		f = GetRegisteredProcedure2( (CTEXTSTR)data, LOGICAL, name, (PSI_CONTROL,CTEXTSTR, int,int) );
 		if( f )
-			if( f(file,px,py) )
+			if( f(pc, file,px,py) )
 				break;
 	}
 	bInvoked = FALSE;
@@ -4463,8 +4453,9 @@ LOGICAL CPROC GoodQuitMenu( PTRSZVAL psvUnused, _32 keycodeUnused )
 
 LOGICAL CPROC DoConfigureKeys( PTRSZVAL psv, _32 keycodeUnused )
 {
+	PCanvasData canvas = (PCanvasData)psv;
 	if( !g.flags.bNoEdit )
-		ConfigureKeys( g.single_frame, keycodeUnused );
+		ConfigureKeys( canvas->pc_canvas, keycodeUnused );
 	return TRUE;
 }
 
@@ -4584,9 +4575,9 @@ void DisplayMenuCanvas( PSI_CONTROL pc_canvas, PRENDERER under, _32 width, _32 h
 			SetRendererTitle( canvas->renderer, title );
 			AttachFrameToRenderer( pc_canvas, canvas->renderer );
 		}
-		BindEventToKey( canvas->renderer, KEY_C, KEY_MOD_ALT, DoConfigureKeys, 0 );
-		BindEventToKey( canvas->renderer, KEY_X, KEY_MOD_ALT, GoodQuitMenu, 0 );
-		BindEventToKey( canvas->renderer, KEY_F4, KEY_MOD_ALT, GoodQuitMenu, 0 );
+		BindEventToKey( canvas->renderer, KEY_C, KEY_MOD_ALT, DoConfigureKeys, (PTRSZVAL)canvas );
+		BindEventToKey( canvas->renderer, KEY_X, KEY_MOD_ALT, GoodQuitMenu, (PTRSZVAL)canvas );
+		BindEventToKey( canvas->renderer, KEY_F4, KEY_MOD_ALT, GoodQuitMenu, (PTRSZVAL)canvas );
 	}
 
 #ifndef UNDER_CE
@@ -4612,7 +4603,7 @@ PSI_CONTROL OpenPageFrame( PPAGE_DATA page )
 	{
 		static _32 xofs, yofs;
 		PSI_CONTROL page_frame;
-		page_frame = MakeControl( NULL, menu_surface.TypeID, xofs, yofs, g.width, g.height, g.flags.multi_edit?(BORDER_NORMAL|BORDER_RESIZABLE):0 );
+		page_frame = MakeControl( NULL, menu_surface.TypeID, xofs, yofs, g.default_page_width, g.default_page_height, g.flags.multi_edit?(BORDER_NORMAL|BORDER_RESIZABLE):0 );
 		{
 			ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, page_frame );
 			xofs += 25;
@@ -4622,7 +4613,7 @@ PSI_CONTROL OpenPageFrame( PPAGE_DATA page )
 
 			SetCommonBorder( page_frame, BORDER_NORMAL|BORDER_RESIZABLE );
 
-			DisplayMenuCanvas( page_frame, NULL, g.width, g.height, g.x, g.y );
+			DisplayMenuCanvas( page_frame, NULL, g.default_page_width, g.default_page_height, g.default_page_x + xofs, g.default_page_y + yofs );
 #if 1
 			InitSpriteEngine();
 #endif
@@ -4637,8 +4628,9 @@ PSI_CONTROL OpenPageFrame( PPAGE_DATA page )
 
 void InvokeFinishInit( void );
 
-int Init( LOGICAL bLoadConfig )
+PSI_CONTROL Init( LOGICAL bLoadConfig )
 {
+	PSI_CONTROL pc_canvas;
 	if( g.flags.restoreload )
 	{
 		TEXTCHAR *ext;
@@ -4649,12 +4641,12 @@ int Init( LOGICAL bLoadConfig )
 			snprintf( msg, sizeof( msg ), WIDE( "%s\nINVALID Configuration Name to Restore\nShould be like *.AutoConfigBackup*" )
 				, g.config_filename );
 			Banner2Message( msg );
-			return -1;
+			return NULL;
 		}
 		g.flags.forceload = 1; // -restore implies -force
 	}
 
-	SetupSystemsListAndGlobalSingleFrame();
+	pc_canvas = SetupSystemsListAndGlobalSingleFrame();
 
 	// Load the previous configuration file...
 	// and make the controls found therein...
@@ -4663,7 +4655,7 @@ int Init( LOGICAL bLoadConfig )
 		if( bLoadConfig )
 		{
 			Banner2NoWaitAlpha( WIDE("Read config...") );
-			LoadButtonConfig( g.single_frame, g.config_filename );
+			LoadButtonConfig( pc_canvas, g.config_filename );
 		}
 		//g.button_space = 25;
 		// default images...
@@ -4715,7 +4707,7 @@ int Init( LOGICAL bLoadConfig )
 		xlprintf(LOG_UPDATE_AND_REFRESH_LEVEL)( WIDE("-------------------------------------- BEGIN CHANGE PAGE ----------------------------------------------") );
 #endif
 	}
-	return 0;
+	return pc_canvas;
 }
 
 
@@ -4731,28 +4723,31 @@ ATEXIT_PRIORITY( ExitMisc, ATEXIT_PRIORITY_DEFAULT + 1 )
 		INDEX idx2;
 		if( !g.flags.multi_edit )
 		{
+			PSI_CONTROL pc_canvas;
+			INDEX idx_canvas;
 #ifndef __NO_OPTIONS__
 			if( 0 )//SACK_GetProfileIntEx( GetProgramName(), "Destroy Controls at exit", 0, TRUE ) )
 #else
 			if(0)
 #endif
+			LIST_FORALL( g.frames, idx_canvas, PSI_CONTROL, pc_canvas )
 			{
-				InterShell_DisablePageUpdateEx( g.single_frame, TRUE );
+				InterShell_DisablePageUpdate( pc_canvas, TRUE );
 				LIST_FORALL( g.all_pages, idx2, PPAGE_DATA, page )
 				{
-					ChangePages( g.single_frame, page );
+					ChangePages( page->canvas->pc_canvas, page );
 					LIST_FORALL( page->controls, idx, PMENU_BUTTON, button )
 					{
 						DestroyButton( button );
 					}
-					if( page->frame != g.single_frame )
+					if( page->frame != pc_canvas )
 					{
 						DestroyFrame( &page->frame );
 					}
 					else
 						page->frame = NULL;
 				}
-				InterShell_DisablePageUpdateEx( g.single_frame, TRUE );
+				InterShell_DisablePageUpdate( pc_canvas, TRUE );
 				//DestroyFrame( &g.single_frame );
 			}
 		}
@@ -4858,9 +4853,9 @@ static PTRSZVAL OnCreateMenuButton( WIDE( "Quit Application" ) )( PMENU_BUTTON b
 }
 //------------------------------------------------------
 
-void InterShell_SetTheme( int ID )
+void InterShell_SetTheme( PSI_CONTROL pc_canvas, int ID )
 {
-	PCanvasData canvas = GetCanvas( g.single_frame );
+	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 
 	StoreTheme( canvas );
 	if( ID != g.theme_index )
@@ -4877,7 +4872,7 @@ static void OnKeyPressEvent( WIDE( "InterShell/Next Theme" ) )( PTRSZVAL psv )
 	int tmp = g.theme_index + 1;
 	if( tmp >= g.max_themes )
 		tmp = 0;
-	InterShell_SetTheme( tmp );
+	InterShell_SetTheme( ((PMENU_BUTTON)psv)->canvas->pc_canvas, tmp );
 }
 
 static PTRSZVAL OnCreateMenuButton( WIDE( "InterShell/Next Theme" ) )( PMENU_BUTTON button )
@@ -5005,10 +5000,9 @@ void AddGlareLayer( PCanvasData canvas, Image image )
 
 int restart( void )
 {
-	PCanvasData canvas;
 	static int first_restart = 1;
-	Init( TRUE );
-	canvas  = GetCanvas( g.single_frame );
+	PSI_CONTROL pc_canvas = Init( TRUE );
+	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 #ifdef DEBUG_BACKGROUND_UPDATE
 	xlprintf(LOG_UPDATE_AND_REFRESH_LEVEL)( WIDE("Displaying the frame on the real display...") );
 #endif
@@ -5018,9 +5012,9 @@ int restart( void )
 		{
 			//lprintf( "Making sure we start from NO Page, in case the first page is protected..." );
 			//lprintf( "Should we have a rule for default forward, backward, first, last?  From NULL? from another?" );
-			HidePageEx( g.single_frame );
+			HidePageEx( pc_canvas );
 			canvas->current_page = NULL;
-			ChangePages( g.single_frame, canvas->default_page );
+			ChangePages( pc_canvas, canvas->default_page );
 		}
 	}
 	InvokeStartupMacro();
@@ -5031,15 +5025,15 @@ int restart( void )
 	// have at least this one.
 	do
 	{
-		InterShell_DisablePageUpdateEx( g.single_frame, FALSE );
+		InterShell_DisablePageUpdate( pc_canvas, FALSE );
 		if( g.flags.multi_edit )
 			SetCommonBorder( canvas->default_page->frame, BORDER_NORMAL|BORDER_RESIZABLE );
-		DisplayMenuCanvas( canvas->default_page->frame, NULL, g.width, g.height, g.x, g.y );
+		DisplayMenuCanvas( canvas->default_page->frame, NULL, g.default_page_width, g.default_page_height, g.default_page_x, g.default_page_y );
 		if( !g.flags.multi_edit )
 		{
 #ifndef __NO_ANIMATION__
 			InitSpriteEngine( );
-			PlayAnimation( g.single_frame );
+			PlayAnimation( pc_canvas );
 #endif
 			//WakeableSleep( 250 );
 			if( g.flags.bTopmost )
@@ -5115,23 +5109,6 @@ static void CPROC MyHandleSQLFeedback( CTEXTSTR message )
 	Banner2NoWaitAlpha( message );
 }
 
-static int CPROC InterShellCoreService( _32 SourceRouteID, _32 MsgID
-												  , _32 *params, _32 param_length
-												  , _32 *result, _32 *result_length )
-{
-	switch( MsgID )
-	{
-	case MSG_UserServiceMessages + 0:
-#if WIN32
-		{
-			PRENDERER renderer = MakeDisplayFrom( ((PRENDERER)g.mem_lock)[0].hWndOutput );
-			AttachFrameToRenderer( g.single_frame, renderer );
-		}
-#endif
-		break;
-	}
-	return TRUE;
-}
 
 #ifndef UNDER_CE
 #if defined( WIN32 )
@@ -5146,11 +5123,9 @@ PRIORITY_PRELOAD( ProgramLock, DEFAULT_PRELOAD_PRIORITY+2 )
 	g.flags.bSQLConfig = SACK_GetProfileIntEx( GetProgramName(), WIDE("Use SQL Configuration"), 1, TRUE );
 	if( g.flags.bSQLConfig )
 	{
-		int version;
 		SACK_GetProfileStringEx( GetProgramName(), WIDE("Use SQL DSN for Configuration"), GetDefaultOptionDatabaseDSN()
 									  , g.configuration_dsn, 256, TRUE );
 		g.configuration_version = SACK_GetProfileIntEx( GetProgramName(), WIDE("Use SQL Option Database Version"), 4, TRUE );
-
 	}
 	SACK_GetProfileStringEx( WIDE("InterShell"), WIDE("Default resource path")
 								  , WIDE("")
@@ -5172,7 +5147,6 @@ PRIORITY_PRELOAD( ProgramLock, DEFAULT_PRELOAD_PRIORITY+2 )
 								  , application_title
 								  , sizeof( application_title ), TRUE );
 	g.single_frame_title = SaveText( application_title );
-	//RegisterServiceHandler( GetProgramName(), InterShellCoreService );
 	SetGroupFilePath( WIDE("PSI Frames"), WIDE("%resources%/frames") );
 	SetGroupFilePath( WIDE("Resources"), resource_path );
 	SetCurrentPath( resource_path );
@@ -5427,7 +5401,7 @@ PUBLIC( int, Main)( int argc, TEXTCHAR **argv, int bConsole )
 	if( !g.flags.bTerminateStayResident )
 	{
 		g.flags.bExit = 0;
-		while( restart() != 1 );
+		while( restart(  ) != 1 );
 		QuitMenu( 0, 0 );
 #ifdef USE_INTERFACES
 		DropDisplayInterface( g.pRenderInterface );
@@ -5486,7 +5460,7 @@ namespace InterShell
 					AddGlareLayer( canvas, image );
 #endif
 				}
-				InterShell_DisablePageUpdateEx( this_frame, FALSE );
+				InterShell_DisablePageUpdate( this_frame, FALSE );
 				//return (int)this_frame;
 			}
 			RemoveBanner2Ex( NULL DBG_SRC );
@@ -5575,13 +5549,10 @@ GetCommonButtonControls
 , InterShell_SaveCommonButtonParameters		
 , InterShell_GetSystemName						
 , UpdateButtonExx						
-, ShellGetCurrentPageEx					
 , ShellGetCurrentPage					
 , ShellGetNamedPage						
 , ShellSetCurrentPage					
-, ShellSetCurrentPageEx					
 , ShellCallSetCurrentPage				
-, ShellCallSetCurrentPageEx				
 , ShellReturnCurrentPage					
 , ClearPageList							
 , InterShell_DisablePageUpdate					
@@ -5601,9 +5572,7 @@ GetCommonButtonControls
 																 , InterShell_GetLabelText
 																 , InterShell_TranslateLabelText
 																 , InterShell_GetControlLabelText
-																 , SelectAFont
-																 , NULL //UseAFont
-																 , NULL // CreateAFont
+																 , SelectACanvasFont
 																 , BeginCanvasConfiguration
 																 , SaveCanvasConfiguration
 																 , NULL //SaveCanvasConfiguration_XML
@@ -5636,14 +5605,14 @@ GetCommonButtonControls
 																				 , UseACanvasFont
 																				 , InterShell_GetButtonExtension
 																				 , SetTextLabelOptions
-																				 , GetCurrentLoadingCanvas
+																				 , InterShell_GetCurrentLoadingCanvas
+																				 , InterShell_GetCurrentSavingCanvas
 																				 , CreateACanvasFont
 																				 , SetupSecurityEdit
 																				 , CreateSecurityContext
 																				 , CloseSecurityContext
 																				 , InterShell_SaveSecurityInformation
 																				 , CreateACanvasFont2
-																				 , InterShell_DisablePageUpdateEx
 																				 , AddSecurityContextToken
 																				 , GetSecurityContextTokens
 																				 , GetSecurityModules
@@ -5788,7 +5757,7 @@ static PTRSZVAL OnCreateMenuButton( WIDE( "InterShell/Reset SQL Configuration" )
 
 static void OnKeyPressEvent( WIDE( "InterShell/Restart Application" ) )( PTRSZVAL psv )
 {
-	CTEXTSTR cmd[256];
+	TEXTCHAR cmd[256];
 	CTEXTSTR args[4];
 	Banner2NoWaitAlpha( WIDE("Restarting...") );
 	snprintf( cmd, 256, WIDE("@/%s.restart.exe"), GetProgramName() );

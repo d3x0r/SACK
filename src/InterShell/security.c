@@ -225,15 +225,15 @@ void InterShell_SaveSecurityInformation( FILE *file, PTRSZVAL psv )
 static void OnSaveCommon( WIDE( "@10 EditSecurity" ) )( FILE *file )
 {
 	fprintf( file, WIDE( "Begin Edit Permissions\n" ) );
-	InterShell_SaveSecurityInformation( file, (PTRSZVAL)g.single_frame );
+	InterShell_SaveSecurityInformation( file, (PTRSZVAL)InterShell_GetCurrentSavingCanvas() );
 }
 
 static PTRSZVAL CPROC BeginGlobalEditPerms( PTRSZVAL psv, arg_list args )
 {
-	lprintf( WIDE("Setting psv to single_frame %p, adding security plugin rules"), g.single_frame );
+	lprintf( WIDE("Setting psv to single_frame %p, adding security plugin rules"), InterShell_GetCurrentLoadingCanvas() );
 	InterShell_ReloadSecurityInformation( InterShell_GetCurrentConfigHandler() );
    // change/set what the psv is for global paramters.
-   return (PTRSZVAL)g.single_frame;
+   return (PTRSZVAL)InterShell_GetCurrentLoadingCanvas();
 }
 
 static void OnLoadCommon( WIDE( "@10 EditSecurity" ) )( PCONFIG_HANDLER pch )

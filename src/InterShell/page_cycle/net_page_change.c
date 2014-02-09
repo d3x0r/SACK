@@ -30,8 +30,11 @@ static void CPROC NetEvent( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR *s
 			// someday pay attention to command between buffer and end...
 			if( end )
 			{
-					end++;
-				ShellSetCurrentPage( end );
+				PSI_CONTROL pc_canvas = (PSI_CONTROL)GetNetworkLong( pc, 1 );
+				end++;
+				// might not have finished init...
+				if( pc_canvas )
+					ShellSetCurrentPage( pc_canvas, end );
 			}
 			l.last_msg = tmp;
 		}
@@ -43,13 +46,14 @@ static void CPROC NetEvent( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR *s
 	ReadUDP( pc, buffer, 256 );
 }
 
-static void OnFinishInit( WIDE("Net Page Changer") )( void )
+static void OnFinishInit( WIDE("Net Page Changer") )( PSI_CONTROL pc_canvas )
 {
 	TEXTCHAR tmp[256];
 	SACK_GetPrivateProfileString( WIDE("Network Page Changer"), WIDE("listen on interface"), WIDE("0.0.0.0:7636"), tmp, sizeof( tmp ), WIDE("page_changer.ini") );
 	if( tmp[0] )
 	{
 		l.udp_server = ServeUDP( tmp, 7636, NetEvent, NULL );
+		SetNetworkLong( l.udp_server, 1, (PTRSZVAL)pc_canvas );
 		SACK_GetPrivateProfileString( WIDE("Network Page Changer"), WIDE("send change to"), WIDE("255.255.255.255:7636"), tmp, sizeof( tmp ), WIDE("page_changer.ini") );
 	}
  }

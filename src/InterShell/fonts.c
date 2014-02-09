@@ -41,7 +41,7 @@ typedef struct font_select_tag
 	POINTER *fontdata;
 	size_t *fontdatalen;
 	PFONT_PRESET selected_font;
-
+	PSI_CONTROL canvas;
 } FONT_SELECT, *PFONT_SELECT;
 
 static struct intershell_font_local
@@ -222,8 +222,8 @@ SFTFont *CreateACanvasFont2( PSI_CONTROL pc_canvas, CTEXTSTR name, CTEXTSTR font
 
 static void CPROC EditPageFont(PTRSZVAL psv, PSI_CONTROL pc )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, g.single_frame );
 	PFONT_SELECT font_select = (PFONT_SELECT)psv;
+	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, font_select->canvas );
 	if( font_select->selected_font )
 	{
 		POINTER tmp = font_select->selected_font->fontdata;
@@ -253,13 +253,6 @@ SFTFont* CreateACanvasFont( PSI_CONTROL pc_canvas, CTEXTSTR name, SFTFont font, 
 	return NULL;
 }
 
-#undef CreateAFont
-SFTFont* CreateAFont( CTEXTSTR name, SFTFont font, POINTER data, size_t datalen )
-{
-	lprintf( WIDE("Depricated CreateAFont().") );
-	return CreateACanvasFont( g.single_frame, name, font, data, datalen );
-}
-
 void CPROC SetCurrentPreset( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM pli )
 {
 	PFONT_SELECT font_select = (PFONT_SELECT)psv;
@@ -269,8 +262,8 @@ void CPROC SetCurrentPreset( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM pli )
 
 static void CPROC CreatePageFont( PTRSZVAL psv, PSI_CONTROL pc )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, g.single_frame );
 	PFONT_SELECT font_select = (PFONT_SELECT)psv;
+	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, font_select->canvas );
 	TEXTCHAR name_buffer[256];
 	//if( !font_select->selected_font )
 	{
@@ -320,11 +313,6 @@ SFTFont * UseACanvasFont( PSI_CONTROL pc_canvas, CTEXTSTR name )
 	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	PFONT_PRESET font_preset;
 	INDEX idx;
-	if( !canvas )		
-	{
-		ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas2, g.single_frame );
-		canvas = canvas2;
-	}
 	if( !name )
 		name = WIDE( "Default" );
 	if( FindLink( &l.canvas, canvas ) == INVALID_INDEX )
@@ -347,12 +335,6 @@ SFTFont * UseACanvasFont( PSI_CONTROL pc_canvas, CTEXTSTR name )
 //	return NULL;
 }
 
-#undef UseAFont
-SFTFont * UseAFont( CTEXTSTR name )
-{
-	return UseACanvasFont( g.single_frame, name );
-}
-
 
 // default name for having already chosen a font preset...
 // result is a pointer to the preset's name.
@@ -364,6 +346,7 @@ SFTFont *SelectACanvasFont( PSI_CONTROL pc_canvas, PSI_CONTROL parent, CTEXTSTR*
 	int okay = 0;
 	int done = 0;
 	font_select.selected_font = NULL;
+	font_select.canvas = pc_canvas;
 	//font_select.fontdata = pfontdata;
 	//font_select.fontdatalen = pfontdatalen;
 	frame = LoadXMLFrame( WIDE("font_preset_property.isframe") );
@@ -425,11 +408,6 @@ SFTFont *SelectACanvasFont( PSI_CONTROL pc_canvas, PSI_CONTROL parent, CTEXTSTR*
 	return NULL;
 }
 
-SFTFont *SelectAFont( PSI_CONTROL parent, CTEXTSTR*default_name )
-{
-	return SelectACanvasFont( g.single_frame, parent, default_name );
-}
-
 
 static void OnSaveCommon( WIDE( "Common Fonts" ) )( FILE *out )
 {
@@ -467,7 +445,7 @@ static PTRSZVAL CPROC RecreateFont( PTRSZVAL psv, arg_list args )
 #ifdef DEBUG_FONT_CREATION
 	lprintf( "RecreateFont..." );
 #endif
-	CreateACanvasFont( GetCurrentLoadingCanvas(), name, NULL, data, length );
+	CreateACanvasFont( InterShell_GetCurrentLoadingCanvas(), name, NULL, data, length );
 	return 0;
 }
 

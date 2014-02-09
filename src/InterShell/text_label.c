@@ -98,8 +98,6 @@ static struct label_local
 
 } l;
 
-CTEXTSTR GetPageTitle(void);
-
 /*
 #define NUM_VARIABLES ( sizeof( variables ) / sizeof( variables[0] ) )
 VARIABLE variables[] = { { "Current User", .flags={1,0},.data={.string_value=&paper_global_data.pCurrentUserName } }
@@ -250,19 +248,19 @@ static CTEXTSTR TestParam2( S_64 arg )
 	return val;
 }
 
+static CTEXTSTR GetPageTitle( PTRSZVAL psv, PMENU_BUTTON control )
+{
+	PPAGE_DATA page = ShellGetCurrentPage( InterShell_GetButtonCanvas( control ) );
+	return page->title?page->title:WIDE( "DEFAULT PAGE" );
+}
+
 PRELOAD( PreconfigureVariables )
 {
-	CreateLabelVariable( WIDE( "Current Page" ), LABEL_TYPE_PROC, (POINTER)GetPageTitle );
+	CreateLabelVariableEx( WIDE( "Current Page" ), LABEL_TYPE_PROC_CONTROL_EX, (POINTER)GetPageTitle, 0 );
 	CreateLabelVariable( WIDE( "Highlight State" ), LABEL_TYPE_VALUE_STRING, (POINTER)GetHighlight );
 	AddTimer( 50, ScrollingLabelUpdate, 0 );
 }
 
-
-CTEXTSTR GetPageTitle( void )
-{
-	PPAGE_DATA page = ShellGetCurrentPage();
-	return page->title?page->title:WIDE( "DEFAULT PAGE" );
-}
 
 static PVARIABLE FindVariableByName( CTEXTSTR variable )
 {
@@ -756,7 +754,7 @@ static PTRSZVAL OnCreateControl( TEXT_LABEL_NAME )( PSI_CONTROL frame, S_32 x, S
 	PPAGE_LABEL title = New( struct page_label );
 	MemSet( title, 0, sizeof( *title ) );
 	title->canvas = frame;
-	title->page = ShellGetCurrentPage();
+	title->page = ShellGetCurrentPage( frame );
 	title->button = InterShell_GetCurrentlyCreatingButton();
 	title->control = MakeControl( frame, STATIC_TEXT, x, y, w, h, -1 );
 	SetCommonBorder( title->control, BORDER_FIXED|BORDER_NONE );
@@ -918,7 +916,8 @@ static void OnShowControl( TEXT_LABEL_NAME )( PTRSZVAL psv )
 static void CPROC PickLabelFont( PTRSZVAL psv, PSI_CONTROL pc )
 {
 	PPAGE_LABEL page_label = (PPAGE_LABEL)psv;
-	SFTFont *font = SelectAFont( GetFrame( pc )
+	SFTFont *font = SelectACanvasFont( InterShell_GetButtonCanvas( page_label->button )
+									, GetFrame( pc )
 									, &page_label->preset_name
 									);
 	if( font )

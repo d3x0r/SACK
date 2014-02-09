@@ -30,12 +30,12 @@ static void CPROC change( PTRSZVAL psv )
 {
 	if( l.flags.allow_cycle )
 		if( !l.flags.bDisableChange )
-			ShellSetCurrentPage( WIDE("next") );
+			ShellSetCurrentPage( (PSI_CONTROL)psv, WIDE("next") );
 }
 
-static void OnFinishInit( WIDE("Page Cycler") )( void )
+static void OnFinishInit( WIDE("Page Cycler") )( PSI_CONTROL pc_canvas )
 {
-   l.timer = AddTimer( l.delay, change, 0 );
+   l.timer = AddTimer( l.delay, change, (PTRSZVAL)pc_canvas );
 }
 
 static void OnEditModeBegin( WIDE("Page Cycler") )( void )
@@ -48,9 +48,9 @@ static void OnEditModeEnd( WIDE("Page Cycler") )( void )
    l.flags.bDisableChange = 0;
 }
 
-static int OnChangePage( WIDE("Page Cycler") )( void )
+static int OnChangePage( WIDE("Page Cycler") )( PSI_CONTROL pc_canvas )
 {
-	PPAGE_DATA page = ShellGetCurrentPage();
+	PPAGE_DATA page = ShellGetCurrentPage( pc_canvas );
 	INDEX idx;
 	struct page_delay *delay;
    //lprintf( WIDE("new page = %s"), page->title );

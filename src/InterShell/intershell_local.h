@@ -112,7 +112,7 @@ struct CanvasData {
 	PMENU pPageDestroyMenu; // destroy page  menu
 	PMENU pPageUndeleteMenu; // undelete page
 	// several of these have the above page menus
-   // referenced as submenus.
+	// referenced as submenus.
 	PMENU pSuperMenu;
 	PMENU pEditMenu;
 	PMENU pSelectionMenu;
@@ -120,10 +120,10 @@ struct CanvasData {
 	PPAGE_DATA default_page;
 	// if the canvas is contained within another canvas
 	// then the width_scale/height_scale would change depending on the
-   	// outer resolution of the control. /* this is constant based on the canvas size... */
+		// outer resolution of the control. /* this is constant based on the canvas size... */
 	FRACTION width_scale, height_scale;
 	// this is maintained for simplicity...
-   // it's a convenience for the PARTX, etc macros below.
+	// it's a convenience for the PARTX, etc macros below.
 	_32 width, height;
 	// each canvas can have a different stting of partsx and partsy
 	//_32 nPartsX, nPartsY;  // finest granulatity of control placement
@@ -134,7 +134,7 @@ struct CanvasData {
 	int nSelected;
 	PLINKSTACK prior_pages; // this used to be global, but really this is a per-canvas property - since each has pages.
 
-   PLIST fonts;
+	PLIST fonts;
 };
 
 
@@ -142,21 +142,24 @@ typedef struct global_tag
 {
 	// this will contain information about the current
 	// thing the menu is doing.  This region is named "Menu Evolved Instance"
-   // or "Alternate Menu Instance"
+	// or "Alternate Menu Instance"
 	// if this region exists already, nice programs will exit, reporting information
-   // found within this space before exiting.
-   POINTER mem_lock;
-   PTHREAD pMainThread;
+	// found within this space before exiting.
+	POINTER mem_lock;
+	PTHREAD pMainThread;
 	PRENDERER display; // used to allow external applications to wake me.
-	PSI_CONTROL single_frame;
-   PTRSZVAL psv_security;
-   PLIST frames;
+	//PSI_CONTROL single_frame;
+	//PSI_CONTROL first_frame;
+	PTRSZVAL psv_security;
+	PLIST frames;
 	//PSI_CONTROL keypad;
-   PLIST extra_types; // char * name of extra types available to create
-   TEXTCHAR *config_filename;
-	SFTFont   *_keyfont;
+	PLIST extra_types; // char * name of extra types available to create
+	TEXTCHAR *config_filename;
+	SFTFont	*_keyfont;
 	PLIST glare_sets;
-   /*
+	S_32 default_page_x, default_page_y;
+	_32 default_page_width, default_page_height;
+	/*
 	struct {
 		struct {
 			CTEXTSTR glare;
@@ -177,14 +180,14 @@ typedef struct global_tag
 	struct {
 		Image iGlare, iNormal, iPressed, iMask;
 	} square;
-   */
-   PMENU_BUTTON clonebutton;
+	*/
+	PMENU_BUTTON clonebutton;
 	int _px, _py;  // last part x, part y - marked on drag.
 	struct {
 		BIT_FIELD bExit : 2;
 		BIT_FIELD bCluster : 1;
- 		BIT_FIELD forceload : 1;   // first config read from file, on save saves to SQL
- 		BIT_FIELD restoreload : 1;   // first config read from file, on save saves to SQL
+ 		BIT_FIELD forceload : 1;	// first config read from file, on save saves to SQL
+ 		BIT_FIELD restoreload : 1;	// first config read from file, on save saves to SQL
 		BIT_FIELD local_config : 1; // don't save config in SQL or get it from SQL
 		BIT_FIELD multi_edit : 1; // popup pages in seperate frames.
 		BIT_FIELD bInitFinished : 1;
@@ -203,37 +206,34 @@ typedef struct global_tag
 		BIT_FIELD bTransparent : 1;
 		BIT_FIELD bExternalApplicationhost : 1; // set by C# intro hook... so we don't make a auto g.single_frame
 		// once this comes up, the memlock region is disabled
-      // if this option is set in the config..
+		// if this option is set in the config..
 		//BIT_FIELD bAllowMultiLaunch : 1;
 		BIT_FIELD bPageReturn : 1; // doing a return page (don't save current page to stack)
 		BIT_FIELD bLogKeypresses : 1; // Log the text of button and the button type when it is pressed.
 	} flags;
 	// tokens which are used for testing
-   // user security rights.
+	// user security rights.
 	struct {
 		_32 Edit;
 		_32 Manager;
 		_32 ZOut;
 	} tokens;
 #ifdef USE_INTERFACES
-   PRENDER_INTERFACE pRenderInterface;
+	PRENDER_INTERFACE pRenderInterface;
 	PIMAGE_INTERFACE pImageInterface;
 #endif
-	// full screen width - or in multiedit - the size of a non-parented menu canvas
-   S_32 x, y;
-	_32 width, height;
 
-   // ALL pages (in all controls)
-   PLIST all_pages;
+	// ALL pages (in all controls)
+	PLIST all_pages;
 
 	// instead of this, evo menu prefers to use
-   // controls list, the parts, and selection stuff below
+	// controls list, the parts, and selection stuff below
 	//int button_rows, button_cols, button_space;
 
-	PLIST global_properties;   // list of void(*)(void) called for global properties...
+	PLIST global_properties;	// list of void(*)(void) called for global properties...
 	PLIST global_property_names; // list of global property names  - 1:1 relation with global_properties
 	PLIST security_property_names; // list of global property names  - 1:1 relation with global_properties
-   CTEXTSTR system_name; // my particular name, not nice'd (that is Pos1,JimsPewter)
+	CTEXTSTR system_name; // my particular name, not nice'd (that is Pos1,JimsPewter)
 	struct system_info *systems; // list of known systems (may query database?)
 	PMENU pSelectionMenu;
 	PMENU pGlobalPropertyMenu;
@@ -245,14 +245,14 @@ typedef struct global_tag
 	CTEXTSTR single_frame_title;
 	//PODBC configuration_option_db;
 	TEXTCHAR configuration_dsn[256];
-   int configuration_version;
+	int configuration_version;
 } MENU_GLOBAL, *PMENU_GLOBAL;
 
 	struct system_info {
 		PTEXT name;  // really only care about name...
-      PTEXT nice_name; // spaced out, user friendly, name
+		PTEXT nice_name; // spaced out, user friendly, name
 		INDEX ID;
-      DeclareLink( struct system_info );
+		DeclareLink( struct system_info );
 	};
 
 #define PART_RESOLUTION 256
@@ -261,14 +261,14 @@ typedef struct global_tag
 
 //#define _WIDTH(canvas,w) ( ( (PART_RESOLUTION) - ( (canvas)->button_space * ((canvas)->button_cols + 1) ) ) / (canvas)->button_cols );
 
-   // helps to compute the part of a coordinate
+	// helps to compute the part of a coordinate
 #define _COMPUTEPARTOFX( canvas,x, parts )  ((x)*parts / ((canvas)->width) )
-   // helps to compute the part of a coordinate
+	// helps to compute the part of a coordinate
 #define _COMPUTEPARTOFY( canvas,y, parts )  ((y)*parts / ((canvas)->height) )
 
-   // helps to compute X coordinate of a part
+	// helps to compute X coordinate of a part
 #define _COMPUTEX( canvas,npart, parts )  ( ( ( ( (PART_RESOLUTION) * (npart) ) ) * ((canvas)->width) ) / ((parts)*PART_RESOLUTION) )
-   // helps to compute Y coordinate of a part
+	// helps to compute Y coordinate of a part
 #define _COMPUTEY( canvas,npart, parts )  ( ( ( ( (PART_RESOLUTION) * (npart) ) ) * ((canvas)->height) ) / ((parts)*PART_RESOLUTION) )
 
 //#define _MODX( canvas,npart, parts )  ( ( ( ( (PART_RESOLUTION) * npart ) ) * ((canvas)->width) ) % ((parts)*PART_RESOLUTION) )
@@ -293,18 +293,18 @@ typedef struct global_tag
 
 #define WIDTH(w) _WIDTH(canvas,w)
 
-#define COMPUTEPARTOFX(x,parts)        _COMPUTEPARTOFX(canvas,x,parts )
-#define COMPUTEPARTOFY(y,parts)        _COMPUTEPARTOFY(canvas,y,parts )
+#define COMPUTEPARTOFX(x,parts)		  _COMPUTEPARTOFX(canvas,x,parts )
+#define COMPUTEPARTOFY(y,parts)		  _COMPUTEPARTOFY(canvas,y,parts )
 #define COMPUTEX( npart, parts ) _COMPUTEX( canvas,npart, parts )
 #define COMPUTEY( npart, parts ) _COMPUTEY( canvas,npart, parts )
-#define MODX( npart, parts )     _MODX( canvas,npart, parts )
-#define MODY( npart, parts )     _MODY( canvas,npart, parts )
-#define PARTX(part)              _PARTX(canvas,part)
-#define PARTY(part)              _PARTY(canvas,part)
-#define PARTW(x,w)               _PARTW(canvas,x,w)
-#define PARTH(y,h)               _PARTH(canvas,y,h)
-#define PARTSX                   _PARTSX(canvas)
-#define PARTSY                   _PARTSY(canvas)
+#define MODX( npart, parts )	  _MODX( canvas,npart, parts )
+#define MODY( npart, parts )	  _MODY( canvas,npart, parts )
+#define PARTX(part)				  _PARTX(canvas,part)
+#define PARTY(part)				  _PARTY(canvas,part)
+#define PARTW(x,w)					_PARTW(canvas,x,w)
+#define PARTH(y,h)					_PARTH(canvas,y,h)
+#define PARTSX						 _PARTSX(canvas)
+#define PARTSY						 _PARTSY(canvas)
 
 
 
@@ -355,7 +355,7 @@ PSI_CONTROL OpenPageFrame( PPAGE_DATA page ); // used for multi edit to open eac
 
 PGLARE_SET GetGlareSet( CTEXTSTR name );
 
-PMENU_BUTTON CreateInvisibleControl( TEXTCHAR *name );
+PMENU_BUTTON CreateInvisibleControl( PSI_CONTROL parent, TEXTCHAR *name );
 void ConfigureKeyEx( PSI_CONTROL parent, PMENU_BUTTON button );
 void ConfigureKeyExx( PSI_CONTROL parent, PMENU_BUTTON button, int bWaitComplete, int bIgnorePrivate );
 
