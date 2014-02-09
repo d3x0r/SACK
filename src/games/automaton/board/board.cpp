@@ -733,10 +733,10 @@ BOARD::BOARD()
 	//PSI_CONTROL frame = CreateFrameFromRenderer( WIDE("Brain Editor"), BORDER_RESIZABLE, pDisplay );
 	update = new UPDATE( pDisplay );
 
-	SetMouseHandler( pDisplay, DoMouseExtern, (_32)this );
+	SetMouseHandler( pDisplay, DoMouseExtern, (PTRSZVAL)this );
 	//SetCloseHandler( pDisplay, BoardWindowClose, (_32)this );
 
-	SetRedrawHandler( pDisplay, BoardRefreshExtern, (_32)this );
+	SetRedrawHandler( pDisplay, BoardRefreshExtern, (PTRSZVAL)this );
    //AddCommonDraw( frame, PSIBoardRefreshExtern );
 
 	SetBlotMethod( BLOT_MMX );

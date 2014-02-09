@@ -767,7 +767,7 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
    RegisterRoutine( WIDE("IO/File"), WIDE("SaveFile"), WIDE("Save File from binary variable"), StoreFile );
    RegisterRoutine( WIDE("IO/File"), WIDE("Log"), WIDE("Begin logging the data datapath to a file"), OpenLog );
 	RegisterRoutine( WIDE("IO/File"), WIDE("EndLog"), WIDE("End Logging the data datapath to a file"), CloseLog );
-   RegisterObject( WIDE("IO/File"), WIDE("file monitor"), WIDE("File monitor object... provides on new, modify, deleted"), CreateFileMonitor );
+   RegisterObject( WIDE("file monitor"), WIDE("File monitor object... provides on new, modify, deleted"), CreateFileMonitor );
 	return DekVersion;
 }
 

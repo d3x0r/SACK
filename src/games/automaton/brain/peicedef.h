@@ -5,7 +5,7 @@ extern "C" BOOL CALLBACK SynapsePropProc( HWND hWnd, UINT uMsg, WPARAM wParam, L
 extern "C" BOOL CALLBACK NeuronPropProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 extern "C" BOOL CALLBACK SigmoidProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 
-CDATA colors[18] = 
+static CDATA colors[18] = 
 {  Color( 132, 132, 132),
    Color( 0, 240, 32      ),
    Color( 188, 0, 16      ),
@@ -119,7 +119,7 @@ typedef struct delta_tag
 	int x, y;
 } DIR_DELTA;
 
-DIR_DELTA DirDeltaMap[8] = { { 0, -1 }, 
+static DIR_DELTA DirDeltaMap[8] = { { 0, -1 }, 
                              { 1, -1 }, 
 								     { 1, 0 }, 
 							        { 1, 1 }, 

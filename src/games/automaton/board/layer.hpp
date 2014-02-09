@@ -178,6 +178,9 @@ public:
 	void Init( void );
 	void *operator new( size_t sz );
 	void *operator new( size_t sz, struct LAYERset_tag **frompool, struct LAYER_DATAset_tag **fromdatapool );
+#ifdef __LINUX__
+	void operator delete( void *ptr, struct LAYERset_tag **frompool );
+#endif
 #ifdef _MSC_VER
 	void operator delete( void *ptr, struct LAYERset_tag **frompool, struct LAYER_DATAset_tag **fromdatapool );
 #endif

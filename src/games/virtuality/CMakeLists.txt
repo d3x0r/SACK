@@ -19,8 +19,12 @@ ADD_DEFINITIONS( -DVIRTUALITY_LIBRARY_SOURCE )
 include_directories( "../include" )
 ADD_LIBRARY( ${PROJECT} SHARED editor.cpp key.cpp object.cpp plane.cpp shapes.cpp view.cpp )
 
+if( WIN32 )
 TARGET_LINK_LIBRARIES( ${PROJECT} ${SACK_LIBRARIES} opengl32
 glu32 winmm )
+else( WIN32 )
+TARGET_LINK_LIBRARIES( ${PROJECT} ${SACK_LIBRARIES} ${SACK_PLATFORM_LIBRARIES} )
+endif( WIN32 )
 
 if( WIN32 )
 	# On Windows platforms, the dynamic libs should

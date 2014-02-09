@@ -16,8 +16,13 @@ typedef class IBOARD *PIBOARD;
 #define PEICE_EXTERN(type,name) EXPORT_METHOD type name
 #else
 //#define PEICE_PROC(type,name) __declspec(dllimport) type CPROC name
-#define PEICE_PROC(type,name) IMPORT_METHOD type name
-#define PEICE_EXTERN(type,name) IMPORT_METHOD type name
+#ifdef __LINUX__
+#    define PEICE_PROC(type,name) type name
+#    define PEICE_EXTERN(type,name) IMPORT_METHOD type name
+#  else
+#    define PEICE_PROC(type,name) IMPORT_METHOD type name
+#    define PEICE_EXTERN(type,name) IMPORT_METHOD type name
+#  endif
 #endif
 //#undef PEICE_PROC
 //#define PEICE_PROC(n,t) n t

@@ -436,8 +436,8 @@ POBJECT LoadObject( CTEXTSTR filename )
    VECTOR vn, vo;
    PFACET pp;
 
-   DWORD c;
-   DWORD dwRead;
+   _32 c;
+   _32 dwRead;
 	POBJECT po;
 	file = sack_fopen( 0, filename, "rb" );
 	if( file )
