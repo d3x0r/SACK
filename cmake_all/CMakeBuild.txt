@@ -83,7 +83,7 @@ endif( __ANDROID__ )
 if( UNIX )
   add_custom_target( Build${PROJECT} ALL
           COMMAND chmod 755 ${SCRIPTNAME}
-          COMMAND ${SCRIPTNAME}
+          COMMAND ./${SCRIPTNAME}
 	  WORKING_DIRECTORY ${BUILD}
           ${ADD_SOURCES}
   )
