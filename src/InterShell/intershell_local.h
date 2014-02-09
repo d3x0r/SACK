@@ -150,8 +150,10 @@ typedef struct global_tag
 	PRENDERER display; // used to allow external applications to wake me.
 	//PSI_CONTROL single_frame;
 	//PSI_CONTROL first_frame;
-	PTRSZVAL psv_security;
-	PLIST frames;
+	PTRSZVAL psv_edit_security;
+
+	PLIST frames;  // list of all canvases that have been created 
+
 	//PSI_CONTROL keypad;
 	PLIST extra_types; // char * name of extra types available to create
 	TEXTCHAR *config_filename;
@@ -159,28 +161,7 @@ typedef struct global_tag
 	PLIST glare_sets;
 	S_32 default_page_x, default_page_y;
 	_32 default_page_width, default_page_height;
-	/*
-	struct {
-		struct {
-			CTEXTSTR glare;
-			CTEXTSTR up;
-			CTEXTSTR down;
-			CTEXTSTR mask;
-		} round;
-		struct glare_set{
-			CTEXTSTR glare;
-			CTEXTSTR up;
-			CTEXTSTR down;
-			CTEXTSTR mask;
-		} square;
-	} images;
-	struct {
-		Image iGlare, iNormal, iPressed, iMask;
-	} round;
-	struct {
-		Image iGlare, iNormal, iPressed, iMask;
-	} square;
-	*/
+
 	PMENU_BUTTON clonebutton;
 	int _px, _py;  // last part x, part y - marked on drag.
 	struct {
@@ -213,11 +194,6 @@ typedef struct global_tag
 	} flags;
 	// tokens which are used for testing
 	// user security rights.
-	struct {
-		_32 Edit;
-		_32 Manager;
-		_32 ZOut;
-	} tokens;
 #ifdef USE_INTERFACES
 	PRENDER_INTERFACE pRenderInterface;
 	PIMAGE_INTERFACE pImageInterface;

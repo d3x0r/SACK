@@ -8,27 +8,6 @@
  * Common template of a open configuration frame
  *
  */
-
-/*
-OnGlobalPropertyEdit( WIDE( "Edit Plugins" ) )( PSI_CONTROL parent )
-{
-	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE( "EditPlugins.isFrame" ) );
-	if( frame )
-	{
-		int okay = 0;
-		int done = 0;
-		SetCommonButtons( frame, &done, &okay );
-		DisplayFrame( frame );
-		CommonWait( frame );
-		if( okay )
-		{
-		}
-		DestroyFrame( &frame );
-	}
-}
-*/
-
-
 struct configured_plugin {
 	struct {
 		BIT_FIELD bDelete : 1;
@@ -487,7 +466,7 @@ static void OnSaveCommon( WIDE( "@00 Plugins" ) )( FILE *file )
 
 
 //-------------------------------------------------------------------------------
-static void OnFinishInit( WIDE( "Plugins" ) )( void )
+static void OnFinishInit( WIDE( "Plugins" ) )( PSI_CONTROL pc_canvas )
 {
 	l.current_plugin = NULL; // clean this up after the config handlers above...
 }
