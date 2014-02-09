@@ -79,7 +79,7 @@ static void SetEnvVariable( CTEXTSTR name, CTEXTSTR value, LOGICAL bUser )
 #endif
 }
 
-OnKeyPressEvent( WIDE( "InterShell/Set Environment" ) )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE( "InterShell/Set Environment" ) )( PTRSZVAL psv )
 {
 	PSETVAR pSetVar = (PSETVAR)psv;
 	SetEnvVariable( pSetVar->varname, pSetVar->newval, pSetVar->bUser );
@@ -87,7 +87,7 @@ OnKeyPressEvent( WIDE( "InterShell/Set Environment" ) )( PTRSZVAL psv )
 	//return 1;
 }
 
-OnCreateMenuButton( WIDE( "InterShell/Set Environment" ) )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( WIDE( "InterShell/Set Environment" ) )( PMENU_BUTTON button )
 {
 	PSETVAR pSetVar = New( SETVAR );
 	pSetVar->varname = NULL;
@@ -97,7 +97,7 @@ OnCreateMenuButton( WIDE( "InterShell/Set Environment" ) )( PMENU_BUTTON button 
 	return (PTRSZVAL)pSetVar;
 }
 
-OnConfigureControl( WIDE( "InterShell/Set Environment" ) )( PTRSZVAL psv, PSI_CONTROL parent )
+static PTRSZVAL OnConfigureControl( WIDE( "InterShell/Set Environment" ) )( PTRSZVAL psv, PSI_CONTROL parent )
 {
 	PSETVAR pSetVar = (PSETVAR)psv;
 	PSI_CONTROL frame;
@@ -134,7 +134,7 @@ OnConfigureControl( WIDE( "InterShell/Set Environment" ) )( PTRSZVAL psv, PSI_CO
 	return psv;
 }
 
-OnSaveControl( WIDE( "InterShell/Set Environment" ) )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE( "InterShell/Set Environment" ) )( FILE *file, PTRSZVAL psv )
 {
 	PSETVAR pSetVar = (PSETVAR)psv;
 	fprintf( file, WIDE( "Set Environment User=%s\n" ), pSetVar->bUser?WIDE("yes"):WIDE("no") );
@@ -175,7 +175,7 @@ static PTRSZVAL CPROC SetVariableUser( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-OnLoadControl( WIDE( "InterShell/Set Environment" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE( "InterShell/Set Environment" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
 	AddConfigurationMethod( pch,  WIDE( "Set Environment user=%b" ), SetVariableUser );
 	AddConfigurationMethod( pch,  WIDE( "Set Environment text name=%m" ), SetVariableVariableName );

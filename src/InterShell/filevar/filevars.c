@@ -10,14 +10,14 @@ enum filevar_resources{
 	BTN_ADD_VARIABLE,
 	BTN_DEL_VARIABLE,
 	EDIT_VARNAME,
-   EDIT_FILENAME,
+	EDIT_FILENAME,
 };
 
 struct variable_tracker
 {
 	TEXTSTR var_content;
 	PVARIABLE variable;
-   TEXTSTR var_name;
+	TEXTSTR var_name;
 };
 
 struct input_file
@@ -27,7 +27,7 @@ struct input_file
 	} flags;
 	CTEXTSTR varname;
 	CTEXTSTR filename;
-   PLIST vars;
+	PLIST vars;
 };
 
 struct local
@@ -36,13 +36,13 @@ struct local
 		BIT_FIELD bLog : 1;
 	} flags;
 	PLIST files;
-   _32 timer;
+	_32 timer;
 #define l local_filevar_data
 } l;
 
 PRELOAD( InitFileVars )
 {
-   l.flags.bLog = SACK_GetProfileInt( GetProgramName(), WIDE("filevars/Log File Variables"), 0 );
+	l.flags.bLog = SACK_GetProfileInt( GetProgramName(), WIDE("filevars/Log File Variables"), 0 );
 	EasyRegisterResource( WIDE("InterShell/File Vars"), LISTBOX_VARIABLES, LISTBOX_CONTROL_NAME );
 	EasyRegisterResource( WIDE("InterShell/File Vars"), BTN_ADD_VARIABLE, NORMAL_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/File Vars"), BTN_DEL_VARIABLE, NORMAL_BUTTON_NAME );
@@ -60,15 +60,15 @@ static void CPROC CheckFiles( PTRSZVAL psv )
 	{
 		FILE *input;
 		static TEXTCHAR buf[256];
-      if( l.flags.bLog )
+		if( l.flags.bLog )
 			lprintf( WIDE("check %s"), file->filename );
 		input = sack_fopen( 0, file->filename, WIDE("rt") );
 		if( input )
 		{
-         INDEX var_idx = 0;
+			INDEX var_idx = 0;
 			while( fgets( buf, sizeof( buf ), input ) )
 			{
-            size_t end;
+				size_t end;
 				struct variable_tracker *var =(struct variable_tracker*)GetLink( &file->vars, var_idx );
 				//lprintf( WIDE("buf .. %s"), buf );
 				while( ( end = strlen(buf) ) && ( buf[end-1] == '\n' ) )
@@ -81,10 +81,10 @@ static void CPROC CheckFiles( PTRSZVAL psv )
 					snprintf( tmp_name, sizeof( tmp_name ), WIDE("<File %s.%d>"), file->varname, var_idx+1 );
 					var = New( struct variable_tracker );
 					var->var_content = StrDup( buf );
-               var->var_name = StrDup( tmp_name );
+					var->var_name = StrDup( tmp_name );
 					lprintf( WIDE("Newvar %s=%s"), tmp_name, buf );
 					var->variable = CreateLabelVariable( tmp_name, LABEL_TYPE_STRING, &var->var_content );
-               SetLink( &file->vars, var_idx, var );
+					SetLink( &file->vars, var_idx, var );
 				}
 				else
 				{
@@ -97,42 +97,42 @@ static void CPROC CheckFiles( PTRSZVAL psv )
 					}
 				}
 
-            var_idx++;
+				var_idx++;
 			}
-         sack_fclose( input );
+			sack_fclose( input );
 		}
 	}
 }
 
 static PTRSZVAL CPROC AddInputFile( PTRSZVAL psv, arg_list args )
 {
-   PARAM( args, CTEXTSTR, var_name );
+	PARAM( args, CTEXTSTR, var_name );
 	PARAM( args, CTEXTSTR, file_name );
 
 	struct input_file *file;
 	file = New( struct input_file );
-   file->flags.bDeleted = 0;
+	file->flags.bDeleted = 0;
 	file->varname = StrDup( var_name );
 	file->filename = StrDup( file_name );
 	file->vars = NULL;
-   AddLink( &l.files, file );
+	AddLink( &l.files, file );
 
 	if( !l.timer )
 	{
 		l.timer = AddTimer( 5000, CheckFiles, 0 );
 	}
 	RescheduleTimer( l.timer );
-   CheckFiles( 0 );
+	CheckFiles( 0 );
 
-   return psv;
+	return psv;
 }
 
-OnLoadCommon( WIDE("File Variables") )( PCONFIG_HANDLER pch )
+static void OnLoadCommon( WIDE("File Variables") )( PCONFIG_HANDLER pch )
 {
-   AddConfigurationMethod( pch, WIDE( "file variable input \"%m\" \"%m\"" ), AddInputFile );
+	AddConfigurationMethod( pch, WIDE( "file variable input \"%m\" \"%m\"" ), AddInputFile );
 }
 
-OnSaveCommon( WIDE("File Variables") )( FILE *output )
+static void OnSaveCommon( WIDE("File Variables") )( FILE *output )
 {
 	INDEX idx;
 	struct input_file *file;
@@ -183,12 +183,12 @@ static void CPROC DelVariable( PTRSZVAL psv, PSI_CONTROL pc )
 	struct input_file *file = (struct input_file *)GetItemData( pli );
 	if( file )
 	{
-      file->flags.bDeleted = 1;
-      DeleteListItem( listbox, pli );
+		file->flags.bDeleted = 1;
+		DeleteListItem( listbox, pli );
 	}
 }
 
-OnGlobalPropertyEdit( WIDE("File Variables") )( PSI_CONTROL parent )
+static void OnGlobalPropertyEdit( WIDE("File Variables") )( PSI_CONTROL parent )
 {
 	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE("CommonFileVariableProperties.isFrame") );
 	if( frame )
@@ -198,7 +198,7 @@ OnGlobalPropertyEdit( WIDE("File Variables") )( PSI_CONTROL parent )
 		SetCommonButtons( frame, &done, &okay );
 
 		{
-         PSI_CONTROL listbox = GetControl( frame, LISTBOX_VARIABLES );
+			PSI_CONTROL listbox = GetControl( frame, LISTBOX_VARIABLES );
 			INDEX idx;
 			struct input_file *file;
 			LIST_FORALL( l.files, idx, struct input_file*, file )
@@ -219,7 +219,7 @@ OnGlobalPropertyEdit( WIDE("File Variables") )( PSI_CONTROL parent )
 		if( okay )
 		{
 		}
-      DestroyFrame( &frame );
+		DestroyFrame( &frame );
 	}
 }
 

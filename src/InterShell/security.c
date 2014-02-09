@@ -170,7 +170,7 @@ void SetupSecurityEdit( PSI_CONTROL frame, PTRSZVAL object_to_secure )
 		}
 
 
-OnGlobalPropertyEdit( WIDE( "Set Edit Permissions" ) )( PSI_CONTROL parent )
+static void OnGlobalPropertyEdit( WIDE( "Set Edit Permissions" ) )( PSI_CONTROL parent )
 {
 	PSI_CONTROL pc = LoadXMLFrameOver( parent, WIDE("SetEditPermissions.isFrame") );
 	if( pc )
@@ -222,7 +222,7 @@ void InterShell_SaveSecurityInformation( FILE *file, PTRSZVAL psv )
 
 
 
-OnSaveCommon( WIDE( "@10 EditSecurity" ) )( FILE *file )
+static void OnSaveCommon( WIDE( "@10 EditSecurity" ) )( FILE *file )
 {
 	fprintf( file, WIDE( "Begin Edit Permissions\n" ) );
 	InterShell_SaveSecurityInformation( file, (PTRSZVAL)g.single_frame );
@@ -236,7 +236,7 @@ static PTRSZVAL CPROC BeginGlobalEditPerms( PTRSZVAL psv, arg_list args )
    return (PTRSZVAL)g.single_frame;
 }
 
-OnLoadCommon( WIDE( "@10 EditSecurity" ) )( PCONFIG_HANDLER pch )
+static void OnLoadCommon( WIDE( "@10 EditSecurity" ) )( PCONFIG_HANDLER pch )
 {
 	AddConfigurationMethod( pch, WIDE( "Begin Edit Permissions" ), BeginGlobalEditPerms );
 }

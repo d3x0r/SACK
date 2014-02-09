@@ -736,7 +736,7 @@ void LabelVariablesChanged( PLIST variables) // update any labels which are usin
 }
 
 
-OnDestroyControl( TEXT_LABEL_NAME )( PTRSZVAL psv )
+static void OnDestroyControl( TEXT_LABEL_NAME )( PTRSZVAL psv )
 {
 	PPAGE_LABEL title = (PPAGE_LABEL)psv;
 	PVARIABLE var;
@@ -751,8 +751,7 @@ OnDestroyControl( TEXT_LABEL_NAME )( PTRSZVAL psv )
 
 }
 
-OnCreateControl( TEXT_LABEL_NAME )( PSI_CONTROL frame, S_32 x, S_32 y, _32 w, _32 h )
-//PTRSZVAL CPROC CreatePageTitle( S_32 x, S_32 y, _32 w, _32 h )
+static PTRSZVAL OnCreateControl( TEXT_LABEL_NAME )( PSI_CONTROL frame, S_32 x, S_32 y, _32 w, _32 h )
 {
 	PPAGE_LABEL title = New( struct page_label );
 	MemSet( title, 0, sizeof( *title ) );
@@ -768,7 +767,7 @@ OnCreateControl( TEXT_LABEL_NAME )( PSI_CONTROL frame, S_32 x, S_32 y, _32 w, _3
 	return (PTRSZVAL)title;
 }
 
-OnGetControl( TEXT_LABEL_NAME )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( TEXT_LABEL_NAME )( PTRSZVAL psv )
 //PSI_CONTROL CPROC GetTitleControl( PTRSZVAL psv )
 {
 	PPAGE_LABEL title = (PPAGE_LABEL)psv;
@@ -779,7 +778,7 @@ OnGetControl( TEXT_LABEL_NAME )( PTRSZVAL psv )
 	return NULL;
 }
 
-OnSaveControl( TEXT_LABEL_NAME )( FILE *file,PTRSZVAL psv )
+static void OnSaveControl( TEXT_LABEL_NAME )( FILE *file,PTRSZVAL psv )
 {
 	PPAGE_LABEL title = (PPAGE_LABEL)psv;
 	fprintf( file, WIDE("%scolor=%s\n"), InterShell_GetSaveIndent(), FormatColor( title->color ) );
@@ -879,7 +878,7 @@ static PTRSZVAL CPROC SetTitleFontByName( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-OnLoadControl( TEXT_LABEL_NAME )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( TEXT_LABEL_NAME )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
 	AddConfigurationMethod( pch, WIDE("color=%c"), SetTitleColor );
 	AddConfigurationMethod( pch, WIDE("background color=%c"), SetTitleBackColor );
@@ -893,12 +892,12 @@ OnLoadControl( TEXT_LABEL_NAME )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 	AddConfigurationMethod( pch, WIDE("align inverted?%b"), SetTitleInverted );
 }
 
-OnQueryShowControl( TEXT_LABEL_NAME )( PTRSZVAL psv )
+static LOGICAL OnQueryShowControl( TEXT_LABEL_NAME )( PTRSZVAL psv )
 {
 	return TRUE;
 }
 
-OnShowControl( TEXT_LABEL_NAME )( PTRSZVAL psv )
+static void OnShowControl( TEXT_LABEL_NAME )( PTRSZVAL psv )
 {
 	PPAGE_LABEL title = (PPAGE_LABEL)psv;
 	SetCommonFont( title->control, (title->font?(*title->font):NULL) );
@@ -958,7 +957,7 @@ void CPROC FillVariableList( PSI_CONTROL frame )
 	}
 }
 
-OnEditControl( TEXT_LABEL_NAME )( PTRSZVAL psv, PSI_CONTROL parent_frame )
+static PTRSZVAL OnEditControl( TEXT_LABEL_NAME )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 {
 	PPAGE_LABEL page_label = (PPAGE_LABEL)psv;
 	if( page_label )
@@ -1120,7 +1119,7 @@ void SetVariable( CTEXTSTR name, CTEXTSTR value )
 				 , name, value );
 }
 
-OnKeyPressEvent( WIDE( "InterShell/Set Variable" ) )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE( "InterShell/Set Variable" ) )( PTRSZVAL psv )
 {
 	PSETVAR pSetVar = (PSETVAR)psv;
 	SetVariable( pSetVar->varname, pSetVar->newval );
@@ -1128,7 +1127,7 @@ OnKeyPressEvent( WIDE( "InterShell/Set Variable" ) )( PTRSZVAL psv )
 	//return 1;
 }
 
-OnCreateMenuButton( WIDE( "InterShell/Set Variable" ) )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( WIDE( "InterShell/Set Variable" ) )( PMENU_BUTTON button )
 {
 	PSETVAR pSetVar = New( SETVAR );
 	pSetVar->varname = NULL;
@@ -1138,7 +1137,7 @@ OnCreateMenuButton( WIDE( "InterShell/Set Variable" ) )( PMENU_BUTTON button )
 	return (PTRSZVAL)pSetVar;
 }
 
-OnConfigureControl( WIDE( "InterShell/Set Variable" ) )( PTRSZVAL psv, PSI_CONTROL parent )
+static PTRSZVAL OnConfigureControl( WIDE( "InterShell/Set Variable" ) )( PTRSZVAL psv, PSI_CONTROL parent )
 {
 	PSETVAR pSetVar = (PSETVAR)psv;
 	PSI_CONTROL frame;
@@ -1179,7 +1178,7 @@ OnConfigureControl( WIDE( "InterShell/Set Variable" ) )( PTRSZVAL psv, PSI_CONTR
 	return psv;
 }
 
-OnSaveControl( WIDE( "InterShell/Set Variable" ) )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE( "InterShell/Set Variable" ) )( FILE *file, PTRSZVAL psv )
 {
 	PSETVAR pSetVar = (PSETVAR)psv;
 	fprintf( file, WIDE( "set variable text name=%s\n" ), EscapeMenuString( pSetVar->varname ) );
@@ -1215,7 +1214,7 @@ static PTRSZVAL CPROC SetVariableVariableValue( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-OnLoadControl( WIDE( "InterShell/Set Variable" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE( "InterShell/Set Variable" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
 	AddConfigurationMethod( pch,  WIDE( "set variable text name=%m" ), SetVariableVariableName );
 	AddConfigurationMethod( pch,  WIDE( "set variable text value=%m" ), SetVariableVariableValue );

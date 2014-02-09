@@ -9,7 +9,7 @@ struct application_network_address
 	CTEXTSTR send_from;
 	CTEXTSTR send_to;
 	PCLIENT pc;
-   SOCKADDR *sendto;
+	SOCKADDR *sendto;
 };
 
 struct application_tracker
@@ -17,9 +17,9 @@ struct application_tracker
 	CTEXTSTR title;
 	CTEXTSTR classname;
 	S_32 last_x, last_y;
-   _32 last_w, last_h;
+	_32 last_w, last_h;
 #ifdef WIN32
-   HWND hWnd;
+	HWND hWnd;
 #endif
 	struct {
 		BIT_FIELD bShown : 1;
@@ -28,7 +28,7 @@ struct application_tracker
 		BIT_FIELD visible : 1;
 	} flags;
 	struct application_network_address *socket;
-   PLIST controls;
+	PLIST controls;
 };
 
 typedef struct MyControl *PMY_CONTROL;
@@ -39,24 +39,24 @@ struct MyControl
 	CTEXTSTR app_class_name;
 	CTEXTSTR send_from;
 	CTEXTSTR send_to;
-   struct application_tracker *app;
+	struct application_tracker *app;
 };
 
 static struct {
-   PTHREAD waiting;
+	PTHREAD waiting;
 	PLIST controls;
 	PLIST sockets;
-   PLIST apps;
+	PLIST apps;
 	//PCLIENT udp_socket;
-   //SOCKADDR *sendto;
+	//SOCKADDR *sendto;
 } local_application_mount;
 #define l local_application_mount
 
 enum {
 	EDIT_APP_WINDOW_NAME = 4100,
-   EDIT_APP_CLASS_NAME,
-   EDIT_APP_ADDRESS,
-   EDIT_APP_SEND_FROM,
+	EDIT_APP_CLASS_NAME,
+	EDIT_APP_ADDRESS,
+	EDIT_APP_SEND_FROM,
 };
 EasyRegisterControl( WIDE("Application Mount"), sizeof( MY_CONTROL) );
 
@@ -71,7 +71,7 @@ PRELOAD( RegisterKeypadIDs )
 OnEditControl( WIDE( "Application Mount" ) )( PTRSZVAL psv, PSI_CONTROL pc_parent )
 {
 	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, WIDE("ConfigureApplicationMount.isFrame") );
-   PSI_CONTROL pc = (PSI_CONTROL)psv;
+	PSI_CONTROL pc = (PSI_CONTROL)psv;
 	MyValidatedControlData( PMY_CONTROL, control, pc );
 	if( frame )
 	{
@@ -83,24 +83,24 @@ OnEditControl( WIDE( "Application Mount" ) )( PTRSZVAL psv, PSI_CONTROL pc_paren
 		SetControlText( GetControl( frame, EDIT_APP_CLASS_NAME ), control->app_class_name?control->app_class_name:WIDE("") );
 		SetControlText( GetControl( frame, EDIT_APP_ADDRESS ), control->send_to?control->send_to:WIDE("") );
 		SetControlText( GetControl( frame, EDIT_APP_SEND_FROM ), control->send_from?control->send_from:WIDE("") );
-      DisplayFrameOver( frame, pc_parent );
-      CommonWait( frame );
+		DisplayFrameOver( frame, pc_parent );
+		CommonWait( frame );
 		if( okay )
 		{
-         TEXTCHAR name[258];
+			TEXTCHAR name[258];
 			GetControlText( GetControl( frame, EDIT_APP_WINDOW_NAME ), name, sizeof( name ) );
 			if( StrLen( name ) )
 			{
 				if( control->app_window_name )
 					Release( (POINTER)control->app_window_name );
-            control->app_window_name = StrDup( name );
+				control->app_window_name = StrDup( name );
 			}
 			else
 			{
 				if( control->app_window_name )
 				{
 					Release( (POINTER)control->app_window_name );
-               control->app_window_name = NULL;
+					control->app_window_name = NULL;
 				}
 			}
 
@@ -109,14 +109,14 @@ OnEditControl( WIDE( "Application Mount" ) )( PTRSZVAL psv, PSI_CONTROL pc_paren
 			{
 				if( control->app_class_name )
 					Release( (POINTER)control->app_class_name );
-            control->app_class_name = StrDup( name );
+				control->app_class_name = StrDup( name );
 			}
 			else
 			{
 				if( control->app_class_name )
 				{
 					Release( (POINTER)control->app_class_name );
-               control->app_class_name = NULL;
+					control->app_class_name = NULL;
 				}
 			}
 
@@ -125,14 +125,14 @@ OnEditControl( WIDE( "Application Mount" ) )( PTRSZVAL psv, PSI_CONTROL pc_paren
 			{
 				if( control->app_class_name )
 					Release( (POINTER)control->app_class_name );
-            control->app_class_name = StrDup( name );
+				control->app_class_name = StrDup( name );
 			}
 			else
 			{
 				if( control->app_class_name )
 				{
 					Release( (POINTER)control->app_class_name );
-               control->app_class_name = NULL;
+					control->app_class_name = NULL;
 				}
 			}
 
@@ -141,14 +141,14 @@ OnEditControl( WIDE( "Application Mount" ) )( PTRSZVAL psv, PSI_CONTROL pc_paren
 			{
 				if( control->send_to )
 					Release( (POINTER)control->send_to );
-            control->send_to = StrDup( name );
+				control->send_to = StrDup( name );
 			}
 			else
 			{
 				if( control->send_to )
 				{
 					Release( (POINTER)control->send_to );
-               control->send_to = NULL;
+					control->send_to = NULL;
 				}
 			}
 
@@ -157,43 +157,43 @@ OnEditControl( WIDE( "Application Mount" ) )( PTRSZVAL psv, PSI_CONTROL pc_paren
 			{
 				if( control->send_from )
 					Release( (POINTER)control->send_from );
-            control->send_from = StrDup( name );
+				control->send_from = StrDup( name );
 			}
 			else
 			{
 				if( control->send_from )
 				{
 					Release( (POINTER)control->send_from );
-               control->send_from = NULL;
+					control->send_from = NULL;
 				}
 			}
 
 		}
-      DestroyFrame( &frame );
+		DestroyFrame( &frame );
 	}
-   return psv;
+	return psv;
 }
 
 static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR *sa )
 {
 	if( !buffer )
 	{
-      buffer = Allocate( 4096 );
+		buffer = Allocate( 4096 );
 	}
 	else
 	{
 	}
-   ReadUDP( pc, buffer, 4096 );
+	ReadUDP( pc, buffer, 4096 );
 }
 
 void SendHide( struct application_network_address* socket )
 {
-   SendUDPEx( socket->pc, "<hide/>", 7, socket->sendto );
+	SendUDPEx( socket->pc, "<hide/>", 7, socket->sendto );
 }
 
 void SendShow( struct application_network_address* socket )
 {
-   SendUDPEx( socket->pc, "<show/>", 7, socket->sendto );
+	SendUDPEx( socket->pc, "<show/>", 7, socket->sendto );
 }
 
 void SendPosition( struct application_network_address* socket, int x, int y, int w, int h )
@@ -204,8 +204,8 @@ void SendPosition( struct application_network_address* socket, int x, int y, int
 #ifdef _MSC_VER
 #define snprintf _snprintf
 #endif
-   len = snprintf( tmp, sizeof( tmp ), "<move x=\"%d\" y=\"%d\" width=\"%d\" Height=\"%d\"/>", x, y, w, h );
-   SendUDPEx( socket->pc, tmp, len, socket->sendto );
+	len = snprintf( tmp, sizeof( tmp ), "<move x=\"%d\" y=\"%d\" width=\"%d\" Height=\"%d\"/>", x, y, w, h );
+	SendUDPEx( socket->pc, tmp, len, socket->sendto );
 }
 
 
@@ -214,7 +214,7 @@ struct application_network_address *ConnectTo( CTEXTSTR to, CTEXTSTR from )
 	if( to && from )
 	{
 		struct application_network_address *socket;
-      INDEX idx;
+		INDEX idx;
 		LIST_FORALL( l.sockets, idx, struct application_network_address *, socket )
 		{
 			if( StrCaseCmp( socket->send_to, to ) == 0 )
@@ -227,7 +227,7 @@ struct application_network_address *ConnectTo( CTEXTSTR to, CTEXTSTR from )
 			socket = New( struct application_network_address );
 			NetworkStart();
 			socket->send_to = to;
-         socket->send_from = from;
+			socket->send_from = from;
 			socket->pc = ServeUDP( from, 2996, read_complete, NULL );
 			if( socket->pc )
 			{
@@ -240,7 +240,7 @@ struct application_network_address *ConnectTo( CTEXTSTR to, CTEXTSTR from )
 		}
 		return socket;
 	}
-   return NULL;
+	return NULL;
 }
 
 
@@ -254,21 +254,21 @@ struct application_tracker *FindAppWindow( PMY_CONTROL app_control )
 		CTEXTSTR classname = app_control->app_class_name;
 		CTEXTSTR send_to = app_control->send_to;
 		CTEXTSTR send_from = app_control->send_from;
-      //lprintf( "Finding window... %p %s %s", app_control, name, classname );
+		//lprintf( "Finding window... %p %s %s", app_control, name, classname );
 		LIST_FORALL( l.apps, idx, struct application_tracker *, app )
 		{
 			if( app->title && ( StrCaseCmp( app->title, name ) == 0 ) )
 			{
-            // update hwnd, it might have exited
+				// update hwnd, it might have exited
 				app->hWnd = FindWindow( app->classname, app->title );
-            //lprintf(" Find of %s %s = %p", app->title, app->classname, app->hWnd );
+				//lprintf(" Find of %s %s = %p", app->title, app->classname, app->hWnd );
 				break;
 			}
 			if( app->classname && ( StrCaseCmp( app->classname, classname ) == 0 ) )
 			{
-            // update hwnd, it might have exited
+				// update hwnd, it might have exited
 				app->hWnd = FindWindow( app->classname, app->title );
-            //lprintf(" Find of %s %s = %p", app->title, app->classname, app->hWnd );
+				//lprintf(" Find of %s %s = %p", app->title, app->classname, app->hWnd );
 				break;
 			}
 			if( FindLink( &app->controls, app_control ) == INVALID_INDEX )
@@ -280,7 +280,7 @@ struct application_tracker *FindAppWindow( PMY_CONTROL app_control )
 		if( !app )
 		{
 			app = New( struct application_tracker );
-         app->controls = NULL;
+			app->controls = NULL;
 			app->title = name;
 			app->classname = classname;
 			app->hWnd = FindWindow( app->classname, app->title );
@@ -304,7 +304,7 @@ struct application_tracker *FindAppWindow( PMY_CONTROL app_control )
 		}
 		return app;
 	}
-   return NULL;
+	return NULL;
 }
 
 
@@ -322,14 +322,14 @@ static PTRSZVAL CPROC WaitForApplication( PTHREAD thread )
 		//LIST_FORALL( l.apps, idx, struct application_tracker *, app )
 		{
 			INDEX idx2;
-         INDEX idx;
-         struct application_tracker *app;
+			INDEX idx;
+			struct application_tracker *app;
 			LIST_FORALL( l.apps, idx, struct application_tracker *, app )
 			//LIST_FORALL( l.controls, idx2, PSI_CONTROL, pc )
 			{
 				if( app->classname || app->title )
 				{
-               HWND hWnd;
+					HWND hWnd;
 					hWnd = FindWindow( app->classname, app->title );
 					//lprintf(" Find of %s %s = %p %p", app->title, app->classname, app->hWnd, hWnd );
 					if( hWnd != app->hWnd )
@@ -422,7 +422,7 @@ static PTRSZVAL CPROC WaitForApplication( PTHREAD thread )
 					}
 					else
 					{
-                  //lprintf( WIDE("no app?") );
+						//lprintf( WIDE("no app?") );
 					}
 				}
 			}
@@ -430,13 +430,13 @@ static PTRSZVAL CPROC WaitForApplication( PTHREAD thread )
 		if( !need_change )
 			WakeableSleep( 4000 );
 		else
-         WakeableSleep( 100 );
+			WakeableSleep( 100 );
 	} while( 1 );
 	l.waiting = NULL;
-   return 0;
+	return 0;
 }
 
-OnCreateControl( WIDE("Application Mount") )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static PTRSZVAL OnCreateControl( WIDE("Application Mount") )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( parent, WIDE("Application Mount"), x, y, w, h, -1 );
@@ -451,18 +451,18 @@ OnCreateControl( WIDE("Application Mount") )( PSI_CONTROL parent, S_32 x, S_32 y
 	return (PTRSZVAL)pc;
 }
 
-OnFinishInit( WIDE("Application Mount") )( void )
+static void OnFinishInit( WIDE("Application Mount") )( void )
 {
 	if( !l.waiting )
 		l.waiting = ThreadTo( WaitForApplication, 0 );
 }
 
-OnGetControl( WIDE("Application Mount") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Application Mount") )( PTRSZVAL psv )
 {
-   return (PSI_CONTROL)psv;
+	return (PSI_CONTROL)psv;
 }
 
-OnSaveControl( WIDE("Application Mount") )( FILE* file, PTRSZVAL psv )
+static void OnSaveControl( WIDE("Application Mount") )( FILE* file, PTRSZVAL psv )
 {
 	MyValidatedControlData( PMY_CONTROL, control, (PSI_CONTROL)psv );
 	fprintf( file, WIDE("Application Title=%s\n"), control->app_window_name?control->app_window_name:WIDE("") );
@@ -478,42 +478,42 @@ static PTRSZVAL CPROC SetApplicationName( PTRSZVAL psv, arg_list args )
 	//lprintf( "Setting appname of %p to %s", control, name );
 	if( StrLen( name ) )
 		control->app_window_name = StrDup( name );
-   return psv;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetApplicationClass( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	MyValidatedControlData( PMY_CONTROL, control, (PSI_CONTROL)psv );
-   if( StrLen( name ) )
+	if( StrLen( name ) )
 		control->app_class_name = StrDup( name );
-   return psv;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetApplicationSendFrom( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	MyValidatedControlData( PMY_CONTROL, control, (PSI_CONTROL)psv );
-   if( StrLen( name ) )
+	if( StrLen( name ) )
 		control->send_from = StrDup( name );
-   return psv;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetApplicationSendTo( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
 	MyValidatedControlData( PMY_CONTROL, control, (PSI_CONTROL)psv );
-   if( StrLen( name ) )
+	if( StrLen( name ) )
 		control->send_to = StrDup( name );
-   return psv;
+	return psv;
 }
 
-OnLoadControl( WIDE("Application Mount") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE("Application Mount") )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
-   AddConfigurationMethod( pch, WIDE("Application Title=%m"), SetApplicationName );
-   AddConfigurationMethod( pch, WIDE("Application Class=%m"), SetApplicationClass );
-   AddConfigurationMethod( pch, WIDE("Application Server Address=%m\n"), SetApplicationSendTo );
-   AddConfigurationMethod( pch, WIDE("Application Send From Address=%m\n"), SetApplicationSendFrom );
+	AddConfigurationMethod( pch, WIDE("Application Title=%m"), SetApplicationName );
+	AddConfigurationMethod( pch, WIDE("Application Class=%m"), SetApplicationClass );
+	AddConfigurationMethod( pch, WIDE("Application Server Address=%m\n"), SetApplicationSendTo );
+	AddConfigurationMethod( pch, WIDE("Application Send From Address=%m\n"), SetApplicationSendFrom );
 }
 
 static void OnHideCommon( WIDE("Application Mount") )( PSI_CONTROL pc )
@@ -523,7 +523,7 @@ static void OnHideCommon( WIDE("Application Mount") )( PSI_CONTROL pc )
 	{
 		//lprintf( "Showing %p", control );
 		//lprintf( WIDE("begin hide...") );
-      //lprintf( "Do hide on control %p", control );
+		//lprintf( "Do hide on control %p", control );
 		control->app = FindAppWindow( control );
 		control->app->flags.bWantShow = 0;
 		if( !l.waiting )
@@ -545,7 +545,7 @@ static void OnRevealCommon( WIDE("Application Mount") )( PSI_CONTROL pc )
 		//lprintf( "Showing %p", control );
 		//lprintf( WIDE("begin show(move)...") );
 		GetPhysicalCoordinate( pc, &x, &y, TRUE );
-      //lprintf( "Do Reveal on control %p", control );
+		//lprintf( "Do Reveal on control %p", control );
 		control->app = FindAppWindow( control );
 		control->app->last_x = x;
 		control->app->last_y = y;

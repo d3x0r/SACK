@@ -364,7 +364,7 @@ static int CPROC ButtonKeyProc( PSI_CONTROL pc, _32 key )
 
 #define LISTBOX 1000
 
-CONTROL_PROPERTIES( Button )( PSI_CONTROL pc )
+static PSI_CONTROL CONTROL_PROPERTIES( Button )( PSI_CONTROL pc )
 {
 	PSI_CONTROL page = CreateFrame( WIDE("Button")
 									 , 0, 0

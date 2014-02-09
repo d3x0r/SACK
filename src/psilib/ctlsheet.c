@@ -13,13 +13,13 @@ struct sheet_tag {
 		_32 bCustomColors : 1;
 	} flags;
 	PSI_CONTROL content;  // each content has an ID... so select by ID;
-   Image active_slices[3], inactive_slices[3];
+	Image active_slices[3], inactive_slices[3];
 	Image active, inactive;
-   CDATA cActiveText, cInactiveText;
+	CDATA cActiveText, cInactiveText;
 	_32 tab_width;
-   _32 tab_pad;
+	_32 tab_pad;
 	struct sheet_tag *next;struct sheet_tag **me;
-   //DeclareLink( struct sheet_tag );
+	//DeclareLink( struct sheet_tag );
 };
 
 typedef struct multi_sheet_tag {
@@ -27,19 +27,19 @@ typedef struct multi_sheet_tag {
 		_32 bNoTabs : 1;
 		_32 bCustomColors : 1;
 	} flags;
-   PSI_CONTROL mount_point;
+	PSI_CONTROL mount_point;
 	PSHEET sheets;
 	PSHEET current;
-   PSHEET prior_sheet;
+	PSHEET prior_sheet;
 	PSHEET first;
-   Image active_slices[3], inactive_slices[3];
+	Image active_slices[3], inactive_slices[3];
 	Image active, inactive;
-   CDATA cActiveText, cInactiveText;
+	CDATA cActiveText, cInactiveText;
 
 	_32 first_offset; // the last may be the whole increment... so offset the first.
 	_32 _b;
 	_32 height;
-   _32 tab_pad; // this needs to be like some portion of the image..
+	_32 tab_pad; // this needs to be like some portion of the image..
 } SHEETCONTROL, *PSHEETCONTROL;
 
 static void ComputeHeight( PSI_CONTROL pc )
@@ -57,7 +57,7 @@ static void ComputeHeight( PSI_CONTROL pc )
 	{
 		if( tmp1 > tmp2 )
 		{
-         lprintf( WIDE("Settin tab height to %")_32f WIDE(""), tmp1 );
+			lprintf( WIDE("Settin tab height to %")_32f WIDE(""), tmp1 );
 			TAB_HEIGHT = tmp1;
 		}
 		else
@@ -73,12 +73,12 @@ static void ComputeHeight( PSI_CONTROL pc )
 	}
 
 	{
-	   // need to go through all the sheets
-      // and check their tab image sizes also...
+		// need to go through all the sheets
+		// and check their tab image sizes also...
 	}
-   if( psc->active )
+	if( psc->active )
 		if( USS_LT( TAB_HEIGHT, _32, psc->active->height, int ) )
-         TAB_HEIGHT = psc->active->height;
+			TAB_HEIGHT = psc->active->height;
 	if( psc->height != TAB_HEIGHT )
 	{
 		psc->height = TAB_HEIGHT;
@@ -107,7 +107,7 @@ static void BlotTab( Image surface, Image slices[3], int x, int width, int heigh
 		BlotScaledImageSizedToAlpha( surface, slices[2]
 											, x + (width/2), 0
 											, width - (width / 2), height
-                                 , ALPHA_TRANSPARENT );
+											, ALPHA_TRANSPARENT );
 	}
 	else
 	{
@@ -120,12 +120,12 @@ static void BlotTab( Image surface, Image slices[3], int x, int width, int heigh
 		BlotScaledImageSizedToAlpha( surface, slices[2]
 											, x + (width - w2), 0
 											, w2, height
-                                 , ALPHA_TRANSPARENT );
+											, ALPHA_TRANSPARENT );
 		//BlotImageAlpha( surface, slices[2]
 		//				  , x + (width - w2), 0
 		//				  , ALPHA_TRANSPARENT );
 	// just scale center portion to width of tab
-      if( USS_LT( ( w1+w2 ),_32, width,int) ) // if equal or less, no reason to do this...
+		if( USS_LT( ( w1+w2 ),_32, width,int) ) // if equal or less, no reason to do this...
 			BlotScaledImageSizedToAlpha( surface, slices[1]
 												, x + w1
 												, 0
@@ -140,7 +140,7 @@ static int CPROC DrawSheetControl( PSI_CONTROL pc )
 	ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pc );
 	Image surface;
 	PSHEET sheet;
-   SFTFont font;
+	SFTFont font;
 	if( !psc )
 	{
 		lprintf( WIDE("Control to draw is not a sheet control."));
@@ -151,9 +151,9 @@ static int CPROC DrawSheetControl( PSI_CONTROL pc )
 	surface = pc->Surface;
 	// need to compute how big the tab is for the caption on the dialog... and
 	// whether we need additionally some buttons present...
-   //lprintf( WIDE("So yeah we clear the sufrace...") );
+	//lprintf( WIDE("So yeah we clear the sufrace...") );
 	//ClearImageTo( surface, basecolor(pc)[NORMAL] );
-   //lprintf( WIDE("Get a font") );
+	//lprintf( WIDE("Get a font") );
 	font = GetFrameFont( pc );
 	{
 		int x = -((int)psc->first_offset);
@@ -170,7 +170,7 @@ static int CPROC DrawSheetControl( PSI_CONTROL pc )
 			//lprintf( WIDE("x : %d next: %d"), x, sheet->tab_width );
 			if( sheet == psc->current )
 			{
-			   //lprintf( WIDE("Surface height and my hight %d %d"), surface->height, psc->height );
+				//lprintf( WIDE("Surface height and my hight %d %d"), surface->height, psc->height );
 				if( sheet->active )
 				{
 					//sheet->tab_width += sheet->tab_pad; // 4 left, 4 right... good pad even for smallness
@@ -186,7 +186,7 @@ static int CPROC DrawSheetControl( PSI_CONTROL pc )
 				else
 				{
 					tab_width = sheet->tab_width + psc->tab_pad;
-               BlatColor( surface, x, 0, tab_width, psc->height, basecolor(pc)[NORMAL] );
+					BlatColor( surface, x, 0, tab_width, psc->height, basecolor(pc)[NORMAL] );
 					do_vline( surface, x, 0, psc->height, basecolor(pc)[SHADE] );
 					do_vline( surface, x+1, 0, psc->height, basecolor(pc)[HIGHLIGHT] );
 					do_vline( surface, x + tab_width-1, 0, psc->height, basecolor(pc)[SHADE] );
@@ -198,18 +198,18 @@ static int CPROC DrawSheetControl( PSI_CONTROL pc )
 					CDATA color;
 					if( sheet->flags.bCustomColors )
 						color = sheet->cActiveText;
-               else if( psc->flags.bCustomColors )
+					else if( psc->flags.bCustomColors )
 						color = psc->cActiveText;
 					else
-                  color = basecolor(pc)[TEXTCOLOR];
-               //lprintf( WIDE("Putting string out at %d,%d %s"), x + 4, 3, GetText( sheet->content->caption.text ) );
+						color = basecolor(pc)[TEXTCOLOR];
+					//lprintf( WIDE("Putting string out at %d,%d %s"), x + 4, 3, GetText( sheet->content->caption.text ) );
 					PutStringFont( surface, x + ( tab_width - sheet->tab_width) / 2, (psc->height - TAB_HEIGHT)/2, color, 0
 									 , GetText( sheet->content->caption.text), font );
 				}
 				//else
-            //   lprintf( WIDE("no content caption text") );
+				//	lprintf( WIDE("no content caption text") );
 			}
-         else
+			else
 			{
 				if( sheet->inactive )
 				{
@@ -223,9 +223,9 @@ static int CPROC DrawSheetControl( PSI_CONTROL pc )
 				}
 				else
 				{
-               tab_width = sheet->tab_width + psc->tab_pad;
+					tab_width = sheet->tab_width + psc->tab_pad;
 				//lprintf( WIDE("Surface height and my hight %d %d"), surface->height, psc->height );
-               BlatColor( surface, x, 0, tab_width, psc->height, basecolor(pc)[NORMAL] );
+					BlatColor( surface, x, 0, tab_width, psc->height, basecolor(pc)[NORMAL] );
 					do_vline( surface, x, 0, psc->height, basecolor(pc)[SHADE] );
 					do_vline( surface, x+1, 0, psc->height, basecolor(pc)[SHADOW] );
 					do_vline( surface, x + tab_width-1, 0, psc->height, basecolor(pc)[SHADE] );
@@ -237,23 +237,23 @@ static int CPROC DrawSheetControl( PSI_CONTROL pc )
 					CDATA color;
 					if( sheet->flags.bCustomColors )
 						color = sheet->cInactiveText;
-               else if( psc->flags.bCustomColors )
+					else if( psc->flags.bCustomColors )
 						color = psc->cInactiveText;
 					else
-                  color = basecolor(pc)[SHADE];
-               //lprintf( WIDE("Putting string out at %d,%d %s"), x + 4, 3, GetText( sheet->content->caption.text ) );
+						color = basecolor(pc)[SHADE];
+					//lprintf( WIDE("Putting string out at %d,%d %s"), x + 4, 3, GetText( sheet->content->caption.text ) );
 					PutStringFont( surface, x + (tab_width-sheet->tab_width)/2, (psc->height - TAB_HEIGHT)/2, color, 0
 									 , GetText( sheet->content->caption.text), font );
 				}
 				//else
-            //   lprintf( WIDE("no content caption text") );
+				//	lprintf( WIDE("no content caption text") );
 			}
-         sheet->tab_width = tab_width;
+			sheet->tab_width = tab_width;
 			x += sheet->tab_width;// sheet->tab_width;
 			sheet = sheet->next;
 		}
 	}
-   return 1;
+	return 1;
 }
 
 static PSHEET GetSheetID( PSHEETCONTROL psc, _32 ID )
@@ -268,24 +268,24 @@ static PSHEET GetSheetID( PSHEETCONTROL psc, _32 ID )
 		}
 		if( sheet->content->nID == ID )
 		{
-         return sheet;
+			return sheet;
 		}
 		sheet = sheet->next;
 	}
-   return NULL;
+	return NULL;
 }
 
 static void SetCurrentPage( PSI_CONTROL pControl, PSHEET sheet )
 {
 	ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pControl );
-   //lprintf( WIDE("Set a current page?") );
+	//lprintf( WIDE("Set a current page?") );
 	if( sheet != psc->current )
 	{
 		// revert to prior sheet... if there was one?
 		// what about the times I want to set NO page
-      // guess I ahve to clear psc->prior_sheet
+		// guess I ahve to clear psc->prior_sheet
 		if( !sheet &&
-		    psc->prior_sheet &&
+			 psc->prior_sheet &&
 			!psc->prior_sheet->flags.bDisabled )
 			sheet = psc->prior_sheet;
 
@@ -298,7 +298,7 @@ static void SetCurrentPage( PSI_CONTROL pControl, PSHEET sheet )
 			lprintf( WIDE("Orphan control %p"), psc->current->content );
 #endif
 			OrphanCommonEx( (PSI_CONTROL)psc->current->content, FALSE );
-         if( !sheet )
+			if( !sheet )
 				SmudgeCommon( pControl );
 		}
 
@@ -317,18 +317,18 @@ static void SetCurrentPage( PSI_CONTROL pControl, PSHEET sheet )
 	}
 	else
 	{
-      // current is already current - that's good.
+		// current is already current - that's good.
 	}
 }
 
 static int CPROC MouseSheetControl( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
 {
-   ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pc );
+	ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pc );
 	PSHEET sheet;
-   int check_x;
+	int check_x;
 	if( b == MK_NO_BUTTON )
 	{
-      psc->_b = 0;
+		psc->_b = 0;
 		return 0;
 	}
 	check_x = psc->first_offset;
@@ -352,30 +352,30 @@ static int CPROC MouseSheetControl( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
 				}
 			}
 			//else
-			//   lprintf( WIDE("Disabled!") );
+			//	lprintf( WIDE("Disabled!") );
 			check_x += sheet->tab_width;
 			sheet = sheet->next;
 		}
 	}
-   return 1;
+	return 1;
 }
 
 static void CPROC DestroySheetControl( PSI_CONTROL pc )
 {
-   //ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pc );
+	//ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pc );
 }
 
-OnEditFrame( SHEET_CONTROL_NAME )(PSI_CONTROL pc )
+static void OnEditFrame( SHEET_CONTROL_NAME )(PSI_CONTROL pc )
 {
 	ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pc );
 	// my frame is having it's edit mode enabled.
-   psc->prior_sheet = NULL;
+	psc->prior_sheet = NULL;
 	SetCurrentPage( pc, NULL );
 	{
 		PSHEET sheet;
 		for( sheet = psc->sheets; sheet; sheet = sheet->next )
 		{
-         EditFrame( sheet->content, TRUE );
+			EditFrame( sheet->content, TRUE );
 		}
 	}
 }
@@ -390,7 +390,7 @@ static void OnEditFrameDone( SHEET_CONTROL_NAME )( PSI_CONTROL pc )
 			EditFrame( sheet->content, FALSE );
 		}
 	}
-   SetCurrentPage( pc, psc->prior_sheet );
+	SetCurrentPage( pc, psc->prior_sheet );
 
 }
 
@@ -398,12 +398,12 @@ static void CPROC AddingSheet( PSI_CONTROL sheet, PSI_CONTROL page )
 {
 	ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, sheet );
 	// if we haven't gotten a mount point yet, no use in
-   // doing anything here.
+	// doing anything here.
 	if( !psc->mount_point || sheet == psc->mount_point )
 	{
 		// this is within the tabs, and serves as
-      // a container for child drawing...
-      // don't remount our mount point...
+		// a container for child drawing...
+		// don't remount our mount point...
 		return;
 	}
 	SetCommonBorder( page, BORDER_NONE|BORDER_NOCAPTION );
@@ -412,7 +412,7 @@ static void CPROC AddingSheet( PSI_CONTROL sheet, PSI_CONTROL page )
 #endif
 	OrphanCommonEx( page, FALSE );
 	AddSheet( sheet, page );
-   //(PSI_CONTROL)sheet->common.parent = NULL;
+	//(PSI_CONTROL)sheet->common.parent = NULL;
 }
 
 static int CPROC InitSheetControl( PSI_CONTROL pc )
@@ -420,16 +420,16 @@ static int CPROC InitSheetControl( PSI_CONTROL pc )
 	ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pc );
 	if( psc )
 	{
-      FRACTION f;
+		FRACTION f;
 		//_32 w, h;
 		psc->mount_point = MakePrivateControl( pc, CONTROL_FRAME
 														 , 0, 0 // starts with no height, as tabs are added, and measured, this is resized.
 														 , pc->rect.width
 														 , pc->rect.height - psc->height
 														 , 0 );
-      SetFraction( f, 1, 1 );
-      SetCommonScale( psc->mount_point, &f, &f );
-      psc->tab_pad = 8; // default font pad
+		SetFraction( f, 1, 1 );
+		SetCommonScale( psc->mount_point, &f, &f );
+		psc->tab_pad = 8; // default font pad
 		SetCommonBorder( psc->mount_point, BORDER_WITHIN|BORDER_THINNER|BORDER_INVERT );
 		//pc->AddedControl = AddingSheet;
 		ComputeHeight( pc );
@@ -450,7 +450,7 @@ sheet_control = { SHEET_CONTROL_NAME
 					 , NULL// getpage
 					 , NULL// apply
 					 , NULL // save
-                , AddingSheet
+					 , AddingSheet
 };
 PRIORITY_PRELOAD( register_sheet_control, PSI_PRELOAD_PRIORITY ) {
 	DoRegisterControl( &sheet_control );
@@ -459,26 +459,26 @@ PRIORITY_PRELOAD( register_sheet_control, PSI_PRELOAD_PRIORITY ) {
 
 PSI_PROC( void, AddSheet )( PSI_CONTROL pControl, PSI_CONTROL contents )
 {
-   ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pControl );
-   PSHEET sheet;
+	ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pControl );
+	PSHEET sheet;
 	if( !psc )
 	{
-      Log( WIDE("Not adding to a sheet...") );
+		Log( WIDE("Not adding to a sheet...") );
 		return;
 	}
 	if( !contents )
 	{
 		Log( WIDE("Can't add no content") );
-      return;
+		return;
 	}
 	sheet = (PSHEET)Allocate( sizeof( SHEET ) );
 	MemSet( sheet, 0, sizeof( SHEET ) );
 	sheet->content = contents;
 	//sheet->next = NULL;
-   //sheet->me = NULL;
+	//sheet->me = NULL;
 	if( sheet->content->caption.text )
 	{
-      SFTFont font = GetCommonFont( pControl );
+		SFTFont font = GetCommonFont( pControl );
 		sheet->tab_width = GetStringSizeFont( GetText( sheet->content->caption.text ), NULL, NULL, font );
 #ifdef DEBUG_SHEET
 		Log1( WIDE("Tab width is %d"), sheet->tab_width );
@@ -492,8 +492,8 @@ PSI_PROC( void, AddSheet )( PSI_CONTROL pControl, PSI_CONTROL contents )
 	}
 	sheet->tab_width += 8; // 2 left, 2 right, 2 padd each side away from text?
 
-   // can't use standard 'link thing' cause this links at end of list.
-   if( psc->sheets )
+	// can't use standard 'link thing' cause this links at end of list.
+	if( psc->sheets )
 	{
 		PSHEET next = psc->sheets;
 		while( next->next )
@@ -501,19 +501,19 @@ PSI_PROC( void, AddSheet )( PSI_CONTROL pControl, PSI_CONTROL contents )
 			if( next->content->nID == sheet->content->nID )
 			{
 				Log( WIDE("Warning - sheet with ID already exists...") );
-            Log( WIDE("Will not be able to select this sheet externally...") );
+				Log( WIDE("Will not be able to select this sheet externally...") );
 			}
-         next = next->next;
+			next = next->next;
 		}
 		next->next = sheet;
-      sheet->me = &next->next;
+		sheet->me = &next->next;
 	}
 	else
 	{
-      //lprintf( WIDE("Adopting first sheet...") );
+		//lprintf( WIDE("Adopting first sheet...") );
 		psc->sheets = sheet;
-      sheet->me = &psc->sheets;
-      SetCurrentSheet( pControl, sheet->content->nID );
+		sheet->me = &psc->sheets;
+		SetCurrentSheet( pControl, sheet->content->nID );
 	}
 }
 
@@ -533,7 +533,7 @@ PSI_PROC( int, RemoveSheet )( PSI_CONTROL pControl, _32 ID )
 			if( sheet->content->nID == ID )
 			{
 				// keep the content - the application has the reponsibility
-            // of freeing the controls.
+				// of freeing the controls.
 				//DestroyCommon( &sheet->content );
 				Release( sheet );
 				UnlinkThing( sheet );
@@ -559,35 +559,35 @@ PSI_PROC( void, SetCurrentSheet )( PSI_CONTROL pControl, _32 ID )
 
 PSI_PROC( int, GetSheetSize )( PSI_CONTROL pControl, _32 *width, _32 *height )
 {
-   ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pControl );
+	ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pControl );
 	if( psc )
 	{
 		if( width )
 			*width = psc->mount_point->surface_rect.width;
 		if( height )
 			*height = psc->mount_point->surface_rect.height;
-      return 1;
+		return 1;
 	}
-   return 0;
+	return 0;
 }
 
 PSI_PROC( PSI_CONTROL, GetSheet )( PSI_CONTROL pControl, _32 ID )
 {
-   ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pControl );
+	ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pControl );
 	if( psc )
 	{
 		PSHEET sheet = GetSheetID( psc, ID );
 		if( sheet )
 			return (PSI_CONTROL)sheet->content;
 	}
-   return NULL;
+	return NULL;
 }
 
 PSI_PROC( PSI_CONTROL, GetSheetControl )( PSI_CONTROL pControl
 												 , _32 IDSheet
 												 , _32 IDControl )
 {
-   ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pControl );
+	ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pControl );
 	if( psc )
 	{
 		PSI_CONTROL sheet = GetSheet( pControl, IDSheet );
@@ -598,19 +598,19 @@ PSI_PROC( PSI_CONTROL, GetSheetControl )( PSI_CONTROL pControl
 
 PSI_PROC( PSI_CONTROL, GetCurrentSheet )( PSI_CONTROL pControl )
 {
-   ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pControl );
+	ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pControl );
 	if( psc )
 	{
-      if( psc->current )
+		if( psc->current )
 			return psc->current->content;
 	}
-   return NULL;
+	return NULL;
 }
 
 
 PSI_PROC( void, DisableSheet )( PSI_CONTROL pControl, _32 ID, LOGICAL bDisable )
 {
-   ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pControl );
+	ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pControl );
 	if( psc )
 	{
 		PSHEET sheet = GetSheetID( psc, ID );
@@ -630,7 +630,7 @@ PSI_PROC( void, DisableSheet )( PSI_CONTROL pControl, _32 ID, LOGICAL bDisable )
 				{
 					SetCurrentPage( pControl, NULL );
 				}
-	   	}
+			}
 		}
 	}
 }
@@ -646,7 +646,7 @@ static void SliceImages( Image image, Image slices[3] )
 			UnmakeImageFile( slices[n] );
 			slices[n] = NULL;
 		}
-   if( image )
+	if( image )
 	{
 		_32 w = image->width;
 		_32 mid;
@@ -673,15 +673,15 @@ void SetTabImages( PSI_CONTROL pControl, Image active, Image inactive )
 	ValidatedControlData( PSHEETCONTROL, SHEET_CONTROL, psc, pControl );
 	if( psc )
 	{
-      psc->active = active;
+		psc->active = active;
 		psc->inactive = inactive;
-      if( active )
+		if( active )
 			psc->tab_pad = active->width / 2;
 		SliceImages( psc->active
 					  , psc->active_slices );
 		SliceImages( psc->inactive
 					  , psc->inactive_slices );
-      ComputeHeight( pControl );
+		ComputeHeight( pControl );
 		SmudgeCommon( pControl );
 	}
 }
@@ -695,7 +695,7 @@ void SetSheetTabImages( PSI_CONTROL pControl, _32 ID, Image active, Image inacti
 	if( psc )
 	{
 		PSHEET sheet = GetSheetID( psc, ID );
-      if( sheet )
+		if( sheet )
 		{
 			sheet->active = active;
 			sheet->inactive = inactive;
@@ -705,7 +705,7 @@ void SetSheetTabImages( PSI_CONTROL pControl, _32 ID, Image active, Image inacti
 			SliceImages( sheet->inactive
 						  , sheet->inactive_slices );
 			ComputeHeight( pControl );
-         SmudgeCommon( pControl );
+			SmudgeCommon( pControl );
 		}
 	}
 }
@@ -718,8 +718,8 @@ void SetTabTextColors( PSI_CONTROL pControl, CDATA cActive, CDATA cInactive )
 	if( psc )
 	{
 		psc->flags.bCustomColors = 1;
-      psc->cActiveText = cActive;
-      psc->cInactiveText = cInactive;
+		psc->cActiveText = cActive;
+		psc->cInactiveText = cInactive;
 		SmudgeCommon( pControl );
 	}
 }
@@ -737,7 +737,7 @@ void SetSheetTabTextColors( PSI_CONTROL pControl, _32 ID, CDATA cActive, CDATA c
 			sheet->flags.bCustomColors = 1;
 			sheet->cActiveText = cActive;
 			sheet->cInactiveText = cInactive;
-         SmudgeCommon( pControl );
+			SmudgeCommon( pControl );
 		}
 	}
 }

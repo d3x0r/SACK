@@ -33,7 +33,7 @@ enum {
 	CHECKBOX_INVERT,
 	CHECKBOX_PASSWORD,
 	RADIO_STYLE_CLEAR_ENTER,
-   EDIT_FORMAT,
+	EDIT_FORMAT,
 	CHECKBOX_ALIGN_CENTER,
 	CHECKBOX_ALIGN_LEFT,
 };
@@ -61,10 +61,10 @@ PRELOAD( RegisterKeypadIDs )
 	EasyRegisterResource( WIDE( "InterShell/Keypad" ), RADIO_STYLE_DOUBLE0_CLEAR, RADIO_BUTTON_NAME );
 	EasyRegisterResource( WIDE( "InterShell/Keypad" ), RADIO_STYLE_CLEAR_ENTER, RADIO_BUTTON_NAME );
 
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), CHECKBOX_INVERT,           RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), CHECKBOX_PASSWORD,          RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), CHECKBOX_ALIGN_CENTER,           RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), CHECKBOX_ALIGN_LEFT,           RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE( "InterShell/Keypad" ), CHECKBOX_INVERT,			  RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE( "InterShell/Keypad" ), CHECKBOX_PASSWORD,			 RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE( "InterShell/Keypad" ), CHECKBOX_ALIGN_CENTER,			  RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE( "InterShell/Keypad" ), CHECKBOX_ALIGN_LEFT,			  RADIO_BUTTON_NAME );
 
 }
 
@@ -401,7 +401,7 @@ static void CPROC EditVisualProperties( PTRSZVAL psvKeypad, PSI_CONTROL parent )
 				SetKeypadStyle( keypad->keypad, style );
 		}
 		{
-         PSI_CONTROL pc;
+			PSI_CONTROL pc;
 			TEXTCHAR tmp[256];
 			GetControlText( pc = GetControl( frame, EDIT_FORMAT ), tmp, 256 );
 			if( pc )
@@ -488,7 +488,7 @@ OnEditControl( WIDE( "Keypad 2" ) )( PTRSZVAL psv, PSI_CONTROL pc_parent )
 	return psv;
 }
 
-OnCreateControl( WIDE( "Keypad 2" ) )( PSI_CONTROL frame, S_32 x, S_32 y, _32 w, _32 h )
+static PTRSZVAL OnCreateControl( WIDE( "Keypad 2" ) )( PSI_CONTROL frame, S_32 x, S_32 y, _32 w, _32 h )
 {
 	PPAGE_KEYPAD page_keypad = NULL;
 	{
@@ -529,10 +529,10 @@ OnCreateControl( WIDE( "Keypad 2" ) )( PSI_CONTROL frame, S_32 x, S_32 y, _32 w,
 	return (PTRSZVAL)page_keypad;
 }
 
-OnChangePage( WIDE( "Keypad 2" ) )( void )
+static int OnChangePage( WIDE( "Keypad 2" ) )( void )
 {
-   PPAGE_KEYPAD keypad;
-   INDEX idx;
+	PPAGE_KEYPAD keypad;
+	INDEX idx;
 	LIST_FORALL( l.keypads, idx, PPAGE_KEYPAD, keypad )
 	{
 		ClearKeyedEntry( keypad->keypad );
@@ -540,14 +540,14 @@ OnChangePage( WIDE( "Keypad 2" ) )( void )
 	return TRUE;
 }
 
-OnGetControl( WIDE( "Keypad 2" ) )(PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE( "Keypad 2" ) )(PTRSZVAL psv )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 	return keypad->keypad;
 }
 
 
-OnSaveControl( WIDE( "Keypad 2" ) )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE( "Keypad 2" ) )( FILE *file, PTRSZVAL psv )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 	fprintf( file, WIDE( "%sKeypad type='%s'\n" ), InterShell_GetSaveIndent(), keypad->keypad_type?keypad->keypad_type:WIDE(".") );
@@ -571,15 +571,15 @@ static PTRSZVAL CPROC MySetKeypadType( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-OnLoadControl( WIDE( "Keypad 2" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE( "Keypad 2" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
-   AddConfigurationMethod( pch, WIDE( "Keypad type='%m'" ), MySetKeypadType );
-   KeypadSetupConfig( pch, &l.psv_read_keypad );
+	AddConfigurationMethod( pch, WIDE( "Keypad type='%m'" ), MySetKeypadType );
+	KeypadSetupConfig( pch, &l.psv_read_keypad );
 }
 
 //-------------------------------------------------------------------------------------------
 
-OnEditControl( WIDE( "Keyboard 2" ) )( PTRSZVAL psv, PSI_CONTROL pc_parent )
+static PTRSZVAL OnEditControl( WIDE( "Keyboard 2" ) )( PTRSZVAL psv, PSI_CONTROL pc_parent )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, WIDE("ConfigureKeypad.isFrame") );
@@ -653,7 +653,7 @@ OnEditControl( WIDE( "Keyboard 2" ) )( PTRSZVAL psv, PSI_CONTROL pc_parent )
 	return psv;
 }
 
-OnCreateControl( WIDE( "Keyboard 2" ) )( PSI_CONTROL frame, S_32 x, S_32 y, _32 w, _32 h )
+static PTRSZVAL OnCreateControl( WIDE( "Keyboard 2" ) )( PSI_CONTROL frame, S_32 x, S_32 y, _32 w, _32 h )
 {
 	PPAGE_KEYPAD page_keypad = NULL;
 	{
@@ -661,7 +661,7 @@ OnCreateControl( WIDE( "Keyboard 2" ) )( PSI_CONTROL frame, S_32 x, S_32 y, _32 
 		//LIST_FORALL( l.keypads, idx, PPAGE_KEYPAD, page_keypad )
 		//{
 		//	if( page_keypad->page == ShellGetCurrentPage() )
-        //      break;
+		  //		break;
 		//}
 
 		if( !page_keypad )
@@ -700,14 +700,14 @@ OnCreateControl( WIDE( "Keyboard 2" ) )( PSI_CONTROL frame, S_32 x, S_32 y, _32 
 	return (PTRSZVAL)page_keypad;
 }
 
-OnGetControl( WIDE( "Keyboard 2" ) )(PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE( "Keyboard 2" ) )(PTRSZVAL psv )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 	return keypad->keypad;
 }
 
 
-OnSaveControl( WIDE( "Keyboard 2" ) )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE( "Keyboard 2" ) )( FILE *file, PTRSZVAL psv )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 	fprintf( file, WIDE( "Keypad type='%s'\n" ), keypad->keypad_type?keypad->keypad_type:WIDE(".") );
@@ -715,15 +715,15 @@ OnSaveControl( WIDE( "Keyboard 2" ) )( FILE *file, PTRSZVAL psv )
 	//fprintf( file, "Keypad Option Go-Clear=%s", GetKeypadGoClear( keypad->keypad ) );
 }
 
-OnLoadControl( WIDE( "Keyboard 2" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE( "Keyboard 2" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
-   AddConfigurationMethod( pch, WIDE( "Keypad type='%m'" ), MySetKeypadType );
-   KeypadSetupConfig( pch, &l.psv_read_keypad );
+	AddConfigurationMethod( pch, WIDE( "Keypad type='%m'" ), MySetKeypadType );
+	KeypadSetupConfig( pch, &l.psv_read_keypad );
 }
 
 //-------------------------------------------------------------------------------------------
 
-OnKeyPressEvent( WIDE( "Keypad Hotkey 2" ) )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE( "Keypad Hotkey 2" ) )( PTRSZVAL psv )
 {
 	// Because of the way this has to be created, this event has a funny
 	// rule about its parameters...
@@ -741,7 +741,7 @@ OnKeyPressEvent( WIDE( "Keypad Hotkey 2" ) )( PTRSZVAL psv )
 	}
 }
 
-OnCreateMenuButton( WIDE( "Keypad Hotkey 2" ) )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( WIDE( "Keypad Hotkey 2" ) )( PMENU_BUTTON button )
 {
 	PHOTKEY hotkey = New( HOTKEY );
 	MemSet( hotkey, 0, sizeof( *hotkey ) );
@@ -765,7 +765,7 @@ static void CPROC PickHotkeyFont( PTRSZVAL psv, PSI_CONTROL pc )
 }
 
 
-OnEditControl( WIDE( "Keypad Hotkey 2" ) )( PTRSZVAL psv, PSI_CONTROL parent_frame )
+static PTRSZVAL OnEditControl( WIDE( "Keypad Hotkey 2" ) )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 {
 	PHOTKEY hotkey = (PHOTKEY)psv;
 	int okay = 0, done = 0;
@@ -813,13 +813,13 @@ OnEditControl( WIDE( "Keypad Hotkey 2" ) )( PTRSZVAL psv, PSI_CONTROL parent_fra
 			UpdateButton( hotkey->button );
 		}
 
-       DestroyFrame( &frame );
+		 DestroyFrame( &frame );
 	}
 
-   return psv;
+	return psv;
 }
 
-OnSaveControl( WIDE( "Keypad Hotkey 2" ) )( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( WIDE( "Keypad Hotkey 2" ) )( FILE *file, PTRSZVAL psv )
 {
 	PHOTKEY hotkey = (PHOTKEY)psv;
 
@@ -881,7 +881,7 @@ static PTRSZVAL CPROC SetHotkeyTarget( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-OnLoadControl( WIDE( "Keypad Hotkey 2" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE( "Keypad Hotkey 2" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
 	AddConfigurationMethod( pch, WIDE( "hotkey font=%m" ), SetHotkeyFontByName );
 	AddConfigurationMethod( pch, WIDE( "hotkey value=%i" ), SetHotkeyValue );
@@ -890,7 +890,7 @@ OnLoadControl( WIDE( "Keypad Hotkey 2" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 }
 
 
-OnFixupControl( WIDE( "Keypad Hotkey 2" ) )( PTRSZVAL psv )
+static void OnFixupControl( WIDE( "Keypad Hotkey 2" ) )( PTRSZVAL psv )
 {
 	PHOTKEY hotkey = (PHOTKEY)psv;
 	TEXTCHAR buffer[256];

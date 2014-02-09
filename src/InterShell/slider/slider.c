@@ -27,7 +27,7 @@ typedef struct slider_info_tag
 {
 	struct {
 		BIT_FIELD bHorizontal : 1; // vertical if not horizontal
-		BIT_FIELD bDragging   : 1; // clicked and held...
+		BIT_FIELD bDragging	: 1; // clicked and held...
 	} flags;
 
 	CDATA backcolor, color;
@@ -36,9 +36,9 @@ typedef struct slider_info_tag
 
 	_32 min, max, current;	
 
-   /* this control may be destroyed and recreated based on other options */
+	/* this control may be destroyed and recreated based on other options */
 	PSI_CONTROL control;
-    TEXTSTR image_name;
+	 TEXTSTR image_name;
 	Image image;
 
 } SLIDER_INFO, *PSLIDER_INFO;
@@ -59,26 +59,26 @@ static void CPROC OnSliderUpdateProc(PTRSZVAL, PSI_CONTROL, int val);
 //---------------------------------------------------------------------------
 PRELOAD( RegisterExtraSliderConfig )
 {
-   EasyRegisterResource( WIDE("InterShell/") _WIDE(TARGETNAME), CHECKBOX_HORIZONTAL, RADIO_BUTTON_NAME );
-   EasyRegisterResource( WIDE("InterShell/") _WIDE(TARGETNAME), CHECKBOX_DRAGGING, RADIO_BUTTON_NAME );
-   EasyRegisterResource( WIDE("InterShell/") _WIDE(TARGETNAME), EDIT_BACKGROUND_IMAGE, EDIT_FIELD_NAME );
-   EasyRegisterResource( WIDE("InterShell/") _WIDE(TARGETNAME), EDIT_MIN, EDIT_FIELD_NAME );
-   EasyRegisterResource( WIDE("InterShell/") _WIDE(TARGETNAME), EDIT_MAX, EDIT_FIELD_NAME );
-   EasyRegisterResource( WIDE("InterShell/") _WIDE(TARGETNAME), EDIT_CURRENT, EDIT_FIELD_NAME );
+	EasyRegisterResource( WIDE("InterShell/") _WIDE(TARGETNAME), CHECKBOX_HORIZONTAL, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/") _WIDE(TARGETNAME), CHECKBOX_DRAGGING, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/") _WIDE(TARGETNAME), EDIT_BACKGROUND_IMAGE, EDIT_FIELD_NAME );
+	EasyRegisterResource( WIDE("InterShell/") _WIDE(TARGETNAME), EDIT_MIN, EDIT_FIELD_NAME );
+	EasyRegisterResource( WIDE("InterShell/") _WIDE(TARGETNAME), EDIT_MAX, EDIT_FIELD_NAME );
+	EasyRegisterResource( WIDE("InterShell/") _WIDE(TARGETNAME), EDIT_CURRENT, EDIT_FIELD_NAME );
 
 }
 
 
-OnCreateControl(WIDE("Slider"))
+static PTRSZVAL OnCreateControl(WIDE("Slider"))
 /*PTRSZVAL CPROC CreateSlider*/( PSI_CONTROL frame, S_32 x, S_32 y, _32 w, _32 h )
 {
 
 	PSLIDER_INFO info = New( SLIDER_INFO );
-    
-   
+	 
+	
 	MemSet( info, 0, sizeof( *info ) );
 
-    //Default values
+	 //Default values
 	info->color = BASE_COLOR_WHITE;
 
 	info->min = 0;
@@ -87,7 +87,7 @@ OnCreateControl(WIDE("Slider"))
 
 
 	info->control = MakeControl( frame
-		                              , SLIDER_CONTROL
+												, SLIDER_CONTROL
 									  , x
 									  , y
 									  , w
@@ -96,17 +96,17 @@ OnCreateControl(WIDE("Slider"))
 									  );
 
 
-	SetSliderUpdateHandler( info->control, OnSliderUpdateProc, (PTRSZVAL)info );   //info (pointer) will be returned in OnSliderUpdateProc()
-    
+	SetSliderUpdateHandler( info->control, OnSliderUpdateProc, (PTRSZVAL)info );	//info (pointer) will be returned in OnSliderUpdateProc()
+	 
 
-   // none of these are accurate values, they are just default WHITE and nothing.
+	// none of these are accurate values, they are just default WHITE and nothing.
 	InterShell_SetButtonColors( NULL, info->color, info->backcolor, 0, 0 );
 ////	SetSliderColor( info->control, info->color );
 //	SetSliderBackColor( info->control, info->backcolor );
 	
 
 	// need to supply extra information about the image, location of hands and face in image
-   // and the spots...
+	// and the spots...
 	//MakeClockAnalog( info->control );
 	info->font = InterShell_GetCurrentButtonFont();
 	if( info->font )
@@ -122,7 +122,7 @@ OnCreateControl(WIDE("Slider"))
 
 
 
-OnConfigureControl( WIDE("Slider") )( PTRSZVAL psv, PSI_CONTROL parent_frame )
+static PTRSZVAL OnConfigureControl( WIDE("Slider") )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 //PTRSZVAL CPROC ConfigureClock( PTRSZVAL psv )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
@@ -136,7 +136,7 @@ OnConfigureControl( WIDE("Slider") )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 			//frame = CreateFrame( WIDE("Clock Properties"), 0, 0, 420, 250, 0, NULL );
 			if( frame )
 			{
-                TEXTCHAR buffer[256];
+					 TEXTCHAR buffer[256];
 
 				SetCommonButtonControls( frame );
 				
@@ -144,13 +144,13 @@ OnConfigureControl( WIDE("Slider") )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 				SetCheckState( GetControl( frame, CHECKBOX_DRAGGING ), info->flags.bDragging );
 				SetControlText( GetControl( frame, EDIT_BACKGROUND_IMAGE ), info->image_name );
 
-                snprintf(buffer, sizeof(buffer), WIDE("%d"), info->min);
+					 snprintf(buffer, sizeof(buffer), WIDE("%d"), info->min);
 				SetControlText( GetControl( frame, EDIT_MIN ), buffer );
 
-                snprintf(buffer, sizeof(buffer), WIDE("%d"), info->max);
+					 snprintf(buffer, sizeof(buffer), WIDE("%d"), info->max);
 				SetControlText( GetControl( frame, EDIT_MAX ), buffer );
 				
-                snprintf(buffer, sizeof(buffer), WIDE("%d"), info->current);
+					 snprintf(buffer, sizeof(buffer), WIDE("%d"), info->current);
 				SetControlText( GetControl( frame, EDIT_CURRENT ), buffer );
 				
 				SetCommonButtons( frame, &done, &okay );
@@ -162,7 +162,7 @@ OnConfigureControl( WIDE("Slider") )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 					GetCommonButtonControls( frame );
 					info->font = InterShell_GetCurrentButtonFont();
 					if( info->font )
-			         SetCommonFont( info->control, (*info->font ) );
+						SetCommonFont( info->control, (*info->font ) );
 					info->color = GetColorFromWell( GetControl( frame, CLR_TEXT_COLOR ) );
 					info->backcolor = GetColorFromWell( GetControl( frame, CLR_BACKGROUND ) );
 					{
@@ -175,11 +175,11 @@ OnConfigureControl( WIDE("Slider") )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 //					SetSliderColor( info->control, info->color );
 //					SetSliderkBackColor( info->control, info->backcolor );
 
-			    info->flags.bHorizontal = GetCheckState( GetControl( frame, CHECKBOX_HORIZONTAL ) );
-                info->flags.bDragging = GetCheckState( GetControl( frame, CHECKBOX_DRAGGING ) );
+				 info->flags.bHorizontal = GetCheckState( GetControl( frame, CHECKBOX_HORIZONTAL ) );
+					 info->flags.bDragging = GetCheckState( GetControl( frame, CHECKBOX_DRAGGING ) );
 
-                //SetSliderHorizontal(info->control, info->flags.bHorizontal);
-                //SetSliderDragging(info->control, info->flags.bDragging);
+					 //SetSliderHorizontal(info->control, info->flags.bHorizontal);
+					 //SetSliderDragging(info->control, info->flags.bDragging);
 
 				GetControlText( GetControl( frame, EDIT_MIN), buffer, sizeof( buffer ) );
 				info->min = atoi(buffer);
@@ -188,20 +188,20 @@ OnConfigureControl( WIDE("Slider") )( PTRSZVAL psv, PSI_CONTROL parent_frame )
 				GetControlText( GetControl( frame, EDIT_CURRENT), buffer, sizeof( buffer ) );
 				info->current = atoi(buffer);
 
-                //SetSliderMinValue( info->control, info->min);
-                //SetSliderMaxValue( info->control, info->max);
-                //SetSliderCurrentValue( info->control, info->current);
+					 //SetSliderMinValue( info->control, info->min);
+					 //SetSliderMaxValue( info->control, info->max);
+					 //SetSliderCurrentValue( info->control, info->current);
 
 				}
-			   DestroyFrame( &frame );
+				DestroyFrame( &frame );
 			}
 		}
 	}
-   return psv;
+	return psv;
 }
 
 
-OnSaveControl( WIDE( "Slider" ) )( FILE *file,PTRSZVAL psv )
+static void OnSaveControl( WIDE( "Slider" ) )( FILE *file,PTRSZVAL psv )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	fprintf( file, WIDE("Slider color=$%02X%02X%02X%02X\n")
@@ -233,16 +233,16 @@ static PTRSZVAL CPROC ReloadSliderColor( PTRSZVAL psv, arg_list args )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	PARAM( args, CDATA, color );
-   info->color = color;
-   return psv;
+	info->color = color;
+	return psv;
 }
 
 static PTRSZVAL CPROC ReloadSliderBackColor( PTRSZVAL psv, arg_list args )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	PARAM( args, CDATA, color );
-   info->backcolor = color;
-   return psv;
+	info->backcolor = color;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetSliderHorizontal( PTRSZVAL psv, arg_list args )
@@ -250,7 +250,7 @@ static PTRSZVAL CPROC SetSliderHorizontal( PTRSZVAL psv, arg_list args )
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	PARAM( args, LOGICAL, bHorizontal );
 	info->flags.bHorizontal = bHorizontal;
-   return psv;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetSliderDragging( PTRSZVAL psv, arg_list args )
@@ -258,7 +258,7 @@ static PTRSZVAL CPROC SetSliderDragging( PTRSZVAL psv, arg_list args )
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	PARAM( args, LOGICAL, bDragging );
 	info->flags.bDragging = bDragging;
-   return psv;
+	return psv;
 }
 
 
@@ -268,7 +268,7 @@ static PTRSZVAL CPROC SetSliderBackgroundImage( PTRSZVAL psv, arg_list args )
 	PARAM( args, CTEXTSTR, name );
 	info->image_name = StrDup( name );
 
-   return psv;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetSliderMinValue( PTRSZVAL psv, arg_list args )
@@ -276,7 +276,7 @@ static PTRSZVAL CPROC SetSliderMinValue( PTRSZVAL psv, arg_list args )
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	PARAM( args, S_32, min );
 	info->min = min;
-   return psv;
+	return psv;
 }
 
 static PTRSZVAL CPROC SetSliderMaxValue( PTRSZVAL psv, arg_list args )
@@ -284,30 +284,30 @@ static PTRSZVAL CPROC SetSliderMaxValue( PTRSZVAL psv, arg_list args )
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	PARAM( args, S_32, max );
 	info->max = max;
-   return psv;
+	return psv;
 }
 static PTRSZVAL CPROC SetSliderCurrentValue( PTRSZVAL psv, arg_list args )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	PARAM( args, S_32, current );
 	info->current = current;
-   return psv;
+	return psv;
 }
 
-OnLoadControl( WIDE( "Slider" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( WIDE( "Slider" ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
-   AddConfigurationMethod( pch, WIDE("Slider color=%c"), ReloadSliderColor );
-   AddConfigurationMethod( pch, WIDE("Slider back color=%c"), ReloadSliderBackColor );
-   AddConfigurationMethod( pch, WIDE("Slider is horizontal?%b"), SetSliderHorizontal );
-   AddConfigurationMethod( pch, WIDE("Slider is draggable?%b"), SetSliderDragging );
-   AddConfigurationMethod( pch, WIDE("Slider background image=%m" ), SetSliderBackgroundImage );
-   AddConfigurationMethod( pch, WIDE("Slider min value=%i"), SetSliderMinValue );
-   AddConfigurationMethod( pch, WIDE("Slider max value=%i"), SetSliderMaxValue );
-   AddConfigurationMethod( pch, WIDE("Slider current value=%i"), SetSliderCurrentValue );
+	AddConfigurationMethod( pch, WIDE("Slider color=%c"), ReloadSliderColor );
+	AddConfigurationMethod( pch, WIDE("Slider back color=%c"), ReloadSliderBackColor );
+	AddConfigurationMethod( pch, WIDE("Slider is horizontal?%b"), SetSliderHorizontal );
+	AddConfigurationMethod( pch, WIDE("Slider is draggable?%b"), SetSliderDragging );
+	AddConfigurationMethod( pch, WIDE("Slider background image=%m" ), SetSliderBackgroundImage );
+	AddConfigurationMethod( pch, WIDE("Slider min value=%i"), SetSliderMinValue );
+	AddConfigurationMethod( pch, WIDE("Slider max value=%i"), SetSliderMaxValue );
+	AddConfigurationMethod( pch, WIDE("Slider current value=%i"), SetSliderCurrentValue );
 
 }
 
-OnFixupControl( WIDE("Slider") )(  PTRSZVAL psv )
+static void OnFixupControl( WIDE("Slider") )(  PTRSZVAL psv )
 {
 	_32 opt;
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
@@ -316,21 +316,21 @@ OnFixupControl( WIDE("Slider") )(  PTRSZVAL psv )
 	{
 //		SetSliderColor( info->control, info->color );
 //		SetSliderBackColor( info->control, info->backcolor );
-	    opt = info->flags.bHorizontal ? SLIDER_HORIZ : SLIDER_VERT;
+		 opt = info->flags.bHorizontal ? SLIDER_HORIZ : SLIDER_VERT;
 		SetSliderValues( info->control, info->min, info->current, info->max );
 		SetSliderOptions( info->control, opt );
 		InterShell_SetButtonColors( NULL, info->color, info->backcolor, 0, 0 );
 	}
 }
 
-OnGetControl( WIDE("Slider") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Slider") )( PTRSZVAL psv )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
-   return info->control;
+	return info->control;
 }
 
 
-OnQueryShowControl( WIDE("Slider") )( PTRSZVAL psv )
+static LOGICAL OnQueryShowControl( WIDE("Slider") )( PTRSZVAL psv )
 {
 	_32 opt;
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
@@ -344,7 +344,7 @@ OnQueryShowControl( WIDE("Slider") )( PTRSZVAL psv )
 			info->current = 10;
 		}
 
-	    opt = info->flags.bHorizontal ? SLIDER_HORIZ : SLIDER_VERT;
+		 opt = info->flags.bHorizontal ? SLIDER_HORIZ : SLIDER_VERT;
 		SetSliderValues( info->control, info->min, info->current, info->max );
 		SetSliderOptions( info->control, opt );
 
@@ -356,14 +356,14 @@ OnQueryShowControl( WIDE("Slider") )( PTRSZVAL psv )
 static void CPROC OnSliderUpdateProc(PTRSZVAL psv, PSI_CONTROL pc, int val)
 //Update current value
 {
-   PSLIDER_INFO info = (PSLIDER_INFO)psv;
+	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 
-//   lprintf( "OnSliderUpdateProc: info=%X  val=%d", info, val);
+//	lprintf( "OnSliderUpdateProc: info=%X  val=%d", info, val);
 
-   if(!info)
-	   return;
-   
-   info->current = val;
+	if(!info)
+		return;
+	
+	info->current = val;
 }
 
 //---------------------------------------------------------------------------

@@ -1,7 +1,7 @@
-/*       M:\work\sack\src\apps\intershell\pages.c
+/*		 M:\work\sack\src\apps\intershell\pages.c
  *  Creator:Jim Buckeyne
  *  Purpose: Page related controls for the POS framework.  Page titles, page changing buttons
- *           (more)?
+ *			  (more)?
  *
  *
  *  (c)Freedom Collective 2006++
@@ -11,8 +11,8 @@
 
 /*
  * creates controls:
- *    page/Page Changer
- *    page/title
+ *	 page/Page Changer
+ *	 page/title
  */
 #ifndef INTERSHELL_SOURCE
 #define INTERSHELL_SOURCE
@@ -46,7 +46,7 @@ static struct local_page_information
 void CreateNamedPage( PSI_CONTROL pc_canvas, CTEXTSTR page_name )
 {
 	if( !pc_canvas )
-      pc_canvas = g.single_frame;
+		pc_canvas = g.single_frame;
 	if( pc_canvas )
 	{
 		PCanvasData canvas = GetCanvas( pc_canvas );
@@ -70,7 +70,7 @@ void InsertStartupPage( PSI_CONTROL pc_canvas, CTEXTSTR page_name )
 	canvas->default_page->title = StrDup( page_name );
 	MemSet( page, 0, sizeof( *page ) );
 	page->title = NULL; //StrDup( "New Startup?" );
-   // new default page...
+	// new default page...
 	AddPage( canvas, canvas->default_page ); // which is a new page....  but it's got a goofy name... menus suck.
 	canvas->default_page = page;
 	page->grid.nPartsX = canvas->current_page->grid.nPartsX;
@@ -82,9 +82,9 @@ void InsertStartupPage( PSI_CONTROL pc_canvas, CTEXTSTR page_name )
 
 PPAGE_DATA GetCurrentCanvasPage( PCanvasData canvas )
 {
-   if( canvas )
+	if( canvas )
 		return canvas->current_page;
-   return NULL;
+	return NULL;
 }
 
 //-------------------------------------------------------------------------
@@ -147,7 +147,7 @@ PPAGE_DATA ShellGetNamedPage( PSI_CONTROL pc_canvas, CTEXTSTR name )
 			if( page->title )
 				if( strcmp( page->title, name ) == 0 )
 				{
-               				return page;
+									return page;
 				}
 		}
 	}
@@ -173,7 +173,7 @@ PPAGE_DATA ShellGetCurrentPageEx( PSI_CONTROL pc_canvas )
 
 PPAGE_DATA ShellGetCurrentPage( void )
 {
-   return ShellGetCurrentPageEx( g.single_frame );
+	return ShellGetCurrentPageEx( g.single_frame );
 }
 
 //-------------------------------------------------------------------------
@@ -188,7 +188,7 @@ void ClearPageList( void )
 		PCanvasData canvas = GetCanvas( pc_canvas );
 		while( PopLink( &canvas->prior_pages ) );
 	}
-   //while( PopLink( &l.prior_pages ) );
+	//while( PopLink( &l.prior_pages ) );
 }
 
 //-------------------------------------------------------------------------
@@ -205,11 +205,11 @@ int InvokePageChange( void )
 		f = GetRegisteredProcedure2( data, int, name, (void) );
 		if( f )
 			if( !f() )
-            break;
+				break;
 	}
 	if( name )
 		return FALSE;
-   return TRUE;
+	return TRUE;
 }
 
 //-------------------------------------------------------------------------
@@ -226,11 +226,11 @@ int InvokeAllowPageChange( void )
 		f = GetRegisteredProcedure2( data, int, name, (void) );
 		if( f )
 			if( !f() )
-            break;
+				break;
 	}
 	if( name )
 		return FALSE;
-   return TRUE;
+	return TRUE;
 }
 
 //-------------------------------------------------------------------------
@@ -244,12 +244,12 @@ void UpdateButtonExx( PMENU_BUTTON button, int bEndingEdit DBG_PASS )
 	{
 		/* better to validate this, so off-page controls don't accidentatlly
 		 * show themselves with update.
-       */
+		 */
 		PCanvasData canvas = GetCanvas( GetParentControl( QueryGetControl( button ) ) );
 		// doesn't matter ... we're not on this button's page..
 
 		//lprintf( WIDE( "probably not g.flags.multi_edit ( %d )" ),  g.flags.multi_edit );
-      //lprintf( WIDE( "real button page %p is %p ?" ), InterShell_GetPhysicalButton( button )->page, canvas->current_page );
+		//lprintf( WIDE( "real button page %p is %p ?" ), InterShell_GetPhysicalButton( button )->page, canvas->current_page );
 		if( !g.flags.multi_edit && InterShell_GetPhysicalButton( button )->page != canvas->current_page )
 			return;
 	}
@@ -260,16 +260,16 @@ void UpdateButtonExx( PMENU_BUTTON button, int bEndingEdit DBG_PASS )
 		// call the showcontrol on it... it might know it's parent container to update colors...
 		InvokeShowControl( button );
 		//lprintf( WIDE( "Okay... then what ? smudge this?" ) );
-      FlushToKey( InterShell_GetPhysicalButton( button ) );
+		FlushToKey( InterShell_GetPhysicalButton( button ) );
 		SmudgeCommon( QueryGetControl( InterShell_GetPhysicalButton( button ) ) );
-      return;
+		return;
 	}
 
 	if( /*button->flags.bInvisible ||*/ ( button->page && !button->page->flags.bActive ) )
 	{
 		return; // nothing to do if not in a active page.
 	}
-   // if it's not on a page, it might just be in a macro...
+	// if it's not on a page, it might just be in a macro...
 	if( !button->page && !button->container_button )
 	{
 		//lprintf( WIDE( "Somehow a button is not on a page...(DEBUG)" ) );
@@ -343,7 +343,7 @@ void UpdateButtonExx( PMENU_BUTTON button, int bEndingEdit DBG_PASS )
 	// never show it... (purpose defined by the setting of psvUser to
 	// some plugin's use data...
 	//lprintf( " button type is %s and psv is %p", button->pTypeName, button->psvUser );
-   /*
+	/*
 	if( bShow )
 	{
 		RevealCommon( QueryGetControl( button ) );
@@ -352,7 +352,7 @@ void UpdateButtonExx( PMENU_BUTTON button, int bEndingEdit DBG_PASS )
 	{
 		HideCommon( QueryGetControl( button ) );
 		}
-      */
+		*/
 }
 
 // added pc_canvas very late to supprot shellgetnamedpage
@@ -488,7 +488,7 @@ void HidePageExx( PSI_CONTROL pc_canvas DBG_PASS )
 		PMENU_BUTTON control;
 		PPAGE_DATA page;
 		if( !canvas->current_page->flags.bActive )
-         _lprintf(DBG_RELAY)( WIDE( "hiding a non active page" ) );
+			_lprintf(DBG_RELAY)( WIDE( "hiding a non active page" ) );
 		if( canvas->current_page )
 			canvas->current_page->flags.bActive = 0;
 		if( canvas->pPageMenu )
@@ -528,7 +528,7 @@ void ChangePagesEx( PSI_CONTROL pc_canvas, PPAGE_DATA page DBG_PASS )
 		ForceDisplayFront( GetFrameRenderer( page->frame ) );
 		lprintf( WIDE( "Someone requested a switch page... perhaps we should entertain doing some display thing to set focus to the page..." ) );
 		bChanging = FALSE;
-		return;   // don't hide any controls on any page....
+		return;	// don't hide any controls on any page....
 	}
 	if( page == canvas->current_page )
 	{
@@ -538,7 +538,7 @@ void ChangePagesEx( PSI_CONTROL pc_canvas, PPAGE_DATA page DBG_PASS )
 		return;
 	}
 
-   //DumpFrameContents( g.frame );
+	//DumpFrameContents( g.frame );
 	//lprintf( WIDE("-------------------------------------- ChangePages -------------------------------------") );
 	bChanging = TRUE;
 	if( !g.flags.bPageUpdateDisabled )
@@ -605,7 +605,7 @@ void SetCurrentPageID( PSI_CONTROL pc_canvas, _32 ID )
 
 void DestroyPage( PCanvasData canvas, PPAGE_DATA page )
 {
-   // shouldn't actually destroy, enque into things
+	// shouldn't actually destroy, enque into things
 	PLIST controls;
 	PMENU_BUTTON button;
 	INDEX idx;
@@ -686,7 +686,7 @@ int ShellCallSetCurrentPageEx( PSI_CONTROL pc_canvas, CTEXTSTR name )
 	{
 		return ShellSetCurrentPageEx( pc_canvas, name );
 	}
-   return 0;
+	return 0;
 }
 
 // stuff...
@@ -724,7 +724,7 @@ PSI_CONTROL SelectTextWidget( void )
 {
 	PSI_CONTROL frame = LoadXMLFrame( WIDE( "SelectFileButton.isFrame" ) );
 	{
-      //InitListbox( ) ;
+		//InitListbox( ) ;
 	}
 	return frame;
 }
@@ -791,7 +791,7 @@ static void CPROC ListBoxThemeSelectionChanged( PTRSZVAL psv, PSI_CONTROL list, 
 void EditCurrentPageProperties(PSI_CONTROL parent, PCanvasData canvas)
 {
 	//PTRSZVAL CPROC ConfigurePaper( PTRSZVAL psv, PMENU_BUTTON button )
-//   if(0)
+//	if(0)
 {
 	// psv may be passed as NULL, and therefore there was no task assicated with this
 	// button before.... the button is blank, and this is an initial creation of a button of this type.
@@ -821,14 +821,14 @@ void EditCurrentPageProperties(PSI_CONTROL parent, PCanvasData canvas)
 			button = MakeButton( frame, 89, 143, 36, 18, BTN_PICKANIMFILE, WIDE("..."), 0, ChooseAnimation, (PTRSZVAL)frame );
 
 			SaveXMLFrame( frame, WIDE( "InterShellPageProperty.isFrame" ) );
-         		//SetCommonUserData( button, l.file_text_field );
+					//SetCommonUserData( button, l.file_text_field );
 
-         /*
+			/*
 			AddPropertySheet( button
 								 , SelectFileOutputTextWidget
 								 , ApplySelectFileOutputTextWidget
 								 );
-         */
+			*/
 			//MakeTextControl( frame, 5, 143, 120, 18, TXT_STATIC, WIDE("Text color"), 0 );
 			//EnableColorWellPick( MakeColorWell( frame, 130, 143, 18, 18, CLR_TEXT_COLOR, button->textcolor ), TRUE );
 
@@ -857,9 +857,9 @@ void EditCurrentPageProperties(PSI_CONTROL parent, PCanvasData canvas)
 			{
 				if( !n )
 					snprintf( buf, 32, WIDE("Default Theme") );
-            else
+				else
 					snprintf( buf, 32, WIDE("Theme %d"), n );
-            SetItemData( AddListItem( GetControl( frame, LISTBOX_PAGE_THEME ), buf ), n );
+				SetItemData( AddListItem( GetControl( frame, LISTBOX_PAGE_THEME ), buf ), n );
 			}
 			SetSelChangeHandler( GetControl( frame, LISTBOX_PAGE_THEME ), ListBoxThemeSelectionChanged, (PTRSZVAL)frame );
 		}
@@ -891,7 +891,7 @@ void EditCurrentPageProperties(PSI_CONTROL parent, PCanvasData canvas)
 			{
 				UnmakeImageFile( canvas->current_page->background_image );
 				canvas->current_page->background_image = NULL;
-            //SmudgeCommon( parent );
+				//SmudgeCommon( parent );
 			}
 		}
 		else
@@ -922,7 +922,7 @@ void EditCurrentPageProperties(PSI_CONTROL parent, PCanvasData canvas)
 	lprintf( WIDE("destroying frame") );
 	DestroyFrame( &frame );
 	lprintf( WIDE("Destroyed frame") );
-//   return psv;
+//	return psv;
 }
 
 
@@ -963,7 +963,7 @@ PPAGE_DATA GetPageFromFrame( PSI_CONTROL pc_canvas )
 	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	if( canvas )
 		return canvas->current_page;
-   return NULL;
+	return NULL;
 }
 
 //---------------------------------------------------------------------------
@@ -1030,7 +1030,7 @@ void RenamePage( PSI_CONTROL pc_canvas )
 // PAGE Change Control
 //---------------------------------------------------------------------------
 
-OnCreateMenuButton( PAGE_CHANGER_NAME )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( PAGE_CHANGER_NAME )( PMENU_BUTTON button )
 {
 	// add layout, and set title on button...
 	// well...
@@ -1043,17 +1043,17 @@ OnCreateMenuButton( PAGE_CHANGER_NAME )( PMENU_BUTTON button )
 	return 0;
 }
 
-OnDestroyControl( PAGE_CHANGER_NAME )( PTRSZVAL psv )
+static void OnDestroyControl( PAGE_CHANGER_NAME )( PTRSZVAL psv )
 //void CPROC DestroyPageChanger( PTRSZVAL psv, PMENU_BUTTON button )
 {
 	// release any private data associated with this button...
-   //Release( (PPAGE_DATA)psv );
+	//Release( (PPAGE_DATA)psv );
 }
 
 void InterShell_DisableButtonPageChange( PMENU_BUTTON button )
 {
 	// set a one shot flag to disable the change associated with this button.
-   if( button )
+	if( button )
 		button->flags.bIgnorePageChange = 1;
 }
 
@@ -1308,7 +1308,7 @@ void InterShell_SetPageColor( PPAGE_DATA page, CDATA color )
 	{
 		page->background_color = color;
 		SetLink( &page->background_colors, l.current_page_theme, color );
-      SmudgeCommon( page->frame );
+		SmudgeCommon( page->frame );
 	}
 }
 

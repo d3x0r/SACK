@@ -34,11 +34,12 @@ namespace sack {
 		typedef struct menu_button *PMENU_BUTTON;
 #endif
 
-//OnCreateMenuButton(name)(PMENU_BUTTON button ) { /*create button data*/ }
+//OnCreateMenuButton(WIDE("name"))(PMENU_BUTTON button ) { /*create button data*/ }
 #define OnCreateMenuButton(name) \
 	DefineRegistryMethod(TASK_PREFIX,CreateMenuButton,WIDE( "control" ),name POSTFIX,WIDE( "button_create" ),PTRSZVAL,(PMENU_BUTTON))
 
 // parametrs to this are the parent control, x, y, width and height
+// OnCreateCommonControl(WIDE( "" ))(PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
 #define OnCreateControl(name) \
 	DefineRegistryMethod(TASK_PREFIX,CreateControl,WIDE( "control" ),name,WIDE( "control_create" ),PTRSZVAL,(PSI_CONTROL,S_32,S_32,_32,_32))
 #define OnCreateListbox(name) \
@@ -49,6 +50,9 @@ namespace sack {
 #define OnDestroyControl OnDestroyMenuButton
 #define OnDestroyListbox OnDestroyMenuButton
 
+// Return the real PSI_CONTROL; which may not be the ptrszval result from before
+// static PSI_CONTROL OnGetControl(WIDE(""))(PTRSZVAL psvInit);
+// { return (PSI_CONTROL)psvInit; }
 #define OnGetControl(name) \
 	DefineRegistryMethod(TASK_PREFIX,GetControl,WIDE( "control" ),name,WIDE( "get_control" ),PSI_CONTROL,(PTRSZVAL))
 #define OnFixupControl(name) \

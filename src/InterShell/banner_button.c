@@ -46,23 +46,23 @@ static struct {
 
 PRELOAD( RegisterResources )
 {
-	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_TOPMOST            , RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_CONTINUE            , RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_YESNO            , RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_OKAYCANCEL            , RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_NOCLICK         , RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_EXPLORER         , RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_SKIP_IF_LIT         , RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_SKIP_IF_UNLIT       , RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_TOPMOST				, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_CONTINUE				, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_YESNO				, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_OKAYCANCEL				, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_NOCLICK			, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_EXPLORER			, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_SKIP_IF_LIT			, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_SKIP_IF_UNLIT		 , RADIO_BUTTON_NAME );
 
-	EasyRegisterResource( WIDE( "InterShell/banner" ), EDIT_BANNER_DELAY           , EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE( "InterShell/banner" ), EDIT_BANNER_TEXT           , EDIT_FIELD_NAME );
+	EasyRegisterResource( WIDE( "InterShell/banner" ), EDIT_BANNER_DELAY			  , EDIT_FIELD_NAME );
+	EasyRegisterResource( WIDE( "InterShell/banner" ), EDIT_BANNER_TEXT			  , EDIT_FIELD_NAME );
 
-	EasyRegisterResource( WIDE( "InterShell/banner" ), EDIT_CONTROL_TEXT           , EDIT_FIELD_NAME );
+	EasyRegisterResource( WIDE( "InterShell/banner" ), EDIT_CONTROL_TEXT			  , EDIT_FIELD_NAME );
 }
 
 #define MAKE_BANNER_MESSAGE WIDE("Banner Message")
-OnCreateMenuButton( MAKE_BANNER_MESSAGE )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( MAKE_BANNER_MESSAGE )( PMENU_BUTTON button )
 {
 	PBANNER_BUTTON banner = New( BANNER_BUTTON );
 	MemSet( banner, 0, sizeof( *banner ) );
@@ -70,7 +70,7 @@ OnCreateMenuButton( MAKE_BANNER_MESSAGE )( PMENU_BUTTON button )
 	return (PTRSZVAL)banner;
 }
 
-OnKeyPressEvent( MAKE_BANNER_MESSAGE )( PTRSZVAL psvBanner )
+static void OnKeyPressEvent( MAKE_BANNER_MESSAGE )( PTRSZVAL psvBanner )
 {
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
 	TEXTCHAR buffer[256];
@@ -123,19 +123,19 @@ OnKeyPressEvent( MAKE_BANNER_MESSAGE )( PTRSZVAL psvBanner )
 	{
 		if( banner->flags.yes_no || banner->flags.okay_cancel )
 			SetMacroResult( yes_no );// set allow_continue to yes_no
-      if( banner->banner )
+		if( banner->banner )
 			RemoveBanner2Ex( &banner->banner DBG_SRC );
 	}
 	else
 	{
-      // can have a whole slew of banners each with their own removes ?
+		// can have a whole slew of banners each with their own removes ?
 		AddLink( &l.banners, banner );
 	}
 	//BannerMessage( "Yo, whatcha want!?" );
 }
 
 #define REMOVE_BANNER_MESSAGE WIDE( "Banner Message Remove" )
-OnCreateMenuButton( REMOVE_BANNER_MESSAGE )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( REMOVE_BANNER_MESSAGE )( PMENU_BUTTON button )
 {
 	// this button should only exist as an invisible/macro button....
 	PBANNER_BUTTON banner = New( BANNER_BUTTON );
@@ -144,7 +144,7 @@ OnCreateMenuButton( REMOVE_BANNER_MESSAGE )( PMENU_BUTTON button )
 	return (PTRSZVAL)banner;
 }
 
-OnKeyPressEvent( REMOVE_BANNER_MESSAGE )( PTRSZVAL psvBanner )
+static void OnKeyPressEvent( REMOVE_BANNER_MESSAGE )( PTRSZVAL psvBanner )
 {
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
 	INDEX idx;
@@ -156,7 +156,7 @@ OnKeyPressEvent( REMOVE_BANNER_MESSAGE )( PTRSZVAL psvBanner )
 	//BannerMessage( "Yo, whatcha want!?" );
 }
 
-OnConfigureControl( MAKE_BANNER_MESSAGE )( PTRSZVAL psvBanner, PSI_CONTROL parent )
+static PTRSZVAL OnConfigureControl( MAKE_BANNER_MESSAGE )( PTRSZVAL psvBanner, PSI_CONTROL parent )
 {
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
 	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE( "EditBannerMessage.isFrame" ) );
@@ -222,7 +222,7 @@ OnConfigureControl( MAKE_BANNER_MESSAGE )( PTRSZVAL psvBanner, PSI_CONTROL paren
 
 
 
-OnSaveControl( MAKE_BANNER_MESSAGE )( FILE *file, PTRSZVAL psvBanner )
+static void OnSaveControl( MAKE_BANNER_MESSAGE )( FILE *file, PTRSZVAL psvBanner )
 {
 	TEXTCHAR buffer[256];
 	TEXTCHAR buffer2[256];
@@ -330,7 +330,7 @@ static PTRSZVAL CPROC ConfigSetBannerOkayCancel( PTRSZVAL psvBanner, arg_list ar
 	return psvBanner;
 }
 
-OnLoadControl( MAKE_BANNER_MESSAGE )( PCONFIG_HANDLER pch, PTRSZVAL psvBanner )
+static void OnLoadControl( MAKE_BANNER_MESSAGE )( PCONFIG_HANDLER pch, PTRSZVAL psvBanner )
 {
 	AddConfigurationMethod( pch, WIDE( "banner text=%m" ), ConfigSetBannerText );
 	AddConfigurationMethod( pch, WIDE( "banner timeout=%i" ), ConfigSetBannerTimeout );
