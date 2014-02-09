@@ -137,8 +137,9 @@ void OSALOT_AppendEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 #else
 	TEXTCHAR *oldpath = getenv( name );
 	TEXTCHAR *newpath;
-	newpath = NewArray( TEXTCHAR, strlen( oldpath ) + strlen( value ) + 1 );
-	sprintf( newpath, WIDE("%s:%s"), oldpath, newpath );
+	size_t maxlen;
+	newpath = NewArray( TEXTCHAR, maxlen = ( strlen( oldpath ) + strlen( value ) + 2 ) );
+	snprintf( newpath, maxlen, WIDE("%s:%s"), oldpath, value );
 	setenv( name, newpath, TRUE );
 	ReleaseEx( newpath DBG_SRC );
 #endif
