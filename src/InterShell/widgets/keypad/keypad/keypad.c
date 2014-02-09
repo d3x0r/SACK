@@ -415,7 +415,7 @@ static void CPROC EditVisualProperties( PTRSZVAL psvKeypad, PSI_CONTROL parent )
 
 }
 
-OnEditControl( WIDE( "Keypad 2" ) )( PTRSZVAL psv, PSI_CONTROL pc_parent )
+static PTRSZVAL OnEditControl( WIDE( "Keypad 2" ) )( PTRSZVAL psv, PSI_CONTROL pc_parent )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, WIDE("ConfigureKeypad.isFrame") );
@@ -529,7 +529,7 @@ static PTRSZVAL OnCreateControl( WIDE( "Keypad 2" ) )( PSI_CONTROL frame, S_32 x
 	return (PTRSZVAL)page_keypad;
 }
 
-static int OnChangePage( WIDE( "Keypad 2" ) )( void )
+static int OnChangePage( WIDE( "Keypad 2" ) )( PSI_CONTROL pc_canvas )
 {
 	PPAGE_KEYPAD keypad;
 	INDEX idx;

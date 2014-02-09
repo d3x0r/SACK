@@ -15,6 +15,10 @@ include( ../../../makefiles/cmake/DefaultInstall.cmake )
 include_directories( ../../../include  )
 ### END include sack ###
 
+if( UNIX )
+ADD_DEFINITIONS( -D__LINUX__ )
+endif( UNIX )
+
 foreach(flag_var
         CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
         CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO
@@ -52,69 +56,75 @@ else( WATCOM )
 endif( WATCOM )
 endmacro( build_resource ) 
 
-set( SOURCES_ROOT ../.. )
+set( SOURCES_ROOT ../../../ )
+include( ${SOURCES_ROOT}CMakeSources.lst )
+set( SOURCES_ROOT ../../ )
 
 if( WIN32 )
-set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/systemlib/oswin.c )
-set(NET_SOURCES   ${SOURCES_ROOT}/netlib/net_winsock2.c )
+set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}systemlib/oswin.c )
+set(NET_SOURCES   ${SOURCES_ROOT}netlib/net_winsock2.c )
 endif( WIN32 )
 
+if( NEED_UUID )
+set( MORE_SYSTEM_SOURCE ${MORE_SYSTEM_SOURCES} ${UUID_SOURCES} )
+endif( NEED_UUID )
+
 SET( SQLITE_VERSION 3.7.16.2 )
-SET( SQLITE_SOURCES ${BAG_SQLITE_INTERFACE} ${SOURCES_ROOT}/sqlite/${SQLITE_VERSION}/sqlite3.c )
-include_directories( ${SOURCES_ROOT}/sqlite/${SQLITE_VERSION} )
+SET( SQLITE_SOURCES ${BAG_SQLITE_INTERFACE} ${SOURCES_ROOT}sqlite/${SQLITE_VERSION}/sqlite3.c )
+include_directories( ${SOURCES_ROOT}sqlite/${SQLITE_VERSION} )
 
   if( ${CMAKE_COMPILER_IS_GNUCC} ) 
-  SET( FIRST_GCC_LIBRARY_SOURCE ${SOURCES_ROOT}/deadstart/deadstart_list.c ) 
-  SET( FIRST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}/deadstart/deadstart_list.c ) 
-  SET( LAST_GCC_LIBRARY_SOURCE ${SOURCES_ROOT}/deadstart/deadstart_lib.c ${SOURCES_ROOT}/deadstart/deadstart_end.c ) 
-  SET( LAST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}/deadstart/deadstart_lib.c ${SOURCES_ROOT}/deadstart/deadstart_prog.c ${SOURCES_ROOT}/deadstart/deadstart_end.c ) 
+  SET( FIRST_GCC_LIBRARY_SOURCE ${SOURCES_ROOT}deadstart/deadstart_list.c ) 
+  SET( FIRST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}deadstart/deadstart_list.c ) 
+  SET( LAST_GCC_LIBRARY_SOURCE ${SOURCES_ROOT}deadstart/deadstart_lib.c ${SOURCES_ROOT}deadstart/deadstart_end.c ) 
+  SET( LAST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}deadstart/deadstart_lib.c ${SOURCES_ROOT}deadstart/deadstart_prog.c ${SOURCES_ROOT}deadstart/deadstart_end.c ) 
   endif()
   if( ${MSVC}${WATCOM} ) 
-  SET( LAST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}/deadstart/deadstart_prog.c ) 
+  SET( LAST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}deadstart/deadstart_prog.c ) 
   endif()
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
-#    ${SOURCES_ROOT}/netlib/network.c 
-#    ${SOURCES_ROOT}/netlib/udpnetwork.c 
-#    ${SOURCES_ROOT}/netlib/tcpnetwork.c 
+#    ${SOURCES_ROOT}netlib/network.c 
+#    ${SOURCES_ROOT}netlib/udpnetwork.c 
+#    ${SOURCES_ROOT}netlib/tcpnetwork.c 
 #    ${NET_SOURCES} 
-#    ${SOURCES_ROOT}/msgsvr/client/client.c
-    ${SOURCES_ROOT}/SQLlib/sqlstub.c
-    ${SOURCES_ROOT}/SQLlib/sqlutil.c
-    ${SOURCES_ROOT}/SQLlib/sqlwrap.c
-    ${SOURCES_ROOT}/SQLlib/sqlparse3.c
+#    ${SOURCES_ROOT}msgsvr/client/client.c
+    ${SOURCES_ROOT}SQLlib/sqlstub.c
+    ${SOURCES_ROOT}SQLlib/sqlutil.c
+    ${SOURCES_ROOT}SQLlib/sqlwrap.c
+    ${SOURCES_ROOT}SQLlib/sqlparse3.c
     ${SQLITE_SOURCES}
-    ${SOURCES_ROOT}/memlib/sharemem.c
-    ${SOURCES_ROOT}/memlib/memory_operations.c
-    ${SOURCES_ROOT}/timerlib/timers.c
-    ${SOURCES_ROOT}/idlelib/idle.c
-    ${SOURCES_ROOT}/procreglib/names.c
-    ${SOURCES_ROOT}/configlib/configscript.c
-    ${SOURCES_ROOT}/sysloglib/syslog.c
-    ${SOURCES_ROOT}/systemlib/system.c
-    ${SOURCES_ROOT}/systemlib/args.c
-    ${SOURCES_ROOT}/systemlib/spawntask.c
+    ${SOURCES_ROOT}memlib/sharemem.c
+    ${SOURCES_ROOT}memlib/memory_operations.c
+    ${SOURCES_ROOT}timerlib/timers.c
+    ${SOURCES_ROOT}idlelib/idle.c
+    ${SOURCES_ROOT}procreglib/names.c
+    ${SOURCES_ROOT}configlib/configscript.c
+    ${SOURCES_ROOT}sysloglib/syslog.c
+    ${SOURCES_ROOT}systemlib/system.c
+    ${SOURCES_ROOT}systemlib/args.c
+    ${SOURCES_ROOT}systemlib/spawntask.c
     ${MORE_SYSTEM_SOURCES}
-    ${SOURCES_ROOT}/typelib/typecode.c
-    ${SOURCES_ROOT}/typelib/text.c
-    ${SOURCES_ROOT}/typelib/sets.c
-    ${SOURCES_ROOT}/typelib/binarylist.c
-    ${SOURCES_ROOT}/typelib/msgqueue.c
-    ${SOURCES_ROOT}/filesyslib/filescan.c
-    ${SOURCES_ROOT}/filesyslib/pathops.c
-    ${SOURCES_ROOT}/filesyslib/winfiles.c
+    ${SOURCES_ROOT}typelib/typecode.c
+    ${SOURCES_ROOT}typelib/text.c
+    ${SOURCES_ROOT}typelib/sets.c
+    ${SOURCES_ROOT}typelib/binarylist.c
+    ${SOURCES_ROOT}typelib/msgqueue.c
+    ${SOURCES_ROOT}filesyslib/filescan.c
+    ${SOURCES_ROOT}filesyslib/pathops.c
+    ${SOURCES_ROOT}filesyslib/winfiles.c
     ${SNPRINTF_SOURCES}
 ########################
 # SOURCES
 ########################
     version_tool.c db.c 
 ${LAST_GCC_PROGRAM_SOURCE}
-    ${SOURCES_ROOT}/deadstart/deadstart_core.c 
+    ${SOURCES_ROOT}deadstart/deadstart_core.c 
 )
 
 if( WIN32 )
-#  set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/systemlib/oswin.c )
+#  set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}systemlib/oswin.c )
 endif( WIN32 )
 
 
@@ -129,7 +139,7 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 if( WIN32 )
 target_link_libraries( ${project} odbc32 winmm ${SACK_PLATFORM_LIBRARIES} )
 else( WIN32 )
-target_link_libraries( ${project}  ${SACK_PLATFORM_LIBRARIES} )
+target_link_libraries( ${project}  ${SACK_PLATFORM_LIBRARIES} dl m iodbc pthread )
 endif( WIN32 )
 
 install( TARGETS ${project} DESTINATION . )

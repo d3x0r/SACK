@@ -13,8 +13,8 @@
 #include <network.h>
 #include <controls.h>
 #include <sha1.h>
-#include "../InterShell_export.h"
-#include "../InterShell_registry.h"
+#include "../intershell_export.h"
+#include "../intershell_registry.h"
 #include "../widgets/include/banner.h"
 #include "../widgets/include/keypad.h"
 #include "../widgets/keypad/keypad/keypad.h"

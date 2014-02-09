@@ -85,7 +85,7 @@ int main( int argc, char **argv )
 
 			project_root->root_path = argv[n];
 			project_root->project_id = CheckProjectTable( l.odbc, argv[n] );
-			SetCurrentDirectory( project_root->root_path );
+			SetCurrentPath( project_root->root_path );
 			// GetBuildVersion also does the hg tag....
 			project_root->build_id = GetBuildVersion( l.odbc, project_root->project_id );
 			if( !g.flags.skip_push )

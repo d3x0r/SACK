@@ -487,7 +487,7 @@ PUBLIC( void, link_vlc_stream )( void )
 {
 }
 
-OnChangePage(WIDE("Video Control") )( void )
+static int OnChangePage(WIDE("Video Control") )( PSI_CONTROL pc_canvas )
 {
 #if defined( DEBUG_MESSAGES )
 	lprintf( WIDE("Change page - default control to off?") );

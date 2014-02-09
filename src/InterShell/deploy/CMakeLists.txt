@@ -27,7 +27,7 @@ endmacro( build_package_include )
 
 build_package_include()
   
-if( NOT __ANDROID__ )
+if( NOT __ANDROID__ AND NOT UNIX )
   configure_file( deploy.cm.c ${CMAKE_BINARY_DIR}/deploy.c.tmp )
   EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_BINARY_DIR}/deploy.c.tmp ${CMAKE_BINARY_DIR}/deploy.c )
   add_executable_force_source( ${PROJECT_NAME} ${CMAKE_BINARY_DIR}/deploy.c )
@@ -46,7 +46,7 @@ if( NOT __ANDROID__ )
 	        RUNTIME DESTINATION . 
 	)
   endif( WIN32 )
-endif( NOT __ANDROID__ )
+endif( NOT __ANDROID__ AND NOT UNIX )
 
 add_subdirectory( info )
 

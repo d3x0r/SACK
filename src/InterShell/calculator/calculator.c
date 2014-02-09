@@ -3,7 +3,7 @@
 #include <deadstart.h>
 
 #include "../widgets/keypad/keypad/keypad.h"
-#include <InterShell_registry.h>
+#include <intershell_registry.h>
 #include "../widgets/include/banner.h"
 
 PRELOAD( InitCalculator )

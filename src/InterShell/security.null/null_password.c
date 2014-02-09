@@ -15,8 +15,8 @@
 
 #include <stdhdrs.h>
 //#include <getoption.h>
-#include "../InterShell_registry.h"
-#include "../InterShell_export.h"
+#include "../intershell_registry.h"
+#include "../intershell_export.h"
 
 /* get permisison creation time option... */
 #include "global.h"

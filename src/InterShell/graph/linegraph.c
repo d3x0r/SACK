@@ -740,7 +740,7 @@ void FillLineTypeList( PSI_CONTROL list, PLIST line_type_list, INDEX level )
 	}
 }
 
-OnEditControl( WIDE("Ping Status Graph") )( PTRSZVAL psv, PSI_CONTROL parent )
+static PTRSZVAL OnEditControl( WIDE("Ping Status Graph") )( PTRSZVAL psv, PSI_CONTROL parent )
 {
 	GRAPH graph = (GRAPH)psv;
 	PSI_CONTROL frame = LoadXMLFrame( WIDE("ConfigurePingStatusGraph.isframe") );

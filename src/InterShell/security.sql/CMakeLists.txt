@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 2.8)
 
 set( project security.sql.isp )
 
-if( NOT __ANDROID__ )
+if( NOT __ANDROID__ AND NOT UNIX )
   set( TASK_MONITOR_SOURCES 		loginmonitor.c )
-endif( NOT __ANDROID__ )
+endif( NOT __ANDROID__ AND NOT UNIX )
 
 
 set( SOURCES
