@@ -48,9 +48,9 @@ static LOGICAL OnUpdate3d( WIDE( "Virtuality interface" ) )( PTRANSFORM origin )
 	LIST_FORALL( l.objects, idx, struct virtuality_object *, vobj )
 	{
 		VECTOR tmp;
-		scale( tmp, vobj->speed, 1/256.0 );
+		scale( tmp, vobj->speed, 1/16.0 );
 		SetSpeed( vobj->object->Ti, tmp );
-		scale( tmp, vobj->rotation_speed, 1/256.0 );
+		scale( tmp, vobj->rotation_speed, 1/512.0 );
 		SetRotation( vobj->object->Ti, tmp );
 	}
 	return TRUE;
