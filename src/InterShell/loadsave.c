@@ -75,10 +75,14 @@ PCONFIG_HANDLER InterShell_GetCurrentConfigHandler( void )
 
 static PTRSZVAL CPROC SetMenuRowCols( PTRSZVAL psv, arg_list args );
 
-PSI_CONTROL GetCurrentLoadingCanvas( void )
+PSI_CONTROL InterShell_GetCurrentLoadingCanvas( void )
 {
 	return (PSI_CONTROL)PeekLink( &l.current_canvas );
+}
 
+PSI_CONTROL InterShell_GetCurrentSavingCanvas( void )
+{
+	return (PSI_CONTROL)PeekLink( &l.current_canvas );
 }
 
 void SetDefaultRowsCols( void )
@@ -147,7 +151,7 @@ static PTRSZVAL CPROC ResetCanvasConfig( PTRSZVAL psv, arg_list args )
 	{
 		RestorePage( canvas, canvas->current_page, TRUE );
 	}
-	ShellSetCurrentPageEx( pc_canvas, WIDE( "first" ) );
+	ShellSetCurrentPage( pc_canvas, WIDE( "first" ) );
 	// really this behaves more like a pop configuration.
 	EndConfiguration( my_current_handler );
 	return psv;
@@ -756,7 +760,8 @@ static PTRSZVAL CPROC SetControlFontPreset( PTRSZVAL psv, arg_list args )
 	if( current_button )
 	{
 		current_button->font_preset_name = StrDup( fontname );
-		current_button->font_preset = UseACanvasFont( current_button->canvas?current_button->canvas->pc_canvas:g.single_frame, current_button->font_preset_name );
+		current_button->font_preset = UseACanvasFont( current_button->canvas->pc_canvas
+													, current_button->font_preset_name );
 	}
 	return psv;
 }
@@ -1015,7 +1020,7 @@ void InvokeLoadCommon( void )
 void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 {
 	PCONFIG_HANDLER pch;
-	TEXTSTR name_only = pathrchr( filename );
+	TEXTSTR name_only = (TEXTSTR)pathrchr( filename );
 	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, g.single_frame );
 	//lprintf( WIDE( "Push initial current canvas" ) );
 
@@ -1053,9 +1058,8 @@ void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 		if( g.flags.bSQLConfig )
 		{
 			int namelen;
-         PODBC odbc;
+			PODBC odbc;
 			TEXTSTR alt_filename = NewArray( TEXTCHAR, namelen = ( StrLen( filename ) + 6 ) );
-			FILE *out;
 
 			snprintf( alt_filename, namelen, WIDE("%s.sql"), filename );
 			Banner2NoWait( WIDE("Read SQL Config...") );
@@ -1066,7 +1070,6 @@ void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 			if( SACK_GetProfileBlobOdbc( odbc
 						               , WIDE("intershell/configuration"), name_only, &buffer, &buflen ) )
 			{
-				int namelen;
 				FILE *out;
 				// modifies filename here; but this is !forceload, and later the filename is forceload, so it will be original.
 				filename = alt_filename;
@@ -1681,7 +1684,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 	int namelen;
    TEXTSTR original_filename = filename;
 	TEXTSTR alt_filename = NewArray( TEXTCHAR, namelen = ( StrLen( filename ) + 6 ) );
-	TEXTSTR name_only = pathrchr( filename );
+	TEXTSTR name_only = (TEXTSTR)pathrchr( filename );
 
    // -- additional code for XML output...
 	PVARTEXT pvt;

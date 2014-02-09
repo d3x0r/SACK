@@ -26,7 +26,7 @@ struct page_layout_tag
 
 struct page_data
 {
-	POINTER canvas;
+	struct CanvasData  *canvas;
 	CDATA    background_color;
 	Image    background_image;
 	CTEXTSTR background;

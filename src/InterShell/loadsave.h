@@ -16,6 +16,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename );
 void SetCurrentLoadingButton( PMENU_BUTTON button );
 
 PSI_CONTROL CPROC GetCurrentLoadingCanvas( void );
+PSI_CONTROL CPROC GetCurrentSavingCanvas( void );
 
 INTERSHELL_NAMESPACE_END
 

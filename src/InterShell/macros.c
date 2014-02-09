@@ -125,7 +125,7 @@ static void CPROC AddButtonType( PTRSZVAL psv, PSI_CONTROL control )
 		PMACRO_ELEMENT pme = New( MACRO_ELEMENT );
 		pme->me = NULL;
 		pme->next = NULL;
-		pme->button = CreateInvisibleControl( name );
+		pme->button = CreateInvisibleControl( configure_key_dispatch.frame, name );
 		if( pme->button )
 		{
 			pme->button->container_button = button->button;
@@ -424,13 +424,14 @@ static void InvokeMacroButton( PMACRO_BUTTON button, LOGICAL bBannerMessage )
 			{
 				if( !new_current_macro.element->button->flags.bIgnorePageChange )
 				{
-					ShellSetCurrentPageEx( g.single_frame, new_current_macro.element->button->pPageName );
+					ShellSetCurrentPage( InterShell_GetCanvas( new_current_macro.macro->button->page )
+						, new_current_macro.element->button->pPageName );
 				}
 			}
 			else if( new_current_macro.element->button->canvas && !new_current_macro.element->button->flags.bIgnorePageChange )
 			{
 				//lprintf( WIDE( "Changing pages, but only virtually don't activate the page always" ) );
-				ShellSetCurrentPageEx( new_current_macro.element->button->canvas->pc_canvas, new_current_macro.element->button->pPageName );
+				ShellSetCurrentPage( new_current_macro.element->button->canvas->pc_canvas, new_current_macro.element->button->pPageName );
 			}
 			new_current_macro.element->button->flags.bIgnorePageChange = 0;
 		}
@@ -505,7 +506,7 @@ static PTRSZVAL CPROC LoadMacroElements( PTRSZVAL psv, arg_list args )
 			pmb = &l.startup;
 	element->me = NULL;
 	element->next = NULL;
-	element->button = CreateInvisibleControl( name );
+	element->button = CreateInvisibleControl( InterShell_GetCanvas( element->button->page ), name );
 	if( element->button )
 	{
 		//lprintf( WIDE( "Setting container of %p to %p" ), element->button, pmb->button );
@@ -601,7 +602,8 @@ static void OnCloneControl( MACRO_BUTTON_NAME )( PTRSZVAL psvNew, PTRSZVAL psvOr
 			PMACRO_ELEMENT new_element = New( MACRO_ELEMENT );
 			new_element->me = NULL;
 			new_element->next = NULL;
-			new_element->button = CreateInvisibleControl( element->button->pTypeName );
+			new_element->button = CreateInvisibleControl( element->button->canvas->pc_canvas
+			                                            , element->button->pTypeName );
 			if( new_element->button )
 			{
 				new_element->button->container_button = pmbNew->button;

@@ -395,30 +395,26 @@ INTERSHELL_PROC_PTR( void, UpdateButtonExx )( PMENU_BUTTON button, int bEndingEd
 #define FixupButton(b) FixupButtonEx((b) DBG_SRC)
 
 
-INTERSHELL_PROC_PTR(PPAGE_DATA, ShellGetCurrentPageEx)( PSI_CONTROL pc_canvas_or_control_in_canvas);
-INTERSHELL_PROC_PTR(PPAGE_DATA, ShellGetCurrentPage)( void );
+INTERSHELL_PROC_PTR(PPAGE_DATA, ShellGetCurrentPage)( PSI_CONTROL pc_canvas_or_control_in_canvas);
 
 INTERSHELL_PROC_PTR(PPAGE_DATA, ShellGetNamedPage)( PSI_CONTROL pc, CTEXTSTR pagename );
 
 // Page name can be... 'first', 'next',  'here', 'return'
 // otherwise page name can be any name of any other page.
-INTERSHELL_PROC_PTR( int, ShellSetCurrentPage )( CTEXTSTR name );
-INTERSHELL_PROC_PTR( int, ShellSetCurrentPageEx )( PSI_CONTROL pc, CTEXTSTR name );
+INTERSHELL_PROC_PTR( int, ShellSetCurrentPage )( PSI_CONTROL pc, CTEXTSTR name );
 
+INTERSHELL_PROC_PTR( int, ShellCallSetCurrentPage )( PSI_CONTROL pc_canvas, CTEXTSTR name );
 
-INTERSHELL_PROC_PTR( int, ShellCallSetCurrentPage )( CTEXTSTR name );
-INTERSHELL_PROC_PTR( int, ShellCallSetCurrentPageEx )( PSI_CONTROL pc_canvas, CTEXTSTR name );
-
-INTERSHELL_PROC_PTR( void, ShellReturnCurrentPage )( void );
+INTERSHELL_PROC_PTR( void, ShellReturnCurrentPage )( PSI_CONTROL pc_canvas );
 /* <combine sack::intershell::ClearPageList>
    
    \ \                                       */
-INTERSHELL_PROC_PTR( void, ClearPageList )( void );
+INTERSHELL_PROC_PTR( void, ClearPageList )( PSI_CONTROL pc_canvas );
 
 /* <combine sack::intershell::InterShell_DisablePageUpdate@LOGICAL>
    
    \ \                                                              */
-INTERSHELL_PROC_PTR( void, InterShell_DisablePageUpdate )( LOGICAL bDisable );
+INTERSHELL_PROC_PTR( void, InterShell_DisablePageUpdate )( PSI_CONTROL pc_canvas, LOGICAL bDisable );
 INTERSHELL_PROC_PTR( void, RestoreCurrentPage )( PSI_CONTROL pc_canvas );
 /* <combine sack::intershell::HidePageExx@PSI_CONTROL pc_canvas>
    
@@ -482,14 +478,8 @@ INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_TranslateLabelText )( PPAGE_LABEL labe
    \ \                                                                                          */
 INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_GetControlLabelText )( PMENU_BUTTON button, PPAGE_LABEL label, CTEXTSTR variable );
 
+INTERSHELL_PROC_PTR( SFTFont *, SelectACanvasFont )( PSI_CONTROL canvas, PSI_CONTROL parent, CTEXTSTR *default_name );
 
-INTERSHELL_PROC_PTR( SFTFont *, SelectAFont )( PSI_CONTROL parent, CTEXTSTR *default_name );
-INTERSHELL_PROC_PTR( SFTFont *, UseAFont )( CTEXTSTR name );
-
-/* <combine sack::intershell::CreateAFont@CTEXTSTR@SFTFont@POINTER@_32>
-   
-   \ \                                                               */
-INTERSHELL_PROC_PTR( SFTFont *, CreateAFont )( CTEXTSTR name, SFTFont font, POINTER data, size_t datalen );
 
 /* <combine sack::intershell::BeginCanvasConfiguration@PSI_CONTROL>
    
@@ -533,7 +523,7 @@ INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_TranslateLabelTextEx )( PMENU_BUTTON b
 /* <combine sack::intershell::InterShell_CreateControl@CTEXTSTR@int@int@int@int>
    
    \ \                                                                           */
-INTERSHELL_PROC_PTR( PTRSZVAL,  InterShell_CreateControl )( CTEXTSTR type, int x, int y, int w, int h );
+INTERSHELL_PROC_PTR( PTRSZVAL,  InterShell_CreateControl )( PSI_CONTROL canvas, CTEXTSTR type, int x, int y, int w, int h );
 
 
 INTERSHELL_PROC_PTR( void, InterShell_CreateNamedPage )( PSI_CONTROL canvas, CTEXTSTR page_name );
@@ -549,7 +539,7 @@ INTERSHELL_PROC_PTR( PMENU_BUTTON, InterShell_GetCurrentlyCreatingButton )( void
 INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_GetSaveIndent )( void );
 INTERSHELL_PROC_PTR( LOGICAL, BeginSubConfigurationEx )( PMENU_BUTTON button, TEXTCHAR *control_type_name, const TEXTCHAR *end_type_name );
 
-INTERSHELL_PROC_PTR( void, InterShell_SetTheme )( int ID );
+INTERSHELL_PROC_PTR( void, InterShell_SetTheme )( PSI_CONTROL pc_canvas, int ID );
 INTERSHELL_PROC_PTR( void, DisplayMenuCanvas )( PSI_CONTROL pc_canvas, PRENDERER under, _32 width, _32 height, S_32 x, S_32 y );
 INTERSHELL_PROC_PTR( void, InterShell_SetPageColor )( PPAGE_DATA page, CDATA color );
 
@@ -565,6 +555,7 @@ INTERSHELL_PROC_PTR( PTRSZVAL, InterShell_GetButtonExtension )( PMENU_BUTTON but
 INTERSHELL_PROC_PTR( void, InterShell_SetTextLabelOptions )( PMENU_BUTTON label, LOGICAL center, LOGICAL right, LOGICAL scroll, LOGICAL shadow );
 
 INTERSHELL_PROC_PTR( PSI_CONTROL, InterShell_GetCurrentLoadingCanvas )( void );
+INTERSHELL_PROC_PTR( PSI_CONTROL, InterShell_GetCurrentSavingCanvas )( void );
 INTERSHELL_PROC_PTR( SFTFont *, CreateACanvasFont )( PSI_CONTROL pc_canvas, CTEXTSTR name, SFTFont font, POINTER data, size_t datalen );
 
 INTERSHELL_PROC_PTR( void, SetupSecurityEdit )( PSI_CONTROL frame, PTRSZVAL object_to_secure );
@@ -574,7 +565,6 @@ INTERSHELL_PROC_PTR( void, InterShell_SaveSecurityInformation )( FILE *file, PTR
 
 INTERSHELL_PROC_PTR( SFTFont *, CreateACanvasFont2 )( PSI_CONTROL pc_canvas, CTEXTSTR name, CTEXTSTR fontfilename, int size_x, int size_y );
 
-INTERSHELL_PROC_PTR( void, InterShell_DisablePageUpdateEx )( PSI_CONTROL pc_canvas, LOGICAL bDisable );
 
 INTERSHELL_PROC_PTR( void, AddSecurityContextToken )( PTRSZVAL object, CTEXTSTR module, CTEXTSTR token );
 INTERSHELL_PROC_PTR( void, GetSecurityContextTokens )( PTRSZVAL object, CTEXTSTR module, PLIST *list );
@@ -662,30 +652,26 @@ INTERSHELL_PROC( void, UpdateButtonExx )( PMENU_BUTTON button, int bEndingEdit D
 //---------------------------------------
 // pages controls here...
 //
-INTERSHELL_PROC(PPAGE_DATA, ShellGetCurrentPageEx)( PSI_CONTROL pc_canvas_or_control_in_canvas);
-INTERSHELL_PROC(PPAGE_DATA, ShellGetCurrentPage)( void );
+INTERSHELL_PROC(PPAGE_DATA, ShellGetCurrentPage)( PSI_CONTROL pc_canvas_or_control_in_canvas);
 // pass pc NULL defaults internally to using the main frame surface.  The page
 // name returns the current page of that name.
 INTERSHELL_PROC(PPAGE_DATA, ShellGetNamedPage)( PSI_CONTROL pc, CTEXTSTR pagename );
 // special names
 // start, next, prior are keywords that imply direct
 // page stacking.
-INTERSHELL_PROC( int, ShellSetCurrentPage )( CTEXTSTR name );
-INTERSHELL_PROC( int, ShellSetCurrentPageEx )( PSI_CONTROL pc, CTEXTSTR name );
+INTERSHELL_PROC( int, ShellSetCurrentPage )( PSI_CONTROL pc, CTEXTSTR name );
 
 // a call will push the current page on a stack
 // which will be returned to if returncurrentpage is used.
 // clear page list will flush the stack cause
 // there is such a temptation to call to all pages, providing
 // near inifinite page recall (back back back)
-INTERSHELL_PROC( int, ShellCallSetCurrentPage )( CTEXTSTR name );
-INTERSHELL_PROC( int, ShellCallSetCurrentPageEx )( PSI_CONTROL pc_canvas, CTEXTSTR name );
+INTERSHELL_PROC( int, ShellCallSetCurrentPage )( PSI_CONTROL pc_canvas, CTEXTSTR name );
 
-INTERSHELL_PROC( void, ShellReturnCurrentPage )( void );
-INTERSHELL_PROC( void, ClearPageList )( void );
+INTERSHELL_PROC( void, ShellReturnCurrentPage )( PSI_CONTROL pc_canvas );
+INTERSHELL_PROC( void, ClearPageList )( PSI_CONTROL pc_canvas );
 // disable updates on the page, disable updating of buttons...
-INTERSHELL_PROC( void, InterShell_DisablePageUpdate )( LOGICAL bDisable );
-INTERSHELL_PROC( void, InterShell_DisablePageUpdateEx )( PSI_CONTROL pc_canvas, LOGICAL bDisable );
+INTERSHELL_PROC( void, InterShell_DisablePageUpdate )( PSI_CONTROL pc_canvas, LOGICAL bDisable );
 INTERSHELL_PROC( void, RestoreCurrentPage )( PSI_CONTROL pc_canvas );
 INTERSHELL_PROC( void, HidePageExx )( PSI_CONTROL pc_canvas DBG_PASS);
 
@@ -739,8 +725,7 @@ INTERSHELL_PROC( CTEXTSTR, InterShell_TranslateLabelTextEx )( PMENU_BUTTON butto
 INTERSHELL_PROC( CTEXTSTR, InterShell_GetControlLabelText )( PMENU_BUTTON button, PPAGE_LABEL label, CTEXTSTR variable );
 
 //  ---- FONTS ------
-INTERSHELL_PROC( SFTFont *, SelectAFont )( PSI_CONTROL parent, CTEXTSTR *default_name );
-INTERSHELL_PROC( SFTFont *, UseAFont )( CTEXTSTR name );
+INTERSHELL_PROC( SFTFont *, SelectACanvasFont )( PSI_CONTROL canvas, PSI_CONTROL parent, CTEXTSTR *default_name );
 INTERSHELL_PROC( SFTFont *, UseACanvasFont )( PSI_CONTROL pc_canvas, CTEXTSTR name );
 INTERSHELL_PROC( SFTFont *, CreateACanvasFont )( PSI_CONTROL pc_canvas, CTEXTSTR name, SFTFont font, POINTER data, size_t datalen );
 INTERSHELL_PROC( SFTFont *, CreateACanvasFont2 )( PSI_CONTROL pc_canvas, CTEXTSTR name, CTEXTSTR fontfilename, int sizex, int sizey );;
@@ -754,6 +739,8 @@ INTERSHELL_PROC( void, SaveCanvasConfiguration )( FILE *file, PSI_CONTROL pc_can
 INTERSHELL_PROC( void, SaveCanvasConfiguration_XML )( genxWriter w, PSI_CONTROL pc_canvas );
 INTERSHELL_PROC( PCONFIG_HANDLER, InterShell_GetCurrentConfigHandler )( void );
 INTERSHELL_PROC( PMENU_BUTTON, InterShell_GetCurrentLoadingControl )( void );
+INTERSHELL_PROC( PSI_CONTROL, InterShell_GetCurrentLoadingCanvas )( void );
+INTERSHELL_PROC( PSI_CONTROL, InterShell_GetCurrentSavingCanvas )( void );
 
 //PTRSZVAL GetButtonExtension( PMENU_BUTTON button );
 
@@ -773,7 +760,7 @@ INTERSHELL_PROC( LOGICAL, BeginSubConfigurationEx )( PMENU_BUTTON button, TEXTCH
 INTERSHELL_PROC( CTEXTSTR, InterShell_GetSaveIndent )( void );
 INTERSHELL_PROC( CTEXTSTR, EscapeMenuString )( CTEXTSTR string );
 
-INTERSHELL_PROC( PTRSZVAL,  InterShell_CreateControl )( CTEXTSTR type, int x, int y, int w, int h );
+INTERSHELL_PROC( PTRSZVAL,  InterShell_CreateControl )( PSI_CONTROL canvas, CTEXTSTR type, int x, int y, int w, int h );
 
 // might get a seperate canvas per page if it's opened in multi-frame mode.
 // otherwise pass NULL to get the default canvas
@@ -784,7 +771,7 @@ INTERSHELL_PROC( PMENU_BUTTON, InterShell_CreateSomeControl )( PSI_CONTROL pc_ca
 																				 , CTEXTSTR name );
 INTERSHELL_PROC( PTRSZVAL, InterShell_GetButtonExtension )( PMENU_BUTTON button );
 
-INTERSHELL_PROC( void, InterShell_SetTheme )( int ID );
+INTERSHELL_PROC( void, InterShell_SetTheme )( PSI_CONTROL pc_canvas, int ID );
 
 INTERSHELL_PROC( void, DisplayMenuCanvas )( PSI_CONTROL pc_canvas, PRENDERER under, _32 width, _32 height, S_32 x, S_32 y );
 INTERSHELL_PROC( void, InterShell_SetPageColor )( PPAGE_DATA page, CDATA color );
@@ -846,17 +833,14 @@ PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 #define  InterShell_SaveCommonButtonParameters					   if( InterShell )InterShell->InterShell_SaveCommonButtonParameters 
 #define  InterShell_GetSystemName									   ( !InterShell )?WIDE("NoInterShell"):InterShell->InterShell_GetSystemName
 #define  UpdateButtonExx									   if( InterShell )InterShell->UpdateButtonExx 
-#define  ShellGetCurrentPageEx(x)								   (( !InterShell )?(PPAGE_DATA)NULL:InterShell->ShellGetCurrentPageEx(x))
-#define  ShellGetCurrentPage()								   (( !InterShell )?NULL:InterShell->ShellGetCurrentPage())
+#define  ShellGetCurrentPage(x)								   (( !InterShell )?NULL:InterShell->ShellGetCurrentPage(x))
 #define  ShellGetNamedPage									   ( !InterShell )?NULL:InterShell->ShellGetNamedPage
 #define  ShellSetCurrentPage								   if( InterShell )InterShell->ShellSetCurrentPage
-#define  ShellSetCurrentPageEx								   if( InterShell )InterShell->ShellSetCurrentPageEx 
 #define  ShellCallSetCurrentPage							   ( InterShell )?FALSE:InterShell->ShellCallSetCurrentPage
 #define  ShellCallSetCurrentPageEx							   if( InterShell )InterShell->ShellCallSetCurrentPageEx 
 #define  ShellReturnCurrentPage								   if( InterShell )InterShell->ShellReturnCurrentPage 
 #define  ClearPageList										   if( InterShell )InterShell->ClearPageList 
 #define  InterShell_DisablePageUpdate								   if( InterShell )InterShell->InterShell_DisablePageUpdate 
-#define  InterShell_DisablePageUpdateEx						   if( InterShell )InterShell->InterShell_DisablePageUpdateEx 
 #define  RestoreCurrentPage									   if( InterShell )InterShell->RestoreCurrentPage 
 #define  HidePageExx											   if( InterShell )InterShell->HidePageExx
 #define  InterShell_DisableButtonPageChange						   if( InterShell )InterShell->InterShell_DisableButtonPageChange 
@@ -885,8 +869,7 @@ PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 #define  EscapeMenuString								   ( !InterShell )?NULL:InterShell->EscapeMenuString
 
 #define  InterShell_SetButtonHighlight(a,b)     if(InterShell)InterShell->InterShell_SetButtonHighlight(a,b)
-#define  SelectAFont								   ( !InterShell )?NULL:InterShell->SelectAFont
-#define  UseAFont								   ( !InterShell )?NULL:InterShell->UseAFont
+#define  SelectACanvasFont								   ( !InterShell )?NULL:InterShell->SelectACanvasFont
 #define  UseACanvasFont								   ( !InterShell )?NULL:InterShell->UseACanvasFont
 #define  CreateACanvasFont								   ( !InterShell )?NULL:InterShell->CreateACanvasFont
 #define  CreateACanvasFont2								   ( !InterShell )?NULL:InterShell->CreateACanvasFont2
@@ -903,7 +886,8 @@ PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 #define InterShell_SetTheme          if( InterShell ) InterShell->InterShell_SetTheme
 #define DisplayMenuCanvas            if( InterShell ) (InterShell)->DisplayMenuCanvas
 #define InterShell_SetPageColor        if( InterShell ) (InterShell)->InterShell_SetPageColor
-#define  InterShell_GetCurrentLoadingCanvas								   ( !InterShell )?NULL:InterShell->InterShell_GetCurrentLoadingCanvas
+#define InterShell_GetCurrentLoadingCanvas				  ( !InterShell )?NULL:InterShell->InterShell_GetCurrentLoadingCanvas
+#define InterShell_GetCurrentSavingCanvas				  ( !InterShell )?NULL:InterShell->InterShell_GetCurrentSavingCanvas
 
 
 #define  SetupSecurityEdit								   if( InterShell ) (InterShell)->SetupSecurityEdit
@@ -918,13 +902,6 @@ PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 #define InterShell_SetCloneButton								if( InterShell) (InterShell)->InterShell_SetCloneButton
 
 
-#endif
-
-#ifdef DEPRICATE_USE_A_FONT
-#undef UseAFont
-#undef CreateAFont
-#define UseAFont BrokenExpression( USEAFONT ) +1
-#define CreateAFont BrokenExpression( CREATEAFONT ) +1
 #endif
 
 # ifndef HidePageEx
