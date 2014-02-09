@@ -71,8 +71,8 @@ static void DrawLabel( struct virtuality_object *vobj )
 		p[2] = 0;
 		//ApplyRotation( l.transform, p2, p );
 		PCVECTOR o = GetOrigin( vobj->object->Ti );
-		Translate( t, o[0], o[1], o[2] );		
-		Render3dImage( vobj->label, TRUE );
+		//Translate( t, o[0], o[1], o[2] );		
+		Render3dImage( vobj->label, o, TRUE );
 	}
 }
 

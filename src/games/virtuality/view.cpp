@@ -357,8 +357,8 @@ static void OnDraw3d( WIDE("Virtuality") )( PTRSZVAL psvUnusedOne )
 
 		if( g.EditInfo.bEditing )
 		{
-			TranslateV( GetImageTransformation( g.EditInfo.pEditObject->hud_icon ), g.EditInfo.vmin );
-			Render3dImage( g.EditInfo.pEditObject->hud_icon, FALSE );
+			//TranslateV( GetImageTransformation( g.EditInfo.pEditObject->hud_icon ), g.EditInfo.vmin );
+			Render3dImage( g.EditInfo.pEditObject->hud_icon, g.EditInfo.vmin, FALSE );
 			TEXTCHAR buf[256];
 			snprintf( buf, 256, WIDE("Editing: O: %08x FS:%d F:%d")
 			        , g.EditInfo.pEditObject

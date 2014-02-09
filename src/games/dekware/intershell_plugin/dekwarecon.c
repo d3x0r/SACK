@@ -8,9 +8,9 @@
 
 PRELOAD( LoadConsole )
 {
-   TEXTCHAR buffer[256];
+	TEXTCHAR buffer[256];
 	lprintf( WIDE("Loaded the actual console... which loads dekware.core (probably)") );
-   snprintf( buffer, 256, WIDE("%s/dekware.core"), GetProgramPath() );
+	snprintf( buffer, 256, WIDE("%s/dekware.core"), GetProgramPath() );
 	LoadFunction( buffer, NULL );
 	//LoadFunction( WIDE("psicon.nex"), NULL );
 }
@@ -25,18 +25,18 @@ void CPROC tickthing( PTRSZVAL psv )
 }
 
 
-OnCreateControl( WIDE("Dekware Console") )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static PTRSZVAL OnCreateControl( WIDE("Dekware Console") )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( parent, WIDE("Dekware PSI Console"), x, y, w, h, -1 );
-   AddTimer( 250, tickthing, (PTRSZVAL)pc );
+	AddTimer( 250, tickthing, (PTRSZVAL)pc );
 
-   return (PTRSZVAL)pc;
+	return (PTRSZVAL)pc;
 }
 
-OnGetControl( WIDE("Dekware Console") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Dekware Console") )( PTRSZVAL psv )
 {
-   return (PSI_CONTROL)psv;
+	return (PSI_CONTROL)psv;
 }
 
 PUBLIC( void, ExportedSymbolToMakeWatcomHappy )( void )
