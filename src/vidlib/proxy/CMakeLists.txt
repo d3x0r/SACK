@@ -23,10 +23,12 @@ PROJECT( bag.video.proxy )
 ADD_DEFINITIONS( -DMAKE_RCOORD_SINGLE )
 
 set( PROJECT bag.video.proxy.server )
-sack_add_library( ${PROJECT} SHARED server.c imagepng.c )
+sack_add_library( ${PROJECT} SHARED ${FIRST_GCC_LIBRARY_SOURCE} server.c imagepng.c ${LAST_GCC_LIBRARY_SOURCE})
 target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
 install_default_dest( ${PROJECT} )
-  SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES	FOLDER "Video Renderer"    )
+  SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES	FOLDER "Video Renderer"   
+       COMPILER_DEFINITIONS TARGET_LABEL=bag_video_proxyy_server 
+   )
 
 set( PROJECT bag.video.proxy.client )
 sack_add_executable( ${PROJECT} WIN32 ${FIRST_GCC_PROGRAM_SOURCE} client.c ${LAST_GCC_PROGRAM_SOURCE} )
