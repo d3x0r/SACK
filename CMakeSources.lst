@@ -261,7 +261,8 @@ if( WIN32 )
   SET( PSI_SOURCES ${PSI_SOURCES}  ${SYSTRAY_SOURCES} )
 else( WIN32 )
   if( NOT __ANDROID__ )
-  SET( PSI_SOURCES ${PSI_SOURCES}  ${SOURCES_ROOT}src/systraylib/systray_client.c )
+  SET( SYSTRAY_SOURCES  ${SOURCES_ROOT}src/systraylib/systray_client.c )
+  SET( PSI_SOURCES ${PSI_SOURCES}  ${SYSTRAY_SOURCES} )
   endif( NOT __ANDROID__ )
 endif( WIN32 )
 
@@ -359,7 +360,10 @@ set( TYPE_LIBRARY_SOURCES ${TYPE_LIBRARY_SOURCES}
 endif( WIN32 OR __QNX__ )
 
 if( NEED_UUID )
-  add_definitions( -D__INTERNAL_UUID__ -DUUID_SOURCE )
+  if( MAKING_SACK_CORE )
+    add_definitions( -D__INTERNAL_UUID__ )
+  endif( MAKING_SACK_CORE )
+  add_definitions( -DUUID_SOURCE )
 endif( NEED_UUID )
 set( UUID_SOURCES
   ${SOURCES_ROOT}src/uuid-1.6.2/uuid.c
