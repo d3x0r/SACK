@@ -5,7 +5,7 @@ Enable Trace = off
 # set 'options' interface default to sack_sql
 win32 alias service options sack_sql_options
 
-option default sack/vidlib/use interface = headless
+option default sack/vidlib/use interface = ${INTERFACE_TARGET}
 
 modulepath ../lib64
 
