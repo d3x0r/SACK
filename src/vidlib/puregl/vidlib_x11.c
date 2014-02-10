@@ -256,7 +256,7 @@ GLWindow * createGLWindow(struct display_camera *camera)
     int i;
     int glxMajorVersion, glxMinorVersion;
     int vidModeMajorVersion, vidModeMinorVersion;
-    XF86VidModeModeInfo **modes;
+    XF86VidModeModeInfo **modes = NULL;
     int modeNum;
     int bestMode;
     Atom wmDelete;
@@ -274,12 +274,14 @@ GLWindow * createGLWindow(struct display_camera *camera)
 
 			x11_gl_window->screen = DefaultScreen(x11_gl_window->dpy);
 			XF86VidModeQueryVersion(x11_gl_window->dpy, &vidModeMajorVersion,
-		        &vidModeMinorVersion);
-		    printf("XF86VidModeExtension-Version %d.%d\n", vidModeMajorVersion,
-		        vidModeMinorVersion);
-		    XF86VidModeGetAllModeLines(x11_gl_window->dpy, x11_gl_window->screen, &modeNum, &modes);
-		    /* save desktop-resolution before switching modes */
-		    x11_gl_window->deskMode = *modes[0];
+				&vidModeMinorVersion);
+			printf("XF86VidModeExtension-Version %d.%d\n", vidModeMajorVersion,
+				vidModeMinorVersion);
+			XF86VidModeGetAllModeLines(x11_gl_window->dpy, x11_gl_window->screen, &modeNum, &modes);
+			/* save desktop-resolution before switching modes */
+			if( modes )
+			{
+			    x11_gl_window->deskMode = *modes[0];
     /* look for mode with requested resolution */
     for (i = 0; i < modeNum; i++)
     {
@@ -288,6 +290,8 @@ GLWindow * createGLWindow(struct display_camera *camera)
             bestMode = i;
         }
     }
+    }
+    
     /* get an appropriate visual */
     vi = glXChooseVisual(x11_gl_window->dpy, x11_gl_window->screen, attrListDbl);
     if (vi == NULL)
@@ -322,10 +326,10 @@ GLWindow * createGLWindow(struct display_camera *camera)
 
     if (x11_gl_window->fs)
     {
-        XF86VidModeSwitchToMode(x11_gl_window->dpy, x11_gl_window->screen, modes[bestMode]);
-        XF86VidModeSetViewPort(x11_gl_window->dpy, x11_gl_window->screen, 0, 0);
-        dpyWidth = modes[bestMode]->hdisplay;
-        dpyHeight = modes[bestMode]->vdisplay;
+        //XF86VidModeSwitchToMode(x11_gl_window->dpy, x11_gl_window->screen, modes[bestMode]);
+        //XF86VidModeSetViewPort(x11_gl_window->dpy, x11_gl_window->screen, 0, 0);
+        dpyWidth = camera->w;//modes[bestMode]->hdisplay;
+        dpyHeight = camera->h;//modes[bestMode]->vdisplay;
         printf("Resolution %dx%d\n", dpyWidth, dpyHeight);
         XFree(modes);
     
