@@ -74,7 +74,7 @@ function OpenServer()
 					{
                        	MsgID:16 /*PMID_Event_Key*/,
 						data: {
-							server_render_id:last_mosue_down.server_id,
+							server_render_id:last_mouse_down.server_id,
 							key: event.keyCode,
 							pressed: 1
 						}
@@ -85,11 +85,11 @@ function OpenServer()
 	function keyup(event)
 	{
 		console.debug( event );
-            ws.send( JSON.stringify( 
+		ws.send( JSON.stringify( 
 					{
                        	MsgID:16 /*PMID_Event_Key*/,
 						data: {
-							server_render_id:last_mosue_down.server_id,
+							server_render_id:last_mouse_down.server_id,
 							key: event.keyCode,
 							pressed: 0
 						}
@@ -100,8 +100,8 @@ function OpenServer()
 	
 	function mousedown(event)
 	{
-		var x = event.x;
-		var y = event.y;
+		var x = event.clientX;
+		var y = event.clientY;
 
 		var n;
 		for( n = 0; n < render_list.length; n++ )
@@ -112,10 +112,11 @@ function OpenServer()
 			  continue;
 			if( ( x - canvas.offsetLeft ) > canvas.offsetWidth || ( y - canvas.offsetTop ) > canvas.offsetHeight )
 			  continue;
+			console.log( "canvas thing" + canvas.offsetLeft );
 			x -= canvas.offsetLeft;
 			y -= canvas.offsetTop;
 			b |= 1 << ( event.which - 1 );
-            ws.send( JSON.stringify( 
+			ws.send( JSON.stringify( 
 					{
                        	MsgID:15 /*PMID_Event_Mouse*/,
 						data: {
@@ -131,8 +132,8 @@ function OpenServer()
 	}
 	function mouseup(event)
 	{
-		var x = event.x;
-		var y = event.y;
+		var x = event.clientX;
+		var y = event.clientY;
 
 		var n;
 		for( n = 0; n < render_list.length; n++ )
@@ -146,7 +147,7 @@ function OpenServer()
 			x -= canvas.offsetLeft;
 			y -= canvas.offsetTop;
 			b &= ~(1 << ( event.which - 1 ));
-            ws.send( JSON.stringify( 
+			ws.send( JSON.stringify( 
 					{
                        	MsgID:15 /*PMID_Event_Mouse*/,
 						data: {
@@ -162,10 +163,12 @@ function OpenServer()
 	}
 	function mousemove(event)
 	{
-		var x = event.x;
-		var y = event.y;
+		var x = event.clientX;
+		var y = event.clientY;
+		//console.log( "out " + x + " and " + y + " renders " + render_list.length );
 
 		var n;
+		
 		for( n = 0; n < render_list.length; n++ )
 		{
 			var canvas = render_list[n].canvas;
@@ -175,8 +178,8 @@ function OpenServer()
 			  continue;
 			x -= canvas.offsetLeft;
 			y -= canvas.offsetTop;
-			last_mosue_down = render_list[n];
-            ws.send( JSON.stringify( 
+			last_mouse_down = render_list[n];
+			ws.send( JSON.stringify( 
 					{
                        	MsgID:15 /*PMID_Event_Mouse*/,
 						data: {

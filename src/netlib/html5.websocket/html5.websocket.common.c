@@ -38,7 +38,8 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, P_8 p
 	}
 	if( do_mask )
 	{
-      _32 newmask ^= rand() ^ ( rand() << 13 ) ^ ( rand() << 26 );
+		static _32 newmask;
+		newmask ^= rand() ^ ( rand() << 13 ) ^ ( rand() << 26 );
 		use_mask = (P_8)&newmask;
 		length_out += 4; // need 4 more bytes for the mask
 	}

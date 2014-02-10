@@ -30,7 +30,7 @@ static void SendRequestHeader( WebSocketClient websock )
 		PTEXT text = VarTextPeek( pvtHeader ); // just leave the buffer in-place
 		SendTCP( websock->pc, GetText( text ), GetTextSize( text ) );
 	}
-   VarTextDestroy( &pvtHeader );
+	VarTextDestroy( &pvtHeader );
 }
 
 

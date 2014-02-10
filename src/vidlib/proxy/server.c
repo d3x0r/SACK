@@ -756,7 +756,7 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 	POINTER msg = NULL;
 	struct server_proxy_client *client= (struct server_proxy_client *)psv;
 	struct json_context_object *json_object;
-	//lprintf( "Received:%s", buffer );
+	lprintf( "Received:%*.*s", msglen,msglen,buffer );
 	if( json_parse_message( l.json_reply_context, buffer, msglen, &json_object, &msg ) )
 	{
 		struct common_message *message = (struct common_message *)msg;
@@ -777,6 +777,7 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 			break;
 		case PMID_Event_Key:
 			{
+				int used = 0;
 				PVPRENDER render = (PVPRENDER)GetLink( &l.renderers, message->data.key_event.server_render_id );
 				if (message->data.key_event.pressed)	// test keydown...
 				{
@@ -787,7 +788,9 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 				{
 					l.key_states[message->data.key_event.key & 0xFF] &= ~0x80;  //(unpressed)
 				}
-				if( render && render->key_callback )
+				lprintf( "so.... do the state..." );
+				SACK_Vidlib_ProcessKeyState( message->data.key_event.pressed, message->data.key_event.key, &used );
+				if( !used && render && render->key_callback )
 					render->key_callback( render->psv_key_callback, (message->data.key_event.pressed?KEY_PRESSED:0)|message->data.key_event.key );
 			}
 			break;
@@ -1118,8 +1121,6 @@ static TEXTCHAR CPROC VidlibProxy_GetKeyText		 ( int key )
 { 
 	int c;
 	char ch[5];
-	if( key & KEY_MOD_DOWN )
-		return 0;
 #ifdef __LINUX__
 	{
 		int used = 0;
@@ -1131,6 +1132,8 @@ static TEXTCHAR CPROC VidlibProxy_GetKeyText		 ( int key )
 	}
    return 0;
 #else
+	if( key & KEY_MOD_DOWN )
+		return 0;
 	key ^= 0x80000000;
 	c =  
 #  ifndef UNDER_CE
