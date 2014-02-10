@@ -71,6 +71,9 @@ endif( NOT WATCOM )
 if( NEED_UUID )
     set( RC ${RC}   ${UUID_SOURCES} )
 endif( NEED_UUID )
+if( UNIX )
+    set( RC ${RC} ${SACK_MSG_SERVICES} )
+endif( UNIX )
 
 set( BASE_SOURCES 
 	${RC}
