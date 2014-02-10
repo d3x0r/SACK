@@ -40,6 +40,7 @@
 #endif
 #endif
 
+#define USE_IMAGE_INTERFACE l.gl_image_interface
 #define NEED_VECTLIB_COMPARE
 #define NEED_REAL_IMAGE_STRUCTURE
 
@@ -982,7 +983,7 @@ static int mode = MODE_UNKNOWN;
 		glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 		glLoadIdentity();									// Reset The Projection Matrix
 		gluPerspective(90.0f,camera->aspect,1.0f,30000.0f);
-		glGetDoublev( GL_PROJECTION_MATRIX, l.fProjection );
+		glGetFloatv( GL_PROJECTION_MATRIX, (GLfloat*)l.fProjection );
 
 		glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 	}
@@ -1297,7 +1298,7 @@ void RenderGL( struct display_camera *camera )
 		}
 
 		GetGLMatrix( camera->origin_camera, camera->hVidCore->fModelView );
-		glLoadMatrixd( (RCOORD*)camera->hVidCore->fModelView );
+		glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
 
 		{
 			INDEX idx;
@@ -1352,9 +1353,9 @@ void RenderGL( struct display_camera *camera )
 				//mouse_ray_origin[2] += 0.01;
 				glBegin( GL_LINES );
 				glColor4ub( 255,0,255,128 );
-				glVertex3dv(origin);	// Bottom Left Of The Texture and Quad
+				glVertex3fv(origin);	// Bottom Left Of The Texture and Quad
 				glColor4ub( 255,255,0,128 );
- 				glVertex3dv(target);	// Bottom Left Of The Texture and Quad
+ 				glVertex3fv(target);	// Bottom Left Of The Texture and Quad
 				glEnd();
 			}
 			// render a ray that we use for mouse..
@@ -1368,9 +1369,9 @@ void RenderGL( struct display_camera *camera )
 				//mouse_ray_origin[2] += 0.01;
 				glBegin( GL_LINES );
 				glColor4ub( 255,255,255,128 );
-				glVertex3dv(origin);	// Bottom Left Of The Texture and Quad
+				glVertex3fv(origin);	// Bottom Left Of The Texture and Quad
 				glColor4ub( 255,56,255,128 );
- 				glVertex3dv(target);	// Bottom Left Of The Texture and Quad
+ 				glVertex3fv(target);	// Bottom Left Of The Texture and Quad
 				glEnd();
 			}
 #endif
@@ -3305,26 +3306,17 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
                                        , (void (CPROC*)(S_32 *, S_32 *)) GetMousePosition
                                        , (void (CPROC*)(PRENDERER, S_32, S_32)) SetMousePosition
                                        , HasFocus  // has focus
-                                       , NULL         // SendMessage
-													, NULL         // CrateMessage
-                                       , GetKeyText
+					, GetKeyText
                                        , IsKeyDown
                                        , KeyDown
                                        , DisplayIsValid
                                        , OwnMouseEx
                                        , BeginCalibration
 													, SyncRender   // sync
-#ifdef _OPENGL_ENABLED
-													, NULL //EnableOpenGL
-                                       , SetActiveGLDisplay
-#else
-                                       , NULL
-                                       , NULL
-#endif
                                        , MoveSizeDisplay
                                        , MakeTopmost
                                        , HideDisplay
-                                       , RestoreDisplay
+                                       , NULL // RestoreDisplay // this should be macro-promoted anyway
                                        , ForceDisplayFocus
                                        , ForceDisplayFront
                                        , ForceDisplayBack
@@ -3339,7 +3331,10 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
 													, PutDisplayIn
 #ifdef WIN32
                                        , MakeDisplayFrom
+#e;se 
+					, NULL // junk4
 #endif
+, NULL
 													, SetRendererTitle
 													, DisableMouseOnIdle
 													, OpenDisplayAboveUnderSizedAt
@@ -3360,6 +3355,12 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
 													, SetTouchHandler
 #endif
                                        , MarkDisplayUpdated
+                                       , SetHideHandler
+                                       , SetRestoreHandler
+                                       , RestoreDisplayEx
+                                       , NULL // ShowInputDevice
+                                       , NULL // HideInputDevice
+                                       , NULL // allows any thread to update
 };
 
 RENDER3D_INTERFACE Render3d = {
@@ -3556,7 +3557,7 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 	if( l.flags.bLogRegister )
 		lprintf( WIDE("Regstering video interface...") );
 
-
+	l.gl_image_interface = GetImageInterface();
 	RegisterInterface( 
 	   WIDE("puregl.render")
 	   , GetDisplayInterface, DropDisplayInterface );
