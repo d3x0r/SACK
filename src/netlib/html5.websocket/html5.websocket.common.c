@@ -5,10 +5,6 @@
 #define WEBSOCKET_COMMON_SOURCE
 #include "html5.websocket.common.h"
 
-struct {
-   _32 newmask;
-} wscom_local;
-
 void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, P_8 payload, size_t length )
 {
 	P_8 msgout;
@@ -42,8 +38,8 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, P_8 p
 	}
 	if( do_mask )
 	{
-		wscom_local.newmask ^= rand() ^ ( rand() << 13 ) ^ ( rand() << 26 );
-		use_mask = (P_8)&wscom_local.newmask;
+      _32 newmask ^= rand() ^ ( rand() << 13 ) ^ ( rand() << 26 );
+		use_mask = (P_8)&newmask;
 		length_out += 4; // need 4 more bytes for the mask
 	}
 	else
@@ -89,10 +85,10 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, P_8 p
 	{
 		int mask_offset = (length_out-length) - 4;
 		msgout[1] |= 0x80;
-		msgout[mask_offset+0] = (_8)(wscom_local.newmask >> 24);
-		msgout[mask_offset+1] = (_8)(wscom_local.newmask >> 16);
-		msgout[mask_offset+2] = (_8)(wscom_local.newmask >> 8);
-		msgout[mask_offset+3] = (_8)(wscom_local.newmask);
+		msgout[mask_offset+0] = (_8)(use_mask[3]);
+		msgout[mask_offset+1] = (_8)(use_mask[2]);
+		msgout[mask_offset+2] = (_8)(use_mask[1]);
+		msgout[mask_offset+3] = (_8)(use_mask[0]);
 		use_mask = msgout + mask_offset;
 	}
 	{

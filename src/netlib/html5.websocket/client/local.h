@@ -34,5 +34,4 @@ struct web_socket_client_local
 	PLIST clients;
    CRITICALSECTION cs_opening;
 	struct web_socket_client *opening_client;
-   int newmask;
 } wsc_local;

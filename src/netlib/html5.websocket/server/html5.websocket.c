@@ -13,10 +13,7 @@
 #include <html5.websocket.h>
 
 HTML5_WEBSOCKET_NAMESPACE
-
-struct sockett {
-	_8 generated[75];
-} l;
+  
 
 typedef struct html5_web_socket *HTML5WebSocket;
 
@@ -197,23 +194,6 @@ static void HandleData( HTML5WebSocket socket, PCLIENT pc, POINTER buffer, size_
 			LogBinary( socket->input_state.fragment_collection, socket->input_state.fragment_collection_length );
 			socket->input_state.fragment_collection_length = 0;
 		}
-		if( bytes[n] == 'n' && bytes[n + 1] == 'u' && bytes[n + 2] == 'm' )
-		{			
-			while( !okay )
-			{
-				//srand();
-				randNum = ( rand() % 75 );
-				if( randNum != 0 && l.generated[randNum - 1] != 1 )
-				{
-					l.generated[randNum - 1] = 1;
-					okay = 1;
-					lprintf( WIDE(" Random Number: %d"), randNum );
-					snprintf( output, 10, WIDE("%d"), randNum );
-					SendTCP( pc, output, sizeof( output ));
-				}
-			}
-		}
-		else
 		{
 			if( socket->input_state.fragment_collection_avail == socket->input_state.fragment_collection_length )
 			{
