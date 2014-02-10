@@ -394,14 +394,9 @@ static void LoadOptions( void )
 																 , flags.bLogSourceFile, TRUE );
 
 #ifndef __ANDROID__
-      // android has a system log that does just fine/ default startup sets that.
-#  ifndef __LINUX__ 
+		// android has a system log that does just fine/ default startup sets that.
 		if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Enable File Log" )
-#    ifdef _DEBUG
-										, 1
-#    else
-										, 0
-#    endif
+										, ( logtype == SYSLOG_AUTO_FILE )
 										, TRUE ) )
 		{
 			logtype = SYSLOG_AUTO_FILE;
@@ -409,7 +404,6 @@ static void LoadOptions( void )
 			flags.bLogOpenBackup = 1;
 			flags.bLogProgram = 1;
 		}
-#  endif
 #endif
 		// set all default parts of the name.
 		// this overrides options with options available from SQL database.
@@ -450,25 +444,17 @@ static void LoadOptions( void )
 		flags.bLogProgram = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Program" ), flags.bLogProgram, TRUE );
 		flags.bLogSourceFile = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Source File" ), flags.bLogSourceFile, TRUE );
 
-		if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log CPU Tick Time and Delta" ), 0, TRUE ) )
+		if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log CPU Tick Time and Delta" ), flags.bLogCPUTime, TRUE ) )
 		{
 			SystemLogTime( SYSLOG_TIME_CPU|SYSLOG_TIME_DELTA );
 		}
-		else if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Time as Delta" ), 0, TRUE ) )
+		else if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Time as Delta" ), flags.bUseDeltaTime, TRUE ) )
 		{
 			SystemLogTime( SYSLOG_TIME_HIGH|SYSLOG_TIME_DELTA );
 		}
-#  ifdef __ANDROID__
-		else if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Time" ), 0, TRUE ) )
-#  else
-		else if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Time" ), 1, TRUE ) )
-#  endif
+		else if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Time" ), flags.bLogTime, TRUE ) )
 		{
-#  ifndef __ANDROID__
-			if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Date" ), 0, TRUE ) )
-#  else
-			if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Date" ), 1, TRUE ) )
-#  endif
+			if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Log Date" ), flags.bUseDay, TRUE ) )
 			{
 				SystemLogTime( SYSLOG_TIME_LOG_DAY|SYSLOG_TIME_HIGH );
 			}
@@ -523,22 +509,26 @@ void InitSyslog( int ignore_options )
 		{
 #    ifdef __LINUX__
 			logtype = SYSLOG_SOCKET_SYSLOGD;
+			flags.bLogProgram = 1;
+			
 #    else
 			/* using SYSLOG_AUTO_FILE option does not require this to be open.
 			* it is opened on demand.
 			*/
 			logtype = SYSLOG_AUTO_FILE;
+			flags.bLogOpenBackup = 1;
+			flags.bUseDeltaTime = 1;
+			flags.bLogCPUTime = 1;
+			flags.bUseDeltaTime = 1;
+			flags.bLogCPUTime = 1;
+			flags.bLogProgram = 0;
+			SystemLogTime( SYSLOG_TIME_HIGH );
 #    endif
 			nLogLevel = LOG_NOISE + 1000; // default log EVERYTHING
 			flags.bLogOpenAppend = 0;
-			flags.bLogOpenBackup = 1;
 			flags.bLogSourceFile = 1;
-			flags.bUseDeltaTime = 1;
-			flags.bLogCPUTime = 1;
-			flags.bLogThreadID = 1;
-			flags.bLogProgram = 0;
+			flags.bLogThreadID = 0;
 			SetDefaultName( NULL, NULL, NULL );
-			SystemLogTime( SYSLOG_TIME_HIGH );
 			//lprintf( WIDE("Syslog Initializing, debug mode, startup programname.log\n") );
 		}
 #  else
