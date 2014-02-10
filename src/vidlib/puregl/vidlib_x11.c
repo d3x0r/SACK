@@ -1426,6 +1426,7 @@ void LoadOptions( void )
 			struct display_camera *camera = New( struct display_camera );
 			MemSet( camera, 0, sizeof( *camera ) );
 			snprintf( tmp, sizeof( tmp ), "SACK/Video Render/Display %d/Use Custom Position", n+1 );
+			camera->origin_camera = CreateTransform();
 			custom_pos = SACK_GetProfileIntEx( GetProgramName(), tmp, 0, TRUE );
 			if( custom_pos )
 			{
