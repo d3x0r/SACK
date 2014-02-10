@@ -247,7 +247,7 @@ static P_8 EncodeImage( Image image, LOGICAL bmp, size_t *outsize )
 		output->bV5BitCount = 32;
 		output->bV5XPelsPerMeter = 120;
 		output->bV5YPelsPerMeter = 120;
-		//output->bV5Intent = LCS_CALIBRATED_RGB;   // 0
+		//output->bV5Intent = LCS_CALIBRATED_RGB;	// 0
 		output->bV5CSType = LCS_sRGB;
 		{
 			PCDATA color_out = (PCDATA)(output + 1);
@@ -270,7 +270,7 @@ static P_8 EncodeImage( Image image, LOGICAL bmp, size_t *outsize )
 		return (P_8)header;
 	}
 #endif
-    return NULL;
+	 return NULL;
 }
 
 static void ClearDirtyFlag( PVPImage image )
@@ -283,7 +283,7 @@ static void ClearDirtyFlag( PVPImage image )
 			image->image->flags &= ~IF_FLAG_UPDATED;
 			//lprintf( "Clear dirty on %08x", (image)?(image)->image->flags:0 );
 		}
-      if( image->child )
+		if( image->child )
 			ClearDirtyFlag( image->child );
 	}
 }
@@ -1120,15 +1120,25 @@ static TEXTCHAR CPROC VidlibProxy_GetKeyText		 ( int key )
 	char ch[5];
 	if( key & KEY_MOD_DOWN )
 		return 0;
+#ifdef __LINUX__
+	{
+      int used = 0;
+		PTEXT text = SACK_Vidlib_GetKeyText( IsKeyPressed( key ), KEY_CODE( key ), &used );
+		if( used && text )
+		{
+         return GetText(text)[0];
+		}
+	}
+   return 0;
+#else
 	key ^= 0x80000000;
-
 	c =  
-#ifndef UNDER_CE
+#  ifndef UNDER_CE
 		ToAscii (key & 0xFF, ((key & 0xFF0000) >> 16) | (key & 0x80000000),
 					l.key_states, (unsigned short *) ch, 0);
-#else
+#  else
 		key;
-#endif
+#  endif
 	if (!c)
 	{
 		// check prior key bindings...
@@ -1147,6 +1157,7 @@ static TEXTCHAR CPROC VidlibProxy_GetKeyText		 ( int key )
 	}
 	//printf( WIDE("Key Translated: %d(%c)\n"), ch[0], ch[0] );
 	return ch[0];
+#endif
 }
 
 static _32 CPROC VidlibProxy_IsKeyDown		  ( PRENDERER r, int key )
@@ -1638,8 +1649,8 @@ static LOGICAL FixArea( IMAGE_RECTANGLE *result, IMAGE_RECTANGLE *source, PVPIma
 	IMAGE_RECTANGLE r2;
 	// build rectangle of what we want to show
 	// build rectangle which is presently visible on image
-	r2.x      = 0;
-	r2.y      = 0;
+	r2.x		= 0;
+	r2.y		= 0;
 	r2.height = pifDest->h;
 	r2.width  = pifDest->w;
 	return l.real_interface->_IntersectRectangle( result, source, &r2 );
@@ -1655,9 +1666,9 @@ static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w
 		size_t sendlen;
 		IMAGE_RECTANGLE r, r1;
  		// build rectangle of what we want to show
-		r1.x      = x;
+		r1.x		= x;
 		r1.width  = w;
-		r1.y      = y;
+		r1.y		= y;
 		r1.height = h;
 		if( !FixArea( &r, &r1, image ) )
 		{
@@ -1720,9 +1731,9 @@ static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32
 			cto = WebSockInitJson( PMID_BlatColor );
 
 		// build rectangle of what we want to show
-		r1.x      = x;
+		r1.x		= x;
 		r1.width  = w;
-		r1.y      = y;
+		r1.y		= y;
 		r1.height = h;
 		// build rectangle which is presently visible on image
 		if( !FixArea( &r, &r1, image ) )
@@ -1793,9 +1804,9 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 		{
 			IMAGE_RECTANGLE r1;
 			// build rectangle of what we want to show
-			r1.x      = x;
+			r1.x		= x;
 			r1.width  = wd;
-			r1.y      = y;
+			r1.y		= y;
 			r1.height = ht;
 			// build rectangle which is presently visible on image
 			if( !FixArea( &r, &r1, image ) )
@@ -2584,11 +2595,11 @@ static IMAGE_INTERFACE ProxyImageInterface = {
 		, NULL// ** VidlibProxy_SetImageAuxRect
 		, VidlibProxy_OrphanSubImage
 		, VidlibProxy_AdoptSubImage
-		, NULL // *****   VidlibProxy_MakeSpriteImageFileEx
-		, NULL // *****   VidlibProxy_MakeSpriteImageEx
-		, NULL // *****   VidlibProxy_rotate_scaled_sprite
-		, NULL // *****   VidlibProxy_rotate_sprite
-		, NULL // *****   VidlibProxy_BlotSprite
+		, NULL // *****	VidlibProxy_MakeSpriteImageFileEx
+		, NULL // *****	VidlibProxy_MakeSpriteImageEx
+		, NULL // *****	VidlibProxy_rotate_scaled_sprite
+		, NULL // *****	VidlibProxy_rotate_sprite
+		, NULL // *****	VidlibProxy_BlotSprite
 		, VidlibProxy_DecodeMemoryToImage
 		, NULL//VidlibProxy_InternalRenderFontFile
 		, NULL//VidlibProxy_InternalRenderFont
