@@ -24,7 +24,7 @@ ADD_DEFINITIONS( -DMAKE_RCOORD_SINGLE )
 
 set( PROJECT bag.video.proxy.server )
 if( UNIX )
-set( MORE_SOURCES keymay_linux.c )
+set( MORE_SOURCES keymap_linux.c )
 endif( UNIX )
 sack_add_library( ${PROJECT} SHARED ${FIRST_GCC_LIBRARY_SOURCE} server.c imagepng.c ${MORE_SOURCES} ${LAST_GCC_LIBRARY_SOURCE})
 target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
