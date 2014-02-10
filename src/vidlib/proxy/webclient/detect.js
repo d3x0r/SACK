@@ -10,27 +10,17 @@ Detect.supportsWebSocket = function() {
 
 function WebSocketTest()
 {
-   	var ws = undefined;
+	var ws = undefined;
 	if( "WebSocketDraft" in window )
-  	{
+	{
 		//alert( "Draft websocket availabe" );
-     		ws = new WebSocket( default_connect_address );
-  	}
-  	if( "MozWebSocket" in window )
-  	{
-     		//alert( "mozwebsocket..." );
-     
-		try
-                {
-	  		var moztest = MozWebSocket( default_connect_address );
-		}
-		catch( err )
-		{
-			alert(err );
-		}
+		ws = new WebSocket( default_connect_address );
 	}
 	if( "MozWebSocket" in window )
-  		alert( "mozwebsocket..." );
+	{
+		//alert( "mozwebsocket..." );
+		ws = new MozWebSocket( default_connect_address );
+	}
   if ("WebSocket" in window)
   {
      //alert("WebSocket is supported by your Browser!");

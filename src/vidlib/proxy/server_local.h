@@ -91,5 +91,6 @@ struct vidlib_proxy_local
 } l;
 
 CTEXTSTR SACK_Vidlib_GetKeyText( int pressed, int key_index, int *used );
+void SACK_Vidlib_ProcessKeyState( int pressed, int key_index, int *used );
 
 

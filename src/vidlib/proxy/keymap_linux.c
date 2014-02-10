@@ -56,8 +56,8 @@ typedef struct LinuxKeymapKeyDefine {
 PSIKEYDEFINE LinuxKeyDefs[256] =
                      { [KEY_DEL]={WIDE("back"),WIDE("backspace"),0,KEYDATA("\b","\b") }
                       , [KEY_TAB]={WIDE("tab"),0,0,KEYDATA("\t","\t") }
-                      , [KEY_ENTER]={WIDE("return"), WIDE("enter"),0,KEYDATA8("\n") }
-                      //, [KEY_PAUSE]={WIDE("pause"),0,KDF_NODEFINE }
+                      , [KEY_ENTER]={WIDE("return"), WIDE("Enter"),0,KEYDATA8("\n") }
+                      , [KEY_DELETE]={WIDE("delete"),0,0,KEYDATA("\x7f","\x7f") }
                       //, [KEY_ESCAPE]={WIDE("esc"), WIDE("escape"), 0, {{KEYDATA}}} // 0x1b
                       , [KEY_SPACE]={WIDE("space"), WIDE("blank"), 0, KEYDATA8(" ") } //0x20
                       , [KEY_PAGE_UP]={WIDE("prior"), WIDE("pgup"), 0 }
@@ -178,13 +178,6 @@ CTEXTSTR SACK_Vidlib_GetKeyText( int pressed, int key_index, int *used )
 		lprintf( WIDE("Keyfunc = %d  %d   %d"), key_index, mod, LinuxKeyDefs[key_index].op[mod].bFunction );
 		switch( LinuxKeyDefs[key_index].op[mod].bFunction )
 		{
-		case KEY_COMMAND_SHIFT:
-			if( pressed )
-				keymap_local.flags.bShifted = 1;
-			else
-				keymap_local.flags.bShifted = 0;
-			(*used) = 1;
-			 break;
 		case KEYDATA:
 			if( pressed )
 			{
@@ -194,7 +187,42 @@ CTEXTSTR SACK_Vidlib_GetKeyText( int pressed, int key_index, int *used )
 			 break;
 		}
 	}
-   return NULL;
+	return NULL;
+}
+
+void SACK_Vidlib_ProcessKeyState( int pressed, int key_index, int *used )
+{
+	// check current keyboard override...
+	int mod = keymap_local.flags.bShifted?1:0;
+	{
+		int result = 0;
+		lprintf( WIDE("Keyfunc = %d %d  %d   %d"), pressed, key_index, mod, LinuxKeyDefs[key_index].op[mod].bFunction );
+		if( LinuxKeyDefs[key_index].flags == KDF_NODEFINE )
+			switch( LinuxKeyDefs[key_index].op[0].bFunction )
+			{
+			case KEY_COMMAND_SHIFT:
+			lprintf( "pressed %d  ", pressed );
+				if( pressed )
+					keymap_local.flags.bShifted = 1;
+				else
+					keymap_local.flags.bShifted = 0;
+				(*used) = 1;
+				 break;
+			}
+		
+		else
+		switch( LinuxKeyDefs[key_index].op[mod].bFunction )
+		{
+		case KEY_COMMAND_SHIFT:
+		lprintf( "pressed %d  ", pressed );
+			if( pressed )
+				keymap_local.flags.bShifted = 1;
+			else
+				keymap_local.flags.bShifted = 0;
+			(*used) = 1;
+			 break;
+		}
+	}
 }
 
 

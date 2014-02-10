@@ -1069,9 +1069,9 @@ NETWORK_PROC( size_t, doReadExx2)(PCLIENT lpClient,POINTER lpBuffer,size_t nByte
 		}
 		else
 		{
-         //  no data to read...
+			//  no data to read...
 			//lprintf( WIDE( "Not sure if READREADY" ) );
-			if( !( lpClient->flags & CF_PROCESSING ) )
+			if( !( lpClient->dwFlags & CF_PROCESSING ) )
 				WakeThread( g.pThread );
 		}
 #else

@@ -168,13 +168,19 @@
 #define KEY_0         '0'
 #define KEY_MINUS    KEY_DASH
 
-#define VK_OEM_1   ';'
-#define VK_OEM_2   '\''
-#define VK_OEM_4   '['
-#define VK_OEM_6   ']'
-#define VK_OEM_5   '\\'
 
-#define VK_OEM_MINUS  '-'
+#ifndef VK_OEM_1
+// native windows OEM definitions
+#define VK_OEM_1   186
+
+#define VK_OEM_2   191
+#define VK_OEM_4   219
+#define VK_OEM_5   220
+#define VK_OEM_6   221
+#define VK_OEM_7   222
+#endif
+
+#define VK_OEM_MINUS  189
 
 #define KEY_SEMICOLON     VK_OEM_1
 #define KEY_QUOTE         VK_OEM_7
@@ -183,9 +189,9 @@
 #define KEY_BACKSLASH     VK_OEM_5
 //'-'
 #define KEY_DASH     VK_OEM_MINUS 
-#define KEY_EQUAL   '='
+#define KEY_EQUAL    187
 #define KEY_EQUALS   KEY_EQUAL
-#define KEY_ACCENT '`'
+#define KEY_ACCENT 192
 #define KEY_GRAVE  KEY_ACCENT
 #define KEY_APOSTROPHE  KEY_ACCENT
 
