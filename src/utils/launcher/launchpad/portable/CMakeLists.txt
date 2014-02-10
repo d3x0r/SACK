@@ -27,6 +27,7 @@ set( MORE_SOURCES ${RESOURCES} )
 endif( MINGW OR MSVC )
 
 set( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../../.. )
+include( ${SOURCES_ROOT}/CMakeSources.lst )
 
 if( SNPRINTF_SOURCES )
 set( SNPRINTF_SOURCES    ${SOURCES_ROOT}/src/../${SNPRINTF_SOURCES} )
@@ -40,6 +41,7 @@ set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/src/systemlib/oswin.c
 else( WIN32 )
 set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/src/systraylib/systray_client.c 
 )
+${SACK_MSG_SOURCES}
 endif( WIN32 )
 
 if( MSVC ) 
