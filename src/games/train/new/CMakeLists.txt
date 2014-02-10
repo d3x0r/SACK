@@ -1,0 +1,62 @@
+
+cmake_minimum_required(VERSION 2.8)
+
+if( NOT SACK_SDK_ROOT_PATH )
+GET_FILENAME_COMPONENT(SACK_SDK_ROOT_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Freedom Collective\\SACK;Install_Dir]" ABSOLUTE CACHE)
+else( NOT SACK_SDK_ROOT_PATH )
+set(SACK_SDK_ROOT_PATH ${SACK_SDK_ROOT_PATH} CACHE STRING "SACK SDK Root" )
+endif( NOT SACK_SDK_ROOT_PATH )
+
+PROJECT( train_test_fake )
+
+include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
+
+INSTALL_SACK( bin )
+include_directories( ${SACK_INCLUDE_DIR} )
+LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
+		
+PROJECT( train_test )
+
+include_directories( ../../include )
+
+ADD_EXECUTABLE( ${PROJECT_NAME} WIN32
+${FIRST_GCC_PROGRAM_SOURCE} 
+  train.cpp
+${LAST_GCC_PROGRAM_SOURCE} 
+)
+TARGET_LINK_LIBRARIES( ${PROJECT_NAME} ${SACK_LIBRARIES} ${SACK_PLATFORM_LIBRARIES} virtuality )
+
+string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
+SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+                  COMPILE_DEFINITIONS "TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}\""
+                  COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} -DWINDOWS_MODE"
+)
+install_default_dest( ${PROJECT_NAME} )
+
+
+
+PROJECT( train.3pl )
+ADD_LIBRARY( ${PROJECT_NAME} SHARED
+${FIRST_GCC_PROGRAM_SOURCE} 
+  train.cpp
+${LAST_GCC_PROGRAM_SOURCE} 
+)
+TARGET_LINK_LIBRARIES( ${PROJECT_NAME} ${SACK_LIBRARIES} ${SACK_PLATFORM_LIBRARIES}  virtuality )
+
+string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
+SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+                  COMPILE_DEFINITIONS "TARGETNAME=\"${PROJECT_NAME}\""
+                  COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
+                  PREFIX ""
+                  SUFFIX ""
+)
+install_default_dest( ${PROJECT_NAME} )
+
+
+add_subdirectory( ../../virtuality virtuality )
+
+add_subdirectory( ../../terrain terrain )
+
+
+PROJECT( train )
+

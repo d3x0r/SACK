@@ -1,0 +1,10 @@
+[ODBC]
+DRIVER=MySQL ODBC 3.51 Driver
+UID=panther
+STMT=
+OPTION=
+PORT=
+PASSWORD=
+SERVER=localhost
+DATABASE=sandbox
+DESC=

@@ -1,0 +1,41 @@
+
+
+ifndef DEST
+DEST=$(DEFAULT_DEST)
+endif
+
+MODE=$(if $(filter $(DEST),static_release release),RELEASE,DEBUG)
+
+CDEBUG_FLAGS=-d2 -s -D_DEBUG 
+CRELEASE_FLAGS=-ox
+CFLAGS=$(C$(MODE)_FLAGS)
+
+LDDEBUG_FLAGS=debug all
+LDRELEASE_FLAGS=
+LDFLAGS=$(LD$(MODE)_FLAGS)
+
+RINTDEST=$(DEST)-$(COMPILER)
+$(warning goals=$(MAKECMDGOALS) SA=$(SACK_BASE) Ri=$(RINTDEST))
+
+#.PHONY: all
+all: $(RINTDEST)/uname.exe | $(RINTDEST)
+
+.PHONY:distclean
+distclean:
+	del *.err
+	del /s /q $(SACK_BSE)/makefiles/$(RINTDEST)
+
+$(RINTDEST)/%.obj: %.c | $(RINTDEST)
+	wcc386 $(CFLAGS) -zq -fo=$(subst /,\,$@) $<
+
+$(RINTDEST):
+	mkdir $@
+
+OBJS = $(RINTDEST)/uname.obj
+$(RINTDEST)/uname.exe: $(OBJS)
+	wlink option quiet system nt option caseexact $(LDFLAGS) name $(subst /,\,$@) file {$(foreach obj,$(OBJS),$(subst /,\,$(obj)))}
+
+$(OBJS): makefile.wc | $(RINTDEST)
+
+makefile.wc: ;
+

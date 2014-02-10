@@ -1,0 +1,85 @@
+<HTML>
+<HEAD><title>Threads, Timers, Simple locks</title></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<center><font size=+3><u>Threads, Timers, Simple locks</u></font></center>
+
+<hr>
+
+<menu>Timers, threads and simple locking mechanisms for these...</menu>
+
+<h2>Include</h2>
+#include &lt;timers.h&gt;<br>
+<h2>Library</h2>
+timers
+<h2>Required Libraries</h2>
+memlib
+<h2>Project Location</h2>
+src/timerslib
+<h2>Defines</h2>
+SLEEP_FOREVER ...
+
+<h2>Routines</h2>
+
+<menu>
+<h3>PTHREAD ThreadTo( PTRSZVAL(CPROC *)(PTHREAD), PTRSZVAL )</h3>
+<menu>
+	Starts a new thread.  Requires thread address and a thread parameter.  We trust that the
+        defaults for obscure things like stack size are reasonable.
+        <p>the first paramter is a thread starting proc, and the second is a probalby 32 bit value which the creator can pass to the thread.  The thread routine itself is a
+
+        <menu>
+        <table>
+        </table>
+        </menu>
+        <p><pre>
+PTRSZVAL thread( PTHREAD pThread );
+
+So where does the user data go?
+
+PTRSZVAL psvPassed = pThread->user;
+
+
+Okay any questions... Oh the thread can return a _32 bit exit code... I'm not sure how to use it, but it is there
+        </pre>
+</menu></menu>
+
+<pre>
+ThreadTo( PTRSZVAL(CPROC *)(PTHREAD), PTRSZVAL );
+the first paramter is a thread starting proc, and the second is a probalby 32 bit value which the creator can pass to the thread.  The thread routine itself is a
+
+PTRSZVAL thread( PTHREAD pThread );
+
+So where does the user data go?
+
+PTRSZVAL psvPassed = pThread->user;
+
+
+Okay any questions... Oh the thread can return a _32 bit exit code... I'm not sure how to use it, but it is there
+
+nTimer = AddTImer( freq, TImerProc, PTRSZVAL );
+
+void CPROC TimerProc( PTRSZVAL psv );
+
+nTimer1 = AddTimerEx( first_tick, freq, TimerProc, PTRSZVAL );
+
+KillTimer( nTimer );
+
+AddTimerEx adds an extra paramter which by default is the same as the frequency, so the first time the timer will tick after being added is one frequency away.  This can be used to set timer - fire NOW (start 0), or in 5 seconds fire once, and with a 0 frequency would just dissappear, after firing once in 5 seconds.
+
+RescheduleTimer(nTimer), RescheduleTimerEx( nTimer, delay ) : These reschedule when the next timer tick is.  RescheduleTimer default delay is freq.  So you can keep kicking the timer back and keep it from firing.  RescheduleTimerEx may specify a 0 delay which will cause the timer to fire NOW.
+
+WakeableSleep( n ); in milliseconds, application will either wait for a total of at least n milliseconds, or if someone knows it's pThread, can be awoken with WakeThreadID, or TimerWake.  Often tracked with threads is it's system ID... ThreadID in SACK is a 64 bit value, 32 bit process ID and 32 bit thread ID ( which may or may not be the same).
+
+CRITICALSECTION cs;
+EnterCriticalSec( &cs );
+
+LeaveCriticalSec( &cs );
+
+This is a lock on a section of code.  Only 1 thread will be permitted to enter a critical section.  That thread may enter the section multiple times, but must for each time entered, also leave the section.
+
+There are fancy versions of EnterCriticalSecNoWait, such that if the entrance fails, that status is returned, (another thread already has the lock), and then the application does not have to wait.  Otherwise the EnterCriticalSec will put itself to sleep WakeableSleep( SLEEP_FOREVER ); until the thread currently owning the section wakes the first person waiting in such a sleep.
+
+</pre>
+
+</BODY>
+</HTML>

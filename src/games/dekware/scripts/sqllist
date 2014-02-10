@@ -1,0 +1,45 @@
+
+
+/make test control frame "list test"
+/test/leave
+/test/make listbox control listbox " " 5 5 240 120
+/test/display
+
+/test/listbox/on insert
+///echo hmm got a new %actor
+///%actor/first
+///compare %actor typeof sql
+///if success
+///list on insert
+///echo okay it's a record
+///decl temp
+///label top
+///%actor/run getlistline
+///%actor/getresult temp
+///compare %temp blank
+///if fail
+///add %%temp
+///%actor/next
+///goto top
+///endif
+///else 
+///echo no, it's nothing...
+///endif
+///endmac
+
+/enter test
+
+/make db sql MySQL
+/db/query record select * from systems
+
+/db/record/macro getlistline
+/result %system_id %name
+/echo set result to %system_id %name
+/next
+/endmac
+
+/grab record db
+/store record listbox
+
+
+

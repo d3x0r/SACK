@@ -1,0 +1,132 @@
+# Host: localhost
+# Database: game_dev
+# Table: 'board_info'
+# 
+CREATE TABLE `board_info` (
+  `board_info_id` int(11) NOT NULL auto_increment,
+  `board_name` varchar(100) NOT NULL default '',
+  PRIMARY KEY  (`board_info_id`)
+) TYPE=MyISAM; 
+
+# Host: localhost
+# Database: game_dev
+# Table: 'board_input_output'
+# 
+CREATE TABLE `board_input_output` (
+  `board_input_output_id` int(11) NOT NULL auto_increment,
+  `board_id` int(11) NOT NULL default '0',
+  `board_layer_id` int(11) NOT NULL default '0',
+  `component` varchar(100) NOT NULL default '',
+  `connector` varchar(100) NOT NULL default '',
+  PRIMARY KEY  (`board_input_output_id`)
+) TYPE=MyISAM; 
+
+# Host: localhost
+# Database: game_dev
+# Table: 'board_layer'
+# 
+CREATE TABLE `board_layer` (
+  `board_layer_id` int(11) NOT NULL auto_increment,
+  `board_info_id` int(11) NOT NULL default '0',
+  `peice_type` varchar(100) NOT NULL default '',
+  `peice_info_id` int(11) NOT NULL default '0',
+  `route` tinyint(4) NOT NULL default '0',
+  `x` int(11) NOT NULL default '0',
+  `y` int(11) NOT NULL default '0',
+  `min_x` int(11) NOT NULL default '0',
+  `min_y` int(11) NOT NULL default '0',
+  `width` int(10) unsigned NOT NULL default '0',
+  `linked_to_id` int(11) NOT NULL default '0',
+  `linked_to_x` int(11) NOT NULL default '0',
+  `linked_to_y` int(11) NOT NULL default '0',
+  `linked_from_id` int(11) NOT NULL default '0',
+  `linked_from_x` int(11) NOT NULL default '0',
+  `linked_from_y` int(11) NOT NULL default '0',
+  `height` int(10) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`board_layer_id`)
+) TYPE=MyISAM; 
+
+# Host: localhost
+# Database: game_dev
+# Table: 'board_layer_link'
+# 
+CREATE TABLE `board_layer_link` (
+  `board_layer_id` int(11) NOT NULL default '0',
+  `board_info_id` int(11) NOT NULL default '0',
+  PRIMARY KEY  (`board_layer_id`)
+) TYPE=MyISAM; 
+
+# Host: localhost
+# Database: game_dev
+# Table: 'board_layer_neuron'
+# 
+CREATE TABLE `board_layer_neuron` (
+  `brain_neuron_id` int(11) NOT NULL default '0',
+  `board_layer_id` int(11) NOT NULL default '0',
+  PRIMARY KEY  (`brain_neuron_id`,`board_layer_id`)
+) TYPE=MyISAM; 
+
+# Host: localhost
+# Database: game_dev
+# Table: 'board_layer_path'
+# 
+CREATE TABLE `board_layer_path` (
+  `board_layer_path_id` int(11) NOT NULL auto_increment,
+  `board_layer_id` int(11) NOT NULL default '0',
+  `x` int(11) NOT NULL default '0',
+  `y` int(11) NOT NULL default '0',
+  `fore` tinyint(4) NOT NULL default '0',
+  `back` tinyint(4) NOT NULL default '0',
+  PRIMARY KEY  (`board_layer_path_id`)
+) TYPE=MyISAM; 
+
+# Host: localhost
+# Database: game_dev
+# Table: 'board_layer_synapse'
+# 
+CREATE TABLE `board_layer_synapse` (
+  `board_layer_id` int(11) NOT NULL default '0',
+  `brain_synapse_id` int(11) NOT NULL default '0',
+  PRIMARY KEY  (`board_layer_id`)
+) TYPE=MyISAM; 
+
+# Host: localhost
+# Database: game_dev
+# Table: 'brain_info'
+# 
+CREATE TABLE `brain_info` (
+  `brain_info_id` int(11) NOT NULL auto_increment,
+  `brain_name` varchar(100) NOT NULL default '',
+  `version` int(11) NOT NULL default '0',
+  `k` double NOT NULL default '0',
+  PRIMARY KEY  (`brain_info_id`)
+) TYPE=MyISAM; 
+
+# Host: localhost
+# Database: game_dev
+# Table: 'brain_neuron'
+# 
+CREATE TABLE `brain_neuron` (
+  `brain_neuron_id` int(11) NOT NULL auto_increment,
+  `brain_info_id` int(11) NOT NULL default '0',
+  `parent_id` int(11) NOT NULL default '0',
+  `type` int(11) NOT NULL default '0',
+  `threshold` double NOT NULL default '0',
+  `min_output` double NOT NULL default '0',
+  `max_output` double NOT NULL default '0',
+  PRIMARY KEY  (`brain_neuron_id`)
+) TYPE=MyISAM; 
+
+# Host: localhost
+# Database: game_dev
+# Table: 'brain_synapse'
+# 
+CREATE TABLE `brain_synapse` (
+  `brain_synapse_id` int(11) NOT NULL auto_increment,
+  `brain_info_id` int(11) NOT NULL default '0',
+  `brain_neuron_id_from` int(11) NOT NULL default '0',
+  `brain_neuron_id_to` int(11) NOT NULL default '0',
+  `synapse_gain` double NOT NULL default '0',
+  PRIMARY KEY  (`brain_synapse_id`)
+) TYPE=MyISAM; 
+

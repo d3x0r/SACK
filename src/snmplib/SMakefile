@@ -1,0 +1,80 @@
+## -*- ksh -*-
+##
+## SMakefile for CMU SNMP
+##
+## $Id: SMakefile,v 1.1.1.1 2001/11/15 01:29:36 panther Exp $
+##
+###########################################################################
+
+# Default to vendor compiler, and aggressive optimizations.
+CC=cc
+
+MFARGS=""
+case `uname` in
+  IRIX) CFLAGS="-O2" 
+	if test "${ABI}" != ""; then
+	  # If we've defined an ABI to use, use it.
+	  MFARGS="--with-mips-abi=${ABI}"
+	fi
+	;;
+  SunOS)   
+	 if test "`uname -r`" = "4.1.3_U1"; then 
+	   # Our SunOS machines require gcc
+	   CC=gcc
+	   CFLAGS="-O3"
+	 else
+	   # Solaris
+	   CFLAGS="-xO4 -xdepend"
+	 fi
+	 ;;
+  Linux) 
+	 CFLAGS="-O3" 
+	 ;;
+  HP-UX)
+         CC="gcc"
+	 CFLAGS="-O3" 
+	 ;;
+  ULTRIX)
+         CC="gcc"
+	 CFLAGS="-O3" 
+	 ;;
+  *)     CFLAGS="-g" ;;
+esac
+
+## ----------------------------------------------------------------------
+
+## Debugging on my workstation
+if test "`hostname`" = "lister.net.cmu.edu"; then
+  DEBUG_ME="true"
+fi
+
+if test "${DEBUG_ME}x" != "x"; then
+  PWD=`pwd`
+  FOO=`echo $PWD | sed -e 's/\/[0-9]*$//'`
+
+  CC=gcc
+  CFLAGS="-g -Wall -pedantic";
+  MFARGS=" --enable-shared --disable-static"
+  DESTDIR=/usr/tmp/ryan/depot/`basename $FOO`
+#  CC=cc
+#  CFLAGS="-g"
+#  MFARGS=" --enable-static --disable-shared"
+ 
+fi
+
+## ----------------------------------------------------------------------
+
+export CFLAGS CC DESTDIR
+
+##
+## This causes configure to be run as the 'makefile' command.
+##
+MFCOMMAND="./configure $MFARGS"
+
+##
+## This will allow you to execute 'smake install', and won't set
+## the prefix in GNU makefiles to the AFS destdir.  When the 'all' target
+## is made, the prefix will be '/usr/local'.  However, when install is
+## executed, the prefix will be set to '$(DESTDIR)'.
+##
+INSTCOMMAND="${MAKE} prefix=${DESTDIR} exec_prefix=${DESTDIR} install"

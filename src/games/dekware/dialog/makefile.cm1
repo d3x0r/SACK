@@ -1,0 +1,7 @@
+
+
+SRCS=dialog
+
+DLLNAME=dialog.nex
+
+MORELIBS=psi

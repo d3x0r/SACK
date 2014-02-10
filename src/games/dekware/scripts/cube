@@ -1,0 +1,14 @@
+
+/mac cube size
+	/vr create cube # if coordinates are not specified use current pos..
+	/grab cube
+	/drop cube
+	/vr add cube form # again if unspecified add form origin at current pos...<0 0 0> <0 0 0>
+	/enter cube
+	/vr add form s1 <%size 0 0> <1 0 0>
+	/vr add form s2 <0 %size 0> <0 1 0>
+	/vr add form s3 <0 0 %size> <0 0 1>
+	/vr add form s4 <-%size 0 0> <-1 0 0>
+	/vr add form s5 <0 -%size 0> <0 -1 0>
+	/vr add form s6 <0 0 -%size> <0 0 -1>
+/endmac

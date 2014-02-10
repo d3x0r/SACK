@@ -1,0 +1,145 @@
+
+Overlays are rectangular display regions.
+
+Overlays can be transparent... and use the sprite draw routine.
+
+Overlays can have sub-overlays
+
+Screen
+     MasterOverlay
+          Application Overlay
+               Application Sub-Overlay
+               Application Sub-Overlay
+               Application Sub-Overlay
+          Application Overlay
+               Application Sub-Overlay
+               Application Sub-Overlay
+               Application Sub-Overlay
+          Mouse Projection
+
+
+So projection is done how?!
+
+what IS an overlay?  it's a facet a polygon with a projection matrix
+
+an overlay can have stickers on it
+
+an overlay is a bitmap
+
+an overlay can be transparent
+
+overlays are called windows too
+
+facets!
+
+
+CreateFacet
+
+CreateCutout
+CreateStencil
+
+CreateSurface
+
+GetSurfaceArea
+
+FillSurfaceArea
+
+UpdateSurface
+     FlushChanges to visible buffers
+
+Any projection can be generated without the application caring.
+The Application can specify original coordinates
+
+
+CreateFrame(SOLID/EMPTY)
+
+PositionFrame( pFrame, <coord spec> )
+
+SizeFrame( pFrame, <coord spec> )
+
+RotateFrame( pFrame, <coord spec> )
+
+
+Frames are mapped on a zbuffer scanline method
+// Update Scanline
+//   scanline
+
+
+.5          1
+.25         2
+.125        3
+.0625       4
+.03125      5
+.015625     6
+
+
+typedef struct data_vector_tag
+{
+     PBYTE pData;  // origin.
+     int   nJumpWidth,  // slope in 0x3f intervals versus height.
+           nJumpHeight;
+     int   nJumpWidthLimit,  // tiling wrap counters.
+           nJumpHeighLimit;
+} DATAVECTOR;
+
+typedef struct scanline_tag
+{
+     int line;  // line ID - cannot be implied by position.
+     union {
+          struct { int from, to; }; // x portion on screen.
+          struct { int from, len; };
+     } pos;
+     DATAVECTOR vData;
+     scanline_tag *pIsWith; // other scanline segments this relates to.
+     scanline_tag *pIsBefore; // other scanlines this one is before in line.
+}SCANLINE, *PSCANLINE;
+
+PSCANLINE gpScans = gpScanPool;
+SCANLINE  gpScanPool[VIDRESY];
+
+typedef struct frame_tag
+{
+     BITMAP *pDisplay;
+     BITMAP *pMaster;
+     PSCANLINE pScans;
+     union {
+          struct { int fromx, tox, fromy, toy };
+          struct { int fromx, width, fromy, height );
+          int from
+     }
+     // MouseHandler()
+
+     frame_tag struct *pIsAbove,  // this frame is above...
+                      *pIsBelow,  // this frame is below...
+                      *pParent,   // parent of the overlay.
+                      *pChildren; // pointer to the bottommost child...
+} FRAME, *PFRAME;
+
+frame lists are always terminated in the place they start.  They all start with
+pIsOn.
+
+CreateFrame( name )
+{
+     // intertial frame created.
+     PSCANLINE pScans; // scans this frame owns.
+}
+
+
+
+TRIPLE BUFFERING
+----------------------------
+
+     Application Overlays
+     Master Screen Image (Mouse overlay)
+     Actual Screen
+
+
+     Overlay
+          pParent = parent overlay initial application overlays will
+                    have this point to vidcore.
+          pChildren = Pointer to bottom most window.
+
+
+
+
+

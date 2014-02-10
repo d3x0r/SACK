@@ -1,0 +1,10 @@
+
+//#include "resource.h"
+PROXY_FULL ICON "both.ico"
+PROXY_PRIMARY ICON "pri.ico"
+PROXY_BACKUP ICON "bck.ico"
+PROXY_DOWN ICON "disc.ico"
+//PROXY_FULL ICON "pfull.ico"
+//PROXY_PRIMARY ICON "pprime.ico"
+//PROXY_BACKUP ICON "pback.ico"
+//PROXY_DOWN ICON "pdown.ico"
