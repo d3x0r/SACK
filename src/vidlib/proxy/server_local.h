@@ -72,7 +72,7 @@ struct server_proxy_client
 	PCLIENT pc;
 	LOGICAL websock;
 };
-
+#define l vidlib_proxy_server_local
 struct vidlib_proxy_local
 {
 	PCLIENT listener;

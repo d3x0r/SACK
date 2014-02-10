@@ -142,9 +142,8 @@ PSIKEYDEFINE LinuxKeyDefs[256] =
 							, [KEY_RIGHT_BRACKET]={ WIDE("]"), WIDE("rbracket"),0  ,KEYDATA("]","}")}
                       , [KEY_APOSTROPHE]={ WIDE("'"), WIDE("apostrophe"),0     ,KEYDATA("`","~")}
 
-                     // I get KEY_SHIFT_LEFT (mod 65), KEY_APOSTROPHE( 65) (up?), left_hisft(up) mod (0)
-                      //, [KEY_APOSTROPHE]={ WIDE("'"), WIDE("quote"),0     ,{{KEYDATA}
-                      //                        ,{KEYDATA}} }
+                     
+                      , [KEY_QUOTE]={ WIDE("quote"), WIDE("quote"),0     ,KEYDATA("\'","\"")}
 };
 
 
