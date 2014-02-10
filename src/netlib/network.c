@@ -753,7 +753,7 @@ void HandleEvent( PCLIENT pClient )
 		lprintf( WIDE( "How did a NULL client get here?!" ) );
 		return;
 	}
-   pClient->dwFlags |= CF_PROCESSING;
+	pClient->dwFlags |= CF_PROCESSING;
 #if LOG_NETWORK_EVENT_THREAD
 	if( g.flags.bLogNotices )
 		lprintf( WIDE( "Client event on %p" ), pClient );

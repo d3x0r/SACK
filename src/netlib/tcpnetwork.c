@@ -917,6 +917,12 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 					// otherwise the on-close notificatino can cause this to dispatch again.
 					size_t length = lpClient->RecvPending.dwUsed;
 					lpClient->RecvPending.dwUsed = 0;
+#ifdef __LINUX__
+					lpClient->dwFlags |= CF_PROCESSING;
+#endif
+#ifdef LOG_PENDING
+					lprintf( WIDE( "Send to application...." ) );
+#endif
 					if( lpClient->dwFlags & CF_CPPREAD )
 					{
 						lpClient->read.CPPReadComplete( lpClient->psvRead
@@ -925,21 +931,17 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 					}
 					else
 					{
-#ifdef LOG_PENDING
-						lprintf( WIDE( "Send to application...." ) );
-#endif
 						lpClient->read.ReadComplete( lpClient,
 															 lpClient->RecvPending.buffer.p,
 															 length );
-#ifdef LOG_PENDING
-						lprintf( WIDE( "back from applciation... (loop to next)" ) ); // new read probably pending ehre...
-#endif
-						if( !(lpClient->dwFlags & CF_READPENDING ) )
-						{
-							lprintf( "somehow we didn't get a good read." );
-						}
-						continue;
 					}
+#ifdef LOG_PENDING
+					lprintf( WIDE( "back from applciation... (loop to next)" ) ); // new read probably pending ehre...
+#endif
+#ifdef __LINUX__
+					lpClient->dwFlags &= ~CF_PROCESSING;
+#endif
+					continue;
 				}
 			}
 			if( !( lpClient->dwFlags & CF_READPENDING ) )
@@ -1067,8 +1069,10 @@ NETWORK_PROC( size_t, doReadExx2)(PCLIENT lpClient,POINTER lpBuffer,size_t nByte
 		}
 		else
 		{
-			lprintf( WIDE( "Not sure if READREADY" ) );
-			WakeThread( g.pThread );
+         //  no data to read...
+			//lprintf( WIDE( "Not sure if READREADY" ) );
+			if( !( lpClient->flags & CF_PROCESSING ) )
+				WakeThread( g.pThread );
 		}
 #else
 		//FinishPendingRead( lpClient DBG_SRC );
