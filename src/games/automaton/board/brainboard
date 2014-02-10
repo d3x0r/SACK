@@ -1,0 +1,14 @@
+
+# defines the board's size of each cell...
+# this defines how blocks and pathways are
+# split when given to the peice module..
+
+cell size 16 by 16
+
+#color gate_high 255 255 255 
+block background images\grid.gif 1 by 1
+block neuron images\multi-blob.gif 3 by 3
+block input images\neuron.gif 3 by 3
+block output images\image3.gif 3 by 3
+pathway master1.gif
+

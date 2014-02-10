@@ -1,0 +1,70 @@
+.SH NAME
+snmp_api_error, snmp_api_errno \- Deal with SNMP API Errors
+.SH SYNOPSIS
+.B cc
+.RI "[ " "flag" " \|.\|.\|. ] " "file" " \|.\|.\|."
+.B \-lsnmp
+.RI "[ " "library" " \|.\|.\|. ]"
+.LP
+.B #include <sys/types.h>
+.br
+.B #include <snmp/snmp.h>
+.LP
+.BI "char *snmp_api_error(int " "errno" );
+.LP
+.B int snmp_api_errno(void);
+.SH DESCRIPTION
+.B snmp_api_errno(\|)
+returns the current SNMP API error status.
+.LP
+.B snmp_api_error(\|)
+returns a string describing what the error represents.
+.SH "ERROR VALUES"
+The possible error values are:
+.TP 10
+.SB SNMPERR_GENERR
+A generic occured.
+.TP 10
+.SB SNMPERR_BAD_LOCPORT
+.TP 10
+.SB SNMPERR_BAD_ADDRESS
+.TP 10
+.SB SNMPERR_BAD_SESSION
+.TP 10
+.SB SNMPERR_TOO_LONG
+Data too long for provided buffer
+.TP 10
+.SB SNMPERR_ASN_ENCODE
+There was a problem encoding the ASN1/BER stream.
+.TP 10
+.SB SNMPERR_ASN_DECODE
+There was a problem decoding the ASN1/BER stream.
+.TP 10
+.SB SNMPERR_PDU_TRANSLATION
+Unable to translate the specified PDU.
+.TP 10
+.SB SNMPERR_OS_ERR
+An OS error occured.  Most likely a failed malloc.
+.TP 10
+.SB SNMPERR_INVALID_TXTOID
+The textual oid usaed was invalid
+.TP 10
+.SB SNMPERR_UNABLE_TO_FIX
+Unable to fix this PDU.  Caused by the PDU not being a response, not
+containing an error, or the errindex being invalid.
+.TP 10
+.SB SNMPERR_UNSUPPORTED_TYPE
+An unsupported OID type was encountered.
+.TP 10
+.SB SNMPERR_PDU_PARSE
+The PDU was decoded, but it contained something unexpected.
+.TP 10
+.SB SNMPERR_PACKET_ERR
+.TP 10
+.SB SNMPERR_NO_RESPONSE
+
+.SH NOTES
+The error message is stored in the data segment of the library.  Do
+not attempt to 
+.B free(\|)
+ it.

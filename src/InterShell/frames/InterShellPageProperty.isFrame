@@ -1,0 +1,17 @@
+<control caption="Page Properties" edit="1" position="0,0" size="453,428" type="Frame">
+<control caption="Background" position="11,29" size="120,18" type="TextControl"></control>
+<control IDName="Color Well/InterShell/CLR_BACKGROUND" position="147,28" size="18,18" type="Combo Box"></control>
+<control IDName="EditControl/InterShell/TXT_IMAGE_NAME" caption="" position="30,90" size="319,18" type="EditControl"></control>
+<control IDName="Button/InterShell/BTN_PICKFILE" PrivateData="#ff354c59" caption="..." position="362,91" size="36,18" type="Button"></control>
+<control IDName="EditControl/InterShell/page property/EDIT_PAGE_GRID_PARTS_X" caption="40" position="214,173" size="73,21" type="EditControl"></control>
+<control IDName="EditControl/InterShell/page property/EDIT_PAGE_GRID_PARTS_Y" caption="40" position="214,205" size="73,21" type="EditControl"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="371,395" size="73,21" type="Button"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="371,357" size="73,21" type="Button"></control>
+<control IDName="EditControl/InterShell/TXT_ANIMATION_NAME" caption="" position="30,143" size="319,18" type="EditControl"></control>
+<control IDName="Button/InterShell/BTN_PICKANIMFILE" PrivateData="#ff354c59" caption="..." position="362,144" size="36,18" type="Button"></control>
+<control caption="Background Image File..." position="23,63" size="217,21" type="TextControl"></control>
+<control caption="Background Animation File..." position="18,121" size="259,21" type="TextControl"></control>
+<control caption="Grid Y (Rows)" position="44,204" size="115,21" type="TextControl"></control>
+<control caption="Grid X (Columns)" position="44,178" size="150,15" type="TextControl"></control>
+<control IDName="ListBox/InterShell/LISTBOX_PAGE_THEME" caption="(null)" position="24,243" size="153,162" type="ListBox"></control>
+<control IDName="Button/InterShell/BTN_ADD_PAGE_THEME" PrivateData="#ff354c59" caption="Add Page Theme" position="199,248" size="153,26" type="Button"></control></control>

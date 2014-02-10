@@ -1,0 +1,40 @@
+
+
+DESTINC1=$(SACK_BASE)/include/mng
+HEADER1:=$(shell ls *.h)
+#$(warning HEADER:$(HEADER1))
+HEADERS:=$(foreach hdr,$(HEADER1),$(DESTINC1)/$(hdr))
+#$(warning HEADER:$(HEADERS))
+MORE_TARGETS:=$(HEADERS) $(DESTINC1)
+
+
+INCLUDEDIRS=$(SACK_BASE)/include/png $(SACK_BASE)/include/jpeg
+
+LIBNAME=mng
+SRCS=$(foreach src,$(shell ls *.c),$(subst .c,,$(src)))
+ifdef __WINDOWS__
+CXFLAGS=-DMNG_BUILD_DLL
+else
+CXFLAGS=-DMNG_BUILD_SO
+endif
+# Chunk storage is for examining detailed content of a mng stream
+#CXFLAGS+=-DMNG_STORE_CHUNKS -DMNG_ACCESS_CHUNKS
+
+#$(warning SRCS=$(SRCS))
+
+include $(SACK_BASE)/makefiles/makefile.single
+
+
+
+$(HEADERS): | $(DESTINC1)
+	-cp $(HEADER1) $(DESTINC1)
+
+$(DESTINC1): 
+	-mkdir $(call SYSCMDPATH,$@)
+
+
+$(call CLEANTARGET,$(HEADERS)):
+	-rm -f $(subst /,$(SYSPATHCHAR),$(foreach $(hdr),$(HEADER1),$(DESTINC1)/$(hdr)))
+        
+$(call CLEANTARGET,$(DESTINC1)):
+	-rm -rf $(subst /,$(SYSPATHCHAR),$(DESTINC1))
