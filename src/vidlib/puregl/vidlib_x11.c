@@ -2802,6 +2802,22 @@ void  SetMouseHandler (PRENDERER hVideo,
    hVideo->pMouseCallback = pMouseCallback;
 }
 
+void  SetHideHandler (PVIDEO hVideo,
+                                     HideAndRestoreCallback pHideCallback,
+                                     PTRSZVAL dwUser)
+{
+   hVideo->dwHideData = dwUser;
+   hVideo->pHideCallback = pHideCallback;
+}
+
+void  SetRestoreHandler (PVIDEO hVideo,
+                                     HideAndRestoreCallback pRestoreCallback,
+                                     PTRSZVAL dwUser)
+{
+   hVideo->dwRestoreData = dwUser;
+   hVideo->pRestoreCallback = pRestoreCallback;
+}
+
 //----------------------------------------------------------------------------
 #if !defined( __WATCOMC__ ) && !defined( __LINUX__ )
 RENDER_PROC (void, SetTouchHandler) (PRENDERER hVideo,
