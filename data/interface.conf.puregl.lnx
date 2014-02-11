@@ -20,7 +20,7 @@ alias service image sack.image.proxy.server
 endif
 
 if sack/vidlib/use interface == opengl
-option default SACK/Video Render/360 view = 1
+option default SACK/Video Render/360 view = 0
 module libbag.video.puregl.so
 module libbag.image.puregl.so
 
@@ -30,8 +30,19 @@ alias service image puregl.image
 alias service render.3d puregl.render.3d
 endif
 
+if sack/vidlib/use interface == opengl1.5
+option default SACK/Video Render/360 view = 0
+module libbag.video.puregl2.so
+module libbag.image.puregl.so
+
+alias service render puregl2.render
+alias service image puregl.image
+
+alias service render.3d puregl.render.3d
+endif
+
 if sack/vidlib/use interface == opengl2
-option default SACK/Video Render/360 view = 1
+option default SACK/Video Render/360 view = 0
 module libbag.video.puregl2.so
 module libbag.image.puregl2.so
 

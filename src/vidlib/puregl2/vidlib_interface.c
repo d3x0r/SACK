@@ -56,7 +56,7 @@ static RENDER_INTERFACE VidInterface = { NULL //InitDisplay
 													, IsTouchDisplay
 													, GetMouseState
 													, EnableSpriteMethod
-#ifdef __ANDROID__
+#if defined( __ANDROID__ ) || defined( __LINUX__ )
 													, NULL// WinShell_AcceptDroppedFiles
 #else
 													, WinShell_AcceptDroppedFiles
@@ -86,8 +86,13 @@ static RENDER_INTERFACE VidInterface = { NULL //InitDisplay
 									   , SetHideHandler
 									   , SetRestoreHandler
 													, RestoreDisplayEx
+#if defined( __ANDROID__ )
                                        , SACK_Vidlib_ShowInputDevice
-                                       , SACK_Vidlib_HideInputDevice
+													, SACK_Vidlib_HideInputDevice
+#else
+													, NULL   //SACK_Vidlib_ShowInputDevice
+                                       , NULL   //SACK_Vidlib_HideInputDevice
+#endif
 };
 
 RENDER3D_INTERFACE Render3d = {
