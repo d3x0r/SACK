@@ -345,6 +345,8 @@ void LoadOptions( void )
 	//int some_width;
 	//int some_height;
 	//HostSystem_InitDisplayInfo();
+	l.default_display_x = 1024;
+   l.default_display_y = 768;
 #ifndef __NO_OPTIONS__
    	l.flags.bLogRenderTiming = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Log Render Timing"), 0, TRUE );
 	l.flags.bView360 = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/360 view"), 0, TRUE );
@@ -365,6 +367,7 @@ void LoadOptions( void )
 		_32 screen_w, screen_h;
 		int nDisplays = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Number of Displays"), l.flags.bView360?6:1, TRUE );
 		int n;
+      lprintf( "Loading %d displays", nDisplays );
 		l.flags.bForceUnaryAspect = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Force Aspect 1.0"), (nDisplays==1)?0:1, TRUE );
 		GetDisplaySizeEx( 0, NULL, NULL, &screen_w, &screen_h );
 		switch( nDisplays )
@@ -456,6 +459,7 @@ void LoadOptions( void )
 				tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Use Display"), n+1 );
 				camera->display = SACK_GetProfileIntEx( GetProgramName(), tmp, nDisplays>1?n+1:0, TRUE );
 				GetDisplaySizeEx( camera->display, &camera->x, &camera->y, &camera->w, &camera->h );
+            lprintf(" getdisplay size ex fails." );
 			}
 
 			camera->identity_depth = camera->w/2;
@@ -474,6 +478,7 @@ void LoadOptions( void )
 			}
 			//lprintf( "Add camera to list" );
 			AddLink( &l.cameras, camera );
+			lprintf( " camera is %d,%d", camera->w, camera->h );
 		}
 		if( !default_camera )
 		{
@@ -617,7 +622,9 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 #else
 		camera->flags.opening = 1;
 		//lprintf( "Open win32 camera..." );
+#  if !defined( __LINUX__ )
 		OpenWin32Camera( camera );
+#  endif
 #endif
 
 #ifdef LOG_OPEN_TIMING
@@ -637,6 +644,14 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 
 	return (struct display_camera *)GetLink( &l.cameras, 0 );
 }
+
+// when a library is loaded later, invoke it's Init3d with existing cameras
+static void OnLibraryLoad( WIDE("Video Render PureGL 2") )( void )
+{
+	if( l.bThreadRunning )
+		SACK_Vidlib_OpenCameras();
+}
+
 
 LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
                                               int wx, int wy)

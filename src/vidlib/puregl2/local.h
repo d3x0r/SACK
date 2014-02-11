@@ -432,6 +432,10 @@ void CPROC GetViewVolume( PRAY *planes );
 // -------- keymap_win32.c ----------------
 int CPROC OpenGLKey( PTRSZVAL psv, _32 keycode ); // should move this
 
+// ------- keymap_linux.c
+CTEXTSTR SACK_Vidlib_GetKeyText( int pressed, int key_index, int *used );
+void SACK_Vidlib_ProcessKeyState( int pressed, int key_index, int *used );
+
 
 //-------------------  render utility ------------
 void Render3D( struct display_camera *camera );

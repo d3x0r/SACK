@@ -330,8 +330,9 @@ GLWindow * createGLWindow(struct display_camera *camera)
         //XF86VidModeSetViewPort(x11_gl_window->dpy, x11_gl_window->screen, 0, 0);
         dpyWidth = camera->w;//modes[bestMode]->hdisplay;
         dpyHeight = camera->h;//modes[bestMode]->vdisplay;
-        printf("Resolution %dx%d\n", dpyWidth, dpyHeight);
-        XFree(modes);
+		  printf("Resolution %dx%d\n", dpyWidth, dpyHeight);
+        if( modes )
+			  XFree(modes);
     
         /* create a fullscreen window */
         x11_gl_window->attr.override_redirect = True;
@@ -339,11 +340,11 @@ GLWindow * createGLWindow(struct display_camera *camera)
             0, 0, dpyWidth, dpyHeight, 0, vi->depth, InputOutput, vi->visual,
             CWBorderPixel | CWColormap | CWEventMask | CWOverrideRedirect,
             &x11_gl_window->attr);
-        XWarpPointer(x11_gl_window->dpy, None, x11_gl_window->win, 0, 0, 0, 0, 0, 0);
-		XMapRaised(x11_gl_window->dpy, x11_gl_window->win);
-        XGrabKeyboard(x11_gl_window->dpy, x11_gl_window->win, True, GrabModeAsync,
+		  XWarpPointer(x11_gl_window->dpy, None, x11_gl_window->win, 0, 0, 0, 0, 0, 0);
+		  XMapRaised(x11_gl_window->dpy, x11_gl_window->win);
+		  XGrabKeyboard(x11_gl_window->dpy, x11_gl_window->win, True, GrabModeAsync,
             GrabModeAsync, CurrentTime);
-        XGrabPointer(x11_gl_window->dpy, x11_gl_window->win, True, ButtonPressMask,
+		  XGrabPointer(x11_gl_window->dpy, x11_gl_window->win, True, ButtonPressMask,
             GrabModeAsync, GrabModeAsync, x11_gl_window->win, None, CurrentTime);
         
     }
@@ -728,7 +729,8 @@ LOGICAL CreateDrawingSurface (PRENDERER hVideo)
 {
 	if (!hVideo)
 		return FALSE;
-
+	lprintf( "attempt to make output image: %d,%d", hVideo->pWindowPos.cx,
+						hVideo->pWindowPos.cy );
 	hVideo->pImage =
 		RemakeImage( hVideo->pImage, NULL, hVideo->pWindowPos.cx,
 						hVideo->pWindowPos.cy );
@@ -1945,18 +1947,6 @@ int CPROC InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, R
     return used;
 }
 
-static PTRSZVAL CPROC RenderCameraThread( PTHREAD thread )
-{
-	struct display_camera *camera = (struct display_camera *)GetThreadParam( thread );
-	AddLink( &l.threads, thread );
-	camera->hVidCore->x11_gl_window = createGLWindow( camera );
-	while( !(l.bExitThread) && camera->hVidCore->x11_gl_window )
-	{
-		ProcessDisplayMessages( camera );
-	}
-}
-
-
 
 BOOL  CreateCameras ( void )
 {
@@ -2005,12 +1995,15 @@ BOOL  CreateCameras ( void )
 			camera->hVidCore->camera = camera;
 			camera->hVidCore->pMouseCallback = OpenGLMouse;
 			camera->hVidCore->dwMouseData = (PTRSZVAL)camera;
+         camera->hVidCore->pWindowPos.x = x;
+         camera->hVidCore->pWindowPos.y = y;
+         camera->hVidCore->pWindowPos.cx = w;
+			camera->hVidCore->pWindowPos.cy = h;
 			camera->viewport[0] = x;
 			camera->viewport[1] = y;
 			camera->viewport[2] = (int)w;
 			camera->viewport[3] = (int)h;
-
-         ThreadTo( RenderCameraThread, (PTRSZVAL)camera );
+         AddLink( &l.cameras, camera );
 		}
 	}
 #  else
@@ -2256,11 +2249,12 @@ int CPROC ProcessDisplayMessages( struct display_camera *camera )
 		{
 			XNextEvent(x11_gl_window->dpy, &event);
 			//if( l.flags.bLogMessageDispatch )
-				lprintf( WIDE("(E)Got message:%d"), event.type );
+				//lprintf( WIDE("(E)Got message:%d"), event.type );
 			HandleMessage( camera->hVidCore, x11_gl_window, &event );
 			//if( l.flags.bLogMessageDispatch )
-				lprintf( WIDE("(X)Got message:%d"), event.type );
+				//lprintf( WIDE("(X)Got message:%d"), event.type );
 		}
+      //lprintf( "Draw GL..." );
 		drawGLScene( camera, x11_gl_window );
 	}
 	return 1;
@@ -2346,6 +2340,7 @@ LOGICAL DoOpenDisplay( PRENDERER hNextVideo )
 	AddLink( &l.pActiveList, hNextVideo );
 
 	hNextVideo->KeyDefs = CreateKeyBinder();
+   lprintf( "To create drawing surface %p  %d,%d", hNextVideo, hNextVideo->pWindowPos.cx, hNextVideo->pWindowPos.cy );
 	CreateDrawingSurface( hNextVideo );
 	hNextVideo->flags.bReady = 1;
 #ifdef LOG_OPEN_TIMING

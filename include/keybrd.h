@@ -243,7 +243,7 @@
 #define KEY_PAD_DELETE VK_SEPARATOR
 #define KEY_PAD_MINUS VK_SUBTRACT
 
-#else
+#endif
 
 RENDER_NAMESPACE
    _RENDER_KEYBOARD_NAMESPACE
@@ -285,6 +285,8 @@ struct keyboard_tag
 _RENDER_KEYBOARD_NAMESPACE_END
 RENDER_NAMESPACE_END
 
+// if any key...
+#if !defined( KEY_1 )
 #ifdef __cplusplus
 #  ifdef _D3D_DRIVER
      using namespace sack::image::render::d3d::keyboard;

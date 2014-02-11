@@ -3,7 +3,7 @@
 #include <stdhdrs.h>
 #include <keybrd.h>
 
-#include "server_local.h"
+#include "local.h"
 
 #include <psi/console.h>
 // androi
