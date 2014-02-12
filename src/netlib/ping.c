@@ -381,7 +381,7 @@ LoopBreakpoint:
       }
       else        
       {
-         pIPBuf = "No Response.";
+         pIPBuf = (char*)WIDE("No Response.");
          Entry[i].pName = 0;
       }
       if( maxTTL )

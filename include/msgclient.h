@@ -95,8 +95,8 @@ CLIENTMSG_PROC( void, UnloadService )( CTEXTSTR service );
 // the destionation process, you can send any message directed to it
 // with this.
 CLIENTMSG_PROC( int, TransactRoutedServerMultiMessageEx )( PSERVICE_ROUTE RouteID
-																			, _32 MsgOut, _32 buffers
-																			, _32 *MsgIn
+																			, MSGIDTYPE MsgOut, _32 buffers
+																			, MSGIDTYPE *MsgIn
 																			, POINTER BufferIn, size_t *LengthIn
 																			, _32 timeout // non zero overrides default timeout
 																			// buffer starts arg list, length is
@@ -112,27 +112,27 @@ CLIENTMSG_PROC( int, ProbeClientAlive )( PSERVICE_ENDPOINT RouteID );
 // in non-zero.
 										 // buffer starts arg list, length is
                                // not used, but is here for demonstration
-typedef  int (CPROC *TSMMProto)(PSERVICE_ROUTE,_32, _32, _32 *, POINTER , size_t *,...);
+typedef  int (CPROC *TSMMProto)(PSERVICE_ROUTE,MSGIDTYPE, _32, MSGIDTYPE *, POINTER , size_t *,...);
 CLIENTMSG_PROC( TSMMProto, TransactServerMultiMessageExEx )( DBG_VOIDPASS );
 
 CLIENTMSG_PROC( int, TransactServerMultiMessage )( PSERVICE_ROUTE RouteID
-																 , _32 MsgOut, _32 buffers
-																 , _32 *MsgIn, POINTER BufferIn, size_t *LengthIn
+																 , MSGIDTYPE MsgOut, _32 buffers
+																 , MSGIDTYPE *MsgIn, POINTER BufferIn, size_t *LengthIn
 																  // buffer starts arg list, length is
 																  // not used, but is here for demonstration
 																 , ... );
 //#define TransactServerMultiMessage TransactServerMultiMessageExEx(DBG_VOIDSRC)
 
 CLIENTMSG_PROC( int, TransactServerMessageExx)( PSERVICE_ROUTE RouteID
-															 , _32 MsgOut, CPOINTER BufferOut, size_t LengthOut
-															 , _32 *MsgIn, POINTER BufferIn, size_t *LengthIn
+															 , MSGIDTYPE MsgOut, CPOINTER BufferOut, size_t LengthOut
+															 , MSGIDTYPE *MsgIn, POINTER BufferIn, size_t *LengthIn
 															  , _32 timeout DBG_PASS );
 CLIENTMSG_PROC( int, TransactServerMessageEx )( PSERVICE_ROUTE RouteID
-															 , _32 MsgOut, CPOINTER BufferOut, size_t LengthOut
-															 , _32 *MsgIn, POINTER BufferIn, size_t *LengthIn DBG_PASS);
+															 , MSGIDTYPE MsgOut, CPOINTER BufferOut, size_t LengthOut
+															 , MSGIDTYPE *MsgIn, POINTER BufferIn, size_t *LengthIn DBG_PASS);
 CLIENTMSG_PROC( int, TransactServerMultiMessageEx )( PSERVICE_ROUTE RouteID
-																	, _32 MsgOut, _32 buffers
-																	, _32 *MsgIn, POINTER BufferIn, size_t *LengthIn
+																	, MSGIDTYPE MsgOut, _32 buffers
+																	, MSGIDTYPE *MsgIn, POINTER BufferIn, size_t *LengthIn
                                                    , _32 timeout
 																	 // buffer starts arg list, length is
 																	 // not used, but is here for demonstration

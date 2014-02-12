@@ -35,7 +35,7 @@ int SendInMultiMessageEx( PSERVICE_ROUTE routeID, _32 MsgID, _32 parts, BUFFER_L
 #else
 			errno = E2BIG;
 #endif
-			_lprintf(DBG_RELAY)( WIDE("Length of message is too big to transport...%") _32f WIDE(" (len %") _32f WIDE(" ofs %") _32f WIDE(")"), len + ofs, len, ofs );
+			_lprintf(DBG_RELAY)( WIDE("Length of message is too big to transport...%") _size_f WIDE(" (len %") _size_f WIDE(" ofs %") _size_f WIDE(")"), len + ofs, len, ofs );
 			LeaveCriticalSec( &g.csMsgTransact );
 			return FALSE;
 		}
@@ -137,7 +137,7 @@ static int PrivateSendTransactionResponseMultiMessageEx( PSERVICE_ROUTE DestID
 #else
 			errno = E2BIG;
 #endif
-			_lprintf(DBG_RELAY)( WIDE("Length of message is too big to transport...%") _32f WIDE(" (len %") _32f WIDE(" ofs %") _32f WIDE(")"), len + ofs, len, ofs );
+			_lprintf(DBG_RELAY)( WIDE("Length of message is too big to transport...%") _size_f WIDE(" (len %") _size_f WIDE(" ofs %") _size_f WIDE(")"), len + ofs, len, ofs );
 			return FALSE;
 		}
 		if( msg && len )
@@ -222,8 +222,8 @@ CLIENTMSG_PROC( int, SendServerMessage )( PSERVICE_ROUTE RouteID, _32 MessageID,
 // this is used by msg.core.dll - used for forwarding messages
 // to real handlers...
 CLIENTMSG_PROC( int, TransactRoutedServerMultiMessageEx )( PSERVICE_ROUTE RouteID
-																			, _32 MsgOut, _32 buffers
-																			, _32 *MsgIn
+																			, MSGIDTYPE MsgOut, _32 buffers
+																			, MSGIDTYPE *MsgIn
 																			, POINTER BufferIn, size_t *LengthIn
 																			, _32 timeout
 																			// buffer starts arg list, length is
@@ -255,7 +255,7 @@ CLIENTMSG_PROC( int, TransactRoutedServerMultiMessageEx )( PSERVICE_ROUTE RouteI
 			handler->LastMsgID = IM_ALIVE;
 			break;
 		default:
-			lprintf( WIDE("set last msgID %ld"), MsgOut );
+			lprintf( WIDE("set last msgID %") _MsgID_f, MsgOut );
 			handler->LastMsgID = MsgOut;
 			break;
 		}
@@ -309,8 +309,8 @@ struct debug_transact {
 }next_transact;
 
 #undef TransactServerMultiMessage
-CLIENTMSG_PROC( int, TransactServerMultiMessage )( PSERVICE_ROUTE RouteID, _32 MsgOut, _32 buffers
-										, _32 *MsgIn, POINTER BufferIn, size_t *LengthIn
+CLIENTMSG_PROC( int, TransactServerMultiMessage )( PSERVICE_ROUTE RouteID, MSGIDTYPE MsgOut, _32 buffers
+										, MSGIDTYPE *MsgIn, POINTER BufferIn, size_t *LengthIn
 										 // buffer starts arg list, length is
 										 // not used, but is here for demonstration
 										, ... )
@@ -401,8 +401,8 @@ CLIENTMSG_PROC( TSMMProto
 }
 
 
-CLIENTMSG_PROC( int, TransactServerMultiMessageEx )( PSERVICE_ROUTE RouteID, _32 MsgOut, _32 buffers
-																	, _32 *MsgIn, POINTER BufferIn, size_t *LengthIn
+CLIENTMSG_PROC( int, TransactServerMultiMessageEx )( PSERVICE_ROUTE RouteID, MSGIDTYPE MsgOut, _32 buffers
+																	, MSGIDTYPE *MsgIn, POINTER BufferIn, size_t *LengthIn
 																	, _32 timeout
 																	 // buffer starts arg list, length is
 																	 // not used, but is here for demonstration
@@ -451,8 +451,8 @@ CLIENTMSG_PROC( int, TransactServerMultiMessageEx )( PSERVICE_ROUTE RouteID, _32
 
 //--------------------------------------------------------------------
 
-CLIENTMSG_PROC( int, TransactServerMessageEx)( PSERVICE_ROUTE RouteID, _32 MsgOut, CPOINTER BufferOut, size_t LengthOut
-						  , _32 *MsgIn, POINTER BufferIn, size_t *LengthIn DBG_PASS )
+CLIENTMSG_PROC( int, TransactServerMessageEx)( PSERVICE_ROUTE RouteID, MSGIDTYPE MsgOut, CPOINTER BufferOut, size_t LengthOut
+						  , MSGIDTYPE *MsgIn, POINTER BufferIn, size_t *LengthIn DBG_PASS )
 {
 	return TransactServerMultiMessageExEx(DBG_VOIDRELAY)( RouteID, MsgOut, 1, MsgIn, BufferIn, LengthIn
 												, BufferOut, LengthOut );
@@ -460,8 +460,8 @@ CLIENTMSG_PROC( int, TransactServerMessageEx)( PSERVICE_ROUTE RouteID, _32 MsgOu
 
 //--------------------------------------------------------------------
 
-CLIENTMSG_PROC( int, TransactServerMessageExx)( PSERVICE_ROUTE RouteID, _32 MsgOut, CPOINTER BufferOut, size_t LengthOut
-															 , _32 *MsgIn, POINTER BufferIn, size_t *LengthIn
+CLIENTMSG_PROC( int, TransactServerMessageExx)( PSERVICE_ROUTE RouteID, MSGIDTYPE MsgOut, CPOINTER BufferOut, size_t LengthOut
+															 , MSGIDTYPE *MsgIn, POINTER BufferIn, size_t *LengthIn
 															  , _32 timeout DBG_PASS )
 {
 #ifdef LOG_SENT_MESSAGES

@@ -61,7 +61,7 @@ static PSERVICE_ROUTE _LoadService( CTEXTSTR service
 							  , PTRSZVAL psv
 							  )
 {
-	_32 MsgID;
+	MSGIDTYPE MsgID;
 	MsgSrv_ReplyServiceLoad msg;
 	size_t MsgLen = sizeof( msg ); // expect MsgBase = 0, EventMessgaeCount = 1
 	PEVENTHANDLER pHandler;
@@ -133,10 +133,10 @@ static PSERVICE_ROUTE _LoadService( CTEXTSTR service
 		}
 		if( MsgID != (MSG_ServiceLoad|SERVER_SUCCESS) )
 		{
-			lprintf( WIDE("Server reports it failed to load [%s] (%08") _32fx WIDE("!=%08x)")
+			lprintf( WIDE("Server reports it failed to load [%s] (%08") _MsgID_f WIDE("!=%08" ) _MsgID_f WIDE(")")
 					 , service
 					 , MsgID
-					 , MSG_ServiceLoad|SERVER_SUCCESS );
+					 , (MSGIDTYPE)(MSG_ServiceLoad|SERVER_SUCCESS) );
 			Release( pHandler );
 			LeaveCriticalSec( &g.csLoading );
 			return NULL;
@@ -148,7 +148,7 @@ static PSERVICE_ROUTE _LoadService( CTEXTSTR service
 		//}
 		if( MsgLen != sizeof( msg ) )
 		{
-			lprintf( WIDE("Server responce was the wrong length!!! %") _32f WIDE(" expecting %d"), MsgLen, sizeof( msg ) );
+			lprintf( WIDE("Server responce was the wrong length!!! %") _size_f WIDE(" expecting %")_size_f, MsgLen, sizeof( msg ) );
 			Release( pHandler );
 			LeaveCriticalSec( &g.csLoading );
 			return NULL;
@@ -260,7 +260,7 @@ CLIENTMSG_PROC( void, UnloadService )( CTEXTSTR name )
 	}
 	if( pHandler )
 	{
-		_32 Responce;
+		MSGIDTYPE Responce;
 		//lprintf( WIDE("Unload service: %s"), pHandler->servicename );
 		if( pHandler->flags.local_service )
 		{
@@ -279,8 +279,8 @@ CLIENTMSG_PROC( void, UnloadService )( CTEXTSTR name )
 			}
 			else if( Responce != ((MSG_ServiceUnload)|SERVER_SUCCESS) )
 			{
-				lprintf( WIDE("Server reports it failed to unload the service %08") _32fx WIDE(" %08") _32fx WIDE("")
-						 , Responce, ((MSG_ServiceUnload)|SERVER_SUCCESS) );
+				lprintf( WIDE("Server reports it failed to unload the service %08") _MsgID_f WIDE(" %08") _MsgID_f WIDE("")
+						 , Responce, (MSGIDTYPE)((MSG_ServiceUnload)|SERVER_SUCCESS) );
 			// no matter what the result, this must still release this
 			// resource....
 			//return;

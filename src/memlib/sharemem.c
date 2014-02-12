@@ -429,7 +429,7 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 	dwCurProc = GetMyThreadID();
 
 	if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-		_lprintf( DBG_RELAY )( WIDE(" [%16")_64fx WIDE("] Attempt enter critical Section %p %08lx")
+		_lprintf( DBG_RELAY )( WIDE(" [%16")_64fx WIDE("] Attempt enter critical Section %p %08") _32fx
 									, dwCurProc
 									, pcs
 									, pcs->dwLocks );
@@ -545,7 +545,7 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 		// or 2) there was not someone waiting...
 		pcs->dwLocks++;
 		if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-			lprintf( WIDE("Locks are %08lx"), pcs->dwLocks );
+			lprintf( WIDE("Locks are %08")_32fx, pcs->dwLocks );
 #ifdef DEBUG_CRITICAL_SECTIONS
 		if( ( pcs->dwLocks & 0xFFFFF ) > 1 )
 		{
@@ -582,7 +582,7 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 			{
 				if( pcs->dwThreadWaiting != dwCurProc )
 				{
-					lprintf( WIDE("thread to wake is not this one... fail. %016Lx %016Lx"), pcs->dwThreadWaiting, dwCurProc );
+					lprintf( WIDE("thread to wake is not this one... fail. %016")_64fx WIDE(" %016")_64fx, pcs->dwThreadWaiting, dwCurProc );
 					// assume that someone else kept our waiting ID...
 					// cause we're not the one waiting, and we have someone elses ID..
 					// we are awake out of order..
@@ -1069,7 +1069,7 @@ PTRSZVAL GetFileSize( int fd )
 						  , 0 );
 			if( pMem == (POINTER)-1 )
 			{
-				lprintf( "Something bad about this region sized %p(%d)", *dwSize, errno );
+				lprintf( WIDE("Something bad about this region sized %") _PTRSZVALfs WIDE("(%d)"), *dwSize, errno );
 				DebugBreak();
 			}
 			//lprintf( WIDE("Clearing anonymous mmap %") _32f WIDE(""), *dwSize );
@@ -1085,7 +1085,7 @@ PTRSZVAL GetFileSize( int fd )
 #ifdef __ANDROID__
 			if( !IsPath( "./tmp" ) )
 				if( !MakePath( "./tmp" ) )
-               lprintf( "Failed to create a temporary space" );
+			 lprintf( "Failed to create a temporary space" );
 			len = snprintf( NULL, 0, WIDE("./tmp/.shared.%s"), pWhat );
 			filename = (char*)Allocate( len + 1 );
 			snprintf( filename, len+1, WIDE("./tmp/.shared.%s"), pWhat );
@@ -1118,7 +1118,7 @@ PTRSZVAL GetFileSize( int fd )
 					fd = open( filename, O_RDWR );
 					bTemp = FALSE;
 					if( bCreated )
-                  (*bCreated) = 0;
+						(*bCreated) = 0;
 				}
 				if( fd == -1 )
 				{
@@ -1135,7 +1135,7 @@ PTRSZVAL GetFileSize( int fd )
 #else
 					bOpening = FALSE;
 #endif
-               if(filename)Release( filename );
+					if(filename)Release( filename );
 					return NULL;
 				}
 			}
@@ -1589,7 +1589,7 @@ int ExpandSpace( PMEM pHeap, PTRSZVAL dwAmount )
 	pExtend = DigSpace( NULL, NULL, &dwAmount );
 	if( !pExtend )
 	{
-		Log1( WIDE("Failed to expand space by %") _32f, dwAmount );
+		lprintf( WIDE("Failed to expand space by %") _PTRSZVALfs, dwAmount );
 		return FALSE;
 	}
 	pnewspace = FindSpace( pExtend );
@@ -1690,7 +1690,7 @@ POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS )
 		pc->dwOwners = 1;
 		pc->dwSize = dwSize;
 		if( g.bLogAllocate )
-			_lprintf(DBG_RELAY)( WIDE( "alloc %p(%p) %d" ), pc, pc->byData, dwSize );
+			_lprintf(DBG_RELAY)( WIDE( "alloc %p(%p) %" ) _PTRSZVALfs, pc, pc->byData, dwSize );
 		return pc->byData;
 	}
 	else
@@ -1825,7 +1825,7 @@ POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS )
 		//#if DBG_AVAILABLE
 		if( g.bLogAllocate )
 		{
-			_xlprintf( 2 DBG_RELAY )( WIDE("Allocate : %p(%p) - %") _32f WIDE(" bytes") , pc->byData, pc, pc->dwSize );
+			_xlprintf( 2 DBG_RELAY )( WIDE("Allocate : %p(%p) - %") _PTRSZVALfs WIDE(" bytes") , pc->byData, pc, pc->dwSize );
 		}
 		//#endif
 
@@ -2107,9 +2107,9 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			{
 #ifdef _DEBUG
 				if( !g.bDisableDebug )
-					_xlprintf( 2 DBG_RELAY)( WIDE("Release  : %p(%p) - %") _32f WIDE(" bytes %s(%d)"), pc->byData, pc, pc->dwSize, BLOCK_FILE(pc), BLOCK_LINE(pc) );
+					_xlprintf( 2 DBG_RELAY)( WIDE("Release  : %p(%p) - %") _PTRSZVALfs WIDE(" bytes %s(%d)"), pc->byData, pc, pc->dwSize, BLOCK_FILE(pc), BLOCK_LINE(pc) );
 				else
-					_xlprintf( 2 DBG_RELAY )( WIDE("Release  : %p(%p) - %") _32f WIDE(" bytes"), pc->byData, pc, pc->dwSize );
+					_xlprintf( 2 DBG_RELAY )( WIDE("Release  : %p(%p) - %") _PTRSZVALfs WIDE(" bytes"), pc->byData, pc, pc->dwSize );
 #endif
 			}
 			if( pData && pc )
@@ -2309,7 +2309,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)((char*)pData - MALLOC_CHUNK_SIZE);
 			//_lprintf( DBG_RELAY )( "holding block %p", pc );
 			if( g.bLogAllocate && g.bLogAllocateWithHold )
-				_xlprintf( 2 DBG_RELAY)( WIDE("Hold	  : %p - %") _32f WIDE(" bytes"),pc, pc->dwSize );
+				_xlprintf( 2 DBG_RELAY)( WIDE("Hold	  : %p - %") _PTRSZVALfs WIDE(" bytes"),pc, pc->dwSize );
 			pc->dwOwners++;
 		}
 		else
@@ -2319,7 +2319,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 
 			if( g.bLogAllocate )
 			{
-				_xlprintf( 2 DBG_RELAY)( WIDE("Hold	  : %p - %") _32f WIDE(" bytes"),pc, pc->dwSize );
+				_xlprintf( 2 DBG_RELAY)( WIDE("Hold	  : %p - %") _PTRSZVALfs WIDE(" bytes"),pc, pc->dwSize );
 			}
 			if( !pc->dwOwners )
 			{
@@ -2350,7 +2350,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 	{
 		PCHUNK pc, _pc;
 		PTRSZVAL nTotalFree = 0;
-		int nChunks = 0;
+		PTRSZVAL nChunks = 0;
 		PTRSZVAL nTotalUsed = 0;
 		PSPACE pMemSpace;
 		PMEM pMem = GrabMem( pHeap ), pCurMem;
@@ -2383,7 +2383,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 							?BLOCK_FILE(pc)
 							:WIDE("Unknown");
 						_32 nLine = BLOCK_LINE(pc);
-						_xlprintf(LOG_ALWAYS DBG_RELAY)( WIDE("Free at %p size: %") _32f WIDE("(%") _32fx WIDE(") Prior:%p NF:%p"),
+						_xlprintf(LOG_ALWAYS DBG_RELAY)( WIDE("Free at %p size: %") _PTRSZVALfs WIDE("(%") _PTRSZVALfx WIDE(") Prior:%p NF:%p"),
 																  pc, pc->dwSize, pc->dwSize,
 																  pc->pPrior,
 																  pc->next );
@@ -2398,7 +2398,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 							?BLOCK_FILE(pc)
 							:WIDE("Unknown");
 						_32 nLine = BLOCK_LINE(pc);
-						_xlprintf(LOG_ALWAYS DBG_RELAY)( WIDE("Used at %p size: %") _32f WIDE("(%") _32fx WIDE(") Prior:%p"),
+						_xlprintf(LOG_ALWAYS DBG_RELAY)( WIDE("Used at %p size: %") _PTRSZVALfs WIDE("(%") _PTRSZVALfx WIDE(") Prior:%p"),
 																  pc, pc->dwSize, pc->dwSize,
 																  pc->pPrior );
 					}
@@ -2413,9 +2413,9 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 				}
 			}
 		}
-		xlprintf(LOG_ALWAYS)( WIDE("Total Free: %d  TotalUsed: %d  TotalChunks: %d TotalMemory:%lu"),
+		xlprintf(LOG_ALWAYS)( WIDE("Total Free: %")_PTRSZVALfs WIDE("  TotalUsed: %")_PTRSZVALfs WIDE("  TotalChunks: %")_PTRSZVALfs WIDE(" TotalMemory:%") _PTRSZVALfs,
 									nTotalFree, nTotalUsed, nChunks,
-									(long unsigned)(nTotalFree + nTotalUsed + nChunks * CHUNK_SIZE) );
+									(nTotalFree + nTotalUsed + nChunks * CHUNK_SIZE) );
 		DropMem( pMem );
 	}
 	else
@@ -2443,9 +2443,9 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 		PCHUNK pc, _pc;
 		PMEM pMem, pCurMem;
 		PSPACE pMemSpace;
-		PTRSZVAL nTotalFree = 0;
-		int nChunks = 0;
-		PTRSZVAL nTotalUsed = 0;
+		size_t nTotalFree = 0;
+		size_t nChunks = 0;
+		size_t nTotalUsed = 0;
 		TEXTCHAR byDebug[256];
 
 		pMem = GrabMem( pHeap );
@@ -2471,7 +2471,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 				if( !pc->dwOwners )
 				{
 					nTotalFree += pc->dwSize;
-					snprintf( byDebug, sizeof(byDebug), WIDE("Free at %p size: %") _32f WIDE("(%") _32fx WIDE(") Prior:%p NF:%p"),
+					snprintf( byDebug, sizeof(byDebug), WIDE("Free at %p size: %") _PTRSZVALfs WIDE("(%") _PTRSZVALfx WIDE(") Prior:%p NF:%p"),
 						 pc, pc->dwSize, pc->dwSize,
 						 pc->pPrior,
 						 pc->next );
@@ -2480,7 +2480,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 				else
 				{
 					nTotalUsed += pc->dwSize;
-					snprintf( byDebug, sizeof(byDebug), WIDE("Used at %p size: %") _32f WIDE("(%") _32fx WIDE(") Prior:%p"),
+					snprintf( byDebug, sizeof(byDebug), WIDE("Used at %p size: %") _PTRSZVALfs WIDE("(%") _PTRSZVALfx WIDE(") Prior:%p"),
 						 pc, pc->dwSize, pc->dwSize,
 						 pc->pPrior );
 					byDebug[255] = 0;
@@ -2514,7 +2514,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 
 			while( pc ) // while PC not off end of memory
 			{
-				snprintf( byDebug, sizeof(byDebug), WIDE("Free at %p size: %") _32f WIDE("(%") _32fx WIDE(") "),
+				snprintf( byDebug, sizeof(byDebug), WIDE("Free at %p size: %") _size_fs WIDE("(%") _size_fx WIDE(") "),
 				 			pc, pc->dwSize, pc->dwSize );
 				byDebug[255] = 0;
 
@@ -2532,7 +2532,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 				pc = pc->next;
 			}
 		}
-		snprintf( byDebug, sizeof(byDebug), WIDE("Total Free: %d  TotalUsed: %d  TotalChunks: %d TotalMemory:%lu"),
+		snprintf( byDebug, sizeof(byDebug), WIDE("Total Free: %")c_size_f WIDE("  TotalUsed: %")c_size_f WIDE("  TotalChunks: %")c_size_f WIDE(" TotalMemory:%")c_size_f WIDE(""),
 					nTotalFree, nTotalUsed, nChunks,
 					(long unsigned)(nTotalFree + nTotalUsed + nChunks * CHUNK_SIZE) );
 		byDebug[255] = 0;
@@ -2708,7 +2708,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 				}
 				if( pc->pPrior != _pc )
 				{
-					Log4( WIDE("Block's prior is not the last block we checked! prior %p sz: %") _32f WIDE(" current: %p currentprior: %p")
+					lprintf( WIDE("Block's prior is not the last block we checked! prior %p sz: %") _PTRSZVALfs WIDE(" current: %p currentprior: %p")
 						, _pc
 						, _pc->dwSize
 						, pc

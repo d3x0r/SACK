@@ -1057,7 +1057,7 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 					// otherwise set dragging... hmm
 #ifdef DETAILED_MOUSE_DEBUG
 					if( g.flags.bLogDetailedMouse )
-						lprintf( WIDE("Set drag on frame to %d,d"), x, y );
+						lprintf( WIDE("Set drag on frame to %d,%d"), x, y );
 #endif
 					pf->_x = x;
 					pf->_y = y;

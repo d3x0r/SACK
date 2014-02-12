@@ -1775,7 +1775,7 @@ static TEXTSTR SubstituteNameVars( CTEXTSTR name )
 		{
 			TEXTCHAR *tmpvar = NewArray( TEXTCHAR, end - this_var );
 			CTEXTSTR envvar;
-			snprintf( tmpvar, end-this_var, WIDE("%*.*s"), end-this_var-1, end-this_var-1, this_var + 1 );
+			snprintf( tmpvar, end-this_var, WIDE("%*.*s"), (int)(end-this_var-1), (int)(end-this_var-1), this_var + 1 );
 			envvar = OSALOT_GetEnvironmentVariable( tmpvar );
 			if( envvar )
 				vtprintf( pvt, WIDE("%s"), OSALOT_GetEnvironmentVariable( tmpvar ) );
@@ -2176,7 +2176,7 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, PTRSZVAL global_size, C
 #ifdef WIN32
 		snprintf( spacename, sizeof( spacename ), WIDE("%s:%08lX"), name, GetCurrentProcessId() );
 #else
-		snprintf( spacename, sizeof( spacename ), WIDE("%s:%08lX"), name, getpid() );
+		snprintf( spacename, sizeof( spacename ), WIDE("%s:%08X"), name, getpid() );
 #endif
 		// hmm application only shared space?
 		// how do I get that to happen?

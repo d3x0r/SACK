@@ -579,7 +579,7 @@ PTEXTLINE PutSegmentOut( PHISTORY_LINE_CURSOR phc
          if( text ) // otherwise there's no characters to delete?  or does it mean next line?
          {
             PTEXT split;
-            Log1( WIDE("Has a current segment... %d"), GetTextSize( text ) );
+            Log1( WIDE("Has a current segment... %") _size_f, GetTextSize( text ) );
             if( text == pCurrentLine->pLine )
             {
                Log( WIDE("is the first segment... "));
@@ -891,11 +891,11 @@ void PSI_EnqueDisplayHistory( PHISTORY_LINE_CURSOR phc, PTEXT pLine )
 void DumpBlock( PHISTORYBLOCK pBlock DBG_PASS )
 {
    INDEX idx;
-	_xlprintf( 0 DBG_RELAY )(WIDE("History block used lines: %d of %d"), pBlock->nLinesUsed, MAX_HISTORY_LINES );
+	_xlprintf( 0 DBG_RELAY )(WIDE("History block used lines: %")_size_f WIDE(" of %d"), pBlock->nLinesUsed, MAX_HISTORY_LINES );
 	for( idx = 0; idx < pBlock->nLinesUsed; idx++ )
 	{
       PTEXTLINE ptl = pBlock->pLines + idx;
-		_xlprintf( 0 DBG_RELAY )(WIDE("line: %d = (%d,%d,%s)"), idx, ptl->nLineLength, GetTextSize( ptl->pLine ), GetText( ptl->pLine ) );
+		_xlprintf( 0 DBG_RELAY )(WIDE("line: %")_size_f WIDE(" = (%d,%")_size_f WIDE(",%s)"), idx, ptl->nLineLength, GetTextSize( ptl->pLine ), GetText( ptl->pLine ) );
 	}
 }
 
@@ -965,7 +965,7 @@ PTEXT EnumHistoryLineEx( PHISTORY_BROWSER phbr
 
 void SetHistoryLength( PHISTORY_REGION phr, INDEX length )
 {
-	Log1( WIDE("Set Length to %d blocks"), length/MAX_HISTORY_LINES );
+	Log1( WIDE("Set Length to %") _size_f WIDE(" blocks"), length/MAX_HISTORY_LINES );
 	phr->nMaxHistoryBlocks = length/MAX_HISTORY_LINES;
 }
 
@@ -999,7 +999,7 @@ void WriteHistoryToFile( FILE *file, PHISTORY_REGION phr )
 	INDEX idx;
 	while( pHistory )
 	{
-		lprintf( WIDE("Have a history block with %d lines"), pHistory->nLinesUsed );
+		lprintf( WIDE("Have a history block with %")_size_f WIDE(" lines"), pHistory->nLinesUsed );
 		for( idx = 0; idx < pHistory->nLinesUsed; idx++ )
 		{
 			PTEXTLINE pLine = pHistory->pLines + idx;
@@ -1282,7 +1282,7 @@ _32 GetBrowserDistance( PHISTORY_BROWSER phbr )
 										  , pHistory->pLines[n].pLine );
 		}
 	}
-	lprintf( WIDE("Browser is %d lines from end..."), nLines );
+	lprintf( WIDE("Browser is %")_size_f WIDE(" lines from end..."), nLines );
 	return nLines;
 }
 
@@ -1624,7 +1624,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 						{
 							dl.nLine = start; // just has to be different
 							//dl.start = pText; // text in history that started this...
-							lprintf( WIDE("Adding line to display: %p (%d) %d %d")
+							lprintf( WIDE("Adding line to display: %p (%")_size_f WIDE(") %")_size_f WIDE(" %")_size_f WIDE("")
 									 , dl.start, dl.nOfs, dl.nLine, nLinesShown+nLines );
 							if( nLinesShown + nLines > 0 )
 							{
@@ -1641,7 +1641,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 				if( !pLastSetLine )
 				{
 					// dl will be initialized as a blank line...
-					lprintf( WIDE("Adding line to display: %p (%d) %d"), dl.start, dl.nOfs, dl.nLine );
+					lprintf( WIDE("Adding line to display: %p (%")_size_f WIDE(") %") _size_f, dl.start, dl.nOfs, dl.nLine );
 					if( nLinesShown + nLines > 0 )
 					{
                      lprintf( WIDE("Set line %d"), nLinesShown + nLines );

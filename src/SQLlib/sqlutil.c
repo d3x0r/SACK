@@ -168,7 +168,7 @@ CTEXTSTR FetchLastInsertKeyEx( PODBC odbc, CTEXTSTR table, CTEXTSTR col DBG_PASS
 	if( RecordID )
 	{
 		Release( RecordID );
-      RecordID = NULL;
+		RecordID = NULL;
 	}
    //lprintf( "getting last insert ID?" );
 #ifdef POSGRES_BACKEND
@@ -188,7 +188,7 @@ CTEXTSTR FetchLastInsertKeyEx( PODBC odbc, CTEXTSTR table, CTEXTSTR col DBG_PASS
 	{
       // can also be done with 'select last_insert_rowid()'
 		RecordID = NewArray( TEXTCHAR, 32 );
-		snprintf( RecordID, 32, WIDE("%llu"), (INDEX)sqlite3_last_insert_rowid( odbc->db ) );
+		snprintf( RecordID, 32, WIDE("%") _size_f, (INDEX)sqlite3_last_insert_rowid( odbc->db ) );
 	}
 #endif
 #ifdef USE_ODBC
@@ -615,14 +615,14 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 	// the tree locally cached is in NAME order, but the data is
 	// the key, so we would have to scan the tree otherwise both directions
    // keyed so that we could get the name key from the ID data..
-	snprintf( query, sizeof( query ), WIDE("select %s from %s where %s=%") _32f
+	snprintf( query, sizeof( query ), WIDE("select %s from %s where %s=%") _size_f
 			  , name_colname?name_colname:WIDE("name")
 			  , table
 			  , id_colname?id_colname:WIDE("id")
 			  , id );
 	if( !DoSQLQueryEx( query, result DBG_RELAY ) || !(*result) )
 	{
-		lprintf( WIDE("name ID(%") _32f WIDE(" as %s) was not found in %s.%s"), id, table, id_colname?id_colname:WIDE("id") );
+		lprintf( WIDE("name ID(%") _size_f WIDE(" as %s) was not found in %s.%s"), id, id_colname?id_colname:WIDE("id"), table, id_colname?id_colname:WIDE("id") );
 		return FALSE;
 	}
 	else
@@ -642,14 +642,14 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 	// the tree locally cached is in NAME order, but the data is
 	// the key, so we would have to scan the tree otherwise both directions
    // keyed so that we could get the name key from the ID data..
-	snprintf( query, sizeof( query ), WIDE("select %s from %s where %s=%") _32f
+	snprintf( query, sizeof( query ), WIDE("select %s from %s where %s=%") _size_f
 			, colname
 			  , table
 			 , id_col?id_col:WIDE("id")
 			  , id );
 	if( !DoSQLQueryEx( query, result DBG_RELAY ) || !(*result) )
 	{
-		lprintf( WIDE("name ID(%") _32f WIDE(") was not found in %s.%s"), id, table, colname?colname:WIDE("id") );
+		lprintf( WIDE("name ID(%") _size_fs WIDE(") was not found in %s.%s"), id, table, colname?colname:WIDE("id") );
 		return FALSE;
 	}
 	else
@@ -868,9 +868,9 @@ void DumpSQLTable( PTABLE table )
 	{
 		lprintf( WIDE( "Column %d '%s' [%s] [%s]" )
               , n
-				 ,( (POINTER)table->fields.field[n].name )
-				 ,( (POINTER)table->fields.field[n].type )
-				 ,( (POINTER)table->fields.field[n].extra )
+				 ,( table->fields.field[n].name )
+				 ,( table->fields.field[n].type )
+				 ,( table->fields.field[n].extra )
 				 );
 		for( m = 0; table->fields.field[n].previous_names[m] && m < MAX_PREVIOUS_FIELD_NAMES; m++ )
 		{
@@ -883,7 +883,7 @@ void DumpSQLTable( PTABLE table )
 		for( m = 0; table->keys.key[n].colnames[m] && m < MAX_KEY_COLUMNS; m++ )
 		{
 			lprintf( WIDE( "Key part = %s" )
-					 , ( (POINTER)table->keys.key[n].colnames[m] )
+					 , table->keys.key[n].colnames[m]
 					 );
 		}
 	}
@@ -1459,8 +1459,8 @@ retry:
 								       , (int)(unsigned_word-table->fields.field[n].extra)
 								       , (int)(unsigned_word-table->fields.field[n].extra)
 									   , table->fields.field[n].extra
-									   , len 
-									   , len
+									   , (int)len 
+									   , (int)len
 									   , unsigned_word + 8
 									   );
 								vtprintf( pvtCreate, WIDE("%s`%s` %s %s")

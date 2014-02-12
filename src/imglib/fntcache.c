@@ -474,7 +474,10 @@ void DumpFontCache( void )
 					for( sz = 0; sz < file->nSizes; sz++ )
 					{
 						PSIZES size = ((PSIZES)file->sizes) + sz;
-						lprintf( WIDE("%s[%s] = %s/%s (%dx%d)"), pfe->name, pfs->name, file->path, file->file, size->width, size->height );
+						lprintf( WIDE("%s[%s] = %s/%s (%dx%d)"), (TEXTCHAR*)pfe->name
+							, (TEXTCHAR*)pfs->name
+							, (TEXTCHAR*)file->path
+							, (TEXTCHAR*)file->file, size->width, size->height );
 					}
 				}
 			}
@@ -555,7 +558,7 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 						//lprintf( "Found font file matchint %s", file->file );
 						temp_filename_len = (StrLen( (TEXTCHAR*)file->path ) + StrLen( (TEXTCHAR*)file->file ) + 2);
 						temp_filename = NewArray( TEXTCHAR, temp_filename_len );
-						snprintf( temp_filename, temp_filename_len, WIDE("%s/%s"), file->path, file->file );
+						snprintf( temp_filename, temp_filename_len, WIDE("%s/%s"), (TEXTCHAR*)file->path, (TEXTCHAR*)file->file );
 						break;
 					}
 					if( StrCaseCmp( base_name, (TEXTCHAR*)pfe->name ) == 0 )
@@ -564,7 +567,7 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 						{
 							temp_filename_len = (StrLen( (TEXTCHAR*)file->path ) + StrLen( (TEXTCHAR*)file->file ) + 2);
 							temp_filename = NewArray( TEXTCHAR, temp_filename_len );
-							snprintf( temp_filename, temp_filename_len, WIDE("%s/%s"), file->path, file->file );
+							snprintf( temp_filename, temp_filename_len, WIDE("%s/%s"), (TEXTCHAR*)file->path, (TEXTCHAR*)file->file );
 							break;
 						}
 					}
@@ -837,28 +840,28 @@ void OutputFontCache( void )
 		for( size = 0, pde = (PDICT_ENTRY)GetLeastNode( build.pPaths );
 	        pde;
 			  (size += strlen( pde->word ) + 1), pde = (PDICT_ENTRY)GetGreaterNode( build.pPaths ) );
-		fprintf( out, WIDE("%%@%") _32f WIDE(",%") _32f WIDE("\n"), GetNodeCount( build.pPaths ), size );
+		fprintf( out, WIDE("%%@%") _32f WIDE(",%") _size_f WIDE("\n"), GetNodeCount( build.pPaths ), size );
 	}
 	if( build.pFamilies )
 	{
 		for( size = 0, pde = (PDICT_ENTRY)GetLeastNode( build.pFamilies );
    	     pde;
 			  (size += strlen( pde->word ) + 1),pde = (PDICT_ENTRY)GetGreaterNode( build.pFamilies ) );
-		fprintf( out, WIDE("%%$%") _32f WIDE(",%") _32f WIDE("\n"), GetNodeCount( build.pFamilies ), size );
+		fprintf( out, WIDE("%%$%") _32f WIDE(",%") _size_f WIDE("\n"), GetNodeCount( build.pFamilies ), size );
 	}
 	if( build.pStyles )
 	{
 		for( size = 0,pde = (PDICT_ENTRY)GetLeastNode( build.pStyles );
    	     pde;
 			  (size += strlen( pde->word ) + 1),pde = (PDICT_ENTRY)GetGreaterNode( build.pStyles ) );
-	   fprintf( out, WIDE("%%*%") _32f WIDE(",%") _32f WIDE("\n"), GetNodeCount( build.pStyles ), size );
+	   fprintf( out, WIDE("%%*%") _32f WIDE(",%") _size_f WIDE("\n"), GetNodeCount( build.pStyles ), size );
 	}
 	if( build.pFiles )
 	{
 		for( size = 0,pde = (PDICT_ENTRY)GetLeastNode( build.pFiles );
    	     pde;
 			  (size += strlen( pde->word ) + 1),pde = (PDICT_ENTRY)GetGreaterNode( build.pFiles ) );
-	   fprintf( out, WIDE("%%&%") _32f WIDE(",%") _32f WIDE("\n"), GetNodeCount( build.pFiles ), size );
+	   fprintf( out, WIDE("%%&%") _32f WIDE(",%") _size_f WIDE("\n"), GetNodeCount( build.pFiles ), size );
 	}
 
 	// slightly complex loop to scan cache as it is, and
@@ -1077,10 +1080,10 @@ void DumpLoadedFontCache( void )
 	Fopen( out, WIDE("Fonts.Cache1"), WIDE("wt") );
 	if( !out )
 		return;
-	fprintf( out, WIDE("%%@%") _32f WIDE(",%") _32f WIDE("\n"), build.nPaths, SizeOfMemBlock( build.pPathNames ) );
-	fprintf( out, WIDE("%%$%") _32f WIDE(",%") _32f WIDE("\n"), build.nFamilies, SizeOfMemBlock( build.pFamilyNames ) );
-	fprintf( out, WIDE("%%*%") _32f WIDE(",%") _32f WIDE("\n"), build.nStyles, SizeOfMemBlock( build.pStyleNames ) );
-	fprintf( out, WIDE("%%&%") _32f WIDE(",%") _32f WIDE("\n"), build.nFiles, SizeOfMemBlock( build.pFileNames ) );
+	fprintf( out, WIDE("%%@%") _32f WIDE(",%") _size_f WIDE("\n"), build.nPaths, SizeOfMemBlock( build.pPathNames ) );
+	fprintf( out, WIDE("%%$%") _32f WIDE(",%") _size_f WIDE("\n"), build.nFamilies, SizeOfMemBlock( build.pFamilyNames ) );
+	fprintf( out, WIDE("%%*%") _32f WIDE(",%") _size_f WIDE("\n"), build.nStyles, SizeOfMemBlock( build.pStyleNames ) );
+	fprintf( out, WIDE("%%&%") _32f WIDE(",%") _size_f WIDE("\n"), build.nFiles, SizeOfMemBlock( build.pFileNames ) );
 
 	{
 		INDEX fontidx, styleidx, idx;
@@ -1128,14 +1131,14 @@ void DumpLoadedFontCache( void )
 		if( pfe->flags.unusable )
 			continue;
 		// should dump name also...
-		linelen = fprintf( out, WIDE("%") _32f WIDE(",%") _32f WIDE("")
+		linelen = fprintf( out, WIDE("%") _size_f WIDE(",%") _32f WIDE("")
 						, IndexOf( build.pFamilyList, build.nFamilies, pfe->name )
                         , pfe->nStyles
 							  );
 		for( styleidx = 0; styleidx < pfe->nStyles; styleidx++ )
 		{
 			pfs = (PFONT_STYLE)pfe->styles + styleidx;
-			newlen = snprintf( outbuf, sizeof( outbuf ), WIDE("!%") _32f WIDE("*%s,%") _32f WIDE("")
+			newlen = snprintf( outbuf, sizeof( outbuf ), WIDE("!%") _size_f WIDE("*%s,%") _32f WIDE("")
 								 , IndexOf( build.pStyleList, build.nStyles, pfs->name )
 								 , pfs->flags.mono?"m":""
 								 , pfs->nFiles
@@ -1151,7 +1154,7 @@ void DumpLoadedFontCache( void )
 			{
 				INDEX idx;
 				PSIZES size;
-				newlen = snprintf( outbuf, sizeof( outbuf ), WIDE("@%") _32f WIDE(",%") _32f WIDE(",%") _32f WIDE(":%") _32f
+				newlen = snprintf( outbuf, sizeof( outbuf ), WIDE("@%") _32f WIDE(",%") _32f WIDE(",%") _size_f WIDE(":%") _size_f
                             , psf->nAlternate
                             , psf->nSizes
 									 , IndexOf( build.pPathList, build.nPaths, psf->path )
@@ -1189,7 +1192,7 @@ void DumpLoadedFontCache( void )
 					INDEX idx;
 					for( idx = 0; pasf = ((PALT_SIZE_FILE)psf->pAlternate) + idx, idx < psf->nAlternate; idx++ )
 					{
-						newlen = snprintf( outbuf, sizeof( outbuf ), WIDE("^%") _32f WIDE(":%") _32f 
+						newlen = snprintf( outbuf, sizeof( outbuf ), WIDE("^%") _size_f WIDE(":%") _size_f 
 											 , IndexOf( build.pPathList, build.nPaths, pasf->path )
 											 , IndexOf( build.pFileList, build.nFiles, pasf->file )
 											 );
@@ -1265,7 +1268,7 @@ void CPROC UpdateStatus( PTRSZVAL psvFrame )
 			 , (TimeElapsed/1000) / 60
 			 , (TimeElapsed/1000) % 60
 			 );
-	lprintf( msg );
+	SystemLog( msg );
 #ifdef __CAN_USE_CACHE_DIALOG__
    // in the positiion of image library, there is no controls to do...
 	SetCommonText( GetControl( (PCOMMON)psvFrame, TXT_TIME_STATUS ), msg );
@@ -1273,7 +1276,7 @@ void CPROC UpdateStatus( PTRSZVAL psvFrame )
 	snprintf( msg, sizeof( msg ), WIDE("Checked Fonts: %d")
 			 , fonts_checked
 			 );
-	lprintf( msg );
+	SystemLog( msg );
 #ifdef __CAN_USE_CACHE_DIALOG__
 	SetCommonText( GetControl( (PCOMMON)psvFrame, TXT_COUNT_STATUS ), msg );
 #endif

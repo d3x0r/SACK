@@ -371,7 +371,7 @@ static int CPROC FrameKeyProc( PTRSZVAL psvFrame, _32 key )
 		return 0;
 	AddUse( pc );
 	if( g.flags.bLogKeyEvents )
-		lprintf( WIDE("Added use for a key %08lx"), key );
+		lprintf( WIDE("Added use for a key %08") _32fx, key );
 	{
 		if( pf->EditState.flags.bActive && pf->EditState.pCurrent )
 		{

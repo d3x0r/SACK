@@ -147,7 +147,7 @@ POPTION_TREE_NODE NewGetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION_
 			{
 				PushSQLQueryExEx(tree->odbc DBG_RELAY );
 				snprintf( query, sizeof( query )
-						  , WIDE( "select option_id from " )OPTION_MAP WIDE( " where parent_option_id=%ld and name_id=%d" )
+						  , WIDE( "select option_id from " )OPTION_MAP WIDE( " where parent_option_id=%")_size_f WIDE(" and name_id=%" ) _size_f
 						  , parent->id
 						  , IDName );
 			}

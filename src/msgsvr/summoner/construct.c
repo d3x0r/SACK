@@ -22,7 +22,7 @@ typedef struct local_tag
 
 static LOCAL l;
 
-static int CPROC HandleSummonerEvents( PSERVICE_ROUTE SourceID, _32 MsgID, _32 *data, size_t len )
+static int CPROC HandleSummonerEvents( PSERVICE_ROUTE SourceID, MSGIDTYPE MsgID, _32 *data, size_t len )
 {
 	switch( MsgID )
 	{
@@ -36,7 +36,7 @@ static int CPROC HandleSummonerEvents( PSERVICE_ROUTE SourceID, _32 MsgID, _32 *
 		exit(0);
 		break;
 	default:
-		lprintf( WIDE("Received unknown message %") _32f WIDE(" from %") _32f WIDE(""), MsgID, SourceID );
+		lprintf( WIDE("Received unknown message %") _MsgID_f WIDE(" from %p"), MsgID, SourceID );
 		break;
 	}
    return TRUE;
@@ -56,7 +56,7 @@ PRELOAD( Started )
 		//lprintf( WIDE("Message base for service is %d"), l.MsgBase );
 		if( l.MsgBase )
 		{
-			_32 result;
+			MSGIDTYPE result;
 			size_t result_length;
 			result_length = sizeof( l.my_name );
 			if( !TransactServerMessage( l.MsgBase, MSG_WHOAMI, NULL, 0

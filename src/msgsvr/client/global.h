@@ -141,8 +141,8 @@ struct ServiceTransactionHandler_tag
 	CRITICALSECTION csMsgTransact;
 	// timeout on this local handler's reception of a responce.
 	_32 wait_for_responce;
-	_32 LastMsgID; // last outbound resquest - which is waiting for a responce
-	_32 *MessageID; // address of the reply message ID
+	MSGIDTYPE LastMsgID; // last outbound resquest - which is waiting for a responce
+	MSGIDTYPE *MessageID; // address of the reply message ID
 	POINTER msg;
 	size_t *len;
 	_32 last_check_tick;
@@ -368,7 +368,7 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 				, _32 MsgOut
 					DBG_PASS );
 int QueueWaitReceiveServerMsg ( PSLEEPER sleeper, PTRANSACTIONHANDLER handler
-										  , _32 *MsgIn
+										  , MSGIDTYPE *MsgIn
 										  , POINTER BufferIn
 										  , size_t *LengthIn
 											DBG_PASS );

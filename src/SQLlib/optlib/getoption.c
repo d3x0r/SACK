@@ -563,7 +563,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 				{
 					PushSQLQueryEx(odbc);
 					snprintf( query, sizeof( query )
-							  , WIDE("select node_id,value_id from option_map where parent_node_id=%ld and name_id=%d")
+							  , WIDE("select node_id,value_id from option_map where parent_node_id=%ld and name_id=%") _size_fs
 							  , parent->id
 							  , IDName );
 				}
@@ -685,7 +685,7 @@ POPTION_TREE_NODE GetOptionValueIndexEx( PODBC odbc, POPTION_TREE_NODE ID )
 			if( !SQLQuery( odbc, query, &result )
 				|| !result )
 			{
-				lprintf( WIDE("Option tree corrupt.  No option node_id=%ld") );
+				lprintf( WIDE("Option tree corrupt.  No option node_id=%ld"), ID->id );
 				return NULL;
 			}
 			//lprintf( WIDE("okay and then we pop!?") );
@@ -834,10 +834,10 @@ size_t GetOptionStringValueEx( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *b
 		snprintf( query, sizeof( query ), WIDE( "select override_value_id from option_exception " )
 				WIDE( "where ( apply_from<=now() or apply_from=0 )" )
 				WIDE( "and ( apply_until>now() or apply_until=0 )" )
-				WIDE( "and ( system_id=%d or system_id=0 )" )
-				WIDE( "and value_id=%d " )
+				WIDE( "and ( system_id=%")_size_fs WIDE(" or system_id=0 )" )
+				WIDE( "and value_id=%" ) _size_fs
 			   , og.SystemID
-			   , optval );
+			   , optval->value_id );
 		last_was_session = 0;
 		last_was_system = 0;
 		PushSQLQueryEx( odbc );
@@ -1094,14 +1094,18 @@ LOGICAL SetOptionStringValue( POPTION_TREE tree, POPTION_TREE_NODE optval, CTEXT
 			}
 			else
 			{
-				snprintf( update, sizeof( update )
-						  , tree->flags.bVersion4?WIDE("delete from %s where %s='%s'")
-							:WIDE("delete from %s where %s=%ld")
-
-						  ,tree->flags.bVersion4?OPTION4_VALUES:
-							tree->flags.bNewVersion?OPTION_VALUES:WIDE( "option_values" )
-						  , (tree->flags.bVersion4||tree->flags.bNewVersion)?WIDE( "option_id" ):WIDE( "value_id" )
-						  , tree->flags.bVersion4?optval->value_guid:(CPOINTER)optval->value_id );
+				if( tree->flags.bVersion4 )
+					snprintf( update, sizeof( update )
+						  , WIDE("delete from %s where %s='%s'")
+						  , OPTION4_VALUES
+						  , WIDE( "option_id" )
+						  , optval->value_guid );
+				else
+					snprintf( update, sizeof( update )
+						  , WIDE("delete from %s where %s=%") _PTRSZVALfs
+						  , WIDE( "option_values" )
+						  , WIDE( "value_id" )
+						  , optval->value_id );
 				OpenWriter( tree );
 				if( !SQLCommand( tree->odbc_writer, update ) )
 				{
@@ -1109,12 +1113,18 @@ LOGICAL SetOptionStringValue( POPTION_TREE tree, POPTION_TREE_NODE optval, CTEXT
 					lprintf( WIDE("Delete value failed: %s"), result );
 					retval = FALSE;
 				}
-
-				snprintf( update, sizeof( update ), WIDE("delete from %s where %s=%ld")
-						  , tree->flags.bVersion4?OPTION4_MAP
-							:tree->flags.bNewVersion?OPTION_MAP:WIDE( "option_map" )
-						  , (tree->flags.bVersion4||tree->flags.bNewVersion)?WIDE( "option_id" ):WIDE( "option_id" )
-						  , tree->flags.bVersion4?optval->value_guid:(CPOINTER)optval->value_id  );
+				if( tree->flags.bVersion4 )
+					snprintf( update, sizeof( update )
+						  , WIDE("delete from %s where %s=%s")
+						  , OPTION4_MAP
+						  , WIDE( "option_id" )
+						  , optval->value_guid );
+				else
+					snprintf( update, sizeof( update )
+						  , WIDE("delete from %s where %s=%") _PTRSZVALfs
+						  , WIDE( "option_map" )
+						  , WIDE( "option_id" )
+						  , optval->value_id  );
 				if( !SQLCommand( tree->odbc_writer, update ) )
 				{
 					FetchSQLError( tree->odbc_writer, &result );
@@ -1570,7 +1580,7 @@ SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntExx )( PODBC odbc, CTEXTSTR pS
 {
 	TEXTCHAR buffer[32];
 	TEXTCHAR defaultbuf[32];
-	snprintf( defaultbuf, sizeof( defaultbuf ), WIDE("%ld"), nDefault );
+	snprintf( defaultbuf, sizeof( defaultbuf ), WIDE("%") _32fs, nDefault );
 	if( SACK_GetPrivateProfileStringExxx( odbc, pSection, pOptname, defaultbuf, buffer, sizeof( buffer )/sizeof(TEXTCHAR), pINIFile, bQuiet DBG_RELAY ) )
 	{
 		if( buffer[0] == 'Y' || buffer[0] == 'y' )
@@ -1704,7 +1714,7 @@ SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateOptionString )( PODBC odbc, CTEXTST
 SQLGETOPTION_PROC( S_32, SACK_WritePrivateProfileInt )( CTEXTSTR pSection, CTEXTSTR pName, S_32 value, CTEXTSTR pINIFile )
 {
 	TEXTCHAR valbuf[32];
-	snprintf( valbuf, sizeof( valbuf ), WIDE("%ld"), value );
+	snprintf( valbuf, sizeof( valbuf ), WIDE("%") _32fs, value );
 	return SACK_WritePrivateProfileString( pSection, pName, valbuf, pINIFile );
 }
 

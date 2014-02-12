@@ -2285,7 +2285,7 @@ int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 		{
 			TEXTSTR tmp_delete;
 			TEXTSTR str_error = DupCharToText( sqlite3_errmsg(odbc->db) );
-			_lprintf(DBG_RELAY)( WIDE( "Result of prepare failed? %s at char %d[%s] in [%s]" ), str_error, tail - tmp_cmd, tmp_delete = DupCharToText( tail ), GetText(cmd) );
+			_lprintf(DBG_RELAY)( WIDE( "Result of prepare failed? %s at char %")_size_f WIDE("[%s] in [%s]" ), str_error, tail - tmp_cmd, tmp_delete = DupCharToText( tail ), GetText(cmd) );
 			vtprintf( collection->pvt_errorinfo, str_error );
 			Release( tmp_delete );
 			Release( str_error );
@@ -2933,7 +2933,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 										, &ResultLen );
 					if( SUS_GT( ResultLen,SQLINTEGER,collection->colsizes[idx-1],SQLUINTEGER) )
 					{
-						lprintf( WIDE( "SQL Result returned more data than the column described! (returned %d expected %d)" ), ResultLen, collection->colsizes[idx-1] );
+						lprintf( WIDE( "SQL Result returned more data than the column described! (returned %d expected %d)" ), (int)ResultLen, (int)(collection->colsizes[idx-1]) );
 					}
 				}
 				else
@@ -2962,7 +2962,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 					}
 					else
 					{
-						lprintf( WIDE( "SQL overflow (no room for nul character) %d of %d" ), ResultLen, colsize );
+						lprintf( WIDE( "SQL overflow (no room for nul character) %d of %d" ), (int)ResultLen, (int)colsize );
 					}
 				}
 				//lprintf( WIDE( "Column %s colsize %d coltype %d coltype %d idx %d" ), collection->fields[idx-1], colsize, coltype, collection->coltypes[idx-1], idx );
@@ -3373,9 +3373,9 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 			tmp = sqlite3_errmsg(odbc->db);
 			str_error = DupCharToText( tmp );
 			if( StrCaseCmpEx( str_error, WIDE( "no such table" ), 13 ) == 0 )
-            vtprintf( collection->pvt_errorinfo, WIDE( "(S0002)" ) );
+				vtprintf( collection->pvt_errorinfo, WIDE( "(S0002)" ) );
 			vtprintf( collection->pvt_errorinfo, WIDE( "%s" ), str_error );
-			_lprintf(DBG_RELAY)( WIDE( "Result of prepare failed? %s at-or near char %d[%s] in [%s]" ), str_error, tail - sql_query, tmp_at = DupCharToText( tail ), query );
+			_lprintf(DBG_RELAY)( WIDE( "Result of prepare failed? %s at-or near char %")_size_f WIDE("[%s] in [%s]" ), str_error, tail - sql_query, tmp_at = DupCharToText( tail ), query );
 			Deallocate( TEXTSTR, tmp_at );
 			Deallocate( TEXTSTR, str_error );
 			if( EnsureLogOpen(odbc ) )
