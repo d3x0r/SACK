@@ -178,9 +178,9 @@
 #define VK_OEM_5   220
 #define VK_OEM_6   221
 #define VK_OEM_7   222
+#define VK_OEM_MINUS  189
 #endif
 
-#define VK_OEM_MINUS  189
 
 #define KEY_SEMICOLON     VK_OEM_1
 #define KEY_QUOTE         VK_OEM_7

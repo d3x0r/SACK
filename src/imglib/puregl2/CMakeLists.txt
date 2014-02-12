@@ -32,7 +32,10 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
         FOLDER "Image Library" 
 )
 
-my_target_link_libraries( ${PROJECT_NAME} ${SACK_CORE_LIBRARY} ${SACK_PLATFORM_LIBRARIES})
+my_target_link_libraries( ${PROJECT_NAME} ${SACK_CORE_LIBRARY} ${SACK_PLATFORM_LIBRARIES} )
+if( WIN32 )
+my_target_link_libraries( ${PROJECT_NAME} glew )  # private GLEW library
+endif( WIN32 )
 if( __ANDROID__ OR __QNX__ )
   my_target_link_libraries( ${PROJECT_NAME} GLESv2 )
 endif( __ANDROID__ OR __QNX__ )

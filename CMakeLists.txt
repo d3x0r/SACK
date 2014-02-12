@@ -1286,7 +1286,9 @@ if( WIN32 )
    add_subdirectory( src/utils/application_delay )
 endif( WIN32 )
 if( NOT UNIX )
-add_subdirectory( makefiles/prog/ppc )
+  #   This doesn't build under watcom either...
+  #   it needs to be modified to understand functional syntax so it can do formatting...
+  #add_subdirectory( makefiles/prog/ppc )
 endif( NOT UNIX )
 add_subdirectory( src/utils/seed_random )
 add_subdirectory( src/deadstart )

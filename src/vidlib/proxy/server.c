@@ -839,7 +839,7 @@ static LOGICAL CPROC VidlibProxy_AllowsAnyThreadToUpdate( void )
 	return FALSE;
 }
 
-static void VidlibProxy_SetApplicationTitle( CTEXTSTR title )
+static void CPROC VidlibProxy_SetApplicationTitle( CTEXTSTR title )
 {
 	if( l.application_title )
 		Release( l.application_title );
@@ -847,7 +847,7 @@ static void VidlibProxy_SetApplicationTitle( CTEXTSTR title )
 	SendClientMessage( PMID_SetApplicationTitle );
 }
 
-static void VidlibProxy_GetDisplaySize( _32 *width, _32 *height )
+static void CPROC VidlibProxy_GetDisplaySize( _32 *width, _32 *height )
 {
 	if( width )
 		(*width) = SACK_GetProfileInt( "SACK/Vidlib", "Default Display Width", 1024 );
@@ -855,7 +855,7 @@ static void VidlibProxy_GetDisplaySize( _32 *width, _32 *height )
 		(*height) = SACK_GetProfileInt( "SACK/Vidlib", "Default Display Height", 768 );
 }
 
-static void VidlibProxy_SetDisplaySize		( _32 width, _32 height )
+static void CPROC VidlibProxy_SetDisplaySize		( _32 width, _32 height )
 {
 	SACK_WriteProfileInt( "SACK/Vidlib", "Default Display Width", width );
 	SACK_WriteProfileInt( "SACK/Vidlib", "Default Display Height", height );
@@ -908,7 +908,7 @@ static Image CPROC VidlibProxy_MakeImageFileEx (_32 Width, _32 Height DBG_PASS)
 }
 
 
-static PRENDERER VidlibProxy_OpenDisplayAboveUnderSizedAt( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above, PRENDERER under )
+static PRENDERER CPROC VidlibProxy_OpenDisplayAboveUnderSizedAt( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above, PRENDERER under )
 {
 
 	PVPRENDER Renderer = New( struct vidlib_proxy_renderer );
@@ -928,12 +928,12 @@ static PRENDERER VidlibProxy_OpenDisplayAboveUnderSizedAt( _32 attributes, _32 w
 	return (PRENDERER)Renderer;
 }
 
-static PRENDERER VidlibProxy_OpenDisplayAboveSizedAt( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above )
+static PRENDERER CPROC VidlibProxy_OpenDisplayAboveSizedAt( _32 attributes, _32 width, _32 height, S_32 x, S_32 y, PRENDERER above )
 {
 	return VidlibProxy_OpenDisplayAboveUnderSizedAt( attributes, width, height, x, y, above, NULL );
 }
 
-static PRENDERER VidlibProxy_OpenDisplaySizedAt	  ( _32 attributes, _32 width, _32 height, S_32 x, S_32 y )
+static PRENDERER CPROC VidlibProxy_OpenDisplaySizedAt	  ( _32 attributes, _32 width, _32 height, S_32 x, S_32 y )
 {
 	return VidlibProxy_OpenDisplayAboveUnderSizedAt( attributes, width, height, x, y, NULL, NULL );
 }
@@ -961,7 +961,7 @@ static  void CPROC VidlibProxy_UnmakeImageFileEx( Image pif DBG_PASS )
 	}
 }
 
-static void  VidlibProxy_CloseDisplay ( PRENDERER Renderer )
+static void CPROC  VidlibProxy_CloseDisplay ( PRENDERER Renderer )
 {
 	VidlibProxy_UnmakeImageFileEx( (Image)(((PVPRENDER)Renderer)->image) DBG_SRC );
 	SendClientMessage( PMID_CloseDisplay, Renderer );
@@ -969,20 +969,20 @@ static void  VidlibProxy_CloseDisplay ( PRENDERER Renderer )
 	Release( Renderer );
 }
 
-static void VidlibProxy_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y, _32 width, _32 height DBG_PASS )
+static void CPROC VidlibProxy_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y, _32 width, _32 height DBG_PASS )
 {
 	// no-op; it will ahve already displayed(?)
 	SendClientMessage( PMID_Flush_Draw, r );
 }
 
-static void VidlibProxy_UpdateDisplayEx( PRENDERER r DBG_PASS)
+static void CPROC VidlibProxy_UpdateDisplayEx( PRENDERER r DBG_PASS)
 {
 	// no-op; it will ahve already displayed(?)
 	SendClientMessage( PMID_Flush_Draw, r );
 
 }
 
-static void VidlibProxy_GetDisplayPosition ( PRENDERER r, S_32 *x, S_32 *y, _32 *width, _32 *height )
+static void CPROC VidlibProxy_GetDisplayPosition ( PRENDERER r, S_32 *x, S_32 *y, _32 *width, _32 *height )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
 	if( x )
