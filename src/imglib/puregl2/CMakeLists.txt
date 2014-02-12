@@ -1,9 +1,9 @@
 
 project( bag.image.puregl2 )
 
-if( NOT __ANDROID__ )
+if( WIN32 )
   INCLUDE_DIRECTORIES( ../../vidlib/puregl/glew-1.9.0/include )
-endif( NOT __ANDROID__ )
+endif( WIN32 )
 
 if( __ANDROID__ OR __QNX__ )
 ADD_DEFINITIONS( -DUSE_GLES2 )
@@ -32,25 +32,9 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
         FOLDER "Image Library" 
 )
 
-my_target_link_libraries( ${PROJECT_NAME} ${SACK_CORE_LIBRARY} )
+my_target_link_libraries( ${PROJECT_NAME} ${SACK_CORE_LIBRARY} ${SACK_PLATFORM_LIBRARIES})
 if( __ANDROID__ OR __QNX__ )
   my_target_link_libraries( ${PROJECT_NAME} GLESv2 )
-else( __ANDROID__ OR __QNX__ )
-if( UNIX )
-  #my_target_link_libraries( ${PROJECT_NAME} GLESv2 EGL GL )
-  if( NOT NEED_PNG ) 
-    my_target_link_libraries( ${PROJECT_NAME} png )
-  endif() 
-  if( NOT NEED_JPEG ) 
-    my_target_link_libraries( ${PROJECT_NAME} jpeg )
-  endif() 
-  if( NOT NEED_FREETYPE )
-    my_target_link_libraries( ${PROJECT_NAME} freetype  )
-  endif()
-else( UNIX )
-my_target_link_libraries( ${PROJECT_NAME} opengl32 glu32 )
-my_target_link_libraries( ${PROJECT_NAME} glew )
-endif( UNIX )
 endif( __ANDROID__ OR __QNX__ )
 
 my_target_link_libraries( ${PROJECT_NAME} bag.psi )

@@ -786,7 +786,7 @@ void PrintCPUDelta( TEXTCHAR *buffer, size_t buflen, _64 tick_start, _64 tick_en
 	if( !cpu_tick_freq )
 		GetCPUFrequency();
 	if( cpu_tick_freq )
-		snprintf( buffer, buflen, WIDE("%")_64fs WIDE(".%03") _64f
+		snprintf( buffer, buflen, WIDE("%")_64f WIDE(".%03") _64f
 				 , ((tick_end-tick_start) / cpu_tick_freq ) / 1000
 				 , ((tick_end-tick_start) / cpu_tick_freq ) % 1000
 				 );
