@@ -4,10 +4,10 @@ ADD_DEFINITIONS( -DMAKE_RCOORD_SINGLE )
 #INCLUDE_DIRECTORIES( cg/include/cg )
 # glsl ?
 
-if( NOT __ANDROID__ AND NOT __QNX__ )
+if( WIN32 )
   INCLUDE_DIRECTORIES( glew-1.9.0/include )
   add_subdirectory( glew-1.9.0 )
-endif( NOT __ANDROID__ AND NOT __QNX__ )
+endif( WIN32 )
 
 if( __ANDROID__ OR __QNX__ )
 ADD_DEFINITIONS( -DUSE_GLES2 )
@@ -46,9 +46,8 @@ ${LAST_GCC_LIBRARY_SOURCE}
 string( REPLACE "." "_" TARGET_LABEL bag.video.puregl )
 
 SET_TARGET_PROPERTIES( bag.video.puregl PROPERTIES
-	COMPILE_DEFINITIONS "TARGETNAME=\"${CMAKE_LIBRARY_PREFIX}${PROJECTNAME}${CMAKE_LIBRARY_SUFFIX}\";TARGET_LABEL=${TARGET_LABEL};_OPENGL_ENABLED;RENDER_LIBRARY_SOURCE;_OPENGL_DRIVER;MAKE_RCOORD_SINGLE" 
-	FOLDER "Video Renderer"  
-)
+	COMPILE_DEFINITIONS "TARGETNAME=\"${CMAKE_LIBRARY_PREFIX}${PROJECTNAME}${CMAKE_LIBRARY_SUFFIX}\";TARGET_LABEL=${TARGET_LABEL};_OPENGL_ENABLED;RENDER_LIBRARY_SOURCE;_OPENGL_DRIVER;MAKE_RCOORD_SINGLE"
+	FOLDER "Video Renderer" )
 
 
 if( __ANDROID__ OR __QNX__ )
@@ -60,11 +59,7 @@ if( __ANDROID__ OR __QNX__ )
   my_target_link_libraries( bag.video.puregl  m )
   endif( NOT __QNX__ )
 else( __ANDROID__ OR __QNX__ )
-  if( UNIX )
-    my_target_link_libraries( bag.video.puregl ${SACK_CORE_LIBRARY} GL GLU glew Xxf86vm )
-  else( UNIX )
-    my_target_link_libraries( bag.video.puregl ${SACK_CORE_LIBRARY} opengl32 glu32 glew )
-  endif( UNIX )
+    my_target_link_libraries( bag.video.puregl ${SACK_CORE_LIBRARY} ${SACK_PLATFORM_LIBRARIES} )
 endif( __ANDROID__ OR __QNX__ )
 
 install_mode_dest( bag.video.puregl )
