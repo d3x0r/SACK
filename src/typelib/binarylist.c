@@ -491,7 +491,7 @@ void DumpNode( PTREENODE node, int level, int (*DumpMethod)( POINTER user, PTRSZ
       print = TRUE;
 	//else
 	if( print )
-		lprintf( WIDE("[%3d] %p Node has %3")_32f WIDE(" children (%p %3")_32f WIDE(",%p %3")_32f WIDE("). %10") PTRSZVALfs
+		lprintf( WIDE("[%3d] %p Node has %3")_32f WIDE(" children (%p %3")_32f WIDE(",%p %3")_32f WIDE("). %10") _PTRSZVALfs
 				 , level, node, node->children
 				 , node->lesser
 				 , (node->lesser)?(node->lesser->children+1):0

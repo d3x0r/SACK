@@ -1249,7 +1249,7 @@ void IntelligentFrameUpdateAllDirtyControls( PSI_CONTROL pc DBG_PASS )
 		if( g.flags.bLogDebugUpdate )
 		{
 			_lprintf( DBG_RELAY )( WIDE("Intelligent update? %p"), pc );
-			lprintf( WIDE("pc = %08lx par = %08lx"), pc, pc->parent );
+			lprintf( WIDE("pc = %p par = %p"), pc, pc->parent );
 		}
 #endif
 		upd.flags.bHasContent = 0;
@@ -2773,7 +2773,7 @@ PSI_PROC( void, HideCommon )( PSI_CONTROL pc )
 						PENDING_RECT upd;
 #ifdef DEBUG_UPDAATE_DRAW
 						if( g.flags.bLogDebugUpdate )
-							lprintf( WIDE("pc = %08lx par = %08lx"), pc, pc->parent );
+							lprintf( WIDE("pc = %p par = %p"), pc, pc->parent );
 #endif
 						upd.flags.bHasContent = 0;
 						upd.flags.bTmpRect = 0;

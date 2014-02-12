@@ -478,7 +478,7 @@ NETWORK_PROC( int, doUDPRead )( PCLIENT pc, POINTER lpBuffer, int nBytes )
 {
 	if( pc->RecvPending.dwAvail )
 	{
-		lprintf( WIDE("Read already pending for %d... not doing anything for this one..")
+		lprintf( WIDE("Read already pending for %")_size_fs WIDE("... not doing anything for this one..")
               , pc->RecvPending.dwAvail );
 		return FALSE;
 	}
@@ -519,7 +519,7 @@ int FinishUDPRead( PCLIENT pc )
 
    if( !pc->RecvPending.buffer.p || !pc->RecvPending.dwAvail )  
    {
-		lprintf( WIDE("UDP Read without queued buffer for result. %p %d"), pc->RecvPending.buffer.p, pc->RecvPending.dwAvail );
+		lprintf( WIDE("UDP Read without queued buffer for result. %p %") _size_fs, pc->RecvPending.buffer.p, pc->RecvPending.dwAvail );
 		return FALSE;
 	}
 	//do{
@@ -560,7 +560,7 @@ int FinishUDPRead( PCLIENT pc )
 			return TRUE;
 #endif
 		default:
-      		Log2( WIDE("FinishUDPRead Unknown error: %d %") _32f WIDE(""), WSAGetLastError(), pc->RecvPending.dwAvail );
+      		Log2( WIDE("FinishUDPRead Unknown error: %d %") _size_fs WIDE(""), WSAGetLastError(), pc->RecvPending.dwAvail );
 			InternalRemoveClient( pc );
 			return FALSE;
 			break;

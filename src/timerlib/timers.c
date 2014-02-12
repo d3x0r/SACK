@@ -1642,7 +1642,7 @@ static int CPROC ProcessTimers( PTRSZVAL psvForce )
 					{
 						level++;
 #ifdef _DEBUG
-						lprintf( WIDE("%d Dispatching timer %ld freq %ld %s(%d)"), level, timer->ID, timer->frequency
+						lprintf( WIDE("%d Dispatching timer %")_32fs WIDE(" freq %")_32fs WIDE(" %s(%d)"), level, timer->ID, timer->frequency
 								 , timer->pFile, timer->nLine );
 #else
 						lprintf( WIDE("%d Dispatching timer %ld freq %ld"), level, timer->ID, timer->frequency );
@@ -2033,7 +2033,7 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 				_32 curtick = timeGetTime();//GetTickCount();
 				if( ( curtick+2000) < timeGetTime() )//GetTickCount() )
 				{
-					xlprintf(1)( WIDE( "Timeout during critical section wait for lock.  No lock should take more than 1 task cycle %ld %ld" ), curtick, timeGetTime() );//GetTickCount() );
+					xlprintf(1)( WIDE( "Timeout during critical section wait for lock.  No lock should take more than 1 task cycle %")_32fs WIDE(" %" )_32fs, curtick, timeGetTime() );//GetTickCount() );
 					DebugBreak();
 					return FALSE;
 				}
@@ -2146,7 +2146,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 	{
 		if( global_timer_structure && g.flags.bLogCriticalSections )
 		{
-			_lprintf( DBG_RELAY )( WIDE("Sorry - you can't leave a section owned by %016")_64fx WIDE(" locks:%08lx" )
+			_lprintf( DBG_RELAY )( WIDE("Sorry - you can't leave a section owned by %016")_64fx WIDE(" locks:%08" )_32fx
 #ifdef DEBUG_CRITICAL_SECTIONS
 										 WIDE(  "%s(%d)...")
 #endif

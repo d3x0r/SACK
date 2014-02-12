@@ -419,7 +419,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 			}
 			else
 			{
-				lprintf( WIDE("(in array, got colon out of string):parsing fault; unexpected %c at %d"), c, n );
+				lprintf( WIDE("(in array, got colon out of string):parsing fault; unexpected %c at %") _size_f, c, n );
 				status = FALSE;
 			}
 			break;
@@ -439,7 +439,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 			}
 			else
 			{
-				lprintf( WIDE("Fault parsing, unexpected %c at %d"), c, n );
+				lprintf( WIDE("Fault parsing, unexpected %c at %") _size_f, c, n );
 			}
 			break;
 		case ']':
@@ -456,7 +456,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 			}
 			else
 			{
-				lprintf( WIDE("bad context %d; fault parsing '%c' unexpected %d"), parse_context, c, n );// fault
+				lprintf( WIDE("bad context %d; fault parsing '%c' unexpected %") _size_f, parse_context, c, n );// fault
 			}
 			break;
 		case ',':
@@ -470,7 +470,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 			}
 			else
 			{
-				lprintf( WIDE("bad context; fault parsing '%c' unexpected %d"), c, n );// fault
+				lprintf( WIDE("bad context; fault parsing '%c' unexpected %") _size_f, c, n );// fault
 			}
 			n++;
 			break;
@@ -478,7 +478,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 		default:
 			if( first_token )
 			{
-				lprintf( WIDE("first token; fault parsing '%c' unexpected %d"), c, n );// fault
+				lprintf( WIDE("first token; fault parsing '%c' unexpected %") _size_f, c, n );// fault
 				status = FALSE;
 			}
 			switch( c )
@@ -547,8 +547,8 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 											else if( c >= 'a' && c <= 'f' )
 												hex_char += ( c - 'F' ) + 10;
 											else
-												lprintf( WIDE("(escaped character, parsing hex of \\u) fault parsing '%c' unexpected %d (near %*.*s[%c]%s)"), c, n
-														 , ( (n>3)?3:n ), ( (n>3)?3:n )
+												lprintf( WIDE("(escaped character, parsing hex of \\u) fault parsing '%c' unexpected at %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
+														 , (int)( (n>3)?3:n ), (int)( (n>3)?3:n )
 														 , msg + n - ( (n>3)?3:n )
 														 , c
 														 , msg + n + 1
@@ -558,8 +558,8 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 									}
 									break;
 								default:
-									lprintf( WIDE("(escaped character) fault parsing '%c' unexpected %d (near %*.*s[%c]%s)"), c, n
-											 , ( (n>3)?3:n ), ( (n>3)?3:n )
+									lprintf( WIDE("(escaped character) fault parsing '%c' unexpected %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
+											 , (int)( (n>3)?3:n ), (int)( (n>3)?3:n )
 											 , msg + n - ( (n>3)?3:n )
 											 , c
 											 , msg + n + 1
@@ -590,14 +590,14 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 				if( word == 0 )
 					word = 1;
 				else
-					lprintf( WIDE("fault parsing '%c' unexpected at %d"), c, n );// fault
+					lprintf( WIDE("fault parsing '%c' unexpected at %")_size_f, c, n );// fault
 				n++;
 				break;
 			case 'r':
 				if( word == 1 )
 					word = 2;
 				else
-					lprintf( WIDE("fault parsing '%c' unexpected %d"), c, n );// fault
+					lprintf( WIDE("fault parsing '%c' unexpected %")_size_f, c, n );// fault
 				n++;
 				break;
 			case 'u':
@@ -606,7 +606,7 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 				else if( word == 21 )
 					word = 22;
 				else
-					lprintf( WIDE("fault parsing '%c' unexpected %d"), c, n );// fault
+					lprintf( WIDE("fault parsing '%c' unexpected %")_size_f, c, n );// fault
 				n++;
 				break;
 			case 'e':
@@ -621,14 +621,14 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 					word = 0;
 				}
 				else
-					lprintf( WIDE("fault parsing '%c' unexpected %d"), c, n );// fault
+					lprintf( WIDE("fault parsing '%c' unexpected %")_size_f, c, n );// fault
 				n++;
 				break;
 			case 'n':
 				if( word == 0 )
 					word = 21;
 				else
-					lprintf( WIDE("fault parsing '%c' unexpected %d"), c, n );// fault
+					lprintf( WIDE("fault parsing '%c' unexpected %")_size_f, c, n );// fault
 				n++;
 				break;
 			case 'l':
@@ -642,28 +642,28 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 				else if( word == 12 )
 					word = 13;
 				else
-					lprintf( WIDE("fault parsing '%c' unexpected %d"), c, n );// fault
+					lprintf( WIDE("fault parsing '%c' unexpected %")_size_f, c, n );// fault
 				n++;
 				break;
 			case 'f':
 				if( word == 0 )
 					word = 11;
 				else
-					lprintf( WIDE("fault parsing '%c' unexpected %d"), c, n );// fault
+					lprintf( WIDE("fault parsing '%c' unexpected %")_size_f, c, n );// fault
 				n++;
 				break;
 			case 'a':
 				if( word == 11 )
 					word = 12;
 				else
-					lprintf( WIDE("fault parsing '%c' unexpected %d"), c, n );// fault
+					lprintf( WIDE("fault parsing '%c' unexpected %")_size_f, c, n );// fault
 				n++;
 				break;
 			case 's':
 				if( word == 13 )
 					word = 14;
 				else
-					lprintf( WIDE("fault parsing '%c' unexpected %d"), c, n );// fault
+					lprintf( WIDE("fault parsing '%c' unexpected %") _size_f, c, n );// fault
 				n++;
             break;
 		//
@@ -726,8 +726,8 @@ LOGICAL json_parse_message_format( struct json_context_object *format
 				else
 				{
 					// fault, illegal characer (whitespace?)
-					lprintf( WIDE("fault parsing '%c' unexpected %d (near %*.*s[%c]%s)"), c, n
-							 , ( (n>3)?3:n ), ( (n>3)?3:n )
+					lprintf( WIDE("fault parsing '%c' unexpected %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
+							 , (int)( (n>3)?3:n ), (int)( (n>3)?3:n )
 							 , msg + n - ( (n>3)?3:n )
 							 , c
 							 , msg + n + 1

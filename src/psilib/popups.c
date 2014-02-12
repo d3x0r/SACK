@@ -503,7 +503,7 @@ static int MenuMouse( PMENU pm, S_32 x, S_32 y, _32 b )
     {
 		if( pmi && !pmi->flags.bSubMenu )
 		{
-			Log1( WIDE("Returning Selection: %08")_32fx WIDE(""), pmi->value.ID );
+			Log1( WIDE("Returning Selection: %08")_PTRSZVALfx WIDE(""), pmi->value.ID );
 			pm->selection = pmi->value.ID;
 			UnshowMenu( pm );
 			last_buttons = b;
@@ -582,7 +582,7 @@ void UnshowMenu( PMENU pm )
 #ifdef DEBUG_MENUS
 	else
 	{
-		Log1( WIDE("This menu doesn't have a parent? but this selection is %08")_32fx WIDE(""), pm->selection );
+		Log1( WIDE("This menu doesn't have a parent? but this selection is %08")_PTRSZVALfx WIDE(""), pm->selection );
 	}
 #endif
 	HideCommon( pm->image );
@@ -622,7 +622,7 @@ int CPROC FocusChanged( PSI_CONTROL pc, LOGICAL bFocus )
 	if( bFocus )
 	{
 		PSI_CONTROL child;
-		Log1( WIDE("Menu selection = %")_32fs WIDE(""), pm->selection );
+		Log1( WIDE("Menu selection = %")_PTRSZVALfs WIDE(""), pm->selection );
 		if( pm->selection != -1 || pm->flags.abort )
 		{
 			if( pm->parent && pm->flags.abort )

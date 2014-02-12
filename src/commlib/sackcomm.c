@@ -35,7 +35,9 @@ static DCB stDcb;
 #endif
 
 #ifdef __LINUX__
+#ifndef B230400
 #define B230400 230400
+#endif
 #endif
 
 
@@ -570,7 +572,7 @@ static int
   	  	  if( (dwBaud != 57600ul) && (dwBaud != 38400ul) )
   	  	  {
       		 static TEXTCHAR buf[64];
-      		 snprintf( buf, sizeof( buf ), WIDE("Invalid Baud rate %08lx"), dwBaud );
+      		 snprintf( buf, sizeof( buf ), WIDE("Invalid Baud rate %08x"), dwBaud );
 	   		 if ( ppErr )
    	   			*ppErr = buf;
 			  return -15;
@@ -619,7 +621,7 @@ static int
       if ( HIWORD(dwBaud) )
       {
       	static TEXTCHAR buf[64];
-      	snprintf( buf, sizeof( buf ), WIDE("Invalid Baud rate %08lx"), dwBaud );
+      	snprintf( buf, sizeof( buf ), WIDE("Invalid Baud rate %08x"), dwBaud );
 	   	 if ( ppErr )
    	   	*ppErr = buf;
           return -15;
@@ -746,13 +748,13 @@ void DumpTermios( struct termios *opts )
 {
 	if( !gbLog )
       return;
-   lprintf( WIDE("iflag %lx"), opts->c_iflag );
-   lprintf( WIDE("oflag %lx"), opts->c_oflag );
-   lprintf( WIDE("cflag %lx"), opts->c_cflag );
-	lprintf( WIDE("lflag %lx"), opts->c_lflag );
+   lprintf( WIDE("iflag %x"), opts->c_iflag );
+   lprintf( WIDE("oflag %x"), opts->c_oflag );
+   lprintf( WIDE("cflag %x"), opts->c_cflag );
+	lprintf( WIDE("lflag %x"), opts->c_lflag );
 #ifndef __ARM__
-	lprintf( WIDE("ispeed: %lx"), opts->c_ispeed );
-	lprintf( WIDE("ospeed: %lx"), opts->c_ospeed );
+	lprintf( WIDE("ispeed: %x"), opts->c_ispeed );
+	lprintf( WIDE("ospeed: %x"), opts->c_ospeed );
 #endif
 }
 #endif
@@ -1285,7 +1287,7 @@ void DumpTermios( struct termios *opts )
 #endif
       snprintf ( cOut, sizeof( cOut ), WIDE("SackCommReadBuffer: read %d chars, error=%d")
                , nCharsRead, nCommError );
-      xlprintf(LOG_NOISE)( cOut );
+      xlprintf(LOG_NOISE)( "%s", cOut );
 #ifndef __LINUX__
       lprintf ( WIDE("    cs.status=%u,0x%02X  cs.in=%u  cs.out=%u")
 #ifdef BCC_16

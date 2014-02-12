@@ -852,7 +852,7 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 					if(0)
 					{
 					default:
-						Log5( WIDE("Failed reading from %d (err:%d) into %p %") _32f WIDE(" bytes %") _32f WIDE(" read already."),
+						Log5( WIDE("Failed reading from %d (err:%d) into %p %") _size_f WIDE(" bytes %") _size_f WIDE(" read already."),
 							  lpClient->Socket,
 							  WSAGetLastError(),
 							  lpClient->RecvPending.buffer.p,
@@ -1234,7 +1234,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					return TRUE;
 				}
 				{
-					_lprintf(DBG_RELAY)(WIDE(" Network Send Error: %5d(buffer:%p ofs: %") _32f WIDE("  Len: %") _32f WIDE(")"),
+					_lprintf(DBG_RELAY)(WIDE(" Network Send Error: %5d(buffer:%p ofs: %") _size_f WIDE("  Len: %") _size_f WIDE(")"),
 											  WSAGetLastError(),
 											  pc->lpFirstPending->buffer.c,
 											  pc->lpFirstPending->dwUsed,
@@ -1452,7 +1452,7 @@ LOGICAL TCPDrainRead( PCLIENT pClient )
          			pClient->nDrainLength = 0;
 				break;
 			}
-			Log5(WIDE(" Network Error during drain: %d (from: %d  to: %p  has: %") _32f WIDE("  toget: %") _32f WIDE(")"),
+			lprintf(WIDE(" Network Error during drain: %d (from: %d  to: %p  has: %") _size_f WIDE("  toget: %") _size_f WIDE(")"),
                       WSAGetLastError(),
                       pClient->Socket,
                       pClient->RecvPending.buffer.p,

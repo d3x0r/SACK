@@ -778,8 +778,6 @@ _32 ConvertTickToMicrosecond( _64 tick )
 }
 
 
-
-
 void PrintCPUDelta( TEXTCHAR *buffer, size_t buflen, _64 tick_start, _64 tick_end )
 {
 #ifdef COMPUTE_CPU_FREQUENCY
@@ -810,7 +808,7 @@ static TEXTCHAR *GetTimeHighest( void )
 		snprintf( timebuffer, sizeof( timebuffer ), WIDE("%20lld") WIDE(" "), tick );
 		ofs += StrLen( timebuffer );
 #else
-		int ofs = snprintf( timebuffer, sizeof( timebuffer ), WIDE("%20lld") WIDE(" "), tick );
+		int ofs = snprintf( timebuffer, sizeof( timebuffer ), WIDE("%20") _64fs WIDE(" "), tick );
 #endif
 		PrintCPUDelta( timebuffer + ofs, sizeof( timebuffer ) - ofs, l.lasttick2, tick );
 		l.lasttick2 = tick;
@@ -996,12 +994,12 @@ LOGICAL IsBadReadPtr( CPOINTER pointer, PTRSZVAL len )
    //fprintf( stderr, WIDE("Testing a pointer..\n") );
 	if( maps )
 	{
-      PTRSZVAL ptr = (PTRSZVAL)pointer;
+		PTRSZVAL ptr = (PTRSZVAL)pointer;
 		char line[256];
 		while( fgets( line, sizeof(line)-1, maps ) )
 		{
 			PTRSZVAL low, high;
-			sscanf( line, WIDE("%")PTRSZVALfx WIDE("-%") PTRSZVALfx, &low, &high );
+			sscanf( line, WIDE("%") _PTRSZVALfx WIDE("-%") _PTRSZVALfx, &low, &high );
 			//fprintf( stderr, WIDE("%s") WIDE("Find: %08") PTRSZVALfx WIDE(" Low: %08") PTRSZVALfx WIDE(" High: %08") PTRSZVALfx WIDE("\n")
 			//		 , line, pointer, low, high );
 			if( ptr >= low && ptr <= high )

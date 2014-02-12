@@ -51,7 +51,15 @@ SACK_NAMESPACE
 
 // this is the techincal type of SYSV IPC MSGQueues
 #define MSGIDTYPE long
-
+#ifdef __64__
+#  ifdef __LINUX__
+#    define _MsgID_f  _64fs
+#  else
+#    define _MsgID_f  _32fs
+#  endif
+#else
+#  define _MsgID_f  _32fs
+#endif
 // this will determine the length of parameter list
 // based on the first and last parameters.
 #define ParamLength( first, last ) ( ((PTRSZVAL)((&(last))+1)) - ((PTRSZVAL)(&(first))) )
@@ -228,9 +236,9 @@ typedef SERVER_FUNCTION *server_function_table;
 // MsgID will be service msgBase + Remote ID...
 //    so the remote needs to specify a unique base... so ...
 //    entries must still be used...
-typedef int (CPROC*EventHandlerFunction)( _32 MsgID, _32*params, size_t paramlen);
-typedef int (CPROC*EventHandlerFunctionEx)( PSERVICE_ROUTE SourceID, _32 MsgID, _32*params, size_t paramlen);
-typedef int (CPROC*EventHandlerFunctionExx)( PTRSZVAL psv, PSERVICE_ROUTE SourceID, _32 MsgID
+typedef int (CPROC*EventHandlerFunction)( MSGIDTYPE MsgID, _32*params, size_t paramlen);
+typedef int (CPROC*EventHandlerFunctionEx)( PSERVICE_ROUTE SourceID, MSGIDTYPE MsgID, _32*params, size_t paramlen);
+typedef int (CPROC*EventHandlerFunctionExx)( PTRSZVAL psv, PSERVICE_ROUTE SourceID, MSGIDTYPE MsgID
 														 , _32*params, size_t paramlen);
 
 // result of EventHandlerFunction shall be one fo the following values...

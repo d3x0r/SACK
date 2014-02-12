@@ -186,7 +186,7 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 
                 tmp = NewArray( TEXTCHAR, len = ( end - subst_path ) + 1 );
 
-                snprintf( tmp, len * sizeof( TEXTCHAR ), WIDE( "%*.*s" ), end-subst_path, end-subst_path, subst_path );
+                snprintf( tmp, len * sizeof( TEXTCHAR ), WIDE( "%*.*s" ), (int)(end-subst_path), (int)(end-subst_path), subst_path );
                 
                 group = GetFileGroup( tmp, NULL );
                 filegroup = (struct Group *)GetLink( &l.groups, group );
@@ -197,7 +197,7 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
                 //=======================================================================
                 // Get rid of the ending '%' AND any '/' or '\' that might come after it
                 //=======================================================================
-                snprintf( newest_path, len, WIDE( "%*.*s%s/%s" ), (subst_path-tmp_path)-1, (subst_path-tmp_path)-1, tmp_path, filegroup->base_path,
+                snprintf( newest_path, len, WIDE( "%*.*s%s/%s" ), (int)((subst_path-tmp_path)-1), (int)((subst_path-tmp_path)-1), tmp_path, filegroup->base_path,
                           ((end + 1)[0] == '/' || (end + 1)[0] == '\\') ? (end + 2) : (end + 1) );
 
                 Release( tmp_path );
@@ -357,7 +357,7 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 	TEXTSTR fullname;
 
 	if( l.flags.bLogOpenClose )
-		lprintf( WIDE("Prepend to {%s} %p %d"), real_filename, group, groupid );
+		lprintf( WIDE("Prepend to {%s} %p %") _size_f, real_filename, group, groupid );
 
 	if( l.groups )
 	{
@@ -496,7 +496,7 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
     }
 #endif
     if( l.flags.bLogOpenClose )
-        lprintf( WIDE( "open %s %p %08x" ), file->fullname, handle, opts );
+        lprintf( WIDE( "open %s %p %08x" ), file->fullname, (POINTER)handle, opts );
     if( handle == INVALID_HANDLE_VALUE )
     {
         if( l.flags.bLogOpenClose )
@@ -662,11 +662,11 @@ INDEX sack_iopen( INDEX group, CTEXTSTR filename, int opts, ... )
         return INVALID_INDEX;
     }
     EnterCriticalSec( &l.cs_files );
-    AddLink( &l.handles, h );
+    AddLink( &l.handles, (POINTER)h );
     result = FindLink( &l.handles, (POINTER)h );
     LeaveCriticalSec( &l.cs_files );
     if( l.flags.bLogOpenClose )
-        lprintf( WIDE( "return iopen of [%s]=%d(%d)?" ), filename, h, result );
+        lprintf( WIDE( "return iopen of [%s]=%d(%")_size_f WIDE(")?" ), filename, h, result );
     return result;
 }
 

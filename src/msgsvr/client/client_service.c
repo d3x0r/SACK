@@ -360,7 +360,7 @@ PTRSZVAL CPROC HandleServiceMessages( PTHREAD thread )
 
 void DoRegisterService( PCLIENT_SERVICE pService )
 {
-	_32 MsgID;
+	MSGIDTYPE MsgID;
 	// if I'm the master service, I don't very well have to
 	// register with myself do I?
 
@@ -452,8 +452,8 @@ int ReceiveServerMessageEx( PTRANSACTIONHANDLER handler, PQMSG MessageIn, size_t
 		if( handler->LastMsgID != ( (MessageIn->hdr.msgid)& 0xFFFFFFF ) )
 		{
 			LogBinary( (P_8)MessageIn, MessageLen );
-			lprintf( WIDE("len was %") _32f, MessageLen );
-			lprintf( WIDE("Message is for this guy - but isn't the right ID! %") _32f WIDE(" %") _32f WIDE(" %") _32f WIDE("")
+			lprintf( WIDE("len was %") _size_f, MessageLen );
+			lprintf( WIDE("Message is for this guy - but isn't the right ID! %") _MsgID_f WIDE(" %") _32f WIDE(" %") _32f WIDE("")
 					 , handler->LastMsgID, (MessageIn->hdr.msgid) & 0xFFFFFFF, 0 );
 			//DebugBreak();
 			return 1;
@@ -467,7 +467,7 @@ int ReceiveServerMessageEx( PTRANSACTIONHANDLER handler, PQMSG MessageIn, size_t
 		{
 			if( (S_32)(*handler->len) < MessageLen )
 			{
-				_lprintf( DBG_RELAY )( WIDE("Cutting out possible data to the application - should provide a failure! %") _32f WIDE(" expected %") _32fs WIDE(" returned"), (*handler->len), MessageLen );
+				_lprintf( DBG_RELAY )( WIDE("Cutting out possible data to the application - should provide a failure! %") _size_f WIDE(" expected %") _size_f WIDE(" returned"), (*handler->len), MessageLen );
 				MessageLen = (*handler->len);
 			}
 			MemCpy( handler->msg, QMSGDATA( MessageIn ), MessageLen );

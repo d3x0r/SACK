@@ -1391,7 +1391,7 @@ PTEXT BuildLineExEx( PTEXT pt, LOGICAL bSingle, int nTabsize, PTEXT pEOL DBG_PAS
 					pSplit = SegSplitEx( &pOut, ofs DBG_RELAY );
 					if( !pSplit )
 					{
-						Log2( WIDE("Line was shorter than offset: %") _32f WIDE(" vs %") PTRSZVALfs WIDE(""), GetTextSize( pOut ), ofs );
+						lprintf( WIDE("Line was shorter than offset: %") _size_f WIDE(" vs %") _PTRSZVALfs WIDE(""), GetTextSize( pOut ), ofs );
 					}
 					pOut = NEXTLINE( pSplit );
 					// new segments takes on the new attributes...

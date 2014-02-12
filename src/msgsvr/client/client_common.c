@@ -71,7 +71,7 @@ static void EndClient( PSERVICE_CLIENT client )
 			//lprintf( "vvv" );
 			while( (len=msgrcv( g.msgq_out, MSGTYPE msg, 8192, client->route.source.process_id, IPC_NOWAIT )) >= 0 )
 				//	errno != ENOMSG )
-				lprintf( WIDE("Flushed a message to dead client(%") _32f WIDE(",%") _32f WIDE(") from output (%08") _32fx WIDE(":%") _32fs WIDE(" bytes)")
+				lprintf( WIDE("Flushed a message to dead client(%") _MsgID_f WIDE(",%") _32f WIDE(") from output (%08") _32fx WIDE(":%") _32fs WIDE(" bytes)")
 						 , client->route.source.process_id
 						 , msg[0]
 						 , msg[1]
@@ -254,8 +254,8 @@ void RegisterWithMasterService( void )
 
 	if( !g.flags.connected )
 	{
-		_32 Result;
-      // result is a message ID that will be my SourceID
+		MSGIDTYPE Result;
+		// result is a message ID that will be my SourceID
 		size_t msglen = sizeof( ServiceID );
 
 		/*
@@ -281,7 +281,7 @@ void RegisterWithMasterService( void )
 			}
 		}
 		*/
-		lprintf( WIDE("Connecting first time to service server...%d,%d"), g.master_service_route.dest.process_id, g.master_service_route.dest.service_id );
+		lprintf( WIDE("Connecting first time to service server...%")_MsgID_f WIDE(",%") _MsgID_f, g.master_service_route.dest.process_id, g.master_service_route.dest.service_id );
 		if( !TransactServerMultiMessageExEx(DBG_VOIDSRC)( &g.master_service_route, CLIENT_CONNECT, 0
 													, &Result, &ServiceID, &msglen
 													, 100
@@ -648,14 +648,14 @@ ATEXIT_PRIORITY( _DisconnectClient, ATEXIT_PRIORITY_MSGCLIENT )
 
 CLIENTMSG_PROC( int, ProbeClientAlive )( PSERVICE_ENDPOINT RouteID )
 {
-	_32 Responce;
-   	SERVICE_ROUTE ping_route;
+	MSGIDTYPE Responce;
+	SERVICE_ROUTE ping_route;
 	if( RouteID->process_id == g.my_message_id )
 	{
 		lprintf( WIDE("Yes, I, myself, am alive...") );
 		return TRUE;
 	}
-	lprintf( WIDE("Hmm is client %")_32f WIDE(" alive?"), RouteID );
+	lprintf( WIDE("Hmm is client %p") WIDE(" alive?"), RouteID );
 	{
 		PEVENTHANDLER handler;
 		for( handler = g.pHandlers; handler; handler = handler->next )

@@ -231,7 +231,7 @@ static POINTER GetSetMemberExx( GENERICSET **pSet, INDEX nMember, int setsize, i
 		(*bUsed) = 0;
 	else
 		(*bUsed) = 1;
-   if( bLog ) _lprintf(DBG_RELAY)( WIDE( "Resulting unit %p" ),  ((PTRSZVAL)(set->bUsed))
+	if( bLog ) _lprintf(DBG_RELAY)( WIDE( "Resulting unit %" ) _PTRSZVALfs,  ((PTRSZVAL)(set->bUsed))
 						+ ( ( (maxcnt +31) / 32 ) * 4 ) // skip over the bUsed bitbuffer
 						+ nMember * unitsize );
 	return (void*)( ((PTRSZVAL)(set->bUsed))
@@ -284,7 +284,7 @@ INDEX GetMemberIndex(GENERICSET **ppSet, POINTER unit, int unitsize, int max )
 			PTRSZVAL n = nUnit - ( ((PTRSZVAL)(pSet->bUsed)) + ofs );
 			if( n % unitsize )
 			{
-				Log2( WIDE("Error in set member alignment! %d of %d"), n % unitsize, unitsize );
+				Log2( WIDE("Error in set member alignment! %")_PTRSZVALfs WIDE(" of %d"), n % unitsize, unitsize );
 				DebugBreak();
 				return INVALID_INDEX;
 			}
@@ -311,7 +311,7 @@ int MemberValidInSet( GENERICSET *pSet, void *unit, int unitsize, int max )
 			PTRSZVAL n = nUnit - ( ((PTRSZVAL)(pSet->bUsed)) + ofs );
 			if( n % unitsize )
 			{
-				Log2( WIDE("Error in set member alignment! %d of %d"), n % unitsize, unitsize );
+				Log2( WIDE("Error in set member alignment! %")_PTRSZVALfs WIDE(" of %d"), n % unitsize, unitsize );
 				DebugBreak();
 				return FALSE;
 			}
@@ -332,7 +332,7 @@ void DeleteFromSetExx( GENERICSET *pSet, void *unit, int unitsize, int max DBG_P
 	if( bLog ) _lprintf(DBG_RELAY)( WIDE("Deleting from  %p of %p "), pSet, unit );
 	while( pSet )
 	{
-		if( bLog ) lprintf( WIDE( "range to check is %p(%d) to %p(%d)" )
+		if( bLog ) lprintf( WIDE( "range to check is %")_PTRSZVALfx WIDE("(%d) to %")_PTRSZVALfx WIDE("(%d)" )
 				 ,	  ((PTRSZVAL)(pSet->bUsed) + ofs )
 			     ,(nUnit >= ((PTRSZVAL)(pSet->bUsed) + ofs ))
 				  , ((PTRSZVAL)(pSet->bUsed) + ofs + unitsize*max )
@@ -345,11 +345,11 @@ void DeleteFromSetExx( GENERICSET *pSet, void *unit, int unitsize, int max DBG_P
 			//Log1( WIDE("Found item in set at %d"), n / unitsize );
 			if( n % unitsize )
 			{
-				lprintf( WIDE("Error in set member alignment! %d %d %d %d %d %d of %d")
+				lprintf( WIDE("Error in set member alignment! %p %p %p  %d %")_PTRSZVALfs WIDE(" %")_PTRSZVALfs WIDE(" of %d")
 						 , unit
 						 , pSet
 						 , &pSet->bUsed
-                   , ofs
+						, ofs
 						 , n, n % unitsize, unitsize );
 				DebugBreak();
 				return;

@@ -74,7 +74,7 @@ static int GetAMessageEx( MSGQ_TYPE msgq, MSGIDTYPE MsgFilter, CTEXTSTR q, int f
 					}
 					else if( errno == EINVAL )
 					{
-						lprintf( WIDE("msgrecv on q %d is invalid! open it. or what is %") _32f WIDE("(%08") _32fx WIDE(") or %08d")
+						lprintf( WIDE("msgrecv on q %d is invalid! open it. or what is %") _MsgID_f WIDE("(%08") _MsgID_f WIDE(") or %08d")
 								 , msgq, g.my_message_id, g.my_message_id, flags );
 					}
 					else
@@ -206,9 +206,9 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 					}
 					handler->flags.bCheckedResponce = 0;
 
-					lprintf( WIDE("Going to sleep for %ld %016Lx")
+					lprintf( WIDE("Going to sleep for %")_32fs
 							 , handler->wait_for_responce - timeGetTime()
-							 , 0 );
+							 );
 					WakeableSleep( handler->wait_for_responce - timeGetTime() );
 					lprintf( WIDE("AWAKE! %d"), handler->flags.responce_received );
 
@@ -224,7 +224,7 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 			if( !handler->flags.bCheckedResponce )
 				received = 1;
 
-			lprintf( WIDE("When we finished this loop still was waiting %ld"), handler->wait_for_responce - timeGetTime() );
+			lprintf( WIDE("When we finished this loop still was waiting %")_32fs, handler->wait_for_responce - timeGetTime() );
 			//else
 			{
 				//lprintf( WIDE("Excellent... the responce is back before I could sleep!") );
@@ -253,10 +253,10 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 			//Log2( WIDE("Got responce: %08x %d long"), *MsgIn, LengthIn?*LengthIn:-1 );
 			if( ( *handler->MessageID & 0x0FFFFFFF ) != ( (handler->LastMsgID) & 0x0FFFFFFF ) )
 			{
-				lprintf( WIDE("Mismatched server responce to client message: %")_32f WIDE(" to %")_32f WIDE(" (%")_32f WIDE(")")
+				lprintf( WIDE("Mismatched server responce to client message: %")_MsgID_f WIDE(" to %")_MsgID_f 
 						 , *handler->MessageID & 0x0FFFFFFF
 						 , handler->LastMsgID & 0x0FFFFFFF
-						 , 0 );
+						  );
 			}
 			else
 			{
@@ -286,7 +286,7 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 // find a handler to receive into?
 
 int QueueWaitReceiveServerMsg ( PSLEEPER sleeper, PTRANSACTIONHANDLER handler
-										  , _32 *MsgIn
+										  , MSGIDTYPE *MsgIn
 										  , POINTER BufferIn
 										  , size_t *LengthIn
 											DBG_PASS )

@@ -1,4 +1,4 @@
-/* Define most of the core types on which everything else is
+/* Define most of the cosre types on which everything else is
    based. Also defines some of the primitive container
    structures. We also handle a lot of platform/compiler
    abstraction here.
@@ -7,8 +7,10 @@
    
    This is automatically included with stdhdrs.h; however, when
    including sack_types.h, the minimal headers are pulled. stdhdrs.h */
-
-//#include <stdint.h>
+#if( __GNUC__ )
+#define HAS_STDINT
+#include <stdint.h>
+#endif
 
 #ifdef _MSC_VER
 #ifndef _WIN32_WINNT
@@ -966,9 +968,9 @@ typedef _8               *P_8;
 typedef unsigned short    _16;
 /* Would be otherwise defined in stdint.h as uint16_t*                   */
 typedef _16             *P_16;
-#if defined( __LINUX64__ )
+#if defined( HAS_STDINT )
 /* An unsigned integer type that is 32 bits long. */
-typedef unsigned int      _32;
+typedef uint32_t           _32;
 #elif defined( __WATCOMC__ ) || (1)
 /* An unsigned integer type that is 32 bits long. */
 typedef unsigned long      _32;
@@ -1020,11 +1022,25 @@ typedef unsigned int  BIT_FIELD;
 typedef uint64_t _64;
 /* A signed integer type that is 64 bits long. */
 typedef int64_t  S_64;
-#else
+#else 
+#  if defined( __WATCOMC__ )
 /* An unsigned integer type that is 64 bits long. */
 typedef unsigned long long _64;
 /* A signed integer type that is 64 bits long. */
 typedef long long  S_64;
+#  else
+#    if ( __64__ )
+/* An unsigned integer type that is 64 bits long. */
+typedef unsigned long _64;
+/* A signed integer type that is 64 bits long. */
+typedef long  S_64;
+#    else
+/* An unsigned integer type that is 64 bits long. */
+typedef unsigned long long _64;
+/* A signed integer type that is 64 bits long. */
+typedef long long  S_64;
+#    endif
+#  endif
 #endif
 /* A pointer to an unsigned integer type that is 64 bits long. */
 typedef _64 *P_64;
@@ -1032,7 +1048,7 @@ typedef _64 *P_64;
 typedef S_64 *PS_64;
 
 
-#if defined( __LINUX64__ ) || defined( _WIN64 )
+#if defined( __64__ )
 typedef _64             PTRSIZEVAL;
 typedef _64             PTRSZVAL;
 #else
@@ -1172,51 +1188,110 @@ SACK_NAMESPACE
    would otherwise be defined in \<inttypes.h\>               */
 #define _8fs   WIDE("d" )
 
-#if defined( __LINUX64__ ) || defined( _WIN64 )
-#define _32f   WIDE("u" )
-#define _32fx   WIDE("x" )
-#define _32fX   WIDE("X" )
-#define _32fs   WIDE("d" )
-#define PTRSZVALfs WIDE("llu" )
-#define PTRSZVALfx WIDE("llx" )
-#define c_32f   "u" 
-#define c_32fx   "x" 
-#define c_32fX   "X" 
-#define c_32fs   "d" 
-#define cPTRSZVALfs "llu" 
-#define cPTRSZVALfx "llx" 
+#if defined( __64__ )
+
+#  if defined( __STDC_FORMAT_MACROS )
+
+#    define _32f   WIDE( PRIu32 )
+#    define _32fx   WIDE( PRIx32 )
+#    define _32fX   WIDE( PRIX32 )
+#    define _32fs   WIDE( PRId32 )
+#    define _64f    PRIu64
+#    define _64fx   PRIx64
+#    define _64fX   PRIX64
+#    define _64fs   PRId64
+#    if !defined( __GNUC__ )
+#      define _size_f    WIDE( PRIu64 )
+#      define _size_fx   WIDE( PRIx64 )
+#      define _size_fX   WIDE( PRIX64 )
+#      define _size_fs   WIDE( PRId64 )
+#      define c_size_f    PRIu64
+#      define c_size_fx   PRIx64
+#      define c_size_fX   PRIX64
+#      define c_size_fs   PRId64
+#    else 
+#      define _size_f    WIDE( "zu" )
+#      define _size_fx   WIDE( "zx" )
+#      define _size_fX   WIDE( "zX" )
+#      define _size_fs   WIDE( "zd" )
+#      define c_size_f    "zu"
+#      define c_size_fx   "zx"
+#      define c_size_fX   "zX"
+#      define c_size_fs   "zd"
+#    endif
+
+#    define _PTRSZVALfs WIDE( PRIu64 )
+#    define _PTRSZVALfx WIDE( PRIx64 )
+#    define cPTRSZVALfs PRIu64
+#    define cPTRSZVALfx PRIx64 
+
+#    define c_32f   PRIu32 
+#    define c_32fx   PRIx32
+#    define c_32fX   PRIX32
+#    define c_32fs   PRId32
+#  else
+#    define _32f   WIDE("u" )
+#    define _32fx   WIDE("x" )
+#    define _32fX   WIDE("X" )
+#    define _32fs   WIDE("d" )
+#    define PTRSZVALfs WIDE("llu" )
+#    define PTRSZVALfx WIDE("llx" )
+#    define c_32f   "u" 
+#    define c_32fx   "x" 
+#    define c_32fX   "X" 
+#    define c_32fs   "d" 
+#    define cPTRSZVALfs "llu" 
+#    define cPTRSZVALfx "llx" 
+#  endif
+
 #else
 /* 32 bit unsigned decimal output printf format specifier. This would
    otherwise be defined in \<inttypes.h\>                */
-#define _32f   WIDE("lu" )
+#  define _32f   WIDE("lu" )
 /* 32 bit hex output printf format specifier. This would
    otherwise be defined in \<inttypes.h\>                */
-#define _32fx   WIDE("lx" )
+#  define _32fx   WIDE("lx" )
 /* 32 bit HEX output printf format specifier. This would
    otherwise be defined in \<inttypes.h\>                */
-#define _32fX   WIDE("lX" )
+#  define _32fX   WIDE("lX" )
 /* 32 bit signed decimal output printf format specifier. This
    would otherwise be defined in \<inttypes.h\>               */
-#define _32fs   WIDE("ld" )
+#  define _32fs   WIDE("ld" )
 
+#  define _64f    WIDE("llu")//PRIu64
+#  define _64fx   WIDE("llx")//PRIx64
+#  define _64fX   WIDE("llX")//PRIX64
+#  define _64fs   WIDE("lld")//PRId64
+
+#    if !defined( __GNUC__ )
+#      define _size_f    WIDE( PRIu32 )
+#      define _size_fx   WIDE( PRIx32 )
+#      define _size_fX   WIDE( PRIX32 )
+#      define _size_fs   WIDE( PRId32 )
+#    else 
+#      define _size_f    WIDE( "zu" )
+#      define _size_fx   WIDE( "zx" )
+#      define _size_fX   WIDE( "zX" )
+#      define _size_fs   WIDE( "zd" )
+#    endif
 
 
 /* format string for output PTRSZVAL as unsigned decimal.  Size changes by platform.  */
-#define PTRSZVALfs WIDE("lu" )
+#  define PTRSZVALfs WIDE("lu" )
 /* format string for output PTRSZVAL as unsigned hex.  Size changes by platform.  */
-#define PTRSZVALfx WIDE("lx" )
+#  define PTRSZVALfx WIDE("lx" )
 /* format string for output _32 as unsigned decimal.  Size changes by platform.  Non unicode.  */
-#define c_32f   "lu" 
+#  define c_32f   "lu" 
 /* format string for output _32 as unsigned hex.  Size changes by platform.  Non unicode.  */
-#define c_32fx   "lx" 
+#  define c_32fx   "lx" 
 /* format string for output _32 as unsigned HEX.  Size changes by platform.  Non unicode.  */
-#define c_32fX   "lX" 
+#  define c_32fX   "lX" 
 /* format string for output _32 as unsigned decimal.  Size changes by platform.  Non unicode. */
-#define c_32fs   "ld" 
+#  define c_32fs   "ld" 
 /* format string for output PTRSZVAL as unsigned hex.  Size changes by platform.  Non unicode.*/
-#define cPTRSZVALfs "lu" 
+#  define cPTRSZVALfs "lu" 
 /* format string for output PTRSZVAL as unsigned hex.  Size changes by platform.  Non unicode. */
-#define cPTRSZVALfx "lx" 
+#  define cPTRSZVALfx "lx" 
 #endif
 
 #define PTRSZVALf WIDE("p" )
@@ -1235,10 +1310,6 @@ SACK_NAMESPACE
    would otherwise be defined in \<inttypes.h\> as PRIdFAST64               */
 #define _64fs   WIDE("Ld")
 #elif defined( __GNUC__ )
-#define _64f    PRIu64
-#define _64fx   PRIx64
-#define _64fX   PRIX64
-#define _64fs   PRId64
 
 #else // defined( _MSC_VER )
 /* 64 bit unsigned decimal output printf format specifier. This would
