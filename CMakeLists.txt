@@ -291,7 +291,7 @@ endif( __LINUX64__ )
 
 # this is where external image libraries are added for windows native builds
 if( NEED_JPEG OR NEED_PNG OR NEED_FREETYPE )
-include( CmakeExternal.txt )
+include( CMakeExternal.txt )
 endif()
 
 
