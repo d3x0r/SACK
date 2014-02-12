@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      package="org.d3x0r.sack.@Project@"
+      android:versionCode="1"
+      android:versionName="1.0">
+      <uses-permission android:name="android.permission.INTERNET" /> 
+      <!-- application label only shows on final confirm screen for uninstall -->
+    <application android:label="@string/app_package" android:icon="@drawable/ic_launcher">

@@ -1,0 +1,15 @@
+
+
+
+$(MNG_HEADERS): | $(MNG_DESTINC1)
+	-cp $(HEADER1) $(MNG_DESTINC1)
+
+$(MNG_DESTINC1): 
+	-mkdir $(call SYSCMDPATH,$@)
+
+
+$(call CLEANTARGET,$(MNG_HEADERS)):;
+	-rm -f $(subst /,$(SYSPATHCHAR),$(foreach $(hdr),$(MNG_HEADERS),$(DESTINC1)/$(hdr)))
+        
+$(call CLEANTARGET,$(DESTINC1)):
+	-rm -rf $(subst /,$(SYSPATHCHAR),$(DESTINC1))

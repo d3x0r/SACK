@@ -1,0 +1,14 @@
+
+        <activity android:name="org.d3x0r.sack.@Project@.@activity@"
+                  android:taskAffinity="org.d3x0r.sack.@Project@.@activity@"
+                  android:label="@@stringid@"
+                  android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+                  >
+                  <!--android:screenOrientation="landscape"-->
+            <meta-data android:name="android.app.lib_name" android:value="@library@" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+

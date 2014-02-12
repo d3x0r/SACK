@@ -1,0 +1,206 @@
+.SH NAME
+snmp_sess_init, snmp_sess_open, snmp_sess_session,
+snmp_sess_send, snmp_sess_async_send, snmp_sess_read,
+snmp_sess_select_info,
+snmp_sess_timeout, snmp_sess_close, snmp_sess_error
+.SH SYNOPSIS
+.B cc
+.RI "[ " "flag" " \|.\|.\|. ] " "file" " \|.\|.\|."
+.B \-lsnmp
+.RI "[ " "library" " \|.\|.\|. ]"
+.LP
+.B #include <sys/types.h>
+.br
+.B #include <snmp/snmp.h>
+.LP
+.BI "void snmp_sess_init (struct snmp_session * " "Session" );
+.LP
+.BI "void *snmp_sess_open (struct snmp_session * " "Session" );
+.LP
+.BI "struct snmp_session* snmp_sess_session (void * " "Opaque" );
+.LP
+.BI "int  snmp_sess_synch_response(void * " "Opaque" ,
+.BI " struct snmp_pdu * " "PDU" ,
+.BI " struct snmp_pdu ** " "ResponsePDUP" );
+.LP
+.BI "int snmp_sess_send (void * " "Opaque" ,
+.BI " struct snmp_pdu * " "PDU" );
+.LP
+.BI "int snmp_sess_async_send (void * " "Opaque" ,
+.BI "struct snmp_pdu * " "PDU" ,
+.BI "snmp_callback " "Callback" ,
+.BI "void * " "CallbackData" );
+.LP
+.BI "int snmp_sess_select_info (void * " "Opaque" ,
+.BI "int * " "numfds" ,
+.BI "fd_set * " "fdset" ,
+.BI "struct timeval * " "timeout" ,
+.BI "int * " "block" );
+.LP
+.BI "void snmp_sess_read (void * " "Opaque",
+.BI "fd_set * " "fdset" );
+.LP
+.BI "void snmp_sess_timeout (void * " "Opaque" );
+.LP
+.BI "int snmp_sess_close (void * " "Opaque" );
+.LP
+.BI "void snmp_sess_error (void * " "Opaque" ,
+.BI "int * " "syserrno" ,
+.BI "int * " "snmp_errno" ,
+.BI "char ** " "errorString" );
+.LP
+.SH STRUCTURE
+The 
+.B snmp_session
+structure is:
+.RS
+.nf
+.ft 3
+.ta 6n 18n
+int		Version;	/* SNMP Version for this session */
+u_char *		community;	/* community for outgoing requests. */
+int		community_len;	/* Length of community name. */
+int		retries;	/* Number of retries before timeout. */
+int		timeout;	/* uS 'til timeout, then exp. backoff */
+char *		peername;	/* Default peer (name or IP) */
+unsigned short	remote_port;	/* UDP port number of peer. */
+unsigned short	local_port;	/* My UDP port number, 0 for default */
+int		(*callback)();	/* Func. to interpret incoming data */
+/* Pointer to data that the callback function may consider important */
+void *		callback_magic;
+struct synch_state * snmp_synch_state;
+int		syserrno;	/* copy of system errno */
+int		snmp_errno;	/* copy of library errno */
+.ft 1
+.fi
+.RE
+.SH DESCRIPTION
+These functions define a subset of the API that can be used
+to manage single SNMP sessions in a multi-threaded application.
+Except for
+.I snmp_sess_init
+and
+.I snmp_sess_session,
+these functions are single session versions of the traditional
+SNMP library API.
+.PP
+Note that these functions use an
+.I Opaque
+pointer to identify a single session in lieu of a
+.I session
+pointer.
+.PP
+SNMP sessions that are created with
+.I snmp_sess_open
+are not affected by and should not be used with
+.I snmp_select_info,
+.I snmp_read,
+.I snmp_timeout,
+nor
+.I snmp_close.
+Use the other functions described here with similar capabilities.
+.PP
+.LP
+.B snmp_sess_init(\|)
+initializes the input Session structure.
+.LP
+.B snmp_sess_open(\|)
+opens the specified session.  
+.LP
+.B snmp_sess_session(\|)
+returns the pointer to Session structure.
+.LP
+.B snmp_sess_close(\|)
+closes the specified session.
+.LP
+.B snmp_sess_synch_response(\|)
+is a quick way to send
+.I PDU
+over session
+.I Session
+and wait for a response.  The response will be pointed to by
+.IR ResponsePDUP .
+.LP
+.B snmp_sess_send(\|)
+sends 
+.I PDU
+over 
+.IR Session .
+If the PDU will receive a response (GET, GETNEXT, INFORM, etc), the
+pending response is registered, and the callback specified in the
+session will be called at the appropriate time.
+.LP
+.B snmp_sess_read(\|)
+will read all pending SNMP data from the ssession.
+Once the packet is read, a PDU will be created, and if this response
+was being waited for, the callback will be called.
+.LP
+.B snmp_sess_select_info(\|)
+Returns info about what snmp requires from a select statement.
+.I numfds
+is the number of fds in the list that are significant.  All file
+descriptors opened via this API are OR'd into the fdset.  If activity
+occurs on any of these file descriptors, 
+.B snmp_sess_read(\|)
+should be called with that file descriptor set.
+.LP
+.I timeout
+is the latest time that the API can wait for a timeout.  The select
+should be done with the minimum time between timeout and any other
+timeouts necessary.  This should be checked upon each invocation of
+.B select(\|).
+If a timeout is received, 
+.B snmp_sess_timeout(\|)
+should be called to check if the timeout was for the SNMP API.
+.LP
+.I block
+is 1 if the select is requested to block indefinitely, rather than
+time out.  If block is input as 1, 
+.I timeout
+will be treated as undefined, but it must be available for setting in 
+.BR snmp_sess_select_info(\|) .
+On return, if 
+.I block
+is true, the value of 
+.I timeout
+will be undefined.
+.LP
+.B snmp_sess_timeout(\|)
+should be called whenever the timeout from 
+.B select(\|)
+expires.  It may also be polled (probably a cpu expensive
+proposition).
+.B snmp_sess_timeout(\|)
+checks to see if any of the  sessions have an outstanding request that
+has timed out.  If it finds one  (or more), and that pdu has more
+retries available, a new packet is formed from the pdu and is resent.
+If there are no more retries available, the callback for the session
+is used to alert the user of the timeout.
+.LP
+.B snmp_sess_error(\|)
+returns a copy of
+the SNMP library "snmp_errno" variable,
+the system "errno" variable,
+and a string interpreting their values.
+The string must be freed after use.
+.SH "RETURN VALUES"
+.B snmp_sess_open(\|)
+returns an
+.I Opaque
+pointer to the open session, or NULL.
+If NULL is returned, more information can be had by calling
+.B snmp_error(\|).
+.LP
+.B snmp_sess_close(\|)
+returns 1 upon success, 0 otherwise.
+.LP
+.B snmp_sess_send(\|)
+Returns the Request ID of the generated packet if applicable,
+otherwise 1.  Returns 0 upon error.
+.LP
+.B snmp_sess_select_info(\|)
+returns the number of open sockets.
+.LP
+.B snmp_sess_synch_response(\|)
+returns either STAT_SUCCESS, STAT_TIMEOUT, or STAT_ERROR.
+.PP

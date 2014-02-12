@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VisualStudioToolFile
+	Name="Update Frame Resource"
+	Version="8.00"
+	>
+	<Rules>
+		<CustomBuildRule
+			Name="Build Frame"
+			DisplayName="Build Frame"
+			CommandLine="mkdir $(OutDir)\frames&#x0D;&#x0A;copy $(InputPath) $(OutDir)\frames\$(InputFileName)"
+			Outputs="$(OutDir)\frames\$(InputFileName)"
+			FileExtensions="*.isFrame"
+			>
+			<Properties>
+			</Properties>
+		</CustomBuildRule>
+	</Rules>
+</VisualStudioToolFile>

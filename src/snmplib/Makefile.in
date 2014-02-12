@@ -1,0 +1,251 @@
+##
+## Makefile for CMU SNMP Library
+##
+## $Id: Makefile.in,v 1.1.1.1 2001/11/15 01:29:34 panther Exp $
+##
+## @configure_input@
+##
+
+## Generic commands used
+CC 		= @CC@
+MKDIRHIER	= @MKDIRHIER@
+PERL		= @PERL@
+INSTALL		= @INSTALL@
+RANLIB		= @RANLIB@
+AR		= ar
+LIBTOOL		= @LIBTOOL@
+SHELL		= /bin/sh
+
+## Install levels
+INSTALL_EXE	= $(INSTALL) -m 755 
+INSTALL_BIN	= $(INSTALL_EXE) -s
+INSTALL_TXT	= $(INSTALL) -m 644
+
+ABILIBDIR	= @ABILIBDIR@
+
+## Installation directories
+prefix		= @prefix@
+exec_prefix	= @prefix@
+LIBDIR		= $(exec_prefix)/lib$(ABILIBDIR)
+MANDIR		= $(exec_prefix)/man
+ETCDIR		= $(exec_prefix)/etc
+MIBDIR		= $(ETCDIR)
+MAN3DIR		= $(MANDIR)/man3
+MAN5DIR		= $(MANDIR)/man5
+INCDIR		= $(exec_prefix)/include/snmp
+
+## For gmake compilation in alt. directory
+srcdir		= @srcdir@
+VPATH		= @srcdir@
+top_srcdir	= @top_srcdir@
+top_builddir	= .
+
+## Other defaults from autoconf
+CPPFLAGS	= @CPPFLAGS@
+DEFS		= @DEFS@
+INCS		= @INCS@
+LDFLAGS		= @LDFLAGS@
+
+## Put them all together
+INCLUDES	= -I. $(INCS)
+DEFINES		= $(DEFS)
+
+CFLAGS		= @CFLAGS@ $(INCLUDES) $(DEFINES) -DMIBDIR="\"$(ETCDIR)\""
+LIBS		= @LIBS@
+
+## ------------------------------------------------------------
+
+.SUFFIXES: .lo
+
+## For library generation
+.c.lo:
+	$(LIBTOOL) ${CC} ${CFLAGS} -c $<
+
+%.lo: %.c
+	$(LIBTOOL) ${CC} ${CFLAGS} -c $<
+
+## ------------------------------------------------------------
+
+# Shared library foo
+
+LIBOBJS		= @LIBOBJS@
+LTLIBOBJS 	= @LTLIBOBJS@
+LTTARGET	= @LTTARGET@
+LTINSTALL	= @LTINSTALL@
+LTVERSION	= "`head -1 VERSION | sed -e 's/d.*//' -e 's/V//' -e 's/\./:/'`:0"
+
+libsnmp.la: $(LTLIBOBJS)
+	echo "Version '${LTVERSION}'"
+	$(LIBTOOL) $(CC) $(CFLAGS) -o $@ $(LTLIBOBJS) $(LDFLAGS) -version-info ${LTVERSION} -rpath ${LIBDIR}
+
+install_shared: $(LTTARGET)
+	$(MKDIRHIER) $(LIBDIR)
+	$(LIBTOOL) $(INSTALL_EXE) $(LTTARGET) $(LIBDIR)
+
+version.lo: version.c
+	$(LIBTOOL) $(CC) $(CFLAGS) -DCMU_SNMP_VERSION="\"`head -1 VERSION`, Shared ($(LTVERSION))\"" -c version.c
+
+## ------------------------------------------------------------
+
+# Static library foo
+
+LIBTARGET	= @LIBTARGET@
+LIBINSTALL	= @LIBINSTALL@
+
+libsnmp.a: $(LIBOBJS)
+	$(AR) crv $@ $(LIBOBJS)
+	$(RANLIB) $@
+
+
+install_static: libsnmp.a
+	$(MKDIRHIER) $(LIBDIR)
+	$(LIBTOOL) $(INSTALL_EXE) libsnmp.a $(LIBDIR)
+
+version.o: version.c
+	$(CC) $(CFLAGS) -DCMU_SNMP_VERSION="\"`head -1 VERSION`\"" -c version.c -o version.o 
+
+## ------------------------------------------------------------
+
+foo: devel all
+
+all: $(LIBTARGET) $(LTTARGET)
+
+## ------------------------------------------------------------
+
+# The manpages are listed in snmp-man.pl.
+#
+# That script is run one to create the manpages, and with other args
+# to install them.
+#
+# This way, I can build them in the src distribution before releasing
+# it, to help people that don't have perl, or can't generate the manpages
+# for other reasons.
+
+manpages:
+	-$(PERL) ./snmp-man.pl -create
+
+install_man: manpages
+	$(MKDIRHIER) $(MAN3DIR) $(MAN5DIR)
+	-$(PERL) ./snmp-man.pl -install "$(INSTALL_TXT)" $(MANDIR)
+
+## ------------------------------------------------------------
+
+install: install_inc install_man install_mib $(LTINSTALL) $(LIBINSTALL)
+
+install_mib:
+	$(MKDIRHIER) $(MIBDIR)
+	$(INSTALL_TXT) mib-v2.txt $(MIBDIR)
+
+install_inc:
+	$(MKDIRHIER) $(INCDIR)
+	$(INSTALL_TXT) asn1.h $(INCDIR)
+	$(INSTALL_TXT) mib.h $(INCDIR)
+	$(INSTALL_TXT) parse.h $(INCDIR)
+	$(INSTALL_TXT) snmp.h $(INCDIR)
+	$(INSTALL_TXT) snmp_dump.h $(INCDIR)
+	$(INSTALL_TXT) snmp_extra.h $(INCDIR)
+	$(INSTALL_TXT) snmp_api.h $(INCDIR)
+	$(INSTALL_TXT) snmp_api_util.h $(INCDIR)
+	$(INSTALL_TXT) snmp_client.h $(INCDIR)
+	$(INSTALL_TXT) snmp_impl.h $(INCDIR)
+	$(INSTALL_TXT) snmp_pdu.h $(INCDIR)
+	$(INSTALL_TXT) snmp_vars.h $(INCDIR)
+	$(INSTALL_TXT) snmp_error.h $(INCDIR)
+	$(INSTALL_TXT) snmp_session.h $(INCDIR)
+	$(INSTALL_TXT) snmp_api_error.h $(INCDIR)
+	$(INSTALL_TXT) snmp-internal.h $(INCDIR)
+	$(INSTALL_TXT) snmp_msg.h $(INCDIR)
+	$(INSTALL_TXT) mibii.h $(INCDIR)
+	$(INSTALL_TXT) snmp_coexist.h $(INCDIR)
+	$(INSTALL_TXT) mib.h $(INCDIR)
+	$(INSTALL_TXT) version.h $(INCDIR)
+	$(INSTALL_TXT) mini-client.h $(INCDIR)
+	$(INSTALL_TXT) snmp_compat.h $(INCDIR)
+
+## ------------------------------------------------------------
+
+check:
+	@echo "There are currently no self tests with this library."
+
+test-mib: test-mib.o libsnmp.a
+	$(LIBTOOL) $(CC) $(CFLAGS) -o $@ test-mib.o $(LDFLAGS) $(LIBS) libsnmp.a
+
+## ------------------------------------------------------------
+
+clean:
+	-rm -rf ${LIBOBJS} ${LTLIBOBJS} .libs libsnmp.a $(LTTARGET)
+
+distclean realclean: clean
+	-rm -f config.h Makefile config.cache config.log config.status
+
+##### VERSION CONTROL #####
+
+devel:
+	@-rm -f agent_version.o
+	@-ng-next-version
+	@echo "Compile: `cat VERSION`"
+
+minor:
+	@-rm -f agent_version.o
+	@-ng-next-version -m
+	@echo "Minor version: `cat VERSION`"
+
+major:
+	@-rm -f agent_version.o
+	@-ng-next-version -M
+	@echo "Major Version: `cat VERSION`"
+
+## Exporting sources
+##
+
+VER=@VER@
+DIST=@DIST@
+TARFILE=/usr/tmp/${DIST}
+TMPDIR=/usr/tmp/snmp.${USER}
+tarfile: distclean manpages
+	$(MKDIRHIER) $(TMPDIR)/snmp
+	echo "Creating snmp dir"
+	(cd $(srcdir); tar -cf - . | (cd $(TMPDIR)/snmp; tar -xf -))
+	(cd $(srcdir); cp VERSION $(TMPDIR))
+	(cd $(TMPDIR); gtar -zcvhf ${TARFILE} -X snmp/exclude-in-tar snmp)
+	rm -rf $(TMPDIR)
+
+export: tarfile
+	-ng-tag-all
+	md5 ${TARFILE} > ${TARFILE}.md5
+	pgp -sb ${TARFILE} -u netdev
+
+## ------------------------------------------------------------
+
+# snmp-snmp-spec generated by configure
+cmu-snmp-${VER}.spec: cmu-snmp-spec
+	cp cmu-snmp-spec $@
+
+rpm: tarfile cmu-snmp-${VER}.spec
+	-cp ${TARFILE} /usr/src/redhat/SOURCES
+	rpm --bb cmu-snmp-${VER}.spec
+
+## ------------------------------------------------------------
+
+setup: configure Makefile config.h
+
+## When to regenerate the configure script
+##
+configure: configure.in
+	autoconf
+
+## When to rerun configure
+##
+config.status: $(srcdir)/configure
+	./config.status --recheck
+
+## When to regenerate the .in files
+##
+config.h.in: $(srcdir)/configure
+	autoheader
+
+config.h: $(srcdir)/config.h.in config.status
+	./config.status
+
+Makefile: $(srcdir)/Makefile.in config.status
+	./config.status

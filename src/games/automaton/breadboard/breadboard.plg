@@ -1,0 +1,34 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: breadboard - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\Panther\LOCALS~1\Temp\RSP135.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib comctl32.lib ole32.lib guids.lib /nologo /subsystem:windows /incremental:yes /pdb:"Debug/breadboard.pdb" /debug /machine:I386 /out:"Debug/breadboard.exe" /pdbtype:sept 
+.\Debug\main.obj
+..\..\common\lib\release\images.lib
+..\..\common\lib\release\shmems.lib
+..\..\common\lib\release\psis.lib
+..\..\common\lib\release\png.lib
+..\..\common\lib\release\jpegs.lib
+..\..\common\lib\release\zlibs.lib
+..\..\common\lib\release\videos.lib
+..\..\common\lib\release\timerss.lib
+..\..\common\lib\release\syslogs.lib
+\General\development\automaton\brain\Debug\brain.lib
+]
+Creating command line "link.exe @C:\DOCUME~1\Panther\LOCALS~1\Temp\RSP135.tmp"
+<h3>Output Window</h3>
+Linking...
+
+
+
+<h3>Results</h3>
+breadboard.exe - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

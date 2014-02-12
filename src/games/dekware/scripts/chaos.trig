@@ -1,0 +1,90 @@
+# chaos.eic.net 9000
+# newmud 216.34.174.38:4000
+
+
+/trigger dest sanc
+/trigger crea sanc The white aura around your body fades.
+.cast 'sanc'
+/endmac
+
+/trigger dest hidden
+/trigger create hidden You feel less aware of your suroundings.
+.cast 'detect hidden' 
+/endmac
+
+/trigger dest invis
+/trigger crea invis You no longer see invisible objects.
+.cast 'detect invis'
+/endmac
+
+/trigger dest stone
+/trigger crea stone Your skin feels soft again.
+.cast 'stone skin'
+/endmac
+
+/trigger dest shield
+/trigger crea shield Your force shield shimmers then fades away.
+.cast 'shield' me
+/endmac
+
+/trigger dest fly
+/trigger crea fly You slowly float to the ground.
+.cast 'fly' me
+/endmac
+
+/trigger dest strength
+/trigger crea strength You feel weaker.
+.cast 'giant' me 
+/endmac
+
+/trigger dest morewater
+/trigger crea morewater It is already empty.
+.cast 'create water' skin
+drink water
+/endmac
+                                                        
+
+/trigger dest hunger
+/trigger crea hunger You feel hungry.
+.cast 'create food'
+.get mushroom
+.eat mushroom
+/endmac
+
+/trigger dest thirsty
+/trigger create thirsty You feel thirsty.
+.drink water
+/endmac
+
+/trigger dest darkbl
+/trigger create darkbl You feel less wicked.
+.cast 'darkbl' me
+/endmac
+
+/trigger dest bless
+/trigger crea bless You feel less righteous.
+.cast 'bless' me
+/endmac
+
+/trigger dest frenzy
+/trigger crea frenzy Your bloodlust subsides.
+.cast 'frenzy' me
+/endmac
+
+/decl skiparmor false
+/trigger dest armor
+/trigger create armor You feel less protected.
+/compare %skiparmor is true
+/if success
+/decl skiparmor false
+/return
+/endif
+/decl skiparmor true
+.cast 'armor' me
+.cast 'prot'
+/endmac
+
+/trigger dest tripfall
+/trigger crea tripfall trips you and you go down!
+.stand
+/endmac
