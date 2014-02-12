@@ -1605,9 +1605,6 @@ static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
 			case KEY_DASH:
 				KeyPressed( psv, button = pKeyPad->keys[11].key );
 				break;
-#ifdef WIN32
-			case VK_OEM_PLUS:
-#endif
 			case KEY_EQUAL:
 				KeyPressed( psv, button = pKeyPad->keys[12].key );
 				break;

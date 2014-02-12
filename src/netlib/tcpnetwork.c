@@ -946,7 +946,7 @@ size_t FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should b
 			}
 			if( !( lpClient->dwFlags & CF_READPENDING ) )
 			{
-				lprintf( "somehow we didn't get a good read." );
+				lprintf( WIDE("somehow we didn't get a good read.") );
 			}
 		}
 		else

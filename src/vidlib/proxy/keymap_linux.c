@@ -51,7 +51,7 @@ typedef struct LinuxKeymapKeyDefine {
 #define KEYMOD_CTRL   KEY_MOD_CTRL
 #define KEYMOD_ALT    KEY_MOD_ALT
 
-
+#if defined( __LINUX__ )
 
 PSIKEYDEFINE LinuxKeyDefs[256] =
                      { [KEY_DEL]={WIDE("back"),WIDE("backspace"),0,KEYDATA("\b","\b") }
@@ -146,6 +146,7 @@ PSIKEYDEFINE LinuxKeyDefs[256] =
                       , [KEY_QUOTE]={ WIDE("quote"), WIDE("quote"),0     ,KEYDATA("\'","\"")}
 };
 
+#endif defined( __LINUX__ )
 
 static struct keymap_state
 {
@@ -159,6 +160,7 @@ static struct keymap_state
 
 //----------------------------------------------------------------------------
 
+#if defined( __LINUX__ )
 #if DEBUG_DUMP_TABLE_SIMPLE
 PRELOAD( dump_Table )
 {
@@ -170,7 +172,9 @@ PRELOAD( dump_Table )
    }
 }
 #endif
+#endif
 
+#if defined( __LINUX__ )
 CTEXTSTR SACK_Vidlib_GetKeyText( int pressed, int key_index, int *used )
 {
 	// check current keyboard override...
@@ -191,6 +195,7 @@ CTEXTSTR SACK_Vidlib_GetKeyText( int pressed, int key_index, int *used )
 	}
 	return NULL;
 }
+#endif
 
 void SACK_Vidlib_ProcessKeyState( int pressed, int key_index, int *used )
 {

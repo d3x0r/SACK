@@ -175,7 +175,7 @@ static void CPROC TaskEnded( PTRSZVAL psv, PTASK_INFO task )
 //------------------------------------------------------------------------------------------
 
 
-OnEditControl( WIDE( "Crossfade Media Mount" ) )( PTRSZVAL psv, PSI_CONTROL pc_parent )
+static PTRSZVAL OnEditControl( WIDE( "Crossfade Media Mount" ) )( PTRSZVAL psv, PSI_CONTROL pc_parent )
 {
 	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, WIDE("ConfigureApplicationMount.isFrame") );
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
@@ -480,7 +480,7 @@ static PTRSZVAL OnCreateControl( WIDE("Crossfade Media Mount") )( PSI_CONTROL pa
 	return (PTRSZVAL)pc;
 }
 
-static void OnFinishInit( WIDE("Crossfade Media Mount") )( void )
+static void OnFinishInit( WIDE("Crossfade Media Mount") )( PSI_CONTROL pc_canvas )
 {
 	if( !l.waiting )
 		l.waiting = ThreadTo( WaitForApplication, 0 );

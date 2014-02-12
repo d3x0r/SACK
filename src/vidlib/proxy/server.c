@@ -226,7 +226,7 @@ static P_8 EncodeImage( Image image, LOGICAL bmp, size_t *outsize )
 		(*outsize) = 0;
 		return NULL;
 	}
-#if defined( WIN32 )
+#if defined( WIN32 ) && !defined( MINGW_SUX )
 	else
 	{
 		// code to generate raw bitmap; 32 bit bitmaps still don't have alpha channel in browsers; weak.
@@ -788,8 +788,11 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 				{
 					l.key_states[message->data.key_event.key & 0xFF] &= ~0x80;  //(unpressed)
 				}
+#if defined( __LINUX__ )
+            // windows doesn't need this translation
 				lprintf( "so.... do the state..." );
 				SACK_Vidlib_ProcessKeyState( message->data.key_event.pressed, message->data.key_event.key, &used );
+#endif
 				if( !used && render && render->key_callback )
 					render->key_callback( render->psv_key_callback, (message->data.key_event.pressed?KEY_PRESSED:0)|message->data.key_event.key );
 			}

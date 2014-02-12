@@ -505,7 +505,7 @@ int GetClassPath( TEXTSTR out, size_t len, PTREEDEF root )
 	while( name = (PNAME)PopLink( &pls ) )
 	{
 		//pcr->
-		ofs += snprintf( out + ofs, len - ofs, "/%s", name->name );
+		ofs += snprintf( out + ofs, len - ofs, WIDE("/%s"), name->name );
 	}
 	DeleteLinkStack( &pls );
 	return ofs;

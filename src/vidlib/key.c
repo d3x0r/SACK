@@ -2,7 +2,6 @@
 
 #include <vidlib/vidstruc.h>
 #include <render.h>
-#include "keybrd.h"  // includes vidlib
 
 
 #include "local.h"

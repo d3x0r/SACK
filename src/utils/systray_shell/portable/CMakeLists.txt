@@ -69,6 +69,7 @@ endif( NOT WATCOM )
 
 # update the short list of sources before it gets added to the big list...
 if( NEED_UUID )
+     # RC is just a extra list of sources
     set( RC ${RC}   ${UUID_SOURCES} )
 endif( NEED_UUID )
 if( UNIX )
@@ -83,7 +84,6 @@ set( BASE_SOURCES
         ${NETWORK_SOURCES}
         ${UNSORTED_SOURCES} 
         ${ODBC_SOURCES}
-        ${UUID_SOURCES}
         ${OPTION_SOURCE}
         ${SQLITE_SOURCES}
         ${SYSTRAY_SOURCES}

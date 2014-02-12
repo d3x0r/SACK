@@ -11,6 +11,57 @@
 #define _RENDER_KEYBOARD_NAMESPACE_END
 #endif
 
+RENDER_NAMESPACE
+   _RENDER_KEYBOARD_NAMESPACE
+
+			/* Keyboard state tracking structure... not very optimal...
+			   \internal usage might be different.                      */
+			enum KeyUpDownState {
+KEYISUP   =2,
+KEYISDOWN =1
+			};
+
+/* <combine sack::image::render::keyboard::keyboard_tag>
+   
+   \ \                                                   */
+typedef struct keyboard_tag KEYBOARD;
+/* <combine sack::image::render::keyboard::keyboard_tag>
+   
+   \ \                                                   */
+typedef struct keyboard_tag *PKEYBOARD;
+struct keyboard_tag
+{
+#define NUM_KEYS 256  
+   /* one byte index... more than sufficient
+      
+      if character in array is '1' key is down, '2' key is up. */
+   char keyupdown[NUM_KEYS];
+   /* Indicator that the key is a double-tap, not just a single.
+      "!! is different that "!" "!                               */
+   char keydouble[NUM_KEYS];
+   /* time of the last key event */
+   unsigned int  keytime[NUM_KEYS];
+   /* I'm not sure, maybe it's the printable key char? */
+		unsigned char key[NUM_KEYS];
+#if 0
+	// void (*Proc)(PTRSZVAL psv)[NUM_KEYS][8];
+#endif
+};
+
+_RENDER_KEYBOARD_NAMESPACE_END
+RENDER_NAMESPACE_END
+
+#ifdef __cplusplus
+#  ifdef _D3D_DRIVER
+     using namespace sack::image::render::d3d::keyboard;
+#  elif defined( _D3D10_DRIVER )
+     using namespace sack::image::render::d3d10::keyboard;
+#  elif defined( _D3D11_DRIVER )
+     using namespace sack::image::render::d3d11::keyboard;
+#  else
+     using namespace sack::image::render::keyboard;
+#  endif
+#endif
 //#include "vidlib.h"
 
 	// some common things which are specific to this
@@ -179,6 +230,7 @@
 #define VK_OEM_6   221
 #define VK_OEM_7   222
 #define VK_OEM_MINUS  189
+#define VK_OEM_PLUS    187
 #endif
 
 
@@ -189,7 +241,7 @@
 #define KEY_BACKSLASH     VK_OEM_5
 //'-'
 #define KEY_DASH     VK_OEM_MINUS 
-#define KEY_EQUAL    187
+#define KEY_EQUAL    VK_OEM_PLUS
 #define KEY_EQUALS   KEY_EQUAL
 #define KEY_ACCENT 192
 #define KEY_GRAVE  KEY_ACCENT
@@ -245,60 +297,9 @@
 
 #endif
 
-RENDER_NAMESPACE
-   _RENDER_KEYBOARD_NAMESPACE
-
-			/* Keyboard state tracking structure... not very optimal...
-			   \internal usage might be different.                      */
-			enum KeyUpDownState {
-KEYISUP   =2,
-KEYISDOWN =1
-			};
-
-/* <combine sack::image::render::keyboard::keyboard_tag>
-   
-   \ \                                                   */
-typedef struct keyboard_tag KEYBOARD;
-/* <combine sack::image::render::keyboard::keyboard_tag>
-   
-   \ \                                                   */
-typedef struct keyboard_tag *PKEYBOARD;
-struct keyboard_tag
-{
-#define NUM_KEYS 256  
-   /* one byte index... more than sufficient
-      
-      if character in array is '1' key is down, '2' key is up. */
-   char keyupdown[NUM_KEYS];
-   /* Indicator that the key is a double-tap, not just a single.
-      "!! is different that "!" "!                               */
-   char keydouble[NUM_KEYS];
-   /* time of the last key event */
-   unsigned int  keytime[NUM_KEYS];
-   /* I'm not sure, maybe it's the printable key char? */
-		unsigned char key[NUM_KEYS];
-#if 0
-	// void (*Proc)(PTRSZVAL psv)[NUM_KEYS][8];
-#endif
-};
-
-_RENDER_KEYBOARD_NAMESPACE_END
-RENDER_NAMESPACE_END
 
 // if any key...
 #if !defined( KEY_1 )
-#ifdef __cplusplus
-#  ifdef _D3D_DRIVER
-     using namespace sack::image::render::d3d::keyboard;
-#  elif defined( _D3D10_DRIVER )
-     using namespace sack::image::render::d3d10::keyboard;
-#  elif defined( _D3D11_DRIVER )
-     using namespace sack::image::render::d3d11::keyboard;
-#  else
-     using namespace sack::image::render::keyboard;
-#  endif
-#endif
-
 
 #if defined( __ANDROID__ )
 

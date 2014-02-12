@@ -20,7 +20,7 @@ static NATIVE GetMacroRunning( PTRSZVAL psv )
 }
 
 // Event callback from the InvokeMacroEx call
-static void MacroEnded( PTRSZVAL psv, PMACROSTATE pms_ending )
+static void CPROC MacroEnded( PTRSZVAL psv, PMACROSTATE pms_ending )
 {
 	struct macro_info_struct *mis = (struct macro_info_struct *)psv;
 	mis->pms = NULL;

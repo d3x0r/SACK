@@ -34,7 +34,7 @@ target_link_libraries( ${project} ${SACK_CORE_LIBRARY} ${SACK_PLATFORM_LIBRARIES
 
 target_link_libraries( ${project} bag.psi )
 if( WIN32 )
-target_link_libraries( ${project} glew ) # private glew library build; from vidlib/puregl/glew-1.9.0
+target_link_libraries( ${project} glu32 glew ) # private glew library build; from vidlib/puregl/glew-1.9.0
 endif( WIN32 )
 
 

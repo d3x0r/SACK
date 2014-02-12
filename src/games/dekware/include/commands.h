@@ -127,7 +127,7 @@ CORE_PROC( void, DestroyMacro )( PENTITY pe, PMACRO pm );
 CORE_PROC( PMACRO, DuplicateMacro )( PMACRO pm );
 
 #ifdef CORE_SOURCE
-void TerminateMacro( PMACROSTATE pms );
+void CPROC TerminateMacro( PMACROSTATE pms );
 CORE_CPROC( PTEXT, GetVolatileVariable )( PENTITY pEnt, CTEXTSTR pNamed );
 CORE_CPROC( PTEXT, SetVolatileVariable )( PENTITY pEnt, CTEXTSTR pNamed, PTEXT newval );
 // is now an external - heading towards more generic usage...

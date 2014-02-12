@@ -30,7 +30,7 @@ set( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../ )
 include( ${SOURCES_ROOT}CMakeSources.lst )
 
 if( SNPRINTF_SOURCES )
-set( SNPRINTF_SOURCES    ${SOURCES_ROOT}src/../${SNPRINTF_SOURCES} )
+#set( SNPRINTF_SOURCES    ${SOURCES_ROOT}src/../${SNPRINTF_SOURCES} )
 endif(SNPRINTF_SOURCES)
 
 if( WIN32 )
@@ -137,7 +137,7 @@ set( project launchpad.portable.service )
 
 
 if( SNPRINTF_SOURCES )
-set( SNPRINTF_SOURCES    ${SOURCES_ROOT}src/../${SNPRINTF_SOURCES} )
+#set( SNPRINTF_SOURCES    ${SOURCES_ROOT}src/../${SNPRINTF_SOURCES} )
 endif(SNPRINTF_SOURCES)
 
 if( WIN32 )

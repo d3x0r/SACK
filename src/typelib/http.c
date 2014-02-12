@@ -221,7 +221,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 										if( TextSimilar( request, WIDE( "POST" ) ) )
 										{
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
-											lprintf( "probably shouldn't post final until content length is also received..." );
+											lprintf( WIDE("probably shouldn't post final until content length is also received...") );
 										}
 										for( tmp = NEXTLINE( request ); tmp; tmp = next )
 										{
