@@ -33,6 +33,11 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 target_link_libraries( ${project} ${SACK_CORE_LIBRARY} ${SACK_PLATFORM_LIBRARIES} )
 
 target_link_libraries( ${project} bag.psi )
+if( WIN32 )
+target_link_libraries( ${project} glew ) # private glew library build; from vidlib/puregl/glew-1.9.0
+endif( WIN32 )
+
+
 
 install_mode_dest( ${project} )
 

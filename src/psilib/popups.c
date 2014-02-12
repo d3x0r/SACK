@@ -21,13 +21,7 @@
 #include "controlstruc.h"
 #include <psi.h>
 
-#ifndef __LINUX__
-#include <vidlib.h>
-#endif 
-
 //#define DEBUG_MENUS
-
-
 
 PSI_MENU_NAMESPACE
 

@@ -84,7 +84,7 @@ void  CPROC cSetColorAlpha( PCDATA po, int oo, int w, int h, CDATA color )
 }
 #endif
 
-void MarkImageUpdated( Image child_image )
+void CPROC MarkImageUpdated( Image child_image )
 {
 	Image image;
 	for( image = child_image; image && image->pParent; image = image->pParent );

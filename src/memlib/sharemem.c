@@ -2532,9 +2532,9 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 				pc = pc->next;
 			}
 		}
-		snprintf( byDebug, sizeof(byDebug), WIDE("Total Free: %")c_size_f WIDE("  TotalUsed: %")c_size_f WIDE("  TotalChunks: %")c_size_f WIDE(" TotalMemory:%")c_size_f WIDE(""),
-					nTotalFree, nTotalUsed, nChunks,
-					(long unsigned)(nTotalFree + nTotalUsed + nChunks * CHUNK_SIZE) );
+		snprintf( byDebug, sizeof(byDebug), WIDE("Total Free: %")_size_f WIDE("  TotalUsed: %")_size_f WIDE("  TotalChunks: %")_size_f WIDE(" TotalMemory:%")_size_f WIDE("")
+					, nTotalFree, nTotalUsed, nChunks
+					, (nTotalFree + nTotalUsed + nChunks * CHUNK_SIZE) );
 		byDebug[255] = 0;
 		fprintf( file, WIDE("%s\n"), byDebug );
 		//Relinquish();

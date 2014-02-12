@@ -1231,12 +1231,48 @@ void Redraw( PVIDEO hVideo )
 	}
 }
 
+static void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar)
+{
+    GLfloat m[4][4];
+    GLfloat sine, cotangent, deltaZ;
+    GLfloat radians=(GLfloat)(fovy/2.0f*M_PI/180.0f);
+
+    /*m[0][0] = 1.0f;*/ m[0][1] = 0.0f; m[0][2] = 0.0f; m[0][3] = 0.0f;
+    m[1][0] = 0.0f; /*m[1][1] = 1.0f;*/ m[1][2] = 0.0f; m[1][3] = 0.0f;
+    m[2][0] = 0.0f; m[2][1] = 0.0f; /*m[2][2] = 1.0f; m[2][3] = 0.0f;*/
+	 m[3][0] = 0.0f; m[3][1] = 0.0f; /*m[3][2] = 0.0f; m[3][3] = 1.0f;*/
+
+    deltaZ=zFar-zNear;
+    sine=(GLfloat)sin(radians);
+    if ((deltaZ==0.0f) || (sine==0.0f) || (aspect==0.0f))
+    {
+        return;
+    }
+    cotangent=(GLfloat)(cos(radians)/sine);
+
+    m[0][0] = cotangent / aspect;
+	 m[1][1] = cotangent;
+#if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER )
+    m[2][2] = (zFar + zNear) / deltaZ;
+    m[2][3] = 1.0f;
+    m[3][2] = -1.0f * zNear * zFar / deltaZ;
+#else
+    m[2][2] = -(zFar + zNear) / deltaZ;
+    m[2][3] = -1.0f;
+	 m[3][2] = -2.0f * zNear * zFar / deltaZ;
+#endif
+	 m[3][3] = 0;
+#undef m
+    glMultMatrixf(&m[0][0]);
+}
+
+
 
 static void BeginVisPersp( struct display_camera *camera )
 {
 	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 	glLoadIdentity();									// Reset The Projection Matrix
-	gluPerspective(90.0f,camera->aspect,1.0f,30000.0f);
+	MygluPerspective(90.0f,camera->aspect,1.0f,30000.0f);
 	glGetFloatv( GL_PROJECTION_MATRIX, (GLfloat*)l.fProjection );
 	PrintMatrix( l.fProjection );
 	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix

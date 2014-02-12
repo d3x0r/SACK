@@ -1,9 +1,6 @@
 #define DEFINE_DEFAULT_IMAGE_INTERFACE
-#include <vidlib.h>
-#include <controls.h>
-#include <sharemem.h>
-#include <stdio.h>
-#include <logging.h>
+#include <stdhdrs.h>
+#include <psi.h>
 
 int bDone, bOkay;
 
