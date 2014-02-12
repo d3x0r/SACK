@@ -1265,7 +1265,9 @@ if( BUILD_TESTS )
    add_subdirectory( src/psilib/sheettst )
    add_subdirectory( src/psilib/paltst )
    add_subdirectory( src/psilib/calctl )
-   add_subdirectory( src/typelib )
+   IF( NOT BUILD_MONOLITHIC )
+      add_subdirectory( src/typelib )
+   ENDIF( NOT BUILD_MONOLITHIC )
    add_subdirectory( src/imglib/testsprite )
 
 

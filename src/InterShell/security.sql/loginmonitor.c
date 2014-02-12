@@ -292,12 +292,12 @@ PRELOAD( InitLoginMon )
 		PODBC odbc;
 
 		// Check if logging is to be turned on
-		l.flags.bLog = SACK_GetPrivateProfileInt( GetProgramName(), WIDE( "SECURITY/Do Logging" ), 0, WIDE( "security.ini" ) );
+		l.flags.bLog = SACK_GetPrivateProfileInt( GetProgramName(), WIDE( "SECURITY/Do Logging" ), 0, NULL );
 		l.flags.bLogSleeps = SACK_GetPrivateProfileInt( GetProgramName(), WIDE( "SECURITY/SQL Password/Do Logging (Sleeps)" ), 0, NULL );
 		lprintf( WIDE(" Inactivity Service has been started.") );
 
 		// Set up for pulling options
-		SACK_GetProfileString( WIDE("SECURITY/SQL Passwords"), WIDE( "password DSN" ), GetDefaultOptionDatabaseDSN, l.option_dsn, sizeof( l.option_dsn ), NULL );
+		SACK_GetProfileString( WIDE("SECURITY/SQL Passwords"), WIDE( "password DSN" ), GetDefaultOptionDatabaseDSN(), l.option_dsn, sizeof( l.option_dsn ) );
 		odbc = GetOptionODBC( l.option_dsn, 0 );
 
 		// Get Idle Time ( Minutes )

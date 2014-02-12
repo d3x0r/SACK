@@ -17,7 +17,7 @@
 #include <psi.h>
 #include <virtuality/view.h>
 #include <GL/gl.h>
-#include <GL/glu.h>
+//#include <GL/glu.h>
 
 #include "land.h"
 
@@ -2046,34 +2046,7 @@ void ConvertToSphereGrid( P_POINT p, int *s, int *x, int *y ) // s 0-3, s 4-9, 1
 #define MODE_ORTHO 2
 int mode = MODE_UNKNOWN;
 
-void BeginVisPersp( void )
-{
-	//if( mode != MODE_PERSP )
-	{
-		mode = MODE_PERSP;
-		glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-		glLoadIdentity();									// Reset The Projection Matrix
-		// Calculate The Aspect Ratio Of The Window
-		gluPerspective(45.0f,1.0f,0.1f,10000.0f);
-		glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
-		glLoadIdentity();									// Reset The Modelview Matrix
-	}
-}
 
-int InitGL(void)										// All Setup For OpenGL Goes Here
-{
-	glShadeModel(GL_SMOOTH);							// Enable Smooth Shading
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);				// Black Background
-	glClearDepth(1.0f);									// Depth Buffer Setup
-	glEnable(GL_DEPTH_TEST);							// Enables Depth Testing
-	glDepthFunc(GL_LEQUAL);								// The Type Of Depth Testing To Do
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculations
-		glClear(GL_COLOR_BUFFER_BIT
-			| GL_DEPTH_BUFFER_BIT
-			);	// Clear Screen And Depth Buffer
-	BeginVisPersp();
-	return TRUE;										// Initialization Went OK
-}
 
 
 int ShowPatch( PHEXPATCH patch )
@@ -2449,8 +2422,9 @@ void RipplePatch( PHEXPATCH patch )
 		static VECTOR KeySpeed, KeyRotation;
 		//static VECTOR move = { 0.01, 0.02, 0.03 };
 		{
-			extern void ScanKeyboard( PRENDERER hDisplay, PVECTOR KeySpeed, PVECTOR KeyRotation );
-			ScanKeyboard( NULL, KeySpeed, KeyRotation );
+         ///// keyboard support comes in differently now.....
+			//extern void ScanKeyboard( PRENDERER hDisplay, PVECTOR KeySpeed, PVECTOR KeyRotation );
+			//ScanKeyboard( NULL, KeySpeed, KeyRotation );
 			SetSpeed( T, KeySpeed );
 			SetRotation( T, KeyRotation );
 			Move(T);  // relative rotation...
@@ -2768,7 +2742,6 @@ static void OnDraw3d( WIDE("Terrain View") )( PTRSZVAL psvView )
 #endif
 	if( 1 )//SetActiveGLDisplay( pRend ) )
 	{
-		//InitGL();
 		//SaveTransform( T, WIDE("recoverme") );
 		if(0)
 		{

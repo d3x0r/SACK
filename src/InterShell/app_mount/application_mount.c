@@ -68,7 +68,7 @@ PRELOAD( RegisterKeypadIDs )
 	EasyRegisterResource( WIDE("InterShell/Application Mount") _WIDE(TARGETNAME), EDIT_APP_SEND_FROM, EDIT_FIELD_NAME );
 }
 
-OnEditControl( WIDE( "Application Mount" ) )( PTRSZVAL psv, PSI_CONTROL pc_parent )
+static PTRSZVAL OnEditControl( WIDE( "Application Mount" ) )( PTRSZVAL psv, PSI_CONTROL pc_parent )
 {
 	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, WIDE("ConfigureApplicationMount.isFrame") );
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
@@ -451,7 +451,7 @@ static PTRSZVAL OnCreateControl( WIDE("Application Mount") )( PSI_CONTROL parent
 	return (PTRSZVAL)pc;
 }
 
-static void OnFinishInit( WIDE("Application Mount") )( void )
+static void OnFinishInit( WIDE("Application Mount") )( PSI_CONTROL pc_canvas  )
 {
 	if( !l.waiting )
 		l.waiting = ThreadTo( WaitForApplication, 0 );

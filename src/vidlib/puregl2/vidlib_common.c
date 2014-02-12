@@ -367,7 +367,7 @@ void LoadOptions( void )
 		_32 screen_w, screen_h;
 		int nDisplays = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Number of Displays"), l.flags.bView360?6:1, TRUE );
 		int n;
-      lprintf( "Loading %d displays", nDisplays );
+      lprintf( WIDE("Loading %d displays"), nDisplays );
 		l.flags.bForceUnaryAspect = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Force Aspect 1.0"), (nDisplays==1)?0:1, TRUE );
 		GetDisplaySizeEx( 0, NULL, NULL, &screen_w, &screen_h );
 		switch( nDisplays )
@@ -459,7 +459,7 @@ void LoadOptions( void )
 				tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Use Display"), n+1 );
 				camera->display = SACK_GetProfileIntEx( GetProgramName(), tmp, nDisplays>1?n+1:0, TRUE );
 				GetDisplaySizeEx( camera->display, &camera->x, &camera->y, &camera->w, &camera->h );
-            lprintf(" getdisplay size ex fails." );
+            lprintf( WIDE( " getdisplay size ex fails.") );
 			}
 
 			camera->identity_depth = camera->w/2;
@@ -478,7 +478,7 @@ void LoadOptions( void )
 			}
 			//lprintf( "Add camera to list" );
 			AddLink( &l.cameras, camera );
-			lprintf( " camera is %d,%d", camera->w, camera->h );
+			lprintf( WIDE(" camera is %d,%d" ), camera->w, camera->h );
 		}
 		if( !default_camera )
 		{
@@ -1764,7 +1764,7 @@ LOGICAL IsDisplayHidden( PVIDEO video )
    return 0;
 }
 
-static LOGICAL OnKey3d( "Video Render Common" )( PTRSZVAL psv, _32 key )
+static LOGICAL OnKey3d( WIDE("Video Render Common") )( PTRSZVAL psv, _32 key )
 {
 	if( IsKeyPressed( key ) )
 	{
@@ -1810,7 +1810,7 @@ static LOGICAL OnKey3d( "Video Render Common" )( PTRSZVAL psv, _32 key )
 	return 0;
 }
 
-static PTRSZVAL OnInit3d( "Video Render Common" )(PMatrix m,PTRANSFORM c,RCOORD*identity_dept,RCOORD*aspect)
+static PTRSZVAL OnInit3d( WIDE("Video Render Common") )(PMatrix m,PTRANSFORM c,RCOORD*identity_dept,RCOORD*aspect)
 {
 	// provide one of these so key can get called.
 	return 1;

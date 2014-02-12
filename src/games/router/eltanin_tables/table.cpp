@@ -207,20 +207,20 @@ static void OnPeiceDraw( WIDE("Stationary") )( PTRSZVAL psv, Image surface, Imag
 }
 
 
-OnKeyPressEvent( WIDE("Route Board/Eltanin Table/Enable Edit") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Route Board/Eltanin Table/Enable Edit") )( PTRSZVAL psv )
 {
 	l.flags.allow_edit = !l.flags.allow_edit;
    UpdateButton( (PMENU_BUTTON)psv );
 }
 
-OnShowControl( WIDE("Route Board/Eltanin Table/Enable Edit") )( PTRSZVAL psvUnused )
+static void OnShowControl( WIDE("Route Board/Eltanin Table/Enable Edit") )( PTRSZVAL psvUnused )
 {
    PMENU_BUTTON button = (PMENU_BUTTON)psvUnused;
 	InterShell_SetButtonHighlight( button, l.flags.allow_edit );
 }
 
 
-OnCreateMenuButton( WIDE("Route Board/Eltanin Table/Enable Edit") )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( WIDE("Route Board/Eltanin Table/Enable Edit") )( PMENU_BUTTON button )
 {
 	return (PTRSZVAL)button;
 }

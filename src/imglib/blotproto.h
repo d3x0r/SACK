@@ -19,6 +19,7 @@
 ASM_IMAGE_NAMESPACE
 extern unsigned char AlphaTable[256][256];
 extern unsigned char ScalarAlphaTable[256][256];
+_32 DOALPHA( _32 over, _32 in, _8 a );
 ASM_IMAGE_NAMESPACE_END
  
 #ifdef __cplusplus
@@ -27,7 +28,6 @@ namespace sack {
 		extern "C" {
 #endif
 
-_32 DOALPHA( _32 over, _32 in, _8 a );
 
 #define CLAMP(n) (((n)>255)?(255):(n))
 #ifdef NEED_ALPHA2

@@ -22,7 +22,7 @@ void DoLoadBoard( void )
 }
 
 
-OnCreateControl( WIDE("Route Board/Router Board") )( PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
+static PTRSZVAL OnCreateControl( WIDE("Route Board/Router Board") )( PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
 {
 	PSI_CONTROL board = CreateBoardControl( parent, x, y, w, h );
 	PIBOARD iBoard = GetBoardFromControl( board );
@@ -34,7 +34,7 @@ OnCreateControl( WIDE("Route Board/Router Board") )( PSI_CONTROL parent,S_32 x,S
 	return (PTRSZVAL)board;
 }
 
-OnGetControl( WIDE("Route Board/Router Board") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Route Board/Router Board") )( PTRSZVAL psv )
 {
 	return (PSI_CONTROL)psv;
 }
@@ -42,25 +42,25 @@ OnGetControl( WIDE("Route Board/Router Board") )( PTRSZVAL psv )
 
 
 //static PTRSZVAL
-OnCreateControl( WIDE("Route Board/Router Tools") )( PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
+static PTRSZVAL OnCreateControl( WIDE("Route Board/Router Tools") )( PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
 {
    PSI_CONTROL toolbin = CreateToolbinControl( last_board, parent, x, y, w, h );
    PTOOLBIN iToolbin = GetToolbinFromControl( toolbin );
    return (PTRSZVAL)toolbin;
 }
 
-OnGetControl( WIDE("Route Board/Router Tools") )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( WIDE("Route Board/Router Tools") )( PTRSZVAL psv )
 {
    return (PSI_CONTROL)psv;
 }
 
 
-OnFinishInit( WIDE("Router board") )( void )
+static void OnFinishInit( WIDE("Router board") )( PSI_CONTROL pc_canvas )
 {
 	DoLoadBoard();
 }
 
-OnKeyPressEvent( WIDE("Route Board/Load Board") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Route Board/Load Board") )( PTRSZVAL psv )
 {
 	if( psv )
 	{
@@ -70,12 +70,12 @@ OnKeyPressEvent( WIDE("Route Board/Load Board") )( PTRSZVAL psv )
 	}
 }
 
-OnCreateMenuButton( WIDE("Route Board/Load Board") )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( WIDE("Route Board/Load Board") )( PMENU_BUTTON button )
 {
 	return (PTRSZVAL)last_board;
 }
 
-OnKeyPressEvent( WIDE("Route Board/Save Board") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Route Board/Save Board") )( PTRSZVAL psv )
 {
 	if( psv )
 	{
@@ -85,7 +85,7 @@ OnKeyPressEvent( WIDE("Route Board/Save Board") )( PTRSZVAL psv )
 	}
 }
 
-OnCreateMenuButton( WIDE("Route Board/Save Board") )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( WIDE("Route Board/Save Board") )( PMENU_BUTTON button )
 {
 	return (PTRSZVAL)last_board;
 }

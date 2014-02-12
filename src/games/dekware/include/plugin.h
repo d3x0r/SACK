@@ -70,9 +70,9 @@ CORE_PROC( int,   RoutineRegistered)( PSENTIENT ps, PTEXT Command );
 CORE_CPROC( int,   RegisterDeviceOpts       )( TEXTCHAR *pNext, TEXTCHAR *pDescription, DeviceOpenDevice Open, option_entry *pOptions, _32 nOptions );
 CORE_CPROC( int,   RegisterDevice       )( TEXTCHAR *pNext, TEXTCHAR *pDescription, DeviceOpenDevice Open );
 CORE_CPROC( void,  UnregisterDevice     )( TEXTCHAR *pName );
-CORE_PROC( INDEX, RegisterExtension    )( CTEXTSTR pName );
+CORE_CPROC( INDEX, RegisterExtension    )( CTEXTSTR pName );
 typedef int (CPROC *ObjectInit)( PSENTIENT ps, PENTITY pe, PTEXT parameters );
-CORE_PROC( void,  RegisterObjectEx       )( CTEXTSTR pName, CTEXTSTR pDescription, ObjectInit Init DBG_PASS );
+CORE_CPROC( void,  RegisterObjectEx       )( CTEXTSTR pName, CTEXTSTR pDescription, ObjectInit Init DBG_PASS );
 #define RegisterObject( name,desc,init)  RegisterObjectEx(name,desc,init DBG_SRC)
 CORE_CPROC( void,  UnregisterObject     )( TEXTCHAR *pName );
 CORE_CPROC( int, CreateRegisteredObject )( PSENTIENT ps, PTEXT parameters );

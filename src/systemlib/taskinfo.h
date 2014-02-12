@@ -37,7 +37,7 @@ struct task_info_tag {
 	HANDLE hReadIn, hWriteIn;
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
-   _32 exitcode;
+   DWORD exitcode;
 #elif defined( __LINUX__ )
    int hReadOut, hWriteOut;
    //HANDLE hReadErr, hWriteErr;

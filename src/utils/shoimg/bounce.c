@@ -315,7 +315,7 @@ SaneWinMain(argc, argv )
 														  , y //0
 											 );
       AddTimer( 33, tick, 0 );
-      lprintf( WIDE("Entered main at %") PTRSZVALfx, a );
+      lprintf( WIDE("Entered main at %") _64f, a );
 		SetRedrawHandler( display, Output, 0 );
 		UpdateDisplay( display );
 		ClearImageTo( GetDisplayImage( display ), 0xFF000000 );

@@ -504,7 +504,7 @@ int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 							//lprintf( "not used; not manual... reset %p to %p", l.hVirtualCaptured, l.hVirtualCapturedPrior );
 							if( l.hVirtualCaptured == NULL && l.hVirtualCapturedPrior != NULL )
 							{
-								lprintf( "This is an abnormality!" );
+								lprintf( WIDE("This is an abnormality!") );
 							}
 							if( l.hVirtualCaptured == l.hVirtualCapturedPrior && l.hVirtualCaptured )
 							{

@@ -1099,9 +1099,11 @@ void DrawSphereThing2( PHEXPATCH patch )
 		p[0] = 0;
 		p[1] = PLANET_RADIUS * 1.4f;
 		p[2] = 0;
-		ApplyRotation( l.transform, p2, p );
-		Translate( t, r[0] + p2[0], r[1] + p2[1], r[2] + p2[2] );		
-		Render3dImage( patch->label, TRUE );
+		//ApplyRotation( l.transform, p2, p );
+		//Translate( t, r[0] + p2[0], r[1] + p2[1], r[2] + p2[2] );
+		add( p2, p, r );
+      // render 3d does the rotation, and just requires the point to billboard it.
+		Render3dImage( patch->label, p2, TRUE );
 	}
 }
 

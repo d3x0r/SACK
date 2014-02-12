@@ -7,10 +7,10 @@
    
    This is automatically included with stdhdrs.h; however, when
    including sack_types.h, the minimal headers are pulled. stdhdrs.h */
-#if( __GNUC__ )
+//#if defined( __GNUC__ ) || defined( __WATCOMC__ )
 #define HAS_STDINT
 #include <stdint.h>
-#endif
+//#endif
 
 #ifdef _MSC_VER
 #ifndef _WIN32_WINNT
@@ -970,7 +970,13 @@ typedef unsigned short    _16;
 typedef _16             *P_16;
 #if defined( HAS_STDINT )
 /* An unsigned integer type that is 32 bits long. */
+#  ifdef WIN32
+// _32 needs to be compatible with DWORD and 'unsigned' while a 32 bit type, is not the same...
+// too many warnings; would require typecasts which would hide future problems.
+typedef unsigned long      _32;
+#  else
 typedef uint32_t           _32;
+#  endif
 #elif defined( __WATCOMC__ ) || (1)
 /* An unsigned integer type that is 32 bits long. */
 typedef unsigned long      _32;
@@ -1016,31 +1022,30 @@ typedef unsigned int  BIT_FIELD;
 #define PACKED
 #endif
 
-#if  _MSC_VER > 1000000
-
+#if defined( HAS_STDINT )
 /* An unsigned integer type that is 64 bits long. */
 typedef uint64_t _64;
 /* A signed integer type that is 64 bits long. */
 typedef int64_t  S_64;
 #else 
-#  if defined( __WATCOMC__ )
+#    if ( __64__ )
+#       if( WIN32 )
 /* An unsigned integer type that is 64 bits long. */
 typedef unsigned long long _64;
 /* A signed integer type that is 64 bits long. */
 typedef long long  S_64;
-#  else
-#    if ( __64__ )
+#       else
 /* An unsigned integer type that is 64 bits long. */
 typedef unsigned long _64;
 /* A signed integer type that is 64 bits long. */
 typedef long  S_64;
+#       endif( WIN32 )
 #    else
 /* An unsigned integer type that is 64 bits long. */
 typedef unsigned long long _64;
 /* A signed integer type that is 64 bits long. */
 typedef long long  S_64;
 #    endif
-#  endif
 #endif
 /* A pointer to an unsigned integer type that is 64 bits long. */
 typedef _64 *P_64;
@@ -1190,15 +1195,15 @@ SACK_NAMESPACE
 
 #if defined( __STDC_FORMAT_MACROS )
 
-#  define _32f   WIDE( PRIu32 )
-#  define _32fx   WIDE( PRIx32 )
-#  define _32fX   WIDE( PRIX32 )
-#  define _32fs   WIDE( PRId32 )
+#  define _32f   _WIDE( PRIu32 )
+#  define _32fx   _WIDE( PRIx32 )
+#  define _32fX   _WIDE( PRIX32 )
+#  define _32fs   _WIDE( PRId32 )
 
-#  define _64f    WIDE(PRIu64)
-#  define _64fx   WIDE(PRIx64)
-#  define _64fX   WIDE(PRIX64)
-#  define _64fs   WIDE(PRId64)
+#  define _64f    _WIDE(PRIu64)
+#  define _64fx   _WIDE(PRIx64)
+#  define _64fX   _WIDE(PRIX64)
+#  define _64fs   _WIDE(PRId64)
 
 // non-unicode strings
 #  define c_32f    PRIu32
@@ -1228,10 +1233,10 @@ SACK_NAMESPACE
 #  if defined( __STDC_FORMAT_MACROS )
 
 #    if !defined( __GNUC__ )
-#      define _size_f    WIDE( PRIu64 )
-#      define _size_fx   WIDE( PRIx64 )
-#      define _size_fX   WIDE( PRIX64 )
-#      define _size_fs   WIDE( PRId64 )
+#      define _size_f    _WIDE( PRIu64 )
+#      define _size_fx   _WIDE( PRIx64 )
+#      define _size_fX   _WIDE( PRIX64 )
+#      define _size_fs   _WIDE( PRId64 )
 #      define c_size_f    PRIu64
 #      define c_size_fx   PRIx64
 #      define c_size_fX   PRIX64
@@ -1247,8 +1252,8 @@ SACK_NAMESPACE
 #      define c_size_fs   "zd"
 #    endif
 
-#    define _PTRSZVALfs WIDE( PRIu64 )
-#    define _PTRSZVALfx WIDE( PRIx64 )
+#    define _PTRSZVALfs _WIDE( PRIu64 )
+#    define _PTRSZVALfx _WIDE( PRIx64 )
 #    define cPTRSZVALfs PRIu64
 #    define cPTRSZVALfx PRIx64 
 
@@ -1273,8 +1278,8 @@ SACK_NAMESPACE
 #      define c_size_fs   "zd"
 #    endif
 
-#    define PTRSZVALfs _64fs
-#    define PTRSZVALfx _64fx
+#    define _PTRSZVALfs _64fs
+#    define _PTRSZVALfx _64fx
 #    define cPTRSZVALfs c_64fs
 #    define cPTRSZVALfx c_64fx
 #  endif
@@ -1284,10 +1289,10 @@ SACK_NAMESPACE
 #  if defined( __STDC_FORMAT_MACROS )
 
 #    if !defined( __GNUC__ )
-#      define _size_f    WIDE( PRIu32 )
-#      define _size_fx   WIDE( PRIx32 )
-#      define _size_fX   WIDE( PRIX32 )
-#      define _size_fs   WIDE( PRId32 )
+#      define _size_f    _WIDE( PRIu32 )
+#      define _size_fx   _WIDE( PRIx32 )
+#      define _size_fX   _WIDE( PRIX32 )
+#      define _size_fs   _WIDE( PRId32 )
 #    else 
 #      define _size_f    WIDE( "zu" )
 #      define _size_fx   WIDE( "zx" )
@@ -1295,8 +1300,8 @@ SACK_NAMESPACE
 #      define _size_fs   WIDE( "zd" )
 #    endif
 
-#    define _PTRSZVALfs WIDE( PRIu64 )
-#    define _PTRSZVALfx WIDE( PRIx64 )
+#    define _PTRSZVALfs _WIDE( PRIu64 )
+#    define _PTRSZVALfx _WIDE( PRIx64 )
 #    define cPTRSZVALfs PRIu32
 #    define cPTRSZVALfx PRIx32
 #  else
@@ -1321,8 +1326,8 @@ SACK_NAMESPACE
 #      define c_size_fs   "zd"
 #    endif
 
-#    define PTRSZVALfs _32fs
-#    define PTRSZVALfx _32fx
+#    define _PTRSZVALfs _32fs
+#    define _PTRSZVALfx _32fx
 #    define cPTRSZVALfs c_32fs
 #    define cPTRSZVALfx c_32fs
 #  endif
@@ -1331,9 +1336,7 @@ SACK_NAMESPACE
 #define PTRSZVALf WIDE("p" )
 #define _PTRSZVALf WIDE("p" )
 
-#if defined( __WATCOMC__ ) //|| defined( _MSC_VER )
-#elif defined( __GNUC__ )
-#else // defined( _MSC_VER )
+#if defined( _MSC_VER )
 /* 64 bit unsigned decimal output printf format specifier. This would
    otherwise be defined in \<inttypes.h\> as PRIu64              */
 #define _64f    WIDE("llu")

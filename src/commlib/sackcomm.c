@@ -1287,7 +1287,7 @@ void DumpTermios( struct termios *opts )
 #endif
       snprintf ( cOut, sizeof( cOut ), WIDE("SackCommReadBuffer: read %d chars, error=%d")
                , nCharsRead, nCommError );
-      xlprintf(LOG_NOISE)( "%s", cOut );
+      xlprintf(LOG_NOISE)( WIDE("%s"), cOut );
 #ifndef __LINUX__
       lprintf ( WIDE("    cs.status=%u,0x%02X  cs.in=%u  cs.out=%u")
 #ifdef BCC_16

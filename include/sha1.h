@@ -26,9 +26,7 @@
 #define SHA1_PROC(type,name) IMPORT_METHOD type CPROC name
 #endif
 
-#if !defined( BCC32 ) && !defined( __WATCOMC__ ) && !defined( _MSC_VER )
-#include <stdint.h>
-#else
+#if !defined(  HAS_STDINT )
 #ifndef __WATCOMC__
 	typedef unsigned long uint32_t;
 	typedef short int_least16_t;

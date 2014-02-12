@@ -1731,7 +1731,7 @@ static void DrawLine( PCVECTOR a, PCVECTOR b, CDATA c )
 }
 
 
-static PTRSZVAL something3d( void* thisnode, PTRSZVAL psv )
+static PTRSZVAL CPROC something3d( void* thisnode, PTRSZVAL psv )
 {
 	PSPACEWEB_NODE node = (PSPACEWEB_NODE)thisnode;
 	struct drawdata *data = (struct drawdata*)psv;

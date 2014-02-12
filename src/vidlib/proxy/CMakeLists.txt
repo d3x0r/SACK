@@ -23,7 +23,10 @@ PROJECT( bag.video.proxy )
 ADD_DEFINITIONS( -DMAKE_RCOORD_SINGLE )
 
 set( PROJECT bag.video.proxy.server )
-sack_add_library( ${PROJECT} SHARED ${FIRST_GCC_LIBRARY_SOURCE} server.c keymap_linux.c imagepng.c ${MORE_SOURCES} ${LAST_GCC_LIBRARY_SOURCE})
+if( UNIX )
+set( MORE_SOURCES keymap_linux.c )
+endif( UNIX )
+sack_add_library( ${PROJECT} SHARED ${FIRST_GCC_LIBRARY_SOURCE} server.c imagepng.c ${MORE_SOURCES} ${LAST_GCC_LIBRARY_SOURCE})
 target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
 install_default_dest( ${PROJECT} )
   SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES	FOLDER "Video Renderer"   
