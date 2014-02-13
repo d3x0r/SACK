@@ -4620,7 +4620,6 @@ PVIDEO  OpenDisplayAboveUnderSizedAt (_32 attr, _32 wx, _32 wy,
 
 void  CloseDisplay (PVIDEO hVideo)
 {
-	lprintf( WIDE("close display %p"), hVideo );
 	// just kills this video handle....
 	if (!hVideo)         // must already be destroyed, eh?
 		return;
@@ -4630,7 +4629,6 @@ void  CloseDisplay (PVIDEO hVideo)
 	// take this out of the list of active windows...
 	DeleteLink( &l.pActiveList, hVideo );
 	UnlinkVideo( hVideo );
-	lprintf( WIDE("and we should be ok?") );
 	hVideo->flags.bDestroy = 1;
 
 	// the scan of inactive windows releases the hVideo...

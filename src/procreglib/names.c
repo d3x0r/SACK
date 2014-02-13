@@ -1443,8 +1443,6 @@ PROCREG_PROC( int, GetRegisteredIntValue )( PCLASSROOT name_class, CTEXTSTR name
 PROCREG_PROC( PCLASSROOT, RegisterClassAliasEx )( PCLASSROOT root, CTEXTSTR original, CTEXTSTR alias )
 {
 	PTREEDEF class_root = GetClassTreeEx( root, (PCLASSROOT)original, NULL, TRUE );
-	if( l.flags.bTraceInterfaceLoading )
-		lprintf( WIDE("Registering alias %s=%s %p"), alias, original, class_root );
 	return GetClassTreeEx( root, (PCLASSROOT)alias, class_root, TRUE );
 }
 
