@@ -154,13 +154,13 @@ int SetActiveGLDisplayView( struct display_camera *camera, int nFracture )
 	return TRUE;
 #elif defined( __LINUX__ )
 	{
-      static struct display_camera *last_active;
-      GLWindow *GLWin;
+		static struct display_camera *last_active;
+		GLWindow *GLWin;
 		if( camera )
 		{
 			if( camera->hVidCore )
 			{
-            last_active = camera;
+				last_active = camera;
 				GLWin = camera->hVidCore->x11_gl_window;
 				glXMakeCurrent(GLWin->dpy, GLWin->win, GLWin->ctx);
 			}
@@ -169,7 +169,7 @@ int SetActiveGLDisplayView( struct display_camera *camera, int nFracture )
 		{
 			if( last_active )
 			{
-				GLWin = last_active->hVidCOre->x11_gl_window;
+				GLWin = last_active->hVidCore->x11_gl_window;
 				glXSwapBuffers( GLWin->dpy, GLWin->win);
 				last_active = NULL;
 			}
