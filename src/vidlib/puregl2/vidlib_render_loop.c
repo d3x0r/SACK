@@ -1,6 +1,7 @@
 #define NO_UNICODE_C
 #define FIX_RELEASE_COM_COLLISION
 
+
 #include <stdhdrs.h>
 #include "local.h"
 
@@ -57,7 +58,9 @@ void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar)
 	 m[3][2] = -2.0f * zNear * zFar / deltaZ;
 #endif
 	 m[3][3] = 0;
-    glMultMatrixf(m);
+#ifdef ALLOW_SETTING_GL1_MATRIX
+	 glMultMatrixf(&m[0][0]);
+#endif
 #undef m
 }
 

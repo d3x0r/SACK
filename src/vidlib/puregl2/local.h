@@ -1,7 +1,6 @@
 #ifndef l
 #define l local_opengl_video_common
 #endif
-
 #ifndef USE_IMAGE_INTERFACE
 #define USE_IMAGE_INTERFACE l.gl_image_interface
 #endif
@@ -51,10 +50,12 @@ using namespace DirectX;
 #if defined( __ANDROID__ ) || defined( __QNX__ )
 #include <GLES2/gl2.h>
 #else
+#define ALLOW_SETTING_GL1_MATRIX
 #include <GL/gl.h>
 #include <GL/glext.h>
 #endif
 #else
+#define ALLOW_SETTING_GL1_MATRIX
 //#include "../glext.h"
 #endif
 
