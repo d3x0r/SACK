@@ -568,7 +568,9 @@ PTRSZVAL CPROC ProcessDisplayMessages( PTHREAD thread )
 	struct display_camera *camera;
 	INDEX idx;
    struct display_camera *did_one;
+lprintf( "Load options..." );
 	LoadOptions(); // loads camera config, and logging options...
+lprintf( "Open Cameras..." );
 	SACK_Vidlib_OpenCameras();  // create logical camera structures
 	l.bThreadRunning = 1;
 	while( 1 )
@@ -591,19 +593,23 @@ PTRSZVAL CPROC ProcessDisplayMessages( PTHREAD thread )
 					did_one = camera;
 					XNextEvent(x11_gl_window->dpy, &event);
 					//if( l.flags.bLogMessageDispatch )
-					lprintf( WIDE("(E)Got message:%d"), event.type );
+					//	lprintf( WIDE("(E)Got message:%d"), event.type );
 					HandleMessage( camera->hVidCore, x11_gl_window, &event );
 					//if( l.flags.bLogMessageDispatch )
-					lprintf( WIDE("(X)Got message:%d"), event.type );
+					//	lprintf( WIDE("(X)Got message:%d"), event.type );
 				}
 				//lprintf( "Draw GL..." );
 				//drawGLScene( camera, x11_gl_window );
-				ProcessGLDraw( TRUE );
 
+				//  calls Update; moves the camera if it has a motion...
+				// does a global tick then draws all cameras
+				// returns if draw should be done; might step and draw one message
+				// loop for each camera instead
+				ProcessGLDraw( TRUE );
 			}
 		}
-		if( !did_one )
-			Relinquish();
+		//if( !did_one )
+		Relinquish();
 	}
 	return 1;
 }
@@ -611,7 +617,7 @@ PTRSZVAL CPROC ProcessDisplayMessages( PTHREAD thread )
 // init the thread;
 // without cameras, the thread will be idle anyway, so we should be able to
 // start this slightly before registering the interface
-PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY - 1 )
+PRIORITY_PRELOAD( VideoRegisterInterface, DEFAULT_PRELOAD_PRIORITY + 3 )
 {
    ThreadTo( ProcessDisplayMessages, 0 );
 }

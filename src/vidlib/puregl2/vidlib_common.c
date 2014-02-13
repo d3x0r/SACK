@@ -592,13 +592,12 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 {
 	struct display_camera *camera;
 	INDEX idx;
-	//lprintf( WIDE( "-----Create WIndow Stuff----- %s %s" ), hVideo->flags.bLayeredWindow?WIDE( "layered" ):WIDE( "solid" )
-	//		 , hVideo->flags.bChildWindow?WIDE( "Child(tool)" ):WIDE( "user-selectable" ) );
 	LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
 	{
+   lprintf( "Open camera %d", idx);
 		if( !idx ) // default camera is a duplicate of another camera
 			continue;
-
+lprintf( "Not Skipped..." );
 		if( camera->flags.opening )
 			continue;
 
@@ -635,6 +634,7 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 		camera->flags.opening = 0;
 		// extra init iterates through registered plugins and
 		// loads their initial callbacks; the actual OnIni3d() has many more params
+		lprintf( "Invoke init on camera (should be a valid device by here?" );
 		InvokeExtraInit( camera, camera->origin_camera );
 
 		// first draw allows loading textures and shaders; so reset that we did a first draw.

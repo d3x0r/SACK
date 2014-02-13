@@ -13,7 +13,7 @@
 // useful logging is now controlled with l.flags.bLog
 #define DISABLE_DEBUG_REGISTER_AND_DISPATCH
 //#define DEBUG_SHUTDOWN
-#define LOG_ALL 0
+#define LOG_ALL 1
 
 //
 // core library load
@@ -115,6 +115,7 @@ struct deadstart_local_data_
 #  endif
 #endif
 
+#define __STATIC_GLOBALS__
 #ifndef __STATIC_GLOBALS__
 static struct deadstart_local_data_ *deadstart_local_data;
 #define l (*deadstart_local_data)

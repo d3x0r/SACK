@@ -387,13 +387,13 @@ void drawCamera( struct display_camera *camera )
    // skip the 'default' camera.
 	// if plugins or want update, don't continue.
 	if( !camera->plugins && !l.flags.bUpdateWanted )
-		continue;
-	
+		return;
 	if( !camera->hVidCore || !camera->hVidCore->flags.bReady )
-		continue;
+		return;
 	if( camera->flags.first_draw )
 	{
 		struct plugin_reference *reference;
+		INDEX idx;
 		//lprintf( WIDE("camera is in first_draw...") );
 		LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
 		{
