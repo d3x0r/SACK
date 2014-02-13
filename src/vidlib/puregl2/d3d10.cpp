@@ -99,7 +99,6 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 static int mode = MODE_UNKNOWN;
 
 
-void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar);
 
 static void BeginVisPersp( struct display_camera *camera )
 {

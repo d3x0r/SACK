@@ -93,7 +93,7 @@ void resizeGLScene(unsigned int width, unsigned int height)
     glViewport(0, 0, width, height);    /* Reset The Current Viewport And Perspective Transformation */
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
+    MygluPerspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -303,7 +303,7 @@ static int mode = MODE_UNKNOWN;
 		mode = MODE_PERSP;
 		glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 		glLoadIdentity();									// Reset The Projection Matrix
-		gluPerspective(90.0f,camera->aspect,1.0f,30000.0f);
+		MygluPerspective(90.0f,camera->aspect,1.0f,30000.0f);
 		glGetFloatv( GL_PROJECTION_MATRIX, l.fProjection );
 
 		glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
