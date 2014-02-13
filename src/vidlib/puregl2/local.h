@@ -440,6 +440,7 @@ void SACK_Vidlib_ProcessKeyState( int pressed, int key_index, int *used );
 //-------------------  render utility ------------
 void Render3D( struct display_camera *camera );
 void WantRender3D( void );
+void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar);
 
 // -------------  physical interface - WIN32 ------------
 void OpenWin32Camera( struct display_camera *camera );

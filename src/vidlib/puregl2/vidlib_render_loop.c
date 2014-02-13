@@ -57,8 +57,8 @@ void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar)
 	 m[3][2] = -2.0f * zNear * zFar / deltaZ;
 #endif
 	 m[3][3] = 0;
+    glMultMatrixf(m);
 #undef m
-    //glMultMatrixf(&m[0][0]);
 }
 
 

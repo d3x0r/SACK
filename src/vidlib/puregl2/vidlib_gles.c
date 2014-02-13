@@ -18,35 +18,6 @@ RENDER_NAMESPACE
 
 #define __glPi 3.14159265358979323846
 
-static void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar)
-{
-#define m l.fProjection
-    //GLfloat m[4][4];
-    GLfloat sine, cotangent, deltaZ;
-    GLfloat radians=(GLfloat)(fovy/2.0f*__glPi/180.0f);
-
-    /*m[0][0] = 1.0f;*/ m[0][1] = 0.0f; m[0][2] = 0.0f; m[0][3] = 0.0f;
-    m[1][0] = 0.0f; /*m[1][1] = 1.0f;*/ m[1][2] = 0.0f; m[1][3] = 0.0f;
-    m[2][0] = 0.0f; m[2][1] = 0.0f; /*m[2][2] = 1.0f; m[2][3] = 0.0f;*/
-	 m[3][0] = 0.0f; m[3][1] = 0.0f; /*m[3][2] = 0.0f; m[3][3] = 1.0f;*/
-
-    deltaZ=zFar-zNear;
-    sine=(GLfloat)sin(radians);
-    if ((deltaZ==0.0f) || (sine==0.0f) || (aspect==0.0f))
-    {
-        return;
-    }
-    cotangent=(GLfloat)(cos(radians)/sine);
-
-    m[0][0] = cotangent / aspect;
-    m[1][1] = cotangent;
-    m[2][2] = -(zFar + zNear) / deltaZ;
-    m[2][3] = -1.0f;
-    m[3][2] = -2.0f * zNear * zFar / deltaZ;
-	 m[3][3] = 0;
-#undef m
-    //glMultMatrixf(&m[0][0]);
-}
 
 int InitGL( struct display_camera *camera )										// All Setup For OpenGL Goes Here
 {

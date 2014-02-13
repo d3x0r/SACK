@@ -72,7 +72,6 @@ RENDER_NAMESPACE
 // move local into render namespace.
 
 HWND  GetNativeHandle (PVIDEO hVideo);
-void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar);
 
 extern KEYDEFINE KeyDefs[];
 
