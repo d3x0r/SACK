@@ -1198,58 +1198,7 @@ WM_DROPFILES
 			return 0;
 		if( l.redraw_timer_id  == wParam )
 		{
-			if( l.flags.bLogRenderTiming )
-				lprintf( WIDE("Begin Draw Tick") );
-			Move( l.origin );
-
-			{
-				INDEX idx;
-				Update3dProc proc;
-				LIST_FORALL( l.update, idx, Update3dProc, proc )
-				{
-					if( proc( l.origin ) )
-						l.flags.bUpdateWanted = TRUE;
-				}
-			}
-
-         // no reason to check this if an update is already wanted.
-			if( !l.flags.bUpdateWanted )
-			{
-				// set l.flags.bUpdateWanted for window surfaces.
-				WantRender3D();
-			}
-
-			{
-				struct display_camera *camera;
-				INDEX idx;
-				LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
-				{
-               // skip the 'default' camera.
-					if( !idx )
-                  continue;
-					// if plugins or want update, don't continue.
-					if( !camera->plugins && !l.flags.bUpdateWanted )
-						continue;
-					
-					if( !camera->hVidCore || !camera->hVidCore->flags.bReady )
-						continue;
-					if( camera->flags.first_draw )
-					{
-						struct plugin_reference *reference;
-						//lprintf( WIDE("camera is in first_draw...") );
-						LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
-						{
-							//lprintf( WIDE("so reset plugin... is there one?") );
-							reference->flags.did_first_draw = 0;
-						}
-					}
-					//lprintf( WIDE("Render camera %p"), camera );
-					// drawing may cause subsequent draws; so clear this first
-					Render3D( camera );
-					camera->flags.first_draw = 0;
-				}
-				l.flags.bUpdateWanted = 0;
-			}
+         ProcessGLDraw( TRUE );
 		}
 		if( l.mouse_timer_id == wParam )
 		{

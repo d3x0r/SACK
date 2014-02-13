@@ -1928,5 +1928,7 @@ void UnlockRenderer( PRENDERER render )
 	LeaveCriticalSec( &render->cs );
 }
 
+
+
 RENDER_NAMESPACE_END
 

@@ -115,6 +115,8 @@ int initGL(GLWindow *GLWin )
 /* Here goes our drawing code */
 int drawGLScene( struct display_camera *camera, GLWindow *GLWin)
 {
+	ProcessGLDraw( TRUE );
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
     
@@ -174,9 +176,10 @@ GLWindow * createGLWindow(struct display_camera *camera)
 		x11_gl_window->dpy = XOpenDisplay(0);
 		if( x11_gl_window->dpy )
 		{
+			x11_gl_window->screen = DefaultScreen(x11_gl_window->dpy);
+#if 0
 			x11_gl_window->atom_create = XInternAtom( x11_gl_window->dpy, "UserCreateWindow", 0 );
 
-			x11_gl_window->screen = DefaultScreen(x11_gl_window->dpy);
 			XF86VidModeQueryVersion(x11_gl_window->dpy, &vidModeMajorVersion,
 		        &vidModeMinorVersion);
 		    printf("XF86VidModeExtension-Version %d.%d\n", vidModeMajorVersion,
@@ -195,6 +198,7 @@ GLWindow * createGLWindow(struct display_camera *camera)
 					 }
 				 }
 			 }
+#endif
     /* get an appropriate visual */
     vi = glXChooseVisual(x11_gl_window->dpy, x11_gl_window->screen, attrListDbl);
     if (vi == NULL)
@@ -593,7 +597,9 @@ PTRSZVAL CPROC ProcessDisplayMessages( PTHREAD thread )
 					lprintf( WIDE("(X)Got message:%d"), event.type );
 				}
 				//lprintf( "Draw GL..." );
-				drawGLScene( camera, x11_gl_window );
+				//drawGLScene( camera, x11_gl_window );
+				ProcessGLDraw( TRUE );
+
 			}
 		}
 		if( !did_one )

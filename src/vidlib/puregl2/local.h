@@ -1,7 +1,6 @@
 #ifndef l
 #define l local_opengl_video_common
 #endif
-
 #ifndef USE_IMAGE_INTERFACE
 #define USE_IMAGE_INTERFACE l.gl_image_interface
 #endif
@@ -51,10 +50,12 @@ using namespace DirectX;
 #if defined( __ANDROID__ ) || defined( __QNX__ )
 #include <GLES2/gl2.h>
 #else
+#define ALLOW_SETTING_GL1_MATRIX
 #include <GL/gl.h>
 #include <GL/glext.h>
 #endif
 #else
+#define ALLOW_SETTING_GL1_MATRIX
 //#include "../glext.h"
 #endif
 
@@ -441,6 +442,9 @@ void SACK_Vidlib_ProcessKeyState( int pressed, int key_index, int *used );
 void Render3D( struct display_camera *camera );
 void WantRender3D( void );
 void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar);
+void ProcessGLDraw( LOGICAL draw_all );
+void drawCamera( struct display_camera *camera );
+
 
 // -------------  physical interface - WIN32 ------------
 void OpenWin32Camera( struct display_camera *camera );

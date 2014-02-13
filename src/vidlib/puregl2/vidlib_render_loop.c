@@ -1,6 +1,7 @@
 #define NO_UNICODE_C
 #define FIX_RELEASE_COM_COLLISION
 
+
 #include <stdhdrs.h>
 #include "local.h"
 
@@ -57,7 +58,9 @@ void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar)
 	 m[3][2] = -2.0f * zNear * zFar / deltaZ;
 #endif
 	 m[3][3] = 0;
-    glMultMatrixf(m);
+#ifdef ALLOW_SETTING_GL1_MATRIX
+	 glMultMatrixf(&m[0][0]);
+#endif
 #undef m
 }
 
@@ -104,7 +107,18 @@ void Render3D( struct display_camera *camera )
 	if( l.flags.bLogRenderTiming )
 		lprintf( WIDE("Begin Render") );
 
-   	l.current_render_camera = camera;
+	if( camera->flags.first_draw )
+	{
+		struct plugin_reference *reference;
+		//lprintf( WIDE("camera is in first_draw...") );
+		LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
+		{
+			//lprintf( WIDE("so reset plugin... is there one?") );
+			reference->flags.did_first_draw = 0;
+		}
+	}
+
+  	l.current_render_camera = camera;
 	l.flags.bViewVolumeUpdated = 1;
 #ifdef __3D__
 	Init3D( camera );
@@ -368,6 +382,69 @@ void Render3D( struct display_camera *camera )
 	EndActive3D( camera );
 }
 
+void drawCamera( struct display_camera *camera )
+{
+   // skip the 'default' camera.
+	// if plugins or want update, don't continue.
+	if( !camera->plugins && !l.flags.bUpdateWanted )
+		continue;
+	
+	if( !camera->hVidCore || !camera->hVidCore->flags.bReady )
+		continue;
+	if( camera->flags.first_draw )
+	{
+		struct plugin_reference *reference;
+		//lprintf( WIDE("camera is in first_draw...") );
+		LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
+		{
+			//lprintf( WIDE("so reset plugin... is there one?") );
+			reference->flags.did_first_draw = 0;
+		}
+	}
+	//lprintf( WIDE("Render camera %p"), camera );
+	// drawing may cause subsequent draws; so clear this first
+	Render3D( camera );
+	camera->flags.first_draw = 0;
+}
+
+
+LOGICAL ProcessGLDraw( LOGICAL draw_all )
+{
+	if( l.flags.bLogRenderTiming )
+		lprintf( WIDE("Begin Draw Tick") );
+	Move( l.origin );
+
+	{
+		INDEX idx;
+		Update3dProc proc;
+		LIST_FORALL( l.update, idx, Update3dProc, proc )
+		{
+			if( proc( l.origin ) )
+				l.flags.bUpdateWanted = TRUE;
+		}
+	}
+
+	// no reason to check this if an update is already wanted.
+	if( !l.flags.bUpdateWanted )
+	{
+		// set l.flags.bUpdateWanted for window surfaces.
+		WantRender3D();
+	}
+
+   if( draw_all )
+	{
+		struct display_camera *camera;
+		INDEX idx;
+		LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
+		{
+			// skip the 'default' camera.
+			if( !idx )
+				continue;
+			drawCamera( camera );
+		}
+		l.flags.bUpdateWanted = 0;
+	}
+}
 
 
 
