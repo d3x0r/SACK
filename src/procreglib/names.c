@@ -1744,6 +1744,25 @@ static PTRSZVAL CPROC HandleModule( PTRSZVAL psv, arg_list args )
 		SuspendDeadstart();
 	}
 
+	LoadFunction( module, NULL );
+	return psv;
+}	
+
+//-----------------------------------------------------------------------
+
+static PTRSZVAL CPROC HandlePrivateModule( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, TEXTCHAR*, module );
+	if( l.flags.bFindEndif || l.flags.bFindElse )
+		return psv;
+	if( l.flags.bTraceInterfaceLoading )
+		lprintf( WIDE( "loadprivate %s" ), module );
+	if( !l.flags.bHeldDeadstart )
+	{
+		l.flags.bHeldDeadstart = 1;
+		SuspendDeadstart();
+	}
+
 	LoadPrivateFunction( module, NULL );
 	return psv;
 }	
@@ -1803,12 +1822,13 @@ static PTRSZVAL CPROC HandleModulePath( PTRSZVAL psv, arg_list args )
 	filepath = ExpandPath( filepath );
 	if( l.flags.bFindEndif || l.flags.bFindElse )
 		return psv;
-
-	{
-# ifndef UNDER_CE
-		OSALOT_AppendEnvironmentVariable( WIDE("PATH"), filepath );
+# ifdef __LINUX__
+	OSALOT_AppendEnvironmentVariable( WIDE("LD_LIBRARY_PATH"), filepath );
+# else
+#  ifndef UNDER_CE
+	OSALOT_AppendEnvironmentVariable( WIDE("PATH"), filepath );
+#  endif
 # endif
-	}
 	Release( filepath );
 	return psv;
 }
@@ -1962,29 +1982,9 @@ void ReadConfiguration( void )
 		AddConfigurationMethod( pch, WIDE( "else" ), ElseTestOption );
 
 		AddConfigurationMethod( pch, WIDE("service=%w library=%w load=%w unload=%w"), HandleLibrary );
-#if defined( WIN32 ) || defined( _WIN32 ) || defined( __CYGWIN__ )
-		AddConfigurationMethod( pch, WIDE("win32 service=%w library=%w load=%w unload=%w"), HandleLibrary );
-#elif defined( __LINUX__ )
-		AddConfigurationMethod( pch, WIDE("linux service=%w library=%w load=%w unload=%w"), HandleLibrary );
-#endif
 		AddConfigurationMethod( pch, WIDE("alias service %w %w"), HandleAlias );
-#if defined( WIN32 ) || defined( _WIN32 ) || defined( __CYGWIN__ )
-		AddConfigurationMethod( pch, WIDE("win32 alias service %w %w"), HandleAlias );
-#elif defined( __LINUX__ )
-		AddConfigurationMethod( pch, WIDE("linux alias service %w %w"), HandleAlias );
-#endif
 		AddConfigurationMethod( pch, WIDE("module %w"), HandleModule );
-#if defined( WIN32 ) || defined( _WIN32 ) || defined( __CYGWIN__ )
-		AddConfigurationMethod( pch, WIDE("win32 module %w"), HandleModule );
-#elif defined( __LINUX__ )
-		AddConfigurationMethod( pch, WIDE("linux module %w"), HandleModule );
-#endif
-
-#if defined( WIN32 ) || defined( _WIN32 ) || defined( __CYGWIN__ )
-      AddConfigurationMethod( pch, WIDE("win32 module path %w"), HandleModulePath );
-#elif defined( __LINUX__ )
-		AddConfigurationMethod( pch, WIDE("linux module path %w"), HandleModulePath );
-#endif
+		AddConfigurationMethod( pch, WIDE("pmodule %w"), HandlePrivateModule );
 		AddConfigurationMethod( pch, WIDE("modulepath %m"), HandleModulePath );
 
 		{

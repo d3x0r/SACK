@@ -29,7 +29,7 @@ static void BeginVisPersp( struct display_camera *camera )
 {
 	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 	glLoadIdentity();									// Reset The Projection Matrix
-	gluPerspective(90.0f,camera->aspect,1.0f,camera->depth);
+	MygluPerspective(90.0f,camera->aspect,1.0f,camera->depth);
 	glGetFloatv( GL_PROJECTION_MATRIX, (GLfloat*)l.fProjection );
 	PrintMatrix( l.fProjection );
 	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
