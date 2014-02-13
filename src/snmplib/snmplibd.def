@@ -1,0 +1,14 @@
+
+LIBRARY snmplibd.dll
+
+EXPORTS
+	ServeUDP
+
+	doUDPRead
+	RemoveClientEx
+
+	SetNetworkLong
+	SetNetworkWord
+	GetNetworkLong
+	GetNetworkWord
+

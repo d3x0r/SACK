@@ -1,0 +1,44 @@
+<html>
+<body>
+
+/debug on
+/make userdb sql mysql
+
+# an interesting phenomenon about unaware objects...
+# macro recording does not have to be done on it by it, 
+# but the states are maintained on the current sentience
+
+/mac test user password
+/%room/vars
+/userdb/query record select * from permission_user_info where name='%user' and password=sha1('%password')
+/if fail
+/echo this is all bad
+/else
+/decl in %me session_id %userdb.record.user_id
+/decl myip %server_ip
+/userdb/dest record
+/userdb/query record select system_id from systems where address='%myip'
+/userdb/record first
+/compare %userdb.record.rows is 0
+/if success
+/userdb/cmd insert into systems (name,address) values ('dekware bank autotrack','%myip')
+/userdb/record/requery
+#/userdb/record first 
+/userdb/record/vvars
+
+/endif
+/decl system_id %userdb.record.system_id
+/userdb/command insert into bank_login_ledger (user_id,session_id,IP,system_id,nodeIP) values ( %(%room)session_id, '%(%room)session_id', '%(%room)client_ip', %system_id, '%(%room)server_ip' )
+/userdb/query record select last_insert_id() as id
+/push %session_id %userdb.record.id
+<input type=\"hidden\" name=\"session_id\" value=\"%session_id\">
+/endif
+
+/endmac
+
+/vvars 
+
+/run test %username %password
+
+
+</body></html>

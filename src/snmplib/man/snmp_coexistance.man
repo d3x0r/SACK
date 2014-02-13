@@ -1,0 +1,27 @@
+.SH NAME
+snmp_coexist_V2toV1, snmp_coexist_V1toV2 \- Translate SNMP packets
+.SH SYNOPSIS
+.B cc
+.RI "[ " "flag" " \|.\|.\|. ] " "file" " \|.\|.\|."
+.B \-lsnmp
+.RI "[ " "library" " \|.\|.\|. ]"
+.LP
+.B #include <sys/types.h>
+.br
+.B #include <snmp/snmp.h>
+.LP
+.BI "int snmp_coexist_V2toV1(struct snmp_pdu " "PDU");
+.LP
+.BI "int snmp_coexist_V1toV2(struct snmp_pdu " "PDU");
+.SH DESCRIPTION
+Both functions convert the specified packet to the appropriate
+version.  These functions are designed to work in an SNMP agent, and
+convert requests to allow a V1 agent to communicate with a V2 manager.
+.SH "RETURN VALUE"
+All functions return 1 upon success, 0 otherwise.
+.SH ERRORS
+If any of these return unsuccessfully, 
+.B snmp_api_error(\|)
+will be set.
+.SH WARNINGS
+These functions have never been tested.

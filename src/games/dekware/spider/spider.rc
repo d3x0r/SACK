@@ -1,0 +1,177 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "windows.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""windows.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+SPIDERSTATUS DIALOGEX 0, 0, 187, 165
+STYLE DS_MODALFRAME | DS_NOIDLEMSG | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Spider Status"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        EDT_URL,7,20,140,12,ES_AUTOHSCROLL
+    CONTROL         "128",CHK_128,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,7,43,16,9
+    CONTROL         "64",CHK_64,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,24,43,16,9
+    CONTROL         "32",CHK_32,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,40,43,16,9
+    CONTROL         "16",CHK_16,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,56,43,16,9
+    CONTROL         "8",CHK_8,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,72,43,16,9
+    CONTROL         "4",CHK_4,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,88,43,16,9
+    CONTROL         "2",CHK_2,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,104,43,16,9
+    CONTROL         "1",CHK_1,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,120,43,16,9
+    CONTROL         "128",CHK_128REQ,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,7,61,16,8
+    CONTROL         "64",CHK_64REQ,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,24,61,16,8
+    CONTROL         "32",CHK_32REQ,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,40,61,16,8
+    CONTROL         "16",CHK_16REQ,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,56,61,16,8
+    CONTROL         "8",CHK_8REQ,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,72,61,16,8
+    CONTROL         "4",CHK_4REQ,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,88,61,16,8
+    CONTROL         "2",CHK_2REQ,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,104,61,16,8
+    CONTROL         "1",CHK_1REQ,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,120,61,16,8
+    CONTROL         "32k",CHK_32kREQ,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,7,69,16,8
+    CONTROL         "16k",CHK_16kREQ,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,24,69,16,8
+    CONTROL         "8k",CHK_8kREQ,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,40,69,16,8
+    CONTROL         "4k",CHK_4kREQ,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,56,69,16,8
+    CONTROL         "2k",CHK_2kREQ,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,72,69,16,8
+    CONTROL         "1k",CHK_1kREQ,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,88,69,16,8
+    CONTROL         "512",CHK_512REQ,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,104,69,16,8
+    CONTROL         "256",CHK_256REQ,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | 
+                    WS_TABSTOP,120,69,16,8
+    CONTROL         "Raw",RDO_RAW,"Button",BS_AUTORADIOBUTTON,7,79,30,8
+    CONTROL         "Netscape 4.5",RDO_NETSCAPE45,"Button",
+                    BS_AUTORADIOBUTTON,7,88,56,8
+    CONTROL         "Explorer 5.0",RDO_EXPLORER50,"Button",
+                    BS_AUTORADIOBUTTON,7,97,51,8
+    CONTROL         "Panther 1.0",RDO_PANTHER,"Button",BS_AUTORADIOBUTTON,7,
+                    106,49,10
+    CONTROL         "Follow Links",CHK_LINKS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,70,78,53,10
+    CONTROL         "Follow Forms",CHK_FORMS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,70,88,56,10
+    CONTROL         "Follow Link Text ......",CHK_FOLLOW_TEXT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,80,98,74,10
+    EDITTEXT        EDT_FOLLOW_TEXT,68,109,112,12,ES_AUTOHSCROLL
+    EDITTEXT        EDT_DIR,67,129,113,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "Go",IDOK,154,21,19,14
+    PUSHBUTTON      "All",BTN_ALL,125,82,27,13
+    PUSHBUTTON      "Site",BTN_SITE,153,82,27,13
+    PUSHBUTTON      "Cancel",IDCANCEL,130,144,50,14
+    LTEXT           "Starting URL",IDC_STATIC,7,7,41,10
+    LTEXT           "Connections",TXT_CONNECTIONS,7,149,69,9
+    LTEXT           "Max Threads",IDC_STATIC,9,34,42,8
+    LTEXT           "Static",TXT_TOTAL,139,41,22,13,0,WS_EX_DLGMODALFRAME
+    CTEXT           "Static",TXT_REQUESTS,139,62,22,13,0,WS_EX_DLGMODALFRAME
+    LTEXT           "Max Requests",IDC_STATIC,7,53,49,8
+    LTEXT           "0",TXT_PENDING,37,126,25,8
+    LTEXT           "0",TXT_COMPLETED,37,136,29,8
+    LTEXT           "Pending",IDC_STATIC,7,126,27,8
+    LTEXT           "Done",IDC_STATIC,7,136,18,8
+    LTEXT           "Save Files Here: ",IDC_STATIC,67,121,55,8
+    LTEXT           "Rate",IDC_STATIC,7,117,16,8
+    LTEXT           "",TXT_RATE,37,116,25,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    "SPIDERSTATUS", DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 158
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

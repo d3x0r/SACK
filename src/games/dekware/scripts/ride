@@ -1,0 +1,32 @@
+
+/decl ridedir e
+
+/trigger crea makilorend exits: west up
+/decl ridedir w
+. %ridedir
+/endmac
+
+/trigger crea tansarbend One miserable gold coin.
+/compare %ridedir is w
+/if success
+/decl ridedir s
+/else
+/decl ridedir e
+/endif
+. %ridedir
+/endmac
+
+/trigger crea tansarend The Throne
+/decl ridedir n
+/endmac
+
+/trigger crea stepit a &what, mounted by you, is here.
+. %ridedir
+/endmac
+
+/trigger create mounttired your mount is too exhausted.
+#.cast 'ref' horse
+#.cast 'ref' horse
+#.cast 'ref' horse
+#.l
+/endmac

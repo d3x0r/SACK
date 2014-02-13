@@ -1,0 +1,1 @@
+add_plugin( math.nex misc math.c )

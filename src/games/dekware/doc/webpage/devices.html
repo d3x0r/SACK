@@ -1,0 +1,255 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+
+<FONT size=+3>
+<CENTER>
+Devices
+</CENTER>
+</FONT>
+<a href="plugins.html" OnMouseOver="window.status='Other plugins';return true" OnMouseOut="window.status=''">Return to Plugins</A><br>
+<hr>
+<p>
+<menu>
+<li>window
+<menu>Windows standard MDI type interface.  Supports multiple client windows
+which can be tiled, uses ctrl-tab to switch between sub-windows.  alt-v paste,
+no mark/copy (to be done - eventually).  Device does line buffering (terminated with \n).</menu>
+<li>psicon
+<menu>Windows/Linux gui type interface.  Limited functionality for multiple
+windows.  Uses SDL(patched) as it's base interface, giving a graphical interface
+to X, framebuffer, SVGALib(untested), etc... Under windows, uses the native 
+windowing environment, under linux, it is constrained to one display surface,
+within which it can open multiple client displays.
+<li>console
+<menu>Text command prompt-like console input.  On NT family systems, this 
+can support up to 9999 lines of history, uses default system copy/cut/paste
+mechanisms. Device does line buffering (terminated with \n).</menu>
+<li>cursecon
+<menu>On Unix type systems (Linux/FreeBSD) this is a console environment which
+uses curses to display active information.  Supports pg-up/pg-down type scrollback
+standard X terminal type copy/paste.  Can be in line mode or direct mode.  
+Line mode implies a command line seperate from the result data.  Direct mode
+implies entering commands in place on the display. Device does line buffering (terminated with \n).</menu>
+<li>file
+<menu>Input from a file. Opening the device required device specific parameter 
+filename.  
+<p>Optional paramaters: <menu>
+<li> __input opens the file for read. 
+<li> __output opens the file for writing - sets 
+the position at the end of the file, and takes no input from the file, all
+output is appended to the end of the file. 
+<li> If __input only then the file is opened for reading only, and positioned
+at the beginning of the file.
+<li> If __output only, then the file is created for writing.  (Any prior file
+content is destroyed).
+<li> If __input and __output__ then the file is opened for read or write, and
+the current position is set at the end of the file (for append).
+</menu>
+<p>All tokens after the device name (and after
+optional __input parameter) are taken as the file name.
+Device input is in line format, with terminating \n.
+If there are \r characters they are also present.
+<p>Options available after open: <menu>
+<li> close - When reading the file, and the end of file is encountered,
+ the device automatically closes.  Any filters also open on the file are closed
+ until the next 'data source' type device.
+<li> follow - When reading the file, when the end of the file is encountered, 
+wait for more data, at which time, read and return the next data.
+<li> relay - Data from devices further down the open device list from this 
+is relayed as input.&nbsp; Typically this would be used when there's a file
+for input open, and then this file is opened for output.  Data input from the
+file beyond would be relayed in, but of course any data outbound would be
+written into the open output file.
+</menu>
+</menu>
+<li>tcp
+<menu>Input from a tcp socket device.  Parameter required is the address 
+to connect to, in 'standard' IP:PORT format.  IP may be a name or numeric.
+Port may be a service name or numeric.
+Input is a block of data, up to 4096 
+characters.  No formatting is done at this level.</menu>
+<li>tcpserver
+<menu>Opens a port for listening.  Parameter requiried is the port number 
+to listen on.  This may also have the IP specified, if the machine is mutli-homed.
+Input is a block of data up to 4096 characters, no formatting is done.</menu>
+<li>udp
+<menu>Recieve and transmit on a specified UDP port.  (mostly untested).  
+Input is the message block, prefixed by special binary data containing the IP and
+PORT of the sender.</menu>
+<li>udpserver
+<menu>Recieve and transmit on a specified UDP port.  (mostly untested).  
+Input is the message block, prefixed by special binary data containing the IP and
+PORT of the sender.</menu>
+<li>system
+<menu>A quite abstract device, but is used to launch system commands.  Also
+tied directly to the <a href="commands.html">'!' command</a>.  Input is whatever
+is available from the system up to 4096 characters.  Could be used to host
+a command shell.  Certain compatibility issues between Win9x and NT family
+cause this command to not work right.  Currently seems to work under Linux.
+<br><br>/open system dir # results in the current directory listing</menu>
+<br><br>
+</menu>
+<menu><center><font size=+1><u>Filters</u></font></center><br>
+<li>token
+<menu>Tokenizes a stream into pure <a href="parser.html">tokens</a>.  Lines are
+gathered, and terminated with special EOL tokens.  Command processing requires
+that input be at least tokenized.</menu>  
+<li>telnet
+<menu>Handles special telnet IAC codes, results mostly in WON'T responces, and
+provides information to satisfy some of the more strict telnet servers.  Removes
+telnet IAC codes from input stream, otherwise provides no formatting.</menu>
+<li>split
+<menu>splits the datapath to another object.  Can be used to monitor other
+processes processing data, or to run multiple combinations of events from the 
+same stream.  
+	<li>Optional parameters<menu>
+	  <li>both - splits inbound and outbound data to 
+destination.
+     <li>inbound - splits only the inbound data to the destination.
+     <li> outbound - splits only outbound data to the destination.
+     <li> outtoin - outbound data becomes inbound on the destination.
+     <li> intoout - inbound data becomes outbound on the destination.
+   </menu>
+	<li>Required parameter: [object] an object currently visible from the current object. 
+		the object specified must have at least one 'merge' filter to accept the split.
+		The data datapath channel is searched and then the command datapath.
+</menu>
+<li>merge
+<menu>
+Accepts information split from another object's datastream via the split filter.
+</menu>
+<li>splice
+<menu>Gathers all tokens on a line, into one line, with \r\n termination.
+   <li>Optional parameters<menu>
+	   <li>inbound - data which is inbound is spliced.
+	   <li>outbound - data which is outbound is spliced.
+	</menu>
+</menu>
+<li>sink
+<menu>Any outbound data is consumed, relays all input data.</menu>
+<li>nil
+<menu>Does nothing.  Input relayed, output relayed.  Merely a skeleton for other 
+filters.</menu>
+<li>debug
+<menu>Dumps extended information about data being relayed.  Optional paramters:
+inbound - dumps inbound data, outbound - dumps outbound data.</menu>
+<li>binary
+<menu>Dumps binary of data being relayed.  Optional paramters:
+inbound - dumps inbound data, outbound - dumps outbound data.
+    <li>Optional Parameters<menu>
+	    <li>inbound - data inbound through the filter will be translated to 
+	       a binary dump.
+	    <li>outbound - data outbound through the filter will be translate to
+	       a binary dump.
+	    <li>log - Data which is converted to a binary dump will be shown in 
+	       dekware.log, and will not be output to the next device in line.
+    </menu>
+</menu>
+<li>bash
+<menu>Handles bash-like parsing/tokenizing.  Gathers lines from seperate 
+segments.  Formatting of data allows passing of typically unrepresentable
+characters.  
+	<li>\x## is a hex character, 
+	<li>\0ooo is an octal representation of a character
+	<li>\. is a NIL character, generates no data, but forces a seperation between tokens,
+	<li>\$ literal $
+	<li>\" literal quote
+	<li>\' literal single quote
+	<li>\\ literal back slash
+	<li>\&nbsp; a literal space... (that's backslash-blank)
+	<li>\; literal ; otherwise ; seperates commands into seperate lines
+	<li>\n newline character
+	<li>\t tab character
+	<li>" " or ' ' - double and single quotes will collect all data between them
+	    into a single token.  The quotes surrounding the data are lost.
+	<li>$variable resolves the variable using standard methods, and puts that value
+	   directly in.  This allows the substitution to be done at the command-entry 
+	   level instead of waiting until it gets to the object-core.
+	<li># begins a comment until the end of the line.  All information
+	    until the end of line (a newline character) is ignored.
+	<li>Optional Parameters<menu>
+		<li>noblank - On input there will be no blank lines arriving.  Every
+		line will have at least some non blank data.
+	</menu>
+
+</menu>   
+<li>ansi
+<menu>
+	<li>Optional Parameters<menu>
+	   <li>inbound - inbound data is processed for ansi escape sequences.
+	   <li>outbound - outbound data is processed for ansi escape sequences.
+	   <li>encode - instead of decoding ansi escape sequences, the data is
+	      encoded to ansi codes...&nbsp; This is useful for setting up a telnet
+	      server to which data would be echoed as converted escape sequences.&nbsp;
+	      If encode is not specified default method is decode.&nbsp;  Encode is
+	      specified seperatly after inbound and outbound to select encoding
+	      on each path.
+	   <li>__keepnewline - No effect... supposedly this would keep the end of line
+	        data...
+	</menu>
+
+Ansi codes are parsed out ( &lt;esc&gt;[#;...l ) - escape, bracket, number 
+parameters seperated by semi-colons, followed by a single character.  These
+sequences are removed from the input stream.  
+All other codes are irrelavent and therefore are ignored.
+<li>&lt;esc&gt;[0m - reset to default colors
+<li>&lt;esc&gt;[1m - bold/bright foreground
+<li>&lt;esc&gt;[30m - black foreground
+<li>&lt;esc&gt;[31m - red foreground
+<li>&lt;esc&gt;[32m - green foreground
+<li>&lt;esc&gt;[33m - yellow foreground
+<li>&lt;esc&gt;[34m - blue foreground
+<li>&lt;esc&gt;[35m - magenta foreground
+<li>&lt;esc&gt;[36m - cyan foreground
+<li>&lt;esc&gt;[37m - grey foreground   
+<li>&lt;esc&gt;[40m - black background
+<li>&lt;esc&gt;[41m - red background    
+<li>&lt;esc&gt;[42m - green background  
+<li>&lt;esc&gt;[43m - yellow background 
+<li>&lt;esc&gt;[44m - blue background   
+<li>&lt;esc&gt;[45m - magenta background
+<li>&lt;esc&gt;[46m - cyan background   
+<li>&lt;esc&gt;[47m - grey background   
+<li>&lt;backspace&gt; - encoded into an internal cursor position -1.
+<li>&lt;carriage return&gt; - encoded into an internal cursor position home line.
+<li>&lt;new line&gt; - encoded into an internal cursor position +1 line.
+<li>&lt;esc&gt;s or &lt;esc&gt;7 - save current cursor position
+<li>&lt;esc&gt;8 - restore saved cursor position
+<li>&lt;esc&gt;[#b - repeat last character # times
+<li>&lt;esc&gt;[#;#r - Set scroll region on display
+<li>&lt;esc&gt;[6n - Return current cursor position with &lt;esc&gt;[#;#R.
+<li>&lt;esc&gt;[#;#H or &lt;esc&gt;[#;#f - if #;# are both present, use 
+   that as the row;col.  If both are missing, treat as a home-cursor command.
+<li>&lt;esc&gt;[#A - if # present go up that many lines.  Else go up 1 line. 
+<li>&lt;esc&gt;[#B - if # present go down that many lines.  Else go down 1 line. 
+<li>&lt;esc&gt;[#C - if # present go right that many columns.  Else go right 1 column.
+<li>&lt;esc&gt;[#D - if # present go left that many columns.  Else go left 1 column.
+<li>&lt;esc&gt;[#d - Set current line.  If # is not specifed go to top line.
+<li>&lt;esc&gt;[#G - Set current column.  If # is not specifed go to first(left) column line.
+<li>&lt;esc&gt;[#J - if # is not specified or is 0, Clear to end of page.  
+		If # is 1 Clear to start of page.  If # is 2 Clear page (entire page, including data scrolled off)
+<li>&lt;esc&gt;[#P - Delete # characters.  If # is not specified delete 1.
+<li>&lt;esc&gt;[#K - if # is not specified or is 0, Clear to end of line.  
+		If # is 1 Clear to start of line.  If # is 2 Clear current line.
+</menu><br><br>
+<menu>
+	Some operations like set scroll region do not yet work correctly.  Most
+	everything else does seem to work.
+</menu>
+</menu>
+<hr><br>
+On windows, using the runwin.exe, to create another object one would do
+<menu>
+/create object<br>
+/wake object<br>
+/tell object /command interface window<br>
+/tell object /command parser bash<br>
+</menu>
+'object' can be replace with any object name.  This creates an object named 
+'object', wakes it up (allows it to process commands) tells it to open a 
+window as its command input, and then tells it to open the filter 'bash' on
+its command input.  If the object is to be blindly controlled, one does not
+need to give it any command datapath devices, can still /tell commands to it.
+</BODY>
+</HTML>

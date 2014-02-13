@@ -1,0 +1,2 @@
+#define USE_IMAGE_INTERFACE g.pii
+#define USE_RENDER_INTERFACE g.pri

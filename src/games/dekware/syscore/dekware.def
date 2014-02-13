@@ -1,0 +1,89 @@
+EXPORTS
+   ;AllocateEx
+   ;ReleaseEx
+   ;HoldEx
+   ;LockedExchange
+   ;MemSet
+   ;MemCpy
+   ;Defragment
+
+   RegisterRoutine
+   UnregisterRoutine
+   RegisterDevice
+   UnregisterDevice
+   RegisterExtension
+   CreateDataPath
+   DestroyDataPathEx
+
+   BuildLineEx
+   GetParam
+
+   AddVariableExxx
+
+   UpdateMinSignficants
+   GetCommandIndex
+
+   CreateShadowIn
+   CreateEntityIn
+   WriteCommandList
+
+   MacroDuplicateEx
+   GatherLineEx
+   CreateAwareness
+   DestroyEntityEx
+   Duplicate
+
+   GetIndirect
+   FindThingEx
+
+   GetName       
+   GetDescription
+   putin         
+   pullout       
+   attach        
+   detach        
+   FindContainer 
+   findbynameEx
+
+   TextDuplicateEx
+
+   IsNumber
+   IntNumber
+   FltNumber
+   ExitNexus  
+   GetVariable
+   SegSubst
+   SubstToken
+
+   CompareStrings
+   LineLengthEx
+
+   RecallCommand
+   ;EnqueHistory
+
+   AddMethod
+   RemoveMethod
+   SegSplitEx
+   InvokeMacro
+
+   RegisterObject
+   UnregisterObject
+   prompt
+
+   FindDataDatapath
+   FindCommandDatapath
+   RelayInput
+   RelayOutput
+   LocateMacro
+   GetFileName
+
+   IsConsole
+   b95
+   MakeNumberText
+   FindDatapath
+
+   FindDevice
+
+   AddVolatileVariable
+   RemoveVolatileVariable
+   UnlockAwareness

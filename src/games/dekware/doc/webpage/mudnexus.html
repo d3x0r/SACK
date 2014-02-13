@@ -1,0 +1,92 @@
+
+<HTML>
+<HEAD>
+<TITLE>Cyber Nexus Terminal</TITLE>
+</HEAD>
+
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+
+<CENTER>
+<FONT size=+3>Dekware</FONT>
+<BR>using a Dek to access MUDs...
+</CENTER>
+<hr>
+<center><font size=+3><u>News</u></font> - 
+(<font size=-1><a href="new_features.html">New Features</a>)</center><br>
+<menu>
+<font size=-1>
+<li>Aug 2, 2002 - Implemented <a href="commands.html#on">/on (enter/leave)</a> trigger macros on objects.  
+<li>Jan 28, 2003 - Long time since I've updated news... Many improvements overall
+in perfomance, features, and stability.  Common datapath filters have been 
+designed now, providing much more plugable/stackable command/data processing 
+interface.  Changes just go on and on....
+<li>Sep 16, 2001 - Fixed recall to scroll partial parts of long, wrapped lines.
+Fixed keybindings.  Fixed output of Ping, Trace, Whois.  Added command paste. 
+Updated menu to make more sense.  Fixed command recall and edit with backspace
+and delete.  Added /CLEAR to trigger plugin.
+<li>Aug 15, 2001 - Fixed trigger handling - stops processing data and allows
+triggered commands to execute before resuming read.  Many small fixes regarding 
+plugin loading, and portability changes.</li>
+<li>May 1, 2001 - Added new Windows Console plugin.  Added a file logging
+device.  New commands in all consoles.  <a href="new_features.html">New features</a>
+<li>March 20, 2001 - Added ability to change <a href="variables.html#builtin">prompt</a>.
+Added macro <a href="plugin_console.html">binding to
+keys</a>.    Improved unix console interface(Unix version soon to be posted).
+Added methods to objects to support card game plugin.  Methods are internal
+code routines attached much like macros, but preempt internal commands, allowing
+objects to override default command behavior.
+Many minor updates and inproved stability.
+<li>Sept 11, 2000 - Updated information about triggers, and usage as a MUD client.
+<li>June 23, 2000 - Homepage begins
+</font>
+</menu>
+<hr>
+<a href="basic.html">Click here</a> for a quick coverage of basic macros and triggers.
+<p>The default script files, 'macros' and 'connect', provide instant connectivity
+to most MUDs.
+<p>/connect &lt;mud address&gt;
+<p>A mud address is IP and PORT.  If only the name is used, the default port
+of telnet(23) will be used.  "/connect ip.mud.com:1234" - would connect
+to a mud at ip.mud.com using port 1234.  
+<p>Commands to Nexus are always preceeded by a '/'.  Commands meant to be 
+sent to the connection, which need a '/' may be additionally
+prefixed with a '.'.  
+<menu>
+   ./name my_new_name
+</menu>
+
+<p>Any command entered, that is not an internal command, valid
+macro, or a plugin command
+will be sent to current connection.
+If the line had a leading '/' the '/' is not
+sent to the connection.
+<p>The <a href="plugin_console.html">console</a> interface provides a line
+based interface.  Arrow keys allow you to recall and edit commands.  Although
+there is no visual indication the insert key will toggle between insert and 
+overwrite mode when editing commands.  The up arrow recalls a command, the down arrow 
+will go to the next command after a previously recalled command....
+<p><a href="script.html">Scipts</a> for <a href="script_macros.html">macros</a>
+and <a href="plugin_trigger.html">triggers</a> enhance the MUD experience,
+allowing repative and/or automatic actions to be taken.  
+When writing macros to send commands to a MUD, either '.' prefix on lines or
+the '/send' command provided by the <a href="plugin_terminal.html">terminal plugin</a> may be used.
+<hr>
+
+
+<P>In its infancy DekWare resembled a MUD;  allowing the user to create
+abstract objects.&nbsp;  Today it provides a powerful scripting language
+and allows merging of networks, files, 3D virtual
+environments, and ODBC/SQL databases into a homogeneous unity.&nbsp;
+Future expansion and additional functionality can be added through
+plugin modules, and scripts.&nbsp; 
+
+<P>To this day, Nexus has become a web page parser, a MUD client, a 
+weather notice processor, and generally a tool to model object oriented
+design and implementation.&nbsp; It is a general purpose command processor,
+with easy extensibility through plugins.&nbsp; Plugin modules can provide 
+additional devices, add additional commands, and may extend basic objects.
+
+
+</BODY>
+
+</HTML>

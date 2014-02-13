@@ -1,0 +1,479 @@
+/dest repo1
+/alias create repo1 rep
+.:reports: I have %curhit/%maxhit hp and %curmove/%maxmove move.
+/endmac
+
+/alias create pummel1 pum
+.rem marble
+.get staff keg
+.wield staff
+/endmac
+
+
+/decl acmode true
+/decl regen false
+/mac ac
+	/compare %acmode is false
+	/if success 
+		.rem cape
+		.put cape keg
+			/compare regen is true
+			/if success
+				.rem withered
+			/else
+			/echo FYI - Not in regen gear.
+			/endif
+		.rem arcane
+		.put arcane keg
+		.rem arcane
+		.put arcane keg
+		.get spiked keg
+		.wear spiked
+		.get spiked keg
+		.wear spiked
+		.get cloak keg
+		.wear cloak
+		/decl acmode true
+	/else
+		/echo idiot - already in ac gear
+	/endif
+/endmac
+
+/mac hp
+	/compare %acmode is true
+	/if success
+		.rem cloak
+		.put cloak keg
+		.get cape keg
+		.wear cape
+		.rem spiked
+		.put spiked keg
+		.rem spiked
+		.rem withered
+		.put spiked keg
+			/compare %regen is true
+			/if success
+				.rem withered
+			/else
+			/echo FYI - Not in regen gear
+			/endif
+		.get arcane keg
+		.wear arcane
+		.get arcane keg
+		.wear arcane
+		.sit
+		.meditate
+		/declare acmode false
+	/else
+		/echo idiot - already in hp mode
+	/endif
+/endmac
+
+/alias create finger1 iron &who
+.,points a finger at %who.
+.iron %who
+/endmac
+
+
+/mac pack
+.put all.red keg
+.put all.bracelet keg
+.put all.earthen keg
+.put all.arcane keg
+.put all.silver-ring keg
+.put all.white keg
+.put all.boots keg
+.put all.brooch keg
+.put all.wand keg
+.put all.potion keg
+.put ogre keg
+.put all.helm keg
+.put tooth keg
+.put all.bracelet keg
+.put all.staff keg
+.put pummel keg
+.put all.necklace keg
+.put all.decanter keg
+.put all.ticket keg
+.put all.flare keg
+.put picks bag
+.put all.visor keg
+.put mauve bag
+.put jeweled keg
+.put all.cloak keg
+.put all.orb keg
+.put all.mask keg
+.put all.spiked keg
+.put all.stone keg
+/endmac
+
+/alias create regening regen
+	/compare %regen is false
+	/if success
+		/decl regen true
+		.rem red
+		.get onyx keg
+		.put red keg
+		.wear onyx
+		.rem marble
+		.rem spiked
+		.put spiked keg
+		.wear withered
+		.get tooth keg
+		.hold tooth
+		.sit
+		.drink vodka
+		.drink vodka
+		.drink vodka
+		.meditate
+	/else
+		/echo idiot - already in regen mode
+	/endif
+/endmac
+
+/alias create noregening noregen
+	/compare %regen is true
+	/if success
+		/decl regen false
+		.st
+		.rem onyx
+		.rem tooth
+		.rem withered
+		.put onyx keg
+		.get red keg
+		.wear red
+		.put tooth keg
+		.hold marble
+		.rem withered
+		.get spiked keg
+		.wear spiked
+	/else
+		/echo idiot - not in regen mode
+	/endif
+/endmac
+
+/trigger create nofood You didn't manage to find anything
+.forage
+/endmac
+
+/alias create renting rent
+noregen
+ac
+.rent
+/endmac
+
+/mac a
+/compare %firstload is false
+/if success
+	.sc
+/else
+	.deaf gos
+	/pack
+	.sc
+	.who
+	/decl firstload false
+/endif
+/endmac
+/decl maxhit 0
+/decl maxmana 0
+/decl maxmove 0
+/trigger dest setmax
+/trigger crea setmax You have &hitnow(&hitmax) hit, &mananow(&manamax) mana and &movenow(&movemax) movement points
+/decl maxhit %hitmax
+/decl maxmana %manamax
+/decl maxmove %movemax
+/endmac
+
+/decl curhit 0
+/decl curmana 0
+/decl curmove 0
+/decl lowhit  false
+/decl mana 1
+/trigger dest prompt
+/trigger create prompt < &hit &move >
+/decl skipeatdrink false
+/decl curhit %hit
+/decl curmove %move
+/decl curmana %mana
+/compare %curhit lessthan %maxhit
+/if success
+	/decl lowhit true
+/endif
+/compare %curhit is %maxhit
+/if success
+	/compare %lowhit is true
+   /if success
+      .pemote last scratch slowly fades.
+      /decl lowhit false
+   /endif
+/endif
+/endmac
+
+/scr folkill.txt
+/folkill merim
+
+#The phrases to emote for each hprange
+/decl hprange1em "hprange 1"
+/decl hprange2em "hprange 2"
+/decl hprange3em "hprange 3"
+/decl hprange4em "hprange 4"
+/decl hprange5em "hprange 5"
+/decl hprange6em "hprange 6"
+/decl hprangepeakem "hprange peak"
+/decl hprangeoverem "hprange over peak"
+
+#The phrases to emote for each manarange
+/decl manarange1em "manarange 1"
+/decl manarange2em "manarange 2"
+/decl manarange3em "manarange 3"
+/decl manarange4em "manarange 4"
+/decl manarange5em "manarange 5"
+/decl manarange6em "manarange 6"
+/decl manarangepeakem "manarange peak"
+/decl manarangeoverem "manarange over peak"
+
+#The phrases to emote for each moverange
+/decl moverange1em "moverange 1"
+/decl moverange2em "moverange 2"
+/decl moverange3em "moverange 3"
+/decl moverange4em "moverange 4"
+/decl moverange5em "moverange 5"
+/decl moverange6em "moverange 6"
+/decl moverangepeakem "moverange peak"
+/decl moverangeoverem "moverange over peak"
+
+
+/alias create repo2 repo
+#Have we set maxhit yet?
+/compare %maxhit is 0
+/if success
+	.sc
+	/return
+/else
+#good, we can get on with the number crunching
+/set hprangebase %maxhit
+/div %hprangebase 6
+/set hprange1 %hprangebase
+/set hprange2 %hprangebase
+/mult %hprange2 2
+/set hprange3 %hprangebase
+/mult %hprange3 3
+/set hprange4 %hprangebase
+/mult %hprange4 4
+/set hprange5 %hprangebase
+/mult %hprange5 5
+/set hprange6 %hprangebase
+/mult %hprange6 6
+#I guess this should be done to ensure that you are not reporting non-peak at peak points
+/decr %hprange6 1
+#Ok, hpranges should be set. Onward with comparing them!
+/compare %curhit lessthan %hprange1
+	/if success
+	/decl hprangeout %hprange1em
+	/return
+/endif
+
+/compare %curhit lessthan %hprange2
+	/if success
+	/decl hprangeout %hprange2em
+	/return
+/endif
+
+/compare %curhit lessthan %hprange3
+	/if success
+	/decl hprangeout %hprange3em
+	/return
+/endif
+
+/compare %curhit lessthan %hprange4
+	/if success
+	/decl hprangeout %hprange4em
+	/return
+/endif
+
+/compare %curhit lessthan %hprange5
+	/if success
+	/decl hprangeout %hprange5em
+	/return
+/endif
+
+/compare %curhit lessthan %hprange6
+	/if success
+	/decl hprangeout %hprange6em
+	/return
+/endif
+
+/compare %curhit is %maxhit
+	/if success
+	/decl hprangeout %hprangepeakem
+	/return
+/endif
+
+/compare %curhit morethan %maxhit
+	/if success
+	/decl hprangeout %hprangeoverem
+	/return
+/endif
+/endif
+
+#MANA
+
+#Have we set maxmana yet?
+/compare %maxmana is 0
+/if success
+	.sc
+	/return
+/else
+#good, we can get on with the number crunching
+/set manarangebase %maxmana
+/div %manarangebase 6
+/set manarange1 %manarangebase
+/set manarange2 %manarangebase
+/mult %manarange2 2
+/set manarange3 %manarangebase
+/mult %manarange3 3
+/set manarange4 %manarangebase
+/mult %manarange4 4
+/set manarange5 %manarangebase
+/mult %manarange5 5
+/set manarange6 %manarangebase
+/mult %manarange6 6
+#I guess this should be done to ensure that you are not reporting non-peak at peak points
+/decr %manarange6 1
+#Ok, manaranges should be set. Onward with comparing them!
+/compare %curhit lessthan %manarange1
+	/if success
+	/decl manarangeout %manarange1em
+	/return
+/endif
+
+/compare %curhit lessthan %manarange2
+	/if success
+	/decl manarangeout %manarange2em
+	/return
+/endif
+
+/compare %curhit lessthan %manarange3
+	/if success
+	/decl manarangeout %manarange3em
+	/return
+/endif
+
+/compare %curhit lessthan %manarange4
+	/if success
+	/decl manarangeout %manarange4em
+	/return
+/endif
+
+/compare %curhit lessthan %manarange5
+	/if success
+	/decl manarangeout %manarange5em
+	/return
+/endif
+
+/compare %curhit lessthan %manarange6
+	/if success
+	/decl manarangeout %manarange6em
+	/return
+/endif
+
+/compare %curhit is %maxhit
+	/if success
+	/decl manarangeout %manarangepeakem
+	/return
+/endif
+
+/compare %curhit morethan %maxhit
+	/if success
+	/decl manarangeout %manarangeoverem
+	/return
+/endif
+/endif
+
+#MOVE
+
+#Have we set maxmove yet?
+/compare %maxmove is 0
+/if success
+	.sc
+	/return
+/else
+
+#good, we can get on with the number crunching
+/set moverangebase %maxmove
+/div %moverangebase 6
+/set moverange1 %moverangebase
+/set moverange2 %moverangebase
+/mult %moverange2 2
+/set moverange3 %moverangebase
+/mult %moverange3 3
+/set moverange4 %moverangebase
+/mult %moverange4 4
+/set moverange5 %moverangebase
+/mult %moverange5 5
+/set moverange6 %moverangebase
+/mult %moverange6 6
+#I guess this should be done to ensure that you are not reporting non-peak at peak points
+/decr %moverange6 1
+#Ok, moveranges should be set. Onward with comparing them!
+/compare %curhit lessthan %moverange1
+	/if success
+	/decl moverangeout %moverange1em
+	/return
+/endif
+
+/compare %curhit lessthan %moverange2
+	/if success
+	/decl moverangeout %moverange2em
+	/return
+/endif
+
+/compare %curhit lessthan %moverange3
+	/if success
+	/decl moverangeout %moverange3em
+	/return
+/endif
+
+/compare %curhit lessthan %moverange4
+	/if success
+	/decl moverangeout %moverange4em
+	/return
+/endif
+
+/compare %curhit lessthan %moverange5
+	/if success
+	/decl moverangeout %moverange5em
+	/return
+/endif
+
+/compare %curhit lessthan %moverange6
+	/if success
+	/decl moverangeout %moverange6em
+	/return
+/endif
+
+/compare %curhit is %maxhit
+	/if success
+	/decl moverangeout %moverangepeakem
+	/return
+/endif
+
+/compare %curhit morethan %maxhit
+	/if success
+	/decl moverangeout %moverangeoverem
+	/return
+/endif
+/endif
+.emote reports: %hprangeout, %manarangeout, and %moverangeout
+/endmac
+
+/alias create vodkabarrel1 bv
+.buy barrel
+.pour barrel out
+.buy bottle
+.pour bottle barrel
+.junk bottle
+.buy bottle
+.pour bottle barrel
+.junk bottle
+/endmac
