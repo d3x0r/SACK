@@ -1,0 +1,9 @@
+<control caption="configure_text_setvar_button.frame" position="0,0" size="445,291" type="Frame">
+<control IDName="EditControl/InterShell/text/BTN_VARVAL" caption="&lt;Test Var>" position="144,49" size="283,20" type="EditControl"></control>
+<control IDName="EditControl/InterShell/text/BTN_VARNAME" caption="" position="144,20" size="282,21" type="EditControl"></control>
+<control IDName="ListBox/InterShell/LST_VARIABLES" caption="" position="20,100" size="404,129" type="ListBox"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="350,250" size="73,21" type="Button"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="263,251" size="73,21" type="Button"></control>
+<control caption="Variable Name" position="21,22" size="123,21" type="TextControl"></control>
+<control caption="New Value" position="22,46" size="87,21" type="TextControl"></control>
+<control caption="Existing variables..." position="20,75" size="188,21" type="TextControl"></control></control>

@@ -1,0 +1,43 @@
+/echo defining macros for gatekeeper...
+
+/mac login object
+
+/decl in %object name
+/decl in %object password
+/decl in %object _TABLE mud_users
+
+/echo Enter your name:
+/input %name
+/tell gatekeeper /find %me
+
+/endmac
+
+/mac find name
+/odbc retrieve %name
+/if fail
+/tell %name /echo no user by that name...
+/endif
+/endmac
+
+/mac uhh
+
+
+/odbc retrieve %me
+/echo Enter your password:
+/input %password
+
+/create record
+/declare in record user %name
+/declare in record password %name
+/declare in record _TABLE nexus_users
+
+/odbc open database u p
+/odbc retrieve record
+/if fail
+/echo sorry man, never heard of you... bye now :)
+/exit
+/endif
+/rename record %user
+/become %user
+/leave
+/endmac

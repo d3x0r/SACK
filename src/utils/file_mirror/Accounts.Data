@@ -1,0 +1,249 @@
+# common = <path> this directory and all subdirectories are shipped to all
+#           connected clients - rules needed for TIME
+#
+#
+# server = <address> address to connect to for client configuration....
+#
+# user = <login name>
+# listen = <address> specifies allowed places to receive UDP broadcasts from
+#          if 0 or missing - any system can send broadcasts through here
+# incoming = where data from client is stored
+# outgoing = a single directory where data is sent to the client
+# allow = <addresses...> will only accpet connections from specified address
+
+
+user=hall1
+	listen=172.18.100.2
+        winners=3033
+	outgoing=/home/relay/datainout/Send/hall1
+	incoming=/home/relay/datainout/Receive/hall1
+	mirror=/home/relay/datainout/Mirror/hall1
+	common=/home/relay/datainout/Common/ftn3000
+   allow=*
+
+user=hall2
+	listen=172.18.100.2
+        winners=3033
+	outgoing=/home/relay/datainout/Send/hall2
+	incoming=/home/relay/datainout/Receive/hall2
+	mirror=/home/relay/datainout/Mirror/hall2
+	common=/home/relay/datainout/Common/ftn3000
+   allow=*
+
+user=hall3
+	listen=172.18.100.2
+        winners=3033
+	outgoing=/home/relay/datainout/Send/hall3
+	incoming=/home/relay/datainout/Receive/hall3
+	mirror=/home/relay/datainout/Mirror/hall3
+	common=/home/relay/datainout/Common/ftn3000
+   allow=*
+
+user=hall4 
+	listen=172.18.100.2
+        winners=3033
+	outgoing=/home/relay/datainout/Send/hall4
+	incoming=/home/relay/datainout/Receive/hall4
+	mirror=/home/relay/datainout/Mirror/hall4
+	common=/home/relay/datainout/Common/ftn3000
+   allow=*
+
+
+user=hall5
+	listen=172.18.100.2
+        winners=3033
+	outgoing=/home/relay/datainout/Send/hall5
+	incoming=/home/relay/datainout/Receive/hall5
+	mirror=/home/relay/datainout/Mirror/hall5
+	common=/home/relay/datainout/Common/ftn3000
+   allow=*
+
+user=hall6
+	listen=172.18.100.2
+        winners=3033
+	outgoing=/home/relay/datainout/Send/hall6
+	incoming=/home/relay/datainout/Receive/hall6
+	mirror=/home/relay/datainout/Mirror/hall6
+	common=/home/relay/datainout/Common/ftn3000
+   allow=*
+
+user=portable
+	listen=172.18.100.2
+        winners=3033
+	outgoing=/home/relay/datainout/Send/hall6
+	incoming=/home/relay/datainout/Receive/hall6
+	mirror=/home/relay/datainout/Mirror/hall6
+	common=/home/relay/datainout/Common/ftn3000
+   allow=*
+
+user=jim
+	listen=172.18.100.2
+        winners=3033
+	outgoing=/home/relay/datainout/Send/hall7
+	incoming=/home/relay/datainout/Receive/hall7
+	mirror=/home/relay/datainout/Mirror/hall7
+	common=/home/relay/datainout/Common/ftn3000
+   allow=*
+
+user=jeff
+	listen=172.18.100.2
+        winners=3033
+	outgoing=/home/relay/datainout/Send/hall7
+	incoming=/home/relay/datainout/Receive/hall7
+	mirror=/home/relay/datainout/Mirror/hall7
+	common=/home/relay/datainout/Common/ftn3000
+   allow=*
+
+user=dewayne
+	listen=172.18.100.2
+        winners=3033
+	outgoing=/home/relay/datainout/Send/hall7
+	incoming=/home/relay/datainout/Receive/hall7
+	mirror=/home/relay/datainout/Mirror/hall7
+	common=/home/relay/datainout/Common/ftn3000
+   allow=*
+
+user=hall7
+	listen=172.18.100.2
+        winners=3033
+	outgoing=/home/relay/datainout/Send/hall7
+	incoming=/home/relay/datainout/Receive/hall7
+	mirror=/home/relay/datainout/Mirror/hall7
+	common=/home/relay/datainout/Common/ftn3000
+   allow=*
+
+user=hall8
+	listen=172.18.100.2
+        winners=3033
+	outgoing=/home/relay/datainout/Send/hall8
+	incoming=/home/relay/datainout/Receive/hall8
+	mirror=/home/relay/datainout/Mirror/hall8
+	common=/home/relay/datainout/Common/ftn3000
+   allow=*
+
+user=hall9
+	listen=172.18.100.2
+        winners=3033
+	outgoing=/home/relay/datainout/Send/hall9
+	incoming=/home/relay/datainout/Receive/hall9
+	mirror=/home/relay/datainout/Mirror/hall9
+	common=/home/relay/datainout/Common/ftn3000
+   allow=*
+
+user=austria
+	listen=172.18.100.3
+        winners=3034
+	outgoing=/home/relay/datainout.austria/Send/hall1
+	incoming=/home/relay/datainout.austria/Receive/hall1
+	mirror=/home/relay/datainout.austria/Mirror/austria
+	common=/home/relay/datainout.austria/Common/ftn3000
+	allow=*
+
+user=austria1
+	listen=172.18.100.3
+        winners=3034
+	outgoing=/home/relay/datainout.austria/Send/hall1
+	incoming=/home/relay/datainout.austria/Receive/hall1
+	mirror=/home/relay/datainout.austria/Mirror/hall1
+	common=/home/relay/datainout.austria/Common/ftn3000
+	allow=*
+
+user=austria2
+	listen=172.18.100.3
+        winners=3034
+	outgoing=/home/relay/datainout.austria/Send/hall2
+	incoming=/home/relay/datainout.austria/Receive/hall2
+	mirror=/home/relay/datainout.austria/Mirror/hall2
+	common=/home/relay/datainout.austria/Common/ftn3000
+	allow=*
+
+user=austria3
+	listen=172.18.100.3
+        winners=3034
+	outgoing=/home/relay/datainout.austria/Send/hall3
+	incoming=/home/relay/datainout.austria/Receive/hall3
+	mirror=/home/relay/datainout.austria/Mirror/hall3
+	common=/home/relay/datainout.austria/Common/ftn3000
+	allow=*
+
+user=austria4
+	listen=172.18.100.3
+        winners=3034
+	outgoing=/home/relay/datainout.austria/Send/hall4
+	incoming=/home/relay/datainout.austria/Receive/hall4
+	mirror=/home/relay/datainout.austria/Mirror/hall4
+	common=/home/relay/datainout.austria/Common/ftn3000
+	allow=*
+
+user=austria5
+	listen=172.18.100.3
+        winners=3034
+	outgoing=/home/relay/datainout.austria/Send/hall5
+	incoming=/home/relay/datainout.austria/Receive/hall5
+	mirror=/home/relay/datainout.austria/Mirror/hall5
+	common=/home/relay/datainout.austria/Common/ftn3000
+	allow=*
+
+user=austria6
+	listen=172.18.100.3
+        winners=3034
+	outgoing=/home/relay/datainout.austria/Send/hall6
+	incoming=/home/relay/datainout.austria/Receive/hall6
+	mirror=/home/relay/datainout.austria/Mirror/hall6
+	common=/home/relay/datainout.austria/Common/ftn3000
+	allow=*
+
+user=austria7
+	listen=172.18.100.3
+        winners=3034
+	outgoing=/home/relay/datainout.austria/Send/hall7
+	incoming=/home/relay/datainout.austria/Receive/hall7
+	mirror=/home/relay/datainout.austria/Mirror/hall7
+	common=/home/relay/datainout.austria/Common/ftn3000
+	allow=*
+
+user=austria8
+	listen=172.18.100.3
+        winners=3034
+	outgoing=/home/relay/datainout.austria/Send/hall8
+	incoming=/home/relay/datainout.austria/Receive/hall8
+	mirror=/home/relay/datainout.austria/Mirror/hall8
+	common=/home/relay/datainout.austria/Common/ftn3000
+	allow=*
+
+user=austria9
+	listen=172.18.100.3
+        winners=3034
+	outgoing=/home/relay/datainout.austria/Send/hall9
+	incoming=/home/relay/datainout.austria/Receive/hall9
+	mirror=/home/relay/datainout.austria/Mirror/hall9
+	common=/home/relay/datainout.austria/Common/ftn3000
+	allow=*
+
+user=austria_test
+	listen=172.18.100.3
+        winners=3034
+	outgoing=/home/relay/datainout.austria/Send/hallx
+	incoming=/home/relay/datainout.austria/Receive/hallx
+	mirror=/home/relay/datainout.austria/Mirror/hallx
+	common=/home/relay/datainout.austria/Common/ftn3000
+	allow=*
+        
+user=austria_test2
+	listen=172.18.100.3
+        winners=3034
+	outgoing=/home/relay/datainout.austria/Send/hallx
+	incoming=/home/relay/datainout.austria/Receive/hallx
+	mirror=/home/relay/datainout.austria/Mirror/hallx
+	common=/home/relay/datainout.austria/Common/ftn3000
+	allow=*
+
+# $Log: Accounts.Data,v $
+# Revision 1.8  2002/07/01 14:51:43  panther
+# Added support for multiple 'common' directories
+# added support for winner information port
+#
+# Revision 1.3  2002/04/15 22:12:51  panther
+# Updated Accounts.Data
+# remove Author tag... log is sufficent.
+#              

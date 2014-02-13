@@ -1,0 +1,30 @@
+cmake_minimum_required(VERSION 2.8)
+
+PROJECT( SACK )
+
+include(ExternalProject)
+ExternalProject_Add( SACK.core PREFIX . )
+ExternalProject_Add( SACK.core PREFIX binary )
+ExternalProject_Add( SACK.core PREFIX src/InterShell )
+ExternalProject_Add( SACK.core PREFIX src/apps/video_ )
+
+if( asdfasdfasdf )
+
+       EXECUTE_PROCESS(COMMAND cmake -E make_directory core )
+       EXECUTE_PROCESS(COMMAND cmake -E make_directory binary )
+       EXECUTE_PROCESS(COMMAND cmake -E make_directory shell )
+       EXECUTE_PROCESS(COMMAND cmake -E make_directory video )
+
+       EXECUTE_PROCESS(WORKING_DIRECTORY core COMMAND cmake -P ${CMAKE_SOURCE_DIR}/CMakeLists.txt.core -G \"${CMAKE_GENERATOR}\" )
+       EXECUTE_PROCESS(WORKING_DIRECTORY binary COMMAND cmake ${CMAKE_SOURCE_DIR}/binary -G \"${CMAKE_GENERATOR}\" )
+       EXECUTE_PROCESS(WORKING_DIRECTORY shell COMMAND cmake ${CMAKE_SOURCE_DIR}/src/InterShell -G \"${CMAKE_GENERATOR}\" )
+       EXECUTE_PROCESS(WORKING_DIRECTORY video COMMAND cmake ${CMAKE_SOURCE_DIR}/src/apps/video_link -G \"${CMAKE_GENERATOR}\" )
+
+if( MINGW )
+       EXECUTE_PROCESS(COMMAND ${CMAKE_MAKE_PROGRAM} -C core install)
+       EXECUTE_PROCESS(COMMAND ${CMAKE_MAKE_PROGRAM} -C binary install )
+       EXECUTE_PROCESS(COMMAND ${CMAKE_MAKE_PROGRAM} -C shell install )
+       EXECUTE_PROCESS(COMMAND ${CMAKE_MAKE_PROGRAM} -C video install )
+
+endif( MINGW )
+endif()

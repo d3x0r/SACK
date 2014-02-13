@@ -1,0 +1,139 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<center><font size=+3>New Features</font></center>
+<p><font size=+1>Version 2.3.2 - Released 08/02/03</font>
+<menu>
+	<li>Implemented <a href="commands.html#on">/on behavior definitions</a>.
+	<li>Improved poker card evaluator (work in progress)
+</menu>
+<p><font size=+1>Version 2.3.1 - Released 04/27/03</font>
+<menu>
+	<li>Imroved stablity/consistancy of user interface.  
+	<li>Mark/copy is now available for most user interfaces.
+	<li>Implemented new interface based on PSI (panther's slick interface).
+	<li>Stabelized memory usage to avoid memory leakage.
+	<li>Modified /script command to perform much more in-line in how it processes scripts.
+	    Previously /script would have loaded an entire script into the command queue, and then 
+	    as it processed each subsequence /script command it would in turn load that into the command 
+	    queue.  Now, script processing is suspended at each /script until the script to be loaded 
+	    had completed all commands.
+	<li>Modified script to be an internal macro using 'standard' bash command parsing (which is what
+	    most user interfaces use.
+</menu>
+
+<p><font size=+1>Version 2.2d - Released </font>
+<menu>
+	<li>Updated documentation
+	<li>Scripts are now handled using standard command input/filters  (file, bash)
+	<li>/getline without a parameter reads into the macro result (/getresult)
+	<li>/burst without parameter reads the macro result param, performs it's 
+	    operation, and then stores the result back in the macro result.
+	<li>/execute without parameter takes the macro result and queues it as a command.
+	<li>/RUN added - forces a macro to perform all commands before processing
+	    direct command input.
+	<li>For Linux, Postgresql interface has been built (basically).
+	<li>Current build system preferred for windows is Visual Studio.Net.
+	<li>Many unaccounted changes between last doc update.
+	<li>Added __output attribute to the 'file' device
+	<li> ------ same day fixes -------
+	<li>New script processing caused aliases created with scripts to be closed
+	    when the script file ended.  A fix in triggers allows triggers as a device
+	    to be opened, and a fix in 'macros' to associate by default a alias path
+	    allows it to be around 'behind' script file/bash devices.
+	<li>Cleaned up memory leaks - left with just one allocated block at exit.
+	<li>Enabled triggers/aliases to be always /RUN - forced completion
+</menu>
+<p><font size=+1>Version 1.0b18 - Released </font>
+<menu>
+	<li>Fixed permitting deletion of running triggers, that is, they will 
+	    complete before being deleted.
+	<li>Fixed some double object deletions (very bad).
+	<li>Added raw format to socket devices, and to system device and the log 
+	    file.
+	<li>Added /Relay - will stop processing all commands, and merely relay 
+	    command input to data output and data input to command output.
+	<li>Added __raw command option to ! (/parse system) so the read/write to 
+	    the launched program is totally unprocessed.
+	<li>Fixed destruction of triggers while they were running... previously
+	    it would be possible to continue running a trigger that no longer
+	    existed.
+</menu>
+<p><font size=+1>Version 1.0b17 - Released Sep 16, 2001</font>
+<menu>
+	<li>Fixed clearing multi-arg trigger flags.
+	<li>Changed /trigger list <trigger> to indicate multi-args with [name] 
+	    and single word args with (name).
+	<li>Added CurseCon plugin for Unix type systems to use curses to display.
+	<li>Added a mode in Windows console, direct, which will allow direct command
+	    entry instead of forcing a line buffer.  
+	<li>Fixed loading scripts from other paths /script /path/other/scriptfile.
+	<li>Fixed code to generate %now and %time on Unix type systems.
+	<li>Fixed triggers to force a trigger to complete before relaying more
+	    data.  This can be disabled using /trigger option RUN.  
+	<li>Ported timer.nex clock/stopwatch plugin to Unix.
+	<li>Fixed end of line detection in terminal plugin.  Multiple carriage
+	    returns at the end of a line would result in a carriage return
+	    being generated in the returned buffer.  \r\r\n\r\r will properly
+	    generate a single new line.  If a line such as "text \r text\r\n" 
+	    is recieved, a buffer with a carriage return in the middle will be
+	    generated... and probably not display correctly on a curses, or 
+	    console mode windows display.  
+	<li>Include a utility "strip" to remove carriage returns when 
+		 porting/building on a unix system.
+	<li>/COLLAPSE &lt;var reference&gt; - collapses a variables content into a single
+	    string, this is useful for building macro/trigger names from other 
+	    variables.
+	<li>/DUMP &lt;entity&gt; - shows debug/diagnostic information about an entity.
+	<li>/DUMPVAR &lt;text/variable&gt; - shows debug/diagnostic information about a
+	    string or variable - useful to know how default parsing works, or how
+	    a variable might behave if collapsed.
+	<li>fixed '!' prefix on commands to launch system commands - this is actually
+	    an alias for /parse system &lt;command&gt; lauches a system command as a data
+	    stream, able to be used with /getword, /getline, etc, and able to use
+	    triggers, logs, etc.  Actually /getword is the same as getline, no
+	    parsing is done on the stream, however /burst command might be used to
+	    seperate it to words, and /head, /tail will get the words.
+	<li>/ALIAS new command - similar to TRIGGER however, works on data from
+	    command input.	
+	<li>Fixed device close conditions.
+</menu>
+<p><font size=+1>Version 1.0b16 - Released Sep 16, 2001</font>
+<menu>
+	<li>Fixed command editing.
+	<li>Added CLEAR to /trigger.
+	<li>Fixed history in windows console plugin, will now scroll over
+	    parts of wrapped lines.
+	<li>Added Paste.  Alt-V current is defined as paste, also available
+	    on the menu.
+	<li>Changed menu option 'New Object' to 'Window'->'New'.
+	<li>Fixed output of Ping, Trace, Whois network utilities.
+	
+</menu>
+<p><font size=+1>Version 1.0b12 - Released May 24, 2001</font>
+<menu>
+   <li>Added support in triggers for matching multiple words within an incoming
+       phrase.
+   <li>Added a Windows MDI interface.
+   <menu>
+   <li>History buffer available.
+   <li>Set fonts
+   </menu>
+   <li>Fixed keyboard mapping for MDI Window interface.
+      Was assumed all keyboards were created equal, 
+     now the windows keyboard map is used to result in the correct character
+     for foriegn keyboards.  Console interface still uses default key mappings.
+     TO BE FIXED.
+   <li>Updated macros file to check for available interface devices, and 
+      create a windows MDI based interface if it exists, otherwise attempt to
+      load a console interface.
+
+</menu>
+<p><font size=+1>Version 1.0b11 - Released March 20, 2001</font>
+<menu>
+   <li>Added hotkey support for windows console plugin.  /KEYBIND, /KEYUNBIND...
+</menu>
+</BODY>
+</HTML>
+
+

@@ -1,0 +1,105 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "windows.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""windows.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+WeatherTray DIALOG DISCARDABLE  0, 0, 237, 185
+STYLE DS_MODALFRAME | WS_MINIMIZEBOX | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Weather Report"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Cancel",IDCANCEL,180,164,50,14
+    CONTROL         "Custom1",GRF_BANNER,"VideoOutputClass",0x0,7,47,211,74
+    CONTROL         "Custom1",GRF_BANNER2,"VideoOutputClass",0x0,172,124,38,
+                    35
+    CONTROL         "Custom1",IMG_BANNER,"VideoOutputClass",0x0,7,7,223,30
+    CONTROL         "Custom1",GRF_BANNER4,"VideoOutputClass",0x0,73,124,97,
+                    35
+    CONTROL         "Custom1",GRF_BANNER5,"VideoOutputClass",0x0,33,124,38,
+                    35
+    CONTROL         "Custom1",GRF_BANNER6,"VideoOutputClass",0x0,221,47,9,74
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    "WeatherTray", DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 178
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

@@ -1,0 +1,60 @@
+.SH NAME
+uptime_string, myaddress, mib_TxtToOid, mib_OidToTxt \- Useful functions
+.SH SYNOPSIS
+.B cc
+.RI "[ " "flag" " \|.\|.\|. ] " "file" " \|.\|.\|."
+.B \-lsnmp
+.RI "[ " "library" " \|.\|.\|. ]"
+.LP
+.B #include <sys/types.h>
+.br
+.B #include <snmp/snmp.h>
+.LP
+.BI "char *uptime_string(unsigned int " "timeticks" ,
+.BI "char * " "buf" );
+.LP
+.B "unsigned int myaddress(void);
+.LP
+.BI "int mib_TxtToOid(char * " "Buf" ,
+.BI "oid ** " "OidP" ,
+.BI "int * " "LenP" );
+.LP
+.BI "int mib_OidToTxt(oid * " "O" ,
+.BI "int " "OLen" ,
+.BI "char *" "Buf" ,
+.BI "int " "BufLen" );
+.SH DESCRIPTION
+.B uptime_string(\|)
+converts the value of 
+.I timeticks 
+into a readable string.  This function assumes that
+.I timeticks
+is of SMI type TimeTicks (Centi-seconds).
+.LP
+.B myaddress(\|)
+returns the IP address of the current active interface.
+.LP
+.B mib_TxtToOid
+and
+.B mib_OidToTxt
+convert between ASN oids and textual strings (IE: ".1.3.6").
+.LP
+.B mib_TxtToOid
+allocates space for the ASN oid, and this space must later be 
+.BR free()'d .
+.LP
+.B mib_OidToTxt
+starts filling the specified buffer (of length
+.BR BufLen )
+until it runs out of space, or finishes.
+.SH "RETURN VALUE"
+.B uptime_string(\|)
+returns the filled buffer.
+.LP
+.B myaddress(\|)
+returns the IP address, or 0.
+.LP
+.B mib_TxtToOid(\|)
+and
+.B mib_OidToTxt(\|)
+return 1 upon success, 0 otherwise.

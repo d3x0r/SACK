@@ -1,0 +1,12 @@
+
+/mac mono ...
+/cha ../../../dekware
+/open systmp system monotone %...
+/cha ../testbed/bin/debug-wc
+/open gather gather
+/scr mono.trig
+/endmac
+
+
+/mono --branch=org.d3x0r.sack log makefile --last=20
+
