@@ -84,6 +84,7 @@ static PTRSZVAL OnInit3d( WIDE( "@00 PUREGL Image Library" ) )( PMatrix projecti
 	glSurface->identity_depth = pIdentity_depty;
 	glSurface->aspect = aspect;
 	MemSet( &glSurface->shader, 0, sizeof( glSurface->shader ) );
+lprintf( "Init library..." );
 	AddLink( &l.glSurface, glSurface );
 	{
 		INDEX idx;
@@ -109,6 +110,7 @@ static void OnBeginDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psvIni
 int ReloadOpenGlTexture( Image child_image, int option )
 {
 	Image image;
+	//lprintf( "reload... %p", child_image );
 	if( !child_image) 
 		return 0;
 	for( image = child_image; image && image->pParent; image = image->pParent );
@@ -118,7 +120,7 @@ int ReloadOpenGlTexture( Image child_image, int option )
 			(struct glSurfaceImageData *)GetLink( &image->glSurface
 			                                    , l.glImageIndex );
 		//GLuint glIndex;
-
+		//lprintf( "image_data %p", image_data );
 		if( !image_data )
 		{
 			// just call this to create the data then
@@ -148,10 +150,6 @@ int ReloadOpenGlTexture( Image child_image, int option )
 			{
 				if( option & 2 )
 				{
-
-					//glPixelTransferf(GL_RED_SCALE,0.5f);                // Scale RGB By 50%, So That We Have Only
-					//glPixelTransferf(GL_GREEN_SCALE,0.5f);              // Half Intenstity
-					//glPixelTransferf(GL_BLUE_SCALE,0.5f);
 #ifndef __ANDROID__
 					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP);  // No Wrapping, Please!
 					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);

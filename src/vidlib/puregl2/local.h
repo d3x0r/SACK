@@ -442,7 +442,7 @@ void SACK_Vidlib_ProcessKeyState( int pressed, int key_index, int *used );
 void Render3D( struct display_camera *camera );
 void WantRender3D( void );
 void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar);
-void ProcessGLDraw( LOGICAL draw_all );
+LOGICAL ProcessGLDraw( LOGICAL draw_all ); // returns want update also...
 void drawCamera( struct display_camera *camera );
 
 
