@@ -1,0 +1,29 @@
+<control caption="ConfigureGameCardStack.Frame" edit="1" position="0,0" size="1362,466" type="Frame">
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="385,334" size="73,21" type="Button"></control>
+<control IDName="ListBox/InterShell/Dekware/Games/Cards/LISTBOX_ACTIVE_GAMES" caption="" position="1001,15" size="110,73" type="ListBox"></control>
+<control position="230,219" size="110,73" type="ListBox"></control>
+<control IDName="ListBox/InterShell/Dekware/Games/Cards/LISTBOX_POSSIBLE_GAMES" caption="" position="239,17" size="154,177" type="ListBox"></control>
+<control IDName="ListBox/InterShell/Dekware/Games/Cards/LISTBOX_DECK_STACKS" caption="" position="470,48" size="110,273" type="ListBox"></control>
+<control IDName="EditControl/InterShell/Dekware/Games/Cards/EDIT_GAME_NAME" caption="Clover" position="646,69" size="223,22" type="EditControl"></control>
+<control IDName="EditControl/InterShell/Dekware/Games/Cards/EDIT_DECK_STACK_NAME" caption="Board1" position="655,141" size="218,21" type="EditControl"></control>
+<control IDName="Button/InterShell/Dekware/Games/Cards/BTN_ADD_GAME" PrivateData="#ff354c59" caption="" position="897,62" size="73,21" type="Button"></control>
+<control IDName="Button/InterShell/Dekware/Games/Cards/BTN_ADD_DECK_STACK" PrivateData="#ff354c59" caption="" position="903,151" size="73,21" type="Button"></control>
+<control IDName="CheckButton/InterShell/Dekware/Games/Cards/CHECKBOX_ACE_ONLY" caption="Ace Only" position="14,15" size="137,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/Dekware/Games/Cards/CHECKBOX_KING_ONLY" caption="King Only" position="14,39" size="154,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/Dekware/Games/Cards/CHECKBOX_FACE_MINUS_ONE_ONLY" caption="Minus One Only" position="13,67" size="168,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/Dekware/Games/Cards/CHECKBOX_FACE_PLUS_ONE_ONLY" caption="Plus One Only" position="15,88" size="192,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/Dekware/Games/Cards/CHECKBOX_SAME_SUIT_ONLY" caption="Same Suit" position="15,111" size="174,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/Dekware/Games/Cards/CHECKBOX_ALT_SUIT_ONLY" caption="Alternate Suit" position="16,137" size="167,21" type="CheckButton"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="290,330" size="73,21" type="Button"></control>
+<control IDName="CheckButton/InterShell/Dekware/Games/Cards/CHECKBOX_NO_SELECT" caption="No Select" position="15,178" size="132,21" type="CheckButton"></control>
+<control IDName="EditControl/InterShell/Dekware/Games/Cards/EDIT_DRAW_AT_START" caption="1" position="22,254" size="73,21" type="EditControl"></control>
+<control IDName="EditControl/InterShell/Dekware/Games/Cards/EDIT_DRAW_DOWN_AT_START" caption="6" position="23,308" size="73,21" type="EditControl"></control>
+<control IDName="CheckButton/InterShell/Dekware/Games/Cards/CHECKBOX_STACKED" caption="Show Top Only" position="14,209" size="135,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/Dekware/Games/Cards/CHECKBOX_VERTICAL" caption="Vertical" position="672,191" size="172,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/Dekware/Games/Cards/CHECKBOX_REVERSED_DRAW_ORDER" caption="Inverted" position="676,216" size="144,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/Dekware/Games/Cards/CHECKBOX_UNSTACKED_FACEDOWN" caption="Don't Stack Hidden Cards" position="823,194" size="215,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/Dekware/Games/Cards/select/CHECKBOX_SELECT_ONLY_ALT_SUIT" caption="Select ALt Suit" position="662,264" size="280,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/Dekware/Games/Cards/select/CHECKBOX_SELECT_ONLY_PLUS_ONE" caption="Select Plus One" position="659,287" size="202,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/Dekware/Games/Cards/select/CHECKBOX_SELECT_TOP" caption="Select Top Only" position="915,293" size="195,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/Dekware/Games/Cards/select/CHECKBOX_SELECT_ONLY_SUIT" caption="Select same Suit" position="659,240" size="279,21" type="CheckButton"></control>
+<control IDName="EditControl/InterShell/Dekware/Games/Cards/EDIT_DRAW_AT_DEAL" caption="" position="22,340" size="73,21" type="EditControl"></control></control>

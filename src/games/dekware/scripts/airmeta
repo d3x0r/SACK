@@ -1,0 +1,9 @@
+
+/trigger create killservant an aerial servant levitates in
+.kill servant
+/endmac
+
+
+/trigger create killstalker an invisible stalker levitates in
+.kill stalker
+/endmac

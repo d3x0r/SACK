@@ -1,0 +1,70 @@
+
+Rendering shapes is a superficial and irrelavant on how the actual outer
+shape appears.  the bounding lines of significant planes is relavent.
+
+
+three line segments all seperate - and all intersecting ...
+
+   ----------*----------*--------------
+
+
+   lines - point-slope definition... 
+
+   point of influence
+      this is a point in which a line's motion affects another segment
+      and vice-versa.  a train's boxcar....
+
+               *-------* *-------* *-------* *-------* 
+               |       |-|       |-|       |-|       |
+               *-------* *-------* *-------* *-------* 
+
+      pull train with mouse - good linking test...
+
+      a car's tire....
+
+               __    _________    __
+              |  |  |         |  |  |
+              |  |  |         |  |  |
+              |  *--*         *--*  |
+              |  |  |         |  |  |
+              |__|  |         |  |__|
+                    |         |
+                    |         |
+                    |         |
+
+      stress, torque, angle of update - all of these seperate from the
+      thing's origin...
+
+
+   display mode support : 
+      biclops
+      cyclops
+      triclops (combination of biclops and cyclops views...)
+      surround-o-vision (6 view forward/backward etc...)
+
+      each eye is an independant camera... with its own independant 
+      translation matrix for viewing... 
+
+      I have to turn the matricii that I use now sideways for compatibility
+      with OpenGL matrix modes... 
+
+   Ok so - more generically...
+      
+
+
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+

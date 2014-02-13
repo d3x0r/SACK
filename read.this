@@ -1,0 +1,87 @@
+SACK - System Abstraction Component Kit
+
+This project provides abstraction components for windows/linux/BSD (though
+it relies on GNU make and at the moment does not build properly on BSD)
+
+For lack of time and expediency, all sources from this point 'down' (that
+is a recursive directory listin from the directory which contains this file)
+are 
+
+Copyright (C) (look fancy graphics) 1996-2010++ to James Buckeyne. 
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; version 2.1
+    of the License.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    The LGPL is available at http://www.gnu.org/licenses/lgpl.txt
+	 and should be a local copy near this notice.(and there is :) )
+
+
+Original sources are obtainable from CVS, please contact
+	Jim Buckeyne
+	ICQ#5093446
+	Email:d3x0r@d3x0r.org
+        http://www.sf.net/projects/sack
+        http://sack.sf.net
+
+Exceptions: 
+   jpeg-6b
+   pnglib
+   zlib
+   snmplib 
+   freetype2
+   GenX (modified for compilation)
+   expat (modified for compilation)
+   sqlite
+   
+   These contain their own copyrights - and are publicly available.
+   No modifications have been made to these libraries other 
+   than those required to build within this environment, makefiles, 
+   and minor modifications to correct compilation errors resulting
+   from previously unsupported compiler's (restrictions? methods?
+   bugs perhaps?  Though often the error compensated for were sound
+   and should have been discovered by any other compiler).
+   
+   
+The following exception also applies:
+
+If modifications are made, and are not remitted to the core library for 
+inclusion within the LGPL distribution of this library, then all source 
+copyrights are revoked, the source of this library may not be publicized either.
+References to originating source would be appreciated.  You may use it
+yourself and in you and your companies projects, just don't release it as source... 
+Meh - someday this will be a dead project and noone will care, so distribute
+source freely - if you attempt to obfuscate original authors, that's pretty rude
+and would be plagurism(spelled bad) or something.
+
+Anyhow, Whatever.
+
+Updates from the LGPL distribution are allowed, however, if additions to these
+libraries, control extensions for example, are not released in source for public 
+use, then no other source of this library may be shared.
+
+---------- Revision 2012, Aug 15 ------------------
+
+In yet other words.... I would appreciate additional fixes/features to this core library, 
+and will work graciously with you to have them integrated into the mainline.
+
+Proprietary projects might be developed using this core library, and those of course
+remain outside the library, and beyond the scope of this commentary/liscensing.
+
+If you do make mods, and keep them private, then all other
+sources of this library you must also keep private; you may refer to the original
+project indicating 'based on X but no longer X'; the new product becomes essentially
+trade secret, along with all sources of this library.
+
+
+<change>
