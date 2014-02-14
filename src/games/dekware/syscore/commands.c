@@ -1179,7 +1179,7 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 					STEP_TOKEN();
 					pObjName = pReturn;
 				}
-				lprintf( WIDE("Object name after count of %d is %s"), count, ptext );
+				lprintf( WIDE("Object name after count of %")_size_f WIDE(" is %s"), count, ptext );
 			}
 			lprintf( WIDE("Text is %s token %s"), ptext, GetText( *token ) );
 			if( ptext[0] == '[' )

@@ -477,7 +477,7 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 					t = sep + 1;
 					//p = DoFindThing( Around, type, foundtype, &cnt, t );
 					sep[0] = '.';
-					lprintf( WIDE("Object count is now %d . %s"), cnt, t );
+					lprintf( WIDE("Object count is now %")_size_f WIDE(" . %s"), cnt, t );
 				}
 			}
 			else if( IsIntNumber( pText, &long_cnt )  )
@@ -1826,9 +1826,9 @@ int ProcessSentients( THREAD_ID ThreadID )
 					if( gbTrace )
 					{
 						if( bEmpty )
-							xlprintf(LOG_NOISE+1)( WIDE("%s(%s)command output empty, call write."), GetName( ps->Current ), GetText( pdp->pName ) );
+							xlprintf(LOG_NOISE+1)( WIDE("%s(%s)command output empty, call write."), GetText(GetName( ps->Current )), GetText( pdp->pName ) );
 						else
-							xlprintf(LOG_NOISE+1)( WIDE("%s(%s)command output not empty, call write."), GetName( ps->Current ), GetText( pdp->pName ) );
+							xlprintf(LOG_NOISE+1)( WIDE("%s(%s)command output not empty, call write."), GetText(GetName( ps->Current )), GetText( pdp->pName ) );
 					}
 					if( pdp->Write )
 					{
@@ -1862,9 +1862,9 @@ int ProcessSentients( THREAD_ID ThreadID )
 					n++;
 					if( gbTrace )
 						if( bEmpty )
-							xlprintf(LOG_NOISE+1)( WIDE("%s(%s)Data output empty, call write."), GetName( ps->Current ), GetText( pdp->pName ) );
+							xlprintf(LOG_NOISE+1)( WIDE("%s(%s)Data output empty, call write."), GetText(GetName( ps->Current )), GetText( pdp->pName ) );
 						else
-							xlprintf(LOG_NOISE+1)( WIDE("%s(%s)Data output not empty, call write."), GetName( ps->Current ), GetText( pdp->pName ) );
+							xlprintf(LOG_NOISE+1)( WIDE("%s(%s)Data output not empty, call write."), GetText(GetName( ps->Current )), GetText( pdp->pName ) );
 					if( pdp->Write )
 					{
 						if( !pdp->Write( pdp ) )

@@ -1137,7 +1137,7 @@ static int LISTTRIGGERS(PSENTIENT ps, PTEXT parameters, int bAlias )
 	            {
                   if( PRIORLINE( param ) )
                      nOutput += snprintf( byOutput+nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), WIDE(", ") );
-                  nOutput += snprintf( byOutput+nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), GetText( param ) );
+                  nOutput += snprintf( byOutput+nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), WIDE("%s"), GetText( param ) );
          	      param = NEXTLINE( param );
       	      }
    	         nOutput += snprintf( byOutput + nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), WIDE(")") );
@@ -1301,18 +1301,19 @@ static int OPTIONS(PSENTIENT ps, PTEXT parameters, int bAlias )
 
 	while( pThis && ( pOpt = GetParam( ps, &parameters ) ) )
    {
-   	int opt;
-      bSet = TRUE;
-		opt = (int)GetRoutineRegistered( WIDE("trigger"), pOpt );
+   	Function opt;
+		bSet = TRUE;
+      lprintf( "Trigger options are not tested." );
+		opt = GetRoutineRegistered( WIDE("trigger"), pOpt );
 		//GetCommandIndex( options, nOptions
       //                     , GetTextSize(pOpt), GetText(pOpt) );
-		if( opt < 0 )
+		if( !opt )
       {
       	DECLTEXT( msg, WIDE("Unkown option... try /trigger option help") );
          EnqueLink( &ps->Command->Output, &msg );
       	return FALSE;
-      }
-      switch( (int)options[opt].function )
+		}
+		else switch( (int)opt/*options[opt].function*/ )
       {
       case ONCE:
 			pThis->nOptions |= OPT_ONCE;
