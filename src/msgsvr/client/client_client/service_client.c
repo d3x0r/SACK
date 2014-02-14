@@ -9,7 +9,7 @@
 PSERVICE_ROUTE BaseID, OtherBaseID;
 _32 last_tick;
 
-int CPROC EventHandler( _32 Msg, _32 *params, size_t paramlen )
+int CPROC EventHandler( MSGIDTYPE Msg, _32 *params, size_t paramlen )
 {
 
 	_32 tick;
@@ -27,7 +27,7 @@ PTRSZVAL CPROC LongWaitTrans( PTHREAD thread )
 		_32 buffer[32];
 		_32 result[32];
 		size_t buflen, reslen;
-		_32 responce;
+		MSGIDTYPE  responce;
 		buffer[0] = 0x12345678;
 		buffer[1] = 0xabcdef01;
 		buffer[2] = 0xdeafbabe;
@@ -91,7 +91,7 @@ SaneWinMain( argc, argv )
 			_32 buffer[32];
 			_32 result[32];
 			size_t buflen, reslen;
-			_32 responce;
+			MSGIDTYPE responce;
 			buffer[0] = 0x12345678;
 			buffer[1] = 0xabcdef01;
 			buffer[2] = 0xdeafbabe;

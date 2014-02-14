@@ -36,7 +36,7 @@ PSI_CONSOLE_PROC( void, PSIConsoleInputEvent )( PSI_CONTROL pc, void(CPROC*Event
 PSI_CONSOLE_PROC( void, PSIConsoleSetLocalEcho )( PSI_CONTROL pc, LOGICAL yesno );
 
 // this is an access into to use console features to wrap long text into a block.
-PSI_CONSOLE_PROC( void, FormatTextToBlock )( CTEXTSTR input, CTEXTSTR *output, int char_width, int char_height );
+PSI_CONSOLE_PROC( void, FormatTextToBlock )( CTEXTSTR input, TEXTSTR *output, int char_width, int char_height );
 
 PSI_CONSOLE_NAMESPACE_END;
 

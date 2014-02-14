@@ -5,7 +5,7 @@
 int main( int argc, char **argv )
 {
 	PVARTEXT pvt = VarTextCreate();
-   CTEXTSTR result;
+	TEXTSTR result;
 	int n;
 	for( n= 1; n < argc; n++ )
 		vtprintf( pvt, WIDE("%s%s"), n==1?WIDE(""):WIDE(" "), argv[n] );
