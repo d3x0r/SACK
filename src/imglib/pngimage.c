@@ -69,7 +69,7 @@ void ImagePngRead (png_structp png, png_bytep data, png_size_t size)
 
 void NotSoFatalError( png_structp png_ptr, png_const_charp c )
 {
-	lprintf( WIDE("Error in PNG stuff: %S"), c );
+	lprintf( WIDE("Error in PNG stuff: %s"), c );
 }
 
 // this is specific to a compiler so it needs to be non-decorated in any way.
@@ -218,7 +218,7 @@ no_mem2:
          rowbytes = png_get_rowbytes (png_ptr, info_ptr);
 			if (rowbytes != pImage->pwidth*4 )
 			{
-				Log2(WIDE(" bytes generated and bytes allocated mismatched! %d %d\n"), rowbytes, pImage->pwidth*4 );
+				lprintf(WIDE(" bytes generated and bytes allocated mismatched! %")_size_f WIDE("%") _32f, rowbytes, pImage->pwidth*4 );
             if( USS_GT( rowbytes, size_t, pImage->pwidth * 4, int ) )
 					goto no_mem2;                        // Yuck! Something went wrong!
 				Log( WIDE("We're okay as long as what it wants is less...(first number)") );

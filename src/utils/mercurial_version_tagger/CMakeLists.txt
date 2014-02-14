@@ -10,6 +10,7 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES
 endif( NOT SACK_SDK_ROOT_PATH )
 
 ### Include and implement sack ###
+include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
 include( ../../../makefiles/cmake/DefaultInstall.cmake )
 
 include_directories( ../../../include  )
@@ -139,7 +140,7 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 if( WIN32 )
 target_link_libraries( ${project} odbc32 winmm ${SACK_PLATFORM_LIBRARIES} )
 else( WIN32 )
-target_link_libraries( ${project}  ${SACK_PLATFORM_LIBRARIES} dl m iodbc pthread )
+target_link_libraries( ${project}  ${SACK_PLATFORM_LIBRARIES}  )
 endif( WIN32 )
 
 install( TARGETS ${project} DESTINATION . )

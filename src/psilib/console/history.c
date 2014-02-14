@@ -1624,7 +1624,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 						{
 							dl.nLine = start; // just has to be different
 							//dl.start = pText; // text in history that started this...
-							lprintf( WIDE("Adding line to display: %p (%")_size_f WIDE(") %")_size_f WIDE(" %")_size_f WIDE("")
+							lprintf( WIDE("Adding line to display: %p (%")_size_f WIDE(") %")_size_f WIDE(" %d" )
 									 , dl.start, dl.nOfs, dl.nLine, nLinesShown+nLines );
 							if( nLinesShown + nLines > 0 )
 							{

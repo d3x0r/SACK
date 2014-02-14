@@ -524,7 +524,7 @@ void RenderMonoChar( PFONT font
 	    bitmap->rows > 1000 ||
 	    bitmap->rows < 0 )
 	{
-		Log3( WIDE("Failing character %") _32fs WIDE(" rows: %d  width: %d"), idx, bitmap->width, bitmap->rows );
+		Log3( WIDE("Failing character %") _size_f WIDE(" rows: %")_32f WIDE("  width: %") _32f, idx, bitmap->width, bitmap->rows );
 		font->character[idx] = NULL;
 		return;
 	}
@@ -586,8 +586,8 @@ void RenderMonoChar( PFONT font
 		//charleft = charleft;
 		//charheight = CEIL( metrics->height );
       if( 0 )
-		lprintf( WIDE("(%d(%c)) Character parameters: %d %d %d %d %d")
-				 , idx, idx< 32 ? ' ':idx
+		lprintf( WIDE("(%")_size_f WIDE("(%c)) Character parameters: %d %d %d %d %d")
+				 , idx, (char)(idx< 32 ? ' ':idx)
 				 , character->width
 				 , character->offset
 				 , character->size
@@ -760,7 +760,7 @@ void RenderGreyChar( PFONT font
 	    bitmap->rows > 1000 ||
 	    bitmap->rows < 0 )
 	{
-		Log3( WIDE("Failing character %") _32fs WIDE(" rows: %d  width: %d"), idx, bitmap->width, bitmap->rows );
+		Log3( WIDE("Failing character %") _size_f WIDE(" rows: %d  width: %d"), idx, bitmap->width, bitmap->rows );
 		font->character[idx] = NULL;
 		return;
 	}
@@ -797,13 +797,13 @@ void RenderGreyChar( PFONT font
 
 		if( CEIL( metrics->width ) != bitmap->width )
 		{
-			Log4( WIDE("%") _32fs WIDE("(%c) metric and bitmap width mismatch : %d %d")
+			Log4( WIDE("%") _size_f WIDE("(%c) metric and bitmap width mismatch : %d %d")
 					, idx, (int)((idx>=32 && idx<=127)?idx:'.')
 					, CEIL( metrics->width ), bitmap->width );
 		}
 		if( CEIL( metrics->height ) != bitmap->rows )
 		{
-			Log4( WIDE("%") _32fs WIDE("(%c) metric and bitmap height mismatch : %d %d")
+			Log4( WIDE("%") _size_f WIDE("(%c) metric and bitmap height mismatch : %d %d")
 					, idx, (int)((idx>=32 && idx<=127)?idx:'.')
 					, CEIL( metrics->height ), bitmap->rows );
 			metrics->height = TOSCALED( bitmap->rows );
@@ -818,8 +818,8 @@ void RenderGreyChar( PFONT font
 		character->size = bitmap->width;
 
 		if( 0 )
-			lprintf( WIDE("(%d(%c)) Character parameters: %d %d %d %d %d")
-					 , idx, idx< 32 ? ' ':idx
+			lprintf( WIDE("(%") _size_f WIDE("(%c)) Character parameters: %d %d %d %d %d")
+					 , idx, (char)(idx< 32 ? ' ':idx)
 					 , character->width
 					 , character->offset
 					 , character->size

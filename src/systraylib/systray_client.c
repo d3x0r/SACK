@@ -40,7 +40,7 @@ static int CPROC HandleEvents( PSERVICE_ROUTE SourceID, MSGIDTYPE MsgID
 {
    int retval;
 
-	lprintf(WIDE("Welcome to EventHandler <HandleEvents>.  MsgID is %") _32f WIDE(""), MsgID);
+	lprintf(WIDE("Welcome to EventHandler <HandleEvents>.  MsgID is %") _MsgID_f , MsgID);
 
 	if ( !param_length && !MsgID )
       return 0;

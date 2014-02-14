@@ -77,7 +77,7 @@ static void CPROC DoStart2( void )
 		if( !hModule )
 		{
 #    ifndef UNDER_CE
-			lprintf( WIDE("error: (%ld)%s")
+			lprintf( WIDE("error: (%")_32fs WIDE(")%s")
 					 , GetLastError()
 					 , strerror(GetLastError()) );
 #    endif
@@ -169,7 +169,7 @@ SaneWinMain( argc, argv )
 			if( !hModule )
 			{
 #ifndef UNDER_CE
-				lprintf( WIDE("error: (%ld)%s")
+				lprintf( WIDE("error: (%")_32fs WIDE(")%s")
 						 , GetLastError()
 						 , strerror(GetLastError()) );
 #endif
