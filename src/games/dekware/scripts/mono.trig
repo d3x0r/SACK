@@ -1,0 +1,24 @@
+
+/trigger create anything *line
+/echo %line
+/endmac
+/trigger opt anything consume anchor
+
+
+
+/trigger create revmark Revision: &rev
+/setcolor white blue
+/echo revision: %rev
+/setcolor grey black
+/endmac
+/trigger opt revmark consume 
+
+
+/trigger create ansmark Ancestor: &ans
+/setcolor white green
+/echo anscestor: %ans
+/setcolor grey black
+/endmac
+/trigger opt ansmark consume 
+
+

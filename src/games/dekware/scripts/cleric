@@ -1,0 +1,12 @@
+/scr common.trig
+/scr cleric.trig
+/scr firstcommands 
+
+/keybind f1 
+.remove emerald
+.wear circlet
+/endmac
+/keybind f2
+.remove circlet
+.wear emerald
+/endmac

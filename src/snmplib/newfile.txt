@@ -1,0 +1,65 @@
+
+#define STRCMP strcmp  // case sensative compare
+//#define STRCMP stricmp  // case insensative compare
+
+// consider implementing a custom string comparison to handle numbers
+// since "1", "11", and "111" will all sort before "2", "3", "4".....
+
+typedef struct node_tag{
+	char Word[256]; // accept LARGE words...
+	struct node_tag *pAfter, *pBefore;
+} NODE, *PNODE;
+
+PNODE root;
+
+
+PNODE NewNode( void )
+{
+	PNODE pn;
+	pn = malloc( sizeof(NODE) );
+	memset( pn, 0, sizeof(NODE) ); // guarantee NIL content
+	return pn;
+}
+
+PNODE AddWord( PNODE pn, char *pWord )
+{
+	int r; // result from comparison
+	if( !pn )
+	{
+		pn = NewNode();
+		strcpy( pn, pWord ); // set this content
+		return pn; // return now - no sorting needed on start
+	}
+	
+	r = STRCMP( pn->Word, pWord );
+	if( r > 0 ) 
+		pn->pAfter = AddWord( pn->pAfter, pWord );
+	else if( r < 0 ) // same string
+		pn->pBefore = AddWord( pn->pBefore, pWord );
+	// else  R == 0 don't do anything
+	return pn; // always return the same root as we stated with...
+}
+
+void PrintTree( PNODE pn )
+{
+	if( !pn )
+		return;
+	PrintTree( pn->pBefore );
+	printf( "%s\n", pn->pWord );
+	PrintTree( pn->pAfter );
+}
+
+void main( void )
+{
+	char pBuffer[256];
+	PNODE pTree;
+	while( gets( pBuffer, 256 ) )
+	{
+		int len;
+		len = strlen( pBuffer );
+		if( pBuffer[len-1] == '\n' )
+			pBuffer[len-1] = 0;  // remove c/r from the 'word'...
+		pTree = AddWord( pTree, pBuffer );
+	}
+	PrintTree( pTree );
+}

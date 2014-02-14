@@ -1,0 +1,69 @@
+
+/decl spamthing /echo %%who name to spam!
+
+/trigger create playerspam &who *title
+/decl in %me who %who
+/execute %spamthing
+/endmac
+/trigger opt playerspam dis
+
+/trigger create playerend Total visible players: 
+/trigger opt playerspam disable
+/endmac
+/trigger opt playerend dis
+
+/trigger create playerbegin2 -------
+/trigger opt playerend once
+/trigger opt playerspam enable
+/endmac
+/trigger opt playerbegin2 dis
+
+/trigger create playerbegin Players
+/trigger opt playerbegin2 once
+/endmac
+/trigger opt playerbegin dis
+
+/decl lastplayer none
+/decl who        none
+
+/trigger create playerdo &who is *stance
+/compare %who is %lastplayer
+/if fail
+/decl lastplayer %who
+/decl in %me who %who
+/execute %spamthing
+/endif
+/endmac
+/trigger opt playerdo disable 
+
+/trigger create roomstop1 < &hits &moves >
+/decl lastplayer none
+/trigger opt playerdo dis
+/endmac
+/trigger opt roomstop1 dis
+
+/trigger create roomstop2 < &hits &mana &moves >
+/decl lastplayer none
+/trigger opt playerdo dis
+/endmac
+/trigger opt roomstop2 dis
+
+/trigger create roombegin exits:
+/trigger opt playerdo enable
+/trigger opt roomstop1 enable
+/trigger opt roomstop2 enable
+/endmac
+/trigger opt roombegin anchor disable
+
+/mac room ...
+/trigger opt roombegin once
+/decl spamthing %...
+.l
+/endmac
+
+/mac spam ...
+/trigger opt playerbegin once
+/decl spamthing %...
+/dumpvar %spamthing
+.who
+/endmac

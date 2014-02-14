@@ -1,0 +1,23 @@
+.SH NAME
+snmp_Version \- Return version of SNMP library
+.SH SYNOPSIS
+.B cc
+.RI "[ " "flag" " \|.\|.\|. ] " "file" " \|.\|.\|."
+.B \-lsnmp
+.RI "[ " "library" " \|.\|.\|. ]"
+.LP
+.B #include <sys/types.h>
+.br
+.B #include <snmp/snmp.h>
+.LP
+.B char *snmp_Version(void);
+.SH DESCRIPTION
+This function returns a textual description of the version of this
+SNMP library.
+.SH "RETURN VALUE"
+A string containing the library version.
+.SH NOTES
+The version is stored in the data segment of the library.  Do not
+attempt to
+.B free(\|)
+it.

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>HTML5 Canvas For Absolute Beginners | onlyWebPro.com</title>
+        
+    </head>
+    <body>
+    insert space
+        <canvas id="myCanvas" width="568" height="262">
+            <!-- Insert fallback content here -->
+            Sorry, your browser doesn't support canvas technology
+        </canvas>
+        <script type="text/javascript">
+        var canvas;
+        var ctx;
+        var x = 268;
+        var y = 162;
+        var mx = 2;
+        var my = 4;
+        var WIDTH = 568;
+        var HEIGHT = 262;
+
+function init() {  
+canvas = document.getElementById("myCanvas");  
+ctx = canvas.getContext("2d");  
+//canvas.addEventListener("mouseover", getPosition, false);
+//canvas.addEventListener("mousemove", getPosition, false);
+canvas.addEventListener("mousedown", getPosition2, false);
+//  window.onmousemove = getPosition;
+//  window.onmousemove = getPosition;
+
+return setInterval(draw, 20);
+
+} 
+init();        
+
+function draw() {  circle(x, y, 20); }
+function circle(x,y,r) {  ctx.beginPath();
+	ctx.arc(x, y, r, 0, Math.PI*2, true);
+	ctx.fill();
+}
+
+
+function getPosition(event)
+{
+  var lx = event.x;
+  var ly = event.y;
+
+  lx -= canvas.offsetLeft;
+  ly -= canvas.offsetTop;
+
+  x = lx;
+  y = ly;
+  circle( lx, ly, 10 );
+  //alert("x:" + lx + " y:" + ly);
+} 
+
+function getPosition2(event)
+{
+  var lx = event.x;
+  var ly = event.y;
+
+  lx -= canvas.offsetLeft;
+  ly -= canvas.offsetTop;
+
+  x = lx;
+  y = ly;
+  circle( lx, ly, 16 );
+  //alert("x:" + lx + " y:" + ly);
+} 
+
+
+        </script>
+    </body>
+</html>
+

@@ -1,0 +1,104 @@
+
+/memo debug off
+
+/dest db
+
+/make db sql mysql
+
+/decl denom 1
+/decl numer 1
+/decl gotratio false
+
+/mac getnumer
+/compare %gotratio is false
+/if success
+/db/query scalar select opt_value from coupon_options where opt_name='Point redeem numerator'
+/decl numer %db.scalar.opt_value
+/db/scalar/doquery select opt_value from coupon_options where opt_name='Point redeem denominator'
+/decl denom %db.scalar.opt_value
+/db/dest scalar
+/echo ration is %numer / %denom
+/decl gotratio true
+/endif
+/endmac
+
+
+/mac totalliab
+/getnumer
+/db/query record select sum(points) as tp from player_track join players_info on player_track.card=players_info.card
+/db/record/first
+/echo total points %db.record.tp
+/decl temp %db.record.tp
+/mult %temp 100
+/mult %temp %numer
+/div %temp %denom
+/decl x
+/tail %temp %x 2
+/decl dot .
+/echo total value is \$%temp%dot%x
+/endmac
+
+
+
+
+/mac player_report from_yr from_mo from_dy to_yr to_mo to_dy
+
+/decl query select player_track.card,sum(points) as tp,concat( first_name,' ',last_name) as name from player_track  \
+   	join players_info on player_track.card=players_info.card   \
+   	where bingoday < %from_yr%from_mo%from_dy     \
+   	group by card order by tp desc                             
+/db/query pinfo %query
+#/db/pinfo/first
+
+/db/pinfo/setquery earned select sum(points) as earned from player_track    \
+  where bingoday >= %from_yr%from_mo%from_dy and bingoday <= %to_yr%to_mo%to_dy  \
+  and (  (void_trans = 0 and points > 0)                                      \
+      or ( void_trans!=0 and points < 0))                                     \
+  and card=\'%(%room).card\'
+/db/pinfo/setquery used select sum(points) as used from player_track    \
+  	   where bingoday >= %from_yr%from_mo%from_dy and bingoday <= %to_yr%to_mo%to_dy  \
+       and (  (void_trans = 0 and points < 0)                                      \
+           or ( void_trans!=0 and points > 0))                                     \
+       and card=\'%(%room).card\' 
+
+
+/label top
+/db/pinfo/used/requery
+/if fail
+/decl used 0
+/else
+/decl used %db.pinfo.used.used
+/compare %used blank
+/if success
+/decl used 0
+/endif
+/endif
+
+/db/pinfo/earned/requery
+/if fail
+/decl earned 0
+/else
+/decl earned %db.pinfo.earned.earned
+/compare %earned blank
+/if success
+/decl earned 0
+/endif
+/endif
+                                   
+/echo %db.pinfo.card %db.pinfo.name start total: %db.pinfo.tp used: %used earned: %earned
+
+# could really wish these objects were more reusable...
+/db/pinfo/dest used earned
+
+/db/pinfo/next
+/if success
+/goto top
+/endif
+
+/dest pinfo
+/endif
+
+
+/endmac
+
+/player_report 2005 08 25 2005 09 30

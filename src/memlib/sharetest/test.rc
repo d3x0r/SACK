@@ -1,0 +1,146 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "windows.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""windows.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+TEST DIALOG DISCARDABLE  0, 0, 186, 95
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, WIDE("MS Sans Serif")
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,69,74,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,74,50,14
+    LTEXT           "asdkjfdsaf;lkjasdf;lkajsdf;lakjs",TXT_MESSAGE,7,7,146,8
+    CONTROL         "Tree1",IDC_TREE1,"SysTreeView32",WS_BORDER | WS_TABSTOP,
+                    26,24,94,39
+END
+
+IDD_DIALOG1 DIALOG DISCARDABLE  0, 0, 399, 223
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, WIDE("MS Sans Serif")
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,120,197,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,176,197,50,14
+    PUSHBUTTON      "Create",IDC_BUTTON1,7,27,50,14
+    PUSHBUTTON      "Grab",IDC_BUTTON2,7,52,50,14
+    PUSHBUTTON      "Store",IDC_BUTTON3,7,90,50,14
+    PUSHBUTTON      "Dig",IDC_BUTTON4,7,7,50,14
+    PUSHBUTTON      "Destroy",IDC_BUTTON5,61,27,50,14
+    PUSHBUTTON      "Drop",IDC_BUTTON6,61,52,50,14
+    PUSHBUTTON      "Put In",IDC_BUTTON7,61,90,50,14
+    PUSHBUTTON      "Collapse",IDC_BUTTON8,61,7,50,14
+    PUSHBUTTON      "Move",IDC_BUTTON9,120,27,50,14
+    PUSHBUTTON      "Turn",IDC_BUTTON10,120,52,50,14
+    PUSHBUTTON      "Link (Object)->(object)",IDC_BUTTON11,7,156,81,35,
+                    BS_MULTILINE
+    PUSHBUTTON      "Scan",IDC_BUTTON12,120,7,50,14
+    PUSHBUTTON      "Location",IDC_BUTTON13,191,114,50,14
+    PUSHBUTTON      "Object",IDC_BUTTON14,123,132,50,14
+    PUSHBUTTON      "recycle (Object)",IDC_BUTTON15,7,117,50,28,BS_MULTILINE
+    PUSHBUTTON      "Player",IDC_BUTTON16,221,134,50,14
+    CONTROL         "Tree1",IDC_TREE1,"SysTreeView32",WS_BORDER | WS_TABSTOP,
+                    271,13,120,167
+    PUSHBUTTON      "Failed Event",IDC_BUTTON17,209,39,50,14
+    PUSHBUTTON      "Time Event",IDC_BUTTON18,209,55,50,14
+    PUSHBUTTON      "Success Event",IDC_BUTTON19,209,23,50,14
+    PUSHBUTTON      "Collision ",IDC_BUTTON20,207,90,50,14
+    PUSHBUTTON      "Message...",IDC_BUTTON21,209,7,50,14
+    PUSHBUTTON      "Object",IDC_BUTTON22,92,151,50,14
+    PUSHBUTTON      "Object",IDC_BUTTON23,221,151,50,14
+    PUSHBUTTON      "Object",IDC_BUTTON24,149,151,50,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    "TEST", DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        VERTGUIDE, 120
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
+    END
+
+    IDD_DIALOG1, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 391
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 211
+        HORZGUIDE, 104
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

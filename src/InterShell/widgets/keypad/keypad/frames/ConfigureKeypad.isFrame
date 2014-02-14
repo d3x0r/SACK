@@ -1,0 +1,5 @@
+<control caption="ConfigureKeypad.Frame" edit="1" position="0,0" size="420,319" type="Frame">
+<control IDName="ListBox/InterShell/keypad/LISTBOX_KEYPAD_TYPE" caption="" position="7,17" size="207,232" type="ListBox"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="323,156" size="73,21" type="Button"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="326,207" size="73,21" type="Button"></control>
+<control IDName="Button/InterShell/keypad/BTN_EDIT_VISUAL" PrivateData="#ff354c59" caption="Visual..." position="326,60" size="73,21" type="Button"></control></control>

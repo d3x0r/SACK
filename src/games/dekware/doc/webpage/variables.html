@@ -1,0 +1,115 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<FONT size=+3><center>Variables and References</center></font><br>
+<a href="manual.html" OnMouseOver="window.status='Back to Manual Contents';return true" OnMouseOut="window.status=''">Return to Online Manual Contents</A><br>
+<hr>
+<p>Variables are named values.&nbsp; Variables are initially defined with the DECLARE
+command.&nbsp; Variables may be part of an object, or may exist only temporarily.&nbsp;
+While a macro is being executed, DECLARE will create new variables in the macro's space.&nbsp;
+If no macro is being run, or if the variable previously exists on an object, the
+value is set on the current active object.
+<p>A variable may be referenced by putting a % before the name.&nbsp; Almost(all)
+places that expect any other word will also accept variable references.&nbsp;
+<p>A macro may be defined to have parameters, these parameter names are also
+valid variable names.&nbsp; DO NOT use declare to change the value of a variable
+passed as a macro argument.&nbsp; Macro parameters may also be referenced
+numerically, ie in the following example %0 and %1 are also valid variable
+references.
+<p>/macro test one two<br>
+/echo %two %one<br>
+/endmac<br>
+/test this reverse<br>
+<u>Output</u><BR>
+reverse this
+<p>
+<p>/VARS will list the currently defined variables on an object, and if executed
+within a macro, will also list the variables avaiable in the current macro context.
+<p>/declare greeting Hello<br>
+/declare user you<br>
+/echo %greeting %user.<br>
+<u>Output</u><BR>
+'Hello you.' 
+<p>/decl a var1<br>
+/decl b var2<br>
+/decl %a bacon<br>
+/decl %b sandwitch<br>
+/echo %var1 %var2<br> 
+<u>Output</u><BR>
+bacon sandwich<br>
+<p>Var1 and Var2 were never declared.  This would normally cause error messages
+to be displayed, and the remainder of the line, or the variable references, or
+some nearly undefined result will result... however, by referencing the value of
+a (var1) in a declare (/declare %a value) the variable is defined...
+<p>
+Variables may be referenced from another object.  The format of this reference
+is %object.var.&nbsp; Variables may also be declared and updated in other 
+objects.&nbsp; /DECLARE in Ojbect VarName Value - creates a variable called 
+VarName with the specified value IN and object.
+<p>/create obj<br>
+/decl in obj user Bob Smith<br>
+/decl in obj pass Password<br>
+/echo %obj.user, %obj.pass<br>
+<u>Output</u><BR>
+Bob Smith, Password<br>
+<p>Multiple objects which have the same name may be reference by puttig a
+count front of the name...  1.obj, 2.obj, 3.obj, etc.  If a variable is to
+be gotten from an object which is not the first, then it's name must be
+bounded by parentheses.  If the name of an object is a variable, it must 
+be bounded by parentheses.  If a varible from an object within an object 
+is to be referenced, the objects may be put together.... The
+only part of this which cannot be a variable is the variable name itself
+<p>/create obj obj obj obj<br>
+/decl in 1.obj name Bob<br>
+/decl in 2.obj name Joe<br>
+/decl in 3.obj name Tim<br>
+/decl in 3.obj name Tom<br>
+/echo %obj.name
+/echo %(2.obj).name
+/echo %(2.obj).subobject.var
+/echo %obj.subobject.subsubobject.var
+/echo %(%objvar)(%subobjvar).var<br><br>
+<a name="builtin">
+<font size= +2><center><u>Builtin Variables</u></center></font><br>
+<p>There are several variables which are always available... and are
+often updated to new values.
+<p>%now - contains the current time (hh:mm:ss)<br>
+%time - contains the current date and time (mm/dd/yyyy hh:mm:ss)<br>
+%me - is the name of the object<br>
+%room - is the name of the object the object is in.<br>
+%eol - an end of line (carriage return or newline)<br>
+%blank - is a single space character.<br>
+%contents - this is the contents of the current object<br>
+<br>
+Some discussion of the variable prompt is in order.  The prompt variable
+is created with a sentience.  The initial value is "[%room/%me]:".
+The user may /declare prompt to be something else.  During the declaration,
+variables are dereferenced once.  What does that mean? That means the one
+attempt to resolve the value of a variable is done before storing the new
+value. 
+<menu>/declare prompt %now:</menu>
+This is invalid, and will set the prompt to the current time, and will not
+change.  Why?  Because the variable 'now' was evaluated, and it's value was stored
+in the variable 'prompt'.
+<menu>/declare prompt %%now:</menu>
+This will work as expected.  The current time will be shown as the prompt.
+The doulbe '%%' are reduced to a single '%' and '%now' is stored in the variable
+'prompt'.
+<p>
+Another good idea is to "/declare save %prompt" and later "/declare prompt %save"
+this will retain the value specifically in prompt. The default connect script
+now replaces the prompt with %%eol while connected to a server, and restores
+the prompt when disconnected.  To restore the prompt to 
+the original declaration is "/declare prompt [%%room/%%me]:"
+
+note: the prompt is built with [%room/%me].<br>
+<br><br>
+<font size= +2><center><u>Extended Variables</u></center></font><br>
+Some objects will have dynamic variables which can be set/read.  For example
+a 'cards' hand object will have %hand, %cards, %pokerhand, %pokervalue.  These
+variables come from code which executes instead of being statically set by
+macros and other internal commands.
+
+
+</BODY>
+</HTML>
