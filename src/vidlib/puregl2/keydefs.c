@@ -316,7 +316,7 @@ int DispatchKeyEvent( PRENDERER hVideo, _32 key )
 			if( hVideo )
 				hVideo->kbd.key[KEY_CODE(key)] = l.kbd.key[KEY_CODE(key)];
 
-			if( (l.kbd.key[KEY_LSHIFT]|l.kbd.key[KEY_RIGHT_SHIFT]|l.kbd.key[KEY_SHIFT]) & 0x80)
+			if( (l.kbd.key[KEY_LEFT_SHIFT]|l.kbd.key[KEY_RIGHT_SHIFT]|l.kbd.key[KEY_SHIFT]) & 0x80)
 			{
 				key |= KEY_MOD_SHIFT;
 				l.mouse_b |= MK_SHIFT;

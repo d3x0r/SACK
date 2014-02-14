@@ -132,7 +132,8 @@ GLWindow * createGLWindow(struct display_camera *camera)
 	Atom wmDelete;
 	Window winDummy;
 	unsigned int borderDummy;
-   camera->hVidCore->x11_gl_window = x11_gl_window;
+	MemSet( x11_gl_window, 0, sizeof( GLWindow ) );
+	camera->hVidCore->x11_gl_window = x11_gl_window;
 	x11_gl_window->fs = 0;//fullscreenflag;
 	/* set best mode to current */
 	bestMode = 0;
