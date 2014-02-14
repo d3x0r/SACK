@@ -4,10 +4,10 @@ ADD_DEFINITIONS( -DMAKE_RCOORD_SINGLE )
 #INCLUDE_DIRECTORIES( cg/include/cg )
 # glsl ?
 
-if( WIN32 )
+if( WIN32 OR NEED_GLEW )
   INCLUDE_DIRECTORIES( glew-1.9.0/include )
   add_subdirectory( glew-1.9.0 )
-endif( WIN32 )
+endif( WIN32 OR NEED_GLEW )
 
 if( __ANDROID__ OR __QNX__ )
 ADD_DEFINITIONS( -DUSE_GLES2 )
@@ -73,8 +73,8 @@ endif( __64__ )
 #install( FILES ${cgbin} DESTINATION bin )
 #install( FILES multishade.fx DESTINATION bin )
 
-if( NOT __ANDROID__ )
+if( NOT __ANDROID__ OR NEED_GLEW )
    install( FILES glew-1.9.0/include/GL/glew.h DESTINATION include/SACK/GL )
-endif( NOT __ANDROID__ )
+endif( NOT __ANDROID__ OR NEED_GLEW )
 
 

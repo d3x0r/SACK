@@ -10,7 +10,7 @@ PSI_CONSOLE_NAMESPACE
 
 
 
-void FormatTextToBlock( CTEXTSTR input, CTEXTSTR *output, int char_width, int char_height )
+void FormatTextToBlock( CTEXTSTR input, TEXTSTR *output, int char_width, int char_height )
 {
 	PCONSOLE_INFO console;
 	TEXTSTR block;
@@ -64,13 +64,13 @@ void FormatTextToBlock( CTEXTSTR input, CTEXTSTR *output, int char_width, int ch
 		PTEXT next;
 		PTEXT remainder = NULL;
 		PTEXT tmp;
-      PTEXT lines = SegCreateFromText( input );
+		PTEXT lines = SegCreateFromText( input );
 
 		parsed = burst( lines );
 
 		LineRelease( lines );
 
-      remainder = parsed;
+		remainder = parsed;
 
 		for( tmp = parsed; tmp; tmp = next )
 		{
@@ -122,23 +122,23 @@ void FormatTextToBlock( CTEXTSTR input, CTEXTSTR *output, int char_width, int ch
 	//console->pCurrentDisplay->nOffset = char_height - 1;
 	BuildDisplayInfoLines( console->pCurrentDisplay );
 
-   console->CurrentLineInfo =
+	console->CurrentLineInfo =
 		console->CurrentMarkInfo = &console->pCurrentDisplay->DisplayLineInfo;
 	console->mark_start.row = (char_height - 1);
 	console->mark_start.col = 0;
-   console->mark_end.row = 0;
+	console->mark_end.row = 0;
 	console->mark_end.col = char_width - 1;
 
 
-   block = PSI_GetDataFromBlock( console );
-   (*output) = block;
+	block = PSI_GetDataFromBlock( console );
+	(*output) = block;
 
-   PSI_DestroyHistoryBrowser( console->pCurrentDisplay );
+	PSI_DestroyHistoryBrowser( console->pCurrentDisplay );
 	PSI_DestroyHistoryBrowser( console->pHistoryDisplay );
 	PSI_DestroyHistoryCursor( console->pCursor );
 	PSI_DestroyHistoryRegion( console->pHistory );
 
-   Release( console );
+	Release( console );
 }
 
 PSI_CONSOLE_NAMESPACE_END
