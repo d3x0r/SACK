@@ -77,13 +77,13 @@ public:
 //#endif
 	CONNECTOR_CONSTRUCTOR( float			  ,	pf );
 	CONNECTOR_CONSTRUCTOR( double			 ,	pd );
-	CONNECTOR_CONSTRUCTOR( char				,	pc );
-	CONNECTOR_CONSTRUCTOR( short			  ,	ps );
-	CONNECTOR_CONSTRUCTOR( long				,	pl );
+	CONNECTOR_CONSTRUCTOR( S_8				,	pc );
+	CONNECTOR_CONSTRUCTOR( S_16			  ,	ps );
+	CONNECTOR_CONSTRUCTOR( S_32				,	pl );
 	CONNECTOR_CONSTRUCTOR( S_64				,  pll );
-	CONNECTOR_CONSTRUCTOR( unsigned char	,  puc );
-	CONNECTOR_CONSTRUCTOR( unsigned short  ,  pus );
-	CONNECTOR_CONSTRUCTOR( unsigned long	,  pul );
+	CONNECTOR_CONSTRUCTOR( _8            ,  puc );
+	CONNECTOR_CONSTRUCTOR( _16           ,  pus );
+	CONNECTOR_CONSTRUCTOR( _32          ,  pul );
 	CONNECTOR_CONSTRUCTOR( _64				 , pull );
 	CONNECTOR_CONSTRUCTOR( bool				, pb );
 };

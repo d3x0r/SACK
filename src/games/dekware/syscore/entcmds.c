@@ -73,7 +73,7 @@ PTEXT WriteListNot( PLIST pSource
 		length += GetTextSize( name->name );
 		if( name->count > 1 )
 		{
-			length += 2 + snprintf( tmp, sizeof(tmp), WIDE("%ld"), name->count );
+			length += 2 + snprintf( tmp, sizeof(tmp), WIDE("%")_32f, name->count );
 		}
 		if( didone )
 			length += 2;
