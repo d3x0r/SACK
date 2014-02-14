@@ -326,7 +326,7 @@ void GetViewVolume( PRAY *planes )
 	// this gets computed once per render frame.
 	// additional optimization may include if the camera does
 	// not move... this provides the current viewing volume planes
-   // in 6 point-normal planes expressed as an array of 6 RAYs.
+	// in 6 point-normal planes expressed as an array of 6 RAYs.
 	if( l.flags.bViewVolumeUpdated )
 	{
 		l.flags.bViewVolumeUpdated = 0;
@@ -401,7 +401,7 @@ int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 	int used = 0;
 	PRENDERER check = NULL;
 	struct display_camera *camera = (struct display_camera *)psvMouse;
-   lprintf( "mouse %d %d %d", x, y, b );
+	//lprintf( "mouse %d %d %d", x, y, b );
 	if( camera->origin_camera )
 	{
 		ComputeMouseRay( camera, TRUE, &camera->mouse_ray, x, y );
@@ -459,12 +459,12 @@ int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 				//PrintVector( target_surface_point );
 				newx = (int)target_surface_point[0];
 				newy = (int)target_surface_point[1];
-				//lprintf( WIDE("Is %d,%d in %d,%d(%dx%d) to %d,%d")
-				//   	 ,newx, newy
-				//   	 ,check->pWindowPos.x, check->pWindowPos.y
-				//   	 ,check->pWindowPos.cx, check->pWindowPos.cy
-				//   	 , check->pWindowPos.x+ check->pWindowPos.cx
-				//   	 , check->pWindowPos.y+ check->pWindowPos.cy );
+				lprintf( WIDE("Is %d,%d in %d,%d(%dx%d) to %d,%d")
+					 ,newx, newy
+					 ,check->pWindowPos.x, check->pWindowPos.y
+					 ,check->pWindowPos.cx, check->pWindowPos.cy
+					 , check->pWindowPos.x+ check->pWindowPos.cx
+					 , check->pWindowPos.y+ check->pWindowPos.cy );
 
 				if( check == l.hVirtualCaptured ||
 					( ( newx >= 0 && newx < (check->pWindowPos.cx ) )
