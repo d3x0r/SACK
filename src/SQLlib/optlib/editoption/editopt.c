@@ -162,12 +162,15 @@ static void CPROC OptionSelectionChanged( PTRSZVAL psvUser, PCONTROL pc, PLISTIT
 
 static void CPROC UpdateValue( PTRSZVAL psv, PCOMMON pc )
 {
-	TEXTCHAR value[256];
-	GetControlText( GetNearControl( pc, EDT_OPTIONVALUE ), value, sizeof(value) );
-	if( StrCmp( value, last_value ) != 0 )
+	if( last_node )
 	{
-		POPTION_TREE tree = GetOptionTreeExxx( (PODBC)psv, NULL DBG_SRC );
-		SetOptionStringValue( tree, last_node->ID_Option, value );
+		TEXTCHAR value[256];
+		GetControlText( GetNearControl( pc, EDT_OPTIONVALUE ), value, sizeof(value) );
+		if( StrCmp( value, last_value ) != 0 )
+		{
+			POPTION_TREE tree = GetOptionTreeExxx( (PODBC)psv, NULL DBG_SRC );
+			SetOptionStringValue( tree, last_node->ID_Option, value );
+		}
 	}
 }
 

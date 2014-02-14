@@ -586,6 +586,40 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 
 }
 
+int CPROC OpenGLKey( PTRSZVAL psv, _32 keycode )
+{
+	struct display_camera *camera = (struct display_camera *)psv;
+	int used = 0;
+	PRENDERER check = NULL;
+	INDEX idx;
+	struct plugin_reference *ref;
+	if( l.hPluginKeyCapture )
+	{
+		used = l.hPluginKeyCapture->Key3d( l.hPluginKeyCapture->psv, keycode );
+		if( !used )
+			l.hPluginKeyCapture = NULL;
+		else
+			return 1;
+	}
+
+	LIST_FORALL( camera->plugins, idx, struct plugin_reference *, ref )
+	{
+		if( ref->Key3d )
+		{
+			used = ref->Key3d( ref->psv, keycode );
+			if( used )
+			{
+				// if a thing uses a key, lock to that plugin for future keys until it doesn't want a key
+				// (thing like a chat module, first key would lock to it, and it could claim all events;
+				// maybe should implement an interface to manually clear this
+				l.hPluginKeyCapture = ref;
+				break;
+			}
+		}
+	}
+	return used;
+}
+
 
 // returns the forward view camera (or default camera)
 struct display_camera *SACK_Vidlib_OpenCameras( void )
@@ -608,6 +642,11 @@ lprintf( "Not Skipped..." );
 			InitializeCriticalSec( &camera->hVidCore->cs );
 			camera->hVidCore->camera = camera;
 			camera->hVidCore->flags.bLayeredWindow = l.flags.bLayeredWindowDefault;
+
+			camera->hVidCore->pMouseCallback = OpenGLMouse;
+			camera->hVidCore->dwMouseData = (PTRSZVAL)camera;
+			camera->hVidCore->pKeyProc = OpenGLKey;
+			camera->hVidCore->dwKeyData = (PTRSZVAL)camera;
 
 		}
 
