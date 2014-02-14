@@ -365,7 +365,7 @@ int main( int argc, char **argv )
 			replace_start = strstr( package, "@@@" );
 			if( replace_start )
 			{
-				fprintf( out, "%*.*s", replace_start - package, replace_start - package, package );
+				fprintf( out, "%*.*s", (int)(replace_start - package ), (int)(replace_start - package), package );
 				fprintf( out, "%s", SlashFix( path ) );
 				fprintf( out, "%s", replace_start + 3 );
 			}

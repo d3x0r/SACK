@@ -218,10 +218,10 @@ PCLIENT ConnectMate( PROUTE pRoute, PCLIENT pExisting, SOCKADDR *sa )
 	out = OpenTCPClientAddrExx( sa, TCPRead, TCPClose, NULL, TCPConnected );
 	if( out )
 	{
-      PTRSZVAL dwIP = GetNetworkLong( pExisting, GNL_IP );
+      _32 dwIP = (_32)GetNetworkLong( pExisting, GNL_IP );
 		if( pRoute->flags.ip_transmit )
 		{
-			xlprintf( 2100 )( WIDE("Sending initiant's IP : %08") _32fX WIDE(""), dwIP );
+			xlprintf( 2100 )( WIDE("Sending initiant's IP : %08") _32fX, dwIP );
 			SendTCP( out, &dwIP, 4 );
 		}
 		SetNetworkLong( out, NL_ROUTE, (PTRSZVAL)pRoute );

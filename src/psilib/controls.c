@@ -271,6 +271,7 @@ int DoRegisterControl( PCONTROL_REGISTRATION pcr, int nSize )
 					  , ControlID );
 			root = RegisterClassAlias( namebuf2, namebuf );
 			RegisterValueExx( root, NULL, WIDE("Type"), FALSE, pcr->name );
+         // the warning in GCC is allowed here... TRUE changes the type handling of the argument.
 			RegisterValueExx( root, NULL, WIDE("Type"), TRUE, (CTEXTSTR)ControlID );
 			snprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY_OTHER WIDE("/control/%") _32f
 					  , ControlID );

@@ -462,6 +462,8 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 #ifdef __LINUX__
 #  undef open
     handle = open( file->fullname, opts );
+    if( l.flags.bLogOpenClose )
+        lprintf( WIDE( "open %s %d %d" ), file->fullname, handle, opts );
 #else
     switch( opts & 3 )
     {
@@ -494,17 +496,21 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
                              , NULL );
     break;
     }
-#endif
     if( l.flags.bLogOpenClose )
         lprintf( WIDE( "open %s %p %08x" ), file->fullname, (POINTER)handle, opts );
+#endif
     if( handle == INVALID_HANDLE_VALUE )
     {
         if( l.flags.bLogOpenClose )
             lprintf( WIDE( "Failed to open file [%s]=[%s]" ), file->name, file->fullname );
         return INVALID_HANDLE_VALUE;
     }
-    if( handle != INVALID_HANDLE_VALUE )
-        AddLink( &file->handles, handle );
+	 if( handle != INVALID_HANDLE_VALUE )
+	 {
+		 HANDLE *holder = New( HANDLE );
+		 holder[0] = handle;
+		 AddLink( &file->handles, holder );
+	 }
     return handle;
 }
 
@@ -532,10 +538,10 @@ struct file *FindFileByHandle( HANDLE file_file )
     LIST_FORALL( l.files, idx, struct file *, file )
     {
         INDEX idx2;
-        HANDLE check;
-        LIST_FORALL( file->handles, idx2, HANDLE, check )
+        HANDLE* check;
+        LIST_FORALL( file->handles, idx2, HANDLE*, check )
         {
-            if( check == file_file )
+            if( check[0] == file_file )
                 break;
         }
         if( check )
@@ -547,8 +553,8 @@ struct file *FindFileByHandle( HANDLE file_file )
 
 LOGICAL sack_iset_eof ( INDEX file_handle )
 {
-
-    HANDLE handle = (HANDLE)(PTRSZVAL)GetLink( &l.handles, file_handle );
+   HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
+	HANDLE handle = holder?holder[0]:-1;
 #ifdef _WIN32
     return SetEndOfFile( handle );
 #else
@@ -557,9 +563,10 @@ LOGICAL sack_iset_eof ( INDEX file_handle )
 
 }
 
-LOGICAL sack_set_eof ( HANDLE handle )
+LOGICAL sack_set_eof ( HANDLE file_handle )
 {
-
+   HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
+	HANDLE handle = holder?holder[0]:-1;
 #ifdef _WIN32
     return SetEndOfFile( handle );
 #else
@@ -571,7 +578,8 @@ LOGICAL sack_set_eof ( HANDLE handle )
 
 long sack_tell( INDEX file_handle )
 {
-    HANDLE handle = (HANDLE)(PTRSZVAL)GetLink( &l.handles, file_handle );
+   HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
+	HANDLE handle = holder?holder[0]:-1;
 #ifdef WIN32
     _32 length = SetFilePointer(
     handle, // must have GENERIC_READ and/or GENERIC_WRITE
@@ -630,11 +638,11 @@ int sack_close( HANDLE file_handle )
 {
     struct file *file = FindFileByHandle( (HANDLE)file_handle );
     if( file )
-    {
-        DeleteLink( &file->handles, (POINTER)file_handle );
-        if( l.flags.bLogOpenClose )
-            lprintf( WIDE("Close %s"), file->fullname );
-        /*
+	 {
+       SetLink( &file->handles, file_handle, NULL );
+		 if( l.flags.bLogOpenClose )
+			 lprintf( WIDE("Close %s"), file->fullname );
+		 /*
          Release( file->name );
          Release( file->fullname );
          Release( file );
@@ -661,9 +669,12 @@ INDEX sack_iopen( INDEX group, CTEXTSTR filename, int opts, ... )
             lprintf( WIDE( "Failed to open %s" ), filename );
         return INVALID_INDEX;
     }
-    EnterCriticalSec( &l.cs_files );
-    AddLink( &l.handles, (POINTER)h );
-    result = FindLink( &l.handles, (POINTER)h );
+	 EnterCriticalSec( &l.cs_files );
+	 {
+		 HANDLE *holder = New( HANDLE );
+		 AddLink( &l.handles, holder );
+		 result = FindLink( &l.handles, holder );
+	 }
     LeaveCriticalSec( &l.cs_files );
     if( l.flags.bLogOpenClose )
         lprintf( WIDE( "return iopen of [%s]=%d(%")_size_f WIDE(")?" ), filename, h, result );
@@ -675,9 +686,10 @@ int sack_iclose( INDEX file_handle )
     int result;
     EnterCriticalSec( &l.cs_files );
     {
-        HANDLE h = (HANDLE)(PTRSZVAL)GetLink( &l.handles, file_handle );
+		  HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
+		  HANDLE handle = holder?holder[0]:-1;
         SetLink( &l.handles, file_handle, 0 );
-        result = sack_close( h );
+        result = sack_close( handle );
     }
     LeaveCriticalSec( &l.cs_files );
     return result;
@@ -688,11 +700,12 @@ int sack_ilseek( INDEX file_handle, size_t pos, int whence )
     int result;
     EnterCriticalSec( &l.cs_files );
     {
-        HANDLE h = (HANDLE)(PTRSZVAL)GetLink( &l.handles, file_handle );
+		  HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
+		  HANDLE handle = holder?holder[0]:-1;
 #ifdef _WIN32
-        result = SetFilePointer(h,pos,NULL,whence);
+        result = SetFilePointer(handle,pos,NULL,whence);
 #else
-        result = lseek( h, pos, whence );
+        result = lseek( handle, pos, whence );
 #endif
     }
     LeaveCriticalSec( &l.cs_files );
@@ -703,14 +716,15 @@ int sack_iread( INDEX file_handle, POINTER buffer, int size )
 {
     EnterCriticalSec( &l.cs_files );
     {
-        HANDLE h = (HANDLE)(PTRSZVAL)GetLink( &l.handles, file_handle );
+		  HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
+		  HANDLE handle = holder?holder[0]:-1;
 #ifdef _WIN32
         DWORD dwLastReadResult;
         //lprintf( WIDE( "... %p %p" ), file_handle, h );
         LeaveCriticalSec( &l.cs_files );
-        return (ReadFile( h, (POINTER)buffer, size, &dwLastReadResult, NULL )?dwLastReadResult:-1 );
+        return (ReadFile( handle, (POINTER)buffer, size, &dwLastReadResult, NULL )?dwLastReadResult:-1 );
 #else
-        return read( h, buffer, size );
+        return read( handle, buffer, size );
 #endif
     }
 }
@@ -719,13 +733,14 @@ int sack_iwrite( INDEX file_handle, CPOINTER buffer, int size )
 {
     EnterCriticalSec( &l.cs_files );
     {
-        HANDLE h = (HANDLE)(PTRSZVAL)GetLink( &l.handles, file_handle );
+		  HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
+		  HANDLE handle = holder?holder[0]:-1;
 #ifdef _WIN32
         DWORD dwLastWrittenResult;
         LeaveCriticalSec( &l.cs_files );
-        return (WriteFile( h, (POINTER)buffer, size, &dwLastWrittenResult, NULL )?dwLastWrittenResult:-1 );
+        return (WriteFile( handle, (POINTER)buffer, size, &dwLastWrittenResult, NULL )?dwLastWrittenResult:-1 );
 #else
-        return write( h, buffer, size );
+        return write( handle, buffer, size );
 #endif
     }
 }
