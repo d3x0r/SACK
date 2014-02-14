@@ -142,7 +142,7 @@ GLWindow * createGLWindow(struct display_camera *camera)
 	Atom wmDelete;
 	Window winDummy;
 	unsigned int borderDummy;
-
+   camera->hVidCore->x11_gl_window = x11_gl_window;
 	x11_gl_window->fs = 0;//fullscreenflag;
 	/* set best mode to current */
 	bestMode = 0;
@@ -244,9 +244,8 @@ GLWindow * createGLWindow(struct display_camera *camera)
 			XMapRaised(x11_gl_window->dpy, x11_gl_window->win);
 		}
 		/* connect the glx-context to the window */
-		lprintf( " glx make current" );
-		glXMakeCurrent(x11_gl_window->dpy, x11_gl_window->win, x11_gl_window->ctx);
-		lprintf( "getgeometry..." );
+      SetActiveGLDisplayView( camera, 0 );
+		//glXMakeCurrent(x11_gl_window->dpy, x11_gl_window->win, x11_gl_window->ctx);
 		XGetGeometry(x11_gl_window->dpy, x11_gl_window->win, &winDummy, &x11_gl_window->x, &x11_gl_window->y,
 						 &x11_gl_window->width, &x11_gl_window->height, &borderDummy, &x11_gl_window->depth);
 		printf("Depth %d\n", x11_gl_window->depth);
@@ -307,11 +306,6 @@ void  GetDisplaySizeEx ( int nDisplay
 		}
 }
 
-ATEXIT( hold_exit )
-{
-   DebugBreak();
-}
-
 //----------------------------------------------------------------------------
 
 void InvokeMouseEvent( PRENDERER hVideo, GLWindow *x11_gl_window  )
@@ -320,7 +314,7 @@ void InvokeMouseEvent( PRENDERER hVideo, GLWindow *x11_gl_window  )
     {
         RCOORD delta_x = x11_gl_window->mouse_x - (hVideo->WindowPos.cx/2);
         RCOORD delta_y = x11_gl_window->mouse_y - (hVideo->WindowPos.cy/2);
-        lprintf( "mouse came in we're at %d,%d %g,%g", x11_gl_window->mouse_x, x11_gl_window->mouse_y, delta_x, delta_y );
+        //lprintf( WIDE("mouse came in we're at %d,%d %g,%g"), x11_gl_window->mouse_x, x11_gl_window->mouse_y, delta_x, delta_y );
         if( delta_y && delta_y )
         {
             static int toggle;
@@ -339,13 +333,13 @@ void InvokeMouseEvent( PRENDERER hVideo, GLWindow *x11_gl_window  )
             toggle = 1-toggle;
             x11_gl_window->mouse_x = hVideo->WindowPos.cx/2;
             x11_gl_window->mouse_y = hVideo->WindowPos.cy/2;
-            lprintf( "Set curorpos.." );
+            //lprintf( WIDE("Set curorpos..") );
             XWarpPointer( x11_gl_window->dpy, None
                          , XRootWindow( x11_gl_window->dpy, 0)
                          , 0, 0, 0, 0
                          , x11_gl_window->mouse_x, x11_gl_window->mouse_y);
             //SetCursorPos( hVideo->pWindowPos.cx/2, hVideo->pWindowPos.cy / 2 );
-            lprintf( "Set curorpos Done.." );
+            //lprintf( WIDE("Set curorpos Done..") );
         }
     }
     else if (hVideo->pMouseCallback)
@@ -393,7 +387,7 @@ static void HandleMessage (PRENDERER gl_camera, GLWindow *x11_gl_window, XEvent 
                 break;
             }
 		  }
-        lprintf( "Mouse down... %d %d %d", x11_gl_window->mouse_x,x11_gl_window->mouse_y,x11_gl_window->mouse_b );
+        //lprintf( "Mouse down... %d %d %d", x11_gl_window->mouse_x,x11_gl_window->mouse_y,x11_gl_window->mouse_b );
         InvokeMouseEvent( gl_camera, x11_gl_window );
         break;
     case ButtonRelease:
@@ -413,21 +407,20 @@ static void HandleMessage (PRENDERER gl_camera, GLWindow *x11_gl_window, XEvent 
                 break;
             }
         }
-        lprintf( "Mouse up... %d %d %d", x11_gl_window->mouse_x,x11_gl_window->mouse_y,x11_gl_window->mouse_b );
+        //lprintf( "Mouse up... %d %d %d", x11_gl_window->mouse_x,x11_gl_window->mouse_y,x11_gl_window->mouse_b );
         InvokeMouseEvent( gl_camera, x11_gl_window );
         break;
     case MotionNotify:
         x11_gl_window->mouse_x = event->xmotion.x;
 		  x11_gl_window->mouse_y = event->xmotion.y;
-        lprintf( "Mouse move... %d %d %d", x11_gl_window->mouse_x,x11_gl_window->mouse_y,x11_gl_window->mouse_b );
+		  //lprintf( "Mouse move... %d %d %d", x11_gl_window->mouse_x,x11_gl_window->mouse_y,x11_gl_window->mouse_b );
         InvokeMouseEvent( gl_camera, x11_gl_window );
         break;
     case Expose:
         if (event->xexpose.count != 0)
             break;
-        lprintf( "X Expose Event" );
-		//drawGLScene( camera, x11_gl_window );
-		break;
+		  //drawGLScene( camera, x11_gl_window );
+		  break;
 	case ConfigureNotify:
 		/* call resizeGLScene only if our window-size changed */
 		if ((event->xconfigure.width != x11_gl_window->width) ||
@@ -435,7 +428,6 @@ static void HandleMessage (PRENDERER gl_camera, GLWindow *x11_gl_window, XEvent 
 		{
 			x11_gl_window->width = event->xconfigure.width;
 			x11_gl_window->height = event->xconfigure.height;
-			printf("Resize event\n");
 			resizeGLScene(event->xconfigure.width,
 							  event->xconfigure.height);
 		}
@@ -483,6 +475,7 @@ static void HandleMessage (PRENDERER gl_camera, GLWindow *x11_gl_window, XEvent 
 			 *"WM_PROTOCOLS")
 		{
 			printf("Exiting sanely...\n");
+         BAG_Exit( 0 );
 			//done = True;
 		}
 		break;
@@ -499,9 +492,7 @@ PTRSZVAL CPROC ProcessDisplayMessages( PTHREAD thread )
 	struct display_camera *camera;
 	INDEX idx;
    struct display_camera *did_one;
-lprintf( "Load options..." );
 	LoadOptions(); // loads camera config, and logging options...
-lprintf( "Open Cameras..." );
 	SACK_Vidlib_OpenCameras();  // create logical camera structures
 	l.bThreadRunning = 1;
 	while( 1 )
@@ -514,8 +505,7 @@ lprintf( "Open Cameras..." );
 			GLWindow *x11_gl_window = camera->hVidCore->x11_gl_window;
 			if( !x11_gl_window )
 			{
-				lprintf( "opening real output..." );
-				x11_gl_window = camera->hVidCore->x11_gl_window = createGLWindow( camera );  // opens the physical device
+				x11_gl_window = createGLWindow( camera );  // opens the physical device
 			}
 			//lprintf( "is it %Lx?", GetThreadID( thread ) );
 			{

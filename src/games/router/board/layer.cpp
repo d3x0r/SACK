@@ -3,7 +3,7 @@
 #include <sharemem.h>
 #define USES_INTERSHELL_INTERFACE
 #define DEFINES_INTERSHELL_INTERFACE
-#include "intershell/intershell_export.h"
+#include "InterShell/intershell_export.h"
 
 #include "board.hpp"
 #include "layer.hpp"
