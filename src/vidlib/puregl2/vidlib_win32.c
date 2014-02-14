@@ -1663,7 +1663,7 @@ HHOOK prochook;
 LRESULT CALLBACK AllWndProc( int code, WPARAM wParam, LPARAM lParam )
 {
 	PCWPSTRUCT msg  = (PCWPSTRUCT)lParam;
-	lprintf( WIDE( "msg %p %d %d %p" ), msg->hwnd, msg->message, msg->wParam, msg->lParam );
+	//lprintf( WIDE( "msg %p %d %d %p" ), msg->hwnd, msg->message, msg->wParam, msg->lParam );
 	if( msg->message == WM_TOUCH )
 	{
 		lprintf( WIDE( "TOUCH %d" ), msg->wParam );
