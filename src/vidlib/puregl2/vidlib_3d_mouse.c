@@ -401,6 +401,7 @@ int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 	int used = 0;
 	PRENDERER check = NULL;
 	struct display_camera *camera = (struct display_camera *)psvMouse;
+   lprintf( "mouse %d %d %d", x, y, b );
 	if( camera->origin_camera )
 	{
 		ComputeMouseRay( camera, TRUE, &camera->mouse_ray, x, y );

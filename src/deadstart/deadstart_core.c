@@ -433,7 +433,7 @@ PRIORITY_PRELOAD( InitDeadstartOptions, SQL_PRELOAD_PRIORITY+2 )
 }
 #endif
 
-#if defined( __GNUC__ )
+#if defined( __GNUC__ ) && 0
 
 #ifndef __cplusplus
 static void RegisterStartups( void ) __attribute__((constructor));
