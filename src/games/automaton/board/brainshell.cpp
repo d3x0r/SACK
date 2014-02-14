@@ -110,7 +110,7 @@ public:
 
 	PPEICE_METHODS FindPeiceMethods( TEXTCHAR *type );
 	void InitMenus( void );
-	void LoadPeices( TEXTCHAR *file );
+	void LoadPeices( CTEXTSTR file );
 
 	void SetCellSize( arg_list args );
 	void DefinePeiceColors( arg_list args );
@@ -1059,7 +1059,7 @@ BRAINBOARD::BRAINBOARD(PBRAIN _brain )
 
 //---------------------------------------------------
 
-void BRAINBOARD::LoadPeices( TEXTCHAR *file )
+void BRAINBOARD::LoadPeices( CTEXTSTR file )
 {
 	PCONFIG_HANDLER pch = CreateConfigurationHandler();
 	AddConfigurationMethod( pch, WIDE("cell size %i by %i"), ::SetCellSize );

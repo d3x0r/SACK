@@ -21,9 +21,9 @@ struct dekware_interface {
    CORE_PROC_PTR( PTEXT, MakeNumberText )(size_t val );
 	CORE_PROC_PTR( PDATAPATH, CreateDataPath   )( PDATAPATH *ppWhere, int nExtra );
 
-	CORE_PROC_PTR( PMACROSTATE, InvokeBehavior )( TEXTCHAR *name, PENTITY peActor, PSENTIENT psInvokeOn, PTEXT parameters );
-	CORE_PROC_PTR( void, AddCommonBehavior )( TEXTCHAR *name, TEXTCHAR *description );
-	CORE_PROC_PTR( void, AddBehavior )( PENTITY pe, TEXTCHAR *name, TEXTCHAR *desc );
+	CORE_PROC_PTR( PMACROSTATE, InvokeBehavior )( CTEXTSTR name, PENTITY peActor, PSENTIENT psInvokeOn, PTEXT parameters );
+	CORE_PROC_PTR( void, AddCommonBehavior )( CTEXTSTR name, CTEXTSTR description );
+	CORE_PROC_PTR( void, AddBehavior )( PENTITY pe, CTEXTSTR name, CTEXTSTR desc );
 
 	CORE_PROC_PTR( PSENTIENT, CreateAwareness  )( PENTITY pEntity );
 	CORE_PROC_PTR( PENTITY, CreateEntityIn     )( PENTITY Location, PTEXT pName );
@@ -36,27 +36,27 @@ struct dekware_interface {
 
 	CORE_PROC_PTR( void, WakeAThreadEx )( PSENTIENT ps DBG_PASS );
 
-	CORE_PROC_PTR( PMACRO, GetMacro )( PENTITY pe, TEXTCHAR *pNamed );
-	CORE_PROC_PTR( void, QueueCommand )( PSENTIENT ps, TEXTCHAR *Command );
+	CORE_PROC_PTR( PMACRO, GetMacro )( PENTITY pe, CTEXTSTR pNamed );
+	CORE_PROC_PTR( void, QueueCommand )( PSENTIENT ps, CTEXTSTR Command );
 	CORE_PROC_PTR( int, 		RelayInput			)( PDATAPATH pdp, PTEXT (CPROC *Datacallback)( PDATAPATH pdp, PTEXT pLine ) );
 	CORE_PROC_PTR( int, 		RelayOutput			)( PDATAPATH pdp, PTEXT (CPROC *Datacallback)( PDATAPATH pdp, PTEXT pLine ) );
 	CORE_PROC_PTR( PTEXT, GatherLineEx )( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSaveCR, int bData, PTEXT pInput );
-	CORE_PROC_PTR( PMACRO, LocateMacro )( PENTITY pe, TEXTCHAR *name );
+	CORE_PROC_PTR( PMACRO, LocateMacro )( PENTITY pe, CTEXTSTR name );
 	CORE_PROC_PTR( PMACROSTATE, InvokeMacro )( BLOBTYPE sentient_tag *ps, PMACRO pMacro, PTEXT pArgs );
 	CORE_PROC_PTR( void, UnlockAwareness       )( PSENTIENT ps );
-   CORE_PROC_PTR( INDEX, RegisterExtension    )( TEXTCHAR *pName );
-	CORE_PROC_PTR( void,  RegisterObjectEx       )( TEXTCHAR *pName, TEXTCHAR *pDescription, ObjectInit Init DBG_PASS );
+   CORE_PROC_PTR( INDEX, RegisterExtension    )( CTEXTSTR pName );
+	CORE_PROC_PTR( void,  RegisterObjectEx       )( CTEXTSTR pName, CTEXTSTR pDescription, ObjectInit Init DBG_PASS );
 
 	CORE_PROC_PTR( void, RegisterCommands )(CTEXTSTR device, command_entry *cmds, INDEX nCommands);
 	CORE_PROC_PTR( void, RegisterOptions )(CTEXTSTR device, option_entry *cmds, INDEX nCommands);
 
 
-	CORE_PROC_PTR( void,  UnregisterRoutine    )( TEXTCHAR *pName );
-	CORE_PROC_PTR( void,  UnregisterObject     )( TEXTCHAR *pName );
+	CORE_PROC_PTR( void,  UnregisterRoutine    )( CTEXTSTR pName );
+	CORE_PROC_PTR( void,  UnregisterObject     )( CTEXTSTR pName );
 
-	CORE_PROC_PTR( void,  RegisterRoutine      )( TEXTCHAR *pClassname, TEXTCHAR *pName, TEXTCHAR *pDescription, RoutineAddress Routine );
-	CORE_PROC_PTR( int,   RegisterDevice       )( TEXTCHAR *pNext, TEXTCHAR *pDescription, DeviceOpenDevice Open );
-	CORE_PROC_PTR( int,   RegisterDeviceOpts       )( TEXTCHAR *pNext, TEXTCHAR *pDescription, DeviceOpenDevice Open, option_entry *pOptions, _32 nOptions );
+	CORE_PROC_PTR( void,  RegisterRoutine      )( CTEXTSTR pClassname, CTEXTSTR pName, CTEXTSTR pDescription, RoutineAddress Routine );
+	CORE_PROC_PTR( int,   RegisterDevice       )( CTEXTSTR pNext, CTEXTSTR pDescription, DeviceOpenDevice Open );
+	CORE_PROC_PTR( int,   RegisterDeviceOpts       )( CTEXTSTR pNext, CTEXTSTR pDescription, DeviceOpenDevice Open, option_entry *pOptions, _32 nOptions );
 
 	CORE_PROC_PTR( void, AddVariableExxx )( PSENTIENT ps, PENTITY pe
 													  , PTEXT pName, PTEXT parameters
@@ -65,7 +65,7 @@ struct dekware_interface {
 	CORE_PROC_PTR( PTEXT, GetVolatileVariable )( PENTITY pEnt, CTEXTSTR pNamed );
 	CORE_PROC_PTR( PTEXT, SetVolatileVariable )( PENTITY pEnt, CTEXTSTR pNamed, PTEXT newval );
 
-	CORE_PROC_PTR( void,  UnregisterDevice     )( TEXTCHAR *pName );
+	CORE_PROC_PTR( void,  UnregisterDevice     )( CTEXTSTR pName );
 	CORE_PROC_PTR( void, WriteCommandList2 )( PLINKQUEUE *Output, CTEXTSTR root
 														 , PTEXT pMatch );
 	CORE_PROC_PTR( void, WriteOptionList )( PLINKQUEUE *Output, option_entry *commands
