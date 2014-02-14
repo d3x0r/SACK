@@ -17,7 +17,7 @@ static PTRSZVAL OnInit3d( WIDE( "Virtuality interface" ) )( PMatrix projection, 
 	l.transform = camera;
 	{
 		//Image 
-		tmp = LoadImageFile( "%resources%/images/AN00236511_001_l.jpg" );
+		tmp = LoadImageFile( WIDE("%resources%/images/AN00236511_001_l.jpg") );
 		SetImageTransformRelation( tmp, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
 		SetObjectColor( l.root_object, BASE_COLOR_BLUE );
 		InvertObject( l.root_object );
@@ -128,7 +128,7 @@ static int GetVector( VECTOR pos, PSENTIENT ps, PTEXT *parameters, LOGICAL log_e
 		else
 		{
 			if( log_error )
-				S_MSG( ps, "vector part %d is not a number", n + 1 );
+				S_MSG( ps, WIDE("vector part %d is not a number"), n + 1 );
 			parameters[0] = original;
 			return 0;
 		}
@@ -184,7 +184,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("Point Label"), WIDE("position"), W
 	PVARTEXT pvt = VarTextCreate();
 	PTEXT result;
 		PCVECTOR o = GetOrigin( vobj->object->Ti );
-	vtprintf( pvt, "%g %g %g", o[0], o[1], o[2] );
+	vtprintf( pvt, WIDE("%g %g %g"), o[0], o[1], o[2] );
 	result = VarTextGet( pvt );
 	VarTextDestroy( &pvt );
 	return result;
@@ -195,7 +195,7 @@ static PTEXT ObjectVolatileVariableSet( WIDE("Point Label"), WIDE("position"), W
 	struct virtuality_object *vobj = (struct virtuality_object *)GetLink( &pe->pPlugin, l.extension );
 	PTEXT line = BuildLine( value );
 	float vals[3];
-	if( sscanf( GetText( line ), "%g %g %g", vals+0, vals+1, vals+2 ) == 3 )
+	if( sscanf( GetText( line ), WIDE("%g %g %g"), vals+0, vals+1, vals+2 ) == 3 )
 	{
 		// float precision may mismatch, so pass as discrete values...
 		Translate( vobj->object->Ti,vals[0],vals[1], vals[2] );

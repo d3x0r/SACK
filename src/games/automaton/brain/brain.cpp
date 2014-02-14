@@ -967,7 +967,7 @@ ATEXIT( DropInterface )
 #endif
 
 
-TEXTCHAR *brain_info_table =
+CTEXTSTR brain_info_table =
 WIDE("CREATE TABLE `brain_info` (                             ")
 WIDE("  `brain_info_id` int(11) NOT NULL auto_increment,		 ")
 WIDE("  `brain_name` varchar(100) NOT NULL default '',		 ")
@@ -977,7 +977,7 @@ WIDE("  PRIMARY KEY  (`brain_info_id`)						 ")
 WIDE(") TYPE=MyISAM;											 ")
 ;														 
 
-TEXTCHAR *brain_neuron_table =								 
+CTEXTSTR brain_neuron_table =								 
 WIDE("CREATE TABLE `brain_neuron` (                          ")
 WIDE("  `brain_neuron_id` int(11) NOT NULL auto_increment,	")
 WIDE("  `brain_info_id` int(11) NOT NULL default '0',		")
@@ -990,7 +990,7 @@ WIDE("  PRIMARY KEY  (`brain_neuron_id`)						")
 WIDE(") TYPE=MyISAM;											")
 ;
 
-TEXTCHAR *brain_synapse_table = 
+CTEXTSTR brain_synapse_table = 
 WIDE("CREATE TABLE `brain_synapse` (                         ")
 WIDE("  `brain_synapse_id` int(11) NOT NULL auto_increment,	")
 WIDE("  `brain_info_id` int(11) NOT NULL default '0',		")
@@ -1001,7 +1001,7 @@ WIDE("  PRIMARY KEY  (`brain_synapse_id`)					")
 WIDE(") TYPE=MyISAM;											")
 ;
 
-TEXTCHAR *brain_connectors = 
+CTEXTSTR brain_connectors = 
 WIDE("CREATE TABLE `brain_connectors` (                         ")
 WIDE("  `brain_connector_id` int(11) NOT NULL auto_increment,	")
 WIDE("  `connector_name` varchar(100) NOT NULL default '0',		")

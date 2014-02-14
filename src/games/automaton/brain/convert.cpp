@@ -259,25 +259,25 @@ void value::set( enum type type, ... )
 		value::data.pd = va_arg( args, double*);
 		break;
 	case VAL_PTRCHAR:
-		value::data.pc = va_arg( args, char *);
+		value::data.pc = va_arg( args, S_8 *);
 		break;
 	case VAL_PTRSHORT:
-		value::data.ps = va_arg( args, short*);
+		value::data.ps = va_arg( args, S_16*);
 		break;
 	case VAL_PTRLONG:
-		value::data.pl = va_arg( args, long*);
+		value::data.pl = va_arg( args, S_32*);
 		break;
 	case VAL_PTRLONGLONG:
 		value::data.pll = va_arg( args, S_64 *);
 		break;
 	case VAL_PTRUCHAR:
-		value::data.puc = va_arg( args, unsigned char *);
+		value::data.puc = va_arg( args, _8 *);
 		break;
 	case VAL_PTRUSHORT:
-		value::data.pus = va_arg( args, unsigned short *);
+		value::data.pus = va_arg( args, _16 *);
 		break;
 	case VAL_PTRULONG:
-		value::data.pul = va_arg( args, unsigned long *);
+		value::data.pul = va_arg( args, _32 *);
 		break;
 	case VAL_PTRULONGLONG:
 		value::data.pull = va_arg( args, _64*);

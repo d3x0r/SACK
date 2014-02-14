@@ -154,7 +154,7 @@ static int proc_iac(PMYDATAPATH pmdp, TEXTCHAR tchar)
 		//Log1( WIDE("Added byte: %02x"), tchar );
 		pmdp->iac_data[pmdp->iac_count++]=tchar;
 
-      switch(pmdp->iac_data[1])
+      switch( (_8)pmdp->iac_data[1])
 		{
 		case IAC:
 			// displayln(traceout,WIDE("double iac on %hd\n"),Channel);
