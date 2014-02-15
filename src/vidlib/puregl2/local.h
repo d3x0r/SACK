@@ -450,6 +450,10 @@ void drawCamera( struct display_camera *camera );
 void OpenWin32Camera( struct display_camera *camera );
 int InitGL( struct display_camera *camera );										// All Setup For OpenGL Goes Here
 
+// ------ keydefs ------------
+int DispatchKeyEvent( PRENDERER render, _32 key );
+
+
 // ------ android keymap -------------
 void SACK_Vidlib_ToggleInputDevice( void );
 
