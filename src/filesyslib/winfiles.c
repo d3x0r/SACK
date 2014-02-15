@@ -553,24 +553,24 @@ struct file *FindFileByHandle( HANDLE file_file )
 
 LOGICAL sack_iset_eof ( INDEX file_handle )
 {
-   HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
-	HANDLE handle = holder?holder[0]:-1;
+	HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
+	HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
 #ifdef _WIN32
-    return SetEndOfFile( handle );
+	return SetEndOfFile( handle );
 #else
-    return ftruncate( handle, lseek( handle, 0, SEEK_CUR ) );
+	return ftruncate( handle, lseek( handle, 0, SEEK_CUR ) );
 #endif
 
 }
 
 LOGICAL sack_set_eof ( HANDLE file_handle )
 {
-   HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
-	HANDLE handle = holder?holder[0]:-1;
+	HANDLE *holder = (HANDLE*)GetLink( &l.handles, (INDEX)file_handle );
+	HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
 #ifdef _WIN32
-    return SetEndOfFile( handle );
+	return SetEndOfFile( handle );
 #else
-    return ftruncate( handle, lseek( handle, 0, SEEK_CUR ) );
+	return ftruncate( handle, lseek( handle, 0, SEEK_CUR ) );
 #endif
 
 }
@@ -578,17 +578,16 @@ LOGICAL sack_set_eof ( HANDLE file_handle )
 
 long sack_tell( INDEX file_handle )
 {
-   HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
-	HANDLE handle = holder?holder[0]:-1;
+	HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
+	HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
 #ifdef WIN32
-    _32 length = SetFilePointer(
-    handle, // must have GENERIC_READ and/or GENERIC_WRITE
-    0,     // do not move pointer 
-    NULL,  // hFile is not large enough to need this pointer 
-    FILE_CURRENT);  // provides offset from current position 
-    return length;
+	_32 length = SetFilePointer( handle // must have GENERIC_READ and/or GENERIC_WRITE
+								, 0     // do not move pointer 
+								, NULL  // hFile is not large enough to need this pointer 
+								, FILE_CURRENT);  // provides offset from current position 
+	return length;
 #else
-    return lseek( handle, 0, SEEK_SET );
+	return lseek( handle, 0, SEEK_SET );
 #endif
 }
 
@@ -636,13 +635,13 @@ INDEX sack_icreat( INDEX group, CTEXTSTR file, int opts, ... )
 
 int sack_close( HANDLE file_handle )
 {
-    struct file *file = FindFileByHandle( (HANDLE)file_handle );
-    if( file )
-	 {
-       SetLink( &file->handles, file_handle, NULL );
-		 if( l.flags.bLogOpenClose )
-			 lprintf( WIDE("Close %s"), file->fullname );
-		 /*
+	struct file *file = FindFileByHandle( (HANDLE)file_handle );
+	if( file )
+	{
+		SetLink( &file->handles, (INDEX)file_handle, NULL );
+		if( l.flags.bLogOpenClose )
+			lprintf( WIDE("Close %s"), file->fullname );
+		/*
          Release( file->name );
          Release( file->fullname );
          Release( file );
@@ -687,7 +686,7 @@ int sack_iclose( INDEX file_handle )
     EnterCriticalSec( &l.cs_files );
     {
 		  HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
-		  HANDLE handle = holder?holder[0]:-1;
+		  HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
         SetLink( &l.handles, file_handle, 0 );
         result = sack_close( handle );
     }
@@ -701,7 +700,7 @@ int sack_ilseek( INDEX file_handle, size_t pos, int whence )
     EnterCriticalSec( &l.cs_files );
     {
 		  HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
-		  HANDLE handle = holder?holder[0]:-1;
+		  HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
 #ifdef _WIN32
         result = SetFilePointer(handle,pos,NULL,whence);
 #else
@@ -717,7 +716,7 @@ int sack_iread( INDEX file_handle, POINTER buffer, int size )
     EnterCriticalSec( &l.cs_files );
     {
 		  HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
-		  HANDLE handle = holder?holder[0]:-1;
+		  HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
 #ifdef _WIN32
         DWORD dwLastReadResult;
         //lprintf( WIDE( "... %p %p" ), file_handle, h );
@@ -734,7 +733,7 @@ int sack_iwrite( INDEX file_handle, CPOINTER buffer, int size )
     EnterCriticalSec( &l.cs_files );
     {
 		  HANDLE *holder = (HANDLE*)GetLink( &l.handles, file_handle );
-		  HANDLE handle = holder?holder[0]:-1;
+		  HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
 #ifdef _WIN32
         DWORD dwLastWrittenResult;
         LeaveCriticalSec( &l.cs_files );

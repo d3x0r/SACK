@@ -309,7 +309,7 @@ function OpenServer()
 				document.body.removeChild(image.image);
 			image.image.src = msg.data.data;
 			image.on_document = true;
-			document.body.appendChild(image.image);
+			//document.body.appendChild(image.image);
 			break;
 		case 11: // PMID_BlotImageSizedTo
 			image = find_image( msg.data.server_image_id );
@@ -436,7 +436,7 @@ function OpenServer()
      ws.onclose = function( evt )
      { 
         // websocket is closed.
-        alert("Connection is closed... (closing window)" + evt.data ); 
+        //alert("Connection is closed... (closing window)" + evt.data ); 
       	for (var i = 0; i < render_list.length; i++) {
                	document.body.removeChild( render_list[i].canvas );
         }
@@ -444,6 +444,6 @@ function OpenServer()
      };
      ws.onerror = function(evt)
      {
-        alert( "connection error: " + evt.data );
+        //alert( "connection error: " + evt.data );
      }
 }

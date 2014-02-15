@@ -1000,9 +1000,9 @@ void  SizeDisplayRel (PVIDEO hVideo, S_32 delw, S_32 delh)
 void  MoveDisplay (PVIDEO hVideo, S_32 x, S_32 y)
 {
 #ifdef LOG_ORDERING_REFOCUS
-	lprintf( WIDE( "Move display %d,%d" ), x, y );
+	//lprintf( WIDE( "Move display %d,%d" ), x, y );
 #endif
-   if( hVideo )
+	if( hVideo )
 	{
 		if( ( hVideo->pWindowPos.x != x ) || ( hVideo->pWindowPos.y != y ) )
 		{
@@ -1372,26 +1372,10 @@ void  GetDisplayPosition (PVIDEO hVid, S_32 * x, S_32 * y,
 		*width = hVid->pWindowPos.cx;
 	if (height)
 		*height = hVid->pWindowPos.cy;
-#ifdef __WINDOWS__
-#ifndef NO_ENUM_DISPLAY
-	{
-		int posx = 0;
-		int posy = 0;
-		{
-			WINDOWINFO wi;
-			wi.cbSize = sizeof( wi);
-			
-			GetWindowInfo( hVid->hWndOutput, &wi ); 
-			posx += wi.rcClient.left;
-			posy += wi.rcClient.top;
-		}
-		if (x)
-			*x = posx;
-		if (y)
-			*y = posy;
-	}
-#endif
-#endif
+	if( x )
+		*x = hVid->pWindowPos.x;
+	if( y )
+		*y = hVid->pWindowPos.y;
 }
 
 //----------------------------------------------------------------------------

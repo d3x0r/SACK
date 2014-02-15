@@ -296,6 +296,161 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, _32 key )
 	return 0;
 }
 
+int DispatchKeyEvent( PRENDERER hVideo, _32 key )
+{
+
+   int dispatch_handled;
+   int keymod = 0;
+
+	// this really will be calling OpenGLKey above....
+			if (key & 0x80000000)   // test keydown...
+			{
+				l.kbd.key[KEY_CODE(key)] |= 0x80;   // set this bit (pressed)
+				l.kbd.key[KEY_CODE(key)] ^= 1;   // toggle this bit...
+			}
+			else
+			{
+				l.kbd.key[KEY_CODE(key)] &= ~0x80;  //(unpressed)
+			}
+			//lprintf( WIDE("Set local keyboard %d to %d"), wParam& 0xFF, l.kbd.key[wParam&0xFF]);
+			if( hVideo )
+				hVideo->kbd.key[KEY_CODE(key)] = l.kbd.key[KEY_CODE(key)];
+
+			if( (l.kbd.key[KEY_LEFT_SHIFT]|l.kbd.key[KEY_RIGHT_SHIFT]|l.kbd.key[KEY_SHIFT]) & 0x80)
+			{
+				key |= KEY_MOD_SHIFT;
+				l.mouse_b |= MK_SHIFT;
+				keymod |= 1;
+			}
+			else
+				l.mouse_b &= ~MK_SHIFT;
+			if ((l.kbd.key[KEY_LEFT_CONTROL]|l.kbd.key[KEY_RIGHT_CONTROL]|l.kbd.key[KEY_CTRL]) & 0x80)
+			{
+				key |= KEY_MOD_CTRL;
+				l.mouse_b |= MK_CONTROL;
+				keymod |= 2;
+			}
+			else
+				l.mouse_b &= ~MK_CONTROL;
+			if((l.kbd.key[KEY_LEFT_ALT]|l.kbd.key[KEY_RIGHT_ALT]|l.kbd.key[KEY_ALT]) & 0x80)
+			{
+				key |= KEY_MOD_ALT;
+				l.mouse_b |= MK_ALT;
+				keymod |= 4;
+			}
+			else
+				l.mouse_b &= ~MK_ALT;
+
+	if( dispatch_handled = hVideo->pKeyProc( hVideo->dwKeyData, key ) )
+	{
+		return 1;
+	}
+
+   // start with 'focused virtual panel...'
+	hVideo = l.hVidVirtualFocused;
+	if( FindLink( &l.pActiveList, hVideo ) != INVALID_INDEX )
+	{
+		if( hVideo && hVideo->pKeyProc )
+		{
+			hVideo->flags.event_dispatched = 1;
+			if( l.flags.bLogKeyEvent )
+				lprintf( WIDE("Dispatched KEY!") );
+			if( hVideo->flags.key_dispatched )
+			{
+				if( l.flags.bLogKeyEvent )
+					lprintf( WIDE("already dispatched, delay it.") );
+				EnqueLink( &hVideo->pInput, (POINTER)key );
+			}
+			else
+			{
+				hVideo->flags.key_dispatched = 1;
+				do
+				{
+					if( l.flags.bLogKeyEvent )
+						lprintf( WIDE("Dispatching key %08lx"), key );
+					if( KEY_MOD( key ) & 6 )
+						if( HandleKeyEvents( KeyDefs, key )  )
+						{
+							lprintf( WIDE( "Sent global first." ) );
+							dispatch_handled = 1;
+						}
+
+					if( !dispatch_handled )
+					{
+						// previously this would then dispatch the key event...
+						// but we want to give priority to handled keys.
+						dispatch_handled = hVideo->pKeyProc( hVideo->dwKeyData, key );
+						if( l.flags.bLogKeyEvent )
+							lprintf( WIDE( "Result of dispatch was %ld" ), dispatch_handled );
+						if( FindLink( &l.pActiveList, hVideo ) == INVALID_INDEX )
+							break;
+
+						if( !dispatch_handled )
+						{
+							if( l.flags.bLogKeyEvent )
+								lprintf( WIDE("Local Keydefs Dispatch key : %p %08lx"), hVideo, key );
+							if( hVideo && !HandleKeyEvents( hVideo->KeyDefs, key ) )
+							{
+								if( l.flags.bLogKeyEvent )
+									lprintf( WIDE("Global Keydefs Dispatch key : %08lx"), key );
+								if( FindLink( &l.pActiveList, hVideo ) == INVALID_INDEX )
+								{
+									if( l.flags.bLogKeyEvent )
+										lprintf( WIDE( "lost window..." ) );
+									break;
+								}
+							}
+						}
+					}
+					if( !dispatch_handled )
+					{
+						if( !(KEY_MOD( key ) & 6) )
+							if( HandleKeyEvents( KeyDefs, key )  )
+							{
+								dispatch_handled = 1;
+  						}
+					}
+					if( FindLink( &l.pActiveList, hVideo ) == INVALID_INDEX )
+					{
+						if( l.flags.bLogKeyEvent )
+							lprintf( WIDE( "lost active window." ) );
+						break;
+					}
+					key = (_32)DequeLink( &hVideo->pInput );
+					if( l.flags.bLogKeyEvent )
+						lprintf( WIDE( "key from deque : %p" ), key );
+				} while( key );
+				if( l.flags.bLogKeyEvent )
+					lprintf( WIDE( "completed..." ) );
+				hVideo->flags.key_dispatched = 0;
+			}
+			hVideo->flags.event_dispatched = 0;
+		}
+		else  // no keyproc on the hrenderer; might be mouse-based; but give global a shot...
+		{
+			if( !HandleKeyEvents( KeyDefs, key ) ) /* global events, if no keyproc */
+			{
+				if( hVideo->pMouseCallback )
+					hVideo->pMouseCallback( hVideo->dwMouseData, hVideo->_mouse_x, hVideo->_mouse_y
+									, hVideo->mouse_b | IsKeyPressed( key )?MK_OBUTTON:MK_OBUTTON_UP );
+			}
+		}
+	}
+	else
+	{
+		if( l.flags.bLogKeyEvent )
+			lprintf( WIDE( "Not active window?" ) );
+		HandleKeyEvents( KeyDefs, key ); /* global events, if no keyproc */
+	}
+	//else9
+	//	lprintf( WIDE( "Failed to find active window..." ) );
+
+	// dispatch a mouse event!
+   lprintf( "Missing dispatch for no key method to mouse event" );
+   return dispatch_handled;
+}
+
+
 RENDER_NAMESPACE_END
 
 //----------------------------------------------------------------------------
