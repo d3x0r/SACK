@@ -10,23 +10,9 @@
 
 
 
-//#define _OPENGL_ENABLED
 /* this must have been done for some other collision in some other bit of code...
  * probably the update queue? the mosue queue ?
  */
-//#define USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
-//#define USE_IPC_MESSAGE_QUEUE_TO_GATHER_MOUSE_EVENTS
-#if defined( UNDER_CE )
-#define NO_MOUSE_TRANSPARENCY
-#define NO_ENUM_DISPLAY
-#define NO_DRAG_DROP
-#define NO_TRANSPARENCY
-#undef _OPENGL_ENABLED
-#else
-#  if defined( __WINDOWS__ )
-#    define USE_KEYHOOK
-#  endif
-#endif
 
 #ifdef _MSC_VER
 #ifndef WINVER
@@ -37,34 +23,11 @@
 #endif
 #endif
 
-
 #define NEED_REAL_IMAGE_STRUCTURE
 #define USE_IMAGE_INTERFACE l.gl_image_interface
 
 #include <stdhdrs.h>
 
-#ifdef _WIN32
-#include <shlwapi.h> // have to include this if shellapi.h is included (for mingw)
-#include <shellapi.h> // very last though - this is DragAndDrop definitions...
-#endif
-
-// this is safe to leave on.
-#define LOG_ORDERING_REFOCUS
-
-//#define LOG_MOUSE_EVENTS
-//#define LOG_RECT_UPDATE
-//#define LOG_DESTRUCTION
-#define LOG_STARTUP
-//#define LOG_FOCUSEVENTS
-//#define OTHER_EVENTS_HERE
-//#define LOG_SHOW_HIDE
-//#define LOG_DISPLAY_RESIZE
-//#define NOISY_LOGGING
-// related symbol needs to be defined in KEYDEFS.C
-//#define LOG_KEY_EVENTS
-#define LOG_OPEN_TIMING
-//#define LOG_MOUSE_HIDE_IDLE
-//#define LOG_OPENGL_CONTEXT
 
 #include "local.h"
 
@@ -150,8 +113,10 @@ void SACK_Vidlib_SetNativeWindowHandle( NativeWindowType displayWindow )
 
    // Standard init (was looking more like a common call thing)
 	HostSystem_InitDisplayInfo();
-   // creates the cameras.
-   LoadOptions();
+	// creates the cameras.
+
+	LoadOptions();
+	l.flags.disallow_3d = (RCOORD)SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Video Render/Disallow 3D"), 1 );
 }
 
 void HostSystem_InitDisplayInfo(void )
@@ -167,6 +132,9 @@ void HostSystem_InitDisplayInfo(void )
 // this is linked to external native activiety shell...
 void SACK_Vidlib_DoRenderPass( void )
 {
+
+	if( l.flags.disallow_3d )
+		return;
 
 			Move( l.origin );
 

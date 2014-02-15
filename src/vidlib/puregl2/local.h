@@ -252,6 +252,7 @@ struct display_camera
 		BIT_FIELD first_draw : 1;
 		BIT_FIELD vsync : 1; 
 		BIT_FIELD opening : 1; // prevent re-opening the same camera
+		BIT_FIELD disallow_3d : 1; // I know; it's a puregl shell... but android can be flat
 	} flags;
 	PLIST plugins; // each camera has plugins that might attach more render and mouse methods
 	int type;
