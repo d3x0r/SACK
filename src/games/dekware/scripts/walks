@@ -1,0 +1,106 @@
+#
+#/mac south
+#.:stomps south.
+#.s
+#.:stomps in from the north.
+#/endmac
+#
+#/mac north
+#.:stomps north.
+#.n
+#.:stomps in from the south.
+#/endmac
+# 
+#/mac west
+#.:stomps west.
+#.w
+#.:stomps in from the east.
+#/endmac
+# 
+#/mac east
+#.:stomps east
+#.e
+#.:stomps in from the west.
+#/endmac
+
+#/mac north
+#:chases after something headed north.
+#.n
+#:chases something in from the south.
+#/endmac
+#
+#/mac south
+#:chases after something headed south.
+#.s
+#:chases something in from the north.
+#/endmac
+#/mac east
+#:chases after something headed east.
+#.e
+#:chases something in from the west.
+#/endmac
+#/mac west
+#:chases after something headed west.
+#.w
+#:chases something in from the east.
+#/endmac
+
+/mac north
+:follows some tracks north.
+.n
+:stalks in from the south.
+/endmac
+
+/mac south
+:follows some tracks south.
+.s
+:stalks in from the north.
+/endmac
+
+/mac east
+:follows some tracks east.
+.e
+:stalks in from the west.
+/endmac
+
+/mac west
+:follows some tracks west.
+.w
+:stalks in from the east.
+/endmac
+
+/mac up
+:pauses for a moment and goes up.
+.u
+:arrives from below, looking puzzled.
+/endmac
+
+/mac down
+:looks down, considers, and leaves down.
+.d
+:arrives from above, looking around.
+/endmac
+
+
+#/mac north
+#:phases out.
+#.n
+#:appears from the south.
+#/endmac
+#
+#/mac south
+#:phases out.
+#.s
+#:appears from the north.
+#/endmac
+#/mac east
+#:phases out.
+#.e
+#:appears from the west.
+#/endmac
+#/mac west
+#:phases out.
+#.w
+#:appears from the east.
+#/endmac
+ 

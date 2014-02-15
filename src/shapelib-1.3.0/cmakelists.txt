@@ -1,0 +1,9 @@
+
+ADD_DEFINITIONS( -DSHAPELIB_DLLEXPORT )
+add_library( shp SHARED  
+  shpopen
+  dbfopen
+  safileio
+  shptree
+)
+

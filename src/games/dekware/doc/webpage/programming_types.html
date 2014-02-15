@@ -1,0 +1,284 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<hr>
+<font size=+2><center><U>Types</U></center></font>
+<hr>
+<pre>
+
+The following are basic types aliased to definitive sizes accoring to
+their names. _## where ## is the number of bits of the type.  Most 
+compilers do not understand/allow _0 size definitions, so this type
+only exists as a pointer type.  A 'P' prefix indicates pointer, and 
+'S' indicates a signed value.  64 bit types are not used at this point;
+this type also seems to lack a standard definition method, some use
+'long long', some use '__int64', probably some other forms of definiton
+do exist; at this point, none of my code uses 64 bit data.
+
+typedef void              *P_0;
+typedef unsigned char       _8;
+typedef _8                *P_8;
+typedef unsigned short     _16;
+typedef _16              *P_16;
+typedef unsigned long      _32;
+typedef _32              *P_32;
+typedef signed   char      S_8;
+typedef S_8              *PS_8;
+typedef signed   short 	  S_16;
+typedef S_16            *PS_16;
+typedef signed   long  	  S_32;
+typedef S_32            *PS_32;
+
+#if defined( __CYGWIN__ ) || defined( __LINUX__ )
+typedef unsigned long long  _64;
+typedef signed   long long S_64;
+#elif defined( __BORLAND__ )
+typedef unsigned  __int64   _64;
+typedef signed    __int64  S_64;
+#endif
+//typedef _64             *P_64;
+//typedef S_64           *PS_64;
+
+<HR>
+
+Sometimes, one wishes to store a pointer or integer value in the 
+same place, this could be done with a union, and would be a more
+correct solution, however I have defined a pointer sized value, to
+store a pointer as an integer.  Mostly this is used to pass user
+data to callback functions.  Under Win32 these would be like DWORD dwUser.
+At some future point not far from now, this value will have to be 
+modified to be 64 bits to hold the pointer value... and hopefully
+a standard for declaring a 64 bit value will be made.
+
+#pragma message "Setting PTRSIZEVAL to 32 bits... pointers are this size?" 
+typedef _32             PTRSIZEVAL;
+typedef _32             PTRSZVAL;
+
+<HR>
+
+Some common types definitions which may change from time to time
+but still represent the same data.. text strings, for now a pointer
+to unsigned 8 bit values; text characters, for now an unsigned 8 bit
+value.  Since this program often deals with the internet or other
+networks, this probably will not change for quite some time.
+
+// may consider changing this to P_16 for unicode...
+typedef P_8            TEXTSTR;
+typedef _8             TEXTCHAR;
+
+<HR>
+
+A logical value is either TRUE or it is FALSE.  This type could
+be represented by a single bit, however, this causes some overhead
+when using compiler bit fields to test for results.  Windows defines
+a BOOLEAN to be a full 32 bits, which is a waste of 31 bits of space.
+I still feel that space is important, and 8 bit values are the 
+smallest register size on an Intel platform.
+
+typedef _8             LOGICAL; // smallest information 
+
+<HR>
+
+When this project began it had but two custom types, POINTER, and INDEX.
+POINTER is of course a POINTER to anything, and INDEX is an unsigned
+count designed to index an array.
+
+typedef P_0            POINTER;
+typedef _32            INDEX;
+
+<HR>
+
+Since a pointer may never ever be less than 0, nor may it be REALLY
+really big, an invalid index may be expressed with the following 
+defined value: INVALID_INDEX.
+
+#define INVALID_INDEX ((_32)-1) 
+
+<HR>
+
+The idea of callbacks, or funtions which are called automatically
+by events that occur... how to say this... were preverted by Windows.
+For some reason - they decided that PASCAL(eww) type calls made
+more sense, since it saves a couple bytes of code space.  These
+'CALLBACK' functions should just be standard C functions, relying
+on the caller to clean up the arguments put on the stack, since
+ONLY the caller knows how many arguments were actually supplied.
+
+#ifdef _WIN32
+#ifndef CALLBACK
+#pragma message "Setting CALLBACK to __stcall" 
+#ifndef __LCC__
+#define CALLBACK    __stdcall
+#else
+#define CALLBACK 
+#endif
+#endif
+#else
+#ifndef CALLBACK
+#pragma message "Setting CALLBACK to c call" 
+#define CALLBACK
+#endif
+#endif
+
+<HR>
+
+Since TRUE/FALSE are defined in windef.h, these values must be
+redefined for our own use, for systems such and Linux, QNX, etc.
+which do not even provide these in stddef.h.
+
+#ifndef FALSE
+#define FALSE 0
+#endif
+#ifndef TRUE
+#define TRUE (!FALSE)
+#endif
+</pre>
+<hr>
+<font size=+2><center><U>Structures</U></center></font>
+<hr>
+<pre>
+
+The most basic structure is a DATA block.  This structure has a
+size of the data stored, and an array at the end containing the
+data.  This structure is allocated by ( sizeof( DATA ) + bytes_to_store)
+Occasionally a block of data will have to be statically declared
+to a certain size, this is done with the DECLDATA macro.  However,
+it's reference will often have to be typecast to a PDATA type.
+
+#define DECLDATA(name,sz) struct {_32 size; _8 data[sz];} name
+
+typedef struct DataBlock {
+   _32 size;     // size is sometimes a pointer value...
+                 // this means bad thing when we change platforms...
+   _8  data[1]; // beginning of var data - this is created size+sizeof(VPA)
+} DATA, *PDATA;
+
+<HR>
+
+An array of pointers stored in a block of data is another basic
+structure type.  This structure includes a locking variable to
+exclude access while it is being resized or updated, or to lock
+it from update while it is being read.  There are routines which
+work on this type:  AddLink, SetLink, GetLink, CreateList, DeleteList,
+FindLink, DeleteLink.  More information may be found in <U>InsertLinkHere</U>.
+
+typedef struct LinkBlock
+{
+   _32     Cnt;
+   _32     Lock;
+   POINTER pNode[1];
+} LIST, *PLIST;
+
+<HR>
+
+Where a LIST is oriented more towards random access, sometimes
+a more structured access method is desired.  The first structure
+which is provides this is a LINKSTACK.  Methods for accessing this
+structure type include: CreateLinkStack, DeleteLinkStack, PeekLink,
+PopLink, PushLink.  More information may be found in <U>InserLinkHere</U>
+
+typedef struct LinkStack
+{
+   _32     Top;
+   _32     Cnt;
+   POINTER pNode[1];
+} LINKSTACK, *PLINKSTACK;
+
+<HR>
+
+Where a LINKSTACK stores only pointers in its stack, a DATASTACK
+allocates blocks of data, and may store structures on the stack.
+Methods for accessing this include: PopData, PushData, PeekData, 
+PeekDataEx, CreateDataStack, DeleteDataStack.  More informatino on
+these methods may be found in <U>InsertLinkHere</U>
+
+typedef struct DataListStack
+{
+   _32     Top; // next avail...
+   _32     Cnt;
+   _32     Size;
+   _8      data[1];
+} DATASTACK, *PDATASTACK;
+
+<HR>
+
+The other top most important method of storeing and retriving data
+is a queue.  This structure LINKQUEUE stores pointers in a first in
+first out method.  Methods for accessing this include: CreateLinkQueue,
+DeleteLinkQueue, EnqueLink, IsQueueEmpty, DequeLink.  More information
+on these methods may be found in <U>InsertLinkHere</U>
+
+typedef struct LinkQueue
+{
+   _32     Top;
+   _32     Bottom;
+   _32     Cnt;
+   _32     Lock;  // thread interlock using InterlockedExchange semaphore
+   POINTER pNode[2]; // need two to have distinct empty/full conditions
+} LINKQUEUE, *PLINKQUEUE;
+
+<hr>
+
+Often information about where a function was called from, often
+available in __FILE__ and __LINE__ macros in most compilers.  These
+defines provide a standard way to pass these.  These also allow
+for easy removal or addition by defining a constant _DEBUG when 
+compiling.  If the symbol is not defined, than non of the parameters
+will be generated or required.  These are especially used with
+the memory library, which may mark the source which allocated a block
+or which released a block.
+
+	DBG_SRC      is used at an actual source point
+	DBG_VOIDSRC  is used when the function being called has a (void) 
+					 parameter list
+	DBG_VOIDPASS is used to define the actual arguments of a function
+					 which may use file and line information.
+	DBG_PASS     is used to append the arguments for file and line
+					 to the end of a function's parameters.
+	DEB_RELAY    is used to pass the information which was given to
+					 a routine to the next, to provide the ACTUAL(?) 
+					 caller's information.
+
+// this is for passing FILE, LINE information to allocate
+// useful during DEBUG phases only...
+#ifdef _DEBUG
+// these DBG_ formats are commented out from duplication in sharemem.h
+#pragma message "Setting DBG_PASS and DBG_FORWARD to work" 
+#define DBG_SRC         , __FILE__, __LINE__
+#define DBG_VOIDSRC     __FILE__, __LINE__ 
+#define DBG_VOIDPASS    TEXTSTR pFile, _32 nLine
+#define DBG_PASS        , TEXTSTR pFile, _32 nLine
+#define DBG_RELAY       , pFile, nLine
+#else
+#pragma message "Setting DBG_PASS and DBG_FORWARD to be ignored" 
+#define DBG_SRC 
+#define DBG_VOIDSRC     
+#define DBG_VOIDPASS    void
+#define DBG_PASS
+#define DBG_RELAY 
+#endif
+
+<hr>
+
+Since between platforms there is no 'common' method for defining
+whether a routine is imported, or exported from a shared library,
+these defines help when porting shared libraries between windows
+and unix.
+
+#if defined( __CYGWIN__ ) && !defined(__STATIC__)
+#define LIB_EXPORT __declspec(dllexport)
+#ifdef LIBRARY_DEF
+#define LIB_IMPORT __declspec(dllexport)
+#else
+#define LIB_IMPORT __declspec(dllimport)
+#endif
+
+#else
+#define LIB_EXPORT
+#define LIB_IMPORT
+#endif
+
+</pre>
+
+</BODY>
+</HTML>

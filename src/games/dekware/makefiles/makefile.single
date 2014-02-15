@@ -1,0 +1,7 @@
+all: fakeall
+
+include $(LEVELS)/makefiles/makefile.common
+
+include $(SACK_BASE)/makefiles/makefile.single
+$(LEVELS)/makefiles/makefile.single: ;
+

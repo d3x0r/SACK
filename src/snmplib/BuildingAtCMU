@@ -1,0 +1,26 @@
+
+--  Generic description of how we build software at CMU.  This       --
+--  information may help you compile this software at your site, by  --
+--  letting you replicate our environment as much as possible.       --
+
+
+To build this at CMU, we use the program "smake", to allow us to
+compile this software on multiple machines from a common src
+directory.  SMake is available from:
+
+	ftp://ftp.andrew.cmu.edu/pub/tools/smake-037.tar.gz
+
+The included SMakefile configures all of the compiler options on our
+machines, based on systype.
+
+Finally, when we build the software for release, the included
+"build-COLLECTION.sh" script is used.  This script builds the
+collection, cleans up all object files, and keeps a logfile of the
+build process in the directory.  (The `sys` command specifies a unique
+system type for all platforms.  This is an AFS program -- if you don't
+use AFS, you could just use 'uname'.)
+
+-Ryan Troll
+May 5th, 1998
+
+$Id: BuildingAtCMU,v 1.1.1.1 2001/11/15 01:29:36 panther Exp $

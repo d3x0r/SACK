@@ -1,0 +1,172 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=620">
+    <title>HTML5 Demo: Web Socket</title>
+    <link rel="stylesheet" href="css/html5demos.css" type="text/css">
+    <script src="http://code.jquery.com/jquery-1.4.2.min.js"></script>  
+    <script src="js/json2.js"></script>
+    <script src="js/jquery.slws.js"></script>  
+    <script src="js/h5utils.js"></script>
+<script>
+    function getArgPairs() {
+        var argPairs = [];
+        var href = window.location.href;
+        var startIndex = href.indexOf('?');
+
+        if (startIndex > 0) {
+            var raw = href.slice(startIndex + 1).split('&');
+            for (var i = 0; i < raw.length; i++) {
+                var pair = raw[i].split('=');
+                argPairs.push(pair[0]);
+                argPairs[pair[0]] = pair[1];
+            }
+        }
+
+        return argPairs;
+    }
+
+    function openConnection() {
+        // uses global 'conn' object
+        if (conn.readyState === undefined || conn.readyState > 1) {
+            var args = getArgPairs();
+            var useJettyWSServer = args['usejettyserver'];
+
+            if (useJettyWSServer) {
+                conn = new WebSocketDraft('ws://html5labs-interop.cloudapp.net:4502/chat');
+            } else {
+                conn = new WebSocketDraft('ws://' + window.location.hostname + ':4502/chat');
+            }
+
+            conn.onopen = function () {
+                state.className = 'success';
+                state.innerHTML = 'Socket open';
+            };
+
+            conn.onmessage = function (event) {
+                var message = JSON.parse(event.data);
+                if (typeof message == 'string') {
+                    log.innerHTML = '<li class="them">' + message.replace(/[<>&]/g, function (m) { return entities[m]; }) + '</li>' + log.innerHTML;
+                } else {
+                    connected.innerHTML = message;
+                }
+            };
+
+            conn.onclose = function (event) {
+                state.className = 'fail';
+                state.innerHTML = 'Socket closed';
+            };
+        }
+    }
+
+    var args = getArgPairs();
+    var useNativeWebSockets = args['usenativewebsockets'];
+
+    if (useNativeWebSockets) {
+        window.location = 'wsdemo_nativewebsocket.html';
+    }
+
+    var connected, log, chat, form, state, entities;
+
+    $(document).ready(function () {
+
+        connected = document.getElementById('connected'),
+        log = document.getElementById('log'),
+        chat = document.getElementById('chat'),
+        form = chat.form,
+        conn = {},
+        state = document.getElementById('status'),
+        entities = {
+            '<': '<',
+            '>': '>',
+            '&': '&'
+        };
+
+        $.slws.ready(function () {
+            if (window.WebSocketDraft === undefined) {
+                state.innerHTML = 'Sockets not supported';
+                state.className = 'fail';
+            } else {
+                state.onclick = function () {
+                    if (conn.readyState !== 1) {
+                        conn.close();
+                        setTimeout(function () {
+                            openConnection();
+                        }, 250);
+                    }
+                };
+
+                $(form).submit(function (event) {
+                    event.preventDefault();
+
+                    // if we're connected
+                    if (conn.readyState === 1) {
+                        conn.send(JSON.stringify(chat.value));
+                        log.innerHTML = '<li class="you">' + chat.value.replace(/[<>&]/g, function (m) { return entities[m]; }) + '</li>' + log.innerHTML;
+
+                        chat.value = '';
+                    }
+                });
+
+                openConnection();
+            }
+        })
+    });
+</script>
+</head>
+<body>
+    <section id="wrapper">
+    <header>
+      <h1>Web Socket</h1>
+    </header>
+<style>
+    #chat
+    {
+        width: 97%;
+    }
+    .them
+    {
+        font-weight: bold;
+    }
+    .them:before
+    {
+        content: 'them ';
+        color: #bbb;
+        font-size: 14px;
+    }
+    .you
+    {
+        font-style: italic;
+    }
+    .you:before
+    {
+        content: 'you ';
+        color: #bbb;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    #log
+    {
+        overflow: auto;
+        max-height: 300px;
+        list-style: none;
+        padding: 0; /*  margin: 0;*/
+    }
+    #log li
+    {
+        border-top: 1px solid #ccc;
+        margin: 0;
+        padding: 10px 0;
+    }
+</style>
+<article>
+  <form>
+    <input type="text" id="chat" placeholder="type and press enter to chat">
+  </form>
+  <p id="status" class="fail">Socket closed</p>
+  <p>To test, type a message above and press return. If you open multiple browser windows then you can chat with yourself.</p>  
+  <ul id="log"></ul>
+</article>
+</body>
+</html>

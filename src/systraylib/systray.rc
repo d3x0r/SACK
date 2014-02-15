@@ -1,0 +1,12 @@
+#include <windows.h>
+
+#include "resource.h"
+
+
+
+#ifndef ICO_DEFAULT
+#define ICO_DEFAULT 1001
+#endif
+
+ICO_DEFAULT ICON "default.ico"
+

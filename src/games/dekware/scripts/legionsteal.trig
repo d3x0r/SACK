@@ -1,0 +1,45 @@
+
+
+/trigger create stealocoins &who tries to steal gold from &target
+compare %target is A
+if success
+	return
+endif
+compare %target is The
+if success
+	return
+endif
+compare %target is An
+if success
+	return
+endif
+.charge %who
+. say hey, %who, Did you know that stealing is a crime?
+/endmac
+
+/trigger create stealcoins You discover that &who has his hands in your wallet
+.charge %who
+. say hey, %who, Did you know that stealing is a crime?
+/endmac
+
+/trigger create steal &who tries to steal something from &target
+compare %target is A
+if success
+	return
+endif
+compare %target is The
+if success
+	return
+endif
+compare %target is An
+if success
+	return
+endif
+.charge %who
+. say hey, %who, Did you know that stealing is a crime?
+/endmac
+
+/trigger create steal2 &who tried to steal something from you
+.charge %who
+. say hey, %who, Did you know that stealing is a crime?
+/endmac

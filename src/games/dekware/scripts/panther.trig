@@ -1,0 +1,345 @@
+
+#remove defualt split...
+/trigger opt autosplit dis
+
+/decl lasthit  0
+/decl lastmana 0
+/decl lastmove 0
+
+/decl managen 0
+/decl maxmanagen 0
+
+#managear is the current amount of gear plus...
+#managear options
+# green-boots 15
+# circlet     37
+# 
+
+/decl managear 2
+
+/decl maxlocked
+
+
+/trigger create prompt <&hit &mana &move>
+#/decl lastmove %curmove
+#/decl lasthit %curhit
+/decl lastmana %curmana
+/compare %hit number
+/if fail
+/return
+/endif
+/compare %mana number
+/if fail
+/return
+/endif
+/compare %move number
+/if fail
+/return
+/endif
+
+/decl curhit %hit
+/decl curmana %mana
+/decl curmove %move
+/compare %curhit lessthan %maxhit
+/if success
+   /decl lowhit true
+/endif
+/compare %curhit is %maxhit
+/if success
+   /compare %lowhit is true
+   /if success
+      /sound ding
+      /decl lowhit false
+   /endif
+/endif
+
+/compare %curmana morethan %lastmana
+/if success
+   /decl managen %curmana
+   /decr %managen %lastmana
+   /compare %managen morethan %maxmanagen
+   /if success
+      /decl maxmanagen %managen
+   /endif
+/endif
+   /decl tempmana %maxmana
+   /decr %tempmana %managen
+   /decr %tempmana 37
+#   /compare %tempmana morethan %curmana
+#   /if success
+#      /compare %managear morethan 1
+#      /if success 
+#        /wakeup
+#         .remove chitinous-circlet
+#         .get blackened-ring casket
+#         .wear blackened-ring
+#         .put chitinous-circlet casket
+#         /gosleep
+#        /decr %managear
+#     /endif
+#   /else
+#      /compare %managear lessthan 2
+ #     /if success
+  #       /wakeup
+   #      .remove blackened-ring
+   #      .get chitinous-circlet casket
+   #      .wear chitinous-circlet
+   #      .put blackened-ring casket
+   #      /gosleep
+   #      /incr %managear
+   #/endif
+
+/dopending
+
+
+/endmac
+
+
+#override kill command to include followers "folkill.trig"
+/mac killcommand
+.o followers kill %autokill
+/endmac
+
+
+/trigger create followbeck &who beckons you 
+. fol %who
+/endmac
+/trigger opt followbeck anchor
+
+/trigger create group &who starts following you
+.group %who
+/endmac
+/trigger opt group anchor
+
+#restring autowake...
+/trigger create autowake You have been idle, and are pulled into a void.
+:squirms restlessly.
+/endmac
+
+/mac repo
+. :reports: I have %curhit/%maxhit hp, %curmana/%maxmana mana, %curmove/%maxmove move.
+/endmac
+
+
+/trigger create stealocoins &who tried to steal gold from &target
+.shout %who is a bloody theif!
+/folkill %who
+/endmac
+
+/trigger create stealcoins You discover that &who has his hands in your wallet
+. say %who! I'm just a poor druid!
+/folkill %who
+/endmac
+
+/trigger create steal &who tried to steal something from &target
+.say hey, %who, don't steal! You're dead now...
+/compare %target is you
+/if fail
+   .say I'll get them for you, %target!
+/endif
+/folkill %who
+/endmac
+
+/trigger crea died is dead! R.I.P.
+.get all.gold corpse
+.exa corpse
+#.behead corpse
+/endmac
+
+/trigger crea trav You don't feel as light of foot.
+.cast 'trav'
+/endmac
+
+/trigger crea treetrav You don't feel so in touch with the trees anymore.
+.cast 'tree'
+/endmac
+
+
+/trigger crea watbreath You feel a tightness at your throat.
+.cast 'water breath' me
+/endmac
+
+/decl refreshdeny 
+/trigger create autorefresh &who pants
+/compare %refreshdeny blank
+/if fail
+   /testlist %who %refreshdeny
+   /getresult result
+   /compare %result is true
+   /if success
+      .:ignores %who .
+      /return
+   /endif
+   /compare %refreshdeny is *
+   /if success
+      .tell %who sorry, I'm unable to do that for you...
+      /return
+   /endif
+/endif
+#.tell %who so let it be done...
+.cast 'refresh' %who
+/endmac
+/trigger opt autorefresh anchor
+
+/trigger crea refdie &who suddenly appears on the ground
+.wake %who
+.say that'll leave a mark....
+.cast 'ref' %who
+/endmac
+
+/trigger opt hunger dis
+/trigger opt thirsty dis
+
+/trigger create creepgas A moth flies out of your mouth, hopefully its the last one.
+.burp
+/endmac
+
+/trigger crea charmjosh You beckon A joshua tree to join you.
+.cast 'charm v' joshua
+.o joshua nod panther
+/endmac
+
+/trigger crea charmtree You beckon a huge ancient tree to join you.
+.cast 'charm v' tree
+.o tree nod panther
+/endmac
+
+/decl barkfade 0
+/trigger crea barkfade Your barkskin fades away.
+/incre %barkfade
+/compare %barkfade is 3
+/if success
+/decl barkfade 0
+.cast 'bark' me
+/endif
+/endmac
+
+
+###################################################################
+# Druid Change timers, triggers and related reporting macros...
+###################################################################
+
+/make clock changetimer
+/tell changetimer/decl elapsed
+//macro gettime
+//elapse
+//getresult elapsed
+//reply /resume
+//endmac
+
+/mac chtime 
+/changetimer/elapse
+/changetimer/getresult temp
+/burst %(changetimer)temp  temp
+/decl junk
+/tail %temp %junk
+/tail %temp %junk 1
+/compare %temp is 1
+/if success
+.ooc Been changed for %temp minute.
+/else
+/compare %temp blank
+/if success
+.ooc Been changed less than a minute.
+/else
+.ooc Been changed for %temp minutes.
+/endif
+/endif
+/endmac
+
+
+
+/decl changed false
+/trigger crea formtime Your flesh melts and flows into the shape of
+/changetimer/mark
+/decl changed true
+.grou me
+.auto gold
+/endmac
+
+/trigger create formout You pause for a moment and remold your flesh
+/decl changed false
+/endmac
+
+/destroy changeticker
+/create changeticker
+/wake changeticker
+/tell changeticker /macro tick
+//decl junk
+//decl junk2
+//label top
+//compare %%(%%room)changed is true
+//if success
+	//tell changetimer/gettime
+	//delay 1000 
+	//burst %%(changetimer)elapsed left
+	//tail %%left %%junk 4
+	//tail %%left %%junk
+	//tail %%left %%junk2 1
+	//compare %%left blank
+	//if fail
+		//compare %%left morethan 6
+		//if success
+   		//echo Dude: You been changed for %%left minutes and %%junk seconds!!!!!!!!
+		//endif
+	//endif
+//endif
+//delay 10000
+//goto top
+//endmac
+//tick
+
+# ###################################################################
+# This set of triggers ungroups the group for the leader to 
+# cast 'natures blessing'
+# ###################################################################
+/decl lastungroup
+/decl groupcommand group
+/trigger create namegroup &who HP: (*stat) MV: (*move)
+/decl lastungroup %who
+/compare %who is )
+/if success
+/return
+/endif
+.%groupcommand %who
+/endmac
+/trigger opt namegroup dis
+
+/trigger crea lastungroup &who has been kicked out of Panther's group!
+/compare %who is %lastungroup
+/if success
+/trigger opt lastungroup dis
+/trigger opt groupstart dis
+/trigger opt namegroup dis
+.cast 'nat'
+.group all
+/endif
+/endmac
+/trigger opt lastungroup dis
+
+/trigger create groupstart your group consists of:
+/trigger opt namegroup en
+/trigger opt lastungroup en
+/trigger opt groupstart dis
+/endmac
+/trigger opt groupstart dis
+
+/mac nat
+/trigger opt groupstart en
+/decl groupcommand group
+.group
+/endmac
+
+/mac gref
+/trigger opt groupstart en
+/decl groupcommand cast 'ref'
+.group
+/endmac
+
+###################################################################
+
+/trigger create nosanc The white glow around *someone body fades
+/setcolor  white red
+/echo %someone sanctuary is now gone!
+/setcolor grey black
+/endmac

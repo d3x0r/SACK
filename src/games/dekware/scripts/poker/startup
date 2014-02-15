@@ -1,0 +1,33 @@
+
+
+
+/mac make_tables
+/decl number 1
+/label top
+/decl name table %number
+/create %name
+/wake %name
+/%name/make deck cards
+//create hand
+//wake hand
+//decl in hand mode reset
+//deck/shuffle
+//deck/decl rules hold
+//echo ready for players
+/increment %number
+/compare %number morethan 10
+/if success
+/return
+/endif
+/goto top
+/endmac
+
+/create gameroom
+/wake gameroom
+/gameroom/make_tables
+
+/scr http4
+
+/make db sql MySQL
+/db/scr sql/tables.sql
+

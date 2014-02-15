@@ -1,0 +1,1 @@
+add_plugin( file.nex devices file.c )

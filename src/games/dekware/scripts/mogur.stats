@@ -1,0 +1,30 @@
+/decl hprange1em "I am in really bad shape here!"
+/decl hprange2em "I'm about to run for my life!"
+/decl hprange3em "I'm beat and my wounds are large!"
+/decl hprange4em "This is becoming painful.."
+/decl hprange5em "I'm starting to get sore.."
+/decl hprange6em "I have some minor scratches and wounds, don't worry about me."
+/decl hprangepeakem "I am feeling quite healthy."
+/decl hprangeoverem "Damn I feel good!"
+
+#The phrases to emote for each manarange
+/decl manarange1em "I'm very drained mentally."
+/decl manarange2em "I'm drained mentally."
+/decl manarange3em "My mind is weakened."
+/decl manarange4em "I'm still quite charged mentally."
+/decl manarange5em "My mind is slightly weakened."
+/decl manarange6em "My mind is fairly rested."
+/decl manarangepeakem "My mind is rested."
+/decl manarangeoverem "My spirit is bursting with energy."
+
+#The phrases to emote for each moverange
+/decl moverange1em "I am soooo.. exhausted!"
+/decl moverange2em "I could really use a short rest to catch my breath."
+/decl moverange3em "I think maybe we should start looking for a place to rest."
+/decl moverange4em "My feet are begining to tire, but I can press onwards for a while longer."
+/decl moverange5em "I could manage to jog for a bit, I suppose."
+/decl moverange6em "I'm ready for a sprint."
+/decl moverangepeakem "I am prepared to run."
+/decl moverangeoverem "I am prepared to run."
+
+/decl manatoo yes

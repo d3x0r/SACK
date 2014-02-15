@@ -1,0 +1,11 @@
+/parse object
+/macro inputloop
+/decl line
+/label top
+/input %line
+/tell %room .PRIVMSG \#\#\#\#%me :%line
+/sendto %me %(%room)loginname : %line
+/goto top
+/endmac
+/inputloop
+
