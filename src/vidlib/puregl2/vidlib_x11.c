@@ -30,12 +30,6 @@
 #include <keybrd.h>
 
 
-
-
-IMAGE_NAMESPACE
-
-RENDER_NAMESPACE
-
 // move local into render namespace.
 #include "local.h"
 //----------------------------------------------------------------------------
@@ -429,20 +423,26 @@ static void HandleMessage( PRENDERER gl_camera, GLWindow *x11_gl_window, XEvent 
 	case KeyPress:
 		{
 			int used = FALSE;
-			char buffer[32];
-			KeySym keysym;
-			XLookupString( &event->xkey, buffer, 32, &keysym, NULL );
+			//char buffer[32];
+			//KeySym keysym;
+			//XLookupString( &event->xkey, buffer, 32, &keysym, NULL );
+			// this is for keymap support; flags are diferent from the common
+			// flags that existed... so this setup has to be done first for non-windows....
+         // and needs to be improved
 			SACK_Vidlib_ProcessKeyState( TRUE, event->xkey.keycode, &used );
-			if( !used && gl_camera && gl_camera->pKeyProc )
-				gl_camera->pKeyProc( gl_camera->dwKeyData, KEY_PRESSED|event->xkey.keycode );
+         if( !used )
+				used = DispatchKeyEvent( gl_camera, KEY_PRESSED|event->xkey.keycode );
 		}
 		break;
 	case KeyRelease:
 		{
 			int used = FALSE;
+			// this is for keymap support; flags are diferent from the common
+			// flags that existed... so this setup has to be done first for non-windows....
+         // and needs to be improved
 			SACK_Vidlib_ProcessKeyState( FALSE, event->xkey.keycode, &used );
-			if( !used && gl_camera && gl_camera->pKeyProc )
-				gl_camera->pKeyProc( gl_camera->dwKeyData, event->xkey.keycode );
+         if( !used )
+				used = DispatchKeyEvent( gl_camera, event->xkey.keycode );
     		}
 		break;
 	case ClientMessage:

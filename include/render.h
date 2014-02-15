@@ -412,8 +412,8 @@ enum ButtonFlags {
   MK_INVALIDBUTTON = 0x80000000,
 // One or more other buttons were pressed.  These
 // buttons are available by querying the keyboard state.
-  MK_OBUTTON = 0x80 // any other button (keyboard)
-
+  MK_OBUTTON = 0x80, // any other button (keyboard)
+  MK_OBUTTON_UP = 0x1000 // any other button (keyboard) went up
 };
 
 // mask to test to see if some button (physical mouse, not logical)
