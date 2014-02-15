@@ -7,18 +7,11 @@ typedef struct vidlib_proxy_image
 	int x, y, w, h;
 	int string_mode;
 	int blot_method;
-	PCDATA custom_buffer;
-	PLIST remote_image_id;
 	struct vidlib_proxy_image *parent;
 	struct vidlib_proxy_image *child;
 	struct vidlib_proxy_image *next;
 	struct vidlib_proxy_image *prior;
-	PLINKQUEUE draw_commands;
 
-	size_t available;
-	size_t used;
-	P_8 draw_command_buffer;
-	
 	INDEX filegroup;
 	TEXTSTR filename;
 	Image image;
@@ -80,11 +73,10 @@ struct vidlib_proxy_local
 	PLIST clients; // list of struct server_proxy_client
 	TEXTSTR application_title;
 	PLIST renderers;
-	PLIST web_renderers;
 	PLIST images;
 	struct json_context *json_context;
 	struct json_context *json_reply_context; // shorter list to search for input messages
-	PLIST messages;
+	PLIST messages;   // json message formats
 	PIMAGE_INTERFACE real_interface;
 	_8 key_states[256];
 	CRITICALSECTION message_formatter;
