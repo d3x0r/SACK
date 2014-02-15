@@ -431,7 +431,7 @@ LOGICAL ProcessGLDraw( LOGICAL draw_all )
 		WantRender3D();
 	}
 
-   if( draw_all )
+	if( draw_all )
 	{
 		struct display_camera *camera;
 		INDEX idx;
@@ -444,6 +444,7 @@ LOGICAL ProcessGLDraw( LOGICAL draw_all )
 		}
 		l.flags.bUpdateWanted = 0;
 	}
+	return l.flags.bUpdateWanted;
 }
 
 
