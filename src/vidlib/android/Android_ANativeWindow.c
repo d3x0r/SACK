@@ -781,90 +781,18 @@ static void CPROC AndroidANW_MoveImage			( Image pImage, S_32 x, S_32 y )
 	}
 }
 
-P_8 GetMessageBuf( PVPImage image, size_t size )
-{
-	P_8 resultbuf;
-	if( ( image->buf_avail ) <= ( size + image->sendlen ) )
-	{
-		P_8 newbuf;
-		image->buf_avail += size + 256;
-		newbuf = NewArray( _8, image->buf_avail );
-		if( image->buffer )
-		{
-			MemCpy( newbuf, image->buffer, image->sendlen );
-			Release( image->buffer );
-		}
-		image->buffer = newbuf;
-	}
-	resultbuf = image->buffer + image->sendlen;
-	((_32*)resultbuf)[0] = size - 4;
-	image->sendlen += size;
-
-	return resultbuf + 4;
-}
-
-
-static LOGICAL FixArea( IMAGE_RECTANGLE *result, IMAGE_RECTANGLE *source, PVPImage pifDest )
-{
-	IMAGE_RECTANGLE r2;
-	// build rectangle of what we want to show
-	// build rectangle which is presently visible on image
-	r2.x		= 0;
-	r2.y		= 0;
-	r2.height = pifDest->h;
-	r2.width  = pifDest->w;
-	return l.real_interface->_IntersectRectangle( result, source, &r2 );
-}
 
 static void CPROC AndroidANW_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 {
 	if( ((PVPImage)pifDest)->render_id != INVALID_INDEX )
 	{
-		PVPImage image = (PVPImage)pifDest;
-		struct common_message *outmsg;
-		size_t sendlen;
-		IMAGE_RECTANGLE r, r1;
- 		// build rectangle of what we want to show
-		r1.x		= x;
-		r1.width  = w;
-		r1.y		= y;
-		r1.height = h;
-		if( !FixArea( &r, &r1, image ) )
+		if( !((PVPImage)pifDest)->flags.bLocked )
 		{
-			return;
+         LockImage( );
+			((PVPImage)pifDest)->flags.bLocked = 1;
 		}
-
-		EnterCriticalSec( &l.message_formatter );
-
-		if( w == image->w && h == image->h )
-		{
-			image->websock_sendlen = 0;
-			image->sendlen = 0;
-		}
-
-		outmsg = (struct common_message*)GetMessageBuf( image, sendlen=( 4 + 1 + sizeof( struct blatcolor_data ) ) );
-		outmsg->message_id = PMID_BlatColor;
-		outmsg->data.blatcolor.x = r.x;
-		outmsg->data.blatcolor.y = r.y;
-		outmsg->data.blatcolor.w = r.width;
-		outmsg->data.blatcolor.h = r.height;
-		outmsg->data.blatcolor.color = color;
-		outmsg->data.blatcolor.server_image_id = image->id;
-		if( w == image->w && h == image->h )
-		{
-			//lprintf( "clear buffer; full color : %08x", color );
-		}
-		else
-		{
-			//lprintf( "w:%d w:%d h:%d h:%d full color : %08x", w, image->w, h, image->h, color );
-		}
-		LeaveCriticalSec( &l.message_formatter );
-
 	}
-	else
-	{
-		l.real_interface->_BlatColor( ((PVPImage)pifDest)->image, x, y, w, h, color );
-	}
+	l.real_interface->_BlatColor( ((PVPImage)pifDest)->image, x, y, w, h, color );
 
 }
 
@@ -872,52 +800,8 @@ static void CPROC AndroidANW_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32 
 {
 	if( ((PVPImage)pifDest)->render_id != INVALID_INDEX )
 	{
-		IMAGE_RECTANGLE r, r1;
-		PVPImage image = (PVPImage)pifDest;
-		struct common_message *outmsg;
-		size_t sendlen;
-
-		// build rectangle of what we want to show
-		r1.x		= x;
-		r1.width  = w;
-		r1.y		= y;
-		r1.height = h;
-		// build rectangle which is presently visible on image
-		if( !FixArea( &r, &r1, image ) )
-		{
-			return;
-		}
-		EnterCriticalSec( &l.message_formatter );
-		if( w == image->w && h == image->h )
-		{
-			image->websock_sendlen = 0;
-			image->sendlen = 0;
-		}
-
-		outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct blatcolor_data ) ) );
-		outmsg->message_id = PMID_BlatColorAlpha;
-		outmsg->data.blatcolor.x = r.x;
-		outmsg->data.blatcolor.y = r.y;
-		outmsg->data.blatcolor.w = r.width;
-		outmsg->data.blatcolor.h = r.height;
-		outmsg->data.blatcolor.color = color;
-		outmsg->data.blatcolor.server_image_id = image->id;
-		if( w == image->w && h == image->h )
-		{
-			//lprintf( "clear buffer; full color : %08x", color );
-		}
-		else
-		{
-			//lprintf( "w:%d w:%d h:%d h:%d full color : %08x", w, image->w, h, image->h, color );
-		}
-		{
-		}
-		LeaveCriticalSec( &l.message_formatter );
 	}
-	else
-	{
-		l.real_interface->_BlatColorAlpha( ((PVPImage)pifDest)->image, x, y, w, h, color );
-	}
+	l.real_interface->_BlatColorAlpha( ((PVPImage)pifDest)->image, x, y, w, h, color );
 }
 
 static void SetImageUsed( PVPImage image )
@@ -936,108 +820,8 @@ static void CPROC AndroidANW_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, S
 		return;
 	if( ((PVPImage)pDest)->render_id != INVALID_INDEX )
 	{
-		IMAGE_RECTANGLE r;
-		struct common_message *outmsg;
-		size_t sendlen;
-		EnterCriticalSec( &l.message_formatter );
-
-		{
-			IMAGE_RECTANGLE r1;
-			// build rectangle of what we want to show
-			r1.x		= x;
-			r1.width  = wd;
-			r1.y		= y;
-			r1.height = ht;
-			// build rectangle which is presently visible on image
-			if( !FixArea( &r, &r1, image ) )
-			{
-				LeaveCriticalSec( &l.message_formatter );
-				return;
-			}
-		}
-		outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct blot_image_data ) ) );
-		outmsg->message_id = PMID_BlotImageSizedTo;
-		if( x != r.x )
-		{
-			xs += (r.x-x);
-		}
-		if( y != r.y )
-		{
-			ys += (r.y-y);
-		}
-		outmsg->data.blot_image.x = r.x;
-		outmsg->data.blot_image.y = r.y;
-		outmsg->data.blot_image.w = r.width;
-		outmsg->data.blot_image.h = r.height;
-		switch( method & 3 )
-		{
-		case BLOT_COPY:
-			// sending this clears the flag.
-			SetImageUsed( (PVPImage)pIF );
-			outmsg->data.blot_image.image_id = ((PVPImage)pIF)->id;
-			break;
-		case BLOT_SHADED:
-			{
-				va_list args;
-				Image shaded_image;
-				PVPImage actual_image;
-				va_start( args, method );
-				while( ((PVPImage)pIF)->parent )
-				{
-					xs += ((PVPImage)pIF)->x;
-					ys += ((PVPImage)pIF)->y;
-					pIF = (Image)(((PVPImage)pIF)->parent);
-				}
-				shaded_image = l.real_interface->_GetTintedImage( ((PVPImage)pIF)->image, va_arg( args, CDATA ) );
-				if( !shaded_image->reverse_interface )
-				{
-					// new image, and we need to reverse track it....
-					actual_image = WrapImageFile( shaded_image );
-				}
-				else
-				{
-					actual_image = (PVPImage)shaded_image->reverse_interface_instance;
-				}
-				SetImageUsed( actual_image );
-				outmsg->data.blot_image.image_id = actual_image->id;
-			}
-			break;
-		case BLOT_MULTISHADE:
-			{
-				va_list args;
-				Image shaded_image;
-				PVPImage actual_image;
-				va_start( args, method );
-
-				while( ((PVPImage)pIF)->parent )
-				{
-					xs += ((PVPImage)pIF)->x;
-					ys += ((PVPImage)pIF)->y;
-					pIF = (Image)(((PVPImage)pIF)->parent);
-				}
-				shaded_image = l.real_interface->_GetShadedImage( ((PVPImage)pIF)->image, va_arg( args, CDATA ), va_arg( args, CDATA ), va_arg( args, CDATA ) );
-				if( !shaded_image->reverse_interface )
-				{
-					// new image, and we need to reverse track it....
-					actual_image = WrapImageFile( shaded_image );
-				}
-				else
-				{
-					actual_image = (PVPImage)shaded_image->reverse_interface_instance;
-				}
-				SetImageUsed( actual_image );
-				outmsg->data.blot_image.image_id = actual_image->id;
-			}
-			break;
-		}
-		outmsg->data.blot_image.xs = xs;
-		outmsg->data.blot_image.ys = ys;
-		outmsg->data.blot_image.server_image_id = image->id;
-		{
-		}
-		LeaveCriticalSec( &l.message_formatter );
 	}
-	else
+
 	{
 		va_list args;
 		va_start( args, method );
@@ -1071,174 +855,8 @@ static void CPROC AndroidANW_BlotScaledImageSizedEx( Image pifDest, Image pifSrc
 	PVPImage image = (PVPImage)pifDest;
 	if( image->render_id != INVALID_INDEX )
 	{
-		struct common_message *outmsg;
-		size_t sendlen;
-		_32 dhd, dwd, dhs, dws;
-		int errx, erry;
-		if( !((PVPImage)pifSrc)->image )
-			return;
-		if( ( xd > ( pifDest->x + pifDest->width ) )
-			|| ( yd > ( pifDest->y + pifDest->height ) )
-			|| ( ( xd + (signed)wd ) < 0/*pifDest->x*/ )
-			|| ( ( yd + (signed)hd ) < 0/*pifDest->y*/ ) )
-		{
-			return;
-		}
-		dhd = hd;
-		dhs = hs;
-		dwd = wd;
-		dws = ws;
-
-		// ok - how to figure out how to do this
-		// need to update the position and width to be within the 
-		// the bounds of pifDest....
-		//	lprintf(" begin scaled output..." );
-		errx = -(signed)dwd;
-		erry = -(signed)dhd;
-
-		if( ( xd < 0 ) || ( (xd+(S_32)(wd&0x7FFFFFFF)) > image->w ) )
-		{
-			int x = xd;
-			int w = 0;
-			while( x < pifDest->x )
-			{
-				errx += (signed)dws;
-				while( errx >= 0 )
-				{
-					errx -= (signed)dwd;
-					ws--;
-					xs++;
-				}
-				wd--;
-				x++;
-			}
-			xd = x;
-
-			while( x < pifDest->width && SUS_GT( w, int, wd, _32 ) )
-			{
-				errx += (signed)dws;
-				while( errx >= 0 )
-				{
-					errx -= (signed)dwd;
-					w++;
-				}
-				x++;
-			}
-			wd = w;
-		}
-		//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
-		//		 xs, ys, ws, hs, xd, yd, wd, hd );
-		if( ( yd < 0 ) || ( yd +(S_32)(hd&0x7FFFFFFF) ) > pifDest->height )
-		{
-			int y = yd;
-			int h = 0;
-			while( yd < pifDest->y )
-			{
-				erry += (signed)dhs;
-				while( erry >= 0 )
-				{
-					erry -= (signed)dhd;
-					hs--;
-					yd++;
-				}
-				hd--;
-				y++;
-			}
-			while( y < pifDest->height && h < (int)hd )
-			{
-				erry += (signed)dhs;
-				while( erry >= 0 )
-				{
-					erry -= (signed)dhd;
-					h++;
-				}
-				y++;
-			}
-			hd = h;
-		}
-
-		EnterCriticalSec( &l.message_formatter );
-
-		outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct blot_scaled_image_data ) ) );
-		outmsg->message_id = PMID_BlotScaledImageSizedTo;
-
-		switch( method & 3 )
-		{
-		case BLOT_COPY:
-			// sending this clears the flag.
-			SetImageUsed( (PVPImage)pifSrc );
-			outmsg->data.blot_scaled_image.image_id = ((PVPImage)pifSrc)->id;
-			break;
-		case BLOT_SHADED:
-			{
-				va_list args;
-				Image shaded_image;
-				PVPImage actual_image;
-				va_start( args, method );
-				while( ((PVPImage)pifSrc)->parent )
-				{
-					xs += ((PVPImage)pifSrc)->x;
-					ys += ((PVPImage)pifSrc)->y;
-					pifSrc = (Image)(((PVPImage)pifSrc)->parent);
-				}
-				shaded_image = l.real_interface->_GetTintedImage( ((PVPImage)pifSrc)->image, va_arg( args, CDATA ) );
-				if( !shaded_image->reverse_interface )
-				{
-					// new image, and we need to reverse track it....
-					lprintf( "wrap shaded image for %p %d", ((PVPImage)pifSrc), ((PVPImage)pifSrc)->id );
-					actual_image = WrapImageFile( shaded_image );
-				}
-				else
-				{
-					actual_image = (PVPImage)shaded_image->reverse_interface_instance;
-				}
-				SetImageUsed( actual_image );
-				outmsg->data.blot_scaled_image.image_id = actual_image->id;
-			}
-			break;
-		case BLOT_MULTISHADE:
-			{
-				va_list args;
-				Image shaded_image;
-				PVPImage actual_image;
-				va_start( args, method );
-
-				while( ((PVPImage)pifSrc)->parent )
-				{
-					xs += ((PVPImage)pifSrc)->x;
-					ys += ((PVPImage)pifSrc)->y;
-					pifSrc = (Image)(((PVPImage)pifSrc)->parent);
-				}
-				shaded_image = l.real_interface->_GetShadedImage( ((PVPImage)pifSrc)->image, va_arg( args, CDATA ), va_arg( args, CDATA ), va_arg( args, CDATA ) );
-				if( !shaded_image->reverse_interface )
-				{
-					// new image, and we need to reverse track it....
-					actual_image = WrapImageFile( shaded_image );
-				}
-				else
-				{
-					actual_image = (PVPImage)shaded_image->reverse_interface_instance;
-				}
-				SetImageUsed( actual_image );
-				outmsg->data.blot_scaled_image.image_id = actual_image->id;
-			}
-			break;
-		}
-		outmsg->data.blot_scaled_image.x = xd;
-		outmsg->data.blot_scaled_image.y = yd;
-		outmsg->data.blot_scaled_image.w = wd;
-		outmsg->data.blot_scaled_image.h = hd;
-		outmsg->data.blot_scaled_image.xs = xs;
-		outmsg->data.blot_scaled_image.ys = ys;
-		outmsg->data.blot_scaled_image.ws = ws;
-		outmsg->data.blot_scaled_image.hs = hs;
-		//outmsg->data.blot_scaled_image.image_id = ((PVPImage)pifSrc)->id;
-		outmsg->data.blot_scaled_image.server_image_id = image->id;
-		{
-		}
-		LeaveCriticalSec( &l.message_formatter );
 	}
-	else
+
 	{
 		va_list args;
 		va_start( args, method );
@@ -1313,26 +931,8 @@ DIMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, S_32 x, S_32 y, S_32 xto, S_3
 	PVPImage image = (PVPImage)pifDest;
 	if( image->render_id != INVALID_INDEX )
 	{
-		struct common_message *outmsg;
-		size_t sendlen;
-		EnterCriticalSec( &l.message_formatter );
-
-		outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct line_data ) ) );
-		outmsg->message_id = PMID_DrawLine;
-		outmsg->data.line.server_image_id = image->id;
-		outmsg->data.line.x1 = x;
-		outmsg->data.line.y1 = y;
-		outmsg->data.line.x2 = xto;
-		outmsg->data.line.y2 = yto;
-		outmsg->data.line.color = color;
-		{
-		}
-		LeaveCriticalSec( &l.message_formatter );
 	}
-	else
-	{
-		l.real_interface->_do_line[0]( image->image, x, y, xto, yto, color );
-	}
+	l.real_interface->_do_line[0]( image->image, x, y, xto, yto, color );
 }
 
 DIMAGE_DATA_PROC( void,do_lineAlpha,( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color))
