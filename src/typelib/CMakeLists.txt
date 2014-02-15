@@ -9,18 +9,14 @@ ${FIRST_GCC_PROGRAM_SOURCE}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable(${project} WIN32 ${BASE_SOURCES} )
+ADD_PROGRAM(${project} WIN32 ${BASE_SOURCES} )
 
-string( REPLACE "." "_" TARGET_LABEL ${project} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
-           COMPILE_DEFINITIONS  "TARGET_LABEL=${TARGET_LABEL};MAKE_RCOORD_SINGLE"
            FOLDER tests
 )
-target_link_libraries( ${project} ${SACK_LIBRARIES} ${SACK_PLATFORM_LIBRARIES} )
-if( UNIX )
-target_link_libraries( ${project} GL)
-
-endif( UNIX )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY
+           COMPILE_DEFINITIONS  "MAKE_RCOORD_SINGLE"
+)
 
 install_default_dest( ${project} )
 

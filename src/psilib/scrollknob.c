@@ -175,7 +175,7 @@ static int OnDrawCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc )
 }
 
 #ifndef NO_TOUCH
-static int OnTouchCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc, PTOUCHINPUT inputs, int input_count )
+static int OnTouchCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc, PINPUT_POINT inputs, int input_count )
 {
 	PScrollKnob knob = ControlData( PScrollKnob, pc );
 	if( knob )

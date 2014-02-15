@@ -39,7 +39,7 @@ RENDER_NAMESPACE
 					if( err )                   \
 					lprintf( "err=%d "f,err,##__VA_ARGS__ ); \
 				}                               
-
+#ifndef __ANDROID__
 #ifdef MINGW_SUX
 typedef struct tagUPDATELAYEREDWINDOWINFO {
     _32               cbSize;
@@ -54,6 +54,7 @@ typedef struct tagUPDATELAYEREDWINDOWINFO {
     RECT CONST          *prcDirty;
 } UPDATELAYEREDWINDOWINFO;
 
+#endif
 #endif
 
 typedef LOGICAL (CPROC *Update3dProc)(PTRANSFORM);

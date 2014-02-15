@@ -556,7 +556,7 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
    
    /psi/control/\<name\>/rtti/touch_event=(PSI_CONTROL)@void@_@touch_event */
 #define OnTouchCommon(name)  \
-	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnTouchCommon,WIDE("control"),name WIDE("/rtti"),WIDE("touch_event"),int,(PSI_CONTROL,PTOUCHINPUT,int), __LINE__)
+	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnTouchCommon,WIDE("control"),name WIDE("/rtti"),WIDE("touch_event"),int,(PSI_CONTROL,PINPUT_POINT,int), __LINE__)
 #endif
 
 // just a passing thought.
