@@ -459,6 +459,7 @@ int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 				//PrintVector( target_surface_point );
 				newx = (int)target_surface_point[0];
 				newy = (int)target_surface_point[1];
+				if( 0 )
 				lprintf( WIDE("Is %d,%d in %d,%d(%dx%d) to %d,%d")
 					 ,newx, newy
 					 ,check->pWindowPos.x, check->pWindowPos.y
