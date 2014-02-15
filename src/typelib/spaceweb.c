@@ -6,7 +6,11 @@
 #include <vectlib.h>
 #include <image.h>
 
+#ifdef __ANDROID__
+#include <GLES/gl.h>
+#else
 #include <GL/gl.h>
+#endif
 #include <render3d.h>
 
 #define DEBUG_MIGRATE 1

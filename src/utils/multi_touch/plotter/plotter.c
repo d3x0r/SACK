@@ -55,7 +55,7 @@ void CPROC touch_plot( PTRSZVAL psv, PRENDERER renderer )
 	UpdateDisplay( renderer );
 }
 
-void AddPoint( PMyGlyph glyph, PTOUCHINPUT touch )
+void AddPoint( PMyGlyph glyph, PINPUT_POINT touch )
 {
 	PMyTouchPoint point = New( MyTouchPoint );
 	point->x = touch->x;
@@ -89,13 +89,13 @@ void AddPoint( PMyGlyph glyph, PTOUCHINPUT touch )
 }
 
 
-PMyGlyph GetGlyph( PTOUCHINPUT touch )
+PMyGlyph GetGlyph( PINPUT_POINT touch, int n )
 {
 	INDEX segment;
 	PMyGlyph current_glyph;
 	LIST_FORALL( l.touches, segment, PMyGlyph, current_glyph )
 	{
-		if( current_glyph->id == touch->dwID )
+		if( current_glyph->id == n )
 			return current_glyph;
 	}
 	current_glyph = New( MyGlyph );
@@ -104,49 +104,49 @@ PMyGlyph GetGlyph( PTOUCHINPUT touch )
 	//current_glyph->x = touch->x;
 	//current_glyph->y = touch->y;
 	current_glyph->color = BASE_COLOR_WHITE;
-	current_glyph->id = touch->dwID;
+	current_glyph->id = n;
 	current_glyph->start = NULL;
 	AddPoint( current_glyph, touch );
 	AddLink( &l.touches, current_glyph );
 	return current_glyph;
 }
 
-void start_event( PTOUCHINPUT touch )
+void start_event( PINPUT_POINT touch, int n )
 {
-	PMyGlyph glyph = GetGlyph( touch );
+	PMyGlyph glyph = GetGlyph( touch, n );
 	AddLink( &l.chains, glyph );
 }
 
-void AddEvent( PTOUCHINPUT touch )
+void AddEvent( PINPUT_POINT touch, int n )
 {
-	PMyGlyph glyph = GetGlyph( touch );
+	PMyGlyph glyph = GetGlyph( touch, n );
 	AddPoint( glyph, touch );
 }
-void EndEvent( PTOUCHINPUT touch )
+void EndEvent( PINPUT_POINT touch, int n )
 {
-	PMyGlyph glyph = GetGlyph( touch );
+	PMyGlyph glyph = GetGlyph( touch, n );
 	AddPoint( glyph, touch );
 	DeleteLink( &l.touches, glyph );
 }
 
-int CPROC touch_events( PTRSZVAL psv, PTOUCHINPUT pTouches, int nTouches )
+int CPROC touch_events( PTRSZVAL psv, PINPUT_POINT pTouches, int nTouches )
 {
 	int n;
 	//lprintf( "-------------------- %d ------------------", nTouches );
 	for( n = 0; n < nTouches; n++ )
 	{
-		if(pTouches[n].dwFlags & TOUCHEVENTF_DOWN)
-			start_event( pTouches + n );
-		else if(pTouches[n].dwFlags & TOUCHEVENTF_UP)
-			EndEvent( pTouches + n );
+		if(pTouches[n].flags.new_event)
+			start_event( pTouches + n, n );
+		else if(pTouches[n].flags.end_event)
+			EndEvent( pTouches + n, n );
 		else
-			AddEvent( pTouches + n );
+			AddEvent( pTouches + n, n );
 		/*
 		LogBinary( pTouches + n, sizeof( TOUCHINPUT ) );
 		lprintf( "%3d %4d,%4d %3d,%3d %08x %08x %p  %s,%s,%s,%s", pTouches[n].dwID, pTouches[n].x, pTouches[n].y
 			, pTouches[n].cxContact, pTouches[n].cyContact
 			, pTouches[n].dwFlags, pTouches[n].dwMask, pTouches[n].hSource
-			, (pTouches[n].dwFlags & TOUCHEVENTF_DOWN)?"D":(pTouches[n].dwFlags & TOUCHEVENTF_UP)?"U":""
+			, (pTouches[n].flags.new_event)?"D":(pTouches[n].flags.end_event)?"U":""
 			, (pTouches[n].dwMask & TOUCHINPUTMASKF_CONTACTAREA)?"CA":" "
 			, (pTouches[n].dwFlags & TOUCHINPUTMASKF_EXTRAINFO)?"X":""
 			, (pTouches[n].dwFlags & TOUCHINPUTMASKF_TIMEFROMSYSTEM)?"T":""

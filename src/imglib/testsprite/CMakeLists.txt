@@ -7,13 +7,11 @@ set(BASE_SOURCES
     ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable(${project} WIN32 ${BASE_SOURCES} )
+ADD_PROGRAM(${project} WIN32 ${BASE_SOURCES} )
 string( REPLACE "." "_" TARGET_LABEL ${project} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
-                  COMPILE_DEFINITIONS  "TARGET_LABEL=${TARGET_LABEL}"
                   FOLDER tests/Image
 )
-target_link_libraries( ${project} ${SACK_LIBRARIES})
 install_mode_dest( ${project} )
 
 
@@ -25,13 +23,10 @@ set(BASE_SOURCES
     ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-add_executable(${project} WIN32 ${BASE_SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${project} )
+ADD_PROGRAM(${project} WIN32 ${BASE_SOURCES} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
-                  COMPILE_DEFINITIONS  "TARGET_LABEL=${TARGET_LABEL}"
                   FOLDER tests/Image
 )
-target_link_libraries( ${project} ${SACK_LIBRARIES})
 install_mode_dest( ${project} )
 
 install( DIRECTORY images/ DESTINATION bin/images )

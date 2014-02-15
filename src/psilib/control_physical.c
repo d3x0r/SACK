@@ -459,14 +459,14 @@ static struct {
 	int prior_x, prior_y;
 } touch_state;
 
-static void HandleDefaultSingleTouch( PSI_CONTROL canvas, PTOUCHINPUT touch1, PTOUCHINPUT touch2 )
+static void HandleDefaultSingleTouch( PSI_CONTROL canvas, PINPUT_POINT touch1, PINPUT_POINT touch2 )
 {
-	if( ( touch1->dwFlags|touch2->dwFlags ) & TOUCHEVENTF_DOWN  )
+	if( touch1->flags.new_event || touch2->flags.new_event )
 	{
 		touch_state.prior_x = ( (touch1->x + touch2->x) / 2 ) / 100;
 		touch_state.prior_y = ( (touch1->y + touch2->y) / 2 ) / 100;
 	}
-	else if( ( touch1->dwFlags|touch2->dwFlags ) & TOUCHEVENTF_UP )
+	else if( touch1->flags.end_event || touch2->flags.end_event )
 	{
 	}
 	else // touch is a motion, between down and up
@@ -483,7 +483,7 @@ static void HandleDefaultSingleTouch( PSI_CONTROL canvas, PTOUCHINPUT touch1, PT
 	}
 }
 
-static int CPROC HandleTouch( PTRSZVAL psv, PTOUCHINPUT pTouches, int nTouches )
+static int CPROC HandleTouch( PTRSZVAL psv, PINPUT_POINT pTouches, int nTouches )
 {
 	PPHYSICAL_DEVICE pf = (PPHYSICAL_DEVICE)psv;
 	PSI_CONTROL pc = pf->common;

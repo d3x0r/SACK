@@ -306,6 +306,12 @@ enum {
 #define NO_TOUCH
 #endif
 
+#if defined( __ANDROID__ )
+// definately IS touch
+#undef NO_TOUCH
+#define MINGW_SUX
+#endif
+
 // static void OnBeginShutdown( "Unique Name" )( void ) { /* run shutdown code */ }
 #define OnBeginShutdown(name) \
 	__DefineRegistryMethod(WIDE("SACK"),BeginShutdown,WIDE("System"),WIDE("Begin Shutdown"),name WIDE("_begin_shutdown"),void,(void),__LINE__)
@@ -349,7 +355,7 @@ typedef struct input_point
   This will trigger a check to see if there are unused touches to continue sending... oh but on renderer there's only one callback, more
   important as a note of the control touch event handerer.
   */
-typedef int  (CPROC*TouchCallback)( PTRSZVAL psvUser, PTOUCHINPUT pTouches, int nTouches );
+typedef int  (CPROC*TouchCallback)( PTRSZVAL psvUser, PINPUT_POINT pTouches, int nTouches );
 
 #endif
 /* function signature for the close callback  which can be specified to handle events to redraw the display.  see SetLoseFocusHandler. */
