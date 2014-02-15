@@ -20,14 +20,9 @@ typedef struct vidlib_proxy_image
 
 	struct vidlib_proxy_image_flags {
 		BIT_FIELD bUsed : 1;
+		BIT_FIELD bLocked : 1;
 	} flags;
 
-	P_8 buffer;
-	size_t sendlen;
-	size_t buf_avail;
-	P_8 websock_buffer;
-	size_t websock_sendlen;
-	size_t websock_buf_avail;
 } *PVPImage;
 
 struct server_socket_state
