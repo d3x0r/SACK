@@ -66,6 +66,7 @@ namespace sack {
 #define OnHideControl(name) \
 	DefineRegistryMethod(TASK_PREFIX,FixupControl,WIDE( "control" ),name,WIDE( "hide_control" ),void,(PTRSZVAL))
 
+// static void OnLoadControl( WIDE(""))( PCONFIG_HANDLER, PTRSZVAL psv )
 #define OnLoadControl( name ) \
      DefineRegistryMethod(TASK_PREFIX,LoadControl,WIDE( "control" ),name,WIDE( "control_config" ),void,(PCONFIG_HANDLER,PTRSZVAL))
 #define OnLoad( name ) \

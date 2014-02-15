@@ -9,10 +9,6 @@
  ************************************************/
 
 #define X11_VIDLIB
-#ifdef __LINUX__
-// this was originally implemented when porting to CLI/CLR, but should work good for linux
-#define __NO_WIN32API__
-#endif
 
 
 #define NEED_VECTLIB_COMPARE
@@ -33,12 +29,6 @@
 
 #include <keybrd.h>
 
-
-
-
-IMAGE_NAMESPACE
-
-RENDER_NAMESPACE
 
 // move local into render namespace.
 #include "local.h"
@@ -142,7 +132,8 @@ GLWindow * createGLWindow(struct display_camera *camera)
 	Atom wmDelete;
 	Window winDummy;
 	unsigned int borderDummy;
-
+	MemSet( x11_gl_window, 0, sizeof( GLWindow ) );
+	camera->hVidCore->x11_gl_window = x11_gl_window;
 	x11_gl_window->fs = 0;//fullscreenflag;
 	/* set best mode to current */
 	bestMode = 0;
@@ -244,9 +235,8 @@ GLWindow * createGLWindow(struct display_camera *camera)
 			XMapRaised(x11_gl_window->dpy, x11_gl_window->win);
 		}
 		/* connect the glx-context to the window */
-		lprintf( " glx make current" );
-		glXMakeCurrent(x11_gl_window->dpy, x11_gl_window->win, x11_gl_window->ctx);
-		lprintf( "getgeometry..." );
+      SetActiveGLDisplayView( camera, 0 );
+		//glXMakeCurrent(x11_gl_window->dpy, x11_gl_window->win, x11_gl_window->ctx);
 		XGetGeometry(x11_gl_window->dpy, x11_gl_window->win, &winDummy, &x11_gl_window->x, &x11_gl_window->y,
 						 &x11_gl_window->width, &x11_gl_window->height, &borderDummy, &x11_gl_window->depth);
 		printf("Depth %d\n", x11_gl_window->depth);
@@ -268,11 +258,11 @@ GLWindow * createGLWindow(struct display_camera *camera)
 
 TEXTCHAR  GetKeyText (int key)
 {
-   int used = 0;
-	TEXTCHAR result = SACK_Vidlib_GetKeyText( IsKeyPressed( key ), KEY_CODE( key ), &used );
+	int used = 0;
+	CTEXTSTR result = SACK_Vidlib_GetKeyText( IsKeyPressed( key ), KEY_CODE( key ), &used );
 	if( used )
-		return result;
-   return 0;
+		return result[0];
+	return 0;
 }
 
 void  GetDisplaySizeEx ( int nDisplay
@@ -280,7 +270,7 @@ void  GetDisplaySizeEx ( int nDisplay
 												 , _32 *width, _32 *height)
 {
 		if( x )
-         (*x) = 0;
+			(*x) = 0;
 		if( y )
 			(*y) = 0;
 		{
@@ -290,14 +280,14 @@ void  GetDisplaySizeEx ( int nDisplay
 				struct display_camera *camera = (struct display_camera *)GetLink( &l.cameras, 0 );
 				if( camera && ( camera != (struct display_camera*)1 ) )
 				{
-               set = 1;
+					set = 1;
 					if( width )
 						(*width) = camera->w;
 					if( height )
 						(*height) = camera->h;
 				}
 			}
-         if( !set )
+			if( !set )
 			{
 				if( width )
 					(*width) = l.default_display_x;
@@ -305,11 +295,6 @@ void  GetDisplaySizeEx ( int nDisplay
 					(*height) = l.default_display_y;
 			}
 		}
-}
-
-ATEXIT( hold_exit )
-{
-   DebugBreak();
 }
 
 //----------------------------------------------------------------------------
@@ -320,7 +305,7 @@ void InvokeMouseEvent( PRENDERER hVideo, GLWindow *x11_gl_window  )
     {
         RCOORD delta_x = x11_gl_window->mouse_x - (hVideo->WindowPos.cx/2);
         RCOORD delta_y = x11_gl_window->mouse_y - (hVideo->WindowPos.cy/2);
-        lprintf( "mouse came in we're at %d,%d %g,%g", x11_gl_window->mouse_x, x11_gl_window->mouse_y, delta_x, delta_y );
+        //lprintf( WIDE("mouse came in we're at %d,%d %g,%g"), x11_gl_window->mouse_x, x11_gl_window->mouse_y, delta_x, delta_y );
         if( delta_y && delta_y )
         {
             static int toggle;
@@ -339,13 +324,13 @@ void InvokeMouseEvent( PRENDERER hVideo, GLWindow *x11_gl_window  )
             toggle = 1-toggle;
             x11_gl_window->mouse_x = hVideo->WindowPos.cx/2;
             x11_gl_window->mouse_y = hVideo->WindowPos.cy/2;
-            lprintf( "Set curorpos.." );
+            //lprintf( WIDE("Set curorpos..") );
             XWarpPointer( x11_gl_window->dpy, None
                          , XRootWindow( x11_gl_window->dpy, 0)
                          , 0, 0, 0, 0
                          , x11_gl_window->mouse_x, x11_gl_window->mouse_y);
             //SetCursorPos( hVideo->pWindowPos.cx/2, hVideo->pWindowPos.cy / 2 );
-            lprintf( "Set curorpos Done.." );
+            //lprintf( WIDE("Set curorpos Done..") );
         }
     }
     else if (hVideo->pMouseCallback)
@@ -364,15 +349,12 @@ void resizeGLScene(unsigned int width, unsigned int height)
     if (height == 0)    /* Prevent A Divide By Zero If The Window Is Too Small */
         height = 1;
     glViewport(0, 0, width, height);    /* Reset The Current Viewport And Perspective Transformation */
-    //glMatrixMode(GL_PROJECTION);
-    //glLoadIdentity();
-    //MygluPerspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
-    //glMatrixMode(GL_MODELVIEW);
+    lprintf( "Adjust perspective?  Or keep same-aspect/depth" );
 }
 
 //----------------------------------------------------------------------------
 
-static void HandleMessage (PRENDERER gl_camera, GLWindow *x11_gl_window, XEvent *event)
+static void HandleMessage( PRENDERER gl_camera, GLWindow *x11_gl_window, XEvent *event)
 {
     switch( event->type )
     {
@@ -393,7 +375,7 @@ static void HandleMessage (PRENDERER gl_camera, GLWindow *x11_gl_window, XEvent 
                 break;
             }
 		  }
-        lprintf( "Mouse down... %d %d %d", x11_gl_window->mouse_x,x11_gl_window->mouse_y,x11_gl_window->mouse_b );
+        //lprintf( "Mouse down... %d %d %d", x11_gl_window->mouse_x,x11_gl_window->mouse_y,x11_gl_window->mouse_b );
         InvokeMouseEvent( gl_camera, x11_gl_window );
         break;
     case ButtonRelease:
@@ -413,21 +395,20 @@ static void HandleMessage (PRENDERER gl_camera, GLWindow *x11_gl_window, XEvent 
                 break;
             }
         }
-        lprintf( "Mouse up... %d %d %d", x11_gl_window->mouse_x,x11_gl_window->mouse_y,x11_gl_window->mouse_b );
+        //lprintf( "Mouse up... %d %d %d", x11_gl_window->mouse_x,x11_gl_window->mouse_y,x11_gl_window->mouse_b );
         InvokeMouseEvent( gl_camera, x11_gl_window );
         break;
-    case MotionNotify:
-        x11_gl_window->mouse_x = event->xmotion.x;
-		  x11_gl_window->mouse_y = event->xmotion.y;
-        lprintf( "Mouse move... %d %d %d", x11_gl_window->mouse_x,x11_gl_window->mouse_y,x11_gl_window->mouse_b );
-        InvokeMouseEvent( gl_camera, x11_gl_window );
-        break;
+	case MotionNotify:
+		x11_gl_window->mouse_x = event->xmotion.x;
+		x11_gl_window->mouse_y = event->xmotion.y;
+		//lprintf( "Mouse move... %d %d %d", x11_gl_window->mouse_x,x11_gl_window->mouse_y,x11_gl_window->mouse_b );
+		InvokeMouseEvent( gl_camera, x11_gl_window );
+		break;
     case Expose:
         if (event->xexpose.count != 0)
             break;
-        lprintf( "X Expose Event" );
-		//drawGLScene( camera, x11_gl_window );
-		break;
+		  //drawGLScene( camera, x11_gl_window );
+		  break;
 	case ConfigureNotify:
 		/* call resizeGLScene only if our window-size changed */
 		if ((event->xconfigure.width != x11_gl_window->width) ||
@@ -435,32 +416,35 @@ static void HandleMessage (PRENDERER gl_camera, GLWindow *x11_gl_window, XEvent 
 		{
 			x11_gl_window->width = event->xconfigure.width;
 			x11_gl_window->height = event->xconfigure.height;
-			printf("Resize event\n");
 			resizeGLScene(event->xconfigure.width,
 							  event->xconfigure.height);
 		}
 		break;
 		/* exit in case of a mouse button press */
 	case KeyPress:
-
-            {
-                char buffer[32];
-                KeySym keysym;
-                XLookupString( &event->xkey, buffer, 32, &keysym, NULL );
-
-		if (XLookupKeysym(&event->xkey, 0) == XK_Escape)
 		{
-			//done = True;
-		}
-		if (XLookupKeysym(&event->xkey,0) == XK_F1)
-		{
-                    //killGLWindow();
-						  //x11_gl_window->fs = !x11_gl_window->fs;
-						  //createGLWindow("NeHe's OpenGL Framework", 640, 480, 24, x11_gl_window->fs);
-		}
+			int used = FALSE;
+			//char buffer[32];
+			//KeySym keysym;
+			//XLookupString( &event->xkey, buffer, 32, &keysym, NULL );
+			// this is for keymap support; flags are diferent from the common
+			// flags that existed... so this setup has to be done first for non-windows....
+         // and needs to be improved
+			SACK_Vidlib_ProcessKeyState( TRUE, event->xkey.keycode, &used );
+         if( !used )
+				used = DispatchKeyEvent( gl_camera, KEY_PRESSED|event->xkey.keycode );
 		}
 		break;
 	case KeyRelease:
+		{
+			int used = FALSE;
+			// this is for keymap support; flags are diferent from the common
+			// flags that existed... so this setup has to be done first for non-windows....
+         // and needs to be improved
+			SACK_Vidlib_ProcessKeyState( FALSE, event->xkey.keycode, &used );
+         if( !used )
+				used = DispatchKeyEvent( gl_camera, event->xkey.keycode );
+    		}
 		break;
 	case ClientMessage:
 		{
@@ -472,18 +456,15 @@ static void HandleMessage (PRENDERER gl_camera, GLWindow *x11_gl_window, XEvent 
 											, event->xclient.message_type );
 			if( !msg )
 			{
-            lprintf( "Received an any message with bad atom." );
+				lprintf( "Received an any message with bad atom." );
 				break;
 			}
-
-
-         XFree( msg );
+			XFree( msg );
 		}
 		if (*XGetAtomName(x11_gl_window->dpy, event->xclient.message_type) ==
 			 *"WM_PROTOCOLS")
 		{
-			printf("Exiting sanely...\n");
-			//done = True;
+			BAG_Exit( 0 );
 		}
 		break;
 	default:
@@ -498,10 +479,8 @@ PTRSZVAL CPROC ProcessDisplayMessages( PTHREAD thread )
 	XEvent event;
 	struct display_camera *camera;
 	INDEX idx;
-   struct display_camera *did_one;
-lprintf( "Load options..." );
+	struct display_camera *did_one;
 	LoadOptions(); // loads camera config, and logging options...
-lprintf( "Open Cameras..." );
 	SACK_Vidlib_OpenCameras();  // create logical camera structures
 	l.bThreadRunning = 1;
 	while( 1 )
@@ -514,8 +493,7 @@ lprintf( "Open Cameras..." );
 			GLWindow *x11_gl_window = camera->hVidCore->x11_gl_window;
 			if( !x11_gl_window )
 			{
-				lprintf( "opening real output..." );
-				x11_gl_window = camera->hVidCore->x11_gl_window = createGLWindow( camera );  // opens the physical device
+				x11_gl_window = createGLWindow( camera );  // opens the physical device
 			}
 			//lprintf( "is it %Lx?", GetThreadID( thread ) );
 			{

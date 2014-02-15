@@ -1,4 +1,4 @@
-#define USE_WIN32_KEY_DEFINES
+//#define USE_WIN32_KEY_DEFINES
 
 #include <stdhdrs.h>
 #include <keybrd.h>
@@ -186,7 +186,7 @@ CTEXTSTR SACK_Vidlib_GetKeyText( int pressed, int key_index, int *used )
 				(*used) = 1;
 				return LinuxKeyDefs[key_index].op[mod].pStroke;
 			}
-			 break;
+			break;
 		}
 	}
 	return NULL;
@@ -203,26 +203,28 @@ void SACK_Vidlib_ProcessKeyState( int pressed, int key_index, int *used )
 			switch( LinuxKeyDefs[key_index].op[0].bFunction )
 			{
 			case KEY_COMMAND_SHIFT:
-			lprintf( "pressed %d  ", pressed );
+				lprintf( "pressed %d  ", pressed );
 				if( pressed )
 					keymap_local.flags.bShifted = 1;
 				else
 					keymap_local.flags.bShifted = 0;
-				(*used) = 1;
-				 break;
+				if( used )
+					(*used) = 1;
+				break;
 			}
 		
 		else
 		switch( LinuxKeyDefs[key_index].op[mod].bFunction )
 		{
 		case KEY_COMMAND_SHIFT:
-		lprintf( "pressed %d  ", pressed );
+			lprintf( "pressed %d  ", pressed );
 			if( pressed )
 				keymap_local.flags.bShifted = 1;
 			else
 				keymap_local.flags.bShifted = 0;
-			(*used) = 1;
-			 break;
+			if( used )
+				(*used) = 1;
+			break;
 		}
 	}
 }
