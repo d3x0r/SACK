@@ -66,11 +66,12 @@ alias service render.3d puregl.render.3d
 endif
 
 if sack/vidlib/use interface == opengl1.5
-module bag.video.puregl.dll
 module bag.image.puregl.dll
+alias service image puregl.image
+
+module bag.video.puregl2.dll
 
 alias service render puregl2.render
-alias service image puregl.image
 
 alias service render.3d puregl2.render.3d
 endif
