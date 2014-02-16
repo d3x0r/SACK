@@ -136,6 +136,9 @@ void SACK_Vidlib_DoRenderPass( void )
 	if( l.flags.disallow_3d )
 		return;
 
+	ProcessGLDraw(TRUE);
+   return;
+
 			Move( l.origin );
 
 			{
@@ -217,6 +220,85 @@ int SACK_Vidlib_SendTouchEvents( int nPoints, PINPUT_POINT points )
 	}
 }
 
+static void BeginVisPersp( struct display_camera *camera )
+{
+	//glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
+	//glLoadIdentity();									// Reset The Projection Matrix
+	MygluPerspective(90.0f,camera->aspect,1.0f,camera->depth);
+	//glGetFloatv( GL_PROJECTION_MATRIX, (GLfloat*)l.fProjection );
+	//PrintMatrix( l.fProjection );
+	//glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
+}
+
+
+int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goes Here
+{
+#ifdef USE_EGL
+	EnableEGLContext( camera );
+#else
+	SetActiveGLDisplay( camera );
+#endif
+//	if( !SetActiveGLDisplay( camera ) )
+//		return FALSE;
+
+
+	if( !camera->flags.init )
+	{
+
+		glEnable( GL_BLEND );
+ 		glEnable(GL_DEPTH_TEST);							// Enables Depth Testing
+		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+		glEnable( GL_TEXTURE_2D );
+ 		glDepthFunc(GL_LEQUAL);								// The Type Of Depth Testing To Do
+#ifndef __ANDROID__
+		glEnable(GL_NORMALIZE); // glNormal is normalized automatically....
+		glEnable( GL_ALPHA_TEST );
+		glShadeModel(GL_SMOOTH);							// Enable Smooth Shading
+		//glEnable( GL_POLYGON_SMOOTH );
+		//glEnable( GL_POLYGON_SMOOTH_HINT );
+		glEnable( GL_LINE_SMOOTH );
+		//glEnable( GL_LINE_SMOOTH_HINT );
+		glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+		glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+		glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+ 		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculations
+#endif
+ 
+ 
+		BeginVisPersp( camera );
+		lprintf( WIDE("First GL Init Done.") );
+		camera->flags.init = 1;
+		camera->hVidCore->flags.bReady = TRUE;
+	}
+
+
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);				// Black Background
+	glClearDepthf(1.0f);									// Depth Buffer Setup
+	glClear(GL_COLOR_BUFFER_BIT
+			  | GL_DEPTH_BUFFER_BIT
+			 );	// Clear Screen And Depth Buffer
+
+	return TRUE;										// Initialization Went OK
+}
+
+
+
+void SetupPositionMatrix( struct display_camera *camera )
+{
+	// camera->origin_camera is valid eye position matrix
+#ifdef ALLOW_SETTING_GL1_MATRIX
+	GetGLCameraMatrix( camera->origin_camera, camera->hVidCore->fModelView );
+	glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
+#endif
+}
+
+void EndActive3D( struct display_camera *camera ) // does appropriate EndActiveXXDisplay
+{
+#ifdef USE_EGL
+	//lprintf( "doing swap buffer..." );
+	eglSwapBuffers( camera->egl_display, camera->surface );
+#endif
+}
 
 
 RENDER_NAMESPACE_END
