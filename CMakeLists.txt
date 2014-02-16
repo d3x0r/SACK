@@ -918,7 +918,7 @@ if( NEED_FREETYPE OR NEED_JPEG OR NEED_PNG OR NEED_EXPAT OR USE_SQLITE )
 
 set( SACK_LIBRARIES ${SACK_LIBRARIES} bag.externals )
 if( NEED_UUID )
-  set( MORE_SOURCES ${UUID_SOURCES} )
+  set( BAG_EXTERNAL_MORE_SOURCES ${UUID_SOURCES} )
 endif( NEED_UUID )
 
 add_library( bag.externals SHARED 
@@ -928,7 +928,7 @@ add_library( bag.externals SHARED
     ${FREETYPE_SOURCE}
     ${EXPAT_SOURCES}
     ${BAG_SQLITE_SOURCES}
-    ${MORE_SOURCES}
+    ${BAG_EXTERNAL_MORE_SOURCES}
 )
 SET_TARGET_PROPERTIES(bag.externals PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=bag_externals -DBAG_EXTERNALS -DPNG_INTERNAL -D__PNG_LIBRARY_SOURCE__"
@@ -1145,6 +1145,9 @@ endif( NOT __QNX__ )
   add_subdirectory( src/vidlib/proxy )
   add_subdirectory( src/vidlib/puregl2 )
   add_subdirectory( src/vidlib/puregl )
+  if( __ANDROID__ )
+  	add_subdirectory( src/vidlib/android )
+  endif( __ANDROID__ )
   if( DIRECTX_SDK )
     if( WIN32 AND NOT CMAKE_COMPILER_IS_GNUCC AND NOT WATCOM AND NOT __NO_GUI__ )
       add_subdirectory( src/vidlib/pured3d )
