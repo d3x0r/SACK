@@ -71,7 +71,7 @@ int bGLColorMode = 0; // this gets set if we're working with BGR native or RGB n
 #define REQUIRE_GLUINT
 #include "image_common.h"
 #include "local.h"
-#ifndef __arm__
+
 
 ASM_IMAGE_NAMESPACE
 extern unsigned char AlphaTable[256][256];
@@ -132,7 +132,6 @@ _32 DOALPHA( _32 over, _32 in, _8 a )
 	//return AColor( r, g, b, aout );
 #endif
 }
-#endif
 
 ASM_IMAGE_NAMESPACE_END
 
