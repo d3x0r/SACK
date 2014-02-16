@@ -951,16 +951,6 @@ set( EXTERNALS bag.externals )
 endif()
 ###########
 
-add_subdirectory( src/imglib )
-
-###########
-
-if( NOT __ANDROID__ )
-   add_subdirectory( src/vidlib )
-endif( NOT __ANDROID__ )
-
-###########
-
 add_library( bag.psi SHARED 
   ${FIRST_GCC_LIBRARY_SOURCE} 
   ${PSI_SOURCES} 
@@ -1022,6 +1012,20 @@ if( NOT NEED_FREETYPE )
   endif( NOT __NO_CPLUSPLUS )
   include_directories( ${Freetype_INCLUDE_DIRS} )
 endif()
+
+###########
+
+
+add_subdirectory( src/imglib )
+
+###########
+
+if( NOT __ANDROID__ )
+   add_subdirectory( src/vidlib )
+endif( NOT __ANDROID__ )
+
+###########
+
 
 endif( BUILD_MONOLITHIC )
 

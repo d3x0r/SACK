@@ -54,7 +54,9 @@ static LOGICAL CPROC AndroidANW_RequiresDrawAll( void )
 
 static LOGICAL CPROC AndroidANW_AllowsAnyThreadToUpdate( void )
 {
-	return FALSE;
+	// doesn't matter what thread updates to the render surface?
+   // does matter who outputs?
+	return TRUE;
 }
 
 static void CPROC AndroidANW_SetApplicationTitle( CTEXTSTR title )
@@ -142,6 +144,7 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 		bounds.bottom = y+height;
 
 		ANativeWindow_lock( l.displayWindow, &buffer, &bounds );
+      // output bounds is updates to be the size actually needed.
 
 		{
 			int row;
@@ -657,6 +660,8 @@ void SACK_Vidlib_SetNativeWindowHandle( ANativeWindow *displayWindow )
 	l.default_display_x = ANativeWindow_getWidth( l.displayWindow);
 	l.default_display_y = ANativeWindow_getHeight( l.displayWindow);
 
+	ANativeWindow_setBuffersGeometry( displayWindow,l.default_display_x,l.default_display_y,WINDOW_FORMAT_RGBA_8888);
+   if( ANativeWindow_getFormat( displayWindow ) & WINDOW_FORMAT_RGB_565 )
    // Standard init (was looking more like a common call thing)
 	HostSystem_InitDisplayInfo();
 	// creates the cameras.

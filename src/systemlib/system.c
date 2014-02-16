@@ -1204,7 +1204,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			library->library = dlopen( library->full_name, RTLD_LAZY|(bPrivate?RTLD_LOCAL:RTLD_GLOBAL) );
 			if( !library->library )
 			{
-				_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s(%s) failed: %s."), library->full_name, funcname?funcname:"all", dlerror() );
+				_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load  %s%s(%s) failed: %s."), bPrivate?"(local)":"(global)", library->full_name, funcname?funcname:"all", dlerror() );
 				ReleaseEx( library DBG_SRC );
 				ResumeDeadstart();
 				return NULL;
