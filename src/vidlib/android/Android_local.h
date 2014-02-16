@@ -1,3 +1,4 @@
+#include  <android/native_window.h>
 
 
 typedef struct vidlib_proxy_renderer

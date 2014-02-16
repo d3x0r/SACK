@@ -3,7 +3,7 @@
 #include <stdhdrs.h>
 #include <keybrd.h>
 
-#include "server_local.h"
+#include "Android_local.h"
 
 #include <psi/console.h>
 // androi
@@ -146,7 +146,7 @@ PSIKEYDEFINE LinuxKeyDefs[256] =
                       , [KEY_QUOTE]={ WIDE("quote"), WIDE("quote"),0     ,KEYDATA("\'","\"")}
 };
 
-#endif defined( __LINUX__ )
+#endif //defined( __LINUX__ )
 
 static struct keymap_state
 {
@@ -174,7 +174,7 @@ PRELOAD( dump_Table )
 #endif
 #endif
 
-#if defined( __LINUX__ )
+#if defined( __LINUX__ ) || defined( __ANDROID__ )
 CTEXTSTR SACK_Vidlib_GetKeyText( int pressed, int key_index, int *used )
 {
 	// check current keyboard override...

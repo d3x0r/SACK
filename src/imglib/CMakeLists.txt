@@ -18,7 +18,8 @@ SET_TARGET_PROPERTIES(bag.image PROPERTIES
                   LINK_FLAGS "${extra_link_flags}"
 )
 
-my_target_link_libraries( bag.image bag ${EXTERNALS} ${PLATFORM_LIBRARIES} bag.psi )
+my_target_link_libraries( bag.image bag ${EXTERNALS} ${PLATFORM_LIBRARIES} )
+my_target_link_libraries( bag.image bag.psi )
 
 install_mode_dest( bag.image )
 

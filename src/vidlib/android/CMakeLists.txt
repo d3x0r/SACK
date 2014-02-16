@@ -21,11 +21,11 @@ PROJECT( bag.video.frame )
 ADD_DEFINITIONS( -DMAKE_RCOORD_SINGLE )
 
 set( PROJECT bag.video.frame.lock )
-if( UNIX )
+if( UNIX OR __ANDROID__)
 set( MORE_SOURCES keymap_linux.c )
-endif( UNIX )
+endif( UNIX OR __ANDROID__)
 sack_add_library( ${PROJECT} SHARED ${FIRST_GCC_LIBRARY_SOURCE} Android_ANativeWindow.c ${MORE_SOURCES} ${LAST_GCC_LIBRARY_SOURCE})
-target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
+my_target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${PROJECT} )
   SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES	FOLDER "Video Renderer"   
        COMPILER_DEFINITIONS TARGET_LABEL=bag_video_frame_lock 

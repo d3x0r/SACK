@@ -1735,7 +1735,7 @@ static PTRSZVAL CPROC HandleModule( PTRSZVAL psv, arg_list args )
 	if( l.flags.bFindEndif || l.flags.bFindElse )
 		return psv;
 	if( l.flags.bTraceInterfaceLoading )
-		lprintf( WIDE( "loadprivate %s" ), module );
+		lprintf( WIDE( "load module %s" ), module );
 	if( !l.flags.bHeldDeadstart )
 	{
 		l.flags.bHeldDeadstart = 1;
@@ -1754,7 +1754,7 @@ static PTRSZVAL CPROC HandlePrivateModule( PTRSZVAL psv, arg_list args )
 	if( l.flags.bFindEndif || l.flags.bFindElse )
 		return psv;
 	if( l.flags.bTraceInterfaceLoading )
-		lprintf( WIDE( "loadprivate %s" ), module );
+		lprintf( WIDE( "load private module %s" ), module );
 	if( !l.flags.bHeldDeadstart )
 	{
 		l.flags.bHeldDeadstart = 1;
