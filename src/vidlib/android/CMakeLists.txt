@@ -22,7 +22,7 @@ ADD_DEFINITIONS( -DMAKE_RCOORD_SINGLE )
 
 set( PROJECT bag.video.frame.lock )
 if( UNIX OR __ANDROID__)
-set( MORE_SOURCES keymap_linux.c )
+set( MORE_SOURCES keymap_android.c vidlib_touch.c )
 endif( UNIX OR __ANDROID__)
 sack_add_library( ${PROJECT} SHARED ${FIRST_GCC_LIBRARY_SOURCE} Android_ANativeWindow.c ${MORE_SOURCES} ${LAST_GCC_LIBRARY_SOURCE})
 my_target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} ${PLATFORM_LIBRARIES} )

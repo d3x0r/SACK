@@ -13,7 +13,7 @@ add_library( bag.image SHARED
 )
 
 SET_TARGET_PROPERTIES(bag.image PROPERTIES
-                  COMPILE_FLAGS  "-DTARGET_LABEL=bag_image ${ExtraFlags} ${ImageExtraFlags} -DMAKE_RCOORD_SINGLE"                  
+                  COMPILE_FLAGS  "-DTARGET_LABEL=bag_image ${ExtraFlags} ${ImageExtraFlags} -DMAKE_RCOORD_SINGLE -DUSE_OPENGL_COMPAT_COLORS" 
                   FOLDER "Image Library" 
                   LINK_FLAGS "${extra_link_flags}"
 )

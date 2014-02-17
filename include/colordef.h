@@ -45,7 +45,7 @@ SACK_NAMESPACE
 #define BlueVal(color)  GetBlueValue(color)
 
 #else
-#ifdef _OPENGL_DRIVER
+#if defined( _OPENGL_DRIVER ) || defined( USE_OPENGL_COMPAT_COLORS )
 #  define Color( r,g,b ) (((_32)( ((_8)(r))|((_16)((_8)(g))<<8))|(((_32)((_8)(b))<<16)))|0xFF000000)
 #  define AColor( r,g,b,a ) (((_32)( ((_8)(r))|((_16)((_8)(g))<<8))|(((_32)((_8)(b))<<16)))|((a)<<24))
 #  define SetAlpha( rgb, a ) ( ((rgb)&0xFFFFFF) | ( (a)<<24 ) )
