@@ -36,6 +36,7 @@
 static void (*BagVidlibPureglSetNativeWindowHandle)(NativeWindowType );
 static void (*BagVidlibPureglOpenCameras)(void);
 static void (*BagVidlibPureglRenderPass)(void);
+static void (*BagVidlibPureglFirstRender)(void);
 static void (*BagVidlibPureglSendTouchEvents)( int nPoints, PINPUT_POINT points );
 static void (*BagVidlibPureglCloseDisplay)(void);  // do cleanup and suspend processing until a new surface is created.
 static void (*BagVidlibPureglSurfaceLost)(void);  // do cleanup and suspend processing until a new surface is created.
@@ -463,6 +464,10 @@ void* BeginNormalProcess( void*param )
 					if( !BagVidlibPureglSetNativeWindowHandle )
 						LOGI( "Failed to get SetNativeWindowHandle:%s", dlerror() );
 
+               BagVidlibPureglFirstRender = (void (*)(void ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_DoFirstRender" );
+					if( !BagVidlibPureglFirstRender )
+						LOGI( "Failed to get BagVidlibPureglFirstRender:%s", dlerror() );
+
 					BagVidlibPureglRenderPass = (void (*)(void ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_DoRenderPass" );
 					if( !BagVidlibPureglRenderPass )
 						LOGI( "Failed to get DoRenderPass:%s", dlerror() );
@@ -657,9 +662,16 @@ void android_main(struct android_app* state) {
 
         if (engine.animating) {
             // Drawing is throttled to the screen update rate, so there
-            // is no need to do timing here.
-            BagVidlibPureglRenderPass();
+			  // is no need to do timing here.
             // trigger want draw?
+           if( BagVidlibPureglRenderPass )
+				  BagVidlibPureglRenderPass();
+			  else
+			  {
+				  if( BagVidlibPureglFirstRender )
+					  BagVidlibPureglFirstRender();
+				  engine.animating = 0;
+			  }
         }
 		  if(engine.closed)
 		  {

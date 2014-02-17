@@ -1,12 +1,3 @@
-#include  <android/native_window.h>
-#define USE_IMAGE_INTERFACE l.real_interface
-#define NEED_REAL_IMAGE_STRUCTURE
-#include <imglib/imagestruct.h>
-
-#include <render.h>
-#include <render3d.h>
-#include <image3d.h>
-#include <sqlgetoption.h>
 
 
 #include "Android_local.h"
@@ -101,15 +92,15 @@ static PRENDERER CPROC AndroidANW_OpenDisplayAboveUnderSizedAt( _32 attributes, 
 	MemSet( Renderer, 0, sizeof( struct vidlib_proxy_renderer ) );
 	AddLink( &l.renderers, Renderer );
 	Renderer->id = FindLink( &l.renderers, Renderer );
-	Renderer->x = x;
-	Renderer->y = y;
+	Renderer->x = (x == -1)?0:x;
+	Renderer->y = (y == -1)?0:x;
 	Renderer->w = width;
 	Renderer->h = height;
 	Renderer->attributes = attributes;
 	Renderer->above = (PVPRENDER)above;
 	Renderer->under = (PVPRENDER)under;
 	Renderer->image = MakeImageFileEx( width, height DBG_SRC );
-	
+   ClearImageTo( Renderer->image, 0 );
 	return (PRENDERER)Renderer;
 }
 
@@ -136,27 +127,81 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 	// no-op; it will ahve already displayed(?)
 	ARect bounds;
 	ANativeWindow_Buffer buffer;
-	if( width != ((PVPRENDER)r)->w && height != ((PVPRENDER)r)->h  || x || y )
+	S_32 out_x = ((PVPRENDER)r)->x;
+	S_32 out_y = ((PVPRENDER)r)->y;
+	S_32 ofs_x = 0;
+	S_32 ofs_y = 0;
+	//lprintf( "Update %d,%d to %d,%d on %d,%d %d,%d",
+	//		  x, y, width, height
+   //        , out_x, out_y, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h );
+	if( out_x < 0 )
 	{
-		bounds.left = x;
-		bounds.top = y;
-		bounds.right = x+width;
-		bounds.bottom = y+height;
+		x +=  out_x;
+      ofs_x = -out_x;
+      out_x = 0;
+		if( x < 0 )
+		{
+			if( width < -x )
+            return;
+			width += x;
+         // this is resulting as 0
+			x = 0;
+		}
+	}
+	else
+      ofs_x = 0;
+	if( out_y < 0 )
+	{
+		y +=  out_y;
+      ofs_y = -out_y;
+      out_y = 0;
+		if( y < 0 )
+		{
+			if( height < -y )
+            return;
+			height += y;
+			y = 0;
+		}
+	}
+	else
+      ofs_y = 0;
 
+	if( width != ((PVPRENDER)r)->w && height != ((PVPRENDER)r)->h
+      || width != l.default_display_x || height != l.default_display_y
+		|| x || y )
+	{
+		ofs_x += x;
+		ofs_y += y;
+
+		bounds.left = out_x + x;
+		bounds.top = out_y + y;
+		bounds.right = bounds.left + width;
+		bounds.bottom = bounds.top + height;
+
+		//lprintf(" Updating from %d,%d %d,%d to %d,%d  %d,%d"
+		//		 , ofs_x, ofs_y, width, height
+		//		 , bounds.left, bounds.top, l.default_display_x, l.default_display_y );
 		ANativeWindow_lock( l.displayWindow, &buffer, &bounds );
+		width = bounds.right - bounds.left;
+		height = bounds.bottom - bounds.top;
       // output bounds is updates to be the size actually needed.
 
 		{
 			int row;
+         //lprintf( "buffer is %d %d buffer stride is %d  pwidth is %d width is %d", bounds.top, bounds.left, buffer.stride, ((PVPRENDER)r)->image->pwidth, width );
          for( row = 0; row < height; row++ )
-				memcpy(buffer.bits + buffer.stride * row, ((PVPRENDER)r)->image->image + ((PVPRENDER)r)->image->pwidth * row, width * 4 );
+				memcpy(((_32*)buffer.bits) + buffer.stride * ( bounds.top + row ) + bounds.left
+						, ((PVPRENDER)r)->image->image + ((PVPRENDER)r)->image->pwidth * ( ofs_y + row ) + ofs_x
+						, width * sizeof( CDATA ) );
 		}
 	}
 	else
 	{
+      //lprintf( "update full image..." );
 		ANativeWindow_lock( l.displayWindow, &buffer, NULL );
 		memcpy(buffer.bits , ((PVPRENDER)r)->image->image, height * width * 4 );
 	}
+   //_lprintf(DBG_RELAY)( "unlock... ( did we not lock?" );
 	ANativeWindow_unlockAndPost(l.displayWindow);
 }
 
@@ -184,10 +229,12 @@ static void CPROC AndroidANW_MoveSizeDisplay( PRENDERER r
 													 , S_32 w, S_32 h )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
+   //lprintf( "move size %d %d   %d %d", x, y, w, h );
 	pRender->x = x;
 	pRender->y = y;
 	pRender->w = w;
 	pRender->h = h;
+   AndroidANW_UpdateDisplayEx( r DBG_SRC );
 }
 
 static void CPROC AndroidANW_MoveDisplay		  ( PRENDERER r, S_32 x, S_32 y )
@@ -269,6 +316,16 @@ static void CPROC AndroidANW_SetMouseHandler  ( PRENDERER r, MouseCallback c, PT
 	render->psv_mouse_callback = p;
 }
 
+static void CPROC AndroidANW_Redraw( PRENDERER r )
+{
+	PVPRENDER render = (PVPRENDER)r;
+   lprintf( "Sending application draw...." );
+	if( render->redraw )
+		render->redraw( render->psv_redraw, (PRENDERER)render );
+   lprintf( "updating to the displa" );
+   AndroidANW_UpdateDisplayEx( r DBG_SRC );
+}
+
 static void CPROC AndroidANW_SetRedrawHandler  ( PRENDERER r, RedrawCallback c, PTRSZVAL p )
 {
 	PVPRENDER render = (PVPRENDER)r;
@@ -298,52 +355,6 @@ static void CPROC AndroidANW_SetMousePosition  ( PRENDERER r, S_32 x, S_32 y )
 static LOGICAL CPROC AndroidANW_HasFocus		 ( PRENDERER  r )
 {
 	return TRUE;
-}
-
-static TEXTCHAR CPROC AndroidANW_GetKeyText		 ( int key )
-{ 
-	int c;
-	char ch[5];
-#ifdef __LINUX__
-	{
-		int used = 0;
-		CTEXTSTR text = SACK_Vidlib_GetKeyText( IsKeyPressed( key ), KEY_CODE( key ), &used );
-		if( used && text )
-		{
-			return text[0];
-		}
-	}
-   return 0;
-#else
-	if( key & KEY_MOD_DOWN )
-		return 0;
-	key ^= 0x80000000;
-	c =  
-#  ifndef UNDER_CE
-		ToAscii (key & 0xFF, ((key & 0xFF0000) >> 16) | (key & 0x80000000),
-					l.key_states, (unsigned short *) ch, 0);
-#  else
-		key;
-#  endif
-	if (!c)
-	{
-		// check prior key bindings...
-		//printf( WIDE("no translation\n") );
-		return 0;
-	}
-	else if (c == 2)
-	{
-		//printf( WIDE("Key Translated: %d %d\n"), ch[0], ch[1] );
-		return 0;
-	}
-	else if (c < 0)
-	{
-		//printf( WIDE("Key Translation less than 0\n") );
-		return 0;
-	}
-	//printf( WIDE("Key Translated: %d(%c)\n"), ch[0], ch[0] );
-	return ch[0];
-#endif
 }
 
 static _32 CPROC AndroidANW_IsKeyDown		  ( PRENDERER r, int key )
@@ -385,6 +396,7 @@ static void CPROC AndroidANW_HideDisplay	 ( PRENDERER r )
 
 static void CPROC AndroidANW_RestoreDisplay  ( PRENDERER r )
 {
+   AndroidANW_Redraw( r );
 }
 
 static void CPROC AndroidANW_ForceDisplayFocus ( PRENDERER r )
@@ -421,7 +433,7 @@ static void CPROC AndroidANW_OkaySyncRender( void )
 
 static int CPROC AndroidANW_IsTouchDisplay( void )
 {
-	return 0;
+	return 1;
 }
 
 static void CPROC AndroidANW_GetMouseState( S_32 *x, S_32 *y, _32 *b )
@@ -451,13 +463,6 @@ static void CPROC AndroidANW_DisableMouseOnIdle(PRENDERER r, LOGICAL bEnable )
 
 static void CPROC AndroidANW_SetDisplayNoMouse( PRENDERER r, int bNoMouse )
 {
-}
-
-static void CPROC AndroidANW_Redraw( PRENDERER r )
-{
-	PVPRENDER render = (PVPRENDER)r;
-	if( render->redraw )
-		render->redraw( render->psv_redraw, (PRENDERER)render );
 }
 
 static void CPROC AndroidANW_MakeAbsoluteTopmost(PRENDERER r)
@@ -493,15 +498,12 @@ static void CPROC AndroidANW_IssueUpdateLayeredEx( PRENDERER r, LOGICAL bContent
 }
 
 
-#ifndef NO_TOUCH
-		/* <combine sack::image::render::SetTouchHandler@PRENDERER@fte inc asdfl;kj
-		 fteTouchCallback@PTRSZVAL>
-		 
-		 \ \																									  */
 static void CPROC AndroidANW_SetTouchHandler  ( PRENDERER r, TouchCallback c, PTRSZVAL p )
 {
+	PVPRENDER render = (PVPRENDER)r;
+	render->touch_callback = c;
+	render->psv_touch_callback = p;
 }
-#endif
 
 static void CPROC AndroidANW_MarkDisplayUpdated( PRENDERER r  )
 {
@@ -520,14 +522,6 @@ static void CPROC AndroidANW_RestoreDisplayEx ( PRENDERER r DBG_PASS )
 	((PVPRENDER)r)->redraw( ((PVPRENDER)r)->psv_redraw, r );
 }
 
-// android extension
-PUBLIC( void, SACK_Vidlib_ShowInputDevice )( void )
-{
-}
-
-PUBLIC( void, SACK_Vidlib_HideInputDevice )( void )
-{
-}
 
 
 static RENDER_INTERFACE ProxyInterface = {
@@ -661,16 +655,22 @@ void SACK_Vidlib_SetNativeWindowHandle( ANativeWindow *displayWindow )
 	l.default_display_y = ANativeWindow_getHeight( l.displayWindow);
 
 	ANativeWindow_setBuffersGeometry( displayWindow,l.default_display_x,l.default_display_y,WINDOW_FORMAT_RGBA_8888);
-   if( ANativeWindow_getFormat( displayWindow ) & WINDOW_FORMAT_RGB_565 )
-   // Standard init (was looking more like a common call thing)
-	HostSystem_InitDisplayInfo();
-	// creates the cameras.
+
+	lprintf( "Format is : %d", ANativeWindow_getFormat( displayWindow ) );
+
 }
 
 
-void SACK_Vidlib_DoRenderPass( void )
+void SACK_Vidlib_DoFirstRender( void )
 {
-   /* no render pass; should return FALSE or somethig to stop animating... */
+	/* no render pass; should return FALSE or somethig to stop animating... */
+	INDEX idx;
+	PVPRENDER render;
+	LIST_FORALL( l.renderers, idx, PVPRENDER, render )
+	{
+      lprintf( "RENDER PASS UPDATE..." );
+		AndroidANW_UpdateDisplayEx( (PRENDERER)render DBG_SRC );
+	}
 }
 
 
@@ -680,18 +680,21 @@ void SACK_Vidlib_OpenCameras( void )
 }
 
 
-int SACK_Vidlib_SendKeyEvents( int pressed, int key_index, int key_mods )
-{
-}
-
 int SACK_Vidlib_SendTouchEvents( int nPoints, PINPUT_POINT points )
 {
-}
-
-void SACK_Vidlib_SetTriggerKeyboard( void (*show)(void), void(*hide)(void))
-{
-	//keymap_local.show_keyboard = show;
-	//keymap_local.hide_keyboard = hide;
+	INDEX idx;
+	PVPRENDER render;
+   //lprintf( "Received touch %d", nPoints );
+	LIST_FORALL( l.renderers, idx, PVPRENDER, render )
+	{
+		if( !HandleTouches( render, points, nPoints ) )
+			if( render->touch_callback )
+			{
+				//lprintf( "And somenoe can handle them.." );
+				if( render->touch_callback( render->psv_touch_callback, points, nPoints ) )
+					return;
+			}
+	}
 }
 
 void SACK_Vidlib_CloseDisplay( void )
