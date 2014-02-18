@@ -33,6 +33,10 @@ SACK_NAMESPACE
  
 		};
 
+#ifdef __ANDROID__
+#  define USE_OPENGL_COMPAT_COLORS
+#endif
+
 #if !defined( IMAGE_LIBRARY_SOURCE_MAIN ) && !defined( FORCE_NO_INTERFACE )
 
 #define Color( r,g,b ) MakeColor(r,g,b)
