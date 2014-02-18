@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-set( Project SACK.core )
+set( Project sack.core )
 
 if( NOT SACK_SDK_ROOT_PATH )
 GET_FILENAME_COMPONENT(SACK_SDK_ROOT_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Freedom Collective\\SACK;Install_Dir]" ABSOLUTE CACHE)
@@ -78,6 +78,6 @@ EXECUTE_PROCESS(
 
     add_custom_target( uninstall 
     			COMMAND echo adb uninstall command...
-                     COMMAND adb uninstall org.d3x0r.sack.${Project}
+                     COMMAND adb uninstall org.d3x0r.${Project}
  )
 

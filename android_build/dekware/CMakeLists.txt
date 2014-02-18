@@ -88,12 +88,6 @@ FILE( WRITE ${CMAKE_BINARY_DIR}/package/AndroidManifest.xml "${manifest_head}" )
        COMMAND ant.bat ${CMAKE_BUILD_TYPE} 
        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/package
    )
-#EXECUTE_PROCESS( 
-#       COMMAND android.bat update project --target "android-14" --path .
-#       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/package )
-#EXECUTE_PROCESS( 
-#       COMMAND ant.bat debug 
-#       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/package )
 
 
     add_custom_target( install 

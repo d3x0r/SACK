@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-set( Project SACK.InterShell )
+set( Project sack.InterShell )
 
 if( NOT INTERSHELL_SDK_ROOT_PATH )
 GET_FILENAME_COMPONENT(INTERSHELL_SDK_ROOT_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Freedom Collective\\InterShell;Install_Dir]" ABSOLUTE CACHE)
@@ -85,7 +85,7 @@ EXECUTE_PROCESS(
  )
 
     add_custom_target( uninstall 
-    			COMMAND echo adb uninstall command...
-                     COMMAND adb uninstall org.d3x0r.sack.${Project}
+    			COMMAND echo adb uninstall command... org.d3x0r.${Project}
+                     COMMAND adb uninstall org.d3x0r.${Project}
  )
 
