@@ -21,9 +21,15 @@ ${LAST_GCC_LIBRARY_SOURCE}
  )
 SET_TARGET_PROPERTIES(${PROJECT}.plugin. PROPERTIES
                   FOLDER utils
+                  OUTPUT_NAME EditOptions.plugin
+)
+
+if( NOT __ANDROID__ )
+   SET_TARGET_PROPERTIES(${PROJECT}.plugin. PROPERTIES
                   SUFFIX ""
                   PREFIX ""
 )
+endif( NOT __ANDROID__ )
 SET_PROPERTY( TARGET ${PROJECT}.plugin. APPEND PROPERTY
                   COMPILE_DEFINITIONS EDITOPTION_PLUGIN
 )

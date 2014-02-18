@@ -10,7 +10,7 @@
 #include <render3d.h>
 #include <image3d.h>
 //#include <shader
-#ifdef USE_GLES2
+#if defined( USE_GLES2 ) || defined( __ANDROID__ )
 #include <GLES2/gl2.h>
 #else
 #include <GL/gl.h>
