@@ -25,7 +25,7 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
                   PREFIX ""
 )
 endif( NOT __ANDROID__ )
-target_link_libraries( ${project} ${SACK_LIBRARIES} sack_widgets )
+my_target_link_libraries( ${project} ${SACK_LIBRARIES} sack_widgets )
 install_plugin( ${project} ) 
 INSTALL( 
   FILES

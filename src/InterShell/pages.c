@@ -179,7 +179,7 @@ void ClearPageList( PSI_CONTROL pc_canvas )
 
 //-------------------------------------------------------------------------
 
-int InvokePageChange( void )
+int InvokePageChange( PSI_CONTROL pc_canvas )
 {
 	CTEXTSTR name;
 	PCLASSROOT data = NULL;
@@ -187,31 +187,10 @@ int InvokePageChange( void )
 		  name;
 		  name = GetNextRegisteredName( &data ) )
 	{
-		int (CPROC*f)(void);
-		f = GetRegisteredProcedure2( data, int, name, (void) );
+		int (CPROC*f)(PSI_CONTROL);
+		f = GetRegisteredProcedure2( data, int, name, (PSI_CONTROL) );
 		if( f )
-			if( !f() )
-				break;
-	}
-	if( name )
-		return FALSE;
-	return TRUE;
-}
-
-//-------------------------------------------------------------------------
-
-int InvokeAllowPageChange( void )
-{
-	CTEXTSTR name;
-	PCLASSROOT data = NULL;
-	for( name = GetFirstRegisteredName( TASK_PREFIX WIDE( "/common/change page" ), &data );
-		  name;
-		  name = GetNextRegisteredName( &data ) )
-	{
-		int (CPROC*f)(void);
-		f = GetRegisteredProcedure2( data, int, name, (void) );
-		if( f )
-			if( !f() )
+			if( !f( pc_canvas ) )
 				break;
 	}
 	if( name )
@@ -360,7 +339,7 @@ void RestorePageEx( PCanvasData canvas, PPAGE_DATA page, int bFull, int was_acti
 	{
 		//lprintf( WIDE( "page set to %p" ), page );
 		canvas->current_page = page;
-		if( !InvokePageChange() ) // some method rejected page access.
+		if( !InvokePageChange( canvas->pc_canvas ) ) // some method rejected page access.
 		{
 			if( !prior )
 			{
@@ -373,7 +352,7 @@ void RestorePageEx( PCanvasData canvas, PPAGE_DATA page, int bFull, int was_acti
 			}
 			//lprintf( "page set to %p", prior );
 			canvas->current_page = prior;
-			if( prior && !InvokePageChange() ) // some method rejected page access.
+			if( prior && !InvokePageChange( canvas->pc_canvas ) ) // some method rejected page access.
 			{
 				// we have to be sure we can be on this page too, since we 'left'
 				// that is we went to another page..

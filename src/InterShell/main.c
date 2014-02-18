@@ -326,11 +326,13 @@ static LOGICAL IsSelectionValidEx( PCanvasData canvas, PMENU_BUTTON pExclude, in
 	return TRUE;
 }
 
-PMENU_BUTTON CreateButton( void )
+PMENU_BUTTON CreateButton( PSI_CONTROL pc )
 {
+	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
 	PMENU_BUTTON button = New( MENU_BUTTON );
 	struct menu_button_colors *colors = &button->base_colors;
 	MemSet( button, 0, sizeof( MENU_BUTTON ) );
+	button->canvas = canvas;
 	// applicaitons end up setting this color...
 	//button->page = ShellGetCurrentPage();
 	colors->color = BASE_COLOR_BLUE;
@@ -443,8 +445,9 @@ void InvokeEndEditMode( void )
 	bInvoked = 0;
 }
 
-PCanvasData GetCanvas( PSI_CONTROL pc )
+PCanvasData GetCanvasEx( PSI_CONTROL pc DBG_PASS )
 {
+	_lprintf(DBG_RELAY)( "pc is %p", pc );
 	{
 		ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
 		if( !canvas )
@@ -1149,6 +1152,7 @@ void CPROC InterShell_DisablePageUpdate( PSI_CONTROL pc_canvas, LOGICAL bDisable
 	}
 	else
 	{
+ 		lprintf( "disable update..." );
 		if( ( current_page = ShellGetCurrentPage( pc_canvas ) ) )
 		{
 			LIST_FORALL( current_page->controls, idx, PMENU_BUTTON, control )
@@ -1256,10 +1260,7 @@ static void CPROC AllPresses( PTRSZVAL psv, PKEY_BUTTON key )
 		return;
 	}
 
-	{
-		PCanvasData canvas = GetCanvas( NULL );
-		GenerateSprites( GetFrameRenderer( canvas->pc_canvas ), PARTX(button->x) + (PARTW(button->x,button->w) /2), PARTY(button->y) + (PARTH(button->y,button->h)/2));
-	}
+	GenerateSprites( GetFrameRenderer( canvas->pc_canvas ), PARTX(button->x) + (PARTW(button->x,button->w) /2), PARTY(button->y) + (PARTH(button->y,button->h)/2));
 
 	if( g.flags.bLogKeypresses )
 		lprintf( WIDE( "Issue keypress : [%s]%s" ), button->text, button->pTypeName );
@@ -1490,13 +1491,13 @@ PMENU_BUTTON CreateInvisibleControl( PSI_CONTROL pc_frame, TEXTCHAR *name )
 {
 	if( name )
 	{
-		PMENU_BUTTON button = CreateButton();
+		PMENU_BUTTON button = CreateButton( pc_frame );
 		button->flags.bCustom = FALSE;
 		button->flags.bListbox = FALSE;
 		button->flags.bInvisible = TRUE;
 		button->pTypeName = StrDup( name );
-		button->font_preset = UseACanvasFont( pc_frame, WIDE("Default") );
-		button->font_preset_name = StrDup( WIDE("Default") );
+		button->font_preset = NULL;//UseACanvasFont( pc_frame, WIDE("Default") );
+		button->font_preset_name = NULL;//StrDup( WIDE("Default") );
 		//lprintf( WIDE( "Creating a virtual control %s" ), name );
 		InvokeButtonCreate( NULL, button, FALSE );
 		return button;
@@ -1514,7 +1515,7 @@ PTRSZVAL InterShell_GetButtonExtension( PMENU_BUTTON button )
 PMENU_BUTTON CPROC CreateSomeControl( PSI_CONTROL pc_canvas, int x, int y, int w, int h
 								, CTEXTSTR name )
 {
-	PMENU_BUTTON button = CreateButton();
+	PMENU_BUTTON button = CreateButton( pc_canvas );
 	PMENU_BUTTON prior = configure_key_dispatch.button;
 	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	configure_key_dispatch.button = button;
@@ -4061,8 +4062,6 @@ PSI_CONTROL SetupSystemsListAndGlobalSingleFrame(void )
 		height = height * 3 / 8;
 	}
 
-	// always have at least 1 frame.  and it is a menu canvas
-	InterShell_DisablePageUpdate( result_canvas, TRUE );
 	if( !g.flags.bExternalApplicationhost )
 	{
 #ifndef __NO_OPTIONS__
@@ -4112,7 +4111,11 @@ PSI_CONTROL SetupSystemsListAndGlobalSingleFrame(void )
 #ifndef __NO_OPTIONS__
 		}
 #endif
-		GetDisplayPosition( GetFrameRenderer( result_canvas ), &g.default_page_x, &g.default_page_y, &g.default_page_width, &g.default_page_height );
+		// always have at least 1 frame.  and it is a menu canvas
+		InterShell_DisablePageUpdate( result_canvas, TRUE );
+      GetFrameSize( result_canvas, &g.default_page_width, &g.default_page_height );
+      GetFramePosition( result_canvas, &g.default_page_x, &g.default_page_y );
+		//GetDisplayPosition( GetFrameRenderer( result_canvas ), &g.default_page_x, &g.default_page_y, &g.default_page_width, &g.default_page_height );
 		//lprintf( WIDE( "Got single frame. %d,%d" ), g.width, g.height );
 		UseACanvasFont( result_canvas, WIDE("Default") );
 	}
@@ -4613,6 +4616,7 @@ PSI_CONTROL OpenPageFrame( PPAGE_DATA page )
 
 			SetCommonBorder( page_frame, BORDER_NORMAL|BORDER_RESIZABLE );
 
+      lprintf( "Display menu..." );
 			DisplayMenuCanvas( page_frame, NULL, g.default_page_width, g.default_page_height, g.default_page_x + xofs, g.default_page_y + yofs );
 #if 1
 			InitSpriteEngine();
@@ -5028,6 +5032,7 @@ int restart( void )
 		InterShell_DisablePageUpdate( pc_canvas, FALSE );
 		if( g.flags.multi_edit )
 			SetCommonBorder( canvas->default_page->frame, BORDER_NORMAL|BORDER_RESIZABLE );
+      lprintf( "Display menu..." );
 		DisplayMenuCanvas( canvas->default_page->frame, NULL, g.default_page_width, g.default_page_height, g.default_page_x, g.default_page_y );
 		if( !g.flags.multi_edit )
 		{

@@ -22,7 +22,7 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   PREFIX ""
 )
 endif( NOT __ANDROID__ )
-target_link_libraries( ${PROJECT} ${SACK_LIBRARIES}  keypad.isp )
+my_target_link_libraries( ${PROJECT} ${SACK_LIBRARIES}  keypad.isp )
 install_plugin( ${PROJECT} ) 
 
 

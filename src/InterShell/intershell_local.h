@@ -337,7 +337,8 @@ void ConfigureKeyExx( PSI_CONTROL parent, PMENU_BUTTON button, int bWaitComplete
 
 void DumpGeneric( FILE *file, PMENU_BUTTON button );
 
-PCanvasData GetCanvas( PSI_CONTROL pc );
+PCanvasData GetCanvasEx( PSI_CONTROL pc DBG_PASS );
+#define GetCanvas(c) GetCanvasEx(c DBG_SRC)
 
 // macros.c, invoke this after onfinish init
 void InvokeStartupMacro( void );

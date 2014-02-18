@@ -1300,8 +1300,8 @@ SACK_NAMESPACE
 #      define _size_fs   WIDE( "zd" )
 #    endif
 
-#    define _PTRSZVALfs _WIDE( PRIu64 )
-#    define _PTRSZVALfx _WIDE( PRIx64 )
+#    define _PTRSZVALfs _WIDE( PRIu32 )
+#    define _PTRSZVALfx _WIDE( PRIx32 )
 #    define cPTRSZVALfs PRIu32
 #    define cPTRSZVALfx PRIx32
 #  else

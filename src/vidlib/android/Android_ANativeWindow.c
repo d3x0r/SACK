@@ -97,8 +97,14 @@ static PRENDERER CPROC AndroidANW_OpenDisplayAboveUnderSizedAt( _32 attributes, 
 	Renderer->w = width;
 	Renderer->h = height;
 	Renderer->attributes = attributes;
-	Renderer->above = (PVPRENDER)above;
-	Renderer->under = (PVPRENDER)under;
+	if( !l.bottom )
+		l.bottom = Renderer;
+
+	if( Renderer->above = (PVPRENDER)above )
+		Renderer->above->under = Renderer;
+
+	if( Renderer->under = (PVPRENDER)under )
+      Renderer->under->above = Renderer;
 	Renderer->image = MakeImageFileEx( width, height DBG_SRC );
    ClearImageTo( Renderer->image, 0 );
 	return (PRENDERER)Renderer;
@@ -178,21 +184,25 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 		bounds.right = bounds.left + width;
 		bounds.bottom = bounds.top + height;
 
-		//lprintf(" Updating from %d,%d %d,%d to %d,%d  %d,%d"
-		//		 , ofs_x, ofs_y, width, height
-		//		 , bounds.left, bounds.top, l.default_display_x, l.default_display_y );
+		lprintf(" Updating from %d,%d %d,%d to %d,%d  %d,%d"
+				 , ofs_x, ofs_y, width, height
+				 , bounds.left, bounds.top, l.default_display_x, l.default_display_y );
 		ANativeWindow_lock( l.displayWindow, &buffer, &bounds );
-		width = bounds.right - bounds.left;
-		height = bounds.bottom - bounds.top;
+      if( bounds.right - bounds.left < width )
+			width = ( bounds.right - bounds.left );
+      if( ( bounds.bottom - bounds.top ) < height )
+			height = bounds.bottom - bounds.top;
       // output bounds is updates to be the size actually needed.
 
 		{
 			int row;
-         //lprintf( "buffer is %d %d buffer stride is %d  pwidth is %d width is %d", bounds.top, bounds.left, buffer.stride, ((PVPRENDER)r)->image->pwidth, width );
-         for( row = 0; row < height; row++ )
+         lprintf( "buffer is %d %d buffer stride is %d  pwidth is %d width is %d", bounds.top, bounds.left, buffer.stride, ((PVPRENDER)r)->image->pwidth, width );
+			for( row = 0; row < height; row++ )
+			{
 				memcpy(((_32*)buffer.bits) + buffer.stride * ( bounds.top + row ) + bounds.left
 						, ((PVPRENDER)r)->image->image + ((PVPRENDER)r)->image->pwidth * ( ofs_y + row ) + ofs_x
 						, width * sizeof( CDATA ) );
+			}
 		}
 	}
 	else
@@ -214,14 +224,20 @@ static void CPROC AndroidANW_UpdateDisplayEx( PRENDERER r DBG_PASS)
 static void CPROC AndroidANW_GetDisplayPosition ( PRENDERER r, S_32 *x, S_32 *y, _32 *width, _32 *height )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
-	if( x )
-		(*x) = pRender->x;
-	if( y )
-		(*y) = pRender->y;
-	if( width )
-		(*width) = pRender->w;
-	if( height ) 
-		(*height) = pRender->h;
+	if( r )
+	{
+      lprintf( "Get display pos of %p into %p %p %p %p", r, x, y, width, height );
+		if( x )
+			(*x) = pRender->x;
+		if( y )
+			(*y) = pRender->y;
+		if( width )
+			(*width) = pRender->w;
+		if( height )
+			(*height) = pRender->h;
+	}
+	else
+      lprintf( WIDE( "WHy are you getting position of NULL?") );
 }
 
 static void CPROC AndroidANW_MoveSizeDisplay( PRENDERER r
@@ -234,6 +250,7 @@ static void CPROC AndroidANW_MoveSizeDisplay( PRENDERER r
 	pRender->y = y;
 	pRender->w = w;
 	pRender->h = h;
+
    AndroidANW_UpdateDisplayEx( r DBG_SRC );
 }
 
@@ -628,14 +645,9 @@ static void CPROC DropAndroidANWDisplayInterface( POINTER i )
 
 PRIORITY_PRELOAD( RegisterAndroidNativeWindowInterface, VIDLIB_PRELOAD_PRIORITY )
 {
-   lprintf( "load libbag..." );
 	LoadFunction( "libbag.image.so", NULL );
-   lprintf( "Get existing interface..." );
 	l.real_interface = (PIMAGE_INTERFACE)GetInterface( "sack.image" );
-   lprintf( "Register my interface" );
 	RegisterInterface( WIDE( "sack.render.android" ), GetAndroidANWDisplayInterface, DropAndroidANWDisplayInterface );
-   lprintf( "Setup extra entry oints" );
-   DumpRegisteredNames();
 	InitAndroidANWInterface();
 }
 
