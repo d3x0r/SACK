@@ -94,6 +94,7 @@ static PRENDERER CPROC AndroidANW_OpenDisplayAboveUnderSizedAt( _32 attributes, 
 	Renderer->id = FindLink( &l.renderers, Renderer );
 	Renderer->x = (x == -1)?0:x;
 	Renderer->y = (y == -1)?0:x;
+   lprintf( "openDisplay %d,%d", width, height );
 	Renderer->w = width;
 	Renderer->h = height;
 	Renderer->attributes = attributes;
@@ -184,19 +185,19 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 		bounds.right = bounds.left + width;
 		bounds.bottom = bounds.top + height;
 
-		lprintf(" Updating from %d,%d %d,%d to %d,%d  %d,%d"
-				 , ofs_x, ofs_y, width, height
-				 , bounds.left, bounds.top, l.default_display_x, l.default_display_y );
+		//lprintf(" Updating from %d,%d %d,%d to %d,%d  %d,%d"
+		//		 , ofs_x, ofs_y, width, height
+		//		 , bounds.left, bounds.top, l.default_display_x, l.default_display_y );
 		ANativeWindow_lock( l.displayWindow, &buffer, &bounds );
       if( bounds.right - bounds.left < width )
 			width = ( bounds.right - bounds.left );
       if( ( bounds.bottom - bounds.top ) < height )
 			height = bounds.bottom - bounds.top;
       // output bounds is updates to be the size actually needed.
-
+	iterate:
 		{
 			int row;
-         lprintf( "buffer is %d %d buffer stride is %d  pwidth is %d width is %d", bounds.top, bounds.left, buffer.stride, ((PVPRENDER)r)->image->pwidth, width );
+         //lprintf( "buffer is %d %d buffer stride is %d  pwidth is %d width is %d", bounds.top, bounds.left, buffer.stride, ((PVPRENDER)r)->image->pwidth, width );
 			for( row = 0; row < height; row++ )
 			{
 				memcpy(((_32*)buffer.bits) + buffer.stride * ( bounds.top + row ) + bounds.left
@@ -209,7 +210,17 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 	{
       //lprintf( "update full image..." );
 		ANativeWindow_lock( l.displayWindow, &buffer, NULL );
-		memcpy(buffer.bits , ((PVPRENDER)r)->image->image, height * width * 4 );
+      //lprintf( "Update all would be ... %d  %d", buffer.stride, ((PVPRENDER)r)->image->pwidth );
+      if( buffer.stride == ((PVPRENDER)r)->image->pwidth )
+			memcpy(buffer.bits , ((PVPRENDER)r)->image->image, height * width * 4 );
+		else
+		{
+			bounds.top = 0;
+			bounds.left = 0;
+			ofs_x = 0;
+         ofs_y = 0;
+			goto iterate;
+		}
 	}
    //_lprintf(DBG_RELAY)( "unlock... ( did we not lock?" );
 	ANativeWindow_unlockAndPost(l.displayWindow);
