@@ -17,9 +17,6 @@ SET_TARGET_PROPERTIES(bag.image PROPERTIES
                   FOLDER "Image Library" 
                   LINK_FLAGS "${extra_link_flags}"
 )
-if( __ANDROID__ )
-    SET_PROPERTY( TARGET bag.image APPEND PROPERTY COMIPLE_FLAGS "-DUSE_OPENGL_COMPAT_COLORS" )
-endif( __ANDROID__ )
 
 my_target_link_libraries( bag.image bag ${EXTERNALS} ${PLATFORM_LIBRARIES} )
 my_target_link_libraries( bag.image bag.psi )
