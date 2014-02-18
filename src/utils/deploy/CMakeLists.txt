@@ -10,6 +10,7 @@ message( "Sack revision: " ${CURRENT_REPO_REVISION} )
 configure_file( deploy.cm.cm ${CMAKE_BINARY_DIR}/deploy.cm.tmp @ONLY )
 include( ${CMAKE_BINARY_DIR}/deploy.cm.tmp )
 
+if( NOT __ANDROID__ )
 macro( build_package_include )
    file( STRINGS ${CMAKE_INSTALL_PREFIX}/CMakePackage LINES )
    #file( READ ${CMAKE_INSTALL_PREFIX}/CMakePackage LINES )
@@ -27,7 +28,6 @@ endmacro( build_package_include )
 
 build_package_include()
 
-if( NOT __ANDROID__ )
 configure_file( deploy.cm.c ${CMAKE_BINARY_DIR}/deploy.c.tmp )
 EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_BINARY_DIR}/deploy.c.tmp ${CMAKE_BINARY_DIR}/deploy.c )
 ADD_EXECUTABLE_FORCE_SOURCE( ${PROJECT_NAME} ${CMAKE_BINARY_DIR}/deploy.c )

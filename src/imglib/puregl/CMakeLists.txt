@@ -10,9 +10,10 @@ set( font_sources ../font.c ../fntcache.c ../fntrender.c ../lucidaconsole.c )
 if( WIN32 )
     INCLUDE_DIRECTORIES( ../../vidlib/puregl/glew-1.9.0/include )
 else( WIN32 )
-    if( ANDROID OR QNX )
+   
+    if( __ANDROID__ OR QNX )
 	ADD_DEFINITIONS( -DUSE_GLES )
-    endif( ANDROID OR QNX )
+    endif( __ANDROID__ OR QNX )
 
 endif( WIN32 )
 

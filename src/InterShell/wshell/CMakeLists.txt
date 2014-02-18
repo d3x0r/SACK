@@ -13,6 +13,8 @@ set(SOURCES
 
 if( __CLR__ )
 add_definitions( -DLOAD_LIBNAME="InterShell.core.dll" -DMODE=0 )
+elseif( __ANDROID__ )
+add_definitions( -DLOAD_LIBNAME="libInterShell.core.so" -DMODE=0 )
 else( __CLR__ )
 add_definitions( -DLOAD_LIBNAME="InterShell.core" -DMODE=0 )
 endif( __CLR__ )
@@ -32,6 +34,8 @@ endif( __CLR__ )
 ##########################################################################3
 ################ Service ######################
 ##########################################################################3
+
+if( NOT __ANDROID__ )
 
 set( PROJECT InterShell_window.service )
 
@@ -60,3 +64,4 @@ else( __CLR__ )
 install( TARGETS ${PROJECT} RUNTIME DESTINATION bin ) 
 endif( __CLR__ )
 
+endif( NOT __ANDROID__ )

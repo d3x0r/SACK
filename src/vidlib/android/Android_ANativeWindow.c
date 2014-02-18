@@ -4,7 +4,7 @@
 
 
 
-static IMAGE_INTERFACE ProxyImageInterface;
+static IMAGE_INTERFACE AndroidANWImageInterface;
 
 
 static void ClearDirtyFlag( Image image )
@@ -319,7 +319,7 @@ static void CPROC AndroidANW_SetMouseHandler  ( PRENDERER r, MouseCallback c, PT
 static void CPROC AndroidANW_Redraw( PRENDERER r )
 {
 	PVPRENDER render = (PVPRENDER)r;
-   lprintf( "Sending application draw...." );
+	lprintf( "Sending application draw.... %p %p", render?render->redraw:0, render );
 	if( render->redraw )
 		render->redraw( render->psv_redraw, (PRENDERER)render );
    lprintf( "updating to the displa" );
@@ -524,7 +524,7 @@ static void CPROC AndroidANW_RestoreDisplayEx ( PRENDERER r DBG_PASS )
 
 
 
-static RENDER_INTERFACE ProxyInterface = {
+static RENDER_INTERFACE AndroidANWInterface = {
 	AndroidANW_InitDisplay
 													  , AndroidANW_SetApplicationTitle
 													  , AndroidANW_SetApplicationIcon
@@ -610,29 +610,33 @@ static RENDER_INTERFACE ProxyInterface = {
 												, AndroidANW_AllowsAnyThreadToUpdate
 };
 
-static void InitProxyInterface( void )
+static void InitAndroidANWInterface( void )
 {
-	ProxyInterface._RequiresDrawAll = AndroidANW_RequiresDrawAll;
+	AndroidANWInterface._RequiresDrawAll = AndroidANW_RequiresDrawAll;
 }
 
 
-static POINTER CPROC GetProxyDisplayInterface( void )
+static POINTER CPROC GetAndroidANWDisplayInterface( void )
 {
 	// open server socket
-	return &ProxyInterface;
+	return &AndroidANWInterface;
 }
-static void CPROC DropProxyDisplayInterface( POINTER i )
+static void CPROC DropAndroidANWDisplayInterface( POINTER i )
 {
 	// close connections
 }
 
-PRIORITY_PRELOAD( RegisterProxyInterface, VIDLIB_PRELOAD_PRIORITY )
+PRIORITY_PRELOAD( RegisterAndroidNativeWindowInterface, VIDLIB_PRELOAD_PRIORITY )
 {
+   lprintf( "load libbag..." );
 	LoadFunction( "libbag.image.so", NULL );
-   l.real_interface = (PIMAGE_INTERFACE)GetInterface( "sack.image" );
-	RegisterInterface( WIDE( "sack.render.android" ), GetProxyDisplayInterface, DropProxyDisplayInterface );
-
-	InitProxyInterface();
+   lprintf( "Get existing interface..." );
+	l.real_interface = (PIMAGE_INTERFACE)GetInterface( "sack.image" );
+   lprintf( "Register my interface" );
+	RegisterInterface( WIDE( "sack.render.android" ), GetAndroidANWDisplayInterface, DropAndroidANWDisplayInterface );
+   lprintf( "Setup extra entry oints" );
+   DumpRegisteredNames();
+	InitAndroidANWInterface();
 }
 
 
@@ -656,7 +660,7 @@ void SACK_Vidlib_SetNativeWindowHandle( ANativeWindow *displayWindow )
 
 	ANativeWindow_setBuffersGeometry( displayWindow,l.default_display_x,l.default_display_y,WINDOW_FORMAT_RGBA_8888);
 
-	lprintf( "Format is : %d", ANativeWindow_getFormat( displayWindow ) );
+	lprintf( "Format is :%dx%d %d", l.default_display_x, l.default_display_y, ANativeWindow_getFormat( displayWindow ) );
 
 }
 
