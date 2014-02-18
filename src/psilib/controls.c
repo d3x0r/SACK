@@ -564,7 +564,7 @@ PRELOAD( DefaultControlStartup )
 {
 #ifndef __NO_OPTIONS__
 	g.flags.bLogDebugUpdate = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/PSI/Log Control Updates" ), 0, TRUE );
-	g.flags.bLogDetailedMouse = 1 | SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/PSI/Log Mouse Events" ), 0, TRUE );
+	g.flags.bLogDetailedMouse = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/PSI/Log Mouse Events" ), 0, TRUE );
 	g.flags.bLogKeyEvents = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/PSI/Log Key Events" ), 0, TRUE );
 	g.flags.bLogSuperDetailedMouse = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/PSI/Log Mouse Events extra detail" ), 0, TRUE );
 #endif
