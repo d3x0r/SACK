@@ -869,7 +869,7 @@ WM_DROPFILES
 					int handled = 0;
 					if( hVideo->pTouchCallback )
 					{
-						handled = hVideo->pTouchCallback( hVideo->dwTouchData, inputs, count );
+						handled = hVideo->pTouchCallback( hVideo->dwTouchData, outputs, count );
 					}
 
 					if( !handled )

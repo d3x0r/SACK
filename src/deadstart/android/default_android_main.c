@@ -383,7 +383,7 @@ void* BeginNormalProcess( void*param )
 					if( !assets_saved )
 					{
 						ExportAssets();
-						fopen( "assets.exported", "wb" );
+						fclose( fopen( "assets.exported", "wb" ) );
 					}
 				}
 // do not auto load libraries

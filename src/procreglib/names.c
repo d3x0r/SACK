@@ -279,6 +279,7 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 		{
 			space = (PNAMESPACE)Allocate( sizeof( NAMESPACE ) );
 			space->nextname = 0;
+         //lprintf( "Adding new namespace %p", space );
 			LinkThing( l.NameSpace, space );
 		}
 
@@ -527,10 +528,11 @@ static PTREEDEF AddClassTree( PTREEDEF class_root, TEXTCHAR *name, PTREEROOT roo
 		classname->tree.self = classname;
 		classname->flags.bTree = TRUE;
 		classname->parent = class_root;
-		//lprintf( WIDE("Adding class tree thing %s to %s"), name, classname->name );
+
+		//lprintf( WIDE("Adding class tree thing %p  %s"), class_root->Tree, classname->name );
 		if( !AddBinaryNode( class_root->Tree, classname, (PTRSZVAL)classname->name ) )
 		{
-			Log( WIDE("For some reason could not add new class tree to tree!") );
+			//Log( WIDE("For some reason could not add new class tree to tree!") );
 			DeleteFromSet( NAME, &l.NameSet, classname );
 			return NULL;
 		}
@@ -619,64 +621,78 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 				}
 				while( 1 );
 
+				do
 				{
-					// dress name terminates on a '/'
-					TEXTCHAR buf[256];
-					//lprintf( "Finding a..." );
-					new_root = (PNAME)FindInBinaryTree( class_root->Tree, (PTRSZVAL)DressName( buf, start ) );
-					//lprintf( WIDE("Found %p %s(%d)=%s"), new_root, buf+1, buf[0], start );
-				}
-				if( !new_root )
-				{
-					if( !bCreate )
-						return NULL;
-					if( alias && !end )
 					{
-						// added name in this place name terminates on a '/'
-						//lprintf( WIDE("name not found, adding...!end && alias") );
-						class_root = AddClassTree( class_root
-														 , start
-														 , alias->Tree
-														 , TRUE );
-						class_root->self = alias->self;
+						// dress name terminates on a '/'
+						TEXTCHAR buf[256];
+						//lprintf( "Finding a..." );
+						new_root = (PNAME)FindInBinaryTree( class_root->Tree, (PTRSZVAL)DressName( buf, start ) );
+						//lprintf( WIDE("Found %p %s(%d)=%s"), new_root, buf+1, buf[0], start );
+					}
+					if( !new_root )
+					{
+						if( !bCreate )
+							return NULL;
+						if( alias && !end )
+						{
+							// added name in this place name terminates on a '/'
+							//lprintf( WIDE("name not found, adding...!end && alias") );
+							class_root = AddClassTree( class_root
+															 , start
+															 , alias->Tree
+															 , TRUE );
+							class_root->self = alias->self;
+						}
+						else
+						{
+                     PTREEDEF new_root;
+							PTREEROOT tree;
+
+							// added name in this place name terminates on a '/'
+
+							// interesting note - while searching for
+							// a member, branches are created.... should consider
+							// perhaps offering an option to read for class root without creating
+							// however it gives one an idea of what methods might be avaialable...
+							//lprintf( WIDE("name not found, adding.. [%s] %s"), start, class_root->self?class_root->self->name:"." );
+							new_root = AddClassTree( class_root
+															 , start
+															 , tree = CreateBinaryTreeExx( BT_OPT_NODUPLICATES
+																						 , (int(CPROC *)(PTRSZVAL,PTRSZVAL))SavedNameCmp
+																						 , KillName )
+															 , FALSE
+															 );
+							if( !new_root )
+							{
+                        // if this happens it was probably added while adding...
+								DestroyBinaryTree( tree );
+                        continue;
+							}
+                     class_root = new_root;
+						}
 					}
 					else
 					{
-						// added name in this place name terminates on a '/'
+						if( !end && alias && !new_root->flags.bAlias )
+						{
+							static int error_count;
+							error_count++;
+							// this orphans the prior tree; but probably results from requests for values that aren't present
+							// and later are filled by an alias.
+							if( error_count > 20 )
+								lprintf( WIDE( " Name %s exists, but we want it to be an alias, and it is not...(a LOT of this is bad) " ), new_root->name );
 
-						// interesting note - while searching for
-						// a member, branches are created.... should consider
-						// perhaps offering an option to read for class root without creating
-						// however it gives one an idea of what methods might be avaialable...
-						//lprintf( WIDE("name not found, adding.. %s %s"), start, class_root );
-						class_root = AddClassTree( class_root
-														 , start
-														 , CreateBinaryTreeExx( BT_OPT_NODUPLICATES
-																					 , (int(CPROC *)(PTRSZVAL,PTRSZVAL))SavedNameCmp
-																					 , KillName )
-														 , FALSE
-														 );
+							if( new_root->tree.Magic != MAGIC_TREE_NUMBER )
+								lprintf( WIDE( "Hell it's not even a tree!" ) );
+							new_root->flags.bAlias = 1;
+							new_root->tree.Tree = alias->Tree;
+							new_root->tree.self = alias->self;
+						}
+						class_root = &new_root->tree;
 					}
-				}
-				else
-				{
-					if( !end && alias && !new_root->flags.bAlias )
-					{
-						static int error_count;
-						error_count++;
-						// this orphans the prior tree; but probably results from requests for values that aren't present
-						// and later are filled by an alias.
-						if( error_count > 20 )
-							lprintf( WIDE( " Name %s exists, but we want it to be an alias, and it is not...(a LOT of this is bad) " ), new_root->name );
-
-						if( new_root->tree.Magic != MAGIC_TREE_NUMBER )
-							lprintf( WIDE( "Hell it's not even a tree!" ) );
-						new_root->flags.bAlias = 1;
-						new_root->tree.Tree = alias->Tree;
-						new_root->tree.self = alias->self;
-					}
-					class_root = &new_root->tree;
-				}
+               break;
+				} while( 1 );
 				if( end )
 					start = end + 1;
 				else
@@ -893,6 +909,15 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 			lprintf( WIDE("I'm relasing this name!?") );
 			DeleteFromSet( NAME, &l.NameSet, newname );
 		}
+#if 0
+		{
+			static int n;
+			n++;
+            lprintf( "-------------------------------           registration %d", n );
+         if( n > 259 )
+				DumpRegisteredNames();
+		}
+#endif
 		return 1;
 	}
 	return FALSE;
@@ -1090,6 +1115,12 @@ void DumpRegisteredNamesWork( PTREEDEF tree, int level )
 	PTEXT pText;
    POINTER data;
 	int bLogging = 0;
+#if 0
+	if( level == 0 )
+	{
+		lprintf( "Names %p  %p", l.Names, l.NameSpace );
+	}
+#endif
    if( l.flags.bDisableMemoryLogging )
 		bLogging = SetAllocateLogging( FALSE );
    // at least save the create/destroy uselessness...
@@ -1100,6 +1131,10 @@ void DumpRegisteredNamesWork( PTREEDEF tree, int level )
 		return;
 	}
 	pvt = VarTextCreateExx( 512, 1024 );
+#if 0
+	DumpTree( tree->Tree, NULL );
+	lprintf( "Tree is %p %p", tree, tree->Tree );
+#endif
 	for( name = (PNAME)GetLeastNodeEx( tree->Tree, &data );
 		  name;
 		  name = (PNAME)GetGreaterNodeEx( tree->Tree, &data ) )
@@ -1947,6 +1982,8 @@ static PTRSZVAL CPROC IncludeAdditional( PTRSZVAL psv, arg_list args )
 	PARAM( args, CTEXTSTR, path );
 	TEXTSTR old_configname = l.config_filename;
 	l.config_filename = ExpandPath( path );
+	if( l.flags.bTraceInterfaceLoading )
+		lprintf( WIDE( "include:%s from %s" ), l.config_filename, old_configname );
 	if( !l.flags.bHeldDeadstart )
 	{
 		l.flags.bHeldDeadstart = 1;
@@ -2256,6 +2293,11 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, PTRSZVAL global_size, C
 #ifdef DEBUG_GLOBAL_REGISTRATION
 			lprintf( WIDE("Resulting with a global space to use... %p"), (*ppGlobalMain) );
 #endif
+			if(procreg_local_data )
+			{
+				//lprintf( WIDE("Resulting with a global space to use... %s %p"), name, (*ppGlobalMain) );
+				//DumpRegisteredNames();
+			}
 			(*ppGlobal) = (*ppGlobalMain);
 		}
 		else

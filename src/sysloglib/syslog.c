@@ -128,6 +128,10 @@ struct state_flags{
 
 };
 
+#ifdef __ANDROID__
+#  define __STATIC_GLOBALS__
+#endif
+
 #ifndef __STATIC_GLOBALS__
 struct syslog_local_data *syslog_local;
 #define l (*syslog_local)
@@ -1542,6 +1546,8 @@ RealVLogFunction  _vxlprintf ( _32 level DBG_PASS )
 	{
 		InitSyslog( 1 );
 	}
+#else
+   InitSyslog( 1 );
 #endif
 #if _DEBUG
 	next_lprintf.pFile = pFile;

@@ -23,18 +23,22 @@ string( REPLACE "." "_" TARGET_LABEL ${project} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags}"
                   COMPILE_DEFINITIONS "TARGETNAME=\"${project}\""
-                  SUFFIX ""
-                  PREFIX ""
                   FOLDER "InterShell/plugins"
 )
-target_link_libraries( ${project} ${SACK_LIBRARIES} sack_widgets keypad.isp )
+if( NOT __ANDROID__ )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+                  SUFFIX ""
+                  PREFIX ""
+)
+endif( NOT __ANDROID__ )
+my_target_link_libraries( ${project} ${SACK_LIBRARIES} sack_widgets keypad.isp )
 
 if( WIN32 )
 	# used for EnumProcesses
 	target_link_libraries( ${project} Psapi )
 endif( WIN32 )
 
-install_default_project( ${project} bin/plugins ) 
+install_plugin( ${project}  ) 
 
 INSTALL( DIRECTORY frames DESTINATION resources ) 
 

@@ -759,9 +759,12 @@ static PTRSZVAL CPROC SetControlFontPreset( PTRSZVAL psv, arg_list args )
 	PMENU_BUTTON   current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
 	if( current_button )
 	{
-		current_button->font_preset_name = StrDup( fontname );
-		current_button->font_preset = UseACanvasFont( current_button->canvas->pc_canvas
-													, current_button->font_preset_name );
+		if( current_button->canvas )
+		{
+			current_button->font_preset_name = StrDup( fontname );
+			current_button->font_preset = UseACanvasFont( current_button->canvas->pc_canvas
+			                                            , current_button->font_preset_name );
+		}
 	}
 	return psv;
 }
@@ -823,7 +826,7 @@ PTRSZVAL CPROC SetMenuRowCols( PTRSZVAL psv, arg_list args )
 			bFirstLoadDone = 1;
 			// mark that the current page is the current page - for plugins...
 			// otherwise they don't know what page we are on until the second page.
-			InvokePageChange();
+			InvokePageChange( canvas->pc_canvas );
 		}
 	}
 	lprintf( WIDE("Page %p gets rows/cols %d/%d"), canvas->current_page, (_32)rows, (_32)cols );

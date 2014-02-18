@@ -90,7 +90,7 @@ void InsertStartupPage( PSI_CONTROL pc_canvas, CTEXTSTR page_name );
 void RenamePage( PSI_CONTROL pc_canvas );
 void CPROC CreateNamedPage( PSI_CONTROL pc_canvas, CTEXTSTR page_name );
 
-int InvokePageChange( void );
+int InvokePageChange( PSI_CONTROL pc_canvas );
 
 // on destroy button call this...
 void UpdatePageRange( PPAGE_DATA page );

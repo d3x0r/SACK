@@ -501,12 +501,21 @@ static PTRSZVAL CPROC LoadMacroElements( PTRSZVAL psv, arg_list args )
 	PMACRO_ELEMENT element = New( MACRO_ELEMENT );
 	if( !pmb )
 		if( l.finished_startup )
+		{
+			if( !l.shutdown.button )
+				l.shutdown.button = CreateButton( InterShell_GetCurrentLoadingCanvas() );
 			pmb = &l.shutdown;
+		}
 		else
+		{
+			if( !l.startup.button )
+				l.startup.button = CreateButton( InterShell_GetCurrentLoadingCanvas() );
 			pmb = &l.startup;
+		}
 	element->me = NULL;
 	element->next = NULL;
-	element->button = CreateInvisibleControl( InterShell_GetCanvas( element->button->page ), name );
+	element->button = CreateInvisibleControl( pmb->button?InterShell_GetCanvas( pmb->button->page ):NULL
+	                                        , name );
 	if( element->button )
 	{
 		//lprintf( WIDE( "Setting container of %p to %p" ), element->button, pmb->button );
@@ -521,9 +530,12 @@ static PTRSZVAL CPROC LoadMacroElements( PTRSZVAL psv, arg_list args )
 			PublicAddCommonButtonConfig( element->button );
 		}
 		//SetCurrentLoadingButton( element->button );
+		//lprintf( WIDE( "Resulting with psv %08x" ), element->button->psvUser );
+		return element->button->psvUser;
 	}
-	//lprintf( WIDE( "Resulting with psv %08x" ), element->button->psvUser );
-	return element->button->psvUser;
+	else
+		lprintf( "Failed to create a %s", name );
+	return NULL;
 }
 
 static PTRSZVAL CPROC FinishMacro( PTRSZVAL psv, arg_list args )
