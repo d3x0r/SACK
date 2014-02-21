@@ -2514,7 +2514,7 @@ static LOGICAL OnDropAccept( WIDE("Add Task Button") )( PSI_CONTROL pc_canvas, C
 	return 0;
 }
 
-#if ( __WATCOMC__ < 1291 )
+#if ( __WATCOMC__ < 2001 )
 PUBLIC( void, ExportThis )( void )
 {
 }

@@ -435,6 +435,59 @@ static PTHREAD FindWakeup( CTEXTSTR name )
 	g.lock_thread_create = 0;
 	return check;
 }
+//--------------------------------------------------------------------------
+
+struct name_and_id_params
+{
+	CTEXTSTR name;
+	THREAD_ID thread;
+};
+
+PTRSZVAL CPROC check_thread_name_and_id( POINTER p, PTRSZVAL psv )
+{
+	struct name_and_id_params *params = (struct name_and_id_params*)psv;
+	PTHREAD thread = (PTHREAD)p;
+	if( thread->thread_ident == params->thread 
+		&& StrCaseCmp( thread->thread_event_name, (CTEXTSTR)psv ) == 0 )
+		return (PTRSZVAL)p;
+	return 0;
+}
+
+static PTHREAD FindThreadWakeup( CTEXTSTR name, THREAD_ID thread )
+{
+	PTHREAD check;
+	struct name_and_id_params params;
+	params.name = name;
+	params.thread = thread;
+	if( global_timer_structure )
+	{
+		// don't need locks if init didn't finish, there's now way to have threads in loader lock.
+		while( LockedExchange( &g.lock_thread_create, 1 ) )
+			Relinquish();
+	}
+	else
+	{
+		if( IsRootDeadstartStarted() )
+			SimpleRegisterAndCreateGlobal( global_timer_structure );
+	}
+
+	check = (PTHREAD)ForAllInSet( THREAD, g.threadset, check_thread_name_and_id, (PTRSZVAL)&params );
+	if( !check )
+	{
+#ifdef _DEBUG
+		//lprintf( DBG_FILELINEFMT "Failed to find the thread - so let's add it" );
+#endif
+		check = GetFromSet( THREAD, &g.threadset );
+		MemSet( check, 0, sizeof( THREAD ) );
+		check->thread_ident = thread;
+		InitWakeup( check, name );
+		check->flags.bReady = 1;
+	}
+	g.lock_thread_create = 0;
+	return check;
+}
+
+//--------------------------------------------------------------------------
 
 PTRSZVAL CPROC check_thread( POINTER p, PTRSZVAL psv )
 {
@@ -596,10 +649,18 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 }
 
 
+void  WakeNamedThreadSleeperEx( CTEXTSTR name, THREAD_ID thread DBG_PASS )
+{
+	PTHREAD sleeper = FindThreadWakeup( name, thread );
+	if( sleeper )
+		WakeThreadEx( sleeper DBG_RELAY );
+}
+
 void  WakeNamedSleeperEx( CTEXTSTR name DBG_PASS )
 {
 	PTHREAD sleeper = FindWakeup( name );
-   WakeThreadEx( sleeper DBG_RELAY );
+	if( sleeper )
+		WakeThreadEx( sleeper DBG_RELAY );
 }
 //#undef WakeThread
 //void  WakeThread( PTHREAD thread )
@@ -632,23 +693,26 @@ static void CPROC TimerWake( PTRSZVAL psv )
 #endif
 #endif
 //--------------------------------------------------------------------------
-
-void  WakeableNamedSleepEx( CTEXTSTR name, _32 n DBG_PASS )
+static void  InternalWakeableNamedSleepEx( CTEXTSTR name, _32 n, LOGICAL threaded DBG_PASS )
 {
 	PTHREAD pThread;
-#ifdef HAS_TLS
-	pThread = MyThreadInfo.pThread;
-	if( !pThread )
-	{
-		MakeThread();
-		pThread = MyThreadInfo.pThread;
-	}
-#else
-   if( name )
+	if( name && threaded )
+		pThread = FindThreadWakeup( name, GetMyThreadID() );
+	else if( name )
 		pThread = FindWakeup( name );
 	else
-      pThread = FindThread( GetMyThreadID() );
+	{
+#ifdef HAS_TLS
+		pThread = MyThreadInfo.pThread;
+		if( !pThread )
+		{
+			MakeThread();
+			pThread = MyThreadInfo.pThread;
+		}
+#else
+		pThread = FindThread( GetMyThreadID() );
 #endif
+	}
 	if( pThread )
 	{
 #ifdef _WIN32
@@ -803,6 +867,15 @@ void  WakeableNamedSleepEx( CTEXTSTR name, _32 n DBG_PASS )
 	}
 }
 
+void  WakeableNamedThreadSleepEx( CTEXTSTR name, _32 n DBG_PASS )
+{
+	InternalWakeableNamedSleepEx( name, n, TRUE DBG_RELAY );
+}
+
+void  WakeableNamedSleepEx( CTEXTSTR name, _32 n DBG_PASS )
+{
+	InternalWakeableNamedSleepEx( name, n, FALSE DBG_RELAY );
+}
 void  WakeableSleepEx( _32 n DBG_PASS )
 {
    WakeableNamedSleepEx( NULL, n DBG_RELAY );
@@ -1116,10 +1189,9 @@ THREAD_ID GetThreadID( PTHREAD thread )
 THREAD_ID GetThisThreadID( void )
 {
 #if HAS_TLS
-	if( !MyThreadInfo.pThread )
+	if( !MyThreadInfo.nThread )
 	{
 		MyThreadInfo.nThread = _GetMyThreadID();
-		//MakeThread();
 	}
 	return MyThreadInfo.nThread;
 #else
@@ -2049,7 +2121,8 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 				if( global_timer_structure && g.flags.bLogCriticalSections )
 					lprintf( WIDE("Failed to enter section... sleeping...") );
 #endif
-				WakeableSleepEx( SLEEP_FOREVER DBG_RELAY );
+
+				WakeableNamedThreadSleepEx( WIDE("sack.critsec"), SLEEP_FOREVER DBG_RELAY );
 #ifdef _DEBUG
 				if( global_timer_structure && g.flags.bLogCriticalSections )
 					lprintf( WIDE("Allowed to retry section entry, woken up...") );
@@ -2134,7 +2207,8 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 					_lprintf( DBG_RELAY )( WIDE("%8")_64fx WIDE(" Waking a thread which is waiting..."), wake );
 				// don't clear waiting... so the proper thread can
 				// allow itself to claim section...
-				WakeThreadIDEx( wake DBG_RELAY);
+				WakeNamedThreadSleeperEx( WIDE("sack.critsec"), pcs->dwThreadWaiting DBG_RELAY );
+				//WakeThreadIDEx( wake DBG_RELAY);
 			}
 			else
 				pcs->dwUpdating = 0;

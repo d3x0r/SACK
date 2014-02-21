@@ -576,7 +576,7 @@ static void OnCloneControl( WIDE("Application Mount") )( PTRSZVAL copy,PTRSZVAL 
 	}		
 }
 
-#if ( __WATCOMC__ < 1291 )
+#if ( __WATCOMC__ < 2001 )
 PUBLIC( void, ExportThis )( void )
 {
 }

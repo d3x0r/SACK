@@ -12,7 +12,6 @@ ${FIRST_GCC_LIBRARY_SOURCE}
 		sql_password.c
 		comn_util.c
 		password_frame.c
-		password_window.c
 		${TASK_MONITOR_SOURCES}
 ${LAST_GCC_LIBRARY_SOURCE}
 )

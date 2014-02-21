@@ -317,6 +317,11 @@ TIMER_PROC( void, WakeableNamedSleepEx )( CTEXTSTR name, _32 n DBG_PASS );
 TIMER_PROC( void, WakeNamedSleeperEx )( CTEXTSTR name DBG_PASS );
 #define WakeNamedSleeper( name )   WakeNamedSleeperEx( name DBG_SRC )
 
+TIMER_PROC( void, WakeableNamedThreadSleepEx )( CTEXTSTR name, _32 n DBG_PASS );
+#define WakeableNamedThreadSleep( name, n )   WakeableNamedThreadSleepEx( name, n DBG_SRC )
+TIMER_PROC( void, WakeNamedThreadSleeperEx )( CTEXTSTR name, THREAD_ID therad DBG_PASS );
+#define WakeNamedThreadSleeper( name, thread )   WakeNamedThreadSleeperEx( name, thread DBG_SRC )
+
 /* <combine sack::timers::WakeableSleepEx@_32 milliseconds>
    
    \ \                                                      */

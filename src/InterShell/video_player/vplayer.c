@@ -1,34 +1,32 @@
-
-#include <system.h>
+//#define DEKWARE_PLUGIN
+#define DEFINE_DEFAULT_IMAGE_INTERFACE
+#include <sack_system.h>
 #include <deadstart.h>
 #include <io.h>
 #include <psi/console.h>
 #include <filesys.h>
 #include <sqlgetoption.h>
 #include "../widgets/include/banner.h"
-#define PLUGIN_MODULE
-#define DEFINES_DEKWARE_INTERFACE
-#include "space.h"
 
 #define DEFINES_INTERSHELL_INTERFACE
 #define USES_INTERSHELL_INTERFACE
-#include <../intershell_export.h>
-#include <../intershell_registry.h>
+#include "../intershell_export.h"
+#include "../intershell_registry.h"
 
 typedef struct file_info *PFILE_INFO;
 struct file_info
 {
-   DeclareLink( struct file_info );
+	DeclareLink( struct file_info );
 	struct {
 		BIT_FIELD bUsed : 1;
 	} flags;
-   CTEXTSTR name; // strdup'd name
+	CTEXTSTR name; // strdup'd name
 };
 
 struct path_info
 {
 	CTEXTSTR property;
-   CTEXTSTR base_path;
+	CTEXTSTR base_path;
 };
 
 struct property_button {
@@ -39,27 +37,27 @@ struct property_button {
 static struct my_vidplayer_local
 {
 	PLIST consoles;
-   PLIST lists;
+	PLIST lists;
 	PTHREAD waiting;
 	PTHREAD waiting2;
 	PTHREAD workthread;
 	PTHREAD workthread2;
-   PMENU_BUTTON button; // button which triggered the event.
-   PMENU_BUTTON button2; // button which triggered the event.
-   int begin_update;
+	PMENU_BUTTON button; // button which triggered the event.
+	PMENU_BUTTON button2; // button which triggered the event.
+	int begin_update;
 	int update_done;
-   int begin_test;
+	int begin_test;
 	int test_done;
-   PFILE_INFO files;
+	PFILE_INFO files;
 	PFILE_INFO old_files;
-   PLIST base_video_paths;
+	PLIST base_video_paths;
 	CTEXTSTR base_video_path;
 	CTEXTSTR base_video_play_path;
-   PFILE_INFO current_file;
+	PFILE_INFO current_file;
 	PLISTITEM current_item;
 	PLIST original_order;
 	int current_property; // just an initializer counter for select property buttons.
-   struct property_button * prior_property;
+	struct property_button * prior_property;
 }l;
 
 void CPROC TaskDone( PTRSZVAL psv, PTASK_INFO Task )
@@ -70,7 +68,7 @@ void CPROC TaskDone( PTRSZVAL psv, PTASK_INFO Task )
 		LIST_FORALL( l.consoles, idx, PSI_CONTROL, console )
 			pcprintf( console, "---- TASK DONE-----" );
 	}
-   lprintf( "---- TASK DONE-----" );
+	lprintf( "---- TASK DONE-----" );
 }
 void CPROC GetOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, _32 size )
 {
@@ -80,27 +78,28 @@ void CPROC GetOutput( PTRSZVAL psv, PTASK_INFO task, CTEXTSTR buffer, _32 size )
 		LIST_FORALL( l.consoles, idx, PSI_CONTROL, console )
 			pcprintf( console, "%*.*s", size, size, buffer );
 	}
-   LogBinary( buffer, size );
+	LogBinary( buffer, size );
 }
 
+#ifdef DEKWARE_PLUGIN
 static int HandleCommand( "VidPlayContinue", "Tell the video player to continue..." )( PSENTIENT ps, PTEXT params )
 {
 	l.update_done = 1;
-   WakeThread( l.waiting );
-   return 0;
+	WakeThread( l.waiting );
+	return 0;
 }
 
 static int HandleCommand( "VidTestContinue", "Tell the video player to continue..." )( PSENTIENT ps, PTEXT params )
 {
 	l.test_done = 1;
-   WakeThread( l.waiting );
-   return 0;
+	WakeThread( l.waiting );
+	return 0;
 }
 
 void LaunchProcess()
 {
 	if( !l.base_video_path )
-      return;
+		return;
 	{
 		TEXTCHAR buf[256];
 		snprintf( buf, sizeof( buf ), "%s/PlayList.m3u", l.base_video_path );
@@ -113,9 +112,9 @@ void LaunchProcess()
 				for( info = l.files; info; info = NextLink( info ) )
 				{
 					if( info->flags.bUsed )
-                  fprintf( file, "%s/%s\n", l.base_video_play_path, info->name );
+						fprintf( file, "%s/%s\n", l.base_video_play_path, info->name );
 				}
-            fclose( file );
+				fclose( file );
 			}
 		}
 	}
@@ -131,9 +130,9 @@ void LaunchProcess()
 				for( info = l.files; info; info = NextLink( info ) )
 				{
 					if( info->flags.bUsed )
-                  fprintf( file, "%s/%s\n", l.base_video_path, info->name );
+						fprintf( file, "%s/%s\n", l.base_video_path, info->name );
 				}
-            fclose( file );
+				fclose( file );
 			}
 		}
 	}
@@ -142,68 +141,71 @@ void LaunchProcess()
 	l.waiting = MakeThread();
 	while( !l.update_done )
 	{
-      WakeableSleep( 1000 );
+		WakeableSleep( 1000 );
 	}
-   l.update_done = 0;
-   //LaunchPeerProgram( "test.bat", NULL, NULL, GetOutput, TaskDone, 0 );
+	l.update_done = 0;
+	//LaunchPeerProgram( "test.bat", NULL, NULL, GetOutput, TaskDone, 0 );
 }
 
 void LaunchProcess2()
 {
 	if( !l.base_video_path )
-      return;
+		return;
 
-   DoCommandf( PLAYER, "/decl base_path %s", l.base_video_path );
-   DoCommandf( PLAYER, "/decl dest_path %s", l.base_video_play_path );
+	DoCommandf( PLAYER, "/decl base_path %s", l.base_video_path );
+	DoCommandf( PLAYER, "/decl dest_path %s", l.base_video_play_path );
 	DoCommandf( PLAYER, "/scr test4.scr" );
 	l.waiting = MakeThread();
 	while( !l.test_done )
 	{
-      WakeableSleep( 1000 );
+		WakeableSleep( 1000 );
 	}
-   l.test_done = 0;
-   //LaunchPeerProgram( "test.bat", NULL, NULL, GetOutput, TaskDone, 0 );
+	l.test_done = 0;
+	//LaunchPeerProgram( "test.bat", NULL, NULL, GetOutput, TaskDone, 0 );
 }
+#endif
 
 PTRSZVAL CPROC Thread( PTHREAD thread )
 {
-   l.workthread = thread;
+	l.workthread = thread;
 	while( 1 )
 	{
 		WakeableSleep( 10000 );
 		if( l.begin_update )
 		{
 			PMENU_BUTTON b = l.button;
-         l.begin_update = 0;
+			l.begin_update = 0;
 			InterShell_SetButtonHighlight( b, TRUE );
-			LaunchProcess();
+			//LaunchProcess();
 			InterShell_SetButtonHighlight( b, FALSE );
 		}
 	}
-   return 0;
+	return 0;
 }
 
 PTRSZVAL CPROC Thread2( PTHREAD thread )
 {
-   l.workthread2 = thread;
+	l.workthread2 = thread;
 	while( 1 )
 	{
 		WakeableSleep( 10000 );
 		if( l.begin_test )
 		{
 			PMENU_BUTTON b = l.button2;
-         l.begin_test = 0;
+			l.begin_test = 0;
 			InterShell_SetButtonHighlight( b, TRUE );
+#ifdef DEKWARE_LUGIN
 			LaunchProcess2();
+#endif
 			InterShell_SetButtonHighlight( b, FALSE );
 		}
 	}
-   return 0;
+	return 0;
 }
 
 void ReloadPlaylist( void )
 {
-   if( l.base_video_path )
+	if( l.base_video_path )
 	{
 		TEXTCHAR buf[256];
 		snprintf( buf, sizeof( buf ), "%s/PlayList.m3u", l.base_video_path );
@@ -216,14 +218,14 @@ void ReloadPlaylist( void )
 				{
 					CTEXTSTR name = pathrchr( buf );
 					if( buf[strlen(buf)-1] == '\n' )
-                  buf[strlen(buf)-1] = 0;
+						buf[strlen(buf)-1] = 0;
 					if( !name )
 						name = buf;
 					else
 						name++;
-               AddLink( &l.original_order, StrDup( name ) );
+					AddLink( &l.original_order, StrDup( name ) );
 				}
-            fclose( file );
+				fclose( file );
 			}
 		}
 	}
@@ -236,7 +238,7 @@ PRELOAD( BeginVideoPlayer )
 	ThreadTo( Thread2, 0 );
 	{
 		char buffer[256];
-      //l.base_video_path = StrDup( buffer );
+		//l.base_video_path = StrDup( buffer );
 
 		{
 			int n;
@@ -245,7 +247,7 @@ PRELOAD( BeginVideoPlayer )
 				char prop_path[256];
 				char prop_name[256];
 				char property[64];
-            snprintf( property, sizeof( property ), "Property %d", n );
+				snprintf( property, sizeof( property ), "Property %d", n );
 				SACK_GetPrivateProfileString( property, "base path to video files", "", prop_path, sizeof( prop_path ), "vplayer.ini" );
 				if( prop_path[0] == 0 )
 					break;
@@ -256,56 +258,56 @@ PRELOAD( BeginVideoPlayer )
 					prop->base_path = StrDup( prop_path );
 					SetLink( &l.base_video_paths, n, prop );
 					snprintf( property, sizeof( property ), "<Property %d>", n );
-               CreateLabelVariable( property, LABEL_TYPE_STRING, &prop->property );
+					CreateLabelVariable( property, LABEL_TYPE_STRING, &prop->property );
 				}
 			}
 		}
 
 		SACK_GetPrivateProfileString( "Video Ad Player", "base path to play video files (on vserver)", "/storage", buffer, sizeof( buffer ), "vplayer.ini" );
-      l.base_video_play_path = StrDup( buffer );
+		l.base_video_play_path = StrDup( buffer );
 	}
-   ReloadPlaylist();
+	ReloadPlaylist();
 }
 
-OnGetControl( "Video Player/Console" )( PTRSZVAL psv )
+static PSI_CONTROL OnGetControl( "Video Player/Console" )( PTRSZVAL psv )
 {
-   return (PSI_CONTROL)psv;
+	return (PSI_CONTROL)psv;
 }
 
-OnCreateControl( "Video Player/Console" )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static PTRSZVAL OnCreateControl( "Video Player/Console" )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
 {
 	PSI_CONTROL pc = MakeNamedControl( parent, "PSI Console", x, y, w, h, -1 );
-   AddLink( &l.consoles, pc );
-   return (PTRSZVAL)pc;
+	AddLink( &l.consoles, pc );
+	return (PTRSZVAL)pc;
 }
 
-OnKeyPressEvent( "Video Player/Upload" )( PTRSZVAL psv )
+static void OnKeyPressEvent( "Video Player/Upload" )( PTRSZVAL psv )
 {
 	l.begin_update = 1;
-   l.button = (PMENU_BUTTON)psv;
-   WakeThread( l.workthread );
+	l.button = (PMENU_BUTTON)psv;
+	WakeThread( l.workthread );
 }
 
-OnCreateMenuButton( "Video Player/Upload" )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( "Video Player/Upload" )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonStyle( button, "bicolor square" );
-   InterShell_SetButtonColors( button, BASE_COLOR_BLACK, BASE_COLOR_CYAN, BASE_COLOR_BLACK, COLOR_IGNORE );
-   return (PTRSZVAL)button;
+	InterShell_SetButtonColors( button, BASE_COLOR_BLACK, BASE_COLOR_CYAN, BASE_COLOR_BLACK, COLOR_IGNORE );
+	return (PTRSZVAL)button;
 }
 
-OnKeyPressEvent( "Video Player/Test" )( PTRSZVAL psv )
+static void OnKeyPressEvent( "Video Player/Test" )( PTRSZVAL psv )
 {
 	l.begin_test = 1;
 	l.button2 = (PMENU_BUTTON)psv;
-   WakeThread( l.workthread2 );
+	WakeThread( l.workthread2 );
 }
 
-OnCreateMenuButton( "Video Player/Test" )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( "Video Player/Test" )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonStyle( button, "bicolor square" );
-   InterShell_SetButtonText( button, "Test_Playlist" );
-   InterShell_SetButtonColors( button, BASE_COLOR_BLACK, BASE_COLOR_CYAN, BASE_COLOR_BLACK, COLOR_IGNORE );
-   return (PTRSZVAL)button;
+	InterShell_SetButtonText( button, "Test_Playlist" );
+	InterShell_SetButtonColors( button, BASE_COLOR_BLACK, BASE_COLOR_CYAN, BASE_COLOR_BLACK, COLOR_IGNORE );
+	return (PTRSZVAL)button;
 }
 
 
@@ -315,7 +317,7 @@ void CPROC AddFile( PTRSZVAL psv, CTEXTSTR name, int flags )
 	  ||( StrCaseCmp( name, "PlayTest.m3u" ) == 0 )
 	  ||( StrCaseCmp( name, "PlayTest.m3u~" ) == 0 )
 	  ||( StrCaseCmp( name, "PlayList.m3u~" ) == 0 ) )
-	   return;
+		return;
 	else
 	{
 		PFILE_INFO file = New( struct file_info );
@@ -323,7 +325,7 @@ void CPROC AddFile( PTRSZVAL psv, CTEXTSTR name, int flags )
 		file->name = StrDup( name );
 		file->me = NULL;
 		file->next = NULL;
-      lprintf( "adding file %s", name );
+		lprintf( "adding file %s", name );
 		LinkLast( l.files, PFILE_INFO, file );
 		{
 			CTEXTSTR ext = StrRChr( name, '.' );
@@ -349,19 +351,19 @@ void DoScanFiles( void )
 	void *info = NULL;
 	if( !l.base_video_path )
 	{
-      return;
+		return;
 	}
 	l.old_files = l.files;
-   if( l.old_files )
+	if( l.old_files )
 		l.old_files->me = &l.old_files;
-   l.files = NULL;
+	l.files = NULL;
 
 	while( ScanFiles( l.base_video_path, "*", &info, AddFile, SFF_NAMEONLY, 0 ) );
 
-   if( l.old_files ) // just to clarify that this is not part of the while loop.
+	if( l.old_files ) // just to clarify that this is not part of the while loop.
 	{
-      PFILE_INFO tmp2 = l.files;
-      PFILE_INFO ztmp;
+		PFILE_INFO tmp2 = l.files;
+		PFILE_INFO ztmp;
 		PFILE_INFO info;
 		PFILE_INFO next;
 		tmp2->me = &tmp2;
@@ -374,7 +376,7 @@ void DoScanFiles( void )
 				{
 					ztmp->flags.bUsed = info->flags.bUsed;
 					UnlinkThing( ztmp );
-               // don't use a variable called'tmp' in this macro.
+					// don't use a variable called'tmp' in this macro.
 					LinkLast( l.files, PFILE_INFO, ztmp );
 					break;
 				}
@@ -383,30 +385,30 @@ void DoScanFiles( void )
 		for( info = l.old_files; next = NextLink( info ), info; info = next )
 		{
 			Release( (POINTER)info->name );
-         Release( info );
+			Release( info );
 		}
-      l.old_files = NULL;
+		l.old_files = NULL;
 	}
 	else if( l.files )
 	{
 		// this is the first load of the list... and, we should order appropriately.
-      PFILE_INFO tmp = l.files;
+		PFILE_INFO tmp = l.files;
 		INDEX idx;
 		CTEXTSTR name;
-      tmp->me = &tmp;
+		tmp->me = &tmp;
 		l.files = NULL; // grabbed all files from this list....
 		LIST_FORALL( l.original_order, idx, CTEXTSTR, name )
 		{
 			PFILE_INFO test;
 			for( test = tmp; test; test = NextLink( test ) )
 			{
-            lprintf( "Is %s==%s", name, test->name );
+				lprintf( "Is %s==%s", name, test->name );
 				if( StrCaseCmp( name, test->name ) == 0 )
 				{
-               test->flags.bUsed = TRUE;
+					test->flags.bUsed = TRUE;
 					UnlinkThing( test );
-               LinkLast( l.files, PFILE_INFO, test );
-               break;
+					LinkLast( l.files, PFILE_INFO, test );
+					break;
 				}
 			}
 		}
@@ -421,7 +423,7 @@ void DoScanFiles( void )
 		while( tmp )
 		{
 			PFILE_INFO add = tmp;
-         UnlinkThing( add );
+			UnlinkThing( add );
 			LinkLast( l.files, PFILE_INFO, add );
 		}
 	}
@@ -430,71 +432,71 @@ void DoScanFiles( void )
 CTEXTSTR GetFileString( PFILE_INFO info )
 {
 	static TEXTCHAR buf[256];
-	snprintf( buf, sizeof( buf ), "[%s]\t%s", info->flags.bUsed?"PLAY":"    ", info->name );
-   return buf;
+	snprintf( buf, sizeof( buf ), "[%s]\t%s", info->flags.bUsed?"PLAY":"	 ", info->name );
+	return buf;
 }
 
 void RefillListbox( PSI_CONTROL list )
 {
-   EnableCommonUpdates( list, FALSE );
+	EnableCommonUpdates( list, FALSE );
 	ResetList( list );
 	if( !l.base_video_path )
 	{
 		AddListItem( list, "Please select a location" );
 	}
-   else
+	else
 	{
-      PFILE_INFO file;
+		PFILE_INFO file;
 		for( file = l.files; file; file = NextLink( file ) )
 		{
 			PLISTITEM item = SetItemData( AddListItem( list, GetFileString( file ) ), (PTRSZVAL)file );
-         lprintf( "Added file %s", GetFileString( file ) );
+			lprintf( "Added file %s", GetFileString( file ) );
 			if( file == l.current_file )
-            SetSelectedItem( list, item );
+				SetSelectedItem( list, item );
 		}
 	}
 	EnableCommonUpdates( list, TRUE );
-   SmudgeCommon( list );
+	SmudgeCommon( list );
 
 }
 
 
-OnShowControl( "Video PLayer/File List" )( PTRSZVAL psv )
+static void OnShowControl( "Video PLayer/File List" )( PTRSZVAL psv )
 {
 	PSI_CONTROL list = (PSI_CONTROL)psv;
 	DoScanFiles();
 	l.current_item = NULL;
-   l.current_file = NULL;
-   RefillListbox( list );
+	l.current_file = NULL;
+	RefillListbox( list );
 }
 
-OnSelectListboxItem( "Video Player/File List", ".." )( PTRSZVAL psv, PLISTITEM pli )
+static void OnSelectListboxItem( "Video Player/File List", ".." )( PTRSZVAL psv, PLISTITEM pli )
 {
 	l.current_item = pli;
-   l.current_file = (PFILE_INFO)GetItemData( l.current_item );
+	l.current_file = (PFILE_INFO)GetItemData( l.current_item );
 }
 
-OnCreateListbox( "Video Player/File List" )( PSI_CONTROL list )
+static PTRSZVAL OnCreateListbox( "Video Player/File List" )( PSI_CONTROL list )
 {
 	static int stops[2] = {0, 48};
-   SetListBoxTabStops( list, 2, stops );
-   AddLink( &l.lists, list );
-   return (PTRSZVAL)list;
+	SetListBoxTabStops( list, 2, stops );
+	AddLink( &l.lists, list );
+	return (PTRSZVAL)list;
 }
 
-OnDestroyControl( "Video Player/File List" )( PTRSZVAL psv )
+static void OnDestroyControl( "Video Player/File List" )( PTRSZVAL psv )
 {
-   DeleteLink( &l.lists, (POINTER)psv );
+	DeleteLink( &l.lists, (POINTER)psv );
 }
 
-OnKeyPressEvent( "Video Player/Move File Up" )( PTRSZVAL psv )
+static void OnKeyPressEvent( "Video Player/Move File Up" )( PTRSZVAL psv )
 {
 	if( l.current_item )
 	{
 		PTRSZVAL psv = GetItemData( l.current_item );
 		PFILE_INFO info = (PFILE_INFO)psv;
 		PFILE_INFO next = (PFILE_INFO)info->me;
-      // if the beginning of the list..
+		// if the beginning of the list..
 		if( next == (PFILE_INFO)&l.files )
 		{
 			return;
@@ -506,30 +508,30 @@ OnKeyPressEvent( "Video Player/Move File Up" )( PTRSZVAL psv )
 			PSI_CONTROL list;
 			LIST_FORALL( l.lists, idx, PSI_CONTROL, list )
 			{
-            RefillListbox( list );
+				RefillListbox( list );
 			}
 		}
 	}
 }
 
-OnCreateMenuButton( "Video Player/Move File Up" )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( "Video Player/Move File Up" )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonStyle( button, "bicolor square" );
-   InterShell_SetButtonText( button, "File_Up" );
-   InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_BLUE, COLOR_IGNORE, COLOR_IGNORE );
-   return (PTRSZVAL)button;
+	InterShell_SetButtonText( button, "File_Up" );
+	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_BLUE, COLOR_IGNORE, COLOR_IGNORE );
+	return (PTRSZVAL)button;
 }
 
-OnKeyPressEvent( "Video Player/Move File Down" )( PTRSZVAL psv )
+static void OnKeyPressEvent( "Video Player/Move File Down" )( PTRSZVAL psv )
 {
 	if( l.current_item )
 	{
 		PTRSZVAL psv = GetItemData( l.current_item );
 		PFILE_INFO info = (PFILE_INFO)psv;
 		PFILE_INFO next = NextLink( info );
-      // if end of list..
+		// if end of list..
 		if( !next )
-         return;
+			return;
 		UnlinkThing( info );
 		LinkThingAfter( next, info );
 		{
@@ -537,23 +539,23 @@ OnKeyPressEvent( "Video Player/Move File Down" )( PTRSZVAL psv )
 			PSI_CONTROL list;
 			LIST_FORALL( l.lists, idx, PSI_CONTROL, list )
 			{
-            RefillListbox( list );
+				RefillListbox( list );
 			}
 		}
 	}
 }
 
-OnCreateMenuButton( "Video Player/Move File Down" )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( "Video Player/Move File Down" )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonStyle( button, "bicolor square" );
 	InterShell_SetButtonText( button, "File_Down" );
-   InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_BLUE, COLOR_IGNORE, COLOR_IGNORE );
-   return (PTRSZVAL)button;
+	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_BLUE, COLOR_IGNORE, COLOR_IGNORE );
+	return (PTRSZVAL)button;
 }
 
 
 
-OnKeyPressEvent( "Video Player/Toggle File Play" )( PTRSZVAL psv )
+static void OnKeyPressEvent( "Video Player/Toggle File Play" )( PTRSZVAL psv )
 {
 	if( l.current_item )
 	{
@@ -564,16 +566,16 @@ OnKeyPressEvent( "Video Player/Toggle File Play" )( PTRSZVAL psv )
 	}
 }
 
-OnCreateMenuButton( "Video Player/Toggle File Play" )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( "Video Player/Toggle File Play" )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonStyle( button, "bicolor square" );
-   InterShell_SetButtonText( button, "Toggle_Play" );
-   InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, COLOR_IGNORE, COLOR_IGNORE );
-   return (PTRSZVAL)button;
+	InterShell_SetButtonText( button, "Toggle_Play" );
+	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, COLOR_IGNORE, COLOR_IGNORE );
+	return (PTRSZVAL)button;
 }
 
 
-OnKeyPressEvent( "Video Player/Delete File" )( PTRSZVAL psv )
+static void OnKeyPressEvent( "Video Player/Delete File" )( PTRSZVAL psv )
 {
 	if( l.current_item )
 	{
@@ -581,12 +583,12 @@ OnKeyPressEvent( "Video Player/Delete File" )( PTRSZVAL psv )
 		PFILE_INFO info = (PFILE_INFO)psv;
 		{
 			char buffer[256];
-         snprintf( buffer, sizeof( buffer ), "%s/%s", l.base_video_path, info->name );
+			snprintf( buffer, sizeof( buffer ), "%s/%s", l.base_video_path, info->name );
 			unlink( buffer );
 		}
 		UnlinkThing( info );
 		Release( (POINTER)info->name );
-      Release( info );
+		Release( info );
 		l.current_item = NULL;
 		l.current_file = NULL;
 		{
@@ -600,83 +602,83 @@ OnKeyPressEvent( "Video Player/Delete File" )( PTRSZVAL psv )
 	}
 }
 
-OnCreateMenuButton( "Video Player/Delete File" )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( "Video Player/Delete File" )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonStyle( button, "bicolor square" );
-   InterShell_SetButtonText( button, "Toggle_Play" );
-   InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, COLOR_IGNORE, COLOR_IGNORE );
-   return (PTRSZVAL)button;
+	InterShell_SetButtonText( button, "Toggle_Play" );
+	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, COLOR_IGNORE, COLOR_IGNORE );
+	return (PTRSZVAL)button;
 }
 
 
 
-OnKeyPressEvent( "Video Player/Select Property" )( PTRSZVAL psv )
+static void OnKeyPressEvent( "Video Player/Select Property" )( PTRSZVAL psv )
 {
 	//if( l.current_item )
 	{
 		struct property_button *button = (struct property_button*)psv;
 		struct path_info *path = (struct path_info *)GetLink( &l.base_video_paths, button->ID );
-      PFILE_INFO info;
+		PFILE_INFO info;
 		PFILE_INFO next;
 		l.base_video_path = path->base_path;
 		for( info = l.files; next = NextLink( info ), info; info = next )
 		{
 			Release( (POINTER)info->name );
-         Release( info );
+			Release( info );
 		}
-      l.files = NULL;
+		l.files = NULL;
 		ReloadPlaylist();
-		ShellSetCurrentPage( "here" );
+		//ShellSetCurrentPage( InterShell_GetCanvas( "here" );
 		if( l.prior_property )
 		{
 			InterShell_SetButtonHighlight( l.prior_property->button, FALSE );
 		}
 		InterShell_SetButtonHighlight( button->button, TRUE );
-      l.prior_property = button;
+		l.prior_property = button;
 	}
 }
 
-OnShowControl( "Video Player/Select Property" )( PTRSZVAL psv )
+static void OnShowControl( "Video Player/Select Property" )( PTRSZVAL psv )
 {
 	struct property_button *button = (struct property_button*)psv;
-   char varname[64];
-   snprintf( varname, sizeof( varname ), "Select_%%<Property %d>", button->ID );
-   InterShell_SetButtonText( button->button, varname );
+	char varname[64];
+	snprintf( varname, sizeof( varname ), "Select_%%<Property %d>", button->ID );
+	InterShell_SetButtonText( button->button, varname );
 }
 
-OnCreateMenuButton( "Video Player/Select Property" )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( "Video Player/Select Property" )( PMENU_BUTTON button )
 {
 	struct property_button *prop_button = New(struct property_button);
 	prop_button->button = button;
-   prop_button->ID = l.current_property++;
+	prop_button->ID = l.current_property++;
 	InterShell_SetButtonStyle( button, "bicolor square" );
-   InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, COLOR_IGNORE, COLOR_IGNORE );
-   return (PTRSZVAL)(prop_button);
+	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, COLOR_IGNORE, COLOR_IGNORE );
+	return (PTRSZVAL)(prop_button);
 }
 
-OnConfigureControl( "Video Player/Select Property" )( PTRSZVAL psv, PSI_CONTROL parent )
+static PTRSZVAL OnConfigureControl( "Video Player/Select Property" )( PTRSZVAL psv, PSI_CONTROL parent )
 {
 
-   return psv;
+	return psv;
 }
 
-OnSaveControl( "Video Player/Select Property")( FILE *file, PTRSZVAL psv )
+static void OnSaveControl( "Video Player/Select Property")( FILE *file, PTRSZVAL psv )
 {
 	struct property_button *button = (struct property_button*)psv;
-   fprintf( file, "Property ID=%d\n", button->ID );
+	fprintf( file, "Property ID=%d\n", button->ID );
 }
 
 PTRSZVAL CPROC ReloadID( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, int, id );
 	struct property_button *button = (struct property_button*)psv;
-   button->ID = id;
-   return psv;
+	button->ID = id;
+	return psv;
 }
 
-OnLoadControl( "Video PLayer/Select Property")( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( "Video PLayer/Select Property")( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
-   AddConfigurationMethod( pch, "Property ID=%i", ReloadID );
+	AddConfigurationMethod( pch, "Property ID=%i", ReloadID );
 }
 
 
@@ -685,36 +687,36 @@ static void copy( CTEXTSTR src, char *dst )
 	static _8 buffer[4096];
 	FILE *in, *out;
 	_64 filetime;
-   _64 filetime_dest;
+	_64 filetime_dest;
 
 	filetime = GetFileWriteTime( src );
 	filetime_dest = GetFileWriteTime( dst );
 
 	if( filetime <= filetime_dest )
-      return;
+		return;
 	in = fopen( src, WIDE("rb") );
-   if( in )
+	if( in )
 		out = fopen( dst, WIDE("wb") );
 	else
-      out = NULL;
+		out = NULL;
 	if( in && out )
 	{
-      int len;
+		int len;
 		while( len = fread( buffer, 1, sizeof( buffer ), in ) )
-         fwrite( buffer, 1, len, out );
+			fwrite( buffer, 1, len, out );
 	}
 	if( in )
 		fclose( in );
 	if( out )
 		fclose( out );
-   SetFileWriteTime( dst, filetime );
+	SetFileWriteTime( dst, filetime );
 }
 
 static void CPROC AcceptFile( PSI_CONTROL pc, CTEXTSTR file, S_32 x, S_32 y )
 {
 	if( !l.base_video_path )
 	{
-      Banner2Message( "No current location specified...." );
+		Banner2Message( "No current location specified...." );
 	}
 	else
 	{
@@ -724,23 +726,23 @@ static void CPROC AcceptFile( PSI_CONTROL pc, CTEXTSTR file, S_32 x, S_32 y )
 			fname = file;
 		else
 			fname++;
-      snprintf( dest_name, sizeof( dest_name ), "%s/%s", l.base_video_path, fname );
+		snprintf( dest_name, sizeof( dest_name ), "%s/%s", l.base_video_path, fname );
 		copy( file, dest_name );
 	}
 	// otherwise we'll only get the files we just had.
 	{
-      PFILE_INFO info;
+		PFILE_INFO info;
 		PFILE_INFO next;
 		for( info = l.files; next = NextLink( info ), info; info = next )
 		{
 			Release( (POINTER)info->name );
-         Release( info );
+			Release( info );
 		}
 	}
 	l.files = NULL;
 	DoScanFiles();
 	l.current_item = NULL;
-   l.current_file = NULL;
+	l.current_file = NULL;
 	{
 		INDEX idx;
 		PSI_CONTROL list;
@@ -751,14 +753,19 @@ static void CPROC AcceptFile( PSI_CONTROL pc, CTEXTSTR file, S_32 x, S_32 y )
 	}
 }
 
-OnCreateMenuButton( "Video Player/Accept Files" )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( "Video Player/Accept Files" )( PMENU_BUTTON button )
 {
-   AddCommonAcceptDroppedFiles( InterShell_GetButtonControl( button ), AcceptFile );
+	AddCommonAcceptDroppedFiles( InterShell_GetButtonControl( button ), AcceptFile );
 	InterShell_SetButtonStyle( button, "bicolor square" );
-   InterShell_SetButtonText( button, "Toggle_Play" );
-   InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, COLOR_IGNORE, COLOR_IGNORE );
-   return (PTRSZVAL)button;
+	InterShell_SetButtonText( button, "Toggle_Play" );
+	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, COLOR_IGNORE, COLOR_IGNORE );
+	return (PTRSZVAL)button;
 }
 
 
 
+#if ( __WATCOMC__ < 2001 )
+PUBLIC( void, NeedAtLeastOneExport )( void )
+{
+}
+#endif

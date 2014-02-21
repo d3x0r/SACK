@@ -506,15 +506,16 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 #ifdef DEBUG_CRITICAL_SECTIONS
 				else if( prior )
 				{
-               lprintf( WIDE("Already saved the prior waiter and are setting self as waiter.") );
+					lprintf( WIDE("Already saved the prior waiter and are setting self as waiter.") );
 				}
 #endif
 				pcs->dwThreadWaiting = dwCurProc;
 
 				pcs->dwUpdating = 0;
-				WakeThreadID( pcs->dwThreadWaiting );
-            Relinquish();
-            return 0;
+				WakeNamedThreadSleeper( WIDE("sack.critsec"), pcs->dwThreadWaiting );
+				//WakeThreadID( pcs->dwThreadWaiting );
+				Relinquish();
+				return 0;
 			}
 			else
 			{
@@ -522,7 +523,7 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 				if( g.bLogCritical )
 					lprintf( WIDE("Was woken up as correct thread.. %016Lx %016Lx %016Lx"), dwCurProc, pcs->dwThreadWaiting, prior?(*prior):0 );
 #endif
-            // is me... unowned section, and prior waiter is me.
+				// is me... unowned section, and prior waiter is me.
 				if( prior && (*prior ) )
 				{
 #ifdef DEBUG_CRITICAL_SECTIONS
@@ -539,7 +540,7 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 		}
 		else
 		{
-         // otherwise threadID (is me) or !dwThreadWaiting
+			// otherwise threadID (is me) or !dwThreadWaiting
 		}
 		// otherwise 1) I won the thread already... (threadID == me )
 		// or 2) there was not someone waiting...
@@ -615,7 +616,7 @@ S_32  EnterCriticalSecNoWaitEx ( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS
 			_lprintf(DBG_RELAY)( WIDE( "No prior... not setting wake ID" ) );
 #endif
 		}
-      //else
+		//else
 		//	pcs->dwThreadWaiting = dwCurProc;
 		pcs->dwUpdating = 0;
 		if( g.bLogCritical > 0 && g.bLogCritical < 2 )
@@ -684,7 +685,7 @@ static LOGICAL LeaveCriticalSecNoWakeEx( PCRITICALSECTION pcs DBG_PASS )
 											, pcs->dwThreadID
 											, pcs->dwLocks
 											, (pcs->pFile)?(pcs->pFile):WIDE( "Unknown" ), pcs->nLine );
-         DebugBreak();
+			DebugBreak();
 		}
 #else
 		lprintf( WIDE("Sorry - you can't leave a section you don't own...") );
@@ -710,7 +711,7 @@ static LOGICAL LeaveCriticalSecNoWakeEx( PCRITICALSECTION pcs DBG_PASS )
 #ifndef USE_NATIVE_CRITICAL_SECTION
 void  InitializeCriticalSec ( PCRITICALSECTION pcs )
 {
-   if( g.bLogCritical )
+	if( g.bLogCritical )
 		lprintf( WIDE( "CLEARING CRITICAL SECTION" ) );
 	MemSet( pcs, 0, sizeof( CRITICALSECTION ) );
 	return;
@@ -758,7 +759,7 @@ PRIORITY_ATEXIT(ReleaseAllMemory,ATEXIT_PRIORITY_SHAREMEM)
 	return;
 #else
 	// need to try and close /tmp/.shared region files...  so we only close
-   // temporary spaces
+	// temporary spaces
 	PSPACEPOOL psp;
 	PSPACE ps;
 	while( ( psp = g.pSpacePool ) )
@@ -770,7 +771,7 @@ PRIORITY_ATEXIT(ReleaseAllMemory,ATEXIT_PRIORITY_SHAREMEM)
 			if( ps->pMem )
 			{
 				/*
-             * if we do this, then logging will attempt to possibly use memory which was allocated from this?
+				 * if we do this, then logging will attempt to possibly use memory which was allocated from this?
 #ifdef _DEBUG
 				if( !g.bDisableDebug )
 				{
@@ -814,7 +815,7 @@ void InitSharedMemory( void )
 	 // to back storage...
 	 // so please do make releaseallmemory smarter and dlea
 	 // only with closing those regions which have a file
-       // backing, espcecially those that are temporary chickens.
+		 // backing, espcecially those that are temporary chickens.
 		//atexit( ReleaseAllMemory );
 #ifdef _WIN32
 		GetSystemInfo( &g.si );
@@ -914,12 +915,12 @@ Retry:
 	//				);
 	ps->pMem = (PMEM)pMem;
 
-   // okay yes I made this line ugly.
+	// okay yes I made this line ugly.
 	ps->hFile =
 #ifdef _WIN32
-		         (HANDLE)
+					(HANDLE)
 #endif
-		                  hFile;
+								hFile;
 #ifdef _WIN32
 	ps->hMem = hMem;
 #endif
@@ -1145,11 +1146,11 @@ PTRSZVAL GetFileSize( int fd )
 				{
 					// expands the file...
 					ftruncate( fd, *dwSize );
-				   //*dwSize = ( ( *dwSize + ( FILE_GRAN - 1 ) ) / FILE_GRAN ) * FILE_GRAN;
+					//*dwSize = ( ( *dwSize + ( FILE_GRAN - 1 ) ) / FILE_GRAN ) * FILE_GRAN;
 				}
 				else
 				{
-				   // expands the size requested to that of the file...
+					// expands the size requested to that of the file...
 					(*dwSize) = GetFileSize( fd );
 				}
 			}
@@ -1157,7 +1158,7 @@ PTRSZVAL GetFileSize( int fd )
 			{
 				if( !*dwSize )
 				{
-				// can't create a 0 sized file this way.
+					// can't create a 0 sized file this way.
 					(*dwSize) = 1; // not zero.
 					close( fd );
 					unlink( filename );
@@ -1173,9 +1174,9 @@ PTRSZVAL GetFileSize( int fd )
 				ftruncate( fd, *dwSize );
 			}
 			pMem = mmap( 0, *dwSize
-						  , PROT_READ|(readonly?(0):PROT_WRITE)
-							 , MAP_SHARED|((fd<0)?MAP_ANONYMOUS:0)
-							  , fd, 0 );
+			           , PROT_READ|(readonly?(0):PROT_WRITE)
+			           , MAP_SHARED|((fd<0)?MAP_ANONYMOUS:0)
+			           , fd, 0 );
 			if( !exists && pMem )
 			{
 				MemSet( pMem, 0, *dwSize );
@@ -1184,7 +1185,7 @@ PTRSZVAL GetFileSize( int fd )
 		if( pMem )
 		{
 			PSPACE ps = AddSpace( NULL, fd, 0, pMem, *dwSize, TRUE );
-         if( ps )
+			if( ps )
 				ps->flags.bTemporary = bTemp;
 		}
 #ifndef USE_SIMPLE_LOCK_ON_OPEN
