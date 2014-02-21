@@ -21,8 +21,12 @@ ${LAST_GCC_LIBRARY_SOURCE}
  )
 SET_TARGET_PROPERTIES(${PROJECT}.plugin. PROPERTIES
                   FOLDER utils
+)
+if( NOT MSVC )
+SET_TARGET_PROPERTIES(${PROJECT}.plugin. PROPERTIES
                   OUTPUT_NAME EditOptions.plugin
 )
+endif( NOT MSVC )
 
 if( NOT __ANDROID__ )
    SET_TARGET_PROPERTIES(${PROJECT}.plugin. PROPERTIES
@@ -33,8 +37,7 @@ endif( NOT __ANDROID__ )
 SET_PROPERTY( TARGET ${PROJECT}.plugin. APPEND PROPERTY
                   COMPILE_DEFINITIONS EDITOPTION_PLUGIN
 )
+
 target_link_libraries( ${PROJECT}.plugin. ${SACK_LIBRARIES} )
-SET_TARGET_PROPERTIES(${PROJECT}.plugin. PROPERTIES
-			OUTPUT_NAME "${PROJECT}.plugin"
-                        )
+
 install_mode_dest( ${PROJECT}.plugin. )
