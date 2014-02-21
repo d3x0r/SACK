@@ -278,8 +278,9 @@ void CPROC ComputeReels( PTRSZVAL psv )
 	}
 	for( n = 0; n < NUM_REELS; n++ )
 	{
-		if( !g.pReel[n]->flags.bStarting && !g.pReel[n]->flags.bReelSpinning && !g.pReel[n]->flags.bStopping )
-			continue;
+		if( g.pReel[n] )
+			if( !g.pReel[n]->flags.bStarting && !g.pReel[n]->flags.bReelSpinning && !g.pReel[n]->flags.bStopping )
+				continue;
 		SetStatus( g.status_pc, 0 );
 		break;
 	}
@@ -312,8 +313,11 @@ PRELOAD( old_main )
 			// they themselves can be slid, swapped, a NUM_PICS(10) by (20) length
 			g.blurs[n] = MakeImageFile( 96, (REEL_LENGTH) * 96 );
 			g.dodges[n] = MakeImageFile( 96, (REEL_LENGTH) * 96 );
-			Blur( g.blurs[n], g.pReel[n%NUM_REELS]->images );
-			DodgeEx( g.dodges[n], g.pReel[n%NUM_REELS]->images , 2);
+			if( g.pReel[n%NUM_REELS] )
+			{
+				Blur( g.blurs[n], g.pReel[n%NUM_REELS]->images );
+				DodgeEx( g.dodges[n], g.pReel[n%NUM_REELS]->images , 2);
+			}
 		}
 	}
 
@@ -325,4 +329,9 @@ PRELOAD( old_main )
 	g.ofs = 0;
 }
 
+#if ( __WATCOMC__ < 2001 )
+PUBLIC( void, NeedAtLeastOneExport )( void )
+{
+}
+#endif
 

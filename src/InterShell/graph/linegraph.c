@@ -947,7 +947,7 @@ PRELOAD( RegisterGraphControl )
    DoRegisterControl( &graph_control_reg );
 }
 
-#if ( __WATCOMC__ < 1291 )
+#if ( __WATCOMC__ < 2001 )
 PUBLIC( void, AtLeastOneExport )( void )
 {
 }

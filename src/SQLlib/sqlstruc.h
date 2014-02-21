@@ -204,7 +204,7 @@ CTEXTSTR GetKeyOfName(PODBC odbc, CTEXTSTR table,CTEXTSTR name);
 int OpenSQL( DBG_VOIDPASS );
 
 #ifdef USE_SQLITE_INTERFACE
-#  if defined( __WATCOMC__ ) && !defined( BUILDS_INTERFACE )
+#  if defined( __WATCOMC__ ) && !defined( BUILDS_INTERFACE ) && ( __WATCOMC__ < 2000 )
 #    define FIXREF
 #    define FIXDEREF
 #    define FIXREF2 *

@@ -37,7 +37,7 @@
 #include "blotproto.h"
 
 IMAGE_NAMESPACE 
-struct glSurfaceImageData * MarkImageUpdated( Image child_image )
+void MarkImageUpdated( Image child_image )
 {
 	Image image;
 	for( image = child_image; image && image->pParent; image = image->pParent );
@@ -68,7 +68,7 @@ struct glSurfaceImageData * MarkImageUpdated( Image child_image )
 			if( data == l.glActiveSurface )
 				current_image_data = image_data;
 		}
-		return current_image_data;
+		//return current_image_data;
 	}
 }
 
@@ -124,7 +124,9 @@ int ReloadOpenGlTexture( Image child_image, int option )
 		if( !image_data )
 		{
 			// just call this to create the data then
-			image_data = MarkImageUpdated( image );
+			MarkImageUpdated( image );
+         image_data = (struct glSurfaceImageData *)GetLink( &image->glSurface
+			                                    , l.glImageIndex );
 		}
 		// might have no displays open, so no GL contexts...
 		if( image_data )

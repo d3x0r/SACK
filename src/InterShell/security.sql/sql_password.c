@@ -857,7 +857,7 @@ ATEXIT( CloseLogins )
 		DoSQLCommandf( WIDE("update login_history set logout_whenstamp=now() where system_id=%d and logout_whenstamp=11111111111111"), g.system_id );
 }
 
-#if ( __WATCOMC__ < 1291 )
+#if ( __WATCOMC__ < 2001 )
 PUBLIC( void, ExportThis )( void )
 {
 }

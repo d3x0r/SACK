@@ -168,7 +168,7 @@ static void OnLoadCommon( WIDE("Page Cycler") )( PCONFIG_HANDLER pch )
 	AddConfigurationMethod( pch, WIDE("page delay for '%m'=%i"), LoadDelay );
 }
 
-#if ( __WATCOMC__ < 1291 )
+#if ( __WATCOMC__ < 2001 )
 PUBLIC( void, NeedAtLeastOneExport )( void )
 {
 

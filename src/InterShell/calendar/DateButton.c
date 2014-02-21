@@ -266,7 +266,7 @@ static PTRSZVAL OnCreateMenuButton( WIDE("Calendar/Select Today") )( PMENU_BUTTO
 }
 
 
-#if ( __WATCOMC__ < 1291 )
+#if ( __WATCOMC__ < 2001 )
 PUBLIC( void, NeedAtLeastOneExport )( void )
 {
 }

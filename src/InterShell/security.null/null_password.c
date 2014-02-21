@@ -249,7 +249,7 @@ static void OnEditSecurityContext( WIDE("NULL Password") )( PTRSZVAL button )
 }
 
 
-#if ( __WATCOMC__ < 1291 )
+#if ( __WATCOMC__ < 2001 )
 PUBLIC( void, ExportThis )( void )
 {
 }

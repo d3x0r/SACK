@@ -581,7 +581,7 @@ static void OnRevealCommon( WIDE("Crossfade Media Mount") )( PSI_CONTROL pc )
 	}
 }
 
-#if ( __WATCOMC__ < 1291 )
+#if ( __WATCOMC__ < 2001 )
 PUBLIC( void, ExportThis )( void )
 {
 }

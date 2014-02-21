@@ -465,7 +465,7 @@ static void OnShowControl( WIDE("Windows/Set Windows Shell") )( PTRSZVAL psv )
 }
 
 
-#if ( __WATCOMC__ < 1291 )
+#if ( __WATCOMC__ < 2001 )
 PUBLIC( void, ExportThis_POINTS_DOWN )()
 {
 }
