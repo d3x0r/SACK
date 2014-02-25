@@ -678,7 +678,9 @@ void DeleteDataStackEx( PDATASTACK *pds DBG_PASS )
 static struct link_queue_local_data
 {
 	volatile _32 lock;
+#if !USE_CUSTOM_ALLOCER
 	volatile PTHREAD thread;
+#endif
 } s_link_queue_local, *_link_queue_local;
 
 #define link_queue_local  ((_link_queue_local)?(*_link_queue_local):(s_link_queue_local))
@@ -690,7 +692,9 @@ PLINKQUEUE CreateLinkQueueEx( DBG_VOIDPASS )
 {
 	PLINKQUEUE plq;
 	plq = (PLINKQUEUE)AllocateEx( sizeof( LINKQUEUE ) DBG_RELAY );
+#if USE_CUSTOM_ALLOCER
 	plq->Lock     = 0;
+#endif
 	plq->Top      = 0;
 	plq->Bottom   = 0;
 	plq->Cnt      = 2;
@@ -711,6 +715,7 @@ retry_lock:
 	{
 		Relinquish();
 	}
+#if !USE_CUSTOM_ALLOCER
 	if( _link_queue_local )
 		_link_queue_local->thread = MakeThread();
 	if( !(*pplq) )
@@ -724,15 +729,18 @@ retry_lock:
 		Relinquish();
 		goto retry_lock;
 	}
-	
+#endif
+
 	if( pplq )
 	{
 		if( *pplq )
 			ReleaseEx( *pplq DBG_RELAY );
 		*pplq = NULL;
 	}
+#if USE_CUSTOM_ALLOCER
 	if( _link_queue_local )
 		_link_queue_local->thread = NULL;
+#endif
 	link_queue_local_lock[0] = 0;
 }
 
@@ -741,12 +749,14 @@ retry_lock:
 static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
 {
 	PLINKQUEUE plqNew = NULL;
+#if USE_CUSTOM_ALLOCER
 	while( LockedExchange( link_queue_local_lock, __LINE__ ) )
 	{
 		Relinquish();
 	}
 	if( _link_queue_local )
 		_link_queue_local->thread = MakeThread();
+#endif
 	if( pplq )
 	{
 		PLINKQUEUE plq = *pplq;
@@ -774,9 +784,11 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
 		Release( plq );
 		SetAllocateLogging( prior_logging );
 	}
+#if USE_CUSTOM_ALLOCER
 	if( _link_queue_local )
 		_link_queue_local->thread = NULL;
 	link_queue_local_lock[0] = 0;
+#endif
 	return plqNew;
 }
 
@@ -786,7 +798,9 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
 {
 	INDEX tmp;
 	PLINKQUEUE plq;
+#if USE_CUSTOM_ALLOCER
 	int keep_lock = 0;
+#endif
 	if( !pplq )
 		return NULL;
 	if( !(*pplq) )
@@ -794,13 +808,16 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
 retry_lock:
 	while( LockedExchange( link_queue_local_lock, __LINE__ ) )
 	{
+#if USE_CUSTOM_ALLOCER
 		if( link_queue_local_thread == MakeThread() )
 		{
 			keep_lock = 1;
 			break;
 		}
+#endif
 		Relinquish();
 	}
+#if USE_CUSTOM_ALLOCER
 	if( _link_queue_local )
 		_link_queue_local->thread = MakeThread();
 	if( !(*pplq) )
@@ -823,6 +840,14 @@ retry_lock:
 			_link_queue_local->thread = NULL;
 		link_queue_local_lock[0] = 0;
 	}
+#else
+	if( !(*pplq) )
+	{
+		//it could have been deallocated
+		link_queue_local_lock[0] = 0;
+		return (*pplq);
+	}
+#endif
 
 
 	plq = *pplq;
@@ -842,7 +867,11 @@ retry_lock:
 		plq->Top = tmp;
 	}
 	*pplq = plq;
+#if USE_CUSTOM_ALLOCER
 	plq->Lock = 0;
+#else
+	link_queue_local_lock[0] = 0;
+#endif
 	return plq;
 }
 
@@ -859,6 +888,7 @@ retry_lock:
 retry_lock:
 	while( LockedExchange( link_queue_local_lock, __LINE__ ) )
 		Relinquish();
+#if USE_CUSTOM_ALLOCER
 	if( !(*pplq) )
 	{
 		link_queue_local_lock[0] = 0;
@@ -872,6 +902,14 @@ retry_lock:
 	}
 	(*pplq)->Lock = 1;
 	link_queue_local_lock[0] = 0;
+#else
+	if( !(*pplq) )
+	{
+		//it could have been deallocated
+		link_queue_local_lock[0] = 0;
+		return (*pplq);
+	}
+#endif
 
 	plq = *pplq;
 
@@ -888,7 +926,11 @@ retry_lock:
 		plq->pNode[tmp] = link;
 		plq->Bottom = tmp;
 	}
+#if USE_CUSTOM_ALLOCER
 	plq->Lock = 0;
+#else
+	link_queue_local_lock[0] = 0;
+#endif
 	return plq;
 }
 
@@ -954,18 +996,23 @@ POINTER  DequeLink ( PLINKQUEUE *pplq )
 	INDEX tmp;
 	if( pplq && *pplq )
 	{
+#if USE_CUSTOM_ALLOCER
 		int keep_lock = 0;
+#endif
 		_32 priorline;
 	retry_lock:
 		while( priorline = LockedExchange( link_queue_local_lock, __LINE__ ) )
 		{
+#if USE_CUSTOM_ALLOCER
 			if( link_queue_local_thread == MakeThread() )
 			{
 				keep_lock = 1;
 				break;
 			}
+#endif
 			Relinquish();
 		}
+#if USE_CUSTOM_ALLOCER
 		if( !pplq )
 		{
 			if( !keep_lock )
@@ -982,6 +1029,14 @@ POINTER  DequeLink ( PLINKQUEUE *pplq )
 		(*pplq)->Lock = 1;
 		if( !keep_lock )
 			link_queue_local_lock[0] = 0;
+#else
+		if( !(*pplq) )
+		{
+			//it could have been deallocated
+			link_queue_local_lock[0] = 0;
+			return (*pplq);
+		}
+#endif
 	}
 	else
 		return NULL;
@@ -995,7 +1050,11 @@ POINTER  DequeLink ( PLINKQUEUE *pplq )
 		p = (*pplq)->pNode[(*pplq)->Bottom];
 		(*pplq)->Bottom = tmp;
 	}
+#if USE_CUSTOM_ALLOCER
 	(*pplq)->Lock = 0;
+#else
+	link_queue_local_lock[0] = 0;
+#endif
 	return p;
 }
 #ifdef __cplusplus

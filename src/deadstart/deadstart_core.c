@@ -579,7 +579,10 @@ void InvokeExits( void )
 	// don't allow shutdown procs to schedule more shutdown procs...
 	// although in theory we could; if the first list contained
 	// ReleaseAllMemory(); then there is no memory.
-	if( deadstart_local_data &&
+	if( 
+#ifndef __STATIC_GLOBALS__
+		deadstart_local_data &&
+#endif
 #ifdef __64__
 			( proc = (PSHUTDOWN_PROC)LockedExchange64( (PV_64)&shutdown_proc_schedule, 0 ) ) != NULL
 #else
@@ -632,7 +635,9 @@ void InvokeExits( void )
 		//Release( local_pointer );
 		//shutdown_proc_schedule = proc;
 	}
-	deadstart_local_data = NULL;
+#ifndef __STATIC_GLOBALS__
+	deadstart_local_data = (struct deadstart_local_data_*)NULL;
+#endif
 	//shutdown_proc_schedule = NULL;
 }
 

@@ -137,7 +137,7 @@ struct global_memory_tag {
 	int pagesize;
 	int bLogAllocate;
 	int bLogAllocateWithHold;
-	LOGICAL bCustomAllocer;
+	LOGICAL bCustomAllocer;  // this option couldn't work; different block tracking methods are incompatible
 	LOGICAL bInit;
 	PSPACEPOOL pSpacePool;
 #ifdef _WIN32
@@ -149,7 +149,14 @@ struct global_memory_tag {
 };
 
 #ifdef __STATIC__
-static struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 0, 0, 0, 0, 0/*logging*/ };
+static struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 0
+													, 0 /* log criticalsec */
+													, 0 /* min alloc */
+													, 0 /* pagesize */
+													, 0/*logging*/ 
+													, 0 /* log holds also */
+													, USE_CUSTOM_ALLOCER
+};
 #  define g (global_memory_data)
 
 #else
@@ -168,10 +175,11 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 0/*auto check
 // this one has memory logging enabled by default...
 //struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 1, 0, 0, 0, 1 };
 #  else
-struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 1/*auto check(disable)*/, 0, 0, 0
+struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debug*/, 1/*auto check(disable)*/
+															, 0 /* log crit */, 0 /* min alloc size */, 0 /* page size */
 															, 0/*log allocates*/
 															, 0  /* log holds */
-															, 0  // custom allocer
+															, USE_CUSTOM_ALLOCER  // custom allocer
 											};
 // this one has memory logging enabled by default...
 //struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 1, 0, 0, 0, 1 };
@@ -209,7 +217,7 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 	g.bLogCritical = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Log critical sections" ), g.bLogCritical, TRUE );
 	g.bLogAllocate = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Enable Logging" ), g.bLogAllocate, TRUE );
 	g.bLogAllocateWithHold = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Enable Logging Holds" ), g.bLogAllocateWithHold, TRUE );
-	g.bCustomAllocer = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Custom Allocator" ), g.bCustomAllocer, TRUE );
+	//USE_CUSTOM_ALLOCER = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Custom Allocator" ), USE_CUSTOM_ALLOCER, TRUE );
 	g.bDisableDebug = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Disable Debug" ), !USE_DEBUG_LOGGING, TRUE );
 #endif
 }
@@ -1509,8 +1517,9 @@ PMEM DigSpace( TEXTSTR pWhat, TEXTSTR pWhere, PTRSZVAL *dwSize )
 	Log( WIDE("Go to init the heap...") );
 #endif
 	pMem->dwSize = 0;
-	if( g.bCustomAllocer )
-		InitHeap( pMem, *dwSize );
+#if USE_CUSTOM_ALLOCER
+	InitHeap( pMem, *dwSize );
+#endif
 	return pMem;
 }
 
@@ -1610,7 +1619,7 @@ static void DropMemEx( PMEM pMem DBG_PASS )
 POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS )
 {
    // if a heap is passed, it's a private heap, and allocation is as normal...
-	if( !pHeap && !g.bCustomAllocer )
+	if( !pHeap && !USE_CUSTOM_ALLOCER )
 	{
 		PMALLOC_CHUNK pc;
 #ifdef ENABLE_NATIVE_MALLOC_PROTECTOR
@@ -1914,7 +1923,7 @@ static void Bubble( PMEM pMem )
 {
 	if( pData )
 	{
-		if( g.bCustomAllocer )
+		if( USE_CUSTOM_ALLOCER )
 		{
 			register PCHUNK pc = (PCHUNK)(((PTRSIZEVAL)pData) - offsetof( CHUNK, byData ));
 			return pc->dwSize - pc->dwPad;
@@ -1962,7 +1971,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			}
 		}
 
-		if( !g.bCustomAllocer )
+		if( !USE_CUSTOM_ALLOCER )
 		{
 			// register PMEM pMem = (PMEM)(pData - offsetof( MEM, pRoot ));
 			register PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((PTRSZVAL)pData) -
@@ -2239,7 +2248,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 {
 	if( pData )
 	{
-		if( !g.bCustomAllocer )
+		if( !USE_CUSTOM_ALLOCER )
 		{
 			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)((char*)pData - MALLOC_CHUNK_SIZE);
 			//_lprintf( DBG_RELAY )( "holding block %p", pc );
@@ -2285,7 +2294,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 
 void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 {
-	if( g.bCustomAllocer )
+	if( USE_CUSTOM_ALLOCER )
 	{
 		PCHUNK pc, _pc;
 		PTRSZVAL nTotalFree = 0;
@@ -2373,7 +2382,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
  void  DebugDumpHeapMemFile ( PMEM pHeap, CTEXTSTR pFilename )
 {
 	FILE *file;
-	if( !g.bCustomAllocer )
+	if( !USE_CUSTOM_ALLOCER )
 		return;
 
 	Fopen( file, pFilename, WIDE("wt") );
@@ -2585,7 +2594,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 	PCHUNK pc, _pc;
 	PMEM pMem;
 	PSPACE pMemSpace;
-	if( !g.bCustomAllocer )
+	if( !USE_CUSTOM_ALLOCER )
       return;
 
 	if( !pHeap )
