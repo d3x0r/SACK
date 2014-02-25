@@ -710,12 +710,14 @@ void DeleteLinkQueueEx( PLINKQUEUE *pplq DBG_PASS )
 	if( !pplq )
 		return;
 
+#if USE_CUSTOM_ALLOCER
 retry_lock:
+#endif
 	while( LockedExchange( link_queue_local_lock, __LINE__ ) )
 	{
 		Relinquish();
 	}
-#if !USE_CUSTOM_ALLOCER
+#if USE_CUSTOM_ALLOCER
 	if( _link_queue_local )
 		_link_queue_local->thread = MakeThread();
 	if( !(*pplq) )
@@ -805,7 +807,9 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
 		return NULL;
 	if( !(*pplq) )
 		*pplq = CreateLinkQueueEx( DBG_VOIDRELAY );
+#if USE_CUSTOM_ALLOCER
 retry_lock:
+#endif
 	while( LockedExchange( link_queue_local_lock, __LINE__ ) )
 	{
 #if USE_CUSTOM_ALLOCER
@@ -885,7 +889,9 @@ retry_lock:
 		return NULL;
 	if( !(*pplq) )
 		*pplq = CreateLinkQueueEx( DBG_VOIDRELAY );
+#if USE_CUSTOM_ALLOCER
 retry_lock:
+#endif
 	while( LockedExchange( link_queue_local_lock, __LINE__ ) )
 		Relinquish();
 #if USE_CUSTOM_ALLOCER
@@ -1000,7 +1006,9 @@ POINTER  DequeLink ( PLINKQUEUE *pplq )
 		int keep_lock = 0;
 #endif
 		_32 priorline;
-	retry_lock:
+#if USE_CUSTOM_ALLOCER
+retry_lock:
+#endif
 		while( priorline = LockedExchange( link_queue_local_lock, __LINE__ ) )
 		{
 #if USE_CUSTOM_ALLOCER
