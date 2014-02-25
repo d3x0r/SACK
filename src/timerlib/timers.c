@@ -241,11 +241,6 @@ ThreadLocal struct my_thread_info {
 #endif
 
 void  RemoveTimerEx( _32 ID DBG_PASS );
-PRIORITY_UNLOAD( LowLevelInit, SYSLOG_PRELOAD_PRIORITY-1 )
-{
-	Deallocate( POINTER, global_timer_structure );
-	global_timer_structure = NULL;
-}
 
 // this priorirty is also relative to a secondary init for procreg/names.c
 // if you change this, need to change when that is scheduled also
@@ -314,11 +309,10 @@ PTRSZVAL closesem( POINTER p, PTRSZVAL psv )
 }
 
 // sharemem exit priority +1 (exit after everything else, except emmory)
-PRIORITY_ATEXIT( CloseAllWakeups, ATEXIT_PRIORITY_TIMERS )
+PRIORITY_ATEXIT( CloseAllWakeups, ATEXIT_PRIORITY_THREAD_SEMS )
 {
 	//pid_t mypid = getppid();
 	// not sure if mypid is needed...
-	g.flags.bExited = 1;
 	lprintf( WIDE("Destroy thread semaphores...") );
 	ForAllInSet( THREAD, g.threadset, closesem, (PTRSZVAL)0 );
 	DeleteSet( (GENERICSET**)&g.threadset );
@@ -327,6 +321,16 @@ PRIORITY_ATEXIT( CloseAllWakeups, ATEXIT_PRIORITY_TIMERS )
 	g.timers = NULL;
 }
 #endif
+
+// sharemem exit priority +1 (exit after everything else, except emmory)
+PRIORITY_ATEXIT( StopTimers, ATEXIT_PRIORITY_TIMERS )
+{
+	//pid_t mypid = getppid();
+	// not sure if mypid is needed...
+	g.flags.bExited = 1;
+	if( g.pTimerThread )
+		WakeThread( g.pTimerThread );
+}
 //--------------------------------------------------------------------------
 
 static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
@@ -1854,7 +1858,7 @@ PTRSZVAL CPROC ThreadProc( PTHREAD pThread )
 	g.lock_timers = 1;
 	//Log( WIDE("Get first tick") );
 	g.last_tick = timeGetTime();//GetTickCount();
-	while( ProcessTimers( 1 ) );
+	while( ProcessTimers( 1 ) > 0 );
 	Log( WIDE("Timer thread is exiting...") );
 	return 0;
 }

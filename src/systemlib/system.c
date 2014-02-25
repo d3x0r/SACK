@@ -54,33 +54,6 @@ SACK_SYSTEM_NAMESPACE
 //-------------------------------------------------------------------------
 
 
-typedef struct loaded_function_tag
-{
-	_32 references;
-	void (CPROC*function)(void );
-	struct loaded_library_tag *library;
-	DeclareLink( struct loaded_function_tag );
-	TEXTCHAR name[];
-} FUNCTION, *PFUNCTION;
-
-#ifdef WIN32
-typedef HMODULE HLIBRARY;
-#else
-typedef void* HLIBRARY;
-#endif
-typedef struct loaded_library_tag
-{
-	PTRSZVAL nLibrary; // when unloading...
-	HLIBRARY library;
-	PFUNCTION functions;
-	DeclareLink( struct loaded_library_tag );
-	TEXTCHAR *name;
-	TEXTCHAR full_name[];
-} LIBRARY, *PLIBRARY;
-
-static PLIBRARY libraries;
-static PTREEROOT pFunctionTree;
-
 typedef struct task_info_tag TASK_INFO;
 
 #ifdef HAVE_ENVIRONMENT
@@ -174,9 +147,12 @@ void OSALOT_PrependEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 }
 #endif
 
-static void SetupSystemServices( void )
+static void CPROC SetupSystemServices( POINTER mem, PTRSZVAL size )
 {
+	struct local_systemlib_data *init_l = (struct local_systemlib_data *)mem;
 #ifdef _WIN32
+	extern void InitCo( void );
+	InitCo();
 	{
 		TEXTCHAR filepath[256];
 		TEXTCHAR *ext, *e1;
@@ -188,26 +164,19 @@ static void SetupSystemServices( void )
 		if( e1 )
 		{
 			e1[0] = 0;
-			l.filename = StrDupEx( e1 + 1 DBG_SRC );
-			l.load_path = StrDupEx( filepath DBG_SRC );
+			(*init_l).filename = StrDupEx( e1 + 1 DBG_SRC );
+			(*init_l).load_path = StrDupEx( filepath DBG_SRC );
 		}
 		else
 		{
-			l.filename = StrDupEx( filepath DBG_SRC );
-			l.load_path = StrDupEx( WIDE("") DBG_SRC );
+			(*init_l).filename = StrDupEx( filepath DBG_SRC );
+			(*init_l).load_path = StrDupEx( WIDE("") DBG_SRC );
 		}
 
 #ifdef HAVE_ENVIRONMENT
 		OSALOT_SetEnvironmentVariable( WIDE("MY_LOAD_PATH"), filepath );
 #endif
 
-		GetCurrentPath( filepath, sizeof( filepath ) );
-		l.work_path = StrDupEx( filepath DBG_SRC );
-		SetDefaultFilePath( l.work_path );
-
-#ifdef HAVE_ENVIRONMENT
-		OSALOT_SetEnvironmentVariable( WIDE( "MY_WORK_PATH" ), filepath );
-#endif
 	}
 #else
 #  if defined( __QNX__ )
@@ -231,9 +200,9 @@ static void SetupSystemServices( void )
 			{
 				lprintf( "Error in devctl() call. %s",
 						  strerror(status) );
-				l.filename = "FailedToReadFilenaem";
-				l.load_path = ".";
-            l.work_path = ".";
+				(*init_l).filename = "FailedToReadFilenaem";
+				(*init_l).load_path = ".";
+				(*init_l).work_path = ".";
 				return;
 			}
 			close(proc_fd);
@@ -243,11 +212,11 @@ static void SetupSystemServices( void )
 		if( pb )
 		{
 			pb[0]=0;
-			l.filename = StrDupEx( pb + 1 DBG_SRC );
+			(*init_l).filename = StrDupEx( pb + 1 DBG_SRC );
 		}
 		else
 		{
-			l.filename = StrDupEx( buf DBG_SRC );
+			(*init_l).filename = StrDupEx( buf DBG_SRC );
 			buf[0] = '.';
 			buf[1] = 0;
 		}
@@ -255,14 +224,14 @@ static void SetupSystemServices( void )
 		if( StrCmp( buf, "/." ) == 0 )
 			GetCurrentPath( buf, 256 );
 		//lprintf( WIDE("My execution: %s"), buf);
-		l.load_path = StrDupEx( buf DBG_SRC );
-		setenv( WIDE("MY_LOAD_PATH"), l.load_path, TRUE );
+		(*init_l).load_path = StrDupEx( buf DBG_SRC );
+		setenv( WIDE("MY_LOAD_PATH"), (*init_l).load_path, TRUE );
 		//strcpy( pMyPath, buf );
 
 		GetCurrentPath( buf, sizeof( buf ) );
 		setenv( WIDE( "MY_WORK_PATH" ), buf, TRUE );
-		l.work_path = StrDupEx( buf DBG_SRC );
-		SetDefaultFilePath( l.work_path );
+		(*init_l).work_path = StrDupEx( buf DBG_SRC );
+		SetDefaultFilePath( (*init_l).work_path );
 	}
 #  else
 	// this might be clever to do, auto export the LD_LIBRARY_PATH
@@ -272,8 +241,8 @@ static void SetupSystemServices( void )
 	{
 		/* #include unistd.h, stdio.h, string.h */
 #    ifdef __ANDROID__
-			l.filename = GetProgramName();
-			l.load_path = GetProgramPath();
+			(*init_l).filename = GetProgramName();
+			(*init_l).load_path = GetProgramPath();
 #    else
 		{
 			char buf[256], *pb;
@@ -296,15 +265,15 @@ static void SetupSystemServices( void )
 			else
 				pb = buf - 1;
 			//lprintf( WIDE("My execution: %s"), buf);
-			l.filename = StrDupEx( pb + 1 DBG_SRC );
-			l.load_path = StrDupEx( buf DBG_SRC );
+			(*init_l).filename = StrDupEx( pb + 1 DBG_SRC );
+			(*init_l).load_path = StrDupEx( buf DBG_SRC );
 			setenv( WIDE("MY_LOAD_PATH"), buf, TRUE );
 			//strcpy( pMyPath, buf );
 
 			GetCurrentPath( buf, sizeof( buf ) );
 			setenv( WIDE( "MY_WORK_PATH" ), buf, TRUE );
-			l.work_path = StrDupEx( buf DBG_SRC );
-         SetDefaultFilePath( l.work_path );
+			(*init_l).work_path = StrDupEx( buf DBG_SRC );
+			SetDefaultFilePath( (*init_l).work_path );
 		}
 	{
 		TEXTCHAR *oldpath;
@@ -312,8 +281,8 @@ static void SetupSystemServices( void )
 		oldpath = getenv( "LD_LIBRARY_PATH" );
 		if( oldpath )
 		{
-			newpath = NewArray( char, (_32)((oldpath?strlen( oldpath ):0) + 2 + strlen(l.load_path)) );
-			sprintf( newpath, WIDE("%s:%s"), l.load_path
+			newpath = NewArray( char, (_32)((oldpath?strlen( oldpath ):0) + 2 + strlen((*init_l).load_path)) );
+			sprintf( newpath, WIDE("%s:%s"), (*init_l).load_path
 					 , oldpath );
 			setenv( WIDE("LD_LIBRARY_PATH"), newpath, 1 );
 			ReleaseEx( newpath DBG_SRC );
@@ -325,8 +294,8 @@ static void SetupSystemServices( void )
 		oldpath = getenv( "PATH" );
 		if( oldpath )
 		{
-			newpath = NewArray( char, (_32)((oldpath?strlen( oldpath ):0) + 2 + strlen(l.load_path)) );
-			sprintf( newpath, WIDE("%s:%s"), l.load_path
+			newpath = NewArray( char, (_32)((oldpath?strlen( oldpath ):0) + 2 + strlen((*init_l).load_path)) );
+			sprintf( newpath, WIDE("%s:%s"), (*init_l).load_path
 					 , oldpath );
 			setenv( WIDE("PATH"), newpath, 1 );
 			ReleaseEx( newpath DBG_SRC );
@@ -341,15 +310,31 @@ static void SetupSystemServices( void )
 #endif
 }
 
+static void SystemInit( void )
+{
+	if( !local_systemlib )
+	{
+		RegisterAndCreateGlobalWithInit( (POINTER*)&local_systemlib, sizeof( *local_systemlib ), "system", SetupSystemServices );
+#ifdef WIN32
+		if( !l.flags.bInitialized )
+		{
+			TEXTCHAR filepath[256];
+			GetCurrentPath( filepath, sizeof( filepath ) );
+			l.work_path = StrDupEx( filepath DBG_SRC );
+			SetDefaultFilePath( l.work_path );
+#ifdef HAVE_ENVIRONMENT
+			OSALOT_SetEnvironmentVariable( WIDE( "MY_WORK_PATH" ), filepath );
+#endif
+			l.flags.bInitialized = 1;
+		}
+#endif
+	}
+}
+
+
 PRIORITY_PRELOAD( SetupPath, OSALOT_PRELOAD_PRIORITY )
 {
-#ifndef __LINUX__
-	extern void InitCo( void );
-#endif
-	SetupSystemServices();
-#ifndef __LINUX__
-	InitCo();
-#endif
+	SystemInit();
 }
 
 #ifndef __NO_OPTIONS__
@@ -1144,7 +1129,7 @@ void InvokeLibraryLoad( void )
 SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR funcname, LOGICAL bPrivate  DBG_PASS )
 {
 	static int nLibrary;
-	PLIBRARY library = libraries;
+	PLIBRARY library = l.libraries;
 
 	while( library )
 	{
@@ -1153,11 +1138,6 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		library = library->next;
 	}
 	// don't really NEED anything else, in case we need to start before deadstart invokes.
-	if( !l.load_path )
-	{
-		lprintf( WIDE( "Init Load Path" ) );
-		SetupSystemServices();
-	}
 	if( !library )
 	{
 		size_t maxlen = strlen( l.load_path ) + 1 + strlen( libname ) + 1;
@@ -1232,7 +1212,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		}
 		InvokeLibraryLoad();
 		library->nLibrary = ++nLibrary;
-		LinkThing( libraries, library );
+		LinkThing( l.libraries, library );
 	}
 	if( funcname )
 	{
@@ -1320,10 +1300,10 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 				return NULL;
 			}
 #endif
-			if( !pFunctionTree )
-				pFunctionTree = CreateBinaryTree();
+			if( !l.pFunctionTree )
+				l.pFunctionTree = CreateBinaryTree();
 			//lprintf( WIDE("Adding function %p"), function->function );
-			AddBinaryNode( pFunctionTree, function, (PTRSZVAL)function->function );
+			AddBinaryNode( l.pFunctionTree, function, (PTRSZVAL)function->function );
 			LinkThing( library->functions, function );
 		}
 		function->references++;
@@ -1368,7 +1348,7 @@ SYSTEM_PROC( int, UnloadFunctionEx )( generic_function *f DBG_PASS )
 		{
 			PLIBRARY library;
 			PTRSZVAL nFind = (PTRSZVAL)(*f);
-			for( library = libraries; library; library = NextLink( library ) )
+			for( library = l.libraries; library; library = NextLink( library ) )
 			{
 				if( nFind == library->nLibrary )
 				{
@@ -1384,14 +1364,14 @@ SYSTEM_PROC( int, UnloadFunctionEx )( generic_function *f DBG_PASS )
 		}
 	}
 	{
-		PFUNCTION function = (PFUNCTION)FindInBinaryTree( pFunctionTree, (PTRSZVAL)(*f) );
+		PFUNCTION function = (PFUNCTION)FindInBinaryTree( l.pFunctionTree, (PTRSZVAL)(*f) );
 		PLIBRARY library;
 		if( function &&
 		    !(--function->references) )
 		{
 			UnlinkThing( function );
 			lprintf( WIDE( "Should remove the node from the tree here... but it crashes intermittantly. (tree list is corrupted)" ) );
-			//RemoveLastFoundNode( pFunctionTree );
+			//RemoveLastFoundNode( l.pFunctionTree );
 			library = function->library;
 			if( !library->functions )
 			{
@@ -1481,7 +1461,7 @@ CTEXTSTR GetProgramName( void )
 #else
 	if( !l.filename )
 	{
-		SetupSystemServices();
+		SystemInit();
 		if( !l.filename )
 		{
 			DebugBreak();
@@ -1499,7 +1479,7 @@ CTEXTSTR GetProgramPath( void )
 #else
 	if( !l.load_path )
 	{
-		SetupSystemServices();
+		SystemInit();
 		if( !l.load_path )
 		{
 			DebugBreak();
@@ -1517,7 +1497,7 @@ CTEXTSTR GetStartupPath( void )
 #else
 	if( !l.work_path )
 	{
-		SetupSystemServices();
+		SystemInit();
 		if( !l.work_path )
 		{
 			DebugBreak();

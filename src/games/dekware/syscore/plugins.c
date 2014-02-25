@@ -440,9 +440,6 @@ Function GetRoutineRegistered( TEXTSTR prefix, PTEXT Command )
 		StrCpy( tmp, WIDE("dekware/commands") );
 
 	f = GetRegisteredProcedure2( tmp, int, GetText(Command), (PSENTIENT,PTEXT) );
-	//if( !f )
-	//	DumpRegisteredNames();
-	//lprintf( WIDE("result is %p"), f );
 	return f;
 }
 
@@ -1004,8 +1001,6 @@ int Assimilate( PENTITY pe, PSENTIENT ps, CTEXTSTR name, PTEXT parameters )
 		{
 			DECLTEXT( msg, WIDE("No such object type has been registered.") );
 			EnqueLink( &ps->Command->Output, &msg );
-			DumpRegisteredNames();
-			//DebugBreak();
 		}
 		return 0;
 	}

@@ -152,6 +152,7 @@ public class NativeActivity extends Activity implements SurfaceHolder.Callback2,
 
         mNativeContentView = new NativeContentView(this);
         mNativeContentView.mActivity = this;
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(mNativeContentView);
         mNativeContentView.requestFocus();
         mNativeContentView.getViewTreeObserver().addOnGlobalLayoutListener(this);
@@ -193,6 +194,50 @@ public class NativeActivity extends Activity implements SurfaceHolder.Callback2,
             throw new IllegalArgumentException("Unable to load native library: " + path);
         }
         super.onCreate(savedInstanceState);
+
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+        WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        /*
+
+        private void hideStatusBar() {
+        WindowManager.LayoutParams attrs = getWindow().getAttributes();
+        attrs.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
+        getWindow().setAttributes(attrs);
+        }
+
+        private void showStatusBar() {
+        WindowManager.LayoutParams attrs = getWindow().getAttributes();
+        attrs.flags &= ~WindowManager.LayoutParams.FLAG_FULLSCREEN;
+        getWindow().setAttributes(attrs);
+        }
+
+
+        the trick is
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        in onCreate
+
+
+        alternative full screen method?
+        public class FullScreen extends Activity {
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        setContentView(R.layout.main);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+        WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        }
+        }
+        // see http://androidsnippets.com/how-to-make-an-activity-fullscreen
+
+        android manifest feature:
+        android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+
+        */
+
     }
 
     @Override

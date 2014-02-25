@@ -38,6 +38,8 @@ struct vidlib_proxy_local
 	PLIST renderers;
 	PLIST images;
    PVPRENDER bottom;
+	PVPRENDER top;
+   CRITICALSECTION cs_update;
 	PIMAGE_INTERFACE real_interface;
 	_8 key_states[256];
 	CRITICALSECTION message_formatter;

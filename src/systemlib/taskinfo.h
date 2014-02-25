@@ -47,6 +47,31 @@ struct task_info_tag {
 #endif
 };
 
+
+typedef struct loaded_function_tag
+{
+	_32 references;
+	void (CPROC*function)(void );
+	struct loaded_library_tag *library;
+	DeclareLink( struct loaded_function_tag );
+	TEXTCHAR name[];
+} FUNCTION, *PFUNCTION;
+
+#ifdef WIN32
+typedef HMODULE HLIBRARY;
+#else
+typedef void* HLIBRARY;
+#endif
+typedef struct loaded_library_tag
+{
+	PTRSZVAL nLibrary; // when unloading...
+	HLIBRARY library;
+	PFUNCTION functions;
+	DeclareLink( struct loaded_library_tag );
+	TEXTCHAR *name;
+	TEXTCHAR full_name[];
+} LIBRARY, *PLIBRARY;
+
 #ifndef SYSTEM_CORE_SOURCE
 extern
 #endif
@@ -54,13 +79,16 @@ extern
 	CTEXTSTR load_path;
 	struct system_local_flags{
 		BIT_FIELD bLog : 1;
+		BIT_FIELD bInitialized : 1;
 	} flags;
 	CTEXTSTR filename;  // pointer to just filename part...
 	TEXTCHAR *work_path;
 	PLIST system_tasks;
-} local_systemlib;
+	PLIBRARY libraries;
+	PTREEROOT pFunctionTree;
+} *local_systemlib;
 
-#define l local_systemlib
+#define l (*local_systemlib)
 
 int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmdline );
 

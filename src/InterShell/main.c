@@ -447,7 +447,7 @@ void InvokeEndEditMode( void )
 
 PCanvasData GetCanvasEx( PSI_CONTROL pc DBG_PASS )
 {
-	_lprintf(DBG_RELAY)( "pc is %p", pc );
+	//_lprintf(DBG_RELAY)( "pc is %p", pc );
 	{
 		ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
 		if( !canvas )
@@ -4661,7 +4661,6 @@ PSI_CONTROL Init( LOGICAL bLoadConfig )
 			Banner2NoWaitAlpha( WIDE("Read config...") );
 			LoadButtonConfig( pc_canvas, g.config_filename );
 		}
-		//g.button_space = 25;
 		// default images...
 		MakeGlareSet( WIDE("DEFAULT"), NULL, NULL, NULL, NULL );
 		//SetGlareSetFlags( WIDE("DEFAULT"), 0 );

@@ -564,20 +564,22 @@ void RegisterPriorityShutdownProc( void (CPROC*proc)(void), CTEXTSTR func, int p
 		//		 , shutdown_proc_schedule->line );
 	}
 	nShutdownProcs++;
-   //lprintf( WIDE("Total procs %d"), nProcs );
+	//lprintf( WIDE("Total procs %d"), nProcs );
 }
 
-//id RunExits( void )
 void InvokeExits( void )
 {
-// okay well since noone previously scheduled exits...
-// this runs a prioritized list of exits - all within
-// a single moment of exited-ness.
+	// okay well since noone previously scheduled exits...
+	// this runs a prioritized list of exits - all within
+	// a single moment of exited-ness.
 	PSHUTDOWN_PROC proc;
-// shutdown is much easier than startup cause more
-// procedures shouldn't be added as a property of shutdown.
-   //bugBreak();
-	while(
+	// shutdown is much easier than startup cause more
+	// procedures shouldn't be added as a property of shutdown.
+
+	// don't allow shutdown procs to schedule more shutdown procs...
+	// although in theory we could; if the first list contained
+	// ReleaseAllMemory(); then there is no memory.
+	if( deadstart_local_data &&
 #ifdef __64__
 			( proc = (PSHUTDOWN_PROC)LockedExchange64( (PV_64)&shutdown_proc_schedule, 0 ) ) != NULL
 #else
@@ -585,19 +587,23 @@ void InvokeExits( void )
 #endif
 		  )
 	{
-      PSHUTDOWN_PROC proclist = proc;
-      // link list to myself..
+		// just before all memory goes away
+		// global memory goes away (including mine) so deadstart_local_data is invalidated.
+		struct deadstart_local_data_ *local_pointer = (struct deadstart_local_data_*)(((PTRSZVAL)deadstart_local_data)-sizeof(PLIST));
+		PSHUTDOWN_PROC proclist = proc;
+		// link list to myself..
+		Hold( local_pointer );
 		proc->me = &proclist;
 		while( ( proc = proclist ) )
 		{
-#ifdef DEBUG_SHUTDOWN
+#if defined( DEBUG_SHUTDOWN )
 			lprintf( WIDE("Exit Proc %s(%p)(%d) priority %d from %s(%d)...")
-					 , proc->func
-					 , proc->proc
-					 , proc - shutdown_procs
-                , proc->priority
-					 , proc->file
-					 , proc->line );
+			       , proc->func
+			       , proc->proc
+			       , proc - shutdown_procs
+			       , proc->priority
+			       , proc->file
+			       , proc->line );
 #endif
 			if( proc->priority == 0 )
 			{
@@ -605,6 +611,7 @@ void InvokeExits( void )
 				//continue;
 			}
 			// don't release this stuff... memory might be one of the autoexiters.
+			UnlinkThing( proc );
 			if( proc->proc
 #ifndef __LINUX__
 				&& !IsBadCodePtr( (FARPROC)proc->proc )
@@ -617,13 +624,15 @@ void InvokeExits( void )
 				proc->proc();
 			}
 			// okay I have the whol elist... so...
-			UnlinkThing( proc );
 #ifdef DEBUG_SHUTDOWN
 			lprintf( WIDE("Okay and that's done... next is %p %p"), proclist, shutdown_proc_schedule );
 #endif
 		}
-      //shutdown_proc_schedule = proc;
+		// nope by this time memory doesn't exist anywhere.
+		//Release( local_pointer );
+		//shutdown_proc_schedule = proc;
 	}
+	deadstart_local_data = NULL;
 	//shutdown_proc_schedule = NULL;
 }
 

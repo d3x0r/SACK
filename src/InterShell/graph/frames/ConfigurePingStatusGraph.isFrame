@@ -6,6 +6,6 @@
 <control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="292,309" size="87,30" type="Button"></control>
 <control IDName="application/ListBox/LST_LINES_ACTIVE" caption="" position="443,15" size="188,186" type="ListBox"></control>
 <control IDName="application/Button/BTN_ADD_LINE" PrivateData="#ff354c59" caption="Add Line" position="442,217" size="111,36" type="Button"></control>
-<control IDName="application/Color Well/CLR_LINE_COLOR" caption="" position="225,216" size="32,32" type="Combo Box"></control>
+<control IDName="application/Color Well/CLR_LINE_COLOR" caption="" position="225,216" size="32,32" type="Color Well"></control>
 <control IDName="application/Button/BTN_REMOVE_LINE" PrivateData="#ff354c59" caption="Remove Line" position="440,277" size="104,34" type="Button"></control>
 <control IDName="application/EditControl/EDIT_GRAPH_TIMESPAN" caption="30.000" position="10,270" size="146,21" type="EditControl"></control></control>

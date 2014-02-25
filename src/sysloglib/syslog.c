@@ -126,6 +126,7 @@ struct state_flags{
  LOGICAL bLogging;
  LOGICAL bSyslogdLogging;
 
+	PLINKQUEUE buffers;
 };
 
 #ifdef __ANDROID__
@@ -184,14 +185,6 @@ PRIORITY_ATEXIT( CleanSyslog, ATEXIT_PRIORITY_SYSLOG )
 		// else... no resources to cleanup
 		break;
 	}
-
-#ifndef __STATIC_GLOBALS__
-	if( syslog_local )
-	{
-		Deallocate( struct syslog_local_data *, syslog_local );
-		syslog_local = NULL;
-	}
-#endif
 }
 
 
@@ -1410,7 +1403,6 @@ static INDEX CPROC _null_vlprintf ( CTEXTSTR format, va_list args )
    return 0;
 }
 
-static PLINKQUEUE buffers;
 
 
 static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
@@ -1428,17 +1420,17 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 		TEXTCHAR threadid[32];
 
 		cannot_log = 1;
-		if( !buffers )
+		if( !l.buffers )
 		{
 			int n;
-			buffers = CreateLinkQueue();
+			l.buffers = CreateLinkQueue();
 			for( n = 0; n < 6; n++ )
-				EnqueLink( &buffers, (POINTER)1 );
+				EnqueLink( &l.buffers, (POINTER)1 );
 			for( n = 0; n < 6; n++ )
-				DequeLink( &buffers );
+				DequeLink( &l.buffers );
 		}
 
-		buffer = (TEXTCHAR*)DequeLink( &buffers );
+		buffer = (TEXTCHAR*)DequeLink( &l.buffers );
 		if( !buffer )
 		{
 			//DoSystemLog( WIDE( "Adding Logging Buffer" ) );
@@ -1517,7 +1509,7 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 
 		{
 			cannot_log = 1;
-			EnqueLink( &buffers, buffer );
+			EnqueLink( &l.buffers, buffer );
 			cannot_log = 0;
 		}
 	}

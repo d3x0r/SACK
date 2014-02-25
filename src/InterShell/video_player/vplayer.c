@@ -2,7 +2,6 @@
 #define DEFINE_DEFAULT_IMAGE_INTERFACE
 #include <sack_system.h>
 #include <deadstart.h>
-#include <io.h>
 #include <psi/console.h>
 #include <filesys.h>
 #include <sqlgetoption.h>

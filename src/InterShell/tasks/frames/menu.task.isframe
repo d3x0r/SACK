@@ -4,10 +4,10 @@
 <control IDName="EditControl/InterShell/tasks/TXT_TASK_PATH" caption="." position="160,70" size="194,26" type="EditControl"></control>
 <control IDName="EditControl/InterShell/tasks/TXT_TASK_ARGS" caption="" position="159,100" size="194,26" type="EditControl"></control>
 <control IDName="ListBox/InterShell/LST_BUTTON_STYLE" caption="" position="18,155" size="170,73" type="ListBox"></control>
-<control IDName="Color Well/InterShell/CLR_TEXT_COLOR" caption="" position="202,159" size="32,32" type="Combo Box"></control>
-<control IDName="Color Well/InterShell/CLR_BACKGROUND" caption="" position="202,195" size="32,32" type="Combo Box"></control>
-<control IDName="Color Well/InterShell/CLR_RING_BACKGROUND" caption="" position="202,230" size="32,32" type="Combo Box"></control>
-<control IDName="Color Well/InterShell/CLR_RING_HIGHLIGHT" caption="" position="202,266" size="32,32" type="Combo Box"></control>
+<control IDName="Color Well/InterShell/CLR_TEXT_COLOR" caption="" position="202,159" size="32,32" type="Color Well"></control>
+<control IDName="Color Well/InterShell/CLR_BACKGROUND" caption="" position="202,195" size="32,32" type="Color Well"></control>
+<control IDName="Color Well/InterShell/CLR_RING_BACKGROUND" caption="" position="202,230" size="32,32" type="Color Well"></control>
+<control IDName="Color Well/InterShell/CLR_RING_HIGHLIGHT" caption="" position="202,266" size="32,32" type="Color Well"></control>
 <control IDName="Button/InterShell/BTN_PICKFONT" PrivateData="#ff354c59" caption="Pick Font" position="18,254" size="97,31" type="Button"></control>
 <control IDName="ListBox/InterShell/LST_PAGES" caption="" position="380,6" size="204,194" type="ListBox"></control>
 <control caption="Button Text" position="15,14" size="140,21" type="TextControl"></control>

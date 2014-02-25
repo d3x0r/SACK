@@ -508,7 +508,6 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
 	if( !pf )
 	{
 		PSI_CONTROL pc;
-		//DumpRegisteredNames();
 		pf = CreateFrame( WIDE("Color Select")
 							 , x - FRAME_WIDTH/2, y - FRAME_HEIGHT/2
 							 , FRAME_WIDTH, FRAME_HEIGHT, BORDER_NORMAL, NULL );

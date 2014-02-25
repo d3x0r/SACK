@@ -109,21 +109,16 @@ PRELOAD( InitNetworkGlobalOptions )
 
 void LowLevelInit( void )
 {
-   if( !global_network_data )
+	if( !global_network_data )
 		SimpleRegisterAndCreateGlobal( global_network_data );
 }
 
-PRIORITY_UNLOAD( InitNetworkGlobal, GLOBAL_INIT_PRELOAD_PRIORITY )
-{
-	Deallocate( struct network_global_data*, global_network_data );
-	global_network_data = NULL;
-}
 PRIORITY_PRELOAD( InitNetworkGlobal, GLOBAL_INIT_PRELOAD_PRIORITY )
 {
-   LowLevelInit();
+	LowLevelInit();
 	if( !g.system_name )
 	{
-  		g.system_name = WIDE("no.network");
+		g.system_name = WIDE("no.network");
 	}
 }
 

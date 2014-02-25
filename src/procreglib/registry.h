@@ -162,7 +162,7 @@ typedef struct proc_name_tag
 DeclareSet( NAME );
 
 
-#define NAMESPACE_SIZE 4096 - sizeof( _32 ) - 2 * sizeof( POINTER )
+#define NAMESPACE_SIZE (4096 - sizeof( _32 ) - 2 * sizeof( POINTER ))
 
 typedef struct namespace_tag
 {

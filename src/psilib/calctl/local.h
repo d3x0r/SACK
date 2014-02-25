@@ -4,8 +4,8 @@
 
 typedef struct global_tag
 {
-   PIMAGE_INTERFACE MyImageInterface;
-   PRENDER_INTERFACE MyDisplayInterface;
+	PIMAGE_INTERFACE MyImageInterface;
+	PRENDER_INTERFACE MyDisplayInterface;
 } GLOBAL;
 #ifndef CLOCK_CORE
 extern
@@ -42,19 +42,19 @@ typedef struct clock_control_tag
 		_8 mn;
 		_8 hr;
 		_8 dy;
-      _8 dow;
+		_8 dow;
 		_8 mo;
-      _16 yr;
+		_16 yr;
 	} PACKED time_data;
 #ifdef _MSC_VER
 #pragma pack (pop)
 #endif
 	CDATA textcolor;
 	PTEXT time;
-   CDATA backcolor;
-   Image back_image;
+	CDATA backcolor;
+	Image back_image;
 	PANALOG_CLOCK analog_clock;
-   TEXTSTR last_time;
+	TEXTSTR last_time;
 } CLOCK_CONTROL, *PCLOCK_CONTROL;
 
 void DrawAnalogClock( PSI_CONTROL pc );

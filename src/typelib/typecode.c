@@ -1,10 +1,10 @@
 /*
  *  Crafted by James Buckeyne
  *
- *   (c) Freedom Collective 2000-2006++
+ *	(c) Freedom Collective 2000-2006++
  *
- *   code to drive standard containers, lists, stacks, queues
- *   auto expanding, auto tracking, threadsafe containers...
+ *	code to drive standard containers, lists, stacks, queues
+ *	auto expanding, auto tracking, threadsafe containers...
  *
  *  standardized to never use int.
  *
@@ -74,15 +74,15 @@ PLIST  DeleteListEx ( PLIST *pList DBG_PASS )
 	{
 		ReleaseEx( ppList DBG_RELAY );
 	}
-   list_local_lock[0] = 0;
-   return NULL;
+	list_local_lock[0] = 0;
+	return NULL;
 }
 
 //--------------------------------------------------------------------------
 
 static PLIST ExpandListEx( PLIST *pList, INDEX amount DBG_PASS )
 {
-   PLIST old_list = (*pList);
+	PLIST old_list = (*pList);
 	PLIST pl;
 	PTRSZVAL size;
 	PTRSZVAL old_size;
@@ -113,8 +113,8 @@ static PLIST ExpandListEx( PLIST *pList, INDEX amount DBG_PASS )
 			MemSet( pl->pNode + pl->Cnt, 0, size - old_size );
 			pl->Cnt += amount;
 		}
-      // set the new list before releasing the old one.
-      (*pList) = pl;
+		// set the new list before releasing the old one.
+		(*pList) = pl;
 		// remove the old list...
 		ReleaseEx( old_list DBG_RELAY );
 	}
@@ -122,7 +122,7 @@ static PLIST ExpandListEx( PLIST *pList, INDEX amount DBG_PASS )
 	{
 		MemSet( pl, 0, size ); // clear whole structure on creation...
 		pl->Cnt = amount;  // one more ( always a free )
-      // brand new list.
+		// brand new list.
 		*pList = pl;
 	}
 	return pl;
@@ -164,7 +164,7 @@ static PLIST ExpandListEx( PLIST *pList, INDEX amount DBG_PASS )
 	}
 	if( i == (*pList)->Cnt )
 		goto retry1;  // pList->Cnt changes - don't test in WHILE
-   list_local_lock[0] = 0;
+	list_local_lock[0] = 0;
 	return *pList; // might be a NEW list...
 }
 
@@ -202,7 +202,7 @@ static PLIST ExpandListEx( PLIST *pList, INDEX amount DBG_PASS )
 
  POINTER  GetLink ( PLIST *pList, INDEX idx )
 {
-   // must lock the list so that it's not expanded out from under us...
+	// must lock the list so that it's not expanded out from under us...
 	POINTER p;
 	if( !pList || !(*pList) )
 		return NULL;
@@ -229,7 +229,7 @@ static PLIST ExpandListEx( PLIST *pList, INDEX amount DBG_PASS )
 
  POINTER*  GetLinkAddress ( PLIST *pList, INDEX idx )
 {
-   // must lock the list so that it's not expanded out from under us...
+	// must lock the list so that it's not expanded out from under us...
 	POINTER *p;
 	if( !pList || !(*pList) )
 		return NULL;
@@ -312,7 +312,7 @@ static PTRSZVAL CPROC RemoveItem( PTRSZVAL value, INDEX i, POINTER *link )
 	return 0;
 }
 
- void         EmptyList      ( PLIST *pList )
+ void			EmptyList		( PLIST *pList )
 {
 	ForAllLinks( pList, RemoveItem, 0 );
 }
@@ -343,8 +343,8 @@ PDATALIST ExpandDataListEx( PDATALIST *ppdl, INDEX entries DBG_PASS )
 	pNewList->Cnt = (*ppdl)->Cnt;
 	pNewList->Avail = entries;
 	pNewList->Size = (*ppdl)->Size;
-   // set the new list int he pointer
-   *ppdl = pNewList;
+	// set the new list int he pointer
+	*ppdl = pNewList;
 	ReleaseEx( pdl DBG_RELAY );
 	return pNewList;
 }
@@ -396,11 +396,11 @@ POINTER SetDataItemEx( PDATALIST *ppdl, INDEX idx, POINTER data DBG_PASS )
 
 POINTER AddDataItemEx( PDATALIST *ppdl, POINTER data DBG_PASS )
 {
-   if( ppdl && *ppdl )
+	if( ppdl && *ppdl )
 		return SetDataItemEx( ppdl, (*ppdl)->Cnt+1, data DBG_RELAY );
-   if( ppdl )
+	if( ppdl )
 		return SetDataItemEx( ppdl, 0, data DBG_RELAY );
-   return NULL;
+	return NULL;
 }
 
 void EmptyDataList( PDATALIST *ppdl )
@@ -440,7 +440,7 @@ POINTER GetDataItem( PDATALIST *ppdl, INDEX idx )
 namespace link_stack {
 #endif
 
- PLINKSTACK      CreateLinkStackLimitedEx        ( int max_entries  DBG_PASS )
+ PLINKSTACK		CreateLinkStackLimitedEx		  ( int max_entries  DBG_PASS )
 {
 	PLINKSTACK pls;
 	pls = (PLINKSTACK)AllocateEx( sizeof( LINKSTACK ) DBG_RELAY );
@@ -487,7 +487,7 @@ POINTER  PeekLinkEx ( PLINKSTACK *pls, INDEX n )
 
 POINTER  PeekLink ( PLINKSTACK *pls )
 {
-   return PeekLinkEx( pls, 0 );
+	return PeekLinkEx( pls, 0 );
 }
 
 //--------------------------------------------------------------------------
@@ -516,7 +516,7 @@ static PLINKSTACK ExpandStackEx( PLINKSTACK *stack, INDEX entries DBG_PASS )
 	pNewStack = (PLINKSTACK)AllocateEx( my_offsetof( stack, pNode[entries] ) DBG_RELAY );
 	if( *stack )
 	{
-      PLINKSTACK pls = (*stack);
+		PLINKSTACK pls = (*stack);
 		MemCpy( pNewStack->pNode, (*stack)->pNode, (*stack)->Cnt * sizeof(POINTER) );
 		pNewStack->Top = (*stack)->Top;
 		pNewStack->Max = (*stack)->Max;
@@ -541,7 +541,7 @@ static PLINKSTACK ExpandStackEx( PLINKSTACK *stack, INDEX entries DBG_PASS )
 		return NULL;
 	// should lock this thing :)
 	if( !*pls ||
-       (*pls)->Top == (*pls)->Cnt )
+		 (*pls)->Top == (*pls)->Cnt )
 	{
 		ExpandStackEx( pls, ((*pls)?((*pls)->Max):0)+8 DBG_RELAY );
 	}
@@ -570,7 +570,7 @@ static PLINKSTACK ExpandStackEx( PLINKSTACK *stack, INDEX entries DBG_PASS )
 	POINTER p = NULL;
 	if( (pds) && (*pds) && (*pds)->Top )
 	{
-	    (*pds)->Top--;
+		 (*pds)->Top--;
 		p = (*pds)->data + ( (*pds)->Size * ((*pds)->Top) );
 	}
 	return p;
@@ -581,7 +581,7 @@ static PLINKSTACK ExpandStackEx( PLINKSTACK *stack, INDEX entries DBG_PASS )
 static PDATASTACK ExpandDataStackEx( PDATASTACK *ppds, INDEX entries DBG_PASS )
 {
 	PDATASTACK pNewStack;
-   PDATASTACK pds = (*ppds);
+	PDATASTACK pds = (*ppds);
 	if( !pds )
 		return NULL;
 
@@ -601,41 +601,41 @@ static PDATASTACK ExpandDataStackEx( PDATASTACK *ppds, INDEX entries DBG_PASS )
  PDATASTACK  PushDataEx ( PDATASTACK *pds, POINTER pdata DBG_PASS )
 {
 	if( pds && *pds )
-   {
-	   if( (*pds)->Top == (*pds)->Cnt )
-   	{
-      	ExpandDataStackEx( pds, 1 DBG_RELAY );
-	   }
-   	MemCpy( (*pds)->data + ((*pds)->Top * (*pds)->Size ), pdata, (*pds)->Size );
-	   (*pds)->Top++;
-   	return (*pds);
-   }
-   if( pds )
-   	return *pds;
-   return NULL;
+	{
+		if( (*pds)->Top == (*pds)->Cnt )
+		{
+			ExpandDataStackEx( pds, 1 DBG_RELAY );
+		}
+		MemCpy( (*pds)->data + ((*pds)->Top * (*pds)->Size ), pdata, (*pds)->Size );
+		(*pds)->Top++;
+		return (*pds);
+	}
+	if( pds )
+		return *pds;
+	return NULL;
 }
 
 //--------------------------------------------------------------------------
 
  POINTER  PeekDataEx ( PDATASTACK *pds, INDEX nBack )
 {
-   POINTER p = NULL;
+	POINTER p = NULL;
 	nBack++;
 	if( !(*pds) )
-      return NULL;
-   if( ( (int)((*pds)->Top) - (int)nBack ) >= 0 )
-      p = (*pds)->data + ( (*pds)->Size * ((*pds)->Top - nBack) );
-   return p;
+		return NULL;
+	if( ( (int)((*pds)->Top) - (int)nBack ) >= 0 )
+		p = (*pds)->data + ( (*pds)->Size * ((*pds)->Top - nBack) );
+	return p;
 }
 
 //--------------------------------------------------------------------------
 
  POINTER  PeekData ( PDATASTACK *pds )
 {
-   POINTER p = NULL;
-   if( pds && *pds && (*pds)->Top )
-      p = (*pds)->data + ( (*pds)->Size * ((*pds)->Top-1) );
-   return p;
+	POINTER p = NULL;
+	if( pds && *pds && (*pds)->Top )
+		p = (*pds)->data + ( (*pds)->Size * ((*pds)->Top-1) );
+	return p;
 }
 
 //--------------------------------------------------------------------------
@@ -650,20 +650,20 @@ void  EmptyDataStack( PDATASTACK *pds )
 
  PDATASTACK  CreateDataStackEx ( INDEX size DBG_PASS )
 {
-   PDATASTACK pds;
-   pds = (PDATASTACK)AllocateEx( sizeof( DATASTACK ) + ( 10 * size ) DBG_RELAY );
-   pds->Cnt = 10;
-   pds->Top = 0;
-   pds->Size = size;
-   return pds;
+	PDATASTACK pds;
+	pds = (PDATASTACK)AllocateEx( sizeof( DATASTACK ) + ( 10 * size ) DBG_RELAY );
+	pds->Cnt = 10;
+	pds->Top = 0;
+	pds->Size = size;
+	return pds;
 }
 
 //--------------------------------------------------------------------------
 
 void DeleteDataStackEx( PDATASTACK *pds DBG_PASS )
 {
-   ReleaseEx( *pds DBG_RELAY );
-   *pds = NULL;
+	ReleaseEx( *pds DBG_RELAY );
+	*pds = NULL;
 }
 #ifdef __cplusplus
 }//		namespace data_stack {
@@ -678,7 +678,7 @@ void DeleteDataStackEx( PDATASTACK *pds DBG_PASS )
 static struct link_queue_local_data
 {
 	volatile _32 lock;
-   volatile PTHREAD thread;
+	volatile PTHREAD thread;
 } s_link_queue_local, *_link_queue_local;
 
 #define link_queue_local  ((_link_queue_local)?(*_link_queue_local):(s_link_queue_local))
@@ -688,26 +688,52 @@ static struct link_queue_local_data
 
 PLINKQUEUE CreateLinkQueueEx( DBG_VOIDPASS )
 {
-   PLINKQUEUE plq;
-   plq = (PLINKQUEUE)AllocateEx( sizeof( LINKQUEUE ) DBG_RELAY );
-   plq->Top      = 0;
-   plq->Bottom   = 0;
-   plq->Cnt      = 2;
-   plq->pNode[0] = NULL;
-   plq->pNode[1] = NULL; // shrug
-   return plq;
+	PLINKQUEUE plq;
+	plq = (PLINKQUEUE)AllocateEx( sizeof( LINKQUEUE ) DBG_RELAY );
+	plq->Lock     = 0;
+	plq->Top      = 0;
+	plq->Bottom   = 0;
+	plq->Cnt      = 2;
+	plq->pNode[0] = NULL;
+	plq->pNode[1] = NULL; // shrug
+	return plq;
 }
 
 //--------------------------------------------------------------------------
 
 void DeleteLinkQueueEx( PLINKQUEUE *pplq DBG_PASS )
 {
-   if( pplq )
-   {
-      if( *pplq )
-         ReleaseEx( *pplq DBG_RELAY );
-      *pplq = NULL;
-   }
+	if( !pplq )
+		return;
+
+retry_lock:
+	while( LockedExchange( link_queue_local_lock, __LINE__ ) )
+	{
+		Relinquish();
+	}
+	if( _link_queue_local )
+		_link_queue_local->thread = MakeThread();
+	if( !(*pplq) )
+	{
+		link_queue_local_lock[0] = 0;
+		return;
+	}
+	if( (*pplq)->Lock )
+	{
+		link_queue_local_lock[0] = 0;
+		Relinquish();
+		goto retry_lock;
+	}
+	
+	if( pplq )
+	{
+		if( *pplq )
+			ReleaseEx( *pplq DBG_RELAY );
+		*pplq = NULL;
+	}
+	if( _link_queue_local )
+		_link_queue_local->thread = NULL;
+	link_queue_local_lock[0] = 0;
 }
 
 //--------------------------------------------------------------------------
@@ -715,11 +741,19 @@ void DeleteLinkQueueEx( PLINKQUEUE *pplq DBG_PASS )
 static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
 {
 	PLINKQUEUE plqNew = NULL;
+	while( LockedExchange( link_queue_local_lock, __LINE__ ) )
+	{
+		Relinquish();
+	}
+	if( _link_queue_local )
+		_link_queue_local->thread = MakeThread();
 	if( pplq )
 	{
 		PLINKQUEUE plq = *pplq;
 		INDEX size;
+		int prior_logging;
 		size = MY_OFFSETOF( pplq, pNode[plq->Cnt + entries] );
+		prior_logging = SetAllocateLogging( FALSE );
 		plqNew = (PLINKQUEUE)AllocateEx( size DBG_RELAY );
 		plqNew->Cnt = plq->Cnt + entries;
 		plqNew->Bottom = 0;
@@ -735,10 +769,14 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
 			plqNew->Top = plq->Top - plq->Bottom;
 			MemCpy( plqNew->pNode, plq->pNode + plq->Bottom, sizeof(POINTER)*plqNew->Top );
 		}
-      //need to make sure plq is always valid; can be trying to get a lock
-      (*pplq) = plqNew;
+		//need to make sure plq is always valid; can be trying to get a lock
+		(*pplq) = plqNew;
 		Release( plq );
+		SetAllocateLogging( prior_logging );
 	}
+	if( _link_queue_local )
+		_link_queue_local->thread = NULL;
+	link_queue_local_lock[0] = 0;
 	return plqNew;
 }
 
@@ -747,13 +785,13 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
  PLINKQUEUE  EnqueLinkEx ( PLINKQUEUE *pplq, POINTER link DBG_PASS )
 {
 	INDEX tmp;
-	int keep_lock = 0;
 	PLINKQUEUE plq;
+	int keep_lock = 0;
 	if( !pplq )
 		return NULL;
 	if( !(*pplq) )
 		*pplq = CreateLinkQueueEx( DBG_VOIDRELAY );
-
+retry_lock:
 	while( LockedExchange( link_queue_local_lock, __LINE__ ) )
 	{
 		if( link_queue_local_thread == MakeThread() )
@@ -763,28 +801,48 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
 		}
 		Relinquish();
 	}
-
-	plq = *pplq;
 	if( _link_queue_local )
 		_link_queue_local->thread = MakeThread();
+	if( !(*pplq) )
+	{
+		if( !keep_lock )
+			link_queue_local_lock[0] = 0;
+		return (*pplq);
+	}
+	if( (*pplq)->Lock )
+	{
+		if( !keep_lock )
+			link_queue_local_lock[0] = 0;
+		Relinquish();
+		goto retry_lock;
+	}
+	(*pplq)->Lock = 1;
+	if( !keep_lock )
+	{
+		if( _link_queue_local )
+			_link_queue_local->thread = NULL;
+		link_queue_local_lock[0] = 0;
+	}
+
+
+	plq = *pplq;
 	//else
 	//	s_link_queue_local.thread = MakeThread();
 	if( link )
 	{
-      tmp = plq->Top + 1;
-      if( tmp >= plq->Cnt )
-         tmp -= plq->Cnt;
-      if( tmp == plq->Bottom ) // collided with self...
-      {
-         plq = ExpandLinkQueueEx( pplq, 16 DBG_RELAY );
-         tmp = plq->Top + 1; // should be room at the end of phsyical array....
-      }
-      plq->pNode[plq->Top] = link;
-      plq->Top = tmp;
-   }
+		tmp = plq->Top + 1;
+		if( tmp >= plq->Cnt )
+			tmp -= plq->Cnt;
+		if( tmp == plq->Bottom ) // collided with self...
+		{
+			plq = ExpandLinkQueueEx( pplq, 16 DBG_RELAY );
+			tmp = plq->Top + 1; // should be room at the end of phsyical array....
+		}
+		plq->pNode[plq->Top] = link;
+		plq->Top = tmp;
+	}
 	*pplq = plq;
-	if( !keep_lock )
-		link_queue_local_lock[0] = 0;
+	plq->Lock = 0;
 	return plq;
 }
 
@@ -792,37 +850,46 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
 
  PLINKQUEUE  PrequeLinkEx ( PLINKQUEUE *pplq, POINTER link DBG_PASS )
 {
-   INDEX tmp;
-   PLINKQUEUE plq;
-   if( !pplq )
-      return NULL;
-   if( !(*pplq) )
-      *pplq = CreateLinkQueueEx( DBG_VOIDRELAY );
+	INDEX tmp;
+	PLINKQUEUE plq;
+	if( !pplq )
+		return NULL;
+	if( !(*pplq) )
+		*pplq = CreateLinkQueueEx( DBG_VOIDRELAY );
+retry_lock:
+	while( LockedExchange( link_queue_local_lock, __LINE__ ) )
+		Relinquish();
+	if( !(*pplq) )
+	{
+		link_queue_local_lock[0] = 0;
+		return NULL;
+	}
+	if( (*pplq)->Lock )
+	{
+		link_queue_local_lock[0] = 0;
+		Relinquish();
+		goto retry_lock;
+	}
+	(*pplq)->Lock = 1;
+	link_queue_local_lock[0] = 0;
 
-   while( LockedExchange( link_queue_local_lock, __LINE__ ) )
-      Relinquish();
+	plq = *pplq;
 
-   plq = *pplq;
-
-	if( _link_queue_local )
-		_link_queue_local->thread = MakeThread();
-	else
-		s_link_queue_local.thread = MakeThread();
-   if( link )
-   {
-      tmp = plq->Bottom - 1;
-      if( tmp & 0x80000000 )
+	if( link )
+	{
+		tmp = plq->Bottom - 1;
+		if( tmp & 0x80000000 )
 			tmp += plq->Cnt;
-      if( tmp == plq->Top ) // collided with self...
-      {
-         plq = ExpandLinkQueueEx( pplq, 16 DBG_RELAY );
-         tmp = plq->Cnt - 1; // should be room at the end of phsyical array....
-      }
-      plq->pNode[tmp] = link;
-      plq->Bottom = tmp;
-   }
-   link_queue_local_lock[0] = 0;
-   return plq;
+		if( tmp == plq->Top ) // collided with self...
+		{
+			plq = ExpandLinkQueueEx( pplq, 16 DBG_RELAY );
+			tmp = plq->Cnt - 1; // should be room at the end of phsyical array....
+		}
+		plq->pNode[tmp] = link;
+		plq->Bottom = tmp;
+	}
+	plq->Lock = 0;
+	return plq;
 }
 
 //--------------------------------------------------------------------------
@@ -830,7 +897,7 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
  LOGICAL  IsQueueEmpty ( PLINKQUEUE *pplq  )
 {
 	if( !pplq || !(*pplq) ||
-       (*pplq)->Bottom == (*pplq)->Top )
+		 (*pplq)->Bottom == (*pplq)->Top )
 		return TRUE;
 	return FALSE;
 }
@@ -850,7 +917,7 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
 }
 
 //--------------------------------------------------------------------------
- POINTER  PeekQueueEx    ( PLINKQUEUE plq, INDEX idx )
+ POINTER  PeekQueueEx	 ( PLINKQUEUE plq, INDEX idx )
 {
 	INDEX top;
 	if( idx == INVALID_INDEX )
@@ -877,29 +944,19 @@ static PLINKQUEUE ExpandLinkQueueEx( PLINKQUEUE *pplq, INDEX entries DBG_PASS )
  POINTER  PeekQueue ( PLINKQUEUE plq )
 {
 	return PeekQueueEx( plq, 0 );
-   /*
-	int top;
-	if( plq->Top != plq->Bottom )
-	{
-		top = plq->Top - 1;
-		if( top < 0 )
-			top += plq->Cnt;
-		return plq->pNode + top;
-	}
-	return NULL;
-   */
 }
 
 //--------------------------------------------------------------------------
 
 POINTER  DequeLink ( PLINKQUEUE *pplq )
 {
-	int keep_lock = 0;
 	POINTER p;
 	INDEX tmp;
 	if( pplq && *pplq )
 	{
+		int keep_lock = 0;
 		_32 priorline;
+	retry_lock:
 		while( priorline = LockedExchange( link_queue_local_lock, __LINE__ ) )
 		{
 			if( link_queue_local_thread == MakeThread() )
@@ -907,16 +964,28 @@ POINTER  DequeLink ( PLINKQUEUE *pplq )
 				keep_lock = 1;
 				break;
 			}
-			//lprintf( WIDE("waiting on lock %d %p"), priorline, pplq );
 			Relinquish();
 		}
+		if( !pplq )
+		{
+			if( !keep_lock )
+				link_queue_local_lock[0] = 0;
+			return NULL;
+		}
+		if( (*pplq)->Lock )
+		{
+			if( !keep_lock )
+				link_queue_local_lock[0] = 0;
+			Relinquish();
+			goto retry_lock;
+		}
+		(*pplq)->Lock = 1;
+		if( !keep_lock )
+			link_queue_local_lock[0] = 0;
 	}
 	else
 		return NULL;
-	if( _link_queue_local )
-		_link_queue_local->thread = MakeThread();
-	//else
-	//	s_link_queue_local.thread = MakeThread();
+
 	p = NULL;
 	if( (*pplq)->Bottom != (*pplq)->Top )
 	{
@@ -926,8 +995,7 @@ POINTER  DequeLink ( PLINKQUEUE *pplq )
 		p = (*pplq)->pNode[(*pplq)->Bottom];
 		(*pplq)->Bottom = tmp;
 	}
-	if( !keep_lock )
-		link_queue_local_lock[0] = 0;
+	(*pplq)->Lock = 0;
 	return p;
 }
 #ifdef __cplusplus
@@ -952,11 +1020,11 @@ PDATAQUEUE CreateDataQueueEx( INDEX size DBG_PASS )
 {
 	PDATAQUEUE pdq;
 	pdq = (PDATAQUEUE)AllocateEx( ( ( sizeof( DATAQUEUE ) + (2*size) ) - 1 ) DBG_RELAY );
-	pdq->Top      = 0;
-	pdq->Bottom   = 0;
+	pdq->Top		= 0;
+	pdq->Bottom	= 0;
 	pdq->ExpandBy = 16;
-	pdq->Size     = size;
-	pdq->Cnt      = 2;
+	pdq->Size	  = size;
+	pdq->Cnt		= 2;
 	return pdq;
 }
 
@@ -1076,7 +1144,7 @@ PDATAQUEUE  CreateLargeDataQueueEx( INDEX size, INDEX entries, INDEX expand DBG_
 		if( tmp == pdq->Top ) // collided with self...
 		{
 			// expand re-aligns queue elements so bottom is 0 and top is N
-         // so the bottom will always wrap when we try to add to the beginning...
+			// so the bottom will always wrap when we try to add to the beginning...
 			pdq = ExpandDataQueueEx( ppdq, (*ppdq)->ExpandBy DBG_RELAY );
 			tmp = pdq->Cnt - 1; // should be room at the end of phsyical array....
 		}
@@ -1101,46 +1169,46 @@ PDATAQUEUE  CreateLargeDataQueueEx( INDEX size, INDEX entries, INDEX expand DBG_
 
  LOGICAL  DequeData ( PDATAQUEUE *ppdq, POINTER result )
 {
-   LOGICAL p;
-   INDEX tmp;
-   if( ppdq && *ppdq )
-      while( LockedExchange( data_queue_local_lock, 1 ) )
-         Relinquish();
-   else
-   	return 0;
+	LOGICAL p;
+	INDEX tmp;
+	if( ppdq && *ppdq )
+		while( LockedExchange( data_queue_local_lock, 1 ) )
+			Relinquish();
+	else
+		return 0;
 
-   p = 0;
-   if( (*ppdq)->Bottom != (*ppdq)->Top )
-   {
-      tmp = (*ppdq)->Bottom + 1;
-      if( tmp >= (*ppdq)->Cnt )
-         tmp -= (*ppdq)->Cnt;
+	p = 0;
+	if( (*ppdq)->Bottom != (*ppdq)->Top )
+	{
+		tmp = (*ppdq)->Bottom + 1;
+		if( tmp >= (*ppdq)->Cnt )
+			tmp -= (*ppdq)->Cnt;
 		if( result )
 			MemCpy( result
 					, (*ppdq)->data + (*ppdq)->Bottom * (*ppdq)->Size
 					, (*ppdq)->Size );
-      p = 1;
-      (*ppdq)->Bottom = tmp;
-   }
-   data_queue_local_lock[0] = 0;
-   return p;
+		p = 1;
+		(*ppdq)->Bottom = tmp;
+	}
+	data_queue_local_lock[0] = 0;
+	return p;
 }
 
 //--------------------------------------------------------------------------
 
  LOGICAL  UnqueData ( PDATAQUEUE *ppdq, POINTER result )
 {
-   LOGICAL p;
-   INDEX tmp;
-   if( ppdq && *ppdq )
-      while( LockedExchange( data_queue_local_lock, 1 ) )
-         Relinquish();
-   else
-   	return 0;
+	LOGICAL p;
+	INDEX tmp;
+	if( ppdq && *ppdq )
+		while( LockedExchange( data_queue_local_lock, 1 ) )
+			Relinquish();
+	else
+		return 0;
 
-   p = 0;
-   if( (*ppdq)->Bottom != (*ppdq)->Top )
-   {
+	p = 0;
+	if( (*ppdq)->Bottom != (*ppdq)->Top )
+	{
 		tmp = (*ppdq)->Top;
 		if( tmp )
 			tmp--;
@@ -1150,11 +1218,11 @@ PDATAQUEUE  CreateLargeDataQueueEx( INDEX size, INDEX entries, INDEX expand DBG_
 			MemCpy( result
 					, (*ppdq)->data + tmp * (*ppdq)->Size
 					, (*ppdq)->Size );
-      p = 1;
-      (*ppdq)->Top = tmp;
-   }
-   data_queue_local_lock[0] = 0;
-   return p;
+		p = 1;
+		(*ppdq)->Top = tmp;
+	}
+	data_queue_local_lock[0] = 0;
+	return p;
 }
 
 //--------------------------------------------------------------------------
@@ -1182,7 +1250,7 @@ PDATAQUEUE  CreateLargeDataQueueEx( INDEX size, INDEX entries, INDEX expand DBG_
 			{
 				top++;
 				if( (top) >= (*ppdq)->Cnt )
-               top = top-(*ppdq)->Cnt;
+					top = top-(*ppdq)->Cnt;
 			}
 		}
 		if( idx == INVALID_INDEX )
@@ -1219,18 +1287,6 @@ void  EmptyDataQueue ( PDATAQUEUE *ppdq )
 };//		namespace data_queue {
 #endif
 
-// syslog uses link queues for buffers, so delete memory after syslog.
-PRIORITY_UNLOAD( InitLocals, SYSLOG_PRELOAD_PRIORITY-1 )
-{
-	Deallocate( POINTER, _list_local );
-	_list_local = NULL;
-	Deallocate( POINTER, _data_list_local );
-	_data_list_local = NULL;
-	Deallocate( POINTER, _link_queue_local );
-	_link_queue_local = NULL;
-	Deallocate( POINTER, _data_queue_local );
-	_data_queue_local = NULL;
-}
 PRIORITY_PRELOAD( InitLocals, NAMESPACE_PRELOAD_PRIORITY + 1 )
 {
 #ifdef __cplusplus

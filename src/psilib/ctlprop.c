@@ -342,7 +342,6 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 				TEXTCHAR classname[32];
 				GetControlPropSheet gcps;
 				snprintf( classname, sizeof( classname ), PSI_ROOT_REGISTRY WIDE("/control/%d/rtti"), control->nType );
-            			//DumpRegisteredNames();
 				gcps = GetRegisteredProcedure( classname, PSI_CONTROL, get_property_page, (PSI_CONTROL) );
 
 				if( gcps )

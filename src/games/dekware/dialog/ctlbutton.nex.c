@@ -212,6 +212,5 @@ PRELOAD( BtnRegisterExtraInits )
 
 	SimpleRegisterMethod( WIDE("psi/control/") NORMAL_BUTTON_NAME WIDE("/rtti")
 							  , SaveCommonMacroData, WIDE("int"), WIDE("extra save"), WIDE("(PCOMMON,PVARTEXT)") );
-   //DumpRegisteredNames();
 }
 

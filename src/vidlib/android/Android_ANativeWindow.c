@@ -7,6 +7,9 @@
 static IMAGE_INTERFACE AndroidANWImageInterface;
 
 
+static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y, _32 width, _32 height DBG_PASS );
+
+
 static void ClearDirtyFlag( Image image )
 {
 	//lprintf( "Clear dirty on %p  (%p) %08x", image, (image)?image->image:NULL, image?image->image->flags:0 );
@@ -90,23 +93,39 @@ static PRENDERER CPROC AndroidANW_OpenDisplayAboveUnderSizedAt( _32 attributes, 
 
 	PVPRENDER Renderer = New( struct vidlib_proxy_renderer );
 	MemSet( Renderer, 0, sizeof( struct vidlib_proxy_renderer ) );
+
+	Renderer->flags.hidden = 1;
+
 	AddLink( &l.renderers, Renderer );
 	Renderer->id = FindLink( &l.renderers, Renderer );
 	Renderer->x = (x == -1)?0:x;
 	Renderer->y = (y == -1)?0:x;
-   lprintf( "openDisplay %d,%d", width, height );
+   //lprintf( "openDisplay %p %d,%d", Renderer, width, height );
 	Renderer->w = width;
 	Renderer->h = height;
 	Renderer->attributes = attributes;
 	if( !l.bottom )
 		l.bottom = Renderer;
 
+	if( !l.top )
+		l.top = Renderer;
+
 	if( Renderer->above = (PVPRENDER)above )
+	{
+		if( l.top == (PVPRENDER)above )
+         l.top = Renderer;
 		Renderer->above->under = Renderer;
+	}
 
 	if( Renderer->under = (PVPRENDER)under )
-      Renderer->under->above = Renderer;
+	{
+		if( l.bottom == (PVPRENDER)under )
+         l.bottom = Renderer;
+		Renderer->under->above = Renderer;
+	}
+
 	Renderer->image = MakeImageFileEx( width, height DBG_SRC );
+   //lprintf( "clearimage.. %p", Renderer );
    ClearImageTo( Renderer->image, 0 );
 	return (PRENDERER)Renderer;
 }
@@ -124,110 +143,305 @@ static PRENDERER CPROC AndroidANW_OpenDisplaySizedAt	  ( _32 attributes, _32 wid
 
 static void CPROC  AndroidANW_CloseDisplay ( PRENDERER Renderer )
 {
+	PVPRENDER r = (PVPRENDER)Renderer;
+	int real_x, real_y;
+   int real_w, real_h;
 	UnmakeImageFileEx( (Image)(((PVPRENDER)Renderer)->image) DBG_SRC );
-	DeleteLink( &l.renderers, Renderer );
-	Release( Renderer );
+
+   real_x = r->x;
+   real_y = r->y;
+   real_w = r->w;
+	real_h = r->h;
+
+	if( l.top == r )
+      l.top = r->above;
+	if( l.bottom == r )
+		l.bottom = r->under;
+	if( r->above )
+      r->above->under = r->under;
+	if( r->under )
+      r->under->above = r->above;
+
+	DeleteLink( &l.renderers, r );
+	Release( r );
+
+	if( l.top )
+		AndroidANW_UpdateDisplayPortionEx( (PRENDERER)l.top, real_x - l.top->x, real_y - l.top->y
+													, real_w, real_h DBG_SRC );
+	else
+		AndroidANW_UpdateDisplayPortionEx( NULL, 0, 0, real_w, real_h DBG_SRC );
 }
 
-static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y, _32 width, _32 height DBG_PASS )
+// x, y, width, height are passed in screen coordinates
+// and have to be adjusted to be actual portion of R
+// where UpdateDIsplayPortion takes the region within the renderer to update
+// this takes the real screen.
+static void CPROC UpdateDisplayPortionRecurse( 	ANativeWindow_Buffer *buffer
+															, PVPRENDER r, S_32 x, S_32 y, _32 width, _32 height )
 {
 	// no-op; it will ahve already displayed(?)
-	ARect bounds;
-	ANativeWindow_Buffer buffer;
-	S_32 out_x = ((PVPRENDER)r)->x;
-	S_32 out_y = ((PVPRENDER)r)->y;
-	S_32 ofs_x = 0;
-	S_32 ofs_y = 0;
-	//lprintf( "Update %d,%d to %d,%d on %d,%d %d,%d",
-	//		  x, y, width, height
-   //        , out_x, out_y, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h );
-	if( out_x < 0 )
+	//lprintf( "recurse %p  %d,%d  %d,%d", r, x, y, width, height );
+	if( r )
 	{
-		x +=  out_x;
-      ofs_x = -out_x;
-      out_x = 0;
-		if( x < 0 )
+
+		int out_x;
+		int out_y;
+		// during recursion, may hit layers that are hidden.
+		if( r->flags.hidden
+			|| ( r->x > ( x + (int)width ) )  // render to the right of the area
+			|| ( r->y > ( y + (int)height ) )  // renderer below the area
+			|| ( x > ( r->x + (int)r->w ) ) // area to the right of renderer
+			|| ( y > ( r->y + (int)r->h ) ) // area below the renderer
+		  )
 		{
-			if( width < -x )
-            return;
-			width += x;
-         // this is resulting as 0
-			x = 0;
+			lprintf( "%s; or region outside...%p   %d,%d  %d,%d  %d,%d  %d,%d"
+					 , r->flags.hidden?"hidden":"OR!"
+					 , r
+					 , x, y, width, height
+					 , r->x, r->y, r->w, r->h );
+ 			UpdateDisplayPortionRecurse( buffer, r->above, x, y, width, height );
+			return;
 		}
-	}
-	else
-      ofs_x = 0;
-	if( out_y < 0 )
-	{
-		y +=  out_y;
-      ofs_y = -out_y;
-      out_y = 0;
-		if( y < 0 )
+		else
 		{
-			if( height < -y )
-            return;
-			height += y;
-			y = 0;
-		}
-	}
-	else
-      ofs_y = 0;
-
-	if( width != ((PVPRENDER)r)->w && height != ((PVPRENDER)r)->h
-      || width != l.default_display_x || height != l.default_display_y
-		|| x || y )
-	{
-		ofs_x += x;
-		ofs_y += y;
-
-		bounds.left = out_x + x;
-		bounds.top = out_y + y;
-		bounds.right = bounds.left + width;
-		bounds.bottom = bounds.top + height;
-
-		//lprintf(" Updating from %d,%d %d,%d to %d,%d  %d,%d"
-		//		 , ofs_x, ofs_y, width, height
-		//		 , bounds.left, bounds.top, l.default_display_x, l.default_display_y );
-		ANativeWindow_lock( l.displayWindow, &buffer, &bounds );
-      if( bounds.right - bounds.left < width )
-			width = ( bounds.right - bounds.left );
-      if( ( bounds.bottom - bounds.top ) < height )
-			height = bounds.bottom - bounds.top;
-      // output bounds is updates to be the size actually needed.
-	iterate:
-		{
-			int row;
-         //lprintf( "buffer is %d %d buffer stride is %d  pwidth is %d width is %d", bounds.top, bounds.left, buffer.stride, ((PVPRENDER)r)->image->pwidth, width );
-			for( row = 0; row < height; row++ )
+			if( r->attributes & DISPLAY_ATTRIBUTE_LAYERED )
 			{
-				memcpy(((_32*)buffer.bits) + buffer.stride * ( bounds.top + row ) + bounds.left
-						, ((PVPRENDER)r)->image->image + ((PVPRENDER)r)->image->pwidth * ( ofs_y + row ) + ofs_x
-						, width * sizeof( CDATA ) );
+				UpdateDisplayPortionRecurse( buffer, r->above, x, y, width, height );
+			}
+			else
+			{
+				int new_out_x, new_out_y;
+				int new_out_width, new_out_height;
+            // this window is opaque output; but dispatch the areas around the outside of this window....
+				if( x < r->x )
+				{
+               // left side band for height of band...
+					new_out_x = x;
+					new_out_width = r->x - x;
+					new_out_y = y;
+					new_out_height = height;
+					UpdateDisplayPortionRecurse( buffer, r->above, new_out_x, new_out_y, new_out_width, new_out_height );
+               width = width - ( r->x - x );
+               x = r->x;
+				}
+
+				if( y < r->y )
+				{
+					// left side of this band is already output, so start at r->x
+					new_out_x = x;
+					new_out_width = width;
+					new_out_y = y;
+					new_out_height = r->y - y;
+					UpdateDisplayPortionRecurse( buffer, r->above, new_out_x, new_out_y, new_out_width, new_out_height );
+               height = height - ( r->y - y );
+               y = r->y;
+				}
+				if( ( x + (int)width ) > ( r->x + (int)r->w ) )
+				{
+					// left side of this band is already output, so start at r->x
+					new_out_x = r->x + r->w;  // screen position fo right side outside this window
+					new_out_width = ( x + width ) - ( r->x + r->w);
+					new_out_y = y;
+					new_out_height = height;
+					UpdateDisplayPortionRecurse( buffer, r->above, new_out_x, new_out_y, new_out_width, new_out_height );
+					width = ( r->x + r->w ) - x;
+				}
+
+            if( ( y + (int)height ) > ( r->y + (int)r->h ) )
+				{
+					// left side of this band is already output, so start at r->x
+					new_out_x = x;
+					new_out_width = width;
+					new_out_y = r->y + r->h; // screen position of top of outside of this window...
+					new_out_height = ( y + height ) - ( r->y + r->h );
+					UpdateDisplayPortionRecurse( buffer, r->above, new_out_x, new_out_y, new_out_width, new_out_height );
+               height = ( r->y + r->h ) - y;
+				}
+			}
+
+		}
+      // convert back to window-local coordinates and do old logic
+		out_x = x - r->x;
+		out_y = y - r->y;
+		//lprintf( "Update %d,%d to %d,%d on %d,%d %d,%d",
+		//		  x, y, width, height
+		//        , out_x, out_y, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h );
+
+		// first, fit the rectangle within the display.
+		if( out_x < 0 )
+		{
+			// window was off the left of the display surface
+			x +=  out_x;
+			out_x = 0;
+			if( x < 0 )
+			{
+				if( width < -x )
+					return;
+				width += x;
+				// this is resulting as 0
+				x = 0;
+			}
+		}
+
+		if( out_y < 0 )
+		{
+			// window was off the top of the display surface
+			y +=  out_y;
+			out_y = 0;
+			if( y < 0 )
+			{
+				if( height < -y )
+					return;
+				height += y;
+				y = 0;
+			}
+		}
+
+
+		if( width != ((PVPRENDER)r)->w && height != ((PVPRENDER)r)->h
+			|| width != l.default_display_x || height != l.default_display_y
+			|| x || y )
+		{
+			Image tmpout;
+		iterate:
+			tmpout = BuildImageFileEx( buffer->bits, buffer->stride, l.default_display_y DBG_SRC );
+			//lprintf( "Update %p %d,%d  to %d,%d    %d,%d", r, out_x, out_y, x, y, width, height );
+			if( r->attributes & DISPLAY_ATTRIBUTE_LAYERED )
+			{
+            BlotImageSizedEx( tmpout, r->image, x, y, out_x, out_y, width, height, ALPHA_TRANSPARENT, BLOT_COPY );
+			}
+         else
+            BlotImageSizedEx( tmpout, r->image, x, y, out_x, out_y, width, height, 0, BLOT_COPY );
+         UnmakeImageFile( tmpout );
+		}
+		else
+		{
+			//lprintf( "update full image..." );
+			//lprintf( "Update all would be ... %d  %d", buffer->stride, ((PVPRENDER)r)->image->pwidth );
+			if( buffer->stride == ((PVPRENDER)r)->image->pwidth )
+				memcpy(buffer->bits , ((PVPRENDER)r)->image->image, height * width * 4 );
+			else
+			{
+				goto iterate;
 			}
 		}
 	}
 	else
 	{
-      //lprintf( "update full image..." );
-		ANativeWindow_lock( l.displayWindow, &buffer, NULL );
-      //lprintf( "Update all would be ... %d  %d", buffer.stride, ((PVPRENDER)r)->image->pwidth );
-      if( buffer.stride == ((PVPRENDER)r)->image->pwidth )
-			memcpy(buffer.bits , ((PVPRENDER)r)->image->image, height * width * 4 );
-		else
+		int row;
+		if( x < 0 )
 		{
-			bounds.top = 0;
-			bounds.left = 0;
-			ofs_x = 0;
-         ofs_y = 0;
-			goto iterate;
+			if( width < -x )
+            return;
+         width += x;
+			x = 0;
+		}
+		if( y < 0 )
+		{
+			if( height < -y )
+            return;
+         height += y;
+			x = 0;
+		}
+
+		{
+			_32 *base_bits = ((_32*)buffer->bits) + buffer->stride * ( y ) + x;
+			//lprintf( "buffer is %d %d buffer stride is %d  pwidth is %d width is %d", bounds.top, bounds.left, buffer.stride, ((PVPRENDER)r)->image->pwidth, width );
+			for( row = 0; row < height; row++ )
+			{
+				_32 *bits = base_bits;
+				int col;
+				for( col = 0; col < width; col++ )
+					(bits++)[0] = 0xFF000000;
+            base_bits += buffer->stride;
+			}
 		}
 	}
-   //_lprintf(DBG_RELAY)( "unlock... ( did we not lock?" );
-	ANativeWindow_unlockAndPost(l.displayWindow);
+}
+
+
+
+
+static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y, _32 width, _32 height DBG_PASS )
+{
+	// no-op; it will ahve already displayed(?)
+	ANativeWindow_Buffer buffer;
+	S_32 out_x;
+	S_32 out_y;
+	//_lprintf(DBG_RELAY)( "update begin %p %d,%d  %d,%d", l.displayWindow, x, y, width, height );
+	if( r )
+	{
+		if( ((PVPRENDER)r)->flags.hidden )
+		{
+         lprintf( "hidden; not showing..." );
+         // if it's not hidden it shouldn't be doing an update...
+			return;
+		}
+      //lprintf( "Update %p %d,%d  %d,%d", r, x, y, width, height );
+		out_x = ((PVPRENDER)r)->x + x;
+		out_y = ((PVPRENDER)r)->y + y;
+		// compute the screen position of the desired rectangle
+		// do not clip the rectangle to the renderer, so layers can be fixed up
+
+		//lprintf( "Update %d,%d to %d,%d on %d,%d %d,%d",
+		//		  x, y, width, height
+		//        , out_x, out_y, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h );
+		if( out_x < 0 )
+		{
+			if( (int)width < (-out_x ) )
+			{
+				return;
+			}
+			width += out_x;
+			out_x = 0;
+		}
+
+		if( out_y < 0 )
+		{
+			if( (int)height < -out_y )
+			{
+				return;
+			}
+			height += out_y;
+			out_y = 0;
+		}
+		EnterCriticalSec( &l.cs_update );
+
+		// chop the part that's off the right side ....
+		if( ( out_x + (int)width ) > l.default_display_x )
+		{
+			width = l.default_display_x - out_x;
+		}
+		// chop the part that's off the bottom side ....
+		if( ( out_y + (int)height ) > l.default_display_y )
+		{
+			height = l.default_display_y - out_y;
+		}
+
+		{
+			ARect bounds;
+         // can still lock just the region we needed...
+			bounds.left = out_x;
+			bounds.top = out_y;
+			bounds.right = out_x + width;
+			bounds.bottom = out_y + height;
+			ANativeWindow_lock( l.displayWindow, &buffer, &bounds );
+			//lprintf( "---V Update screen %p %d,%d  %d,%d   %d,%d   %d,%d"
+			//		 , r, out_x, out_y, out_y+width, out_y+height
+			//		 , bounds.left, bounds.top, bounds.right, bounds.bottom
+			//		 );
+			UpdateDisplayPortionRecurse( &buffer, l.top, out_x, out_y, width, height );
+			//lprintf( "---^ And the final unlock...." );
+			ANativeWindow_unlockAndPost(l.displayWindow);
+		}
+		LeaveCriticalSec( &l.cs_update );
+		//lprintf( "update end" );
+	}
 }
 
 static void CPROC AndroidANW_UpdateDisplayEx( PRENDERER r DBG_PASS)
 {
+   ((PVPRENDER)r)->flags.hidden = 0;
 	// no-op; it will ahve already displayed(?)
    AndroidANW_UpdateDisplayPortionEx( r, 0, 0, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h DBG_RELAY );
 }
@@ -237,7 +451,7 @@ static void CPROC AndroidANW_GetDisplayPosition ( PRENDERER r, S_32 *x, S_32 *y,
 	PVPRENDER pRender = (PVPRENDER)r;
 	if( r )
 	{
-      lprintf( "Get display pos of %p into %p %p %p %p", r, x, y, width, height );
+      //lprintf( "Get display pos of %p into %p %p %p %p", r, x, y, width, height );
 		if( x )
 			(*x) = pRender->x;
 		if( y )
@@ -247,8 +461,6 @@ static void CPROC AndroidANW_GetDisplayPosition ( PRENDERER r, S_32 *x, S_32 *y,
 		if( height )
 			(*height) = pRender->h;
 	}
-	else
-      lprintf( WIDE( "WHy are you getting position of NULL?") );
 }
 
 static void CPROC AndroidANW_MoveSizeDisplay( PRENDERER r
@@ -256,13 +468,55 @@ static void CPROC AndroidANW_MoveSizeDisplay( PRENDERER r
 													 , S_32 w, S_32 h )
 {
 	PVPRENDER pRender = (PVPRENDER)r;
-   //lprintf( "move size %d %d   %d %d", x, y, w, h );
+	//lprintf( "move size %d %d   %d %d", x, y, w, h );
+	S_32 real_x, real_y;
+	S_32 real_w;
+	S_32 real_h;
+
+   //-------------------------------
+	if( w > pRender->w )
+		real_w = w;
+	else
+		real_w = pRender->w;
+   //-------------------------------
+	if( h > pRender->h )
+		real_h = h;
+	else
+      real_h = pRender->h;
+
+   //-------------------------------
+	if( x < pRender->x )
+	{
+      real_x = 0;
+		real_w += pRender->x - x;
+	}
+	else
+	{
+      // save upper x
+      real_x = pRender->x - x;
+      real_w += x - pRender->x;
+	}
+   //-------------------------------
+	if( y < pRender->y )
+	{
+      real_y = 0;
+      real_h += pRender->y - y;
+	}
+	else
+	{
+      // save upper y
+      real_y = pRender->y - y;
+      real_h += y - pRender->y;
+	}
+   //lprintf( "TOtoal by now is %d,%d  %d,%d %d,%d", real_x, real_y, real_w, real_h, w, h );
+
 	pRender->x = x;
 	pRender->y = y;
 	pRender->w = w;
 	pRender->h = h;
 
-   AndroidANW_UpdateDisplayEx( r DBG_SRC );
+
+	AndroidANW_UpdateDisplayPortionEx( r, real_x, real_y, real_w, real_h DBG_SRC );
 }
 
 static void CPROC AndroidANW_MoveDisplay		  ( PRENDERER r, S_32 x, S_32 y )
@@ -350,7 +604,6 @@ static void CPROC AndroidANW_Redraw( PRENDERER r )
 	lprintf( "Sending application draw.... %p %p", render?render->redraw:0, render );
 	if( render->redraw )
 		render->redraw( render->psv_redraw, (PRENDERER)render );
-   lprintf( "updating to the displa" );
    AndroidANW_UpdateDisplayEx( r DBG_SRC );
 }
 
@@ -416,16 +669,18 @@ static void CPROC AndroidANW_SyncRender( PRENDERER pDisplay )
 
 static void CPROC AndroidANW_MakeTopmost  ( PRENDERER r )
 {
+	PVPRENDER pRender = (PVPRENDER)r;
+   lprintf( "Should hook into topmost display chain" );
+   //pRender->
 }
 
 static void CPROC AndroidANW_HideDisplay	 ( PRENDERER r )
 {
+	((PVPRENDER)r)->flags.hidden = 1;
+   //lprintf( "hding display %d,%d  %d,%d", ((PVPRENDER)r)->x, ((PVPRENDER)r)->y, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h );
+	AndroidANW_UpdateDisplayPortionEx( r, 0, 0, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h DBG_SRC );
 }
 
-static void CPROC AndroidANW_RestoreDisplay  ( PRENDERER r )
-{
-   AndroidANW_Redraw( r );
-}
 
 static void CPROC AndroidANW_ForceDisplayFocus ( PRENDERER r )
 {
@@ -547,7 +802,12 @@ static void CPROC AndroidANW_SetRestoreHandler  ( PRENDERER r, HideAndRestoreCal
 
 static void CPROC AndroidANW_RestoreDisplayEx ( PRENDERER r DBG_PASS )
 {
-	((PVPRENDER)r)->redraw( ((PVPRENDER)r)->psv_redraw, r );
+   ((PVPRENDER)r)->flags.hidden = 0;
+   AndroidANW_Redraw( r );
+}
+static void CPROC AndroidANW_RestoreDisplay  ( PRENDERER r )
+{
+   AndroidANW_RestoreDisplayEx ( r  DBG_SRC );
 }
 
 

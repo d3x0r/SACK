@@ -195,7 +195,7 @@ static void CPROC Update( PTRSZVAL psvPC )
 				//static TEXTCHAR *text;
 				if( pClk->last_time && StrCmp( pClk->last_time, GetText( pClk->time ) ) == 0 )
 				{
-               no_update = 1;
+					no_update = 1;
 				}
 				else
 				{
@@ -205,7 +205,7 @@ static void CPROC Update( PTRSZVAL psvPC )
 				}
 			}
 
-         if( !no_update )
+			if( !no_update )
 				SmudgeCommon( (PCOMMON)psvPC );
 
 			if( pClk->analog_clock )

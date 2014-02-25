@@ -506,7 +506,6 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 
 	SimpleRegisterMethod( WIDE("psi/control/") CONTROL_FRAME_NAME  WIDE("/rtti/extra init")
 							  , CustomFrameInit, WIDE("int"), WIDE("extra init"), WIDE("(PCOMMON)") );
-	//DumpRegisteredNames();
 	return DekVersion;
 }
 

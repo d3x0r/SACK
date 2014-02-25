@@ -289,7 +289,7 @@ void SetSliderValues( PCONTROL pc, int min, int current, int max )
 {	
 	if( pc )
 	{
-      ValidatedControlData( PSLIDER, SLIDER_CONTROL, ps, pc );
+		ValidatedControlData( PSLIDER, SLIDER_CONTROL, ps, pc );
 		if( ps )
 		{
 			ps->min = min;
@@ -297,7 +297,7 @@ void SetSliderValues( PCONTROL pc, int min, int current, int max )
 			ps->max = max;
 			if( ps->SliderUpdated )
 				ps->SliderUpdated( ps->psvUser, pc, ps->current );
-         SmudgeCommon(pc);
+			SmudgeCommon(pc);
 		}
 	}
 }
