@@ -592,10 +592,14 @@ void InvokeExits( void )
 	{
 		// just before all memory goes away
 		// global memory goes away (including mine) so deadstart_local_data is invalidated.
+#ifndef __STATIC_GLOBALS__
 		struct deadstart_local_data_ *local_pointer = (struct deadstart_local_data_*)(((PTRSZVAL)deadstart_local_data)-sizeof(PLIST));
+#endif
 		PSHUTDOWN_PROC proclist = proc;
 		// link list to myself..
+#ifndef __STATIC_GLOBALS__
 		Hold( local_pointer );
+#endif
 		proc->me = &proclist;
 		while( ( proc = proclist ) )
 		{
