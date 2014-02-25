@@ -1,6 +1,5 @@
 #if !defined( MEMORY_STRUCT_DEFINED ) || defined( DEFINE_MEMORY_STRUCT )
 
-#define USE_CUSTOM_ALLOCER 1
 #ifdef _DEBUG
 #  define USE_DEBUG_LOGGING 1
 #else
