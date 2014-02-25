@@ -60,6 +60,7 @@ struct procreg_local_tag {
 	_32 simple_lock;
 
 	PLINKQUEUE tmp_names;
+	int reference_count; 
 	PLIST global_spaces;
 	//gcroot<System::IO::FileStream^> fs;
 };
@@ -491,6 +492,7 @@ static void CPROC InitGlobalSpace( POINTER p, PTRSZVAL size )
 	// if we have 500 names, 9 searches is much less than 250 avg
 	(*(struct procreg_local_tag*)p).flags.bIndexNameTable = 1;
 	(*(struct procreg_local_tag*)p).NameIndex = CreateBinaryTreeExx( BT_OPT_NODUPLICATES, (int(CPROC *)(PTRSZVAL,PTRSZVAL))SavedNameCmp, KillName );
+	(*(struct procreg_local_tag*)p).reference_count++;
 }
 
 static void Init( void )
@@ -2228,24 +2230,26 @@ PRIORITY_ATEXIT( CloseGlobalRegions, ATEXIT_PRIORITY_SHAREMEM + 1 )
 {
 	PLIST *global_reference;
 	INDEX idx;
-	LIST_FORALL( l.global_spaces, idx, PLIST*, global_reference )
-	{
-		INDEX idx2;
-		POINTER *ppGlobal;
-		SetAllocateLogging( 0 );
-		// hold the global reference once more, and then just release
-		Hold( global_reference );
-		LIST_FORALL( global_reference[0], idx2, POINTER *, ppGlobal )
+	l.reference_count--;
+	if( !l.reference_count )
+		LIST_FORALL( l.global_spaces, idx, PLIST*, global_reference )
 		{
-			// increment count here for number of Releases to do.
-			(*ppGlobal) = NULL;
+			INDEX idx2;
+			POINTER *ppGlobal;
+			SetAllocateLogging( 0 );
+			// hold the global reference once more, and then just release
+			Hold( global_reference );
+			LIST_FORALL( global_reference[0], idx2, POINTER *, ppGlobal )
+			{
+				// increment count here for number of Releases to do.
+				(*ppGlobal) = NULL;
+				Release( global_reference );
+			}
+			DeleteList( global_reference );
+			// Release all times; number of holds should match number above...
+			// safety check it?
 			Release( global_reference );
 		}
-		DeleteList( global_reference );
-		// Release all times; number of holds should match number above...
-		// safety check it?
-		Release( global_reference );
-	}
 }
 
 void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, PTRSZVAL global_size, CTEXTSTR name, void (CPROC*Open)(POINTER,PTRSZVAL) )
