@@ -36,7 +36,7 @@ void CloseSomeDatapath( PSENTIENT ps, PTEXT parameters, PDATAPATH *root )
 					DestroyDataPath( (*root) );
 				}
 				else
-               datasource = 1;
+					datasource = 1;
 			}
 		} while( !datasource );
 	}
@@ -121,38 +121,38 @@ int CPROC PARSE( PSENTIENT ps, PTEXT parameters )
 
 int CPROC CMD_ENDCOMMAND( PSENTIENT ps, PTEXT parameters )
 {
-   CloseSomeDatapath( ps, parameters, &ps->Command );
+	CloseSomeDatapath( ps, parameters, &ps->Command );
 	return FALSE;
 }
 
 //--------------------------------------
 int CPROC COMMAND( PSENTIENT ps, PTEXT parameters )
 {
-   PTEXT temp;
-    PTEXT devname;
-    if( ( devname = GetParam( ps, &parameters ) ) )
-    {
-        // find device to see if it's already open...
-        // by name! 
-        // but - this causes a problem for nested scripts
-        // which are going to have to be artificiailly inceminated
-        // with a unique name maybe something like script_#####
-        PDATAPATH pdp = FindOpenDevice( ps, devname );
-        if( pdp )
-        {
-         if( !ps->CurrentMacro )
-         {
-                PVARTEXT pvt;
-                pvt = VarTextCreate();
-                vtprintf( pvt, WIDE("Device named %s is already open."), GetText( devname ) );
-                EnqueLink( &ps->Command->Output, (POINTER)VarTextGet( pvt ) );
-                VarTextDestroy( &pvt );
-            }
-            return -1;
-        }
-       if( ( temp = GetParam( ps, &parameters ) ) )
-        {
-           PDATAPATH pdp;
+	PTEXT temp;
+	 PTEXT devname;
+	 if( ( devname = GetParam( ps, &parameters ) ) )
+	 {
+		  // find device to see if it's already open...
+		  // by name! 
+		  // but - this causes a problem for nested scripts
+		  // which are going to have to be artificiailly inceminated
+		  // with a unique name maybe something like script_#####
+		  PDATAPATH pdp = FindOpenDevice( ps, devname );
+		  if( pdp )
+		  {
+			if( !ps->CurrentMacro )
+			{
+					 PVARTEXT pvt;
+					 pvt = VarTextCreate();
+					 vtprintf( pvt, WIDE("Device named %s is already open."), GetText( devname ) );
+					 EnqueLink( &ps->Command->Output, (POINTER)VarTextGet( pvt ) );
+					 VarTextDestroy( &pvt );
+				}
+				return -1;
+		  }
+		 if( ( temp = GetParam( ps, &parameters ) ) )
+		  {
+			  PDATAPATH pdp;
 
 			  //lprintf( WIDE("Opening device handle named: %s"), GetText( devname ) );
 			  if( ( pdp = OpenDevice( &ps->Command, ps, temp, parameters ) ) )
@@ -174,7 +174,7 @@ int CPROC COMMAND( PSENTIENT ps, PTEXT parameters )
 				  // otherwise they may/will get lost.
 					  if( ps->Command->flags.Data_Source
 						 && !ps->Command->flags.Dont_Relay_Prior)
-                         {
+								 {
 									 pOldPath = ps->Command->pPrior;
 
 												 // move all commands from old queue to new queue
@@ -192,71 +192,71 @@ int CPROC COMMAND( PSENTIENT ps, PTEXT parameters )
 				  if( ps->CurrentMacro )
 					  ps->CurrentMacro->state.flags.bSuccess = TRUE;
 			  }
-        }
-        else
-        {
-            DECLTEXT( msg, WIDE("Command must specify a name (/command <name> <device> <options...)") );
-            EnqueLink( &ps->Command->Output, (PTEXT)&msg );
-        }
-   }
-   return FALSE;
+		  }
+		  else
+		  {
+				DECLTEXT( msg, WIDE("Command must specify a name (/command <name> <device> <options...)") );
+				EnqueLink( &ps->Command->Output, (PTEXT)&msg );
+		  }
+	}
+	return FALSE;
 }
 //--------------------------------------
-   // exit closes the command datapath...
+	// exit closes the command datapath...
 int CPROC EXIT( PSENTIENT ps, PTEXT parameters ) // should check to save work...
 {
-         if( ps->Data )
-         {
-            // uhmm yeah maybe...
-            // is actually a KILL command...
-            DestroyDataPath( ps->Data );
-            ps->Data = NULL;
-         }
+			if( ps->Data )
+			{
+				// uhmm yeah maybe...
+				// is actually a KILL command...
+				DestroyDataPath( ps->Data );
+				ps->Data = NULL;
+			}
 
-         if( ps->Command &&
-             ps->Command->Type )
-         {
-            DestroyDataPath( ps->Command );
-            ps->Command = NULL;
-         }
-         else
-         {
-            ExitNexus();
-         }
-    return TRUE;
+			if( ps->Command &&
+				 ps->Command->Type )
+			{
+				DestroyDataPath( ps->Command );
+				ps->Command = NULL;
+			}
+			else
+			{
+				ExitNexus();
+			}
+	 return TRUE;
 }
 //--------------------------------------
 int CPROC CMD_GETPARTIAL( PSENTIENT ps, PTEXT parameters )
 {
-   if( ps->Data )
-   {
-      PTEXT pSave, temp;
-      pSave = parameters;
-      if( ( temp = GetParam( ps, &parameters ) ) )
-      {
-         if( temp == pSave )
-         {
-            DECLTEXT( msg, WIDE("Parameter to GetPartial was not a variable reference.") );
-            EnqueLink( &ps->Command->Output, &msg );
-            return FALSE;
-         }
+	if( ps->Data )
+	{
+		PTEXT pSave, temp;
+		pSave = parameters;
+		if( ( temp = GetParam( ps, &parameters ) ) )
+		{
+			if( temp == pSave )
+			{
+				DECLTEXT( msg, WIDE("Parameter to GetPartial was not a variable reference.") );
+				EnqueLink( &ps->Command->Output, &msg );
+				return FALSE;
+			}
 
-         if( GetIndirect( temp ) )
-         {
-            LineRelease( GetIndirect( temp ) );
-            SetIndirect( temp, NULL );
-         }
+			if( GetIndirect( temp ) )
+			{
+				LineRelease( GetIndirect( temp ) );
+				SetIndirect( temp, NULL );
+			}
 
-         if( ps->Data->Partial )
-         {
-            SetIndirect( temp, ps->Data->Partial );
-            ps->Data->Partial = NULL;
-            if( ps->CurrentMacro )
-               ps->CurrentMacro->state.flags.bSuccess = TRUE;
-         }
-      }
-   }
-    return FALSE;
+			if( ps->Data->Partial )
+			{
+				SetIndirect( temp, ps->Data->Partial );
+				ps->Data->Partial = NULL;
+				if( ps->CurrentMacro )
+					ps->CurrentMacro->state.flags.bSuccess = TRUE;
+			}
+		}
+	}
+	 return FALSE;
 }
 //--------------------------------------
 
@@ -267,10 +267,10 @@ int GetInputData( int bWord, PSENTIENT ps, PTEXT parameters )
 		PTEXT pSave, temp;
 		PTEXT *pInd = NULL;
 		pSave = parameters;
-      lprintf( WIDE("Get data from datapath...") );
+		lprintf( WIDE("Get data from datapath...") );
 		if( !( ( temp = GetParam( ps, &parameters ) ) ) )
 		{
-         lprintf( WIDE("No parameters specified to get line") );
+			lprintf( WIDE("No parameters specified to get line") );
 			LineRelease( ps->pLastResult );
 			ps->pLastResult = NULL;
 			pInd = &ps->pLastResult;
@@ -301,236 +301,236 @@ int GetInputData( int bWord, PSENTIENT ps, PTEXT parameters )
 		{
 			DECLTEXT( msg, WIDE("FATAL ERROR: Did not set pInd (GetLine)") );
 			EnqueLink( &ps->Command->Output, (PTEXT)&msg );
-            return FALSE;
-        }
-      // try grabbing an existing line - could be put there from BURST of prior...
+				return FALSE;
+		  }
+		// try grabbing an existing line - could be put there from BURST of prior...
 
-      if( !ps->Data->CurrentWord ) // just got last word off line...
-      {
-         if( ps->Data->CurrentLine )
-         {
-            LineRelease( ps->Data->CurrentLine );
-            ps->Data->CurrentLine = NULL;
-         }
-      }
+		if( !ps->Data->CurrentWord ) // just got last word off line...
+		{
+			if( ps->Data->CurrentLine )
+			{
+				LineRelease( ps->Data->CurrentLine );
+				ps->Data->CurrentLine = NULL;
+			}
+		}
 
-      if( !ps->Data->CurrentLine )
-      {
-          // Gather Data from input source....
-       // data from HT_CLIENT 'appears' asynchrous
-        // to scripting....
-         if( ps->Data->Read )
-            ps->Data->Read( ps->Data ); // this returns a completeline...
-         ps->Data->CurrentLine = (PTEXT)DequeLink( &ps->Data->Input );
-      }
+		if( !ps->Data->CurrentLine )
+		{
+			 // Gather Data from input source....
+		 // data from HT_CLIENT 'appears' asynchrous
+		  // to scripting....
+			if( ps->Data->Read )
+				ps->Data->Read( ps->Data ); // this returns a completeline...
+			ps->Data->CurrentLine = (PTEXT)DequeLink( &ps->Data->Input );
+		}
 
-      if( ps->Data->CurrentLine )
-         if( !ps->Data->CurrentWord )
-            ps->Data->CurrentWord = ps->Data->CurrentLine;
+		if( ps->Data->CurrentLine )
+			if( !ps->Data->CurrentWord )
+				ps->Data->CurrentWord = ps->Data->CurrentLine;
 
-      if( ps->Data->CurrentWord )
-      {
-         // indirect pointer will be null.
-         if( bWord )
-         {
+		if( ps->Data->CurrentWord )
+		{
+			// indirect pointer will be null.
+			if( bWord )
+			{
 				*pInd = SegDuplicate( ps->Data->CurrentWord );
-            ps->Data->CurrentWord = NEXTLINE( ps->Data->CurrentWord );
-         }
-         else
-         {
-            // duplicate to end of line... which may be whole - or
-            // may be partial because of prior GETWORD from the line...
-            // then release the data input line...
-            // must duplicate the data in either case cause
-            // it will be deleted with additional setting of the
-            // variable...
-                *pInd = TextDuplicate( ps->Data->CurrentWord, FALSE );
-            LineRelease( ps->Data->CurrentWord );
-            ps->Data->CurrentLine = NULL; // do NOT release this line...
-            ps->Data->CurrentWord = NULL; // no word on line
-         }
-      }
-      if( ps->CurrentMacro && *pInd )
-         ps->CurrentMacro->state.flags.bSuccess = TRUE;
-   }
-    return FALSE;
+				ps->Data->CurrentWord = NEXTLINE( ps->Data->CurrentWord );
+			}
+			else
+			{
+				// duplicate to end of line... which may be whole - or
+				// may be partial because of prior GETWORD from the line...
+				// then release the data input line...
+				// must duplicate the data in either case cause
+				// it will be deleted with additional setting of the
+				// variable...
+					 *pInd = TextDuplicate( ps->Data->CurrentWord, FALSE );
+				LineRelease( ps->Data->CurrentWord );
+				ps->Data->CurrentLine = NULL; // do NOT release this line...
+				ps->Data->CurrentWord = NULL; // no word on line
+			}
+		}
+		if( ps->CurrentMacro && *pInd )
+			ps->CurrentMacro->state.flags.bSuccess = TRUE;
+	}
+	 return FALSE;
 }
 
 //--------------------------------------------------------------------------
 
 int CPROC CMD_GETWORD( PSENTIENT ps, PTEXT parameters )
 {
-    return GetInputData( TRUE, ps, parameters );
+	 return GetInputData( TRUE, ps, parameters );
 }
 
 //--------------------------------------------------------------------------
 
 int CPROC CMD_GETLINE( PSENTIENT ps, PTEXT parameters )
 {
-    return GetInputData( FALSE, ps, parameters );
+	 return GetInputData( FALSE, ps, parameters );
 }
 
 //--------------------------------------------------------------------------
 
 CORE_PROC( PDATAPATH, FindDataDatapath )( PSENTIENT ps, int type )
 {
-    PDATAPATH pdp = ps->Data;
-    while( pdp )
-    {
-        if( pdp->Type == type )
-            break;
-        pdp = pdp->pPrior;
-    }
-    return pdp;
+	 PDATAPATH pdp = ps->Data;
+	 while( pdp )
+	 {
+		  if( pdp->Type == type )
+				break;
+		  pdp = pdp->pPrior;
+	 }
+	 return pdp;
 }
 
 //--------------------------------------------------------------------------
 
 CORE_PROC( PDATAPATH, FindCommandDatapath )( PSENTIENT ps, int type )
 {
-    PDATAPATH pdp = ps->Command;
-    while( pdp )
-    {
-        if( pdp->Type == type )
-            break;
-        pdp = pdp->pPrior;
-    }
-    return pdp;
+	 PDATAPATH pdp = ps->Command;
+	 while( pdp )
+	 {
+		  if( pdp->Type == type )
+				break;
+		  pdp = pdp->pPrior;
+	 }
+	 return pdp;
 }
 
 //--------------------------------------------------------------------------
 
 CORE_PROC( PDATAPATH, FindDatapath )( PSENTIENT ps, int type )
 {
-    PDATAPATH pdp;
-    pdp = FindDataDatapath( ps, type );
-    if( pdp )
-        return pdp;
-    pdp = FindCommandDatapath( ps, type );
-   return pdp;
+	 PDATAPATH pdp;
+	 pdp = FindDataDatapath( ps, type );
+	 if( pdp )
+		  return pdp;
+	 pdp = FindCommandDatapath( ps, type );
+	return pdp;
 }
 
 //--------------------------------------------------------------------------
 
 CORE_PROC(int, RelayInput)( PDATAPATH pdp
-                                    , PTEXT (CPROC *Datacallback)( PDATAPATH pdp, PTEXT pLine ) )
+												, PTEXT (CPROC *Datacallback)( PDATAPATH pdp, PTEXT pLine ) )
 {
-   extern int gbTrace;
-   if( pdp->pPrior )
-   {
-      PTEXT p;
+	extern int gbTrace;
+	if( pdp->pPrior )
+	{
+		PTEXT p;
 		int moved = 0;
 
-      if( gbTrace )
+		if( gbTrace )
 			xlprintf(LOG_NOISE+1)( WIDE("Relay input from %s to %s..........")
 										, GetText( pdp->pPrior->pName )
 										, GetText( pdp->pName ) );
 		do
-      {
-         if( pdp->pPrior->Read )
-         {
-            pdp->pPrior->Read( pdp->pPrior );
-         }
-         if( IsQueueEmpty( &pdp->pPrior->Input ) )
-            break;
-         //Log( WIDE("Has some input to handle...") );
-         while( ( p = (PTEXT)DequeLink( &pdp->pPrior->Input ) ) )
-         {
-            if( gbTrace )
-               lprintf( WIDE("Data is: %s"), GetText( p ) );
-            if( Datacallback && !( ( p->flags & TF_RELAY ) == TF_RELAY ) )
+		{
+			if( pdp->pPrior->Read )
+			{
+				pdp->pPrior->Read( pdp->pPrior );
+			}
+			if( IsQueueEmpty( &pdp->pPrior->Input ) )
+				break;
+			//Log( WIDE("Has some input to handle...") );
+			while( ( p = (PTEXT)DequeLink( &pdp->pPrior->Input ) ) )
+			{
+				if( gbTrace )
+					lprintf( WIDE("Data is: %s"), GetText( p ) );
+				if( Datacallback && !( ( p->flags & TF_RELAY ) == TF_RELAY ) )
 				{
 					//lprintf( WIDE("Data callback...") );
-               for( p = Datacallback( pdp, p ); p; p = Datacallback( pdp, NULL ) )
-               {
-                  moved++;
-                  if( p != (POINTER)1 )
-                     EnqueLink( &pdp->Input, p );
-                  else
-                     lprintf( WIDE("Data was consumed by datapath.") );
-               }
-            }
-            else
-            {
-                PTEXT out = BuildLine( p );
-                Log1( WIDE("Relay In: %s"), GetText( out ) );
-                LineRelease( out );
-               moved++;
-               EnqueLink( &pdp->Input, p );
-            }
-         }
-         if( gbTrace && !moved && !pdp->pPrior->flags.Closed )
-         {
-            lprintf( WIDE("Did not result in data, try reading source again, rerelay. %s %s"), GetText( pdp->pName ), GetText( pdp->pPrior->pName ) );
-         }
-        } while( !moved &&
-                !pdp->pPrior->flags.Closed );
-      // stop relaying closes at datasource points
-      //if( !pdp->pPrior->flags.Data_Source )
-      pdp->flags.Closed |= pdp->pPrior->flags.Closed;
-      return moved;
-   }
-   return 0;
+					for( p = Datacallback( pdp, p ); p; p = Datacallback( pdp, NULL ) )
+					{
+						moved++;
+						if( p != (POINTER)1 )
+							EnqueLink( &pdp->Input, p );
+						else
+							lprintf( WIDE("Data was consumed by datapath.") );
+					}
+				}
+				else
+				{
+					 PTEXT out = BuildLine( p );
+					 Log1( WIDE("Relay In: %s"), GetText( out ) );
+					 LineRelease( out );
+					moved++;
+					EnqueLink( &pdp->Input, p );
+				}
+			}
+			if( gbTrace && !moved && !pdp->pPrior->flags.Closed )
+			{
+				lprintf( WIDE("Did not result in data, try reading source again, rerelay. %s %s"), GetText( pdp->pName ), GetText( pdp->pPrior->pName ) );
+			}
+		  } while( !moved &&
+					 !pdp->pPrior->flags.Closed );
+		// stop relaying closes at datasource points
+		//if( !pdp->pPrior->flags.Data_Source )
+		pdp->flags.Closed |= pdp->pPrior->flags.Closed;
+		return moved;
+	}
+	return 0;
 }
 
 //--------------------------------------------------------------------------
 
 CORE_PROC(int, RelayOutput)( PDATAPATH pdp
-                           , PTEXT (CPROC *Datacallback)( PDATAPATH pdp, PTEXT pLine ) )
+									, PTEXT (CPROC *Datacallback)( PDATAPATH pdp, PTEXT pLine ) )
 {
-   extern int gbTrace;
-   if( pdp->pPrior )
-   {
-      int moved = 0;
-      PTEXT p;
-      //if( gbTrace )
-      //   lprintf( WIDE("Relay output from %s to %s..........")
-      //          , GetText( pdp->pName )
-      //          , GetText( pdp->pPrior->pName )
-      //          );
-      while( ( p = (PTEXT)DequeLink( &pdp->Output ) ) )
-      {
-         //if( gbTrace )
-         //   lprintf( WIDE("Data is: %s"), GetText( p ) );
-         if( Datacallback && !( ( p->flags & TF_RELAY ) == TF_RELAY ) )
-         {
-            for( p = Datacallback( pdp, p ); p; p = Datacallback( pdp, NULL ) )
-            {
-               EnqueLink( &pdp->pPrior->Output, p );
-            }
-         }
-         else
-         {
+	extern int gbTrace;
+	if( pdp->pPrior )
+	{
+		int moved = 0;
+		PTEXT p;
+		//if( gbTrace )
+		//	lprintf( WIDE("Relay output from %s to %s..........")
+		//			 , GetText( pdp->pName )
+		//			 , GetText( pdp->pPrior->pName )
+		//			 );
+		while( ( p = (PTEXT)DequeLink( &pdp->Output ) ) )
+		{
+			//if( gbTrace )
+			//	lprintf( WIDE("Data is: %s"), GetText( p ) );
+			if( Datacallback && !( ( p->flags & TF_RELAY ) == TF_RELAY ) )
+			{
+				for( p = Datacallback( pdp, p ); p; p = Datacallback( pdp, NULL ) )
+				{
+					EnqueLink( &pdp->pPrior->Output, p );
+				}
+			}
+			else
+			{
 #ifdef _DEBUG
-            //PTEXT out = BuildLine( p );
-            //Log1( WIDE("Relay Out: %s"), GetText( out ) );
-            //LineRelease( out );
+				//PTEXT out = BuildLine( p );
+				//Log1( WIDE("Relay Out: %s"), GetText( out ) );
+				//LineRelease( out );
 #endif
-            EnqueLink( &pdp->pPrior->Output, p );
-         }
-      }
-      // stop relaying closes at datasource points
-      //if( !pdp->pPrior->flags.Data_Source )
-      pdp->flags.Closed |= pdp->pPrior->flags.Closed;
-      if( pdp->pPrior->Write )
-         pdp->pPrior->Write( pdp->pPrior );
-      return moved;
+				EnqueLink( &pdp->pPrior->Output, p );
+			}
+		}
+		// stop relaying closes at datasource points
+		//if( !pdp->pPrior->flags.Data_Source )
+		pdp->flags.Closed |= pdp->pPrior->flags.Closed;
+		if( pdp->pPrior->Write )
+			moved = pdp->pPrior->Write( pdp->pPrior );
+		return moved;
 	}
 	else
 	{
 		PTEXT p;
 		while( ( p = (PTEXT)DequeLink( &pdp->Output ) ) )
-      {
+		{
 			if( gbTrace )
 			{
-            PTEXT pLine = BuildLine( p );
+				PTEXT pLine = BuildLine( p );
 				lprintf( WIDE("Relay to dev NULL... Data is: %s"), GetText( pLine ) );
 				LineRelease( pLine );
 			}
-         LineRelease( p );
+			LineRelease( p );
 		}
 	}
-   return 0;
+	return 0;
 }
 
 //--------------------------------------------------------------------------
