@@ -24,26 +24,26 @@ static int myTypeID;
 
 
 typedef struct mydatapath_tag {
-   DATAPATH common;
-   PSENTIENT ps;
-   struct {
-	   _32 escape : 1;      // set at '\'
-	   _32 collect_hex : 1; // set at '\x'
-	   _32 collect_oct : 1; // set at '\0'
-	   _32 quoted : 1;      // set at "
-	   _32 var    : 1;      // collecting name of a variable...
-	   _32 enqued : 1;      // have enqueued something during a buffer eval
+	DATAPATH common;
+	PSENTIENT ps;
+	struct {
+		_32 escape : 1;		// set at '\'
+		_32 collect_hex : 1; // set at '\x'
+		_32 collect_oct : 1; // set at '\0'
+		_32 quoted : 1;		// set at "
+		_32 var	 : 1;		// collecting name of a variable...
+		_32 enqued : 1;		// have enqueued something during a buffer eval
 		_32 comment : 1;
 		_32 no_blank_lines : 1;
 	} flags;
 	_32 valuebuffer;
 	_32 spaces;
-   FORMAT format;
+	FORMAT format;
 
 	PVARTEXT vartext;
 
-   PTEXT partial;
-   PLINKQUEUE Output;
+	PTEXT partial;
+	PLINKQUEUE Output;
 } MYDATAPATH, *PMYDATAPATH;
 
 //---------------------------------------------------------------------------
@@ -63,22 +63,22 @@ enum {
 };
 
 //int ops[256] = { 0, 0, 0, 0, 0, 0, 0, 0
-//					, OP_BACKSPACE, OP_TAB, OP_NEWLINE, 0, 0, OP_RETURN, 0, 0
-//					, 0, 0, 0, 0, 0, 0, 0, 0
-//					, 0, 0, 0, 0, 0, 0, 0, 0
-//					, OP_SPACE, OP_CHAR, OP_QUOTE, OP_CHAR, OP_COLLECT, #$%&'
-//					, OP_OPAREN, OP_CPAREN, *+,-./
-//			/*48*/, 01234567
-//			/*56*/, 89:;<=>?
-//			/*64*/, @ABCDEFG
-//			/*72*/, HIJKLMNO
-//			/*80*/, PQRSTUVW
-//			/*88*/, XYZ[\]^_
-//			/*96*/, `abcdefg
-//			/*104*/,hijklmno
-//			/*112*/,pqrstuvw
-//			/*120*/,xyz{|}~<del>
-//			/*128*/, all above characters are what? OP_CHAR probably... 
+//               , OP_BACKSPACE, OP_TAB, OP_NEWLINE, 0, 0, OP_RETURN, 0, 0
+//               , 0, 0, 0, 0, 0, 0, 0, 0
+//               , 0, 0, 0, 0, 0, 0, 0, 0
+//               , OP_SPACE, OP_CHAR, OP_QUOTE, OP_CHAR, OP_COLLECT, #$%&'
+//               , OP_OPAREN, OP_CPAREN, *+,-./
+//         /*48*/, 01234567
+//         /*56*/, 89:;<=>?
+//         /*64*/, @ABCDEFG
+//         /*72*/, HIJKLMNO
+//         /*80*/, PQRSTUVW
+//         /*88*/, XYZ[\]^_
+//         /*96*/, `abcdefg
+//         /*104*/,hijklmno
+//         /*112*/,pqrstuvw
+//         /*120*/,xyz{|}~<del>
+//         /*128*/, all above characters are what? OP_CHAR probably... 
 
 
 //---------------------------------------------------------------------------
@@ -122,7 +122,7 @@ static void EndCollection( PMYDATAPATH pdp )
 {
 	if( BreakCollection( pdp ) || 
 		!pdp->flags.enqued ||
-       pdp->partial ) // already collected something
+		 pdp->partial ) // already collected something
 	{
 		//Log( "Ending the line" );
 		if( !pdp->partial && // only add a newline if nothing on line.
@@ -416,18 +416,18 @@ reevaluate_character:
 			}
 			seg = NEXTLINE( seg );
 		}
-      if( !pdp->flags.escape ) // else continue...
+		if( !pdp->flags.escape ) // else continue...
 			FinishCollection( pdp );
 		else
-         pdp->flags.escape = 0; // end of line... collect new line... is not escape
+			pdp->flags.escape = 0; // end of line... collect new line... is not escape
 		LineRelease( buffer ); // done with this old thing...
 	}
-   /*
+	/*
 	if( IsQueueEmpty( &pdp->Output ) )
 		lprintf( "Bash command queue empty... resulted in no data..." );
 	else
-	   lprintf( "Resulting in data input... (bash parsed)" );
-   */
+		lprintf( "Resulting in data input... (bash parsed)" );
+	*/
 	return (PTEXT)DequeLink( &pdp->Output );
 }
 
@@ -468,7 +468,7 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 	PMYDATAPATH pdp = NULL;
 	//PTEXT option;
 	// parameters
-	//    none
+	//	 none
 	PTEXT pText;
 	pdp = CreateDataPath( pChannel, MYDATAPATH );
 	while( ( pText = GetParam( ps, &parameters ) ) )

@@ -168,7 +168,7 @@ void Look( PLINKQUEUE *Output, PSENTIENT ps, PTEXT pObj )
 	PTEXT param;
 	if( param = GetParam( ps, &pObj ) )
 	{
-	 if( TextLike( param, WIDE("in") ) )
+		if( TextLike( param, WIDE("in") ) )
 		{
 			// pobject is now the next token... sorta
 		param = GetParam( ps, &pObj );
@@ -186,10 +186,10 @@ void Look( PLINKQUEUE *Output, PSENTIENT ps, PTEXT pObj )
 				Q_MSG( Output, WIDE("Cannot see %s around here."), GetText( param ) );
 			}
 		}
-	 }
-	 else if( TextLike( param, WIDE("on") ) )
-		{
-			// pobject is now the next token... sorta
+	}
+	else if( TextLike( param, WIDE("on") ) )
+	{
+		// pobject is now the next token... sorta
 		param = GetParam( ps, &pObj );
 		if( param )
 		{
@@ -205,9 +205,9 @@ void Look( PLINKQUEUE *Output, PSENTIENT ps, PTEXT pObj )
 				Q_MSG( Output, WIDE("Cannot see %s around here."), GetText( param ) );
 			}
 		}
-		}
-	 else
-		{
+	}
+	else
+	{
 		int FoundAs;
 		PENTITY pe;
 		pe = (PENTITY)FindThing( ps, &_params, ps->Current, FIND_VISIBLE, &FoundAs );
@@ -226,22 +226,22 @@ void Look( PLINKQUEUE *Output, PSENTIENT ps, PTEXT pObj )
 					DECLTEXT( msg, WIDE("Cannot see that around here.") );
 					EnqueLink( Output, &msg );
 				}
+			}
 		}
-	 }
 	}
 	else
 	{
 		PTEXT room, desc;
-	 xlprintf(LOG_NOISE)( WIDE("doing look command...") );
-	 room = GetName( FindContainer( ps->Current ) );
-	 if( room )
-		EnqueLink( Output, SegDuplicate( room ) );
-	 //desc = GetDescription( FindContainer( ps->Current ) );
-	 desc = NULL;
-	 if( desc )
-		EnqueLink( Output, SegDuplicate( desc ) );
-	 ItemsNear( ps->Current, Output );
-	 RoomsNear( ps->Current, Output );
+		xlprintf(LOG_NOISE)( WIDE("doing look command...") );
+		room = GetName( FindContainer( ps->Current ) );
+		if( room )
+			EnqueLink( Output, SegDuplicate( room ) );
+		//desc = GetDescription( FindContainer( ps->Current ) );
+		desc = NULL;
+		if( desc )
+			EnqueLink( Output, SegDuplicate( desc ) );
+		ItemsNear( ps->Current, Output );
+		RoomsNear( ps->Current, Output );
 	}
 }
 
@@ -326,28 +326,28 @@ int Store( PENTITY pEntity, PTEXT what, PTEXT into )
 	pe = (PENTITY)FindThing( NULL, &what, pEntity, FIND_ON, NULL );
 	if( pe )
 	{
-	 pInto = pEntity; // default remove from held, store
-	 if( into )
-	 {
-	 	// if can find the thing visible, store in that...
+		pInto = pEntity; // default remove from held, store
+		if( into )
+		{
+			// if can find the thing visible, store in that...
 		pInto = (PENTITY)FindThing( NULL, &into, pEntity, FIND_VISIBLE, NULL );
 		if( !pInto )
 			return -1;
-	 }
-	 if( pInto == pe )
-	 {
-	 	return -2;
-	 }
-	 detach( pEntity, pe );
-	 putin( pInto, pe );
-	 if( pe->pControlledBy )
+		}
+		if( pInto == pe )
+		{
+			return -2;
+		}
+		detach( pEntity, pe );
+		putin( pInto, pe );
+		if( pe->pControlledBy )
 			InvokeBehavior( WIDE("store"), pe, pe->pControlledBy, NULL );
-	 if( pInto->pControlledBy )
+		if( pInto->pControlledBy )
 			InvokeBehavior( WIDE("insert"), pe, pInto->pControlledBy, NULL );
-	 if( pEntity->pControlledBy )
+		if( pEntity->pControlledBy )
 			InvokeBehavior( WIDE("place"), pe, pEntity->pControlledBy, NULL );
 
-	 return 1;
+		return 1;
 	}
 	return 0;
 }	
@@ -393,20 +393,20 @@ PENTITY Detach( PSENTIENT ps, PTEXT info1, PTEXT info2)
 	pe = (PENTITY)FindThing( ps, &info1, ps->Current, FIND_VISIBLE, NULL );
 	if( !pe )
 	{
-	 vtprintf( vt, WIDE("%s cannot see %s."),
+		vtprintf( vt, WIDE("%s cannot see %s."),
 				GetText( GetName( ps->Current ) ), GetText(info1) );
-	 EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
-	 VarTextDestroy( &vt );
-	 return NULL;
+		EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
+		VarTextDestroy( &vt );
+		return NULL;
 	}
 	pe2 = (PENTITY)FindThing( ps, &info2, pe, FIND_ON, NULL );
 	if( !pe2 )
 	{
-	 vtprintf( vt, WIDE("%s was not attached to %s."),
+		vtprintf( vt, WIDE("%s was not attached to %s."),
 				GetText( info2 ), GetText(info1) );
-	 EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
-	 VarTextDestroy( &vt );
-	 return NULL;
+		EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
+		VarTextDestroy( &vt );
+		return NULL;
 	}
 	detach( pe, pe2 );
 	attach( ps->Current, pe2 );
@@ -423,14 +423,14 @@ PENTITY Join( PLINKQUEUE *Output, PSENTIENT ps, PTEXT info1)
 	pe = (PENTITY)FindThing( ps, &info1, ps->Current, FIND_VISIBLE, NULL );
 	if( !pe )
 	{
-	 vtprintf( vt, WIDE("%s cannot see %s."),
+		vtprintf( vt, WIDE("%s cannot see %s."),
 				GetText( GetName( ps->Current ) ), GetText(info1) );
-	 EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
-	 VarTextDestroy( &vt );
-	 return NULL;
+		EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
+		VarTextDestroy( &vt );
+		return NULL;
 	}
 	if( pe->pWithin )
-	 pullout( pe->pWithin, pe );
+		pullout( pe->pWithin, pe );
 	attach( ps->Current, pe );
 	return pe;
 }
@@ -447,7 +447,7 @@ PENTITY Enter( PLINKQUEUE *Output, PSENTIENT ps, PTEXT info)
 	if( !pe )
 	{
 		pe = (PENTITY)FindThing( ps, &info, ps->Current, FIND_AROUND, NULL );
-	 bFoundNear  = 0;
+		bFoundNear  = 0;
 	}
 	if (pe && ( pe != ps->Current->pWithin ) )
 	{

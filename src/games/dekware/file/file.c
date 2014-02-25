@@ -13,34 +13,34 @@ static int myTypeID; // supplied for uhmm... grins...
 static int myTypeID2;
 
 typedef struct mydatapath_tag {
-   DATAPATH common;
-   FILE *handle;
-   struct {
-       BIT_FIELD bFirst:1;
-       BIT_FIELD bPriorEndLine:1;
-       BIT_FIELD bCloseAtEnd:1;
+	DATAPATH common;
+	FILE *handle;
+	struct {
+		 BIT_FIELD bFirst:1;
+		 BIT_FIELD bPriorEndLine:1;
+		 BIT_FIELD bCloseAtEnd:1;
 		 BIT_FIELD bRead : 1;
 		 BIT_FIELD bRelay : 1;
 		 BIT_FIELD bWrite : 1;
 		 BIT_FIELD bUnicode : 1;
 		 BIT_FIELD bUnicode8 : 1;
-   } flags;
+	} flags;
 } MYDATAPATH, *PMYDATAPATH;
 
 static PTEXT get_line(PMYDATAPATH pdp, FILE *source)
 {
-   #define WORKSPACE 256  // character for workspace
+	#define WORKSPACE 256  // character for workspace
 	char *filebuffer;
-   wchar_t *wfilebuffer;
-   PTEXT workline=(PTEXT)NULL,pNew;
-   size_t length = 0;
-   if( !source )
+	wchar_t *wfilebuffer;
+	PTEXT workline=(PTEXT)NULL,pNew;
+	size_t length = 0;
+	if( !source )
 		return NULL;
-   if( pdp->flags.bUnicode )
+	if( pdp->flags.bUnicode )
 		wfilebuffer = NewArray( wchar_t, WORKSPACE );
-   else
+	else
 		filebuffer = NewArray( char, WORKSPACE );
-   do
+	do
 	{
 		size_t readlen;
 		void *result;
@@ -79,12 +79,12 @@ static PTEXT get_line(PMYDATAPATH pdp, FILE *source)
 				PTEXT t;
 				workline=PRIORLINE(workline); // go back one.
 				SegBreak(t = NEXTLINE(workline));
-	            LineRelease(t);  // destroy the current segment.
+					LineRelease(t);  // destroy the current segment.
 			}
 			else
 			{
-				LineRelease(workline);            // destory only segment.
-	            workline = NULL;
+				LineRelease(workline);				// destory only segment.
+					workline = NULL;
 			}
 			break;  // get out of the loop- there is no more to read.
 		}
@@ -109,53 +109,53 @@ static PTEXT get_line(PMYDATAPATH pdp, FILE *source)
 		pdp->flags.bPriorEndLine = 0;
 
 	if (workline)  // if I got a line, and there was some length to it.
-		SetStart(workline);   // set workline to the beginning.
-	return(workline);      // return the line read from the file.
+		SetStart(workline);	// set workline to the beginning.
+	return(workline);		// return the line read from the file.
 }
 
 
 
 static int CPROC Read( PDATAPATH pdpX )
 {
-   PMYDATAPATH pdp = (PMYDATAPATH)pdpX;
-   PTEXT pLine;
+	PMYDATAPATH pdp = (PMYDATAPATH)pdpX;
+	PTEXT pLine;
 	if( pdp->flags.bRelay || !pdp->flags.bRead )
 	{
 		return RelayInput( (PDATAPATH)pdp, NULL );
 	}
 	if( pdp->flags.bRead )
 	{
-      //lprintf( WIDE("Try for one line from the file.") );
+		//lprintf( WIDE("Try for one line from the file.") );
 		if( ( pLine = get_line( pdp, (FILE*)pdp->handle ) ) )
-	   {	
-		    if( !pdp->flags.bFirst && !pdp->flags.bPriorEndLine )
-			     pLine->flags |= TF_NORETURN;
+		{	
+			 if( !pdp->flags.bFirst && !pdp->flags.bPriorEndLine )
+				  pLine->flags |= TF_NORETURN;
 			//{
 	//			PTEXT tmp;
 	//			tmp = BuildLine( pLine );
 	//			Log1( WIDE("Read is: %s"), GetText( tmp ) );
 	//			LineRelease( tmp );
 	//		}
-	       EnqueLink( &pdp->common.Input, pLine );
+			 EnqueLink( &pdp->common.Input, pLine );
 			 pdp->flags.bFirst = 0;
-          return 1; // one block read.
-	   }
+			 return 1; // one block read.
+		}
 		else
-	   {
-	   	//Log( WIDE("-----------------------File ended!") );
+		{
+			//Log( WIDE("-----------------------File ended!") );
 			if( pdp->flags.bCloseAtEnd )
-   			pdp->common.flags.Closed = 1;
-	   }
+				pdp->common.flags.Closed = 1;
+		}
 	}
-   return 0;
+	return 0;
 }
 
 static int CPROC Write( PDATAPATH pdpX )
 {
-   PMYDATAPATH pdp = (PMYDATAPATH)pdpX;
+	PMYDATAPATH pdp = (PMYDATAPATH)pdpX;
 	if( !pdp->flags.bWrite )
 	{
-      return RelayOutput( (PDATAPATH)pdp, NULL );
+		return RelayOutput( (PDATAPATH)pdp, NULL );
 	}
 	else
 	{
@@ -164,18 +164,18 @@ static int CPROC Write( PDATAPATH pdpX )
 		while( ( pLine = (PTEXT)DequeLink( &pdp->common.Output ) ) )
 		{
 			PTEXT temp = NULL;
-        if( !( pLine->flags & TF_NORETURN ) )
-        {
-            pLine = SegAppend( temp = SegCreate(0), pLine );
-        }
-        pSaveOut = pOut = BuildLine( pLine );
-        while( pOut )
-        {
+		  if( !( pLine->flags & TF_NORETURN ) )
+		  {
+				pLine = SegAppend( temp = SegCreate(0), pLine );
+		  }
+		  pSaveOut = pOut = BuildLine( pLine );
+		  while( pOut )
+		  {
 				wrote++;
-            fwrite( GetText( pOut ), 1, GetTextSize( pOut ), pdp->handle );
-            pOut = NEXTLINE( pOut );
-        }
-        LineRelease( pSaveOut );
+				fwrite( GetText( pOut ), 1, GetTextSize( pOut ), pdp->handle );
+				pOut = NEXTLINE( pOut );
+		  }
+		  LineRelease( pSaveOut );
 		  if( pdp->common.pPrior )
 		  {
 			  if( temp )
@@ -188,7 +188,7 @@ static int CPROC Write( PDATAPATH pdpX )
 		  else
 			  LineRelease( pLine );
 		}
-      if( pdp->common.pPrior &&
+		if( pdp->common.pPrior &&
 			 pdp->common.pPrior->Write )
 			wrote += pdp->common.pPrior->Write( pdp->common.pPrior );
 		if( wrote )
@@ -199,24 +199,24 @@ static int CPROC Write( PDATAPATH pdpX )
 
 static int CPROC Close( PDATAPATH pdpX )
 {
-   PMYDATAPATH pdp = (PMYDATAPATH)pdpX;
+	PMYDATAPATH pdp = (PMYDATAPATH)pdpX;
 	if( pdp->flags.bRead && !pdp->flags.bWrite )
 	{
-      RelayOutput( (PDATAPATH)pdp, NULL );
+		RelayOutput( (PDATAPATH)pdp, NULL );
 	}
 	if( !pdp->flags.bRead && pdp->flags.bWrite)
 	{
-      RelayInput( (PDATAPATH)pdp, NULL );
+		RelayInput( (PDATAPATH)pdp, NULL );
 	}
 	if( pdp->handle )
-	   fclose( pdp->handle );
-   pdp->common.Type = 0;
-   return 0;
+		fclose( pdp->handle );
+	pdp->common.Type = 0;
+	return 0;
 }
 
 static int CPROC Seek( PDATAPATH pDataPath, PSENTIENT ps, PTEXT parameters )
 {
-   PMYDATAPATH pdp = (PMYDATAPATH)pDataPath;
+	PMYDATAPATH pdp = (PMYDATAPATH)pDataPath;
 	PTEXT op;
 	op = GetParam( ps, &parameters );
 	if( op )
@@ -231,17 +231,17 @@ static int CPROC Seek( PDATAPATH pDataPath, PSENTIENT ps, PTEXT parameters )
 		}
 		else if( GetText( op )[0] == '+' )
 		{
-         _32 pos = (_32)IntNumber( op );
+			_32 pos = (_32)IntNumber( op );
 			fseek( pdp->handle, pos, SEEK_CUR );
 		}
 		else if( GetText( op )[0] == '-' )
 		{
-         _32 pos = (_32)IntNumber( op );
+			_32 pos = (_32)IntNumber( op );
 			fseek( pdp->handle, pos, SEEK_CUR );
 		}
 		else if( IsNumber( op ) )
 		{
-         _32 pos = (_32)IntNumber( op );
+			_32 pos = (_32)IntNumber( op );
 			fseek( pdp->handle, pos, SEEK_SET );
 		}
 		else
@@ -264,14 +264,14 @@ int CPROC SetClose( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters )
 {
 	PMYDATAPATH pmdp = (PMYDATAPATH)pdp;
 	pmdp->flags.bCloseAtEnd = 1;
-   return 0;
+	return 0;
 }
 
 int CPROC SetRelay( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters )
 {
 	PMYDATAPATH pmdp = (PMYDATAPATH)pdp;
 	pmdp->flags.bRelay = 1;
-   return 0;
+	return 0;
 }
 
 int CPROC SetFollow( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters )
@@ -284,12 +284,12 @@ int CPROC SetFollow( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters )
 //---------------------------------------------------------------------------
 
 static void ClearCommandHold( struct sentient_tag *ps// sentient processing macro
-                   , struct macro_state_tag *pms ) // saves extra peek...
+						 , struct macro_state_tag *pms ) // saves extra peek...
 {
 	//Log( WIDE("Clearing commands for macro...") );
 	ps->flags.bHoldCommands = FALSE;
 	pms->pMacro->flags.un.macro.bUsed = FALSE;
-   PopData( &ps->MacroStack );
+	PopData( &ps->MacroStack );
 }
 
 //---------------------------------------------------------------------------
@@ -355,7 +355,7 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 			char charbuf[64];
 			int len_read; // could be really short
 			int char_check;
-         int ascii_unicode = 1;
+			int ascii_unicode = 1;
 			len_read = fread( charbuf, 1, 64, pdp->handle );
 			if( ( ((_16*)charbuf)[0] == 0xFEFF )
 				|| ( ((_16*)charbuf)[0] == 0xFFFE )
@@ -367,7 +367,7 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 			}
 			for( char_check = 0; char_check < len_read; char_check++ )
 			{
-            // every other byte is a 0 for flat unicode text...
+				// every other byte is a 0 for flat unicode text...
 				if( ( char_check & 1 ) && ( charbuf[char_check] != 0 ) )
 				{
 					ascii_unicode = 0;
@@ -380,16 +380,16 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 			}
 			else
 			{
-            int ascii = 1;
+				int ascii = 1;
 				for( char_check = 0; char_check < len_read; char_check++ )
 					if( charbuf[char_check] & 0x80 )
 					{
 						ascii = 0;
-                  break;
+						break;
 					}
 				if( ascii )
 				{
-               // hmm this is probably a binary thing?
+					// hmm this is probably a binary thing?
 				}
 			}
 		}
@@ -426,160 +426,160 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 				}
 			}
 		}
-   }
-   return (PDATAPATH)pdp;
+	}
+	return (PDATAPATH)pdp;
 }
 
 static int CPROC LoadFile( PSENTIENT ps, PTEXT parameters )
 {
-   PTEXT pVarName;
-   PTEXT pFileName;
-   PTEXT pVarValue;
-   FILE *file;
-   int size;
-   // First parameter is a variable NAME
-   // second parameter is a file name...
-   pVarName = GetParam( ps, &parameters );
-   if( !pVarName )
-   {
-      DECLTEXT( msg, WIDE("Must supply variable name as first parameter...") );
+	PTEXT pVarName;
+	PTEXT pFileName;
+	PTEXT pVarValue;
+	FILE *file;
+	int size;
+	// First parameter is a variable NAME
+	// second parameter is a file name...
+	pVarName = GetParam( ps, &parameters );
+	if( !pVarName )
+	{
+		DECLTEXT( msg, WIDE("Must supply variable name as first parameter...") );
 		if( !ps->CurrentMacro )
 			EnqueLink( &ps->Command->Output, &msg );
-      return 0;
-   }
-   pFileName = GetFileName( ps, &parameters );
-   if( !pFileName )
-   {
-      DECLTEXT( msg, WIDE("Must supply file name to load as second parameter...") );
+		return 0;
+	}
+	pFileName = GetFileName( ps, &parameters );
+	if( !pFileName )
+	{
+		DECLTEXT( msg, WIDE("Must supply file name to load as second parameter...") );
 		if( !ps->CurrentMacro )
 			EnqueLink( &ps->Command->Output, &msg );
-      return 0;
-   }
-   
-   file = sack_fopen( 0, GetText( pFileName ), WIDE("rb") );
-   if( !file )
-   {
-      DECLTEXT( msg, WIDE("Could not open the file specified...") );
+		return 0;
+	}
+	
+	file = sack_fopen( 0, GetText( pFileName ), WIDE("rb") );
+	if( !file )
+	{
+		DECLTEXT( msg, WIDE("Could not open the file specified...") );
 		if( !ps->CurrentMacro )
-	      EnqueLink( &ps->Command->Output, &msg );
-      return 0;
-   }
-   fseek( file, 0, SEEK_END );
-   size = ftell( file );
-   fseek( file, 0, SEEK_SET );
-   pVarValue = SegCreate( size );
-   pVarValue->flags |= TF_BINARY;
-   if( (int)fread( GetText( pVarValue ), 1, size, file ) != size)
-   {
-      DECLTEXT( msg, WIDE("Failed to read full file...") );
+			EnqueLink( &ps->Command->Output, &msg );
+		return 0;
+	}
+	fseek( file, 0, SEEK_END );
+	size = ftell( file );
+	fseek( file, 0, SEEK_SET );
+	pVarValue = SegCreate( size );
+	pVarValue->flags |= TF_BINARY;
+	if( (int)fread( GetText( pVarValue ), 1, size, file ) != size)
+	{
+		DECLTEXT( msg, WIDE("Failed to read full file...") );
 		if( !ps->CurrentMacro )
-		   EnqueLink( &ps->Command->Output, &msg );
+			EnqueLink( &ps->Command->Output, &msg );
 	}
 	ps->CurrentMacro->state.flags.bSuccess = 1;
-   fclose( file );
-   // storing binary variables overwrites what is there, and does NOT
-   // reallocate space for variable.
-   AddBinary( ps, ps->Current, pVarName, pVarValue );
+	fclose( file );
+	// storing binary variables overwrites what is there, and does NOT
+	// reallocate space for variable.
+	AddBinary( ps, ps->Current, pVarName, pVarValue );
 // LineRelease( pVarValue );
-   return 1;
+	return 1;
 }
 
 static int CPROC StoreFile( PSENTIENT ps, PTEXT parameters )
 {
-   PTEXT pVarName;
-   PTEXT pFileName, pSave;
-   FILE *file;
-   // First parameter is a variable NAME
-   // second parameter is a file name...
-   pSave = parameters;
-   pVarName = GetParam( ps, &parameters );
-   if( !pVarName || pSave == pVarName )
-   {
-      DECLTEXT( msg, WIDE("Must use variable as first parameter...") );
-      EnqueLink( &ps->Command->Output, &msg );
-      return 0;
-   }
-   if( !(GetTextFlags(pVarName) & TF_BINARY ) )
-   {
-      DECLTEXT( msg, WIDE("Can only store binary variables as file...") );
-      EnqueLink( &ps->Command->Output, &msg );
-      return 0;
-   }
-   pFileName = GetFileName( ps, &parameters );
-   if( !pFileName )
-   {
-      DECLTEXT( msg, WIDE("Must supply file name to store as second parameter...") );
-      EnqueLink( &ps->Command->Output, &msg );
-      return 0;
-   }
+	PTEXT pVarName;
+	PTEXT pFileName, pSave;
+	FILE *file;
+	// First parameter is a variable NAME
+	// second parameter is a file name...
+	pSave = parameters;
+	pVarName = GetParam( ps, &parameters );
+	if( !pVarName || pSave == pVarName )
+	{
+		DECLTEXT( msg, WIDE("Must use variable as first parameter...") );
+		EnqueLink( &ps->Command->Output, &msg );
+		return 0;
+	}
+	if( !(GetTextFlags(pVarName) & TF_BINARY ) )
+	{
+		DECLTEXT( msg, WIDE("Can only store binary variables as file...") );
+		EnqueLink( &ps->Command->Output, &msg );
+		return 0;
+	}
+	pFileName = GetFileName( ps, &parameters );
+	if( !pFileName )
+	{
+		DECLTEXT( msg, WIDE("Must supply file name to store as second parameter...") );
+		EnqueLink( &ps->Command->Output, &msg );
+		return 0;
+	}
 
-   file = sack_fopen( 0, GetText( pFileName ), WIDE("wb") );
-   if( !file )
-   {
-      DECLTEXT( msg, WIDE("Could not create the file specified...") );
-      EnqueLink( &ps->Command->Output, &msg );
-      return 0;
-   }
+	file = sack_fopen( 0, GetText( pFileName ), WIDE("wb") );
+	if( !file )
+	{
+		DECLTEXT( msg, WIDE("Could not create the file specified...") );
+		EnqueLink( &ps->Command->Output, &msg );
+		return 0;
+	}
 
-   fwrite( GetText( pVarName ), 1, GetTextSize( pVarName ), file );
+	fwrite( GetText( pVarName ), 1, GetTextSize( pVarName ), file );
 
-   fclose( file );
-   return 1;
+	fclose( file );
+	return 1;
 }
 
 //--------------------------------------------------------------------------
 
 static PTEXT CPROC WriteLineInput( PDATAPATH pdp, PTEXT pLine )
 {
-   FILE *f = ((PMYDATAPATH)pdp)->handle;
+	FILE *f = ((PMYDATAPATH)pdp)->handle;
 	PTEXT pWrite, p;
 	if( pLine )
 	{
-	   p = pWrite = BuildLine( pLine );
-   	if( !(pLine->flags & TF_NORETURN ) )
-   	{  	
-	      fwrite( WIDE("\r\n"), 1, 2, f );
-	   }
-   	while( p )
-	   {
-   	   fwrite( GetText( p )
-      	      , GetTextSize( p )
-         	   , 1
-	            , f );
-   	   p = NEXTLINE( p );
-	   }
-	   fflush( f );
-   	LineRelease( pWrite );
+		p = pWrite = BuildLine( pLine );
+		if( !(pLine->flags & TF_NORETURN ) )
+		{  	
+			fwrite( WIDE("\r\n"), 1, 2, f );
+		}
+		while( p )
+		{
+			fwrite( GetText( p )
+					, GetTextSize( p )
+					, 1
+					, f );
+			p = NEXTLINE( p );
+		}
+		fflush( f );
+		LineRelease( pWrite );
 	}
-   return pLine;
+	return pLine;
 }
 
 //--------------------------------------------------------------------------
 
 static PTEXT CPROC WriteLineOutput( PDATAPATH pdp, PTEXT pLine )
 {
-   FILE *f = ((PMYDATAPATH)pdp)->handle;
+	FILE *f = ((PMYDATAPATH)pdp)->handle;
 	PTEXT pWrite, p;
 	if( pLine )
 	{
-	   p = pWrite = BuildLine( pLine );
-   	if( !(pLine->flags & TF_NORETURN ) )
-	   {
-   	   fwrite( WIDE("\r\n"), 1, 2, f );
-	   }
-   	while( p )
-	   {
-   	   //if( !(p->flags & TF_FORMAT ) )
-      	fwrite( GetText( p )
-         	   , GetTextSize( p )
-            	, 1
-	            , f );
-   	   p = NEXTLINE( p );
-	   }
-	   fflush( f );
-   	LineRelease( pWrite );
+		p = pWrite = BuildLine( pLine );
+		if( !(pLine->flags & TF_NORETURN ) )
+		{
+			fwrite( WIDE("\r\n"), 1, 2, f );
+		}
+		while( p )
+		{
+			//if( !(p->flags & TF_FORMAT ) )
+			fwrite( GetText( p )
+					, GetTextSize( p )
+					, 1
+					, f );
+			p = NEXTLINE( p );
+		}
+		fflush( f );
+		LineRelease( pWrite );
 	}
-   return pLine;
+	return pLine;
 }
 
 //--------------------------------------------------------------------------
@@ -587,7 +587,7 @@ static PTEXT CPROC WriteLineOutput( PDATAPATH pdp, PTEXT pLine )
 static int CPROC WriteLog( PDATAPATH pdp )
 {
 	RelayOutput( pdp, WriteLineOutput );
-   return 0;
+	return 0;
 }
 
 //--------------------------------------------------------------------------
@@ -595,81 +595,81 @@ static int CPROC WriteLog( PDATAPATH pdp )
 static int CPROC ReadLog( PDATAPATH pdp )
 {
 	RelayInput( pdp, WriteLineInput );
-   return 0;
+	return 0;
 }
 
 //--------------------------------------------------------------------------
 
 static int CPROC CloseLogPath( PDATAPATH pdp )
 {
-   FILE *f = ((PMYDATAPATH)pdp)->handle;
-   if( f )
-	   fclose( f );
-   ((PMYDATAPATH)pdp)->handle = NULL;
-   return 0;
+	FILE *f = ((PMYDATAPATH)pdp)->handle;
+	if( f )
+		fclose( f );
+	((PMYDATAPATH)pdp)->handle = NULL;
+	return 0;
 }
 
 //--------------------------------------------------------------------------
 
 static int CPROC CloseLogDefault( PDATAPATH pdp )
 {
-   FILE *f = ((PMYDATAPATH)pdp)->handle;
-   DestroyDataPath( pdp->pPrior );
-   if( f )
-	   fclose( f );
-   ((PMYDATAPATH)pdp)->handle = NULL;
-   return 0;
+	FILE *f = ((PMYDATAPATH)pdp)->handle;
+	DestroyDataPath( pdp->pPrior );
+	if( f )
+		fclose( f );
+	((PMYDATAPATH)pdp)->handle = NULL;
+	return 0;
 }
 
 //--------------------------------------------------------------------------
 
 static int CPROC OpenLog( PSENTIENT ps, PTEXT parameters )
 {
-   PTEXT pFileName;
-   PMYDATAPATH pmdp;
-   FILE *file;
-   //if( !ps->Data )
-   //{
-   //   DECLTEXT( msg, WIDE("Data datapath is not open - cannot log.") );
-   //   EnqueLink( &ps->Command->Output, &msg );
-   //}
+	PTEXT pFileName;
+	PMYDATAPATH pmdp;
+	FILE *file;
+	//if( !ps->Data )
+	//{
+	//	DECLTEXT( msg, WIDE("Data datapath is not open - cannot log.") );
+	//	EnqueLink( &ps->Command->Output, &msg );
+	//}
 
-   pFileName = GetFileName( ps, &parameters );
-   file = sack_fopen( 0, GetText( pFileName ), WIDE("a+b") );
-   if( file )
-   {
+	pFileName = GetFileName( ps, &parameters );
+	file = sack_fopen( 0, GetText( pFileName ), WIDE("a+b") );
+	if( file )
+	{
 		DECLTEXT( name, WIDE("$Log") );
-   	//pmdp = CreateDataPath( &ps->Data, MYDATAPATH );
-   	pmdp = CreateDataPath( &ps->Command, MYDATAPATH );
-      pmdp->common.Type = myTypeID2;
-      pmdp->common.Read  = ReadLog;
-      pmdp->common.Write = WriteLog;
-      pmdp->common.Close = CloseLogDefault;
-	   pmdp->common.pName = (PTEXT)&name;
-      pmdp->handle = file;
-   }
-   return 0;
+		//pmdp = CreateDataPath( &ps->Data, MYDATAPATH );
+		pmdp = CreateDataPath( &ps->Command, MYDATAPATH );
+		pmdp->common.Type = myTypeID2;
+		pmdp->common.Read  = ReadLog;
+		pmdp->common.Write = WriteLog;
+		pmdp->common.Close = CloseLogDefault;
+		pmdp->common.pName = (PTEXT)&name;
+		pmdp->handle = file;
+	}
+	return 0;
 }
 
 //--------------------------------------------------------------------------
 
 static int CPROC CloseLog( PSENTIENT ps, PTEXT parameters )
 {
-   PMYDATAPATH pmdp;
+	PMYDATAPATH pmdp;
 	
-   pmdp = (PMYDATAPATH)FindDatapath( ps, myTypeID2 );
-   if( pmdp )
-   {
-      pmdp->common.Close = CloseLogPath;
-   	DestroyDataPath( (PDATAPATH)pmdp );
+	pmdp = (PMYDATAPATH)FindDatapath( ps, myTypeID2 );
+	if( pmdp )
+	{
+		pmdp->common.Close = CloseLogPath;
+		DestroyDataPath( (PDATAPATH)pmdp );
 	}
 	else
-   {
-      DECLTEXT( msg, WIDE("Logging is not active on the datapath.") );
-      EnqueLink( &ps->Command->Output, &msg );
-      return 0;
-   }
-   return 0;
+	{
+		DECLTEXT( msg, WIDE("Logging is not active on the datapath.") );
+		EnqueLink( &ps->Command->Output, &msg );
+		return 0;
+	}
+	return 0;
 }
 
 int CPROC FileChanged( PTRSZVAL psvSent
@@ -711,7 +711,7 @@ int CPROC FileChanged( PTRSZVAL psvSent
 			ps->CurrentMacro = oldpms;
 		}
 	}
-   return TRUE;
+	return TRUE;
 }
 
 int CPROC CreateFileMonitor( PSENTIENT ps, PENTITY pe, PTEXT parameters )
@@ -725,13 +725,13 @@ int CPROC CreateFileMonitor( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 		if( ( pMonitor = MonitorFiles( GetText( pFile ), 100 ) ) )
 		{
 			psNew = pe->pControlledBy;
-         if( !psNew )
+			if( !psNew )
 				psNew = CreateAwareness( pe );
 			AddExtendedFileChangeCallback( pMonitor, NULL, FileChanged, (PTRSZVAL)psNew );
 			// should figure out a way to define what the parameters
 			// received by the behavior method are...
 			// or maybe behaviors are parameterless and rely on having
-         // internal variables or volatile variables set.
+			// internal variables or volatile variables set.
 			AddBehavior( pe, WIDE("create"), WIDE("A file has been created %1 is file; %2 is <PATH/FILE>")/*, WIDE("name type")*/ );
 			AddBehavior( pe, WIDE("delete"), WIDE("A file has been deleted %1 is file; %2 is <PATH/FILE>") );
 			AddBehavior( pe, WIDE("update"), WIDE("A file has changed %1 is file; %2 is <PATH/FILE>") );
@@ -739,7 +739,7 @@ int CPROC CreateFileMonitor( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 		}
 #endif
 	}
-   return 0;
+	return 0;
 }
 
 //PDATAPATH Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters );
@@ -760,26 +760,26 @@ extern _OptionHandler SetClose, SetFollow, SetRelay, Seek;
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
-   myTypeID = RegisterDeviceOpts( WIDE("file"), WIDE("File based operations..."), Open, FileOptions, NUM_OPTIONS );
-   myTypeID2 = RegisterDevice( WIDE("log"), WIDE("datapath logging device"), NULL );
-   RegisterRoutine( WIDE("IO/File"), WIDE("LoadFile"), WIDE("Load file as a binary variable"), LoadFile );
-   RegisterRoutine( WIDE("IO/File"), WIDE("StoreFile"), WIDE("Save File from binary variable"), StoreFile );
-   RegisterRoutine( WIDE("IO/File"), WIDE("SaveFile"), WIDE("Save File from binary variable"), StoreFile );
-   RegisterRoutine( WIDE("IO/File"), WIDE("Log"), WIDE("Begin logging the data datapath to a file"), OpenLog );
+	myTypeID = RegisterDeviceOpts( WIDE("file"), WIDE("File based operations..."), Open, FileOptions, NUM_OPTIONS );
+	myTypeID2 = RegisterDevice( WIDE("log"), WIDE("datapath logging device"), NULL );
+	RegisterRoutine( WIDE("IO/File"), WIDE("LoadFile"), WIDE("Load file as a binary variable"), LoadFile );
+	RegisterRoutine( WIDE("IO/File"), WIDE("StoreFile"), WIDE("Save File from binary variable"), StoreFile );
+	RegisterRoutine( WIDE("IO/File"), WIDE("SaveFile"), WIDE("Save File from binary variable"), StoreFile );
+	RegisterRoutine( WIDE("IO/File"), WIDE("Log"), WIDE("Begin logging the data datapath to a file"), OpenLog );
 	RegisterRoutine( WIDE("IO/File"), WIDE("EndLog"), WIDE("End Logging the data datapath to a file"), CloseLog );
-   RegisterObject( WIDE("file monitor"), WIDE("File monitor object... provides on new, modify, deleted"), CreateFileMonitor );
+	RegisterObject( WIDE("file monitor"), WIDE("File monitor object... provides on new, modify, deleted"), CreateFileMonitor );
 	return DekVersion;
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-   UnregisterDevice( WIDE("file") );
-   UnregisterDevice( WIDE("log") );
-   UnregisterRoutine( WIDE("LoadFile") );
-   UnregisterRoutine( WIDE("StoreFile") );
-   UnregisterRoutine( WIDE("SaveFile") );
-   UnregisterRoutine( WIDE("Log") );
-   UnregisterRoutine( WIDE("Endlog") );
+	UnregisterDevice( WIDE("file") );
+	UnregisterDevice( WIDE("log") );
+	UnregisterRoutine( WIDE("LoadFile") );
+	UnregisterRoutine( WIDE("StoreFile") );
+	UnregisterRoutine( WIDE("SaveFile") );
+	UnregisterRoutine( WIDE("Log") );
+	UnregisterRoutine( WIDE("Endlog") );
 }
 
 

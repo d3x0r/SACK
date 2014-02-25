@@ -1051,6 +1051,7 @@ static int CPROC DefaultCommandOutput( PDATAPATH pdp )
 			}
 			LineRelease( pOutput );
 		}
+		return 1;
 	}
 	return 0;
 }
@@ -1447,7 +1448,6 @@ int ProcessSentients( THREAD_ID ThreadID )
 				bFree = TRUE;
 				ps->CurrentMacro = NULL; // gets restored next command....
 				{
-					PMACROSTATE pms;
 					if( ( pms = (PMACROSTATE)PeekData( &ps->MacroStack ) )
 						&& pms->state.flags.forced_run )
 					{
@@ -1557,7 +1557,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 								{
 									//SystemLog( WIDE("Macro has commands to do...") );
 									//_lprintf( 0, WIDE("pCommands->pNode[pms->nCommand=%d]=%p"), pms->nCommand, pCommands->pNode[pms->nCommand] );
-									pCommand = (PTEXT)pCommands->pNode[pms->nCommand];
+ 									pCommand = (PTEXT)pCommands->pNode[pms->nCommand];
 									ppCommand = (PTEXT*)(pCommands->pNode + pms->nCommand);
 									pms->nCommand++;
 								}
@@ -1725,6 +1725,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 									}
 									PopData( &ps->MacroStack );
 								}
+								pms = NULL;
 							}
 							else
 							{
@@ -1827,8 +1828,8 @@ int ProcessSentients( THREAD_ID ThreadID )
 					{
 						if( bEmpty )
 							xlprintf(LOG_NOISE+1)( WIDE("%s(%s)command output empty, call write."), GetText(GetName( ps->Current )), GetText( pdp->pName ) );
-						else
-							xlprintf(LOG_NOISE+1)( WIDE("%s(%s)command output not empty, call write."), GetText(GetName( ps->Current )), GetText( pdp->pName ) );
+						//else
+						//	xlprintf(LOG_NOISE+1)( WIDE("%s(%s)command output not empty, call write."), GetText(GetName( ps->Current )), GetText( pdp->pName ) );
 					}
 					if( pdp->Write )
 					{
