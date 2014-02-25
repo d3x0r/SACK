@@ -25,6 +25,12 @@
 #define SACK_MEMORY_NAMESPACE_END
 #endif
 
+// this has to be a compile option (option from cmake)
+#ifdef USE_SACK_CUSTOM_MEMORY_ALLOCATION
+#define USE_CUSTOM_ALLOCER 1
+#else
+#define USE_CUSTOM_ALLOCER 0
+#endif
 
 /* A declaration of the call type for memory library routines. */
 #define MEM_API CPROC

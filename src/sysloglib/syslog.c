@@ -130,7 +130,9 @@ struct state_flags{
 };
 
 #ifdef __ANDROID__
-#  define __STATIC_GLOBALS__
+#  if !USE_CUSTOM_ALLOCER
+#    define __STATIC_GLOBALS__
+#  endif !USE_CUSTOM_ALLOCER
 #endif
 
 #ifndef __STATIC_GLOBALS__

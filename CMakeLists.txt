@@ -208,6 +208,7 @@ endif( NOT __NO_ODBC__ )
 OPTION( __ANDROID__ "Enable Android Behvaviors" 0 )
 OPTION( USE_OPTIONS "Use Option Code all internal option usage (and don't include option code)" 1 )
 OPTION( USING_OLD_MINGW "MinGW Has NO UpdateLayeredWindow" ${MINGW} )
+OPTION( USE_SACK_CUSTOM_MEMORY_ALLOCATION "Enable alternative memory allocator; affects locks on queues" 0 )
 OPTION( USE_SQLITE "Use SQLITE (also links static internal)" 1 )
 OPTION( USE_SQLITE_EXTERNAL "Use SQLITE (build as external module, included when off)" 0 )
 OPTION( EXTREME_CODE_DEBUG "Enable extreme warning levels (mingw)" 0 )
@@ -276,14 +277,18 @@ if( NOT __NO_ODBC__ OR USE_SQLITE )
  endif( USE_OPTIONS )
  
 else( NOT __NO_ODBC__ OR USE_SQLITE )
-   set( ExtraDefinitions ${ExtraDefinitions};__NO_SQL__;__NO_OPTIONS__ )
+	set( ExtraDefinitions ${ExtraDefinitions};__NO_SQL__;__NO_OPTIONS__ )
 
 endif( NOT __NO_ODBC__ OR USE_SQLITE )
 
-        
+if( USE_SACK_CUSTOM_MEMORY_ALLOCATION )
+add_definitions( -DUSE_SACK_CUSTOM_MEMORY_ALLOCATION )
+endif( USE_SACK_CUSTOM_MEMORY_ALLOCATION )
+
 if( NOT NEED_JPEG )
         set( JPEG_LIBRARIES jpeg )
 endif( NOT NEED_JPEG )
+
 if( NOT NEED_PNG )
         set( PNG_LIBRARIES png )
 endif( NOT NEED_PNG )
