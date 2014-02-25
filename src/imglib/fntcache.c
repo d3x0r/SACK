@@ -101,11 +101,6 @@ _64 fontcachetime;
 static CACHE_BUILD build;
 
 //-------------------------------------------------------------------------
-PRIORITY_UNLOAD( CreatePSIFontCacheGlobal, IMAGE_PRELOAD_PRIORITY )
-{
-	Deallocate( POINTER, global_font_data );
-	global_font_data = NULL;
-}
 
 #define fg (*global_font_data)
 #ifdef _PSI_INCLUSION

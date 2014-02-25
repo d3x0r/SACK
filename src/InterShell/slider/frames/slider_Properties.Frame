@@ -1,10 +1,10 @@
 <control caption="Slider Properties" edit="1" position="0,0" size="355,331" type="Frame">
-<control IDName="Color Well/InterShell/CLR_TEXT_COLOR" caption="" position="153,12" size="32,32" type="Combo Box"></control>
+<control IDName="Color Well/InterShell/CLR_TEXT_COLOR" caption="" position="153,12" size="32,32" type="Color Well"></control>
 <control caption="Text Color" position="10,18" size="132,25" type="TextControl"></control>
 <control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="233,282" size="73,23" type="Button"></control>
 <control IDName="Button/InterShell/font/BTN_PICKFONT" PrivateData="#ff354c59" caption="Font" position="17,280" size="95,33" type="Button"></control>
 <control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="147,282" size="73,25" type="Button"></control>
-<control IDName="Color Well/InterShell/CLR_BACKGROUND" caption="" position="153,54" size="32,32" type="Combo Box"></control>
+<control IDName="Color Well/InterShell/CLR_BACKGROUND" caption="" position="153,54" size="32,32" type="Color Well"></control>
 <control caption="Background" position="12,62" size="126,21" type="TextControl"></control>
 <control caption="Background Image" position="16,99" size="136,21" type="TextControl"></control>
 <control IDName="EditControl/InterShell/Slider.isp/EDIT_BACKGROUND_IMAGE" caption="" position="152,98" size="155,21" type="EditControl"></control>

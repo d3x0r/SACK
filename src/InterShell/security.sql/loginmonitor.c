@@ -302,14 +302,14 @@ PRELOAD( InitLoginMon )
 
 		// Get Idle Time ( Minutes )
 		l.iIdleTime = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Timeouts"), WIDE("idle"), 30, NULL );
-		lprintf( WIDE(" Idle Time: %d minutes"), l.iIdleTime );
+		//lprintf( WIDE(" Idle Time: %d minutes"), l.iIdleTime );
 
 		// If option enabled
 		if( l.iIdleTime )
 		{
 			// Get Screen Saver Wait Time ( Seconds )
 			l.iScreenSaverWaitTime = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Timeouts"), WIDE("message time"), 10, NULL );
-			lprintf( WIDE(" Screen Saver Wait Time: %d seconds"), l.iScreenSaverWaitTime );
+			//lprintf( WIDE(" Screen Saver Wait Time: %d seconds"), l.iScreenSaverWaitTime );
 
 			// Get Process List
 			if ( !EnumProcesses( l.pidList1, sizeof( l.pidList1 ), &l.pidListLength1 ) )

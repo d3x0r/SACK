@@ -516,7 +516,6 @@ PTHEME LoadButtonThemeByNameEx( CTEXTSTR name, int theme_id, CDATA default_color
 	// Copy path
 	memcpy( szTheme, szBuffer, ( sizeof (szTheme) ) );
 
-
 	// Get Mask 
 	retval =  SACK_GetPrivateProfileStringEx( szTheme, WIDE( "MASK" ), WIDE( "ridge_mask.png" ), szBuffer, sizeof( szBuffer ), gIniFileName, TRUE );
 
@@ -601,7 +600,6 @@ void LoadButtonTheme( void )
 #ifndef __NO_OPTIONS__
 	if( !l.flags.theme_loaded )
 	{
-
 		color_defs[0].color = BASE_COLOR_BLACK;
 		color_defs[0].name = WIDE("black");
 		color_defs[1].color = BASE_COLOR_BLUE;
@@ -611,12 +609,12 @@ void LoadButtonTheme( void )
 		color_defs[3].color = BASE_COLOR_RED;
 		color_defs[3].name = WIDE("red");		
 
+		lprintf( "normal butto theme..." );
 		{
 			PTHEME theme = LoadButtonThemeByName( WIDE("Normal Button"), 0 );
 			SetLink( &l.theme_list, 0, theme );
 			l.default_theme = theme;
 		}
-
 		l.flags.theme_loaded = 1;
 	}
 #endif
@@ -1361,14 +1359,12 @@ PKEY_BUTTON MakeKeyExx( PCOMMON frame
 		l.pri = GetDisplayInterface();
 	if( !lense && !frame_up && !frame_down && !mask )
 	{
-		//lprintf( WIDE("Loading button theme...") );
 		LoadButtonTheme();
 		loaded_default = 1;
 		lense = l.default_theme->buttons.iGlare;
 		frame_up = l.default_theme->buttons.iNormal;
 		frame_down = l.default_theme->buttons.iPressed;
 		mask = l.default_theme->buttons.iMask;
-
 	}
 	// make sure everything is zero... (specially with release mode)
 	pc = MakeNamedControl( frame, BUTTON_NAME
@@ -1432,8 +1428,7 @@ PKEY_BUTTON MakeKeyExx( PCOMMON frame
 		result->value = value;
 		result->layout = NULL;
 		result->flags.bCreating = 0;
-		RevealCommon( pc ); // restore this control - normally it'll be hidden anyhow at this point.
-        AddLink( &l.buttons, result );
+		AddLink( &l.buttons, result );
 		return result;
 	}
 }

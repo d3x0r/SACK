@@ -160,10 +160,8 @@ void BuildBrain( BRAIN *Brain )
 
 int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCMd, int nCmdShow )
 {
-   MSG Msg;
-  SetSystemLog( SYSLOG_FILE, stdout );
-   SetAllocateLogging( TRUE );
-   //Enable3DFX(TRUE);
+	MSG Msg;
+   //Enable3DFX(TRUE);
 
    if( InitializeBoard() )
    {

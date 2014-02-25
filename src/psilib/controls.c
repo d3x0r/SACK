@@ -442,15 +442,16 @@ PRIORITY_PRELOAD( InitPSILibrary, PSI_PRELOAD_PRIORITY )
 		REG(CONSOLE_CONTROL );
 		REG(SHEET_CONTROL );
 		REG(COMBOBOX_CONTROL );
-		REG2(WIDE("Shade Well"),14 );
-		REG2(WIDE("Color Well"),15 );
-		REG2(WIDE("Color Matrix"),16 );
-		REG2(WIDE("Font Sample"), 17 );
-		REG2(WIDE("Font Size Control"), 18 );
-		REG2(WIDE("Popup Menu"), 19 );
-		REG2(WIDE("Basic Clock Widget"), 20 );
-		REG2(WIDE("Scroll Knob"), 21 );
-		REG2(WIDE("PSI Console"), 22 );
+
+		REG2(WIDE("Color Matrix"), BUILTIN_CONTROL_COUNT + 0 );
+		REG2(WIDE("Font Sample"), BUILTIN_CONTROL_COUNT + 1 );
+		REG2(WIDE("Font Size Control"), BUILTIN_CONTROL_COUNT + 2 );
+		REG2(WIDE("Popup Menu"), BUILTIN_CONTROL_COUNT + 3 );
+		REG2(WIDE("Basic Clock Widget"), BUILTIN_CONTROL_COUNT + 4 );
+		REG2(WIDE("Scroll Knob"), BUILTIN_CONTROL_COUNT + 5 );
+		REG2(WIDE("PSI Console"), BUILTIN_CONTROL_COUNT + 6 );
+		REG2(WIDE("Shade Well"), BUILTIN_CONTROL_COUNT + 7 );
+		REG2(WIDE("Color Well"), BUILTIN_CONTROL_COUNT + 8 );
 		{
 			int nResources = sizeof( resource_names ) / sizeof( resource_names[0] );
 			int n;
@@ -3554,6 +3555,10 @@ PSI_CONTROL CreateCommonExxx( PSI_CONTROL pContainer
 				snprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%s/rtti/extra init"), pTypeName );
 			else
 				snprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f WIDE("/rtti/extra init"), nType );
+			if( StrCaseCmp( pTypeName, "Color Well" ) == 0 )
+			{
+				int a = 3;
+			}
 			if( !(ExtraBorderType & BORDER_NO_EXTRA_INIT ) )
 			{
 				int (CPROC *CustomInit)(PSI_CONTROL);
@@ -3563,7 +3568,7 @@ PSI_CONTROL CreateCommonExxx( PSI_CONTROL pContainer
 				{
 					int (CPROC *CustomInit)(PSI_CONTROL);
 					// dispatch for a common proc that is registered to handle extra init for
-               // any control...
+					// any control...
 					for( name = GetFirstRegisteredName( WIDE("psi/control/rtti/extra init"), &data );
 						 name;
 						  name = GetNextRegisteredName( &data ) )

@@ -163,13 +163,6 @@ GLOBAL *global_sqlstub_data;
 
 void InitLibrary( void );
 
-PRIORITY_UNLOAD( InitGlobalData, SQL_PRELOAD_PRIORITY )
-{
-   // probably should delete all resources that is in this also....
-   
-	Deallocate( POINTER, global_sqlstub_data );
-	global_sqlstub_data = NULL;
-}
 
 PRIORITY_PRELOAD( InitGlobalData, SQL_PRELOAD_PRIORITY )
 {
@@ -186,7 +179,7 @@ static void GetNowFunc(sqlite3_context*onwhat,int n,sqlite3_value**something)
 #ifdef _UNICODE
 	char *tmp_str = WcharConvert( str );
 	sqlite3_result_text( onwhat, tmp_str, (int)(sizeof( tmp_str[0] ) * StrLen( str )), 0 );
-   Deallocate( char *, tmp_str );
+	Deallocate( char *, tmp_str );
 #else
 	sqlite3_result_text( onwhat, str, (int)(sizeof( str[0] ) * StrLen( str )), 0 );
 #endif
@@ -195,7 +188,7 @@ static void GetCurUser(sqlite3_context*onwhat,int n,sqlite3_value**something)
 {
 	CTEXTSTR str = OSALOT_GetEnvironmentVariable( WIDE("USERNAME") );
 	static TEXTCHAR tmp[256];
-   snprintf( tmp, 256, WIDE("%s@127.0.0.1"), str );
+	snprintf( tmp, 256, WIDE("%s@127.0.0.1"), str );
 #ifdef _UNICODE
 	{
 		char *tmp_str = WcharConvert( tmp );
@@ -965,10 +958,10 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 			msg[79] = 0; // stupid snprintf, this is going to SUCK.  What the hell microsoft?!
 			if( g.feedback_handler )
 			{
+				//_lprintf(DBG_VOIDRELAY)( WIDE( "%s" ), msg );
 				g.feedback_handler( msg );
 			}
 
-			_lprintf(DBG_VOIDRELAY)( WIDE( "%s" ), msg );
 			state++;
 			if( state == 5 )
 				state = 0;

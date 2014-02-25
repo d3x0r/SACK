@@ -690,7 +690,6 @@ static LOGICAL InvokeMethod( PCLIENT pc, struct HttpServer *server, struct HttpS
 				f = GetRegisteredProcedureExx( server->methods, (PCLASSROOT)(GetText( pHttpState->resource ) + 1), LOGICAL, GetText(request), (PTRSZVAL, PCLIENT, struct HttpState *, PTEXT) );
 				//lprintf( "got for %s %s", (PCLASSROOT)(GetText( pHttpState->resource ) + 1),  GetText( request ) );
 				//if( !f )
-				//   DumpRegisteredNames();
 				if( f )
 					status = f( server->psvRequest, pc, pHttpState, pHttpState->content );
 			}
@@ -789,11 +788,8 @@ struct HttpServer *CreateHttpServerEx( CTEXTSTR interface_address, CTEXTSTR Targ
 			  , TargetName?TargetName:WIDE("")
 			  , ( TargetName && site )?WIDE( "/" ):WIDE( "" )
 			  , site?site:WIDE( "" ) );
-   //lprintf( "Server root = %s", class_name );
+	//lprintf( "Server root = %s", class_name );
 	server->methods = GetClassRoot( class_name );
-	//DumpRegisteredNamesFrom( server->methods );
-   //lprintf( "---------------------" );
-   //DumpRegisteredNames();
 	NetworkStart();
 	server->server = OpenTCPListenerAddrEx( tmp = CreateSockAddress( interface_address?interface_address:WIDE( "0.0.0.0" ), 80 )
 													  , AcceptHttpClient );

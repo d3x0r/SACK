@@ -1087,7 +1087,6 @@ PRIORITY_PRELOAD( register_buttons, PSI_PRELOAD_PRIORITY ) {
 	DoRegisterControl( &image_button );
 	DoRegisterControl( &custom_button );
 	DoRegisterControl( &radio_button );
-	//DumpRegisteredNames();
 }
 
 PSI_BUTTON_NAMESPACE_END

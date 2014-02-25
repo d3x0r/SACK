@@ -1,6 +1,6 @@
 <control caption="Page Properties" position="0,0" size="429,243" type="Frame">
 <control caption="Background" position="5,97" size="120,18" type="TextControl"></control>
-<control IDName="Color Well/InterShell/CLR_BACKGROUND" position="130,97" size="18,18" type="Combo Box"></control>
+<control IDName="Color Well/InterShell/CLR_BACKGROUND" position="130,97" size="18,18" type="Color Well"></control>
 <control IDName="EditControl/InterShell/TXT_IMAGE_NAME" caption="" position="130,120" size="240,18" type="EditControl"></control>
 <control IDName="Button/InterShell/BTN_PICKFILE" PrivateData="#ff354c59" caption="..." position="89,120" size="36,18" type="Button"></control>
 <control IDName="EditControl/InterShell/page property/EDIT_PAGE_GRID_PARTS_X" caption="" position="212,150" size="73,21" type="EditControl"></control>

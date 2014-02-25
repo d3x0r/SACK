@@ -1,12 +1,14 @@
 
 // the higher the number the earlier it is run
 
-#define ATEXIT_PRIORITY_SYSLOG   SYSLOG_PRELOAD_PRIORITY
-#define ATEXIT_PRIORITY_SHAREMEM 1
-#define ATEXIT_PRIORITY_TIMERS   (SYSLOG_PRELOAD_PRIORITY-1)
+#define ATEXIT_PRIORITY_SHAREMEM  1
+
+#define ATEXIT_PRIORITY_THREAD_SEMS ATEXIT_PRIORITY_SYSLOG-1
+#define ATEXIT_PRIORITY_SYSLOG    35
 
 #define ATEXIT_PRIORITY_MSGCLIENT 85
-#define ATEXIT_PRIORITY_DEFAULT  100
+#define ATEXIT_PRIORITY_DEFAULT   90
+#define ATEXIT_PRIORITY_TIMERS   (ATEXIT_PRIORITY_DEFAULT+1)
 
 // this is the first exit to be run.
 // under linux it is __attribute__((destructor))

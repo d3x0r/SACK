@@ -40,11 +40,6 @@ struct idle_global_tag {
 static struct idle_global_tag *idle_global;// registered_idle_procs;
 #  define l (*idle_global)
 
-PRIORITY_UNLOAD( InitGlobalIdle, OSALOT_PRELOAD_PRIORITY )
-{
-	Deallocate( struct idle_global_tag *, idle_global );
-	idle_global = NULL;
-}
 PRIORITY_PRELOAD( InitGlobalIdle, OSALOT_PRELOAD_PRIORITY )
 {
 	SimpleRegisterAndCreateGlobal( idle_global );

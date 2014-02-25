@@ -23,6 +23,12 @@ PROCREG_NAMESPACE
 
 	} procreg_local_private_data;
 
+struct tmp_namebuf
+{
+	TEXTCHAR *buffer;
+	size_t length;
+};
+
 struct procreg_local_tag {
 	struct {
 		BIT_FIELD bInterfacesLoaded : 1;
@@ -46,18 +52,21 @@ struct procreg_local_tag {
 	PNAMESPACE NameSpace;
 	PLIST TransationSpaces;
 
-   int translations; // open group ID
+	int translations; // open group ID
 
 	TEXTCHAR *config_filename;
 	FILE *file;
 	CRITICALSECTION csName;
-   //gcroot<System::IO::FileStream^> fs;
+	_32 simple_lock;
+
+	PLINKQUEUE tmp_names;
+	PLIST global_spaces;
+	//gcroot<System::IO::FileStream^> fs;
 };
 
 #define l (*procreg_local_data)
 
 static struct procreg_local_tag *procreg_local_data;
-
 
 static CTEXTSTR SaveName( CTEXTSTR name );
 PTREEDEF GetClassTreeEx( PTREEDEF root
@@ -223,17 +232,20 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 
 	// otherwise it will be single threaded?
 	if( procreg_local_private_data.flags.enable_critical_sections )
-		EnterCriticalSec( &l.csName );
+	{
+      EnterCriticalSec( &l.csName );
+	}
 	if( l.flags.bIndexNameTable )
 	{
 		POINTER p;
-		//_lprintf(DBG_RELAY)( "Indexed name table... %p(%s)", stripped, stripped );
 		p = FindInBinaryTree( l.NameIndex, (PTRSZVAL)stripped );
 		if( p )
 		{
 			// otherwise it will be single threaded?
 			if( procreg_local_private_data.flags.enable_critical_sections )
+			{
 				LeaveCriticalSec( &l.csName );
+			}
 			return ((CTEXTSTR)p);
 		}
 	}
@@ -249,7 +261,10 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 				{
 					// otherwise it will be single threaded?
 					if( procreg_local_private_data.flags.enable_critical_sections )
-						LeaveCriticalSec( &l.csName );
+					{
+						l.simple_lock = 0;
+						//LeaveCriticalSec( &l.csName );
+					}
 					return (CTEXTSTR)p+1;
 				}
 				p +=
@@ -266,6 +281,7 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 	}
 	for( space = l.NameSpace; space; space = space->next )
 	{
+      //lprintf( "Finding next name space free %p %p %p", l.NameSpace, space, space->next );
 		if( ( space->nextname + len ) < ( NAMESPACE_SIZE - 3 ) )
 		{
 			p = NULL;
@@ -282,21 +298,19 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
          //lprintf( "Adding new namespace %p", space );
 			LinkThing( l.NameSpace, space );
 		}
-
 		MemCpy( p = space->buffer + space->nextname + 1, stripped,(_32)(sizeof( TEXTCHAR)*(len + 1)) );
 		p[len] = 0; // make sure we get a null terminator...
+		// +2 1 for byte of len, 1 for nul at end.
 		alloclen = (len + 2);
-					// +2 1 for byte of len, 1 for nul at end.
-
 		space->buffer[space->nextname] = (TEXTCHAR)(alloclen);
-#if defined( __ARM__ ) || defined( UNDER_CE )
-		alloclen = ( alloclen + 3 ) & 0xFC;
-					// +3&0xFC rounds to next full dword segment
-					// arm requires this name be aligned on a dword boundry
-               // because later code references this as a DWORD value.
-#endif
 		space->nextname += (_32)alloclen;
 		space->buffer[space->nextname] = 0;
+#if defined( __ARM__ ) || defined( UNDER_CE )
+		space->nextname = ( space->nextname + 3 ) & 0xFFFFC;
+		// +3&0xFC rounds to next full dword segment
+		// arm requires this name be aligned on a dword boundry
+		// because later code references this as a DWORD value.
+#endif
 
 		if( l.flags.bIndexNameTable )
 		{
@@ -306,7 +320,9 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 	}
 	// otherwise it will be single threaded?
 	if( procreg_local_private_data.flags.enable_critical_sections )
+	{
 		LeaveCriticalSec( &l.csName );
+	}
 	return (CTEXTSTR)p;
 }
 
@@ -317,8 +333,25 @@ static CTEXTSTR SaveName( CTEXTSTR name )
 	if( name )
 	{
 		size_t len = StrLen( name );
-		TEXTSTR stripped = NewArray( TEXTCHAR, len + 2 );
+		struct tmp_namebuf *tmp_namebuf = (struct tmp_namebuf*)DequeLink( &l.tmp_names );
+		TEXTSTR stripped;
 		size_t n;
+		if( !tmp_namebuf )
+		{
+			tmp_namebuf = New( struct tmp_namebuf );
+			tmp_namebuf->length = len + 2;
+			tmp_namebuf->buffer = NewArray( TEXTCHAR, len + 2 );
+		}
+		else
+		{
+			if( tmp_namebuf->length < ( len + 2 ) )
+			{
+				Release( tmp_namebuf->buffer );
+				tmp_namebuf->length = len + 2;
+				tmp_namebuf->buffer = NewArray( TEXTCHAR, len + 2 );
+			}
+		}
+		stripped = tmp_namebuf->buffer;
 		stripped[0] = (TEXTCHAR)(len + 2);
 		for( n = 0; n < len; n++ )
 			if( name[n] == '\\' || name[n] == '/' )
@@ -326,14 +359,11 @@ static CTEXTSTR SaveName( CTEXTSTR name )
 				len = n;
 				break;
 			}
-		Release( stripped );
-		stripped = NewArray( TEXTCHAR, len + 2 );
-		StrCpyEx( stripped + 1, name, len + 1 ); // allow +1 length for null after string; otherwise strcpy dropps the nul early
+		StrCpyEx( stripped + 1, name, len + 1 ); // allow +1 length for null after string; otherwise strncpy dropps the nul early
 		stripped[0] = (TEXTCHAR)(len + 2);
-		//lprintf( "Created stripped..." );
 		{
 			CTEXTSTR result = DoSaveName( stripped + 1, len );
-			Release( stripped );
+			EnqueLink( &l.tmp_names, tmp_namebuf );
 			return result;
 		}
 	}
@@ -431,7 +461,6 @@ static void CPROC KillName( POINTER user, PTRSZVAL key )
 	{
 	}
    DeleteFromSet( NAME, &l.Names, user );
-//	Release( user );
 }
 
 //---------------------------------------------------------------------------
@@ -439,7 +468,7 @@ static void CPROC KillName( POINTER user, PTRSZVAL key )
 // p would be the global space, but it's also already set in it's correct spot
 static void CPROC InitGlobalSpace( POINTER p, PTRSZVAL size )
 {
-	InitializeCriticalSection( &l.csName );
+	InitializeCriticalSec( &(*(struct procreg_local_tag*)p).csName );
 
 	(*(struct procreg_local_tag*)p).Names = (PTREEDEF)GetFromSet( TREEDEF, &(*(struct procreg_local_tag*)p).TreeNodes );
 	(*(struct procreg_local_tag*)p).Names->Magic = MAGIC_TREE_NUMBER;
@@ -449,25 +478,24 @@ static void CPROC InitGlobalSpace( POINTER p, PTRSZVAL size )
 	// if we have 500 names, 9 searches is much less than 250 avg
 	(*(struct procreg_local_tag*)p).flags.bIndexNameTable = 1;
 	(*(struct procreg_local_tag*)p).NameIndex = CreateBinaryTreeExx( BT_OPT_NODUPLICATES, (int(CPROC *)(PTRSZVAL,PTRSZVAL))SavedNameCmp, KillName );
-
 }
 
 static void Init( void )
 {
 	// don't call this function, preserves the process line cache, just check the flag and simple skip any call.
-   // use SAFE_INIT();
+	// use SAFE_INIT();
 #define SAFE_INIT() if( !procreg_local_data ) SimpleRegisterAndCreateGlobalWithInit( procreg_local_data, InitGlobalSpace );
-   SAFE_INIT();
+	SAFE_INIT();
 }
 
 static void ReadConfiguration( void );
 
-PRIORITY_UNLOAD( InitProcreg, NAMESPACE_PRELOAD_PRIORITY )
-{
+//PRIORITY_UNLOAD( InitProcreg, NAMESPACE_PRELOAD_PRIORITY )
+//{
 	// release other members too, kindly
-	Deallocate( struct procreg_local_tag*, procreg_local_data );
-	procreg_local_data = NULL;
-}
+	//Deallocate( struct procreg_local_tag*, procreg_local_data );
+	//procreg_local_data = NULL;
+//}
 PRIORITY_PRELOAD( InitProcReg2, SYSLOG_PRELOAD_PRIORITY )
 {
    // this has to be done after timer's init is done, which is SYSLOG_PRELOAD_PRIORITY-1
@@ -555,13 +583,9 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 {
 	PTREEDEF class_root;
 
-	//Init();
 	if( !root )
 	{
 		Init();
-
-		if( !procreg_local_data || !l.Names )
-			InitGlobalSpace( &l, 0);
 		root = l.Names;
 	}// fix root...
 	class_root = root;
@@ -699,7 +723,6 @@ PTREEDEF GetClassTreeEx( PTREEDEF root, PTREEDEF _name_class, PTREEDEF alias, LO
 					break;
 			}
 			while( class_root && start[0] );
-         //Release( original );
 		}
 	}
 	return class_root;
@@ -720,8 +743,7 @@ PROCREG_PROC( PTREEDEF, GetClassRootEx )( PCLASSROOT root, CTEXTSTR name_class )
 
 PROCREG_PROC( PTREEDEF, GetClassRoot )( CTEXTSTR name_class )
 {
-	Init();
-	return GetClassRootEx( l.Names, name_class );
+	return GetClassTreeEx( l.Names, (PCLASSROOT)name_class, NULL, TRUE );
 }
 #ifdef __cplusplus
 PROCREG_PROC( PTREEDEF, GetClassRootEx )( PCLASSROOT root, PCLASSROOT name_class )
@@ -731,8 +753,7 @@ PROCREG_PROC( PTREEDEF, GetClassRootEx )( PCLASSROOT root, PCLASSROOT name_class
 
 PROCREG_PROC( PTREEDEF, GetClassRoot )( PCLASSROOT name_class )
 {
-	Init();
-	return GetClassRootEx( l.Names, (PCLASSROOT)name_class );
+	return GetClassTreeEx( l.Names, (PCLASSROOT)name_class, NULL, TRUE );
 }
 #endif
 //---------------------------------------------------------------------------
@@ -868,8 +889,6 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 					Release( s2 );
 					// perhaps it's same in a different library...
 					Log( WIDE("All is not well - found same function name in tree with different address. (ignoring second) ") );
-					//DumpRegisteredNames();
-					//DebugBreak();
 				}
 				DeleteFromSet( NAME, &l.NameSet, newname );
 				return TRUE;
@@ -909,15 +928,6 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 			lprintf( WIDE("I'm relasing this name!?") );
 			DeleteFromSet( NAME, &l.NameSet, newname );
 		}
-#if 0
-		{
-			static int n;
-			n++;
-            lprintf( "-------------------------------           registration %d", n );
-         if( n > 259 )
-				DumpRegisteredNames();
-		}
-#endif
 		return 1;
 	}
 	return FALSE;
@@ -946,19 +956,19 @@ int ReleaseRegisteredFunctionEx( PCLASSROOT root, CTEXTSTR name_class
 							 )
 {
 	PTREEDEF class_root = GetClassTree( root, (PCLASSROOT)name_class );
-   TEXTCHAR buf[256];
+	TEXTCHAR buf[256];
 	PNAME node = (PNAME)FindInBinaryTree( class_root->Tree, (PTRSZVAL)DressName( buf, public_name ) );
 	if( node )
 	{
 		if( node->flags.bProc )
 		{
 			UnloadFunction( &node->data.proc.proc );
-         //node->data.proc.proc = NULL;
+			//node->data.proc.proc = NULL;
 			node->flags.bProc = 0;
-         return 1;
+			return 1;
 		}
 	}
-   return 0;
+	return 0;
 }
 
 //---------------------------------------------------------------------------
@@ -1026,7 +1036,7 @@ PROCREG_PROC( PROCEDURE, ReadRegisteredProcedureEx )( PCLASSROOT root
 		}
 		return oldname->data.proc.proc;
 	}
-   return NULL;
+	return NULL;
 }
 
 //---------------------------------------------------------------------------
@@ -1097,11 +1107,13 @@ PROCREG_PROC( PROCEDURE, GetRegisteredProcedureExxx )( CTEXTSTR root, PCLASSROOT
 #endif
 PROCREG_PROC( PROCEDURE, GetRegisteredProcedureEx )( PCLASSROOT name_class, CTEXTSTR returntype, CTEXTSTR name, CTEXTSTR args )
 {
+	Init();
    return GetRegisteredProcedureExx( l.Names, name_class, returntype, name, args );
 }
 #ifdef __cplusplus
 PROCREG_PROC( PROCEDURE, GetRegisteredProcedureEx )( CTEXTSTR name_class, CTEXTSTR returntype, CTEXTSTR name, CTEXTSTR args )
 {
+	Init();
    return GetRegisteredProcedureExx( l.Names, name_class, returntype, name, args );
 }
 #endif
@@ -1118,6 +1130,7 @@ void DumpRegisteredNamesWork( PTREEDEF tree, int level )
 #if 0
 	if( level == 0 )
 	{
+		Init();
 		lprintf( "Names %p  %p", l.Names, l.NameSpace );
 	}
 #endif
@@ -1359,6 +1372,7 @@ PROCREG_PROC( int, RegisterValueExx )( PCLASSROOT root, CTEXTSTR name_class, CTE
 
 PROCREG_PROC( int, RegisterValueEx )( CTEXTSTR name_class, CTEXTSTR name, int bIntVal, CTEXTSTR value )
 {
+	Init();
    return RegisterValueExx( l.Names, name_class, name, bIntVal, value );
 }
 //---------------------------------------------------------------------------
@@ -1431,6 +1445,7 @@ PROCREG_PROC( CTEXTSTR, GetRegisteredValueExx )( CTEXTSTR root, CTEXTSTR name_cl
 
 PROCREG_PROC( CTEXTSTR, GetRegisteredValueEx )( CTEXTSTR name_class, CTEXTSTR name, int bIntVal )
 {
+	Init();
 	return GetRegisteredValueExx( l.Names, name_class, name, bIntVal );
 }
 //---------------------------------------------------------------------------
@@ -1529,6 +1544,7 @@ PROCREG_PROC( PTRSZVAL, RegisterDataType )( CTEXTSTR classname
 												 , void (CPROC *Open)(POINTER,PTRSZVAL)
 												 , void (CPROC *Close)(POINTER,PTRSZVAL) )
 {
+	Init();
    return RegisterDataTypeEx( l.Names, classname, name, size, Open, Close );
 }
 
@@ -1564,7 +1580,7 @@ PROCREG_PROC( PTRSZVAL, MakeRegisteredDataTypeEx)( PCLASSROOT root
 				else
 					instancename = SaveName( instancename );
 				{
-               // look up prior instance...
+					// look up prior instance...
 					if( !FindInBinaryTree( pDataDef->instances.Tree, (PTRSZVAL)instancename ) )
 					{
 						AddBinaryNode( pDataDef->instances.Tree
@@ -1574,8 +1590,8 @@ PROCREG_PROC( PTRSZVAL, MakeRegisteredDataTypeEx)( PCLASSROOT root
 					else
 					{
 						lprintf( WIDE("Suck. We just created one externally, and want to use that data, but it already exists.") );
-                  DumpRegisteredNames();
-                  DebugBreak();
+						DumpRegisteredNames();
+						DebugBreak();
 						// increment instances referenced so that close does not
 						// destroy - fortunatly this is persistant data, and therefore
 						// doesn't get destroyed yet.
@@ -1625,7 +1641,9 @@ PROCREG_PROC( PTRSZVAL, CreateRegisteredDataTypeEx)( PCLASSROOT root
 #ifdef DEBUG_GLOBAL_REGISTRATION
 						lprintf( WIDE( "Allocating new struct data :%" )_32f, pDataDef->size );
 #endif
-						p = Allocate( pDataDef->size );
+						p = Allocate( pDataDef->size + sizeof( PLIST ) );
+						((PLIST*)p)[0] = NULL;
+						p = (POINTER)( ((PTRSZVAL)p) + sizeof( PLIST ) );
 						MemSet( p, 0, pDataDef->size );
 						if( pDataDef->Open )
 							pDataDef->Open( p, pDataDef->size );
@@ -1635,7 +1653,9 @@ PROCREG_PROC( PTRSZVAL, CreateRegisteredDataTypeEx)( PCLASSROOT root
 					}
 					else
 					{
-						Hold( p );
+						// registered one, returned, needs to be offset for hold purposes.
+						POINTER tmp_p = (POINTER)( (PTRSZVAL)p - sizeof( PLIST ) );
+						Hold( tmp_p );
 #ifdef DEBUG_GLOBAL_REGISTRATION
 						lprintf( WIDE("Resulting with previuosly created instance.") );
 						// increment instances referenced so that close does not
@@ -1666,7 +1686,7 @@ PROCREG_PROC( PTRSZVAL, CreateRegisteredDataType)( CTEXTSTR classname
 //#ifdef __STATIC__
 //	return CreateRegisteredDataTypeEx( NULL, classname, name, instancename );
 //#else
-	SAFE_INIT();
+	Init();
 	return CreateRegisteredDataTypeEx( l.Names, classname, name, instancename );
 //#endif
 }
@@ -2190,6 +2210,31 @@ static void DoDeleteRegistry( void )
 
 //-----------------------------------------------------------------------
 
+
+PRIORITY_ATEXIT( CloseGlobalRegions, ATEXIT_PRIORITY_SHAREMEM + 1 )
+{
+	PLIST *global_reference;
+	INDEX idx;
+	LIST_FORALL( l.global_spaces, idx, PLIST*, global_reference )
+	{
+		INDEX idx2;
+		POINTER *ppGlobal;
+		SetAllocateLogging( 0 );
+		// hold the global reference once more, and then just release
+		Hold( global_reference );
+		LIST_FORALL( global_reference[0], idx2, POINTER *, ppGlobal )
+		{
+			// increment count here for number of Releases to do.
+			(*ppGlobal) = NULL;
+			Release( global_reference );
+		}
+		DeleteList( global_reference );
+		// Release all times; number of holds should match number above...
+		// safety check it?
+		Release( global_reference );
+	}
+}
+
 void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, PTRSZVAL global_size, CTEXTSTR name, void (CPROC*Open)(POINTER,PTRSZVAL) )
 {
 	POINTER *ppGlobalMain;
@@ -2197,7 +2242,7 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, PTRSZVAL global_size, C
 
 	if( ppGlobal == (POINTER*)&procreg_local_data )
 	{
-		PTRSZVAL size = global_size;
+		PTRSZVAL size = global_size + sizeof( PLIST );
 		_32 created;
 		TEXTCHAR spacename[32];
 		if( procreg_local_data != NULL )
@@ -2216,6 +2261,7 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, PTRSZVAL global_size, C
 		// hmm application only shared space?
 		// how do I get that to happen?
 		(*ppGlobal) = OpenSpaceExx( spacename, NULL, 0, &size, &created );
+		(*ppGlobal) = (POINTER*)( (PTRSZVAL)(*ppGlobal) + sizeof( PLIST ) );
 		// I myself must have a global space, which is kept sepearte from named spaces
 		// but then... blah
 		if( created )
@@ -2224,87 +2270,87 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, PTRSZVAL global_size, C
 			lprintf( WIDE("(specific procreg global)clearing memory:%s(%p)"), spacename, (*ppGlobal ) );
 #endif
 			MemSet( (*ppGlobal), 0, global_size );
+			{
+				// pp global is a double pointer type, I want the pointer before
+				PLIST *global_references = (PLIST*)( (PTRSZVAL)(*ppGlobal) - sizeof( POINTER ) );
+				global_references[0] = NULL;
+				AddLink( global_references, ppGlobal );
+			}
 			if( Open )
 				Open( (*ppGlobal), global_size );
 			p = (POINTER)MakeRegisteredDataTypeEx( NULL, WIDE("system/global data"), name, name, (*ppGlobal), global_size );
 		}
-#ifdef DEBUG_GLOBAL_REGISTRATION
 		else
 		{
+#ifdef DEBUG_GLOBAL_REGISTRATION
 			lprintf( WIDE("(specific procreg global)using memory untouched:%s(%p)"), spacename, (*ppGlobal ) );
-		}
 #endif
+			{
+				// pp global is a double pointer type, I want the pointer before
+				PLIST *global_references = (PLIST*)( (PTRSZVAL)(*ppGlobal) - sizeof( POINTER ) );
+				AddLink( global_references, ppGlobal );
+			}
+		}
 		// result is the same as the pointer input...
 		return;
 	}
 
 	if( ppGlobal && !(*ppGlobal) )
 	{
+		Init();
 		// RTLD_DEFAULT
 		ppGlobalMain = &p;
-		p = (POINTER)CreateRegisteredDataType( WIDE("system/global data"), name, name );
+		p = (POINTER)CreateRegisteredDataTypeEx( l.Names, WIDE("system/global data"), name, name );
 		if( !p )
 		{
 			RegisterDataType( WIDE("system/global data"), name, global_size
-								 , NULL
+								 , Open
 								 , NULL );
-			p = (POINTER)CreateRegisteredDataType( WIDE("system/global data"), name, name );
+			p = (POINTER)CreateRegisteredDataTypeEx( l.Names, WIDE("system/global data"), name, name );
 			if( !p )
 				ppGlobalMain = NULL;
 #ifdef DEBUG_GLOBAL_REGISTRATION
-			lprintf( WIDE("Recovered global by registered type. %p"), p );
+			lprintf( WIDE("Registered and created by registered type. %p"), p );
 #endif
+			{
+				// only need each space once in this list; when it's created.
+				POINTER tmp_p = (POINTER)( (PTRSZVAL)p - sizeof( PLIST ) );
+				AddLink( &l.global_spaces, tmp_p );
+			}
 		}
-#ifdef DEBUG_GLOBAL_REGISTRATION
 		else
 		{
-         lprintf( WIDE("Found our shared region by asking politely for it! *********************") );
-		}
+#ifdef DEBUG_GLOBAL_REGISTRATION
+			lprintf( WIDE("Found our shared region by asking politely for it! *********************") );
 #endif
+		}
 		if( !ppGlobalMain )
 		{
 			lprintf( WIDE("None found in main... no way to mark for a peer...") );
 			exit(0);
 		}
-	}
-	else
-	{
-      // thing is already apparently initizliaed.. don't do this.
-		ppGlobalMain = NULL;
-	}
-	if(ppGlobalMain )
-	{
-		if( ppGlobalMain == ppGlobal )
-		{
-			lprintf( WIDE("This is the global space we need...") );
-			//MemSet( (*ppGlobal) = Allocate( global_size )
-			//						  , 0 , global_size );
-			(*ppGlobal) = (POINTER)CreateRegisteredDataType( WIDE("system/global data"), name, name );
-			if( !(*ppGlobal) )
-			{
-				RegisterDataType( WIDE("system/global data"), name, global_size
-									 , NULL
-									 , NULL );
-				(*ppGlobal) = (POINTER)CreateRegisteredDataType( WIDE("system/global data"), name, name );
-			}
-		}
-		else if( *ppGlobalMain )
+		if( ppGlobalMain && *ppGlobalMain )
 		{
 #ifdef DEBUG_GLOBAL_REGISTRATION
 			lprintf( WIDE("Resulting with a global space to use... %p"), (*ppGlobalMain) );
 #endif
-			if(procreg_local_data )
-			{
-				//lprintf( WIDE("Resulting with a global space to use... %s %p"), name, (*ppGlobalMain) );
-				//DumpRegisteredNames();
-			}
 			(*ppGlobal) = (*ppGlobalMain);
+			{
+				// pp global is a double pointer type, I want the pointer before
+				PLIST *global_references = (PLIST*)( (PTRSZVAL)(*ppGlobal) - sizeof( PLIST ) );
+				AddLink( global_references, ppGlobal );
+			}
 		}
 		else
 		{
 			lprintf( WIDE("Failure to get global_procreg_data block.") );
 			exit(0);
 		}
+	}
+	else
+	{
+		// thing is already apparently initizliaed.. don't do this.
+		ppGlobalMain = NULL;
 	}
 }
 

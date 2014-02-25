@@ -3,6 +3,6 @@
 <control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="258,119" size="75,21" type="Button"></control>
 <control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="256,89" size="73,21" type="Button"></control>
 <control IDName="Button/InterShell/BTN_PICKFONT" PrivateData="#ff354c59" caption="Pick Font" position="235,56" size="94,25" type="Button"></control>
-<control IDName="Color Well/InterShell/CLR_RING_BACKGROUND" caption="" position="161,86" size="32,32" type="Combo Box"></control>
-<control IDName="Color Well/InterShell/CLR_TEXT_COLOR" caption="" position="174,53" size="32,32" type="Combo Box"></control>
-<control IDName="Color Well/InterShell/CLR_RING_BACKGROUND" caption="" position="170,128" size="32,32" type="Combo Box"></control></control>
+<control IDName="Color Well/InterShell/CLR_RING_BACKGROUND" caption="" position="161,86" size="32,32" type="Color Well"></control>
+<control IDName="Color Well/InterShell/CLR_TEXT_COLOR" caption="" position="174,53" size="32,32" type="Color Well"></control>
+<control IDName="Color Well/InterShell/CLR_RING_BACKGROUND" caption="" position="170,128" size="32,32" type="Color Well"></control></control>

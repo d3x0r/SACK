@@ -4161,42 +4161,31 @@ PRIORITY_PRELOAD( Init_password_frame, DEFAULT_PRELOAD_PRIORITY-1 )
 	}
 	 	
 	l.bad_login_limit = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/SYSTEM/Login Failure"), WIDE("Limit"), 5, NULL );
-	lprintf( WIDE(" Login attempt limit for locking a user account: %d"), l.bad_login_limit );	
 
 	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password"), WIDE("Lock Interval"), WIDE("30 MINUTE"), buf2, 20, NULL );
 	l.bad_login_interval = StrDup(buf2);
-	lprintf( WIDE(" Time interval to keep user locked out for: %s"), l.bad_login_interval );		
 
 	l.flags.does_pass_expr = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password Expires"), WIDE("Enabled"), 1, NULL );
-	lprintf( WIDE(" Does Password Expire: %u"), l.flags.does_pass_expr );
 
 	g.pass_expr_interval = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password Expires"), WIDE("Days"), 30, NULL );
-	lprintf( WIDE(" Time interval for password expiration ( days ): %d"), g.pass_expr_interval );
 	  
 	l.pass_check_num = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password Reusable"), WIDE("Number"), 8, NULL );	
-	lprintf( WIDE(" The number of old passwords to check against: %d"), l.pass_check_num );
 	
 	l.pass_check_days = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password Reusable"), WIDE("Days"), 90, NULL );	
-	lprintf( WIDE(" The days before an old password can be used: %d"), l.pass_check_days );
 
 	l.pass_min_length = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password"), WIDE("MinLength"), 8, NULL );		
-	lprintf( WIDE(" The minimum password length: %d"), l.pass_min_length );	
 
 	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password/Upper Case"), WIDE("Required"), WIDE("TRUE"), buf, 10, NULL );
-	l.flags.does_pass_req_upper = ( StrCmp( buf, WIDE("TRUE") ) == 0 ) ? 1 : 0;		
-	lprintf( WIDE(" Does password require upper case: %u"), l.flags.does_pass_req_upper );
+	l.flags.does_pass_req_upper = ( buf[0]=='t' || buf[0] =='T' || buf[0] == '1' || buf[0] == 'Y' || buf[0] == 'y' ) ? 1 : 0;		
 
 	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password/Lower Case"), WIDE("Required"), WIDE("TRUE"), buf, 10, NULL );	
-	l.flags.does_pass_req_lower = ( StrCmp( buf, WIDE("TRUE") ) == 0 ) ? 1 : 0;
-	lprintf( WIDE(" Does password require lower case: %u"), l.flags.does_pass_req_lower );
+	l.flags.does_pass_req_lower = ( buf[0]=='t' || buf[0] =='T' || buf[0] == '1' || buf[0] == 'Y' || buf[0] == 'y' ) ? 1 : 0;
 
 	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password/Special Characters"), WIDE("Required"), WIDE("TRUE"), buf, 10, NULL );	
-	l.flags.does_pass_req_spec = ( StrCmp( buf, WIDE("TRUE") ) == 0 ) ? 1 : 0;
-	lprintf( WIDE(" Does password require special characters: %u"), l.flags.does_pass_req_spec );
+	l.flags.does_pass_req_spec = ( buf[0]=='t' || buf[0] =='T' || buf[0] == '1' || buf[0] == 'Y' || buf[0] == 'y' ) ? 1 : 0;
 
 	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password/Numeric Characters"), WIDE("Required"), WIDE("TRUE"), buf, 10, NULL );	
-	l.flags.does_pass_req_num = ( StrCmp( buf, WIDE("TRUE") ) == 0 ) ? 1 : 0;
-	lprintf( WIDE(" Does password require numeric characters: %u"), l.flags.does_pass_req_num );
+	l.flags.does_pass_req_num = ( buf[0]=='t' || buf[0] =='T' || buf[0] == '1' || buf[0] == 'Y' || buf[0] == 'y' ) ? 1 : 0;
 
 	DropOptionODBC( odbc );
 
@@ -4237,13 +4226,13 @@ PRIORITY_PRELOAD( Init_password_frame, DEFAULT_PRELOAD_PRIORITY-1 )
 		SQLEndQuery( NULL );
 	}
 
-	lprintf( WIDE(" System ID: %d, System Name: %s"), g.system_id, l.sys_name );
+	//lprintf( WIDE(" System ID: %d, System Name: %s"), g.system_id, l.sys_name );
 	
 	// Get program name and program id	
 	l.prog_name = GetProgramName();
 	l.program_id = GetProgramID( l.prog_name );
  
-	lprintf( WIDE(" Program ID: %d, Program Name: %s"), l.program_id, l.prog_name );
+	//lprintf( WIDE(" Program ID: %d, Program Name: %s"), l.program_id, l.prog_name );
 
 	// Get User Info 
 	l.logee_id = 0;
@@ -4263,10 +4252,10 @@ PRIORITY_PRELOAD( Init_password_frame, DEFAULT_PRELOAD_PRIORITY-1 )
 			l.logee_name = StrDup( result );
 		SQLEndQuery( NULL );
 
-		lprintf( WIDE(" User ID: %d, User Name: %s"), l.logee_id, l.logee_name );
+		//lprintf( WIDE(" User ID: %d, User Name: %s"), l.logee_id, l.logee_name );
 	}
 	SQLEndQuery( NULL );
 
 }
-
+        
 

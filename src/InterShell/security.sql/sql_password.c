@@ -248,23 +248,13 @@ PRIORITY_PRELOAD( RegisterUserPasswordControls, DEFAULT_PRELOAD_PRIORITY - 2 )
 	CheckODBCTable( NULL, table, CTO_MERGE );
 	DestroySQLTable( table );
 
-	{
-		CTEXTSTR *result;
-      // code to fix OLD permission_user_log
-		if( DoSQLRecordQueryf( NULL, &result, NULL, WIDE("show create table permission_user_log") ) && result && result[1] )
-			if( StrStr( result[1], WIDE("enum") ) )
-			{
-				DoSQLCommandf( WIDE("ALTER TABLE `permission_user_log` MODIFY COLUMN `logtype` CHAR(48) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT 0") );
-			}
-	}
-
 	EasyRegisterResourceRange( WIDE("User Keypad"), BTN_PASSKEY, 36, NORMAL_BUTTON_NAME );
 	//EasyRegisterResourceRange( WIDE("User Keypad"), BTN_PASSKEY, 36, CUSTOM_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/Security/SQL"), PERMISSIONS, LISTBOX_CONTROL_NAME );
 	EasyRegisterResource( WIDE("User Keypad"), PASSCODE, STATIC_TEXT_NAME );
 	EasyRegisterResource( WIDE("InterShell/Security/SQL"), REQUIRED_PERMISSIONS, LISTBOX_CONTROL_NAME );
 
-   EasyRegisterResource( WIDE("InterShell/Security/SQL"), CHECKBOX_REQUIRE_PARENT_LOGIN, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/Security/SQL"), CHECKBOX_REQUIRE_PARENT_LOGIN, RADIO_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/Security/SQL"), CHECKBOX_OVERRIDE_PARENT_REQUIRED, RADIO_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/Security/SQL"), TEXT_EDIT_REQUIRED_PERMISSION, EDIT_FIELD_NAME );
 	EasyRegisterResource( WIDE("InterShell/Security/SQL"), TEXT_EDIT_OVERRIDE_REQUIRED_PERMISSION, EDIT_FIELD_NAME );

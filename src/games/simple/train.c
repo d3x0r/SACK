@@ -204,9 +204,6 @@ void FillQuadSet( BASIC_PLANE *set, int base, int levels, P_POINT i1, P_POINT i2
 int gbExitProgram;
 int main( void )
 {
-	//SetSystemLog( SYSLOG_FILE, stdout );
-	SetAllocateDebug( TRUE );
-	//SetAllocateLogging( TRUE );
    SetHeapUnit( 16000000 );
    if( 0 )
 	{

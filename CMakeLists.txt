@@ -1,22 +1,15 @@
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
 cmake_minimum_required(VERSION 2.8)
 
-set(CMAKE_BUILD_TYPE "debug" CACHE STRING "Set build type")
-
 project( SACK )
 
 SET( MAKING_SACK_CORE ON )
 SET( SACK_SDK_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR} )
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES} Debug Release RelWithDebInfo MinSizeRel )
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES} )
 
 if( NOT CMAKE_BUILD_TYPE )
 message( FATAL_ERROR "MUST set CMAKE_BUILD_TYPE!" )
 endif( NOT CMAKE_BUILD_TYPE )
-
-if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-    message( "64bit?" )
-    set( __64__ ON )
-endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 
 
 if( ${CMAKE_GENERATOR} MATCHES "Watcom WMake" )
@@ -36,6 +29,15 @@ set( SACK_BASE ${PROJECT_SOURCE_DIR} )
 set( CMAKE_MODULE_PATH ${SACK_SOURCE_DIR}/makefiles/cmake )
 include( DefaultInstall )
 
+
+if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+    DEFINE_DEFAULT( __64__ ON )
+else( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+    DEFINE_DEFAULT( __64__ OFF )
+endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+SET( __64__ ${__64__} CACHE BOOL "Enable 64 considerations" )
+
+
 if( TOOLCHAIN STREQUAL "QNX" )
 	DEFINE_DEFAULT( __QNX__ ON )
         SET( __LINUX__ ON )
@@ -49,7 +51,13 @@ DEFINE_DEFAULT( __ANDROID__ OFF )
 SET( __ANDROID__ ${__ANDROID__} CACHE BOOL "Enable Android specific features" )
 DEFINE_DEFAULT( __LINUX__ OFF )
 SET( __LINUX__ ${__LINUX__} CACHE BOOL "Enable Linux specific features" )
-DEFINE_DEFAULT( __LINUX64__ OFF )
+
+if( __LINUX__ AND __64__ )
+	set( linux64_default ON )
+else( __LINUX__ AND __64__ )
+	set( linux64_default OFF )
+endif( __LINUX__ AND __64__ )
+DEFINE_DEFAULT( __LINUX64__   ${linux64_default} )
 SET( __LINUX64__ ${__LINUX64__} CACHE BOOL "Enable Linux-x64 specific features" )
 
 

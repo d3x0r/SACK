@@ -32,16 +32,12 @@ int main( int argc, char **argv )
 {
 #endif
 	{
-   int arg_offset = 1;
+	int arg_offset = 1;
 	generic_function hModule = NULL;
 	MainFunction Main;
 	BeginFunction Begin;
 	StartFunction Start;
 	CTEXTSTR libname;
-#ifdef MEMORY_DEBUG_LOG
-   // define memory_debug to enable memory logging at the pre-first-load level.
-	SetAllocateLogging( TRUE );
-#endif
 #ifndef LOAD_LIBNAME
 	if( argc > 1 )
 	{

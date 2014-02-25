@@ -232,11 +232,7 @@ PRIORITY_PRELOAD( InitGlobalConfigScript, CONFIG_SCRIPT_PRELOAD_PRIORITY )
 {
 	SimpleRegisterAndCreateGlobal( global_config_data );
 }
-PRIORITY_UNLOAD( InitGlobalConfigScript, CONFIG_SCRIPT_PRELOAD_PRIORITY )
-{
-	Deallocate( struct configscript_global_tag *, global_config_data );
-	global_config_data = NULL;
-}
+
 #else
 static GLOBAL global_config_data;
 #define g (global_config_data)
@@ -253,7 +249,7 @@ void DoInit( void )
 	{
 		g.flags.bDisableMemoryLogging = 1;
 		g.flags.bLogUnhandled = 0;
-      g.flags.bInitialized = 1;
+		g.flags.bInitialized = 1;
 	}
 }
 
@@ -262,10 +258,10 @@ PRELOAD( InitGlobalConfig2 )
    DoInit();
 #if !defined( __NO_OPTIONS__ )
    // later, set options - core startup configs like sql.config cannot read options.
-	g.flags.bDisableMemoryLogging = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Config Script/Disable Memory Logging" ), 1, TRUE );
-	g.flags.bLogUnhandled = SACK_GetProfileIntEx( WIDE( "SACK/Config Script" ), WIDE( "Log Unhandled if no application handler" ), 0, TRUE );
-   g.flags.bLogTrace = SACK_GetProfileIntEx( WIDE( "SACK/Config Script" ), WIDE( "Log configuration processing(trace)" ), 0, TRUE );
-   g.flags.bLogLines = SACK_GetProfileIntEx( WIDE( "SACK/Config Script" ), WIDE( "Log configuration line input" ), 0, TRUE );
+	g.flags.bDisableMemoryLogging = SACK_GetProfileIntEx( WIDE( "SACK/Config Script" ), WIDE( "Disable Memory Logging" ), g.flags.bDisableMemoryLogging, TRUE );
+	g.flags.bLogUnhandled = SACK_GetProfileIntEx( WIDE( "SACK/Config Script" ), WIDE( "Log Unhandled if no application handler" ), g.flags.bLogUnhandled, TRUE );
+	g.flags.bLogTrace = SACK_GetProfileIntEx( WIDE( "SACK/Config Script" ), WIDE( "Log configuration processing(trace)" ), g.flags.bLogTrace, TRUE );
+	g.flags.bLogLines = SACK_GetProfileIntEx( WIDE( "SACK/Config Script" ), WIDE( "Log configuration line input" ), g.flags.bLogLines, TRUE );
 #endif
 }
 
@@ -2628,11 +2624,12 @@ CONFIGSCR_PROC( PCONFIG_HANDLER, CreateConfigurationEvaluator )( void )
 #endif
 
 	if( g.flags.bDisableMemoryLogging )
-		if( !g._disabled_allocate_logging )
+	{
+		if( !(g._disabled_allocate_logging++) )
 		{
 			g._last_allocate_logging = SetAllocateLogging( FALSE );
-			g._disabled_allocate_logging++;
 		}
+	}
 	pch = (PCONFIG_HANDLER)Allocate( sizeof( CONFIG_HANDLER ) );
 	MemSet( pch, 0, sizeof( *pch ) );
 	// break input chunks into lines....

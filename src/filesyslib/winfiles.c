@@ -39,19 +39,17 @@ static struct winfile_local_tag {
 
 #define l (*winfile_local)
 
-PRIORITY_UNLOAD( LowLevelInit, SYSLOG_PRELOAD_PRIORITY-1 )
-{
-	Deallocate( POINTER, winfile_local );
-}
-
 static void LocalInit( void )
 {
 	if( !winfile_local )
 	{
 		SimpleRegisterAndCreateGlobal( winfile_local );
-		InitializeCriticalSec( &l.cs_files );
-		l.flags.bInitialized = 1;
-		l.flags.bLogOpenClose = 0;
+		if( !l.flags.bInitialized )
+		{
+			InitializeCriticalSec( &l.cs_files );
+			l.flags.bInitialized = 1;
+			l.flags.bLogOpenClose = 0;
+		}
 	}
 }
 
@@ -59,10 +57,10 @@ PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )
 {
 	LocalInit();
 }
+
 #ifndef __NO_OPTIONS__
 PRELOAD( InitWinFileSys )
 {
-    LocalInit();
     l.flags.bLogOpenClose = SACK_GetProfileIntEx( WIDE( "SACK/filesys" ), WIDE( "Log open and close" ), l.flags.bLogOpenClose, TRUE );
 }
 #endif
@@ -269,6 +267,7 @@ TEXTSTR ExpandPath( CTEXTSTR path )
 				else
 					len = 0;
 
+         /*
 				if( l.flags.bLogOpenClose )
 					lprintf( "Fix dots in [%s]", tmp_path );
 				for( ofs = len+1; tmp_path[ofs]; ofs++ )
@@ -279,7 +278,8 @@ TEXTSTR ExpandPath( CTEXTSTR path )
 						tmp_path[ofs] = '.';
 				}
 				if( l.flags.bLogOpenClose )
-					lprintf( "Fixed result [%s]", tmp_path );
+				lprintf( "Fixed result [%s]", tmp_path );
+            */
 			}
 #endif
 		}
@@ -398,6 +398,7 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 			else
 				len = 0;
 
+         /*
 			if( l.flags.bLogOpenClose )
 				lprintf( WIDE("Fix dots in [%s]"), fullname );
 			for( ofs = len+1; fullname[ofs]; ofs++ )
@@ -407,6 +408,7 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 				if( fullname[ofs] == '\\' )
 					fullname[ofs] = '.';
 			}
+         */
 		}
 #endif
 		if( l.flags.bLogOpenClose )

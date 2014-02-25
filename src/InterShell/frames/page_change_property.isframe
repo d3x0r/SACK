@@ -1,7 +1,7 @@
 <control caption="Page Change Button Properties" edit="1" position="8,31" size="549,367" type="Frame">
-<control IDName="Color Well/InterShell/CLR_BACKGROUND" caption="" position="177,146" size="30,30" type="Combo Box"></control>
-<control IDName="Color Well/InterShell/CLR_RING_BACKGROUND" caption="" position="221,146" size="30,30" type="Combo Box"></control>
-<control IDName="Color Well/InterShell/CLR_TEXT_COLOR" caption="" position="176,103" size="30,30" type="Combo Box"></control>
+<control IDName="Color Well/InterShell/CLR_BACKGROUND" caption="" position="177,146" size="30,30" type="Color Well"></control>
+<control IDName="Color Well/InterShell/CLR_RING_BACKGROUND" caption="" position="221,146" size="30,30" type="Color Well"></control>
+<control IDName="Color Well/InterShell/CLR_TEXT_COLOR" caption="" position="176,103" size="30,30" type="Color Well"></control>
 <control caption="Text Color" position="22,105" size="124,23" type="TextControl"></control>
 <control caption="Background Color" position="27,146" size="136,21" type="TextControl"></control>
 <control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Ok" position="377,235" size="71,19" type="Button"></control>

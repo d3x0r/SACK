@@ -101,6 +101,5 @@ PRELOAD( LstRegisterExtraInits )
 {
 	SimpleRegisterMethod( WIDE("psi/control/") LISTBOX_CONTROL_NAME WIDE("/rtti/extra init")
 							  , CustomInitListbox, WIDE("int"), WIDE("extra init"), WIDE("(PCOMMON)") );
-   DumpRegisteredNamesFrom( (PCLASSROOT)WIDE("psi/control") LISTBOX_CONTROL_NAME );
 }
 

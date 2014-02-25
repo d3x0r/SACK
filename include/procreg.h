@@ -706,13 +706,13 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 
 
 #define _DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes,line)   \
-	static returntype __DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes,line)
+	__DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes,line)
 
 #define DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes)  \
 	_DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes,__LINE__)
 
 #define _DefineRegistrySubMethod(task,name,classtype,classbase,methodname,subname,returntype,argtypes,line)   \
-	static returntype CPROC paste(name,line)argtypes;       \
+	CPROC paste(name,line)argtypes;       \
 	PRELOAD( paste(Register##name##Button,line) ) {  \
 	SimpleRegisterMethod( task WIDE("/") classtype WIDE("/") classbase WIDE("/") methodname, paste(name,line)  \
 	, _WIDE(#returntype), subname, _WIDE(#argtypes) ); \

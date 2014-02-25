@@ -1105,7 +1105,7 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 	{
 		if( !renderer->font )
 		{
-			lprintf( WIDE("Need font resource (once)") );
+			//lprintf( WIDE("Need font resource (once)") );
 			renderer->font = NewPlus( FONT, 255 * sizeof(PCHARACTER) );
 			// this is okay it's a kludge so some other code worked magically
 			// it's redundant and should be dleete...
@@ -1309,6 +1309,7 @@ try_another_default:
 
 		if( !renderer->face )
 		{
+         //lprintf( "memopen %s", renderer->file );
 			error = OpenFontFile( renderer->file, &renderer->font_memory, &renderer->face, face_idx, TRUE );
 #if rotation_was_italic
 			if( renderer->flags & FONT_FLAG_ITALIC )
@@ -1418,6 +1419,7 @@ SFTFont RenderScaledFontData( PFONTDATA pfd, PFRACTION width_scale, PFRACTION he
 	extern _64 fontcachetime;
 	if( !pfd )
 		return NULL;
+
 	LoadAllFonts(); // load cache data so we can resolve user data
 	if( pfd->magic == MAGIC_PICK_FONT )
 	{
@@ -1425,8 +1427,8 @@ SFTFont RenderScaledFontData( PFONTDATA pfd, PFRACTION width_scale, PFRACTION he
 		CTEXTSTR name2 = pfd->names + StrLen( pfd->names ) + 1;
 		CTEXTSTR name3 = name2 + StrLen( name2 ) + 1;
 
-		lprintf( WIDE("[%s][%s][%s]"), name1, name2, name3 );
 
+      // picked from the current cache... otherwise search for it in this cache.
 		if( pfd->cachefile_time == fontcachetime ||
 			RecheckCache( name1/*fname(pfd->names)*/, &pfd->nFamily
 							, name2/*sname(pfd->names)*/, &pfd->nStyle
@@ -1443,13 +1445,13 @@ SFTFont RenderScaledFontData( PFONTDATA pfd, PFRACTION width_scale, PFRACTION he
 			pfd->cachefile_time = fontcachetime;
 			return return_font;
 		}
+		lprintf( WIDE("[%s][%s][%s] %d %d"), name1, name2, name3, pfd->cachefile_time, fontcachetime );
 	}
 	else if( pfd->magic == MAGIC_RENDER_FONT )
 	{
 		PRENDER_FONTDATA prfd = (PRENDER_FONTDATA)pfd;
 		PFONT_ENTRY pfe = NULL;
 		int family_idx;
-		lprintf( WIDE("Rendered font... not picked.") );
 		for( family_idx = 0; SUS_LT( family_idx, int, fg.nFonts, _32 ); family_idx++ )
 		{
 			pfe = fg.pFontCache + family_idx;

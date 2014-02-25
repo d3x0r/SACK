@@ -19,7 +19,6 @@ int main( void )
 			printf( WIDE("Debug: used:%") _32f WIDE(" free:%") _32f WIDE(" chunks:%") _32f WIDE(" freechunks:%") _32f WIDE("\n")
 					, used,free,chunks,freechunks );
 			DebugDumpMem();
-			DumpRegisteredNames();
 		}
 	}
 	printf( WIDE("Color Dialog was canceled.\n") );

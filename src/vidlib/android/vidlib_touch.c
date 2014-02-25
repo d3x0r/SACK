@@ -206,10 +206,15 @@ int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches )
 					touch_info.mouse_y
 						= touch_info.one.y = touches[0].y - r->y;
 
-					if( used = r->mouse_callback( r->psv_mouse_callback, touch_info.mouse_x, touch_info.mouse_y, MK_LBUTTON ) )
+					if( r->mouse_callback )
 					{
-						lprintf( "mouse is used on that..." );
+						if( used = r->mouse_callback( r->psv_mouse_callback, touch_info.mouse_x, touch_info.mouse_y, MK_LBUTTON ) )
+						{
+							lprintf( "mouse is used on that..." );
+						}
 					}
+					else
+                  used = 0;
 				}
 				else
 				{
@@ -235,11 +240,11 @@ int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches )
 				{
 					touch_info.mouse_x = touches[0].x - r->x;
 					touch_info.mouse_y = touches[0].y - r->y;
-					lprintf( "Dragging motion...%p %d %d", r->mouse_callback, touch_info.mouse_x, touch_info.mouse_y );
+					//lprintf( "Dragging motion...%p %d %d", r->mouse_callback, touch_info.mouse_x, touch_info.mouse_y );
 					if( r->mouse_callback )
 						if( !r->mouse_callback( r->psv_mouse_callback, touch_info.mouse_x, touch_info.mouse_y, MK_LBUTTON ) )
 						{
-                     lprintf( "losing owning surface..." );
+							lprintf( "losing owning surface..." );
 							//touch_info.flags.owned_by_surface = 0;
 						}
 				}

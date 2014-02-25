@@ -1680,8 +1680,9 @@ typedef struct LinkQueue
 	/* This is the current count of pointers that can be stored in
 	   the queue.                                                  */
 	INDEX     Cnt;
-	//volatile _32     Lock;  /* thread interlock using InterlockedExchange semaphore. For
-	  //                thread safety.                                            */
+	/* thread interlock using InterlockedExchange semaphore. For
+	   thread safety.                                            */
+	volatile _32     Lock;  
 	POINTER pNode[2]; // need two to have distinct empty/full conditions
 } LINKQUEUE, *PLINKQUEUE;
 

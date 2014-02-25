@@ -289,6 +289,37 @@ void *LoadLibrary( char *path, char *name )
    return NULL;
 }
 
+
+FILE *OpenFile( const char *filename )
+{
+	const char *start;
+	const char *end;
+	char *tmp;
+   int len;
+	FILE *result = NULL;
+   int ofs = 0;
+	tmp = malloc( sizeof( char ) * ( len = ( strlen(filename) + 1 ) ) );
+	start = filename;
+	do
+	{
+		end = strchr( start, '~' );
+		if( end )
+		{
+			ofs += snprintf( tmp + ofs, len, "%*.*s", end-start, end-start, start );
+			mkdir( tmp, -1 );
+			start = end + 1;
+			tmp[ofs++] = '/';
+		}
+		else
+		{
+			snprintf( tmp + ofs, len - ofs, "%s", start );
+         result = fopen( tmp, "wb" );
+		}
+	}while( end );
+   free( tmp );
+   return result;
+}
+
 void ExportAssets( void )
 {
 	AAssetManager* mgr;
@@ -300,7 +331,8 @@ void ExportAssets( void )
 		char buf[BUFSIZ];
 		int nb_read = 0;
 		//LOGI( "Asset:[%s]", filename );
-		FILE* out = fopen(filename, "w");
+		FILE* out = OpenFile(filename);
+
 		while ((nb_read = AAsset_read(asset, buf, BUFSIZ)) > 0)
 			fwrite(buf, nb_read, 1, out);
 		fclose(out);
