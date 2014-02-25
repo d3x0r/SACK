@@ -259,7 +259,7 @@ endif( NOT __NO_OPTIONS__ )
 
 
 if( WIN32 )
-		SET( literal_libfile_list application_delay.module loginfo.module seed_random.module )
+		SET( literal_libfile_list ${literal_libfile_list} application_delay.module loginfo.module seed_random.module )
                 set( libfile_list ${libfile_list}  glew )
 if( NOT __NO_MSGSVR__ )
 		SET( progfile_list ${progfile_list} service_list sack.msgsvr.service msgsvr )
