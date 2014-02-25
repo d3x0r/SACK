@@ -318,7 +318,7 @@ int DispatchKeyEvent( PRENDERER hVideo, _32 key )
 
 			if( (l.kbd.key[KEY_LEFT_SHIFT]|l.kbd.key[KEY_RIGHT_SHIFT]|l.kbd.key[KEY_SHIFT]) & 0x80)
 			{
-				key |= KEY_MOD_SHIFT;
+				key |= ( KEY_MOD_SHIFT << 28 );
 				l.mouse_b |= MK_SHIFT;
 				keymod |= 1;
 			}
@@ -326,7 +326,7 @@ int DispatchKeyEvent( PRENDERER hVideo, _32 key )
 				l.mouse_b &= ~MK_SHIFT;
 			if ((l.kbd.key[KEY_LEFT_CONTROL]|l.kbd.key[KEY_RIGHT_CONTROL]|l.kbd.key[KEY_CTRL]) & 0x80)
 			{
-				key |= KEY_MOD_CTRL;
+				key |= ( KEY_MOD_CTRL << 28 );
 				l.mouse_b |= MK_CONTROL;
 				keymod |= 2;
 			}
@@ -334,7 +334,7 @@ int DispatchKeyEvent( PRENDERER hVideo, _32 key )
 				l.mouse_b &= ~MK_CONTROL;
 			if((l.kbd.key[KEY_LEFT_ALT]|l.kbd.key[KEY_RIGHT_ALT]|l.kbd.key[KEY_ALT]) & 0x80)
 			{
-				key |= KEY_MOD_ALT;
+				key |= ( KEY_MOD_ALT << 28 );
 				l.mouse_b |= MK_ALT;
 				keymod |= 4;
 			}
