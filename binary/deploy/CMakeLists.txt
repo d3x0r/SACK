@@ -33,7 +33,7 @@ if( __ANDROID__ OR UNIX )
 else( __ANDROID__ OR UNIX )
   configure_file( deploy.cm.c ${CMAKE_BINARY_DIR}/deploy.c.tmp )
   EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_BINARY_DIR}/deploy.c.tmp ${CMAKE_BINARY_DIR}/deploy.c )
-  sack_add_executable( ${PROJECT} ${CMAKE_BINARY_DIR}/deploy.c )
+  sack_add_executable( ${PROJECT} DEPLOY ${CMAKE_BINARY_DIR}/deploy.c )
   SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES FOLDER install )
 
   if( WIN32 )
