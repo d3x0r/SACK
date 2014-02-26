@@ -20,10 +20,10 @@
 
 BANNER_NAMESPACE
 
-	struct upd_rect{
-		S_32 x, y;
-      _32 w, h;
-	};
+struct upd_rect{
+	S_32 x, y;
+	_32 w, h;
+};
 
 
 typedef struct banner_tag
@@ -101,7 +101,7 @@ static void InitBannerFrame( void )
 {
 	if( !banner_local.flags.bInited )
 	{
-      TEXTCHAR font[256];
+		TEXTCHAR font[256];
 		InvokeDeadstart(); // register my control please... (fucking optimizations)
 		banner_local.pii = GetImageInterface();
 		banner_local.pdi = GetDisplayInterface();
@@ -583,7 +583,7 @@ int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, i
 		banner->basecolor = basecolor?basecolor:AColor( 0x13, 0x53, 0x93, 0x40 );
 		//		GetDisplaySize( &banner_local.w, &banner_local.h );
 		{
-			CTEXTSTR result;
+			TEXTSTR result;
 			FormatTextToBlock( text, &result, 30, 20 );
 			banner->frame = MakeCaptionedControl( NULL, banner_control.TypeID
 															, (options & BANNER_EXPLORER)?EXPLORER_BANNER_X:x
@@ -593,7 +593,7 @@ int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, i
 															, 0
 															, result );
 
-         Release( (POINTER)result );
+			Release( result );
 		}
 		//banner->frame = CreateFrameFromRenderer( text
 		//													, BORDER_WANTMOUSE | BORDER_BUMP | BORDER_NOMOVE | BORDER_NOCAPTION | BORDER_FIXED
@@ -624,10 +624,10 @@ int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, i
 		}
 		bUpdateLocked = TRUE;
 		{
-			CTEXTSTR result;
+			TEXTSTR result;
 			FormatTextToBlock( text, &result, 30, 20 );
 			SetCommonText( banner->frame, result );
-			Release( (POINTER)result );
+			Release( result );
 		}
 	}
 	if( !options ) // basic options...
@@ -669,12 +669,12 @@ int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, i
 
 int CreateBanner2Exx( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, int options, int timeout, CDATA textcolor, CDATA basecolor )
 {
-   return CreateBanner2Extended( parent, ppBanner, text, options, timeout, textcolor, basecolor, 0, 0, 0 );
+	return CreateBanner2Extended( parent, ppBanner, text, options, timeout, textcolor, basecolor, 0, 0, 0 );
 }
 
 int CreateBanner2Ex( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, int options, int timeout )
 {
-   return CreateBanner2Exx( parent, ppBanner, text, options, timeout, 0, 0 );
+	return CreateBanner2Exx( parent, ppBanner, text, options, timeout, 0, 0 );
 }
 //--------------------------------------------------------------------------
 
@@ -685,7 +685,7 @@ int CreateBanner2( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text )
 	retval = CreateBanner2Ex( parent, ppBanner, text, BANNER_CLICK|BANNER_TIMEOUT, 5000 );
 
 #ifdef DEBUG_BANNER_DRAW_UPDATE
-   lprintf(WIDE("CreateBanner is done, retval is %d"), retval);
+	lprintf(WIDE("CreateBanner is done, retval is %d"), retval);
 #endif
 	return retval;
 }
@@ -702,10 +702,10 @@ void RemoveBanner2( PBANNER banner )
 void RemoveBanner2Ex( PBANNER *ppBanner DBG_PASS )
 {
 	PBANNER banner;
-   //_lprintf( DBG_RELAY )( "Removing something.." );
+	//_lprintf( DBG_RELAY )( "Removing something.." );
 	if( !ppBanner )
 	{
-      //lprintf( "remove banner local.." );
+		//lprintf( "remove banner local.." );
 		ppBanner = &banner_local.banner;
 	}
 	banner = ppBanner?(*ppBanner ):(banner_local.banner);
@@ -783,15 +783,15 @@ void SetBanner2Text( PBANNER banner, TEXTCHAR *text )
 	if( !banner )
 	{
 		if( !banner_local.banner )
-         CreateBanner2( NULL, &banner_local.banner, text );
+			CreateBanner2( NULL, &banner_local.banner, text );
 		banner = banner_local.banner;
 	}
 	if( banner )
 	{
-		CTEXTSTR result;
+		TEXTSTR result;
 		FormatTextToBlock( text, &result, 30, 20 );
 		SetCommonText( banner->frame, result );
-      Release( (POINTER)result );
+		Release( result );
 	}
 }
 
@@ -800,7 +800,7 @@ void SetBanner2Text( PBANNER banner, TEXTCHAR *text )
 static void CPROC BannerTimeout( PTRSZVAL ppsv )
 {
 	PBANNER *ppBanner = (PBANNER*)ppsv;
-   int delta = (int)(*ppBanner)->timeout - (int)timeGetTime();
+	int delta = (int)(*ppBanner)->timeout - (int)timeGetTime();
 	//PBANNER banner = ppBanner?(*ppBanner):NULL;
 	if( delta < 0 )
 	{
@@ -825,17 +825,17 @@ void CPROC DrawButton( PTRSZVAL psv, PCONTROL pc )
 {
 	Image Surface = GetControlSurface( pc );
 	ClearImageTo( pb->common.common.Surface, GetBaseColor( NORMAL ) );
-   DrawStrong( banner->font,
+	DrawStrong( banner->font,
 }
 */
 //--------------------------------------------------------------------------
 
 void SetBanner2OptionsEx( PBANNER *ppBanner, _32 flags, _32 extra  )
 {
-   PBANNER banner;
+	PBANNER banner;
 	if( !ppBanner )
 		ppBanner  = &banner_local.banner;
-   banner = (*ppBanner);
+	banner = (*ppBanner);
 	if( !banner )
 	{
 		banner = banner_local.banner;
@@ -874,7 +874,7 @@ void SetBanner2OptionsEx( PBANNER *ppBanner, _32 flags, _32 extra  )
 												, WIDE( "Cancel" ), 0
 												, SomeChoiceClicked
 												, (PTRSZVAL)banner );
-         SetButtonColor( banner->cancel, AColor( 0x9a, 0x05, 0x1d, 0xdf ) );
+			SetButtonColor( banner->cancel, AColor( 0x9a, 0x05, 0x1d, 0xdf ) );
 			banner->okay = MakeButton( banner->frame
 											 , 5 + ( BANNER_WIDTH / 2) - 5
 											 , ( ( BANNER_HEIGHT * 5 ) / 6 ) - 5 - 10
@@ -884,7 +884,7 @@ void SetBanner2OptionsEx( PBANNER *ppBanner, _32 flags, _32 extra  )
 											 , WIDE( "Okay!" ), 0
 											 , SomeChoiceClicked
 											 , (PTRSZVAL)banner );
-         SetButtonColor( banner->okay, AColor( 0x18, 0x98, 0x6c, 0xdf ) );
+			SetButtonColor( banner->okay, AColor( 0x18, 0x98, 0x6c, 0xdf ) );
 			banner->no = MakeButton( banner->frame
 												, 5, ( ( BANNER_HEIGHT * 4 ) / 6 ) - 5 - 10
 											, ( BANNER_WIDTH / 2) - 10
@@ -893,7 +893,7 @@ void SetBanner2OptionsEx( PBANNER *ppBanner, _32 flags, _32 extra  )
 												, WIDE( "No" ), 0
 												, SomeChoiceClicked
 												, (PTRSZVAL)banner );
-         SetButtonColor( banner->no, AColor( 0x9a, 0x05, 0x1d, 0xdf ) );
+			SetButtonColor( banner->no, AColor( 0x9a, 0x05, 0x1d, 0xdf ) );
 			banner->yes = MakeButton( banner->frame
 										  , 5 + ( BANNER_WIDTH / 2) - 5
 										  , ( ( BANNER_HEIGHT * 4 ) / 6 ) - 5 - 10
@@ -904,14 +904,14 @@ void SetBanner2OptionsEx( PBANNER *ppBanner, _32 flags, _32 extra  )
 											 , (PTRSZVAL)banner );
 			SetButtonColor( banner->yes, AColor( 0x18, 0x98, 0x6c, 0xdf ) );
 
-         //SetBaseColor( TEXTCOLOR, 0xffFFFFFF );
-         SetControlColor( banner->okay, TEXTCOLOR, 0xffFFFFFF );
-         SetControlColor( banner->cancel, TEXTCOLOR, 0xffFFFFFF );
-         SetControlColor( banner->yes, TEXTCOLOR, 0xffFFFFFF );
-         SetControlColor( banner->no, TEXTCOLOR, 0xffFFFFFF );
+			//SetBaseColor( TEXTCOLOR, 0xffFFFFFF );
+			SetControlColor( banner->okay, TEXTCOLOR, 0xffFFFFFF );
+			SetControlColor( banner->cancel, TEXTCOLOR, 0xffFFFFFF );
+			SetControlColor( banner->yes, TEXTCOLOR, 0xffFFFFFF );
+			SetControlColor( banner->no, TEXTCOLOR, 0xffFFFFFF );
 
 		}
-      //if( flags & BANNER_TOP )
+		//if( flags & BANNER_TOP )
 		//	MakeTopmost( banner->renderer );
 		else if( banner->flags & (BANNER_OPTION_YESNO|BANNER_OPTION_OKAYCANCEL) )
 		{
@@ -922,7 +922,7 @@ void SetBanner2OptionsEx( PBANNER *ppBanner, _32 flags, _32 extra  )
 												, ( flags & BANNER_OPTION_YESNO )?WIDE( "No" ):WIDE( "Cancel" ), 0
 												, CancelChoiceClicked
 												, (PTRSZVAL)banner );
-         SetButtonColor( banner->cancel, AColor( 0x9a, 0x05, 0x1d, 0xdf )  );
+			SetButtonColor( banner->cancel, AColor( 0x9a, 0x05, 0x1d, 0xdf )  );
 			banner->okay = MakeButton( banner->frame
 											 , 5 + ( BANNER_WIDTH / 2) - 5, ( ( BANNER_HEIGHT * 2 ) / 3 ) - 5 - 10
 											 , ( BANNER_WIDTH / 2) - 10, ((BANNER_HEIGHT * 1 ) / 3 ) - 20
@@ -930,9 +930,9 @@ void SetBanner2OptionsEx( PBANNER *ppBanner, _32 flags, _32 extra  )
 											 , ( flags & BANNER_OPTION_YESNO )?WIDE( "Yes" ):WIDE( "Okay!" ), 0
 											 , OkayChoiceClicked
 											 , (PTRSZVAL)banner );
-         SetButtonColor( banner->okay, AColor( 0x18, 0x98, 0x6c, 0xdf ) );
-         SetControlColor( banner->okay, TEXTCOLOR, 0xffFFFFFF );
-         SetControlColor( banner->cancel, TEXTCOLOR, 0xffFFFFFF );
+			SetButtonColor( banner->okay, AColor( 0x18, 0x98, 0x6c, 0xdf ) );
+			SetControlColor( banner->okay, TEXTCOLOR, 0xffFFFFFF );
+			SetControlColor( banner->cancel, TEXTCOLOR, 0xffFFFFFF );
 			//SetCommonMouse( banner->frame, NULL, 0 );
 		}
 		else
@@ -966,13 +966,13 @@ void SetBanner2OptionsEx( PBANNER *ppBanner, _32 flags, _32 extra  )
 #undef WaitForBanner2
 int WaitForBanner2( PBANNER banner )
 {
-   return WaitForBanner2Ex( &banner );
+	return WaitForBanner2Ex( &banner );
 }
 
 int WaitForBanner2Ex( PBANNER *ppBanner )
 {
 	if( !ppBanner )
-      ppBanner = &banner_local.banner;
+		ppBanner = &banner_local.banner;
 	if( *ppBanner )
 	{
 		int result = 0;
@@ -999,25 +999,25 @@ int WaitForBanner2Ex( PBANNER *ppBanner )
 			RemoveBanner2Ex( ppBanner DBG_SRC );
 			(*ppBanner) = NULL;
 		}
-      return result;
+		return result;
 	}
-   return FALSE;
+	return FALSE;
 }
 
 //--------------------------------------------------------------------------
 
 SFTFont GetBanner2Font( void )
 {
-   InitBannerFrame();
-   return banner_local.font;
+	InitBannerFrame();
+	return banner_local.font;
 }
 
 //--------------------------------------------------------------------------
 
 _32 GetBanner2FontHeight( void )
 {
-   InitBannerFrame();
-   return GetFontHeight( banner_local.font );
+	InitBannerFrame();
+	return GetFontHeight( banner_local.font );
 }
 
 //--------------------------------------------------------------------------
@@ -1080,20 +1080,20 @@ static PCONFIRM_BANNER GetWaitBanner2( CTEXTSTR name )
 	{
 		if( StrCaseCmp( name, cb->name ) == 0 )
 		{
-         break;
+			break;
 		}
 	}
 	if( !cb )
 	{
 		cb = New( CONFIRM_BANNER );
-      MemSet( cb, 0, sizeof( CONFIRM_BANNER ) );
+		MemSet( cb, 0, sizeof( CONFIRM_BANNER ) );
 		cb->name = StrDup( name );
 #ifndef __NO_OPTIONS__
 		cb->flags.bLog = SACK_GetProfileIntEx( WIDE("SACK/Widgets/Banner2"), WIDE("Log wait banner"), 0, TRUE );
 #endif
-      AddLink( &confirmation_banners, cb );
+		AddLink( &confirmation_banners, cb );
 	}
-   return cb;
+	return cb;
 }
 
 void Banner2AnswerYes( CTEXTSTR type )
@@ -1141,8 +1141,8 @@ static PTRSZVAL CPROC Confirm( PTHREAD thread )
 
 	if( cb->flags.key_result )
 	{
-      // consume the result
-      cb->flags.key_result = 0;
+		// consume the result
+		cb->flags.key_result = 0;
 		if( cb->flags.key_result_yes )
 		{
 			if( cb->dokey )
@@ -1155,12 +1155,12 @@ static PTRSZVAL CPROC Confirm( PTHREAD thread )
 			if( cb->nokey )
 				cb->nokey();
 		}
-      return 0;
+		return 0;
 	}
 	else
 	{
 		if( cb->flags.bLog )
-         lprintf( WIDE( "Banner yesno was clicked..." ) );
+			lprintf( WIDE( "Banner yesno was clicked..." ) );
 		if( result )
 		{
 			if( cb->flags.bLog )
@@ -1183,13 +1183,13 @@ static PTRSZVAL CPROC Confirm( PTHREAD thread )
 	{
 		if( cb->flags.bLog )
 			lprintf( WIDE( "Result already consumed..." ) );
-      return -1;
+		return -1;
 	}
 
 	if( cb->flags.bLog )
 		lprintf( WIDE( "Yes no is %d" ), result );
-   cb->flags.bNoResult = 1;
-   return result;
+	cb->flags.bNoResult = 1;
+	return result;
 
 
 }
@@ -1211,12 +1211,12 @@ static int Banner2ThreadConfirmExx( CTEXTSTR type, CTEXTSTR msg, DoConfirmProc d
 
 int Banner2ThreadConfirm( CTEXTSTR type, CTEXTSTR msg, DoConfirmProc dokey )
 {
-   return Banner2ThreadConfirmExx( type, msg, dokey, NULL, TRUE );
+	return Banner2ThreadConfirmExx( type, msg, dokey, NULL, TRUE );
 }
 
 int Banner2ThreadConfirmEx( CTEXTSTR type, CTEXTSTR msg, DoConfirmProc dokey, DoConfirmProc doNoKey )
 {
-   return Banner2ThreadConfirmExx( type, msg, dokey, doNoKey, TRUE );
+	return Banner2ThreadConfirmExx( type, msg, dokey, doNoKey, TRUE );
 }
 //--------------------------------------------------------------------------
 
