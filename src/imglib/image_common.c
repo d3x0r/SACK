@@ -24,21 +24,25 @@
 #include <image.h>
 
 #ifdef _OPENGL_DRIVER
-#if defined( USE_GLES )
-#include <GLES/gl.h>
-#elif defined( USE_GLES2 )
+#  if defined( USE_GLES )
+#    include <GLES/gl.h>
+#  elif defined( USE_GLES2 )
 //#include <GLES/gl.h>
-#include <GLES2/gl2.h>
-#else
-#define USE_OPENGL
+#    include <GLES2/gl2.h>
+#  else
+#    define USE_OPENGL
 // why do we need this anyway?
-#include <GL/glew.h>
-#include <GL/gl.h>         // Header File For The OpenGL32 Library
-#endif
+#    include <GL/glew.h>
+#    include <GL/gl.h>         // Header File For The OpenGL32 Library
+#  endif
 
 int bGLColorMode = 1; // this gets set if we're working with BGR native or RGB native... (low byte is BLUE naturally)
 #else
+#  ifdef __ANDROID__
+int bGLColorMode = 1; // this gets set if we're working with BGR native or RGB native... (low byte is BLUE naturally)
+#  else
 int bGLColorMode = 0; // this gets set if we're working with BGR native or RGB native... (low byte is BLUE naturally)
+#  endif
 #endif
 
 #define DO_GIF
@@ -790,7 +794,7 @@ ImageFile*  LoadImageFileFromGroupEx ( INDEX group, CTEXTSTR filename DBG_PASS )
 	sack_fread (buf, 1, size + 1, fp);
 	sack_fclose (fp);
 
-	// printf(" so far okay - %d (%d)\n", buf, size );
+	lprintf(WIDE("so far okay -%s %d (%d)"), filename, buf, size );
 
 	file = 
 		DecodeMemoryToImage( buf, size );

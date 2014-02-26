@@ -6,6 +6,7 @@ typedef struct global_tag
 {
 	PIMAGE_INTERFACE MyImageInterface;
 	PRENDER_INTERFACE MyDisplayInterface;
+	PLIST clocks;
 } GLOBAL;
 #ifndef CLOCK_CORE
 extern

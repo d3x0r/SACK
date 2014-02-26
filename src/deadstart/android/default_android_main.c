@@ -46,6 +46,12 @@ static int  (*BagVidlibPureglSendKeyEvents)( int pressed, int key, int mods );
 static void (*SACK_Main)(int,char* );
 static char *myname;
 
+// second generation (native framebuffer hooks)
+static void (*BagVidlibPureglPauseDisplay)(void);
+static void (*BagVidlibPureglResumeDisplay)(void);
+
+
+
 struct engine engine;
 
 /**
@@ -514,6 +520,9 @@ void* BeginNormalProcess( void*param )
                BagVidlibPureglSurfaceLost = (void(*)(void))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SurfaceLost" );  // egl event
 					BagVidlibPureglSurfaceGained = (void(*)(NativeWindowType))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SurfaceGained" );  // egl event
 
+               BagVidlibPureglPauseDisplay = (void(*)(void))dlsym( RTLD_DEFAULT,"SACK_Vidlib_PauseDisplay" );
+               BagVidlibPureglResumeDisplay = (void(*)(void))dlsym( RTLD_DEFAULT,"SACK_Vidlib_ResumeDisplay" );
+
 					BagVidlibPureglSetTriggerKeyboard = (void(*)(void(*)(void),void(*)(void)))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SetTriggerKeyboard" );
 					if( BagVidlibPureglSetTriggerKeyboard )
 						BagVidlibPureglSetTriggerKeyboard( show_keyboard, hide_keyboard );
@@ -605,6 +614,14 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 													  engine->accelerometerSensor, (1000L/60)*1000);
 		 }
 		 break;
+	 case APP_CMD_PAUSE:
+		 if( BagVidlibPureglPauseDisplay )
+			 BagVidlibPureglPauseDisplay();
+       break;
+	 case APP_CMD_RESUME:
+		 if( BagVidlibPureglResumeDisplay )
+			 BagVidlibPureglResumeDisplay();
+       break;
 	 case APP_CMD_LOST_FOCUS:
 		 // need to suspend physics at this point; aka next move is time 0, until the next-next
 

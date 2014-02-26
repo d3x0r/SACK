@@ -42,12 +42,12 @@ static PTEXT GetTime( PCLOCK_CONTROL clock, int bNewline ) /*FOLD00*/
 {
 	static PTEXT timenow;
 	if( !timenow )
-      timenow = SegCreate( 80 );
-//   PTEXT pTime;
+		timenow = SegCreate( 80 );
+//	PTEXT pTime;
 #ifdef WIN32
 	{
 		SYSTEMTIME st;
-	//   pTime = SegCreate( 38 );
+	//	pTime = SegCreate( 38 );
 		GetLocalTime( &st );
 		clock->time_data.sc = (_8)st.wSecond;
 		clock->time_data.mn = (_8)st.wMinute;
@@ -95,18 +95,18 @@ static PTEXT GetTime( PCLOCK_CONTROL clock, int bNewline ) /*FOLD00*/
 	}
 #else
 	{
-	//struct timeval tv;
+		//struct timeval tv;
 		struct tm *timething;
 		time_t timevalnow;
 		time(&timevalnow);
 		timething = localtime( &timevalnow );
-      clock->time_data.sc = timething->tm_sec;
-      clock->time_data.mn = timething->tm_min;
-      clock->time_data.hr = timething->tm_hour;
-      clock->time_data.dy = timething->tm_mday;
-      clock->time_data.mo = timething->tm_mon;
-      clock->time_data.yr = timething->tm_year;
-      clock->time_data.ms = 0;
+		clock->time_data.sc = timething->tm_sec;
+		clock->time_data.mn = timething->tm_min;
+		clock->time_data.hr = timething->tm_hour;
+		clock->time_data.dy = timething->tm_mday;
+		clock->time_data.mo = timething->tm_mon;
+		clock->time_data.yr = timething->tm_year;
+		clock->time_data.ms = 0;
 		strftime( timenow->data.data
 				  , 80
 				  , bNewline
@@ -130,7 +130,7 @@ static int CPROC DrawClock( PCOMMON pc )
 		int line_count = 0;
 		int lines = 0;
 		//PTEXT szNow = pClk->time;
-      TEXTSTR line;
+		TEXTSTR line;
 
 		if( pClk->analog_clock )
 		{
@@ -185,7 +185,7 @@ static void CPROC Update( PTRSZVAL psvPC )
 	{
 		if( !pClk->flags.bStopped )
 		{
-         int no_update = 0;
+			int no_update = 0;
 			//( pClk->time )
 			// LineRelease( pClk->time );
 			pClk->time = GetTime(pClk, TRUE);
@@ -239,13 +239,15 @@ int CPROC InitClock( PCOMMON pc )
 	SetCommonUserData( pc, AddTimer( 50, Update, (PTRSZVAL)pc ) );
 	SetCommonTransparent( pc, TRUE );
 	pClk->textcolor = GetBaseColor( TEXTCOLOR );
-   pClk->last_time = NULL; // make sure it's NULL
+	pClk->last_time = NULL; // make sure it's NULL
+	AddLink( &g.clocks, pc );
 	return TRUE;
 }
 
 void CPROC DestroyClock( PCOMMON pc )
 {
 	RemoveTimer( (_32)GetCommonUserData( pc ) );
+	DeleteLink( &g.clocks, pc );
 }
 
 CONTROL_REGISTRATION clock_control = { WIDE("Basic Clock Widget")
@@ -273,7 +275,7 @@ void SetClockBackColor( PCOMMON pc, CDATA color )
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, pc );
 	if( pClk )
 	{
-      pClk->backcolor = color;
+		pClk->backcolor = color;
 	}
 }
 
@@ -282,7 +284,7 @@ void SetClockBackImage( PCOMMON pc, Image image )
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, pc );
 	if( pClk )
 	{
-      pClk->back_image = image;
+		pClk->back_image = image;
 	}
 
 }
@@ -292,7 +294,7 @@ void SetClockHighTimeResolution( PCOMMON pc, LOGICAL bEnable )
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, pc );
 	if( pClk )
 	{
-      pClk->flags.bHighTime = bEnable;
+		pClk->flags.bHighTime = bEnable;
 	}
 
 }
@@ -302,9 +304,9 @@ CDATA GetClockColor( PCOMMON pc )
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, pc );
 	if( pClk )
 	{
-      return pClk->textcolor;
+		return pClk->textcolor;
 	}
-   return 0;
+	return 0;
 }
 
 void StopClock( PCOMMON pc )
@@ -365,7 +367,7 @@ void SetClockDayOfWeek( PSI_CONTROL pc, LOGICAL yes_no )
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, pc );
 	if( pClk )
 	{
-      pClk->flags.bDayOfWeek = yes_no;
+		pClk->flags.bDayOfWeek = yes_no;
 	}
 }
 void SetClockSingleLine( PSI_CONTROL pc, LOGICAL yes_no )
@@ -373,14 +375,37 @@ void SetClockSingleLine( PSI_CONTROL pc, LOGICAL yes_no )
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, pc );
 	if( pClk )
 	{
-      pClk->flags.bSingleLine = yes_no;
+		pClk->flags.bSingleLine = yes_no;
 	}
 }
 
 PRELOAD( DoRegisterClockControl )
 {
-   DoRegisterControl( &clock_control );
+	DoRegisterControl( &clock_control );
 }
+
+/* Android support; when the app stops, stop updating timers */
+static void OnDisplayPause( "Video Player" )( void )
+{
+	INDEX idx;
+	PSI_CONTROL clock;
+	LIST_FORALL( g.clocks, idx, PSI_CONTROL, clock )
+	{
+		StopClock( clock );
+	}
+}
+
+/* Android support; when the app reumes, start updating timers */
+static void OnDisplayResume( "Video Player" )( void )
+{
+	INDEX idx;
+	PSI_CONTROL clock;
+	LIST_FORALL( g.clocks, idx, PSI_CONTROL, clock )
+	{
+		StartClock( clock );
+	}
+}
+
 
 //PUBLIC( _32, LinkClockPlease );
 

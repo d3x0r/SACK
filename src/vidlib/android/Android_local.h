@@ -32,7 +32,7 @@ typedef struct vidlib_proxy_renderer
 } *PVPRENDER;
 
 #define l vidlib_proxy_server_local
-struct vidlib_proxy_local
+struct vidlib_android_local
 {
 	TEXTSTR application_title;
 	PLIST renderers;
@@ -46,6 +46,9 @@ struct vidlib_proxy_local
 	ANativeWindow *displayWindow;
 	_32 default_display_x, default_display_y;
 	PVPRENDER hVidVirtualFocused;
+	struct vidlib_android_local_flags {
+		BIT_FIELD paused : 1;
+	} flags;
 } l;
 
 // linux_keymap.c
