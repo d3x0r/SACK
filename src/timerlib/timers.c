@@ -500,7 +500,7 @@ PTRSZVAL CPROC check_thread_name_and_id( POINTER p, PTRSZVAL psv )
 	struct name_and_id_params *params = (struct name_and_id_params*)psv;
 	PTHREAD thread = (PTHREAD)p;
 	if( thread->thread_ident == params->thread 
-		&& StrCaseCmp( thread->thread_event_name, (CTEXTSTR)psv ) == 0 )
+		&& StrCaseCmp( thread->thread_event_name, params->name ) == 0 )
 		return (PTRSZVAL)p;
 	return 0;
 }
