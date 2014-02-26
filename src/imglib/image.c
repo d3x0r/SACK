@@ -268,6 +268,10 @@ IMAGE_NAMESPACE
 	BlatPixelsAlpha( po, oo, w, h, color );
 }
 
+void SetImageTransformRelation( Image pImage, enum image_translation_relation relation, PRCOORD aux )
+{
+
+}
 //---------------------------------------------------------------------------
 
 IMAGE_NAMESPACE_END

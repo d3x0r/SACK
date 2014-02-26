@@ -53,8 +53,28 @@ SACK_SYSTEM_NAMESPACE
 //  Function/library manipulation routines...
 //-------------------------------------------------------------------------
 
-
 typedef struct task_info_tag TASK_INFO;
+
+#ifdef __ANDROID__
+static char *program_name;
+static char *program_path;
+static char *working_path;
+
+void SACKSystemSetProgramPath( char *path )
+{
+   program_path = strdup( path );
+}
+void SACKSystemSetProgramName( char *name )
+{
+   program_name = strdup( name );
+}
+void SACKSystemSetWorkingPath( char *name )
+{
+   working_path = strdup( name );
+}
+#endif
+
+
 
 #ifdef HAVE_ENVIRONMENT
 CTEXTSTR OSALOT_GetEnvironmentVariable(CTEXTSTR name)
@@ -238,12 +258,61 @@ static void CPROC SetupSystemServices( POINTER mem, PTRSZVAL size )
 	// but if we loaded this library, then didn't we already have a good path?
 	// use /proc/self to get to cmdline
 	// which has the whole invokation of this process.
+#    ifdef __ANDROID__
+	(*init_l).filename = GetProgramName();
+	(*init_l).load_path = GetProgramPath();
+   if( !(*init_l).filename || !(*init_l).load_path )
+	{
+		char buf[256];
+		FILE *maps = fopen( "/proc/self/maps", "rt" );
+		while( maps && fgets( buf, 256, maps ) )
+		{
+			unsigned long start;
+			unsigned long end;
+			sscanf( buf, "%lx", &start );
+			sscanf( buf+9, "%lx", &end );
+			if( ((unsigned long)SetupSystemServices >= start ) && ((unsigned long)SetupSystemServices <= end ) )
+			{
+            char *myname;
+				char *mypath;
+				void *lib;
+            char *myext;
+				void (*InvokeDeadstart)(void );
+				void (*MarkRootDeadstartComplete)(void );
+
+				fclose( maps );
+            maps = NULL;
+
+				if( strlen( buf ) > 49 )
+				mypath = strdup( buf + 49 );
+				myext = strrchr( mypath, '.' );
+				myname = strrchr( mypath, '/' );
+				if( myname )
+				{
+					myname[0] = 0;
+					myname++;
+				}
+				else
+					myname = mypath;
+				if( myext )
+				{
+               myext[0] = 0;
+				}
+            //LOGI( "my path [%s][%s]", mypath, myname );
+				// do not auto load libraries
+				SACKSystemSetProgramPath( mypath );
+				(*init_l).load_path =  mypath;
+				SACKSystemSetProgramName( myname );
+				(*init_l).filename = myname;
+				SACKSystemSetWorkingPath( buf );
+            break;
+			}
+		}
+	}
+#    else
+   //if( !(*init_l).filename || !(*init_l).load_path )
 	{
 		/* #include unistd.h, stdio.h, string.h */
-#    ifdef __ANDROID__
-			(*init_l).filename = GetProgramName();
-			(*init_l).load_path = GetProgramPath();
-#    else
 		{
 			char buf[256], *pb;
 			int n;
@@ -275,37 +344,37 @@ static void CPROC SetupSystemServices( POINTER mem, PTRSZVAL size )
 			(*init_l).work_path = StrDupEx( buf DBG_SRC );
 			SetDefaultFilePath( (*init_l).work_path );
 		}
-	{
-		TEXTCHAR *oldpath;
-		TEXTCHAR *newpath;
-		oldpath = getenv( "LD_LIBRARY_PATH" );
-		if( oldpath )
 		{
-			newpath = NewArray( char, (_32)((oldpath?strlen( oldpath ):0) + 2 + strlen((*init_l).load_path)) );
-			sprintf( newpath, WIDE("%s:%s"), (*init_l).load_path
-					 , oldpath );
-			setenv( WIDE("LD_LIBRARY_PATH"), newpath, 1 );
-			ReleaseEx( newpath DBG_SRC );
+			TEXTCHAR *oldpath;
+			TEXTCHAR *newpath;
+			oldpath = getenv( "LD_LIBRARY_PATH" );
+			if( oldpath )
+			{
+				newpath = NewArray( char, (_32)((oldpath?strlen( oldpath ):0) + 2 + strlen((*init_l).load_path)) );
+				sprintf( newpath, WIDE("%s:%s"), (*init_l).load_path
+						 , oldpath );
+				setenv( WIDE("LD_LIBRARY_PATH"), newpath, 1 );
+				ReleaseEx( newpath DBG_SRC );
+			}
 		}
-	}
-	{
-		TEXTCHAR *oldpath;
-		TEXTCHAR *newpath;
-		oldpath = getenv( "PATH" );
-		if( oldpath )
 		{
-			newpath = NewArray( char, (_32)((oldpath?strlen( oldpath ):0) + 2 + strlen((*init_l).load_path)) );
-			sprintf( newpath, WIDE("%s:%s"), (*init_l).load_path
-					 , oldpath );
-			setenv( WIDE("PATH"), newpath, 1 );
-			ReleaseEx( newpath DBG_SRC );
+			TEXTCHAR *oldpath;
+			TEXTCHAR *newpath;
+			oldpath = getenv( "PATH" );
+			if( oldpath )
+			{
+				newpath = NewArray( char, (_32)((oldpath?strlen( oldpath ):0) + 2 + strlen((*init_l).load_path)) );
+				sprintf( newpath, WIDE("%s:%s"), (*init_l).load_path
+						 , oldpath );
+				setenv( WIDE("PATH"), newpath, 1 );
+				ReleaseEx( newpath DBG_SRC );
+			}
 		}
-	}
-#    endif
 		//<x`int> rathar: main() { char buf[1<<7]; buf[readlink("/proc/self/exe",buf,1<<7)]=0; puts(buf); }
 		//<x`int> main() {  }
 		//<x`int>
 	}
+#    endif
 #  endif
 #endif
 }
@@ -1432,25 +1501,6 @@ TEXTSTR GetArgsString( PCTEXTSTR pArgs )
 	return args;
 }
 
-
-#ifdef __ANDROID__
-static char *program_name;
-static char *program_path;
-static char *working_path;
-
-void SACKSystemSetProgramPath( char *path )
-{
-   program_path = strdup( path );
-}
-void SACKSystemSetProgramName( char *name )
-{
-   program_name = strdup( name );
-}
-void SACKSystemSetWorkingPath( char *name )
-{
-   working_path = strdup( name );
-}
-#endif
 
 
 

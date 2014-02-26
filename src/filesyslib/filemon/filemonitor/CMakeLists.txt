@@ -2,9 +2,7 @@
 project( test_file_monitor )
 
 set(BASE_SOURCES
- ${FIRST_GCC_PROGRAM_SOURCE}
     test_file_monitor.c
- ${LAST_GCC_PROGRAM_SOURCE}
 )
 
 ADD_PROGRAM(${PROJECT_NAME} ${BASE_SOURCES} )

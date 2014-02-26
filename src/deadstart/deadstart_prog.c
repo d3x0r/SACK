@@ -57,7 +57,7 @@ IMPORT_METHOD void CPROC RunExits( void );
 #  endif
 #endif
 
-#ifndef __ANDROID__
+#if !defined( __ANDROID__ ) || defined( ANDROID_CONSOLE_UTIL )
 // this one is used when a library is loaded.
 PRELOAD( RunDeadstart )
 {

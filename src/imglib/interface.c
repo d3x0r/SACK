@@ -147,7 +147,7 @@ IMAGE_INTERFACE RealImageInterface = {
 												 , (int(CPROC*)(Image,int))Nothing // ReloadTexture
 												 , (int(CPROC*)(Image,int,CDATA))Nothing // ReloadShadedTexture
 												 , (int(CPROC*)(Image,int,CDATA,CDATA,CDATA))Nothing // ReloadMultiShadedTexture
-												 , NULL // set image transofrm
+												 , SetImageTransformRelation // set image transofrm
 												 , NULL // render 3d image
                                      , DumpFontFile
 									 , NULL //IMAGE_PROC_PTR( void, Render3dText )( CTEXTSTR string, int characters, CDATA color, SFTFont font, VECTOR o, LOGICAL render_pixel_scaled );

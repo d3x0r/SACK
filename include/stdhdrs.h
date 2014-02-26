@@ -261,7 +261,7 @@
 #      define EndSaneWinMain() } }
 #    endif
 #  else
-#    ifdef __ANDROID__
+#    if defined( __ANDROID__ ) && !defined( ANDROID_CONSOLE_UTIL )
 #      define SaneWinMain(a,b) int SACK_Main( int a, char **b )
 #      define EndSaneWinMain() }
 #    else
@@ -279,7 +279,7 @@
 #      define EndSaneWinMain() } }
 #    endif
 #  else
-#    ifdef __ANDROID__
+#    if defined( __ANDROID__ ) && !defined( ANDROID_CONSOLE_UTIL )
 #      define SaneWinMain(a,b) int SACK_Main( int a, char **b )
 #      define EndSaneWinMain()
 #    else

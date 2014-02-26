@@ -27,6 +27,8 @@ endif( ${CMAKE_GENERATOR} MATCHES "Watcom WMake" )
 set( SACK_BASE ${PROJECT_SOURCE_DIR} )
 
 set( CMAKE_MODULE_PATH ${SACK_SOURCE_DIR}/makefiles/cmake )
+
+
 include( DefaultInstall )
 
 
@@ -206,6 +208,7 @@ if( NOT __NO_ODBC__ )
 OPTION( __NO_ODBC__ "Use Odbc" 0 )
 endif( NOT __NO_ODBC__ )
 OPTION( __ANDROID__ "Enable Android Behvaviors" 0 )
+OPTION( BUILD_ANDROID_CONSOLE_APPS "Enable building programs as command-line executable" ${__ANDROID__} )
 OPTION( USE_OPTIONS "Use Option Code all internal option usage (and don't include option code)" 1 )
 OPTION( USING_OLD_MINGW "MinGW Has NO UpdateLayeredWindow" ${MINGW} )
 OPTION( USE_SACK_CUSTOM_MEMORY_ALLOCATION "Enable alternative memory allocator; affects locks on queues" 0 )
@@ -1291,8 +1294,11 @@ if( BUILD_TESTS )
    endif( NOT BUILD_MONOLITHIC AND DIRECTX_SDK )   
    add_subdirectory( src/netlib/html5.websocket/json/tests )
    add_subdirectory( src/psilib/console/cmdshell )
-   add_subdirectory( src/msgsvr/client/client_server )
-   add_subdirectory( src/msgsvr/client/client_client )
+   if( NOT __ANDROID__ )
+      add_subdirectory( src/msgsvr/client/client_server )
+      add_subdirectory( src/msgsvr/client/client_client )
+      add_subdirectory( src/filesyslib/filemon/filemonitor )
+   endif( NOT __ANDROID__ )
    add_subdirectory( src/tests )
    add_subdirectory( src/psilib/console )
    add_subdirectory( src/netlib/echo )
@@ -1316,7 +1322,6 @@ if( BUILD_TESTS )
       add_subdirectory( src/utils/multi_touch/plotter )
    endif( NOT WATCOM AND NOT UNIX AND NOT MINGW  )
    add_subdirectory( src/utils/test_filescan )
-   add_subdirectory( src/filesyslib/filemon/filemonitor )
 endif( BUILD_TESTS )
 
 
