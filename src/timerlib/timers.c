@@ -293,6 +293,7 @@ PTRSZVAL closesem( POINTER p, PTRSZVAL psv )
 {
 	PTHREAD thread = (PTHREAD)p;
 #ifdef USE_PIPE_SEMS
+   lprintf( "CLOSE PIPES" );
 	close( thread->pipe_ends[0] );
 	close( thread->pipe_ends[1] );
 	thread->pipe_ends[0] = -1;
@@ -358,11 +359,58 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 #else
 #ifdef USE_PIPE_SEMS
 	// store status of pipe() in semaphore... it's not really a semaphore..
-	//lprintf( "Init wakeup %p %s", thread, event_name );
+#  ifdef DEBUG_PIPE_USAGE
+	lprintf( "Init wakeup %p %s", thread, event_name );
+#  endif
+
 	if( ( thread->semaphore = pipe( thread->pipe_ends ) )  == -1 )
 	{
 		lprintf( WIDE("Failed to get pipe! %d:%s"), errno, strerror( errno ) );
 	}
+	else
+	{
+		char buf;
+		int success = 0;
+      do
+		{
+			int stat;
+         int n;
+			fd_set set;
+			struct timeval timeout;
+			FD_ZERO(&set); /* clear the set */
+			FD_SET( thread->pipe_ends[0], &set); /* add our file descriptor to the set */
+			timeout.tv_sec = 0;
+			timeout.tv_usec = 100;
+
+#  ifdef DEBUG_PIPE_USAGE
+			lprintf(" Begin select-flush on thread %p", thread );
+#  endif
+			stat = select(thread->pipe_ends[0] + 1, &set, NULL, NULL, &timeout);
+			if(stat == -1)
+			{
+				lprintf("select error %d %d", errno, thread->pipe_ends[0]); /* an error accured */
+			}
+			else if(stat == 0)
+			{
+            success = 1;
+#  ifdef DEBUG_PIPE_USAGE
+				lprintf("timeout"); /* a timeout occured */
+#  endif
+			}
+			else
+			{
+#  ifdef DEBUG_PIPE_USAGE
+				lprintf(" immediate return?" );
+#  endif
+				stat = read( thread->pipe_ends[0], &buf, 1 );
+#  ifdef DEBUG_PIPE_USAGE
+				lprintf( "Stat is now %d", stat );
+#  endif
+			}
+		}
+      while( !success );
+	}
+
 #else
 	thread->semaphore = semget( IPC_PRIVATE 
 									  , 1, IPC_CREAT | 0600 );
@@ -713,6 +761,9 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, _32 n, LOGICAL threade
 			MakeThread();
 			pThread = MyThreadInfo.pThread;
 		}
+#  ifdef DEBUG_PIPE_USAGE
+		lprintf( "Sleeping on threadsignal... %p", pThread );
+#  endif
 #else
 		pThread = FindThread( GetMyThreadID() );
 #endif
@@ -739,6 +790,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, _32 n, LOGICAL threade
 #endif
 #else
 		{
+#ifndef USE_PIPE_SEMS
 #ifdef _NO_SEMTIMEDOP_
 			int nTimer = 0;
 			if( n != SLEEP_FOREVER )
@@ -747,9 +799,10 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, _32 n, LOGICAL threade
 				nTimer = AddTimerExx( n, 0, TimerWake, (PTRSZVAL)pThread DBG_RELAY );
 			}
 #endif
+#endif
 			if( pThread->semaphore == -1 )
 			{
-	            //lprintf( WIDE("Invalid semaphore...fixing?") );
+	          //lprintf( WIDE("Invalid semaphore...fixing?") );
 				InitWakeup( pThread, name );
 			}
 			if( pThread->semaphore != -1 )
@@ -770,10 +823,45 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, _32 n, LOGICAL threade
 					{
 #ifdef USE_PIPE_SEMS
 						char buf;
+						{
+							fd_set set;
+							struct timeval timeout;
+							FD_ZERO(&set); /* clear the set */
+							FD_SET( pThread->pipe_ends[0], &set); /* add our file descriptor to the set */
+
+							timeout.tv_sec = n / 1000;
+							timeout.tv_usec = ( n % 1000 ) * 1000;
+
+
 #  ifdef DEBUG_PIPE_USAGE
-						lprintf(" Begin read on thread %p", pThread );
+							lprintf(" Begin select-read on thread %p %d ", pThread, n );
+                     //_lprintf(DBG_RELAY)( "Select  %p %d  %d  %d", pThread, pThread->pipe_ends[0], pThread->pipe_ends[1],n );
 #  endif
-                  stat = read( pThread->pipe_ends[0], &buf, 1 );
+							stat = select(pThread->pipe_ends[0] + 1, &set, NULL, NULL, &timeout);
+							if(stat == -1)
+							{
+								lprintf("select error %d %d", errno, pThread->pipe_ends[0]); /* an error accured */
+							}
+							else if(stat == 0)
+							{
+#  ifdef DEBUG_PIPE_USAGE
+								lprintf("timeout"); /* a timeout occured */
+#  endif
+							}
+							else
+							{
+#  ifdef DEBUG_PIPE_USAGE
+								lprintf(" immediate return?" );
+#  endif
+								stat = read( pThread->pipe_ends[0], &buf, 1 );
+								// 1 = success
+								// -1 will be an error (errno handled later)
+                        // 0 would be end of file...
+#  ifdef DEBUG_PIPE_USAGE
+								lprintf( "Stat is now %d", stat );
+#endif
+							}
+						}
 #  ifdef DEBUG_PIPE_USAGE
 						lprintf( "end read" );
 #  endif
@@ -882,7 +970,7 @@ void  WakeableNamedSleepEx( CTEXTSTR name, _32 n DBG_PASS )
 }
 void  WakeableSleepEx( _32 n DBG_PASS )
 {
-   WakeableNamedSleepEx( NULL, n DBG_RELAY );
+   InternalWakeableNamedSleepEx( NULL, n, FALSE DBG_RELAY );
 }
 
 
@@ -918,6 +1006,7 @@ static void TimerWakeableSleep( _32 n )
 {
 	if( g.pTimerThread )
 	{
+#ifndef USE_PIPE_SEMS
 		if( !g.flags.set_timer_signal )
 		{
 			signal( SIGALRM, AlarmSignal );
@@ -934,10 +1023,14 @@ static void TimerWakeableSleep( _32 n )
 			//lprintf( "setitimer %d %d", val.it_value.tv_sec, val.it_value.tv_usec );
 			setitimer( ITIMER_REAL, &val, NULL );
 		}
+#endif
 		if( g.pTimerThread && g.pTimerThread->semaphore != -1 )
 		{
 #ifdef USE_PIPE_SEMS
 			char buf;
+         /* don't need anything special... */
+			InternalWakeableNamedSleepEx( NULL, n, FALSE DBG_SRC );
+         return;
          //lprintf( "Timer wakeable sleep is reading..." );
 			while( read( g.pTimerThread->pipe_ends[0], &buf, 1 ) < 0 )
 			{

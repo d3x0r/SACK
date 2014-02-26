@@ -372,6 +372,26 @@ void GetMyInterface( void )
 			}
 			lprintf( WIDE("Fail image load once...") );
 		}
+		else
+		{
+			if( !DefaultColors[0] )
+			{
+				DefaultColors[0] = Color( 192, 192, 192 ); // highlight
+				DefaultColors[1] = AColor( 53, 96, 89, 255 ); // normal
+				DefaultColors[2] = Color( 35, 63, 57 ); // shade
+				DefaultColors[3] = Color( 0, 0, 1 ); // shadow
+				DefaultColors[4] = Color( 0, 240, 240 ); // text
+				DefaultColors[5] = Color( 88,124,200 ); // caption background
+				DefaultColors[6] = Color( 240, 240, 240 ); // cannot be black(0). caption text
+				DefaultColors[7] = Color( 89, 120, 120 ); // inactive caption background
+				DefaultColors[8] = Color( 0, 0, 1 );     // inactive caption text (not black)
+				DefaultColors[9] = Color( 0, 0, 128 );  // text select background
+				DefaultColors[10] = Color( 220, 220, 220 ); // text select foreground
+				DefaultColors[11] = AColor( 192, 192, 192, 255 ); // edit background
+				DefaultColors[12] = Color( 0, 0, 1 );  // edit text
+				DefaultColors[13] = Color( 120, 120, 180 ); // scroll bar...
+			}
+		}
 	}
 	if( !g.MyDisplayInterface )
 	{
@@ -390,8 +410,9 @@ void GetMyInterface( void )
 			}
 			lprintf( WIDE("Fail render load once...") );
 		}
-		if( !(g.flags.always_draw = RequiresDrawAll()) )
-			g.flags.allow_threaded_draw = AllowsAnyThreadToUpdate();
+		else
+			if( !(g.flags.always_draw = RequiresDrawAll()) )
+				g.flags.allow_threaded_draw = AllowsAnyThreadToUpdate();
 	}
 
 }
@@ -480,27 +501,6 @@ PRIORITY_PRELOAD( InitPSILibrary, PSI_PRELOAD_PRIORITY )
 					RegisterClassAlias( root, old_root );
 				}
 			}
-		}
-
-#ifdef USE_INTERFACES
-		GetMyInterface();
-#endif
-		if( !DefaultColors[0] )
-		{
-			DefaultColors[0] = Color( 192, 192, 192 ); // highlight
-			DefaultColors[1] = AColor( 53, 96, 89, 255 ); // normal
-			DefaultColors[2] = Color( 35, 63, 57 ); // shade
-			DefaultColors[3] = Color( 0, 0, 1 ); // shadow
-			DefaultColors[4] = Color( 0, 240, 240 ); // text
-			DefaultColors[5] = Color( 88,124,200 ); // caption background
-			DefaultColors[6] = Color( 240, 240, 240 ); // cannot be black(0). caption text
-			DefaultColors[7] = Color( 89, 120, 120 ); // inactive caption background
-			DefaultColors[8] = Color( 0, 0, 1 );     // inactive caption text (not black)
-			DefaultColors[9] = Color( 0, 0, 128 );  // text select background
-			DefaultColors[10] = Color( 220, 220, 220 ); // text select foreground
-			DefaultColors[11] = AColor( 192, 192, 192, 255 ); // edit background
-			DefaultColors[12] = Color( 0, 0, 1 );  // edit text
-			DefaultColors[13] = Color( 120, 120, 180 ); // scroll bar...
 		}
 
 		RegisterIntValue( PSI_ROOT_REGISTRY WIDE("/init"), WIDE("done"), 1 );
