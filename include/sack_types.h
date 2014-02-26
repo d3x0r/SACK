@@ -1288,7 +1288,7 @@ SACK_NAMESPACE
 
 #  if defined( __STDC_FORMAT_MACROS )
 
-#    if !defined( __GNUC__ )
+#    if !defined( __GNUC__ ) || defined( MINGW_SUX )
 #      define _size_f    _WIDE( PRIu32 )
 #      define _size_fx   _WIDE( PRIx32 )
 #      define _size_fX   _WIDE( PRIX32 )
@@ -1306,7 +1306,7 @@ SACK_NAMESPACE
 #    define cPTRSZVALfx PRIx32
 #  else
 
-#    if !defined( __GNUC__ )
+#    if !defined( __GNUC__ ) || defined( MINGW_SUX )
 #      define _size_f    _32f
 #      define _size_fx   _32fx
 #      define _size_fX   _32fX
