@@ -109,6 +109,9 @@ static PRENDERER CPROC AndroidANW_OpenDisplayAboveUnderSizedAt( _32 attributes, 
 
 	if( !l.top )
 		l.top = Renderer;
+	else
+		if( !under && !above )
+			above = l.top;
 
 	if( Renderer->above = (PVPRENDER)above )
 	{
@@ -124,6 +127,7 @@ static PRENDERER CPROC AndroidANW_OpenDisplayAboveUnderSizedAt( _32 attributes, 
 		Renderer->under->above = Renderer;
 	}
 
+
 	Renderer->image = MakeImageFileEx( width, height DBG_SRC );
    //lprintf( "clearimage.. %p", Renderer );
    ClearImageTo( Renderer->image, 0 );
@@ -137,7 +141,7 @@ static PRENDERER CPROC AndroidANW_OpenDisplayAboveSizedAt( _32 attributes, _32 w
 
 static PRENDERER CPROC AndroidANW_OpenDisplaySizedAt	  ( _32 attributes, _32 width, _32 height, S_32 x, S_32 y )
 {
-	return AndroidANW_OpenDisplayAboveUnderSizedAt( attributes, width, height, x, y, NULL, NULL );
+	return AndroidANW_OpenDisplayAboveUnderSizedAt( attributes, width, height, x, y, l.top, NULL );
 }
 
 
@@ -306,6 +310,7 @@ static void CPROC UpdateDisplayPortionRecurse( 	ANativeWindow_Buffer *buffer
 		iterate:
 			tmpout = BuildImageFileEx( buffer->bits, buffer->stride, l.default_display_y DBG_SRC );
 			//lprintf( "Update %p %d,%d  to %d,%d    %d,%d", r, out_x, out_y, x, y, width, height );
+			//LogBinary( r->image->image, 256 );
 			if( r->attributes & DISPLAY_ATTRIBUTE_LAYERED )
 			{
             BlotImageSizedEx( tmpout, r->image, x, y, out_x, out_y, width, height, ALPHA_TRANSPARENT, BLOT_COPY );
@@ -390,6 +395,7 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 		{
 			if( (int)width < (-out_x ) )
 			{
+				//lprintf( "fail" );
 				return;
 			}
 			width += out_x;
@@ -400,6 +406,7 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 		{
 			if( (int)height < -out_y )
 			{
+				//lprintf( "fail" );
 				return;
 			}
 			height += out_y;
@@ -443,6 +450,7 @@ static void CPROC AndroidANW_UpdateDisplayEx( PRENDERER r DBG_PASS)
 {
    ((PVPRENDER)r)->flags.hidden = 0;
 	// no-op; it will ahve already displayed(?)
+   //lprintf( "Output full display %p %p %d,%d", l.top, r, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h );
    AndroidANW_UpdateDisplayPortionEx( r, 0, 0, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h DBG_RELAY );
 }
 
