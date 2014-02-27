@@ -195,8 +195,7 @@ public class NativeActivity extends Activity implements SurfaceHolder.Callback2,
         }
         super.onCreate(savedInstanceState);
 
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-        WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().setFlags( WindowManager.LayoutParams.FLAG_FULLSCREEN );
         /*
 
         private void hideStatusBar() {

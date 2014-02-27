@@ -99,13 +99,13 @@ add_subdirectory( intershell_plugin )
 #add_subdirectory( video )
 
 # extend to get brains and 3D objects again...
-if( NOT __ANDROID__ )
+if( NOT __ANDROID__ AND NOT MINGW )
 add_subdirectory( ../automaton automaton) 
 include_directories( ../automaton/brain )
 include_directories( ../automaton/board ) 
 add_subdirectory( ../virtuality virtuality_library ) 
 add_subdirectory( virtuality )
-endif( NOT __ANDROID__ )
+endif( NOT __ANDROID__ AND NOT MINGW )
 
 install( DIRECTORY defaults/ DESTINATION bin )
 

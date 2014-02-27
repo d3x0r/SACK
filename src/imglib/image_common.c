@@ -126,14 +126,27 @@ _32 DOALPHA( _32 over, _32 in, _8 a )
 	if( a == 255 )
 		return (in | 0xFF000000); // force alpha full on.
 	aout = AlphaTable[a][AlphaVal( over )] << 24;
-	r = ((((RedVal(in))  *(a+1)) + ((RedVal(over))  *(256-(a)))) >> 8 );
-	if( r > (255) ) r = (255);
-	g = (((GreenVal(in))*(a+1)) + ((GreenVal(over))*(256-(a)))) >> 8;
-	if( g > (255) ) g = (255);
-	b = ((((BlueVal(in)) *(a+1)) + ((BlueVal(over)) *(256-(a)))) >> 8 );
-	if( b > 255 ) b = 255;
-	return aout|(r<<16)|(g<<8)|b;
-	//return AColor( r, g, b, aout );
+
+	r = ( (( ((in & 0x00FF0000) >> 8)  *(a+1)) + ( ( (over & 0x00FF0000)>> 8)*(256-(a)))) );
+   if( r & 0xFF000000 )
+		r = 0x00FF0000;
+   else
+		r &= 0x00FF0000;  // trim low bits
+
+	g = ( (( ((in & 0x0000FF00) >> 8)  *(a+1)) + ( ( (over & 0x0000FF00)>> 8)*(256-(a)))) );
+   if( g & 0x00FF0000 )
+		g = 0x0000FF00;
+   else
+		g &= 0x0000FF00;  // trim low bits
+
+	b = ( ((in & 0x000000FF )*(a+1)) + ( ( over & 0x000000FF)*(256-(a))) ) >> 8;
+	if( b & 0x0000FF00 )
+      b = 0x000000FF;
+   //else
+	//	b &= 0x000000FF;
+
+
+	return aout|b|g|r;
 #endif
 }
 

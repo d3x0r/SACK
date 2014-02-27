@@ -302,9 +302,10 @@ static void CPROC UpdateDisplayPortionRecurse( 	ANativeWindow_Buffer *buffer
 		}
 
 
-		if( width != ((PVPRENDER)r)->w && height != ((PVPRENDER)r)->h
+		if( ( width != ((PVPRENDER)r)->w && height != ((PVPRENDER)r)->h
 			|| width != l.default_display_x || height != l.default_display_y
 			|| x || y )
+			|| ( r->attributes & DISPLAY_ATTRIBUTE_LAYERED ) )
 		{
 			Image tmpout;
 		iterate:
@@ -312,7 +313,10 @@ static void CPROC UpdateDisplayPortionRecurse( 	ANativeWindow_Buffer *buffer
 			//lprintf( "Update %p %d,%d  to %d,%d    %d,%d", r, out_x, out_y, x, y, width, height );
 			//LogBinary( r->image->image, 256 );
 			if( r->attributes & DISPLAY_ATTRIBUTE_LAYERED )
+			//lprintf( "Update %p %d,%d  to %d,%d    %d,%d", r, out_x, out_y, x, y, width, height );
 			{
+				lprintf( "Update %p %d,%d  to %d,%d    %d,%d", r, out_x, out_y, x, y, width, height );
+				lprintf( "alpha output" );
 				BlotImageSizedEx( tmpout, r->image, x, y, out_x, out_y, width, height, ALPHA_TRANSPARENT, BLOT_COPY );
 			}
 			else
@@ -376,6 +380,9 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 	//_lprintf(DBG_RELAY)( "update begin %p %d,%d  %d,%d", l.displayWindow, x, y, width, height );
 	if( r )
 	{
+		if( l.flags.full_screen_renderer )
+			if( r != l.fullscreen_display )
+				return;
 		if( ((PVPRENDER)r)->flags.hidden )
 		{
 			lprintf( "hidden; not showing..." );
@@ -610,10 +617,12 @@ static void CPROC AndroidANW_SetMouseHandler  ( PRENDERER r, MouseCallback c, PT
 static void CPROC AndroidANW_Redraw( PRENDERER r )
 {
 	PVPRENDER render = (PVPRENDER)r;
+	EnterCriticalSec( &l.cs_update );
 	lprintf( "Sending application draw.... %p %p", render?render->redraw:0, render );
 	if( render->redraw )
 		render->redraw( render->psv_redraw, (PRENDERER)render );
 	AndroidANW_UpdateDisplayEx( r DBG_SRC );
+	LeaveCriticalSec( &l.cs_update );
 }
 
 static void CPROC AndroidANW_SetRedrawHandler  ( PRENDERER r, RedrawCallback c, PTRSZVAL p )
@@ -819,6 +828,30 @@ static void CPROC AndroidANW_RestoreDisplay  ( PRENDERER r )
 	AndroidANW_RestoreDisplayEx ( r  DBG_SRC );
 }
 
+static void CPROC AndroidANW_SetFullScreen( PRENDERER r, int nDisplay )
+{
+   // cannot change this sort of paramter while rendering.
+	EnterCriticalSec( &l.cs_update );
+   if( r )
+	{
+		l.flags.full_screen_renderer = 1;
+		l.fullscreen_display = r;
+		ANativeWindow_setBuffersGeometry( l.displayWindow, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h, WINDOW_FORMAT_RGBA_8888);
+//		SurfaceHolder.setFixedSize();
+	}
+	else
+	{
+		ANativeWindow_setBuffersGeometry( l.displayWindow, l.default_display_x, l.default_display_y, WINDOW_FORMAT_RGBA_8888);
+//		SurfaceHolder.setFixedSize();
+	}
+	LeaveCriticalSec( &l.cs_update );
+}
+
+static void CPROC AndroidANW_SuspendSleep( int bool_suspend_enable )
+{
+	if( l.SuspendSleep )
+      l.SuspendSleep( bool_suspend_enable );
+}
 
 
 static RENDER_INTERFACE AndroidANWInterface = {
@@ -904,7 +937,9 @@ static RENDER_INTERFACE AndroidANWInterface = {
 													  , AndroidANW_RestoreDisplayEx
 												, SACK_Vidlib_ShowInputDevice
 												, SACK_Vidlib_HideInputDevice
-												, AndroidANW_AllowsAnyThreadToUpdate
+															 , AndroidANW_AllowsAnyThreadToUpdate
+															 , AndroidANW_SetFullScreen
+                                              , AndroidANW_SuspendSleep
 };
 
 static void InitAndroidANWInterface( void )
@@ -950,7 +985,16 @@ void SACK_Vidlib_SetNativeWindowHandle( ANativeWindow *displayWindow )
 	l.default_display_x = ANativeWindow_getWidth( l.displayWindow);
 	l.default_display_y = ANativeWindow_getHeight( l.displayWindow);
 
-	ANativeWindow_setBuffersGeometry( displayWindow,l.default_display_x,l.default_display_y,WINDOW_FORMAT_RGBA_8888);
+	if( !l.flags.full_screen_renderer )
+	{
+      // make sure the buffer is what I think it should be...
+		ANativeWindow_setBuffersGeometry( displayWindow,l.default_display_x,l.default_display_y,WINDOW_FORMAT_RGBA_8888);
+	}
+	else
+	{
+      // need to make sure the new window has the geometry expected...
+		ANativeWindow_setBuffersGeometry( displayWindow,l.fullscreen_display->w,l.fullscreen_display->h,WINDOW_FORMAT_RGBA_8888);
+	}
 
 	lprintf( "Format is :%dx%d %d", l.default_display_x, l.default_display_y, ANativeWindow_getFormat( displayWindow ) );
 
@@ -965,7 +1009,7 @@ void SACK_Vidlib_DoFirstRender( void )
 	LIST_FORALL( l.renderers, idx, PVPRENDER, render )
 	{
 		lprintf( "RENDER PASS UPDATE..." );
-		AndroidANW_UpdateDisplayEx( (PRENDERER)render DBG_SRC );
+		AndroidANW_Redraw( (PRENDERER)render );
 	}
 }
 
@@ -996,7 +1040,19 @@ int SACK_Vidlib_SendTouchEvents( int nPoints, PINPUT_POINT points )
 void SACK_Vidlib_CloseDisplay( void )
 {
 	// not much to do...
+	lprintf( "ya... not much to do...." );
+   //if( fullscreen_display
 }
+
+void SACK_Vidlib_SetSleepSuspend( void(*Suspend)(int) )
+{
+   l.SuspendSleep = Suspend;
+}
+
+
+//------------------------------------------------------------------------------
+// pause/resume
+//------------------------------------------------------------------------------
 
 static void InvokePause( void )
 {
@@ -1015,6 +1071,7 @@ static void InvokePause( void )
 
 }
 
+//------------------------------------------------------------------------------
 static void InvokeResume( void )
 {
 	void (CPROC *resume)(void);
@@ -1033,6 +1090,7 @@ static void InvokeResume( void )
 }
 
 
+//------------------------------------------------------------------------------
 
 void SACK_Vidlib_PauseDisplay( void )
 {
@@ -1043,9 +1101,16 @@ void SACK_Vidlib_PauseDisplay( void )
 	LeaveCriticalSec( &l.cs_update );
 }
 
+//------------------------------------------------------------------------------
+
 void SACK_Vidlib_ResumeDisplay( void )
 {
 	l.flags.paused = 0;
 	InvokeResume();
 }
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+
 

@@ -33,14 +33,23 @@ namespace sack {
 #ifdef NEED_ALPHA2
 static _32 _XXr, _XXg, _XXb, aout, atmp, atmp2;
 #endif
+#ifdef USE_OPENGL_COMPAT_COLORS
 #define DOALPHA2( over, in, a ) (  (atmp=(a)),                                             \
 (!(atmp))?(over):((atmp)>=255)?((in)| 0xFF000000UL):(               \
    (atmp2=256U-atmp),(atmp++),(aout = ((_32)AlphaTable[atmp][AlphaVal( over )]) << 24),                                \
    (_XXr = (((RedVal(in))   *(atmp)) + ((RedVal(over))  *((atmp2)))) >> 8 ),         \
    (_XXg = (((GreenVal(in)) *(atmp)) + ((GreenVal(over))*((atmp2)))) >> 8 ),            \
    (_XXb = (((BlueVal(in))  *(atmp)) + ((BlueVal(over)) *((atmp2)))) >> 8 ),         \
-   (aout|(CLAMP(_XXr)<<16)|(CLAMP(_XXg)<<8)|(CLAMP(_XXb)))))                                            \
-   
+   (aout|(CLAMP(_XXb)<<16)|(CLAMP(_XXg)<<8)|(CLAMP(_XXr)))))
+#else
+#define DOALPHA2( over, in, a ) (  (atmp=(a)),                                             \
+(!(atmp))?(over):((atmp)>=255)?((in)| 0xFF000000UL):(               \
+   (atmp2=256U-atmp),(atmp++),(aout = ((_32)AlphaTable[atmp][AlphaVal( over )]) << 24),                                \
+   (_XXr = (((RedVal(in))   *(atmp)) + ((RedVal(over))  *((atmp2)))) >> 8 ),         \
+   (_XXg = (((GreenVal(in)) *(atmp)) + ((GreenVal(over))*((atmp2)))) >> 8 ),            \
+   (_XXb = (((BlueVal(in))  *(atmp)) + ((BlueVal(over)) *((atmp2)))) >> 8 ),         \
+   (aout|(CLAMP(_XXr)<<16)|(CLAMP(_XXg)<<8)|(CLAMP(_XXb)))))
+#endif
 
 #define SHADEPIXEL(pixel, c ) ( ( ( ( ( (pixel)&0xFF ) * ((c) & 0xFF) ) >> 8 ) & 0xFF )                \
    				       | ( ( ( ( ( ((pixel)>>8)&0xFF ) * (((c)>>8) & 0xFF) ) >> 8 ) & 0xFF ) << 8 )     \
@@ -54,7 +63,7 @@ static _32 _XXr, _XXg, _XXb, aout, atmp, atmp2;
 
 // need to declere these local for multishade to work
 //CDATA rout,gout,bout;
-#ifdef _OPENGL_DRIVER
+#ifdef USE_OPENGL_COMPAT_COLORS
 #define MULTISHADEPIXEL( pixel,r,g,b) 	AColor(             \
 			   ((rout = ( ( ( ( BlueVal(pixel) ) * (RedVal(b)+1) ) >> 8 ) & 0xFF )\
 				       + ( ( ( ( GreenVal(pixel) ) * (RedVal(g)+1) ) >> 8 ) & 0xFF )\

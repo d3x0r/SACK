@@ -48,7 +48,10 @@ struct vidlib_android_local
 	PVPRENDER hVidVirtualFocused;
 	struct vidlib_android_local_flags {
 		BIT_FIELD paused : 1;
+		BIT_FIELD full_screen_renderer : 1;
 	} flags;
+	PVPRENDER fullscreen_display;
+   void(*SuspendSleep)(int);
 } l;
 
 // linux_keymap.c
@@ -65,3 +68,6 @@ void SACK_Vidlib_HideInputDevice( void );
 void SACK_Vidlib_ToggleInputDevice( void );
 
 TEXTCHAR  AndroidANW_GetKeyText(int key);
+
+// ANdroid_nativewindow.c
+void SACK_Vidlib_SetSleepSuspend( void(*)(int));
