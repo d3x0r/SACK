@@ -1588,7 +1588,17 @@ struct render_interface_tag
 	   TRUE if any thread is allowed to generate UpdateDisplayPortion().
 	   otherwise must call Redraw() on the surface to get a event in the 
 	   correct thread.*/
-	RENDER_PROC_PTR( LOGICAL, AllowsAnyThreadToUpdate )( void );
+			 RENDER_PROC_PTR( LOGICAL, AllowsAnyThreadToUpdate )( void );
+		/* This method takes the renderer and either A) resizes it to the display
+		 and issues a redraw; or it sets the screen to the size of the renderer
+		 and scales the image direct to the display.  Pass NULL or another window
+		 to clear the current fullscreen app.
+		 Second paramter is the display to show full on; 0 is 'default'...
+		 1, 2, 3, etc... will be absolute number... if not supported will be same a 0 */
+		RENDER_PROC_PTR( void, SetDisplayFullScreen )( PRENDERER renderer, int nDisplay );
+		/* like full screen, some applications may want to
+       enable owning the screen... (media player) */
+      RENDER_PROC_PTR( void, SuspendSystemSleep )( int bool_suspend_enable );
 };
 
 #ifdef DEFINE_DEFAULT_RENDER_INTERFACE
@@ -1717,6 +1727,9 @@ typedef int check_this_variable;
 #define DisableMouseOnIdle      REND_PROC_ALIAS(DisableMouseOnIdle )
 #define SetDisplayNoMouse      REND_PROC_ALIAS(SetDisplayNoMouse )
 #define SetTouchHandler        REND_PROC_ALIAS(SetTouchHandler)
+
+#define SetDisplayFullScreen    REND_PROC_ALIAS_VOID( SetDisplayFullScreen )
+#define SuspendSystemSleep      REND_PROC_ALIAS_VOID( SuspendSystemSleep )
 #endif
 
 	_INTERFACE_NAMESPACE_END

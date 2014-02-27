@@ -385,7 +385,7 @@ PRELOAD( DoRegisterClockControl )
 }
 
 /* Android support; when the app stops, stop updating timers */
-static void OnDisplayPause( "Video Player" )( void )
+static void OnDisplayPause( "PSI_Clock" )( void )
 {
 	INDEX idx;
 	PSI_CONTROL clock;
@@ -396,7 +396,7 @@ static void OnDisplayPause( "Video Player" )( void )
 }
 
 /* Android support; when the app reumes, start updating timers */
-static void OnDisplayResume( "Video Player" )( void )
+static void OnDisplayResume( "PSI_Clock" )( void )
 {
 	INDEX idx;
 	PSI_CONTROL clock;

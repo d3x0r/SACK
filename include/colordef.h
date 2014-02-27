@@ -33,7 +33,7 @@ SACK_NAMESPACE
  
 		};
 
-#ifdef __ANDROID__
+#if defined( __ANDROID__ ) || defined( _OPENGL_DRIVER )
 #  define USE_OPENGL_COMPAT_COLORS
 #endif
 
@@ -52,15 +52,15 @@ SACK_NAMESPACE
 #if defined( _OPENGL_DRIVER ) || defined( USE_OPENGL_COMPAT_COLORS )
 #  define Color( r,g,b ) (((_32)( ((_8)(r))|((_16)((_8)(g))<<8))|(((_32)((_8)(b))<<16)))|0xFF000000)
 #  define AColor( r,g,b,a ) (((_32)( ((_8)(r))|((_16)((_8)(g))<<8))|(((_32)((_8)(b))<<16)))|((a)<<24))
-#  define SetAlpha( rgb, a ) ( ((rgb)&0xFFFFFF) | ( (a)<<24 ) )
+#  define SetAlpha( rgb, a ) ( ((rgb)&0x00FFFFFF) | ( (a)<<24 ) )
 #  define SetGreen( rgb, g ) ( ((rgb)&0xFFFF00FF) | ( ((g)&0xFF)<<8 ) )
-#  define SetBlue( rgb, b ) ( ((rgb)&0xFF00FFFF) | ( ((b)&0xFF)<<16 ) )
-#  define SetRed( rgb, r ) ( ((rgb)&0xFFFFFF00) | ( ((r)&0xFF)<<0 ) )
+#  define SetBlue( rgb, b )  ( ((rgb)&0xFF00FFFF) | ( ((b)&0xFF)<<16 ) )
+#  define SetRed( rgb, r )   ( ((rgb)&0xFFFFFF00) | ( ((r)&0xFF)<<0 ) )
 #  define GLColor( c )  (c)
-#  define AlphaVal(color) (((color) >> 24) & 0xFF)
-#  define RedVal(color)   (((color)) & 0xFF)
-#  define GreenVal(color) (((color) >> 8) & 0xFF)
-#  define BlueVal(color)  (((color) >> 16) & 0xFF)
+#  define AlphaVal(color) ((color&0xFF000000) >> 24)
+#  define RedVal(color)   ((color&0x000000FF) >> 0)
+#  define GreenVal(color) ((color&0x0000FF00) >> 8)
+#  define BlueVal(color)  ((color&0x00FF0000) >> 16)
 #else
 #  ifdef _WIN64
 #    define AND_FF &0xFF
