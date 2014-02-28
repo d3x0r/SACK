@@ -125,8 +125,8 @@ struct threads_tag
 	PTRSZVAL param;
 	PTRSZVAL (CPROC*proc)( struct threads_tag * );
 	PTRSZVAL (CPROC*simple_proc)( POINTER );
-	THREAD_ID thread_ident;
 	CTEXTSTR thread_event_name; // might be not a real thread.
+	THREAD_ID thread_ident;
 #ifdef _WIN32
 	//HANDLE hEvent;
 	HANDLE hThread;
@@ -293,7 +293,7 @@ PTRSZVAL closesem( POINTER p, PTRSZVAL psv )
 {
 	PTHREAD thread = (PTHREAD)p;
 #ifdef USE_PIPE_SEMS
-   lprintf( "CLOSE PIPES" );
+	//lprintf( "CLOSE PIPES %s %"_64fx, thread->thread_event_name, thread->thread_ident );
 	close( thread->pipe_ends[0] );
 	close( thread->pipe_ends[1] );
 	thread->pipe_ends[0] = -1;
@@ -566,7 +566,6 @@ static PTHREAD FindThread( THREAD_ID thread )
 		if( IsRootDeadstartStarted() )
 			SimpleRegisterAndCreateGlobal( global_timer_structure );
 	}
-
 	check = (PTHREAD)ForAllInSet( THREAD, g.threadset, check_thread, (PTRSZVAL)&thread );
 	if( !check )
 	{
@@ -898,7 +897,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, _32 n, LOGICAL threade
 						if( errno == EINTR )
 						{
 							//lprintf( WIDE("EINTR") );
-		                    break;
+							break;
 							//continue;
 						}
 						if( errno == EAGAIN )
@@ -946,8 +945,8 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, _32 n, LOGICAL threade
 			else
 			{
 				lprintf( WIDE("Still an invalid semaphore? Dang.") );
-            fprintf( stderr, WIDE("Out of semaphores.") );
-            BAG_Exit(0);
+				fprintf( stderr, WIDE("Out of semaphores.") );
+				BAG_Exit(0);
 			}
 		}
 #endif
@@ -955,7 +954,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, _32 n, LOGICAL threade
 	}
 	else
 	{
-      lprintf( WIDE("You, as a thread, do not exist, sorry.") );
+		lprintf( WIDE("You, as a thread, do not exist, sorry.") );
 	}
 }
 
@@ -993,12 +992,12 @@ static void ContinueSignal( int sig )
 PRIORITY_PRELOAD( IgnoreSignalContinue, GLOBAL_INIT_PRELOAD_PRIORITY-1 )
 {
 	//lprintf( "register handler for sigusr1" );
-   signal( SIGUSR1, ContinueSignal );
+	signal( SIGUSR1, ContinueSignal );
 }
 
 static void AlarmSignal( int sig )
 {
-   //lprintf( "Received alarm" );
+	//lprintf( "Received alarm" );
 	WakeThread( g.pTimerThread );
 }
 
@@ -1027,33 +1026,7 @@ static void TimerWakeableSleep( _32 n )
 		if( g.pTimerThread && g.pTimerThread->semaphore != -1 )
 		{
 #ifdef USE_PIPE_SEMS
-			char buf;
-         /* don't need anything special... */
 			InternalWakeableNamedSleepEx( NULL, n, FALSE DBG_SRC );
-         return;
-         //lprintf( "Timer wakeable sleep is reading..." );
-			while( read( g.pTimerThread->pipe_ends[0], &buf, 1 ) < 0 )
-			{
-            //lprintf( "timeout?" );
-				if( !g.pTimerThread )
-               return;
-				if( errno == EIDRM )
-				{
-					g.pTimerThread->semaphore = -1; // closed.
-					return;
-				}
-				//lprintf( WIDE("Before semval = %d"), semctl( g.pTimerThread->semaphore, 0, GETVAL ) );
-				if( errno == EINTR )
-				{
-					//lprintf( WIDE("Before semval = %d"), semctl( g.pTimerThread->semaphore, 0, GETVAL ) );
-					continue;
-				}
-				else
-				{
-					lprintf( WIDE("read failed: %d %08x"), errno, g.pTimerThread->semaphore );
-					break;
-				}
-			}
 #else
 			struct sembuf semdo;
 			semdo.sem_num = 0;
@@ -1065,7 +1038,7 @@ static void TimerWakeableSleep( _32 n )
 			while( semop( g.pTimerThread->semaphore, &semdo, 1 ) < 0 )
 			{
 				if( !g.pTimerThread )
-               return;
+					return;
 				if( errno == EIDRM )
 				{
 					g.pTimerThread->semaphore = -1; // closed.
@@ -1147,9 +1120,9 @@ void  UnmakeThread( void )
 		//if( ( (*pThread->me)=pThread->next ) )
 		//	pThread->next->me = pThread->me;
 #ifdef _WIN32
-      Deallocate( TEXTSTR, pThread->thread_event->name );
+		Deallocate( TEXTSTR, pThread->thread_event->name );
 		DeleteLink( &g.thread_events, pThread->thread_event );
-      Deallocate( PTHREAD_EVENT, pThread->thread_event );
+		Deallocate( PTHREAD_EVENT, pThread->thread_event );
 #endif
 		DeleteFromSet( THREAD, g.threadset, pThread ) /*Release( pThread )*/;
 	}
@@ -1210,7 +1183,7 @@ static PTRSZVAL CPROC SimpleThreadWrapper( PTHREAD pThread )
 	}
 #endif
 	while( !pThread->flags.bReady )
-      Relinquish();
+		Relinquish();
 #ifdef HAS_TLS
 	MyThreadInfo.pThread = pThread;
 	MyThreadInfo.nThread =
@@ -1345,24 +1318,25 @@ PTHREAD  ThreadToEx( PTRSZVAL (CPROC*proc)(PTHREAD), PTRSZVAL param DBG_PASS )
 												 , &dwJunk );
 	}
 #endif
-    success = (int)(pThread->hThread!=NULL);
+	success = (int)(pThread->hThread!=NULL);
 #else
-	 success = !pthread_create( &pThread->thread, NULL, (void*(*)(void*))ThreadWrapper, pThread );
+	//lprintf( "Create thread..." );
+	success = !pthread_create( &pThread->thread, NULL, (void*(*)(void*))ThreadWrapper, pThread );
 #endif
-    if( success )
-	 {
-		 // link into list... it's a valid thread
-       // the system claims that it can start one.
-		 //if( ( ( pThread->next = g.threads ) ) )
-		 //   g.threads->me = &pThread->next;
-		 //pThread->me = &g.threads;
-		 //g.threads = pThread;
-      pThread->flags.bReady = 1;
-		 while( !pThread->thread_ident )
+	if( success )
+	{
+		// link into list... it's a valid thread
+		// the system claims that it can start one.
+		//if( ( ( pThread->next = g.threads ) ) )
+		//   g.threads->me = &pThread->next;
+		//pThread->me = &g.threads;
+		//g.threads = pThread;
+		pThread->flags.bReady = 1;
+		while( !pThread->thread_ident )
 			Relinquish();
 #ifdef LOG_THREAD
-	   Log3( WIDE("Created thread address: %p %016"_64fx" at %p")
-	             , pThread->proc, pThread->thread_ident, pThread );
+		Log3( WIDE("Created thread address: %p %016"_64fx" at %p")
+		    , pThread->proc, pThread->thread_ident, pThread );
 #endif
 	}
 	else
@@ -1371,7 +1345,7 @@ PTHREAD  ThreadToEx( PTRSZVAL (CPROC*proc)(PTHREAD), PTRSZVAL param DBG_PASS )
 		DeleteFromSet( THREAD, &g.threadset, pThread ) /*Release( pThread )*/;
 		pThread = NULL;
 	}
-	 return pThread;
+	return pThread;
 }
 
 //--------------------------------------------------------------------------
@@ -1414,33 +1388,34 @@ PTHREAD  ThreadToSimpleEx( PTRSZVAL (CPROC*proc)(POINTER), POINTER param DBG_PAS
 												 , &dwJunk );
 	}
 #endif
-    success = (int)(pThread->hThread!=NULL);
+	success = (int)(pThread->hThread!=NULL);
 #else
+	//lprintf( "Create thread" );
 	 success = !pthread_create( &pThread->thread, NULL, (void*(*)(void*))SimpleThreadWrapper, pThread );
 #endif
-    if( success )
-	 {
-		 // link into list... it's a valid thread
-       // the system claims that it can start one.
-		 //if( ( ( pThread->next = g.threads ) ) )
-		 //   g.threads->me = &pThread->next;
-		 //pThread->me = &g.threads;
-		 //g.threads = pThread;
-      pThread->flags.bReady = 1;
-		 while( !pThread->thread_ident )
+	if( success )
+	{
+		// link into list... it's a valid thread
+		// the system claims that it can start one.
+		//if( ( ( pThread->next = g.threads ) ) )
+		//   g.threads->me = &pThread->next;
+		//pThread->me = &g.threads;
+		//g.threads = pThread;
+		pThread->flags.bReady = 1;
+		while( !pThread->thread_ident )
 			Relinquish();
 #ifdef LOG_THREAD
-	   Log3( WIDE("Created thread address: %p %016"_64fx" at %p")
+		Log3( WIDE("Created thread address: %p %016"_64fx" at %p")
 	             , pThread->proc, pThread->thread_ident, pThread );
 #endif
 	}
 	else
 	{
-      // unlink from g.threads list.
+		// unlink from g.threads list.
 		DeleteFromSet( THREAD, &g.threadset, pThread ) /*Release( pThread )*/;
 		pThread = NULL;
 	}
-	 return pThread;
+	return pThread;
 }
 
 //--------------------------------------------------------------------------
@@ -1638,7 +1613,7 @@ static void InsertTimer( PTIMER timer DBG_PASS )
 		Log( WIDE("Inserting timer...setup dataa") );
 #endif
 		g.add_timer = timer;
-      LeaveCriticalSec( &g.cs_timer_change );
+		LeaveCriticalSec( &g.cs_timer_change );
 		// it might be sleeping....
 #ifdef LOG_INSERTS
 		Log( WIDE("Inserting timer...wake and done") );
@@ -2354,7 +2329,6 @@ HANDLE  GetWakeEvent( void )
 #endif
 }
 #endif
-
 
 #ifdef __cplusplus 
 };//	namespace timers {
