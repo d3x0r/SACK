@@ -465,9 +465,8 @@ static void OnShowControl( WIDE("Windows/Set Windows Shell") )( PTRSZVAL psv )
 }
 
 
-#if ( __CMAKE_VERSION__ < 2081003 )
-// cmake + watcom link failure fix
 #if defined( __CMAKE_VERSION__ ) && ( __CMAKE_VERSION__ < 2081003 )
+// cmake + watcom link failure fix
 {
 }
 #endif
