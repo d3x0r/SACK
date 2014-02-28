@@ -329,8 +329,9 @@ PRELOAD( old_main )
 	g.ofs = 0;
 }
 
-#if ( __WATCOMC__ < 2001 )
-PUBLIC( void, NeedAtLeastOneExport )( void )
+#if defined( __CMAKE_VERSION__ ) && ( __CMAKE_VERSION__ < 2081003 )
+// cmake + watcom link failure fix
+PUBLIC( void, ExportThis )( void )
 {
 }
 #endif

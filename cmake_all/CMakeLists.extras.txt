@@ -6,12 +6,12 @@ set( EXTRA_FLAGS3  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} -DINTERSHELL_SDK_R
 
 set( PROJECT dekware )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/dekware DEKWARE_SDK_ROOT_PATH ${EXTRA_FLAGS} )
-if( NOT __ANDROID__ AND NOT __LINUX__ )
-Add_custom_command( TARGET Build${PROJECT} 
-	COMMAND ${DEKWARE_SDK_ROOT_PATH}/Dekware.Deploy.exe -nr
-	WORKING_DIRECTORY ${DEKWARE_SDK_ROOT_PATH}
-)                
-endif( NOT __ANDROID__ AND NOT __LINUX__ )
+#if( NOT __ANDROID__ AND NOT __LINUX__ )
+#Add_custom_command( TARGET Build${PROJECT} 
+#	COMMAND ${DEKWARE_SDK_ROOT_PATH}/Dekware.Deploy.exe -nr
+#	WORKING_DIRECTORY ${DEKWARE_SDK_ROOT_PATH}
+#)                
+#endif( NOT __ANDROID__ AND NOT __LINUX__ )
 add_dependencies( ${LAST_TARGET} Buildintershell Buildcore )
 
 # have to define these after dekware target, or we don't have the dekware_core_path

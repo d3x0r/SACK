@@ -807,7 +807,7 @@ ImageFile*  LoadImageFileFromGroupEx ( INDEX group, CTEXTSTR filename DBG_PASS )
 	sack_fread (buf, 1, size + 1, fp);
 	sack_fclose (fp);
 
-	lprintf(WIDE("so far okay -%s %d (%d)"), filename, buf, size );
+	//lprintf(WIDE("so far okay -%s %d (%d)"), filename, buf, size );
 
 	file = 
 		DecodeMemoryToImage( buf, size );

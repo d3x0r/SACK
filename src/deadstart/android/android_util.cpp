@@ -94,48 +94,25 @@ extern "C" void SuspendSleep( int bStopSleep )
 
     // Retrieves NativeActivity. 
     jobject lNativeActivity = engine.app->activity->clazz; 
-	LOGI(" Activity %p", lNativeActivity );
-    jclass ClassNativeActivity = lJNIEnv->GetObjectClass(lNativeActivity);
-	LOGI("class %p", ClassNativeActivity ); 
+	jclass ClassNativeActivity = lJNIEnv->GetObjectClass(lNativeActivity);
 
-	 if( !init )
-	 {
-		 // Retrieves WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-		 jclass ClassContext = lJNIEnv->FindClass("android/view/WindowManager/LayoutParams");
-		 LOGI(" class is %p", ClassContext );
-		 if( !ClassContext )
-			 return;
-		 jfieldID FieldFLAG_KEEP_SCREEN_ON =
-			 lJNIEnv->GetStaticFieldID(ClassContext,  "FLAG_KEEP_SCREEN_ON", "Landroid/view/WindowManager/LayoutParams;");
-		 LOGI( "Flag is %p", FieldFLAG_KEEP_SCREEN_ON );
-		 WindowManager_LayoutParams_FLAG_KEEP_SCREEN_ON  =
-			 lJNIEnv->GetStaticObjectField(ClassContext,  FieldFLAG_KEEP_SCREEN_ON);
-		 //jniCheck(WindowManager_LayoutParams_FLAG_KEEP_SCREEN_ON);
-       init = 1;
-	 }
+	if( bStopSleep )
+	{
+		jmethodID MethodSetFlags = lJNIEnv->GetMethodID(      ClassNativeActivity, "setSuspendSleep", "()V");
+		if( MethodSetFlags )
+			lJNIEnv->CallVoidMethod( lNativeActivity,  MethodSetFlags );
+	}
+	else
+	{
+		jmethodID MethodSetFlags = lJNIEnv->GetMethodID(      ClassNativeActivity, "setAllowSleep", "()V");
+		if( MethodSetFlags )
+			lJNIEnv->CallVoidMethod( lNativeActivity,  MethodSetFlags );
+	}
 
 
-    // Runs getWindow().getDecorView(). 
-    jmethodID MethodGetWindow = lJNIEnv->GetMethodID(        ClassNativeActivity, "getWindow",   "()Landroid/view/Window;");
-    jobject lWindow = lJNIEnv->CallObjectMethod(             lNativeActivity,         MethodGetWindow);
-	 jclass ClassWindow = lJNIEnv->FindClass(   "android/view/Window");
 
-	 if( bStopSleep )
-	 {
-		LOGI( "Send setflags..." );
-		 jmethodID MethodSetFlags = lJNIEnv->GetMethodID(       ClassWindow, "setFlags", "(J)V");
-		 lJNIEnv->CallVoidMethod(lWindow,  MethodSetFlags, WindowManager_LayoutParams_FLAG_KEEP_SCREEN_ON );
-	 }
-    else
-	 {
-		LOGI( "Send clearflags..." );
-		 jmethodID MethodSetFlags = lJNIEnv->GetMethodID(       ClassWindow, "clearFlags", "(J)V");
-		 lJNIEnv->CallVoidMethod(lWindow,  MethodSetFlags, WindowManager_LayoutParams_FLAG_KEEP_SCREEN_ON );
-	 }
-
-
-    // Finished with the JVM. 
-	 lJavaVM->DetachCurrentThread();
+	// Finished with the JVM. 
+	lJavaVM->DetachCurrentThread();
 }
 
 
