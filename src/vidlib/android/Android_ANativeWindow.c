@@ -6,27 +6,46 @@
 
 static IMAGE_INTERFACE AndroidANWImageInterface;
 
+static void CPROC AndroidANW_Redraw( PRENDERER r );
 
 static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y, _32 width, _32 height DBG_PASS );
 
 
-static void ClearDirtyFlag( Image image )
+static void CPROC DefaultMouse( PVPRENDER r, S_32 x, S_32 y, _32 b )
 {
-	//lprintf( "Clear dirty on %p  (%p) %08x", image, (image)?image->image:NULL, image?image->image->flags:0 );
-	for( ; image; image = image->pElder )
+	//lprintf( "Default mouse on %p  %d,%d %08x", r, x, y, b );
+	if( r->flags.fullscreen )
 	{
-		if( image )
+		if( MAKE_FIRSTBUTTON( b, l.mouse_b ) )
 		{
-			image->flags &= ~IF_FLAG_UPDATED;
-			//lprintf( "Clear dirty on %08x", (image)?(image)->image->flags:0 );
-		}
-		if( image->pChild )
-			ClearDirtyFlag( image->pChild );
-		if( image->flags & IF_FLAG_FINAL_RENDER )
-		{
-			// unlock(?)
+			if( !l.mouse_first_click_tick )
+				l.mouse_first_click_tick = timeGetTime();
+			else
+			{
+				_32 tick = timeGetTime();
+				if( ( tick - l.mouse_first_click_tick ) > 500 )
+					l.mouse_first_click_tick = tick;
+				else
+				{
+					EnterCriticalSec( &l.cs_update );
+					if( !r->flags.not_fullscreen )
+					{
+						r->flags.not_fullscreen = 1;
+						l.flags.full_screen_suspend = 1;
+						AndroidANW_UpdateDisplayPortionEx( NULL, 0, 0, l.default_display_x, l.default_display_y DBG_SRC );
+					}
+					else
+					{
+						r->flags.not_fullscreen = 0;
+						l.flags.full_screen_suspend = 0;
+					}
+					LeaveCriticalSec( &l.cs_update );
+					AndroidANW_Redraw( (PRENDERER)r );
+				}
+			}
 		}
 	}
+	l.mouse_b = b;
 }
 
 
@@ -95,6 +114,8 @@ static PRENDERER CPROC AndroidANW_OpenDisplayAboveUnderSizedAt( _32 attributes, 
 	MemSet( Renderer, 0, sizeof( struct vidlib_proxy_renderer ) );
 
 	Renderer->flags.hidden = 1;
+	Renderer->mouse_callback = (MouseCallback)DefaultMouse;
+	Renderer->psv_mouse_callback = (PTRSZVAL)Renderer;
 
 	AddLink( &l.renderers, Renderer );
 	Renderer->id = FindLink( &l.renderers, Renderer );
@@ -322,18 +343,26 @@ static void CPROC UpdateDisplayPortionRecurse( 	ANativeWindow_Buffer *buffer
 			{
 				//lprintf( "Update %p %d,%d  to %d,%d    %d,%d", r, out_x, out_y, x, y, width, height );
 				//lprintf( "alpha output" );
-				BlotImageSizedEx( tmpout, r->image, x, y, out_x, out_y, width, height, ALPHA_TRANSPARENT, BLOT_COPY );
+				if( r->flags.fullscreen && !r->flags.not_fullscreen )
+					BlotScaledImageSizedEx( tmpout, r->image, 0, 0, l.default_display_x, l.default_display_y, 0, 0, width, height, 0, BLOT_COPY );
+				else
+					BlotImageSizedEx( tmpout, r->image, x, y, out_x, out_y, width, height, ALPHA_TRANSPARENT, BLOT_COPY );
 			}
 			else
-				BlotImageSizedEx( tmpout, r->image, x, y, out_x, out_y, width, height, 0, BLOT_COPY );
+			{
+				if( r->flags.fullscreen && !r->flags.not_fullscreen )
+					BlotScaledImageSizedEx( tmpout, r->image, 0, 0, l.default_display_x, l.default_display_y, 0, 0, width, height, 0, BLOT_COPY );
+				else
+					BlotImageSizedEx( tmpout, r->image, x, y, out_x, out_y, width, height, 0, BLOT_COPY );
+			}
 			UnmakeImageFile( tmpout );
 		}
 		else
 		{
 			//lprintf( "update full image..." );
-			//lprintf( "Update all would be ... %d  %d", buffer->stride, ((PVPRENDER)r)->image->pwidth );
-			if( buffer->stride == ((PVPRENDER)r)->image->pwidth )
-				memcpy(buffer->bits , ((PVPRENDER)r)->image->image, height * width * 4 );
+			//lprintf( "Update all would be ... %d  %d", buffer->stride, r->image->pwidth );
+			if( buffer->stride == r->image->pwidth )
+				memcpy(buffer->bits , r->image->image, height * width * 4 );
 			else
 			{
 				goto iterate;
@@ -385,8 +414,8 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 	//_lprintf(DBG_RELAY)( "update begin %p %d,%d  %d,%d", l.displayWindow, x, y, width, height );
 	if( r )
 	{
-		if( l.flags.full_screen_renderer )
-			if( ((PVPRENDER)r) != l.fullscreen_display )
+		if( l.flags.full_screen_renderer && !l.flags.full_screen_suspend)
+			if( ((PVPRENDER)r) != l.full_screen_display )
 				return;
 		if( ((PVPRENDER)r)->flags.hidden )
 		{
@@ -841,18 +870,34 @@ static void CPROC AndroidANW_RestoreDisplay  ( PRENDERER r )
 
 static void CPROC AndroidANW_SetFullScreen( PRENDERER r, int nDisplay )
 {
-   // cannot change this sort of paramter while rendering.
+	// cannot change this sort of paramter while rendering.
 	EnterCriticalSec( &l.cs_update );
-   if( r )
+	if( (PVPRENDER)r == l.full_screen_display )
 	{
+		// same display, still fullscreen
+		// some systems might move displays...
+		return;
+	}
+	if( l.full_screen_display )
+	{
+		// reset the previous fullscreen
+		l.full_screen_display->flags.fullscreen = 0;
+		l.full_screen_display->flags.not_fullscreen = 0;
+	}
+
+	if( r )
+	{
+		((PVPRENDER)r)->flags.fullscreen = 1;
 		l.flags.full_screen_renderer = 1;
-		l.fullscreen_display = (PVPRENDER)r;
-		ANativeWindow_setBuffersGeometry( l.displayWindow, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h, WINDOW_FORMAT_RGBA_8888);
+		l.full_screen_display = (PVPRENDER)r;
+		//ANativeWindow_setBuffersGeometry( l.displayWindow, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h, WINDOW_FORMAT_RGBA_8888);
 //		SurfaceHolder.setFixedSize();
 	}
 	else
 	{
-		ANativeWindow_setBuffersGeometry( l.displayWindow, l.default_display_x, l.default_display_y, WINDOW_FORMAT_RGBA_8888);
+		l.flags.full_screen_renderer = 0;
+		l.full_screen_display = NULL;
+		//ANativeWindow_setBuffersGeometry( l.displayWindow, l.default_display_x, l.default_display_y, WINDOW_FORMAT_RGBA_8888);
 //		SurfaceHolder.setFixedSize();
 	}
 	LeaveCriticalSec( &l.cs_update );
@@ -861,7 +906,7 @@ static void CPROC AndroidANW_SetFullScreen( PRENDERER r, int nDisplay )
 static void CPROC AndroidANW_SuspendSleep( int bool_suspend_enable )
 {
 	if( l.SuspendSleep )
-      l.SuspendSleep( bool_suspend_enable );
+		l.SuspendSleep( bool_suspend_enable );
 }
 
 
@@ -996,15 +1041,15 @@ void SACK_Vidlib_SetNativeWindowHandle( ANativeWindow *displayWindow )
 	l.default_display_x = ANativeWindow_getWidth( l.displayWindow);
 	l.default_display_y = ANativeWindow_getHeight( l.displayWindow);
 
-	if( !l.flags.full_screen_renderer )
+	ANativeWindow_setBuffersGeometry( displayWindow,l.default_display_x,l.default_display_y,WINDOW_FORMAT_RGBA_8888);
+	if( !l.flags.full_screen_renderer || l.flags.full_screen_suspend )
 	{
-      // make sure the buffer is what I think it should be...
-		ANativeWindow_setBuffersGeometry( displayWindow,l.default_display_x,l.default_display_y,WINDOW_FORMAT_RGBA_8888);
+		// make sure the buffer is what I think it should be...
 	}
 	else
 	{
-      // need to make sure the new window has the geometry expected...
-		ANativeWindow_setBuffersGeometry( displayWindow,l.fullscreen_display->w,l.fullscreen_display->h,WINDOW_FORMAT_RGBA_8888);
+		// need to make sure the new window has the geometry expected...
+		//ANativeWindow_setBuffersGeometry( displayWindow,l.full_screen_display->w,l.full_screen_display->h,WINDOW_FORMAT_RGBA_8888);
 	}
 
 	lprintf( "Format is :%dx%d %d", l.default_display_x, l.default_display_y, ANativeWindow_getFormat( displayWindow ) );

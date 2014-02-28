@@ -2,7 +2,7 @@
 
 
 package org.d3x0r.sack.@application@;
-
+import android.view.WindowManager;
 import android.app.NativeActivity;
 import android.util.Log;
 
@@ -11,5 +11,23 @@ public class @activity@ extends NativeActivity {
   private static String TAG = "@activity@";
   public @activity@() {
     super();
+    
   }
+  
+    public void setSuspendSleep() {
+        this.runOnUiThread( new Runnable() {
+    		public void run() 
+                {
+	        	getWindow().addFlags( WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON );
+                }        
+        } );
+    }
+    
+    public void setAllowSleep() {
+        this.runOnUiThread( new Runnable() {
+	    	public void run() {
+		        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                }
+        } );
+    }
 }

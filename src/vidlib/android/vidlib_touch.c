@@ -210,10 +210,11 @@ int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches )
 			{
 				lprintf( WIDE("begin  (is it a touch on a window?) %d,%d   %d,%d"), r->x, r->y, r->w + r->x, r->h+r->y );
 				// begin touch
-				if( touches[0].x >= r->x && touches[0].x <= ( r->x + r->w )
-					&& touches[0].y >= r->y && touches[0].y <= ( r->y + r->h ) )
+				if(  ( r->flags.fullscreen && !r->flags.not_fullscreen )
+					|| ( touches[0].x >= r->x && touches[0].x <= ( r->x + r->w )
+						 && touches[0].y >= r->y && touches[0].y <= ( r->y + r->h ) ) )
 				{
-					lprintf( "Yes; set keyboard focus" );
+					//lprintf( "Yes; set keyboard focus" );
 					l.hVidVirtualFocused = r;
 					touch_info.mouse_x
 						= touch_info.one.x = touches[0].x - r->x;
@@ -222,9 +223,14 @@ int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches )
 
 					if( r->mouse_callback )
 					{
+						if( r->flags.fullscreen && !r->flags.not_fullscreen )
+						{
+							touch_info.mouse_x = ( l.default_display_x * touch_info.mouse_x ) / r->w;
+							touch_info.mouse_y = ( l.default_display_y * touch_info.mouse_y ) / r->h;
+						}
 						if( used = r->mouse_callback( r->psv_mouse_callback, touch_info.mouse_x, touch_info.mouse_y, MK_LBUTTON ) )
 						{
-							lprintf( "mouse is used on that... (own touch)" );
+							//lprintf( "mouse is used on that... (own touch)" );
 						}
 					}
 					touch_info.owning_surface = r;
@@ -236,17 +242,28 @@ int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches )
 			{
 				if( touch_info.flags.owned_by_surface )
 				{
+					touch_info.mouse_x
+						= touch_info.one.x = touches[0].x - r->x;
+					touch_info.mouse_y
+						= touch_info.one.y = touches[0].y - r->y;
+					if( r->flags.fullscreen && !r->flags.not_fullscreen  )
+					{
+						touch_info.mouse_x = ( l.default_display_x * touch_info.mouse_x ) / r->w;
+						touch_info.mouse_y = ( l.default_display_y * touch_info.mouse_y ) / r->h;
+					}
 					if( r->mouse_callback )
 						r->mouse_callback( r->psv_mouse_callback, touch_info.mouse_x, touch_info.mouse_y, 0 );
 					touch_info.owning_surface = NULL;
 					touch_info.flags.owned_by_surface = 0;
-					lprintf(" end touch on owned surface" );
+					//lprintf(" end touch on owned surface" );
 					used = 1;
 				}
 				else
-					lprintf( "no owning surface..." );
+				{
+					//lprintf( "no owning surface..." );
+				}
 				// release
-				lprintf( WIDE("done") );
+				//lprintf( WIDE("done") );
 			}
 			else
 			{
@@ -255,10 +272,15 @@ int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches )
 					touch_info.mouse_x = touches[0].x - r->x;
 					touch_info.mouse_y = touches[0].y - r->y;
 					//lprintf( "Dragging motion...%p %d %d", r->mouse_callback, touch_info.mouse_x, touch_info.mouse_y );
+					if( r->flags.fullscreen && !r->flags.not_fullscreen  )
+					{
+						touch_info.mouse_x = ( l.default_display_x * touch_info.mouse_x ) / r->w;
+						touch_info.mouse_y = ( l.default_display_y * touch_info.mouse_y ) / r->h;
+					}
 					if( r->mouse_callback )
 						if( !r->mouse_callback( r->psv_mouse_callback, touch_info.mouse_x, touch_info.mouse_y, MK_LBUTTON ) )
 						{
-							lprintf( "unused event; losing owning surface..." );
+							//lprintf( "unused event; losing owning surface..." );
 							//touch_info.flags.owned_by_surface = 0;
 						}
 					used = 1;
@@ -266,7 +288,7 @@ int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches )
 				else
 				{
 					// drag
-					lprintf( "lost lock on surface (drag touch, no owner)" );
+					//lprintf( "lost lock on surface (drag touch, no owner)" );
 				}
 				touch_info.one.x = touches[0].x;
 				touch_info.one.y = touches[0].y;

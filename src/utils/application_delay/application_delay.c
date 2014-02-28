@@ -6,7 +6,8 @@ PRELOAD( loginfo )
    MessageBox( NULL, WIDE("Press OK to continue"), WIDE("Pause..."), MB_OK );
 }
 
-#if ( __WATCOMC__ < 2001 )
+#if defined( __CMAKE_VERSION__ ) && ( __CMAKE_VERSION__ < 2081003 )
+// cmake + watcom link failure fix
 PUBLIC( void, ExportThis )( void )
 {
 }

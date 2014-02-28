@@ -2515,13 +2515,9 @@ static LOGICAL OnDropAccept( WIDE("Add Task Button") )( PSI_CONTROL pc_canvas, C
 }
 
 
-#if ( __CMAKE_VERSION__ < 208103 )
-PRELOAD( test )
+#if defined( __CMAKE_VERSION__ ) && ( __CMAKE_VERSION__ < 2081003 )
+// cmake + watcom link failure fix
+PUBLIC( void, ExportThis )( void )
 {
-   lprintf( "CMAKEVERSION %d", __CMAKE_VERSION__ );
 }
-#error need this code  WIDE(CMAKE_VERSION)
-//PUBLIC( void, ExportThis )( void )
-//{
-//}
 #endif

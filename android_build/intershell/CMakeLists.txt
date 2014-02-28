@@ -64,6 +64,7 @@ message( "EXECUTE_PROCESS(COMMAND cmake -E remove_directory${P_SOURCE_DIR}/packa
 set( application InterShell )
 set( activity EditOptions )
 CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/../MyNativeActivity.cm package/src/org/d3x0r/${application}/${activity}/${activity}.java )
+#EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_SOURCE_DIR}/../../src/deadstart/android/NativeActivity.java package/src/org/d3x0r/sack/SackNativeActivity.java )
 
 set( activity InterShell_console )
 CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/../MyNativeActivity.cm package/src/org/d3x0r/${application}/${activity}/${activity}.java )

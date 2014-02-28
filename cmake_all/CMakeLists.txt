@@ -183,10 +183,10 @@ BuildProject( ${PROJECT} sack ${CMAKE_CURRENT_LIST_DIR}/.. SACK_SDK_ROOT_PATH ${
 if( NOT __ANDROID__ )
   # this calls sack_deploy to build cmakepackage
   # on android ended up making a cmake-configured-cmake-script to make this file.
-  Add_custom_command( TARGET Build${PROJECT} 
-	COMMAND ${SACK_SDK_ROOT_PATH}/${BINARY_OUTPUT_DIR}/sack_deploy${CMAKE_EXECUTABLE_SUFFIX} -nr
-	WORKING_DIRECTORY ${SACK_SDK_ROOT_PATH}
-  )                
+#  Add_custom_command( TARGET Build${PROJECT} 
+#	COMMAND ${SACK_SDK_ROOT_PATH}/${BINARY_OUTPUT_DIR}/sack_deploy${CMAKE_EXECUTABLE_SUFFIX} -nr
+#	WORKING_DIRECTORY ${SACK_SDK_ROOT_PATH}
+#  )                
 endif( NOT __ANDROID__ )
 
 if( NOT __CLR__ )
@@ -196,10 +196,10 @@ BuildProject( ${PROJECT} sack.binaries ${CMAKE_CURRENT_LIST_DIR}/../binary SACK_
 if( NOT __ANDROID__ AND NOT UNIX )
   # this calls sack_deploy to build cmakepackage
   # on android ended up making a cmake-configured-cmake-script to make this file.
-  Add_custom_command( TARGET Build${PROJECT} 
-	COMMAND ${SACK_BINARY_SDK_ROOT_PATH}/Sack.Binary.Deploy${CMAKE_EXECUTABLE_SUFFIX} -nr
-	WORKING_DIRECTORY ${SACK_BINARY_SDK_ROOT_PATH}
-  )
+#  Add_custom_command( TARGET Build${PROJECT} 
+#	COMMAND ${SACK_BINARY_SDK_ROOT_PATH}/Sack.Binary.Deploy${CMAKE_EXECUTABLE_SUFFIX} -nr
+#	WORKING_DIRECTORY ${SACK_BINARY_SDK_ROOT_PATH}
+#  )
 endif( NOT __ANDROID__ AND NOT UNIX )
 add_dependencies( ${LAST_TARGET} Buildcore )
 else( NOT __CLR__ )
@@ -212,10 +212,10 @@ BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/InterShell 
 if( NOT __ANDROID__ AND NOT UNIX )
 # this calls sack_deploy to build cmakepackage
 # on android ended up making a cmake-configured-cmake-script to make this file.
-Add_custom_command( TARGET Build${PROJECT} 
-	COMMAND ${INTERSHELL_SDK_ROOT_PATH}/intershell_deploy${CMAKE_EXECUTABLE_SUFFIX} -nr
-	WORKING_DIRECTORY ${INTERSHELL_SDK_ROOT_PATH}
-)                
+#Add_custom_command( TARGET Build${PROJECT} 
+#	COMMAND ${INTERSHELL_SDK_ROOT_PATH}/intershell_deploy${CMAKE_EXECUTABLE_SUFFIX} -nr
+#	WORKING_DIRECTORY ${INTERSHELL_SDK_ROOT_PATH}
+#)                
 endif( NOT __ANDROID__ AND NOT UNIX )
 add_dependencies( ${LAST_TARGET} Buildcore Buildbinary )
 

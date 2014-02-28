@@ -19,6 +19,8 @@ typedef struct vidlib_proxy_renderer
 	struct vidlib_proxy_renderer_flags
 	{
 		BIT_FIELD hidden : 1;
+		BIT_FIELD fullscreen : 1;
+		BIT_FIELD not_fullscreen : 1;
 	} flags;
 	INDEX id;
 	MouseCallback mouse_callback;
@@ -49,9 +51,13 @@ struct vidlib_android_local
 	struct vidlib_android_local_flags {
 		BIT_FIELD paused : 1;
 		BIT_FIELD full_screen_renderer : 1;
+		BIT_FIELD full_screen_suspend : 1;
 	} flags;
-	PVPRENDER fullscreen_display;
+	PVPRENDER full_screen_display;
 	void(*SuspendSleep)(int);
+	S_32 mouse_x, mouse_y;
+	_32 mouse_b;
+	_32 mouse_first_click_tick;
 } l;
 
 // linux_keymap.c
