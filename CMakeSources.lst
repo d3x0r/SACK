@@ -90,6 +90,20 @@ SET_SOURCE_FILES_PROPERTIES( ${GENX_SOURCES} PROPERTIES
 		FOLDER "Source Files\\XML\\Genx Library" )
 set( GENX_SOURCES_FLAGS GENX_SOURCE )
 
+if( ALLOW_IMAGE_INTERFACES )
+	set( VIDLIB_HEADLESS_SOURCES 
+			${SOURCES_ROOT}src/vidlib/proxy/server.c
+			# image compress to png is available in imglib/pngimage.c
+			#${SOURCES_ROOT}src/vidlib/proxy/imagepng.c
+		)	  
+	if( UNIX )
+		set( VIDLIB_HEADLESS_SOURCES ${VIDLIB_HEADLESS_SOURCES}
+			${SOURCES_ROOT}src/vidlib/proxy/server.c
+		)
+	endif( UNIX )
+endif( ALLOW_IMAGE_INTERFACES )
+
+	  
 if( WIN32 )
 	#vidlib is a windows-specific driver
         # vidlib.puregl and puregl2 are non windows specific; but are not

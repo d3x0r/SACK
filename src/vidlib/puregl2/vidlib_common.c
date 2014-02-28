@@ -1951,6 +1951,21 @@ void UnlockRenderer( PRENDERER render )
 	LeaveCriticalSec( &render->cs );
 }
 
+LOGICAL CPROC PureGL2_Vidlib_AllowsAnyThreadToUpdate( void )
+{
+	// require draw all makes this irrelavent.
+	return FALSE;
+}
+
+void CPROC PureGL2_Vidlib_SuspendSystemSleep( int suspend )
+{
+#ifdef WIN32
+	if( suspend )
+		SetThreadExecutionState( ES_DISPLAY_REQUIRED | ES_CONTINUOUS );
+	else
+		SetThreadExecutionState( ES_USER_PRESENT | ES_CONTINUOUS );
+#endif
+}
 
 
 RENDER_NAMESPACE_END

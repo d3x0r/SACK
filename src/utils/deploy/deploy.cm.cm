@@ -209,8 +209,11 @@ endif()
 
 if( BUILD_MONOLITHIC )
 		FILE( APPEND ${FILEOUT} "add_definitions( -DFORCE_NO_INTERFACE )\n" )
-	      FILE( APPEND ${FILEOUT} "\n" )
+                if( ALLOW_IMAGE_INTERFACES )
+			FILE( APPEND ${FILEOUT} "add_definitions( -DALLOW_IMAGE_INTERFACES )\n" )
+                endif( ALLOW_IMAGE_INTERFACES )
 endif( BUILD_MONOLITHIC )
+	        FILE( APPEND ${FILEOUT} "\n" )
 
 # begin Install_Sack macro; this handles optional second arg extension...
 		FILE( APPEND ${FILEOUT} "macro( INSTALL_SACK dest )\n" )
@@ -264,7 +267,9 @@ endif( NOT __NO_OPTIONS__ )
 
 if( WIN32 )
 		SET( literal_libfile_list ${literal_libfile_list} application_delay.module loginfo.module seed_random.module )
+		if( NOT BUILD_MONOLITHIC )
                 set( libfile_list ${libfile_list}  glew )
+		endif( NOT BUILD_MONOLITHIC )
 if( NOT __NO_MSGSVR__ )
 		SET( progfile_list ${progfile_list} service_list sack.msgsvr.service msgsvr )
 		SET( literal_libfile_list ${literal_libfile_list} sack.msgsvr.service.plugin  )
@@ -286,11 +291,14 @@ else( __ANDROID__ )
     if( NOT __NO_GUI__ )
                 SET( progfile_list ${progfile_list} DumpFontCache )
     endif( NOT __NO_GUI__ )
+	if( NOT BUILD_MONOLITHIC )
                 SET( libfile_list ${libfile_list} bag.video )
+	endif( NOT BUILD_MONOLITHIC )
 endif( __ANDROID__ )
 
 
 if( DIRECTX_SDK AND NOT WATCOM )
+	if( NOT BUILD_MONOLITHIC )
 		SET( libfile_list ${libfile_list} bag.video.pured3d )
 		SET( libfile_list ${libfile_list} bag.video.pured3d2 )
 		SET( libfile_list ${libfile_list} bag.video.pured3d10 )
@@ -299,6 +307,7 @@ if( DIRECTX_SDK AND NOT WATCOM )
 		SET( libfile_list ${libfile_list} bag.image.pured3d2 )
 		SET( libfile_list ${libfile_list} bag.image.pured3d10 )
 		SET( libfile_list ${libfile_list} bag.image.pured3d11 )
+	endif( NOT BUILD_MONOLITHIC )
 endif( DIRECTX_SDK AND NOT WATCOM)
 
 ##############################################
@@ -335,7 +344,9 @@ if( __QNX__ )
 endif( __QNX__ )
 
 		FILE( APPEND ${FILEOUT} "install( DIRECTORY $" "{SACK_BASE}/${BINARY_OUTPUT_DIR}/ DESTINATION $" "{dest} FILES_MATCHING PATTERN *.interface.conf PATTERN interface.conf )\n" )
+	if( NOT BUILD_MONOLITHIC )		
 		FILE( APPEND ${FILEOUT} "install( DIRECTORY $" "{SACK_BASE}/${BINARY_OUTPUT_DIR}/webclient DESTINATION $" "{dest}  )\n" )
+	endif( NOT BUILD_MONOLITHIC )
 
 
 		FILE( APPEND ${FILEOUT} "ENDMACRO( INSTALL_SACK )\n" )

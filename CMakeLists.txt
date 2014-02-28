@@ -5,11 +5,6 @@ project( SACK )
 
 SET( MAKING_SACK_CORE ON )
 SET( SACK_SDK_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR} )
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES} )
-
-if( NOT CMAKE_BUILD_TYPE )
-message( FATAL_ERROR "MUST set CMAKE_BUILD_TYPE!" )
-endif( NOT CMAKE_BUILD_TYPE )
 
 
 if( ${CMAKE_GENERATOR} MATCHES "Watcom WMake" )
@@ -33,6 +28,13 @@ set( CMAKE_MODULE_PATH ${SACK_SOURCE_DIR}/makefiles/cmake )
 
 
 include( DefaultInstall )
+
+DEFINE_DEFAULT( CMAKE_BUILD_TYPE Release )
+set( CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Cached cmake build type"  )
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES} )
+if( NOT CMAKE_BUILD_TYPE )
+	message( FATAL_ERROR "MUST set CMAKE_BUILD_TYPE!" )
+endif( NOT CMAKE_BUILD_TYPE )
 
 
 if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
@@ -74,7 +76,7 @@ set(WIN32_VERSION "0x0601" CACHE STRING
 add_definitions( -D_WIN32_WINNT=${WIN32_VERSION} -DWINVER=${WIN32_VERSION})
 endif( NOT __LINUX__ AND NOT __LINUX64__ )
 
-
+DEFINE_DEFAULT( ALLOW_IMAGE_INTERFACES OFF )
 DEFINE_DEFAULT( __ANDROID__ OFF )
 OPTION( __ANDROID__ "Enable Android Behvaviors" ${__ANDROID__} )
 if( __ANDROID__ )
@@ -211,6 +213,7 @@ if( NOT __NO_ODBC__ )
 OPTION( __NO_ODBC__ "Use Odbc" 0 )
 endif( NOT __NO_ODBC__ )
 OPTION( __ANDROID__ "Enable Android Behvaviors" 0 )
+OPTION( ALLOW_IMAGE_INTERFACES "monolithic build, by default, forces direct linking to video/image interfaces; allow proxy" 0 )
 OPTION( BUILD_ANDROID_CONSOLE_APPS "Enable building programs as command-line executable" ${__ANDROID__} )
 OPTION( USE_OPTIONS "Use Option Code all internal option usage (and don't include option code)" 1 )
 OPTION( USING_OLD_MINGW "MinGW Has NO UpdateLayeredWindow" ${MINGW} )
@@ -320,18 +323,21 @@ if( BUILD_UNICODE )
 endif( BUILD_UNICODE )
 
 if( __ANDROID__ )
-add_definitions( -D__ANDROID__ )
+	add_definitions( -D__ANDROID__ )
 endif( __ANDROID__ )
 
+if( ALLOW_IMAGE_INTERFACES )
+	add_definitions( -DALLOW_IMAGE_INTERFACES )
+endif( ALLOW_IMAGE_INTERFACES )
+
 if( __ARM__ )
-message( "IS ARM" )
-add_definitions( -D__ARM__)
+	add_definitions( -D__ARM__)
 endif( __ARM__ )
 
 if( EXTREME_CODE_DEBUG )
-if(MINGW) 
-add_definitions(-Wall -Wextra -Wconversion -Wsign-conversion -Wsign-compare -Wtype-limits)
-endif()
+	if(GCC) 
+		add_definitions(-Wall -Wextra -Wconversion -Wsign-conversion -Wsign-compare -Wtype-limits)
+	endif(GCC)
 endif( EXTREME_CODE_DEBUG )
 
 if( __ARM__ OR __BUILD_ARM_CE__ )
@@ -574,6 +580,7 @@ Set( ExternalExtraDefinitions ${ExternalExtraDefinitions} PNG_INTERNAL )
 set( SACK_SOURCES 
   ${FIRST_GCC_LIBRARY_SOURCE} 
     ${BASE_SOURCES} 
+	${VIDLIB_HEADLESS_SOURCES}
     ${VECTLIB_SOURCES}
     ${SNPRINTF_SOURCES}
     ${ODBC_SOURCES}

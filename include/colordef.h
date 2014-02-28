@@ -37,7 +37,7 @@ SACK_NAMESPACE
 #  define USE_OPENGL_COMPAT_COLORS
 #endif
 
-#if !defined( IMAGE_LIBRARY_SOURCE_MAIN ) && !defined( FORCE_NO_INTERFACE )
+#if !defined( IMAGE_LIBRARY_SOURCE_MAIN ) && ( !defined( FORCE_NO_INTERFACE ) || defined( ALLOW_IMAGE_INTERFACE ) )
 
 #define Color( r,g,b ) MakeColor(r,g,b)
 #define AColor( r,g,b,a ) MakeAlphaColor(r,g,b,a)

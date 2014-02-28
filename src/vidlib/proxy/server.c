@@ -1,4 +1,4 @@
-
+#define NEED_REAL_IMAGE_STRUCTURE
 #include <imglib/imagestruct.h>
 
 #include <render.h>
@@ -1547,8 +1547,8 @@ static Image CPROC VidlibProxy_LoadImageFileFromGroupEx( INDEX group, CTEXTSTR f
 	image->image = l.real_interface->_LoadImageFileFromGroupEx( group, filename DBG_RELAY );
 	if( image->image )
 	{
-		image->w = image->image->actual_width;
-		image->h = image->image->actual_height;
+		image->w = image->image->width;
+		image->h = image->image->height;
 	}
 	image->render_id = INVALID_INDEX;
 	// don't really need to make this; if it needs to be updated to the client it will be handled later
