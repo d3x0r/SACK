@@ -1882,12 +1882,6 @@ IMAGE_PROC_PTR( LOGICAL, IsImageTargetFinal )( Image image );
 
 
 
-#define GetImageInterface() (PIMAGE_INTERFACE)GetInterface( WIDE("image") )
-/* <combine sack::image::DropImageInterface@PIMAGE_INTERFACE>
-   
-   \ \                                                        */
-#define DropImageInterface(x) DropInterface( WIDE("image"), NULL )
-
 /* Method to define automatic name translation from standard
    names Like BlatColorAlphaEx to the interface the user has
    specified to be using.                                    */
@@ -1899,11 +1893,18 @@ IMAGE_PROC_PTR( LOGICAL, IsImageTargetFinal )( Image image );
 
 #ifdef DEFINE_DEFAULT_IMAGE_INTERFACE
 //static PIMAGE_INTERFACE always_defined_interface_that_makes_this_efficient;
-#define USE_IMAGE_INTERFACE GetImageInterface()
+#  define USE_IMAGE_INTERFACE GetImageInterface()
 #endif
 
-#ifdef FORCE_NO_INTERFACE
-#undef USE_IMAGE_INTERFACE
+#if defined( FORCE_NO_INTERFACE ) && !defined( ALLOW_IMAGE_INTERFACES )
+#  undef USE_IMAGE_INTERFACE
+#else
+#  define GetImageInterface() (PIMAGE_INTERFACE)GetInterface( WIDE("image") )
+/* <combine sack::image::DropImageInterface@PIMAGE_INTERFACE>
+   
+   \ \                                                        */
+#  define DropImageInterface(x) DropInterface( WIDE("image"), NULL )
+
 #endif
 
 #ifdef USE_IMAGE_INTERFACE

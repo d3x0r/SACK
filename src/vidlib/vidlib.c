@@ -5389,6 +5389,12 @@ void CPROC Vidlib_SetDisplayFullScreen( PRENDERER hVideo, int target_display )
 
 void CPROC Vidlib_SuspendSystemSleep( int suspend )
 {
+#if WIN32
+	if( suspend )
+		SetThreadExecutionState( ES_DISPLAY_REQUIRED | ES_CONTINUOUS );
+	else
+		SetThreadExecutionState( ES_USER_PRESENT | ES_CONTINUOUS );
+#endif
 }
 
 

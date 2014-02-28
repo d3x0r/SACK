@@ -93,6 +93,9 @@ static RENDER_INTERFACE VidInterface = { NULL //InitDisplay
 													, NULL   //SACK_Vidlib_ShowInputDevice
                                        , NULL   //SACK_Vidlib_HideInputDevice
 #endif
+									   , PureGL2_Vidlib_AllowsAnyThreadToUpdate
+									   , NULL // SetDisplayFullScreen
+									   , PureGL2_Vidlib_SuspendSystemSleep
 };
 
 RENDER3D_INTERFACE Render3d = {

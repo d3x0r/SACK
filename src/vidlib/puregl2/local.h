@@ -421,6 +421,9 @@ LOGICAL CreateDrawingSurface (PVIDEO hVideo);
 void DoDestroy (PVIDEO hVideo);
 LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
                                               int wx, int wy);
+void CPROC PureGL2_Vidlib_SuspendSystemSleep( int suspend );
+LOGICAL CPROC PureGL2_Vidlib_AllowsAnyThreadToUpdate( void );
+
 
 // --------------- Mouse 3d ------------
 void ComputeMouseRay( struct display_camera *camera, LOGICAL bUniverseSpace, PRAY mouse_ray, S_32 x, S_32 y );
