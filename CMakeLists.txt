@@ -15,12 +15,15 @@ endif( NOT CMAKE_BUILD_TYPE )
 if( ${CMAKE_GENERATOR} MATCHES "Watcom WMake" )
 
  SET( CMAKE_RC_COMPILER "rc" )
+ # add -aa - which allows non-static struct initializers in functions (init from function params);C only.
+ set( CMAKE_C_FLAGS_INIT ${CMAKE_C_FLAGS_INIT} -aa )
+
  set( ExtraFlags "${ExtraFlags} /fp5 /fpi87" )
  # this flag is for build dll?  emit DllRuntime startup link 
  #set( LibraryExtraFlags "-bd" )
  set( ConsoleProgramExtraFlags "-bc" )
  set( WindowsProgramExtraFlags "-bg" )
- 
+ add_definitions( "-D__CMAKE_VERSION__=(${CMAKE_MAJOR_VERSION}*1000000+${CMAKE_MINOR_VERSION}*10000+${CMAKE_PATCH_VERSION}*100+${CMAKE_TWEAK_VERSION})" )
 endif( ${CMAKE_GENERATOR} MATCHES "Watcom WMake" )
 
 

@@ -37,9 +37,9 @@ struct vidlib_android_local
 	TEXTSTR application_title;
 	PLIST renderers;
 	PLIST images;
-   PVPRENDER bottom;
+	PVPRENDER bottom;
 	PVPRENDER top;
-   CRITICALSECTION cs_update;
+	CRITICALSECTION cs_update;
 	PIMAGE_INTERFACE real_interface;
 	_8 key_states[256];
 	CRITICALSECTION message_formatter;
@@ -51,7 +51,7 @@ struct vidlib_android_local
 		BIT_FIELD full_screen_renderer : 1;
 	} flags;
 	PVPRENDER fullscreen_display;
-   void(*SuspendSleep)(int);
+	void(*SuspendSleep)(int);
 } l;
 
 // linux_keymap.c
@@ -61,6 +61,7 @@ void SACK_Vidlib_ProcessKeyState( int pressed, int key_index, int *used );
 
 // vidlib_touch.c
 int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches );
+void TouchWindowClose( PVPRENDER r );
 
 // android_keymap.c
 void SACK_Vidlib_ShowInputDevice( void );

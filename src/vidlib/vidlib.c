@@ -14,8 +14,6 @@
 /* this must have been done for some other collision in some other bit of code...
  * probably the update queue? the mosue queue ?
  */
-//#define USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
-//#define USE_IPC_MESSAGE_QUEUE_TO_GATHER_MOUSE_EVENTS
 
 #ifdef UNDER_CE
 #define NO_MOUSE_TRANSPARENCY
@@ -649,8 +647,14 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 #endif
 							{
 								//lprintf( "non layered... begin update." );
-								BitBlt ((HDC)hVideo->hDCOutput, x, y, w, h,
-										  (HDC)hVideo->hDCBitmap, x, y, SRCCOPY);
+								if( hVideo->flags.bFullScreen )
+								{
+									StretchBlt ((HDC)hVideo->hDCOutput, 0, 0, hVideo->full_screen.width, hVideo->full_screen.height,
+										(HDC)hVideo->hDCBitmap, 0, 0, hVideo->pImage->width, hVideo->pImage->height, SRCCOPY);
+								}
+								else
+									BitBlt ((HDC)hVideo->hDCOutput, x, y, w, h,
+											  (HDC)hVideo->hDCBitmap, x, y, SRCCOPY);
 								//lprintf( WIDE( "non layered... end update." ) );
 							}
 							if( hVideo->sprites )
@@ -715,6 +719,7 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 						if( l.flags.bLogWrites )
 							lprintf( WIDE( "setting post invalidate..." ) );
 						l.flags.bPostedInvalidate = 1;
+						l.invalidated_window = hVideo;
 						InvalidateRect( hVideo->hWndOutput, &r, FALSE );
 					}
 				}
@@ -994,7 +999,7 @@ BOOL CreateDrawingSurface (PVIDEO hVideo)
 	// can use handle from memory allocation level.....
 	if (!hVideo)			// wait......
 		return FALSE;
-
+	if( !hVideo->flags.bFullScreen || !hVideo->pImage )
 	{
 		BITMAPINFO bmInfo;
 		// the color array.
@@ -1047,37 +1052,34 @@ BOOL CreateDrawingSurface (PVIDEO hVideo)
 		hVideo->pImage =
 			RemakeImage( hVideo->pImage, pBuffer, bmInfo.bmiHeader.biWidth,
 							 bmInfo.bmiHeader.biHeight);
-	}
-	if (!hVideo->hDCBitmap) // first time ONLY...
-		hVideo->hDCBitmap = CreateCompatibleDC ((HDC)hVideo->hDCOutput);
 
-	if (hVideo->hBm && hVideo->hWndOutput)
-	{
-		// if we had an old one, we'll want to delete it.
-		if (SelectObject( (HDC)hVideo->hDCBitmap, hBmNew ) != hVideo->hBm)
-		{
-			Log (WIDE( "Hmm Somewhere we lost track of which bitmap is selected?! bitmap resource not released" ));
-		}
-		else
-		{
-			// delete the prior one, we have a new one.
-			DeleteObject (hVideo->hBm);
-		}
-	}
-	else // first time through hBm will be NULL... so we save the original bitmap for the display.
-		hVideo->hOldBitmap = SelectObject ((HDC)hVideo->hDCBitmap, hBmNew);
+		if (!hVideo->hDCBitmap) // first time ONLY...
+			hVideo->hDCBitmap = CreateCompatibleDC ((HDC)hVideo->hDCOutput);
 
-	// okay and now this is the bitmap to use for output
-	hVideo->hBm = hBmNew;
+		if (hVideo->hBm && hVideo->hWndOutput)
+		{
+			// if we had an old one, we'll want to delete it.
+			if (SelectObject( (HDC)hVideo->hDCBitmap, hBmNew ) != hVideo->hBm)
+			{
+				Log (WIDE( "Hmm Somewhere we lost track of which bitmap is selected?! bitmap resource not released" ));
+			}
+			else
+			{
+				// delete the prior one, we have a new one.
+				DeleteObject (hVideo->hBm);
+			}
+		}
+		else // first time through hBm will be NULL... so we save the original bitmap for the display.
+			hVideo->hOldBitmap = SelectObject ((HDC)hVideo->hDCBitmap, hBmNew);
+
+		// okay and now this is the bitmap to use for output
+		hVideo->hBm = hBmNew;
+	}
 
 
 	if( hVideo->flags.bReady && !hVideo->flags.bHidden && hVideo->pRedrawCallback )
 	{
-#ifndef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
 		InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
-#else
-		SendServiceEvent( 0, l.dwMsgBase + MSG_RedrawMethod, &hVideo, sizeof( hVideo ) );
-#endif
 	}
 	//lprintf( WIDE( "And here I might want to update the video, hope someone else does for me." ) );
 	return TRUE;
@@ -1311,7 +1313,7 @@ LRESULT CALLBACK
 			}
 			else
 				l.mouse_b &= ~MK_ALT;
-#ifndef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
+
 			{
 				PVIDEO hVideo = hVid;
 				if( FindLink( &l.pActiveList, hVideo ) != INVALID_INDEX )
@@ -1400,15 +1402,6 @@ LRESULT CALLBACK
 						lprintf( WIDE( "Not active window?" ) );
 				}
 			}
-#else
-			{
-				_32 Msg[2];
-				Msg[0] = (_32)hVid;
-				Msg[1] = key;
-				//lprintf( WIDE("Dispatch key from raw handler into event system.") );
-				SendServiceEvent( 0, l.dwMsgBase + MSG_KeyMethod, Msg, sizeof( Msg ) );
-			}
-#endif
 		}
 		// do we REALLY have to call the next hook?!
 		// I mean windows will just fuck us in the next layer....
@@ -1601,7 +1594,6 @@ LRESULT CALLBACK
 		//lprintf( WIDE("hvid is %p"), hVid );
 		if(hVid)
 		{
-#ifndef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
 			{
 				PVIDEO hVideo = hVid;
 				//lprintf( WIDE( "..." ) );
@@ -1668,16 +1660,6 @@ LRESULT CALLBACK
 				//else
 				//	lprintf( WIDE( "Failed to find active window..." ) );
 			}
-#else
-			{
-				_32 Msg[2];
-				Msg[0] = (_32)hVid;
-				Msg[1] = key;
-				//lprintf( WIDE("Dispatch key from raw handler into event system.") );
-				//lprintf( WIDE( "..." ) );
-				SendServiceEvent( 0, l.dwMsgBase + MSG_KeyMethod, Msg, sizeof( Msg ) );
-			}
-#endif
 		}
 		else
 		{
@@ -2245,7 +2227,6 @@ WM_DROPFILES
 				if( !hVideo->flags.bFocused )
 				{
 					hVideo->flags.bFocused = 1;
-#ifndef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
 					{
 						if( l.flags.bLogFocus )
 							lprintf( WIDE("Got a losefocus for %p at %P"), hVideo, NULL );
@@ -2255,14 +2236,6 @@ WM_DROPFILES
 								hVideo->pLoseFocus (hVideo->dwLoseFocus, NULL );
 						}
 					}
-#else
-					{
-						static POINTER _NULL = NULL;
-						SendMultiServiceEvent( 0, l.dwMsgBase + MSG_LoseFocusMethod, 2
-													, &hVideo, sizeof( hVideo )
-													, &_NULL, sizeof( _NULL ) );
-					}
-#endif
 				}
 			}
 			//SetFocus( l.hWndInstance );
@@ -2320,7 +2293,6 @@ WM_DROPFILES
 #ifdef LOG_ORDERING_REFOCUS
 						lprintf( WIDE("Dispatch lose focus callback....") );
 #endif
-#ifndef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
 						{
 							if( l.flags.bLogFocus )
 								lprintf( WIDE("Got a losefocus for %p at %P"), hVideo, hVidRecv );
@@ -2330,11 +2302,6 @@ WM_DROPFILES
 									hVideo->pLoseFocus (hVideo->dwLoseFocus, hVidRecv );
 							}
 						}
-#else
-						SendMultiServiceEvent( 0, l.dwMsgBase + MSG_LoseFocusMethod, 2
-													, &hVideo, sizeof( hVideo )
-													, &hVidRecv, sizeof( hVidRecv ) );
-#endif
 						//hVideo->pLoseFocus (hVideo->dwLoseFocus, hVidRecv);
 					}
 #ifdef LOG_ORDERING_REFOCUS
@@ -2696,14 +2663,46 @@ WM_DROPFILES
 		{
 			if( l.GetTouchInputInfo )
 			{
-				TOUCHINPUT inputs[100];
+				TOUCHINPUT inputs[20];
+				struct input_point outputs[20];
 				int count = LOWORD(wParam);
 				PVIDEO hVideo = (PVIDEO)GetWindowLongPtr( hWnd, WD_HVIDEO );
-				if( count > 100 )
-					count = 100;
+				if( count > 20 )
+					count = 20;
 				l.GetTouchInputInfo( (HTOUCHINPUT)lParam, count, inputs, sizeof( TOUCHINPUT ) );
 				//lprintf( "touch event with %d", count );
 				l.CloseTouchInputHandle( (HTOUCHINPUT)lParam );
+				{
+					int n;
+					for( n = 0; n < count; n++ )
+					{
+						// windows coordiantes some in in hundreths of pixesl as a long
+						lprintf( WIDE("input point %d,%d %08x  %s %s %s %s %s %s %s")
+								 , inputs[n].x, inputs[n].y
+								 , inputs[n].dwFlags
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_MOVE)?WIDE("MOVE"):WIDE("")
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_DOWN)?WIDE("DOWN"):WIDE("")
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_UP)?WIDE("UP"):WIDE("")
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_INRANGE)?WIDE("InRange"):WIDE("")
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_PRIMARY)?WIDE("Primary"):WIDE("")
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_NOCOALESCE)?WIDE("NoCoales"):WIDE("")
+								 , ( inputs[n].dwFlags & TOUCHEVENTF_PALM)?WIDE("PALM"):WIDE("")
+
+								 );
+						outputs[n].x = inputs[n].x / 100.0f;
+						outputs[n].y = inputs[n].y / 100.0f;
+
+						if( inputs[n].dwFlags & TOUCHEVENTF_DOWN )
+							outputs[n].flags.new_event = 1;
+						else
+							outputs[n].flags.new_event = 0;
+
+						if( inputs[n].dwFlags & TOUCHEVENTF_UP )
+							outputs[n].flags.end_event = 1;
+						else
+							outputs[n].flags.end_event = 0;
+					}
+				}
 				if( hVideo )
 				{
 					int n;
@@ -2719,7 +2718,7 @@ WM_DROPFILES
 					Deallocate( PINPUT_POINT, new_inputs );
 					if( hVideo->pTouchCallback )
 					{
-						hVideo->pTouchCallback( hVideo->dwTouchData, inputs, count );
+						hVideo->pTouchCallback( hVideo->dwTouchData, outputs, count );
 					}
 				}
 			}
@@ -2899,18 +2898,6 @@ WM_DROPFILES
 			if( l.flags.bLogMouseEvents )
 				lprintf( WIDE("Generate mouse message %p(%p?) %d %d,%08x %d+%d=%d"), l.hCaptured, hVideo, l.mouse_x, l.mouse_y, l.mouse_b, l.dwMsgBase, MSG_MouseMethod, l.dwMsgBase + MSG_MouseMethod );
 #endif
-#ifdef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
-			{
-				_32 msg[4];
-				msg[0] = (_32)(l.hCaptured?l.hCaptured:hVideo);
-				msg[1] = l.mouse_x;
-				msg[2] = l.mouse_y;
-				msg[3] = l.mouse_b;
-				SendServiceEvent( 0, l.dwMsgBase + MSG_MouseMethod
-									 , msg
-									 , sizeof( msg ) );
-			}
-#endif
 			InvokeSimpleSurfaceInput( l.mouse_x, l.mouse_y, (l.mouse_b & ~l._mouse_b ) != 0, (l.mouse_b & l._mouse_b ) != 0 );
 			if (hVideo->pMouseCallback)
 			{
@@ -2974,7 +2961,6 @@ WM_DROPFILES
 			Return 0;
 		}
 		{
-#ifndef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
 			if( FindLink( &l.pActiveList, hVideo ) != INVALID_INDEX )
 			{
 				EnterCriticalSec( &hVideo->cs );
@@ -2990,11 +2976,12 @@ WM_DROPFILES
 			}
 			else
 				lprintf( WIDE("Failed to find window to show?") );
-			//UpdateDisplayPortion (hVideo, 0, 0, 0, 0);
+			if( l.flags.bPostedInvalidate && l.invalidated_window == hVideo )
+			{
+				l.flags.bPostedInvalidate = 0;
+				UpdateDisplayPortion (hVideo, 0, 0, 0, 0);
+			}
 			//InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
-#else
-			SendServiceEvent( 0, l.dwMsgBase + MSG_RedrawMethod, &hVideo, sizeof( hVideo ) );
-#endif
 		}
 		//lprintf( "redraw... WM_PAINT" );
 		ValidateRect (hWnd, NULL);
@@ -3003,7 +2990,6 @@ WM_DROPFILES
 #ifdef NOISY_LOGGING
 		lprintf( WIDE( "Finished and clearing post Invalidate." ) );
 #endif
-		l.flags.bPostedInvalidate = 0;
 		break;
 	case WM_SYSCOMMAND:
 		switch (wParam)
@@ -3998,10 +3984,6 @@ RENDER_PROC (int, InitDisplay) (void)
 			return FALSE;
 		}
 
-#ifdef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
-		InitMessageService();
-		l.dwMsgBase = LoadService( NULL, VideoEventHandler );
-#endif
 	}
 #endif
 	return TRUE;
@@ -4908,15 +4890,6 @@ RENDER_PROC (void, HideDisplay) (PVIDEO hVideo)
 					{
 						lprintf( WIDE("Focusing and activating my parent window.") );
 						{
-#ifdef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
-							static POINTER _NULL = NULL;
-							SendMultiServiceEvent( 0, l.dwMsgBase + MSG_LoseFocusMethod, 2
-								, &hVideo, sizeof( hVideo )
-								, &hVideo->pAbove, sizeof( hVideo->pAbove ) );
-							SendMultiServiceEvent( 0, l.dwMsgBase + MSG_LoseFocusMethod, 2
-								, &hVideo->pAbove, sizeof( hVideo->pAbove )
-								, &_NULL, sizeof( _NULL ) );
-#endif
 							//if( hVideo->pLoseFocus )
 							//	hVideo->pLoseFocus(hVideo->dwLoseFocus, hVideo->pAbove);
 							//if( hVideo->pAbove->pLoseFocus )
@@ -4936,15 +4909,6 @@ RENDER_PROC (void, HideDisplay) (PVIDEO hVideo)
 					if (hVideo->pBelow)
 					{
 						{
-#ifdef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
-							static POINTER _NULL = NULL;
-							SendMultiServiceEvent( 0, l.dwMsgBase + MSG_LoseFocusMethod, 2
-								, &hVideo, sizeof( hVideo )
-								, &hVideo->pBelow, sizeof( hVideo->pBelow ) );
-							SendMultiServiceEvent( 0, l.dwMsgBase + MSG_LoseFocusMethod, 2
-								, &hVideo->pBelow, sizeof( hVideo->pBelow )
-								, &_NULL, sizeof( _NULL ) );
-#endif
 							//if( hVideo->pLoseFocus )
 							//	hVideo->pLoseFocus(hVideo->dwLoseFocus, hVideo->pBelow);
 							//if( hVideo->pBelow->pLoseFocus )
@@ -5408,6 +5372,27 @@ RENDER_PROC( void, SetDisplayFade )( PVIDEO hVideo, int level )
 	}
 }
 
+void CPROC Vidlib_SetDisplayFullScreen( PRENDERER hVideo, int target_display )
+{
+	if( target_display == - 1)
+		hVideo->flags.bFullScreen = FALSE;
+	else
+	{
+		hVideo->flags.bFullScreen = TRUE;
+		hVideo->full_screen.target_display = target_display;
+		GetDisplaySizeEx( target_display, &hVideo->full_screen.x, &hVideo->full_screen.y
+				, &hVideo->full_screen.width, &hVideo->full_screen.height );
+		MoveSizeDisplay( hVideo, hVideo->full_screen.x, hVideo->full_screen.y
+				, hVideo->full_screen.width, hVideo->full_screen.height );
+	}
+}
+
+void CPROC Vidlib_SuspendSystemSleep( int suspend )
+{
+}
+
+
+
 LOGICAL RequiresDrawAll ( void )
 {
 	return FALSE;
@@ -5502,6 +5487,8 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
 													, NULL // show input device
 													, NULL // hide input device
 													, AllowsAnyThreadToUpdate
+													, Vidlib_SetDisplayFullScreen
+													, Vidlib_SuspendSystemSleep
 };
 
 #undef GetDisplayInterface

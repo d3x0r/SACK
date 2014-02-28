@@ -89,17 +89,17 @@ RENDER_NAMESPACE
 typedef struct PBOInfo
 {
 	int index; // increment to flop between pboIds
-   /* the next pixel buffer object to draw into. */
-   int nextIndex;
+	/* the next pixel buffer object to draw into. */
+	int nextIndex;
 #define PBO_COUNT 2
 #ifndef __NO_OPENGL__
 # ifdef WIN32
-	 GLuint pboIds[PBO_COUNT];           // IDs of PBOs
+	GLuint pboIds[PBO_COUNT];      // IDs of PBOs
 # endif
 #endif
-	 /* buffer to read into. */
-	 Image dest_buffer;
-	 PCDATA raw; // the raw pixels mapped from the card... re-stuffed into an image... which then must be moved to a context.
+	/* buffer to read into. */
+	Image dest_buffer;
+	PCDATA raw; // the raw pixels mapped from the card... re-stuffed into an image... which then must be moved to a context.
 } PBO_Info, *PPBO_Info;
 //DOM-IGNORE-END
 
@@ -115,35 +115,35 @@ typedef struct PBOInfo
 typedef struct {
 #if !defined( __ANDROID__ ) && !defined( __QNX__ )
 	Display *dpy;
-    Window win;
-    GLXContext ctx;
-    XSetWindowAttributes attr;
-    Bool fs;
-    Bool doubleBuffered;
-    XF86VidModeModeInfo deskMode;
-    Atom atom_create;
+	Window win;
+	GLXContext ctx;
+	XSetWindowAttributes attr;
+	Bool fs;
+	Bool doubleBuffered;
+	XF86VidModeModeInfo deskMode;
+	Atom atom_create;
 #endif
-    int screen;
-    int x, y;
-    unsigned int width, height;
-    unsigned int depth;
-    PTHREAD pThread;  //make sure we use the correct thread for getting events
-    int mouse_b, mouse_y, mouse_x;
-    int _mouse_b, _mouse_y, _mouse_x;
-    int real_mouse_x, real_mouse_y;
+	int screen;
+	int x, y;
+	unsigned int width, height;
+	unsigned int depth;
+	PTHREAD pThread;  //make sure we use the correct thread for getting events
+	int mouse_b, mouse_y, mouse_x;
+	int _mouse_b, _mouse_y, _mouse_x;
+	int real_mouse_x, real_mouse_y;
 } GLWindow;
 #endif
 
 #if defined( __ANDROID__ ) || defined( __LINUX__ )
 typedef struct WindowPos
 {
-   int x, y, cx, cy;
+	int x, y, cx, cy;
 } WINDOWPOS;
 #endif
 
 /* Private structure for Vidlib. See PRENDERER. Exposed, but
-   applications should use appropriate methods in render
-   namespace.                                                */
+	applications should use appropriate methods in render
+	namespace.																*/
 typedef struct HVIDEO_tag
 {
 //DOM-IGNORE-BEGIN
@@ -185,7 +185,7 @@ typedef struct HVIDEO_tag
 		HWND hWndFakeWindow;
 		HDC hDCFakeWindow;
 		struct ImageFile_tag *pImage;
-		HGLRC    hRC;     // Permanent Rendering Context
+		HGLRC	hRC;	 // Permanent Rendering Context
 	} *pFractures;
 #endif
 
@@ -206,46 +206,46 @@ typedef struct HVIDEO_tag
 	HDC hDCFakeWindow;
 	HDC hDCFakeBitmap; // compatible dc with window, not the window, and selected bitmap
 	HBITMAP hOldFakeBm;
-   PPBO_Info PBO;
+	PPBO_Info PBO;
 #  endif
 #endif
 	THREAD_ID thread;
 	struct {
 		S_32 x, y;
-      _32 b;
+		_32 b;
 	} mouse;
 
-   _32 idle_timer_id;
-   MouseCallback pMouseCallback;
-   PTRSZVAL  dwMouseData;
-   HideAndRestoreCallback pHideCallback;
-   PTRSZVAL  dwHideData;
-   HideAndRestoreCallback pRestoreCallback;
-   PTRSZVAL  dwRestoreData;
+	_32 idle_timer_id;
+	MouseCallback pMouseCallback;
+	PTRSZVAL  dwMouseData;
+	HideAndRestoreCallback pHideCallback;
+	PTRSZVAL  dwHideData;
+	HideAndRestoreCallback pRestoreCallback;
+	PTRSZVAL  dwRestoreData;
 
 #if !defined( NO_TOUCH )
 	TouchCallback pTouchCallback;
-   PTRSZVAL dwTouchData;
+	PTRSZVAL dwTouchData;
 #endif
-   RedrawCallback pRedrawCallback; 
-   PTRSZVAL dwRedrawData;
+	RedrawCallback pRedrawCallback; 
+	PTRSZVAL dwRedrawData;
 
-   CloseCallback pWindowClose;
-   PTRSZVAL dwCloseData;
+	CloseCallback pWindowClose;
+	PTRSZVAL dwCloseData;
 
-   KeyProc pKeyProc;
-   PTRSZVAL dwKeyData;
+	KeyProc pKeyProc;
+	PTRSZVAL dwKeyData;
 
-   RenderReadCallback ReadComplete;
-   PTRSZVAL psvRead;
-   PLINKQUEUE pInput;
+	RenderReadCallback ReadComplete;
+	PTRSZVAL psvRead;
+	PLINKQUEUE pInput;
 
-   struct {
-      BIT_FIELD  bExternalImage:1; // locks the frame from being resized...
-      BIT_FIELD  bShown:1; // can keep the window invisible until we draw
-      BIT_FIELD  bFull:1;
-      BIT_FIELD  bReady:1; // this video structure is initialized and ready.
-      BIT_FIELD  bFocused : 1;
+	struct {
+		BIT_FIELD  bExternalImage:1; // locks the frame from being resized...
+		BIT_FIELD  bShown:1; // can keep the window invisible until we draw
+		BIT_FIELD  bFull:1;  // Use the full window space, otherwise use client space inside window.
+		BIT_FIELD  bReady:1; // this video structure is initialized and ready.
+		BIT_FIELD  bFocused : 1;
 		BIT_FIELD  bExclusive : 1;
 		BIT_FIELD bTopmost : 1;
 		BIT_FIELD bAbsoluteTopmost : 1;
@@ -278,20 +278,21 @@ typedef struct HVIDEO_tag
 		BIT_FIELD bUpdated : 1;
 		BIT_FIELD bForceSurfaceUpdate : 1; // set when we change size.
 		BIT_FIELD bRendering : 1; // while rendering, set this; prevents destroy-while-draw
+		BIT_FIELD bFullScreen : 1; // trigger full screen, don't resize internal surface.
 	} flags;
 
-   struct HVIDEO_tag *pNext, *pPrior;
-   struct HVIDEO_tag *pAbove  // this is above specified window
-      , *pBelow;  // this is below specified window
+	struct HVIDEO_tag *pNext, *pPrior;
+	struct HVIDEO_tag *pAbove  // this is above specified window
+		, *pBelow;  // this is below specified window
 
-   LoseFocusCallback pLoseFocus;
-   PTRSZVAL dwLoseFocus;
-   
+	LoseFocusCallback pLoseFocus;
+	PTRSZVAL dwLoseFocus;
+	
 
-   void *hOldBitmap;
+	void *hOldBitmap;
 
 #ifdef _OPENGL_ENABLED
-   HGLRC    hRC;     // Permanent Rendering Context
+	HGLRC	hRC;	 // Permanent Rendering Context
 #endif
 	PLIST sprites; // list of methods to draw sprites on this surface.
 #ifdef WIN32
@@ -302,17 +303,23 @@ typedef struct HVIDEO_tag
 #ifdef WIN32
 	HWND hDeferedAfter;
 #endif
-   int fade_alpha; // actually only 0-255 value... passed to transparency layered window...
+	int fade_alpha; // actually only 0-255 value... passed to transparency layered window...
 
-   // this is the structure of the bitmap created the uhmm window drawing surface just before the window surface itself.
+	// this is the structure of the bitmap created the uhmm window drawing surface just before the window surface itself.
 	//BITMAPINFO bmInfo;
-   //HDRAWDIB hDd;
+	//HDRAWDIB hDd;
 //DOM-IGNORE-END
 
-   int mouse_b, mouse_y, mouse_x;
-   int _mouse_b, _mouse_y, _mouse_x;
-   int real_mouse_x, real_mouse_y;
+	int mouse_b, mouse_y, mouse_x;
+	int _mouse_b, _mouse_y, _mouse_x;
+	int real_mouse_x, real_mouse_y;
 
+	struct video_struct_fullscreen
+	{
+		S_32 x, y;
+		_32 width, height;
+		int target_display;
+	}full_screen;
 } VIDEO, *PVIDEO;
 
 RENDER_NAMESPACE_END
