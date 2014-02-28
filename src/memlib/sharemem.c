@@ -145,6 +145,7 @@ struct global_memory_tag {
 #endif
 	int InAdding; // don't add our tracking to ourselves...
 	_32 bMemInstanced; // set if anybody starts to DIG.
+   LOGICAL deadstart_finished;
 	PMEM pMemInstance;
 };
 
@@ -210,6 +211,11 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 #ifndef _WIN32
 #include <errno.h>
 #endif
+
+PRIORITY_PRELOAD( Deadstart_finished_enough, GLOBAL_INIT_PRELOAD_PRIORITY + 1 )
+{
+   g.deadstart_finished = 1;
+}
 
 PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 {
@@ -981,13 +987,17 @@ PTRSZVAL GetFileSize( int fd )
 		InitSharedMemory();
 	}
 #ifndef USE_SIMPLE_LOCK_ON_OPEN
-	if( first )
+	if( g.deadstart_finished )
 	{
-		InitializeCriticalSection( &cs );
-		first = 0;
+		if( first )
+		{
+			InitializeCriticalSection( &cs );
+			first = 0;
+		}
+		while( !EnterCriticalSecNoWait( &cs, NULL ) )
+			Relinquish();
 	}
-	while( !EnterCriticalSecNoWait( &cs, NULL ) )
-		Relinquish();
+
 #else
 	while( XCHG( &bOpening, 1 ) )
 		Relinquish();
@@ -1074,7 +1084,10 @@ PTRSZVAL GetFileSize( int fd )
 						, errno
 						, filename );
 #ifndef USE_SIMPLE_LOCK_ON_OPEN
-					LeaveCriticalSecNoWake( &cs );
+					if( g.deadstart_finished )
+					{
+						LeaveCriticalSecNoWake( &cs );
+					}
 #else
 					bOpening = FALSE;
 #endif
@@ -1105,7 +1118,10 @@ PTRSZVAL GetFileSize( int fd )
 					close( fd );
 					unlink( filename );
 #ifndef USE_SIMPLE_LOCK_ON_OPEN
-					LeaveCriticalSecNoWake( &cs );
+					if( g.deadstart_finished )
+					{
+						LeaveCriticalSecNoWake( &cs );
+					}
 #else
 					bOpening = FALSE;
 #endif
@@ -1131,7 +1147,10 @@ PTRSZVAL GetFileSize( int fd )
 				ps->flags.bTemporary = bTemp;
 		}
 #ifndef USE_SIMPLE_LOCK_ON_OPEN
-		LeaveCriticalSecNoWake( &cs );
+		if( g.deadstart_finished )
+		{
+			LeaveCriticalSecNoWake( &cs );
+		}
 #else
 		bOpening = FALSE;
 #endif
@@ -1165,7 +1184,10 @@ PTRSZVAL GetFileSize( int fd )
 					POINTER p = malloc( *dwSize );
 					//lprintf(" but we could allocate it %p", p  );
 #ifndef USE_SIMPLE_LOCK_ON_OPEN
-					LeaveCriticalSecNoWake( &cs );
+					if( g.deadstart_finished )
+					{
+						LeaveCriticalSecNoWake( &cs );
+					}
 #else
                bOpening = 0;
 #endif
@@ -1197,7 +1219,10 @@ PTRSZVAL GetFileSize( int fd )
 				if( (*dwSize) == 0 )  // don't continue... we're expecting open-existing behavior
 				{
 #ifndef USE_SIMPLE_LOCK_ON_OPEN
-					LeaveCriticalSecNoWake( &cs );
+					if( g.deadstart_finished )
+					{
+						LeaveCriticalSecNoWake( &cs );
+					}
 #else
 					bOpening = 0;
 #endif
@@ -1234,7 +1259,10 @@ PTRSZVAL GetFileSize( int fd )
 					lprintf( WIDE("File did not exist, and we're not creating the file (0 size passed)") );
 #endif
 #ifndef USE_SIMPLE_LOCK_ON_OPEN
-					LeaveCriticalSecNoWake( &cs );
+					if( g.deadstart_finished )
+					{
+						LeaveCriticalSecNoWake( &cs );
+					}
 #else
                bOpening = 0;
 #endif
@@ -1288,7 +1316,10 @@ PTRSZVAL GetFileSize( int fd )
 #endif
 					 //bOpening = FALSE;
 #ifndef USE_SIMPLE_LOCK_ON_OPEN
-				LeaveCriticalSecNoWake( &cs );
+				if( g.deadstart_finished )
+				{
+					LeaveCriticalSecNoWake( &cs );
+				}
 #else
             bOpening = 0;
 #endif
@@ -1351,7 +1382,10 @@ PTRSZVAL GetFileSize( int fd )
 				CloseHandle( hFile );
 				//bOpening = FALSE;
 #ifndef USE_SIMPLE_LOCK_ON_OPEN
-				LeaveCriticalSecNoWake( &cs );
+				if( g.deadstart_finished )
+				{
+					LeaveCriticalSecNoWake( &cs );
+				}
 #else
             bOpening = 0;
 #endif
@@ -1384,7 +1418,10 @@ PTRSZVAL GetFileSize( int fd )
 		if( hFile != INVALID_HANDLE_VALUE )
 			CloseHandle( hFile );
 #ifndef USE_SIMPLE_LOCK_ON_OPEN
-		LeaveCriticalSecNoWake( &cs );
+		if( g.deadstart_finished )
+		{
+			LeaveCriticalSecNoWake( &cs );
+		}
 #else
       bOpening = 0;
 #endif
@@ -1408,7 +1445,10 @@ PTRSZVAL GetFileSize( int fd )
 	// modify content of memory opened!
 	AddSpace( NULL, hFile, hMem, pMem, *dwSize, TRUE );
 #ifndef USE_SIMPLE_LOCK_ON_OPEN
+	if( g.deadstart_finished )
+	{
 		LeaveCriticalSecNoWake( &cs );
+	}
 #else
       bOpening = 0;
 #endif

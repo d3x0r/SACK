@@ -23,19 +23,19 @@ struct analog_clock
 	struct {
 		_32 bLocked : 1;
 	} flags;
-   PRENDERER render;
+	PRENDERER render;
 	Image image;
 	Image face;
-   Image composite; // size of face, work space to add hands.  Clock face created always.
-   _32 w, h;
+	Image composite; // size of face, work space to add hands.  Clock face created always.
+	_32 w, h;
 	PSPRITE second_hand;
 	PSPRITE minute_hand;
 	PSPRITE hour_hand;
 	struct {
 		_32 xofs;
-      _32 yofs;
+		_32 yofs;
 	} face_center;
-   PCLOCK_CONTROL clock;
+	PCLOCK_CONTROL clock;
 };
 
 
@@ -116,7 +116,7 @@ static void OnRevealCommon( CLOCK_NAME )( PSI_CONTROL pc )
 #if draw_on_renderer
 		if( analog )
 		{
-         RestoreDisplay( analog->render );
+			RestoreDisplay( analog->render );
 		}
 #endif
 	}
@@ -152,7 +152,7 @@ static void MoveSurface( PSI_CONTROL pc )
 			S_32 y = 0;
 			GetPhysicalCoordinate( pc, &x, &y, TRUE );
 #if draw_on_renderer
-         if( analog->render )
+			if( analog->render )
 				MoveDisplay( analog->render, x, y );
 #endif
 		}
@@ -163,13 +163,13 @@ static void MoveSurface( PSI_CONTROL pc )
 static void OnMoveCommon( CLOCK_NAME )( PSI_CONTROL pc, LOGICAL changing )
 {
 	if( !changing )
-      MoveSurface( pc );
+		MoveSurface( pc );
 }
 
 static void OnMotionCommon( CLOCK_NAME )( PSI_CONTROL pc, LOGICAL changing )
 {
 	if( !changing )
-      MoveSurface( pc );
+		MoveSurface( pc );
 }
 
 
@@ -198,10 +198,10 @@ void CPROC DrawClockLayers( PTRSZVAL psv, PRENDERER renderer )
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, clock, (PSI_CONTROL)psv );
 	if( clock )
 	{
-      PANALOG_CLOCK analog = clock->analog_clock;
+		PANALOG_CLOCK analog = clock->analog_clock;
 		Image surface = GetDisplayImage( renderer );
 		DrawClock( surface, analog );
-      UpdateDisplay( renderer );
+		UpdateDisplay( renderer );
 	}
 }
 #endif
@@ -212,9 +212,9 @@ void DrawAnalogClock( PSI_CONTROL pc )
 	if( clock )
 	{
 		PANALOG_CLOCK analog = clock->analog_clock;
-      Image surface = GetControlSurface( pc );
+		Image surface = GetControlSurface( pc );
 		//Redraw( analog->render );
-      DrawClock( surface, analog );
+		DrawClock( surface, analog );
 	}
 }
 void MakeClockAnalogEx( PSI_CONTROL pc, CTEXTSTR imagename, struct clock_image_thing *description )
@@ -226,7 +226,7 @@ void MakeClockAnalogEx( PSI_CONTROL pc, CTEXTSTR imagename, struct clock_image_t
 		if( !analog )
 		{
 			if( !imagename )
-            return; // no image? well then no analog clock for you.
+				return; // no image? well then no analog clock for you.
 			analog = (PANALOG_CLOCK)Allocate( sizeof( ANALOG_CLOCK ) );
 			MemSet( analog,0,sizeof( ANALOG_CLOCK ) );
 			analog->clock = clock;
@@ -234,29 +234,29 @@ void MakeClockAnalogEx( PSI_CONTROL pc, CTEXTSTR imagename, struct clock_image_t
 			if( !analog->image )
 			{
 				Release( analog );
-            return;
+				return;
 			}
 			{
 				int x, y, w, h;
-            int face_center_x, face_center_y;
-            int second_hand_center, second_hand_width, second_hand_pivot;
-            int minute_hand_center, minute_hand_width, minute_hand_pivot;
-            int hour_hand_center, hour_hand_width, hour_hand_pivot;
+				int face_center_x, face_center_y;
+				int second_hand_center, second_hand_width, second_hand_pivot;
+				int minute_hand_center, minute_hand_width, minute_hand_pivot;
+				int hour_hand_center, hour_hand_width, hour_hand_pivot;
 				TEXTCHAR tmp[256];
-            snprintf( tmp, sizeof( tmp ), WIDE( "Analog Clock/%s" ), imagename );
-            x = SACK_GetProfileInt( tmp, WIDE( "face x" ), 0 );
-            y = SACK_GetProfileInt( tmp, WIDE( "face y" ), 0 );
-            w = SACK_GetProfileInt( tmp, WIDE( "face width" ), 358 );
+				snprintf( tmp, sizeof( tmp ), WIDE( "Analog Clock/%s" ), imagename );
+				x = SACK_GetProfileInt( tmp, WIDE( "face x" ), 0 );
+				y = SACK_GetProfileInt( tmp, WIDE( "face y" ), 0 );
+				w = SACK_GetProfileInt( tmp, WIDE( "face width" ), 358 );
 				h = SACK_GetProfileInt( tmp, WIDE( "face height" ), 358 );
-            face_center_x = SACK_GetProfileInt( tmp, WIDE( "face.center.x" ), 178 );
-            face_center_y = SACK_GetProfileInt( tmp, WIDE( "face.center.y" ), 179 );
-            second_hand_center = SACK_GetProfileInt( tmp, WIDE( "hand.second.center" ), 400 );
+				face_center_x = SACK_GetProfileInt( tmp, WIDE( "face.center.x" ), 178 );
+				face_center_y = SACK_GetProfileInt( tmp, WIDE( "face.center.y" ), 179 );
+				second_hand_center = SACK_GetProfileInt( tmp, WIDE( "hand.second.center" ), 400 );
 				second_hand_width = SACK_GetProfileInt( tmp, WIDE( "hand.second.width" ), 40 );
 				second_hand_pivot = SACK_GetProfileInt( tmp, WIDE( "hand.second.pivot" ), 179 );
-            minute_hand_center = SACK_GetProfileInt( tmp, WIDE( "hand.minute.center" ), 440 );
+				minute_hand_center = SACK_GetProfileInt( tmp, WIDE( "hand.minute.center" ), 440 );
 				minute_hand_width = SACK_GetProfileInt( tmp, WIDE( "hand.minute.width" ), 40 );
 				minute_hand_pivot = SACK_GetProfileInt( tmp, WIDE( "hand.minute.pivot" ), 179 );
-            hour_hand_center = SACK_GetProfileInt( tmp, WIDE( "hand.hour.center" ), 480 );
+				hour_hand_center = SACK_GetProfileInt( tmp, WIDE( "hand.hour.center" ), 480 );
 				hour_hand_width = SACK_GetProfileInt( tmp, WIDE( "hand.hour.width" ), 40 );
 				hour_hand_pivot = SACK_GetProfileInt( tmp, WIDE( "hand.hour.pivot" ), 179 );
 
@@ -277,41 +277,41 @@ void MakeClockAnalogEx( PSI_CONTROL pc, CTEXTSTR imagename, struct clock_image_t
 			SetSpriteHotspot( analog->hour_hand, hour_hand_width/2, hour_hand_pivot );
 			}
 #if draw_on_renderer
-         if( 0 )
+			if( 0 )
 			{
 				Image surface = GetControlSurface( pc );
 				PRENDERER r = GetFrameRenderer( GetFrame( pc ) );
 				S_32 x = 0;
 				S_32 y = 0;
 				GetPhysicalCoordinate( pc, &x, &y, FALSE );
-	            lprintf( WIDE( "Making clock uhm... %d %d %d %d over %p" ), x, y,surface->width
+					lprintf( WIDE( "Making clock uhm... %d %d %d %d over %p" ), x, y,surface->width
 																	 , surface->height );
 				analog->render = OpenDisplayAboveSizedAt( DISPLAY_ATTRIBUTE_LAYERED
-                                                     |DISPLAY_ATTRIBUTE_NO_MOUSE
+																	  |DISPLAY_ATTRIBUTE_NO_MOUSE
 																	  |DISPLAY_ATTRIBUTE_CHILD // mark that this is uhmm intended to not be a alt-tabbable window
 																	 , surface->width
 																	 , surface->height
 																	 , x, y
 																	 , r // r may not exist yet... we might just be over a control that is frameless... later we'll relate as child
 																	 );
-            UpdateDisplay( analog->render );
+				UpdateDisplay( analog->render );
 				SetRedrawHandler( analog->render, DrawClockLayers, (PTRSZVAL)pc );
 			}
 #endif
 			clock->analog_clock = analog;
-         //EnableSpriteMethod( GetFrameRenderer( GetFrame( pc ) ), DrawAnalogHands, (PTRSZVAL)analog );
+			//EnableSpriteMethod( GetFrameRenderer( GetFrame( pc ) ), DrawAnalogHands, (PTRSZVAL)analog );
 		}
-      else
+		else
 		{
 			if( !imagename )
 			{
-            UnmakeImageFile( analog->composite );
-            UnmakeImageFile( analog->face );
-            UnmakeSprite( analog->second_hand, TRUE );
-            UnmakeSprite( analog->minute_hand, TRUE );
+				UnmakeImageFile( analog->composite );
+				UnmakeImageFile( analog->face );
+				UnmakeSprite( analog->second_hand, TRUE );
+				UnmakeSprite( analog->minute_hand, TRUE );
 				UnmakeSprite( analog->hour_hand, TRUE );
 				Release( analog );
-            clock->analog_clock = NULL;
+				clock->analog_clock = NULL;
 			}
 			// reconfigure
 		}
@@ -323,8 +323,8 @@ void MakeClockAnalogEx( PSI_CONTROL pc, CTEXTSTR imagename, struct clock_image_t
 void MakeClockAnalog( PSI_CONTROL pc )
 {
 	TEXTCHAR namebuf[256];
-   SACK_GetProfileString( GetProgramName(), WIDE("Analog Clock/Use Image"), WIDE("images/Clock.png"), namebuf, 256 );
-   MakeClockAnalogEx( pc, namebuf, NULL );
+	SACK_GetProfileString( GetProgramName(), WIDE("Analog Clock/Use Image"), WIDE("images/Clock.png"), namebuf, 256 );
+	MakeClockAnalogEx( pc, namebuf, NULL );
 }
 
 PSI_CLOCK_NAMESPACE_END

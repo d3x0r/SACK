@@ -210,12 +210,12 @@ static void CPROC Update( PTRSZVAL psvPC )
 
 			if( pClk->analog_clock )
 			{
-            // +100 from now... (less than 10/sec)
+				// +100 from now... (less than 10/sec)
 				RescheduleTimer( 100 );
 			}
 			else
 			{
-            if( pClk->flags.bHighTime )
+				if( pClk->flags.bHighTime )
 					RescheduleTimer( 40 );
 				else
 					RescheduleTimer( 250 );

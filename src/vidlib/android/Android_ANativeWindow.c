@@ -111,7 +111,7 @@ static PRENDERER CPROC AndroidANW_OpenDisplayAboveUnderSizedAt( _32 attributes, 
 		l.top = Renderer;
 	else
 		if( !under && !above )
-			above = l.top;
+			above = (PRENDERER)l.top;
 
 	if( Renderer->above = (PVPRENDER)above )
 	{
@@ -141,7 +141,7 @@ static PRENDERER CPROC AndroidANW_OpenDisplayAboveSizedAt( _32 attributes, _32 w
 
 static PRENDERER CPROC AndroidANW_OpenDisplaySizedAt	  ( _32 attributes, _32 width, _32 height, S_32 x, S_32 y )
 {
-	return AndroidANW_OpenDisplayAboveUnderSizedAt( attributes, width, height, x, y, l.top, NULL );
+	return AndroidANW_OpenDisplayAboveUnderSizedAt( attributes, width, height, x, y, (PRENDERER)l.top, NULL );
 }
 
 
@@ -150,6 +150,10 @@ static void CPROC  AndroidANW_CloseDisplay ( PRENDERER Renderer )
 	PVPRENDER r = (PVPRENDER)Renderer;
 	int real_x, real_y;
 	int real_w, real_h;
+	// make sure we're not updating while closing
+	EnterCriticalSec( &l.cs_update );
+	TouchWindowClose( (PVPRENDER)Renderer );
+
 	UnmakeImageFileEx( (Image)(((PVPRENDER)Renderer)->image) DBG_SRC );
 
 	real_x = r->x;
@@ -168,12 +172,13 @@ static void CPROC  AndroidANW_CloseDisplay ( PRENDERER Renderer )
 
 	DeleteLink( &l.renderers, r );
 	Release( r );
-
 	if( l.top )
-		AndroidANW_UpdateDisplayPortionEx( (PRENDERER)l.top, real_x - l.top->x, real_y - l.top->y
+		AndroidANW_UpdateDisplayPortionEx( (PRENDERER)l.top, l.top->x - real_x, l.top->y - real_y
 													, real_w, real_h DBG_SRC );
 	else
-		AndroidANW_UpdateDisplayPortionEx( NULL, 0, 0, real_w, real_h DBG_SRC );
+		AndroidANW_UpdateDisplayPortionEx( NULL, real_x, real_y, real_w, real_h DBG_SRC );
+	LeaveCriticalSec( &l.cs_update );
+
 }
 
 // x, y, width, height are passed in screen coordinates
@@ -315,8 +320,8 @@ static void CPROC UpdateDisplayPortionRecurse( 	ANativeWindow_Buffer *buffer
 			if( r->attributes & DISPLAY_ATTRIBUTE_LAYERED )
 			//lprintf( "Update %p %d,%d  to %d,%d    %d,%d", r, out_x, out_y, x, y, width, height );
 			{
-				lprintf( "Update %p %d,%d  to %d,%d    %d,%d", r, out_x, out_y, x, y, width, height );
-				lprintf( "alpha output" );
+				//lprintf( "Update %p %d,%d  to %d,%d    %d,%d", r, out_x, out_y, x, y, width, height );
+				//lprintf( "alpha output" );
 				BlotImageSizedEx( tmpout, r->image, x, y, out_x, out_y, width, height, ALPHA_TRANSPARENT, BLOT_COPY );
 			}
 			else
@@ -381,7 +386,7 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 	if( r )
 	{
 		if( l.flags.full_screen_renderer )
-			if( r != l.fullscreen_display )
+			if( ((PVPRENDER)r) != l.fullscreen_display )
 				return;
 		if( ((PVPRENDER)r)->flags.hidden )
 		{
@@ -398,60 +403,66 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 		//lprintf( "Update %d,%d to %d,%d on %d,%d %d,%d",
 		//		  x, y, width, height
 		//        , out_x, out_y, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h );
-		if( out_x < 0 )
-		{
-			if( (int)width < (-out_x ) )
-			{
-				//lprintf( "fail" );
-				return;
-			}
-			width += out_x;
-			out_x = 0;
-		}
-
-		if( out_y < 0 )
-		{
-			if( (int)height < -out_y )
-			{
-				//lprintf( "fail" );
-				return;
-			}
-			height += out_y;
-			out_y = 0;
-		}
-		EnterCriticalSec( &l.cs_update );
-
-		// chop the part that's off the right side ....
-		if( ( out_x + (int)width ) > l.default_display_x )
-		{
-			width = l.default_display_x - out_x;
-		}
-		// chop the part that's off the bottom side ....
-		if( ( out_y + (int)height ) > l.default_display_y )
-		{
-			height = l.default_display_y - out_y;
-		}
-
-		if( !l.flags.paused )
-		{
-			ARect bounds;
-			// can still lock just the region we needed...
-			bounds.left = out_x;
-			bounds.top = out_y;
-			bounds.right = out_x + width;
-			bounds.bottom = out_y + height;
-			ANativeWindow_lock( l.displayWindow, &buffer, &bounds );
-			//lprintf( "---V Update screen %p %d,%d  %d,%d   %d,%d   %d,%d"
-			//		 , r, out_x, out_y, out_y+width, out_y+height
-			//		 , bounds.left, bounds.top, bounds.right, bounds.bottom
-			//		 );
-			UpdateDisplayPortionRecurse( &buffer, l.top, out_x, out_y, width, height );
-			//lprintf( "---^ And the final unlock...." );
-			ANativeWindow_unlockAndPost(l.displayWindow);
-		}
-		LeaveCriticalSec( &l.cs_update );
-		//lprintf( "update end" );
 	}
+	else
+	{
+		// and up updating black background-only; and this is the positon (on screen, cause we don't have a window)
+		out_x = x;
+		out_y = y;
+	}
+	if( out_x < 0 )
+	{
+		if( (int)width < (-out_x ) )
+		{
+			//lprintf( "fail" );
+			return;
+		}
+		width += out_x;
+		out_x = 0;
+	}
+
+	if( out_y < 0 )
+	{
+		if( (int)height < -out_y )
+		{
+			//lprintf( "fail" );
+			return;
+		}
+		height += out_y;
+		out_y = 0;
+	}
+	EnterCriticalSec( &l.cs_update );
+
+	// chop the part that's off the right side ....
+	if( ( out_x + (int)width ) > l.default_display_x )
+	{
+		width = l.default_display_x - out_x;
+	}
+	// chop the part that's off the bottom side ....
+	if( ( out_y + (int)height ) > l.default_display_y )
+	{
+		height = l.default_display_y - out_y;
+	}
+
+	if( !l.flags.paused )
+	{
+		ARect bounds;
+		// can still lock just the region we needed...
+		bounds.left = out_x;
+		bounds.top = out_y;
+		bounds.right = out_x + width;
+		bounds.bottom = out_y + height;
+		ANativeWindow_lock( l.displayWindow, &buffer, &bounds );
+		//lprintf( "---V Update screen %p %d,%d  %d,%d   %d,%d   %d,%d"
+		//		 , l.top, out_x, out_y, out_y+width, out_y+height
+		//		 , bounds.left, bounds.top, bounds.right, bounds.bottom
+		//		 );
+		UpdateDisplayPortionRecurse( &buffer, l.top, out_x, out_y, width, height );
+		//lprintf( "---^ And the final unlock...." );
+		ANativeWindow_unlockAndPost(l.displayWindow);
+	}
+	LeaveCriticalSec( &l.cs_update );
+	//lprintf( "update end" );
 }
 
 static void CPROC AndroidANW_UpdateDisplayEx( PRENDERER r DBG_PASS)
@@ -835,7 +846,7 @@ static void CPROC AndroidANW_SetFullScreen( PRENDERER r, int nDisplay )
    if( r )
 	{
 		l.flags.full_screen_renderer = 1;
-		l.fullscreen_display = r;
+		l.fullscreen_display = (PVPRENDER)r;
 		ANativeWindow_setBuffersGeometry( l.displayWindow, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h, WINDOW_FORMAT_RGBA_8888);
 //		SurfaceHolder.setFixedSize();
 	}
@@ -1028,12 +1039,18 @@ int SACK_Vidlib_SendTouchEvents( int nPoints, PINPUT_POINT points )
 	LIST_FORALL( l.renderers, idx, PVPRENDER, render )
 	{
 		if( !HandleTouches( render, points, nPoints ) )
+		{
 			if( render->touch_callback )
 			{
 				//lprintf( "And somenoe can handle them.." );
 				if( render->touch_callback( render->psv_touch_callback, points, nPoints ) )
 					return;
 			}
+		}
+		else
+		{
+			break;
+		}
 	}
 }
 

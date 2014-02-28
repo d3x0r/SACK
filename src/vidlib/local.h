@@ -53,20 +53,20 @@ extern
 		BIT_FIELD bUseLLKeyhook : 1;
 		BIT_FIELD bLogMouseEvents : 1;
 		BIT_FIELD bHookTouchEvents : 1;
-      //---------- see comment above
+		//---------- see comment above
 	} flags;
-   PRENDERER mouse_last_vid;
-   int mouse_b, mouse_y, mouse_x;
-   int _mouse_b, _mouse_y, _mouse_x;
+	PRENDERER mouse_last_vid;
+	int mouse_b, mouse_y, mouse_x;
+	int _mouse_b, _mouse_y, _mouse_x;
 
-   int WindowBorder_X, WindowBorder_Y;
+	int WindowBorder_X, WindowBorder_Y;
 #ifndef __ANDROID__
-   ATOM aClass;      // keep reference of window class....
-   ATOM aClass2;      // keep reference of window class.... (opengl minimal)
+	ATOM aClass;		// keep reference of window class....
+	ATOM aClass2;      // keep reference of window class.... (opengl minimal)
 
 	HANDLE hWndInstance;
 #endif
-   int bCreatedhWndInstance;
+	int bCreatedhWndInstance;
 
 // thread synchronization variables...
 	unsigned char bThreadRunning, bExitThread;
@@ -93,7 +93,7 @@ extern
 	//char KeyboardState[256];   // export for key procs to reference...
 	PLIST keyhooks;
 	PLIST ll_keyhooks;
-   CRITICALSECTION csList;
+	CRITICALSECTION csList;
 	//HHOOK hKeyHook;
 #ifndef _ARM_
 #ifdef WIN32
@@ -107,7 +107,8 @@ extern
 #endif
 #endif
 	_32 last_mouse_update; // last tick the mouse moved.
-   PRENDERER last_mouse_update_display;
+	PRENDERER last_mouse_update_display;
+	PRENDERER invalidated_window;
 } l;
 
 RENDER_NAMESPACE_END
