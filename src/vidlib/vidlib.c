@@ -647,7 +647,7 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 #endif
 							{
 								//lprintf( "non layered... begin update." );
-								if( hVideo->flags.bFullScreen )
+								if( hVideo->flags.bFullScreen && !hVideo->flags.bNotFullScreen )
 								{
 									StretchBlt ((HDC)hVideo->hDCOutput, 0, 0, hVideo->full_screen.width, hVideo->full_screen.height,
 										(HDC)hVideo->hDCBitmap, 0, 0, hVideo->pImage->width, hVideo->pImage->height, SRCCOPY);
@@ -4082,6 +4082,102 @@ RENDER_PROC (TEXTCHAR, GetKeyText) (int key)
 	return ch[0];
 }
 
+void CPROC Vidlib_SetDisplayFullScreen( PRENDERER hVideo, int target_display )
+{
+	if( target_display == - 1)
+	{
+		if( hVideo->flags.bFullScreen )
+		{
+			MoveSizeDisplay( hVideo, hVideo->pImage->x, hVideo->pImage->y, hVideo->pImage->width, hVideo->pImage->height );
+		}
+		hVideo->flags.bFullScreen = FALSE;
+	}
+	else
+	{
+		if( !hVideo->flags.bFullScreen )
+		{
+			hVideo->flags.bFullScreen = TRUE;
+			hVideo->full_screen.target_display = target_display;
+			GetDisplaySizeEx( target_display, &hVideo->full_screen.x, &hVideo->full_screen.y
+					, &hVideo->full_screen.width, &hVideo->full_screen.height );
+			MoveSizeDisplay( hVideo, hVideo->full_screen.x, hVideo->full_screen.y
+					, hVideo->full_screen.width, hVideo->full_screen.height );
+		}
+	}
+}
+
+static int CPROC DefaultMouse( PRENDERER r, S_32 x, S_32 y, _32 b )
+{
+	static int l_mouse_b;
+	static _32 mouse_first_click_tick_changed;
+	_32 tick = timeGetTime();
+	//lprintf( "Default mouse on %p  %d,%d %08x", r, x, y, b );
+	if( r->flags.bFullScreen )
+	{
+		static _32 mouse_first_click_tick;
+		if( MAKE_FIRSTBUTTON( b, l_mouse_b ) )
+		{
+			if( !mouse_first_click_tick )
+				mouse_first_click_tick = timeGetTime();
+			else
+			{
+				static int moving;
+				if( moving )
+					return 1;
+				moving = 1;
+				if( ( tick - mouse_first_click_tick_changed ) > 500 ) 
+				{
+					if( ( tick - mouse_first_click_tick ) > 500 )
+						mouse_first_click_tick = tick;
+					else
+					{
+						//EnterCriticalSec( &l.cs_update );
+						if( !r->flags.bNotFullScreen )
+						{
+							r->flags.bNotFullScreen = 1;
+							mouse_first_click_tick_changed = tick;
+							MoveSizeDisplay( r, r->pImage->x, r->pImage->y, r->pImage->width, r->pImage->height );
+							//AndroidANW_UpdateDisplayPortionEx( NULL, 0, 0, l.default_display_x, l.default_display_y DBG_SRC );
+						}
+						else
+						{
+							r->flags.bNotFullScreen = 0;
+							mouse_first_click_tick_changed = tick;
+							GetDisplaySizeEx( r->full_screen.target_display, &r->full_screen.x, &r->full_screen.y
+									, &r->full_screen.width, &r->full_screen.height );
+							MoveSizeDisplay( r, r->full_screen.x, r->full_screen.y
+									, r->full_screen.width, r->full_screen.height );
+						}
+						//LeaveCriticalSec( &l.cs_update );
+						//AndroidANW_Redraw( (PRENDERER)r );
+					}
+				}
+				moving = 0;
+			}
+		}
+	}
+	if( ( tick - mouse_first_click_tick_changed ) > 500 ) 
+	{
+		if( !r->flags.bFullScreen || r->flags.bNotFullScreen )
+		{
+			static int l_lock_x;
+			static int l_lock_y;
+			if( MAKE_FIRSTBUTTON( b, l_mouse_b ) )
+			{
+				l_lock_x = x;
+				l_lock_y = y;
+			}
+			else if( MAKE_SOMEBUTTONS( b, l_mouse_b )  )
+			{
+				// this function sets the image.x and image.y so it can retain
+				// the last position of non-fullscreen...
+				MoveDisplayRel( r, x - l_lock_x, y - l_lock_y );
+			}
+		}
+	}
+	l_mouse_b = b;
+	return 1;
+}
 //----------------------------------------------------------------------------
 
 static LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
@@ -4164,6 +4260,8 @@ static LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 	AddLink( &l.pActiveList, hNextVideo );
 	//hNextVideo->pid = l.pid;
 	hNextVideo->KeyDefs = CreateKeyBinder();
+	// set a default handler
+	SetMouseHandler( hNextVideo, (MouseCallback)DefaultMouse, (PTRSZVAL)hNextVideo );
 #ifdef LOG_OPEN_TIMING
 	lprintf( WIDE( "Doing open of a display..." ) );
 #endif
@@ -4553,14 +4651,17 @@ RENDER_PROC (void, MoveDisplayRel) (PVIDEO hVideo, S_32 x, S_32 y)
 	{
 		hVideo->pWindowPos.x += x;
 		hVideo->pWindowPos.y += y;
+		/* this is a specific case used by fullscreen internal-DefaultMouse*/
+		hVideo->pImage->x = hVideo->pWindowPos.x;
+		hVideo->pImage->y = hVideo->pWindowPos.y;
 #ifdef LOG_ORDERING_REFOCUS
 		lprintf( WIDE( "Move display relative" ) );
 #endif
-		SetWindowPos (hVideo->hWndOutput, hVideo->pWindowPos.hwndInsertAfter
-					, hVideo->pWindowPos.x
-						  , hVideo->pWindowPos.y
-					, 0, 0
-					, SWP_NOZORDER | SWP_NOSIZE);
+		SetWindowPos( hVideo->hWndOutput, hVideo->pWindowPos.hwndInsertAfter
+		            , hVideo->pWindowPos.x
+		            , hVideo->pWindowPos.y
+		            , 0, 0
+		            , SWP_NOZORDER | SWP_NOSIZE);
 	}
 }
 
@@ -5372,20 +5473,6 @@ RENDER_PROC( void, SetDisplayFade )( PVIDEO hVideo, int level )
 	}
 }
 
-void CPROC Vidlib_SetDisplayFullScreen( PRENDERER hVideo, int target_display )
-{
-	if( target_display == - 1)
-		hVideo->flags.bFullScreen = FALSE;
-	else
-	{
-		hVideo->flags.bFullScreen = TRUE;
-		hVideo->full_screen.target_display = target_display;
-		GetDisplaySizeEx( target_display, &hVideo->full_screen.x, &hVideo->full_screen.y
-				, &hVideo->full_screen.width, &hVideo->full_screen.height );
-		MoveSizeDisplay( hVideo, hVideo->full_screen.x, hVideo->full_screen.y
-				, hVideo->full_screen.width, hVideo->full_screen.height );
-	}
-}
 
 void CPROC Vidlib_SuspendSystemSleep( int suspend )
 {

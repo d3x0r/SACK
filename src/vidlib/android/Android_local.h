@@ -51,7 +51,6 @@ struct vidlib_android_local
 	struct vidlib_android_local_flags {
 		BIT_FIELD paused : 1;
 		BIT_FIELD full_screen_renderer : 1;
-		BIT_FIELD full_screen_suspend : 1;
 	} flags;
 	PVPRENDER full_screen_display;
 	void(*SuspendSleep)(int);

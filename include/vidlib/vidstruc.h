@@ -279,6 +279,7 @@ typedef struct HVIDEO_tag
 		BIT_FIELD bForceSurfaceUpdate : 1; // set when we change size.
 		BIT_FIELD bRendering : 1; // while rendering, set this; prevents destroy-while-draw
 		BIT_FIELD bFullScreen : 1; // trigger full screen, don't resize internal surface.
+		BIT_FIELD bNotFullScreen : 1; // temporary override for internal mouse handling
 	} flags;
 
 	struct HVIDEO_tag *pNext, *pPrior;

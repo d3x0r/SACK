@@ -315,7 +315,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 	case PMID_Version:
 		{
 			msg = NewArray( _8, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
-			StrCpy( msg + 1, l.application_title );
+			memcpy( msg + 1, l.application_title, sizeof( TEXTCHAR ) * StrLen( l.application_title ) );
 			((_32*)msg)[0] = (_32)(sendlen - 4);
 			msg[4] = message;
 			if( websock )
