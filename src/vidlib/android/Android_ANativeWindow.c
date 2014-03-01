@@ -9,10 +9,16 @@ static IMAGE_INTERFACE AndroidANWImageInterface;
 static void CPROC AndroidANW_Redraw( PRENDERER r );
 
 static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y, _32 width, _32 height DBG_PASS );
+static void CPROC AndroidANW_MoveSizeDisplay( PRENDERER r
+													 , S_32 x, S_32 y
+													 , S_32 w, S_32 h );
 
 
 static void CPROC DefaultMouse( PVPRENDER r, S_32 x, S_32 y, _32 b )
 {
+	static int l_mouse_b;
+	static _32 mouse_first_click_tick_changed;
+	_32 tick = timeGetTime();
 	//lprintf( "Default mouse on %p  %d,%d %08x", r, x, y, b );
 	if( r->flags.fullscreen )
 	{
@@ -31,17 +37,34 @@ static void CPROC DefaultMouse( PVPRENDER r, S_32 x, S_32 y, _32 b )
 					if( !r->flags.not_fullscreen )
 					{
 						r->flags.not_fullscreen = 1;
-						l.flags.full_screen_suspend = 1;
 						AndroidANW_UpdateDisplayPortionEx( NULL, 0, 0, l.default_display_x, l.default_display_y DBG_SRC );
 					}
 					else
 					{
 						r->flags.not_fullscreen = 0;
-						l.flags.full_screen_suspend = 0;
 					}
 					LeaveCriticalSec( &l.cs_update );
 					AndroidANW_Redraw( (PRENDERER)r );
 				}
+			}
+		}
+	}
+	if( ( tick - mouse_first_click_tick_changed ) > 500 ) 
+	{
+		if( !r->flags.fullscreen || r->flags.not_fullscreen )
+		{
+			static int l_lock_x;
+			static int l_lock_y;
+			if( MAKE_FIRSTBUTTON( b, l.mouse_b ) )
+			{
+				l_lock_x = x;
+				l_lock_y = y;
+			}
+			else if( MAKE_SOMEBUTTONS( b )  )
+			{
+				// this function sets the image.x and image.y so it can retain
+				// the last position of non-fullscreen...
+				AndroidANW_MoveSizeDisplay( (PRENDERER)r, x - l_lock_x, y - l_lock_y, r->w, r->h );
 			}
 		}
 	}
@@ -236,9 +259,10 @@ static void CPROC UpdateDisplayPortionRecurse( 	ANativeWindow_Buffer *buffer
 		{
 			if( r->attributes & DISPLAY_ATTRIBUTE_LAYERED )
 			{
+				// send draw to things behind this one.
 				UpdateDisplayPortionRecurse( buffer, r->above, x, y, width, height );
 			}
-			else
+			else if( !r->flags.fullscreen || r->flags.not_fullscreen ) // don't draw layers under this one, it's full screen, and my position is inaccurate.
 			{
 				int new_out_x, new_out_y;
 				int new_out_width, new_out_height;
@@ -343,14 +367,14 @@ static void CPROC UpdateDisplayPortionRecurse( 	ANativeWindow_Buffer *buffer
 			{
 				//lprintf( "Update %p %d,%d  to %d,%d    %d,%d", r, out_x, out_y, x, y, width, height );
 				//lprintf( "alpha output" );
-				if( r->flags.fullscreen && !r->flags.not_fullscreen )
-					BlotScaledImageSizedEx( tmpout, r->image, 0, 0, l.default_display_x, l.default_display_y, 0, 0, width, height, 0, BLOT_COPY );
+				if( r->flags.fullscreen && !r->flags.not_fullscreen && r == l.full_screen_display )
+					BlotScaledImageSizedEx( tmpout, r->image, 0, 0, l.default_display_x, l.default_display_y, 0, 0, width, height, ALPHA_TRANSPARENT, BLOT_COPY );
 				else
 					BlotImageSizedEx( tmpout, r->image, x, y, out_x, out_y, width, height, ALPHA_TRANSPARENT, BLOT_COPY );
 			}
 			else
 			{
-				if( r->flags.fullscreen && !r->flags.not_fullscreen )
+				if( r->flags.fullscreen && !r->flags.not_fullscreen && r == l.full_screen_display )
 					BlotScaledImageSizedEx( tmpout, r->image, 0, 0, l.default_display_x, l.default_display_y, 0, 0, width, height, 0, BLOT_COPY );
 				else
 					BlotImageSizedEx( tmpout, r->image, x, y, out_x, out_y, width, height, 0, BLOT_COPY );
@@ -414,7 +438,9 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 	//_lprintf(DBG_RELAY)( "update begin %p %d,%d  %d,%d", l.displayWindow, x, y, width, height );
 	if( r )
 	{
-		if( l.flags.full_screen_renderer && !l.flags.full_screen_suspend)
+		// current full screen is in full screen
+		// don't render anything else
+		if( l.flags.full_screen_renderer && !l.full_screen_display->flags.not_fullscreen )
 			if( ((PVPRENDER)r) != l.full_screen_display )
 				return;
 		if( ((PVPRENDER)r)->flags.hidden )
@@ -1042,14 +1068,16 @@ void SACK_Vidlib_SetNativeWindowHandle( ANativeWindow *displayWindow )
 	l.default_display_y = ANativeWindow_getHeight( l.displayWindow);
 
 	ANativeWindow_setBuffersGeometry( displayWindow,l.default_display_x,l.default_display_y,WINDOW_FORMAT_RGBA_8888);
-	if( !l.flags.full_screen_renderer || l.flags.full_screen_suspend )
+	if( !l.flags.full_screen_renderer || l.full_screen_display->flags.not_fullscreen )
 	{
 		// make sure the buffer is what I think it should be...
+		// set actual display size l.default_x, l.default_y
 	}
 	else
 	{
 		// need to make sure the new window has the geometry expected...
 		//ANativeWindow_setBuffersGeometry( displayWindow,l.full_screen_display->w,l.full_screen_display->h,WINDOW_FORMAT_RGBA_8888);
+		// set to the size of this buffer.
 	}
 
 	lprintf( "Format is :%dx%d %d", l.default_display_x, l.default_display_y, ANativeWindow_getFormat( displayWindow ) );
