@@ -18,45 +18,58 @@ static void CPROC DefaultMouse( PVPRENDER r, S_32 x, S_32 y, _32 b )
 {
 	static int l_mouse_b;
 	static _32 mouse_first_click_tick_changed;
+	static LOGICAL begin_move;
 	_32 tick = timeGetTime();
 	//lprintf( "Default mouse on %p  %d,%d %08x", r, x, y, b );
 	if( r->flags.fullscreen )
 	{
+		static _32 mouse_first_click_tick;
 		if( MAKE_FIRSTBUTTON( b, l.mouse_b ) )
 		{
-			if( !l.mouse_first_click_tick )
-				l.mouse_first_click_tick = timeGetTime();
+			if( !mouse_first_click_tick )
+				mouse_first_click_tick = timeGetTime();
 			else
 			{
-				_32 tick = timeGetTime();
-				if( ( tick - l.mouse_first_click_tick ) > 500 )
-					l.mouse_first_click_tick = tick;
+				static int moving;
+				if( moving )
+					return;
+				moving = 1;
+				if( !l.mouse_first_click_tick )
+					l.mouse_first_click_tick = timeGetTime();
 				else
 				{
-					EnterCriticalSec( &l.cs_update );
-					if( !r->flags.not_fullscreen )
-					{
-						r->flags.not_fullscreen = 1;
-						AndroidANW_UpdateDisplayPortionEx( NULL, 0, 0, l.default_display_x, l.default_display_y DBG_SRC );
-					}
+					if( ( tick - l.mouse_first_click_tick ) > 500 )
+						l.mouse_first_click_tick = tick;
 					else
 					{
-						r->flags.not_fullscreen = 0;
+						EnterCriticalSec( &l.cs_update );
+						if( !r->flags.not_fullscreen )
+						{
+							r->flags.not_fullscreen = 1;
+							AndroidANW_UpdateDisplayPortionEx( NULL, 0, 0, l.default_display_x, l.default_display_y DBG_SRC );
+						}
+						else
+						{
+							r->flags.not_fullscreen = 0;
+						}
+						LeaveCriticalSec( &l.cs_update );
+						AndroidANW_Redraw( (PRENDERER)r );
 					}
-					LeaveCriticalSec( &l.cs_update );
-					AndroidANW_Redraw( (PRENDERER)r );
 				}
+				moving = 0;
 			}
 		}
 	}
 	if( ( tick - mouse_first_click_tick_changed ) > 500 ) 
 	{
+		lprintf( "Allowed move..." );
 		if( !r->flags.fullscreen || r->flags.not_fullscreen )
 		{
 			static int l_lock_x;
 			static int l_lock_y;
 			if( MAKE_FIRSTBUTTON( b, l.mouse_b ) )
 			{
+				begin_move = 1;
 				l_lock_x = x;
 				l_lock_y = y;
 			}
@@ -64,8 +77,11 @@ static void CPROC DefaultMouse( PVPRENDER r, S_32 x, S_32 y, _32 b )
 			{
 				// this function sets the image.x and image.y so it can retain
 				// the last position of non-fullscreen...
-				AndroidANW_MoveSizeDisplay( (PRENDERER)r, x - l_lock_x, y - l_lock_y, r->w, r->h );
+				if( begin_move )
+					AndroidANW_MoveSizeDisplay( (PRENDERER)r, r->x + ( x - l_lock_x ), r->y + ( y - l_lock_y ), r->w, r->h );
 			}
+			else
+				begin_move = 0;
 		}
 	}
 	l.mouse_b = b;
@@ -214,10 +230,33 @@ static void CPROC  AndroidANW_CloseDisplay ( PRENDERER Renderer )
 	if( r->under )
 		r->under->above = r->above;
 
+	if( r->flags.fullscreen )
+	{
+		if( l.full_screen_display == r )
+		{
+			PVPRENDER check_full;
+			for( check_full = l.top; check_full; check_full = check_full->above )
+			{
+				if( check_full->flags.fullscreen )
+					break;
+			}
+			if( check_full )
+			{
+				l.full_screen_display = check_full;
+				l.flags.full_screen_renderer = 1;
+			}
+			else
+			{
+				l.full_screen_display = NULL;
+				l.flags.full_screen_renderer = 0;
+			}
+
+		}
+	}
 	DeleteLink( &l.renderers, r );
 	Release( r );
 	if( l.top )
-		AndroidANW_UpdateDisplayPortionEx( (PRENDERER)l.top, l.top->x - real_x, l.top->y - real_y
+		AndroidANW_UpdateDisplayPortionEx( (PRENDERER)l.top, real_x - l.top->x, real_y - l.top->y
 													, real_w, real_h DBG_SRC );
 	else
 		AndroidANW_UpdateDisplayPortionEx( NULL, real_x, real_y, real_w, real_h DBG_SRC );
@@ -508,8 +547,8 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 		bounds.right = out_x + width;
 		bounds.bottom = out_y + height;
 		ANativeWindow_lock( l.displayWindow, &buffer, &bounds );
-		//lprintf( "---V Update screen %p %d,%d  %d,%d   %d,%d   %d,%d"
-		//		 , l.top, out_x, out_y, out_y+width, out_y+height
+		//lprintf( "---V Update screen %p %p %d,%d  %d,%d   %d,%d   %d,%d"
+		//		 , r, l.top, out_x, out_y, out_y+width, out_y+height
 		//		 , bounds.left, bounds.top, bounds.right, bounds.bottom
 		//		 );
 		UpdateDisplayPortionRecurse( &buffer, l.top, out_x, out_y, width, height );
@@ -590,8 +629,7 @@ static void CPROC AndroidANW_MoveSizeDisplay( PRENDERER r
 		real_y = pRender->y - y;
 		real_h += y - pRender->y;
 	}
-	//lprintf( "TOtoal by now is %d,%d  %d,%d %d,%d", real_x, real_y, real_w, real_h, w, h );
-
+	//lprintf( "TOtal by now is %d,%d  %d,%d %d,%d", real_x, real_y, real_w, real_h, w, h );
 	pRender->x = x;
 	pRender->y = y;
 	pRender->w = w;
@@ -762,7 +800,7 @@ static void CPROC AndroidANW_HideDisplay	 ( PRENDERER r )
 {
 	((PVPRENDER)r)->flags.hidden = 1;
 	//lprintf( "hding display %d,%d  %d,%d", ((PVPRENDER)r)->x, ((PVPRENDER)r)->y, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h );
-	AndroidANW_UpdateDisplayPortionEx( r, 0, 0, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h DBG_SRC );
+	AndroidANW_UpdateDisplayPortionEx( NULL, ((PVPRENDER)r)->x, ((PVPRENDER)r)->y, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h DBG_SRC );
 }
 
 
