@@ -50,7 +50,7 @@ int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches )
 	int used = 0;
 	if( touch_info.flags.owned_by_surface )
 	{
-		lprintf( "touch event to %p; owned is %p", r, touch_info.owning_surface ); 
+		//lprintf( "touch event to %p; owned is %p", r, touch_info.owning_surface ); 
 		if( touch_info.owning_surface != r )
 			return 0;
 	}
@@ -59,14 +59,14 @@ int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches )
 #endif
 	{
 
-//#ifdef DEBUG_TOUCH_INPUTS
+#ifdef DEBUG_TOUCH_INPUTS
 		int t;
 		for( t = 0; t < nTouches; t++ )
 		{
 			lprintf( WIDE( "%d %5g %5g %s%s" ), t, touches[t].x, touches[t].y, touches[t].flags.new_event?"new":"", touches[t].flags.end_event?"end":"" );
 		}
 		lprintf( WIDE( "touch event %p" ), r );
-//#endif
+#endif
 
 #ifdef __ANDROID__
 		if( nTouches == 4 )
@@ -208,7 +208,7 @@ int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches )
 		{
 			if( touches[0].flags.new_event )
 			{
-				lprintf( WIDE("begin  (is it a touch on a window?) %d,%d   %d,%d"), r->x, r->y, r->w + r->x, r->h+r->y );
+				//( WIDE("begin  (is it a touch on a window?) %d,%d   %d,%d"), r->x, r->y, r->w + r->x, r->h+r->y );
 				// begin touch
 				if(  ( r->flags.fullscreen && !r->flags.not_fullscreen )
 					|| ( touches[0].x >= r->x && touches[0].x <= ( r->x + r->w )
