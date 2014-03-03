@@ -3984,6 +3984,30 @@ void GetPageSize( P_32 width, P_32 height )
 	GetPageSizeEx( NULL, width, height );
 }
 
+void ProbeDisplaySize( void )
+{
+
+	if( g.target_display > 0 )
+	{
+		GetDisplaySizeEx( g.target_display, &g.default_page_x, &g.default_page_y, &g.default_page_width, &g.default_page_height );
+	}
+	else
+	{
+		g.default_page_x = 0;
+      g.default_page_y = 0;
+		GetDisplaySizeEx( 0, NULL, NULL, &g.default_page_width, &g.default_page_height );
+		if( g.flags.multi_edit )
+		{
+			g.default_page_width = g.default_page_width * 3 / 8;
+			g.default_page_height = g.default_page_height * 3 / 8;
+		}
+		if( g.flags.bSpanDisplay )
+		{
+			g.default_page_width = g.default_page_width*2;
+			g.default_page_height = g.default_page_height;
+		}
+	}
+}
 
 PSI_CONTROL SetupSystemsListAndGlobalSingleFrame(void )
 {
@@ -4065,6 +4089,7 @@ PSI_CONTROL SetupSystemsListAndGlobalSingleFrame(void )
 	if( !g.flags.bExternalApplicationhost )
 	{
 #ifndef __NO_OPTIONS__
+		g.flags.bSpanDisplay = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Use Both Displays(horizontal)"), 0, TRUE );
 		if( g.flags.bSpanDisplay )
 		{
 			width = width*2;
@@ -4077,7 +4102,7 @@ PSI_CONTROL SetupSystemsListAndGlobalSingleFrame(void )
 #  ifndef __LINUX__
 		if( !result_canvas )
 		{
-			int display = SACK_GetProfileIntEx( GetProgramName(), WIDE( "Intershell Layout/Use Screen Number" ), 0, TRUE );
+			g.target_display = SACK_GetProfileIntEx( GetProgramName(), WIDE( "Intershell Layout/Use Screen Number" ), 0, TRUE );
 			if( display > 0 )
 			{
 				_32 w, h;
@@ -4569,6 +4594,16 @@ void DisplayMenuCanvas( PSI_CONTROL pc_canvas, PRENDERER under, _32 width, _32 h
 			lprintf( WIDE("Opening display at %d,%d %d,%d"), x, y, width, height );
 			canvas->renderer = OpenDisplayUnderSizedAt( (!g.flags.bTopmost)?under:NULL, g.flags.bTransparent?DISPLAY_ATTRIBUTE_LAYERED:0
 																	, width, height, x, y );
+			{
+				_32 c_w, c_h;
+				int c_x, c_y;
+				GetFrameSize( pc_canvas, &c_w, &c_h );
+				GetFramePosition( pc_canvas, &c_x, &c_y );
+				if( c_w != width || c_h != height )
+               SizeFrame( pc_canvas, width, height );
+				if( c_x != x || c_y != y )
+               MoveFrame( pc_canvas, x, y );
+			}
 #ifndef NO_TOUCH
 			lprintf( WIDE("Overriding touch handler, this is deprecated, and should get it as a control event instead of from renderer") );
 			SetTouchHandler( canvas->renderer, HandleTouch, (PTRSZVAL)canvas );
@@ -4606,6 +4641,7 @@ PSI_CONTROL OpenPageFrame( PPAGE_DATA page )
 	{
 		static _32 xofs, yofs;
 		PSI_CONTROL page_frame;
+      ProbeDisplaySize();
 		page_frame = MakeControl( NULL, menu_surface.TypeID, xofs, yofs, g.default_page_width, g.default_page_height, g.flags.multi_edit?(BORDER_NORMAL|BORDER_RESIZABLE):0 );
 		{
 			ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, page_frame );
@@ -4616,7 +4652,8 @@ PSI_CONTROL OpenPageFrame( PPAGE_DATA page )
 
 			SetCommonBorder( page_frame, BORDER_NORMAL|BORDER_RESIZABLE );
 
-      lprintf( "Display menu..." );
+			lprintf( "Display menu..." );
+			ProbeDisplaySize();
 			DisplayMenuCanvas( page_frame, NULL, g.default_page_width, g.default_page_height, g.default_page_x + xofs, g.default_page_y + yofs );
 #if 1
 			InitSpriteEngine();
@@ -5032,6 +5069,7 @@ int restart( void )
 		if( g.flags.multi_edit )
 			SetCommonBorder( canvas->default_page->frame, BORDER_NORMAL|BORDER_RESIZABLE );
       lprintf( "Display menu..." );
+		ProbeDisplaySize();
 		DisplayMenuCanvas( canvas->default_page->frame, NULL, g.default_page_width, g.default_page_height, g.default_page_x, g.default_page_y );
 		if( !g.flags.multi_edit )
 		{
@@ -5638,7 +5676,6 @@ static void InitInterShell()
 #ifndef __NO_OPTIONS__
 	g.flags.bTopmost = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Display Topmost"), 0, TRUE );
 	g.flags.bTransparent = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Display is transparent"), 1, TRUE );
-	g.flags.bSpanDisplay = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Use Both Displays(horizontal)"), 0, TRUE );
 	g.flags.bTerminateStayResident = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell/TSR"), 0, TRUE );
 #endif
 	//SystemLogTime( SYSLOG_TIME_CPU| SYSLOG_TIME_DELTA );

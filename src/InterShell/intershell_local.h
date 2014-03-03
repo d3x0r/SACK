@@ -222,6 +222,8 @@ typedef struct global_tag
 	//PODBC configuration_option_db;
 	TEXTCHAR configuration_dsn[256];
 	int configuration_version;
+
+	int target_display;   // option to keep
 } MENU_GLOBAL, *PMENU_GLOBAL;
 
 	struct system_info {
