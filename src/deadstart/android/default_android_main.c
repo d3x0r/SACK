@@ -17,7 +17,7 @@
  */
 
 //#define DEBUG_TOUCH_INPUT
-
+//#define DEBUG_KEY_INPUT
 
 //BEGIN_INCLUDE(all)
 #include <jni.h>
@@ -238,7 +238,17 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 			int32_t key_val = AKeyEvent_getKeyCode(event);
 			int32_t key_mods = AKeyEvent_getMetaState( event );
 			int32_t key_pressed = AKeyEvent_getAction( event );
+			int realmod = 0;
+			if( ( key_mods & 0x3000 ) == 0x3000 )
+				realmod |= KEY_MOD_CTRL;
+			if( ( key_mods & 0x12 ) == 0x12 )
+				realmod |= KEY_MOD_ALT;
+			if( ( key_mods & 0x41 ) == 0x41 )
+				realmod |= KEY_MOD_SHIFT;
+			key_mods = realmod;
+#ifdef DEBUG_KEY_INPUT
 			LOGI("Received key event: %d %d %d\n", key_pressed, key_val, key_mods );
+#endif
 			if( key_val )
 			{
 				int used;
@@ -354,7 +364,9 @@ extern void SuspendSleep(int bSuspend);
 
 void show_keyboard( void )
 {										
+#ifdef DEBUG_KEY_INPUT
 	LOGI( "ShowSoftInput" );
+#endif
 	displayKeyboard( 1 );
 	//ANativeActivity_showSoftInput( engine.app->activity, ANATIVEACTIVITY_SHOW_SOFT_INPUT_IMPLICIT );
 
@@ -362,7 +374,9 @@ void show_keyboard( void )
 
 void hide_keyboard( void )
 {
+#ifdef DEBUG_KEY_INPUT
 	LOGI( "HideSoftInput" );
+#endif
 	displayKeyboard( 0 );
 	//ANativeActivity_hideSoftInput( engine.app->activity, ANATIVEACTIVITY_HIDE_SOFT_INPUT_IMPLICIT_ONLY );
 }
