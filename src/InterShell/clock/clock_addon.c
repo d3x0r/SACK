@@ -167,19 +167,13 @@ static PTRSZVAL OnConfigureControl( WIDE("Clock") )( PTRSZVAL psv, PSI_CONTROL p
 static void OnSaveControl( WIDE( "Clock" ) )( FILE *file,PTRSZVAL psv )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
-	fprintf( file, WIDE("%sClock color=$%02lX%02lX%02lX%02lX\n")
+	fprintf( file, WIDE("%sClock color=%s\n")
 			 , InterShell_GetSaveIndent()
-			 , AlphaVal( info->color )
-			 , RedVal( info->color )
-			 , GreenVal( info->color )
-			 , BlueVal( info->color )
+	       , FormatColor( info->color )
 			 );
-	fprintf( file, WIDE("%sClock back color=$%02lX%02lX%02lX%02lX\n")
+	fprintf( file, WIDE("%sClock back color=%s\n")
 			 , InterShell_GetSaveIndent()
-			 , AlphaVal( info->backcolor )
-			 , RedVal( info->backcolor )
-			 , GreenVal( info->backcolor )
-			 , BlueVal( info->backcolor )
+	       , FormatColor( info->backcolor )
 			 );
 	fprintf( file, WIDE("%sClock background image=%s\n" ), InterShell_GetSaveIndent(), info->image_name?info->image_name:WIDE("") );
 	fprintf( file, WIDE("%sClock is analog?%s\n"), InterShell_GetSaveIndent(), info->flags.bAnalog?WIDE("Yes"):WIDE("No") );
