@@ -6,6 +6,7 @@
 
 static IMAGE_INTERFACE AndroidANWImageInterface;
 
+static void InvokeDisplaySizeChange( PRENDERER r, int nDisplay, S_32 x, S_32 y, _32 width, _32 height );
 static void CPROC AndroidANW_Redraw( PRENDERER r );
 
 static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y, _32 width, _32 height DBG_PASS );
@@ -43,18 +44,22 @@ static void CPROC DefaultMouse( PVPRENDER r, S_32 x, S_32 y, _32 b )
 					else
 					{
 						EnterCriticalSec( &l.cs_update );
-						if( !r->flags.not_fullscreen )
+						if( !l.flags.display_closed )
 						{
-							r->flags.not_fullscreen = 1;
-							AndroidANW_UpdateDisplayPortionEx( NULL, 0, 0, l.default_display_x, l.default_display_y DBG_SRC );
-						}
-						else
-						{
-							r->flags.not_fullscreen = 0;
+							if( !r->flags.not_fullscreen )
+							{
+								r->flags.not_fullscreen = 1;
+								AndroidANW_UpdateDisplayPortionEx( NULL, 0, 0, l.default_display_x, l.default_display_y DBG_SRC );
+							}
+							else
+							{
+								r->flags.not_fullscreen = 0;
+							}
 						}
 						LeaveCriticalSec( &l.cs_update );
 						AndroidANW_Redraw( (PRENDERER)r );
 					}
+               begin_move = 0; // make sure it's not a continuous state
 				}
 				moving = 0;
 			}
@@ -272,7 +277,8 @@ static void CPROC UpdateDisplayPortionRecurse( 	ANativeWindow_Buffer *buffer
 															, PVPRENDER r, S_32 x, S_32 y, _32 width, _32 height )
 {
 	// no-op; it will ahve already displayed(?)
-	//lprintf( "recurse %p  %d,%d  %d,%d", r, x, y, width, height );
+   //lprintf( "recurse %p", r );
+	//lprintf( "recurse %p  %d,%d  %d,%d    %d,%d   %d,%d", r, x, y, width, height, r?r->x:x, r?r->y:y, r?r->w:width, r?r->h:height );
 	if( r )
 	{
 
@@ -526,6 +532,11 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 		out_y = 0;
 	}
 	EnterCriticalSec( &l.cs_update );
+	if( l.flags.display_closed )
+	{
+		LeaveCriticalSec( &l.cs_update );
+		return;
+	}
 
 	// chop the part that's off the right side ....
 	if( ( out_x + (int)width ) > l.default_display_x )
@@ -546,6 +557,7 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 		bounds.top = out_y;
 		bounds.right = out_x + width;
 		bounds.bottom = out_y + height;
+      //_lprintf(DBG_RELAY)( "Native window lock..." );
 		ANativeWindow_lock( l.displayWindow, &buffer, &bounds );
 		//lprintf( "---V Update screen %p %p %d,%d  %d,%d   %d,%d   %d,%d"
 		//		 , r, l.top, out_x, out_y, out_y+width, out_y+height
@@ -721,12 +733,15 @@ static void CPROC AndroidANW_SetMouseHandler  ( PRENDERER r, MouseCallback c, PT
 static void CPROC AndroidANW_Redraw( PRENDERER r )
 {
 	PVPRENDER render = (PVPRENDER)r;
-	EnterCriticalSec( &l.cs_update );
-	lprintf( "Sending application draw.... %p %p", render?render->redraw:0, render );
-	if( render->redraw )
-		render->redraw( render->psv_redraw, (PRENDERER)render );
-	AndroidANW_UpdateDisplayEx( r DBG_SRC );
-	LeaveCriticalSec( &l.cs_update );
+	if( !render->flags.hidden )
+	{
+		EnterCriticalSec( &l.cs_update );
+		//lprintf( "Sending application draw.... %p %p", render?render->redraw:0, render );
+		if( render->redraw )
+			render->redraw( render->psv_redraw, (PRENDERER)render );
+		AndroidANW_UpdateDisplayEx( r DBG_SRC );
+		LeaveCriticalSec( &l.cs_update );
+	}
 }
 
 static void CPROC AndroidANW_SetRedrawHandler  ( PRENDERER r, RedrawCallback c, PTRSZVAL p )
@@ -868,6 +883,10 @@ static void CPROC AndroidANW_DisableMouseOnIdle(PRENDERER r, LOGICAL bEnable )
 
 static void CPROC AndroidANW_SetDisplayNoMouse( PRENDERER r, int bNoMouse )
 {
+	if( r )
+	{
+      ((PVPRENDER)r)->flags.mouse_transparent = bNoMouse;
+	}
 }
 
 static void CPROC AndroidANW_MakeAbsoluteTopmost(PRENDERER r)
@@ -1099,27 +1118,67 @@ static void HostSystem_InitDisplayInfo(void )
 
 void SACK_Vidlib_SetNativeWindowHandle( ANativeWindow *displayWindow )
 {
+   _32 new_w, new_h;
 	//lprintf( "Setting native window handle... (shouldn't this do something else?)" );
 	l.displayWindow = displayWindow;
 
-	l.default_display_x = ANativeWindow_getWidth( l.displayWindow);
-	l.default_display_y = ANativeWindow_getHeight( l.displayWindow);
+	EnterCriticalSec( &l.cs_update );
+	new_w = ANativeWindow_getWidth( l.displayWindow);
+	new_h = ANativeWindow_getHeight( l.displayWindow);
 
-	ANativeWindow_setBuffersGeometry( displayWindow,l.default_display_x,l.default_display_y,WINDOW_FORMAT_RGBA_8888);
-	if( !l.flags.full_screen_renderer || l.full_screen_display->flags.not_fullscreen )
+	if( new_w != l.default_display_x || new_h != l.default_display_y )
 	{
-		// make sure the buffer is what I think it should be...
-		// set actual display size l.default_x, l.default_y
-	}
-	else
-	{
-		// need to make sure the new window has the geometry expected...
-		//ANativeWindow_setBuffersGeometry( displayWindow,l.full_screen_display->w,l.full_screen_display->h,WINDOW_FORMAT_RGBA_8888);
-		// set to the size of this buffer.
-	}
+		PVPRENDER check;
+      //lprintf( "Changed dipslay %dx%d to %dx%d", l.default_display_x, l.default_display_y, new_w, new_h );
+		for( check = l.top; check; check = check->above )
+		{
+			if( check->x == 0 && check->y == 0
+				&& check->w == l.default_display_x && check->h == l.default_display_y )
+			{
+            //lprintf( "Updated an assumed fullscreen window..." );
+				check->w = new_w;
+            check->h = new_h;
+			}
+		}
 
-	lprintf( "Format is :%dx%d %d", l.default_display_x, l.default_display_y, ANativeWindow_getFormat( displayWindow ) );
+		l.default_display_x = new_w;
+		l.default_display_y = new_h;
 
+      //InvokeDisplaySizeChange( NULL, 0, 0, 0, new_w, new_h );
+
+		lprintf( "Format is :%dx%d %d", l.default_display_x, l.default_display_y, ANativeWindow_getFormat( displayWindow ) );
+		ANativeWindow_setBuffersGeometry( displayWindow,l.default_display_x,l.default_display_y,WINDOW_FORMAT_RGBA_8888);
+		lprintf( "Format is :%dx%d %d", l.default_display_x, l.default_display_y, ANativeWindow_getFormat( displayWindow ) );
+		if( !l.flags.full_screen_renderer || l.full_screen_display->flags.not_fullscreen )
+		{
+			// make sure the buffer is what I think it should be...
+			// set actual display size l.default_x, l.default_y
+		}
+		else
+		{
+			// need to make sure the new window has the geometry expected...
+			//ANativeWindow_setBuffersGeometry( displayWindow,l.full_screen_display->w,l.full_screen_display->h,WINDOW_FORMAT_RGBA_8888);
+			// set to the size of this buffer.
+		}
+		l.flags.display_closed = 0;
+
+		for( check = l.top; check; check = check->above )
+		{
+			if( check->x == 0 && check->y == 0
+				&& check->w == l.default_display_x && check->h == l.default_display_y )
+			{
+            PCOLOR newBuffer = NewArray( COLOR, check->w * check->h );
+            // use the existing image so its children remain.
+				check->image = RemakeImageEx( check->image, newBuffer, check->w, check->h DBG_SRC );
+            check->image->flags &= ~IF_FLAG_EXTERN_COLORS;  // allow imglib to release the colors.
+				// this would have been resized; so redraw it.
+            //lprintf( "is this a bad time to send a redraw? " );
+				AndroidANW_Redraw( (PRENDERER)check );
+			}
+		}
+	}
+	LeaveCriticalSec( &l.cs_update );
+	//lprintf( "Format is :%dx%d %d", l.default_display_x, l.default_display_y, ANativeWindow_getFormat( displayWindow ) );
 }
 
 
@@ -1167,6 +1226,9 @@ int SACK_Vidlib_SendTouchEvents( int nPoints, PINPUT_POINT points )
 
 void SACK_Vidlib_CloseDisplay( void )
 {
+	EnterCriticalSec( &l.cs_update );
+   l.flags.display_closed = 1;
+	LeaveCriticalSec( &l.cs_update );
 	// not much to do...
 	lprintf( "ya... not much to do...." );
    //if( fullscreen_display
@@ -1181,6 +1243,23 @@ void SACK_Vidlib_SetSleepSuspend( void(*Suspend)(int) )
 //------------------------------------------------------------------------------
 // pause/resume
 //------------------------------------------------------------------------------
+static void InvokeDisplaySizeChange( PRENDERER r, int nDisplay, S_32 x, S_32 y, _32 width, _32 height )
+{
+	void (CPROC *size_change)( PTRSZVAL, int nDisplay, S_32 x, S_32 y, _32 width, _32 height );
+   PVPRENDER render = (PVPRENDER)r;
+	PCLASSROOT data = NULL;
+	CTEXTSTR name;
+	for( name = GetFirstRegisteredName( WIDE("sack/render/display"), &data );
+		  name;
+		  name = GetNextRegisteredName( &data ) )
+	{
+		size_change = GetRegisteredProcedureExx( data,(CTEXTSTR)name,void,WIDE("on_display_size_change"),( PTRSZVAL psv_redraw, int nDisplay, S_32 x, S_32 y, _32 width, _32 height ));
+
+		if( size_change )
+			size_change( render->psv_redraw, nDisplay, x, y, width, height );
+	}
+}
+
 
 static void InvokePause( void )
 {

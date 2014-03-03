@@ -21,6 +21,7 @@ typedef struct vidlib_proxy_renderer
 		BIT_FIELD hidden : 1;
 		BIT_FIELD fullscreen : 1;
 		BIT_FIELD not_fullscreen : 1;
+		BIT_FIELD mouse_transparent : 1; // hidden to mouse events; overlays
 	} flags;
 	INDEX id;
 	MouseCallback mouse_callback;
@@ -31,6 +32,31 @@ typedef struct vidlib_proxy_renderer
 	PTRSZVAL psv_redraw;
 	TouchCallback touch_callback;
 	PTRSZVAL psv_touch_callback;
+	struct touch_event_state
+	{
+		S_32 mouse_x, mouse_y;
+		struct touch_event_one{
+			struct touch_event_one_flags {
+				BIT_FIELD bDrag : 1;
+			} flags;
+			RCOORD x;
+			RCOORD y;
+		} one;
+		struct touch_event_two{
+			RCOORD x;
+			RCOORD y;
+			//RCOORD begin_length;
+		} two;
+		struct touch_event_three{
+			RCOORD x;
+			RCOORD y;
+			RCOORD begin_lengths[3]; //3 lengths for segments 1->2, 2->3, 1->3
+		} three;
+	} touch_info;
+	struct default_mouse_info
+	{
+      S_32 lock_x, lock_y;
+	} mouse_info;
 } *PVPRENDER;
 
 #define l vidlib_proxy_server_local
@@ -51,6 +77,7 @@ struct vidlib_android_local
 	struct vidlib_android_local_flags {
 		BIT_FIELD paused : 1;
 		BIT_FIELD full_screen_renderer : 1;
+		BIT_FIELD display_closed : 1; // prevent drawing until it re-opens
 	} flags;
 	PVPRENDER full_screen_display;
 	void(*SuspendSleep)(int);
@@ -77,3 +104,4 @@ TEXTCHAR  AndroidANW_GetKeyText(int key);
 
 // ANdroid_nativewindow.c
 void SACK_Vidlib_SetSleepSuspend( void(*)(int));
+

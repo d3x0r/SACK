@@ -309,23 +309,35 @@ RENDER_NAMESPACE_END
 #define KEY_LEFT_SHIFT   AKEYCODE_SHIFT_LEFT
 #define KEY_RIGHT_SHIFT  AKEYCODE_SHIFT_RIGHT // maybe?
 
-#define KEY_CTRL          0
-#define KEY_CONTROL       0
-#define KEY_LEFT_CONTROL  0
-#define KEY_RIGHT_CONTROL 0
+#define KEY_CTRL          AKEYCODE_CTRL_LEFT
+#define KEY_CONTROL       AKEYCODE_CTRL_LEFT
+#define KEY_LEFT_CONTROL  AKEYCODE_CTRL_LEFT
+#define KEY_RIGHT_CONTROL AKEYCODE_CTRL_RIGHT
 
-#define KEY_ALT           0 // can't get usually under windows?(keyhook!)
-#define KEY_LEFT_ALT      0
-#define KEY_RIGHT_ALT     0
+#define KEY_ALT           AKEYCODE_ALT_LEFT // can't get usually under windows?(keyhook!)
+#define KEY_LEFT_ALT      AKEYCODE_ALT_LEFT
+#define KEY_RIGHT_ALT     AKEYCODE_ALT_RIGHT
 
-#define KEY_CAPS_LOCK     0
+#define KEY_CAPS_LOCK     AKEYCODE_CAPS_LOCK
 #define KEY_NUM_LOCK      0
-#define KEY_SCROLL_LOCK   0 // unsure about this
-#define KEY_ESC           0
-#define KEY_ESCAPE        0
+#ifndef AKEYCODE_SCROLL_LOCK
+#define AKEYCODE_SCROLL_LOCK 116
+#endif
+#define KEY_SCROLL_LOCK   AKEYCODE_SCROLL_LOCK // unsure about this
+#ifndef AKEYCODE_ESCAPE
+#define AKEYCODE_ESCAPE 111
+#endif
+#define KEY_ESC           AKEYCODE_ESCAPE
+#define KEY_ESCAPE        AKEYCODE_ESCAPE
 
-#define KEY_HOME          0
-#define KEY_PAD_HOME      0
+#ifndef AKEYCODE_MOVE_HOME
+#define AKEYCODE_MOVE_HOME 122
+#endif
+#ifndef AKEYCODE_MOVE_END
+#define AKEYCODE_MOVE_END 123
+#endif
+#define KEY_HOME          AKEYCODE_MOVE_HOME
+#define KEY_PAD_HOME      AKEYCODE_MOVE_HOME
 #define KEY_PAD_7         0
 #define KEY_GREY_HOME     0
 
@@ -354,7 +366,7 @@ RENDER_NAMESPACE_END
 #define KEY_PAD_RIGHT     0
 #define KEY_GREY_RIGHT    0
 
-#define KEY_END           0
+#define KEY_END           AKEYCODE_MOVE_END
 #define KEY_PAD_1         0
 #define KEY_PAD_END       0
 #define KEY_GREY_END      0

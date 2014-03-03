@@ -370,11 +370,30 @@ void IssueUpdateLayeredEx( PVIDEO hVideo, LOGICAL bContent, S_32 x, S_32 y, _32 
 #endif
 
 //----------------------------------------------------------------------------
+static void InvokeDisplaySizeChange( PRENDERER r, int nDisplay, _32 x, _32 y, _32 width, _32 height )
+{
+	void (CPROC *size_change)( PRENDERER, int nDisplay, _32 x, _32 y, _32 width, _32 height );
+	PCLASSROOT data = NULL;
+	CTEXTSTR name;
+	for( name = GetFirstRegisteredName( WIDE("sack/render/display"), &data );
+		  name;
+		  name = GetNextRegisteredName( &data ) )
+	{
+		size_change = GetRegisteredProcedureExx( data,(CTEXTSTR)name,void,WIDE("on_display_size_change"),( PRENDERER, int nDisplay, _32 x, _32 y, _32 width, _32 height ));
+
+		if( size_change )
+			size_change( r, nDisplay, x, y, width, height );
+	}
+
+}
+//----------------------------------------------------------------------------
+
 RENDER_PROC (void, EnableLoggingOutput)( LOGICAL bEnable )
 {
 	l.flags.bLogWrites = bEnable;
 }
 
+//----------------------------------------------------------------------------
 RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 														, S_32 x, S_32 y
 														, _32 w, _32 h DBG_PASS)

@@ -1807,15 +1807,21 @@ typedef int check_this_variable;
 #endif
 #endif
 
+// static void OnDisplayChangedSize( WIDE("") )( PRENDERER, int nDisplay, _32 x, _32 y, _32 width, _32 height )
+	// OnDisplayPause is called on systems that allow the application to suspend its display.
+	// Sleep mode may also trigger such an event, allows application to save state
+   // a media player, for instance, may recover unplayed buffers to prepare for resume
+#define OnDisplaySizeChange(name) \
+	__DefineRegistryMethod(WIDE("sack/render"),OnDisplaySizeChange,WIDE("display"),name,WIDE("on_display_size_change"),void,( PTRSZVAL psv_redraw, int nDisplay, S_32 x, S_32 y, _32 width, _32 height ),__LINE__)
 
-// static PTRSZVAL OnDisplayPause( WIDE("") )( void )
+// static void OnDisplayPause( WIDE("") )( void )
 	// OnDisplayPause is called on systems that allow the application to suspend its display.
 	// Sleep mode may also trigger such an event, allows application to save state
    // a media player, for instance, may recover unplayed buffers to prepare for resume
 #define OnDisplayPause(name) \
 	__DefineRegistryMethod(WIDE("sack/render/android"),OnDisplayPause,WIDE("display"),name,WIDE("on_display_pause"),void,(void),__LINE__)
 
-// static PTRSZVAL OnDisplayResume( WIDE("") )( void )
+// static void OnDisplayResume( WIDE("") )( void )
 	// OnDisplayResume is called on systems that allow the application to suspend its display.
 	// Wake from sleep mode may also trigger such an event, allows application to restore saved state
    // a media player, for instance, may continue playing ( it might be good to wait just a little longer than 'now')

@@ -56,12 +56,13 @@ PSIKEYDEFINE AndroidKeyDefs[256] =
                       , [KEY_TAB]={WIDE("tab"),0,0,KEYDATA("\t","\t") }
                       , [AKEYCODE_ENTER]={WIDE("return"), WIDE("enter"),0,KEYDATA8("\n") }
                       //, [AKEYCODE_PAUSE]={WIDE("pause"),0,KDF_NODEFINE }
-                      //, [AKEYCODE_ESCAPE]={WIDE("esc"), WIDE("escape"), 0, {{KEYDATA}}} // 0x1b
+                      , [AKEYCODE_ESCAPE]={WIDE("esc"), WIDE("escape"), 0, {{KEYDATA}}} // 0x1b
                       , [AKEYCODE_SPACE]={WIDE("space"), WIDE("blank"), 0, KEYDATA8(" ") } //0x20
                       , [AKEYCODE_PAGE_UP]={WIDE("prior"), WIDE("pgup"), 0 }
                       , [AKEYCODE_PAGE_DOWN]={WIDE("next"), WIDE("pgdn"), 0 }
                       //, [AKEYCODE_END]={WIDE("end"), 0, 0, {{COMMANDKEY, (PTEXT)KeyEndCmd}}}
-							, [AKEYCODE_HOME]={WIDE("home"), 0, 0 }
+							, [AKEYCODE_MOVE_HOME]={WIDE("home"), 0, 0 }
+							, [AKEYCODE_MOVE_END]={WIDE("end"), 0, 0 }
 
                       , [AKEYCODE_DPAD_LEFT]={WIDE("left"), 0, 0 }
 
@@ -168,7 +169,7 @@ TEXTCHAR  AndroidANW_GetKeyText(int key)
    return 0;
 }
 
-
+// This is a callback from the native hook code....
 int SACK_Vidlib_SendKeyEvents( int pressed, int key_index, int key_mods )
 {
    int used = 0;

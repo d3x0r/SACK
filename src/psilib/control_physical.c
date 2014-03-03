@@ -90,6 +90,24 @@ void GetCurrentDisplaySurface( PPHYSICAL_DEVICE device )
 }
 
 //---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+
+static void OnDisplaySizeChange( WIDE("PSI Controls") ) ( PTRSZVAL psvFrame, int display, S_32 x, S_32 y, _32 width, _32 height )
+{
+	PPHYSICAL_DEVICE pf = (PPHYSICAL_DEVICE)psvFrame;
+	if( pf )
+	{
+		PSI_CONTROL pc = pf->common;
+		//SizeCommon( pc, width, height );
+		if( display )
+		{
+			// only applies to windows on this display... (maybe should remove this)
+		}
+
+	}
+}
+
+//---------------------------------------------------------------------------
 
 static void CPROC FrameRedraw( PTRSZVAL psvFrame, PRENDERER psvSelf )
 {
