@@ -54,7 +54,7 @@ typedef struct banner_tag
 
 	struct upd_rect text_bounds;
 	struct upd_rect old_bounds;
-
+   _32 old_width, old_height;
 } BANNER;
 
 
@@ -321,7 +321,7 @@ static void DrawBannerCaption( PSI_CONTROL pc, PBANNER banner, Image surface, TE
 	//ClearImageTo( surface, GetBaseColor( NORMAL ) );
 	GetStringRenderSizeFontEx( caption, strlen( caption ), &maxw, &h, &char_h
 									 , banner_local.custom_font?banner_local.custom_font:explorer?banner_local.explorer_font:banner_local.font );
-   //lprintf( "h from render size is %d or %d", h, char_h );
+   //lprintf( "h from render size is %d or %d (%s)", h, char_h, caption );
 	y = yofs - (h/2);
 	banner->text_bounds.y = y - 2;
 	banner->text_bounds.h = h + 5; // -2 to +2 is 5 ?
@@ -441,6 +441,20 @@ static int OnDrawCommon( BANNER_NAME )( PCONTROL pc )
 		if( banner )
 		{
 			Image image = GetControlSurface( pc );
+			if( banner->old_width != image->width || banner->old_height != image->height )
+			{
+				banner_local.w
+					= banner->old_width
+					= image->width;
+            banner_local.h
+					= banner->old_height
+					= image->height;
+				RerenderFont( banner_local.font
+								, image->width / 18, banner_local.h/10
+								, NULL, NULL );
+				// clear bounds-set so a full background is drawn.
+				banner->bit_flags.bounds_set = 0;
+			}
 			banner->bit_flags.drawing = 1;
 			GetControlText( pc, caption, sizeof( caption )/sizeof(TEXTCHAR) );
 #ifdef DEBUG_BANNER_DRAW_UPDATE
@@ -528,7 +542,7 @@ int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, i
 #else
 		StrCpy( font, WIDE( "arialbd.ttf" ) );
 #endif
-		lprintf( WIDE("default font: %d,%d %d,%d"), cols, lines, w/cols, h/lines );
+		//lprintf( WIDE("default font: %d,%d %d,%d"), cols, lines, w/cols, h/lines );
 		banner_local.custom_font = RenderFontFile( font
 															  , w /cols
 															  , h/lines
@@ -540,7 +554,7 @@ int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, i
 #else
 			StrCpy( font, WIDE( "fonts/arialbd.ttf" ) );
 #endif
-			lprintf( WIDE( "default font: %d,%d %d,%d" ), cols, lines, w/cols, h/lines );
+			//lprintf( WIDE( "default font: %d,%d %d,%d" ), cols, lines, w/cols, h/lines );
 			banner_local.custom_font = RenderFontFile( font
 																  , w /cols
 																  , h/lines
@@ -562,8 +576,9 @@ int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, i
 		GetDisplaySizeEx( display, &x, &y, &w, &h );
 		banner_local.w = w;
 		banner_local.h = h;
-		lprintf( WIDE( "resulting size/location is %d,%d %dx%d" ), x, y, w, h );
-		banner->renderer = OpenDisplayAboveSizedAt( ((options & BANNER_ALPHA)?DISPLAY_ATTRIBUTE_LAYERED:0)																, (options & BANNER_EXPLORER)?EXPLORER_BANNER_WIDTH:w
+		//lprintf( WIDE( "resulting size/location is %d,%d %dx%d" ), x, y, w, h );
+		banner->renderer = OpenDisplayAboveSizedAt( ((options & BANNER_ALPHA)?DISPLAY_ATTRIBUTE_LAYERED:0)
+																, (options & BANNER_EXPLORER)?EXPLORER_BANNER_WIDTH:w
 																, (options & BANNER_EXPLORER)?EXPLORER_BANNER_HEIGHT:h
 																, (options & BANNER_EXPLORER)?EXPLORER_BANNER_X:x
 																, (options & BANNER_EXPLORER)?EXPLORER_BANNER_Y:y
@@ -584,14 +599,17 @@ int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, i
 		//		GetDisplaySize( &banner_local.w, &banner_local.h );
 		{
 			TEXTSTR result;
+			TEXTSTR skip_newline;
 			FormatTextToBlock( text, &result, 30, 20 );
+         // formatter returns a newline at the start of the block (first line doesn't have NO_RETURN flag probably...)
+			for( skip_newline = result; skip_newline && skip_newline[0] && skip_newline[0] == '\n'; skip_newline++ );
 			banner->frame = MakeCaptionedControl( NULL, banner_control.TypeID
 															, (options & BANNER_EXPLORER)?EXPLORER_BANNER_X:x
 															, (options & BANNER_EXPLORER)?EXPLORER_BANNER_Y:y
 															, (options & BANNER_EXPLORER)?EXPLORER_BANNER_WIDTH:w
 															, (options & BANNER_EXPLORER)?EXPLORER_BANNER_HEIGHT:h
 															, 0
-															, result );
+															, skip_newline );
 
 			Release( result );
 		}
@@ -625,8 +643,11 @@ int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, i
 		bUpdateLocked = TRUE;
 		{
 			TEXTSTR result;
+			TEXTSTR skip_newline;
 			FormatTextToBlock( text, &result, 30, 20 );
-			SetCommonText( banner->frame, result );
+         // formatter returns a newline at the start of the block (first line doesn't have NO_RETURN flag probably...)
+			for( skip_newline = result; skip_newline && skip_newline[0] && skip_newline[0] == '\n'; skip_newline++ );
+			SetCommonText( banner->frame, skip_newline );
 			Release( result );
 		}
 	}
@@ -789,8 +810,11 @@ void SetBanner2Text( PBANNER banner, TEXTCHAR *text )
 	if( banner )
 	{
 		TEXTSTR result;
+		TEXTSTR skip_newline;
 		FormatTextToBlock( text, &result, 30, 20 );
-		SetCommonText( banner->frame, result );
+		// formatter returns a newline at the start of the block (first line doesn't have NO_RETURN flag probably...)
+		for( skip_newline = result; skip_newline && skip_newline[0] && skip_newline[0] == '\n'; skip_newline++ );
+		SetCommonText( banner->frame, skip_newline );
 		Release( result );
 	}
 }
