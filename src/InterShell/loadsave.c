@@ -1487,9 +1487,9 @@ void SaveAPage( FILE *file, PPAGE_DATA page )
 		fprintf( file, WIDE("page titled %s\n"), page->title );
 
 	fprintf( file, WIDE("page layout %d by %d\n"), page->grid.nPartsX, page->grid.nPartsY );
-	fprintf( file, WIDE("%sbackground color $%lX\n")
+	fprintf( file, WIDE("%sbackground color %s\n")
 			 , (CDATA)GetLink( &page->background_colors, 0 )?"":"#"
-			 , (CDATA)GetLink( &page->background_colors, 0 )
+			 , FormatColor( (CDATA)GetLink( &page->background_colors, 0 ) )
 			 );
 	fprintf( file, WIDE("%sbackground image %s\n")
 			 , (CTEXTSTR)GetLink( &page->backgrounds, 0 )?((CTEXTSTR)GetLink( &page->backgrounds, 0 ))[0]?WIDE(""):WIDE("#"):WIDE("#")
@@ -1502,9 +1502,9 @@ void SaveAPage( FILE *file, PPAGE_DATA page )
 		{
 			if( !idx )
 				continue;
-			fprintf( file, WIDE("background color(%d) $%lX\n")
+			fprintf( file, WIDE("background color(%d) %s\n")
 					 , idx
-					 , (CDATA)GetLink( &page->background_colors, idx )
+					 , FormatColor( (CDATA)GetLink( &page->background_colors, idx ) )
 					 );
 		}
 		LIST_FORALL( page->backgrounds, idx, CTEXTSTR, background )
@@ -1564,7 +1564,7 @@ void XML_SaveAPage( genxWriter w, PPAGE_DATA page )
 
 	genxStartElement( eBackground );
 	if( page->background_color )
-		AddAttr( back_color, "$%lX", page->background_color );
+		AddAttr( back_color, "%s", FormatColor( page->background_color ) );
 	if( page->background )
 		AddAttr( back_image, "%s", page->background );
 	genxEndElement( w );
