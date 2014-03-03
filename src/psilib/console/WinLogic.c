@@ -533,52 +533,59 @@ int GetCharFromRowCol( PCONSOLE_INFO pdp, int row, int col, char *data )
 
 TEXTCHAR *PSI_GetDataFromBlock( PCONSOLE_INFO pdp )
 {
-    int line_start = pdp->mark_start.row;
-    int col_start = pdp->mark_start.col;
-    int line_end = pdp->mark_end.row;
-    INDEX col_end = pdp->mark_end.col;
-    int bBlock = FALSE;
-    // 2 characters to stuff in \r\n on newline.
-    TEXTCHAR *result = NewArray( TEXTCHAR, ( ( line_start - line_end ) + 1 ) * (pdp->nColumns + 2) );
-    INDEX ofs = 0;
-    int line, col;
-    int first = TRUE;
-    int _priorline;
-    for( col = col_start, line = line_start
-        ; line >= line_end
-        ; line--, (col = bBlock)?col_start:0 )
-    {
-        PDISPLAYED_LINE pdl;
-        if( ( pdl = (PDISPLAYED_LINE)GetDataItem( pdp->CurrentMarkInfo, line ) ) )
-        {       
-            if( first )
-            {
-                first = FALSE;
-                _priorline = pdl->nLine;
-            }
-            else if( _priorline != pdl->nLine || bBlock )
+	int line_start = pdp->mark_start.row;
+	int col_start = pdp->mark_start.col;
+	int line_end = pdp->mark_end.row;
+	INDEX col_end = pdp->mark_end.col;
+	int bBlock = FALSE;
+	// 2 characters to stuff in \r\n on newline.
+	TEXTCHAR *result = NewArray( TEXTCHAR, ( ( line_start - line_end ) + 1 ) * (pdp->nColumns + 2) );
+	INDEX ofs = 0;
+	int line, col;
+	int first_char = TRUE;
+	int first = TRUE;
+	int _priorline;
+	for( col = col_start, line = line_start
+		 ; line >= line_end
+		  ; line--, (col = bBlock)?col_start:0 )
+	{
+		PDISPLAYED_LINE pdl;
+		if( ( pdl = (PDISPLAYED_LINE)GetDataItem( pdp->CurrentMarkInfo, line ) ) )
+		{
+			if( first )
+			{
+				first = FALSE;
+				_priorline = pdl->nLine;
+			}
+			else if( _priorline != pdl->nLine || bBlock )
+			{
+				if( !first_char )
 				{
 					if( pdp->flags.bBuildDataWithCarriageReturn )
 						result[ofs++] = '\r';
-                result[ofs++] = '\n';
-                _priorline = pdl->nLine;
-            }
-            for( ; 
-                  (S_64)col < (bBlock?(col_end)
-                           : ( line == line_end ? col_end 
-                                   : pdp->nColumns ));
-                 col++ )
-            {
-                if( GetCharFromLine( pdp->nColumns, pdl, col, result + ofs ) )
-                    ofs++;
-            }
-        }
-    }
-    result[ofs] = 0;
-    if( ofs )
-        return result;
-    Release( result );
-    return NULL;
+					result[ofs++] = '\n';
+				}
+				_priorline = pdl->nLine;
+			}
+			for( ;
+				 (S_64)col < (bBlock?(col_end)
+								  : ( line == line_end ? col_end
+									  : pdp->nColumns ));
+				  col++ )
+			{
+				if( GetCharFromLine( pdp->nColumns, pdl, col, result + ofs ) )
+				{
+					first_char = FALSE;
+					ofs++;
+				}
+			}
+		}
+	}
+	result[ofs] = 0;
+	if( ofs )
+		return result;
+	Release( result );
+	return NULL;
 }
 
 //----------------------------------------------------------------------------
