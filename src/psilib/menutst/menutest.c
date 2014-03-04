@@ -44,22 +44,22 @@ static int OnMouseCommon( WIDE("Click Me") )( PSI_CONTROL pc, S_32 x, S_32 y, _3
    return 0;
 }
 	
-int main( void )
+SaneWinMain( argc, argv )
 {
-int i;
-   PSI_CONTROL frame = CreateFrame( WIDE("Click Me"), 0, 0, 0, 0, BORDER_RESIZABLE, NULL );
-Menu = CreatePopup();
-DisplayFrame( frame );
-MakeNamedControl( frame, WIDE("Click Me"), 0, 0, 256, 256, -1 );
+	int i;
+	PSI_CONTROL frame = CreateFrame( WIDE("Click Me"), 0, 0, 0, 0, BORDER_RESIZABLE, NULL );
+	Menu = CreatePopup();
+	DisplayFrame( frame );
+	MakeNamedControl( frame, WIDE("Click Me"), 0, 0, 256, 256, -1 );
 
 	AppendPopupItem( Menu, MF_STRING, 1000, WIDE("&Properties") );
 	AppendPopupItem( Menu, MF_SEPARATOR, 0, NULL );
-   AddSubMenus( 10, 1, Menu );
+	AddSubMenus( 10, 1, Menu );
 	for( i = 0; i < 12; i++ )
 	{
 		TEXTCHAR buffer[256];
-      PMENU child;
-      snprintf( buffer, 256, WIDE("Option %d"), i );
+		PMENU child;
+			snprintf( buffer, 256, WIDE("Option %d"), i );
 		child = CreatePopup();
 		AppendPopupItem( child, MF_STRING, MNU_MINZOOM+10, WIDE("x128") );
 		AppendPopupItem( child, MF_STRING, MNU_MINZOOM+9, WIDE("x64") );
@@ -74,12 +74,13 @@ MakeNamedControl( frame, WIDE("Click Me"), 0, 0, 256, 256, -1 );
 		AppendPopupItem( child, MF_STRING, MNU_MINZOOM+0, WIDE("x1/8") );
 		AppendPopupItem( Menu, MF_STRING|MF_POPUP, (PTRSZVAL)child, buffer );
 	}
-  	AppendPopupItem( Menu, MF_STRING, 1002, WIDE("&Options") );
+	AppendPopupItem( Menu, MF_STRING, 1002, WIDE("&Options") );
 	AppendPopupItem( Menu, MF_STRING, 1004, WIDE("E&xit") );
-   CommonWait( frame );
+	CommonWait( frame );
 	printf( WIDE("Menu result: %d\n"), TrackPopup( Menu, NULL ) );
-   return 0;
+	return 0;
 }
+EndSaneWinMain( )
 
 // $Log: menutest.c,v $
 // Revision 1.5  2003/11/04 23:59:52  panther

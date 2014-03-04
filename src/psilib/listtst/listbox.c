@@ -101,12 +101,13 @@ PSI_CONTROL CreateListTester( PSI_CONTROL parent )
    return pf;
 }
 
-int main( void )
+SaneWinMain( argc, argv )
 {
 	CommonWait( CreateListTester( CreateListTester( NULL ) ) );
 	//SetSystemLog( SYSLOG_NONE, 0 );
 	return 0;
 }
+EndSaneWinMain()
 
 // $Log: listbox.c,v $
 // Revision 1.23  2005/05/17 18:37:33  jim

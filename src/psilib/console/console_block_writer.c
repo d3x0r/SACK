@@ -18,7 +18,7 @@ void FormatTextToBlock( CTEXTSTR input, TEXTSTR *output, int char_width, int cha
 	console = New( CONSOLE_INFO );
 	MemSet( console, 0, sizeof( CONSOLE_INFO ) );
 	{
-   		//console->common.pName = SegCreateFromText( "Auto Console" );
+		//console->common.pName = SegCreateFromText( "Auto Console" );
 		//Log( "Create frame!!" );
 		console->psicon.frame = NULL;
 

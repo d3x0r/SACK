@@ -19,7 +19,7 @@ static void AddUpdateRegion( PPENDING_RECT update_rect, S_32 x, S_32 y, _32 wd, 
 	if( !update_rect->flags.bTmpRect )
 	{
 		if( !update_rect->flags.bHasContent )
-         MemSet( &update_rect->cs, 0, sizeof( update_rect->cs ) );
+			MemSet( &update_rect->cs, 0, sizeof( update_rect->cs ) );
 		EnterCriticalSec( &update_rect->cs );
 	}
 #endif
@@ -43,15 +43,15 @@ static void AddUpdateRegion( PPENDING_RECT update_rect, S_32 x, S_32 y, _32 wd, 
 			if( y + ht > update_rect->y + update_rect->height )
 				update_rect->height = ( y + ht ) - update_rect->y;
 			//lprintf( "result (%d,%d)-(%d,%d)"
-          //      , update_rect->x, update_rect->y
-          //      , update_rect->width, update_rect->height
+			//      , update_rect->x, update_rect->y
+			//      , update_rect->width, update_rect->height
 			 //  	 );
 		}
 		else
 		{
 			//_lprintf( DBG_AVAILABLE, "Setting (%d,%d)-(%d,%d)" DBG_RELAY
 			//		 , x, y
-         //       , wd, ht
+			//       , wd, ht
 			//		 );
 			update_rect->x = x;
 			update_rect->y = y;
@@ -82,7 +82,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 	// no command line...
 	if( !pdp->CommandInfo )
 	{
-      // region->bHasContent = 0?
+		// region->bHasContent = 0?
 		return;
 	}
 	if( !region )
@@ -95,25 +95,25 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 	if( pdp->SetCurrentColor )
 		pdp->SetCurrentColor( pdp, COLOR_COMMAND, NULL );//pdp->crCommand, pdp->crCommandBackground );
 
-   // if in direct mode, the exisiting prompt should indicate
-   // the current macro recording... well of course if there
-   // is no prompt variable, then this should still be generated
-   // in which case... uhmm hmm....
+	// if in direct mode, the exisiting prompt should indicate
+	// the current macro recording... well of course if there
+	// is no prompt variable, then this should still be generated
+	// in which case... uhmm hmm....
 	{
 		extern int GetCommandCursor( PHISTORY_BROWSER phbr
 						  , PUSER_INPUT_BUFFER CommandInfo
 						  , int bEndOfStream
-                    , int *command_offset
+		                    , int *command_offset
 						  , int *command_begin
-                    , int *command_end
+		                    , int *command_end
 						  );
 
 	nCursorPos = GetCommandCursor( pdp->pCurrentDisplay
 										  , pdp->CommandInfo
-                                , pdp->flags.bDirect
-                                , &nCurrentCol
-                                , &start
-                                , &end );
+	                            , pdp->flags.bDirect
+	                            , &nCurrentCol
+	                            , &start
+	                            , &end );
 	}
 	// nYpad at bottom of screen, font height up begins the top of the
 	// output text line...
@@ -136,16 +136,16 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
            */
    if( !nCurrentCol )
    {
-      // need to blatcolor for the 5 pixels left of first char...
-      r.left = 0;
+		// need to blatcolor for the 5 pixels left of first char...
+		r.left = 0;
 		r.right = pdp->nXPad;
 		if( pdp->FillConsoleRect )
 		{
-         lprintf( WIDE( "draw blank to left %d-%d" ), r.left, r.right );
-         pdp->FillConsoleRect( pdp, &r, FILL_COMMAND_BACK );
+			lprintf( WIDE( "draw blank to left %d-%d" ), r.left, r.right );
+			pdp->FillConsoleRect( pdp, &r, FILL_COMMAND_BACK );
 		}
-      upd.left = 0;
-   }
+		upd.left = 0;
+	}
 	else
 	{
 		if( pdp->flags.bDirect )
@@ -536,7 +536,7 @@ TEXTCHAR *PSI_GetDataFromBlock( PCONSOLE_INFO pdp )
 	int line_start = pdp->mark_start.row;
 	int col_start = pdp->mark_start.col;
 	int line_end = pdp->mark_end.row;
-	INDEX col_end = pdp->mark_end.col;
+	INDEX col_end = pdp->mark_end.col + 1;
 	int bBlock = FALSE;
 	// 2 characters to stuff in \r\n on newline.
 	TEXTCHAR *result = NewArray( TEXTCHAR, ( ( line_start - line_end ) + 1 ) * (pdp->nColumns + 2) );
@@ -569,7 +569,7 @@ TEXTCHAR *PSI_GetDataFromBlock( PCONSOLE_INFO pdp )
 			}
 			for( ;
 				 (S_64)col < (bBlock?(col_end)
-								  : ( line == line_end ? col_end
+								  : ( line == line_end ? (col_end)
 									  : pdp->nColumns ));
 				  col++ )
 			{

@@ -1,7 +1,7 @@
 #include <controls.h>
 #include <timers.h>
 
-int main( void )
+SaneWinMain( argc, argv )
 {
 	PCOMMON pc = CreateFrame( WIDE("Test Dynamic edits"), 256, 256, 0, 0, 0, NULL );
 	EditFrame( pc, TRUE );
@@ -9,4 +9,5 @@ int main( void )
 	WakeableSleep( SLEEP_FOREVER );
 	return 0;
 }
+EndSaneWinMain()
 
