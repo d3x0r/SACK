@@ -10,42 +10,46 @@ int main( int argc, char **argv )
 	for( n= 1; n < argc; n++ )
 		vtprintf( pvt, WIDE("%s%s"), n==1?WIDE(""):WIDE(" "), argv[n] );
 
-   //lprintf( "-------------------- BEGIN ----------------------" );
-   //DebugDumpMemEx( 1 );
+	printf( "Test input: (%s)\n", GetText( VarTextPeek( pvt ) ) );
 
-	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
-   Release( result );
-	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
-   Release( result );
-	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
-   Release( result );
-	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
-   Release( result );
-	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
-   Release( result );
-	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
-   Release( result );
-	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
-   Release( result );
-	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
-   Release( result );
-	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
-   Release( result );
-	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
-   Release( result );
-	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
-   Release( result );
-	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
-   Release( result );
-	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
-   Release( result );
-	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
-	Release( result );
-
-   //lprintf( "-------------------- END ----------------------" );
+	//lprintf( "-------------------- BEGIN ----------------------" );
 	//DebugDumpMemEx( 1 );
 
-   return 0;
+	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
+	printf( "output : (%s)\n", result );
+	Release( result );
+#if 0
+	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
+	Release( result );
+	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
+	Release( result );
+	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
+	Release( result );
+	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
+	Release( result );
+	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
+	Release( result );
+	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
+	Release( result );
+	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
+	Release( result );
+	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
+	Release( result );
+	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
+	Release( result );
+	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
+	Release( result );
+	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
+	Release( result );
+	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
+	Release( result );
+	FormatTextToBlock( GetText( VarTextPeek( pvt ) ), &result, 20, 5 );
+	Release( result );
+#endif
+	//lprintf( "-------------------- END ----------------------" );
+	//DebugDumpMemEx( 1 );
+
+	return 0;
 }
 
 

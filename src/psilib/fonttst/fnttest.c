@@ -45,7 +45,7 @@ static int CPROC DrawFont( PCOMMON renderer )
 
 //-------------------------------------------------------------------------
 
-int main( int argc, char **argv )
+SaneWinMain( argc, argv )
 {
 	SFTFont font;
 	POINTER fontdata = NULL;
@@ -147,6 +147,7 @@ int main( int argc, char **argv )
 	//DebugDumpMemFile( WIDE("memory.dump") );
 	return 0;
 }
+EndSaneWinMain(  )
 // $Log: fnttest.c,v $
 // Revision 1.21  2005/03/30 03:26:37  panther
 // Checkpoint on stabilizing display projects, and the exiting thereof

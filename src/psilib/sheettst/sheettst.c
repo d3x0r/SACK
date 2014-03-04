@@ -16,19 +16,19 @@ PCOMMON MakePages( PCOMMON frame )
 	PCOMMON sheets;
 	PCOMMON sheet[3];
 	CDATA cActive = BASE_COLOR_BLACK;
-   CDATA cInactive = BASE_COLOR_WHITE;
+	CDATA cInactive = BASE_COLOR_WHITE;
 	_32 width, height;
 	Image surface = GetControlSurface( frame );
 	width = surface->width;
-   height = surface->height;
+	height = surface->height;
 	//GetImageSize( GetControlSurface( frame ), &width, &height );
 	Log2( WIDE("Making sheet control %") _32f WIDE(" by %") _32f WIDE(""), width, height );
 	sheets = MakeSheetControl( frame, 5, 5, width - 10, height - 10 - (first?(COMMON_BUTTON_PAD + COMMON_BUTTON_HEIGHT):0), SHT_SHEETS );
-   SetTabImages( sheets, active, inactive );
-   SetTabTextColors( sheets, cActive, cInactive );
+	SetTabImages( sheets, active, inactive );
+	SetTabTextColors( sheets, cActive, cInactive );
 	first = 0;
 	GetSheetSize( sheets, &width, &height );
-   Log2( WIDE("Pages are %") _32f WIDE(" by %") _32f WIDE(""), width, height );
+	Log2( WIDE("Pages are %") _32f WIDE(" by %") _32f WIDE(""), width, height );
 	sheet[0] = CreateFrame( WIDE("One"), 0, 0, width, height, BORDER_FIXED|BORDER_NOCAPTION|BORDER_WITHIN|BORDER_NONE, sheets );
 	SetControlID( sheet[0], SHT_ONE );
 	//MakeTextControl( sheet[0], 0, 5, 5, width - 10, 15, TXT_STATIC, WIDE("Sheet One") );
@@ -44,13 +44,13 @@ PCOMMON MakePages( PCOMMON frame )
 	//AddSheet( sheets, sheet[0] );
 	//AddSheet( sheets, sheet[1] );
 	//AddSheet( sheets, sheet[2] );
-   return (PCOMMON)sheet[0];
+	return (PCOMMON)sheet[0];
 }
 
-int main( int argc, char **argv )
+SaneWinMain( argc, argv )
 {
 	{
-      PCOMMON frame;
+		PCOMMON frame;
 		active = LoadImageFile( WIDE("whitetab.png") );
 		inactive = LoadImageFile( WIDE("blacktab.png") );
 		frame = CreateFrame( WIDE("Sheet Test"), 0, 0, 480, 320, BORDER_NORMAL, NULL );
@@ -62,10 +62,10 @@ int main( int argc, char **argv )
 				FRACTION f = { 1, 1 };
 				SetFrameFont( frame, RenderFontFile( WIDE("arialbd.ttf"), 20, 20, 3 ) );
 				// reset the scaling from the font (do allow it to scale the outer frame)
-            // (this gives us a bigger surface for better visibility)
-            SetCommonScale( frame, &f, &f );
+				// (this gives us a bigger surface for better visibility)
+				SetCommonScale( frame, &f, &f );
 			}
-         MakePages( MakePages( MakePages( MakePages( frame ) ) ) );
+			MakePages( MakePages( MakePages( MakePages( frame ) ) ) );
 			AddCommonButtons( frame, &done, &okay );
 			DisplayFrame( frame );
 			CommonLoop( &done, &okay );
@@ -73,6 +73,7 @@ int main( int argc, char **argv )
 	}
 	return 0;
 }
+EndSaneWinMain(  )
 
 //---------------------------------------------------------------------------
 //
