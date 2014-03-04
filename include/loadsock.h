@@ -88,7 +88,8 @@ struct win_in_addr {
                 struct { _16 s_w1,s_w2; } S_un_w;
                 _32 S_addr;
         } S_un;
-   
+
+#ifndef __ANDROID__
 #define s_addr  S_un.S_addr
                                 /* can be used for most tcp & ip code */
 #define s_host  S_un.S_un_b.s_b2
@@ -100,7 +101,8 @@ struct win_in_addr {
 #define s_impno S_un.S_un_b.s_b4
                                 /* imp # */
 #define s_lh    S_un.S_un_b.s_b3
-                                /* logical host */
+		  /* logical host */
+#endif
 };
 
 

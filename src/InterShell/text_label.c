@@ -465,7 +465,14 @@ CTEXTSTR InterShell_GetControlLabelText( PMENU_BUTTON button, PPAGE_LABEL label,
 						StrCpyEx( tmp, variable+1, (env-variable) );
 						//lprintf( WIDE("failed var try %s"), tmp );
 #ifdef HAVE_ENVIRONMENT
-						env_var = OSALOT_GetEnvironmentVariable( tmp );
+#ifdef __ANDROID__
+						if( StrCaseCmp( tmp, "hostname" ) == 0 ||
+							StrCaseCmp( tmp, "computername" ) == 0 )
+							env_var = GetSystemName();
+                  else
+#endif
+							env_var = OSALOT_GetEnvironmentVariable( tmp );
+						lprintf( "test %s=%s", tmp, env_var );
 						if( env_var )
 						{
 							nOutput += snprintf( output + nOutput, sizeof( output ) - (nOutput - 1)*sizeof(TEXTCHAR)
