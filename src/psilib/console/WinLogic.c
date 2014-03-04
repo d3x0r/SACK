@@ -568,10 +568,10 @@ TEXTCHAR *PSI_GetDataFromBlock( PCONSOLE_INFO pdp )
 				_priorline = pdl->nLine;
 			}
 			for( ;
-				 (S_64)col < (bBlock?(col_end)
-								  : ( line == line_end ? (col_end)
-									  : pdp->nColumns ));
-				  col++ )
+			     (S_64)col < (bBlock?(col_end)
+			                       : ( line == line_end ? (col_end)
+			                                            : pdp->nColumns ));
+			     col++ )
 			{
 				if( GetCharFromLine( pdp->nColumns, pdl, col, result + ofs ) )
 				{
