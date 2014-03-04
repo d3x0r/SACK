@@ -309,7 +309,7 @@ PTRSZVAL closesem( POINTER p, PTRSZVAL psv )
    return 0;
 }
 
-// sharemem exit priority +1 (exit after everything else, except emmory)
+// sharemem exit priority +1 (exit after everything else, except emmory; globals at memory+1)
 PRIORITY_ATEXIT( CloseAllWakeups, ATEXIT_PRIORITY_THREAD_SEMS )
 {
 	//pid_t mypid = getppid();
@@ -331,6 +331,8 @@ PRIORITY_ATEXIT( StopTimers, ATEXIT_PRIORITY_TIMERS )
 	g.flags.bExited = 1;
 	if( g.pTimerThread )
 		WakeThread( g.pTimerThread );
+	while( g.pTimerThread )
+      Relinquish();
 }
 //--------------------------------------------------------------------------
 
@@ -1121,7 +1123,8 @@ void  UnmakeThread( void )
 		//	pThread->next->me = pThread->me;
 #ifdef _WIN32
 		Deallocate( TEXTSTR, pThread->thread_event->name );
-		DeleteLink( &g.thread_events, pThread->thread_event );
+		if( global_timer_structure )
+			DeleteLink( &g.thread_events, pThread->thread_event );
 		Deallocate( PTHREAD_EVENT, pThread->thread_event );
 #endif
 		DeleteFromSet( THREAD, g.threadset, pThread ) /*Release( pThread )*/;
@@ -1928,6 +1931,7 @@ PTRSZVAL CPROC ThreadProc( PTHREAD pThread )
 	g.last_tick = timeGetTime();//GetTickCount();
 	while( ProcessTimers( 1 ) > 0 );
 	Log( WIDE("Timer thread is exiting...") );
+	g.pTimerThread = NULL;
 	return 0;
 }
 
