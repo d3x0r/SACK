@@ -170,7 +170,6 @@ void OpenEGL( struct display_camera *camera, NativeWindowType displayWindow )
 void EnableEGLContext( struct display_camera *camera )
 {
    static EGLDisplay prior_display;
-	//lprintf( "Enable context %p", camera );
 	if( camera )
 	{
 		/* connect the context to the surface */

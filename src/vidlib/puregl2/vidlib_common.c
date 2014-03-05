@@ -345,8 +345,12 @@ void LoadOptions( void )
 	//int some_width;
 	//int some_height;
 	//HostSystem_InitDisplayInfo();
+#ifndef __ANDROID__
+   // these come in courtesy of the android system...
 	l.default_display_x = 1024;
-   l.default_display_y = 768;
+	l.default_display_y = 768;
+#endif
+
 #ifndef __NO_OPTIONS__
    	l.flags.bLogRenderTiming = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Log Render Timing"), 0, TRUE );
 	l.flags.bView360 = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/360 view"), 0, TRUE );
