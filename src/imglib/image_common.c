@@ -748,8 +748,8 @@ static void SmearFlag( Image image, int flag )
 					UnmakeImageFile( pif->pParent );
 			}
 		}
-      lprintf( "Unmake image file %p", pif );
-      DeleteFromSet( ImageFile, &image_common_local.Images, pif );
+		//lprintf( "Unmake image file %p", pif );
+		DeleteFromSet( ImageFile, &image_common_local.Images, pif );
 		//ReleaseEx( pif DBG_RELAY );
 	}
 }
