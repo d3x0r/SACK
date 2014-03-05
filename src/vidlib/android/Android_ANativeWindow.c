@@ -67,7 +67,7 @@ static void CPROC DefaultMouse( PVPRENDER r, S_32 x, S_32 y, _32 b )
 	}
 	if( ( tick - mouse_first_click_tick_changed ) > 500 ) 
 	{
-		lprintf( "Allowed move..." );
+		//lprintf( "Allowed move..." );
 		if( !r->flags.fullscreen || r->flags.not_fullscreen )
 		{
 			static int l_lock_x;
@@ -487,10 +487,13 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 		// don't render anything else
 		if( l.flags.full_screen_renderer && !l.full_screen_display->flags.not_fullscreen )
 			if( ((PVPRENDER)r) != l.full_screen_display )
+			{
+				//lprintf( "not the fullscreen display.." );
 				return;
+			}
 		if( ((PVPRENDER)r)->flags.hidden )
 		{
-			lprintf( "hidden; not showing..." );
+			//lprintf( "hidden; not showing..." );
 			// if it's not hidden it shouldn't be doing an update...
 			return;
 		}
@@ -514,7 +517,7 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 	{
 		if( (int)width < (-out_x ) )
 		{
-			//lprintf( "fail" );
+			//lprintf( "fail  %d < %d", width, -out_x );
 			return;
 		}
 		width += out_x;
@@ -525,15 +528,17 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 	{
 		if( (int)height < -out_y )
 		{
-			//lprintf( "fail" );
+			//lprintf( "fail  %d < %d", height, -out_y );
 			return;
 		}
 		height += out_y;
 		out_y = 0;
 	}
+	//lprintf( "enter crit..." );
 	EnterCriticalSec( &l.cs_update );
 	if( l.flags.display_closed )
 	{
+		//lprintf( "We closed...; no draw" );
 		LeaveCriticalSec( &l.cs_update );
 		return;
 	}
@@ -557,7 +562,7 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 		bounds.top = out_y;
 		bounds.right = out_x + width;
 		bounds.bottom = out_y + height;
-      //_lprintf(DBG_RELAY)( "Native window lock..." );
+		//_lprintf(DBG_RELAY)( "Native window lock..." );
 		ANativeWindow_lock( l.displayWindow, &buffer, &bounds );
 		//lprintf( "---V Update screen %p %p %d,%d  %d,%d   %d,%d   %d,%d"
 		//		 , r, l.top, out_x, out_y, out_y+width, out_y+height
@@ -567,6 +572,8 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 		//lprintf( "---^ And the final unlock...." );
 		ANativeWindow_unlockAndPost(l.displayWindow);
 	}
+	//else
+	//   lprintf( "Display is paused..." );
 	LeaveCriticalSec( &l.cs_update );
 	//lprintf( "update end" );
 }
@@ -735,6 +742,7 @@ static void CPROC AndroidANW_Redraw( PRENDERER r )
 	PVPRENDER render = (PVPRENDER)r;
 	if( !render->flags.hidden )
 	{
+		//lprintf( "wait for critical sec" );
 		EnterCriticalSec( &l.cs_update );
 		//lprintf( "Sending application draw.... %p %p", render?render->redraw:0, render );
 		if( render->redraw )
@@ -742,6 +750,8 @@ static void CPROC AndroidANW_Redraw( PRENDERER r )
 		AndroidANW_UpdateDisplayEx( r DBG_SRC );
 		LeaveCriticalSec( &l.cs_update );
 	}
+	//else
+	//   lprintf( "This display is hidden..." );
 }
 
 static void CPROC AndroidANW_SetRedrawHandler  ( PRENDERER r, RedrawCallback c, PTRSZVAL p )
@@ -1125,6 +1135,7 @@ void SACK_Vidlib_SetNativeWindowHandle( ANativeWindow *displayWindow )
 	EnterCriticalSec( &l.cs_update );
 	new_w = ANativeWindow_getWidth( l.displayWindow);
 	new_h = ANativeWindow_getHeight( l.displayWindow);
+	// got a new display; no longer closed.
 
 	if( new_w != l.default_display_x || new_h != l.default_display_y )
 	{
@@ -1146,9 +1157,9 @@ void SACK_Vidlib_SetNativeWindowHandle( ANativeWindow *displayWindow )
 
       //InvokeDisplaySizeChange( NULL, 0, 0, 0, new_w, new_h );
 
-		lprintf( "Format is :%dx%d %d", l.default_display_x, l.default_display_y, ANativeWindow_getFormat( displayWindow ) );
+		//lprintf( "Format is :%dx%d %d", l.default_display_x, l.default_display_y, ANativeWindow_getFormat( displayWindow ) );
 		ANativeWindow_setBuffersGeometry( displayWindow,l.default_display_x,l.default_display_y,WINDOW_FORMAT_RGBA_8888);
-		lprintf( "Format is :%dx%d %d", l.default_display_x, l.default_display_y, ANativeWindow_getFormat( displayWindow ) );
+		//lprintf( "Format is :%dx%d %d", l.default_display_x, l.default_display_y, ANativeWindow_getFormat( displayWindow ) );
 		if( !l.flags.full_screen_renderer || l.full_screen_display->flags.not_fullscreen )
 		{
 			// make sure the buffer is what I think it should be...
@@ -1160,7 +1171,6 @@ void SACK_Vidlib_SetNativeWindowHandle( ANativeWindow *displayWindow )
 			//ANativeWindow_setBuffersGeometry( displayWindow,l.full_screen_display->w,l.full_screen_display->h,WINDOW_FORMAT_RGBA_8888);
 			// set to the size of this buffer.
 		}
-		l.flags.display_closed = 0;
 
 		for( check = l.top; check; check = check->above )
 		{
@@ -1177,6 +1187,7 @@ void SACK_Vidlib_SetNativeWindowHandle( ANativeWindow *displayWindow )
 			}
 		}
 	}
+	l.flags.display_closed = 0;
 	LeaveCriticalSec( &l.cs_update );
 	//lprintf( "Format is :%dx%d %d", l.default_display_x, l.default_display_y, ANativeWindow_getFormat( displayWindow ) );
 }
@@ -1185,11 +1196,10 @@ void SACK_Vidlib_SetNativeWindowHandle( ANativeWindow *displayWindow )
 void SACK_Vidlib_DoFirstRender( void )
 {
 	/* no render pass; should return FALSE or somethig to stop animating... */
-	INDEX idx;
 	PVPRENDER render;
-	LIST_FORALL( l.renderers, idx, PVPRENDER, render )
+	for( render = l.bottom; render; render = render->under )
 	{
-		lprintf( "RENDER PASS UPDATE..." );
+		//lprintf( "RENDER PASS UPDATE..." );
 		AndroidANW_Redraw( (PRENDERER)render );
 	}
 }
@@ -1227,10 +1237,14 @@ int SACK_Vidlib_SendTouchEvents( int nPoints, PINPUT_POINT points )
 void SACK_Vidlib_CloseDisplay( void )
 {
 	EnterCriticalSec( &l.cs_update );
-   l.flags.display_closed = 1;
+	l.flags.display_closed = 1;
+	// make sure size is different on new display so
+	// the buffer is set correctly
+	l.default_display_x = 0;
+	l.default_display_y = 0;
 	LeaveCriticalSec( &l.cs_update );
 	// not much to do...
-	lprintf( "ya... not much to do...." );
+	//lprintf( "display marked as closed; no more draws..." );
    //if( fullscreen_display
 }
 
@@ -1301,6 +1315,7 @@ static void InvokeResume( void )
 
 void SACK_Vidlib_PauseDisplay( void )
 {
+	//lprintf( "pause..." );
 	l.flags.paused = 1;
 	InvokePause();
 	// just make sure that any current draw is completed, next output will short-circuit.
@@ -1312,6 +1327,7 @@ void SACK_Vidlib_PauseDisplay( void )
 
 void SACK_Vidlib_ResumeDisplay( void )
 {
+	//lprintf( "unpause..." );
 	l.flags.paused = 0;
 	InvokeResume();
 }
