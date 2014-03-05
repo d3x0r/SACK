@@ -513,7 +513,7 @@ static void SmearFlag( Image image, int flag )
 	ImageFile *p;
 	//if( !pImage )
 	// return NULL;
-	p = (ImageFile*)AllocateEx( sizeof( ImageFile ) DBG_RELAY );
+	p = GetFromSet( ImageFile, &image_common_local.Images );//(ImageFile*)AllocateEx( sizeof( ImageFile ) DBG_RELAY );
 	p->flags = 0;
 	p->width = p->real_width = width;
 	p->height = p->real_height = height;
@@ -559,7 +559,7 @@ static void SmearFlag( Image image, int flag )
  ImageFile * BuildImageFileEx ( PCOLOR pc, _32 Width, _32 Height DBG_PASS )
 {
 	ImageFile *p;
-	p = (ImageFile*)AllocateEx( sizeof( ImageFile ) DBG_RELAY);
+	p = GetFromSet( ImageFile, &image_common_local.Images );//(ImageFile*)AllocateEx( sizeof( ImageFile ) DBG_RELAY);
 	p->flags = 0;
 	p->eff_x = p->x = p->real_x = 0;
 	p->eff_y = p->y = p->real_y = 0;
@@ -708,6 +708,8 @@ static void SmearFlag( Image image, int flag )
 			}
 		}
 
+		if( pif->extra_close )
+			pif->extra_close( pif );
 		if( pif->reverse_interface )
 		{
 			PIMAGE_INTERFACE interfc = pif->reverse_interface;
@@ -746,7 +748,9 @@ static void SmearFlag( Image image, int flag )
 					UnmakeImageFile( pif->pParent );
 			}
 		}
-		ReleaseEx( pif DBG_RELAY );
+      lprintf( "Unmake image file %p", pif );
+      DeleteFromSet( ImageFile, &image_common_local.Images, pif );
+		//ReleaseEx( pif DBG_RELAY );
 	}
 }
 

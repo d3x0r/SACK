@@ -59,7 +59,7 @@ static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psv )
 #endif
 	tmp = 123;
 	glGetBooleanv( GL_SHADER_COMPILER, &tmp );
-	//lprintf( WIDE("Shader Compiler = %d"), tmp );
+	lprintf( WIDE("Shader Compiler = %d"), tmp );
 	if( !tmp )
 	{
 		lprintf( WIDE("No Shader Compiler") );
@@ -117,16 +117,21 @@ static PTRSZVAL CPROC ReleaseTexture( POINTER p, PTRSZVAL psv )
 {
    Image image = (Image)p;
 	struct glSurfaceData *glSurface = ((struct glSurfaceData *)psv);
-   // if this image has no gl surfaces don't check it (it might make some)
+	// if this image has no gl surfaces don't check it (it might make some)
+   //lprintf( "Release Texture %p", p );
 	if( !image->glSurface )
-      return 0;
+	{
+      // didn't download this texture to opengl
+		//lprintf( "ReleaseTextures: no glSurface" );
+		return 0;
+	}
 	if( glSurface )
 	{
 		struct glSurfaceImageData *image_data =
 			(struct glSurfaceImageData *)GetLink( &image->glSurface, glSurface->index );
 		if( image_data && image_data->glIndex )
 		{
-			lprintf( WIDE("Release Texture %d"), image_data->glIndex );
+			//lprintf( WIDE("Release Texture %d"), image_data->glIndex );
 			glDeleteTextures( 1, &image_data->glIndex );
 			image_data->glIndex = 0;
 		}
@@ -135,9 +140,10 @@ static PTRSZVAL CPROC ReleaseTexture( POINTER p, PTRSZVAL psv )
 	{
 		INDEX idx;
 		struct glSurfaceImageData * image_data;
+      //lprintf( "no surf..." );
 		LIST_FORALL( image->glSurface, idx, struct glSurfaceImageData *, image_data )
 		{
-			lprintf( WIDE("Release Texture %d"), image_data->glIndex );
+			//lprintf( WIDE("Release Texture %d"), image_data->glIndex );
 			glDeleteTextures( 1, &image_data->glIndex );
 			image_data->glIndex = 0;
 		}
@@ -147,15 +153,15 @@ static PTRSZVAL CPROC ReleaseTexture( POINTER p, PTRSZVAL psv )
 
 static void ReleaseTextures( struct glSurfaceData *glSurface )
 {
-   ForAllInSet( ImageFile, l.Images, ReleaseTexture, (PTRSZVAL)glSurface );
+   ForAllInSet( ImageFile, image_common_local.Images, ReleaseTexture, (PTRSZVAL)glSurface );
 }
 
 static void OnClose3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psvInit )
 {
 	struct glSurfaceData *glSurface = (struct glSurfaceData *)psvInit;
-	lprintf( WIDE("Should be cleaning up shaders here...") );
+	//lprintf( WIDE("cleaning up shaders here...") );
 	CloseShaders( glSurface );
-   lprintf( WIDE("and we need to release our textures; so they can be recreated") );
+   //lprintf( WIDE("and we release textures; so they can be recreated") );
    ReleaseTextures( glSurface );
 }
 
@@ -164,6 +170,7 @@ static void OnBeginDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psvIni
 	l.glActiveSurface = (struct glSurfaceData *)psvInit;
 	l.glImageIndex = l.glActiveSurface->index;
 	l.camera = camera;
+   //PrintMatrixEx( "camera", (POINTER)camera DBG_SRC );
 	l.flags.projection_read = 0;
 	l.flags.worldview_read = 0;
    // reset matrix settings
@@ -204,7 +211,8 @@ int ReloadOpenGlTexture( Image child_image, int option )
 					lprintf( WIDE( "gen text %d or bad surafce" ), glGetError() );
 					return 0;
 				}
-            lprintf( WIDE("texture is %d"), image_data->glIndex );
+
+            //lprintf( WIDE("texture is %p %p %d"), image, image_data, image_data->glIndex );
             image_data->flags.updated = 1;
 			}
 			if( image_data->flags.updated )
@@ -268,6 +276,19 @@ int ReloadOpenGlMultiShadedTexture( Image child_image, int option, CDATA r, CDAT
 	}
 }
 
+static void CloseGLTextures( Image image )
+{
+	INDEX idx;
+	struct glSurfaceImageData * image_data;
+	LIST_FORALL( image->glSurface, idx, struct glSurfaceImageData *, image_data )
+	{
+		//lprintf( WIDE("Release Texture %d"), image_data->glIndex );
+		glDeleteTextures( 1, &image_data->glIndex );
+		image_data->glIndex = 0;
+	}
+   DeleteList( &image->glSurface );
+}
+
 //------------------------------------------
 
 
@@ -289,9 +310,11 @@ void MarkImageUpdated( Image child_image )
 			if( !image_data )
 			{
 				image_data = New( struct glSurfaceImageData );
+            //lprintf( "add %p to image %p index %d", image_data, image, idx );
 				image_data->glIndex = 0;
 				image_data->flags.updated = 1;
 				SetLink( &image->glSurface, idx, image_data );
+				image->extra_close = CloseGLTextures;
 			}
 			if( image_data->glIndex )
 			{
@@ -423,6 +446,14 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 
 		EnableShader( l.simple_shader, v[vi], _color );
 		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+		CheckErr();
+      if( 0)
+		{
+			int n;
+			for( n = 0; n < 4; n++ )
+            lprintf( "point %g,%g,%g", v[vi][n][0], v[vi][n][1], v[vi][n][2] );
+			lprintf( "Drew triangle strip, %08x", color );
+		}
 	}
 	else
 	{
