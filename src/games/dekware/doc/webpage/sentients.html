@@ -1,0 +1,65 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<center><font size=+3></font></center>
+<p><a href="objects.html">Return to Object Page</a>
+<br>
+<p>Objects which are aware (made active via the WAKE command) have two
+datapaths; the command datapath, and the data datapath.&nbsp; A datapath is a 
+queue or stream of lines.&nbsp; The command datapath is where the objects
+gets it's orders to perform.&nbsp; The default command path is not assigned
+to a device, therefore the only way to issue commands is to TELL the object
+commands to perform.&nbsp;  The COMMAND command will assign the command 
+datapath to a device.&nbsp; 
+The data datapath is a stream from a device, and may be accessed using GETLINE,
+GETWORD, and GETPARTIAL.&nbsp; An object may only have 
+one device opened for a datapath.&nbsp; More information on using devices
+is in the next section.&nbsp; This section only details very basic usage of
+aware objects.
+<p>First, set up some things....
+<menu>/create shelf<br>
+/grab shelf<br>
+/drop shelf</menu>
+<p>Create an agent object...
+<menu>/create agent</menu>
+<p>Creates an object called agent (contained within MOOSE).&nbsp; One option 
+is to use the current awareness to control the new object...
+<menu>/become agent</menu>
+<p>The become command allows you to change what object is the one considered
+'active' for this sentience.&nbsp; Only objects which can be seen and
+are inactive are valid targets for this command.&nbsp; For possible result 
+messages please look at the command reference.&nbsp; The other method for 
+activating an object is to give it an awareness of its own...
+<menu>/wake agent</menu>
+<p>Probably one of the most important actions, WAKE gives an inanimate object
+a sentience, an ability to perform actions for itself.&nbsp; An object which
+has been awoken, cannot be the target of the BECOME command.&nbsp; The
+object which has become aware, now can be given commands via the TELL command.
+<menu>/tell agent /create book<br>
+ -or-<br>
+/agent/create book</menu>
+<p>Alternativly, if the object name does not overlap a command or macro for
+the current object, the object may be references as a command.&nbsp; Anything
+following the /[object name] part of the command is passed to the object as
+if TELL was used.&nbsp;
+The tell command requires the name of an object and a command line to give
+that object.&nbsp; If the object is not aware, or is not visible, a message
+reflecting this is generated.&nbsp; Once an object been contacted with a TELL,
+subsequent command may be shorted to "//".&nbsp; If the commands to the object
+cause the object to no longer be 'visible' to the commanding object, the commands
+will still be told to the object.
+<menu>//grab book <br>
+//leave <br>
+//enter shelf </menu>
+<p>At this point, MOOSE cannot see 'agent' but commands using '//' will still 
+be told to the agent...
+<menu>//drop book<br>
+//leave<br>
+/look in shelf </menu>
+<p>Note this last command has a single '/', this is a command to be performed
+for the current active object.&nbsp; MOOSE will look into the shelf and list 
+the contents...
+<menu>shelf contains: book.</menu>
+<p><a href="objects.html">Return to Object Page</a>
+</BODY>
+</HTML>

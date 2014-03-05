@@ -1,0 +1,143 @@
+AFD "Area Forecast Discussion" stop
+AIR "Upper Air (Data)" stop
+APT "Polar Orbiter Images" stop
+ASH "Volcanic/FIRE Warnings and reports" stop
+AWS "Area Weather Summary" stop
+CEM "Civil Emergency Message" stop
+CFW "Coastal Flood Warning" stop
+CHT "Charts DIFAX/WEFAX" stop
+CLI "Climate Reports" stop
+CMP "Composite Images(CMPALLUS.GIF)" stop
+CMP "Compressed Files (CMPMxxxx.ZAG)" stop
+CWF "Coastal Waters Forecast" stop
+DY1 "Day One Convective Outlook" stop
+DY2 "Day Two Convective Outlook" stop
+ELN "El 'Nino images" stop
+EMA "Emergency manager activation msg." stop
+EML "Email (wireless)" stop
+EPH "Ephemeris data for satellite orbits" stop
+EQR "Earthquake Data" stop
+ESF "Flood Potential" stop
+ESS "Water Supply Forecast" stop
+FAA "Aviation Reports (Pilot briefs)" stop
+FEE "Feedback to all users" stop
+FFW "Flash Flood Warning" stop
+FFA "Flash Flood Advisory" stop
+FFS "Flash Flood Statement" stop
+FLS "Flood River Statement" stop
+FLN "National Flood Summary" stop
+FLW "Flood Warning" stop
+FWF "Fire Weather Forecast" stop
+GLF "Great Lakes Forecast" stop
+GLO "Great Lake Outlook" stop
+GLS "Great Lakes Summary" stop
+GMS "GMS Satellite Images" stop
+GO9 "GOES 9 Satellite Images" stop
+G10 "GOES 10 Satellite Images" stop
+GPH "Graphic Files (AFOS Graphics)" stop
+HAA "Hurricane Probabilities Atlantic" stop
+HAD "Hurricane Discussion Atlantic" stop
+HAF "Hurricane Forecast Advisory Atlantic" stop
+HAM "Hurricane NCEP Model Comparison Atlantic" stop
+HAP "Hurricane Public Advisory Atlantic" stop
+HAS "Hurricane Monthly Summary Atlantic" stop
+HAT "NCEP Tropical Discussion Atlantic" stop
+HAW "Tropical Weather Outlook Atlantic" stop
+HEA "Hurricane Probabilities East Pacific" stop
+HED "Hurricane Discussion East Pacific" stop
+HEF "Hurricane Forecast Advisory East Pacific" stop
+HEM "Hurricane NCEP Model Comparison East Pacific" stop
+HEP "Hurricane Public Advisory East Pacific" stop
+HES "Hurricane Monthly Summary East Pacific" stop
+HET "NCEP Tropical Discussion East Pacific" stop
+HEW "Tropical Weather Outlook East Pacific" stop
+HFF "High Seas Forecast" stop
+HLS "Hurricane Local Statement" stop
+HNA "Hurricane Probabilities North Pacific" stop
+HND "Hurricane Discussion North Pacific" stop
+HNF "Hurricane Forecast Advisory North Pacific" stop
+HNM "Hurricane NCEP Model Comparison North Pacific" stop
+HNP "Hurricane Public Advisory North Pacific" stop
+HNS "Hurricane Monthly Summary North Pacific" stop
+HNT "NCEP Tropical Discussion North Pacific" stop
+HNW "Tropical Weather Outlook North Pacific" stop
+HSA "Hurricane Probabilities South Pacific" stop
+HSD "Hurricane Discussion South Pacific" stop
+HSF "Hurricane Forecast Advisory South Pacific" stop
+HSM "Hurricane NCEP Model Comparison South Pacific" stop
+HSP "Hurricane Public Advisory South Pacific" stop
+HST "NCEP Tropical Discussion South Pacific" stop
+HSS "Hurricane Monthly Summary South Pacific" stop
+HSW "Tropical Weather Outlook South Pacific" stop
+HWA "Hurricane Probabilities West Pacific" stop
+HWD "Hurricane Discussion West Pacific" stop
+HWF "Hurricane Forecast Advisory West Pacific" stop
+HWM "Hurricane NCEP Model Comparison West Pacific" stop
+HWP "Hurricane Public Advisory West Pacific" stop
+HWS "Hurricane Monthly Summary West Pacific" stop
+HWT "Hurricane NCEP Tropical Discussion West Pacific" stop
+HWU "Hazardous Weather Update" stop
+HWW "Tropical Weather Outlook West Pacific" stop
+HTM "HTML Documents" stop
+ICE "Ice Statement" stop
+IMG "General Images (IMGALLUS.GIF)" stop
+INT "International Overviews" stop
+LFP "Local Forecast" stop
+LGT "Lightning Images" stop
+LSH "Lake Shore Forecast" stop
+LSR "Local Storm Report" stop
+MET "Meteosat Images" stop
+MIS "Miscellaneous Products" stop
+MOD "Model Run Images" stop
+MWS "Marine Weather Statement" stop
+NAH "Agriculture Products (Intn'l /National)" stop
+NSH "Near Shore Forecast" stop
+NOW "NOWcasts (Short Term Forecast)" stop
+NPW "Non-precipitation Warning" stop
+NWX "National Weather Summary" stop
+OFF "Offshore Forecast" stop
+OMR "Other/Offshore Marine Reports" stop
+PAA "Pager Messages" stop
+PNS "Public Information Statements" stop
+PRO "Propagation Reports" stop
+PSR "Post Storm Report" stop
+RAD "Radar Images (RADALLUS.GIF)" stop
+REC "Recreation Forecasts" stop
+RER "Record Event Reports" stop
+RFW "Red Flag Warning (Fire Warning)" go
+RVA "River Summary" stop
+RVR "River Forecast" stop
+RVS "River Statement" stop
+RWS "Regional Weather Summary" stop
+SAH "Surface Observations (Data)" stop
+SAO "SAORCMUS.TXT Contains RCM's" stop
+SAW "Selected Area Watches" stop
+SCS "Selected cities (scs11-scs14)" stop
+SEL "Watch areas" go
+SES "Seismic/Earthquake Images" stop
+SFD "State Forecast Discussion" stop
+SFP "State Forecast" stop
+SHP "Live Ship Reports" stop
+SIX "Six to Ten day outlook" stop
+SLS "Areal update" stop
+SKY "SKYWARN Activation Message" stop
+SMW "Special Marine Warning" stop
+SPS "Special Weather Statement" stop
+STP "State Temp & Precip Reports" stop
+SUM "State Weather Summary" stop
+SVR "Severe Thunderstorm Warning" go
+SVS "Severe Weather Statement" go
+SWO "Severe Weather Outlook" stop
+SWR "State Weather Roundup" stop
+SWX "Space Weather (solar activity)" stop
+SYS "System messages" stop
+TAF "Aviation Terminal Forecasts/airports" stop
+TID "Tide Data" stop
+TOR "Tornado Warning" go
+TRK "Tracking Files (storm tracks)" stop
+TSU "Tsunami" stop
+TVL "Travelers Forecasts" stop
+UVI "National Ultra-Violet index" stop
+WSW "Winter Storm Warning" go
+WWA "Weather Watch" stop
+ZFP "Zone Forecast" stop

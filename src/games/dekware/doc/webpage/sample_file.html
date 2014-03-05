@@ -1,0 +1,37 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<center><font size=+3></font></center>
+<a href="script.html">Return to Script Contents</a>
+<hr>
+<p>Comments have been omitted... to show just how brief a macro might be.
+<menu>
+/dest pfile<BR>
+/mac pfile file
+	<menu>
+	/decl blah<BR>
+	/parse file %file<BR>
+   /if fail
+   <menu>
+   /goto bottom
+   </menu>
+   /endif<BR>
+	/label top
+   <menu>
+	/getword %blah<BR>
+	/if fail<BR>
+   <menu>
+   /endparse<br>
+	/goto bottom<BR>
+   </menu>
+	/endif<BR>
+	/echo %blah<BR>
+   </menu>
+	/goto top<BR>
+	/label bottom<BR>
+   </menu>
+/endmac
+</menu>
+<a href="script.html">Return to Script Contents</a>
+</BODY>
+</HTML>

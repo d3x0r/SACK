@@ -1,0 +1,11 @@
+#define WINDOWS 
+#define _WINDOWS 
+#define _WIN32 
+#define WIN32 
+#define _X86_ 1
+#define _M_IX86 1
+#define __386__ 1
+#define __WATCOMC__ 1
+#define _cdecl __cdecl
+#define _based __based
+#define _export __export

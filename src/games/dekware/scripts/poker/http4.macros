@@ -1,0 +1,49 @@
+
+
+/decl binary_files jpg gif png wav mp3 zip .gz ico htm tml
+
+/mac simplescript ...
+/command _tmp_ file __input %...
+/if success
+/option _tmp_ close
+/command _tmp2_ token
+/endif
+/endmac
+
+/mac sendpage file
+/decl ext
+/decl root %file
+/decl result
+/tail %root %ext 3
+#/echo file %root : %ext
+/compare %ext in %binary_files
+/if success
+/echo %file is binary and just blob sending?
+/loadfile root %file
+#/vars
+/senddata %root
+/else
+#/echo %file is not binary....
+/run simplescript %file
+/endif
+# without this destroy...
+# the connection stays open.
+# we may want this for a continuous connection thing
+# not sure how well that works
+/destroy %me
+#/echo destruction of me... # this is never seen
+/endmac
+
+# one auto variable for http.request is page
+/on http.request
+/compare %page blank
+/if success
+/decl page html/game.html
+/endif
+/echo sending page %page
+/execute /sendpage %page
+/endmac
+
+/on close
+/destroy %me
+/endmac

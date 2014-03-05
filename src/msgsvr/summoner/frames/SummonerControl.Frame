@@ -1,0 +1,10 @@
+<control caption="Summoner Control" position="50,50" size="566,332" type="Frame">
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="490,296" size="55,19" type="Button"></control>
+<control IDName="application/ListBox/LST_TASKS" caption="" position="5,5" size="400,310" type="ListBox"></control>
+<control IDName="application/Button/BTN_STOP" PrivateData="#ff354c59" caption="Stop" position="423,13" size="131,29" type="Button"></control>
+<control IDName="application/Button/BTN_START" PrivateData="#ff354c59" caption="Suspend" position="423,47" size="123,24" type="Button"></control>
+<control IDName="application/Button/BTN_START" PrivateData="#ff354c59" caption="Start" position="427,76" size="118,29" type="Button"></control>
+<control IDName="application/ListBox/LST_TASKS" position="5,5" size="400,310" type="ListBox"></control>
+<control IDName="application/ListBox/LST_TASKS" position="5,5" size="400,310" type="ListBox"></control>
+<control IDName="application/Button/BTN_CREATE" PrivateData="#ff354c59" caption="Create Task" position="427,114" size="118,27" type="Button"></control>
+<control IDName="application/ListBox/LST_TASKS" position="5,5" size="400,310" type="ListBox"></control></control>

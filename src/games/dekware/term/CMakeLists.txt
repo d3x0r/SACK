@@ -1,0 +1,1 @@
+add_plugin(  term.nex devices ntlink term http )

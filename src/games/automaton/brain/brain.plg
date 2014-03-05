@@ -1,0 +1,64 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: brain - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\Panther\LOCALS~1\Temp\RSP147.tmp" with contents
+[
+/nologo /Zp1 /MDd /W3 /Gm /GX /ZI /Od /I "M:/common\include" /D "_DEBUG" /D "_USRDLL" /D "BRAIN_EXPORTS" /D "__STATIC__" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"C:\General\development\automaton\brain\bboard.cpp"
+"C:\General\development\automaton\brain\brain.cpp"
+"C:\General\development\automaton\brain\braindlg.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\Panther\LOCALS~1\Temp\RSP147.tmp" 
+Creating temporary file "C:\DOCUME~1\Panther\LOCALS~1\Temp\RSP148.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib comctl32.lib /nologo /dll /incremental:yes /pdb:"Debug/brain.pdb" /debug /machine:I386 /out:"Debug/brain.dll" /implib:"Debug/brain.lib" /pdbtype:sept 
+.\Debug\bboard.obj
+.\Debug\brain.obj
+.\Debug\braindlg.obj
+.\Debug\boardres.res
+..\..\common\lib\debug\zlibs.lib
+..\..\common\lib\debug\containerss.lib
+..\..\common\lib\debug\filesyss.lib
+..\..\common\lib\debug\images.lib
+..\..\common\lib\debug\jpegs.lib
+..\..\common\lib\debug\networks.lib
+..\..\common\lib\debug\pngs.lib
+..\..\common\lib\debug\psis.lib
+..\..\common\lib\debug\shmems.lib
+..\..\common\lib\debug\syslogs.lib
+..\..\common\lib\debug\videos.lib
+]
+Creating command line "link.exe @C:\DOCUME~1\Panther\LOCALS~1\Temp\RSP148.tmp"
+<h3>Output Window</h3>
+Compiling...
+bboard.cpp
+brain.cpp
+Setting DBG_PASS and DBG_FORWARD to work
+Setting PTRSIZEVAL to 32 bits... pointers are this size?
+GetFunctionAddress is lazy and has no library cleanup - needs to be a lib func
+Generating Code...
+Setting DBG_PASS and DBG_FORWARD to work
+Setting PTRSIZEVAL to 32 bits... pointers are this size?
+GetFunctionAddress is lazy and has no library cleanup - needs to be a lib func
+Compiling...
+braindlg.c
+Generating Code...
+Setting DBG_PASS and DBG_FORWARD to work
+Setting PTRSIZEVAL to 32 bits... pointers are this size?
+GetFunctionAddress is lazy and has no library cleanup - needs to be a lib func
+Linking...
+..\..\common\lib\debug\images.lib : fatal error LNK1127: library is corrupt
+Error executing link.exe.
+
+
+
+<h3>Results</h3>
+brain.dll - 1 error(s), 0 warning(s)
+</pre>
+</body>
+</html>
