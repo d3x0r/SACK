@@ -40,6 +40,10 @@ struct shade_cache_image
 	Image image;
 };
 
+#define MAXImageFileSPERSET 256
+DeclareSet( ImageFile );
+typedef ImageFile *PImageFile;// for get from set
+
 #ifndef IMAGE_MAIN
 extern
 #endif
@@ -51,6 +55,7 @@ struct image_common_local_data_tag {
 	//struct glSurfaceData *glActiveSurface;
 	//RCOORD scale;
 	//PTRANSFORM camera; // active camera at begindraw
+	PImageFileSET Images;
 } image_common_local;
 //#define l image_common_local
 

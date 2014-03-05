@@ -23,10 +23,6 @@ IMAGE_NAMESPACE_END
 
 IMAGE_NAMESPACE
 
-#define MAXImageFileSPERSET 256
-	DeclareSet( ImageFile );
-typedef ImageFile *PImageFile;// for get from set
-
 struct glSurfaceData 
 {
 	PMatrix M_Projection;
@@ -61,7 +57,6 @@ struct local_puregl_image_data_tag {
 
 	float projection[16];
 	MATRIX worldview;
-	PImageFileSET Images;
 	PImageShaderTracker simple_shader;
 	PImageShaderTracker simple_texture_shader;
 	PImageShaderTracker simple_shaded_texture_shader;
