@@ -141,6 +141,7 @@ struct ImageFile_tag
 	// or for 3D; to reverse scale appropriately
 	struct image_interface_tag  *reverse_interface;
 	POINTER reverse_interface_instance; // what the interface thinks this is... 
+	void (*extra_close)( struct ImageFile_tag *);
 //DOM-IGNORE-BEGIN
 #if defined( __3D__ )
 	PTRANSFORM transform;
