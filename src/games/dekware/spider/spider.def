@@ -1,0 +1,5 @@
+LIBRARY    spider.nex
+
+EXPORTS
+	DllMain    
+	RegisterRoutines

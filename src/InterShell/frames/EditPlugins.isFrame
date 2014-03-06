@@ -1,0 +1,13 @@
+<control caption="EditPlugins.Frame" edit="1" position="0,0" size="524,454" type="Frame">
+<control IDName="ListBox/InterShell/plugins/LISTBOX_PLUGINS" caption="" position="21,40" size="459,129" type="ListBox"></control>
+<control IDName="ListBox/InterShell/plugins/LISTBOX_SYSTEMS" caption="" position="25,261" size="200,121" type="ListBox"></control>
+<control IDName="EditControl/InterShell/plugins/PLUGIN_NAME" caption="" position="25,186" size="141,21" type="EditControl"></control>
+<control IDName="EditControl/InterShell/plugins/SYSTEM_NAME" caption="*" position="233,300" size="200,23" type="EditControl"></control>
+<control IDName="Button/InterShell/plugins/ADD_SYSTEM" PrivateData="#ff354c59" caption="Add System" position="232,332" size="142,34" type="Button"></control>
+<control IDName="Button/InterShell/plugins/REMOVE_SYSTEM" PrivateData="#ff354c59" caption="Remove System" position="27,392" size="143,32" type="Button"></control>
+<control IDName="Button/InterShell/plugins/REMOVE_PLUGIN" PrivateData="#ff354c59" caption="Remove Plugin" position="334,182" size="141,32" type="Button"></control>
+<control IDName="Button/InterShell/plugins/ADD_PLUGIN" PrivateData="#ff354c59" caption="Add Plugin" position="178,181" size="140,32" type="Button"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="315,394" size="73,21" type="Button"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="407,393" size="73,21" type="Button"></control>
+<control caption="Plugins to Load..." position="22,10" size="176,21" type="TextControl"></control>
+<control caption="System to load on..." position="25,231" size="217,21" type="TextControl"></control></control>

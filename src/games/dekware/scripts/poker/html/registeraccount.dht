@@ -1,0 +1,43 @@
+
+
+<html>
+<head><title>Registering account</title></head>
+<body>
+/mac registerPlayer
+/decl query select * from players_info where (first_name='%username' and last_name='%lastname') or (alias='%username')
+/db/query user %query
+/grab user db
+/user/vvars
+/compare %(user)rows is 0
+
+/if success
+
+Account does not exist.
+/decl cmd insert into players_info (first_name,last_name,alias,password) values ('%username','%lastname','%username','%password')
+/db/cmd  %cmd
+<a href="registeraccount.dht">Account created, please reload me.</a>
+
+/else
+
+Account Active already<br>
+
+<form  method="post" action="depositmoney.dht">
+<input type="hidden" name="player_id" value="%(user)player_id">
+You need some money please deposit $<input type="text" name="money" value="500">
+
+<input type="submit">
+</form>
+/endif
+
+/dest user
+/inv
+/look
+/echo registered?
+/endmac
+/run registerPlayer
+
+</body>
+
+</html>
+
+

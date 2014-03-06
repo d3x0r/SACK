@@ -1,0 +1,178 @@
+.SH NAME
+snmp_open, snmp_build, snmp_parse, snmp_send, snmp_read,
+snmp_select_info, snmp_timeout, snmp_close, snmp_api_stats
+.SH SYNOPSIS
+.B cc
+.RI "[ " "flag" " \|.\|.\|. ] " "file" " \|.\|.\|."
+.B \-lsnmp
+.RI "[ " "library" " \|.\|.\|. ]"
+.LP
+.B #include <sys/types.h>
+.br
+.B #include <snmp/snmp.h>
+.LP
+.BI "struct snmp_session *snmp_open(struct snmp_session * " "Session" );
+.LP
+.BI "int snmp_close(struct snmp_session * " "Session" );
+.LP
+.BI "int snmp_build(struct snmp_session * " "Session" ,
+.BI "struct snmp_pdu * " "PDU" ,
+.BI "unsigned char * " "Packet" ,
+.BI "int * " "OutLen"
+.LP
+.BI "unsigned char *snmp_parse(struct snmp_session * " "Session" ,
+.BI "struct snmp_pdu * " "PDU" ,
+.BI "unsigned char * " "Data" ,
+.BI "int " "Length" );
+.LP
+.BI "int snmp_send(struct snmp_session * " "Session" ,
+.BI "struct snmp_pdu * " "PDU" );
+.LP
+.B void snmp_read(fd_set *);
+.LP
+.BI "int snmp_select_info(int * " "numfds" ,
+.BI "fd_set * " "fdset" ,
+.BI "struct timeval * " "timeout" ,
+.BI "int * " "block" );
+.LP
+.B void snmp_timeout(void);
+.LP
+.BI "void snmp_api_stats(void * " "outP" );
+.SH STRUCTURE
+The 
+.B snmp_session
+structure is:
+.RS
+.nf
+.ft 3
+.ta 12n 22n
+int		Version;	/* SNMP Version for this session */
+u_char *		community;	/* community for outgoing requests. */
+int		community_len;	/* Length of community name. */
+int		retries;	/* Number of retries before timeout. */
+int		timeout;	/* uS 'til timeout, then exp. backoff */
+char *		peername;	/* Default peer (name or IP) */
+unsigned short	remote_port;	/* UDP port number of peer. */
+unsigned short	local_port;	/* My UDP port number, 0 for default */
+int		(*callback)();	/* Func. to interpret incoming data */
+/* Pointer to data that the callback function may consider important */
+void *		callback_magic;
+.ft 1
+.fi
+.RE
+.SH DESCRIPTION
+.B snmp_open(\|)
+opens the specified session.
+.LP
+.B snmp_close(\|)
+closes the specified session.
+.LP
+.B snmp_build(\|)
+Encodes
+.I PDU
+into the area pointed to by
+.I Packet
+based on the specified
+.IR Session .
+.I OutLen
+is the number of bytes in the area pointed to by 
+.IR Packet .
+When finished,
+.I OutLen
+contains the amount of space left in 
+.I Packet
+once the encoding is finished.
+.LP
+.B snmp_parse(\|)
+Parses the 
+.I Data
+of length
+.I Length
+received by the specified
+.IR Session .
+.LP
+.B snmp_send(\|)
+sends 
+.I PDU
+over 
+.IR Session .
+If the PDU will receive a response (GET, GETNEXT, INFORM, etc), the
+pending response is registered, and the callback specified in the
+session will be called at the appropriate time.
+.LP
+.B snmp_read(\|)
+will read all pending SNMP data from the specified
+.IR fdset .
+Once the packet is read, a PDU will be created, and if this response
+was being waited for, the callback will be called.
+.LP
+.B snmp_select_info(\|)
+Returns info about what snmp requires from a select statement.
+.I numfds
+is the number of fds in the list that are significant.  All file
+descriptors opened via this API are OR'd into the fdset.  If activity
+occurs on any of these file descriptors, 
+.B snmp_read(\|)
+should be called with that file descriptor set.
+.LP
+.I timeout
+is the latest time that the API can wait for a timeout.  The select
+should be done with the minimum time between timeout and any other
+timeouts necessary.  This should be checked upon each invocation of
+select.  If a timeout is received, 
+.B snmp_timeout(\|)
+should be called to check if the timeout was for the SNMP API.
+.LP
+.I block
+is 1 if the select is requested to block indefinitely, rather than
+time out.  If block is input as 1, 
+.I timeout
+will be treated as undefined, but it must be available for setting in 
+.BR snmp_select_info(\|) .
+On return, if 
+.I block
+is true, the value of 
+.I timeout
+will be undefined.
+.LP
+.B snmp_timeout(\|)
+should be called whenever the timeout from 
+.B snmp_select_info(\|)
+expires.  It may also be polled (probably a cpu expensive
+proposition).
+.B snmp_timeout(\)
+checks to see if any of the  sessions have an outstanding request that
+has timed out.  If it finds one  (or more), and that pdu has more
+retries available, a new packet is formed from the pdu and is resent.
+If there are no more retries available, the callback for the session
+is used to alert the user of the timeout.
+.LP
+.B snmp_api_stats(\|)
+prints some API statistics to the FILE * pointed to by
+.I outP.
+.SH "RETURN VALUES"
+.B snmp_open(\|)
+returns the open session, or NULL.
+.LP
+.B snmp_close(\|)
+returns 1 upon success, 0 otherwise.
+.LP
+.B snmp_build(\|)
+returns -1 upon error, 0 otherwise.
+.LP
+.B snmp_parse(\|)
+returns the community string contained in the PDU upon success, NULL
+otherwise.
+.LP
+.B snmp_send(\|)
+Returns the Request ID of the generated packet if applicable,
+otherwise 1.  Returns 0 upon error.
+.LP
+.B snmp_select_info(\|)
+returns the number of open sockets.
+.SH WARNINGS
+The Community String returned by 
+.B snmp_parse(\|)
+must be
+.BR free(\|)'d .
+

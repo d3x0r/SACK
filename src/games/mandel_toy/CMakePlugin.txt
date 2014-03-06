@@ -1,0 +1,15 @@
+
+PROJECT( JuilaMandelToy )
+
+include_directories( ../include )
+
+ADD_LIBRARY( ${PROJECT_NAME} SHARED
+${FIRST_GCC_LIBRARY_SOURCE} 
+	mandeltoy.c
+${LAST_GCC_LIBRARY_SOURCE} 
+)
+
+add_subdirectory( ../virtuality virtuality )
+target_link_libraries( ${PROJECT_NAME} virtuality )
+
+install_default_dest( ${PROJECT_NAME} )

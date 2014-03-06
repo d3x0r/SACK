@@ -1,0 +1,75 @@
+EXPORTS
+
+   BuildImageFileEx
+   MakeImageFileEx
+   RemakeImageEx
+   MoveImage
+   ResizeImageEx
+   MakeSubImageEx
+   UnmakeImageFileEx
+   ;BitmapToImageFile
+   LoadImageFileEx
+
+   BlatColor
+	BlatColorAlpha
+   BlotImageSizedEx
+   BlotImageEx
+   ;BlotImageToEx
+   BlotScaledImageEx
+   BlotScaledImageSizedEx   ; both of the prior build commands to this.
+   plotraw
+   plot
+   getpixel
+
+   MakeSpriteEx
+   ;MakeSprite_Image
+   ;MakeSprite_ImageFile
+   rotate_sprite
+   rotate_scaled_sprite
+   BlotSprite
+
+   do_line
+	do_lineAlpha
+   do_lineExV
+   do_hline
+   do_vline
+   do_hlineAlpha
+   do_vlineAlpha
+
+	PutCharacter
+	PutCharacterVertical
+	PutString
+	PutStringEx
+	PutStringVertical
+	PutStringVerticalEx
+	GetStringSize
+	GetStringSizeEx
+	GetMaxStringLength
+
+	PutCharacterFont
+	PutCharacterVerticalFont
+	PutStringFont
+	PutStringFontEx
+	PutStringVerticalFont
+	PutStringVerticalFontEx
+	GetStringSizeFont
+	GetStringSizeFontEx
+	GetMaxStringLengthFont
+
+	GetMenuStringSizeFontEx
+	GetMenuStringSizeFont
+	GetMenuStringSizeEx
+	GetMenuStringSize
+        
+	GetFontHeight
+	ClearImage
+	ClearImageTo
+
+   DecodeMemoryToImage
+   FlipImageEx
+   SetBlotMethod
+
+   asmplotalpha
+   asmplot
+   asmgetpixel
+

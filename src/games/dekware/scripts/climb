@@ -1,0 +1,12 @@
+/create climber
+/wake climber
+/climber/mac tick
+//label top
+//reply . climb u
+//reply . climb d
+//delay 21000
+//goto top
+//endmac
+
+//tick
+

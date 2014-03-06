@@ -1,0 +1,8 @@
+/mac openbash
+/open shell system __raw __pty bash
+/open ansi ansi in
+/open debug debug in log
+/dest openbash
+/option interface mode direct
+/endmac
+/openbash

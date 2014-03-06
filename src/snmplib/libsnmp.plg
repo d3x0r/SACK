@@ -1,0 +1,42 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: libsnmp - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "E:\TEMP\RSP5B4.tmp" with contents
+[
+wsock32.lib ws2_32.lib advapi32.lib /nologo /version:1.14 /subsystem:windows /dll /incremental:yes /pdb:"Debug/libdsnmp.pdb" /map:"Debug/libdsnmp.map" /debug /machine:I386 /out:"Debug/libdsnmp.dll" /implib:"Debug/libdsnmp.lib" /pdbtype:sept 
+.\Debug\asn1.obj
+.\Debug\coexistance.obj
+.\Debug\mib.obj
+.\Debug\mibii.obj
+".\Debug\mini-client.obj"
+".\Debug\new-parse.obj"
+.\Debug\parse.obj
+.\Debug\snmp_api.obj
+.\Debug\snmp_api_error.obj
+.\Debug\snmp_api_util.obj
+.\Debug\snmp_client.obj
+.\Debug\snmp_dump.obj
+.\Debug\snmp_error.obj
+.\Debug\snmp_extra.obj
+.\Debug\snmp_msg.obj
+.\Debug\snmp_pdu.obj
+.\Debug\snmp_vars.obj
+.\Debug\version.obj
+]
+Creating command line "link.exe @E:\TEMP\RSP5B4.tmp"
+<h3>Output Window</h3>
+Linking...
+   Creating library Debug/libdsnmp.lib and object Debug/libdsnmp.exp
+
+
+
+<h3>Results</h3>
+libdsnmp.dll - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

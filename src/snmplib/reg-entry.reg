@@ -1,0 +1,5 @@
+REGEDIT4
+
+[HKEY_LOCAL_MACHINE\Software\Carnegie Mellon\Network Group\SNMP Library]
+"MIB Location"="c:\\dev\\nettools\\snmp\\mibs\\mib-v2.txt"
+
