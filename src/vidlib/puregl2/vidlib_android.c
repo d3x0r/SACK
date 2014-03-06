@@ -116,7 +116,7 @@ void SACK_Vidlib_SetNativeWindowHandle( NativeWindowType displayWindow )
 	// creates the cameras.
 
 	LoadOptions();
-	l.flags.disallow_3d = (RCOORD)SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Video Render/Disallow 3D"), 1 );
+	//l.flags.disallow_3d = (RCOORD)SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Video Render/Disallow 3D"), 1 );
 }
 
 void HostSystem_InitDisplayInfo(void )
@@ -132,71 +132,8 @@ void HostSystem_InitDisplayInfo(void )
 // this is linked to external native activiety shell...
 void SACK_Vidlib_DoRenderPass( void )
 {
-
-	if( l.flags.disallow_3d )
-		return;
-
 	ProcessGLDraw(TRUE);
    return;
-
-			Move( l.origin );
-
-			{
-				INDEX idx;
-				Update3dProc proc;
-				LIST_FORALL( l.update, idx, Update3dProc, proc )
-				{
-					if( proc( l.origin ) )
-                  l.flags.bUpdateWanted = TRUE;
-				}
-			}
-
-			// no reason to check this if an update is already wanted.
-			if( !l.flags.bUpdateWanted )
-			{
-				// set l.flags.bUpdateWanted for window surfaces.
-				WantRender3D();
-			}
-
-			{
-				struct display_camera *camera;
-				INDEX idx;
-				l.flags.bUpdateWanted = 0;
-				LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
-				{
-               // skip 'default_camera'
-					if( !idx )
-                  continue;
-					if( !camera->hVidCore->flags.bReady )
-						return;
-					// if plugins or want update, don't continue.
-					if( !camera->plugins && !l.flags.bUpdateWanted )
-					{
-						lprintf( "no update" );
-						//continue;
-					}
-					
-					if( !camera->hVidCore || !camera->hVidCore->flags.bReady )
-					{
-						lprintf( "not ready" );
-		
-						continue;
-					}
-					// drawing may cause subsequent draws; so clear this first
-					// do OpenGL Frame
-#ifdef USE_EGL
-					EnableEGLContext( camera );
-#else
-					SetActiveGLDisplay( camera );
-#endif
-					Render3D( camera );
-#ifdef USE_EGL
-					//lprintf( "doing swap buffer..." );
-					eglSwapBuffers( camera->egl_display, camera->surface );
-#endif
-				}
-			}
-
 }
 
 int SACK_Vidlib_SendTouchEvents( int nPoints, PINPUT_POINT points )
@@ -233,24 +170,29 @@ static void BeginVisPersp( struct display_camera *camera )
 
 int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goes Here
 {
+   // this is called every render pass
 #ifdef USE_EGL
+	//lprintf( "Init3d" );
 	EnableEGLContext( camera );
 #else
 	SetActiveGLDisplay( camera );
 #endif
 //	if( !SetActiveGLDisplay( camera ) )
 //		return FALSE;
-
-
 	if( !camera->flags.init )
 	{
-
+		//lprintf( "First setup" );
 		glEnable( GL_BLEND );
- 		glEnable(GL_DEPTH_TEST);							// Enables Depth Testing
+		CheckErr();
+		glEnable(GL_DEPTH_TEST);							// Enables Depth Testing
+		CheckErr();
 		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-		glEnable( GL_TEXTURE_2D );
- 		glDepthFunc(GL_LEQUAL);								// The Type Of Depth Testing To Do
+		CheckErr();
+		glDepthFunc(GL_LEQUAL);								// The Type Of Depth Testing To Do
+		CheckErr();
 #ifndef __ANDROID__
+		glEnable( GL_TEXTURE_2D );   // openGLES2 doesn't need this...
+		CheckErr();
 		glEnable(GL_NORMALIZE); // glNormal is normalized automatically....
 		glEnable( GL_ALPHA_TEST );
 		glShadeModel(GL_SMOOTH);							// Enable Smooth Shading
@@ -261,22 +203,25 @@ int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goe
 		glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
 		glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 		glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
- 		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculations
+		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculations
 #endif
- 
- 
+
 		BeginVisPersp( camera );
-		lprintf( WIDE("First GL Init Done.") );
+		CheckErr();
+		//lprintf( WIDE("First GL Init Done.") );
 		camera->flags.init = 1;
 		camera->hVidCore->flags.bReady = TRUE;
 	}
 
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);				// Black Background
+	CheckErr();
 	glClearDepthf(1.0f);									// Depth Buffer Setup
+	CheckErr();
 	glClear(GL_COLOR_BUFFER_BIT
 			  | GL_DEPTH_BUFFER_BIT
 			 );	// Clear Screen And Depth Buffer
+	CheckErr();
 
 	return TRUE;										// Initialization Went OK
 }
@@ -289,6 +234,7 @@ void SetupPositionMatrix( struct display_camera *camera )
 #ifdef ALLOW_SETTING_GL1_MATRIX
 	GetGLCameraMatrix( camera->origin_camera, camera->hVidCore->fModelView );
 	glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
+
 #endif
 }
 

@@ -106,10 +106,10 @@ void EnableShader( PImageShaderTracker tracker, ... )
 	{
 		if( !l.flags.worldview_read )
 		{
+			// T_Camera is the same as l.camera  (camera matrixes are really static)
 			GetGLCameraMatrix( l.glActiveSurface->T_Camera, l.worldview );
 			l.flags.worldview_read = 1;
 		}
-
 		//PrintMatrix( l.worldview );
 		glUniformMatrix4fv( tracker->worldview, 1, GL_FALSE, (RCOORD*)l.worldview );
 		CheckErrf( WIDE(" (%s)"), tracker->name );
@@ -194,7 +194,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 
 	if( result = glGetError() )
 	{
-		lprintf( WIDE("unhandled error before shader") );
+		lprintf( WIDE("unhandled error before shader: %d"), result );
 	}
 
 	//Obtain a valid handle to a vertex shader object.

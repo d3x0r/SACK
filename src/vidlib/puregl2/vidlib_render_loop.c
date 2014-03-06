@@ -69,15 +69,13 @@ void WantRender3D( void )
 {
 	struct plugin_reference *reference;
 	if( l.flags.bLogRenderTiming )
-		lprintf( WIDE("Begin Render") );
+		lprintf( WIDE("Begin Want Render") );
 
 	{
 		PRENDERER other = NULL;
 		PRENDERER hVideo;
 		for( hVideo = l.bottom; hVideo; hVideo = hVideo->pBelow )
 		{
-			if( other == hVideo )
-				DebugBreak();
 			other = hVideo;
 			if( l.flags.bLogWrites )
 				lprintf( WIDE("Have a video in stack...") );
@@ -121,7 +119,9 @@ void Render3D( struct display_camera *camera )
   	l.current_render_camera = camera;
 	l.flags.bViewVolumeUpdated = 1;
 #ifdef __3D__
+   CheckErr();
 	Init3D( camera );
+   CheckErr();
 #endif
 	//lprintf( "Called init for camera.." );
 	{
@@ -156,7 +156,9 @@ void Render3D( struct display_camera *camera )
 						reference->FirstDraw3d( reference->psv );
 				}
 				if( reference->ExtraDraw3d )
+				{
 					reference->ExtraDraw3d( reference->psv, camera->origin_camera );
+				}
 			}
 		}
 
@@ -169,6 +171,7 @@ void Render3D( struct display_camera *camera )
 			RotateRight( camera->origin_camera, vForward, vUp );
 			break;
 		case 2:
+         // forward; this is default mode... no-op
 			break;
 		case 3:
 			RotateRight( camera->origin_camera, vUp, vForward );
@@ -177,7 +180,6 @@ void Render3D( struct display_camera *camera )
 			RotateRight( camera->origin_camera, vForward, vRight );
 			break;
 		case 5:
-
 			RotateRight( camera->origin_camera, -1, -1 );
 			break;
 		}
