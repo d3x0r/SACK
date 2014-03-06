@@ -27,7 +27,7 @@ static const char *gles_simple_v_multi_shader =
 	// "in  vec4 in_Color;\n"
 	// "out vec4 ex_Color;\n"
      "void main(void) {"
-     "  gl_Position = Projection * worldView * vPosition;" 
+     "  gl_Position = Projection * worldView * modelView * vPosition;"
 	 "out_texCoord = in_texCoord;\n" 
 	// "  ex_Color = in_Color;" 
      "}"; 
