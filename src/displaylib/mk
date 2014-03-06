@@ -1,1 +1,0 @@
-gcc -g -D_WIN32 -DEMPTY_STRUCT="struct {}" -DGCC -I../../include -I../imglib -DDISPLAY_SOURCE keybrd.c

@@ -15,6 +15,10 @@ SET( SYS_IPC_HEADERS
 sys.sack/ipc.h sys.sack/msg.h
 )
 
+if( USE_HARDWARE_INFO)
+	set( MORE_HEADERS hidtables.h listports.h listhids.h )
+endif( USE_HARDWARE_INFO)
+
 SET( SACK_HEADERS
 generic_cache.h
 colordef.h
@@ -27,13 +31,10 @@ filedotnet.h
 filemon.h
 filesys.h
 fractions.h
-hidtables.h
 idle.h
 image.h image3d.h
 interface.h
 keybrd.h
-listports.h
-listhids.h
 loadsock.h
 logging.h
 menuflags.h

@@ -24,11 +24,13 @@ set(UNSORTED_SOURCES
 
 if( NOT __ANDROID__ )
   set( COMM_SOURCES ${SOURCES_ROOT}src/commlib/sackcomm.c )
-  if( NOT __LINUX__ )
+  if( USE_HARDWARE_INFO AND NOT __LINUX__ )
     set( COMM_SOURCES ${COMM_SOURCES} ${SOURCES_ROOT}src/windows_hardware_library/listports.c )
-  endif( NOT __LINUX__ )
-
+  endif( USE_HARDWARE_INFO AND NOT __LINUX__ )
 endif( NOT __ANDROID__ )
+if( USE_HARDWARE_INFO AND NOT __LINUX__ )
+  set( BASE_SOURCES  ${BASE_SOURCES} ${SOURCES_ROOT}src/windows_hardware_library/listhids.c )
+endif( USE_HARDWARE_INFO AND NOT __LINUX__ )
 
 if( WIN32 )
 set(MORE_NETWORK_SOURCES
@@ -470,9 +472,6 @@ set(BASE_SOURCES  ${BASE_SOURCES}
   ${OPTION_SOURCE}
 )
 
-if( NOT __LINUX__ )
-  set( BASE_SOURCES  ${BASE_SOURCES} ${SOURCES_ROOT}src/windows_hardware_library/listhids.c )
-endif( NOT __LINUX__ )
 
 if( NOT __ARM__ )
 set(BASE_SOURCES ${BASE_SOURCES} ${SACK_MSG_SERVICES} ${FILEMONITOR_SOURCES} ${HTML5_SOURCES} )

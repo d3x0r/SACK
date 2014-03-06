@@ -1155,20 +1155,13 @@ else()
   set( __BULLET_ENABLED__ OFF )
 endIF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
 
-#if( !MSVC )
-#add_subdirectory( src/displaylib )
-#add_subdirectory( src/detached_displaylib )
-#endif( !MSVC )
-
-#add_subdirectory( src/InterShell )
-
 #alternative video system
 if( NOT BUILD_MONOLITHIC AND NOT __NO_GUI__ )
-#include vidlib first incase glew is used, then imglib
-add_subdirectory( src/imglib/puregl2 )
+	#include vidlib first incase glew is used, then imglib
+	add_subdirectory( src/imglib/puregl2 )
 if( NOT __QNX__ )
-  #standard OpenGL; mostly windows-centric
-  add_subdirectory( src/imglib/puregl )
+	#standard OpenGL; mostly windows-centric
+	add_subdirectory( src/imglib/puregl )
 endif( NOT __QNX__ )
 
   GET_FILENAME_COMPONENT(WIN8_SDK "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft SDKs\\Windows\\v8.0;InstallationFolder]" ABSOLUTE )
