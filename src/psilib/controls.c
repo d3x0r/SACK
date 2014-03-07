@@ -2717,7 +2717,7 @@ PSI_PROC( void, HideCommon )( PSI_CONTROL pc )
 		if( g.flags.bLogDebugUpdate )
 			lprintf( WIDE( "Already hidden..." ) );
 #endif
-      levels--;
+		levels--;
 		return;
 	}
 	pc->flags.bHidden = 1;
@@ -3195,18 +3195,18 @@ void SetCommonFont( PSI_CONTROL pc, SFTFont font )
 
 SFTFont GetCommonFontEx( PSI_CONTROL pc DBG_PASS )
 {
-   //_xlprintf(1 DBG_RELAY )( WIDE("Someone getting font from %p"), pc );
+	//_xlprintf(1 DBG_RELAY )( WIDE("Someone getting font from %p"), pc );
 	while( pc )
 	{
-     // lprintf( WIDE("Checking control %p for font %p"), pc, pc->caption.font );
+		// lprintf( WIDE("Checking control %p for font %p"), pc, pc->caption.font );
 		if( pc->caption.font )
 			return pc->caption.font;
-	  if( pc->device ) // devices end parent relation also... we maintain (for some reason) parent link to parent control....
-		  break;
-      pc = pc->parent;
+		if( pc->device ) // devices end parent relation also... we maintain (for some reason) parent link to parent control....
+			break;
+		pc = pc->parent;
 	}
-   //lprintf( WIDE("No control, no font.") );
-   // results in DefaultFont() when used anyhow...
+	//lprintf( WIDE("No control, no font.") );
+	// results in DefaultFont() when used anyhow...
 	return NULL;
 }
 
@@ -3274,17 +3274,17 @@ PSI_PROC( void, MoveSizeCommonRel )( PSI_CONTROL pc, S_32 x, S_32 y, _32 width, 
 #undef GetControl
 PSI_PROC( PSI_CONTROL, GetControl )( PSI_CONTROL pContainer, int ID )
 {
-    PSI_CONTROL pc;
-    if( !pContainer )
-       return NULL;
-    pc = pContainer->child;
-    while( pc )
-    {
-        if( pc->nID == ID )
-            break;
-        pc = pc->next;
-    }
-    return pc;
+	PSI_CONTROL pc;
+	if( !pContainer )
+	   return NULL;
+	pc = pContainer->child;
+	while( pc )
+	{
+		if( pc->nID == ID )
+			break;
+		pc = pc->next;
+	}
+	return pc;
 }
 
 //---------------------------------------------------------------------------
@@ -3302,7 +3302,7 @@ PSI_PROC( void, EnableCommonUpdates )( PSI_CONTROL common, int bEnable )
 				lprintf( WIDE( "Enable Common Updates on %p" ), common );
 #endif
 			common->flags.bNoUpdate = FALSE;
-         // probably doing mass updates so just mark the status, and make the application draw.
+			// probably doing mass updates so just mark the status, and make the application draw.
 		}
 		else
 		{
@@ -3380,7 +3380,7 @@ void GetCommonTextEx( PSI_CONTROL pc, TEXTSTR buffer, int buflen, int bCString )
 			}
 			buffer[n-ofs] = buffer[n];
 		}
-        buffer[n-ofs] = 0;
+		buffer[n-ofs] = 0;
 	}
 }
 
@@ -3394,7 +3394,7 @@ PSI_PROC( LOGICAL, IsControlHidden )( PSI_CONTROL pc )
 		if( parent->flags.bNoUpdate || parent->flags.bHidden )
 			return TRUE;
 	}
-   return FALSE;
+	return FALSE;
 }
 
 PSI_PROC( Image,  GetControlSurface )( PSI_CONTROL pc )
@@ -3459,52 +3459,51 @@ void EnableControl( PSI_CONTROL pc, int bEnable )
 
 int IsControlEnabled( PSI_CONTROL pc )
 {
-    return !pc->flags.bDisable;
+	return !pc->flags.bDisable;
 }
 
 //---------------------------------------------------------------------------
 
 void LinkInNewControl( PSI_CONTROL parent, PSI_CONTROL elder, PSI_CONTROL child )
 {
-    PSI_CONTROL pAdd;
-    if( parent && child )
-    {
-        if( elder )
-        {
-            child->next = elder;
-            if( !( child->prior = elder->prior ) )
-                parent->child = child;
+	PSI_CONTROL pAdd;
+	if( parent && child )
+	{
+		if( elder )
+		{
+			child->next = elder;
+			if( !( child->prior = elder->prior ) )
+				parent->child = child;
 				elder->prior = child;
-        }
-        else
-        {
-            pAdd = parent->child;
+		}
+		else
+		{
+			pAdd = parent->child;
+			if( pAdd == child )
+				return; // already linked.
+			while( pAdd && pAdd->next )
+			{
 				if( pAdd == child )
 					return; // already linked.
-            while( pAdd && pAdd->next )
-				{
-					if( pAdd == child )
-                  return; // already linked.
 					//lprintf( WIDE("skipping %p..."), pAdd );
-                pAdd = pAdd->next;
-            }
-            if( !pAdd )
-            {
-               //lprintf( WIDE("Adding control first...") );
-                child->prior = NULL;
-                parent->child = child;
-            }
-            else
-				{
-               //lprintf( WIDE("Adding control after last...") );
-                child->prior = pAdd;
-                pAdd->next = child;
-				}
-				child->next = NULL;
-            //child->child = NULL;
-        }
-        child->parent = parent;
-    }
+				pAdd = pAdd->next;
+			}
+			if( !pAdd )
+			{
+				//lprintf( WIDE("Adding control first...") );
+				child->prior = NULL;
+				parent->child = child;
+			}
+			else
+			{
+				//lprintf( WIDE("Adding control after last...") );
+				child->prior = pAdd;
+				pAdd->next = child;
+			}
+			child->next = NULL;
+		}
+		child->parent = parent;
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -3656,8 +3655,6 @@ PSI_CONTROL MakePrivateControl( PSI_CONTROL pFrame
 								  , _32 nID
 								  )
 {
-	//va_list args;
-	//va_start( args, nID );
 	return CreateCommonExx( pFrame, NULL, nType
 								 , x, y
 								 , w, h
@@ -3673,8 +3670,6 @@ PSI_CONTROL MakePrivateNamedControl( PSI_CONTROL pFrame
 								  , _32 nID
 								   )
 {
-	//va_list args;
-	//va_start( args, nID );
 	return CreateCommonExx( pFrame, pType, 0
 								 , x, y
 								 , w, h
@@ -3692,9 +3687,7 @@ PSI_CONTROL MakeCaptionedControl( PSI_CONTROL pFrame
 									 //, ...
 									 )
 {
-	//va_list args;
-   //va_start( args, caption );
-   return CreateCommonExx( pFrame, NULL, nType, x, y, w, h, nID, caption, 0, NULL, NULL DBG_SRC );
+	return CreateCommonExx( pFrame, NULL, nType, x, y, w, h, nID, caption, 0, NULL, NULL DBG_SRC );
 }
 
 PSI_PROC( PSI_CONTROL, MakeNamedCaptionedControlByName )( PSI_CONTROL pContainer
@@ -3706,7 +3699,7 @@ PSI_PROC( PSI_CONTROL, MakeNamedCaptionedControlByName )( PSI_CONTROL pContainer
 																		  , CTEXTSTR caption
 																		  )
 {
-   return CreateCommonExxx( pContainer, pType, 0, x, y, w, h, nID, pIDName, caption, 0, NULL, NULL DBG_SRC );
+	return CreateCommonExxx( pContainer, pType, 0, x, y, w, h, nID, pIDName, caption, 0, NULL, NULL DBG_SRC );
 }
 
 PSI_PROC( PSI_CONTROL, MakeNamedCaptionedControl )( PSI_CONTROL pContainer
@@ -3717,7 +3710,7 @@ PSI_PROC( PSI_CONTROL, MakeNamedCaptionedControl )( PSI_CONTROL pContainer
 															 , CTEXTSTR caption
 															 )
 {
-   return CreateCommonExx( pContainer, pType, 0, x, y, w, h, nID, caption, 0, NULL, NULL DBG_SRC );
+	return CreateCommonExx( pContainer, pType, 0, x, y, w, h, nID, caption, 0, NULL, NULL DBG_SRC );
 }
 
 
@@ -3730,7 +3723,7 @@ PSI_CONTROL VMakeCaptionedControl( PSI_CONTROL pFrame
 									  //, va_list args
 									  )
 {
-   return CreateCommonExx( pFrame, NULL, nType, x, y, w, h, nID, caption, 0, NULL, NULL DBG_SRC );
+	return CreateCommonExx( pFrame, NULL, nType, x, y, w, h, nID, caption, 0, NULL, NULL DBG_SRC );
 }
 
 
@@ -3748,22 +3741,21 @@ PSI_CONTROL MakeNamedControl( PSI_CONTROL pFrame
 }
 
 PSI_CONTROL VMakeControl( PSI_CONTROL pFrame
-                    , _32 nType
-						  , int x, int y
-						  , int w, int h
-						  , _32 nID
-						  //, va_list args
-						  )
+                        , _32 nType
+                        , int x, int y
+                        , int w, int h
+                        , _32 nID
+                        )
 {
    return CreateCommonExx( pFrame, NULL, nType, x, y, w, h, nID, NULL, 0, NULL, NULL DBG_SRC );
 }
 
 PSI_CONTROL RestoreControl( PSI_CONTROL pFrame
-                    , _32 nType
-						  , int x, int y
-						  , int w, int h
-						  , _32 nID
-                    , PTEXT parameters )
+                          , _32 nType
+                          , int x, int y
+                          , int w, int h
+                          , _32 nID
+                          , PTEXT parameters )
 {
    return CreateCommonExx( pFrame, NULL, nType, x, y, w, h, nID, NULL, 0, parameters, NULL DBG_SRC );
 }
@@ -3809,7 +3801,7 @@ void DestroyCommonExx( PSI_CONTROL *ppc, int level DBG_PASS )
 				}
 			if( pc->parent->child == pc )
 				pc->parent->child = pNext;
-         if( !pc->parent->flags.bDestroy )
+			if( !pc->parent->flags.bDestroy )
 				SmudgeCommon( pc->parent );
 			pc->parent = NULL;
 		}
@@ -3892,7 +3884,7 @@ void DestroyCommonExx( PSI_CONTROL *ppc, int level DBG_PASS )
 			}
 			{
 				// get frame results null if it's being destroyed itself.
-            // and I need to always clear this if it's able at all to be done.
+				// and I need to always clear this if it's able at all to be done.
 				//GetFrame( pc );
 				if( pFrame )
 				{
@@ -3959,16 +3951,16 @@ void DestroyCommonExx( PSI_CONTROL *ppc, int level DBG_PASS )
 
 void DestroyCommonEx( PSI_CONTROL *ppc DBG_PASS )
 {
-   DestroyCommonExx( ppc, 0 DBG_RELAY );
+	DestroyCommonExx( ppc, 0 DBG_RELAY );
 }
 
 //---------------------------------------------------------------------------
 
 PSI_PROC( int, GetControlID )( PSI_CONTROL pc )
 {
-   if( pc )
-        return pc->nID;
-   return -1;
+	if( pc )
+		return pc->nID;
+	return -1;
 }
 
 //---------------------------------------------------------------------------
@@ -3979,8 +3971,8 @@ PSI_PROC( void, SetControlID )( PSI_CONTROL pc, int ID )
 	{
 		pc->nID = ID;
 		if( pc->pIDName )
-         Release( (POINTER)pc->pIDName );
-      pc->pIDName = GetResourceIDName( pc->pTypeName, ID );
+			Release( (POINTER)pc->pIDName );
+		pc->pIDName = GetResourceIDName( pc->pTypeName, ID );
 	}
 }
 //---------------------------------------------------------------------------
@@ -3989,7 +3981,7 @@ PSI_PROC( void, SetControlIDName )( PSI_CONTROL pc, TEXTCHAR *IDName )
 {
 	if( pc )
 	{
-      // no ID to default to, so pass -1
+		// no ID to default to, so pass -1
 		pc->nID = GetResourceID( pc->parent, IDName, -1 );
 	}
 }
