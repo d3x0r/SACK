@@ -1159,10 +1159,11 @@ endIF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
 if( NOT BUILD_MONOLITHIC AND NOT __NO_GUI__ )
 	#include vidlib first incase glew is used, then imglib
 	add_subdirectory( src/imglib/puregl2 )
-if( NOT __QNX__ )
+        
+if( NOT __QNX__ AND NOT __ANDROID__ )
 	#standard OpenGL; mostly windows-centric
 	add_subdirectory( src/imglib/puregl )
-endif( NOT __QNX__ )
+endif( NOT __QNX__ AND NOT __ANDROID__ )
 
   GET_FILENAME_COMPONENT(WIN8_SDK "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft SDKs\\Windows\\v8.0;InstallationFolder]" ABSOLUTE )
   if( NOT WIN8_SDK OR ( WIN8_SDK STREQUAL "/registry" ) )
@@ -1171,7 +1172,11 @@ endif( NOT __QNX__ )
 
   add_subdirectory( src/vidlib/proxy )
   add_subdirectory( src/vidlib/puregl2 )
+
+if( NOT __QNX__ AND NOT __ANDROID__ )
   add_subdirectory( src/vidlib/puregl )
+endif( NOT __QNX__ AND NOT __ANDROID__ )
+
   if( __ANDROID__ )
   	add_subdirectory( src/vidlib/android )
   endif( __ANDROID__ )
