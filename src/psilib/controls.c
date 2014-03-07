@@ -414,7 +414,9 @@ void GetMyInterface( void )
 			if( !(g.flags.always_draw = RequiresDrawAll()) )
 				g.flags.allow_threaded_draw = AllowsAnyThreadToUpdate();
 	}
-
+#ifdef __ANDROID__
+   g.default_font = RenderFontFileScaledEx( WIDE("fonts/MyriadPro.ttf"), 160/4, 160/4, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
+#endif
 }
 #endif
 
@@ -2370,6 +2372,10 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
    //lprintf( "Set default fraction 1/1" );
 	SetFraction( pc->scalex, 1, 1 );
 	SetFraction( pc->scaley, 1, 1 );
+
+   //else
+	//	pc->caption.font = g.default_font;
+
 	// from here forward, root and mydef reference the RTTI of the control...
    //
 	snprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f WIDE("/rtti"), nType );
@@ -2390,6 +2396,10 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	// creates
 	pc->flags.bInitial = 1;
 	pc->flags.bDirty = 1;
+	if( pc->nType == CONTROL_FRAME )
+	{
+		SetCommonFont( pc, g.default_font );
+	}
 	SetCommonBorder( pc, BorderType );
 	pc->flags.bSetBorderType = 0;
 
@@ -3165,7 +3175,8 @@ void SetCommonFont( PSI_CONTROL pc, SFTFont font )
 				lprintf( "Updated scaled value .... %p(%s) X is %s  Y is %s", pc, pc->pTypeName, tmp, tmp2 );
 			}
 #endif
-			SetCommonBorder( pc, pc->BorderType );
+			if( !pc->flags.bInitial && !pc->flags.bNoUpdate )
+				SetCommonBorder( pc, pc->BorderType );
 			if( !pc->child )
 				ApplyRescale( pc );
 		}
@@ -3174,7 +3185,7 @@ void SetCommonFont( PSI_CONTROL pc, SFTFont font )
 
 		if( !g.flags.always_draw )
 		{
-			if( !pc->flags.bNoUpdate )
+			if( !pc->flags.bInitial && !pc->flags.bNoUpdate )
 				SmudgeCommon( pc );
 		}
 	}

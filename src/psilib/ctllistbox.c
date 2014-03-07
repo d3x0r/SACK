@@ -258,7 +258,8 @@ static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, in
 	PLISTITEM pliNextUpLevel;
 	int x, y, ymin, ymax;
 	pliNextUpLevel = pli->next;
-	x = pli->nLevel * BRANCH_WIDTH + (BRANCH_WIDTH/2);
+   lprintf( "Render a line..." );
+	x = pli->nLevel * (1.75*pli->height) + ((pli->height*1.75)/2);
 	y = pli->top + ( pli->height / 2 );
 	ymin = pli->top;
 	ymax = pli->top + pli->height - 1;
@@ -283,12 +284,12 @@ static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, in
 			pliNextUpLevel = pliNextUpLevel->next;
 		if( pliNextUpLevel && ( pliNextUpLevel->nLevel == pli->nLevel ) )
 		{
-			do_hline( surface, y, x, x + (BRANCH_WIDTH/2)-1, basecolor(pc)[SHADE] );
+			do_hline( surface, y, x, x + ((pli->height*1.75)/2)-1, basecolor(pc)[SHADE] );
 			do_vline( surface, x, ymin, ymax, basecolor(pc)[SHADE] );
 		}
 		else
 		{
-			do_hline( surface, y, x, x + (BRANCH_WIDTH/2)-1, basecolor(pc)[SHADE] );
+			do_hline( surface, y, x, x + ((pli->height*1.75)/2)-1, basecolor(pc)[SHADE] );
 			do_vline( surface, x, ymin, y, basecolor(pc)[SHADE] );
 		}
 	}
@@ -300,13 +301,13 @@ static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, in
 		if( pliNextUpLevel )
 		{
 			do_vline( surface
-					  , pliNextUpLevel->nLevel * BRANCH_WIDTH + (BRANCH_WIDTH/2)
+					  , pliNextUpLevel->nLevel * (pli->height*1.75) + ((pli->height*1.75)/2)
 					  , ymin, ymax
 					  , basecolor(pc)[SHADE] );
 		}
 		pli = pliNextUpLevel;
 	}
-	return x + BRANCH_WIDTH/2;
+	return x + ((pli?pli->height:0)*1.75)/2;
 }
 
 //---------------------------------------------------------------------------
@@ -316,6 +317,8 @@ static int RenderItemKnob( PSI_CONTROL pc, Image surface, PLISTITEM pli )
 	PLISTITEM pliNextUpLevel;
 	//ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	int x, y; // x, y of center...
+   int line_length = pli->height*5/12;
+   int line_length_inner = pli->height*3/12;
 	if( !pli->next || ( pli->next->nLevel <= pli->nLevel ) )
 	{
 		// this is not an openable item, therefore
@@ -330,35 +333,35 @@ static int RenderItemKnob( PSI_CONTROL pc, Image surface, PLISTITEM pli )
 	pliNextUpLevel = pli->next;
 	while( pliNextUpLevel && ( pliNextUpLevel->nLevel > pli->nLevel ) )
 		pliNextUpLevel = pliNextUpLevel->next;
-	x = pli->nLevel * BRANCH_WIDTH + (BRANCH_WIDTH/2);
+	x = pli->nLevel * (pli->height*1.75) + ((pli->height*1.75)/2);
 	y = pli->top + ( pli->height / 2 );
 
 	// this draws the box with a + in it...
-	do_hlineAlpha(surface, y - 5, x-5, x+5, basecolor(pc)[SHADE] );
-	do_hlineAlpha( surface, y + 5, x-5, x+5, basecolor(pc)[SHADE] );
-	do_vlineAlpha( surface, x - 5, y-5, y+5, basecolor(pc)[SHADE] );
-	do_vlineAlpha( surface, x + 5, y-5, y+5, basecolor(pc)[SHADE] );
+	do_hlineAlpha(surface, y - line_length, x-line_length, x+line_length, basecolor(pc)[SHADE] );
+	do_hlineAlpha( surface, y + line_length, x-line_length, x+line_length, basecolor(pc)[SHADE] );
+	do_vlineAlpha( surface, x - line_length, y-line_length, y+line_length, basecolor(pc)[SHADE] );
+	do_vlineAlpha( surface, x + line_length, y-line_length, y+line_length, basecolor(pc)[SHADE] );
 	if( !pli->flags.bOpen )
 	{
-		do_hlineAlpha( surface, y, x-3, x+3, basecolor(pc)[SHADOW] );
-		do_vlineAlpha( surface, x, y-3, y+3, basecolor(pc)[SHADOW] );
+		do_hlineAlpha( surface, y, x-line_length_inner, x+line_length_inner, basecolor(pc)[SHADOW] );
+		do_vlineAlpha( surface, x, y-line_length_inner, y+line_length_inner, basecolor(pc)[SHADOW] );
 	}
 	else
 	{
-		do_hlineAlpha( surface, y, x-3, x+3, basecolor(pc)[SHADOW] );
+		do_hlineAlpha( surface, y, x-line_length_inner, x+line_length_inner, basecolor(pc)[SHADOW] );
 	}
 
 	// draw line leading in (top) and out (right)
-	do_vlineAlpha( surface, x, y - 5, pli->top, basecolor(pc)[SHADE] );
-	do_hlineAlpha( surface, y, x + 5, x + (BRANCH_WIDTH/2)-1, basecolor(pc)[SHADE] );
+	do_vlineAlpha( surface, x, y - line_length, pli->top, basecolor(pc)[SHADE] );
+	do_hlineAlpha( surface, y, x + line_length, x + ((pli->height*1.75)/2)-1, basecolor(pc)[SHADE] );
 
 	// optionally draw line leading down (bottom)
 	if( pliNextUpLevel && ( pliNextUpLevel->nLevel == pli->nLevel ) )
 	{
 		// next item is on this level, extend branch line down.
-		do_vlineAlpha( surface, y, y + 5, pli->top + pli->height - 1, basecolor(pc)[SHADE] );
+		do_vlineAlpha( surface, y, y - (pli->height+1)/2, pli->top + pli->height, basecolor(pc)[SHADE] );
 	}
-	return x + BRANCH_WIDTH/2;
+	return x + (pli->height*1.75)/2;
 }
 
 //---------------------------------------------------------------------------
@@ -829,7 +832,7 @@ static int OnMouseCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y
 					if( plb->flags.bTree
 						&& pli->next
 						&& ( pli->next->nLevel > pli->nLevel )
-						&& ( x < ( ( pli->nLevel + 1) * BRANCH_WIDTH ) ) )
+						&& ( x < ( ( pli->nLevel + 1) * (pli->height*1.75) ) ) )
 					{
 						pli->flags.bOpen = !pli->flags.bOpen;
 						if( plb->ListItemOpenHandler )

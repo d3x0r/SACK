@@ -69,6 +69,7 @@ typedef struct global_tag
 	Image BorderImage;
 	Image BorderSegment[9]; // really 8, but symetry is kept
 	PLIST shown_frames;
+	SFTFont default_font;
 }PSI_GLOBAL;
 
 enum {
