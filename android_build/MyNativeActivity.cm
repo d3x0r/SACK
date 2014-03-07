@@ -1,7 +1,7 @@
 // built from http://stackoverflow.com/questions/6838397/how-do-i-load-my-own-java-class-in-c-on-android/6920115#6920115
 
 
-package org.d3x0r.sack.@application@;
+package org.d3x0r.@application@.@activity@;
 import android.view.WindowManager;
 import android.app.NativeActivity;
 import android.util.Log;
