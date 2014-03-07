@@ -258,11 +258,10 @@ static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, in
 	PLISTITEM pliNextUpLevel;
 	int x, y, ymin, ymax;
 	pliNextUpLevel = pli->next;
-   lprintf( "Render a line..." );
-	x = pli->nLevel * (1.75*pli->height) + ((pli->height*1.75)/2);
+	x = pli->nLevel * (1.75*pli->height) + (pli->height*1.75)/2;
 	y = pli->top + ( pli->height / 2 );
 	ymin = pli->top;
-	ymax = pli->top + pli->height - 1;
+	ymax = pli->top + pli->height;
 	if( pli->nLevel )
 	{
 		PLISTITEM pliParent = pli->prior;
@@ -281,7 +280,7 @@ static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, in
 	if( drawthis )
 	{
 		while( pliNextUpLevel && pliNextUpLevel->nLevel > pli->nLevel )
-			pliNextUpLevel = pliNextUpLevel->next;
+			pliNextUpLevel = pliNextUpLevel->prior;
 		if( pliNextUpLevel && ( pliNextUpLevel->nLevel == pli->nLevel ) )
 		{
 			do_hline( surface, y, x, x + ((pli->height*1.75)/2)-1, basecolor(pc)[SHADE] );
@@ -293,21 +292,24 @@ static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, in
 			do_vline( surface, x, ymin, y, basecolor(pc)[SHADE] );
 		}
 	}
-	pliNextUpLevel = pli->next;
+	pliNextUpLevel = pli;
+
+	x =  x + ((pli->height)*1.75*2)/3;
+
 	while( pliNextUpLevel )
 	{
 		while( pliNextUpLevel && pliNextUpLevel->nLevel >= pli->nLevel )
-			pliNextUpLevel = pliNextUpLevel->next;
+			pliNextUpLevel = pliNextUpLevel->prior;
 		if( pliNextUpLevel )
 		{
 			do_vline( surface
-					  , pliNextUpLevel->nLevel * (pli->height*1.75) + ((pli->height*1.75)/2)
-					  , ymin, ymax
-					  , basecolor(pc)[SHADE] );
+			        , (pliNextUpLevel->nLevel) * (pli->height*1.75) + ((pli->height*1.75)/2)
+			        , ymin, ymax
+			        , basecolor(pc)[SHADE] );
 		}
 		pli = pliNextUpLevel;
 	}
-	return x + ((pli?pli->height:0)*1.75)/2;
+	return x;
 }
 
 //---------------------------------------------------------------------------
@@ -317,8 +319,8 @@ static int RenderItemKnob( PSI_CONTROL pc, Image surface, PLISTITEM pli )
 	PLISTITEM pliNextUpLevel;
 	//ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	int x, y; // x, y of center...
-   int line_length = pli->height*5/12;
-   int line_length_inner = pli->height*3/12;
+	int line_length = pli->height*5/12;
+	int line_length_inner = pli->height*3/12;
 	if( !pli->next || ( pli->next->nLevel <= pli->nLevel ) )
 	{
 		// this is not an openable item, therefore
@@ -328,11 +330,11 @@ static int RenderItemKnob( PSI_CONTROL pc, Image surface, PLISTITEM pli )
 	else
 	{
 		// render lines to the left of here but not including here...
-		RenderRelationLines( pc, surface, pli, FALSE );
+		x = RenderRelationLines( pc, surface, pli, FALSE );
 	}
 	pliNextUpLevel = pli->next;
 	while( pliNextUpLevel && ( pliNextUpLevel->nLevel > pli->nLevel ) )
-		pliNextUpLevel = pliNextUpLevel->next;
+		pliNextUpLevel = pliNextUpLevel->prior;
 	x = pli->nLevel * (pli->height*1.75) + ((pli->height*1.75)/2);
 	y = pli->top + ( pli->height / 2 );
 
@@ -343,11 +345,13 @@ static int RenderItemKnob( PSI_CONTROL pc, Image surface, PLISTITEM pli )
 	do_vlineAlpha( surface, x + line_length, y-line_length, y+line_length, basecolor(pc)[SHADE] );
 	if( !pli->flags.bOpen )
 	{
+		// this is the plus
 		do_hlineAlpha( surface, y, x-line_length_inner, x+line_length_inner, basecolor(pc)[SHADOW] );
 		do_vlineAlpha( surface, x, y-line_length_inner, y+line_length_inner, basecolor(pc)[SHADOW] );
 	}
 	else
 	{
+		// this is the minus
 		do_hlineAlpha( surface, y, x-line_length_inner, x+line_length_inner, basecolor(pc)[SHADOW] );
 	}
 
@@ -359,9 +363,9 @@ static int RenderItemKnob( PSI_CONTROL pc, Image surface, PLISTITEM pli )
 	if( pliNextUpLevel && ( pliNextUpLevel->nLevel == pli->nLevel ) )
 	{
 		// next item is on this level, extend branch line down.
-		do_vlineAlpha( surface, y, y - (pli->height+1)/2, pli->top + pli->height, basecolor(pc)[SHADE] );
+		do_vlineAlpha( surface, (pli->nLevel-1) * (pli->height*1.75) + (pli->height*1.75)/2, y - (pli->height+1)/2, pli->top + pli->height, basecolor(pc)[SHADE] );
 	}
-	return x + (pli->height*1.75)/2;
+	return x + (pli->height*1.75*2)/3;
 }
 
 //---------------------------------------------------------------------------
