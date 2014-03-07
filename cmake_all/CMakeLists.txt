@@ -179,7 +179,14 @@ set( EXTRA_FLAGS -DBUILD_MONOLITHIC=${BUILD_MONOLITHIC}
                         ${D__CLR__}
                         ${DDX_SDK}
                 )
+
+set( PROJECT_BASE_PROJECT ${PROJECT} )
 BuildProject( ${PROJECT} sack ${CMAKE_CURRENT_LIST_DIR}/.. SACK_SDK_ROOT_PATH ${EXTRA_FLAGS} )
+
+set( EXTRA_FLAGS -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} )
+BuildProject( ${PROJECT}.framebuffer sack.nosolution ${CMAKE_CURRENT_LIST_DIR}/../not-exists UNUSED_SACK_SDK_ROOT_PATH ${EXTRA_FLAGS} )
+BuildProject( ${PROJECT}.puregl sack.nosolution ${CMAKE_CURRENT_LIST_DIR}/../not-exists UNUSED_SACK_SDK_ROOT_PATH ${EXTRA_FLAGS} )
+
 if( NOT __ANDROID__ )
   # this calls sack_deploy to build cmakepackage
   # on android ended up making a cmake-configured-cmake-script to make this file.
