@@ -73,7 +73,7 @@ if( __ANDROID__ )
    set( package_path ${BUILD}/../../${CMAKE_BUILD_TYPE}_package/${PROJECT} )
 	if ( EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../android_build/${PROJECT} )
 		FILE( MAKE_DIRECTORY ${package_path} )
-		FILE( WRITE ${package_path}/${SCRIPTNAME} "cmake -G \"Unix Makefiles\" -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -D${INSTALL_RESULT}=${INSTALL} ${CMAKE_CURRENT_SOURCE_DIR}/../android_build/${PROJECT} ${FAKE_ARGN2}\n"  )
+		FILE( WRITE ${package_path}/${SCRIPTNAME} "cmake -G \"Unix Makefiles\" -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -D${INSTALL_RESULT}=${INSTALL} ${TOOLCHAIN} ${CMAKE_CURRENT_SOURCE_DIR}/../android_build/${PROJECT} ${FAKE_ARGN2}\n"  )
 
   if( EXISTS ${PROJECT_SOURCE} )
     add_custom_target( BuildAndroid${PROJECT} ALL

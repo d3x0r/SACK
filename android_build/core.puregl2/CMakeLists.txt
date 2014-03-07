@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-set( Project sack.core.puregl )
+set( Project sack.core.puregl2 )
 
 if( NOT SACK_SDK_ROOT_PATH )
 GET_FILENAME_COMPONENT(SACK_SDK_ROOT_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Freedom Collective\\SACK;Install_Dir]" ABSOLUTE CACHE)
@@ -45,6 +45,24 @@ endmacro( install_resources )
 install_resources( package/assets )
 
 ainstall( ${SACK_SDK_ROOT_PATH}/lib * DESTINATION package/libs/armeabi )
+
+##########################################
+###  Remove unused libraries 
+FILE( GLOB files #RELATIVE ${CMAKE_BINARY_DIR} 
+		${CMAKE_BINARY_DIR}/package/libs/armeabi/*++.so 
+                ${CMAKE_BINARY_DIR}/package/libs/armeabi/*.proxy.*
+                ${CMAKE_BINARY_DIR}/package/libs/armeabi/*.module.*
+                ${CMAKE_BINARY_DIR}/package/libs/armeabi/*.puregl.so
+                ${CMAKE_BINARY_DIR}/package/libs/armeabi/*.frame.lock.so
+	) 
+FILE( REMOVE ${files} ) 
+
+##########################################
+###  STRIP LIBRARIES
+FILE( GLOB files ${CMAKE_BINARY_DIR}/package/libs/armeabi/*.so 	) 
+EXECUTE_PROCESS(COMMAND ${STAGING_DIR}/bin/${ANDROID_NDK_PREBUILT_ARCH_LONG}-strip -s ${files} )
+
+
 
 dinstall(  ${CMAKE_SOURCE_DIR}/res * DESTINATION package/res )
 ainstall(  ${CMAKE_SOURCE_DIR} sql.config DESTINATION package/assets )
