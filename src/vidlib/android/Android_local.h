@@ -72,7 +72,7 @@ struct vidlib_android_local
 	_8 key_states[256];
 	CRITICALSECTION message_formatter;
 	ANativeWindow *displayWindow;
-	_32 default_display_x, default_display_y;
+	S_32 default_display_x, default_display_y;
 	PVPRENDER hVidVirtualFocused;
 	struct vidlib_android_local_flags {
 		BIT_FIELD paused : 1;
