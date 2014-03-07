@@ -185,7 +185,7 @@ BuildProject( ${PROJECT} sack ${CMAKE_CURRENT_LIST_DIR}/.. SACK_SDK_ROOT_PATH ${
 
 set( EXTRA_FLAGS -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} )
 BuildProject( ${PROJECT}.framebuffer sack.nosolution ${CMAKE_CURRENT_LIST_DIR}/../not-exists UNUSED_SACK_SDK_ROOT_PATH ${EXTRA_FLAGS} )
-BuildProject( ${PROJECT}.puregl sack.nosolution ${CMAKE_CURRENT_LIST_DIR}/../not-exists UNUSED_SACK_SDK_ROOT_PATH ${EXTRA_FLAGS} )
+BuildProject( ${PROJECT}.puregl2 sack.nosolution ${CMAKE_CURRENT_LIST_DIR}/../not-exists UNUSED_SACK_SDK_ROOT_PATH ${EXTRA_FLAGS} )
 
 if( NOT __ANDROID__ )
   # this calls sack_deploy to build cmakepackage

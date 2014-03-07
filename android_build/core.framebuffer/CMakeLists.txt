@@ -46,6 +46,22 @@ install_resources( package/assets )
 
 ainstall( ${SACK_SDK_ROOT_PATH}/lib * DESTINATION package/libs/armeabi )
 
+##########################################
+###  Remove unused libraries 
+FILE( GLOB files #RELATIVE ${CMAKE_BINARY_DIR} 
+		${CMAKE_BINARY_DIR}/package/libs/armeabi/*++.so 
+                ${CMAKE_BINARY_DIR}/package/libs/armeabi/*.proxy.*
+                ${CMAKE_BINARY_DIR}/package/libs/armeabi/*.module.*
+                ${CMAKE_BINARY_DIR}/package/libs/armeabi/*.puregl*
+	) 
+FILE( REMOVE ${files} ) 
+
+##########################################
+###  STRIP LIBRARIES
+FILE( GLOB files ${CMAKE_BINARY_DIR}/package/libs/armeabi/*.so 	) 
+EXECUTE_PROCESS(COMMAND ${STAGING_DIR}/bin/${ANDROID_NDK_PREBUILT_ARCH_LONG}-strip -s ${files} )
+
+
 dinstall(  ${CMAKE_SOURCE_DIR}/res * DESTINATION package/res )
 ainstall(  ${CMAKE_SOURCE_DIR} sql.config DESTINATION package/assets )
 ainstall(  ${CMAKE_SOURCE_DIR} libEditOptions.interface.conf DESTINATION package/assets )
@@ -63,11 +79,8 @@ STRING( REPLACE "." "/" app_path ${application} )
 CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/../MyNativeActivity.cm package/src/org/d3x0r/${app_path}/${activity}/${activity}.java )
 
 
-
-EXECUTE_PROCESS( 
+    add_custom_target( package
        COMMAND android.bat update project --target "android-14" --path .
-       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/package )
-EXECUTE_PROCESS( 
        COMMAND ant.bat ${CMAKE_BUILD_TYPE}
        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/package )
 
