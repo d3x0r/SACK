@@ -131,7 +131,7 @@ void android_app_pre_exec_cmd(struct android_app* android_app, int8_t cmd) {
 		case APP_CMD_CONFIG_CHANGED:
 				LOGV("APP_CMD_CONFIG_CHANGED\n");
 				AConfiguration_fromAssetManager(android_app->config,
-						android_app->activity->assetManager);
+														  android_app->activity->assetManager);
 				print_cur_config(android_app);
 				break;
 
@@ -282,7 +282,7 @@ static struct android_app* android_app_create(ANativeActivity* activity,
 	return android_app;
 }
 
-static void android_app_write_cmd(struct android_app* android_app, int8_t cmd) {
+void android_app_write_cmd(struct android_app* android_app, int8_t cmd) {
 	if (write(android_app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd)) {
 		LOGE("Failure writing android_app cmd: %s\n", strerror(errno));
 	}

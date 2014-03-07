@@ -92,6 +92,8 @@ void  UpdateDisplayPortionEx( PVIDEO hVideo
    if( hVideo )
 		hVideo->flags.bShown = 1;
 	l.flags.bUpdateWanted = 1;
+	if( l.wake_callback )
+      l.wake_callback();
 }
 
 //----------------------------------------------------------------------------
@@ -463,7 +465,6 @@ void LoadOptions( void )
 				tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Use Display"), n+1 );
 				camera->display = SACK_GetProfileIntEx( GetProgramName(), tmp, nDisplays>1?n+1:0, TRUE );
 				GetDisplaySizeEx( camera->display, &camera->x, &camera->y, &camera->w, &camera->h );
-            lprintf( WIDE( " getdisplay size ex fails.") );
 			}
 
 			camera->identity_depth = camera->w/2;
@@ -513,6 +514,7 @@ void LoadOptions( void )
 	if( !l.origin )
 	{
 		static MATRIX m;
+		lprintf( "Init camera" );
 		l.origin = CreateNamedTransform( WIDE("render.camera") );
 
 		Translate( l.origin, l.scale * average_width/2, l.scale * average_height/2, l.scale * average_height/2 );
@@ -632,10 +634,9 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 	INDEX idx;
 	LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
 	{
-   lprintf( "Open camera %d", idx);
 		if( !idx ) // default camera is a duplicate of another camera
 			continue;
-lprintf( "Not Skipped..." );
+		lprintf( "Open camera %d", idx);
 		if( camera->flags.opening )
 			continue;
 
@@ -724,7 +725,7 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 				hVideo->pWindowPos.y = y;
 				hVideo->pWindowPos.cx = wx;
 				hVideo->pWindowPos.cy = wy;
-				lprintf( WIDE("%d %d"), x, y );
+				//lprintf( WIDE("%d %d"), x, y );
 				{
 					hVideo->pImage =
 						RemakeImage( hVideo->pImage, NULL, hVideo->pWindowPos.cx,
@@ -733,11 +734,11 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 					{
 						TEXTCHAR name[64];
 						tnprintf( name, sizeof( name ), WIDE( "render.display.%p" ), hVideo );
-						lprintf( WIDE( "making initial transform" ) );
+						//lprintf( WIDE( "making initial transform" ) );
 						hVideo->transform = hVideo->pImage->transform = CreateTransformMotion( CreateNamedTransform( name ) );
 					}
 
-					lprintf( WIDE( "Set transform at %d,%d" ), hVideo->pWindowPos.x, hVideo->pWindowPos.y );
+					//lprintf( WIDE( "Set transform at %d,%d" ), hVideo->pWindowPos.x, hVideo->pWindowPos.y );
 					Translate( hVideo->transform, (RCOORD)hVideo->pWindowPos.x, (RCOORD)hVideo->pWindowPos.y, 0 );
 
 					// additionally indicate that this is a GL render point
@@ -781,15 +782,13 @@ LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 	//if( ( GetCurrentThreadId () == l.dwThreadID )  )
 	{
 #ifdef LOG_OPEN_TIMING
-		lprintf( WIDE( "Allowed to create my own stuff..." ) );
+		lprintf( WIDE( "About to create my own stuff..." ) );
 #endif
-		lprintf( WIDE("about to Create some window stuff") );
 		CreateWindowStuffSizedAt( hNextVideo
 										 , hNextVideo->pWindowPos.x
 										 , hNextVideo->pWindowPos.y
 										 , hNextVideo->pWindowPos.cx
 										, hNextVideo->pWindowPos.cy);
-		lprintf( WIDE("Created some window stuff") );
 	}
 #ifdef LOG_STARTUP
 	lprintf( WIDE("Resulting new window %p %p"), hNextVideo, GetNativeHandle( hNextVideo ) );
@@ -1215,6 +1214,8 @@ void  SetRedrawHandler (PVIDEO hVideo,
 		if( hVideo->flags.bShown )
 		{
          l.flags.bUpdateWanted = 1;
+			if( l.wake_callback )
+				l.wake_callback();
 		}
 	}
 
@@ -1622,6 +1623,8 @@ void MarkDisplayUpdated( PRENDERER r )
    l.flags.bUpdateWanted = 1;
 	if( r )
       r->flags.bUpdated = 1;
+	if( l.wake_callback )
+		l.wake_callback();
 }
 
 static LOGICAL CPROC DefaultExit( PTRSZVAL psv, _32 keycode )

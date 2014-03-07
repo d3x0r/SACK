@@ -30,18 +30,19 @@
 
 
 #include "engine.h"
-
+#define lprintf LOGI
 
 // sets the native window; opencameras will use this as the surface to initialize to.
 static void (*BagVidlibPureglSetNativeWindowHandle)(NativeWindowType );
 static void (*BagVidlibPureglOpenCameras)(void);
-static void (*BagVidlibPureglRenderPass)(void);
+static int (*BagVidlibPureglRenderPass)(void);
 static void (*BagVidlibPureglFirstRender)(void);
 static void (*BagVidlibPureglSendTouchEvents)( int nPoints, PINPUT_POINT points );
 static void (*BagVidlibPureglCloseDisplay)(void);  // do cleanup and suspend processing until a new surface is created.
 static void (*BagVidlibPureglSurfaceLost)(void);  // do cleanup and suspend processing until a new surface is created.
 static void (*BagVidlibPureglSurfaceGained)(NativeWindowType);  // do cleanup and suspend processing until a new surface is created.
 static void (*BagVidlibPureglSetTriggerKeyboard)(void(*show)(void),void(*hide)(void));  // do cleanup and suspend processing until a new surface is created.
+static void (*BagVidlibPureglSetAnimationWake)(void(*wake_animation)(void));  // do cleanup and suspend processing until a new surface is created.
 static void (*BagVidlibPureglSetSleepSuspend)(void(*suspend)(int));  // do cleanup and suspend processing until a new surface is created.
 
 static int  (*BagVidlibPureglSendKeyEvents)( int pressed, int key, int mods );
@@ -381,10 +382,23 @@ void hide_keyboard( void )
 	//ANativeActivity_hideSoftInput( engine.app->activity, ANATIVEACTIVITY_HIDE_SOFT_INPUT_IMPLICIT_ONLY );
 }
 
+void wake_animation( void )
+{
+	if( engine.have_focus )
+	{
+		if( !engine.state.animating )
+		{
+			engine.state.animating = 1;
+			android_app_write_cmd( engine.app, APP_CMD_WAKE);
+		}	
+	}
+}
+
 void* BeginNormalProcess( void*param )
 {
-	LOGI( "BeginNormalProcess: %d %d", engine.state.restarting, engine.state.closed );
-	if( !engine.state.restarting )
+   sched_yield();
+	LOGI( "BeginNormalProcess: %d %d %d  %d %p", engine.state.restarting, engine.state.closed, engine.state.opened, engine.wait_for_startup, myname );
+	if( !engine.state.restarting && !myname )
 	{
 		char buf[256];
 		FILE *maps = fopen( "/proc/self/maps", "rt" );
@@ -470,16 +484,6 @@ void* BeginNormalProcess( void*param )
 					}
 				}
 				LoadLibrary( mypath, "libbag.psi.so" );
-
-				if( 0 )
-				{
-					void *lib = LoadLibrary( mypath, "libbag.video.puregl2.so" );
-					if( !lib )
-						LOGI( "Failed to load lib:%s", dlerror() );
-
-				}
-				else
-					LOGI( "not loading puregl, should already be loaded..." );
 #endif
 				{
 					void *lib;
@@ -508,9 +512,9 @@ void* BeginNormalProcess( void*param )
 						// allow normal main fail processing
 						break;
 					}
-					LOGI( "Invoke Deadstart..." );
+					//LOGI( "Invoke Deadstart..." );
 					InvokeDeadstart();
-					LOGI( "Deadstart Completed..." );
+					//LOGI( "Deadstart Completed..." );
 					MarkRootDeadstartComplete();
 
 					// somehow these will be loaded
@@ -521,12 +525,12 @@ void* BeginNormalProcess( void*param )
 						LOGI( "Failed to get SetNativeWindowHandle:%s", dlerror() );
 
 					BagVidlibPureglFirstRender = (void (*)(void ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_DoFirstRender" );
-					if( !BagVidlibPureglFirstRender )
-						LOGI( "Failed to get BagVidlibPureglFirstRender:%s", dlerror() );
+					//if( !BagVidlibPureglFirstRender )
+					//	LOGI( "Failed to get BagVidlibPureglFirstRender:%s", dlerror() );
 
-					BagVidlibPureglRenderPass = (void (*)(void ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_DoRenderPass" );
-					if( !BagVidlibPureglRenderPass )
-						LOGI( "Failed to get DoRenderPass:%s", dlerror() );
+					BagVidlibPureglRenderPass = (int (*)(void ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_DoRenderPass" );
+					//if( !BagVidlibPureglRenderPass )
+					//	LOGI( "Failed to get DoRenderPass:%s", dlerror() );
 
 					BagVidlibPureglOpenCameras = (void (*)(void ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_OpenCameras" );
 					if( !BagVidlibPureglOpenCameras )
@@ -545,16 +549,20 @@ void* BeginNormalProcess( void*param )
 					if( BagVidlibPureglSetTriggerKeyboard )
 						BagVidlibPureglSetTriggerKeyboard( show_keyboard, hide_keyboard );
 
+					BagVidlibPureglSetAnimationWake = (void(*)(void(*)(void)))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SetAnimationWake" );
+					if( BagVidlibPureglSetAnimationWake )
+						BagVidlibPureglSetAnimationWake( wake_animation );
+
 					BagVidlibPureglSetSleepSuspend = (void(*)(void(*)(int)))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SetSleepSuspend" );
 					if( BagVidlibPureglSetSleepSuspend )
 						BagVidlibPureglSetSleepSuspend( SuspendSleep );
 
 					// shouldn't need this shortly; was more about doing things my way than the android way
-					engine.wait_for_display_init = 1;
+					//engine.wait_for_display_init = 1;
 					engine.wait_for_startup = 0;
  					// resume other threads so potentially the display is the next thing initialized.
-					while( engine.wait_for_display_init )
-						sched_yield();
+					//while( engine.wait_for_display_init )
+					sched_yield();
 					break;
 				}
 			}
@@ -563,11 +571,15 @@ void* BeginNormalProcess( void*param )
 		if( maps )
 			fclose( maps );
 	}
+	else
+		engine.wait_for_startup = 0;
+
 	if( !SACK_Main )
 	{
 		LOGI( "(still)Failed to get SACK_Main entry point; I am [%s]", myname );
 		return 0;
 	}
+   LOGI( "Start Application..." );
 	SACK_Main( 0, NULL );
 	engine.state.closed = 1;
 	LOGI( "Main exited... and so should we all..." );
@@ -582,23 +594,35 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 	struct engine* engine = (struct engine*)app->userData;
 	switch (cmd)
 	{
+	default:
+		LOGI( "Other Command: %d", cmd );
+		break;
+	case APP_CMD_DESTROY:
+		// need to end normal process here
+		// unload everything....
+      //
+      break;
 	case APP_CMD_START:
 		{
 			if( !engine->state.restarting )
 			{
+            /*
 				pthread_t thread;
 				engine->wait_for_startup = 1;
 				LOGI( "Create A thread start! *** " );
 				pthread_create( &thread, NULL, BeginNormalProcess, NULL );
 				// wait for core initilization to complete, and soft symbols to be loaded.
 				while( engine->wait_for_startup )
-					sched_yield();
+				sched_yield();
+				*/
+            LOGI( "No; start is just a new display...." );
 			}
 			else
 				LOGI( "App already started... just going to get a new display..." );
 		}
 		break;
 	case APP_CMD_SAVE_STATE:
+      LOGI( "*** Save my isntance data... do things change?" );
 		// The system has asked us to save our current state.  Do so.
 		engine->app->savedState = malloc(sizeof(struct saved_state));
 		*((struct saved_state*)engine->app->savedState) = engine->state;
@@ -619,11 +643,25 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 		BagVidlibPureglSetNativeWindowHandle( engine->app->pendingWindow );
 		// reopen cameras...
 		BagVidlibPureglOpenCameras();
-		engine->wait_for_display_init = 0;
-		sched_yield();
+      LOGI( "Clear wait for display init..." );
+		//engine->wait_for_display_init = 0;
+      engine->state.opened = 1;
+		//sched_yield();
 		break;
+	case APP_CMD_CONFIG_CHANGED:
+		{
+			int new_orient = AConfiguration_getOrientation(engine->app->config);
+			if( engine->state.orientation != new_orient )
+			{
+            engine->state.orientation = new_orient;
+				if( BagVidlibPureglPauseDisplay )
+					BagVidlibPureglPauseDisplay();
+			}
+		}
+      break;
 	case APP_CMD_TERM_WINDOW:
 		// The window is being hidden or closed, clean it up.
+      engine->state.opened = 0;
 		engine->state.animating = 0;
 		BagVidlibPureglCloseDisplay();
 		break;
@@ -631,41 +669,56 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 		// first resume is not valid until gained focus (else resume during lock screen)
 		//case APP_CMD_RESUME:
 		// resume physics from now
-		engine->state.animating = 1;
+		LOGI( "Gain focus" );
+      engine->have_focus = 1;
+      if( engine->state.opened )
+			engine->state.animating = 1;
+		else
+         LOGI( "but we don't have a window?!" );
 
 		// When our app gains focus, we start monitoring the accelerometer.
-		if (engine->accelerometerSensor != NULL) {
-			ASensorEventQueue_enableSensor(engine->sensorEventQueue,
-								engine->accelerometerSensor);
+		//if (engine->accelerometerSensor != NULL) {
+		//	ASensorEventQueue_enableSensor(engine->sensorEventQueue,
+		//						engine->accelerometerSensor);
 			// We'd like to get 60 events per second (in us).
-			ASensorEventQueue_setEventRate(engine->sensorEventQueue,
-													engine->accelerometerSensor, (1000L/60)*1000);
-		}
+		 //  ASensorEventQueue_setEventRate(engine->sensorEventQueue,
+		 //  										engine->accelerometerSensor, (1000L/60)*1000);
+		//}
 		break;
 	case APP_CMD_PAUSE:
+      engine->have_focus = 0;
+		engine->state.animating = 0;
+		while( engine->state.rendering )
+         sched_yield();
 		if( BagVidlibPureglPauseDisplay )
 			BagVidlibPureglPauseDisplay();
 		break;
 	case APP_CMD_RESUME:
+      lprintf( "Resume..." );
 		if( BagVidlibPureglResumeDisplay )
 			BagVidlibPureglResumeDisplay();
 		break;
 	case APP_CMD_LOST_FOCUS:
 		// need to suspend physics at this point; aka next move is time 0, until the next-next
 
-		// When our app loses focus, we stop monitoring the accelerometer.
-		// This is to avoid consuming battery while not being used.
-		if (engine->accelerometerSensor != NULL) {
-			ASensorEventQueue_disableSensor(engine->sensorEventQueue,
-														engine->accelerometerSensor);
-		}
 		// Also stop animating.
 		engine->state.animating = 0;
 		break;
 	}
 }
 
-
+void BeginNativeProcess( struct engine* engine )
+{
+			{
+				pthread_t thread;
+				engine->wait_for_startup = 1;
+				LOGI( "Create A thread start! *** " );
+				pthread_create( &thread, NULL, BeginNormalProcess, NULL );
+				// wait for core initilization to complete, and soft symbols to be loaded.
+				while( engine->wait_for_startup )
+					sched_yield();
+			}
+}
 
 /**
  * This is the main entry point of a native application that is using
@@ -683,19 +736,27 @@ void android_main(struct android_app* state) {
 	state->onInputEvent = engine_handle_input;
 	engine.app = state;
 
+   LOGI( "BEGIN ANDROID_MAIN" );
 	// Prepare to monitor accelerometer
-	engine.sensorManager = ASensorManager_getInstance();
-	engine.accelerometerSensor = ASensorManager_getDefaultSensor(engine.sensorManager,
-				ASENSOR_TYPE_ACCELEROMETER);
-	engine.sensorEventQueue = ASensorManager_createEventQueue(engine.sensorManager,
-				state->looper, LOOPER_ID_USER, NULL, NULL);
+ 	//engine.sensorManager = ASensorManager_getInstance();
+	//engine.accelerometerSensor = ASensorManager_getDefaultSensor(engine.sensorManager,
+	//			ASENSOR_TYPE_ACCELEROMETER);
+	//engine.sensorEventQueue = ASensorManager_createEventQueue(engine.sensorManager,
+	//			state->looper, LOOPER_ID_USER, NULL, NULL);
 
 	if (state->savedState != NULL) {
 		// We are starting with a previous saved state; restore from it.
 		engine.state = *(struct saved_state*)state->savedState;
 		engine.state.closed = 0;
+      engine.state.animating = 0; // won't be ready to animate until later...
 		engine.state.restarting = 1;
 		LOGI( "Recover prior saved state... %d %d", engine.state.closed, engine.state.restarting );
+	}
+	else
+	{
+      LOGI( "No prior state" );
+		engine.state.orientation = AConfiguration_getOrientation(engine.app->config);
+		BeginNativeProcess( &engine );
 	}
 
 	// loop waiting for stuff to do.
@@ -714,19 +775,6 @@ void android_main(struct android_app* state) {
 			if (source != NULL)
 			{
 				source->process(state, source);
-			}
-
-			// If a sensor has data, process it now.
-			if (ident == LOOPER_ID_USER) {
-				if (engine.accelerometerSensor != NULL) {
-					ASensorEvent event;
-					while (ASensorEventQueue_getEvents(engine.sensorEventQueue,
-																	&event, 1) > 0) {
-						//LOGI("accelerometer: x=%f y=%f z=%f",
-						//		event.acceleration.x, event.acceleration.y,
-						//		event.acceleration.z);
-					}
-				}
 			}
 
 			// Check if we are exiting.
@@ -750,15 +798,18 @@ void android_main(struct android_app* state) {
 		if (engine.state.animating) {
 				// Drawing is throttled to the screen update rate, so there
 			// is no need to do timing here.
-				// trigger want draw?
+			// trigger want draw?
+         LOGI( "Animating..." );
+			engine.state.rendering = 1;
 			if( BagVidlibPureglRenderPass )
-				BagVidlibPureglRenderPass();
+				engine.state.animating = BagVidlibPureglRenderPass();
 			else
 			{
 				if( BagVidlibPureglFirstRender )
 					BagVidlibPureglFirstRender();
 				engine.state.animating = 0;
 			}
+         engine.state.rendering = 0;
 		}
 	}
 }

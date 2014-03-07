@@ -272,7 +272,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
                else
 						RotateRel( l.origin, 0, 0, angle_one );
 				}
-
+            MarkDisplayUpdated( NULL ); // trigger redraw
             touch_info.one.x = touches[0].x;
             touch_info.one.y = touches[0].y;
             touch_info.two.x = touches[1].x;
@@ -348,6 +348,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 						}
 						toggle = 1-toggle;
 					}
+					MarkDisplayUpdated( NULL ); // trigger redraw
 
 				}
 				touch_info.one.x = touches[0].x;

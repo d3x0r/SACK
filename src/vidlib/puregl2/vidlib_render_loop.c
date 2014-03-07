@@ -21,7 +21,11 @@ void Redraw( PVIDEO hVideo )
 	if( hVideo )
 		hVideo->flags.bUpdated = 1;
 	else
+	{
 		l.flags.bUpdateWanted = 1;
+		if( l.wake_callback )
+			l.wake_callback();
+	}
 }
 
 
@@ -119,9 +123,7 @@ void Render3D( struct display_camera *camera )
   	l.current_render_camera = camera;
 	l.flags.bViewVolumeUpdated = 1;
 #ifdef __3D__
-   CheckErr();
 	Init3D( camera );
-   CheckErr();
 #endif
 	//lprintf( "Called init for camera.." );
 	{
@@ -432,7 +434,6 @@ LOGICAL ProcessGLDraw( LOGICAL draw_all )
 		// set l.flags.bUpdateWanted for window surfaces.
 		WantRender3D();
 	}
-
 	if( draw_all )
 	{
 		struct display_camera *camera;
