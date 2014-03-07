@@ -203,7 +203,7 @@ int GetResourceID( PSI_CONTROL parent, CTEXTSTR name, _32 nIDDefault )
 				range = offset + 1;
 			}
 			// auto offset old resources...
-         // this is probably depricated code, but wtf.
+			// this is probably depricated code, but wtf.
 			if( parent && range > 1 && !ofs_string )
 			{
 				PSI_CONTROL pc;
@@ -223,7 +223,7 @@ int GetResourceID( PSI_CONTROL parent, CTEXTSTR name, _32 nIDDefault )
 			return result;
 		}
 	}
-   return -1; // TXT_STATIC id... invalid to search or locate on...
+	return -1; // TXT_STATIC id... invalid to search or locate on...
 }
 
 // yes, sometimes we end up having to register psi outside of preload...
@@ -239,7 +239,7 @@ int DoRegisterControl( PCONTROL_REGISTRATION pcr, int nSize )
 		// skip these well above legacy controls...
 		// if we have 50 controls existing we'd be lucky
 		// so creation of 1950 more controls shouldn't happen
-      // within the timespan of xperdex.
+		// within the timespan of xperdex.
 		static _32 ControlID = USER_CONTROL + 2000;
 #else
 		static _32 ControlID = USER_CONTROL;
@@ -343,7 +343,7 @@ int DoRegisterControl( PCONTROL_REGISTRATION pcr, int nSize )
 		}
 		return ControlID;
 	}
-   return 0;
+	return 0;
 }
 
 #ifdef USE_INTERFACES
@@ -353,7 +353,7 @@ void GetMyInterface( void )
 	if( !g.MyImageInterface )
 	{
 		g.MyImageInterface = (PIMAGE_INTERFACE)GetInterface( WIDE("image") );
-      		if( !g.MyImageInterface )
+		if( !g.MyImageInterface )
 			g.MyImageInterface = (PIMAGE_INTERFACE)GetInterface( WIDE("real_image") );
 		if( !g.MyImageInterface )
 		{
@@ -414,9 +414,9 @@ void GetMyInterface( void )
 			if( !(g.flags.always_draw = RequiresDrawAll()) )
 				g.flags.allow_threaded_draw = AllowsAnyThreadToUpdate();
 	}
-#ifdef __ANDROID__
-   g.default_font = RenderFontFileScaledEx( WIDE("fonts/MyriadPro.ttf"), 160/4, 160/4, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
-#endif
+//#ifdef __ANDROID__
+	g.default_font = RenderFontFileScaledEx( WIDE("fonts/MyriadPro.ttf"), 160/4, 160/4, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
+//#endif
 }
 #endif
 
@@ -513,7 +513,7 @@ PRIORITY_PRELOAD( InitPSILibrary, PSI_PRELOAD_PRIORITY )
 
 void TryLoadingFrameImage( void )
 {
-   if( !g.BorderImage )
+	if( !g.BorderImage )
 	{
 		TEXTCHAR buffer[256];
 #ifndef __NO_OPTIONS__
@@ -580,7 +580,7 @@ PSI_PROC( PIMAGE_INTERFACE, SetControlImageInterface )( PIMAGE_INTERFACE Display
 	return g.MyImageInterface = DisplayInterface;
 #endif
 #endif
-   return DisplayInterface;
+	return DisplayInterface;
 }
 
 
@@ -591,7 +591,7 @@ PSI_PROC( PRENDER_INTERFACE, SetControlInterface )( PRENDER_INTERFACE DisplayInt
 	return g.MyDisplayInterface = DisplayInterface;
 #endif
 #endif
-   return DisplayInterface;
+	return DisplayInterface;
 }
 //---------------------------------------------------------------------------
 // basic controls implement begin here!
@@ -602,29 +602,29 @@ PSI_PROC( PRENDER_INTERFACE, SetControlInterface )( PRENDER_INTERFACE DisplayInt
 PSI_PROC( void, AlignBaseToWindows )( void )
 {
 #ifdef _WIN32
-   int sys_r;
-   int sys_g;
-   int sys_b;
-   int sys_a;
+	int sys_r;
+	int sys_g;
+	int sys_b;
+	int sys_a;
 	int tmp;
 
 #define Swap(i)    ( (tmp = i),( sys_r = ((tmp) & 0xFF)), (sys_g = ((tmp>>8) & 0xFF)),(sys_b = ((tmp >>16) & 0xFF)),(sys_a = 0xFF),AColor(sys_r,sys_g,sys_b,sys_a) )
 
 	 defaultcolor[HIGHLIGHT        ] =  Swap(GetSysColor( COLOR_3DHIGHLIGHT));
-    if( !g.BorderImage )
+	if( !g.BorderImage )
 		 defaultcolor[NORMAL           ] =  Swap(GetSysColor(COLOR_3DFACE ));
-    defaultcolor[SHADE            ] =  Swap(GetSysColor(COLOR_3DSHADOW ));
-    defaultcolor[SHADOW           ] =  Swap(GetSysColor(COLOR_3DDKSHADOW ));
-    defaultcolor[TEXTCOLOR        ] =  Swap(GetSysColor(COLOR_BTNTEXT ));
-    defaultcolor[CAPTION          ] =  Swap(GetSysColor(COLOR_ACTIVECAPTION ));
-    defaultcolor[CAPTIONTEXTCOLOR] =  Swap(GetSysColor( COLOR_CAPTIONTEXT));
-    defaultcolor[INACTIVECAPTION ] =  Swap(GetSysColor(COLOR_INACTIVECAPTION ));    
-    defaultcolor[INACTIVECAPTIONTEXTCOLOR]=Swap(GetSysColor(COLOR_INACTIVECAPTIONTEXT ));
-    defaultcolor[SELECT_BACK      ] =  Swap(GetSysColor(COLOR_HIGHLIGHT ));
-    defaultcolor[SELECT_TEXT      ] =  Swap(GetSysColor(COLOR_HIGHLIGHTTEXT ));
-    defaultcolor[EDIT_BACKGROUND ] =  Swap(GetSysColor(COLOR_WINDOW ));
-    defaultcolor[EDIT_TEXT       ] =  Swap(GetSysColor(COLOR_WINDOWTEXT ));
-        defaultcolor[SCROLLBAR_BACK  ] =  Swap(GetSysColor(COLOR_SCROLLBAR ));
+	defaultcolor[SHADE            ] =  Swap(GetSysColor(COLOR_3DSHADOW ));
+	defaultcolor[SHADOW           ] =  Swap(GetSysColor(COLOR_3DDKSHADOW ));
+	defaultcolor[TEXTCOLOR        ] =  Swap(GetSysColor(COLOR_BTNTEXT ));
+	defaultcolor[CAPTION          ] =  Swap(GetSysColor(COLOR_ACTIVECAPTION ));
+	defaultcolor[CAPTIONTEXTCOLOR] =  Swap(GetSysColor( COLOR_CAPTIONTEXT));
+	defaultcolor[INACTIVECAPTION ] =  Swap(GetSysColor(COLOR_INACTIVECAPTION ));    
+	defaultcolor[INACTIVECAPTIONTEXTCOLOR]=Swap(GetSysColor(COLOR_INACTIVECAPTIONTEXT ));
+	defaultcolor[SELECT_BACK      ] =  Swap(GetSysColor(COLOR_HIGHLIGHT ));
+	defaultcolor[SELECT_TEXT      ] =  Swap(GetSysColor(COLOR_HIGHLIGHTTEXT ));
+	defaultcolor[EDIT_BACKGROUND ] =  Swap(GetSysColor(COLOR_WINDOW ));
+	defaultcolor[EDIT_TEXT       ] =  Swap(GetSysColor(COLOR_WINDOWTEXT ));
+	defaultcolor[SCROLLBAR_BACK  ] =  Swap(GetSysColor(COLOR_SCROLLBAR ));
 #endif
     // No base to set to - KDE/Gnome/E/?
 }
@@ -633,13 +633,13 @@ PSI_PROC( void, AlignBaseToWindows )( void )
 
 PSI_PROC( void, SetBaseColor )( INDEX idx, CDATA c )
 {
-    //Log3( WIDE("Color %d was %08X and is now %08X"), idx, defaultcolor[idx], c );
-    defaultcolor[idx] = c;
+	//Log3( WIDE("Color %d was %08X and is now %08X"), idx, defaultcolor[idx], c );
+	defaultcolor[idx] = c;
 }
 
 PSI_PROC( CDATA, GetBaseColor )( INDEX idx )
 {
-    return defaultcolor[idx] ;
+	return defaultcolor[idx] ;
 }
 
 //---------------------------------------------------------------------------
@@ -652,7 +652,7 @@ PSI_PROC( void, SetControlColor )( PSI_CONTROL pc, INDEX idx, CDATA c )
 		if( basecolor(pc) == g.defaultcolors )
 		{
 			pc->basecolors = NewArray( CDATA, sizeof( DefaultColors ) / sizeof( CDATA ) );
-         MemCpy( pc->basecolors, g.defaultcolors, sizeof( DefaultColors ) );
+			MemCpy( pc->basecolors, g.defaultcolors, sizeof( DefaultColors ) );
 		}
 		basecolor(pc)[idx] = c;
 	}
@@ -660,7 +660,7 @@ PSI_PROC( void, SetControlColor )( PSI_CONTROL pc, INDEX idx, CDATA c )
 
 PSI_PROC( CDATA, GetControlColor )( PSI_CONTROL pc, INDEX idx )
 {
-    return basecolor(pc)[idx];
+	return basecolor(pc)[idx];
 }
 
 //---------------------------------------------------------------------------
@@ -722,7 +722,7 @@ void FixFrameFocus( PPHYSICAL_DEVICE pf, int dir )
 				{
 					if( dir != FFF_FORWARD )
 					{
-                  // go to last.
+						// go to last.
 						while( pcCurrent->next )
 							pcCurrent = pcCurrent->next;
 					}
@@ -744,7 +744,7 @@ void RestoreBackground( PSI_CONTROL pc, P_IMAGE_RECTANGLE r )
 		{
 			if( parent->flags.bDirty )
 			{
-            break;
+				break;
 			}
 		}
 		if( !parent )
@@ -939,14 +939,14 @@ void SmudgeSomeControlsWork( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 			lprintf( WIDE("updating some controls... rectangles and stuff.") );
 #endif
 	 //Log( WIDE("Update some controls....") );
-		 if( !IntersectRectangle( &wind_rect, pRect, &pc->rect ) )
-			 continue;
-		 wind_rect.x -= pc->rect.x;
-		 wind_rect.y -= pc->rect.y;
+		if( !IntersectRectangle( &wind_rect, pRect, &pc->rect ) )
+			continue;
+		wind_rect.x -= pc->rect.x;
+		wind_rect.y -= pc->rect.y;
 		 // bound window rect (frame update)
 			// The update region may be
-		 if( IntersectRectangle( &surf_rect, &wind_rect, &pc->surface_rect ) )
-		 {
+		if( IntersectRectangle( &surf_rect, &wind_rect, &pc->surface_rect ) )
+		{
 			surf_rect.x -= pc->surface_rect.x;
 			surf_rect.y -= pc->surface_rect.y;
 #ifdef DEBUG_UPDAATE_DRAW
@@ -956,14 +956,14 @@ void SmudgeSomeControlsWork( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 			// enabled minimal update region...
 			pc->dirty_rect = surf_rect;
 			SmudgeCommon( pc ); // and all children, if dirtied...
-        }
-        else
+		}
+		else
 		{
 		  // wind_rect is the merge of the update needed
 		  // and the window's bounds, but none of the surface
 		  // setting the image bound to this will short many things like blotting the
-           //fancy image borders.
-            // yes redundant with above, but need to fix the image pos
+		   //fancy image borders.
+		    // yes redundant with above, but need to fix the image pos
 				// AFTER the update... and well....
 				//Log( WIDE("Hit the rectange, but didn't hit the content... so update border only.") );
 			  if( pc->DrawBorder )
@@ -982,8 +982,8 @@ void SmudgeSomeControlsWork( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 #endif
 					DrawFrameCaption( pc );
 				}
-        }
-    }
+		}
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -996,58 +996,58 @@ void SmudgeSomeControls( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 {
 	PPHYSICAL_DEVICE pf = GetFrame( pc )->device;
 	//IMAGE_RECTANGLE _rect;
-   //ValidatedControlData( PFRAME, CONTROL_FRAME, pf, GetFrame( pc ) );
+	//ValidatedControlData( PFRAME, CONTROL_FRAME, pf, GetFrame( pc ) );
 	int prior_flag;
-    // include bias to surface - allow everyone 
-    // else to think in area within frame surface...
+	// include bias to surface - allow everyone 
+	// else to think in area within frame surface...
 
-    // add the final frame surface offset...
-    // this should remove the need for edit_bias to be added...
-    // plus - now pc will refer to the frame, and is where
-    // we desire to be drawing anyhow....
-    // working down within the frame/controls ....
-    // but so far - usage has been from the control's rect, 
-    // and not its surface, therefore subracting it's surface rect was
-    // wrong - but this allows us to cleanly subract the last, and not
+	// add the final frame surface offset...
+	// this should remove the need for edit_bias to be added...
+	// plus - now pc will refer to the frame, and is where
+	// we desire to be drawing anyhow....
+	// working down within the frame/controls ....
+	// but so far - usage has been from the control's rect, 
+	// and not its surface, therefore subracting it's surface rect was
+	// wrong - but this allows us to cleanly subract the last, and not
 	// the first...
 	if( !pRect )
 		return;
-    //lprintf( WIDE("SmudgeSomeControls - input rect is %d,%d  %d,%d"), pRect->x, pRect->y, pRect->width, pRect->height );
-    while( pc && pc->parent && !pc->device )
-    {
-        // don't subract the first surface
-        // but do subtract the last surface...
-		 pRect->x += pc->rect.x;
-		 pRect->y += pc->rect.y;
-		 pc = pc->parent;;
-		 pRect->x += pc->surface_rect.x;
-		 pRect->y += pc->surface_rect.y;
+	//lprintf( WIDE("SmudgeSomeControls - input rect is %d,%d  %d,%d"), pRect->x, pRect->y, pRect->width, pRect->height );
+	while( pc && pc->parent && !pc->device )
+	{
+		// don't subract the first surface
+		// but do subtract the last surface...
+		pRect->x += pc->rect.x;
+		pRect->y += pc->rect.y;
+		pc = pc->parent;;
+		pRect->x += pc->surface_rect.x;
+		pRect->y += pc->surface_rect.y;
 	}
-	 //lprintf( WIDE("SmudgeSomeControls - changed rect is %d,%d  %d,%d"), pRect->x, pRect->y, pRect->width, pRect->height );
+	//lprintf( WIDE("SmudgeSomeControls - changed rect is %d,%d  %d,%d"), pRect->x, pRect->y, pRect->width, pRect->height );
 	prior_flag = pc->flags.bInitial;
 	pc->flags.bInitial = 1;
 	SmudgeSomeControlsWork( pc, pRect );
 	pc->flags.bInitial = prior_flag;
-	 // Uhmm well ... transporting dirty_rect ... on the control
-    // passing a rect in...
+	// Uhmm well ... transporting dirty_rect ... on the control
+	// passing a rect in...
 	(*pRect) = pc->dirty_rect;
 
-    if( pf && !pc->flags.bInitial && pf->pActImg )
+	if( pf && !pc->flags.bInitial && pf->pActImg )
 	{
 #ifdef DEBUG_UPDAATE_DRAW
-		 if( g.flags.bLogDebugUpdate )
-		 {
-			 lprintf( WIDE("Blatting color to surface so that we have something update?!") );
-			 lprintf( WIDE("Update portion %d,%d to %d,%d"), pRect->x, pRect->y, pRect->width, pRect->height );
-		 }
+		if( g.flags.bLogDebugUpdate )
+		{
+			lprintf( WIDE("Blatting color to surface so that we have something update?!") );
+			lprintf( WIDE("Update portion %d,%d to %d,%d"), pRect->x, pRect->y, pRect->width, pRect->height );
+		}
 #endif
-       /*
+		/*
 		 UpdateDisplayPortion( pf->pActImg
 									, pRect->x
 									, pRect->y
 									, pRect->width
 									, pRect->height );
-       */
+		*/
 	 }
 }
 
@@ -1404,8 +1404,8 @@ void AddCommonUpdateRegionEx( PPENDING_RECT update_rect, int bSurface, PSI_CONTR
 			if( y + (S_32)ht > update_rect->y + (S_32)update_rect->height )
 				update_rect->height = ( y + (S_32)ht ) - update_rect->y;
 			//lprintf( WIDE(fs"result (%d,%d)-(%d,%d)")
-         //       , update_rect->x, update_rect->y
-         //       , update_rect->width, update_rect->height
+		 //       , update_rect->x, update_rect->y
+		 //       , update_rect->width, update_rect->height
 			//		 );
 		}
 		else
@@ -1559,7 +1559,7 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 	{
 		if( pc->parent )
 		{
-         // okay surface rect of parent should be considered as 0,0.
+		 // okay surface rect of parent should be considered as 0,0.
 			if( SUS_GT( pc->original_rect.x, IMAGE_COORDINATE, pc->parent->surface_rect.width, IMAGE_SIZE_COORDINATE )
 				|| SUS_GT( pc->original_rect.y, IMAGE_COORDINATE, pc->parent->surface_rect.height, IMAGE_SIZE_COORDINATE ) 
 				|| USS_LT( pc->original_rect.width, IMAGE_SIZE_COORDINATE, /*pc->parent->surface_rect.x*/-pc->original_rect.x, IMAGE_COORDINATE )
@@ -1824,7 +1824,7 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 					{
 						if( pc->draw_result )
 						{
-                     // if it didn't draw, then probably the prior snapshot is still valid
+							// if it didn't draw, then probably the prior snapshot is still valid
 							child->flags.bParentUpdated = 1; // set so controls grab new snapshots
 						}
 						child->flags.bParentCleaned = 1; // has now drawn itself, and we must assume that it's not clean.
@@ -1842,7 +1842,7 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 			}
 			else
 			{
-            //cleaned = 1; // well, lie here... cause we're already clean?
+				//cleaned = 1; // well, lie here... cause we're already clean?
 #ifdef DEBUG_UPDAATE_DRAW
 				if( g.flags.bLogDebugUpdate )
 					lprintf( WIDE("Not invoking draw self.") );
@@ -1955,20 +1955,20 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 
 static int ChildInUse( PSI_CONTROL pc, int level )
 {
-   int n;
+	int n;
 	while( pc )
 	{
 		if( pc->InUse )
 			return TRUE;
 		n = ChildInUse( pc->child, level+1 );
 		if( n )
-         return n;
+			return n;
 		if( level )
 			pc = pc->next;
 		else
 			break;
 	}
-   return FALSE;
+	return FALSE;
 }
 
 //---------------------------------------------------------------------------
@@ -2069,7 +2069,7 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 
 #ifdef DEBUG_UPDAATE_DRAW
 			//if( pc->parent && pc->flags.bTransparent )
-         //   SmudgeCommon( pc->parent );
+			//   SmudgeCommon( pc->parent );
 			for( parent = pc; parent /*&& parent->flags.bTransparent*/ &&
 				 !parent->InUse &&
 				 !parent->flags.bDirty; parent = parent->parent )
@@ -3016,9 +3016,9 @@ void ScaleCoords( PSI_CONTROL pc, PS_32 a, PS_32 b )
 		}
 #endif
 		if( a )
-         *a = ScaleValue( &pc->scalex, *a );
+			*a = ScaleValue( &pc->scalex, *a );
 		if( b )
-         *b = ScaleValue( &pc->scaley, *b );
+			*b = ScaleValue( &pc->scaley, *b );
 	}
 }
 
@@ -3026,10 +3026,10 @@ void ScaleCoords( PSI_CONTROL pc, PS_32 a, PS_32 b )
 
 void ApplyRescaleChild( PSI_CONTROL pc, PFRACTION scalex, PFRACTION scaley )
 {
-   pc = pc->child;
+	pc = pc->child;
 	while( pc )
 	{
-      //if( 0 )
+		//if( 0 )
 #ifdef DEBUG_SCALING
 		{
 			TEXTCHAR tmp[32];
@@ -3052,10 +3052,10 @@ void ApplyRescaleChild( PSI_CONTROL pc, PFRACTION scalex, PFRACTION scaley )
 				pc->Rescale( pc );
 		}
 		// if this has a font, it's children are scaled according to
-      // their parent...
-      if( !pc->flags.bScaled )
+		// their parent...
+		if( !pc->flags.bScaled )
 			ApplyRescaleChild( pc, scalex, scaley );
-      pc = pc->next;
+		pc = pc->next;
 	}
 }
 
@@ -3087,7 +3087,7 @@ void ApplyRescale( PSI_CONTROL pc )
 						  );
 		if( pc && pc->Rescale )
 			pc->Rescale( pc );
-      ApplyRescaleChild( pc, &pc->scalex, &pc->scaley );
+		ApplyRescaleChild( pc, &pc->scalex, &pc->scaley );
 	}
 }
 
@@ -3097,23 +3097,23 @@ void SetCommonScale( PSI_CONTROL pc, PFRACTION sx, PFRACTION sy )
 	//if( 0 )
 #ifdef DEBUG_SCALING
 	{
-      TEXTCHAR tmp[256];
+		TEXTCHAR tmp[256];
 		lprintf( "Updating scaled value ...." );
-      sLogFraction( tmp, &pc->scalex );
-      lprintf( "X is %s", tmp );
-      sLogFraction( tmp, &pc->scaley );
+		sLogFraction( tmp, &pc->scalex );
+		lprintf( "X is %s", tmp );
+		sLogFraction( tmp, &pc->scaley );
 		lprintf( "Y is %s", tmp );
 	}
 #endif
-   if( sx )
+	if( sx )
 		pc->scalex = *sx;
-   if( sy )
+	if( sy )
 		pc->scaley = *sy;
-   if( sx || sy )
+	if( sx || sy )
 		pc->flags.bScaled = 1;
 	else
 		pc->flags.bScaled = 0;
-   SetCommonBorder( pc, pc->BorderType );
+	SetCommonBorder( pc, pc->BorderType );
 	if( pc && pc->Rescale )
 		pc->Rescale( pc );
 	ApplyRescaleChild( pc, sx, sy );
@@ -3125,10 +3125,10 @@ void SetCommonFont( PSI_CONTROL pc, SFTFont font )
 {
 	if( pc )
 	{
-      _32 w, h;
+		_32 w, h;
 		_32 _w, _h;
 #ifdef DEBUG_SCALING
-      //if( 0 )
+		//if( 0 )
 		{
 			TEXTCHAR tmp[32];
 			TEXTCHAR tmp2[32];
@@ -3139,7 +3139,7 @@ void SetCommonFont( PSI_CONTROL pc, SFTFont font )
 #endif
 		// pc->font - prior state before we update it... evyerhting
 		// gets rescaled by the new factor...
-      // progressive updates will end up with lots of error...
+		// progressive updates will end up with lots of error...
 		pc->caption.font = font;
 		GetFontRenderData( font, &pc->caption.fontdata, &pc->caption.fontdatalen );
 
@@ -3166,7 +3166,7 @@ void SetCommonFont( PSI_CONTROL pc, SFTFont font )
 			if( pc && pc->Rescale )
 				pc->Rescale( pc );
 #ifdef DEBUG_SCALING
-         //if( 0 )
+			//if( 0 )
 			{
 				TEXTCHAR tmp[32];
 				TEXTCHAR tmp2[32];
@@ -3566,10 +3566,6 @@ PSI_CONTROL CreateCommonExxx( PSI_CONTROL pContainer
 				snprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%s/rtti/extra init"), pTypeName );
 			else
 				snprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f WIDE("/rtti/extra init"), nType );
-			if( StrCaseCmp( pTypeName, "Color Well" ) == 0 )
-			{
-				int a = 3;
-			}
 			if( !(ExtraBorderType & BORDER_NO_EXTRA_INIT ) )
 			{
 				int (CPROC *CustomInit)(PSI_CONTROL);
@@ -4027,8 +4023,8 @@ PSI_PROC( void, InitCommonButton )( PSI_CONTROL pc, int *value )
 //---------------------------------------------------------------------------
 
 void SetCommonButtons( PSI_CONTROL pf
-							, int *pdone
-							, int *pokay )
+                     , int *pdone
+                     , int *pokay )
 {
 	if( pf )
 	{
@@ -4042,41 +4038,47 @@ void SetCommonButtons( PSI_CONTROL pf
 }
 
 void AddCommonButtonsEx( PSI_CONTROL pf
-                        , int *done, CTEXTSTR donetext
-                        , int *okay, CTEXTSTR okaytext )
+                       , int *done, CTEXTSTR donetext
+                       , int *okay, CTEXTSTR okaytext )
 {
 	if( pf )
 	{
 		// scaled!
-		int w = pf->original_rect.width;//FrameBorderX( pf->BorderType );
-		int h = pf->original_rect.height;//FrameBorderY( pf, pf->BorderType, NULL );
+		int w = pf->Surface->width;//FrameBorderX( pf->BorderType );
+		int h = pf->Surface->height;//FrameBorderY( pf, pf->BorderType, NULL );
 		PCOMMON_BUTTON_DATA pcbd;
 		PCONTROL pc;
 		int x, x2;
+		int y;
 		//  lprintf( WIDE("Buttons will be added at... %d, %d")
 		//  		 , w //pf->surface_rect.width - FrameBorderX( pf->BorderType )
 		//  		 , h //pf->surface_rect.height - FrameBorderY( pf, pf->BorderType, NULL )
 		// 		 );
 		if( done && okay )
 		{
-			x = w-(COMMON_BUTTON_WIDTH+COMMON_BUTTON_PAD+COMMON_BUTTON_WIDTH+COMMON_BUTTON_PAD);
-			x2 = x + COMMON_BUTTON_WIDTH + COMMON_BUTTON_PAD;
+			x = ScaleValue( &pf->scalex, w-(COMMON_BUTTON_WIDTH+COMMON_BUTTON_PAD+COMMON_BUTTON_WIDTH+COMMON_BUTTON_PAD) );
+			x2 = x + ScaleValue( &pf->scalex, COMMON_BUTTON_WIDTH + COMMON_BUTTON_PAD );
 		}
 		else if( (done&&donetext) || (okay&& okaytext) )
 		{
-			x = w-(COMMON_BUTTON_WIDTH+COMMON_BUTTON_PAD);
+			x = w-ScaleValue( &pf->scalex, (COMMON_BUTTON_WIDTH+COMMON_BUTTON_PAD) );
 			x2 = x;
 		}
 		else
 			return;
+		y = h-(COMMON_BUTTON_PAD+COMMON_BUTTON_HEIGHT);
+		x = InverseScaleValue( &pf->scalex, x );
+		x2 = InverseScaleValue( &pf->scalex, x2 );
+		y = InverseScaleValue( &pf->scaley, y );
 		pcbd = &pf->pCommonButtonData;
 		pcbd->okay_value = okay;
 		pcbd->done_value = done;
 		pcbd->thread = 0;
+
 		if( okay && okaytext )
 		{
 			pc = MakeButton( pf
-								, x, h-(COMMON_BUTTON_PAD+COMMON_BUTTON_HEIGHT)
+								, x, y
 								, COMMON_BUTTON_WIDTH, COMMON_BUTTON_HEIGHT
 								, BTN_OKAY, okaytext, 0, ButtonOkay, (PTRSZVAL)okay );
 			//SetCommonUserData( pc, (PTRSZVAL)pcbd );
@@ -4084,7 +4086,7 @@ void AddCommonButtonsEx( PSI_CONTROL pf
 		if( done && donetext )
 		{
 			pc = MakeButton( pf
-						  , x2, h-(COMMON_BUTTON_PAD+COMMON_BUTTON_HEIGHT)
+						  , x2, y
 						  , COMMON_BUTTON_WIDTH, COMMON_BUTTON_HEIGHT
 						  , BTN_CANCEL, donetext, 0, ButtonOkay, (PTRSZVAL)done );
 			//SetCommonUserData( pc, (PTRSZVAL)pcbd );
@@ -4096,7 +4098,7 @@ void AddCommonButtonsEx( PSI_CONTROL pf
 
 void AddCommonButtons( PSI_CONTROL pf, int *done, int *okay )
 {
-    AddCommonButtonsEx( pf, done, WIDE("Cancel"), okay, WIDE("OK") );
+	AddCommonButtonsEx( pf, done, WIDE("Cancel"), okay, WIDE("OK") );
 }
 
 //---------------------------------------------------------------------------
@@ -4124,27 +4126,27 @@ PSI_PROC( int, InvokeDefaultButton )( PSI_CONTROL pcNear, int bCancel )
 			return 1;
 		}
 	}
-   return 0;
+	return 0;
 }
 
 int InvokeDefault( PSI_CONTROL pc, int type )
 {
-   return InvokeDefaultButton( pc, type );
+	return InvokeDefaultButton( pc, type );
 }
 _MOUSE_NAMESPACE_END
 //---------------------------------------------------------------------------
 
 void SetNoFocus( PSI_CONTROL pc )
 {
-   if( pc )
-        pc->flags.bNoFocus = TRUE;
+	if( pc )
+		pc->flags.bNoFocus = TRUE;
 }
 
 //---------------------------------------------------------------------------
 
 void *ControlExtraData( PSI_CONTROL pc )
 {
-    return (void*)(pc+1);
+	return (void*)(pc+1);
 }
 
 //---------------------------------------------------------------------------
@@ -4153,13 +4155,13 @@ void *ControlExtraData( PSI_CONTROL pc )
 PSI_PROC( PSI_CONTROL, GetFrame )( PSI_CONTROL pc )
 //#define GetFrame(c) GetFrame((PSI_CONTROL)c)
 {
-   while( pc )
-   {
+	while( pc )
+	{
 		if( (!pc->parent || (pc->device)) && !pc->flags.bDestroy )
 			return pc;
 		pc = pc->parent;
-   }
-   return NULL;
+	}
+	return NULL;
 }
 
 //---------------------------------------------------------------------------
@@ -4169,8 +4171,8 @@ PSI_PROC( PSI_CONTROL, GetFrame )( PSI_CONTROL pc )
 PSI_CONTROL GetCommonParent( PSI_CONTROL pc )
 {
 	if( pc )
-      return pc->parent;
-   return NULL;
+		return pc->parent;
+	return NULL;
 }
 
 //---------------------------------------------------------------------------
@@ -4178,24 +4180,24 @@ PSI_CONTROL GetCommonParent( PSI_CONTROL pc )
 PSI_CONTROL GetParentControl( PSI_CONTROL pc )
 {
 	if( pc )
-      return pc->parent;
-   return NULL;
+		return pc->parent;
+	return NULL;
 }
 
 //---------------------------------------------------------------------------
 PSI_CONTROL GetFirstChildControl( PSI_CONTROL pc )
 {
 	if( pc )
-      return pc->child;
-   return NULL;
+		return pc->child;
+	return NULL;
 }
 
 //---------------------------------------------------------------------------
 PSI_CONTROL GetNextControl( PSI_CONTROL pc )
 {
 	if( pc )
-      return pc->next;
-   return NULL;
+		return pc->next;
+	return NULL;
 }
 
 //---------------------------------------------------------------------------
@@ -4275,8 +4277,8 @@ PSI_PROC( void, OrphanCommonEx )( PSI_CONTROL pc, LOGICAL bDraw )
 	// Removes the control from relation with it's parent...
 	PSI_CONTROL pParent;
 
-    if( !pc || !pc->parent )
-       return;
+	if( !pc || !pc->parent )
+		return;
 	{
 		PPHYSICAL_DEVICE pf = GetFrame(pc)->device;
 		//ValidatedControlData( PFRAME, CONTROL_FRAME, pf, GetFrame( pc ) );
@@ -4285,8 +4287,8 @@ PSI_PROC( void, OrphanCommonEx )( PSI_CONTROL pc, LOGICAL bDraw )
 			pf->flags.bCurrentOwns = FALSE;
 			pf->pCurrent = NULL;
 		}
-    }
-    pParent = pc->parent;
+	}
+	pParent = pc->parent;
 	if( pc->next )
 		pc->next->prior = pc->prior;
 	if( pc->prior )
@@ -4304,28 +4306,28 @@ PSI_PROC( void, OrphanCommonEx )( PSI_CONTROL pc, LOGICAL bDraw )
 	}
 	else
 	{
-      // tell the parent that we're needing an update here...
+		// tell the parent that we're needing an update here...
 		//SmudgeSomeControls( pParent, (IMAGE_RECTANGLE*)pc->Window );
 	}
 }
 
 PSI_PROC( void, OrphanCommon )( PSI_CONTROL pc )
 {
-   OrphanCommonEx( pc, FALSE );
+	OrphanCommonEx( pc, FALSE );
 }
 //---------------------------------------------------------------------------
 
 PSI_PROC( void, AdoptCommonEx )( PSI_CONTROL pFoster, PSI_CONTROL pElder, PSI_CONTROL pOrphan, LOGICAL bDraw )
 {
-   // Puts a control under control of a new parent...
+	// Puts a control under control of a new parent...
 	if( ( !pFoster || !pOrphan
-		  || pOrphan->parent // has a parent...
-		 ) && !pOrphan->device // might have been seperated cause of DetachChildFrames
-     ) // is a master level frame - no good.
+	    || pOrphan->parent // has a parent...
+	    ) && !pOrphan->device // might have been seperated cause of DetachChildFrames
+	  ) // is a master level frame - no good.
 	{
-      //lprintf( WIDE("Failing adopt: %p %p %p %d")
-      //       , pFoster, pOrphan
-      //       , pOrphan?pOrphan->parent:NULL
+		//lprintf( WIDE("Failing adopt: %p %p %p %d")
+		//       , pFoster, pOrphan
+		//       , pOrphan?pOrphan->parent:NULL
 		//       , pOrphan?pOrphan->nType:-1 );
 		if( !pOrphan->device )
 			return;
@@ -4376,7 +4378,7 @@ PSI_PROC( void, AdoptCommonEx )( PSI_CONTROL pFoster, PSI_CONTROL pElder, PSI_CO
 
 PSI_PROC( void, AdoptCommon )( PSI_CONTROL pFoster, PSI_CONTROL pElder, PSI_CONTROL pOrphan )
 {
-   AdoptCommonEx( pFoster, pElder, pOrphan, TRUE );
+	AdoptCommonEx( pFoster, pElder, pOrphan, TRUE );
 }
 
 //---------------------------------------------------------------------------
@@ -4392,42 +4394,42 @@ PCONTROL CreateControlExx( PSI_CONTROL pFrame
 								  , PTRSZVAL psvInit
 									DBG_PASS )
 {
-   return NULL;
+	return NULL;
 }
 
 //---------------------------------------------------------------------------
 
 void DestroyFrameEx( PSI_CONTROL pc DBG_PASS )
 {
-   DestroyCommon( &pc );
+	DestroyCommon( &pc );
 }
 
 //---------------------------------------------------------------------------
 
 void DestroyControlEx(PSI_CONTROL pc DBG_PASS )
 {
-   DestroyCommon( &pc );
+	DestroyCommon( &pc );
 }
 
 //---------------------------------------------------------------------------
 
 void GetPhysicalCoordinate( PSI_CONTROL relative_to, S_32 *_x, S_32 *_y, int include_surface )
 {
-   S_32 x = (*_x);
+	S_32 x = (*_x);
 	S_32 y = (*_y);
 	while( relative_to )
 	{
-      if( include_surface )
+		if( include_surface )
 			x += relative_to->surface_rect.x;
 		x += relative_to->rect.x;
-      if( include_surface )
+		if( include_surface )
 			y += relative_to->surface_rect.y;
 		y += relative_to->rect.y;
 		relative_to = relative_to->parent;
-      include_surface = 1;
+		include_surface = 1;
 	}
 	(*_x) = x;
-   (*_y) = y;
+	(*_y) = y;
 }
 
 PRENDERER GetFrameRenderer( PSI_CONTROL pcf )
@@ -4436,7 +4438,7 @@ PRENDERER GetFrameRenderer( PSI_CONTROL pcf )
 	{
 	PPHYSICAL_DEVICE pf = pcf->device;
 	//ValidatedControlData( PFRAME, CONTROL_FRAME, pf, pcf );
-   if( pf )
+	if( pf )
 		return pf->pActImg;
 	}
 	return NULL;
@@ -4573,15 +4575,15 @@ void SetCommonKey( PSI_CONTROL pc
 
 void SetControlText(PSI_CONTROL pc, CTEXTSTR text )
 {
-   SetCommonText( pc, text );
+	SetCommonText( pc, text );
 }
 
 #undef ControlType
 INDEX ControlType( PSI_CONTROL pc )
 {
-   if( pc )
+	if( pc )
 		return pc->nType;
-   return INVALID_INDEX;
+	return INVALID_INDEX;
 }
 //---------------------------------------------------------------------------
 
@@ -4589,10 +4591,10 @@ void SetCommonTransparent( PCONTROL pc, LOGICAL bTransparent )
 {
 	if( pc )
 	{
-      // if we are setting to transparent NO, then remove OriginalImage
+		// if we are setting to transparent NO, then remove OriginalImage
 		if( !(pc->flags.bTransparent = bTransparent ) )
 		{
-         lprintf( WIDE( "Turning off tansparency, so we don't need the background image now" ) );
+			lprintf( WIDE( "Turning off tansparency, so we don't need the background image now" ) );
 			if( pc->OriginalSurface )
 			{
 				lprintf( WIDE("Early destruction of original surface image...") );
@@ -4639,13 +4641,13 @@ CTEXTSTR GetControlTypeName( PSI_CONTROL pc )
 void BeginUpdate( PSI_CONTROL pc )
 {
 	if( pc )
-      pc->flags.bDirectUpdating = 1;
+		pc->flags.bDirectUpdating = 1;
 }
 
 void EndUpdate( PSI_CONTROL pc )
 {
 	if( pc )
-      pc->flags.bDirectUpdating = 0;
+		pc->flags.bDirectUpdating = 0;
 }
 
 
