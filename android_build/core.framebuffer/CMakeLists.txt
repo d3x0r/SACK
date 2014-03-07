@@ -61,6 +61,12 @@ FILE( REMOVE ${files} )
 FILE( GLOB files ${CMAKE_BINARY_DIR}/package/libs/armeabi/*.so 	) 
 EXECUTE_PROCESS(COMMAND ${STAGING_DIR}/bin/${ANDROID_NDK_PREBUILT_ARCH_LONG}-strip -s ${files} )
 
+macro( install_resources target )
+        EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/../../data/MyriadPro.ttf package/assets/fonts~MyriadPro.ttf )
+  
+endmacro( install_resources )
+install_resources( package/assets )
+
 
 dinstall(  ${CMAKE_SOURCE_DIR}/res * DESTINATION package/res )
 ainstall(  ${CMAKE_SOURCE_DIR} sql.config DESTINATION package/assets )
