@@ -1109,6 +1109,7 @@ static void CPROC DropAndroidANWDisplayInterface( POINTER i )
 
 PRIORITY_PRELOAD( RegisterAndroidNativeWindowInterface, VIDLIB_PRELOAD_PRIORITY )
 {
+	l.flags.display_closed = 1;
 	LoadFunction( "libbag.image.so", NULL );
 	l.real_interface = (PIMAGE_INTERFACE)GetInterface( "sack.image" );
 	RegisterInterface( WIDE( "sack.render.android" ), GetAndroidANWDisplayInterface, DropAndroidANWDisplayInterface );
@@ -1123,7 +1124,6 @@ static void HostSystem_InitDisplayInfo(void )
 	// this is passed in from the external world; do nothing, but provide the hook.
 	// have to wait for this ....
 	//default_display_x	ANativeWindow_getFormat( camera->displayWindow)
-
 }
 
 void SACK_Vidlib_SetNativeWindowHandle( ANativeWindow *displayWindow )
@@ -1187,7 +1187,6 @@ void SACK_Vidlib_SetNativeWindowHandle( ANativeWindow *displayWindow )
 			}
 		}
 	}
-	l.flags.display_closed = 0;
 	LeaveCriticalSec( &l.cs_update );
 	//lprintf( "Format is :%dx%d %d", l.default_display_x, l.default_display_y, ANativeWindow_getFormat( displayWindow ) );
 }
@@ -1197,6 +1196,7 @@ void SACK_Vidlib_DoFirstRender( void )
 {
 	/* no render pass; should return FALSE or somethig to stop animating... */
 	PVPRENDER render;
+	l.flags.display_closed = 0;
 	for( render = l.bottom; render; render = render->under )
 	{
 		//lprintf( "RENDER PASS UPDATE..." );
