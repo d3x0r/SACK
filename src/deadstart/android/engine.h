@@ -20,6 +20,9 @@ struct saved_state {
 	int animating;
 	int closed; // set this, next event loop, trigger native exit.
 	int restarting;
+	int rendering;
+	int opened;
+	int orientation;
 };
 
 /**
@@ -41,7 +44,8 @@ struct engine {
 	int32_t height;
 	struct saved_state state;
 	volatile int wait_for_startup;
-	volatile int wait_for_display_init;
+   volatile int have_focus;  // allow animating callback
+	//volatile int wait_for_display_init;
 	struct input_point points[10];
 	struct input_point tmp_points[10]; // need some for computation
 	int input_point_map[10];

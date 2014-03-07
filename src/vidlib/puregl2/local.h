@@ -388,6 +388,7 @@ extern
 
 	PIMAGE_INTERFACE gl_image_interface;
 	CTEXTSTR current_key_text;
+   void (*wake_callback)(void );
 } l;
 
 void CPROC SACK_Vidlib_HideInputDevice( void );

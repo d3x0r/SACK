@@ -215,14 +215,14 @@ enum {
      * this command, android_app->inputQueue will be updated to the new queue
      * (or NULL).
      */
-    APP_CMD_INPUT_CHANGED,
+    APP_CMD_INPUT_CHANGED,  //0
 
     /**
      * Command from main thread: a new ANativeWindow is ready for use.  Upon
      * receiving this command, android_app->window will contain the new window
      * surface.
      */
-    APP_CMD_INIT_WINDOW,
+    APP_CMD_INIT_WINDOW,  //1
 
     /**
      * Command from main thread: the existing ANativeWindow needs to be
@@ -230,60 +230,60 @@ enum {
      * contains the existing window; after calling android_app_exec_cmd
      * it will be set to NULL.
      */
-    APP_CMD_TERM_WINDOW,
+    APP_CMD_TERM_WINDOW, //2
 
     /**
      * Command from main thread: the current ANativeWindow has been resized.
      * Please redraw with its new size.
      */
-    APP_CMD_WINDOW_RESIZED,
+    APP_CMD_WINDOW_RESIZED,  //3
 
     /**
      * Command from main thread: the system needs that the current ANativeWindow
      * be redrawn.  You should redraw the window before handing this to
      * android_app_exec_cmd() in order to avoid transient drawing glitches.
      */
-    APP_CMD_WINDOW_REDRAW_NEEDED,
+    APP_CMD_WINDOW_REDRAW_NEEDED,  //4
 
     /**
      * Command from main thread: the content area of the window has changed,
      * such as from the soft input window being shown or hidden.  You can
      * find the new content rect in android_app::contentRect.
      */
-    APP_CMD_CONTENT_RECT_CHANGED,
+    APP_CMD_CONTENT_RECT_CHANGED, //5
 
     /**
      * Command from main thread: the app's activity window has gained
      * input focus.
      */
-    APP_CMD_GAINED_FOCUS,
+    APP_CMD_GAINED_FOCUS,  //6
 
     /**
      * Command from main thread: the app's activity window has lost
      * input focus.
      */
-    APP_CMD_LOST_FOCUS,
+    APP_CMD_LOST_FOCUS,  //7
 
     /**
      * Command from main thread: the current device configuration has changed.
      */
-    APP_CMD_CONFIG_CHANGED,
+    APP_CMD_CONFIG_CHANGED, // 8
 
     /**
      * Command from main thread: the system is running low on memory.
      * Try to reduce your memory use.
      */
-    APP_CMD_LOW_MEMORY,
+    APP_CMD_LOW_MEMORY, // 9
 
     /**
      * Command from main thread: the app's activity has been started.
      */
-    APP_CMD_START,
+    APP_CMD_START, // 10
 
     /**
      * Command from main thread: the app's activity has been resumed.
      */
-    APP_CMD_RESUME,
+    APP_CMD_RESUME, // 11
 
     /**
      * Command from main thread: the app should generate a new saved state
@@ -292,23 +292,27 @@ enum {
      * the size in android_app.savedStateSize.  The will be freed for you
      * later.
      */
-    APP_CMD_SAVE_STATE,
+    APP_CMD_SAVE_STATE, // 12
 
     /**
      * Command from main thread: the app's activity has been paused.
      */
-    APP_CMD_PAUSE,
+    APP_CMD_PAUSE,  //13
 
     /**
      * Command from main thread: the app's activity has been stopped.
      */
-    APP_CMD_STOP,
+    APP_CMD_STOP,  // 14
 
     /**
      * Command from main thread: the app's activity is being destroyed,
      * and waiting for the app thread to clean up and exit before proceeding.
      */
-    APP_CMD_DESTROY,
+	 APP_CMD_DESTROY,   //15
+	 /**
+	  * noop; just wake up the loop; used to resume animation when internally suspended
+     */
+    APP_CMD_WAKE,    // 16
 };
 
 /**
@@ -316,6 +320,11 @@ enum {
  * app command message.
  */
 int8_t android_app_read_cmd(struct android_app* android_app);
+
+/**
+ * call to send a custom message...
+ */
+void android_app_write_cmd(struct android_app* android_app, int8_t cmd);
 
 /**
  * Call with the command returned by android_app_read_cmd() to do the

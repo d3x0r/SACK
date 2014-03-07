@@ -103,7 +103,8 @@ void OpenEGL( struct display_camera *camera, NativeWindowType displayWindow )
 								camera->hVidCore->pWindowPos.cy );
 
 			camera->identity_depth = camera->h/2;
-			Translate( l.origin, l.scale * camera->w/2, l.scale * camera->h/2, l.scale * camera->h/2 );
+			lprintf( "Used to mangle the transform here..." );
+			//Translate( l.origin, l.scale * camera->w/2, l.scale * camera->h/2, l.scale * camera->h/2 );
 
 			if( l.flags.bForceUnaryAspect )
 				camera->aspect = 1.0;
@@ -112,7 +113,7 @@ void OpenEGL( struct display_camera *camera, NativeWindowType displayWindow )
 				camera->aspect = ((float)camera->w/(float)camera->h);
 			}
          // reload all default settings and options too.
-         camera->flags.init = 0;
+			camera->flags.init = 0;
 
 			switch( ANativeWindow_getFormat( camera->displayWindow) )
 			{
@@ -289,6 +290,7 @@ void SACK_Vidlib_CloseDisplay( void )
 			eglTerminate(camera->egl_display);
 			camera->egl_display = EGL_NO_DISPLAY;
 		}
+		camera->flags.init = 0;
 	}
 }
 

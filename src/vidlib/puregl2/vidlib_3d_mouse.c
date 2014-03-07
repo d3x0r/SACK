@@ -263,6 +263,7 @@ void UpdateMouseRays( S_32 x, S_32 y )
 		ComputeMouseRay( camera, TRUE, &camera->mouse_ray, x, y );
 	}
 	l.flags.bViewVolumeUpdated = 1;
+	MarkDisplayUpdated( NULL ); // trigger redraw
 }
 
 
@@ -277,7 +278,6 @@ int InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, RCOORD 
 		v2[0] = x;
 		v2[1] = y;
 		v2[2] = 1.0;
-		//ApplyInverse( l.origin, v
 		if( hVideo )
 			Apply( hVideo->transform, v1, v2 );
 		else

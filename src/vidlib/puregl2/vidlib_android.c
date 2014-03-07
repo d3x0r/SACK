@@ -119,6 +119,11 @@ void SACK_Vidlib_SetNativeWindowHandle( NativeWindowType displayWindow )
 	//l.flags.disallow_3d = (RCOORD)SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Video Render/Disallow 3D"), 1 );
 }
 
+void SACK_Vidlib_SetAnimationWake( void (*wake_callback)(void))
+{
+   l.wake_callback = wake_callback;
+}
+
 void HostSystem_InitDisplayInfo(void )
 {
 	// this is passed in from the external world; do nothing, but provide the hook.
@@ -130,10 +135,9 @@ void HostSystem_InitDisplayInfo(void )
 }
 
 // this is linked to external native activiety shell...
-void SACK_Vidlib_DoRenderPass( void )
+int SACK_Vidlib_DoRenderPass( void )
 {
-	ProcessGLDraw(TRUE);
-   return;
+	return ProcessGLDraw(TRUE);
 }
 
 int SACK_Vidlib_SendTouchEvents( int nPoints, PINPUT_POINT points )
@@ -157,22 +161,12 @@ int SACK_Vidlib_SendTouchEvents( int nPoints, PINPUT_POINT points )
 	}
 }
 
-static void BeginVisPersp( struct display_camera *camera )
-{
-	//glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-	//glLoadIdentity();									// Reset The Projection Matrix
-	MygluPerspective(90.0f,camera->aspect,1.0f,camera->depth);
-	//glGetFloatv( GL_PROJECTION_MATRIX, (GLfloat*)l.fProjection );
-	//PrintMatrix( l.fProjection );
-	//glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
-}
-
 
 int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goes Here
 {
    // this is called every render pass
-#ifdef USE_EGL
 	//lprintf( "Init3d" );
+#ifdef USE_EGL
 	EnableEGLContext( camera );
 #else
 	SetActiveGLDisplay( camera );
@@ -181,7 +175,7 @@ int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goe
 //		return FALSE;
 	if( !camera->flags.init )
 	{
-		//lprintf( "First setup" );
+		lprintf( "First setup" );
 		glEnable( GL_BLEND );
 		CheckErr();
 		glEnable(GL_DEPTH_TEST);							// Enables Depth Testing
@@ -206,15 +200,14 @@ int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goe
 		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculations
 #endif
 
-		BeginVisPersp( camera );
+		MygluPerspective(90.0f,camera->aspect,1.0f,camera->depth);
 		CheckErr();
 		//lprintf( WIDE("First GL Init Done.") );
 		camera->flags.init = 1;
-		camera->hVidCore->flags.bReady = TRUE;
 	}
 
 
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);				// Black Background
+	glClearColor(0.0f, 0.0f, 0.0f, 0.1f);				// Black Background
 	CheckErr();
 	glClearDepthf(1.0f);									// Depth Buffer Setup
 	CheckErr();
@@ -234,7 +227,6 @@ void SetupPositionMatrix( struct display_camera *camera )
 #ifdef ALLOW_SETTING_GL1_MATRIX
 	GetGLCameraMatrix( camera->origin_camera, camera->hVidCore->fModelView );
 	glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
-
 #endif
 }
 
