@@ -10,6 +10,11 @@
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "org.d3x0r.sack.native-activity", __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "org.d3x0r.sack.native-activity", __VA_ARGS__))
 
+#ifdef lprintf
+#undef lprintf
+#endif
+#define lprintf LOGI
+
 
 /**
  * Our saved state data.

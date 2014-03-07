@@ -26,11 +26,10 @@
 #include <stdio.h>
 #include <EGL/egl.h>
 //#include <GLES/gl.h>
-#include <render.h>
+//#include <render.h>
 
 
 #include "engine.h"
-#define lprintf LOGI
 
 // sets the native window; opencameras will use this as the surface to initialize to.
 static void (*BagVidlibPureglSetNativeWindowHandle)(NativeWindowType );
