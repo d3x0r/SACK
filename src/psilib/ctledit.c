@@ -882,7 +882,7 @@ static int OnCreateCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 #include <psi.h>
 CONTROL_REGISTRATION
 edit_control = { EDIT_FIELD_NAME
-					, { {73, 21}, sizeof( EDIT ), BORDER_INVERT_THIN|BORDER_NOCAPTION|BORDER_FIXED }
+					, { {73, 21}, sizeof( EDIT ), BORDER_INVERT_THIN|BORDER_NOCAPTION }
 					, NULL // InitEditControl
 					, NULL
 					, NULL //DrawEditControl
