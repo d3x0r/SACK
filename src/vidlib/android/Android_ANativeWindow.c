@@ -481,6 +481,11 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 	S_32 out_x;
 	S_32 out_y;
 	//_lprintf(DBG_RELAY)( "update begin %p %d,%d  %d,%d", l.displayWindow, x, y, width, height );
+	if( l.flags.display_closed )
+	{
+		//lprintf( "We closed...; no draw" );
+		return;
+	}
 	if( r )
 	{
 		// current full screen is in full screen
@@ -497,7 +502,7 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 			// if it's not hidden it shouldn't be doing an update...
 			return;
 		}
-		//lprintf( "Update %p %d,%d  %d,%d", r, x, y, width, height );
+		//lprintf( "Update %p %d,%d  %d,%d", r, x, y, ((PVPRENDER)r)->x, ((PVPRENDER)r)->y );
 		out_x = ((PVPRENDER)r)->x + x;
 		out_y = ((PVPRENDER)r)->y + y;
 		// compute the screen position of the desired rectangle
@@ -512,6 +517,16 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 		// and up updating black background-only; and this is the positon (on screen, cause we don't have a window)
 		out_x = x;
 		out_y = y;
+	}
+	if( out_x >= l.default_display_x )
+	{
+      //lprintf( "display x is ... %d", l.default_display_x );
+      return;
+	}
+	if( out_y >= l.default_display_y )
+	{
+      //lprintf( "display y is ... %d", l.default_display_y );
+      return;
 	}
 	if( out_x < 0 )
 	{
@@ -536,6 +551,7 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 	}
 	//lprintf( "enter crit..." );
 	EnterCriticalSec( &l.cs_update );
+   // also check closed here; wasn't in the protected section before; and now it may be changed.
 	if( l.flags.display_closed )
 	{
 		//lprintf( "We closed...; no draw" );
@@ -546,6 +562,7 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 	// chop the part that's off the right side ....
 	if( ( out_x + (int)width ) > l.default_display_x )
 	{
+      //lprintf( "Fix width ..." );
 		width = l.default_display_x - out_x;
 	}
 	// chop the part that's off the bottom side ....
@@ -562,7 +579,7 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 		bounds.top = out_y;
 		bounds.right = out_x + width;
 		bounds.bottom = out_y + height;
-		//_lprintf(DBG_RELAY)( "Native window lock..." );
+		//_lprintf(DBG_RELAY)( "Native window lock... %d,%d  %d,%d", out_x, out_y, width, height );
 		ANativeWindow_lock( l.displayWindow, &buffer, &bounds );
 		//lprintf( "---V Update screen %p %p %d,%d  %d,%d   %d,%d   %d,%d"
 		//		 , r, l.top, out_x, out_y, out_y+width, out_y+height
