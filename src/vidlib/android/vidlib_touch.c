@@ -19,6 +19,7 @@ RENDER_NAMESPACE
 
 void TouchWindowClose( PVPRENDER r )
 {
+	//lprintf( "Window is closing %p  %d  %p", r, touch_info.flags.owned_by_surface, touch_info.owning_surface );
 	if( touch_info.flags.owned_by_surface )
 		if( r == touch_info.owning_surface )
 		{
@@ -32,12 +33,12 @@ int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches )
 	int used = 0;
 	if( touch_info.flags.owned_by_surface )
 	{
-		//lprintf( "touch event to %p; owned is %p", r, r->touch_info.owning_surface ); 
+		//lprintf( "touch event to %p; owned is %p", r, touch_info.owning_surface );
 		if( touch_info.owning_surface != r )
 			return 0;
 	}
 	if( r->flags.mouse_transparent )
-      return 0;
+		return 0;
 #ifndef __ANDROID__
 	if( l.flags.bRotateLock )
 #endif
@@ -192,7 +193,7 @@ int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches )
 		{
 			if( touches[0].flags.new_event )
 			{
-				//( WIDE("begin  (is it a touch on a window?) %d,%d   %d,%d"), r->x, r->y, r->w + r->x, r->h+r->y );
+				//lprintf( WIDE("begin  (is it a touch on a window?) %d,%d   %d,%d"), r->x, r->y, r->w + r->x, r->h+r->y );
 				// begin touch
 				if(  ( r->flags.fullscreen && !r->flags.not_fullscreen )
 					|| ( touches[0].x >= r->x && touches[0].x <= ( r->x + r->w )
@@ -205,6 +206,8 @@ int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches )
 					r->touch_info.mouse_y
 						= r->touch_info.one.y = touches[0].y - r->y;
 
+					touch_info.owning_surface = r;
+					touch_info.flags.owned_by_surface = 1;
 					if( r->mouse_callback )
 					{
 						if( r->flags.fullscreen && !r->flags.not_fullscreen )
@@ -216,9 +219,10 @@ int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches )
 						{
 							//lprintf( "mouse is used on that... (own touch)" );
 						}
+						else
+						{
+						}
 					}
-					touch_info.owning_surface = r;
-					touch_info.flags.owned_by_surface = 1;
 					used = 1;
 				}
 			}
