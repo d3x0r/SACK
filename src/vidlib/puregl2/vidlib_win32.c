@@ -64,7 +64,7 @@ ATEXIT( ExitTest )
 			while(l.bThreadRunning)
 			{
 				lprintf( WIDE("waiting...") );
-            WakeableSleep( 10 );
+				WakeableSleep( 10 );
 				//Relinquish();
 			}
 		}
@@ -1769,14 +1769,7 @@ PTRSZVAL CPROC VideoThreadProc (PTHREAD thread)
 	return 0;
 }
 
-static void OnLibraryLoad( WIDE("Video Render PureGL 2") )( void )
-{
-	if( l.bThreadRunning )
-		SACK_Vidlib_OpenCameras();
-}
-
 //----------------------------------------------------------------------------
-
 
 PRELOAD( HostSystem_InitDisplayInfo )
 {
@@ -1839,12 +1832,12 @@ RENDER_PROC (void, GetDisplaySizeEx) ( int nDisplay
 			if( width )
 				(*width) = 720;
 			if( height )
-            (*height) = 540;
+				(*height) = 540;
 			dm.dmSize = sizeof( DEVMODE );
 			dev.cb = sizeof( DISPLAY_DEVICE );
 			for( v_test = 0; !found && ( v_test < 2 ); v_test++ )
 			{
-            // go ahead and try to find V devices too... not sure what they are, but probably won't get to use them.
+				// go ahead and try to find V devices too... not sure what they are, but probably won't get to use them.
 				tnprintf( teststring, 20, WIDE( "\\\\.\\DISPLAY%s%d" ), (v_test==1)?"V":"", nDisplay );
 				for( i = 0;
 					 !found && EnumDisplayDevices( NULL // all devices

@@ -415,7 +415,7 @@ void GetMyInterface( void )
 				g.flags.allow_threaded_draw = AllowsAnyThreadToUpdate();
 	}
 //#ifdef __ANDROID__
-	g.default_font = RenderFontFileScaledEx( WIDE("fonts/MyriadPro.ttf"), 160/4, 160/4, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
+	g.default_font = RenderFontFileScaledEx( WIDE("fonts/MyriadPro.ttf"), 160/6, 160/7, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 //#endif
 }
 #endif
@@ -1559,11 +1559,11 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 	{
 		if( pc->parent )
 		{
-		 // okay surface rect of parent should be considered as 0,0.
-			if( SUS_GT( pc->original_rect.x, IMAGE_COORDINATE, pc->parent->surface_rect.width, IMAGE_SIZE_COORDINATE )
-				|| SUS_GT( pc->original_rect.y, IMAGE_COORDINATE, pc->parent->surface_rect.height, IMAGE_SIZE_COORDINATE ) 
-				|| USS_LT( pc->original_rect.width, IMAGE_SIZE_COORDINATE, /*pc->parent->surface_rect.x*/-pc->original_rect.x, IMAGE_COORDINATE )
-				|| USS_LT( pc->original_rect.height, IMAGE_SIZE_COORDINATE, /*pc->parent->surface_rect.y*/-pc->original_rect.y, IMAGE_COORDINATE )
+			// okay surface rect of parent should be considered as 0,0.
+			if( SUS_GT( pc->rect.x, IMAGE_COORDINATE, pc->parent->surface_rect.width, IMAGE_SIZE_COORDINATE )
+			    || SUS_GT( pc->rect.y, IMAGE_COORDINATE, pc->parent->surface_rect.height, IMAGE_SIZE_COORDINATE ) 
+			    || USS_LT( pc->rect.width, IMAGE_SIZE_COORDINATE, /*pc->parent->surface_rect.x*/-pc->rect.x, IMAGE_COORDINATE )
+			    || USS_LT( pc->rect.height, IMAGE_SIZE_COORDINATE, /*pc->parent->surface_rect.y*/-pc->rect.y, IMAGE_COORDINATE )
 			  )
 			{
 				if( g.flags.bLogDebugUpdate )
@@ -1592,8 +1592,8 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 			lprintf( WIDE("Control %p(%s) is %s and parent is %s"), pc, pc->pTypeName, pc->flags.bDirty?WIDE( "SMUDGED" ):WIDE( "clean" ), pc->flags.bParentCleaned?WIDE( "cleaned to me" ):WIDE( "dirty to me" ) );
 			// again might filter to just forced...
 			_xlprintf(LOG_NOISE DBG_RELAY )( WIDE(">>do draw... %p %p %s %s"), pc, pc->child
-													 , bDraw?WIDE( "FORCE" ):WIDE( "..." )
-													 , pc->flags.bCleaning?WIDE( "CLEANING" ):WIDE( "cleanable" ));
+			                               , bDraw?WIDE( "FORCE" ):WIDE( "..." )
+			                               , pc->flags.bCleaning?WIDE( "CLEANING" ):WIDE( "cleanable" ));
 		}
 #endif
 		//#endif
@@ -2136,20 +2136,20 @@ void DoDumpFrameContents( int level, PSI_CONTROL pc )
 	while( pc )
 	{
 		lprintf( WIDE("%*.*s") WIDE("Control %d(%d)%p at (%") _32fs WIDE(",%") _32fs WIDE(")-(%") _32f WIDE(",%") _32f WIDE(") (%") _32fs WIDE(",%") _32fs WIDE(")-(%") _32f WIDE(",%") _32f WIDE(") (%s %s %s %s) '%s' [%s]" )
-				 , level*3,level*3,WIDE("----------------------------------------------------------------")
-              , pc->nID, pc->nType, pc
-				 , pc->rect.x, pc->rect.y, pc->rect.width, pc->rect.height
-				 , pc->surface_rect.x
-				 , pc->surface_rect.y
-				 , pc->surface_rect.width
-				 , pc->surface_rect.height
-				 , pc->flags.bTransparent?WIDE("transparent"):WIDE("t")
-				 , pc->flags.bDirty?WIDE("dirty"):WIDE("d")
-				 , pc->flags.bNoUpdate?WIDE("NoUpdate"):WIDE("nu")
-				 , pc->flags.bHidden?WIDE("hidden"):WIDE("h")
-				 , pc->caption.text?GetText(pc->caption.text):WIDE("")
-				 , pc->pTypeName
-				 );
+		       , level*3,level*3,WIDE("----------------------------------------------------------------")
+		       , pc->nID, pc->nType, pc
+		       , pc->rect.x, pc->rect.y, pc->rect.width, pc->rect.height
+		       , pc->surface_rect.x
+		       , pc->surface_rect.y
+		       , pc->surface_rect.width
+		       , pc->surface_rect.height
+		       , pc->flags.bTransparent?WIDE("transparent"):WIDE("t")
+		       , pc->flags.bDirty?WIDE("dirty"):WIDE("d")
+		       , pc->flags.bNoUpdate?WIDE("NoUpdate"):WIDE("nu")
+		       , pc->flags.bHidden?WIDE("hidden"):WIDE("h")
+		       , pc->caption.text?GetText(pc->caption.text):WIDE("")
+		       , pc->pTypeName
+		       );
 
 		if( pc->child )
 		{
@@ -2300,7 +2300,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	if( !h )
 		h = GetRegisteredIntValue( root, WIDE("height") );
 	// save the orginal width/height/size
-   // (pre-scaling...)
+	// (pre-scaling...)
 	pc->original_rect.x = x;
 	pc->original_rect.y = y;
 	pc->original_rect.width = w;
@@ -2323,6 +2323,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 				w = ScaleValue( &_pc->scalex, w );
 				y = ScaleValue( &_pc->scaley, y );
 				h = ScaleValue( &_pc->scaley, h );
+				pc->flags.bScaled = 1; // its own scaler will be 1:1 since it's alredy scaled...
 				break;
 			}
 	}
@@ -2360,24 +2361,24 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 		// on a surface?  as of yet, we do not have invisible
 		// memory-only dialogs(frames) but there comes a time
 		// in all controls life when it needs its own backing
-      // with real pixel data.
+		// with real pixel data.
 		// MakeImageFile( w, h );
 	}
 
-   // normal rect of control - post scaling, true coords within container..
+	// normal rect of control - post scaling, true coords within container..
 	pc->rect.x = x;
 	pc->rect.y = y;
 	pc->rect.width = w;
 	pc->rect.height = h;
-   //lprintf( "Set default fraction 1/1" );
+	//lprintf( "Set default fraction 1/1" );
 	SetFraction( pc->scalex, 1, 1 );
 	SetFraction( pc->scaley, 1, 1 );
 
-   //else
+	//else
 	//	pc->caption.font = g.default_font;
 
 	// from here forward, root and mydef reference the RTTI of the control...
-   //
+	//
 	snprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f WIDE("/rtti"), nType );
 	root = GetClassRoot( mydef );
 	SetCommonDraw( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,int,WIDE("draw"),(PSI_CONTROL)));
@@ -2390,7 +2391,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	pc->AddedControl   = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("add_control"),(PSI_CONTROL,PSI_CONTROL));
 	pc->Resize         = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("resize"),(PSI_CONTROL,LOGICAL));
 	pc->Rescale        = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("rescale"),(PSI_CONTROL));
-  	//pc->PosChanging    = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("position_changing"),(PSI_CONTROL,LOGICAL));
+	//pc->PosChanging    = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("position_changing"),(PSI_CONTROL,LOGICAL));
 	pc->BeginEdit      = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("begin_frame_edit"),(PSI_CONTROL));
 	pc->EndEdit        = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("end_frame_edit"),(PSI_CONTROL));
 	// creates
@@ -2462,7 +2463,7 @@ PSI_PROC( PSI_CONTROL, CreateFrame )( CTEXTSTR caption
 										  , PSI_CONTROL hAbove )
 {
 	PSI_CONTROL pc;
-   //lprintf( WIDE("Creating a frame at %d,%d %d,%d"), x, y, w, h );
+	//lprintf( WIDE("Creating a frame at %d,%d %d,%d"), x, y, w, h );
 #ifdef USE_INTERFACES
 	GetMyInterface(); // macro with builtin quickcheck
 #endif
@@ -2474,7 +2475,7 @@ PSI_PROC( PSI_CONTROL, CreateFrame )( CTEXTSTR caption
 							  , caption
 							  , BorderTypeFlags
 							  , NULL
-                        , NULL
+							  , NULL
 								DBG_SRC );
 	if( !(BorderTypeFlags & BORDER_WITHIN ) )
 		pc->parent = hAbove;
@@ -2487,9 +2488,9 @@ PSI_PROC( PSI_CONTROL, CreateFrame )( CTEXTSTR caption
 
 PSI_PROC( PTRSZVAL, GetCommonUserData )( PSI_CONTROL pf )
 {
-   if( pf )
+	if( pf )
 		return pf->psvUser;
-   return 0;
+	return 0;
 }
 
 //---------------------------------------------------------------------------
@@ -2613,7 +2614,7 @@ PSI_PROC( void, DisplayFrameOverOnUnder )( PSI_CONTROL pc, PSI_CONTROL over, PRE
 #endif
 	if( pf )
 	{
-      // if, by tthe time we show, there's no focus, set that up.
+		// if, by tthe time we show, there's no focus, set that up.
 		if( !pf->pFocus )
 			FixFrameFocus( pf, FFF_HERE );
 
@@ -2664,7 +2665,7 @@ PSI_PROC( void, DisplayFrameOverOn )( PSI_CONTROL pc, PSI_CONTROL over, PRENDERE
 
 PSI_PROC( void, DisplayFrameOver )( PSI_CONTROL pc, PSI_CONTROL over )
 {
-   //lprintf( WIDE("Displayframeover") );
+	//lprintf( WIDE("Displayframeover") );
 	DisplayFrameOverOn( pc, over, NULL );
 	//SmudgeCommon( pc );
 }
@@ -2673,7 +2674,7 @@ PSI_PROC( void, DisplayFrameOver )( PSI_CONTROL pc, PSI_CONTROL over )
 
 PSI_PROC( void, DisplayFrameUnder )( PSI_CONTROL pc, PSI_CONTROL under )
 {
-   //lprintf( WIDE("Displayframeover") );
+	//lprintf( WIDE("Displayframeover") );
 	DisplayFrameOverOnUnder( pc, NULL, NULL, under );
 	SmudgeCommon( pc );
 }
@@ -2682,23 +2683,23 @@ PSI_PROC( void, DisplayFrameUnder )( PSI_CONTROL pc, PSI_CONTROL under )
 
 PSI_PROC( void, DisplayFrame )( PSI_CONTROL pc )
 {
-   //lprintf( WIDE("DisplayFrame") );
-   DisplayFrameOverOn( pc, NULL, NULL );
+	//lprintf( WIDE("DisplayFrame") );
+	DisplayFrameOverOn( pc, NULL, NULL );
 }
 
 //---------------------------------------------------------------------------
 
 PSI_PROC( void, DisplayFrameOn )( PSI_CONTROL pc, PRENDERER pActImg )
 {
-   //lprintf( WIDE("DisplayfFrameOn") );
-   DisplayFrameOverOn( pc, NULL, pActImg );
+	//lprintf( WIDE("DisplayfFrameOn") );
+	DisplayFrameOverOn( pc, NULL, pActImg );
 }
 
 //---------------------------------------------------------------------------
 
 PSI_PROC( void, HideCommon )( PSI_CONTROL pc )
 {
-   /* should additionally wrap this with a critical section */
+	/* should additionally wrap this with a critical section */
 	static int levels;
 	int hidden = 0;
 	if( !pc )
@@ -2728,8 +2729,8 @@ PSI_PROC( void, HideCommon )( PSI_CONTROL pc )
 			lprintf( WIDE( "Control hasn't been shown yet..." ) );
 #endif
 		// even if not shown, do mark this hidden control as a hidden parent
-      // so it's not auto unhidden on revealing the containing frame.
-      levels--;
+		// so it's not auto unhidden on revealing the containing frame.
+		levels--;
 		return;
 	}
 	//lprintf( WIDE("HIDING %p(%d)"), pc, pc->nType );
@@ -2745,14 +2746,14 @@ PSI_PROC( void, HideCommon )( PSI_CONTROL pc )
 		hidden = 1;
 		for( child = pc->child; child; child = child->next )
 		{
-         /* hide all children, which will trigger /dev/null update */
+			/* hide all children, which will trigger /dev/null update */
 			HideCommon( child );
 		}
 	}
 	if( hidden )
 	{
 		// tell people that the control is hiding, in case they wanna do additional work
-      // the clock for instance disables it's checked entirely when hidden.
+		// the clock for instance disables it's checked entirely when hidden.
 		InvokeControlHidden( pc );
 	}
 	levels--;
@@ -2809,7 +2810,7 @@ PSI_PROC( void, HideCommon )( PSI_CONTROL pc )
 				}
 				else
 				{
-               lprintf( WIDE("NOthing to recover?") );
+					lprintf( WIDE("NOthing to recover?") );
 				}
 			}
 			else
@@ -2854,7 +2855,7 @@ PSI_PROC( void, SizeCommon )( PSI_CONTROL pc, _32 width, _32 height )
 			// we now have this accuragely handled.
 			//  rect is active (with frame)
 			//  oroginal_rect is the size it was before having to extend it
-         /// somwehere between original_rect changes and rect changes surface_rect is recomputed
+			// somwehere between original_rect changes and rect changes surface_rect is recomputed
 			//lprintf( WIDE("Enlarging size...") );
 			width += FrameBorderX(pc, pc->BorderType);
 			height += FrameBorderY(pc, pc->BorderType, GetText( pc->caption.text ) );
@@ -2907,7 +2908,7 @@ PSI_PROC( void, SizeCommon )( PSI_CONTROL pc, _32 width, _32 height )
 
 PSI_PROC( void, SizeCommonRel )( PSI_CONTROL pc, _32 w, _32 h )
 {
-   SizeCommon( pc, w + pc->rect.width, h + pc->rect.height );
+	SizeCommon( pc, w + pc->rect.width, h + pc->rect.height );
 }
 
 //---------------------------------------------------------------------------
@@ -4036,8 +4037,8 @@ void AddCommonButtonsEx( PSI_CONTROL pf
 	if( pf )
 	{
 		// scaled!
-		int w = pf->Surface->width;//FrameBorderX( pf->BorderType );
-		int h = pf->Surface->height;//FrameBorderY( pf, pf->BorderType, NULL );
+		int w = pf->rect.width;//FrameBorderX( pf->BorderType );
+		int h = pf->rect.height;//FrameBorderY( pf, pf->BorderType, NULL );
 		PCOMMON_BUTTON_DATA pcbd;
 		PCONTROL pc;
 		int x, x2;
@@ -4048,17 +4049,17 @@ void AddCommonButtonsEx( PSI_CONTROL pf
 		// 		 );
 		if( done && okay )
 		{
-			x = ScaleValue( &pf->scalex, w-(COMMON_BUTTON_WIDTH+COMMON_BUTTON_PAD+COMMON_BUTTON_WIDTH+COMMON_BUTTON_PAD) );
-			x2 = x + ScaleValue( &pf->scalex, COMMON_BUTTON_WIDTH + COMMON_BUTTON_PAD );
+			x = w - ( 2*COMMON_BUTTON_PAD + ScaleValue( &pf->scalex, (COMMON_BUTTON_WIDTH+COMMON_BUTTON_WIDTH) ) );
+			x2 = x + ( ScaleValue( &pf->scalex, COMMON_BUTTON_WIDTH  ) + COMMON_BUTTON_PAD );
 		}
 		else if( (done&&donetext) || (okay&& okaytext) )
 		{
-			x = w-ScaleValue( &pf->scalex, (COMMON_BUTTON_WIDTH+COMMON_BUTTON_PAD) );
+			x = w - ( ScaleValue( &pf->scalex, (COMMON_BUTTON_WIDTH) ) + COMMON_BUTTON_PAD );
 			x2 = x;
 		}
 		else
 			return;
-		y = h-(COMMON_BUTTON_PAD+COMMON_BUTTON_HEIGHT);
+		y = h - ( COMMON_BUTTON_PAD + ScaleValue( &pf->scaley, COMMON_BUTTON_HEIGHT ) );
 		x = InverseScaleValue( &pf->scalex, x );
 		x2 = InverseScaleValue( &pf->scalex, x2 );
 		y = InverseScaleValue( &pf->scaley, y );

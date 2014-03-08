@@ -60,21 +60,21 @@ EXPORT_METHOD void RunDeadstart( void );
 typedef struct startup_proc_tag {
 	DeclareLink( struct startup_proc_tag );
 	int bUsed;
-   int priority;
+	int priority;
 	void (CPROC*proc)(void);
-   CTEXTSTR func;
+	CTEXTSTR func;
 	CTEXTSTR file;
-   int line;
+	int line;
 } STARTUP_PROC, *PSTARTUP_PROC;
 
 typedef struct shutdown_proc_tag {
 	DeclareLink( struct shutdown_proc_tag );
 	int bUsed;
-   int priority;
+	int priority;
 	void (CPROC*proc)(void);
-   CTEXTSTR func;
+	CTEXTSTR func;
 	CTEXTSTR file;
-   int line;
+	int line;
 } SHUTDOWN_PROC, *PSHUTDOWN_PROC;
 
 struct deadstart_local_data_
@@ -88,7 +88,7 @@ struct deadstart_local_data_
 #define bInitialDone l.bInitialDone
 	LOGICAL bInitialStarted;
 #define bInitialStarted l.bInitialStarted
-   int bSuspend;
+	int bSuspend;
 #define bSuspend l.bSuspend
 	int bDispatched;
 #define bDispatched l.bDispatched
@@ -125,7 +125,7 @@ static struct deadstart_local_data_ deadstart_local_data;
 
 EXPORT_METHOD void RunExits( void )
 {
-   InvokeExits();
+	InvokeExits();
 }
 
 static void InitLocal( void )
@@ -161,8 +161,8 @@ void EnqueStartupProc( PSTARTUP_PROC *root, PSTARTUP_PROC proc )
 		}
 		for( last = check = (*root); check; check = check->next )
 		{
-		// if the current one being added is less then the one in the list
-         // then the one in the list becomes the new one's next...
+			// if the current one being added is less then the one in the list
+			// then the one in the list becomes the new one's next...
 			if( proc->priority < check->priority )
 			{
 #ifndef  DISABLE_DEBUG_REGISTER_AND_DISPATCH
@@ -208,7 +208,7 @@ void EnqueStartupProc( PSTARTUP_PROC *root, PSTARTUP_PROC proc )
 // we don't actually do anything with this?
 void RegisterPriorityStartupProc( void (CPROC*proc)(void), CTEXTSTR func,int priority, void *use_label, CTEXTSTR file,int line )
 {
-   int use_proc;
+	int use_proc;
 	InitLocal();
 	if( LOG_ALL ||
 #ifndef __STATIC_GLOBALS__
@@ -222,15 +222,15 @@ void RegisterPriorityStartupProc( void (CPROC*proc)(void), CTEXTSTR func,int pri
 	{
 		for( use_proc = 0; use_proc < 1024; use_proc++ )
 			if( !procs[use_proc].bUsed )
-            break;
+				break;
 		if( use_proc == 1024 )
 		{
 			lprintf( WIDE( "Used all 1024, and, have 1024 startups total scheduled." ) );
-         DebugBreak();
+			DebugBreak();
 		}
 	}
 	else
-      use_proc = nProcs;
+		use_proc = nProcs;
 
 	procs[use_proc].proc = proc;
 	procs[use_proc].func = func;
@@ -243,9 +243,9 @@ void RegisterPriorityStartupProc( void (CPROC*proc)(void), CTEXTSTR func,int pri
 
 	EnqueStartupProc( &proc_schedule, procs + use_proc ENQUE_STARTUP_DBG_SRC );
 
-   if( nProcs < 1024 )
+	if( nProcs < 1024 )
 		nProcs++;
-   /*
+	/*
 	if( nProcs == 1024 )
 	{
 		lprintf( WIDE( "Excessive number of startup procs!" ) );
@@ -258,9 +258,9 @@ void RegisterPriorityStartupProc( void (CPROC*proc)(void), CTEXTSTR func,int pri
 #ifdef _DEBUG
 		_xlprintf(LOG_NOISE,file,line)( WIDE( "Initial done, not suspended, dispatch immediate." ) );
 #endif
-      InvokeDeadstart();
+		InvokeDeadstart();
 	}
-   //lprintf( WIDE("Total procs %d"), nProcs );
+	//lprintf( WIDE("Total procs %d"), nProcs );
 }
 
 #ifdef __LINUX__
@@ -288,7 +288,7 @@ static BOOL WINAPI CtrlC( DWORD dwCtrlType )
 	case CTRL_C_EVENT:
 		InvokeExits();
 		// allow C api to exit, whatever C api we're using
-      // (allows triggering atexit functions)
+		// (allows triggering atexit functions)
 		exit(3);
 		return TRUE;
 	case CTRL_CLOSE_EVENT:
@@ -298,8 +298,8 @@ static BOOL WINAPI CtrlC( DWORD dwCtrlType )
 	case CTRL_SHUTDOWN_EVENT:
 		break;
 	}
-   // default... return not processed.
-   return FALSE;
+	// default... return not processed.
+	return FALSE;
 }
 #    endif
 #  endif
@@ -307,7 +307,7 @@ static BOOL WINAPI CtrlC( DWORD dwCtrlType )
 #  ifndef WIN32
 static void CtrlC( int signal )
 {
-   exit(3);
+	exit(3);
 }
 #  endif
 #endif
@@ -322,11 +322,12 @@ static void CtrlC( int signal )
 void InvokeDeadstart( void )
 {
 	PSTARTUP_PROC proc;
+	PSTARTUP_PROC resumed_proc;
 	//if( !bInitialDone /*|| bDispatched*/ )
 	//   return;
 	InitLocal();
 	bInitialStarted = 1;
-   // allowing initial start to be set lets final resume do this invoke.
+	// allowing initial start to be set lets final resume do this invoke.
 	if( bSuspend )
 	{
 		if( l.flags.bLog )
@@ -390,11 +391,12 @@ void InvokeDeadstart( void )
 			proc->bUsed = 0;
 			bDispatched = 0;
 		}
-      // look to see if anything new was scheduled.  Grab the list, add it to the one's we're processing.
+		// look to see if anything new was scheduled.  Grab the list, add it to the one's we're processing.
 		{
 			{
 				PSTARTUP_PROC newly_scheduled_things;
-            proc->me = &proc;
+				proc->me = &proc;
+				resumed_proc = proc;
 #ifdef __64__
 				if( ( newly_scheduled_things = (PSTARTUP_PROC)LockedExchange64( (PVPTRSZVAL)&proc_schedule, 0 ) ) != NULL )
 #else
@@ -408,11 +410,16 @@ void InvokeDeadstart( void )
 						EnqueStartupProc( &proc, newly_scheduled_things ENQUE_STARTUP_DBG_SRC );
 					}
 				}
+				else
+					resumed_proc = NULL;
 			}
 			proc_schedule = proc;
 			proc_schedule->me = &proc_schedule;
 		}
-		UnlinkThing( proc );
+		if( resumed_proc )
+			UnlinkThing( resumed_proc );
+		else
+			UnlinkThing( proc );
 	}
 }
 
@@ -428,7 +435,7 @@ PRIORITY_PRELOAD( InitDeadstartOptions, SQL_PRELOAD_PRIORITY+2 )
 #ifdef DISABLE_DEBUG_REGISTER_AND_DISPATCH
 	l.flags.bLog = SACK_GetProfileIntEx( WIDE( "SACK/Deadstart" ), WIDE( "Logging Enabled?" ), 0, TRUE );
 #else
-   l.flags.bLog = 1;
+	l.flags.bLog = 1;
 #endif
 }
 #endif
@@ -448,25 +455,25 @@ void RegisterStartups( void )
 #  endif
 #  define token_paste2(a,b) token_paste(a,b)
 #  define DeclareList(n) token_paste2(n,TARGET_LABEL)
-   extern struct rt_init DeclareList( begin_deadstart_ );
-   extern struct rt_init DeclareList( end_deadstart_ );
+	extern struct rt_init DeclareList( begin_deadstart_ );
+	extern struct rt_init DeclareList( end_deadstart_ );
 	struct rt_init *begin = &DeclareList( begin_deadstart_ );
 	struct rt_init *end = &DeclareList( end_deadstart_ );
 	struct rt_init *current;
 #  ifdef __NO_BAG__
-   printf( WIDE( "Not doing deadstarts\n" ) );
+	printf( WIDE( "Not doing deadstarts\n" ) );
 	return;
 #  endif
    //cygwin_dll_init();
 	if( begin[0].scheduled )
-      return;
+		return;
 	if( (begin+1) < end )
 	{
 #  ifdef __CYGWIN__
 		void (*MyRegisterPriorityStartupProc)( void (CPROC*proc)(void), CTEXTSTR func,int priority, CTEXTSTR file,int line );
 		char myname[256];
-      HMODULE mod;
-      GetModuleFileName(NULL,myname,sizeof(myname));
+		HMODULE mod;
+		GetModuleFileName(NULL,myname,sizeof(myname));
 		mod = LoadLibrary( myname );GetModuleFileName(NULL,myname,sizeof(myname));
 		MyRegisterPriorityStartupProc = (void(*)( void(CPROC*)(void),CTEXTSTR,int,CTEXTSTR,int))GetProcAddress( mod, WIDE( "RegisterPriorityStartupProc" ) );
 #    ifdef DEBUG_CYGWIN_START
@@ -493,7 +500,7 @@ void RegisterStartups( void )
 #  else
 				RegisterPriorityStartupProc( current->routine, current->funcname, current->priority, NULL, current->file, current->line );
 #  endif
-            current[0].scheduled = 1;
+				current[0].scheduled = 1;
 			}
 			else
 			{
@@ -506,7 +513,7 @@ void RegisterStartups( void )
 #  endif
 		}
 	}
-   // should be setup in such a way that this ignores all external invokations until the core app runs.
+	// should be setup in such a way that this ignores all external invokations until the core app runs.
 	//InvokeDeadstart();
 }
 #endif  //__cplusplus
@@ -550,17 +557,17 @@ void RegisterPriorityShutdownProc( void (CPROC*proc)(void), CTEXTSTR func, int p
 						 , check->line
 						 , check->func );
 #endif
-            shutdown_procs[nShutdownProcs].next = check;
+				shutdown_procs[nShutdownProcs].next = check;
 				shutdown_procs[nShutdownProcs].me = check->me;
-            (*check->me) = shutdown_procs + nShutdownProcs;
+				(*check->me) = shutdown_procs + nShutdownProcs;
 				check->me = &shutdown_procs[nShutdownProcs].next;
-            break;
+				break;
 			}
 		}
 		if( !check )
 			LinkLast( shutdown_proc_schedule, PSHUTDOWN_PROC, shutdown_procs + nShutdownProcs );
 		//lprintf( WIDE("first routine is %s(%d)")
-	  //		 , shutdown_proc_schedule->func
+		//		 , shutdown_proc_schedule->func
 		//		 , shutdown_proc_schedule->line );
 	}
 	nShutdownProcs++;
@@ -647,14 +654,14 @@ void InvokeExits( void )
 
 void DispelDeadstart( void )
 {
-   shutdown_proc_schedule = NULL;
+	shutdown_proc_schedule = NULL;
 }
 
 #ifdef __cplusplus
 
 ROOT_ATEXIT(AutoRunExits)
 {
-   InvokeExits();
+	InvokeExits();
 }
 
 #endif
@@ -662,7 +669,7 @@ ROOT_ATEXIT(AutoRunExits)
 
 void SuspendDeadstart( void )
 {
-   bSuspend++;
+	bSuspend++;
 }
 void ResumeDeadstart( void )
 {
@@ -685,7 +692,7 @@ EXPORT_METHOD	void BAG_Exit( int code )
 	InvokeExits();
 #endif
 #undef exit
-   exit( code );
+	exit( code );
 }
 
 // legacy linking code - might still be usin this for linux...
@@ -693,7 +700,7 @@ int is_deadstart_complete( void )
 {
 	//extern _32 deadstart_complete;
 #ifndef __STATIC_GLOBALS__
-   if( deadstart_local_data )
+	if( deadstart_local_data )
 		return bInitialDone;//deadstart_complete;
 #endif
 	return 0;
@@ -709,7 +716,7 @@ LOGICAL IsRootDeadstartStarted( void )
 		return bInitialStarted;
 	return 0;
 #else
-   return bInitialStarted;
+	return bInitialStarted;
 #endif
 }
 
@@ -718,9 +725,9 @@ LOGICAL IsRootDeadstartComplete( void )
 #ifndef __STATIC_GLOBALS__
 	if( deadstart_local_data )
 		return bInitialDone;
-   return 0;
+	return 0;
 #else
-   return bInitialDone;
+	return bInitialDone;
 #endif
 }
 
@@ -736,15 +743,15 @@ __declspec(dllexport)
    LPVOID lpvReserved
   		 )
 {
-   if( fdwReason == DLL_PROCESS_DETACH )
+	if( fdwReason == DLL_PROCESS_DETACH )
 		InvokeExits();
-   return TRUE;
+	return TRUE;
 }
 #  else
 void RootDestructor(void) __attribute__((destructor));
 void RootDestructor( void )
 {
-   InvokeExits();
+	InvokeExits();
 }
 #  endif
 #endif
