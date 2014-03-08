@@ -81,12 +81,17 @@ STRING( REPLACE "." "/" app_path ${application} )
 CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/../MyNativeActivity.cm package/src/org/d3x0r/${app_path}/${activity}/${activity}.java )
 
 
+if( CMAKE_BUILD_TYPE strequal "release )
+  set( MORE_COMMANDS 
+       COMMAND jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore ${CMAKE_CURRENT_SOURCE_DIR}/../dekware/my-release-key.keystore package/bin/${Project}-${CMAKE_BUILD_TYPE}-unsigned.apk alias_name
+       COMMAND zipalign -v 4 package/bin/${Project}-${CMAKE_BUILD_TYPE}-unsigned.apk package/bin/${Project}-${CMAKE_BUILD_TYPE}.apk
+     )
+endif( CMAKE_BUILD_TYPE strequal "release )
 
-EXECUTE_PROCESS( 
+    add_custom_target( package
        COMMAND android.bat update project --target "android-14" --path .
-       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/package )
-EXECUTE_PROCESS( 
        COMMAND ant.bat ${CMAKE_BUILD_TYPE}
+       ${MORE_COMMANDS}
        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/package )
 
 
