@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 
+
+
 set( Project sack.core.framebuffer )
+PROJECT( ${Project} NONE )
 
 if( NOT SACK_SDK_ROOT_PATH )
 GET_FILENAME_COMPONENT(SACK_SDK_ROOT_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Freedom Collective\\SACK;Install_Dir]" ABSOLUTE CACHE)
@@ -53,6 +56,9 @@ FILE( GLOB files #RELATIVE ${CMAKE_BINARY_DIR}
                 ${CMAKE_BINARY_DIR}/package/libs/armeabi/*.proxy.*
                 ${CMAKE_BINARY_DIR}/package/libs/armeabi/*.module.*
                 ${CMAKE_BINARY_DIR}/package/libs/armeabi/*.puregl*
+		${CMAKE_BINARY_DIR}/package/libs/armeabi/libsw*.so 
+		${CMAKE_BINARY_DIR}/package/libs/armeabi/libav*.so 
+		${CMAKE_BINARY_DIR}/package/libs/armeabi/libopenal.so 
 	) 
 FILE( REMOVE ${files} ) 
 
@@ -84,12 +90,13 @@ set( activity EditOptions )
 STRING( REPLACE "." "/" app_path ${application} )
 CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/../MyNativeActivity.cm package/src/org/d3x0r/${app_path}/${activity}/${activity}.java )
 
-if( CMAKE_BUILD_TYPE strequal "release )
+if( CMAKE_BUILD_TYPE STREQUAL "release" )
   set( MORE_COMMANDS 
-       COMMAND jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore ${CMAKE_CURRENT_SOURCE_DIR}/../dekware/my-release-key.keystore package/bin/${Project}-${CMAKE_BUILD_TYPE}-unsigned.apk alias_name
-       COMMAND zipalign -v 4 package/bin/${Project}-${CMAKE_BUILD_TYPE}-unsigned.apk package/bin/${Project}-${CMAKE_BUILD_TYPE}.apk
+       COMMAND jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore ${CMAKE_CURRENT_SOURCE_DIR}/../dekware/my-release-key.keystore bin/${Project}-${CMAKE_BUILD_TYPE}-unsigned.apk alias_name
+       COMMAND rm -f bin/${Project}-${CMAKE_BUILD_TYPE}.apk
+       COMMAND zipalign -v 4 bin/${Project}-${CMAKE_BUILD_TYPE}-unsigned.apk bin/${Project}-${CMAKE_BUILD_TYPE}.apk
      )
-endif( CMAKE_BUILD_TYPE strequal "release )
+endif( CMAKE_BUILD_TYPE STREQUAL "release" )
 
     add_custom_target( package
        COMMAND android.bat update project --target "android-14" --path .
