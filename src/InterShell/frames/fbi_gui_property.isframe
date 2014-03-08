@@ -1,0 +1,12 @@
+<control caption="Page Properties" position="0,0" size="436,262" type="Frame">
+<control IDName="Color Well/InterShell/CLR_TEXT_COLOR" caption="" position="76,151" size="40,39" type="Color Well"></control>
+<control IDName="Color Well/InterShell/CLR_RING_BACKGROUND" caption="" position="116,197" size="32,32" type="Color Well"></control>
+<control caption="" position="74,197" size="32,32" type="Color Well"></control>
+<control caption="" position="116,35" size="225,21" type="EditControl"></control>
+<control IDName="ListBox/InterShell/LST_PAGES" caption="" position="225,93" size="190,73" type="ListBox"></control>
+<control IDName="ListBox/InterShell/LST_BUTTON_STYLE" caption="" position="229,172" size="187,73" type="ListBox"></control>
+<control caption="" position="117,63" size="265,21" type="EditControl"></control>
+<control caption="Image Name" position="8,62" size="103,21" type="TextControl"></control>
+<control caption="Button Text" position="11,38" size="99,21" type="TextControl"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="152,193" size="73,21" type="Button"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="151,221" size="73,21" type="Button"></control></control>

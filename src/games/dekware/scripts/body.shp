@@ -1,0 +1,77 @@
+
+
+# this file is a shape definition file
+# file syntax 
+#    { } frames a set of definitions/script like keywords
+#    ( ) is a list of things
+#    [ ] bounds the points defining a ray
+#    < > bounds a set of coordinates describing a point or color
+#  a single value - typically in floating point format
+#  
+
+body_one form {
+   Torso         Torso    1.0 #scalar of body form...
+#   UpperArmLeft  UpperArm < -1 1 1 > 
+#   UpperArmRight UpperArm < 1 1 1 >  
+#   LowArmLeft    LowerArm < -1 1 1 > 
+#   LowArmRight   LowerArm < 1 1 1 >  
+
+#   Attach Torso.LeftArm         UpperArmLeft.Shoulder
+#   Attach Torso.RightArm        UpperArmRight.Shoulder
+#   Attach UpperArmLeft.Elbow    LowerArmLeft.Elbow
+#   Attach UpperArmRight.Elbow   LowerArmRight.Elbow
+
+}
+
+#lines are rendered around the bounding polygons in 
+# <0.1 0.1 0.1> added to the color - this gives definite bounds
+# brighter than a solid form
+
+Torso bone { 
+   color < 0.6 0.6 0.2 >
+   Define ( [ < 0 0 -4.0 >  < 0 0 -1.0 > ]
+            [ < 0 0 4.0 >   < 0 0 1.0 >  ]
+            [ < 0 -15.0 0 > < 0 -1.0 0 > ]
+            [ < 0 15.0 0 >  < 0 1.0 0 >  ]
+            [ < -6.0 0 0 >  < -1 0 0 >   ]
+            [ < 6.0 0 0 >   < 1 0 0 >    ] )
+   
+     #joints have defined their origin, and direction 
+     # normal from which their motion is limiting...
+     # joint, and 
+   arm1 link ( < -6 15 0 > < -1.0 0 0 > < 0 1.0 0 > < -0.5 -0.5 -0.5 > < 0.5 0.5 0.5 > )
+   arm1 link ( < 6 15 0 >  < 1.0 0 0 > < 0 1.0 0 > < -0.5 -0.5 -0.5 > < 0.5 0.5 0.5 > )
+   hips link ( < 0 -15 0 > < 0 -1.0 0 > < 0 0 1.0 > < -0.1 -0.1 -0.05 > < 0.1 0.1 0.05>  )
+   # refine # refining planes are sent after the basic form is sent...
+}
+
+#UpperArm bone {
+#   color < 0.6 0.2 0.2 >
+#   Define ( [ < 0 0 -2.0 > <0 0 -1.0 >  ] 
+#            [ < 0 0 2.0 >   < 0 0 1.0 > ]
+#            [ < 0 -7.0 0 > < 0 -1.0 0 > ]
+#            [ < 0 7.0 0 >  < 0 1.0 0 >  ]
+#            [ < -2.0 0 0 >  < -1 0 0 >  ]
+#            [ < 2.0 0 0 >   < 1 0 0 >   ] )
+#     
+#   Elbow link   < 0 -7.0 0 > < 0 -1.0 0 >  < 1.0 0 0 > < 0 0 0 > < 0.5 0 0 >
+#      # this joint's orogin is on opposite sides...
+#   Shoulder link  < 2.0 -6.5 0 > < 0 1.0 0 >  < 0 0 1.0 > 
+#}
+
+#LowerArm bone { 
+#   color < 0.6 0.1 0.0 >
+#   Define ( [ < 0 0 -2.0 > <0 0 -1.0 >  ] 
+#            [ < 0 0 2.0 >   < 0 0 1.0 > ]
+#            [ < 0 -7.0 0 > < 0 -1.0 0 > ]
+#            [ < 0 7.0 0 >  < 0 1.0 0 >  ]
+#            [ < -2.0 0 0 >  < -1 0 0 >  ]
+#            [ < 2.0 0 0 >   < 1 0 0 >   ] )
+#   Elbow link  < 0 7.0 0 > < 0 1.0 0 >  < 1.0 0 0 > 
+#   #Wrist link [ ] < > < > < >
+#}
+
+#actually create 2 bodies....
+
+#Body1 body body_one
+#Body2 body body_one

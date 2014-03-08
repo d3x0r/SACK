@@ -1,0 +1,31 @@
+
+
+mode C {
+    TabSize = 3;
+    IndentWithTabs = 1;
+    CursorThroughTabs = 0;
+    SpaceTabs = 0;
+}
+
+object GLOBAL {
+    C_Indent = 3;
+    C_Continuation      = 4;
+    C_BraceOfs          = 0;
+    C_CaseOfs           = 0;
+    C_CaseDelta         = 4;
+    C_ClassOfs          = 0;
+    C_ClassDelta        = 4;
+    C_ColonOfs          = -4;
+    C_CommentOfs        = 0;
+    C_CommentDelta      = 1;
+    C_FirstLevelWidth   = -1;
+    C_FirstLevelIndent  = 4;
+    C_ParenDelta        = -1;
+}
+
+eventmap MODEL {
+    key [C+O_H] { WinHSplit }
+    key [C+O_Enter] { BufListFileSave }
+}
+
+

@@ -1,0 +1,14 @@
+[ODBC]
+DRIVER=Microsoft Access Driver (*.mdb)
+UID=admin
+UserCommitSync=Yes
+Threads=3
+SafeTransactions=0
+PageTimeout=5
+MaxScanRows=8
+MaxBufferSize=512
+ImplicitCommitSync=Yes
+FIL=MS Access
+DriverId=25
+DefaultDir=C:\databases
+DBQ=C:\databases\access.mdb
