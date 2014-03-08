@@ -1,0 +1,10 @@
+
+/create gatekeeper
+/wake gatekeeper
+/tell gatekeeper /odbc open access u p
+/tell gatekeeper /scr gatekeeper.scr
+
+//create connection
+//wake connection
+//tell connection /command tcpserver 2000
+//tell connection /scr userlogin

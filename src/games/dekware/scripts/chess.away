@@ -1,0 +1,6 @@
+
+/decl telllist
+/trigger create away &who tells you:
+.tell %who sorry I'm away at the moment - be back in a sec.
+/push %telllist %who
+/endmac

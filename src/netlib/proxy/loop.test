@@ -1,0 +1,15 @@
+# basic route information is....
+# [...] indicates an optional parameter
+# <...> indicates a mandantory parameter
+# <name> <:> [ip <:>]<port> <ip:port>
+#  if the first IP is not specified, all IPs on the box will be used
+#  
+
+socket: 128
+timeout:5000
+proxy1   : 4000 localhost:4001
+proxy2   : 4001 localhost:4002
+proxy3   : 4002 localhost:4003
+proxy4   : 4003 172.16.100.1:223
+
+

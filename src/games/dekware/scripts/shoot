@@ -1,0 +1,4 @@
+/decl target duule
+/trigger create hitshot shoots an arrow
+.hit %target
+/endmac

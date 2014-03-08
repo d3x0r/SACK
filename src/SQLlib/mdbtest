@@ -1,0 +1,9 @@
+
+/make test sql mymdb
+
+/test/command drop table test1
+/test/command create table test1 ( [ID] counter, [first name] text(15) )
+/test/command insert into test1 ([first name]) values ('bob the giant')
+/test/query record test1
+/test/record/dump
+/test/dest record

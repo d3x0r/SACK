@@ -1,0 +1,87 @@
+/dest build_location
+/mac build_location
+/parse file locations
+/if success
+/decl code
+/decl location
+/decl doit
+/decl junk
+
+/tell %replyto /echo Having Decode location built...
+//dest decode_location
+//mac decode_location aaii replyto varname
+/label top
+/getword %code
+/if fail
+	#//echo did not resolve the code into an area...
+   //result 
+	//endmac
+   //echo Location decode completed...
+	/return
+/endif
+/getword %location
+/getword %doit
+/getword %junk #eat end of lines
+/compare %doit is go
+/if success
+	/echo adding %code %location
+	//compare %%aaii like %code
+	//if success
+   //result %location
+	//return
+	//endif
+/endif
+/goto top
+/endif
+/endmac
+
+
+/dest build_type
+/mac build_type
+
+/parse file displaytypes
+/if success
+/decl code
+/decl location
+/decl doit
+/decl junk
+
+/tell %replyto /echo Having Decode report types built...
+//dest decode_type
+//mac decode_type type replyto varname
+
+/label top
+/getword %code
+/if fail
+	#//echo did not resolve the code into a valid report type...
+   //result
+	//endmac
+   //echo Decode report types done.
+	/return
+/endif
+/getword %location
+/getword %doit
+/getword %junk #eat end of lines
+/compare %doit is go
+/if success
+	/echo adding %code %location
+	//compare %%type like %code
+	//if success
+   //result %location %code
+	//return
+	//endif
+/endif
+/goto top
+/endif
+/endmac 
+
+/dest doit
+/mac doit
+/echo delay building location decode macro...
+/delay 1000
+/build_location
+/build_type
+/dest %me
+/endmac
+
+/doit

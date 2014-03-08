@@ -1,0 +1,16 @@
+
+
+UNAMEDEPENDS=$(SACK_BASE)/makefiles/prog/uname/makefile.$(COMPILER) \
+	$(SACK_BASE)/makefiles/prog/uname/uname.c
+
+fakeall: $(SACK_BASE)/bin_tools/uname$(PROGEXT)
+        
+$(SACK_BASE)/bin_tools/uname$(PROGEXT): $(UNAMEDEPENDS)
+	$(MAKE) -C $(SACK_BASE)/makefiles/prog/uname -f makefile.$(COMPILER)  $(filter distclean,$(MAKECMDGOALS))
+	-$(CP_CMD) $(subst /,\,$(SACK_BASE)/makefiles/prog/uname/$(RINTDEST)/uname$(PROGEXT) $@)
+
+$(SACK_BASE)/makefiles/prog/uname/%.c: ;
+$(SACK_BASE)/makefiles/prog/uname/makefile.$(COMPILER): ;
+$(SACK_BASE)/makefiles/prog/uname/makefile.depends: ;
+
+

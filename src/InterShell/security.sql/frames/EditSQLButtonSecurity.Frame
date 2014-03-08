@@ -1,0 +1,10 @@
+<control caption="EditSQLButtonSecurity.Frame" position="0,0" size="444,293" type="Frame">
+<control IDName="ListBox/InterShell/security/SQL/PERMISSIONS" caption="" position="12,23" size="176,145" type="ListBox"></control>
+<control IDName="ListBox/InterShell/security/SQL/REQUIRED_PERMISSIONS" caption="" position="210,21" size="177,150" type="ListBox"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="221,272" size="73,21" type="Button"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="310,272" size="73,21" type="Button"></control>
+<control caption="Require Existing Login..." position="15,192" size="255,21" type="CheckButton"></control>
+<control IDName="EditControl/InterShell/security/SQL/TEXT_EDIT_REQUIRED_PERMISSION" caption="" position="210,210" size="173,23" type="EditControl"></control>
+<control caption="Required Permission" position="46,213" size="162,21" type="TextControl"></control>
+<control IDName="EditControl/InterShell/security/SQL/TEXT_EDIT_OVERRIDE_REQUIRED_PERMISSION" caption="" position="210,240" size="173,23" type="EditControl"></control>
+<control caption="Override Permission" position="46,243" size="162,21" type="TextControl"></control></control>

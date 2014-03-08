@@ -1,0 +1,1 @@
+add_plugin(  binary.filter.nex filters binary )

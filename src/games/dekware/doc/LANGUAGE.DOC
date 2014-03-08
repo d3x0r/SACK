@@ -1,0 +1,613 @@
+Some Terminology....
+	EOL = End of Line; also known as '\n' or <CR><LF>
+
+Some scripting notes...   
+
+'#' begins a commented portion of the line... from here forward all data is 
+    ignored.
+
+Scripts are basically just text files.... since the cyber-nexus has no means
+to save things for now this is just how it is....
+
+THIS WILL BE FIXED - but FOR NOW IS BADLY DONE........
+
+	Read parsing notes... some important information is embedded in it...
+   Typed command : %word is evaluated to the variable 'word'
+                  %%word is the literal '%word'
+                 %%%word should be the literal '%%word'
+
+   /tell object /something %%word
+   		during original parsing of the command, %%word becomes %word and
+         the actual command '/something %word' is passed to the object...
+
+   /tell object /decl word "invalid reference"
+	/tell object /macro start
+   /tell object /something %%%word
+   /tell object /endmac
+   		during original parsing of the command, %%%word becomes %%word.
+         While storing the command line '/something %%word' the %%word is 
+         returned as '%word' which will reference the variable later...
+
+
+	/decl variable "var value"
+   /echo %variable
+     RESULT : "var value"
+   /execute /echo %%variable 
+     RESULT : "var value"
+   /execute /echo %%%variable
+     RESULT : %"var value"  : paramter not found....
+   /execute /echo %%%%variable
+     RESULT : %variable
+
+apparently %% turns into '%'... but %%% turns into %<dereferenced variable>
+and then %%%% turns into %%variable....
+
+Depending on the number of times the command line is processed, then
+the number of %'s required is flexible... AND due to dumb things about
+what type of punctuation '%' is - the output in listings is wrong....
+for numbers 34% is correct, and '%' is a "Right Punctuation", for 
+variable references %var is correct, and '%' is a "Left Punctuation"    
+
+
+
+-----------------------------------------------------------------------
+12-7-99
+
+Compilation has been tabled while interpreted commands are developed...
+
+PARSING
+---------------
+	All commands are parsed using the same parser.  All files, scripts, 
+   and parsed files also stream through the parser.  The parser internally
+   returns a list of all tokens from the line.  If a token is quoted,
+   parenthized, bracketed, braced, or tagged, the literal values within
+   the expression are returned, and the token is marked as to what sort of 
+   bounding characters were found.
+
+   	Quoted tokens are bound by double quotation marks.           "..."
+      Single quoted tokens are bound by single quotes.             '...'
+         ( Single quote expressions are mostly unused - because of
+           the common use of this character for contractions ) 
+      Braced tokens are bound by braces.                           {...}
+      Bracketed tokens are bound by square brackets.               [...]
+      Tagged tokens are bound by less-than and greater-thans.      <...>
+      Parenthized tokens are bound by matching set of parentheses. (...)
+
+   If only a partially bound token is found on a line, a prior accululator
+   stores the previously scanned data in literal format.  When the parser
+   is called again, this prior accumulator is passed, and is pre-pended to
+   the line passed.  The parser returns only complete tokens.  If the data
+   to be parsed is badly formatted (has mis-matched bounding characters) 
+   the results (probably bad in all cases) depend on the particular usage
+   of the parsed data.
+
+   Once an open bounding mark is found, all data is litereally stored in the
+   expression so things like { this ( partially bound ] expresssion } would 
+   still work... but if the token received was again parsed, only 'this' would
+   come back since the '(' begins another bound expression.
+
+   Commands typed are parsed this way also - note that all bounding
+   information is relocated from visible attributes to internal information.
+   The /echo command restores the lost visual attributes, but no other
+   command will.  
+
+   	/echo "this is     a test"
+   would respond with 
+   	"this is     a test"    (restored visual attributes)
+
+      /create "this    is    an    object" 
+   would create an object named
+      this    is    an    object   (no quotation marks)   
+
+      /create this     is      an    object
+   would create four objects called
+      this, is, an, object
+
+   All white space characters (tab, space, and newline) are deleted internally.
+   All spacing format information is lost unless the spaces are bound
+   in an expression token.  Line break information (newlines) are retained
+   as a special 0(zero) length token.  No other token may ever have NO 
+   information within.  
+
+   VERY technical note - 
+     Tokens may also be indirect.  These tokens point to where the real
+     node information is contained.  These use an internal flag to mark the
+     indirection, and use the size of the data as a pointer to the real 
+     information.  This allows token to remain in-line with other related
+     tokens, but still be reference by other strings....  
+
+          ( consider an illustration here )
+
+        [.] --------------> [.] (two indirect tokens using This and Sentence)
+         |                   |
+         V                   V
+       This -> is -> a -> sentence. ( original concept sentence)
+
+A note about syntax
+------------------------
+    Within a macro, the paremeters may be referenced by either %1, %2, %3,
+    etc. which is the first, second, third, etcetera parameter;  or by 
+    %paramname.  Any value which is supplied to any command may be 
+    prefixed by a '%' character.  The interpreter then searches first
+    the paremeters defined for the macro, then local variable declarations,
+    finally variable declarations for this active object context.  The only
+    way which objects may share data is to /tell an object something like
+    /tell agent /decl some_var_name %some_var_name  .... or other such
+    silliness.
+
+
+
+
+OBJECTS
+---------------
+	Any tangible type thing.  Objects have a name, a description, 
+   relationships to other objects, and sets of commands available to
+   that object.  The root object of all other objects is "The Void".
+   "The Void" is the only object which in fact contains itself.  This
+   prevents anything from leaving "The Void".  Objects may be related 
+   to other objects by being contained, containing, or being attached them.
+
+   For example :
+   	A library contains shelves. The shelves contain books. A book could
+      be considered to be a binding attached to a front cover, a back cover
+      and all the pages within.  The pages contain words.
+      Moving a book cover from one place to another naturally
+      moves the binding, the pages, and the back cover with it.
+      Moving an object which contains other objects of course
+      relocates all objects contained (moving the shelf to another library).
+
+   An object may be animated and instructed to carry out instructions.
+
+   In the beginning - The Void is created and stuffed inside itself.  An
+   active object is also created called MOOSE - Master Operator of System
+   Entities.  The first commands which are entered are performed by the
+   MOOSE.  
+
+  Basic Object Commands
+  ----------------------------
+    /CREATE <object name>...
+       For all parameters passed to the create command a seperate
+       object is created.  Each paramater passed to create is used
+       as the new object's name.  Objects are created within the currently
+       controlled object.  
+
+    /DESTROY <object>...
+    /DELETE <object>...
+       For all parameters passed to the destroy command objects are 
+       located and destroyed.  If they were previously sentient, their
+       controller is also deleted.  Object are located near this,
+       in this, on this, and then macros for the current object are
+       checked.  If an object contained other objects, all contained 
+       objects become contained in the container of the object.  
+       ( Deleting a book shelf would drop all the books into the library.
+         Assuming the shelf still exists, deleting the pages would drop the 
+         words into the shelf.  Since the covers are both attached to the
+         binding, they would remain, but become detached from each other,
+         however, if the binding were deleted, then the front cover, pages,
+         and back cover would all become divorced. )
+       If the name specified is not an object name, but is a macro name,
+       then the macro is deleted.
+
+    /DESCRIBE <what> <description>...
+       Changes the description from nothing, to the set of tokens passed
+       after the object name to describe.  Objects are located in this, 
+       on this, near this, then macros of this object are checked.  
+	
+    /DUPLICATE <object>...
+		 Locates the specified object first on, then in the current object.
+       If the object is found, then the object is duplicated in all aspects.
+       All objects within the object being duplicated are also duplicated.
+
+    /GRAB <object>...
+		 Locates an object on, in, then near the currently controlled object.
+       The object is moved from it's current location and becomes attached
+       to the current object.  
+
+    /DROP <object>...
+       Locates the specified objects on the current object (held by).  The
+       object is then put near the current object (placed in the containing
+       object of the current object.
+
+    /STORE <object>...
+       Locates the specified objects on the current object (held by).  The
+       object is then put in the current object.
+
+    /ATTACH < <object> <to object> >...
+       Both objects must be held by the current object.  The first object
+       is then attached to the second object specified.  Multiple pairs
+       of objects may be specified.
+
+    /DETACH < <from object> <object> >...
+ 		 The object to be detached from is specified first.  The object must
+       be held by the current object.  The object to remove from the held
+       object is specified second.  After this is completed the current object
+       will hold both objects seperated from each other.
+
+    /ENTER <object>...
+       For each object specified in the parameter list, the object is located
+       near the current object.  The currently controlled object will then 
+       move into the specified object.
+
+    /LEAVE 
+       Moves the currently controlled object out of the current object it is
+       in.  If the current object is in "The Void", then leaving has no effect.
+
+    /RENAME <object> <to_name>
+		 Renames an object to the new name...... 
+
+  Object Animation Commands
+  -----------------------------
+    /BECOME <object>
+       The user context becomes the controller of the specified object.
+
+    /REVERT
+       Similar to leave, the reversion commands saves having to know what
+       the previously active object was, or for that matter where it was...
+        
+    /WAKE <object>
+       Makes an inanimate object active.  It may process macros on its
+       own.  Any command a user may issue may also be issued by the object.
+       Therefore it may create, destroy, rename, or otherwise manipule
+       other objects.  All aware objects have a variable '%me'... which is
+       the name of the object.
+
+    /RESUME  - (To Be Implemented)
+    /SUSPEND - (To Be Implemented)
+    /KILL    - (To Be Implemented)
+    /SLEEP   - (To Be Implemented)
+
+    /MONITOR <object>
+       If the object is already sentient itself, then the user must use
+       the context of the object's sentience.... (bad wording... )
+
+    /EXECUTE <Command Line>... 
+		 The arguments passed to this may be variables, and therefore resolve
+       to their real values.  The command is then queued to the currently
+		 active object.
+
+    /TELL <object> <Command line>...
+       Similar to process, but the object specified must be in visible 
+       space.  The command line parameters are substituted appropriately
+       if they are variables, then the command is queued to the specified
+       object.
+
+    /REPLY <Command>
+       Send the command line to the object which last '/tell'd this to 
+       perform an object... 
+
+    /DEBUG on
+    /DEBUG off
+    /DEBUG   
+    	 Turns on and off the printing of the actively executing commands.
+       If 'on' or 'off' are not specified, then the currently logging state
+       is toggled.  Logging only occurs for the current macro, not it's
+       caller, nor for the macros it executes, unless those macros also
+       turn on the debug tracing.  If this command is issued outside of
+       a macro, global tracing is turned on and ALL commands are logged.
+
+    /DUMP <object>
+       Is supposed to dump verbose diagnostic information about objects....
+
+    /MEMORY 
+       Returns the amount of free memory, used memory, number of free
+       blocks, and the number of used blocks.  
+
+    /MEMDUMP
+       Causes the memory system to issue OutputDebugStrings() for a system
+       debug message logger to view.  (www.sysinternals.com has such a thing)
+
+    /BREAK (BAD)
+       causes a hardware INT 3.  This is the program execution breakpoint 
+       instruction.  Upon executing this - the program can/will go away
+       depending on your system configuration.  
+       
+
+  Object Information Commands
+  -----------------------------
+    /LOOK <object>
+    /LOOK in <object>   (not fully implemented yet... almost)
+       Locates the object in visible space.  The search is done first within
+       the current object, then on, near, and then around the current.  The
+       object description, and items currently held by (attached to) are 
+       printed.
+
+    /INVENTORY
+       Prints all of the objects held by the current object, then prints
+       all objects contained within the current object.   
+
+    /MAP 
+    /MAP <object>  (not fully implemented yet)
+       Prints the heirarchy of objects in an indented tree format...
+
+Varible and Macro Commands
+----------------------------
+
+ 	 /DECLARE <varname> <value>...<value>
+    	creates a variable called <varname> which points to a string
+       of atoms.  Internally this command creates a text node which points
+       to an indirect text node.  The indirect text node points to the 
+       actual value of the line.  Each indirect node must be assumed to 
+       only contain one atom... since this provides a way to use existing
+       data without having to copy it.
+
+       If this statement is used within a macro it creates a local instance
+       of the variable which is deleted when the macro exits.  If this is
+       used with outside of a macro the value is common to all macros which
+       an object may use.  
+
+    /MACRO <name> <param1>...<param-n>
+       variables passed to a macro have a different nature since the
+       caller must provide all the parameters the list of names of parameters
+       is parallel to the list of values passed to the macro.
+
+    /VARS 
+       Lists all global variables, and also variables defined in the
+       current macro context, with their associated values.
+
+    /LABEL <mark name>
+       Marks a spot in a macro which maybe be given to a /goto command.
+       Only the first label of each name will be gone to - although multple
+       lines maybe be /label'ed with the same name.  Mark name may be a
+       variable.
+
+    /GOTO <label name>
+       Resets the macro index to the beginning of the current macro, and
+       searched forward until the first /label with the name matching the
+       parameter to the goto is found.  Label name may be a variable.
+
+    /ECHO <token>...<token>
+        Each token specified is displayed.... useful for printing out 
+        the values in current variables
+
+    /LIST <macro>
+        If a macro name is specified, then the macro is listed.  If there
+        is no name specified, then a list of macros which the current object
+        is printed.  If a parameter is specified, and it matches a name
+        of a macro defined for this object, then the macro is listed.
+
+    /MACRO <what> <expected parameters...>
+        If the macro does not previously exist, and does not conflict 
+        with an internal command name, then all commands entered until
+        /ENDMACRO are stored as the macro.  No checking for parameter or
+        variable validity is done.  If the macro contains /macro commands,
+        then a count of levels of /endmacro commands is kept until the 
+        final /endmacro is issued.  Macros are created in the current
+        object context only.  Other objects cannot use the macros unless
+        they /tell the object to perform the macro.  Perhaps if they pass
+        local variables or macro arguments the remote macro may perform
+        a useful operation for the requestor - more than likely the 
+        macro should be copied to the object requesting its use.  When a 
+        macro is defined, all commands are updated according to minimal
+        significant characters make that command unique.  (see /HELP)
+
+    /ENDMACRO
+        Terminates a macro defination.  Also acts as a /return statement.
+
+    /RETURN
+        Leaves the current macro and returns to the previous macro, or 
+        to an idle input state...
+
+    /COMPARE <op1> is <op2>
+    /COMPARE <op1> like <op2>
+    /COMPARE <op1> is_tag
+        This command is used to set success or fail assuming an IF statement
+        follows near by.  The parameters to this command are op1 - a variable
+        or a constant value, op2 - a variable or a constant value.  The 
+        operands (1, 2) are assumed to be words... not strings (yet).
+           is     - compares the two operands and sets success if they match
+                    length, and a case-sensitive match.
+           like   - sets success if the operands match up to the length of
+                    the shorter with a case-insensitive match.
+		   - - - - - - - - requres only one parameter
+           is_tag - set success if the token was bound by < >.
+           is_... - to be determined... but other options will likely be
+                    is_paren, is_quoted, is_bracketed, is_braced.
+           blank  - if only end of lines are present, or there is no content
+                    in the variable, it is blank.
+           eol    - if the variable is an end of line record, result is true.
+		   - - - - - - - - requres no parameters
+			  connected - returns true if the file or tcp connection being 
+           			     processed is still open and connected.
+           active    - returns true if the COMMAND data path is still connected.
+
+    /IF success
+    /IF fail
+      ...
+    /ELSE
+      ...
+    /ENDIF
+    	 There are only two types of IF allowed - if FAIL or if SUCCESS.
+       Many commands set success or failure when used in a macro.  This
+       allows the results to be tested.  /grab for example returns failure
+       if the object was not found.
+
+    /SCRIPT <scriptname>
+       Attempts to open a file specified by script name, then parses the file
+       and performs all commands specified therein.
+
+    /PUSH <var> <token>
+       
+    /PARSE <file/tcp> <name>
+       Starts the parser on the specified file, or TCP address...  The object
+       may step through the file currently being parsed using /getword....
+
+    /ENDPARSE
+       Closes the current file being parsed.
+
+    /GETWORD <varname>
+       This command demands that a variable name be used.  The variable
+       specified is set to the next value from the file opened by the last
+       /parse command.
+
+    /GETPARTIAL <varname> 
+       If /getword fails, then there might be a partial expression.  This
+       command gets the partial and puts it in a variable, clearing the
+       partial accumulator.  Useful for badly formatted files being parsed.
+
+
+Miscellaneous Commands
+--------------------------------------
+ 	 /HELP 
+       Shows a list of commands, and if the command has a description,
+       also displays the description.  Macros become part of this list.
+       The amount of characters required to match the command are
+       bracketed.  More characters than required to match may be entered,
+       but they must match the command also.....
+
+    /PING <IP>
+		 performs a single zero optioned 2500ms timout ping.
+
+    /TRACE <IP>
+		 Perfomrs a trace route to the specified IP.
+
+    /WHOIS <name>
+     	 Does whois lookup for specified name.
+
+    /LISTEN <[IP:]port>
+       Allows the current object to listen for incoming network connections.
+       If a connection is made from an outside telnet type client, this
+       object clones itself and performs a '/accept' command.  This is
+       likely a macro definition in a parent object.
+
+    /CHANGEDIR <directory>
+       Changes the current working directory to the specified path.  If
+       used within a macro success/fail is set.
+
+    /SOUND <filename>
+       Plays a sound file....
+
+    /PORTSCAN - unimplemented
+    /IPSCAN - unimplemented
+    /WHATIS - unknown meaning, unimplemented
+
+
+//--------------------------------------------------------------------------
+SAMPLE SCRIPT
+//--------------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# usage: /connect <IP[:port]>
+# this script allows for connection to telnet servers......
+# it does ignore blank lines and disregards all EOL (end of line) marks...
+/mac connect where
+	/parse tcp %%where
+	/if success
+		/decl line
+	   /decl word
+  		/label top
+	   /getword %%word
+   		/if success
+            /compare %%word eol
+            /if success
+                /compare %%line blank
+                /if fail
+	                /echo %%line
+   	             /decl line
+                /endif
+                /goto top
+            /endif
+     			/push %%line %%word
+   		/else
+         		/getpartial %%word
+
+	         	/if success
+	            		/push %%line %%word
+		         /endif
+
+      			/compare %%line blank
+         		/if fail
+	   				/echo %%line
+   	   			/decl line
+         		/endif
+         /endif
+			/compare connected
+			/if fail
+				/echo %%line
+				/echo %%word
+				/echo Connection closed.
+				/goto done
+			/endif
+		/goto top
+	/endif
+	/label done
+   /endparse
+/endmac
+
+#---------------------------------------------------------------------
+# usage: /script nws
+# requires filebot.mac to define actions for file list scanner....
+
+/mac dir
+!dir /b >dir.lst
+/endmac 
+/create filebot
+/grab filebot
+/drop filebot
+/wake filebot
+/tell filebot /decl tellwho %me
+/tell filebot /decl filelist dir.lst
+/tell filebot /script filebot.mac
+
+/mac pfile file
+/decl word
+/decl line
+/decl paragraph true
+/echo told to process file... %%file.
+/parse file %%file
+/if success
+	/getword %%word
+	/getword %%word
+	/getword %%word
+/label nextword
+	/getword %%word
+   /if success
+   	/compare %%word eol
+      /if fail
+      	/push %%line %%word
+      	/goto nextword
+      /endif
+      /compare %%line blank
+      /if fail
+      	/echo %%line
+         /decl paragraph false
+      /else 
+      	/compare %%paragraph is true
+         /if fail
+	      	/echo -- Paragraph --
+            /decl paragraph true
+         /endif
+		/endif
+      /decl line
+      /goto nextword
+   /endif   
+/endif
+/endparse
+/tell filebot /next
+/endmac
+
+
+
+//--------------------------------------------------------------------------
+ORIGINAL DOCUMENTATION LONG SINCE OBSOLETE... 
+
+This defines the machine level language to which lines are compiled to for
+internal processing.  After compilation- they can be stored in objects as
+instructions for them to carry out.
+     Opcodes        Params
+     -----------    ------
+     Create           1 (where)
+     Destroy          1 (where)
+     Name             2 <where,what>
+     Move             2 <from,to>
+     Find             1 <Name>
+
+
+     Internal containing of instructions
+          Opcode
+           <MSBs= Operand Types <Register/Object>>
+             xxxx xxxx =opcode /* opcode implies parameters */
+             1xxxxxxxxxxxxxxx = pointer
+             0xxxxxxx =register
+
+          <Register number/Object Pointer>
+

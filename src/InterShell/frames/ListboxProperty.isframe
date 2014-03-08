@@ -1,0 +1,4 @@
+<control caption="Page Properties" edit="1" position="0,0" size="150,141" type="Frame">
+<control IDName="Button/InterShell/BTN_PICKFONT" PrivateData="#ff354c59" caption="Pick Font" position="6,3" size="136,46" type="Button"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="19,93" size="108,31" type="Button"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="19,55" size="107,31" type="Button"></control></control>

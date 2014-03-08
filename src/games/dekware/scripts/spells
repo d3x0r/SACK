@@ -1,0 +1,195 @@
+                    
+
+#all things have a spell.
+/decl lastspell 'create water'
+/decl spelllist
+/decl curspell
+
+#most things have  target
+/decl lasttarget barrel
+/decl targetlist
+/decl curtarget
+
+#most things have an action
+/decl lastaction :waves his hand over...
+/decl actionlist
+/decl curaction
+
+#recover is used to hold 'summoning' or 'gating'
+/decl lastrecover 
+/decl recoverlist
+/decl currecover
+
+#infomrfail is used to hold requestor of 'summon' or 'gate'
+/decl informfail 
+/decl informlist
+/decl curinform
+
+#request could be used generally - is used for locate
+/decl lastrequest
+/decl requestlist
+/decl currequest
+
+/decl spellpending false
+
+/decl ignorechange false
+/decl skippickup false
+/decl drinkcontainer skin
+/decl possex his  #her/its
+/decl selfsex himself #herself/itself
+#/decl 
+/decl god %possex god
+/decl pgod %possex god's
+
+
+/mac castnow
+/compare %searching is true
+/if success
+/return
+/endif
+/decl spellpending true
+#/decl ignorechange true
+#/echo casting "%curaction" for "%curspell" at "%curtarget"
+/compare %curaction blank
+/if fail
+.%curaction
+/endif
+.cast %curspell %curtarget
+/endmac
+
+/mac listcast
+
+/compare %spellpending is true
+/if success
+/return
+/endif
+
+/pop %spelllist %curspell
+/if fail
+#/echo DONE with spell list...
+/return
+/endif
+/pop %targetlist %curtarget
+/pop %actionlist %curaction
+/pop %recoverlist %currecover
+/pop %informlist %curinform
+/pop %requestlist %currequest
+/castnow
+/endmac
+
+/mac recast
+/push %spelllist %lastspell
+/push %targetlist %lasttarget
+/push %actionlist %lastaction
+/push %recoverlist %lastrecover
+/push %informlist %informfail
+/push %requestlist %lastrequest
+/decl lastrequest 
+/listcast
+/endmac
+
+/mac retry
+#requeue the current spell things on the old...
+/push %spelllist %curspell
+/push %targetlist %curtarget
+/push %actionlist %curaction
+/push %recoverlist %currecover
+/push %informlist %curinform
+/push %requestlist %currequest
+/decl spellpending false
+/listcast
+/endmac
+
+/trigger crea concentrate You lost your concentration!
+/retry
+/endmac
+
+/trigger create nomana You can't summon enough energy to cast the spell.
+# just empty out the list.
+/decl spellpending false
+/listcast
+/endmac
+
+/trigger create nomana0 You are much too fatigued to cast right now.
+# just empty out the list.
+/decl spellpending false
+/listcast
+/endmac
+
+/trigger create nospell sorry, you can't do that.
+.say That spell is beyond my knowledge, for now.
+/decl spellpending false
+/listcast
+/endmac
+
+/trigger create nocontainer You are not carrying anything like that.
+.say I don't have that container.
+/decl spellpending false
+/listcast
+/endmac
+
+/trigger create noonehere nobody here by that name.
+#.say Where %curtarget?
+/decl spellpending false
+/listcast
+/endmac
+
+/trigger create spellok Ok.
+/compare %currequest blank
+/if success
+	/decl spellpending false
+	/listcast
+/else
+	/trigger opt resultsend enable
+/endif
+/endmac
+
+/decl sendingresults false
+
+/trigger crea resultsend *what
+/compare %what eol
+/if fail
+	/decl sendingresults true
+	/compare %currequest is say
+	/if fail
+		/compare %currequest is gt
+		/if success
+			.gt %what
+		/else
+			/compare %currequest is sign
+			/if success
+				.sign %what
+			/else
+				.tell %currequest %what
+			/endif
+		/endif
+	/else 
+	.say %what
+	/endif
+/else
+	/trigger opt resultsend dis
+	/decl spellpending false
+	/listcast
+/endif
+/endmac
+/trigger opt resultsend dis
+
+
+/trigger create tellfail Impossible! You can't concentrate enough!
+/compare %currequest blank
+/if fail
+.send %currequest Sorry I'm a little busy try again in a moment...
+/endif
+/decl spellpending false
+/listcast
+/endmac
+
+/trigger crea getfood A large mushroom grows up from the ground at your feet.
+/compare %skippickup is true
+/if success
+/decl skippickup false
+/else
+.get mushroom
+/endif
+/endmac
+

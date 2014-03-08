@@ -1,0 +1,1306 @@
+                    
+/decl wmode  single
+/decl primary mace
+/decl secondary axe
+
+/mac `
+/get %primary
+/endmac
+/mac 2
+/wield %primary
+/endmac
+
+/decl stance standing
+
+#all things have a spell.
+/decl lastspell 'create water'
+/decl spelllist
+/decl curspell
+
+#most things have  target
+/decl lasttarget barrel
+/decl targetlist
+/decl curtarget
+
+#most things have an action
+/decl lastaction :waves his hand over...
+/decl actionlist
+/decl curaction
+
+#recover is used to hold 'summoning' or 'gating'
+/decl lastrecover 
+/decl recoverlist
+/decl currecover
+
+#infomrfail is used to hold requestor of 'summon' or 'gate'
+/decl informfail 
+/decl informlist
+/decl curinform
+
+#request could be used generally - is used for locate
+/decl lastrequest
+/decl requestlist
+/decl currequest
+
+/decl spellpending false
+
+/decl ignorechange false
+/decl skippickup false
+/decl drinkcontainer skin
+/decl possex his  #her/its
+/decl selfsex himself #herself/itself
+#/decl 
+/decl god %possex god
+/decl pgod %possex god's
+
+/trigger crea stand1 You clamber to your feet
+/compare %stance is standing
+/if success
+   /decl ignorechange false
+/endif
+/compare %ignorechange is false
+/if success
+   /decl stance standing
+/endif
+/endmac
+
+/trigger crea stand2 You stand up.
+/compare %ignorechange is false
+/if success
+   /decl stance standing
+/endif
+/compare %stance is standing
+/if success
+   /decl ignorechange false
+/endif
+/endmac
+
+/trigger crea torest rest your tired bones.
+/compare %ignorechange is false
+/if success
+   /decl stance resting
+/endif
+/compare %stance is resting
+/if success
+   /decl ignorechange false
+/endif
+/endmac
+
+/trigger crea tosleep You go to sleep.
+/compare %ignorechange is false
+/if success
+   /decl stance sleeping
+/endif
+/compare %stance is sleeping
+/if success
+   /decl ignorechange false
+/endif
+/endmac
+
+/trigger crea tosit You sit down.
+/compare %ignorechange is false
+/if success
+   /decl stance sitting
+/endif
+/compare %stance is sitting
+/if success
+   /decl ignorechange false
+/endif
+/endmac
+
+/trigger crea tosit2 You stop resting, and sit up.
+/compare %ignorechange is false
+/if success
+   /decl stance sitting
+/endif
+/compare %stance is sitting
+/if success
+   /decl ignorechange false
+/endif
+/endmac
+
+
+/trigger dest tosit3
+/trigger crea tosit3 You wake, and sit up.
+/compare %ignorechange is false
+/if success
+   /decl stance sitting
+/endif
+/compare %stance is sitting
+/if success
+   /decl ignorechange false
+/endif
+/endmac
+
+/mac tostand
+/compare %stance is resting
+/if success
+#/decl ignorechange true
+.stand
+/else
+/compare %stance is sitting
+/if success
+#/decl ignorechange true
+.stand
+/else
+/compare %stance is sleeping
+/if success
+#/decl ignorechange true
+.wake
+.stand
+/endif
+/endif
+/endif
+/endmac
+
+/mac towake
+#/decl ignorechange true
+/compare %stance is sleeping
+/if success
+.wake
+/endif
+/endmac
+
+/mac tostance
+/compare %stance is resting
+/if success
+.rest
+/return
+/endif
+/compare %stance is sitting
+/if success
+.sit
+/return
+/endif
+/compare %stance is sleeping
+/if success
+.sleep
+/return
+/endif
+/endmac
+
+/mac castnow
+/compare %searching is true
+/if success
+/return
+/endif
+/decl spellpending true
+#/decl ignorechange true
+/tostand
+#/echo casting "%curaction" for "%curspell" at "%curtarget"
+.%curaction
+.cast %curspell %curtarget
+/tostance
+/endmac
+
+/mac listcast
+
+/compare %spellpending is true
+/if success
+/return
+/endif
+
+/pop %spelllist %curspell
+/if fail
+#/echo DONE with spell list...
+/return
+/endif
+/pop %targetlist %curtarget
+/pop %actionlist %curaction
+/pop %recoverlist %currecover
+/pop %informlist %curinform
+/pop %requestlist %currequest
+/castnow
+/endmac
+
+/mac recast
+/compare %searching is true
+/if success
+/return
+/endif
+/push %spelllist %lastspell
+/push %targetlist %lasttarget
+/push %actionlist %lastaction
+/push %recoverlist %lastrecover
+/push %informlist %informfail
+/push %requestlist %lastrequest
+/decl lastrequest 
+/listcast
+/endmac
+
+/mac retry
+#requeue the current spell things on the old...
+/push %spelllist %curspell
+/push %targetlist %curtarget
+/push %actionlist %curaction
+/push %recoverlist %currecover
+/push %informlist %curinform
+/push %requestlist %currequest
+/decl spellpending false
+/listcast
+/endmac
+
+/trigger crea concentrate You lost your concentration!
+/retry
+/endmac
+
+/trigger create nospell sorry, you can't do that.
+.say That spell is beyond my knowledge, for now.
+/decl spellpending false
+/listcast
+/endmac
+
+/trigger create nocontainer You are not carrying anything like that.
+.say I don't have that container.
+/decl spellpending false
+/listcast
+/endmac
+
+/trigger create noonehere nobody here by that name.
+#.say Where %curtarget?
+/decl spellpending false
+/listcast
+/endmac
+
+/trigger create nothingname nothing at all by that name.
+/compare %currequest blank
+/if fail
+	/compare %currequest like say
+	/if fail
+		/compare %currequest like gt
+		/if success
+			.gt sorry - nothing at all like that
+		/else
+			.tell %currequest sorry - nothing at all like that
+		/endif
+	/else
+	.say sorry - nothing at all like that
+	/endif
+/endif
+/decl spellpending false
+/listcast
+/endmac
+
+/trigger create spellok Ok.
+/compare %currequest blank
+/if success
+	/decl spellpending false
+	/listcast
+/else
+	/trigger opt resultsend enable
+/endif
+/endmac
+
+/decl sendingresults false
+
+/trigger crea resultsend *what
+/compare %what eol
+/if fail
+	/decl sendingresults true
+	/compare %currequest is say
+	/if fail
+		/compare %currequest is gt
+		/if success
+			.gt %what
+		/else
+			/compare %currequest is sign
+			/if success
+				.sign %what
+			/else
+				.tell %currequest %what
+			/endif
+		/endif
+	/else 
+	.say %what
+	/endif
+/else
+	/trigger opt resultsend dis
+	/decl spellpending false
+	/listcast
+/endif
+/endmac
+/trigger opt resultsend dis
+
+/trigger create prompt <&hit &mana &move>
+/compare %sendingresults is true
+/if success
+	/decl sendingresults false
+	/trigger opt resultsend dis
+	/decl spellpending false
+	/listcast
+/endif
+/decl skipeatdrink false
+/decl curhit %hit
+/decl curmana %mana
+/decl curmove %move
+/compare %curhit lessthan %maxhit
+/if success
+   /decl lowhit true
+/endif
+/compare %curhit is %maxhit
+/if success
+   /compare %lowhit is true
+   /if success
+      /sound ding
+      /decl lowhit false
+   /endif
+/endif
+/dopending
+/endmac
+
+
+/trigger create tellfail Impossible! You can't concentrate enough!
+/compare %currequest blank
+/if fail
+.tell %currequest Sorry I'm a little busy try again in a moment...
+/endif
+/decl spellpending false
+/listcast
+/endmac
+
+/trigger create summonaffect You failed to summon the necessary magics.
+/compare %curinform blank
+.say I still need to recover from my last %currecover...
+/else
+.tell %curinform sorry still need to recover from my last %currecover...
+/endif
+/decl spellpending false
+/listcast
+/endmac
+
+
+/trigger crea getfood A large mushroom grows up from the ground at your feet.
+/compare %skippickup is true
+/if success
+/decl skippickup false
+/else
+.get mushroom
+/endif
+/endmac
+
+
+/mac makefood
+/decl lastspell 'create food'
+/decl lasttarget 
+/decl lastaction :sprinkles a brownish yellow powder on the ground.
+/recast
+/endmac
+
+/mac eat
+/decl hungry false
+/towake
+.eat mushroom
+/tostance
+/makefood
+/endmac
+
+/mac drink
+/decl thirsty false
+/towake
+.drink water
+.l in %drinkcontainer
+/tostance
+/endmac
+
+/mac makewater where
+/decl lastspell 'create water'
+/decl lasttarget %where
+/decl lastaction :waves %possex hand over the %where.
+/recast
+/endmac
+
+/mac heal who
+/decl lastspell 'heal'
+/decl lasttarget %who
+/pcase %lasttarget
+/compare %who is me
+/if success
+/decl lastaction :places hands of healing on %selfsex.
+/else
+
+/decl lastaction :extends hands of healing to %lasttarget.
+/endif
+/recast
+/endmac
+
+/mac harm who
+/decl lastspell 'harm'
+/decl lasttarget %who
+/decl lastaction 
+/recast
+/endmac
+
+
+/mac detecte who
+/decl lastspell 'detect evil'
+/decl lasttarget %who
+/decl lastaction 
+/recast
+/endmac
+
+/mac detectg who
+/decl lastspell 'detect good'
+/decl lasttarget %who
+/decl lastaction
+/recast
+/endmac
+
+/mac de who
+/decl lastspell 'dispel evil'
+/decl lasttarget %who
+/decl lastaction 
+/recast
+/endmac
+
+/mac dg who
+/decl lastspell 'dispel good'
+/decl lasttarget %who
+/decl lastaction
+/recast
+/endmac
+
+
+/mac weather how
+/decl lastspell 'control weather'
+/decl lasttarget %how
+/decl lastaction
+/recast
+/endmac
+
+/mac mass who
+/decl lastspell 'mass heal'
+/decl lasttarget %who
+/pcase %who
+/decl lastaction :calls %pgod healing powers upon %who.
+/recast
+/endmac
+
+/decl blessfail 0
+
+/mac bless who
+/decl lastspell 'bless'
+/decl lasttarget %who
+/compare %who is me
+/if success
+/decl lastaction :sprinkles some water from a small vial on %selfsex.
+/else
+/pcase %who
+/decl lastaction :sprinkles some water from a small vial on %who.
+/endif
+/decl blessfail 0
+/recast
+/endmac
+
+/trigger dest bless
+/trigger crea bless You feel less righteous.
+/incr %blessfail
+/compare %blessfail is 2
+/if success
+/bless me
+/endif
+/endmac
+
+/mac flame who
+/decl lastspell 'flamestrike'
+/decl lasttarget %who
+/decl lastaction 
+/recast
+/endmac
+
+/mac turn who
+/decl lastspell 'turn'
+/decl lasttarget %who
+/decl lastaction 
+/recast
+/endmac
+
+/mac spirit who
+/decl lastspell 'spirit'
+/decl lasttarget %who
+/decl lastaction :prays for %pgod protection.
+/recast
+/endmac
+
+/trigger dest spirit
+/trigger crea spirit You feel less protected.
+/spirit me
+/endmac
+ 
+/mac sanc who
+/decl lastspell 'sanctuary'
+/decl lasttarget %who
+/decl lastaction :closes %possex eyes, and rubs a symbol of %god.
+/recast
+/endmac
+
+/mac curep who
+/decl lastspell 'remove poison'
+/decl lasttarget %who
+/compare %who is me
+/if success
+/decl lastaction :places %possex hand on %possex own forehead.
+/else
+/pcase %who
+/decl lastaction :places %possex hand on the forehead of %who.
+/endif
+/recast
+/endmac
+ 
+/trigger dest poison
+/trigger crea poison &who looks really sick and shivers uncomfortably.
+/compare %who is Kadin
+/if success
+/curep me
+/else
+/curep %who
+/endif
+/recast
+/endmac
+
+/mac sight who
+/decl lastspell 'true sight'
+/decl lasttarget %who
+/compare %who is me
+/if success
+/decl lastaction :points at %possex own eyes.
+/else
+/pcase %lasttarget
+/decl lastaction :points at the eyes of %lasttarget.
+/endif
+/recast
+/endmac
+
+#/trigger dest sight
+#/trigger crea sight Your clarity of vision disappears.
+#/sight me
+#/endmac
+
+/mac uncurse what
+/decl lastspell 'remove curse'
+/decl lasttarget %what
+/decl lastaction 
+/recast
+/endmac
+
+
+/mac locate what
+/decl lastspell 'locate'
+/decl lasttarget %what
+/decl lastaction 
+/recast
+/endmac
+
+/mac locate2 what1 what2
+/decl lastspell 'locate'
+/decl lasttarget %what1-%what2
+/decl lastaction 
+/recast
+/endmac
+
+/mac locate3 what1 what2 what3
+/decl lastspell 'locate'
+/decl lasttarget %what1-%what2-%what3
+/decl lastaction 
+/recast
+/endmac
+
+/mac sense who
+/decl lastspell 'sense'
+/decl lasttarget %who
+/decl lastaction 
+/recast
+/endmac
+
+/mac pfe who
+/decl lastspell 'protection from evil' 
+/decl lasttarget %who
+/decl lastaction :draws a box in the air.
+/recast
+/endmac
+
+/mac disevil who
+/decl lastspell 'dispel evil' 
+/decl lasttarget %who
+/decl lastaction 
+/recast
+/endmac
+
+/mac pfg who
+/decl lastspell 'protection from good'
+/decl lasttarget %who
+/decl lastaction :draws a pentagram in the air.
+/recast
+/endmac
+
+
+/mac cul who
+/decl lastspell 'cure light'
+/decl lasttarget %who
+/decl lastaction :tosses some powder in the air.
+/recast
+/endmac
+
+/mac cal who
+/decl lastspell 'cause light'
+/decl lasttarget %who
+/decl lastaction 
+/recast
+/endmac
+
+/mac cus who
+/decl lastspell 'cure serious'
+/decl lasttarget %who
+/decl lastaction :tosses a white powder in the air.
+/recast
+/endmac
+
+/mac cas who
+/decl lastspell 'cause serious'
+/decl lasttarget %who
+/decl lastaction 
+/recast
+/endmac
+
+/mac cuc who
+/decl lastspell 'cure critic'
+/decl lasttarget %who
+/decl lastaction :tosses a sparkling powder in the air.
+/recast
+/endmac
+
+/mac cac who
+/decl lastspell 'cause critic'
+/decl lasttarget %who
+/decl lastaction 
+/recast
+/endmac
+
+/mac recall
+/decl lastspell 'word of recall'
+/decl lasttarget 
+/decl lastaction :says, "there's no place like HOME!" then claps %possex hands together.
+/recast
+/endmac
+
+/mac holy
+/decl lastspell 'holy word'
+/decl lasttarget 
+/decl lastaction :calls upon %pgod mighty power!
+/recast
+/endmac
+
+
+/mac cureblind who
+/decl lastspell 'cure blind'
+/decl lasttarget %who
+/pcase %lasttarget
+/compare %who is me
+/if success
+/decl lastaction :puts %possex hand over %possex eyes.
+/else
+/decl lastaction :puts %possex hand over the eyes of %lasttarget.
+/endif
+/recast
+/endmac
+
+/mac cleanse who
+/decl lastspell 'cleansing aura'
+/decl lasttarget %who
+/decl lastaction 
+/recast
+/endmac
+
+/mac blind who
+/decl lastspell 'blind'
+/decl lasttarget %who
+/decl lastaction :calls a curtain of darkness over %who.
+/recast
+/endmac
+
+/mac quake
+/decl lastspell 'earthquake'
+/decl lasttarget 
+/decl lastaction :calls upon %pgod mighty power!
+/recast
+/endmac
+
+/mac summon what
+/decl lastspell 'summon'
+/decl lasttarget %what
+/decl lastaction :draws a circle in the dirt, and begins chanting quietly.
+/decl lastrecover summoning
+/recast
+/endmac
+
+/mac summon2 what what2
+/decl lastspell 'summon'
+/decl lasttarget %what-%what2
+/decl lastaction :draws a circle in the dirt, and begins chanting quietly.
+/decl lastrecover summoning
+/recast
+/endmac
+
+/mac summon3 what what2 what3
+/decl lastspell 'summon'
+/decl lasttarget %what-%what2-%what3
+/decl lastaction :draws a circle in the dirt, and begins chanting quietly.
+/decl lastrecover summoning
+/recast
+/endmac
+
+/mac curse what
+/decl lastspell 'curse'
+/decl lasttarget %what
+/decl lastaction 
+/recast
+/endmac
+
+/mac animate
+/decl lastspell 'animate dead'
+/decl lasttarget corpse
+/decl lastaction 
+/recast
+/endmac
+
+
+/mac drain what
+/decl lastspell 'energy drain'
+/decl lasttarget %what
+/decl lastaction 
+/recast
+/endmac
+
+/mac gate one
+/decl lastspell 'gate'
+/decl lasttarget %one
+/decl lastaction 
+/decl lastrecover gating
+/recast
+/endmac
+
+/trigger crea tellheal &who tells you, "heal"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/heal %who
+/endmac
+/trigger opt tellheal anchor
+
+/trigger crea tellmheal &who tells you, "mass heal"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/mass %who
+/endmac
+/trigger opt tellmheal anchor
+
+/trigger crea tellmheals &who tells you, "mass"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/mass %who
+/endmac
+/trigger opt tellmheals anchor
+
+/trigger crea tellcritic &who tells you, "cure critic"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/curec %who
+/endmac
+/trigger opt tellcritic anchor
+
+/trigger crea tellbless &who tells you, "bless"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/bless %who
+/endmac
+/trigger opt tellbless anchor
+
+/trigger crea tellspirit &who tells you, "spirit"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/spirit %who
+/endmac
+/trigger opt tellspirit anchor
+
+/trigger crea tellsanc &who tells you, "sanc"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/sanc %who
+/endmac
+/trigger opt tellsanc anchor
+
+/trigger crea tellsight &who tells you, "sight"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/sight %who
+/endmac
+/trigger opt tellsight anchor
+
+/trigger create tellstand &who tells you, "stand"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+.stand
+/endmac
+/trigger opt tellstand anchor
+
+/trigger create tellrest &who tells you, "rest"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+.rest
+/endmac
+/trigger opt tellrest anchor
+
+/decl givewho 
+/decl giveback
+/trigger create watersuccess is partially filled.
+/compare %giveback blank
+/if fail
+   .give %giveback %givewho
+/endif
+/decl giveback 
+/endmac
+
+/trigger create tellwater &who tells you, "fill &what"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/decl lastrequest %who
+/decl giveback %what
+/decl givewho %who
+/makewater %what
+/decl lastrequest 
+/endmac
+/trigger opt tellwater anchor
+
+/trigger create tellflee &who tells you, "flee"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+.flee
+/endmac
+/trigger opt tellflee anchor
+
+/trigger create exhuasted You can't summon enough energy to cast the spell
+/decl spellpending false
+/compare %currequest blank
+/if success
+.say I'm down and beat, my mind is totally drained!
+/else
+.tell %currequest I'm down and beat, my mind is totally drained!
+/endif
+/endmac
+
+/trigger create tellfood &who tells you, "food"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/makefood
+/decl skippickup true
+/decl lastrequest 
+/endmac
+/trigger opt tellfood anchor
+
+/trigger create tellrep &who tells you, "rep"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/repo
+/endmac
+/trigger opt tellrep anchor
+
+/mac spelltell who
+.tell %who Spells available are: mass heal, heal, cure critic, bless, spirit, sanc, sight, fill <container>, food, summon <words>, gate <words>, recall
+.tell %who Spells also available: Cure light, cure serious
+.tell %who Other actions: rest, stand, flee, assist, report, sheath <weapon>, draw <weapon>
+/endmac
+
+/trigger create tellspells &who tells you, "spells"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/spelltell %who
+/endmac
+
+/trigger create tellcurel &who tells you, "cure light"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/cul %who
+/endmac
+
+/trigger create tellcures &who tells you, "cure serious"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/cus %who
+/endmac
+
+/trigger create tellsheath &who tells you, "sheath &weapon"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+.she %weapon
+/endmac
+
+/trigger create telldraw &who tells you, "draw &weapon"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+.draw %weapon
+/endmac
+
+/trigger create tellsummon &who tells you, "summon *what"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/decl lastrequest %who
+/decl informfail %who
+/summon %what 
+/decl informfail
+/decl lastrequest
+/endmac
+/trigger opt tellsummon anchor
+
+/trigger create tellgate &who tells you, "gate *what" 
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/decl lastrequest %who
+/decl informfail %who
+.tell %who ok - gating to %who.
+/gate %what
+/decl informfail
+/endmac
+/trigger opt tellgate anchor
+
+/trigger create telllocate &who tells you, "locate *what" 
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/decl lastrequest %who
+/locate %what
+/endmac
+
+/trigger create gtlocate &who tells the group, "locate *what"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/decl lastrequest gt
+/locate %what
+/endmac
+
+/trigger create signlocate &who signs 'locate *what'
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/decl lastrequest sign
+/locate %what
+/endmac
+
+/trigger create sign2locate you sign 'locate *what'
+/decl lastrequest sign
+/locate %what
+/endmac
+
+/trigger create saylocate &who says in common
+/decl lastrequest say
+/endmac
+
+/trigger create yousaylocate you say in common
+/decl lastrequest say
+/endmac
+
+/trigger create sayspell1 "locate *what"
+/compare %lastrequest is say
+/if success
+/locate %what
+/decl lastrequest 
+/endif
+/endmac
+/trigger opt sayspell1 anchor
+
+/trigger create barrelempty It is empty.
+/makewater %drinkcontainer
+/endmac
+
+/trigger create tellassist &who tells you, "assist"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+.assist %who
+/endmac
+/trigger opt tellassist anchor
+
+/trigger create tellrecall &who tells you, "recall"
+/validate %who
+/getresult temp
+/compare %temp is false
+if success
+	return
+endif
+/recall
+/endmac
+/trigger opt tellrecall anchor
+
+/trigger dest followbeck
+/trigger create followbeck &who beckons you 
+.say I'd be glad to come along on your ventures.
+.fol %who
+/endmac
+/trigger opt followbeck anchor
+
+/trigger dest group
+/trigger create group &who starts following you
+.group %who
+/endmac
+
+#dopending is called every time we have a <## ## ##> prompt
+/mac dopending
+/decl lastrequest 
+/compare %searching is true
+/if success
+/return
+/endif
+/decl doingany false
+
+/compare %hungry is true
+/if success
+   /decl doingeat true
+   /decl doingany true
+/else
+   /decl doingeat false
+/endif
+
+/compare %thirsty is true
+/if success
+   /decl doingdrink true
+   /decl doingany true
+/else
+   /decl doingdrink false
+/endif
+
+/compare %sober is true
+/if success
+   /decl doingsober true
+   /decl doingany true
+/else
+   /decl doingsober false
+/endif
+
+/compare %doswim is true
+/if success
+   /decl doingswim true
+   /decl doingany true
+/else
+   /decl doingswim false
+/endif
+/compare %dosearch is true
+/if success
+   /decl doingsearch true
+   /decl doingany true
+/else
+   /decl doingsearch false
+/endif
+
+/compare %doingany is true
+/if success
+   /wakeup
+   /compare %doingeat is true
+   /if success
+      /eat
+   /endif
+   /compare %doingdrink is true
+   /if success
+      /drink
+   /endif
+   /compare %doingsober is true
+   /if success
+      /drunk
+   /endif
+   /compare %doingswim is true
+   /if success
+      /swim
+   /endif
+   /compare %dosearch is true
+   /if success
+      /decl dosearch false
+      .search %searchdir
+   /endif
+   /gosleep
+/endif
+/endmac
+
+/trigger create getgodname the adventures of &who of &where, disciple of &godname
+/decl god %godname
+/decl pgod %godname's
+/endmac
+
+/trigger crea drink2 you drink the water.
+/decl thirsty true
+/endmac
+
+/trigger crea unthirst you do not feel thirsty
+/decl thirsty false
+/endmac
+
+/trigger create detectefade you sense the red in your vision disappear.
+/detecte me
+/endmac
+
+/trigger create detectgfade you sense the white in your vision disappear.
+/detecte me
+/endmac
+
+/trigger create tellretry &who tells you, "retry"
+/retry
+/endmac
+
+/trigger create thank &who thanks you heartily
+.say My pleasure, I assure you.
+/endmac
+
+/trigger create genspell &who tells you, "cast &what *target" 
+/decl lastspell what
+/decl lasttarget target
+/decl lastaction 
+/recast
+/endmac
+/trigger opt genspell dis
+
+/mac redo
+/decl spellpending false
+/listcast
+/endmac
+
+/decl afkaway false
+/decl triginval 
+/decl evilinval 
+/mac validate who
+compare %afkaway is true
+if success
+	.tell %who if you didn't notice I'm afk...
+	result false
+   return
+endif
+
+decl testlist %triginval
+decl testwho 
+decl result true
+label top1
+head %testlist %testwho
+if success
+	compare %who like %testwho
+	if success
+		.tell %who you not da boss o' meee...
+		result false
+		return
+	endif
+	goto top1
+endif
+
+decl testlist %evilinval
+decl testwho 
+decl result true
+label top2
+head %testlist %testwho
+if success
+	compare %who like %testwho
+	if success
+		.tell %who I'm sorry, I cannot respond to one so dark.
+		result false
+		return
+	endif
+	goto top2
+endif
+
+result true
+/endmac
+
+/trigger create bashdoor it seems to be locked
+.knock %lastdoor
+/endmac
+
+/decl list 
