@@ -38,7 +38,7 @@ typedef struct edit {
 
 CTEXTSTR GetString( PEDIT pe, CTEXTSTR text, size_t length )
 {
-   static size_t lastlen;
+	static size_t lastlen;
 	static TEXTCHAR *temp;
 	if( lastlen < length || !temp )
 	{
@@ -82,7 +82,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 	
 	if( ( pe->nCaptionUsed - pe->Start ) < pe->MaxShowLen )
 	{
-      // and don't move start, it's good where it's at...
+		// and don't move start, it's good where it's at...
 		string_fits = TRUE;
 		//pe->Start = 0;
 		//pe->MaxShowLen = pe->nCaptionUsed - pe->Start;
@@ -102,7 +102,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 	}
 	else
 	{
-      // Start position is good, cursor is in the visible part of the line...
+		// Start position is good, cursor is in the visible part of the line...
 		//pe->Start = 0;
 	}
 	//lprintf( "drawing %d,%d,%d,%d", pe->Start, pe->cursor_pos, pe->MaxShowLen, string_fits );
@@ -120,7 +120,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 	// if something is selected...
 	if( pe->nCaptionUsed )
 	{
-      CTEXTSTR tmp;
+		CTEXTSTR tmp;
 		//lprintf( WIDE("Caption used... %d %d %d")
 		//		 , pc->flags.bFocused
 		//		 , pe->select_start
@@ -228,7 +228,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
 	cy = (y - pe->top_side_pad) / height;
 	if( x < LEFT_SIDE_PAD )
 	{
-      found = 1;
+		found = 1;
 		cx = 0;
 	}
 	else
@@ -263,7 +263,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
 		}
 	}
 	// cx will be strlen + 1 if past end
-   // cx is 0 at beginning.
+	// cx is 0 at beginning.
 	if( !found )
 	{
 		cx = len - pe->Start;
@@ -287,7 +287,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
 	{
 		//lprintf( WIDE("current character: %d %d"), cx, cy );
 	}
-   //lprintf( "alright we have %d,%d,%d,%d", pe->select_anchor, pe->Start, pe->select_start, cx );
+	//lprintf( "alright we have %d,%d,%d,%d", pe->select_anchor, pe->Start, pe->select_start, cx );
 	if( b & MK_LBUTTON )
 	{
 		//cx -= 1;
@@ -339,7 +339,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
 void CutEditText( PEDIT pe, PTEXT *caption )
 {
 	// any selected text is now deleted... the buffer is shortened...
-    if( pe->flags.bSelectSet )
+	if( pe->flags.bSelectSet )
 	{
 		if( pe->select_end < GetTextSize( *caption ) )
 		{
@@ -347,8 +347,8 @@ void CutEditText( PEDIT pe, PTEXT *caption )
 			if( pe->nCaptionUsed && pe->nCaptionUsed > pe->select_start )
 			{
 				MemCpy( GetText( *caption ) + pe->select_start
-					   , GetText( *caption ) + pe->select_end+1
-					   , pe->nCaptionUsed - pe->select_start );
+				      , GetText( *caption ) + pe->select_end+1
+				      , pe->nCaptionUsed - pe->select_start );
 				SetTextSize( *caption, pe->nCaptionUsed );
 				GetText( *caption )[pe->nCaptionUsed] = 0;
 			}
@@ -441,15 +441,15 @@ static void Paste( PEDIT pe, PTEXT *caption )
 	if( OpenClipboard(NULL) )
 	{
 		_32 format;
-        // successful open...
+		// successful open...
 		format = EnumClipboardFormats( 0 );
 		if( pe->flags.bSelectSet )
 			CutEditText( pe, caption );
-        while( format )
-        {
-            if( format == CF_TEXT )
-            {
-                HANDLE hData = GetClipboardData( CF_TEXT );
+		while( format )
+		{
+			if( format == CF_TEXT )
+			{
+				HANDLE hData = GetClipboardData( CF_TEXT );
 					 char *pData = (char*)GlobalLock( hData );
 					 {
 						 while( pData && pData[0] )
@@ -458,17 +458,17 @@ static void Paste( PEDIT pe, PTEXT *caption )
 							 pData++;
 						 }
 					 }
-                break;
-            }
-            format = EnumClipboardFormats( format );
-        }
+				break;
+			}
+			format = EnumClipboardFormats( format );
+		}
 		CloseClipboard();
-    }
-    else
-    {
-        //DECLTEXT( msg, WIDE("Clipboard was not available") );
-        //EnqueLink( &pdp->ps->Command->Output, &msg );
-    }
+	}
+	else
+	{
+		//DECLTEXT( msg, WIDE("Clipboard was not available") );
+		//EnqueLink( &pdp->ps->Command->Output, &msg );
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -821,8 +821,8 @@ static int OnCommonFocus( EDIT_FIELD_NAME )( PCONTROL pc, LOGICAL bFocused )
 #ifdef __ANDROID__
 		if( bFocused )
 			SACK_Vidlib_ShowInputDevice();
-      else
-         SACK_Vidlib_HideInputDevice();
+		else
+			SACK_Vidlib_HideInputDevice();
 #endif
 		pe->flags.bFocused = bFocused;
 		if( pe->flags.bFocused )
@@ -892,7 +892,7 @@ edit_control = { EDIT_FIELD_NAME
 
 PRIORITY_PRELOAD( RegisterEdit, PSI_PRELOAD_PRIORITY )
 {
-   DoRegisterControl( &edit_control );
+	DoRegisterControl( &edit_control );
 }
 
 PSI_EDIT_NAMESPACE_END
