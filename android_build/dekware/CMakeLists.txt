@@ -83,9 +83,16 @@ set( manifest_head "${manifest_head}\n${manifest_tail}" )
 
 FILE( WRITE ${CMAKE_BINARY_DIR}/package/AndroidManifest.xml "${manifest_head}" )
 
+if( CMAKE_BUILD_TYPE strequal "release )
+  set( MORE_COMMANDS 
+       COMMAND jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore ${CMAKE_CURRENT_SOURCE_DIR}/../dekware/my-release-key.keystore package/bin/${Project}-${CMAKE_BUILD_TYPE}-unsigned.apk alias_name
+       COMMAND zipalign -v 4 package/bin/${Project}-${CMAKE_BUILD_TYPE}-unsigned.apk package/bin/${Project}-${CMAKE_BUILD_TYPE}.apk
+     )
+endif( CMAKE_BUILD_TYPE strequal "release )
     add_custom_target( package
        COMMAND android.bat update project --target "android-14" --path .
        COMMAND ant.bat ${CMAKE_BUILD_TYPE} 
+       ${MORE_COMMANDS}
        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/package
    )
 
