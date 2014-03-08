@@ -1387,12 +1387,12 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 
 SYSTEM_PROC( generic_function, LoadPrivateFunctionEx )( CTEXTSTR libname, CTEXTSTR funcname DBG_PASS )
 {
-   return LoadFunctionExx( libname, funcname, TRUE DBG_RELAY );
+	return LoadFunctionExx( libname, funcname, TRUE DBG_RELAY );
 }
 
 SYSTEM_PROC( generic_function, LoadFunctionEx )( CTEXTSTR libname, CTEXTSTR funcname DBG_PASS )
 {
-   return LoadFunctionExx( libname, funcname, FALSE DBG_RELAY );
+	return LoadFunctionExx( libname, funcname, FALSE DBG_RELAY );
 }
 #undef LoadFunction
 SYSTEM_PROC( generic_function, LoadFunction )( CTEXTSTR libname, CTEXTSTR funcname )

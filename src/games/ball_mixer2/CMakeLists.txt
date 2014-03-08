@@ -32,7 +32,7 @@ if( NOT __ANDROID__ )
 #   INSTALL_INTERSHELL_PLUGINS( bin )
    INSTALL_SACK_BINARY( systray_shell bin )
    LIST( GET systray_shell_targets 0 shell_target )
-   install( FILES ${shell_target}  DESTINATION bin RENAME ball_mixer.exe )
+   install( FILES ${shell_target}  DESTINATION bin RENAME ball_mixer2.exe )
 else( NOT __ANDROID__ )
    INSTALL_SACK( lib )
    INSTALL_SACK_BINARY( systray_shell lib )
@@ -80,7 +80,7 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} -DWINDOWS_MODE"
 )
 
-install( FILES ball_mixer.interface.conf DESTINATION bin )
+install( FILES ball_mixer2.interface.conf DESTINATION bin )
 install( FILES NewBallTextGrid.png bingostarlogo.png DESTINATION bin/Images/balls )
 
 if( WIN32 )

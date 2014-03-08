@@ -823,10 +823,10 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 					}
 				}
 				// just to make sure the verts are loaded into the correct shader...
-				//ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
-				ImageEnableShader( l.shader.simple_shader.shader_tracker, verts, norms, color );
+				ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
+				//ImageEnableShader( l.shader.simple_shader.shader_tracker, verts, norms, color );
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, (level+1)*2-1);
-		         CheckErr();
+				CheckErr();
 
 				verts = (GLfloat*)patch->pole[north]->patches[s].verts[(level-1)*2+1]; //[pole_patch->hex_size+1][6];
 				norms = (GLfloat*)patch->pole[north]->patches[s].norms[(level-1)*2+1]; //[pole_patch->hex_size+1][6];
@@ -861,8 +861,8 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 						colors[c*8+7] = color[3];
 					}
 				}
-				//ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
-				ImageEnableShader( l.shader.simple_shader.shader_tracker, verts, norms, color );
+				ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
+				//ImageEnableShader( l.shader.simple_shader.shader_tracker, verts, norms, color );
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, (level+1)*2-1);
 				CheckErr();
 			}
@@ -908,7 +908,7 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 		if( patch->fade_target_tick < l.last_tick )
 		{
 			bright_fore_color[3]
-            = fade
+				= fade
 				= back_color[3]
 				= tmpval[3]
 				= fore_color[3]
@@ -917,7 +917,7 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 		else
 		{
 			bright_fore_color[3]
-            = fade
+				= fade
 				= back_color[3]
 				= tmpval[3]
 				= fore_color[3]
@@ -1048,8 +1048,8 @@ void RenderBandPatch( PHEXPATCH patch, btScalar *m, int mode )
 						colors[n*4+3] = color[3];
 						n++;
 					}
-					//ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
-					ImageEnableShader( l.shader.simple_shader.shader_tracker, verts, norms, color );
+					ImageEnableShader( l.shader.extra_simple_shader.shader_tracker, verts, colors );
+					//ImageEnableShader( l.shader.simple_shader.shader_tracker, verts, norms, color );
 					glDrawArrays( GL_TRIANGLE_STRIP, 0, n );
 					//CheckErr();
 				}
@@ -1169,14 +1169,14 @@ PHEXPATCH CreatePatch( int size, PHEXPATCH *nearpatches )
 		}
 	}
 
-   return patch;
+	return patch;
 }
 
 
 
 static int delta_table[3][6][2] = { { { -1,0 }, { 0, -1 }, { 1, -1 }, { 1, 0 }, { 0, 1 }, { -1, 1 } }
-											 , { { -1,0 }, {-1, 1 }, { 0, 1 }, { 1, 0 }, { 1, -1 }, { 0, -1 } }
-											 , { { -1, -1 }, { 0, -1 }, { 1, 0 }, { 1, 1 }, { 0, 1 }, { -1, 0 } }
+                                  , { { -1,0 }, {-1, 1 }, { 0, 1 }, { 1, 0 }, { 1, -1 }, { 0, -1 } }
+                                  , { { -1, -1 }, { 0, -1 }, { 1, 0 }, { 1, 1 }, { 0, 1 }, { -1, 0 } }
 };
 
 void DistortPatch( PHEXPATCH patch
@@ -1229,16 +1229,16 @@ void DistortPatch( PHEXPATCH patch
 			{
 				near_points[0][2] = -1;
 				near_points[5][2] = -1;
-            /*
+				/*
 				if( y == (HEX_SIZE-1) )
 				{
 					near_points[5][2] = -1;
 				}
 				else
 				{
-               near_points[5][2] = 2;
+					near_points[5][2] = 2;
 					}
-               */
+				*/
 			}
 			if( x == (patch->hex_size-1) )
 			{
@@ -1252,7 +1252,7 @@ void DistortPatch( PHEXPATCH patch
 					near_points[2][0] = y;
 					near_points[2][1] = 1;
 				}
-            // near_point 2 is taken care of above?
+				// near_point 2 is taken care of above?
 			}
 			if( y == (patch->hex_size-1) )
 			{
@@ -1260,7 +1260,7 @@ void DistortPatch( PHEXPATCH patch
 				near_points[4][2] = -1;
 				near_points[5][2] = -1;
 			}
-         break;
+			break;
 		case 1:
 			if( x == 0 )
 			{
@@ -1304,13 +1304,13 @@ void DistortPatch( PHEXPATCH patch
 				near_points[3][2] = -1;
 				near_points[4][2] = -1;
 			}
-         break;
+			break;
 		}
 		{
 			int p;
 			for( p = 0; p < 6; p++ )
 			{
-            if( near_points[0][2] >= 0 )
+				if( near_points[0][2] >= 0 )
 					patch->height[near_points[p][2]][near_points[p][0]][near_points[p][1]] += delta*tension;
 			}
 		}
@@ -1964,7 +1964,7 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( PTRSZVAL psvInit )
 
 static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
-	
+#if 0
 	l.frame = CreateFrame( WIDE("Light Slider Controls"), 0, 0, 1024, 768, 0, NULL );
 	for( int n = 0; n < 40; n++ )
 	{
@@ -1975,7 +1975,7 @@ static PTRSZVAL OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFO
 	 MakeButton( l.frame, 5, 430, 45, 15, 0, WIDE("Save"), 0, SaveColors, 0 );
 	 MakeButton( l.frame, 55, 430, 45, 15, 0, WIDE("Load"), 0, LoadColors, 0 );
 	DisplayFrame( l.frame );
-	
+#endif	
 
 	l.identity_depth = identity_depth;
 	l.aspect = aspect;

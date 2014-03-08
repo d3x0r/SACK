@@ -251,7 +251,7 @@ static PSI_CONTROL CreateOptionFrame( PODBC odbc, LOGICAL tree, int *done )
 			pc = MakeButton( frame, RIGHT_START, 155, 150, 25, BTN_CREATE, WIDE("Make Entry"), 0, 0, 0  );
 			SetButtonPushMethod( pc, CreateEntry, (PTRSZVAL)odbc );
 		}
- 		pc = MakeButton( frame, RIGHT_START, 185, 150, 25, BTN_COPY, WIDE("Copy"), 0, 0, 0  );
+		pc = MakeButton( frame, RIGHT_START, 185, 150, 25, BTN_COPY, WIDE("Copy"), 0, 0, 0  );
 		SetButtonPushMethod( pc, CopyBranch, (PTRSZVAL)odbc );
 		pc = MakeButton( frame, RIGHT_START, 215, 150, 25, BTN_DELETE, WIDE("Delete"), 0, 0, 0  );
 		SetButtonPushMethod( pc, DeleteBranch, (PTRSZVAL)odbc );

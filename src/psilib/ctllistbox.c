@@ -1122,8 +1122,8 @@ int CPROC InitListBox( PSI_CONTROL pc )
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	if( plb )
 	{
-		S_32 width = 15;
-		ScaleCoords( (PSI_CONTROL)pc, &width, NULL );
+		S_32 width = GetFontHeight( GetCommonFont( pc ) ) * 1.2;
+		//ScaleCoords( (PSI_CONTROL)pc, &width, NULL );
 
 		plb->ListSurface = MakeSubImage( pc->Surface
 												 , 0, 0
