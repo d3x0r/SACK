@@ -414,9 +414,13 @@ void GetMyInterface( void )
 			if( !(g.flags.always_draw = RequiresDrawAll()) )
 				g.flags.allow_threaded_draw = AllowsAnyThreadToUpdate();
 	}
-//#ifdef __ANDROID__
-	g.default_font = RenderFontFileScaledEx( WIDE("fonts/MyriadPro.ttf"), 160/6, 160/7, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
-//#endif
+#ifdef __ANDROID__
+	{
+		_32 w, h;
+		GetDisplaySize( &w, &h );
+		g.default_font = RenderFontFileScaledEx( WIDE("fonts/MyriadPro.ttf"), w / 58, h / 32, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
+	}
+#endif
 }
 #endif
 
