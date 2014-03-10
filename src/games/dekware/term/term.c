@@ -1166,7 +1166,7 @@ static PTEXT DeviceVolatileVariableGet( WIDE("net object"), WIDE("client_ip"), W
    PCLIENT pc = (PCLIENT)GetLink( &pe->pPlugin, iNetObject );
 	static SOCKADDR_IN saSrc;
    TEXTCHAR *addr;
-	saSrc.sin_addr.s_addr = (_32)GetNetworkLong( pc, GNL_IP );
+	saSrc.sin_addr.S_un.S_addr = (_32)GetNetworkLong( pc, GNL_IP );
 	addr = DupCharToText( inet_ntoa( *(struct in_addr*)&saSrc.sin_addr ) );
 	if( *ppLastValue )
 		LineRelease( *ppLastValue );
@@ -1180,7 +1180,7 @@ static PTEXT DeviceVolatileVariableGet( WIDE("net object"), WIDE("server_ip"), W
    PCLIENT pc = (PCLIENT)GetLink( &pe->pPlugin, iNetObject );
 	static SOCKADDR_IN saSrc;
    TEXTCHAR *addr;
-	saSrc.sin_addr.s_addr = (_32)GetNetworkLong( pc, GNL_MYIP );
+	saSrc.sin_addr.S_un.S_addr = (_32)GetNetworkLong( pc, GNL_MYIP );
 	addr = DupCharToText( inet_ntoa( *(struct in_addr*)&saSrc.sin_addr ) );
 	if( *ppLastValue )
 		LineRelease( *ppLastValue );
