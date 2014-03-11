@@ -58,23 +58,23 @@ CORE_PROC( void, RemoveMethod      	)( PENTITY pe, command_entry *pce );
 //CORE_PROC( void, AddVolatileVariable)( PENTITY pe, volatile_variable_entry *pve );
 //CORE_PROC( void, RemoveVolatileVariable)( PENTITY pe, volatile_variable_entry *pve );
 
-CORE_CPROC( void, RegisterRoutine  )( TEXTCHAR *pClassname, TEXTCHAR *pName, TEXTCHAR *pDescription, RoutineAddress Routine );
+CORE_CPROC( void, RegisterRoutine  )( CTEXTSTR pClassname, CTEXTSTR pName, CTEXTSTR pDescription, RoutineAddress Routine );
 CORE_CPROC( void, RegisterCommands )(CTEXTSTR device, command_entry *cmds, INDEX nCommands);
 CORE_CPROC( void, RegisterOptions )(CTEXTSTR device, option_entry *cmds, INDEX nCommands);
 CORE_PROC( Function, GetRoutineRegistered )( TEXTSTR prefix, PTEXT Command );
 CORE_PROC( OptionHandler, GetOptionRegistered )( TEXTSTR prefix, PTEXT Command );
 
-CORE_CPROC( void,  UnregisterRoutine    )( TEXTCHAR *pName );
+CORE_CPROC( void,  UnregisterRoutine    )( CTEXTSTR pName );
 CORE_PROC( void,  PrintRegisteredRoutines)( PLINKQUEUE *Output, PSENTIENT ps, PTEXT parameters );
 CORE_PROC( int,   RoutineRegistered)( PSENTIENT ps, PTEXT Command );
-CORE_CPROC( int,   RegisterDeviceOpts       )( TEXTCHAR *pNext, TEXTCHAR *pDescription, DeviceOpenDevice Open, option_entry *pOptions, _32 nOptions );
-CORE_CPROC( int,   RegisterDevice       )( TEXTCHAR *pNext, TEXTCHAR *pDescription, DeviceOpenDevice Open );
-CORE_CPROC( void,  UnregisterDevice     )( TEXTCHAR *pName );
+CORE_CPROC( int,   RegisterDeviceOpts       )( CTEXTSTR pNext, CTEXTSTR pDescription, DeviceOpenDevice Open, option_entry *pOptions, _32 nOptions );
+CORE_CPROC( int,   RegisterDevice       )( CTEXTSTR pNext, CTEXTSTR pDescription, DeviceOpenDevice Open );
+CORE_CPROC( void,  UnregisterDevice     )( CTEXTSTR pName );
 CORE_CPROC( INDEX, RegisterExtension    )( CTEXTSTR pName );
 typedef int (CPROC *ObjectInit)( PSENTIENT ps, PENTITY pe, PTEXT parameters );
 CORE_CPROC( void,  RegisterObjectEx       )( CTEXTSTR pName, CTEXTSTR pDescription, ObjectInit Init DBG_PASS );
 #define RegisterObject( name,desc,init)  RegisterObjectEx(name,desc,init DBG_SRC)
-CORE_CPROC( void,  UnregisterObject     )( TEXTCHAR *pName );
+CORE_CPROC( void,  UnregisterObject     )( CTEXTSTR pName );
 CORE_CPROC( int, CreateRegisteredObject )( PSENTIENT ps, PTEXT parameters );
 CORE_CPROC( int, IsObjectTypeOf        )( PSENTIENT ps, PTEXT entity, PTEXT form );
 
@@ -91,14 +91,14 @@ CORE_PROC( int, 		RelayOutput			)( PDATAPATH pdp, PTEXT (CPROC *Datacallback)( P
 //CORE_PROC( INDEX,  FindDeviceID        )( PTEXT pName );
 
 // sentient to invoke the macro upon
-CORE_CPROC( PMACROSTATE, InvokeBehavior )( TEXTCHAR *name, PENTITY peActor, PSENTIENT psInvokeOn, PTEXT parameters );
+CORE_CPROC( PMACROSTATE, InvokeBehavior )( CTEXTSTR name, PENTITY peActor, PSENTIENT psInvokeOn, PTEXT parameters );
 
-CORE_CPROC( void, AddCommonBehavior )( TEXTCHAR *name, TEXTCHAR *description );
+CORE_CPROC( void, AddCommonBehavior )( CTEXTSTR name, CTEXTSTR description );
 
 // a archtype object might define behaviors specific to is object...
 // if many of its objects are expected to be created it might use
 // the global AddCommonBehavior.....
-CORE_PROC( void, AddBehavior )( PENTITY pe, TEXTCHAR *name, TEXTCHAR *desc );
+CORE_PROC( void, AddBehavior )( PENTITY pe, CTEXTSTR name, CTEXTSTR desc );
 
 #include "interface.h"
 

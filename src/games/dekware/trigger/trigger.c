@@ -1392,7 +1392,7 @@ static int HandleCommand(WIDE("IO"), WIDE("TRIGGER"), WIDE("Trigger macro comman
    if( op )
    {
 		//int idx;
-      MyFunction f = (MyFunction)GetRoutineRegistered( WIDE("TRIGGER/Commands"), op );
+      MyFunction f = (MyFunction)(GetRoutineRegistered( WIDE("TRIGGER/Commands"), op ));
       //idx = GetCommandIndex( commands, NUM_COMMANDS
       //                     , GetTextSize(op), GetText(op) );
       if( !f )

@@ -1897,7 +1897,7 @@ int SCRIPT( PSENTIENT ps, PTEXT parameters )  // can actually be done IN script.
 
 //--------------------------------------------------------------------------
 
-CORE_PROC( PMACRO, GetMacro )( PENTITY pe, TEXTCHAR *pNamed ) /*FOLD00*/
+CORE_PROC( PMACRO, GetMacro )( PENTITY pe, CTEXTSTR pNamed ) /*FOLD00*/
 {
 	PMACRO match;
 	_16 idx;
@@ -2062,9 +2062,9 @@ CORE_PROC( void, AddMacroCommand )( PMACRO pMacro, PTEXT Params )
 }
 //--------------------------------------------------------------------------
 
-CORE_PROC( PMACRO, LocateMacro )( PENTITY pe, TEXTCHAR *name ) /*FOLD00*/
+CORE_PROC( PMACRO, LocateMacro )( PENTITY pe, CTEXTSTR name ) /*FOLD00*/
 {
-	//TEXTCHAR *data;
+	//CTEXTSTR data;
 	//data = GetText( Command );
 	PMACRO match;
 
@@ -2713,7 +2713,7 @@ PMACRO DuplicateMacro( PMACRO pm ) /*FOLD00*/
 
 //---------------------------------------------------------------------------
 
-CORE_PROC( void, QueueCommand )( PSENTIENT ps, TEXTCHAR *Command )
+CORE_PROC( void, QueueCommand )( PSENTIENT ps, CTEXTSTR Command )
 {
 	if( ps && Command )
 	{

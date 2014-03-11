@@ -403,7 +403,7 @@ void Unload( PTEXT pCommandName )
 //--------------------------------------------------------------------------
 
 
-CORE_PROC( void, RegisterRoutine )( TEXTCHAR *pClassname, TEXTCHAR *pName, TEXTCHAR *pDescription, RoutineAddress Routine )
+CORE_PROC( void, RegisterRoutine )( CTEXTSTR pClassname, CTEXTSTR pName, CTEXTSTR pDescription, RoutineAddress Routine )
 {
 	//PREGROUTINE prr;
 	TEXTCHAR tmp[256];
@@ -421,7 +421,7 @@ CORE_PROC( void, RegisterRoutine )( TEXTCHAR *pClassname, TEXTCHAR *pName, TEXTC
 
 //--------------------------------------------------------------------------
 
-CORE_PROC( void, UnregisterRoutine )( TEXTCHAR *pName )
+CORE_PROC( void, UnregisterRoutine )( CTEXTSTR pName )
 {
 	Log( WIDE("Plugin is attempting to Unregister an unknown routine...") );
 }
@@ -480,8 +480,8 @@ int RoutineRegistered( PSENTIENT ps, PTEXT Command )
 static int nDevice;
 static int nTypeID;
 
-CORE_PROC( int, RegisterDeviceOpts )( TEXTCHAR *pName
-											  , TEXTCHAR *pDescription
+CORE_PROC( int, RegisterDeviceOpts )( CTEXTSTR pName
+											  , CTEXTSTR pDescription
 											  , PDATAPATH (CPROC *Open)( PDATAPATH *ppChannel, PSENTIENT ps, PTEXT params )
 											  , option_entry *pOptions
 											  , _32 nOptions )
@@ -527,13 +527,13 @@ CORE_PROC( int, RegisterDeviceOpts )( TEXTCHAR *pName
 	return 0;
 }
 
-CORE_PROC( int, RegisterDevice )( TEXTCHAR *pName, TEXTCHAR *pDescription, PDATAPATH (CPROC *Open)( PDATAPATH *ppChannel, PSENTIENT ps, PTEXT params ) )
+CORE_PROC( int, RegisterDevice )( CTEXTSTR pName, CTEXTSTR pDescription, PDATAPATH (CPROC *Open)( PDATAPATH *ppChannel, PSENTIENT ps, PTEXT params ) )
 {
 	return RegisterDeviceOpts( pName, pDescription, Open, NULL, 0 );
 }
 //--------------------------------------------------------------------------
 
-CORE_PROC( void, UnregisterDevice )( TEXTCHAR *pName )
+CORE_PROC( void, UnregisterDevice )( CTEXTSTR pName )
 {
 #if 0
 	PDEVICE pdev, prior;
@@ -864,7 +864,7 @@ CORE_PROC( void, AddVolatileVariables )( PENTITY pe, CTEXTSTR root )
 
 //--------------------------------------------------------------------------
 
-CORE_PROC( void,  UnregisterObject )( TEXTCHAR *pName )
+CORE_PROC( void,  UnregisterObject )( CTEXTSTR pName )
 {
 	// find the named object archtype and remove it from the list of knowns...
 	static _32 unregistering;
@@ -1216,9 +1216,9 @@ int CPROC WriteToObject( PSENTIENT ps, PTEXT parameters )
 //--------------------------------------------------------------------------
 
 // choice
-//	1> make a behavior struct { TEXTCHAR *name }
+//	1> make a behavior struct { CTEXTSTR name }
 
-PMACROSTATE InvokeBehavior( TEXTCHAR *name, PENTITY peActor, PSENTIENT psInvokeOn, PTEXT parameters )
+PMACROSTATE InvokeBehavior( CTEXTSTR name, PENTITY peActor, PSENTIENT psInvokeOn, PTEXT parameters )
 {
 	INDEX idx;
 	PTEXT testname;
@@ -1261,14 +1261,14 @@ PMACROSTATE InvokeBehavior( TEXTCHAR *name, PENTITY peActor, PSENTIENT psInvokeO
 	return pms;
 }
 
-void AddBehavior( PENTITY pe, TEXTCHAR *name, TEXTCHAR *description )
+void AddBehavior( PENTITY pe, CTEXTSTR name, CTEXTSTR description )
 {
 	AddLink( &pe->behaviors
 			 , SegAppend( SegCreateFromText( name )
 							, SegCreateFromText( description ) ) );
 }
 
-void AddCommonBehavior( TEXTCHAR *name, TEXTCHAR *description )
+void AddCommonBehavior( CTEXTSTR name, CTEXTSTR description )
 {
 	AddLink( &global.behaviors
 			 , SegAppend( SegCreateFromText( name )
