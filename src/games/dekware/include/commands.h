@@ -155,7 +155,7 @@ CORE_CPROC( PTEXT, GetVariable )( PSENTIENT ps, CTEXTSTR text );
 // your object but in someone else
 // you CAN - set ps->Current to the new object (and restore it when done!)
 CORE_PROC( PTEXT, MacroDuplicateExx )( BLOBTYPE sentient_tag *pEntity, PTEXT pText, int bKeepEOL, int bSubst, PTEXT args DBG_PASS);
-CORE_PROC( PMACRO, LocateMacro )( PENTITY pe, TEXTCHAR *name );
+CORE_PROC( PMACRO, LocateMacro )( PENTITY pe, CTEXTSTR name );
 CORE_PROC( PMACROSTATE, InvokeMacroEx )( PSENTIENT ps, PMACRO pMacro, PTEXT pArgs, void (CPROC*StopEvent)(PTRSZVAL psvUser, PMACROSTATE pms ), PTRSZVAL psv );
 CORE_PROC( PMACROSTATE, InvokeMacro )( BLOBTYPE sentient_tag *ps, PMACRO pMacro, PTEXT pArgs );
 #define InvokeMacro(ps,pm,arg) InvokeMacroEx( ps,pm,arg,NULL,0 )
@@ -193,8 +193,8 @@ CORE_PROC( void, prompt )( BLOBTYPE sentient_tag *ps );
 //CORE_PROC( S_64, IntNumber )( PTEXT pText );
 CORE_PROC( PTEXT, MakeNumberText )( size_t val );
 
-CORE_PROC( PMACRO, GetMacro )( PENTITY pe, TEXTCHAR *pNamed );
-CORE_PROC( void, QueueCommand )( PSENTIENT ps, TEXTCHAR *Command );
+CORE_PROC( PMACRO, GetMacro )( PENTITY pe, CTEXTSTR pNamed );
+CORE_PROC( void, QueueCommand )( PSENTIENT ps, CTEXTSTR Command );
 #endif
 #define SubstToken(ps,tok,var,len) SubstTokenEx(ps,tok,var,len,NULL)
 #define AddVariableExx(ps,pe,pName,params, bBinary,forcent) AddVariableExxx((ps), (pe), (pName), (params), (bBinary), (forcent), FALSE DBG_SRC )
