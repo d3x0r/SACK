@@ -4103,12 +4103,12 @@ PSI_CONTROL SetupSystemsListAndGlobalSingleFrame(void )
 		if( !result_canvas )
 		{
 			g.target_display = SACK_GetProfileIntEx( GetProgramName(), WIDE( "Intershell Layout/Use Screen Number" ), 0, TRUE );
-			if( display > 0 )
+			if( g.target_display > 0 )
 			{
 				_32 w, h;
 				S_32 x, y;
-				GetDisplaySizeEx( display, &x, &y, &w, &h );
-				lprintf( WIDE("opening canvas on screen %d at %d,%d %dx%d"), display, x, y, w, h );
+				GetDisplaySizeEx( g.target_display, &x, &y, &w, &h );
+				lprintf( WIDE("opening canvas on screen %d at %d,%d %dx%d"), g.target_display, x, y, w, h );
 				result_canvas = MakeControl( NULL, menu_surface.TypeID
 													 , x, y
 													 , w, h, 0 );
