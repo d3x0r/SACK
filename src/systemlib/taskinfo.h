@@ -86,6 +86,7 @@ extern
 	PLIST system_tasks;
 	PLIBRARY libraries;
 	PTREEROOT pFunctionTree;
+	int nLibrary;
 } *local_systemlib;
 
 #define l (*local_systemlib)
