@@ -832,9 +832,6 @@ public:
 #endif
 #endif
 VECTOR_NAMESPACE_END
-#ifndef USE_VECTOR_NAMESPACE
-	#pragma note(" see I was here" )
-#endif
 USE_VECTOR_NAMESPACE
 #endif
 // $Log: vectlib.h,v $
