@@ -12,7 +12,7 @@
 #include <deadstart.h>
 #include <idle.h>
 #include <controls.h>
-#include <vlc/vlc.h>
+#include "../../libvlc/2.0.1/sdk/include/vlc/vlc.h"
 //#include <vlc/vlc_version.h>
 //#include <vlc/mediacontrol.h>
 #include <filesys.h>
