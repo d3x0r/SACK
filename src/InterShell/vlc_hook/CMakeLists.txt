@@ -9,6 +9,7 @@ if( ${CMAKE_GENERATOR} MATCHES "Watcom WMake" )
  set( ExtraFlags "${ExtraFlags} -bd" )
 endif()
 
+include_directories( ../../libvlc/2.0.1/sdk/include )
 
 set( SOURCES
 ${FIRST_GCC_LIBRARY_SOURCE} 
