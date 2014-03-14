@@ -1193,11 +1193,35 @@ void InvokeLibraryLoad( void )
 	}
 }
 
+SYSTEM_PROC( void, AddMappedLibrary)( CTEXTSTR libname, POINTER image_memory )
+{
+	PLIBRARY library = l.libraries;
 
+	while( library )
+	{
+		if( StrCmp( library->name, libname ) == 0 )
+			break;
+		library = library->next;
+	}
+	// don't really NEED anything else, in case we need to start before deadstart invokes.
+	if( !library )
+	{
+		size_t maxlen = strlen( libname ) + 1;
+		library = NewPlus( LIBRARY, sizeof(TEXTCHAR)*((maxlen<0xFFFFFF)?(_32)maxlen:0) );
+		library->name = library->full_name;
+		StrCpy( library->name, libname );
+		library->functions = NULL;
+		library->library = (HLIBRARY)image_memory;
+
+		InvokeLibraryLoad();
+		library->nLibrary = ++l.nLibrary;
+		LinkThing( l.libraries, library );
+	}
+
+}
 
 SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR funcname, LOGICAL bPrivate  DBG_PASS )
 {
-	static int nLibrary;
 	PLIBRARY library = l.libraries;
 
 	while( library )
@@ -1280,7 +1304,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			InvokeDeadstart();
 		}
 		InvokeLibraryLoad();
-		library->nLibrary = ++nLibrary;
+		library->nLibrary = ++l.nLibrary;
 		LinkThing( l.libraries, library );
 	}
 	if( funcname )
@@ -1509,7 +1533,7 @@ CTEXTSTR GetProgramName( void )
 #ifdef __ANDROID__
 	return program_name;
 #else
-	if( !l.filename )
+	if( !local_systemlib || l.filename )
 	{
 		SystemInit();
 		if( !l.filename )
@@ -1527,7 +1551,7 @@ CTEXTSTR GetProgramPath( void )
 #ifdef __ANDROID__
 	return program_path;
 #else
-	if( !l.load_path )
+	if( !local_systemlib || l.load_path )
 	{
 		SystemInit();
 		if( !l.load_path )
@@ -1545,7 +1569,7 @@ CTEXTSTR GetStartupPath( void )
 #ifdef __ANDROID__
 	return working_path;
 #else
-	if( !l.work_path )
+	if( !local_systemlib || l.work_path )
 	{
 		SystemInit();
 		if( !l.work_path )
