@@ -62,9 +62,9 @@ namespace sack {
 // things like clock can do a clock unlock
 // things like lists can requery databases to show new items....
 #define OnShowControl(name) \
-	DefineRegistryMethod(TASK_PREFIX,FixupControl,WIDE( "control" ),name,WIDE( "show_control" ),void,(PTRSZVAL))
+	DefineRegistryMethod(TASK_PREFIX,ShowControl,WIDE( "control" ),name,WIDE( "show_control" ),void,(PTRSZVAL))
 #define OnHideControl(name) \
-	DefineRegistryMethod(TASK_PREFIX,FixupControl,WIDE( "control" ),name,WIDE( "hide_control" ),void,(PTRSZVAL))
+	DefineRegistryMethod(TASK_PREFIX,HideControl,WIDE( "control" ),name,WIDE( "hide_control" ),void,(PTRSZVAL))
 
 // static void OnLoadControl( WIDE(""))( PCONFIG_HANDLER, PTRSZVAL psv )
 #define OnLoadControl( name ) \
