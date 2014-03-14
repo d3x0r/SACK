@@ -177,6 +177,7 @@ static void VideoLinkCommandServeMaster( WIDE("VLC_Video Link") )( void )
 */
 #if defined( __CMAKE_VERSION__ ) && ( __CMAKE_VERSION__ < 2081003 )
 // cmake + watcom link failure fix
+PUBLIC( void, ExportThis )( void )
 {
 }
 #endif
