@@ -63,6 +63,9 @@
 #define DO_LOGGING
 #include <logging.h>
 
+// display pause/resume support.
+#include <render.h>
+
 #include <timers.h>
 
 #include "../memlib/sharestruc.h"
@@ -179,6 +182,7 @@ static struct {
 		BIT_FIELD bLogSleeps : 1;
 		BIT_FIELD bLogTimerDispatch : 1;
 		BIT_FIELD bLogThreadCreate : 1;
+		BIT_FIELD bHaltTimers : 1;
 	} flags;
 	_32 del_timer; // this timer is scheduled to be removed...
 	_32 tick_bias; // should somehow end up equating to sleep overhead...
@@ -251,7 +255,7 @@ PRIORITY_PRELOAD( LowLevelInit, SYSLOG_PRELOAD_PRIORITY-1 )
 		SimpleRegisterAndCreateGlobal( global_timer_structure );
 	if( !g.timerID )
 	{
-      // this may have initialized early?
+		// this may have initialized early?
 		g.timerID = 1000;
 	}
 }
@@ -306,7 +310,7 @@ PTRSZVAL closesem( POINTER p, PTRSZVAL psv )
 	}
 	thread->semaphore = -1;
 #endif
-   return 0;
+	return 0;
 }
 
 // sharemem exit priority +1 (exit after everything else, except emmory; globals at memory+1)
@@ -373,10 +377,10 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 	{
 		char buf;
 		int success = 0;
-      do
+		do
 		{
 			int stat;
-         int n;
+			int n;
 			fd_set set;
 			struct timeval timeout;
 			FD_ZERO(&set); /* clear the set */
@@ -394,7 +398,7 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 			}
 			else if(stat == 0)
 			{
-            success = 1;
+				success = 1;
 #  ifdef DEBUG_PIPE_USAGE
 				lprintf("timeout"); /* a timeout occured */
 #  endif
@@ -410,7 +414,7 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 #  endif
 			}
 		}
-      while( !success );
+		while( !success );
 	}
 
 #else
@@ -418,7 +422,7 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 									  , 1, IPC_CREAT | 0600 );
 	if( thread->semaphore == -1 )
 	{
-      // basically this can't really happen....
+		// basically this can't really happen....
 		if( errno ==  EEXIST )
 		{
 			thread->semaphore = semget( IPC_PRIVATE 
@@ -436,13 +440,13 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 	if( thread->semaphore != -1 )
 	{
 		//union semun ctl;
-	   //ctl.val = 0;
-      //lprintf( WIDE("Setting thread semaphore to 0 (locked).") );
+		//ctl.val = 0;
+		//lprintf( WIDE("Setting thread semaphore to 0 (locked).") );
 		if( semctl( thread->semaphore, 0, SETVAL, 0 ) < 0 )
 		{
 			lprintf( WIDE("Errro setting semaphre value: %d"), errno );
 		}
-      //lprintf( WIDE("after semctl = %d %08lx"), semctl( thread->semaphore, 0, GETVAL ), thread->semaphore );
+		//lprintf( WIDE("after semctl = %d %08lx"), semctl( thread->semaphore, 0, GETVAL ), thread->semaphore );
 	}
 #endif
 #endif
@@ -971,7 +975,7 @@ void  WakeableNamedSleepEx( CTEXTSTR name, _32 n DBG_PASS )
 }
 void  WakeableSleepEx( _32 n DBG_PASS )
 {
-   InternalWakeableNamedSleepEx( NULL, n, FALSE DBG_RELAY );
+	InternalWakeableNamedSleepEx( NULL, n, FALSE DBG_RELAY );
 }
 
 
@@ -979,7 +983,7 @@ void  WakeableSleepEx( _32 n DBG_PASS )
 void  WakeableSleep( _32 n )
 #define WakeableSleep(n) WakeableSleepEx(n DBG_SRC)
 {
-   WakeableSleepEx(n DBG_SRC);
+	WakeableSleepEx(n DBG_SRC);
 }
 
 //--------------------------------------------------------------------------
@@ -1083,7 +1087,7 @@ int  IsThisThreadEx( PTHREAD pThreadTest DBG_PASS )
 //   lprintf( WIDE("Found thread; %p is it %p?"), pThread, pThreadTest );
 	if( pThread == pThreadTest )
 		return TRUE;
-   //lprintf( WIDE("Found thread; %p is not  %p?"), pThread, pThreadTest );
+	//lprintf( WIDE("Found thread; %p is not  %p?"), pThread, pThreadTest );
 	return FALSE;
 }
 
@@ -1096,7 +1100,7 @@ static int NotTimerThread( void )
 		= FindThread( GetMyThreadID() );
 #endif
 	if( pThread && ( pThread->proc == ThreadProc ) )
-		 return FALSE;
+		return FALSE;
 	return TRUE;
 }
 
@@ -1383,7 +1387,7 @@ PTHREAD  ThreadToSimpleEx( PTRSZVAL (CPROC*proc)(POINTER), POINTER param DBG_PAS
 	pThread->hThread = (HANDLE)_beginthread( (void(*)(void*))SimpleThreadWrapper, 8192, pThread );
 #else
 	{
-      DWORD dwJunk;
+		DWORD dwJunk;
 		pThread->hThread = CreateThread( NULL, 1024
 												 , (LPTHREAD_START_ROUTINE)(SimpleThreadWrapper)
 												 , pThread
@@ -1684,6 +1688,7 @@ static int CPROC ProcessTimers( PTRSZVAL psvForce )
 	PTIMER timer;
 	BIT_FIELD bLock = g.flags.bLogCriticalSections;
 	_32 newtick;
+
 	if( g.flags.bExited )
 		return -1;
 	if( !psvForce && !IsThisThread( g.pTimerThread ) )
@@ -1697,7 +1702,7 @@ static int CPROC ProcessTimers( PTRSZVAL psvForce )
 	{
 		// there are timers - and there's one which wants to be added...
 		// if there's no timers - just sleep here...
-		while( !g.add_timer && !g.timers )
+		while( !g.add_timer && !g.timers || g.flags.bHaltTimers )
 		{
 			if( !psvForce )
 				return 1;
@@ -1862,7 +1867,7 @@ static int CPROC ProcessTimers( PTRSZVAL psvForce )
 #endif
 				// was a one shot timer.
 				DeleteFromSet( TIMER, &g.timer_pool, timer );
-            timer = NULL;
+				timer = NULL;
 			}
 		}
 		SetCriticalLogging( 0 );
@@ -2080,7 +2085,7 @@ static void InternalRescheduleTimerEx( PTIMER timer, _32 delay )
 #endif
 		if( bGrabbed )
 		{
-         //lprintf( WIDE("Rescheduling timer...") );
+			//lprintf( WIDE("Rescheduling timer...") );
 			DoInsertTimer( timer );
 			if( timer == g.timers )
 			{
@@ -2102,7 +2107,7 @@ void  RescheduleTimerEx( _32 ID, _32 delay )
 	EnterCriticalSec( &csGrab );
 	if( !ID )
 	{
-      timer =g.current_timer;
+		timer =g.current_timer;
 	}
 	else
 	{
@@ -2113,7 +2118,7 @@ void  RescheduleTimerEx( _32 ID, _32 delay )
 		if( !timer )
 		{
 			// this timer is not part of the list if it's
-         // dispatched and we get here (timer itself rescheduling itself)
+			// dispatched and we get here (timer itself rescheduling itself)
 			if( g.current_timer && g.current_timer->ID == ID )
 				timer = g.current_timer;
 		}
@@ -2133,13 +2138,28 @@ void  RescheduleTimer( _32 ID )
 	if( !timer )
 	{
 		if( g.current_timer && g.current_timer->ID == ID )
-         timer = g.current_timer;
+			timer = g.current_timer;
 	}
 	if( timer )
 	{
 		InternalRescheduleTimerEx( timer, timer->frequency );
 	}
 	LeaveCriticalSec( &csGrab );
+}
+
+//--------------------------------------------------------------------------
+
+static void OnDisplayPause( WIDE("@Internal Timers") )( void )
+{
+	g.flags.bHaltTimers = 1;
+}
+
+//--------------------------------------------------------------------------
+static void OnDisplayResume( WIDE("@Internal Timers") )( void )
+{
+	g.flags.bHaltTimers = 0;
+	if( g.pTimerThread )
+		WakeThread( g.pTimerThread );
 }
 
 //--------------------------------------------------------------------------
@@ -2317,7 +2337,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 
 void  DeleteCriticalSec( PCRITICALSECTION pcs )
 {
-   // ya I don't have anything to do here...
+	// ya I don't have anything to do here...
 	return;
 }
 
@@ -2327,9 +2347,9 @@ HANDLE  GetWakeEvent( void )
 #if HAS_TLS
 	if( !MyThreadInfo.pThread )
 		MakeThread();
-   return MyThreadInfo.pThread->thread_event->hEvent;
+	return MyThreadInfo.pThread->thread_event->hEvent;
 #else
-   return MakeThread()->thread_event->hEvent;
+	return MakeThread()->thread_event->hEvent;
 #endif
 }
 #endif
