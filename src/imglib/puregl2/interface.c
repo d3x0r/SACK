@@ -140,8 +140,8 @@ IMAGE_INTERFACE RealImageInterface = {
 												 , RotateImageAbout
 												 , MarkImageUpdated
 
-                                     , NULL  // DumpFontCache
-                                     , NULL  // RerenderFont
+                                     , DumpFontCache  // DumpFontCache
+                                     , RerenderFont  // RerenderFont
 
 												 , ReloadOpenGlTexture
 												 , ReloadOpenGlShadedTexture
