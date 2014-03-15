@@ -1533,7 +1533,7 @@ CTEXTSTR GetProgramName( void )
 #ifdef __ANDROID__
 	return program_name;
 #else
-	if( !l.filename )
+	if( !local_systemlib || l.filename )
 	{
 		SystemInit();
 		if( !l.filename )
@@ -1551,7 +1551,7 @@ CTEXTSTR GetProgramPath( void )
 #ifdef __ANDROID__
 	return program_path;
 #else
-	if( !l.load_path )
+	if( !local_systemlib || l.load_path )
 	{
 		SystemInit();
 		if( !l.load_path )
@@ -1569,7 +1569,7 @@ CTEXTSTR GetStartupPath( void )
 #ifdef __ANDROID__
 	return working_path;
 #else
-	if( !l.work_path )
+	if( !local_systemlib || l.work_path )
 	{
 		SystemInit();
 		if( !l.work_path )
