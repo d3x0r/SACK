@@ -3,7 +3,7 @@
 	set( FILEOUT ${BASE_PATH}/CMakePackage )
 
 
-		 FILE( WRITE ${FILEOUT} "set( DEKWARE_BASE {BASE_PATH})\n" )
+		 FILE( WRITE ${FILEOUT} "set( DEKWARE_BASE ${BASE_PATH})\n" )
 		 FILE( APPEND ${FILEOUT} "set( DEKWARE_INCLUDE_DIR $" "{DEKWARE_BASE}/include/dekware )\n" )
 
 		 FILE( APPEND ${FILEOUT} "set( DEKWARE_LIBRARY_DIR $" "{DEKWARE_BASE}/lib )\n" )

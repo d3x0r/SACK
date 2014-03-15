@@ -34,7 +34,6 @@ IF(NOT CMAKE_CROSSCOMPILING)
     "$ENV{SYSTEMROOT}/Microsoft.NET/Framework/[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VCExpress\\11.0;CLR Version]/")
 ENDIF()
 set( CMAKE_MAKE_PROGRAM ${REAL_CMAKE_MAKE_PROGRAM} )
-message( "REAL ${REAL_CMAKE_MAKE_PROGRAM}" )
 set( CMAKE_VS_PLATFORM_TOOLSET v110_xp )
 endif( MSVC11 )
 
@@ -212,6 +211,7 @@ add_dependencies( ${LAST_TARGET} Buildcore )
 else( NOT __CLR__ )
 message( "Disabled Binaries output for CLR build" )
 endif( NOT __CLR__ )
+
 
 set( PROJECT intershell )
 set( EXTRA_FLAGS  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} ${D__ANDROID__} )
