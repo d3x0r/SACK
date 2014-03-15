@@ -6,6 +6,10 @@ if( FORCE_CXX )
     set_source_files_properties( ${VIDLIB_SOURCES}  PROPERTIES LANGUAGE CXX )
 endif( FORCE_CXX )
 
+if( __NO_ODBC__ OR NOT USE_OPTIONS )
+   ADD_DEFINITIONS( -D__NO_OPTIONS__ )
+endif( __NO_ODBC__ OR NOT USE_OPTIONS )
+
 add_library( bag.video SHARED 
   ${FIRST_GCC_LIBRARY_SOURCE} 
   ${VIDLIB_SOURCES} 

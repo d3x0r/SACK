@@ -11,6 +11,10 @@ endif( __ANDROID__ )
 
 OPTION( WIN8_TARGET "Enable directx 11 target (directcomposition also)" ${MSVC11} )
 
+if( __NO_ODBC__ OR NOT USE_OPTIONS )
+   ADD_DEFINITIONS( -D__NO_OPTIONS__ )
+endif( __NO_ODBC__ OR NOT USE_OPTIONS )
+
 if( DIRECTX_SDK )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 set( COMMON_SOURCES

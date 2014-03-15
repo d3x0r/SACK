@@ -212,8 +212,10 @@ OPTION( __INCLUDE_INTERSHELL__ "Include building intershell core in root project
 if( NOT __NO_ODBC__ )
 OPTION( __NO_ODBC__ "Use Odbc" 0 )
 endif( NOT __NO_ODBC__ )
-DEFINE_DEFAULT( __NO_NETwORK__ 0 )
+DEFINE_DEFAULT( __NO_NETWORK__ 0 )
 OPTION( __NO_NETWORK__ "Disable network code" __NO_NETWORK__ )
+DEFINE_DEFAULT( __NO_MSGSVR__ 0 )
+OPTION( __NO_MSGSVR__ "Disable network code" __NO_MSGSVR__ )
 OPTION( __ANDROID__ "Enable Android Behvaviors" 0 )
 OPTION( ALLOW_IMAGE_INTERFACES "monolithic build, by default, forces direct linking to video/image interfaces; allow proxy" 0 )
 OPTION( BUILD_ANDROID_CONSOLE_APPS "Enable building programs as command-line executable" ${__ANDROID__} )
@@ -267,6 +269,10 @@ if( __NO_NETWORK__ )
    set( ExtraDefinitions ${ExtraDefinitions};__NO_NETWORK__ )
 endif( __NO_NETWORK__ )
 
+if( __NO_MSGSVR__ )
+   set( ExtraDefinitions ${ExtraDefinitions};__NO_MSGSVR__ )
+endif( __NO_MSGSVR__ )
+
 
 if( NOT __NO_ODBC__ OR USE_SQLITE )
 
@@ -286,15 +292,12 @@ if( NOT __NO_ODBC__ OR USE_SQLITE )
    set( ExtraDefinitions ${ExtraDefinitions};__NO_ODBC__ )
  endif( NOT __NO_ODBC__ )
 
- if( USE_OPTIONS )
-
- else( USE_OPTIONS )
+ if( NOT USE_OPTIONS )
 	set( ExtraDefinitions ${ExtraDefinitions};__NO_OPTIONS__ )
- endif( USE_OPTIONS )
+ endif( NOT USE_OPTIONS )
  
 else( NOT __NO_ODBC__ OR USE_SQLITE )
-	set( ExtraDefinitions ${ExtraDefinitions};__NO_SQL__;__NO_OPTIONS__ )
-
+	set( ExtraDefinitions ${ExtraDefinitions};__NO_SQL__;__NO_ODBC__;__NO_OPTIONS__ )
 endif( NOT __NO_ODBC__ OR USE_SQLITE )
 
 if( USE_SACK_CUSTOM_MEMORY_ALLOCATION )
@@ -996,7 +999,7 @@ endif( __ANDROID__ )
 SET_TARGET_PROPERTIES(bag.psi PROPERTIES
                   DEFINE_SYMBOL PSI_SOURCE
                   COMPILE_FLAGS  "${ExtraFlags}"
-                  COMPILE_DEFINITIONS  "TARGET_LABEL=bag_psi;SOURCE_PSI2;SYSTRAY_LIBRARAY;${PSIExtraDefinitions};TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}bag${CMAKE_SHARED_LIBRARY_SUFFIX}\""
+                  COMPILE_DEFINITIONS  "TARGET_LABEL=bag_psi;SOURCE_PSI2;SYSTRAY_LIBRARAY;${PSIExtraDefinitions};${ExtraDefinitions};TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}bag${CMAKE_SHARED_LIBRARY_SUFFIX}\""
                   FOLDER "Control Library" 
                   LINK_FLAGS "${extra_link_flags}"
 )
@@ -1011,7 +1014,7 @@ if( NOT __NO_CPLUSPLUS )
     SET_TARGET_PROPERTIES(${BAG_PSI_PLUSPLUS} PROPERTIES
                   DEFINE_SYMBOL PSI_SOURCE
                   COMPILE_FLAGS  "${ExtraFlags}"
-                  COMPILE_DEFINITIONS  "TARGET_LABEL=bag_psi_pp;SOURCE_PSI2;SYSTRAY_LIBRARAY;${PSIExtraDefinitions};TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${BAG_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX}\""
+                  COMPILE_DEFINITIONS  "TARGET_LABEL=bag_psi_pp;SOURCE_PSI2;SYSTRAY_LIBRARAY;${PSIExtraDefinitions};${ExtraDefinitions};TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${BAG_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX}\""
                   FOLDER "Control Library" 
                   LINK_FLAGS "${extra_link_flags}"
     )

@@ -36,6 +36,9 @@ else( UNIX )
     set( SOURCES ${SOURCES} ${GLUES_SOURCES} )
   endif( NOT __ANDROID__ AND NOT __QNX__ )
 endif( UNIX )
+if( __NO_ODBC__ OR NOT USE_OPTIONS )
+   ADD_DEFINITIONS( -D__NO_OPTIONS__ )
+endif( __NO_ODBC__ OR NOT USE_OPTIONS )
 
 add_library_force_source( bag.video.puregl SHARED
 ${FIRST_GCC_LIBRARY_SOURCE}
