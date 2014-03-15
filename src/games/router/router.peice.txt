@@ -1,0 +1,11 @@
+
+cell size 16 by 16
+block port (3 by 3) images/port.png
+block router background (10 by 10) images/sky.jpg
+block Stationary Table background (10 by 10) images/sky.jpg
+block background (10 by 10) images/sky.jpg
+block interface (4 by 4) images/interface.png
+pathway nat_link images/nat_wire.png
+pathway port_forward images/nat_wire.png
+
+

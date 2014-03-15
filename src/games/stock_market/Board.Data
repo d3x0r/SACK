@@ -1,0 +1,718 @@
+Roll is random yes
+
+space 100
+	size 4, 4
+	position 20, 20
+	color $d0d0d0
+	center Prospector pays 400 on 2 or 12
+space 101
+	size 4, 4
+	position 2, 20
+	color $d0d0d0
+	center Deep sea diver pays 300 on 3 or 11
+space 102
+	size 4, 4
+	position 20, 2
+	color $d0d0d0
+	center Doctor pays 200 on 4 or 10
+space 103
+	size 4, 4
+	position 2, 2
+	color $d0d0d0
+	center Policeman pays 100 on 5 or 9
+
+
+space 200
+	size 2, 2
+        position 12, 12
+        quit
+space 201 
+	size 2, 2
+        position 11, 10
+        roll
+space 202
+	size 2, 2
+        position 13, 10
+        do sell
+
+space 0 
+	size 2, 2
+	align vertical up
+	position 0, 12
+	start
+	left 1 
+	right 47 
+space 1
+	size 2, 2
+	align vertical up
+	position 0, 10
+	market up 1
+	stock 3
+	left 2
+	right 0
+	leave left
+space 2 
+	size 2, 2
+	align vertical up
+	position 0, 8
+	market down 2
+	stock 5
+	left 3
+	right 1
+	leave left
+space 3
+	size 2, 2
+	align vertical up
+	position 0, 6
+	market up 3
+	stock 8
+	left 4
+	right 2
+	leave left
+	holders 60 right
+space 4
+	size 2, 2
+	align vertical up
+	position 0, 4
+	market down 4
+	stock 7
+	left 5
+	right 3
+	leave left
+space 5
+	size 2, 2
+	align vertical up
+	position 0, 2
+	sell stock 1
+	market up 5
+	left 6
+	right 4
+	leave left
+space 6
+	size 2, 2
+	align horizontal right
+	position 0, 0
+	broker 
+	market down 20
+	right 5
+	left 7
+	leave right
+space 7
+	size 2, 2
+	align horizontal right
+	position 2, 0
+	leave right
+	sell stock 4
+	market down 5
+	left 8
+	right 6
+space 8
+	size 2, 2
+	align horizontal right
+	position 4, 0
+	leave right
+	stock 3
+	market up 4
+	left 9
+	right 7
+space 9
+	size 2, 2
+	align horizontal right
+	position 6, 0
+	leave right
+	market down 3
+	stock 5
+	holders 78 left
+	left 10
+	right 8
+space 10
+	size 2, 2
+	align horizontal right
+	position 8, 0
+	leave left
+	market up 2
+	stock 8
+	left 11
+	right 9
+space 11
+	size 2, 2
+	align horizontal right
+	position 10, 0
+	stock 7
+	market down 1
+	leave left
+	left 12
+	right 10
+space 12
+	size 2, 2
+	align horizontal right
+	position 12, 0
+	start
+	left 13
+	right 11
+space 13
+	size 2, 2
+	align horizontal right
+	position 14, 0
+	stock 2
+	left 14
+	right 12
+	leave left
+	market down 1
+space 14
+	size 2, 2
+	align horizontal right
+	position 16, 0
+	market up 2
+	leave left
+	left 15
+	right 13
+	stock 1
+space 15
+	size 2, 2
+	align horizontal right
+	position 18, 0
+	market down 3
+	leave left
+	left 16
+	right 14
+	stock 4
+	holders 70 right
+space 16
+	size 2, 2
+	align horizontal right
+	position 20, 0
+	market up 4
+	leave left
+	left 17
+	right 15
+	stock 6
+space 17
+	size 2, 2
+	align horizontal right
+	position 22, 0
+	market down 5
+	leave left
+	left 18
+	right 16
+	sell stock 5
+space 18
+	size 2, 2
+	align vertical down
+	position 24, 0
+	broker
+	market up 20
+	leave right
+	left 19
+	right 17
+space 19
+	size 2, 2
+	align vertical down
+	position 24, 2
+	sell stock 2
+	market up 5
+	leave right
+	left 20
+	right 18
+space 20
+	size 2, 2
+	align vertical down
+	position 24, 4
+	stock 8
+	market down 4
+	leave right
+	left 21
+	right 19
+space 21
+	size 2, 2
+	align vertical down
+	position 24, 6
+	stock 7
+	market up 3
+	leave right
+	left 22
+	right 20
+        holders 80 left
+space 22
+	size 2, 2
+	align vertical down
+	position 24, 8
+	stock 3
+	market down 2
+	leave left
+	left 23
+	right 21
+space 23
+	size 2, 2
+	align vertical down
+	position 24, 10
+	stock 5
+	market up 1
+	leave left
+	left 24
+	right 22
+space 24
+	size 2, 2
+	align vertical down
+	position 24, 12
+	start 
+	left 25
+	right 23
+space 25
+	size 2, 2
+	align vertical down
+	position 24, 14
+	stock 4
+	market up 1
+	leave left
+	left 26
+	right 24
+space 26
+	size 2, 2
+	align vertical down
+	position 24, 16
+	stock 6
+	market down 2
+	leave left
+	left 27
+	right 25
+space 27
+	size 2, 2
+	align vertical down
+	position 24, 18
+	stock 2
+	market up 3
+	leave left
+	left 28
+	right 26
+        holders 88 right
+space 28
+	size 2, 2
+	align vertical down
+	position 24, 20
+	stock 1
+	market down 4
+	leave left
+	left 29
+	right 27
+space 29
+	size 2, 2
+	align vertical down
+	position 24, 22
+	sell stock 7
+	market up 5
+	leave left
+	left 30
+	right 28
+space 30
+	size 2, 2
+	align horizontal left
+	position 24, 24
+	broker
+	market down 20
+	leave right
+	left 31
+	right 29
+space 31
+	size 2, 2
+	align horizontal left
+	position 22, 24
+	sell stock 3
+	market down 5
+	leave right
+	left 32
+	right 30
+space 32
+	size 2, 2
+	align horizontal left
+	position 20, 24
+	stock 5
+	market up 4
+	leave right
+	left 33
+	right 31
+space 33
+	size 2, 2
+	align horizontal left
+	position 18, 24
+	stock 6
+	market down 3
+	leave right
+	left 34
+	right 32
+        holders 98 left
+space 34
+	size 2, 2
+	align horizontal left
+	position 16, 24
+	stock 7
+	market up 2
+	leave left
+	left 35
+	right 33
+space 35  
+	size 2, 2
+	align horizontal left
+	position 14, 24
+	stock 8
+	market down 1
+	leave left
+	left 36
+	right 34
+space 36
+	size 2, 2
+	align horizontal left
+	position 12, 24
+	start 
+	left 37
+	right 35
+space 37
+	size 2, 2
+	align horizontal left
+	position 10, 24
+	stock 1
+	market down 1
+	leave left
+	left 38
+	right 36
+space 38
+	size 2, 2
+	align horizontal left
+	position 8, 24
+	stock 2
+	market up 2
+	leave left
+	left 39
+	right 37
+space 39
+	size 2, 2
+	align horizontal left
+	position 6, 24
+	stock 3
+	market down 3
+	leave left
+	left 40
+	right 38
+        holders 90 right
+space 40
+	size 2, 2
+	align horizontal left
+	position 4, 24
+	stock 4
+	market up 4
+	leave left
+	left 41
+	right 39
+space 41
+	size 2, 2
+	align horizontal left
+	position 2, 24
+	sell stock 6
+	market down 5
+	leave left
+	left 42
+	right 40
+space 42
+	size 2, 2
+	align vertical up
+	position 0, 24
+	broker
+	market up 20
+	leave right
+	left 43
+	right 41
+space 43
+	size 2, 2
+	align vertical up
+	position 0, 22
+	left 44
+	right 42
+	leave right
+	market up 5
+	sell stock 8
+space 44
+	size 2, 2
+	align vertical up
+	position 0, 20
+	left 45
+	right 43
+	stock 2
+	market down 4
+	leave right
+space 45
+	size 2, 2
+	align vertical up
+	position 0, 18
+	stock 1
+	holders 68 left
+	left 46
+	right 44
+	market up 3
+space 46
+	size 2, 2
+	align vertical up
+	position 0, 16
+	stock 4
+	leave left
+	left 47
+	right 45
+	market down 2
+space 47
+	size 2, 2
+	align vertical up
+	position 0, 14
+   stock 6
+   leave left
+   left 0
+   right 46
+   market up 1
+
+
+space 60
+	size 1, 2
+	position 2, 6
+	align vertical down
+	left 3
+	right 61
+	split 1/1
+space 61
+	size 1, 2
+	position 3, 6
+	align vertical down
+	left 60
+	right 62
+	split 2/1
+space 62
+	size 1, 2
+	align vertical down
+	position 3, 8
+	left 61
+	right 63
+	split 1/1
+space 63
+	size 1, 2
+	align vertical down
+	position 3, 10
+	left 62
+	right 64
+	split 2/1
+space 64
+	size 1, 2
+	align vertical down
+	position 3, 12
+	left 63
+	right 65
+	split 3/1
+space 65
+	size 1, 2
+	align vertical down
+	position 3, 14
+	left 64
+	right 66
+	split 2/1
+space 66
+	size 1, 2
+	align vertical down
+	position 3, 16
+	left 65
+	right 67
+	split 1/1
+space 67
+	size 1, 2
+	align vertical down
+	position 3, 18
+	left 66
+	right 68
+	split 2/1
+space 68
+	size 1, 2
+	align vertical down
+	position 2, 18
+	left 67
+	right 45
+	split 1/1
+
+
+space 70
+	size 2, 1
+	align horizontal right
+	position 18, 2
+	left 15
+	right 71
+	split 1/1
+space 71
+	size 2, 1
+	align horizontal right
+	position 18, 3
+	left 70
+	right 72
+	split 3/1
+space 72
+	size 2, 1
+	align horizontal right
+	position 16, 3
+	left 71
+	right 73
+	split 2/1
+space 73
+	size 2, 1
+	align horizontal right
+	position 14, 3
+	left 72
+	right 74
+	split 3/1
+space 74
+	size 2, 1
+	align horizontal right
+	position 12, 3
+	left 73
+	right 75
+	split 2/1
+space 75
+	size 2, 1
+	align horizontal right
+	position 10, 3
+	left 74
+	right 76
+	split 3/1
+space 76
+	size 2, 1
+	align horizontal right
+	position 8, 3
+	left 75
+	right 77
+	split 2/1
+space 77
+	size 2, 1
+	align horizontal right
+	position 6, 3
+	left 76
+	right 78
+	split 3/1
+space 78
+	size 2, 1
+	align horizontal right
+	position 6, 2
+	left 77
+	right 9
+	split 1/1
+
+
+space 80
+	size 1, 2
+	align vertical up
+	position 23, 6
+	left 81
+	right 21
+	split 1/1
+space 81
+	size 1, 2
+	align vertical up
+	position 22, 6
+	left 82
+	right 80
+	split 2/1
+space 82
+	align vertical up
+	position 22, 8
+	size 1, 2
+	left 83
+	right 81
+	split 3/1
+space 83
+	align vertical up
+	position 22, 10
+	size 1, 2
+	left 84
+	right 82
+	split 2/1
+space 84
+	align vertical up
+	position 22, 12
+	size 1, 2
+	left 85
+	right 83
+	split 1/1
+space 85
+	align vertical up
+	position 22, 14
+	size 1, 2
+	left 86
+	right 84
+	split 2/1
+space 86
+	align vertical up
+	position 22, 16
+	size 1, 2
+	left 87
+	right 85
+	split 3/1
+space 87
+	align vertical up
+	position 22, 18
+	size 1, 2
+	left 88
+	right 86
+	split 2/1
+space 88
+	align vertical up
+	position 23, 18
+	size 1, 2
+	left 27
+	right 87
+	split 1/1
+
+space 90
+	position 6, 23
+	size 2, 1
+	split 1/1
+	left 39
+	right 91
+space 91
+	position 6, 22
+	size 2, 1
+	left 90
+	right 92
+	split 2/1
+space 92
+	position 8, 22
+	size 2, 1
+	left 91
+	right 93
+	split 3/1
+space 93
+	position 10, 22
+	size 2, 1
+	left 92
+	right 94
+	split 2/1
+space 94
+	position 12, 22
+	size 2, 1
+	left 93
+	right 95
+	split 3/1
+space 95
+	position 14, 22
+	size 2, 1
+	left 94
+	right 96
+	split 2/1
+space 96
+	position 16, 22
+	size 2, 1
+	left 95
+	right 97
+	split 3/1
+space 97
+	position 18, 22
+	size 2, 1
+	left 96
+	right 98
+	split 2/1
+space 98
+	position 18, 23
+	size 2, 1
+	left 97
+	right 33
+	split 1/1

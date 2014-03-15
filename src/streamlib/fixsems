@@ -1,0 +1,1 @@
+x=$(ipcs -s |grep 0x8000 |awk '{print $2}'); for i in $x; do ipcrm -s $i;done

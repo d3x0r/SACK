@@ -1,0 +1,55 @@
+/scr "M:\cybrspac\nws\nws_warning"
+/scr "M:\cybrspac\nws\nws_switch"
+/scr "m:\cybrspac\nws\nwstimes"
+
+/dest pfile
+/mac pfile file
+/echo gonna create %file and wake it to parse the file itself...
+/create %file
+/wake %file
+/tell %file /leave 
+//doparse %file
+/endmac
+
+/dest doparse
+/mac doparse file
+/decl word
+/decl line
+/decl paragraph true
+/parse file %file
+/if success
+	/tell nws /tell MOOSE /echo parsing %file
+	/getword %word
+   /if success
+	   /switchtype %file %word
+   /else
+   	/echo %file does not have a first word in it...
+   /endif
+/else
+	/tell MOOSE /echo failed to parse %file
+   /echo sorry - can't open %file
+/endif
+/endparse
+/destroy %me
+/endmac
+
+##############################
+# These are GLOBAL variables
+##############################
+/decl displaytype
+/decl location
+
+##############################
+# builder reads data files and constructs macros in me
+##############################
+/create builder
+/wake builder
+/tell builder /decl replyto %me
+/tell builder /scr build_macros
+
+/dest not_done 
+/mac not_done what
+#/echo This function was not finished yet.... %what was switching param...
+/endmac
+
+

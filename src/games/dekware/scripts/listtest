@@ -1,0 +1,58 @@
+
+/decl a
+/decl alist
+/decl cura
+/decl b
+/decl blist
+/decl curb
+
+/mac pushit
+/push %alist %a
+/push %blist %b
+/echo alist: %alist
+/echo blist: %blist
+/endmac
+
+/mac doit
+/decl a one
+/decl b apple
+/pushit
+/endmac
+
+/mac doit2
+/decl a two
+/decl b orange
+/pushit
+/endmac
+
+/mac doit3
+/decl a three
+/decl b banana
+/pushit
+/endmac
+
+/mac popit
+/pop %alist %cura
+/if fail
+/return
+/endif
+/pop %blist %curb
+/echo %cura : %curb
+/endmac
+
+/mac test
+/doit
+/doit2
+/doit3
+/popit
+/popit
+/popit
+/endmac
+
+/mac test2
+/test
+/test
+/test
+/test
+/endmac
+

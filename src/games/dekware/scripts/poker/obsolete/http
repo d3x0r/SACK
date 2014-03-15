@@ -1,0 +1,97 @@
+
+/create game_server
+/wake game_server
+/game_server/open request tcpserver 81
+//on accept_tcp
+//open line_parse token inbound
+//list
+//vars
+//inv
+//look
+//request
+//endmac
+
+//on close_tcp
+//  echo connection has been closed
+//  destroy %%me
+//endmac
+
+//mac gather_data
+//  echo remaining data will go into page_data
+//endmac
+
+//mac getpagename command
+//decl cmd %%command
+//decl name
+//decl word
+//head %%cmd %%word
+//label name
+//  head %%cmd %%word
+//  if success
+//  compare %%word is ?
+//  if success
+//     result %%name
+//     return
+//  endif
+//  compare %%word is HTTP
+//  if success
+//     result %%name
+//     return
+//  endif
+//  push %%name %%word
+//  goto name
+// endif
+//endmac
+
+//mac sendpage
+//decl line
+//label top
+//getline %%line
+//if success
+// . %%line
+//goto top
+//endif
+//endmac
+
+
+//mac request
+//decl line
+//decl filenameline
+//decl cmd
+//decl in %%me page_data
+//label top
+//  getline %%line
+//  if success
+//    head %%line %%cmd
+//    compare %%cmd like GET
+//    if success
+//      decl filenameline %%line
+//      echo skipping until blank line
+//      label skip
+//        getline %%line
+//        if success
+//          compare %%line blank
+//          if success
+//            gather_data
+//          else
+//            goto skip
+//          endif
+//        endif
+//    endif
+//  endif
+// getpagename %%filenameline
+// decl file
+// getresult file
+// echo line is still %%file
+// parse file file %%file
+// if success
+//   sendpage
+//   close file
+// endif
+// destroy %%me
+//endmac
+
+
+
+
+

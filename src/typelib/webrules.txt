@@ -1,0 +1,41 @@
+
+
+
+here
+
+
+    if no links, link to here
+
+    if test is below here to there (for all there)
+		 then test links to here
+
+          then again for all there....
+			 if test is below there to here (-vector) test does not link to there <0 >-1
+              else test links to there also
+
+					  <- if there is above here to test
+						  unlink there from here
+
+	 else
+       move here to there, start over
+
+
+
+
+	if a thing links to there
+		for all links from there, perform above test, but do not link to 'here' or 'there'
+
+	after constructing a link, destruction of other invalid links should occur
+
+	destruction of links...
+
+	for check all links from here
+		fornext check2 all links from here
+			if here->check2 > here->check unlink check2 (link check->check2? double link?)
+
+				forall there from test(original)
+					forall next from there
+					if( test(original) between there->next )
+                  link test(original) to next
+
+

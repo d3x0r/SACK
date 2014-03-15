@@ -1,0 +1,21 @@
+
+NAME=tray
+
+all: $(NAME).nex
+
+CFLAGS=-c -zP1 -D__LCC__ -I..\include -I\common\include 
+
+OBJ=tray.obj ntlink.obj tray.res
+
+$(NAME).nex: $(OBJ)
+	d:\lcc\bin\lcclnk -dll -entry DllMain -map $(NAME).map -o $(NAME).nex $(OBJ) ..\plugin.def \common\lib\vidlib.lib \common\lib\rcomlib.lib
+
+tray.obj: tray.c
+
+ntlink.obj: ntlink.c
+
+tray.res: tray.rc
+
+clean:
+	del $(OBJ)
+	del $(NAME).nex

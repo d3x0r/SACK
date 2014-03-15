@@ -1,0 +1,64 @@
+/dest mudconnect
+/mac mudconnect where
+	/parse tcp %where
+	/if success
+	   # need to extend the login to blackmud... 
+		/form on
+		/decl line
+	   /decl word
+      /label leadin
+      /getline %line
+      /compare %line like "What is thy name?"
+      /if success
+      	/form off
+         /goto top
+		/endif
+      /compare %line blank
+      /if fail
+	      /fecho %line
+         /decl line
+      /endif
+      /goto leadin
+
+      /echo Hey you could put username here...AND password :) 
+
+  		/label top
+	   /getword %word
+   		/if success
+		      #/memory
+            /compare %word eol
+            /if success
+                /compare %line blank
+                /if fail
+	                /echo %line
+   	             /decl line
+                /endif
+                /goto top
+            /endif
+     			/push %line %word
+   		/else
+         	/getpartial %word
+
+	        	/if success
+	          		/push %line %word
+		      /endif
+
+      		/compare %line blank
+         	/if fail
+	   			/echo %line
+   	   		/decl line
+               /goto top
+         	/endif
+			/compare connected
+			/if fail
+				/echo Connection closed.
+				/goto done
+			/endif
+         /endif
+
+		/goto top
+	/endif
+	/label done
+   /endparse
+/endmac
+/mudconnect blackmud.com:2000

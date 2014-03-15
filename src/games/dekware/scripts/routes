@@ -1,0 +1,573 @@
+
+/mac mgo count dir
+/decl n 0
+/label top
+/compare %n lessthan %count
+/if success
+	. %dir
+	/incr %n
+	/goto top
+/endif
+/endmac
+
+/mac tempdocks
+/mgo 3 n
+/mgo 4 w
+/mgo 7 s
+.e
+.s
+.e
+/endmac
+
+/mac tempms
+/mgo 3 n
+/mgo 8 w
+/endmac
+
+/mac mstemp
+/mgo 8 e
+/mgo 3 s
+/endmac
+
+/mac dockstemp
+.w
+.n
+.w
+/mgo 7 n
+/mgo 4 e
+/mgo 3 s
+/endmac
+
+/mac dockslanding
+.s
+.e
+.e
+.e
+.e
+.s
+.e
+.e
+.e
+.s
+.s
+.e
+.e
+.s
+.s
+.s
+.w
+.s
+.e
+/endmac
+
+/mac landingdocks
+.w
+.n
+.e
+/mgo 3 n
+/mgo 2 w
+/mgo 2 n
+/mgo 3 w
+.n
+/mgo 4 w
+.n
+/endmac
+
+/mac landingbaul
+/mgo 4 e
+/mgo 12 s
+.w
+.s
+.s
+.w
+.s
+.w
+/mgo 5 s
+.e
+.s
+.e
+.s
+.e
+/mgo 4 s
+/endmac
+
+/mac baullanding
+/mgo 4 n
+.w
+.n
+.w
+.n
+.w
+/mgo 5 n
+.e
+.n
+.e
+.n
+.n
+.e
+/mgo 13 n
+/mgo 3 w
+/endmac
+
+/mac baulsailors
+/mgo 12 e
+/mgo 6 s
+.w
+.u
+/endmac
+
+/mac sailorsbaul
+.d
+.e
+/mgo 6 n
+/mgo 13 w
+/endmac
+
+/mac sailorsforn
+.d
+/mgo 9 s
+/mgo 13 e
+/endmac
+
+/mac fornsailors
+/mgo 13 w
+/mgo 9 n
+.u
+/endmac
+
+/mac sailorsdarc
+.d
+/mgo 16 s
+/mgo 25 w
+/endmac
+
+
+/mac sailorsnixils
+.d
+/mgo 6 s
+/mgo 11 e
+/mgo 2 e
+.n
+.e
+.n
+.e
+.n
+.e
+.n
+.e
+.n
+.e
+.n
+.e
+.e
+.e
+/endmac
+
+/mac darcsailors
+/mgo 25 e
+/mgo 16 n
+.u
+/endmac
+
+/mac darcflare
+/mgo 2 n
+/mgo 2 w
+/mgo 6 n
+.w
+/mgo 2 s
+/mgo 6 w
+.s
+.w
+.w
+.s
+.s
+.s
+/endmac
+
+/mac flaredarc
+/mgo 3 n
+/mgo 2 e
+.n
+/mgo 6 e 
+/mgo 2 n
+.e
+/mgo 6 s
+/mgo 2 e
+/mgo 2 s
+/endmac
+
+
+/mac darcforn
+/mgo 25 e
+/mgo 7 n
+/mgo 13 e
+/endmac
+/mac forndarc
+/mgo 13 w
+/mgo 7 s
+/mgo 25 w
+/endmac
+
+/mac tempbaul
+/mgo 3 s
+/mgo 4 e
+/mgo 10 n
+/endmac
+
+/mac baultemp
+/mgo 10 s
+/mgo 4 w
+/mgo 3 n
+/endmac
+
+/mac novmak
+/mgo 8 w
+/mgo 6 n
+/mgo 2 w
+/mgo 3 n
+.e
+/mgo 2 n
+.e
+/mgo 4 n
+.w
+/mgo 3 n
+/mgo 4 w
+.s
+/mgo 2 w
+.s
+/mgo 2 w
+/mgo 7 s
+/mgo 3 w
+.n
+/mgo 3 w
+/mgo 3 s
+/endmac
+
+/mac maknov
+/mgo 3 n
+/mgo 3 e
+.s
+/mgo 3 e
+/mgo 7 n
+/mgo 2 e 
+.n
+/mgo 2 e
+.n
+/mgo 4 e
+/mgo 3 s
+.e
+/mgo 4 s
+.w
+/mgo 2 s
+.w
+/mgo 3 s
+/mgo 2 e
+/mgo 6 s
+/mgo 8 e
+/endmac
+
+
+/mac nov3way
+/mgo 8 n
+/endmac
+
+/mac novmagula
+/nov3way
+.e
+.e
+.n
+.e
+.n
+.e
+.n
+.e
+.e
+.n
+/endmac
+
+/mac magulanov
+.s
+.w
+.w
+.s
+.w
+.s
+.w
+.s
+.w
+.w
+/mgo 8 s
+/endmac
+
+/mac baulakrel
+/mgo 16 e
+.n
+.e
+.n
+.n
+.e
+/mgo 8 n
+/mgo 4 e
+.s
+/mgo 2 e
+.s
+/mgo 9 e
+.s
+.e
+.s
+.s
+/mgo 4 e
+.n
+.e
+.e
+.n
+.e
+.s
+.e
+.n
+/mgo 3 e
+.s
+.e
+.n
+/mgo 4 e
+/mgo 5 n
+.e
+/mgo 5 n
+/mgo 6 e
+.n
+.e
+.e
+/mgo 6 n
+.e
+/endmac
+
+/mac akrelelf
+.n
+.e
+.n
+.n
+.n
+.e
+.e
+.open doors
+.n
+.close doors
+/endmac
+
+/mac elfakrel
+.open doors
+.s
+.close doors
+.w
+.w
+.s
+.s
+.s
+.w
+.s
+/endmac
+
+/mac akrelwraith
+.n
+.w
+/mgo 7 n
+/mgo 6 w
+/mgo 4 s
+.w
+.s
+.w
+/endmac
+
+/mac wraithakrel
+.e
+.n
+.e
+/mgo 4 n
+/mgo 6 e
+/mgo 7 s
+.e
+.s
+/endmac
+
+/mac akrelfort
+.n
+.w
+/mgo 7 n
+/mgo 3 w
+.open portcullis
+.n
+.close portcullis
+/endmac
+
+/mac fortakrel
+.open portcullis
+.s
+.close portcullis
+/mgo 3 e
+/mgo 7 s
+.e
+.s
+/endmac
+
+/mac baulhalfling
+/mgo 4 n
+.w
+.n
+.w
+.n
+.w
+/mgo 5 n
+.e
+.n
+.e
+.n
+.n
+.e
+/mgo 12 n
+/mgo 6 e
+/mgo 6 n
+/mgo 2 w
+/endmac
+
+/mac halflingbaul
+/mgo 2 e
+/mgo 6 s
+/mgo 6 w
+/mgo 12 s
+.w
+.s
+.s
+.w
+.s
+.w
+/mgo 5 s
+.e
+.s
+.e
+.s
+.e
+/mgo 4 s
+/endmac
+
+/mac halflingnov
+/mgo 8 n
+.e
+/mgo 3 n
+/mgo 2 w
+/mgo 12 n
+/endmac
+
+/mac novhalfling
+/mgo 12 s
+/mgo 2 e
+/mgo 3 s
+.w
+/mgo 8 s
+
+/endmac
+
+/mac novgrain
+/mgo 16 n
+.w
+.u
+.e
+.n
+/mgo 5 w
+.n
+.w
+/endmac
+
+/mac grainnov
+.e
+.s
+/mgo 5 e
+.s
+.w
+.d
+.e
+/mgo 16 s
+/endmac
+
+/mac grainhalfling
+/grainnov
+/novhalfling
+/endmac
+
+/mac baulforn
+/baulsailors
+/sailorsforn
+/endmac
+
+/mac fornbaul
+/fornsailors
+/sailorsbaul
+/endmac
+
+/mac forndocks
+.swim
+/ii
+/fornsailors
+/sailorsbaul
+/baullanding
+.swim
+.cast 'ref' me
+/landingdocks
+/endmac
+
+/mac docksforn
+/dockslanding
+/landingbaul
+/baulsailors
+.cast 'ref' me
+/sailorsforn
+/endmac
+
+/mac msdocks
+/mgo 4 s
+/mgo 3 e
+/mgo 4 s
+.e
+.s
+.e
+/endmac
+
+/mac docksms
+.w
+.n
+.w
+/s
+/mgo 4 n
+/e
+/mgo 3 w
+/mgo 4 n
+/endmac
+
+/mac landingfort
+/mgo 7 w
+/mgo 14 s
+/mgo 3 w
+.open gate
+.s
+.open gate s
+/endmac
+
+/mac fortlanding
+.open gate n
+.n
+/mgo 3 e
+/mgo 14 n
+/mgo 7 e
+/endmac
+
+/mac mstansar
+/mgo 19 w
+/mgo 14 s
+/endmac
+
+/mac tansarms
+/mgo 14 n
+/s
+/mgo 19 e
+/e
+/endmac
+

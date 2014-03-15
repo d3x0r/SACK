@@ -1,0 +1,115 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<FONT size=+3><center></center></font><br>
+<a href="plugins.html" OnMouseOver="window.status='Other plugins';return true" OnMouseOut="window.status=''">Return to Plugins</A><br>
+<center><u>Devices</u></center>
+   <menu> 
+   The trigger device is used only with other devices, and it is not 
+   possible to use this device alone.&nbsp;
+      Internally this creates a device which it uses to relay from the actual
+      data input path to the object.  During the relay of information it processes
+      for possible trigger conditions.&nbsp; If the data datapath is not currently
+      open, it is impossible to create triggers.&nbsp; The object must have 
+      opened a device to be PARSEd.&nbsp; Trigger may also not be used on 
+      datapaths which have issued /FORMAT binary.
+   </menu>
+<center><u>Additional Commands</u></center>
+<menu>
+   TRIGGER
+   <menu>
+      <U>Operations</U><br>
+      <li>Create [Trigger] [Template]<br>
+      <menu>
+   Begins recording a new trigger on the currently open device.&nbsp; The 
+   template controls when the trigger actions are performed.  If a word in
+          the template is prefixed with an '&' then the word may be referenced
+          as a variable within the command.&nbsp; This allows words to be wild 
+          carded, and passed as parameters to the trigger commands.&nbsp; 
+
+     Recording is done like macro commands.&nbsp; All commands entered
+     after the recording is started are added to the list of commands
+     to perform when the trigger template matches incoming data.&nbsp; 
+     Recording is ended with the /ENDMACRO command.
+          <p>Example:<menu> /trigger create lookat &who looks at you.<br>
+         .say Hi, %who!<br>
+         /endmacro<br>
+         Incoming line like "Bobby looks at you" will invoke the commands
+         defined for the trigger.
+      </menu>
+      Also, a word in the template may be prefixed with a '*'.  If this 
+      is used instead of an '&', then one or more words may be matched.
+      The word following the '*' may be used as a parameter in the commands
+      which follow.
+      <p>Example:<menu>/trigger crea aurafade the white glow around *what body fades.<br>
+         .echo succeeded in dispelling %what.<br>
+         /endmac<br>
+         Incoming line like "the white glow around the Spirit of El-Alifam's body fades"
+         will invoke the commands, and echo "succeeded in dispelling the Spirit of El-Alifam's"
+         which may be incorrect, but can be fixed possibly using more commands
+         like /HEAD, /TAIL, etc...
+      </menu>
+      <br><li>Clear<br>
+      <menu>
+      	Removes all defined triggers.
+      </menu>
+      <br><li>Destroy [Trigger] ...
+      <menu>
+         Destroys a defined trigger on the currently open device.&nbsp; 
+   Multiple triggers may be listed, and all in the list will be destroyed.
+      </menu>
+      <br><li>Option [trigger] [options...]<br>
+   <menu>
+     Although the trigger name is required, if no options are specified, 
+          the current option set is displayed.&nbsp; 
+     Options which are in upper case are SET, lower case options are CLEAR. 
+     SET usually indicates a non-default value. 
+   <br><br>
+   <U>Optional options</u>
+
+      <menu>
+          Disable - Disables a trigger from being checked.<br>
+     Enable(*) - Enables a trigger.<br>
+          Anchor - forces a trigger to only check the beginning of a line<br>
+          Free(*) - allows the template phrase to appear anywhere on a line.<br>
+     Multi(*) - allows the trigger to fire always... disables Once options.<br>
+          Once - Forces a trigger to disable after it happens once.<br>
+     OnceOff - Forces a trigger to disable and then enable after it happens once.<br>
+     Exact - forces a strict case match on template versus data.<br>
+     Similar(*) - allows a non-case sensative compare on template.<br>
+     Pass(*) - allow trigger to forward data.<br>
+     Consume - if the trigger happens, do not pass the data through.<br><br>
+     (*) - these are default options when a trigger is created.
+   </menu>
+      </menu>
+      <menu>
+      </menu>
+      <br><li>List [trigger]
+   <menu>
+     If no trigger name is specified, all triggers on the current open
+     data datapath are listed.&nbsp; If the trigger name is specified,
+     then the trigger name, template, current options, and all commands
+     it would perform are displayed.
+   </menu>
+      <br><li>Help
+   <menu>
+      Help lists trigger sub-commands.
+   </menu>
+   <br><li>Store [file]
+   <menu>
+   Stores all current variables on the object, and all current triggers 
+   into the file name specified.&nbsp; This file is then able to be used
+   with the /script command to reload the trigger set.&nbsp; This command
+   is similar to the /STORE command which stores the current variables
+   and current macros on this object.
+   </menu>
+   <br><li>Trip [trigger] [parameters]
+   <menu>
+   This command is currently not implemented, but would allow one to
+   cause a trigger to happen.&nbsp; Would have to specify all parameters
+   required for the trigger.
+   </menu>
+   </menu>
+         
+</BODY>
+</HTML>

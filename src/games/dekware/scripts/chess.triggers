@@ -1,0 +1,59 @@
+
+/decl lastcolor 
+
+/trigger create login login:
+.Rathar
+/endmac
+/trigger create password password:
+.waterrat
+/trigger opt login dis
+/trigger opt password dis
+/endmac
+
+/trigger create continue \\ *anything
+/echo got a continuation mark.
+/setcolor %lastcolor
+/echo %anything
+/ setcolor grey black
+/endmac 
+/trigger opt continue anchor consume
+
+
+/trigger create genericsay &name : *thing
+/ setcolor white black
+/echo %name > %thing
+/ setcolor grey black
+/decl lastcolor white black
+/endmac
+/trigger opt genericsay consume anchor
+
+/trigger create logon [*who has connected.]
+/compare %who like guest
+/if success
+/return
+/endif
+/compare %who is sebastian
+/if success
+/ setcolor white red
+/echo ----------!!!!!!!!!!!!!!------------!!!!!!!!!!!!----------
+/decl sound sebastian.wav
+/sound %sound
+/endif
+/ setcolor green black
+/echo +++ %who has connected.
+/ setcolor grey black
+/decl lastcolor green black
+/endmac
+/trigger opt logon consume
+
+/trigger create logoff [*who has disconnected.]
+/compare %who like guest
+/if success
+/return
+/endif
+/ setcolor green black
+/echo --- %who has disconnected.
+/ setcolor grey black
+/decl lastcolor green black
+/endmac
+/trigger opt logoff consume

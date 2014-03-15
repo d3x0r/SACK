@@ -1,0 +1,5 @@
+
+BASE=M:/games/flatland
+INCLUDEDIRS+=$(BASE)/include
+FINALDEST=$(BASE)
+export FINALDEST

@@ -1,0 +1,160 @@
+/scr common.trig
+/scr weapon.macros
+/scr lightfoot.trig
+/scr hero.trig
+
+/decl container sack
+/decl wmode  dual
+/decl primary steel-sword
+/decl secondary steel-sword
+/decl location 
+/decl travel false
+/decl head           #leave head empty for first change...
+/decl cloaked true   #left this way from last rent...
+/decl food mushroom
+
+/dest raise
+/mac raise
+   .:raises an eyebrow.
+/endmac
+
+/dest panic
+/mac panic
+   .:panics, and attempts to flee.
+/endmac
+
+/dest primary
+/macro primary what where
+/decl primary %what
+/decl location %where
+/endmac
+
+/dest sec
+/macro sec what
+/compare secondary is %what
+
+/endmac
+
+/dest r
+/mac r
+.get recall sack
+.rec recall
+/endmac
+
+/decl healmode dual
+/dest fight
+/mac fight
+   /opencloak
+    .remove tooth
+    .put tooth %container
+    .hold boots
+    .remove skullcap
+    .put skullcap %container
+    .remove guards
+    .put guards %container
+    .wear snake-skin
+    .wear skull
+    /compare %healmode is dual
+    /if success
+       /dual
+    /endif
+   /closecloak
+/endmac
+
+/dest heal
+/mac heal
+   /opencloak
+   /compare %wmode is dual
+   /if success
+      /single
+      /decl healmode dual
+   /else
+      /decl healmode single
+   /endif
+   .remove skull
+   .get skullcap %container
+   .wear skullcap
+   .get tooth %container
+   .remove boots
+   .hold tooth
+   .remove snake-skin
+   .get guards %container
+   .wear guards
+   /closecloak
+/endmac
+
+/dest negarm
+/mac  negarm who
+.get bag %container
+.get serpentine bag
+.get serpentine bag
+.give serpentine %who
+.give serpentine %who
+.get stone bag
+.give stone %who
+.get shackles bag
+.give shackles %who
+.get boots bag
+.give boots %who
+.get mask bag
+.give mask %who
+.get pendant bag
+.give pendant %who
+/endmac
+
+/dest unarm 
+/mac unarm what
+.get serpentine %what
+.get serpentine %what
+.put serpentine bag
+.put serpentine bag
+.get stone %what
+.put stone bag
+.get shackles %what
+.put shackles bag
+.get boots %what
+.put boots bag
+.get mask %what
+.put mask bag
+.get pendant %what
+.put pendant bag
+.put bag %container
+
+/endmac
+
+
+/dest fly
+/mac fly
+.remove flag
+.put flag %container
+.get wings %container
+.wear wings
+/endmac
+
+/dest land
+/mac land
+.remove wings
+.put wings %container
+.get flag %container
+.wear flag
+/endmac
+
+/dest yy
+/mac yy where what
+.%where
+.kill %what
+.flee
+/endmac
+
+/trigger dest slap
+/trigger create slap you are slapped by &who
+.gl %who
+/endmac
+
+/dest sanc
+/mac sanc
+.get flare sack
+.quaff flare
+/endmac
+
+
