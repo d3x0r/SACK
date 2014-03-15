@@ -32,20 +32,27 @@ if( USE_HARDWARE_INFO AND NOT __LINUX__ )
   set( BASE_SOURCES  ${BASE_SOURCES} ${SOURCES_ROOT}src/windows_hardware_library/listhids.c )
 endif( USE_HARDWARE_INFO AND NOT __LINUX__ )
 
+
 if( WIN32 )
+if( NOT __NO_NETWORK__ )
 set(MORE_NETWORK_SOURCES
   ${SOURCES_ROOT}src/netlib/net_winsock2.c
 )
+endif( NOT __NO_NETWORK__ )
+
 set( SERVICE_STUB_SOURCES ${SOURCES_ROOT}src/utils/service/service_stub.c )
 endif( WIN32 )
 
+if( NOT __NO_NETWORK__ )
 if( NOT __ARM__ )
 set(MORE_NETWORK_SOURCES ${MORE_NETWORK_SOURCES} 
   ${SOURCES_ROOT}src/netlib/ping.c
   ${SOURCES_ROOT}src/netlib/whois.c
 )
 endif( NOT __ARM__ )
+endif( NOT __NO_NETWORK__ )
 
+if( NOT __NO_NETWORK__ )
 if( NEED_NETWORK )
 ADD_DEFINITIONS( -DNETWORK_SOURCE )
 endif( NEED_NETWORK )
@@ -57,6 +64,7 @@ set( NETWORK_SOURCES
 )
 SET_SOURCE_FILES_PROPERTIES( ${NETWORK_SOURCES} PROPERTIES 
 		FOLDER "Source Files\\Network Library" )
+endif( NOT __NO_NETWORK__ )
 
 
 set( SYSTEM_LIBRARY_SOURCES 
@@ -282,12 +290,15 @@ else( WIN32 )
   endif( NOT __ANDROID__ )
 endif( WIN32 )
 
+if( NOT __NO_NETWORK__ )
 set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS} 
      ${SOURCES_ROOT}src/netlib/html5.websocket/client/local.h
      ${SOURCES_ROOT}src/netlib/html5.websocket/json/json.h
      ${SOURCES_ROOT}src/netlib/html5.websocket/html5.websocket.common.h
      )
+endif( NOT __NO_NETWORK__ )
 
+if( NOT __NO_NETWORK__ )
 SET( HTML5_SOURCES 
 		${SOURCES_ROOT}src/psilib/html5.canvas/html5.canvas.c
         	${SOURCES_ROOT}src/netlib/html5.websocket/html5.websocket.common.c
@@ -298,6 +309,7 @@ SET( HTML5_SOURCES
 	)
 SET_SOURCE_FILES_PROPERTIES( ${HTML5_SOURCES} PROPERTIES 
 		FOLDER "Source Files\\HTML5 Support" )
+endif( NOT __NO_NETWORK__ )
         
 
 
@@ -361,8 +373,12 @@ set( TYPE_LIBRARY_SOURCES
   ${MSG_QUEUE_SOURCES}
 )
 
+if( NOT __NO_NETWORK__ )
 set( ADVANCED_TYPE_LIBRARY_SOURCES
     ${SOURCES_ROOT}src/typelib/http.c
+    )
+endif( NOT __NO_NETWORK__ )
+set( ADVANCED_TYPE_LIBRARY_SOURCES ${ADVANCED_TYPE_LIBRARY_SOURCES} 
     ${SOURCES_ROOT}src/typelib/url.c
     )
 
@@ -408,8 +424,14 @@ set( MD5_SOURCES
   ${SOURCES_ROOT}src/md5lib/md5c.c
   )
 
+if( NOT __NO_NETWORK__ )
+set( NETWORK_HEADERS
+     ${SOURCES_ROOT}src/netlib/netstruc.h
+     ${SOURCES_ROOT}src/netlib/ping.h
+    )
+endif( NOT __NO_NETWORK__ )
 
-set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS}
+set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS} ${NETWORK_HEADERS}
      ${SOURCES_ROOT}src/msgsvr/summoner/summoner.h
      ${SOURCES_ROOT}src/systemlib/taskinfo.h
      ${SOURCES_ROOT}src/systraylib/resource.h
@@ -417,8 +439,6 @@ set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS}
      ${SOURCES_ROOT}src/filesyslib/filemon/monitor.h
      ${SOURCES_ROOT}src/memlib/sharestruc.h
      ${SOURCES_ROOT}src/procreglib/registry.h
-     ${SOURCES_ROOT}src/netlib/netstruc.h
-     ${SOURCES_ROOT}src/netlib/ping.h
      ${SOURCES_ROOT}src/vectlib/vecstruc.h
      ${SOURCES_ROOT}src/SQLlib/sqlstruc.h
      ${SOURCES_ROOT}src/SQLlib/optlib/optlib.h
@@ -483,9 +503,11 @@ endif()
 
 
 if( WIN32 )
+if( NOT __NO_NETWORK__ )
 LIST(APPEND BASE_SOURCES
    ${SOURCES_ROOT}src/netlib/net_winsock2.c
 )
+endif( NOT __NO_NETWORK__ )
 if( NOT __CLR__ )
   LIST(APPEND BASE_SOURCES     ${SOURCES_ROOT}all_resources.rc )
   if( __CLR__ )

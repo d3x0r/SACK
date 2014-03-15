@@ -182,7 +182,11 @@ int main( int argc, char **argv )
 			}
 			else
 			{
+#ifdef __NO_NETWORK__
+				snprintf( tmp, sizeof( tmp ), WIDE("/System Settings/localhost") );
+#else
 				snprintf( tmp, sizeof( tmp ), WIDE("/System Settings/%s"), GetSystemName() );
+#endif
 			}
 			SystemPrefix = tmp;
 		}

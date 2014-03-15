@@ -161,7 +161,7 @@ SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntExx )( PODBC odbc, CTEXTSTR pS
    SACK_GetPrivateProfileIntExx( odbc, section, option, default_val, NULL, quiet DBG_SRC )
 
 
-SQLGETOPTION_PROC( INDEX, GetSystemID )( void );
+SQLGETOPTION_PROC( CTEXTSTR, GetSystemID )( void );
 
 SQLGETOPTION_PROC( void, EnumOptions )( POPTION_TREE_NODE parent
 					 , int (CPROC *Process)(PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags )

@@ -120,7 +120,11 @@ int main( int argc, TEXTCHAR **argv )
 			}
 			else
 			{
-				snprintf( tmp, sizeof( tmp ), WIDE("INI Store/%s"), GetSystemName() );
+#ifdef __NO_NETWORK__
+				snprintf( tmp, sizeof( tmp ), WIDE("/INI Store/localhost") );
+#else
+				snprintf( tmp, sizeof( tmp ), WIDE("/INI Store/%s"), GetSystemName() );
+#endif
 				SystemPrefix = tmp;
 			}
 			id_root = GetOptionIndex( id_root, WIDE("DEFAULT"), SystemPrefix, NULL );

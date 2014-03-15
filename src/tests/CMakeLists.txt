@@ -77,6 +77,7 @@ add_program(${project} ${BASE_SOURCES} )
 target_link_libraries( ${project} ${SACK_LIBRARIES} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES FOLDER tests )
 
+if( NOT __NO_NETWORK__ )
 set( project test_accept )
 set(BASE_SOURCES
     test_accept.c
@@ -86,6 +87,7 @@ add_program(${project} ${BASE_SOURCES} )
 target_link_libraries( ${project} ${SACK_LIBRARIES} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES FOLDER tests )
 install_default_dest( ${project} )
+endif( NOT __NO_NETWORK__ )
 
 
 set( project test_option_database_close )

@@ -212,6 +212,8 @@ OPTION( __INCLUDE_INTERSHELL__ "Include building intershell core in root project
 if( NOT __NO_ODBC__ )
 OPTION( __NO_ODBC__ "Use Odbc" 0 )
 endif( NOT __NO_ODBC__ )
+DEFINE_DEFAULT( __NO_NETwORK__ 0 )
+OPTION( __NO_NETWORK__ "Disable network code" __NO_NETWORK__ )
 OPTION( __ANDROID__ "Enable Android Behvaviors" 0 )
 OPTION( ALLOW_IMAGE_INTERFACES "monolithic build, by default, forces direct linking to video/image interfaces; allow proxy" 0 )
 OPTION( BUILD_ANDROID_CONSOLE_APPS "Enable building programs as command-line executable" ${__ANDROID__} )
@@ -260,6 +262,11 @@ if( MSVC )
     set( FORCE_CXX ON )
   endif( __CLR__ )
 endif( MSVC )
+
+if( __NO_NETWORK__ )
+   set( ExtraDefinitions ${ExtraDefinitions};__NO_NETWORK__ )
+endif( __NO_NETWORK__ )
+
 
 if( NOT __NO_ODBC__ OR USE_SQLITE )
 
@@ -1170,7 +1177,9 @@ endif( NOT __QNX__ AND NOT __ANDROID__ )
     GET_FILENAME_COMPONENT(WIN8_SDK "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows\\v8.0;InstallationFolder]" ABSOLUTE )
   endif( NOT WIN8_SDK OR ( WIN8_SDK STREQUAL "/registry" ) )
 
+if( NOT __NO_NETWORK__ )
   add_subdirectory( src/vidlib/proxy )
+endif( NOT __NO_NETWORK__ )
   add_subdirectory( src/vidlib/puregl2 )
 
 if( NOT __QNX__ AND NOT __ANDROID__ )
@@ -1285,13 +1294,13 @@ add_subdirectory( include )
 add_subdirectory( src/utils/runner )
 
 if( BUILD_TESTS )
-   add_subdirectory( src/netlib/html5.websocket/server )
-   #add_subdirectory( src/netlib/html5.websocket/client )
    
    #add_subdirectory( src/bench/mem )
+
  if( NOT __NO_GUI__ )
   add_subdirectory( src/msgsvr/testdisplay )
  endif( NOT __NO_GUI__ )
+
    add_subdirectory( src/configlib/test1 )
    # these opengl plugins used GLEW, and did their program at very low level
    # ment to be tests based on binary target output
@@ -1301,7 +1310,14 @@ if( BUILD_TESTS )
       # monolithic has interfaces forced off; so we can't get the shader compiler interface
       add_subdirectory( src/games/simple_vector_tester/d3d )
    endif( NOT BUILD_MONOLITHIC AND DIRECTX_SDK )   
+
+if( NOT __NO_NETWORK__ )
+   add_subdirectory( src/netlib/html5.websocket/server )
+   #add_subdirectory( src/netlib/html5.websocket/client )
    add_subdirectory( src/netlib/html5.websocket/json/tests )
+   add_subdirectory( src/netlib/echo )
+endif( NOT __NO_NETWORK__ )
+
    add_subdirectory( src/psilib/console/cmdshell )
    if( NOT __ANDROID__ )
       add_subdirectory( src/msgsvr/client/client_server )
@@ -1310,7 +1326,6 @@ if( BUILD_TESTS )
    endif( NOT __ANDROID__ )
    add_subdirectory( src/tests )
    add_subdirectory( src/psilib/console )
-   add_subdirectory( src/netlib/echo )
    add_subdirectory( src/psilib/editctltest )
    add_subdirectory( src/psilib/edittst )
    add_subdirectory( src/psilib/listtst )

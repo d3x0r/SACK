@@ -446,8 +446,13 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 	}
 	if( og.flags.bUseSystemDefault )
 	{
+#ifndef __NO_NETWORK__
 		if( !_system )
 			_system = GetSystemName();
+#else
+		if( !_system )
+			_system = GetSystemID();
+#endif
 		system = _system;
 	}
 	//lprintf( WIDE("GetOptionIndex for %s %s %s"), program?program:WIDE("NO PROG"), file, pBranch );
@@ -535,7 +540,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 			// trim trailing spaces from option names.
 			{
 				size_t n = StrLen( namebuf ) - 1;
-				while( n >= 0 && namebuf[n] == ' ' )
+				while( !( n & 0x80000 ) && namebuf[n] == ' ' )
 				{
 					namebuf[n] = 0;
 					n--;
@@ -655,7 +660,7 @@ POPTION_TREE_NODE GetOptionIndexEx( POPTION_TREE_NODE parent, const TEXTCHAR *fi
 INDEX GetSystemIndex( CTEXTSTR pSystemName )
 {
 	if( pSystemName )
-		return ReadNameTable( pSystemName, WIDE("systems"), WIDE("system_id") );
+		return SQLReadNameTable( og.Option, pSystemName, WIDE("systems"), WIDE("system_id") );
 	else
 	{
 		if( !og.SystemID )
@@ -1418,12 +1423,14 @@ static CTEXTSTR CPROC ResolveININame( PODBC odbc, CTEXTSTR pSection, TEXTCHAR *b
 							params.is_mapped = TRUE;
 					}
 
+#ifndef __NO_NETWORK__
 					if( params.is_mapped )
 					{
 						snprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile );
 						buf[127] = 0;
 						pINIFile = buf;
 					}
+#endif
 				}
 				//lprintf( "(result %s)", pINIFile );
 			}
@@ -1792,7 +1799,7 @@ SQLGETOPTION_PROC( int, SACK_WritePrivateProfileExceptionString )( CTEXTSTR pSec
 		system = GetSystemIndex( pSystemName );
 
 		snprintf( exception, sizeof( exception ), WIDE("insert into option_exception (`apply_from`,`apply_to`,`value_id`,`override_value_idvalue_id`,`system`) ")
-																	  WIDE( "values( \'%04d%02d%02d%02d%02d\', \'%04d%02d%02d%02d%02d\', %ld, %ld,%d")
+																	  WIDE( "values( \'%04d%02d%02d%02d%02d\', \'%04d%02d%02d%02d%02d\', %ld, %ld,%" _size_f )
              , wYrFrom, wMoFrom, wDyFrom
              , wHrFrom, wMnFrom,wScFrom
              , wYrTo, wMoTo, wDyTo
@@ -1877,9 +1884,17 @@ PRIORITY_PRELOAD( ReadOptionOptions, NAMESPACE_PRELOAD_PRIORITY + 1 )
 }
 
 
-SQLGETOPTION_PROC( INDEX, GetSystemID )( void )
+SQLGETOPTION_PROC( CTEXTSTR, GetSystemID )( void )
 {
-   return GetSystemIndex( GetSystemName() );
+#ifndef __NO_NETWORK__
+	return GetSystemIndex( GetSystemName() );
+#else
+	{
+      static TEXTCHAR buf[42];
+		SACK_GetPrivateProfileStringExxx( NULL, "SACK/System", "Name", GetSeqGUID(), buf, 42, NULL, TRUE DBG_SRC );
+		return buf;
+	}
+#endif
 }
 
 SQLGETOPTION_PROC( void, BeginBatchUpdate )( void )

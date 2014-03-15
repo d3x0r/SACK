@@ -58,11 +58,16 @@ endif( MSVC )
 
 		FILE( APPEND ${FILEOUT} "\n" )
 		FILE( APPEND ${FILEOUT} "SET( __NO_ODBC__ ${__NO_ODBC__})\n" )
-
 if( __NO_ODBC__ )
 		FILE( APPEND ${FILEOUT} "ADD_DEFINITIONS( -D__NO_ODBC__=1 )\n" )
 endif( __NO_ODBC__ )
 
+		FILE( APPEND ${FILEOUT} "SET( __NO_NETWORK_ ${__NO_NETWORK__})\n" )
+if( __NO_NETWORK__ )
+		FILE( APPEND ${FILEOUT} "ADD_DEFINITIONS( -D__NO_NETWORK__ )\n" )
+endif( __NO_NETWORK__ )
+                
+                
 if( FORCE_CXX )
 		FILE( APPEND ${FILEOUT} "SET( FORCE_CXX ${FORCE_CXX})\n" )
 endif( FORCE_CXX )
