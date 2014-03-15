@@ -1331,7 +1331,10 @@ void BuildFontCache( void )
 	while( ScanFiles( WIDE("."), WIDE("*.ttf\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
 						 , ListFontFile, SFF_SUBCURSE, 0 ) );
 
-   // scan windows/fonts directory
+	// scan windows/fonts directory
+#ifndef __NO_OPTIONS__
+   if( SACK_GetPrivateProfileIntEx( WIDE("SACK/Image Library"), WIDE("Scan Windows Fonts" ), 1, NULL, TRUE ) )
+#endif
 	{
 #ifdef HAVE_ENVIRONMENT
             CTEXTSTR name
