@@ -191,7 +191,9 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 							, PTRSZVAL psv )
 {
 	WebSocketClient websock = New( struct web_socket_client );
-	MemSet( websock, 0, sizeof( struct web_socket_client ) );
+	if( !wsc_local.timer )
+		wsc_local.timer = AddTimer( 2000, WebSocketTimer, 0 );
+
 	websock->buffer = Allocate( 4096 );
 	websock->pHttpState = CreateHttpState();
 	websock->input_state.on_open = on_open;
@@ -200,7 +202,7 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 	websock->input_state.on_error = on_error;
 	websock->input_state.psv_on = psv;
 
-   websock->output_state.flags.expect_masking = 1; // client to server is MUST mask because of proxy handling in that direction
+	websock->output_state.flags.expect_masking = 1; // client to server is MUST mask because of proxy handling in that direction
 
 	websock->url = SACK_URLParse( url_address );
 
@@ -257,6 +259,6 @@ void WebSocketEnableAutoPing( PCLIENT pc, _32 delay )
 
 PRELOAD( InitWebSocketServer )
 {
-   wsc_local.timer = AddTimer( 2000, WebSocketTimer, 0 );
+//   wsc_local.timer = AddTimer( 2000, WebSocketTimer, 0 );
 }
 
