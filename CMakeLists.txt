@@ -1373,7 +1373,7 @@ add_subdirectory( src/utils/deploy )
   add_subdirectory( src/imglib/dump_font_cache )
  endif( NOT __NO_GUI__ AND NOT __ANDROID__ )
 
- if( USE_OPTIONS )
+ if( USE_OPTIONS AND NOT ( __NO_ODBC__ AND NOT USE_SQLITE ) )
   if( NOT __NO_GUI__ )
    add_subdirectory( src/SQLlib/optlib/editoption )
   endif( NOT __NO_GUI__ )
@@ -1386,7 +1386,7 @@ add_subdirectory( src/utils/deploy )
      add_subdirectory( src/SQLlib/optlib/exportini )
   endif( NOT __ANDROID__ )
   
- endif( USE_OPTIONS )
+ endif( USE_OPTIONS AND NOT ( __NO_ODBC__ AND NOT USE_SQLITE ) )
 
 if( __LINUX__ OR ( MSVC10 AND __64__ ) )
 add_subdirectory( src/utils/apache_shell )
