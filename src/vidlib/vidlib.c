@@ -4186,7 +4186,7 @@ static int CPROC DefaultMouse( PRENDERER r, S_32 x, S_32 y, _32 b )
 				l_lock_x = x;
 				l_lock_y = y;
 			}
-			else if( MAKE_SOMEBUTTONS( b, l_mouse_b )  )
+			else if( MAKE_SOMEBUTTONS( b )  )
 			{
 				// this function sets the image.x and image.y so it can retain
 				// the last position of non-fullscreen...

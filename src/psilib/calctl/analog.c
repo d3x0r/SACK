@@ -244,6 +244,10 @@ void MakeClockAnalogEx( PSI_CONTROL pc, CTEXTSTR imagename, struct clock_image_t
 				int hour_hand_center, hour_hand_width, hour_hand_pivot;
 				TEXTCHAR tmp[256];
 				snprintf( tmp, sizeof( tmp ), WIDE( "Analog Clock/%s" ), imagename );
+#ifdef __NO_OPTIONS__
+#define SACK_GetProfileInt(a,b,c) (c)
+#endif
+
 				x = SACK_GetProfileInt( tmp, WIDE( "face x" ), 0 );
 				y = SACK_GetProfileInt( tmp, WIDE( "face y" ), 0 );
 				w = SACK_GetProfileInt( tmp, WIDE( "face width" ), 358 );
@@ -259,7 +263,6 @@ void MakeClockAnalogEx( PSI_CONTROL pc, CTEXTSTR imagename, struct clock_image_t
 				hour_hand_center = SACK_GetProfileInt( tmp, WIDE( "hand.hour.center" ), 480 );
 				hour_hand_width = SACK_GetProfileInt( tmp, WIDE( "hand.hour.width" ), 40 );
 				hour_hand_pivot = SACK_GetProfileInt( tmp, WIDE( "hand.hour.pivot" ), 179 );
-
 			analog->face = MakeSubImage( analog->image, x, y, w, h );
 			analog->composite = MakeImageFile( w, h );
 			analog->w = w;
@@ -323,7 +326,11 @@ void MakeClockAnalogEx( PSI_CONTROL pc, CTEXTSTR imagename, struct clock_image_t
 void MakeClockAnalog( PSI_CONTROL pc )
 {
 	TEXTCHAR namebuf[256];
+#ifndef __NO_OPTIONS__
 	SACK_GetProfileString( GetProgramName(), WIDE("Analog Clock/Use Image"), WIDE("images/Clock.png"), namebuf, 256 );
+#else
+   StrCpy( namebuf, WIDE("images/Clock.png") );
+#endif
 	MakeClockAnalogEx( pc, namebuf, NULL );
 }
 

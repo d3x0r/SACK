@@ -16,6 +16,9 @@ else( WIN32 )
     endif( __ANDROID__ OR QNX )
 
 endif( WIN32 )
+if( __NO_ODBC__ OR NOT USE_OPTIONS )
+   ADD_DEFINITIONS( -D__NO_OPTIONS__ )
+endif( __NO_ODBC__ OR NOT USE_OPTIONS )
 
 add_library_force_source( ${project} SHARED
 ${FIRST_GCC_LIBRARY_SOURCE}

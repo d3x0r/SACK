@@ -2886,10 +2886,10 @@ WM_DROPFILES
 static void LoadOptions( void )
 {
 	_32 average_width, average_height;
-	PODBC option = GetOptionODBC( NULL, 0 );
 	//int some_width;
 	//int some_height;
 #ifndef __NO_OPTIONS__
+	PODBC option = GetOptionODBC( NULL, 0 );
 	l.flags.bLogRenderTiming = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/Log Render Timing"), 0, TRUE );
 	l.flags.bView360 = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/360 view"), 0, TRUE );
 

@@ -11,6 +11,10 @@ endif( __ANDROID__ OR __QNX__ )
 
 ADD_DEFINITIONS( -D__3D__ )
 
+if( __NO_ODBC__ OR NOT USE_OPTIONS )
+   ADD_DEFINITIONS( -D__NO_OPTIONS__ )
+endif( __NO_ODBC__ OR NOT USE_OPTIONS )
+
 set( font_sources ../font.c ../fntcache.c ../fntrender.c ../lucidaconsole.c )
 set( loader_sources ../bmpimage.c ../gifimage.c ../pngimage.c ../jpgimage.c )
 set( sprite_sources ../sprite_common.c )
