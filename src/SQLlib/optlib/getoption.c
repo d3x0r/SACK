@@ -1887,7 +1887,7 @@ PRIORITY_PRELOAD( ReadOptionOptions, NAMESPACE_PRELOAD_PRIORITY + 1 )
 SQLGETOPTION_PROC( CTEXTSTR, GetSystemID )( void )
 {
 #ifndef __NO_NETWORK__
-	static CTEXTSTR result[12];
+	static TEXTCHAR result[12];
    snprintf( result, 12, "%"_size_f, GetSystemIndex( GetSystemName() ) );
 	return result;
 #else
