@@ -180,7 +180,7 @@ endif( NOT SQLITE3_FOUND )
 
 endif( USE_SQLITE )
 
-if( NOT __NO_ODBC__ )
+if( NOT __NO_OPTIONS__ )
 SET( OPTION_SOURCE
    ${SOURCES_ROOT}src/SQLlib/optlib/getoption.c
    ${SOURCES_ROOT}src/SQLlib/optlib/getoption_new.c
@@ -191,7 +191,7 @@ SET( OPTION_SOURCE
    )
 SET_SOURCE_FILES_PROPERTIES( ${OPTION_SOURCE} PROPERTIES 
 		FOLDER "Source Files\\Option Library" )
-endif( NOT __NO_ODBC__ )
+endif( NOT __NO_OPTIONS__ )
 
   if( FORCE_CXX )
 set_source_files_properties(${BAG_SQLITE_INTERFACE} PROPERTIES LANGUAGE CXX )

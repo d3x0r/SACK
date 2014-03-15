@@ -292,13 +292,16 @@ if( NOT __NO_ODBC__ OR USE_SQLITE )
    set( ExtraDefinitions ${ExtraDefinitions};__NO_ODBC__ )
  endif( NOT __NO_ODBC__ )
 
- if( NOT USE_OPTIONS )
-	set( ExtraDefinitions ${ExtraDefinitions};__NO_OPTIONS__ )
- endif( NOT USE_OPTIONS )
- 
 else( NOT __NO_ODBC__ OR USE_SQLITE )
 	set( ExtraDefinitions ${ExtraDefinitions};__NO_SQL__;__NO_ODBC__;__NO_OPTIONS__ )
 endif( NOT __NO_ODBC__ OR USE_SQLITE )
+
+
+if( NOT USE_OPTIONS OR ( __NO_ODBC__ AND NOT USE_SQLITE ) )
+    set( ExtraDefinitions ${ExtraDefinitions};__NO_OPTIONS__ )
+endif( NOT USE_OPTIONS OR ( __NO_ODBC__ AND NOT USE_SQLITE ) )
+ 
+
 
 if( USE_SACK_CUSTOM_MEMORY_ALLOCATION )
 add_definitions( -DUSE_SACK_CUSTOM_MEMORY_ALLOCATION )
