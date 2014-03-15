@@ -16,6 +16,7 @@
 
 #include <stdhdrs.h>
 #include <timers.h>
+#include <sqlgetoption.h>
 #include <sharemem.h>
 #include <ft2build.h>
 #ifdef __cplusplus
