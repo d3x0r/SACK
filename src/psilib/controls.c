@@ -2401,7 +2401,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	// creates
 	pc->flags.bInitial = 1;
 	pc->flags.bDirty = 1;
-	if( pc->nType == CONTROL_FRAME )
+	if( pc->nType == CONTROL_FRAME && g.default_font )
 	{
 		SetCommonFont( pc, g.default_font );
 	}
