@@ -39,6 +39,9 @@ RENDER_NAMESPACE
 
 int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nTouches )
 {
+	//lprintf( "Touches on camera %p", camera );
+	if( !camera )
+		return;
 #ifndef __ANDROID__
 	if( l.flags.bRotateLock )
 #endif
@@ -284,7 +287,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 			if( touches[0].flags.new_event )
 			{
 				PRENDERER used;
-				lprintf( WIDE("begin  (is it a touch on a window?)") );
+				//lprintf( WIDE("begin  (is it a touch on a window?)") );
 				// begin touch
 				l.mouse_x
 					= touch_info.one.x = touches[0].x;
@@ -310,7 +313,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 					touch_info.flags.owned_by_surface = 0;
 				}
 				// release
-            lprintf( WIDE("done") );
+            //lprintf( WIDE("done") );
 			}
 			else
 			{
@@ -327,7 +330,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				{
 					// drag
 					int delx, dely;
-					lprintf( WIDE("drag") );
+					//lprintf( WIDE("drag") );
 					delx = -touch_info.one.x + touches[0].x;
 					dely = -touch_info.one.y + touches[0].y;
 					{

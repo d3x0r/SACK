@@ -354,7 +354,7 @@ void LoadOptions( void )
 #endif
 
 #ifndef __NO_OPTIONS__
-   	l.flags.bLogRenderTiming = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Log Render Timing"), 0, TRUE );
+	l.flags.bLogRenderTiming = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Log Render Timing"), 0, TRUE );
 	l.flags.bView360 = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/360 view"), 0, TRUE );
 
 	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Image Library/Scale"), 10 );
@@ -490,7 +490,7 @@ void LoadOptions( void )
 			default_camera = (struct display_camera *)GetLink( &l.cameras, 1 );
 			//lprintf( "Retrieve default as %p", default_camera );
 		}
-		//lprintf( "Set default to %p", default_camera );
+		lprintf( "Set default to %p", default_camera );
 		SetLink( &l.cameras, 0, default_camera );
 	}
 	{
@@ -509,6 +509,74 @@ void LoadOptions( void )
 		l.flags.bLayeredWindowDefault = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Default windows are layered" ), LAYERED_DEFAULT, TRUE )?TRUE:FALSE;
 		l.flags.bLogWrites = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/Log Video Output"), 0, TRUE );
 	}
+#else
+   l.flags.bLogRenderTiming = 0;
+	l.flags.bView360 = 0;
+
+	l.scale = 1.0 / 10;
+	//lprintf( "LoadOptions" );
+	if( !l.cameras )
+	{
+		struct display_camera *default_camera = NULL;
+		_32 screen_w, screen_h;
+		int nDisplays = 1;
+		int n;
+      lprintf( WIDE("Loading %d displays"), nDisplays );
+		l.flags.bForceUnaryAspect = 0;
+		GetDisplaySizeEx( 0, NULL, NULL, &screen_w, &screen_h );
+		//lprintf( "Set camera 0 to 1" );
+		SetLink( &l.cameras, 0, (POINTER)1 ); // set default here 
+		for( n = 0; n < nDisplays; n++ )
+		{
+			TEXTCHAR tmp[128];
+			int custom_pos;
+			struct display_camera *camera = New( struct display_camera );
+			MemSet( camera, 0, sizeof( *camera ) );
+			camera->nCamera = n + 1;
+         camera->depth = 30000.0f;
+			camera->origin_camera = CreateTransform();
+
+			camera->flags.topmost = 0;
+
+#if defined( __QNX__ ) || defined( __ANDROID__ )
+			custom_pos = 0;
+#else
+			custom_pos = 0;
+#endif
+			camera->display = 0;
+			GetDisplaySizeEx( camera->display, &camera->x, &camera->y, &camera->w, &camera->h );
+
+			camera->identity_depth = camera->w/2;
+			if( l.flags.bForceUnaryAspect )
+				camera->aspect = 1.0;
+			else
+			{
+				camera->aspect = ((float)camera->w/(float)camera->h);
+			}
+
+			camera->type = 2;
+			if( camera->type == 2 && !default_camera )
+			{
+				default_camera = camera;
+			}
+			//lprintf( "Add camera to list" );
+			AddLink( &l.cameras, camera );
+			lprintf( WIDE(" camera is %d,%d" ), camera->w, camera->h );
+		}
+		if( !default_camera )
+		{
+			default_camera = (struct display_camera *)GetLink( &l.cameras, 1 );
+			//lprintf( "Retrieve default as %p", default_camera );
+		}
+		lprintf( "Set default to %p", default_camera );
+		SetLink( &l.cameras, 0, default_camera );
+	}
+	l.flags.bLogMessageDispatch = 0;
+	l.flags.bLogFocus = 0;
+	l.flags.bLogKeyEvent = 0;
+	l.flags.bLogMouseEvent = 0;
+	l.flags.bLayeredWindowDefault = 0;
+	l.flags.bLogWrites = 0;
 #endif
 
 	if( !l.origin )
