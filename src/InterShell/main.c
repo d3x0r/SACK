@@ -3986,15 +3986,18 @@ void GetPageSize( P_32 width, P_32 height )
 
 void ProbeDisplaySize( void )
 {
-
-	if( g.target_display > 0 )
+	if( g.flags.bUseCustomPositioning )
+	{
+		// page sizes will already be set; there will be no change for this.
+	}
+	else if( g.target_display > 0 )
 	{
 		GetDisplaySizeEx( g.target_display, &g.default_page_x, &g.default_page_y, &g.default_page_width, &g.default_page_height );
 	}
 	else
 	{
 		g.default_page_x = 0;
-      g.default_page_y = 0;
+		g.default_page_y = 0;
 		GetDisplaySizeEx( 0, NULL, NULL, &g.default_page_width, &g.default_page_height );
 		if( g.flags.multi_edit )
 		{
@@ -4117,14 +4120,15 @@ PSI_CONTROL SetupSystemsListAndGlobalSingleFrame(void )
 #  endif
 		if( !result_canvas )
 		{
-			if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "Intershell Layout/Use Custom Positioning" ), 0, TRUE ) )
+			g.flags.bUseCustomPositioning = SACK_GetProfileIntEx( GetProgramName(), WIDE( "Intershell Layout/Use Custom Positioning" ), 0, TRUE );
+			if( g.flags.bUseCustomPositioning )
 			{
-				int x = SACK_GetProfileInt( GetProgramName(), WIDE( "Intershell Layout/X Position" ), 0 );
-				int y = SACK_GetProfileInt( GetProgramName(), WIDE( "Intershell Layout/Y Position" ), 0 );
-				int _w = SACK_GetProfileInt( GetProgramName(), WIDE( "Intershell Layout/Width" ), width );
-				int _h = SACK_GetProfileInt( GetProgramName(), WIDE( "Intershell Layout/Height" ), height );
-				lprintf( WIDE("opening canvas at %d,%d %dx%d"), x, y, _w, _h );
-				result_canvas = MakeControl( NULL, menu_surface.TypeID, x, y, _w, _h, 0 );
+				g.default_page_x = SACK_GetProfileInt( GetProgramName(), WIDE( "Intershell Layout/X Position" ), 0 );
+				g.default_page_y = SACK_GetProfileInt( GetProgramName(), WIDE( "Intershell Layout/Y Position" ), 0 );
+				g.default_page_width = SACK_GetProfileInt( GetProgramName(), WIDE( "Intershell Layout/Width" ), width );
+				g.default_page_height = SACK_GetProfileInt( GetProgramName(), WIDE( "Intershell Layout/Height" ), height );
+				lprintf( WIDE("opening canvas at %d,%d %dx%d"), g.default_page_x, g.default_page_y, g.default_page_width, g.default_page_height );
+				result_canvas = MakeControl( NULL, menu_surface.TypeID, g.default_page_x, g.default_page_y, g.default_page_width, g.default_page_height, 0 );
 			}
 			else
 #endif
@@ -4138,8 +4142,8 @@ PSI_CONTROL SetupSystemsListAndGlobalSingleFrame(void )
 #endif
 		// always have at least 1 frame.  and it is a menu canvas
 		InterShell_DisablePageUpdate( result_canvas, TRUE );
-      GetFrameSize( result_canvas, &g.default_page_width, &g.default_page_height );
-      GetFramePosition( result_canvas, &g.default_page_x, &g.default_page_y );
+		GetFrameSize( result_canvas, &g.default_page_width, &g.default_page_height );
+		GetFramePosition( result_canvas, &g.default_page_x, &g.default_page_y );
 		//GetDisplayPosition( GetFrameRenderer( result_canvas ), &g.default_page_x, &g.default_page_y, &g.default_page_width, &g.default_page_height );
 		//lprintf( WIDE( "Got single frame. %d,%d" ), g.width, g.height );
 		UseACanvasFont( result_canvas, WIDE("Default") );
@@ -5068,7 +5072,6 @@ int restart( void )
 		InterShell_DisablePageUpdate( pc_canvas, FALSE );
 		if( g.flags.multi_edit )
 			SetCommonBorder( canvas->default_page->frame, BORDER_NORMAL|BORDER_RESIZABLE );
-      lprintf( "Display menu..." );
 		ProbeDisplaySize();
 		DisplayMenuCanvas( canvas->default_page->frame, NULL, g.default_page_width, g.default_page_height, g.default_page_x, g.default_page_y );
 		if( !g.flags.multi_edit )

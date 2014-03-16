@@ -184,6 +184,7 @@ typedef struct global_tag
 		BIT_FIELD bLogNames : 1;
 		BIT_FIELD bTopmost : 1;
 		BIT_FIELD bSpanDisplay : 1;
+		BIT_FIELD bUseCustomPositioning : 1;
 		BIT_FIELD bTransparent : 1;
 		BIT_FIELD bExternalApplicationhost : 1; // set by C# intro hook... so we don't make a auto g.single_frame
 		// once this comes up, the memlock region is disabled
