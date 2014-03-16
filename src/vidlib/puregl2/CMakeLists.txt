@@ -13,7 +13,7 @@ OPTION( WIN8_TARGET "Enable directx 11 target (directcomposition also)" ${MSVC11
 
 if( ( __NO_ODBC__ AND NOT USE_SQLITE ) OR NOT USE_OPTIONS )
    ADD_DEFINITIONS( -D__NO_OPTIONS__ )
-if( ( __NO_ODBC__ AND NOT USE_SQLITE ) OR NOT USE_OPTIONS )
+endif( ( __NO_ODBC__ AND NOT USE_SQLITE ) OR NOT USE_OPTIONS )
 
 if( DIRECTX_SDK )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
