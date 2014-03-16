@@ -127,6 +127,9 @@ static void CPROC AndroidANW_GetDisplaySizeEx( int nDisplay
 														  , S_32 *x, S_32 *y
 														  , _32 *width, _32 *height)
 {
+	// wait for a valid display...
+	while( !l.default_display_x || !l.default_display_y )
+		Relinquish();
 	if( x )
 		(*x) = 0;
 	if( y )
