@@ -979,6 +979,21 @@ PTEXT GetVariable( PSENTIENT ps, CTEXTSTR varname )
 }
 
 //------------------------------------------------------------------------
+
+// return FALSE if it's an object result
+static LOGICAL ResolveVarname( PENTITY focus, PENTITY *result_entity, PTEXT *varname )
+{
+
+   S_64 number;
+	if( IsIntNumber( GetText( *varname ), &number ) )
+	{
+      // array indexer as in %3.apple  ... /grab 3.apple
+	}
+
+}
+
+//------------------------------------------------------------------------
+
 #define STEP_TOKEN() do { pPrior = pReturn; \
 	pReturn = *token;  \
 	ptext = GetText( pReturn ); textlen = GetTextSize( pReturn );  \
@@ -1129,11 +1144,14 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 		}
 	}
 
+
+
 	{
 
 		int bLoop/* = 0*/;
 		PTEXT pNext/* = NEXTLINE( *token )*/;
 		PTEXT pAfterNext/* = NEXTLINE( pNext )*/;
+		S_64 long_count = 1;
 		//int bDot/* = ( GetTextSize( pNext ) == 1 ) && GetText( pNext ) == '.'*/;
 		//if( bDot )
 		//{
@@ -1144,13 +1162,41 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 		((( GetTextSize( *token ) == 1 ) && (GetText( *token )[0] == '.'))														 \
 		?(!HAS_WHITESPACE(pNext)?(1):(0)):(0))))
 
-		while( UGLY_LOOP_TEST_FOR_PERIOD_SEPARATOR() || ( ptext[0] == '(' ) )
+
+		while( UGLY_LOOP_TEST_FOR_PERIOD_SEPARATOR() || ( ptext[0] == '(' )
+				|| ( ( GetTextSize( *token ) == 1 ) && (GetText( *token )[0] == '[') )
+			  )
 		{
 			size_t count;
-			S_64 long_count = 1;
 			// resolve an object's name...
 			PTEXT pObjName;
+
 			lprintf( WIDE("Token : %s text %s"), GetText( *token ), ptext );
+
+			if( ( GetTextSize( *token ) == 1 ) && (GetText( *token )[0] == '[') )
+			{
+				PTEXT endseg = NextLine( *token );
+				PTEXT indexer = SubstToken( ps, &endseg, FALSE, FALSE );
+				if( ( GetTextSize( endseg ) == 1 ) && (GetText( endseg )[0] == ']') )
+				{
+					if( !IsIntNumber( indexer, &long_count ) )
+					{
+						S_MSG( ps, "Invalid array index parameter" );
+						lprintf( "Invalid array index parameter" );
+						return pReturn;
+					}
+					else
+						(*token) = NextLine( endseg );
+
+				}
+				else
+				{
+					S_MSG( ps, "Unterminated indexer argument" );
+					lprintf( "unterminated indexer argument" );
+					return pReturn;
+				}
+			}
+
 			if( !bLoop )
 			{
 				//STEP_TOKEN();
@@ -1161,6 +1207,7 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 			{
 				pObjName = pReturn;
 			}
+
 			// make sure we only take int numbers
 			if( IsIntNumber( *token, &long_count ) )
 			{
@@ -1255,6 +1302,9 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 			STEP_TOKEN();
 		}
 	}
+
+
+
 	{ /*FOLD00*/
 		{
 			PTEXT pText = GetVolatileVariable( pEnt, ptext );
@@ -1277,11 +1327,11 @@ check_global_vars:
 					return c;
 			}
 			// otherwise - unknown location - or unkonw variable..
-		if( !ps->CurrentMacro )
-		{
-			S_MSG( ps, WIDE("Parameter named %s was not found.")
+			if( !ps->CurrentMacro )
+			{
+				S_MSG( ps, WIDE("Parameter named %s was not found.")
 					  , GetText(pReturn) );
-		}
+			}
 			if( IsVarLen )
 				if( pReturn->flags & TF_INDIRECT )
 					return MakeTempNumber( LineLength( GetIndirect( pReturn ) ) );
@@ -1388,19 +1438,7 @@ check_global_vars:
 	return pReturn;
 }
 
-//--------------------------------------------------------------------------
-CORE_PROC( PTEXT, GetEntityParam )( PENTITY pe, PTEXT *from ) /*FOLD00*/
-{
-	if( !from || !*from) return NULL;
 
-	// skip end of lines to getparam....
-	while( from &&
-			 *from &&
-			 !( (*(int*)&(*from)->flags ) & IS_DATA_FLAGS ) &&
-			 !(*from)->data.size ) // blah...
-		*from = NEXTLINE( *from );
-	return SubstTokenEx( NULL, from, FALSE, FALSE, pe );
-}
 
 //--------------------------------------------------------------------------
 CORE_PROC( PTEXT, GetParam )( PSENTIENT ps, PTEXT *from )
@@ -1994,7 +2032,7 @@ void EnqueCommandProcess( PTEXT pName, PLINKQUEUE *ppOutput, PTEXT pCommand ) /*
 							 , SegCreateFromText( WIDE(" Processing:") ) );
 	SegAppend( pLeader, SegCreateIndirect( pCommand ) );
 	pOut = BuildLine( pLeader );
-	//Log1( WIDE("%s"), GetText( pOut ) );
+	//lprintf( WIDE("%s"), GetText( pOut ) );
 	EnqueLink( ppOutput,  pOut );
 	LineRelease( pLeader );
 }
@@ -2036,7 +2074,7 @@ void EnqueCommandRecord( PSENTIENT ps, PTEXT pName, PLINKQUEUE *ppOutput, PTEXT 
 	VarTextDestroy( &pvt );
 	SegAppend( pLeader, SegCreateIndirect( pCommand ) );
 	pOut = BuildLine( pLeader );
-	Log1( WIDE("%s"), GetText( pOut ) );
+	lprintf( WIDE("%s"), GetText( pOut ) );
 	EnqueLink( ppOutput,  pOut );
 	LineRelease( pLeader );
 }
@@ -2302,11 +2340,6 @@ Recheck:
 		DECLTEXT( dev2, WIDE("ansi") );
 		DECLTEXT( dev2opt, WIDE("inbound newline") );
 		DECLTEXT( dev2name, WIDE("system parse") );
-		//DECLTEXT( dev3, WIDE("splice") );
-		//DECLTEXT( dev3name, WIDE("system splice") );
-		//DECLTEXT( dev3opt, WIDE("inbound") );
-		//DECLTEXT( devdbg, WIDE("binary") );
-		//DECLTEXT( devdbgname, WIDE("Binary Logger") );
 		if( data[1] )
 		{
 			PTEXT exclam;

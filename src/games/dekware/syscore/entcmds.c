@@ -1028,7 +1028,6 @@ int CPROC LOOKFOR( PSENTIENT ps, PTEXT parameters )
 // Many fixes to finding things, etc.  Also fixed resuming on /wait command, previously fell back to the 5 second poll on sentients, instead of when data became available re-evaluating for a command.
 //
 // Revision 1.17  2005/04/20 06:20:25  d3x0r
-// Okay a massive refit to 'FindThing' To behave like GetParam(SubstToken) to handle count.object references better.
 //
 // Revision 1.16  2005/04/15 16:21:31  d3x0r
 // Extend find object - and look...

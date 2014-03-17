@@ -1557,7 +1557,6 @@ int CPROC DefineOnBehavior( PSENTIENT ps, PTEXT parameters )
 // Many fixes to finding things, etc.  Also fixed resuming on /wait command, previously fell back to the 5 second poll on sentients, instead of when data became available re-evaluating for a command.
 //
 // Revision 1.43  2005/04/20 06:20:25  d3x0r
-// Okay a massive refit to 'FindThing' To behave like GetParam(SubstToken) to handle count.object references better.
 //
 // Revision 1.42  2005/03/02 19:13:59  d3x0r
 // Add local behaviors to correct list.
