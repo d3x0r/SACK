@@ -687,7 +687,6 @@ int CPROC DUMPVAR( PSENTIENT ps, PTEXT parameters )
 // Many fixes to finding things, etc.  Also fixed resuming on /wait command, previously fell back to the 5 second poll on sentients, instead of when data became available re-evaluating for a command.
 //
 // Revision 1.23  2005/04/20 06:20:25  d3x0r
-// Okay a massive refit to 'FindThing' To behave like GetParam(SubstToken) to handle count.object references better.
 //
 // Revision 1.22  2005/01/28 16:02:20  d3x0r
 // Clean memory allocs a bit, add debug/logging option to /memory command,...

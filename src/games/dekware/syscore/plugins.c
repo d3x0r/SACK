@@ -1290,7 +1290,6 @@ void AddCommonBehavior( CTEXTSTR name, CTEXTSTR description )
 //Fix lingering data on NULL path datapaths.  Also, return find_self as a result of searching... there is only one object that will match %me... and that object, although not really 'grabbable' or 'visilbe' is both.
 //
 //Revision 1.55  2005/04/20 06:20:25  d3x0r
-//Okay a massive refit to 'FindThing' To behave like GetParam(SubstToken) to handle count.object references better.
 //
 //Revision 1.54  2005/03/02 19:13:59  d3x0r
 //Add local behaviors to correct list.

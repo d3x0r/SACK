@@ -1143,7 +1143,6 @@ int CPROC VVARS( PSENTIENT ps, PTEXT parameters )
 // Fixed listing and handling of ON behaviors.  Protected against some common null spots.  Fixed databath destruction a bit....
 //
 // Revision 1.25  2005/04/20 06:20:25  d3x0r
-// Okay a massive refit to 'FindThing' To behave like GetParam(SubstToken) to handle count.object references better.
 //
 // Revision 1.24  2004/04/06 17:40:57  d3x0r
 // Minor cleanup on unchecked NULL situations
