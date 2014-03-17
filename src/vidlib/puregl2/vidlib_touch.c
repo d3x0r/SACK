@@ -41,7 +41,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 {
 	//lprintf( "Touches on camera %p", camera );
 	if( !camera )
-		return;
+		return 0;
 #ifndef __ANDROID__
 	if( l.flags.bRotateLock )
 #endif
