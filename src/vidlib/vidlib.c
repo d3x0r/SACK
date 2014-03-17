@@ -668,7 +668,20 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 								//lprintf( "non layered... begin update." );
 								if( hVideo->flags.bFullScreen && !hVideo->flags.bNotFullScreen )
 								{
-									StretchBlt ((HDC)hVideo->hDCOutput, 0, 0, hVideo->full_screen.width, hVideo->full_screen.height,
+
+                           _32 w;
+									_32 h;
+									S_32 x, y;
+									w =  hVideo->pImage->width * hVideo->full_screen.width / hVideo->pImage->width;
+									h =  hVideo->pImage->height * hVideo->full_screen.width / hVideo->pImage->width;
+									if( h > hVideo->full_screen.height )
+									{
+										w =  hVideo->pImage->width * hVideo->full_screen.height / hVideo->pImage->height;
+										h =  hVideo->pImage->height * hVideo->full_screen.height / hVideo->pImage->height;
+									}
+									y = ( hVideo->full_screen.height - h ) / 2;
+                           x = ( hVideo->full_screen.width - w ) / 2;
+									StretchBlt ((HDC)hVideo->hDCOutput, x, y, w, h,//hVideo->full_screen.width, hVideo->full_screen.height,
 										(HDC)hVideo->hDCBitmap, 0, 0, hVideo->pImage->width, hVideo->pImage->height, SRCCOPY);
 								}
 								else
@@ -5186,11 +5199,11 @@ RENDER_PROC (void, GetDisplaySizeEx) ( int nDisplay
 					{
 						lprintf( WIDE( "display %s is at %d,%d %dx%d" ), dev.DeviceName, dm.dmPosition.x, dm.dmPosition.y, dm.dmPelsWidth, dm.dmPelsHeight );
 					}
-					else
-						lprintf( WIDE( "Found display name, but enum current settings failed? %s %d" ), teststring, GetLastError() );
-					lprintf( WIDE( "[%s] might be [%s]" ), teststring, dev.DeviceName );
+					//else
+					//	lprintf( WIDE( "Found display name, but enum current settings failed? %s %d" ), teststring, GetLastError() );
 					if( StrCaseCmp( teststring, dev.DeviceName ) == 0 )
 					{
+						lprintf( WIDE( "[%s] might be [%s]" ), teststring, dev.DeviceName );
 						if( EnumDisplaySettings( dev.DeviceName, ENUM_CURRENT_SETTINGS, &dm ) )
 						{
 							if( x )
