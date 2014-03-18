@@ -978,18 +978,209 @@ PTEXT GetVariable( PSENTIENT ps, CTEXTSTR varname )
 	return NULL;
 }
 
+static PTEXT LookupMacroVariable( CTEXTSTR ptext, PMACROSTATE pms )
+{
+	PTEXT c;
+   PTEXT pReturn;
+	// if skipped a % retain all further...
+	// also cannot perform substition....
+	if( !strcmp( ptext, WIDE("...") ) ) // may test for 'elispes'?
+	{
+		S_32 i;
+		//lprintf( WIDE("Gathering trailing macro args into one line...")  );
+		if( pms->pMacro->nArgs < 0 )
+		{
+			//lprintf( WIDE("Skipping some arguments to get to ... ") );
+			i = -pms->pMacro->nArgs;
+			pReturn = pms->pArgs;
+			while( i && --i && pReturn )
+			{
+				//lprintf( WIDE("Skipped %s"), GetText( pReturn ) );
+				pReturn = NEXTLINE( pReturn );
+			}
+		}
+		else
+			lprintf( WIDE("Macro has positive argument count - there is no ... param") );
+		//lprintf( WIDE("Okay at this point pReturn should be start of macro extra parms") );
+		if( !(pReturn->flags & TF_INDIRECT) )
+		{
+			PTEXT pWrapper = SegCreateIndirect( pReturn );
+			lprintf( WIDE("Wrapping pReturn in a single seg wrapper") );
+			SegAppend( SegBreak( pReturn ), pWrapper );
+			pWrapper->flags |= TF_DEEP;
+			pReturn = pWrapper;
+		}
+		//else // normal condition.
+		//	lprintf( WIDE("Result is already in a DEEP indirect? ") );
+		return pReturn;
+	}
+
+	{
+		// parameter substition for macros...
+		// wow even supports ancient syntax of %1 %2 %3 ....
+		int n = atoi( ptext );
+		lprintf( "int of %s is %d", ptext, n );
+		if( !n )
+		{
+			LIST_FORALL( pms->pVars, n, PTEXT, c )
+			{
+				lprintf( "is var %s == %s",GetText( c ), ptext );
+				if( TextIs( c, ptext ) )
+				{
+					return NEXTLINE(c);
+				}
+			}
+			// if variable was found - it is returned...
+
+			// test versus prior macro names....
+			// count segments which are names...
+			// segments are parallel aligned with macros from command...
+
+			// n == 0 at this point cause this param was not numeric...
+			n = 0;
+			c = pms->pMacro->pArgs;
+			while( c )
+			{
+				lprintf( "is arg %s == %s",GetText( c ), ptext );
+				if( TextIs( c, ptext ) )
+					break;
+				n++;
+				c = NEXTLINE(c);
+			}
+			if( !c )
+				return NULL;
+		}
+		else
+			n--;
+
+		c = pms->pArgs; // current args to this macro.
+		lprintf( "so... %d %p", n, c );
+		while( n && c )
+		{
+			c = NEXTLINE(c);
+			n--;
+		}
+		pReturn = c;
+		lprintf( "result param is %s", GetText( pReturn ) );
+
+	}
+	return pReturn;
+}
+
 //------------------------------------------------------------------------
 
 // return FALSE if it's an object result
-static LOGICAL ResolveVarname( PENTITY focus, PENTITY *result_entity, PTEXT *varname )
+static PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, PTEXT *varname, LOGICAL entity_first )
 {
-
-   S_64 number;
-	if( IsIntNumber( GetText( *varname ), &number ) )
+	S_64 number;
+	PTEXT septoken;
+	PTEXT next_token;
+	PTEXT name_token = NULL;
+	S_64 long_count = 1;
+	while( 1 )
 	{
-      // array indexer as in %3.apple  ... /grab 3.apple
-	}
+		septoken = *varname;
+		if( GetTextSize( septoken ) == 1 && GetText( septoken )[0] == '(' )
+		{
+			PENTITY tmp;
+			PTEXT tmp_token = NEXTLINE( *varname );
+			PTEXT real_token = SubstTokenEx( ps_out, &tmp_token, FALSE, FALSE, focus );
+			int findtype;
+			size_t count = 1;
+			if( GetName( focus ) == real_token )
+				tmp = focus;
+			else
+				tmp = (PENTITY)DoFindThing( focus, FIND_VISIBLE, &findtype, &count, GetText( real_token ) );
+			if( !tmp )
+				lprintf( "expected object.varname failed" );
+			
+			if( GetTextSize( tmp_token ) == 1 && GetText( tmp_token )[0] == ')' )
+			{
+				// success
+				focus = tmp;
+				(*varname) = NEXTLINE( tmp_token );
+				continue;
+			}
+			else
+			{
+				S_MSG( ps_out, WIDE( "Failed to find close paran phrase" ) );
+				return NULL;
+			}
+		}
+		else
+		{
+			next_token = NEXTLINE( septoken );
+			if( next_token && GetTextSize( next_token ) == 1 && GetText( next_token )[0] == '.' )
+			{
+				if( IsIntNumber( septoken, &long_count ) )
+				{
+					if( HAS_WHITESPACE( NEXTLINE( next_token ) ) )
+					{
+						lprintf( "Syntax error; found a count which expects an object..." );
+					}
+					name_token = NEXTLINE( next_token );
+				}
+				else
+				{
+					if( HAS_WHITESPACE( NEXTLINE( next_token ) ) )
+					{
+						PENTITY discovered;
+						int findtype;
+						size_t count = 1;
+						discovered = (PENTITY)DoFindThing( focus, FIND_VISIBLE, &findtype, &count, GetText( next_token ) );
+						if( !discovered )
+							lprintf( "expected object.varname failed" );
+						else
+						{
+							*varname = next_token;
+							return discovered;
+						}
+					}
+					lprintf( "Expected a number before the '.' referencing this object" );
+				}
+			}
+			else if( next_token && GetTextSize( next_token ) == 1 && GetText( next_token )[0] == '[' )
+			{
+				PTEXT phrase = NEXTLINE( next_token );
+				PTEXT indexer = SubstTokenEx( ps_out, &phrase, FALSE, FALSE, focus );
+				if( GetTextSize( phrase ) == 1 && GetText( phrase )[0] == ']' )
+				{
+					if( IsIntNumber( indexer, &long_count ) )
+					{
+						name_token = septoken;
+						(*varname) = NEXTLINE( phrase );
+					}
+					else
+					{
+						S_MSG( ps_out, WIDE("Indexer phrase did not result in an integer") );
+						lprintf( WIDE("Indexer phrase did not result in an integer") );
+					}
+				}
+			}
+		}
+		if( name_token && NEXTLINE( name_token ) && !HAS_WHITESPACE( NEXTLINE( name_token ) ) )
+		{
+			PENTITY discovered;
+			int findtype;
+			size_t count = long_count;
 
+			//if( entity_first )
+			{
+				discovered = (PENTITY)DoFindThing( focus, FIND_VISIBLE, &findtype, &count, GetText( name_token ) );
+				if( discovered )
+				{
+					focus = discovered;
+					name_token = NULL;
+					continue;
+				}
+				else
+					break;
+			}
+		}
+		else
+			break;
+	}
+	return focus;
 }
 
 //------------------------------------------------------------------------
@@ -1033,15 +1224,17 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 	{
 		pEnt = ps->Current; // default entity to check...
 		pms = ps->CurrentMacro;
+		//lprintf( "pms is now something %p %p", pms, pms?pms->pVars:0 );
 	}
 	else
 	{
 		pEnt = pe;
+		//lprintf( "PMS is NULL" );
 		pms = NULL; // no known macro state?
 	}
 
 	BEGIN_STEP_TOKEN();
-
+	//lprintf( "Begin Step Token: %s (%s)", ptext, GetText( *token ) );
 	if( ( !pEnt && !pms )
 		|| ( pReturn->flags & ( TF_BINARY | TF_SENTIENT | TF_ENTITY ) ) )
 		return pReturn; // return this token... 
@@ -1049,48 +1242,51 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 	const_var = 0;
 	if( !IsVar && !IsLen )
 	{
-		 if( ( IsVar || ptext[0] == '%' ) && ( textlen == 1 ) )
-		 {
-			  const_var = '%';
-			  IsVarLen = FALSE;
-			  if( *token )
-			  {
-					STEP_TOKEN();
-			  }
-			  else
-					return pReturn; // last thing on the line was this '%'
-		 }
-		 else if( ( ptext[0] == '#' ) && ( textlen == 1 ) )
-		 {
-			  const_var = '#';
-			  IsVarLen = TRUE;
-			  if( *token )
-			  {
-					STEP_TOKEN();
-			  }
-			  else
-					return pReturn; // last thing on the line was this '#'
-		 }
-		 else
-		 {
-			  return pReturn; // isn't a variable at all....
-		 }
+		if( ( IsVar || ptext[0] == '%' ) && ( textlen == 1 ) )
+		{
+			const_var = '%';
+			IsVarLen = FALSE;
+			if( *token )
+			{
+				STEP_TOKEN();
+			}
+			else
+				return pReturn; // last thing on the line was this '%'
+		}
+		else if( ( ptext[0] == '#' ) && ( textlen == 1 ) )
+		{
+			const_var = '#';
+			IsVarLen = TRUE;
+			if( *token )
+			{
+				STEP_TOKEN();
+			}
+			else
+				return pReturn; // last thing on the line was this '#'
+		}
+		else
+		{
+			return pReturn; // isn't a variable at all....
+		}
 
-		 // check for double var escapes '%%' and '##'
-		 // if the token after a '%' is the same,
-		 // align the return to the same left as the prior,
-		// and return the symbol. 
-		 if( ptext[0] == const_var ) // double % strip one off return direct.
-		 {
-			  pReturn->format.position.offset.spaces = pPrior->format.position.offset.spaces;
-			  return pReturn; // return now....
-		 }
+		// check for double var escapes '%%' and '##'
+		// if the token after a '%' is the same,
+		// align the return to the same left as the prior,
+		// and return the symbol.
+		if( ptext[0] == const_var ) // double % strip one off return direct.
+		{
+			pReturn->format.position.offset.spaces = pPrior->format.position.offset.spaces;
+			return pReturn; // return now....
+		}
 	}
 	else
 	{
 		if( IsLen )
 			IsVarLen = TRUE;
+		else
+			return pReturn;
 	}
+	lprintf( "Token resolved as a variable... further processing." );
 	// at this point - we have established that the next thing
 	// may be a variable name to locate
 	//	variable in local space, macro param space, and object var space
@@ -1143,167 +1339,28 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 			}
 		}
 	}
-
-
-
 	{
-
-		int bLoop/* = 0*/;
-		PTEXT pNext/* = NEXTLINE( *token )*/;
-		PTEXT pAfterNext/* = NEXTLINE( pNext )*/;
-		S_64 long_count = 1;
-		//int bDot/* = ( GetTextSize( pNext ) == 1 ) && GetText( pNext ) == '.'*/;
-		//if( bDot )
-		//{
-		//	if( !HAS_WHITESPACE( pAfterNext ) )
-		//		bLoop = 1;
-		//}
-#define UGLY_LOOP_TEST_FOR_PERIOD_SEPARATOR() 		(bLoop=((pNext = NEXTLINE( *token )),(pAfterNext = NEXTLINE( pNext )), \
-		((( GetTextSize( *token ) == 1 ) && (GetText( *token )[0] == '.'))														 \
-		?(!HAS_WHITESPACE(pNext)?(1):(0)):(0))))
-
-
-		while( UGLY_LOOP_TEST_FOR_PERIOD_SEPARATOR() || ( ptext[0] == '(' )
-				|| ( ( GetTextSize( *token ) == 1 ) && (GetText( *token )[0] == '[') )
-			  )
+		pEnt = ResolveEntity( ps, pEnt, &pReturn, FALSE );
+		(*token) = NEXTLINE( pReturn );
+		ptext = GetText( pReturn );
+		
+		if( pEnt == ps->Current )
 		{
-			size_t count;
-			// resolve an object's name...
-			PTEXT pObjName;
-
-			lprintf( WIDE("Token : %s text %s"), GetText( *token ), ptext );
-
-			if( ( GetTextSize( *token ) == 1 ) && (GetText( *token )[0] == '[') )
+			// macro state only applies for the object of the sentience.
+			// IF next token is not a '.' and this token != '(' and next token != '['
+			if( pms )
 			{
-				PTEXT endseg = NextLine( *token );
-				PTEXT indexer = SubstToken( ps, &endseg, FALSE, FALSE );
-				if( ( GetTextSize( endseg ) == 1 ) && (GetText( endseg )[0] == ']') )
+				PTEXT pMacroReturn = LookupMacroVariable( ptext, pms );
+				if( pMacroReturn )
 				{
-					if( !IsIntNumber( indexer, &long_count ) )
-					{
-						S_MSG( ps, "Invalid array index parameter" );
-						lprintf( "Invalid array index parameter" );
-						return pReturn;
-					}
-					else
-						(*token) = NextLine( endseg );
-
-				}
-				else
-				{
-					S_MSG( ps, "Unterminated indexer argument" );
-					lprintf( "unterminated indexer argument" );
-					return pReturn;
+					if( IsVarLen )
+						MakeTempNumber( LineLength( pMacroReturn ) );
+					lprintf( "Returning %s", GetText( pMacroReturn ) );
+					return pMacroReturn; // this variable comes from this variable
 				}
 			}
-
-			if( !bLoop )
-			{
-				//STEP_TOKEN();
-				// if within parens, substitute that expression for object name
-				pObjName = SubstToken( ps, token, FALSE, FALSE );
-			}
-			else
-			{
-				pObjName = pReturn;
-			}
-
-			// make sure we only take int numbers
-			if( IsIntNumber( *token, &long_count ) )
-			{
-				RESET_TOKEN(); // isint number updates token to be after the number (if is number)
-
-				// next thing needs to be a '.' and the thing after is the object
-				// this is the count...
-				//count = IntNumber( pNumber );
-				//STEP_TOKEN();
-				if( ptext[0] != '.' )
-				{
-					S_MSG( ps, WIDE("Dot not found after object count reference...") );
-				}
-				else			  	
-				{					  	
-					STEP_TOKEN();
-					pObjName = pReturn;
-				}
-				lprintf( WIDE("Object name after count of %")_size_f WIDE(" is %s"), count, ptext );
-			}
-			lprintf( WIDE("Text is %s token %s"), ptext, GetText( *token ) );
-			if( ptext[0] == '[' )
-			{
-				PTEXT _token = *token;
-				PTEXT pCount = SubstToken( ps, token, FALSE, FALSE );
-				S_64 iNumber;
-				if( !IsIntNumber( pCount, &iNumber ) )
-				{
-					S_MSG( ps, WIDE("Array reference is not a number: %s in %s"), GetText( pCount ), GetText( pObjName ) );
-					*token = _token;
-				}
-				else
-				{
-					//BEGIN_STEP_TOKEN();
-				}
-				{
-					if( ptext[0] != ']' )
-					{
-						S_MSG( ps, WIDE("Count reference is nto closed with a ']' instead it is: '%s'"), ptext );
-					}
-					else
-						STEP_TOKEN();
-				}
-			}
-			lprintf( WIDE("Looking for object %s"), GetText( pObjName ) );
-			if( !pObjName )
-			{
-				lprintf( WIDE("Badly formed variable reference, open paren, no close ...") );
-				return NULL;
-			}
-			{
-				// clean code using %(%me) to work correctly
-				// %me should be the name reference of the current
-				// object.
-				// %me.x would not work?
-				// %(%me)x would...
-				// %deck.hand.1.show
-				// /deck.1.hand.show
-				// ---- double diminsioned arrays...
-				// /deck.1.2.3.hand.show
-				//	each thing contains a number of other things
-				//
-
-				if( GetName( ps->Current ) == pObjName )
-					pEnt = ps->Current;
-				else
-				{
-					int findtype;
-					// hmm I have a feeling that I'll need to lock this after I
-					// find it - cause it might go away while I'm referencing it :(
-					count = long_count;
-					pEnt = (PENTITY)DoFindThing( pEnt, FIND_VISIBLE, &findtype, &count, GetText( pObjName ) );
-				}
-				if( !pEnt )
-				{
-					S_MSG( ps, WIDE("Cannot see entity %s to get varible from..."), GetText( pObjName ) );
-					return NULL;
-				}
-			}
-			// step over the name we just referenced, (which sets the current
-			// actively referenced entity)
-			STEP_TOKEN(); // and step again to get the var name after...
-			// get the current token, presumably a ')' or '.', and set return past it...
-			// if we entered because of bLoop being set - it was a period following
-			// not a parenthesis
-			if( !bLoop && ptext[0] != ')' )
-			{
-				S_MSG( ps, WIDE("improper parenthation... ") );
-				return NULL;
-			}
-			// step over the closing paren... or onto next word after .
-			STEP_TOKEN();
 		}
 	}
-
-
 
 	{ /*FOLD00*/
 		{
@@ -1311,13 +1368,12 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 			if( pText )
 			{
 				if( IsVarLen ) 
-					MakeTempNumber( LineLength( pText ) );
+					return MakeTempNumber( LineLength( pText ) );
 				return pText;
 			}
 		}
-		if( !pms )
+
 		{
-check_global_vars:
 			if( ( c = GetListVariable( pEnt->pVars, ptext ) ) )
 			{
 				//lprintf( WIDE("Found global var %s"), GetText( c ) );
@@ -1329,112 +1385,16 @@ check_global_vars:
 			// otherwise - unknown location - or unkonw variable..
 			if( !ps->CurrentMacro )
 			{
-				S_MSG( ps, WIDE("Parameter named %s was not found.")
-					  , GetText(pReturn) );
+				//S_MSG( ps, WIDE("Parameter named %s was not found.")
+				//	  , GetText(pReturn) );
 			}
 			if( IsVarLen )
 				if( pReturn->flags & TF_INDIRECT )
 					return MakeTempNumber( LineLength( GetIndirect( pReturn ) ) );
 				else
 					return MakeTempNumber( GetTextSize( pReturn ) );
-			else
-				return pReturn;
-		}
-		else
-		{
-			// if skipped a % retain all further...
-			// also cannot perform substition....
-			if( !strcmp( ptext, WIDE("...") ) ) // may test for 'elispes'?
-			{
-				S_32 i;
-				//lprintf( WIDE("Gathering trailing macro args into one line...")  );
-				if( pms->pMacro->nArgs < 0 )
-				{
-					//lprintf( WIDE("Skipping some arguments to get to ... ") );
-					i = -pms->pMacro->nArgs;
-					pReturn = pms->pArgs;
-					while( i && --i && pReturn )
-					{
-						//lprintf( WIDE("Skipped %s"), GetText( pReturn ) );
-						pReturn = NEXTLINE( pReturn );
-					}
-				}
-				else
-					lprintf( WIDE("Macro has positive argument count - there is no ... param") );
-				//lprintf( WIDE("Okay at this point pReturn should be start of macro extra parms") );
-				if( !(pReturn->flags & TF_INDIRECT) )
-				{
-					PTEXT pWrapper = SegCreateIndirect( pReturn );
-					lprintf( WIDE("Wrapping pReturn in a single seg wrapper") );
-					SegAppend( SegBreak( pReturn ), pWrapper );
-					pWrapper->flags |= TF_DEEP;
-					pReturn = pWrapper;
-				}
-				//else // normal condition.
-				//	lprintf( WIDE("Result is already in a DEEP indirect? ") );
-				return pReturn;
-			}
-
-			{
-				// parameter substition for macros...
-				// wow even supports ancient syntax of %1 %2 %3 ....
-				n = atoi( ptext );
-				if( !n )
-				{
-					LIST_FORALL( pms->pVars, n, PTEXT, c )
-					{
-						if( TextIs( c, ptext ) )
-						{
-							if( IsVarLen )
-								return MakeTempNumber( LineLength( NEXTLINE(c) ) );
-							else
-								return NEXTLINE(c);
-						}
-					}
-					// if variable was found - it is returned...
-
-					// test versus prior macro names....
-					// count segments which are names...
-					// segments are parallel aligned with macros from command...
-
-					// n == 0 at this point cause this param was not numeric...
-					n = 0;
-					c = pms->pMacro->pArgs;
-					while( c )
-					{
-						if( TextIs( c, ptext ) )
-							break;
-						n++;
-						c = NEXTLINE(c);
-					}
-					if( !c ) // didn't find the variable local, or as param...
-						goto check_global_vars;
-				}
-				else
-					n--;
-
-				c = pms->pArgs; // current args to this macro.
-
-				while( n && c )
-				{
-					c = NEXTLINE(c);
-					n--;
-				}
-
-				pReturn = c;
-
-				if( !c ) // ran out of passed arguments to this variable...
-				{
-					DECLTEXT( msg, WIDE("Macro needs argument: ") );
-					PTEXT pMsg;
-					pMsg = SegAppend( SegCreateIndirect( (PTEXT)&msg ), SegCreateFromText( ptext ) );
-					EnqueLink( &ps->Command->Output, pMsg );
-					return NULL;
-				}
-			}
 		}
 	}
-
 	return pReturn;
 }
 

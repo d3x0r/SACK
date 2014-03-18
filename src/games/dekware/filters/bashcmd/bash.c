@@ -393,6 +393,8 @@ reevaluate_character:
 					case '&':
 					case '(':
 					case ')':
+					case '[':
+					case ']':
 						if( !pdp->flags.comment )
 						{
 							BreakCollection( pdp );

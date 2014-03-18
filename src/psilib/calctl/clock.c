@@ -385,7 +385,7 @@ PRELOAD( DoRegisterClockControl )
 }
 
 /* Android support; when the app stops, stop updating timers */
-static void OnDisplayPause( "PSI_Clock" )( void )
+static void OnDisplayPause( "PSI_Clock" TARGETNAME )( void )
 {
 	INDEX idx;
 	PSI_CONTROL clock;
@@ -396,7 +396,7 @@ static void OnDisplayPause( "PSI_Clock" )( void )
 }
 
 /* Android support; when the app reumes, start updating timers */
-static void OnDisplayResume( "PSI_Clock" )( void )
+static void OnDisplayResume( "PSI_Clock" TARGETNAME)( void )
 {
 	INDEX idx;
 	PSI_CONTROL clock;
