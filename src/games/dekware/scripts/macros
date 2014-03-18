@@ -1,3 +1,4 @@
+/debug
 
 /mac common_start
     /command usercmd bash

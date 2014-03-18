@@ -1141,7 +1141,7 @@ static int HandleCommand(WIDE("Network"), WIDE("portscan"), WIDE("scan first 200
    {
       while( psScanning )
          Sleep(0);
-      psOld = (PSENTIENT)LockedExchangePtrSzVal( &psScanning, ps );
+      psOld = (PSENTIENT)LockedExchangePtrSzVal( (PTRSZVAL*)&psScanning, (PTRSZVAL)ps );
    }
    while( psOld );
 

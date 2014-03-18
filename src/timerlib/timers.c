@@ -2149,13 +2149,13 @@ void  RescheduleTimer( _32 ID )
 
 //--------------------------------------------------------------------------
 
-static void OnDisplayPause( WIDE("@Internal Timers") )( void )
+static void OnDisplayPause( WIDE("@Internal Timers") TARGETNAME )( void )
 {
 	g.flags.bHaltTimers = 1;
 }
 
 //--------------------------------------------------------------------------
-static void OnDisplayResume( WIDE("@Internal Timers") )( void )
+static void OnDisplayResume( WIDE("@Internal Timers") TARGETNAME)( void )
 {
 	g.flags.bHaltTimers = 0;
 	if( g.pTimerThread )

@@ -1941,7 +1941,16 @@ int IsSegAnyNumberEx( PTEXT *ppText, double *fNumber, S_64 *iNumber, int *bIntNu
 				s++;
 			}
 			else if( ((*pCurrentCharacter) < '0') || ((*pCurrentCharacter) > '9') )
+			{
+				if( digits && ( pCurrentCharacter == GetText( pText ) ) )
+				{
+					pCurrentCharacter = GetText( PRIORLINE( pText ) );
+					while( pCurrentCharacter[0] )
+						pCurrentCharacter++;
+					pText = NULL;
+				}
 				break;
+			}
 			else
 				digits++;
 			begin = FALSE;
