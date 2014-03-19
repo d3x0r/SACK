@@ -1070,12 +1070,13 @@ static PTEXT LookupMacroVariable( CTEXTSTR ptext, PMACROSTATE pms )
 //------------------------------------------------------------------------
 
 // return FALSE if it's an object result
-static PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, PTEXT *varname, LOGICAL entity_first )
+static PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, PTEXT *varname )
 {
 	S_64 number;
 	PTEXT septoken;
 	PTEXT next_token;
 	PTEXT name_token = NULL;
+   PENTITY result = NULL;
 	S_64 long_count = 1;
 	while( 1 )
 	{
@@ -1164,7 +1165,6 @@ static PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, PTEXT *varname, L
 			int findtype;
 			size_t count = long_count;
 
-			//if( entity_first )
 			{
 				discovered = (PENTITY)DoFindThing( focus, FIND_VISIBLE, &findtype, &count, GetText( name_token ) );
 				if( discovered )
@@ -1181,6 +1181,56 @@ static PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, PTEXT *varname, L
 			break;
 	}
 	return focus;
+}
+
+void ExtraParse( PTEXT pReturn, PTEXT *token )
+{
+	if( GetTextSize( pReturn ) > 1 )
+	{
+		// check for dots in a single token...
+		TEXTCHAR *dot;
+		TEXTCHAR *start;
+      TEXTCHAR *ptext;
+		PTEXT pTmpReturn = pReturn;
+      ptext = GetText( pReturn );
+		while( pTmpReturn && ( dot = strchr( (start = GetText( pTmpReturn )), '.' ) ) )
+		{
+			if( dot == ptext )
+			{
+				// check for elipses
+				if( dot[1] != '.' && dot[1] )
+					pTmpReturn = NEXTLINE( SegSplit( &pTmpReturn, 1 ) );
+				else
+					break;
+			}
+			else if( pReturn->flags & TF_STATIC )
+			{
+				pTmpReturn = TextDuplicate( pReturn, FALSE );
+				// swaps it out of the segment, text needs to be udpated.
+				LineRelease( SegSubst( pReturn, pTmpReturn ) );
+				pReturn = pTmpReturn;
+				ptext = GetText( pReturn );
+			}
+			else
+			{
+				PTEXT tmp = pTmpReturn;
+				int bFixToken;
+				SegSplit( &pTmpReturn, dot - start );
+				if( tmp == pReturn )
+				{
+					pReturn = pTmpReturn;
+					ptext = GetText( pReturn );
+					bFixToken = 1;
+				}
+				else
+					bFixToken = 0;
+				pTmpReturn = NEXTLINE( pTmpReturn );
+				pTmpReturn = NEXTLINE( SegSplit( &pTmpReturn, 1 ) );
+				if( bFixToken )
+					*token = NEXTLINE( pReturn );
+			}
+		}
+	}
 }
 
 //------------------------------------------------------------------------
@@ -1294,53 +1344,10 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 
 	// parenthesis has the advantage of being able to subsittute
 	// chained commands (apple)(core)(seed)blah
-	if( GetTextSize( pReturn ) > 1 )
-	{
-		// check for dots in a single token...
-		TEXTCHAR *dot;
-		TEXTCHAR *start;
-		PTEXT pTmpReturn = pReturn;
-		while( pTmpReturn && ( dot = strchr( (start = GetText( pTmpReturn )), '.' ) ) )
-		{
-			if( dot == ptext )
-			{
-				// check for elipses
-				if( dot[1] != '.' && dot[1] )
-					pTmpReturn = NEXTLINE( SegSplit( &pTmpReturn, 1 ) );
-				else
-					break;
-			}
-			else if( pReturn->flags & TF_STATIC )
-			{
-				pTmpReturn = TextDuplicate( pReturn, FALSE );
-				// swaps it out of the segment, text needs to be udpated.
-				LineRelease( SegSubst( pReturn, pTmpReturn ) );
-				pReturn = pTmpReturn;
-				ptext = GetText( pReturn );
-			}
-			else
-			{
-				PTEXT tmp = pTmpReturn;
-				int bFixToken;
-				SegSplit( &pTmpReturn, dot - start );
-				if( tmp == pReturn )
-				{
-					pReturn = pTmpReturn;
-					ptext = GetText( pReturn );
-					bFixToken = 1;
-				}
-				else
-					bFixToken = 0;
-				pTmpReturn = NEXTLINE( pTmpReturn );
-				pTmpReturn = NEXTLINE( SegSplit( &pTmpReturn, 1 ) );
-				if( bFixToken )
-					*token = NEXTLINE( pReturn );
+	ExtraParse( token, pReturn );
 
-			}
-		}
-	}
 	{
-		pEnt = ResolveEntity( ps, pEnt, &pReturn, FALSE );
+		pEnt = ResolveEntity( ps, pEnt, &pReturn );
 		(*token) = NEXTLINE( pReturn );
 		ptext = GetText( pReturn );
 		

@@ -459,6 +459,8 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 				vt = VarTextCreate();
 			vtprintf( vt, WIDE("%s"), GetText( pText ) );
 		}
+      ExtraParse( &pText, pText );
+      p = ResolveEntity( ps, Around, &pText,
 		t = GetText( pText );
 		if( t )
 		{
@@ -2337,7 +2339,7 @@ void Startup( TEXTCHAR *lpCmdLine )
 			UnlockAwareness( global.PLAYER );
 
 			//DoCommandf( PLAYER, WIDE("/debug") );
-			DoCommandf( global.PLAYER, WIDE("/echo /script macros") );
+			//DoCommandf( global.PLAYER, WIDE("/echo /script macros") );
 			DoCommandf( global.PLAYER, WIDE("/script macros") );
 		}
 		Log( WIDE("Start one sentience...") );
