@@ -54,7 +54,7 @@
 #include <shlwapi.h> // must include this if shellapi.h is used.
 #include <shellapi.h> // very last though - this is DragAndDrop definitions...
 
-#define LOG_ORDERING_REFOCUS
+//#define LOG_ORDERING_REFOCUS
 //#define LOG_MOUSE_EVENTS
 //#define LOG_RECT_UPDATE
 //#define LOG_DESTRUCTION
