@@ -1708,7 +1708,8 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 
 					if( !upd->flags.bHasContent )
 					{
-						lprintf( WIDE( " Expected handling of this condition... Please return FALSE, and abort UpdateDIsplayPortion? Return now, leaving the rect without content?" ) );
+                  //  control did not draw...
+						//lprintf( WIDE( " Expected handling of this condition... Please return FALSE, and abort UpdateDIsplayPortion? Return now, leaving the rect without content?" ) );
 						//DebugBreak();
 					}
 					if( !pc->flags.bParentCleaned || ( ( pc->parent && !pc->device )?pc->parent->flags.bDirty:0))
@@ -1720,7 +1721,7 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 
 					if( pc->flags.bTransparent )
 					{
-						lprintf( WIDE( "COPYING SURFACE HERE!?" ) );
+						//lprintf( WIDE( "COPYING SURFACE HERE!?" ) );
 						// we should be drawing when the parent does his thing...
 						pc->OriginalSurface = CopyOriginalSurface( pc, pc->OriginalSurface );
 					}
