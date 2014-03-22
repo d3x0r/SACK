@@ -45,7 +45,7 @@ if( INSTALL_FRAME_BORDER )
    
   INSTALL( 
     FILES
-      ${CMAKE_CURRENT_SOURCE_DIR}/frame_border.png
+      ${BASE_IMAGES}
     DESTINATION
       ${INSTALL_FRAME_BORDER}
   )
