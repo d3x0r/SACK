@@ -1031,7 +1031,7 @@ BOOL CreateDrawingSurface (PVIDEO hVideo)
 	// can use handle from memory allocation level.....
 	if (!hVideo)			// wait......
 		return FALSE;
-	if( !hVideo->flags.bFullScreen || !hVideo->pImage )
+	if( !( hVideo->flags.bFullScreen && !hVideo->flags.bNotFullScreen ) || !hVideo->pImage )
 	{
 		BITMAPINFO bmInfo;
 		// the color array.
