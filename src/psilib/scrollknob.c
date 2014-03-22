@@ -14,6 +14,8 @@ typedef struct scroll_knob
 	} flags;
 	int _b;
 	int last_arc;
+	int _first_arc;
+	int delta_arc; // computed fixed delta between last and first
 	KnobEvent event_handler;
 	PTRSZVAL psvEvent;
 
@@ -109,6 +111,7 @@ static int OnMouseCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc, S_32 x, S_
 	
 	if( knob->_b & MK_LBUTTON )
 	{
+		knob->flags.draw_update_arc = 0;
 		if( b & MK_LBUTTON )
 		{
 			int forward = arc - knob->last_arc;
@@ -127,26 +130,37 @@ static int OnMouseCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc, S_32 x, S_
 				if( knob->event_handler )
                knob->event_handler( knob->psvEvent, -backward );
 			}
+			if( knob->last_arc != ( knob->delta_arc + arc ) % 12 )
+			{
+				knob->last_arc = ( knob->delta_arc + arc ) % 12;
+				// no motion, no reason to update
+				knob->flags.draw_update_arc = 1;
+			}
 		}
 		else
+		{
+         // release drag
 			knob->_b &= ~MK_LBUTTON;
-		knob->last_arc = arc;
+		}
 	}
 	else
 	{
 		if( b & MK_LBUTTON )
 		{
 			knob->_b |= MK_LBUTTON;
-			knob->last_arc = arc;
+         knob->delta_arc = knob->last_arc - arc;
+			knob->last_arc = ( knob->delta_arc + arc ) % 12;
 			knob->flags.draw_update_arc = 0;
 		}
 		else
 		{
-			knob->last_arc = arc;
-			knob->flags.draw_update_arc = 1;
+         // mouse was not down, entering control....
+			knob->_first_arc = arc;
+			knob->flags.draw_update_arc = 0;
 		}
 	}
-	SmudgeCommon( pc );
+   if( knob->flags.draw_update_arc )
+		SmudgeCommon( pc );
 	return 1;
 }
 
