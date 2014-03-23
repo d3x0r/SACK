@@ -472,9 +472,9 @@ PENTITY findbynameEx       ( PLIST object, size_t *count, TEXTCHAR *name );
 // find thing is wise enough to do parameter substitution,
 // it therefore needs to know the state (ps->entity->vars, or current_macro_state->vars)
 // and therefore should also work itself much like subst param or get param...
-CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *params, PENTITY Around, int type, int *foundtype
+CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *params, PENTITY Around, enum FindWhere type, enum FindWhere *foundtype
 											, PTEXT *pObject, PTEXT *pResult DBG_PASS );
-CORE_PROC( POINTER, DoFindThing )( PENTITY Around, int type, int *foundtype, size_t *count, TEXTCHAR *t );
+CORE_PROC( POINTER, DoFindThing )( PENTITY Around, enum FindWhere type, enum FindWhere *foundtype, size_t *count, TEXTCHAR *t );
 CORE_PROC( PLIST, BuildAttachedListEx )( PENTITY also_ignore, PLIST *ppList, PENTITY source, int max_levels );
 CORE_PROC( PENTITY, FindContainerEx )( PENTITY source
 												 , PENTITY *mount_point );

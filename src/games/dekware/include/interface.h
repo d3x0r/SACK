@@ -13,7 +13,7 @@ struct dekware_interface {
 	CORE_PROC_PTR( PTEXT, GetFileName )( PSENTIENT ps, PTEXT *parameters );
 	CORE_PROC_PTR( PTEXT, GetVariable )( PSENTIENT ps, CTEXTSTR text );
    CORE_PROC_PTR( PTEXT, MacroDuplicateExx )( BLOBTYPE sentient_tag *pEntity, PTEXT pText, int bKeepEOL, int bSubst, PTEXT args DBG_PASS);
-	CORE_PROC_PTR( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *params, PENTITY Around, int type, int *foundtype
+	CORE_PROC_PTR( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *params, PENTITY Around, enum FindWhere type, enum FindWhere *foundtype
 												, PTEXT *pObject, PTEXT *pResult DBG_PASS );
 	CORE_PROC_PTR( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsLen, PENTITY pe );
 

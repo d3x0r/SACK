@@ -405,7 +405,7 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
 	   //}
 		//else
 		{
-			int foundat;
+			enum FindWhere foundat;
 
 			PTEXT pName = NULL;
          //PTEXT pParam;

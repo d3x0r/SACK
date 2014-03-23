@@ -20,7 +20,7 @@ int KillWake( int bWake, PSENTIENT ps, PTEXT parameters )
 		pe = (PENTITY)FindThing( ps, &parameters, ps->Current, FIND_VISIBLE, NULL );
 		if( !pe )
 		{
-			vtprintf( pvt, WIDE("Cannot see %s."), GetText(parameters) );
+			vtprintf( pvt, WIDE("Kill/wake Cannot see %s."), GetText(parameters) );
 			EnqueLink( &ps->Command->Output, VarTextGet( pvt ) );
 			parameters = NEXTLINE( parameters ); // if find failed, parameters did not update
 		}
@@ -166,7 +166,7 @@ void Tell( PSENTIENT ps // source
 		{
 			vt = VarTextCreate();
 			//lprintf( WIDE("Cannot see entity: %s"), GetText( pWhat ) );
-			vtprintf( vt, WIDE("Cannot see entity: %s"), GetText( pWhat ) );
+			vtprintf( vt, WIDE("Tell cannot see entity: %s"), GetText( pWhat ) );
 			EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 			VarTextDestroy( &vt );
 		}
