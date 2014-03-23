@@ -459,8 +459,9 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 				vt = VarTextCreate();
 			vtprintf( vt, WIDE("%s"), GetText( pText ) );
 		}
-      ExtraParse( &pText, pText );
-      p = ResolveEntity( ps, Around, &pText,
+#error incomplete conversion
+		ExtraParse( &pText, pText );
+		p = ResolveEntity( ps, Around, &pText,
 		t = GetText( pText );
 		if( t )
 		{
