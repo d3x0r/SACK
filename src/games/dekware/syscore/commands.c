@@ -1070,13 +1070,13 @@ static PTEXT LookupMacroVariable( CTEXTSTR ptext, PMACROSTATE pms )
 //------------------------------------------------------------------------
 
 // return FALSE if it's an object result
-static PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, PTEXT *varname )
+PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTEXT *varname )
 {
 	S_64 number;
 	PTEXT septoken;
 	PTEXT next_token;
 	PTEXT name_token = NULL;
-   PENTITY result = NULL;
+	PENTITY result = NULL;
 	S_64 long_count = 1;
 	while( 1 )
 	{
@@ -1086,12 +1086,12 @@ static PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, PTEXT *varname )
 			PENTITY tmp;
 			PTEXT tmp_token = NEXTLINE( *varname );
 			PTEXT real_token = SubstTokenEx( ps_out, &tmp_token, FALSE, FALSE, focus );
-			int findtype;
+			enum FindWhere findtype;
 			size_t count = 1;
 			if( GetName( focus ) == real_token )
 				tmp = focus;
 			else
-				tmp = (PENTITY)DoFindThing( focus, FIND_VISIBLE, &findtype, &count, GetText( real_token ) );
+				tmp = (PENTITY)DoFindThing( focus, type, &findtype, &count, GetText( real_token ) );
 			if( !tmp )
 				lprintf( "expected object.varname failed" );
 			
@@ -1123,12 +1123,12 @@ static PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, PTEXT *varname )
 				}
 				else
 				{
-					if( HAS_WHITESPACE( NEXTLINE( next_token ) ) )
+					if( NEXTLINE( next_token ) && HAS_WHITESPACE( NEXTLINE( next_token ) ) )
 					{
 						PENTITY discovered;
-						int findtype;
+						enum FindWhere findtype;
 						size_t count = 1;
-						discovered = (PENTITY)DoFindThing( focus, FIND_VISIBLE, &findtype, &count, GetText( next_token ) );
+						discovered = (PENTITY)DoFindThing( focus, type, &findtype, &count, GetText( next_token ) );
 						if( !discovered )
 							lprintf( "expected object.varname failed" );
 						else
@@ -1137,6 +1137,8 @@ static PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, PTEXT *varname )
 							return discovered;
 						}
 					}
+					else
+						name_token = NULL;
 					lprintf( "Expected a number before the '.' referencing this object" );
 				}
 			}
@@ -1158,15 +1160,17 @@ static PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, PTEXT *varname )
 					}
 				}
 			}
+			else
+				name_token = septoken;
 		}
-		if( name_token && NEXTLINE( name_token ) && !HAS_WHITESPACE( NEXTLINE( name_token ) ) )
+		if( name_token )
 		{
 			PENTITY discovered;
-			int findtype;
+			enum FindWhere findtype;
 			size_t count = long_count;
 
 			{
-				discovered = (PENTITY)DoFindThing( focus, FIND_VISIBLE, &findtype, &count, GetText( name_token ) );
+				discovered = (PENTITY)DoFindThing( focus, type, &findtype, &count, GetText( name_token ) );
 				if( discovered )
 				{
 					focus = discovered;
@@ -1185,16 +1189,20 @@ static PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, PTEXT *varname )
 
 void ExtraParse( PTEXT pReturn, PTEXT *token )
 {
+	//lprintf( "Apply Extra Parse on (%p/%p/%p/%p)", pReturn, PRIORLINE( pReturn ), NEXTLINE( pReturn ), (*token ) );
 	if( GetTextSize( pReturn ) > 1 )
 	{
 		// check for dots in a single token...
 		TEXTCHAR *dot;
 		TEXTCHAR *start;
-      TEXTCHAR *ptext;
+		TEXTCHAR *ptext;
 		PTEXT pTmpReturn = pReturn;
-      ptext = GetText( pReturn );
-		while( pTmpReturn && ( dot = strchr( (start = GetText( pTmpReturn )), '.' ) ) )
+		ptext = GetText( pReturn );
+		while( pTmpReturn && 
+			( StrCmp( (start = GetText( pTmpReturn )), "..." ) != 0 ) && 
+			( dot = strchr( (start = GetText( pTmpReturn )), '.' ) ) )
 		{
+			//lprintf( "Breaking text." );
 			if( dot == ptext )
 			{
 				// check for elipses
@@ -1344,10 +1352,10 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 
 	// parenthesis has the advantage of being able to subsittute
 	// chained commands (apple)(core)(seed)blah
-	ExtraParse( token, pReturn );
+	ExtraParse( pReturn, token );
 
 	{
-		pEnt = ResolveEntity( ps, pEnt, &pReturn );
+		pEnt = ResolveEntity( ps, pEnt, FIND_VISIBLE, &pReturn );
 		(*token) = NEXTLINE( pReturn );
 		ptext = GetText( pReturn );
 		

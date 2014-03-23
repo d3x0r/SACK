@@ -187,6 +187,10 @@ PTEXT WriteListNot( PLIST pSource
                   , PTEXT pLeader
                   , PLINKQUEUE *Output );
 
+void ExtraParse( PTEXT pReturn, PTEXT *token );
+PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTEXT *varname );
+
+
 CORE_PROC( void, prompt )( BLOBTYPE sentient_tag *ps );
 //--------------- Text Value Converstions ----------------
 //CORE_PROC( double, FltNumber )( PTEXT pText );

@@ -278,12 +278,12 @@ PENTITY findbynameEx( PLIST list, size_t *count, TEXTCHAR *name )
 
 //--------------------------------------------------------------------------
 
-POINTER DoFindThing( PENTITY Around, int type, int *foundtype, size_t *count, TEXTCHAR *t )
+POINTER DoFindThing( PENTITY Around, enum FindWhere type, enum FindWhere *foundtype, size_t *count, TEXTCHAR *t )
 {
 	PENTITY pContainer;
 	POINTER p;
 	static int level;
-	int junk;
+	enum FindWhere junk;
 	if( !foundtype )
 		foundtype = &junk;
 	p = NULL;
@@ -403,13 +403,13 @@ POINTER DoFindThing( PENTITY Around, int type, int *foundtype, size_t *count, TE
 
 CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 											, PENTITY Around
-											, int type
-											, int *foundtype
+											, enum FindWhere type
+											, enum FindWhere *foundtype
 											, PTEXT *pObject
 											, PTEXT *pResult // if object was found, _this would be where paramters points
 											 DBG_PASS )
 {
-	TEXTCHAR *t, *sep;
+	//TEXTCHAR *t, *sep;
 	PTEXT pText;
 	PVARTEXT vt = NULL;
 	POINTER p = NULL;
@@ -418,7 +418,7 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 	// destroyed.  Data from GetParam is considered static/const (readonly)
 	PTEXT delete_seg = NULL;
 	PTEXT _tokens = *tokens;
-	size_t cnt;
+	//size_t cnt;
 	S_64 long_cnt = 1; // by default find the first.
 	{
 		//PTEXT line = BuildLine( *tokens );
@@ -428,7 +428,7 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 	// find one thing only.
 	do
 	{
-		( ( pText = GetParam( ps, tokens ) ) );
+		pText = GetParam( ps, tokens );
 		if( pText && ((pText->flags & TF_ENTITY )== TF_ENTITY) )
 		{
 			//lprintf( WIDE("Segment itself is an entity... therefore no searching required.") );
@@ -445,6 +445,8 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 			//lprintf( WIDE("finding [%s] token [%s]"), GetText( line ), GetText( pText ) );
 			//LineRelease( line );
 		}
+		// test literal equality, might be the same value as some other object
+		// but this name is literally this object
 		if( pText == GetName( Around ) )
 		{
 			// matches %me (?) well it's a proper name whoever it is...
@@ -459,9 +461,20 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 				vt = VarTextCreate();
 			vtprintf( vt, WIDE("%s"), GetText( pText ) );
 		}
-#error incomplete conversion
-		ExtraParse( &pText, pText );
-		p = ResolveEntity( ps, Around, &pText,
+
+		if( type != FIND_MACRO )
+		{
+			ExtraParse( pText, tokens );
+			p = ResolveEntity( ps, Around, type, &pText );
+			if( p == Around )
+				p = NULL;
+		}
+		else
+		{
+			size_t cnt = 1;
+			p = DoFindThing( Around, type, foundtype, &cnt, GetText( pText ) );
+		}
+#if 0
 		t = GetText( pText );
 		if( t )
 		{
@@ -493,6 +506,7 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 			if( !p ) p = DoFindThing( Around, type, foundtype, &cnt, t );
 			//lprintf( WIDE("And we managed to find... %p"), p );
 		}
+#endif
 		break;
 	}
 	while( 1 );
@@ -877,7 +891,7 @@ CORE_PROC( void, DestroyEntityEx )( PENTITY pe DBG_PASS )
 	DeleteList( &pe->pGlobalBehaviors );
 
 	LIST_FORALL( pe->behaviors, idx, TEXTSTR, string )
-		Release( text );
+		Release( string );
 	DeleteList( &pe->behaviors );
 
 	LIST_FORALL( pe->pVars, idx, PTEXT, text )

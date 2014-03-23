@@ -807,7 +807,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, _32 n, LOGICAL threade
 #endif
 			if( pThread->semaphore == -1 )
 			{
-	          //lprintf( WIDE("Invalid semaphore...fixing?") );
+				//lprintf( WIDE("Invalid semaphore...fixing?") );
 				InitWakeup( pThread, name );
 			}
 			if( pThread->semaphore != -1 )

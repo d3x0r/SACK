@@ -175,7 +175,7 @@ void Look( PLINKQUEUE *Output, PSENTIENT ps, PTEXT pObj )
 		if( param )
 		{
 			PENTITY pe;
-			int FoundAs;
+			enum FindWhere FoundAs;
 			pe = (PENTITY)FindThing( ps, &param, ps->Current, FIND_GRABBABLE, &FoundAs );
 			if( pe )
 			{
@@ -194,7 +194,7 @@ void Look( PLINKQUEUE *Output, PSENTIENT ps, PTEXT pObj )
 		if( param )
 		{
 			PENTITY pe;
-			int FoundAs;
+			enum FindWhere FoundAs;
 			pe = (PENTITY)FindThing( ps, &param, ps->Current, FIND_GRABBABLE, &FoundAs );
 			if( pe )
 			{
@@ -208,7 +208,7 @@ void Look( PLINKQUEUE *Output, PSENTIENT ps, PTEXT pObj )
 	}
 	else
 	{
-		int FoundAs;
+		enum FindWhere FoundAs;
 		PENTITY pe;
 		pe = (PENTITY)FindThing( ps, &_params, ps->Current, FIND_VISIBLE, &FoundAs );
 		if( pe )
@@ -266,7 +266,7 @@ int Grab(PENTITY pEntity, PTEXT info
 	 take and put into your hand... first search Location(pEntity) then
 	 search creation space. */
 	PENTITY pe;
-	int FoundAt;
+	enum FindWhere FoundAt;
 	if( from )
 	{
 			PENTITY pe2;
@@ -652,8 +652,8 @@ int CPROC DESCRIBE( PSENTIENT ps, PTEXT parameters )
 	PTEXT temp;
 	{
 		PENTITY pe;
-		pe = (PENTITY)FindThing( ps, &parameters, ps->Current, FIND_VISIBLE, NULL );
-		if( !pe ) pe = (PENTITY)FindThing( ps, &parameters, ps->Current, FIND_MACRO, NULL );
+		pe = (PENTITY)FindThing( ps, &parameters, ps->Current, FIND_MACRO, NULL );
+		if( !pe ) pe = (PENTITY)FindThing( ps, &parameters, ps->Current, FIND_VISIBLE, NULL );
 		if( pe )
 		{
 			temp = MacroDuplicateEx( ps, parameters, FALSE, TRUE );
