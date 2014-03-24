@@ -188,6 +188,8 @@ PTEXT WriteListNot( PLIST pSource
                   , PLINKQUEUE *Output );
 
 LOGICAL ExtraParse( PTEXT *token );
+LOGICAL CommandExtraParse( PTEXT *pReturn );
+
 //PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTEXT *varname, PTEXT *tokens );
 PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTEXT *tokens, LOGICAL bKeepVarName );
 

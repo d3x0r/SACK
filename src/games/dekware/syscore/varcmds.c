@@ -951,7 +951,7 @@ int CPROC VARS( PSENTIENT ps, PTEXT parameters )
 			{
 				PTEXT pOut;
 				DECLTEXT( msg, WIDE(" is an unknown object.") );
-				pOut = SegAppend( SegDuplicate( temp )
+				pOut = SegAppend( SegDuplicate( parameters )
 									, SegCreateIndirect( (PTEXT)&msg ) );
 				EnqueLink( &ps->Command->Output, pOut );
 			}
