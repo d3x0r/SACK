@@ -562,8 +562,8 @@ PTEXT SegConcatEx(PTEXT output,PTEXT input,S_32 offset,size_t length DBG_PASS )
 //#define min(a,b) (((a)<(b))?(a):(b))
 		len = min( GetTextSize( input ) - offset, length-idx );
 		MemCpy( GetText(output) + idx,
-              GetText(input) + offset,
-              sizeof( TEXTCHAR ) * ( len + 1 ) );
+		        GetText(input) + offset,
+		        sizeof( TEXTCHAR ) * ( len + 1 ) );
 		idx += len;
 		offset = 0;
 		input=NEXTLINE(input);
@@ -1946,7 +1946,12 @@ int IsSegAnyNumberEx( PTEXT *ppText, double *fNumber, S_64 *iNumber, int *bIntNu
 				{
 					pCurrentCharacter = GetText( PRIORLINE( pText ) );
 					while( pCurrentCharacter[0] )
+					{
+						// if the number ended in a decimal, it can qualify as an integer
+						if( pCurrentCharacter[0] == '.' && !pCurrentCharacter[1] )
+							decimal_count--;
 						pCurrentCharacter++;
+					}
 					pText = NULL;
 				}
 				break;
