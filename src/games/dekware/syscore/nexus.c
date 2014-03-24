@@ -464,8 +464,8 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 
 		if( type != FIND_MACRO )
 		{
-			ExtraParse( pText, tokens );
-			p = ResolveEntity( ps, Around, type, &pText );
+			(*tokens) = _tokens;
+			p = ResolveEntity( ps, Around, type, tokens, FALSE );
 			if( p == Around )
 				p = NULL;
 		}
