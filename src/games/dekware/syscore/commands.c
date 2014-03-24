@@ -981,7 +981,7 @@ PTEXT GetVariable( PSENTIENT ps, CTEXTSTR varname )
 static PTEXT LookupMacroVariable( CTEXTSTR ptext, PMACROSTATE pms )
 {
 	PTEXT c;
-   PTEXT pReturn;
+	PTEXT pReturn;
 	// if skipped a % retain all further...
 	// also cannot perform substition....
 	if( !strcmp( ptext, WIDE("...") ) ) // may test for 'elispes'?
@@ -1068,24 +1068,81 @@ static PTEXT LookupMacroVariable( CTEXTSTR ptext, PMACROSTATE pms )
 }
 
 //------------------------------------------------------------------------
+LOGICAL ExtraParse( PTEXT *pReturn )
+{
+	LOGICAL result = FALSE;
+	//lprintf( "Apply Extra Parse on (%p/%p/%p/%p)", pReturn, PRIORLINE( pReturn ), NEXTLINE( pReturn ), (*token ) );
+	if( GetTextSize( (*pReturn) ) > 1 )
+	{
+		// check for dots in a single token...
+		TEXTCHAR *dot;
+		TEXTCHAR *start;
+		TEXTCHAR *ptext;
+		PTEXT pTmpReturn = (*pReturn);
+		ptext = GetText( (*pReturn) );
+		while( pTmpReturn && 
+			( StrCmp( (start = GetText( pTmpReturn )), "..." ) != 0 ) && 
+			( dot = strchr( (start = GetText( pTmpReturn )), '.' ) ) )
+		{
+			//lprintf( "Breaking text." );
+			if( dot == ptext )
+			{
+				// check for elipses
+				if( dot[1] != '.' && dot[1] )
+				{
+					SetIndirect( (*pReturn), SegSplit( &pTmpReturn, 1 ) );
+					pTmpReturn = NEXTLINE( GetIndirect( *pReturn ) );
+					result = TRUE;
+				}
+				else
+					break;
+			}
+			else if( (*pReturn)->flags & TF_STATIC )
+			{
+				pTmpReturn = TextDuplicate( (*pReturn), FALSE );
+				// swaps it out of the segment, text needs to be udpated.
+				LineRelease( SegSubst( (*pReturn), pTmpReturn ) );
+				result = TRUE;
+				(*pReturn) = pTmpReturn;
+				ptext = GetText( (*pReturn) );
+			}
+			else
+			{
+				PTEXT tmp = pTmpReturn;
+				SetIndirect( (*pReturn), SegSplit( &pTmpReturn, dot - start ) );
+				pTmpReturn = NEXTLINE( GetIndirect( *pReturn ) );
+				pTmpReturn = NEXTLINE( SegSplit( &pTmpReturn, 1 ) );
+				result = TRUE;
+			}
+		}
+	}
+	return result;
+}
 
+//------------------------------------------------------------------------
 // return FALSE if it's an object result
-PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTEXT *varname )
+// in some cases, the result is an entity WITH a varname (varname != NULL )
+// sometimes it's just to find the entity, and (varname is NULL)
+// tokens has to be updated if more than varname is used
+PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTEXT *tokens, LOGICAL bKeepVarName )
 {
 	S_64 number;
 	PTEXT septoken;
+	PTEXT original_token;
 	PTEXT next_token;
 	PTEXT name_token = NULL;
 	PENTITY result = NULL;
 	S_64 long_count = 1;
 	while( 1 )
 	{
-		septoken = *varname;
+		original_token = (*tokens );
+		septoken = GetParam( ps_out, tokens );//*varname;
+		ExtraParse( &septoken );
 		if( GetTextSize( septoken ) == 1 && GetText( septoken )[0] == '(' )
 		{
 			PENTITY tmp;
-			PTEXT tmp_token = NEXTLINE( *varname );
-			PTEXT real_token = SubstTokenEx( ps_out, &tmp_token, FALSE, FALSE, focus );
+			PTEXT real_token = GetParam( ps_out, tokens );//NEXTLINE( *varname );
+			//PTEXT real_token = SubstTokenEx( ps_out, &tmp_token, FALSE, FALSE, focus );
 			enum FindWhere findtype;
 			size_t count = 1;
 			if( GetName( focus ) == real_token )
@@ -1095,11 +1152,12 @@ PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTE
 			if( !tmp )
 				lprintf( "expected object.varname failed" );
 			
-			if( GetTextSize( tmp_token ) == 1 && GetText( tmp_token )[0] == ')' )
+			if( GetTextSize( *tokens ) == 1 && GetText( *tokens )[0] == ')' )
 			{
 				// success
 				focus = tmp;
-				(*varname) = NEXTLINE( tmp_token );
+				GetParam( ps_out, tokens ); // already know the content, just step token
+				//(*varname) = NEXTLINE( tmp_token );
 				continue;
 			}
 			else
@@ -1110,7 +1168,15 @@ PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTE
 		}
 		else
 		{
-			next_token = NEXTLINE( septoken );
+			PTEXT next_original_token = (*tokens);
+			if( original_token == septoken )
+				next_token = GetParam( ps_out, tokens );//NEXTLINE( septoken );
+			else
+			{
+				// macro parameter is only one token
+				// if that was burst we fucked the macro.
+				next_token = NULL;//NEXTLINE( septoken );
+			}
 			if( next_token && GetTextSize( next_token ) == 1 && GetText( next_token )[0] == '.' )
 			{
 				if( IsIntNumber( septoken, &long_count ) )
@@ -1119,7 +1185,12 @@ PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTE
 					{
 						lprintf( "Syntax error; found a count which expects an object..." );
 					}
-					name_token = NEXTLINE( next_token );
+					name_token = GetParam( ps_out, tokens );//NEXTLINE( next_token );
+					if( !HAS_WHITESPACE( NEXTLINE( name_token ) ) )
+					{
+						//(*varname) = NEXTLINE( name_token );
+					}else
+						;//(*varname) = NULL;
 				}
 				else
 				{
@@ -1133,7 +1204,7 @@ PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTE
 							lprintf( "expected object.varname failed" );
 						else
 						{
-							*varname = next_token;
+							//*varname = next_token;
 							return discovered;
 						}
 					}
@@ -1144,14 +1215,15 @@ PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTE
 			}
 			else if( next_token && GetTextSize( next_token ) == 1 && GetText( next_token )[0] == '[' )
 			{
-				PTEXT phrase = NEXTLINE( next_token );
-				PTEXT indexer = SubstTokenEx( ps_out, &phrase, FALSE, FALSE, focus );
-				if( GetTextSize( phrase ) == 1 && GetText( phrase )[0] == ']' )
+				PTEXT indexer = GetParam( ps_out, tokens );
+				//PTEXT indexer = SubstTokenEx( ps_out, &phrase, FALSE, FALSE, focus );
+				if( GetTextSize( *tokens ) == 1 && GetText( *tokens )[0] == ']' )
 				{
 					if( IsIntNumber( indexer, &long_count ) )
 					{
 						name_token = septoken;
-						(*varname) = NEXTLINE( phrase );
+						//(*varname) = NEXTLINE( phrase );
+						GetParam( ps_out, tokens );
 					}
 					else
 					{
@@ -1161,7 +1233,20 @@ PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTE
 				}
 			}
 			else
-				name_token = septoken;
+			{
+				// no extra syntax, word is taken as name; restore tokens
+				if( !bKeepVarName 
+					|| ( next_token && !HAS_WHITESPACE(next_token) && ( GetText( next_token)[0] == '.' ) ) )
+				{
+					name_token = septoken;
+					(*tokens) = next_original_token;
+				}
+				else
+				{
+					name_token = NULL;
+					(*tokens) = original_token;
+				}
+			}
 		}
 		if( name_token )
 		{
@@ -1175,6 +1260,13 @@ PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTE
 				{
 					focus = discovered;
 					name_token = NULL;
+					if( !bKeepVarName )
+					{
+						if( next_token && GetText( next_token )[0] == '.' )
+							continue;
+						else
+							break;
+					}
 					continue;
 				}
 				else
@@ -1187,59 +1279,6 @@ PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTE
 	return focus;
 }
 
-void ExtraParse( PTEXT pReturn, PTEXT *token )
-{
-	//lprintf( "Apply Extra Parse on (%p/%p/%p/%p)", pReturn, PRIORLINE( pReturn ), NEXTLINE( pReturn ), (*token ) );
-	if( GetTextSize( pReturn ) > 1 )
-	{
-		// check for dots in a single token...
-		TEXTCHAR *dot;
-		TEXTCHAR *start;
-		TEXTCHAR *ptext;
-		PTEXT pTmpReturn = pReturn;
-		ptext = GetText( pReturn );
-		while( pTmpReturn && 
-			( StrCmp( (start = GetText( pTmpReturn )), "..." ) != 0 ) && 
-			( dot = strchr( (start = GetText( pTmpReturn )), '.' ) ) )
-		{
-			//lprintf( "Breaking text." );
-			if( dot == ptext )
-			{
-				// check for elipses
-				if( dot[1] != '.' && dot[1] )
-					pTmpReturn = NEXTLINE( SegSplit( &pTmpReturn, 1 ) );
-				else
-					break;
-			}
-			else if( pReturn->flags & TF_STATIC )
-			{
-				pTmpReturn = TextDuplicate( pReturn, FALSE );
-				// swaps it out of the segment, text needs to be udpated.
-				LineRelease( SegSubst( pReturn, pTmpReturn ) );
-				pReturn = pTmpReturn;
-				ptext = GetText( pReturn );
-			}
-			else
-			{
-				PTEXT tmp = pTmpReturn;
-				int bFixToken;
-				SegSplit( &pTmpReturn, dot - start );
-				if( tmp == pReturn )
-				{
-					pReturn = pTmpReturn;
-					ptext = GetText( pReturn );
-					bFixToken = 1;
-				}
-				else
-					bFixToken = 0;
-				pTmpReturn = NEXTLINE( pTmpReturn );
-				pTmpReturn = NEXTLINE( SegSplit( &pTmpReturn, 1 ) );
-				if( bFixToken )
-					*token = NEXTLINE( pReturn );
-			}
-		}
-	}
-}
 
 //------------------------------------------------------------------------
 
@@ -1267,6 +1306,7 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 	TEXTCHAR *ptext;
 	size_t textlen;
 	PTEXT pReturn;
+	PTEXT original_token;
 	PTEXT pPrior;
 
 	//int IsVariable = FALSE;
@@ -1290,7 +1330,7 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 		//lprintf( "PMS is NULL" );
 		pms = NULL; // no known macro state?
 	}
-
+	original_token = (*token);
 	BEGIN_STEP_TOKEN();
 	//lprintf( "Begin Step Token: %s (%s)", ptext, GetText( *token ) );
 	if( ( !pEnt && !pms )
@@ -1306,6 +1346,7 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 			IsVarLen = FALSE;
 			if( *token )
 			{
+				original_token = (*token);
 				STEP_TOKEN();
 			}
 			else
@@ -1317,6 +1358,7 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 			IsVarLen = TRUE;
 			if( *token )
 			{
+				original_token = (*token);
 				STEP_TOKEN();
 			}
 			else
@@ -1352,12 +1394,12 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 
 	// parenthesis has the advantage of being able to subsittute
 	// chained commands (apple)(core)(seed)blah
-	ExtraParse( pReturn, token );
+	//ExtraParse( &pReturn, token );
 
 	{
-		pEnt = ResolveEntity( ps, pEnt, FIND_VISIBLE, &pReturn );
-		(*token) = NEXTLINE( pReturn );
-		ptext = GetText( pReturn );
+		(*token) = original_token;
+		pEnt = ResolveEntity( ps, pEnt, FIND_VISIBLE, token, TRUE );
+		BEGIN_STEP_TOKEN();
 		
 		if( pEnt == ps->Current )
 		{
