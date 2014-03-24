@@ -1199,7 +1199,8 @@ LRESULT CALLBACK
 		HWND hWndFore = GetForegroundWindow();
 		ATOM aThisClass;
 
-		lprintf( WIDE("window's %p %p %p"), hWndFocus, hWndFore, hWndActive );
+		if( l.flags.bLogKeyEvent )
+			lprintf( WIDE("window's %p %p %p"), hWndFocus, hWndFore, hWndActive );
 		if( code == HC_NOREMOVE )
 		{
 			{

@@ -57,15 +57,16 @@
 	BINARY,	  // create a variable without substitution applied
 	ALLOCATE,	// allocate a binary storage buffer of size...
 	UNDEFINE,	// delete a variable...
- VARS,		 // dump what current variables are present...
- VVARS,		// dump volatile variables (these are getting numerous)
+	VARS,		 // dump what current variables are present...
+	VVARS,		// dump volatile variables (these are getting numerous)
 	TELL,		 // add input to a sentient object
 	REPLY,		// uses the name of the object which told this to perform the action...
- SendToObject, // <to object> <data (inbound channel)>
- WriteToObject, // <to object> <data (outbound channel)>
+	SendToObject, // <to object> <data (inbound channel)>
+	WriteToObject, // <to object> <data (outbound channel)>
 	MONITOR,	 // observe a previously aware object
- RELAY,		// auto relay command input to data output while data open
- PAGE, // generate a page break....
+	RELAY,		// auto relay command input to data output while data open
+	PAGE, // generate a page break....
+	COUNT, // count the number of things matching name
 
 	CMD_INPUT,	  // get next command input into a variable... whole line...
 
@@ -224,6 +225,7 @@
 								  , DEFCMDEX(DUPLICATE, WIDE("copy an object and all it contains"), _DUPLICATE )
 								  , DEFCMDEX(UNDECLARE, WIDE("Delete a variable"), UNDEFINE )
 								  , DEFCMD( BECOME, WIDE("Become an object.") )
+								  , DEFCMD( COUNT, WIDE("Get the number of objects by name." ) )
 								  , DEFCMD(ATTACH, WIDE("Attach object in your hand to another.") ) //ATTACH)
 								  , DEFCMD(CHANGEDIR, WIDE("Set Current Directory") ) // CHANGEDIR )
 								  , DEFCMD(CREATE, WIDE("Make something") ) //CREATE)
@@ -1111,23 +1113,17 @@ PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTE
 			PENTITY tmp;
 			PTEXT real_token;
 			//PTEXT real_token = SubstTokenEx( ps_out, &tmp_token, FALSE, FALSE, focus );
-			enum FindWhere findtype;
-			size_t count = 1;
-			real_token = GetParam( ps_out, tokens );//NEXTLINE( *varname );
-			if( GetName( focus ) == real_token )
-				tmp = focus;
-			else
-				tmp = (PENTITY)DoFindThing( focus, type, &findtype, &count, GetText( real_token ) );
-			if( !tmp )
-				lprintf( "expected object.varname failed" );
-			
+			tmp = ResolveEntity( ps_out, focus, type, tokens, FALSE );
+
 			if( GetTextSize( *tokens ) == 1 && GetText( *tokens )[0] == ')' )
 			{
 				// success
 				focus = tmp;
 				GetParam( ps_out, tokens ); // already know the content, just step token
-				//(*varname) = NEXTLINE( tmp_token );
-				continue;
+				if( IsVariableBreak( *tokens ) )
+					break;
+				else
+					continue;
 			}
 			else
 			{
@@ -1846,6 +1842,12 @@ int METHODS( PSENTIENT ps, PTEXT parameters ) /*fold00*/
 {
 	Methods( ps );
 	return FALSE;
+}
+
+int COUNT( PSENTIENT ps, PTEXT parameters )
+{
+
+	return 0;
 }
 //--------------------------------------------------------------------------
 int UNIMPLEMENTED( PSENTIENT ps, PTEXT parameters ) /*FOLD00*/
