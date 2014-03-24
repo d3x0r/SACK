@@ -250,7 +250,7 @@ PENTITY detach(PENTITY obj1,PENTITY obj2)
 //--------------------------------------------------------------------------
 
 
-PENTITY findbynameEx( PLIST list, size_t *count, TEXTCHAR *name )
+PENTITY findbynameEx( PLIST list, size_t *count, TEXTCHAR *name, PENTITY exclude_self )
 {
 	INDEX idx;
 	INDEX cnt;
@@ -262,6 +262,8 @@ PENTITY findbynameEx( PLIST list, size_t *count, TEXTCHAR *name )
 
 	LIST_FORALL(list,idx,PENTITY, workobject)
 	{
+		if( workobject == exclude_self )
+			continue;
 		//lprintf( WIDE("Is %s==%s?"), GetText( GetName( workobject ) ), name );
 		if( NameIs( workobject, name) )
 		{
@@ -311,7 +313,7 @@ POINTER DoFindThing( PENTITY Around, enum FindWhere type, enum FindWhere *foundt
 		case FIND_IN:
 			{
 				//lprintf( WIDE("(%d)Find in..."), level );
-				p = findbynameEx(Around->pContains,count,t);
+				p = findbynameEx(Around->pContains,count,t, NULL);
 			}
 			break;
 		case FIND_WITHIN:
@@ -326,7 +328,7 @@ POINTER DoFindThing( PENTITY Around, enum FindWhere type, enum FindWhere *foundt
 					AddLink( &pList, pe );
 					BuildAttachedListEx( NULL, &pList, pe, 0 );
 				}
-				p = findbynameEx( pList, count, t);
+				p = findbynameEx( pList, count, t, NULL);
 				DeleteList( &pList );
 				if( p == Around )
 					p = NULL;
@@ -336,7 +338,7 @@ POINTER DoFindThing( PENTITY Around, enum FindWhere type, enum FindWhere *foundt
 			{
 				PLIST pList;
 				//lprintf( WIDE("(%d)Find on..."), level );
-				p = findbynameEx(pList=BuildAttachedList(Around),count,t);
+				p = findbynameEx(pList=BuildAttachedList(Around),count,t, NULL);
 				if( p == Around )
 					p = NULL;
 				DeleteList( &pList );
@@ -346,7 +348,7 @@ POINTER DoFindThing( PENTITY Around, enum FindWhere type, enum FindWhere *foundt
 			//lprintf( WIDE("(%d)Find near..."), level );
 			if( ( pContainer = FindContainer( Around ) ) )
 			{
-				p = findbynameEx( pContainer->pContains, count, t);
+				p = findbynameEx( pContainer->pContains, count, t, Around );
 				if( p == Around )
 					p = NULL;
 			}
@@ -364,7 +366,7 @@ POINTER DoFindThing( PENTITY Around, enum FindWhere type, enum FindWhere *foundt
 					AddLink( &pList, pe );
 					BuildAttachedListEx( Around, &pList, pe, 0 );
 				}
-				p = findbynameEx( pList, count, t);
+				p = findbynameEx( pList, count, t, NULL );
 				DeleteList( &pList );
 				if( p == Around )
 					p = NULL;
@@ -374,7 +376,7 @@ POINTER DoFindThing( PENTITY Around, enum FindWhere type, enum FindWhere *foundt
 			//lprintf( WIDE("(%d)Find around..."), level );
 			if( ( pContainer = FindContainer( Around ) ) )
 			{
-				if( !p ) p = findbynameEx(pContainer->pAttached,count,t);
+				if( !p ) p = findbynameEx(pContainer->pAttached,count,t, Around);
 				if( !p )
 					if( NameIs( pContainer, t ) )
 						p = pContainer;
@@ -382,7 +384,7 @@ POINTER DoFindThing( PENTITY Around, enum FindWhere type, enum FindWhere *foundt
 			break;
 		case FIND_MACRO:
 			//lprintf( WIDE("(%d)Find macro..."), level );
-			p = findbynameEx(Around->pMacros, count, t );
+			p = findbynameEx(Around->pMacros, count, t, NULL );
 			break;
 		case FIND_MACRO_INDEX:
 			{
