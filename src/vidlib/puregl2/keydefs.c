@@ -341,12 +341,15 @@ int DispatchKeyEvent( PRENDERER hVideo, _32 key )
 			else
 				l.mouse_b &= ~MK_ALT;
 
-	if( dispatch_handled = hVideo->pKeyProc( hVideo->dwKeyData, key ) )
+	if( !l.hVidVirtualFocused && 
+		( dispatch_handled = hVideo->pKeyProc( hVideo->dwKeyData, key ) ) )
 	{
 		return 1;
 	}
+	else
+		dispatch_handled = 0;
 
-   // start with 'focused virtual panel...'
+	// start with 'focused virtual panel...'
 	hVideo = l.hVidVirtualFocused;
 	if( FindLink( &l.pActiveList, hVideo ) != INVALID_INDEX )
 	{

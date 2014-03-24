@@ -26,6 +26,7 @@ alias service image sack.msgsvr.image
 endif
 
 if sack/vidlib/use interface == d3d
+option default SACK/PSI/menus/Use Custom Popups=1
 module bag.video.pured3d.dll
 module bag.image.pured3d.dll
 
@@ -36,6 +37,7 @@ alias service render.3d d3d.render.3d
 endif
 
 if sack/vidlib/use interface == d3d2
+option default SACK/PSI/menus/Use Custom Popups=1
 module bag.video.pured3d2.dll
 module bag.image.pured3d.dll
 
@@ -46,6 +48,7 @@ alias service render.3d d3d2.render.3d
 endif
 
 if sack/vidlib/use interface == d3d3
+option default SACK/PSI/menus/Use Custom Popups=1
 module bag.video.pured3d2.dll
 module bag.image.pured3d2.dll
 
@@ -56,6 +59,7 @@ alias service render.3d d3d2.render.3d
 endif
 
 if sack/vidlib/use interface == opengl
+option default SACK/PSI/menus/Use Custom Popups=1
 module bag.video.puregl.dll
 module bag.image.puregl.dll
 
@@ -66,6 +70,7 @@ alias service render.3d puregl.render.3d
 endif
 
 if sack/vidlib/use interface == opengl1.5
+option default SACK/PSI/menus/Use Custom Popups=1
 module bag.image.puregl.dll
 alias service image puregl.image
 
@@ -77,6 +82,7 @@ alias service render.3d puregl2.render.3d
 endif
 
 if sack/vidlib/use interface == opengl2
+option default SACK/PSI/menus/Use Custom Popups=1
 option default SACK/Video Render/360 view = 0
 module bag.video.puregl2.dll
 module bag.image.puregl2.dll
