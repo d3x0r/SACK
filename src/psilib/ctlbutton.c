@@ -342,6 +342,63 @@ static int CPROC ButtonMouse( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
 }
 
 //---------------------------------------------------------------------------
+static void ToggleButtonCheck( PSI_CONTROL pCom )
+{
+	ValidatedControlData( PCHECK, RADIO_BUTTON, pc, pCom );
+	if( pc->groupid && pCom->parent )
+	{
+				// this should handle recursiveness...
+				// but for now we can go just one up, and back down to the 
+				// start of the list...
+				PSI_CONTROL pcCheck = pCom->parent->child;
+				PCHECK pcheck;
+				while( ( pcheck = ControlData( PCHECK, pcCheck ) ) )
+				{
+					if( pCom->nType == RADIO_BUTTON )
+					{
+						int bChanged = 0;
+						if( pcheck->groupid == pc->groupid )
+						{
+							if( pcheck == pc )
+							{
+								if( !pcheck->flags.bChecked )
+								{
+									bChanged = RADIO_CALL_CHECKED;
+									pcheck->flags.bChecked = TRUE;
+                           SmudgeCommon( pcCheck );
+								}
+							}
+							else
+							{
+								if( pcheck->flags.bChecked )
+								{
+									bChanged = RADIO_CALL_UNCHECKED;
+									pcheck->flags.bChecked = FALSE;
+                           SmudgeCommon( pcCheck );
+								}
+							}
+						}
+						if( pc->flags.bCallAll ||
+						    ( pc->flags.bCallChecked && bChanged == RADIO_CALL_CHECKED ) ||
+						    ( pc->flags.bCallUnchecked && bChanged == RADIO_CALL_UNCHECKED ) )
+	      			{
+							if( pc->ClickMethod )
+								pc->ClickMethod( pc->ClickData, pCom );
+						}
+					}
+					pcCheck = pcCheck->next;
+				}
+			}
+			else
+			{
+				pc->flags.bChecked = !pc->flags.bChecked;
+				if( pc->ClickMethod )
+					pc->ClickMethod( pc->ClickData, pCom );
+				SmudgeCommon( pCom );
+			}
+
+}
+//---------------------------------------------------------------------------
 
 static int CPROC ButtonKeyProc( PSI_CONTROL pc, _32 key )
 {
@@ -642,6 +699,11 @@ void CPROC RadioButtonText( PSI_CONTROL pc, PVARTEXT pvt )
 static int CPROC DrawCheckButton( PSI_CONTROL pc )
 {
 	ValidatedControlData( PCHECK, RADIO_BUTTON, pchk, pc );
+	_32 height = GetFontHeight( GetCommonFont( pc ) );
+	ResizeImage( pchk->pCheckWindow, (height-2), (height-2) );
+	ResizeImage( pchk->pCheckSurface, (height-4), (height-4) );
+
+
 	// can be several flavors for check buttons 
 	// a> a box [ ]
 	// b> a button <> which goes into a pressed state
@@ -649,6 +711,10 @@ static int CPROC DrawCheckButton( PSI_CONTROL pc )
 	if( pchk )
 	{
 		BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor(pc)[NORMAL] );
+		if( pchk->flags.bChecked )
+			BlatColorAlpha( pchk->pCheckSurface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor(pc)[HIGHLIGHT] );
+		else if( !pchk->flags.pressed )
+			BlatColorAlpha( pchk->pCheckSurface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor(pc)[SHADE] );
 		//ClearImageTo( pc->Surface, basecolor(pc)[NORMAL] );
 	}
    if( pchk->pCheckWindow )
@@ -658,6 +724,7 @@ static int CPROC DrawCheckButton( PSI_CONTROL pc )
 	//ClearImageTo( pchk->pCheckSurface, basecolor(pc)[NORMAL]  );
 
 	if( pchk->pCheckSurface )
+	{
 		if( !pchk->flags.pressed )
 		{
 			if( pchk->flags.bChecked )
@@ -665,26 +732,28 @@ static int CPROC DrawCheckButton( PSI_CONTROL pc )
 			else
 				DrawThinnerFrameImage( pc, pchk->pCheckSurface );
 		}
+	}
 
 	if( pc->caption.text )
 	{
 		int x;
-		x = 16;
+		x = height + (height/3);
 		if( !pc->flags.bDisable )
 		{
-			PutMenuString( pc->Surface, x, 0, basecolor(pc)[TEXTCOLOR], 0, GetText( pc->caption.text) );
+			PutStringFont( pc->Surface, x, 0, basecolor(pc)[TEXTCOLOR], 0, GetText( pc->caption.text), GetCommonFont( pc ) );
 			if( pc->flags.bFocused )
 			{
 				_32 end, h;
-				end = x + GetStringSize( GetText( pc->caption.text), NULL, &h );
+				end = x + GetStringSizeFont( GetText( pc->caption.text), NULL, &h, GetCommonFont( pc ) );
 				//h += ;
-				do_line( pc->Surface, x, h, end, h, basecolor(pc)[SHADE] );
+				do_line( pc->Surface, x, h-2, end, h-2, basecolor(pc)[SHADE] );
+				do_line( pc->Surface, x, h-1, end, h-1, basecolor(pc)[HIGHLIGHT] );
 			}
 		}
 		else
 		{
-			PutMenuString( pc->Surface, x+1, 1, basecolor(pc)[HIGHLIGHT], 0, GetText( pc->caption.text) );
-			PutMenuString( pc->Surface, x, 0, basecolor(pc)[SHADOW], 0, GetText( pc->caption.text) );
+			PutStringFont( pc->Surface, x+1, 1, basecolor(pc)[HIGHLIGHT], 0, GetText( pc->caption.text), GetCommonFont( pc ) );
+			PutStringFont( pc->Surface, x, 0, basecolor(pc)[SHADOW], 0, GetText( pc->caption.text), GetCommonFont( pc ) );
 		}
 	}
 	return 1;
@@ -694,22 +763,21 @@ static int CPROC DrawCheckButton( PSI_CONTROL pc )
 
 static int CPROC CheckKeyProc( PSI_CONTROL pc, _32 key )
 {
-	PCHECK pb = (PCHECK)pc;
+	ValidatedControlData( PCHECK, RADIO_BUTTON, pchk, pc );
+	PCHECK pb = pchk;
 	//printf( WIDE("Key: %08x\n"), key );
 	if( key & 0x80000000 )
 	{
 		if( ( ( key & 0xFF ) == KEY_SPACE ) ||
 		    ( ( key & 0xFF ) == KEY_ENTER ) )
 		{
-			pb->flags.bChecked = !pb->flags.bChecked;
-			if( pb->ClickMethod )
-				pb->ClickMethod( pb->ClickData, pc );
-			SmudgeCommon( pc );
+         ToggleButtonCheck( pc );
 			return 1;
 		}
 	}
 	return 0;
 }
+
 
 //---------------------------------------------------------------------------
 
@@ -747,57 +815,7 @@ static int CPROC MouseCheckButton( PSI_CONTROL pCom, S_32 x, S_32 y, _32 b )
 		if( (pc->_b & MK_LBUTTON ) )
 		{
 			pc->flags.pressed = FALSE;
-			if( pc->groupid && pCom->parent )
-			{
-				// this should handle recursiveness...
-				// but for now we can go just one up, and back down to the 
-				// start of the list...
-				PSI_CONTROL pcCheck = pCom->parent->child;
-				PCHECK pcheck;
-				while( ( pcheck = ControlData( PCHECK, pcCheck ) ) )
-				{
-					if( pCom->nType == RADIO_BUTTON )
-					{
-						int bChanged = 0;
-						if( pcheck->groupid == pc->groupid )
-						{
-							if( pcheck == pc )
-							{
-								if( !pcheck->flags.bChecked )
-								{
-									bChanged = RADIO_CALL_CHECKED;
-									pcheck->flags.bChecked = TRUE;
-                           SmudgeCommon( pcCheck );
-								}
-							}
-							else
-							{
-								if( pcheck->flags.bChecked )
-								{
-									bChanged = RADIO_CALL_UNCHECKED;
-									pcheck->flags.bChecked = FALSE;
-                           SmudgeCommon( pcCheck );
-								}
-							}
-						}
-						if( pc->flags.bCallAll ||
-						    ( pc->flags.bCallChecked && bChanged == RADIO_CALL_CHECKED ) ||
-						    ( pc->flags.bCallUnchecked && bChanged == RADIO_CALL_UNCHECKED ) )
-	      			{
-							if( pc->ClickMethod )
-								pc->ClickMethod( pc->ClickData, pCom );
-						}
-					}
-					pcCheck = pcCheck->next;
-				}
-			}
-			else
-			{
-				pc->flags.bChecked = !pc->flags.bChecked;
-				if( pc->ClickMethod )
-					pc->ClickMethod( pc->ClickData, pCom );
-			}
-			SmudgeCommon( pCom );
+         ToggleButtonCheck( pCom );
 		}
 	}
 	pc->_b = b;
@@ -856,8 +874,9 @@ int CPROC ConfigureCheckButton( PSI_CONTROL pControl )
 	Init();
 	if( pc )
 	{
-		pc->pCheckWindow = MakeSubImage( pControl->Surface, 1, 1, 12, 12 );
-		pc->pCheckSurface = MakeSubImage( pc->pCheckWindow, 1, 1, 10, 10 );
+      _32 height = GetFontHeight( GetCommonFont( pControl ) );
+		pc->pCheckWindow = MakeSubImage( pControl->Surface, 1, 1, (height-2), (height-2) );
+		pc->pCheckSurface = MakeSubImage( pc->pCheckWindow, 1, 1, (height-4), (height-4) );
 		//pc->ClickMethod = CheckProc;
 		//pc->ClickMethodName = GetCheckMethodName( CheckProc );
 		//pc->ClickData = psv;

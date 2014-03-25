@@ -418,13 +418,13 @@ void GetMyInterface( void )
 	{
 		_32 w, h;
 		GetDisplaySize( &w, &h );
-		g.default_font = RenderFontFileScaledEx( WIDE("fonts/MyriadPro.ttf"), w / 58, h / 32, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
+		g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/MyriadPro.ttf"), w / 58, h / 32, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 	}
 #else
 	{
 		_32 w, h;
 		GetDisplaySize( &w, &h );
-		g.default_font = RenderFontFileScaledEx( WIDE("fonts/rod.ttf"), 20, 20, NULL, NULL, 0*2/*FONT_FLAG_8BIT*/, NULL, NULL );
+		g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/rod.ttf"), 20, 20, NULL, NULL, 0*2/*FONT_FLAG_8BIT*/, NULL, NULL );
 	}
 #endif
 }
@@ -2408,7 +2408,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	// creates
 	pc->flags.bInitial = 1;
 	pc->flags.bDirty = 1;
-	if( pc->nType == CONTROL_FRAME && g.default_font )
+	if( !pContainer /*pc->nType == CONTROL_FRAME*/ && g.default_font )
 	{
 		SetCommonFont( pc, g.default_font );
 	}
