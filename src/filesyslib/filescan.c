@@ -303,7 +303,9 @@ typedef struct myfinddata {
 
 		if( base )
 		{
-			StrCpyEx( findbasename(pInfo), base, MAX_PATH_NAME );
+         TEXTSTR tmp;
+			StrCpyEx( findbasename(pInfo), tmp = ExpandPath( base ), MAX_PATH_NAME );
+         Release( tmp );
 			StrCpyEx( findmask(pInfo), mask, MAX_PATH_NAME );
 		}
 		else

@@ -37,6 +37,7 @@ macro( install_resources target )
   	STRING( REPLACE "/" "." resout ${resource} )
         EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${SACK_SDK_ROOT_PATH}/Resources/${resource} package/assets/${resout} )
   endforeach( resource )
+        add_custom_command( TARGET update PRE_BUILD  COMMAND cmake -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/../../data/MyriadPro.ttf package/assets/fonts~MyriadPro.ttf )
   
 endmacro( install_resources )
 
