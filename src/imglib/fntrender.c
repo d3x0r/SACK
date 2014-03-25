@@ -538,6 +538,8 @@ void RenderMonoChar( PFONT font
 		INDEX lines;
 
 		char *data, *chartop;
+		//lprintf( "character %c(%d) is %dx%d = %d", idx, idx, bitmap->width, bitmap->rows, ( bitmap->rows
+		//											* ((bitmap->width+7)/8) ) );
 		font->character[idx] = character;
 		font->character[idx]->next_in_line = NULL;
 		font->character[idx]->cell = NULL;
@@ -577,6 +579,7 @@ void RenderMonoChar( PFONT font
 		}
 
 		character->ascent = CEIL(metrics->horiBearingY);
+		//lprintf( "heights %d %d %d", font->height, bitmap->rows, metrics->height );
 		if( metrics->height )
 			character->descent = -CEIL(metrics->height - metrics->horiBearingY) + 1;
 		else
@@ -585,14 +588,14 @@ void RenderMonoChar( PFONT font
 		character->size = bitmap->width;
 		//charleft = charleft;
 		//charheight = CEIL( metrics->height );
-      if( 0 )
-		lprintf( WIDE("(%")_size_f WIDE("(%c)) Character parameters: %d %d %d %d %d")
-				 , idx, (char)(idx< 32 ? ' ':idx)
-				 , character->width
-				 , character->offset
-				 , character->size
-				 , character->ascent
-				 , character->descent );
+      //if( 0 )
+		//lprintf( WIDE("(%")_size_f WIDE("(%c)) Character parameters: %d %d %d %d %d")
+		//		 , idx, (char)(idx< 32 ? ' ':idx)
+		//		 , character->width
+		//		 , character->offset
+		//		 , character->size
+		//		 , character->ascent
+		//		 , character->descent );
 
 		// for all horizontal lines which are blank - decrement ascent...
 		chartop = NULL;
@@ -602,7 +605,7 @@ void RenderMonoChar( PFONT font
 
 			linetop = 0;
 			linebottom = character->ascent - character->descent;
-			//Log2( WIDE("Linetop: %d linebottom: %d"), linetop, linebottom );
+			//lprintf( WIDE("Linetop: %d linebottom: %d"), linetop, linebottom );
 
 			lines = character->ascent - character->descent;
 
@@ -616,11 +619,12 @@ void RenderMonoChar( PFONT font
 				}
 				if( bit == character->size )
 				{
-					//Log( WIDE("Dropping a line...") );
+					Log( WIDE("Dropping a line...") );
 					character->ascent--;
 				}
 				else
 				{
+					//lprintf( "New top will be %d", line );
 					linetop = line;
 					chartop = data;
 					break;
@@ -775,6 +779,9 @@ void RenderGreyChar( PFONT font
 		INDEX lines;
 
 		char *data, *chartop;
+		//lprintf( "character %c(%d) is %dx%d = %d", idx, idx, bitmap->width, bitmap->rows, ( bitmap->rows
+		//											  * (bitmap->width+(bits==8?0:bits==2?3:7)/(8/bits)) )
+		//										  + 512 );
 		font->character[idx] = character;
 		font->character[idx]->next_in_line = NULL;
 		font->character[idx]->cell = NULL;
@@ -817,14 +824,15 @@ void RenderGreyChar( PFONT font
 		character->offset = CEIL(metrics->horiBearingX);
 		character->size = bitmap->width;
 
-		if( 0 )
-			lprintf( WIDE("(%") _size_f WIDE("(%c)) Character parameters: %d %d %d %d %d")
-					 , idx, (char)(idx< 32 ? ' ':idx)
-					 , character->width
-					 , character->offset
-					 , character->size
-					 , character->ascent
-					 , character->descent );
+		//lprintf( "heights %d %d %d", font->height, bitmap->rows, CEIL(metrics->height) );
+		//if( 0 )
+		//	lprintf( WIDE("(%") _size_f WIDE("(%c)) Character parameters: %d %d %d %d %d")
+		//			 , idx, (char)(idx< 32 ? ' ':idx)
+		//			 , character->width
+		//			 , character->offset
+		//			 , character->size
+		//			 , character->ascent
+		//			 , character->descent );
 
 		// for all horizontal lines which are blank - decrement ascent...
 		chartop = NULL;
@@ -1014,7 +1022,7 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 		FT_Load_Glyph( face
 						 , glyph_index
 						 , 0
-						  | FT_LOAD_FORCE_AUTOHINT
+						 // | FT_LOAD_FORCE_AUTOHINT
 						 );
 
 		//lprintf( "advance and height... %d %d", ( face->glyph->linearVertAdvance>>16 ), renderer->font->height );
@@ -1025,8 +1033,8 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 				( ( renderer->font->height
 					- ( renderer->max_ascent - renderer->min_descent ) )
 				 / 2 );
-			if( 0 )
-				lprintf( WIDE("Result baseline %d   %d,%d"), renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+			//if( 0 )
+			//	lprintf( WIDE("Result baseline %c(%d %x)  %d %d   %d,%d"), idx?idx:' ', idx, idx, renderer->font->height,renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
 
 		}
 			switch( face->glyph->format )
@@ -1184,8 +1192,13 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 								- ( renderer->max_ascent - renderer->min_descent ) )
 							 / 2 );
 						if( 0 )
-							lprintf( WIDE("Result baseline %d   %d,%d"), renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+							lprintf( WIDE("Result baseline %c(%d %x) %d  %d   %d,%d"), idx?idx:' ', idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
 					}
+               if( 0 )
+							lprintf( WIDE("Result baseline %c(%d %x) %d  %d  %d  %d   %d,%d")
+								, idx?idx:' ', idx, idx
+								, ascent, descent
+								, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
 					if( descent < renderer->min_descent )
 					{
 						renderer->min_descent = descent;
@@ -1194,7 +1207,7 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 								- ( renderer->max_ascent - renderer->min_descent ) )
 							 / 2 );
 						if( 0 )
-							lprintf( WIDE("Result baseline %d   %d,%d"), renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+							lprintf( WIDE("Result baseline %c(%d %x) %d  %d   %d,%d"), idx, idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
 					}
 				}
 				{
@@ -1290,9 +1303,9 @@ try_another_default:
 			if( height_scale)
 				renderer->height_scale = height_scale[0];
 			else
-            SetFraction( renderer->height_scale, 1, 1 );
+				SetFraction( renderer->height_scale, 1, 1 );
 			renderer->flags = flags;
-			renderer->file = sack_prepend_path( 0, file );
+			renderer->file = ExpandPath( file );
 			AddLink( &fonts, renderer );
 		}
 		else
@@ -1309,22 +1322,22 @@ try_another_default:
 
 		if( !renderer->face )
 		{
-         //lprintf( "memopen %s", renderer->file );
+			//lprintf( "memopen %s", renderer->file );
 			error = OpenFontFile( renderer->file, &renderer->font_memory, &renderer->face, face_idx, TRUE );
 #if rotation_was_italic
 			if( renderer->flags & FONT_FLAG_ITALIC )
-			{         
-				FT_Matrix matrix;         
-				const float angle = 30 * (-M_PI) / 180.0f;         
-				matrix.xx = (FT_Fixed)( cos( angle ) * 0x10000L );         
-				matrix.xy = (FT_Fixed)(-sin( angle ) * 0x10000L );         
-				matrix.yx = (FT_Fixed)( sin( angle ) * 0x10000L );         
-				matrix.yy = (FT_Fixed)( cos( angle ) * 0x10000L );         
-				FT_Set_Transform(renderer->face,&matrix,0);     
-			} 
+			{
+				FT_Matrix matrix
+				const float angle = 30 * (-M_PI) / 180.0f;
+				matrix.xx = (FT_Fixed)( cos( angle ) * 0x10000L );
+				matrix.xy = (FT_Fixed)(-sin( angle ) * 0x10000L );
+				matrix.yx = (FT_Fixed)( sin( angle ) * 0x10000L );
+				matrix.yy = (FT_Fixed)( cos( angle ) * 0x10000L );
+				FT_Set_Transform(renderer->face,&matrix,0);
+			}
 			else 
-			{         
-				//FT_Set_Transform(renderer->face,0,0);     
+			{
+				//FT_Set_Transform(renderer->face,0,0);
 			} 
 #endif
 			if( renderer->flags & FONT_FLAG_ITALIC )
