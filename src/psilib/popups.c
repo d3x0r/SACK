@@ -87,7 +87,7 @@ PSI_PROC( PMENU, CreatePopup )( void )
 		pm = ControlData( PMENU, pc );
 		pm->image = pc;
 		//								MemSet( menu, 0, sizeof( MENU ) );
-		pm->font = GetDefaultFont();
+		//pm->font = GetDefaultFont();
 		return pm;
 	}
 #if !defined( DISABLE_NATIVE_POPUPS )
@@ -109,7 +109,8 @@ int CalculateMenuItems( PMENU pm )
     _32 maxwidth, totalheight, hassubmenu = 0;
     pmi = pm->items;
     maxwidth = 0;
-    totalheight = MENU_VERTPAD;
+	 totalheight = MENU_VERTPAD;
+    pm->font = GetCommonFont( pm->image );
     while( pmi )
     {
         pmi->baseline = totalheight;
