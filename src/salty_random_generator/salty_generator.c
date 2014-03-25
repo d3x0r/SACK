@@ -4,6 +4,13 @@
 #define SALTY_RANDOM_GENERATOR_SOURCE
 #include "salty_generator.h"
 
+
+#define MY_MASK_MASK(n,length)   (MASK_TOP_MASK(length) << ((n)&0x7) )
+#define MY_GET_MASK(v,n,mask_size)  ( ( ((MASKSET_READTYPE*)((((PTRSZVAL)v))+(n)/CHAR_BIT))[0]                                 \
+ & MY_MASK_MASK(n,mask_size) )                                                                           \
+	>> (((n))&0x7))
+
+
 struct random_context {
 	SHA1Context sha1_ctx;
 	POINTER salt;
@@ -29,7 +36,7 @@ static void NeedBits( struct random_context *ctx )
 	SHA1Result( &ctx->sha1_ctx, ctx->entropy );
 	SHA1Reset( &ctx->sha1_ctx );
 	SHA1Input( &ctx->sha1_ctx, ctx->entropy, SHA1HashSize );
-	LogBinary( ctx->entropy, SHA1HashSize );
+	//LogBinary( ctx->entropy, SHA1HashSize );
 	ctx->bits_used = 0;
 	ctx->bits_avail = sizeof( ctx->entropy ) * 8;
 }
@@ -51,9 +58,8 @@ S_64 SRG_GetEntropy( struct random_context *ctx, int bits, int get_signed )
 	if( bits > ( ctx->bits_avail - ctx->bits_used ) )
 		NeedBits( ctx );
 	{
-		tmp = GET_MASK( ctx->entropy, ctx->bits_used, bits );
+		tmp = MY_GET_MASK( ctx->entropy, ctx->bits_used, bits );
 		ctx->bits_used += bits;
-		lprintf( " now used %d", ctx->bits_used );
 		if( get_signed )
 			if( tmp & ( 1 << ( bits - 1 ) ) )
 			{
