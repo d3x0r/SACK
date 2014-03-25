@@ -55,11 +55,23 @@ struct random_context *SRG_CreateEntropy( void (*getsalt)( PTRSZVAL, POINTER *sa
 S_64 SRG_GetEntropy( struct random_context *ctx, int bits, int get_signed )
 {
 	_64 tmp;
+	_64 partial_tmp;
+   int partial_bits = 0;
 	if( bits > ( ctx->bits_avail - ctx->bits_used ) )
+	{
+      partial_bits = ctx->bits_avail - ctx->bits_used;
+		partial_tmp = MY_GET_MASK( ctx->entropy, ctx->bits_used, partial_bits );
+      bits -= partial_bits;
 		NeedBits( ctx );
+	}
 	{
 		tmp = MY_GET_MASK( ctx->entropy, ctx->bits_used, bits );
 		ctx->bits_used += bits;
+		if( partial_bits )
+		{
+			tmp |= partial_tmp << bits;
+			bits += partial_bits;
+		}
 		if( get_signed )
 			if( tmp & ( 1 << ( bits - 1 ) ) )
 			{
@@ -70,5 +82,12 @@ S_64 SRG_GetEntropy( struct random_context *ctx, int bits, int get_signed )
 	}
 	return (S_64)( tmp );
 
+}
+
+void SRG_ResetEntropy( struct random_context *ctx )
+{
+	SHA1Reset( &ctx->sha1_ctx );
+	ctx->bits_used = 0;
+	ctx->bits_avail = 0;
 }
 
