@@ -394,7 +394,15 @@ static void LoadOptions( void )
 
 #ifndef __ANDROID__
 		// android has a system log that does just fine/ default startup sets that.
-		if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Enable File Log" )
+
+		if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Enable System Log" )
+										, 0
+										, TRUE ) )
+		{
+			logtype = SYSLOG_SYSTEM;
+			flags.bLogProgram = 1;
+		}
+		else if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Enable File Log" )
 										, ( logtype == SYSLOG_AUTO_FILE )
 										, TRUE ) )
 		{
@@ -1184,7 +1192,6 @@ void DoSystemLog( const TEXTCHAR *buffer )
 		__android_log_print( ANDROID_LOG_INFO, GetProgramName(), buffer );
 #    else
 		OutputDebugString( buffer );
-		OutputDebugString( WIDE("\n") );
 #    endif
 #  endif
 	} 
