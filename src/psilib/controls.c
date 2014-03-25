@@ -420,6 +420,12 @@ void GetMyInterface( void )
 		GetDisplaySize( &w, &h );
 		g.default_font = RenderFontFileScaledEx( WIDE("fonts/MyriadPro.ttf"), w / 58, h / 32, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 	}
+#else
+	{
+		_32 w, h;
+		GetDisplaySize( &w, &h );
+		g.default_font = RenderFontFileScaledEx( WIDE("fonts/rod.ttf"), 20, 20, NULL, NULL, 0*2/*FONT_FLAG_8BIT*/, NULL, NULL );
+	}
 #endif
 }
 #endif
