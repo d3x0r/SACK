@@ -1331,7 +1331,7 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 		{
 			// macro state only applies for the object of the sentience.
 			// IF next token is not a '.' and this token != '(' and next token != '['
-			if( pms )
+			if( pms && ptext )
 			{
 				PTEXT pMacroReturn = LookupMacroVariable( ptext, pms );
 				if( pMacroReturn )

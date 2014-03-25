@@ -823,23 +823,26 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 		}
 		else
 		{
-			if( 0 )
-				lprintf( WIDE("%d %d %d"), UseFont->baseline - pchar->ascent, y, UseFont->baseline - pchar->descent );
+			int line_target;
+			//if( 0 )
+			//	lprintf( WIDE("%d  %d %d %d %d %d"), UseFont->baseline, UseFont->baseline - pchar->ascent, y, UseFont->baseline - pchar->descent, pchar->descent, pchar->ascent );
 			// bias the left edge of the character
 
 			if( internal_render )
+			{
+				//y = 0;
 				line = 0;
+				line_target = ( pchar->ascent - pchar->descent );
+			}
 			else
-				line = UseFont->baseline - pchar->ascent;
-#if defined( __3D__ )
+			{
+				y += ( UseFont->baseline - pchar->ascent ) ;
+				line = 0;//UseFont->baseline - pchar->ascent;
+				line_target =  pchar->ascent - pchar->descent ;//(UseFont->baseline - pchar->ascent) + ( UseFont->baseline - pchar->descent );
+			}
 			for(;
-				 line <= UseFont->baseline - pchar->descent;
+				 line <= line_target;
 				 line++ )
-#else
-			for(;
-				 line <= UseFont->baseline - pchar->descent;
-				 line++ )
-#endif
 			{
 				dataline = data;
 				col = pchar->offset;

@@ -1330,6 +1330,8 @@ void BuildFontCache( void )
 	// .psf.gz doesn't load directly.... 
 	while( ScanFiles( WIDE("."), WIDE("*.ttf\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
 						 , ListFontFile, SFF_SUBCURSE, 0 ) );
+	while( ScanFiles( WIDE("%resources%"), WIDE("*.ttf\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
+						 , ListFontFile, SFF_SUBCURSE, 0 ) );
 
 	// scan windows/fonts directory
 #ifndef __NO_OPTIONS__
