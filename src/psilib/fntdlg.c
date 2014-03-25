@@ -168,14 +168,14 @@ int UpdateSampleFont( PFONT_DIALOG pfd )
 static int CPROC DrawCharacterSize( PCOMMON pc )
 {
 	int x, y;
-   _32 width, height;
+	_32 width, height;
 	PFONT_DIALOG pfd = (PFONT_DIALOG)GetFrameUserData( GetFrame( pc ) );
 	Image surface = GetControlSurface( pc );
-   lprintf( WIDE("Drawing character size control...") );
+	lprintf( WIDE("Drawing character size control...") );
 	ClearImageTo( surface, Color( 92, 91, 42 ) );
-   if( pfd->width_scale )
+	if( pfd->width_scale )
 		x = (surface->width - (width = ScaleValue( pfd->width_scale, pfd->nSliderWidth ) ) ) / 2;
-   else 
+	else 
 		x = (surface->width - (width = pfd->nSliderWidth) ) / 2;
 	if( pfd->height_scale )
 		y = (surface->height - (height = ScaleValue( pfd->height_scale, pfd->nSliderHeight) ) ) / 2;
@@ -184,16 +184,14 @@ static int CPROC DrawCharacterSize( PCOMMON pc )
 	BlatColor( surface, x, y
 				, width
 				, height, Color( 0, 0, 0 ) );
-	if( pfd->flags.showing_scalable )
-		UpdateSampleFont( pfd );
-   return 1;
+	return 1;
 }
 
 //-------------------------------------------------------------------------
 
 void CPROC UpdateCharRect( PTRSZVAL psv, PSI_CONTROL pc, int val )
 {
-   PFONT_DIALOG pfd = (PFONT_DIALOG)psv;
+	PFONT_DIALOG pfd = (PFONT_DIALOG)psv;
 	if( GetControlID( pc ) == SLD_WIDTH )
 	{
 		pfd->nSliderWidth = val;
@@ -204,10 +202,12 @@ void CPROC UpdateCharRect( PTRSZVAL psv, PSI_CONTROL pc, int val )
 	{
 		pfd->nSliderHeight = -val;
 		if( pfd->flags.showing_scalable )
-         pfd->nHeight = pfd->nSliderHeight;
+			pfd->nHeight = pfd->nSliderHeight;
 	}
 	lprintf( WIDE("Updated slider value - update control...") );
-   SmudgeCommon( GetNearControl( pc, CST_CHAR_SIZE ) );
+	if( pfd->flags.showing_scalable )
+		UpdateSampleFont( pfd );
+	SmudgeCommon( GetNearControl( pc, CST_CHAR_SIZE ) );
 }
 
 //-------------------------------------------------------------------------
