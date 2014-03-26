@@ -12,15 +12,12 @@ struct block_shuffle_key
    struct random_context *ctx;
 };
 
-
 typedef struct holder_tag
 {
    int number;
    int r;
    struct holder_tag *pLess, *pMore;
 } HOLDER, *PHOLDER;
-
-int nHolders;
 
 PHOLDER sort( int *nHolders, PHOLDER holders, PHOLDER tree, int number, int r )
 {
@@ -91,7 +88,7 @@ struct block_shuffle_key *BlockShuffle_CreateKey( size_t width, size_t height )
    return key;
 }
 
-void BlockShuffle_GetDataBlock( struct block_shuffle_key *key, POINTER encrypted, size_t x, size_t y, size_t w, size_t h, POINTER output, size_t ofs_x, size_t ofs_y, size_t stride )
+EXPORT_METHOD void BlockShuffle_GetDataBlock( struct block_shuffle_key *key, POINTER encrypted, size_t x, size_t y, size_t w, size_t h, POINTER output, size_t ofs_x, size_t ofs_y, size_t stride )
 {
 	size_t ix, iy;
 	for( ix = x; ix < ( x + w ); ix++ )
@@ -105,12 +102,12 @@ void BlockShuffle_GetDataBlock( struct block_shuffle_key *key, POINTER encrypted
 }
 
 
-void BlockShuffle_GetData( struct block_shuffle_key *key, POINTER encrypted, size_t x, size_t y, size_t w, POINTER output, size_t ofs_x )
+EXPORT_METHOD void BlockShuffle_GetData( struct block_shuffle_key *key, POINTER encrypted, size_t x, size_t y, size_t w, POINTER output, size_t ofs_x )
 {
    BlockShuffle_GetDataBlock( key, encrypted, x, y, w, 1, output, ofs_x, 0, w );
 }
 
-void BlockShuffle_SetDataBlock( struct block_shuffle_key *key, POINTER encrypted, size_t x, size_t y, size_t w, size_t h, POINTER input, size_t ofs_x, size_t ofs_y, size_t stride )
+EXPORT_METHOD void BlockShuffle_SetDataBlock( struct block_shuffle_key *key, POINTER encrypted, size_t x, size_t y, size_t w, size_t h, POINTER input, size_t ofs_x, size_t ofs_y, size_t stride )
 {
 	size_t ix, iy;
 	for( ix = x; ix < ( x + w ); ix++ )
@@ -124,7 +121,7 @@ void BlockShuffle_SetDataBlock( struct block_shuffle_key *key, POINTER encrypted
 }
 
 
-void BlockShuffle_SetData( struct block_shuffle_key *key, POINTER encrypted, size_t x, size_t y, size_t w, POINTER input, size_t ofs_x )
+EXPORT_METHOD void BlockShuffle_SetData( struct block_shuffle_key *key, POINTER encrypted, size_t x, size_t y, size_t w, POINTER input, size_t ofs_x )
 {
    BlockShuffle_SetDataBlock( key, encrypted, x, y, w, 1, input, ofs_x, 0, w );
 }

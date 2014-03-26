@@ -103,6 +103,9 @@ BOOL WINAPI DllMain(
    return TRUE;
 }
 
+// this is the watcom deadstart entry point.
+// by supplying this routine, then the native runtime doesn't get pulled
+// and no external clbr symbols are required.
 void __DLLstart( void )
 {
 }
