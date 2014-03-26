@@ -59,9 +59,12 @@ S_32 SRG_GetEntropy( struct random_context *ctx, int bits, int get_signed )
    int partial_bits = 0;
 	if( bits > ( ctx->bits_avail - ctx->bits_used ) )
 	{
-      partial_bits = ctx->bits_avail - ctx->bits_used;
-		partial_tmp = MY_GET_MASK( ctx->entropy, ctx->bits_used, partial_bits );
-      bits -= partial_bits;
+		if( ctx->bits_avail - ctx->bits_used )
+		{
+			partial_bits = ctx->bits_avail - ctx->bits_used;
+			partial_tmp = MY_GET_MASK( ctx->entropy, ctx->bits_used, partial_bits );
+			bits -= partial_bits;
+		}
 		NeedBits( ctx );
 	}
 	{
