@@ -103,3 +103,6 @@ BOOL WINAPI DllMain(
    return TRUE;
 }
 
+void __DLLstart( void )
+{
+}
