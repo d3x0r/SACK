@@ -1362,6 +1362,7 @@ endif( NOT __ANDROID__ AND NOT __NO_MSGSVR__ )
 if( WIN32 )
    add_subdirectory( src/utils/application_delay )
 endif( WIN32 )
+   add_subdirectory( src/salty_random_generator )
 if( NOT UNIX )
   #   This doesn't build under watcom either...
   #   it needs to be modified to understand functional syntax so it can do formatting...
