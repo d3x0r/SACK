@@ -1,3 +1,10 @@
+
+set (CMAKE_C_STANDARD_LIBRARIES_INIT "library clbr3r.lib library plbr3r.lib")
+
+if( WATCOM )
+ADD_DEFINITIONS( -s )
+endif( WATCOM )
+
 set( PROJECT salty_generator )
 
 sack_add_library( ${PROJECT} SHARED salty_generator.c )

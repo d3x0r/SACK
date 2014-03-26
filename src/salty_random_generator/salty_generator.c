@@ -52,10 +52,10 @@ struct random_context *SRG_CreateEntropy( void (*getsalt)( PTRSZVAL, POINTER *sa
 	return ctx;
 }
 
-S_64 SRG_GetEntropy( struct random_context *ctx, int bits, int get_signed )
+S_32 SRG_GetEntropy( struct random_context *ctx, int bits, int get_signed )
 {
-	_64 tmp;
-	_64 partial_tmp;
+	_32 tmp;
+	_32 partial_tmp;
    int partial_bits = 0;
 	if( bits > ( ctx->bits_avail - ctx->bits_used ) )
 	{
@@ -75,12 +75,12 @@ S_64 SRG_GetEntropy( struct random_context *ctx, int bits, int get_signed )
 		if( get_signed )
 			if( tmp & ( 1 << ( bits - 1 ) ) )
 			{
-				_64 negone = ~0;
+				_32 negone = ~0;
 				negone <<= bits;
-				return (S_64)( tmp | negone );
+				return (S_32)( tmp | negone );
 			}
 	}
-	return (S_64)( tmp );
+	return (S_32)( tmp );
 
 }
 
@@ -89,5 +89,14 @@ void SRG_ResetEntropy( struct random_context *ctx )
 	SHA1Reset( &ctx->sha1_ctx );
 	ctx->bits_used = 0;
 	ctx->bits_avail = 0;
+}
+
+BOOL WINAPI DllMain(
+   HINSTANCE hinstDLL,
+   DWORD fdwReason,
+   LPVOID lpvReserved
+						 )
+{
+   return TRUE;
 }
 
