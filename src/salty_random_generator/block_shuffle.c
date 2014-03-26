@@ -34,9 +34,9 @@ PHOLDER sort( int *nHolders, PHOLDER holders, PHOLDER tree, int number, int r )
    else
    {
       if( r > tree->r )
-         tree->pMore = sort( tree->pMore, number, r );
+         tree->pMore = sort( nHolders, holders, tree->pMore, number, r );
       else
-         tree->pLess = sort( tree->pLess, number, r );
+         tree->pLess = sort( nHolders, holders, tree->pLess, number, r );
    }
    return tree;
 }
@@ -44,10 +44,10 @@ PHOLDER sort( int *nHolders, PHOLDER holders, PHOLDER tree, int number, int r )
 void FoldTree( int *nNumber, int *numbers, PHOLDER tree )
 {
    if( tree->pLess )
-      FoldTree( numbers, tree->pLess );
+      FoldTree( nNumber, numbers, tree->pLess );
    numbers[(*nNumber)++] = tree->number;
    if( tree->pMore )
-      FoldTree( numbers, tree->pMore );
+      FoldTree( nNumber, numbers, tree->pMore );
 }
 
 void Shuffle( struct block_shuffle_key *key, int *numbers , int count )
@@ -65,7 +65,7 @@ void Shuffle( struct block_shuffle_key *key, int *numbers , int count )
 			break;
    need_bits = n + 1;
    for( n = 0; n < count; n++ )
-		tree = sort( &nHolders, holders, tree, numbers[n], SRG_GetEntropy( key->ctx, need_bits ) );
+		tree = sort( &nHolders, holders, tree, numbers[n], SRG_GetEntropy( key->ctx, need_bits, 0 ) );
    FoldTree( &nNumber, numbers, tree );
    Release( holders );
 }
@@ -88,42 +88,44 @@ struct block_shuffle_key *BlockShuffle_CreateKey( size_t width, size_t height )
 			}
       Shuffle( key, key->map, width * height );
 	}
+   return key;
 }
 
-LOGICAL BlockShuffle_GetDataBlock( struct block_shuffle_key *key, POINTER encrypted, size_t x, size_t y, size_t w, size_t h, POINTER output )
+void BlockShuffle_GetDataBlock( struct block_shuffle_key *key, POINTER encrypted, size_t x, size_t y, size_t w, size_t h, POINTER output, size_t ofs_x, size_t ofs_y, size_t stride )
 {
 	size_t ix, iy;
 	for( ix = x; ix < ( x + w ); ix++ )
 	{
 		for( iy = y; iy < ( y + h ); iy++ )
 		{
-			(P_8)( ( (PTRSZVAL)output ) + (ix - ofs_x ) + stride * ( iy - ofs_y ) )[0] =
-				(P_8)( ( (PTRSZVAL)encrypted ) + key->map[ix + iy * key->width ] )[0];
+			((P_8)( ( (PTRSZVAL)output ) + (ix - ofs_x ) + stride * ( iy - ofs_y ) ))[0] =
+				((P_8)( ( (PTRSZVAL)encrypted ) + key->map[ix + iy * key->width ] ))[0];
 		}
 	}
 }
 
 
-LOGICAL BlockShuffle_GetData( struct block_shuffle_key *key, POINTER encrypted, size_t x, size_t y, size_t w, POINTER output, size_t ofs_x )
+void BlockShuffle_GetData( struct block_shuffle_key *key, POINTER encrypted, size_t x, size_t y, size_t w, POINTER output, size_t ofs_x )
 {
-   return BlockShuffleGetDataBlock( key, encrypted, x, y, w, 1, output, ofs_x, 0, w );
+   BlockShuffle_GetDataBlock( key, encrypted, x, y, w, 1, output, ofs_x, 0, w );
 }
 
-LOGICAL BlockShuffle_SetDataBlock( struct block_shuffle_key *key, POINTER encrypted, size_t x, size_t y, size_t w, size_t h, POINTER input, size_t ofs_x, size_t ofs_y, size_t stride )
+void BlockShuffle_SetDataBlock( struct block_shuffle_key *key, POINTER encrypted, size_t x, size_t y, size_t w, size_t h, POINTER input, size_t ofs_x, size_t ofs_y, size_t stride )
 {
 	size_t ix, iy;
 	for( ix = x; ix < ( x + w ); ix++ )
 	{
 		for( iy = y; iy < ( y + h ); iy++ )
 		{
-			(P_8)( ( (PTRSZVAL)encrypted ) + key->map[ix + iy * key->width] )[0]
-				= (P_8)( ( (PTRSZVAL)input ) + (ix - ofs_x ) + stride * ( iy - ofs_y ) )[0]
+			((P_8)( ( (PTRSZVAL)encrypted ) + key->map[ix + iy * key->width] ))[0]
+				= ((P_8)( ( (PTRSZVAL)input ) + (ix - ofs_x ) + stride * ( iy - ofs_y ) ))[0];
 		}
 	}
 }
 
 
-LOGICAL BlockShuffle_SetData( struct block_shuffle_key *key, POINTER encrypted, size_t x, size_t y, size_t w, POINTER input, size_t ofs_x )
+void BlockShuffle_SetData( struct block_shuffle_key *key, POINTER encrypted, size_t x, size_t y, size_t w, POINTER input, size_t ofs_x )
 {
-   return BlockShuffleSetDataBlock( key, encrypted, x, y, w, 1, output, ofs_x, 0, w );
+   BlockShuffle_SetDataBlock( key, encrypted, x, y, w, 1, input, ofs_x, 0, w );
 }
+

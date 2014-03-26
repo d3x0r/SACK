@@ -7,7 +7,7 @@ endif( WATCOM )
 
 set( PROJECT salty_generator )
 
-sack_add_library( ${PROJECT} SHARED salty_generator.c )
+sack_add_library( ${PROJECT} SHARED salty_generator.c block_shuffle.c )
 
 SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   FOLDER utils/salty_generator
