@@ -42,6 +42,30 @@ typedef BLOBTYPE macro_tag *PMACRO;
 
 //#define 
 
+enum FindWhere {
+   FIND_IN,
+   FIND_ON,
+   FIND_NEAR,
+   FIND_AROUND,
+	FIND_VISIBLE,
+	// cannot grab my current container...
+   // also cannot grab things already grabbed
+   FIND_GRABBABLE, 
+   FIND_MACRO,
+	FIND_MACRO_INDEX
+	// this is an in-depth near search
+	// for all things attached to all things near.
+	  ,FIND_ANYTHING_NEAR
+	  // FIND_WITHIN only searches objects which are
+	  // immediately linked as contents of the container.
+	  // this also searches all attached objects to objects
+     // within the container.
+	  , FIND_WITHIN
+     // the object itself has been found...
+     , FIND_SELF
+};
+
+
 BLOBTYPE macro_flags {
 	bool bDelete;  // when used is cleared, delete if delete set
 	bool bUsed;    // macro is running, must set delete and leave.
@@ -466,7 +490,7 @@ PENTITY attach             ( PENTITY _this, PENTITY that );
 PENTITY detach             ( PENTITY _this, PENTITY that );
 
 CORE_PROC( PENTITY, FindContainer      )( PENTITY source );
-PENTITY findbynameEx       ( PLIST object, size_t *count, TEXTCHAR *name );
+PENTITY findbynameEx       ( PLIST object, size_t *count, TEXTCHAR *name, PENTITY exclude_self );
 
 // ptext is updated according to how many toekns were used to find the entity...
 // find thing is wise enough to do parameter substitution,
@@ -496,29 +520,6 @@ void LoadPlugins( CTEXTSTR base );
 ObjectInit CPROC ScanRegisteredObjects( PENTITY pe, CTEXTSTR for_name );
 
 #endif
-
-enum FindWhere {
-   FIND_IN,
-   FIND_ON,
-   FIND_NEAR,
-   FIND_AROUND,
-	FIND_VISIBLE,
-	// cannot grab my current container...
-   // also cannot grab things already grabbed
-   FIND_GRABBABLE, 
-   FIND_MACRO,
-	FIND_MACRO_INDEX
-	// this is an in-depth near search
-	// for all things attached to all things near.
-	  ,FIND_ANYTHING_NEAR
-	  // FIND_WITHIN only searches objects which are
-	  // immediately linked as contents of the container.
-	  // this also searches all attached objects to objects
-     // within the container.
-	  , FIND_WITHIN
-     // the object itself has been found...
-     , FIND_SELF
-};
 
 
 #define WakeAThread(ps) WakeAThreadEx( ps DBG_SRC )
