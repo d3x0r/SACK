@@ -94,6 +94,7 @@ void SRG_ResetEntropy( struct random_context *ctx )
 	ctx->bits_avail = 0;
 }
 
+#if WIN32
 BOOL WINAPI DllMain(
    HINSTANCE hinstDLL,
    DWORD fdwReason,
@@ -109,3 +110,4 @@ BOOL WINAPI DllMain(
 void __DLLstart( void )
 {
 }
+#endif
