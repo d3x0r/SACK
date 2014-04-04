@@ -5104,7 +5104,10 @@ void RestoreDisplayEx(PVIDEO hVideo DBG_PASS )
 			PTHREAD thread;
 			LIST_FORALL( l.threads, idx, PTHREAD, thread )
 				if( IsThisThread( thread ) )
+				{
 					isthread = TRUE;
+					break;
+				}
 			{
 				if( ( GetCurrentThreadId () == l.dwThreadID ) && isthread )
 				{
