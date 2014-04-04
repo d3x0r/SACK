@@ -45,7 +45,7 @@ static int OnMouseCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc, S_32 x, S_
 {
 	PScrollKnob knob = ControlData( PScrollKnob, pc );
 	int arc;
-	int w, h;
+	_32 w, h;
 	GetFrameSize( pc, &w, &h );
 	x = x - (w/2);
 	y = y - (h/2);
@@ -222,7 +222,7 @@ PSI_PROC( void, SetScrollKnobImageName )( PSI_CONTROL pc, CTEXTSTR image )
 		knob->knob_sprite = MakeSpriteImage( knob->knob_image );
 		{
 			_32 image_width, image_height;
-			int control_width, control_height;
+			_32 control_width, control_height;
 			GetFrameSize( pc, &control_width, &control_height );
 			GetImageSize( knob->knob_image, &image_width, &image_height );
 			knob->width_scale = 0x10000 * control_width / image_width;
@@ -244,7 +244,7 @@ PSI_PROC( void, SetScrollKnobImage )( PSI_CONTROL pc, Image image )
 		knob->knob_sprite = MakeSpriteImage( knob->knob_image );
 		{
 			_32 image_width, image_height;
-			int control_width, control_height;
+			_32 control_width, control_height;
 			GetFrameSize( pc, &control_width, &control_height );
 			GetImageSize( knob->knob_image, &image_width, &image_height );
 			knob->width_scale = 0x10000 * control_width / image_width;

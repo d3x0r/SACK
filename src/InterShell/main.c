@@ -4600,7 +4600,7 @@ void DisplayMenuCanvas( PSI_CONTROL pc_canvas, PRENDERER under, _32 width, _32 h
 																	, width, height, x, y );
 			{
 				_32 c_w, c_h;
-				int c_x, c_y;
+				S_32 c_x, c_y;
 				GetFrameSize( pc_canvas, &c_w, &c_h );
 				GetFramePosition( pc_canvas, &c_x, &c_y );
 				if( c_w != width || c_h != height )

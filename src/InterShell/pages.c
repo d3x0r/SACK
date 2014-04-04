@@ -692,8 +692,8 @@ void AdjustControlPositions( PCanvasData canvas, PPAGE_DATA page )
 	PMENU_BUTTON control;
 	LIST_FORALL( page->controls, idx, PMENU_BUTTON, control )
 	{
-		int w, h;
-		int x, y;
+		_32 w, h;
+		S_32 x, y;
 		pc = QueryGetControl( control );
 		GetFrameSize( pc, &w, &h );
 		GetFramePosition( pc, &x, &y );
