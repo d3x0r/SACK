@@ -811,8 +811,8 @@ _PROP_NAMESPACE
    and edit enabled like this.                                                     */
 PSI_PROC( void, EditFrame )( PSI_CONTROL pf, int bEnable );
 _PROP_NAMESPACE_END
-PSI_PROC( void, GetFramePosition )( PSI_CONTROL pf, int *x, int *y );
-PSI_PROC( void, GetFrameSize )( PSI_CONTROL pf, int *w, int *h );
+PSI_PROC( void, GetFramePosition )( PSI_CONTROL pf, S_32 *x, S_32 *y );
+PSI_PROC( void, GetFrameSize )( PSI_CONTROL pf, _32 *w, _32 *h );
 
 // results in the total width (left and right) of the frame
 PSI_PROC( int, FrameBorderX )( PSI_CONTROL pc, _32 BorderFlags );

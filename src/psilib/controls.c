@@ -4611,7 +4611,7 @@ void SetCommonTransparent( PCONTROL pc, LOGICAL bTransparent )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( void, GetFramePosition )( PSI_CONTROL pf, int *x, int *y )
+PSI_PROC( void, GetFramePosition )( PSI_CONTROL pf, S_32 *x, S_32 *y )
 {
 	if( pf )
 	{
@@ -4624,7 +4624,7 @@ PSI_PROC( void, GetFramePosition )( PSI_CONTROL pf, int *x, int *y )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( void, GetFrameSize )( PSI_CONTROL pf, int *w, int *h )
+PSI_PROC( void, GetFrameSize )( PSI_CONTROL pf, _32 *w, _32 *h )
 {
 	if( pf )
 	{
