@@ -94,10 +94,10 @@ static int CPROC KeyPlasma( PTRSZVAL psv, _32 key )
 	if( IsKeyPressed( key ) )
 	{
 		RCOORD coords[4];
-		coords[0] = SRG_GetEntropy( l.entropy, 5, FALSE ) / 32.0;
-		coords[1] = SRG_GetEntropy( l.entropy, 5, FALSE ) / 32.0;
-		coords[2] = SRG_GetEntropy( l.entropy, 5, FALSE ) / 32.0;
-		coords[3] = SRG_GetEntropy( l.entropy, 5, FALSE ) / 32.0;
+		coords[0] = SRG_GetEntropy( l.entropy, 5, FALSE ) / 132.0 + 0.5;
+		coords[1] = SRG_GetEntropy( l.entropy, 5, FALSE ) / 132.0 + 0.5;
+		coords[2] = SRG_GetEntropy( l.entropy, 5, FALSE ) / 132.0 + 0.5;
+		coords[3] = SRG_GetEntropy( l.entropy, 5, FALSE ) / 132.0 + 0.5;
 		PlasmaRender( l.plasma, coords );
 		Redraw( l.render );
 	}
@@ -204,8 +204,9 @@ SaneWinMain( argc, argv )
 	l.pii = GetImageInterface();
 	l.pdi = GetDisplayInterface();
 
+#define patch 512
 	l.entropy = SRG_CreateEntropy( FeedRandom, 0 );
-	l.render = OpenDisplaySized( 0, 256, 256 );
+	l.render = OpenDisplaySized( 0, patch, patch );
 	l.horz_r_scale = 0.75;
 	l.decimal = 0;
 	l.digits = 201;
@@ -220,7 +221,7 @@ SaneWinMain( argc, argv )
 	coords[1] = 0.0;
 	coords[2] = 0.0;
 	coords[3] = 1.0;
-	l.plasma = PlasmaCreate( coords, 1.0, 256, 256 );
+	l.plasma = PlasmaCreate( coords, 1.0, patch, patch );
 	UpdateDisplay( l.render );
 	//RestoreDisplay( l.render );
 
