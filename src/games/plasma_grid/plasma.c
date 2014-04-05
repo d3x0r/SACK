@@ -8,8 +8,13 @@
 struct grid
 {
 	int x, y, x2, y2;
-	int skip_left;
-	int skip_top;
+	struct 
+	{
+		BIT_FIELD skip_left : 1;
+		BIT_FIELD skip_top : 1;
+		BIT_FIELD skip_right : 1;
+		BIT_FIELD skip_bottom : 1;
+	};
 };
 
 struct plasma_state
@@ -32,7 +37,7 @@ struct plasma_state
 
 void PlasmaFill2( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 {
-	PDATAQUEUE pdq_todo;
+	static PDATAQUEUE pdq_todo;
 	int mx, my;
 	struct grid real_here;
 	struct grid next;
@@ -44,14 +49,17 @@ void PlasmaFill2( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 
 #define mid(a,b) (((a)+(b))/2)
 
-	mx = ( here->x2 + here->x ) / 2;
-	my = ( here->y2 + here->y ) / 2;
-
-	pdq_todo = CreateDataQueue( sizeof( struct grid ) );
+	if( !pdq_todo )
+		pdq_todo = CreateLargeDataQueueEx( sizeof( struct grid ), plasma->rows*plasma->stride/4, plasma->rows*plasma->stride/64 DBG_SRC );
 
 	do
 	{
-		lprintf( "next is %d,%d %d,%d", here->x, here->y, here->x2, here->y2 );
+		mx = ( here->x2 + here->x ) / 2;
+		my = ( here->y2 + here->y ) / 2;
+
+		// may be a pinched rectangle... 3x2 that just has 2 mids top bottom to fill no center
+		//lprintf( "center %d,%d  next is %d,%d %d,%d", mx, my, here->x, here->y, here->x2, here->y2 );
+
 		if( ( mx != here->x ) && ( my != here->y ) )
 		{
 			RCOORD del1 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
@@ -61,7 +69,7 @@ void PlasmaFill2( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 			//avg += ( map[here->x + my*plasma->stride] + map[here->x2 + my*plasma->stride]
 			//				 + map[mx + here->y*plasma->stride] + map[mx + here->y2*plasma->stride] ) / 4;
 			//avg /= 2;
-			//lprintf( "Set point %d,%d = %g (%g) %g", del1, mx, my, map[mx + my * plasma->stride], avg );
+			//lprintf( "Set point %d,%d = %g (%g) %g", mx, my, map[mx + my * plasma->stride], avg );
 			center 
 				= this_point
 				= map[mx + my * plasma->stride] = avg + ( area *  del1 );
@@ -75,12 +83,108 @@ void PlasmaFill2( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 					plasma->max_height = this_point;
 				if( this_point < plasma->min_height )
 					plasma->min_height = this_point;
+
+			if( mid( next.x = here->x, next.x2 = mx ) != next.x 
+				&& mid( next.y = here->y, next.y2 = my ) != next.y  )
+			{
+				//next.x = here->x;
+				//next.y = here->y;
+				//next.x2 = mx;
+				//next.y2 = my;
+				next.skip_left = here->skip_left;
+				next.skip_top = here->skip_top;
+				EnqueData( &pdq_todo, &next );
+			}
+			if( mid( next.x = mx, next.x2 = here->x2 ) != next.x 
+				&& mid( next.y = here->y, next.y2 = my ) != next.y  )
+			{
+				//next.x = mx;
+				//next.y = here->y;
+				//next.x2 = here->x2;
+				//next.y2 = my;
+				next.skip_left = 1;
+				next.skip_top = here->skip_top;
+				EnqueData( &pdq_todo, &next );
+			}
+			if( mid( next.x = here->x, next.x2 = mx ) != next.x 
+				&& mid( next.y = my, next.y2 = here->y2 ) != next.y  )
+			{
+				//next.x = here->x;
+				//next.y = my;
+				//next.x2 = mx;
+				//next.y2 = here->y2;
+				next.skip_left = here->skip_left;
+				next.skip_top = 1;
+				EnqueData( &pdq_todo, &next );
+			}
+			if( mid( next.x = mx, next.x2 = here->x2 ) != next.x 
+				&& mid( next.y = my, next.y2 = here->y2 ) != next.y  )
+			{
+				//next.x = mx;
+				//next.y = my;
+				//next.x2 = here->x2;
+				//next.y2 = here->y2;
+				next.skip_left = 1;
+				next.skip_top = 1;
+				EnqueData( &pdq_todo, &next );
+			}
 		}
 		else 
+		{
+			lprintf( "Squre, never happens..." );
 			if( mx != here->x )
+			{
 				center = ( map[here->x + here->y*plasma->stride] + map[here->x2 + here->y*plasma->stride] ) / 2;
+				if( mid( next.x = here->x, next.x2 = mx ) != next.x 
+					&& mid( next.y = here->y, next.y2 = here->y2 ) != next.y  )
+				{
+					//next.x = here->x;
+					//next.y = here->y;
+					//next.x2 = mx;
+					//next.y2 = here->y2;
+					next.skip_left = here->skip_left;
+					next.skip_top = here->skip_top;
+					EnqueData( &pdq_todo, &next );
+				}
+				if( mid( next.x = mx, next.x2 = here->x2 ) != next.x 
+					&& mid( next.y = here->y, next.y2 = here->y2 ) != next.y  )
+				{
+					//next.x = mx;
+					//next.y = here->y;
+					//next.x2 = here->x2;
+					//next.y2 = here->y2;
+					next.skip_top = here->skip_top;
+					next.skip_left = 1;
+					EnqueData( &pdq_todo, &next );
+				}
+			}
 			else
+			{
 				center = ( map[here->x + here->y*plasma->stride] + map[here->x + here->y2*plasma->stride] ) / 2;
+				if( mid( next.x = here->x, next.x2 = here->x2 ) != next.x 
+					&& mid( next.y = here->y, next.y2 = my ) != next.y  )
+				{
+					//next.x = here->x;
+					//next.y = here->y;
+					//next.x2 = here->x2;
+					//next.y2 = my;
+					next.skip_left = here->skip_left;
+					next.skip_top = here->skip_top;
+					EnqueData( &pdq_todo, &next );
+				}
+				if( mid( next.x = here->x, next.x2 = here->x2 ) != next.x 
+					&& mid( next.y = my, next.y2 = here->y2 ) != next.y  )
+				{
+					//next.x = here->x;
+					//next.y = my;
+					//next.x2 = here->x2;
+					//next.y2 = here->y2;
+					next.skip_top = 1;
+					next.skip_left = here->skip_left;
+					EnqueData( &pdq_todo, &next );
+				}
+			}
+		}
 		if( mx != here->x )
 		{
 			RCOORD del1 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
@@ -88,6 +192,7 @@ void PlasmaFill2( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 			RCOORD area = ( mx - here->x ) / ( plasma->horiz_area_scalar );
 			if( !here->skip_top )
 			{
+				//lprintf( "set point  %d,%d", mx, here->y );
 				this_point
 					= map[mx + here->y * plasma->stride] 
 					= ( map[here->x + here->y*plasma->stride] + map[here->x2 + here->y*plasma->stride] + center ) / 3
@@ -104,6 +209,7 @@ void PlasmaFill2( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 					plasma->min_height = this_point;
 			}
 
+			//lprintf( "set point  %d,%d", mx, here->y2 );
 			this_point
 					= map[mx + here->y2 * plasma->stride] 
 				= ( map[here->x + here->y2*plasma->stride] + map[here->x2 + here->y2*plasma->stride] + center ) / 3
@@ -129,6 +235,7 @@ void PlasmaFill2( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 				this_point
 					= map[here->x + my * plasma->stride] = ( map[here->x + here->y*plasma->stride] + map[here->x + here->y2*plasma->stride] + center ) / 3
 					+ area * del1;
+				//lprintf( "set point  %d,%d", here->x, my );
 				/*
 				if( map[here->x + my * plasma->stride] > 1.0 )
 					map[here->x + my * plasma->stride] = 1.0;
@@ -143,6 +250,7 @@ void PlasmaFill2( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 			this_point
 					= map[here->x2 + my * plasma->stride] = ( map[here->x2 + here->y*plasma->stride] + map[here->x2 + here->y2*plasma->stride] + center ) / 3
 				+ area * del2;
+			//lprintf( "set point  %d,%d", here->x2, my );
 			/*
 			if( map[here->x2 + my * plasma->stride] > 1.0 )
 				map[here->x2 + my * plasma->stride] = 1.0;
@@ -153,107 +261,14 @@ void PlasmaFill2( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 					plasma->max_height = this_point;
 				if( this_point < plasma->min_height )
 					plasma->min_height = this_point;
+
 		}
-		if( ( mx != here->x ) && ( my != here->y ) )
-		{
-			if( mid( next.x = here->x, next.x2 = mx ) != next.x 
-				&& mid( next.y = here->y, next.y2 = my ) != next.y  )
-			{
-				//next.x = here->x;
-				//next.y = here->y;
-				//next.x2 = mx;
-				//next.y2 = my;
-				next.skip_left = here->skip_left;
-				next.skip_top = here->skip_top;
-				EnqueData( &pdq_todo, &next );
-			}
-			if( mid( next.x = mx, next.x2 = here->x2 ) != next.x 
-				&& mid( next.y = here->y, next.y2 = my ) != next.y  )
-			{
-				//next.x = mx;
-				//next.y = here->y;
-				//next.x2 = here->x2;
-				//next.y2 = my;
-				next.skip_left = 1;
-				next.skip_top = here->skip_top;
-				EnqueData( &pdq_todo, &next );
-			}
-			if( mid( next.x = here->x, next.x2 = mx ) != next.x 
-				&& mid( next.y = my, next.y2 = here->y2 ) != next.y  )
-			{
-				//next.x = here->x;
-				//next.y = my;
-				//next.x2 = mx;
-				//next.y2 = here->y2;
-				next.skip_left = here->skip_left;
-				next.skip_top = 1;
-				EnqueData( &pdq_todo, &next );
-			}
-			if( mid( next.x = mx, next.x2 = here->x2 ) != next.x 
-				&& mid( next.y = my, next.y2 = here->y2 ) != next.y  )
-			{
-				//next.x = mx;
-				//next.y = my;
-				//next.x2 = here->x2;
-				//next.y2 = here->y2;
-				next.skip_left = 1;
-				next.skip_top = 1;
-				EnqueData( &pdq_todo, &next );
-			}
-		}
-		else if( mx != here->x )
-		{
-			if( mid( next.x = here->x, next.x2 = mx ) != next.x 
-				&& mid( next.y = here->y, next.y2 = here->y2 ) != next.y  )
-			{
-				//next.x = here->x;
-				//next.y = here->y;
-				//next.x2 = mx;
-				//next.y2 = here->y2;
-				next.skip_left = here->skip_left;
-				next.skip_top = here->skip_top;
-				EnqueData( &pdq_todo, &next );
-			}
-			if( mid( next.x = mx, next.x2 = here->x2 ) != next.x 
-				&& mid( next.y = here->y, next.y2 = here->y2 ) != next.y  )
-			{
-				//next.x = mx;
-				//next.y = here->y;
-				//next.x2 = here->x2;
-				//next.y2 = here->y2;
-				next.skip_top = here->skip_top;
-				next.skip_left = 1;
-				EnqueData( &pdq_todo, &next );
-			}
-		}
-		else if( my != here->y )
-		{
-			if( mid( next.x = here->x, next.x2 = here->x2 ) != next.x 
-				&& mid( next.y = here->y, next.y2 = my ) != next.y  )
-			{
-				//next.x = here->x;
-				//next.y = here->y;
-				//next.x2 = here->x2;
-				//next.y2 = my;
-				next.skip_left = here->skip_left;
-				next.skip_top = here->skip_top;
-				EnqueData( &pdq_todo, &next );
-			}
-			if( mid( next.x = here->x, next.x2 = here->x2 ) != next.x 
-				&& mid( next.y = my, next.y2 = here->y2 ) != next.y  )
-			{
-				//next.x = here->x;
-				//next.y = my;
-				//next.x2 = here->x2;
-				//next.y2 = here->y2;
-				next.skip_top = 1;
-				next.skip_left = here->skip_left;
-				EnqueData( &pdq_todo, &next );
-			}
-		}
+		else
+			lprintf( "can't happen" );
+
 	}
-	while( ( here = &next ) && ( DequeData( &pdq_todo, &next ) ) );
-	DeleteDataQueue( &pdq_todo );
+	while( DequeData( &pdq_todo, &real_here ) );
+	//DeleteDataQueue( &pdq_todo );
 	// x to mx and mx to x2 need to be done...
 }
 
@@ -296,6 +311,7 @@ void PlasmaFill( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 			center = ( map[here->x + here->y*plasma->stride] + map[here->x2 + here->y*plasma->stride] ) / 2;
 		else
 			center = ( map[here->x + here->y*plasma->stride] + map[here->x + here->y2*plasma->stride] ) / 2;
+
 	if( mx != here->x )
 	{
 		RCOORD del1 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
@@ -516,7 +532,7 @@ void PlasmaRender( struct plasma_state *plasma, RCOORD *seed )
 		RCOORD *map = plasma->map;
 		RCOORD *map_from = map1;
 		lprintf( "map result min and max: %g %g ", plasma->min_height, plasma->max_height );
-		if( plasma->min_height < plasma->_min_height || plasma->max_height > plasma->_max_height )
+		if( ( plasma->min_height < plasma->_min_height || plasma->max_height > plasma->_max_height ) )
 		{
 		for( x = 0; x < plasma->stride; x++ )
 			for( y = 0; y < plasma->rows; y++ )
@@ -539,7 +555,7 @@ void PlasmaRender( struct plasma_state *plasma, RCOORD *seed )
 					}
 				}
 				while( updated );
-				if( 0 ) // mode == 1 )
+				if( 1 ) // mode == 1 )
 				{
 				// need to specify a copy mode.
 					map[0] = input;
