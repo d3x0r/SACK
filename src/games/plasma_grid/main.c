@@ -103,6 +103,8 @@ static int CPROC KeyPlasma( PTRSZVAL psv, _32 key )
 	}
 }
 
+#define patch 257
+
 static void ComputeRoughness( struct slider_panel *panel )
 {
 	int n;
@@ -119,6 +121,7 @@ static void ComputeRoughness( struct slider_panel *panel )
 			base = base / 10;
 	}
 	roughness = (RCOORD)base * (RCOORD)l.digits;
+	roughness = roughness / 512 * patch ;
 	PlasmaSetRoughness( l.plasma, roughness, l.horz_r_scale );
 	{
 		TEXTCHAR val[25];
@@ -204,7 +207,6 @@ SaneWinMain( argc, argv )
 	l.pii = GetImageInterface();
 	l.pdi = GetDisplayInterface();
 
-#define patch 512
 	l.entropy = SRG_CreateEntropy( FeedRandom, 0 );
 	l.render = OpenDisplaySized( 0, patch, patch );
 	l.horz_r_scale = 0.75;
