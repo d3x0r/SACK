@@ -30,8 +30,9 @@ static void NeedBits( struct random_context *ctx )
 		ctx->salt_size = 0;
 	if( ctx->salt_size )
 		SHA1Input( &ctx->sha1_ctx, ctx->salt, ctx->salt_size );
-	else
-		SHA1Input( &ctx->sha1_ctx, ctx->entropy, SHA1HashSize );
+	// this is redundant since it's already self seeded with prior result
+	//else
+	//	SHA1Input( &ctx->sha1_ctx, ctx->entropy, SHA1HashSize );
 	//lprintf( "added %p %d", ctx->salt, ctx->salt_size );
 	SHA1Result( &ctx->sha1_ctx, ctx->entropy );
 	SHA1Reset( &ctx->sha1_ctx );
@@ -56,7 +57,7 @@ S_32 SRG_GetEntropy( struct random_context *ctx, int bits, int get_signed )
 {
 	_32 tmp;
 	_32 partial_tmp;
-   int partial_bits = 0;
+	int partial_bits = 0;
 	if( bits > ( ctx->bits_avail - ctx->bits_used ) )
 	{
 		if( ctx->bits_avail - ctx->bits_used )
@@ -94,14 +95,27 @@ void SRG_ResetEntropy( struct random_context *ctx )
 	ctx->bits_avail = 0;
 }
 
+void SRG_SaveState( struct random_context *ctx, POINTER *external_buffer_holder )
+{
+	if( !(*external_buffer_holder) )
+		(*external_buffer_holder) = New( struct random_context );
+	MemCpy( (*external_buffer_holder), ctx, sizeof( struct random_context ) );
+}
+
+void SRG_RestoreState( struct random_context *ctx, POINTER external_buffer_holder )
+{
+	MemCpy( ctx, (external_buffer_holder), sizeof( struct random_context ) );
+}
+
+
 #if WIN32
 BOOL WINAPI DllMain(
-   HINSTANCE hinstDLL,
-   DWORD fdwReason,
-   LPVOID lpvReserved
+	HINSTANCE hinstDLL,
+	DWORD fdwReason,
+	LPVOID lpvReserved
 						 )
 {
-   return TRUE;
+	return TRUE;
 }
 
 // this is the watcom deadstart entry point.

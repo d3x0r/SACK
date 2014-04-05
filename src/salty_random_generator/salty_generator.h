@@ -19,3 +19,18 @@ SRG_EXPORT S_32 SRG_GetEntropy( struct random_context *ctx, int bits, int get_si
 // next call to getentropy will be the same as the first call after create.
 SRG_EXPORT void SRG_ResetEntropy( struct random_context *ctx );
 
+
+// restore the random contxt from the external holder specified
+// { 
+//    POINTER save_context;
+//    SRG_RestoreState( ctx, save_context );
+// }
+void SRG_RestoreState( struct random_context *ctx, POINTER external_buffer_holder );
+
+// save the random context in an external buffer holder.
+// external buffer holder needs to be initialized to NULL.
+// { 
+//    POINTER save_context = NULL;
+//    SRG_SaveState( ctx, &save_context );
+// }
+void SRG_SaveState( struct random_context *ctx, POINTER *external_buffer_holder );
