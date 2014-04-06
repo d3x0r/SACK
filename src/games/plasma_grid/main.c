@@ -28,18 +28,44 @@ struct plasma_local
 {
 	PIMAGE_INTERFACE pii;
 	PRENDER_INTERFACE pdi;
-	struct plasma_state *plasma;
+	struct plasma_patch *plasma;
 	PRENDERER render;
 	struct random_context *entropy;
 	int digits;
 	int decimal;
 	RCOORD horz_r_scale;
+	S_32 ofs_x, ofs_y;
+	S_32 mouse_x, mouse_y;
+	_32 mouse_b; 
 } l;
+
+int CPROC Mouse( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
+{
+	if( MAKE_FIRSTBUTTON( b, l.mouse_b ) )
+	{
+		l.mouse_x = x;
+		l.mouse_y = y;
+	}
+	else if( MAKE_SOMEBUTTONS( b ) )
+	{
+		l.ofs_x += l.mouse_x - x;
+		l.ofs_y -= l.mouse_y - y;
+		l.mouse_x = x;
+		l.mouse_y = y;
+		Redraw( l.render );
+	}
+	else
+	{
+
+	}
+	l.mouse_b = b;
+	return 1;
+}
 
 void CPROC DrawPlasma( PTRSZVAL psv, PRENDERER render )
 {
 	Image surface = GetDisplayImage( render );
-	RCOORD *data = PlasmaGetSurface( l.plasma );
+	RCOORD *data = PlasmaReadSurface( l.plasma, l.ofs_x, l.ofs_y, 1 );
 	PCDATA output = GetImageSurface( surface );
 	int w;
 	int h;
@@ -47,6 +73,8 @@ void CPROC DrawPlasma( PTRSZVAL psv, PRENDERER render )
 #define plot(a,b,c,d) do { (*output) = d; output++; } while( 0 )
 	RCOORD min = 999999999;
 	RCOORD max = 0;
+	if( !data )
+		return;
 	for( h = 0; h < surface->height; h++ )
 	{
 		for( w = 0; w < surface->width; w++ )
@@ -214,6 +242,7 @@ SaneWinMain( argc, argv )
 	l.digits = 201;
 	SetRedrawHandler( l.render, DrawPlasma, 0 );
 	SetKeyboardHandler( l.render, KeyPlasma, 0 );
+	SetMouseHandler( l.render, Mouse, 0 );
 
 	{
 		struct slider_panel *panel = MakeSliderFrame();
@@ -223,7 +252,7 @@ SaneWinMain( argc, argv )
 	coords[1] = 0.0;
 	coords[2] = 0.0;
 	coords[3] = 1.0;
-	l.plasma = PlasmaCreate( coords, 1.0, patch, patch );
+	l.plasma = PlasmaCreate( coords, patch * 1.5, patch, patch );
 	UpdateDisplay( l.render );
 	//RestoreDisplay( l.render );
 
