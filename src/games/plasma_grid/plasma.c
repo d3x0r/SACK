@@ -17,8 +17,10 @@ struct grid
 	};
 };
 
-struct plasma_state
+struct plasma_patch
 {
+	// where I am.
+	int x, y;
 	RCOORD corners[4];
 	int seed_corner;
 	int saved_seed_corner;
@@ -28,14 +30,30 @@ struct plasma_state
 	RCOORD _max_height;
 	struct random_context *entropy;
 	RCOORD *map;
-	size_t stride, rows;
+	RCOORD *map1;
 	RCOORD area_scalar;
 	RCOORD horiz_area_scalar;
 	POINTER entopy_state;
+	struct plasma_state *plasma;
 
+
+	struct plasma_patch *as_left;
+	struct plasma_patch *as_top;
+	struct plasma_patch *as_right;
+	struct plasma_patch *as_bottom;
 };
 
-void PlasmaFill2( struct plasma_state *plasma, RCOORD *map, struct grid *here )
+struct plasma_state
+{
+	size_t stride, rows;
+	RCOORD *read_map;  // this is the map used to retun the current state.
+
+	size_t map_width, map_height;
+	int root_x, root_y; // where 0, 0 is...
+	struct plasma_patch **world_map;
+};
+
+void PlasmaFill2( struct plasma_patch *plasma, RCOORD *map, struct grid *here )
 {
 	static PDATAQUEUE pdq_todo;
 	int mx, my;
@@ -44,13 +62,15 @@ void PlasmaFill2( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 	RCOORD del;
 	RCOORD center;
 	RCOORD this_point;
+	size_t stride = plasma->plasma->stride;
+	size_t rows = plasma->plasma->rows;
 	MemCpy( &real_here, here, sizeof( struct grid ) );
 	here = &real_here;
 
 #define mid(a,b) (((a)+(b))/2)
 
 	if( !pdq_todo )
-		pdq_todo = CreateLargeDataQueueEx( sizeof( struct grid ), plasma->rows*plasma->stride/4, plasma->rows*plasma->stride/64 DBG_SRC );
+		pdq_todo = CreateLargeDataQueueEx( sizeof( struct grid ), rows*stride/4, rows*stride/64 DBG_SRC );
 
 	do
 	{
@@ -64,20 +84,20 @@ void PlasmaFill2( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 		{
 			RCOORD del1 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
 			RCOORD area = ( sqrt( ( ( here->x2 - here->x )*( here->x2 - here->x ) + ( here->y2 - here->y )*( here->y2 - here->y )) ) / ( plasma->area_scalar ) );
-			RCOORD avg = ( map[here->x + here->y*plasma->stride] + map[here->x2 + here->y*plasma->stride]
-							 + map[here->x + here->y2*plasma->stride] + map[here->x2 + here->y2*plasma->stride] ) / 4;
-			//avg += ( map[here->x + my*plasma->stride] + map[here->x2 + my*plasma->stride]
-			//				 + map[mx + here->y*plasma->stride] + map[mx + here->y2*plasma->stride] ) / 4;
+			RCOORD avg = ( map[here->x + here->y*stride] + map[here->x2 + here->y*stride]
+							 + map[here->x + here->y2*stride] + map[here->x2 + here->y2*stride] ) / 4;
+			//avg += ( map[here->x + my*stride] + map[here->x2 + my*stride]
+			//				 + map[mx + here->y*stride] + map[mx + here->y2*stride] ) / 4;
 			//avg /= 2;
-			//lprintf( "Set point %d,%d = %g (%g) %g", mx, my, map[mx + my * plasma->stride], avg );
+			//lprintf( "Set point %d,%d = %g (%g) %g", mx, my, map[mx + my * stride], avg );
 			center 
 				= this_point
-				= map[mx + my * plasma->stride] = avg + ( area *  del1 );
+				= map[mx + my * stride] = avg + ( area *  del1 );
 			/*
-			if( map[mx + my * plasma->stride] > 1.0 )
-				map[mx + my * plasma->stride] = 1.0;
-			if( map[mx + my * plasma->stride] < 0.0 )
-				map[mx + my * plasma->stride] = 0.0;
+			if( map[mx + my * stride] > 1.0 )
+				map[mx + my * stride] = 1.0;
+			if( map[mx + my * stride] < 0.0 )
+				map[mx + my * stride] = 0.0;
 			*/
 				if( this_point > plasma->max_height )
 					plasma->max_height = this_point;
@@ -134,7 +154,7 @@ void PlasmaFill2( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 			lprintf( "Squre, never happens..." );
 			if( mx != here->x )
 			{
-				center = ( map[here->x + here->y*plasma->stride] + map[here->x2 + here->y*plasma->stride] ) / 2;
+				center = ( map[here->x + here->y*stride] + map[here->x2 + here->y*stride] ) / 2;
 				if( mid( next.x = here->x, next.x2 = mx ) != next.x 
 					&& mid( next.y = here->y, next.y2 = here->y2 ) != next.y  )
 				{
@@ -160,7 +180,7 @@ void PlasmaFill2( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 			}
 			else
 			{
-				center = ( map[here->x + here->y*plasma->stride] + map[here->x + here->y2*plasma->stride] ) / 2;
+				center = ( map[here->x + here->y*stride] + map[here->x + here->y2*stride] ) / 2;
 				if( mid( next.x = here->x, next.x2 = here->x2 ) != next.x 
 					&& mid( next.y = here->y, next.y2 = my ) != next.y  )
 				{
@@ -190,78 +210,60 @@ void PlasmaFill2( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 			RCOORD del1 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
 			RCOORD del2 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
 			RCOORD area = ( mx - here->x ) / ( plasma->horiz_area_scalar );
-			if( !here->skip_top )
+			if( !here->skip_top && !( here->y == 0 && plasma->as_top ) )
 			{
 				//lprintf( "set point  %d,%d", mx, here->y );
 				this_point
-					= map[mx + here->y * plasma->stride] 
-					= ( map[here->x + here->y*plasma->stride] + map[here->x2 + here->y*plasma->stride] + center ) / 3
+					= map[mx + here->y * stride] 
+					= ( map[here->x + here->y*stride] + map[here->x2 + here->y*stride] + center ) / 3
 						+ area * del1;
-				/*
-				if( map[mx + here->y * plasma->stride] > 1.0 )
-					map[mx + here->y * plasma->stride] = 1.0;
-				if( map[mx + here->y * plasma->stride] < 0.0 )
-					map[mx + here->y * plasma->stride] = 0.0;
-					*/
 				if( this_point > plasma->max_height )
 					plasma->max_height = this_point;
 				if( this_point < plasma->min_height )
 					plasma->min_height = this_point;
 			}
 
+			if( !( here->y2 == (rows-1) && plasma->as_bottom ) )
+			{
 			//lprintf( "set point  %d,%d", mx, here->y2 );
-			this_point
-					= map[mx + here->y2 * plasma->stride] 
-				= ( map[here->x + here->y2*plasma->stride] + map[here->x2 + here->y2*plasma->stride] + center ) / 3
-				+ area * del2;
-			/*
-			if( map[mx + here->y2 * plasma->stride] > 1.0 )
-				map[mx + here->y2 * plasma->stride] = 1.0;
-			if( map[mx + here->y2 * plasma->stride] < 0.0 )
-				map[mx + here->y2 * plasma->stride] = 0.0;
-				*/
+				this_point
+					= map[mx + here->y2 * stride] 
+					= ( map[here->x + here->y2*stride] + map[here->x2 + here->y2*stride] + center ) / 3
+						+ area * del2;
 				if( this_point > plasma->max_height )
 					plasma->max_height = this_point;
 				if( this_point < plasma->min_height )
 					plasma->min_height = this_point;
+			}
 		}
 		if( my != here->y )
 		{
 			RCOORD del1 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
 			RCOORD del2 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
 			RCOORD area = ( my - here->y ) / ( plasma->horiz_area_scalar );
-			if( !here->skip_left )
+
+			if( !here->skip_left && !( here->x == 0 && plasma->as_left ) )
 			{
 				this_point
-					= map[here->x + my * plasma->stride] = ( map[here->x + here->y*plasma->stride] + map[here->x + here->y2*plasma->stride] + center ) / 3
+					= map[here->x + my * stride] = ( map[here->x + here->y*stride] + map[here->x + here->y2*stride] + center ) / 3
 					+ area * del1;
 				//lprintf( "set point  %d,%d", here->x, my );
-				/*
-				if( map[here->x + my * plasma->stride] > 1.0 )
-					map[here->x + my * plasma->stride] = 1.0;
-				if( map[here->x + my * plasma->stride] < 0.0 )
-					map[here->x + my * plasma->stride] = 0.0;
-					*/
 				if( this_point > plasma->max_height )
 					plasma->max_height = this_point;
 				if( this_point < plasma->min_height )
 					plasma->min_height = this_point;
 			}
-			this_point
-					= map[here->x2 + my * plasma->stride] = ( map[here->x2 + here->y*plasma->stride] + map[here->x2 + here->y2*plasma->stride] + center ) / 3
-				+ area * del2;
-			//lprintf( "set point  %d,%d", here->x2, my );
-			/*
-			if( map[here->x2 + my * plasma->stride] > 1.0 )
-				map[here->x2 + my * plasma->stride] = 1.0;
-			if( map[here->x2 + my * plasma->stride] < 0.0 )
-				map[here->x2 + my * plasma->stride] = 0.0;
-				*/
+			if( !( here->x2 == (stride-1) && plasma->as_right ) )
+			{
+				this_point
+					= map[here->x2 + my * stride] = ( map[here->x2 + here->y*stride] + map[here->x2 + here->y2*stride] + center ) / 3
+						+ area * del2;
+				//lprintf( "set point  %d,%d", here->x2, my );
 				if( this_point > plasma->max_height )
 					plasma->max_height = this_point;
 				if( this_point < plasma->min_height )
 					plasma->min_height = this_point;
-
+			}
 		}
 		else
 			lprintf( "can't happen" );
@@ -272,10 +274,12 @@ void PlasmaFill2( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 	// x to mx and mx to x2 need to be done...
 }
 
-void PlasmaFill( struct plasma_state *plasma, RCOORD *map, struct grid *here )
+void PlasmaFill( struct plasma_patch *plasma, RCOORD *map, struct grid *here )
 {
 	int mx, my;
 	struct grid next;
+	size_t stride = plasma->plasma->stride;
+	size_t rows = plasma->plasma->rows;
 	RCOORD del;
 	RCOORD center;
 	RCOORD this_point;
@@ -286,20 +290,20 @@ void PlasmaFill( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 	{
 		RCOORD del1 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
 		RCOORD area = ( sqrt( ( ( here->x2 - here->x )*( here->x2 - here->x ) + ( here->y2 - here->y )*( here->y2 - here->y )) ) / ( plasma->area_scalar ) );
-		RCOORD avg = ( map[here->x + here->y*plasma->stride] + map[here->x2 + here->y*plasma->stride]
-						 + map[here->x + here->y2*plasma->stride] + map[here->x2 + here->y2*plasma->stride] ) / 4;
-		//avg += ( map[here->x + my*plasma->stride] + map[here->x2 + my*plasma->stride]
-		//				 + map[mx + here->y*plasma->stride] + map[mx + here->y2*plasma->stride] ) / 4;
+		RCOORD avg = ( map[here->x + here->y*stride] + map[here->x2 + here->y*stride]
+						 + map[here->x + here->y2*stride] + map[here->x2 + here->y2*stride] ) / 4;
+		//avg += ( map[here->x + my*stride] + map[here->x2 + my*stride]
+		//				 + map[mx + here->y*stride] + map[mx + here->y2*stride] ) / 4;
 		//avg /= 2;
-		//lprintf( "Set point %d,%d = %g (%g) %g", del1, mx, my, map[mx + my * plasma->stride], avg );
+		//lprintf( "Set point %d,%d = %g (%g) %g", del1, mx, my, map[mx + my * stride], avg );
 		center 
 			= this_point
-			= map[mx + my * plasma->stride] = avg + ( area *  del1 );
+			= map[mx + my * stride] = avg + ( area *  del1 );
 		/*
-		if( map[mx + my * plasma->stride] > 1.0 )
-			map[mx + my * plasma->stride] = 1.0;
-		if( map[mx + my * plasma->stride] < 0.0 )
-			map[mx + my * plasma->stride] = 0.0;
+		if( map[mx + my * stride] > 1.0 )
+			map[mx + my * stride] = 1.0;
+		if( map[mx + my * stride] < 0.0 )
+			map[mx + my * stride] = 0.0;
 		*/
 			if( this_point > plasma->max_height )
 				plasma->max_height = this_point;
@@ -308,9 +312,9 @@ void PlasmaFill( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 	}
 	else 
 		if( mx != here->x )
-			center = ( map[here->x + here->y*plasma->stride] + map[here->x2 + here->y*plasma->stride] ) / 2;
+			center = ( map[here->x + here->y*stride] + map[here->x2 + here->y*stride] ) / 2;
 		else
-			center = ( map[here->x + here->y*plasma->stride] + map[here->x + here->y2*plasma->stride] ) / 2;
+			center = ( map[here->x + here->y*stride] + map[here->x + here->y2*stride] ) / 2;
 
 	if( mx != here->x )
 	{
@@ -320,14 +324,14 @@ void PlasmaFill( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 		if( !here->skip_top )
 		{
 			this_point
-				= map[mx + here->y * plasma->stride] 
-				= ( map[here->x + here->y*plasma->stride] + map[here->x2 + here->y*plasma->stride] + center ) / 3
+				= map[mx + here->y * stride] 
+				= ( map[here->x + here->y*stride] + map[here->x2 + here->y*stride] + center ) / 3
 					+ area * del1;
 			/*
-			if( map[mx + here->y * plasma->stride] > 1.0 )
-				map[mx + here->y * plasma->stride] = 1.0;
-			if( map[mx + here->y * plasma->stride] < 0.0 )
-				map[mx + here->y * plasma->stride] = 0.0;
+			if( map[mx + here->y * stride] > 1.0 )
+				map[mx + here->y * stride] = 1.0;
+			if( map[mx + here->y * stride] < 0.0 )
+				map[mx + here->y * stride] = 0.0;
 				*/
 			if( this_point > plasma->max_height )
 				plasma->max_height = this_point;
@@ -336,14 +340,14 @@ void PlasmaFill( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 		}
 
 		this_point
-				= map[mx + here->y2 * plasma->stride] 
-			= ( map[here->x + here->y2*plasma->stride] + map[here->x2 + here->y2*plasma->stride] + center ) / 3
+				= map[mx + here->y2 * stride] 
+			= ( map[here->x + here->y2*stride] + map[here->x2 + here->y2*stride] + center ) / 3
 			+ area * del2;
 		/*
-		if( map[mx + here->y2 * plasma->stride] > 1.0 )
-			map[mx + here->y2 * plasma->stride] = 1.0;
-		if( map[mx + here->y2 * plasma->stride] < 0.0 )
-			map[mx + here->y2 * plasma->stride] = 0.0;
+		if( map[mx + here->y2 * stride] > 1.0 )
+			map[mx + here->y2 * stride] = 1.0;
+		if( map[mx + here->y2 * stride] < 0.0 )
+			map[mx + here->y2 * stride] = 0.0;
 			*/
 			if( this_point > plasma->max_height )
 				plasma->max_height = this_point;
@@ -358,13 +362,13 @@ void PlasmaFill( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 		if( !here->skip_left )
 		{
 			this_point
-				= map[here->x + my * plasma->stride] = ( map[here->x + here->y*plasma->stride] + map[here->x + here->y2*plasma->stride] + center ) / 3
+				= map[here->x + my * stride] = ( map[here->x + here->y*stride] + map[here->x + here->y2*stride] + center ) / 3
 				+ area * del1;
 			/*
-			if( map[here->x + my * plasma->stride] > 1.0 )
-				map[here->x + my * plasma->stride] = 1.0;
-			if( map[here->x + my * plasma->stride] < 0.0 )
-				map[here->x + my * plasma->stride] = 0.0;
+			if( map[here->x + my * stride] > 1.0 )
+				map[here->x + my * stride] = 1.0;
+			if( map[here->x + my * stride] < 0.0 )
+				map[here->x + my * stride] = 0.0;
 				*/
 			if( this_point > plasma->max_height )
 				plasma->max_height = this_point;
@@ -372,13 +376,13 @@ void PlasmaFill( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 				plasma->min_height = this_point;
 		}
 		this_point
-				= map[here->x2 + my * plasma->stride] = ( map[here->x2 + here->y*plasma->stride] + map[here->x2 + here->y2*plasma->stride] + center ) / 3
+				= map[here->x2 + my * stride] = ( map[here->x2 + here->y*stride] + map[here->x2 + here->y2*stride] + center ) / 3
 			+ area * del2;
 		/*
-		if( map[here->x2 + my * plasma->stride] > 1.0 )
-			map[here->x2 + my * plasma->stride] = 1.0;
-		if( map[here->x2 + my * plasma->stride] < 0.0 )
-			map[here->x2 + my * plasma->stride] = 0.0;
+		if( map[here->x2 + my * stride] > 1.0 )
+			map[here->x2 + my * stride] = 1.0;
+		if( map[here->x2 + my * stride] < 0.0 )
+			map[here->x2 + my * stride] = 0.0;
 			*/
 			if( this_point > plasma->max_height )
 				plasma->max_height = this_point;
@@ -456,7 +460,7 @@ void PlasmaFill( struct plasma_state *plasma, RCOORD *map, struct grid *here )
 
 static void FeedRandom( PTRSZVAL psvPlasma, POINTER *salt, size_t *salt_size )
 {
-	struct plasma_state *plasma = (struct plasma_state *)psvPlasma;
+	struct plasma_patch *plasma = (struct plasma_patch *)psvPlasma;
 	(*salt) = &plasma->corners[ plasma->seed_corner ];
 	(*salt_size) = sizeof( RCOORD );
 	plasma->seed_corner++;
@@ -464,11 +468,12 @@ static void FeedRandom( PTRSZVAL psvPlasma, POINTER *salt, size_t *salt_size )
 		plasma->seed_corner = 0;
 }
 
-void PlasmaRender( struct plasma_state *plasma, RCOORD *seed )
+void PlasmaRender( struct plasma_patch *plasma, RCOORD *seed )
 {
 	struct grid next;
-	RCOORD *map1 =  NewArray( RCOORD, plasma->stride * plasma->rows );
-	//RCOORD *map2 =  NewArray( RCOORD, plasma->stride * plasma->rows );
+	size_t stride = plasma->plasma->stride;
+	size_t rows = plasma->plasma->rows;
+	//RCOORD *map2 =  NewArray( RCOORD, stride * plasma->rows );
 	if( plasma->entopy_state )
 	{
 		SRG_RestoreState( plasma->entropy, plasma->entopy_state );
@@ -484,25 +489,25 @@ void PlasmaRender( struct plasma_state *plasma, RCOORD *seed )
 	plasma->max_height = 0;
 	next.x = 0;
 	next.y = 0;
-	next.x2 = plasma->stride - 1;
-	next.y2 = plasma->rows - 1;
+	next.x2 = stride - 1;
+	next.y2 = rows - 1;
 	next.skip_top = 0;
 	next.skip_left = 0;
 
 	if( !seed )
 		seed = plasma->corners;
-	map1[0 + 0 * plasma->stride]                    = plasma->corners[0] = seed[0];
-	map1[(plasma->stride - 1) + 0 * plasma->stride]          = plasma->corners[1] = seed[1];
-	map1[0 + (plasma->rows-1) * plasma->stride]           = plasma->corners[2] = seed[2];
-	map1[(plasma->stride - 1) + (plasma->rows-1) * plasma->stride] = plasma->corners[3] = seed[3];
+	plasma->map1[0 + 0 * stride]                    = plasma->corners[0] = seed[0];
+	plasma->map1[(stride - 1) + 0 * stride]          = plasma->corners[1] = seed[1];
+	plasma->map1[0 + (rows-1) * stride]           = plasma->corners[2] = seed[2];
+	plasma->map1[(stride - 1) + (rows-1) * stride] = plasma->corners[3] = seed[3];
 
 	{
 		int n;
-		plasma->_min_height = 0;
-		plasma->_max_height = 1;
+		plasma->_min_height = 1;
+		plasma->_max_height = 0;
 		plasma->min_height = 1;
 		plasma->max_height = 0;
-		/*
+		
 		for( n = 0; n < 4; n++ )
 		{
 			RCOORD this_point = plasma->corners[n];
@@ -515,136 +520,23 @@ void PlasmaRender( struct plasma_state *plasma, RCOORD *seed )
 					= plasma->min_height
 					= this_point;
 		}
-		*/
+		
 	}
 
 	//PlasmaFill( plasma, map1, &next );
-	PlasmaFill2( plasma, map1, &next );
+	PlasmaFill2( plasma, plasma->map1, &next );
 
-	//map2[0 + 0 * plasma->stride]                    = plasma->corners[0];
-	//map2[(plasma->stride - 1) + 0 * plasma->stride]          = plasma->corners[1];
-	//map2[0 + (plasma->rows-1) * plasma->stride]           = plasma->corners[2];
-	//map2[(plasma->stride - 1) + (plasma->rows-1) * plasma->stride] = plasma->corners[3];
-	//PlasmaFill( plasma, map2, &next );
-
-	{
-		int x, y;
-		RCOORD *map = plasma->map;
-		RCOORD *map_from = map1;
-		lprintf( "map result min and max: %g %g ", plasma->min_height, plasma->max_height );
-		if( ( plasma->min_height < plasma->_min_height || plasma->max_height > plasma->_max_height ) )
-		{
-		for( x = 0; x < plasma->stride; x++ )
-			for( y = 0; y < plasma->rows; y++ )
-			{
-				RCOORD input = map_from[0];
-				LOGICAL updated;
-				do
-				{
-					updated  = FALSE;
-					if( input > plasma->_max_height )
-					{
-						// 
-						input = plasma->_max_height - ( input - plasma->_max_height );
-						updated = TRUE;
-					}
-					else if( input < plasma->_min_height )
-					{
-						input = plasma->_min_height - ( input - plasma->_min_height );
-						updated = TRUE;
-					}
-				}
-				while( updated );
-				if( 1 ) // mode == 1 )
-				{
-				// need to specify a copy mode.
-					map[0] = input;
-					//sin( /*map2[index] * */( map_from[0] - plasma->min_height ) / divider * 3.14159/2 /*+ map2[index] * 3.14159/2*/ );
-					//( 1 + sin( /*map2[index] * */( map_from[0] - plasma->min_height ) / divider * 3.14159 - 3.14159/2 /*+ map2[index] * 3.14159/2*/ ) ) / 2;
-				}
-
-				else if( 1 ) // mode == 2 )
-				{
-					// smooth top and bottom across sin curve, middle span is 1:1 ...
-					map[0] = 
-						( 1 + sin( input * 3.14159 - 3.14159/2 ) ) / 2;
-				}
-
-				if( 0 ) // mode == 3 )  // bad mode ... needs work
-				{
-				// peaker tops and bottoms smoother middle, middle span ...
-				map[0] = 
-					( 1 + tan( ( ( input ) + 0.5 ) * ( 3.14159 * 0.5 ) + (3.14159/2) ) ) /2;
-				}
-
-				if( 0 ) // mode == 4 ) // use square furnction, parabolic... cubic... qudric?
-				// peaker tops and bottoms smoother middle, middle span is 1:1 ...
-				{
-					RCOORD tmp = input - 0.5;
-					if( tmp < 0 )
-						map[0] = 
-							( 0.5 + ( 2 * tmp * tmp ) );
-					else
-						map[0] = 
-							0.5 -( 2 * tmp * tmp );
-				}
-				//*/
-				map++;
-				map_from++;
-				//lprintf( "%g = %g %g", plasma->map[index], map1[index], map2[index] );
-			}
-		}
-		else
-		{
-		RCOORD divider = ( plasma->max_height - plasma->min_height );
-		for( x = 0; x < plasma->stride; x++ )
-			for( y = 0; y < plasma->rows; y++ )
-			{
-				// need to specify a copy mode.
-				map[0] = 
-					//map_from[0];
-					( map_from[0] );
-					//sin( /*map2[index] * */( map_from[0] - plasma->min_height ) / divider * 3.14159/2 /*+ map2[index] * 3.14159/2*/ );
-					//( 1 + sin( /*map2[index] * */( map_from[0] - plasma->min_height ) / divider * 3.14159 - 3.14159/2 /*+ map2[index] * 3.14159/2*/ ) ) / 2;
-
-				/*
-				// smooth top and bottom across sin curve, middle span is 1:1 ...
-				map[0] = 
-					( 1 + sin( ( map_from[0] - plasma->min_height ) / divider * 3.14159 - 3.14159/2 ) ) / 2;
-				*/
-				///*
-				// peaker tops and bottoms smoother middle, middle span ...
-				//map[0] = 
-				//	( 1 + tan( ( ( ( map_from[0] - plasma->min_height ) / divider ) + 0.5 ) * ( 3.14159 * 0.5 ) + (3.14159/2) ) ) /2;
-				// peaker tops and bottoms smoother middle, middle span is 1:1 ...
-				if( 0 )
-				{
-					RCOORD tmp = ( map_from[0] - plasma->min_height ) / divider - 0.5;
-					if( tmp < 0 )
-						map[0] = 
-							( 0.5 + ( 2 * tmp * tmp ) );
-					else
-						map[0] = 
-							0.5 -( 2 * tmp * tmp );
-				}
-				//*/
-				map++;
-				map_from++;
-				//lprintf( "%g = %g %g", plasma->map[index], map1[index], map2[index] );
-			}
-		}
-	}
-	Release( map1 );
-	//Release( map2 );
 }
 
-struct plasma_state *PlasmaCreate( RCOORD seed[4], RCOORD roughness, int width, int height )
+struct plasma_patch *PlasmaCreatePatch( struct plasma_state *map, RCOORD seed[4], RCOORD roughness )
 {
-	struct plasma_state *plasma = New( struct plasma_state );
+	struct plasma_patch *plasma = New( struct plasma_patch );
 	struct grid next;
-	plasma->map =  NewArray( RCOORD, width * height );
-	plasma->stride = width;
-	plasma->rows = height;
+	MemSet( plasma, 0, sizeof( struct plasma_patch ) );
+	plasma->plasma = map;
+
+	plasma->map1 =  NewArray( RCOORD, map->stride * map->rows );
+	plasma->map =  NewArray( RCOORD, map->stride * map->rows );
 	plasma->seed_corner = 0;
 	plasma->area_scalar = roughness;
 	plasma->horiz_area_scalar = roughness;
@@ -677,17 +569,398 @@ struct plasma_state *PlasmaCreate( RCOORD seed[4], RCOORD roughness, int width, 
 
 	plasma->entropy = SRG_CreateEntropy( FeedRandom, (PTRSZVAL)plasma );
 
-	PlasmaRender( plasma, plasma->corners );
+	//if( initial_render )
+	//	PlasmaRender( plasma, plasma->corners );
 
 	return plasma;
 }
 
-RCOORD *PlasmaGetSurface( struct plasma_state *plasma )
+struct plasma_patch *PlasmaCreateEx( RCOORD seed[4], RCOORD roughness, int width, int height, LOGICAL initial_render )
+{
+	struct plasma_state *plasma = New( struct plasma_state );
+	struct plasma_patch *patch;
+
+	plasma->stride = width;
+	plasma->rows = height;
+	plasma->read_map =  NewArray( RCOORD, plasma->stride * plasma->rows );
+	plasma->world_map = NewArray( struct plasma_patch *, 5*5 );
+	MemSet( plasma->world_map, 0, sizeof( POINTER ) * 5 * 5 );
+	plasma->map_height = 5;
+	plasma->map_width = 5;
+
+	patch = PlasmaCreatePatch( plasma, seed, roughness );
+
+	plasma->root_x = 2;
+	plasma->root_y = 2;
+	patch->x = 0;
+	patch->y = 0;
+
+	plasma->world_map[ ( plasma->root_x + patch->x ) + ( plasma->root_y + patch->y ) * plasma->map_width ] = patch;
+
+	if( initial_render )
+		PlasmaRender( patch, patch->corners );
+
+	return patch;
+}
+
+struct plasma_patch *PlasmaCreate( RCOORD seed[4], RCOORD roughness, int width, int height )
+{
+	return PlasmaCreateEx( seed, roughness, width, height, TRUE );
+}
+
+struct plasma_patch *GetMapCoord( struct plasma_state *plasma, int x, int y )
+{
+	if( ( plasma->root_x + x ) < 0 ) 
+		return NULL;
+	if( ( plasma->root_y + y ) < 0 ) 
+		return NULL;
+	if( ( plasma->root_x + x ) >= plasma->map_width ) 
+		return NULL;
+	if( ( plasma->root_y + y ) >= plasma->map_height ) 
+		return NULL;
+	return 	plasma->world_map[ ( plasma->root_x + x ) + ( plasma->root_y + y ) * plasma->map_width ];
+
+}
+
+void SetMapCoord( struct plasma_state *plasma, struct plasma_patch *patch )
+{
+	struct plasma_patch *old_patch;
+	plasma->world_map[ ( plasma->root_x + patch->x ) + ( plasma->root_y + patch->y ) * plasma->map_width ] = patch;
+	if( old_patch = GetMapCoord( plasma, patch->x-1, patch->y ) )
+	{
+		patch->as_left = old_patch;
+		old_patch->as_right = patch;
+	}
+
+	if( old_patch = GetMapCoord( plasma, patch->x+1, patch->y ) )
+	{
+		patch->as_right = old_patch;
+		old_patch->as_left= patch;
+	}
+	if( old_patch = GetMapCoord( plasma, patch->x, patch->y-1 ) )
+	{
+		patch->as_top = old_patch;
+		old_patch->as_bottom = patch;
+	}
+
+	if( old_patch = GetMapCoord( plasma, patch->x, patch->y+1 ) )
+	{
+		patch->as_bottom = old_patch;
+		old_patch->as_top = patch;
+	}
+
+	{
+		size_t stride = plasma->stride;
+		size_t rows = plasma->rows;
+		size_t n;
+		if( old_patch = patch->as_left )
+			for( n = 0; n < rows; n++ )
+				patch->map1[ 0 + n * stride ] = old_patch->map1[ (stride-1) + n * stride ];
+		if( old_patch = patch->as_top )
+			for( n = 0; n < rows; n++ )
+				patch->map1[ n + 0 * stride ] = old_patch->map1[ n + (rows-1) * stride ];
+		if( old_patch = patch->as_right )
+			for( n = 0; n < rows; n++ )
+				patch->map1[ (stride-1) + n * stride ] = old_patch->map1[ 0 + n * stride ];
+		if( old_patch = patch->as_bottom )
+			for( n = 0; n < rows; n++ )
+				patch->map1[ n + (rows-1) * stride ] = old_patch->map1[ n + 0 * stride ];
+	}
+}
+
+struct plasma_patch *PlasmaExtend( struct plasma_patch *plasma, int in_direction, RCOORD seed[2], RCOORD roughness )
+{
+	struct plasma_patch *new_plasma;
+	RCOORD new_seed[4];
+	switch( in_direction )
+	{
+	case 0: // to the right
+		if( plasma->as_right )
+			return plasma->as_right;
+		new_seed[0] = plasma->corners[1];
+		new_seed[1] = seed[0];
+		new_seed[2] = plasma->corners[3];
+		new_seed[3] = seed[1];
+		break;
+	case 1: // to the bottom
+		if( plasma->as_bottom )
+			return plasma->as_bottom;
+		new_seed[0] = plasma->corners[2];
+		new_seed[1] = plasma->corners[3];
+		new_seed[2] = seed[0];
+		new_seed[3] = seed[1];
+		break;
+	case 2: // to the left
+		if( plasma->as_left )
+			return plasma->as_left;
+		new_seed[0] = seed[0];
+		new_seed[1] = plasma->corners[0];
+		new_seed[2] = seed[1];
+		new_seed[3] = plasma->corners[2];
+		break;
+	case 3: // to the top
+		if( plasma->as_top )
+			return plasma->as_top;
+		new_seed[0] = seed[0];
+		new_seed[1] = seed[1];
+		new_seed[2] = plasma->corners[0];
+		new_seed[3] = plasma->corners[1];
+		break;
+	}
+
+	new_plasma = PlasmaCreatePatch( plasma->plasma, new_seed, roughness );
+	switch( in_direction )
+	{
+	case 0: // to the right
+		new_plasma->x = plasma->x + 1;
+		new_plasma->y = plasma->y;
+		break;
+	case 1: // to the bottom
+		new_plasma->x = plasma->x;
+		new_plasma->y = plasma->y + 1;
+		break;
+	case 2: // to the left
+		new_plasma->x = plasma->x - 1;
+		new_plasma->y = plasma->y;
+		break;
+	case 3: // to the top
+		new_plasma->x = plasma->x;
+		new_plasma->y = plasma->y - 1;
+		break;
+	}
+
+	SetMapCoord( plasma->plasma, new_plasma );
+
+	PlasmaRender( new_plasma, new_plasma->corners );
+
+	return new_plasma;
+}
+
+
+RCOORD *PlasmaGetSurface( struct plasma_patch *plasma )
 {
 	return plasma->map;
 }
 
-void PlasmaSetRoughness( struct plasma_state *plasma, RCOORD roughness, RCOORD horiz_rough )
+
+RCOORD GetMapData( struct plasma_patch *patch, int x, int y, int smoothing )
+{
+		RCOORD input = patch->map1[ x + y * patch->plasma->stride ];
+		if( ( patch->min_height < patch->_min_height || patch->max_height > patch->_max_height ) )
+		{
+			int tries = 0;
+				LOGICAL updated;
+				do
+				{
+					tries++;
+					if( tries > 20 )
+					{
+						lprintf( "capping oscillation at 20" );
+						break;
+					}
+					updated  = FALSE;
+					if( input > patch->_max_height )
+					{
+						// 
+						input = patch->_max_height - ( input - patch->_max_height );
+						updated = TRUE;
+					}
+					else if( input < patch->_min_height )
+					{
+						input = patch->_min_height - ( input - patch->_min_height );
+						updated = TRUE;
+					}
+				}
+				while( updated );
+				if( smoothing == 0 )
+				{
+				// need to specify a copy mode.
+					return input;
+					//sin( /*map2[index] * */( map_from[0] - patch->min_height ) / divider * 3.14159/2 /*+ map2[index] * 3.14159/2*/ );
+					//( 1 + sin( /*map2[index] * */( map_from[0] - patch->min_height ) / divider * 3.14159 - 3.14159/2 /*+ map2[index] * 3.14159/2*/ ) ) / 2;
+				}
+
+				else if( smoothing == 1 )
+				{
+					// smooth top and bottom across sin curve, middle span is 1:1 ...
+					return
+						( 1 + sin( input * 3.14159 - 3.14159/2 ) ) / 2;
+				}
+
+				if( smoothing == 3 )  // bad mode ... needs work
+				{
+				// peaker tops and bottoms smoother middle, middle span ...
+				return 
+					( 1 + tan( ( ( input ) + 0.5 ) * ( 3.14159 * 0.5 ) + (3.14159/2) ) ) /2;
+				}
+
+				if( smoothing == 4 ) // use square furnction, parabolic... cubic... qudric?
+				// peaker tops and bottoms smoother middle, middle span is 1:1 ...
+				{
+					RCOORD tmp = input - 0.5;
+					if( tmp < 0 )
+						return
+							( 0.5 + ( 2 * tmp * tmp ) );
+					else
+						return
+							0.5 -( 2 * tmp * tmp );
+				}
+				//*/
+				//lprintf( "%g = %g %g", patch->map[index], patch->map1[index], map2[index] );
+		}
+		else
+		{
+			RCOORD divider = ( patch->max_height - patch->min_height );
+			{
+				// need to specify a copy mode.
+				return ( input - patch->min_height ) / divider;
+					//sin( /*map2[index] * */( map_from[0] - patch->min_height ) / divider * 3.14159/2 /*+ map2[index] * 3.14159/2*/ );
+					//( 1 + sin( /*map2[index] * */( map_from[0] - patch->min_height ) / divider * 3.14159 - 3.14159/2 /*+ map2[index] * 3.14159/2*/ ) ) / 2;
+
+				/*
+				// smooth top and bottom across sin curve, middle span is 1:1 ...
+				map[0] = 
+					( 1 + sin( ( map_from[0] - patch->min_height ) / divider * 3.14159 - 3.14159/2 ) ) / 2;
+				*/
+				///*
+				// peaker tops and bottoms smoother middle, middle span ...
+				//map[0] = 
+				//	( 1 + tan( ( ( ( map_from[0] - patch->min_height ) / divider ) + 0.5 ) * ( 3.14159 * 0.5 ) + (3.14159/2) ) ) /2;
+				// peaker tops and bottoms smoother middle, middle span is 1:1 ...
+				if( 0 )
+				{
+					RCOORD tmp = ( input - patch->min_height ) / divider - 0.5;
+					if( tmp < 0 )
+						return ( 0.5 + ( 2 * tmp * tmp ) );
+					else
+						return 0.5 -( 2 * tmp * tmp );
+				}
+			}
+		}
+		return 0;
+}
+
+
+RCOORD *PlasmaReadSurface( struct plasma_patch *patch_root, int x, int y, int smoothing )
+{
+	struct plasma_patch *first_patch;
+	struct plasma_patch *last_patch;
+	struct plasma_patch *patch;
+	struct plasma_state *plasma = patch_root->plasma;
+	int sec_x = (x - ((int)plasma->stride-1)) / (int)plasma->stride;
+	int sec_y = (y - ((int)plasma->rows-1)) / (int)plasma->rows;
+
+	int ofs_x = (x-1) % plasma->stride;
+	int ofs_y = (y-1) % plasma->rows;
+	int out_x, out_y;
+	lprintf( "start at %d,%d  offset in first: %d,%d  sec: %d,%d", x, y, ofs_x, ofs_y, sec_x, sec_y );
+
+	first_patch
+		= patch 
+		= GetMapCoord( plasma, sec_x, sec_y );
+	
+	if( !first_patch )
+	{
+		do
+		{
+			int n, m;
+			patch = patch_root;
+			while( sec_x < patch->x )
+			{
+				RCOORD seed[2];
+				seed[0] = 0.5;
+				seed[1] = 0.5;
+				patch = PlasmaExtend( patch, 2, seed, patch_root->area_scalar );
+			}
+			while( sec_y < patch->y )
+			{
+				RCOORD seed[2];
+				seed[0] = 0.5;
+				seed[1] = 0.5;
+				patch = PlasmaExtend( patch, 3, seed, patch_root->area_scalar );
+			}
+			while( sec_x > patch->x )
+			{
+				RCOORD seed[2];
+				seed[0] = 0.5;
+				seed[1] = 0.5;
+				patch = PlasmaExtend( patch, 0, seed, patch_root->area_scalar );
+			}
+			while( sec_y > patch->y )
+			{
+				RCOORD seed[2];
+				seed[0] = 0.5;
+				seed[1] = 0.5;
+				patch = PlasmaExtend( patch, 1, seed, patch_root->area_scalar );
+			}
+		}
+		while( !( patch = GetMapCoord( plasma, sec_x, sec_y ) ) );
+		first_patch = patch;
+	}
+	lprintf( "patch is %d,%d", patch->x, patch->y ) ;
+	if( patch )
+	for( out_x = ofs_x; out_x < plasma->stride; out_x++ )
+		for( out_y = ofs_y; out_y < plasma->rows; out_y++ )
+		{
+			plasma->read_map[ ( out_x - ofs_x ) + ( out_y - ofs_y ) * plasma->stride] 
+				= GetMapData( patch, out_x, out_y, smoothing );
+		}
+
+	patch = GetMapCoord( plasma, sec_x + 1, sec_y );
+	if( !patch )
+	{
+		RCOORD seed[2];
+		seed[0] = 0.5;
+		seed[1] = 0.5;
+		patch = PlasmaExtend( first_patch, 0, seed, first_patch->area_scalar );
+	}
+	lprintf( "patch is %d,%d", patch->x, patch->y ) ;
+	if( patch )
+	for( out_x = 0; out_x < ofs_x; out_x++ )
+		for( out_y = ofs_y; out_y < plasma->rows; out_y++ )
+		{
+			plasma->read_map[ ( out_x + ( plasma->stride - ofs_x ) ) + ( out_y - ofs_y ) * plasma->stride] 
+				= GetMapData( patch, out_x, out_y, smoothing );
+		}
+
+	patch = GetMapCoord( plasma, sec_x, sec_y + 1 );
+	if( !patch )
+	{
+		RCOORD seed[2];
+		seed[0] = 0.5;
+		seed[1] = 0.5;
+		patch = PlasmaExtend( first_patch, 1, seed, first_patch->area_scalar );
+	}
+	lprintf( "patch is %d,%d", patch->x, patch->y ) ;
+	if( patch )
+	for( out_x = ofs_x; out_x < plasma->stride; out_x++ )
+		for( out_y = 0; out_y < ofs_y; out_y++ )
+		{
+			plasma->read_map[ ( out_x - ofs_x ) + ( out_y + ( plasma->rows - ofs_y ) ) * plasma->stride] 
+				= GetMapData( patch, out_x, out_y, smoothing );
+		}
+	last_patch = patch;
+	patch = GetMapCoord( plasma, sec_x + 1, sec_y + 1 );
+	if( !patch )
+	{
+		RCOORD seed[2];
+		seed[0] = 0.5;
+		seed[1] = 0.5;
+		patch = PlasmaExtend( last_patch, 0, seed, first_patch->area_scalar );
+	}
+	lprintf( "patch is %d,%d", patch->x, patch->y ) ;
+	if( patch )
+	for( out_x = 0; out_x < ofs_x; out_x++ )
+		for( out_y = 0; out_y < ofs_y; out_y++ )
+		{
+			plasma->read_map[ ( out_x + ( plasma->stride - ofs_x ) ) + ( out_y + ( plasma->rows - ofs_y ) ) * plasma->stride] 
+				= GetMapData( patch, out_x, out_y, smoothing );
+		}
+
+	return plasma->read_map;
+}
+
+void PlasmaSetRoughness( struct plasma_patch *plasma, RCOORD roughness, RCOORD horiz_rough )
 {
 	plasma->area_scalar = roughness;
 	plasma->horiz_area_scalar = roughness * horiz_rough;
