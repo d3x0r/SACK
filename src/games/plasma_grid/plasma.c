@@ -583,15 +583,15 @@ struct plasma_patch *PlasmaCreateEx( RCOORD seed[4], RCOORD roughness, int width
 	plasma->stride = width;
 	plasma->rows = height;
 	plasma->read_map =  NewArray( RCOORD, plasma->stride * plasma->rows );
-	plasma->world_map = NewArray( struct plasma_patch *, 5*5 );
-	MemSet( plasma->world_map, 0, sizeof( POINTER ) * 5 * 5 );
-	plasma->map_height = 5;
-	plasma->map_width = 5;
+	plasma->map_height = 10;
+	plasma->map_width = 10;
 
+	plasma->world_map = NewArray( struct plasma_patch *, plasma->map_height * plasma->map_width );
+	MemSet( plasma->world_map, 0, sizeof( POINTER ) * plasma->map_height * plasma->map_width );
 	patch = PlasmaCreatePatch( plasma, seed, roughness );
 
-	plasma->root_x = 2;
-	plasma->root_y = 2;
+	plasma->root_x = 5;
+	plasma->root_y = 5;
 	patch->x = 0;
 	patch->y = 0;
 
@@ -743,19 +743,19 @@ RCOORD *PlasmaGetSurface( struct plasma_patch *plasma )
 }
 
 
-RCOORD GetMapData( struct plasma_patch *patch, int x, int y, int smoothing )
+RCOORD GetMapData( struct plasma_patch *patch, int x, int y, int smoothing, int force_scaling )
 {
 		RCOORD input = patch->map1[ x + y * patch->plasma->stride ];
-		if( ( patch->min_height < patch->_min_height || patch->max_height > patch->_max_height ) )
+		if( force_scaling /*( patch->min_height < patch->_min_height || patch->max_height > patch->_max_height )*/ )
 		{
 			int tries = 0;
 				LOGICAL updated;
 				do
 				{
 					tries++;
-					if( tries > 20 )
+					if( tries > 5 )
 					{
-						lprintf( "capping oscillation at 20" );
+						//lprintf( "capping oscillation at 20" );
 						break;
 					}
 					updated  = FALSE;
@@ -841,7 +841,7 @@ RCOORD GetMapData( struct plasma_patch *patch, int x, int y, int smoothing )
 }
 
 
-RCOORD *PlasmaReadSurface( struct plasma_patch *patch_root, int x, int y, int smoothing )
+RCOORD *PlasmaReadSurface( struct plasma_patch *patch_root, int x, int y, int smoothing, int force_scaling )
 {
 	struct plasma_patch *first_patch;
 	struct plasma_patch *last_patch;
@@ -903,7 +903,7 @@ RCOORD *PlasmaReadSurface( struct plasma_patch *patch_root, int x, int y, int sm
 		for( out_y = ofs_y; out_y < plasma->rows; out_y++ )
 		{
 			plasma->read_map[ ( out_x - ofs_x ) + ( out_y - ofs_y ) * plasma->stride] 
-				= GetMapData( patch, out_x, out_y, smoothing );
+				= GetMapData( patch, out_x, out_y, smoothing, force_scaling );
 		}
 
 	patch = GetMapCoord( plasma, sec_x + 1, sec_y );
@@ -920,7 +920,7 @@ RCOORD *PlasmaReadSurface( struct plasma_patch *patch_root, int x, int y, int sm
 		for( out_y = ofs_y; out_y < plasma->rows; out_y++ )
 		{
 			plasma->read_map[ ( out_x + ( plasma->stride - ofs_x ) ) + ( out_y - ofs_y ) * plasma->stride] 
-				= GetMapData( patch, out_x, out_y, smoothing );
+				= GetMapData( patch, out_x, out_y, smoothing, force_scaling );
 		}
 
 	patch = GetMapCoord( plasma, sec_x, sec_y + 1 );
@@ -937,7 +937,7 @@ RCOORD *PlasmaReadSurface( struct plasma_patch *patch_root, int x, int y, int sm
 		for( out_y = 0; out_y < ofs_y; out_y++ )
 		{
 			plasma->read_map[ ( out_x - ofs_x ) + ( out_y + ( plasma->rows - ofs_y ) ) * plasma->stride] 
-				= GetMapData( patch, out_x, out_y, smoothing );
+				= GetMapData( patch, out_x, out_y, smoothing, force_scaling );
 		}
 	last_patch = patch;
 	patch = GetMapCoord( plasma, sec_x + 1, sec_y + 1 );
@@ -954,7 +954,7 @@ RCOORD *PlasmaReadSurface( struct plasma_patch *patch_root, int x, int y, int sm
 		for( out_y = 0; out_y < ofs_y; out_y++ )
 		{
 			plasma->read_map[ ( out_x + ( plasma->stride - ofs_x ) ) + ( out_y + ( plasma->rows - ofs_y ) ) * plasma->stride] 
-				= GetMapData( patch, out_x, out_y, smoothing );
+				= GetMapData( patch, out_x, out_y, smoothing, force_scaling );
 		}
 
 	return plasma->read_map;
