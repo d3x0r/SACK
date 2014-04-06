@@ -252,7 +252,7 @@ SaneWinMain( argc, argv )
 	coords[1] = 0.0;
 	coords[2] = 0.0;
 	coords[3] = 1.0;
-	l.plasma = PlasmaCreate( coords, patch * 1.5, patch, patch );
+	l.plasma = PlasmaCreate( coords, patch * 2, patch, patch );
 	UpdateDisplay( l.render );
 	//RestoreDisplay( l.render );
 
