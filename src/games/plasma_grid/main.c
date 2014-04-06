@@ -1,4 +1,3 @@
-#define MAKE_RCOORD_SINGLE
 
 #include <stdhdrs.h>
 #define USE_IMAGE_INTERFACE l.pii
@@ -10,6 +9,11 @@
 #define SALTY_RANDOM_GENERATOR_SOURCE
 #include <salty_generator.h>
 #include "plasma.h"
+#include "grid_reader.h" 
+
+#define patch  257
+//1025  
+//257
 
 struct slider_panel
 {
@@ -37,6 +41,8 @@ struct plasma_local
 	S_32 ofs_x, ofs_y;
 	S_32 mouse_x, mouse_y;
 	_32 mouse_b; 
+
+	struct grid_reader *grid_reader;
 } l;
 
 int CPROC Mouse( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
@@ -49,7 +55,7 @@ int CPROC Mouse( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
 	else if( MAKE_SOMEBUTTONS( b ) )
 	{
 		l.ofs_x += l.mouse_x - x;
-		l.ofs_y -= l.mouse_y - y;
+		l.ofs_y += l.mouse_y - y;
 		l.mouse_x = x;
 		l.mouse_y = y;
 		Redraw( l.render );
@@ -65,8 +71,11 @@ int CPROC Mouse( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
 void CPROC DrawPlasma( PTRSZVAL psv, PRENDERER render )
 {
 	Image surface = GetDisplayImage( render );
-	RCOORD *data = PlasmaReadSurface( l.plasma, l.ofs_x, l.ofs_y, 1 );
-	PCDATA output = GetImageSurface( surface );
+	RCOORD *data 
+		= GridReader_Read( l.grid_reader, 1000 + l.ofs_x, 1000 + l.ofs_y, patch, patch );
+		//= PlasmaReadSurface( l.plasma, l.ofs_x, l.ofs_y, 1 );
+	PCDATA _output = GetImageSurface( surface );
+	PCDATA output;
 	int w;
 	int h;
 #undef plot
@@ -77,6 +86,8 @@ void CPROC DrawPlasma( PTRSZVAL psv, PRENDERER render )
 		return;
 	for( h = 0; h < surface->height; h++ )
 	{
+		output = _output + ( surface->height - h - 1 ) * surface->pwidth;
+
 		for( w = 0; w < surface->width; w++ )
 		{
 			RCOORD here = data[ h * surface->width + w ];
@@ -107,6 +118,7 @@ void CPROC DrawPlasma( PTRSZVAL psv, PRENDERER render )
 	}
 	lprintf( "Result is %g,%g", min, max );
 	UpdateDisplay( render );
+	Release( data );
 }
 
 static void FeedRandom( PTRSZVAL psvPlasma, POINTER *salt, size_t *salt_size )
@@ -131,7 +143,6 @@ static int CPROC KeyPlasma( PTRSZVAL psv, _32 key )
 	}
 }
 
-#define patch 257
 
 static void ComputeRoughness( struct slider_panel *panel )
 {
@@ -243,6 +254,10 @@ SaneWinMain( argc, argv )
 	SetRedrawHandler( l.render, DrawPlasma, 0 );
 	SetKeyboardHandler( l.render, KeyPlasma, 0 );
 	SetMouseHandler( l.render, Mouse, 0 );
+
+
+	l.grid_reader = GridReader_Open( "c:/storage/maps/nevada_gis/usa_elevation/usa1_alt" );
+
 
 	{
 		struct slider_panel *panel = MakeSliderFrame();
