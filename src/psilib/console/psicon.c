@@ -97,15 +97,6 @@ static CDATA crColorTableBack[16];
 //----------------------------------------------------------------------------
 // only one master copy of this is really needed...
 
-//extern int myTypeID;
-#if defined( _WIN32 )&& !defined( __cplusplus_cli )
-__declspec(dllimport)
-#else
-extern
-#endif
-   int b95;
-
-
 CDATA cPenNormal, cPenHighlight, cPenShadow, cPenDkShadow, cPenCursor;
 PMENU hChildMenu;
 PMENU hHistoryMenu;
@@ -652,6 +643,8 @@ static int CPROC Close( PDATAPATH pPath )
 	return 1;
 }
 #endif
+
+struct PSI_Console_GetHistory(
 
 static void FillDefaultColors( void )
 {

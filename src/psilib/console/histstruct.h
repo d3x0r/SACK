@@ -6,6 +6,9 @@
 PSI_CONSOLE_NAMESPACE
 
 struct history_line_tag {
+	struct history_line_flags_tag {
+		BIT_FIELD deleted : 1;
+	} flags;
    int nLineLength;
    PTEXT pLine;
 };
@@ -206,6 +209,19 @@ struct history_bios_tag
    // share the same width/height...
    PHISTORY_LINE_CURSOR pCursor;
 };
+
+struct PSI_phrase
+{
+   POINTER handle_to_added_line;
+};
+
+struct PSI_feedback
+{
+   PTRSZVAL psv_user_data;
+	PSI_FeedbackClick feedback_handler;
+
+};
+
 
 PSI_CONSOLE_NAMESPACE_END
 
