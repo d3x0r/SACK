@@ -840,8 +840,11 @@ PTEXT HandleExtendedFormat( PHISTORY_LINE_CURSOR phc, PTEXT pLine )
 }
 //----------------------------------------------------------------------------
 
-void PSI_EnqueDisplayHistory( PHISTORY_LINE_CURSOR phc, PTEXT pLine )
+PSI_Phrase PSI_EnqueDisplayHistory( PHISTORY_LINE_CURSOR phc, PTEXT pLine )
 {
+ 	PSI_Phrase phrase = New( struct PSI_phrase );
+	MemSet( phrase, 0, sizeof( struct PSI_phrase );
+
 	if( pLine->flags & TF_FORMATEX )
 	{
 		// clear this bit... extended format will result with bit re-set

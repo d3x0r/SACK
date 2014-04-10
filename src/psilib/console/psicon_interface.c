@@ -73,6 +73,11 @@ int PSIConsoleOutput( PSI_CONTROL pc, PTEXT lines )
 	return 0;
 }
 
+PSI_Phrase PSIConsolePhraseOutput( PSI_CONTROL pc, PTEXT lines )
+{
+
+}
+
 void PSIConsoleInputEvent( PSI_CONTROL pc, void(CPROC*Event)(PTRSZVAL,PTEXT), PTRSZVAL psv )
 {
 	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
@@ -118,6 +123,51 @@ void PSIConsoleSetLocalEcho( PSI_CONTROL pc, LOGICAL yesno )
 	if( console )
 	{
 		console->flags.bNoLocalEcho = !yesno;
+	}
+}
+
+struct history_tracking_info *PSIConsoleSaveHistory( PSI_CONTORL pc )
+{
+	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
+	if( console )
+	{
+		struct history_tracking_info *history_info = New( struct history_tracking_info );
+		history_info->pHistory = console->pHistory;
+		history_info->pHistoryDisplay = console->pHistoryDisplay;
+		history_info->pCurrentDisplay = console->pCurrentDisplay;
+		history_info->pCursor = console->pCursor;
+      history_info->pending_spaces = console->pending_spaces;
+		history_info->pending_tabs = console->pending_tabs;
+      return history_info;
+	}
+   return NULL;
+}
+
+void PSIConsoleSetHistory( PSI_CONTORL pc, struct history_tracking_info *history_info )
+{
+	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
+	if( console )
+	{
+		if( history_info )
+		{
+			console->pHistory = history_info->pHistory;
+			console->pHistoryDisplay = history_info->pHistoryDisplay;
+			console->pCurrentDisplay = history_info->pCurrentDisplay;
+			console->pCursor = history_info->pCursor;
+			console->pending_spaces = history_info->pending_spaces;
+			console->pending_tabs = history_info->pending_tabs;
+		}
+		else
+		{
+			console->pHistory = PSI_CreateHistoryRegion();
+			console->pCursor = PSI_CreateHistoryCursor( console->pHistory );
+			console->pCurrentDisplay = PSI_CreateHistoryBrowser( console->pHistory );
+			console->pHistoryDisplay = PSI_CreateHistoryBrowser( console->pHistory );
+         console->pending_spaces = 0;
+         console->pending_tabs = 0;
+			PSI_SetHistoryBrowserNoPageBreak( console->pHistoryDisplay );
+
+		}
 	}
 }
 

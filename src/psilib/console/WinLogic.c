@@ -410,13 +410,12 @@ void PSI_ConsoleCalculate( PCONSOLE_INFO pdp )
 //----------------------------------------------------------------------------
 
 // this does assume that special formatting text packets are spoon-fed to it.
-int PSI_WinLogicWriteEx( PCONSOLE_INFO pmdp
+PSI_Phrase PSI_WinLogicWriteEx( PCONSOLE_INFO pmdp
 						 , PTEXT pLine
 						 , int update
 						 )
 {
-	//PCONSOLE_INFO pmdp = (PCONSOLE_INFO)pdp;
-   static int updated;
+   PSI_Phrase result = NULL;
 	EnterCriticalSec( &pmdp->Lock );
 	{
 		//int flags = pLine->flags & (TF_NORETURN|TF_PROMPT);
@@ -475,10 +474,10 @@ int PSI_WinLogicWriteEx( PCONSOLE_INFO pmdp
 
 		// history will also respect some of the format_ops... actually the display history
 		// is this layer inbetween history and display that handles much of the format ops...
-		PSI_EnqueDisplayHistory( pmdp->pCursor, pLine );
+		result = PSI_EnqueDisplayHistory( pmdp->pCursor, pLine );
    }
    LeaveCriticalSec( &pmdp->Lock );
-   return updated;
+   return result;
 }
 
 //----------------------------------------------------------------------------
