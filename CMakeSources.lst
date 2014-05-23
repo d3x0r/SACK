@@ -16,6 +16,7 @@ set( SHA1_SOURCES
 
 set( RANDOM_SOURCES
   ${SOURCES_ROOT}src/salty_random_generator/salty_generator.c
+  ${SOURCES_ROOT}src/salty_random_generator/crypt_util.c
   ${SOURCES_ROOT}src/salty_random_generator/mersenne/mt19937ar.c
   )
 SET_SOURCE_FILES_PROPERTIES( ${RANDOM_SOURCES} PROPERTIES 

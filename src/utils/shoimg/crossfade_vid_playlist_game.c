@@ -432,13 +432,32 @@ static PTRSZVAL CPROC SetDefaultPrizeCount( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static void ReadConfigFile( CTEXTSTR filename )
+static void AddRules( PCONFIG_HANDLER pch );
+
+static PTRSZVAL CPROC ProcessConfig( PTRSZVAL psv, arg_list args )
 {
+	PARAM( args, CPOINTER, data );
+	PARAM( args, size_t, length );
 	PCONFIG_HANDLER pch = CreateConfigurationHandler();
+	AddRules( pch );
+	ProcessConfigurationInput( pch, (CTEXTSTR)data, length, 0 );
+	DestroyConfigurationEvaluator( pch );
+	return psv;
+}
+
+static void AddRules( PCONFIG_HANDLER pch )
+{
+	AddConfigurationMethod( pch, WIDE("config=%b"), ProcessConfig );
 	AddConfigurationMethod( pch, WIDE("%i,%i,%i,%m"), AddVideo );
 	AddConfigurationMethod( pch, WIDE("default show time=%i"), SetDefaultShowTime );
 	AddConfigurationMethod( pch, WIDE("default fade in time=%i"), SetDefaultFadeInTime );
 	AddConfigurationMethod( pch, WIDE("default prize count %i=%i"), SetDefaultPrizeCount );
+}
+
+static void ReadConfigFile( CTEXTSTR filename )
+{
+	PCONFIG_HANDLER pch = CreateConfigurationHandler();
+	AddRules( pch );
 	ProcessConfigurationFile( pch, filename, 0 );
 	DestroyConfigurationHandler( pch );
 }

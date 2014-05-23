@@ -34,7 +34,7 @@ enum {
 //C:\Windows\system32>assoc .autoconfigbackup3=intershellbackup
 //.autoconfigbackup3=intershellbackup
 //
-//C:\Windows\system32>ftype intershellbackup=c:\ftn3000\bin32\intershell\intershell.exe -restore -SQL %1
+//C:\Windows\system32>ftype intershellbackup=intershell.exe -restore -SQL %1
 //intershellbackup=c:\full\path\to\intershell\intershell.exe -restore -SQL %1
 
 
@@ -76,8 +76,8 @@ enum {
 //
 //
 //
-//C:\Windows\system32>ftype intershellbackup=c:\ftn3000\bin32\intershell\intershell.exe -restore -SQL %1
-//intershellbackup=c:\ftn3000\bin32\intershell\intershell.exe -restore -SQL %1
+//C:\Windows\system32>ftype intershellbackup=c:\bin32\intershell\intershell.exe -restore -SQL %1
+//intershellbackup=c:\bin32\intershell\intershell.exe -restore -SQL %1
 //
 
 

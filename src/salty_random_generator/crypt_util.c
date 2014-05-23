@@ -1,6 +1,6 @@
 
 #include <stdhdrs.h>
-
+#include <configscript.h>
 #ifndef SALTY_RANDOM_GENERATOR_SOURCE
 #define SALTY_RANDOM_GENERATOR_SOURCE
 #endif
@@ -11,14 +11,14 @@ static struct crypt_local
 	char * use_salt;
 	struct random_context *entropy;
 
-} *crypt_local;
-#define l (*crypt_local)
+} crypt_local;
+#define l (crypt_local)
 
 static void FeedSalt( PTRSZVAL psv, POINTER *salt, size_t *salt_size )
 {
-	if( l..use_salt)
+	if( l.use_salt)
 	{
-		(*salt) = l..use_salt;
+		(*salt) = l.use_salt;
 		(*salt_size) = 4;
 	}
 	else
@@ -30,42 +30,49 @@ static void FeedSalt( PTRSZVAL psv, POINTER *salt, size_t *salt_size )
 	}
 }
 
-
-void SRG_DecryptData( CTEXTSTR local_password, P_8 *buffer, size_t *chars )
+void SRG_DecryptRawData( P_8 binary, size_t length, P_8 *buffer, size_t *chars )
 {
 	if( !l.entropy )
 		l.entropy = SRG_CreateEntropy( FeedSalt, (PTRSZVAL)0 );
 	{
+		_32 mask;
+		P_8 pass_byte_in;
+		P_8 pass_byte_out;
+		int index;
+		//if( length < chars )
+		{
+			SRG_ResetEntropy( l.entropy );
+			l.use_salt = (char *)binary;
+
+			mask = SRG_GetEntropy( l.entropy, 32, FALSE );
+			pass_byte_in = ((P_8)binary) + 4;
+			length -= 4;
+			(*buffer) = NewArray( _8, length );
+			pass_byte_out = (*buffer);
+			for( index = 0; length; length--, index++ )
+			{
+				pass_byte_out[0] = pass_byte_in[0] ^ ((P_8)&mask)[ index & 0x3 ];
+				pass_byte_out++;
+				pass_byte_in++;
+			}
+			(*chars) = pass_byte_out - (*buffer);
+		}
+	}
+}
+
+void SRG_DecryptData( CTEXTSTR local_password, P_8 *buffer, size_t *chars )
+{
+	{
 		POINTER binary;
 		size_t length;
-		if( local_password && DecodeBinaryConfig( local_password, &binary, length ) )
+		if( local_password && DecodeBinaryConfig( local_password, &binary, &length ) )
 		{
-			_32 mask;
-			P_8 pass_byte_in;
-			P_8 pass_byte_out;
-			int index;
-			//if( length < chars )
-			{
-				SRG_ResetEntropy( l.entropy );
-				l.use_salt = (char *)binary;
-
-				mask = SRG_GetEntropy( l.entropy, 32, FALSE );
-				pass_byte_in = ((P_8)binary) + 4;
-				length -= 4;
-            (*buffer) = NewArray( _8, length );
-				pass_byte_out = (*buffer);
-				for( index = 0; length; length--, index++ )
-				{
-					pass_byte_out[0] = pass_byte_in[0] ^ ((P_8)&mask)[ index & 0x3 ];
-					pass_byte_out++;
-					pass_byte_in++;
-				}
-            (*chars) = pass_byte_out - buffer;
-			}
+			SRG_DecryptRawData( (P_8)binary, length, buffer, chars );
 		}
 		else
 		{
-			buffer[0] = 0;
+			(*buffer) = 0;
+			(*chars) = 0;
 			//lprintf( WIDE("failed to decode data") );
 		}
 	}
@@ -76,7 +83,7 @@ TEXTSTR SRG_DecryptString( CTEXTSTR local_password )
 	P_8 buffer;
 	size_t chars;
 	SRG_DecryptData( local_password, &buffer, &chars );
-   return (TEXTSTR)buffer;
+	return (TEXTSTR)buffer;
 }
 
 
@@ -93,9 +100,9 @@ TEXTCHAR * SRG_EncryptData( P_8 buffer, size_t buflen )
 			P_8 pass_byte_in;
 			P_8 pass_byte_out;
 			int index;
-         P_8 tmpbuf;
+			P_8 tmpbuf;
 			l.use_salt = NULL;
-         tmpbuf = NewArray( _8, buflen + 4 );
+			tmpbuf = NewArray( _8, buflen + 4 );
 			SRG_ResetEntropy( l.entropy );
 			seed = timeGetTime() & 0xFFFF;
 			//seed = seed % 100;
@@ -103,7 +110,7 @@ TEXTCHAR * SRG_EncryptData( P_8 buffer, size_t buflen )
 			tmpbuf[1] = '0' + (seed >> 8) & 0xF;
 			tmpbuf[2] = '0' + (seed >> 4) & 0xF;
 			tmpbuf[3] = '0' + (seed >> 0) & 0xF;
-			l.use_salt = tmpbuf;
+			l.use_salt = (char*)tmpbuf;
 
 			SRG_ResetEntropy( l.entropy );
 			mask = SRG_GetEntropy( l.entropy, 32, FALSE );
@@ -128,10 +135,10 @@ TEXTCHAR * SRG_EncryptData( P_8 buffer, size_t buflen )
 #endif
 		}
 	}
-   return NULL;
+	return NULL;
 }
 
 TEXTSTR SRG_EncryptString( CTEXTSTR buffer )
 {
-   return SRG_EncryptData( (P_8)buffer, StrLen( buffer ) + 1 );
+	return SRG_EncryptData( (P_8)buffer, StrLen( buffer ) + 1 );
 }

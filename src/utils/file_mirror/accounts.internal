@@ -18,26 +18,26 @@ dekware=0
 
 user=hall1
 listen=172.18.100.2
-	incoming=/home/relay/barhall1/ftn3000/data/trans/
-        outgoing=/home/relay/barhall1/ftn3000/data/trans/win
+	incoming=/home/relay/barhall1/xyzzyx/data/trans/
+        outgoing=/home/relay/barhall1/xyzzyx/data/trans/win
         allow=*
 
 user=hall2
 listen=172.18.100.2
-	incoming=/home/relay/barhall2/ftn3000/data/trans/
-        outgoing=/home/relay/barhall2/ftn3000/data/trans/win
+	incoming=/home/relay/barhall2/xyzzyx/data/trans/
+        outgoing=/home/relay/barhall2/xyzzyx/data/trans/win
         allow=*
 
 user=hall3
 listen=172.18.100.2
-	incoming=/home/relay/barhall3/ftn3000/data/trans/
-        outgoing=/home/relay/barhall3/ftn3000/data/trans/win
+	incoming=/home/relay/barhall3/xyzzyx/data/trans/
+        outgoing=/home/relay/barhall3/xyzzyx/data/trans/win
         allow=*
 
 user=hall4 
 listen=172.18.100.2
-	incoming=/home/relay/barhall4/ftn3000/data/trans/
-        outgoing=/home/relay/barhall4/ftn3000/data/trans/win
+	incoming=/home/relay/barhall4/xyzzyx/data/trans/
+        outgoing=/home/relay/barhall4/xyzzyx/data/trans/win
         allow=*
 
 

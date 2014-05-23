@@ -88,7 +88,7 @@ int main( void )
 	char *cardset;
 	int cardset_start = 0;
 	int cardset_end = 32000;
-	snprintf( tmp, sizeof( tmp ), "c:/ftn3000/data/cards/f2_468.dat" );
+	snprintf( tmp, sizeof( tmp ), "cards.dat" );
 	printf( "Loading cardset....\n" );
 	LoadCardset( tmp, &card_count, &cardset );
 	{

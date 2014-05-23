@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-project( eltanin_tables.plugin )
+project( game_tables.plugin )
 
 set( SOURCES
 ${FIRST_GCC_LIBRARY_SOURCE} 

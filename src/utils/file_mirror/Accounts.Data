@@ -18,7 +18,7 @@ user=hall1
 	outgoing=/home/relay/datainout/Send/hall1
 	incoming=/home/relay/datainout/Receive/hall1
 	mirror=/home/relay/datainout/Mirror/hall1
-	common=/home/relay/datainout/Common/ftn3000
+	common=/home/relay/datainout/Common/xyzzyx
    allow=*
 
 user=hall2
@@ -27,7 +27,7 @@ user=hall2
 	outgoing=/home/relay/datainout/Send/hall2
 	incoming=/home/relay/datainout/Receive/hall2
 	mirror=/home/relay/datainout/Mirror/hall2
-	common=/home/relay/datainout/Common/ftn3000
+	common=/home/relay/datainout/Common/xyzzyx
    allow=*
 
 user=hall3
@@ -36,7 +36,7 @@ user=hall3
 	outgoing=/home/relay/datainout/Send/hall3
 	incoming=/home/relay/datainout/Receive/hall3
 	mirror=/home/relay/datainout/Mirror/hall3
-	common=/home/relay/datainout/Common/ftn3000
+	common=/home/relay/datainout/Common/xyzzyx
    allow=*
 
 user=hall4 
@@ -45,7 +45,7 @@ user=hall4
 	outgoing=/home/relay/datainout/Send/hall4
 	incoming=/home/relay/datainout/Receive/hall4
 	mirror=/home/relay/datainout/Mirror/hall4
-	common=/home/relay/datainout/Common/ftn3000
+	common=/home/relay/datainout/Common/xyzzyx
    allow=*
 
 
@@ -55,7 +55,7 @@ user=hall5
 	outgoing=/home/relay/datainout/Send/hall5
 	incoming=/home/relay/datainout/Receive/hall5
 	mirror=/home/relay/datainout/Mirror/hall5
-	common=/home/relay/datainout/Common/ftn3000
+	common=/home/relay/datainout/Common/xyzzyx
    allow=*
 
 user=hall6
@@ -64,7 +64,7 @@ user=hall6
 	outgoing=/home/relay/datainout/Send/hall6
 	incoming=/home/relay/datainout/Receive/hall6
 	mirror=/home/relay/datainout/Mirror/hall6
-	common=/home/relay/datainout/Common/ftn3000
+	common=/home/relay/datainout/Common/xyzzyx
    allow=*
 
 user=portable
@@ -73,7 +73,7 @@ user=portable
 	outgoing=/home/relay/datainout/Send/hall6
 	incoming=/home/relay/datainout/Receive/hall6
 	mirror=/home/relay/datainout/Mirror/hall6
-	common=/home/relay/datainout/Common/ftn3000
+	common=/home/relay/datainout/Common/xyzzyx
    allow=*
 
 user=jim
@@ -82,7 +82,7 @@ user=jim
 	outgoing=/home/relay/datainout/Send/hall7
 	incoming=/home/relay/datainout/Receive/hall7
 	mirror=/home/relay/datainout/Mirror/hall7
-	common=/home/relay/datainout/Common/ftn3000
+	common=/home/relay/datainout/Common/xyzzyx
    allow=*
 
 user=jeff
@@ -91,7 +91,7 @@ user=jeff
 	outgoing=/home/relay/datainout/Send/hall7
 	incoming=/home/relay/datainout/Receive/hall7
 	mirror=/home/relay/datainout/Mirror/hall7
-	common=/home/relay/datainout/Common/ftn3000
+	common=/home/relay/datainout/Common/xyzzyx
    allow=*
 
 user=dewayne
@@ -100,7 +100,7 @@ user=dewayne
 	outgoing=/home/relay/datainout/Send/hall7
 	incoming=/home/relay/datainout/Receive/hall7
 	mirror=/home/relay/datainout/Mirror/hall7
-	common=/home/relay/datainout/Common/ftn3000
+	common=/home/relay/datainout/Common/xyzzyx
    allow=*
 
 user=hall7
@@ -109,7 +109,7 @@ user=hall7
 	outgoing=/home/relay/datainout/Send/hall7
 	incoming=/home/relay/datainout/Receive/hall7
 	mirror=/home/relay/datainout/Mirror/hall7
-	common=/home/relay/datainout/Common/ftn3000
+	common=/home/relay/datainout/Common/xyzzyx
    allow=*
 
 user=hall8
@@ -118,7 +118,7 @@ user=hall8
 	outgoing=/home/relay/datainout/Send/hall8
 	incoming=/home/relay/datainout/Receive/hall8
 	mirror=/home/relay/datainout/Mirror/hall8
-	common=/home/relay/datainout/Common/ftn3000
+	common=/home/relay/datainout/Common/xyzzyx
    allow=*
 
 user=hall9
@@ -127,7 +127,7 @@ user=hall9
 	outgoing=/home/relay/datainout/Send/hall9
 	incoming=/home/relay/datainout/Receive/hall9
 	mirror=/home/relay/datainout/Mirror/hall9
-	common=/home/relay/datainout/Common/ftn3000
+	common=/home/relay/datainout/Common/xyzzyx
    allow=*
 
 user=austria
@@ -136,7 +136,7 @@ user=austria
 	outgoing=/home/relay/datainout.austria/Send/hall1
 	incoming=/home/relay/datainout.austria/Receive/hall1
 	mirror=/home/relay/datainout.austria/Mirror/austria
-	common=/home/relay/datainout.austria/Common/ftn3000
+	common=/home/relay/datainout.austria/Common/xyzzyx
 	allow=*
 
 user=austria1
@@ -145,7 +145,7 @@ user=austria1
 	outgoing=/home/relay/datainout.austria/Send/hall1
 	incoming=/home/relay/datainout.austria/Receive/hall1
 	mirror=/home/relay/datainout.austria/Mirror/hall1
-	common=/home/relay/datainout.austria/Common/ftn3000
+	common=/home/relay/datainout.austria/Common/xyzzyx
 	allow=*
 
 user=austria2
@@ -154,7 +154,7 @@ user=austria2
 	outgoing=/home/relay/datainout.austria/Send/hall2
 	incoming=/home/relay/datainout.austria/Receive/hall2
 	mirror=/home/relay/datainout.austria/Mirror/hall2
-	common=/home/relay/datainout.austria/Common/ftn3000
+	common=/home/relay/datainout.austria/Common/xyzzyx
 	allow=*
 
 user=austria3
@@ -163,7 +163,7 @@ user=austria3
 	outgoing=/home/relay/datainout.austria/Send/hall3
 	incoming=/home/relay/datainout.austria/Receive/hall3
 	mirror=/home/relay/datainout.austria/Mirror/hall3
-	common=/home/relay/datainout.austria/Common/ftn3000
+	common=/home/relay/datainout.austria/Common/xyzzyx
 	allow=*
 
 user=austria4
@@ -172,7 +172,7 @@ user=austria4
 	outgoing=/home/relay/datainout.austria/Send/hall4
 	incoming=/home/relay/datainout.austria/Receive/hall4
 	mirror=/home/relay/datainout.austria/Mirror/hall4
-	common=/home/relay/datainout.austria/Common/ftn3000
+	common=/home/relay/datainout.austria/Common/xyzzyx
 	allow=*
 
 user=austria5
@@ -181,7 +181,7 @@ user=austria5
 	outgoing=/home/relay/datainout.austria/Send/hall5
 	incoming=/home/relay/datainout.austria/Receive/hall5
 	mirror=/home/relay/datainout.austria/Mirror/hall5
-	common=/home/relay/datainout.austria/Common/ftn3000
+	common=/home/relay/datainout.austria/Common/xyzzyx
 	allow=*
 
 user=austria6
@@ -190,7 +190,7 @@ user=austria6
 	outgoing=/home/relay/datainout.austria/Send/hall6
 	incoming=/home/relay/datainout.austria/Receive/hall6
 	mirror=/home/relay/datainout.austria/Mirror/hall6
-	common=/home/relay/datainout.austria/Common/ftn3000
+	common=/home/relay/datainout.austria/Common/xyzzyx
 	allow=*
 
 user=austria7
@@ -199,7 +199,7 @@ user=austria7
 	outgoing=/home/relay/datainout.austria/Send/hall7
 	incoming=/home/relay/datainout.austria/Receive/hall7
 	mirror=/home/relay/datainout.austria/Mirror/hall7
-	common=/home/relay/datainout.austria/Common/ftn3000
+	common=/home/relay/datainout.austria/Common/xyzzyx
 	allow=*
 
 user=austria8
@@ -208,7 +208,7 @@ user=austria8
 	outgoing=/home/relay/datainout.austria/Send/hall8
 	incoming=/home/relay/datainout.austria/Receive/hall8
 	mirror=/home/relay/datainout.austria/Mirror/hall8
-	common=/home/relay/datainout.austria/Common/ftn3000
+	common=/home/relay/datainout.austria/Common/xyzzyx
 	allow=*
 
 user=austria9
@@ -217,7 +217,7 @@ user=austria9
 	outgoing=/home/relay/datainout.austria/Send/hall9
 	incoming=/home/relay/datainout.austria/Receive/hall9
 	mirror=/home/relay/datainout.austria/Mirror/hall9
-	common=/home/relay/datainout.austria/Common/ftn3000
+	common=/home/relay/datainout.austria/Common/xyzzyx
 	allow=*
 
 user=austria_test
@@ -226,7 +226,7 @@ user=austria_test
 	outgoing=/home/relay/datainout.austria/Send/hallx
 	incoming=/home/relay/datainout.austria/Receive/hallx
 	mirror=/home/relay/datainout.austria/Mirror/hallx
-	common=/home/relay/datainout.austria/Common/ftn3000
+	common=/home/relay/datainout.austria/Common/xyzzyx
 	allow=*
         
 user=austria_test2
@@ -235,7 +235,7 @@ user=austria_test2
 	outgoing=/home/relay/datainout.austria/Send/hallx
 	incoming=/home/relay/datainout.austria/Receive/hallx
 	mirror=/home/relay/datainout.austria/Mirror/hallx
-	common=/home/relay/datainout.austria/Common/ftn3000
+	common=/home/relay/datainout.austria/Common/xyzzyx
 	allow=*
 
 # $Log: Accounts.Data,v $

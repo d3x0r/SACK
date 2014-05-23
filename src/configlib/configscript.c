@@ -2086,24 +2086,6 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 #  endif
 		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
 	}
-	if( !pch->file && !absolute_path )
-	{
-		TEXTCHAR pathname[255];
-		snprintf( pathname, sizeof( pathname ), WIDE("\\ftn3000\\working\\%s"), name );
-#  ifdef _MSC_VER
-		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
-#  endif
-		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
-	}
-	if( !pch->file && !absolute_path )
-	{
-		TEXTCHAR pathname[255];
-		snprintf( pathname, sizeof( pathname ), WIDE("C:\\ftn3000\\working\\%s"), name );
-#  ifdef _MSC_VER
-		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
-#  endif
-		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
-	}
 #endif
 	pch->psvUser = psv;
 	if( pch->file )
