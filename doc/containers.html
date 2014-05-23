@@ -1,0 +1,276 @@
+<HTML><HEAD><TITLE>System and vocabulary independant types</TITLE></HEAD>
+
+<BODY>
+<CENTER><FONT size=+2>CONTAINERS</FONT></CENTER><br>
+<hr>
+
+
+<h2>Include</h2>
+#include &lt;types.h&gt;<br>
+This header also includes &lt;typelib.h&gt; to supply function prototypes for certain data types.
+
+<h2>Project Location</h2>
+src/typelib
+<h2>Library</h2>
+containers
+<h2>Required Libraries</h2>
+<a href="memlib.html">shmem</a>, <a href="syslog.html">syslog</a>(debug mode)
+<h2>Defines</h2>
+
+<table border=1>
+<tr><td>PACKED</td><td></td><td>Used after a structure, before the name</td></tr>
+<tr><td>PREFIX_PACKED</td><td></td><td>Used before struct keyword</td></tr>
+<tr><td>CPROC</td><td></td><td>Used to guarantee a C calling sequence</td></tr>
+<tr><td>far,huge,near,_far,_huge,_near</td><td></td><td>defined for compilers which do not use 
+these deprecated/obsolete types.</td></tr>
+<tr><td>TOCHR(n)</td><td>#n[0]</td><td>Result in the first character of a symbol name</td></tr>
+<tr><td>TOSTR(n)</td><td>#n</td><td>convert a symbol into a string</td></tr>
+<tr><td>STRSYM(n)</td><td>TOSTR(n)</td><td>convert a defined value into a string (__LINE__), Must be 
+done this way otherwise the resulting string would be "__LINE__"</td></tr>
+<tr><td>FILELINE</td><td>__FILE__ "("STRSYM(__LINE__)") : "</td><td>Make a string of the current file and line.</td></tr>
+<tr><td>TRUE<BR>FALSE</td><td>(!FALSE)<BR>(0)</td><td>seems some systems lack TRUE/FALSE definitions... so if not previously existing, define them.</td></tr>
+<tr><td>FLAGSET(v,n)</td><td>v = name, n = size of set.</td><td>defines a set of bits to be used as flags.</td></tr>
+<tr><td>SETFLAG(v,n)</td><td>v = name, n = bit to set.</td><td>given a set of flags, set a specific bit in the set.</td></tr>
+<tr><td>RESETFLAG(v,n)</td><td>v = name, n = bit to reset.</td><td>given a set of flags, clear a specific bit in the set.</td></tr>
+<tr><td>TESTFLAG(v,n)</td><td>v = name, n = bit to test.</td><td>given a set of flags, result true if bit is set.</td></tr>
+<tr><td>TOGGLEFLAG(v,n)</td><td>v = name, n = bit to toggle.</td><td>given a set of flags, set a specific bit to its opposite state in the set.</td></tr>
+<tr><td>DECLDATA(name,size)</td><td>name of data thing, size of data.</td><td>Define a structure which is exactly sized to have a certain amount of data.
+This is used to define struct SimpleDataBlock types.</td></tr>
+</table>
+
+<h2>Types</h2>
+<table border=1>
+<tr><td>_8</td><td>8 bit unsigned value.</td></tr>
+<tr><td>_16</td><td>16 bit unsigned value.</td></tr>
+<tr><td>_32</td><td>32 bit unsigned value.</td></tr>
+<tr><td>_64</td><td>64 bit unsigned value.</td></tr>
+<tr><td>S_8</td><td>8 bit signed value.</td></tr>
+<tr><td>S_16</td><td>16 bit signed value.</td></tr>
+<tr><td>S_32</td><td>32 bit signed value.</td></tr>
+<tr><td>S_64</td><td>64 bit signed value.</td></tr>
+<tr><td>P_8</td><td>pointer to an 8 bit unsigned value.</td></tr>
+<tr><td>P_16</td><td>pointer to an 16 bit unsigned value.</td></tr>
+<tr><td>P_32</td><td>pointer to an 32 bit unsigned value.</td></tr>
+<tr><td>P_64</td><td>pointer to an 64 bit unsigned value.</td></tr>
+<tr><td>PS_8</td><td>pointer to an 8 bit signed value.</td></tr>
+<tr><td>PS_16</td><td>pointer to an 16 bit signed value.</td></tr>
+<tr><td>PS_32</td><td>pointer to an 32 bit signed value.</td></tr>
+<tr><td>PS_64</td><td>pointer to an 64 bit signed value.</td></tr>
+<tr><td>X_8</td><td>8 bit value (neither signed nor unsigned).</td></tr>
+<tr><td>PX_8</td><td>pointer to an 8 bit value (neither signed nor unsigned).</td></tr>
+<tr><td>PTRSZVAL, PTRSIZEVAL</td><td>An unsigned integer value which is the same size as normal pointers on a system.</td></tr>
+<tr><td>CTEXTSTR</td><td>A constant text string.</td></tr>
+<tr><td>TEXTSTR</td><td>A text string.</td></tr>
+<tr><td>TEXTCHAR</td><td>Alias for X_8.  Turns out that under certain C++ compilers
+char is neither equivalent to signed char or unsigned char, therefore this alias had to be created.</td></tr>
+<tr><td>LOGICAL</td><td>A boolean/true false type value... many systems defaulted this type to _32 bits, and desiring
+to conserve space, an attempt was made to make this _8... or even a 1 bit field, but it failed, and finally _32 was
+chosen as the type of this.</td></tr>
+<tr><td>INDEX</td><td>An index into an array - a machine natural unsigned integer value.</td></tr>
+<tr><td>POINTER</td><td>A pointer to void.  That's all - just a pointer.</td></tr>
+<tr><td>CPOINTER</td><td>A pointer to void constant data.</td></tr>
+<tr><td>THREAD_ID</td><td>A 64 bit value, upper 32 is ProcessID, lower 32 is ThreadID.  Routines for 
+manipulating this are in timers.h (timers library) for now.</td></tr>
+<tr><td>DATA, PDATA</td><td>A simple data block which contains a size followed by an amount of data. PDATA is a pointer to a DATA item.</td></tr>
+<tr><td>LIST, PLIST</td><td>A simple list of pointers.  Type dynamically expands.  PLIST is a pointer to such a list.</td></tr>
+<tr><td>DATALIST, PDATALIST</td><td>A simple list of sized blocks of data.  Type dynamically expands.  PDATALIST is a pointer to a DATALIST.</td></tr>
+<tr><td>LINKSTACK, PLINKSTACK</td><td>A stack(LIFO) of pointers, items are pushed on and popped off.  PLINKSTACK is a pointer to a LINKSTACK.</td></tr>
+<tr><td>DATASTACK, PDATASTACK</td><td>A stack(LIFO) of data, items are pushed on and popped off.  Stack contains blocks of data.  PDATASTACK is a pointer to a DATASTACK.</td></tr>
+<tr><td>LINKQUEUE, PLINKQUEUE</td><td>A queue(FIFO) of pointers, items are enqued and dequed.  PLINKQUEUE is a pointer to a LINKQUEUE.</td></tr>
+<tr><td>DATAQUEUE, PDATAQUEUE</td><td>A queue(FIFO) of data, items are enqued and dequed.  Stack contains blocks of data.  PDATAQUEUE is a pointer to a DATAQUEUE.</td></tr>
+<tr><td>GENERICSET, *GENERICSET</td><td>A set of fixed size data items.  Elements are slab allocated, and linked together to keep consistant pointers.  Data element
+availability is tracked with a set of bits.  This set is often aliased with a set of user defined macros.  C++ encapsulation was elegant.</td></tr>
+<tr><td>TEXT, PTEXT</td><td>A text item. It contains length of string, format of data, possibly posistion data, and next/prior text segments.  A sentance is actually a linked
+list of TEXT elements each often representing a word.  Several methods of manipuplation of this type exist.</td></tr>
+<tr><td>VARTEXT, PVARTEXT</td><td>A variable text item.  Its emphasis is not so much on format/data, but being able to expand dynamically.  Used almost exclusively with vtprintf
+which is a formatted print to print into these elements.  VARTEXT generates PTEXT output.  PVARTEXT is a pointer to a VARTEXT type.</td></tr>
+<tr><td>PTREEROOT</td><td>A binary tree.  The tree has definable comparison, destruction methods.</td></tr>
+<tr><td>PTREENODE</td><td>A node within a binary tree.</td></tr>
+</table>
+
+<h2>Routines</h2>
+This section is split into functional groups, based on the type of container 
+structure they relate to.
+<p>_Ex methods take debug information parameters.  These are then passed
+into the allocate/deallocation routines, so that the user code is credited
+for the allocation, not these library modules themselves.  The _Ex versions
+may be called, if a routine wishes to actually credit some other code with
+the allocate/deallocation.  If a non Ex version is used, then the current
+application file-line(DBG_SRC) will be used, and a call will be generated to the Ex 
+function.
+<p>
+All List, DataList, Stack, DataStack, Queue, DataQueue methods are intended multi-thread
+and even multi-process safe.  There is a problem if a structure expands however
+while the second accesses may be locked out, it cannot be aware of the new
+location of the list...
+There will NEVER occur a time that two threads
+are able to manipulate the structures.  Several threads may be reading
+the structure, and certain methods(macros) like LIST_FORALL() have no 
+locking, another thread MAY delete a list being traversed by this macro.
+If only actual routines are used, there should be no conflict.
+<hr>
+<h3>List Methods</h3>
+There is no enforcement that a list contains pointers of any specific
+type.  Let the user beware.  Templates could solve this problem, at the
+cost of much bloat, when the user should just be aware enough that a 
+specific list is meant to contain a specific type of data.
+<menu>
+<h3>PLIST CreateListEx( DBG_VOIDPASS )<br>
+PLIST CreateList(void)</h3>
+<menu>
+Creates a simple list which tracks pointers.
+</menu>
+<h3>PLIST DeleteListEx( PLIST *ppList DBG_PASS )<br>
+PLIST DeleteList( PLIST *ppList )</h3>
+<menu>
+ppList is a pointer to the PLIST to destroy.  The result of this will set the
+PLIST pointer to NULL.  The return should always be NULL being the resulting
+pointer.  However, there may be occasions where the list cannot be deleted,
+and therefore the result will be returned, and the value kept in PLIST.
+</menu>
+<h3>PLIST AddLinkEx( PLIST *ppList, POINTER p DBG_PASS )<br>
+PLIST AddLink( PLIST *ppList, POINTER p )</h3>
+<menu>
+Adds a pointer into a list.  If the pointer is NULL, it will not be added.
+No NULL values may be stored in this list structure.  PLIST* is a pointer
+to a PLIST.  If the list is expanded, then this list reference pointer will
+be updated to the newly allocated space.  The value set into the PLIST* will
+also be returned.
+</menu>
+<h3>PLIST SetLinkEx( PLIST *ppList, INDEX idx, POINTER p DBG_PASS )<br>
+PLIST SetLink( PLIST *ppList, INDEX idx, POINTER p )</h3>
+<menu>
+This sets the value of a pointer into a specific index in the list.
+If the list is not yet large enough to have that value, it will be automatically
+expanded to accomodate the new value.  A NULL value will effectively erase
+an entry
+</menu>
+<h3>POINTER GetLink( PLIST *ppList, INDEX idx )</h3>
+<menu>
+Returns the linked stored in the list at the specified index.
+</menu>
+<h3>INDEX FindLink( PLIST *ppList, POINTER value )</h3>
+<menu>
+Searches for all entries in the list, and returns the index of the first item
+which matches the value specified.
+</menu>
+<h3>int DeleteLink( PLIST *ppList, POINTER value )</h3>
+<menu>
+This is effectively the same as SetLink( ppList, FindLink( ppList, value ), NULL );
+The result of this call is a boolean TRUE if the value was found and deleted
+and FALSE if the value was not found to delete.
+</menu>
+<h3>typedef PTRSVAL (*ForProc)( PTRSZVAL user, INDEX idx, POINTER *item );<br>
+PTRSZVAL ForAllLinks( PLIST *ppList, ForProc func, PTRSZVAL psv )</h3>
+<menu>
+The ForProc callback paramters gets the value specified in (psv) from the 
+call to ForAllLinks;  the current index of the item; and a pointer to the 
+memory containing the pointer data for the current link.  This allows the
+callback to set directly into the list any new value.  If the callback
+returns any non-zero value, the looping is aborted, and that value is 
+returned to the caller of ForAllLinks.
+<br>
+A list is passed to be searched, a callback function specified, and a 
+user data value.  The result is either 0, or the non-zero result of a 
+call to ForProc().
+</menu>
+
+<h3>LIST_FORALL(list, index, type, var)</h3>
+<menu>
+This is not a function per-se, but a macro wrapper to go through all
+items in a list.  It basically produces a for() loop construct inline.  At
+this time LIST_ENDFORALL() may be omitted, once upon a time it contained
+closing }'s which were left open by the LIST_FORALL() portion.<br><br>
+list is a PLIST type to go through.  <br>
+index is a variable of type INDEX which is declared by the caller<br>
+type is the type of variable var (for C++ where typecasting must be explicitly done)<br>
+var is the name of a variable to get the current value from the list<br><br>
+At the end of the list, (var) SHOULD be NULL.  unless there was
+a break within the loop.  If the list is NULL, the variable (var) may not
+be NULL, and under certain other conditions.... <br>
+<p><pre>
+{
+   PLIST list;
+   INDEX idx;
+   P_MY_TYPE myvar;
+   LIST_FORALL( list, idx, P_MY_TYPE, myvar )
+   {
+      // code here can check myvar, which will never be NULL.
+   }
+}</pre>
+</menu>
+
+</menu>
+
+<hr>
+<h3>Data List Methods</h3>
+<menu>
+<h3>PDATALIST CreateDataListEx( int nSize DBG_PASS )<br>
+PDATALIST CreateDataList( int nSize )</h3>
+<menu>
+</menu>
+<h3>PDATALIST DeleteDataListEx( PDATALIST *ppDataList DBG_PASS )<br>
+PDATALIST DeleteDataList( PDATALIST *ppDataList )</h3>
+<menu>
+</menu>
+<h3>PDATALIST AddDataItemEx( PDATALIST *ppDataList, POINTER data DBG_PASS )<br>
+PDATALIST AddDataItem( PDATALIST *ppDataList, POINTER data )</h3>
+<menu>
+</menu>
+<h3>PDATALIST SetDataItemEx( PDATALIST *ppDataList, INDEX idx, POINTER data DBG_PASS )<br>
+PDATALIST SetDataItem( PDATALIST *ppDataList, INDEX idx, POINTER data )</h3>
+<menu>
+</menu>
+<h3>POINTER GetDataItem( PDATALIST *ppDataList, INDEX idx )</h3>
+<menu>
+</menu>
+<h3>DATA_FORALL( list, index, type, var )</h3>
+<menu>
+</menu>
+
+</menu>
+
+<hr>
+<h3>Link Stack Methods</h3>
+<menu>
+</menu>
+
+<hr>
+<h3>Data Stack Methods</h3>
+<menu>
+</menu>
+
+<hr>
+<h3>Link Queue Methods</h3>
+<menu>
+</menu>
+
+<hr>
+<h3>Data Queue Methods</h3>
+<menu>
+</menu>
+
+<hr>
+<h3>Binary Tree Methods</h3>
+<menu>
+</menu>
+
+<hr>
+<h3>Generic Set Methods</h3>
+<menu>
+</menu>
+
+<hr>
+<h3>Text Data Methods</h3>
+<menu>
+</menu>
+
+<hr>
+<h3>Variable Text Methods</h3>
+<menu>
+<h2>PVARTEXT VarTextCreate( void );</h2>
+Creates a variable text structure...Some extended 
+</menu>
+
+
+</BODY></HTML>

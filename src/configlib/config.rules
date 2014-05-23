@@ -1,0 +1,80 @@
+
+
+Standard Configuration Library
+----------------------------------------------
+
+PCONFIG_HANDLER CreateConfigurationEvaluator( void );
+  This returns a handle of a configuration handler which may then have
+  configuration format triggers added to it, and may be used to process
+  a configuration file.
+
+void AddConfiguration( PCONFIG_HANDLER pch, char *format, void (*Process)( void ) );
+	Standard formatting is : 
+		%[v]F where v is an optional qualifier to specify the argument is a
+		    list, array, or vector of values of type specified by the format
+		    character F.  These format characters are detailed below.
+	   %b (boolean) (0/1,t[rue]/f[alse],on/of[f], y[es]/n[o], op[en]/c[lose])
+           %B (BINARY) ( encoded binary string saved as ascii-text )
+	   %i (64 bit signed int)
+	   %f (floating point number (double) )
+	   %q (quotient/fraction)
+	   %w (word)
+	   %m (multi-word)
+	   %u (url)
+	   %d (directory)
+	   %n (name of file)
+	   %p (filepath)
+	   %a (address)
+	   %c (color specification $rrggbb, $aarrggbb, (r,g,b), (a,r,g,b) )
+   AddConfiguration( pch, "text is %s", SetText );
+
+
+
+
+
+
+
+
+
+     CONFIG_TEXT  
+   // a yes/no field may be 0/1, y[es]/n[o], on/off
+   // 
+   , CONFIG_YESNO
+   , CONFIG_TRUEFALSE = CONFIG_YESNO
+   , CONFIG_ONOFF = CONFIG_YESNO
+   , CONFIG_OPENCLOSE = CONFIG_YESNO
+
+   // may not have a . point - therefore the . is a terminator and needs
+   // to match the next word.
+	, CONFIG_INTEGER
+	// has to be a floating point number (perhaps integral ie. no decimal)
+	, CONFIG_FLOAT
+
+	// formated number [+/-][[ ]## ]##[/##] 
+	, CONFIG_FRACTION
+
+   // matches any single word.
+	, CONFIG_SINGLE_WORD
+
+   // protocol://[user[:password]](ip/name)[:port][/filepath][?cgi]
+   // by convention this will not contain spaces... but perhaps
+   // &20; (?)
+	, CONFIG_URL
+
+   // matches several words in a row - the end word to match is supplied.
+	, CONFIG_MULTI_WORD
+   // file name - does not have any path part. 
+   // the following are all treated like multi_word since file names/paths 
+   // may contain spaces
+	, CONFIG_FILE      
+   // ends in a / or \, 
+	, CONFIG_PATH      
+   // may have path and filename
+	, CONFIG_FILEPATH  
+
+   // (IP/name)[:port]
+	, CONFIG_ADDRESS 
+
+	// end of configuration line (match assumed)
+	, CONFIG_PROCEDURE
+

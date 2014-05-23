@@ -1,0 +1,12 @@
+
+
+/create bank_server
+/wake bank_server
+/bank_server/parse request tcpserver 4081
+//mac Accept
+//parse http http
+//scr http4.macros
+//endmac
+
+
+

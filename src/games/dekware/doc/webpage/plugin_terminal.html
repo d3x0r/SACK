@@ -1,0 +1,109 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<FONT size=+3><center>Terminal Network Plugin</center></font><br>
+<a href="plugins.html" OnMouseOver="window.status='Other plugins';return true" OnMouseOut="window.status=''">Return to Plugins</A><br>
+<hr>
+<center><u>Devices</u></center>
+<p>Network address is any network numeric IP or name, followed by an optional
+colon, followed by a port number or service name.  
+<p>Examples: mit.edu:daytime, ftp.cdrom.com:21, 127.0.0.1
+<menu>
+	TCP [network address]
+   <Menu>
+    	This makes an outgoing connection to a TCP port.&nbsp;  Standard format
+      for addresses - IP:port.&nbsp;  If port is not specified, the
+      default port is telnet. 
+   	<p>example: /parse tcp blackmud.com:2000
+	   <p>Typically this device is used to make a data connection.&nbsp; Although 
+      there may one day exist a server which would be able to issue commands
+      to the Nexus command channel, this does not exist today... therefore
+      "/command tcp" has little use.
+      </menu><br>
+   TCPSERVER [network address]
+   <menu>
+   	This instructs the object to listen at the specified address.&nbsp; If the 
+      IP portion is omitted, all available IPs listen at the specified port.&nbsp;
+      When an object with a TCPSERVER is connected to, the object is duplicated,
+      and a /accept command is issued.&nbsp; Since this command is not an 
+      internal command, it is assumed that it is a macro.  If a macro does
+      not exist, the connection is made regardless.
+		<p>example: /command tcpserver 3245
+      <p>This device is typically used to serve command data channels to 
+      connecting telnet clients.&nbsp; Although, /parse TCPSERVER 2352, can
+      be useful also, using /GetLine %line and /Execute %line, essentially
+      resembles a direct command path...
+      </menu><br>
+   UDP [network address]
+   <menu>
+   	This opens an outgoing UDP connection to the specified address...
+	   <p>example: /parse UDP domain.com:daytime
+      <p>No further comment at this time...
+ 	</menu><br>
+   UDPSERVER [network address]
+   <menu>
+   	This opens a port to listen for incoming UDP datagrams.  When a message
+      is received, the IP and PORT prefix data coming from the connection.&nbsp;
+      /GetIP and /getport extended commands are used to retrieve this data into Nexus-readable,
+      or human readable format.
+    </menu>
+</menu>
+<center><u>Additional Commands</u></center>
+<menu>
+	SEND [zero or more atoms]
+   <menu>
+   	Send the data to the current data channel connection.  This is used
+      for PARSE type device opens only.&nbsp; If the command entered is not
+      undestood, it is not an internal, macro, or plugin extended command,
+      the command is forwarded to the data channel for output.
+      </menu>
+</menu><menu>
+	GETADDR [message]
+   	<menu>
+   	Pull the network IP address from a message.&nbsp; Used when dealing 
+      with UDPSERVER devices...
+      </menu>
+</menu><menu>
+	GETIP [message]
+   <menu></menu>
+</menu><menu>
+	GETPORT [message]
+   <menu></menu>
+</menu><menu>
+	HTTP [operation] [variable] [address]
+   <menu>
+   For now the only operation permitted is GET.&nbsp; This will go to the 
+   address and return the page content into the variable.&nbsp; Each of the
+   header fields will be returned, followed by the page data.  The page
+   data will be binary data, and each of the header fields will be text 
+   variables.  
+
+   </menu>
+</menu><menu>
+   PING [network address]
+   <menu>
+   	Ping a network address, return timing of responce from the server pinged.
+      </menu>
+</menu><menu>
+   TRACE [network address]
+   <menu>
+   	Displays a list of the nodes between the issuing computer and the 
+      destination address.
+      </menu>
+</menu><menu>
+   PORTSCAN [network address]
+   <menu>
+   	Attempts to connect to the first 2000 ports at the network address 
+      specified.&nbsp; Returns a list of ports which accepted a connection.&nbsp;
+      No data is transmitted or received upon connection.
+      </menu>
+</menu><menu>
+   WHOIS [domain name]
+   	<menu>
+      Looks up information about the specified domain name.
+      </menu>
+</menu>
+	
+
+</BODY>
+</HTML>

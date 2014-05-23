@@ -1,0 +1,525 @@
+/dest timer
+/make timer clock
+
+/scr ping
+
+/decl foraging false
+/decl searching false
+/decl searchdir nowhere
+/decl sleeping false
+/decl drink grain
+/decl hungry false
+/decl thirsty false
+/decl sober false
+/decl food meat
+
+
+/decl maxhit 0
+/decl maxmana 0
+/decl maxmove 0
+
+/decl maxlocked false
+
+/trigger crea setmax you have &hitnow(&hitmax) hit, &mananow(&manamax) mana and &movenow(&movemax) movement points
+/compare %maxlocked is true
+/if fail
+/decl maxhit %hitmax
+/decl maxmana %manamax
+/decl maxmove %movemax
+/endif
+/endmac
+
+/mac lockmax
+/decl maxlocked true
+/endmac
+
+/mac freemax
+/decl maxlocked false
+/endmac
+
+/decl curhit 0
+/decl curmana 0
+/decl curmove 0
+/decl lowhit  false
+
+/trigger create prompt <&hit &mana &move>
+/decl skipeatdrink false
+/decl curhit %hit
+/decl curmana %mana
+/decl curmove %move
+/compare %curhit lessthan %maxhit
+/if success
+   /decl lowhit true
+/endif
+/compare %curhit is %maxhit
+/if success
+   /compare %lowhit is true
+   /if success
+      /sound ding
+      /decl lowhit false
+   /endif
+/endif
+/dopending
+/endmac
+
+/mac repo
+.:reports: I have %curhit/%maxhit hp, %curmana/%maxmana mana, %curmove/%maxmove move.
+/endmac
+
+/trigger crea autorep &who tells you, \"report\"
+/repo
+/endmac
+
+
+/trigger create autowake You have been idle, and are pulled into a void.
+.
+/endmac
+
+/trigger crea mountstand  &what, but fall on your butt.
+.sta
+.mount %what
+/endmac
+
+/trigger crea mountfall  You lose control and fall off of A &what.
+.sta
+.mount %what
+/endmac
+
+/trigger crea autosplit There were &num coins.
+.split %num
+/endmac
+
+/trigger crea gold a pile of gold coins
+.get all.coins
+/endmac
+
+/trigger crea goldmany a pile of gold coins.[&number]
+.get all.coins
+/endmac
+
+/decl lastdoor nothing
+/trigger create opendoor the &what seems to be closed.
+/decl lastdoor %what
+.open %what
+/endmac
+
+/trigger create bashdoor it seems to be locked
+.doorbash %lastdoor
+/endmac
+
+/trigger create ridenofail your mount refuses to go that way
+. !
+/endmac
+
+/trigger crea standtrip trips you up, causing you to fall on your butt.
+.stand
+/endmac
+
+/trigger creat standupbash you topple over and fall to the ground
+.stand
+/endmac
+
+/trigger crea standup maybe you should get on your feet first
+.stand
+/endmac
+
+/trigger create searchstart you begin a search of the area
+/decl searching true
+/timer/mark
+/endmac
+
+/decl dosearch  false
+/decl doswim false
+
+/trigger crea searchagain you find nothing interesting
+/decl searching false
+/decl dosearch true
+/timer/elapse
+/endmac
+
+/trigger create searchint Your search is interrupted!
+/decl searching false
+/timer/elapse
+/dopending
+/endmac
+
+/trigger create searchstop You stop your search.
+/decl searching false
+/timer/elapse
+/dopending
+/endmac
+
+/trigger create searchfind You reveal a hidden passage leading &where!
+/decl searching false
+/timer/elapse
+/dopending
+/endmac
+
+/trigger create triggerend you stop your search
+/decl searching false
+/dopending
+/endmac
+
+/mac search where
+. search %where
+/decl searchdir %where
+/trigger opt searchstart enable
+/trigger opt searchagain enable
+/endmac
+
+/trigger create hunger you are hungry
+/decl hungry true
+/endmac
+
+/trigger crea drink2 you drink the water.
+/decl thirsty true
+/endmac
+
+/trigger crea unthirst you do not feel thirsty
+/decl thirsty false
+/endmac
+
+/mac drink
+.drink water
+/decl thirsty false
+/endmac
+
+/trigger crea thirsty you are thirsty
+/decl thirsty true
+/endmac
+
+/trigger dest sober
+/trigger create sober you are now sober
+/decl sober true
+/endmac
+
+/decl foodbag bag
+/mac eat
+. get %food %foodbag
+. eat %food
+/decl hungry false
+/trigger opt hunger enable
+/endmac
+
+
+
+/trigger cre fumble You fumble and drop
+/1
+/3
+/endmac
+/trigger opt fumble anchor
+
+/trigger cre fumble2 and you fumble and drop
+/`
+/2
+/endmac
+
+/trigger cre disarm flies from your grasp
+/`
+/2
+/endmac
+
+/trigger create sleep you go to sleep.
+/decl sleeping true
+/endmac
+
+/trigger create wake you wake, and sit up.
+/decl sleeping false
+/endmac
+
+/mac wakeup
+/compare %sleeping is true
+/if success
+. wake
+/endif
+/endmac
+
+/mac gosleep
+/compare %sleeping is true
+/if success
+. sleep
+/endif
+/endmac
+
+/mac drunk
+/decl sober true
+
+/compare %curhit lessthan %maxhit
+   /if success
+      .sip %drink
+      /decl sober false
+      /return
+   /endif
+
+/compare %curmana morethan 0
+/if success
+   /compare %curmana lessthan %maxmana
+   /if success
+      .sip %drink
+      /decl sober false
+      /return
+   /endif
+/endif
+
+/endmac
+
+
+/decl fleeing false
+/trigger create doflee PANIC! you couldn't escape!
+/decl fleeing true
+. flee
+/endmac
+/trigger opt doflee anchor
+
+/trigger create noroom sorry, there is no room to get in there.
+/compare fleeing is true
+/if success
+.flee
+/endif
+/endmac
+
+/trigger create fleegood You flee head over heels.
+/decl fleeing false
+/endmac
+
+/trigger create suffocate you can hardly breathe, *what is suffocating you with it's coils!
+/decl fleeing true
+.flee
+/endmac
+/trigger opt suffocate anchor
+
+/set on_pending
+
+/mac dopending
+
+/compare %searching is true
+/if success
+	/return
+/endif
+
+/compare %foraging is true
+/if success
+	/return
+/endif
+
+/decl doingany false
+
+/compare %hungry is true
+/if success
+   /decl doingeat true
+   /decl doingany true
+/else
+   /decl doingeat false
+/endif
+
+/compare %thirsty is true
+/if success
+   /decl doingdrink true
+   /decl doingany true
+/else
+   /decl doingdrink false
+/endif
+
+/compare %sober is true
+/if success
+   /decl doingsober true
+   /decl doingany true
+/else
+   /decl doingsober false
+/endif
+
+/compare %doswim is true
+/if success
+   /decl doingswim true
+   /decl doingany true
+/else
+   /decl doingswim false
+/endif
+
+/compare %dosearch is true
+/if success
+   /decl doingsearch true
+   /decl doingany true
+/else
+   /decl doingsearch false
+/endif
+
+/compare %doingany is true
+/if success
+   /wakeup
+   /compare %doingeat is true
+   /if success
+      /eat
+   /endif
+   /compare %doingdrink is true
+   /if success
+      /drink
+   /endif
+   /compare %doingsober is true
+   /if success
+      /drunk
+   /endif
+   /compare %doingswim is true
+   /if success
+      /swim
+   /endif
+   /compare %dosearch is true
+   /if success
+      /decl dosearch false
+      .search %searchdir
+   /endif
+   /gosleep
+/endif
+
+/compare %on_pending blank
+/if fail
+	/exec /%on_pending
+	/decl on_pending
+/endif
+
+/endmac
+
+/trigger create bashstand sends you sprawling with a powerful bash
+. stand
+/endmac
+
+/trigger create disarmstand you try to disarm *what, but fail miserably.
+.stand
+/endmac
+
+
+/mac testlist who list
+/decl rescue %list
+/decl testwho
+/decl result false
+/label top
+/head %rescue %testwho
+/if fail
+   /result %result
+   /return
+/endif
+/compare %who like %testwho
+/if success
+   /decl result true
+   /decl rescue # clear the list since we found target in list...
+/endif
+/goto top
+/endmac
+
+/mac swim
+/decl doswim false
+.swim
+/endmac
+
+/trigger create swim You feel like you might be able to swim again
+/decl doswim true
+/endmac
+
+/trigger creat boat You need a boat to go there
+.swim
+/endmac
+
+/trigger create reswim You're too afraid to enter the water
+.swim
+/endmac
+
+/trigger crea pinch &who wiggles her bottom at you. Hmm, SEXY!!!
+.pinch %who
+/endmac
+
+/trigger crea yank avoids being bashed by &who who loses &sex balance and falls.
+.yank %who
+/endmac
+
+/trigger crea yank1 trips &who, causing &sex to fall
+.yank %who
+/endmac
+
+/trigger crea yank2 &who does a nifty fighting move, but trips and falls.
+.yank %who
+/endmac
+
+/trigger crea yank3 sends &who sprawling with a powerful bash
+.yank %who
+/endmac
+
+/trigger crea yank4 &who tries to lobotomize *what, but fails.
+.yank %who
+/endmac
+
+
+/mac who
+/create who
+/wake who
+/tell who /mac doit
+/tell who /connect blackmud.com:2001
+/tell who /dest who
+/tell who /endmac
+/tell who /doit
+/endmac
+
+/trigger create dosound !!SOUND( *what P=&number T=&type )
+/sound %what
+/endmac
+/trigger opt dosound consume
+
+/trigger create stabstuff &who places *weapon in the back of *target, resulting in a strange noise and some blood.
+.:laughs at %target, and says, \"how\'s %weapon feel!\"
+#/setcolor  white red
+/echo %target just got %weapon in the back!
+#/setcolor grey black
+/endmac
+
+/trigger create stabme You feel exquisite pain as *who stabs you in the back
+.flee
+/folkill %who
+/endmac
+
+/mac gtrelay who
+/execute /trigger create %who %who tells you, \"*what\"
+/execute .gt relayed: %who tells you, \"%%what\"
+/execute /endmac
+/execute /trigger opt %who anchor
+/endmac
+
+/mac ignore who
+/execute /trigger create %who %who *anything
+/execute /endmac
+/execute /trigger opt %who anchor
+/endmac
+
+/mac dd
+.l n
+.l s
+.e
+/endmac
+/mac aa
+.l n
+.l s
+.w
+/endmac
+/mac ww
+.l e
+.l w
+.n
+/endmac
+/mac ss
+.l e
+.l w
+.s
+/endmac
+
+/trigger create gtout &who tells the group, \"out\"
+/setcolor white red
+/echo %who said OUT! stupid fuck!
+/setcolor grey black
+/endmac
+
+/trigger create suffocate you can hardly breathe, *what is suffocating you with it's coils!
+.flee
+/endmac
+/trigger opt suffocate anchor
+
+/alias cre mumble mumble *what
+.:mumbles, \"damn... %what\.\" 
+/endmac

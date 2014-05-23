@@ -1,0 +1,26 @@
+
+stocks are linked
+#stocks are independant
+
+
+stock AMD  # Alcoa
+minimum 30
+staging 4
+dividend 4
+baseline 110
+
+stock Intel #Woolworth
+minimum 30
+staging 4
+dividend 4
+baseline 110
+inversed # current stage is applied negative to the baseline
+
+stock Walmart #general mills
+minimum 18
+staging 1/2
+dividend 1
+baseline 30
+
+
+stock 

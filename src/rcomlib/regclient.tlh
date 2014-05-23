@@ -1,0 +1,148 @@
+// Created by Microsoft (R) C/C++ Compiler Version 12.00.8168.0 (d2a523c4).
+//
+// regclient.tlh
+//
+// C++ source equivalent of Win32 type library M:\regserver\regclient\debug\regclient.dll
+// compiler-generated file created 08/17/99 at 13:05:13 - DO NOT EDIT!
+
+#pragma once
+#pragma pack(push, 8)
+
+#include <comdef.h>
+
+//
+// Forward references and typedefs
+//
+
+struct /* coclass */ Register;
+struct __declspec(uuid("ed37fa90-502f-11d3-b227-0000b4bd6422"))
+/* dual interface */ IRegister;
+
+//
+// Smart pointer typedef declarations
+//
+
+_COM_SMARTPTR_TYPEDEF(IRegister, __uuidof(IRegister));
+
+//
+// Type library items
+//
+
+struct __declspec(uuid("ed37fa91-502f-11d3-b227-0000b4bd6422"))
+Register;
+    // [ default ] interface IRegister
+
+struct __declspec(uuid("ed37fa90-502f-11d3-b227-0000b4bd6422"))
+IRegister : IDispatch
+{
+    //
+    // Property data
+    //
+
+    __declspec(property(get=GetResult))
+    int Result;
+    __declspec(property(get=GetResultText))
+    _bstr_t ResultText;
+    __declspec(property(put=PutVisible))
+    int Visible;
+    __declspec(property(get=GetIsRegistered))
+    int IsRegistered;
+    __declspec(property(put=PutPerUser))
+    int PerUser;
+    __declspec(property(get=GetResultText_C))
+    char ResultText_C;
+
+    //
+    // Wrapper methods for error-handling
+    //
+
+    HRESULT SetProduct (
+        _bstr_t ProductID,
+        _bstr_t ProductName );
+    HRESULT SetCompany (
+        int Account,
+        _bstr_t Name );
+    HRESULT Register ( );
+    HRESULT SetClientName (
+        _bstr_t Name );
+    int GetResult ( );
+    _bstr_t GetResultText ( );
+    void PutVisible (
+        int _arg1 );
+    int GetIsRegistered ( );
+    void PutPerUser (
+        int _arg1 );
+    HRESULT SetProduct_C (
+        char * ProductID,
+        char * ProductName );
+    HRESULT SetCompany_C (
+        int Account,
+        char * Name );
+    HRESULT SetClientName_C (
+        char * Name );
+    char GetResultText_C ( );
+    long GetRegKeyLong (
+        _bstr_t bKey );
+    void PutRegKeyLong (
+        _bstr_t bKey,
+        long pVal );
+    _bstr_t GetRegKeyString (
+        _bstr_t Key );
+    void PutRegKeyString (
+        _bstr_t Key,
+        _bstr_t pVal );
+
+    //
+    // Raw methods provided by interface
+    //
+
+    virtual HRESULT __stdcall raw_SetProduct (
+        BSTR ProductID,
+        BSTR ProductName ) = 0;
+    virtual HRESULT __stdcall raw_SetCompany (
+        int Account,
+        BSTR Name ) = 0;
+    virtual HRESULT __stdcall raw_Register ( ) = 0;
+    virtual HRESULT __stdcall raw_SetClientName (
+        BSTR Name ) = 0;
+    virtual HRESULT __stdcall get_Result (
+        int * pVal ) = 0;
+    virtual HRESULT __stdcall get_ResultText (
+        BSTR * pVal ) = 0;
+    virtual HRESULT __stdcall put_Visible (
+        int _arg1 ) = 0;
+    virtual HRESULT __stdcall get_IsRegistered (
+        int * pVal ) = 0;
+    virtual HRESULT __stdcall put_PerUser (
+        int _arg1 ) = 0;
+    virtual HRESULT __stdcall raw_SetProduct_C (
+        char * ProductID,
+        char * ProductName ) = 0;
+    virtual HRESULT __stdcall raw_SetCompany_C (
+        int Account,
+        char * Name ) = 0;
+    virtual HRESULT __stdcall raw_SetClientName_C (
+        char * Name ) = 0;
+    virtual HRESULT __stdcall get_ResultText_C (
+        char * pVal ) = 0;
+    virtual HRESULT __stdcall get_RegKeyLong (
+        BSTR bKey,
+        long * pVal ) = 0;
+    virtual HRESULT __stdcall put_RegKeyLong (
+        BSTR bKey,
+        long pVal ) = 0;
+    virtual HRESULT __stdcall get_RegKeyString (
+        BSTR Key,
+        BSTR * pVal ) = 0;
+    virtual HRESULT __stdcall put_RegKeyString (
+        BSTR Key,
+        BSTR pVal ) = 0;
+};
+
+//
+// Wrapper method implementations
+//
+
+#include "regclient.tli"
+
+#pragma pack(pop)

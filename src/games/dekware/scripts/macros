@@ -1,0 +1,88 @@
+/debug
+
+/mac common_start
+    /command usercmd bash
+    /command aliae trigger
+    
+    /scr version
+    /scr common
+    /scr portal
+    
+    /version
+    /echo Scrollback/history now available!
+    /echo Use page up and page down and shift up/down arrow to use.
+    /echo
+    /echo Please use /quit or close the main window to exit.
+    /echo
+    /echo Now with portals available, to use, please /enter <portal>
+    /echo portals appear as items...
+    /echo
+    /build_portal_room
+    /prompt
+    /look
+    /scr user.macros
+    
+    #/dest common_start         
+/endmac
+
+
+/mac openuser
+   /create MOOSE
+   /desc MOOSE Master Operator of System Entities
+   /wake MOOSE
+   
+   /compare is_console
+   /if fail
+      /compare wincon is_device
+      /if success
+         /MOOSE/command interface wincon
+         //common_start
+         /return
+      /endif
+      /compare psicon is_device
+      /if success
+         /MOOSE/command interface psicon
+         //common_start
+         /return
+      /endif
+   /else
+      /compare psicon is_device
+      /if success
+         /MOOSE/command interface psicon
+         //common_start
+         /return
+      /endif
+      /compare cursecon is_device
+      /if success
+         /MOOSE/command interface cursecon
+         //common_start
+         /return
+      /endif
+      /compare console is_device
+      /if success
+         /MOOSE/command interface console
+         //common_start
+         /return
+      /endif
+   /endif
+   
+   # these instructions will be run by default...
+   # don't know what to do with the output if no console has been opened.
+   /scr version
+
+/endmac
+
+/openuser
+
+#/create telnet
+#/wake telnet
+#/tell telnet command tcpserver 23
+#//mac accept
+#//tell MOOSE /echo hey connection accepted...
+#//endmac
+
+/scr connect
+/scr common
+
+
+# and - begin the world...

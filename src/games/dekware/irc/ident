@@ -1,0 +1,41 @@
+/dest ident
+/create ident
+/wake ident
+/ident/parse tcpserver 113
+//mac accept
+	
+   	//format irc
+	//decl port1
+	//decl port2
+	//decl comma
+	//decl line
+  	//label top
+      	//wait
+	//getline %%line
+   	//if success
+		//head %%line %%port1
+		//if fail
+			//goto top
+		//endif
+		//head %%line %%comma
+		//head %%line %%port2
+		//decl line %%port2 , %%port1 : USERID : OTHER : %%identname
+		//send %%line
+                //decl line
+         //else
+		//compare connected
+		//if fail
+			//echo Connection closed.
+			//goto done
+	         //endif
+         //endif
+	 //goto top
+   //else
+   	//echo Connect Failed.
+        //prompt
+	//endif
+	//label done             
+   //endparse
+//endmac
+
+

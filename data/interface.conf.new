@@ -1,0 +1,9 @@
+##sourced from /sack/data/interface.conf.new
+
+# load sqlite interface
+alias service render sack.render
+alias service image sack.image
+# set 'options' interface default to sack_sql
+win32 alias service options sack_sql_options
+
+

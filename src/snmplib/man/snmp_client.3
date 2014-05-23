@@ -1,0 +1,84 @@
+.TH SNMP_CLIENT 3 "Mon Jan 25 23:11:52 1999"
+.UC 4
+.SH NAME
+snmp_synch_input, snmp_synch_response, snmp_synch_setup \- SNMP
+Session Synchronization
+.SH SYNOPSIS
+.B cc
+.RI "[ " "flag" " \|.\|.\|. ] " "file" " \|.\|.\|."
+.B \-lsnmp
+.RI "[ " "library" " \|.\|.\|. ]"
+.LP
+.B #include <sys/types.h>
+.br
+.B #include <snmp/snmp.h>
+.LP
+.BI "int snmp_synch_input(int " "Operation" ,
+.BI "struct snmp_session * " "Session" ,
+.BI "int " "RequestID" ,
+.BI "struct snmp_pdu * " "PDU",
+.BI "void * " "Magic" );
+.LP
+.BI "int snmp_synch_response(struct snmp_session * " "Session" ,
+.BI "struct snmp_pdu * " "PDU" ,
+.BI "struct snmp_pdu ** " "ResponseP" );
+.LP
+.B void snmp_synch_setup(struct snmp_session *Session);
+.SH DESCRIPTION
+.B snmp_synch_input(\|)
+is called when a registered session receives an update.  
+.I Operation
+specifies what has occured (TIMED_OUT or RECEIVED_MESSAGE).
+.I Session
+is the session,
+.I RequestID
+is the reqid of the PDU in question,
+.I PDU
+is the PDU in question, and
+.I Magic
+is a pointer to the current state of that session.
+.LP
+.B snmp_synch_response(\|)
+is a quick way to send
+.I PDU
+over session
+.I Session
+and wait for a response.  The response will be pointed to by
+.IR ResponsePDUP .
+.LP
+.B snmp_synch_setup(\|)
+sets up session
+.I Session
+for use with these functions.
+.SH "RETURN VALUES"
+.B snmp_synch_input(\|)
+returns 0 upon error, 1 otherwise.
+.LP
+.B snmp_synch_response(\|)
+returns either STAT_SUCCESS, STAT_TIMEOUT, or STAT_ERROR.
+.SH "RFCS"
+Related RFCs: 1065, 1066, 1067
+.br
+Related SNMPv2 RFCs: 1901, 1902, 1902, 1904, 1905, 1906, 1907, 1908, 1909
+.SH "RELATED URLS"
+CMU Networking Group: http://www.net.cmu.edu/
+.br
+CMU SNMP Home Page: http://www.net.cmu.edu/projects/snmp
+.SH "SEE ALSO"
+.BR snmp_api (3),
+.BR snmp_api_errors (3),
+.BR snmp_client (3),
+.BR snmp_coexistance (3),
+.BR snmp_error (3),
+.BR snmp_extra (3),
+.BR snmp_mib (3),
+.BR snmp_mibii (3),
+.BR snmp_mini_client (3),
+.BR snmp_msg (3),
+.BR snmp_packet_dump (3),
+.BR snmp_pdu (3),
+.BR snmp_sess_api (3),
+.BR snmp_vars (3),
+.BR snmp_version_info (3),
+.BR snmp_oid (5)
+.BR snmp (3)

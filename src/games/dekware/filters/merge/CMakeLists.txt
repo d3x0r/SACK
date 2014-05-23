@@ -1,0 +1,1 @@
+add_plugin( merge.filter.nex filters merge )
