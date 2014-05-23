@@ -355,8 +355,16 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 			char charbuf[64];
 			int len_read; // could be really short
 			int char_check;
-			int ascii_unicode = 1;
+			int ascii_unicode = 
+#if UNICODE
+				1
+#else
+				0
+#endif
+				;
 			len_read = fread( charbuf, 1, 64, pdp->handle );
+			if( len_read )
+			{
 			if( ( ((_16*)charbuf)[0] == 0xFEFF )
 				|| ( ((_16*)charbuf)[0] == 0xFFFE )
 				|| ( ((_16*)charbuf)[0] == 0xFDEF ) )
@@ -391,6 +399,18 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 				{
 					// hmm this is probably a binary thing?
 				}
+			}
+			}
+			else
+			{
+#if UNICODE
+				wchar_t typechar = 0xFEFF;
+				fseek( pdp->handle, 0, SEEK_SET );
+				fwrite( &typechar, 1, 2, pdp->handle );
+				fseek( pdp->handle, 0, SEEK_CUR );
+#else
+				fseek( pdp->handle, 0, SEEK_SET );
+#endif
 			}
 		}
 		if( !flags.write )
