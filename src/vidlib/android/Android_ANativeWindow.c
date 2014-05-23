@@ -1156,7 +1156,7 @@ void SACK_Vidlib_SetNativeWindowHandle( ANativeWindow *displayWindow )
 	new_w = ANativeWindow_getWidth( l.displayWindow);
 	new_h = ANativeWindow_getHeight( l.displayWindow);
 	// got a new display; no longer closed.
-
+	lprintf( "Native Window size reports : %dx%d", new_w, new_h );
 	if( new_w != l.default_display_x || new_h != l.default_display_y )
 	{
 		PVPRENDER check;

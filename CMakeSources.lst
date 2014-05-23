@@ -10,7 +10,23 @@
     SET( LAST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}src/deadstart/deadstart_prog.c ) 
   endif()
 
+set( SHA1_SOURCES
+  ${SOURCES_ROOT}src/sha1lib/sha1.c
+  )
+
+set( RANDOM_SOURCES
+  ${SOURCES_ROOT}src/salty_random_generator/salty_generator.c
+  ${SOURCES_ROOT}src/salty_random_generator/mersenne/mt19937ar.c
+  )
+SET_SOURCE_FILES_PROPERTIES( ${RANDOM_SOURCES} PROPERTIES 
+		FOLDER "Source Files\\RNG Library" )
+set( RANDOM_SOURCES_FLAGS SALTY_RANDOM_GENERATOR_SOURCE )
+   set( ExtraDefinitions ${ExtraDefinitions};${RANDOM_SOURCES_FLAGS} )
+
+
 set(UNSORTED_SOURCES  
+  ${RANDOM_SOURCES}
+  ${SHA1_SOURCES}
   ${SOURCES_ROOT}src/sysloglib/syslog.c
   ${SOURCES_ROOT}src/memlib/sharemem.c
   ${SOURCES_ROOT}src/memlib/memory_operations.c
@@ -415,13 +431,9 @@ set( UUID_SOURCES
 SET( VECTLIB_SOURCES src/vectlib/vectlib.c )
 SET_PROPERTY(SOURCE ${VECTLIB_SOURCES}
                  APPEND 
-		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE" ) 
+		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE;NO_UNICODE_C" ) 
 
 
-set( SHA1_SOURCES
-  ${SOURCES_ROOT}src/sha1lib/sha1.c
-  )
-  
 set( MD5_SOURCES
   ${SOURCES_ROOT}src/md5lib/md5c.c
   )
@@ -571,4 +583,6 @@ set_source_files_properties(${OPTION_SOURCE} PROPERTIES LANGUAGE CXX )
 set_source_files_properties(${ODBC_SOURCES} PROPERTIES LANGUAGE CXX )
 set_source_files_properties(${BASE_SOURCES} PROPERTIES LANGUAGE CXX )
 endif( FORCE_CXX )
+
+
 

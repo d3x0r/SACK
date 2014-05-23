@@ -268,6 +268,9 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 			}
 			break;
 		}
+	default:
+		LOGI( "Unhandled Motion Event ignored..." );
+		break;
 	}
 	return 0;
 }
@@ -642,6 +645,8 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 		BagVidlibPureglSetNativeWindowHandle( engine->app->pendingWindow );
 		// reopen cameras...
 		BagVidlibPureglOpenCameras();
+		engine->state.animating = 1;
+
       LOGI( "Clear wait for display init..." );
 		//engine->wait_for_display_init = 0;
       engine->state.opened = 1;
