@@ -40,10 +40,18 @@ void SRG_SaveState( struct random_context *ctx, POINTER *external_buffer_holder 
 //  buffer result must be released by user
 
 SRG_EXPORT void SRG_DecryptData( CTEXTSTR local_password, P_8 *buffer, size_t *chars );
+
+SRG_EXPORT void SRG_DecryptRawData( P_8 binary, size_t length, P_8 *buffer, size_t *chars );
+
 // text result must release by user
 SRG_EXPORT TEXTSTR SRG_DecryptString( CTEXTSTR local_password );
+
+// encrypt a block of binary data to another binary buffer
+void SRG_EncryptRawData( P_8 buffer, size_t buflen, P_8 *result_buf, size_t *result_size );
+
 // text result must release by user
 SRG_EXPORT TEXTCHAR * SRG_EncryptData( P_8 buffer, size_t buflen );
+
 // text result must release by user
 // calls EncrytpData with buffer and string length + 1 to include the null for decryption.
 SRG_EXPORT TEXTCHAR * SRG_EncryptString( CTEXTSTR buffer );

@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <systray.h>
+#include <salty_generator.h>
 #define USE_IMAGE_INTERFACE g.pii
 #define USE_RENDER_INTERFACE g.pdi
 #include <render.h>
@@ -436,18 +437,21 @@ static void AddRules( PCONFIG_HANDLER pch );
 
 static PTRSZVAL CPROC ProcessConfig( PTRSZVAL psv, arg_list args )
 {
-	PARAM( args, CPOINTER, data );
 	PARAM( args, size_t, length );
+	PARAM( args, CPOINTER, data );
+	P_8 realdata;
+	size_t reallength;
 	PCONFIG_HANDLER pch = CreateConfigurationHandler();
 	AddRules( pch );
-	ProcessConfigurationInput( pch, (CTEXTSTR)data, length, 0 );
+	SRG_DecryptRawData( (P_8)data, length, &realdata, &reallength );
+	ProcessConfigurationInput( pch, (CTEXTSTR)realdata, reallength, 0 );
 	DestroyConfigurationEvaluator( pch );
 	return psv;
 }
 
 static void AddRules( PCONFIG_HANDLER pch )
 {
-	AddConfigurationMethod( pch, WIDE("config=%b"), ProcessConfig );
+	AddConfigurationMethod( pch, WIDE("config=%B"), ProcessConfig );
 	AddConfigurationMethod( pch, WIDE("%i,%i,%i,%m"), AddVideo );
 	AddConfigurationMethod( pch, WIDE("default show time=%i"), SetDefaultShowTime );
 	AddConfigurationMethod( pch, WIDE("default fade in time=%i"), SetDefaultFadeInTime );

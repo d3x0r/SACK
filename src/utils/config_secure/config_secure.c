@@ -18,7 +18,15 @@ SaneWinMain( argc, argv )
 		sack_fread( buf, 1, length, file );
 		sack_fclose( file );
 		result = SRG_EncryptData( buf, length );
-		printf( "%s", result );
+		{
+			int wrote = 0;
+			while( result[wrote] )
+			{
+				wrote += printf( "%.80s", result + wrote );
+				if( result[wrote] )
+					printf("\\\n" );
+			}
+		}
 		{
 			size_t testlen;
 			P_8 testbuf;

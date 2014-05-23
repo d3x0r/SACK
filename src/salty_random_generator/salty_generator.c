@@ -31,14 +31,9 @@ static void NeedBits( struct random_context *ctx )
 		ctx->salt_size = 0;
 	if( ctx->salt_size )
 		SHA1Input( &ctx->sha1_ctx, (const uint8_t*)ctx->salt, ctx->salt_size );
-	// this is redundant since it's already self seeded with prior result
-	//else
-	//	SHA1Input( &ctx->sha1_ctx, ctx->entropy, SHA1HashSize );
-	//lprintf( "added %p %d", ctx->salt, ctx->salt_size );
 	SHA1Result( &ctx->sha1_ctx, ctx->entropy );
 	SHA1Reset( &ctx->sha1_ctx );
 	SHA1Input( &ctx->sha1_ctx, ctx->entropy, SHA1HashSize );
-	//LogBinary( ctx->entropy, SHA1HashSize );
 	ctx->bits_used = 0;
 	ctx->bits_avail = sizeof( ctx->entropy ) * 8;
 }
