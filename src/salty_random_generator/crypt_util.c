@@ -1,7 +1,10 @@
 
 #include <stdhdrs.h>
-#include "salty_generator.h"
 
+#ifndef SALTY_RANDOM_GENERATOR_SOURCE
+#define SALTY_RANDOM_GENERATOR_SOURCE
+#endif
+#include "salty_generator.h"
 
 static struct crypt_local
 {
