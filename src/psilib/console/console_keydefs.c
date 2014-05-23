@@ -1457,6 +1457,7 @@ void PSI_KeyPressHandler( PCONSOLE_INFO pdp
 		{
 			extern void CPROC PSI_WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke );
 			PSI_WinLogicDoStroke(pdp, pdp->Keyboard[key_index][mod].data.stroke);
+			SmudgeCommon( pdp->psicon.frame );
 		}
 #ifdef __DEKWARE_PLUGIN__
 		else if( pdp->Keyboard[key_index][mod].flags.bMacro )
@@ -1479,6 +1480,7 @@ void PSI_KeyPressHandler( PCONSOLE_INFO pdp
 			{
 				extern void CPROC PSI_WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke );
 				PSI_WinLogicDoStroke( pdp, (PTEXT)&ConsoleKeyDefs[key_index].op[mod].data.pStroke );
+				SmudgeCommon( pdp->psicon.frame );
 			}
 			result = UPDATE_NOTHING; // unsure about this - recently added.
 			// well it would appear that the stroke results in whether to update
@@ -1489,6 +1491,7 @@ void PSI_KeyPressHandler( PCONSOLE_INFO pdp
 			{
 				extern void CPROC PSI_WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke );
 				PSI_WinLogicDoStroke( pdp, characters );
+				SmudgeCommon( pdp->psicon.frame );
 			}
 			result = UPDATE_NOTHING; // already taken care of?!
 			break;
@@ -1498,6 +1501,7 @@ void PSI_KeyPressHandler( PCONSOLE_INFO pdp
 																				 common.
 #endif
 																				 CommandInfo );
+			SmudgeCommon( pdp->psicon.frame );
 			break;
 		case HISTORYKEY:
 			result = ConsoleKeyDefs[key_index].op[mod].data.HistoryKey( pdp->pHistoryDisplay );

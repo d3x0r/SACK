@@ -1,3 +1,4 @@
+#include "../global.h"
 
 #include <controls.h>
 #include <psi/console.h>
@@ -8,14 +9,39 @@
 
 PSI_CONSOLE_NAMESPACE
 
-
-
-void FormatTextToBlock( CTEXTSTR input, TEXTSTR *output, int char_width, int char_height )
+struct BlockFormatter
 {
 	PCONSOLE_INFO console;
-	TEXTSTR block;
+   SFTFont font;
+};
 
-	console = New( CONSOLE_INFO );
+
+static void CPROC AsciiMeasureString( PTRSZVAL psvConsole, CTEXTSTR s, int nShow, _32 *w, _32 *h )
+{
+	struct BlockFormatter *block = (struct BlockFormatter*)psvConsole;
+#ifndef __NO_GUI__
+	if( block->font )
+	{
+		GetStringSizeFontEx( s, nShow, w, h, block->font );
+	}
+	else
+#endif
+	{
+		(*w) = nShow;
+		(*h) = 1;
+	}
+}
+
+
+void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int pixel_width, int pixel_height, SFTFont font )
+{
+	struct BlockFormatter *block_data = New( struct BlockFormatter );
+	PCONSOLE_INFO console;
+	TEXTSTR block;
+	GetMyInterface();
+	block_data->console
+		= console = New( CONSOLE_INFO );
+	block_data->font = font;
 	MemSet( console, 0, sizeof( CONSOLE_INFO ) );
 	{
 		//console->common.pName = SegCreateFromText( "Auto Console" );
@@ -23,16 +49,15 @@ void FormatTextToBlock( CTEXTSTR input, TEXTSTR *output, int char_width, int cha
 		console->psicon.frame = NULL;
 
 		console->psicon.image = GetFrameSurface( console->psicon.frame );
-		console->psicon.hFont = NULL;
 		console->nFontWidth = 1;
 		console->nFontHeight = 1;
 
 		InitializeCriticalSec( &console->Lock );
 
 		console->rArea.left = 0;
-		console->rArea.right = char_width;
+		console->rArea.right = pixel_width;
 		console->rArea.top = 0;
-		console->rArea.bottom = char_height;
+		console->rArea.bottom = pixel_height;
 		// this is destroyed when the common closes...
 		console->CommandInfo = NULL;  //CreateUserInputBuffer();
 
@@ -42,9 +67,7 @@ void FormatTextToBlock( CTEXTSTR input, TEXTSTR *output, int char_width, int cha
 
 		console->pHistory = PSI_CreateHistoryRegion();
 		console->pCursor = PSI_CreateHistoryCursor( console->pHistory );
-		console->pCurrentDisplay = PSI_CreateHistoryBrowser( console->pHistory );
-		console->pHistoryDisplay = PSI_CreateHistoryBrowser( console->pHistory );
-		PSI_SetHistoryBrowserNoPageBreak( console->pHistoryDisplay );
+		console->pCurrentDisplay = PSI_CreateHistoryBrowser( console->pHistory, AsciiMeasureString, (PTRSZVAL)block_data );
 
 		console->nXPad = 0;
 		console->nYPad = 0;
@@ -53,8 +76,8 @@ void FormatTextToBlock( CTEXTSTR input, TEXTSTR *output, int char_width, int cha
 		PSI_ConsoleCalculate( console );
 	}
 
-	console->nLines = char_height;
-	console->nColumns = char_width;
+	//console->nLines = char_height;
+	//console->nColumns = char_width;
 
 	{
 		// ansi filter?
@@ -124,21 +147,26 @@ void FormatTextToBlock( CTEXTSTR input, TEXTSTR *output, int char_width, int cha
 
 	console->CurrentLineInfo =
 		console->CurrentMarkInfo = &console->pCurrentDisplay->DisplayLineInfo;
-	console->mark_start.row = (char_height - 1);
+	console->mark_start.row = (pixel_height - 1);
 	console->mark_start.col = 0;
 	console->mark_end.row = 0;
-	console->mark_end.col = char_width - 1;
+	console->mark_end.col = pixel_width - 1;
 
 
 	block = PSI_GetDataFromBlock( console );
 	(*output) = block;
 
 	PSI_DestroyHistoryBrowser( console->pCurrentDisplay );
-	PSI_DestroyHistoryBrowser( console->pHistoryDisplay );
 	PSI_DestroyHistoryCursor( console->pCursor );
 	PSI_DestroyHistoryRegion( console->pHistory );
 
 	Release( console );
+}
+
+void FormatTextToBlock( CTEXTSTR input, TEXTSTR *output, int char_width, int char_height )
+{
+   FormatTextToBlockEx( input, output, char_width, char_height, NULL );
+
 }
 
 PSI_CONSOLE_NAMESPACE_END

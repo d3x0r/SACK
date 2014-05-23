@@ -1,21 +1,28 @@
 
+#define USE_IMAGE_INTERFACE ImageInterface
+#define USE_RENDER_INTERFACE RenderInterface
+
 #include <psi.h>
 #include <psi/console.h>
 
 #include "consolestruc.h"
 #include "WinLogic.h"
 
+extern PIMAGE_INTERFACE ImageInterface;
+
 PSI_CONSOLE_NAMESPACE
 
 	extern CONTROL_REGISTRATION ConsoleClass;
 static PTEXT eol;
 
-int PSIConsoleOutput( PSI_CONTROL pc, PTEXT lines )
+PSI_Console_Phrase PSIConsoleOutput( PSI_CONTROL pc, PTEXT lines )
 {
+	PSI_Console_Phrase phrase;
 	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
 	// ansi filter?
 	// conditions for getting text lines which have format elements
 	// break lines?
+
 	if( !eol )
 		eol = SegCreateFromText( WIDE("\n") );
 	if( console )
@@ -25,7 +32,7 @@ int PSIConsoleOutput( PSI_CONTROL pc, PTEXT lines )
 		PTEXT remainder = NULL;
 		PTEXT tmp;
 
-		parsed = burst( lines );
+		remainder = parsed = burst( lines );
 		for( tmp = parsed; tmp; tmp = next )
 		{
 			next = NEXTLINE( tmp );
@@ -42,11 +49,11 @@ int PSIConsoleOutput( PSI_CONTROL pc, PTEXT lines )
 					que = BuildLine( prior );
 					if( !console->flags.bNewLine )
 						que->flags |= TF_NORETURN;
-					PSI_WinLogicWriteEx( console, que, 0 );
+					phrase  = PSI_WinLogicWriteEx( console, que, 0 );
 					LineRelease( prior );
 				}
 				else
-					PSI_WinLogicWriteEx( console, SegCreate( 0 ), 0 );
+					phrase  = PSI_WinLogicWriteEx( console, SegCreate( 0 ), 0 );
 
 				console->flags.bNewLine = 1;
 
@@ -61,7 +68,7 @@ int PSIConsoleOutput( PSI_CONTROL pc, PTEXT lines )
 		if( remainder )
 		{
 			PTEXT que = BuildLine( remainder );
-			PSI_WinLogicWriteEx( console, que, 0 );
+			phrase = PSI_WinLogicWriteEx( console, que, 0 );
 			console->flags.bNewLine = 0;
 		}
 		else
@@ -70,12 +77,21 @@ int PSIConsoleOutput( PSI_CONTROL pc, PTEXT lines )
 		}
 		SmudgeCommon( pc );
 	}
-	return 0;
+	return phrase;
 }
 
-PSI_Phrase PSIConsolePhraseOutput( PSI_CONTROL pc, PTEXT lines )
+PSI_Console_Phrase PSIConsoleDirectOutput( PSI_CONTROL pc, PTEXT lines )
 {
+	PSI_Console_Phrase phrase;
+	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
+	// ansi filter?
+	// conditions for getting text lines which have format elements
+	// break lines?
+	phrase  = PSI_WinLogicWriteEx( console, lines, 0 );
 
+	SmudgeCommon( pc );
+
+	return phrase;
 }
 
 void PSIConsoleInputEvent( PSI_CONTROL pc, void(CPROC*Event)(PTRSZVAL,PTEXT), PTRSZVAL psv )
@@ -126,7 +142,7 @@ void PSIConsoleSetLocalEcho( PSI_CONTROL pc, LOGICAL yesno )
 	}
 }
 
-struct history_tracking_info *PSIConsoleSaveHistory( PSI_CONTORL pc )
+struct history_tracking_info *PSIConsoleSaveHistory( PSI_CONTROL pc )
 {
 	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
 	if( console )
@@ -136,14 +152,14 @@ struct history_tracking_info *PSIConsoleSaveHistory( PSI_CONTORL pc )
 		history_info->pHistoryDisplay = console->pHistoryDisplay;
 		history_info->pCurrentDisplay = console->pCurrentDisplay;
 		history_info->pCursor = console->pCursor;
-      history_info->pending_spaces = console->pending_spaces;
+		history_info->pending_spaces = console->pending_spaces;
 		history_info->pending_tabs = console->pending_tabs;
-      return history_info;
+		return history_info;
 	}
-   return NULL;
+	return NULL;
 }
 
-void PSIConsoleSetHistory( PSI_CONTORL pc, struct history_tracking_info *history_info )
+void PSIConsoleSetHistory( PSI_CONTROL pc, struct history_tracking_info *history_info )
 {
 	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
 	if( console )
@@ -161,14 +177,55 @@ void PSIConsoleSetHistory( PSI_CONTORL pc, struct history_tracking_info *history
 		{
 			console->pHistory = PSI_CreateHistoryRegion();
 			console->pCursor = PSI_CreateHistoryCursor( console->pHistory );
-			console->pCurrentDisplay = PSI_CreateHistoryBrowser( console->pHistory );
-			console->pHistoryDisplay = PSI_CreateHistoryBrowser( console->pHistory );
-         console->pending_spaces = 0;
-         console->pending_tabs = 0;
+			console->pCurrentDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (PTRSZVAL)console );
+			console->pHistoryDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (PTRSZVAL)console );
+			console->pending_spaces = 0;
+			console->pending_tabs = 0;
 			PSI_SetHistoryBrowserNoPageBreak( console->pHistoryDisplay );
 
 		}
+		GetStringSizeFont( WIDE(" "), &console->nFontWidth, &console->nFontHeight, GetCommonFont( pc ) );
+		PSI_ConsoleCalculate( console );
 	}
+}
+
+// mode 0 = inline/scrolling
+// mode 1 = line buffer/scrolling
+// mode 2 = line buffer/wrap
+void PSIConsoleSetInputMode( PSI_CONTROL pc, int mode )
+{
+	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
+	if( console )
+	{
+		if( mode )
+		{
+			console->flags.bDirect = 0; // direct is inline, instead of line-mode
+			if( mode == 2 )
+			{
+				SetBrowserLines( console->pCommandDisplay, 3 );
+				console->flags.bWrapCommand = 1;
+			}
+			else
+				console->flags.bWrapCommand = 0;
+		}
+		else
+			console->flags.bDirect = 1; // direct in with text... (0) mode only
+		if( console->nLines )
+		{
+			// may not have gotten visual fittting yet...
+			EnterCriticalSec( &console->Lock );
+			PSI_ConsoleCalculate( console );
+			LeaveCriticalSec( &console->Lock );
+			SmudgeCommon( console->psicon.frame );
+		}
+	}
+}
+
+void PSI_SetConsoleBackingFile( PSI_CONTROL pc, FILE *file )
+{
+	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
+	SetHistoryBackingFile( console->pHistory, file );
+
 }
 
 PSI_CONSOLE_NAMESPACE_END

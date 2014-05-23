@@ -362,7 +362,7 @@ void GetMyInterface( void )
 #endif
 			{
 #ifndef WIN32
-				fprintf( stderr, "Failed to get 'image' interface.  PSI interfaces failing execution." );
+				fprintf( stderr, WIDE("Failed to get 'image' interface.  PSI interfaces failing execution.") );
 #endif
 				lprintf( WIDE("Failed to get 'image' interface.  PSI interfaces failing execution.") );
 				lprintf( WIDE("and why yes, if we had a display, I suppose we could allow someone to fix this problem in-line...") );
@@ -402,7 +402,7 @@ void GetMyInterface( void )
 		{
 			{
 #ifndef WIN32
-				fprintf( stderr, "Failed to get 'render' interface.  PSI interfaces failing execution." );
+				fprintf( stderr, WIDE("Failed to get 'render' interface.  PSI interfaces failing execution.") );
 #endif
 				lprintf( WIDE("Failed to get 'render' interface.  PSI interfaces failing execution.") );
 				lprintf( WIDE("and why yes, if we had a display, I suppose we could allow someone to fix this problem in-line...") );
@@ -418,7 +418,10 @@ void GetMyInterface( void )
 	{
 		_32 w, h;
 		GetDisplaySize( &w, &h );
-		g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/MyriadPro.ttf"), w / 58, h / 32, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
+      if( h > w )
+			g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/MyriadPro.ttf"), w / 34, h / 48, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
+      else
+			g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/MyriadPro.ttf"), w / 58, h / 32, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 	}
 #else
 	{
@@ -715,7 +718,7 @@ void FixFrameFocus( PPHYSICAL_DEVICE pf, int dir )
 				bTryAgain = FALSE;
 				while( pcCurrent )
 				{
-					if( (!pcCurrent->flags.bNoFocus) &&
+					if( (!pcCurrent->flags.bHidden) &&(!pcCurrent->flags.bNoFocus) &&
 						((!pcCurrent->flags.bDisable) ||
 						 (pcCurrent == pcStart )))
 					{
@@ -2408,10 +2411,14 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	// creates
 	pc->flags.bInitial = 1;
 	pc->flags.bDirty = 1;
+
+	// have to set border type to non 0 here; in case border includes FIXED and the scaling in SetFont should be skipped.
+	pc->BorderType  = BorderType;
 	if( !pContainer /*pc->nType == CONTROL_FRAME*/ && g.default_font )
 	{
 		SetCommonFont( pc, g.default_font );
 	}
+	pc->BorderType = ~BorderType;  // this time, force the setting of the border... even if it's '0' or NONE 
 	SetCommonBorder( pc, BorderType );
 	pc->flags.bSetBorderType = 0;
 
@@ -2755,6 +2762,8 @@ PSI_PROC( void, HideCommon )( PSI_CONTROL pc )
 	{
 		PSI_CONTROL child;
 		hidden = 1;
+		if( GetFrame(pc )->device && GetFrame(pc )->device->pFocus == pc )
+         FixFrameFocus( GetFrame(pc)->device, FFF_HERE );
 		for( child = pc->child; child; child = child->next )
 		{
 			/* hide all children, which will trigger /dev/null update */

@@ -17,7 +17,8 @@
 #include <winuser.h> // more things that need override by strsafe.h
 #include <tchar.h>
 #include <strsafe.h>
-
+#else
+#include <wchar.h>
 #  endif
 
 // may consider changing this to P_16 for unicode...
@@ -32,10 +33,17 @@
 #  define strcpy           wcscpy
 #  define strcmp           wcscmp
 
-#  define strlen           wcslen
+#ifndef __LINUX__
+// linux also translates 'i' to 'case' in typelib.h
 #  define stricmp          wcsicmp
 #  define strnicmp         wcsnicmp
+#  define strlen           mbrlen
+#endif
+#  define strlen           wcslen
+#ifdef WIN32
 #  define stat(a,b)        _wstat(a,b)
+#else
+#endif
 #  define printf           wprintf
 #  define fprintf          fwprintf
 #  define fputs            fputws
@@ -53,12 +61,14 @@
 // define sprintf here.
 #       endif
 #    endif
-#    ifdef _ARM_
+#    if defined( _ARM_ ) && defined( WIN32 )
 // len should be passed as character count. this was the wrongw ay to default this.
 #      define snprintf StringCbPrintf
 //#define snprintf StringCbPrintf
 #    endif
 #  else
+#  define atoi             wtoi
+
 #  endif
 #else // not unicode...
 #endif
@@ -121,11 +131,12 @@
 
 #ifdef  __GNUC__
 #      if defined( _UNICODE )
-#        define tnprintf _snwprintf
-#        define vtnprintf _vsnwprintf
-#        ifndef NO_UNICODE_C && !defined( NO_UNICODE_C )
-#           define snprintf   snwprintf
-#           define vsnprintf  vsnwprintf
+#define VSNPRINTF_FAILS_RETURN_SIZE
+#        define tnprintf  swprintf
+#        define vtnprintf vswprintf
+#        if !defined( NO_UNICODE_C )
+#           define snprintf   swprintf
+#           define vsnprintf  vswprintf
 #           define sscanf     swscanf
 #        else
 #        endif
@@ -135,7 +146,6 @@
 //#        define snprintf snprintf
 //#        define vsnprintf vsnprintf
 #      endif
-#        define snwprintf  _snwprintf
 
 #endif // __GNUC__
 

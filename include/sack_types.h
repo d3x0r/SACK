@@ -421,6 +421,7 @@ SACK_NAMESPACE
 
 
 #ifndef __LINUX__
+//#include <sys/types.h>
 typedef int pid_t;
 #endif
 
@@ -1221,10 +1222,10 @@ SACK_NAMESPACE
 #  define _32fX   WIDE("X" )
 #  define _32fs   WIDE("d" )
 
-#  define c_32f   ("u" )
-#  define c_32fx  ("x" )
-#  define c_32fX  ("X" )
-#  define c_32fs  ("d" )
+#  define c_32f   "u"
+#  define c_32fx  "x"
+#  define c_32fX  "X"
+#  define c_32fs  "d"
 
 #endif
 
@@ -1293,11 +1294,19 @@ SACK_NAMESPACE
 #      define _size_fx   _WIDE( PRIx32 )
 #      define _size_fX   _WIDE( PRIX32 )
 #      define _size_fs   _WIDE( PRId32 )
+#      define c_size_f    PRIu32
+#      define c_size_fx   PRIx32
+#      define c_size_fX   PRIX32
+#      define c_size_fs   PRId32
 #    else 
 #      define _size_f    WIDE( "zu" )
 #      define _size_fx   WIDE( "zx" )
 #      define _size_fX   WIDE( "zX" )
 #      define _size_fs   WIDE( "zd" )
+#      define c_size_f    "zu"
+#      define c_size_fx   "zx"
+#      define c_size_fX   "zX"
+#      define c_size_fs   "zd"
 #    endif
 
 #    define _PTRSZVALfs _WIDE( PRIu32 )
@@ -1369,7 +1378,11 @@ typedef _64 THREAD_ID;
 #define GETPID_RETURNS_PPID
 #endif
 #ifdef GETPID_RETURNS_PPID
-#define GetMyThreadID()  (( ((_64)getpid()) << 32 ) | ( (_64)((pthread_self())) ) )
+#ifdef __ANDROID__
+#define GetMyThreadID()  (( ((_64)getpid()) << 32 ) | ( (_64)(gettid()) ) )
+#else
+#define GetMyThreadID()  (( ((_64)getpid()) << 32 ) | ( (_64)(pthread_self()) ) )
+#endif
 #else
 #define GetMyThreadID()  (( ((_64)getppid()) << 32 ) | ( (_64)(getpid()|0x40000000)) )
 #endif

@@ -2,6 +2,12 @@
 #include <stdhdrs.h>
 #include <filesys.h>
 #include <sqlgetoption.h>
+#define USE_KWE_INTERFACE l.kwe
+#include "../../../karaway/security/include/kwinlib.h"
+
+#ifdef __ANDROID__
+#include <android/log.h>
+#endif
 
 #ifndef UNDER_CE
 //#include <fcntl.h>
@@ -18,6 +24,9 @@ struct file{
 	PLIST handles; // HANDLE 's
 	PLIST files; // FILE *'s
 	INDEX group;
+	LOGICAL kwe;
+	size_t FPI;
+	POINTER read_buffer;
 };
 
 struct Group {
@@ -35,6 +44,7 @@ static struct winfile_local_tag {
 		BIT_FIELD bLogOpenClose : 1;
 		BIT_FIELD bInitialized : 1;
 	} flags;
+	struct karaway_interface *kwe;
 } *winfile_local;
 
 #define l (*winfile_local)
@@ -53,9 +63,21 @@ static void LocalInit( void )
 	}
 }
 
+// load interface happens at priority minus one from here
+PRIORITY_PRELOAD( InitWinFileSys2, IMAGE_PRELOAD_PRIORITY - 1 )
+{
+	//l.kwe = GetKarawayInterface();
+}
+
 PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )
 {
 	LocalInit();
+}
+
+PRIORITY_PRELOAD( InitWinFileSysEarly3, CONFIG_SCRIPT_PRELOAD_PRIORITY )
+{
+	l.kwe = GetKarawayInterface();
+	//LocalInit();
 }
 
 #ifndef __NO_OPTIONS__
@@ -437,6 +459,7 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 	HANDLE handle;
 	struct file *file;
 	INDEX idx;
+   char *tmpname;
 	EnterCriticalSec( &l.cs_files );
 	LIST_FORALL( l.files, idx, struct file *, file )
 	{
@@ -463,7 +486,8 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 		lprintf( WIDE( "Open File: [%s]" ), file->fullname );
 #ifdef __LINUX__
 #  undef open
-	handle = open( file->fullname, opts );
+	handle = open( tmpname = CStrDup( file->fullname ), opts );
+   Release( tmpname );
 	if( l.flags.bLogOpenClose )
 		lprintf( WIDE( "open %s %d %d" ), file->fullname, handle, opts );
 #else
@@ -673,6 +697,7 @@ INDEX sack_iopen( INDEX group, CTEXTSTR filename, int opts, ... )
 	EnterCriticalSec( &l.cs_files );
 	{
 		HANDLE *holder = New( HANDLE );
+		holder[0] = h;
 		AddLink( &l.handles, holder );
 		result = FindLink( &l.handles, holder );
 	}
@@ -753,8 +778,15 @@ int sack_unlink( INDEX group, CTEXTSTR filename )
 #ifdef __LINUX__
 	int okay;
 	TEXTSTR tmp = PrependBasePath( group, NULL, filename );
-	okay = unlink( filename );
+   char *_tmp;
+	if( filename[0] == ':' )
+	{
+      KWfunlink( _tmp = CStrDup( tmp ) );
+	}
+   else
+		okay = unlink( _tmp = CStrDup( tmp ) );
 	Release( tmp );
+   Release( _tmp );
 	return !okay; // unlink returns TRUE is 0, else error...
 #else
 	int okay;
@@ -770,7 +802,9 @@ int sack_rmdir( INDEX group, CTEXTSTR filename )
 #ifdef __LINUX__
 	int okay;
 	TEXTSTR tmp = PrependBasePath( group, NULL, filename );
-	okay = rmdir( filename );
+   char *_tmp;
+	okay = rmdir( _tmp = CStrDup( filename ) );
+   Release( _tmp );
 	Release( tmp );
 	return !okay; // unlink returns TRUE is 0, else error...
 #else
@@ -806,13 +840,14 @@ struct file *FindFileByFILE( FILE *file_file )
 #undef fopen
 FILE*  sack_fopen ( INDEX group, CTEXTSTR filename, CTEXTSTR opts )
 {
-	FILE *handle;
+	FILE *handle = NULL;
 	struct file *file;
 	INDEX idx;
 	LOGICAL memalloc = FALSE;
 
 	LocalInit();
 	EnterCriticalSec( &l.cs_files );
+
 	LIST_FORALL( l.files, idx, struct file *, file )
 	{
 		if( ( file->group == group )
@@ -821,25 +856,27 @@ FILE*  sack_fopen ( INDEX group, CTEXTSTR filename, CTEXTSTR opts )
 			break;
 		}
 	}
+
 	LeaveCriticalSec( &l.cs_files );
+
 	if( !file )
 	{
-	  TEXTSTR tmpname;
+		TEXTSTR tmpname;
 		struct Group *filegroup = (struct Group *)GetLink( &l.groups, group );
 		file = New( struct file );
 		memalloc = TRUE;
 
 		file->handles = NULL;
 		file->files = NULL;
-		 file->name = StrDup( filename );
-		 tmpname = ExpandPath( filename );
-		 if( !IsAbsolutePath( tmpname ) )
-		 {
-			 file->fullname = PrependBasePath( group, filegroup, tmpname );
-		  Release( tmpname );
-		 }
-		 else
-		  file->fullname = tmpname;
+		file->name = StrDup( filename );
+		tmpname = ExpandPath( filename );
+		if( !IsAbsolutePath( tmpname ) )
+		{
+			file->fullname = PrependBasePath( group, filegroup, tmpname );
+			Release( tmpname );
+		}
+		else
+			file->fullname = tmpname;
 		file->group = group;
 		EnterCriticalSec( &l.cs_files );
 		AddLink( &l.files,file );
@@ -859,15 +896,42 @@ FILE*  sack_fopen ( INDEX group, CTEXTSTR filename, CTEXTSTR opts )
 	if( l.flags.bLogOpenClose )
 		lprintf( WIDE( "Open File: [%s]" ), file->fullname );
 
-#ifdef UNICODE
-	handle = _wfopen( file->fullname, opts );
+	if( file->name[0] == ':' )
+	{
+		char *tmpname;
+		file->kwe = TRUE;
+		handle = (FILE*)KWfopen( tmpname = CStrDup( file->name + 1 ) );
+		Release( tmpname );
+	}
+	else
+	{
+		file->kwe = FALSE;
+
+#if defined( UNICODE )
+#  if defined( WIN32 )
+		handle = _wfopen( file->fullname, opts );
+#  else
+		{
+			char *tmpname = CStrDup( file->fullname );
+			char *tmpopt = CStrDup( opts );
+			handle = fopen( tmpname, tmpopt );
+			{
+				TEXTCHAR buf[1024];
+            tnprintf( buf, 1024, WIDE("open %s=%p"), file->fullname, handle );
+				SystemLog( buf );
+			}
+			Release( tmpname );
+			Release( tmpopt );
+		}
+#  endif
 #else
 #ifdef _STRSAFE_H_INCLUDED_
-	fopen_s( &handle, file->fullname, opts );
+		fopen_s( &handle, file->fullname, opts );
 #else
-	handle = fopen( file->fullname, opts );
+		handle = fopen( CStrDup( file->fullname ), CStrDup( opts ) );
 #endif
 #endif
+	}
 	if( !handle )
 	{
 		if( l.flags.bLogOpenClose )
@@ -893,7 +957,7 @@ FILE*  sack_fsopen( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mod
 	{
 		if( StrCmp( file->name, filename ) == 0 )
 		{
-		break;
+			break;
 		}
 	}
 	LeaveCriticalSec( &l.cs_files );
@@ -906,20 +970,32 @@ FILE*  sack_fsopen( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mod
 		file->name = StrDup( filename );
 		file->group = group;
 		file->fullname = PrependBasePath( group, filegroup, filename );
+		file->kwe = 0;
 		EnterCriticalSec( &l.cs_files );
 		AddLink( &l.files,file );
 		LeaveCriticalSec( &l.cs_files );
 	}
+	if( file->name[0] == ':' )
+	{
+		char *tmpname;
+		file->kwe = TRUE;
+		handle = (FILE*)KWfopen( tmpname = CStrDup( file->name + 1 ) );
+		Release( tmpname );
+	}
+	else
+	{
+		file->kwe = FALSE;
 
-#ifdef UNICODE
-	handle = _wfopen( file->fullname, opts );
+#if defined UNICODE && defined( WIN32 )
+		handle = _wfopen( file->fullname, opts );
 #else
 #ifdef _STRSAFE_H_INCLUDED_
-	handle = _fsopen( file->fullname, opts, share_mode );
+		handle = _fsopen( file->fullname, opts, share_mode );
 #else
-	handle = fopen( file->fullname, opts );
+		handle = fopen( CStrDup( file->fullname ), CStrDup( opts ) );
 #endif
 #endif
+	}
 	if( !handle )
 	{
 		if( l.flags.bLogOpenClose )
@@ -936,8 +1012,44 @@ FILE*  sack_fsopen( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mod
 	return handle;
 }
 
-int  sack_fseek ( FILE *file_file, int pos, int whence )
+
+size_t sack_ftell ( FILE *file_file )
 {
+	struct file *file;
+	file = FindFileByFILE( file_file );
+	if( file )
+	{
+		if( file->kwe )
+		{
+			return file->FPI;
+		}
+	}
+	return ftell( file_file );
+}
+
+int  sack_fseek ( FILE *file_file, size_t pos, int whence )
+{
+	struct file *file;
+	file = FindFileByFILE( file_file );
+	if( file )
+	{
+		if( file->kwe )
+		{
+			switch( whence )
+			{
+			case SEEK_SET:
+				file->FPI = pos;
+				file->FPI = KWfseek( file_file, pos );
+				return file->FPI;
+			case SEEK_CUR:
+				file->FPI = KWfseek( file_file, file->FPI + pos);
+				return file->FPI;
+			case SEEK_END:
+				file->FPI = KWfseek_eof( file_file );
+				return file->FPI;
+			}
+		}
+	}
 	if( fseek( file_file, pos, whence ) )
 		return -1;
 	//struct file *file = FindFileByFILE( file_file );
@@ -955,6 +1067,9 @@ int  sack_fclose ( FILE *file_file )
 		DeleteLink( &file->files, file_file );
 		if( l.flags.bLogOpenClose )
 			lprintf( WIDE( "deleted FILE* %p and list is %p" ), file_file, file->files );
+		if( file->kwe )
+			KWfclose( file_file );
+
 	}
 	/*
 	Release( file->name );
@@ -966,16 +1081,57 @@ int  sack_fclose ( FILE *file_file )
 }
  size_t  sack_fread ( POINTER buffer, size_t size, int count,FILE *file_file )
 {
+	struct file *file;
+	file = FindFileByFILE( file_file );
+	if( file )
+	{
+		if( file->kwe )
+		{
+			char *_buffer = NULL;
+			file->FPI += size * count;
+			// can't free the buffer.
+#ifdef WIN32
+			KWfread( file_file, &_buffer, size * count );
+#else
+			KWfread( &_buffer, size * count, file_file );
+#endif
+			if( _buffer )
+				MemCpy( buffer, _buffer, size * count );
+			else
+				count = 0;
+			return count;
+		}
+	}
 	return fread( buffer, size, count, file_file );
 }
  size_t  sack_fwrite ( CPOINTER buffer, size_t size, int count,FILE *file_file )
 {
+	struct file *file;
+	file = FindFileByFILE( file_file );
+	if( file )
+	{
+		if( file->kwe )
+		{
+			file->FPI += size * count;
+			return KWfwrite( (void*)file_file, (char const *)buffer, size * count );
+		}
+	}
 	return fwrite( (POINTER)buffer, size, count, file_file );
 }
 
 
 TEXTSTR sack_fgets ( TEXTSTR buffer, size_t size,FILE *file_file )
 {
+	struct file *file;
+	file = FindFileByFILE( file_file );
+	if( file )
+	{
+		if( file->kwe )
+		{
+			lprintf( WIDE("fgets is unsupported yet...") );
+         DebugBreak();
+		}
+	}
 #ifdef _UNICODE
 	//char *tmpbuf = NewArray( char, size+1);
 	//TEXTSTR tmp_wbuf;
@@ -988,6 +1144,18 @@ TEXTSTR sack_fgets ( TEXTSTR buffer, size_t size,FILE *file_file )
 #endif
 }
 
+int sack_fflush ( FILE *file_file )
+{
+	struct file *file;
+	file = FindFileByFILE( file_file );
+	if( file )
+	{
+		if( file->kwe )
+			return 0;
+		return fflush( file_file );
+	}
+	return -1;
+}
 
 int  sack_rename ( CTEXTSTR file_source, CTEXTSTR new_name )
 {
@@ -997,7 +1165,7 @@ int  sack_rename ( CTEXTSTR file_source, CTEXTSTR new_name )
 #ifdef WIN32
 	status = MoveFile( tmp_src, tmp_dst );
 #else
-	status = rename( tmp_src, tmp_dst );
+	status = rename( CStrDup( tmp_src ), CStrDup( tmp_dst ) );
 #endif
 	Release( tmp_src );
 	Release( tmp_dst );
@@ -1009,8 +1177,10 @@ _32 GetSizeofFile( TEXTCHAR *name, P_32 unused )
 {
 	_32 size;
 #ifdef __LINUX__
-	int hFile = open( name,		  // open MYFILE.TXT
-							 O_RDONLY );			 // open for reading
+   char *tmpname;
+	int hFile = open( tmpname = CStrDup( name ),		  // open MYFILE.TXT
+						  O_RDONLY );			 // open for reading
+   Release( tmpname );
 	if( hFile >= 0 )
 	{
 		size = lseek( hFile, 0, SEEK_END );
@@ -1044,7 +1214,7 @@ _32 GetFileTimeAndSize( CTEXTSTR name
 	_32 size;
 	_32 extra_size;
 #ifdef __LINUX__
-	int hFile = open( name,		  // open MYFILE.TXT
+	int hFile = open( CStrDup( name ),		  // open MYFILE.TXT
 							 O_RDONLY );			 // open for reading
 	if( hFile >= 0 )
 	{

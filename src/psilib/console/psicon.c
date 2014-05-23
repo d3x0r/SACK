@@ -19,7 +19,7 @@ PRENDER_INTERFACE RenderInterface;
 #include <keybrd.h>
 
 //#define PutStringEx(i,x,y,f,b,s,l) { Log6( "Putting string: %ld,%ld %ld %*.*s", x,y,l,l,l,s); PutStringFontEx( i,x,y,f,b,s,l,NULL); }
-//#define BlatColor(i,x,y,w,h,c)     { Log5( "BlatColor: %ld,%ld %ld,%ld %08lx", x, y, w, h, c ); BlatColor( i,x,y,w,h,c ); }
+//#define BlatColor(i,x,y,w,h,c)	  { Log5( "BlatColor: %ld,%ld %ld,%ld %08lx", x, y, w, h, c ); BlatColor( i,x,y,w,h,c ); }
 
 #include "consolestruc.h"
 #include "interface.h"
@@ -33,20 +33,20 @@ PSI_CONSOLE_NAMESPACE
 static CDATA crColorTableText[16];
 #if 0
 = { AColor( 0,0,1, text_alpha ), AColor( 0, 0, 128, text_alpha ), AColor( 0, 128, 0, text_alpha )
-                            , AColor( 0, 128, 128, text_alpha ), AColor( 192, 32, 32, text_alpha ), AColor( 140, 0, 140, text_alpha )
-                            , AColor( 160, 160, 0, text_alpha ), AColor( 192, 192, 192, text_alpha )
-                            , AColor( 128, 128, 128, text_alpha ), AColor( 0, 0, 255, text_alpha ), AColor( 0, 255, 0, text_alpha )
-                            , AColor( 0, 255, 255, text_alpha ), AColor( 255, 0, 0, text_alpha ), AColor( 255, 0, 255, text_alpha )
-                            , AColor( 255, 255, 0, text_alpha ), AColor( 255, 255, 255, text_alpha ) };
+									 , AColor( 0, 128, 128, text_alpha ), AColor( 192, 32, 32, text_alpha ), AColor( 140, 0, 140, text_alpha )
+									 , AColor( 160, 160, 0, text_alpha ), AColor( 192, 192, 192, text_alpha )
+									 , AColor( 128, 128, 128, text_alpha ), AColor( 0, 0, 255, text_alpha ), AColor( 0, 255, 0, text_alpha )
+									 , AColor( 0, 255, 255, text_alpha ), AColor( 255, 0, 0, text_alpha ), AColor( 255, 0, 255, text_alpha )
+									 , AColor( 255, 255, 0, text_alpha ), AColor( 255, 255, 255, text_alpha ) };
 #endif
 static CDATA crColorTableBack[16];
 #if 0
 ] = { AColor( 0,0,1, back_alpha ), AColor( 0, 0, 128, back_alpha ), AColor( 0, 128, 0, back_alpha )
-                            , AColor( 0, 128, 128, back_alpha ), AColor( 192, 32, 32, back_alpha ), AColor( 140, 0, 140, back_alpha )
-                            , AColor( 160, 160, 0, back_alpha ), AColor( 192, 192, 192, back_alpha )
-                            , AColor( 128, 128, 128, back_alpha ), AColor( 0, 0, 255, back_alpha ), AColor( 0, 255, 0, back_alpha )
-                            , AColor( 0, 255, 255, back_alpha ), AColor( 255, 0, 0, back_alpha ), AColor( 255, 0, 255, back_alpha )
-                            , AColor( 255, 255, 0, back_alpha ), AColor( 255, 255, 255, back_alpha ) };
+									 , AColor( 0, 128, 128, back_alpha ), AColor( 192, 32, 32, back_alpha ), AColor( 140, 0, 140, back_alpha )
+									 , AColor( 160, 160, 0, back_alpha ), AColor( 192, 192, 192, back_alpha )
+									 , AColor( 128, 128, 128, back_alpha ), AColor( 0, 0, 255, back_alpha ), AColor( 0, 255, 0, back_alpha )
+									 , AColor( 0, 255, 255, back_alpha ), AColor( 255, 0, 0, back_alpha ), AColor( 255, 0, 255, back_alpha )
+									 , AColor( 255, 255, 0, back_alpha ), AColor( 255, 255, 255, back_alpha ) };
 #endif
 
 
@@ -56,43 +56,43 @@ static CDATA crColorTableBack[16];
 #define MNU_HISTORYSIZE50 102
 #define MNU_HISTORYSIZE75 103
 #define MNU_HISTORYSIZE100 104
-#define MNU_DIRECT         105
+#define MNU_DIRECT			105
 #define MNU_COMMAND_COLOR 106
 #define MNU_COMMAND_BACK  107
 
-#define MNU_BLACK    115
-#define MNU_BLUE     116
-#define MNU_GREEN    117
-#define MNU_CYAN     118
-#define MNU_RED      119
+#define MNU_BLACK	 115
+#define MNU_BLUE	  116
+#define MNU_GREEN	 117
+#define MNU_CYAN	  118
+#define MNU_RED		119
 #define MNU_MAGENTA  120
-#define MNU_DKYEL    121
-#define MNU_GREY     122
-#define MNU_DKGREY   123
-#define MNU_LTBLUE   124
+#define MNU_DKYEL	 121
+#define MNU_GREY	  122
+#define MNU_DKGREY	123
+#define MNU_LTBLUE	124
 #define MNU_LTGREEN  125
-#define MNU_LTCYAN   126
-#define MNU_LTRED    127
-#define MNU_LTMAG    128
-#define MNU_YELLOW   129
-#define MNU_WHITE    130
+#define MNU_LTCYAN	126
+#define MNU_LTRED	 127
+#define MNU_LTMAG	 128
+#define MNU_YELLOW	129
+#define MNU_WHITE	 130
 
-#define MNU_BKBLACK    ( 115 + 16 )
-#define MNU_BKBLUE     ( 116 + 16 )
-#define MNU_BKGREEN    ( 117 + 16 )
-#define MNU_BKCYAN     ( 118 + 16 )
-#define MNU_BKRED      ( 119 + 16 )
+#define MNU_BKBLACK	 ( 115 + 16 )
+#define MNU_BKBLUE	  ( 116 + 16 )
+#define MNU_BKGREEN	 ( 117 + 16 )
+#define MNU_BKCYAN	  ( 118 + 16 )
+#define MNU_BKRED		( 119 + 16 )
 #define MNU_BKMAGENTA  ( 120 + 16 )
-#define MNU_BKDKYEL    ( 121 + 16 )
-#define MNU_BKGREY     ( 122 + 16 )
-#define MNU_BKDKGREY   ( 123 + 16 )
-#define MNU_BKLTBLUE   ( 124 + 16 )
+#define MNU_BKDKYEL	 ( 121 + 16 )
+#define MNU_BKGREY	  ( 122 + 16 )
+#define MNU_BKDKGREY	( 123 + 16 )
+#define MNU_BKLTBLUE	( 124 + 16 )
 #define MNU_BKLTGREEN  ( 125 + 16 )
-#define MNU_BKLTCYAN   ( 126 + 16 )
-#define MNU_BKLTRED    ( 127 + 16 )
-#define MNU_BKLTMAG    ( 128 + 16 )
-#define MNU_BKYELLOW   ( 129 + 16 )
-#define MNU_BKWHITE    ( 130 + 16 )
+#define MNU_BKLTCYAN	( 126 + 16 )
+#define MNU_BKLTRED	 ( 127 + 16 )
+#define MNU_BKLTMAG	 ( 128 + 16 )
+#define MNU_BKYELLOW	( 129 + 16 )
+#define MNU_BKWHITE	 ( 130 + 16 )
 
 //----------------------------------------------------------------------------
 // only one master copy of this is really needed...
@@ -129,7 +129,7 @@ void CPROC RenderSeparator( PCONSOLE_INFO console, int nStart )
 		do_hline( console->psicon.image, nStart+1, 0, console->nWidth, cPenNormal );
 		do_hline( console->psicon.image, nStart+2, 0, console->nWidth, cPenShadow );
 		do_hline( console->psicon.image, nStart+3, 0, console->nWidth, cPenDkShadow );
-      //SmudgeCommon( console->psicon.image );
+		//SmudgeCommon( console->psicon.image );
 	}
 }
 
@@ -175,18 +175,18 @@ void CPROC PSI_Console_KeystrokePaste( PCONSOLE_INFO console )
 				break;
 			}
 			format = EnumClipboardFormats( format );
-        }
-        CloseClipboard();
-    }
-    else
+		  }
+		  CloseClipboard();
+	 }
+	 else
 	{
 #ifdef __DEKWARE_PLUGIN__
-        DECLTEXT( msg, WIDE( "Clipboard was not available" ) );
+		  DECLTEXT( msg, WIDE( "Clipboard was not available" ) );
 		  EnqueLink( &console->common.Output, (PTEXT)&msg );
 #endif
-    }
+	 }
 #endif
-    return;
+	 return;
 
 }
 
@@ -209,7 +209,7 @@ static int OnDrawCommon( WIDE("PSI Console") )( PCOMMON pc )
 		console->nHeight != console->psicon.image->height )
 	{
 		// nWidth/nHeight are set in child calculate
-      // and acknowledge processing a new rarea rect.
+		// and acknowledge processing a new rarea rect.
 		console->rArea.left = 0;
 		console->rArea.right = console->psicon.image->width;
 		console->rArea.top = 0;
@@ -264,7 +264,7 @@ int CPROC KeyEventProc( PCOMMON pc, _32 key )
 		}
 		LeaveCriticalSec( &console->Lock );
 	}
-   return 1;
+	return 1;
 }
 
 //----------------------------------------------------------------------------
@@ -278,17 +278,17 @@ int CPROC MouseHandler( PCOMMON pc, S_32 x, S_32 y, _32 b )
 		int xPos, yPos, row, col;
 		//PCONSOLE_INFO console;
 		if( (b & MK_LBUTTON) && !(_b & MK_LBUTTON) )
-        { // mouse down.
+		  { // mouse down.
 			  ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
 			  //console = (PCONSOLE_INFO)GetCommonUserData( pc );
 			  if( !console )
-              return 0;
+				  return 0;
 			  xPos = x; 
 			  yPos = y;
 			  if( PSI_ConvertXYToLineCol( console, xPos, yPos
 											, &row, &col ) )
 			  {
-              //lprintf( "converted is %d,%d", row, col );
+				  //lprintf( "converted is %d,%d", row, col );
 				  console->mark_start.row = row;
 				  console->mark_start.col = col;
 				  console->flags.bUpdatingEnd = 1;
@@ -376,9 +376,9 @@ int CPROC MouseHandler( PCOMMON pc, S_32 x, S_32 y, _32 b )
 #define CF_TEXT 1
 #endif
 								SetClipboardData( CF_TEXT, mem );
-                                CloseClipboard();
+										  CloseClipboard();
 										  GlobalFree( mem );
-                                //Log( data );
+										  //Log( data );
 										  Release( data );
 							}
 #endif
@@ -410,7 +410,7 @@ int CPROC MouseHandler( PCOMMON pc, S_32 x, S_32 y, _32 b )
 			return 0;
 		CheckPopupItem( hHistoryMenu
 						  , MNU_HISTORYSIZE25+console->nHistoryPercent
-						  , MF_BYCOMMAND|MF_CHECKED    );
+						  , MF_BYCOMMAND|MF_CHECKED	 );
 		if( console->flags.bDirect )
 			CheckPopupItem( hChildMenu
 							  , MNU_DIRECT
@@ -431,23 +431,23 @@ int CPROC MouseHandler( PCOMMON pc, S_32 x, S_32 y, _32 b )
 		case MNU_DIRECT:
 			{
 				console->flags.bDirect ^= 1;
-            /*
+				/*
 				 {
 				 SetRegistryInt( WIDE( "Dekware\\Wincon\\Direct" )
 				 , GetText( GetName( console->common.Owner->Current ) )
 				 , console->flags.bDirect );
-                                          }
-                                */
+														}
+										  */
 				EnterCriticalSec( &console->Lock );
 				PSI_ConsoleCalculate( console );
 				LeaveCriticalSec( &console->Lock );
 			}
 			break;
-      case MNU_HISTORYSIZE25:
-      case MNU_HISTORYSIZE50:
-      case MNU_HISTORYSIZE75:
-      case MNU_HISTORYSIZE100:
-         {
+		case MNU_HISTORYSIZE25:
+		case MNU_HISTORYSIZE50:
+		case MNU_HISTORYSIZE75:
+		case MNU_HISTORYSIZE100:
+			{
 				console->nHistoryPercent =  cmd - MNU_HISTORYSIZE25;
 				if( console->flags.bHistoryShow ) // currently showing history
 				{
@@ -456,76 +456,76 @@ int CPROC MouseHandler( PCOMMON pc, S_32 x, S_32 y, _32 b )
 					LeaveCriticalSec( &console->Lock );
 				}
 			}
-         break;
-      case MNU_FONT:
-         {
+			break;
+		case MNU_FONT:
+			{
 				//console->cfFont.hwndOwner = hWnd;
 				size_t size;
 				POINTER font;
 				POINTER info = NULL;
 				if( font = PickFont( -1, -1, &size, &info, NULL ) )
 				{
-					console->psicon.hFont = (SFTFont)font;
+					//console->psicon.hFont = (SFTFont)font;
 					SetCommonFont( console->psicon.frame, (SFTFont)font );
 					//GetDefaultFont();
-					GetStringSizeFont( WIDE(" "), &console->nFontWidth, &console->nFontHeight, console->psicon.hFont );
+					GetStringSizeFont( WIDE(" "), &console->nFontWidth, &console->nFontHeight, (SFTFont)font );
 					PSI_ConsoleCalculate( console );
 				}
 			}
-            break;
-        case MNU_COMMAND_COLOR:
-            {
+				break;
+		  case MNU_COMMAND_COLOR:
+				{
 				CDATA color;
-                if( PickColor( &color, console->psicon.crCommand, console->psicon.frame ) )
-                    console->psicon.crCommand = color;
-                else
-                    Log2( WIDE("Colors %08x %08x"), color, console->psicon.crCommand );
-            }
-         break;
-        case MNU_COMMAND_BACK:
-            {
-            CDATA color;
-                if( PickColor( &color, console->psicon.crCommandBackground, console->psicon.frame ) )
-                    console->psicon.crCommandBackground = color;
-                else
-                    Log2( WIDE("Colors %08x %08x"), color, console->psicon.crCommandBackground );
-            }
-         break;
-      }
-        CheckPopupItem( hHistoryMenu
-                         , MNU_HISTORYSIZE25+console->nHistoryPercent
-                         , MF_BYCOMMAND|MF_UNCHECKED  );
-        CheckPopupItem( hChildMenu
-                         , MNU_DIRECT
-                         , MF_BYCOMMAND|MF_UNCHECKED );
-    }
+					 if( PickColor( &color, console->psicon.crCommand, console->psicon.frame ) )
+						  console->psicon.crCommand = color;
+					 else
+						  Log2( WIDE("Colors %08x %08x"), color, console->psicon.crCommand );
+				}
+			break;
+		  case MNU_COMMAND_BACK:
+				{
+				CDATA color;
+					 if( PickColor( &color, console->psicon.crCommandBackground, console->psicon.frame ) )
+						  console->psicon.crCommandBackground = color;
+					 else
+						  Log2( WIDE("Colors %08x %08x"), color, console->psicon.crCommandBackground );
+				}
+			break;
+		}
+		  CheckPopupItem( hHistoryMenu
+								 , MNU_HISTORYSIZE25+console->nHistoryPercent
+								 , MF_BYCOMMAND|MF_UNCHECKED  );
+		  CheckPopupItem( hChildMenu
+								 , MNU_DIRECT
+								 , MF_BYCOMMAND|MF_UNCHECKED );
+	 }
 
-    _x = x;
-    _y = y;
+	 _x = x;
+	 _y = y;
 	 _b = b;
-    return TRUE;
+	 return TRUE;
 }
 //----------------------------------------------------------------------------
 
 // Image is a temporary subimage to draw into...
 void DrawMenuItem( LOGICAL measure, PDRAWPOPUPITEM pdi )
 {
-    if( measure )
-    {
-      pdi->measure.width  = 80;
-      pdi->measure.height = 15;
-    }
-    else
-    {
-        if( pdi->psvUser >= MNU_BLACK && pdi->psvUser <= MNU_WHITE )
-            pdi->psvUser -= MNU_BLACK;
-        else if( pdi->psvUser >= MNU_BKBLACK && pdi->psvUser <= MNU_BKWHITE )
-            pdi->psvUser -= MNU_BKBLACK;
-        BlatColor( pdi->draw.image
-                  , pdi->draw.x + 2, pdi->draw.y + 1
-                    , pdi->draw.width - 4, pdi->draw.height - 2
-                    , crColorTableText[ pdi->psvUser ] );
-    }
+	 if( measure )
+	 {
+		pdi->measure.width  = 80;
+		pdi->measure.height = 15;
+	 }
+	 else
+	 {
+		  if( pdi->psvUser >= MNU_BLACK && pdi->psvUser <= MNU_WHITE )
+				pdi->psvUser -= MNU_BLACK;
+		  else if( pdi->psvUser >= MNU_BKBLACK && pdi->psvUser <= MNU_BKWHITE )
+				pdi->psvUser -= MNU_BKBLACK;
+		  BlatColor( pdi->draw.image
+						, pdi->draw.x + 2, pdi->draw.y + 1
+						  , pdi->draw.width - 4, pdi->draw.height - 2
+						  , crColorTableText[ pdi->psvUser ] );
+	 }
 }
 
 //----------------------------------------------------------------------------
@@ -550,51 +550,51 @@ int RegisterWindows( void )
 	{
 		PMENU hColorMenu, hColorMenu2;
 		hColorMenu = CreatePopup();
-      AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_BLACK, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_BLUE, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_GREEN, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_CYAN, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_RED, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_MAGENTA, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_DKYEL, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_GREY, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_DKGREY, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_LTBLUE, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_LTGREEN, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_LTCYAN, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_LTRED, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_LTMAG, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_YELLOW, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_WHITE, (POINTER)DrawMenuItem );
-      AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (PTRSZVAL)hColorMenu, WIDE( "Text Color" ) );
-      hColorMenu2 = CreatePopup();
-      AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKBLACK, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKBLUE, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKGREEN, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKCYAN, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKRED, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKMAGENTA, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKDKYEL, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKGREY,  (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKDKGREY, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKLTBLUE, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKLTGREEN, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKLTCYAN, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKLTRED, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKLTMAG, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKYELLOW, (POINTER)DrawMenuItem );
-      AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKWHITE, (POINTER)DrawMenuItem );
-      AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (PTRSZVAL)hColorMenu2, WIDE( "Background Color" ) );
-   }
-   AppendPopupItem( hChildMenu, MF_STRING, MNU_COMMAND_COLOR, WIDE( "Command Color" ) );
+		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_BLACK, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_BLUE, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_GREEN, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_CYAN, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_RED, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_MAGENTA, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_DKYEL, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_GREY, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_DKGREY, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_LTBLUE, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_LTGREEN, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_LTCYAN, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_LTRED, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_LTMAG, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_YELLOW, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_WHITE, (POINTER)DrawMenuItem );
+		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (PTRSZVAL)hColorMenu, WIDE( "Text Color" ) );
+		hColorMenu2 = CreatePopup();
+		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKBLACK, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKBLUE, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKGREEN, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKCYAN, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKRED, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKMAGENTA, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKDKYEL, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKGREY,  (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKDKGREY, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKLTBLUE, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKLTGREEN, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKLTCYAN, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKLTRED, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKLTMAG, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKYELLOW, (POINTER)DrawMenuItem );
+		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKWHITE, (POINTER)DrawMenuItem );
+		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (PTRSZVAL)hColorMenu2, WIDE( "Background Color" ) );
+	}
+	AppendPopupItem( hChildMenu, MF_STRING, MNU_COMMAND_COLOR, WIDE( "Command Color" ) );
 	AppendPopupItem( hChildMenu, MF_STRING, MNU_COMMAND_BACK, WIDE( "Command Background Color" ) );
 	AppendPopupItem( hChildMenu, MF_STRING, MNU_DIRECT, WIDE( "Direct Mode" ) );
 	//Log( WIDE( "Menus created..." ) );
 	cPenNormal = GetBaseColor( NORMAL );
 	cPenHighlight = GetBaseColor( HIGHLIGHT );
-   cPenShadow = GetBaseColor( SHADE );
-   cPenDkShadow = GetBaseColor( SHADOW );
-   cPenCursor = Color( 255, 255, 255 );
+	cPenShadow = GetBaseColor( SHADE );
+	cPenDkShadow = GetBaseColor( SHADOW );
+	cPenCursor = Color( 255, 255, 255 );
 	WindowRegistered = TRUE;
 	return TRUE;
 }
@@ -630,21 +630,20 @@ static int CPROC Close( PDATAPATH pPath )
 	RemoveVolatileVariable( console->common.Owner->Current, &vve_cursory );
 	console->common.Close = NULL;
 	console->common.Write = NULL;
-   console->common.Read = NULL;
+	console->common.Read = NULL;
 	console->common.Type = 0;
 
 	PSI_DestroyHistoryRegion( console->pHistory );
 	PSI_DestroyHistoryCursor( console->pCursor );
 	PSI_DestroyHistoryBrowser( console->pCurrentDisplay );
 	PSI_DestroyHistoryBrowser( console->pHistoryDisplay );
+	PSI_DestroyHistoryBrowser( console->pCommandDisplay );
 
 	DestroyFrame( &console->psicon.frame );
 
 	return 1;
 }
 #endif
-
-struct PSI_Console_GetHistory(
 
 static void FillDefaultColors( void )
 {
@@ -698,6 +697,13 @@ PRELOAD(RegisterConsole)
 
 }
 
+
+void CPROC PSIMeasureString( PTRSZVAL psvConsole, CTEXTSTR s, int nShow, _32 *w, _32 *h )
+{
+	PCONSOLE_INFO console = (PCONSOLE_INFO)psvConsole;
+	GetStringSizeFontEx( s, nShow, w, h, GetCommonFont( console->psicon.frame ) );
+}
+
 //----------------------------------------------------------------------------
 // methods for window logic routines to use as callbacks...
 //----------------------------------------------------------------------------
@@ -709,15 +715,16 @@ static void CPROC DrawString( PCONSOLE_INFO console, int x, int y, RECT *r, CTEX
 	//		 , console->psicon.crText, console->psicon.crBack );
 	{
 		_32 w, h;
-      GetStringSizeFontEx( s + nShown, nShow, &w, &h, console->psicon.hFont );
+		GetStringSizeFontEx( s + nShown, nShow, &w, &h, GetCommonFont( console->psicon.frame ) );
 		r->right = r->left + w;
-		r->bottom = r->left + h;
+		r->bottom = r->top + h;
 	}
+	lprintf( WIDE("Output string (%d-%d)  (%d-%d) %*.*s"), (*r).left, (*r).right, (*r).top, (*r).bottom, nShow, nShow, s + nShown );
 	PutStringFontEx( console->psicon.image, x, y
 						, console->psicon.crText, console->psicon.crBack
 						, s + nShown
 						, nShow
-						, console->psicon.hFont );
+						, GetCommonFont( console->psicon.frame ) );
 }
 
 //----------------------------------------------------------------------------
@@ -744,7 +751,7 @@ static void CPROC SetCurrentColor( PCONSOLE_INFO console, enum current_color_typ
 			( console->psicon.crText = crColorTableText[segment->format.flags.foreground] );
 			( console->psicon.crBack = crColorTableBack[segment->format.flags.background] );
 		}
-      break;
+		break;
 	}
 	//lprintf( WIDE( "Set Color :%p %d #%08lX #%08lX" ), console, type
 	//		 , console->psicon.crText, console->psicon.crBack );
@@ -760,14 +767,14 @@ static void CPROC FillConsoleRect( PCONSOLE_INFO console, RECT *r, enum fill_col
 		BlatColorAlpha( console->psicon.image
 					, r->left,r->top
 					, r->right - r->left
-					, r->bottom - r->top, console->psicon.crBackground );
+					, r->bottom - r->top, console->psicon.crCommandBackground );
 		break;
 	case FILL_DISPLAY_BACK:
 		BlatColorAlpha( console->psicon.image, r->left,r->top
 					 ,r->right - r->left
 					 ,r->bottom - r->top
-					, console->psicon.crCommandBackground );
-      break;
+					, console->psicon.crBack );
+		break;
 	}
 }
 
@@ -827,25 +834,27 @@ static void CPROC Update( PCONSOLE_INFO pmdp, RECT *upd )
 {
 	// passed region is the region which was updated by drawing
 	// code.
-   //lprintf( WIDE( "------------------------------------" ) );
+	//lprintf( WIDE( "------------------------------------" ) );
 	//lprintf( WIDE("update some controls... %d,%d - %d,%d"), upd->left, upd->right, upd->top, upd->bottom );
 	upd->right -= upd->left;
 	upd->bottom -= upd->top;
 	// this causes the parent to update? shoudl be smart and recall the parent's
 	// saved original picture here...
 
-   UpdateSomeControls( pmdp->psicon.frame, (IMAGE_RECTANGLE*)upd );
-   //lprintf( WIDE("------------------------------------") );
+	UpdateSomeControls( pmdp->psicon.frame, (IMAGE_RECTANGLE*)upd );
+	//lprintf( WIDE("------------------------------------") );
 }
 
 //----------------------------------------------------------------------------
+
+
 
 int CPROC InitPSIConsole( PSI_CONTROL pc )
 {
 	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
 	if( !RegisterWindows() )
 	{
-		//Log( "Register windows failed..." );
+		//Log( WIDE("Register windows failed...") );
 		return FALSE; // cancel load, unload library...
 	}
 	FillDefaultColors();
@@ -854,13 +863,9 @@ int CPROC InitPSIConsole( PSI_CONTROL pc )
 
 	if( console )
 	{
-		//console->common.pName = SegCreateFromText( "Auto Console" );
-		//Log( "Create frame!!" );
+		//console->common.pName = SegCreateFromText( WIDE("Auto Console") );
+		//Log( WIDE("Create frame!!") );
 		console->psicon.frame = pc;
-
-		console->psicon.image = GetFrameSurface( console->psicon.frame );
-		console->psicon.hFont = GetCommonFont( console->psicon.frame );
-		GetStringSizeFont( WIDE(" "), &console->nFontWidth, &console->nFontHeight, console->psicon.hFont );
 
 		InitializeCriticalSec( &console->Lock );
 
@@ -879,8 +884,9 @@ int CPROC InitPSIConsole( PSI_CONTROL pc )
 
 		console->pHistory = PSI_CreateHistoryRegion();
 		console->pCursor = PSI_CreateHistoryCursor( console->pHistory );
-		console->pCurrentDisplay = PSI_CreateHistoryBrowser( console->pHistory );
-		console->pHistoryDisplay = PSI_CreateHistoryBrowser( console->pHistory );
+		console->pCurrentDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (PTRSZVAL)console );
+		console->pHistoryDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (PTRSZVAL)console );
+		console->pCommandDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (PTRSZVAL)console );
 		PSI_SetHistoryBrowserNoPageBreak( console->pHistoryDisplay );
 
 		console->nXPad = 5;
@@ -890,6 +896,7 @@ int CPROC InitPSIConsole( PSI_CONTROL pc )
 		console->FillConsoleRect = FillConsoleRect;
 		console->RenderSeparator = RenderSeparator;
 		console->DrawString = DrawString;
+		//console->measureString = PSIMeasureString;
 		console->KeystrokePaste = PSI_Console_KeystrokePaste;
 		console->SetCurrentColor = SetCurrentColor;
 		console->RenderCursor = RenderCursor;
@@ -901,7 +908,7 @@ int CPROC InitPSIConsole( PSI_CONTROL pc )
 		//DisplayFrame( console->psicon.frame );
 		return 1;
 	}
-   return 0;
+	return 0;
 }
 PSI_CONSOLE_NAMESPACE_END
 //----------------------------------------------------------------------------

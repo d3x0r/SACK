@@ -1,3 +1,4 @@
+#define NO_UNICODE_C
 #ifdef _MSC_VER
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
@@ -189,7 +190,7 @@ typedef struct result_buffer
 static void CPROC MatchFile( PTRSZVAL psvUser, CTEXTSTR name, int flags )
 {
 	PRESULT_BUFFER buffer = (PRESULT_BUFFER)psvUser;
-	buffer->result_len = snprintf( buffer->buffer, buffer->len*sizeof(TEXTCHAR), WIDE("%s"), name );
+	buffer->result_len = tnprintf( buffer->buffer, buffer->len*sizeof(TEXTCHAR), WIDE("%s"), name );
 }
 
 int  GetMatchingFileName ( CTEXTSTR filemask, int flags, TEXTSTR pResult, int nResult )
@@ -526,25 +527,27 @@ int  ScanFiles ( CTEXTSTR base
 	//DIR *dir;
 	char name[256];
 	struct dirent *de;
+   char *_base = CStrDup( base );
+   char *_mask = CStrDup( mask );
 	//char basename[256];
 	// need to dup base - it might be in read-only space.
 	if( !*pInfo )
 	{
 		(*pInfo) = New( MFD );
 		if( base )
-			strcpy( findbasename(pInfo), base );
+			strcpy( findbasename(pInfo), _base );
 		else
 		{
 			CTEXTSTR p = pathrchr( mask );
 			if( p )
 			{
-				strncpy( findbasename(pInfo), mask, p - mask );
+				strncpy( findbasename(pInfo), _mask, p - mask );
 				findbasename(pInfo)[p-mask] = 0;
 				mask = p + 1;
 			}
 			else
 			{
-				strcpy( findbasename(pInfo), WIDE(".") );
+				strcpy( findbasename(pInfo), "." );
 			}
 		}
       //lprintf( "Open directory for scanning... %s %s", base, mask );
@@ -557,28 +560,32 @@ int  ScanFiles ( CTEXTSTR base
       //dir = (DIR*)*pInfo;
 	}
 	{
-		char *p;
+		TEXTCHAR *p;
+      TEXTCHAR *tmppath = DupCStr( findbasename(pInfo) );
 		// result from pathrchr is within findbasename(pInfo)
 		// it's result si technically a CTEXTSTR since
 		// that is what is passed to pathrchr
-		if( ( p = (char*)pathrchr( findbasename(pInfo) ) ) )
+		if( ( p = (TEXTCHAR*)pathrchr( tmppath ) ) )
 		{
 			if( !p[1] )
 			{
 				p[0] = 0;
 			}
 		}
+      Release( tmppath );
 	}
 	if( finddir( pInfo ) )
 		while( ( de = readdir( finddir( pInfo ) ) ) )
 		{
+			char *de_d_name = de->d_name;
+         TEXTCHAR *_de_d_name = DupCStr( de_d_name );
 			struct stat filestat;
-			//lprintf( WIDE("Check: %s"), de->d_name );
+			//lprintf( WIDE("Check: %s"), de_d_name );
 			// should figure a way to check file vs mask...
-			if( !strcmp( WIDE("."), de->d_name ) ||
-				!strcmp( WIDE(".."), de->d_name ) )
+			if( !strcmp( ".", de_d_name ) ||
+				!strcmp( "..", de_d_name ) )
 				continue;
-			sprintf( name, WIDE("%s/%s"), findbasename(pInfo), de->d_name );
+			sprintf( name, "%s/%s", findbasename(pInfo), de_d_name );
 #ifdef BCC32
 			if( stat( name, &filestat ) == -1 )
 				continue;
@@ -599,28 +606,38 @@ int  ScanFiles ( CTEXTSTR base
 			{
 				if( flags & SFF_SUBCURSE )
 				{
+               TEXTCHAR *tmpresult;
 					void *data = NULL;
 					if( S_ISBLK( filestat.st_mode ) ||
 						S_ISCHR( filestat.st_mode ) )
-                  continue;
+						continue;
+               tmpresult = NULL;
 		   		if( flags & SFF_DIRECTORIES ) 
 						if( Process )
 							Process( psvUser
-							       , (flags & SFF_NAMEONLY)?de->d_name:name
-							       , SFF_DIRECTORY );
-					while( ScanFiles( name, mask, &data, Process, flags, psvUser ) );
+							       , tmpresult = DupCStr( (flags & SFF_NAMEONLY)?de_d_name:name )
+									 , SFF_DIRECTORY );
+               if( tmpresult )
+						Release( tmpresult );
+					while( ScanFiles( DupCStr( name ), mask, &data, Process, flags, psvUser ) );
 				}
 				continue;
 			}
-			if( CompareMask( mask, de->d_name, (flags & SFF_IGNORECASE)?0:1 ) )
+			if( CompareMask( mask, _de_d_name, (flags & SFF_IGNORECASE)?0:1 ) )
 			{
+				TEXTCHAR *tmpresult;
+            tmpresult = NULL;
 				if( Process )
 					Process( psvUser
-					       , (flags & SFF_NAMEONLY)?de->d_name:name
-					       , 0 );
+					       , tmpresult = DupCStr( (flags & SFF_NAMEONLY)?de_d_name:name )
+							 , 0 );
+				if( tmpresult )
+               Release( tmpresult );
 				return 1;
 			}
 		}
+	Release( _base );
+   Release( _mask );
 	if( finddir( pInfo ) )
 		closedir( finddir( pInfo ) );
 

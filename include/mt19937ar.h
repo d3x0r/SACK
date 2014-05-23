@@ -43,30 +43,37 @@
    email: m-mat @ math.sci.hiroshima-u.ac.jp (remove space)
 */
 
+# ifdef MERSENNE_SOURCE
+#  define MERSENNE_PROC(type,name) EXPORT_METHOD type CPROC name
+# else
+#  define MERSENNE_PROC(type,name) IMPORT_METHOD type CPROC name
+# endif
+
+
 /* initializes mt[N] with a seed */
-void init_genrand(struct mersenne_rng *rng,_32 s);
+MERSENNE_PROC( struct mersenne_rng *, init_genrand )(_32 s);
 
 /* initialize by an array with array-length */
 /* init_key is the array for initializing keys */
 /* key_length is its length; in 32 bit words */
 /* slight change for C++, 2004/2/26 */
-void init_by_array(struct mersenne_rng *rng,_32 init_key[], int key_length);
+MERSENNE_PROC( struct mersenne_rng *, init_by_array )(_32 init_key[], int key_length);
 
 /* generates a random number on [0,0xffffffff]-interval */
-_32 genrand_int32(struct mersenne_rng *rng);
+MERSENNE_PROC( _32, genrand_int32 )(struct mersenne_rng *rng);
 
 /* generates a random number on [0,0x7fffffff]-interval */
-long genrand_int31(struct mersenne_rng *rng);
+MERSENNE_PROC( long, genrand_int31 )(struct mersenne_rng *rng);
 
 /* These real versions are due to Isaku Wada, 2002/01/09 added */
 /* generates a random number on [0,1]-real-interval */
-double genrand_real1(struct mersenne_rng *rng);
+MERSENNE_PROC( double, genrand_real1 )(struct mersenne_rng *rng);
 
 /* generates a random number on [0,1)-real-interval */
-double genrand_real2(struct mersenne_rng *rng);
+MERSENNE_PROC( double, genrand_real2 )(struct mersenne_rng *rng);
 
 /* generates a random number on (0,1)-real-interval */
-double genrand_real3(struct mersenne_rng *rng);
+MERSENNE_PROC( double, genrand_real3 )(struct mersenne_rng *rng);
 
 /* generates a random number on [0,1) with 53-bit resolution*/
-double genrand_res53(struct mersenne_rng *rng);
+MERSENNE_PROC( double, genrand_res53 )(struct mersenne_rng *rng);

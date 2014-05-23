@@ -21,10 +21,8 @@ CORECON_PROC( void, PSI_RenderConsole )( PCONSOLE_INFO pdp );
 // the size of the whole surface has not changed,
 // use this to update portions within...
 CORECON_PROC(void, PSI_CalculateHistory )( PCONSOLE_INFO pdp );
-CORECON_PROC( int, PSI_WinLogicWrite )( PCONSOLE_INFO pdp
-											 , PTEXT pLine
-											 );
-CORECON_PROC( int, PSI_WinLogicWriteEx )( PCONSOLE_INFO pdp
+
+CORECON_PROC( PSI_Console_Phrase, PSI_WinLogicWriteEx )( PCONSOLE_INFO pdp
 												, PTEXT pLine
 												, int update
 												);
@@ -62,6 +60,7 @@ typedef struct penging_rectangle_tag
 
 
 void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region );	
+void CPROC PSIMeasureString( PTRSZVAL psvConsole, CTEXTSTR s, int nShown, _32 *w, _32 *h );
 
 PSI_CONSOLE_NAMESPACE_END
 
