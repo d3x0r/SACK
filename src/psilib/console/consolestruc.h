@@ -61,36 +61,36 @@ PSI_CONSOLE_NAMESPACE
 
 #if !defined( WIN32 ) && !defined( _WIN32 )
 typedef struct rect_tag {
-   S_32 top,left,right,bottom;
+	S_32 top,left,right,bottom;
 } RECT;
 #endif
 //----------------------------------------------------------------------------
 // unused STILL - but one day status bars on output may be useful!
 
 typedef struct statfield_tag {
-   PTEXT *pLine; // line to pass to macroduplicate to get the actual string
-   int nLength; // length of this field - text will not exceed this
+	PTEXT *pLine; // line to pass to macroduplicate to get the actual string
+	int nLength; // length of this field - text will not exceed this
 
 	struct statfield_tag **me;
 	struct statfield_tag *pNext; // next to the right or next to the left...
 } STATFIELD, *PSTATFIELD;
 
 typedef struct statbar_tag {
-   PSTATFIELD *pLeft, *pRight;
+	PSTATFIELD *pLeft, *pRight;
 } STATBAR, *PSTATBAR;
 
 
 //----------------------------------------------------------------------------
 
 typedef struct keybind_tag { // overrides to default definitions
-   struct {
-        int bMacro:1;
-        int bFunction:1;
-      int bStroke:1;
-   } flags;
+	struct {
+		  int bMacro:1;
+		  int bFunction:1;
+		int bStroke:1;
+	} flags;
 	union {
-      PTEXT stroke;
-   } data;
+		PTEXT stroke;
+	} data;
 } KEYBIND, *PKEYBIND;
 
 //----------------------------------------------------------------------------
@@ -104,7 +104,7 @@ typedef struct keybind_tag { // overrides to default definitions
 	//int nHistoryPercent; // 0 = 25, 1 = 50, 2 = 75, 3 = 100
 	//int nCursorX; // current offset on current line
 	//int nCursorY; // line offset from last line ... ( -1-> - lines)
-   //int tabsize;   // multiple size of tabs....
+	//int tabsize;	// multiple size of tabs....
 //} VBUFFER, *PVBUFFER;
 
 enum current_color_type
@@ -145,26 +145,27 @@ struct history_tracking_info
 	PHISTORY_LINE_CURSOR pCursor;
 
 	_32 pending_spaces;
-   _32 pending_tabs;
-   
+	_32 pending_tabs;
+	
 };
 
 //----------------------------------------------------------------------------
 
 typedef struct myconsolestruc {
-   // these would otherwise exist within the common datapath structure...
-   PUSER_INPUT_BUFFER CommandInfo;
+	// these would otherwise exist within the common datapath structure...
+	PUSER_INPUT_BUFFER CommandInfo;
 
 	// physical width and height, (1:1 in console modes)
-	_32 nWidth;   // in pixels
+	_32 nWidth;	// in pixels
 	_32 nColumns; // in character count width
 	_32 nHeight;  // in pixels
-	_32 nLines;   // in character count rows
+	_32 nLines;	// in character count rows
 
 	CRITICALSECTION Lock;
 
 	struct {
 		BIT_FIELD bDirect:1; // alternative to direct is Line-Mode
+		BIT_FIELD bWrapCommand : 1; // normal mode is ot not wrap, but to scroll off...
 		BIT_FIELD bLastEnqueCommand:1; // set if the last thing output was the command.
 		BIT_FIELD bUpdatingEnd : 1;
 		BIT_FIELD bMarking : 1;
@@ -183,9 +184,9 @@ typedef struct myconsolestruc {
 		BIT_FIELD bBuildDataWithCarriageReturn : 1;
 	} flags;
 
-   // these are working parameters during output...
+	// these are working parameters during output...
 	_32 pending_spaces;
-   _32 pending_tabs;
+	_32 pending_tabs;
 
 	RECT rArea; // pixel size of the display (if font height/width>1)
 	_32 nFontHeight;
@@ -218,6 +219,9 @@ typedef struct myconsolestruc {
 	// output is performed here.
 	// view is always built from tail backward.(?)
 	PHISTORY_BROWSER pCurrentDisplay;
+	// a display browser for formatting the command input line
+	// in wrapped mode.
+	PHISTORY_BROWSER pCommandDisplay;
 	// history, but on the outbound side?
 	//
 	// cursor as output has a cursor position
@@ -225,7 +229,7 @@ typedef struct myconsolestruc {
 	// I should probably seperate the data, but they
 	// share the same width/height...
 	PHISTORY_LINE_CURSOR pCursor;
-   
+	
 	PDATALIST *CurrentLineInfo;
 
 	KEYBIND Keyboard[256][8];
@@ -254,10 +258,13 @@ typedef struct myconsolestruc {
 	void (CPROC *SetCurrentColor )( struct myconsolestruc *pmdp, enum current_color_type, PTEXT segment );
 	void (CPROC *RenderSeparator )( struct myconsolestruc *pmdp, int pos );
 	void (CPROC *KeystrokePaste )( struct myconsolestruc *pmdp );
+	//MeasureString measureString;
+	//PTRSZVAL psv_measureString;
+
 	void (CPROC *RenderCursor )( struct myconsolestruc *pmdp, RECT *r, int column );
 	void (CPROC *Update )( struct myconsolestruc *pmdp, RECT *upd );
-   // void CPROC
-   PLIST data_processors;
+	// void CPROC
+	PLIST data_processors;
 	union {
 		// this is what this union has if nothing else defined
 		// winlogic should need no member herein....
@@ -267,7 +274,7 @@ typedef struct myconsolestruc {
 		{
 			PRENDERER renderer;
 			PCOMMON frame;
-			SFTFont hFont;
+			//SFTFont hFont;
 			Image image;
 			CDATA  crCommand;
 			CDATA  crCommandBackground;
@@ -276,7 +283,7 @@ typedef struct myconsolestruc {
 			CDATA  crMarkBackground;
 			// current working parameters...
 			CDATA crText;
-         CDATA crBack;
+			CDATA crBack;
 		} psicon;
 	};
 

@@ -16,22 +16,22 @@ extern TEXTSTR ExpandPath( CTEXTSTR path );
 
  CTEXTSTR  pathrchr ( CTEXTSTR path )
 {
-    CTEXTSTR end1, end2;
-    end1 = strrchr( path, '\\' );
-    end2 = strrchr( path, '/' );
-    if( end1 > end2 )
-        return end1;
+	CTEXTSTR end1, end2;
+	end1 = StrRChr( path, '\\' );
+	end2 = StrRChr( path, '/' );
+	if( end1 > end2 )
+		return end1;
    return end2;
 }
 
 #ifdef __cplusplus
  TEXTSTR  pathrchr ( TEXTSTR path )
 {
-    TEXTSTR end1, end2;
-    end1 = strrchr( path, '\\' );
-    end2 = strrchr( path, '/' );
-    if( end1 > end2 )
-        return end1;
+	TEXTSTR end1, end2;
+	end1 = StrRChr( path, '\\' );
+	end2 = StrRChr( path, '/' );
+	if( end1 > end2 )
+		return end1;
    return end2;
 }
 #endif
@@ -40,19 +40,19 @@ extern TEXTSTR ExpandPath( CTEXTSTR path );
 
  CTEXTSTR  pathchr ( CTEXTSTR path )
 {
-    CTEXTSTR end1, end2;
-    end1 = strchr( path, (int)'\\' );
-    end2 = strchr( path, (int)'/' );
-    if( end1 && end2 )
-    {
-        if( end1 < end2 )
-            return end1;
-      return end2;
-    }
-    else if( end1 )
-        return end1;
-    else if( end2 )
-      return end2;
+	CTEXTSTR end1, end2;
+	end1 = StrChr( path, (int)'\\' );
+	end2 = StrChr( path, (int)'/' );
+	if( end1 && end2 )
+	{
+		if( end1 < end2 )
+			return end1;
+	  return end2;
+	}
+	else if( end1 )
+		return end1;
+	else if( end2 )
+	  return end2;
    return NULL;
 }
 
@@ -60,23 +60,35 @@ extern TEXTSTR ExpandPath( CTEXTSTR path );
 
 TEXTSTR GetCurrentPath( TEXTSTR path, int len )
 {
-    if( !path )
-        return 0;
+	if( !path )
+		return 0;
 #ifndef UNDER_CE
-#ifdef _WIN32
-    GetCurrentDirectory( len, path );
-#else
-    getcwd( path, len );
+#  ifdef _WIN32
+	GetCurrentDirectory( len, path );
+#  else
+#	  ifdef UNICODE
+	{
+		char _path[256];
+		TEXTCHAR *tmppath;
+		//getcwd( _path, 256 );
+		//tmppath = DupCStr( _path );
+		//StrCpyEx( path, tmppath, len );
+		path[0] = '.';
+      path[1] = 0;
+	}
+#	  else
+	getcwd( path, len );
+#	  endif
+#  endif
 #endif
-#endif
-    return path;
+	return path;
 }
 
 #ifndef _WIN32
 static void convert( P_64 outtime, time_t *time )
 {
 #warning convert time function is incomplete.
-    *outtime = *time;
+	*outtime = *time;
 }
 #endif
 
@@ -85,50 +97,58 @@ static void convert( P_64 outtime, time_t *time )
 _64 GetTimeAsFileTime ( void )
 {
 #if defined( __LINUX__ )
-    struct timeval tmp;
-    struct timezone tz;
-    FILETIME result;
-    gettimeofday( &tmp, &tz );
-    result = ( tmp.tv_usec * 10LL ) + ( tmp.tv_sec * 1000LL * 1000LL * 10LL );
-    return result;
+	struct timeval tmp;
+	struct timezone tz;
+	FILETIME result;
+	gettimeofday( &tmp, &tz );
+	result = ( tmp.tv_usec * 10LL ) + ( tmp.tv_sec * 1000LL * 1000LL * 10LL );
+	return result;
 #else
-    SYSTEMTIME st;
-    FILETIME result;
-    GetLocalTime( &st );
-    SystemTimeToFileTime( &st, &result );
-    return *(_64*)&result;
+	SYSTEMTIME st;
+	FILETIME result;
+	GetLocalTime( &st );
+	SystemTimeToFileTime( &st, &result );
+	return *(_64*)&result;
 #endif
 }
 
  _64  GetFileWriteTime( CTEXTSTR name ) // last modification time.
 {
 #ifdef _WIN32
-    HANDLE hFile = CreateFile( name
-                                  , 0 // device access?
-                                  , FILE_SHARE_READ|FILE_SHARE_WRITE
-                                  , NULL
-                                  , OPEN_EXISTING
-                                  , 0
-                                  , NULL );
-    if( hFile != INVALID_HANDLE_VALUE )
-    {
-        FILETIME filetime;
-        //_64 realtime;
-        GetFileTime( hFile, NULL, NULL, &filetime );
-        CloseHandle( hFile );
-        //realtime = *(_64*)&filetime;
-        //realtime *= 100; // nano seconds?
-        return *(_64*)&filetime;
-    }
-    return 0;
+	HANDLE hFile = CreateFile( name
+								  , 0 // device access?
+								  , FILE_SHARE_READ|FILE_SHARE_WRITE
+								  , NULL
+								  , OPEN_EXISTING
+								  , 0
+								  , NULL );
+	if( hFile != INVALID_HANDLE_VALUE )
+	{
+		FILETIME filetime;
+		//_64 realtime;
+		GetFileTime( hFile, NULL, NULL, &filetime );
+		CloseHandle( hFile );
+		//realtime = *(_64*)&filetime;
+		//realtime *= 100; // nano seconds?
+		return *(_64*)&filetime;
+	}
+	return 0;
 #else
-    struct stat statbuf;
-    _64 realtime;
-    stat( name, &statbuf );    
-    convert( &realtime, (time_t*)&statbuf.st_mtime );
-    return realtime;
-#endif    
-    return 0;
+	struct stat statbuf;
+	 _64 realtime;
+#ifdef UNICODE
+	 {
+	   char *tmpname = CStrDup( name );
+		 stat( tmpname, &statbuf );
+		 Release( tmpname );
+	 }
+#else
+	 stat( name, &statbuf );
+#endif
+	convert( &realtime, (time_t*)&statbuf.st_mtime );
+	return realtime;
+#endif	
+	return 0;
 }
 
 //-----------------------------------------------------------------------
@@ -136,56 +156,65 @@ _64 GetTimeAsFileTime ( void )
  LOGICAL  SetFileWriteTime( CTEXTSTR name, _64 filetime ) // last modification time.
 {
 #ifdef _WIN32
-    HANDLE hFile = CreateFile( name
-                                  , GENERIC_WRITE // device access?
-                                  , FILE_SHARE_READ|FILE_SHARE_WRITE
-                                  , NULL
-                                  , OPEN_EXISTING
-                                  , 0
-                                  , NULL );
-    if( hFile != INVALID_HANDLE_VALUE )
-    {
-        //_64 realtime;
-        SetFileTime( hFile, NULL, NULL, (CONST FILETIME*)&filetime );
-        CloseHandle( hFile );
-        //realtime = *(_64*)&filetime;
-       //realtime *= 100; // nano seconds?
-      return TRUE;
-    }
-    return FALSE;
+	HANDLE hFile = CreateFile( name
+								  , GENERIC_WRITE // device access?
+								  , FILE_SHARE_READ|FILE_SHARE_WRITE
+								  , NULL
+								  , OPEN_EXISTING
+								  , 0
+								  , NULL );
+	if( hFile != INVALID_HANDLE_VALUE )
+	{
+		//_64 realtime;
+		SetFileTime( hFile, NULL, NULL, (CONST FILETIME*)&filetime );
+		CloseHandle( hFile );
+		//realtime = *(_64*)&filetime;
+	   //realtime *= 100; // nano seconds?
+	  return TRUE;
+	}
+	return FALSE;
 #else
-    struct stat statbuf;
-    _64 realtime;
-    stat( name, &statbuf );    
-    convert( &realtime, (time_t*)&statbuf.st_mtime );
-    return realtime;
-#endif    
-    return 0;
+	struct stat statbuf;
+	_64 realtime;
+#ifdef UNICODE
+	 {
+		 int status;
+	   char *tmpname = CStrDup( name );
+		 stat( tmpname, &statbuf );
+		 Release( tmpname );
+	 }
+#else
+	 stat( name, &statbuf );
+#endif
+	convert( &realtime, (time_t*)&statbuf.st_mtime );
+	return realtime;
+#endif	
+	return 0;
 }
 
 #ifdef WIN32
 _64 ConvertFileTimeToInt( const FILETIME *filetime )
 {
-    ULARGE_INTEGER tmp;
-    tmp.u.LowPart = filetime->dwLowDateTime;
-    tmp.u.HighPart = filetime->dwHighDateTime;
-    return tmp.QuadPart;
+	ULARGE_INTEGER tmp;
+	tmp.u.LowPart = filetime->dwLowDateTime;
+	tmp.u.HighPart = filetime->dwHighDateTime;
+	return tmp.QuadPart;
 }
 
 void ConvertFileIntToFileTime( _64 int_filetime, FILETIME *filetime )
 {
-    ULARGE_INTEGER tmp;
-    tmp.QuadPart = int_filetime;
-    filetime->dwLowDateTime  = tmp.u.LowPart;
-    filetime->dwHighDateTime = tmp.u.HighPart;
+	ULARGE_INTEGER tmp;
+	tmp.QuadPart = int_filetime;
+	filetime->dwLowDateTime  = tmp.u.LowPart;
+	filetime->dwHighDateTime = tmp.u.HighPart;
 }
 #endif
 
 LOGICAL  SetFileTimes( CTEXTSTR name
-                            , _64 time_create  // last modification time.
-                            , _64 time_modify // last modification time.
-                            , _64 time_access  // last modification time.
-                            )
+							, _64 time_create  // last modification time.
+							, _64 time_modify // last modification time.
+							, _64 time_access  // last modification time.
+							)
 {
 #ifdef _WIN32
 	LOGICAL result = TRUE;
@@ -242,38 +271,55 @@ LOGICAL  SetFileTimes( CTEXTSTR name
 	}
 	return FALSE;
 #else
-    struct stat statbuf;
-    _64 realtime;
-    stat( name, &statbuf );    
-    convert( &realtime, (time_t*)&statbuf.st_mtime );
-    return realtime;
-#endif    
-    return 0;
+	struct stat statbuf;
+	 _64 realtime;
+#ifdef UNICODE
+	 {
+	   char *tmpname = CStrDup( name );
+		 stat( tmpname, &statbuf );
+	   Release( tmpname );
+	 }
+#else
+	 stat( name, &statbuf );
+#endif
+	convert( &realtime, (time_t*)&statbuf.st_mtime );
+	return realtime;
+#endif	
+	return 0;
 }
 
 //-----------------------------------------------------------------------
 
 LOGICAL  IsPath ( CTEXTSTR path )
 {
-    
-    if( !path )
-        return 0;
+	
+	if( !path )
+		return 0;
 #ifdef _WIN32
-    {
-        DWORD dwResult;
-        dwResult = GetFileAttributes( path );
-        if( dwResult == 0xFFFFFFFF )
-            return 0;
-        if( dwResult & FILE_ATTRIBUTE_DIRECTORY ) 
-            return 1;
-        return 0;
-    }
+	{
+		DWORD dwResult;
+		dwResult = GetFileAttributes( path );
+		if( dwResult == 0xFFFFFFFF )
+			return 0;
+		if( dwResult & FILE_ATTRIBUTE_DIRECTORY ) 
+			return 1;
+		return 0;
+	}
 #else
-        {
-    struct stat statbuf;
-    stat( path, &statbuf );
-        return S_ISDIR( statbuf.st_mode );
-        }
+	 {
+		 struct stat statbuf;
+#ifdef UNICODE
+		 {
+			 int status;
+			 char *tmppath = CStrDup( path );
+			 stat( tmppath, &statbuf );
+		  Release( tmppath );
+		 }
+#else
+		 stat( path, &statbuf );
+#endif
+		 return S_ISDIR( statbuf.st_mode );
+	 }
 #endif
 }
 
@@ -281,25 +327,35 @@ LOGICAL  IsPath ( CTEXTSTR path )
 
  int  MakePath ( CTEXTSTR path )
 {
-    int status;
-    if( !path )
-        return 0;
+	int status;
+	if( !path )
+		return 0;
 #ifdef _WIN32
-    status = CreateDirectory( path, NULL );
-    if( !status )
-    {
-        TEXTSTR tmppath = StrDup( path );
-        TEXTSTR last = (TEXTSTR)pathrchr( tmppath );
-        if( last )
-        {
-            last[0] = 0;
-            MakePath( tmppath );
-            status = CreateDirectory( path, NULL );
-        }
-    }
-    return status;
+	status = CreateDirectory( path, NULL );
+	if( !status )
+	{
+		TEXTSTR tmppath = StrDup( path );
+		TEXTSTR last = (TEXTSTR)pathrchr( tmppath );
+		if( last )
+		{
+			last[0] = 0;
+			MakePath( tmppath );
+			status = CreateDirectory( path, NULL );
+		}
+	}
+	return status;
 #else
-    return !mkdir( path, -1 ); // make directory with full umask permissions
+#ifdef UNICODE
+	 {
+		 int status;
+	   char *tmppath = CStrDup( path );
+		 status = mkdir( tmppath, -1 ); // make directory with full umask permissions
+		 Release( tmppath );
+		 return !status;
+	 }
+#else
+	 return !mkdir( path, -1 ); // make directory with full umask permissions
+#endif
 #endif
 }
 
@@ -307,55 +363,63 @@ LOGICAL  IsPath ( CTEXTSTR path )
 
 int  SetCurrentPath ( CTEXTSTR path )
 {
-    int status = 1;
+	int status = 1;
    TEXTSTR tmp_path;
-    if( !path )
-        return 0;
+	if( !path )
+		return 0;
    tmp_path = ExpandPath( path );
 #ifndef UNDER_CE
 #  ifdef _WIN32
-    status = SetCurrentDirectory( tmp_path );
+	status = SetCurrentDirectory( tmp_path );
 #  else
-    status = !chdir( tmp_path );
+#	ifdef UNICODE
+	 {
+	   char *tmppath = CStrDup( path );
+		 status = chdir( tmppath ); // make directory with full umask permissions
+		 Release( tmppath );
+	 }
+#	else
+	 status = !chdir( tmp_path );
+#	endif
 #  endif
    Release( tmp_path );
-    if( status )
-    {
-        TEXTCHAR tmp[256];
-        path = GetCurrentPath( tmp, sizeof( tmp ) );
-        SetDefaultFilePath( path );
-    }
-    else
-    {
-        TEXTCHAR tmp[256];
-        lprintf( WIDE( "Failed to change to [%s](%d) from %s" ), path, GetLastError(), GetCurrentPath( tmp, sizeof( tmp ) ) );
-    }
+	if( status )
+	{
+		TEXTCHAR tmp[256];
+		path = GetCurrentPath( tmp, sizeof( tmp ) );
+		SetDefaultFilePath( path );
+	}
+	else
+	{
+		TEXTCHAR tmp[256];
+		lprintf( WIDE( "Failed to change to [%s](%d) from %s" ), path, GetLastError(), GetCurrentPath( tmp, sizeof( tmp ) ) );
+	}
 #endif
 
-    return status;
+	return status;
 }
 
 LOGICAL IsAbsolutePath( CTEXTSTR path )
 {
-    if(path)
-    {
+	if(path)
+	{
 #ifdef WIN32
-        if( ( path[0] && path[1] && path[2] ) &&
-              ( ( ( ( path[0] >= 'a' && path[0] <= 'z' )
-                  || ( path[0] >= 'A' && path[0] <= 'Z' ) )
-                  && ( path[1] == ':' )
-                  && ( path[2] == '/' || path[2] == '\\' ) )
-                || ( path[0] == '/' && path[1] == '/' )
-                || ( path[0] == '\\' && path[1] == '\\' )
-              || ( path[0] == '/' || path[0] == '\\' ) )
-          )
-            return TRUE;
+		if( ( path[0] && path[1] && path[2] ) &&
+			  ( ( ( ( path[0] >= 'a' && path[0] <= 'z' )
+				  || ( path[0] >= 'A' && path[0] <= 'Z' ) )
+				  && ( path[1] == ':' )
+				  && ( path[2] == '/' || path[2] == '\\' ) )
+				|| ( path[0] == '/' && path[1] == '/' )
+				|| ( path[0] == '\\' && path[1] == '\\' )
+			  || ( path[0] == '/' || path[0] == '\\' ) )
+		  )
+			return TRUE;
 #else
-        if( path[0] == '/' || path[0] == '\\' )
-            return TRUE;
+		if( path[0] == '/' || path[0] == '\\' )
+			return TRUE;
 #endif
-    }
-    return FALSE;
+	}
+	return FALSE;
 }
 
 LOGICAL SetFileLength( CTEXTSTR path, size_t length )
@@ -363,17 +427,17 @@ LOGICAL SetFileLength( CTEXTSTR path, size_t length )
 #ifdef __LINUX__
 	// files are by default binary in linux
 #  ifndef O_BINARY
-#    define O_BINARY 0
+#	define O_BINARY 0
 #  endif
 #endif
-    INDEX file;
-    file = sack_iopen( 0, path, O_RDWR|O_BINARY );
-    if( file == INVALID_INDEX )
-        return FALSE;
-    sack_ilseek( file, length, SEEK_SET );
-    sack_iset_eof( file );
-    sack_iclose( file );
-    return TRUE;
+	INDEX file;
+	file = sack_iopen( 0, path, O_RDWR|O_BINARY );
+	if( file == INVALID_INDEX )
+		return FALSE;
+	sack_ilseek( file, length, SEEK_SET );
+	sack_iset_eof( file );
+	sack_iclose( file );
+	return TRUE;
 }
 
 

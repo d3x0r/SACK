@@ -46,7 +46,7 @@ SRG_EXPORT TEXTSTR SRG_DecryptString( CTEXTSTR local_password );
 SRG_EXPORT TEXTCHAR * SRG_EncryptData( P_8 buffer, size_t buflen );
 // text result must release by user
 // calls EncrytpData with buffer and string length + 1 to include the null for decryption.
-SRG_EXPORT TEXTCHAR * SRG_EncryptString( CTEXTSTR buffer )
+SRG_EXPORT TEXTCHAR * SRG_EncryptString( CTEXTSTR buffer );
 
 
 

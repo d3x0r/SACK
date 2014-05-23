@@ -97,6 +97,7 @@ static PTEXT GetTime( PCLOCK_CONTROL clock, int bNewline ) /*FOLD00*/
 	{
 		//struct timeval tv;
 		struct tm *timething;
+      char ftime[80];
 		time_t timevalnow;
 		time(&timevalnow);
 		timething = localtime( &timevalnow );
@@ -107,12 +108,22 @@ static PTEXT GetTime( PCLOCK_CONTROL clock, int bNewline ) /*FOLD00*/
 		clock->time_data.mo = timething->tm_mon;
 		clock->time_data.yr = timething->tm_year;
 		clock->time_data.ms = 0;
-		strftime( timenow->data.data
+		strftime( ftime
 				  , 80
 				  , bNewline
 					?"%m/%d/%Y\n%H:%M:%S"
 					:"%m/%d/%Y %H:%M:%S"
 				  , timething );
+#ifdef UNICODE
+		{
+			TEXTCHAR *tmp = DupCStr( ftime );
+			StrCpy( timenow->data.data, tmp );
+         Release( tmp );
+		}
+#else
+		StrCpy( timenow->data.data, ftime );
+#endif
+
 		return timenow;
 	}
 #endif

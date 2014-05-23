@@ -1,8 +1,9 @@
 #include <stdhdrs.h>
 #include <sha1.h>
-
+#ifndef SALTY_RANDOM_GENERATOR_SOURCE
 #define SALTY_RANDOM_GENERATOR_SOURCE
-#include "salty_generator.h"
+#endif
+#include <salty_generator.h>
 
 
 #define MY_MASK_MASK(n,length)   (MASK_TOP_MASK(length) << ((n)&0x7) )
@@ -29,7 +30,7 @@ static void NeedBits( struct random_context *ctx )
 	else
 		ctx->salt_size = 0;
 	if( ctx->salt_size )
-		SHA1Input( &ctx->sha1_ctx, ctx->salt, ctx->salt_size );
+		SHA1Input( &ctx->sha1_ctx, (const uint8_t*)ctx->salt, ctx->salt_size );
 	// this is redundant since it's already self seeded with prior result
 	//else
 	//	SHA1Input( &ctx->sha1_ctx, ctx->entropy, SHA1HashSize );

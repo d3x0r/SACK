@@ -20,6 +20,8 @@ if( USE_HARDWARE_INFO)
 endif( USE_HARDWARE_INFO)
 
 SET( SACK_HEADERS
+salty_generator.h
+mt19937ar.h
 generic_cache.h
 colordef.h
 configscript.h

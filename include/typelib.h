@@ -1339,32 +1339,38 @@ _TEXT_NAMESPACE
 	enum FORMAT_OPS {
       /* this segment clears to the end of the line.  Its content is then added to the output */
 		FORMAT_OP_CLEAR_END_OF_LINE = 1
-        ,FORMAT_OP_CLEAR_START_OF_LINE/* clear from the current cursor to the start of line */
+        ,FORMAT_OP_CLEAR_START_OF_LINE/* clear from the current cursor to the start of line 2*/
 						  
-                   ,/* clear the current line */
+                   ,/* clear the current line; 3 */
 						  FORMAT_OP_CLEAR_LINE
-						 ,/* clear to the end of the page from this line */
+						 ,/* clear to the end of the page from this line;4 */
 						  FORMAT_OP_CLEAR_END_OF_PAGE
-                   ,/* clear from this line to the start of the page */
+                   ,/* clear from this line to the start of the page;5 */
 						  FORMAT_OP_CLEAR_START_OF_PAGE
 						 ,/* clear the entire vieable page (pushes all content to history)
-                    set cursor home */
+                    set cursor home ;6*/
 						  FORMAT_OP_CLEAR_PAGE 
-						 ,/* sets option to not show text at all until next color. */
+						 ,/* sets option to not show text at all until next color. ;7*/
 						  FORMAT_OP_CONCEAL
-                   ,/* background is how many to delete. */
+                   ,/* background is how many to delete. ;8*/
 						  FORMAT_OP_DELETE_CHARS 
-                   ,/* format.x, y are start/end of region -1,-1 clears. */
+                   ,/* format.x, y are start/end of region -1,-1 clears. ;9*/
 						  FORMAT_OP_SET_SCROLL_REGION 
-                   ,/* this works as a transaction... */
+                   ,/* this works as a transaction...;10 */
 						  FORMAT_OP_GET_CURSOR 
-						 ,/* responce to getcursor... */
+						 ,/* responce to getcursor...;11 */
 						  FORMAT_OP_SET_CURSOR
-						 ,/* clear page, home page... result in page break... */
+						 ,/* clear page, home page... result in page break...;12 */
 						  FORMAT_OP_PAGE_BREAK
 						 ,/* break between paragraphs - kinda same as lines...
-						  since lines are as long as possible... */
+						  since lines are as long as possible... ;13 */
 						 FORMAT_OP_PARAGRAPH_BREAK
+						 ,/* Justify line(s if wrapped) to the right
+						   This attribute should be passed through to renderer;14*/
+                   FORMAT_OP_JUSTIFY_RIGHT
+						 ,/* Justify line(s if wrapped) to the center
+						 This attribute should be passed through to renderer;15*/
+                   FORMAT_OP_JUSTIFY_CENTER
 };
 
 //typedef struct text_color_tag { _32 color: 8; } TEXTCOLOR;
@@ -1816,11 +1822,25 @@ TYPELIB_PROC  int TYPELIB_CALLTYPE  TextSimilar  ( PTEXT pText, CTEXTSTR text );
 #define textmin(a,b) ( (((a)>0)&&((b)>0))?(((a)<(b))?(a):(b)):(((a)>0)?(a):((b)>0)?(b):0) )
 #ifdef __LINUX__
 /* windows went with stricmp() and strnicmp(), whereas linux
-   went with strcasecmp() and strncasecmp()                  */
-#define strnicmp strncasecmp
+ went with strcasecmp() and strncasecmp()                  */
+#  ifdef UNICODE
+#    ifndef NO_UNICODE_C
+#      define strnicmp strncasecmp
 /* windows went with stricmp() and strnicmp(), whereas linux
    went with strcasecmp() and strncasecmp()                  */
-#define stricmp strcasecmp
+#      define stricmp strcasecmp
+#    else
+#      define strnicmp wcsncasecmp
+/* windows went with stricmp() and strnicmp(), whereas linux
+   went with strcasecmp() and strncasecmp()                  */
+#      define stricmp wcscasecmp
+#    endif
+#  else
+#    define strnicmp strncasecmp
+/* windows went with stricmp() and strnicmp(), whereas linux
+   went with strcasecmp() and strncasecmp()                  */
+#     define stricmp strcasecmp
+#  endif
 #endif
 
 /* Copy segment formatting to another segment... */

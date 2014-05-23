@@ -580,13 +580,16 @@ SFTFont PickScaledFontWithUpdate( S_32 x, S_32 y
 		&& ( (*pFontDataSize) > sizeof( RENDER_FONTDATA ) )
 		&& ( (*pFontDataSize) < sizeof( FONTDATA ) + 4096 ) )
 	{
-      PFONTDATA pResult = (PFONTDATA)(*pFontData);
-      if( pResult->magic == MAGIC_PICK_FONT )
+		PFONTDATA pResult = (PFONTDATA)(*pFontData);
+		if( pResult->magic == MAGIC_PICK_FONT )
 		{
-			fdData.pFontEntry = fg.pFontCache + pResult->nFamily;
-			fdData.pFontStyle = fdData.pFontEntry->styles + pResult->nStyle;
-			fdData.pSizeFile = fdData.pFontStyle->files + pResult->nFile;
-			fdData.flags.render_depth = pResult->flags;
+			if( pResult->nFamily < fg.pFontCache->nStyles )
+			{
+				fdData.pFontEntry = fg.pFontCache + pResult->nFamily;
+				fdData.pFontStyle = fdData.pFontEntry->styles + pResult->nStyle;
+				fdData.pSizeFile = fdData.pFontStyle->files + pResult->nFile;
+				fdData.flags.render_depth = pResult->flags;
+			}
 		}
 		else
 		{
