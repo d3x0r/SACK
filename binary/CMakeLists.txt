@@ -59,6 +59,7 @@ add_subpath( ../src/psilib/calctl )
 
 add_subpath( ../src/SQLlib/testsql )
 add_subpath( ../src/utils/launcher )
+add_subpath( ../src/utils/config_secure )
 add_subpath( ../src/sysloglib/logger )
 add_subpath( ../src/utils/systray_shell )
 
