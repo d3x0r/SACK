@@ -110,6 +110,8 @@ void SRG_RestoreState( struct random_context *ctx, POINTER external_buffer_holde
 
 
 #if WIN32
+#if 0  
+// if standalone?
 BOOL WINAPI DllMain(
 	HINSTANCE hinstDLL,
 	DWORD fdwReason,
@@ -118,7 +120,7 @@ BOOL WINAPI DllMain(
 {
 	return TRUE;
 }
-
+#endif
 // this is the watcom deadstart entry point.
 // by supplying this routine, then the native runtime doesn't get pulled
 // and no external clbr symbols are required.

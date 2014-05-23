@@ -84,10 +84,10 @@ PRELOAD( InitInterfaces )
    l.verbosity = 0;
    l.vlc_path = WIDE( "vlc" );
 #endif
-	l.vlc_config = WIDE( "c:\\ftn3000\\etc\\vlc.cfg" );
+	l.vlc_config = WIDE( "@/vlc.cfg" );
 #ifndef __NO_OPTIONS__
 	SACK_GetPrivateProfileString( WIDE( "vlc/config" ), WIDE( "vlc config" ), l.vlc_config, vlc_path, sizeof( vlc_path ), WIDE( "video.ini" ) );
-	l.vlc_config = StrDup( vlc_path );
+	l.vlc_config = ExpandPath( vlc_path );
 #else
 #endif
 
@@ -1111,7 +1111,7 @@ struct my_vlc_interface *CreateInstanceOn( PRENDERER renderer, CTEXTSTR name, LO
 
 		vtprintf( pvt, WIDE( "--verbose=%d" )
 					//WIDE( " --file-logging" )
-					WIDE( " --config=c:\\ftn3000\\etc\\vlc.cfg" )
+					WIDE( " --config=%s" )
 					WIDE( " --no-osd" )
                //WIDE( " --skip-frames" )
 					//WIDE( " --plugin-path=%s\\plugins" )
@@ -1119,6 +1119,7 @@ struct my_vlc_interface *CreateInstanceOn( PRENDERER renderer, CTEXTSTR name, LO
                //WIDE( " --file-caching=0" )
 					WIDE( " %s" )
                   , l.verbosity
+				  , l.vlc_config
 				  //, l.vlc_path
 				  , extra_opts?extra_opts:WIDE( "" )
 				  );
@@ -1190,7 +1191,7 @@ struct my_vlc_interface *CreateInstanceAt( CTEXTSTR address, CTEXTSTR instance_n
 
 		vtprintf( pvt, WIDE( "--verbose=%d" )
 					//WIDE( " --file-logging" )
-					WIDE( " -I dummy --config=c:\\ftn3000\\etc\\vlc.cfg" )
+					WIDE( " -I dummy --config=%s" )
 					WIDE( " --no-osd" )
 					WIDE( " --sout=#transcode{vcodec=theo,vb=800,scale=1,acodec=vorb,ab=128,channels=2,samplerate=44100}:http{mux=ogg,dst=:1234/}" )
 					WIDE( " --no-sout-rtp-sap" )
@@ -1204,6 +1205,7 @@ struct my_vlc_interface *CreateInstanceAt( CTEXTSTR address, CTEXTSTR instance_n
                //WIDE( " --file-caching=0" )
                WIDE( " %s" )
                   , l.verbosity
+				  , l.vlc_config
 				  , l.vlc_path
 				  , WIDE( "" )//extra_opts
 				  );

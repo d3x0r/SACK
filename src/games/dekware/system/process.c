@@ -70,7 +70,7 @@ int CPROC MakeProcess( PSENTIENT ps, PENTITY peInit, PTEXT parameters )
 	// parameters specify command and parameters to launch...
 	// perhaps a working directory? May or may not want it
 	// in the current directory...
-	// /make process test WIDE("c:\ftn3000\bin\menu arguments") WIDE("c:\ftn3000\working") <attributes?>
+	// /make process test WIDE("command arguments") WIDE("work path") <attributes?>
 	// /make process test WIDE("notepad trigger.txt") 
    PSENTIENT ps2;
    PPROCESS process = New( PROCESS );

@@ -114,16 +114,16 @@ outgoing=/path/to/prizes
 the sample caller configuration...
 
 login=caller
-incoming=c:\ftn3000\data\eltanin\tickets
-incoming=c:\ftn3000\sessctrl
-outgoing=c:\ftn3000\data\prize*
+incoming=c:\xyzzyx\data\Game\tickets
+incoming=c:\xyzzyx\sessctrl
+outgoing=c:\xyzzyx\data\prize*
 
 the sample pos configuration ...
 
 login=pos
-outgoing=c:\ftn3000\data\eltanin\tickets
-outgoing=c:\ftn3000\data\sessctrl 
-incoming=c:\ftn3000\data
+outgoing=c:\xyzzyx\data\Game\tickets
+outgoing=c:\xyzzyx\data\sessctrl 
+incoming=c:\xyzzyx\data
 
 
 Some things to note ... 

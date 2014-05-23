@@ -313,12 +313,3 @@ static void MD5_memset (P_8 output, int value, unsigned int len)
   for (i = 0; i < len; i++)
  ((char *)output)[i] = (char)value;
 }
-//----------------------------------------------------------------------------
-// $Log: md5c.c,v $
-// Revision 1.1  2003/11/21 16:25:34  jim
-// INitial commit - port from eltanin
-//
-// Revision 1.2  2002/11/19 18:06:42  brad
-// CVS logging added
-//
-//

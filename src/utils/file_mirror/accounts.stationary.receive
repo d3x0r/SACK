@@ -15,6 +15,6 @@ login=stationary
 server=10.17.20.1
 #(account name) (mirror directory)  (allowed IP - * == anywhere)
 user=datamirror
-   incoming=c:/ftn3000/eltanin
+   incoming=c:/xyzzyx/product
 
 

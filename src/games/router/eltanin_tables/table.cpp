@@ -34,7 +34,7 @@ PRELOAD( ConfigureTables )
 
 
 
-static int OnPeiceTap( WIDE("Eltanin Table background") )( PTRSZVAL psv, S_32 x, S_32 y )
+static int OnPeiceTap( WIDE("Game Table background") )( PTRSZVAL psv, S_32 x, S_32 y )
 {
 	if( l.flags.allow_edit )
 	{
@@ -50,7 +50,7 @@ static int OnPeiceTap( WIDE("Eltanin Table background") )( PTRSZVAL psv, S_32 x,
 }
 
 
-static PTRSZVAL OnPeiceCreate( WIDE("Eltanin Table background") )( PTRSZVAL psvCreate, PLAYER_DATA layer )
+static PTRSZVAL OnPeiceCreate( WIDE("Game Table background") )( PTRSZVAL psvCreate, PLAYER_DATA layer )
 {
 	struct background_peice* peice = New( struct background_peice );
 	peice->board = (PIBOARD)psvCreate;
@@ -207,20 +207,20 @@ static void OnPeiceDraw( WIDE("Stationary") )( PTRSZVAL psv, Image surface, Imag
 }
 
 
-static void OnKeyPressEvent( WIDE("Route Board/Eltanin Table/Enable Edit") )( PTRSZVAL psv )
+static void OnKeyPressEvent( WIDE("Route Board/Game Table/Enable Edit") )( PTRSZVAL psv )
 {
 	l.flags.allow_edit = !l.flags.allow_edit;
    UpdateButton( (PMENU_BUTTON)psv );
 }
 
-static void OnShowControl( WIDE("Route Board/Eltanin Table/Enable Edit") )( PTRSZVAL psvUnused )
+static void OnShowControl( WIDE("Route Board/Game Table/Enable Edit") )( PTRSZVAL psvUnused )
 {
    PMENU_BUTTON button = (PMENU_BUTTON)psvUnused;
 	InterShell_SetButtonHighlight( button, l.flags.allow_edit );
 }
 
 
-static PTRSZVAL OnCreateMenuButton( WIDE("Route Board/Eltanin Table/Enable Edit") )( PMENU_BUTTON button )
+static PTRSZVAL OnCreateMenuButton( WIDE("Route Board/Game Table/Enable Edit") )( PMENU_BUTTON button )
 {
 	return (PTRSZVAL)button;
 }

@@ -119,7 +119,7 @@ install_default_dest( ${project} )
 
 ##############################################
 
-set( project crossfade_vid_playlist_game )
+set( project ticket_draw_game )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
