@@ -39,63 +39,63 @@ using namespace sack::math::fraction;
 #define strnicmp strncasecmp
 #endif
 
-#define CompareText(l1,l2)    ( StrCaseCmp( GetText(l1), GetText(l2) ) )
+#define CompareText(l1,l2)	( StrCaseCmp( GetText(l1), GetText(l2) ) )
 
 // all matches to content are done case insensitive.
 
 // consider vector/array declarations
 
 enum config_types {
-     CONFIG_UNKNOWN
-   // must match case-insensative exact length.
-   // literal text
-   , CONFIG_TEXT
-   // a yes/no field may be 0/1, y[es]/n[o], on/off
-   //
-   , CONFIG_YESNO
-   , CONFIG_TRUEFALSE = CONFIG_YESNO
-   , CONFIG_ONOFF = CONFIG_YESNO
-   , CONFIG_OPENCLOSE = CONFIG_YESNO
-   , CONFIG_BOOLEAN = CONFIG_YESNO
+	CONFIG_UNKNOWN
+	// must match case-insensative exact length.
+	// literal text
+	, CONFIG_TEXT
+	// a yes/no field may be 0/1, y[es]/n[o], on/off
+	//
+	, CONFIG_YESNO
+	, CONFIG_TRUEFALSE = CONFIG_YESNO
+	, CONFIG_ONOFF = CONFIG_YESNO
+	, CONFIG_OPENCLOSE = CONFIG_YESNO
+	, CONFIG_BOOLEAN = CONFIG_YESNO
 
-   // may not have a . point - therefore the . is a terminator and needs
-   // to match the next word.
-    , CONFIG_INTEGER
-    // has to be a floating point number (perhaps integral ie. no decimal)
-	 , CONFIG_FLOAT
+	// may not have a . point - therefore the . is a terminator and needs
+	// to match the next word.
+	, CONFIG_INTEGER
+	// has to be a floating point number (perhaps integral ie. no decimal)
+	, CONFIG_FLOAT
 
-	 // binary data storage - stored as base64 encoded passed as PDATA
-    , CONFIG_BINARY
+	// binary data storage - stored as base64 encoded passed as PDATA
+	, CONFIG_BINARY
 
-    // formated number [+/-][[ ]## ]##[/##]
-    , CONFIG_FRACTION
+	// formated number [+/-][[ ]## ]##[/##]
+	, CONFIG_FRACTION
 
-   // matches any single word.
-    , CONFIG_SINGLE_WORD
+	// matches any single word.
+	, CONFIG_SINGLE_WORD
 
-   // protocol://[user[:password]](ip/name)[:port][/filepath][?cgi]
-   // by convention this will not contain spaces... but perhaps
-   // &20; (?)
-    , CONFIG_URL
+	// protocol://[user[:password]](ip/name)[:port][/filepath][?cgi]
+	// by convention this will not contain spaces... but perhaps
+	// &20; (?)
+	, CONFIG_URL
 
-   // matches several words in a row - the end word to match is supplied.
-    , CONFIG_MULTI_WORD
-   // file name - does not have any path part.
-   // the following are all treated like multi_word since file names/paths
-   // may contain spaces
-    , CONFIG_FILE
-   // ends in a / or \,
-    , CONFIG_PATH
-   // may have path and filename
-    , CONFIG_FILEPATH
+	// matches several words in a row - the end word to match is supplied.
+	, CONFIG_MULTI_WORD
+	// file name - does not have any path part.
+	// the following are all treated like multi_word since file names/paths
+	// may contain spaces
+	, CONFIG_FILE
+	// ends in a / or \,
+	, CONFIG_PATH
+	// may have path and filename
+	, CONFIG_FILEPATH
 
-   // (IP/name)[:port]
-    , CONFIG_ADDRESS
+	// (IP/name)[:port]
+	, CONFIG_ADDRESS
 
-    // end of configuration line (match assumed)
-    , CONFIG_PROCEDURE
+	// end of configuration line (match assumed)
+	, CONFIG_PROCEDURE
 
-    , CONFIG_COLOR
+	, CONFIG_COLOR
 };
 
 typedef struct config_element_tag CONFIG_ELEMENT, *PCONFIG_ELEMENT;
@@ -111,51 +111,51 @@ struct config_element_tag
 		BIT_FIELD singleword_terminator : 1; // prior == actual segment...
 		// careful - assembly here requires absolute known
 		// posisitioning - -fpack-struct will short-change
-        // this structure to the minimal number of bits.
+		// this structure to the minimal number of bits.
 		BIT_FIELD filler:29;
-    } flags;
-    _32 element_count; // used with vector fields.
-    union {
-        PTEXT pText;
-        struct {
-            LOGICAL bTrue;
-        } truefalse;
-        _64 integer_number;
-		  double float_number;
-		  TEXTSTR pWord; // also pFilename, pPath, pURL
-		  struct {
-			  TEXTSTR pWord; // also pFilename, pPath, pURL
-           struct config_element_tag *pEnd; // also this ends single word...
-		  } singleword;
-        // maybe pURL should be burst into
-        //   ( address, user, password, path, page, params )
-        SOCKADDR *psaSockaddr;
-        struct {
-            TEXTSTR pWords;
-     // next thing to match...
-     // this is probably a constant text thing, but
-     // may be say an integer, filename, or some known
-     // format thing...
-            struct config_element_tag *pEnd;
-        } multiword;
-        FRACTION fraction;
-        USER_CONFIG_HANDLER Process;
-		  CDATA Color;
-		  struct {
-			  size_t length;
-			  POINTER data;
-		  } binary;
-    } data[1]; // these are value holders... if there is a vector field,
-            // either the count will be specified, or this will have to
-            // be auto expanded....
+	} flags;
+	_32 element_count; // used with vector fields.
+	union {
+		PTEXT pText;
+		struct {
+				LOGICAL bTrue;
+		} truefalse;
+		_64 integer_number;
+		double float_number;
+		TEXTSTR pWord; // also pFilename, pPath, pURL
+		struct {
+			TEXTSTR pWord; // also pFilename, pPath, pURL
+			struct config_element_tag *pEnd; // also this ends single word...
+		} singleword;
+		// maybe pURL should be burst into
+		//	( address, user, password, path, page, params )
+		SOCKADDR *psaSockaddr;
+		struct {
+				TEXTSTR pWords;
+	// next thing to match...
+	// this is probably a constant text thing, but
+	// may be say an integer, filename, or some known
+	// format thing...
+				struct config_element_tag *pEnd;
+		} multiword;
+		FRACTION fraction;
+		USER_CONFIG_HANDLER Process;
+		CDATA Color;
+		struct {
+			size_t length;
+			POINTER data;
+		} binary;
+	} data[1]; // these are value holders... if there is a vector field,
+				// either the count will be specified, or this will have to
+				// be auto expanded....
 };
 
 typedef struct config_test_tag
 {
-   // this constant list could be a more optimized structure like
-   // a tree...
-    PLIST pConstElementList;  // list of words which are constant to be checked.
-    PLIST pVarElementList;     // list of fields which are variables.
+	// this constant list could be a more optimized structure like
+	// a tree...
+	PLIST pConstElementList;  // list of words which are constant to be checked.
+	PLIST pVarElementList;	// list of fields which are variables.
 } CONFIG_TEST, *PCONFIG_TEST;
 
 #define MAXCONFIG_TESTSPERSET 128
@@ -202,7 +202,7 @@ struct config_file_tag
 
 typedef struct configuation_state *PCONFIG_STATE;
 typedef struct configuation_state {
-   LOGICAL recovered;
+	LOGICAL recovered;
 	CTEXTSTR name;
 	CONFIG_TEST ConfigTestRoot;
 	PTRSZVAL psvUser;
@@ -211,7 +211,7 @@ typedef struct configuation_state {
 } CONFIG_STATE;
 
 typedef struct configscript_global_tag {
-   //LOGICAL bSaveMemDebug;
+	//LOGICAL bSaveMemDebug;
 	int _last_allocate_logging;
 	int _disabled_allocate_logging;
 
@@ -255,9 +255,9 @@ void DoInit( void )
 
 PRELOAD( InitGlobalConfig2 )
 {
-   DoInit();
+	DoInit();
 #if !defined( __NO_OPTIONS__ )
-   // later, set options - core startup configs like sql.config cannot read options.
+	// later, set options - core startup configs like sql.config cannot read options.
 	g.flags.bDisableMemoryLogging = SACK_GetProfileIntEx( WIDE( "SACK/Config Script" ), WIDE( "Disable Memory Logging" ), g.flags.bDisableMemoryLogging, TRUE );
 	g.flags.bLogUnhandled = SACK_GetProfileIntEx( WIDE( "SACK/Config Script" ), WIDE( "Log Unhandled if no application handler" ), g.flags.bLogUnhandled, TRUE );
 	g.flags.bLogTrace = SACK_GetProfileIntEx( WIDE( "SACK/Config Script" ), WIDE( "Log configuration processing(trace)" ), g.flags.bLogTrace, TRUE );
@@ -280,65 +280,65 @@ void LogElementEx( CTEXTSTR leader, PCONFIG_ELEMENT pce DBG_PASS)
 #define LogElement(leader,pc) LogElementEx(leader,pc DBG_SRC )
 
 {
-    if( !pce )
-    {
-        _lprintf(DBG_RELAY)( WIDE("Nothing.") );
-        return;
-    }
-    switch( pce->type )
-    {
-    case CONFIG_UNKNOWN:
-        _lprintf(DBG_RELAY)( WIDE("This thing was never configured?") );
-        break;
-    case CONFIG_TEXT:
-        _lprintf(DBG_RELAY)( WIDE("%s text constant: %s"), leader, GetText( pce->data[0].pText ) );
-        break;
-    case CONFIG_BOOLEAN:
-        _lprintf(DBG_RELAY)( WIDE("%s a boolean"), leader );
-        break;
-    case CONFIG_INTEGER:
-        _lprintf(DBG_RELAY)( WIDE("%s integer"), leader );
-        break;
-    case CONFIG_COLOR:
-        _lprintf(DBG_RELAY)( WIDE("%s color"), leader );
-        break;
-    case CONFIG_BINARY:
-        _lprintf(DBG_RELAY)( WIDE("%s binary"), leader );
-        break;
-    case CONFIG_FLOAT:
-        _lprintf(DBG_RELAY)( WIDE("%s Floating"), leader );
-        break;
-    case CONFIG_FRACTION:
-        _lprintf(DBG_RELAY)( WIDE("%s fraction"), leader );
-        break;
-    case CONFIG_SINGLE_WORD:
-		 _lprintf(DBG_RELAY)( WIDE("%s a single word:%p"), leader, pce->data[0].pWord );
-        break;
-    case CONFIG_MULTI_WORD:
-        _lprintf(DBG_RELAY)( WIDE("%s a multi word"), leader );
-        break;
-   case CONFIG_PROCEDURE:
-    _lprintf(DBG_RELAY)( WIDE("%s a procedure to call."), leader );
-    break;
-   case CONFIG_URL:
-    _lprintf(DBG_RELAY)( WIDE("%s a url?"), leader );
-    break;
-   case CONFIG_FILE:
-    _lprintf(DBG_RELAY)( WIDE("%s a filename"), leader );
-    break;
-   case CONFIG_PATH:
-    _lprintf(DBG_RELAY)( WIDE("%s a path name"), leader );
-    break;
-   case CONFIG_FILEPATH:
-    _lprintf(DBG_RELAY)( WIDE("%s a full path and file name"), leader );
-    break;
-   case CONFIG_ADDRESS:
-    _lprintf(DBG_RELAY)( WIDE("%s an address"), leader );
-    break;
-    default:
-        _lprintf(DBG_RELAY)( WIDE("Do not know what this is.") );
-        break;
-    }
+	if( !pce )
+	{
+		_lprintf(DBG_RELAY)( WIDE("Nothing.") );
+		return;
+	}
+	switch( pce->type )
+	{
+	case CONFIG_UNKNOWN:
+		_lprintf(DBG_RELAY)( WIDE("This thing was never configured?") );
+		break;
+	case CONFIG_TEXT:
+		_lprintf(DBG_RELAY)( WIDE("%s text constant: %s"), leader, GetText( pce->data[0].pText ) );
+		break;
+	case CONFIG_BOOLEAN:
+		_lprintf(DBG_RELAY)( WIDE("%s a boolean"), leader );
+		break;
+	case CONFIG_INTEGER:
+		_lprintf(DBG_RELAY)( WIDE("%s integer"), leader );
+		break;
+	case CONFIG_COLOR:
+		_lprintf(DBG_RELAY)( WIDE("%s color"), leader );
+		break;
+	case CONFIG_BINARY:
+		_lprintf(DBG_RELAY)( WIDE("%s binary"), leader );
+		break;
+	case CONFIG_FLOAT:
+		_lprintf(DBG_RELAY)( WIDE("%s Floating"), leader );
+		break;
+	case CONFIG_FRACTION:
+		_lprintf(DBG_RELAY)( WIDE("%s fraction"), leader );
+		break;
+	case CONFIG_SINGLE_WORD:
+		_lprintf(DBG_RELAY)( WIDE("%s a single word:%p"), leader, pce->data[0].pWord );
+		break;
+	case CONFIG_MULTI_WORD:
+		_lprintf(DBG_RELAY)( WIDE("%s a multi word"), leader );
+		break;
+	case CONFIG_PROCEDURE:
+	_lprintf(DBG_RELAY)( WIDE("%s a procedure to call."), leader );
+	break;
+	case CONFIG_URL:
+	_lprintf(DBG_RELAY)( WIDE("%s a url?"), leader );
+	break;
+	case CONFIG_FILE:
+	_lprintf(DBG_RELAY)( WIDE("%s a filename"), leader );
+	break;
+	case CONFIG_PATH:
+	_lprintf(DBG_RELAY)( WIDE("%s a path name"), leader );
+	break;
+	case CONFIG_FILEPATH:
+	_lprintf(DBG_RELAY)( WIDE("%s a full path and file name"), leader );
+	break;
+	case CONFIG_ADDRESS:
+	_lprintf(DBG_RELAY)( WIDE("%s an address"), leader );
+	break;
+	default:
+		_lprintf(DBG_RELAY)( WIDE("Do not know what this is.") );
+		break;
+	}
 }
 
 //---------------------------------------------------------------------
@@ -346,14 +346,14 @@ void LogElementEx( CTEXTSTR leader, PCONFIG_ELEMENT pce DBG_PASS)
 void DumpConfigurationEvaluator( PCONFIG_HANDLER pch )
 {
 	INDEX idx;
-   PCONFIG_ELEMENT pce;
+	PCONFIG_ELEMENT pce;
 	LIST_FORALL( pch->ConfigTestRoot.pConstElementList, idx, PCONFIG_ELEMENT, pce )
 	{
-      LogElement( WIDE("const"), pce );
+		LogElement( WIDE("const"), pce );
 	}
 	LIST_FORALL( pch->ConfigTestRoot.pVarElementList, idx, PCONFIG_ELEMENT, pce )
 	{
-      LogElement( WIDE( "var" ), pce );
+		LogElement( WIDE( "var" ), pce );
 	}
 }
 
@@ -366,8 +366,8 @@ static PTEXT CPROC FilterLines( POINTER *scratch, PTEXT buffer )
 {
 	struct my_scratch_data {
 		size_t skip;
-      int lastread;
-      PTEXT linebuf;
+		int lastread;
+		PTEXT linebuf;
 	} *data = (struct my_scratch_data*)scratch[0];
 	size_t total_length;
 	size_t n;
@@ -377,36 +377,36 @@ static PTEXT CPROC FilterLines( POINTER *scratch, PTEXT buffer )
 		scratch[0] = data = New( struct my_scratch_data );
 		data[0].skip = 0;
 		data[0].linebuf = 0;
-      data[0].lastread = 0;
+		data[0].lastread = 0;
 	}
 	thisskip = data->skip; // skip N characters in first buffer.
 	if( buffer )
 	{
-      data->lastread = FALSE;
+		data->lastread = FALSE;
 		data->linebuf = SegAppend( data->linebuf, buffer );
 	}
 #if 0
 	// this routine is a low level raw data input, line result routine.
-   // it would be the sort of thing that produces zerosegs.
-   // this will NEVER run - the above condition catches it.
+	// it would be the sort of thing that produces zerosegs.
+	// this will NEVER run - the above condition catches it.
 	else if( buffer && !GetTextSize( buffer ) )
 	{
 		// if the buffer is a zeroseg, then it's a end of line marker.
 		// assuming other things filter before this.... in reality
-      // burst returns newlines I think?
-      PTEXT text = data->linebuf;
+		// burst returns newlines I think?
+		PTEXT text = data->linebuf;
 		data->lastread = FALSE;
 		Release( scratch[0] );
 		scratch[0] = NULL;
 		if( text )
 		{
 			LineRelease( buffer );
-         lprintf( WIDE( "Returning buffer [%s]" ), GetText( text ) );
-         return text;
+			lprintf( WIDE( "Returning buffer [%s]" ), GetText( text ) );
+			return text;
 		}
 		else
 		{
-         lprintf( WIDE( "Returning buffer [%s]" ), GetText( buffer ) );
+			lprintf( WIDE( "Returning buffer [%s]" ), GetText( buffer ) );
 			return buffer; // pass it on to others - end of stream..
 		}
 	}
@@ -444,7 +444,7 @@ static PTEXT CPROC FilterLines( POINTER *scratch, PTEXT buffer )
 			{
 				if( chardata[n] == '\n' )
 				{
-               end = 1;
+					end = 1;
 					n++; // include this character.
 					//lprintf( WIDE("BLANK LINE - CONSUMED") );
 					break;
@@ -511,7 +511,7 @@ static PTEXT CPROC FilterLines( POINTER *scratch, PTEXT buffer )
 		thisskip = 0; // no more skips.
 		buffer = NEXTLINE( buffer );
 	}
-   data->lastread = TRUE;
+	data->lastread = TRUE;
 	return NULL;
 }
 
@@ -520,23 +520,23 @@ static PTEXT CPROC FilterLines( POINTER *scratch, PTEXT buffer )
 static PTEXT CPROC FilterTerminators( POINTER *scratch, PTEXT buffer )
 {
 	struct my_scratch_data {
-      PTEXT newline;
+		PTEXT newline;
 	} *data = (struct my_scratch_data*)scratch[0];
 	if( !data )
 	{
 		scratch[0] = data = New( struct my_scratch_data );
-      data[0].newline = NULL;
+		data[0].newline = NULL;
 	}
-   if( !buffer )
+	if( !buffer )
 	{
 		if( data[0].newline )
 		{
 			PTEXT tmp = data[0].newline;
-         data[0].newline = NULL;
+			data[0].newline = NULL;
 			return tmp;
 		}
 		else
-         return NULL;
+			return NULL;
 	}
 	{
 		int modified;
@@ -547,7 +547,7 @@ static PTEXT CPROC FilterTerminators( POINTER *scratch, PTEXT buffer )
 		{
 			TEXTSTR chardata = GetText( buffer );
 			size_t length = GetTextSize( buffer );
-         //LogBinary( chardata, length );
+			//LogBinary( chardata, length );
 			do
 			{
 				modified = 0;
@@ -591,11 +591,11 @@ static PTEXT CPROC FilterTerminators( POINTER *scratch, PTEXT buffer )
 		if( end )
 		{
 			PTEXT result = data[0].newline;
-         data[0].newline = NULL;
+			data[0].newline = NULL;
 			return result;
 		}
 	}
-   return NULL;
+	return NULL;
 }
 
 //---------------------------------------------------------------------------
@@ -621,8 +621,8 @@ static PTEXT CPROC FilterEscapesAndComments( POINTER *scratch, PTEXT pText )
 					switch( text[src] )
 					{
 					case 0:
-                  lprintf( WIDE( "Continuation at end of line... save this and append next line please." ) );
-                  break;
+						lprintf( WIDE( "Continuation at end of line... save this and append next line please." ) );
+						break;
 					default:
 						text[dest++] = text[src];
 						break;
@@ -631,7 +631,7 @@ static PTEXT CPROC FilterEscapesAndComments( POINTER *scratch, PTEXT pText )
 				else
 				{
 					if( text[src] == '#' )
-                  break;
+						break;
 					text[dest++] = text[src];
 				}
 				src++;
@@ -657,8 +657,9 @@ static PTEXT get_line(PCONFIG_HANDLER pch /*FOLD00*/
 	PLIST *filters = &pch->filters;
 	PLIST *filter_data = &pch->filter_data;
 	PTEXT newline = NULL;
-	if( !source && !pch->blocks )
-		return NULL;
+	int one_more_read = 0;
+	//if( !source && !pch->blocks )
+	//	return NULL;
 	// create a workspace to read input from the file.
 	// read a line of input from the file.
 	// can't use fgets with encrypted data, but have to use something
@@ -670,9 +671,11 @@ static PTEXT get_line(PCONFIG_HANDLER pch /*FOLD00*/
 		do
 		{
 			int didone;
+		do_filters:
 			do
 			{
 				didone = FALSE;
+
 				LIST_FORALL( filters[0], idx, PTEXT (CPROC *)(POINTER*,PTEXT), filter )
 				{
 					// request any existing data without adding more...
@@ -680,7 +683,10 @@ static PTEXT get_line(PCONFIG_HANDLER pch /*FOLD00*/
 					//lprintf( WIDE( "Process line: %s" ), GetText( newline ) );
 					//lprintf( WIDE("after filter %d line = %s"), idx, GetText( newline ) );
 					if( newline )
+					{
+						one_more_read = 0;
 						didone = TRUE;
+					}
 					else
 					{
 						//lprintf( WIDE("no more newline... it's been deleted...") );
@@ -688,6 +694,7 @@ static PTEXT get_line(PCONFIG_HANDLER pch /*FOLD00*/
 						{
 							if( bReturnBlank )
 								return SegCreate(0);
+							didone = 0;
 							break;
 						}
 					}
@@ -700,40 +707,59 @@ static PTEXT get_line(PCONFIG_HANDLER pch /*FOLD00*/
 				{
 					char buffer[WORKSPACE];
 					wchar_t wbuffer[WORKSPACE];
-					newline = SegCreate( WORKSPACE );
+					newline = NULL;
 					if( pch->flags.bUnicode )
 					{
-						if( readlen = fread( wbuffer, sizeof( wchar_t ), WORKSPACE-1, source ) )
+						if( !one_more_read )
 						{
-							wbuffer[readlen] = 0;
-							newline = SegCreateFromWideLen( wbuffer, readlen );
-						}
-						else
-						{
-							LineRelease( newline );
-							newline = NULL;
+							if( readlen = fread( wbuffer, sizeof( wchar_t ), WORKSPACE-1, source ) )
+							{
+								wbuffer[readlen] = 0;
+								newline = SegCreateFromWideLen( wbuffer, readlen );
+							}
+							else
+							{
+								newline = NULL;
+								one_more_read = 1;
+							}
 						}
 					}
 					else
 					{
-						if( readlen = fread( buffer, sizeof( char ), WORKSPACE-1, source ) )
+						if( !one_more_read )
 						{
-							buffer[readlen] = 0;
-							newline = SegCreateFromCharLen( buffer, readlen );
+							if( readlen = fread( buffer, sizeof( char ), WORKSPACE-1, source ) )
+							{
+								buffer[readlen] = 0;
+								newline = SegCreateFromCharLen( buffer, readlen );
+							}
+							else
+							{
+								newline = NULL;
+								one_more_read = 1;
+							}
 						}
 						else
-						{
-							LineRelease( newline );
-							newline = NULL;
-						}
+							one_more_read = 0;
 					}
 				}
 				else
 				{
-					newline = pch->blocks;
-					pch->blocks = NULL; // received block.
+					if( !one_more_read )
+					{
+						newline = pch->blocks;
+						pch->blocks = NULL; // received block.
+						one_more_read = 1;
+					}
+					else if( !newline )
+					{
+						readlen = 0;
+						one_more_read = 0;
+					}
 				}
-
+				if( newline || one_more_read )
+					goto do_filters;
+				/*
 				LIST_FORALL( filters[0], idx, PTEXT (CPROC *)(POINTER*,PTEXT), filter )
 				{
 					newline = filter( GetLinkAddress( filter_data, idx ), newline );
@@ -741,11 +767,12 @@ static PTEXT get_line(PCONFIG_HANDLER pch /*FOLD00*/
 					if( !newline )
 						break; // get next bit of data ....
 				}
+				*/
 			}
 		}
 		while( !newline && readlen );
 	}
-	return newline;      // return the line read from the file.
+	return newline;		// return the line read from the file.
 }
 
 //---------------------------------------------------------------------
@@ -756,7 +783,7 @@ static PTEXT GetConfigurationLine( PCONFIG_HANDLER pConfigHandler )
 	while( ( line = get_line( pConfigHandler
 									, pConfigHandler->Unhandled?TRUE:FALSE ) ) )
 	{
-      if( g.flags.bLogLines )
+		if( g.flags.bLogLines )
 			lprintf( WIDE( "Process line: %s" ), GetText( line ) );
 
 		p = burst( line );
@@ -804,7 +831,7 @@ static PTEXT GetConfigurationLine( PCONFIG_HANDLER pConfigHandler )
 int IsAnyVarEx( PCONFIG_ELEMENT pce, PTEXT *start DBG_PASS );
 int IsAnyVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
-   return IsAnyVarEx( pce, start DBG_SRC );
+	return IsAnyVarEx( pce, start DBG_SRC );
 }
 
 #define IsAnyVar(a,b) IsAnyVarEx(a,b DBG_SRC )
@@ -814,22 +841,22 @@ int IsAnyVar( PCONFIG_ELEMENT pce, PTEXT *start )
 int IsConstTextEx( PCONFIG_ELEMENT pce, PTEXT *start DBG_PASS )
 #define IsConstText(a,b) IsConstTextEx(a,b DBG_SRC )
 {
-    if( pce->type != CONFIG_TEXT )
-    {
-        return FALSE;
-    }
- 	 if( g.flags.bLogTrace )
-		 _lprintf(DBG_RELAY)( WIDE("Testing %s vs %s"), GetText( *start ), GetText( pce->data[0].pText ) );
-    if( CompareText( *start, pce->data[0].pText ) == 0 )
-    {
-		 if( g.flags.bLogTrace )
-			 lprintf( WIDE("%s matched %s"), GetText( *start ), GetText( pce->data[0].pText ) );
-        *start = NEXTLINE( *start );
-        return TRUE;
-    }
- 	 if( g.flags.bLogTrace )
-		 lprintf( WIDE("isn't constant...") );
-    return FALSE;
+	if( pce->type != CONFIG_TEXT )
+	{
+		return FALSE;
+	}
+	if( g.flags.bLogTrace )
+		_lprintf(DBG_RELAY)( WIDE("Testing %s vs %s"), GetText( *start ), GetText( pce->data[0].pText ) );
+	if( CompareText( *start, pce->data[0].pText ) == 0 )
+	{
+		if( g.flags.bLogTrace )
+			lprintf( WIDE("%s matched %s"), GetText( *start ), GetText( pce->data[0].pText ) );
+		*start = NEXTLINE( *start );
+		return TRUE;
+	}
+	if( g.flags.bLogTrace )
+		lprintf( WIDE("isn't constant...") );
+	return FALSE;
 }
 
 //---------------------------------------------------------------------
@@ -837,7 +864,7 @@ static CTEXTSTR charset1 = WIDE("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJK
 static CTEXTSTR charset2 = WIDE("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY.-Z+");
 typedef union bintobase{
 	struct {
-      _8 bytes[3];
+		_8 bytes[3];
 	} bin;
 
 	// these need to be unsigned.
@@ -855,10 +882,10 @@ void EncodeBinaryConfig( TEXTSTR *encode, POINTER data, size_t length )
 {
 	BINBASE convert;
 	CTEXTSTR charset = charset2;
-   unsigned char *p;
+	unsigned char *p;
 	TEXTCHAR *q;
 	_32 l;
-   int bExtraBytes;
+	int bExtraBytes;
 	q = (TEXTCHAR*)((*encode) = NewArray( TEXTCHAR, ( ( ( 1 + (length + 2) / 3 ) * 4 ) + 3 ) * 2 ));
 	(q++)[0]= '[';
 	p = (unsigned char*)&length;
@@ -866,42 +893,42 @@ void EncodeBinaryConfig( TEXTSTR *encode, POINTER data, size_t length )
 	convert.bin.bytes[0] = (p++)[0];
 	convert.bin.bytes[1] = (p++)[0];
 	convert.bin.bytes[2] = (p++)[0];
-#define EXPLOIT_BURST_FEATURE() 	if( ((q[-1] == '+')?(q[0]='0'),1:0 ) || \
-	((q[-1] == '.')?(q[0]='1'),1:0 ) ||                               \
-	((q[-1] == '-')?(q[0]='2'),1:0 ) )                                 \
-	{                                                 \
-	q[-1] = '.';                                \
-   q++;                                        \
+#define EXPLOIT_BURST_FEATURE()	if( ((q[-1] == '+')?(q[0]='0'),1:0 ) || \
+	((q[-1] == '.')?(q[0]='1'),1:0 ) ||										\
+	((q[-1] == '-')?(q[0]='2'),1:0 ) )											\
+	{																\
+	q[-1] = '.';										\
+	q++;													\
 	}
 	(q++)[0] = charset[convert.base.data1];
-   EXPLOIT_BURST_FEATURE();
+	EXPLOIT_BURST_FEATURE();
 	(q++)[0] = charset[convert.base.data2];
-   EXPLOIT_BURST_FEATURE();
+	EXPLOIT_BURST_FEATURE();
 	(q++)[0] = charset[convert.base.data3];
-   EXPLOIT_BURST_FEATURE();
+	EXPLOIT_BURST_FEATURE();
 	(q++)[0] = charset[convert.base.data4];
-   EXPLOIT_BURST_FEATURE();
+	EXPLOIT_BURST_FEATURE();
 	p = (unsigned char*)data;
 	for( l = 0; l < length - 2; l += 3 )
 	{
-      convert.bin.bytes[0] = (p++)[0];
-      convert.bin.bytes[1] = (p++)[0];
+		convert.bin.bytes[0] = (p++)[0];
+		convert.bin.bytes[1] = (p++)[0];
 		convert.bin.bytes[2] = (p++)[0];
-      (q++)[0] = charset[convert.base.data1];
-   EXPLOIT_BURST_FEATURE();
-      (q++)[0] = charset[convert.base.data2];
-   EXPLOIT_BURST_FEATURE();
-      (q++)[0] = charset[convert.base.data3];
-   EXPLOIT_BURST_FEATURE();
-      (q++)[0] = charset[convert.base.data4];
-   EXPLOIT_BURST_FEATURE();
+		(q++)[0] = charset[convert.base.data1];
+	EXPLOIT_BURST_FEATURE();
+		(q++)[0] = charset[convert.base.data2];
+	EXPLOIT_BURST_FEATURE();
+		(q++)[0] = charset[convert.base.data3];
+	EXPLOIT_BURST_FEATURE();
+		(q++)[0] = charset[convert.base.data4];
+	EXPLOIT_BURST_FEATURE();
 	}
 	bExtraBytes = 0;
 	if( l < length )
 	{
 		bExtraBytes = 1;
 		convert.bin.bytes[0] = (p++)[0];
-      l++;
+		l++;
 	}
 	if( l < length )
 	{
@@ -909,7 +936,7 @@ void EncodeBinaryConfig( TEXTSTR *encode, POINTER data, size_t length )
 		convert.bin.bytes[1] = (p++)[0];
 		l++;
 	}
-   else if( bExtraBytes )
+	else if( bExtraBytes )
 		convert.bin.bytes[1] = 0;
 	if( l < length )
 	{
@@ -922,13 +949,13 @@ void EncodeBinaryConfig( TEXTSTR *encode, POINTER data, size_t length )
 	if( bExtraBytes )
 	{
 		(q++)[0] = charset[convert.base.data1];
-   EXPLOIT_BURST_FEATURE();
+	EXPLOIT_BURST_FEATURE();
 		(q++)[0] = charset[convert.base.data2];
-   EXPLOIT_BURST_FEATURE();
+	EXPLOIT_BURST_FEATURE();
 		(q++)[0] = charset[convert.base.data3];
-   EXPLOIT_BURST_FEATURE();
+	EXPLOIT_BURST_FEATURE();
 		(q++)[0] = charset[convert.base.data4];
-   EXPLOIT_BURST_FEATURE();
+	EXPLOIT_BURST_FEATURE();
 	}
 	(q++)[0]= '}';
 	(q++)[0] = 0;
@@ -968,14 +995,14 @@ int DoDecodeBinary( PTEXT *start, POINTER *binary_buffer, size_t *buflen )
 		TEXTCHAR ch;
 #define HANDLE_BURST_PECULIARITY_WITH_DECIMALS_AND_NUMBER_COLLATION()  \
 	if( (ch=(p++)[0]) == '.' ) {\
-	if( p[0] == '0' ) {p++;ch='+';}                     \
-	else if ( p[0] == '1' ) {p++;ch = '.';}            \
-	else if ( p[0] == '2' ) {p++;ch = '-';}            \
+	if( p[0] == '0' ) {p++;ch='+';}							\
+	else if ( p[0] == '1' ) {p++;ch = '.';}				\
+	else if ( p[0] == '2' ) {p++;ch = '-';}				\
 	}
-      // if it is empty data... null, and 0
+		// if it is empty data... null, and 0
 		if( NEXTLINE( *start ) &&
 			( ( charset == charset1 && GetText( NEXTLINE( *start  ) )[0] == '}' )
-         || ( charset == charset2 && GetText( NEXTLINE( *start  ) )[0] == ']' ) ) )
+			|| ( charset == charset2 && GetText( NEXTLINE( *start  ) )[0] == ']' ) ) )
 
 		{
 			(*binary_buffer) = NULL;
@@ -987,7 +1014,7 @@ int DoDecodeBinary( PTEXT *start, POINTER *binary_buffer, size_t *buflen )
 		if( !GetText( NEXTLINE( NEXTLINE( *start  ) ) ) ||
 			( GetText( NEXTLINE( NEXTLINE( *start  ) ) )[0] != '}'
 			&& GetText( NEXTLINE( NEXTLINE( *start  ) ) )[0] != ']' )
-		  )
+		)
 		{
 			(*binary_buffer) = NULL;
 			(*buflen) = 0;
@@ -1071,55 +1098,55 @@ int IsBinaryVar( PCONFIG_ELEMENT pce, PTEXT *start )
 
 int IsBooleanVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
-    size_t len = GetTextSize( *start );
-    int bOkay = FALSE;
-    if( pce && pce->type != CONFIG_BOOLEAN )
-        return FALSE;
-    //lprintf( WIDE("Is %s boolean?"), GetText( *start ) );
+	size_t len = GetTextSize( *start );
+	int bOkay = FALSE;
+	if( pce && pce->type != CONFIG_BOOLEAN )
+		return FALSE;
+	//lprintf( WIDE("Is %s boolean?"), GetText( *start ) );
 #define CmpMin(constlen)  ((len <= (constlen))?(len):0)
-#define NearText(text,const)   ( CmpMin( sizeof( const ) - 1 ) &&      \
-                 ( StrCaseCmpEx( GetText( text ), const, len ) == 0 ) )
-    if( NearText( *start, WIDE("yes") ) ||
-        NearText( *start, WIDE("1") ) ||
-       NearText( *start, WIDE("on") ) ||
-       NearText( *start, WIDE("true") ) ||
-       NearText( *start, WIDE("open") )
-      )
-    {
-        if(pce)pce->data[0].truefalse.bTrue = 1;
-        bOkay = TRUE;
-    }
-    else if( NearText( *start, WIDE("no") ) ||
-          NearText( *start, WIDE("0") ) ||
-          NearText( *start, WIDE("off") ) ||
-        NearText( *start, WIDE("false") ) ||
-        NearText( *start, WIDE("close") )
-        )
-    {
-        if(pce)pce->data[0].truefalse.bTrue = 0;
-        bOkay = TRUE;
-    }
-    else if( NearText( *start, WIDE("are") ) ||
-          NearText( *start, WIDE("is") ) )
-    {
-       PTEXT word;
-       bOkay = TRUE;
-       if(pce)pce->data[0].truefalse.bTrue = 1;
-       if( ( word = NEXTLINE( *start ) ) )
-       {
-        if( NearText( *start, WIDE("not") ) )
-        {
-            if(pce)pce->data[0].truefalse.bTrue = 0;
-            *start = word;
-        }
-       }
-    }
-    if( bOkay )
-    {
-        *start = NEXTLINE( *start );
-        return bOkay;
-    }
-    return FALSE;
+#define NearText(text,const)	( CmpMin( sizeof( const ) - 1 ) &&		\
+					( StrCaseCmpEx( GetText( text ), const, len ) == 0 ) )
+	if( NearText( *start, WIDE("yes") ) ||
+		NearText( *start, WIDE("1") ) ||
+		NearText( *start, WIDE("on") ) ||
+		NearText( *start, WIDE("true") ) ||
+		NearText( *start, WIDE("open") )
+		)
+	{
+		if(pce)pce->data[0].truefalse.bTrue = 1;
+		bOkay = TRUE;
+	}
+	else if( NearText( *start, WIDE("no") ) ||
+			NearText( *start, WIDE("0") ) ||
+			NearText( *start, WIDE("off") ) ||
+		NearText( *start, WIDE("false") ) ||
+		NearText( *start, WIDE("close") )
+		)
+	{
+		if(pce)pce->data[0].truefalse.bTrue = 0;
+		bOkay = TRUE;
+	}
+	else if( NearText( *start, WIDE("are") ) ||
+			NearText( *start, WIDE("is") ) )
+	{
+		PTEXT word;
+		bOkay = TRUE;
+		if(pce)pce->data[0].truefalse.bTrue = 1;
+		if( ( word = NEXTLINE( *start ) ) )
+		{
+		if( NearText( *start, WIDE("not") ) )
+		{
+				if(pce)pce->data[0].truefalse.bTrue = 0;
+				*start = word;
+		}
+		}
+	}
+	if( bOkay )
+	{
+		*start = NEXTLINE( *start );
+		return bOkay;
+	}
+	return FALSE;
 }
 
 int GetBooleanVar( PTEXT *start, LOGICAL *data )
@@ -1129,7 +1156,7 @@ int GetBooleanVar( PTEXT *start, LOGICAL *data )
 	{
 		if( data )
 			(*data) = element.data[0].truefalse.bTrue;
-      return TRUE;
+		return TRUE;
 	}
 	return FALSE;
 }
@@ -1141,95 +1168,95 @@ static TEXTCHAR maxbase2[] = WIDE("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
 int TextToInt( CTEXTSTR text, PS_64 out )
 {
-    struct {
-        _32 neg : 1;
-        _32 success : 1;
-    } flags;
-    _32 base;
-    S_64 accum;
-    flags.neg = 0;
-    flags.success = 1;
-    if( text[0] == '-' )
-    {
-       flags.neg = 1;
-       text++;
-    }
-    else if( text[0] == '+' )
-    {
-        text++;
-    }
-    base = 10;
-    if( text[0] == '0' )
-    {
-        base = 8;
-        text++;
-        if( text[0] == 'x' )
-        {
-            base = 16;
-            text++;
-        }
-        else if( text[0] == 'b' )
-        {
-            base = 2;
-            text++;
-        }
-    }
-    accum = 0;
-    while( text[0] )
-    {
-        TEXTCHAR *c;
-        _32 val;
-        if( ( c = strchr( maxbase1, text[0] ) ) ) val = (_32)(c - maxbase1);
-        if( !c ) if( ( c = strchr( maxbase2, text[0] ) ) ) val = (_32)(c - maxbase2);
-        if( !c ) { flags.success = 0; break; }
-        if( val < base )
-        {
-            accum *= base;
-            accum += val;
-        }
-        else
+	struct {
+		_32 neg : 1;
+		_32 success : 1;
+	} flags;
+	_32 base;
+	S_64 accum;
+	flags.neg = 0;
+	flags.success = 1;
+	if( text[0] == '-' )
+	{
+		flags.neg = 1;
+		text++;
+	}
+	else if( text[0] == '+' )
+	{
+		text++;
+	}
+	base = 10;
+	if( text[0] == '0' )
+	{
+		base = 8;
+		text++;
+		if( text[0] == 'x' )
+		{
+				base = 16;
+				text++;
+		}
+		else if( text[0] == 'b' )
+		{
+				base = 2;
+				text++;
+		}
+	}
+	accum = 0;
+	while( text[0] )
+	{
+		TEXTCHAR *c;
+		_32 val;
+		if( ( c = strchr( maxbase1, text[0] ) ) ) val = (_32)(c - maxbase1);
+		if( !c ) if( ( c = strchr( maxbase2, text[0] ) ) ) val = (_32)(c - maxbase2);
+		if( !c ) { flags.success = 0; break; }
+		if( val < base )
+		{
+				accum *= base;
+				accum += val;
+		}
+		else
 		{
 			// yeah this works... there are times when badly behaved programs generate
 			// output that should not match...
-			// launch at screenX by ScreenY     "launch at %i by %i" fails
-			// launch at 50 by 59                   "                works
+			// launch at screenX by ScreenY	"launch at %i by %i" fails
+			// launch at 50 by 59						"					works
 			// another rule that took launchat %w by %w could also work... in case
 			// there is some variadric thing .. but a different config proc will probably be
 			// called for such a case.
-            //Log3( WIDE("Base Error : [%c]%s is not within base %d"), text[0], text+1, base );
-            flags.success = 0;
-            break;
-        }
-        text++;
-    }
-    if( flags.success )
-    {
-        if( out )
-        {
-		     if( flags.neg )
-      	     *out = -accum;
-           else
-              *out = accum;
-        }
-        return TRUE;
-    }
-    return FALSE;
+				//Log3( WIDE("Base Error : [%c]%s is not within base %d"), text[0], text+1, base );
+				flags.success = 0;
+				break;
+		}
+		text++;
+	}
+	if( flags.success )
+	{
+		if( out )
+		{
+			if( flags.neg )
+				*out = -accum;
+			else
+				*out = accum;
+		}
+		return TRUE;
+	}
+	return FALSE;
 }
 
 int IsIntegerVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
-    CTEXTSTR text;
-    S_64 accum;
-    if( pce->type != CONFIG_INTEGER )
-        return FALSE;
-    text = GetText( *start );
-    if( TextToInt( text, &accum ) )
-    {
-        pce->data[0].integer_number = accum;
-        *start = NEXTLINE( *start );
-        return TRUE;
-    }
-    return FALSE;
+	CTEXTSTR text;
+	S_64 accum;
+	if( pce->type != CONFIG_INTEGER )
+		return FALSE;
+	text = GetText( *start );
+	if( TextToInt( text, &accum ) )
+	{
+		pce->data[0].integer_number = accum;
+		*start = NEXTLINE( *start );
+		return TRUE;
+	}
+	return FALSE;
 }
 
 //---------------------------------------------------------------------
@@ -1319,8 +1346,8 @@ int IsColorVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		int components = 0;
 		_32 color = 0;
 		for( val = *start;
-		     val && GetText( val )[0] != ')';
-		     val = NEXTLINE( val ) )
+			val && GetText( val )[0] != ')';
+			val = NEXTLINE( val ) )
 		{
 			S_64 accum = 0;
 			//lprintf( WIDE("Test : %s"), GetText( val ) );
@@ -1355,7 +1382,7 @@ int GetColorVar( PTEXT *start, CDATA *data )
 	{
 		if( data )
 			(*data) = element.data[0].Color;
-      return TRUE;
+		return TRUE;
 	}
 	return FALSE;
 }
@@ -1364,147 +1391,147 @@ int GetColorVar( PTEXT *start, CDATA *data )
 
 int IsFloatVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
-    //char *text;
-    if( pce->type != CONFIG_FLOAT )
-        return FALSE;
+	//char *text;
+	if( pce->type != CONFIG_FLOAT )
+		return FALSE;
 
-    //text = GetText( *start );
-    lprintf( WIDE("Floating values are not processed yet.") );
+	//text = GetText( *start );
+	lprintf( WIDE("Floating values are not processed yet.") );
 
-    return FALSE;
+	return FALSE;
 }
 
 //---------------------------------------------------------------------
 
 int IsFractionVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
-    S_32 accum1, accum2, accum3;
-    int neg1, neg2, neg3;
-    PTEXT current;
-    CTEXTSTR text;
-    if( pce->type != CONFIG_FRACTION )
-        return FALSE;
-    // this may consume multiple segments (4?)  (+/-)##(1) ##(2)/(3)##(4)
-    current = *start;
-    text = GetText( current );
-    accum1 = 0;
-    neg1 = 1;
+	S_32 accum1, accum2, accum3;
+	int neg1, neg2, neg3;
+	PTEXT current;
+	CTEXTSTR text;
+	if( pce->type != CONFIG_FRACTION )
+		return FALSE;
+	// this may consume multiple segments (4?)  (+/-)##(1) ##(2)/(3)##(4)
+	current = *start;
+	text = GetText( current );
+	accum1 = 0;
+	neg1 = 1;
 
-    if( text[0] == '-' )
-    {
-        neg1 = -1;
-        text++;
-    }
-    else if( text[0] == '+' )
-    {
-        text++;
-    }
-    while( text[0] && text[0] >= '0' && text[0] <= '9' )
-    {
-        accum1 *= 10;
-        accum1 += text[0] - '0';
-      text++;
-    }
-    if( text[0] )
-    {
-        lprintf( WIDE("Error in first argument of format of fraction.") );
-        return FALSE;
-    }
+	if( text[0] == '-' )
+	{
+		neg1 = -1;
+		text++;
+	}
+	else if( text[0] == '+' )
+	{
+		text++;
+	}
+	while( text[0] && text[0] >= '0' && text[0] <= '9' )
+	{
+		accum1 *= 10;
+		accum1 += text[0] - '0';
+		text++;
+	}
+	if( text[0] )
+	{
+		lprintf( WIDE("Error in first argument of format of fraction.") );
+		return FALSE;
+	}
 // collect numerator after whole number.
-   current = NEXTLINE( current );
-   if( current )
-   {
-    text = GetText( current );
-    accum2 = 0;
-      neg2 = 1;
-    if( text[0] == '/' )
-    {
-        //lprintf( WIDE("Promoting whole to numerator, getting denominaotr") );
-        neg2   = neg1;
-        accum2 = accum1;
-        neg1   = 1;
-        accum1 = 0;
-        goto collect_denominator;
-    }
+	current = NEXTLINE( current );
+	if( current )
+	{
+	text = GetText( current );
+	accum2 = 0;
+		neg2 = 1;
+	if( text[0] == '/' )
+	{
+		//lprintf( WIDE("Promoting whole to numerator, getting denominaotr") );
+		neg2	= neg1;
+		accum2 = accum1;
+		neg1	= 1;
+		accum1 = 0;
+		goto collect_denominator;
+	}
 
-    if( text[0] == '-' )
-    {
-        neg2 = -1;
-        text++;
-      }
-      else if( text[0] == '+' )
-      {
-        text++;
-      }
-      while( text[0] && text[0] >= '0' && text[0] <= '9' )
-      {
-        accum2 *= 10;
-        accum2 += text[0] - '0';
-        text++;
-      }
-      if( text[0] )
-        lprintf( WIDE("Error in format of numerator") );
-   }
-   else
-   {
-    //lprintf( WIDE("End of line before numerator") );
-      pce->data[0].fraction.numerator = accum1;
-      pce->data[0].fraction.denominator = neg1;
-      *start = NEXTLINE( current );
-    return TRUE;
-   }
-   current = NEXTLINE( current );
-   if( current )
-   {
-    text = GetText( current );
-    if( text[0] != '/' )
-    {
-        lprintf( WIDE("No denominator specified - error in fraction.") );
-        return FALSE;
-    }
-   }
-   else
-   {
-    lprintf( WIDE("End of line before '/'") );
-   }
+	if( text[0] == '-' )
+	{
+		neg2 = -1;
+		text++;
+		}
+		else if( text[0] == '+' )
+		{
+		text++;
+		}
+		while( text[0] && text[0] >= '0' && text[0] <= '9' )
+		{
+		accum2 *= 10;
+		accum2 += text[0] - '0';
+		text++;
+		}
+		if( text[0] )
+		lprintf( WIDE("Error in format of numerator") );
+	}
+	else
+	{
+	//lprintf( WIDE("End of line before numerator") );
+		pce->data[0].fraction.numerator = accum1;
+		pce->data[0].fraction.denominator = neg1;
+		*start = NEXTLINE( current );
+	return TRUE;
+	}
+	current = NEXTLINE( current );
+	if( current )
+	{
+	text = GetText( current );
+	if( text[0] != '/' )
+	{
+		lprintf( WIDE("No denominator specified - error in fraction.") );
+		return FALSE;
+	}
+	}
+	else
+	{
+	lprintf( WIDE("End of line before '/'") );
+	}
 collect_denominator:
-    current = NEXTLINE( current );
-    if( current )
-    {
-        text = GetText( current );
-        accum3 = 0;
-        neg3 = 1;
-      if( text[0] == '-' )
-      {
-        neg3 = -1;
-        text++;
-      }
-      else if( text[0] == '+' )
-      {
-        text++;
-      }
-      while( text[0] && text[0] >= '0' && text[0] <= '9' )
-      {
-        accum3 *= 10;
-        accum3 += text[0] - '0';
-        text++;
-      }
-      if( text[0] )
-      {
-        lprintf( WIDE("Error in format of denominator.") );
-        return FALSE;
-      }
-      //Log7( WIDE("%d*%d+%d / %d*%d*%d*%d"), accum1, accum3, accum2, neg1, neg2, neg3, accum3 );
-      pce->data[0].fraction.numerator = accum1 * accum3 + accum2;
-      pce->data[0].fraction.denominator = neg1 * neg2 * neg3 * accum3;
-      *start = NEXTLINE( current );
-    }
-    else
-    {
-        lprintf( WIDE("End of line before denominator.") );
-        return FALSE;
-    }
-    return TRUE;
+	current = NEXTLINE( current );
+	if( current )
+	{
+		text = GetText( current );
+		accum3 = 0;
+		neg3 = 1;
+		if( text[0] == '-' )
+		{
+		neg3 = -1;
+		text++;
+		}
+		else if( text[0] == '+' )
+		{
+		text++;
+		}
+		while( text[0] && text[0] >= '0' && text[0] <= '9' )
+		{
+		accum3 *= 10;
+		accum3 += text[0] - '0';
+		text++;
+		}
+		if( text[0] )
+		{
+		lprintf( WIDE("Error in format of denominator.") );
+		return FALSE;
+		}
+		//Log7( WIDE("%d*%d+%d / %d*%d*%d*%d"), accum1, accum3, accum2, neg1, neg2, neg3, accum3 );
+		pce->data[0].fraction.numerator = accum1 * accum3 + accum2;
+		pce->data[0].fraction.denominator = neg1 * neg2 * neg3 * accum3;
+		*start = NEXTLINE( current );
+	}
+	else
+	{
+		lprintf( WIDE("End of line before denominator.") );
+		return FALSE;
+	}
+	return TRUE;
 }
 
 //---------------------------------------------------------------------
@@ -1512,7 +1539,7 @@ collect_denominator:
 int IsSingleWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
 	PTEXT pWords = NULL;
-   //PTEXT __start = *start;
+	//PTEXT __start = *start;
 	if( pce->type != CONFIG_SINGLE_WORD )
 		return FALSE;
 	if( pce->data[0].singleword.pWord )
@@ -1524,23 +1551,23 @@ int IsSingleWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 	{
 		if( pWords )
 		{
-         PTEXT _start = *start;
+			PTEXT _start = *start;
 			if( IsAnyVar( pce->data[0].singleword.pEnd, start ) )
 			{
 				if( g.flags.bLogTrace )
 					lprintf( WIDE("Failed check for var check..") );
-            *start = _start; // restore start..
+				*start = _start; // restore start..
 				break;
 			}
 			if( (*start)->format.position.offset.spaces )
 			{
 				//if( pWords )
 				//	LineRelease( pWords );
-            // so at a space, stop appending.
+				// so at a space, stop appending.
 				if( g.flags.bLogTrace )
 					lprintf( WIDE("next word has spaces... [%s](%d)"), GetText(*start), (*start)->format.position.offset.spaces );
-            break;
-            //*start = _start;
+				break;
+				//*start = _start;
 				//return TRUE;
 			}
 		}
@@ -1552,7 +1579,7 @@ int IsSingleWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 	if( pWords )
 	{
 		PTEXT pText;
-      pWords->format.position.offset.spaces= 0;
+		pWords->format.position.offset.spaces= 0;
 		pText = BuildLine( pWords );
 		LineRelease( pWords );
 
@@ -1560,57 +1587,57 @@ int IsSingleWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 			lprintf( WIDE("Setting text word...") );
 		pce->data[0].singleword.pWord = StrDup( GetText( pText ) );
 		LineRelease( pText );
-      return TRUE;
+		return TRUE;
 	}
-    return FALSE;
+	return FALSE;
 }
 
 //---------------------------------------------------------------------
 
 int IsMultiWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
-   int matched = 1;
-    PTEXT pWords = NULL;
-    if( pce->type != CONFIG_MULTI_WORD )
-        return FALSE;
-    if( pce->data[0].multiword.pWords )
-    {
-        Release( pce->data[0].multiword.pWords );
-		  pce->data[0].multiword.pWords = NULL;
-	 }
-    while( *start &&
-			 !(matched = IsAnyVar( pce->data[0].multiword.pEnd, start ) ) )
-    {
-        pWords = SegAppend( pWords, SegDuplicate( *start ) );
-        *start = NEXTLINE( *start );
-	 }
-	 if( (!*start) )
-	 {
-		 if( !matched && pce->data[0].multiword.pEnd )
-		 {
-			 LineRelease( pWords );
-			 pWords = NULL;
-          // multiword ended - end of line, and no match on the next tag...
-          return FALSE;
-		 }
-		 else if( g.flags.bLogTrace )
-			 lprintf( WIDE( "is alright - gathered to end of line ok." ) );
-	 }
-	 //if( !pWords )
-    //   pWords = SegCreate(0);
-    if( pWords )
-	 {
-		 pWords->format.position.offset.spaces = 0;
-		 {
-			 PTEXT out = BuildLine( pWords );
-			 TEXTSTR buf = StrDup( GetText( out ) );
-			 LineRelease( out );
-			 LineRelease( pWords );
-			 pce->data[0].multiword.pWords = buf;
-		 }
-		 return TRUE;
-    }
-    return FALSE;
+	int matched = 1;
+	PTEXT pWords = NULL;
+	if( pce->type != CONFIG_MULTI_WORD )
+		return FALSE;
+	if( pce->data[0].multiword.pWords )
+	{
+		Release( pce->data[0].multiword.pWords );
+		pce->data[0].multiword.pWords = NULL;
+	}
+	while( *start &&
+			!(matched = IsAnyVar( pce->data[0].multiword.pEnd, start ) ) )
+	{
+		pWords = SegAppend( pWords, SegDuplicate( *start ) );
+		*start = NEXTLINE( *start );
+	}
+	if( (!*start) )
+	{
+		if( !matched && pce->data[0].multiword.pEnd )
+		{
+			LineRelease( pWords );
+			pWords = NULL;
+			// multiword ended - end of line, and no match on the next tag...
+			return FALSE;
+		}
+		else if( g.flags.bLogTrace )
+			lprintf( WIDE( "is alright - gathered to end of line ok." ) );
+	}
+	//if( !pWords )
+	//	pWords = SegCreate(0);
+	if( pWords )
+	{
+		pWords->format.position.offset.spaces = 0;
+		{
+			PTEXT out = BuildLine( pWords );
+			TEXTSTR buf = StrDup( GetText( out ) );
+			LineRelease( out );
+			LineRelease( pWords );
+			pce->data[0].multiword.pWords = buf;
+		}
+		return TRUE;
+	}
+	return FALSE;
 }
 
 //---------------------------------------------------------------------
@@ -1688,34 +1715,34 @@ int IsFileVar( PCONFIG_ELEMENT pce, PTEXT *start )
 int IsFilePathVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
 	PTEXT pWords = NULL;
-    if( pce->type != CONFIG_FILEPATH )
-		 return FALSE;
-    if( pce->data[0].multiword.pWords )
-    {
-        Release( pce->data[0].multiword.pWords );
-		  pce->data[0].multiword.pWords = NULL;
-	 }
-    while( *start &&
-			 !IsAnyVar( pce->data[0].multiword.pEnd, start ) )
-    {
-        pWords = SegAppend( pWords, SegDuplicate( *start ) );
-        *start = NEXTLINE( *start );
-	 }
-	 if( pWords )
-	 {
-		 pWords->format.position.offset.spaces = 0;
-		 {
-			 PTEXT out = BuildLine( pWords );
-			 size_t length;
-			 TEXTSTR buf = NewArray( TEXTCHAR, length = GetTextSize( out ) + 1 );
-			 StrCpyEx( buf, GetText( out ), length * sizeof( TEXTCHAR ) );
-			 LineRelease( out );
-			 LineRelease( pWords );
-			 pce->data[0].multiword.pWords = buf;
-		 }
-		 return TRUE;
-	 }
-	 return FALSE;
+	if( pce->type != CONFIG_FILEPATH )
+		return FALSE;
+	if( pce->data[0].multiword.pWords )
+	{
+		Release( pce->data[0].multiword.pWords );
+		pce->data[0].multiword.pWords = NULL;
+	}
+	while( *start &&
+			!IsAnyVar( pce->data[0].multiword.pEnd, start ) )
+	{
+		pWords = SegAppend( pWords, SegDuplicate( *start ) );
+		*start = NEXTLINE( *start );
+	}
+	if( pWords )
+	{
+		pWords->format.position.offset.spaces = 0;
+		{
+			PTEXT out = BuildLine( pWords );
+			size_t length;
+			TEXTSTR buf = NewArray( TEXTCHAR, length = GetTextSize( out ) + 1 );
+			StrCpyEx( buf, GetText( out ), length * sizeof( TEXTCHAR ) );
+			LineRelease( out );
+			LineRelease( pWords );
+			pce->data[0].multiword.pWords = buf;
+		}
+		return TRUE;
+	}
+	return FALSE;
 }
 
 //---------------------------------------------------------------------
@@ -1735,7 +1762,7 @@ int IsAddressVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		pWords = SegAppend( pWords, SegDuplicate( *start ) );
 		*start = NEXTLINE( *start );
 	}
-   if( pWords )
+	if( pWords )
 	{
 		pWords->format.position.offset.spaces = 0;
 		{
@@ -1744,7 +1771,7 @@ int IsAddressVar( PCONFIG_ELEMENT pce, PTEXT *start )
 			pce->data[0].psaSockaddr = CreateSockAddress( (CTEXTSTR)GetText( pText ), 0 );
 			LineRelease( pText );
 		}
-      return TRUE;
+		return TRUE;
 	}
 	return FALSE;
 }
@@ -1770,18 +1797,18 @@ int IsAnyVarEx( PCONFIG_ELEMENT pce, PTEXT *start DBG_PASS )
 	if( g.flags.bLogTrace )
 		_lprintf(DBG_RELAY)( WIDE("IsAnyVar") );
 	return( ( IsConstText( pce, start ) ) ||
-			 ( IsBooleanVar( pce, start ) ) ||
-			 ( IsBinaryVar( pce, start ) ) ||
-			 ( IsIntegerVar( pce, start ) ) ||
-			 ( IsFloatVar( pce, start ) ) ||
-			 ( IsFractionVar( pce, start ) ) ||
-			 ( IsSingleWordVar( pce, start ) ) ||
-			 ( IsMultiWordVar( pce, start ) ) ||
-			 ( IsPathVar( pce, start ) ) ||
-			 ( IsFileVar( pce, start ) ) ||
-			 ( IsFilePathVar( pce, start ) ) ||
-			 ( IsURLVar( pce, start ) ) ||
-			 ( IsColorVar( pce, start ) ) );
+			( IsBooleanVar( pce, start ) ) ||
+			( IsBinaryVar( pce, start ) ) ||
+			( IsIntegerVar( pce, start ) ) ||
+			( IsFloatVar( pce, start ) ) ||
+			( IsFractionVar( pce, start ) ) ||
+			( IsSingleWordVar( pce, start ) ) ||
+			( IsMultiWordVar( pce, start ) ) ||
+			( IsPathVar( pce, start ) ) ||
+			( IsFileVar( pce, start ) ) ||
+			( IsFilePathVar( pce, start ) ) ||
+			( IsURLVar( pce, start ) ) ||
+			( IsColorVar( pce, start ) ) );
 }
 
 //---------------------------------------------------------------------
@@ -1849,7 +1876,7 @@ void DoProcedure( PTRSZVAL *ppsvUser, PCONFIG_TEST Check )
 						break;
 					default:
 						break;
-						  }
+						}
 					//lprintf( WIDE("Total args are now: %d"), argsize );
 					pcePush = pcePush->prior;
 				}
@@ -1966,7 +1993,7 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 					}
 				}
 			}
-			else if( !word )    // otherwise we may have bailed early.
+			else if( !word )	// otherwise we may have bailed early.
 			{
 				// check here for Procedure at end of line (word == NULL)
 				DoProcedure( &pch->psvUser, Check );
@@ -2061,9 +2088,9 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 		CTEXTSTR workpath = OSALOT_GetEnvironmentVariable( WIDE( "MY_WORK_PATH" ) );
 		TEXTCHAR pathname[255];
 		snprintf( pathname, sizeof( pathname ), WIDE("%s/%s"), workpath, name );
-#    ifdef _MSC_VER
+#	ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
-#    endif
+#	endif
 		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
 	}
 	if( !pch->file && !absolute_path )
@@ -2071,9 +2098,9 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 		CTEXTSTR workpath = OSALOT_GetEnvironmentVariable( WIDE( "MY_LOAD_PATH" ) );
 		TEXTCHAR pathname[255];
 		snprintf( pathname, sizeof( pathname ), WIDE("%s/%s"), workpath, name );
-#    ifdef _MSC_VER
+#	ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
-#    endif
+#	endif
 		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
 	}
 #  endif
@@ -2101,12 +2128,12 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 			pch->EndProcess( pch->psvUser );
 		pch->file = NULL;
 		return TRUE;
-    }
-    else
-    {
+	}
+	else
+	{
 		//lprintf( WIDE("Failed to open config file: %s"), name );
 		return FALSE;
-    }
+	}
 }
 
 //---------------------------------------------------------------------
@@ -2116,16 +2143,18 @@ CONFIGSCR_PROC( PTRSZVAL, ProcessConfigurationInput )( PCONFIG_HANDLER pch, CTEX
 	pch->psvUser = psv;
 	{
 		PTEXT line;
-		PTEXT block = SegCreate( size );
+		PTEXT block = SegCreate( size + 1 );
 		MemCpy( GetText( block ), data, size );
+		GetText( block )[size] = 0;
+		SetTextSize( block, size );
 		pch->blocks = block;
 		while( ( line = GetConfigurationLine( pch ) ) )
 		{
 			ProcessConfigurationLine( pch, line );
 			LineRelease( line );
 		}
-      // this block will have been moved into internal accumulators.
-      //LineRelease( block );
+		// this block will have been moved into internal accumulators.
+		//LineRelease( block );
 	}
 	return pch->psvUser;
 }
@@ -2135,9 +2164,9 @@ CONFIGSCR_PROC( PTRSZVAL, ProcessConfigurationInput )( PCONFIG_HANDLER pch, CTEX
 static PCONFIG_ELEMENT NewConfigTestElement( PCONFIG_HANDLER pch )
 {
 
-    PCONFIG_ELEMENT pceNew = GetFromSet( CONFIG_ELEMENT, &pch->elements ); //&(PCONFIG_ELEMENT)Allocate( sizeof( CONFIG_ELEMENT ) );
-    MemSet( pceNew, 0, sizeof( CONFIG_ELEMENT ) );
-    return pceNew;
+	PCONFIG_ELEMENT pceNew = GetFromSet( CONFIG_ELEMENT, &pch->elements ); //&(PCONFIG_ELEMENT)Allocate( sizeof( CONFIG_ELEMENT ) );
+	MemSet( pceNew, 0, sizeof( CONFIG_ELEMENT ) );
+	return pceNew;
 }
 
 //---------------------------------------------------------------------
@@ -2147,12 +2176,12 @@ static PCONFIG_ELEMENT NewConfigTestElement( PCONFIG_HANDLER pch )
 static PCONFIG_TEST NewConfigTest( PCONFIG_HANDLER pch )
 {
 	PCONFIG_TEST pctNew = GetFromSet( CONFIG_TEST, &pch->test_elements ); //(PCONFIG_TEST)AllocateEx( sizeof( CONFIG_TEST ) DBG_RELAY );
-    MemSet( pctNew, 0, sizeof( CONFIG_TEST ) );
+	MemSet( pctNew, 0, sizeof( CONFIG_TEST ) );
 	// I don't actually have to create list...
-   // they will be filled in and allocated on demand.
-    pctNew->pConstElementList = NULL;//CreateListEx( DBG_VOIDRELAY );
-    pctNew->pVarElementList = NULL;//CreateListEx( DBG_VOIDRELAY );
-    return pctNew;
+	// they will be filled in and allocated on demand.
+	pctNew->pConstElementList = NULL;//CreateListEx( DBG_VOIDRELAY );
+	pctNew->pVarElementList = NULL;//CreateListEx( DBG_VOIDRELAY );
+	return pctNew;
 }
 
 //---------------------------------------------------------------------
@@ -2171,9 +2200,9 @@ void BeginConfiguration( PCONFIG_HANDLER pch )
 			pch->ConfigStateStack = CreateDataStack( sizeof( CONFIG_STATE ) );
 #ifdef DEBUG_SAVE_CONFIG
 		lprintf( "Saving config and psvUser is %08x", pch->psvUser );
-      DumpConfigurationEvaluator( pch );
+		DumpConfigurationEvaluator( pch );
 #endif
-      save_state.recovered = pch->config_recovered;
+		save_state.recovered = pch->config_recovered;
 		save_state.ConfigTestRoot = pch->ConfigTestRoot;
 		save_state.psvUser = pch->psvUser;
 		save_state.EndProcess = pch->EndProcess;
@@ -2188,7 +2217,7 @@ void BeginConfiguration( PCONFIG_HANDLER pch )
 		pch->ConfigTestRoot.pVarElementList = NULL;
 		pch->EndProcess = NULL;
 		pch->Unhandled = NULL;
-      pch->config_recovered = FALSE;
+		pch->config_recovered = FALSE;
 #ifdef DEBUG_SAVE_CONFIG
 		lprintf( "Setting config as not savable." );
 #endif
@@ -2217,7 +2246,7 @@ LOGICAL BeginNamedConfiguration( PCONFIG_HANDLER pch, CTEXTSTR name )
 #ifdef DEBUG_SAVE_CONFIG
 			lprintf( "Beginning a named configuration..." );
 #endif
-         pch->save_config_as = state->name;
+			pch->save_config_as = state->name;
 #ifdef DEBUG_SAVE_CONFIG
 			DumpConfigurationEvaluator( pch );
 #endif
@@ -2266,7 +2295,7 @@ void EndConfiguration( PCONFIG_HANDLER pch )
 				state->name = pch->save_config_as;
 				AddLink( &pch->states, state );
 			}
-         // otherwise there's no action to do... already have it saved.
+			// otherwise there's no action to do... already have it saved.
 		}
 		else
 		{
@@ -2285,308 +2314,308 @@ void EndConfiguration( PCONFIG_HANDLER pch )
 
 void AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_CONFIG_HANDLER Process DBG_PASS )
 {
-    PTEXT pTemp = SegCreateFromText( format );
-    PTEXT pLine; 
-    PTEXT pWord;
-    struct {
-        _32 vartag : 1;
-        _32 vector : 1;
-        _32 ignore_new : 1;
-        _32 store_next_as_end : 1;
-        _32 also_store_next_as_end : 1;
-        _32 store_as_end : 1;
-        _32 also_store_as_end : 1;
-    }flags;
-    PCONFIG_TEST pct;
-    PCONFIG_ELEMENT pceNew, pcePrior;
-	 ((_32*)&flags)[0] = 0;
-	 //flags.dw = 0;
+	PTEXT pTemp = SegCreateFromText( format );
+	PTEXT pLine; 
+	PTEXT pWord;
+	struct {
+		_32 vartag : 1;
+		_32 vector : 1;
+		_32 ignore_new : 1;
+		_32 store_next_as_end : 1;
+		_32 also_store_next_as_end : 1;
+		_32 store_as_end : 1;
+		_32 also_store_as_end : 1;
+	}flags;
+	PCONFIG_TEST pct;
+	PCONFIG_ELEMENT pceNew, pcePrior;
+	((_32*)&flags)[0] = 0;
+	//flags.dw = 0;
 
 //#if defined( FULL_TRACE ) || defined( DEBUG_SLOWNESS )
- 	 if( g.flags.bLogTrace )
-		 lprintf( WIDE( "Burst..." ) );
+	if( g.flags.bLogTrace )
+		lprintf( WIDE( "Burst..." ) );
 //#endif
-    pLine = burst( pTemp );
-    LineRelease( pTemp );
+	pLine = burst( pTemp );
+	LineRelease( pTemp );
 
-    pct = &pch->ConfigTestRoot;
-	 pceNew = NewConfigTestElement( pch );
-	 pcePrior = NULL;
-	 pWord = pLine;
-    while( pWord )
-	 {
-		 if( g.flags.bLogTrace )
-			 lprintf( WIDE("Evaluating %s ... "), GetText( pWord ) );
-		 if( flags.vartag )
-		 {
-			 CTEXTSTR pWordText = GetText( pWord );
-			 if( pWordText[0] == 'v' )
-			 {
-				 flags.vector = 1;
-				 pWordText++;
-				 if( !pWordText[0] )
-				 {
-					 lprintf( WIDE("Format: %s"), format );
-					 lprintf( WIDE("Configuration error %%v[no type]") );
-				 }
-				 LineRelease( pLine );
-				 lprintf( WIDE( "Destroy config element %p" ), pceNew );
-				 DestroyConfigElement( pch, pceNew );
-				 return;
-			 }
-			 switch( pWordText[0] )
-			 {
-			 case 'b':
-				 //lprintf( WIDE("is a boolean...") );
-				 pceNew->type = CONFIG_BOOLEAN;
-				 pceNew->flags.vector = flags.vector;
-				 break;
-			 case 'B':
-				 //lprintf( WIDE("is a binary...") );
-				 pceNew->type = CONFIG_BINARY;
-				 pceNew->flags.vector = flags.vector;
-				 break;
-			 case 'i':
-				 //lprintf( WIDE("Is an integer... ")) ;
-				 pceNew->type = CONFIG_INTEGER;
-				 pceNew->flags.vector = flags.vector;
-				 break;
-			 case 'c':
-				 pceNew->type = CONFIG_COLOR;
-				 pceNew->flags.vector = flags.vector;
-				 break;
-			 case 'f':
-				 pceNew->type = CONFIG_FLOAT;
-				 pceNew->flags.vector = flags.vector;
-				 break;
-			 case 'q':
-				 pceNew->type = CONFIG_FRACTION;
-				 pceNew->flags.vector = flags.vector;
-				 break;
-			 case 'w':
-				 if( g.flags.bLogTrace )
-					 lprintf( WIDE("Setting new as type SINGLE_WORD") );
-				 pceNew->type = CONFIG_SINGLE_WORD;
-				 pceNew->flags.vector = flags.vector;
-				 flags.also_store_next_as_end = 1;
-				 break;
-			 case 'm':
-				 if( g.flags.bLogTrace )
-					 lprintf( WIDE("Setting new as type MULTI_WORD") );
-				 pceNew->type = CONFIG_MULTI_WORD;
-				 pceNew->flags.vector = flags.vector;
-				 flags.store_next_as_end = 1;
-				 break;
-			 case 'u':
-				 pceNew->type = CONFIG_URL;
-				 pceNew->flags.vector = flags.vector;
-				 break;
-			 case 'd':
-				 pceNew->type = CONFIG_PATH;
-				 pceNew->flags.vector = flags.vector;
-				 break;
-			 case 'n':
-				 pceNew->type = CONFIG_FILE;
-				 pceNew->flags.vector = flags.vector;
-				 break;
-			 case 'p':
-				 pceNew->type = CONFIG_FILEPATH;
-				 pceNew->flags.vector = flags.vector;
-				 break;
-			 case 'a':
-				 pceNew->type = CONFIG_ADDRESS;
-				 pceNew->flags.vector = flags.vector;
-				 break;
-			 default:
-				 lprintf( WIDE("Format: %s"), format );
-				 lprintf( WIDE("Unknown format character: %c"), pWordText[0] );
-				 flags.ignore_new = 1;
-				 break;
-			 }
-			 if( !flags.ignore_new )
-			 {
-				 if( g.flags.bLogTrace )
-					 lprintf( WIDE("Not ignoring the new thing...") );
-				 if( flags.store_as_end )
-				 {
-					 if( g.flags.bLogTrace )
-						 lprintf( WIDE("Storing as end...") );
-					 pcePrior->data[0].multiword.pEnd = pceNew;
-					 pceNew->flags.multiword_terminator = 1;
-					 pceNew->prior = pcePrior;
-					 pcePrior = pceNew;
-					 pceNew = NewConfigTestElement( pch );
+	pct = &pch->ConfigTestRoot;
+	pceNew = NewConfigTestElement( pch );
+	pcePrior = NULL;
+	pWord = pLine;
+	while( pWord )
+	{
+		if( g.flags.bLogTrace )
+			lprintf( WIDE("Evaluating %s ... "), GetText( pWord ) );
+		if( flags.vartag )
+		{
+			CTEXTSTR pWordText = GetText( pWord );
+			if( pWordText[0] == 'v' )
+			{
+				flags.vector = 1;
+				pWordText++;
+				if( !pWordText[0] )
+				{
+					lprintf( WIDE("Format: %s"), format );
+					lprintf( WIDE("Configuration error %%v[no type]") );
+				}
+				LineRelease( pLine );
+				lprintf( WIDE( "Destroy config element %p" ), pceNew );
+				DestroyConfigElement( pch, pceNew );
+				return;
+			}
+			switch( pWordText[0] )
+			{
+			case 'b':
+				//lprintf( WIDE("is a boolean...") );
+				pceNew->type = CONFIG_BOOLEAN;
+				pceNew->flags.vector = flags.vector;
+				break;
+			case 'B':
+				//lprintf( WIDE("is a binary...") );
+				pceNew->type = CONFIG_BINARY;
+				pceNew->flags.vector = flags.vector;
+				break;
+			case 'i':
+				//lprintf( WIDE("Is an integer... ")) ;
+				pceNew->type = CONFIG_INTEGER;
+				pceNew->flags.vector = flags.vector;
+				break;
+			case 'c':
+				pceNew->type = CONFIG_COLOR;
+				pceNew->flags.vector = flags.vector;
+				break;
+			case 'f':
+				pceNew->type = CONFIG_FLOAT;
+				pceNew->flags.vector = flags.vector;
+				break;
+			case 'q':
+				pceNew->type = CONFIG_FRACTION;
+				pceNew->flags.vector = flags.vector;
+				break;
+			case 'w':
+				if( g.flags.bLogTrace )
+					lprintf( WIDE("Setting new as type SINGLE_WORD") );
+				pceNew->type = CONFIG_SINGLE_WORD;
+				pceNew->flags.vector = flags.vector;
+				flags.also_store_next_as_end = 1;
+				break;
+			case 'm':
+				if( g.flags.bLogTrace )
+					lprintf( WIDE("Setting new as type MULTI_WORD") );
+				pceNew->type = CONFIG_MULTI_WORD;
+				pceNew->flags.vector = flags.vector;
+				flags.store_next_as_end = 1;
+				break;
+			case 'u':
+				pceNew->type = CONFIG_URL;
+				pceNew->flags.vector = flags.vector;
+				break;
+			case 'd':
+				pceNew->type = CONFIG_PATH;
+				pceNew->flags.vector = flags.vector;
+				break;
+			case 'n':
+				pceNew->type = CONFIG_FILE;
+				pceNew->flags.vector = flags.vector;
+				break;
+			case 'p':
+				pceNew->type = CONFIG_FILEPATH;
+				pceNew->flags.vector = flags.vector;
+				break;
+			case 'a':
+				pceNew->type = CONFIG_ADDRESS;
+				pceNew->flags.vector = flags.vector;
+				break;
+			default:
+				lprintf( WIDE("Format: %s"), format );
+				lprintf( WIDE("Unknown format character: %c"), pWordText[0] );
+				flags.ignore_new = 1;
+				break;
+			}
+			if( !flags.ignore_new )
+			{
+				if( g.flags.bLogTrace )
+					lprintf( WIDE("Not ignoring the new thing...") );
+				if( flags.store_as_end )
+				{
+					if( g.flags.bLogTrace )
+						lprintf( WIDE("Storing as end...") );
+					pcePrior->data[0].multiword.pEnd = pceNew;
+					pceNew->flags.multiword_terminator = 1;
+					pceNew->prior = pcePrior;
+					pcePrior = pceNew;
+					pceNew = NewConfigTestElement( pch );
 
-					 flags.store_as_end = 0;
-				 }
-				 else
-				 {
-					 if( flags.store_next_as_end )
-					 {
-						 flags.store_as_end = 1; // flag to store next thing as end condition.
-						 flags.store_next_as_end = 0;
-					 }
-					 if( flags.also_store_as_end )
-					 {
-						 if( g.flags.bLogTrace )
-							 lprintf( WIDE("Also Storing as end...") );
-						 pcePrior->data[0].singleword.pEnd = pceNew;
-						 pceNew->flags.singleword_terminator = 1;
-						 flags.also_store_as_end = 0;
-					 }
-					 if( flags.also_store_next_as_end )
-					 {
-						 flags.also_store_as_end = 1; // flag to store next thing as end condition.
-						 flags.also_store_next_as_end = 0;
-					 }
+					flags.store_as_end = 0;
+				}
+				else
+				{
+					if( flags.store_next_as_end )
+					{
+						flags.store_as_end = 1; // flag to store next thing as end condition.
+						flags.store_next_as_end = 0;
+					}
+					if( flags.also_store_as_end )
+					{
+						if( g.flags.bLogTrace )
+							lprintf( WIDE("Also Storing as end...") );
+						pcePrior->data[0].singleword.pEnd = pceNew;
+						pceNew->flags.singleword_terminator = 1;
+						flags.also_store_as_end = 0;
+					}
+					if( flags.also_store_next_as_end )
+					{
+						flags.also_store_as_end = 1; // flag to store next thing as end condition.
+						flags.also_store_next_as_end = 0;
+					}
 
-					 {
-						 INDEX idx;
-						 PCONFIG_ELEMENT pceCheck;
-						 LIST_FORALL( pct->pVarElementList, idx, PCONFIG_ELEMENT, pceCheck )
-						 {
-							 if( pceCheck->type == pceNew->type )
-							 {
-								 // any data set will be overwritten...
-								 // uhmm should probably update to new links.
-								 if( !pceCheck->next )
-								 {
-									 lprintf( WIDE("Something fishy here... second instance of same type...") );
-								 }
-								 pcePrior = pceCheck;
-								 pct = pceCheck->next;
-								 break;
-							 }
-						 }
-						 if( !pceCheck )
-						 {
+					{
+						INDEX idx;
+						PCONFIG_ELEMENT pceCheck;
+						LIST_FORALL( pct->pVarElementList, idx, PCONFIG_ELEMENT, pceCheck )
+						{
+							if( pceCheck->type == pceNew->type )
+							{
+								// any data set will be overwritten...
+								// uhmm should probably update to new links.
+								if( !pceCheck->next )
+								{
+									lprintf( WIDE("Something fishy here... second instance of same type...") );
+								}
+								pcePrior = pceCheck;
+								pct = pceCheck->next;
+								break;
+							}
+						}
+						if( !pceCheck )
+						{
 //#if defined( FULL_TRACE ) || defined( DEBUG_SLOWNESS )
-							 if( g.flags.bLogTrace )
-								 lprintf( WIDE("Adding into a new config test") );
+							if( g.flags.bLogTrace )
+								lprintf( WIDE("Adding into a new config test") );
 //#endif
-							 AddLink( &pct->pVarElementList, pceNew );
-							 pct = pceNew->next = NewConfigTest( pch );
-							 pceNew->prior = pcePrior;
-							 pcePrior = pceNew;
-							 pceNew = NewConfigTestElement( pch );
+							AddLink( &pct->pVarElementList, pceNew );
+							pct = pceNew->next = NewConfigTest( pch );
+							pceNew->prior = pcePrior;
+							pcePrior = pceNew;
+							pceNew = NewConfigTestElement( pch );
 //#if defined( FULL_TRACE ) || defined( DEBUG_SLOWNESS )
-							 if( g.flags.bLogTrace )
-								 lprintf( WIDE( "Added." ) );
+							if( g.flags.bLogTrace )
+								lprintf( WIDE( "Added." ) );
 //#endif
-						 }
-					 }
-				 }
-			 }
-			 else
-			 {
-				 lprintf( WIDE("ignoreing NEW!?") );
-			 }
+						}
+					}
+				}
+			}
+			else
+			{
+				lprintf( WIDE("ignoreing NEW!?") );
+			}
 
-			 flags.vartag = 0;
-			 flags.vector = 0;
-			 flags.ignore_new = 0;
-		 }
-		 else
-		 {
-			 if( TextIs( pWord, WIDE("%") ) )
-			 {
-				 if( g.flags.bLogTrace )
-					 lprintf( WIDE("next thing is a format character") );
-				 flags.vartag = 1;
-			 }
-			 else // is static text - literal match.
-			 {
-				 INDEX idx;
-				 PCONFIG_ELEMENT pConst = NULL;
-				 if( g.flags.bLogTrace )
-					 lprintf( WIDE("Storing %s as a constant text"), GetText( pWord ) );
-				 if( flags.store_as_end )
-				 {
-					 pceNew->type = CONFIG_TEXT;
-					 if( g.flags.bLogTrace )
-						 lprintf( WIDE("Adding %s as the terminator"), GetText( pWord ) );
-					 pceNew->data[0].pText = SegDuplicate( pWord );
-					 pcePrior->data[0].multiword.pEnd = pceNew;
-					 pceNew->flags.multiword_terminator = 1;
-					 pceNew->prior = pcePrior;
-					 pcePrior = pceNew;
-					 pceNew = NewConfigTestElement( pch );
-					 flags.store_as_end = 0;
-				 }
-				 else
-				 {
-					 LIST_FORALL( pct->pConstElementList, idx, PCONFIG_ELEMENT, pConst )
-					 {
-						 if( IsConstText( pConst, &pWord ) )
-						 {
-							 pct = pConst->next;
-							 break;
-						 }
-						 pConst = NULL; // this is not always cleared...
-					 }
-					 if( pConst ) // continue outer loop (while word)
-					 {
-						 if( g.flags.bLogTrace )
-							 lprintf( WIDE("Found constant already in tree") );
-						 if( flags.also_store_as_end )
-						 {
-							 if( g.flags.bLogTrace )
-								 lprintf( WIDE("Also Storing as end... %s"), GetText( pceNew->data[0].pText ) );
-							 pcePrior->data[0].singleword.pEnd = pConst;
-							 pceNew->flags.singleword_terminator = 1;
-							 flags.also_store_as_end = 0;
-						 }
+			flags.vartag = 0;
+			flags.vector = 0;
+			flags.ignore_new = 0;
+		}
+		else
+		{
+			if( TextIs( pWord, WIDE("%") ) )
+			{
+				if( g.flags.bLogTrace )
+					lprintf( WIDE("next thing is a format character") );
+				flags.vartag = 1;
+			}
+			else // is static text - literal match.
+			{
+				INDEX idx;
+				PCONFIG_ELEMENT pConst = NULL;
+				if( g.flags.bLogTrace )
+					lprintf( WIDE("Storing %s as a constant text"), GetText( pWord ) );
+				if( flags.store_as_end )
+				{
+					pceNew->type = CONFIG_TEXT;
+					if( g.flags.bLogTrace )
+						lprintf( WIDE("Adding %s as the terminator"), GetText( pWord ) );
+					pceNew->data[0].pText = SegDuplicate( pWord );
+					pcePrior->data[0].multiword.pEnd = pceNew;
+					pceNew->flags.multiword_terminator = 1;
+					pceNew->prior = pcePrior;
+					pcePrior = pceNew;
+					pceNew = NewConfigTestElement( pch );
+					flags.store_as_end = 0;
+				}
+				else
+				{
+					LIST_FORALL( pct->pConstElementList, idx, PCONFIG_ELEMENT, pConst )
+					{
+						if( IsConstText( pConst, &pWord ) )
+						{
+							pct = pConst->next;
+							break;
+						}
+						pConst = NULL; // this is not always cleared...
+					}
+					if( pConst ) // continue outer loop (while word)
+					{
+						if( g.flags.bLogTrace )
+							lprintf( WIDE("Found constant already in tree") );
+						if( flags.also_store_as_end )
+						{
+							if( g.flags.bLogTrace )
+								lprintf( WIDE("Also Storing as end... %s"), GetText( pceNew->data[0].pText ) );
+							pcePrior->data[0].singleword.pEnd = pConst;
+							pceNew->flags.singleword_terminator = 1;
+							flags.also_store_as_end = 0;
+						}
 
-						 continue;
-					 }
-					 else
-					 {
-						 if( g.flags.bLogTrace )
-							 lprintf( WIDE("Adding new constant to tree:%s"), GetText( pWord ) );
-						 if( flags.also_store_as_end )
-						 {
-							 if( g.flags.bLogTrace )
-								 lprintf( WIDE("Also Storing as end... %s"), GetText( pceNew->data[0].pText ) );
-							 pcePrior->data[0].singleword.pEnd = pceNew;
-							 pceNew->flags.singleword_terminator = 1;
-							 flags.also_store_as_end = 0;
-						 }
+						continue;
+					}
+					else
+					{
+						if( g.flags.bLogTrace )
+							lprintf( WIDE("Adding new constant to tree:%s"), GetText( pWord ) );
+						if( flags.also_store_as_end )
+						{
+							if( g.flags.bLogTrace )
+								lprintf( WIDE("Also Storing as end... %s"), GetText( pceNew->data[0].pText ) );
+							pcePrior->data[0].singleword.pEnd = pceNew;
+							pceNew->flags.singleword_terminator = 1;
+							flags.also_store_as_end = 0;
+						}
 
-						 pceNew->type = CONFIG_TEXT;
-						 pceNew->data[0].pText = SegDuplicate( pWord );
-						 AddLink( &pct->pConstElementList, pceNew );
-						 pct = pceNew->next = NewConfigTest( pch);
-						 pceNew->prior = pcePrior;
-						 pcePrior = pceNew;
-						 pceNew = NewConfigTestElement(pch );
-					 }
-				 }
-			 }
-		 }
-		 pWord = NEXTLINE( pWord );
-	 }
-	 LineRelease( pLine );
-	 // end of the format line - add the procedure.
-	 pceNew->prior = pcePrior;
-	 // no need to update pcePrior - we're done.
-	 pceNew->type = CONFIG_PROCEDURE;
-	 pceNew->data[0].Process = Process;
-	 AddLink( &pct->pVarElementList, pceNew );
+						pceNew->type = CONFIG_TEXT;
+						pceNew->data[0].pText = SegDuplicate( pWord );
+						AddLink( &pct->pConstElementList, pceNew );
+						pct = pceNew->next = NewConfigTest( pch);
+						pceNew->prior = pcePrior;
+						pcePrior = pceNew;
+						pceNew = NewConfigTestElement(pch );
+					}
+				}
+			}
+		}
+		pWord = NEXTLINE( pWord );
+	}
+	LineRelease( pLine );
+	// end of the format line - add the procedure.
+	pceNew->prior = pcePrior;
+	// no need to update pcePrior - we're done.
+	pceNew->type = CONFIG_PROCEDURE;
+	pceNew->data[0].Process = Process;
+	AddLink( &pct->pVarElementList, pceNew );
 }
 
 //---------------------------------------------------------------------
 #undef AddConfiguration
 CONFIGSCR_PROC( void, AddConfiguration )( PCONFIG_HANDLER pch, CTEXTSTR format, USER_CONFIG_HANDLER Process )
 {
-   AddConfigurationEx( pch, format, Process DBG_SRC );
+	AddConfigurationEx( pch, format, Process DBG_SRC );
 }
 
 //---------------------------------------------------------------------
 
 	CONFIGSCR_PROC( void, SetConfigurationEndProc )( PCONFIG_HANDLER pch
-                                        , PTRSZVAL (CPROC *Process)( PTRSZVAL ) )
+													, PTRSZVAL (CPROC *Process)( PTRSZVAL ) )
 {
-    pch->EndProcess = Process;
+	pch->EndProcess = Process;
 }
 
 //---------------------------------------------------------------------
@@ -2594,7 +2623,7 @@ CONFIGSCR_PROC( void, AddConfiguration )( PCONFIG_HANDLER pch, CTEXTSTR format, 
 CONFIGSCR_PROC( void, SetConfigurationUnhandled )( PCONFIG_HANDLER pch
 																, PTRSZVAL (CPROC *Process)( PTRSZVAL, CTEXTSTR ) )
 {
-    pch->Unhandled = Process;
+	pch->Unhandled = Process;
 }
 
 //---------------------------------------------------------------------
@@ -2634,7 +2663,7 @@ CONFIGSCR_PROC( PCONFIG_HANDLER, CreateConfigurationEvaluator )( void )
 
 CONFIGSCR_PROC( void, ClearDefaultFilters )( PCONFIG_HANDLER pch )
 {
-   EmptyList( &pch->filters );
+	EmptyList( &pch->filters );
 }
 
 CONFIGSCR_PROC( void, AddConfigurationFilter )( PCONFIG_HANDLER pch, USER_FILTER filter )
@@ -2655,18 +2684,18 @@ void DestroyConfigElement( PCONFIG_HANDLER pch, PCONFIG_ELEMENT pce )
 	{
 	case CONFIG_BINARY:
 		if( pce->data[0].binary.data )
-         Release( pce->data[0].binary.data );
-      break;
+			Release( pce->data[0].binary.data );
+		break;
 	case CONFIG_TEXT:
 		if( pce->data[0].pText )
-         LineRelease( pce->data[0].pText );
-      break;
+			LineRelease( pce->data[0].pText );
+		break;
 	case CONFIG_SINGLE_WORD:
-      if( pce->data[0].pWord )
+		if( pce->data[0].pWord )
 			Release( pce->data[0].pWord );
 		break;
 	case CONFIG_MULTI_WORD:
-      if( pce->data[0].multiword.pWords )
+		if( pce->data[0].multiword.pWords )
 			Release( pce->data[0].multiword.pWords );
 		if( pce->data[0].multiword.pEnd )
 		{
@@ -2681,7 +2710,7 @@ void DestroyConfigElement( PCONFIG_HANDLER pch, PCONFIG_ELEMENT pce )
 	case CONFIG_FILE:
 	case CONFIG_FILEPATH:
 	case CONFIG_ADDRESS:
-      break;
+		break;
 	case CONFIG_COLOR:
 	case CONFIG_PROCEDURE:
 	case CONFIG_UNKNOWN:
@@ -2689,7 +2718,7 @@ void DestroyConfigElement( PCONFIG_HANDLER pch, PCONFIG_ELEMENT pce )
 	case CONFIG_INTEGER:
 	case CONFIG_FRACTION:
 	case CONFIG_FLOAT:
-      break;
+		break;
 	}
 	DeleteFromSet( CONFIG_ELEMENT, pch->elements, pce );
 	//Release( pce );
@@ -2733,7 +2762,7 @@ void DestroyConfigTest( PCONFIG_HANDLER pch, PCONFIG_TEST pct, int deallocate )
 CONFIGSCR_PROC( void, DestroyConfigurationEvaluator )( PCONFIG_HANDLER pch )
 {
 	// since as noted in the structure
-	// 	// address of this IS the address of main structure
+	//	// address of this IS the address of main structure
 	// the configtest Release() will quickly free this .
 	PLIST save_list_pConstElementList = pch->ConfigTestRoot.pConstElementList;
 	PLIST save_list_pVarElementList = pch->ConfigTestRoot.pVarElementList;
@@ -2747,10 +2776,10 @@ CONFIGSCR_PROC( void, DestroyConfigurationEvaluator )( PCONFIG_HANDLER pch )
 		LIST_FORALL( pch->states, idx, PCONFIG_STATE, state )
 		{
 			if( ( save_list_pConstElementList
-				  && (state->ConfigTestRoot.pConstElementList == save_list_pConstElementList ))
+				&& (state->ConfigTestRoot.pConstElementList == save_list_pConstElementList ))
 				|| ( save_list_pVarElementList
-					 && (state->ConfigTestRoot.pVarElementList == save_list_pVarElementList ) )
-			  )
+					&& (state->ConfigTestRoot.pVarElementList == save_list_pVarElementList ) )
+			)
 			{
 				//probably this was the error I found in the field... there were
 				// probably macros or something that caused excessive layering.
@@ -2854,12 +2883,12 @@ CTEXTSTR FormatColor( CDATA color )
 {
 	static TEXTCHAR color_buf[14];
 	snprintf( color_buf, sizeof( color_buf ), WIDE("$%02X%02X%02X%02X")
-			  , (int)AlphaVal( color )
-			  , (int)RedVal( color )
-			  , (int)GreenVal( color )
-			  , (int)BlueVal( color )
-			  );
-   return color_buf;
+			, (int)AlphaVal( color )
+			, (int)RedVal( color )
+			, (int)GreenVal( color )
+			, (int)BlueVal( color )
+			);
+	return color_buf;
 }
 
 

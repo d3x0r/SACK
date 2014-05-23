@@ -94,7 +94,7 @@ PRELOAD( InitInterfaces )
 #ifndef __NO_OPTIONS__
 	l.flags.bLogTiming = SACK_GetPrivateProfileInt( WIDE( "vlc/config" ), WIDE( "log timing" ), 0, WIDE( "video.ini" ) );
 #endif
-   	lprintf( WIDE( "path is %s" ), vlc_path );
+	lprintf( WIDE( "path is %s  config is %s" ), l.vlc_path, l.vlc_config );
 	{
 		int n;
 		for( n = 0; l.vlc_path[n]; n++ )

@@ -44,13 +44,15 @@ void SRG_DecryptRawData( P_8 binary, size_t length, P_8 *buffer, size_t *chars )
 			SRG_ResetEntropy( l.entropy );
 			l.use_salt = (char *)binary;
 
-			mask = SRG_GetEntropy( l.entropy, 32, FALSE );
 			pass_byte_in = ((P_8)binary) + 4;
 			length -= 4;
 			(*buffer) = NewArray( _8, length );
 			pass_byte_out = (*buffer);
 			for( index = 0; length; length--, index++ )
 			{
+				if( ( index & 3 ) == 0 )
+					mask = SRG_GetEntropy( l.entropy, 32, FALSE );
+
 				pass_byte_out[0] = pass_byte_in[0] ^ ((P_8)&mask)[ index & 0x3 ];
 				pass_byte_out++;
 				pass_byte_in++;
@@ -86,13 +88,11 @@ TEXTSTR SRG_DecryptString( CTEXTSTR local_password )
 	return (TEXTSTR)buffer;
 }
 
-
-TEXTCHAR * SRG_EncryptData( P_8 buffer, size_t buflen )
+void SRG_EncryptRawData( P_8 buffer, size_t buflen, P_8 *result_buf, size_t *result_size )
 {
 	if( !l.entropy )
 		l.entropy = SRG_CreateEntropy( FeedSalt, 0 );
 	{
-		TEXTCHAR * result_buf;
 		char tmpbuf[256];
 		{
 			_32 mask;
@@ -102,38 +102,44 @@ TEXTCHAR * SRG_EncryptData( P_8 buffer, size_t buflen )
 			int index;
 			P_8 tmpbuf;
 			l.use_salt = NULL;
-			tmpbuf = NewArray( _8, buflen + 4 );
+			(*result_buf) = tmpbuf = NewArray( _8, buflen + 4 );
+			(*result_size) = buflen + 4;
 			SRG_ResetEntropy( l.entropy );
-			seed = timeGetTime() & 0xFFFF;
+			seed = timeGetTime() & 0xFFFFFF;
 			//seed = seed % 100;
-			tmpbuf[0] = '0' + (seed >> 12) & 0xF;
-			tmpbuf[1] = '0' + (seed >> 8) & 0xF;
-			tmpbuf[2] = '0' + (seed >> 4) & 0xF;
-			tmpbuf[3] = '0' + (seed >> 0) & 0xF;
+			tmpbuf[0] = '0' + (seed >> 12) & 0x3F;
+			tmpbuf[1] = '0' + (seed >> 8) & 0x3F;
+			tmpbuf[2] = '0' + (seed >> 4) & 0x3F;
+			tmpbuf[3] = '0' + (seed >> 0) & 0x3F;
 			l.use_salt = (char*)tmpbuf;
 
 			SRG_ResetEntropy( l.entropy );
-			mask = SRG_GetEntropy( l.entropy, 32, FALSE );
 			pass_byte_in = ((P_8)buffer);
 			pass_byte_out = (P_8)tmpbuf + 4;
 			for( index = 0; pass_byte_in[0]; index++ )
 			{
+				if( ( index & 3 ) == 0 )
+					mask = SRG_GetEntropy( l.entropy, 32, FALSE );
 				pass_byte_out[0] = pass_byte_in[0] ^ ((P_8)&mask)[ index & 0x3 ];
 				pass_byte_out++;
 				pass_byte_in++;
 			}
-
-			EncodeBinaryConfig( &result_buf, (P_8)tmpbuf, buflen + 4 );
-#ifdef UNICODE
-			{
-				char *result = CStrDup( result_buf );
-				Release( result_buf );
-				return result;
-			}
-#else
-			return result_buf;
-#endif
 		}
+	}
+}
+
+TEXTCHAR * SRG_EncryptData( P_8 buffer, size_t buflen )
+{
+	if( !l.entropy )
+		l.entropy = SRG_CreateEntropy( FeedSalt, 0 );
+	{
+		P_8 result_buf;
+		size_t result_size;
+		TEXTSTR tmpbuf;
+		SRG_EncryptRawData( buffer, buflen, &result_buf, &result_size );
+
+		EncodeBinaryConfig( &tmpbuf, result_buf, buflen + 4 );
+		return tmpbuf;
 	}
 	return NULL;
 }
