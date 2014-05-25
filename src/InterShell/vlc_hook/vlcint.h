@@ -9,6 +9,7 @@
 
 XTRN struct my_vlc_interface *PlayItemAgainst( Image image, CTEXTSTR opts );
 XTRN void PlayItem( struct my_vlc_interface * );
+XTRN void PauseItem( struct my_vlc_interface * );
 XTRN void StopItem( struct my_vlc_interface *);
 XTRN void SetStopEvent( struct my_vlc_interface *, void (CPROC*StopEvent)( PTRSZVAL psv ), PTRSZVAL psv );
 

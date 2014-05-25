@@ -22,7 +22,7 @@
 struct vlc_release
 {
 	_32 tick;
-   struct my_vlc_interface *pmyi;
+	struct my_vlc_interface *pmyi;
 };
 
 static struct {
@@ -267,6 +267,8 @@ struct my_vlc_interface
 		BIT_FIELD transparent : 1;
 		BIT_FIELD bAutoClose : 1;
 		BIT_FIELD bWantPlay : 1; // play was issued before player finished starting (loading)
+		BIT_FIELD bWantStop : 1;
+		BIT_FIELD bWantPause : 1;
 	} flags;
 
 	PLIST controls;
@@ -309,12 +311,18 @@ static PTRSZVAL CPROC replay_thread( PTHREAD thread )
 static void CPROC PlayerEvent( const libvlc_event_t *event, void *user )
 {
 	struct my_vlc_interface *pmyi = (struct my_vlc_interface *)user;
-	xlprintf(2100)( WIDE( "Event %d" ), event->type );
+	//xlprintf(2100)( WIDE( "Event %d" ), event->type );
 	switch( event->type )
 	{
 	case libvlc_MediaPlayerPlaying:
-		xlprintf(LOG_ALWAYS)( WIDE( "Really playing." ) );
+		//xlprintf(LOG_ALWAYS)( WIDE( "Really playing." ) );
 		pmyi->flags.bPlaying = 1;
+		if( pmyi->flags.bWantPause )
+		{
+			pmyi->flags.bWantPause = 0;
+			vlc.libvlc_media_player_pause (pmyi->mp PASS_EXCEPT_PARAM);
+		}
+
 		break;
 	case libvlc_MediaPlayerLengthChanged:
 		//lprintf( WIDE( "mangle the format(a)" ) );
@@ -347,10 +355,10 @@ static void CPROC PlayerEvent( const libvlc_event_t *event, void *user )
 		break;
 
 	case libvlc_MediaPlayerOpening:
-		lprintf( WIDE( "Media opening... that's progress?" ) );
+		//lprintf( WIDE( "Media opening... that's progress?" ) );
 		break;
 	case libvlc_MediaPlayerEncounteredError:
-		lprintf( WIDE( "Media connection error... cleanup... (stop it, so we can restart it, clear playing and started)" ) );
+		//lprintf( WIDE( "Media connection error... cleanup... (stop it, so we can restart it, clear playing and started)" ) );
 		pmyi->flags.bStarted = 0;
 		pmyi->flags.bPlaying = 0;
 		pmyi->flags.bNeedsStop = 1;
@@ -358,7 +366,7 @@ static void CPROC PlayerEvent( const libvlc_event_t *event, void *user )
 		// http stream fails to connect we get this
 		break;
 	case libvlc_MediaPlayerStopped:
-		lprintf( WIDE( "Stopped." ) );
+		//lprintf( WIDE( "Stopped." ) );
 		if( pmyi->flags.bAutoClose )
 		{
 			pmyi->flags.bDone = 1;
@@ -369,10 +377,10 @@ static void CPROC PlayerEvent( const libvlc_event_t *event, void *user )
 		}
 		break;
 	case libvlc_MediaPlayerEndReached:
-		lprintf( WIDE( "End reached." ) );
+		//lprintf( WIDE( "End reached." ) );
 		if( pmyi->flags.bAutoClose )
 		{
-			lprintf( WIDE( "Auto closing surface" ) );
+			//lprintf( WIDE( "Auto closing surface" ) );
 			if(0)
 			{
 				struct vlc_release *vlc_release = New( struct vlc_release );
@@ -391,7 +399,7 @@ static void CPROC PlayerEvent( const libvlc_event_t *event, void *user )
 		}
 		else
 		{
-         ThreadTo( replay_thread, (PTRSZVAL)pmyi );
+			ThreadTo( replay_thread, (PTRSZVAL)pmyi );
 		}
 		break;
 	}
@@ -406,7 +414,7 @@ CPROC lock_frame(
 {
 	struct my_vlc_interface *pmyi = (struct my_vlc_interface*)psv;
 #ifdef DEBUG_LOCK_UNLOCK
- lprintf( WIDE( "LOCK." ) );
+	lprintf( WIDE( "LOCK." ) );
 #endif
 	if( pmyi->flags.direct_output && !l.flags.bRequireDraw )
 	{
@@ -889,7 +897,7 @@ struct my_vlc_interface *FindInstance( CTEXTSTR input )
 	LIST_FORALL( l.interfaces, idx, struct my_vlc_interface *, i )
 	{
 		if( StrCaseCmp( i->name, input ) == 0 )
-         return i;
+			return i;
 	}
 
 	return NULL;
@@ -1054,7 +1062,7 @@ void CPROC VLC_RedrawCallback( PTRSZVAL psvUser, PRENDERER self )
 	struct my_vlc_interface *pmyi;
 	pmyi = (struct my_vlc_interface*)psvUser;
 
-   OutputAvailableFrame( pmyi );
+	OutputAvailableFrame( pmyi );
 
 }
 
@@ -1062,7 +1070,7 @@ struct my_vlc_interface *CreateInstanceOn( PRENDERER renderer, CTEXTSTR name, LO
 {
 	struct my_vlc_interface *pmyi;
 	pmyi  = FindInstance( name );
-   if( !pmyi )
+	if( !pmyi )
 	{
 		PVARTEXT pvt;
 		TEXTCHAR **argv;
@@ -1302,33 +1310,30 @@ ATEXIT( unload_vlc_interface )
 
 void PlayItem( struct my_vlc_interface *pmyi )
 {
-	if( !pmyi )
-	{
-		lprintf( WIDE("Invalid player to play.") );
-      return;
-	}
-	lprintf( WIDE("Start PLAY") );
+	//lprintf( WIDE("Signal thread to PLAY") );
 	/* play the media_player */
-	if( !pmyi->flags.bStarted )
-	{
-		lprintf( WIDE("mark that we want to start, when available") );
-		pmyi->flags.bWantPlay = 1;
-	}
-	else if( pmyi->mp )
-	{
-		vlc.libvlc_media_player_play (pmyi->mp PASS_EXCEPT_PARAM);
-	}
+	pmyi->flags.bWantPlay = 1;
+	WakeThread( pmyi->waiting );
 }
-
 
 void StopItem( struct my_vlc_interface *pmyi )
 {
-	// yeah stop playing.
-	if( pmyi->mp )
-		vlc.libvlc_media_player_stop (pmyi->mp PASS_EXCEPT_PARAM);
+	//lprintf( WIDE("Signal thread to STop") );
+	/* play the media_player */
+	pmyi->flags.bWantStop = 1;
+	WakeThread( pmyi->waiting );
 
-	ReleaseInstance( pmyi );
+	//ReleaseInstance( pmyi );
 }
+
+void PauseItem( struct my_vlc_interface *pmyi )
+{
+	//lprintf( WIDE("Signal thread to Pause") );
+	/* pause the media_player */
+	pmyi->flags.bWantPause = 1;
+	WakeThread( pmyi->waiting );
+}
+
 
 void SetStopEvent( struct my_vlc_interface *pmyi, void (CPROC*StopEvent)( PTRSZVAL psv ), PTRSZVAL psv )
 {
@@ -1469,9 +1474,9 @@ struct my_vlc_interface * PlayItemInEx( PSI_CONTROL pc, CTEXTSTR input, CTEXTSTR
 			image = MakeImageFile( pmyi->image_w = x, pmyi->image_h = y );
 			EnqueLink( &pmyi->available_frames, image );
 			
-			lprintf( WIDE( "vlc 1.1.x set callbacks, get ready." ) );
+			//lprintf( WIDE( "vlc 1.1.x set callbacks, get ready." ) );
 			vlc.libvlc_video_set_callbacks( pmyi->mp, lock_frame, unlock_frame, display_frame, pmyi );
-			lprintf( WIDE( "Output %d %d" ), pmyi->image_w, pmyi->image_h );
+			//lprintf( WIDE( "Output %d %d" ), pmyi->image_w, pmyi->image_h );
 			vlc.libvlc_video_set_format(pmyi->mp, "RV32", pmyi->image_w, pmyi->image_h, -(signed)(pmyi->image_w*sizeof(CDATA)));
 		}
 
@@ -1634,25 +1639,36 @@ PTRSZVAL CPROC PlayItemOnThread( PTHREAD thread )
 		pmyi->waiting = thread;
 		pmyi->flags.bStarted = 1;
 
-		if( pmyi->flags.bWantPlay && !pmyi->m && pmyi->mp )
-		{
-			lprintf( WIDE( "PLAY (catch up to application wanting play) (do nothing)" ) );
-			//vlc.libvlc_vlm_play_media( pmyi->inst, "channel1" PASS_EXCEPT_PARAM);
-			//vlc.libvlc_vlm_play_media( pmyi->inst, "channel2" PASS_EXCEPT_PARAM);
-		}
-
-		if( pmyi->flags.bWantPlay && pmyi->m && pmyi->mp )
-		{
-			lprintf( WIDE( "PLAY (catch up to application wanting play)" ) );
-			vlc.libvlc_media_player_play( pmyi->mp PASS_EXCEPT_PARAM);
-		}
-
 		while( !pmyi->flags.bDone )
 		{
-			lprintf( WIDE( "Waiting for done..." ) );
-			WakeableSleep( 10000 );
+			//lprintf( WIDE( "Waiting for done..." ) );
+			if( pmyi->m && pmyi->mp )
+			{
+				if( pmyi->flags.bWantStop )
+				{
+					//lprintf( WIDE( "STOP (catch up to application wanting play)" ) );
+					vlc.libvlc_media_player_stop( pmyi->mp PASS_EXCEPT_PARAM);
+					pmyi->flags.bWantStop = 0;
+				}
+				else if( pmyi->flags.bWantPlay )
+				{
+					//lprintf( WIDE( "PLAY (catch up to application wanting play)" ) );
+					vlc.libvlc_media_player_play( pmyi->mp PASS_EXCEPT_PARAM);
+					pmyi->flags.bWantPlay = 0;
+				}
+				else if( pmyi->flags.bPlaying && pmyi->flags.bWantPause )
+				{
+					//lprintf( WIDE( "PAUSE (catch up to application wanting play)" ) );
+					vlc.libvlc_media_player_pause (pmyi->mp PASS_EXCEPT_PARAM);
+					pmyi->flags.bWantPause = 0;
+				}
+				else
+					WakeableSleep( 10000 );
+			}
+			else
+				WakeableSleep( 10000 );
 		}
-		lprintf( WIDE( "Vdieo ended... cleanup." ) );
+		//lprintf( WIDE( "Vdieo ended... cleanup." ) );
 		ReleaseInstance( pmyi );
 	}
 	else
@@ -1961,14 +1977,14 @@ void PlayUsingMediaList( struct my_vlc_interface *pmyi, PLIST files )
 					//RAISE( vlc, &pmyi->ex );
 				}
 
-				lprintf( WIDE( "now is %lld %lld" ), t_length, t_current );
+				//lprintf( WIDE( "now is %lld %lld" ), t_length, t_current );
 			}
 			else
-            lprintf( WIDE( "current is 0..." ) );
+				lprintf( WIDE( "current is 0..." ) );
 			if( !t_current && played )
 			{
-            played = 0;
-				lprintf( WIDE( "..." ) );
+				played = 0;
+				//lprintf( WIDE( "..." ) );
 				//vlc.libvlc_media_list_player_play_item_at_index( pmyi->mlp, index++ PASS_EXCEPT_PARAM );
 				if( index == count )
 					index = 0;
@@ -2078,7 +2094,7 @@ start:
 #endif
 		RAISE( vlc, &ppmyi[npmyi_to_play]->ex);
 
-		lprintf( WIDE( "New media player from media..." ) );
+		//lprintf( WIDE( "New media player from media..." ) );
 		/* Create a media player playing environement */
 		pmyi->mp = vlc.libvlc_media_player_new_from_media( pmyi->m PASS_EXCEPT_PARAM);
 		RAISE( vlc, &pmyi->ex );
@@ -2086,10 +2102,10 @@ start:
 		vlc.libvlc_video_set_callbacks( pmyi->mp, lock_frame, unlock_frame, display_frame, pmyi );
 		vlc.libvlc_video_set_format(pmyi->mp, "RV32", pmyi->image_w, pmyi->image_h, pmyi->image_w*sizeof(CDATA));
 #endif
-		lprintf( WIDE( "Release media..." ) );
+		//lprintf( WIDE( "Release media..." ) );
 		vlc.libvlc_media_release (pmyi->m);
 
-		lprintf( WIDE( "New event manager..." ) );
+		//lprintf( WIDE( "New event manager..." ) );
 		pmyi->mpev = vlc.libvlc_media_player_event_manager( pmyi->mp PASS_EXCEPT_PARAM );
 		vlc.libvlc_event_attach( pmyi->mpev, libvlc_MediaPlayerEndReached, PlayerEvent, pmyi PASS_EXCEPT_PARAM );
 		RAISE( vlc, &pmyi->ex );
@@ -2103,13 +2119,13 @@ start:
 			pmyi->waiting = MakeThread();
 			while( !pmyi->flags.bDone )
 			{
-       lprintf( WIDE( "Sleeping until video is done." ) );
+				//lprintf( WIDE( "Sleeping until video is done." ) );
 				WakeableSleep( 1000 );
 			}
 		}
 		pmyi->flags.bDone = FALSE;
 		pmyi->flags.bPlaying = FALSE; // set on first lock of buffer.
-		lprintf( WIDE( "------- BEGIN PLAY ----------- " ) );
+		//lprintf( WIDE( "------- BEGIN PLAY ----------- " ) );
 		vlc.libvlc_media_player_play (pmyi->mp PASS_EXCEPT_PARAM);
 		if( npmyi_playing >= 0 )
 		{
