@@ -22,6 +22,7 @@ struct video_player {
 	struct my_vlc_interface *vlc;
 	_32 fade_in_time;
 	int playing;  // if stopped, don't re-stop
+	int paused;
 };
 
 typedef struct video_element {
@@ -93,6 +94,8 @@ typedef struct global_tag {
 
 	int prize_total;
 	struct mersenne_rng *rng;
+
+	_32 _b;
 } GLOBAL;
 static GLOBAL g;
 
@@ -143,7 +146,7 @@ void BeginNewChain( _32 tick )
 		struct video_element *element;
 		if( seq->nImages )
 		{
-			lprintf( "Begin New Chain.... %d");
+			//lprintf( "Begin New Chain.... %d", seq->sequence );
 			g.current_list[g.next_up] = seq;
 			g.target_in_start = tick;
 			g.target_in = 0;  // clear this, so we start a new fade.
@@ -167,10 +170,14 @@ void BeginNewChain( _32 tick )
 
 void BeginFadeIn( _32 tick_start, _32 tick )
 {
+	LOGICAL play_and_hold;
 	struct video_sequence *current_seq = g.current_list[g.next_up];
 	struct video_element *current_element = (struct video_element *)GetLink( &current_seq->images, current_seq->current_image );
 	PRENDERER r;
-	lprintf( WIDE("Begin fading in the new image... %d  %d"), current_seq->sequence, current_seq->current_image );
+	play_and_hold = ( current_seq->current_image == 0 ) 
+		&& (current_seq->sequence ) 
+		&& (current_seq->sequence < ( g.nPlayerLists - 1 ) );
+	//lprintf( WIDE("Begin fading in the new image... %d  %d  %d"), current_seq->sequence, current_seq->current_image, play_and_hold );
 	if( current_seq->sequence == 0 )
 		g.attract_mode = 1;
 
@@ -188,10 +195,16 @@ void BeginFadeIn( _32 tick_start, _32 tick )
 		struct video_player *player = current_element->player;
 		r = player->surface;
 		PlayItem( player->vlc ); // start the video clip now... allow fadein.
+		player->playing = 1;
+		if( play_and_hold )
+		{
+			player->paused = 1;
+			PauseItem( player->vlc );
+		}
 	}
 
-	lprintf( WIDE("Begin Showing %p"), r );
-	lprintf( WIDE("(!)Setting fade to..> %d"), 255 - (255*(tick-g.target_in_start))/(g.target_in-g.target_in_start) );
+	//lprintf( WIDE("Begin Showing %p"), r );
+	//lprintf( WIDE("(!)Setting fade to..> %d"), 255 - (255*(tick-g.target_in_start))/(g.target_in-g.target_in_start) );
 	SetDisplayFade( r, 255 - (255*(tick-g.target_in_start))/(g.target_in-g.target_in_start) );
 	RestoreDisplay( r );
 
@@ -199,6 +212,7 @@ void BeginFadeIn( _32 tick_start, _32 tick )
 
 void ContinueFadeIn( _32 tick )
 {
+	//lprintf( "something %d %d %d", g.target_in, tick, g.target_in - tick );
 	if( g.target_in && tick > g.target_in )
 	{
 		struct video_sequence *current_seq = g.current_list[g.next_up];
@@ -223,7 +237,7 @@ void ContinueFadeIn( _32 tick )
 			// wait until stop event to set when next fadin starts.
 			g.target_in_start = current_element->display_time ? (tick+current_element->display_time) : 0;
 		}
-		lprintf( WIDE("Fade is is complete, set alpha to 0 (opaque), and hide old display...%d"), current_seq->sequence );
+		//lprintf( WIDE("Fade is is complete, set alpha to 0 (opaque), and hide old display...%d"), current_seq->sequence );
 		if( g.prior_video && ( g.prior_video->type == 2 ) )
 		{
 			if( g.prior_video->player->playing )
@@ -243,29 +257,30 @@ void ContinueFadeIn( _32 tick )
 		g.prior_video = current_element;
 
 		current_seq->current_image++;
-		lprintf( WIDE("Image fully up - setup to show next image... %d,%d"), current_seq->current_image, current_seq->nImages );
+		//lprintf( WIDE("Image fully up - setup to show next image... %d,%d"), current_seq->current_image, current_seq->nImages );
 		if( current_seq->current_image >= current_seq->nImages )
 		{
-			lprintf( "out of images on this list... reset to attract" );
+			//lprintf( "out of images on this list... reset to attract" );
 			current_seq->current_image = 0;
 			if( current_seq->sequence )
 			{
-				lprintf( "next is attract..." );
+				//lprintf( "next is attract..." );
 				// next up is chain 0. (plus 1 to inidicate chain change; 0 is no change)
 				g.want_next_chain = 0 + 1;
-				lprintf( "Setting nexup to getlink 0" );
+				g.want_next_chain = g.nPlayerLists;
+				//lprintf( "Setting nexup to getlink 0" );
 				g.current_list[g.next_up] = (struct video_sequence*)GetLink( &g.playlists, 0 );
 			}
 			else
 			{
-				lprintf( "next is still this... %d", current_seq->sequence );
+				//lprintf( "next is still this... %d", current_seq->sequence );
 				g.current_list[g.next_up] = current_seq;
 			}
 
 		}
 		else
 		{
-			lprintf( "next is  still this? %d", current_seq->sequence );
+			//lprintf( "next is  still this? %d", current_seq->sequence );
 			g.current_list[g.next_up] = current_seq;
 		}
 		g.target_in = 0;
@@ -286,8 +301,8 @@ void ContinueFadeIn( _32 tick )
 			struct video_player *player = current_element->player;
 			r = player->surface;
 		}
-		lprintf( WIDE("Setting fade to..> %d"), 255 - (255*(tick-g.target_in_start))/(g.target_in-g.target_in_start) );
-		lprintf( WIDE("Increasing %p"), r );
+		//lprintf( WIDE("Setting fade to..> %d"), 255 - (255*(tick-g.target_in_start))/(g.target_in-g.target_in_start) );
+		//lprintf( WIDE("Increasing %p"), r );
 		SetDisplayFade( r, 255 - (255*(tick-g.target_in_start))/(g.target_in-g.target_in_start) );
 		if( upd )
 			UpdateDisplay( r );
@@ -310,10 +325,12 @@ void CPROC tick( PTRSZVAL psv )
 		{
 			if( !g.target_in )
 			{
+				//lprintf(" begin fade.." );
 				BeginFadeIn( g.target_in_start, now );
 			}
 			else
 			{
+				//lprintf(" continue fade.." );
 				ContinueFadeIn( now );
 			}
 		}
@@ -329,22 +346,36 @@ static void CPROC OnStopFade( PTRSZVAL psv )
 		g.next_chain = g.want_next_chain;
 		g.want_next_chain = 0;
 	}
-	lprintf( "Video ended; begin chain: %d", g.next_chain );
+	//lprintf( "Video ended; begin chain: %d", g.next_chain );
 	g.target_in_start = GetTickCount(); // tick now.
 	StopItem( player->vlc );
+}
+
+static int CPROC MouseMethod( PTRSZVAL psvMouse, S_32 x, S_32 y , _32 b )
+{
+	struct video_player *player = (struct video_player *)psvMouse;
+	if( player )
+	{
+		if( player->paused && MAKE_FIRSTBUTTON( b, g._b ) )
+			PlayItem( player->vlc );
+	}
+	g._b = b;
+	return 1;
 }
 
 static struct video_element *LoadVideo( struct video_sequence *seq, CTEXTSTR file )
 {
 	struct video_player *player = New( struct video_player );
+	player->paused = 0;
 	player->fade_in_time = g.next_fade_in?g.next_fade_in:g.fade_in;
 	g.next_fade_in = 0;
-	player->surface = OpenDisplaySizedAt( DISPLAY_ATTRIBUTE_LAYERED|DISPLAY_ATTRIBUTE_CHILD|DISPLAY_ATTRIBUTE_NO_MOUSE|DISPLAY_ATTRIBUTE_NO_AUTO_FOCUS
+	player->surface = OpenDisplaySizedAt( DISPLAY_ATTRIBUTE_LAYERED|DISPLAY_ATTRIBUTE_CHILD|/*DISPLAY_ATTRIBUTE_NO_MOUSE|*/DISPLAY_ATTRIBUTE_NO_AUTO_FOCUS
 													, g.w //width
 													, g.h //height
 													, g.x //0
 													, g.y //0
 													);
+	SetMouseHandler( player->surface, MouseMethod, (PTRSZVAL)player );
 	player->vlc = PlayItemOnEx( player->surface, file, WIDE("--repeat --loop") );
 	SetStopEvent( player->vlc, OnStopFade, (PTRSZVAL)player );
 
@@ -372,7 +403,7 @@ static PTRSZVAL CPROC AddVideo( PTRSZVAL psv, arg_list args )
 	PARAM( args, S_64, play_length );
 	PARAM( args, CTEXTSTR, filename );
 	struct video_sequence *seq = GetSequence( (int)list_id );
-	lprintf( WIDE( "adding video %s" ), filename );
+	//lprintf( WIDE( "adding video %s" ), filename );
 	g.next_fade_in = (_32)play_length;
 
 	if( StrCaseStr( filename, WIDE(".jpg") ) ||
@@ -472,19 +503,21 @@ static void PickPrize( void )
 	_32 value = ( (_64)g.prize_total * (_64)rand ) / 0xFFFFFFFF;
 	struct video_sequence *seq;
 	INDEX idx;
-	lprintf( "got numbr %d %d", rand, value );
+	//lprintf( "got numbr %d %d", rand, value );
 	LIST_FORALL( g.playlists, idx, struct video_sequence *, seq )
 	{
-		lprintf( "is %d < %d", value, seq->prize_count );
+		//lprintf( "is %d < %d", value, seq->prize_count );
 		if( value < seq->prize_count )
 		{
-			g.want_next_chain = 1 + seq->sequence;
+			//lprintf( "want_next_chain = %d", 1 + seq->sequence );
+			//g.want_next_chain = 1 + seq->sequence;
+			g.want_next_chain = 0;  // will already be setting up this chain...
 			seq->prize_count--;
 			g.prize_total--;
-			g.target_in_start = timeGetTime();
-			lprintf( "pick prize; set next to %d", seq->sequence );
+			//lprintf( "pick prize; set next to %d", seq->sequence );
 			g.current_list[g.next_up] = seq;
 			seq->current_image = 0;
+			g.target_in_start = timeGetTime();
 			{
 				TEXTCHAR value[32];
 				tnprintf( value, 32, "%d", (int)seq->sequence );
@@ -504,10 +537,10 @@ static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key )
 	static int reset3 = 0;
 	static int reset4 = 0;
 	tick = timeGetTime();
-	lprintf( "got key %08x  (%d)  %d ", key, psv, tick - _tick );
+	//lprintf( "got key %08x  (%d)  %d ", key, psv, tick - _tick );
 	if( !_tick || ( _tick < ( tick - 2000 ) ) )
 	{
-		lprintf( "late enough" );
+		//lprintf( "late enough" );
 		reset4 = 0;
 		reset3 = 0;
 		reset2 = 0;
@@ -518,14 +551,14 @@ static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key )
 	_tick = tick;
 
 	{
-		lprintf( "continue sequence... begin new collections" );
+		//lprintf( "continue sequence... begin new collections" );
 		if( psv < 10 )
 		{
 			// reset to new value
 			g.number_collector = ( g.number_collector * 10 ) + psv;
 			g.value_collector[g.value_collect_index++] = psv + '0';
 			g.value_collector[g.value_collect_index] = 0;
-			lprintf( "new value %d (%s)", g.number_collector, g.value_collector );
+			//lprintf( "new value %d (%s)", g.number_collector, g.value_collector );
 			if( g.attract_mode )
 			{
 				if( g.number_collector == 13579 )
@@ -533,8 +566,9 @@ static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key )
 					g.attract_mode = 0;
 					// last one is the screen to show to swipe card...
 					g.want_next_chain = g.nPlayerLists;
+					//lprintf( "want_next_chain = %d", g.want_next_chain);
 					g.target_in_start = tick;
-					lprintf( "next is still this...(last)"  );
+					//lprintf( "next is still this...(last)"  );
 
 					g.current_list[g.next_up] = (struct video_sequence*)GetLink( &g.playlists, g.nPlayerLists - 1 );
 				}
@@ -543,7 +577,7 @@ static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key )
 		}
 		else if( psv == 10 )
 		{
-			lprintf( "Begin swipe..." );
+			//lprintf( "Begin swipe..." );
 			if( !g.attract_mode )
 			{
 				g.begin_card = 1;
@@ -554,13 +588,13 @@ static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key )
 		}
 		else if( psv == 11 ) // '?'
 		{
-			lprintf( "end card with (%s)", g.value_collector );
+			//lprintf( "end card with (%s)", g.value_collector );
 			if( !g.attract_mode )
 			{
 				PickPrize();
 			}
-			else
-				lprintf( "Still in attract?" );
+			//else
+			//	lprintf( "Still in attract?" );
 		}
 	}
 	return TRUE;
@@ -598,6 +632,7 @@ SaneWinMain(argc, argv )
 	BindEventToKey( NULL, KEY_9, 0, PressSomeKey, (PTRSZVAL)9 );
 	BindEventToKey( NULL, KEY_9, 0, PressSomeKey, (PTRSZVAL)9 );
 	BindEventToKey( NULL, KEY_5, KEY_MOD_SHIFT, PressSomeKey, (PTRSZVAL)10 );
+	BindEventToKey( NULL, KEY_SEMICOLON, 0, PressSomeKey, (PTRSZVAL)10 );
 	BindEventToKey( NULL, KEY_SLASH, KEY_MOD_SHIFT, PressSomeKey, (PTRSZVAL)11 );
 
 	{
@@ -653,18 +688,20 @@ SaneWinMain(argc, argv )
 
 		if( g.nTotalImages )
 		{
-			g.displays[0] = OpenDisplaySizedAt( DISPLAY_ATTRIBUTE_LAYERED|DISPLAY_ATTRIBUTE_CHILD|DISPLAY_ATTRIBUTE_NO_MOUSE|DISPLAY_ATTRIBUTE_NO_AUTO_FOCUS
+			g.displays[0] = OpenDisplaySizedAt( DISPLAY_ATTRIBUTE_LAYERED|DISPLAY_ATTRIBUTE_CHILD|/*DISPLAY_ATTRIBUTE_NO_MOUSE|*/DISPLAY_ATTRIBUTE_NO_AUTO_FOCUS
 														 , g.w //width
 														 , g.h //height
 														 , g.x //0
 														 , g.y //0
 														 );
-			g.displays[1] = OpenDisplaySizedAt( DISPLAY_ATTRIBUTE_LAYERED|DISPLAY_ATTRIBUTE_CHILD|DISPLAY_ATTRIBUTE_NO_MOUSE|DISPLAY_ATTRIBUTE_NO_AUTO_FOCUS
+			g.displays[1] = OpenDisplaySizedAt( DISPLAY_ATTRIBUTE_LAYERED|DISPLAY_ATTRIBUTE_CHILD|/*DISPLAY_ATTRIBUTE_NO_MOUSE|*/DISPLAY_ATTRIBUTE_NO_AUTO_FOCUS
 														 , g.w //width
 														 , g.h //height
 														 , g.x //0
 														 , g.y //0
 														 );
+			SetMouseHandler( g.displays[1], MouseMethod, (PTRSZVAL)0 );
+			SetMouseHandler( g.displays[1], MouseMethod, (PTRSZVAL)0 );
 
 			SetRedrawHandler( g.displays[0], Output, 0 );
 			SetRedrawHandler( g.displays[1], Output, 1 );
@@ -673,6 +710,7 @@ SaneWinMain(argc, argv )
 
 			if( sequence->nImages )
 			{
+				g.want_next_chain = 0;
 				g.attract_mode = 1;
 				g.next_chain = 1;
 				g.target_in_start = timeGetTime();
