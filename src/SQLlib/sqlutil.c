@@ -118,7 +118,7 @@ INDEX GetNameIndexExtended( PODBC odbc
 			  );
 	if( SQLQueryEx( odbc, query, &result DBG_RELAY) && result )
 	{
-		IDName = atoi( result );
+		IDName = IntCreateFromText( result );
 		DebugBreak();
 		PopODBCEx( odbc );
 	}

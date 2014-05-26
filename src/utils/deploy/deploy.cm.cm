@@ -255,8 +255,12 @@ else( BUILD_MONOLITHIC )
    endif( NOT __NO_CPLUSPLUS )
 
 # Win32 or __UNIX support PureGL and puregl2... 
-                SET( libfile_list ${libfile_list} bag.image.puregl bag.image.puregl2 )
-                SET( libfile_list ${libfile_list} bag.video.puregl bag.video.puregl2 )
+if( NOT __ANDROID__ )
+                SET( libfile_list ${libfile_list} bag.image.puregl )
+                SET( libfile_list ${libfile_list} bag.video.puregl )
+endif( NOT __ANDROID__ )
+                SET( libfile_list ${libfile_list} bag.image.puregl2 )
+                SET( libfile_list ${libfile_list} bag.video.puregl2 )
 
 # proxy is memory-only and platform agnostic                
                 SET( libfile_list ${libfile_list} bag.video.proxy.server )
@@ -284,7 +288,6 @@ if( NOT __NO_MSGSVR__ )
 		SET( literal_libfile_list ${literal_libfile_list} sack.msgsvr.service.plugin  )
 endif( NOT __NO_MSGSVR__ )
 endif( WIN32 )
-
 
 
 if( __QNX__ )
@@ -324,6 +327,10 @@ endif( DIRECTX_SDK AND NOT WATCOM)
 ##############################################
 
 
+		foreach( lib ${ffmpeg_libraries} ${openal_libraries} )
+			FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{SACK_BASE}/${SHARED_LIBPATH}/${lib} DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
+                endforeach( lib )
+                
                 foreach( lib ${libfile_list} )              
 			FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{SACK_BASE}/${SHARED_LIBPATH}/@CMAKE_SHARED_LIBRARY_PREFIX@${lib}@CMAKE_SHARED_LIBRARY_SUFFIX@ DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
                 endforeach( lib  )              
@@ -358,7 +365,7 @@ endif( __QNX__ )
 
 		FILE( APPEND ${FILEOUT} "install( DIRECTORY $" "{SACK_BASE}/${BINARY_OUTPUT_DIR}/ DESTINATION $" "{dest} FILES_MATCHING PATTERN *.interface.conf PATTERN interface.conf )\n" )
 	if( NOT BUILD_MONOLITHIC )		
-		FILE( APPEND ${FILEOUT} "install( DIRECTORY $" "{SACK_BASE}/${BINARY_OUTPUT_DIR}/webclient DESTINATION $" "{dest}  )\n" )
+		FILE( APPEND ${FILEOUT} "install( DIRECTORY $" "{SACK_BASE}/${BINARY_OUTPUT_DIR}/webclient  DESTINATION $" "{dest}  )\n" )
 	endif( NOT BUILD_MONOLITHIC )
 
 
