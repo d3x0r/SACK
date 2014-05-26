@@ -148,7 +148,7 @@ CTEXTSTR StrRChr( CTEXTSTR s1, TEXTCHAR c )
 	if( !p1 ) return NULL;
 	while( p1[0] ) p1++;
 	while( p1 != s1 && p1[0] != c ) p1--;
-	if( p1[0] )
+	if( p1[0] == c )
 		return p1;
 	return NULL;
 }
@@ -170,7 +170,7 @@ TEXTSTR StrRChr( TEXTSTR s1, TEXTCHAR c )
 	if( !p1 ) return NULL;
 	while( p1[0] ) p1++;
 	while( p1 != s1 && p1[0] != c ) p1--;
-	if( p1[0] )
+	if( p1[0] == c )
 		return p1;
 	return NULL;
 }
@@ -377,12 +377,12 @@ size_t CStrLen( char const*const s )
 #ifdef _UNICODE
 char *  CStrDupEx ( CTEXTSTR original DBG_PASS )
 {
-   return WcharConvert( original );
+   return WcharConvertEx( original DBG_RELAY );
 }
 
 TEXTSTR  DupCStrEx ( const char * original DBG_PASS )
 {
-   return CharWConvert( original );
+   return CharWConvertEx( original DBG_RELAY );
 }
 #else
 

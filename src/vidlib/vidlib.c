@@ -3013,11 +3013,18 @@ WM_DROPFILES
 			{
 				l.flags.bPostedInvalidate = 0;
 				UpdateDisplayPortion (hVideo, 0, 0, 0, 0);
+				if( l.flags.bPostedInvalidate )
+					lprintf( "triggered to draw too soon!" );
+				l.flags.bPostedInvalidate = 0;
 			}
+			else
+				lprintf( " failed %d %p %p", l.flags.bPostedInvalidate, l.invalidated_window, hVideo );
 			//InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
 		}
 		//lprintf( "redraw... WM_PAINT" );
 		ValidateRect (hWnd, NULL);
+				if( l.flags.bPostedInvalidate )
+					lprintf( "triggered to draw too soon!" );
 		//lprintf( "redraw... WM_PAINT" );
 		/// allow a second invalidate to post.
 #ifdef NOISY_LOGGING
@@ -3159,7 +3166,6 @@ WM_DROPFILES
 				}
 			}
 			pcs = (LPCREATESTRUCT) lParam;
-
 #ifndef NO_TOUCH
 			if( l.RegisterTouchWindow )
 				l.RegisterTouchWindow( hWnd, TWF_WANTPALM|TWF_FINETOUCH );
@@ -3782,6 +3788,9 @@ static void HandleMessage (MSG Msg)
 		else
 		{
 			hVideo->flags.bShown = 1;
+			// pretend it's an invalidate to update happens.
+			l.flags.bPostedInvalidate = 1;
+			l.invalidated_window =  hVideo;
 			ShowWindow( hVideo->hWndOutput, SW_SHOW );
 		}
 	}
@@ -5140,6 +5149,8 @@ void RestoreDisplayEx(PVIDEO hVideo DBG_PASS )
 						if( l.flags.bLogMessages )
 							lprintf( WIDE( "Generating initial show (restore display, never shown)" ) );
 #endif
+						l.flags.bPostedInvalidate = 1;
+						l.invalidated_window =  hVideo;
 						ShowWindow( hVideo->hWndOutput, SW_SHOW );
 					}
 					if( hVideo->flags.bTopmost )

@@ -69,11 +69,15 @@ void  GetDisplaySizeEx ( int nDisplay
 												 , S_32 *x, S_32 *y
 												 , _32 *width, _32 *height)
 {
-		if( x )
+	while( !l.default_display_x || !l.default_display_y )
+	{
+		//lprintf( "Didn't have a display yet.. .wait..." );
+		Relinquish();
+	}
+	  if( x )
          (*x) = 0;
 		if( y )
 			(*y) = 0;
-
 
 		{
          int set = 0;
@@ -82,7 +86,8 @@ void  GetDisplaySizeEx ( int nDisplay
 				struct display_camera *camera = (struct display_camera *)GetLink( &l.cameras, 0 );
 				if( camera && ( camera != (struct display_camera*)1 ) )
 				{
-               set = 1;
+					set = 1;
+               lprintf( "was able to get size from camera..." );
 					if( width )
 						(*width) = camera->w;
 					if( height )
@@ -97,6 +102,7 @@ void  GetDisplaySizeEx ( int nDisplay
 					(*height) = l.default_display_y;
 			}
 		}
+		//lprintf( "Asked for size... %d,%d", (*width), (*height) );
 }
 
 
@@ -110,12 +116,17 @@ void SACK_Vidlib_SetNativeWindowHandle( NativeWindowType displayWindow )
 {
    lprintf( "Setting native window handle... (shouldn't this do something else?)" );
 	l.displayWindow = displayWindow;
-
    // Standard init (was looking more like a common call thing)
 	HostSystem_InitDisplayInfo();
 	// creates the cameras.
 
 	LoadOptions();
+
+	if( !l.bThreadRunning )
+	{
+		l.bThreadRunning = TRUE;
+		//SACK_Vidlib_OpenCameras();
+	}
 	//l.flags.disallow_3d = (RCOORD)SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Video Render/Disallow 3D"), 1 );
 }
 
@@ -128,6 +139,7 @@ void HostSystem_InitDisplayInfo(void )
 {
 	// this is passed in from the external world; do nothing, but provide the hook.
 	// have to wait for this ....
+	//lprintf( "SET size here..." );
 	l.default_display_x = ANativeWindow_getWidth( l.displayWindow);
 	l.default_display_y = ANativeWindow_getHeight( l.displayWindow);
 	//default_display_x	ANativeWindow_getFormat( camera->displayWindow)
@@ -205,7 +217,6 @@ int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goe
 		//lprintf( WIDE("First GL Init Done.") );
 		camera->flags.init = 1;
 	}
-
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.1f);				// Black Background
 	CheckErr();

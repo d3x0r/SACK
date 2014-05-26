@@ -26,6 +26,7 @@
 
 // this variable controls whether allocate/release is logged.
 #define NO_FILEOP_ALIAS
+#define NO_UNICODE_C
 //#define USE_SIMPLE_LOCK_ON_OPEN
 
 #include <stddef.h>
@@ -58,6 +59,12 @@
 #include "sharestruc.h"
 #include <sqlgetoption.h>
 #include <ctype.h>
+
+#if defined __ANDROID__
+#include <linux/ashmem.h>
+#endif
+
+
 #ifdef __cplusplus
 namespace sack {
 	namespace memory {
@@ -86,7 +93,12 @@ namespace sack {
 #define CHUNK_SIZE ( offsetof( CHUNK, byData ) )
 #define MEM_SIZE  ( offsetof( MEM, pRoot ) )
 
+// using lower level syslog bypasses some allocation requirements...
+#define lprintf( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, f,##__VA_ARGS__ ); SystemLogFL( buf DBG_SRC ); }
 
+#define _lprintf2( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, FILELINE_FILELINEFMT f,_pFile,_nLine,##__VA_ARGS__ ); SystemLogFL( buf DBG_SRC ); } }
+
+#define _lprintf( a ) {const TEXTCHAR *_pFile = pFile; int _nLine = nLine; _lprintf2
 
 // last entry in space tracking array will ALWAYS be
 // another space tracking array (if used)
@@ -220,6 +232,7 @@ PRIORITY_PRELOAD( Deadstart_finished_enough, GLOBAL_INIT_PRELOAD_PRIORITY + 1 )
 PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 {
 #ifndef __NO_OPTIONS__
+   int tmp;
 	g.bLogCritical = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Log critical sections" ), g.bLogCritical, TRUE );
 	g.bLogAllocate = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Enable Logging" ), g.bLogAllocate, TRUE );
 	g.bLogAllocateWithHold = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Enable Logging Holds" ), g.bLogAllocateWithHold, TRUE );
@@ -924,7 +937,7 @@ static void DoCloseSpace( PSPACE ps, int bFinal )
 			{
 				char file[256];
 				char fdname[64];
-				snprintf( fdname, sizeof(fdname), WIDE("/proc/self/fd/%d"), (int)ps->hFile );
+				snprintf( fdname, sizeof(fdname), "/proc/self/fd/%d", (int)ps->hFile );
 				file[readlink( fdname, file, sizeof( file ) )] = 0;
 				remove( file );
 			}
@@ -1019,33 +1032,42 @@ PTRSZVAL GetFileSize( int fd )
 #else // other systems were quite happy to have a 0 here for the handle.
 							0
 #endif
-						 , 0 );
+						  , 0 );
 			if( pMem == (POINTER)-1 )
 			{
 				lprintf( WIDE("Something bad about this region sized %") _PTRSZVALfs WIDE("(%d)"), *dwSize, errno );
 				DebugBreak();
 			}
-			//lprintf( WIDE("Clearing anonymous mmap %") _32f WIDE(""), *dwSize );
+			//lprintf( WIDE("Clearing anonymous mmap %p %") _size_f WIDE(""), pMem, *dwSize );
 			MemSet( pMem, 0, *dwSize );
 		}
 		else if( pWhere ) // name doesn't matter, same file cannot be called another name
 		{
-			filename = StrDup( pWhere );
+			filename = CStrDup( pWhere );
  		}
 		else if( pWhat )
 		{
 			int len;
 #ifdef __ANDROID__
-			if( !IsPath( "./tmp" ) )
-				if( !MakePath( "./tmp" ) )
-			lprintf( "Failed to create a temporary space" );
-			len = snprintf( NULL, 0, WIDE("./tmp/.shared.%s"), pWhat );
+			//if( !IsPath( "./tmp" ) )
+			//	if( !MakePath( "./tmp" ) )
+			//		lprintf( "Failed to create a temporary space" );
+#ifdef UNICODE
+			{
+				char *tmp_pWhat = CStrDup( pWhat );
+				len = snprintf( NULL, 0, "/dev/ashmem/tmp.shared.%s", tmp_pWhat );
+				Release( tmp_pWhat );
+			}
+#else
+			len = snprintf( NULL, 0, "/dev/ashmem/tmp.shared.%s", pWhat );
+#endif
 			filename = (char*)Allocate( len + 1 );
-			snprintf( filename, len+1, WIDE("./tmp/.shared.%s"), pWhat );
+			snprintf( filename, len+1, "./tmp.shared.%s", pWhat );
 #else
 			len = snprintf( NULL, 0, WIDE("/tmp/.shared.%s"), pWhat );
 			filename = (char*)Allocate( len + 1 );
 			snprintf( filename, len+1, WIDE("/tmp/.shared.%s"), pWhat );
+
 #endif
 			bTemp = TRUE;
 		}
@@ -1054,16 +1076,74 @@ PTRSZVAL GetFileSize( int fd )
 
 		if( !pMem && filename )
 		{
-			mode_t prior;
-			prior = umask( 0 );
-			if( bCreated )
-				(*bCreated) = 1;
-			fd = open( filename, O_RDWR|O_CREAT|O_EXCL, 0600 );
-			umask(prior);
+#ifdef __ANDROID__
+			//fd = ashmem_create_region( filename , size );
+         if( pWhat )
+			{
+				fd = open(filename, O_RDWR);
+				if (fd < 0 )
+				{
+               int ret;
+					if( !(*dwSize ) )
+					{
+						lprintf( "Region didn't exist... and no size... return" );
+                  return NULL;
+					}
+					lprintf( "Shared region didn't already exist...: %s", filename );
+					fd = open("/dev/ashmem", O_RDWR);
+					if( fd < 0 )
+					{
+                  lprintf( "Failed to open core device..." );
+						return NULL;
+					}
+					if( bCreated )
+						(*bCreated) = 1;
+
+					ret = ioctl(fd, ASHMEM_SET_NAME, filename + 12 ); // skip 11 for the "/dev/ashmem/"
+					if (ret < 0)
+					{
+						lprintf( "Failed to set the name of ashmem region: %s", filename + 12 );
+						//							goto error;
+					}
+
+					ret = ioctl(fd, ASHMEM_SET_SIZE, (*dwSize) );
+					if (ret < 0)
+					{
+						lprintf( "Failed to set IOCTL size to %d", (*dwSize) );
+						//goto error;
+					}
+               /*
+					 {
+                // unpin; pages will be pined to start (I think)
+						struct ashmem_pin pin = {
+							.offset = 0,
+							.len    = (*dwSize)
+						};
+						ret = ioctl(fd, ASHMEM_UNPIN, &pin);
+					}
+               */
+				}
+				else
+				{
+					if( bCreated )
+						(*bCreated) = 1;
+				}
+			}
+			else
+#endif
+			{
+				mode_t prior;
+				if( bCreated )
+					(*bCreated) = 1;
+				prior = umask( 0 );
+				fd = open( filename, O_RDWR|O_CREAT|O_EXCL, 0600 );
+				umask(prior);
+			}
 			if( fd == -1 )
 			{
-			// if we didn't create the file...
-			// then it can't be marked as temporary...
+				//lprintf( "open is %d %s %d", errno, filename, prior );
+				// if we didn't create the file...
+				// then it can't be marked as temporary...
 				bTemp = FALSE;
 				if( GetLastError() == EEXIST )
 				{
@@ -1674,7 +1754,9 @@ POINTER HeapAllocateEx( PMEM pHeap, PTRSZVAL dwSize DBG_PASS )
 		pc->dwOwners = 1;
 		pc->dwSize = dwSize;
 		if( g.bLogAllocate )
+		{
 			_lprintf(DBG_RELAY)( WIDE( "alloc %p(%p) %" ) _PTRSZVALfs, pc, pc->byData, dwSize );
+		}
 		return pc->byData;
 	}
 	else
@@ -2021,7 +2103,9 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			{
 				extern int  MemChk ( POINTER p, PTRSZVAL val, size_t sz );
 				if( g.bLogAllocate )
-					_lprintf(DBG_RELAY)( WIDE( "Release %p(%p)" ), pc, pc->byData );
+				{
+			_lprintf(DBG_RELAY)( WIDE( "Release %p(%p)" ), pc, pc->byData );
+				}
 #ifdef ENABLE_NATIVE_MALLOC_PROTECTOR
 				if( !MemChk( pc->LeadProtect, LEAD_PROTECT_TAG, sizeof( pc->LeadProtect ) ) ||
 					!MemChk( pc->byData + pc->dwSize, LEAD_PROTECT_BLOCK_TAIL, sizeof( pc->LeadProtect ) ) )
@@ -2434,17 +2518,17 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 		size_t nTotalFree = 0;
 		size_t nChunks = 0;
 		size_t nTotalUsed = 0;
-		TEXTCHAR byDebug[256];
+		char byDebug[256];
 
 		pMem = GrabMem( pHeap );
 
-		fprintf( file, WIDE(" ------ Memory Dump ------- \n") );
+		fprintf( file, " ------ Memory Dump ------- \n" );
 		{
-			TEXTCHAR byDebug[256];
-			snprintf( byDebug, sizeof( byDebug ), WIDE("FirstFree : %p"),
+			char  byDebug[256];
+			snprintf( byDebug, sizeof( byDebug ), "FirstFree : %p",
 						pMem->pFirstFree );
          byDebug[255] = 0;
-			fprintf( file, WIDE("%s\n"), byDebug );
+			fprintf( file, "%s\n", byDebug );
 		}
 
 		for( pc = NULL, pMemSpace = FindSpace( pMem ); pMemSpace; pMemSpace = pMemSpace->next )
@@ -2459,7 +2543,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 				if( !pc->dwOwners )
 				{
 					nTotalFree += pc->dwSize;
-					snprintf( byDebug, sizeof(byDebug), WIDE("Free at %p size: %") _PTRSZVALfs WIDE("(%") _PTRSZVALfx WIDE(") Prior:%p NF:%p"),
+					snprintf( byDebug, sizeof(byDebug), "Free at %p size: %" cPTRSZVALfs "(%" cPTRSZVALfx ") Prior:%p NF:%p",
 						pc, pc->dwSize, pc->dwSize,
 						pc->pPrior,
 						pc->next );
@@ -2468,7 +2552,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 				else
 				{
 					nTotalUsed += pc->dwSize;
-					snprintf( byDebug, sizeof(byDebug), WIDE("Used at %p size: %") _PTRSZVALfs WIDE("(%") _PTRSZVALfx WIDE(") Prior:%p"),
+					snprintf( byDebug, sizeof(byDebug), "Used at %p size: %" cPTRSZVALfs "(%" cPTRSZVALfx ") Prior:%p",
 						pc, pc->dwSize, pc->dwSize,
 						pc->pPrior );
 					byDebug[255] = 0;
@@ -2479,11 +2563,11 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 					CTEXTSTR pFile =  !IsBadReadPtr( BLOCK_FILE(pc), 1 )
 							?BLOCK_FILE(pc)
 							:WIDE("Unknown");
-					fprintf( file, WIDE("%s(%d):%s\n"), pFile, BLOCK_LINE(pc), byDebug );
+					fprintf( file, "%s(%d):%s\n", pFile, BLOCK_LINE(pc), byDebug );
 				}
 				else
 #endif
-					fprintf( file, WIDE("%s\n"), byDebug );
+					fprintf( file, "%s\n", byDebug );
 				_pc = pc;
 				pc = (PCHUNK)(pc->byData + pc->dwSize );
 				if( pc == _pc )
@@ -2493,7 +2577,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 				}
 			}
 		}
-		fprintf( file, WIDE("--------------- FREE MEMORY LIST --------------------\n") );
+		fprintf( file, "--------------- FREE MEMORY LIST --------------------\n" );
 
 		for( pc = NULL, pMemSpace = FindSpace( pMem ); pMemSpace; pMemSpace = pMemSpace->next )
 		{
@@ -2502,29 +2586,29 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 
 			while( pc ) // while PC not off end of memory
 			{
-				snprintf( byDebug, sizeof(byDebug), WIDE("Free at %p size: %") _size_fs WIDE("(%") _size_fx WIDE(") "),
+				snprintf( byDebug, sizeof(byDebug), "Free at %p size: %" c_size_fs "(%" c_size_fx ") ",
 							pc, pc->dwSize, pc->dwSize );
 				byDebug[255] = 0;
 
 	#ifdef _DEBUG
 				if( /*!g.bDisableDebug && */ !(pCurMem->dwFlags & HEAP_FLAG_NO_DEBUG ) )
 				{
-					CTEXTSTR pFile =  !IsBadReadPtr( BLOCK_FILE(pc), 1 )
-							?BLOCK_FILE(pc)
-							:WIDE("Unknown");
-					fprintf( file, WIDE("%s(%d):%s\n"), pFile, BLOCK_LINE(pc), byDebug );
+					const char * pFile =  !IsBadReadPtr( BLOCK_FILE(pc), 1 )
+							?CStrDup(BLOCK_FILE(pc))
+							:"Unknown";
+					fprintf( file, "%s(%d):%s\n", pFile, BLOCK_LINE(pc), byDebug );
 				}
 				else
 	#endif
-					fprintf( file, WIDE("%s\n"), byDebug );
+					fprintf( file, "%s\n", byDebug );
 				pc = pc->next;
 			}
 		}
-		snprintf( byDebug, sizeof(byDebug), WIDE("Total Free: %")_size_f WIDE("  TotalUsed: %")_size_f WIDE("  TotalChunks: %")_size_f WIDE(" TotalMemory:%")_size_f WIDE("")
+		snprintf( byDebug, sizeof(byDebug), "Total Free: %" c_size_f "  TotalUsed: %" c_size_f "  TotalChunks: %" c_size_f " TotalMemory:%" c_size_f
 					, nTotalFree, nTotalUsed, nChunks
 					, (nTotalFree + nTotalUsed + nChunks * CHUNK_SIZE) );
 		byDebug[255] = 0;
-		fprintf( file, WIDE("%s\n"), byDebug );
+		fprintf( file, "%s\n", byDebug );
 		//Relinquish();
 		DropMem( pMem );
 
@@ -2752,7 +2836,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 //------------------------------------------------------------------------------------------------------
  int  SetAllocateLogging ( LOGICAL bTrueFalse )
 {
-   LOGICAL prior = g.bLogAllocate;
+	LOGICAL prior = g.bLogAllocate;
 	g.bLogAllocate = bTrueFalse;
    return prior;
 }

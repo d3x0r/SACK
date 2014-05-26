@@ -138,8 +138,8 @@ struct threads_tag
 #ifdef USE_PIPE_SEMS
    int pipe_ends[2]; // file handles that are the pipe's ends. 0=read 1=write
 #endif
-	int semaphore; // use this as a status of pipes if USE_PIPE_SEMS is used...
-	pthread_t thread;
+	int semaphore; // use this as a status of pipes if USE_PIPE_SEMS is used...; otherwise it's a ipcsem
+	pthread_t hThread;
 #endif
 	struct {
 		//BIT_FIELD bLock : 1;
@@ -248,7 +248,7 @@ void  RemoveTimerEx( _32 ID DBG_PASS );
 
 // this priorirty is also relative to a secondary init for procreg/names.c
 // if you change this, need to change when that is scheduled also
-PRIORITY_PRELOAD( LowLevelInit, SYSLOG_PRELOAD_PRIORITY-1 )
+PRIORITY_PRELOAD( LowLevelInit, CONFIG_SCRIPT_PRELOAD_PRIORITY-1 )
 {
 	// there is a small chance the local is already initialized.
 	if( !global_timer_structure )
@@ -313,11 +313,21 @@ PTRSZVAL closesem( POINTER p, PTRSZVAL psv )
 	return 0;
 }
 
+static PTRSZVAL threadrunning( POINTER p, PTRSZVAL psv )
+{
+	PTHREAD thread = (PTHREAD)p;
+	if( thread->hThread )
+		return 1;
+	return 0;
+}
+	
 // sharemem exit priority +1 (exit after everything else, except emmory; globals at memory+1)
 PRIORITY_ATEXIT( CloseAllWakeups, ATEXIT_PRIORITY_THREAD_SEMS )
 {
 	//pid_t mypid = getppid();
 	// not sure if mypid is needed...
+	while( ForAllInSet( THREAD, g.threadset, threadrunning, 0 ) )
+		Relinquish();
 	lprintf( WIDE("Destroy thread semaphores...") );
 	ForAllInSet( THREAD, g.threadset, closesem, (PTRSZVAL)0 );
 	DeleteSet( (GENERICSET**)&g.threadset );
@@ -330,13 +340,19 @@ PRIORITY_ATEXIT( CloseAllWakeups, ATEXIT_PRIORITY_THREAD_SEMS )
 // sharemem exit priority +1 (exit after everything else, except emmory)
 PRIORITY_ATEXIT( StopTimers, ATEXIT_PRIORITY_TIMERS )
 {
+	int tries = 0;
 	//pid_t mypid = getppid();
 	// not sure if mypid is needed...
 	g.flags.bExited = 1;
 	if( g.pTimerThread )
 		WakeThread( g.pTimerThread );
 	while( g.pTimerThread )
-      Relinquish();
+	{
+		tries++;
+		if( tries > 10 )
+			return;
+		Relinquish();
+	}
 }
 //--------------------------------------------------------------------------
 
@@ -394,7 +410,7 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 			stat = select(thread->pipe_ends[0] + 1, &set, NULL, NULL, &timeout);
 			if(stat == -1)
 			{
-				lprintf("select error %d %d", errno, thread->pipe_ends[0]); /* an error accured */
+				lprintf( WIDE("select error %d %d"), errno, thread->pipe_ends[0]); /* an error accured */
 			}
 			else if(stat == 0)
 			{
@@ -845,7 +861,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, _32 n, LOGICAL threade
 							stat = select(pThread->pipe_ends[0] + 1, &set, NULL, NULL, &timeout);
 							if(stat == -1)
 							{
-								lprintf("select error %d %d", errno, pThread->pipe_ends[0]); /* an error accured */
+								lprintf(WIDE("select error %d %d"), errno, pThread->pipe_ends[0]); /* an error accured */
 							}
 							else if(stat == 0)
 							{
@@ -991,7 +1007,7 @@ void  WakeableSleep( _32 n )
 #ifdef __LINUX__
 static void ContinueSignal( int sig )
 {
-	lprintf( "Sigusr1" );
+	lprintf( WIDE("Sigusr1") );
 }
 
 // network is at GLOBAL_INIT_PRIORITY
@@ -1131,7 +1147,8 @@ void  UnmakeThread( void )
 			DeleteLink( &g.thread_events, pThread->thread_event );
 		Deallocate( PTHREAD_EVENT, pThread->thread_event );
 #endif
-		DeleteFromSet( THREAD, g.threadset, pThread ) /*Release( pThread )*/;
+		if( global_timer_structure )
+			DeleteFromSet( THREAD, g.threadset, pThread ) /*Release( pThread )*/;
 	}
 }
 
@@ -1178,6 +1195,7 @@ static PTRSZVAL CPROC ThreadWrapper( PTHREAD pThread )
 #ifdef __WATCOMC__
 static void *SimpleThreadWrapper( PTHREAD pThread )
 #else
+
 static PTRSZVAL CPROC SimpleThreadWrapper( PTHREAD pThread )
 #endif
 {
@@ -1198,7 +1216,7 @@ static PTRSZVAL CPROC SimpleThreadWrapper( PTHREAD pThread )
 		pThread->thread_ident = GetMyThreadID();
 	InitWakeup( pThread, NULL );
 #ifdef LOG_THREAD
-	Log1( WIDE("Set thread ident: %016"_64fx""), pThread->thread_ident );
+	Log1( WIDE("Set thread ident: %016") _64fx, pThread->thread_ident );
 #endif
 	if( pThread->proc )
 		 result = pThread->simple_proc( (POINTER)GetThreadParam( pThread ) );
@@ -1288,6 +1306,7 @@ PTHREAD  ThreadToEx( PTRSZVAL (CPROC*proc)(PTHREAD), PTRSZVAL param DBG_PASS )
 {
 	int success;
 	PTHREAD pThread;
+
 	while( LockedExchange( &g.lock_thread_create, 1 ) )
 		Relinquish();
 	do
@@ -1328,7 +1347,7 @@ PTHREAD  ThreadToEx( PTRSZVAL (CPROC*proc)(PTHREAD), PTRSZVAL param DBG_PASS )
 	success = (int)(pThread->hThread!=NULL);
 #else
 	//lprintf( "Create thread..." );
-	success = !pthread_create( &pThread->thread, NULL, (void*(*)(void*))ThreadWrapper, pThread );
+	success = !pthread_create( &pThread->hThread, NULL, (void*(*)(void*))ThreadWrapper, pThread );
 #endif
 	if( success )
 	{
@@ -1398,7 +1417,7 @@ PTHREAD  ThreadToSimpleEx( PTRSZVAL (CPROC*proc)(POINTER), POINTER param DBG_PAS
 	success = (int)(pThread->hThread!=NULL);
 #else
 	//lprintf( "Create thread" );
-	 success = !pthread_create( &pThread->thread, NULL, (void*(*)(void*))SimpleThreadWrapper, pThread );
+	 success = !pthread_create( &pThread->hThread, NULL, (void*(*)(void*))SimpleThreadWrapper, pThread );
 #endif
 	if( success )
 	{

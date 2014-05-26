@@ -350,7 +350,7 @@ PTEXT SegCreateFromIntEx( int value DBG_PASS )
 	PTEXT pResult;
 	pResult = SegCreateEx( 12 DBG_RELAY);
 #ifdef _UNICODE
-	pResult->data.size = snwprintf( pResult->data.data, 12, WIDE("%d"), value );
+	pResult->data.size = swprintf( pResult->data.data, 12, WIDE("%d"), value );
 #else
 	pResult->data.size = snprintf( pResult->data.data, 12, WIDE("%d"), value );
 #endif
@@ -365,7 +365,7 @@ PTEXT SegCreateFrom_64Ex( S_64 value DBG_PASS )
 	PTEXT pResult;
 	pResult = SegCreateEx( 32 DBG_RELAY);
 #ifdef _UNICODE
-	pResult->data.size = snwprintf( pResult->data.data, 32, WIDE("%")_64f, value );
+	pResult->data.size = swprintf( pResult->data.data, 32, WIDE("%")_64f, value );
 #else
 	pResult->data.size = snprintf( pResult->data.data, 32, WIDE("%")_64f, value );
 #endif
@@ -380,7 +380,7 @@ PTEXT SegCreateFromFloatEx( float value DBG_PASS )
    PTEXT pResult;
    pResult = SegCreateEx( 32 DBG_RELAY);
 #ifdef _UNICODE
-	pResult->data.size = snwprintf( pResult->data.data, 32, WIDE("%f"), value );
+	pResult->data.size = swprintf( pResult->data.data, 32, WIDE("%f"), value );
 #else
 	pResult->data.size = snprintf( pResult->data.data, 32, WIDE("%f"), value );
 #endif
@@ -2273,9 +2273,13 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 #ifdef __GNUC__
 		va_list tmp_args;
 		va_copy( tmp_args, args );
+#ifdef _UNICODE
+#define vsnprintf vswprintf
 #endif
+#else
 #ifdef _UNICODE
 #define vsnprintf vsnwprintf
+#endif
 #endif
 		// len returns number of characters (not NUL)
 		len = vsnprintf( NULL, 0, format

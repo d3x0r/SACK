@@ -388,7 +388,7 @@ extern
 
 	PIMAGE_INTERFACE gl_image_interface;
 	CTEXTSTR current_key_text;
-   void (*wake_callback)(void );
+	void (*wake_callback)(void );
 } l;
 
 void CPROC SACK_Vidlib_HideInputDevice( void );
@@ -424,6 +424,7 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
                                               int wx, int wy);
 void CPROC PureGL2_Vidlib_SuspendSystemSleep( int suspend );
 LOGICAL CPROC PureGL2_Vidlib_AllowsAnyThreadToUpdate( void );
+void OpenCamera( struct display_camera *camera );
 
 
 // --------------- Mouse 3d ------------

@@ -496,6 +496,9 @@ PTRSZVAL CPROC ProcessDisplayMessages( PTHREAD thread )
 				x11_gl_window = createGLWindow( camera );  // opens the physical device
 			}
 			//lprintf( "is it %Lx?", GetThreadID( thread ) );
+			{if( x11_gl_window)
+			{
+			if( x11_gl_window->dpy )
 			{
 				while( XPending( x11_gl_window->dpy ) > 0 )
 				{
@@ -515,6 +518,8 @@ PTRSZVAL CPROC ProcessDisplayMessages( PTHREAD thread )
 				// returns if draw should be done; might step and draw one message
 				// loop for each camera instead
 				ProcessGLDraw( TRUE );
+			}
+			}
 			}
 		}
 		//if( !did_one )

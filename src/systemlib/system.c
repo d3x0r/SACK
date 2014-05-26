@@ -1,8 +1,10 @@
+#define NO_UNICODE_C
 #define SYSTEM_CORE_SOURCE
 #define FIX_RELEASE_COM_COLLISION
 #define TASK_INFO_DEFINED
 #define NO_FILEOP_ALIAS
 #include <stdhdrs.h>
+#include <string.h>
 #ifdef WIN32
 #undef StrDup
 #include <shlwapi.h>
@@ -56,21 +58,21 @@ SACK_SYSTEM_NAMESPACE
 typedef struct task_info_tag TASK_INFO;
 
 #ifdef __ANDROID__
-static char *program_name;
-static char *program_path;
-static char *working_path;
+static CTEXTSTR program_name;
+static CTEXTSTR program_path;
+static CTEXTSTR working_path;
 
 void SACKSystemSetProgramPath( char *path )
 {
-   program_path = strdup( path );
+   program_path = DupCStr( path );
 }
 void SACKSystemSetProgramName( char *name )
 {
-   program_name = strdup( name );
+   program_name = DupCStr( name );
 }
 void SACKSystemSetWorkingPath( char *name )
 {
-   working_path = strdup( name );
+   working_path = DupCStr( name );
 }
 #endif
 
@@ -98,7 +100,18 @@ CTEXTSTR OSALOT_GetEnvironmentVariable(CTEXTSTR name)
 	}
 	return NULL;
 #else
+#ifdef UNICODE
+	{
+		char *tmpname = CStrDup( name );
+		static TEXTCHAR *result;
+		if( result )
+			ReleaseEx( result DBG_SRC );
+		result = DupCStr( getenv( tmpname ) );
+      ReleaseEx( tmpname DBG_SRC );
+	}
+#else
 	return getenv( name );
+#endif
 #endif
 }
 
@@ -107,7 +120,17 @@ void OSALOT_SetEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 #if defined( WIN32 ) || defined( __CYGWIN__ )
 	SetEnvironmentVariable( name, value );
 #else
+#ifdef UNICODE
+	{
+		char *tmpname = CStrDup( name );
+		char * tmpvalue = CStrDup( value );
+      setenv( tmpname, tmpvalue, TRUE );
+      ReleaseEx( tmpname DBG_SRC );
+      ReleaseEx( tmpvalue DBG_SRC );
+	}
+#else
 	setenv( name, value, TRUE );
+#endif
 #endif
 }
 
@@ -128,12 +151,29 @@ void OSALOT_AppendEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 	ReleaseEx( newpath DBG_SRC );
 	ReleaseEx( oldpath DBG_SRC );
 #else
-	TEXTCHAR *oldpath = getenv( name );
+#ifdef UNICODE
+	char *tmpname = CStrDup( name );
+	char *_oldpath = getenv( tmpname );
+   TEXTCHAR *oldpath = DupCStr( _oldpath );
+#else
+	char *oldpath = getenv( name );
+
+#endif
 	TEXTCHAR *newpath;
 	size_t maxlen;
-	newpath = NewArray( TEXTCHAR, maxlen = ( strlen( oldpath ) + strlen( value ) + 2 ) );
-	snprintf( newpath, maxlen, WIDE("%s:%s"), oldpath, value );
+	newpath = NewArray( TEXTCHAR, maxlen = ( StrLen( oldpath ) + StrLen( value ) + 2 ) );
+	tnprintf( newpath, maxlen, WIDE("%s:%s"), oldpath, value );
+#ifdef UNICODE
+	{
+		char * tmpvalue = CStrDup( newpath );
+      setenv( tmpname, tmpvalue, TRUE );
+      ReleaseEx( tmpvalue DBG_SRC );
+	}
+   ReleaseEx( oldpath DBG_SRC );
+	ReleaseEx( tmpname DBG_SRC );
+#else
 	setenv( name, newpath, TRUE );
+#endif
 	ReleaseEx( newpath DBG_SRC );
 #endif
 }
@@ -156,12 +196,28 @@ void OSALOT_PrependEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 	ReleaseEx( newpath DBG_SRC );
 	ReleaseEx( oldpath DBG_SRC );
 #else
-	TEXTCHAR *oldpath = getenv( name );
+#ifdef UNICODE
+	char *tmpname = CStrDup( name );
+	char *_oldpath = getenv( tmpname );
+   TEXTCHAR *oldpath = DupCStr( _oldpath );
+#else
+	char *oldpath = getenv( name );
+#endif
 	TEXTCHAR *newpath;
 	int length;
-	newpath = NewArray( TEXTCHAR, length = strlen( oldpath ) + strlen( value ) + 1 );
-	snprintf( newpath, length, WIDE("%s:%s"), value, oldpath );
+	newpath = NewArray( TEXTCHAR, length = StrLen( oldpath ) + StrLen( value ) + 1 );
+	tnprintf( newpath, length, WIDE("%s:%s"), value, oldpath );
+#ifdef UNICODE
+	{
+		char *tmpname = CStrDup( name );
+		char * tmpvalue = CStrDup( newpath );
+      setenv( tmpname, tmpvalue, TRUE );
+      ReleaseEx( tmpname DBG_SRC );
+      ReleaseEx( tmpvalue DBG_SRC );
+	}
+#else
 	setenv( name, newpath, TRUE );
+#endif
 	ReleaseEx( newpath DBG_SRC );
 #endif
 }
@@ -241,15 +297,15 @@ static void CPROC SetupSystemServices( POINTER mem, PTRSZVAL size )
 			buf[1] = 0;
 		}
 
-		if( StrCmp( buf, "/." ) == 0 )
+		if( StrCmp( buf, WIDE("/.") ) == 0 )
 			GetCurrentPath( buf, 256 );
 		//lprintf( WIDE("My execution: %s"), buf);
 		(*init_l).load_path = StrDupEx( buf DBG_SRC );
-		setenv( WIDE("MY_LOAD_PATH"), (*init_l).load_path, TRUE );
+		OSALOT_SetEnvironmentVariable( WIDE("MY_LOAD_PATH"), (*init_l).load_path );
 		//strcpy( pMyPath, buf );
 
 		GetCurrentPath( buf, sizeof( buf ) );
-		setenv( WIDE( "MY_WORK_PATH" ), buf, TRUE );
+		OSALOT_SetEnvironmentVariable( WIDE( "MY_WORK_PATH" ), buf );
 		(*init_l).work_path = StrDupEx( buf DBG_SRC );
 		SetDefaultFilePath( (*init_l).work_path );
 	}
@@ -301,9 +357,9 @@ static void CPROC SetupSystemServices( POINTER mem, PTRSZVAL size )
             //LOGI( "my path [%s][%s]", mypath, myname );
 				// do not auto load libraries
 				SACKSystemSetProgramPath( mypath );
-				(*init_l).load_path =  mypath;
+				(*init_l).load_path =  DupCStr( mypath );
 				SACKSystemSetProgramName( myname );
-				(*init_l).filename = myname;
+				(*init_l).filename = DupCStr( myname );
 				SACKSystemSetWorkingPath( buf );
             break;
 			}
@@ -383,7 +439,7 @@ static void SystemInit( void )
 {
 	if( !local_systemlib )
 	{
-		RegisterAndCreateGlobalWithInit( (POINTER*)&local_systemlib, sizeof( *local_systemlib ), "system", SetupSystemServices );
+		RegisterAndCreateGlobalWithInit( (POINTER*)&local_systemlib, sizeof( *local_systemlib ), WIDE("system"), SetupSystemServices );
 #ifdef WIN32
 		if( !l.flags.bInitialized )
 		{
@@ -1119,24 +1175,30 @@ SYSTEM_PROC( PTASK_INFO, LaunchProgramEx )( CTEXTSTR program, CTEXTSTR path, PCT
 		// in case exec fails, we need to
 		// drop any registered exit procs...
 			DispelDeadstart();
-
-                        chdir( path );
-
-                        execve( program, (char *const*)args, environ );
+			SetCurrentPath( path );
+#ifdef UNICODE
+			{
+            char *tmpprogram = CStrDup( program );
+				execve( tmpprogram, (char *const*)args, environ );
+            ReleaseEx( tmpprogram DBG_SRC );
+			}
+#else
+			execve( program, (char *const*)args, environ );
+#endif
                         {
-                            char *tmp = StrDupEx( getenv( "PATH" ) DBG_SRC );
+                            char *tmp = strdup( getenv( "PATH" ) );
                             char *tok;
                             for( tok = strtok( tmp, ":" ); tok; tok = strtok( NULL, ":" ) )
                             {
                                 char fullname[256];
                                 snprintf( fullname, sizeof( fullname ), "%s/%s", tok, program );
 
-                                lprintf( "program:[%s][%s][%s]", fullname,args[0], getenv("PATH") );
+                                lprintf( WIDE("program:[%s][%s][%s]"), fullname,args[0], getenv("PATH") );
                                 ((char**)args)[0] = fullname;
                                 execve( fullname, (char*const*)args, environ );
                             }
                         }
-			lprintf( "exec failed - and this is ALLL bad...[%s]%d", program, errno );
+			lprintf( WIDE("exec failed - and this is ALLL bad...[%s]%d"), program, errno );
 			//DebugBreak();
 			// well as long as this runs before
 			// the other all will be well...
@@ -1206,7 +1268,7 @@ SYSTEM_PROC( void, AddMappedLibrary)( CTEXTSTR libname, POINTER image_memory )
 	// don't really NEED anything else, in case we need to start before deadstart invokes.
 	if( !library )
 	{
-		size_t maxlen = strlen( libname ) + 1;
+		size_t maxlen = StrLen( libname ) + 1;
 		library = NewPlus( LIBRARY, sizeof(TEXTCHAR)*((maxlen<0xFFFFFF)?(_32)maxlen:0) );
 		library->name = library->full_name;
 		StrCpy( library->name, libname );
@@ -1233,13 +1295,13 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 	// don't really NEED anything else, in case we need to start before deadstart invokes.
 	if( !library )
 	{
-		size_t maxlen = strlen( l.load_path ) + 1 + strlen( libname ) + 1;
+		size_t maxlen = StrLen( l.load_path ) + 1 + StrLen( libname ) + 1;
 		library = NewPlus( LIBRARY, sizeof(TEXTCHAR)*((maxlen<0xFFFFFF)?(_32)maxlen:0) );
 		if( !IsAbsolutePath( libname ) )
 		{
 			library->name = library->full_name
-				+ snprintf( library->full_name, maxlen, WIDE("%s/"), l.load_path );
-			snprintf( library->name
+				+ tnprintf( library->full_name, maxlen, WIDE("%s/"), l.load_path );
+			tnprintf( library->name
 				, maxlen - (library->name-library->full_name)
 				, WIDE("%s"), libname );
 		}
@@ -1269,15 +1331,31 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 #else
 #  ifndef __ANDROID__
 		// ANDROID This will always fail from the application manager.
+#ifdef UNICODE
+		{
+         char *tmpname = CStrDup( library->name );
+			library->library = dlopen( tmp, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
+         Release( tmpname );
+		}
+#else
 		library->library = dlopen( library->name, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
+#endif
 		if( !library->library )
 		{
 			_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s%s(%s) failed: %s."), bPrivate?"(local)":"(global)", libname, funcname?funcname:"all", dlerror() );
 #  endif
+#ifdef UNICODE
+			{
+				char *tmpname = CStrDup( library->full_name );
+				library->library = dlopen( tmpname, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
+				ReleaseEx( tmpname DBG_SRC );
+			}
+#else
 			library->library = dlopen( library->full_name, RTLD_LAZY|(bPrivate?RTLD_LOCAL:RTLD_GLOBAL) );
+#endif
 			if( !library->library )
 			{
-				_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load  %s%s(%s) failed: %s."), bPrivate?"(local)":"(global)", library->full_name, funcname?funcname:"all", dlerror() );
+				_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load  %s%s(%s) failed: %s."), bPrivate?WIDE("(local)"):WIDE("(global)"), library->full_name, funcname?funcname:WIDE("all"), dlerror() );
 				ReleaseEx( library DBG_SRC );
 				ResumeDeadstart();
 				return NULL;
@@ -1312,7 +1390,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		PFUNCTION function = library->functions;
 		while( function )
 		{
-			if( strcmp( function->name, funcname ) == 0 )
+			if( StrCmp( function->name, funcname ) == 0 )
 				break;
 			function = function->next;
 		}
@@ -1320,7 +1398,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		{
 			int len;
 			function = NewPlus( FUNCTION, (len=(sizeof(TEXTCHAR)*( (_32)StrLen( funcname ) + 1 ) ) ) );
-			snprintf( function->name, len, WIDE( "%s" ), funcname );
+			tnprintf( function->name, len, WIDE( "%s" ), funcname );
 			function->library = library;
 			function->references = 0;
 #ifdef _WIN32
@@ -1380,10 +1458,19 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 				return NULL;
 			}
 #else
-			if( !(function->function = (generic_function)dlsym( library->library, function->name )) )
+#ifdef UNICODE
+			{
+				char *tmpname = CStrDup( function->name );
+				library->library = dlsym( library->library, tmpname );
+				ReleaseEx( tmpname DBG_SRC );
+			}
+#else
+         function->function = (generic_function)dlsym( library->library, function->name );
+#endif
+ 			if( !(function->function) )
 			{
 				char tmpname[128];
-				sprintf( tmpname, WIDE("_%s"), funcname );
+				snprintf( tmpname, 128, "_%s", funcname );
 				function->function = (generic_function)dlsym( library->library, tmpname );
 			}
 			if( !function->function )
@@ -1514,8 +1601,8 @@ TEXTSTR GetArgsString( PCTEXTSTR pArgs )
 	// arg[0] should be the same as program name...
 	for( n = 1; pArgs && pArgs[n]; n++ )
 	{
-		int space = (strchr( pArgs[n], ' ' )!=NULL);
-		len += snprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), WIDE("%s%s%s%s")
+		int space = (StrChr( pArgs[n], ' ' )!=NULL);
+		len += tnprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), WIDE("%s%s%s%s")
 							, n>1?WIDE(" "):WIDE("")
 							, space?WIDE("\""):WIDE("")
 							, pArgs[n]

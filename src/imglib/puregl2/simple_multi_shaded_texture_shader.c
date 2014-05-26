@@ -18,6 +18,8 @@ IMAGE_NAMESPACE
 
 //const char *gles_
 static const char *gles_simple_v_multi_shader =
+   "precision mediump float;\n"
+	"precision mediump int;\n"
 	 "uniform mat4 modelView;\n" 
 	 "uniform mat4 worldView;\n" 
 	 "uniform mat4 Projection;\n" 
@@ -34,6 +36,8 @@ static const char *gles_simple_v_multi_shader =
 
 
 static const char *gles_simple_p_multi_shader =
+   "precision mediump float;\n"
+	"precision mediump int;\n"
 	     " varying vec2 out_texCoord;\n" 
         "uniform sampler2D tex;\n" 
         "uniform vec4 multishade_r;\n" 

@@ -1206,8 +1206,8 @@ int TextToInt( CTEXTSTR text, PS_64 out )
 	{
 		TEXTCHAR *c;
 		_32 val;
-		if( ( c = strchr( maxbase1, text[0] ) ) ) val = (_32)(c - maxbase1);
-		if( !c ) if( ( c = strchr( maxbase2, text[0] ) ) ) val = (_32)(c - maxbase2);
+		if( ( c = StrChr( maxbase1, text[0] ) ) ) val = (_32)(c - maxbase1);
+		if( !c ) if( ( c = StrChr( maxbase2, text[0] ) ) ) val = (_32)(c - maxbase2);
 		if( !c ) { flags.success = 0; break; }
 		if( val < base )
 		{
@@ -1293,12 +1293,12 @@ int IsColorVar( PCONFIG_ELEMENT pce, PTEXT *start )
 				int n;
 				CTEXTSTR p;
 				n = 16;
-				p = strchr( maxbase1, digit[0] );
+				p = StrChr( maxbase1, digit[0] );
 				if( p )
 					n = (_32)(p-maxbase1);
 				else
 				{	
-					p = strchr( maxbase2, digit[0] );
+					p = StrChr( maxbase2, digit[0] );
 					if( p )
 						n = (_32)(p-maxbase2);
 				}	

@@ -72,14 +72,16 @@ void OpenEGL( struct display_camera *camera, NativeWindowType displayWindow )
 	EGLint majorVersion, minorVersion;
 	int numConfigs;
 
-	if( camera->egl_display )
+		lprintf( "handles: %08x %08x %08x", camera->econtext, camera->surface, camera->egl_display );
+
+	if( camera->egl_display && camera->egl_display != EGL_NO_DISPLAY )
 	{
 		lprintf( "EGL Context already initialized for camera" );
 		return;
 	}
 
 	camera->egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-	lprintf("GL display: %x", camera->egl_display);
+	lprintf("GL display: %p %x", camera, camera->egl_display);
 
 #ifdef __ANDROID__
 	// Window surface that covers the entire screen, from libui.
@@ -210,21 +212,25 @@ void SACK_Vidlib_SuspendDisplayEx( INDEX idx )
    struct display_camera *camera = ( struct display_camera *)GetLink( &l.cameras, idx );
 	EnableEGLContext( NULL );
 
+	//lprintf( "Ready flag on camera: %d", camera->hVidCore->flags.bReady );
    if( camera->hVidCore->flags.bReady )
 	{
       // default camera is listed twice.
 		camera->hVidCore->flags.bReady = 0;
 		{
+			//lprintf( "handles: %08x %08x %08x", camera->econtext, camera->surface, camera->egl_display );
 			if (camera->surface != EGL_NO_SURFACE)
 			{
 				eglDestroySurface(camera->egl_display, camera->surface);
 				camera->surface = EGL_NO_SURFACE;
 			}
+			//lprintf( "handles: %08x %08x %08x", camera->econtext, camera->surface, camera->egl_display );
 			if (camera->egl_display != EGL_NO_DISPLAY)
 			{
 				eglTerminate(camera->egl_display);
 				camera->egl_display = EGL_NO_DISPLAY;
 			}
+			//lprintf( "handles: %08x %08x %08x", camera->econtext, camera->surface, camera->egl_display );
 		}
 	}
 }
@@ -250,7 +256,8 @@ void SACK_Vidlib_CloseDisplay( void )
 	//    1) set NULL render context for this thread
 	//    2) destroyed the surface and display.
 	//  so all that's left is to tell imagelib to release its resources in the context
-   //  and release the context.
+	//  and release the context.
+   lprintf( "Closing display (temporary); physical device no longer available..." );
 	SACK_Vidlib_SuspendDisplay();
 	LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
 	{
@@ -258,6 +265,7 @@ void SACK_Vidlib_CloseDisplay( void )
 		if( !idx )
 			continue;
 
+      //lprintf( "Closing camera %p", camera );
 		{
 			struct plugin_reference *reference;
 			INDEX idx2;
@@ -284,12 +292,14 @@ void SACK_Vidlib_CloseDisplay( void )
 			eglDestroySurface(camera->egl_display, camera->surface);
 			camera->surface = EGL_NO_SURFACE;
 		}
+
 		if (camera->egl_display != EGL_NO_DISPLAY)
 		{
 			// this will already be destroyed by suspend surface
 			eglTerminate(camera->egl_display);
 			camera->egl_display = EGL_NO_DISPLAY;
 		}
+
 		camera->flags.init = 0;
 	}
 }

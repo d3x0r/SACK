@@ -7,7 +7,7 @@
 //#line 2 "../imglib/psi_fntcache.c"
 #endif
 
-#define __CAN_USE_CACHE_DIALOG__
+//#define __CAN_USE_CACHE_DIALOG__
 #ifdef SACK_MONOLITHIC_BUILD
 #define __CAN_USE_TOPMOST__
 #endif
@@ -248,7 +248,7 @@ int UniqueStrCmp( TEXTCHAR *s1, INDEX s1_length, TEXTCHAR *s2 )
 		if( ( numstart = SANECAST StrChr( s1, '[' ) ) )
 		{
 			numstart[0] = 0;
-			num = atoi( numstart+1 );
+			num = IntCreateFromText( numstart+1 );
 			StrCpyEx( name, s1, 256 );
 			snprintf( s1, sizeof( name ), WIDE("%s[%d]"), name, num+1 );
 		}
@@ -1343,7 +1343,7 @@ void BuildFontCache( void )
 #ifdef WIN32
                 = OSALOT_GetEnvironmentVariable( WIDE( "windir" ) );
 #else
-            = "/usr/share/fonts";
+            = WIDE("/usr/share/fonts");
 #endif
             {
 		size_t len;
@@ -1469,27 +1469,27 @@ void LoadAllFonts( void )
 				switch( buf[1] )
 				{
 				case '@':
-					build.nPaths = atoi( buf + 2 );
-					build.pPathNames = NewArray( TEXTCHAR, atoi( strchr( buf, ',' ) + 1 ) );
+					build.nPaths = IntCreateFromText( buf + 2 );
+					build.pPathNames = NewArray( TEXTCHAR, IntCreateFromText( strchr( buf, ',' ) + 1 ) );
 					build.pPathList = NewArray( TEXTCHAR*, build.nPaths );
 					break;
 				case '$':
 					build.nStyle = 0;
-					build.nFamilies = atoi( buf + 2 );
-					build.pFamilyNames = NewArray( TEXTCHAR, atoi( strchr( buf, ',' ) + 1 ) );
+					build.nFamilies = IntCreateFromText( buf + 2 );
+					build.pFamilyNames = NewArray( TEXTCHAR, IntCreateFromText( strchr( buf, ',' ) + 1 ) );
 					build.pFamilyList = NewArray( TEXTCHAR*, build.nFamilies );
 
 					fg.nFonts     = build.nFamilies;
 					fg.pFontCache = NewArray( FONT_ENTRY, build.nFamilies );
 					break;
 				case '*':
-					build.nStyles = atoi( buf + 2 );
-					build.pStyleNames = NewArray( TEXTCHAR, atoi( strchr( buf, ',' ) + 1 ) );
+					build.nStyles = IntCreateFromText( buf + 2 );
+					build.pStyleNames = NewArray( TEXTCHAR, IntCreateFromText( strchr( buf, ',' ) + 1 ) );
 					build.pStyleList = NewArray( TEXTCHAR*, build.nStyles );
 					break;
 				case '&':
-					build.nFiles = atoi( buf + 2 );
-					build.pFileNames = NewArray( TEXTCHAR, atoi( strchr( buf, ',' ) + 1 ) );
+					build.nFiles = IntCreateFromText( buf + 2 );
+					build.pFileNames = NewArray( TEXTCHAR, IntCreateFromText( strchr( buf, ',' ) + 1 ) );
 					build.pFileList = NewArray( TEXTCHAR*, build.nFiles );
 					break;
 				case '#':
@@ -1570,7 +1570,7 @@ void LoadAllFonts( void )
 						*(count++) = 0;
 					pfe = fg.pFontCache + nFont++;
 					{
-						_32 nStyles = atoi( count );
+						_32 nStyles = IntCreateFromText( count );
 						pfe->flags.unusable = 0;
 						pfe->nStyles = 0; // use this to count...
 						pfe->styles = (PLIST)(build.pStyleSlab + build.nStyle);
@@ -1682,7 +1682,7 @@ void LoadAllFonts( void )
 								width++;
 								// safe to play with these as numbers
 								// even without proper null terimination...
-								nWidth = atoi( width );
+								nWidth = IntCreateFromText( width );
 								if( nWidth >= 0 )
 								{
 									height = strchr( width, ',' );
@@ -1691,7 +1691,7 @@ void LoadAllFonts( void )
 										Log( WIDE("Fatality - Cache loses!") );
 									}
 									height++;
-									nHeight = atoi( height );
+									nHeight = IntCreateFromText( height );
 								}
 								else
 								{

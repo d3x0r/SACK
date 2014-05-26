@@ -694,19 +694,12 @@ int CPROC OpenGLKey( PTRSZVAL psv, _32 keycode )
 	return used;
 }
 
-
-// returns the forward view camera (or default camera)
-struct display_camera *SACK_Vidlib_OpenCameras( void )
+void OpenCamera( struct display_camera *camera )
 {
-	struct display_camera *camera;
-	INDEX idx;
-	LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
 	{
-		if( !idx ) // default camera is a duplicate of another camera
-			continue;
-		lprintf( "Open camera %d", idx);
+		//lprintf( "Open camera %p", camera);
 		if( camera->flags.opening )
-			continue;
+			return;
 
 		if( !camera->hVidCore )
 		{
@@ -738,6 +731,10 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 #  endif
 #endif
 
+#ifdef __ANDROID__
+		if( l.displayWindow )
+         camera->hVidCore->flags.bReady = 1;
+#endif
 #ifdef LOG_OPEN_TIMING
 		lprintf( WIDE( "Created Real window...Stuff.. %d,%d %dx%d" ),camera->x,camera->y,camera->w,camera->h );
 #endif
@@ -746,6 +743,7 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 		camera->flags.opening = 0;
 		// extra init iterates through registered plugins and
 		// loads their initial callbacks; the actual OnIni3d() has many more params
+		camera->flags.init= 0; // make sure we do first setup on context...
 		lprintf( "Invoke init on camera (should be a valid device by here?" );
 		InvokeExtraInit( camera, camera->origin_camera );
 
@@ -754,16 +752,32 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 		camera->hVidCore->flags.bReady = TRUE;
 	}
 
+}
+
+// returns the forward view camera (or default camera)
+struct display_camera *SACK_Vidlib_OpenCameras( void )
+{
+	struct display_camera *camera;
+	INDEX idx;
+	LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
+	{
+		if( !idx ) // default camera is a duplicate of another camera
+			continue;
+		//lprintf( "Open camera %d", idx);
+		OpenCamera( camera );
+	}
+
 	return (struct display_camera *)GetLink( &l.cameras, 0 );
 }
 
+#ifndef __ANDROID__
 // when a library is loaded later, invoke it's Init3d with existing cameras
 static void OnLibraryLoad( WIDE("Video Render PureGL 2") )( void )
 {
 	if( l.bThreadRunning )
 		SACK_Vidlib_OpenCameras();
 }
-
+#endif
 
 LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
                                               int wx, int wy)

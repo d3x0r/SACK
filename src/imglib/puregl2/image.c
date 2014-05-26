@@ -451,8 +451,8 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 		{
 			int n;
 			for( n = 0; n < 4; n++ )
-            lprintf( "point %g,%g,%g", v[vi][n][0], v[vi][n][1], v[vi][n][2] );
-			lprintf( "Drew triangle strip, %08x", color );
+            lprintf( WIDE("point %g,%g,%g"), v[vi][n][0], v[vi][n][1], v[vi][n][2] );
+			lprintf( WIDE("Drew triangle strip, %08x"), color );
 		}
 	}
 	else
@@ -481,7 +481,7 @@ void  BlatColorAlpha ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color 
 	}
 	if(  (S_32)w <= 0 || (S_32)h <= 0 )
 	{
-		//lprintf( "BlatColorAlpha; width or height less than 0 (%" _32fs "x%"_32fs")", w, h );
+		//lprintf( WIDE("BlatColorAlpha; width or height less than 0 (%") _32fs WIDE("x%")_32fsWIDE(")"), w, h );
 		return;
 	}
 	if( !w )
@@ -500,9 +500,9 @@ void  BlatColorAlpha ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color 
 		r2.height = pifDest->height;
 		if( !IntersectRectangle( &r, &r1, &r2 ) )
 		{
-			lprintf( WIDE("blat color is out of bounds (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(") (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(")")
-				, x, y, w, h
-				, r2.x, r2.y, r2.width, r2.height );
+			//lprintf( WIDE("blat color alpha is out of bounds (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(") (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(")")
+			//	, x, y, w, h
+			//	, r2.x, r2.y, r2.width, r2.height );
 			return;
 		}
 #ifdef DEBUG_BLATCOLOR

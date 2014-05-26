@@ -33,9 +33,19 @@ int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches )
 	int used = 0;
 	if( touch_info.flags.owned_by_surface )
 	{
-		//lprintf( "touch event to %p; owned is %p", r, touch_info.owning_surface );
+#ifdef DEBUG_TOUCH_INPUTS
+		lprintf( "touch event to %p; owned is %p", r, touch_info.owning_surface );
+#endif
 		if( touch_info.owning_surface != r )
 			return 0;
+	}
+
+	{
+		int t;
+		for( t = 0; t < nTouches; t++ )
+		{
+         touches[t].y -= 0;//l.display_skip_top + ( l.display_skip_bottom );
+		}
 	}
 	if( r->flags.mouse_transparent )
 		return 0;
