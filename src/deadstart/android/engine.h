@@ -1,4 +1,4 @@
-
+#define NO_FILEOP_ALIAS
 #include <render.h> // PINPUT_POINT
 
 #include <android/sensor.h>
@@ -7,8 +7,8 @@
 #include <android/native_activity.h>
 #include "android_native_app_glue.h"
 
-#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "org.d3x0r.sack.native-activity", __VA_ARGS__))
-#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "org.d3x0r.sack.native-activity", __VA_ARGS__))
+#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "org.d3x0r.sack.native-activity[" __FILE__"]", __VA_ARGS__))
+#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "org.d3x0r.sack.native-activity[" __FILE__"]", __VA_ARGS__))
 
 #ifdef lprintf
 #undef lprintf
@@ -56,4 +56,13 @@ struct engine {
 	int input_point_map[10];
 	int nPoints;
 	int did_finish_once;
+	int key_text;
+	CTEXTSTR data_path;
+	int resumed;
+
+	struct library_loader {
+		LOGICAL waiting_for_load;
+		POINTER loaded_address;
+      size_t loaded_size;
+	}loader;
 };

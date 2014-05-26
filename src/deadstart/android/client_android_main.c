@@ -64,7 +64,7 @@ static void (*BagVidlibPureglPauseDisplay)(void);
 static void (*BagVidlibPureglResumeDisplay)(void);
 
 extern int AndroidGetKeyText( AInputEvent *event );
-extern void AndroidLoadSharedLibrary( char *libname );
+extern void * AndroidLoadSharedLibrary( char *libname );
 
 
 struct engine engine;
@@ -288,9 +288,6 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 			}
 			break;
 		}
-	default:
-		LOGI( "Unhandled Motion Event ignored..." );
-		break;
 	}
 	return 0;
 }
@@ -300,12 +297,13 @@ static void *LoadLibrary( char *path, char *name )
 	char buf[256];
 	int tries = 0;
 	snprintf( buf, 256, "%s/%s", path, name );
-   //AndroidLoadSharedLibrary( name );
+
 	do
 	{
 		void *result;
 		//LOGI( "Open [%s]", buf );
-		if( !( result = dlopen( buf, 0 ) ) )
+		if( !( result = AndroidLoadSharedLibrary( name ) ) )
+		//if( !( result = dlopen( buf, 0 ) ) )
 		{
 			const char *recurse = dlerror();
 			LOGI( "error: %s", recurse );
@@ -453,14 +451,15 @@ void wake_animation( void )
 	}
 }
 
-static int findself( void )
+void* BeginNormalProcess( void*param )
 {
+	engine.wait_for_startup = 0;
+   sched_yield();
+	LOGI( "BeginNormalProcess: %d %d %d  %d %p %p", engine.state.restarting, engine.state.closed, engine.state.opened, engine.wait_for_startup, myname, BeginNormalProcess );
 	if( !engine.state.restarting && !myname )
 	{
 		char buf[256];
-		FILE *maps;
-		//LOGI( "Finding self in /proc/self/maps,,," );
-		maps = fopen( "/proc/self/maps", "rt" );
+		FILE *maps = fopen( "/proc/self/maps", "rt" );
 		while( maps && fgets( buf, 256, maps ) )
 		{
 			unsigned long start;
@@ -468,11 +467,14 @@ static int findself( void )
 			sscanf( buf, "%lx", &start );
 			sscanf( buf+9, "%lx", &end );
 			//LOGI( "Map includes: %s", buf );
-			if( ((unsigned long)findself >= start ) && ((unsigned long)findself <= end ) )
+			if( ((unsigned long)BeginNormalProcess >= start ) && ((unsigned long)BeginNormalProcess <= end ) )
 			{
             const char *filepath;
+				void *lib;
 				char *myext;
-				//LOGI( "THIS IS ME" );
+				void (*InvokeDeadstart)(void );
+				void (*MarkRootDeadstartComplete)(void );
+
 				fclose( maps );
 				maps = NULL;
 
@@ -494,34 +496,6 @@ static int findself( void )
 				filepath = engine.data_path;//malloc( 256 );
             //snprintf( filepath, 256, "/data/data/%s/files", engine.data_path );
 				LOGI( "my path [%s][%s][%s]", filepath, mypath, myname );
-            return 1;
-			}
-		}
-		if( maps )
-			fclose( maps );
-	}
-   return 0;
-}
-
-void* BeginNormalProcess( void*param )
-{
-	engine.wait_for_startup = 0;
-	sched_yield();
-	LOGI( "BeginNormalProcess: %d %d %d  %d %p %p", engine.state.restarting, engine.state.closed, engine.state.opened, engine.wait_for_startup, myname, BeginNormalProcess );
-	while( !engine.data_path )
-      sched_yield();
-	if( !engine.state.restarting && !myname )
-	{
-		if( findself() )
-		{
-			do
-			{
-            char buf[256];
-				void (*InvokeDeadstart)(void );
-				void (*MarkRootDeadstartComplete)(void );
-				const char * filepath = engine.data_path;//malloc( 256 );
-				//snprintf( filepath, 256, "/data/data/%s/files", engine.data_path );
-				LOGI( "my path [%s][%s][%s]", filepath, mypath, myname );
 				if( chdir( filepath ) )
 				//if( chdir( "../files" ) )
 				{
@@ -530,11 +504,17 @@ void* BeginNormalProcess( void*param )
 					{
 						LOGI( "path change failed to [%s]", mypath );
 					}
-					chdir( filepath );
+					if( chdir( filepath ) )
+					{
+						getcwd( buf, 256 );
+					}
 				}
-				getcwd( buf, 256 );
-				LOGI( "ended up in directory:%s", buf );
-
+            /*
+				{
+					getcwd( buf, 256 );
+					LOGI( "ended up in directory:%s", buf );
+				}
+            */
 				{
 					FILE *assets_saved = fopen( "assets.exported", "rb" );
 					if( !assets_saved )
@@ -548,7 +528,6 @@ void* BeginNormalProcess( void*param )
 #ifndef BUILD_PORTABLE_EXECUTABLE
 				LoadLibrary( mypath, "libbag.externals.so" );
 				{
-					void *lib;
 					void (*RunExits)(void );
 					lib = LoadLibrary( mypath, "libbag.so" );
 					RunExits = dlsym( lib, "RunExits" );
@@ -657,11 +636,12 @@ void* BeginNormalProcess( void*param )
  					// resume other threads so potentially the display is the next thing initialized.
 					//while( engine.wait_for_display_init )
 					sched_yield();
-					//break;
+					break;
 				}
 			}
-			while( 0 );
 		}
+		if( maps )
+			fclose( maps );
 		else if( !myname )
 		{
 			LOGI( "Failed to open procself" );
@@ -703,8 +683,6 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 	default:
 		LOGI( "Other Command: %d", cmd );
 		break;
-	case APP_CMD_WAKE:
-      break;
 	case APP_CMD_DESTROY:
 		// need to end normal process here
 		// unload everything....
@@ -742,15 +720,10 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 		if( BagVidlibPureglSetNativeWindowHandle )
 		{
 			BagVidlibPureglSetNativeWindowHandle( engine->app->pendingWindow );
-			// reopen cameras...  (wait for animate to trigger that)
-			// BagVidlibPureglOpenCameras();
-		engine->state.animating = 1;
-
+			// reopen cameras...
+			BagVidlibPureglOpenCameras();
 			LOGI( "Clear wait for display init..." );
 		}
-		if( engine->have_focus )
-			engine->state.animating = 1;
-
 		//engine->wait_for_display_init = 0;
       engine->state.opened = 1;
 		//sched_yield();
@@ -911,7 +884,7 @@ void android_main(struct android_app* state) {
 				// Drawing is throttled to the screen update rate, so there
 			// is no need to do timing here.
 			// trigger want draw?
-         //LOGI( "Animating..." );
+         LOGI( "Animating..." );
 			engine.state.rendering = 1;
 			if( BagVidlibPureglRenderPass )
 				engine.state.animating = BagVidlibPureglRenderPass();
@@ -988,60 +961,17 @@ extern "C"
 
 	}
 
-	JNIEXPORT jint JNICALL
-		Java_org_d3x0r_sack_core_NativeStaticLib_loadSharedLibrary(JNIEnv * env, jobject obj, jstring library )
-	{
-      int fd = -1;
-		//LOGI( "SETTING PACKAGE: %s", package );
-		// there is a release function for this... so this will be always valid.
-		// restart should change this?
-		const char *file = (*env)->GetStringUTFChars( env, library, NULL );
-		char filename[256];
-      FILE *filefile;
-		void *filedata;
-		size_t filesize;
-		int ret;
-		if( !mypath )
-         findself();
-		LOGI( "Got a library to load... : %p %p", mypath, file );
-		snprintf( filename, 256, "%s/%s", mypath, file );
-		filefile = fopen( filename, "rb" );
-		if( filefile )
-		{
-			fseek( filefile, 0, SEEK_END );
-			filesize = ftell( filefile );
 
-					fd = open("/dev/ashmem", O_RDWR);
-					if( fd < 0 )
-					{
-                  lprintf( "Failed to open core device..." );
-						return -1;
-					}
-
-					ret = ioctl(fd, ASHMEM_SET_SIZE, filesize );
-					if (ret < 0)
-					{
-						lprintf( "Failed to set IOCTL size to %d", filesize );
-						//goto error;
-					}
-
-			//fd = ashmem_create_region( "meaningless name", filesize );
-			{
-				char *map = mmap(NULL, filesize, PROT_READ|PROT_WRITE,
-									  MAP_SHARED, fd, 0);
-				fread( map, 1, filesize, filefile );
-			}
-         fclose( filefile );
-		}
-		(*env)->ReleaseStringUTFChars(env, library, file);
-		//LOGI( "resulted with : %s", engine.data_path );
-		return fd;
-	}
-
+   // callback from message from server responce to loading a library
 	JNIEXPORT int JNICALL
 		Java_org_d3x0r_sack_core_NativeStaticLib_mapSharedLibrary(JNIEnv * env, jobject obj, jint share_fd)
 	{
-
+      engine.loader.loaded_size = ioctl(share_fd, ASHMEM_GET_SIZE, NULL);
+		engine.loader.loaded_address = mmap(NULL, engine.loader.loaded_size, PROT_READ|PROT_WRITE|PROT_EXEC,
+							  MAP_SHARED, share_fd, 0);
+		engine.loader.waiting_for_load = FALSE;
+      LOGI( "Resulting for mapped memory (clear wait) %p %d", engine.loader.loaded_address, engine.loader.loaded_size );
+      sched_yield();
 	}
 
 #ifdef __cplusplus
