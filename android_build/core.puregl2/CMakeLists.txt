@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
+cmake_policy(SET CMP0037 OLD)
 
 set( Project core.puregl2 )
 PROJECT( ${Project} NONE )
@@ -54,7 +55,7 @@ ainstall( ${SACK_SDK_ROOT_PATH}/lib * INSTALL_LIST package/libs/armeabi )
 
 ##########################################
 ###  Remove unused libraries 
-       message( "LIST IS NOW:${INSTALL_LIST}" )
+#       message( "LIST IS NOW:${INSTALL_LIST}" )
 foreach( installed_file ${INSTALL_LIST} )
 	set( COPY 1 )                
 	foreach( mask   \\+\\+\\.  proxy  module puregl.so frame.lock libsw libav libopenal )
@@ -70,8 +71,8 @@ foreach( installed_file ${INSTALL_LIST} )
         endif( COPY )
                 
 endforeach( installed_file )
-    message( "LIST IS NOW:${FILTERED_INSTALL_LIST}" )
-    message( "DEL_LIST IS NOW:${DELETION_LIST}" )
+#    message( "LIST IS NOW:${FILTERED_INSTALL_LIST}" )
+#    message( "DEL_LIST IS NOW:${DELETION_LIST}" )
 if( files )
 	add_custom_command( TARGET update PRE_BUILD COMMAND rm ${DELETION_LIST} ) 
 endif( files )
