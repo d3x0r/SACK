@@ -38,10 +38,17 @@ struct page_data
 	// permissions....
 	// other stuffs....
 	PSI_CONTROL frame;
-	PLIST controls; // List of PMENU_BUTTONs
+	PRENDERER renderer;
+
+	struct {
+		PLIST wide_controls; // List of PMENU_BUTTONs
+		PLIST tall_controls; // list of PMENU_BUTTONs
+	} layout;
+
 	_32 ID;
 	struct {
 		BIT_FIELD bActive : 1; // quick checkable flag to see if page is active (last changed to)
+		BIT_FIELD showing : 1;
 	} flags;
 
 	struct {
@@ -68,6 +75,10 @@ typedef struct page_data PAGE_DATA;
 
 #define PAGE_CHANGER_NAME WIDE("page/Page Changer")
 
+// pages have multiple lists of controls depending on layouts
+// so this returns the appropriate one.
+PLIST *GetPageControlList( PPAGE_DATA page, int bWide );
+
 void SetCurrentPageID( PSI_CONTROL pc_canvas, _32 ID ); // MNU_CHANGE_PAGE ID (minus base)
 void DestroyPageID( PSI_CONTROL pc_canvas, _32 ID ); // MNU_DESTROY_PAGE ID (minus base)
 void UnDestroyPageID( PSI_CONTROL pc_canvas, _32 ID ); // MNU_DESTROY_PAGE ID (minus base)
@@ -75,22 +86,23 @@ void UnDestroyPageID( PSI_CONTROL pc_canvas, _32 ID ); // MNU_DESTROY_PAGE ID (m
 #ifdef INTERSHELL_SOURCE
 
 void AddPage( PCanvasData canvas, struct page_data * page );
-void RestorePageEx( PCanvasData canvas, struct page_data * page, int bFull, int active);
-#define RestorePage(c,p,f) RestorePageEx(c,p,f,1)
+void RestorePageEx( PCanvasData canvas, struct page_data * page, int bFull, int active, LOGICAL bWide );
+#define RestorePage(c,p,f) RestorePageEx(c,p,f,1,c->flags.wide_aspect)
 
-struct page_data * GetPageFromFrame( PSI_CONTROL frame );
+struct page_data * GetPageFromFrame( PCanvasData frame );
 
-void ChangePagesEx( PSI_CONTROL pc_canvas, struct page_data * page DBG_PASS);
-#define ChangePages(pc,p) ChangePagesEx(pc,p DBG_SRC)
 
-void InsertStartupPage( PSI_CONTROL pc_canvas, CTEXTSTR page_name );
+void ChangePagesEx( struct page_data * page DBG_PASS);
+#define ChangePages(p) ChangePagesEx(p DBG_SRC)
+
+void InsertStartupPage( PCanvasData pc_canvas, CTEXTSTR page_name );
 // this is actually insert page...
 // creates a new pagename for the startup page
 // and creates a new startup page in place.
-void RenamePage( PSI_CONTROL pc_canvas );
-void CPROC CreateNamedPage( PSI_CONTROL pc_canvas, CTEXTSTR page_name );
+void RenamePage( PCanvasData pc_canvas );
+void CPROC CreateNamedPage( PCanvasData pc_canvas, CTEXTSTR page_name );
 
-int InvokePageChange( PSI_CONTROL pc_canvas );
+int InvokePageChange( PCanvasData pc_canvas );
 
 // on destroy button call this...
 void UpdatePageRange( PPAGE_DATA page );
@@ -100,7 +112,7 @@ void PutButtonOnPage( PPAGE_DATA page, PMENU_BUTTON button );
 void SetPageOffsetRelative( PPAGE_DATA page, int x, int y );
 
 // called when a theme is added
-void AddTheme( int theme_id );
+void AddTheme( PCanvasData canvas, int theme_id );
 // called when theme is about to change, but has not yet
 void StoreTheme( PCanvasData canvas );
 // called when theme has changed, but before final display update

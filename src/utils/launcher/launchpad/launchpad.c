@@ -881,7 +881,7 @@ EndSaneWinMain()
 #	 include "../../../InterShell/intershell_registry.h"
 #  endif
 
-static void OnFinishInit( WIDE("Launchpad") )( PSI_CONTROL pc_canvas )
+static void OnFinishInit( WIDE("Launchpad") )( PCanvasData pc_canvas )
 {
 	lprintf( WIDE("Begin launchpad init.") );
 	if( !BeginNetwork() )

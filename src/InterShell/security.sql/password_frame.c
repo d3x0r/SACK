@@ -49,7 +49,7 @@ static struct local_password_frame {
 	_32 width, height;
 	S_32 x, y;
 
-	PSI_CONTROL frame;	
+	PCanvasData frame;	
 	PRENDERER	renderer;
 	int displays_wide;
 	int displays_high;
@@ -259,7 +259,7 @@ static PTRSZVAL OnCreateListbox( WIDE("SQL Users/User Selection Control List") )
 	l.user_list = listbox;
 	SetSelChangeHandler( l.user_list, selection, 0 );
 	SetListBoxTabStops( l.user_list, 5, tmp );
-	SetCommonFont( l.user_list, *( UseACanvasFont( GetCommonParent( listbox ), WIDE("User Select List Font") ) ) );
+	SetCommonFont( l.user_list, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
 	return (PTRSZVAL)listbox;
 }
 
@@ -546,7 +546,7 @@ static PTRSZVAL OnCreateListbox( WIDE("SQL Users/User Selection Control List 2")
 	AddLink( &l.user_list2_controls, listbox );
 	SetSelChangeHandler( listbox, selection2, 0 );
 	SetListBoxTabStops( listbox, 3, tmp );
-	SetCommonFont( listbox, *( UseACanvasFont( GetCommonParent( listbox ), WIDE("User Select List Font") ) ) );
+	SetCommonFont( listbox, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
 	return (PTRSZVAL)listbox;
 }
 
@@ -600,7 +600,7 @@ static PTRSZVAL OnCreateListbox( WIDE("SQL Users/Unlock User Selection Control L
 	AddLink( &l.unlock_user_list_controls, listbox );
 	SetSelChangeHandler( listbox, unlock_selection, 0 );
 	SetListBoxTabStops( listbox, 3, tmp );
-	SetCommonFont( listbox, *( UseACanvasFont( GetCommonParent( listbox ), WIDE("User Select List Font") ) ) );
+	SetCommonFont( listbox, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
 	return (PTRSZVAL)listbox;
 }
 
@@ -670,7 +670,7 @@ static PTRSZVAL OnCreateListbox( WIDE("SQL Users/Permission Group Selection Cont
 	AddLink( &l.group_list_controls, listbox );	
 	SetSelChangeHandler( listbox, group_selection, 0 );
 	SetListBoxTabStops( listbox, 3, tmp );
-	SetCommonFont( listbox, *( UseACanvasFont( GetCommonParent( listbox ), WIDE("User Select List Font") ) ) );
+	SetCommonFont( listbox, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
 	return (PTRSZVAL)listbox;
 }
 
@@ -713,7 +713,7 @@ static PTRSZVAL OnCreateListbox( WIDE("SQL Users/Permission Group Selection Cont
 	int tmp[3] = { 0, 100, 200 };
 	l.perm_group_list2 = listbox;
 	SetListBoxTabStops( l.perm_group_list2, 3, tmp );
-	SetCommonFont( l.perm_group_list2, *( UseACanvasFont( GetCommonParent( listbox ), WIDE("User Select List Font") ) ) );
+	SetCommonFont( l.perm_group_list2, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
 	return (PTRSZVAL)listbox;
 }
 
@@ -758,7 +758,7 @@ static PTRSZVAL OnCreateListbox( WIDE("SQL Users/Token Selection Control List") 
 	AddLink( &l.token_list_controls, listbox );	
 	SetSelChangeHandler( listbox, token_selection, 0 );
 	SetListBoxTabStops( listbox, 3, tmp );
-	SetCommonFont( listbox, *( UseACanvasFont( GetCommonParent( listbox ), WIDE("User Select List Font") ) ) );
+	SetCommonFont( listbox, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
 	return (PTRSZVAL)listbox;
 }
 
@@ -803,7 +803,7 @@ static PTRSZVAL OnCreateListbox( WIDE("SQL Users/Token Selection Control List2")
 	int tmp[3] = { 0, 100, 200 };
 	l.token_list2 = listbox;
 	SetListBoxTabStops( l.token_list2, 3, tmp );
-	SetCommonFont( l.token_list2, *( UseACanvasFont( GetCommonParent( listbox ), WIDE("User Select List Font") ) ) );
+	SetCommonFont( l.token_list2, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
 	return (PTRSZVAL)listbox;
 }
 
@@ -932,7 +932,7 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 	
 	// Display Canvas ( will always reset page to first page )
 	// other parameters don't matter, already have a renderer
-	DisplayMenuCanvas( l.frame, NULL, 0, 0, 0, 0 );
+	DisplayMenuCanvas( l.frame, NULL, NULL, 0, 0, 0, 0 );
 	if( result_user )
 		(*result_user) = NULL;
 	if( result_login_id )
@@ -1529,7 +1529,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Accept Expired Password") )( PTRSZV
 //--------------------------------------------------------------------------------
 // Change Password Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Change Password" ) )( PSI_CONTROL pc_canvas )
+static int OnChangePage( WIDE( "Change Password" ) )( PCanvasData pc_canvas )
 {
 	 l.flags.first_loop = 0;
 
@@ -1769,7 +1769,7 @@ static void OnKeypadEnterType( WIDE("change password"), WIDE("Change Password Ke
 //--------------------------------------------------------------------------------
 //Unlock Account Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Unlock Account" ) )( PSI_CONTROL pc_canvas )
+static int OnChangePage( WIDE( "Unlock Account" ) )( PCanvasData pc_canvas )
 { 
 	if( l.lvUnlockAccount )
 	{
@@ -1822,7 +1822,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Unlock Account") )( PTRSZVAL psv )
 //--------------------------------------------------------------------------------
 //Terminate Account Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Terminate Account" ) )( PSI_CONTROL pc_canvas )
+static int OnChangePage( WIDE( "Terminate Account" ) )( PCanvasData pc_canvas )
 { 
 	if( l.lvTermAccount )
 	{
@@ -1897,7 +1897,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Terminate Account") )( PTRSZVAL psv
 //--------------------------------------------------------------------------------
 //Expire Password Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Expire Password" ) )( PSI_CONTROL pc_canvas )
+static int OnChangePage( WIDE( "Expire Password" ) )( PCanvasData pc_canvas )
 { 
 	if( l.lvTermAccount )
 	{
@@ -1953,7 +1953,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Expire Password") )( PTRSZVAL psv )
 //--------------------------------------------------------------------------------
 // Add User Group Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Add User Group" ) )( PSI_CONTROL pc_canvas )
+static int OnChangePage( WIDE( "Add User Group" ) )( PCanvasData pc_canvas )
 { 
 	if( l.lvAddPermGroup )
 	{
@@ -2059,7 +2059,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Add User Permission Group") )( PTRS
 //--------------------------------------------------------------------------------
 // Remove User Group Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Remove User Group" ) )( PSI_CONTROL pc_canvas )
+static int OnChangePage( WIDE( "Remove User Group" ) )( PCanvasData pc_canvas )
 { 
 	l.stage = 0;
 
@@ -2173,7 +2173,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Remove User Permission Group") )( P
 //--------------------------------------------------------------------------------
 // Add Group Token Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Add Group Token" ) )( PSI_CONTROL pc_canvas )
+static int OnChangePage( WIDE( "Add Group Token" ) )( PCanvasData pc_canvas )
 { 
 	if( l.lvAddToken )
 	{
@@ -2293,7 +2293,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Add Group Token") )( PTRSZVAL psv )
 //--------------------------------------------------------------------------------
 // Remove Group Token Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Remove Group Token" ) )( PSI_CONTROL pc_canvas )
+static int OnChangePage( WIDE( "Remove Group Token" ) )( PCanvasData pc_canvas )
 { 
 	l.stage = 0;
 
@@ -2422,7 +2422,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Remove Group Token") )( PTRSZVAL ps
 //--------------------------------------------------------------------------------
 // Create Group Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Create Group" ) )( PSI_CONTROL pc_canvas )
+static int OnChangePage( WIDE( "Create Group" ) )( PCanvasData pc_canvas )
 {
 	l.stage = 0;	
 
@@ -2550,7 +2550,7 @@ static void OnKeypadEnterType( WIDE("create group"), WIDE("Create Group Keypad")
 //--------------------------------------------------------------------------------
 // Delete Group Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Delete Group" ) )( PSI_CONTROL pc_canvas )
+static int OnChangePage( WIDE( "Delete Group" ) )( PCanvasData pc_canvas )
 {	
 
 	if( l.lvDeleteGroup )
@@ -2612,7 +2612,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Delete Group") )( PTRSZVAL psv ){
 //--------------------------------------------------------------------------------
 // Create Token Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Create Token" ) )( PSI_CONTROL pc_canvas )
+static int OnChangePage( WIDE( "Create Token" ) )( PCanvasData pc_canvas )
 {
 	l.stage = 0;	
 
@@ -2729,7 +2729,7 @@ static void OnKeypadEnterType( WIDE("create token"), WIDE("Create Token Keypad")
 //--------------------------------------------------------------------------------
 // Delete Token Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Delete Token" ) )( PSI_CONTROL pc_canvas )
+static int OnChangePage( WIDE( "Delete Token" ) )( PCanvasData pc_canvas )
 {
 	l.stage = 0;	
 
@@ -2805,7 +2805,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Delete Token") )( PTRSZVAL psv ){
 //--------------------------------------------------------------------------------
 // Create User Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE("Create User") )( PSI_CONTROL pc_canvas )
+static int OnChangePage( WIDE("Create User") )( PCanvasData pc_canvas )
 {
 	l.stage = 0;	
 
@@ -3275,7 +3275,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 //--------------------------------------------------------------------------------
 // Create User 2 Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Create User 2" ) )( PSI_CONTROL pc_canvas )
+static int OnChangePage( WIDE( "Create User 2" ) )( PCanvasData pc_canvas )
 {
 	snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter all fields, select a permission group and press create user.") );
 	LabelVariableChanged( l.lvCreateUser2 );	

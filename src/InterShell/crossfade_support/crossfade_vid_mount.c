@@ -480,7 +480,7 @@ static PTRSZVAL OnCreateControl( WIDE("Crossfade Media Mount") )( PSI_CONTROL pa
 	return (PTRSZVAL)pc;
 }
 
-static void OnFinishInit( WIDE("Crossfade Media Mount") )( PSI_CONTROL pc_canvas )
+static void OnFinishInit( WIDE("Crossfade Media Mount") )( PCanvasData pc_canvas )
 {
 	if( !l.waiting )
 		l.waiting = ThreadTo( WaitForApplication, 0 );

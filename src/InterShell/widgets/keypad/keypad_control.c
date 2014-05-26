@@ -2308,7 +2308,7 @@ void KeypadSetupConfig( PCONFIG_HANDLER pch, PTRSZVAL *psv )
 	AddConfigurationMethod( pch, WIDE( "keypad formatting='%m'" ), SetKeypadFormatConfig );
 }
 
-static void OnThemeChanged( WIDE( "Keypad 2 Control" ) )( int theme_id )
+static void OnThemeChanged( WIDE( "Keypad 2 Control" ) )( PCanvasData canvas, int theme_id )
 {
 	PKEYPAD keypad;
 

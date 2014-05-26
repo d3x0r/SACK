@@ -11,6 +11,7 @@ set(SOURCES
   ${LAST_GCC_PROGRAM_SOURCE}
 )
 
+message( "YES" )
 if( __CLR__ )
 add_definitions( -DLOAD_LIBNAME="InterShell.core.dll" -DMODE=0 )
 elseif( __ANDROID__ )
@@ -24,11 +25,15 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   FOLDER InterShell
 )
 
-set( INSTALLED_TARGETS ${INSTALLED_TARGETS} ${PROJECT}${CMAKE_EXECUTABLE_SUFFIX} CACHE STRING  "" FORCE )
+if( __ANDROID__ )
+	set( INSTALLED_TARGETS ${INSTALLED_TARGETS} lib${PROJECT}.so lib${PROJECT}.code.so CACHE STRING  "" FORCE )
+else( __ANDROID__ )
+	set( INSTALLED_TARGETS ${INSTALLED_TARGETS} ${PROJECT}${CMAKE_EXECUTABLE_SUFFIX} CACHE STRING  "" FORCE )
+endif( __ANDROID__ )
 if( __CLR__ )
 install( TARGETS ${PROJECT} RUNTIME DESTINATION . ) 
 else( __CLR__ )
-install( TARGETS ${PROJECT} RUNTIME DESTINATION bin ) 
+install( TARGETS ${PROJECT} RUNTIME DESTINATION bin LIBRARY DESTINATION lib ) 
 endif( __CLR__ )
 
 ##########################################################################3

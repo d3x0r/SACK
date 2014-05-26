@@ -292,7 +292,7 @@ static void CPROC DeleteNotPair( PTRSZVAL psv, PSI_CONTROL button )
 {
 }
 
-static void OnFinishInit( WIDE("@Launchpad") )( PSI_CONTROL pc_canvas )
+static void OnFinishInit( WIDE("@Launchpad") )( PCanvasData canvas )
 {
 	INDEX idx;
 	struct system_class_tag *system_class_name;

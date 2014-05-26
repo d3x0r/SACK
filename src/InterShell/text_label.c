@@ -40,7 +40,7 @@ struct page_label {
   	CTEXTSTR fontname; // used to communicate with font preset subsystem
 	//POINTER fontdata;
   	//_32 fontdatalen;
-	PPAGE_DATA page;
+	//PPAGE_DATA page;
 	//TEXTCHAR *label_text; // allowed to override the real title...
 	int offset;
 	int min_offset;
@@ -761,7 +761,6 @@ static PTRSZVAL OnCreateControl( TEXT_LABEL_NAME )( PSI_CONTROL frame, S_32 x, S
 	PPAGE_LABEL title = New( struct page_label );
 	MemSet( title, 0, sizeof( *title ) );
 	title->canvas = frame;
-	title->page = ShellGetCurrentPage( frame );
 	title->button = InterShell_GetCurrentlyCreatingButton();
 	title->control = MakeControl( frame, STATIC_TEXT, x, y, w, h, -1 );
 	SetCommonBorder( title->control, BORDER_FIXED|BORDER_NONE );
@@ -878,7 +877,7 @@ static PTRSZVAL CPROC SetTitleFontByName( PTRSZVAL psv, arg_list args )
 {
 	PPAGE_LABEL title = (PPAGE_LABEL)psv;
 	PARAM( args, TEXTCHAR *, name );
-	title->font = UseACanvasFont( title->canvas, name );
+	title->font = UseACanvasFont( GetCanvas( title->canvas ), name );
 	title->preset_name = StrDup( name );
 	return psv;
 }
@@ -923,7 +922,7 @@ static void OnShowControl( TEXT_LABEL_NAME )( PTRSZVAL psv )
 static void CPROC PickLabelFont( PTRSZVAL psv, PSI_CONTROL pc )
 {
 	PPAGE_LABEL page_label = (PPAGE_LABEL)psv;
-	SFTFont *font = SelectACanvasFont( InterShell_GetButtonCanvas( page_label->button )
+	SFTFont *font = SelectACanvasFont( GetCanvas( page_label->canvas )
 									, GetFrame( pc )
 									, &page_label->preset_name
 									);

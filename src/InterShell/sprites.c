@@ -184,7 +184,7 @@ int InitSpriteEngine( void )
 
 }
 
-static void OnFinishInit( WIDE("Sprite") )( PSI_CONTROL pc_canvas )
+static void OnFinishInit( WIDE("Sprite") )( PCanvasData pc_canvas )
 {
 #ifdef DISABLE_SPRITES
 	return;

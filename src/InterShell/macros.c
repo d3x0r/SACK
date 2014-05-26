@@ -125,7 +125,7 @@ static void CPROC AddButtonType( PTRSZVAL psv, PSI_CONTROL control )
 		PMACRO_ELEMENT pme = New( MACRO_ELEMENT );
 		pme->me = NULL;
 		pme->next = NULL;
-		pme->button = CreateInvisibleControl( configure_key_dispatch.frame, name );
+		pme->button = CreateInvisibleControl( configure_key_dispatch.canvas, name );
 		if( pme->button )
 		{
 			pme->button->container_button = button->button;
@@ -420,18 +420,18 @@ static void InvokeMacroButton( PMACRO_BUTTON button, LOGICAL bBannerMessage )
 		}
 		if( new_current_macro.element->button->pPageName )
 		{
-			if( !new_current_macro.element->button->canvas ) // probably part of starup or shutdown macro
+			if( !new_current_macro.element->button->parent_canvas ) // probably part of starup or shutdown macro
 			{
 				if( !new_current_macro.element->button->flags.bIgnorePageChange )
 				{
-					ShellSetCurrentPage( InterShell_GetCanvas( new_current_macro.macro->button->page )
+					ShellSetCurrentPage( new_current_macro.macro->button->parent_canvas
 						, new_current_macro.element->button->pPageName );
 				}
 			}
-			else if( new_current_macro.element->button->canvas && !new_current_macro.element->button->flags.bIgnorePageChange )
+			else if( new_current_macro.element->button->parent_canvas && !new_current_macro.element->button->flags.bIgnorePageChange )
 			{
 				//lprintf( WIDE( "Changing pages, but only virtually don't activate the page always" ) );
-				ShellSetCurrentPage( new_current_macro.element->button->canvas->pc_canvas, new_current_macro.element->button->pPageName );
+				ShellSetCurrentPage( new_current_macro.element->button->parent_canvas, new_current_macro.element->button->pPageName );
 			}
 			new_current_macro.element->button->flags.bIgnorePageChange = 0;
 		}
@@ -499,22 +499,23 @@ static PTRSZVAL CPROC LoadMacroElements( PTRSZVAL psv, arg_list args )
 	PMACRO_BUTTON pmb = (PMACRO_BUTTON)psv;
 	PARAM( args, TEXTCHAR *, name );
 	PMACRO_ELEMENT element = New( MACRO_ELEMENT );
+	PCanvasData canvas = InterShell_GetCurrentLoadingCanvas();
 	if( !pmb )
 		if( l.finished_startup )
 		{
 			if( !l.shutdown.button )
-				l.shutdown.button = CreateButton( InterShell_GetCurrentLoadingCanvas() );
+				l.shutdown.button = CreateButton( canvas, canvas->current_page );
 			pmb = &l.shutdown;
 		}
 		else
 		{
 			if( !l.startup.button )
-				l.startup.button = CreateButton( InterShell_GetCurrentLoadingCanvas() );
+				l.startup.button = CreateButton( canvas, canvas->current_page );
 			pmb = &l.startup;
 		}
 	element->me = NULL;
 	element->next = NULL;
-	element->button = CreateInvisibleControl( pmb->button?InterShell_GetCanvas( pmb->button->page ):NULL
+	element->button = CreateInvisibleControl( canvas
 	                                        , name );
 	if( element->button )
 	{
@@ -535,7 +536,7 @@ static PTRSZVAL CPROC LoadMacroElements( PTRSZVAL psv, arg_list args )
 	}
 	else
 		lprintf( "Failed to create a %s", name );
-	return NULL;
+	return 0;
 }
 
 static PTRSZVAL CPROC FinishMacro( PTRSZVAL psv, arg_list args )
@@ -614,7 +615,7 @@ static void OnCloneControl( MACRO_BUTTON_NAME )( PTRSZVAL psvNew, PTRSZVAL psvOr
 			PMACRO_ELEMENT new_element = New( MACRO_ELEMENT );
 			new_element->me = NULL;
 			new_element->next = NULL;
-			new_element->button = CreateInvisibleControl( element->button->canvas->pc_canvas
+			new_element->button = CreateInvisibleControl( element->button->parent_canvas
 			                                            , element->button->pTypeName );
 			if( new_element->button )
 			{

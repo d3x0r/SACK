@@ -1,4 +1,7 @@
 
+// each page will open on its own normal full screen sized canvas; and we can pan these canvases....
+#define MULTI_FRAME_CANVAS
+
 #ifndef global_shell_data_defined
 #define global_shell_data_defined
 
@@ -28,7 +31,7 @@
 
 INTERSHELL_NAMESPACE
 
-typedef struct CanvasData  CanvasData, *PCanvasData;
+
 INTERSHELL_NAMESPACE_END
 
 #include "pages.h"
@@ -71,8 +74,8 @@ struct configure_key_dispatch{
 } configure_key_dispatch;
 
 struct CanvasData {
-	PSI_CONTROL pc_canvas;
-	PRENDERER renderer;
+	//PSI_CONTROL pc_focused_page;
+
 	struct {
 		BIT_FIELD bSuperMode : 1;
 		BIT_FIELD bEditMode : 1;
@@ -93,6 +96,7 @@ struct CanvasData {
 		BIT_FIELD bDoingButton : 1;
 		BIT_FIELD bShowCanvas : 1; // set this when the canvas should be shown... but don't show
 		BIT_FIELD bButtonProcessing : 1;
+		BIT_FIELD wide_aspect : 1; // use wide aspect controls
 	} flags;
 	struct {
 		int _x, _y;
@@ -104,10 +108,14 @@ struct CanvasData {
 	// each canvas can have a set of pages...
 	_32 nPages;
 	PLIST pages; // PPAGE_DATA list
+	S_32 left_right_page_offset;
+
 	PLIST deleted_pages; // PPAGE_DATA no longer listed in pages... Undelete(?)
+
 	PPAGE_DATA current_page;
 	// once upon a time there was only one page, and this is that page...
 	// with time this will dissappear...
+
 	PMENU pPageMenu; // list of pages
 	PMENU pPageDestroyMenu; // destroy page  menu
 	PMENU pPageUndeleteMenu; // undelete page
@@ -148,8 +156,7 @@ typedef struct global_tag
 	POINTER mem_lock;
 	PTHREAD pMainThread;
 	PRENDERER display; // used to allow external applications to wake me.
-	//PSI_CONTROL single_frame;
-	//PSI_CONTROL first_frame;
+
 	PTRSZVAL psv_edit_security;
 
 	PLIST frames;  // list of all canvases that have been created 
@@ -186,7 +193,7 @@ typedef struct global_tag
 		BIT_FIELD bSpanDisplay : 1;
 		BIT_FIELD bUseCustomPositioning : 1;
 		BIT_FIELD bTransparent : 1;
-		BIT_FIELD bExternalApplicationhost : 1; // set by C# intro hook... so we don't make a auto g.single_frame
+		BIT_FIELD bExternalApplicationhost : 1; // set by C# intro hook... so we don't make a auto
 		// once this comes up, the memlock region is disabled
 		// if this option is set in the config..
 		//BIT_FIELD bAllowMultiLaunch : 1;
@@ -254,36 +261,36 @@ typedef struct global_tag
 //#define _MODY( canvas,npart, parts )  ( ( ( ( (PART_RESOLUTION) * npart ) ) * ((canvas)->height) ) % ((parts)*PART_RESOLUTION) )
 
 // get the X coordinate of a part
-#define _PARTX(canvas,part) (S_32)_COMPUTEX(canvas,part,(canvas)->current_page->grid.nPartsX)
+#define _PARTX(page,part) (S_32)_COMPUTEX(page->canvas,part,(page)->grid.nPartsX)
 // get the Y coordinate of a part
-#define _PARTY(canvas,part) (S_32)_COMPUTEY(canvas,part,(canvas)->current_page->grid.nPartsY)
+#define _PARTY(page,part) (S_32)_COMPUTEY(page->canvas,part,(page)->grid.nPartsY)
 // get the width coordinate of a part width
-#define _PARTW(canvas,x,w) (_32)(_PARTX(canvas,x+w)-_PARTX(canvas,x))
+#define _PARTW(page,x,w) (_32)(_PARTX(page,x+w)-_PARTX(page,x))
 // get the height coordinate of a part height
-#define _PARTH(canvas,y,h) (_32)(_PARTY(canvas,y+h)-_PARTY(canvas,y))
+#define _PARTH(page,y,h) (_32)(_PARTY(page,y+h)-_PARTY(page,y))
 
 // result with current parts
-#define _PARTSX(canvas) (canvas)->current_page->grid.nPartsX
+#define _PARTSX(page) (page)->grid.nPartsX
 // result with current parts
-#define _PARTSY(canvas) (canvas)->current_page->grid.nPartsY
+#define _PARTSY(page) (page)->grid.nPartsY
 
-//#define X(n) CANVAS_X(canvas)
-//#define Y(n) CANVAS_Y(canvas)
+//#define X(n) CANVAS_X(page)
+//#define Y(n) CANVAS_Y(page)
 
-#define WIDTH(w) _WIDTH(canvas,w)
+#define WIDTH(w) _WIDTH(page,w)
 
-#define COMPUTEPARTOFX(x,parts)		  _COMPUTEPARTOFX(canvas,x,parts )
-#define COMPUTEPARTOFY(y,parts)		  _COMPUTEPARTOFY(canvas,y,parts )
-#define COMPUTEX( npart, parts ) _COMPUTEX( canvas,npart, parts )
-#define COMPUTEY( npart, parts ) _COMPUTEY( canvas,npart, parts )
-#define MODX( npart, parts )	  _MODX( canvas,npart, parts )
-#define MODY( npart, parts )	  _MODY( canvas,npart, parts )
-#define PARTX(part)				  _PARTX(canvas,part)
-#define PARTY(part)				  _PARTY(canvas,part)
-#define PARTW(x,w)					_PARTW(canvas,x,w)
-#define PARTH(y,h)					_PARTH(canvas,y,h)
-#define PARTSX						 _PARTSX(canvas)
-#define PARTSY						 _PARTSY(canvas)
+#define COMPUTEPARTOFX(x,parts)		  _COMPUTEPARTOFX(page->canvas,x,parts )
+#define COMPUTEPARTOFY(y,parts)		  _COMPUTEPARTOFY(page->canvas,y,parts )
+#define COMPUTEX( npart, parts ) _COMPUTEX( page,npart, parts )
+#define COMPUTEY( npart, parts ) _COMPUTEY( page,npart, parts )
+#define MODX( npart, parts )	  _MODX( page,npart, parts )
+#define MODY( npart, parts )	  _MODY( page,npart, parts )
+#define PARTX(part)				  _PARTX(page,part)
+#define PARTY(part)				  _PARTY(page,part)
+#define PARTW(x,w)					_PARTW(page,x,w)
+#define PARTH(y,h)					_PARTH(page,y,h)
+#define PARTSX						 _PARTSX(page)
+#define PARTSY						 _PARTSY(page)
 
 
 
@@ -324,24 +331,24 @@ void InvokeShowControl( PMENU_BUTTON button );
 //void SetButtonColors( CDATA cText, CDATA cBackground1, CDATA cBackground2, CDATA cBackground3 );
 void SetButtonType( char *name ); // square, round, custom..
 
-void EditCurrentPageProperties( PSI_CONTROL pc_canvas, PCanvasData canvas );
+void EditCurrentPageProperties( PCanvasData canvas, PSI_CONTROL pc_canvas, PPAGE_DATA page );
 void CreateNewPage( PSI_CONTROL pc_canvas, PCanvasData canvas );
-PSI_CONTROL OpenPageFrame( PPAGE_DATA page ); // used for multi edit to open each root page in a sepearate frame... (sub canvas pages also! LOL)
+PSI_CONTROL OpenPageFrame( PPAGE_DATA page, LOGICAL show ); // used for multi edit to open each root page in a sepearate frame... (sub canvas pages also! LOL)
 
  // this exists in pages.h ATM
 //int SimpleUserQuery( char *result, int reslen, char *question, PCOMMON pAbove );
 
 
-PGLARE_SET GetGlareSet( CTEXTSTR name );
+PGLARE_SET GetGlareSet( PCanvasData canvas, CTEXTSTR name );
 
-PMENU_BUTTON CreateInvisibleControl( PSI_CONTROL parent, TEXTCHAR *name );
+PMENU_BUTTON CreateInvisibleControl( PCanvasData canvas, TEXTCHAR *name );
 void ConfigureKeyEx( PSI_CONTROL parent, PMENU_BUTTON button );
 void ConfigureKeyExx( PSI_CONTROL parent, PMENU_BUTTON button, int bWaitComplete, int bIgnorePrivate );
 
 void DumpGeneric( FILE *file, PMENU_BUTTON button );
 
 PCanvasData GetCanvasEx( PSI_CONTROL pc DBG_PASS );
-#define GetCanvas(c) GetCanvasEx(c DBG_SRC)
+PMENU_BUTTON CreateButton( PCanvasData parent, PPAGE_DATA page );
 
 // macros.c, invoke this after onfinish init
 void InvokeStartupMacro( void );

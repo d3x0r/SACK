@@ -81,7 +81,8 @@ struct menu_button
 	PPAGE_DATA page;
 	PLIST show_on; // list of CTEXTSTR's that are system names this button is visible on.
 	PLIST no_show_on; // list of CTEXTSTR's that are system names this button is INvisible on.
-	PCanvasData canvas;
+	//PCanvasData canvas;
+	PCanvasData parent_canvas;
 	PLIST extra_config; // extra lines that are read from config, (for which do not have a plugin loaded), saved here
 	struct menu_button *container_button; // macro elements have this set to their real button, so color updates auto propagate to physical button level.
 };

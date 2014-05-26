@@ -36,7 +36,7 @@ INTERSHELL_NAMESPACE
 #define MakeAttr( w, name, text ) genxAttribute name = genxDeclareAttribute( w, NULL, text, &l.status )
 #define AddAttr( attr, format, ... ) { char *tmp_attr; TEXTCHAR tmp[256]; snprintf( tmp, sizeof( tmp ), format,## __VA_ARGS__ ); genxAddAttribute( attr, (constUtf8)(tmp_attr = DupTextToChar( tmp )) ); Deallocate( char*, tmp_attr ); }
 
-extern CONTROL_REGISTRATION menu_surface;
+extern CONTROL_REGISTRATION new_menu_surface;
 
 static struct local_load_save_data {
 	struct {
@@ -75,20 +75,15 @@ PCONFIG_HANDLER InterShell_GetCurrentConfigHandler( void )
 
 static PTRSZVAL CPROC SetMenuRowCols( PTRSZVAL psv, arg_list args );
 
-PSI_CONTROL InterShell_GetCurrentLoadingCanvas( void )
+PCanvasData InterShell_GetCurrentSavingCanvas( void )
 {
-	return (PSI_CONTROL)PeekLink( &l.current_canvas );
-}
-
-PSI_CONTROL InterShell_GetCurrentSavingCanvas( void )
-{
-	return (PSI_CONTROL)PeekLink( &l.current_canvas );
+	return (PCanvasData)PeekLink( &l.current_canvas );
 }
 
 void SetDefaultRowsCols( void )
 {
 	va_args args;
-	PCanvasData canvas = GetCanvas( (PSI_CONTROL)PeekLink( &l.current_canvas ) );
+	PCanvasData canvas = (PCanvasData)PeekLink( &l.current_canvas );
 	init_args( args );
 
 	if( !canvas->flags.bSetResolution )
@@ -102,7 +97,7 @@ void SetDefaultRowsCols( void )
 
 PMENU_BUTTON InterShell_GetCurrentLoadingControl( void )
 {
-   return (PMENU_BUTTON)PeekLink( &l.current_button );
+	return (PMENU_BUTTON)PeekLink( &l.current_button );
 
 }
 
@@ -145,13 +140,13 @@ static PTRSZVAL CPROC ResetConfig( PTRSZVAL psv, arg_list args )
 //---------------------------------------------------------------------------
 static PTRSZVAL CPROC ResetCanvasConfig( PTRSZVAL psv, arg_list args )
 {
-	PSI_CONTROL pc_canvas = (PSI_CONTROL)PopLink( &l.current_canvas );
-	PCanvasData canvas = GetCanvas( pc_canvas=(PSI_CONTROL)PeekLink( &l.current_canvas ) );
+	PCanvasData canvas = (PCanvasData)PopLink( &l.current_canvas );
+	canvas = (PCanvasData)PeekLink( &l.current_canvas );
 	if( g.flags.multi_edit )
 	{
 		RestorePage( canvas, canvas->current_page, TRUE );
 	}
-	ShellSetCurrentPage( pc_canvas, WIDE( "first" ) );
+	ShellSetCurrentPage( canvas, WIDE( "first" ) );
 	// really this behaves more like a pop configuration.
 	EndConfiguration( my_current_handler );
 	return psv;
@@ -159,9 +154,8 @@ static PTRSZVAL CPROC ResetCanvasConfig( PTRSZVAL psv, arg_list args )
 //---------------------------------------------------------------------------
 static PTRSZVAL CPROC ResetMainCanvasConfig( PTRSZVAL psv, arg_list args )
 {
-   // this is not allowed to pop the current (master/main) canvas.
-	PSI_CONTROL pc_canvas = (PSI_CONTROL)PeekLink( &l.current_canvas );
-	PCanvasData canvas = GetCanvas( pc_canvas=(PSI_CONTROL)PeekLink( &l.current_canvas ) );
+	// this is not allowed to pop the current (master/main) canvas.
+	PCanvasData canvas = (PCanvasData)PeekLink( &l.current_canvas );
 	if( g.flags.multi_edit )
 	{
 		RestorePage( canvas, canvas->current_page, TRUE );
@@ -344,9 +338,9 @@ static PTRSZVAL CPROC CreateNewControl( PTRSZVAL psv, arg_list args )
 	// will probably puke and die...
 	PARAM( args, _64, width );
 	PARAM( args, _64, height );
-	PSI_CONTROL pc_canvas;
+	PCanvasData canvas;
 	//PCanvasData canvas;
-	pc_canvas=(PSI_CONTROL)PeekLink( &l.current_canvas );
+	canvas=(PCanvasData)PeekLink( &l.current_canvas );
 
 	//canvas = GetCanvas( pc_canvas );
 	SetDefaultRowsCols();
@@ -377,7 +371,7 @@ static PTRSZVAL CPROC CreateNewControl( PTRSZVAL psv, arg_list args )
 #ifdef DEBUG_CONIG_STATE
 				lprintf( "(push)create a: %s", control_type_name );
 #endif
-				button = CreateSomeControl( pc_canvas, (int)col, (int)row, (int)width, (int)height, control_type_name );
+				button = CreateSomeControl( canvas->current_page->frame, (int)col, (int)row, (int)width, (int)height, control_type_name );
 				if( button )
 				{
 					bRecovered = BeginSubConfigurationEx( button, control_type_name, WIDE("control done") );
@@ -583,7 +577,7 @@ static PTRSZVAL CPROC SetMenuBackgroundColor( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CDATA, color );
 	//lprintf( WIDE("...") );
-	PCanvasData canvas = GetCanvas( (PSI_CONTROL)PeekLink( &l.current_canvas ) );
+	PCanvasData canvas = (PCanvasData)PeekLink( &l.current_canvas );
 	canvas->current_page->background_color = color;
 	SetLink( &canvas->current_page->background_colors, 0, color );
 	return psv;
@@ -592,7 +586,7 @@ static PTRSZVAL CPROC SetMenuBackgroundColor( PTRSZVAL psv, arg_list args )
 static PTRSZVAL CPROC SetMenuBackground( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, filename );
-	PCanvasData canvas = GetCanvas( (PSI_CONTROL)PeekLink( &l.current_canvas ) );
+	PCanvasData canvas = (PCanvasData)PeekLink( &l.current_canvas );
 	if( canvas->current_page->background ) Release( (POINTER)canvas->current_page->background );
 	if( canvas->current_page->background_image ) UnmakeImageFile( canvas->current_page->background_image );
 	canvas->current_page->background = StrDup( filename );
@@ -608,9 +602,9 @@ static PTRSZVAL CPROC SetMenuBackgroundColorTheme( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, S_64, theme_id );
 	PARAM( args, CDATA, color );
-	PCanvasData canvas = GetCanvas( (PSI_CONTROL)PeekLink( &l.current_canvas ) );
+	PCanvasData canvas = (PCanvasData)PeekLink( &l.current_canvas );
 	SetLink( &canvas->current_page->background_colors, (INDEX)theme_id, color );
-	AddTheme( (int)theme_id );
+	AddTheme( canvas, (int)theme_id );
 	return psv;
 }
 
@@ -618,10 +612,10 @@ static PTRSZVAL CPROC SetMenuBackgroundTheme( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, S_64, theme_id );
 	PARAM( args, TEXTCHAR *, filename );
-	PCanvasData canvas = GetCanvas( (PSI_CONTROL)PeekLink( &l.current_canvas ) );
+	PCanvasData canvas = (PCanvasData)PeekLink( &l.current_canvas );
 	SetLink( &canvas->current_page->backgrounds, (INDEX)theme_id, StrDup( filename ) );
 	SetLink( &canvas->current_page->background_images, (INDEX)theme_id, NULL );
-	AddTheme( (int)theme_id );
+	AddTheme( canvas, (int)theme_id );
 	return psv;
 }
 
@@ -670,10 +664,11 @@ static PTRSZVAL CPROC SetMenuButtonText( PTRSZVAL psv, arg_list args )
 static PTRSZVAL CPROC SetButtonRound( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, type );
+	PCanvasData canvas = (PCanvasData)PeekLink( &l.current_canvas );
 	PMENU_BUTTON   current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
 	if( current_button )
 	{
-      current_button->glare_set = GetGlareSet( type );
+		current_button->glare_set = GetGlareSet( canvas, type );
 	}
 	return psv;
 }
@@ -709,7 +704,8 @@ static PTRSZVAL CPROC SetRoundGlare( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, type );
 	PARAM( args, CTEXTSTR, filename );
-	PGLARE_SET glare_set = GetGlareSet( type );
+	PCanvasData canvas = (PCanvasData)PeekLink( &l.current_canvas );
+	PGLARE_SET glare_set = GetGlareSet( canvas, type );
 	if( strlen( filename ) )
 		glare_set->glare = StrDup( filename );
 	else
@@ -723,7 +719,8 @@ static PTRSZVAL CPROC SetRoundUp( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, type );
 	PARAM( args, CTEXTSTR, filename );
-	PGLARE_SET glare_set = GetGlareSet( type );
+	PCanvasData canvas = (PCanvasData)PeekLink( &l.current_canvas );
+	PGLARE_SET glare_set = GetGlareSet( canvas, type );
 	if( strlen( filename ) )
 		glare_set->up = StrDup( filename );
 	else
@@ -736,7 +733,8 @@ static PTRSZVAL CPROC SetRoundUp( PTRSZVAL psv, arg_list args )
 static PTRSZVAL CPROC SetRoundMonoShade( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, type );
-	PGLARE_SET glare_set = GetGlareSet( type );
+	PCanvasData canvas = (PCanvasData)PeekLink( &l.current_canvas );
+	PGLARE_SET glare_set = GetGlareSet( canvas, type );
 	glare_set->flags.bShadeBackground = 1;
 	return psv;
 }
@@ -746,7 +744,8 @@ static PTRSZVAL CPROC SetRoundMonoShade( PTRSZVAL psv, arg_list args )
 static PTRSZVAL CPROC SetRoundMultiShade( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, type );
-	PGLARE_SET glare_set = GetGlareSet( type );
+	PCanvasData canvas = (PCanvasData)PeekLink( &l.current_canvas );
+	PGLARE_SET glare_set = GetGlareSet( canvas, type );
 	glare_set->flags.bMultiShadeBackground = 1;
 	return psv;
 }
@@ -757,12 +756,13 @@ static PTRSZVAL CPROC SetControlFontPreset( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, fontname );
 	PMENU_BUTTON   current_button = (PMENU_BUTTON)PeekLink( &l.current_button );
+	PCanvasData canvas = (PCanvasData)PeekLink( &l.current_canvas );
 	if( current_button )
 	{
-		if( current_button->canvas )
+		if( current_button->parent_canvas )
 		{
 			current_button->font_preset_name = StrDup( fontname );
-			current_button->font_preset = UseACanvasFont( current_button->canvas->pc_canvas
+			current_button->font_preset = UseACanvasFont( canvas
 			                                            , current_button->font_preset_name );
 		}
 	}
@@ -775,7 +775,8 @@ static PTRSZVAL CPROC SetRoundDown( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, type );
 	PARAM( args, CTEXTSTR, filename );
-	PGLARE_SET glare_set = GetGlareSet( type );
+	PCanvasData canvas = (PCanvasData)PeekLink( &l.current_canvas );
+	PGLARE_SET glare_set = GetGlareSet( canvas, type );
 	if( strlen( filename ) )
 		glare_set->down = StrDup( filename );
 	else
@@ -789,7 +790,8 @@ static PTRSZVAL CPROC SetRoundMask( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, type );
 	PARAM( args, CTEXTSTR, filename );
-	PGLARE_SET glare_set = GetGlareSet( type );
+	PCanvasData canvas = (PCanvasData)PeekLink( &l.current_canvas );
+	PGLARE_SET glare_set = GetGlareSet( canvas, type );
 	if( strlen( filename ) )
 		glare_set->mask = StrDup( filename );
 	else
@@ -817,7 +819,7 @@ PTRSZVAL CPROC SetMenuRowCols( PTRSZVAL psv, arg_list args )
 	PARAM( args, S_64, rows );
 	_32 button_rows, button_cols, button_space;
 	// 25 PART_RESOLUTION's?
-	PCanvasData canvas = GetCanvas( (PSI_CONTROL)PeekLink( &l.current_canvas ) );
+	PCanvasData canvas = (PCanvasData)PeekLink( &l.current_canvas );
 	{
 		static int bFirstLoadDone = 0;
 		if( !bFirstLoadDone )
@@ -826,10 +828,12 @@ PTRSZVAL CPROC SetMenuRowCols( PTRSZVAL psv, arg_list args )
 			bFirstLoadDone = 1;
 			// mark that the current page is the current page - for plugins...
 			// otherwise they don't know what page we are on until the second page.
+#ifndef MULTI_FRAME_CANVAS
 			InvokePageChange( canvas->pc_canvas );
+#endif
 		}
 	}
-	lprintf( WIDE("Page %p gets rows/cols %d/%d"), canvas->current_page, (_32)rows, (_32)cols );
+	//lprintf( WIDE("Page %p gets rows/cols %d/%d"), canvas->current_page, (_32)rows, (_32)cols );
 	button_space = 0;
 	button_rows = (_32)rows;
 	button_cols = (_32)cols;
@@ -931,15 +935,36 @@ void AddCommonButtonConfig( PCONFIG_HANDLER pch, PMENU_BUTTON button )
 
 void PublicAddCommonButtonConfig( PMENU_BUTTON button )
 {
-   AddCommonButtonConfig( my_current_handler, button );
+	AddCommonButtonConfig( my_current_handler, button );
+}
+
+PCanvasData InterShell_GetCurrentLoadingCanvas( void )
+{
+	return (PCanvasData)PeekLink( &l.current_canvas );
 }
 
 
-PTRSZVAL CPROC CreateTitledPage( PTRSZVAL psv, arg_list args )
+static PTRSZVAL CPROC SetPageLayoutWide( PTRSZVAL psv, arg_list args )
+{
+	PCanvasData canvas = InterShell_GetCurrentLoadingCanvas( );
+	canvas->flags.wide_aspect = 1;
+	return psv;
+}
+
+static PTRSZVAL CPROC SetPageLayoutTall( PTRSZVAL psv, arg_list args )
+{
+	PCanvasData canvas = InterShell_GetCurrentLoadingCanvas( );
+	canvas->flags.wide_aspect = 0;
+	return psv;
+}
+
+static PTRSZVAL CPROC CreateTitledPage( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, title );
-	PSI_CONTROL pc_canvas = (PSI_CONTROL)PeekLink( &l.current_canvas );
-	CreateNamedPage( pc_canvas, title );
+	PCanvasData canvas = (PCanvasData)PeekLink( &l.current_canvas );
+	CreateNamedPage( canvas, title );
+	// default to wide aspect ratio load
+	canvas->flags.wide_aspect = 1;
 	return psv;
 }
 
@@ -947,7 +972,7 @@ static PTRSZVAL CPROC AddASystem( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, TEXTCHAR *, system );
 	AddSystemName( NULL, system );
-   return psv;
+	return psv;
 }
 
 //---------------------------------------------------------------------------
@@ -956,6 +981,9 @@ void AddCommonCanvasConfig( PCONFIG_HANDLER pch )
 {
 	// pages are actually top-level sort of things... they don't have a 'Page Done'
 	// sub configuration yet...
+	AddConfigurationMethod( pch, WIDE("page layout wide"), SetPageLayoutWide );
+	AddConfigurationMethod( pch, WIDE("page layout tall"), SetPageLayoutTall );
+
 	AddConfigurationMethod( pch, WIDE("page titled %m"), CreateTitledPage );
 	AddConfigurationMethod( pch, WIDE("known system %m"), AddASystem );
 	AddConfigurationMethod( pch, WIDE("menu background image %m"), SetMenuBackground );
@@ -973,13 +1001,13 @@ void AddCommonCanvasConfig( PCONFIG_HANDLER pch )
 	AddConfigurationMethod( my_current_handler, WIDE("page layout %i by %i"), SetMenuRowCols );
 }
 
-void BeginCanvasConfiguration( PSI_CONTROL pc_canvas )
+void BeginCanvasConfiguration( PCanvasData canvas )
 {
 	/*
 	 * need to create a new canvas here?
 	 */
    //lprintf( WIDE( "Push new canvas" ) );
-	PushLink( &l.current_canvas, pc_canvas );
+	PushLink( &l.current_canvas, canvas );
 	BeginConfiguration( my_current_handler );
 
 	//AddConfigurationMethod( my_current_handler, WIDE( "Canvas Done" ), ResetCanvasConfig );
@@ -1020,11 +1048,10 @@ void InvokeLoadCommon( void )
 	} while( did_one );
 }
 
-void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
+void LoadButtonConfig( PCanvasData canvas, TEXTSTR filename )
 {
 	PCONFIG_HANDLER pch;
 	TEXTSTR name_only = (TEXTSTR)pathrchr( filename );
-	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, g.single_frame );
 	//lprintf( WIDE( "Push initial current canvas" ) );
 
 	if( !name_only )
@@ -1032,7 +1059,7 @@ void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 	else
 		name_only++; // go one past the last slash.
 
-	PushLink( &l.current_canvas, pc_canvas );
+	PushLink( &l.current_canvas, canvas );
 	my_current_handler = pch = CreateConfigurationEvaluator();
 	// if this is not done first, then the system will default to 40.
 
@@ -1043,7 +1070,6 @@ void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 	AddConfigurationMethod( pch, WIDE("%m button up=%m"), SetRoundUp );
 	AddConfigurationMethod( pch, WIDE("%m button down=%m"), SetRoundDown );
 	AddConfigurationMethod( pch, WIDE("%m button mask=%m"), SetRoundMask );
-	// BeginCanvasConfiguration( g.single_frame );
 	AddConfigurationMethod( pch, WIDE( "Canvas Done" ), ResetMainCanvasConfig );
 	SetConfigurationUnhandled( pch, UnhandledLine );
 
@@ -1104,6 +1130,22 @@ void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 	}
 	ProcessConfigurationFile( pch, filename, 0 );
 	DestroyConfigurationEvaluator( pch );
+	{
+		INDEX idx;
+		PPAGE_DATA page;
+		LIST_FORALL( canvas->pages, idx, PPAGE_DATA, page )
+		{
+			if( page->layout.wide_controls && !page->layout.tall_controls )
+			{
+				PMENU_BUTTON button;
+				INDEX idx2;
+				LIST_FORALL( page->layout.wide_controls, idx2, PMENU_BUTTON, button )
+				{
+					AddLink( &page->layout.tall_controls, button );
+				}
+			}
+		}
+	}
 	if( g.flags.bSQLConfig )
 	{
 		if( g.flags.forceload )
@@ -1519,17 +1561,36 @@ void SaveAPage( FILE *file, PPAGE_DATA page )
 		}
 	}
 	InvokeSavePage( file, page );
-	LIST_FORALL( page->controls, idx, PMENU_BUTTON, button )
 	{
-		fprintf( file
-				 , WIDE("control generic %s at %")_64fs WIDE(",%")_64fs WIDE(" sized %")_64f WIDE(",%")_64f WIDE("\n")
-				 , button->pTypeName
-				 , button->x, button->y
-				 , button->w, button->h );
-		fflush( file );
-		DumpGeneric( file, button );
-		fprintf( file, WIDE("control done\n\n") );
-		fflush( file );
+		PLIST *controls = GetPageControlList( page, TRUE);
+		fprintf( file, "page layout wide\n" );
+		LIST_FORALL( controls[0], idx, PMENU_BUTTON, button )
+		{
+			fprintf( file
+					 , WIDE("control generic %s at %")_64fs WIDE(",%")_64fs WIDE(" sized %")_64f WIDE(",%")_64f WIDE("\n")
+					 , button->pTypeName
+					 , button->x, button->y
+					 , button->w, button->h );
+			fflush( file );
+			DumpGeneric( file, button );
+			fprintf( file, WIDE("control done\n\n") );
+			fflush( file );
+		}
+
+		controls = GetPageControlList( page, FALSE );
+		fprintf( file, "page layout tall\n" );
+		LIST_FORALL( controls[0], idx, PMENU_BUTTON, button )
+		{
+			fprintf( file
+					 , WIDE("control generic %s at %")_64fs WIDE(",%")_64fs WIDE(" sized %")_64f WIDE(",%")_64f WIDE("\n")
+					 , button->pTypeName
+					 , button->x, button->y
+					 , button->w, button->h );
+			fflush( file );
+			DumpGeneric( file, button );
+			fprintf( file, WIDE("control done\n\n") );
+			fflush( file );
+		}
 	}
 }
 
@@ -1638,9 +1699,11 @@ static genxSender senderprocs = { WriteBuffer
 								 , WriteBufferBounded
 								 , Flush };
 
-void SaveCanvasConfiguration( FILE *file, PSI_CONTROL pc_canvas )
+void SaveCanvasConfiguration( FILE *file, PCanvasData canvas )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
+	//ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc_canvas );
+	//PCanvasData canvas = (*page)->canvas;
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	if( canvas )
 	{
       /* now saved on a per-page basis... parts are page specific */
@@ -1660,7 +1723,9 @@ void SaveCanvasConfiguration( FILE *file, PSI_CONTROL pc_canvas )
 #if 0
 void SaveCanvasConfiguration_XML( genxWriter w, PSI_CONTROL pc_canvas )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
+	ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc_canvas );
+	PCanvasData canvas = (*page)->canvas;
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
    MakeElem( w, canvas_element, (constUtf8)WIDE( "canvas" ) );
 	if( canvas )
 	{
@@ -1680,12 +1745,14 @@ void SaveCanvasConfiguration_XML( genxWriter w, PSI_CONTROL pc_canvas )
 }
 #endif
 
-void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
+void SaveButtonConfig( PCanvasData canvas, TEXTCHAR *filename )
 {
 	FILE *file;
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
+	//ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc_canvas );
+	//PCanvasData canvas = (*page)->canvas;
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	int namelen;
-   TEXTSTR original_filename = filename;
+	TEXTSTR original_filename = filename;
 	TEXTSTR alt_filename = NewArray( TEXTCHAR, namelen = ( StrLen( filename ) + 6 ) );
 	TEXTSTR name_only = (TEXTSTR)pathrchr( filename );
 
@@ -1805,7 +1872,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 		genxDispose( w );
       // ----------------------------------
 
-		SaveCanvasConfiguration( file, pc_canvas );
+		SaveCanvasConfiguration( file, canvas );
 
 		sack_fclose( file );
 	}

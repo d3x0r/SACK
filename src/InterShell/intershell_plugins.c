@@ -466,7 +466,7 @@ static void OnSaveCommon( WIDE( "@00 Plugins" ) )( FILE *file )
 
 
 //-------------------------------------------------------------------------------
-static void OnFinishInit( WIDE( "Plugins" ) )( PSI_CONTROL pc_canvas )
+static void OnFinishInit( WIDE( "Plugins" ) )( PCanvasData pc_canvas )
 {
 	l.current_plugin = NULL; // clean this up after the config handlers above...
 }
