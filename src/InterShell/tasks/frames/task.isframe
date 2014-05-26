@@ -2,7 +2,7 @@
 <control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="467,270" size="73,21" type="Button"></control>
 <control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="551,270" size="73,21" type="Button"></control>
 <control IDName="CheckButton/InterShell/tasks/CHECKBOX_EXCLUSIVE" caption="Exclusive" position="24,22" size="162,21" type="CheckButton"></control>
-<control IDName="CheckButton/InterShell/tasks/CHECKBOX_LAUNCH_CALLER_READY" caption="Launch When Caller Ready" position="24,43" size="241,21" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/tasks/CHECKBOX_LAUNCH_MAPPED_DRIVE_READY" caption="Launch When Caller Ready" position="24,43" size="241,21" type="CheckButton"></control>
 <control IDName="CheckButton/InterShell/tasks/CHECKBOX_RESTART" caption="Auto Restart" position="24,65" size="163,16" type="CheckButton"></control>
 <control IDName="CheckButton/InterShell/tasks/CHECKBOX_CAPTURE_OUTPUT" caption="Capture Output" position="24,87" size="205,21" type="CheckButton"></control>
 <control IDName="CheckButton/InterShell/tasks/CHECKBOX_BACKGROUND" caption="Background" position="24,108" size="127,21" type="CheckButton"></control>

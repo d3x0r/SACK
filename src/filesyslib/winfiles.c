@@ -936,7 +936,7 @@ FILE*  sack_fsopen( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mod
 	return handle;
 }
 
-int  sack_fseek ( FILE *file_file, int pos, int whence )
+size_t  sack_fseek ( FILE *file_file, size_t pos, int whence )
 {
 	if( fseek( file_file, pos, whence ) )
 		return -1;
