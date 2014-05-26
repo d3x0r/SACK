@@ -561,11 +561,11 @@ void RegisterOptions(CTEXTSTR device, option_entry *cmds, INDEX nCommands)
 		TEXTCHAR tmp[256];
 		TEXTCHAR tmp2[256];
 		CTEXTSTR name;
-		snprintf( tmp, sizeof( tmp ), WIDE("Dekware/options%s%s/%s")
+		snprintf( tmp, sizeof( tmp ), WIDE("Dekware/devices%s%s/options/%s")
 				  , device?WIDE("/"):WIDE("")
 				  , device?device:WIDE("")
 				  , name = GetText( (PTEXT)&cmds[i].name ) );
-		snprintf( tmp2, sizeof( tmp2 ), WIDE("Dekware/options%s%s")
+		snprintf( tmp2, sizeof( tmp2 ), WIDE("Dekware/devices%s%s/options")
 				  , device?WIDE("/"):WIDE("")
 				  , device?device:WIDE("") );
 		if( CheckClassRoot( tmp ) )
@@ -1021,12 +1021,16 @@ static PTEXT LookupMacroVariable( CTEXTSTR ptext, PMACROSTATE pms )
 		// parameter substition for macros...
 		// wow even supports ancient syntax of %1 %2 %3 ....
 		int n = atoi( ptext );
+#ifdef DEBUG_TOKEN_SUBST
 		lprintf( "int of %s is %d", ptext, n );
+#endif
 		if( !n )
 		{
 			LIST_FORALL( pms->pVars, n, PTEXT, c )
 			{
+#ifdef DEBUG_TOKEN_SUBST
 				lprintf( "is var %s == %s",GetText( c ), ptext );
+#endif
 				if( TextIs( c, ptext ) )
 				{
 					return NEXTLINE(c);
@@ -1043,7 +1047,9 @@ static PTEXT LookupMacroVariable( CTEXTSTR ptext, PMACROSTATE pms )
 			c = pms->pMacro->pArgs;
 			while( c )
 			{
+#ifdef DEBUG_TOKEN_SUBST
 				lprintf( "is arg %s == %s",GetText( c ), ptext );
+#endif
 				if( TextIs( c, ptext ) )
 					break;
 				n++;
@@ -1056,15 +1062,18 @@ static PTEXT LookupMacroVariable( CTEXTSTR ptext, PMACROSTATE pms )
 			n--;
 
 		c = pms->pArgs; // current args to this macro.
+#ifdef DEBUG_TOKEN_SUBST
 		lprintf( "so... %d %p", n, c );
+#endif
 		while( n && c )
 		{
 			c = NEXTLINE(c);
 			n--;
 		}
 		pReturn = c;
+#ifdef DEBUG_TOKEN_SUBST
 		lprintf( "result param is %s", GetText( pReturn ) );
-
+#endif
 	}
 	return pReturn;
 }
@@ -1200,7 +1209,10 @@ PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTE
 			}
 		}
 		else
+		{
+			(*tokens) = original_token;
 			break;
+		}
 	}
 	return focus;
 }
@@ -1312,7 +1324,9 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 		else
 			return pReturn;
 	}
+#ifdef DEBUG_TOKEN_SUBST
 	lprintf( "Token resolved as a variable... further processing." );
+#endif
 	// at this point - we have established that the next thing
 	// may be a variable name to locate
 	//	variable in local space, macro param space, and object var space
@@ -1338,7 +1352,9 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 				{
 					if( IsVarLen )
 						MakeTempNumber( LineLength( pMacroReturn ) );
+#ifdef DEBUG_TOKEN_SUBST
 					lprintf( "Returning %s", GetText( pMacroReturn ) );
+#endif
 					return pMacroReturn; // this variable comes from this variable
 				}
 			}
@@ -1346,6 +1362,7 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 	}
 
 	{ /*FOLD00*/
+		if( pEnt )
 		{
 			PTEXT pText = GetVolatileVariable( pEnt, ptext );
 			if( pText )

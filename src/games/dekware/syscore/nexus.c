@@ -1265,7 +1265,7 @@ static PTEXT CPROC GetSentientName( PTRSZVAL psv, POINTER p )
 }
 //--------------------------------------------------------------------------
 
-static PTEXT CPROC GetEntityName( PTRSZVAL psv, POINTER p )
+static PTEXT CPROC GetEntityName( PTRSZVAL psv, POINTER p )	
 {
 	PENTITY pe = (PENTITY)p;
 	return GetName( pe );

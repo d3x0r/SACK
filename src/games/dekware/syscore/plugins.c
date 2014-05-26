@@ -497,6 +497,12 @@ CORE_PROC( int, RegisterDeviceOpts )( CTEXTSTR pName
 		RegisterValue( (CTEXTSTR)root, WIDE("Name"), pName );
 		RegisterIntValue( (CTEXTSTR)root, WIDE("TypeID"), nTypeID );
 
+		{
+			TEXTCHAR tmp[64];
+			snprintf( tmp, sizeof( tmp ), WIDE("dekware/devices/%d"), nTypeID );
+			RegisterClassAlias( root, tmp );
+		}
+		
 		if( pOptions && nOptions )
 		{
 			_32 i;
@@ -638,9 +644,19 @@ int CPROC OptionDevice( PSENTIENT ps, PTEXT params )
 					f = GetRegisteredProcedure2( option_root, int, GetText(temp), (PDATAPATH,PSENTIENT,PTEXT) );
 					if( f )
 					{
-						f(pdp, ps, params );
+						if( ps->CurrentMacro )
+						{
+							ps->CurrentMacro->state.flags.bSuccess = !f(pdp,ps,params);
+						}
+						else
+							f(pdp, ps, params );
 						return 0;
 					}
+					else
+					{
+						DumpRegisteredNamesFrom( pdp->pDeviceRoot );
+						DumpRegisteredNamesFrom( option_root );
+						}
 				}
 				//else
 				{
@@ -707,9 +723,11 @@ void SetDatapathType( PDATAPATH pdp, int nType )
 		//	DeleteLink( &olddev->pOpenPaths, pdp );
 		//}
 		//if( pdev )
+
 		{
-			//lprintf( WIDE("Adding device %p to list on %p"), pdp, pdev );
-		//	AddLink( &pdev->pOpenPaths, pdp );
+			TEXTCHAR tmp[20];
+			snprintf( tmp, sizeof( tmp ), WIDE("%d"), nType );
+			pdp->pDeviceRoot = GetClassRootEx( (PCLASSROOT)WIDE("dekware/devices"), tmp );
 			pdp->Type = nType;
 		}
 	}
@@ -735,19 +753,22 @@ PDATAPATH OpenDevice( PDATAPATH *pChannel, PSENTIENT ps, PTEXT pName, PTEXT para
 		if( pdp )
 		{
 			pdp->pDeviceRoot = GetClassRootEx( (PCLASSROOT)WIDE("dekware/devices"), GetText( pName ) );
+			if( !pdp->pDeviceRoot )
+				DumpRegisteredNamesFrom( (PCLASSROOT)WIDE("dekware/devices") );
 			{
 				PTRSZVAL id = GetRegisteredIntValue( pdp->pDeviceRoot, WIDE("TypeID") );
 				if( !id )
 				{
-					//TEXTCHAR tmp[20];
+					TEXTCHAR tmp[20];
 					nTypeID = ++nDevice;
 					id = nTypeID;
 					RegisterIntValue( (CTEXTSTR)pdp->pDeviceRoot, WIDE("TypeID"), nTypeID );
 					RegisterValue( (CTEXTSTR)pdp->pDeviceRoot, WIDE("Name"), GetText( pName  ) );
-					//snprintf( tmp, sizeof( tmp ), WIDE("%d"), nTypeID );
-					//RegisterClassAlias( pdp->pDeviceRoot, GetClassRootEx( (PCLASSROOT)WIDE("dekware/devices"), tmp ) );
+					snprintf( tmp, sizeof( tmp ), WIDE("%d"), nTypeID );
+					RegisterClassAlias( GetClassRootEx( (PCLASSROOT)WIDE("dekware/devices"), tmp ), pdp->pDeviceRoot );
 				}
-				SetDatapathType( pdp, (int)id );
+				pdp->Type = nTypeID;
+				//SetDatapathType( pdp, (int)id );
 			}
 			AddVolatileVariables( ps->Current, (CTEXTSTR)pdp->pDeviceRoot );
 			//lprintf( WIDE("Adding device %p to list on %p"), pdp, pdev );

@@ -73,6 +73,7 @@ struct dekware_interface {
 													  , PTEXT pMatch );
 
    CORE_PROC_PTR( Function, GetRoutineRegistered )( TEXTSTR prefix, PTEXT Command );
+   CORE_PROC_PTR( Function, GetOptionRegistered )( TEXTSTR prefix, PTEXT Command );
 
 	CORE_PROC_PTR( PDATAPATH, FindOpenDevice )( PSENTIENT ps, PTEXT pName );
 	CORE_PROC_PTR( PDATAPATH, FindDataDatapath )( PSENTIENT ps, int type );
@@ -169,6 +170,7 @@ PRIORITY_PRELOAD( InitDekwareInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 #define RegisterOptions                                if( DekwareInterface ) DekwareInterface->RegisterOptions
 #define RegisterCommands                                if( DekwareInterface ) DekwareInterface->RegisterCommands
 #define GetRoutineRegistered                                ( !DekwareInterface )?NULL:DekwareInterface->GetRoutineRegistered
+#define GetOptionRegistered                                 ( !DekwareInterface )?NULL:DekwareInterface->GetOptionRegistered
 #define WriteCommandList2                                if( DekwareInterface ) DekwareInterface->WriteCommandList2
 #define WriteOptionList                                if( DekwareInterface ) DekwareInterface->WriteOptionList
 

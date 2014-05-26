@@ -32,6 +32,7 @@ static PTEXT get_line(PMYDATAPATH pdp, FILE *source)
 	#define WORKSPACE 256  // character for workspace
 	char *filebuffer;
 	wchar_t *wfilebuffer;
+	TEXTCHAR *text;
 	PTEXT workline=(PTEXT)NULL,pNew;
 	size_t length = 0;
 	if( !source )
@@ -67,6 +68,7 @@ static PTEXT get_line(PMYDATAPATH pdp, FILE *source)
 		// create a workspace to read input from the file.
 		workline=SegAppend(workline, pNew);
 		workline = pNew;
+		text = GetText( workline );
 		// SetEnd( workline );
 		//Log1( WIDE("Doing get string at %ld"), ftell( source ) );
 		// read a line of input from the file.
@@ -89,21 +91,21 @@ static PTEXT get_line(PMYDATAPATH pdp, FILE *source)
 			break;  // get out of the loop- there is no more to read.
 		}
 
-		length = StrLen(GetText(workline));  // get the length of the line.
+		length = StrLen(text);  // get the length of the line.
 		//Log2( WIDE("Read: %s(%d)"), workline, length );
-		//LogBinary( GetText( workline ), length );
+		//LogBinary( text, length );
 		if( workline )
 			workline->data.size = length;
 	}
-	while (GetText(workline)[length-1]!='\n' && GetText(workline)[length-1] != '\r' ); //while not at the end of the line.
+	while (text[length-1]!='\n' && text[length-1] != '\r' ); //while not at the end of the line.
 
 	// clean up our temp buffer
 	if( pdp->flags.bUnicode )
-		Deallocate( wchar_t, wfilebuffer );
+		Deallocate( wchar_t *, wfilebuffer );
 	else
-		Deallocate( char, filebuffer );
+		Deallocate( char *, filebuffer );
 
-	if( workline && (GetText(workline)[length-1]=='\n'||GetText(workline)[length-1]=='\r' ) )
+	if( workline && (text[length-1]=='\n'||text[length-1]=='\r' ) )
 		pdp->flags.bPriorEndLine = 1;
 	else
 		pdp->flags.bPriorEndLine = 0;
@@ -172,7 +174,10 @@ static int CPROC Write( PDATAPATH pdpX )
 		  while( pOut )
 		  {
 				wrote++;
-				fwrite( GetText( pOut ), 1, GetTextSize( pOut ), pdp->handle );
+				if( GetTextSize( pOut ) == 0 )
+					fwrite( "\n", 1, 1, pdp->handle );
+				else
+					fwrite( GetText( pOut ), 1, GetTextSize( pOut ), pdp->handle );
 				pOut = NEXTLINE( pOut );
 		  }
 		  LineRelease( pSaveOut );
@@ -365,41 +370,53 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 			len_read = fread( charbuf, 1, 64, pdp->handle );
 			if( len_read )
 			{
-			if( ( ((_16*)charbuf)[0] == 0xFEFF )
-				|| ( ((_16*)charbuf)[0] == 0xFFFE )
-				|| ( ((_16*)charbuf)[0] == 0xFDEF ) )
-				pdp->flags.bUnicode = 1;
-			else if( ( charbuf[0] == 0xef ) && ( charbuf[1] == 0xbb ) && ( charbuf[0] == 0xbf ) )
-			{
-				pdp->flags.bUnicode8 = 1;
-			}
-			for( char_check = 0; char_check < len_read; char_check++ )
-			{
-				// every other byte is a 0 for flat unicode text...
-				if( ( char_check & 1 ) && ( charbuf[char_check] != 0 ) )
+				if( ( ((_16*)charbuf)[0] == 0xFEFF )
+					|| ( ((_16*)charbuf)[0] == 0xFFFE )
+					|| ( ((_16*)charbuf)[0] == 0xFDEF ) )
+					pdp->flags.bUnicode = 1;
+				else if( ( charbuf[0] == 0xef ) && ( charbuf[1] == 0xbb ) && ( charbuf[0] == 0xbf ) )
 				{
-					ascii_unicode = 0;
-					break;
+					pdp->flags.bUnicode8 = 1;
 				}
+				for( char_check = 0; char_check < len_read; char_check++ )
+				{
+					// every other byte is a 0 for flat unicode text...
+					if( ( char_check & 1 ) && ( charbuf[char_check] != 0 ) )
+					{
+						ascii_unicode = 0;
+						break;
+					}
+				}
+				if( ascii_unicode )
+				{
+					pdp->flags.bUnicode = 1;
+				}
+				else
+				{
+					int ascii = 1;
+					for( char_check = 0; char_check < len_read; char_check++ )
+						if( charbuf[char_check] & 0x80 )
+						{
+							ascii = 0;
+							break;
+						}
+					if( ascii )
+					{
+						// hmm this is probably a binary thing?
+					}
 			}
-			if( ascii_unicode )
-			{
-				pdp->flags.bUnicode = 1;
 			}
 			else
 			{
-				int ascii = 1;
-				for( char_check = 0; char_check < len_read; char_check++ )
-					if( charbuf[char_check] & 0x80 )
-					{
-						ascii = 0;
-						break;
-					}
-				if( ascii )
-				{
-					// hmm this is probably a binary thing?
+#if UNICODE
+				wchar_t typechar = 0xFEFF;
+				fseek( pdp->handle, 0, SEEK_SET );
+				fwrite( &typechar, 1, 2, pdp->handle );
+				fseek( pdp->handle, 0, SEEK_CUR );
+#else
+				fseek( pdp->handle, 0, SEEK_SET );
+#endif
 				}
-			}
 			}
 			else
 			{
@@ -426,7 +443,8 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 		else
 		{
 			//lprintf( WIDE("Setting typeID to %d %d"), myTypeID, pdp->common.Type );
-			pdp->common.Type = myTypeID;
+			//pdp->common.Type = myTypeID;
+			SetDatapathType( &pdp->common, myTypeID );
 			//pdp->common.Option = (int(*)(PDATAPATH,PSENTIENT,PTEXT))Options;
 			pdp->common.Read = Read;
 			pdp->common.Write = Write;
