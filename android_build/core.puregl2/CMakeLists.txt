@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-set( Project sack.core.puregl2 )
+set( Project core.puregl2 )
 PROJECT( ${Project} NONE )
 
 if( NOT SACK_SDK_ROOT_PATH )
@@ -9,16 +9,21 @@ else( NOT SACK_SDK_ROOT_PATH )
 set(SACK_SDK_ROOT_PATH ${SACK_SDK_ROOT_PATH} CACHE STRING "SACK SDK Root" )
 endif( NOT SACK_SDK_ROOT_PATH )
 
-
+add_custom_target( update
+       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
 
 macro( ainstall a b c d )
 	 FILE( GLOB files ${a}/${b} )
          
          foreach( file ${files} )
-  	STRING( REPLACE "${a}" "" fileout ${file} )
-         	
-    EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${file} ${d}${fileout} )
-    endforeach( file )
+         	STRING( REPLACE "${a}" "" fileout ${file} )
+                
+	  	if( NOT IS_DIRECTORY ${file} )
+			add_custom_command( TARGET update PRE_BUILD  COMMAND cmake -E copy_if_different ${file} ${d}${fileout} )
+                        list(APPEND ${c} ${d}${fileout} ) 
+	  	endif( NOT IS_DIRECTORY ${file} )
+	endforeach( file )
 endmacro( ainstall )
 
 macro( dinstall a b c d )
@@ -27,7 +32,7 @@ macro( dinstall a b c d )
          foreach( file ${files} )
   	STRING( REPLACE "${a}" "" fileout ${file} )
          	
-    EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${file} ${d}${fileout} )
+    add_custom_command( TARGET update PRE_BUILD  COMMAND cmake -E copy_if_different ${file} ${d}${fileout} )
     endforeach( file )
 endmacro( dinstall )
 
@@ -35,38 +40,45 @@ macro( install_resources target )
   FILE( GLOB_RECURSE RESOURCES RELATIVE ${SACK_SDK_ROOT_PATH}/Resources ${SACK_SDK_ROOT_PATH}/Resources/* )
   foreach( resource ${RESOURCES} )
   	STRING( REPLACE "/" "." resout ${resource} )
-        EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${SACK_SDK_ROOT_PATH}/Resources/${resource} package/assets/${resout} )
+        add_custom_command( TARGET update PRE_BUILD  COMMAND cmake -E copy_if_different ${SACK_SDK_ROOT_PATH}/Resources/${resource} package/assets/${resout} )
   endforeach( resource )
         add_custom_command( TARGET update PRE_BUILD  COMMAND cmake -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/../../data/MyriadPro.ttf package/assets/fonts~MyriadPro.ttf )
   
 endmacro( install_resources )
 
-#EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp )
 
 
 install_resources( package/assets )
 
-ainstall( ${SACK_SDK_ROOT_PATH}/lib * DESTINATION package/libs/armeabi )
+ainstall( ${SACK_SDK_ROOT_PATH}/lib * INSTALL_LIST package/libs/armeabi )
 
 ##########################################
 ###  Remove unused libraries 
-FILE( GLOB files #RELATIVE ${CMAKE_BINARY_DIR} 
-		${CMAKE_BINARY_DIR}/package/libs/armeabi/*++.so 
-                ${CMAKE_BINARY_DIR}/package/libs/armeabi/*.proxy.*
-                ${CMAKE_BINARY_DIR}/package/libs/armeabi/*.module.*
-                ${CMAKE_BINARY_DIR}/package/libs/armeabi/*.puregl.so
-                ${CMAKE_BINARY_DIR}/package/libs/armeabi/*.frame.lock.so
-		${CMAKE_BINARY_DIR}/package/libs/armeabi/libsw*.so 
-		${CMAKE_BINARY_DIR}/package/libs/armeabi/libav*.so 
-		${CMAKE_BINARY_DIR}/package/libs/armeabi/libopenal.so 
-	) 
-FILE( REMOVE ${files} ) 
+       message( "LIST IS NOW:${INSTALL_LIST}" )
+foreach( installed_file ${INSTALL_LIST} )
+	set( COPY 1 )                
+	foreach( mask   \\+\\+\\.  proxy  module puregl.so frame.lock libsw libav libopenal )
+        	if( installed_file MATCHES ${mask} )
+                   #message( "file ${installed_file} matches ${mask}" )
+                	set( COPY 0 )
+        	endif( installed_file MATCHES ${mask} )
+	endforeach( mask )                
+        if( COPY )
+        	LIST( APPEND FILTERED_INSTALL_LIST ${installed_file} )
+        else( COPY )
+        	LIST( APPEND DELETION_LIST ${installed_file} )
+        endif( COPY )
+                
+endforeach( installed_file )
+    message( "LIST IS NOW:${FILTERED_INSTALL_LIST}" )
+    message( "DEL_LIST IS NOW:${DELETION_LIST}" )
+if( files )
+	add_custom_command( TARGET update PRE_BUILD COMMAND rm ${DELETION_LIST} ) 
+endif( files )
 
 ##########################################
 ###  STRIP LIBRARIES
-FILE( GLOB files ${CMAKE_BINARY_DIR}/package/libs/armeabi/*.so 	) 
-EXECUTE_PROCESS(COMMAND ${STAGING_DIR}/bin/${ANDROID_NDK_PREBUILT_ARCH_LONG}-strip -s ${files} )
-
+add_custom_command( TARGET update PRE_BUILD  COMMAND ${STAGING_DIR}/bin/${ANDROID_NDK_PREBUILT_ARCH_LONG}-strip -s ${FILTERED_INSTALL_LIST} )
 
 
 dinstall(  ${CMAKE_SOURCE_DIR}/res * DESTINATION package/res )
@@ -76,15 +88,16 @@ ainstall(  ${CMAKE_SOURCE_DIR} build.xml DESTINATION package )
 ainstall(  ${CMAKE_SOURCE_DIR} AndroidManifest.xml DESTINATION package )
 ainstall(  ${CMAKE_SOURCE_DIR} strings.xml DESTINATION package/res/values )
 
-
-EXECUTE_PROCESS(COMMAND cmake -E remove_directory package/src )
-message( "EXECUTE_PROCESS(COMMAND cmake -E remove_directory${P_SOURCE_DIR}/package/src )")
+add_custom_command( TARGET update PRE_BUILD  COMMAND cmake -E remove_directory package/src )
 
 set( application ${Project} )
 set( activity EditOptions )
 STRING( REPLACE "." "/" app_path ${application} )
-CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/../MyNativeActivity.cm package/src/org/d3x0r/${app_path}/${activity}/${activity}.java )
+FILE( WRITE ${CMAKE_BINARY_DIR}/SupidConfigure.cmake "configure_file( ${CMAKE_SOURCE_DIR}/../MyNativeActivity.cm package/src/org/d3x0r/${app_path}/${activity}/${activity}.java )\n" )
+FILE( APPEND ${CMAKE_BINARY_DIR}/SupidConfigure.cmake "EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_SOURCE_DIR}/../NativeStaticLib.java package/src/org/d3x0r/sack/NativeStaticLib.java )\n" )
+EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_SOURCE_DIR}/../NativeStaticLib.java package/src/org/d3x0r/sack/NativeStaticLib.java )
 
+add_custom_command( TARGET update PRE_BUILD COMMAND  cmake -Dapplication=${Project} -Dactivity=${activity} -P ${CMAKE_BINARY_DIR}/SupidConfigure.cmake )
 
 if( CMAKE_BUILD_TYPE STREQUAL "release" )
   set( MORE_COMMANDS 
@@ -108,6 +121,6 @@ endif( CMAKE_BUILD_TYPE STREQUAL "release" )
 
     add_custom_target( uninstall 
     			COMMAND echo adb uninstall command...
-                     COMMAND adb uninstall org.d3x0r.${Project}
+                     COMMAND adb uninstall org.d3x0r.sack.${Project}
  )
 
