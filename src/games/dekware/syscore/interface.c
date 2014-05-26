@@ -78,7 +78,8 @@ struct dekware_interface RealDekwareInterface =
 													  , INDEX nCommands
 													  , PTEXT pMatch ),
 
-   CORE_PROC_PTR( Function, GetRoutineRegistered )( TEXTSTR prefix, PTEXT Command ),
+	CORE_PROC_PTR( Function, GetRoutineRegistered )( TEXTSTR prefix, PTEXT Command ),
+	CORE_PROC_PTR( Function, GetOptionRegistered )( TEXTSTR prefix, PTEXT Command ),
 
 	CORE_PROC_PTR( PDATAPATH, FindOpenDevice )( PSENTIENT ps, PTEXT pName ),
 	CORE_PROC_PTR( PDATAPATH, FindDataDatapath )( PSENTIENT ps, int type ),

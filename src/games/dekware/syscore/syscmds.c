@@ -504,11 +504,17 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
 						}
 	               else
 		            {
-			            vtprintf( vt, WIDE("[%s](%s) -")
+						if( pms->peInvokedOn )
+							vtprintf( vt, WIDE("[%s](%s) -")
 							        , GetText( GetName( pms->pMacro ) ) 
 									  , GetText( GetName( pms->peInvokedOn ) )
 									  );
-					   }
+						else
+							vtprintf( vt, WIDE("[%s] -")
+							        , GetText( GetName( pms->pMacro ) ) 
+									  );
+
+						}
 					}
 	   		   EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 		  		}
