@@ -149,7 +149,7 @@ static void FixOrphanedBranches( void )
    PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN(), global_sqlstub_data->OptionVersion );
 	SQLQuery( odbc, WIDE("select count(*) from option_map"), &result2 );
 	// expand the options list to max extent real quickk....
-	SetLink( &options, atoi( result2 ) + 1, 0 );
+	SetLink( &options, IntCreateFromText( result2 ) + 1, 0 );
 	for( SQLRecordQuery( odbc, WIDE("select node_id,parent_node_id from option_map"), NULL, &result, NULL );
 		  result;
 		  GetSQLRecord( &result ) )
