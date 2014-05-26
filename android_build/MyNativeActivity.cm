@@ -1,11 +1,22 @@
 // built from http://stackoverflow.com/questions/6838397/how-do-i-load-my-own-java-class-in-c-on-android/6920115#6920115
 
 
-package org.d3x0r.@application@;
+package org.d3x0r.sack.@application@;
+import org.d3x0r.sack.core.NativeStaticLib;
 import android.view.WindowManager;
 import android.app.NativeActivity;
 import android.util.Log;
 
+//import android.internal.widget;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.view.InputEvent;
+import android.view.KeyEvent;
+import android.view.KeyCharacterMap;
+import android.view.KeyCharacterMap.KeyData;
 public class @activity@ extends NativeActivity {
 // think I might have to catch landscape event here for some android revisions
   private static String TAG = "@activity@";
@@ -14,6 +25,75 @@ public class @activity@ extends NativeActivity {
     
   }
   
+  int keyboard_height;
+  int action_bar_height;
+ 
+ void LogViewSizes( View root, String prefix )
+ {
+    View next;
+    int n;
+    {
+    }
+    if( root.toString().indexOf( "com.android.internal.widget.ActionBarContainer" ) == 0 )
+    //if( root.getClass()  == ActionBarView.class )
+    {
+       //Log.d( "MyNative", "Set action bar skip: " + root.getBottom() );
+       action_bar_height = root.getBottom();
+    }
+
+
+    if( root.toString().indexOf( "android.app.NativeActivity$NativeContentView" ) == 0 )
+    //if( root.getClass()  == NativeContentView.class )
+    {
+       //Log.d( "MyNative", "keyboard Height : " + root.getBottom()  + "root:" + root.getRootView().getBottom());
+       keyboard_height = root.getRootView().getBottom() - ( action_bar_height + root.getBottom() );;
+       //Log.d( "MyNative", "keyboard Height : " + root.getBottom() + " no I mean " + keyboard_height );
+    }
+	 //Log.d( "MyNative", prefix + ":" + root + " bot:" + root.getBottom() + " r:" + root.getRight() + " t:" + root.getTop() + " l:" + root.getLeft() );
+         try {
+
+         if( (ViewGroup)root != null )
+       		for( n = 0; ( next = ((ViewGroup)root).getChildAt( n ) ) != null ; n++ )
+	       		LogViewSizes( next, prefix + "." + n );
+       }
+       catch( Exception e )
+       {
+       }
+    }
+    
+	@Override 
+        protected void onCreate(Bundle savedInstanceState)
+        {
+                System.loadLibrary( "@activity@" );
+                 String path = getApplicationContext().getFilesDir().toString();
+			//                 getApplicationContext().getPackageName();
+	       	Log.d( "org.d3x0r.sack.karway.mynative", "set package name:" + path );
+                /* get external files dir 
+                		DIRECTORY_MUSIC, DIRECTORY_PODCASTS, DIRECTORY_RINGTONES, DIRECTORY_ALARMS, DIRECTORY_NOTIFICATIONS, DIRECTORY_PICTURES, or DIRECTORY_MOVIES.
+                                */
+                //Log.d( "org.d3x0r.sack.karway.mynative", "or would this be better?" + getApplicationContext().getFilesDir() );
+        	NativeStaticLib.setDataPath( path );
+                super.onCreate( savedInstanceState );
+                
+                View v = getWindow().getDecorView();
+                
+               	DisplayMetrics metrics = new DisplayMetrics();
+		getWindowManager().getDefaultDisplay().getMetrics(metrics);
+	
+
+       	final View activityRootView = (View)getWindow().getDecorView();
+                
+		activityRootView.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
+		    @Override
+		    public void onGlobalLayout() {
+                       LogViewSizes(  activityRootView.getRootView(), "0" );
+                       //Log.d( "org.d3x0r.sack.karway.mynative", "going to do it.... (ready?" );
+                       
+                       NativeStaticLib.update_keyboard_size( keyboard_height );
+	               //Log.d( "org.d3x0r.sack.karway.MyNative", " " + activityRootView.getScaleX() + " " + activityRootView.getScaleY() + " " + activityRootView.getBottom() + " " + activityRootView.getRight() + " " + activityRootView.getTop() + " " + activityRootView.getLeft() );
+		    } } );
+	}    
+ 
     public void setSuspendSleep() {
         this.runOnUiThread( new Runnable() {
     		public void run() 
@@ -30,4 +110,48 @@ public class @activity@ extends NativeActivity {
                 }
         } );
     }
+    
+    public int getStatusMetric() {
+       	int resId = getResources().getIdentifier("status_bar_height",
+                "dimen",
+                "android");
+    		if (resId > 0) {
+					int result = getResources().getDimensionPixelSize(resId);
+					//Log.d( "org.d3x0r.sack.karway.MyNative", "status bar result " + result );
+                                        return result;
+			}
+                        return 0;
+
+    }
+
+    public int getKeyboardMetric() {
+	    return keyboard_height;
+     }
+
+	int prior_key; 
+    public int getKeyText (long downTime, long eventTime, int action, int code, int repeat, int metaState, int deviceId, int scancode, int flags) {
+	    KeyEvent key;
+            Log.v( "org.d3x0r.sack.karway.mynative", "got to having a key...." );
+            key = new KeyEvent( downTime, eventTime, action, code, repeat, metaState, deviceId, scancode, flags );
+	    int result = key.getUnicodeChar();
+            Log.v( "org.d3x0r.sack.karway.mynative", "key immediate result is " + result );
+            if( ( result &  KeyCharacterMap.COMBINING_ACCENT ) != 0 )
+            {
+            	prior_key = result &  KeyCharacterMap.COMBINING_ACCENT_MASK;
+                Log.v( "org.d3x0r.sack.karway.mynative", "keeping key until next" );
+                result = 0;
+            }
+            else
+            {
+                Log.v( "org.d3x0r.sack.karway.mynative", "prior is " + prior_key );
+	            if( prior_key != 0 )
+                    {
+                      
+	               	result = KeyCharacterMap.getDeadChar( prior_key, result );
+                        prior_key = 0;
+                    }
+            }
+            return result;
+     }
+
 }

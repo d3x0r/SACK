@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 
 
-set( Project sack.core.framebuffer )
+set( Project core.framebuffer )
 PROJECT( ${Project} NONE )
 
 if( NOT SACK_SDK_ROOT_PATH )
@@ -54,9 +54,6 @@ endmacro( install_resources )
 install_resources( package/assets )
 
 
-#EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp )
-
-
 ainstall( ${SACK_SDK_ROOT_PATH}/lib * INSTALL_LIST package/libs/armeabi )
 
 ##########################################
@@ -106,8 +103,12 @@ add_custom_command( TARGET update PRE_BUILD  COMMAND cmake -E remove_directory p
 set( application ${Project} )
 set( activity EditOptions )
 STRING( REPLACE "." "/" app_path ${application} )
-FILE( WRITE ${CMAKE_BINARY_DIR}/SupidConfigure.cmake "configure_file( ${CMAKE_SOURCE_DIR}/../MyNativeActivity.cm package/src/org/d3x0r/${app_path}/${activity}/${activity}.java )" )
+FILE( WRITE ${CMAKE_BINARY_DIR}/SupidConfigure.cmake "configure_file( ${CMAKE_SOURCE_DIR}/../MyNativeActivity.cm package/src/org/d3x0r/${app_path}/${activity}/${activity}.java )\n" )
+FILE( APPEND ${CMAKE_BINARY_DIR}/SupidConfigure.cmake "EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_SOURCE_DIR}/../NativeStaticLib.java package/src/org/d3x0r/sack/NativeStaticLib.java )\n" )
+EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_SOURCE_DIR}/../NativeStaticLib.java package/src/org/d3x0r/sack/NativeStaticLib.java )
+
 add_custom_command( TARGET update PRE_BUILD COMMAND  cmake -Dapplication=${Project} -Dactivity=${activity} -P ${CMAKE_BINARY_DIR}/SupidConfigure.cmake )
+
 
 if( CMAKE_BUILD_TYPE STREQUAL "release" )
   set( MORE_COMMANDS 
@@ -131,6 +132,6 @@ endif( CMAKE_BUILD_TYPE STREQUAL "release" )
 
     add_custom_target( uninstall 
     			COMMAND echo adb uninstall command...
-                     COMMAND adb uninstall org.d3x0r.${Project}
+                     COMMAND adb uninstall org.d3x0r.sack.${Project}
  )
 

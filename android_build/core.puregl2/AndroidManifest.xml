@@ -3,13 +3,14 @@
       package="org.d3x0r.sack.core.puregl2"
       android:versionCode="1"
       android:versionName="1.0">
+    <uses-sdk
+        android:minSdkVersion="14"
+        android:targetSdkVersion="19" />
       <!-- application label only shows on final confirm screen for uninstall -->
     <application android:label="@string/app_package" android:icon="@drawable/ic_launcher">
         <activity android:name="org.d3x0r.sack.core.puregl2.EditOptions"
                   android:taskAffinity="org.d3x0r.sack.core.puregl2.EditOptions"
                   android:label="@string/app_name2"
-                  android:minSdkVersion="8"
-                  android:targetSdkVersion="14"
                   >
                   <!--android:configChanges="keyboardHidden|orientation|screenSize" -->
             <meta-data android:name="android.app.lib_name" android:value="EditOptions" />
