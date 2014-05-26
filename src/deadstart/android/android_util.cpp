@@ -1,7 +1,7 @@
 
 
 #include <jni.h>
-
+//#include <motionDetector.h>
 #include "engine.h"
 extern struct engine engine;
 
@@ -72,7 +72,6 @@ extern "C" void displayKeyboard(int pShow)
 // getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 extern "C" void SuspendSleep( int bStopSleep )
 {
-	static int init;
 	static jobject  WindowManager_LayoutParams_FLAG_KEEP_SCREEN_ON;
 
     // Attaches the current thread to the JVM. 
@@ -99,6 +98,7 @@ extern "C" void SuspendSleep( int bStopSleep )
 	if( bStopSleep )
 	{
 		jmethodID MethodSetFlags = lJNIEnv->GetMethodID(      ClassNativeActivity, "setSuspendSleep", "()V");
+      LOGI( "suspend Sleep" );
 		if( MethodSetFlags )
 			lJNIEnv->CallVoidMethod( lNativeActivity,  MethodSetFlags );
 	}
@@ -115,6 +115,171 @@ extern "C" void SuspendSleep( int bStopSleep )
 	lJavaVM->DetachCurrentThread();
 }
 
+extern "C" void AndroidLoadSharedLibrary( char *libname )
+{
+
+    // Attaches the current thread to the JVM. 
+    jint lResult; 
+    jint lFlags = 0; 
+
+    JavaVM* lJavaVM = engine.app->activity->vm; 
+    JNIEnv* lJNIEnv = engine.app->activity->env; 
+
+    JavaVMAttachArgs lJavaVMAttachArgs; 
+    lJavaVMAttachArgs.version = JNI_VERSION_1_6; 
+    lJavaVMAttachArgs.name = "NativeThread"; 
+    lJavaVMAttachArgs.group = NULL; 
+
+    lResult=lJavaVM->AttachCurrentThread(&lJNIEnv, &lJavaVMAttachArgs);
+    if (lResult == JNI_ERR) { 
+        return; 
+    } 
+
+    // Retrieves NativeActivity. 
+    jobject lNativeActivity = engine.app->activity->clazz; 
+	 jclass ClassNativeActivity = lJNIEnv->GetObjectClass(lNativeActivity);
+
+	 jstring sendstring = lJNIEnv->NewStringUTF( libname);
+	 jmethodID MethodSetFlags = lJNIEnv->GetMethodID(      ClassNativeActivity, "loadLibrary", "(Ljava/lang/String;)V");
+	 LOGI( "wait startup (loadlibrarY)" );
+	 if( MethodSetFlags )
+			lJNIEnv->CallVoidMethod( lNativeActivity,  MethodSetFlags, sendstring );
+
+
+	 // Finished with the JVM.
+	 lJavaVM->DetachCurrentThread();
+}
+
+
+
+extern "C" int AndroidGetStatusMetric( void )
+{
+   int result = 0;
+    // Attaches the current thread to the JVM. 
+    jint lResult; 
+    jint lFlags = 0; 
+
+    JavaVM* lJavaVM = engine.app->activity->vm; 
+    JNIEnv* lJNIEnv = engine.app->activity->env; 
+
+    JavaVMAttachArgs lJavaVMAttachArgs; 
+    lJavaVMAttachArgs.version = JNI_VERSION_1_6; 
+    lJavaVMAttachArgs.name = "NativeThread"; 
+    lJavaVMAttachArgs.group = NULL; 
+
+    lResult=lJavaVM->AttachCurrentThread(&lJNIEnv, &lJavaVMAttachArgs);
+    if (lResult == JNI_ERR) { 
+        return 0;
+    } 
+
+	 // Retrieves NativeActivity.
+	 jobject lNativeActivity = engine.app->activity->clazz;
+	 jclass ClassNativeActivity = lJNIEnv->GetObjectClass(lNativeActivity);
+
+	 jmethodID MethodSetFlags = lJNIEnv->GetMethodID(      ClassNativeActivity, "getStatusMetric", "()I");
+	 if( MethodSetFlags )
+		 result = lJNIEnv->CallIntMethod( lNativeActivity,  MethodSetFlags );
+
+
+	 // Finished with the JVM.
+	 lJavaVM->DetachCurrentThread();
+	 return result;
+}
+
+extern "C" int AndroidGetKeyText( AInputEvent *event )
+{
+   int result = 0;
+    // Attaches the current thread to the JVM. 
+    jint lResult; 
+    jint lFlags = 0; 
+
+    JavaVM* lJavaVM = engine.app->activity->vm; 
+    JNIEnv* lJNIEnv = engine.app->activity->env; 
+
+    JavaVMAttachArgs lJavaVMAttachArgs; 
+    lJavaVMAttachArgs.version = JNI_VERSION_1_6; 
+    lJavaVMAttachArgs.name = "NativeThread"; 
+    lJavaVMAttachArgs.group = NULL; 
+
+    lResult=lJavaVM->AttachCurrentThread(&lJNIEnv, &lJavaVMAttachArgs);
+    if (lResult == JNI_ERR) { 
+        return 0;
+    } 
+
+    // Retrieves NativeActivity. 
+    jobject lNativeActivity = engine.app->activity->clazz; 
+	jclass ClassNativeActivity = lJNIEnv->GetObjectClass(lNativeActivity);
+
+	jmethodID MethodSetFlags = lJNIEnv->GetMethodID(      ClassNativeActivity, "getKeyText", "(JJIIIIIII)I");
+   lprintf( "..." );
+		if( MethodSetFlags )
+			result = lJNIEnv->CallIntMethod( lNativeActivity,  MethodSetFlags
+													 , AKeyEvent_getDownTime(event)
+													 , AKeyEvent_getEventTime(event)
+													 , AKeyEvent_getAction(event)
+													 , AKeyEvent_getKeyCode(event)
+													 , AKeyEvent_getRepeatCount(event)
+													 , AKeyEvent_getMetaState(event)
+													 , AInputEvent_getDeviceId(event)
+													 , AKeyEvent_getScanCode(event)
+													 , AKeyEvent_getFlags(event)
+													 );
+		else
+		{
+         lprintf( "Failed to get method." );
+			result = 0;
+		}
+
+
+	// Finished with the JVM. 
+		lJavaVM->DetachCurrentThread();
+      return result;
+}
+
+#if 0
+int GetUnicodeChar(struct android_app* app, int eventType, int keyCode, int metaState)
+{
+JavaVM* javaVM = app->activity->vm;
+JNIEnv* jniEnv = app->activity->env;
+
+JavaVMAttachArgs attachArgs;
+attachArgs.version = JNI_VERSION_1_6;
+attachArgs.name = "NativeThread";
+attachArgs.group = NULL;
+
+jint result = javaVM->AttachCurrentThread(&jniEnv, &attachArgs);
+if(result == JNI_ERR)
+{
+    return 0;
+}
+
+jclass class_key_event = jniEnv->FindClass("android/view/KeyEvent");
+int unicodeKey;
+
+if(metaState == 0)
+{
+    jmethodID method_get_unicode_char = jniEnv->GetMethodID(class_key_event, "getUnicodeChar", "()I");
+    jmethodID eventConstructor = jniEnv->GetMethodID(class_key_event, "<init>", "(II)V");
+    jobject eventObj = jniEnv->NewObject(class_key_event, eventConstructor, eventType, keyCode);
+
+    unicodeKey = jniEnv->CallIntMethod(eventObj, method_get_unicode_char);
+}
+
+else
+{
+    jmethodID method_get_unicode_char = jniEnv->GetMethodID(class_key_event, "getUnicodeChar", "(I)I");
+    jmethodID eventConstructor = jniEnv->GetMethodID(class_key_event, "<init>", "(II)V");
+    jobject eventObj = jniEnv->NewObject(class_key_event, eventConstructor, eventType, keyCode);
+
+    unicodeKey = jniEnv->CallIntMethod(eventObj, method_get_unicode_char, metaState);
+}
+
+javaVM->DetachCurrentThread();
+
+LOGI("Unicode key is: %d", unicodeKey);
+return unicodeKey;
+}
+#endif
 
 /*
 
