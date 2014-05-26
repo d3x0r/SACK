@@ -196,7 +196,10 @@ namespace sack {
 #define INTERSHELL_NAMESPACE_END
 #endif
 
-
+#ifndef DEFINED_CANVAS_DATA
+#define DEFINED_CANVAS_DATA
+typedef struct CanvasData  CanvasData, *PCanvasData;
+#endif
 
 #ifndef MENU_BUTTON_DEFINED
 #define MENU_BUTTON_DEFINED
@@ -395,31 +398,31 @@ INTERSHELL_PROC_PTR( void, UpdateButtonExx )( PMENU_BUTTON button, int bEndingEd
 #define FixupButton(b) FixupButtonEx((b) DBG_SRC)
 
 
-INTERSHELL_PROC_PTR(PPAGE_DATA, ShellGetCurrentPage)( PSI_CONTROL pc_canvas_or_control_in_canvas);
+INTERSHELL_PROC_PTR(PPAGE_DATA, ShellGetCurrentPage)( PCanvasData pc_canvas_or_control_in_canvas);
 
-INTERSHELL_PROC_PTR(PPAGE_DATA, ShellGetNamedPage)( PSI_CONTROL pc, CTEXTSTR pagename );
+INTERSHELL_PROC_PTR(PPAGE_DATA, ShellGetNamedPage)( PCanvasData pc, CTEXTSTR pagename );
 
 // Page name can be... 'first', 'next',  'here', 'return'
 // otherwise page name can be any name of any other page.
-INTERSHELL_PROC_PTR( int, ShellSetCurrentPage )( PSI_CONTROL pc, CTEXTSTR name );
+INTERSHELL_PROC_PTR( int, ShellSetCurrentPage )( PCanvasData pc, CTEXTSTR name );
 
-INTERSHELL_PROC_PTR( int, ShellCallSetCurrentPage )( PSI_CONTROL pc_canvas, CTEXTSTR name );
+INTERSHELL_PROC_PTR( int, ShellCallSetCurrentPage )( PCanvasData pc_canvas, CTEXTSTR name );
 
-INTERSHELL_PROC_PTR( void, ShellReturnCurrentPage )( PSI_CONTROL pc_canvas );
+INTERSHELL_PROC_PTR( void, ShellReturnCurrentPage )( PCanvasData pc_canvas );
 /* <combine sack::intershell::ClearPageList>
    
    \ \                                       */
-INTERSHELL_PROC_PTR( void, ClearPageList )( PSI_CONTROL pc_canvas );
+INTERSHELL_PROC_PTR( void, ClearPageList )( PCanvasData pc_canvas );
 
 /* <combine sack::intershell::InterShell_DisablePageUpdate@LOGICAL>
    
    \ \                                                              */
-INTERSHELL_PROC_PTR( void, InterShell_DisablePageUpdate )( PSI_CONTROL pc_canvas, LOGICAL bDisable );
+INTERSHELL_PROC_PTR( void, InterShell_DisablePageUpdate )( PCanvasData pc_canvas, LOGICAL bDisable );
 INTERSHELL_PROC_PTR( void, RestoreCurrentPage )( PSI_CONTROL pc_canvas );
 /* <combine sack::intershell::HidePageExx@PSI_CONTROL pc_canvas>
    
    \ \                                                           */
-INTERSHELL_PROC_PTR( void, HidePageExx )( PSI_CONTROL pc_canvas DBG_PASS);
+INTERSHELL_PROC_PTR( void, HidePageExx )( PCanvasData canvas DBG_PASS);
 #define HidePageEx2(page) HidePageExx( page DBG_SRC )
 
 
@@ -442,9 +445,9 @@ INTERSHELL_PROC_PTR( void, LabelVariableChanged )( PVARIABLE );
 INTERSHELL_PROC_PTR( void, LabelVariablesChanged )( PLIST ); 
 
 
-INTERSHELL_PROC_PTR( void, InterShell_HideEx )( PSI_CONTROL pc_canvas DBG_PASS );
+INTERSHELL_PROC_PTR( void, InterShell_HideEx )( PCanvasData pc_canvas DBG_PASS );
 #define InterShell_Hide(c)   InterShell_HideEx( c DBG_SRC )
-INTERSHELL_PROC_PTR( void, InterShell_RevealEx )( PSI_CONTROL pc_canvas DBG_PASS );
+INTERSHELL_PROC_PTR( void, InterShell_RevealEx )( PCanvasData pc_canvas DBG_PASS );
 
 #define InterShell_Reveal( c )  InterShell_RevealEx( c DBG_SRC )
 
@@ -478,15 +481,15 @@ INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_TranslateLabelText )( PPAGE_LABEL labe
    \ \                                                                                          */
 INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_GetControlLabelText )( PMENU_BUTTON button, PPAGE_LABEL label, CTEXTSTR variable );
 
-INTERSHELL_PROC_PTR( SFTFont *, SelectACanvasFont )( PSI_CONTROL canvas, PSI_CONTROL parent, CTEXTSTR *default_name );
+INTERSHELL_PROC_PTR( SFTFont *, SelectACanvasFont )( PCanvasData canvas, PSI_CONTROL parent, CTEXTSTR *default_name );
 
 
 /* <combine sack::intershell::BeginCanvasConfiguration@PSI_CONTROL>
    
    \ \                                                              */
-INTERSHELL_PROC_PTR( void, BeginCanvasConfiguration )( PSI_CONTROL pc_canvas );
-INTERSHELL_PROC_PTR( void, SaveCanvasConfiguration )( FILE *file, PSI_CONTROL pc_canvas );
-INTERSHELL_PROC_PTR( void, SaveCanvasConfiguration_XML )( genxWriter w, PSI_CONTROL pc_canvas );
+INTERSHELL_PROC_PTR( void, BeginCanvasConfiguration )( PCanvasData pc_canvas );
+INTERSHELL_PROC_PTR( void, SaveCanvasConfiguration )( FILE *file, PCanvasData pc_canvas );
+INTERSHELL_PROC_PTR( void, SaveCanvasConfiguration_XML )( genxWriter w, PCanvasData pc_canvas );
 INTERSHELL_PROC_PTR( PCONFIG_HANDLER, InterShell_GetCurrentConfigHandler )( void );
 
 
@@ -526,7 +529,7 @@ INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_TranslateLabelTextEx )( PMENU_BUTTON b
 INTERSHELL_PROC_PTR( PTRSZVAL,  InterShell_CreateControl )( PSI_CONTROL canvas, CTEXTSTR type, int x, int y, int w, int h );
 
 
-INTERSHELL_PROC_PTR( void, InterShell_CreateNamedPage )( PSI_CONTROL canvas, CTEXTSTR page_name );
+INTERSHELL_PROC_PTR( void, InterShell_CreateNamedPage )( PCanvasData canvas, CTEXTSTR page_name );
 
 INTERSHELL_PROC_PTR( void, InterShell_AddCommonButtonConfig )( PCONFIG_HANDLER pch );
 
@@ -539,31 +542,31 @@ INTERSHELL_PROC_PTR( PMENU_BUTTON, InterShell_GetCurrentlyCreatingButton )( void
 INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_GetSaveIndent )( void );
 INTERSHELL_PROC_PTR( LOGICAL, BeginSubConfigurationEx )( PMENU_BUTTON button, TEXTCHAR *control_type_name, const TEXTCHAR *end_type_name );
 
-INTERSHELL_PROC_PTR( void, InterShell_SetTheme )( PSI_CONTROL pc_canvas, int ID );
-INTERSHELL_PROC_PTR( void, DisplayMenuCanvas )( PSI_CONTROL pc_canvas, PRENDERER under, _32 width, _32 height, S_32 x, S_32 y );
+INTERSHELL_PROC_PTR( void, InterShell_SetTheme )( PCanvasData pc_canvas, int ID );
+INTERSHELL_PROC_PTR( void, DisplayMenuCanvas )( PSI_CONTROL pc_canvas, PPAGE_DATA page, PRENDERER under, _32 width, _32 height, S_32 x, S_32 y );
 INTERSHELL_PROC_PTR( void, InterShell_SetPageColor )( PPAGE_DATA page, CDATA color );
 
 INTERSHELL_PROC_PTR( PTRSZVAL, InterShell_GetButtonUserData )( PMENU_BUTTON button );
 
 // this can be used to get the default canvas by passing NULL for the button.
-INTERSHELL_PROC_PTR( PSI_CONTROL, InterShell_GetButtonCanvas )( PMENU_BUTTON button );
+INTERSHELL_PROC_PTR( PCanvasData, InterShell_GetButtonCanvas )( PMENU_BUTTON button );
 
-INTERSHELL_PROC_PTR( SFTFont *, UseACanvasFont )( PSI_CONTROL pc_canvas, CTEXTSTR name );
+INTERSHELL_PROC_PTR( SFTFont *, UseACanvasFont )( PCanvasData pc_canvas, CTEXTSTR name );
 
 INTERSHELL_PROC_PTR( PTRSZVAL, InterShell_GetButtonExtension )( PMENU_BUTTON button );
 
 INTERSHELL_PROC_PTR( void, InterShell_SetTextLabelOptions )( PMENU_BUTTON label, LOGICAL center, LOGICAL right, LOGICAL scroll, LOGICAL shadow );
 
-INTERSHELL_PROC_PTR( PSI_CONTROL, InterShell_GetCurrentLoadingCanvas )( void );
-INTERSHELL_PROC_PTR( PSI_CONTROL, InterShell_GetCurrentSavingCanvas )( void );
-INTERSHELL_PROC_PTR( SFTFont *, CreateACanvasFont )( PSI_CONTROL pc_canvas, CTEXTSTR name, SFTFont font, POINTER data, size_t datalen );
+INTERSHELL_PROC_PTR( PCanvasData, InterShell_GetCurrentLoadingCanvas )( void );
+INTERSHELL_PROC_PTR( PCanvasData, InterShell_GetCurrentSavingCanvas )( void );
+INTERSHELL_PROC_PTR( SFTFont *, CreateACanvasFont )( PCanvasData pc_canvas, CTEXTSTR name, SFTFont font, POINTER data, size_t datalen );
 
 INTERSHELL_PROC_PTR( void, SetupSecurityEdit )( PSI_CONTROL frame, PTRSZVAL object_to_secure );
 INTERSHELL_PROC_PTR( PTRSZVAL, CreateSecurityContext )( PTRSZVAL object );
 INTERSHELL_PROC_PTR( void, CloseSecurityContext )( PTRSZVAL button, PTRSZVAL psv_context_to_Destroy );
 INTERSHELL_PROC_PTR( void, InterShell_SaveSecurityInformation )( FILE *file, PTRSZVAL psv );
 
-INTERSHELL_PROC_PTR( SFTFont *, CreateACanvasFont2 )( PSI_CONTROL pc_canvas, CTEXTSTR name, CTEXTSTR fontfilename, int size_x, int size_y );
+INTERSHELL_PROC_PTR( SFTFont *, CreateACanvasFont2 )( PCanvasData pc_canvas, CTEXTSTR name, CTEXTSTR fontfilename, int size_x, int size_y );
 
 
 INTERSHELL_PROC_PTR( void, AddSecurityContextToken )( PTRSZVAL object, CTEXTSTR module, CTEXTSTR token );
@@ -571,6 +574,7 @@ INTERSHELL_PROC_PTR( void, GetSecurityContextTokens )( PTRSZVAL object, CTEXTSTR
 INTERSHELL_PROC_PTR( void, GetSecurityModules )( PLIST *list );
 //INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_GetSaveIndent1 )( void ); // returns one level more than here
 INTERSHELL_PROC_PTR( void, InterShell_SetCloneButton )( PMENU_BUTTON button );
+INTERSHELL_PROC_PTR( PCanvasData, GetCanvasEx)( PSI_CONTROL pc DBG_PASS );
 
 };  //struct intershell_interface {
 
@@ -652,28 +656,28 @@ INTERSHELL_PROC( void, UpdateButtonExx )( PMENU_BUTTON button, int bEndingEdit D
 //---------------------------------------
 // pages controls here...
 //
-INTERSHELL_PROC(PPAGE_DATA, ShellGetCurrentPage)( PSI_CONTROL pc_canvas_or_control_in_canvas);
+INTERSHELL_PROC(PPAGE_DATA, ShellGetCurrentPage)( PCanvasData pc_canvas_or_control_in_canvas);
 // pass pc NULL defaults internally to using the main frame surface.  The page
 // name returns the current page of that name.
-INTERSHELL_PROC(PPAGE_DATA, ShellGetNamedPage)( PSI_CONTROL pc, CTEXTSTR pagename );
+INTERSHELL_PROC(PPAGE_DATA, ShellGetNamedPage)( PCanvasData pc, CTEXTSTR pagename );
 // special names
 // start, next, prior are keywords that imply direct
 // page stacking.
-INTERSHELL_PROC( int, ShellSetCurrentPage )( PSI_CONTROL pc, CTEXTSTR name );
+INTERSHELL_PROC( int, ShellSetCurrentPage )( PCanvasData pc, CTEXTSTR name );
 
 // a call will push the current page on a stack
 // which will be returned to if returncurrentpage is used.
 // clear page list will flush the stack cause
 // there is such a temptation to call to all pages, providing
 // near inifinite page recall (back back back)
-INTERSHELL_PROC( int, ShellCallSetCurrentPage )( PSI_CONTROL pc_canvas, CTEXTSTR name );
+INTERSHELL_PROC( int, ShellCallSetCurrentPage )( PCanvasData pc_canvas, CTEXTSTR name );
 
-INTERSHELL_PROC( void, ShellReturnCurrentPage )( PSI_CONTROL pc_canvas );
-INTERSHELL_PROC( void, ClearPageList )( PSI_CONTROL pc_canvas );
+INTERSHELL_PROC( void, ShellReturnCurrentPage )( PCanvasData pc_canvas );
+INTERSHELL_PROC( void, ClearPageList )( PCanvasData pc_canvas );
 // disable updates on the page, disable updating of buttons...
-INTERSHELL_PROC( void, InterShell_DisablePageUpdate )( PSI_CONTROL pc_canvas, LOGICAL bDisable );
+INTERSHELL_PROC( void, InterShell_DisablePageUpdate )( PCanvasData pc_canvas, LOGICAL bDisable );
 INTERSHELL_PROC( void, RestoreCurrentPage )( PSI_CONTROL pc_canvas );
-INTERSHELL_PROC( void, HidePageExx )( PSI_CONTROL pc_canvas DBG_PASS);
+INTERSHELL_PROC( void, HidePageExx )( PCanvasData pc_canvas DBG_PASS);
 
 
 
@@ -694,8 +698,8 @@ INTERSHELL_PROC( void, LabelVariablesChanged )( PLIST ); // update any labels wh
 
 // local export to allow exxternal plugins to control whether the main display is showing...
 //  (specially for Tasks at this time... when an exclusive task is launched, display is hidden)
-INTERSHELL_PROC( void, InterShell_HideEx )( PSI_CONTROL canvas DBG_PASS );
-INTERSHELL_PROC( void, InterShell_RevealEx )( PSI_CONTROL canvas DBG_PASS );
+INTERSHELL_PROC( void, InterShell_HideEx )( PCanvasData canvas DBG_PASS );
+INTERSHELL_PROC( void, InterShell_RevealEx )( PCanvasData canvas DBG_PASS );
 
 
 //----------------------------------------------------------
@@ -712,7 +716,7 @@ INTERSHELL_PROC( PTEXT_PLACEMENT, AddButtonLayout )( PMENU_BUTTON pKey, int x, i
 //-----------------------------------------------------
 // this provides low level access to a button, let the programmer beware.
 INTERSHELL_PROC( PSI_CONTROL, InterShell_GetButtonControl )( PMENU_BUTTON button );
-INTERSHELL_PROC( PSI_CONTROL, InterShell_GetButtonCanvas )( PMENU_BUTTON button );
+INTERSHELL_PROC( PCanvasData, InterShell_GetButtonCanvas )( PMENU_BUTTON button );
 
 //---------------------------------------------------
 // text_label.h
@@ -725,22 +729,22 @@ INTERSHELL_PROC( CTEXTSTR, InterShell_TranslateLabelTextEx )( PMENU_BUTTON butto
 INTERSHELL_PROC( CTEXTSTR, InterShell_GetControlLabelText )( PMENU_BUTTON button, PPAGE_LABEL label, CTEXTSTR variable );
 
 //  ---- FONTS ------
-INTERSHELL_PROC( SFTFont *, SelectACanvasFont )( PSI_CONTROL canvas, PSI_CONTROL parent, CTEXTSTR *default_name );
-INTERSHELL_PROC( SFTFont *, UseACanvasFont )( PSI_CONTROL pc_canvas, CTEXTSTR name );
-INTERSHELL_PROC( SFTFont *, CreateACanvasFont )( PSI_CONTROL pc_canvas, CTEXTSTR name, SFTFont font, POINTER data, size_t datalen );
-INTERSHELL_PROC( SFTFont *, CreateACanvasFont2 )( PSI_CONTROL pc_canvas, CTEXTSTR name, CTEXTSTR fontfilename, int sizex, int sizey );;
+INTERSHELL_PROC( SFTFont *, SelectACanvasFont )( PCanvasData canvas, PSI_CONTROL parent, CTEXTSTR *default_name );
+INTERSHELL_PROC( SFTFont *, UseACanvasFont )( PCanvasData pc_canvas, CTEXTSTR name );
+INTERSHELL_PROC( SFTFont *, CreateACanvasFont )( PCanvasData pc_canvas, CTEXTSTR name, SFTFont font, POINTER data, size_t datalen );
+INTERSHELL_PROC( SFTFont *, CreateACanvasFont2 )( PCanvasData pc_canvas, CTEXTSTR name, CTEXTSTR fontfilename, int sizex, int sizey );;
 
 // depricated - used for forward migration...
 INTERSHELL_PROC( SFTFont *, CreateAFont )( CTEXTSTR name, SFTFont font, POINTER data, size_t datalen );
 
 // ----- LOAD SAVE Stuff--------------------------------------
-INTERSHELL_PROC( void, BeginCanvasConfiguration )( PSI_CONTROL pc_canvas );
-INTERSHELL_PROC( void, SaveCanvasConfiguration )( FILE *file, PSI_CONTROL pc_canvas );
-INTERSHELL_PROC( void, SaveCanvasConfiguration_XML )( genxWriter w, PSI_CONTROL pc_canvas );
+INTERSHELL_PROC( void, BeginCanvasConfiguration )( PCanvasData pc_canvas );
+INTERSHELL_PROC( void, SaveCanvasConfiguration )( FILE *file, PCanvasData pc_canvas );
+INTERSHELL_PROC( void, SaveCanvasConfiguration_XML )( genxWriter w, PCanvasData pc_canvas );
 INTERSHELL_PROC( PCONFIG_HANDLER, InterShell_GetCurrentConfigHandler )( void );
 INTERSHELL_PROC( PMENU_BUTTON, InterShell_GetCurrentLoadingControl )( void );
-INTERSHELL_PROC( PSI_CONTROL, InterShell_GetCurrentLoadingCanvas )( void );
-INTERSHELL_PROC( PSI_CONTROL, InterShell_GetCurrentSavingCanvas )( void );
+INTERSHELL_PROC( PCanvasData, InterShell_GetCurrentLoadingCanvas )( void );
+INTERSHELL_PROC( PCanvasData, InterShell_GetCurrentSavingCanvas )( void );
 
 //PTRSZVAL GetButtonExtension( PMENU_BUTTON button );
 
@@ -771,9 +775,9 @@ INTERSHELL_PROC( PMENU_BUTTON, InterShell_CreateSomeControl )( PSI_CONTROL pc_ca
 																				 , CTEXTSTR name );
 INTERSHELL_PROC( PTRSZVAL, InterShell_GetButtonExtension )( PMENU_BUTTON button );
 
-INTERSHELL_PROC( void, InterShell_SetTheme )( PSI_CONTROL pc_canvas, int ID );
+INTERSHELL_PROC( void, InterShell_SetTheme )( PCanvasData pc_canvas, int ID );
 
-INTERSHELL_PROC( void, DisplayMenuCanvas )( PSI_CONTROL pc_canvas, PRENDERER under, _32 width, _32 height, S_32 x, S_32 y );
+INTERSHELL_PROC( void, DisplayMenuCanvas )( PSI_CONTROL pc_canvas, PPAGE_DATA page, PRENDERER under, _32 width, _32 height, S_32 x, S_32 y );
 INTERSHELL_PROC( void, InterShell_SetPageColor )( PPAGE_DATA page, CDATA color );
 
 INTERSHELL_PROC( void, InterShell_SetCloneButton )( PMENU_BUTTON button );
@@ -900,9 +904,12 @@ PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 #define  InterShell_SaveSecurityInformation        if( InterShell ) (InterShell)->InterShell_SaveSecurityInformation
 
 #define InterShell_SetCloneButton								if( InterShell) (InterShell)->InterShell_SetCloneButton
-
+#define GetCanvasEx									(!InterShell)?NULL:InterShell->GetCanvasEx
 
 #endif
+
+#define GetCanvas(c) GetCanvasEx(c DBG_SRC)
+
 
 # ifndef HidePageEx
 #define HidePageEx(page) HidePageExx( page DBG_SRC )

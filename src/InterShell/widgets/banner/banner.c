@@ -321,7 +321,7 @@ static void DrawBannerCaption( PSI_CONTROL pc, PBANNER banner, Image surface, TE
 	//ClearImageTo( surface, GetBaseColor( NORMAL ) );
 	GetStringRenderSizeFontEx( caption, strlen( caption ), &maxw, &h, &char_h
 									 , banner_local.custom_font?banner_local.custom_font:explorer?banner_local.explorer_font:banner_local.font );
-   //lprintf( "h from render size is %d or %d (%s)", h, char_h, caption );
+   //lprintf( "h from render size is %d or %d (%s) %d", h, char_h, caption, maxw );
 	y = yofs - (h/2);
 	banner->text_bounds.y = y - 2;
 	banner->text_bounds.h = h + 5; // -2 to +2 is 5 ?
@@ -344,12 +344,14 @@ static void DrawBannerCaption( PSI_CONTROL pc, PBANNER banner, Image surface, TE
 		}
 		w = GetStringSizeFontEx( start, end-start, NULL, &h
 									  , banner_local.custom_font?banner_local.custom_font:explorer?banner_local.explorer_font:banner_local.font );
+      //lprintf( "String measured %d,%d", h );
 		x = ( BANNER_WIDTH - (left?maxw:w) ) /2;
 
 		if( (x-2) < minx )
 			minx = x - 2;
 		if( (w+4) > maxw )
 			maxw = w + 4;
+      //lprintf( "output at %d,%d", x, y );
 		PutStringFontEx( surface
 							, x+2
 							, y+2
@@ -450,7 +452,7 @@ static int OnDrawCommon( BANNER_NAME )( PCONTROL pc )
 					= banner->old_height
 					= image->height;
 				RerenderFont( banner_local.font
-								, image->width / 18, banner_local.h/10
+								,banner_local.w / 30, ( ( banner_local.w * 1080 ) / 1920 ) / 20 //image->width / 18, banner_local.h/10
 								, NULL, NULL );
 				// clear bounds-set so a full background is drawn.
 				banner->bit_flags.bounds_set = 0;
@@ -460,6 +462,7 @@ static int OnDrawCommon( BANNER_NAME )( PCONTROL pc )
 #ifdef DEBUG_BANNER_DRAW_UPDATE
 			lprintf( WIDE( "--------- BANNER DRAW %s -------------" ), caption );
 #endif
+         //lprintf( "image is %d,%d", image->width, image->height );
 			DrawBannerCaption( pc, banner, image
 								  , caption
 								  , banner->textcolor
@@ -481,7 +484,8 @@ CONTROL_REGISTRATION banner_control = { BANNER_NAME
 													 , BORDER_BUMP
 													 | BORDER_NOMOVE
 													 | BORDER_NOCAPTION
-													 | BORDER_FIXED }
+													 | BORDER_FIXED
+												  }
 };
 PRIORITY_PRELOAD( RegisterBanner2, 65 )
 {
@@ -600,8 +604,8 @@ int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, i
 		{
 			TEXTSTR result;
 			TEXTSTR skip_newline;
-			FormatTextToBlock( text, &result, 30, 20 );
-         // formatter returns a newline at the start of the block (first line doesn't have NO_RETURN flag probably...)
+			FormatTextToBlockEx( text, &result, w * 7 / 10, h * 7 / 10, banner_local.custom_font?banner_local.custom_font:(options & BANNER_EXPLORER)?banner_local.explorer_font:banner_local.font );
+			// formatter returns a newline at the start of the block (first line doesn't have NO_RETURN flag probably...)
 			for( skip_newline = result; skip_newline && skip_newline[0] && skip_newline[0] == '\n'; skip_newline++ );
 			banner->frame = MakeCaptionedControl( NULL, banner_control.TypeID
 															, (options & BANNER_EXPLORER)?EXPLORER_BANNER_X:x

@@ -33,7 +33,7 @@
 
 INTERSHELL_NAMESPACE
 
-	extern CONTROL_REGISTRATION menu_surface;
+	extern CONTROL_REGISTRATION new_menu_surface;
 
 static struct local_page_information
 {
@@ -43,24 +43,33 @@ static struct local_page_information
 } local_page_info;
 #define l local_page_info
 
-void CreateNamedPage( PSI_CONTROL pc_canvas, CTEXTSTR page_name )
+PLIST *GetPageControlList( PPAGE_DATA page, int bWide )
+{	
+	if( bWide )
+		return &page->layout.wide_controls;
+	return &page->layout.tall_controls;
+}
+
+void CreateNamedPage( PCanvasData canvas, CTEXTSTR page_name )
 {
-	if( pc_canvas )
+	if( canvas )
 	{
-		PCanvasData canvas = GetCanvas( pc_canvas );
 		PPAGE_DATA page = New( PAGE_DATA );
 		MemSet( page, 0, sizeof( *page ) );
 		page->title = StrDup( page_name );
+		page->canvas = canvas;
 		page->grid.nPartsX = canvas->current_page?canvas->current_page->grid.nPartsX:90;//canvas->nPartsX;
 		page->grid.nPartsY = canvas->current_page?canvas->current_page->grid.nPartsY:50;//canvas->nPartsY;
 		AddPage( canvas, page );
-		ChangePages( pc_canvas, page );
+		OpenPageFrame( page, FALSE );
+		// update current_page for loading purposes...
+		ChangePages( page );
 	}
 }
 
-void InsertStartupPage( PSI_CONTROL pc_canvas, CTEXTSTR page_name )
+void InsertStartupPage( PCanvasData canvas, CTEXTSTR page_name )
 {
-	PCanvasData canvas = GetCanvas( pc_canvas );
+	//PCanvasData canvas = GetCanvas( pc_canvas );
 	PPAGE_DATA page = New( PAGE_DATA );
 	// move canvas->default page.
 	// now has a name.
@@ -73,7 +82,7 @@ void InsertStartupPage( PSI_CONTROL pc_canvas, CTEXTSTR page_name )
 	canvas->default_page = page;
 	page->grid.nPartsX = canvas->current_page->grid.nPartsX;
 	page->grid.nPartsY = canvas->current_page->grid.nPartsY;
-	ChangePages( pc_canvas, page );
+	ChangePages( page );
 }
 
 //-------------------------------------------------------------------------
@@ -87,11 +96,11 @@ PPAGE_DATA GetCurrentCanvasPage( PCanvasData canvas )
 
 //-------------------------------------------------------------------------
 
-PPAGE_DATA ShellGetNamedPage( PSI_CONTROL pc_canvas, CTEXTSTR name )
+PPAGE_DATA ShellGetNamedPage( PCanvasData canvas, CTEXTSTR name )
 {
-	if( pc_canvas )
+	if( canvas )
 	{
-		PCanvasData canvas = GetCanvas( pc_canvas );
+		//PCanvasData canvas = GetCanvas( pc_canvas );
 		INDEX idx;
 		PPAGE_DATA page;
 		if( !canvas )
@@ -152,26 +161,19 @@ PPAGE_DATA ShellGetNamedPage( PSI_CONTROL pc_canvas, CTEXTSTR name )
 
 //-------------------------------------------------------------------------
 
-PPAGE_DATA ShellGetCurrentPage( PSI_CONTROL pc_canvas )
+PPAGE_DATA ShellGetCurrentPage( PCanvasData canvas )
 {
-	if( pc_canvas )
-	{
-		PCanvasData canvas = GetCanvas( pc_canvas );
-		// focused page...
-		// something fun like that.
-		if( canvas )
-			return canvas->current_page;
-	}
+	if( canvas )
+		return canvas->current_page;
 	return NULL;
 }
 
 //-------------------------------------------------------------------------
 
-void ClearPageList( PSI_CONTROL pc_canvas )
+void ClearPageList( PCanvasData canvas )
 {
-	if( pc_canvas )
+	if( canvas )
 	{
-		PCanvasData canvas = GetCanvas( pc_canvas );
 		while( PopLink( &canvas->prior_pages ) );
 	}
 	//while( PopLink( &l.prior_pages ) );
@@ -179,7 +181,7 @@ void ClearPageList( PSI_CONTROL pc_canvas )
 
 //-------------------------------------------------------------------------
 
-int InvokePageChange( PSI_CONTROL pc_canvas )
+int InvokePageChange( PCanvasData canvas )
 {
 	CTEXTSTR name;
 	PCLASSROOT data = NULL;
@@ -187,10 +189,10 @@ int InvokePageChange( PSI_CONTROL pc_canvas )
 		  name;
 		  name = GetNextRegisteredName( &data ) )
 	{
-		int (CPROC*f)(PSI_CONTROL);
-		f = GetRegisteredProcedure2( data, int, name, (PSI_CONTROL) );
+		int (CPROC*f)(PCanvasData);
+		f = GetRegisteredProcedure2( data, int, name, (PCanvasData) );
 		if( f )
-			if( !f( pc_canvas ) )
+			if( !f( canvas ) )
 				break;
 	}
 	if( name )
@@ -321,7 +323,7 @@ void UpdateButtonExx( PMENU_BUTTON button, int bEndingEdit DBG_PASS )
 }
 
 // added pc_canvas very late to supprot shellgetnamedpage
-void RestorePageEx( PCanvasData canvas, PPAGE_DATA page, int bFull, int was_active )
+void RestorePageEx( PCanvasData canvas, PPAGE_DATA page, int bFull, int was_active, LOGICAL bWide )
 {
 	PPAGE_DATA prior;
 	INDEX idx;
@@ -339,7 +341,8 @@ void RestorePageEx( PCanvasData canvas, PPAGE_DATA page, int bFull, int was_acti
 	{
 		//lprintf( WIDE( "page set to %p" ), page );
 		canvas->current_page = page;
-		if( !InvokePageChange( canvas->pc_canvas ) ) // some method rejected page access.
+#ifndef MULTI_FRAME_CANVAS
+		if( !InvokePageChange( canvas ) ) // some method rejected page access.
 		{
 			if( !prior )
 			{
@@ -352,7 +355,7 @@ void RestorePageEx( PCanvasData canvas, PPAGE_DATA page, int bFull, int was_acti
 			}
 			//lprintf( "page set to %p", prior );
 			canvas->current_page = prior;
-			if( prior && !InvokePageChange( canvas->pc_canvas ) ) // some method rejected page access.
+			if( prior && !InvokePageChange( canvas ) ) // some method rejected page access.
 			{
 				// we have to be sure we can be on this page too, since we 'left'
 				// that is we went to another page..
@@ -360,18 +363,28 @@ void RestorePageEx( PCanvasData canvas, PPAGE_DATA page, int bFull, int was_acti
 				canvas->current_page = prior = NULL;
 			}
 		}
+#endif
 	} while( !canvas->current_page );
 	if( was_active )
 	{
 		if( canvas->current_page )
 		{
 			canvas->current_page->flags.bActive = 1;
-			LIST_FORALL( canvas->current_page->controls, idx, PMENU_BUTTON, control )
-			{
-				// full flag will cause the control to get reinitialized
-				// all parameters will get set.
-				UpdateButtonEx( control, bFull );
-			}
+			if( ( bWide && canvas->current_page->layout.wide_controls )
+				|| ( !canvas->current_page->layout.tall_controls ) )
+				LIST_FORALL( canvas->current_page->layout.wide_controls, idx, PMENU_BUTTON, control )
+				{
+					// full flag will cause the control to get reinitialized
+					// all parameters will get set.
+					UpdateButtonEx( control, bFull );
+				}
+			else
+				LIST_FORALL( canvas->current_page->layout.tall_controls, idx, PMENU_BUTTON, control )
+				{
+					// full flag will cause the control to get reinitialized
+					// all parameters will get set.
+					UpdateButtonEx( control, bFull );
+				}
 		}
 	}
 }
@@ -379,7 +392,9 @@ void RestorePageEx( PCanvasData canvas, PPAGE_DATA page, int bFull, int was_acti
 
 void RestoreCurrentPage( PSI_CONTROL pc_canvas )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
+	ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc_canvas );
+	PCanvasData canvas = (*page)->canvas;
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	RestorePage( canvas, canvas->current_page, FALSE );
 }
 
@@ -399,15 +414,22 @@ static void CPROC ChooseImage( PTRSZVAL psv, PSI_CONTROL button )
 
 }
 
+struct add_theme_params
+{
+	PCanvasData canvas;
+	PSI_CONTROL frame;
+};
+
 static void CPROC AddPageTheme( PTRSZVAL psv, PSI_CONTROL button )
 {
+	struct add_theme_params *params = (struct add_theme_params*)psv;
 	if( g.max_themes < 2 )
 	{
-		AddTheme( 1 );
+		AddTheme( params->canvas, 1 );
 	}
 	else
 	{
-		AddTheme( g.max_themes );
+		AddTheme( params->canvas, g.max_themes );
 	}
 
 	{
@@ -438,9 +460,9 @@ static void CPROC ChooseAnimation( PTRSZVAL psv, PSI_CONTROL button )
 
 //-------------------------------------------------------------------------
 
-void HidePageExx( PSI_CONTROL pc_canvas DBG_PASS )
+void HidePageExx( PCanvasData canvas DBG_PASS )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	if( g.flags.multi_edit )
 	{
 		return;
@@ -458,6 +480,7 @@ void HidePageExx( PSI_CONTROL pc_canvas DBG_PASS )
 			canvas->current_page->flags.bActive = 0;
 		if( canvas->pPageMenu )
 			CheckPopupItem( canvas->pPageMenu, MNU_CHANGE_PAGE + canvas->current_page->ID, MF_UNCHECKED );
+#ifndef MULTI_FRAME_CANVAS
 		if( canvas->current_page )
 		{
 			page = canvas->current_page;
@@ -467,6 +490,7 @@ void HidePageExx( PSI_CONTROL pc_canvas DBG_PASS )
 				HideCommon( QueryGetControl( control ) );
 			}
 		}
+#endif
 		//_lprintf(DBG_RELAY)( WIDE( "page set to %p" ), NULL );
 		//canvas->current_page = NULL;
 	}
@@ -474,9 +498,9 @@ void HidePageExx( PSI_CONTROL pc_canvas DBG_PASS )
 
 //-------------------------------------------------------------------------
 
-void ChangePagesEx( PSI_CONTROL pc_canvas, PPAGE_DATA page DBG_PASS )
+void ChangePagesEx( PPAGE_DATA page DBG_PASS )
 {
-	PCanvasData canvas = GetCanvas( pc_canvas );
+	PCanvasData canvas = page->canvas;
 	// page becomes the new current page... the current page
 	// is disabled, adn the new page reenabled..
 	static BIT_FIELD bChanging; // : 1; // already changing a page.
@@ -489,8 +513,10 @@ void ChangePagesEx( PSI_CONTROL pc_canvas, PPAGE_DATA page DBG_PASS )
 	bChanging = TRUE;
 	if( g.flags.multi_edit )
 	{
+#ifndef MULTI_FRAME_CANVAS
 		RestorePage( canvas, page, FALSE );
 		ForceDisplayFront( GetFrameRenderer( page->frame ) );
+#endif
 		lprintf( WIDE( "Someone requested a switch page... perhaps we should entertain doing some display thing to set focus to the page..." ) );
 		bChanging = FALSE;
 		return;	// don't hide any controls on any page....
@@ -498,7 +524,9 @@ void ChangePagesEx( PSI_CONTROL pc_canvas, PPAGE_DATA page DBG_PASS )
 	if( page == canvas->current_page )
 	{
 		lprintf( WIDE("current page is already page (no change)") );
+#ifndef MULTI_FRAME_CANVAS
 		SmudgeCommon( canvas->pc_canvas );
+#endif
 		bChanging = FALSE;
 		return;
 	}
@@ -507,7 +535,7 @@ void ChangePagesEx( PSI_CONTROL pc_canvas, PPAGE_DATA page DBG_PASS )
 	//lprintf( WIDE("-------------------------------------- ChangePages -------------------------------------") );
 	bChanging = TRUE;
 	if( !g.flags.bPageUpdateDisabled )
-		EnableCommonUpdates( canvas->pc_canvas, FALSE );
+		EnableCommonUpdates( page->frame, FALSE );
 
 	if( !g.flags.bPageReturn && ( canvas->current_page != page ) )
 	{
@@ -521,32 +549,33 @@ void ChangePagesEx( PSI_CONTROL pc_canvas, PPAGE_DATA page DBG_PASS )
 			was_active = 1;
 		else
 			was_active = 0;
-		HidePageEx( canvas->pc_canvas );
+#ifndef MULTI_FRAME_CANVAS
+		HidePageEx( page->layout );
 		//canvas->current_page = page;
 		RestorePageEx( canvas, page, FALSE, was_active);
+#endif
 	}
 
 	//lprintf( WIDE("================ SOMETHING SHOULD HAPPEN HERE ===========================") );
 	// I dunno about all this....
 	if( !g.flags.bPageUpdateDisabled )
 	{
-		EnableCommonUpdates( canvas->pc_canvas, TRUE );
+		EnableCommonUpdates( page->frame, TRUE );
 		/* disabled auto smudge on enable(TRUE).... so smudge */
-		SmudgeCommon( canvas->pc_canvas );
+		SmudgeCommon( page->frame );
 	}
 	//lprintf( WIDE("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Changed Pages ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-") );
 	bChanging = FALSE;
 }
 
-void ShellReturnCurrentPage( PSI_CONTROL pc_canvas )
+void ShellReturnCurrentPage( PCanvasData canvas )
 {
-	if( pc_canvas )
+	if( canvas )
 	{
-		PCanvasData canvas = GetCanvas( pc_canvas );
 		PPAGE_DATA page = (PPAGE_DATA)PopLink( &canvas->prior_pages );
 		if( page )
 		{
-			ChangePages( page->frame, page );
+			ChangePages( page );
 		}
 	}
 }
@@ -560,22 +589,23 @@ void SetCurrentPageID( PSI_CONTROL pc_canvas, _32 ID )
 	{
 		if( page->ID == ID )
 		{
-			ChangePages( pc_canvas, page );
+			ChangePages( page );
 			return;
 		}
 	}
-	ChangePages( pc_canvas, canvas->default_page );
+	ChangePages( canvas->default_page );
 }
 
 void DestroyPage( PCanvasData canvas, PPAGE_DATA page )
 {
 	// shouldn't actually destroy, enque into things
-	PLIST controls;
+	PLIST *controls;
 	PMENU_BUTTON button;
 	INDEX idx;
-	controls = page->controls;
-	page->controls = NULL; // clear this out, just in case
-	LIST_FORALL( page->controls, idx, PMENU_BUTTON, button )
+	controls = GetPageControlList( page, canvas->flags.wide_aspect );
+	controls[0] = NULL;
+	//page->controls = NULL; // clear this out, just in case
+	LIST_FORALL( controls[0], idx, PMENU_BUTTON, button )
 	{
 		DestroyButton( button );
 	}
@@ -608,7 +638,7 @@ void DestroyPageID( PSI_CONTROL pc_canvas, _32 ID ) // MNU_DESTROY_PAGE ID (minu
 		if( page->ID == ID )
 		{
 			if( canvas->current_page == page )
-				ChangePages( pc_canvas, canvas->default_page );
+				ChangePages( canvas->default_page );
 
 			AddLink( &canvas->deleted_pages, page );
 			DeleteLink( &canvas->pages, page );
@@ -631,7 +661,7 @@ void UnDestroyPageID( PSI_CONTROL pc_canvas, _32 ID ) // MNU_DESTROY_PAGE ID (mi
 		if( page->ID == ID )
 		{
 			if( canvas->current_page == page )
-				ChangePages( pc_canvas, canvas->default_page );
+				ChangePages( canvas->default_page );
 
 			AddLink( &canvas->pages, page );
 			DeleteLink( &canvas->deleted_pages, page );
@@ -644,29 +674,30 @@ void UnDestroyPageID( PSI_CONTROL pc_canvas, _32 ID ) // MNU_DESTROY_PAGE ID (mi
 }
 
 
-int ShellCallSetCurrentPage( PSI_CONTROL pc_canvas, CTEXTSTR name )
+int ShellCallSetCurrentPage( PCanvasData canvas, CTEXTSTR name )
 {
-	if( pc_canvas )
+	if( canvas )
 	{
-		return ShellSetCurrentPage( pc_canvas, name );
+		return ShellSetCurrentPage( canvas, name );
 	}
 	return 0;
 }
 
-int ShellSetCurrentPage( PSI_CONTROL pc_canvas, CTEXTSTR name )
+int ShellSetCurrentPage( PCanvasData canvas, CTEXTSTR name )
 {
 	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	//INDEX idx;
 	PPAGE_DATA page;
 	if( !name )
 	{
-		SmudgeCommon( pc_canvas );
+		// UpdateDipslay( NULL ) or something
+		//SmudgeCommon( pc_canvas );
 		return TRUE;
 	}
-	page = ShellGetNamedPage( pc_canvas, name );
+	page = ShellGetNamedPage( canvas, name );
 	if( page )
 	{
-		ChangePages( pc_canvas, page );
+		ChangePages( page );
 		g.flags.bPageReturn = 0;
 		return TRUE;
 	}
@@ -685,12 +716,14 @@ PSI_CONTROL SelectTextWidget( void )
 
 //---------------------------------------------------------------------------
 
-void AdjustControlPositions( PCanvasData canvas, PPAGE_DATA page )
+void AdjustControlPositions( PPAGE_DATA page )
 {
 	INDEX idx;
 	PSI_CONTROL pc;
 	PMENU_BUTTON control;
-	LIST_FORALL( page->controls, idx, PMENU_BUTTON, control )
+	PCanvasData canvas = page->canvas;
+	PLIST *controls = GetPageControlList( page, canvas->flags.wide_aspect );
+	LIST_FORALL( controls[0], idx, PMENU_BUTTON, control )
 	{
 		_32 w, h;
 		S_32 x, y;
@@ -742,7 +775,7 @@ static void CPROC ListBoxThemeSelectionChanged( PTRSZVAL psv, PSI_CONTROL list, 
 
 //---------------------------------------------------------------------------
 
-void EditCurrentPageProperties(PSI_CONTROL parent, PCanvasData canvas)
+void EditCurrentPageProperties( PCanvasData canvas, PSI_CONTROL parent, PPAGE_DATA page)
 {
 	//PTRSZVAL CPROC ConfigurePaper( PTRSZVAL psv, PMENU_BUTTON button )
 //	if(0)
@@ -766,12 +799,12 @@ void EditCurrentPageProperties(PSI_CONTROL parent, PCanvasData canvas)
 		{
 			PSI_CONTROL button;
 			MakeTextControl( frame, 5, 97, 120, 18, TXT_STATIC, WIDE("Background"), 0 );
-			EnableColorWellPick( MakeColorWell( frame, 130, 97, 18, 18, CLR_BACKGROUND, canvas->current_page->background_color ), TRUE );
+			EnableColorWellPick( MakeColorWell( frame, 130, 97, 18, 18, CLR_BACKGROUND, page->background_color ), TRUE );
 
-			MakeEditControl( frame, 130, 120, 240, 18, TXT_IMAGE_NAME, canvas->current_page->background, 0 );
+			MakeEditControl( frame, 130, 120, 240, 18, TXT_IMAGE_NAME, page->background, 0 );
 			button = MakeButton( frame, 89, 120, 36, 18, BTN_PICKFILE, WIDE("..."), 0, ChooseImage, (PTRSZVAL)frame );
 
-			MakeEditControl( frame, 130, 143, 240, 18, TXT_ANIMATION_NAME, canvas->current_page->background, 0 );
+			MakeEditControl( frame, 130, 143, 240, 18, TXT_ANIMATION_NAME, page->background, 0 );
 			button = MakeButton( frame, 89, 143, 36, 18, BTN_PICKANIMFILE, WIDE("..."), 0, ChooseAnimation, (PTRSZVAL)frame );
 
 			SaveXMLFrame( frame, WIDE( "InterShellPageProperty.isFrame" ) );
@@ -792,18 +825,22 @@ void EditCurrentPageProperties(PSI_CONTROL parent, PCanvasData canvas)
 
 	if( frame )
 	{
-		l.current_page = canvas->current_page;
+		struct add_theme_params params;
+		l.current_page = page;
 		l.current_page_theme = 0;
+
+		params.frame = frame;
+		params.canvas = canvas;
 
 		SetCommonButtons( frame, &done, &okay );
 		EnableColorWellPick( GetControl( frame, CLR_BACKGROUND ), TRUE );
-		SetColorWell( GetControl( frame, CLR_BACKGROUND ), canvas->current_page->background_color );
+		SetColorWell( GetControl( frame, CLR_BACKGROUND ), page->background_color );
 		SetButtonPushMethod( GetControl( frame, BTN_PICKFILE ), ChooseImage, (PTRSZVAL)frame );
-		SetControlText( GetControl( frame, TXT_IMAGE_NAME ), canvas->current_page->background );
+		SetControlText( GetControl( frame, TXT_IMAGE_NAME ), page->background );
 
 		SetButtonPushMethod( GetControl( frame, BTN_PICKANIMFILE ), ChooseAnimation, (PTRSZVAL)frame );
-		SetControlText( GetControl( frame, TXT_ANIMATION_NAME ), canvas->current_page->background );
-		SetButtonPushMethod( GetControl( frame, BTN_ADD_PAGE_THEME ), AddPageTheme, (PTRSZVAL)frame );
+		SetControlText( GetControl( frame, TXT_ANIMATION_NAME ), page->background );
+		SetButtonPushMethod( GetControl( frame, BTN_ADD_PAGE_THEME ), AddPageTheme, (PTRSZVAL)&params );
 		{
 			TEXTCHAR buf[32];
 			int n;
@@ -819,9 +856,9 @@ void EditCurrentPageProperties(PSI_CONTROL parent, PCanvasData canvas)
 		}
 		{
 			TEXTCHAR buffer[25];
-			snprintf( buffer, sizeof( buffer ), WIDE( "%d" ), _cols = canvas->current_page->grid.nPartsX );
+			snprintf( buffer, sizeof( buffer ), WIDE( "%d" ), _cols = page->grid.nPartsX );
 			SetControlText( GetControl( frame, EDIT_PAGE_GRID_PARTS_X ), buffer );
-			snprintf( buffer, sizeof( buffer ), WIDE( "%d" ), _rows = canvas->current_page->grid.nPartsY );
+			snprintf( buffer, sizeof( buffer ), WIDE( "%d" ), _rows = page->grid.nPartsY );
 			SetControlText( GetControl( frame, EDIT_PAGE_GRID_PARTS_Y ), buffer );
 		}
 	}
@@ -835,39 +872,39 @@ void EditCurrentPageProperties(PSI_CONTROL parent, PCanvasData canvas)
 		TEXTCHAR buffer[256];
 		GetControlText( GetControl( frame, TXT_IMAGE_NAME ), buffer, sizeof( buffer ) );
 		// Get info from dialog...
-		canvas->current_page->background_color = GetColorFromWell( GetControl( frame, CLR_BACKGROUND ) );
-		SetLink( &l.current_page->background_colors, l.current_page_theme, canvas->current_page->background_color );
+		page->background_color = GetColorFromWell( GetControl( frame, CLR_BACKGROUND ) );
+		SetLink( &l.current_page->background_colors, l.current_page_theme, page->background_color );
 		if( buffer[0] )
 		{
-			canvas->current_page->background = StrDup( buffer );
-			SetLink( &canvas->current_page->backgrounds, l.current_page_theme, canvas->current_page->background );
-			if( canvas->current_page->background_image )
+			page->background = StrDup( buffer );
+			SetLink( &page->backgrounds, l.current_page_theme, page->background );
+			if( page->background_image )
 			{
-				UnmakeImageFile( canvas->current_page->background_image );
-				canvas->current_page->background_image = NULL;
+				UnmakeImageFile( page->background_image );
+				page->background_image = NULL;
 				//SmudgeCommon( parent );
 			}
 		}
 		else
 		{
-			if( canvas->current_page->background )
+			if( page->background )
 			{
-				SetLink( &canvas->current_page->backgrounds, l.current_page_theme, NULL );
-				Release( (POINTER)canvas->current_page->background );
-				canvas->current_page->background = NULL;
-				UnmakeImageFile( canvas->current_page->background_image );
-				canvas->current_page->background_image = NULL;
+				SetLink( &page->backgrounds, l.current_page_theme, NULL );
+				Release( (POINTER)page->background );
+				page->background = NULL;
+				UnmakeImageFile( page->background_image );
+				page->background_image = NULL;
 				//SmudgeCommon( parent );
 			}
 		}
 		GetControlText( GetControl( frame, EDIT_PAGE_GRID_PARTS_X ), buffer, sizeof( buffer ) );
-		canvas->current_page->grid.nPartsX = atoi( buffer );
+		page->grid.nPartsX = atoi( buffer );
 		GetControlText( GetControl( frame, EDIT_PAGE_GRID_PARTS_Y ), buffer, sizeof( buffer ) );
-		canvas->current_page->grid.nPartsY = atoi( buffer );
- 		if( (_rows != canvas->current_page->grid.nPartsY) ||
-			(_cols != canvas->current_page->grid.nPartsX) )
+		page->grid.nPartsY = atoi( buffer );
+ 		if( (_rows != page->grid.nPartsY) ||
+			(_cols != page->grid.nPartsX) )
 		{
-			AdjustControlPositions( canvas, canvas->current_page );
+			AdjustControlPositions( page );
 			/* assume things have updated, color, etc... during configuration this redraw shouldn't be an issue*/
 			SmudgeCommon( parent );
 		}
@@ -904,17 +941,20 @@ void AddPage( PCanvasData canvas, PPAGE_DATA page )
 		lprintf( WIDE("Failed to add new item %s to page destroy menu (more than %d pages!)"), page->title, nPage );
 	page->ID = nPage; // this is a pretty crazy ID - should consider rebuilding this.
 	nPage++;
+#ifndef MULTI_FRAME_CANVAS
 	if( g.flags.multi_edit )
-		OpenPageFrame( page );
+		OpenPageFrame( page, FALSE );
 	else
 		page->frame = canvas->pc_canvas;
+#else
+		OpenPageFrame( page, FALSE );
+#endif
 }
 
 //-------------------------------------------------------------------------
 
-PPAGE_DATA GetPageFromFrame( PSI_CONTROL pc_canvas )
+PPAGE_DATA GetPageFromFrame( PCanvasData canvas )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	if( canvas )
 		return canvas->current_page;
 	return NULL;
@@ -951,19 +991,19 @@ void CreateNewPage( PSI_CONTROL pc_canvas, PCanvasData canvas )
 
 //---------------------------------------------------------------------------
 
-void RenamePage( PSI_CONTROL pc_canvas )
+void RenamePage( PCanvasData canvas )
 {
-	PCanvasData canvas = GetCanvas( pc_canvas );
+	//PCanvasData canvas = GetCanvas( pc_canvas );
 	TEXTCHAR pagename[256];
+	PPAGE_DATA page = GetPageFromFrame( canvas );
 	if( SimpleUserQuery( pagename, sizeof( pagename ), WIDE("Enter New Page Name")
-							 , pc_canvas ) )
+							 , page->frame ) )
 	{
-		PPAGE_DATA page = GetPageFromFrame( pc_canvas );
 		if( page )
 		{
 			if( page == canvas->default_page )
 			{
-				InsertStartupPage( pc_canvas, pagename );
+				InsertStartupPage( canvas, pagename );
 				if( g.flags.multi_edit )
 				{
 					DisplayFrame( canvas->current_page->frame );
@@ -1022,9 +1062,10 @@ static void UpdateControlPositions( PPAGE_DATA page )
 	PMENU_BUTTON button;
 	INDEX idx;
 	PCanvasData canvas = (PCanvasData)page->canvas;
+	PLIST *controls = GetPageControlList( page, page->canvas->flags.wide_aspect );
 
-	InterShell_DisablePageUpdate( page->frame, TRUE );
-	LIST_FORALL( page->controls, idx, PMENU_BUTTON, button )
+	InterShell_DisablePageUpdate( page->canvas, TRUE );
+	LIST_FORALL( controls[0], idx, PMENU_BUTTON, button )
 	{
 		PSI_CONTROL pc = QueryGetControl( button );
 		if( pc )
@@ -1033,7 +1074,7 @@ static void UpdateControlPositions( PPAGE_DATA page )
 				, PARTY( button->y ) - page->grid.origin_offset_y);
 					
 	}
-	InterShell_DisablePageUpdate( page->frame, FALSE );
+	InterShell_DisablePageUpdate( page->canvas, FALSE );
 }
 
 void SetPageOffset( PPAGE_DATA page, int x, int y )
@@ -1108,7 +1149,8 @@ void UpdatePageRange( PPAGE_DATA page )
 {
 	PMENU_BUTTON button;
 	INDEX idx;
-	LIST_FORALL( page->controls, idx, PMENU_BUTTON, button )
+	PLIST *controls = GetPageControlList( page, page->canvas->flags.wide_aspect );
+	LIST_FORALL( controls[0], idx, PMENU_BUTTON, button )
 	{
 		MergeButton( button );
 	}
@@ -1119,14 +1161,15 @@ void UpdatePageRange( PPAGE_DATA page )
 void PutButtonOnPage( PPAGE_DATA page, PMENU_BUTTON button )
 {
 	button->page = page;	
-	button->canvas = (PCanvasData)page->canvas;
-	AddLink( &page->controls, button );		
+	button->parent_canvas = page->canvas;
+	AddLink( GetPageControlList( page, page->canvas->flags.wide_aspect )
+				, button );
 	MergeButton( button );
 }
 
 //--------------------------------------------------------------------------
 
-static void InvokeThemeAdded( int theme_id )
+static void InvokeThemeAdded( PCanvasData canvas, int theme_id )
 {
 	CTEXTSTR name;
 	PCLASSROOT data = NULL;
@@ -1134,10 +1177,10 @@ static void InvokeThemeAdded( int theme_id )
 		name;
 		name = GetNextRegisteredName( &data ) )
 	{
-		void (CPROC*f)(int);
-		f = GetRegisteredProcedure2( (CTEXTSTR)data, void, name, (int) );
+		void (CPROC*f)(PCanvasData canvas, int);
+		f = GetRegisteredProcedure2( (CTEXTSTR)data, void, name, (PCanvasData, int) );
 		if( f )
-			f( theme_id );
+			f( canvas, theme_id );
 	}
 }
 
@@ -1177,10 +1220,10 @@ static void InvokeThemeChanged( void )
 
 //--------------------------------------------------------------------------
 
-void AddTheme( int theme_id )
+void AddTheme( PCanvasData canvas, int theme_id )
 {
 	for( ; g.max_themes <= theme_id; g.max_themes++ )
-		InvokeThemeAdded( g.max_themes );
+		InvokeThemeAdded( canvas, g.max_themes );
 }
 
 //--------------------------------------------------------------------------
@@ -1203,8 +1246,19 @@ void StoreTheme( PCanvasData canvas )
 
 void UpdateTheme( PCanvasData canvas )
 {
+#ifndef MULTI_FRAME_CANVAS
 	if( !g.flags.bPageUpdateDisabled )
 		EnableCommonUpdates( canvas->pc_canvas, FALSE );
+#else
+	{
+		INDEX idx;
+		PPAGE_DATA page;
+		LIST_FORALL( canvas->pages, idx, PPAGE_DATA, page )
+		{
+			EnableCommonUpdates( page->frame, TRUE );
+		}
+	}
+#endif
 	{
 		INDEX idx;
 		PPAGE_DATA page;
@@ -1215,6 +1269,7 @@ void UpdateTheme( PCanvasData canvas )
 			INDEX idx2;
 			PMENU_BUTTON control;
 			CTEXTSTR name;
+			PLIST *controls = GetPageControlList( page, canvas->flags.wide_aspect );
 			CDATA color = (CDATA)GetLink( &page->background_colors, g.theme_index );
 			if( color )
 			{
@@ -1226,7 +1281,7 @@ void UpdateTheme( PCanvasData canvas )
 				page->background_image = (Image)GetLink( &page->background_images, g.theme_index );
 			}
 			UpdateFontTheme( canvas, g.theme_index );
-			LIST_FORALL( page->controls, idx2, PMENU_BUTTON, control )
+			LIST_FORALL( controls[0], idx2, PMENU_BUTTON, control )
 			{
 				PGLARE_SET new_glare = (PGLARE_SET)GetLink( control->glare_set->theme_set, g.theme_index );
 				if( new_glare )
@@ -1247,10 +1302,20 @@ void UpdateTheme( PCanvasData canvas )
 
 	if( !g.flags.bPageUpdateDisabled )
 	{
+#ifndef MULTI_FRAME_CANVAS
 		EnableCommonUpdates( canvas->pc_canvas, TRUE );
 		//ReleaseCommonUse( pc_canvas );
 		/* disabled auto smudge on enable(TRUE).... so smudge */
 		SmudgeCommon( canvas->pc_canvas );
+#endif
+	}
+	{
+		INDEX idx;
+		PPAGE_DATA page;
+		LIST_FORALL( canvas->pages, idx, PPAGE_DATA, page )
+		{
+			EnableCommonUpdates( page->frame, TRUE );
+		}
 	}
 }
 

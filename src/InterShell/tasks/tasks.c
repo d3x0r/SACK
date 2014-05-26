@@ -28,7 +28,7 @@ static struct {
 	//PSI_CONTROL frame; // this should be the same as the global frame (to hide when launching task)
 	struct {
 		_32 bExit : 4; // this needs to be set someday... it comes from intershell_main
-		_32 wait_for_caller : 1;
+		_32 wait_for_mapped_drives : 1;
 		BIT_FIELD bSentLaunchComplete : 1;
 	} flags;
 	PLIST tasks_that_hid_main_canvas;
@@ -47,8 +47,8 @@ enum {
 	  , CHECKBOX_RESTART
 	  , CHECKBOX_ONE_TIME_LAUNCH
 	  , CHECKBOX_EXCLUSIVE
-	  , CHECKBOX_LAUNCH_CALLER_READY
-	  , CHECKBOX_CALLER_WAIT
+	  , CHECKBOX_LAUNCH_MAPPED_DRIVE_READY
+	  , CHECKBOX_MAPPED_DRIVE_WAIT
 	  , CHECKBOX_CAPTURE_OUTPUT // dos prompt, get the input and do something with it...
 	  , LISTBOX_ALLOW_RUN_ON
 	  , LISTBOX_DISALLOW_RUN_ON
@@ -380,8 +380,8 @@ PRELOAD( RegisterTaskControls )
 	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_EXCLUSIVE			 , RADIO_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_WAIT_FOR_TASK		 , RADIO_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_BACKGROUND			, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_LAUNCH_CALLER_READY, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_CALLER_WAIT		  , RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_LAUNCH_MAPPED_DRIVE_READY, RADIO_BUTTON_NAME );
+	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_MAPPED_DRIVE_WAIT		  , RADIO_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_ONE_TIME_LAUNCH	 , RADIO_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_ONE_TIME_CLICK_STOP, RADIO_BUTTON_NAME );
 	EasyRegisterResource( WIDE("InterShell/tasks"), CHECKBOX_CAPTURE_OUTPUT	  , RADIO_BUTTON_NAME );
@@ -637,7 +637,7 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 		SetCheckState( GetControl( frame, CHECKBOX_EXCLUSIVE ), pTask->flags.bExclusive );
 		SetCheckState( GetControl( frame, CHECKBOX_WAIT_FOR_TASK ), pTask->flags.bWaitForTask );
 		SetCheckState( GetControl( frame, CHECKBOX_BACKGROUND ), pTask->flags.bBackground );
-		SetCheckState( GetControl( frame, CHECKBOX_LAUNCH_CALLER_READY ), pTask->flags.bLaunchWhenCallerUp );
+		SetCheckState( GetControl( frame, CHECKBOX_LAUNCH_MAPPED_DRIVE_READY ), pTask->flags.bLaunchWhenCallerUp );
 		SetCheckState( GetControl( frame, CHECKBOX_ONE_TIME_LAUNCH ), pTask->flags.bOneLaunch );
 		SetCheckState( GetControl( frame, CHECKBOX_ONE_TIME_CLICK_STOP ), pTask->flags.bOneLaunchClickStop );
 		SetCheckState( GetControl( frame, CHECKBOX_CAPTURE_OUTPUT ), pTask->flags.bCaptureOutput );
@@ -702,7 +702,7 @@ void EditTaskProperties( PTRSZVAL psv, PSI_CONTROL parent_frame, LOGICAL bVisual
 			if( checkbox ) pTask->flags.bWaitForTask = GetCheckState( checkbox );
 			checkbox = GetControl( frame, CHECKBOX_BACKGROUND );
 			if( checkbox ) pTask->flags.bBackground = GetCheckState( checkbox );
-			checkbox = GetControl( frame, CHECKBOX_LAUNCH_CALLER_READY );
+			checkbox = GetControl( frame, CHECKBOX_LAUNCH_MAPPED_DRIVE_READY );
 			if( checkbox ) pTask->flags.bLaunchWhenCallerUp = GetCheckState( checkbox );
 			checkbox = GetControl( frame, CHECKBOX_ONE_TIME_LAUNCH );
 			if( checkbox ) pTask->flags.bOneLaunch = GetCheckState( checkbox );
@@ -1434,7 +1434,7 @@ static void OnInterShellShutdown( WIDE("DOKillSpawnedPrograms") )(void)
 }
 
 //---------------------------------------------------------------------------
-PTRSZVAL CPROC WaitForCallerThread( PTHREAD thread );
+PTRSZVAL CPROC WaitForMappedDriveThread( PTHREAD thread );
 
 int LaunchAutoTasks( int bCaller )
 {
@@ -1457,13 +1457,13 @@ int LaunchAutoTasks( int bCaller )
 	}
 
 #ifdef WIN32
-	if( bCaller && !l.flags.wait_for_caller )
+	if( bCaller && !l.flags.wait_for_mapped_drives )
 	{
 		FILE *file;
 		static TEXTCHAR DefaultFilePath[256];
 		if( !DefaultFilePath[0] )
 			SACK_GetProfileStringEx( GetProgramName(), WIDE("InterShell/Tasks/Wait File Path"), WIDE("f:/config.sys"), DefaultFilePath, sizeof( DefaultFilePath ), TRUE );
-		// we're not waiitng for caller in a banner-type mode...
+		// we're not waiitng for a mapped drive in a banner-type mode...
 		// therefore we need to launch these ourselves...
 		if( ( file = sack_fopen( 0, DefaultFilePath, WIDE("rb") ) ) )
 		{
@@ -1472,7 +1472,7 @@ int LaunchAutoTasks( int bCaller )
 		}
 		else
 		{
-			ThreadTo( WaitForCallerThread, 0 );
+			ThreadTo( WaitForMappedDriveThread, 0 );
 			return 0; // bCaller mode tasks - and caller is not up.
 		}
 	}
@@ -1492,13 +1492,13 @@ int LaunchAutoTasks( int bCaller )
 }
 
 #ifdef _WIN32
-PTRSZVAL CPROC WaitForCallerThread( PTHREAD thread )
+PTRSZVAL CPROC WaitForMappedDriveThread( PTHREAD thread )
 {
 	static int bWaiting;
 	PBANNER banner = NULL;
 	PLOAD_TASK task;
 	INDEX idx;
-	// if we don't have any auto caller tasks, don't bother with this either.
+	// if we don't have any auto mapped drive tasks, don't bother with this either.
 	LIST_FORALL( l.autoload, idx, PLOAD_TASK, task )
 	{
 		if( task->flags.bLaunchWhenCallerUp )
@@ -1551,7 +1551,7 @@ PTRSZVAL CPROC WaitForCallerThread( PTHREAD thread )
 	return 0;
 }
 #else
-PTRSZVAL CPROC WaitForCallerThread( PTHREAD thread )
+PTRSZVAL CPROC WaitForMappedDriveThread( PTHREAD thread )
 {
 	// shrug - in a linux world, how do we know?
 	return 0;
@@ -1568,12 +1568,12 @@ static void OnFinishAllInit( WIDE("tasks") )( void )
 {
 	PLOAD_TASK tmp;
 	// for consistancy for all task buttons, set the task name in the PLOAD_TASK
-	// to the button text.  Other tasks have their own names (auto task/auto caller task)
+	// to the button text.  Other tasks have their own names (auto task/auto mapped drive task)
 	for( tmp = l.tasklist; tmp; tmp = tmp->next )
 	{
 	}
 	ThreadTo( AutoTaskStarter, 0 );
-	ThreadTo( WaitForCallerThread, 1 );
+	ThreadTo( WaitForMappedDriveThread, 1 );
 }
 
 static LOGICAL CPROC PressDosKey( PTRSZVAL psv, _32 key )
@@ -1674,7 +1674,7 @@ static LOGICAL CPROC PressDosKey( PTRSZVAL psv, _32 key )
 	return 1;
 }
 
-static void OnFinishInit( WIDE("TasksShellKeys") )( PSI_CONTROL pc_canvas )
+static void OnFinishInit( WIDE("TasksShellKeys") )( PCanvasData pc_canvas )
 //PRELOAD( SetTaskKeys )
 {
 	BindEventToKey( NULL, KEY_D, KEY_MOD_ALT, PressDosKey, (PTRSZVAL)'D' );
@@ -2066,10 +2066,10 @@ PTRSZVAL CPROC CreateNewAutoCallerTask( PTRSZVAL psv, arg_list args )
 	return (PTRSZVAL)pTask;
 }
 
-PTRSZVAL CPROC SetWaitForCaller( PTRSZVAL psv, arg_list args )
+PTRSZVAL CPROC SetWaitForMappedDrive( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, LOGICAL, yes_no );
-	l.flags.wait_for_caller = yes_no;
+	l.flags.wait_for_mapped_drives = yes_no;
 	return psv;
 }
 
@@ -2096,7 +2096,7 @@ PTRSZVAL CPROC AddPrependPath( PTRSZVAL psv, arg_list args )
 static void OnLoadCommon( WIDE("Tasks") )( PCONFIG_HANDLER pch )
 {
 	/* standard tasks, these will get task_info prefix to compliment task done suffix */
-	AddConfigurationMethod( pch, WIDE("auto caller task"), CreateNewAutoCallerTask );
+	AddConfigurationMethod( pch, WIDE("auto mapped drive task"), CreateNewAutoCallerTask );
 	AddConfigurationMethod( pch, WIDE("auto task"), CreateNewAutoTask );
 	AddConfigurationMethod( pch, WIDE("Command Shell"), CreateShellCommand );
 	AddConfigurationMethod( pch, WIDE("Windows Shell"), CreateWinShellCommand );
@@ -2106,7 +2106,7 @@ static void OnLoadCommon( WIDE("Tasks") )( PCONFIG_HANDLER pch )
 
 	AddConfigurationMethod( pch, WIDE("<path more=\"%m\"}"), AddAdditionalPath );
 	AddConfigurationMethod( pch, WIDE("<path less=\"%m\">"), AddPrependPath );
-	AddConfigurationMethod( pch, WIDE("wait for caller? %b"), SetWaitForCaller );
+	AddConfigurationMethod( pch, WIDE("wait for mapped drives? %b"), SetWaitForMappedDrive );
 }
 
 
@@ -2233,7 +2233,7 @@ static void OnSaveCommon( WIDE("Tasks") )( FILE *file )
 				if( pTask->flags.bLaunchWhenCallerUp )
 				{
 					bWroteAutoCaller = TRUE;
-					fprintf( file, WIDE("auto caller task\n") );
+					fprintf( file, WIDE("auto mapped drive task\n") );
 				}
 				else
 				{
@@ -2246,9 +2246,9 @@ static void OnSaveCommon( WIDE("Tasks") )( FILE *file )
 		}
 		if( !bWroteAutoCaller )
 		{
-			fprintf( file, WIDE("#auto caller task\n") );
+			fprintf( file, WIDE("#auto mapped drive task\n") );
 			fprintf( file, WIDE("#  define a standard task here with program=, path=, and optional args=\n") );
-			fprintf( file, WIDE("#  auto caller tasks run when the caller comes up - good time for synctime.\n") );
+			fprintf( file, WIDE("#  auto mapped drive tasks run when a mapped drive comes up - good time for synctime.\n") );
 			fprintf( file, WIDE("\n\n") );
 		}
 		if( !bWroteAuto )
@@ -2262,7 +2262,7 @@ static void OnSaveCommon( WIDE("Tasks") )( FILE *file )
 			fprintf( file, WIDE( "<path more=\"%s\">\n" ), l.more_path );
 		if( l.less_path )
 			fprintf( file, WIDE( "<path less=\"%s\">\n" ), l.less_path );
-		fprintf( file, WIDE( "wait for caller? %s\n\n" ), l.flags.wait_for_caller?WIDE("yes"):WIDE("no") );
+		fprintf( file, WIDE( "wait for caller? %s\n\n" ), l.flags.wait_for_mapped_drives?WIDE("yes"):WIDE("no") );
 
 }
 
@@ -2280,7 +2280,7 @@ void CPROC EditAutoTaskProperties( PTRSZVAL psv, PSI_CONTROL button )
 		EditTaskProperties( (PTRSZVAL)task, button, FALSE );
 		snprintf( buf, sizeof( buf ), WIDE("%s%s%s")
 				  , task->pName
-				  , task->flags.bLaunchWhenCallerUp?WIDE("[CALLER]"):WIDE("")
+				  , task->flags.bLaunchWhenCallerUp?WIDE("[MAPPED_DRIVE]"):WIDE("")
 				  , task->flags.bRestart?WIDE("[RESTART]"):WIDE("") );
 		SetItemText( pli, buf );
 	}
@@ -2298,7 +2298,7 @@ void CPROC CreateAutoTaskProperties( PTRSZVAL psv, PSI_CONTROL button )
 		TEXTCHAR buf[256];
 		snprintf( buf, sizeof( buf ), WIDE("%s%s%s")
 				  , task->pName
-				  , task->flags.bLaunchWhenCallerUp?WIDE("[CALLER]"):WIDE("")
+				  , task->flags.bLaunchWhenCallerUp?WIDE("[MAPPED_DRIVE]"):WIDE("")
 				  , task->flags.bRestart?WIDE("[RESTART]"):WIDE("") );
 		SetItemData( AddListItem( GetNearControl( button, LISTBOX_AUTO_TASKS ), buf ), (PTRSZVAL)task );
 	}
@@ -2346,12 +2346,12 @@ static void OnGlobalPropertyEdit( WIDE("Tasks") )( PSI_CONTROL parent )
 				{
 					snprintf( buf, sizeof( buf ), WIDE("%s%s%s")
 							  , task->pName
-							  , task->flags.bLaunchWhenCallerUp?WIDE("[CALLER]"):WIDE("")
+							  , task->flags.bLaunchWhenCallerUp?WIDE("[MAPPED_DRIVE]"):WIDE("")
 							  , task->flags.bRestart?WIDE("[RESTART]"):WIDE("") );
 					SetItemData( AddListItem( list, buf ), (PTRSZVAL)task );
 				}
 			}
-			SetCheckState( GetControl( frame, CHECKBOX_CALLER_WAIT ), l.flags.wait_for_caller );
+			SetCheckState( GetControl( frame, CHECKBOX_MAPPED_DRIVE_WAIT ), l.flags.wait_for_mapped_drives );
 		}
 		DisplayFrameOver( frame, parent );
 		CommonWait( frame );
@@ -2359,10 +2359,10 @@ static void OnGlobalPropertyEdit( WIDE("Tasks") )( PSI_CONTROL parent )
 		{
 			// command shell properties
 			// wait for caller flag
-			// auto caller tasks
+			// auto mapped drive tasks
 			// auto tasks
 			{
-				l.flags.wait_for_caller = GetCheckState( GetControl( frame, CHECKBOX_CALLER_WAIT ) );
+				l.flags.wait_for_mapped_drives = GetCheckState( GetControl( frame, CHECKBOX_MAPPED_DRIVE_WAIT ) );
 			}
 		}
 		DestroyFrame( &frame );

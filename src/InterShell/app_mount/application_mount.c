@@ -451,7 +451,7 @@ static PTRSZVAL OnCreateControl( WIDE("Application Mount") )( PSI_CONTROL parent
 	return (PTRSZVAL)pc;
 }
 
-static void OnFinishInit( WIDE("Application Mount") )( PSI_CONTROL pc_canvas  )
+static void OnFinishInit( WIDE("Application Mount") )( PCanvasData pc_canvas  )
 {
 	if( !l.waiting )
 		l.waiting = ThreadTo( WaitForApplication, 0 );

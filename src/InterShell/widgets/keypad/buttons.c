@@ -1722,7 +1722,7 @@ PRENDERER GetButtonAnimationLayer( PSI_CONTROL pc_key_button )
 
 
  // Intended use: Supply configuration slots for theme_id
-static void OnThemeAdded( WIDE( "Button Widget" ) )( int theme_id )
+static void OnThemeAdded( WIDE( "Button Widget" ) )( PCanvasData canvas, int theme_id )
 {
 	// Allocate memory for structure
 	PTHEME theme = LoadButtonThemeByName( WIDE("Normal Button"), theme_id );
@@ -1734,13 +1734,13 @@ static void OnThemeAdded( WIDE( "Button Widget" ) )( int theme_id )
 }
 
 /* Intended use: Theme is changing, the theme_id that is given was the prior theme set */
-static void OnThemeChanging( WIDE( "Button Widget" ) )( int theme_id )
+static void OnThemeChanging( WIDE( "Button Widget" ) )( PCanvasData canvas, int theme_id )
 {
 
 	return;
 }
 
-static void OnThemeChanged( WIDE( "Button Widget" ) )( int theme_id )
+static void OnThemeChanged( WIDE( "Button Widget" ) )(PCanvasData canvas,  int theme_id )
 {
 	INDEX idx;
 	PTHEME use_theme = (PTHEME)GetLink( &l.theme_list, theme_id );

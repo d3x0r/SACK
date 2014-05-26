@@ -58,11 +58,11 @@ enum {
 	, MENU_CONTROL_CLOCK
 };
 
-extern CONTROL_REGISTRATION menu_surface;
+extern CONTROL_REGISTRATION new_menu_surface;
 
 // I hate this! but I don't have time to unravel the
 // chicken from the egg.
-void CPROC AbortConfigureKeys( PSI_CONTROL pc, _32 keycode );
+void CPROC AbortConfigureKeys( PPAGE_DATA page, _32 keycode );
 
 
 
@@ -73,17 +73,23 @@ struct image_tag{
 };
 static PLIST images;
 
-void InterShell_HideEx( PSI_CONTROL pc_canvas DBG_PASS )
+void InterShell_HideEx( PCanvasData canvas DBG_PASS )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
-	_lprintf(DBG_RELAY)( WIDE("Hiding Canvas. %p %p"), pc_canvas, canvas );
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
+	_lprintf(DBG_RELAY)( WIDE("Hiding Canvas. %p %p"), canvas );
 	if( canvas )
-		HideDisplay( canvas->renderer );
+	{
+		INDEX idx;
+		PPAGE_DATA page;
+		LIST_FORALL( canvas->pages, idx, PPAGE_DATA, page )
+		{
+			HideDisplay( page->renderer );
+		}
+	}
 }
 
-void InterShell_RevealEx( PSI_CONTROL pc_canvas DBG_PASS )
+void InterShell_RevealEx( PCanvasData canvas DBG_PASS )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	if( canvas )
 	{
 		// check to see if a button is processing still before
@@ -96,7 +102,14 @@ void InterShell_RevealEx( PSI_CONTROL pc_canvas DBG_PASS )
 			canvas->flags.bShowCanvas = 1;
 			return;
 		}
-		RestoreDisplayEx( canvas->renderer DBG_RELAY );
+		{
+			INDEX idx;
+			PPAGE_DATA page;
+			LIST_FORALL( canvas->pages, idx, PPAGE_DATA, page )
+			{
+				RestoreDisplayEx( page->renderer DBG_RELAY );
+			}
+		}
 		canvas->flags.bShowCanvas = 0;
 	}
 }
@@ -191,7 +204,8 @@ static PMENU_BUTTON MouseInControl( PCanvasData canvas, int x, int y )
 	current_page = canvas->current_page;
 	if( current_page )
 	{
-		LIST_FORALL( current_page->controls, idx, PMENU_BUTTON, pmc )
+		PLIST *controls = GetPageControlList( current_page, canvas->flags.wide_aspect );
+		LIST_FORALL( controls[0], idx, PMENU_BUTTON, pmc )
 		{
 			//lprintf( WIDE("stuff... %d<=%d %d>%d %d<=%d %d>%d")
 			//		 , x, pmc->x
@@ -229,16 +243,16 @@ static LOGICAL IsControlSelected( PCanvasData canvas, PMENU_BUTTON pInclude )
 
 //---------------------------------------------------------------------------
 
-static int SelectItems( PCanvasData canvas, PMENU_BUTTON pExclude, int x, int y, int w, int h )
+static int SelectItems( PPAGE_DATA current_page, PMENU_BUTTON pExclude, int x, int y, int w, int h )
 {
 
 	INDEX idx;
 	int count = 0;
 	PMENU_BUTTON pmc;
-	PPAGE_DATA current_page;
-	current_page = canvas->current_page;
+	PCanvasData canvas = current_page->canvas;
+	PLIST *controls = GetPageControlList( current_page, canvas->flags.wide_aspect );
 	EmptyList( &canvas->selected_list );
-	LIST_FORALL( current_page->controls, idx, PMENU_BUTTON, pmc )
+	LIST_FORALL( controls[0], idx, PMENU_BUTTON, pmc )
 	{
 		if( pmc == pExclude )
 			continue;
@@ -267,12 +281,13 @@ static LOGICAL IsSelectionValidEx( PCanvasData canvas, PMENU_BUTTON pExclude, in
 	int zero = 0;
 	PMENU_BUTTON pmc;
 	PPAGE_DATA current_page;
+	PLIST *controls = GetPageControlList( canvas->current_page, canvas->flags.wide_aspect );
 	current_page = canvas->current_page;
 	if( !dx )
 		dx = &zero;
 	if( !dy )
 		dy = &zero;
-	LIST_FORALL( current_page->controls, idx, PMENU_BUTTON, pmc )
+	LIST_FORALL( controls[0], idx, PMENU_BUTTON, pmc )
 	{
 		if( pmc == pExclude )
 			continue;
@@ -326,18 +341,21 @@ static LOGICAL IsSelectionValidEx( PCanvasData canvas, PMENU_BUTTON pExclude, in
 	return TRUE;
 }
 
-PMENU_BUTTON CreateButton( PSI_CONTROL pc )
+PMENU_BUTTON CreateButton( PCanvasData parent, PPAGE_DATA page )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
+	//ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc );
+	PCanvasData canvas = page->canvas;
 	PMENU_BUTTON button = New( MENU_BUTTON );
 	struct menu_button_colors *colors = &button->base_colors;
 	MemSet( button, 0, sizeof( MENU_BUTTON ) );
-	button->canvas = canvas;
+
+	button->page = page;
+	button->parent_canvas = parent;
 	// applicaitons end up setting this color...
 	//button->page = ShellGetCurrentPage();
 	colors->color = BASE_COLOR_BLUE;
 	colors->textcolor = BASE_COLOR_WHITE;
-	button->glare_set = GetGlareSet( WIDE("DEFAULT") );
+	button->glare_set = GetGlareSet( parent, WIDE("DEFAULT") );
 	SetLink( &button->colors, 0, colors );
 	//button->flags.bSquare = TRUE; // good enough default
 	return button;
@@ -449,14 +467,16 @@ PCanvasData GetCanvasEx( PSI_CONTROL pc DBG_PASS )
 {
 	//_lprintf(DBG_RELAY)( "pc is %p", pc );
 	{
-		ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
+		ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc );
+		PCanvasData canvas = (*page)->canvas;
 		if( !canvas )
 		{
 			PSI_CONTROL parent;
 			//lprintf( WIDE( WIDE("Control %p is not a canvas, go to parent, check it...") ) );
 			for( parent = GetParentControl( pc ); parent; parent = GetParentControl( parent ) )
 			{
-				ValidatedControlData( PCanvasData, menu_surface.TypeID, _canvas, parent );
+				ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, _page, parent );
+				PCanvasData _canvas = (*_page)->canvas;
 				if( _canvas )
 				{
 					canvas = _canvas;
@@ -506,11 +526,12 @@ void DestroyButton( PMENU_BUTTON button )
 {
 	PSI_CONTROL pc_canvas;
 	PCanvasData canvas = GetCanvas( pc_canvas = GetParentControl( QueryGetControl( button ) ) );
+	PLIST *controls = GetPageControlList( canvas->current_page, canvas->flags.wide_aspect );
 	if( !canvas )
 		return;
 	if( button == g.clonebutton )
 		InterShell_SetCloneButton( NULL );
-	DeleteLink( &canvas->current_page->controls, button );
+	DeleteLink( controls, button );
 
 	InvokeDestroy( button );
 	if( button->flags.bListbox )
@@ -524,11 +545,11 @@ void DestroyButton( PMENU_BUTTON button )
 }
 
 
-PSI_CONTROL InterShell_GetButtonCanvas( PMENU_BUTTON button )
+PCanvasData InterShell_GetButtonCanvas( PMENU_BUTTON button )
 {
 	button = InterShell_GetPhysicalButton( button );
-	if( button && button->canvas )
-		return button->canvas->pc_canvas;
+	if( button )
+		return button->parent_canvas;
 	return NULL;
 }
 
@@ -631,7 +652,7 @@ PGLARE_SET CreateGlareSet( CTEXTSTR name )
 	return glare_set;
 }
 
-PGLARE_SET CheckGlareSet( CTEXTSTR name )
+PGLARE_SET CheckGlareSet( PCanvasData canvas, CTEXTSTR name )
 {
 	PGLARE_SET glare_set;
 	INDEX idx;
@@ -643,7 +664,7 @@ PGLARE_SET CheckGlareSet( CTEXTSTR name )
 		theme_check[0] = 0;
 		theme_check++;
 		theme_index = atoi( theme_check );
-		AddTheme( theme_index );
+		AddTheme( canvas, theme_index );
 	}
 
 	LIST_FORALL( g.glare_sets, idx, PGLARE_SET, glare_set )
@@ -657,17 +678,17 @@ PGLARE_SET CheckGlareSet( CTEXTSTR name )
 	}
 	return glare_set;
 }
-PGLARE_SET GetGlareSet( CTEXTSTR name )
+PGLARE_SET GetGlareSet( PCanvasData canvas, CTEXTSTR name )
 {
-	PGLARE_SET glare_set = CheckGlareSet( name );
+	PGLARE_SET glare_set = CheckGlareSet( canvas, name );
 	if( !glare_set )
 		glare_set = CreateGlareSet( name );
 	return glare_set;
 }
 
-void SetGlareSetFlags( TEXTCHAR *name, int flags )
+void SetGlareSetFlags( PCanvasData canvas, TEXTCHAR *name, int flags )
 {
-	PGLARE_SET glare_set = GetGlareSet( name );
+	PGLARE_SET glare_set = GetGlareSet( canvas, name );
 	if( glare_set )
 	{
 		glare_set->flags.bMultiShadeBackground = 0;
@@ -680,9 +701,9 @@ void SetGlareSetFlags( TEXTCHAR *name, int flags )
 	}
 }
 
-void MakeGlareSet( TEXTCHAR *name, TEXTCHAR *glare, TEXTCHAR *up, TEXTCHAR *down, TEXTCHAR *mask )
+void MakeGlareSet( PCanvasData canvas, TEXTCHAR *name, TEXTCHAR *glare, TEXTCHAR *up, TEXTCHAR *down, TEXTCHAR *mask )
 {
-	PGLARE_SET glare_set = GetGlareSet( name );
+	PGLARE_SET glare_set = GetGlareSet( canvas, name );
 #define SetGlareName(n)	if( glare_set->n ) \
 	Release( glare_set->n );				 \
 	glare_set->n = n?StrDup( n ):(TEXTCHAR*)NULL;
@@ -695,6 +716,7 @@ void MakeGlareSet( TEXTCHAR *name, TEXTCHAR *glare, TEXTCHAR *up, TEXTCHAR *down
 
 struct glare_set_edit{
 	PGLARE_SET current;
+	PCanvasData canvas;
 };
 
 void CPROC OnGlareSetSelect( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM pli )
@@ -763,7 +785,7 @@ void CPROC ButtonAddGlareSetTheme( PTRSZVAL psv, PSI_CONTROL button )
 		TEXTCHAR name[256];
 		PGLARE_SET newset;
 		snprintf( name, 256, WIDE("%s.%d"), params->current->name, new_number );
-		newset = GetGlareSet( name );
+		newset = GetGlareSet( params->canvas, name );
 		SetItemData( AddListItem( GetNearControl( button, LISTBOX_GLARE_SETS )
 											, name )
 					  , (PTRSZVAL)newset );
@@ -774,6 +796,7 @@ void CPROC ButtonAddGlareSetTheme( PTRSZVAL psv, PSI_CONTROL button )
 void CPROC ButtonCreateGlareSet( PTRSZVAL psv, PSI_CONTROL button )
 {
 	TEXTCHAR buffer[256];
+	struct glare_set_edit *params = (struct glare_set_edit*)psv;
 retry:
 	if( SimpleUserQuery( buffer, sizeof( buffer ), WIDE( "Enter New Glareset Name" )
 		, button ) )
@@ -785,14 +808,14 @@ retry:
 			Banner2Message( WIDE( "Reserved word 'button' used in name." ) );
 			goto retry;
 		}
-		else if( CheckGlareSet( buffer ) )
+		else if( CheckGlareSet( params->canvas, buffer ) )
 		{
 			Banner2Message( WIDE( "Glare set already exists!" ) );
 			goto retry;
 		}
 		else
 		{
-			PGLARE_SET glare_set = GetGlareSet( buffer );
+			PGLARE_SET glare_set = GetGlareSet( params->canvas, buffer );
 			SetItemData( AddListItem( GetNearControl( button, LISTBOX_GLARE_SETS )
 				, buffer )
 				, (PTRSZVAL)glare_set );
@@ -800,7 +823,7 @@ retry:
 	}
 }
 
-void EditGlareSets( PSI_CONTROL parent )
+void EditGlareSets( PCanvasData canvas, PSI_CONTROL parent )
 {
 	PSI_CONTROL frame;
 	frame = LoadXMLFrame( WIDE( "EditGlareSets.isFrame" ) );
@@ -809,6 +832,7 @@ void EditGlareSets( PSI_CONTROL parent )
 		struct glare_set_edit params;
 		int okay = 0;
 		int done = 0;
+		params.canvas = canvas;
 		params.current = NULL;
 		SetCommonButtons( frame, &done, &okay );
 		{
@@ -864,7 +888,7 @@ void InterShell_SetButtonStyle( PMENU_BUTTON button, TEXTCHAR *style )
 	if( !button )
 		button = configure_key_dispatch.button;
 	if( button )
-		button->glare_set = GetGlareSet( style );
+		button->glare_set = GetGlareSet( button->parent_canvas, style );
 }
 
 //---------------------------------------------------------------------------
@@ -987,7 +1011,7 @@ void FlushToKey( PMENU_BUTTON button )
 							DeInitAnimationEngine( button->decal_animation );
 
 						button->decal_animation = InitAnimationEngine();
-						GenerateAnimation( button->decal_animation, g.single_frame /*pc_button*/ /*GetFrameRenderer( g.single_frame)*/
+						GenerateAnimation( button->decal_animation, canvas->pc_canvas/*pc_button*/ /*GetFrameRenderer( g.single_frame)*/
 											  , button->pAnimation, PARTX(button->x), PARTY(button->y), PARTW( button->x, button->w ), PARTH( button->y, button->h ));
 
 					}
@@ -1008,7 +1032,7 @@ void FixupButtonEx( PMENU_BUTTON button DBG_PASS )
 {
 	int show;
 	PSI_CONTROL pc_button = QueryGetControl( button );
-	PCanvasData canvas = button->canvas;
+	PCanvasData canvas = button->parent_canvas;
 	//lprintf( WIDE( "Button fixup..." ) );
 //#define LoadImg(n) ((n)?LoadImageFileFromGroup(GetFileGroup( "Image Resources", NULL ), (TEXTSTR)n):NULL)
 #define LoadImg(n) ((n)?LoadImageFile((TEXTSTR)n):NULL)
@@ -1109,11 +1133,11 @@ void FixupButtonEx( PMENU_BUTTON button DBG_PASS )
 		//lprintf( WIDE( "--- updated a button's visual aspects, disable updates..." ) );
 }
 
-void CPROC InterShell_DisablePageUpdate( PSI_CONTROL pc_canvas, LOGICAL bDisable )
+void CPROC InterShell_DisablePageUpdate(PCanvasData canvas, LOGICAL bDisable )
 {
 	INDEX idx;
 	INDEX idx_page;
-	PCanvasData canvas = GetCanvas( pc_canvas );
+	//PCanvasData canvas = GetCanvas( pc_canvas );
 	PPAGE_DATA current_page;
 	PMENU_BUTTON control;
 	lprintf( WIDE( "------- %s Page Updates ----------" ), bDisable?WIDE( "DISABLE" ):WIDE( "ENABLE" ) );
@@ -1132,7 +1156,8 @@ void CPROC InterShell_DisablePageUpdate( PSI_CONTROL pc_canvas, LOGICAL bDisable
 
 		LIST_FORALL( canvas->pages, idx_page, PPAGE_DATA, current_page )
 		{
-			LIST_FORALL( current_page->controls, idx, PMENU_BUTTON, control )
+			PLIST *controls = GetPageControlList( canvas->current_page, canvas->flags.wide_aspect );
+			LIST_FORALL( controls[0], idx, PMENU_BUTTON, control )
 			{
 				EnableCommonUpdates( QueryGetControl( control ), !bDisable );
 			}
@@ -1141,7 +1166,8 @@ void CPROC InterShell_DisablePageUpdate( PSI_CONTROL pc_canvas, LOGICAL bDisable
 				SmudgeCommon( current_page->frame );
 		}
 		{
-			LIST_FORALL( canvas->default_page->controls, idx, PMENU_BUTTON, control )
+			PLIST *controls = GetPageControlList( canvas->default_page, canvas->flags.wide_aspect );
+			LIST_FORALL( controls[0], idx, PMENU_BUTTON, control )
 			{
 				EnableCommonUpdates( QueryGetControl( control ), !bDisable );
 			}
@@ -1153,9 +1179,10 @@ void CPROC InterShell_DisablePageUpdate( PSI_CONTROL pc_canvas, LOGICAL bDisable
 	else
 	{
  		lprintf( "disable update..." );
-		if( ( current_page = ShellGetCurrentPage( pc_canvas ) ) )
+		if( ( current_page = ShellGetCurrentPage( canvas ) ) )
 		{
-			LIST_FORALL( current_page->controls, idx, PMENU_BUTTON, control )
+			PLIST *controls = GetPageControlList( canvas->current_page, canvas->flags.wide_aspect );
+			LIST_FORALL( controls[0], idx, PMENU_BUTTON, control )
 			{
 				EnableCommonUpdates( QueryGetControl( control ), !bDisable );
 			}
@@ -1188,9 +1215,11 @@ int QueryShowControl( PMENU_BUTTON button )
 	TEXTCHAR rootname[256];
 	LOGICAL (CPROC*f)(PTRSZVAL);
 
-	if( !g.flags.multi_edit && button->canvas )
-		if( button->page != button->canvas->current_page )
+#ifndef MULTI_FRAME_CANVAS
+	if( !g.flags.multi_edit && button->parent )
+		if( button->page != GetCanvas( button->parent )->current_page )
 			return 0;
+#endif
 	if( button->show_on )
 	{
 		INDEX idx;
@@ -1240,9 +1269,9 @@ void InvokeEditBegin( PMENU_BUTTON button )
 static void CPROC AllPresses( PTRSZVAL psv, PKEY_BUTTON key )
 {
 	PMENU_BUTTON button = (PMENU_BUTTON)psv;
-	PCanvasData canvas = button?button->canvas:NULL;
+	PPAGE_DATA page = button->page;
 	PTRSZVAL psv_security;
-
+	PCanvasData canvas = button->parent_canvas;
 	// serialize button presses to allow one to complete (also a quick hack for handling
 	// password pause dialogs that do not cover screen... )
 	if( canvas->flags.bDoingButton )
@@ -1255,12 +1284,12 @@ static void CPROC AllPresses( PTRSZVAL psv, PKEY_BUTTON key )
 		//if( button->iSecurityContext == INVALID_INDEX )
 		canvas->flags.bButtonProcessing = 0;
 		if( canvas->flags.bShowCanvas )
-			InterShell_Reveal( canvas->pc_canvas );
+			InterShell_Reveal( canvas );
 		canvas->flags.bDoingButton = 0;
 		return;
 	}
 
-	GenerateSprites( GetFrameRenderer( canvas->pc_canvas ), PARTX(button->x) + (PARTW(button->x,button->w) /2), PARTY(button->y) + (PARTH(button->y,button->h)/2));
+	GenerateSprites( button->page->renderer, PARTX(button->x) + (PARTW(button->x,button->w) /2), PARTY(button->y) + (PARTH(button->y,button->h)/2));
 
 	if( g.flags.bLogKeypresses )
 		lprintf( WIDE( "Issue keypress : [%s]%s" ), button->text, button->pTypeName );
@@ -1273,7 +1302,7 @@ static void CPROC AllPresses( PTRSZVAL psv, PKEY_BUTTON key )
 		if( canvas && !button->flags.bIgnorePageChange )
 		{
 			//lprintf( WIDE( "Changing pages, but only virtually don't activate the page always" ) );
-			ShellSetCurrentPage( canvas->pc_canvas, button->pPageName );
+			ShellSetCurrentPage( canvas, button->pPageName );
 		}
 		button->flags.bIgnorePageChange = 0;
 	}
@@ -1286,7 +1315,7 @@ static void CPROC AllPresses( PTRSZVAL psv, PKEY_BUTTON key )
 	canvas->flags.bDoingButton = 0;
 	canvas->flags.bButtonProcessing = 0;
 	if( canvas->flags.bShowCanvas )
-		InterShell_Reveal( canvas->pc_canvas );
+		InterShell_Reveal( canvas );
 	if( g.flags.bLogKeypresses )
 		lprintf( WIDE( "Finish keypress : [%s]%s" ), button->text, button->pTypeName );
 
@@ -1350,7 +1379,10 @@ static void CPROC ListBoxDoubleChanged( PTRSZVAL psv, PSI_CONTROL list, PLISTITE
 static LOGICAL InvokeButtonCreate( PSI_CONTROL pc_canvas, PMENU_BUTTON button, LOGICAL bVisible )
 {
 	TEXTCHAR rootname[256];
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
+	ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, ppage, pc_canvas );
+	PPAGE_DATA page = (*ppage);
+	PCanvasData canvas = page->canvas;
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	PTRSZVAL (CPROC*f)(PSI_CONTROL,S_32 x, S_32 y, _32 w, _32 h);
 	snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/control/%s" ), button->pTypeName );
 	button->flags.bNoCreateMethod = TRUE; // assume there's no creator for this control
@@ -1487,11 +1519,11 @@ static LOGICAL InvokeButtonCreate( PSI_CONTROL pc_canvas, PMENU_BUTTON button, L
 	return TRUE;
 }
 
-PMENU_BUTTON CreateInvisibleControl( PSI_CONTROL pc_frame, TEXTCHAR *name )
+PMENU_BUTTON CreateInvisibleControl( PCanvasData canvas, TEXTCHAR *name )
 {
 	if( name )
 	{
-		PMENU_BUTTON button = CreateButton( pc_frame );
+		PMENU_BUTTON button = CreateButton( canvas, NULL );
 		button->flags.bCustom = FALSE;
 		button->flags.bListbox = FALSE;
 		button->flags.bInvisible = TRUE;
@@ -1515,9 +1547,11 @@ PTRSZVAL InterShell_GetButtonExtension( PMENU_BUTTON button )
 PMENU_BUTTON CPROC CreateSomeControl( PSI_CONTROL pc_canvas, int x, int y, int w, int h
 								, CTEXTSTR name )
 {
-	PMENU_BUTTON button = CreateButton( pc_canvas );
+	ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc_canvas );
+	PCanvasData canvas = (*page)->canvas;
+	PMENU_BUTTON button = CreateButton( canvas, (*page) );
 	PMENU_BUTTON prior = configure_key_dispatch.button;
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	configure_key_dispatch.button = button;
 	button->flags.bCustom = FALSE;
 	button->flags.bListbox = FALSE;
@@ -1526,7 +1560,7 @@ PMENU_BUTTON CPROC CreateSomeControl( PSI_CONTROL pc_canvas, int x, int y, int w
 	button->w = w;
 	button->h = h;
 	button->pTypeName = StrDup( name );
-	button->font_preset = UseACanvasFont( pc_canvas, WIDE("Default") );
+	button->font_preset = UseACanvasFont( canvas, WIDE("Default") );
 	button->font_preset_name = StrDup( WIDE("Default") );
 
 	InterShell_SetButtonStyle( button, WIDE("bicolor square") );
@@ -1607,7 +1641,7 @@ void CPROC InterShell_SetButtonFontName( PMENU_BUTTON button, CTEXTSTR name )
 			if( button->font_preset_name )
 				Release( (POINTER)button->font_preset_name );
 			button->font_preset_name = StrDup( name );
-			button->font_preset = UseACanvasFont( button->canvas->pc_canvas, button->font_preset_name );
+			button->font_preset = UseACanvasFont( button->parent_canvas, button->font_preset_name );
 		}
 	}
 }
@@ -2046,7 +2080,7 @@ void ApplyCommonButtonControls( PSI_CONTROL frame )
 
 static void CPROC PickMenuControlFont( PTRSZVAL psv, PSI_CONTROL pc )
 {
-	SFTFont *font = SelectACanvasFont( configure_key_dispatch.canvas->pc_canvas 
+	SFTFont *font = SelectACanvasFont( configure_key_dispatch.canvas
 		, configure_key_dispatch.frame
 		, &configure_key_dispatch.new_font_name
 		);
@@ -2598,7 +2632,9 @@ PTRSZVAL CPROC ThreadConfigureButton( PTHREAD thread )
 
 void ConfigureKeyExx( PSI_CONTROL parent, PMENU_BUTTON button, int bWaitComplete, int bIgnoreControlOverload )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, parent );
+	ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, parent );
+	PCanvasData canvas = (*page)->canvas;
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, parent );
 	struct configure_info info;
 	info.parent = parent;
 	info.button = button;
@@ -2634,7 +2670,9 @@ int ProcessPageMenuResult( PSI_CONTROL pc_canvas, _32 result )
 {
 	if( result >= MNU_GLOBAL_PROPERTIES && result <= MNU_GLOBAL_PROPERTIES_MAX )
 	{
-		ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
+		ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc_canvas );
+		PCanvasData canvas = (*page)->canvas;
+		//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 		void (CPROC*f)(PSI_CONTROL);
 		f = (void (CPROC*)(PSI_CONTROL) )GetLink( &g.global_properties, result - MNU_GLOBAL_PROPERTIES );
 		if( f )
@@ -2708,7 +2746,7 @@ PMENU_BUTTON GetCloneButton( PCanvasData canvas, int px, int py, int bInvisible 
 		// commented bit creates new controled centered on mouse
 		PMENU_BUTTON clone;
 		if( bInvisible || !canvas )
-			clone = CreateInvisibleControl( canvas->pc_canvas, g.clonebutton->pTypeName );
+			clone = CreateInvisibleControl( canvas, g.clonebutton->pTypeName );
 		else
 		{
 			lprintf( WIDE( "This is where cloned controls are created." ) );
@@ -2732,7 +2770,9 @@ int CPROC MouseEditGlare( PTRSZVAL psv, S_32 x, S_32 y, _32 b );
 
 static int OnMouseCommon( WIDE( "Menu Canvas" ) )( PCOMMON pc, S_32 x, S_32 y, _32 b )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
+	ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc );
+	PCanvasData canvas = (*page)->canvas;
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
 	static _32 _b;
 	static S_32 _x, _y;
 	//int px, py;
@@ -2742,7 +2782,7 @@ static int OnMouseCommon( WIDE( "Menu Canvas" ) )( PCOMMON pc, S_32 x, S_32 y, _
 	//py = PARTOFY( y );
 	if( canvas->flags.bEditMode )
 	{
-		return MouseEditGlare( (PTRSZVAL)canvas, x, y, b );
+		return MouseEditGlare( (PTRSZVAL)page, x, y, b );
 	}
 	// shell mouse is frame mouse?
 	//lprintf( WIDE("Shell mosue %d,%d %d"), x, y,  b );
@@ -2764,9 +2804,9 @@ void CPROC DrawEditGlare( PTRSZVAL psv, Image surface )
 #endif
 {
 	{
-		PCanvasData canvas = (PCanvasData)psv;
+		PPAGE_DATA page = (*(PPAGE_DATA*)psv);
+		PCanvasData canvas = page->canvas;
 		//_32 w, h;
-		PPAGE_DATA current_page = canvas->current_page;
 
 		{
 			// should use X to capture an image of the current menu config
@@ -2777,8 +2817,9 @@ void CPROC DrawEditGlare( PTRSZVAL psv, Image surface )
 				PMENU_BUTTON button;
 				INDEX idx;
 				int nButton = 1;
+				PLIST *controls = GetPageControlList( page, canvas->flags.wide_aspect );
 				CDATA base_color;
-				LIST_FORALL( current_page->controls, idx, PMENU_BUTTON, button )
+				LIST_FORALL( controls[0], idx, PMENU_BUTTON, button )
 				{
 					int selected = 0;
 					long long x, y;
@@ -2955,13 +2996,18 @@ static int OnDrawCommon( WIDE( "Menu Canvas" ) )( PSI_CONTROL pf )
 	//lprintf( WIDE( "----------g.flags.bPageUpdateDisabled %d" ), g.flags.bPageUpdateDisabled );
 	if( !g.flags.bPageUpdateDisabled )
 	{
-		ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pf );
-		PPAGE_DATA current_page;
-		//_32 w, h;
+		ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pf );
+		PCanvasData canvas = (*page)->canvas;
+		//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pf );
+		PPAGE_DATA current_page = (1)?(*page):canvas->current_page;
 		Image surface = GetFrameSurface( pf );
-		//GetPageSize( pf, &w, &h );
-		//if( g.flags.multi_edit )
-		current_page = canvas->current_page;
+
+		// setup control set
+		if( surface->width > surface->height )
+			canvas->flags.wide_aspect = 1;
+		else
+			canvas->flags.wide_aspect = 0;
+
 		//lprintf( WIDE( "--- AM DRAWING BACKGROUND" ) );
 		// update the canvas's dimensions...
 		////////-s-s-s-s
@@ -2978,7 +3024,7 @@ static int OnDrawCommon( WIDE( "Menu Canvas" ) )( PSI_CONTROL pf )
 			{
 				S_32 x, y;
 				_32 w, h;
-				GetDisplayPosition( canvas->renderer, &x, &y, &w, &h );
+				GetDisplayPosition( current_page->renderer, &x, &y, &w, &h );
 				MoveSizeDisplay( canvas->edit_glare, x, y, w, h );
 			}
 			canvas->width = surface->width;
@@ -2991,7 +3037,8 @@ static int OnDrawCommon( WIDE( "Menu Canvas" ) )( PSI_CONTROL pf )
 
 			LIST_FORALL( canvas->pages, idx_page, PPAGE_DATA, page )
 			{
-				LIST_FORALL( page->controls, idx, PMENU_BUTTON, button )
+				PLIST *controls = GetPageControlList( page, canvas->flags.wide_aspect );
+				LIST_FORALL( controls[0], idx, PMENU_BUTTON, button )
 				{
 					if( button->font_preset )
 						SetCommonFont( QueryGetControl( button ), (*button->font_preset) );
@@ -3004,7 +3051,8 @@ static int OnDrawCommon( WIDE( "Menu Canvas" ) )( PSI_CONTROL pf )
 				}
 			}
 			{
-				LIST_FORALL( canvas->default_page->controls, idx, PMENU_BUTTON, button )
+				PLIST *controls = GetPageControlList( canvas->default_page, canvas->flags.wide_aspect );
+				LIST_FORALL( controls[0], idx, PMENU_BUTTON, button )
 				{
 					if( button->font_preset )
 						SetCommonFont( QueryGetControl( button ), (*button->font_preset) );
@@ -3063,13 +3111,14 @@ static int OnDrawCommon( WIDE( "Menu Canvas" ) )( PSI_CONTROL pf )
 			PMENU_BUTTON button;
 			INDEX idx;
 			int controls = 0;
-			LIST_FORALL( current_page->controls, idx, PMENU_BUTTON, button )
+			PLIST *ppcontrols = GetPageControlList( current_page, canvas->flags.wide_aspect );
+			LIST_FORALL( ppcontrols[0], idx, PMENU_BUTTON, button )
 			{
 				controls++;
 			}
 			if( controls == 0 )
 			{
-				SFTFont *font = UseACanvasFont( pf, WIDE("Default") );
+				SFTFont *font = UseACanvasFont( canvas, WIDE("Default") );
 				int y = 15;
 				int skip = GetFontHeight( (*font ) );
 				PutStringFont( surface
@@ -3094,7 +3143,7 @@ static int OnDrawCommon( WIDE( "Menu Canvas" ) )( PSI_CONTROL pf )
 		// if really using the galre, the glare is a transparent overlayer
 		if( canvas->flags.bEditMode )
 		{
-			DrawEditGlare( (PTRSZVAL)canvas, surface );
+			DrawEditGlare( (PTRSZVAL)page, surface );
 		}
 #endif
 	}
@@ -3104,8 +3153,9 @@ static int OnDrawCommon( WIDE( "Menu Canvas" ) )( PSI_CONTROL pf )
 
 //---------------------------------------------------------------------------
 
-static int ProcessContextMenu( PCanvasData canvas, PSI_CONTROL pc, S_32 px, S_32 py )
+static int ProcessContextMenu( PPAGE_DATA page, PSI_CONTROL pc, S_32 px, S_32 py )
 {
+	PCanvasData canvas = page->canvas;
 			if( canvas->flags.bEditMode )
 			{
 				canvas->pCurrentControl = MouseInControl( canvas, px, py );
@@ -3122,8 +3172,6 @@ static int ProcessContextMenu( PCanvasData canvas, PSI_CONTROL pc, S_32 px, S_32
 #endif
 					if( g.flags.multi_edit )
 					{
-						PPAGE_DATA page = GetPageFromFrame( pc );
-						canvas->current_page = page;
 					}
 					if( !ProcessPageMenuResult( pc, result ) ) switch( result )
 					{
@@ -3171,13 +3219,8 @@ static int ProcessContextMenu( PCanvasData canvas, PSI_CONTROL pc, S_32 px, S_32
 					_32 result = TrackPopup( g.pSelectionMenu, parent_frame );
 					OwnMouse( canvas->edit_glare, TRUE );
 #else
-					_32 result = TrackPopup( g.pSelectionMenu, canvas->pc_canvas );
+					_32 result = TrackPopup( g.pSelectionMenu, pc );
 #endif
-					if( g.flags.multi_edit )
-					{
-						PPAGE_DATA page = GetPageFromFrame( pc );
-						canvas->current_page = page;
-					}
 					if( !ProcessPageMenuResult( pc, result ) )
 					{
 						if( result >= MNU_CREATE_EXTRA && result <= MNU_CREATE_EXTRA_MAX )
@@ -3215,40 +3258,35 @@ static int ProcessContextMenu( PCanvasData canvas, PSI_CONTROL pc, S_32 px, S_32
 						{
 							PSI_CONTROL parent_frame;
 							_32 result;
-							parent_frame = canvas->edit_glare_frame?canvas->edit_glare_frame:canvas->current_page->frame;
+							parent_frame = canvas->edit_glare_frame?canvas->edit_glare_frame:page->frame;
 #ifdef USE_EDIT_GLARE
 							result = TrackPopup( canvas->pEditMenu, parent_frame );
 							OwnMouse( canvas->edit_glare, TRUE );
 #else
-							result = TrackPopup( canvas->pEditMenu, canvas->pc_canvas );
+							result = TrackPopup( canvas->pEditMenu, pc );
 #endif
-							if( g.flags.multi_edit )
-							{
-								PPAGE_DATA page = GetPageFromFrame( pc );
-								canvas->current_page = page;
-							}
 							if( !ProcessPageMenuResult( pc, result ) ) switch( result )
 							{
 							case MNU_MAKE_CLONE:
 								GetCloneButton( canvas, px, py, FALSE );
 								break;
 							case MNU_EDIT_GLARES:
-								EditGlareSets( parent_frame );
+								EditGlareSets( canvas, parent_frame );
 								break;
 							case MNU_EDIT_FONTS:
-								SelectACanvasFont( canvas->pc_canvas, parent_frame, NULL );
+								SelectACanvasFont( canvas, parent_frame, NULL );
 								break;
 							case MNU_PAGE_PROPERTIES:
-								EditCurrentPageProperties(parent_frame,canvas);
+								EditCurrentPageProperties(canvas, parent_frame, page);
 								break;
 							case MNU_CREATE_PAGE:
 								CreateNewPage(parent_frame, canvas);
 								break;
 							case MNU_RENAME_PAGE:
-								RenamePage( canvas->pc_canvas );
+								RenamePage( canvas );
 								break;
 							case MNU_EDIT_DONE:
-								AbortConfigureKeys( canvas->pc_canvas, 0 );
+								AbortConfigureKeys( page, 0 );
 								break;
 							default:
 								Log1( WIDE("Unhandled menu option: %ld"), result );
@@ -3279,7 +3317,7 @@ static int ProcessContextMenu( PCanvasData canvas, PSI_CONTROL pc, S_32 px, S_32
 			return 0;
 }
 
-static void MouseFirstDown( PCanvasData canvas, PTRSZVAL psv, S_32 px, S_32 py )
+static void MouseFirstDown( PCanvasData canvas, PPAGE_DATA page, PTRSZVAL psv, S_32 px, S_32 py )
 {
 #ifdef USE_EDIT_GLARE
 				OwnMouse( canvas->edit_glare, TRUE );
@@ -3290,7 +3328,7 @@ static void MouseFirstDown( PCanvasData canvas, PTRSZVAL psv, S_32 px, S_32 py )
 				{
 					canvas->flags.sizing_by_corner = DRAG_BEGIN;
 #ifndef USE_EDIT_GLARE
-					SmudgeCommon( canvas->pc_canvas );
+					SmudgeCommon( page->frame );
 #else
 					DrawEditGlare( psv, canvas->edit_glare );
 #endif
@@ -3331,7 +3369,7 @@ static void MouseFirstDown( PCanvasData canvas, PTRSZVAL psv, S_32 px, S_32 py )
 						else
 							canvas->flags.sizing_by_corner = DRAG_BEGIN;
 #ifndef USE_EDIT_GLARE
-						SmudgeCommon( canvas->pc_canvas );
+						SmudgeCommon( page->frame );
 #else
 						DrawEditGlare( psv, canvas->edit_glare );
 #endif
@@ -3339,7 +3377,7 @@ static void MouseFirstDown( PCanvasData canvas, PTRSZVAL psv, S_32 px, S_32 py )
 				}
 }
 
-static void MouseDrag( PCanvasData canvas, PTRSZVAL psv
+static void MouseDrag( PCanvasData canvas, PPAGE_DATA page, PTRSZVAL psv
 					  , S_32 px, S_32 py 
 					  // , pad_left/right, pad top/button (sizing margins)
 					  )
@@ -3365,7 +3403,7 @@ static void MouseDrag( PCanvasData canvas, PTRSZVAL psv
 							g._px = px;
 							g._py = py;
 #ifndef USE_EDIT_GLARE
-							SmudgeCommon( canvas->pc_canvas );
+							SmudgeCommon( page->frame );
 #else
 							DrawEditGlare( psv, canvas->edit_glare );
 #endif
@@ -3381,7 +3419,7 @@ static void MouseDrag( PCanvasData canvas, PTRSZVAL psv
 						canvas->selection.h = 1;
 #ifndef USE_EDIT_GLARE
 						//lprintf( WIDE("Continue Selecting") );
-						SmudgeCommon( canvas->pc_canvas );
+						SmudgeCommon( page->frame );
 #else
 						DrawEditGlare( psv, canvas->edit_glare );
 #endif
@@ -3408,7 +3446,7 @@ static void MouseDrag( PCanvasData canvas, PTRSZVAL psv
 							ny = canvas->selection._y + (nh-1);
 							nh = -(nh-2);
 						}
-						canvas->nSelected = SelectItems( canvas, NULL, nx, ny, nw, nh );
+						canvas->nSelected = SelectItems( page, NULL, nx, ny, nw, nh );
 						//if( IsSelectionValidEx( canvas, NULL, nx, ny, NULL, NULL, nw, nh ) )
 						{
 							canvas->selection.x = nx;
@@ -3419,7 +3457,7 @@ static void MouseDrag( PCanvasData canvas, PTRSZVAL psv
 						
 						//lprintf( WIDE("And now our selection is %d,%d %d,%d") );
 #ifndef USE_EDIT_GLARE
-						SmudgeCommon( canvas->pc_canvas );
+						SmudgeCommon( page->frame );
 #else
 						DrawEditGlare( psv, canvas->edit_glare );
 #endif
@@ -3535,7 +3573,7 @@ retry:
 									canvas->selection.y += dy;
 								}
 #ifndef USE_EDIT_GLARE
-								SmudgeCommon( canvas->pc_canvas );
+								SmudgeCommon( page->frame );
 #else
 								DrawEditGlare( psv, canvas->edit_glare );
 #endif
@@ -3574,7 +3612,7 @@ retry:
 								, PARTH( canvas->pCurrentControl->y, canvas->pCurrentControl->h )
 								);
 #ifndef USE_EDIT_GLARE
-							SmudgeCommon( canvas->pc_canvas );
+							SmudgeCommon( page->frame );
 #else
 							DrawEditGlare( psv, canvas->edit_glare );
 #endif
@@ -3583,7 +3621,7 @@ retry:
 				}
 }
 
-static void MouseFirstRelease( PCanvasData canvas, PTRSZVAL psv, S_32 px, S_32 py, _32 b )
+static void MouseFirstRelease( PCanvasData canvas, PPAGE_DATA page, PTRSZVAL psv, S_32 px, S_32 py, _32 b )
 {
 		
 
@@ -3596,7 +3634,7 @@ static void MouseFirstRelease( PCanvasData canvas, PTRSZVAL psv, S_32 px, S_32 p
 					canvas->flags.sizing = 0;
 					canvas->flags.dragging = 0;
 #ifndef USE_EDIT_GLARE
-					SmudgeCommon( canvas->pc_canvas );
+					SmudgeCommon( page->frame );
 #else
 					DrawEditGlare( psv, canvas->edit_glare );
 #endif
@@ -3608,7 +3646,7 @@ static void MouseFirstRelease( PCanvasData canvas, PTRSZVAL psv, S_32 px, S_32 p
 					{
 						canvas->flags.sizing_by_corner = NO_SIZE_OP;
 #ifndef USE_EDIT_GLARE
-						SmudgeCommon( canvas->pc_canvas );
+						SmudgeCommon( page->frame );
 #else
 						DrawEditGlare( psv, canvas->edit_glare );
 #endif
@@ -3650,7 +3688,7 @@ static void MouseFirstRelease( PCanvasData canvas, PTRSZVAL psv, S_32 px, S_32 p
 								}
 							}
 #ifndef USE_EDIT_GLARE
-							SmudgeCommon( canvas->pc_canvas );
+							SmudgeCommon( page->frame );
 #else
 							DrawEditGlare( psv, canvas->edit_glare );
 #endif
@@ -3662,7 +3700,7 @@ static void MouseFirstRelease( PCanvasData canvas, PTRSZVAL psv, S_32 px, S_32 p
 								// if not a custom control it's a fancy key-button
 								//if( !canvas->pCurrentControl->flags.bCustom )
 								//	ReleaseCommonUse( GetKeyCommon( canvas->pCurrentControl->key ) );
-								ConfigureKeyEx( canvas->pc_canvas, canvas->pCurrentControl );
+								ConfigureKeyEx( page->frame, canvas->pCurrentControl );
 							}
 						}
 					}
@@ -3674,7 +3712,7 @@ static void MouseFirstRelease( PCanvasData canvas, PTRSZVAL psv, S_32 px, S_32 p
 						canvas->nSelected = 0;
 						canvas->flags.selected = 0;
 #ifndef USE_EDIT_GLARE
-						SmudgeCommon( canvas->pc_canvas );
+						SmudgeCommon( page->frame );
 #else
 						DrawEditGlare( psv, canvas->edit_glare );
 #endif
@@ -3686,17 +3724,25 @@ static void MouseFirstRelease( PCanvasData canvas, PTRSZVAL psv, S_32 px, S_32 p
 #endif
 }
 
+PPAGE_DATA GetCanvasPage( PCanvasData canvas, S_32 x, S_32 y )
+{
+	S_32 real_x = x - canvas->left_right_page_offset;
+
+	return canvas->current_page;
+}
+
 int CPROC MouseEditGlare( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
 {
-	PCanvasData canvas = (PCanvasData)psv;
-	PSI_CONTROL pc = canvas->pc_canvas; // was the canvas mouse routine so...
+	PPAGE_DATA *ppage = (PPAGE_DATA*)psv;
+	PCanvasData canvas = (*ppage)->canvas;
+	PPAGE_DATA page = (*ppage); // was the canvas mouse routine so...
 	static _32 _b;
 	static S_32 _x, _y;
 	static int _px, _py;
 	int px, py;
 	//lprintf( WIDE( "Glare mouse %d %d %d" ), x, y, b );
-#define PARTOFX(xc) ( ( xc ) * canvas->current_page->grid.nPartsX ) / canvas->width
-#define PARTOFY(yc) ( ( yc ) * canvas->current_page->grid.nPartsY ) / canvas->height
+#define PARTOFX(xc) ( ( xc ) * page->grid.nPartsX ) / canvas->width
+#define PARTOFY(yc) ( ( yc ) * page->grid.nPartsY ) / canvas->height
 	px = PARTOFX( x );
 	py = PARTOFY( y );
 
@@ -3722,19 +3768,19 @@ int CPROC MouseEditGlare( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
 				//lprintf( WIDE("left down.") );
 				if( !(_b & MK_LBUTTON ) )
 				{
-					MouseFirstDown( canvas, psv, px, py );
+					MouseFirstDown( canvas, page, psv, px, py );
 				}
 				else
 				{
 					// was down, is down....
-					MouseDrag( canvas, psv, px, py );
+					MouseDrag( canvas, page, psv, px, py );
 				}
 			}
 			else
 			{
 				if( _b & MK_LBUTTON )
 				{
-					MouseFirstRelease( canvas, psv, px, py, b );
+					MouseFirstRelease( canvas, page, psv, px, py, b );
 				}
 				else
 				{
@@ -3753,7 +3799,7 @@ int CPROC MouseEditGlare( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
 	{
 		if( !(_b & MK_RBUTTON) )
 		{
-			if( ProcessContextMenu( canvas, pc, px, py ) )
+			if( ProcessContextMenu( page, page->frame, px, py ) )
 				b &= ~MK_RBUTTON;
 		}
 	}
@@ -3784,29 +3830,6 @@ void CPROC QuitMenu( PSI_CONTROL pc, _32 keycodeUnused )
 		{
 			EnableFrameUpdates( canvas, FALSE );
 		}
-		//PMENU_BUTTON button;
-		//INDEX idx;
-		if( g.flags.multi_edit )
-		{
-			//PPAGE_DATA page;
-			//INDEX idx;
-			/*
-			LIST_FORALL( g.pages, idx, PPAGE_DATA, page )
-			{
-			EnableFrameUpdates( page->frame, FALSE );
-			}
-			*/
-		}
-		//else
-		//	EnableFrameUpdates( g.single_frame, FALSE );
-		//LIST_FORALL( canvas->current_page->controls, idx, PMENU_BUTTON, button )
-		//{
-		//	lprintf( WIDE("Destroy button...") );
-		//	DestroyButton( button );
-		//}
-		// destroy frame here (in keyboard handler)
-		// ends up hanging forever waiting for the destruction of self
-		//DestroyFrame( &g.frame );
 	}
 	lprintf( WIDE("Waking thread...") );
 	WakeThread( g.pMainThread );
@@ -3830,18 +3853,18 @@ void CPROC ResumeMenu( PTRSZVAL psv, _32 keycode )
 
 //---------------------------------------------------------------------------
 
-void EndEditingPage( PSI_CONTROL pc_canvas, PPAGE_DATA page )
+void EndEditingPage( PCanvasData canvas, PPAGE_DATA page )
 {
-	PCanvasData canvas = GetCanvas( pc_canvas );
 	EnableFrameUpdates( page->frame, FALSE );
-	RestorePage( canvas, canvas->current_page, TRUE );
+	RestorePage( canvas, page, TRUE );
 	EnableFrameUpdates( page->frame, TRUE );
 	SmudgeCommon( page->frame );
 }
 
-void CPROC AbortConfigureKeys( PSI_CONTROL pc, _32 keycode )
+void CPROC AbortConfigureKeys( PPAGE_DATA page, _32 keycode )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
+	PCanvasData canvas = page->canvas;
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
 	if( canvas->flags.bEditMode )
 	{
 		lprintf( WIDE("Disallow frame updates now..") );
@@ -3853,20 +3876,20 @@ void CPROC AbortConfigureKeys( PSI_CONTROL pc, _32 keycode )
 
 		canvas->flags.selected = 0;
 		canvas->nSelected = 0;
-		SaveButtonConfig( pc, g.config_filename );
-		EndEditingPage( pc, canvas->current_page );
+		SaveButtonConfig( page->canvas, g.config_filename );
+		EndEditingPage( page->canvas, page );
 		lprintf( WIDE("And having enabled them... then...") );
 	}
 	InvokeEndEditMode();
 	if( g.psv_edit_security )
 	{
-		CloseSecurityContext( (PTRSZVAL)pc, (PTRSZVAL)g.psv_edit_security );
+		CloseSecurityContext( (PTRSZVAL)canvas->current_page->frame, (PTRSZVAL)g.psv_edit_security );
 	}
 }
 
 LOGICAL CPROC EventAbortConfigureKeys( PTRSZVAL psv, _32 keycode )
 {
-	AbortConfigureKeys( (PSI_CONTROL)psv, keycode );
+	AbortConfigureKeys( (PPAGE_DATA)psv, keycode );
 	return 1;
 }
 
@@ -3876,8 +3899,9 @@ void BeginEditingPage( PPAGE_DATA page )
 {
 	PMENU_BUTTON button;
 	INDEX idx;
+	PLIST *controls = GetPageControlList( page, page->canvas->flags.wide_aspect );
 	InvokeBeginEditMode();
-	LIST_FORALL( page->controls, idx, PMENU_BUTTON, button )
+	LIST_FORALL( controls[0], idx, PMENU_BUTTON, button )
 	{
 		HideCommon( QueryGetControl( button ) );
 		InvokeEditBegin( button );
@@ -3886,7 +3910,9 @@ void BeginEditingPage( PPAGE_DATA page )
 
 void CPROC ConfigureKeys( PSI_CONTROL pc, _32 keycode )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
+	ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc );
+	PCanvasData canvas = (*page)->canvas;
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
 	if( !canvas )
 	{
 		return;
@@ -3916,7 +3942,7 @@ void CPROC ConfigureKeys( PSI_CONTROL pc, _32 keycode )
 	MakeTopmost( canvas->edit_glare );
 #else
 	EnableFrameUpdates( pc, FALSE );
-	BeginEditingPage( canvas->current_page );
+	BeginEditingPage( (*page ) );
 	EnableFrameUpdates( pc, TRUE );
 	SmudgeCommon( pc );
 #endif
@@ -3970,10 +3996,12 @@ void GetPageSizeEx( PSI_CONTROL pc_canvas, P_32 width, P_32 height )
 	}
 	else
 	{
-		ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
+		ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc_canvas );
+		PCanvasData canvas = (*page)->canvas;
+		//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 		if( canvas )
 		{
-			GetFrameSize( pc_canvas, (int*)width, (int*)height );
+			GetFrameSize( pc_canvas, width, height );
 		}
 	}
 }
@@ -4012,9 +4040,12 @@ void ProbeDisplaySize( void )
 	}
 }
 
-PSI_CONTROL SetupSystemsListAndGlobalSingleFrame(void )
+static void InitCanvas( PCanvasData canvas, S_32 surface_width, S_32 surface_height );
+
+
+PCanvasData  SetupSystemsListAndGlobalSingleFrame(void )
 {
-	PSI_CONTROL result_canvas = NULL;
+	PCanvasData result_canvas = NULL;
 	//SystemLogTime( SYSLOG_TIME_DELTA|SYSLOG_TIME_CPU );
 	//AddTimer( 15000, CheckMemStats, 0 );
 	//Log( WIDE("Menu started\n") );
@@ -4098,9 +4129,8 @@ PSI_CONTROL SetupSystemsListAndGlobalSingleFrame(void )
 			width = width*2;
 			height = height;
 			lprintf( WIDE("opening canvas at %d,%d %dx%d"), 0, 0, width, height );
-			result_canvas = MakeControl( NULL, menu_surface.TypeID
-												 , 0, 0
-												 , width, height, 0 );
+			result_canvas = New( CanvasData );
+			InitCanvas( result_canvas, width, height );
 		}
 #  ifndef __LINUX__
 		if( !result_canvas )
@@ -4112,9 +4142,8 @@ PSI_CONTROL SetupSystemsListAndGlobalSingleFrame(void )
 				S_32 x, y;
 				GetDisplaySizeEx( g.target_display, &x, &y, &w, &h );
 				lprintf( WIDE("opening canvas on screen %d at %d,%d %dx%d"), g.target_display, x, y, w, h );
-				result_canvas = MakeControl( NULL, menu_surface.TypeID
-													 , x, y
-													 , w, h, 0 );
+				result_canvas = New( CanvasData );
+				InitCanvas( result_canvas, w, h );
 			}
 		}
 #  endif
@@ -4128,22 +4157,29 @@ PSI_CONTROL SetupSystemsListAndGlobalSingleFrame(void )
 				g.default_page_width = SACK_GetProfileInt( GetProgramName(), WIDE( "Intershell Layout/Width" ), width );
 				g.default_page_height = SACK_GetProfileInt( GetProgramName(), WIDE( "Intershell Layout/Height" ), height );
 				lprintf( WIDE("opening canvas at %d,%d %dx%d"), g.default_page_x, g.default_page_y, g.default_page_width, g.default_page_height );
-				result_canvas = MakeControl( NULL, menu_surface.TypeID, g.default_page_x, g.default_page_y, g.default_page_width, g.default_page_height, 0 );
+				//result_canvas = MakeControl( NULL, menu_surface.TypeID, g.default_page_x, g.default_page_y, g.default_page_width, g.default_page_height, 0 );
+				result_canvas = New( CanvasData );
+				InitCanvas( result_canvas, g.default_page_width, g.default_page_height );
 			}
 			else
 #endif
 			{
-				lprintf( WIDE("opening canvas at 0,0, %dx%d %d"), width, height, menu_surface.TypeID );
-				result_canvas = MakeControl( NULL, menu_surface.TypeID, 0, 0, width, height, 0 );
+				lprintf( WIDE("opening canvas at 0,0, %dx%d %d"), width, height, new_menu_surface.TypeID );
+				//result_canvas = MakeControl( NULL, menu_surface.TypeID, 0, 0, width, height, 0 );
+				result_canvas = New( CanvasData );
+				InitCanvas( result_canvas, width, height );
 			}
-			SetCommonText( result_canvas, g.single_frame_title );
+			//SetCommonText( result_canvas, g.single_frame_title );
 #ifndef __NO_OPTIONS__
 		}
 #endif
 		// always have at least 1 frame.  and it is a menu canvas
-		InterShell_DisablePageUpdate( result_canvas, TRUE );
-		GetFrameSize( result_canvas, &g.default_page_width, &g.default_page_height );
-		GetFramePosition( result_canvas, &g.default_page_x, &g.default_page_y );
+
+		//InterShell_DisablePageUpdate( result_canvas, TRUE );
+		//GetFrameSize( result_canvas, &g.default_page_width, &g.default_page_height );
+		//GetFramePosition( result_canvas, &g.default_page_x, &g.default_page_y );
+
+
 		//GetDisplayPosition( GetFrameRenderer( result_canvas ), &g.default_page_x, &g.default_page_y, &g.default_page_width, &g.default_page_height );
 		//lprintf( WIDE( "Got single frame. %d,%d" ), g.width, g.height );
 		UseACanvasFont( result_canvas, WIDE("Default") );
@@ -4158,9 +4194,12 @@ static INDEX iFocus = INVALID_INDEX;
 void CPROC DoKeyRight( PSI_CONTROL pc, _32 key )
 {
 	PMENU_BUTTON button;
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
+	ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc );
+	PCanvasData canvas = (*page)->canvas;
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
+	PLIST *controls = GetPageControlList( canvas->current_page, canvas->flags.wide_aspect );
 	iFocus++;
-	button = (PMENU_BUTTON)GetLink( &canvas->current_page->controls, iFocus );
+	button = (PMENU_BUTTON)GetLink( controls, iFocus );
 	// should query (if can focus)
 	if( button )
 		SetCommonFocus( QueryGetControl( button ) );
@@ -4169,10 +4208,13 @@ void CPROC DoKeyRight( PSI_CONTROL pc, _32 key )
 void CPROC DoKeyLeft( PSI_CONTROL pc, _32 key )
 {
 	PMENU_BUTTON button;
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
+	ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc );
+	PCanvasData canvas = (*page)->canvas;
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
+	PLIST *controls = GetPageControlList( canvas->current_page, canvas->flags.wide_aspect );
 	if( iFocus )
 		iFocus--;
-	button = (PMENU_BUTTON)GetLink( &canvas->current_page->controls, iFocus );
+	button = (PMENU_BUTTON)GetLink( controls, iFocus );
 	// should query (if can focus)
 	if( button )
 		SetCommonFocus( QueryGetControl( button ) );
@@ -4181,10 +4223,13 @@ void CPROC DoKeyLeft( PSI_CONTROL pc, _32 key )
 void CPROC DoKeyUp( PSI_CONTROL pc, _32 key )
 {
 	PMENU_BUTTON button;
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
+	ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc );
+	PCanvasData canvas = (*page)->canvas;
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
+	PLIST *controls = GetPageControlList( canvas->current_page, canvas->flags.wide_aspect );
 	if( iFocus )
 		iFocus--;
-	button = (PMENU_BUTTON)GetLink( &canvas->current_page->controls, iFocus );
+	button = (PMENU_BUTTON)GetLink( controls, iFocus );
 	// should query (if can focus)
 	if( button )
 		SetCommonFocus( QueryGetControl( button ) );
@@ -4192,10 +4237,13 @@ void CPROC DoKeyUp( PSI_CONTROL pc, _32 key )
 
 void CPROC DoKeyDown( PSI_CONTROL pc, _32 key )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
+	ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc );
+	PCanvasData canvas = (*page)->canvas;
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
 	PMENU_BUTTON button;
+	PLIST *controls = GetPageControlList( canvas->current_page, canvas->flags.wide_aspect );
 	iFocus++;
-	button = (PMENU_BUTTON)GetLink( &canvas->current_page->controls, iFocus );
+	button = (PMENU_BUTTON)GetLink( controls, iFocus );
 	// should query (if can focus)
 	if( button )
 		SetCommonFocus( QueryGetControl( button ) );
@@ -4263,20 +4311,9 @@ PMENU MakeControlsMenu( PMENU parent, TEXTCHAR *basename, CTEXTSTR priorname )
 
 //---------------------------------------------------------------------------
 
-int CommonInitCanvas( PSI_CONTROL pc_canvas, PCanvasData canvas )
+static int CommonInitCanvas( PCanvasData canvas )
 {
-#if defined( ALLOW_GLOBAL_FRAME )
-	if( !g.first_frame )
-	{
-		// this is the first canvas, therefore we assume it's the default.
-		//  a lot of code has moved away from g.single_frame references; but there still remains
-		// places that the global frame is used.
-		//lprintf( WIDE( "Half way through init, and now we set single_frame, could not wait for return to creator." ) );
-		g.first_frame = pc_canvas;
-	}
-#endif
-
-	g.flags.bExit = 0;
+	//g.flags.bExit = 0;
 
 	if( !canvas->pPageMenu )
 	{
@@ -4338,7 +4375,9 @@ int CommonInitCanvas( PSI_CONTROL pc_canvas, PCanvasData canvas )
 static void OnHideCommon( WIDE( "menu canvas" ) )( PSI_CONTROL pc )
 {
 	//lprintf( "A control's hide has been invoked and that control is a cavnas... hide controls on my page." );
-	HidePageEx( pc );
+	ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc );
+	PCanvasData canvas = (*page)->canvas;
+	HidePageEx( canvas );
 }
 
 static void OnRevealCommon( WIDE( "menu canvas" ) )( PSI_CONTROL pc )
@@ -4353,7 +4392,10 @@ static void OnRevealCommon( WIDE( "menu canvas" ) )( PSI_CONTROL pc )
 
 void CPROC AcceptFiles( PSI_CONTROL pc, CTEXTSTR file, S_32 x, S_32 y )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
+	ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, ppage, pc );
+	PCanvasData canvas = (*ppage)->canvas;
+	PPAGE_DATA page = (*ppage);
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
 
 	static int bInvoked;
 	int px, py;
@@ -4382,10 +4424,10 @@ void CPROC AcceptFiles( PSI_CONTROL pc, CTEXTSTR file, S_32 x, S_32 y )
 	bInvoked = FALSE;
 }
 
-static int OnCreateCommon( WIDE( "Menu Canvas" ) )( PCOMMON pc )
+static void InitCanvas( PCanvasData canvas, S_32 surface_width, S_32 surface_height )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
-	SetCommonTransparent( pc, FALSE );
+	//SetCommonTransparent( pc, FALSE );
+	MemSet( canvas, 0, sizeof( CanvasData ) );
 	{
 		//PSI_CONTROL parent;
 		//parent = GetFrame( pc );
@@ -4415,55 +4457,63 @@ static int OnCreateCommon( WIDE( "Menu Canvas" ) )( PCOMMON pc )
 #else 
 				768;
 #endif
-			Image surface = GetControlSurface( pc );
-			canvas->pc_canvas = pc; // self reference
-			canvas->width = surface->width;
-			canvas->height = surface->height;
+			//Image surface = GetControlSurface( pc );
+			//canvas->pc_canvas = pc; // self reference
+			canvas->width = surface_width;
+			canvas->height = surface_height;
 
-			canvas->current_page = (PPAGE_DATA)Allocate( sizeof( *canvas->current_page ) );
-			MemSet( canvas->current_page, 0, sizeof( *canvas->current_page ) );
+			canvas->current_page = New( PAGE_DATA );
+			MemSet( canvas->current_page, 0, sizeof( PAGE_DATA ) );
+			lprintf( "This should be optional between single and multiple frame surfaces" );
+			canvas->current_page->canvas = canvas;
+			OpenPageFrame( canvas->current_page, FALSE );
 			AddLink( &canvas->pages, canvas->current_page );
 			canvas->default_page =  canvas->current_page;
-			canvas->default_page->frame = pc;
+			//canvas->default_page->frame = pc;
 			canvas->current_page->flags.bActive = 1;
 			canvas->width_scale.denominator = displays_wide * display_native_width;
-			canvas->width_scale.numerator =  surface->width;
+			canvas->width_scale.numerator =  surface_width;
 			canvas->height_scale.denominator = displays_high * display_native_height;
-			canvas->height_scale.numerator = surface->height;
+			canvas->height_scale.numerator = surface_height;
 			// current page is set to default page here (usually)
 			// this sets the initial page with no config to 40x40 squares
 			canvas->current_page->grid.nPartsX = displays_wide * 40;
 			canvas->current_page->grid.nPartsY = displays_high * 40;
-			canvas->current_page->frame = canvas->pc_canvas;
+			//canvas->current_page->frame = pc;
 			// really this should have been done the other way...
 			canvas->prior_pages = CreateLinkStackLimited( 20 );
 
 			canvas->flags.bSuperMode = 1;
-			AddLink( &g.frames, pc );
-			CommonInitCanvas( pc, canvas );
+			AddLink( &g.frames, canvas );
+			CommonInitCanvas( canvas );
 		}
-		AddCommonAcceptDroppedFiles( pc, AcceptFiles );
 		//else
 		//	canvas->current_page = parent->current_page;
 	}
+}
+
+static int OnCreateCommon( WIDE( "Menu Canvas" ) )( PCOMMON pc )
+{
+	SetCommonTransparent( pc, FALSE );
+	AddCommonAcceptDroppedFiles( pc, AcceptFiles );
 	return 1;
 }
 
 int CPROC PageFocusChanged( PSI_CONTROL pc, LOGICAL bFocused )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
+	ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc );
+	PCanvasData canvas = (*page)->canvas;
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
 	if( g.flags.multi_edit )
 	{
 		if( bFocused )
 		{
-			canvas->current_page = GetPageFromFrame( pc );
+			canvas->current_page = GetPageFromFrame( canvas );
 			if( canvas->current_page )
 				lprintf( WIDE( "*** New current page: %s" ), canvas->current_page->title?canvas->current_page->title:WIDE( "[StartupPage]" ) );
 			else
 				lprintf( WIDE( "*** FAULT not a frame of a page..." ) );
-			//g.single_frame = pc;
 		}
-		//canvas->frame = pc;
 	}
 	return 1;
 }
@@ -4485,9 +4535,10 @@ LOGICAL CPROC GoodQuitMenu( PTRSZVAL psvUnused, _32 keycodeUnused )
 
 LOGICAL CPROC DoConfigureKeys( PTRSZVAL psv, _32 keycodeUnused )
 {
-	PCanvasData canvas = (PCanvasData)psv;
+	PPAGE_DATA page = (PPAGE_DATA)psv;
+	//PCanvasData canvas = (PCanvasData)psv;
 	if( !g.flags.bNoEdit )
-		ConfigureKeys( canvas->pc_canvas, keycodeUnused );
+		ConfigureKeys( page->frame, keycodeUnused );
 	return TRUE;
 }
 
@@ -4508,10 +4559,12 @@ static int OnKeyCommon( WIDE("Menu Canvas") )( PSI_CONTROL pc, _32 key )
 	}
 	if( KEY_CODE( key ) == KEY_ESCAPE )
 	{
-		ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
+		ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc );
+		PCanvasData canvas = (*page)->canvas;
+		//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
 		if( canvas && canvas->flags.bEditMode )
 		{
-			AbortConfigureKeys( pc, key );
+			AbortConfigureKeys( (*page), key );
 			return TRUE;
 		}
 		return FALSE;
@@ -4548,18 +4601,19 @@ static void HandleSingleTouch( PCanvasData canvas, PINPUT_POINT touch1, PINPUT_P
 
 static int CPROC HandleTouch( PTRSZVAL psv, PINPUT_POINT pTouches, int nTouches )
 {
-	PCanvasData canvas = (PCanvasData)psv;
+	PPAGE_DATA page = (PPAGE_DATA)psv;
+	//PCanvasData canvas = (PCanvasData)psv;
 	if( nTouches == 2 )
 	{
-		HandleSingleTouch( canvas, pTouches, pTouches + 1 );
+		HandleSingleTouch( page->canvas, pTouches, pTouches + 1 );
 		return TRUE;
 	}
 	return FALSE;
 }
 #endif
 
-CONTROL_REGISTRATION menu_surface = { WIDE( "Menu Canvas" )
-, { { 512, 460 }, sizeof( CanvasData ), BORDER_WANTMOUSE|BORDER_NONE|BORDER_NOMOVE|BORDER_FIXED }
+CONTROL_REGISTRATION new_menu_surface = { WIDE( "Menu Canvas" )
+, { { 512, 460 }, sizeof( PPAGE_DATA* ), BORDER_WANTMOUSE|BORDER_NONE|BORDER_NOMOVE|BORDER_FIXED }
 , NULL //InitMasterFrame
 , NULL
 , NULL //DrawFrameBackground
@@ -4580,23 +4634,32 @@ CONTROL_REGISTRATION menu_edit_glare = { WIDE( "Edit Glare" )
 };
 
 
-void DisplayMenuCanvas( PSI_CONTROL pc_canvas, PRENDERER under, _32 width, _32 height, S_32 x, S_32 y )
+void DisplayMenuCanvas( PSI_CONTROL pc_canvas, PPAGE_DATA page, PRENDERER under, _32 width, _32 height, S_32 x, S_32 y )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
+	//ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc_canvas );
+	PCanvasData canvas = page->canvas;
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	TEXTCHAR title[256];
 	PRENDERER banner_rend = GetBanner2Renderer( NULL );
+	if( !page )
+		page = canvas->current_page;
 	if( !under )
 		under = banner_rend;
-	if( !canvas->renderer )
+	if( !width && !height )
 	{
-		canvas->renderer = GetFrameRenderer( pc_canvas );
-		if( !canvas->renderer )
+		GetFrameSize( pc_canvas, &width, &height );
+		GetFramePosition( pc_canvas, &x, &y );
+	}
+	if( !page->renderer )
+	{
+		page->renderer = GetFrameRenderer( pc_canvas );
+		if( !page->renderer )
 		{
 #ifdef USE_EDIT_GLARE
-			Image image = GetControlSurface( g.single_frame );
+			Image image = GetControlSurface( pc_canvas );
 #endif
 			lprintf( WIDE("Opening display at %d,%d %d,%d"), x, y, width, height );
-			canvas->renderer = OpenDisplayUnderSizedAt( (!g.flags.bTopmost)?under:NULL, g.flags.bTransparent?DISPLAY_ATTRIBUTE_LAYERED:0
+			page->renderer = OpenDisplayUnderSizedAt( (!g.flags.bTopmost)?under:NULL, g.flags.bTransparent?DISPLAY_ATTRIBUTE_LAYERED:0
 																	, width, height, x, y );
 			{
 				_32 c_w, c_h;
@@ -4604,22 +4667,22 @@ void DisplayMenuCanvas( PSI_CONTROL pc_canvas, PRENDERER under, _32 width, _32 h
 				GetFrameSize( pc_canvas, &c_w, &c_h );
 				GetFramePosition( pc_canvas, &c_x, &c_y );
 				if( c_w != width || c_h != height )
-               SizeFrame( pc_canvas, width, height );
+					SizeFrame( pc_canvas, width, height );
 				if( c_x != x || c_y != y )
-               MoveFrame( pc_canvas, x, y );
+					MoveFrame( pc_canvas, x, y );
 			}
 #ifndef NO_TOUCH
 			lprintf( WIDE("Overriding touch handler, this is deprecated, and should get it as a control event instead of from renderer") );
-			SetTouchHandler( canvas->renderer, HandleTouch, (PTRSZVAL)canvas );
+			SetTouchHandler( page->renderer, HandleTouch, (PTRSZVAL)page );
 #endif
 			GetControlText( pc_canvas, title, 256 );
 
-			SetRendererTitle( canvas->renderer, title );
-			AttachFrameToRenderer( pc_canvas, canvas->renderer );
+			SetRendererTitle( page->renderer, title );
+			AttachFrameToRenderer( pc_canvas, page->renderer );
+			BindEventToKey( page->renderer, KEY_C, KEY_MOD_ALT, DoConfigureKeys, (PTRSZVAL)page );
+			BindEventToKey( page->renderer, KEY_X, KEY_MOD_ALT, GoodQuitMenu, (PTRSZVAL)page );
+			BindEventToKey( page->renderer, KEY_F4, KEY_MOD_ALT, GoodQuitMenu, (PTRSZVAL)page );
 		}
-		BindEventToKey( canvas->renderer, KEY_C, KEY_MOD_ALT, DoConfigureKeys, (PTRSZVAL)canvas );
-		BindEventToKey( canvas->renderer, KEY_X, KEY_MOD_ALT, GoodQuitMenu, (PTRSZVAL)canvas );
-		BindEventToKey( canvas->renderer, KEY_F4, KEY_MOD_ALT, GoodQuitMenu, (PTRSZVAL)canvas );
 	}
 
 #ifndef UNDER_CE
@@ -4630,52 +4693,57 @@ void DisplayMenuCanvas( PSI_CONTROL pc_canvas, PRENDERER under, _32 width, _32 h
 
 	if( !g.flags.multi_edit )
 	{
-		HidePageEx( pc_canvas );
-		canvas->current_page = NULL;
-		ChangePages( pc_canvas, canvas->default_page );
+		//HidePageEx( pc_canvas );
+		//canvas->current_page = NULL;
+		//ChangePages( pc_canvas, canvas->default_page );
 	}
 	DisplayFrame( pc_canvas );
 }
 
 /* opens a frame per page.... */
-PSI_CONTROL OpenPageFrame( PPAGE_DATA page )
+PSI_CONTROL OpenPageFrame( PPAGE_DATA page, LOGICAL show )
 {
 	// multi edit uses this...
 	if( !page->frame )
 	{
 		static _32 xofs, yofs;
-		PSI_CONTROL page_frame;
-      ProbeDisplaySize();
-		page_frame = MakeControl( NULL, menu_surface.TypeID, xofs, yofs, g.default_page_width, g.default_page_height, g.flags.multi_edit?(BORDER_NORMAL|BORDER_RESIZABLE):0 );
+		ProbeDisplaySize();
+		page->frame = MakeControl( NULL, new_menu_surface.TypeID, xofs, yofs, g.default_page_width, g.default_page_height, g.flags.multi_edit?(BORDER_NORMAL|BORDER_RESIZABLE):0 );
 		{
-			ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, page_frame );
-			xofs += 25;
-			yofs += 25;
-			//SetCommonUserData( page_frame, (PTRSZVAL)page );
-			SetCommonText( page_frame, page->title?page->title:WIDE( "Default Page" ) );
+			ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, ppage, page->frame );
+			(*ppage) = page;
 
-			SetCommonBorder( page_frame, BORDER_NORMAL|BORDER_RESIZABLE );
+			xofs += g.default_page_width;
+			yofs += 0;
+			//SetCommonUserData( page->frame, (PTRSZVAL)page );
+			SetCommonText( page->frame, page->title?page->title:WIDE( "Default Page" ) );
 
-			lprintf( "Display menu..." );
-			ProbeDisplaySize();
-			DisplayMenuCanvas( page_frame, NULL, g.default_page_width, g.default_page_height, g.default_page_x + xofs, g.default_page_y + yofs );
 #if 1
 			InitSpriteEngine();
 #endif
-			page->frame = page_frame;
-			lprintf( WIDE( "Page %p is frame %p" ), page, page_frame );
-			canvas->flags.bSuperMode = TRUE;
-			return page_frame;
+			lprintf( WIDE( "Page %p is frame %p" ), page, page->frame );
+			page->canvas->flags.bSuperMode = TRUE;
 		}
 	}
+	if( page->frame && show )
+	{
+		if( !page->flags.showing )
+		{
+			page->flags.showing = 1;
+			lprintf( "Display menu..." );
+			DisplayMenuCanvas( page->frame, page, NULL, 0, 0, 0, 0 );
+		}
+	}
+
 	return page->frame;
 }	 
 
-void InvokeFinishInit( void );
+void InvokeFinishInit( PCanvasData );
 
-PSI_CONTROL Init( LOGICAL bLoadConfig )
+PCanvasData Init( LOGICAL bLoadConfig )
 {
-	PSI_CONTROL pc_canvas;
+	PCanvasData canvas;
+	//PSI_CONTROL pc_canvas;
 	if( g.flags.restoreload )
 	{
 		TEXTCHAR *ext;
@@ -4691,7 +4759,7 @@ PSI_CONTROL Init( LOGICAL bLoadConfig )
 		g.flags.forceload = 1; // -restore implies -force
 	}
 
-	pc_canvas = SetupSystemsListAndGlobalSingleFrame();
+	canvas = SetupSystemsListAndGlobalSingleFrame();
 
 	// Load the previous configuration file...
 	// and make the controls found therein...
@@ -4700,46 +4768,46 @@ PSI_CONTROL Init( LOGICAL bLoadConfig )
 		if( bLoadConfig )
 		{
 			Banner2NoWaitAlpha( WIDE("Read config...") );
-			LoadButtonConfig( pc_canvas, g.config_filename );
+			LoadButtonConfig( canvas, g.config_filename );
 		}
 		// default images...
-		MakeGlareSet( WIDE("DEFAULT"), NULL, NULL, NULL, NULL );
+		MakeGlareSet( canvas, WIDE("DEFAULT"), NULL, NULL, NULL, NULL );
 		//SetGlareSetFlags( WIDE("DEFAULT"), 0 );
-		if( !( glare_set = CheckGlareSet( WIDE( "round" ) ) ) ||
+		if( !( glare_set = CheckGlareSet( canvas, WIDE( "round" ) ) ) ||
 			!( glare_set->mask || glare_set->up ||glare_set->down ||glare_set->glare )
 			)
 		{
-			MakeGlareSet( WIDE("round"), NULL
+			MakeGlareSet( canvas, WIDE("round"), NULL
 				, WIDE("%resources%/images/round_ridge_up.png")
 				, WIDE("%resources%/images/round_ridge_down.png")
 				, WIDE("%resources%/images/round_mask.png") );
-			SetGlareSetFlags( WIDE("round"), GLARE_FLAG_SHADE );
+			SetGlareSetFlags( canvas, WIDE("round"), GLARE_FLAG_SHADE );
 		}
-		if( !( glare_set = CheckGlareSet( WIDE( "square" ) ) )||
+		if( !( glare_set = CheckGlareSet( canvas, WIDE( "square" ) ) )||
 			!( glare_set->mask || glare_set->up ||glare_set->down ||glare_set->glare ) )
 		{
-			MakeGlareSet( WIDE("square")
+			MakeGlareSet( canvas, WIDE("square")
 				, WIDE("%resources%/images/glare.jpg")
 				, WIDE("%resources%/images/ridge_up.png")
 				, WIDE("%resources%/images/ridge_down.png")
 				, WIDE("%resources%/images/square_mask.png") );
-			SetGlareSetFlags( WIDE("square"), GLARE_FLAG_SHADE );
+			SetGlareSetFlags( canvas, WIDE("square"), GLARE_FLAG_SHADE );
 		}
-		if( !( glare_set = CheckGlareSet( WIDE("bicolor square") ) )||
+		if( !( glare_set = CheckGlareSet( canvas, WIDE("bicolor square") ) )||
 			!( glare_set->mask || glare_set->up ||glare_set->down ||glare_set->glare ) )
 		{
-			MakeGlareSet( WIDE("bicolor square")
+			MakeGlareSet( canvas, WIDE("bicolor square")
 				, NULL
 				, WIDE("%resources%/images/defaultLens.png")
 				, WIDE("%resources%/images/pressedLens.png")
 				, WIDE("%resources%/images/colorLayer.png") );
-			SetGlareSetFlags( WIDE("bicolor square"), GLARE_FLAG_MULTISHADE );
+			SetGlareSetFlags( canvas, WIDE("bicolor square"), GLARE_FLAG_MULTISHADE );
 		}
 
 		if( bLoadConfig )
 		{
 			Banner2NoWaitAlpha( WIDE("Finish Config...") );
-			InvokeFinishInit();
+			InvokeFinishInit( canvas );
 		}
 		if( g.flags.bLogNames )
 		{
@@ -4751,7 +4819,7 @@ PSI_CONTROL Init( LOGICAL bLoadConfig )
 		xlprintf(LOG_UPDATE_AND_REFRESH_LEVEL)( WIDE("-------------------------------------- BEGIN CHANGE PAGE ----------------------------------------------") );
 #endif
 	}
-	return pc_canvas;
+	return canvas;
 }
 
 
@@ -4776,9 +4844,10 @@ ATEXIT_PRIORITY( ExitMisc, ATEXIT_PRIORITY_DEFAULT + 1 )
 #endif
 			LIST_FORALL( g.frames, idx_canvas, PSI_CONTROL, pc_canvas )
 			{
-				InterShell_DisablePageUpdate( pc_canvas, TRUE );
+				//InterShell_DisablePageUpdate( pc_canvas, TRUE );
 				LIST_FORALL( g.all_pages, idx2, PPAGE_DATA, page )
 				{
+					/*
 					ChangePages( page->canvas->pc_canvas, page );
 					LIST_FORALL( page->controls, idx, PMENU_BUTTON, button )
 					{
@@ -4790,9 +4859,9 @@ ATEXIT_PRIORITY( ExitMisc, ATEXIT_PRIORITY_DEFAULT + 1 )
 					}
 					else
 						page->frame = NULL;
+					*/
 				}
-				InterShell_DisablePageUpdate( pc_canvas, TRUE );
-				//DestroyFrame( &g.single_frame );
+				//InterShell_DisablePageUpdate( pc_canvas, TRUE );
 			}
 		}
 		else
@@ -4817,7 +4886,7 @@ static PTRSZVAL OnCreateMenuButton( WIDE( "InterShell/Show Names" ) )( PMENU_BUT
 {
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_ORANGE, BASE_COLOR_BLACK, 0 );
 	button->text = StrDup( WIDE("Show_Names") );
-	button->glare_set = GetGlareSet( WIDE("bicolor square") );
+	button->glare_set = GetGlareSet( button->parent_canvas, WIDE("bicolor square") );
 	return (PTRSZVAL)button;
 }
 
@@ -4834,7 +4903,7 @@ static PTRSZVAL OnCreateMenuButton( WIDE( "InterShell/Edit Options" ) )( PMENU_B
 {
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_ORANGE, BASE_COLOR_BLACK, 0 );
 	button->text = StrDup( WIDE("Edit_Options") );
-	button->glare_set = GetGlareSet( WIDE("bicolor square") );
+	button->glare_set = GetGlareSet( button->parent_canvas, WIDE("bicolor square") );
 	return (PTRSZVAL)button;
 }
 
@@ -4847,7 +4916,7 @@ static PTRSZVAL OnCreateMenuButton( WIDE( "InterShell/Generate Exception" ) )( P
 {
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_ORANGE, BASE_COLOR_BLACK, 0 );
 	button->text = StrDup( WIDE("Generate_Exception") );
-	button->glare_set = GetGlareSet( WIDE("bicolor square") );
+	button->glare_set = GetGlareSet( button->parent_canvas, WIDE("bicolor square") );
 	return (PTRSZVAL)button;
 }
 
@@ -4860,7 +4929,7 @@ static PTRSZVAL OnCreateMenuButton( WIDE( "InterShell/Debug Break" ) )( PMENU_BU
 {
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_ORANGE, BASE_COLOR_BLACK, 0 );
 	button->text = StrDup( WIDE("Debug_Break") );
-	button->glare_set = GetGlareSet( WIDE("bicolor square") );
+	button->glare_set = GetGlareSet( button->parent_canvas, WIDE("bicolor square") );
 	return (PTRSZVAL)button;
 }
 
@@ -4892,14 +4961,16 @@ static PTRSZVAL OnCreateMenuButton( WIDE( "Quit Application" ) )( PMENU_BUTTON b
 {
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_RED, BASE_COLOR_BLACK, 0 );
 	button->text = StrDup( WIDE("Quit") );
-	button->glare_set = GetGlareSet( WIDE("bicolor square") );
+	button->glare_set = GetGlareSet( button->parent_canvas, WIDE("bicolor square") );
 	return (PTRSZVAL)button;
 }
 //------------------------------------------------------
 
-void InterShell_SetTheme( PSI_CONTROL pc_canvas, int ID )
+void InterShell_SetTheme( PCanvasData canvas, int ID )
 {
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
+	//ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc_canvas );
+	//PCanvasData canvas = (*page)->canvas;
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 
 	StoreTheme( canvas );
 	if( ID != g.theme_index )
@@ -4916,14 +4987,14 @@ static void OnKeyPressEvent( WIDE( "InterShell/Next Theme" ) )( PTRSZVAL psv )
 	int tmp = g.theme_index + 1;
 	if( tmp >= g.max_themes )
 		tmp = 0;
-	InterShell_SetTheme( ((PMENU_BUTTON)psv)->canvas->pc_canvas, tmp );
+	InterShell_SetTheme( ((PMENU_BUTTON)psv)->parent_canvas, tmp );
 }
 
 static PTRSZVAL OnCreateMenuButton( WIDE( "InterShell/Next Theme" ) )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_ORANGE, BASE_COLOR_BLACK, 0 );
 	button->text = StrDup( WIDE("Next_Theme") );
-	button->glare_set = GetGlareSet( WIDE("bicolor square") );
+	button->glare_set = GetGlareSet( button->parent_canvas, WIDE("bicolor square") );
 	return (PTRSZVAL)button;
 }
 
@@ -4944,7 +5015,7 @@ void InvokeFinishAllInit( void )
 	}
 }
 
-void InvokeFinishInit( void )
+void InvokeFinishInit( PCanvasData canvas )
 {
 	CTEXTSTR name;
 	PCLASSROOT data = NULL;
@@ -4953,11 +5024,11 @@ void InvokeFinishInit( void )
 		name;
 		name = GetNextRegisteredName( &data ) )
 	{
-		void (CPROC*f)(void);
+		void (CPROC*f)(PCanvasData);
 		//snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/common/save common/%s" ), name );
-		f = GetRegisteredProcedure2( (CTEXTSTR)data, void, name, (void) );
+		f = GetRegisteredProcedure2( (CTEXTSTR)data, void, name, (PCanvasData) );
 		if( f )
-			f();
+			f(canvas);
 	}
 	if( g.pSelectionMenu )
 	{
@@ -5029,10 +5100,10 @@ void AddGlareLayer( PCanvasData canvas, Image image )
 		lprintf( "glare is %p (%p)", canvas->edit_glare, GetNativeHandle( canvas->edit_glare ) );
 		SetRendererTitle( canvas->edit_glare, "Edit Glare" );
 		canvas->edit_glare_frame = MakeNamedControl( NULL, "Edit Glare", image->x, image->y, image->width, image->height, -1 );
-		BindEventToKey( canvas->edit_glare, KEY_ESCAPE, 0, EventAbortConfigureKeys, (PTRSZVAL)canvas->pc_canvas );
+		BindEventToKey( canvas->edit_glare, KEY_ESCAPE, 0, EventAbortConfigureKeys, (PTRSZVAL)page );
 		AttachFrameToRenderer( canvas->edit_glare_frame, canvas->edit_glare );
 		SetRedrawHandler( canvas->edit_glare, DrawEditGlare, (PTRSZVAL)canvas );
-		SetMouseHandler( canvas->edit_glare, MouseEditGlare, (PTRSZVAL)canvas );
+		SetMouseHandler( canvas->edit_glare, MouseEditGlare, (PTRSZVAL)ppage );
 		//lprintf( "MAKE TOPMOST" );
 		MakeTopmost( canvas->edit_glare );
 		//lprintf( "Is it topmost?" );
@@ -5045,8 +5116,8 @@ void AddGlareLayer( PCanvasData canvas, Image image )
 int restart( void )
 {
 	static int first_restart = 1;
-	PSI_CONTROL pc_canvas = Init( TRUE );
-	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
+	PCanvasData canvas = Init( TRUE );
+	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 #ifdef DEBUG_BACKGROUND_UPDATE
 	xlprintf(LOG_UPDATE_AND_REFRESH_LEVEL)( WIDE("Displaying the frame on the real display...") );
 #endif
@@ -5056,9 +5127,9 @@ int restart( void )
 		{
 			//lprintf( "Making sure we start from NO Page, in case the first page is protected..." );
 			//lprintf( "Should we have a rule for default forward, backward, first, last?  From NULL? from another?" );
-			HidePageEx( pc_canvas );
+			HidePageEx( canvas );
 			canvas->current_page = NULL;
-			ChangePages( pc_canvas, canvas->default_page );
+			ChangePages( canvas->default_page );
 		}
 	}
 	InvokeStartupMacro();
@@ -5069,11 +5140,23 @@ int restart( void )
 	// have at least this one.
 	do
 	{
-		InterShell_DisablePageUpdate( pc_canvas, FALSE );
+		//InterShell_DisablePageUpdate( pc_canvas, FALSE );
 		if( g.flags.multi_edit )
 			SetCommonBorder( canvas->default_page->frame, BORDER_NORMAL|BORDER_RESIZABLE );
+
 		ProbeDisplaySize();
-		DisplayMenuCanvas( canvas->default_page->frame, NULL, g.default_page_width, g.default_page_height, g.default_page_x, g.default_page_y );
+		if( 1 )
+		{
+			INDEX idx;
+			PPAGE_DATA page;
+			LIST_FORALL( canvas->pages, idx, PPAGE_DATA, page )
+			{
+				DisplayMenuCanvas( page->frame, page, NULL, 0, 0, 0, 0 );
+			}
+		}
+		else
+			DisplayMenuCanvas( canvas->default_page->frame, canvas->default_page, NULL, g.default_page_width, g.default_page_height, g.default_page_x, g.default_page_y );
+
 		if( !g.flags.multi_edit )
 		{
 #ifndef __NO_ANIMATION__
@@ -5083,7 +5166,7 @@ int restart( void )
 			//WakeableSleep( 250 );
 			if( g.flags.bTopmost )
 			{
-				MakeTopmost( canvas->renderer );
+				MakeTopmost( canvas->default_page->renderer );
 			}
 		}
 		else
@@ -5092,7 +5175,7 @@ int restart( void )
 			PPAGE_DATA page;
 			LIST_FORALL( canvas->pages, idx, PPAGE_DATA, page )
 			{
-				RestorePageEx( GetCanvas( page->frame ), page, TRUE, TRUE );
+				RestorePageEx( canvas, page, TRUE, TRUE, canvas->flags.wide_aspect );
 			}
 		}
 		if( first_restart )
@@ -5457,6 +5540,7 @@ PUBLIC( int, Main)( int argc, TEXTCHAR **argv, int bConsole )
 	}
 	else
 	{
+		g.flags.bExit = 0;
 		restart(); // actually start, but it's oneshot.
 	}
 	return 1;
@@ -5545,7 +5629,7 @@ namespace InterShell
 
 			Banner2NoWaitAlpha( WIDE("Finish Config...") );
 			/* this builds menus and junk based on plugins which have been loaded... */
-			InvokeFinishInit();
+			InvokeFinishInit( this_frame );
 			InvokeFinishAllInit();
 			InvokeStartupMacro();
 			{
@@ -5663,6 +5747,7 @@ GetCommonButtonControls
 																				 , GetSecurityModules
 
 															 , InterShell_SetCloneButton
+															 , GetCanvasEx
 };
 
 static POINTER CPROC LoadInterShellInterface( void )
@@ -5746,7 +5831,7 @@ PRIORITY_PRELOAD( RegisterInterShellInterface, DEFAULT_PRELOAD_PRIORITY-4 )
 	EasyRegisterResource( WIDE( "intershell/glareset" ), GLARESET_CREATE, NORMAL_BUTTON_NAME );
 	EasyRegisterResource( WIDE( "intershell/glareset" ), GLARESET_ADD_THEME, NORMAL_BUTTON_NAME );
 
-	DoRegisterControl( &menu_surface ); 
+	DoRegisterControl( &new_menu_surface ); 
 	DoRegisterControl( &menu_edit_glare );
 
 	InitInterShell();

@@ -496,7 +496,7 @@ static PTRSZVAL OnCreateControl( WIDE( "Keypad 2" ) )( PSI_CONTROL frame, S_32 x
 		if( !page_keypad )
 		{
 			page_keypad = New( PAGE_KEYPAD );
-			page_keypad->page = ShellGetCurrentPage( frame );
+			page_keypad->page = NULL;//ShellGetCurrentPage( frame );
 			page_keypad->keypad_type = NULL; // no type... thereofre is default.
 			page_keypad->keypad = NULL; // no control
 			page_keypad->x = x;
@@ -529,7 +529,7 @@ static PTRSZVAL OnCreateControl( WIDE( "Keypad 2" ) )( PSI_CONTROL frame, S_32 x
 	return (PTRSZVAL)page_keypad;
 }
 
-static int OnChangePage( WIDE( "Keypad 2" ) )( PSI_CONTROL pc_canvas )
+static int OnChangePage( WIDE( "Keypad 2" ) )( PCanvasData pc_canvas )
 {
 	PPAGE_KEYPAD keypad;
 	INDEX idx;
@@ -667,7 +667,7 @@ static PTRSZVAL OnCreateControl( WIDE( "Keyboard 2" ) )( PSI_CONTROL frame, S_32
 		if( !page_keypad )
 		{
 			page_keypad = New( PAGE_KEYPAD );
-			page_keypad->page = ShellGetCurrentPage(frame);
+			page_keypad->page = NULL;//ShellGetCurrentPage(frame);
 			page_keypad->keypad_type = NULL; // no type... thereofre is default.
 			page_keypad->keypad = NULL; // no control
 			page_keypad->x = x;
@@ -755,7 +755,7 @@ static PTRSZVAL OnCreateMenuButton( WIDE( "Keypad Hotkey 2" ) )( PMENU_BUTTON bu
 static void CPROC PickHotkeyFont( PTRSZVAL psv, PSI_CONTROL pc )
 {
 	PHOTKEY hotkey = (PHOTKEY)psv;
-	SFTFont *font = SelectACanvasFont( GetFrame( pc ), GetFrame( pc ), &hotkey->preset_name );
+	SFTFont *font = SelectACanvasFont( GetCanvas( pc ), GetFrame( pc ), &hotkey->preset_name );
 
 	//PickScaledFont( 0, 0, &g.width_scale, &g.height_scale, &page_label->fontdatalen, &page_label->fontdata, (PCOMMON)GetFrame(pc) );
 	if( font )

@@ -24,6 +24,11 @@ namespace sack {
 	namespace intershell {
 #endif
 
+#ifndef DEFINED_CANVAS_DATA
+#define DEFINED_CANVAS_DATA
+typedef struct CanvasData  CanvasData, *PCanvasData;
+#endif
+
 #ifndef MENU_BUTTON_DEFINED
 #define MENU_BUTTON_DEFINED
 		/* Pointer to the basic control that InterShell uses to track
@@ -119,7 +124,7 @@ namespace sack {
 
 // static int OnChangePage(WIDE(""))( PSI_CONTROL pc_canvas )
 #define OnChangePage(name) \
-	  DefineRegistryMethod(TASK_PREFIX,ChangePage,WIDE( "common" ),WIDE( "change page" ),name WIDE( "_on_change_page" ),int,(PSI_CONTROL))
+	  DefineRegistryMethod(TASK_PREFIX,ChangePage,WIDE( "common" ),WIDE( "change page" ),name WIDE( "_on_change_page" ),int,(PCanvasData))
 
 // static void OnLoadCommon(WIDE(""))(PCONFIG_HANDLER pch )
 // can use InterShell_GetCurrentLoadingCanvas() to get the current canvas being loaded
@@ -141,7 +146,7 @@ namespace sack {
 //
 // static void OnFinishInit(WIDE(""))(PSI_CONTROL pc_canvas);
 #define OnFinishInit( name ) \
-      DefineRegistryMethod(TASK_PREFIX,FinishInit,WIDE( "common" ),WIDE( "finish init" ),name WIDE( "_on_finish_init" ),void,(PSI_CONTROL))
+      DefineRegistryMethod(TASK_PREFIX,FinishInit,WIDE( "common" ),WIDE( "finish init" ),name WIDE( "_on_finish_init" ),void,(PCanvasData))
 
 // invoked when ALL initialzation is run, just after the menu is shown.  (tasks, first load)
 #define OnFinishAllInit( name ) \
@@ -227,19 +232,19 @@ namespace sack {
  static void OnThemeAdded( name )( int theme_id )
  */
 #define OnThemeAdded( name ) \
-	__DefineRegistryMethod(TASK_PREFIX,ThemeAdded,WIDE( "common" ),WIDE( "theme/add" ),WIDE( "Theme Add:" )name,void,(int theme_id),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,ThemeAdded,WIDE( "common" ),WIDE( "theme/add" ),WIDE( "Theme Add:" )name,void,(PCanvasData canvas, int theme_id),__LINE__)
 
 /* Intended use: Theme is changing, the theme_id that is given was the prior theme set
  static void OnThemeChanging( name )( int theme_id )
 */
 #define OnThemeChanging( name ) \
-	__DefineRegistryMethod(TASK_PREFIX,ThemeChanging,WIDE( "common" ),WIDE( "theme/changing" ),WIDE( "Theme Changing:" )name,void,(int theme_id),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,ThemeChanging,WIDE( "common" ),WIDE( "theme/changing" ),WIDE( "Theme Changing:" )name,void,(PCanvasData canvas, int theme_id),__LINE__)
 
 /* Intended use: Receive event that theme has changed, use theme_id to update graphics if available
  static void OnThemeChanging( name )( int theme_id )
 */
 #define OnThemeChanged( name ) \
-	__DefineRegistryMethod(TASK_PREFIX,ThemeChanged,WIDE( "common" ),WIDE( "theme/changed" ),WIDE( "Theme Change:" )name,void,(int theme_id),__LINE__)
+	__DefineRegistryMethod(TASK_PREFIX,ThemeChanged,WIDE( "common" ),WIDE( "theme/changed" ),WIDE( "Theme Change:" )name,void,(PCanvasData canvas, int theme_id),__LINE__)
 
 #ifdef __cplusplus
 	} }

@@ -93,7 +93,7 @@ static void UpdateCalendar( LOGICAL bSetVariablesOnly )
 
 	if( !bSetVariablesOnly )
 	{
-		PSI_CONTROL canvas = NULL;
+		PCanvasData canvas = NULL;
 		LabelVariablesChanged( l.variables );
 		l.current_update++;
 		l.current_index = 0;
@@ -137,7 +137,7 @@ PRELOAD( InitCalendar )
 	UpdateCalendar( TRUE );
 }
 
-static int OnChangePage( WIDE("Calendar") )( PSI_CONTROL pc_canvas )
+static int OnChangePage( WIDE("Calendar") )( PCanvasData pc_canvas )
 {
 	lprintf( WIDE("Empty List") );
 	EmptyList( &l.controls );

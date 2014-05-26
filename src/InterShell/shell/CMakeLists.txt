@@ -7,11 +7,7 @@
 set( project InterShell_console  )
 
 
-set(SOURCES
-  ${FIRST_GCC_PROGRAM_SOURCE}
-   ../../utils/runner/runwin.c 
-  ${LAST_GCC_PROGRAM_SOURCE}
-)
+set(SOURCES ../../utils/runner/runwin.c  )
 
 if( __CLR__ )
 add_definitions( 
