@@ -391,21 +391,37 @@ void drawCamera( struct display_camera *camera )
    // skip the 'default' camera.
 	// if plugins or want update, don't continue.
 	if( !camera->plugins && !l.flags.bUpdateWanted )
+	{
+		if( l.flags.bLogRenderTiming )
+			lprintf( WIDE("nothing to do...") );
 		return;
+	}
 	if( !camera->hVidCore || !camera->hVidCore->flags.bReady )
+	{
+		if( l.flags.bLogRenderTiming )
+			lprintf( WIDE("Open Camera...") );
+		OpenCamera( camera );
+	}
+	if( !camera->hVidCore || !camera->hVidCore->flags.bReady )
+	{
+		if( l.flags.bLogRenderTiming )
+			lprintf( WIDE("not ready to draw camera.... %p"), camera->hVidCore );
 		return;
+	}
 	if( camera->flags.first_draw )
 	{
 		struct plugin_reference *reference;
 		INDEX idx;
-		//lprintf( WIDE("camera is in first_draw...") );
+		if( l.flags.bLogRenderTiming )
+			lprintf( WIDE("camera is in first_draw...") );
 		LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
 		{
 			//lprintf( WIDE("so reset plugin... is there one?") );
 			reference->flags.did_first_draw = 0;
 		}
 	}
-	//lprintf( WIDE("Render camera %p"), camera );
+	if( l.flags.bLogRenderTiming )
+		lprintf( WIDE("Render camera %p"), camera );
 	// drawing may cause subsequent draws; so clear this first
 	Render3D( camera );
 	camera->flags.first_draw = 0;
@@ -421,20 +437,32 @@ LOGICAL ProcessGLDraw( LOGICAL draw_all )
 	{
 		INDEX idx;
 		Update3dProc proc;
+		if( l.flags.bLogRenderTiming )
+			lprintf( WIDE("check plugin updates") );
 		LIST_FORALL( l.update, idx, Update3dProc, proc )
 		{
+			//lprintf( "Calling 3d callback...%p", proc );
 			if( proc( l.origin ) )
+			{
+            //lprintf( "update call indicates it would like to draw..." );
 				l.flags.bUpdateWanted = TRUE;
+			}
 		}
 	}
 
 	// no reason to check this if an update is already wanted.
 	if( !l.flags.bUpdateWanted )
 	{
+		if( l.flags.bLogRenderTiming )
+			lprintf( "Check if a render surface wants to draw..." );
 		// set l.flags.bUpdateWanted for window surfaces.
 		WantRender3D();
 	}
-	if( draw_all )
+	else
+		if( l.flags.bLogRenderTiming )
+			lprintf( "Update is wanted already..." );
+
+	if( draw_all || l.flags.bUpdateWanted )
 	{
 		struct display_camera *camera;
 		INDEX idx;
@@ -443,6 +471,8 @@ LOGICAL ProcessGLDraw( LOGICAL draw_all )
 			// skip the 'default' camera.
 			if( !idx )
 				continue;
+			if( l.flags.bLogRenderTiming )
+				lprintf( "draw a camera %p", camera );
 			drawCamera( camera );
 		}
 		l.flags.bUpdateWanted = 0;

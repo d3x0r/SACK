@@ -1,4 +1,5 @@
-
+//#define DEBUG_OUTPUT
+//#define DEBUG_SCREEN_CHANGES
 
 #include "Android_local.h"
 
@@ -197,7 +198,7 @@ static PRENDERER CPROC AndroidANW_OpenDisplayAboveUnderSizedAt( _32 attributes, 
 
 
 	Renderer->image = MakeImageFileEx( width, height DBG_SRC );
-	//lprintf( "clearimage.. %p", Renderer );
+	lprintf( "clearimage.. %p", Renderer );
 	ClearImageTo( Renderer->image, 0 );
 	return (PRENDERER)Renderer;
 }
@@ -229,6 +230,7 @@ static void CPROC  AndroidANW_CloseDisplay ( PRENDERER Renderer )
 	real_w = r->w;
 	real_h = r->h;
 
+   lprintf( "unlink %p from %p %p %p", r, l.top, r->above, r->under );
 	if( l.top == r )
 		l.top = r->above;
 	if( l.bottom == r )
@@ -280,8 +282,10 @@ static void CPROC UpdateDisplayPortionRecurse( 	ANativeWindow_Buffer *buffer
 															, PVPRENDER r, S_32 x, S_32 y, _32 width, _32 height )
 {
 	// no-op; it will ahve already displayed(?)
-   //lprintf( "recurse %p", r );
-	//lprintf( "recurse %p  %d,%d  %d,%d    %d,%d   %d,%d", r, x, y, width, height, r?r->x:x, r?r->y:y, r?r->w:width, r?r->h:height );
+	//lprintf( "recurse %p", r );
+#ifdef DEBUG_OUTPUT
+	lprintf( "recurse %p %d %d,%d  %d,%d    %d,%d   %d,%d", r, buffer->stride, x, y, width, height, r?r->x:x, r?r->y:y, r?r->w:width, r?r->h:height );
+#endif
 	if( r )
 	{
 
@@ -406,9 +410,12 @@ static void CPROC UpdateDisplayPortionRecurse( 	ANativeWindow_Buffer *buffer
 			|| ( r->attributes & DISPLAY_ATTRIBUTE_LAYERED ) )
 		{
 			Image tmpout;
-		iterate:
-			tmpout = BuildImageFileEx( buffer->bits, buffer->stride, l.default_display_y DBG_SRC );
-			//lprintf( "Update %p %d,%d  to %d,%d    %d,%d", r, out_x, out_y, x, y, width, height );
+iterate:
+			tmpout = BuildImageFileEx( (PCOLOR)(((PCDATA)buffer->bits) + ( l.display_skip_top * buffer->stride ))
+											 , buffer->stride, l.default_display_y DBG_SRC );
+#ifdef DEBUG_OUTPUT
+			lprintf( "Update %p %d,%d  to %d,%d    %d,%d (skip %d)", r, out_x, out_y, x, y, width, height, l.display_skip_top * buffer->stride );
+#endif
 			//LogBinary( r->image->image, 256 );
 			if( r->attributes & DISPLAY_ATTRIBUTE_LAYERED )
 			//lprintf( "Update %p %d,%d  to %d,%d    %d,%d", r, out_x, out_y, x, y, width, height );
@@ -416,25 +423,65 @@ static void CPROC UpdateDisplayPortionRecurse( 	ANativeWindow_Buffer *buffer
 				//lprintf( "Update %p %d,%d  to %d,%d    %d,%d", r, out_x, out_y, x, y, width, height );
 				//lprintf( "alpha output" );
 				if( r->flags.fullscreen && !r->flags.not_fullscreen && r == l.full_screen_display )
-					BlotScaledImageSizedEx( tmpout, r->image, 0, 0, l.default_display_x, l.default_display_y, 0, 0, width, height, ALPHA_TRANSPARENT, BLOT_COPY );
+				{
+					BlotScaledImageSizedEx( tmpout, r->image, 0, 0 - l.display_skip_bottom, l.default_display_x, l.default_display_y, 0, 0, width, height, ALPHA_TRANSPARENT, BLOT_COPY );
+				}
 				else
-					BlotImageSizedEx( tmpout, r->image, x, y, out_x, out_y, width, height, ALPHA_TRANSPARENT, BLOT_COPY );
+					BlotImageSizedEx( tmpout, r->image, x, y - l.display_skip_bottom, out_x, out_y, width, height, ALPHA_TRANSPARENT, BLOT_COPY );
 			}
 			else
 			{
+				//lprintf( "Update %p %d,%d  to %d,%d    %d,%d  %d,%d  %d and %d", r
+				//	, out_x, out_y
+				//	, x, y
+				//	, width, height
+				//	, l.default_display_x, l.default_display_y
+				//	, l.display_skip_bottom, l.display_skip_top );
+				//lprintf( "outputs are %p %p", GetImageSurface( tmpout ), GetImageSurface( r->image ) );
+				//lprintf( "a is %d,%d  and %d,%d", tmpout->width, tmpout->height, r->image->width, r->image->height );
 				if( r->flags.fullscreen && !r->flags.not_fullscreen && r == l.full_screen_display )
-					BlotScaledImageSizedEx( tmpout, r->image, 0, 0, l.default_display_x, l.default_display_y, 0, 0, width, height, 0, BLOT_COPY );
+				{
+					{
+						_32 w;
+						_32 h;
+						S_32 x, y;
+						w =  r->image->width * l.default_display_x / r->image->width;
+						h =  r->image->height * l.default_display_x / r->image->width;
+						if( h > l.default_display_y )
+						{
+							w =  r->image->width * l.default_display_y / r->image->height;
+							h =  r->image->height * l.default_display_y / r->image->height;
+						}
+						y = ( l.default_display_y - h ) / 2;
+						x = ( l.default_display_x - w ) / 2;
+#ifdef DEBUG_OUTPUT
+						lprintf( "output scaled thing... %d,%d  %d,%d     %d,%d  %d,%d"
+								 , x, y - l.display_skip_bottom, w, h, 0, 0, width, height);
+#endif
+						BlotScaledImageSizedEx( tmpout, r->image, x, y - l.display_skip_bottom, w, h, 0, 0, r->image->width, r->image->height, 0, BLOT_COPY );
+						l.flags.full_screen_renderer = 0;
+                  UpdateDisplayPortionRecurse( buffer, r->above, 0, 0, l.default_display_x, y );
+                  UpdateDisplayPortionRecurse( buffer, r->above, x+w, y, l.default_display_x - (x+w), h );
+                  UpdateDisplayPortionRecurse( buffer, r->above, 0, y, x, h );
+						UpdateDisplayPortionRecurse( buffer, r->above, 0, (y+h), l.default_display_x, l.default_display_y - (y+h) );
+						l.flags.full_screen_renderer = 1;
+					}
+				}
 				else
-					BlotImageSizedEx( tmpout, r->image, x, y, out_x, out_y, width, height, 0, BLOT_COPY );
+					BlotImageSizedEx( tmpout, r->image, x, y - l.display_skip_bottom, out_x, out_y, width, height, 0, BLOT_COPY );
 			}
 			UnmakeImageFile( tmpout );
 		}
 		else
 		{
 			//lprintf( "update full image..." );
-			//lprintf( "Update all would be ... %d  %d", buffer->stride, r->image->pwidth );
+			//lprintf( "Update all would be ... %d  %d (%d lines)", buffer->stride, r->image->pwidth, ( height - (l.display_skip_top + l.display_skip_bottom) ) );
 			if( buffer->stride == r->image->pwidth )
-				memcpy(buffer->bits , r->image->image, height * width * 4 );
+			{
+				memcpy( ((PCDATA)buffer->bits) + ( l.display_skip_top * buffer->stride )
+						, r->image->image
+						, ( height - (l.display_skip_top + l.display_skip_bottom) ) * width * 4 );
+			}
 			else
 			{
 				goto iterate;
@@ -459,8 +506,25 @@ static void CPROC UpdateDisplayPortionRecurse( 	ANativeWindow_Buffer *buffer
 			x = 0;
 		}
 
+		if( l.default_background )
 		{
-			_32 *base_bits = ((_32*)buffer->bits) + buffer->stride * ( y ) + x;
+			Image tmpout;
+			//lprintf( "output background, %d", buffer->stride );
+			tmpout = BuildImageFileEx( (PCOLOR)(((PCDATA)buffer->bits) + ( l.display_skip_top * buffer->stride ))
+											 , buffer->stride, l.default_display_y DBG_SRC );
+
+			BlotScaledImageSizedEx( tmpout, l.default_background
+										 , x, y - l.display_skip_bottom
+										 , width, height
+										 , x * l.default_background->width / l.default_display_x
+										 , y * l.default_background->height / l.default_display_y
+										 , width * l.default_background->width / l.default_display_x
+										 , height * l.default_background->height / l.default_display_y
+										 , 0, BLOT_COPY );
+		}
+		else
+		{
+			_32 *base_bits = ((_32*)buffer->bits) + buffer->stride * ( y + l.display_skip_top ) + x;
 			//lprintf( "buffer is %d %d buffer stride is %d  pwidth is %d width is %d", bounds.top, bounds.left, buffer.stride, ((PVPRENDER)r)->image->pwidth, width );
 			for( row = 0; row < height; row++ )
 			{
@@ -483,7 +547,9 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 	ANativeWindow_Buffer buffer;
 	S_32 out_x;
 	S_32 out_y;
-	//_lprintf(DBG_RELAY)( "update begin %p %d,%d  %d,%d", l.displayWindow, x, y, width, height );
+#ifdef DEBUG_OUTPUT
+	_lprintf(DBG_RELAY)( "update begin %p %d,%d  %d,%d", l.displayWindow, x, y, width, height );
+#endif
 	if( l.flags.display_closed )
 	{
 		//lprintf( "We closed...; no draw" );
@@ -523,13 +589,13 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 	}
 	if( out_x >= l.default_display_x )
 	{
-      //lprintf( "display x is ... %d", l.default_display_x );
-      return;
+		//lprintf( "display x is ... %d", l.default_display_x );
+		return;
 	}
 	if( out_y >= l.default_display_y )
 	{
-      //lprintf( "display y is ... %d", l.default_display_y );
-      return;
+		//lprintf( "display y is ... %d", l.default_display_y );
+		return;
 	}
 	if( out_x < 0 )
 	{
@@ -554,7 +620,7 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 	}
 	//lprintf( "enter crit..." );
 	EnterCriticalSec( &l.cs_update );
-   // also check closed here; wasn't in the protected section before; and now it may be changed.
+	// also check closed here; wasn't in the protected section before; and now it may be changed.
 	if( l.flags.display_closed )
 	{
 		//lprintf( "We closed...; no draw" );
@@ -562,35 +628,80 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 		return;
 	}
 
-	// chop the part that's off the right side ....
-	if( ( out_x + (int)width ) > l.default_display_x )
+	if( r && ( ((PVPRENDER)r)->flags.fullscreen && !((PVPRENDER)r)->flags.not_fullscreen ) )
 	{
-      //lprintf( "Fix width ..." );
-		width = l.default_display_x - out_x;
+		// if the renderer is 1280x720 on a screen that's 720x1280
+      // then clipping to fit would be 720x720 output *fail*
+#ifdef DEBUG_OUTPUT
+		lprintf( "lie about full screen..." );
+#endif
+		out_x = 0;
+		out_y = 0;
+		width = l.default_display_x;
+		height = l.default_display_y;
 	}
-	// chop the part that's off the bottom side ....
-	if( ( out_y + (int)height ) > l.default_display_y )
+	else
 	{
-		height = l.default_display_y - out_y;
+		// chop the part that's off the right side ....
+		if( ( out_x + (int)width ) > l.default_display_x )
+		{
+#ifdef DEBUG_OUTPUT
+			lprintf( "Fix width ..." );
+#endif
+			width = l.default_display_x - out_x;
+		}
+		// chop the part that's off the bottom side ....
+		if( ( out_y + (int)height ) > l.default_display_y )
+		{
+			height = l.default_display_y - out_y;
+		}
 	}
 
 	if( !l.flags.paused )
 	{
 		ARect bounds;
+		int a;
+      int attempts = 0;
 		// can still lock just the region we needed...
 		bounds.left = out_x;
-		bounds.top = out_y;
+		bounds.top = out_y + l.display_skip_top;
 		bounds.right = out_x + width;
-		bounds.bottom = out_y + height;
+		bounds.bottom = out_y + height + l.display_skip_top;
+		//lprintf( "lock is %d,%d %d,%d", bounds.left, bounds.top, bounds.right, bounds.bottom );
 		//_lprintf(DBG_RELAY)( "Native window lock... %d,%d  %d,%d", out_x, out_y, width, height );
-		ANativeWindow_lock( l.displayWindow, &buffer, &bounds );
-		//lprintf( "---V Update screen %p %p %d,%d  %d,%d   %d,%d   %d,%d"
-		//		 , r, l.top, out_x, out_y, out_y+width, out_y+height
-		//		 , bounds.left, bounds.top, bounds.right, bounds.bottom
-		//		 );
-		UpdateDisplayPortionRecurse( &buffer, l.top, out_x, out_y, width, height );
-		//lprintf( "---^ And the final unlock...." );
-		ANativeWindow_unlockAndPost(l.displayWindow);
+		do
+		{
+		a = ANativeWindow_lock( l.displayWindow, &buffer, &bounds );
+		if( a == 0 )
+		{
+			//lprintf( "buffer stride result is %d    %d", buffer.stride, a );
+			//lprintf( "---V Update screen %p %p %d,%d  %d,%d   %d,%d   %d,%d"
+			//		 , r, l.top, out_x, out_y, out_y+width, out_y+height
+			//		 , bounds.left, bounds.top, bounds.right, bounds.bottom
+			//		 );
+         //lprintf( "the only one..." );
+			UpdateDisplayPortionRecurse( &buffer, l.top, out_x, out_y, width, height );
+			//lprintf( "---^ And the final unlock...." );
+			ANativeWindow_unlockAndPost(l.displayWindow);
+         break;
+		}
+		else
+		{
+         /*
+			attempts++;
+			if( attempts > 10 )
+			{
+				lprintf( "Okay give up on this draw (BLACK SCREEN)" );
+            break;
+				}
+            */
+			lprintf( "lock failed." );
+			//Relinquish();
+         //contineu;
+         break;;
+		}
+		}
+      while( 1 );
 	}
 	//else
 	//   lprintf( "Display is paused..." );
@@ -845,7 +956,13 @@ static void CPROC AndroidANW_HideDisplay	 ( PRENDERER r )
 {
 	((PVPRENDER)r)->flags.hidden = 1;
 	//lprintf( "hding display %d,%d  %d,%d", ((PVPRENDER)r)->x, ((PVPRENDER)r)->y, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h );
-	AndroidANW_UpdateDisplayPortionEx( NULL, ((PVPRENDER)r)->x, ((PVPRENDER)r)->y, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h DBG_SRC );
+	if( ((PVPRENDER)r)->flags.fullscreen && !((PVPRENDER)r)->flags.not_fullscreen )
+	{
+		l.flags.full_screen_renderer = 0;
+		AndroidANW_UpdateDisplayPortionEx( (PRENDERER)l.top, - (l.top?l.top->x:0), - (l.top?l.top->y:0), l.default_display_x, l.default_display_y DBG_SRC );
+	}
+	else
+		AndroidANW_UpdateDisplayPortionEx( (PRENDERER)l.top, ((PVPRENDER)r)->x - (l.top?l.top->x:0), ((PVPRENDER)r)->y - (l.top?l.top->x:0), ((PVPRENDER)r)->w, ((PVPRENDER)r)->h DBG_SRC );
 }
 
 
@@ -974,6 +1091,12 @@ static void CPROC AndroidANW_SetRestoreHandler  ( PRENDERER r, HideAndRestoreCal
 static void CPROC AndroidANW_RestoreDisplayEx ( PRENDERER r DBG_PASS )
 {
 	((PVPRENDER)r)->flags.hidden = 0;
+	if( ((PVPRENDER)r)->flags.fullscreen )
+	{
+		l.flags.full_screen_renderer = 1;
+      l.full_screen_display = (PVPRENDER)r;
+	}
+	// issue draw callback and update to screen
 	AndroidANW_Redraw( r );
 }
 static void CPROC AndroidANW_RestoreDisplay  ( PRENDERER r )
@@ -1134,6 +1257,7 @@ PRIORITY_PRELOAD( RegisterAndroidNativeWindowInterface, VIDLIB_PRELOAD_PRIORITY 
 	l.real_interface = (PIMAGE_INTERFACE)GetInterface( "sack.image" );
 	RegisterInterface( WIDE( "sack.render.android" ), GetAndroidANWDisplayInterface, DropAndroidANWDisplayInterface );
 	InitAndroidANWInterface();
+   l.default_background = LoadImageFile( "images/sky.jpg" );
 }
 
 
@@ -1146,39 +1270,35 @@ static void HostSystem_InitDisplayInfo(void )
 	//default_display_x	ANativeWindow_getFormat( camera->displayWindow)
 }
 
+// status metric truncates display
+// keyboard metric pans display (although should offer later options for applicatoins to handle it themselves....
 void SACK_Vidlib_SetNativeWindowHandle( ANativeWindow *displayWindow )
 {
-   _32 new_w, new_h;
+	_32 new_w, new_h;
+   _32 real_h;
 	//lprintf( "Setting native window handle... (shouldn't this do something else?)" );
 	l.displayWindow = displayWindow;
 
 	EnterCriticalSec( &l.cs_update );
 	new_w = ANativeWindow_getWidth( l.displayWindow);
-	new_h = ANativeWindow_getHeight( l.displayWindow);
+	new_h = (real_h = ANativeWindow_getHeight( l.displayWindow) )
+		- ( l.display_skip_top = 0 * SACK_Vidlib_GetStatusMetric() );
 	// got a new display; no longer closed.
 	lprintf( "Native Window size reports : %dx%d", new_w, new_h );
 	if( new_w != l.default_display_x || new_h != l.default_display_y )
 	{
 		PVPRENDER check;
-      //lprintf( "Changed dipslay %dx%d to %dx%d", l.default_display_x, l.default_display_y, new_w, new_h );
-		for( check = l.top; check; check = check->above )
-		{
-			if( check->x == 0 && check->y == 0
-				&& check->w == l.default_display_x && check->h == l.default_display_y )
-			{
-            //lprintf( "Updated an assumed fullscreen window..." );
-				check->w = new_w;
-            check->h = new_h;
-			}
-		}
 
 		l.default_display_x = new_w;
 		l.default_display_y = new_h;
 
       //InvokeDisplaySizeChange( NULL, 0, 0, 0, new_w, new_h );
 
-		//lprintf( "Format is :%dx%d %d", l.default_display_x, l.default_display_y, ANativeWindow_getFormat( displayWindow ) );
-		ANativeWindow_setBuffersGeometry( displayWindow,l.default_display_x,l.default_display_y,WINDOW_FORMAT_RGBA_8888);
+		lprintf( "Format is :%dx%d %d", l.default_display_x, l.default_display_y, ANativeWindow_getFormat( displayWindow ) );
+		ANativeWindow_setBuffersGeometry( displayWindow
+												  , l.default_display_x
+												  , real_h//l.default_display_y
+												  , WINDOW_FORMAT_RGBA_8888);
 		//lprintf( "Format is :%dx%d %d", l.default_display_x, l.default_display_y, ANativeWindow_getFormat( displayWindow ) );
 		if( !l.flags.full_screen_renderer || l.full_screen_display->flags.not_fullscreen )
 		{
@@ -1192,21 +1312,44 @@ void SACK_Vidlib_SetNativeWindowHandle( ANativeWindow *displayWindow )
 			// set to the size of this buffer.
 		}
 
-		for( check = l.top; check; check = check->above )
+		if( (l.old_display_x != new_w) || (l.old_display_y != new_h ))
 		{
-			if( check->x == 0 && check->y == 0
-				&& check->w == l.default_display_x && check->h == l.default_display_y )
+			for( check = l.top; check; check = check->above )
 			{
-            PCOLOR newBuffer = NewArray( COLOR, check->w * check->h );
-            // use the existing image so its children remain.
-				check->image = RemakeImageEx( check->image, newBuffer, check->w, check->h DBG_SRC );
-            check->image->flags &= ~IF_FLAG_EXTERN_COLORS;  // allow imglib to release the colors.
-				// this would have been resized; so redraw it.
-            //lprintf( "is this a bad time to send a redraw? " );
-				AndroidANW_Redraw( (PRENDERER)check );
+#ifdef DEBUG_SCREEN_CHANGES
+				lprintf( "check for auto resize %d %d    %d %d    %d %d",check->w, check->h, new_w, new_h, l.old_display_x, l.old_display_y );
+#endif
+				if( check->x == 0 && check->y == 0
+					&& check->w == l.old_display_x && check->h == l.old_display_y )
+				{
+					PCOLOR newBuffer = NewArray( COLOR, check->w * check->h );
+					// use the existing image so its children remain.
+					check->w = new_w;
+					check->h = new_h;
+					check->image = RemakeImageEx( check->image, newBuffer, check->w, check->h DBG_SRC );
+					check->image->flags &= ~IF_FLAG_EXTERN_COLORS;  // allow imglib to release the colors.
+					// this would have been resized; so redraw it.
+#ifdef DEBUG_SCREEN_CHANGES
+					lprintf( "is this a bad time to send a redraw? " );
+#endif
+					if( !check->flags.hidden )
+					{
+#ifdef DEBUG_SCREEN_CHANGES
+						lprintf( "Sending application draw.... %p %p", check?check->redraw:0, check );
+#endif
+						if( check->redraw )
+							check->redraw( check->psv_redraw, (PRENDERER)check );
+					}
+				}
 			}
+			l.old_display_x = new_w;
+			l.old_display_y = new_h;
 		}
+		//if( !l.top )
+      //lprintf( "do a refresh update of some sort here..." );
 	}
+   //lprintf( "new full screen; copy bitmapts to output. (enabled anmiating draw later?)" );
+	//AndroidANW_UpdateDisplayPortionEx( (PRENDERER)l.top, l.top?-l.top->x:0, l.top?-l.top->y:0, l.default_display_x, l.default_display_y DBG_SRC );
 	LeaveCriticalSec( &l.cs_update );
 	//lprintf( "Format is :%dx%d %d", l.default_display_x, l.default_display_y, ANativeWindow_getFormat( displayWindow ) );
 }
@@ -1215,13 +1358,22 @@ void SACK_Vidlib_SetNativeWindowHandle( ANativeWindow *displayWindow )
 void SACK_Vidlib_DoFirstRender( void )
 {
 	/* no render pass; should return FALSE or somethig to stop animating... */
-	PVPRENDER render;
 	l.flags.display_closed = 0;
-	for( render = l.bottom; render; render = render->under )
-	{
-		//lprintf( "RENDER PASS UPDATE..." );
-		AndroidANW_Redraw( (PRENDERER)render );
-	}
+	//lprintf( "RENDER PASS UPDATE..." );
+#ifdef DEBUG_OUTPUT
+	lprintf( "full screen; copy bitmapts to output." );
+#endif
+	AndroidANW_UpdateDisplayPortionEx( (PRENDERER)l.top, l.top?-l.top->x:0, l.top?-l.top->y:0, l.default_display_x, l.default_display_y DBG_SRC );
+}
+
+void SACK_Vidlib_SetKeyboardMetric( int keyboard_size )
+{
+   lprintf( "keyboard size is reported as %d", keyboard_size );
+	//l.display_skip_bottom = keyboard_size;
+#ifdef DEBUG_OUTPUT
+	lprintf( "First render from keyboard metric..." );
+#endif
+   SACK_Vidlib_DoFirstRender();
 }
 
 
@@ -1350,6 +1502,7 @@ void SACK_Vidlib_ResumeDisplay( void )
 	//lprintf( "unpause..." );
 	l.flags.paused = 0;
 	InvokeResume();
+	//SACK_Vidlib_DoFirstRender();
 }
 
 //------------------------------------------------------------------------------

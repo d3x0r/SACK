@@ -157,7 +157,10 @@ static struct keymap_state
 	} flags;
 	void (*show_keyboard)(void);
 	void (*hide_keyboard)(void);
-   CTEXTSTR current_key_text;
+	int (*get_status_metric)(void);
+	int (*get_keyboard_metric)(void);
+   char *(*get_key_text)( void);
+	CTEXTSTR current_key_text;
 } keymap_local;
 
 //----------------------------------------------------------------------------
@@ -193,7 +196,9 @@ int SACK_Vidlib_SendKeyEvents( int pressed, int key_index, int key_mods )
 		case KEYDATA:
 			if( pressed )
 			{
-				keymap_local.current_key_text = AndroidKeyDefs[key_index].op[mod].pStroke;
+				//keymap_local.current_key_text = AndroidKeyDefs[key_index].op[mod].pStroke;
+				keymap_local.current_key_text = keymap_local.get_key_text();
+				//lprintf( "key text becomes :%s", keymap_local.current_key_text );
 			}
 			used = 1;
 			bOutput = 1;
@@ -211,6 +216,7 @@ int SACK_Vidlib_SendKeyEvents( int pressed, int key_index, int key_mods )
 					| ( key_index & 0xFF ) << 16
 					| ( key_index )
 					;
+            //lprintf( "send app key %08x", normal_key );
 				used |= l.hVidVirtualFocused->key_callback( l.hVidVirtualFocused->psv_key_callback, normal_key );
 			}
 		}
@@ -219,10 +225,31 @@ int SACK_Vidlib_SendKeyEvents( int pressed, int key_index, int key_mods )
 }
 
 
-void SACK_Vidlib_SetTriggerKeyboard( void (*show)(void), void(*hide)(void))
+void SACK_Vidlib_SetTriggerKeyboard( void (*show)(void), void(*hide)(void)
+											  , int(*get_status_metric)(void)
+											  , int(*get_keyboard_metric)(void)
+                                    , int(*get_key_text)( void)
+											  )
 {
 	keymap_local.show_keyboard = show;
 	keymap_local.hide_keyboard = hide;
+   keymap_local.get_status_metric = get_status_metric;
+	keymap_local.get_keyboard_metric = get_keyboard_metric;
+   keymap_local.get_key_text = get_key_text;
+}
+
+int SACK_Vidlib_GetStatusMetric( void )
+{
+	if(  keymap_local.get_status_metric )
+		return keymap_local.get_status_metric();
+	return 50;
+}
+
+int SACK_Vidlib_NewGetKeyText( void )
+{
+	if(  keymap_local.get_key_text )
+		return keymap_local.get_key_text( );
+	return ;
 }
 
 void SACK_Vidlib_ShowInputDevice( void )

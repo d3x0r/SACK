@@ -231,7 +231,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 											if( TextSimilar( tmp, WIDE("HTTP/") ) )
 											{
 												TEXTCHAR *tmp2 = (TEXTCHAR*)StrChr( GetText( tmp ), '.' );
-												pHttpState->response_version = ( atoi( GetText( tmp ) + 5 ) * 100 ) + atoi( tmp2 + 1 );
+												pHttpState->response_version = ( IntCreateFromText( GetText( tmp ) + 5 ) * 100 ) + IntCreateFromText( tmp2 + 1 );
 												{
 													PTEXT nextword = next;
 													if( nextword )

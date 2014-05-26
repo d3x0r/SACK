@@ -22,11 +22,10 @@ PImageShaderTracker GetShader( CTEXTSTR name, void (CPROC*Init)(PImageShaderTrac
 	{
 		tracker = New( ImageShaderTracker );
 		MemSet( tracker, 0, sizeof( ImageShaderTracker ));
-		tracker->flags.set_modelview = 1; // claim it is set, so modelview gets cleared on first draw.
 		tracker->name = StrDup( name );
 		tracker->Init = Init;
-		if( Init )
-			Init( tracker );
+		//if( Init )
+		//	Init( tracker );
 		AddLink( &l.glActiveSurface->shaders, tracker );
 		return tracker;
 	}
@@ -65,15 +64,8 @@ void ClearShaders( void )
 	INDEX idx;
 	LIST_FORALL( l.glActiveSurface->shaders, idx, PImageShaderTracker, tracker )
 	{
+		tracker->flags.set_modelview = 1;
 		tracker->flags.set_matrix = 0;
-		if( tracker->flags.set_modelview )
-		{
-			glUseProgram( tracker->glProgramId );
-			CheckErr();
-			glUniformMatrix4fv( tracker->modelview, 1, GL_FALSE, (float const*)VectorConst_I );
-			CheckErr();
-			tracker->flags.set_modelview = 0;
-		}
 	}
 }
 
@@ -102,6 +94,17 @@ void EnableShader( PImageShaderTracker tracker, ... )
 	//xlprintf( LOG_NOISE+1 )( WIDE("Enable shader %s"), tracker->name );
 	glUseProgram( tracker->glProgramId );
 	CheckErrf( WIDE("Failed glUseProgram (%s)"), tracker->name );
+
+	if( tracker->flags.set_modelview )
+	{
+		glUseProgram( tracker->glProgramId );
+		CheckErr();
+		//lprintf( "Set modelview (identity)" );
+		glUniformMatrix4fv( tracker->modelview, 1, GL_FALSE, (float const*)VectorConst_I );
+		CheckErr();
+		tracker->flags.set_modelview = 0;
+	}
+
 	if( !tracker->flags.set_matrix )
 	{
 		if( !l.flags.worldview_read )
@@ -346,7 +349,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 	CheckErr();
 	SetupCommon( tracker );
 
-	DumpAttribs( tracker, tracker->glProgramId );
+	//DumpAttribs( tracker, tracker->glProgramId );
 	return tracker->glProgramId;
 }
 
@@ -366,7 +369,7 @@ void SetShaderModelView( PImageShaderTracker tracker, RCOORD *matrix )
 		glUniformMatrix4fv( tracker->modelview, 1, GL_FALSE, matrix );
 		CheckErrf( WIDE("SetModelView for (%s)"), tracker->name );
 
-		tracker->flags.set_modelview = 1;
+		//tracker->flags.set_modelview = 1;
 	}
 }
 

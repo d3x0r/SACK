@@ -53,6 +53,7 @@
 #include <sqlgetoption.h>
 #endif
 #ifdef __cplusplus
+#include <cstdio>
 LOGGING_NAMESPACE
 #endif
 
@@ -132,7 +133,7 @@ struct state_flags{
 #ifdef __ANDROID__
 #  if !USE_CUSTOM_ALLOCER
 #    define __STATIC_GLOBALS__
-#  endif !USE_CUSTOM_ALLOCER
+#  endif //!USE_CUSTOM_ALLOCER
 #endif
 
 #ifndef __STATIC_GLOBALS__
@@ -373,11 +374,11 @@ void SetDefaultName( CTEXTSTR path, CTEXTSTR name, CTEXTSTR extra )
       filename = StrDup( GetProgramName() );
 	// this has to come from C heap.. my init isn't done yet probably and
    // sharemem will just fail.  (it's probably trying to log... )
-	newpath = (TEXTCHAR*)malloc( len = sizeof(TEXTCHAR)*(9 + strlen( filepath ) + strlen( filename ) + (extra?strlen(extra):0) + 5) );
+	newpath = (TEXTCHAR*)malloc( len = sizeof(TEXTCHAR)*(9 + StrLen( filepath ) + StrLen( filename ) + (extra?StrLen(extra):0) + 5) );
 #ifdef __cplusplus_cli
-	snprintf( newpath, len, WIDE("%s/%s%s.cli.log"), filepath, filename, extra?extra:WIDE("") );
+	tnprintf( newpath, len, WIDE("%s/%s%s.cli.log"), filepath, filename, extra?extra:WIDE("") );
 #else
-	snprintf( newpath, len, WIDE("%s/%s%s.log"), filepath, filename, extra?extra:WIDE("") );
+	tnprintf( newpath, len, WIDE("%s/%s%s.log"), filepath, filename, extra?extra:WIDE("") );
 #endif
 	gFilename = newpath;//( newpath ); // use the C heap.
 	//free( newpath ); // get rid of this ...
@@ -411,7 +412,6 @@ static void LoadOptions( void )
 			flags.bLogOpenBackup = 1;
 			flags.bLogProgram = 1;
 		}
-#endif
 		// set all default parts of the name.
 		// this overrides options with options available from SQL database.
 		if( SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Logging/Default Log Location is current directory"), 0, TRUE ) )
@@ -436,6 +436,7 @@ static void LoadOptions( void )
 				SetDefaultName( buffer, NULL, NULL );
 			}
 		}
+#endif
 
 		if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Logging/Send Log to UDP" ), 0, TRUE ) )
 		{
@@ -578,7 +579,6 @@ PRIORITY_PRELOAD( InitSyslogPreloadAllowGroups, DEFAULT_PRELOAD_PRIORITY )
 //----------------------------------------------------------------------------
 CTEXTSTR GetTimeEx( int bUseDay )
 {
-	static TEXTCHAR timebuffer[256];
    /* used by sqlite extension to support now() */
 #ifdef _WIN32
 #ifndef WIN32
@@ -587,26 +587,33 @@ CTEXTSTR GetTimeEx( int bUseDay )
 #endif
 
 #if defined( WIN32 ) && !defined( __ANDROID__ )
+	static TEXTCHAR timebuffer[256];
    SYSTEMTIME st;
 	GetLocalTime( &st );
 
 	if( bUseDay )
-	   snprintf( timebuffer, sizeof(timebuffer), WIDE("%02d/%02d/%d %02d:%02d:%02d")
+	   tnprintf( timebuffer, sizeof(timebuffer), WIDE("%02d/%02d/%d %02d:%02d:%02d")
    	                  , st.wMonth, st.wDay, st.wYear
       	               , st.wHour, st.wMinute, st.wSecond );
 	else
-	   snprintf( timebuffer, sizeof(timebuffer), WIDE("%02d:%02d:%02d")
+	   tnprintf( timebuffer, sizeof(timebuffer), WIDE("%02d:%02d:%02d")
       	               , st.wHour, st.wMinute, st.wSecond );
 
 #else
+	static TEXTCHAR *timebuffer;
+	static char c_timebuffer[256];
 	struct tm *timething;
 	time_t timevalnow;
 	time(&timevalnow);
 	timething = localtime( &timevalnow );
-	strftime( timebuffer
-				, sizeof( timebuffer )
+	strftime( c_timebuffer
+				, sizeof( c_timebuffer )
 				, (bUseDay)?"%m/%d/%Y %H:%M:%S":"%H:%M:%S"
-				, timething );
+			  , timething );
+	if( timebuffer )
+		Release( timebuffer );
+   timebuffer = DupCStr( c_timebuffer );
+
 #endif
 	return timebuffer;
 }
@@ -620,7 +627,6 @@ CTEXTSTR GetTime( void )
 
 CTEXTSTR GetPackedTime( void )
 {
-	static TEXTCHAR timebuffer[256];
    /* used by sqlite extension to support now() */
 #ifdef _WIN32
 #ifndef WIN32
@@ -629,23 +635,29 @@ CTEXTSTR GetPackedTime( void )
 #endif
 
 #if defined( WIN32 ) && !defined( __ANDROID__ )
+	static TEXTCHAR timebuffer[256];
    SYSTEMTIME st;
 	GetLocalTime( &st );
 
-	snprintf( timebuffer, sizeof(timebuffer), WIDE("%04d%02d%02d%02d%02d%02d")
+	tnprintf( timebuffer, sizeof(timebuffer), WIDE("%04d%02d%02d%02d%02d%02d")
 			  , st.wYear
 			  , st.wMonth, st.wDay
 			  , st.wHour, st.wMinute, st.wSecond );
 
 #else
+	static TEXTCHAR *timebuffer;
+   static char c_timebuffer[256];
 	struct tm *timething;
 	time_t timevalnow;
 	time(&timevalnow);
 	timething = localtime( &timevalnow );
-	strftime( timebuffer
-				, sizeof( timebuffer )
+	strftime( c_timebuffer
+				, sizeof( c_timebuffer )
 				, "%Y%m%d%H%M%S"
 				, timething );
+	if( timebuffer )
+		Release( timebuffer );
+   timebuffer = DupCStr( c_timebuffer );
 #endif
 	return timebuffer;
 }
@@ -654,8 +666,8 @@ CTEXTSTR GetPackedTime( void )
 #ifndef BCC16 // no gettime of day - no milliseconds
 static TEXTCHAR *GetTimeHigh( void )
 {
-    static TEXTCHAR timebuffer[256];
 #if defined WIN32 && !defined( __ANDROID__ )
+    static TEXTCHAR timebuffer[256];
 	static SYSTEMTIME _st;
 	SYSTEMTIME st, st_save;
 
@@ -692,13 +704,15 @@ static TEXTCHAR *GetTimeHigh( void )
 		GetLocalTime( &st );
 
 	if( flags.bUseDay )
-		snprintf( timebuffer, sizeof(timebuffer), WIDE("%02d/%02d/%d %02d:%02d:%02d.%03d")
+		tnprintf( timebuffer, sizeof(timebuffer), WIDE("%02d/%02d/%d %02d:%02d:%02d.%03d")
 		        , st.wMonth, st.wDay, st.wYear
 		        , st.wHour, st.wMinute, st.wSecond, st.wMilliseconds );
 	else
-		snprintf( timebuffer, sizeof(timebuffer), WIDE("%02d:%02d:%02d.%03d")
+		tnprintf( timebuffer, sizeof(timebuffer), WIDE("%02d:%02d:%02d.%03d")
 		        , st.wHour, st.wMinute, st.wSecond, st.wMilliseconds );
 #else
+	static TEXTCHAR *timebuffer;
+   static char c_timebuffer[256];
 	static struct timeval _tv;
 	static struct tm _tm;
 	struct timeval tv, tv_save;
@@ -746,11 +760,15 @@ static TEXTCHAR *GetTimeHigh( void )
 		tm = *timething;
 	}
 
-	len = strftime( timebuffer
-                  , sizeof( timebuffer )
+	len = strftime( c_timebuffer
+                  , sizeof( c_timebuffer )
                   , (flags.bUseDay)?"%m/%d/%Y %H:%M:%S":"%H:%M:%S"
-                  , &tm );
-	sprintf( timebuffer + len, WIDE(".%03ld"), tv.tv_usec / 1000 );
+					  , &tm );
+#undef snprintf
+	snprintf( c_timebuffer + len, 5, ".%03ld", tv.tv_usec / 1000 );
+	if( timebuffer )
+		Release( timebuffer );
+   timebuffer = DupCStr( c_timebuffer );
    /*
     // this code is kept in case borland's compiler don't like it.
     {
@@ -791,13 +809,13 @@ void PrintCPUDelta( TEXTCHAR *buffer, size_t buflen, _64 tick_start, _64 tick_en
 	if( !cpu_tick_freq )
 		GetCPUFrequency();
 	if( cpu_tick_freq )
-		snprintf( buffer, buflen, WIDE("%")_64f WIDE(".%03") _64f
+		tnprintf( buffer, buflen, WIDE("%")_64f WIDE(".%03") _64f
 				 , ((tick_end-tick_start) / cpu_tick_freq ) / 1000
 				 , ((tick_end-tick_start) / cpu_tick_freq ) % 1000
 				 );
    else
 #endif
-		snprintf( buffer, buflen, WIDE("%")_64fs, tick_end - tick_start
+		tnprintf( buffer, buflen, WIDE("%")_64fs, tick_end - tick_start
 		   	 );
 }
 
@@ -812,16 +830,16 @@ static TEXTCHAR *GetTimeHighest( void )
 	{
 #ifdef UNICODE
 		size_t ofs = 0;
-		snprintf( timebuffer, sizeof( timebuffer ), WIDE("%20lld") WIDE(" "), tick );
+		tnprintf( timebuffer, sizeof( timebuffer ), WIDE("%20lld") WIDE(" "), tick );
 		ofs += StrLen( timebuffer );
 #else
-		int ofs = snprintf( timebuffer, sizeof( timebuffer ), WIDE("%20") _64fs WIDE(" "), tick );
+		int ofs = tnprintf( timebuffer, sizeof( timebuffer ), WIDE("%20") _64fs WIDE(" "), tick );
 #endif
 		PrintCPUDelta( timebuffer + ofs, sizeof( timebuffer ) - ofs, l.lasttick2, tick );
 		l.lasttick2 = tick;
 	}
 	else
-		snprintf( timebuffer, sizeof( timebuffer ), WIDE("%20") _64fs, tick );
+		tnprintf( timebuffer, sizeof( timebuffer ), WIDE("%20") _64fs, tick );
 	// have to find a generic way to get this from _asm( rdtsc );
 	return timebuffer;
 }
@@ -909,7 +927,7 @@ static void UDPSystemLog( const TEXTCHAR *message )
 		INDEX nSent;
 		int nSend;
 		static TEXTCHAR realmsg[1024];
-		nSend = snprintf( realmsg, sizeof( realmsg ), /*"[%s]"*/ WIDE("%s")
+		nSend = tnprintf( realmsg, sizeof( realmsg ), /*"[%s]"*/ WIDE("%s")
 				  //, pProgramName
 				  , message );
 		message = realmsg;
@@ -995,7 +1013,7 @@ LOGICAL IsBadReadPtr( CPOINTER pointer, PTRSZVAL len )
 	//return FALSE;
    //DebugBreak();
 	if( !maps )
-		maps = fopen( WIDE("/proc/self/maps"), WIDE("rt") );
+		maps = fopen( "/proc/self/maps", "rt" );
 	else
       fseek( maps, 0, SEEK_SET );
    //fprintf( stderr, WIDE("Testing a pointer..\n") );
@@ -1006,7 +1024,7 @@ LOGICAL IsBadReadPtr( CPOINTER pointer, PTRSZVAL len )
 		while( fgets( line, sizeof(line)-1, maps ) )
 		{
 			PTRSZVAL low, high;
-			sscanf( line, WIDE("%") _PTRSZVALfx WIDE("-%") _PTRSZVALfx, &low, &high );
+			sscanf( line, "%" cPTRSZVALfx "-%" cPTRSZVALfx, &low, &high );
 			//fprintf( stderr, WIDE("%s") WIDE("Find: %08") PTRSZVALfx WIDE(" Low: %08") PTRSZVALfx WIDE(" High: %08") PTRSZVALfx WIDE("\n")
 			//		 , line, pointer, low, high );
 			if( ptr >= low && ptr <= high )
@@ -1028,8 +1046,14 @@ static void FileSystemLog( CTEXTSTR message )
 {
 	if( l.file )
 	{
-		fputs( message, l.file );
-		fputs( WIDE("\n"), l.file );
+#ifdef UNICODE
+      char *tmp = CStrDup( message );
+		fputs( tmp, l.file );
+		Release( tmp );
+#else
+      fputs( message, l.file );
+#endif
+		fputs( "\n", l.file );
 		fflush( l.file );
 	}
 }
@@ -1049,7 +1073,7 @@ static void BackupFile( const TEXTCHAR *source, int source_name_len, int n )
 		TEXTCHAR backup[256];
 		sack_fclose( testfile );
 		// move file to backup..
-		snprintf( backup, sizeof( backup ), WIDE("%*.*s.%d")
+		tnprintf( backup, sizeof( backup ), WIDE("%*.*s.%d")
 				  , source_name_len
 				  , source_name_len
 				  , source, n );
@@ -1167,7 +1191,7 @@ void DoSystemLog( const TEXTCHAR *buffer )
 					if( n_retry < 500 )
 					{
 						TEXTCHAR tmp[10];
-						snprintf( tmp, sizeof( tmp ), WIDE("%d"), n_retry++ );
+						tnprintf( tmp, sizeof( tmp ), WIDE("%d"), n_retry++ );
 						SetDefaultName( NULL, NULL, tmp );
 						goto retry_again;
 					}
@@ -1189,7 +1213,14 @@ void DoSystemLog( const TEXTCHAR *buffer )
 		//System::Diagnostics::Debug
 #  else
 #    ifdef __ANDROID__
-		__android_log_print( ANDROID_LOG_INFO, GetProgramName(), buffer );
+		{
+         static char *program_string;
+			char *string = CStrDup( buffer );
+			if( !program_string )
+				program_string = CStrDup( GetProgramName() );
+			__android_log_print( ANDROID_LOG_INFO, program_string, string );
+			Release( string );
+		}
 #    else
 		OutputDebugString( buffer );
 #    endif
@@ -1232,14 +1263,14 @@ void SystemLogFL( const TEXTCHAR *message FILELINE_PASS )
 				pFile = p+1;break;
 			}
 #endif
-		snprintf( sourcefile, sizeof( sourcefile ), WIDE("") FILELINE_FILELINEFMT  FILELINE_RELAY );
+		tnprintf( sourcefile, sizeof( sourcefile ), WIDE("") FILELINE_FILELINEFMT  FILELINE_RELAY );
 	}
 	else
 		sourcefile[0] = 0;
 	if( flags.bLogThreadID )
-		snprintf( threadid, sizeof( threadid ), WIDE("%012") _64fX WIDE("~"), GetMyThreadID() );
+		tnprintf( threadid, sizeof( threadid ), WIDE("%012") _64fX WIDE("~"), GetMyThreadID() );
 	if( pFile )
-		snprintf( buffer, sizeof( buffer )
+		tnprintf( buffer, sizeof( buffer )
 				  , WIDE("%s%s%s%s%s%s%s")
 				  , logtime, logtime[0]?WIDE("|"):WIDE("")
 				  , flags.bLogThreadID?threadid:WIDE("")
@@ -1248,7 +1279,7 @@ void SystemLogFL( const TEXTCHAR *message FILELINE_PASS )
 				  , flags.bLogSourceFile?sourcefile:WIDE("")
 				  , message );
 	else
-		snprintf( buffer, sizeof( buffer )
+		tnprintf( buffer, sizeof( buffer )
 				  , WIDE("%s%s%s%s%s%s")
 				  , logtime, logtime[0]?WIDE("|"):WIDE("")
 				  , flags.bLogThreadID?threadid:WIDE("")
@@ -1298,17 +1329,17 @@ void SystemLogEx ( const TEXTCHAR *message DBG_PASS )
 		size_t x;
 		ofs = 0;
 		for ( x=0; x<nOut && x<16; x++ )
-			ofs += snprintf( cOut+ofs, sizeof(cOut)/sizeof(TEXTCHAR)-ofs, WIDE("%02X "), (unsigned char)data[x] );
+			ofs += tnprintf( cOut+ofs, sizeof(cOut)/sizeof(TEXTCHAR)-ofs, WIDE("%02X "), (unsigned char)data[x] );
 		// space fill last partial buffer
 		for( ; x < 16; x++ )
-			ofs += snprintf( cOut+ofs, sizeof(cOut)/sizeof(TEXTCHAR)-ofs, WIDE("   ") );
+			ofs += tnprintf( cOut+ofs, sizeof(cOut)/sizeof(TEXTCHAR)-ofs, WIDE("   ") );
 
 		for ( x=0; x<nOut && x<16; x++ )
 		{
 			if( data[x] >= 32 && data[x] < 127 )
-				ofs += snprintf( cOut+ofs, sizeof(cOut)/sizeof(TEXTCHAR)-ofs, WIDE("%c"), (unsigned char)data[x] );
+				ofs += tnprintf( cOut+ofs, sizeof(cOut)/sizeof(TEXTCHAR)-ofs, WIDE("%c"), (unsigned char)data[x] );
 			else
-				ofs += snprintf( cOut+ofs, sizeof(cOut)/sizeof(TEXTCHAR)-ofs, WIDE(".") );
+				ofs += tnprintf( cOut+ofs, sizeof(cOut)/sizeof(TEXTCHAR)-ofs, WIDE(".") );
 		}
 		SystemLogFL( cOut FILELINE_RELAY );
 		nOut -= x;
@@ -1456,7 +1487,7 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 		   ofs = StrLen( buffer );
 		}
 #else
-			ofs = snprintf( buffer, 4095, WIDE("%s|")
+			ofs = tnprintf( buffer, 4095, WIDE("%s|")
 							  , logtime );
 #endif
 		else
@@ -1464,16 +1495,16 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 		// argsize - the program's giving us file and line
 		// debug for here or not, this must be used.
 		if( flags.bLogThreadID )
-			snprintf( threadid, sizeof( threadid ), WIDE("%012") _64fX WIDE("~"), GetMyThreadID() );
+			tnprintf( threadid, sizeof( threadid ), WIDE("%012") _64fX WIDE("~"), GetMyThreadID() );
 #ifdef UNDER_CE
-		snprintf( buffer + ofs, 4095 - ofs, WIDE("%s%s%s")
+		tnprintf( buffer + ofs, 4095 - ofs, WIDE("%s%s%s")
 				  , flags.bLogThreadID?threadid:WIDE("")
 				  , flags.bLogProgram?GetProgramName():WIDE("")
 				  , flags.bLogProgram?WIDE("@"):WIDE("")
 				  );
 		ofs += StrLen( buffer + ofs );
 #else
-		snprintf( buffer + ofs, 4095 - ofs, WIDE("%s%s%s")
+		tnprintf( buffer + ofs, 4095 - ofs, WIDE("%s%s%s")
 				  , flags.bLogThreadID?threadid:WIDE("")
 				  , flags.bLogProgram?GetProgramName():WIDE("")
 				  , flags.bLogProgram?WIDE("@"):WIDE("")
@@ -1500,11 +1531,11 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 #endif
 				nLine = next_lprintf.nLine;
 #ifdef UNDER_CE
-				snprintf( buffer + ofs, 4095 - ofs, WIDE("%s(%") _32f WIDE("):")
+				tnprintf( buffer + ofs, 4095 - ofs, WIDE("%s(%") _32f WIDE("):")
 									, pFile, nLine );
 				ofs += StrLen( buffer + ofs );
 #else
-				snprintf( buffer + ofs, 4095 - ofs, WIDE("%s(%") _32f WIDE("):")
+				tnprintf( buffer + ofs, 4095 - ofs, WIDE("%s(%") _32f WIDE("):")
 									, pFile, nLine );
 				ofs += StrLen( buffer + ofs );
 #endif

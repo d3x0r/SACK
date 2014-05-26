@@ -1,3 +1,4 @@
+#define NO_UNICODE_C
 #define TASK_INFO_DEFINED
 #include <stdhdrs.h>
 #include <sack_types.h>
@@ -506,7 +507,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 		{
 			pid_t newpid;
 			TEXTCHAR saved_path[256];
-         xlprintf(LOG_ALWAYS)( "Expand Path was not implemented in linux cod!" );
+         xlprintf(LOG_ALWAYS)( WIDE("Expand Path was not implemented in linux code!") );
 			task = (PTASK_INFO)Allocate( sizeof( TASK_INFO ) );
 			MemSet( task, 0, sizeof( TASK_INFO ) );
 			task->psvEnd = psv;
@@ -529,6 +530,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			}
 			if( !( newpid = fork() ) )
 			{
+            char *_program = CStrDup( program );
 				// in case exec fails, we need to
 				// drop any registered exit procs...
 				//close( task->hStdIn.pair[1] );
@@ -542,15 +544,15 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 				DispelDeadstart();
 
 				//usleep( 100000 );
-				execve( program, (char *const*)args, environ );
+				execve( _program, (char *const*)args, environ );
 				lprintf( WIDE( "Direct execute failed... trying along path..." ) );
 				{
-					char *tmp = StrDup( getenv( WIDE( "PATH" ) ) );
+					char *tmp = strdup( getenv( "PATH" ) );
 					char *tok;
-					for( tok = strtok( tmp, WIDE( ":" ) ); tok; tok = strtok( NULL, WIDE( ":" ) ) )
+					for( tok = strtok( tmp, ":" ); tok; tok = strtok( NULL, ":" ) )
 					{
 						char fullname[256];
-						snprintf( fullname, sizeof( fullname ), WIDE( "%s/%s" ), tok, program );
+						snprintf( fullname, sizeof( fullname ), "%s/%s", tok, _program );
 
 						lprintf( WIDE( "program:[%s]" ), fullname );
 						((char**)args)[0] = fullname;

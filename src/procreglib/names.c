@@ -1,8 +1,15 @@
+#define NO_UNICODE_C
 #define PROCREG_SOURCE
 #include <stdhdrs.h>
 #include <sharemem.h>
 #include <filesys.h>
 #include <configscript.h>
+
+#ifdef __ANDROID__
+#  ifdef DEBUG_FIRST_UNICODE_OPERATION
+#    include <android/log.h>
+#  endif
+#endif
 
 //#define DEBUG_GLOBAL_REGISTRATION
 #define REGISTRY_STRUCTURE_DEFINED
@@ -14,6 +21,9 @@
 #include "registry.h"
 
 PROCREG_NAMESPACE
+
+// using lower level syslog bypasses some allocation requirements...
+//#define lprintf( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, f,##__VA_ARGS__ ); SystemLogFL( buf DBG_SRC ); }
 
 	static struct procreg_local_private_tag {
       // don't use critical sections while registering.
@@ -549,7 +559,7 @@ int GetClassPath( TEXTSTR out, size_t len, PTREEDEF root )
 	while( name = (PNAME)PopLink( &pls ) )
 	{
 		//pcr->
-		ofs += snprintf( out + ofs, len - ofs, WIDE("/%s"), name->name );
+		ofs += tnprintf( out + ofs, len - ofs, WIDE("/%s"), name->name );
 	}
 	DeleteLinkStack( &pls );
 	return ofs;
@@ -1589,7 +1599,7 @@ PROCREG_PROC( PTRSZVAL, MakeRegisteredDataTypeEx)( PCLASSROOT root
 				if( !instancename )
 				{
 					TEXTCHAR buf[256];
-					snprintf( buf, sizeof(buf), WIDE("%s_%d"), name, (int)pDataDef->unique++ );
+					tnprintf( buf, sizeof(buf), WIDE("%s_%d"), name, (int)pDataDef->unique++ );
 					instancename = SaveName( buf );
 				}
 				else
@@ -1643,7 +1653,7 @@ PROCREG_PROC( PTRSZVAL, CreateRegisteredDataTypeEx)( PCLASSROOT root
 				if( !instancename )
 				{
 					TEXTCHAR buf[256];
-					snprintf( buf, sizeof(buf), WIDE("%s_%d"), name, (int)pDataDef->unique++ );
+					tnprintf( buf, sizeof(buf), WIDE("%s_%d"), name, (int)pDataDef->unique++ );
 					instancename = SaveName( buf );
 				}
 				else
@@ -1791,8 +1801,8 @@ static PTRSZVAL CPROC HandleAlias( PTRSZVAL psv, arg_list args )
 		return psv;
 	if( l.flags.bTraceInterfaceLoading )
 		lprintf( WIDE( "alias %s=%s" ), servicename, originalname );
-	snprintf( fullservicename, sizeof( fullservicename), WIDE("system/interfaces/%s"), servicename );
-	snprintf( fulloriginalname, sizeof( fulloriginalname), WIDE("system/interfaces/%s"), originalname );
+	tnprintf( fullservicename, sizeof( fullservicename), WIDE("system/interfaces/%s"), servicename );
+	tnprintf( fulloriginalname, sizeof( fulloriginalname), WIDE("system/interfaces/%s"), originalname );
 	RegisterClassAlias( fulloriginalname, fullservicename );
 	return psv;
 }
@@ -1862,7 +1872,7 @@ static TEXTSTR SubstituteNameVars( CTEXTSTR name )
 		{
 			TEXTCHAR *tmpvar = NewArray( TEXTCHAR, end - this_var );
 			CTEXTSTR envvar;
-			snprintf( tmpvar, end-this_var, WIDE("%*.*s"), (int)(end-this_var-1), (int)(end-this_var-1), this_var + 1 );
+			tnprintf( tmpvar, end-this_var, WIDE("%*.*s"), (int)(end-this_var-1), (int)(end-this_var-1), this_var + 1 );
 			envvar = OSALOT_GetEnvironmentVariable( tmpvar );
 			if( envvar )
 				vtprintf( pvt, WIDE("%s"), OSALOT_GetEnvironmentVariable( tmpvar ) );
@@ -2060,7 +2070,7 @@ void ReadConfiguration( void )
 		{
 			CTEXTSTR filepath
 #ifdef __ANDROID__
-				= ".";
+				= WIDE(".");
 #else
 				= GetProgramPath();
 #endif
@@ -2080,7 +2090,7 @@ void ReadConfiguration( void )
 			{
 				CTEXTSTR dot;
 				loadname = NewArray( TEXTCHAR, (_32)(len = StrLen( filepath ) + StrLen( GetProgramName() ) + StrLen( WIDE("interface.conf") ) + 3) );
-				snprintf( loadname, len, WIDE("%s/%s.%s"), filepath, GetProgramName(), WIDE("interface.conf") );
+				tnprintf( loadname, len, WIDE("%s/%s.%s"), filepath, GetProgramName(), WIDE("interface.conf") );
 				success = ProcessConfigurationFile( pch, loadname, 0 );
 				if( !success )
 					dot = GetProgramName();
@@ -2089,7 +2099,7 @@ void ReadConfiguration( void )
 					dot = StrChr( dot + 1, '.' );
 					if( dot )
 					{
-						snprintf( loadname, len, WIDE("%s/%s.%s"), filepath, dot+1, WIDE("interface.conf") );
+						tnprintf( loadname, len, WIDE("%s/%s.%s"), filepath, dot+1, WIDE("interface.conf") );
 						success = ProcessConfigurationFile( pch, loadname, 0 );
 					}
 					else
@@ -2098,7 +2108,7 @@ void ReadConfiguration( void )
 			}
 			if( !success )
 			{
-				snprintf( loadname, len, WIDE("%s/%s"), filepath, WIDE("interface.conf") );
+				tnprintf( loadname, len, WIDE("%s/%s"), filepath, WIDE("interface.conf") );
 				success = ProcessConfigurationFile( pch, loadname, 0 );
 			}
 			if( !success )
@@ -2140,22 +2150,25 @@ POINTER GetInterfaceExx( CTEXTSTR pServiceName, LOGICAL ReadConfig DBG_PASS )
 {
 	TEXTCHAR interface_name[256];
 	POINTER (CPROC *load)( void );
+	static int reading_configuration;
 	// this might be the first clean chance to run deadstarts
-   // for ill behaved platforms that have forgotten to do this.
+	// for ill behaved platforms that have forgotten to do this.
 	if( !IsRootDeadstartStarted() )
 	{
 		InvokeDeadstart();
 	}
-	if( ReadConfig )
+	if( ReadConfig && !reading_configuration )
 	{
+		reading_configuration = 1;
 		SuspendDeadstart();
 		ReadConfiguration();
 		ResumeDeadstart();
+		reading_configuration = 0;
 	}
 	//lprintf( "Load interface [%s]", pServiceName );
 	if( pServiceName )
 	{
-		snprintf( interface_name, sizeof( interface_name ), WIDE("system/interfaces/%s"), pServiceName );
+		tnprintf( interface_name, sizeof( interface_name ), WIDE("system/interfaces/%s"), pServiceName );
 		load = GetRegisteredProcedure( (PCLASSROOT)interface_name, POINTER, load, (void) );
 		//lprintf( WIDE("GetInterface for %s is %p"), pServiceName, load );
 		if( load )
@@ -2192,9 +2205,11 @@ POINTER GetInterfaceDbg( CTEXTSTR pServiceName DBG_PASS )
 	POINTER result = GetInterfaceExx( pServiceName, FALSE DBG_RELAY );
 	if( !result )
 	{
-		result = GetInterfaceExx( pServiceName, TRUE DBG_RELAY );
+		// don't force the issue too much
+		if( l.flags.bReadConfiguration )
+			result = GetInterfaceExx( pServiceName, TRUE DBG_RELAY );
 	}
-   return result;
+	return result;
 }
 
 #undef GetInterface
@@ -2209,7 +2224,7 @@ PROCREG_PROC( void, DropInterface )( CTEXTSTR pServiceName, POINTER interface_dr
 {
 	TEXTCHAR interfacename[256];
 	void (CPROC *unload)( POINTER );
-	snprintf( interfacename, sizeof(interfacename), WIDE("system/interfaces/%s"), pServiceName );
+	tnprintf( interfacename, sizeof(interfacename), WIDE("system/interfaces/%s"), pServiceName );
 	unload = GetRegisteredProcedure( (PCLASSROOT)interfacename, void, unload, (POINTER) );
 	if( unload )
 		unload( interface_drop );
@@ -2270,10 +2285,54 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, PTRSZVAL global_size, C
 #ifdef DEBUG_GLOBAL_REGISTRATION
 		lprintf( WIDE("Opening space...") );
 #endif
-#ifdef WIN32
-		snprintf( spacename, sizeof( spacename ), WIDE("%s:%08lX"), name, GetCurrentProcessId() );
+#ifdef UNICODE
+#define _S WIDE("ls")
 #else
-		snprintf( spacename, sizeof( spacename ), WIDE("%s:%08X"), name, getpid() );
+#define _S WIDE("s")
+#endif
+
+#ifdef WIN32
+		tnprintf( spacename, sizeof( spacename ), WIDE("%s:%08lX"), name, GetCurrentProcessId() );
+#else
+		tnprintf( spacename, sizeof( spacename ), WIDE("%")_S WIDE(":%08X"), name, getpid() );
+#  ifdef DEBUG_FIRST_UNICODE_OPERATION
+		{
+			wchar_t buf[32];
+         strcpy( (char*)buf, "abcdefghijklmn" );
+         swprintf( buf, 32, L"%s", L"some_name" );
+			{
+				char tmpmsg[256];
+				int chars;
+				int ofs= 0;
+				ofs = snprintf( tmpmsg, 256, "in the beginning(w):" );
+				for( chars = 0; chars < 32; chars++ )
+					ofs += snprintf( tmpmsg + ofs, 256 - ofs, "%02x ", ((char*)buf)[chars] );
+
+				__android_log_print( ANDROID_LOG_INFO, "org.d3x0r.sack.xxxx", tmpmsg );
+
+				ofs = snprintf( tmpmsg, 256, "in the beginning(w):" );
+				for( chars = 0; chars < 32; chars++ )
+					ofs += snprintf( tmpmsg + ofs, 256 - ofs, "%c", (buf)[chars] );
+
+				__android_log_print( ANDROID_LOG_INFO, "org.d3x0r.sack.xxxx", tmpmsg );
+
+
+            				ofs = snprintf( tmpmsg, 256, "in the beginning(w):" );
+				for( chars = 0; chars < 32; chars++ )
+					ofs += snprintf( tmpmsg + ofs, 256 - ofs, "%c", (name)[chars] );
+
+				__android_log_print( ANDROID_LOG_INFO, "org.d3x0r.sack.xxxx", tmpmsg );
+
+				ofs = snprintf( tmpmsg, 256, "in the beginning(w):" );
+				for( chars = 0; chars < 32; chars++ )
+					ofs += snprintf( tmpmsg + ofs, 256 - ofs, "%c", (spacename)[chars] );
+
+				__android_log_print( ANDROID_LOG_INFO, "org.d3x0r.sack.xxxx", tmpmsg );
+
+			}
+
+		}
+#  endif
 #endif
 		// hmm application only shared space?
 		// how do I get that to happen?

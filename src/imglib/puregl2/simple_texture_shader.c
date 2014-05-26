@@ -18,6 +18,8 @@ IMAGE_NAMESPACE
 
 //const char *gles_
 static const char *gles_simple_v_shader =
+   "precision mediump float;\n"
+	"precision mediump int;\n"
      "attribute vec4 vPosition;\n" 
 	 "attribute vec2 in_texCoord;\n" 
 	 "uniform mat4 modelView;\n" 
@@ -31,6 +33,8 @@ static const char *gles_simple_v_shader =
 
 static const char *gles_simple_p_shader =
     // "precision mediump float;\n" 
+   "precision mediump float;\n"
+	"precision mediump int;\n"
 	 " varying vec2 out_texCoord;\n" 
 	 " uniform sampler2D tex;\n" 
 	 "void main() {\n"
@@ -40,6 +44,8 @@ static const char *gles_simple_p_shader =
 
 //const char *gles_
 static const char *gles_simple_v_shader_shaded_texture =
+   "precision mediump float;\n"
+	"precision mediump int;\n"
      "attribute vec4 vPosition;\n" 
 	  "attribute vec2 in_texCoord;\n" 
 	  "uniform mat4 modelView;\n" 
@@ -54,6 +60,8 @@ static const char *gles_simple_v_shader_shaded_texture =
 
 static const char *gles_simple_p_shader_shaded_texture =
     // "precision mediump float;\n" 
+   "precision mediump float;\n"
+	"precision mediump int;\n"
 	 "uniform vec4 in_Color;\n" 
 	 " varying vec2 out_texCoord;\n" 
 	 " uniform sampler2D tex;\n" 

@@ -457,9 +457,14 @@ static void CPROC SocketClose( PCLIENT pc )
 
 SaneWinMain( argc, argv )
 {
+#ifdef UNICODE
+	TEXTCHAR *addr = argv[1]?DupCStr( argv[1] ):WIDE("127.0.0.1");
+#else
+   char *addr = argv[1]?argv[1]:WIDE("127.0.0.1");
+#endif
 	NetworkStart();
 	l.event_thread = ThreadTo( EventThread, 0 );
-	l.service = OpenTCPClientExx( argv[1]?argv[1]:WIDE("127.0.0.1"), 4241, SocketRead, SocketClose, NULL, NULL );
+	l.service = OpenTCPClientExx( addr, 4241, SocketRead, SocketClose, NULL, NULL );
 	while( l.service )
 	{
 		l.pri = GetDisplayInterface();

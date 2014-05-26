@@ -14,7 +14,7 @@
 //
 //  DEBUG FLAGS IN netstruc.h
 //
-
+#define NO_UNICODE_C
 #include <stdhdrs.h>
 #include <stddef.h>
 #include <ctype.h>
@@ -113,7 +113,7 @@ void LowLevelInit( void )
 		SimpleRegisterAndCreateGlobal( global_network_data );
 }
 
-PRIORITY_PRELOAD( InitNetworkGlobal, GLOBAL_INIT_PRELOAD_PRIORITY )
+PRIORITY_PRELOAD( InitNetworkGlobal, CONFIG_SCRIPT_PRELOAD_PRIORITY - 1 )
 {
 	LowLevelInit();
 	if( !g.system_name )
@@ -1846,7 +1846,7 @@ static PTRSZVAL CPROC NetworkThreadProc( PTHREAD thread )
          Release( slab );
 		}
 	}
-	lprintf( "Exiting network thread..." );
+	lprintf( WIDE("Exiting network thread...") );
 	DeleteList( &g.ClientSlabs );
 	Release( g.pUserData );
 	g.pUserData = NULL;
@@ -1876,7 +1876,11 @@ int NetworkQuit(void)
 	if( !global_network_data )
 		return 0;
 #endif
-
+	if( g.uPendingTimer )
+	{
+		RemoveTimer( g.uPendingTimer );
+		g.uPendingTimer = 0;
+	}
 	while( g.ActiveClients )
 	{
 		lprintf( WIDE("Remove active client %p"), g.ActiveClients );
@@ -2025,6 +2029,8 @@ NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,_16 wClients,int wUserData)
 #endif
 {
 	// want to start the thead; clear quit.
+	if( !global_network_data )
+		LowLevelInit();
 	g.bQuit = FALSE;
 
 	ReallocClients( wClients, wUserData );
@@ -2254,13 +2260,21 @@ struct sockaddr_un {
 
 NETWORK_PROC( SOCKADDR *,CreateUnixAddress)( CTEXTSTR path )
 {
-   struct sockaddr_un *lpsaAddr;
+	struct sockaddr_un *lpsaAddr;
+#ifdef UNICODE
+	char *tmp_path = CStrDup( path );
+#endif
    lpsaAddr=(struct sockaddr_un*)AllocAddr();
    if (!lpsaAddr)
 		return(NULL);
-	((PTRSZVAL*)lpsaAddr)[-1] = strlen( path ) + 1;
+	((PTRSZVAL*)lpsaAddr)[-1] = StrLen( path ) + 1;
 	lpsaAddr->sun_family = PF_UNIX;
+#ifdef UNICODE
+	strncpy( lpsaAddr->sun_path, tmp_path, 107 );
+   Release( tmp_path );
+#else
 	strncpy( lpsaAddr->sun_path, path, 107 );
+#endif
    return((SOCKADDR*)lpsaAddr);
 }
 #else
@@ -2294,7 +2308,7 @@ SOCKADDR *CreateRemote(CTEXTSTR lpName,_16 nHisPort)
 	PHOSTENT phe;
 	// a IP type name will never have a / in it, therefore
 	// we can assume it's a unix type address....
-	if( lpName && strchr( lpName, '/' ) )
+	if( lpName && StrChr( lpName, '/' ) )
 		return CreateUnixAddress( lpName );
 #endif
 	lpsaAddr=(SOCKADDR_IN*)AllocAddr();
@@ -2510,7 +2524,7 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)( CTEXTSTR name, _16 nDefaultPort )
 	SOCKADDR *sa = NULL;
 	TEXTCHAR *port;
 	_16 wPort;
-	if( name && ( port = strrchr( (TEXTSTR)name, ':' ) ) )
+	if( name && ( port = StrRChr( (TEXTSTR)name, ':' ) ) )
 	{
 		tmp = StrDup( name );
 		bTmpName = 1;
@@ -2521,7 +2535,7 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)( CTEXTSTR name, _16 nDefaultPort )
 		port++;
 		if( isdigit( *port ) )
 		{
-			wPort = (short)atoi( port );
+			wPort = (short)IntCreateFromText( port );
 		}
 		else
 		{
@@ -3038,7 +3052,7 @@ CTEXTSTR GetSystemName( void )
 	}
 	else
 #endif
-		g.system_name = "No Name Available";
+		g.system_name = WIDE("No Name Available");
 #else
    NetworkStart();
 #endif

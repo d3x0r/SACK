@@ -73,6 +73,9 @@ struct vidlib_android_local
 	CRITICALSECTION message_formatter;
 	ANativeWindow *displayWindow;
 	S_32 default_display_x, default_display_y;
+	S_32 old_display_x, old_display_y;
+	_32 display_skip_top;
+   _32 display_skip_bottom;
 	PVPRENDER hVidVirtualFocused;
 	struct vidlib_android_local_flags {
 		BIT_FIELD paused : 1;
@@ -84,6 +87,7 @@ struct vidlib_android_local
 	S_32 mouse_x, mouse_y;
 	_32 mouse_b;
 	_32 mouse_first_click_tick;
+   Image default_background;
 } l;
 
 // linux_keymap.c
@@ -99,6 +103,8 @@ void TouchWindowClose( PVPRENDER r );
 void SACK_Vidlib_ShowInputDevice( void );
 void SACK_Vidlib_HideInputDevice( void );
 void SACK_Vidlib_ToggleInputDevice( void );
+int SACK_Vidlib_GetStatusMetric( void );
+int SACK_Vidlib_GetKeyboardMetric( void );
 
 TEXTCHAR  AndroidANW_GetKeyText(int key);
 
