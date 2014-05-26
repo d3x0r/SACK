@@ -1,3 +1,4 @@
+cmake_policy(SET CMP0026 OLD)
 
 if( WIN32 )
   if( __CLR__ )
@@ -251,11 +252,11 @@ macro( add_portable_program_ex portable targetname option1 )
 			set_target_properties( ${targetname} PROPERTIES COMPILE_DEFINITIONS "${ExtraDefinitions};ANDROID_SHELL;TARGETNAME=\"${targetname}\";TARGET_LABEL=${TARGET_LABEL}" )
 			install_default_dest( ${targetname} )
 
-			add_library( ${targetname}.client SHARED ${SACK_SOURCES_ROOT}/android/android_native_app_glue ${SACK_SOURCES_ROOT}/android/client_android_main ${SACK_SOURCES_ROOT}/android/android_client_util ${SACK_SOURCES_ROOT}/android/loader/android_elf )
-			my_target_link_libraries( ${targetname}.client android log )
-			string( REPLACE "." "_" TARGET_LABEL ${targetname}.client )
-			set_target_properties( ${targetname}.client PROPERTIES COMPILE_DEFINITIONS "${ExtraDefinitions};ANDROID_SHELL;TARGETNAME=\"${targetname}.client\";TARGET_LABEL=${TARGET_LABEL}" )
-			install_default_dest( ${targetname}.client )
+			#add_library( ${targetname}.client SHARED ${SACK_SOURCES_ROOT}/android/android_native_app_glue ${SACK_SOURCES_ROOT}/android/client_android_main ${SACK_SOURCES_ROOT}/android/android_client_util ${SACK_SOURCES_ROOT}/android/loader/android_elf )
+			#my_target_link_libraries( ${targetname}.client android log )
+			#string( REPLACE "." "_" TARGET_LABEL ${targetname}.client )
+			#set_target_properties( ${targetname}.client PROPERTIES COMPILE_DEFINITIONS "${ExtraDefinitions};ANDROID_SHELL;TARGETNAME=\"${targetname}.client\";TARGET_LABEL=${TARGET_LABEL}" )
+			#install_default_dest( ${targetname}.client )
 
 		else( ${option1} STREQUAL WIN32 )
 			if( portable )
