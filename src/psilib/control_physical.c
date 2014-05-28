@@ -10,6 +10,7 @@
 #include "resource.h"
 
 #define DEBUG_UPDAATE_DRAW 4
+#define DEBUG_CREATE
 
 PSI_NAMESPACE
 

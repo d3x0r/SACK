@@ -3100,9 +3100,9 @@ void ApplyRescale( PSI_CONTROL pc )
 			lprintf( "Y is %s", tmp );
 		}
 #endif
-		MoveSizeCommon( pc
-						  , ScaleValue( &pc->scalex, pc->original_rect.x )
-						  , ScaleValue( &pc->scaley, pc->original_rect.y )
+		SizeCommon( pc
+						  //, ScaleValue( &pc->scalex, pc->original_rect.x )
+						  //, ScaleValue( &pc->scaley, pc->original_rect.y )
 						  , ScaleValue( &pc->scalex, pc->original_rect.width )
 						  , ScaleValue( &pc->scaley, pc->original_rect.height )
 						  );
@@ -4274,11 +4274,14 @@ PSI_PROC( void, CommonWait)( PSI_CONTROL pc ) // perhaps give a callback for wit
 				&& !( ( pcbd->okay_value )?( *pcbd->okay_value ):0 )
 				&& !( ( pcbd->done_value )?( *pcbd->done_value ):0 )
 			  )
+{
+lprintf( "not done..." );
 			if( !Idle() )
 			{
-				//lprintf( WIDE("Sleeping forever, cause I'm not doing anything else..>") );
+				lprintf( WIDE("Sleeping forever, cause I'm not doing anything else..>") );
 				WakeableSleep( SLEEP_FOREVER );
 			}
+}
 		DeleteWait( pc );
 	}
 }
