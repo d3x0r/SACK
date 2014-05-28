@@ -404,18 +404,6 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 					{
 						// hmm this is probably a binary thing?
 					}
-			}
-			}
-			else
-			{
-#if UNICODE
-				wchar_t typechar = 0xFEFF;
-				fseek( pdp->handle, 0, SEEK_SET );
-				fwrite( &typechar, 1, 2, pdp->handle );
-				fseek( pdp->handle, 0, SEEK_CUR );
-#else
-				fseek( pdp->handle, 0, SEEK_SET );
-#endif
 				}
 			}
 			else
