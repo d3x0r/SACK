@@ -6,7 +6,7 @@
 #include "Android_local.h"
 
 RENDER_NAMESPACE
-//#define DEBUG_TOUCH_INPUTS
+#define DEBUG_TOUCH_INPUTS
 
 	static struct touch_event_state_static
 {
@@ -211,10 +211,14 @@ int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches )
 				{
 					//lprintf( "Yes; set keyboard focus" );
 					l.hVidVirtualFocused = r;
-					r->touch_info.mouse_x
-						= r->touch_info.one.x = touches[0].x - r->x;
-					r->touch_info.mouse_y
-						= r->touch_info.one.y = touches[0].y - r->y;
+               l.mouse_x = r->x +
+						( r->touch_info.mouse_x
+						= r->touch_info.one.x
+						= touches[0].x - r->x );
+               l.mouse_y = r->y +
+						( r->touch_info.mouse_y
+						= r->touch_info.one.y
+						= touches[0].y - r->y );
 
 					touch_info.owning_surface = r;
 					touch_info.flags.owned_by_surface = 1;
@@ -222,8 +226,12 @@ int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches )
 					{
 						if( r->flags.fullscreen && !r->flags.not_fullscreen )
 						{
-							r->touch_info.mouse_x = ( l.default_display_x * r->touch_info.mouse_x ) / r->w;
-							r->touch_info.mouse_y = ( l.default_display_y * r->touch_info.mouse_y ) / r->h;
+                     l.mouse_x
+								= r->touch_info.mouse_x
+								= ( l.default_display_x * r->touch_info.mouse_x ) / r->w;
+                     l.mouse_y
+								= r->touch_info.mouse_y
+								= ( l.default_display_y * r->touch_info.mouse_y ) / r->h;
 						}
 						if( used = r->mouse_callback( r->psv_mouse_callback, r->touch_info.mouse_x, r->touch_info.mouse_y, MK_LBUTTON ) )
 						{
@@ -240,10 +248,12 @@ int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches )
 			{
 				if( touch_info.flags.owned_by_surface )
 				{
-					r->touch_info.mouse_x
-						= r->touch_info.one.x = touches[0].x - r->x;
-					r->touch_info.mouse_y
-						= r->touch_info.one.y = touches[0].y - r->y;
+               l.mouse_x = r->x +
+						( r->touch_info.mouse_x
+						 = r->touch_info.one.x = touches[0].x - r->x );
+               l.mouse_y = r->y +
+						( r->touch_info.mouse_y
+						 = r->touch_info.one.y = touches[0].y - r->y );
 					if( r->flags.fullscreen && !r->flags.not_fullscreen  )
 					{
 						r->touch_info.mouse_x = ( l.default_display_x * r->touch_info.mouse_x ) / r->w;
@@ -267,8 +277,10 @@ int HandleTouches( PVPRENDER r, PINPUT_POINT touches, int nTouches )
 			{
 				if( touch_info.flags.owned_by_surface )
 				{
-					r->touch_info.mouse_x = touches[0].x - r->x;
-					r->touch_info.mouse_y = touches[0].y - r->y;
+               l.mouse_x = r->x +
+						( r->touch_info.mouse_x = touches[0].x - r->x );
+               l.mouse_y = r->y +
+						( r->touch_info.mouse_y = touches[0].y - r->y );
 					//lprintf( "Dragging motion...%p %d %d", r->mouse_callback, r->touch_info.mouse_x, r->touch_info.mouse_y );
 					if( r->flags.fullscreen && !r->flags.not_fullscreen  )
 					{

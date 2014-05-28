@@ -1,7 +1,7 @@
 
 #include <stdhdrs.h>
+#include <idle.h>
 #include <android/keycodes.h>
-
 #include "Android_local.h"
 
 #include <psi/console.h>
@@ -228,14 +228,17 @@ int SACK_Vidlib_SendKeyEvents( int pressed, int key_index, int key_mods )
 void SACK_Vidlib_SetTriggerKeyboard( void (*show)(void), void(*hide)(void)
 											  , int(*get_status_metric)(void)
 											  , int(*get_keyboard_metric)(void)
-                                    , int(*get_key_text)( void)
+											  , char *(*get_key_text)( void)
+                                    , int(*process_events)(PTRSZVAL psv)
 											  )
 {
 	keymap_local.show_keyboard = show;
 	keymap_local.hide_keyboard = hide;
    keymap_local.get_status_metric = get_status_metric;
 	keymap_local.get_keyboard_metric = get_keyboard_metric;
-   keymap_local.get_key_text = get_key_text;
+	keymap_local.get_key_text = get_key_text;
+	//keymap_local.process_events = process_events;
+   AddIdleProc( process_events, 1 );
 }
 
 int SACK_Vidlib_GetStatusMetric( void )

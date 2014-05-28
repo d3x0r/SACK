@@ -1,3 +1,4 @@
+#define DEBUG_CREATE_SURFACE
 //#define DEBUG_OUTPUT
 //#define DEBUG_SCREEN_CHANGES
 
@@ -167,11 +168,13 @@ static PRENDERER CPROC AndroidANW_OpenDisplayAboveUnderSizedAt( _32 attributes, 
 
 	AddLink( &l.renderers, Renderer );
 	Renderer->id = FindLink( &l.renderers, Renderer );
-	Renderer->x = (x == -1)?0:x;
-	Renderer->y = (y == -1)?0:x;
-	//lprintf( "openDisplay %p %d,%d", Renderer, width, height );
+	Renderer->x = (x == -1)?(above?((PVPRENDER)above)->x + 10:0):x;
+	Renderer->y = (y == -1)?(above?((PVPRENDER)above)->y + 10:0):y;
 	Renderer->w = width;
 	Renderer->h = height;
+#ifdef DEBUG_CREATE_SURFACE
+	lprintf( "openDisplay %p %d,%d %d,%d", Renderer, Renderer->x, Renderer->y, Renderer->w, Renderer->h );
+#endif
 	Renderer->attributes = attributes;
 	if( !l.bottom )
 		l.bottom = Renderer;
@@ -198,7 +201,6 @@ static PRENDERER CPROC AndroidANW_OpenDisplayAboveUnderSizedAt( _32 attributes, 
 
 
 	Renderer->image = MakeImageFileEx( width, height DBG_SRC );
-	lprintf( "clearimage.. %p", Renderer );
 	ClearImageTo( Renderer->image, 0 );
 	return (PRENDERER)Renderer;
 }
@@ -230,7 +232,7 @@ static void CPROC  AndroidANW_CloseDisplay ( PRENDERER Renderer )
 	real_w = r->w;
 	real_h = r->h;
 
-   lprintf( "unlink %p from %p %p %p", r, l.top, r->above, r->under );
+   //lprintf( "unlink %p from %p %p %p", r, l.top, r->above, r->under );
 	if( l.top == r )
 		l.top = r->above;
 	if( l.bottom == r )
@@ -562,12 +564,16 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 		if( l.flags.full_screen_renderer && !l.full_screen_display->flags.not_fullscreen )
 			if( ((PVPRENDER)r) != l.full_screen_display )
 			{
-				//lprintf( "not the fullscreen display.." );
+#ifdef DEBUG_OUTPUT
+				lprintf( "not the fullscreen display.." );
+#endif
 				return;
 			}
 		if( ((PVPRENDER)r)->flags.hidden )
 		{
-			//lprintf( "hidden; not showing..." );
+#ifdef DEBUG_OUTPUT
+			lprintf( "hidden; not showing..." );
+#endif
 			// if it's not hidden it shouldn't be doing an update...
 			return;
 		}
@@ -577,9 +583,11 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 		// compute the screen position of the desired rectangle
 		// do not clip the rectangle to the renderer, so layers can be fixed up
 
-		//lprintf( "Update %d,%d to %d,%d on %d,%d %d,%d",
-		//		  x, y, width, height
-		//        , out_x, out_y, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h );
+#ifdef DEBUG_OUTPUT
+		lprintf( "Update %d,%d to %d,%d on %d,%d %d,%d",
+				  x, y, width, height
+				 , out_x, out_y, ((PVPRENDER)r)->w, ((PVPRENDER)r)->h );
+#endif
 	}
 	else
 	{
@@ -589,19 +597,25 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 	}
 	if( out_x >= l.default_display_x )
 	{
-		//lprintf( "display x is ... %d", l.default_display_x );
+#ifdef DEBUG_OUTPUT
+		lprintf( "display x is ... %d", l.default_display_x );
+#endif
 		return;
 	}
 	if( out_y >= l.default_display_y )
 	{
-		//lprintf( "display y is ... %d", l.default_display_y );
+#ifdef DEBUG_OUTPUT
+		lprintf( "display y is ... %d", l.default_display_y );
+#endif
 		return;
 	}
 	if( out_x < 0 )
 	{
 		if( (int)width < (-out_x ) )
 		{
-			//lprintf( "fail  %d < %d", width, -out_x );
+#ifdef DEBUG_OUTPUT
+			lprintf( "fail  %d < %d", width, -out_x );
+#endif
 			return;
 		}
 		width += out_x;
@@ -612,7 +626,9 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 	{
 		if( (int)height < -out_y )
 		{
-			//lprintf( "fail  %d < %d", height, -out_y );
+#ifdef DEBUG_OUTPUT
+			lprintf( "fail  %d < %d", height, -out_y );
+#endif
 			return;
 		}
 		height += out_y;
@@ -671,37 +687,38 @@ static void CPROC AndroidANW_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y
 		//_lprintf(DBG_RELAY)( "Native window lock... %d,%d  %d,%d", out_x, out_y, width, height );
 		do
 		{
-		a = ANativeWindow_lock( l.displayWindow, &buffer, &bounds );
-		if( a == 0 )
-		{
-			//lprintf( "buffer stride result is %d    %d", buffer.stride, a );
-			//lprintf( "---V Update screen %p %p %d,%d  %d,%d   %d,%d   %d,%d"
-			//		 , r, l.top, out_x, out_y, out_y+width, out_y+height
-			//		 , bounds.left, bounds.top, bounds.right, bounds.bottom
-			//		 );
-         //lprintf( "the only one..." );
-			UpdateDisplayPortionRecurse( &buffer, l.top, out_x, out_y, width, height );
-			//lprintf( "---^ And the final unlock...." );
-			ANativeWindow_unlockAndPost(l.displayWindow);
-         break;
-		}
-		else
-		{
-         /*
-			attempts++;
-			if( attempts > 10 )
+			a = ANativeWindow_lock( l.displayWindow, &buffer, &bounds );
+			if( a == 0 )
 			{
-				lprintf( "Okay give up on this draw (BLACK SCREEN)" );
-            break;
-				}
-            */
-			lprintf( "lock failed." );
-			//Relinquish();
-         //contineu;
-         break;;
+				//lprintf( "buffer stride result is %d    %d", buffer.stride, a );
+				lprintf( "---V Update screen %p %p %d,%d  %d,%d   %d,%d   %d,%d"
+						 , r, l.top, out_x, out_y, out_y+width, out_y+height
+						 , bounds.left, bounds.top, bounds.right, bounds.bottom
+						 );
+				//lprintf( "the only one..." );
+				UpdateDisplayPortionRecurse( &buffer, l.top, out_x, out_y, width, height );
+				lprintf( "---^ And the final unlock...." );
+				ANativeWindow_unlockAndPost(l.displayWindow);
+            lprintf( "is there a lock state there?" );
+				break;
+			}
+			else
+			{
+				/*
+				 attempts++;
+				 if( attempts > 10 )
+				 {
+				 lprintf( "Okay give up on this draw (BLACK SCREEN)" );
+				 break;
+				 }
+				 */
+				lprintf( "lock failed." );
+				//Relinquish();
+				//contineu;
+				break;;
+			}
 		}
-		}
-      while( 1 );
+		while( 1 );
 	}
 	//else
 	//   lprintf( "Display is paused..." );
@@ -905,6 +922,11 @@ static void CPROC AndroidANW_SetLoseFocusHandler  ( PRENDERER r, LoseFocusCallba
 
 static void CPROC AndroidANW_GetMousePosition	( S_32 *x, S_32 *y )
 {
+   // used to position controls relative to the last touch
+	if( x )
+		(*x) = l.mouse_x;
+	if( y )
+      (*y) = l.mouse_y;
 }
 
 static void CPROC AndroidANW_SetMousePosition  ( PRENDERER r, S_32 x, S_32 y )
@@ -1373,7 +1395,10 @@ void SACK_Vidlib_SetKeyboardMetric( int keyboard_size )
 #ifdef DEBUG_OUTPUT
 	lprintf( "First render from keyboard metric..." );
 #endif
-   SACK_Vidlib_DoFirstRender();
+	SACK_Vidlib_DoFirstRender();
+#ifdef DEBUG_OUTPUT
+   lprintf( "Done with keyboard metric?" );
+#endif
 }
 
 
