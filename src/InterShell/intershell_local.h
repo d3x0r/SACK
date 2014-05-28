@@ -199,6 +199,7 @@ typedef struct global_tag
 		//BIT_FIELD bAllowMultiLaunch : 1;
 		BIT_FIELD bPageReturn : 1; // doing a return page (don't save current page to stack)
 		BIT_FIELD bLogKeypresses : 1; // Log the text of button and the button type when it is pressed.
+		BIT_FIELD bUseSingleDisplay : 1;
 	} flags;
 	// tokens which are used for testing
 	// user security rights.

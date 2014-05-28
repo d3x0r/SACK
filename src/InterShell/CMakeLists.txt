@@ -168,6 +168,7 @@ add_subdirectory( app_mount )
 add_subdirectory( windows_shell )
 add_subdirectory( crossfade_support )
 endif( WIN32 )
+add_subdirectory( chatment )
 
 # this has to be set before the cmakelists.txt ends... but not before other cmakelists are loaded
 

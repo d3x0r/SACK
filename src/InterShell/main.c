@@ -344,7 +344,7 @@ static LOGICAL IsSelectionValidEx( PCanvasData canvas, PMENU_BUTTON pExclude, in
 PMENU_BUTTON CreateButton( PCanvasData parent, PPAGE_DATA page )
 {
 	//ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc );
-	PCanvasData canvas = page->canvas;
+	PCanvasData canvas = page?page->canvas:parent;
 	PMENU_BUTTON button = New( MENU_BUTTON );
 	struct menu_button_colors *colors = &button->base_colors;
 	MemSet( button, 0, sizeof( MENU_BUTTON ) );
@@ -1215,11 +1215,10 @@ int QueryShowControl( PMENU_BUTTON button )
 	TEXTCHAR rootname[256];
 	LOGICAL (CPROC*f)(PTRSZVAL);
 
-#ifndef MULTI_FRAME_CANVAS
-	if( !g.flags.multi_edit && button->parent )
+	if( g.flags.bUseSingleDisplay && button->parent )
 		if( button->page != GetCanvas( button->parent )->current_page )
 			return 0;
-#endif
+
 	if( button->show_on )
 	{
 		INDEX idx;
@@ -1376,33 +1375,29 @@ static void CPROC ListBoxDoubleChanged( PTRSZVAL psv, PSI_CONTROL list, PLISTITE
 }
 
 // return FALSE creation method fails.
-static LOGICAL InvokeButtonCreate( PSI_CONTROL pc_canvas, PMENU_BUTTON button, LOGICAL bVisible )
+static LOGICAL InvokeButtonCreate( PMENU_BUTTON button, LOGICAL bVisible )
 {
 	TEXTCHAR rootname[256];
-	ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, ppage, pc_canvas );
-	PPAGE_DATA page = (*ppage);
-	PCanvasData canvas = page->canvas;
-	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	PTRSZVAL (CPROC*f)(PSI_CONTROL,S_32 x, S_32 y, _32 w, _32 h);
 	snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/control/%s" ), button->pTypeName );
 	button->flags.bNoCreateMethod = TRUE; // assume there's no creator for this control
 	//lprintf( "..." );
 	//if( StrCmp( button->pTypeName, "Task" ) == 0 )
 	//	DebugBreak();
-	if( canvas )
+	if( button->parent_canvas )
 		f = GetRegisteredProcedure2( rootname, PTRSZVAL, WIDE("control_create"), (PSI_CONTROL,S_32,S_32,_32,_32) );
 	else
 		f = NULL;
-	if( f )
+	if( f && button->page )
 	{
 		button->flags.bNoCreateMethod = 0; // found a creation method for this button.
 		button->flags.bCustom = TRUE;
 		g.CurrentlyCreatingButton = button;
-		button->psvUser = f( canvas->current_page->frame
-			, PARTX( button->x )
-			, PARTY( button->y )
-			, PARTW( button->x, button->w )
-			, PARTH( button->y, button->h )
+		button->psvUser = f( button->page->frame
+			, _PARTX( button->page, button->x )
+			, _PARTY( button->page, button->y )
+			, _PARTW( button->page, button->x, button->w )
+			, _PARTH( button->page, button->y, button->h )
 								 );
 		if( button->psvUser == 1 )
 		{
@@ -1415,7 +1410,7 @@ static LOGICAL InvokeButtonCreate( PSI_CONTROL pc_canvas, PMENU_BUTTON button, L
 		if( bVisible )
 		{
 			PTRSZVAL (CPROC*f_list)(PSI_CONTROL);
-			if( canvas )
+			if( button->parent_canvas )
 				f_list = GetRegisteredProcedure2( rootname, PTRSZVAL, WIDE("listbox_create"), (PSI_CONTROL) );
 			else
 				f_list = NULL;
@@ -1423,11 +1418,11 @@ static LOGICAL InvokeButtonCreate( PSI_CONTROL pc_canvas, PMENU_BUTTON button, L
 			{
 				button->flags.bNoCreateMethod = 0; // found a creation method for this button.
 				button->flags.bListbox = TRUE;
-				button->control.control = MakeNamedControl( canvas->current_page->frame, LISTBOX_CONTROL_NAME
-					, PARTX( button->x )
-					, PARTY( button->y )
-					, PARTW( button->x, button->w )
-					, PARTH( button->y, button->h )
+				button->control.control = MakeNamedControl( button->parent_canvas->current_page->frame, LISTBOX_CONTROL_NAME
+					, _COMPUTEX( button->parent_canvas, button->x, button->page->grid.nPartsX )
+					, _COMPUTEY( button->parent_canvas, button->y, button->page->grid.nPartsY )
+					, _PARTW( button->page, button->x, button->w )
+					, _PARTH( button->page, button->y, button->h )
 					, -1
 					);
 				SetSelChangeHandler( button->control.control, ListBoxSelectionChanged, (PTRSZVAL)button );
@@ -1450,15 +1445,15 @@ static LOGICAL InvokeButtonCreate( PSI_CONTROL pc_canvas, PMENU_BUTTON button, L
 			// allow user to override default selection methods...
 			// maybe?
 		}
-		if( ( !bVisible || canvas ) && !button->psvUser )
+		if( ( !bVisible || button->parent_canvas ) && !button->psvUser )
 		{
 			if( bVisible )
 			{
-				button->control.key = MakeKeyExx( canvas->current_page->frame
-				, PARTX( button->x )
-				, PARTY( button->y )
-				, PARTW( button->x, button->w )
-				, PARTH( button->y, button->h )
+				button->control.key = MakeKeyExx( button->page->frame
+				, _PARTX( button->page, button->x )
+				, _PARTY( button->page, button->y )
+				, _PARTW( button->page, button->x, button->w )
+				, _PARTH( button->page, button->y, button->h )
 				, 0
 				, NULL//g.iGlare
 				, NULL//g.iNormal
@@ -1531,7 +1526,7 @@ PMENU_BUTTON CreateInvisibleControl( PCanvasData canvas, TEXTCHAR *name )
 		button->font_preset = NULL;//UseACanvasFont( pc_frame, WIDE("Default") );
 		button->font_preset_name = NULL;//StrDup( WIDE("Default") );
 		//lprintf( WIDE( "Creating a virtual control %s" ), name );
-		InvokeButtonCreate( NULL, button, FALSE );
+		InvokeButtonCreate( button, FALSE );
 		return button;
 	}
 	return NULL;
@@ -1568,7 +1563,7 @@ PMENU_BUTTON CPROC CreateSomeControl( PSI_CONTROL pc_canvas, int x, int y, int w
 	if( !canvas->current_page->canvas )
 		canvas->current_page->canvas = canvas;
 	PutButtonOnPage( canvas->current_page, button );
-	InvokeButtonCreate( pc_canvas, button, TRUE );
+	InvokeButtonCreate( button, TRUE );
 
 	configure_key_dispatch.button = prior;
 	return button;
@@ -2776,10 +2771,6 @@ static int OnMouseCommon( WIDE( "Menu Canvas" ) )( PCOMMON pc, S_32 x, S_32 y, _
 	static _32 _b;
 	static S_32 _x, _y;
 	//int px, py;
-#define PARTOFX(xc) ( ( xc ) * canvas->current_page->grid.nPartsX ) / canvas->width
-#define PARTOFY(yc) ( ( yc ) * canvas->current_page->grid.nPartsY ) / canvas->height
-	//px = PARTOFX( x );
-	//py = PARTOFY( y );
 	if( canvas->flags.bEditMode )
 	{
 		return MouseEditGlare( (PTRSZVAL)page, x, y, b );
@@ -4111,6 +4102,7 @@ PCanvasData  SetupSystemsListAndGlobalSingleFrame(void )
 	if( !g.flags.multi_edit )
 		g.flags.multi_edit = SACK_GetProfileIntEx( GetProgramName(), WIDE( "Intershell Layout/Windowed mode (not full screen)" ), 0, TRUE );
 	g.flags.bLogKeypresses = SACK_GetProfileIntEx( GetProgramName(), WIDE( "Intershell/Log button events" ), 0, TRUE );
+	g.flags.bUseSingleDisplay = SACK_GetProfileIntEx( GetProgramName(), WIDE( "Intershell/Use Single Surface" ), 0, TRUE );
 #endif
 	SetBlotMethod( BLOT_C );
 	GetDisplaySizeEx( 0, NULL, NULL, &width, &height );
@@ -4405,8 +4397,6 @@ void CPROC AcceptFiles( PSI_CONTROL pc, CTEXTSTR file, S_32 x, S_32 y )
 		return;
 	bInvoked = TRUE;
 
-//#define PARTOFX(xc) ( ( xc ) * canvas->current_page->grid.nPartsX ) / canvas->width
-//#define PARTOFY(yc) ( ( yc ) * canvas->current_page->grid.nPartsY ) / canvas->height
 	px = PARTOFX( x );
 	py = PARTOFY( y );
 					
@@ -4707,6 +4697,10 @@ PSI_CONTROL OpenPageFrame( PPAGE_DATA page, LOGICAL show )
 	if( !page->frame )
 	{
 		static _32 xofs, yofs;
+		if( g.flags.bUseSingleDisplay && page->canvas->default_page->frame )
+		{
+			return page->frame = page->canvas->default_page->frame;
+		}
 		ProbeDisplaySize();
 		page->frame = MakeControl( NULL, new_menu_surface.TypeID, xofs, yofs, g.default_page_width, g.default_page_height, g.flags.multi_edit?(BORDER_NORMAL|BORDER_RESIZABLE):0 );
 		{

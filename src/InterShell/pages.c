@@ -1007,7 +1007,7 @@ void RenamePage( PCanvasData canvas )
 				if( g.flags.multi_edit )
 				{
 					DisplayFrame( canvas->current_page->frame );
-			}
+				}
 			}
 			else
 			{
