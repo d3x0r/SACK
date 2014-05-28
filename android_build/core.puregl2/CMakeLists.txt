@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
-cmake_policy(SET CMP0037 OLD)
+if(POLICY CMP0037 )
+	#cmake_policy(PUSH)
+	#cmake_policy(SET CMP<NNNN> OLD)
+	cmake_policy(SET CMP0037 OLD)
+     endif()
 
 set( Project core.puregl2 )
 PROJECT( ${Project} NONE )
