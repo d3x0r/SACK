@@ -63,6 +63,8 @@ ainstall(  ${CMAKE_SOURCE_DIR} strings.xml DESTINATION package/res/values )
 EXECUTE_PROCESS(COMMAND cmake -E remove_directory package/src )
 message( "EXECUTE_PROCESS(COMMAND cmake -E remove_directory${P_SOURCE_DIR}/package/src )")
 
+EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_SOURCE_DIR}/../NativeStaticLib.java package/src/org/d3x0r/sack/NativeStaticLib.java )
+
 set( application ${Project} )
 
 set( activity EditOptions )
@@ -72,7 +74,7 @@ CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/../MyNativeActivity.cm package/src/org/d3x0r
 STRING( CONFIGURE "${manifest_activity}" activity_out )
 set( manifest_head "${manifest_head}\n${activity_out}" )
 
-set( activity Console )
+set( activity Dekware )
 set( library Dekware )
 set( stringid string/app_name1 )
 CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/../MyNativeActivity.cm package/src/org/d3x0r/${application}/${activity}/${activity}.java )
@@ -85,6 +87,7 @@ FILE( WRITE ${CMAKE_BINARY_DIR}/package/AndroidManifest.xml "${manifest_head}" )
 
 if( CMAKE_BUILD_TYPE STREQUAL "release" )
   set( MORE_COMMANDS 
+       COMMAND rm -f bin/${Project}-${CMAKE_BUILD_TYPE}.apk 
        COMMAND jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore ${CMAKE_CURRENT_SOURCE_DIR}/../dekware/my-release-key.keystore bin/${Project}-${CMAKE_BUILD_TYPE}-unsigned.apk alias_name
        COMMAND zipalign -v 4 bin/${Project}-${CMAKE_BUILD_TYPE}-unsigned.apk bin/${Project}-${CMAKE_BUILD_TYPE}.apk
      )

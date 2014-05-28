@@ -94,11 +94,18 @@ namespace sack {
 #define MEM_SIZE  ( offsetof( MEM, pRoot ) )
 
 // using lower level syslog bypasses some allocation requirements...
-#define lprintf( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, f,##__VA_ARGS__ ); SystemLogFL( buf DBG_SRC ); }
+#undef lprintf
+#undef _lprintf
+#define lprintf( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, f,##__VA_ARGS__ ); SystemLogFL( buf FILELINE_SRC ); }
 
-#define _lprintf2( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, FILELINE_FILELINEFMT f,_pFile,_nLine,##__VA_ARGS__ ); SystemLogFL( buf DBG_SRC ); } }
+#ifdef _DEBUG
+#  define _lprintf2( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, FILELINE_FILELINEFMT f,_pFile,_nLine,##__VA_ARGS__ ); SystemLogFL( buf FILELINE_SRC ); } }
+#  define _lprintf( a ) {const TEXTCHAR *_pFile = pFile; int _nLine = nLine; _lprintf2
+#else
+#  define _lprintf2( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, f,##__VA_ARGS__ ); SystemLogFL( buf FILELINE_SRC ); } }
+#  define _lprintf( a ) { _lprintf2
+#endif
 
-#define _lprintf( a ) {const TEXTCHAR *_pFile = pFile; int _nLine = nLine; _lprintf2
 
 // last entry in space tracking array will ALWAYS be
 // another space tracking array (if used)
