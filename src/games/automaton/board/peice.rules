@@ -1,0 +1,36 @@
+
+
+need to define the rules for how peices react...
+
+name (id?) type
+
+block - 3x3
+
+connector set - 7x7 grid of all ends and conenctors
+  given a dyanmic board size based on user grid size...
+
+cell size 16x16  
+
+#%enum static shade multishade
+
+block neuron images/neuron.gif 3x3 multishade
+block input images/input.gif 3x3 shade
+block output images/output.gif 3x3 shade
+connector nerves input/master1.gif static 
+
+
+when loading I need to be notified when a peice is added so that I may associat an internal 
+handle, and/or define further attributes about a peice
+
+layers may connect to shadows
+
+connector set both ends are layers
+but then shadows have content...
+
+
+
+peice - master image, draw method
+layer - draw parameters, relation to real drawings, referece to peice or peice part
+board - default peice type - background - may be nothing, but then the application will
+   have no surface upon which to get events...
+

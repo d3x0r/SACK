@@ -1,0 +1,28 @@
+/echo raw nws startup...
+
+/mac quit
+/create x
+/wake x
+/tell x /exit
+/endmac
+
+/create weather_server
+/wake weather_server
+/tell weather_server /leave
+/tell weather_server /scr nws
+#/tell weather_server /shadow MOOSE
+
+/create server
+/wake server
+/tell server /leave
+//enter weather_server
+//delay 5000 # incur some sort of delay to allow master macros to be built.
+//command tcpserver 51716 
+
+/create database
+/wake database
+/tell database /leave
+//enter weather_server
+//odbc open access user password
+
+/scr nws_client

@@ -1,0 +1,34 @@
+
+EXPORTS
+   DoPing
+   DoWhois
+   NetworkWait
+   NetworkQuit
+   NetworkAlive
+   SetNetworkLong
+   SetNetworkWriteComplete
+   SetNetworkCloseCallback
+   SetNetworkReadComplete
+   SetNetworkCallbackWindow
+   GetNetworkLong
+   CreateRemote
+   CreateLocal
+   ReleaseAddress
+   CreateBroadcast
+   ServeUDPAddr
+   ServeUDP
+   ConnectUDPAddr
+   ConnectUDP
+   SendUDPEx
+   ReconnectUDP
+   OpenTCPListenerAddrEx
+   OpenTCPListenerEx
+   RemoveClientExx
+   OpenTCPClientAddrEx
+   OpenTCPClientEx
+   doUDPRead
+   doReadEx
+   TCPDrainEx
+   OpenTCPClientAddrExx
+   OpenTCPClientExx
+   SetTCPNoDelay

@@ -1,0 +1,79 @@
+set_property(GLOBAL PROPERTY USE_FOLDERS On)
+cmake_minimum_required(VERSION 2.8)
+
+OPTION( BUILD_TESTS "Enable building test" OFF )
+
+PROJECT( ninja )
+
+SET( SOURCES
+src/build.cc
+src/build_log.cc
+src/canon_perftest.cc
+src/clean.cc
+src/depfile_parser.cc
+src/depfile_parser.in.cc
+src/disk_interface.cc
+src/edit_distance.cc
+src/eval_env.cc
+src/explain.cc
+src/graph.cc
+src/graphviz.cc
+src/lexer.cc
+src/lexer.in.cc
+src/metrics.cc
+src/parsers.cc
+src/state.cc
+src/util.cc
+)
+
+
+
+if( WIN32 )
+  SET( SOURCES ${SOURCES}
+  	src/subprocess-win32.cc 
+  	src/getopt.c 
+  )
+  add_definitions( -D__WINDOWS__ )
+  add_definitions( -D_WIN32_WINNT=0x501 )
+else( WIN32 )
+  SET( SOURCES ${SOURCES} 
+		src/browse.cc
+		src/subprocess.cc 
+        )
+endif( WIN32 )
+
+
+add_library( ninjalib ${SOURCES} )
+add_executable( ninja src/ninja.cc )
+target_link_libraries( ninja ninjalib )
+
+
+#include( ../../cmake/DefaultInstall.cmake )
+#install_default_dest( ninja )
+
+if( BUILD_TESTS )
+macro( maketest testname )
+add_executable( ${testname} src/${testname}.cc )
+target_link_libries( ${testname} ninjalib )
+endmacro( maketest testname )
+
+maketest( build_log_test )
+
+maketest( build_log_perftest )
+maketest( build_test )
+maketest( clean_test )
+maketest( depfile_parser_test )
+maketest( util_test )
+maketest( disk_interface_test )
+maketest( edit_distance_test )
+maketest( graph_test )
+maketest( lexer_test )
+maketest( parser_perftest )
+maketest( parsers_test )
+maketest( state_test )
+maketest( subprocess_test )
+maketest( test )
+
+maketest( hash_collision_bench )
+
+endif( BUILD_TESTS )

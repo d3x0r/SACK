@@ -1,0 +1,282 @@
+
+/decl rescue 
+
+/mac testresc who
+/decl testlist %rescue
+/decl testwho
+/decl result false
+
+/compare %who is A
+/if success
+   /result false
+   /return
+/endif
+
+/compare %who is The
+/if success
+   /result false
+   /return
+/endif
+
+/label top
+/head %testlist %testwho
+/if fail
+   /result false
+   /return
+/endif
+/compare %who like %testwho
+/if success
+   /result true
+   /return
+/endif
+/goto top
+
+/endmac
+
+
+/trigger creat reschit hits &who
+/testresc %who
+/getresult result
+/compare %result is true
+/if success
+   /rescue %who
+/endif
+/endmac
+
+/trigger creat rescmass massacres &who
+/testresc %who
+/getresult result
+/compare %result is true
+/if success
+   /rescue %who
+/endif
+/endmac
+
+/trigger crea rescpierce pierces &who
+/testresc %who
+/getresult result
+/compare %result is true
+/if success
+   /rescue %who
+/endif
+/endmac
+
+/trigger creat rescannhil annihilates &who
+/testresc %who
+/getresult result
+/compare %result is true
+/if success
+   /rescue %who
+/endif
+/endmac
+
+/trigger creat rescoblit obliterates &who
+/testresc %who
+/getresult result
+/compare %result is true
+/if success
+   /rescue %who
+/endif
+/endmac
+
+/trigger creat rescsmite smites &who
+/testresc %who
+/getresult result
+/compare %result is true
+/if success
+   /rescue %who
+/endif
+/endmac
+
+/trigger creat rescmiss misses &who
+/testresc %who
+/getresult result
+/compare %result is true
+/if success
+   /rescue %who
+/endif
+/endmac
+
+/trigger creat rescslash slashes &who
+/testresc %who
+/getresult result
+/compare %result is true
+/if success
+   /rescue %who
+/endif
+/endmac
+
+/trigger creat rescpound pounds &who
+/testresc %who
+/getresult result
+/compare %result is true
+/if success
+   /rescue %who
+/endif
+/endmac
+
+/trigger creat rescclaw claws &who
+/testresc %who
+/getresult result
+/compare %result is true
+/if success
+   /rescue %who
+/endif
+/endmac
+
+/trigger creat rescbite bites &who
+/testresc %who
+/getresult result
+/compare %result is true
+/if success
+   /rescue %who
+/endif
+/endmac
+
+/trigger creat rescnick nicks &who
+/testresc %who
+/getresult result
+/compare %result is true
+/if success
+   /rescue %who
+/endif
+/endmac
+
+/trigger creat rescwhip whips &who
+/testresc %who
+/getresult result
+/compare %result is true
+/if success
+   /rescue %who
+/endif
+/endmac
+
+/trigger creat rescpeirce peirces &who
+/testresc %who
+/getresult result
+/compare %result is true
+/if success
+   /rescue %who
+/endif
+/endmac
+
+/trigger creat resccrush crushes &who
+/testresc %who
+/getresult result
+/compare %result is true
+/if success
+   /rescue %who
+/endif
+/endmac
+
+/trigger creat rescsmash smashes &who
+/testresc %who
+/getresult result
+/compare %result is true
+/if success
+   /rescue %who
+/endif
+/endmac
+
+/decl rescsay false
+/decl rescsaywho 
+/trigger dest rescsay1
+/trigger creat rescsay1 &who says in common:
+/testresc %who
+/getresult result
+/compare %result is true
+/if success
+   /decl rescsay true
+   /decl rescsaywho %who
+/endif
+/compare %result is false
+/if success
+   /decl rescsay false
+/endif
+/endmac
+
+/trigger dest rescsay2
+/trigger creat rescsay2 "rescue"
+/compare %rescsay is true
+/if success
+   /rescue %rescsaywho
+   /decl rescsay false
+/endif
+/endmac
+/trigger opt rescsay2 anchor
+
+/decl lastrescue
+
+/mac resc who
+/rescue %who
+/endmac
+
+/mac rescue who
+.resc %who
+/decl lastrescue %who
+/endmac
+#.:grabs the collar of %who...
+
+
+/trigger create rescueroom you can't get close enough to them to rescue!
+:roars with frustration, "I can't reach you, %lastrescue"
+/endmac
+
+/trigger crea rescfail You fail the rescue.
+.pemote hand slipped off of %lastrescue ...
+/endmac
+
+/trigger crea rescuegood Banzai! To the rescue...
+.say Gotcha!
+/endmac
+
+/mac hero action
+/compare %action like enable
+/if success
+/trigger opt rescclaw   enable
+/trigger opt reschit    enable
+/trigger opt rescmass   enable
+/trigger opt rescannhil enable
+/trigger opt rescoblit  enable
+/trigger opt rescsmite  enable
+/trigger opt rescmiss   enable
+/trigger opt rescslash  enable
+/trigger opt rescpound  enable
+/trigger opt rescbite   enable
+/trigger opt rescnick   enable
+/trigger opt rescwhip   enable
+/trigger opt rescpierce enable
+/trigger opt resccrush enable
+/trigger opt rescsmash enable
+/trigger opt rescsay1 enable
+/trigger opt rescsay2 enable
+/endif
+/compare %action like disable
+/if success
+/trigger opt rescclaw   disable
+/trigger opt reschit    disable
+/trigger opt rescmass   disable
+/trigger opt rescannhil disable
+/trigger opt rescoblit  disable
+/trigger opt rescsmite  disable
+/trigger opt rescmiss   disable
+/trigger opt rescslash  disable
+/trigger opt rescpound  disable
+/trigger opt rescbite   disable
+/trigger opt rescnick   disable
+/trigger opt rescwhip   disable
+/trigger opt rescpierce disable
+/trigger opt resccrush disable
+/trigger opt rescsmash disable
+/trigger opt rescsay1 disable
+/trigger opt rescsay2 disable
+/endif
+/compare %action like say
+/if success
+/hero disable
+/trigger opt rescsay1 enable
+/trigger opt rescsay2 enable
+/endif
+/endmac
+
+/hero disable

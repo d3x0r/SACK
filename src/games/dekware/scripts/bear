@@ -1,0 +1,123 @@
+/decl bearbag pouch
+
+/trigger create beckonbear you beckon a huge brown bear to join you.
+.cast 'animal f' bear
+/endmac
+
+/mac bk what
+.o bear kill %what
+.ass bear
+/endmac
+
+/keybind f1
+.o bear ass decker
+/endmac
+
+/mac bkr what
+.o bear kill %what
+.ass bear
+/resc bear
+.o bear ass decker
+/endmac
+
+/mac ebear
+.get %bearbag dragon-sack
+.give %bearbag bear
+.o bear get all %bearbag
+.o bear drop %bearbag
+.get %bearbag
+.put %bearbag dragon-sack
+.o bear wear all
+/endmac
+
+/keybind f4
+.o bear wake
+.o bear sip %drink
+.o bear sle
+/endmac
+
+/mac beargen
+.o bear wake
+.o bear remove amulet
+.o bear remove silk
+.o bear wear pendant
+.o bear wear pendant
+.o bear sle
+/endmac
+
+/mac beardam
+.o bear wake
+.o bear remove pendant
+.o bear remove pendant
+.o bear wear amulet
+.o bear wear silk
+/endmac
+
+/mac packbear
+.put cheetah %bearbag
+.get %bearbag dragon-sack
+.put black-silk %bearbag
+.put nails %bearbag
+.put all.serpentine %bearbag
+.put manta %bearbag
+.put casque-helm %bearbag
+.put bear-boots %bearbag
+.put iron-armbands %bearbag
+.put smooth-guards %bearbag
+.put dirty-tunic %bearbag
+.put %bearbag dragon-sack
+/endmac
+
+/mac disrobebear
+.o bear drop all
+.get %bearbag dragon-sack
+.give %bearbag bear
+.o bear remove all
+.o bear put black-silk %bearbag
+.o bear put cheetah %bearbag
+.o bear put nails %bearbag
+.o bear put all.serpentine %bearbag
+.o bear put manta %bearbag
+.o bear put casque-helm %bearbag
+.o bear put bear-boots %bearbag
+.o bear put iron-armbands %bearbag
+.o bear put smooth-guards %bearbag
+.o bear put dirty-tunic %bearbag
+.o bear drop %bearbag
+.get %bearbag
+.put %bearbag dragon-sack
+.l
+/endmac
+
+/mac gatherbear
+.get %bearbag dragon-sack
+.get all.black-silk bear-corpse
+.put all.black-silk %bearbag
+.get all.cheetah bear-corpse
+.put all.cheetah %bearbag
+.get nails bear-corpse
+.put nails %bearbag
+.get all.serpentine bear-corpse
+.put all.serpentine %bearbag
+.get manta bear-corpse
+.put manta %bearbag
+.get casque-helm bear-corpse
+.put casque-helm %bearbag
+.get bear-boots bear-corpse
+.put bear-boots %bearbag
+.get iron-armbands bear-corpse
+.put iron-armbands %bearbag
+.get smooth-guards bear-corpse
+.put smooth-guards %bearbag
+.get dirty-tunic bear-corpse
+.put dirty-tunic %bearbag
+.put %bearbag dragon-sack
+.get all bear-corpse
+/endmac
+
+# might consider a set of triggers 
+
+/trigger crea bearfail nothing seems to happen
+.cast 'animal f' bear
+/endmac
+/trigger opt bearfail dis

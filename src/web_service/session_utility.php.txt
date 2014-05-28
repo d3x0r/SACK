@@ -1,0 +1,57 @@
+
+
+<?php
+new SessionSaveHandler();
+?>
+
+and the handler will rule the sessions ;-)
+
+
+<?php
+
+class SessionSaveHandler {
+    protected $savePath;
+    protected $sessionName;
+
+    public function __construct() {
+        session_set_save_handler(
+            array($this, "open"),
+            array($this, "close"),
+            array($this, "read"),
+            array($this, "write"),
+            array($this, "destroy"),
+            array($this, "gc")
+        );
+    }
+
+    public function open($savePath, $sessionName) {
+        $this->savePath = $savePath;
+        $this->sessionName = $sessionName;
+        return true;
+    }
+
+    public function close() {
+        // your code if any
+        return true;
+    }
+
+    public function read($id) {
+        // your code
+    }
+
+    public function write($id, $data) {
+        // your code
+    }
+
+    public function destroy($id) {
+        // your code
+    }
+
+    public function gc($maxlifetime) {
+        // your code
+    }
+}
+
+new SessionSaveHandler();
+
+?>

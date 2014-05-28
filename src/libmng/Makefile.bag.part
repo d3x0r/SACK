@@ -1,0 +1,23 @@
+
+
+MNG_DESTINC1=$(SACK_BASE)/include
+MNG_HEADER1:=$(shell ls $(MNGBASEDIR)/*.h)
+#$(warning HEADER:$(HEADER1))
+MNG_HEADERS:=$(foreach hdr,$(MNG_HEADER1),$(MNG_DESTINC1)/$(subst $(MNGBASEDIR),,$(hdr)))
+#$(warning HEADER:$(HEADERS))
+MORE_TARGETS+=$(HEADERS)
+
+
+INCLUDEDIRS+=$(SACK_BASE)/include/png $(SACK_BASE)/include/jpeg
+
+SRCS+=$(if $(CPLUSPLUS_BUILD),,$(foreach src,$(shell ls $(MNGBASEDIR)/*.c),$(subst .c,,$(src))))
+ifdef __WINDOWS__
+CXFLAGS+=$(if $(CPLUSPLUS_BUILD),,-DMNG_BUILD_DLL)
+else
+CXFLAGS+=$(if $(CPLUSPLUS_BUILD),,-DMNG_BUILD_SO)
+endif
+# Chunk storage is for examining detailed content of a mng stream
+#CXFLAGS+=-DMNG_STORE_CHUNKS -DMNG_ACCESS_CHUNKS
+
+#$(warning SRCS=$(SRCS))
+

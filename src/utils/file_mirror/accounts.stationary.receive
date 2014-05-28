@@ -1,0 +1,20 @@
+# external data specifies two logical logins
+# the first is for normal single directory transfers between
+# the server and the client (datamirror)
+# the second is for mass updates from the server... the place to store
+# 'common' ... this account is called <sysmirror>
+#
+# allow fields should be 0... 
+#
+#
+# server= <address> is the address of the master server to connect to.
+
+watchdog=0
+
+login=stationary
+server=10.17.20.1
+#(account name) (mirror directory)  (allowed IP - * == anywhere)
+user=datamirror
+   incoming=c:/xyzzyx/product
+
+

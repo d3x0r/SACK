@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name1">SACK InterShell</string>
+    <string name="app_name2">SACK InterShell(Edit)</string>
+    <string name="app_package">SACK InterShell</string>
+</resources>

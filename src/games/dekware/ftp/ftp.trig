@@ -1,0 +1,42 @@
+
+/trigger dest banner
+/trigger crea banner 220
+.user %ftpuser
+/endmac
+/trigger opt banner anchor
+
+/trigger dest login
+/trigger crea login 230
+/echo Login OK
+/endmac
+/trigger opt login consume anchor
+
+/trigger dest password
+/trigger crea password 331 
+.pass %ftppass
+/decl password #clear old password so it doesn't show on vars...
+/endmac
+/trigger opt password anchor
+
+
+/dest portaddr
+/mac portaddr ip1 comma ip2 comma ip3 comma ip4 comma port1 comma port2
+/decl Port %port1
+/decl IP
+/mult %Port 256
+/incr %Port %port2
+/decl IP %ip1.%ip2.%ip3.%ip4:%Port
+/burst %IP temp #concat result 
+/result %temp
+/endmac
+
+
+/trigger dest passive
+/trigger crea passive 227 Entering Passive Mode (&ip1, &ip2, &ip3, &ip4, &port1, &port2 )
+/echo Setting Passive Address
+/portaddr %ip1, %ip2, %ip3, %ip4, %port1, %port2
+/getresult nextopen
+#/execute /%nextopen/connect %nextopen
+/endmac
+/trigger opt passive anchor 
+

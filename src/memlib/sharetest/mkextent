@@ -1,0 +1,1 @@
+gcc -g -D_DEBUG -D__STATIC -D__UNIX__ -DGCC -I../../../include extent_test.c -L../../../lib/debug -lshmems -lsyslogs

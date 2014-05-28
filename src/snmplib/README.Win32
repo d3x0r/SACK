@@ -1,0 +1,37 @@
+
+----- Updated January 25th, 1999 -----
+
+This is a very basic port to win32 machines.  The following functions
+do NOT work:
+
+* This is NOT threaded in any way.  It really should be, but at this
+  point, it isn't.  The Single Session API is a big step in the right 
+  direction.
+
+I've only tested this with VC++ 5.0 and 6.0 under NT5.0.
+
+
+
+
+
+To use:
+
+* Decide on a src directory (IE: c:\src\cmu)
+
+* Unpack the src collection into this directory.  This will create a
+  subdir called "snmp".
+
+* Open the file "library.dsw"
+
+* Compile the library
+
+* Put the generated "Release/libsnmp.dll" in your windows subdirectory
+
+* Place the mibfile in c:\windows.  Or put it wherever, and set the
+  registry key "HKEY_LOCAL_MACHINE\SOFTWARE\Carnegie Mellon\Network
+  Group\SNMP Library" to point to it.  The registry key value name
+  should be "MIB Location".
+
+Ryan Troll
+Network Development
+Carnegie Mellon University
