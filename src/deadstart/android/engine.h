@@ -15,6 +15,19 @@
 #endif
 #define lprintf LOGI
 
+struct event_data
+{
+   struct event_data *next, **me;
+	int type; // 0 = touch, 1 = key
+   int finished;
+	struct input_point points[10];
+	int nPoints;
+
+   int key_pressed;
+	int count;
+	int key_val;
+   int key_mods;
+};
 
 /**
  * Our saved state data.
@@ -65,4 +78,8 @@ struct engine {
 		POINTER loaded_address;
       size_t loaded_size;
 	}loader;
+	struct event_queue {
+		int msgpipe[2];
+      struct event_data *current_event;
+	}events;
 };

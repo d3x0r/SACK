@@ -7,7 +7,7 @@
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *                                                    7
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,6 +36,9 @@
 
 #include "engine.h"
 
+#undef New
+#define New(a) (a*)malloc(1,sizeof(a))
+
 // sets the native window; opencameras will use this as the surface to initialize to.
 static void (*BagVidlibPureglSetNativeWindowHandle)(NativeWindowType );
 static void (*BagVidlibPureglSetKeyboardMetric)( int );
@@ -46,11 +49,14 @@ static void (*BagVidlibPureglSendTouchEvents)( int nPoints, PINPUT_POINT points 
 static void (*BagVidlibPureglCloseDisplay)(void);  // do cleanup and suspend processing until a new surface is created.
 static void (*BagVidlibPureglSurfaceLost)(void);  // do cleanup and suspend processing until a new surface is created.
 static void (*BagVidlibPureglSurfaceGained)(NativeWindowType);  // do cleanup and suspend processing until a new surface is created.
+static int ProcessEvents( PTRSZVAL );
+
 static void (*BagVidlibPureglSetTriggerKeyboard)( void(*show)(void)
 																, void(*hide)(void)
 																, int(*get_status_metric)(void)
 																, int(*get_keyboard_metric)(void)
-																, char*(*get_key_text)(void) );  // do cleanup and suspend processing until a new surface is created.
+																, char*(*get_key_text)(void)
+																, int(*process_events)(PTRSZVAL) );  // do cleanup and suspend processing until a new surface is created.
 static void (*BagVidlibPureglSetAnimationWake)(void(*wake_animation)(void));  // do cleanup and suspend processing until a new surface is created.
 static void (*BagVidlibPureglSetSleepSuspend)(void(*suspend)(int));  // do cleanup and suspend processing until a new surface is created.
 
@@ -68,6 +74,78 @@ extern void AndroidLoadSharedLibrary( char *libname );
 
 
 struct engine engine;
+static pthread_t self;
+
+static void ReadEvent( void )
+{
+	struct event_data *event;
+      if( read( engine.events.msgpipe[0], &event, sizeof( event ) ) == sizeof( event ) )
+		{
+         engine.events.current_event = event;
+         lprintf( "got an event..." );
+			if( event->type == 0 )
+				BagVidlibPureglSendTouchEvents( event->nPoints, event->points );
+			else
+			{
+
+            int used = 0;
+				if( event->count > 1 )
+				{
+					int n;
+					for( n = 0; n < event->count; n++ )
+					{
+						used = BagVidlibPureglSendKeyEvents( 1, event->key_val, event->key_mods );
+						used = BagVidlibPureglSendKeyEvents( 0, event->key_val, event->key_mods );
+					}
+				}
+				else
+					used = BagVidlibPureglSendKeyEvents( (event->key_pressed==AKEY_EVENT_ACTION_DOWN)?1:0, event->key_val, event->key_mods );
+			}
+			engine.events.current_event = NULL;
+         event->finished = 1;
+		}
+}
+
+static int ProcessEvents( PTRSZVAL psvMode )
+{
+	if( psvMode )
+	{
+		if( self != pthread_self() )
+			return -1;
+	}
+
+	if( engine.events.current_event )
+	{
+		engine.events.current_event->finished = 1;
+      engine.events.current_event = NULL;
+	}
+	{
+		fd_set fds;
+      int status;
+		FD_ZERO( &fds );
+		FD_SET( engine.events.msgpipe[0], &fds );
+		status = select( engine.events.msgpipe[0] + 1, &fds, NULL, NULL, NULL );
+		if( status > 0 )
+		{
+         lprintf( "have a pending event..." );
+			ReadEvent();
+		}
+	}
+   return 1;
+}
+
+static void* post_events( void*param )
+{
+	self = pthread_self();
+
+	while( 1 )
+	{
+		lprintf( "read from %d", engine.events.msgpipe[0] );
+      ReadEvent();
+	}
+   return 0;
+}
+
 
 /**
  * Process the next input event.
@@ -240,7 +318,30 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 #endif
 		}
 
-		BagVidlibPureglSendTouchEvents( engine->nPoints, engine->points );
+		{
+			struct event_data my_event;
+         struct event_data *sent_event = &my_event;
+			my_event.type = 0;
+			memcpy( my_event.points, engine->points, sizeof( engine->points ) );
+			my_event.nPoints = engine->nPoints;
+         my_event.finished = 0;
+			write( engine->events.msgpipe[1], &sent_event, sizeof( sent_event ) );
+			{
+            int skip = 0;
+			while( !my_event.finished )
+			{
+				skip++;
+				if( skip > 100000 )
+				{
+					lprintf( "waiting...." );
+					skip = 0;
+				}
+				sched_yield();
+			}
+			}
+		}
+
+		//BagVidlibPureglSendTouchEvents( engine->nPoints, engine->points );
 		//engine->state.animating = 1;
 		//engine->state.x = AMotionEvent_getX(event, 0);
 		//engine->state.y = AMotionEvent_getY(event, 0);
@@ -271,20 +372,26 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 
 			if( key_val )
 			{
-				int used;
+				struct event_data my_event;
+				struct event_data *sent_event = &my_event;
+				my_event.type = 1;
+				my_event.key_val = key_val;
+				my_event.key_mods = key_mods;
+				my_event.key_pressed = key_pressed;
+
 				if( key_pressed == AKEY_EVENT_ACTION_MULTIPLE )
 				{
-					int count = AKeyEvent_getRepeatCount( event );
-					int n;
-					for( n = 0; n < count; n++ )
-					{
-						used = BagVidlibPureglSendKeyEvents( 1, key_val, key_mods );
-						used = BagVidlibPureglSendKeyEvents( 0, key_val, key_mods );
-					}
+					my_event.count = AKeyEvent_getRepeatCount( event );
 				}
 				else
-					used = BagVidlibPureglSendKeyEvents( (key_pressed==AKEY_EVENT_ACTION_DOWN)?1:0, key_val, key_mods );
-				return used;
+					my_event.count = 1;
+
+				my_event.finished = 0;
+            write( engine->events.msgpipe[1], &sent_event, sizeof( sent_event ) );
+				while( !my_event.finished )
+					sched_yield();
+
+				//return used;
 			}
 			break;
 		}
@@ -600,11 +707,12 @@ void* BeginNormalProcess( void*param )
 					if( !SACK_Main )
 					{
 						// allow normal main fail processing
+                  lprintf( "Failed to load SACK_Main" );
 						break;
 					}
-					//LOGI( "Invoke Deadstart..." );
+					LOGI( "Invoke Deadstart..." );
 					InvokeDeadstart();
-					//LOGI( "Deadstart Completed..." );
+					LOGI( "Deadstart Completed..." );
 					MarkRootDeadstartComplete();
 
 					// somehow these will be loaded
@@ -639,9 +747,10 @@ void* BeginNormalProcess( void*param )
 					BagVidlibPureglSetTriggerKeyboard = (void(*)(void(*)(void),void(*)(void),int(*get_status_metric)(void)
 																			  ,int(*get_keyboard_metric)(void)
 																			  ,char*(*get_key_text)(void)
+                                                            , int(*)(PTRSZVAL)
 																			  ))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SetTriggerKeyboard" );
 					if( BagVidlibPureglSetTriggerKeyboard )
-						BagVidlibPureglSetTriggerKeyboard( show_keyboard, hide_keyboard, AndroidGetStatusMetric, AndroidGetKeyboardMetric, AndroidGetCurrentKeyText );
+						BagVidlibPureglSetTriggerKeyboard( show_keyboard, hide_keyboard, AndroidGetStatusMetric, AndroidGetKeyboardMetric, AndroidGetCurrentKeyText, ProcessEvents );
 
 					BagVidlibPureglSetAnimationWake = (void(*)(void(*)(void)))dlsym( RTLD_DEFAULT, "SACK_Vidlib_SetAnimationWake" );
 					if( BagVidlibPureglSetAnimationWake )
@@ -824,11 +933,72 @@ void BeginNativeProcess( struct engine* engine )
 				pthread_t thread;
 				engine->wait_for_startup = 1;
 				LOGI( "Create A thread start! *** " );
+				pthread_create( &thread, NULL, post_events, NULL );
 				pthread_create( &thread, NULL, BeginNormalProcess, NULL );
 				// wait for core initilization to complete, and soft symbols to be loaded.
 				//while( engine->wait_for_startup )
 				//	sched_yield();
 			}
+}
+
+int LooperProcessEvents( PTRSZVAL psvMode )
+{
+
+
+	{
+		// Read all pending events.
+		int ident;
+		int events;
+		struct android_poll_source* source;
+
+		// If not animating, we will block forever waiting for events.
+		// If animating, we loop until all events are read, then continue
+		// to draw the next frame of animation.
+		while ((ident=ALooper_pollAll((psvMode || engine.state.animating) ? 0 : -1, NULL, &events, (void**)&source)) >= 0)
+		{
+         lprintf( "in looper..." );
+			// Process this event.
+			if (source != NULL)
+			{
+				source->process(engine.app, source);
+			}
+
+			// Check if we are exiting.
+			if (engine.app->destroyRequested != 0) {
+				LOGI( "Destroy Requested... %d", engine.state.closed );
+				//state->activity->vm->DetachCurrentThread();
+				BagVidlibPureglCloseDisplay();
+				engine.did_finish_once = 0;
+				return -2;
+			}
+
+			// if not animating, this will get missed...
+			if(engine.state.closed && !engine.did_finish_once )
+			{
+				engine.did_finish_once = 1;
+				LOGI( "Do final activity" );
+				ANativeActivity_finish(engine.app->activity);
+			}
+		}
+      lprintf( "left looper loop %d", ident );
+		if (engine.state.animating) {
+				// Drawing is throttled to the screen update rate, so there
+			// is no need to do timing here.
+			// trigger want draw?
+         //LOGI( "Animating..." );
+			engine.state.rendering = 1;
+			if( BagVidlibPureglRenderPass )
+				engine.state.animating = BagVidlibPureglRenderPass();
+			else
+			{
+				if( BagVidlibPureglFirstRender )
+					BagVidlibPureglFirstRender();
+				engine.state.animating = 0;
+			}
+         engine.state.rendering = 0;
+		}
+	}
+   return 1;
 }
 
 /**
@@ -837,12 +1007,21 @@ void BeginNativeProcess( struct engine* engine )
  * event loop for receiving input events and doing other things.
  */
 void android_main(struct android_app* state) {
-   const char *data_path = engine.data_path;
+	const char *data_path = engine.data_path;
+   struct event_queue queue = engine.events;
 	// Make sure glue isn't stripped.
 	app_dummy();
 
 	memset(&engine, 0, sizeof(engine));
-   engine.data_path = data_path;
+
+	engine.data_path = data_path;
+	engine.events = queue;
+	if( !engine.events.msgpipe[0] )
+		if (pipe(engine.events.msgpipe)) {
+			LOGI("could not create pipe: %s", strerror(errno));
+		}
+
+
 	state->userData = &engine;
 	state->onAppCmd = engine_handle_cmd;
 	state->onInputEvent = engine_handle_input;
@@ -873,56 +1052,9 @@ void android_main(struct android_app* state) {
 
 	// loop waiting for stuff to do.
 	while (1) {
-		// Read all pending events.
-		int ident;
-		int events;
-		struct android_poll_source* source;
-
-		// If not animating, we will block forever waiting for events.
-		// If animating, we loop until all events are read, then continue
-		// to draw the next frame of animation.
-		while ((ident=ALooper_pollAll(engine.state.animating ? 0 : -1, NULL, &events, (void**)&source)) >= 0)
-		{
-			// Process this event.
-			if (source != NULL)
-			{
-				source->process(state, source);
-			}
-
-			// Check if we are exiting.
-			if (state->destroyRequested != 0) {
-				LOGI( "Destroy Requested... %d", engine.state.closed );
-				//state->activity->vm->DetachCurrentThread();
-				BagVidlibPureglCloseDisplay();
-				engine.did_finish_once = 0;
-				return;
-			}
-
-			// if not animating, this will get missed...
-			if(engine.state.closed && !engine.did_finish_once )
-			{
-				engine.did_finish_once = 1;
-				LOGI( "Do final activity" );
-				ANativeActivity_finish(state->activity);
-			}
-		}
-
-		if (engine.state.animating) {
-				// Drawing is throttled to the screen update rate, so there
-			// is no need to do timing here.
-			// trigger want draw?
-         //LOGI( "Animating..." );
-			engine.state.rendering = 1;
-			if( BagVidlibPureglRenderPass )
-				engine.state.animating = BagVidlibPureglRenderPass();
-			else
-			{
-				if( BagVidlibPureglFirstRender )
-					BagVidlibPureglFirstRender();
-				engine.state.animating = 0;
-			}
-         engine.state.rendering = 0;
-		}
+		int result = LooperProcessEvents( 0 );
+		if( result == -2 )
+         break;
 	}
 }
 
