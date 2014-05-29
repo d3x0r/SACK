@@ -97,6 +97,7 @@ struct CanvasData {
 		BIT_FIELD bShowCanvas : 1; // set this when the canvas should be shown... but don't show
 		BIT_FIELD bButtonProcessing : 1;
 		BIT_FIELD wide_aspect : 1; // use wide aspect controls
+		BIT_FIELD bUseSingleFrame : 1; // classic mode where all controls are realy on same surface
 	} flags;
 	struct {
 		int _x, _y;
@@ -112,7 +113,8 @@ struct CanvasData {
 
 	PLIST deleted_pages; // PPAGE_DATA no longer listed in pages... Undelete(?)
 
-	PPAGE_DATA current_page;
+	PPAGE_DATA active_page; // mostly for tracking active if bUseSingleFrame
+
 	// once upon a time there was only one page, and this is that page...
 	// with time this will dissappear...
 
@@ -361,7 +363,7 @@ void InvokeLoadCommon( void );
 
 void InvokeCloneControl( PMENU_BUTTON button, PMENU_BUTTON original );
 void CloneCommonButtonProperties( PMENU_BUTTON clone, PMENU_BUTTON  clonebutton );
-PMENU_BUTTON GetCloneButton( PCanvasData canvas, int x, int y, int bInvisible ); // new button is invisible (or not)
+PMENU_BUTTON GetCloneButton( PCanvasData canvas, PPAGE_DATA page, int x, int y, int bInvisible ); // new button is invisible (or not)
 
 
 

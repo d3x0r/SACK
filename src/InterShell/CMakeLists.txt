@@ -156,7 +156,6 @@ add_subdirectory( filevar )
 add_subdirectory( slider )
 add_subdirectory( security.null )
 add_subdirectory( security.sql )
-#add_subdirectory( video_player )
 if( NOT __ANDROID__ )
 add_subdirectory( games/Slots)
 endif( NOT __ANDROID__ )
@@ -168,7 +167,6 @@ add_subdirectory( app_mount )
 add_subdirectory( windows_shell )
 add_subdirectory( crossfade_support )
 endif( WIN32 )
-add_subdirectory( chatment )
 
 # this has to be set before the cmakelists.txt ends... but not before other cmakelists are loaded
 

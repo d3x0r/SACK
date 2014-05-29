@@ -41,7 +41,7 @@ typedef struct font_select_tag
 	POINTER *fontdata;
 	size_t *fontdatalen;
 	PFONT_PRESET selected_font;
-	PSI_CONTROL canvas;
+	PCanvasData canvas;
 } FONT_SELECT, *PFONT_SELECT;
 
 static struct intershell_font_local
@@ -267,8 +267,8 @@ void CPROC SetCurrentPreset( PTRSZVAL psv, PSI_CONTROL list, PLISTITEM pli )
 static void CPROC CreatePageFont( PTRSZVAL psv, PSI_CONTROL pc )
 {
 	PFONT_SELECT font_select = (PFONT_SELECT)psv;
-	ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, font_select->canvas );
-	PCanvasData canvas = (*page)->canvas;
+	//ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page,  );
+	PCanvasData canvas = font_select->canvas;
 	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, font_select->canvas );
 	TEXTCHAR name_buffer[256];
 	//if( !font_select->selected_font )
@@ -352,7 +352,7 @@ SFTFont *SelectACanvasFont( PCanvasData canvas, PSI_CONTROL parent, CTEXTSTR*def
 	int okay = 0;
 	int done = 0;
 	font_select.selected_font = NULL;
-	font_select.canvas = canvas->current_page->frame;
+	font_select.canvas = canvas;
 	//font_select.fontdata = pfontdata;
 	//font_select.fontdatalen = pfontdatalen;
 	frame = LoadXMLFrame( WIDE("font_preset_property.isframe") );
