@@ -50,7 +50,7 @@ PLIST *GetPageControlList( PPAGE_DATA page, int bWide )
 	return &page->layout.tall_controls;
 }
 
-void CreateNamedPage( PCanvasData canvas, CTEXTSTR page_name )
+PPAGE_DATA CreateNamedPage( PCanvasData canvas, CTEXTSTR page_name )
 {
 	if( canvas )
 	{
@@ -58,12 +58,14 @@ void CreateNamedPage( PCanvasData canvas, CTEXTSTR page_name )
 		MemSet( page, 0, sizeof( *page ) );
 		page->title = StrDup( page_name );
 		page->canvas = canvas;
-		page->grid.nPartsX = canvas->current_page?canvas->current_page->grid.nPartsX:90;//canvas->nPartsX;
-		page->grid.nPartsY = canvas->current_page?canvas->current_page->grid.nPartsY:50;//canvas->nPartsY;
+		page->grid.nPartsX = canvas->default_page?canvas->default_page->grid.nPartsX:90;//canvas->nPartsX;
+		page->grid.nPartsY = canvas->default_page?canvas->default_page->grid.nPartsY:50;//canvas->nPartsY;
 		AddPage( canvas, page );
 		OpenPageFrame( page, FALSE );
 		// update current_page for loading purposes...
-		ChangePages( page );
+		if( canvas->flags.bUseSingleFrame )
+			ChangePages( page );
+		return page;
 	}
 }
 
@@ -79,18 +81,18 @@ void InsertStartupPage( PCanvasData canvas, CTEXTSTR page_name )
 	page->title = NULL; //StrDup( "New Startup?" );
 	// new default page...
 	AddPage( canvas, canvas->default_page ); // which is a new page....  but it's got a goofy name... menus suck.
+	page->grid.nPartsX = canvas->default_page->grid.nPartsX;
+	page->grid.nPartsY = canvas->default_page->grid.nPartsY;
 	canvas->default_page = page;
-	page->grid.nPartsX = canvas->current_page->grid.nPartsX;
-	page->grid.nPartsY = canvas->current_page->grid.nPartsY;
 	ChangePages( page );
 }
 
 //-------------------------------------------------------------------------
 
-PPAGE_DATA GetCurrentCanvasPage( PCanvasData canvas )
+PPAGE_DATA ZGetCurrentCanvasPage( PCanvasData canvas )
 {
 	if( canvas )
-		return canvas->current_page;
+		return canvas->active_page;
 	return NULL;
 }
 
@@ -111,7 +113,7 @@ PPAGE_DATA ShellGetNamedPage( PCanvasData canvas, CTEXTSTR name )
 		}
 		if( strcmp( name, WIDE("next") ) == 0 )
 		{
-			INDEX idx_page = FindLink( &canvas->pages, canvas->current_page );
+			INDEX idx_page = FindLink( &canvas->pages, canvas->active_page );
 			if( idx_page == INVALID_INDEX )
 			{
 				INDEX idx_first;
@@ -135,7 +137,7 @@ PPAGE_DATA ShellGetNamedPage( PCanvasData canvas, CTEXTSTR name )
 		}
 		if( strcmp( name, WIDE( "here" ) ) == 0 )
 		{
-			return canvas->current_page;
+			return canvas->active_page;
 		}
 		else if( strcmp( name, WIDE( "return" ) ) == 0 )
 		{
@@ -145,7 +147,7 @@ PPAGE_DATA ShellGetNamedPage( PCanvasData canvas, CTEXTSTR name )
 			{
 				return page;
 			}
-			return canvas->current_page;
+			return canvas->active_page;
 		}
 		else LIST_FORALL( canvas->pages, idx, PPAGE_DATA, page )
 		{
@@ -164,7 +166,7 @@ PPAGE_DATA ShellGetNamedPage( PCanvasData canvas, CTEXTSTR name )
 PPAGE_DATA ShellGetCurrentPage( PCanvasData canvas )
 {
 	if( canvas )
-		return canvas->current_page;
+		return canvas->active_page;
 	return NULL;
 }
 
@@ -212,12 +214,12 @@ void UpdateButtonExx( PMENU_BUTTON button, int bEndingEdit DBG_PASS )
 		/* better to validate this, so off-page controls don't accidentatlly
 		 * show themselves with update.
 		 */
-		PCanvasData canvas = GetCanvas( GetParentControl( QueryGetControl( button ) ) );
+		PCanvasData canvas = button->parent_canvas;
 		// doesn't matter ... we're not on this button's page..
 
 		//lprintf( WIDE( "probably not g.flags.multi_edit ( %d )" ),  g.flags.multi_edit );
 		//lprintf( WIDE( "real button page %p is %p ?" ), InterShell_GetPhysicalButton( button )->page, canvas->current_page );
-		if( !g.flags.multi_edit && InterShell_GetPhysicalButton( button )->page != canvas->current_page )
+		if( !g.flags.multi_edit && InterShell_GetPhysicalButton( button )->page != canvas->active_page )
 			return;
 	}
 
@@ -328,19 +330,21 @@ void RestorePageEx( PCanvasData canvas, PPAGE_DATA page, int bFull, int was_acti
 	PPAGE_DATA prior;
 	INDEX idx;
 	PMENU_BUTTON control;
+	lprintf( "Restore page should change screen offsets" );
+
 	//_lprintf(DBG_RELAY)( WIDE("restore page... %d"), was_active );
-	if( g.flags.multi_edit )
+	if( g.flags.multi_edit || !canvas->flags.bUseSingleFrame )
 	{
 		//if( page->frame )  // why wouldn't a page have a frame?
 		//	DisplayFrame( page->frame );
 	}
 	if( canvas->pPageMenu )
 		CheckPopupItem( canvas->pPageMenu, MNU_CHANGE_PAGE + page->ID, MF_CHECKED );
-	prior = canvas->current_page;
+	prior = canvas->active_page;
 	do
 	{
 		//lprintf( WIDE( "page set to %p" ), page );
-		canvas->current_page = page;
+		canvas->active_page = page;
 #ifndef MULTI_FRAME_CANVAS
 		if( !InvokePageChange( canvas ) ) // some method rejected page access.
 		{
@@ -354,7 +358,7 @@ void RestorePageEx( PCanvasData canvas, PPAGE_DATA page, int bFull, int was_acti
 				}
 			}
 			//lprintf( "page set to %p", prior );
-			canvas->current_page = prior;
+			canvas->active_page = prior;
 			if( prior && !InvokePageChange( canvas ) ) // some method rejected page access.
 			{
 				// we have to be sure we can be on this page too, since we 'left'
@@ -364,22 +368,22 @@ void RestorePageEx( PCanvasData canvas, PPAGE_DATA page, int bFull, int was_acti
 			}
 		}
 #endif
-	} while( !canvas->current_page );
+	} while( !canvas->active_page );
 	if( was_active )
 	{
-		if( canvas->current_page )
+		if( canvas->active_page )
 		{
-			canvas->current_page->flags.bActive = 1;
-			if( ( bWide && canvas->current_page->layout.wide_controls )
-				|| ( !canvas->current_page->layout.tall_controls ) )
-				LIST_FORALL( canvas->current_page->layout.wide_controls, idx, PMENU_BUTTON, control )
+			canvas->active_page->flags.bActive = 1;
+			if( ( bWide && canvas->active_page->layout.wide_controls )
+				|| ( !canvas->active_page->layout.tall_controls ) )
+				LIST_FORALL( canvas->active_page->layout.wide_controls, idx, PMENU_BUTTON, control )
 				{
 					// full flag will cause the control to get reinitialized
 					// all parameters will get set.
 					UpdateButtonEx( control, bFull );
 				}
 			else
-				LIST_FORALL( canvas->current_page->layout.tall_controls, idx, PMENU_BUTTON, control )
+				LIST_FORALL( canvas->active_page->layout.tall_controls, idx, PMENU_BUTTON, control )
 				{
 					// full flag will cause the control to get reinitialized
 					// all parameters will get set.
@@ -395,7 +399,7 @@ void RestoreCurrentPage( PSI_CONTROL pc_canvas )
 	ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc_canvas );
 	PCanvasData canvas = (*page)->canvas;
 	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
-	RestorePage( canvas, canvas->current_page, FALSE );
+	RestorePage( canvas, canvas->flags.bUseSingleFrame?canvas->active_page:(*page), FALSE );
 }
 
 //-------------------------------------------------------------------------
@@ -467,30 +471,29 @@ void HidePageExx( PCanvasData canvas DBG_PASS )
 	{
 		return;
 	}
-	if( canvas && canvas->current_page
+	if( canvas && canvas->flags.bUseSingleFrame && canvas->active_page
 //		&& canvas->current_page->flags.bActive
 	  )
 	{
 		INDEX idx;
 		PMENU_BUTTON control;
 		PPAGE_DATA page;
-		if( !canvas->current_page->flags.bActive )
+		if( !canvas->active_page->flags.bActive )
 			_lprintf(DBG_RELAY)( WIDE( "hiding a non active page" ) );
-		if( canvas->current_page )
-			canvas->current_page->flags.bActive = 0;
+		if( canvas->active_page )
+			canvas->active_page->flags.bActive = 0;
 		if( canvas->pPageMenu )
-			CheckPopupItem( canvas->pPageMenu, MNU_CHANGE_PAGE + canvas->current_page->ID, MF_UNCHECKED );
-#ifndef MULTI_FRAME_CANVAS
-		if( canvas->current_page )
+			CheckPopupItem( canvas->pPageMenu, MNU_CHANGE_PAGE + canvas->active_page->ID, MF_UNCHECKED );
+		if( canvas->active_page )
 		{
-			page = canvas->current_page;
+			PLIST *list = GetPageControlList( page, canvas->flags.wide_aspect );
+			page = canvas->active_page;
 			//lprintf( WIDE( "Hiding a page... hiding all controls... controls have the option to cause themselves to show... " ) );
-			LIST_FORALL( page->controls, idx, PMENU_BUTTON, control )
+			LIST_FORALL( (*list), idx, PMENU_BUTTON, control )
 			{
 				HideCommon( QueryGetControl( control ) );
 			}
 		}
-#endif
 		//_lprintf(DBG_RELAY)( WIDE( "page set to %p" ), NULL );
 		//canvas->current_page = NULL;
 	}
@@ -521,7 +524,7 @@ void ChangePagesEx( PPAGE_DATA page DBG_PASS )
 		bChanging = FALSE;
 		return;	// don't hide any controls on any page....
 	}
-	if( page == canvas->current_page )
+	if( page == canvas->active_page )
 	{
 		lprintf( WIDE("current page is already page (no change)") );
 #ifndef MULTI_FRAME_CANVAS
@@ -537,15 +540,15 @@ void ChangePagesEx( PPAGE_DATA page DBG_PASS )
 	if( !g.flags.bPageUpdateDisabled )
 		EnableCommonUpdates( page->frame, FALSE );
 
-	if( !g.flags.bPageReturn && ( canvas->current_page != page ) )
+	if( !g.flags.bPageReturn && ( canvas->active_page != page ) )
 	{
-		PushLink( &canvas->prior_pages, canvas->current_page );
+		PushLink( &canvas->prior_pages, canvas->active_page );
 	}
 
 	{
 		int was_active;
 		//_lprintf(DBG_RELAY)( "%p ", canvas->current_page );
-		if( !canvas->current_page || ( canvas->current_page && canvas->current_page->flags.bActive ) )
+		if( !canvas->active_page || ( canvas->active_page && canvas->active_page->flags.bActive ) )
 			was_active = 1;
 		else
 			was_active = 0;
@@ -637,7 +640,7 @@ void DestroyPageID( PSI_CONTROL pc_canvas, _32 ID ) // MNU_DESTROY_PAGE ID (minu
 	{
 		if( page->ID == ID )
 		{
-			if( canvas->current_page == page )
+			if( canvas->active_page == page )
 				ChangePages( canvas->default_page );
 
 			AddLink( &canvas->deleted_pages, page );
@@ -660,7 +663,7 @@ void UnDestroyPageID( PSI_CONTROL pc_canvas, _32 ID ) // MNU_DESTROY_PAGE ID (mi
 	{
 		if( page->ID == ID )
 		{
-			if( canvas->current_page == page )
+			if( canvas->active_page == page )
 				ChangePages( canvas->default_page );
 
 			AddLink( &canvas->pages, page );
@@ -953,10 +956,10 @@ void AddPage( PCanvasData canvas, PPAGE_DATA page )
 
 //-------------------------------------------------------------------------
 
-PPAGE_DATA GetPageFromFrame( PCanvasData canvas )
+PPAGE_DATA ZGetPageFromFrame( PCanvasData canvas )
 {
 	if( canvas )
-		return canvas->current_page;
+		return canvas->active_page;
 	return NULL;
 }
 
@@ -980,33 +983,33 @@ void CreateNewPage( PSI_CONTROL pc_canvas, PCanvasData canvas )
 		PPAGE_DATA page = New( PAGE_DATA );
 		MemSet( page, 0, sizeof( *page ) );
 		page->title = StrDup( pagename );
-		page->grid.nPartsX = canvas->current_page->grid.nPartsX;
-		page->grid.nPartsY = canvas->current_page->grid.nPartsY;
+		page->grid.nPartsX = canvas->default_page->grid.nPartsX;
+		page->grid.nPartsY = canvas->default_page->grid.nPartsY;
 		AddPage( canvas, page );
 		lprintf( WIDE( "page set to %p" ), page );
-		canvas->current_page = page;
+		canvas->active_page = page;
 		//SaveButtonConfig( pc_canvas );
 	}
 }
 
 //---------------------------------------------------------------------------
 
-void RenamePage( PCanvasData canvas )
+void RenamePage( PPAGE_DATA page )
 {
 	//PCanvasData canvas = GetCanvas( pc_canvas );
 	TEXTCHAR pagename[256];
-	PPAGE_DATA page = GetPageFromFrame( canvas );
+	//PPAGE_DATA page = GetPageFromFrame( canvas );
 	if( SimpleUserQuery( pagename, sizeof( pagename ), WIDE("Enter New Page Name")
 							 , page->frame ) )
 	{
 		if( page )
 		{
-			if( page == canvas->default_page )
+			if( page == page->canvas->default_page )
 			{
-				InsertStartupPage( canvas, pagename );
+				InsertStartupPage( page->canvas, pagename );
 				if( g.flags.multi_edit )
 				{
-					DisplayFrame( canvas->current_page->frame );
+					DisplayFrame( page->frame );
 				}
 			}
 			else

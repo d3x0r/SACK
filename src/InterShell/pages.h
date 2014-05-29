@@ -99,8 +99,8 @@ void InsertStartupPage( PCanvasData pc_canvas, CTEXTSTR page_name );
 // this is actually insert page...
 // creates a new pagename for the startup page
 // and creates a new startup page in place.
-void RenamePage( PCanvasData pc_canvas );
-void CPROC CreateNamedPage( PCanvasData pc_canvas, CTEXTSTR page_name );
+void RenamePage( PPAGE_DATA page );
+PPAGE_DATA CPROC CreateNamedPage( PCanvasData pc_canvas, CTEXTSTR page_name );
 
 int InvokePageChange( PCanvasData pc_canvas );
 

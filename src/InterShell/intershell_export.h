@@ -529,7 +529,7 @@ INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_TranslateLabelTextEx )( PMENU_BUTTON b
 INTERSHELL_PROC_PTR( PTRSZVAL,  InterShell_CreateControl )( PSI_CONTROL canvas, CTEXTSTR type, int x, int y, int w, int h );
 
 
-INTERSHELL_PROC_PTR( void, InterShell_CreateNamedPage )( PCanvasData canvas, CTEXTSTR page_name );
+INTERSHELL_PROC_PTR( PPAGE_DATA, InterShell_CreateNamedPage )( PCanvasData canvas, CTEXTSTR page_name );
 
 INTERSHELL_PROC_PTR( void, InterShell_AddCommonButtonConfig )( PCONFIG_HANDLER pch );
 
@@ -744,6 +744,7 @@ INTERSHELL_PROC( void, SaveCanvasConfiguration_XML )( genxWriter w, PCanvasData 
 INTERSHELL_PROC( PCONFIG_HANDLER, InterShell_GetCurrentConfigHandler )( void );
 INTERSHELL_PROC( PMENU_BUTTON, InterShell_GetCurrentLoadingControl )( void );
 INTERSHELL_PROC( PCanvasData, InterShell_GetCurrentLoadingCanvas )( void );
+INTERSHELL_PROC( PPAGE_DATA, InterShell_GetCurrentLoadingPage )( void );
 INTERSHELL_PROC( PCanvasData, InterShell_GetCurrentSavingCanvas )( void );
 
 //PTRSZVAL GetButtonExtension( PMENU_BUTTON button );

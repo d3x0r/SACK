@@ -92,7 +92,7 @@ void FillList( PSI_CONTROL list,PMACRO_BUTTON button )
 static void CPROC MoveElementClone( PTRSZVAL psv, PSI_CONTROL control )
 {
 	PMACRO_BUTTON button = (PMACRO_BUTTON)psv;
-	PMENU_BUTTON pmbNew = GetCloneButton( NULL, 0, 0, TRUE );
+	PMENU_BUTTON pmbNew = GetCloneButton( NULL, NULL, 0, 0, TRUE );
 	if( pmbNew )
 	{
 		PMACRO_ELEMENT pme = New( MACRO_ELEMENT );
@@ -499,18 +499,19 @@ static PTRSZVAL CPROC LoadMacroElements( PTRSZVAL psv, arg_list args )
 	PMACRO_BUTTON pmb = (PMACRO_BUTTON)psv;
 	PARAM( args, TEXTCHAR *, name );
 	PMACRO_ELEMENT element = New( MACRO_ELEMENT );
+	PPAGE_DATA page = InterShell_GetCurrentLoadingPage();
 	PCanvasData canvas = InterShell_GetCurrentLoadingCanvas();
 	if( !pmb )
 		if( l.finished_startup )
 		{
 			if( !l.shutdown.button )
-				l.shutdown.button = CreateButton( canvas, canvas->current_page );
+				l.shutdown.button = CreateButton( canvas, page );
 			pmb = &l.shutdown;
 		}
 		else
 		{
 			if( !l.startup.button )
-				l.startup.button = CreateButton( canvas, canvas->current_page );
+				l.startup.button = CreateButton( canvas, page );
 			pmb = &l.startup;
 		}
 	element->me = NULL;
