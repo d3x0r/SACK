@@ -2405,6 +2405,19 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	pc->AddedControl   = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("add_control"),(PSI_CONTROL,PSI_CONTROL));
 	pc->Resize         = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("resize"),(PSI_CONTROL,LOGICAL));
 	pc->Rescale        = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("rescale"),(PSI_CONTROL));
+	pc->BorderDrawProc = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("border_draw"),(PSI_CONTROL,Image));
+	if( pc->BorderDrawProc )
+	{
+		pc->BorderMeasureProc = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("border_measure"),(PSI_CONTROL,int*,int*,int*,int*));
+		pc->BorderType = BORDER_USER_PROC | ( BorderType & ~BORDER_TYPE );
+      SetDrawBorder( pc );  // sets real draw proc
+	}
+	else
+	{
+		pc->BorderType = ~BorderType;  // this time, force the setting of the border... even if it's '0' or NONE
+		SetCommonBorder( pc, BorderType ); // updates the border proc...
+	}
+
 	//pc->PosChanging    = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("position_changing"),(PSI_CONTROL,LOGICAL));
 	pc->BeginEdit      = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("begin_frame_edit"),(PSI_CONTROL));
 	pc->EndEdit        = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("end_frame_edit"),(PSI_CONTROL));
@@ -2413,13 +2426,10 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	pc->flags.bDirty = 1;
 
 	// have to set border type to non 0 here; in case border includes FIXED and the scaling in SetFont should be skipped.
-	pc->BorderType  = BorderType;
 	if( !pContainer /*pc->nType == CONTROL_FRAME*/ && g.default_font )
 	{
 		SetCommonFont( pc, g.default_font );
 	}
-	pc->BorderType = ~BorderType;  // this time, force the setting of the border... even if it's '0' or NONE 
-	SetCommonBorder( pc, BorderType );
 	pc->flags.bSetBorderType = 0;
 
 	SetCommonText( pc, text );
@@ -2877,10 +2887,22 @@ PSI_PROC( void, SizeCommon )( PSI_CONTROL pc, _32 width, _32 height )
 			//  oroginal_rect is the size it was before having to extend it
 			// somwehere between original_rect changes and rect changes surface_rect is recomputed
 			//lprintf( WIDE("Enlarging size...") );
-			width += FrameBorderX(pc, pc->BorderType);
-			height += FrameBorderY(pc, pc->BorderType, GetText( pc->caption.text ) );
+			if( pc->BorderType == BORDER_USER_PROC )
+			{
+            int left, top, right, bottom;
+				if( pc->BorderMeasureProc )
+				{
+					pc->BorderMeasureProc( pc, &left, &top, &right, &bottom );
+					width += left + right;
+               height += top + bottom;
+				}
+			}
+			else
+			{
+				width += FrameBorderX(pc, pc->BorderType);
+				height += FrameBorderY(pc, pc->BorderType, GetText( pc->caption.text ) );
+			}
 			SizeDisplay( pc->device->pActImg, width, height );
-
 		}
 		delw = (S_32)width - (S_32)pc->rect.width;
 		delh = (S_32)height - (S_32)pc->rect.height;
