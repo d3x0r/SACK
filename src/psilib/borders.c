@@ -21,7 +21,7 @@ void DrawNormalFrameInset( PSI_CONTROL pc, Image window, int bInvert, int align 
 
 //---------------------------------------------------------------------------
 
-void CPROC DrawFancyFrame( PCOMMON pc )
+void CPROC DrawFancyFrame( PSI_CONTROL pc )
 {
 	Image window = pc->Window;
 //#undef ALPHA_TRANSPARENT
@@ -139,7 +139,7 @@ PSI_PROC( int, FrameBorderX )( PSI_CONTROL pc, _32 BorderType )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( int, CaptionHeight )( PCOMMON pf, CTEXTSTR text )
+PSI_PROC( int, CaptionHeight )( PSI_CONTROL pf, CTEXTSTR text )
 {
     // should resemble something like text height + 3 (top) + 3 (1 bottom, 2 frameline)
     // pf itself may have a different font - which
@@ -157,7 +157,7 @@ PSI_PROC( int, CaptionHeight )( PCOMMON pf, CTEXTSTR text )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( int, FrameBorderYOfs )( PCOMMON pc, _32 BorderType, CTEXTSTR caption )
+PSI_PROC( int, FrameBorderYOfs )( PSI_CONTROL pc, _32 BorderType, CTEXTSTR caption )
 {
 	int result = 0;
 	if( !(BorderType & BORDER_NOCAPTION ) && caption )
@@ -195,7 +195,7 @@ PSI_PROC( int, FrameBorderYOfs )( PCOMMON pc, _32 BorderType, CTEXTSTR caption )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( int, FrameBorderY )( PCOMMON pc, _32 BorderType, CTEXTSTR caption )
+PSI_PROC( int, FrameBorderY )( PSI_CONTROL pc, _32 BorderType, CTEXTSTR caption )
 {
 	int result = 0;
 	if( !(BorderType & BORDER_NOCAPTION ) && caption )
@@ -236,7 +236,7 @@ PSI_PROC( int, FrameBorderY )( PCOMMON pc, _32 BorderType, CTEXTSTR caption )
 
 //---------------------------------------------------------------------------
 
-void CPROC DrawThickFrame( PCOMMON pc )
+void CPROC DrawThickFrame( PSI_CONTROL pc )
 {
 	Image window = pc->Window;
 	_32 width = window->width;
@@ -265,7 +265,7 @@ void CPROC DrawThickFrame( PCOMMON pc )
 		do_hline( window, height- (1+ofs), ofs, width-(1+ofs), basecolor(pc)[NORMAL]);
 	}
 }
-void CPROC DrawThickFrameInverted( PCOMMON pc )
+void CPROC DrawThickFrameInverted( PSI_CONTROL pc )
 {
    Image window = pc->Window;
 	_32 width = window->width;
@@ -295,7 +295,7 @@ void CPROC DrawThickFrameInverted( PCOMMON pc )
 	}
 }
 
-void CPROC DrawNormalFrame( PCOMMON pc )
+void CPROC DrawNormalFrame( PSI_CONTROL pc )
 {
 	Image window = pc->Window;
 	_32 width = window->width;
@@ -322,7 +322,7 @@ void CPROC DrawNormalFrame( PCOMMON pc )
 	 do_hline( window, height-1, 0, width-1, basecolor(pc)[SHADOW] );
 }
 
-void CPROC DrawNormalFrameInverted( PCOMMON pc )
+void CPROC DrawNormalFrameInverted( PSI_CONTROL pc )
 {
    Image window = pc->Window;
    _32 width = window->width;
@@ -371,7 +371,7 @@ void CPROC DrawThinnerFrameImage( PSI_CONTROL pc, Image window )
 
 //---------------------------------------------------------------------------
 
-void CPROC DrawThinnerFrame( PCOMMON pc )
+void CPROC DrawThinnerFrame( PSI_CONTROL pc )
 {
    Image window = pc->Window;
 	_32 width = window->width;
@@ -390,7 +390,7 @@ void CPROC DrawThinnerFrame( PCOMMON pc )
 	do_hline( window, height-1, 0, width-1, basecolor(pc)[SHADOW] );
 }
 
-void CPROC DrawThinnerFrameInverted( PCOMMON pc )
+void CPROC DrawThinnerFrameInverted( PSI_CONTROL pc )
 {
 	Image window = pc->Window;
 	_32 width = window->width;
@@ -465,7 +465,7 @@ void DrawThinnerFrameInset( PSI_CONTROL pc, Image window, int bInvert, int amoun
 
 //---------------------------------------------------------------------------
 
-void CPROC DrawThinFrame( PCOMMON pc )
+void CPROC DrawThinFrame( PSI_CONTROL pc )
 {
 	Image window = pc->Window;
 	_32 width = window->width;
@@ -479,7 +479,7 @@ void CPROC DrawThinFrame( PCOMMON pc )
 }
 //---------------------------------------------------------------------------
 
-void CPROC DrawThinFrameInverted( PCOMMON pc )
+void CPROC DrawThinFrameInverted( PSI_CONTROL pc )
 {
 	Image window = pc->Window;
 	_32 width = window->width;
@@ -528,7 +528,7 @@ void DrawThinFrameInset( PSI_CONTROL pc, Image window, int bInvert, int amount )
 
 //---------------------------------------------------------------------------
 
-void DrawFrameCaption( PCOMMON pc )
+void DrawFrameCaption( PSI_CONTROL pc )
 {
 	if( !pc ) return;
 	if( /*pc->flags.bInitial ||*/ pc->flags.bHidden ) return;
@@ -635,7 +635,7 @@ void DrawFrameCaption( PCOMMON pc )
 
 //---------------------------------------------------------------------------
 
-void CPROC DrawThickDent( PCOMMON pc )
+void CPROC DrawThickDent( PSI_CONTROL pc )
 {
 	if( pc->flags.bInitial || pc->flags.bHidden ) return;
 	DrawNormalFrameInverted( pc );
@@ -644,7 +644,7 @@ void CPROC DrawThickDent( PCOMMON pc )
 
 //---------------------------------------------------------------------------
 
-void CPROC DrawThickDentInverted( PCOMMON pc )
+void CPROC DrawThickDentInverted( PSI_CONTROL pc )
 {
 	if( pc->flags.bInitial || pc->flags.bHidden ) return;
 	DrawNormalFrame( pc );
@@ -653,7 +653,7 @@ void CPROC DrawThickDentInverted( PCOMMON pc )
 
 //---------------------------------------------------------------------------
 
-void CPROC DrawDent( PCOMMON pc )
+void CPROC DrawDent( PSI_CONTROL pc )
 {
 	if( pc->flags.bInitial || pc->flags.bHidden ) return;
 	DrawThinnerFrameInverted( pc );
@@ -662,7 +662,7 @@ void CPROC DrawDent( PCOMMON pc )
 
 //---------------------------------------------------------------------------
 
-void CPROC DrawDentInverted( PCOMMON pc )
+void CPROC DrawDentInverted( PSI_CONTROL pc )
 {
 	if( pc->flags.bInitial || pc->flags.bHidden ) return;
 	DrawThinnerFrame( pc );
@@ -670,7 +670,7 @@ void CPROC DrawDentInverted( PCOMMON pc )
 }
 
 //---------------------------------------------------------------------------
-void CPROC DrawThinDent( PCOMMON pc )
+void CPROC DrawThinDent( PSI_CONTROL pc )
 {
 	if( pc->flags.bInitial || pc->flags.bHidden ) return;
 	DrawThinFrameInverted( pc );
@@ -679,7 +679,7 @@ void CPROC DrawThinDent( PCOMMON pc )
 
 //---------------------------------------------------------------------------
 
-void CPROC DrawThinDentInverted( PCOMMON pc )
+void CPROC DrawThinDentInverted( PSI_CONTROL pc )
 {
    if( pc->flags.bInitial || pc->flags.bHidden ) return;
 	DrawThinFrame( pc );
@@ -687,14 +687,29 @@ void CPROC DrawThinDentInverted( PCOMMON pc )
 }
 
 //---------------------------------------------------------------------------
-void UpdateSurface( PCOMMON pc );
 
-void CPROC SetDrawBorder( PCOMMON pc )
+static void CPROC DrawCustomBorder( PSI_CONTROL pc )
+{
+	if( pc )
+	{
+		if( pc->BorderDrawProc )
+         pc->BorderDrawProc( pc, pc->Window );
+	}
+}
+
+//---------------------------------------------------------------------------
+void UpdateSurface( PSI_CONTROL pc );
+
+void CPROC SetDrawBorder( PSI_CONTROL pc )
 {
 	// psv unused...
 	UpdateSurface( pc );
 	switch( pc->BorderType & BORDER_TYPE )
 	{
+	case BORDER_USER_PROC:
+		if( pc->BorderDrawProc )
+         pc->DrawBorder = DrawCustomBorder;
+      break;
 	case BORDER_NONE:
 		pc->DrawBorder = NULL;
 		break;
@@ -777,7 +792,7 @@ void CPROC SetDrawBorder( PCOMMON pc )
 
 //---------------------------------------------------------------------------
 
-void UpdateSurface( PCOMMON pc )
+void UpdateSurface( PSI_CONTROL pc )
 {
 	_32 border;
 	_32 width, height;
@@ -785,10 +800,23 @@ void UpdateSurface( PCOMMON pc )
 	border = pc->BorderType;
 	width = pc->rect.width;
 	height = pc->rect.height;
-	pc->surface_rect.x = FrameBorderXOfs(pc, border);
-	pc->surface_rect.y = FrameBorderYOfs(pc, border, GetText(pc->caption.text));
-	pc->surface_rect.width = width - FrameBorderX(pc, border);
-	pc->surface_rect.height = height - FrameBorderY(pc, border, GetText(pc->caption.text));
+	if( ( pc->BorderType == BORDER_USER_PROC ) && pc->BorderMeasureProc )
+	{
+		int left, top, right,bottom;
+		pc->BorderMeasureProc( pc, &left, &top, &right, &bottom );
+
+		pc->surface_rect.x = left;
+		pc->surface_rect.y = top;
+		pc->surface_rect.width = width - right;
+		pc->surface_rect.height = height - bottom;
+	}
+	else
+	{
+		pc->surface_rect.x = FrameBorderXOfs(pc, border);
+		pc->surface_rect.y = FrameBorderYOfs(pc, border, GetText(pc->caption.text));
+		pc->surface_rect.width = width - FrameBorderX(pc, border);
+		pc->surface_rect.height = height - FrameBorderY(pc, border, GetText(pc->caption.text));
+	}
 	if( pc->Surface )
 	{
 #ifdef DEBUG_BORDER_FLAGS
@@ -813,7 +841,7 @@ void UpdateSurface( PCOMMON pc )
 	}
 }
 
-PSI_PROC( void, SetCommonBorderEx )( PCOMMON pc, _32 BorderType DBG_PASS )
+PSI_PROC( void, SetCommonBorderEx )( PSI_CONTROL pc, _32 BorderType DBG_PASS )
 {
 	//_xlprintf((LOG_NOISE+2) DBG_RELAY)( WIDE("Setting border for %s to %08x(%08x,%08x) %08x %08x"), pc->pTypeName, pc, pc->parent, pc->device, pc->BorderType, BorderType );
 	if( pc->BorderType != BorderType )
@@ -824,5 +852,19 @@ PSI_PROC( void, SetCommonBorderEx )( PCOMMON pc, _32 BorderType DBG_PASS )
 	// this is also called when the surface changes....
 	SetDrawBorder( pc );
 }
+
+
+PSI_PROC( void, PSI_SetCustomBorder )( PSI_CONTROL pc, void (CPROC*proc)(PSI_CONTROL,Image)
+                                      , void (CPROC*measure_proc)( PSI_CONTROL,int *x_offset, int *y_offset, int *right_inset, int *bottom_inset )
+												 )
+{
+	if( pc )
+	{
+		pc->BorderDrawProc = proc;
+		pc->BorderMeasureProc = measure_proc;
+      pc->BorderType = BORDER_USER_PROC;
+	}
+}
+
 PSI_NAMESPACE_END
 

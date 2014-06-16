@@ -461,7 +461,9 @@ enum BorderOptionTypes {
  
  BORDER_THICK_DENT    =     6, /* A thick etch line - that is a step in, and a step out, so the
     content is the same level as its parent.                      */
- 
+ BORDER_USER_PROC     =     7, /* External user code is used to draw the border when required
+    use PSI_SetCustomBorder to set this border type...
+    or define an OnBorderDraw and OnBorderMeasure routine for custom controls */
  BORDER_TYPE          =  0x0f, // 16 different frame types standard...
 
  BORDER_INVERT        =  0x80, /* This modifies styles like BORDER_BUMP to make them
@@ -651,17 +653,34 @@ PSI_PROC( void, SetControlColor )( PSI_CONTROL pc, INDEX idx, CDATA c );
 PSI_PROC( CDATA, GetControlColor )( PSI_CONTROL pc, INDEX idx );
 
 //-------- Frame and generic control functions --------------
+
 #ifdef CONTROL_SOURCE
 #define MKPFRAME(hvideo) ((PSI_CONTROL)(((PTRSZVAL)(hvideo))|1))
 #endif
+
 /* Update the border type of a control.  See BorderOptionTypes
    Parameters
    pc :      control to modify the border
    BorderType :  new border style
  */
 PSI_PROC( void, SetCommonBorderEx )( PSI_CONTROL pc, _32 BorderType DBG_PASS);
+/* Update the border type of a control.  See BorderOptionTypes
+   Parameters
+   pc :      control to modify the border
+   b :  new border style
+ */
 #define SetCommonBorder(pc,b) SetCommonBorderEx(pc,b DBG_SRC)
-//PSI_PROC( void, SetCommonBorder )( PSI_CONTROL pc, _32 BorderType );
+
+/* Update the border type of a control.  Border is drawn by routine
+   Parameters
+	pc :      control to modify the border draw routine
+	proc:     draw routine; image parameter is the 'window' in which the surface is...
+	measure_proc : get how much the outside border should be offset (or inside image should be inset)
+ */
+PSI_PROC( void, PSI_SetCustomBorder )( PSI_CONTROL pc, void (CPROC*proc)(PSI_CONTROL,Image)
+                                      , void (CPROC*measure_proc)( PSI_CONTROL, int *x_offset, int *y_offset, int *right_inset, int *bottom_inset )
+												 );
+
 PSI_PROC( void, SetDrawBorder )( PSI_CONTROL pc ); // update to current border type drawing.
 PSI_PROC( PSI_CONTROL, CreateFrame)( CTEXTSTR caption, int x, int y
 										, int w, int h

@@ -554,10 +554,45 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
    Internal
    Registers under
    
-   /psi/control/\<name\>/rtti/touch_event=(PSI_CONTROL)@void@_@touch_event */
+   /psi/control/\<name\>/rtti/touch_event=(PSI_CONTROL,PINPUT_POINT,int)@int@_@touch_event */
 #define OnTouchCommon(name)  \
 	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnTouchCommon,WIDE("control"),name WIDE("/rtti"),WIDE("touch_event"),int,(PSI_CONTROL,PINPUT_POINT,int), __LINE__)
+
 #endif
+
+/* function signature for the custom border draw routine
+
+   Example
+   <code lang="c++">
+   static int OnDrawCustomBorder(name)( PSI_CONTROL control, Image window )
+	{
+	// draw border decoration on the window surface child window can reveal
+   // measurements if not known
+   }
+   </code>
+   Internal
+   Registers under
+   
+   /psi/control/\<name\>/rtti/border_draw=(PSI_CONTROL,Image)@void@_@touch_event */
+#define OnDrawCustomBorder(name)  \
+	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnDrawCustomBorder,WIDE("control"),name WIDE("/rtti"),WIDE("border_draw"),void,(PSI_CONTROL,Image), __LINE__)
+
+		/* function signature for the custom border measure routine.
+         allows custom border to specify left/right/top/bottom insets
+
+   Example
+   <code lang="c++">
+   static int OnMeasuerCustomBorder(name)( PSI_CONTROL control, int *left_inset, int *top_inset, int *right_inset, int *bottom_inset )
+	{
+     	// fill inset result pointers with correct insets for the control...
+   }
+   </code>
+   Internal
+   Registers under
+   
+   /psi/control/\<name\>/rtti/border_measure=(PSI_CONTROL,int*,int*,int*,int*)@void@_@touch_event */
+#define OnMeasureCustomBorder(name)  \
+	__DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnMeasureCustomBorder,WIDE("control"),name WIDE("/rtti"),WIDE("border_draw"),void,(PSI_CONTROL,int*,int*,int*,int*), __LINE__)
 
 // just a passing thought.
 //#define OnEditFrameBegin( name )
@@ -566,10 +601,8 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
 // and here we can use that fancy declare method thing
 // to register the appropriate named things LOL!
 //
-#ifdef __cplusplus
-//}
-//	}
-#endif
+
+
 PSI_NAMESPACE_END
 
 #endif

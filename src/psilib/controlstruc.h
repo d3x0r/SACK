@@ -199,6 +199,7 @@ struct edit_state_tag {
 		BIT_FIELD bHotSpotsActive : 1;
 	} flags;
 	_32 BorderType;
+
 //DOM-IGNORE-END
 };
 typedef struct edit_state_tag EDIT_STATE;
@@ -450,6 +451,8 @@ typedef struct common_control_frame
 	// maybe I can get pointers to this....
 
 	_32 BorderType;
+   void (CPROC*BorderDrawProc)(PSI_CONTROL,Image);
+	void (CPROC*BorderMeasureProc)( PSI_CONTROL, int *x_offset, int *y_offset, int *right_inset, int *bottom_inset );
 	// also declare a method above of the same name...
 	int draw_result;
 
