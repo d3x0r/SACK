@@ -424,14 +424,19 @@ static void InvokeMacroButton( PMACRO_BUTTON button, LOGICAL bBannerMessage )
 			{
 				if( !new_current_macro.element->button->flags.bIgnorePageChange )
 				{
-					ShellSetCurrentPage( new_current_macro.macro->button->parent_canvas
-						, new_current_macro.element->button->pPageName );
+					ShellSetCurrentPage( new_current_macro.macro->button->parent_canvas // is NULL
+						, new_current_macro.element->button->pPageName
+						, new_current_macro.element->button->page_direction
+						, new_current_macro.element->button->page_delay );
 				}
 			}
 			else if( new_current_macro.element->button->parent_canvas && !new_current_macro.element->button->flags.bIgnorePageChange )
 			{
 				//lprintf( WIDE( "Changing pages, but only virtually don't activate the page always" ) );
-				ShellSetCurrentPage( new_current_macro.element->button->parent_canvas, new_current_macro.element->button->pPageName );
+				ShellSetCurrentPage( new_current_macro.element->button->parent_canvas
+						, new_current_macro.element->button->pPageName
+						, new_current_macro.element->button->page_direction
+						, new_current_macro.element->button->page_delay );
 			}
 			new_current_macro.element->button->flags.bIgnorePageChange = 0;
 		}

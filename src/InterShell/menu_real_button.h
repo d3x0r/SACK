@@ -66,7 +66,11 @@ struct menu_button
 	} flags;
 	PTRSZVAL psvUser;
 	TEXTCHAR *pTypeName;
+
 	TEXTCHAR *pPageName; // change to this page after invoking the button's keypress method
+	enum page_transition page_direction;  // if pagename, then use this as the transition
+	int page_delay;  // use this as the delay for the transition
+
 	void (CPROC *original_keypress)( PTRSZVAL );
 	struct glare_set *glare_set; // glares used on this button
 

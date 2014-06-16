@@ -55,7 +55,7 @@ static PSI_CONTROL OnGetControl( WIDE("Route Board/Router Tools") )( PTRSZVAL ps
 }
 
 
-static void OnFinishInit( WIDE("Router board") )( PSI_CONTROL pc_canvas )
+static void OnFinishInit( WIDE("Router board") )( PCanvasData pc_canvas )
 {
 	DoLoadBoard();
 }

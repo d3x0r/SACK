@@ -111,6 +111,11 @@ struct CanvasData {
 	PLIST pages; // PPAGE_DATA list
 	S_32 left_right_page_offset;
 
+	struct {
+		S_32 x;
+		S_32 y;
+	} slide_state;
+
 	PLIST deleted_pages; // PPAGE_DATA no longer listed in pages... Undelete(?)
 
 	PPAGE_DATA active_page; // mostly for tracking active if bUseSingleFrame
@@ -142,7 +147,7 @@ struct CanvasData {
 	PSI_CONTROL edit_glare_frame; // cause we need to reference the glare as a frame...
 	PLIST selected_list;
 	int nSelected;
-	PLINKSTACK prior_pages; // this used to be global, but really this is a per-canvas property - since each has pages.
+	PDATASTACK prior_page_history; // this used to be global, but really this is a per-canvas property - since each has pages.  (struct page_history_node*)
 
 	PLIST fonts;
 };
