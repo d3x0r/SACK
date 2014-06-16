@@ -205,6 +205,23 @@ typedef struct CanvasData  CanvasData, *PCanvasData;
 #define MENU_BUTTON_DEFINED
 typedef struct menu_button *PMENU_BUTTON;
 #endif
+
+// page transition enumeration is numerically arranged so that  
+//     ((enum page_transition)( ((int)transition) ^ 1 ))
+//   results as the opposite page transition
+enum page_transition
+{
+	PAGE_TRANSITION_NONE // show immediately
+	, PAGE_TRANSITION_NONE_
+	, PAGE_TRANSITION_FROM_RIGHT // scroll in from right
+	, PAGE_TRANSITION_FROM_LEFT // scroll in from left
+	, PAGE_TRANSITION_FROM_TOP // scroll in from top
+	, PAGE_TRANSITION_FROM_BOTTOM // scroll in from bottom
+	, PAGE_TRANSITION_FROM_ABOVE // fade in on top (new fades in over existing)
+	, PAGE_TRANSITION_FROM_BELOW // fade in from bottom (top fades away)
+};
+
+
 /* An abstract type used to point to a Page. A canvas manages a
    list of pages that will show at any given time one of.       */
 typedef struct page_data   *PPAGE_DATA;
@@ -404,7 +421,7 @@ INTERSHELL_PROC_PTR(PPAGE_DATA, ShellGetNamedPage)( PCanvasData pc, CTEXTSTR pag
 
 // Page name can be... 'first', 'next',  'here', 'return'
 // otherwise page name can be any name of any other page.
-INTERSHELL_PROC_PTR( int, ShellSetCurrentPage )( PCanvasData pc, CTEXTSTR name );
+INTERSHELL_PROC_PTR( int, ShellSetCurrentPage )( PCanvasData pc, CTEXTSTR name, enum page_transition direction, _32 time );
 
 INTERSHELL_PROC_PTR( int, ShellCallSetCurrentPage )( PCanvasData pc_canvas, CTEXTSTR name );
 
@@ -543,7 +560,7 @@ INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_GetSaveIndent )( void );
 INTERSHELL_PROC_PTR( LOGICAL, BeginSubConfigurationEx )( PMENU_BUTTON button, TEXTCHAR *control_type_name, const TEXTCHAR *end_type_name );
 
 INTERSHELL_PROC_PTR( void, InterShell_SetTheme )( PCanvasData pc_canvas, int ID );
-INTERSHELL_PROC_PTR( void, DisplayMenuCanvas )( PSI_CONTROL pc_canvas, PPAGE_DATA page, PRENDERER under, _32 width, _32 height, S_32 x, S_32 y );
+INTERSHELL_PROC_PTR( void, DisplayMenuCanvas )( PPAGE_DATA page, PRENDERER under, _32 width, _32 height, S_32 x, S_32 y );
 INTERSHELL_PROC_PTR( void, InterShell_SetPageColor )( PPAGE_DATA page, CDATA color );
 
 INTERSHELL_PROC_PTR( PTRSZVAL, InterShell_GetButtonUserData )( PMENU_BUTTON button );
@@ -663,7 +680,7 @@ INTERSHELL_PROC(PPAGE_DATA, ShellGetNamedPage)( PCanvasData pc, CTEXTSTR pagenam
 // special names
 // start, next, prior are keywords that imply direct
 // page stacking.
-INTERSHELL_PROC( int, ShellSetCurrentPage )( PCanvasData pc, CTEXTSTR name );
+INTERSHELL_PROC( int, ShellSetCurrentPage )( PCanvasData pc, CTEXTSTR name, enum page_transition direction, _32 time );
 
 // a call will push the current page on a stack
 // which will be returned to if returncurrentpage is used.
@@ -778,7 +795,7 @@ INTERSHELL_PROC( PTRSZVAL, InterShell_GetButtonExtension )( PMENU_BUTTON button 
 
 INTERSHELL_PROC( void, InterShell_SetTheme )( PCanvasData pc_canvas, int ID );
 
-INTERSHELL_PROC( void, DisplayMenuCanvas )( PSI_CONTROL pc_canvas, PPAGE_DATA page, PRENDERER under, _32 width, _32 height, S_32 x, S_32 y );
+INTERSHELL_PROC( void, DisplayMenuCanvas )( PPAGE_DATA page, PRENDERER under, _32 width, _32 height, S_32 x, S_32 y );
 INTERSHELL_PROC( void, InterShell_SetPageColor )( PPAGE_DATA page, CDATA color );
 
 INTERSHELL_PROC( void, InterShell_SetCloneButton )( PMENU_BUTTON button );

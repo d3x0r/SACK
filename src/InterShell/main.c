@@ -1294,7 +1294,7 @@ static void CPROC AllPresses( PTRSZVAL psv, PKEY_BUTTON key )
 		if( canvas && !button->flags.bIgnorePageChange )
 		{
 			//lprintf( WIDE( "Changing pages, but only virtually don't activate the page always" ) );
-			ShellSetCurrentPage( canvas, button->pPageName );
+			ShellSetCurrentPage( canvas, button->pPageName, button->page_direction, button->page_delay );
 		}
 		button->flags.bIgnorePageChange = 0;
 	}
@@ -4354,6 +4354,8 @@ static void OnHideCommon( WIDE( "menu canvas" ) )( PSI_CONTROL pc )
 	//lprintf( "A control's hide has been invoked and that control is a cavnas... hide controls on my page." );
 	ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc );
 	PCanvasData canvas = (*page)->canvas;
+	// makes sure controls are hidden too; in case they want an update on reshow
+	// or to disable their drawing
 	HidePageEx( canvas );
 }
 
@@ -4456,7 +4458,7 @@ static void InitCanvas( PCanvasData canvas, S_32 surface_width, S_32 surface_hei
 			canvas->default_page->grid.nPartsY = displays_high * 40;
 			//canvas->default_page->frame = pc;
 			// really this should have been done the other way...
-			canvas->prior_pages = CreateLinkStackLimited( 20 );
+			canvas->prior_page_history = CreateDataStackLimited( sizeof( struct page_history_node ), 20 );
 
 			canvas->flags.bSuperMode = 1;
 			AddLink( &g.frames, canvas );
@@ -4610,11 +4612,10 @@ CONTROL_REGISTRATION menu_edit_glare = { WIDE( "Edit Glare" )
 };
 
 
-void DisplayMenuCanvas( PSI_CONTROL pc_canvas, PPAGE_DATA page, PRENDERER under, _32 width, _32 height, S_32 x, S_32 y )
+void DisplayMenuCanvas( PPAGE_DATA page, PRENDERER under, _32 width, _32 height, S_32 x, S_32 y )
 {
-	//ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, page, pc_canvas );
 	PCanvasData canvas = page->canvas;
-	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
+	PSI_CONTROL pc_canvas = page->frame;
 	TEXTCHAR title[256];
 	PRENDERER banner_rend = GetBanner2Renderer( NULL );
 	if( !page )
@@ -4671,12 +4672,6 @@ void DisplayMenuCanvas( PSI_CONTROL pc_canvas, PPAGE_DATA page, PRENDERER under,
 #endif
 #endif
 
-	if( !g.flags.multi_edit )
-	{
-		//HidePageEx( pc_canvas );
-		//canvas->current_page = NULL;
-		//ChangePages( pc_canvas, canvas->default_page );
-	}
 	DisplayFrame( pc_canvas );
 }
 
@@ -4715,7 +4710,7 @@ PSI_CONTROL OpenPageFrame( PPAGE_DATA page, LOGICAL show )
 		{
 			page->flags.showing = 1;
 			lprintf( "Display menu..." );
-			DisplayMenuCanvas( page->frame, page, NULL, 0, 0, 0, 0 );
+			DisplayMenuCanvas( page, NULL, 0, 0, 0, 0 );
 		}
 	}
 
@@ -5108,11 +5103,11 @@ int restart( void )
 		if( canvas )
 		{
 			//lprintf( "Making sure we start from NO Page, in case the first page is protected..." );
-			//lprintf( "Should we have a rule for default forward, backward, first, last?  From NULL? from another?" );
 			HidePageEx( canvas );
-			// this is a magic operation I think here... 
 			canvas->active_page = NULL;
-			ChangePages( canvas->default_page );
+			//lprintf( "Should we have a rule for default forward, backward, first, last?  From NULL? from another?" );
+			// this is a magic operation I think here... 
+			ChangePage( canvas->default_page, PAGE_TRANSITION_NONE, 0 );
 		}
 	}
 	InvokeStartupMacro();
@@ -5134,11 +5129,11 @@ int restart( void )
 			PPAGE_DATA page;
 			LIST_FORALL( canvas->pages, idx, PPAGE_DATA, page )
 			{
-				DisplayMenuCanvas( page->frame, page, NULL, 0, 0, 0, 0 );
+				DisplayMenuCanvas( page, NULL, 0, 0, 0, 0 );
 			}
 		}
 		else
-			DisplayMenuCanvas( canvas->default_page->frame, canvas->default_page, NULL, g.default_page_width, g.default_page_height, g.default_page_x, g.default_page_y );
+			DisplayMenuCanvas( canvas->default_page, NULL, g.default_page_width, g.default_page_height, g.default_page_x, g.default_page_y );
 
 		if( canvas->flags.bUseSingleFrame )
 		{

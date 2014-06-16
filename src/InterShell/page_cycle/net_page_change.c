@@ -34,7 +34,7 @@ static void CPROC NetEvent( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR *s
 				end++;
 				// might not have finished init...
 				if( canvas )
-					ShellSetCurrentPage( canvas, end );
+					ShellSetCurrentPage( canvas, end, PAGE_TRANSITION_NONE, 0 );
 			}
 			l.last_msg = tmp;
 		}

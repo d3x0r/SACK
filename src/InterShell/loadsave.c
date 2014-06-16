@@ -149,7 +149,7 @@ static PTRSZVAL CPROC ResetCanvasConfig( PTRSZVAL psv, arg_list args )
 	{
 		RestorePage( canvas, page, TRUE );
 	}
-	ShellSetCurrentPage( canvas, WIDE( "first" ) );
+	ShellSetCurrentPage( canvas, WIDE( "first" ), PAGE_TRANSITION_NONE, 0 );
 	// really this behaves more like a pop configuration.
 	EndConfiguration( my_current_handler );
 	return psv;

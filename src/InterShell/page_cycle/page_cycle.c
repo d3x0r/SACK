@@ -30,7 +30,7 @@ static void CPROC change( PTRSZVAL psv )
 {
 	if( l.flags.allow_cycle )
 		if( !l.flags.bDisableChange )
-			ShellSetCurrentPage( GetCanvas( (PSI_CONTROL)psv ), WIDE("next") );
+			ShellSetCurrentPage( GetCanvas( (PSI_CONTROL)psv ), WIDE("next"), PAGE_TRANSITION_NONE, 0 );
 }
 
 static void OnFinishInit( WIDE("Page Cycler") )( PCanvasData pc_canvas )

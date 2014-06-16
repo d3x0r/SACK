@@ -24,6 +24,14 @@ struct page_layout_tag
 };
 */
 
+
+struct page_history_node
+{
+	enum page_transition prior_transition;
+	_32 time;
+	struct page_data *page;
+};
+
 struct page_data
 {
 	struct CanvasData  *canvas;
@@ -92,8 +100,9 @@ void RestorePageEx( PCanvasData canvas, struct page_data * page, int bFull, int 
 struct page_data * GetPageFromFrame( PCanvasData frame );
 
 
-void ChangePagesEx( struct page_data * page DBG_PASS);
-#define ChangePages(p) ChangePagesEx(p DBG_SRC)
+void ChangePageEx( PPAGE_DATA page, enum page_transition direction, _32 how_long DBG_PASS );
+//void ChangePagesEx( struct page_data * page DBG_PASS);
+#define ChangePage(p,d,t) ChangePageEx(p,d,t DBG_SRC)
 
 void InsertStartupPage( PCanvasData pc_canvas, CTEXTSTR page_name );
 // this is actually insert page...

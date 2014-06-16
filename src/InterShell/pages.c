@@ -61,10 +61,9 @@ PPAGE_DATA CreateNamedPage( PCanvasData canvas, CTEXTSTR page_name )
 		page->grid.nPartsX = canvas->default_page?canvas->default_page->grid.nPartsX:90;//canvas->nPartsX;
 		page->grid.nPartsY = canvas->default_page?canvas->default_page->grid.nPartsY:50;//canvas->nPartsY;
 		AddPage( canvas, page );
+		// have to create the control to create buttons on it... 
+		// open does not show.
 		OpenPageFrame( page, FALSE );
-		// update current_page for loading purposes...
-		if( canvas->flags.bUseSingleFrame )
-			ChangePages( page );
 		return page;
 	}
 }
@@ -84,7 +83,6 @@ void InsertStartupPage( PCanvasData canvas, CTEXTSTR page_name )
 	page->grid.nPartsX = canvas->default_page->grid.nPartsX;
 	page->grid.nPartsY = canvas->default_page->grid.nPartsY;
 	canvas->default_page = page;
-	ChangePages( page );
 }
 
 //-------------------------------------------------------------------------
@@ -111,7 +109,17 @@ PPAGE_DATA ShellGetNamedPage( PCanvasData canvas, CTEXTSTR name )
 		{
 			return canvas->default_page;
 		}
-		if( strcmp( name, WIDE("next") ) == 0 )
+		else if( strcmp( name, WIDE("last") ) == 0 )
+		{
+			PPAGE_DATA page;
+			INDEX idx_first;
+			LIST_FORALL( canvas->pages, idx_first, PPAGE_DATA, page )
+			{
+				// nothing to do.
+			}
+			return page;
+		}
+		else if( strcmp( name, WIDE("next") ) == 0 )
 		{
 			INDEX idx_page = FindLink( &canvas->pages, canvas->active_page );
 			if( idx_page == INVALID_INDEX )
@@ -135,17 +143,19 @@ PPAGE_DATA ShellGetNamedPage( PCanvasData canvas, CTEXTSTR name )
 				return canvas->default_page;
 			}
 		}
-		if( strcmp( name, WIDE( "here" ) ) == 0 )
+		else if( strcmp( name, WIDE( "here" ) ) == 0 )
 		{
 			return canvas->active_page;
 		}
 		else if( strcmp( name, WIDE( "return" ) ) == 0 )
 		{
-			PPAGE_DATA page = (PPAGE_DATA)PopLink( &canvas->prior_pages );
+			struct page_history_node* pagenode = (struct page_history_node*)PopData( &canvas->prior_page_history );
 			g.flags.bPageReturn = 1;
-			if( page )
+			if( pagenode )
 			{
-				return page;
+				PPAGE_DATA result = pagenode->page;
+				Release( pagenode );
+				return result;
 			}
 			return canvas->active_page;
 		}
@@ -176,7 +186,7 @@ void ClearPageList( PCanvasData canvas )
 {
 	if( canvas )
 	{
-		while( PopLink( &canvas->prior_pages ) );
+		while( PopData( &canvas->prior_page_history ) );
 	}
 	//while( PopLink( &l.prior_pages ) );
 }
@@ -501,7 +511,7 @@ void HidePageExx( PCanvasData canvas DBG_PASS )
 
 //-------------------------------------------------------------------------
 
-void ChangePagesEx( PPAGE_DATA page DBG_PASS )
+void ChangePageEx( PPAGE_DATA page, enum page_transition direction, _32 how_long DBG_PASS )
 {
 	PCanvasData canvas = page->canvas;
 	// page becomes the new current page... the current page
@@ -542,7 +552,11 @@ void ChangePagesEx( PPAGE_DATA page DBG_PASS )
 
 	if( !g.flags.bPageReturn && ( canvas->active_page != page ) )
 	{
-		PushLink( &canvas->prior_pages, canvas->active_page );
+		struct page_history_node pagenode;
+		pagenode.page = canvas->active_page;
+		pagenode.prior_transition = direction;
+		pagenode.time = how_long;
+		PushData( &canvas->prior_page_history, &canvas->active_page );
 	}
 
 	{
@@ -575,15 +589,18 @@ void ShellReturnCurrentPage( PCanvasData canvas )
 {
 	if( canvas )
 	{
-		PPAGE_DATA page = (PPAGE_DATA)PopLink( &canvas->prior_pages );
-		if( page )
+		struct page_history_node *pagenode = (struct page_history_node*)PopData( &canvas->prior_page_history );
+		if( pagenode )
 		{
-			ChangePages( page );
+			ChangePage( pagenode->page
+				, (enum page_transition)( ( (int)pagenode->prior_transition) ^ 1 )
+				, pagenode->time );
+			Release( pagenode );
 		}
 	}
 }
 
-void SetCurrentPageID( PSI_CONTROL pc_canvas, _32 ID )
+void SetCurrentPageID( PSI_CONTROL pc_canvas, _32 ID, enum page_transition direction, _32 time )
 {
 	PCanvasData canvas = GetCanvas( pc_canvas );
 	INDEX idx;
@@ -592,11 +609,11 @@ void SetCurrentPageID( PSI_CONTROL pc_canvas, _32 ID )
 	{
 		if( page->ID == ID )
 		{
-			ChangePages( page );
+			ChangePage( page, direction, time );
 			return;
 		}
 	}
-	ChangePages( canvas->default_page );
+	ChangePage( canvas->default_page, direction, time );
 }
 
 void DestroyPage( PCanvasData canvas, PPAGE_DATA page )
@@ -640,8 +657,20 @@ void DestroyPageID( PSI_CONTROL pc_canvas, _32 ID ) // MNU_DESTROY_PAGE ID (minu
 	{
 		if( page->ID == ID )
 		{
+			if( page == canvas->default_page )
+			{
+				// do not destroy root page
+				break;
+			}
 			if( canvas->active_page == page )
-				ChangePages( canvas->default_page );
+				if( canvas->default_page != page )
+					ChangePage( canvas->default_page, PAGE_TRANSITION_NONE, 0 );  // go to a safe page to release this one
+				else
+				{
+					PPAGE_DATA newpage = ShellGetNamedPage( canvas, "last" );
+					if( newpage != page )
+						ChangePage( newpage, PAGE_TRANSITION_NONE, 0 );  // go to a safe page to release this one
+				}
 
 			AddLink( &canvas->deleted_pages, page );
 			DeleteLink( &canvas->pages, page );
@@ -663,9 +692,6 @@ void UnDestroyPageID( PSI_CONTROL pc_canvas, _32 ID ) // MNU_DESTROY_PAGE ID (mi
 	{
 		if( page->ID == ID )
 		{
-			if( canvas->active_page == page )
-				ChangePages( canvas->default_page );
-
 			AddLink( &canvas->pages, page );
 			DeleteLink( &canvas->deleted_pages, page );
 			AppendPopupItem( canvas->pPageMenu, MF_STRING, MNU_CHANGE_PAGE + page->ID, page->title );
@@ -676,17 +702,17 @@ void UnDestroyPageID( PSI_CONTROL pc_canvas, _32 ID ) // MNU_DESTROY_PAGE ID (mi
 	}
 }
 
-
-int ShellCallSetCurrentPage( PCanvasData canvas, CTEXTSTR name )
+// used to be a different operation...
+int ShellCallSetCurrentPage( PCanvasData canvas, CTEXTSTR name, enum page_transition direction, _32 time )
 {
 	if( canvas )
 	{
-		return ShellSetCurrentPage( canvas, name );
+		return ShellSetCurrentPage( canvas, name, direction, time );
 	}
 	return 0;
 }
 
-int ShellSetCurrentPage( PCanvasData canvas, CTEXTSTR name )
+int ShellSetCurrentPage( PCanvasData canvas, CTEXTSTR name, enum page_transition direction, _32 time )
 {
 	//ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 	//INDEX idx;
@@ -700,7 +726,7 @@ int ShellSetCurrentPage( PCanvasData canvas, CTEXTSTR name )
 	page = ShellGetNamedPage( canvas, name );
 	if( page )
 	{
-		ChangePages( page );
+		ChangePage( page, direction, time );
 		g.flags.bPageReturn = 0;
 		return TRUE;
 	}

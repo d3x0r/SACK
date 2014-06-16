@@ -884,7 +884,7 @@ void CreatePasswordFrame( void )
 										  , 0 );
 		InterShell_SetPageLayout( l.frame, 40, 40 );
 		AttachFrameToRenderer( l.frame, l.renderer ); // need renderer built so we can attach key events to it.
-		ShellSetCurrentPage( l.frame, WIDE("first") );
+		ShellSetCurrentPage( l.frame, WIDE("first"), PAGE_TRANSITION_NONE, 0 );
 		InterShell_SetPageColor( ShellGetNamedPage( l.frame, WIDE("first") ), BASE_COLOR_BLACK );
 		InterShell_CreateSomeControl( l.frame, 3, 2, 34, 20, WIDE("SQL Users/User Selection Control List") );
 		l.keyboard = InterShell_GetButtonControl( l.keyboard_button = InterShell_CreateSomeControl( l.frame, 2, 23, 36, 16, WIDE("keyboard 2") ) );
@@ -1125,7 +1125,7 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 	if( expired )
 	{	
 		// Set and display page to be shown
-		ShellSetCurrentPage( l.frame, WIDE("Expired Password") );
+		ShellSetCurrentPage( l.frame, WIDE("Expired Password"), PAGE_TRANSITION_FROM_TOP, 250 );
 		RevealCommon( l.frame );		
 		SetCommonFocus( l.frame );
 	
