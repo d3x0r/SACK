@@ -1676,6 +1676,7 @@ typedef struct DataListStack
 	//volatile _32     Lock;  /* thread interlock using InterlockedExchange semaphore. For
 	//                  thread safety.                                            */
 	INDEX     Size; /* Size of each element in the stack. */
+	INDEX     Max; /* maximum elements in the stack */
 	_8      data[1]; /* The actual data area of the stack.  */
 } DATASTACK, *PDATASTACK;
 

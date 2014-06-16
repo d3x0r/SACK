@@ -606,6 +606,12 @@ static PDATASTACK ExpandDataStackEx( PDATASTACK *ppds, INDEX entries DBG_PASS )
 		{
 			ExpandDataStackEx( pds, 1 DBG_RELAY );
 		}
+		if( (*pds)->Max )
+			if( ((*pds)->Top) >= (*pds)->Max )
+			{
+				MemCpy( (*pds)->data, (*pds)->data + (*pds)->Size, ( (*pds)->Top - 1 ) * (*pds)->Size );
+				(*pds)->Top--;
+			}
 		MemCpy( (*pds)->data + ((*pds)->Top * (*pds)->Size ), pdata, (*pds)->Size );
 		(*pds)->Top++;
 		return (*pds);
@@ -648,13 +654,21 @@ void  EmptyDataStack( PDATASTACK *pds )
 
 //--------------------------------------------------------------------------
 
- PDATASTACK  CreateDataStackEx ( INDEX size DBG_PASS )
+ PDATASTACK  CreateDataStackEx ( size_t size DBG_PASS )
+{
+	return CreateDataStackLimitedEx( size, 0 DBG_RELAY );
+}
+
+//--------------------------------------------------------------------------
+
+ PDATASTACK  CreateDataStackLimitedEx ( size_t size, INDEX max_items DBG_PASS )
 {
 	PDATASTACK pds;
 	pds = (PDATASTACK)AllocateEx( sizeof( DATASTACK ) + ( 10 * size ) DBG_RELAY );
 	pds->Cnt = 10;
 	pds->Top = 0;
 	pds->Size = size;
+	pds->Max = max_items;
 	return pds;
 }
 
