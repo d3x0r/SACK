@@ -498,9 +498,15 @@ TYPELIB_PROC  POINTER TYPELIB_CALLTYPE      PeekLinkEx         ( PLINKSTACK *pls
 
 /* Creates a data stack for data element of the specified size.
    Parameters
-   pds :       address of a data stack pointer
+   size :       size of elements in the stack
    DBG_PASS :  debug file and line information.                 */
-TYPELIB_PROC  PDATASTACK TYPELIB_CALLTYPE   CreateDataStackEx( INDEX size DBG_PASS ); 
+TYPELIB_PROC  PDATASTACK TYPELIB_CALLTYPE   CreateDataStackEx( size_t size DBG_PASS ); 
+/* Creates a data stack for data element of the specified size.
+   Parameters
+   size :       size of items in the stack
+   count :      max items in stack (oldest gets deleted)
+   DBG_PASS :  debug file and line information.                 */
+TYPELIB_PROC  PDATASTACK TYPELIB_CALLTYPE   CreateDataStackLimitedEx( size_t size, INDEX count DBG_PASS ); 
 /* Destroys a data stack.
    Parameters
    pds :       address of a data stack pointer. The pointer will
@@ -544,6 +550,10 @@ TYPELIB_PROC  POINTER TYPELIB_CALLTYPE      PeekDataEx     ( PDATASTACK *pds, IN
    
    Macro to pass default file and line information.                     */
 #define CreateDataStack(size) CreateDataStackEx( size DBG_SRC )
+/* <combine sack::containers::data_stack::CreateDataStackEx@INDEX size>
+   
+   Macro to pass default file and line information.                     */
+#define CreateDataStackLimited(size,items) CreateDataStackLimitedEx( size,items DBG_SRC )
 /* <combine sack::containers::data_stack::DeleteDataStackEx@PDATASTACK *pds>
    
    Macro to pass default file and line information.                          */
