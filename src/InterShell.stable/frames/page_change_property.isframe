@@ -1,0 +1,19 @@
+<control caption="Page Change Button Properties" edit="1" position="8,31" size="549,367" type="Frame">
+<control IDName="Color Well/InterShell/CLR_BACKGROUND" caption="" position="177,146" size="30,30" type="Color Well"></control>
+<control IDName="Color Well/InterShell/CLR_RING_BACKGROUND" caption="" position="221,146" size="30,30" type="Color Well"></control>
+<control IDName="Color Well/InterShell/CLR_TEXT_COLOR" caption="" position="176,103" size="30,30" type="Color Well"></control>
+<control caption="Text Color" position="22,105" size="124,23" type="TextControl"></control>
+<control caption="Background Color" position="27,146" size="136,21" type="TextControl"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Ok" position="377,235" size="71,19" type="Button"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="377,264" size="71,19" type="Button"></control>
+<control IDName="ListBox/InterShell/LST_PAGES" caption="" position="292,48" size="190,182" type="ListBox">
+<control position="173,0" size="15,180" type="ScrollBar">
+<control PrivateData="#ff354c59" position="0,0" size="15,15" type="CustomDrawnButton"></control>
+<control PrivateData="#ff354c59" position="0,165" size="15,15" type="CustomDrawnButton"></control></control>
+<control caption="" position="154,226" size="180,19" type="EditControl"></control>
+<control caption="Button Text" position="35,225" size="104,21" type="TextControl"></control></control>
+<control IDName="EditControl/InterShell/TXT_CONTROL_TEXT" caption="Start Over" position="16,52" size="251,21" type="EditControl"></control>
+<control IDName="ListBox/InterShell/LST_BUTTON_STYLE" caption="" position="26,197" size="237,95" type="ListBox"></control>
+<control caption="Button Text" position="25,28" size="195,24" type="TextControl"></control>
+<control caption="Set Next Page" position="296,20" size="182,19" type="TextControl"></control>
+<control caption="Button Style" position="24,174" size="125,21" type="TextControl"></control></control>
