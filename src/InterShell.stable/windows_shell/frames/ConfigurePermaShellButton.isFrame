@@ -1,0 +1,5 @@
+<control caption="Configure Shell" position="0,0" size="443,207" type="Frame">
+<control IDName="EditControl/InterShell/Windows Shell/EDIT_SHELL_NAME" caption="" position="14,53" size="400,21" type="EditControl"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="329,119" size="73,21" type="Button"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="241,117" size="73,21" type="Button"></control>
+<control caption="Set Shell To..." position="17,24" size="128,21" type="TextControl"></control></control>

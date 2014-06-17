@@ -1,0 +1,28 @@
+<control caption="ConfigureMacroButton.Frame" position="0,0" size="720,630" type="Frame">
+<control IDName="ListBox/InterShell/LST_BUTTON_STYLE" border="161" caption="" position="19,324" size="197,73" type="ListBox"></control>
+<control IDName="ListBox/InterShell/LST_PAGES" border="161" caption="" position="12,436" size="204,73" type="ListBox"></control>
+<control IDName="EditControl/InterShell/TXT_CONTROL_TEXT" border="32929" caption="POS" position="122,15" size="229,21" type="EditControl"></control>
+<control position="4,12" size="0,0" type="SubFrame"></control>
+<control caption="Button Text" position="16,16" size="98,21" type="TextControl"></control>
+<control IDName="ListBox/InterShell/macros/LIST_MACRO_ELEMENTS" border="161" caption="" position="13,62" size="202,73" type="ListBox"></control>
+<control IDName="Button/InterShell/macros/BUTTON_ADD_CONTROL" PrivateData="#ff354c59" border="33" caption="New Element" position="142,140" size="113,28" type="Button"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" border="33" caption="Okay" position="116,556" size="73,28" type="Button"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" border="33" caption="Cancel" position="30,556" size="73,27" type="Button"></control>
+<control IDName="Color Well/InterShell/CLR_TEXT_COLOR" border="161" caption="" position="617,18" size="32,32" type="Color Well"></control>
+<control IDName="Color Well/InterShell/CLR_BACKGROUND" border="161" caption="" position="617,56" size="32,32" type="Color Well"></control>
+<control IDName="Color Well/InterShell/CLR_RING_BACKGROUND" border="161" caption="" position="617,93" size="32,32" type="Color Well"></control>
+<control IDName="Color Well/InterShell/CLR_RING_HIGHLIGHT" border="161" caption="" position="617,127" size="32,32" type="Color Well"></control>
+<control IDName="ListBox/InterShell/macros/LIST_CONTROL_TYPES" border="161" caption="" position="303,246" size="393,337" type="ListBox"></control>
+<control IDName="Button/InterShell/macros/BUTTON_ELEMENT_CONFIGURE" PrivateData="#ff354c59" border="33" caption="Edit Element" position="12,141" size="124,25" type="Button"></control>
+<control IDName="Button/InterShell/macros/BUTTON_ELEMENT_UP" PrivateData="#ff354c59" border="33" caption="UP" position="219,75" size="44,21" type="Button"></control>
+<control IDName="Button/InterShell/macros/BUTTON_ELEMENT_DOWN" PrivateData="#ff354c59" border="33" caption="DN" position="219,106" size="45,21" type="Button"></control>
+<control IDName="Button/InterShell/macros/BUTTON_ELEMENT_REMOVE" PrivateData="#ff354c59" border="33" caption="Delete Element" position="12,173" size="123,30" type="Button"></control>
+<control IDName="Button/InterShell/macros/BUTTON_ELEMENT_CLONE" PrivateData="#ff354c59" border="33" caption="Add Clone" position="141,173" size="116,27" type="Button"></control>
+<control caption="Goto Page..." position="21,406" size="115,21" type="TextControl"></control>
+<control caption="Button Style" position="24,292" size="123,21" type="TextControl"></control>
+<control IDName="Button/InterShell/macros/BUTTON_ELEMENT_CLONE_ELEMENT" PrivateData="#ff354c59" border="33" caption="Clone Element" position="140,210" size="116,28" type="Button"></control>
+<control caption="Button Actions to add as macro elements..." position="297,222" size="371,21" type="TextControl"></control>
+<control caption="Text Color" position="397,24" size="128,21" type="TextControl"></control>
+<control caption="Background Color" position="395,59" size="153,21" type="TextControl"></control>
+<control caption="Secondary Color(normal)" position="396,99" size="200,21" type="TextControl"></control>
+<control caption="Secondary Color(highlight)" position="398,132" size="213,21" type="TextControl"></control></control>

@@ -1,0 +1,6 @@
+<control caption="Generic Listbox Properties" edit="1" position="0,0" size="460,277" type="Frame">
+<control IDName="Button/InterShell/font/BTN_PICKFONT" PrivateData="#ff354c59" caption="Font" position="152,29" size="73,21" type="Button"></control>
+<control IDName="Button/core/BTN_CANCEL" PrivateData="#ff354c59" caption="Cancel" position="321,188" size="73,21" type="Button"></control>
+<control IDName="Button/core/BTN_OKAY" PrivateData="#ff354c59" caption="Okay" position="324,221" size="73,21" type="Button"></control>
+<control IDName="CheckButton/InterShell/CHECKBOX_LIST_MULTI_SELECT" caption="Multi Select" position="163,114" size="157,22" type="CheckButton"></control>
+<control IDName="CheckButton/InterShell/CHECKBOX_LIST_LAZY_MULTI_SELECT" caption="Lazy MultiSelect" position="162,139" size="187,21" type="CheckButton"></control></control>
