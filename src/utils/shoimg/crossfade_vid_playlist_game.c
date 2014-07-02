@@ -41,6 +41,7 @@ typedef struct video_sequence {
 	//PLIST image_type;
 	int current_image; // overall counter, stepped appropriately.
 	int prize_count;
+   TEXTSTR prize_name; // for printing result
 };
 
 typedef struct global_tag {
@@ -50,6 +51,7 @@ typedef struct global_tag {
 	{
 		BIT_FIELD bBlacking : 1;
 	}flags;
+	_32 enable_code;
 
 	_32 tick_to_switch;
 
@@ -92,6 +94,8 @@ typedef struct global_tag {
 	int value_collect_index;
 	int begin_card;
 
+   TEXTCHAR card_begin_char;
+   TEXTCHAR card_end_char;
 	int prize_total;
 	struct mersenne_rng *rng;
 
@@ -480,13 +484,48 @@ static PTRSZVAL CPROC ProcessConfig( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
+static PTRSZVAL CPROC SetStartCharacter( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, char*, data );
+   g.card_begin_char = data[0];
+   return psv;
+}
+
+static PTRSZVAL CPROC SetEndCharacter( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, char*, data );
+   g.card_end_char = data[0];
+   return psv;
+}
+
+static PTRSZVAL CPROC SetPrizeName( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, S_64, index );
+	PARAM( args, CTEXTSTR, data );
+
+	struct video_sequence *seq = GetSequence( (int)index );
+	seq->prize_name = StrDup( data );
+   return psv;
+}
+
+static PTRSZVAL CPROC SetSwipeEnable( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, S_64, data );
+   g.enable_code = data;
+   return psv;
+}
+
 static void AddRules( PCONFIG_HANDLER pch )
 {
 	AddConfigurationMethod( pch, WIDE("config=%B"), ProcessConfig );
 	AddConfigurationMethod( pch, WIDE("%i,%i,%i,%m"), AddVideo );
+	AddConfigurationMethod( pch, WIDE("card swipe enable=%i"), SetSwipeEnable );
+	AddConfigurationMethod( pch, WIDE("card start character=%w"), SetStartCharacter );
+	AddConfigurationMethod( pch, WIDE("card end character=%w"), SetEndCharacter );
 	AddConfigurationMethod( pch, WIDE("default show time=%i"), SetDefaultShowTime );
 	AddConfigurationMethod( pch, WIDE("default fade in time=%i"), SetDefaultFadeInTime );
 	AddConfigurationMethod( pch, WIDE("default prize count %i=%i"), SetDefaultPrizeCount );
+	AddConfigurationMethod( pch, WIDE("prize name %i=%m"), SetPrizeName );
 }
 
 static void ReadConfigFile( CTEXTSTR filename )
@@ -529,15 +568,16 @@ static void PickPrize( void )
 	}
 }
 
-static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key )
+static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key_code )
 {
 	static _32 _tick, tick;
 	static int reset = 0;
 	static int reset2 = 0;
 	static int reset3 = 0;
 	static int reset4 = 0;
+	TEXTCHAR key = GetKeyText( key_code );
 	tick = timeGetTime();
-	//lprintf( "got key %08x  (%d)  %d ", key, psv, tick - _tick );
+	//lprintf( "got key %08x  (%d,%c)  %d ", key_code, key, key, tick - _tick );
 	if( !_tick || ( _tick < ( tick - 2000 ) ) )
 	{
 		//lprintf( "late enough" );
@@ -552,16 +592,16 @@ static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key )
 
 	{
 		//lprintf( "continue sequence... begin new collections" );
-		if( psv < 10 )
+		if( key >= '0' && key <= '9' )
 		{
 			// reset to new value
-			g.number_collector = ( g.number_collector * 10 ) + psv;
-			g.value_collector[g.value_collect_index++] = psv + '0';
+			g.number_collector = ( g.number_collector * 10 ) + (key - '0');
+			g.value_collector[g.value_collect_index++] = key;
 			g.value_collector[g.value_collect_index] = 0;
 			//lprintf( "new value %d (%s)", g.number_collector, g.value_collector );
 			if( g.attract_mode )
 			{
-				if( g.number_collector == 13579 )
+				if( g.number_collector == g.enable_code )
 				{
 					g.attract_mode = 0;
 					// last one is the screen to show to swipe card...
@@ -575,7 +615,7 @@ static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key )
 
 			}
 		}
-		else if( psv == 10 )
+		else if( key == g.card_begin_char )
 		{
 			//lprintf( "Begin swipe..." );
 			if( !g.attract_mode )
@@ -586,15 +626,13 @@ static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key )
 				g.value_collector[g.value_collect_index] = 0;
 			}
 		}
-		else if( psv == 11 ) // '?'
+		else if( key == g.card_end_char ) // '?'
 		{
 			//lprintf( "end card with (%s)", g.value_collector );
 			if( !g.attract_mode )
 			{
 				PickPrize();
 			}
-			//else
-			//	lprintf( "Still in attract?" );
 		}
 	}
 	return TRUE;
@@ -619,21 +657,6 @@ SaneWinMain(argc, argv )
 		_32 tick = timeGetTime();
 		g.rng = init_by_array( &tick, 1 );
 	}
-
-	BindEventToKey( NULL, KEY_0, 0, PressSomeKey, (PTRSZVAL)0 );
-	BindEventToKey( NULL, KEY_1, 0, PressSomeKey, (PTRSZVAL)1 );
-	BindEventToKey( NULL, KEY_2, 0, PressSomeKey, (PTRSZVAL)2 );
-	BindEventToKey( NULL, KEY_3, 0, PressSomeKey, (PTRSZVAL)3 );
-	BindEventToKey( NULL, KEY_4, 0, PressSomeKey, (PTRSZVAL)4 );
-	BindEventToKey( NULL, KEY_5, 0, PressSomeKey, (PTRSZVAL)5 );
-	BindEventToKey( NULL, KEY_6, 0, PressSomeKey, (PTRSZVAL)6 );
-	BindEventToKey( NULL, KEY_7, 0, PressSomeKey, (PTRSZVAL)7 );
-	BindEventToKey( NULL, KEY_8, 0, PressSomeKey, (PTRSZVAL)8 );
-	BindEventToKey( NULL, KEY_9, 0, PressSomeKey, (PTRSZVAL)9 );
-	BindEventToKey( NULL, KEY_9, 0, PressSomeKey, (PTRSZVAL)9 );
-	BindEventToKey( NULL, KEY_5, KEY_MOD_SHIFT, PressSomeKey, (PTRSZVAL)10 );
-	BindEventToKey( NULL, KEY_SEMICOLON, 0, PressSomeKey, (PTRSZVAL)10 );
-	BindEventToKey( NULL, KEY_SLASH, KEY_MOD_SHIFT, PressSomeKey, (PTRSZVAL)11 );
 
 	{
 		int state = 0;
@@ -681,6 +704,31 @@ SaneWinMain(argc, argv )
 		}
 	}
 
+	{
+		int n;
+		for( n = 0; n < 256; n++ )
+		{
+			BindEventToKey( NULL, n, 0, PressSomeKey, (PTRSZVAL)0 );
+			BindEventToKey( NULL, n, KEY_MOD_SHIFT, PressSomeKey, (PTRSZVAL)0 );
+		}
+	}
+   /*
+	BindEventToKey( NULL, KEY_0, 0, PressSomeKey, (PTRSZVAL)0 );
+	BindEventToKey( NULL, KEY_1, 0, PressSomeKey, (PTRSZVAL)1 );
+	BindEventToKey( NULL, KEY_2, 0, PressSomeKey, (PTRSZVAL)2 );
+	BindEventToKey( NULL, KEY_3, 0, PressSomeKey, (PTRSZVAL)3 );
+	BindEventToKey( NULL, KEY_4, 0, PressSomeKey, (PTRSZVAL)4 );
+	BindEventToKey( NULL, KEY_5, 0, PressSomeKey, (PTRSZVAL)5 );
+	BindEventToKey( NULL, KEY_6, 0, PressSomeKey, (PTRSZVAL)6 );
+	BindEventToKey( NULL, KEY_7, 0, PressSomeKey, (PTRSZVAL)7 );
+	BindEventToKey( NULL, KEY_8, 0, PressSomeKey, (PTRSZVAL)8 );
+	BindEventToKey( NULL, KEY_9, 0, PressSomeKey, (PTRSZVAL)9 );
+	BindEventToKey( NULL, KEY_9, 0, PressSomeKey, (PTRSZVAL)9 );
+	BindEventToKey( NULL, KEY_5, KEY_MOD_SHIFT, PressSomeKey, (PTRSZVAL)10 );
+
+	BindEventToKey( NULL, KEY_SEMICOLON, 0, PressSomeKey, (PTRSZVAL)10 );
+	BindEventToKey( NULL, KEY_SLASH, KEY_MOD_SHIFT, PressSomeKey, (PTRSZVAL)11 );
+   */
 	{
 		struct video_sequence *sequence;
 		sequence = GetSequence( 0 );
