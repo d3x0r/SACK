@@ -199,14 +199,6 @@ if( NOT __CLR__ )
 set( PROJECT binary )
 set( EXTRA_FLAGS  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} ${D__ANDROID__} )
 BuildProject( ${PROJECT} sack.binaries ${CMAKE_CURRENT_LIST_DIR}/../binary SACK_BINARY_SDK_ROOT_PATH ${EXTRA_FLAGS} )
-if( NOT __ANDROID__ AND NOT UNIX )
-  # this calls sack_deploy to build cmakepackage
-  # on android ended up making a cmake-configured-cmake-script to make this file.
-#  Add_custom_command( TARGET Build${PROJECT} 
-#	COMMAND ${SACK_BINARY_SDK_ROOT_PATH}/Sack.Binary.Deploy${CMAKE_EXECUTABLE_SUFFIX} -nr
-#	WORKING_DIRECTORY ${SACK_BINARY_SDK_ROOT_PATH}
-#  )
-endif( NOT __ANDROID__ AND NOT UNIX )
 add_dependencies( ${LAST_TARGET} Buildcore )
 else( NOT __CLR__ )
 message( "Disabled Binaries output for CLR build" )
@@ -215,15 +207,13 @@ endif( NOT __CLR__ )
 
 set( PROJECT intershell )
 set( EXTRA_FLAGS  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} ${D__ANDROID__} )
-BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/InterShell INTERSHELL_SDK_ROOT_PATH ${EXTRA_FLAGS} )
-if( NOT __ANDROID__ AND NOT UNIX )
-# this calls sack_deploy to build cmakepackage
-# on android ended up making a cmake-configured-cmake-script to make this file.
-#Add_custom_command( TARGET Build${PROJECT} 
-#	COMMAND ${INTERSHELL_SDK_ROOT_PATH}/intershell_deploy${CMAKE_EXECUTABLE_SUFFIX} -nr
-#	WORKING_DIRECTORY ${INTERSHELL_SDK_ROOT_PATH}
-#)                
-endif( NOT __ANDROID__ AND NOT UNIX )
+BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/InterShell.stable INTERSHELL_SDK_ROOT_PATH ${EXTRA_FLAGS} )
+add_dependencies( ${LAST_TARGET} Buildcore Buildbinary )
+
+
+set( PROJECT intershell2 )
+set( EXTRA_FLAGS  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} ${D__ANDROID__} )
+BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/InterShell INTERSHELL2_SDK_ROOT_PATH ${EXTRA_FLAGS} )
 add_dependencies( ${LAST_TARGET} Buildcore Buildbinary )
 
 if( NOT __ANDROID__ )
