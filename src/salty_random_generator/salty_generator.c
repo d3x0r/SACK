@@ -49,39 +49,59 @@ struct random_context *SRG_CreateEntropy( void (*getsalt)( PTRSZVAL, POINTER *sa
 	return ctx;
 }
 
-S_32 SRG_GetEntropy( struct random_context *ctx, int bits, int get_signed )
+void SRG_GetEntropyBuffer( struct random_context *ctx, _32 *buffer, int bits )
 {
 	_32 tmp;
 	_32 partial_tmp;
 	int partial_bits = 0;
-	if( bits > ( ctx->bits_avail - ctx->bits_used ) )
-	{
-		if( ctx->bits_avail - ctx->bits_used )
-		{
-			partial_bits = ctx->bits_avail - ctx->bits_used;
-			partial_tmp = MY_GET_MASK( ctx->entropy, ctx->bits_used, partial_bits );
-			bits -= partial_bits;
-		}
-		NeedBits( ctx );
-	}
-	{
-		tmp = MY_GET_MASK( ctx->entropy, ctx->bits_used, bits );
-		ctx->bits_used += bits;
-		if( partial_bits )
-		{
-			tmp |= partial_tmp << bits;
-			bits += partial_bits;
-		}
-		if( get_signed )
-			if( tmp & ( 1 << ( bits - 1 ) ) )
-			{
-				_32 negone = ~0;
-				negone <<= bits;
-				return (S_32)( tmp | negone );
-			}
-	}
-	return (S_32)( tmp );
+	int get_bits;
 
+	do
+	{
+		if( bits > sizeof( tmp ) * 8 )
+			get_bits = sizeof( tmp ) * 8;
+		else
+			get_bits = bits;
+
+      // only greater... if equal just grab the bits.
+		if( get_bits > ( ctx->bits_avail - ctx->bits_used ) )
+		{
+			if( ctx->bits_avail - ctx->bits_used )
+			{
+				partial_bits = ctx->bits_avail - ctx->bits_used;
+				if( partial_bits > sizeof( partial_tmp ) * 8 )
+               partial_bits = sizeof( partial_tmp ) * 8;
+				partial_tmp = MY_GET_MASK( ctx->entropy, ctx->bits_used, partial_bits );
+			}
+			NeedBits( ctx );
+		}
+      else
+		{
+			tmp = MY_GET_MASK( ctx->entropy, ctx->bits_used, get_bits );
+			ctx->bits_used += get_bits;
+			if( partial_bits )
+			{
+				tmp |= partial_tmp << get_bits;
+				get_bits += partial_bits;
+			}
+			(*buffer++) = tmp;
+         bits -= get_bits;
+		}
+	} while( bits );
+}
+
+S_32 SRG_GetEntropy( struct random_context *ctx, int bits, int get_signed )
+{
+	S_32 result;
+   SRG_GetEntropyBuffer( ctx, (_32*)&result, bits );
+	if( get_signed )
+		if( result & ( 1 << ( bits - 1 ) ) )
+		{
+			_32 negone = ~0;
+			negone <<= bits;
+			return (S_32)( result | negone );
+		}
+   return result;
 }
 
 void SRG_ResetEntropy( struct random_context *ctx )
