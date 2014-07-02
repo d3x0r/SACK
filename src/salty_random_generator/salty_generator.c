@@ -1,5 +1,6 @@
 #include <stdhdrs.h>
 #include <sha1.h>
+#include <sha2.h>
 #ifndef SALTY_RANDOM_GENERATOR_SOURCE
 #define SALTY_RANDOM_GENERATOR_SOURCE
 #endif
@@ -13,12 +14,17 @@
 
 
 struct random_context {
+	LOGICAL use_version2;
+
 	SHA1Context sha1_ctx;
+	sha512_ctx  sha512;
+
 	POINTER salt;
 	size_t salt_size;
 	void (*getsalt)( PTRSZVAL, POINTER *salt, size_t *salt_size );
 	PTRSZVAL psv_user;
 	uint8_t entropy[SHA1HashSize];
+	uint8_t entropy2[SHA512_DIGEST_SIZE];
 	size_t bits_used;
 	size_t bits_avail;
 };
@@ -29,19 +35,35 @@ static void NeedBits( struct random_context *ctx )
 		ctx->getsalt( ctx->psv_user, &ctx->salt, &ctx->salt_size );
 	else
 		ctx->salt_size = 0;
-	if( ctx->salt_size )
-		SHA1Input( &ctx->sha1_ctx, (const uint8_t*)ctx->salt, ctx->salt_size );
-	SHA1Result( &ctx->sha1_ctx, ctx->entropy );
-	SHA1Reset( &ctx->sha1_ctx );
-	SHA1Input( &ctx->sha1_ctx, ctx->entropy, SHA1HashSize );
+	if( ctx->use_version2 )
+	{
+		if( ctx->salt_size )
+			sha512_update( &ctx->sha512, (const uint8_t*)ctx->salt, ctx->salt_size );
+		sha512_final( &ctx->sha512, ctx->entropy2 );
+		sha512_init( &ctx->sha512 );
+		sha512_update( &ctx->sha512, ctx->entropy2, SHA512_DIGEST_SIZE );
+		ctx->bits_avail = sizeof( ctx->entropy2 ) * 8;
+	}
+	else
+	{
+		if( ctx->salt_size )
+			SHA1Input( &ctx->sha1_ctx, (const uint8_t*)ctx->salt, ctx->salt_size );
+		SHA1Result( &ctx->sha1_ctx, ctx->entropy );
+		SHA1Reset( &ctx->sha1_ctx );
+		SHA1Input( &ctx->sha1_ctx, ctx->entropy, SHA1HashSize );
+		ctx->bits_avail = sizeof( ctx->entropy ) * 8;
+	}
 	ctx->bits_used = 0;
-	ctx->bits_avail = sizeof( ctx->entropy ) * 8;
 }
 
-struct random_context *SRG_CreateEntropy( void (*getsalt)( PTRSZVAL, POINTER *salt, size_t *salt_size ), PTRSZVAL psv_user )
+struct random_context *SRG_CreateEntropyInternal( void (*getsalt)( PTRSZVAL, POINTER *salt, size_t *salt_size ), PTRSZVAL psv_user, LOGICAL version2 )
 {
 	struct random_context *ctx = New( struct random_context );
-	SHA1Reset( &ctx->sha1_ctx );
+	ctx->use_version2 = version2;
+	if( ctx->use_version2 )
+      sha512_init( &ctx->sha512 );
+	else
+		SHA1Reset( &ctx->sha1_ctx );
 	ctx->getsalt = getsalt;
 	ctx->psv_user = psv_user;
 	ctx->bits_used = 0;
@@ -49,12 +71,22 @@ struct random_context *SRG_CreateEntropy( void (*getsalt)( PTRSZVAL, POINTER *sa
 	return ctx;
 }
 
-void SRG_GetEntropyBuffer( struct random_context *ctx, _32 *buffer, int bits )
+struct random_context *SRG_CreateEntropy( void (*getsalt)( PTRSZVAL, POINTER *salt, size_t *salt_size ), PTRSZVAL psv_user )
+{
+   return SRG_CreateEntropyInternal( getsalt, psv_user, FALSE );
+}
+
+struct random_context *SRG_CreateEntropy2( void (*getsalt)( PTRSZVAL, POINTER *salt, size_t *salt_size ), PTRSZVAL psv_user )
+{
+   return SRG_CreateEntropyInternal( getsalt, psv_user, TRUE );
+}
+
+void SRG_GetEntropyBuffer( struct random_context *ctx, _32 *buffer, _32 bits )
 {
 	_32 tmp;
 	_32 partial_tmp;
 	int partial_bits = 0;
-	int get_bits;
+	_32 get_bits;
 
 	do
 	{
@@ -70,14 +102,20 @@ void SRG_GetEntropyBuffer( struct random_context *ctx, _32 *buffer, int bits )
 			{
 				partial_bits = ctx->bits_avail - ctx->bits_used;
 				if( partial_bits > sizeof( partial_tmp ) * 8 )
-               partial_bits = sizeof( partial_tmp ) * 8;
-				partial_tmp = MY_GET_MASK( ctx->entropy, ctx->bits_used, partial_bits );
+					partial_bits = sizeof( partial_tmp ) * 8;
+            if( ctx->use_version2 )
+					partial_tmp = MY_GET_MASK( ctx->entropy2, ctx->bits_used, partial_bits );
+            else
+					partial_tmp = MY_GET_MASK( ctx->entropy, ctx->bits_used, partial_bits );
 			}
 			NeedBits( ctx );
 		}
       else
 		{
-			tmp = MY_GET_MASK( ctx->entropy, ctx->bits_used, get_bits );
+         if( ctx->use_version2 )
+				tmp = MY_GET_MASK( ctx->entropy2, ctx->bits_used, get_bits );
+         else
+				tmp = MY_GET_MASK( ctx->entropy, ctx->bits_used, get_bits );
 			ctx->bits_used += get_bits;
 			if( partial_bits )
 			{
@@ -106,7 +144,10 @@ S_32 SRG_GetEntropy( struct random_context *ctx, int bits, int get_signed )
 
 void SRG_ResetEntropy( struct random_context *ctx )
 {
-	SHA1Reset( &ctx->sha1_ctx );
+	if( ctx->use_version2 )
+		sha512_init( &ctx->sha512 );
+   else
+		SHA1Reset( &ctx->sha1_ctx );
 	ctx->bits_used = 0;
 	ctx->bits_avail = 0;
 }
