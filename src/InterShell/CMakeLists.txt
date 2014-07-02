@@ -1,6 +1,7 @@
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
+set_property(GLOBAL PROPERTY QUIET_INSTALL ON )
+set( CMAKE_INSTALL_QUIET ON )
 cmake_minimum_required(VERSION 2.8)
-
 PROJECT( InterShell )
 
 if( MINGW ) 

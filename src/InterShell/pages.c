@@ -60,10 +60,7 @@ PPAGE_DATA CreateNamedPage( PCanvasData canvas, CTEXTSTR page_name )
 		page->canvas = canvas;
 		page->grid.nPartsX = canvas->default_page?canvas->default_page->grid.nPartsX:90;//canvas->nPartsX;
 		page->grid.nPartsY = canvas->default_page?canvas->default_page->grid.nPartsY:50;//canvas->nPartsY;
-		AddPage( canvas, page );
-		// have to create the control to create buttons on it... 
-		// open does not show.
-		OpenPageFrame( page, FALSE );
+		AddPage( canvas, page );  //opens the frame too
 		return page;
 	}
 }
@@ -970,14 +967,7 @@ void AddPage( PCanvasData canvas, PPAGE_DATA page )
 		lprintf( WIDE("Failed to add new item %s to page destroy menu (more than %d pages!)"), page->title, nPage );
 	page->ID = nPage; // this is a pretty crazy ID - should consider rebuilding this.
 	nPage++;
-#ifndef MULTI_FRAME_CANVAS
-	if( g.flags.multi_edit )
-		OpenPageFrame( page, FALSE );
-	else
-		page->frame = canvas->pc_canvas;
-#else
-		OpenPageFrame( page, FALSE );
-#endif
+	OpenPageFrame( page, FALSE );
 }
 
 //-------------------------------------------------------------------------

@@ -5098,17 +5098,14 @@ int restart( void )
 #ifdef DEBUG_BACKGROUND_UPDATE
 	xlprintf(LOG_UPDATE_AND_REFRESH_LEVEL)( WIDE("Displaying the frame on the real display...") );
 #endif
-	if( !g.flags.multi_edit || canvas->flags.bUseSingleFrame )
+	if( canvas && canvas->flags.bUseSingleFrame )
 	{
-		if( canvas )
-		{
-			//lprintf( "Making sure we start from NO Page, in case the first page is protected..." );
-			HidePageEx( canvas );
-			canvas->active_page = NULL;
-			//lprintf( "Should we have a rule for default forward, backward, first, last?  From NULL? from another?" );
-			// this is a magic operation I think here... 
-			ChangePage( canvas->default_page, PAGE_TRANSITION_NONE, 0 );
-		}
+		//lprintf( "Making sure we start from NO Page, in case the first page is protected..." );
+		HidePageEx( canvas );
+		canvas->active_page = NULL;
+		//lprintf( "Should we have a rule for default forward, backward, first, last?  From NULL? from another?" );
+		// this is a magic operation I think here... 
+		ChangePage( canvas->default_page, PAGE_TRANSITION_NONE, 0 );
 	}
 	InvokeStartupMacro();
 	Banner2NoWaitAlpha( WIDE("and we go...") );
@@ -5475,7 +5472,7 @@ PUBLIC( int, Main)( int argc, TEXTCHAR **argv, int bConsole )
 					g.flags.restoreload = 1;
 				else if( StrCaseCmp( argv[n]+1, WIDE("SQL") ) == 0 )
 					g.flags.bSQLConfig = 1;
-				else if( StrCaseCmp( argv[n]+1, WIDE("Sysname=") ) == 0 )
+				else if( StrCaseCmpEx( argv[n]+1, WIDE("Sysname="), 8 ) == 0 )
 					g.system_name = StrDup( argv[n] + 9 );
 				else if( StrCaseCmp( argv[n]+1, WIDE("local") ) == 0 )
 					g.flags.local_config = 1; // don't save in sql...
