@@ -53,6 +53,7 @@ render.h render3d.h
 sack_types.h
 http.h
 sha1.h
+sha2.h
 md5.h
 sharemem.h
 skelhdr.h

@@ -13,6 +13,9 @@
 set( SHA1_SOURCES
   ${SOURCES_ROOT}src/sha1lib/sha1.c
   )
+set( SHA2_SOURCES
+  ${SOURCES_ROOT}src/sha2lib/sha2.c
+  )
 
 set( RANDOM_SOURCES
   ${SOURCES_ROOT}src/salty_random_generator/salty_generator.c
@@ -28,6 +31,7 @@ set( RANDOM_SOURCES_FLAGS SALTY_RANDOM_GENERATOR_SOURCE )
 set(UNSORTED_SOURCES  
   ${RANDOM_SOURCES}
   ${SHA1_SOURCES}
+  ${SHA2_SOURCES}
   ${SOURCES_ROOT}src/sysloglib/syslog.c
   ${SOURCES_ROOT}src/memlib/sharemem.c
   ${SOURCES_ROOT}src/memlib/memory_operations.c
@@ -504,6 +508,7 @@ set(BASE_SOURCES  ${BASE_SOURCES}
   ${NETWORK_SOURCES}
   ${FILESYSTEM_SOURCES}
   ${SHA1_SOURCES}
+  ${SHA2_SOURCES}
   ${MD5_SOURCES}
   ${MORE_SYSTEM_SOURCES}
   ${SERVICE_STUB_SOURCES}
