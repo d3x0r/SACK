@@ -6,7 +6,7 @@
 #include <sack_types.h>
 
 #if defined (_WIN32)
-//#define USE_NATIVE_CRITICAL_SECTION
+#define USE_NATIVE_CRITICAL_SECTION
 #endif
 
 #if defined( _SHLWAPI_H ) || defined( _INC_SHLWAPI )
