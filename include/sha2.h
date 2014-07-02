@@ -63,9 +63,19 @@ typedef unsigned long long uint64;
 extern "C" {
 #endif
 
-typedef struct _sha256_ctx sha256_ctx;
+typedef struct {
+    unsigned int tot_len;
+    unsigned int len;
+    unsigned char block[2 * SHA256_BLOCK_SIZE];
+    uint32 h[8];
+}sha256_ctx;
 
-typedef struct _sha512_ctx sha512_ctx;
+typedef struct {
+    unsigned int tot_len;
+    unsigned int len;
+    unsigned char block[2 * SHA512_BLOCK_SIZE];
+    uint64 h[8];
+}sha512_ctx;
 
 typedef sha512_ctx sha384_ctx;
 typedef sha256_ctx sha224_ctx;

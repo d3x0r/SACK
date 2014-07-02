@@ -39,20 +39,6 @@
 
 #include <sha2.h>
 
-struct _sha256_ctx {
-    unsigned int tot_len;
-    unsigned int len;
-    unsigned char block[2 * SHA256_BLOCK_SIZE];
-    uint32 h[8];
-};
-
-struct _sha512_ctx {
-    unsigned int tot_len;
-    unsigned int len;
-    unsigned char block[2 * SHA512_BLOCK_SIZE];
-    uint64 h[8];
-};
-
 
 #define SHFR(x, n)    (x >> n)
 #define ROTR(x, n)   ((x >> n) | (x << ((sizeof(x) << 3) - n)))
