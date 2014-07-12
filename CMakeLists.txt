@@ -1389,6 +1389,7 @@ add_subdirectory( src/utils/deploy )
   
      add_subdirectory( src/SQLlib/optlib/importini )
      add_subdirectory( src/SQLlib/optlib/exportini )
+     add_subdirectory( src/printer_lib/printer_test )
   endif( NOT __ANDROID__ )
   
  endif( USE_OPTIONS AND NOT ( __NO_ODBC__ AND NOT USE_SQLITE ) )
