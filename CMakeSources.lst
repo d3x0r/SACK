@@ -40,6 +40,7 @@ set(UNSORTED_SOURCES
   ${SOURCES_ROOT}src/fractionlib/fractions.c
   ${SOURCES_ROOT}src/configlib/configscript.c
   ${SOURCES_ROOT}src/procreglib/names.c
+  ${SOURCES_ROOT}src/printer_lib/printer.c
   ${SOURCES_ROOT}src/deadstart/deadstart_core.c
 )
 
