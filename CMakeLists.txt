@@ -1,5 +1,5 @@
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
-set_property(GLOBAL PROPERTY QUIET_INSTALL On)
+set( CMAKE_INSTALL_MESSAGE "LAZY" )
 cmake_minimum_required(VERSION 2.8)
 
 project( SACK )
@@ -432,8 +432,18 @@ else()
 endif()
 
 
-EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp )
-EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp )
+       add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp
+                           DEPENDS ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES}
+                           COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp
+                           COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp
+                           )
+#EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp )
+       add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp
+                           DEPENDS ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES}
+                           COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp
+                           COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp
+                           )
+#EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${PROJECT_SOURCE_DIR}/${VECTLIB_SOURCES} ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp )
 SET_PROPERTY(SOURCE ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp
                  APPEND 
 		PROPERTY COMPILE_DEFINITIONS "MAKE_RCOORD_SINGLE" ) 
@@ -500,7 +510,13 @@ endif(WATCOM)
 FOREACH(SOURCE ${SACK_PLUSPLUS_HEADERS})
    if( ${SOURCE} MATCHES "${SOURCES_ROOT}(.*)$" )
        set( BASENAME ${CMAKE_MATCH_1} )
-       EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME} )
+       add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/${BASENAME}
+                           DEPENDS ${SOURCE}
+                           COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME} 
+                           COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/${BASENAME} 
+                           )
+       #EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME} )
+
    else()
          message( "blah  ${SOURCE} ${SOURCES_ROOT}" )
    endif()
@@ -540,7 +556,12 @@ FOREACH(SOURCE ${ARGN} )
             SOURCE_GROUP( ${SOURCE_FOLDER} FILES ${SOURCE} )
             SOURCE_GROUP( ${SOURCE_FOLDER} FILES ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} )
           endif()
-          EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} )
+          add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT}
+                              DEPENDS ${SOURCE}
+                              COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} 
+                              COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} 
+                              )
+          #EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} )
        
        else( ${SOURCE} MATCHES "^${PROJECT_SOURCE_DIR}.*" )
          if( NOT ${SOURCE_FOLDER} MATCHES "NOTFOUND" )
@@ -548,7 +569,12 @@ FOREACH(SOURCE ${ARGN} )
            SOURCE_GROUP( ${SOURCE_FOLDER} FILES ${PROJECT_SOURCE_DIR}/${SOURCE} )
            SOURCE_GROUP( ${SOURCE_FOLDER} FILES ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} )
          endif()
-         EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${PROJECT_SOURCE_DIR}/${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} )
+         add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT}
+                             DEPENDS ${PROJECT_SOURCE_DIR}/${SOURCE}
+                             COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} 
+                             COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} 
+                             )
+         #EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${PROJECT_SOURCE_DIR}/${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} )
          #message( "LIB2_SOURCE2 : ${BASENAME}  ${SOURCE}" )
        endif()
      set( ${FILE_LIST} ${${FILE_LIST}} ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} )

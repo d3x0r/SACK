@@ -52,6 +52,10 @@ set( PROJECT train )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/train/new INSTALL ${EXTRA_FLAGS3} )
 add_dependencies( ${LAST_TARGET} Buildcore Buildbinary )
 
+set( PROJECT loop_render )
+BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/seg INSTALL ${EXTRA_FLAGS3} )
+add_dependencies( ${LAST_TARGET} Buildcore Buildbinary )
+
 endif( NOT MINGW )
 
 if( NOT __ANDROID__ )

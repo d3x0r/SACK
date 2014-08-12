@@ -556,8 +556,6 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 		//pi = IMG_ADDRESS( pifSrc, xs, ys );
 		//po = IMG_ADDRESS( pifDest, xd, yd );
 		pi = IMG_ADDRESS( pifSrc, xs, ys );
-		po = IMG_ADDRESS( pifDest, xd, yd );
-		oo = 4*-(int)(ws+pifDest->pwidth);	  // w is how much we can copy...
 		oi = 4*-(int)(ws+pifSrc->pwidth); // adding remaining width...
 	}
 	else
@@ -565,9 +563,23 @@ void CPROC cInvertPixelsT0( PCDATA po, PCDATA  pi
 		// set pointer in to the starting x pixel
 		// on the first line of the image to be copied...
 		pi = IMG_ADDRESS( pifSrc, xs, ys );
+		oi = 4*(pifSrc->pwidth - ws); // adding remaining width...
+	}
+	if( pifDest->flags & IF_FLAG_INVERTED )
+	{
+		// set pointer in to the starting x pixel
+		// on the last line of the image to be copied
+		//pi = IMG_ADDRESS( pifSrc, xs, ys );
+		//po = IMG_ADDRESS( pifDest, xd, yd );
+		po = IMG_ADDRESS( pifDest, xd, yd );
+		oo = 4*-(int)(ws+pifDest->pwidth);	  // w is how much we can copy...
+	}
+	else
+	{
+		// set pointer in to the starting x pixel
+		// on the first line of the image to be copied...
 		po = IMG_ADDRESS( pifDest, xd, yd );
 		oo = 4*(pifDest->pwidth - ws);	  // w is how much we can copy...
-		oi = 4*(pifSrc->pwidth - ws); // adding remaining width...
 	}
 	//lprintf( WIDE("Doing image (%d,%d)-(%d,%d) (%d,%d)-(%d,%d)"), xs, ys, ws, hs, xd, yd, wd, hd );
 	//oo = 4*(pifDest->pwidth - ws);	  // w is how much we can copy...

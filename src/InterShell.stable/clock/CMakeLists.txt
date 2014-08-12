@@ -7,10 +7,6 @@ clock_addon
 ${LAST_GCC_LIBRARY_SOURCE}
 )
 
-if( C++ )
-set_source_files_properties( ${SOURCES} PROPERTIES LANGUAGE "CXX" )
-endif()
-
 add_library_force_source(${PROJECT} SHARED ${SOURCES} )
 
 

@@ -936,6 +936,13 @@ FILE*  sack_fsopen( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mod
 	return handle;
 }
 
+size_t sack_ftell ( FILE *file_file )
+{
+	struct file *file;
+	file = FindFileByFILE( file_file );
+	return ftell( file_file );
+}
+
 size_t  sack_fseek ( FILE *file_file, size_t pos, int whence )
 {
 	if( fseek( file_file, pos, whence ) )

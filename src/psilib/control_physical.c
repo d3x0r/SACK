@@ -286,7 +286,7 @@ static void CPROC FrameFocusProc( PTRSZVAL psvFrame, PRENDERER loss )
 	if( pc->flags.bInitial )
 	{
 		// still in the middle of displaying... this is a false draw point.
-      if( added_use )
+		if( added_use )
 			DeleteUse( pc );
 		return;
 	}

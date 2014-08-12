@@ -34,12 +34,12 @@ namespace sack {
 		typedef struct menu_button *PMENU_BUTTON;
 #endif
 
-//OnCreateMenuButton(WIDE("name"))(PMENU_BUTTON button ) { /*create button data*/ }
+// static PTRSZVAL OnCreateMenuButton(WIDE("name"))(PMENU_BUTTON button ) { /*create button data*/ }
 #define OnCreateMenuButton(name) \
 	DefineRegistryMethod(TASK_PREFIX,CreateMenuButton,WIDE( "control" ),name POSTFIX,WIDE( "button_create" ),PTRSZVAL,(PMENU_BUTTON))
 
 // parametrs to this are the parent control, x, y, width and height
-// OnCreateCommonControl(WIDE( "" ))(PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
+// static PTRSZVAL OnCreateControl(WIDE( "" ))(PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
 #define OnCreateControl(name) \
 	DefineRegistryMethod(TASK_PREFIX,CreateControl,WIDE( "control" ),name,WIDE( "control_create" ),PTRSZVAL,(PSI_CONTROL,S_32,S_32,_32,_32))
 #define OnCreateListbox(name) \
@@ -63,6 +63,7 @@ namespace sack {
 // things like lists can requery databases to show new items....
 #define OnShowControl(name) \
 	DefineRegistryMethod(TASK_PREFIX,ShowControl,WIDE( "control" ),name,WIDE( "show_control" ),void,(PTRSZVAL))
+// static void OnHideControl( WIDE("") )( PTRSZVAL psv )
 #define OnHideControl(name) \
 	DefineRegistryMethod(TASK_PREFIX,HideControl,WIDE( "control" ),name,WIDE( "hide_control" ),void,(PTRSZVAL))
 
