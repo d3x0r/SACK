@@ -574,6 +574,8 @@ if( USE_ASSEMBLY )
   set( MEM_ASSEMBLY_SOURCES src/memlib/memoryasm.asm )
 endif()
 
+include( ${SOURCES_ROOT}src/streamlib/ffmpeg/CMakeLists.txt )
+set( BASE_SOURCES ${BASE_SOURCES} ${FFMPEG_SOURCES} )
 
 
 if( FORCE_CXX )

@@ -1,6 +1,6 @@
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
-set_property(GLOBAL PROPERTY QUIET_INSTALL ON )
-set( CMAKE_INSTALL_QUIET ON )
+set( CMAKE_INSTALL_MESSAGE "LAZY" )
+
 cmake_minimum_required(VERSION 2.8)
 PROJECT( InterShell )
 

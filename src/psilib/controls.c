@@ -1218,10 +1218,11 @@ PSI_PROC( void, UpdateFrameEx )( PSI_CONTROL pc
 					 );
 		}
 #endif
-		UpdateFrameEx( pc->parent
-						 , pc->rect.x + pc->surface_rect.x + x
-						 , pc->rect.y + pc->surface_rect.y + y
-						 , w?w:pc->rect.width, h?h:pc->rect.height DBG_RELAY );
+		if( pc->parent )
+			UpdateFrameEx( pc->parent
+							 , pc->rect.x + pc->surface_rect.x + x
+							 , pc->rect.y + pc->surface_rect.y + y
+							 , w?w:pc->rect.width, h?h:pc->rect.height DBG_RELAY );
 	}
 	else if( pf )
 	{

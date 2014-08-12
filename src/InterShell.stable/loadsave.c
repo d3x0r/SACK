@@ -1483,7 +1483,7 @@ void SaveAPage( FILE *file, PPAGE_DATA page )
 	PMENU_BUTTON button;
 	INDEX idx;
 
-   if( page->title )
+	if( page->title )
 		fprintf( file, WIDE("page titled %s\n"), page->title );
 
 	fprintf( file, WIDE("page layout %d by %d\n"), page->grid.nPartsX, page->grid.nPartsY );

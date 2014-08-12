@@ -1,5 +1,6 @@
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
 set_property(GLOBAL PROPERTY QUIET_INSTALL On)
+set(CMAKE_INSTALL_MESSAGE "LAZY")
 cmake_minimum_required(VERSION 2.8)
 
 

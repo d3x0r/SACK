@@ -127,6 +127,15 @@ FRACTION_PROC  void FRACTION_API  AddCoords ( PCOORDPAIR base, PCOORDPAIR offset
    Returns
    base                                                          */
 FRACTION_PROC  PFRACTION FRACTION_API  AddFractions ( PFRACTION base, PFRACTION offset );
+/* Add one fraction to another.
+   Parameters
+   base :    This is the starting value, and recevies the result
+             of (base+offset)
+   offset :  This is the fraction to add to base.
+   
+   Returns
+   base                                                          */
+FRACTION_PROC  PFRACTION FRACTION_API  SubtractFractions ( PFRACTION base, PFRACTION offset );
 
 /* NOT IMPLEMENTED */
 FRACTION_PROC  PFRACTION FRACTION_API  MulFractions ( PFRACTION f, PFRACTION x );

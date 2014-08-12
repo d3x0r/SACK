@@ -63,7 +63,7 @@
 static void NormalizeFraction( PFRACTION f )
 {
 	int n;
-   int target = min( f->numerator, f->denominator ) / 2;
+	int target = min( f->numerator, f->denominator ) / 2;
 	for( n = 2; n <target; n++ )
 	{
 		if( ( ( f->numerator % n) == 0 ) &&
@@ -155,6 +155,94 @@ static void NormalizeFraction( PFRACTION f )
 				//		  offset->denominator, offset->numerator, ( base->numerator * offset->denominator ) +
 				//						( offset->numerator * base->denominator ) );
 				base->numerator = ( base->numerator * offset->denominator ) +
+										( offset->numerator * base->denominator );
+				base->denominator *= offset->denominator;
+			}
+		}
+	}
+	NormalizeFraction( base );
+	return base;
+	//LogFraction( base );
+	//fprintf( log, WIDE("\n") );
+}
+
+//---------------------------------------------------------------------------
+
+ PFRACTION  SubtractFractions ( PFRACTION base, PFRACTION offset )
+{
+	if( !offset->numerator ) // 0 addition either way is same.
+		return base;
+	//LogFraction( base );
+	//fprintf( log, WIDE(" + ") );
+	//LogFraction( offset );
+	//fprintf( log, WIDE(" = ") );
+	if( base->denominator < 0 )
+	{
+		if( offset->denominator < 0 )
+		{
+			// result is MORE negative when adding them... this is good.
+			if( offset->denominator == base->denominator )
+			{
+				base->numerator -= offset->numerator;
+			}
+			else
+			{
+				// results in a positive value
+				base->numerator = -( ( base->numerator * offset->denominator ) -
+				                     ( offset->numerator * base->denominator ) );
+				base->denominator *= offset->denominator;
+				// need to retain it's original sign....
+				base->denominator = -base->denominator;
+			}
+		}
+		else
+		{
+			// base (probably small negative) - offset + (probably a BIG positive)
+			if( offset->denominator == -base->denominator )
+			{
+				base->numerator += offset->numerator;
+			}
+			else
+			{
+				// result is positive - which is original sign.
+				base->numerator = -( ( base->numerator * offset->denominator ) -
+									      ( offset->numerator * base->denominator ) );
+				base->denominator *= -offset->denominator;
+			}
+		}
+	}
+	else
+	{
+		if( offset->denominator < 0 )
+		{
+			// correct - base positive, offset negative
+			// results in a positive addition from the origin...
+			// making it less negative and closer to the bottom/right
+			if( offset->denominator == -base->denominator )
+			{
+				base->numerator = offset->numerator + base->numerator;
+				base->denominator = -base->denominator;
+			}
+			else
+			{
+				base->numerator = ( base->numerator * offset->denominator ) -
+									   ( offset->numerator * base->denominator );
+				base->denominator *= offset->denominator;
+			}
+		}
+		else
+		{
+			if( offset->denominator == base->denominator )
+			{
+				base->numerator -= offset->numerator;
+			}
+			else
+			{
+				//lprintf( "%d %d %d %d = %d", base->numerator,
+				//		  base->denominator,
+				//		  offset->denominator, offset->numerator, ( base->numerator * offset->denominator ) +
+				//						( offset->numerator * base->denominator ) );
+				base->numerator = ( base->numerator * offset->denominator ) -
 										( offset->numerator * base->denominator );
 				base->denominator *= offset->denominator;
 			}

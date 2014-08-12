@@ -9,21 +9,12 @@
 #include <timers.h>
 #include <sqlgetoption.h>
 #include "../InterShell/vlc_hook/vlcint.h"
-#ifdef MILK_PLUGIN
-#define USES_MILK_INTERFACE
-#define DEFINES_MILK_INTERFACE
-#define SetButtonText MILK_SetButtonText
-#include "../src/apps/milk/milk_registry.h"
-#include "../src/apps/milk/milk_export.h"
-#include "../src/fut/widgets/keypad/keypad_plugin/keypad.h"
-#else
 #define USES_INTERSHELL_INTERFACE
 #define DEFINES_INTERSHELL_INTERFACE
 #define SetButtonText InterShell_SetButtonText
 #include "../InterShell/intershell_registry.h"
 #include "../InterShell/intershell_export.h"
 #include "../InterShell/widgets/keypad/keypad/keypad.h"
-#endif
 
 #ifdef __LINUX__
 #define INVALID_HANDLE_VALUE -1

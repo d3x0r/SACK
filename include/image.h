@@ -2186,22 +2186,25 @@ _INTERFACE_NAMESPACE_END
 // in certain compilation modes (NON_DEBUG)
 
 
-/* <combine sack::image::BuildImageFileEx@PCOLOR@_32@_32 height>
+/* <combine sack::image::BuildImageFileEx@PCOLOR@_32@_32>
    
    \ \                                                           */
 #define BuildImageFile(p,w,h) BuildImageFileEx( p,w,h DBG_SRC )
-/* <combine sack::image::MakeImageFileEx@_32@_32 Height>
+/* <combine sack::image::MakeImageFileEx@_32@_32>
    
    \ \                                                   */
 #define MakeImageFile(w,h) MakeImageFileEx( w,h DBG_SRC )
-/* <combine sack::image::MakeSubImageEx@Image@S_32@S_32@_32@_32 height>
+/* <combine sack::image::MakeSubImageEx@Image@S_32@S_32@_32@_32>
    
    \ \                                                                  */
 #define MakeSubImage( image, x, y, w, h ) MakeSubImageEx( image, x, y, w, h DBG_SRC )
-/* <combine sack::image::RemakeImageEx@Image@PCOLOR@_32@_32 height>
+/* <combine sack::image::RemakeImageEx@Image@PCOLOR@_32@_32>
    
    \ \                                                              */
 #define RemakeImage(p,pc,w,h) RemakeImageEx(p,pc,w,h DBG_SRC)
+/* <combine sack::image::ResizeImageEx@Image@_32@_32>
+   
+   \ \                                                              */
 #define ResizeImage( p,w,h) ResizeImageEx( p,w,h DBG_SRC )
 /* <combine sack::image::UnmakeImageFileEx@Image pif>
    
