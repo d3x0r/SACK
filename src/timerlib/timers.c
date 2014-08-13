@@ -1358,7 +1358,7 @@ PTHREAD  ThreadToEx( PTRSZVAL (CPROC*proc)(PTHREAD), PTRSZVAL param DBG_PASS )
 		//pThread->me = &g.threads;
 		//g.threads = pThread;
 		pThread->flags.bReady = 1;
-		while( !pThread->thread_ident )
+		while( !pThread->thread_event )
 			Relinquish();
 #ifdef LOG_THREAD
 		Log3( WIDE("Created thread address: %p %016"_64fx" at %p")
@@ -1367,7 +1367,7 @@ PTHREAD  ThreadToEx( PTRSZVAL (CPROC*proc)(PTHREAD), PTRSZVAL param DBG_PASS )
 	}
 	else
 	{
-      // unlink from g.threads list.
+		// unlink from g.threads list.
 		DeleteFromSet( THREAD, &g.threadset, pThread ) /*Release( pThread )*/;
 		pThread = NULL;
 	}

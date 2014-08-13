@@ -30,6 +30,7 @@ struct game_cell_control
 	Image sticker;
 	Image Prize;
 	struct ffmpeg_file *file;
+	struct ffmpeg_file *sound_file;
 	//S_32 cx, cy;
 	//_32 cw, ch;
 	S_32 bx, by;
@@ -44,6 +45,7 @@ static struct fantasy_football_local
 	CTEXTSTR downs[4];
 	CTEXTSTR helmets[32];
 	CTEXTSTR helmet_sticker_name[32];
+	CTEXTSTR helmet_sound;
 	struct 
 	{
 		struct game_grid_control control;
@@ -120,6 +122,14 @@ static PTRSZVAL CPROC SetGameForeground( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
+
+static PTRSZVAL CPROC SetHelmetSound( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, CTEXTSTR, data );
+	ffl.helmet_sound = StrDup( data );
+	return psv;
+}
+
 static PTRSZVAL CPROC SetGameBackground( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, data );
@@ -186,7 +196,7 @@ static void AddRules( PCONFIG_HANDLER pch )
 	AddConfigurationMethod( pch, WIDE("Team %i Helmet Sticker=%m"), SetTeamHelmetSticker );
 	AddConfigurationMethod( pch, WIDE("Grid offset XY=%q %q"), SetGameOffset );
 	AddConfigurationMethod( pch, WIDE("Grid Cell Size=%q %q"), SetGameSize );
-
+	AddConfigurationMethod( pch, WIDE("Helmet Sound=%m"), SetHelmetSound );
 	AddConfigurationMethod( pch, WIDE("card swipe enable=%i"), SetSwipeEnable );
 	AddConfigurationMethod( pch, WIDE("card start character=%w"), SetStartCharacter );
 	AddConfigurationMethod( pch, WIDE("card end character=%w"), SetEndCharacter );
@@ -220,7 +230,15 @@ static void RestartAttract( PTRSZVAL psv )
 static void EndGridCell( PTRSZVAL psv )
 {
 	struct game_cell_control *gcc = (struct game_cell_control *)psv;
+	gcc->playing = FALSE;
 	SmudgeCommon( gcc->pc ); // one more draw to make sure movie part is cleared
+}
+
+static void EndGridCellSound( PTRSZVAL psv )
+{
+	//struct game_cell_control *gcc = (struct game_cell_control *)psv;
+	//gcc->playing = FALSE;
+	//SmudgeCommon( gcc->pc ); // one more draw to make sure movie part is cleared
 }
 
 static int OnCreateCommon( WIDE( "FF_Attract" ) )( PSI_CONTROL pc )
@@ -269,6 +287,23 @@ static int OnDrawCommon( WIDE( "FF_Grid" ) )( PSI_CONTROL pc )
 
 static int OnCreateCommon( WIDE( "FF_Grid_Cell" ) )( PSI_CONTROL pc )
 {
+	return 1;
+}
+
+static int OnMouseCommon( WIDE( "FF_Grid_Cell") )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+{
+	if( b )
+	{
+		ValidatedControlData( struct game_cell_control **, FF_GridCell.TypeID, ppgcc, pc );
+		if( !ppgcc[0]->playing && !ppgcc[0]->Prize )
+		{
+			ffmpeg_SeekFile( ppgcc[0]->file, 0 );
+			ffmpeg_PlayFile( ppgcc[0]->file );
+			ffmpeg_SeekFile( ppgcc[0]->sound_file, 0 );
+			ffmpeg_PlayFile( ppgcc[0]->sound_file );
+			ppgcc[0]->playing = TRUE;
+		}
+	}
 	return 1;
 }
 
@@ -456,6 +491,14 @@ static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/Game Grid" ))(PSI_CONTRO
 								, NULL, 0
 								, EndGridCell, (PTRSZVAL)&ffl.grid.cell[r*8+c]
 								, NULL );
+				ffl.grid.cell[r*8+c].sound_file = ffmpeg_LoadFile( ffl.helmet_sound
+								, NULL, 0
+								, NULL
+								, NULL, 0
+								, NULL, 0
+								, NULL );
+
+				ffmpeg_SetPrePostDraw( ffl.grid.cell[r*8+c].file, DrawCellBackground, NULL/*DrawCellForeground*/ );
 
 			}
 	}
