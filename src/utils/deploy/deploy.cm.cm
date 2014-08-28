@@ -42,7 +42,7 @@ if( BT_USE_DOUBLE_PRECISION )
 endif()
 
 #       (after MiniCL) BulletWorldImporter
-		FILE( APPEND ${FILEOUT} "set( BULLET_LIBRARIES BulletMultiThreaded MiniCL BulletSoftBody BulletDynamics BulletCollision LinearMath ) \n" )
+		FILE( APPEND ${FILEOUT} "set( BULLET_LIBRARIES Bullet3Common BulletSoftBody BulletDynamics BulletCollision LinearMath ) \n" )
 endif()
 if( MAKE_RCOORD_SINGLE )
 		FILE( APPEND ${FILEOUT} "add_definitions( -DMAKE_RCOORD_SINGLE )\n" )
