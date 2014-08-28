@@ -61,6 +61,7 @@ add_subpath( ../src/psilib/calctl )
 
 add_subpath( ../src/SQLlib/testsql )
 add_subpath( ../src/utils/launcher )
+add_subpath( ../src/streamlib/ffmpeg/program )
 add_subpath( ../src/utils/config_secure )
 #add_subpath( ../src/salty_random_generator/test )
 add_subpath( ../src/sysloglib/logger )
