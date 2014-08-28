@@ -471,7 +471,6 @@ set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS} ${NETWORK_HEADERS} ${MSGSVR_
      ${SOURCES_ROOT}src/imglib/blotproto.h
      ${SOURCES_ROOT}src/imglib/image_common.h
      ${SOURCES_ROOT}src/imglib/fntglobal.h
-     ${SOURCES_ROOT}src/imglib/fntcache.c
      ${SOURCES_ROOT}src/imglib/cache.h
     ${SOURCES_ROOT}src/imglib/gifimage.h
     ${SOURCES_ROOT}src/imglib/pngimage.h

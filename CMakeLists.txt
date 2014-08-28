@@ -510,6 +510,7 @@ endif(WATCOM)
 FOREACH(SOURCE ${SACK_PLUSPLUS_HEADERS})
    if( ${SOURCE} MATCHES "${SOURCES_ROOT}(.*)$" )
        set( BASENAME ${CMAKE_MATCH_1} )
+       set( plusplus_header_dup ${plusplus_header_dup} ${CMAKE_BINARY_DIR}/${BASENAME} )
        add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/${BASENAME}
                            DEPENDS ${SOURCE}
                            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SOURCE} ${CMAKE_BINARY_DIR}/${BASENAME} 
@@ -649,6 +650,7 @@ COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} include/sha1.h includ
 
 set( cplusplus_sources 
   #${FIRST_GCC_LIBRARY_SOURCE} 
+    ${plusplus_header_dup}
     ${cplusplus_sources} 
     ${VECTLIB_PLUSPLUS_SOURCES}
   #${LAST_GCC_LIBRARY_SOURCE} 
@@ -916,6 +918,7 @@ endif( NEED_UUID )
 
 set( cplusplus_sources 
   #${FIRST_GCC_LIBRARY_SOURCE} 
+    ${plusplus_header_dup}
     ${cplusplus_sources} 
     ${VECTLIB_PLUSPLUS_SOURCES}
   #${LAST_GCC_LIBRARY_SOURCE} 
@@ -1187,7 +1190,8 @@ IF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
       #SET( BUILD_SHARED_LIBS ON )
       SET( INSTALL_EXTRA_LIBS ON )
       if( NOT __ANDROID__ )
-              add_subdirectory( ${BULLET_SOURCE}/demos/OpenGL bullet_opengl )
+              #add_subdirectory( ${BULLET_SOURCE}/demos/OpenGL bullet_opengl )
+              #add_subdirectory( bullet_opengl )
       endif( NOT __ANDROID__ )
     endif( __ANDROID__ )
   endif( WATCOM )
