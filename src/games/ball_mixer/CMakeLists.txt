@@ -80,7 +80,7 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
 )
 
 install( FILES ball_mixer.interface.conf DESTINATION bin )
-install( FILES NewBallTextGrid.png bingostarlogo.png DESTINATION bin/Images/balls )
+install( FILES NewBallTextGrid.png logoblank.png DESTINATION bin/Images/balls )
 
 LIST( GET systray_shell_targets 0 shell_target )
 install( FILES ${shell_target}  DESTINATION bin RENAME ball_mixer.exe )
@@ -98,23 +98,6 @@ else( WIN32 )
         	LIBRARY DESTINATION lib
 	        ARCHIVE DESTINATION lib )
 endif( WIN32 )
-
-if( NOT BUILD_UNICODE )
-  if( ALTANIK_ROOT )
-    set( MILK2_SYSTEM ON )
-    set( MILK_PATH milk2 )
-    set( USE_SACK_WIDGETS ON )
-
-    # set this to install altanik_core in correct directory
-    set( INSTALL_ALONG bin )
-
-    # set WIDGET_LIBRARY_ONLY; do not install full resources
-    set( WIDGET_LIBRARY_ONLY ON )
-    add_subdirectory( ${ALTANIK_ROOT}/src/fut altanik_core )
-    add_subdirectory( ${ALTANIK_ROOT}/src/fut/flashdrive flashdrive )
-  endif( ALTANIK_ROOT )
-endif( NOT BUILD_UNICODE )
-
 
 
 # get the system libraries..

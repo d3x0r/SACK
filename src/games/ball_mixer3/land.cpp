@@ -3100,7 +3100,7 @@ PRELOAD( InitDisplay )
 	SACK_GetPrivateProfileString( "Ball Animation", "Images/Hotball 11", "Images/balls/hotballtext.png", name, 256, "flashdrive.ini" );
 	l.hotball_image[10] = LoadImageFile( name );
 
-	SACK_GetPrivateProfileString( "Ball Animation", "Images/Ball Logo", "Images/balls/bingostarlogo.png", l.logo_name, 256, "flashdrive.ini" );
+	SACK_GetPrivateProfileString( "Ball Animation", "Images/Ball Logo", "Images/balls/logoblank.png", l.logo_name, 256, "flashdrive.ini" );
 	SACK_GetPrivateProfileString( "Ball Animation", "Images/Ball Numbers", "Images/balls/NewBallTextGrid.png", l.numbers.image_name, 256, "flashdrive.ini" );
 	SACK_GetPrivateProfileString( "Ball Animation", "Images/Ball Numbers Normal", "Images/balls/roughbump.png", l.numbers.bump_image_name, 256, "flashdrive.ini" );
 

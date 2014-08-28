@@ -2938,7 +2938,7 @@ PRELOAD( InitDisplay )
 	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 11"), WIDE("Images/balls/hotballtext.png"), name, 256 );
 	l.hotball_image[10] = LoadImageFile( name );
 
-	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Ball Logo"), WIDE("Images/balls/bingostarlogo.png"), l.logo_name, 256 );
+	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Ball Logo"), WIDE("Images/balls/logoblank.png"), l.logo_name, 256 );
 	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Ball Numbers"), WIDE("Images/balls/NewBallTextGrid.png"), l.numbers.image_name, 256 );
 	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Ball Numbers Normal"), WIDE("Images/balls/roughbump.png"), l.numbers.bump_image_name, 256 );
 
