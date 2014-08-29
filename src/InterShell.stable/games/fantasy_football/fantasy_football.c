@@ -77,6 +77,7 @@ struct attract_control
 	LOGICAL playing;
 	PSI_CONTROL pc;
 	struct ffmpeg_file *file;
+	LOGICAL attract;
 };
 
 PRELOAD( InitInterfaces )
@@ -229,6 +230,7 @@ static void RestartAttract( PTRSZVAL psv )
 	struct attract_control *ac = (struct attract_control *)psv;
 	if( ac->file )
 	{
+		ffl.attract_mode = ac->attract;
 		ffmpeg_SeekFile( ac->file, 0 );
 		ffmpeg_PlayFile( ac->file );
 	}
@@ -259,6 +261,8 @@ static void OnHideCommon( WIDE("FF_Attract") )( PSI_CONTROL pc )
 	ValidatedControlData( struct attract_control **, FF_Attract.TypeID, ppac, pc );
 	struct attract_control *ac = (*ppac);
 	ac->playing = FALSE;
+	if( ac->attract )
+		ffl.attract_mode = 0;
 	ffmpeg_PauseFile( ac->file );
 }
 
@@ -408,6 +412,7 @@ static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/Attract" ))(PSI_CONTROL 
 	ac = New( struct attract_control );
 
 	ac->playing = FALSE;
+	ac->attract = TRUE;
 	ac->pc = MakeNamedControl( parent, WIDE("FF_Attract"), x, y, w, h, 0 );
 	{
 		ValidatedControlData( struct attract_control **, FF_Attract.TypeID, ppac, ac->pc );
@@ -527,6 +532,7 @@ static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/1st Down" ))(PSI_CONTROL
 	ac = New( struct attract_control );
 
 	ac->playing = FALSE;
+	ac->attract = FALSE;
 	ac->pc = MakeNamedControl( parent, WIDE("FF_Attract"), x, y, w, h, 0 );
 	{
 		ValidatedControlData( struct attract_control **, FF_Attract.TypeID, ppac, ac->pc );
@@ -553,6 +559,7 @@ static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/2nd Down" ))(PSI_CONTROL
 	ac = New( struct attract_control );
 
 	ac->playing = FALSE;
+	ac->attract = FALSE;
 	ac->pc = MakeNamedControl( parent, WIDE("FF_Attract"), x, y, w, h, 0 );
 	{
 		ValidatedControlData( struct attract_control **, FF_Attract.TypeID, ppac, ac->pc );
@@ -579,6 +586,7 @@ static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/3rd Down" ))(PSI_CONTROL
 	ac = New( struct attract_control );
 
 	ac->playing = FALSE;
+	ac->attract = FALSE;
 	ac->pc = MakeNamedControl( parent, WIDE("FF_Attract"), x, y, w, h, 0 );
 	{
 		ValidatedControlData( struct attract_control **, FF_Attract.TypeID, ppac, ac->pc );
@@ -605,6 +613,7 @@ static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/4th Down" ))(PSI_CONTROL
 	ac = New( struct attract_control );
 
 	ac->playing = FALSE;
+	ac->attract = FALSE;
 	ac->pc = MakeNamedControl( parent, WIDE("FF_Attract"), x, y, w, h, 0 );
 	{
 		ValidatedControlData( struct attract_control **, FF_Attract.TypeID, ppac, ac->pc );
@@ -634,7 +643,8 @@ static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key_code )
 	static int reset2 = 0;
 	static int reset3 = 0;
 	static int reset4 = 0;
-	TEXTCHAR key = GetKeyText( key_code );
+	//TEXTCHAR key = GetKeyText( key_code );
+
 	tick = timeGetTime();
 	//lprintf( "got key %08x  (%d,%c)  %d ", key_code, key, key, tick - _tick );
 	if( !_tick || ( _tick < ( tick - 2000 ) ) )
@@ -651,22 +661,32 @@ static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key_code )
 
 	{
 		//lprintf( "continue sequence... begin new collections" );
-		if( key >= '0' && key <= '9' )
+		if( psv >= 0 && psv <= 9 )
 		{
 			// reset to new value
-			ffl.number_collector = ( ffl.number_collector * 10 ) + (key - '0');
-			ffl.value_collector[ffl.value_collect_index++] = key;
-			ffl.value_collector[ffl.value_collect_index] = 0;
+			ffl.number_collector = ( ffl.number_collector * 10 ) + psv;
+			//ffl.value_collector[ffl.value_collect_index++] = key;
+			//ffl.value_collector[ffl.value_collect_index] = 0;
 			//lprintf( "new value %d (%s)", ffl.number_collector, ffl.value_collector );
 			if( ffl.attract_mode )
 			{
 				if( ffl.number_collector == ffl.enable_code )
 				{
-					ShellSetCurrentPage( GetCommonParent( ffl.grid.control.pc ), "next" );
+					ffl.number_collector = 0;
+					ShellSetCurrentPage( GetCommonParent( ffl.grid.control.pc ), "1st down" );
 				}
 
 			}
+			else
+			{
+				if( ffl.number_collector == ffl.enable_code )
+				{
+					ShellSetCurrentPage( GetCommonParent( ffl.grid.control.pc ), "first" );
+					ffl.number_collector = 0;
+				}
+			}
 		}
+		/*
 		else if( key == ffl.card_begin_char )
 		{
 			//lprintf( "Begin swipe..." );
@@ -675,7 +695,7 @@ static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key_code )
 				ffl.begin_card = 1;
 				ffl.number_collector = 0;
 				ffl.value_collect_index = 0;
-				ffl.value_collector[ffl.value_collect_index] = 0;
+				//ffl.value_collector[ffl.value_collect_index] = 0;
 			}
 		}
 		else if( key == ffl.card_end_char ) // '?'
@@ -686,6 +706,7 @@ static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key_code )
 				//PickPrize();
 			}
 		}
+		*/
 	}
 	return TRUE;
 }
@@ -702,7 +723,29 @@ void InitKeys( void )
 	BindEventToKey( NULL, KEY_7, 0, PressSomeKey, (PTRSZVAL)7 );
 	BindEventToKey( NULL, KEY_8, 0, PressSomeKey, (PTRSZVAL)8 );
 	BindEventToKey( NULL, KEY_9, 0, PressSomeKey, (PTRSZVAL)9 );
-	BindEventToKey( NULL, KEY_9, 0, PressSomeKey, (PTRSZVAL)9 );
+
+	BindEventToKey( NULL, KEY_PAD_0, 0, PressSomeKey, (PTRSZVAL)0 );
+	BindEventToKey( NULL, KEY_PAD_1, 0, PressSomeKey, (PTRSZVAL)1 );
+	BindEventToKey( NULL, KEY_PAD_2, 0, PressSomeKey, (PTRSZVAL)2 );
+	BindEventToKey( NULL, KEY_PAD_3, 0, PressSomeKey, (PTRSZVAL)3 );
+	BindEventToKey( NULL, KEY_PAD_4, 0, PressSomeKey, (PTRSZVAL)4 );
+	BindEventToKey( NULL, KEY_PAD_5, 0, PressSomeKey, (PTRSZVAL)5 );
+	BindEventToKey( NULL, KEY_PAD_6, 0, PressSomeKey, (PTRSZVAL)6 );
+	BindEventToKey( NULL, KEY_PAD_7, 0, PressSomeKey, (PTRSZVAL)7 );
+	BindEventToKey( NULL, KEY_PAD_8, 0, PressSomeKey, (PTRSZVAL)8 );
+	BindEventToKey( NULL, KEY_PAD_9, 0, PressSomeKey, (PTRSZVAL)9 );
+
+	BindEventToKey( NULL, KEY_INSERT, 0, PressSomeKey, (PTRSZVAL)0 );
+	BindEventToKey( NULL, KEY_END, 0, PressSomeKey, (PTRSZVAL)1 );
+	BindEventToKey( NULL, KEY_DOWN, 0, PressSomeKey, (PTRSZVAL)2 );
+	BindEventToKey( NULL, KEY_PGDN, 0, PressSomeKey, (PTRSZVAL)3 );
+	BindEventToKey( NULL, KEY_LEFT, 0, PressSomeKey, (PTRSZVAL)4 );
+	BindEventToKey( NULL, KEY_CENTER, 0, PressSomeKey, (PTRSZVAL)5 );
+	BindEventToKey( NULL, KEY_RIGHT, 0, PressSomeKey, (PTRSZVAL)6 );
+	BindEventToKey( NULL, KEY_HOME, 0, PressSomeKey, (PTRSZVAL)7 );
+	BindEventToKey( NULL, KEY_UP, 0, PressSomeKey, (PTRSZVAL)8 );
+	BindEventToKey( NULL, KEY_PGUP, 0, PressSomeKey, (PTRSZVAL)9 );
+
 	BindEventToKey( NULL, KEY_5, KEY_MOD_SHIFT, PressSomeKey, (PTRSZVAL)10 );
 
 	BindEventToKey( NULL, KEY_SEMICOLON, 0, PressSomeKey, (PTRSZVAL)10 );
