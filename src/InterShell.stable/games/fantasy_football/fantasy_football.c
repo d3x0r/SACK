@@ -60,6 +60,13 @@ static struct fantasy_football_local
 	TEXTCHAR card_begin_char;
 	_64 enable_code;
 
+	LOGICAL attract_mode;
+	_32 number_collector;
+	_32 value_collector[64];
+	int value_collect_index;
+	int begin_card;
+
+
 	PIMAGE_INTERFACE pii;
 	PRENDER_INTERFACE pdi;
 
@@ -79,6 +86,7 @@ PRELOAD( InitInterfaces )
 }
 
 static void AddRules( PCONFIG_HANDLER pch );
+static void InitKeys( void );
 
 static PTRSZVAL CPROC ProcessConfig( PTRSZVAL psv, arg_list args )
 {
@@ -428,6 +436,7 @@ static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/Game Grid" ))(PSI_CONTRO
 	ac->pc = MakeNamedControl( parent, WIDE("FF_Grid"), x, y, w, h, 0 );
 	ac->background = LoadImageFile( ffl.grid.background );
 	ac->foreground = LoadImageFile( ffl.grid.foreground );
+	InitKeys();
 	{
 		ValidatedControlData( struct game_grid_control **, FF_Grid.TypeID, ppac, ac->pc );
 		(*ppac) = ac;
@@ -616,3 +625,86 @@ static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/4th Down") )( PTRSZVAL p
 	return ac->pc;
 }
 
+
+
+static LOGICAL CPROC PressSomeKey( PTRSZVAL psv, _32 key_code )
+{
+	static _32 _tick, tick;
+	static int reset = 0;
+	static int reset2 = 0;
+	static int reset3 = 0;
+	static int reset4 = 0;
+	TEXTCHAR key = GetKeyText( key_code );
+	tick = timeGetTime();
+	//lprintf( "got key %08x  (%d,%c)  %d ", key_code, key, key, tick - _tick );
+	if( !_tick || ( _tick < ( tick - 2000 ) ) )
+	{
+		//lprintf( "late enough" );
+		reset4 = 0;
+		reset3 = 0;
+		reset2 = 0;
+		reset = 0;
+		//ffl.begin_card = 0;
+		ffl.number_collector = 0;
+	}
+	_tick = tick;
+
+	{
+		//lprintf( "continue sequence... begin new collections" );
+		if( key >= '0' && key <= '9' )
+		{
+			// reset to new value
+			ffl.number_collector = ( ffl.number_collector * 10 ) + (key - '0');
+			ffl.value_collector[ffl.value_collect_index++] = key;
+			ffl.value_collector[ffl.value_collect_index] = 0;
+			//lprintf( "new value %d (%s)", ffl.number_collector, ffl.value_collector );
+			if( ffl.attract_mode )
+			{
+				if( ffl.number_collector == ffl.enable_code )
+				{
+					ShellSetCurrentPage( GetCommonParent( ffl.grid.control.pc ), "next" );
+				}
+
+			}
+		}
+		else if( key == ffl.card_begin_char )
+		{
+			//lprintf( "Begin swipe..." );
+			if( !ffl.attract_mode )
+			{
+				ffl.begin_card = 1;
+				ffl.number_collector = 0;
+				ffl.value_collect_index = 0;
+				ffl.value_collector[ffl.value_collect_index] = 0;
+			}
+		}
+		else if( key == ffl.card_end_char ) // '?'
+		{
+			//lprintf( "end card with (%s)", ffl.value_collector );
+			if( !ffl.attract_mode )
+			{
+				//PickPrize();
+			}
+		}
+	}
+	return TRUE;
+}
+
+void InitKeys( void )
+{
+	BindEventToKey( NULL, KEY_0, 0, PressSomeKey, (PTRSZVAL)0 );
+	BindEventToKey( NULL, KEY_1, 0, PressSomeKey, (PTRSZVAL)1 );
+	BindEventToKey( NULL, KEY_2, 0, PressSomeKey, (PTRSZVAL)2 );
+	BindEventToKey( NULL, KEY_3, 0, PressSomeKey, (PTRSZVAL)3 );
+	BindEventToKey( NULL, KEY_4, 0, PressSomeKey, (PTRSZVAL)4 );
+	BindEventToKey( NULL, KEY_5, 0, PressSomeKey, (PTRSZVAL)5 );
+	BindEventToKey( NULL, KEY_6, 0, PressSomeKey, (PTRSZVAL)6 );
+	BindEventToKey( NULL, KEY_7, 0, PressSomeKey, (PTRSZVAL)7 );
+	BindEventToKey( NULL, KEY_8, 0, PressSomeKey, (PTRSZVAL)8 );
+	BindEventToKey( NULL, KEY_9, 0, PressSomeKey, (PTRSZVAL)9 );
+	BindEventToKey( NULL, KEY_9, 0, PressSomeKey, (PTRSZVAL)9 );
+	BindEventToKey( NULL, KEY_5, KEY_MOD_SHIFT, PressSomeKey, (PTRSZVAL)10 );
+
+	BindEventToKey( NULL, KEY_SEMICOLON, 0, PressSomeKey, (PTRSZVAL)10 );
+	BindEventToKey( NULL, KEY_SLASH, KEY_MOD_SHIFT, PressSomeKey, (PTRSZVAL)11 );
+}

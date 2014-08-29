@@ -116,6 +116,7 @@ static struct my_button * PlayVideo( CTEXTSTR name )
 
 		me->file = ffmpeg_LoadFile( name, GetDisplay, (PTRSZVAL)&params
 			, NULL, 0
+			, NULL
 			, VideoEndedCallback, (PTRSZVAL)me
 			, VideoPlayError );
 		if( me->file )
