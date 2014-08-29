@@ -148,7 +148,7 @@ static PTRSZVAL LoadMovieThread( PTHREAD thread )
 		 , "E:/downloads/Breaking.Bad.S05E10.HDTV.x264-ASAP/Breaking.Bad.S05E10.HDTV.x264-ASAP.mp4"
 		};
 			me->file = ffmpeg_LoadFile( files[me->ID], GetDisplay, (PTRSZVAL)&params
-				, NULL, 0
+				, NULL
 											  , UpdateCallback, (PTRSZVAL)me
 											  , VideoEndedCallback, (PTRSZVAL)me
 											  , VideoError
