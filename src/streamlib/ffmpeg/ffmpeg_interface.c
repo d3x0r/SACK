@@ -12,7 +12,7 @@
 #define DEBUG_LOW_LEVEL_PACKET_READ
 #define DEBUG_VIDEO_PACKET_READ
 #define DEBUG_AUDIO_PACKET_READ
-
+#define DEBUG_LOG_INFO
 
 #include <stdhdrs.h>
 #include <stdint.h>
@@ -232,6 +232,22 @@ struct al_buffer
 	POINTER samplebuf;
 };
 
+struct sound_device
+{
+#ifdef USE_OPENSL
+	SLObjectItf engineObject;
+	SLEngineItf engineEngine;
+	SLObjectItf bqPlayerObject;
+	SLObjectItf outputMixObject;
+	SLPlayItf bqPlayerPlay;
+	SLBufferQueueItf bqPlayerBufferQueue;
+#else
+	ALCdevice *alc_device;
+	ALCcontext *alc_context;
+	ALuint al_source;
+#endif
+};
+
 struct ffmpeg_file
 {
 	struct ffmpeg_file_flag
@@ -347,18 +363,7 @@ struct ffmpeg_file
 	_32 max_out_samples; // biggest conversion buffer allocated
 	int use_channels;
 
-#ifdef USE_OPENSL
-	SLObjectItf engineObject;
-	SLEngineItf engineEngine;
-	SLObjectItf bqPlayerObject;
-	SLObjectItf outputMixObject;
-	SLPlayItf bqPlayerPlay;
-	SLBufferQueueItf bqPlayerBufferQueue;
-#else
-	ALCdevice *alc_device;
-	ALCcontext *alc_context;
-	ALuint al_source;
-#endif
+	struct sound_device *sound_device;
 
 	_64 al_last_buffer_reclaim;
 	int al_format;
@@ -395,6 +400,9 @@ static struct ffmpeg_interface_local
 	int x_ofs, y_ofs;
 	int default_outstanding_audio;
 	int default_outstanding_video;
+	int playing; // how many videos are playing
+	int stopping; // how many videos are stopping; if stopping, don't being a play
+	PLINKQUEUE sound_devices;
 }l;
 
 
@@ -675,18 +683,157 @@ static void RequeueAudio( struct ffmpeg_file *file )
 	{
 		samples_added++;
 		openal.alBufferData(buffer->buffer, file->al_format, buffer->samplebuf, buffer->size, file->pAudioCodecCtx->sample_rate);
-		openal.alSourceQueueBuffers(file->al_source, 1, &buffer->buffer);
+		openal.alSourceQueueBuffers(file->sound_device->al_source, 1, &buffer->buffer);
 		EnqueLink( &file->al_used_buffer_queue, buffer );
 		file->out_of_queue++;
 	}
 	if( samples_added )
 	{
 		int val;
-		openal.alGetSourcei(file->al_source, AL_SOURCE_STATE, &val);
+		openal.alGetSourcei(file->sound_device->al_source, AL_SOURCE_STATE, &val);
 		if(val != AL_PLAYING)
-			openal.alSourcePlay(file->al_source);
+			openal.alSourcePlay(file->sound_device->al_source);
 	}
 #endif
+}
+
+//---------------------------------------------------------------------------------------------
+
+static void dropSoundDevice( struct sound_device **device )
+{
+	if( device && device[0] )
+	{
+		EnqueLink( &l.sound_devices, device[0] );
+		device[0] = NULL;
+	}
+}
+
+//---------------------------------------------------------------------------------------------
+
+static struct sound_device *getSoundDevice( struct ffmpeg_file * file )
+{
+	struct sound_device *sound_device;
+	sound_device = (struct sound_device*)DequeLink( &l.sound_devices );
+	if( !sound_device )
+	{
+		sound_device = New( struct sound_device );
+		MemSet( sound_device, 0, sizeof( struct sound_device ) );
+
+#ifdef USE_OPENSL
+		do
+		{
+			SLresult result;
+			result = slCreateEngine(&sound_device->engineObject, 0, NULL, 0, NULL, NULL);
+
+
+			result = (*sound_device->engineObject)->Realize(sound_device->engineObject, SL_BOOLEAN_FALSE);
+
+			result = (*sound_device->engineObject)->GetInterface(sound_device->engineObject,
+																	SL_IID_ENGINE, &(sound_device->engineEngine));
+			{
+				//const SLInterfaceID ids[] = {SL_IID_VOLUME};
+				//const SLboolean req[] = {SL_BOOLEAN_FALSE};
+				result = (*sound_device->engineEngine)->CreateOutputMix(sound_device->engineEngine,
+																			&(sound_device->outputMixObject), 0, NULL, NULL /*ids, req*/);
+				result = (*sound_device->outputMixObject)->Realize(sound_device->outputMixObject,
+																	 SL_BOOLEAN_FALSE);
+				{
+					SLDataLocator_AndroidSimpleBufferQueue loc_bufq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
+					SLDataFormat_PCM format_pcm;// = {SL_DATAFORMAT_PCM
+													 
+					SLDataSource audioSrc = {&loc_bufq, &format_pcm};
+					format_pcm.formatType = SL_DATAFORMAT_PCM;
+															format_pcm.numChannels= file->use_channels;
+															format_pcm.samplesPerSec = SL_SAMPLINGRATE_44_1;//file->pAudioCodecCtx->sample_rate;
+															format_pcm.bitsPerSample = SL_PCMSAMPLEFORMAT_FIXED_16;
+															format_pcm.containerSize = SL_PCMSAMPLEFORMAT_FIXED_16;
+															format_pcm.channelMask = file->use_channels==2?0:1;
+															format_pcm.endianness = SL_BYTEORDER_LITTLEENDIAN;
+					{
+						SLDataLocator_OutputMix loc_outmix = {SL_DATALOCATOR_OUTPUTMIX
+																		 ,	file->outputMixObject};
+						SLDataSink audioSnk = {&loc_outmix, NULL};
+						{
+							const SLInterfaceID ids1[] = {SL_IID_ANDROIDSIMPLEBUFFERQUEUE};
+							const SLboolean req1[] = {SL_BOOLEAN_TRUE};
+							result = (*file->engineEngine)->CreateAudioPlayer(sound_device->engineEngine,
+																							  &(sound_device->bqPlayerObject), &audioSrc, &audioSnk,
+																							  1, ids1, req1);
+							if( result )
+							{
+								lprintf( WIDE("Create Audio Player failed.") );
+								break;
+							}
+							result = (*sound_device->bqPlayerObject)->Realize(sound_device->bqPlayerObject,
+																					SL_BOOLEAN_FALSE);
+							if( result )
+							{
+								lprintf( WIDE("Realize Audio Player failed.") );
+								break;
+							}
+						}
+					}
+				}
+				result = (*sound_device->bqPlayerObject)->GetInterface(sound_device->bqPlayerObject,
+																			  SL_IID_PLAY,&(sound_device->bqPlayerPlay));
+				result = (*sound_device->bqPlayerObject)->GetInterface(sound_device->bqPlayerObject,
+																			  SL_IID_ANDROIDSIMPLEBUFFERQUEUE, &(sound_device->bqPlayerBufferQueue));
+
+				// setup callbacks
+				lprintf( WIDE(".... buffer queue add playback callback...") );
+				result = (*sound_device->bqPlayerBufferQueue)->RegisterCallback( sound_device->bqPlayerBufferQueue, bqPlayerCallback, file);
+			}
+		}
+	   while( 0 );
+#else
+
+		sound_device->alc_device = openal.alcOpenDevice( NULL );
+		if( 0 )
+		{
+			ALboolean enumeration;
+
+			enumeration = openal.alcIsExtensionPresent(NULL, WIDE("ALC_ENUMERATION_EXT"));
+			if (enumeration == AL_FALSE)
+			{
+				lprintf( WIDE("Failed to be able to enum..") );
+					// enumeration not supported
+			}
+			else
+			{
+				const ALCchar *devices = openal.alcGetString(NULL, ALC_DEVICE_SPECIFIER );
+				const ALCchar *device = devices, *next = devices + 1;
+				size_t len = 0;
+
+				while (device && *device != '\0' && next && *next != '\0') {
+					lprintf(WIDE("OpenAL Device: %s"), device);
+					len = strlen(device);
+					device += (len + 1);
+					next += (len + 2);
+				}
+			}
+		}
+
+		sound_device->alc_context = openal.alcCreateContext(sound_device->alc_device, NULL);
+		if( openal.alcMakeContextCurrent(sound_device->alc_context) )
+		{
+			openal.alGenSources((ALuint)1, &sound_device->al_source);
+			// check for errors
+			openal.alSourcef(sound_device->al_source, AL_PITCH, 1);
+			// check for errors
+			openal.alSourcef(sound_device->al_source, AL_GAIN, 1);
+			// check for errors
+			openal.alSource3f(sound_device->al_source, AL_POSITION, 0, 0, 0);
+			// check for errors
+			openal.alSource3f(sound_device->al_source, AL_VELOCITY, 0, 0, 0);
+			// check for errors
+			openal.alSourcei(sound_device->al_source, AL_LOOPING, AL_FALSE);
+			// check for errros
+		}
+
+#endif
+	}
+
+	return sound_device;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -790,6 +937,9 @@ static void GetAudioBuffer( struct ffmpeg_file * file, POINTER data, size_t sz
 	buffer->size = sz;
 	buffer->samples = samples;
 
+	if( !file->sound_device )
+		file->sound_device = getSoundDevice( file );
+
 #ifdef DEBUG_AUDIO_PACKET_READ
 	//lprintf( WIDE("use buffer (%d)  %p  for %d(%d)"), file->in_queue, buffer, sz, samples );
 #endif
@@ -803,7 +953,7 @@ static void GetAudioBuffer( struct ffmpeg_file * file, POINTER data, size_t sz
 	}
 	else if( file->bqPlayerBufferQueue )
 	{
-		result = (*file->bqPlayerBufferQueue)->Enqueue(file->bqPlayerBufferQueue, data, sz );
+		result = (*file->bqPlayerBufferQueue)->Enqueue(file->sound_device->bqPlayerBufferQueue, data, sz );
 		if( result  )
 		{
 			if( result == SL_RESULT_BUFFER_INSUFFICIENT )
@@ -832,7 +982,7 @@ static void GetAudioBuffer( struct ffmpeg_file * file, POINTER data, size_t sz
 		SetAudioPlay( file );
 #else
 	openal.alBufferData(buffer->buffer, file->al_format, data, sz, file->pAudioCodecCtx->sample_rate);
-	openal.alSourceQueueBuffers(file->al_source, 1, &buffer->buffer);
+	openal.alSourceQueueBuffers(file->sound_device->al_source, 1, &buffer->buffer);
 	if(( error = openal.alGetError()) != AL_NO_ERROR)
 	{
 			lprintf( WIDE("error adding audio buffer to play.... %d"), error );
@@ -842,10 +992,10 @@ static void GetAudioBuffer( struct ffmpeg_file * file, POINTER data, size_t sz
 
 	{
 		int val;
-		openal.alGetSourcei(file->al_source, AL_SOURCE_STATE, &val);
+		openal.alGetSourcei(file->sound_device->al_source, AL_SOURCE_STATE, &val);
 		if(val != AL_PLAYING)
 		{
-			openal.alSourcePlay(file->al_source);
+			openal.alSourcePlay(file->sound_device->al_source);
 			if(( error = openal.alGetError()) != AL_NO_ERROR)
 			{
 				lprintf( WIDE("error to play.... %d"), error );
@@ -860,206 +1010,6 @@ static void GetAudioBuffer( struct ffmpeg_file * file, POINTER data, size_t sz
 static void EnableAudioOutput( struct ffmpeg_file * file )
 {
 	EnterCriticalSec( &l.cs_audio_out );
-
-	file->audio_converter = ffmpeg.swr_alloc();
-	if( !file->pAudioCodecCtx->channels )
-	{
-		lprintf( WIDE("input audio had no channels... %x"), file->pAudioCodecCtx->channel_layout );
-		file->pAudioCodecCtx->channels = ffmpeg.av_get_channel_layout_nb_channels( file->pAudioCodecCtx->channel_layout );
-		lprintf( WIDE("Channel found in channel_layout (%d)"),file->pAudioCodecCtx->channels );
-		if( !file->pAudioCodecCtx->channels )
-			file->pAudioCodecCtx->channels = 1;
-		//file->pAudioCodecCtx->channels = 1;
-		//= file->pAudioCodecCtx->request_channels;
-	}
-	if (file->pAudioCodecCtx->channels == 1)
-	{
-		file->use_channels = 1;
-#ifdef USE_OPENSL
-#else
-		file->al_format = AL_FORMAT_MONO16;
-#endif
-	}
-	else if( file->pAudioCodecCtx->channels >= 2)
-	{
-	}
-	file->use_channels = 2;
-#ifdef USE_OPENSL
-#else
-	file->al_format = AL_FORMAT_STEREO16;
-#endif
-
-	if( !file->pAudioCodecCtx->sample_rate )
-		file->pAudioCodecCtx->sample_rate = file->pAudioCodecCtx->frame_size;
-
-	//lprintf( WIDE("thing %s"), openal.alcGetString(file->alc_device, ALC_DEVICE_SPECIFIER) );
-	lprintf( WIDE("Pretending channels is %d"), file->pAudioCodecCtx->channels );
-	if( file->pAudioCodecCtx->channels == 2 )
-	{
-      lprintf( WIDE("Stereo format") );
-		ffmpeg.av_opt_set_int(file->audio_converter, "in_channel_layout",  AV_CH_LAYOUT_STEREO, 1 );
-	}
-	else if( file->pAudioCodecCtx->channels == 4 )
-	{
-		lprintf( WIDE("quad input format, using Stereo format") );
-		ffmpeg.av_opt_set_int(file->audio_converter, "in_channel_layout",  AV_CH_LAYOUT_STEREO, 1 );
-	}
-	else if( file->pAudioCodecCtx->channels == 1 )
-	{
-		ffmpeg.av_opt_set_int(file->audio_converter, "in_channel_layout",  AV_CH_LAYOUT_MONO, 1 );
-	}
-	else if( file->pAudioCodecCtx->channels == 6 )
-		ffmpeg.av_opt_set_int(file->audio_converter, "in_channel_layout",  AV_CH_LAYOUT_5POINT1, 1 );
-	else
-		ffmpeg.av_opt_set_int(file->audio_converter, "in_channel_layout",  file->pAudioCodecCtx->channel_layout, 1 );
-
-
-	if( file->use_channels == 2 )
-		ffmpeg.av_opt_set_int(file->audio_converter, "out_channel_layout", AV_CH_LAYOUT_STEREO,  1);
-	else
-		ffmpeg.av_opt_set_int(file->audio_converter, "out_channel_layout", AV_CH_LAYOUT_MONO,  1);
-
-	ffmpeg.av_opt_set_int(file->audio_converter, "in_sample_rate",     file->pAudioCodecCtx->sample_rate,                0);
-#ifdef USE_OPENSL
-	ffmpeg.av_opt_set_int(file->audio_converter, "out_sample_rate",    44100,                0);
-#else
-	ffmpeg.av_opt_set_int(file->audio_converter, "out_sample_rate",    file->pAudioCodecCtx->sample_rate,                0);
-#endif
-	//DebugBreak();
-   lprintf( WIDE("Sample rate is %d"), file->pAudioCodecCtx->sample_rate );
-	lprintf( WIDE("codec is : %d %d"), file->pAudioCodecCtx->codec_id, CODEC_ID_MP3 );
-	lprintf( WIDE("codec is : %d %d"), file->pAudioCodecCtx->codec_id, AV_CODEC_ID_AAC );
-	lprintf( WIDE(" sample is : %d  %d"), file->pAudioCodecCtx->sample_fmt, AV_SAMPLE_FMT_S16 );
-	if(file->pAudioCodecCtx->codec_id == CODEC_ID_MP3 )
-	{
-		//ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  AV_SAMPLE_FMT_S16, 0);
-		ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  AV_SAMPLE_FMT_S16P, 0);
-		//ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  AV_SAMPLE_FMT_U8, 0);
-		//ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  AV_SAMPLE_FMT_U8P, 0);
-		//ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  AV_SAMPLE_FMT_FLTP, 0);
-		//ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  AV_SAMPLE_FMT_FLT, 0);
-	}
-   else if( file->pAudioCodecCtx->codec_id, AV_CODEC_ID_AAC )
-		ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  AV_SAMPLE_FMT_FLTP, 0);
-   else if( file->pAudioCodecCtx->codec_id, AV_CODEC_ID_AC3 )
-		ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  AV_SAMPLE_FMT_S16P, 0);
-	else
-
-		ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  file->pAudioCodecCtx->sample_fmt, 0);
-	ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "out_sample_fmt", AV_SAMPLE_FMT_S16,  0);
-	lprintf( WIDE("Init swr") );
-	ffmpeg.swr_init( file->audio_converter );
-
-#ifdef USE_OPENSL
-	do
-	{
-		SLresult result;
-		result = slCreateEngine(&file->engineObject, 0, NULL, 0, NULL, NULL);
-
-
-		result = (*file->engineObject)->Realize(file->engineObject, SL_BOOLEAN_FALSE);
-
-		result = (*file->engineObject)->GetInterface(file->engineObject,
-																SL_IID_ENGINE, &(file->engineEngine));
-		{
-			//const SLInterfaceID ids[] = {SL_IID_VOLUME};
-			//const SLboolean req[] = {SL_BOOLEAN_FALSE};
-			result = (*file->engineEngine)->CreateOutputMix(file->engineEngine,
-																		&(file->outputMixObject), 0, NULL, NULL /*ids, req*/);
-			result = (*file->outputMixObject)->Realize(file->outputMixObject,
-																 SL_BOOLEAN_FALSE);
-			{
-				SLDataLocator_AndroidSimpleBufferQueue loc_bufq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
-				SLDataFormat_PCM format_pcm;// = {SL_DATAFORMAT_PCM
-													 
-				SLDataSource audioSrc = {&loc_bufq, &format_pcm};
-				format_pcm.formatType = SL_DATAFORMAT_PCM;
-														format_pcm.numChannels= file->use_channels;
-														format_pcm.samplesPerSec = SL_SAMPLINGRATE_44_1;//file->pAudioCodecCtx->sample_rate;
-														format_pcm.bitsPerSample = SL_PCMSAMPLEFORMAT_FIXED_16;
-														format_pcm.containerSize = SL_PCMSAMPLEFORMAT_FIXED_16;
-														format_pcm.channelMask = file->use_channels==2?0:1;
-														format_pcm.endianness = SL_BYTEORDER_LITTLEENDIAN;
-				{
-					SLDataLocator_OutputMix loc_outmix = {SL_DATALOCATOR_OUTPUTMIX
-																	 ,	file->outputMixObject};
-					SLDataSink audioSnk = {&loc_outmix, NULL};
-					{
-						const SLInterfaceID ids1[] = {SL_IID_ANDROIDSIMPLEBUFFERQUEUE};
-						const SLboolean req1[] = {SL_BOOLEAN_TRUE};
-						result = (*file->engineEngine)->CreateAudioPlayer(file->engineEngine,
-																						  &(file->bqPlayerObject), &audioSrc, &audioSnk,
-																						  1, ids1, req1);
-						if( result )
-						{
-							lprintf( WIDE("Create Audio Player failed.") );
-							break;
-						}
-						result = (*file->bqPlayerObject)->Realize(file->bqPlayerObject,
-																				SL_BOOLEAN_FALSE);
-						if( result )
-						{
-							lprintf( WIDE("Realize Audio Player failed.") );
-							break;
-						}
-					}
-				}
-			}
-			result = (*file->bqPlayerObject)->GetInterface(file->bqPlayerObject,
-																		  SL_IID_PLAY,&(file->bqPlayerPlay));
-			result = (*file->bqPlayerObject)->GetInterface(file->bqPlayerObject,
-																		  SL_IID_ANDROIDSIMPLEBUFFERQUEUE, &(file->bqPlayerBufferQueue));
-
-			// setup callbacks
-			lprintf( WIDE(".... buffer queue add playback callback...") );
-			result = (*file->bqPlayerBufferQueue)->RegisterCallback( file->bqPlayerBufferQueue, bqPlayerCallback, file);
-		}
-	}
-   while( 0 );
-#else
-
-	file->alc_device = openal.alcOpenDevice( NULL );
-	if( 0 )
-	{
-		ALboolean enumeration;
-
-		enumeration = openal.alcIsExtensionPresent(NULL, WIDE("ALC_ENUMERATION_EXT"));
-		if (enumeration == AL_FALSE)
-		{
-			lprintf( WIDE("Failed to be able to enum..") );
-		        // enumeration not supported
-		}
-		else
-		{
-			const ALCchar *devices = openal.alcGetString(NULL, ALC_DEVICE_SPECIFIER );
-			const ALCchar *device = devices, *next = devices + 1;
-			size_t len = 0;
-
-			while (device && *device != '\0' && next && *next != '\0') {
-				lprintf(WIDE("OpenAL Device: %s"), device);
-				len = strlen(device);
-				device += (len + 1);
-				next += (len + 2);
-			}
-		}
-	}
-
-	file->alc_context = openal.alcCreateContext(file->alc_device, NULL);
-	if( openal.alcMakeContextCurrent(file->alc_context) )
-	{
-		openal.alGenSources((ALuint)1, &file->al_source);
-		// check for errors
-		openal.alSourcef(file->al_source, AL_PITCH, 1);
-		// check for errors
-		openal.alSourcef(file->al_source, AL_GAIN, 1);
-		// check for errors
-		openal.alSource3f(file->al_source, AL_POSITION, 0, 0, 0);
-		// check for errors
-		openal.alSource3f(file->al_source, AL_VELOCITY, 0, 0, 0);
-		// check for errors
-		openal.alSourcei(file->al_source, AL_LOOPING, AL_FALSE);
-		// check for errros
-	}
 
 	file->audio_converter = ffmpeg.swr_alloc();
 	if( !file->pAudioCodecCtx->channels )
@@ -1140,7 +1090,12 @@ static void EnableAudioOutput( struct ffmpeg_file * file )
 	ffmpeg.av_opt_set_sample_fmt(file->audio_converter, WIDE("out_sample_fmt"), AV_SAMPLE_FMT_S16,  0);
 	lprintf( WIDE("Init swr") );
 	ffmpeg.swr_init( file->audio_converter );
-#endif
+
+	file->sound_device = getSoundDevice( file );
+
+	// sound device should be a constant format... 
+	dropSoundDevice( &file->sound_device );
+
 	LeaveCriticalSec( &l.cs_audio_out );
 }
 
@@ -1531,6 +1486,7 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 	file->external_video_failure = play_error;
 	file->flags.video_paused = 1;
 	file->flags.audio_paused = 1;
+	file->flags.paused = 1;
 
 	// stream movie reference; so we can use normal file IO also
 	if( filename[0] == '$' )
@@ -1572,6 +1528,7 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 			const char *tmpname = filename;
 #endif
 			lprintf( "Movie to connect %s", tmpname );
+#if 0
 			if( !KWconnectMovie( tmpname ) )
 			{
 				lprintf( WIDE("Movie %s is %p"), filename, file->ffmpeg_buffer );
@@ -1596,6 +1553,7 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 						lprintf( WIDE("Failed to create file to out") );
 				}
 			}
+#endif
 #ifdef UNICODE
 			Release( tmpname );
 #endif
@@ -2039,90 +1997,95 @@ static PTRSZVAL CPROC ProcessAudioFrame( PTHREAD thread )
 			}
 		}
 #endif
-#ifndef USE_OPENSL
-		openal.alcMakeContextCurrent(file->alc_context);
 
-		//lprintf( WIDE("make current...") );
-		if( file->flags.paused )
+#ifndef USE_OPENSL
+		if( file->sound_device )
 		{
-			int stopped = 0;
-			int state;
+			openal.alcMakeContextCurrent(file->sound_device->alc_context);
+
+			//lprintf( WIDE("make current...") );
+			if( file->flags.paused )
+			{
+				int stopped = 0;
+				int state;
+				do
+				{
+					openal.alGetSourcei(file->sound_device->al_source, AL_SOURCE_STATE, &state);
+					if(state==AL_PLAYING && !stopped)
+					{
+						stopped = 1;
+						openal.alSourceStop(file->sound_device->al_source);
+					}
+					Relinquish();
+				}
+				while( state==AL_PLAYING );
+			}
+
 			do
 			{
-				openal.alGetSourcei(file->al_source, AL_SOURCE_STATE, &state);
-				if(state==AL_PLAYING && !stopped)
+				openal.alGetSourcei(file->sound_device->al_source, AL_BUFFERS_PROCESSED, &processed);
+				if( processed )
 				{
-					stopped = 1;
-					openal.alSourceStop(file->al_source);
-				}
-				Relinquish();
-			}
-			while( state==AL_PLAYING );
-		}
-
-		do
-		{
-			openal.alGetSourcei(file->al_source, AL_BUFFERS_PROCESSED, &processed);
-			if( processed )
-			{
-#ifdef DEBUG_AUDIO_PACKET_READ
-				//if( file->flags.paused || file->flags.need_audio_dequeue )
-				lprintf( WIDE("Found %d processed buffers... %d  %d"), processed, file->in_queue, file->out_of_queue );
-#endif
-				while (processed--) {
-					struct al_buffer *buffer;
-					buffer = (struct al_buffer *)DequeLink( &file->al_used_buffer_queue );
-					openal.alSourceUnqueueBuffers(file->al_source, 1, &bufID);
-					file->out_of_queue--;
-					if( !file->flags.paused )
-					{
-						file->audioSamplesPlayed += buffer->samples;
-						file->audioSamplesPending -= buffer->samples;
-#ifdef DEBUG_AUDIO_PACKET_READ
-						lprintf( WIDE("Samples : %d  %d %d"), buffer->samples, file->audioSamplesPlayed, file->audioSamplesPending );
-#endif
-						if( buffer->buffer != bufID )
+	#ifdef DEBUG_AUDIO_PACKET_READ
+					//if( file->flags.paused || file->flags.need_audio_dequeue )
+					lprintf( WIDE("Found %d processed buffers... %d  %d"), processed, file->in_queue, file->out_of_queue );
+	#endif
+					while (processed--) {
+						struct al_buffer *buffer;
+						buffer = (struct al_buffer *)DequeLink( &file->al_used_buffer_queue );
+						openal.alSourceUnqueueBuffers(file->sound_device->al_source, 1, &bufID);
+						file->out_of_queue--;
+						if( !file->flags.paused )
 						{
-							lprintf( WIDE("audio queue out of sync") );
-							//DebugBreak();
+							file->audioSamplesPlayed += buffer->samples;
+							file->audioSamplesPending -= buffer->samples;
+	#ifdef DEBUG_AUDIO_PACKET_READ
+							lprintf( WIDE("Samples : %d  %d %d"), buffer->samples, file->audioSamplesPlayed, file->audioSamplesPending );
+	#endif
+							if( buffer->buffer != bufID )
+							{
+								lprintf( WIDE("audio queue out of sync") );
+								//DebugBreak();
+							}
+	#ifdef DEBUG_AUDIO_PACKET_READ
+							lprintf( "release audio buffer.. %p", buffer->samplebuf );
+	#endif
+							ffmpeg.av_free( buffer->samplebuf );
+							//LogTime(file, FALSE, WIDE("audio deque"), 1 DBG_SRC );
+							EnqueLink( &file->al_free_buffer_queue, buffer );
+							file->in_queue++;
+							if( file->in_queue > file->max_in_queue )
+								file->max_in_queue = file->in_queue;
 						}
-#ifdef DEBUG_AUDIO_PACKET_READ
-						lprintf( "release audio buffer.. %p", buffer->samplebuf );
-#endif
-						ffmpeg.av_free( buffer->samplebuf );
-						//LogTime(file, FALSE, WIDE("audio deque"), 1 DBG_SRC );
-						EnqueLink( &file->al_free_buffer_queue, buffer );
-						file->in_queue++;
-						if( file->in_queue > file->max_in_queue )
-							file->max_in_queue = file->in_queue;
+						else
+						{
+							//lprintf( WIDE("Keeping the buffer to requeue...") );
+							EnqueLink( &file->al_reque_buffer_queue, buffer );
+						}
 					}
-					else
+					//lprintf( WIDE("save reclaim tick...") );
+					file->al_last_buffer_reclaim = ffmpeg.av_gettime();
+					// audio got a new play; after a resume, so now wake video thread
+					if( file->flags.need_audio_dequeue )
 					{
-						//lprintf( WIDE("Keeping the buffer to requeue...") );
-						EnqueLink( &file->al_reque_buffer_queue, buffer );
+						//lprintf( WIDE("Valid resume state...") );
+						file->flags.need_audio_dequeue = 0;
+						WakeThread( file->videoThread );
 					}
 				}
-				//lprintf( WIDE("save reclaim tick...") );
-				file->al_last_buffer_reclaim = ffmpeg.av_gettime();
-				// audio got a new play; after a resume, so now wake video thread
-				if( file->flags.need_audio_dequeue )
+				else
 				{
-					//lprintf( WIDE("Valid resume state...") );
-					file->flags.need_audio_dequeue = 0;
-					WakeThread( file->videoThread );
+					//if( file->flags.paused || file->flags.need_audio_dequeue )
+					//lprintf( WIDE("Found %d processed buffers... %d  %d"), 0, file->in_queue, file->out_of_queue );
+					Relinquish();
 				}
-			}
-			else
-			{
-				//if( file->flags.paused || file->flags.need_audio_dequeue )
-				//lprintf( WIDE("Found %d processed buffers... %d  %d"), 0, file->in_queue, file->out_of_queue );
-				Relinquish();
-			}
-		} while( ( file->flags.paused && file->out_of_queue ) );
-#endif
+			} while( ( file->flags.paused && file->out_of_queue ) );
+	#endif
+		}
 
 		while( file->flags.paused )
 		{
+			dropSoundDevice( &file->sound_device );
 			file->flags.audio_paused = 1;
 			file->flags.audio_sleeping = 1;
 			LeaveCriticalSec( &l.cs_audio_out );
@@ -2130,11 +2093,9 @@ static PTRSZVAL CPROC ProcessAudioFrame( PTHREAD thread )
 			if( file->flags.close_processing )
 				break;
 			EnterCriticalSec( &l.cs_audio_out );
-#ifndef USE_OPENSL
-			openal.alcMakeContextCurrent(file->alc_context);
-#endif
 			if( !file->flags.paused )
 			{
+				file->sound_device = getSoundDevice( file );
 				file->flags.audio_paused = 0;
 				file->flags.audio_sleeping = 0;
 				file->flags.need_audio_dequeue = 1;
@@ -2207,6 +2168,7 @@ static PTRSZVAL CPROC ProcessAudioFrame( PTHREAD thread )
 					// nothing pending to reclaim, and not resuming a pause/seek...
 				if( !file->flags.need_audio_dequeue && !file->out_of_queue )
 				{
+					dropSoundDevice( &file->sound_device );
 					//lprintf( WIDE("Long sleep") );
 					file->flags.audio_paused = 1;
 					file->flags.audio_sleeping = 1;
@@ -2688,7 +2650,7 @@ static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
 		file->pFormatCtx->duration = 1000000000;
 	while( !file->flags.close_processing )
 	{
-		while( file->flags.no_more_packets )
+		while( file->flags.no_more_packets || file->flags.paused )
 		{
 			WakeableSleep( SLEEP_FOREVER );
 			if( file->flags.close_processing )
@@ -2882,6 +2844,8 @@ void ffmpeg_UnloadFile( struct ffmpeg_file *file )
 		// lock so we don't mess up current context
 #ifndef USE_OPENSL
 		{
+			dropSoundDevice( &file->sound_device );
+			/*
 			openal.alDeleteSources(1,&file->al_source);
  
 			openal.alcMakeContextCurrent(NULL);
@@ -2889,6 +2853,7 @@ void ffmpeg_UnloadFile( struct ffmpeg_file *file )
 			openal.alcDestroyContext( file->alc_context );
  
 			openal.alcCloseDevice( file->alc_device );
+			*/
 		}
 #endif
 		LeaveCriticalSec( &l.cs_audio_out );

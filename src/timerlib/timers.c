@@ -130,13 +130,13 @@ struct threads_tag
 	PTRSZVAL (CPROC*simple_proc)( POINTER );
 	CTEXTSTR thread_event_name; // might be not a real thread.
 	THREAD_ID thread_ident;
+	PTHREAD_EVENT thread_event;
 #ifdef _WIN32
 	//HANDLE hEvent;
 	HANDLE hThread;
-	PTHREAD_EVENT thread_event;
 #else
 #ifdef USE_PIPE_SEMS
-   int pipe_ends[2]; // file handles that are the pipe's ends. 0=read 1=write
+	int pipe_ends[2]; // file handles that are the pipe's ends. 0=read 1=write
 #endif
 	int semaphore; // use this as a status of pipes if USE_PIPE_SEMS is used...; otherwise it's a ipcsem
 	pthread_t hThread;
