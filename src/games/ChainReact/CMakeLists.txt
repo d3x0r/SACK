@@ -43,6 +43,8 @@ install( FILES
                 )
 endif( __ANDROID__ )
 
+  INSTALL( FILES ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.interface.conf
+	DESTINATION bin )
 
 INCLUDE(InstallRequiredSystemLibraries)
 INSTALL( FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION ${BINARY_OUTPUT_DIR} )
