@@ -1103,11 +1103,11 @@ void CPROC MyRedraw( PTRSZVAL dwUser, PRENDERER pRenderer )
 SaneWinMain( argc, argv )
 {
 	//SetSystemLog( SYSLOG_FILENAME, WIDE("chainr.log") );
+	g.pii = GetImageInterface();
+	g.pri = GetDisplayInterface();
 	AlignBaseToWindows();
 	//hCursor = LoadCursor( IDC_ARROW);
 
-	g.pii = GetImageInterface();
-   g.pri = GetDisplayInterface();
 
 	pAtom = LoadImageFile( WIDE("atom2.gif") );
 	pGrid = LoadImageFile( WIDE("grid1.jpg") );
