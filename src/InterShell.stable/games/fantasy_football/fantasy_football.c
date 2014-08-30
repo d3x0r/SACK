@@ -1,5 +1,6 @@
 
 #include <stdhdrs.h>
+#include <sqlgetoption.h>
 #define DEFINES_INTERSHELL_INTERFACE
 #define USES_INTERSHELL_INTERFACE
 #define USE_RENDER_INTERFACE ffl.pdi
@@ -7,6 +8,7 @@
 #include <render.h>
 #include <salty_generator.h>
 #include <ffmpeg_interface.h>
+#include <mt19937ar.h>
 #include "../../widgets/include/banner.h"
 #include "../../intershell_registry.h"
 #include "../../intershell_export.h"
@@ -55,10 +57,41 @@ static struct fantasy_football_local
 		FRACTION offset_x, offset_y;
 		FRACTION cell_width, cell_height;
 	}grid;
-	PLIST prizes;
 	TEXTCHAR card_end_char;
 	TEXTCHAR card_begin_char;
 	_64 enable_code;
+
+	struct prize_data
+	{
+		struct {
+			TEXTCHAR name;
+			int value;
+			Image image;
+		} value_images;
+		struct prize_grid_data {
+			int value;
+			int count;
+		} *grid;
+		int grid_prizes_avail;
+		int grid_prizes_used;
+		struct prize_line_data {
+			int picks;
+			int *payouts; // dynamic array payouts[line][pick]
+			int count; // how many this line can be picked
+		} *lines;
+		struct {
+			int *value; // current shuffled values 
+		} prize_line;
+		struct {
+			int value;
+		} *grid_prizes;
+		int avail_lines; // how many lines allocated
+		int number_lines; // how many lines used
+		int total_lines; // sum of total of counts of lines
+		int total_games;
+	} prizes;
+	PTREEROOT prize_shuffle;
+	int current_down;
 
 	LOGICAL attract_mode;
 	_32 number_collector;
@@ -70,6 +103,14 @@ static struct fantasy_football_local
 	PIMAGE_INTERFACE pii;
 	PRENDER_INTERFACE pdi;
 
+	struct {
+		BIT_FIELD prize_line_mode : 1;
+	} flags;
+
+	struct {
+		_32 tick_draw; // when drawing starts?
+	} scoreboard;
+	struct mersenne_rng *rng;
 } ffl;
 
 struct attract_control
@@ -84,10 +125,106 @@ PRELOAD( InitInterfaces )
 {
 	ffl.pii = GetImageInterface();
 	ffl.pdi = GetDisplayInterface();
+	ffl.rng = init_genrand( timeGetTime() );
 }
 
 static void AddRules( PCONFIG_HANDLER pch );
 static void InitKeys( void );
+
+
+static struct prize_grid_data * GetGridPrize( void )
+{
+	if( ffl.prizes.grid_prizes_used >= ffl.prizes.grid_prizes_avail )
+	{
+		struct prize_grid_data *tmp = NewArray( struct prize_grid_data, ffl.prizes.grid_prizes_avail + 16 );
+		if( ffl.prizes.grid )
+		{
+			MemCpy( tmp, ffl.prizes.grid, sizeof( struct prize_grid_data ) * ffl.prizes.grid_prizes_avail );
+			Release( ffl.prizes.grid );
+		}
+		ffl.prizes.grid = tmp;
+		ffl.prizes.grid_prizes_avail += 16;
+	}
+	return ffl.prizes.grid + ffl.prizes.grid_prizes_used++;
+}
+
+static void DeductPrizeLine( int n )
+{
+	TEXTCHAR buf[12];
+	ffl.prizes.lines[n].count--;
+	ffl.prizes.total_games--;
+	snprintf( buf, 12, "%d", n + 1 );
+	SACK_WriteProfileInt( "Prizes/Lines", buf, ffl.prizes.lines[n].count );
+	SACK_WriteProfileInt( "Prizes", "Games", ffl.prizes.total_games );
+}
+
+static void ChoosePrize( void )
+{
+	if( !ffl.prize_shuffle )
+		ffl.prize_shuffle = CreateBinaryTree();
+	else
+		ResetBinaryTree( ffl.prize_shuffle );
+
+	// reset down count
+	ffl.current_down = 0;
+	ffl.scoreboard.tick_draw = 0;
+
+	if( ffl.flags.prize_line_mode )
+	{
+		_32 rand = genrand_int32( ffl.rng );
+		_32 value = ( (_64)ffl.prizes.total_lines * (_64)rand ) / 0xFFFFFFFFU;
+		int n;
+		for( n = 0; n < ffl.prizes.number_lines; n++ )
+		{
+			if( value < ffl.prizes.lines[n].count )
+			{
+				int down;
+				for( down = 0; down < ffl.prizes.lines[n].picks; down++ )
+				{
+					rand = genrand_int32( ffl.rng );
+					AddBinaryNode( ffl.prize_shuffle, (POINTER)ffl.prizes.lines[n].payouts[down], (PTRSZVAL)rand );
+				}
+				for( down = 0; down < 4; down++ )
+				{
+					if( !down )
+						ffl.prizes.prize_line.value[down] = (_32)GetLeastNode( ffl.prize_shuffle );
+					else
+						ffl.prizes.prize_line.value[down] = (_32)GetGreaterNode( ffl.prize_shuffle );
+				}
+				DeductPrizeLine( n );
+				break;
+			}
+			else
+				value -= ffl.prizes.lines[n].count;
+		}
+	}
+	else
+	{
+		_32 rand;
+		int square;
+		int g = 0;
+		int c = 0;
+		for( square = 0; square < 32; square++ )
+		{
+			rand = genrand_int32( ffl.rng );
+			AddBinaryNode( ffl.prize_shuffle, (POINTER)ffl.prizes.grid[g].value, (PTRSZVAL)rand );
+			c++;
+			if( c == ffl.prizes.grid[g].count )
+			{
+				c = 0;
+				g++;
+			}
+		}
+		for( square = 0; square < 32; square++ )
+		{
+			if( !square )
+				ffl.prizes.grid_prizes[square].value = (_32)GetLeastNode( ffl.prize_shuffle );
+			else
+				ffl.prizes.grid_prizes[square].value = (_32)GetGreaterNode( ffl.prize_shuffle );
+		}
+	}
+}
+
 
 static PTRSZVAL CPROC ProcessConfig( PTRSZVAL psv, arg_list args )
 {
@@ -194,6 +331,82 @@ static PTRSZVAL CPROC SetSwipeEnable( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
+static PTRSZVAL CPROC SetValueImage( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, S_64, data );
+	PARAM( args, CTEXTSTR, filename );
+	return psv;
+}
+
+static PTRSZVAL CPROC SetUsePrizeLines( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, S_64, data );
+	ffl.flags.prize_line_mode = data;
+	return psv;
+}
+static PTRSZVAL CPROC SetGameCount( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, S_64, data );
+	ffl.prizes.total_games = data;
+	return psv;
+}
+
+
+static void GetPrizeLine( int line )
+{
+	if( ffl.prizes.avail_lines < line )
+	{
+		struct prize_line_data *tmp = NewArray( struct prize_line_data, ffl.prizes.avail_lines+ 16 );
+		if( ffl.prizes.lines )
+		{
+			MemCpy( tmp, ffl.prizes.lines, sizeof( struct prize_line_data ) * ffl.prizes.avail_lines );
+			MemSet( tmp + ffl.prizes.avail_lines, 0, sizeof( struct prize_line_data ) * 16 );
+			Release( ffl.prizes.lines );
+		}
+		ffl.prizes.lines = tmp;
+		ffl.prizes.avail_lines += 16;
+	}
+}
+
+static PTRSZVAL CPROC SetPrizeLineCount( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, S_64, line );
+	PARAM( args, S_64, count );
+	TEXTCHAR buf[12];
+	snprintf( buf, 12, WIDE("%")_64fs, line );
+	GetPrizeLine( line );
+	ffl.prizes.lines[line-1].count = SACK_GetProfileIntEx( WIDE("Prizes/Lines"), buf, count, TRUE );
+	return psv;
+}
+static PTRSZVAL CPROC SetPrizeLinePicks( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, S_64, line );
+	PARAM( args, S_64, picks );
+	GetPrizeLine( line );
+	ffl.prizes.lines[line-1].picks = picks;
+	ffl.prizes.lines[line-1].payouts = NewArray( int, picks );
+	return psv;
+}
+static PTRSZVAL CPROC SetPrizeLinePickValue( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, S_64, line );
+	PARAM( args, S_64, pick );
+	PARAM( args, S_64, value );
+	GetPrizeLine( line );
+	ffl.prizes.lines[line-1].payouts[pick] = value;
+	return psv;
+}
+
+static PTRSZVAL CPROC SetGridPrize( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, S_64, count );
+	PARAM( args, S_64, value );
+	struct prize_grid_data *prize = GetGridPrize( );
+	prize->value = value;
+	prize->count = count;
+	return psv;
+}
+
 static void AddRules( PCONFIG_HANDLER pch )
 {
 	AddConfigurationMethod( pch, WIDE("config=%B"), ProcessConfig );
@@ -209,6 +422,15 @@ static void AddRules( PCONFIG_HANDLER pch )
 	AddConfigurationMethod( pch, WIDE("card swipe enable=%i"), SetSwipeEnable );
 	AddConfigurationMethod( pch, WIDE("card start character=%w"), SetStartCharacter );
 	AddConfigurationMethod( pch, WIDE("card end character=%w"), SetEndCharacter );
+
+	AddConfigurationMethod( pch, WIDE("Prize Image fot value %i=%m"), SetValueImage);
+	AddConfigurationMethod( pch, WIDE("Use Grid Prize Lines=%b"), SetUsePrizeLines );
+	AddConfigurationMethod( pch, WIDE("Total Games=%i"), SetGameCount );
+	AddConfigurationMethod( pch, WIDE("Prize Line %i count = %i"), SetPrizeLineCount );
+	AddConfigurationMethod( pch, WIDE("Prize Line %i picks = %i"), SetPrizeLinePicks );
+	AddConfigurationMethod( pch, WIDE("Prize Line %i down %i = %i"), SetPrizeLinePickValue );
+	AddConfigurationMethod( pch, WIDE("Grid Prize= %i,%i"), SetGridPrize );
+
 }
 
 static void ReadConfigFile( CTEXTSTR filename )
@@ -219,8 +441,17 @@ static void ReadConfigFile( CTEXTSTR filename )
 	DestroyConfigurationHandler( pch );
 }
 
+static void OnFinishInit( WIDE( "Fantasy Football" ) )( PSI_CONTROL canvas )
+{
+	// final init.. count how many prizes...
+	int n;
+	for( n = 0; n < ffl.prizes.number_lines; n++ )
+	{
+		ffl.prizes.total_lines += ffl.prizes.lines[n].count;
+	}
+}
 
-static void OnLoadCommon( WIDE( "Fantasay Football" ) )( PCONFIG_HANDLER pch )
+static void OnLoadCommon( WIDE( "Fantasy Football" ) )( PCONFIG_HANDLER pch )
 {
 	ReadConfigFile( "fantasy_football_game.config" );
 }
@@ -262,7 +493,10 @@ static void OnHideCommon( WIDE("FF_Attract") )( PSI_CONTROL pc )
 	struct attract_control *ac = (*ppac);
 	ac->playing = FALSE;
 	if( ac->attract )
+	{
 		ffl.attract_mode = 0;
+		ChoosePrize();
+	}
 	ffmpeg_PauseFile( ac->file );
 }
 
