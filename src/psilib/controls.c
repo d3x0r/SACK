@@ -621,6 +621,8 @@ PSI_PROC( void, AlignBaseToWindows )( void )
 	int sys_a;
 	int tmp;
 
+	if( !g.MyImageInterface )
+		GetMyInterface();
 #define Swap(i)    ( (tmp = i),( sys_r = ((tmp) & 0xFF)), (sys_g = ((tmp>>8) & 0xFF)),(sys_b = ((tmp >>16) & 0xFF)),(sys_a = 0xFF),AColor(sys_r,sys_g,sys_b,sys_a) )
 
 	 defaultcolor[HIGHLIGHT        ] =  Swap(GetSysColor( COLOR_3DHIGHLIGHT));

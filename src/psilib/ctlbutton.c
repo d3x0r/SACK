@@ -162,13 +162,13 @@ static int CPROC ButtonDraw( PSI_CONTROL pc )
 		if( pb->pImage )
 		{
 			if( pc->flags.bDisable )
-				BlotImageEx( pc->Surface, pb->pImage, 0, 0
-							  , TRUE
-							  , BLOT_MULTISHADE, Color( 62, 62, 62 )
+				BlotScaledImageMultiShadedAlpha( pc->Surface, pb->pImage
+							  , ALPHA_TRANSPARENT
+							  , Color( 62, 62, 62 )
 							  , Color( 67,67,67 )
 							  , Color( 60, 60, 60 ) );
 			else
-				BlotImage( pc->Surface, pb->pImage, 0, 0 );
+				BlotScaledImageAlpha( pc->Surface, pb->pImage, ALPHA_TRANSPARENT );
 			if( pc->flags.bFocused )
 			{
 				_32 width, height;
