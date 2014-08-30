@@ -108,7 +108,31 @@ static struct fantasy_football_local
 	} flags;
 
 	struct {
+		CTEXTSTR movie_name;
+		struct ffmpeg_file *movie_file;
+		CTEXTSTR static_name;
+		Image static_image;
+		CTEXTSTR fontname;
+		_32 delay_draw;
+		_32 delay_finish;
+
 		_32 tick_draw; // when drawing starts?
+		_32 tick_finish;
+		struct {
+			SFTFont font;
+			FRACTION font_x, font_y;
+			FRACTION x, y;
+		} leader;
+		struct {
+			SFTFont font;
+			FRACTION font_x, font_y;
+			FRACTION x, y;
+		} down;
+		struct {
+			SFTFont font;
+			FRACTION font_x, font_y;
+			FRACTION x, y;
+		} total;
 	} scoreboard;
 	struct mersenne_rng *rng;
 } ffl;
@@ -407,6 +431,55 @@ static PTRSZVAL CPROC SetGridPrize( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
+
+static PTRSZVAL CPROC 	SetScoreboardMovie ( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, CTEXTSTR, name );	ffl.scoreboard.movie_name= StrDup( name );	return psv;
+}
+	static PTRSZVAL CPROC SetScoreboardStatic( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, CTEXTSTR, name );	ffl.scoreboard.static_image = LoadImageFile( name );	return psv;
+}
+	static PTRSZVAL CPROC SetScoreboardFont( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, CTEXTSTR, name );	ffl.scoreboard.fontname = StrDup( name );	return psv;
+}
+	static PTRSZVAL CPROC SetScoreLeaderPosition( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.leader.x = x;	ffl.scoreboard.leader.y = y;	return psv;
+}
+	static PTRSZVAL CPROC SetScoreDownPosition( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.down.x = x;	ffl.scoreboard.down.y = y;	return psv;
+}
+	static PTRSZVAL CPROC SetScoreTotalPosition( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.total.x = x;	ffl.scoreboard.total.y = y;	return psv;
+}
+
+	static PTRSZVAL CPROC SetScoreLeaderFontSize( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.leader.font_x = x;	ffl.scoreboard.leader.font_y = y;	return psv;
+}
+	static PTRSZVAL CPROC SetScoreDownFontSize( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.down.font_x = x;	ffl.scoreboard.down.font_y = y;	return psv;
+}
+	static PTRSZVAL CPROC SetScoreTotalFontSize( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.total.font_x = x;	ffl.scoreboard.total.font_y = y;	return psv;
+}
+	static PTRSZVAL CPROC SetScoreDrawDelay( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, S_64, count );	ffl.scoreboard.delay_draw = count;	return psv;
+}
+
+	static PTRSZVAL CPROC SetScoreOutputDoneDelay( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, S_64, count );	ffl.scoreboard.delay_finish = count;	return psv;
+}
+
+
 static void AddRules( PCONFIG_HANDLER pch )
 {
 	AddConfigurationMethod( pch, WIDE("config=%B"), ProcessConfig );
@@ -431,6 +504,8 @@ static void AddRules( PCONFIG_HANDLER pch )
 	AddConfigurationMethod( pch, WIDE("Prize Line %i down %i = %i"), SetPrizeLinePickValue );
 	AddConfigurationMethod( pch, WIDE("Grid Prize= %i,%i"), SetGridPrize );
 
+	AddConfigurationMethod( pch, WIDE("Scoreboard movie=%m"), SetScoreboardMovie );	AddConfigurationMethod( pch, WIDE("Scoreboard static=%m"), SetScoreboardStatic );	AddConfigurationMethod( pch, WIDE("Scoreboard font=%m"), SetScoreboardFont );	AddConfigurationMethod( pch, WIDE("Scoreboard leader position=%q %q"), SetScoreLeaderPosition );	AddConfigurationMethod( pch, WIDE("Scoreboard down position=%q %q"), SetScoreDownPosition );	AddConfigurationMethod( pch, WIDE("Scoreboard total position=%q %q"), SetScoreTotalPosition );	AddConfigurationMethod( pch, WIDE("Scoreboard leader text size=%q %q"), SetScoreLeaderFontSize );	AddConfigurationMethod( pch, WIDE("Scoreboard down text size=%q %q"), SetScoreDownFontSize );	AddConfigurationMethod( pch, WIDE("Scoreboard total text size=%q %q"), SetScoreTotalFontSize );	AddConfigurationMethod( pch, WIDE("Scoreboard Start time=%i"), SetScoreDrawDelay );	AddConfigurationMethod( pch, WIDE("Scoreboard End time=%i"), SetScoreOutputDoneDelay );
+
 }
 
 static void ReadConfigFile( CTEXTSTR filename )
@@ -454,6 +529,23 @@ static void OnFinishInit( WIDE( "Fantasy Football" ) )( PSI_CONTROL canvas )
 static void OnLoadCommon( WIDE( "Fantasy Football" ) )( PCONFIG_HANDLER pch )
 {
 	ReadConfigFile( "fantasy_football_game.config" );
+}
+
+
+
+static void EndScoreboard( PTRSZVAL psv )
+{
+	// do nothing...
+	ffl.scoreboard.tick_draw = 0; 
+	/*
+	struct attract_control *ac = (struct attract_control *)psv;
+	if( ac->file )
+	{
+		ffl.attract_mode = ac->attract;
+		ffmpeg_SeekFile( ac->file, 0 );
+		ffmpeg_PlayFile( ac->file );
+	}
+	*/
 }
 
 static void RestartAttract( PTRSZVAL psv )
@@ -621,6 +713,20 @@ static int OnDrawCommon( WIDE( "FF_Grid_Cell" ) )( PSI_CONTROL pc )
 
 static int OnCreateCommon( WIDE( "FF_Scoreboard" ) )( PSI_CONTROL pc )
 {
+	return 1;
+}
+
+static void DrawScoreText( PSI_CONTROL pc )
+{
+	if( ffl.scoreboard.
+}
+
+
+static int OnDrawCommon( WIDE( "FF_Scoreboard" ) )( PSI_CONTROL pc )
+{
+	BlotScaledImage( GetControlSurface( pc ), ffl.scoreboard.static_image );
+	if( ffl.scoreboard.tick_draw || ffl.scoreboard.tick_finish )
+		DrawScoreText( pc );
 	return 1;
 }
 
@@ -867,6 +973,40 @@ static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/4th Down") )( PTRSZVAL p
 	struct attract_control *ac = (struct attract_control *)psv;
 	return ac->pc;
 }
+
+static void DrawScoreText( PSI_CONTROL pc )
+{
+
+}
+
+static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/Scoreboard" ))(PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
+{
+	struct attract_control *ac;
+	ac = New( struct attract_control );
+
+	ac->playing = FALSE;
+	ac->attract = TRUE;
+	ac->pc = MakeNamedControl( parent, WIDE("FF_Attract"), x, y, w, h, 0 );
+	{
+		ValidatedControlData( struct attract_control **, FF_Attract.TypeID, ppac, ac->pc );
+		(*ppac) = ac;
+	}
+	ac->file = ffmpeg_LoadFile( ffl.scoreboard.movie_name
+								, NULL, 0
+								, ac->pc
+								, NULL, 0
+								, EndScoreboard, (PTRSZVAL)ac
+								, NULL );
+	ffmpeg_SetPrePostDraw( ac->file, NULL, DrawScoreText );
+	return (PTRSZVAL)ac;
+}
+
+static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/Scoreboard") )( PTRSZVAL psv )
+{
+	struct attract_control *ac = (struct attract_control *)psv;
+	return ac->pc;
+}
+
 
 
 
