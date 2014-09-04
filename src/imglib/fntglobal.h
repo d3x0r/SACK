@@ -216,6 +216,12 @@ typedef struct font_global_tag
 	FONT_ENTRY  *pFontCache;
 	/* Critical section protecting global */
 	CRITICALSECTION cs;
+	struct {
+		BIT_FIELD OpeningFontStatus : 1;
+		BIT_FIELD bScanningFonts : 1;
+	} flags;
+	PTHREAD font_status_open_thread; 
+	PTHREAD font_status_timer_thread;
 } FONT_GLOBAL;
 #endif
 

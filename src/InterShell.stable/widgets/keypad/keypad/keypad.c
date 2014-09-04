@@ -131,12 +131,18 @@ void CPROC InvokeKeypadEnterEvent( PTRSZVAL psv, PSI_CONTROL pcKeypad )
 
 	else
 	{
+		LOGICAL did_one = 0;
 		GETALL_REGISTERED( TASK_PREFIX WIDE( "/common/keypad enter" ), void,(PSI_CONTROL) )
 		{  /* creates a magic f variable :( */
-			if(f) f(pcKeypad);
+			if(f) { 
+				did_one = 1;
+				f(pcKeypad); 
+			}
 		}
 
 		ENDALL_REGISTERED();
+		if( !did_one )
+			ClearKeyedEntry( keypad->keypad );
 	}
 }
 

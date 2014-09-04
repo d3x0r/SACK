@@ -33,7 +33,7 @@ static void CPROC AsciiMeasureString( PTRSZVAL psvConsole, CTEXTSTR s, int nShow
 }
 
 
-void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int pixel_width, int pixel_height, SFTFont font )
+void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int* pixel_height, SFTFont font )
 {
 	struct BlockFormatter *block_data = New( struct BlockFormatter );
 	PCONSOLE_INFO console;
@@ -55,9 +55,9 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int pixel_width, int 
 		InitializeCriticalSec( &console->Lock );
 
 		console->rArea.left = 0;
-		console->rArea.right = pixel_width;
+		console->rArea.right = (*pixel_width);
 		console->rArea.top = 0;
-		console->rArea.bottom = pixel_height;
+		console->rArea.bottom = (*pixel_height);
 		// this is destroyed when the common closes...
 		console->CommandInfo = NULL;  //CreateUserInputBuffer();
 
@@ -147,14 +147,20 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int pixel_width, int 
 
 	console->CurrentLineInfo =
 		console->CurrentMarkInfo = &console->pCurrentDisplay->DisplayLineInfo;
-	console->mark_start.row = (pixel_height - 1);
+	console->mark_start.row = ((*pixel_height) - 1);
 	console->mark_start.col = 0;
 	console->mark_end.row = 0;
-	console->mark_end.col = pixel_width - 1;
-
+	console->mark_end.col = (*pixel_width) - 1;
 
 	block = PSI_GetDataFromBlock( console );
 	(*output) = block;
+	if( font )
+	{
+		_32 width, height;
+		GetStringSizeFont( (*output), &width, &height, font );
+		(*pixel_width) = width;
+      (*pixel_height) = height;
+	}
 
 	PSI_DestroyHistoryBrowser( console->pCurrentDisplay );
 	PSI_DestroyHistoryCursor( console->pCursor );
@@ -165,7 +171,7 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int pixel_width, int 
 
 void FormatTextToBlock( CTEXTSTR input, TEXTSTR *output, int char_width, int char_height )
 {
-   FormatTextToBlockEx( input, output, char_width, char_height, NULL );
+   FormatTextToBlockEx( input, output, &char_width, &char_height, NULL );
 
 }
 

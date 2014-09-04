@@ -438,7 +438,12 @@ DeclareSet( TREEROOT );
 static PTREEROOTSET treepool;
 
 //---------------------------------------------------------------------------
-
+void ResetBinaryTree( PTREEROOT root )
+{
+	while( root->tree )
+		NativeRemoveBinaryNode( root, root->tree );
+}
+//---------------------------------------------------------------------------
 void DestroyBinaryTree( PTREEROOT root )
 {
 	while( root->tree )

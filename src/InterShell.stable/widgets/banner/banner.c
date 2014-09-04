@@ -530,6 +530,10 @@ int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, i
 
 
 
+	x = 0;
+	y = 0;
+	GetDisplaySizeEx( display, &x, &y, &w, &h );
+
 	if( lines || cols )
 	{
 		TEXTCHAR font[256];

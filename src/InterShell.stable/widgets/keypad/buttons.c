@@ -517,7 +517,7 @@ PTHEME LoadButtonThemeByNameEx( CTEXTSTR name, int theme_id, CDATA default_color
 	memcpy( szTheme, szBuffer, ( sizeof (szTheme) ) );
 
 	// Get Mask 
-	retval =  SACK_GetPrivateProfileStringEx( szTheme, WIDE( "MASK" ), WIDE( "ridge_mask.png" ), szBuffer, sizeof( szBuffer ), gIniFileName, TRUE );
+	retval =  SACK_GetPrivateProfileStringEx( szTheme, WIDE( "MASK" ), WIDE( "%resources%/images/colorLayer.png" ), szBuffer, sizeof( szBuffer ), gIniFileName, TRUE );
 
 	// Load Mask
 	if ( StrCmpEx( szBuffer, WIDE( "NULL" ), 4 ) )
@@ -532,7 +532,7 @@ PTHEME LoadButtonThemeByNameEx( CTEXTSTR name, int theme_id, CDATA default_color
 	}
 	
 	// Get Glare
-	retval =  SACK_GetPrivateProfileStringEx( szTheme, WIDE( "GLARE" ), WIDE( "glare.png" ), szBuffer, sizeof( szBuffer ), gIniFileName, TRUE );	
+	retval =  SACK_GetPrivateProfileStringEx( szTheme, WIDE( "GLARE" ), WIDE( "NULL" ), szBuffer, sizeof( szBuffer ), gIniFileName, TRUE );	
 	
 	// Load Glare
 	if (StrCmpEx(szBuffer, WIDE("NULL"), 4)  )
@@ -548,7 +548,7 @@ PTHEME LoadButtonThemeByNameEx( CTEXTSTR name, int theme_id, CDATA default_color
 	}
 
 	// Get Pressed
-	retval =  SACK_GetPrivateProfileStringEx( szTheme, WIDE( "PRESSED" ), WIDE( "ridge_down.png" ), szBuffer, sizeof( szBuffer ), gIniFileName, TRUE );
+	retval =  SACK_GetPrivateProfileStringEx( szTheme, WIDE( "PRESSED" ), WIDE( "%resources%/images/pressedLens.png" ), szBuffer, sizeof( szBuffer ), gIniFileName, TRUE );
 	
 	// Load Pressed
 	if (StrCmpEx(szBuffer, WIDE("NULL"), 4)  )
@@ -564,7 +564,7 @@ PTHEME LoadButtonThemeByNameEx( CTEXTSTR name, int theme_id, CDATA default_color
 	}
 
 	// Get Normal
-	retval =  SACK_GetPrivateProfileStringEx( szTheme, WIDE( "NORMAL" ), WIDE( "ridge_up.png" ), szBuffer, sizeof( szBuffer ), gIniFileName, TRUE );
+	retval =  SACK_GetPrivateProfileStringEx( szTheme, WIDE( "NORMAL" ), WIDE( "%resources%/images/defaultLens.png" ), szBuffer, sizeof( szBuffer ), gIniFileName, TRUE );
 
 	// Load Normal
 	if (StrCmpEx(szBuffer, WIDE("NULL"), 4)  )
@@ -582,7 +582,7 @@ PTHEME LoadButtonThemeByNameEx( CTEXTSTR name, int theme_id, CDATA default_color
 	// Get color and style
 	theme->buttons.color =  SACK_GetPrivateProfileIntEx( szTheme, WIDE( "Color" ), default_color?default_color:0x63F00013, gIniFileName, TRUE );
 	theme->buttons.color =  SACK_GetPrivateProfileIntEx( szTheme, WIDE( "Color" ), default_text_color?default_text_color:0x63F0F0D3, gIniFileName, TRUE );
-	theme->buttons.style =  SACK_GetPrivateProfileIntEx( szTheme, WIDE( "Style" ), 1, gIniFileName, TRUE );
+	theme->buttons.style =  SACK_GetPrivateProfileIntEx( szTheme, WIDE( "Style" ), 2, gIniFileName, TRUE );
 
    SetLink( theme->theme_list, theme_id, theme );
 
@@ -832,7 +832,7 @@ void DrawButtonLayers( PKEY_BUTTON key, Image surface, PSI_CONTROL pc)
 						{
 							if( key->flags.bMultiShade )
 							{
-                        //lprintf( "Multishade" );
+								//lprintf( "Multishade" );
 								if( key->multi_shade.layer2_color )
 								{
 									PTRIPLET color = (PTRIPLET)
@@ -1068,6 +1068,18 @@ static int OnDrawCommon( BUTTON_NAME )( PCONTROL pc )
 
 	}
 	return 1;
+}
+
+void  SetKeyPressed( PKEY_BUTTON key )
+{
+	key->buttonflags.pressed = 1;
+	SmudgeCommon( key->button );
+}
+
+void  SetKeyReleased( PKEY_BUTTON key )
+{
+	key->buttonflags.pressed = 0;
+	SmudgeCommon( key->button );
 }
 
 
@@ -1393,7 +1405,7 @@ PKEY_BUTTON MakeKeyExx( PCOMMON frame
 				result->multi_shade.b = l.default_theme->buttons.color;
 				SetDataItem( &result->multi_shade.layer2_colors, 0, &result->multi_shade );
 			}
-         if( !background )
+			if( !background )
 				background = l.default_theme->buttons.color;
 		}
 		//SetCustomButtonMethods( );
@@ -1637,9 +1649,15 @@ void SetKeyShading( PKEY_BUTTON key, CDATA grey_channel ) // set grey_channel to
 	{
 		if( grey_channel )
 		{
-			key->flags.bShade = 1;
-			key->flags.bMultiShade = 0;
-			key->background.color = grey_channel;
+			if( key->flags.bMultiShade )
+			{
+				SetKeyMultiShading( key, BASE_COLOR_WHITE, grey_channel, BASE_COLOR_BLACK );
+			}
+			else 
+			{
+				key->flags.bShade = 1;
+				key->background.color = grey_channel;
+			}
 			key->flags.bRidgeUnderText = FALSE;
 		}
 		else

@@ -160,6 +160,32 @@ message("    add_library( ${project} ${FIRST_GCC_LIBRARY_SOURCE} ${optional_styl
   SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "TARGET_LABEL=${TARGET_LABEL};TARGETNAME=\"${CMAKE_LIBRARY_PREFIX}${project}${CMAKE_LIBRARY_SUFFIX}\"" )
 endmacro( sack_add_library )
 
+macro( sack_add_literal_library project optional_style )
+  if( ${optional_style} STREQUAL SHARED )
+    add_library( ${project} ${optional_style} ${FIRST_GCC_LIBRARY_SOURCE} ${ARGN} ${LAST_GCC_LIBRARY_SOURCE} )
+  else( ${optional_style} STREQUAL SHARED )
+message("    add_library( ${project} ${FIRST_GCC_LIBRARY_SOURCE} ${optional_style} ${ARGN} ${LAST_GCC_LIBRARY_SOURCE} )")
+    add_library( ${project} ${FIRST_GCC_LIBRARY_SOURCE} ${optional_style} ${ARGN} ${LAST_GCC_LIBRARY_SOURCE} )
+  endif( ${optional_style} STREQUAL SHARED )
+  string( REPLACE "." "_" TARGET_LABEL ${project} )
+  
+  if( __ANDROID__ )        
+        set( MOREDEFS "TARGETNAME=\"${target}\" TARGET_LABEL=${TARGET_LABEL}" )
+  else( __ANDROID__ )        
+        set( MOREDEFS "TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${target}${CMAKE_SHARED_LIBRARY_SUFFIX}\" TARGET_LABEL=${TARGET_LABEL}" )
+  endif( __ANDROID__ )        
+  SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "TARGET_LABEL=${TARGET_LABEL};${MOREDEFS}" )
+
+message( "  SET_TARGET_PROPERTIES(${target} PROPERTIES COMPILE_DEFINITIONS ${MOREDEFS} )")
+  SET_TARGET_PROPERTIES(${target} PROPERTIES COMPILE_DEFINITIONS ${MOREDEFS} )
+  if( NOT __ANDROID__ )
+		SET_TARGET_PROPERTIES(${target} PROPERTIES
+                  SUFFIX ""
+                  PREFIX ""
+		)
+  endif( NOT __ANDROID__ )
+endmacro( sack_add_literal_library )
+
 
 macro( add_executable_force_source project optional_style )
   if( optional_style STREQUAL WIN32 )

@@ -180,6 +180,10 @@ KEYPAD_PROC(void, UpdateKey )( PKEY_BUTTON key );
 
 KEYPAD_PROC( void, HideKey )( PKEY_BUTTON pKey );
 KEYPAD_PROC( void, ShowKey )( PKEY_BUTTON pKey );
+KEYPAD_PROC( void, SetKeyPressed )( PKEY_BUTTON key );
+KEYPAD_PROC( void, SetKeyReleased )( PKEY_BUTTON key );
+
+
 KEYPAD_PROC( PCOMMON, GetKeyCommon )( PKEY_BUTTON pKey );
 
 KEYPAD_PROC( void, SetKeyLenses )( PKEY_BUTTON key, Image lense, Image down, Image up, Image mask );

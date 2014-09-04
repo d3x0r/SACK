@@ -1376,6 +1376,8 @@ static LOGICAL InvokeButtonCreate( PSI_CONTROL pc_canvas, PMENU_BUTTON button, L
 		{
 			lprintf( WIDE("Button type '%s' returned 1 as a result."), button->pTypeName );
 		}
+		HideCommon( QueryGetControl( button ) );
+
 		g.CurrentlyCreatingButton = NULL;
 	}
 	else

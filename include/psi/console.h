@@ -67,10 +67,14 @@ PSI_CONSOLE_PROC( PSI_Console_Feedback, PSI_ConsoleDefineFeedback )( PSI_Console
 //PSI_CONSOLE_PROC( void, PSIConsoleSetMessageFeedbackHandler )( PSI_CONTROL pc, PSI_Feedback );
 
 // this is an access into to use console features to wrap long text into a block.
-// font can be NULL and 0,0 for pixel size to format by characters only.
-
+// passed width in characters, no font.
 PSI_CONSOLE_PROC( void, FormatTextToBlock )( CTEXTSTR input, TEXTSTR *output, int char_width, int char_height );
-PSI_CONSOLE_PROC( void, FormatTextToBlockEx )( CTEXTSTR input, TEXTSTR *output, int pixel_width, int pixel_height, SFTFont font );
+// the width and height passed are updated for the actual pixel width and height of the text block
+// this allows a larger height to be passed; and allows the box to be shrunk slightly for width if
+// words and roundings made it smaller than it appears.  (allow better centering)
+// this is an access into to use console features to wrap long text into a block.
+// font can be NULL and 0,0 for pixel size to format by characters only.
+PSI_CONSOLE_PROC( void, FormatTextToBlockEx )( CTEXTSTR input, TEXTSTR *output, int *pixel_width, int *pixel_height, SFTFont font );
 
 PSI_CONSOLE_PROC( struct history_tracking_info *, PSIConsoleSaveHistory )( PSI_CONTROL pc );
 PSI_CONSOLE_PROC( void, PSIConsoleSetHistory )( PSI_CONTROL pc, struct history_tracking_info *history_info );

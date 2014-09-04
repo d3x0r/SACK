@@ -3,7 +3,7 @@
 #define FIX_RELEASE_COM_COLLISION
 
 #include <stdhdrs.h>
-
+#include <idle.h>
 #define IMAGE_LIBRARY_SOURCE
 #include <ft2build.h>
 #ifdef FT_BEGIN_HEADER
@@ -1013,7 +1013,12 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 			return;
 		}
 	}
-	EnterCriticalSec( &fg.cs );
+	if( fg.flags.OpeningFontStatus && ( fg.font_status_open_thread != MakeThread() ) )
+		return;
+	if( fg.flags.bScanningFonts && fg.font_status_timer_thread )
+		;
+	else
+		EnterCriticalSec( &fg.cs );
 	if( !renderer->font->character[idx] )
 	{
 		FT_Face face = renderer->face;
@@ -1103,6 +1108,9 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 		{
 			renderer->ResultFont = LoadFont( (SFTFont)renderer->font );
 		}
+		if( fg.flags.bScanningFonts && fg.font_status_timer_thread )
+			;
+		else
 		LeaveCriticalSec( &fg.cs );
 	}
 

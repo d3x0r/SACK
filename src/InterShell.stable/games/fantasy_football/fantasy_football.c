@@ -434,49 +434,49 @@ static PTRSZVAL CPROC SetGridPrize( PTRSZVAL psv, arg_list args )
 
 static PTRSZVAL CPROC 	SetScoreboardMovie ( PTRSZVAL psv, arg_list args )
 {
-	PARAM( args, CTEXTSTR, name );	ffl.scoreboard.movie_name= StrDup( name );	return psv;
+	PARAM( args, CTEXTSTR, name );	ffl.scoreboard.movie_name= StrDup( name );	return psv;
 }
 	static PTRSZVAL CPROC SetScoreboardStatic( PTRSZVAL psv, arg_list args )
 {
-	PARAM( args, CTEXTSTR, name );	ffl.scoreboard.static_image = LoadImageFile( name );	return psv;
+	PARAM( args, CTEXTSTR, name );	ffl.scoreboard.static_image = LoadImageFile( name );	return psv;
 }
 	static PTRSZVAL CPROC SetScoreboardFont( PTRSZVAL psv, arg_list args )
 {
-	PARAM( args, CTEXTSTR, name );	ffl.scoreboard.fontname = StrDup( name );	return psv;
+	PARAM( args, CTEXTSTR, name );	ffl.scoreboard.fontname = StrDup( name );	return psv;
 }
 	static PTRSZVAL CPROC SetScoreLeaderPosition( PTRSZVAL psv, arg_list args )
 {
-	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.leader.x = x;	ffl.scoreboard.leader.y = y;	return psv;
+	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.leader.x = x;	ffl.scoreboard.leader.y = y;	return psv;
 }
 	static PTRSZVAL CPROC SetScoreDownPosition( PTRSZVAL psv, arg_list args )
 {
-	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.down.x = x;	ffl.scoreboard.down.y = y;	return psv;
+	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.down.x = x;	ffl.scoreboard.down.y = y;	return psv;
 }
 	static PTRSZVAL CPROC SetScoreTotalPosition( PTRSZVAL psv, arg_list args )
 {
-	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.total.x = x;	ffl.scoreboard.total.y = y;	return psv;
+	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.total.x = x;	ffl.scoreboard.total.y = y;	return psv;
 }
 
 	static PTRSZVAL CPROC SetScoreLeaderFontSize( PTRSZVAL psv, arg_list args )
 {
-	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.leader.font_x = x;	ffl.scoreboard.leader.font_y = y;	return psv;
+	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.leader.font_x = x;	ffl.scoreboard.leader.font_y = y;	return psv;
 }
 	static PTRSZVAL CPROC SetScoreDownFontSize( PTRSZVAL psv, arg_list args )
 {
-	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.down.font_x = x;	ffl.scoreboard.down.font_y = y;	return psv;
+	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.down.font_x = x;	ffl.scoreboard.down.font_y = y;	return psv;
 }
 	static PTRSZVAL CPROC SetScoreTotalFontSize( PTRSZVAL psv, arg_list args )
 {
-	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.total.font_x = x;	ffl.scoreboard.total.font_y = y;	return psv;
+	PARAM( args, FRACTION, x);	PARAM( args, FRACTION, y);	ffl.scoreboard.total.font_x = x;	ffl.scoreboard.total.font_y = y;	return psv;
 }
 	static PTRSZVAL CPROC SetScoreDrawDelay( PTRSZVAL psv, arg_list args )
 {
-	PARAM( args, S_64, count );	ffl.scoreboard.delay_draw = count;	return psv;
+	PARAM( args, S_64, count );	ffl.scoreboard.delay_draw = count;	return psv;
 }
 
 	static PTRSZVAL CPROC SetScoreOutputDoneDelay( PTRSZVAL psv, arg_list args )
 {
-	PARAM( args, S_64, count );	ffl.scoreboard.delay_finish = count;	return psv;
+	PARAM( args, S_64, count );	ffl.scoreboard.delay_finish = count;	return psv;
 }
 
 
@@ -504,7 +504,7 @@ static void AddRules( PCONFIG_HANDLER pch )
 	AddConfigurationMethod( pch, WIDE("Prize Line %i down %i = %i"), SetPrizeLinePickValue );
 	AddConfigurationMethod( pch, WIDE("Grid Prize= %i,%i"), SetGridPrize );
 
-	AddConfigurationMethod( pch, WIDE("Scoreboard movie=%m"), SetScoreboardMovie );	AddConfigurationMethod( pch, WIDE("Scoreboard static=%m"), SetScoreboardStatic );	AddConfigurationMethod( pch, WIDE("Scoreboard font=%m"), SetScoreboardFont );	AddConfigurationMethod( pch, WIDE("Scoreboard leader position=%q %q"), SetScoreLeaderPosition );	AddConfigurationMethod( pch, WIDE("Scoreboard down position=%q %q"), SetScoreDownPosition );	AddConfigurationMethod( pch, WIDE("Scoreboard total position=%q %q"), SetScoreTotalPosition );	AddConfigurationMethod( pch, WIDE("Scoreboard leader text size=%q %q"), SetScoreLeaderFontSize );	AddConfigurationMethod( pch, WIDE("Scoreboard down text size=%q %q"), SetScoreDownFontSize );	AddConfigurationMethod( pch, WIDE("Scoreboard total text size=%q %q"), SetScoreTotalFontSize );	AddConfigurationMethod( pch, WIDE("Scoreboard Start time=%i"), SetScoreDrawDelay );	AddConfigurationMethod( pch, WIDE("Scoreboard End time=%i"), SetScoreOutputDoneDelay );
+	AddConfigurationMethod( pch, WIDE("Scoreboard movie=%m"), SetScoreboardMovie );	AddConfigurationMethod( pch, WIDE("Scoreboard static=%m"), SetScoreboardStatic );	AddConfigurationMethod( pch, WIDE("Scoreboard font=%m"), SetScoreboardFont );	AddConfigurationMethod( pch, WIDE("Scoreboard leader position=%q %q"), SetScoreLeaderPosition );	AddConfigurationMethod( pch, WIDE("Scoreboard down position=%q %q"), SetScoreDownPosition );	AddConfigurationMethod( pch, WIDE("Scoreboard total position=%q %q"), SetScoreTotalPosition );	AddConfigurationMethod( pch, WIDE("Scoreboard leader text size=%q %q"), SetScoreLeaderFontSize );	AddConfigurationMethod( pch, WIDE("Scoreboard down text size=%q %q"), SetScoreDownFontSize );	AddConfigurationMethod( pch, WIDE("Scoreboard total text size=%q %q"), SetScoreTotalFontSize );	AddConfigurationMethod( pch, WIDE("Scoreboard Start time=%i"), SetScoreDrawDelay );	AddConfigurationMethod( pch, WIDE("Scoreboard End time=%i"), SetScoreOutputDoneDelay );
 
 }
 
@@ -718,7 +718,175 @@ static int OnCreateCommon( WIDE( "FF_Scoreboard" ) )( PSI_CONTROL pc )
 
 static void DrawScoreText( PSI_CONTROL pc )
 {
-	if( ffl.scoreboard.
+	_32 now = timeGetTime();
+	Image surface = GetControlSurface( pc );
+
+	if( ffl.scoreboard.tick_draw )
+	{
+		if( ffl.scoreboard.tick_draw < now )
+		{
+			_32 percent;
+			if( ffl.scoreboard.tick_finish > now )
+				percent = 100 * ( ffl.scoreboard.tick_finish - ffl.scoreboard.tick_draw ) / ( ffl.scoreboard.tick_finish - now );
+			else
+				percent = 100;
+			// percent > 0
+			{
+				{
+					_32 w, h;
+					CTEXTSTR text = "Final Score:";
+					GetStringSizeFont( text, &w, &h, ffl.scoreboard.leader.font );
+					if( percent < 25 )
+					{
+						PutStringFont( surface
+							, ScaleValue( &ffl.scoreboard.leader.x, surface->width ) - (w/2)
+							, ScaleValue( &ffl.scoreboard.leader.x, surface->height ) - (h /2)
+							, SetAlpha( BASE_COLOR_BLACK, percent * 255 / 25 )
+							, 0
+							, text
+							, ffl.scoreboard.leader.font );
+					}
+					else
+					{
+						PutStringFont( surface
+							, ScaleValue( &ffl.scoreboard.leader.x, surface->width ) - (w/2)
+							, ScaleValue( &ffl.scoreboard.leader.x, surface->height ) - (h/2)
+							, BASE_COLOR_BLACK
+							, 0
+							, text
+							, ffl.scoreboard.leader.font );
+					}
+				}
+
+				if( percent >= 25 )
+				{
+					TEXTCHAR buf[64];
+					int offset[4];
+					int length[4];
+					_32 w, h; // full string size
+					_32 w1, h1; // phrase 1 size
+					_32 w2, h2; // phrase 2 size
+					CTEXTSTR text = buf;
+					offset[0] = snprintf( buf, 0, "%d + ", 25 );
+					length[0] = offset[0];
+					offset[1] = snprintf( buf + length[0], 0, "%d + ", 25 );
+					length[1] = length[0] + offset[1];
+					offset[2] = snprintf( buf + length[1], 0, "%d + ", 25 );
+					length[2] = length[1] + offset[2];
+					offset[3] = snprintf( buf + length[2], 0, "%d", 25 );
+					length[3] = length[2] + offset[3];
+
+
+					GetStringSizeFont( text, &w, &h, ffl.scoreboard.down.font );
+					if( percent < 37 )
+					{
+						GetStringSizeFontEx( text, offset[0], &w1, &h1, ffl.scoreboard.down.font );
+						PutStringFontEx( surface
+							, ScaleValue( &ffl.scoreboard.down.x, surface->width ) - (w/2)
+							, ScaleValue( &ffl.scoreboard.down.x, surface->height ) - (h /2)
+							, SetAlpha( BASE_COLOR_BLACK, (percent - 25) * 255 / 12 )
+							, 0
+							, text, offset[0]
+							, ffl.scoreboard.down.font );
+					}
+					else if( percent < 50 )
+					{
+						GetStringSizeFontEx( text, length[0], &w1, &h1, ffl.scoreboard.down.font );
+						PutStringFontEx( surface
+							, ScaleValue( &ffl.scoreboard.down.x, surface->width ) - (w/2)
+							, ScaleValue( &ffl.scoreboard.down.x, surface->height ) - (h /2)
+							, BASE_COLOR_BLACK
+							, 0
+							, text, offset[0]
+							, ffl.scoreboard.down.font );
+						PutStringFontEx( surface
+							, ScaleValue( &ffl.scoreboard.down.x, surface->width ) - (w/2) + w1
+							, ScaleValue( &ffl.scoreboard.down.x, surface->height ) - (h/2)
+							, SetAlpha( BASE_COLOR_BLACK, (percent - 37) * 255 / 13 )
+							, 0
+							, text + length[0], offset[1]
+							, ffl.scoreboard.down.font );
+					}
+					else if( percent < 62 )
+					{
+						GetStringSizeFontEx( text, length[1], &w1, &h1, ffl.scoreboard.down.font );
+						PutStringFontEx( surface
+							, ScaleValue( &ffl.scoreboard.down.x, surface->width ) - (w/2)
+							, ScaleValue( &ffl.scoreboard.down.x, surface->height ) - (h /2)
+							, BASE_COLOR_BLACK
+							, 0
+							, text, length[1]
+							, ffl.scoreboard.down.font );
+						PutStringFontEx( surface
+							, ScaleValue( &ffl.scoreboard.down.x, surface->width ) - (w/2) + w1
+							, ScaleValue( &ffl.scoreboard.down.x, surface->height ) - (h/2)
+							, SetAlpha( BASE_COLOR_BLACK, (percent - 50) * 255 / 12 )
+							, 0
+							, text + length[1], offset[2]
+							, ffl.scoreboard.down.font );
+					}
+					else if( percent < 75 )
+					{
+						GetStringSizeFontEx( text, length[2], &w1, &h1, ffl.scoreboard.down.font );
+						PutStringFontEx( surface
+							, ScaleValue( &ffl.scoreboard.down.x, surface->width ) - (w/2)
+							, ScaleValue( &ffl.scoreboard.down.x, surface->height ) - (h /2)
+							, BASE_COLOR_BLACK
+							, 0
+							, text, length[2]
+							, ffl.scoreboard.down.font );
+						PutStringFontEx( surface
+							, ScaleValue( &ffl.scoreboard.down.x, surface->width ) - (w/2) + w1
+							, ScaleValue( &ffl.scoreboard.down.x, surface->height ) - (h/2)
+							, SetAlpha( BASE_COLOR_BLACK, (percent - 67) * 255 / 13 )
+							, 0
+							, text + length[2], offset[3]
+							, ffl.scoreboard.down.font );
+					}
+					else
+					{
+						PutStringFont( surface
+							, ScaleValue( &ffl.scoreboard.down.x, surface->width ) - (w/2)
+							, ScaleValue( &ffl.scoreboard.down.x, surface->height ) - (h/2)
+							, BASE_COLOR_BLACK
+							, 0
+							, text
+							, ffl.scoreboard.down.font );
+
+					}
+				}
+			
+				if( percent >= 75 )
+				{
+					_32 w, h;
+					TEXTCHAR buf[32];
+					CTEXTSTR text = buf;
+					snprintf( buf, 32, "$%d", 100 );
+					GetStringSizeFont( text, &w, &h, ffl.scoreboard.total.font );
+					if( percent < 100 )
+					{
+						PutStringFont( surface
+							, ScaleValue( &ffl.scoreboard.total.x, surface->width ) - (w/2)
+							, ScaleValue( &ffl.scoreboard.total.x, surface->height ) - (h /2)
+							, SetAlpha( BASE_COLOR_BLACK, (percent - 75) * 255 / 25 )
+							, 0
+							, text
+							, ffl.scoreboard.total.font );
+					}
+					else
+					{
+						PutStringFont( surface
+							, ScaleValue( &ffl.scoreboard.total.x, surface->width ) - (w/2)
+							, ScaleValue( &ffl.scoreboard.total.x, surface->height ) - (h/2)
+							, BASE_COLOR_BLACK
+							, 0
+							, text
+							, ffl.scoreboard.total.font );
+					}
+				}				
+			}
+		}
+	}
 }
 
 
@@ -972,11 +1140,6 @@ static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/4th Down") )( PTRSZVAL p
 {
 	struct attract_control *ac = (struct attract_control *)psv;
 	return ac->pc;
-}
-
-static void DrawScoreText( PSI_CONTROL pc )
-{
-
 }
 
 static PTRSZVAL OnCreateControl(WIDE( "Fantasy Football/Scoreboard" ))(PSI_CONTROL parent,S_32 x,S_32 y,_32 w,_32 h)
