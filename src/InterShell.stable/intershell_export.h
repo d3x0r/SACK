@@ -571,6 +571,7 @@ INTERSHELL_PROC_PTR( void, GetSecurityContextTokens )( PTRSZVAL object, CTEXTSTR
 INTERSHELL_PROC_PTR( void, GetSecurityModules )( PLIST *list );
 //INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_GetSaveIndent1 )( void ); // returns one level more than here
 INTERSHELL_PROC_PTR( void, InterShell_SetCloneButton )( PMENU_BUTTON button );
+INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_GetCurrentPageName )( PSI_CONTROL canvas );
 
 };  //struct intershell_interface {
 
@@ -900,6 +901,7 @@ PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 #define  InterShell_SaveSecurityInformation        if( InterShell ) (InterShell)->InterShell_SaveSecurityInformation
 
 #define InterShell_SetCloneButton								if( InterShell) (InterShell)->InterShell_SetCloneButton
+#define InterShell_GetCurrentPageName                    if( InterShell) (InterShell)->InterShell_GetCurrentPageName
 
 
 #endif

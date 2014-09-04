@@ -2906,6 +2906,20 @@ TYPELIB_PROC  PTREEROOT TYPELIB_CALLTYPE  CreateBinaryTreeExtended( _32 flags
    </code>                              */
 TYPELIB_PROC  void TYPELIB_CALLTYPE  DestroyBinaryTree( PTREEROOT root );
 
+/* Drops all the nodes in a tree so it becomes empty...
+   \ \ 
+   Example
+   <code lang="c++">
+   
+   PTREEROOT tree = CreateBinaryTree();
+   
+   ResetBinaryTree( tree );
+   tree = NULL;
+   
+   </code>                              */
+
+TYPELIB_PROC  void TYPELIB_CALLTYPE  ResetBinaryTree( PTREEROOT root );
+
 /* Balances a binary tree. If data is added to a binary list in
    a linear way (from least to most), the tree can become
    unbalanced, and all be on the left or right side of data. This

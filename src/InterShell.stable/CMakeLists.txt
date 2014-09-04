@@ -180,22 +180,22 @@ endif( NOT __ARM__ OR __ANDROID__ )
 
 MACRO( InstallConfig target )
  if( __ANDROID__ )
-  INSTALL( FILES ${CMAKE_INSTALL_PREFIX}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}InterShell{CMAKE_SHARED_LIBRARY_SUFFIX}
-	DESTINATION ${CMAKE_INSTALL_PREFIX}/bin RENAME ${CMAKE_SHARED_LIBRARY_PREFIX}InterShell{CMAKE_SHARED_LIBRARY_SUFFIX} )
+  INSTALL( FILES bin/${CMAKE_SHARED_LIBRARY_PREFIX}InterShell{CMAKE_SHARED_LIBRARY_SUFFIX}
+	DESTINATION bin RENAME ${CMAKE_SHARED_LIBRARY_PREFIX}InterShell{CMAKE_SHARED_LIBRARY_SUFFIX} )
  else( __ANDROID__ )
 
-  INSTALL( FILES ${CMAKE_INSTALL_PREFIX}/bin/InterShell_Window.exe
-	DESTINATION ${CMAKE_INSTALL_PREFIX}/bin RENAME ${target}.exe )
-  INSTALL( FILES ${CMAKE_INSTALL_PREFIX}/bin/InterShell_Window.stop.exe
-	DESTINATION ${CMAKE_INSTALL_PREFIX}/bin RENAME ${target}.stop.exe )
+  INSTALL( FILES bin/InterShell_Window.exe
+	DESTINATION bin RENAME ${target}.exe )
+  INSTALL( FILES bin/InterShell_Window.stop.exe
+	DESTINATION bin RENAME ${target}.stop.exe )
   INSTALL( FILES ${CMAKE_SOURCE_DIR}/interface/${target}.interface.conf
-	DESTINATION ${CMAKE_INSTALL_PREFIX}/bin OPTIONAL)
+	DESTINATION bin OPTIONAL)
  endif( __ANDROID__ )
 ENDMACRO( InstallConfig target )
 
 MACRO( InstallServiceConfig target )
- INSTALL( FILES ${CMAKE_INSTALL_PREFIX}/bin/InterShell.Service.exe
-	DESTINATION ${CMAKE_INSTALL_PREFIX}/bin RENAME ${target}.exe )
+ INSTALL( FILES bin/InterShell.Service.exe
+	DESTINATION bin RENAME ${target}.exe )
 ENDMACRO( InstallServiceConfig target )
 
 #InstallConfig( usbpulse100 )

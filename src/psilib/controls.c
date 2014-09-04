@@ -4299,14 +4299,19 @@ PSI_PROC( void, CommonWait)( PSI_CONTROL pc ) // perhaps give a callback for wit
 				&& !( ( pcbd->okay_value )?( *pcbd->okay_value ):0 )
 				&& !( ( pcbd->done_value )?( *pcbd->done_value ):0 )
 			  )
-{
-lprintf( "not done..." );
+		{
+			lprintf( "not done..." );
 			if( !Idle() )
 			{
 				lprintf( WIDE("Sleeping forever, cause I'm not doing anything else..>") );
 				WakeableSleep( SLEEP_FOREVER );
 			}
-}
+			else
+			{
+				// is thread, did a relinq... but it's UI so we can sleep a little
+				WakeableSleep( 25 );
+			}
+		}
 		DeleteWait( pc );
 	}
 }

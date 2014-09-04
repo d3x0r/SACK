@@ -7,7 +7,7 @@
 //#line 2 "../imglib/psi_fntcache.c"
 #endif
 
-//#define __CAN_USE_CACHE_DIALOG__
+#define __CAN_USE_CACHE_DIALOG__
 #ifdef SACK_MONOLITHIC_BUILD
 #define __CAN_USE_TOPMOST__
 #endif
@@ -1255,6 +1255,7 @@ static int TimeElapsed;
 void CPROC UpdateStatus( PTRSZVAL psvFrame )
 {
 	TEXTCHAR msg[256];
+	fg.font_status_timer_thread = MakeThread();
 	if( !StartTime )
 	{
 		StartTime = GetTickCount();
@@ -1308,14 +1309,22 @@ void BuildFontCache( void )
 	MakeTextControl( status, 5, 5, 240, 19, TXT_STATUS, WIDE("Building font cache..."), 0 );
 	MakeTextControl( status, 5, 25, 240, 19, TXT_TIME_STATUS, WIDE(""), 0 );
 	MakeTextControl( status, 5, 45, 240, 19, TXT_COUNT_STATUS, WIDE(""), 0 );
+
 #endif
 	lprintf( WIDE("Building cache...") );
 	StartTime = 0;
 #ifdef __CAN_USE_CACHE_DIALOG__
-	DisplayFrame( status );
+	{
+		fg.flags.OpeningFontStatus = 1;
+		fg.font_status_open_thread = MakeThread();
+		LeaveCriticalSec( &fg.cs );
+		DisplayFrame( status );
 #  ifdef __CAN_USE_TOPMOST__
-	MakeTopmost( GetFrameRenderer( status ) );
+		MakeTopmost( GetFrameRenderer( status ) );
 #  endif
+		EnterCriticalSec( &fg.cs );
+		fg.flags.OpeningFontStatus = 0;
+	}
 #endif
 #ifdef __CAN_USE_CACHE_DIALOG__
 	timer = AddTimer( 100, UpdateStatus
@@ -1389,7 +1398,7 @@ int IsNumber( char *num )
          return FALSE;
       num++;
 	}
-   return TRUE;
+	return TRUE;
 }
 
 //-------------------------------------------------------------------------
@@ -1407,7 +1416,9 @@ void LoadAllFonts( void )
 	Fopen( in, WIDE("Fonts.Cache"), WIDE("rt") );
 	if( !in )
 	{
+		fg.flags.bScanningFonts = 1;
 		BuildFontCache(); // destroys the trees used to create the cache...
+		fg.flags.bScanningFonts = 0;
 		Fopen( in, WIDE("Fonts.Cache"), WIDE("rt") );
 	}
 	if( in )

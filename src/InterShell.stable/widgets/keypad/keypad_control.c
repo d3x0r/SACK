@@ -672,6 +672,7 @@ static void CPROC KeyPressed( PTRSZVAL psv, PKEY_BUTTON key );
 static int new_flags;
 
 #define NUM_KEYBOARD_KEYS ( sizeof( keyboard_keys ) / sizeof( keyboard_keys[0] ) )
+#define SKIP_KEYBOARD_KEYS_BEGIN KEY_A
 static int keyboard_keys[] = {
    			KEY_0, 
 			KEY_1, 
@@ -683,7 +684,7 @@ static int keyboard_keys[] = {
 			KEY_7, 
 			KEY_8, 
 			KEY_9, 
-			KEY_A, 
+			KEY_A,
 			KEY_B, 
 			KEY_C, 
 			KEY_D, 
@@ -764,6 +765,7 @@ static int _InitKeypad( PSI_CONTROL frame )
 	keypad->enterkey_text_color = Color( 0, 0, 0 );
 	keypad->cancelkey_color = Color( 192, 75, 10 );
 	keypad->cancelkey_text_color = Color( 0, 0, 0 );
+	keypad->capskey_color = Color( 192,78, 94 );
 	// this is the earliest that logging can take place (above here exist declarations...)
    //lprintf( WIDE("Making a keypad at %d,%d %d,%d"), x, w, w, h );
 	LinkThing( keypads, keypad );
@@ -798,6 +800,8 @@ static int _InitKeypad( PSI_CONTROL frame )
       BindEventToKey( render, KEY_PAD_ENTER, KEY_MOD_EXTENDED|KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
       BindEventToKey( render, KEY_PAD_MINUS, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
       BindEventToKey( render, KEY_PAD_DELETE, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
+		if( !( new_flags & KEYPAD_FLAG_ALPHANUM ) )
+		{
 		BindEventToKey( render, KEY_0, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
 		BindEventToKey( render, KEY_1, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
 		BindEventToKey( render, KEY_2, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
@@ -808,14 +812,15 @@ static int _InitKeypad( PSI_CONTROL frame )
 		BindEventToKey( render, KEY_7, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
 		BindEventToKey( render, KEY_8, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
 		BindEventToKey( render, KEY_9, KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
+		}
 		if( new_flags & KEYPAD_FLAG_ALPHANUM )
 		{
 			int n;
 			for( n = 0; n < NUM_KEYBOARD_KEYS; n++ )
 			{
-            //lprintf( "Bind to key %02x %d", keyboard_keys[n], keyboard_keys[n] );
-				BindEventToKey( render, keyboard_keys[n], 0, KeyboardHandler, (PTRSZVAL)frame );
-				BindEventToKey( render, keyboard_keys[n], KEY_MOD_SHIFT, KeyboardHandler, (PTRSZVAL)frame );
+				//lprintf( "Bind to key %02x %d", keyboard_keys[n], keyboard_keys[n] );
+				BindEventToKey( render, keyboard_keys[n], KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
+				BindEventToKey( render, keyboard_keys[n], KEY_MOD_SHIFT|KEY_MOD_ALL_CHANGES, KeyboardHandler, (PTRSZVAL)frame );
 			}
 			for( n = 0; n < NUM_KEYBOARD_KEYS2; n++ )
 			{
@@ -950,7 +955,6 @@ static int _InitKeypad( PSI_CONTROL frame )
 																			 , (PTRSZVAL)frame
 																			 , (CTEXTSTR)(&keypad->keys[row * cols + col])
 																			 );
-
 				SetKeyShading( keypad->keys[row * cols + col].key,
 								  (keypad->keys[row * cols + col].psv_key == (TEXTSTR)-1)
 								  ?(keypad->flags.bAlphaNum?keypad->capskey_color:keypad->cancelkey_color)
@@ -1028,6 +1032,9 @@ static void CPROC KeyPressed( PTRSZVAL psv, PKEY_BUTTON key )
 	if( flags.log_key_events )
 		lprintf( WIDE("Press Key %p"), key );
 
+
+
+
 	string = (pKeyPad->shift_lock ^ pKeyPad->shifted)?(TEXTCHAR*)holder->psv_shifted_key:(TEXTCHAR*)holder->psv_key;
 
 	{
@@ -1073,6 +1080,7 @@ static void CPROC KeyPressed( PTRSZVAL psv, PKEY_BUTTON key )
 			// wake waiting thread...
 			pKeyPad->flags.bResult = 1;
 			pKeyPad->flags.bResultStatus = 1;
+
 			InvokeEnterEvent( (PSI_CONTROL)psv );
 			if( pKeyPad->shifted )
 			{
@@ -1403,7 +1411,7 @@ static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
 			case VK_LSHIFT:
 			case VK_RSHIFT:
 #endif
-            // was in a released state...
+				button = pKeyPad->keys[39].key;
 				if( !pKeyPad->want_shifted )
 				{
 					pKeyPad->typed_with_shift = FALSE;
@@ -1621,8 +1629,7 @@ static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
 			}
 		}
 		{
-			PCOMMON pc = GetKeyCommon( button );
-			PressButton( pc, TRUE );
+			SetKeyPressed( button );
 		}
 	}
 	else if( pKeyPad )// key is being released...
@@ -1630,33 +1637,10 @@ static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
 		if( flags.log_key_events )
 			lprintf( WIDE("Key release %d"), KEY_CODE(key) )
 				;
-      switch( KEY_CODE(key) )
+		if( !pKeyPad->flags.bAlphaNum )
 		{
-		case KEY_SHIFT:
-#ifdef WIN32
-		case VK_LSHIFT:
-		case VK_RSHIFT:
-#endif
-			pKeyPad->want_shifted = FALSE;
-			if( pKeyPad->typed_with_shift )
-			{
-				if( pKeyPad->shifted )
-					KeyPressed( psv, button = pKeyPad->keys[39].key );
-			}
-			else
-			{
-				//lprintf( WIDE("Was just a shift toggle, don't shift now?") );
-            /*
-				if( pKeyPad->shifted )
-				{
-               lprintf( WIDE("was shifted?") );
-					KeyPressed( psv, button = pKeyPad->keys[39].key );
-				}
-				else
-				lprintf( WIDE("wasn't shifted?") );
-            */
-			}
-         break;
+			switch( KEY_CODE(key) )
+		{
 		case KEY_0:
 #if !defined( __ANDROID__ )
 		case KEY_PAD_0:
@@ -1760,12 +1744,248 @@ static LOGICAL CPROC KeyboardHandler( PTRSZVAL psv
 			button = pKeyPad->keys[3 * pKeyPad->key_spacing->cols + 0].key;
 			break;
 		}
+		}
+		else{
+			if( flags.log_key_events )
+				lprintf( WIDE("IS alphanum... %lx"), key );
+			switch( KEY_CODE(key) )
+			{
+			case KEY_BACKSPACE:
+				KeyPressed( psv, button = pKeyPad->keys[51].key );
+				break;
+			case KEY_SHIFT:
+#ifdef WIN32
+			case VK_LSHIFT:
+			case VK_RSHIFT:
+#endif
+				pKeyPad->want_shifted = FALSE;
+				button = pKeyPad->keys[39].key;
+				if( pKeyPad->typed_with_shift )
+				{
+					if( pKeyPad->shifted )
+						KeyPressed( psv, button );
+				}
+				else
+				{
+					//lprintf( WIDE("Was just a shift toggle, don't shift now?") );
+					if( pKeyPad->shifted )
+						KeyPressed( psv, button );
+				}
+				 break;
+			case KEY_BACKSLASH:
+				(button = pKeyPad->keys[13].key );
+				break;
+			case KEY_LEFT_BRACKET:
+				(button = pKeyPad->keys[24].key );
+				break;
+			case KEY_RIGHT_BRACKET:
+				(button = pKeyPad->keys[25].key );
+				break;
+#if !defined( __ANDROID__ )
+			case KEY_CAPS_LOCK:
+				(button = pKeyPad->keys[26].key );
+				break;
+#endif
+			case KEY_Q:
+				(button = pKeyPad->keys[14].key );
+				break;
+			case KEY_W:
+				(button = pKeyPad->keys[15].key );
+				break;
+			case KEY_E:
+				(button = pKeyPad->keys[16].key );
+				break;
+			case KEY_R:
+				(button = pKeyPad->keys[17].key );
+				break;
+			case KEY_T:
+				(button = pKeyPad->keys[18].key );
+				break;
+			case KEY_Y:
+				(button = pKeyPad->keys[19].key );
+				break;
+			case KEY_U:
+				(button = pKeyPad->keys[20].key );
+				break;
+			case KEY_I:
+				(button = pKeyPad->keys[21].key );
+				break;
+			case KEY_O:
+				(button = pKeyPad->keys[22].key );
+				break;
+			case KEY_P:
+				(button = pKeyPad->keys[23].key );
+				break;
+			case KEY_A:
+				(button = pKeyPad->keys[27].key );
+				break;
+			case KEY_S:
+				(button = pKeyPad->keys[28].key );
+				break;
+			case KEY_D:
+				(button = pKeyPad->keys[29].key );
+				break;
+			case KEY_F:
+				(button = pKeyPad->keys[30].key );
+				break;
+			case KEY_G:
+				(button = pKeyPad->keys[31].key );
+				break;
+			case KEY_H:
+				(button = pKeyPad->keys[32].key );
+				break;
+			case KEY_J:
+				(button = pKeyPad->keys[33].key );
+				break;
+			case KEY_K:
+				(button = pKeyPad->keys[34].key );
+				break;
+			case KEY_L:
+				(button = pKeyPad->keys[35].key );
+				break;
+
+			case KEY_SEMICOLON:
+				(button = pKeyPad->keys[36].key );
+				break;
+			case KEY_QUOTE:
+				(button = pKeyPad->keys[37].key );
+				break;
+
+			case KEY_Z:
+				(button = pKeyPad->keys[40].key );
+				break;
+			case KEY_X:
+				(button = pKeyPad->keys[41].key );
+				break;
+			case KEY_C:
+				(button = pKeyPad->keys[42].key );
+				break;
+			case KEY_V:
+				(button = pKeyPad->keys[43].key );
+				break;
+			case KEY_B:
+				(button = pKeyPad->keys[44].key );
+				break;
+			case KEY_N:
+				(button = pKeyPad->keys[45].key );
+				break;
+			case KEY_M:
+				(button = pKeyPad->keys[46].key );
+				break;
+			case KEY_SPACE:
+				(button = pKeyPad->keys[47].key );
+				break;
+			case KEY_COMMA:
+				(button = pKeyPad->keys[48].key );
+				break;
+			case KEY_PERIOD:
+				(button = pKeyPad->keys[49].key );
+				break;
+			case KEY_SLASH:
+				(button = pKeyPad->keys[50].key );
+				break;
+#if !defined( __ANDROID__ )
+			case KEY_ESCAPE:
+				(button = pKeyPad->keys[0].key );
+				break;
+#endif
+			case KEY_1:
+#if !defined( __ANDROID__ )
+			case KEY_END:
+			case KEY_PAD_1:
+#endif
+				(button = pKeyPad->keys[1].key );
+				break;
+			case KEY_2:
+			case KEY_DOWN:
+#if !defined( __ANDROID__ )
+			case KEY_PAD_2:
+#endif
+				(button = pKeyPad->keys[2].key );
+				break;
+			case KEY_3:
+#if !defined( __ANDROID__ )
+			case KEY_PGDN:
+			case KEY_PAD_3:
+#endif
+				(button = pKeyPad->keys[3].key );
+				break;
+			case KEY_4:
+			case KEY_LEFT:
+#if !defined( __ANDROID__ )
+			case KEY_PAD_4:
+#endif
+				(button = pKeyPad->keys[4].key );
+				break;
+			case KEY_5:
+			case KEY_CENTER:
+#if !defined( __ANDROID__ )
+			case KEY_PAD_5:
+#endif
+				(button = pKeyPad->keys[5].key );
+				break;
+			case KEY_6:
+			case KEY_RIGHT:
+#if !defined( __ANDROID__ )
+			case KEY_PAD_6:
+#endif
+				(button = pKeyPad->keys[6].key );
+				break;
+			case KEY_7:
+#if !defined( __ANDROID__ )
+			case KEY_HOME:
+			case KEY_PAD_7:
+#endif
+				(button = pKeyPad->keys[7].key );
+				break;
+			case KEY_8:
+			case KEY_UP:
+#if !defined( __ANDROID__ )
+			case KEY_PAD_8:
+#endif
+				(button = pKeyPad->keys[8].key );
+				break;
+			case KEY_9:
+#if !defined( __ANDROID__ )
+			case KEY_PGUP:
+			case KEY_PAD_9:
+#endif
+				(button = pKeyPad->keys[9].key );
+				break;
+			case KEY_0:
+#if !defined( __ANDROID__ )
+			case KEY_PAD_0:
+			case KEY_INSERT:
+#endif
+				(button = pKeyPad->keys[10].key );
+				break;
+
+#if !defined( __ANDROID__ )
+			case KEY_PAD_MINUS:
+#endif
+			case KEY_DASH:
+				(button = pKeyPad->keys[11].key );
+				break;
+			case KEY_EQUAL:
+				(button = pKeyPad->keys[12].key );
+				break;
+				//case KEY_ENTER:
+			case KEY_PAD_ENTER:
+				(button = pKeyPad->keys[38].key );
+				break;
+#if !defined( __ANDROID__ )
+			case KEY_PAD_DELETE:
+			case KEY_DELETE:
+				(button = pKeyPad->keys[39+3].key );
+				break;
+#endif
+			}
+		}
 		{
-			PCOMMON pc = GetKeyCommon( button );
-			PressButton( pc, FALSE );
+			SetKeyReleased( button );
 		}
 	}
-   return 1;
+	return 0;
 }
 
 void SetDisplayPadKeypad( PSI_CONTROL pc, PKEYPAD keypad )
@@ -1844,6 +2064,15 @@ static void OnRevealCommon( WIDE("Keypad Control 2") )( PSI_CONTROL pc )
 	{
 		keypad->flags.bHidden = 0;
 		keypad->flags.bResult = 0;
+		{
+			int row, col;
+
+			for( row = 0; row < keypad->rows; row++ )
+				for( col = 0; col < keypad->cols; col++ )
+				{
+					ShowKey( keypad->keys[( row * keypad->cols + col )].key );
+				}
+		}
 	}
 }
 
@@ -2081,8 +2310,8 @@ void KeypadSetEnterKeyColor( PSI_CONTROL pc_keypad, CDATA color )
 			{
 				int shift_state = keypad->shift_lock ^ keypad->shifted;
 				CTEXTSTR value;
-            PKEY_HOLDER holder = keypad->keys + ( row * keypad->cols + col );
-            value = shift_state?(CTEXTSTR)holder->psv_shifted_key:(CTEXTSTR)holder->psv_key;
+				PKEY_HOLDER holder = keypad->keys + ( row * keypad->cols + col );
+				value = shift_state?(CTEXTSTR)holder->psv_shifted_key:(CTEXTSTR)holder->psv_key;
 				//keypad->keys[row * cols + col]
 				if( value == (CTEXTSTR)-1 )
 					continue;
@@ -2096,7 +2325,7 @@ void KeypadSetEnterKeyColor( PSI_CONTROL pc_keypad, CDATA color )
 void KeypadSetC_KeyColor( PSI_CONTROL pc_keypad, CDATA color )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, pc_keypad );
-	if( keypad )
+	if( keypad && !keypad->flags.bAlphaNum )
 	{
 		int row, col;
 		keypad->cancelkey_color = color;
@@ -2114,6 +2343,27 @@ void KeypadSetC_KeyColor( PSI_CONTROL pc_keypad, CDATA color )
 					continue;
 				else
 					;//SetKeyColor( keypad->keys[row * cols + col], color );
+			}
+	}
+}
+void KeypadSetCapsKeyColor( PSI_CONTROL pc_keypad, CDATA color )
+{
+	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, pc_keypad );
+	if( keypad && keypad->flags.bAlphaNum )
+	{
+		int row, col;
+		keypad->capskey_color = color;
+
+		for( row = 0; row < keypad->rows; row++ )
+			for( col = 0; col < keypad->cols; col++ )
+			{
+				int shift_state = keypad->shift_lock ^ keypad->shifted;
+				CTEXTSTR value;
+				PKEY_HOLDER holder = keypad->keys + ( row * keypad->cols + col );
+				value = shift_state?(CTEXTSTR)holder->psv_shifted_key:(CTEXTSTR)holder->psv_key;
+				//keypad->keys[row * cols + col]
+				if( value == (CTEXTSTR)-1 )
+					SetKeyTextColor( holder->key, color );
 			}
 	}
 }
@@ -2141,6 +2391,7 @@ void KeypadSetNumberKeyTextColor( PSI_CONTROL pc_keypad, CDATA color )
 			}
 	}
 }
+
 void KeypadSetEnterKeyTextColor( PSI_CONTROL pc_keypad, CDATA color )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, pc_keypad );
@@ -2199,6 +2450,7 @@ void KeypadWriteConfig( FILE *file, CTEXTSTR indent, PSI_CONTROL pc_keypad )
 	fprintf( file, WIDE( "%skeypad color numkey=%s\n" ), indent, FormatColor( keypad->numkey_color ) );
 	fprintf( file, WIDE( "%skeypad color enterkey=%s\n" ), indent, FormatColor( keypad->enterkey_color ) );
 	fprintf( file, WIDE( "%skeypad color cancelkey=%s\n" ), indent, FormatColor( keypad->cancelkey_color ) );
+	fprintf( file, WIDE( "%skeypad color capskey=%s\n" ), indent, FormatColor( keypad->capskey_color ) );
 	fprintf( file, WIDE( "%skeypad color numkey text=%s\n" ), indent, FormatColor( keypad->numkey_text_color ) );
 	fprintf( file, WIDE( "%skeypad color enterkey text=%s\n" ), indent, FormatColor( keypad->enterkey_text_color ) );
 	fprintf( file, WIDE( "%skeypad color cancelkey text=%s\n" ), indent, FormatColor( keypad->cancelkey_text_color ) );
@@ -2251,7 +2503,14 @@ static PTRSZVAL CPROC SetCancelKeyColor( PTRSZVAL psv, arg_list args )
 static PTRSZVAL CPROC SetNumkeyTextColor( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CDATA, color );
-   KeypadSetNumberKeyTextColor( (PSI_CONTROL)(*ppsv), color );
+	KeypadSetNumberKeyTextColor( (PSI_CONTROL)(*ppsv), color );
+	return psv;
+}
+
+static PTRSZVAL CPROC SetCapsKeyColor( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, CDATA, color );
+	KeypadSetCapsKeyColor( (PSI_CONTROL)(*ppsv), color );
 	return psv;
 }
 
@@ -2304,6 +2563,7 @@ void KeypadSetupConfig( PCONFIG_HANDLER pch, PTRSZVAL *psv )
 	AddConfigurationMethod( pch, WIDE( "keypad color numkey text=%c" ), SetNumkeyTextColor );
 	AddConfigurationMethod( pch, WIDE( "keypad color enterkey text=%c" ), SetEnterKeyTextColor );
 	AddConfigurationMethod( pch, WIDE( "keypad color cancelkey text=%c" ), SetCancelKeyTextColor );
+	AddConfigurationMethod( pch, WIDE( "keypad color capskey=%c" ), SetCapsKeyColor );
 	AddConfigurationMethod( pch, WIDE( "keypad style=%i" ), SetKeypadStyleConfig );
 	AddConfigurationMethod( pch, WIDE( "keypad formatting='%m'" ), SetKeypadFormatConfig );
 }
