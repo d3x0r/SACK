@@ -120,52 +120,52 @@ int xFileSize(sqlite3_file*file, sqlite3_int64 *pSize)
 
 int xLock(sqlite3_file*file, int locktype)
 {
-	return SQLITE_OK;
-#if 0
+	return SQLITE_OK;
+#if 0
 	struct my_file_data *my_file = (struct my_file_data*)file;
 	switch( locktype )
 	{
-	case SQLITE_LOCK_NONE:
+	case SQLITE_LOCK_NONE:
 		//return SQLITE_OK;
-	case SQLITE_LOCK_SHARED:
-	case SQLITE_LOCK_RESERVED:
-	case SQLITE_LOCK_PENDING:
-	case SQLITE_LOCK_EXCLUSIVE:
+	case SQLITE_LOCK_SHARED:
+	case SQLITE_LOCK_RESERVED:
+	case SQLITE_LOCK_PENDING:
+	case SQLITE_LOCK_EXCLUSIVE:
 		EnterCriticalSec( &my_file->cs );
 		my_file->locktype = locktype;
 		return SQLITE_OK;
-		break;
-	}
-#endif
+		break;
+	}
+#endif
 }
 
 int xUnlock(sqlite3_file*file, int locktype)
 {
-	return SQLITE_OK;
-#if 0
+	return SQLITE_OK;
+#if 0
 	struct my_file_data *my_file = (struct my_file_data*)file;
 	switch( locktype )
 	{
-	case SQLITE_LOCK_NONE:
-		//break;
-	case SQLITE_LOCK_SHARED:
-	case SQLITE_LOCK_RESERVED:
-	case SQLITE_LOCK_PENDING:
-	case SQLITE_LOCK_EXCLUSIVE:
-		//my_file->error = SQLITE_LOCK_EXCLUSIVE;
+	case SQLITE_LOCK_NONE:
+		//break;
+	case SQLITE_LOCK_SHARED:
+	case SQLITE_LOCK_RESERVED:
+	case SQLITE_LOCK_PENDING:
+	case SQLITE_LOCK_EXCLUSIVE:
+		//my_file->error = SQLITE_LOCK_EXCLUSIVE;
 		LeaveCriticalSec( &my_file->cs );
 		my_file->locktype = SQLITE_LOCK_NONE;
-		break;
-	}
-	return SQLITE_OK;
-#endif
+		break;
+	}
+	return SQLITE_OK;
+#endif
 }
 
 
 int xCheckReservedLock(sqlite3_file*file, int *pResOut)
 {
 	
-	*pResOut = 0;
+	*pResOut = 0;
 	return SQLITE_OK;
 #if 0
 	struct my_file_data *my_file = (struct my_file_data*)file;
@@ -184,21 +184,21 @@ int xFileControl(sqlite3_file*file, int op, void *pArg)
 	//lprintf( WIDE("file control op: %d %p"), op, pArg );
 	switch( op )
 	{
-	case SQLITE_FCNTL_LOCKSTATE:
-	case SQLITE_GET_LOCKPROXYFILE:
-	case SQLITE_SET_LOCKPROXYFILE:
-	case SQLITE_LAST_ERRNO:
-	case SQLITE_FCNTL_SIZE_HINT:
-	case SQLITE_FCNTL_CHUNK_SIZE:
-	case SQLITE_FCNTL_FILE_POINTER:
-	case SQLITE_FCNTL_SYNC_OMITTED:
-	case SQLITE_FCNTL_WIN32_AV_RETRY:
-	case SQLITE_FCNTL_PERSIST_WAL:
-	case SQLITE_FCNTL_OVERWRITE:
-	case SQLITE_FCNTL_VFSNAME:
-	case SQLITE_FCNTL_POWERSAFE_OVERWRITE:
-	case SQLITE_FCNTL_PRAGMA:
-	case SQLITE_FCNTL_BUSYHANDLER:
+	case SQLITE_FCNTL_LOCKSTATE:
+	case SQLITE_GET_LOCKPROXYFILE:
+	case SQLITE_SET_LOCKPROXYFILE:
+	case SQLITE_LAST_ERRNO:
+	case SQLITE_FCNTL_SIZE_HINT:
+	case SQLITE_FCNTL_CHUNK_SIZE:
+	case SQLITE_FCNTL_FILE_POINTER:
+	case SQLITE_FCNTL_SYNC_OMITTED:
+	case SQLITE_FCNTL_WIN32_AV_RETRY:
+	case SQLITE_FCNTL_PERSIST_WAL:
+	case SQLITE_FCNTL_OVERWRITE:
+	case SQLITE_FCNTL_VFSNAME:
+	case SQLITE_FCNTL_POWERSAFE_OVERWRITE:
+	case SQLITE_FCNTL_PRAGMA:
+	case SQLITE_FCNTL_BUSYHANDLER:
 	case SQLITE_FCNTL_TEMPFILENAME:
 		break;
 	}
@@ -309,64 +309,64 @@ int xDelete(sqlite3_vfs*vfs, const char *zName, int syncDir)
 }
 
 
-#ifndef F_OK
-# define F_OK 0
-#endif
-#ifndef R_OK
-# define R_OK 4
-#endif
-#ifndef W_OK
-# define W_OK 2
+#ifndef F_OK
+# define F_OK 0
 #endif
-/*
-** Query the file-system to see if the named file exists, is readable or
-** is both readable and writable.
-*/
-static int xAccess(
-  sqlite3_vfs *pVfs, 
-  const char *zPath, 
-  int flags, 
-  int *pResOut
-){
-  int rc;                         /* access() return code */
-  int eAccess = F_OK;             /* Second argument to access() */
-  /*
-  assert( flags==SQLITE_ACCESS_EXISTS       /* access(zPath, F_OK) 
-       || flags==SQLITE_ACCESS_READ         /* access(zPath, R_OK) 
-       || flags==SQLITE_ACCESS_READWRITE    /* access(zPath, R_OK|W_OK) 
-  );
-  */
-  //lprintf( "Access on %s", zPath );
-  if( flags==SQLITE_ACCESS_READWRITE ) eAccess = R_OK|W_OK;
-  if( flags==SQLITE_ACCESS_READ )      eAccess = R_OK;
-
-  rc = access(zPath, eAccess);
-  *pResOut = (rc==0);
-  return SQLITE_OK;
+#ifndef R_OK
+# define R_OK 4
+#endif
+#ifndef W_OK
+# define W_OK 2
+#endif
+/*
+** Query the file-system to see if the named file exists, is readable or
+** is both readable and writable.
+*/
+static int xAccess(
+  sqlite3_vfs *pVfs, 
+  const char *zPath, 
+  int flags, 
+  int *pResOut
+){
+  int rc;                         /* access() return code */
+  int eAccess = F_OK;             /* Second argument to access() */
+  /*
+  assert( flags==SQLITE_ACCESS_EXISTS       /* access(zPath, F_OK) 
+       || flags==SQLITE_ACCESS_READ         /* access(zPath, R_OK) 
+       || flags==SQLITE_ACCESS_READWRITE    /* access(zPath, R_OK|W_OK) 
+  );
+  */
+  //lprintf( "Access on %s", zPath );
+  if( flags==SQLITE_ACCESS_READWRITE ) eAccess = R_OK|W_OK;
+  if( flags==SQLITE_ACCESS_READ )      eAccess = R_OK;
+
+  rc = access(zPath, eAccess);
+  *pResOut = (rc==0);
+  return SQLITE_OK;
 }
 
-/*
-** Argument zPath points to a nul-terminated string containing a file path.
-** If zPath is an absolute path, then it is copied as is into the output 
-** buffer. Otherwise, if it is a relative path, then the equivalent full
-** path is written to the output buffer.
-**
-** This function assumes that paths are UNIX style. Specifically, that:
-**
-**   1. Path components are separated by a '/'. and 
-**   2. Full paths begin with a '/' character.
-*/
-static int xFullPathname(
-  sqlite3_vfs *pVfs,              /* VFS */
-  const char *zPath,              /* Input path (possibly a relative path) */
-  int nPathOut,                   /* Size of output buffer in bytes */
-  char *zPathOut                  /* Pointer to output buffer */
-){
-	TEXTSTR path = ExpandPath( zPath );
-	//lprintf( "Expand %s = %s", zPath, path );
-	StrCpyEx( zPathOut, path, nPathOut );
-	Release( path );
-	return SQLITE_OK;
+/*
+** Argument zPath points to a nul-terminated string containing a file path.
+** If zPath is an absolute path, then it is copied as is into the output 
+** buffer. Otherwise, if it is a relative path, then the equivalent full
+** path is written to the output buffer.
+**
+** This function assumes that paths are UNIX style. Specifically, that:
+**
+**   1. Path components are separated by a '/'. and 
+**   2. Full paths begin with a '/' character.
+*/
+static int xFullPathname(
+  sqlite3_vfs *pVfs,              /* VFS */
+  const char *zPath,              /* Input path (possibly a relative path) */
+  int nPathOut,                   /* Size of output buffer in bytes */
+  char *zPathOut                  /* Pointer to output buffer */
+){
+	TEXTSTR path = ExpandPath( zPath );
+	//lprintf( "Expand %s = %s", zPath, path );
+	StrCpyEx( zPathOut, path, nPathOut );
+	Release( path );
+	return SQLITE_OK;
 }
 static void DoInitVFS( void )
 {
