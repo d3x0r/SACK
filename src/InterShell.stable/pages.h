@@ -106,6 +106,7 @@ void StoreTheme( PCanvasData canvas );
 // called when theme has changed, but before final display update
 void UpdateTheme( PCanvasData canvas );
 
+CTEXTSTR InterShell_GetCurrentPageName( PSI_CONTROL pc_canvas );
 
 #endif
 
