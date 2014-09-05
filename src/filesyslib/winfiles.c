@@ -951,6 +951,12 @@ size_t  sack_fseek ( FILE *file_file, size_t pos, int whence )
 	return ftell( file_file );
 }
 
+int  sack_fflush ( FILE *file_file )
+{
+	return fflush( file_file );
+}
+
+
 int  sack_fclose ( FILE *file_file )
 {
 	struct file *file;
