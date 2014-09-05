@@ -901,7 +901,7 @@ PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 #define  InterShell_SaveSecurityInformation        if( InterShell ) (InterShell)->InterShell_SaveSecurityInformation
 
 #define InterShell_SetCloneButton								if( InterShell) (InterShell)->InterShell_SetCloneButton
-#define InterShell_GetCurrentPageName                    if( InterShell) (InterShell)->InterShell_GetCurrentPageName
+#define InterShell_GetCurrentPageName                    ( !InterShell)?WIDE("first"):(InterShell)->InterShell_GetCurrentPageName
 
 
 #endif

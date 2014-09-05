@@ -87,6 +87,15 @@ PPAGE_DATA GetCurrentCanvasPage( PCanvasData canvas )
 
 //-------------------------------------------------------------------------
 
+CTEXTSTR InterShell_GetCurrentPageName( PSI_CONTROL pc_canvas )
+{
+	PCanvasData canvas = GetCanvas( pc_canvas );
+	PPAGE_DATA page = GetCurrentCanvasPage( canvas );
+	return page->title?page->title:WIDE("first");
+}
+
+//-------------------------------------------------------------------------
+
 PPAGE_DATA ShellGetNamedPage( PSI_CONTROL pc_canvas, CTEXTSTR name )
 {
 	if( pc_canvas )

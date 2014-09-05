@@ -4741,7 +4741,7 @@ PSI_CONTROL Init( LOGICAL bLoadConfig )
 		if( bLoadConfig )
 		{
 			Banner2NoWaitAlpha( WIDE("Finish Config...") );
-			InvokeFinishInit();
+			InvokeFinishInit( pc_canvas );
 		}
 		if( g.flags.bLogNames )
 		{
@@ -4946,7 +4946,7 @@ void InvokeFinishAllInit( void )
 	}
 }
 
-void InvokeFinishInit( void )
+void InvokeFinishInit( PSI_CONTROL pc_canvas )
 {
 	CTEXTSTR name;
 	PCLASSROOT data = NULL;
@@ -4955,11 +4955,11 @@ void InvokeFinishInit( void )
 		name;
 		name = GetNextRegisteredName( &data ) )
 	{
-		void (CPROC*f)(void);
+		void (CPROC*f)(PSI_CONTROL pc);
 		//snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE( "/common/save common/%s" ), name );
-		f = GetRegisteredProcedure2( (CTEXTSTR)data, void, name, (void) );
+		f = GetRegisteredProcedure2( (CTEXTSTR)data, void, name, (PSI_CONTROL) );
 		if( f )
-			f();
+			f(pc_canvas);
 	}
 	if( g.pSelectionMenu )
 	{
@@ -5664,7 +5664,8 @@ GetCommonButtonControls
 																				 , GetSecurityContextTokens
 																				 , GetSecurityModules
 
-															 , InterShell_SetCloneButton
+																				 , InterShell_SetCloneButton
+                                                             , InterShell_GetCurrentPageName
 };
 
 static POINTER CPROC LoadInterShellInterface( void )
