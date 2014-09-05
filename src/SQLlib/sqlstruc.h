@@ -240,9 +240,16 @@ int (FIXREF2*sqlite3_get_autocommit)(sqlite3*);
 int (FIXREF2*sqlite3_open)(  const char *filename,   /* Database filename (UTF-8) */
   sqlite3 **ppDb          /* OUT: SQLite db handle */
 );
+int (FIXREF2*sqlite3_open_v2)(
+  const char *filename,   /* Database filename (UTF-8) */
+  sqlite3 **ppDb,         /* OUT: SQLite db handle */
+  int flags,              /* Flags */
+  const char *zVfs        /* Name of VFS module to use */
+);
 const char* (FIXREF2*sqlite3_errmsg)(sqlite3*);
 int (FIXREF2*sqlite3_finalize)(sqlite3_stmt *);
 int (FIXREF2*sqlite3_close)(sqlite3*);
+int (FIXREF2*sqlite3_close_v2)(sqlite3*);
 int (FIXREF2*sqlite3_prepare_v2)(
   sqlite3 *db,            
   const char *zSql,       
@@ -279,9 +286,11 @@ PRIORITY_PRELOAD( LoadSQLiteInterface, SQL_PRELOAD_PRIORITY-1 )
 #    define sqlite3_create_function      (FIXDEREF (sqlite_iface->sqlite3_create_function))
 #    define sqlite3_get_autocommit       (FIXDEREF2 (sqlite_iface->sqlite3_get_autocommit))
 #    define sqlite3_open(a,b)            (sqlite_iface)?(FIXDEREF2((sqlite_iface)->sqlite3_open))(a,b):SQLITE_ERROR
+#    define sqlite3_open_v2(a,b,c,d)     (sqlite_iface)?(FIXDEREF2((sqlite_iface)->sqlite3_open_v2))(a,b,c,d):SQLITE_ERROR
 #    define sqlite3_errmsg(db)           (sqlite_iface)?(FIXDEREF2((sqlite_iface)->sqlite3_errmsg))(db):"No Sqlite3 Interface"
 #    define sqlite3_finalize             (FIXDEREF2 (sqlite_iface->sqlite3_finalize))
 #    define sqlite3_close                (FIXDEREF2 (sqlite_iface->sqlite3_close))
+#    define sqlite3_close_v2             (FIXDEREF2 (sqlite_iface->sqlite3_close_v2))
 #    define sqlite3_prepare_v2           (FIXDEREF2 (sqlite_iface->sqlite3_prepare_v2))
 #    define sqlite3_step                 (FIXDEREF2 (sqlite_iface->sqlite3_step))
 #    define sqlite3_column_name          (FIXDEREF2 (sqlite_iface->sqlite3_column_name))

@@ -314,7 +314,7 @@ typedef sqlite_uint64 sqlite3_uint64;
 ** argument is a harmless no-op.
 */
 SQLITE_EXTERN SQLITE_API int sqlite3_close(sqlite3*);
-SQLITE_API int sqlite3_close_v2(sqlite3*);
+SQLITE_EXTERN SQLITE_API int sqlite3_close_v2(sqlite3*);
 
 /*
 ** The type for a callback function.
@@ -2754,7 +2754,7 @@ SQLITE_API int sqlite3_open16(
   const void *filename,   /* Database filename (UTF-16) */
   sqlite3 **ppDb          /* OUT: SQLite db handle */
 );
-SQLITE_API int sqlite3_open_v2(
+SQLITE_EXTERN SQLITE_API int sqlite3_open_v2(
   const char *filename,   /* Database filename (UTF-8) */
   sqlite3 **ppDb,         /* OUT: SQLite db handle */
   int flags,              /* Flags */
@@ -5604,8 +5604,8 @@ SQLITE_API int sqlite3_blob_write(sqlite3_blob *, const void *z, int n, int iOff
 ** ^(If the default VFS is unregistered, another VFS is chosen as
 ** the default.  The choice for the new VFS is arbitrary.)^
 */
-SQLITE_API sqlite3_vfs *sqlite3_vfs_find(const char *zVfsName);
-SQLITE_API int sqlite3_vfs_register(sqlite3_vfs*, int makeDflt);
+SQLITE_EXTERN SQLITE_API sqlite3_vfs *sqlite3_vfs_find(const char *zVfsName);
+SQLITE_EXTERN SQLITE_API int sqlite3_vfs_register(sqlite3_vfs*, int makeDflt);
 SQLITE_API int sqlite3_vfs_unregister(sqlite3_vfs*);
 
 /*

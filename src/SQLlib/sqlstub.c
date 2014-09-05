@@ -1156,9 +1156,37 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 			// and - we REQUIRE connection...
 			if( !( odbc->flags.bForceConnection && !odbc->flags.bSkipODBC ) )
 			{
-				TEXTCHAR *tmp_name = ExpandPath( odbc->info.pDSN);
-				char *tmp = CStrDup( tmp_name );
-				rc3 = sqlite3_open( tmp, &odbc->db );
+				TEXTCHAR *tmp_name;
+				char *tmp;
+				if( odbc->info.pDSN[0] == '$' )
+				{
+					char *vfs_name;
+					CTEXTSTR vfs_end = StrChr( odbc->info.pDSN + 1, '$' );
+					TEXTCHAR *tmpvfs;
+					if( vfs_end )
+					{
+						tmp_name = ExpandPath( vfs_end + 1 );
+						tmpvfs = NewArray( TEXTCHAR, ( vfs_end - odbc->info.pDSN ) + 1 );
+						StrCpyEx( tmpvfs, odbc->info.pDSN + 1, vfs_end - odbc->info.pDSN );
+						vfs_name = CStrDup( tmpvfs );
+						Deallocate( TEXTCHAR*, tmpvfs );
+					}
+					else
+					{
+						tmp_name = ExpandPath( odbc->info.pDSN + 1 );
+						vfs_name = NULL;
+					}
+
+					tmp = CStrDup( tmp_name );
+					rc3 = sqlite3_open_v2( tmp, &odbc->db, SQLITE_OPEN_READWRITE, vfs_name );
+					Deallocate( char *, vfs_name );
+				}
+				else
+				{
+					tmp_name = ExpandPath( odbc->info.pDSN);
+					tmp = CStrDup( tmp_name );
+					rc3 = sqlite3_open( tmp, &odbc->db );
+				}
 				Release( tmp );
 				Deallocate( TEXTCHAR *, tmp_name );
 				if( rc3 )
