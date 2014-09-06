@@ -10,6 +10,7 @@
 
 FILESYS_NAMESPACE
 
+
 struct file{
 	TEXTSTR name;
 	TEXTSTR fullname;
@@ -18,6 +19,13 @@ struct file{
 	PLIST handles; // HANDLE 's
 	PLIST files; // FILE *'s
 	INDEX group;
+	struct file_system_interface *fsi;
+};
+
+struct file_interface_tracker
+{
+	CTEXTSTR name;
+	struct file_system_interface *fsi;
 };
 
 struct Group {
@@ -30,6 +38,8 @@ static struct winfile_local_tag {
 	PLIST files;
 	PLIST groups;
 	PLIST handles;
+	PLIST file_system_interface;
+
 	LOGICAL have_default;
 	struct {
 		BIT_FIELD bLogOpenClose : 1;
@@ -803,8 +813,10 @@ struct file *FindFileByFILE( FILE *file_file )
 	return file;
 }
 
+#undef open
 #undef fopen
-FILE*  sack_fopen ( INDEX group, CTEXTSTR filename, CTEXTSTR opts )
+
+FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_system_interface *fsi )
 {
 	FILE *handle;
 	struct file *file;
@@ -824,22 +836,23 @@ FILE*  sack_fopen ( INDEX group, CTEXTSTR filename, CTEXTSTR opts )
 	LeaveCriticalSec( &l.cs_files );
 	if( !file )
 	{
-	  TEXTSTR tmpname;
+		TEXTSTR tmpname;
 		struct Group *filegroup = (struct Group *)GetLink( &l.groups, group );
 		file = New( struct file );
 		memalloc = TRUE;
 
 		file->handles = NULL;
 		file->files = NULL;
-		 file->name = StrDup( filename );
-		 tmpname = ExpandPath( filename );
-		 if( !IsAbsolutePath( tmpname ) )
-		 {
-			 file->fullname = PrependBasePath( group, filegroup, tmpname );
-		  Release( tmpname );
-		 }
-		 else
-		  file->fullname = tmpname;
+		file->name = StrDup( filename );
+		file->fsi = fsi;
+		tmpname = ExpandPath( filename );
+		if( !IsAbsolutePath( tmpname ) )
+		{
+			file->fullname = PrependBasePath( group, filegroup, tmpname );
+			Release( tmpname );
+		}
+		else
+			file->fullname = tmpname;
 		file->group = group;
 		EnterCriticalSec( &l.cs_files );
 		AddLink( &l.files,file );
@@ -859,15 +872,22 @@ FILE*  sack_fopen ( INDEX group, CTEXTSTR filename, CTEXTSTR opts )
 	if( l.flags.bLogOpenClose )
 		lprintf( WIDE( "Open File: [%s]" ), file->fullname );
 
+	if( fsi )
+	{
+		handle = (FILE*)fsi->open( file->fullname );
+	}
+	else
+	{
 #ifdef UNICODE
-	handle = _wfopen( file->fullname, opts );
+		handle = _wfopen( file->fullname, opts );
 #else
 #ifdef _STRSAFE_H_INCLUDED_
-	fopen_s( &handle, file->fullname, opts );
+		fopen_s( &handle, file->fullname, opts );
 #else
-	handle = fopen( file->fullname, opts );
+		handle = fopen( file->fullname, opts );
 #endif
 #endif
+	}
 	if( !handle )
 	{
 		if( l.flags.bLogOpenClose )
@@ -882,7 +902,16 @@ FILE*  sack_fopen ( INDEX group, CTEXTSTR filename, CTEXTSTR opts )
 	return handle;
 }
 
-FILE*  sack_fsopen( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mode )
+FILE*  sack_fopen ( INDEX group, CTEXTSTR filename, CTEXTSTR opts )
+{
+	return sack_fopenEx( group, filename, opts, NULL );
+}
+
+FILE*  sack_fsopenEx( INDEX group
+					 , CTEXTSTR filename
+					 , CTEXTSTR opts
+					 , int share_mode
+					 , struct file_system_interface *fsi )
 {
 	FILE *handle;
 	struct file *file;
@@ -893,7 +922,7 @@ FILE*  sack_fsopen( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mod
 	{
 		if( StrCmp( file->name, filename ) == 0 )
 		{
-		break;
+			break;
 		}
 	}
 	LeaveCriticalSec( &l.cs_files );
@@ -905,21 +934,28 @@ FILE*  sack_fsopen( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mod
 		file->files = NULL;
 		file->name = StrDup( filename );
 		file->group = group;
+		file->fsi = fsi;
 		file->fullname = PrependBasePath( group, filegroup, filename );
 		EnterCriticalSec( &l.cs_files );
 		AddLink( &l.files,file );
 		LeaveCriticalSec( &l.cs_files );
 	}
-
+	if( fsi )
+	{
+		handle = (FILE*)fsi->open( file->fullname );
+	}
+	else
+	{
 #ifdef UNICODE
-	handle = _wfopen( file->fullname, opts );
+		handle = _wfopen( file->fullname, opts );
 #else
 #ifdef _STRSAFE_H_INCLUDED_
-	handle = _fsopen( file->fullname, opts, share_mode );
+		handle = _fsopen( file->fullname, opts, share_mode );
 #else
-	handle = fopen( file->fullname, opts );
+		handle = fopen( file->fullname, opts );
 #endif
 #endif
+	}
 	if( !handle )
 	{
 		if( l.flags.bLogOpenClose )
@@ -936,6 +972,11 @@ FILE*  sack_fsopen( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mod
 	return handle;
 }
 
+FILE*  sack_fsopen( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mode )
+{
+	return sack_fsopenEx( group, filename, opts, share_mode, NULL );
+}
+
 size_t sack_ftell ( FILE *file_file )
 {
 	struct file *file;
@@ -945,6 +986,7 @@ size_t sack_ftell ( FILE *file_file )
 
 size_t  sack_fseek ( FILE *file_file, size_t pos, int whence )
 {
+
 	if( fseek( file_file, pos, whence ) )
 		return -1;
 	//struct file *file = FindFileByFILE( file_file );
@@ -975,14 +1017,24 @@ int  sack_fclose ( FILE *file_file )
 	Release( file );
 	DeleteLink( &files, file );
 	*/
+	if( file->fsi )
+		return file->fsi->close( file_file );
 	return fclose( file_file );
 }
  size_t  sack_fread ( POINTER buffer, size_t size, int count,FILE *file_file )
 {
+	struct file *file;
+	file = FindFileByFILE( file_file );
+	if( file->fsi )
+		return file->fsi->read( (char*)buffer, size * count, file_file );
 	return fread( buffer, size, count, file_file );
 }
  size_t  sack_fwrite ( CPOINTER buffer, size_t size, int count,FILE *file_file )
 {
+	struct file *file;
+	file = FindFileByFILE( file_file );
+	if( file->fsi )
+		return file->fsi->write( file_file, (const char*)buffer, size * count );
 	return fwrite( (POINTER)buffer, size, count, file_file );
 }
 
@@ -1089,6 +1141,25 @@ _32 GetFileTimeAndSize( CTEXTSTR name
 #endif
 }
 
+struct file_system_interface *sack_get_filesystem_interface( CTEXTSTR name )
+{
+	struct file_interface_tracker *fit;
+	INDEX idx;
+	LIST_FORALL( l.file_system_interface, idx, struct file_interface_tracker *, fit )
+	{
+		if( StrCaseCmp( fit->name, name ) == 0 )
+			return fit->fsi;
+	}
+	return NULL;
+}
+
+void sack_register_filesystem_interface( CTEXTSTR name, struct file_system_interface *fsi )
+{
+	struct file_interface_tracker *fit = New( struct file_interface_tracker );
+	fit->name = StrDup( name );
+	fit->fsi = fsi;
+	AddLink( &l.file_system_interface, fit );
+}
 
 
 FILESYS_NAMESPACE_END

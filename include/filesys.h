@@ -101,6 +101,17 @@ SFF_DIRECTORY  = 1, // is a directory...
 		SFF_DRIVE      = 2, // this is a drive...
 };
 
+/* Extended external file system interface to be able to use external file systems */
+struct file_system_interface {
+	void* (__cdecl *open)(const char *);                                                  //filename
+	int (__cdecl *close)(void *);                                                 //file *
+	size_t (__cdecl *read)(char *, size_t, void *);                    //file *, buffer, length (to read)
+	size_t (__cdecl *write)(void*,const char *, size_t);                    //file *, buffer, length (to write)
+	size_t (__cdecl *seek)( void *, size_t, int whence);
+	void  (__cdecl *truncate)( void *);
+	void (__cdecl *unlink)( void *);
+};
+
 /* \ \ 
    Parameters
    mask :      This is the mask used to compare 
@@ -318,8 +329,12 @@ FILESYS_PROC  int FILESYS_API  sack_ilseek ( INDEX file_handle, size_t pos, int 
 FILESYS_PROC  int FILESYS_API  sack_iread ( INDEX file_handle, POINTER buffer, int size );
 FILESYS_PROC  int FILESYS_API  sack_iwrite ( INDEX file_handle, CPOINTER buffer, int size );
 
+FILESYS_PROC  FILE* FILESYS_API  sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_system_interface *fsi );
 FILESYS_PROC  FILE* FILESYS_API  sack_fopen ( INDEX group, CTEXTSTR filename, CTEXTSTR opts );
+FILESYS_PROC  FILE* FILESYS_API  sack_fsopenEx ( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mode, struct file_system_interface *fsi );
 FILESYS_PROC  FILE* FILESYS_API  sack_fsopen ( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mode );
+FILESYS_PROC  struct file_system_interface * FILESYS_API sack_get_filesystem_interface( CTEXTSTR name );
+FILESYS_PROC  void FILESYS_API sack_register_filesystem_interface( CTEXTSTR name, struct file_system_interface *fsi );
 FILESYS_PROC  int FILESYS_API  sack_fclose ( FILE *file_file );
 FILESYS_PROC  size_t FILESYS_API  sack_fseek ( FILE *file_file, size_t pos, int whence );
 FILESYS_PROC  size_t FILESYS_API  sack_ftell ( FILE *file_file );
