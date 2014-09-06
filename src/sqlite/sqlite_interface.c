@@ -8,6 +8,8 @@
 #include "../SQLlib/sqlstruc.h"
 #include "3.7.16.2/sqlite3.h"
 
+static void set_open_filesystem_interface( struct file_system_interface *fsi );
+
 struct sqlite_interface my_sqlite_interface = {
 	sqlite3_result_text
 														 , sqlite3_user_data
@@ -29,6 +31,7 @@ struct sqlite_interface my_sqlite_interface = {
 														 , sqlite3_column_count
                                            , sqlite3_config
 															 , sqlite3_db_config
+															 , set_open_filesystem_interface
 };
 
 
@@ -47,10 +50,15 @@ struct my_file_data
 struct local_data {
 	int volume;
 	struct karaway_interface* kwe;
+	struct file_system_interface *next_fsi;
 } local_sqlite_interface;
 
 //typedef struct sqlite3_io_methods sqlite3_io_methods;
 
+void set_open_filesystem_interface( struct file_system_interface *fsi )
+{
+	l.next_fsi = fsi;
+}
 
 
 int xClose(sqlite3_file*file)
@@ -286,13 +294,21 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 			//__ANDROID__
 #define sack_fsopen(a,b,c,d) sack_fopen(a,b,c)
 #endif
-			my_file->file = sack_fsopen( 0, zName, "rb+", _SH_DENYNO );//KWfopen( zName );
-			if( !my_file->file )
-				my_file->file = sack_fsopen( 0, zName, "wb+", _SH_DENYNO );//KWfopen( zName );
-			if( my_file->file )
+			if( l.next_fsi )
 			{
-				InitializeCriticalSec( &my_file->cs );
-				return SQLITE_OK;
+				my_file->file = sack_fsopenEx( 0, zName, "rb+", _SH_DENYNO, l.next_fsi );//KWfopen( zName );
+				l.next_fsi = NULL; // clear this, next open neeeds a new one.
+			}
+			else
+			{
+				my_file->file = sack_fsopen( 0, zName, "rb+", _SH_DENYNO );//KWfopen( zName );
+				if( !my_file->file )
+					my_file->file = sack_fsopen( 0, zName, "wb+", _SH_DENYNO );//KWfopen( zName );
+				if( my_file->file )
+				{
+					InitializeCriticalSec( &my_file->cs );
+					return SQLITE_OK;
+				}
 			}
 		}
 		//else

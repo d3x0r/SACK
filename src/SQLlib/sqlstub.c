@@ -1178,6 +1178,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 					}
 
 					tmp = CStrDup( tmp_name );
+					//sqlite_iface->set_open_filesystem_interface( fsi );
 					rc3 = sqlite3_open_v2( tmp, &odbc->db, SQLITE_OPEN_READWRITE, vfs_name );
 					Deallocate( char *, vfs_name );
 				}

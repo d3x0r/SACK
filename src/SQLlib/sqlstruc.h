@@ -224,47 +224,47 @@ int OpenSQL( DBG_VOIDPASS );
 
 struct sqlite_interface
 {
-void(FIXREF2 *sqlite3_result_text)(sqlite3_context*, const char*, int, void(*)(void*));
-void*(FIXREF*sqlite3_user_data)(sqlite3_context*);
-sqlite3_int64 (FIXREF2*sqlite3_last_insert_rowid)(sqlite3*);
-int (FIXREF*sqlite3_create_function)(  sqlite3 *db,
-  const char *zFunctionName,
-  int nArg,
-  int eTextRep,
-  void *pApp,
-  void (*xFunc)(sqlite3_context*,int,sqlite3_value**),
-  void (*xStep)(sqlite3_context*,int,sqlite3_value**),
-  void (*xFinal)(sqlite3_context*)
-);
-int (FIXREF2*sqlite3_get_autocommit)(sqlite3*);
-int (FIXREF2*sqlite3_open)(  const char *filename,   /* Database filename (UTF-8) */
-  sqlite3 **ppDb          /* OUT: SQLite db handle */
-);
-int (FIXREF2*sqlite3_open_v2)(
-  const char *filename,   /* Database filename (UTF-8) */
-  sqlite3 **ppDb,         /* OUT: SQLite db handle */
-  int flags,              /* Flags */
-  const char *zVfs        /* Name of VFS module to use */
-);
-const char* (FIXREF2*sqlite3_errmsg)(sqlite3*);
-int (FIXREF2*sqlite3_finalize)(sqlite3_stmt *);
-int (FIXREF2*sqlite3_close)(sqlite3*);
-int (FIXREF2*sqlite3_close_v2)(sqlite3*);
-int (FIXREF2*sqlite3_prepare_v2)(
-  sqlite3 *db,            
-  const char *zSql,       
-  int nByte,              
-  sqlite3_stmt **ppStmt,  
-  const char **pzTail     );
-int (FIXREF2*sqlite3_step)(sqlite3_stmt *);
-const char* (FIXREF2*sqlite3_column_name)(sqlite3_stmt *pStmt, int col);
-const unsigned char* (FIXREF*sqlite3_column_text)(sqlite3_stmt *pStmt, int col);
-int (FIXREF2*sqlite3_column_bytes)(sqlite3_stmt *pStmt, int col);
-int (FIXREF*sqlite3_column_type )(sqlite3_stmt *pStmt, int col);
-int (FIXREF2*sqlite3_column_count)(sqlite3_stmt *pStmt);
-int (FIXREF2*sqlite3_config)(int,...);
-int (FIXREF2*sqlite3_db_config)(sqlite3*, int op, ...);
-
+	void(FIXREF2 *sqlite3_result_text)(sqlite3_context*, const char*, int, void(*)(void*));
+	void*(FIXREF*sqlite3_user_data)(sqlite3_context*);
+	sqlite3_int64 (FIXREF2*sqlite3_last_insert_rowid)(sqlite3*);
+	int (FIXREF*sqlite3_create_function)(  sqlite3 *db,
+	  const char *zFunctionName,
+	  int nArg,
+	  int eTextRep,
+	  void *pApp,
+	  void (*xFunc)(sqlite3_context*,int,sqlite3_value**),
+	  void (*xStep)(sqlite3_context*,int,sqlite3_value**),
+	  void (*xFinal)(sqlite3_context*)
+	);
+	int (FIXREF2*sqlite3_get_autocommit)(sqlite3*);
+	int (FIXREF2*sqlite3_open)(  const char *filename,   /* Database filename (UTF-8) */
+	  sqlite3 **ppDb          /* OUT: SQLite db handle */
+	);
+	int (FIXREF2*sqlite3_open_v2)(
+	  const char *filename,   /* Database filename (UTF-8) */
+	  sqlite3 **ppDb,         /* OUT: SQLite db handle */
+	  int flags,              /* Flags */
+	  const char *zVfs        /* Name of VFS module to use */
+	);
+	const char* (FIXREF2*sqlite3_errmsg)(sqlite3*);
+	int (FIXREF2*sqlite3_finalize)(sqlite3_stmt *);
+	int (FIXREF2*sqlite3_close)(sqlite3*);
+	int (FIXREF2*sqlite3_close_v2)(sqlite3*);
+	int (FIXREF2*sqlite3_prepare_v2)(
+	  sqlite3 *db,            
+	  const char *zSql,       
+	  int nByte,              
+	  sqlite3_stmt **ppStmt,  
+	  const char **pzTail     );
+	int (FIXREF2*sqlite3_step)(sqlite3_stmt *);
+	const char* (FIXREF2*sqlite3_column_name)(sqlite3_stmt *pStmt, int col);
+	const unsigned char* (FIXREF*sqlite3_column_text)(sqlite3_stmt *pStmt, int col);
+	int (FIXREF2*sqlite3_column_bytes)(sqlite3_stmt *pStmt, int col);
+	int (FIXREF*sqlite3_column_type )(sqlite3_stmt *pStmt, int col);
+	int (FIXREF2*sqlite3_column_count)(sqlite3_stmt *pStmt);
+	int (FIXREF2*sqlite3_config)(int,...);
+	int (FIXREF2*sqlite3_db_config)(sqlite3*, int op, ...);
+	void (*set_open_filesystem_interface)( struct file_system_interface *fsi );
 };
 
 #ifdef USE_SQLITE_INTERFACE
