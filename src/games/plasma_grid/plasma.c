@@ -1,7 +1,7 @@
 
 #include <stdhdrs.h>
 #include <vectlib.h>
-#define SALTY_RANDOM_GENERATOR_SOURCE
+//#define SALTY_RANDOM_GENERATOR_SOURCE
 #include <salty_generator.h>
 
 struct grid
