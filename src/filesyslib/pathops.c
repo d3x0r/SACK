@@ -114,8 +114,9 @@ _64 GetTimeAsFileTime ( void )
 
  _64  GetFileWriteTime( CTEXTSTR name ) // last modification time.
 {
+	TEXTSTR tmppath = ExpandPath( name );
 #ifdef _WIN32
-	HANDLE hFile = CreateFile( name
+	HANDLE hFile = CreateFile( tmppath
 								  , 0 // device access?
 								  , FILE_SHARE_READ|FILE_SHARE_WRITE
 								  , NULL
@@ -137,13 +138,13 @@ _64 GetTimeAsFileTime ( void )
 	struct stat statbuf;
 	 _64 realtime;
 #ifdef UNICODE
-	 {
-	   char *tmpname = CStrDup( name );
-		 stat( tmpname, &statbuf );
-		 Release( tmpname );
-	 }
+	{
+		char *tmpname = CStrDup( tmppath );
+		stat( tmpname, &statbuf );
+		Release( tmpname );
+	}
 #else
-	 stat( name, &statbuf );
+	stat( name, &statbuf );
 #endif
 	convert( &realtime, (time_t*)&statbuf.st_mtime );
 	return realtime;

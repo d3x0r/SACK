@@ -1453,7 +1453,12 @@ void LoadAllFonts( void )
 		size_t FileOfs = 0;
 		//_32 line = 0;
 		_32 nFont = 0; // which font we're currently reading for.
-		_64 tmpfiletime = GetFileWriteTime( WIDE("Fonts.Cache") );
+		_64 tmpfiletime;
+#ifdef _WIN32
+		tmpfiletime = GetFileWriteTime( WIDE("*/../../Fonts.Cache") );
+#else
+		tmpfiletime = GetFileWriteTime( WIDE("Fonts.Cache") );
+#endif
 		if( fontcachetime == tmpfiletime )
 		{
 			sack_fclose( in );

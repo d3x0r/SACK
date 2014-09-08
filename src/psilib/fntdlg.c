@@ -711,7 +711,7 @@ SFTFont PickScaledFontWithUpdate( S_32 x, S_32 y
 						  , DIALOG_WIDTH - 60, 240 - ( COMMON_BUTTON_HEIGHT + 5 )
 						  , 55, COMMON_BUTTON_HEIGHT );
 		fdData.Update = UpdateFont;
-      fdData.psvUpdate = psvUpdate;
+		fdData.psvUpdate = psvUpdate;
 		if( fdData.Update )
 		{
 			MakeButton( fdData.pFrame, DIALOG_WIDTH-60, 240 - ( ( COMMON_BUTTON_HEIGHT + 5 ) * 3 )
