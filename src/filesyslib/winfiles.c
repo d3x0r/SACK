@@ -1,5 +1,9 @@
-
+#define FIX_RELEASE_COM_COLLISION
 #include <stdhdrs.h>
+#undef DeleteList
+#ifdef WIN32
+#include <ShlObj.h>
+#endif
 #include <filesys.h>
 #include <sqlgetoption.h>
 
@@ -45,6 +49,8 @@ static struct winfile_local_tag {
 		BIT_FIELD bLogOpenClose : 1;
 		BIT_FIELD bInitialized : 1;
 	} flags;
+	TEXTSTR data_file_root;
+
 } *winfile_local;
 
 #define l (*winfile_local)
@@ -59,6 +65,21 @@ static void LocalInit( void )
 			InitializeCriticalSec( &l.cs_files );
 			l.flags.bInitialized = 1;
 			l.flags.bLogOpenClose = 0;
+			{
+				TEXTCHAR path[MAX_PATH];
+				//int len;
+#ifdef _WIN32
+				SHGetFolderPath( NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, path );
+				l.data_file_root = StrDup( path );
+#else
+				l.data_file_root = "~";
+#endif
+				/*
+				l.data_file_root = NewArray( TEXTCHAR
+					, len = ( StrLen( path )) + 2 ) );
+				snprintf( l.data_file_root, len, "%s/%s", path, GetProgramName() );
+				*/
+			}
 		}
 	}
 }
@@ -198,7 +219,7 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 				
 				group = GetFileGroup( tmp, NULL );
 				filegroup = (struct Group *)GetLink( &l.groups, group );
-				Release( tmp );  // must deallocate tmp
+				Deallocate( TEXTCHAR*, tmp );  // must deallocate tmp
 
 				newest_path = NewArray( TEXTCHAR, len = ( subst_path - tmp_path ) + StrLen( filegroup->base_path ) + ( this_length - ( end - tmp_path ) ) + 1 );
 
@@ -208,9 +229,9 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 				snprintf( newest_path, len, WIDE( "%*.*s%s/%s" ), (int)((subst_path-tmp_path)-1), (int)((subst_path-tmp_path)-1), tmp_path, filegroup->base_path,
 						 ((end + 1)[0] == '/' || (end + 1)[0] == '\\') ? (end + 2) : (end + 1) );
 
-				Release( tmp_path );
+				Deallocate( TEXTCHAR*, tmp_path );
 				tmp_path = ExpandPath( newest_path );
-				Release( newest_path );
+				Deallocate( TEXTCHAR*, newest_path );
 			
 				if( l.flags.bLogOpenClose )
 					lprintf( WIDE( "transform subst [%s]" ), tmp_path );
@@ -246,6 +267,14 @@ TEXTSTR ExpandPath( CTEXTSTR path )
 				CTEXTSTR here;
 				size_t len;
 				here = GetProgramPath();
+				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
+				snprintf( tmp_path, len, WIDE( "%s/%s" ), here, path + 2 );
+			}
+			else if( ( path[0] == '*' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) )
+			{
+				CTEXTSTR here;
+				size_t len;
+				here = l.data_file_root;
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				snprintf( tmp_path, len, WIDE( "%s/%s" ), here, path + 2 );
 			}
@@ -334,7 +363,7 @@ INDEX  SetGroupFilePath ( CTEXTSTR group, CTEXTSTR path )
 	}
 	else
 	{
-		Release( (POINTER)filegroup->base_path );
+		Deallocate( TEXTCHAR*, filegroup->base_path );
 		filegroup->base_path = StrDup( path );
 	}
 	return FindLink( &l.groups, filegroup );
@@ -350,7 +379,7 @@ void SetDefaultFilePath( CTEXTSTR path )
 	tmp_path = ExpandPath( path );
 	if( l.groups && filegroup )
 	{
-		Release( (POINTER)filegroup->base_path );
+		Deallocate( TEXTSTR, filegroup->base_path );
 		filegroup->base_path = StrDup( tmp_path?tmp_path:path );
 	}
 	else
@@ -358,7 +387,7 @@ void SetDefaultFilePath( CTEXTSTR path )
 		SetGroupFilePath( WIDE( "Default" ), tmp_path?tmp_path:path );
 	}
 	if( tmp_path )
-		Release( tmp_path );
+		Deallocate( TEXTCHAR*, tmp_path );
 }
 
 static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR filename )
@@ -423,8 +452,8 @@ static TEXTSTR PrependBasePath( INDEX groupid, struct Group *group, CTEXTSTR fil
 #endif
 		if( l.flags.bLogOpenClose )
 			lprintf( WIDE("result %s"), fullname );
-		Release( tmp_path );
-	 Release( real_filename );
+		Deallocate( TEXTCHAR*, tmp_path );
+	 Deallocate( TEXTCHAR*, real_filename );
 	}
 	return fullname;
 }
@@ -654,9 +683,9 @@ int sack_close( HANDLE file_handle )
 		if( l.flags.bLogOpenClose )
 			lprintf( WIDE("Close %s"), file->fullname );
 		/*
-		Release( file->name );
-		Release( file->fullname );
-		Release( file );
+		Deallocate( TEXTCHAR*, file->name );
+		Deallocate( TEXTCHAR*, file->fullname );
+		Deallocate( TEXTCHAR*, file );
 		DeleteLink( &l.files, file );
 		*/
 	}
@@ -764,13 +793,13 @@ int sack_unlink( INDEX group, CTEXTSTR filename )
 	int okay;
 	TEXTSTR tmp = PrependBasePath( group, NULL, filename );
 	okay = unlink( filename );
-	Release( tmp );
+	Deallocate( TEXTCHAR*, tmp );
 	return !okay; // unlink returns TRUE is 0, else error...
 #else
 	int okay;
 	TEXTSTR tmp = PrependBasePath( group, NULL, filename );
 	okay = DeleteFile(tmp);
-	Release( tmp );
+	Deallocate( TEXTCHAR*, tmp );
 	return !okay; // unlink returns TRUE is 0, else error...
 #endif
 }
@@ -781,13 +810,13 @@ int sack_rmdir( INDEX group, CTEXTSTR filename )
 	int okay;
 	TEXTSTR tmp = PrependBasePath( group, NULL, filename );
 	okay = rmdir( filename );
-	Release( tmp );
+	Deallocate( TEXTCHAR*, tmp );
 	return !okay; // unlink returns TRUE is 0, else error...
 #else
 	int okay;
 	TEXTSTR tmp = PrependBasePath( group, NULL, filename );
 	okay = RemoveDirectory(tmp);
-	Release( tmp );
+	Deallocate( TEXTCHAR*, tmp );
 	return !okay; // unlink returns TRUE is 0, else error...
 #endif
 }
@@ -849,7 +878,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		if( !IsAbsolutePath( tmpname ) )
 		{
 			file->fullname = PrependBasePath( group, filegroup, tmpname );
-			Release( tmpname );
+			Deallocate( TEXTCHAR*, tmpname );
 		}
 		else
 			file->fullname = tmpname;
@@ -862,9 +891,9 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 	{
 		if( memalloc )
 		{
-			Release( file->name );
-			Release( file->fullname );
-			Release( file );
+			Deallocate( TEXTCHAR*, file->name );
+			Deallocate( TEXTCHAR*, file->fullname );
+			Deallocate( struct file *, file );
 		}
 		//DebugBreak();
 		return NULL;
@@ -1012,9 +1041,9 @@ int  sack_fclose ( FILE *file_file )
 			lprintf( WIDE( "deleted FILE* %p and list is %p" ), file_file, file->files );
 	}
 	/*
-	Release( file->name );
-	Release( file->fullname );
-	Release( file );
+	Deallocate( TEXTCHAR*, file->name );
+	Deallocate( TEXTCHAR*, file->fullname );
+	Deallocate( TEXTCHAR*, file );
 	DeleteLink( &files, file );
 	*/
 	if( file->fsi )
@@ -1064,8 +1093,8 @@ int  sack_rename ( CTEXTSTR file_source, CTEXTSTR new_name )
 #else
 	status = rename( tmp_src, tmp_dst );
 #endif
-	Release( tmp_src );
-	Release( tmp_dst );
+	Deallocate( TEXTSTR, tmp_src );
+	Deallocate( TEXTSTR, tmp_dst );
 	return status;
 }
 
