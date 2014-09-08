@@ -347,6 +347,10 @@ FILESYS_PROC  int FILESYS_API  sack_unlink ( INDEX group, CTEXTSTR filename );
 FILESYS_PROC  int FILESYS_API  sack_rmdir( INDEX group, CTEXTSTR filename );
 FILESYS_PROC  int FILESYS_API  sack_rename ( CTEXTSTR file_source, CTEXTSTR new_name );
 
+FILESYS_PROC  void FILESYS_API sack_set_common_data_application( CTEXTSTR name );
+FILESYS_PROC  void FILESYS_API sack_set_common_data_producer( CTEXTSTR name );
+
+
 #ifndef NO_FILEOP_ALIAS
 
 #  ifndef NO_OPEN_MACRO

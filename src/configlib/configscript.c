@@ -2079,7 +2079,9 @@ static void TestUnicode( PCONFIG_HANDLER pch )
 CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR name, PTRSZVAL psv )
 {
 	PTEXT line;
+#ifndef __ANDROID__
 	int absolute_path = IsAbsolutePath( name ); // don't prefix with anything.
+#endif
 	pch->file = sack_fopen( 0, name, WIDE("rb") );
 #ifndef __ANDROID__
 #  ifndef UNDER_CE

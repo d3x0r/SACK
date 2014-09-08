@@ -43,7 +43,6 @@ endif( BUILD_INTERSHELL )
 
 
 if( INSTALL_FRAME_BORDER )
-   
   INSTALL( 
     FILES
       ${BASE_IMAGES}

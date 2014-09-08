@@ -2045,6 +2045,20 @@ static PTRSZVAL CPROC IncludeAdditional( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
+static PTRSZVAL CPROC SetProducerName( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, CTEXTSTR, name );
+	sack_set_common_data_producer( name );
+   return psv;
+}
+
+static PTRSZVAL CPROC SetApplicationName( PTRSZVAL psv, arg_list args )
+{
+	PARAM( args, CTEXTSTR, name );
+	sack_set_common_data_application( name );
+   return psv;
+}
+
 //-----------------------------------------------------------------------
 
 void ReadConfiguration( void )
@@ -2053,6 +2067,8 @@ void ReadConfiguration( void )
 	{
 		PCONFIG_HANDLER pch;
 		pch = CreateConfigurationHandler();
+		AddConfigurationMethod( pch, WIDE( "Producer=%m" ), SetProducerName );
+		AddConfigurationMethod( pch, WIDE( "Application=%m" ), SetApplicationName );
 		AddConfigurationMethod( pch, WIDE( "enable trace=%b" ), SetTrace );
 		AddConfigurationMethod( pch, WIDE( "option default %m=%m" ), SetOptionDefault );
 		AddConfigurationMethod( pch, WIDE( "start directory \"%m\"" ), SetDefaultDirectory );

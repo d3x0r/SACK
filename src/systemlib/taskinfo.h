@@ -77,6 +77,7 @@ extern
 #endif
   struct local_systemlib_data {
 	CTEXTSTR load_path;
+	CTEXTSTR common_data_path;
 	struct system_local_flags{
 		BIT_FIELD bLog : 1;
 		BIT_FIELD bInitialized : 1;
