@@ -818,7 +818,7 @@ void InitLibrary( void )
 #ifdef __ANDROID__
 		g.OptionDb.info.pDSN = StrDup( WIDE( "./option.db" ) );
 #else
-		g.OptionDb.info.pDSN = StrDup( WIDE( "@/option.db" ) );
+		g.OptionDb.info.pDSN = StrDup( WIDE( "*/option.db" ) );
 #endif
 		// default to new option database.
 		g.OptionVersion = 4;
