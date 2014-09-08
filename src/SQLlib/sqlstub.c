@@ -818,7 +818,7 @@ void InitLibrary( void )
 #ifdef __ANDROID__
 		g.OptionDb.info.pDSN = StrDup( WIDE( "./option.db" ) );
 #else
-		g.OptionDb.info.pDSN = StrDup( WIDE( "*/option.db" ) );
+		g.OptionDb.info.pDSN = StrDup( WIDE( "*/../option.db" ) );
 #endif
 		// default to new option database.
 		g.OptionVersion = 4;
@@ -857,7 +857,7 @@ void InitLibrary( void )
 			{
 				FILE *file;
 				file = sack_fopen( 1
-					, WIDE("sql.config")
+					, WIDE("*/sql.config")
 					, WIDE("wt") 
 #ifdef _UNICODE 
 					WIDE(", ccs=UNICODE")

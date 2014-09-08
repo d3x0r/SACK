@@ -369,7 +369,7 @@ void SetDefaultName( CTEXTSTR path, CTEXTSTR name, CTEXTSTR extra )
 		filename = StrDup( name );
 	}
 	if( !filepath )
-		filepath = StrDup( GetProgramPath() );
+		filepath = ExpandPath( "*" );
 	if( !filename )
       filename = StrDup( GetProgramName() );
 	// this has to come from C heap.. my init isn't done yet probably and
@@ -421,9 +421,13 @@ static void LoadOptions( void )
 			GetCurrentPath( buffer, sizeof( buffer ) );
 			SetDefaultName( buffer, NULL, NULL );
 		}
-		else if( SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Logging/Default Log Location is exectuable directory"), 1, TRUE ) )
+		else if( SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Logging/Default Log Location is exectuable directory"), 0, TRUE ) )
 		{
 			SetDefaultName( GetProgramPath(), NULL, NULL );
+		}
+		else if( SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Logging/Default Log Location is common data directory"), 1, TRUE ) )
+		{
+			SetDefaultName( NULL, NULL, NULL );
 		}
 		else
 		{

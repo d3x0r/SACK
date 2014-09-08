@@ -50,10 +50,45 @@ static struct winfile_local_tag {
 		BIT_FIELD bInitialized : 1;
 	} flags;
 	TEXTSTR data_file_root;
+	TEXTSTR producer;
+	TEXTSTR application;
 
 } *winfile_local;
 
 #define l (*winfile_local)
+
+static void UpdateLocalDataPath( void )
+{
+	TEXTCHAR path[MAX_PATH];
+	TEXTCHAR *realpath;
+	int len;
+
+	SHGetFolderPath( NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, path );
+	realpath = NewArray( TEXTCHAR, len = StrLen( path )
+							  + StrLen( l.producer?l.producer:"" )
+							  + StrLen( l.application?l.application:"" ) + 3 ); // worse case +3
+	snprintf( realpath, len, "%s%s%s%s%s", path
+			  , l.producer?"/":"", l.producer?l.producer:""
+			  , l.application?"/":"", l.application?l.application:""
+			  );
+	if( l.data_file_root )
+		Deallocate( TEXTSTR, l.data_file_root );
+	l.data_file_root = realpath;
+	MakePath( l.data_file_root );
+}
+
+void sack_set_common_data_producer( CTEXTSTR name )
+{
+	l.producer = StrDup( name );
+   UpdateLocalDataPath();
+
+}
+
+void sack_set_common_data_application( CTEXTSTR name )
+{
+   l.application = StrDup( name );
+   UpdateLocalDataPath();
+}
 
 static void LocalInit( void )
 {
@@ -67,12 +102,14 @@ static void LocalInit( void )
 			l.flags.bLogOpenClose = 0;
 			{
 				TEXTCHAR path[MAX_PATH];
-				//int len;
+				TEXTCHAR *realpath;
+				int len;
 #ifdef _WIN32
-				SHGetFolderPath( NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, path );
-				l.data_file_root = StrDup( path );
+            sack_set_common_data_producer( WIDE( "Freedom Collective" ) );
+            sack_set_common_data_application( GetProgramName() );
+
 #else
-				l.data_file_root = "~";
+				l.data_file_root = StrDup( WIDE( "~" ) );
 #endif
 				/*
 				l.data_file_root = NewArray( TEXTCHAR
