@@ -728,8 +728,14 @@ void CPROC SetDrawBorder( PSI_CONTROL pc )
 			else
 			{
 				extern void TryLoadingFrameImage( void );
-				TryLoadingFrameImage();
-				pc->DrawBorder = g.BorderImage?DrawFancyFrame:DrawNormalFrame;
+				if( !g.flags.system_color_set )
+				{
+					TryLoadingFrameImage();
+					pc->DrawBorder = g.BorderImage?DrawFancyFrame:DrawNormalFrame;
+				}
+				else
+					pc->DrawBorder = DrawNormalFrame;
+
 			}
 		}
 	break;

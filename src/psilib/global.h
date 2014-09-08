@@ -62,6 +62,7 @@ typedef struct global_tag
 		BIT_FIELD bLogKeyEvents : 1;
 		BIT_FIELD allow_threaded_draw : 1;
 		BIT_FIELD sent_redraw : 1; // stops sending multiple redraw events....
+		BIT_FIELD system_color_set : 1; // don't use fancy border... unless it's also set externally
 	} flags;
 	CDATA *defaultcolors;
 	S_32 BorderWidth;
