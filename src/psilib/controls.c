@@ -527,6 +527,8 @@ PRIORITY_PRELOAD( InitPSILibrary, PSI_PRELOAD_PRIORITY )
 
 void TryLoadingFrameImage( void )
 {
+	if( g.flags.system_color_set )
+		return;
 	if( !g.BorderImage )
 	{
 		TEXTCHAR buffer[256];
@@ -625,10 +627,10 @@ PSI_PROC( void, AlignBaseToWindows )( void )
 	if( !g.MyImageInterface )
 		GetMyInterface();
 #define Swap(i)    ( (tmp = i),( sys_r = ((tmp) & 0xFF)), (sys_g = ((tmp>>8) & 0xFF)),(sys_b = ((tmp >>16) & 0xFF)),(sys_a = 0xFF),AColor(sys_r,sys_g,sys_b,sys_a) )
-
+	g.flags.system_color_set = 1;
 	 defaultcolor[HIGHLIGHT        ] =  Swap(GetSysColor( COLOR_3DHIGHLIGHT));
-	if( !g.BorderImage )
-		 defaultcolor[NORMAL           ] =  Swap(GetSysColor(COLOR_3DFACE ));
+	//if( !g.BorderImage )
+	defaultcolor[NORMAL           ] =  Swap(GetSysColor(COLOR_3DFACE ));
 	defaultcolor[SHADE            ] =  Swap(GetSysColor(COLOR_3DSHADOW ));
 	defaultcolor[SHADOW           ] =  Swap(GetSysColor(COLOR_3DDKSHADOW ));
 	defaultcolor[TEXTCOLOR        ] =  Swap(GetSysColor(COLOR_BTNTEXT ));
