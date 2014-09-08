@@ -754,7 +754,7 @@ void CPROC ListFontFile( PTRSZVAL psv, CTEXTSTR name, int flags )
 			int n;
 			for( style = 0; style < 4; style++ )
 			{
-				PSIZE_FILE psf = AddSizeFile( pfs[style], ppe, pFileName, TRUE );
+				PSIZE_FILE psf = AddSizeFile( pfs[style], ppe, pFileName, FALSE );
 				// if( !psf ) we already had the file...
 				// no reason to add these sizes...
 				if( psf )
@@ -793,7 +793,7 @@ void CPROC ListFontFile( PTRSZVAL psv, CTEXTSTR name, int flags )
 			int style;
 			for( style = 0; style < 4; style++ )
 			{
-				PSIZE_FILE psf = AddSizeFile( pfs[style], ppe, pFileName, TRUE );
+				PSIZE_FILE psf = AddSizeFile( pfs[style], ppe, pFileName, FALSE );
 				if( psf )
 					AddSizeToFile( psf, -1, -1 );
 				else
@@ -819,7 +819,11 @@ void OutputFontCache( void )
 	PFONT_ENTRY pfe;
 	PDICT_ENTRY pde;
 	size_t size;
-	Fopen( out, WIDE("Fonts.Cache"), WIDE("wt") );
+#ifdef _WIN32
+	out = sack_fopen( 0, WIDE("*/../../Fonts.Cache"), WIDE("wt") );
+#else
+	out = sack_fopen( 0, WIDE("Fonts.Cache"), WIDE("wt") );
+#endif
 	if( !out )
 		return; // no point.
 //	for( pfe = (PFONT_ENTRY)GetLeastNode( build.pFontCache );
@@ -1073,7 +1077,11 @@ void DumpLoadedFontCache( void )
 	FILE *out;
 	PFONT_ENTRY pfe;
 	_32 fontidx, idx;
-	Fopen( out, WIDE("Fonts.Cache1"), WIDE("wt") );
+#ifdef _WIN32
+	out = sack_fopen( 0, WIDE("*/../../Fonts.Cache1"), WIDE("wt") );
+#else
+	out = sack_fopen( 0, WIDE("Fonts.Cache1"), WIDE("wt") );
+#endif
 	if( !out )
 		return;
 	fprintf( out, WIDE("%%@%") _32f WIDE(",%") _size_f WIDE("\n"), build.nPaths, SizeOfMemBlock( build.pPathNames ) );
@@ -1413,13 +1421,21 @@ void LoadAllFonts( void )
       // if it was loaded, don't re-load it.
 		return;
 	}
-	Fopen( in, WIDE("Fonts.Cache"), WIDE("rt") );
+#ifdef _WIN32
+	in = sack_fopen( 0, WIDE("*/../../Fonts.Cache"), WIDE("rt") );
+#else
+	in = sack_fopen( 0, WIDE("Fonts.Cache"), WIDE("rt") );
+#endif
 	if( !in )
 	{
 		fg.flags.bScanningFonts = 1;
 		BuildFontCache(); // destroys the trees used to create the cache...
 		fg.flags.bScanningFonts = 0;
-		Fopen( in, WIDE("Fonts.Cache"), WIDE("rt") );
+#ifdef _WIN32
+		in = sack_fopen( 0, WIDE("*/../../Fonts.Cache"), WIDE("rt") );
+#else
+		in = sack_fopen( 0, WIDE("Fonts.Cache"), WIDE("rt") );
+#endif
 	}
 	if( in )
 	{
