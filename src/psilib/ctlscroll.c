@@ -405,14 +405,14 @@ void SetScrollParams( PCONTROL pc, int min, int cur, int range, int max )
 PSI_CONTROL SetScrollBarAttributes( PSI_CONTROL pc, int attr )
 {
 	ValidatedControlData( PSCROLLBAR, SCROLLBAR_CONTROL, psb, pc );
-   //lprintf( "Set scroll attributes..." );
+	//lprintf( "Set scroll attributes..." );
 	if( psb )
 	{
 		psb->attr = attr;
 		if( attr & SCROLL_HORIZONTAL )
 		{
 			psb->scrollflags.bHorizontal = 1;
-         MoveImage( psb->surface, pc->rect.height, 0 );
+			MoveImage( psb->surface, pc->rect.height, 0 );
 			ResizeImage( psb->surface
 						  , psb->width = pc->rect.width - 2*pc->rect.height
 						  , psb->height = pc->rect.height );
@@ -521,7 +521,7 @@ static void OnSizeCommon( SCROLLBAR_CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begi
 		//lprintf( WIDE( "Getting a resize on the scrollbar..." ) );
 		if( psb->attr & SCROLL_HORIZONTAL )
 		{
-         MoveImage( psb->surface, pc->rect.height, 0 );
+			MoveImage( psb->surface, pc->rect.height, 0 );
 			ResizeImage( psb->surface
 						  , psb->width = pc->rect.width - 2*pc->rect.height
 						  , psb->height = pc->rect.height );

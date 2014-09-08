@@ -1675,6 +1675,9 @@ typedef int check_this_variable;
 #define PutDisplayIn           REND_PROC_ALIAS(PutDisplayIn)
 #define GetDisplayImage           REND_PROC_ALIAS(GetDisplayImage)
 
+#define LockRenderer              REND_PROC_ALIAS(LockRenderer)
+#define UnlockRenderer              REND_PROC_ALIAS(UnlockRenderer)
+
 #define SetCloseHandler           REND_PROC_ALIAS(SetCloseHandler)
 #define SetMouseHandler           REND_PROC_ALIAS(SetMouseHandler)
 #define SetHideHandler           REND_PROC_ALIAS(SetHideHandler)

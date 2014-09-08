@@ -9,7 +9,7 @@
 #include <interface.h>
 #include <procreg.h>
 #define CONTROL_BASE
-
+#define LOCK_TEST 1
 // this is a FUN flag! this turns on
 // background state capture for all controls...
 // builds in the required function of get/restore
@@ -426,6 +426,7 @@ void GetMyInterface( void )
 #else
 	{
 		_32 w, h;
+		GetFileGroup( WIDE( "Resources" ), WIDE( "@/../Resources" ) );
 		GetDisplaySize( &w, &h );
 		g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/rod.ttf"), 20, 20, NULL, NULL, 0*2/*FONT_FLAG_8BIT*/, NULL, NULL );
 	}
@@ -1573,6 +1574,9 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 	int cleaned = 0;
 	if( pc )
 	{
+#if LOCK_TEST
+		PPHYSICAL_DEVICE device = GetFrame( pc )->device;
+#endif
 		if( pc->parent )
 		{
 			// okay surface rect of parent should be considered as 0,0.
@@ -1611,6 +1615,10 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 			                               , bDraw?WIDE( "FORCE" ):WIDE( "..." )
 			                               , pc->flags.bCleaning?WIDE( "CLEANING" ):WIDE( "cleanable" ));
 		}
+#endif
+#if LOCK_TEST
+		if( device )
+			LockRenderer( device->pActImg );
 #endif
 		//#endif
 		if( !pc->flags.bCleaning )
@@ -1708,7 +1716,13 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 					lprintf( WIDE("Invoking a draw self for %p at %s(%d) level %d"), pc DBG_RELAY , level );
 #endif
 				if( pc->flags.bDestroy )
+				{
+#if LOCK_TEST
+					if( device )
+						UnlockRenderer( device->pActImg );
+#endif
 					return;
+				}
 				if( pc->flags.bTransparent && !pc->flags.bParentCleaned && (pc->parent&&!pc->device) )
 				{
 #ifdef DEBUG_UPDAATE_DRAW
@@ -1720,7 +1734,7 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 
 					if( !upd->flags.bHasContent )
 					{
-                  //  control did not draw...
+						//  control did not draw...
 						//lprintf( WIDE( " Expected handling of this condition... Please return FALSE, and abort UpdateDIsplayPortion? Return now, leaving the rect without content?" ) );
 						//DebugBreak();
 					}
@@ -1728,6 +1742,10 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 					{
 						//DebugBreak();
 						lprintf( WIDE( "Aborting my update... waiting for container to get his update done" ) );
+#if LOCK_TEST
+						if( device )
+							UnlockRenderer( device->pActImg );
+#endif
 						return;
 					}
 
@@ -1753,10 +1771,6 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 					// this causes a lock in that layer.?
 					InvokeDrawMethod( pc, _DrawThySelf, ( pc ) );
 
-#if LOCK_TEST
-					if( device )
-						UnlockRenderer( device->pActImg );
-#endif
 				}
 
 #ifdef DEBUG_UPDAATE_DRAW
@@ -1910,8 +1924,11 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 			InvokeMethod( pc, _DrawDecorations, ( pc ) );
 
 #if LOCK_TEST
-			if( device )
-				UnlockRenderer( device->pActImg );
+			{
+				PPHYSICAL_DEVICE device = GetFrame( pc )->device;
+				if( device )
+					UnlockRenderer( device->pActImg );
+			}
 #endif
 
 			pc->flags.children_cleaned = 1;
@@ -1962,6 +1979,10 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 				_xlprintf(1 DBG_RELAY)( WIDE("Control %p already drawing itself!?"), pc );
 #endif
 		}
+#if LOCK_TEST
+		if( device )
+			UnlockRenderer( device->pActImg );
+#endif
 	}
 #ifdef DEBUG_UPDAATE_DRAW
 	else
@@ -3276,6 +3297,13 @@ PSI_PROC( void, MoveSizeCommon )( PSI_CONTROL pc, S_32 x, S_32 y, _32 width, _32
 		//lprintf( WIDE("move %p %d,%d %d,%d"), pc, x, y, width, height );
 		if( !pc )
 			return;
+		{
+			PSI_CONTROL pf = GetParentControl( pc );
+			x = ScaleValue( &pf->scalex, x );
+			y = ScaleValue( &pf->scaley, y );
+			width = ScaleValue( &pf->scalex, width );
+			height = ScaleValue( &pf->scaley, height );
+		}
 		if( pf )
 		{
 			InvokePosChange( pc, TRUE );

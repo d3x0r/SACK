@@ -177,7 +177,6 @@ RCOORD PointToPlaneT( PCVECTOR n, PCVECTOR o, PCVECTOR p ) {
 	SetPoint( i, n );
 	Invert( i );
 	IntersectLineWithPlane( i, p, n, o, &t );
-	//lprintf( WIDE("PointToPlaneT=%g"), t );
 	return t;
 }
 
@@ -1649,7 +1648,7 @@ void MoveWebNode( PSPACEWEB_NODE node, PCVECTOR v )
 PSPACEWEB CreateSpaceWeb( void )
 {
 	PSPACEWEB web = New( SPACEWEB );
-	MemSet( &web->cs, 0, sizeof( web->cs ) );
+	InitializeCriticalSec( &web->cs );
 	web->nodes = NULL;
 	web->root = NULL;
 	web->links = NULL;
