@@ -34,7 +34,7 @@ SRG_EXPORT void SRG_ResetEntropy( struct random_context *ctx );
 //    POINTER save_context;
 //    SRG_RestoreState( ctx, save_context );
 // }
-void SRG_RestoreState( struct random_context *ctx, POINTER external_buffer_holder );
+SRG_EXPORT void SRG_RestoreState( struct random_context *ctx, POINTER external_buffer_holder );
 
 // save the random context in an external buffer holder.
 // external buffer holder needs to be initialized to NULL.
@@ -42,7 +42,7 @@ void SRG_RestoreState( struct random_context *ctx, POINTER external_buffer_holde
 //    POINTER save_context = NULL;
 //    SRG_SaveState( ctx, &save_context );
 // }
-void SRG_SaveState( struct random_context *ctx, POINTER *external_buffer_holder );
+SRG_EXPORT void SRG_SaveState( struct random_context *ctx, POINTER *external_buffer_holder );
 
 // usage
 /// { P_8 buf; size_t buflen; SRG_DecryptData( <resultfrom encrypt>, &buf, &buflen ); }
@@ -64,6 +64,4 @@ SRG_EXPORT TEXTCHAR * SRG_EncryptData( P_8 buffer, size_t buflen );
 // text result must release by user
 // calls EncrytpData with buffer and string length + 1 to include the null for decryption.
 SRG_EXPORT TEXTCHAR * SRG_EncryptString( CTEXTSTR buffer );
-
-
 

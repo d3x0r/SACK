@@ -6,7 +6,7 @@
 #include <image.h>
 #include <controls.h>
 
-#define SALTY_RANDOM_GENERATOR_SOURCE
+//#define SALTY_RANDOM_GENERATOR_SOURCE
 #include <salty_generator.h>
 #include "plasma.h"
 #include "grid_reader.h" 
@@ -71,17 +71,24 @@ int CPROC Mouse( PTRSZVAL psv, S_32 x, S_32 y, _32 b )
 void CPROC DrawPlasma( PTRSZVAL psv, PRENDERER render )
 {
 	Image surface = GetDisplayImage( render );
+	LOGICAL use_grid_reader = FALSE;
 	RCOORD *data 
-		= GridReader_Read( l.grid_reader, 1000 + l.ofs_x, 1000 + l.ofs_y, patch, patch );
-		//= PlasmaReadSurface( l.plasma, l.ofs_x, l.ofs_y, 1 );
+		= use_grid_reader?GridReader_Read( l.grid_reader, 1000 + l.ofs_x, 1000 + l.ofs_y, patch, patch )
+			: PlasmaReadSurface( l.plasma, l.ofs_x, l.ofs_y, 0 );
 	PCDATA _output = GetImageSurface( surface );
 	PCDATA output;
+	int virtual_surface;
 	int w;
 	int h;
 #undef plot
-#define plot(a,b,c,d) do { (*output) = d; output++; } while( 0 )
+#define plot(a,b,c,d) do{ if( !virtual_surface ){ do { (*output) = d; output++; } while( 0 ); }else plotalpha( a, b, c,d ); }while(0)
 	RCOORD min = 999999999;
 	RCOORD max = 0;
+	lprintf( "begin render" );
+	if( surface->flags & IF_FLAG_FINAL_RENDER )
+		virtual_surface = 1;
+	else
+		virtual_surface = 0;
 	if( !data )
 		return;
 	for( h = 0; h < surface->height; h++ )
@@ -118,7 +125,8 @@ void CPROC DrawPlasma( PTRSZVAL psv, PRENDERER render )
 	}
 	lprintf( "Result is %g,%g", min, max );
 	UpdateDisplay( render );
-	Release( data );
+	if( use_grid_reader )
+		Release( data );
 }
 
 static void FeedRandom( PTRSZVAL psvPlasma, POINTER *salt, size_t *salt_size )
@@ -245,8 +253,9 @@ SaneWinMain( argc, argv )
 	RCOORD coords[4];
 	l.pii = GetImageInterface();
 	l.pdi = GetDisplayInterface();
-
-	l.entropy = SRG_CreateEntropy( FeedRandom, 0 );
+	l.entropy = SRG_CreateEntropy2( FeedRandom, 0 );
+	//lprintf( "First log" );
+	//SetAllocateLogging( 1 );
 	l.render = OpenDisplaySized( 0, patch, patch );
 	l.horz_r_scale = 0.75;
 	l.decimal = 0;
