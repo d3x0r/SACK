@@ -1161,13 +1161,26 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 				if( odbc->info.pDSN[0] == '$' )
 				{
 					char *vfs_name;
-					CTEXTSTR vfs_end = StrChr( odbc->info.pDSN + 1, '$' );
+					CTEXTSTR vfs_end = StrChr( odbc->info.pDSN + 1, '@' );
+					CTEXTSTR vfs_vfs_end = StrChr( odbc->info.pDSN + 1, '$' );
 					TEXTCHAR *tmpvfs;
-					if( vfs_end )
+					TEXTCHAR *tmpvfsvfs;
+					if( vfs_vfs_end )
 					{
-						tmp_name = ExpandPath( vfs_end + 1 );
-						tmpvfs = NewArray( TEXTCHAR, ( vfs_end - odbc->info.pDSN ) + 1 );
-						StrCpyEx( tmpvfs, odbc->info.pDSN + 1, vfs_end - odbc->info.pDSN );
+						tmp_name = ExpandPath( vfs_vfs_end + 1 );
+						if( vfs_end && vfs_end < vfs_vfs_end )
+						{
+							tmpvfs = NewArray( TEXTCHAR, ( vfs_end - odbc->info.pDSN ) + 1 );
+							tmpvfsvfs = NewArray( TEXTCHAR, ( vfs_vfs_end - vfs_end ) + 1 );
+							StrCpyEx( tmpvfs, odbc->info.pDSN + 1, vfs_end - odbc->info.pDSN );
+							StrCpyEx( tmpvfsvfs, vfs_end + 1, vfs_vfs_end - vfs_end );
+						}
+						else
+						{
+							tmpvfsvfs = NULL;
+							tmpvfs = NewArray( TEXTCHAR, ( vfs_vfs_end - odbc->info.pDSN ) + 1 );
+							StrCpyEx( tmpvfs, odbc->info.pDSN + 1, vfs_vfs_end - odbc->info.pDSN );
+						}
 						vfs_name = CStrDup( tmpvfs );
 						Deallocate( TEXTCHAR*, tmpvfs );
 					}
@@ -1175,10 +1188,11 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 					{
 						tmp_name = ExpandPath( odbc->info.pDSN + 1 );
 						vfs_name = NULL;
+						tmpvfsvfs = NULL;
 					}
 
 					tmp = CStrDup( tmp_name );
-					//sqlite_iface->set_open_filesystem_interface( fsi );
+					sqlite_iface->set_open_filesystem_interface( sack_get_filesystem_interface( tmpvfsvfs ) );
 					rc3 = sqlite3_open_v2( tmp, &odbc->db, SQLITE_OPEN_READWRITE, vfs_name );
 					Deallocate( char *, vfs_name );
 				}

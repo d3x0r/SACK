@@ -1001,7 +1001,10 @@ FILE*  sack_fsopenEx( INDEX group
 		file->name = StrDup( filename );
 		file->group = group;
 		file->fsi = fsi;
-		file->fullname = PrependBasePath( group, filegroup, filename );
+		if( !fsi )
+			file->fullname = PrependBasePath( group, filegroup, filename );
+		else
+			file->fullname = StrDup( filename );
 		EnterCriticalSec( &l.cs_files );
 		AddLink( &l.files,file );
 		LeaveCriticalSec( &l.cs_files );
