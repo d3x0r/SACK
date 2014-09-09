@@ -298,6 +298,11 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 			{
 				my_file->file = sack_fsopenEx( 0, zName, "rb+", _SH_DENYNO, l.next_fsi );//KWfopen( zName );
 				l.next_fsi = NULL; // clear this, next open neeeds a new one.
+				if( my_file->file )
+				{
+					InitializeCriticalSec( &my_file->cs );
+					return SQLITE_OK;
+				}
 			}
 			else
 			{
