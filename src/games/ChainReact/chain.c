@@ -1,7 +1,7 @@
 //#define BUILD_FLOWTEST
 
 // the motion needs to wrap the atoms outside and back on-board
-//#define SPHEREICAL_BOARD
+#define SPHEREICAL_BOARD
 #define CHAIN_REACT_MAIN
 #include <stdhdrs.h>
 #include <logging.h>
@@ -60,7 +60,9 @@ typedef struct {
 } XYPOINT;
 
 typedef struct {
-	float x, y, _x, _y, __x, __y;
+	float x, y, _x, _y;
+	//float __x, __y;
+	int wrap_x, wrap_y; // on shere board, need to consider that the target is from a wrap...
 } ATOMPOINT;
 
 CELL Board[MAX_BOARD_X][MAX_BOARD_Y];
@@ -132,7 +134,7 @@ void ClearBoard( void )
 	CursorY = 0;
 	ExplodeHead = ExplodeTail = 0; // clear pending explosions...
 	winstate = FALSE;  // noone has one
-   first_draw = TRUE;
+	first_draw = TRUE;
 	all_players_went = FALSE; // we haven't all gone yet...
 	playerturn = 1;   // of course we start with player 1.
 
@@ -457,15 +459,29 @@ void DoLose( void )
 
 void ExplodeInto( int x, int y, int into_x, int into_y )
 {
+	int real_into_x = into_x;
+	int real_into_y = into_y;
 #ifdef SPHEREICAL_BOARD
 	if( into_x < 0 )
+	{
+		BoardAtoms[x][y][Board[x][y].count-1].wrap_x--;
 		into_x += BOARD_X;
+	}
 	if( into_y < 0 )
+	{
+		BoardAtoms[x][y][Board[x][y].count-1].wrap_y--;
 		into_y += BOARD_Y;
+	}
 	if( into_x >= BOARD_X )
-      into_x -= BOARD_X;
+	{
+		BoardAtoms[x][y][Board[x][y].count-1].wrap_x++;
+		into_x -= BOARD_X;
+	}
 	if( into_y >= BOARD_Y )
+	{
 		into_y -= BOARD_Y;
+		BoardAtoms[x][y][Board[x][y].count-1].wrap_y++;
+	}
 #endif
 	players[Board[into_x][into_y].player].count -= Board[into_x][into_y].count;
 	players[Board[x][y].player].count--;
@@ -473,20 +489,20 @@ void ExplodeInto( int x, int y, int into_x, int into_y )
 	if( animate )
 	{
 		BoardAtoms[into_x][into_y][Board[into_x][into_y].count] = BoardAtoms[x][y][Board[x][y].count];
-		BoardAtoms[into_x][into_y][Board[into_x][into_y].count].x += (x-into_x)*BoardSizeX;
-		BoardAtoms[into_x][into_y][Board[into_x][into_y].count].y += (y-into_y)*BoardSizeY;
-		BoardAtoms[into_x][into_y][Board[into_x][into_y].count].__x = BoardAtoms[into_x][into_y][Board[into_x][into_y].count].x;
-		BoardAtoms[into_x][into_y][Board[into_x][into_y].count].__y = BoardAtoms[into_x][into_y][Board[into_x][into_y].count].y;
+		BoardAtoms[into_x][into_y][Board[into_x][into_y].count].x += (x-real_into_x)*BoardSizeX;
+		BoardAtoms[into_x][into_y][Board[into_x][into_y].count].y += (y-real_into_y)*BoardSizeY;
+		//BoardAtoms[into_x][into_y][Board[into_x][into_y].count].__x = BoardAtoms[into_x][into_y][Board[into_x][into_y].count].x;
+		//BoardAtoms[into_x][into_y][Board[into_x][into_y].count].__y = BoardAtoms[into_x][into_y][Board[into_x][into_y].count].y;
 	}
-   // if 0, 1
+	// if 0, 1
 	if( Board[into_x][into_y].count < 2 )
 	{
 		//if( Board[into_x][into_y].player != Board[x][y].player )
-      //   DrawSquare( into_x, into_y, FALSE );
+		//	DrawSquare( into_x, into_y, FALSE );
 		Board[into_x][into_y].player = Board[x][y].player;
 	}
 	Board[into_x][into_y].count++;
-   if( CheckSquareEx( into_x, into_y, FALSE ) )
+	if( CheckSquareEx( into_x, into_y, FALSE ) )
 		Board[into_x][into_y].player = Board[x][y].player;
 	if( !animate )
 		Board[into_x][into_y].stable = TRUE;
@@ -514,43 +530,43 @@ int UpdateBoard( void )
 		exploded = FALSE;
 		while( DequeCell( &x, &y ) )
 		{
-         exploded = TRUE;
+			exploded = TRUE;
 #ifdef _WIN32
 			if( first )
-            PlaySound( WIDE("44magnum.wav"), NULL, 0x00020003L );
+				PlaySound( WIDE("44magnum.wav"), NULL, 0x00020003L );
 #endif
 			first = FALSE;
 #ifndef SPHEREICAL_BOARD
 			if( x > 0 )
 #endif
 			{
-            ExplodeInto( x, y, x-1, y );
+				ExplodeInto( x, y, x-1, y );
 			}
 #ifndef SPHEREICAL_BOARD
 			if( x < ( BOARD_X - 1 ) )
 #endif
 			{
-            ExplodeInto( x, y, x+1, y );
+				ExplodeInto( x, y, x+1, y );
 			}
 #ifndef SPHEREICAL_BOARD
 			if( y > 0 )
 #endif
 			{
-            ExplodeInto( x, y, x, y-1 );
+				ExplodeInto( x, y, x, y-1 );
 			}
 #ifndef SPHEREICAL_BOARD
 			if( y < ( BOARD_Y - 1 ) )
 #endif
 			{
-            ExplodeInto( x, y, x, y+1 );
+				ExplodeInto( x, y, x, y+1 );
 			}
 			if( !Board[x][y].count )
 			{
 				//if( animate )
-            //   DrawSquare( x, y, FALSE );
+				//   DrawSquare( x, y, FALSE );
 				Board[x][y].stable = TRUE;
 			}
-         else
+			else
 				Board[x][y].stable = FALSE; //remaining peices may be moving some...
 			if( !Board[x][y].count )
 				Board[x][y].player = 0;
@@ -558,12 +574,12 @@ int UpdateBoard( void )
 				DrawSquare( x, y, TRUE );
 			if( !winstate )
 			{
-			   DoLose(); // check to see if we knocked out someone..
+				DoLose(); // check to see if we knocked out someone..
 				if( FindWinner() )
 				{
 					winstate = TRUE;
 					//if( !animate )
-               //   ShowPlayer( TRUE );
+					//	ShowPlayer( TRUE );
 					return TRUE;
 				}
 			}
@@ -593,39 +609,91 @@ void RenderCurrentAtoms( void )
 			dy = by * BoardSizeY + (BoardSizeY/2);
 			for( n = 0; n < cnt; n++ )
 			{
-			   BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
-			      							, (dx - HALFX) + xy[n].x
-         									, (dy - HALFY) + xy[n].y
+				int show_x = (dx - HALFX) + xy[n].x;
+				int show_y = (dy - HALFY) + xy[n].y;
+				while( show_x > BoardSizeX * BOARD_X )
+				{
+					show_x -= BoardSizeX * BOARD_X;
+					//xy[n].x -= BoardSizeX * BOARD_X;
+				}
+				while( show_x < 0)
+				{
+					show_x += BoardSizeX * BOARD_X;
+					//xy[n].x += BoardSizeX * BOARD_X;
+				}
+				while( show_y > BoardSizeY * BOARD_Y )
+				{
+					show_y -= BoardSizeY * BOARD_Y;
+					//xy[n].y -= BoardSizeY * BOARD_Y;
+				}
+				while( show_y < 0)
+				{
+					show_y += BoardSizeY * BOARD_Y;
+					//xy[n].y += BoardSizeY * BOARD_Y;
+				}
+				if( show_y > (BoardSizeY * BOARD_Y - PeiceSize ) )
+				{
+					BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+			      							, show_x
+         									, show_y - ( BoardSizeY * BOARD_Y )
             								, PeiceSize, PeiceSize
-                                       , 0, 0
+											, 0, 0
 		      								, pAtom->width, pAtom->height
 		      								, ALPHA_TRANSPARENT
             								, BLOT_MULTISHADE
             								, 0, ColorAverage( Color(0,0,0),Color( 255,255,255), cnt-n, cnt )
 											 , Colors[players[Board[bx][by].player].color] );
-#if 0
-				if( !Board[bx][by].stable )
-				{
-					IMAGE_RECTANGLE r1, r2, r;
-					r1.x = (dx - HALFX) + xy[n].x;
-					r1.y = (dy - HALFY) + xy[n].y;
-               r1.width = PeiceSize;
-               r1.height = PeiceSize;
-					r2.x = (dx - HALFX) + xy[n].__x;
-					r2.y = (dy - HALFY) + xy[n].__y;
-               r2.width = PeiceSize;
-					r2.height = PeiceSize;
-					xy[n].__x = xy[n].x;
-					xy[n].__y = xy[n].y;
-					//DebugBreak();
-               //lprintf( WIDE("OUtput is at %d,%d to %d,%d (%d,%d) Total(%d,%d)"), r1.x, r1.y, r2.x, r2.y, r1.width, r1.height, r.width, r.height );
-					MergeRectangle( &r, &r1, &r2 );
-               /*
-					UpdateDisplayPortion( hDisplay
-					, r.x, r.y, r.width, r.height );
-               */
+
 				}
-#endif
+				if( ( show_y ) < 0 )
+				{
+					BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+			      							, show_x 
+         									, show_y + ( BoardSizeY * BOARD_Y )
+            								, PeiceSize, PeiceSize
+											, 0, 0
+		      								, pAtom->width, pAtom->height
+		      								, ALPHA_TRANSPARENT
+            								, BLOT_MULTISHADE
+            								, 0, ColorAverage( Color(0,0,0),Color( 255,255,255), cnt-n, cnt )
+											 , Colors[players[Board[bx][by].player].color] );
+				}
+				if( ( show_x ) > (BoardSizeX * BOARD_X - PeiceSize ) )
+				{
+					BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+			      								, show_x - ( BoardSizeX * BOARD_X )
+         										, show_y
+            									, PeiceSize, PeiceSize
+												, 0, 0
+		      									, pAtom->width, pAtom->height
+		      									, ALPHA_TRANSPARENT
+            									, BLOT_MULTISHADE
+            									, 0, ColorAverage( Color(0,0,0),Color( 255,255,255), cnt-n, cnt )
+													, Colors[players[Board[bx][by].player].color] );
+				}
+				if( ( show_x ) < 0 )
+				{
+				   BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+			      								, show_x + ( BoardSizeX * BOARD_X )
+         										, show_y
+            									, PeiceSize, PeiceSize
+												, 0, 0
+		      									, pAtom->width, pAtom->height
+		      									, ALPHA_TRANSPARENT
+            									, BLOT_MULTISHADE
+            									, 0, ColorAverage( Color(0,0,0),Color( 255,255,255), cnt-n, cnt )
+												 , Colors[players[Board[bx][by].player].color] );
+				}
+			   BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+			      							, show_x
+         									, show_y
+            								, PeiceSize, PeiceSize
+											, 0, 0
+		      								, pAtom->width, pAtom->height
+		      								, ALPHA_TRANSPARENT
+            								, BLOT_MULTISHADE
+            								, 0, ColorAverage( Color(0,0,0),Color( 255,255,255), cnt-n, cnt )
+											 , Colors[players[Board[bx][by].player].color] );
 			}
 		}
 }
@@ -719,8 +787,8 @@ void CPROC AnimateAtoms( PTRSZVAL unused )
 				#define STABLEDEL (2.0/zoom)
 				if( x < -STABLEDEL || x > STABLEDEL || y < -STABLEDEL || y > STABLEDEL )
 				{
-               //lprintf( WIDE("UNSTABLE!-------------") );
-               // also update this so we get a 0 delta.
+					//lprintf( WIDE("UNSTABLE!-------------") );
+					// also update this so we get a 0 delta.
 					Board[bx][by].stable = FALSE;
 					//unstable = TRUE;
 				}
@@ -737,9 +805,9 @@ void CPROC AnimateAtoms( PTRSZVAL unused )
 				}
 				}
 				*/
-         // is unstable... has atoms moving into or out of(?)
+			// is unstable... has atoms moving into or out of(?)
 			if( CheckSquareEx( bx, by, FALSE ) )
-            WakeThread( pUpdateThread );
+				WakeThread( pUpdateThread );
 		}
 	/* compute what explodes next... */
 	//UpdateBoard(); // for each stable, enqueued suare...
@@ -791,22 +859,12 @@ void CPROC DrawBoard( PTRSZVAL unused )
 		for( x = 0; x < BOARD_X; x++ )
 			for( y = 0; y < BOARD_Y; y++ )
 			{
-				//lprintf( WIDE("Drwaing...") );
-            /*
-				if( first_draw
-					|| ( x && !Board[x-1][y].stable )
-					|| ( y && !Board[x][y-1].stable )
-               || ( ( x < (BOARD_X-1)) && !Board[x+1][y].stable )
-					|| ( ( y < (BOARD_Y-1)) && !Board[x][y+1].stable )
-					|| ( !Board[x][y].stable )
-					)
-               */
-					DrawSquare( x, y, FALSE );
+				DrawSquare( x, y, FALSE );
 			}
-      first_draw = 0;
+		first_draw = 0;
 		if( animate )
 		{
-         //lprintf( WIDE(" -- draw atoms...") );
+			//lprintf( WIDE(" -- draw atoms...") );
 			RenderCurrentAtoms();
 		}
 		ShowPlayer( TRUE );
@@ -874,7 +932,7 @@ void AddPeice( int x, int y, int posx, int posy )
 
 		Board[x][y].count++;
 
-	   players[playerturn].count++;
+		players[playerturn].count++;
 		players[playerturn].went = TRUE;
 		players[playerturn].x = x;
 		players[playerturn].y = y;
@@ -1162,7 +1220,7 @@ SaneWinMain( argc, argv )
 				if( !gnAnimateTimer )
 					gnAnimateTimer = AddTimer( 30, AnimateAtoms, 0 );
 				if( !pUpdateThread )
-               pUpdateThread = ThreadTo( UpdateBoardThread, 0 );
+					pUpdateThread = ThreadTo( UpdateBoardThread, 0 );
 			}
 		}
 		if( ( !animate || !unstable ) &&
