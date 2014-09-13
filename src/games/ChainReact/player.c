@@ -211,6 +211,7 @@ int ConfigurePlayers( void )
 #define SLD_BOARD_X 1020
 #define SLD_BOARD_Y 1021
 #define CHK_ANIMATE 1022
+#define CHK_SPHERICAL 1023
 PCONTROL pcBoard;
 static int CPROC DrawMimicBoard( PCOMMON pc )
 {
@@ -256,7 +257,7 @@ CONTROL_REGISTRATION MimicBoard = { WIDE("Chain Reaction Board Sizer")
 };
 PRELOAD( RegisterMimicBoard ){ DoRegisterControl( &MimicBoard ); }
 
-void ConfigureBoard( int *animate )
+void ConfigureBoard( int *animate, int *sphere )
 {
 	PCOMMON pFrame;
 	PCONTROL pc;
@@ -269,6 +270,7 @@ void ConfigureBoard( int *animate )
 	SetSliderValues( pc, 4, BOARD_Y, MAX_BOARD_Y );
 	MakeButton( pFrame, 14, 200, 82, 20, BTN_PLAY, WIDE("Done"), 0, PlayGameButton, (PTRSZVAL)&done );
 	SetCheckState( MakeCheckButton( pFrame, 131, 200, 80, 14, CHK_ANIMATE, WIDE("Animate"), 0, NULL, 0 ), 1 );
+	SetCheckState( MakeCheckButton( pFrame, 131, 220, 120, 14, CHK_SPHERICAL, WIDE("Spherical Wrap"), 0, NULL, 0 ), 1 );
 	//SetControlDraw( pcBoard, DrawMimicBoard, 0 );
 	//DrawMimicBoard( pcBoard );
 
@@ -293,7 +295,8 @@ void ConfigureBoard( int *animate )
 	}
 	if( animate )
 		*animate = GetCheckState( GetControl( pFrame, CHK_ANIMATE ) );
-
+	if( sphere )
+      *sphere = GetCheckState( GetControl( pFrame, CHK_SPHERICAL ) );
 	DestroyFrame( &pFrame );
 
 }

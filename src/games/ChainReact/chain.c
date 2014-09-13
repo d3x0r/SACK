@@ -1,7 +1,6 @@
 //#define BUILD_FLOWTEST
 
 // the motion needs to wrap the atoms outside and back on-board
-#define SPHEREICAL_BOARD
 #define CHAIN_REACT_MAIN
 #include <stdhdrs.h>
 #include <logging.h>
@@ -23,6 +22,7 @@
     HCURSOR hCursor;
 #endif
 PRENDERER hDisplay;
+Image pGameBoard;
 Image pAtom, pGrid, pCursor;
 
 #include "chain.h"
@@ -80,6 +80,7 @@ int maxplayers; // max players...
 
 int first_draw = 1;
 int animate = 0;
+int sphere = 0;
 int unstable;
 int drawing;
 int all_players_went;
@@ -91,6 +92,8 @@ int CPROC Mouse( PTRSZVAL dwUser, S_32 x, S_32 y, _32 b );
 
 void CPROC Close( PTRSZVAL dwUser )
 {
+   UnmakeImageFile( pGameBoard );
+	pGameBoard = NULL;
 	NewGame = TRUE;
 }
 
@@ -154,14 +157,14 @@ void ClearBoard( void )
 			players[p].active = FALSE;
 		}
 	}
-	ConfigureBoard( &animate );
+	ConfigureBoard( &animate, &sphere );
 
 	BoardSizeX = pGrid->width / zoom;
 	BoardSizeY = pGrid->height / zoom;
 	PeiceSize = PeiceBase / zoom;
 	PeiceDist = ((PeiceSize*11)/16 );
 #ifdef _WIN32
-        SetApplicationTitle( WIDE("Application Title doesn't work!") );
+	SetApplicationTitle( WIDE("Application Title doesn't work!") );
 #endif
 
 	hDisplay = OpenDisplaySizedAt( 0, 200 + BOARD_X * BoardSizeX, 30 + BOARD_Y * BoardSizeY, 0, 0 );
@@ -183,7 +186,7 @@ void DrawSquare( int x, int y, int bWrite )
    //lprintf( WIDE("Rendering blank square %d,%d"), x, y );
 	if( x == CursorX && y == CursorY )
 	{
-		BlotScaledImageSizedEx( GetDisplayImage(hDisplay), pCursor
+		BlotScaledImageSizedEx( pGameBoard, pCursor
    									, dx, dy
                               , BoardSizeX, BoardSizeX
    									, 0, 0
@@ -194,7 +197,7 @@ void DrawSquare( int x, int y, int bWrite )
 	}
 	else
 	{
-   	BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pGrid
+   	BlotScaledImageSizedEx( pGameBoard, pGrid
 										, dx, dy
                               , BoardSizeX, BoardSizeX
 										, 0, 0
@@ -220,7 +223,7 @@ void DrawSquare( int x, int y, int bWrite )
 		#define THIRDX (PeiceSize*2/5)
 		#define HALFY (PeiceSize/2)
 		#define THIRDY (PeiceSize*2/5)
-      BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+      BlotScaledImageSizedEx( pGameBoard, pAtom
       								, dx + (CENTX-HALFX), dy + (CENTX-HALFY)
       								, PeiceSize, PeiceSize
                               , 0, 0
@@ -231,7 +234,7 @@ void DrawSquare( int x, int y, int bWrite )
       								, Colors[players[Board[x][y].player].color] );	
 		break;
 	case 2:
-      BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+      BlotScaledImageSizedEx( pGameBoard, pAtom
       								, dx + (CENTX - (HALFX*3/2)), dy + (CENTY-(HALFY*3/2))
       								, PeiceSize, PeiceSize
                               , 0, 0
@@ -240,7 +243,7 @@ void DrawSquare( int x, int y, int bWrite )
       								, BLOT_MULTISHADE
       								, 0, Color( 255,255,255)
       								, Colors[players[Board[x][y].player].color] );	
-      BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+      BlotScaledImageSizedEx( pGameBoard, pAtom
       								, dx + (CENTX - THIRDX ), dy + (CENTY - (THIRDY-2) )
       								, PeiceSize, PeiceSize
                               , 0, 0
@@ -251,7 +254,7 @@ void DrawSquare( int x, int y, int bWrite )
       								, Colors[players[Board[x][y].player].color] );	
 		break;
 	case 3:
-      BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+      BlotScaledImageSizedEx( pGameBoard, pAtom
       								, dx + (CENTX - (5*THIRDX/2) ), dy + (CENTY - (2*THIRDY))
       								, PeiceSize, PeiceSize
                               , 0, 0
@@ -260,7 +263,7 @@ void DrawSquare( int x, int y, int bWrite )
       								, BLOT_MULTISHADE
       								, 0, Color( 255,255,255)
       								, Colors[players[Board[x][y].player].color] );
-      BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+      BlotScaledImageSizedEx( pGameBoard, pAtom
       								, dx + (CENTX - (THIRDX/2)), dy + (CENTY - (2*THIRDY))
       								, PeiceSize, PeiceSize
                               , 0, 0
@@ -269,7 +272,7 @@ void DrawSquare( int x, int y, int bWrite )
       								, BLOT_MULTISHADE
       								, 0, Color( 255,255,255)
       								, Colors[players[Board[x][y].player].color] );
-      BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+      BlotScaledImageSizedEx( pGameBoard, pAtom
 										, dx + (CENTX - HALFX), dy + (CENTY - (THIRDY - 2) )
 										, PeiceSize, PeiceSize
                               , 0, 0
@@ -282,7 +285,7 @@ void DrawSquare( int x, int y, int bWrite )
 		break;
 	default:
 	case 4:
-      BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+      BlotScaledImageSizedEx( pGameBoard, pAtom
       								, dx + (CENTX - 2*HALFY + 3), dy + (CENTY - HALFY)
       								, PeiceSize, PeiceSize
                               , 0, 0
@@ -291,7 +294,7 @@ void DrawSquare( int x, int y, int bWrite )
       								, BLOT_MULTISHADE
       								, 0, Color( 255,255,255)
       								, Colors[players[Board[x][y].player].color] );	
-      BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+      BlotScaledImageSizedEx( pGameBoard, pAtom
       								, dx + (CENTX - 3), dy + (CENTY - HALFY)
       								, PeiceSize, PeiceSize
                               , 0, 0
@@ -300,7 +303,7 @@ void DrawSquare( int x, int y, int bWrite )
       								, BLOT_MULTISHADE
       								, 0, Color( 255,255,255)
       								, Colors[players[Board[x][y].player].color] );	
-      BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+      BlotScaledImageSizedEx( pGameBoard, pAtom
       								, dx + (CENTX - HALFX), dy + (CENTY - 2*HALFY + 3 )
       								, PeiceSize, PeiceSize
                               , 0, 0
@@ -309,7 +312,7 @@ void DrawSquare( int x, int y, int bWrite )
       								, BLOT_MULTISHADE
       								, 0, Color( 255,255,255)
       								, Colors[players[Board[x][y].player].color] );	
-      BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+      BlotScaledImageSizedEx( pGameBoard, pAtom
       								, dx + (CENTX - HALFX), dy + (CENTY - 3 )
       								, PeiceSize, PeiceSize
                               , 0, 0
@@ -372,15 +375,18 @@ int CheckSquareEx( int x, int y, int explode )
 	int c;
 	//if( !Board[x][y].stable )
 	//	return FALSE;
-#ifdef SPHEREICAL_BOARD
-	c = 4;
-#else
-	c = 2;
-	if( x>0 && x < (BOARD_X-1) )
-		c++;
-	if( y>0 && y < (BOARD_Y-1) )
-		c++;
-#endif
+	if( sphere )
+	{
+		c = 4;
+	}
+	else
+	{
+		c = 2;
+		if( x>0 && x < (BOARD_X-1) )
+			c++;
+		if( y>0 && y < (BOARD_Y-1) )
+			c++;
+	}
 	if( Board[x][y].count >= c )
 	{
 		//players[Board[x][y].color].count -= c;
@@ -399,7 +405,7 @@ int CheckSquareEx( int x, int y, int explode )
 void ShowPlayer( int bWrite )
 {
 	int i;
-	BlatColor( GetDisplayImage( hDisplay ), BoardSizeX * BOARD_X, 5, 130, 26 + 26*maxplayers, 0 );
+	BlatColor( pGameBoard, BoardSizeX * BOARD_X, 5, 130, 26 + 26*maxplayers, 0 );
 	for( i = 1; i <= maxplayers; i++ )
 	{
 		TEXTCHAR buf[32];
@@ -461,28 +467,29 @@ void ExplodeInto( int x, int y, int into_x, int into_y )
 {
 	int real_into_x = into_x;
 	int real_into_y = into_y;
-#ifdef SPHEREICAL_BOARD
-	if( into_x < 0 )
+	if( sphere )
 	{
-		BoardAtoms[x][y][Board[x][y].count-1].wrap_x--;
-		into_x += BOARD_X;
+		if( into_x < 0 )
+		{
+			BoardAtoms[x][y][Board[x][y].count-1].wrap_x--;
+			into_x += BOARD_X;
+		}
+		if( into_y < 0 )
+		{
+			BoardAtoms[x][y][Board[x][y].count-1].wrap_y--;
+			into_y += BOARD_Y;
+		}
+		if( into_x >= BOARD_X )
+		{
+			BoardAtoms[x][y][Board[x][y].count-1].wrap_x++;
+			into_x -= BOARD_X;
+		}
+		if( into_y >= BOARD_Y )
+		{
+			into_y -= BOARD_Y;
+			BoardAtoms[x][y][Board[x][y].count-1].wrap_y++;
+		}
 	}
-	if( into_y < 0 )
-	{
-		BoardAtoms[x][y][Board[x][y].count-1].wrap_y--;
-		into_y += BOARD_Y;
-	}
-	if( into_x >= BOARD_X )
-	{
-		BoardAtoms[x][y][Board[x][y].count-1].wrap_x++;
-		into_x -= BOARD_X;
-	}
-	if( into_y >= BOARD_Y )
-	{
-		into_y -= BOARD_Y;
-		BoardAtoms[x][y][Board[x][y].count-1].wrap_y++;
-	}
-#endif
 	players[Board[into_x][into_y].player].count -= Board[into_x][into_y].count;
 	players[Board[x][y].player].count--;
 	Board[x][y].count--;
@@ -536,27 +543,19 @@ int UpdateBoard( void )
 				PlaySound( WIDE("44magnum.wav"), NULL, 0x00020003L );
 #endif
 			first = FALSE;
-#ifndef SPHEREICAL_BOARD
-			if( x > 0 )
-#endif
+			if( sphere || ( x > 0 ) )
 			{
 				ExplodeInto( x, y, x-1, y );
 			}
-#ifndef SPHEREICAL_BOARD
-			if( x < ( BOARD_X - 1 ) )
-#endif
+			if( sphere || ( x < ( BOARD_X - 1 ) ) )
 			{
 				ExplodeInto( x, y, x+1, y );
 			}
-#ifndef SPHEREICAL_BOARD
-			if( y > 0 )
-#endif
+			if( sphere || ( y > 0 ) )
 			{
 				ExplodeInto( x, y, x, y-1 );
 			}
-#ifndef SPHEREICAL_BOARD
-			if( y < ( BOARD_Y - 1 ) )
-#endif
+			if( sphere || ( y < ( BOARD_Y - 1 ) ) )
 			{
 				ExplodeInto( x, y, x, y+1 );
 			}
@@ -633,7 +632,7 @@ void RenderCurrentAtoms( void )
 				}
 				if( show_y > (BoardSizeY * BOARD_Y - PeiceSize ) )
 				{
-					BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+					BlotScaledImageSizedEx( pGameBoard, pAtom
 			      							, show_x
          									, show_y - ( BoardSizeY * BOARD_Y )
             								, PeiceSize, PeiceSize
@@ -647,7 +646,7 @@ void RenderCurrentAtoms( void )
 				}
 				if( ( show_y ) < 0 )
 				{
-					BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+					BlotScaledImageSizedEx( pGameBoard, pAtom
 			      							, show_x 
          									, show_y + ( BoardSizeY * BOARD_Y )
             								, PeiceSize, PeiceSize
@@ -660,7 +659,7 @@ void RenderCurrentAtoms( void )
 				}
 				if( ( show_x ) > (BoardSizeX * BOARD_X - PeiceSize ) )
 				{
-					BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+					BlotScaledImageSizedEx( pGameBoard, pAtom
 			      								, show_x - ( BoardSizeX * BOARD_X )
          										, show_y
             									, PeiceSize, PeiceSize
@@ -673,7 +672,7 @@ void RenderCurrentAtoms( void )
 				}
 				if( ( show_x ) < 0 )
 				{
-				   BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+				   BlotScaledImageSizedEx( pGameBoard, pAtom
 			      								, show_x + ( BoardSizeX * BOARD_X )
          										, show_y
             									, PeiceSize, PeiceSize
@@ -684,7 +683,7 @@ void RenderCurrentAtoms( void )
             									, 0, ColorAverage( Color(0,0,0),Color( 255,255,255), cnt-n, cnt )
 												 , Colors[players[Board[bx][by].player].color] );
 				}
-			   BlotScaledImageSizedEx( GetDisplayImage( hDisplay ), pAtom
+			   BlotScaledImageSizedEx( pGameBoard, pAtom
 			      							, show_x
          									, show_y
             								, PeiceSize, PeiceSize
@@ -1156,6 +1155,9 @@ int CPROC Mouse( PTRSZVAL dwUser, S_32 x, S_32 y, _32 b )
 
 void CPROC MyRedraw( PTRSZVAL dwUser, PRENDERER pRenderer )
 {
+   if( !pGameBoard )
+		pGameBoard = MakeSubImage( GetDisplayImage( pRenderer ), 0, 0, BoardSizeX * BOARD_X, BoardSizeY * BOARD_Y );
+   ClearImageTo( GetDisplayImage( pRenderer ), BASE_COLOR_BLACK );
 	DrawBoard( (PTRSZVAL)hDisplay );
 }
 SaneWinMain( argc, argv )
