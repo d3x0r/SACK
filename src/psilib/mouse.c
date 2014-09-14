@@ -769,8 +769,8 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
 			{
-				lprintf( WIDE("Still dragging frame") );
-				lprintf( WIDE("moving by %d,%d"), dx, dy );
+				lprintf( WIDE("Still dragging frame at %d,%d"), winx, winy );
+				lprintf( WIDE("moving to %d,%d(%d,%d)"), dx, dy, x - pf->drag_x, y - pf->drag_y );
 			}
 #endif
 			MoveDisplay( pf->pActImg, dx, dy );
@@ -1369,7 +1369,7 @@ int InvokeMouseMethod( PSI_CONTROL pfc, S_32 x, S_32 y, _32 b )
 		{
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
-				lprintf( WIDE("**** Calling frame's mouse...") );
+				lprintf( WIDE("**** Calling frame's mouse... (%d,%d,%08x)"), x, y, b );
 #endif
 			AddUse( pfc );
 			result = FirstFrameMouse( pf, x, y, b, TRUE );
