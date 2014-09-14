@@ -15,18 +15,19 @@
 
 #define CONTROL_NAME WIDE("Scrollable Button List")
 
+typedef struct chat_time_tag
+{
+	_8 hr,mn,sc;
+	_8 mo,dy;
+	_16 year;
+} CHAT_TIME;
+typedef struct chat_time_tag *PCHAT_TIME;
+
+
 typedef struct chat_message_tag
 {
-	struct {
-		_8 hr,mn,sc;
-		_8 mo,dy;
-		_16 year;
-	} received; // the time the message was received
-	struct {
-		_8 hr,mn,sc;
-		_8 mo,dy;
-		_16 year;
-	} sent; // the time the message was sent
+	CHAT_TIME received_time; // the time the message was received
+	CHAT_TIME sent_time; // the time the message was sent
 	CTEXTSTR text;
    LOGICAL sent; // if not sent, is received message - determine justification and decoration
 } CHAT_MESSAGE;
@@ -34,7 +35,7 @@ typedef struct chat_message_tag *PCHAT_MESSAGE;
 
 typedef struct chat_list_tag
 {
-	PLIST messages; //
+	PLINKQUEUE messages; //
    int first_button;
    int control_offset;
 } CHAT_LIST;
@@ -151,23 +152,67 @@ static PTRSZVAL CPROC SetReceiveBackgroundDividers( PTRSZVAL psv, arg_list args 
    return psv;
 }
 
+static PTRSZVAL CPROC SetReceiveJustification( PTRSZVAL psv, arg_list args )
+{
+   return psv;
+}
+
+static PTRSZVAL CPROC SetSentJustification( PTRSZVAL psv, arg_list args )
+{
+   return psv;
+}
+
+static PTRSZVAL CPROC SetReceiveArrowOffset( PTRSZVAL psv, arg_list args )
+{
+   return psv;
+}
+
+static PTRSZVAL CPROC SetSentArrowOffset( PTRSZVAL psv, arg_list args )
+{
+   return psv;
+}
+
+
 
 static void OnLoadCommon( WIDE( "Chat Control" ) )( PCONFIG_HANDLER pch )
 {
-	AddConfigurationMethod( pch, "Background Image=%m", SetBackgroundImage );
-   AddConfigurationMethod( pch, "Sent Arrow Area=%i,%i %i,%i", SetSentArrowArea );
-   AddConfigurationMethod( pch, "Received Arrow Area=%i,%i %i,%i", SetReceiveArrowArea );
-   AddConfigurationMethod( pch, "Sent Background Area=%i,%i %i,%i", SetSentBackgroundArea );
-	AddConfigurationMethod( pch, "Received Background Area=%i,%i %i,%i", SetReceiveBackgroundArea );
-	AddConfigurationMethod( pch, "Sent Background Dividers=%i,%i,%i,%i", SetSentBackgroundDividers );
-	AddConfigurationMethod( pch, "Received Background Dividers=%i,%i,%i,%i", SetReceiveBackgroundDividers );
+	AddConfigurationMethod( pch, "Chat Control Background Image=%m", SetBackgroundImage );
+   AddConfigurationMethod( pch, "Chat Control Sent Arrow Area=%i,%i %i,%i", SetSentArrowArea );
+   AddConfigurationMethod( pch, "Chat Control Received Arrow Area=%i,%i %i,%i", SetReceiveArrowArea );
+   AddConfigurationMethod( pch, "Chat Control Sent Background Area=%i,%i %i,%i", SetSentBackgroundArea );
+	AddConfigurationMethod( pch, "Chat Control Received Background Area=%i,%i %i,%i", SetReceiveBackgroundArea );
+	AddConfigurationMethod( pch, "Chat Control Sent Background Dividers=%i,%i,%i,%i", SetSentBackgroundDividers );
+	AddConfigurationMethod( pch, "Chat Control Received Background Dividers=%i,%i,%i,%i", SetReceiveBackgroundDividers );
+   AddConfigurationMethod( pch, "Chat Control Sent Justification=%i", SetSentJustification );
+	AddConfigurationMethod( pch, "Chat Control Recieve Justification=%i", SetReceiveJustification );
+
+   AddConfigurationMethod( pch, "Chat Control Sent Arrow Offset=%i", SetSentArrowOffset );
+   AddConfigurationMethod( pch, "Chat Control Received Arrow Offset=%i", SetReceiveArrowOffset );
 }
 
 
 
-void AddSentMessage( PSI_CONTROL pc, CTEXTSTR text )
+void Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
+							 , PCHAT_TIME sent_time
+							 , PCHAT_TIME received_time
+							 , CTEXTSTR text )
 {
+   PCHAT_CONTROL chat_control = ControlData( PCHAT_CONTROL, pc );
+	PCHAT_MESSAGE pcm = New( CHAT_MESSAGE );
+   pcm->received_time = received_time[0];
+	pcm->sent_time = sent_time[0];
+	pcm->text = StrDup( text );
+	pcm->sent = sent;
+
+   EnqueLink( &chat_control->messages, pcm );
+}
+
+void DrawAMessage( PSI_CONTROL pc, PCHAT_MESSAGE pcm )
+{
+	Image surface = GetControlSurface( pc );
+	PCHAT_CONTROL chat_control = ControlData( PCHAT_CONTROL, pc );
 
 }
+
 
 
