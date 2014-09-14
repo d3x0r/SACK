@@ -4671,6 +4671,8 @@ RENDER_PROC (void, MoveDisplay) (PVIDEO hVideo, S_32 x, S_32 y)
 		{
 			hVideo->pWindowPos.x = x;
 			hVideo->pWindowPos.y = y;
+			hVideo->cursor_bias.x = x;
+			hVideo->cursor_bias.y = y;
 			if( hVideo->flags.bShown )
 			{
 				// layered window requires layered output to be called to move the display.
