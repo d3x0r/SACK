@@ -575,7 +575,7 @@ PRIORITY_PRELOAD( InitSyslogPreloadWithOptions, NAMESPACE_PRELOAD_PRIORITY + 1 )
    InitSyslog( 0 );
 }
 
-PRIORITY_PRELOAD( InitSyslogPreloadAllowGroups, DEFAULT_PRELOAD_PRIORITY )
+PRIORITY_PRELOAD( InitSyslogPreloadAllowGroups, DEFAULT_PRELOAD_PRIORITY + 1 )
 {
    flags.group_ok = 1;
 }
@@ -1250,6 +1250,8 @@ void SystemLogFL( const TEXTCHAR *message FILELINE_PASS )
 	}
 #endif
 	if( cannot_log )
+		return;
+	if( !flags.group_ok && lock )
 		return;
 #ifdef WIN32
 	while( InterlockedExchange( (long volatile*)&lock, 1 ) ) Relinquish();
