@@ -270,7 +270,7 @@ void ConfigureBoard( int *animate, int *sphere )
 	SetSliderValues( pc, 4, BOARD_Y, MAX_BOARD_Y );
 	MakeButton( pFrame, 14, 200, 82, 20, BTN_PLAY, WIDE("Done"), 0, PlayGameButton, (PTRSZVAL)&done );
 	SetCheckState( MakeCheckButton( pFrame, 131, 200, 80, 14, CHK_ANIMATE, WIDE("Animate"), 0, NULL, 0 ), 1 );
-	SetCheckState( MakeCheckButton( pFrame, 131, 220, 120, 14, CHK_SPHERICAL, WIDE("Spherical Wrap"), 0, NULL, 0 ), 1 );
+	SetCheckState( MakeCheckButton( pFrame, 131, 220, 140, 14, CHK_SPHERICAL, WIDE("Spherical Wrap"), 0, NULL, 0 ), 1 );
 	//SetControlDraw( pcBoard, DrawMimicBoard, 0 );
 	//DrawMimicBoard( pcBoard );
 

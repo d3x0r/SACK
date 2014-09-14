@@ -72,7 +72,8 @@ ATOMPOINT BoardAtoms[MAX_BOARD_X][MAX_BOARD_Y][8]; // use Board[x][y].count
 
 XYPOINT Explode[QUEUESIZE];
 int ExplodeHead, ExplodeTail;
-
+int updating_board_end; // communicate to board update thread to stop updating.
+int updating_board;  // state of board update thread, if it is in an update or not.
 
 PLAYER players[MAX_PLAYERS + 1]; // players[0] is never used...
 int playerturn; // 1...n
@@ -92,7 +93,7 @@ int CPROC Mouse( PTRSZVAL dwUser, S_32 x, S_32 y, _32 b );
 
 void CPROC Close( PTRSZVAL dwUser )
 {
-   UnmakeImageFile( pGameBoard );
+	UnmakeImageFile( pGameBoard );
 	pGameBoard = NULL;
 	NewGame = TRUE;
 }
@@ -111,7 +112,10 @@ void ClearBoard( void )
 		gnAnimateTimer = 0;
 	}
 	while( drawing )
-		Idle();//Relinquish();
+		Idle();
+	updating_board_end = 1;
+	while( updating_board )
+		Idle();
 	if( hDisplay )
 	{
 		NewGame = FALSE;
@@ -136,6 +140,7 @@ void ClearBoard( void )
 	CursorX = 0;
 	CursorY = 0;
 	ExplodeHead = ExplodeTail = 0; // clear pending explosions...
+	updating_board_end = 0; // allow board to update
 	winstate = FALSE;  // noone has one
 	first_draw = TRUE;
 	all_players_went = FALSE; // we haven't all gone yet...
@@ -882,25 +887,37 @@ void CPROC DrawBoardTimer( PTRSZVAL unused )
 
 PTRSZVAL CPROC UpdateBoardThread( PTHREAD thread )
 {
-   int updated;
+	int updated;
 	while( 1 )
 	{
 		int bx, by;
-		int updated = 0;
-		unstable = FALSE;
-		//cnt = 0;
-		for( bx = 0; bx < BOARD_X; bx++ )
-			for( by = 0; by < BOARD_Y; by++ )
-			{
-				if( CheckSquareEx( bx, by, TRUE ) )
-               updated = 1;
-			}
-      if( !updated )
+		int updated;
+		updated = 0;
+		if( !updating_board_end )
+		{
+			updating_board = 1;
+			unstable = FALSE;
+			//cnt = 0;
+			for( bx = 0; bx < BOARD_X; bx++ )
+				for( by = 0; by < BOARD_Y; by++ )
+				{
+					if( CheckSquareEx( bx, by, TRUE ) )
+						updated = 1;
+				}
+		}
+		if( !updated )
+		{
+			updating_board = 0;
 			WakeableSleep( 10000 );
+		}
 		else
-         UpdateBoard();
+		{
+			UpdateBoard();
+			updating_board = 0;
+			Relinquish();
+		}
 	}
-   return 0;
+	return 0;
 }
 
 
@@ -942,7 +959,7 @@ void AddPeice( int x, int y, int posx, int posy )
 			CheckSquare( x, y );
 			if( UpdateBoard() ) // returns true if in a win state...
 			{
-            lprintf( WIDE("Returning early becuase of update board...") );
+				lprintf( WIDE("Returning early becuase of update board...") );
 				return;
 			}
 		}
