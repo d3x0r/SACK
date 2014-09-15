@@ -4673,7 +4673,7 @@ PSI_CONTROL OpenPageFrame( PPAGE_DATA page )
 	return page->frame;
 }	 
 
-void InvokeFinishInit( void );
+void InvokeFinishInit( PSI_CONTROL canvas );
 
 PSI_CONTROL Init( LOGICAL bLoadConfig )
 {
@@ -5547,7 +5547,7 @@ namespace InterShell
 
 			Banner2NoWaitAlpha( WIDE("Finish Config...") );
 			/* this builds menus and junk based on plugins which have been loaded... */
-			InvokeFinishInit();
+			InvokeFinishInit( this_frame );
 			InvokeFinishAllInit();
 			InvokeStartupMacro();
 			{
