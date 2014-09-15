@@ -1,9 +1,13 @@
 cmake_minimum_required(VERSION 2.8)
+if( POLICY CMP0037 )
+	cmake_policy(SET CMP0037 OLD)
+endif( POLICY CMP0037 )
 
 # Project becomes the package and application name
 # activities are named later.
 
 set( Project Dekware )
+PROJECT( ${Project} NONE )
 
 if( NOT DEKWARE_SDK_ROOT_PATH )
 GET_FILENAME_COMPONENT(DEKWARE_SDK_ROOT_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Freedom Collective\\Dekware;Install_Dir]" ABSOLUTE CACHE)
@@ -11,13 +15,18 @@ else( NOT DEKWARE_SDK_ROOT_PATH )
 set(DEKWARE_SDK_ROOT_PATH ${DEKWARE_SDK_ROOT_PATH} CACHE STRING "SACK Dekware SDK Root" )
 endif( NOT DEKWARE_SDK_ROOT_PATH )
 
+add_custom_target( update
+       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
 
 macro( ainstall a b c d )
 	 FILE( GLOB files ${a}/${b} )
          foreach( file ${files} )
   	STRING( REPLACE "${a}" "" fileout ${file} )
          	
-    EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${file} ${d}${fileout} )
+     	if( NOT IS_DIRECTORY ${file} )
+		add_custom_command( TARGET update PRE_BUILD  COMMAND cmake -E copy_if_different ${file} ${d}${fileout} )
+     	endif( NOT IS_DIRECTORY ${file} )
     endforeach( file )
 endmacro( ainstall )
 
@@ -27,7 +36,7 @@ macro( dinstall a b c d )
          foreach( file ${files} )
   	STRING( REPLACE "${a}" "" fileout ${file} )
          	
-    EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${file} ${d}${fileout} )
+    add_custom_command( TARGET update PRE_BUILD  COMMAND cmake -E copy_if_different ${file} ${d}${fileout} )
     endforeach( file )
 endmacro( dinstall )
 
@@ -35,7 +44,7 @@ macro( install_scripts target )
   FILE( GLOB_RECURSE RESOURCES RELATIVE ${DEKWARE_SDK_ROOT_PATH}/bin/scripts ${DEKWARE_SDK_ROOT_PATH}/bin/scripts/* )
   foreach( resource ${RESOURCES} )
   	STRING( REPLACE "/" "." resout ${resource} )
-        EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${DEKWARE_SDK_ROOT_PATH}/bin/scripts/${resource} package/assets/${resout} )
+        add_custom_command( TARGET update PRE_BUILD COMMAND cmake -E copy_if_different ${DEKWARE_SDK_ROOT_PATH}/bin/scripts/${resource} package/assets/${resout} )
   endforeach( resource )
 endmacro( install_scripts )
 
@@ -77,13 +86,20 @@ set( manifest_head "${manifest_head}\n${activity_out}" )
 set( activity Dekware )
 set( library Dekware )
 set( stringid string/app_name1 )
-CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/../MyNativeActivity.cm package/src/org/d3x0r/${application}/${activity}/${activity}.java )
+STRING( REPLACE "." "/" app_path ${application} )
+FILE( WRITE ${CMAKE_BINARY_DIR}/SupidConfigure.cmake "configure_file( ${CMAKE_SOURCE_DIR}/../MyNativeActivity.cm package/src/org/d3x0r/${app_path}/${activity}/${activity}.java )\n" )
+FILE( APPEND ${CMAKE_BINARY_DIR}/SupidConfigure.cmake "EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_SOURCE_DIR}/../NativeStaticLib.java package/src/org/d3x0r/sack/NativeStaticLib.java )\n" )
+#CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/../MyNativeActivity.cm package/src/org/d3x0r/${application}/${activity}/${activity}.java )
 STRING( CONFIGURE "${manifest_activity}" activity_out )
 set( manifest_head "${manifest_head}\n${activity_out}" )
 
 set( manifest_head "${manifest_head}\n${manifest_tail}" )
 
 FILE( WRITE ${CMAKE_BINARY_DIR}/package/AndroidManifest.xml "${manifest_head}" )
+
+
+add_custom_command( TARGET update PRE_BUILD COMMAND  cmake -Dapplication=${Project} -Dactivity=${activity} -P ${CMAKE_BINARY_DIR}/SupidConfigure.cmake )
+
 
 if( CMAKE_BUILD_TYPE STREQUAL "release" )
   set( MORE_COMMANDS 
@@ -92,12 +108,12 @@ if( CMAKE_BUILD_TYPE STREQUAL "release" )
        COMMAND zipalign -v 4 bin/${Project}-${CMAKE_BUILD_TYPE}-unsigned.apk bin/${Project}-${CMAKE_BUILD_TYPE}.apk
      )
 endif( CMAKE_BUILD_TYPE STREQUAL "release" )
+
     add_custom_target( package
        COMMAND android.bat update project --target "android-14" --path .
-       COMMAND ant.bat ${CMAKE_BUILD_TYPE} 
+       COMMAND ant.bat ${CMAKE_BUILD_TYPE}
        ${MORE_COMMANDS}
-       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/package
-   )
+       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/package )
 
 
     add_custom_target( install 
