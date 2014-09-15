@@ -293,6 +293,7 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 #if defined( __GNUC__ )
 			//__ANDROID__
 #define sack_fsopen(a,b,c,d) sack_fopen(a,b,c)
+#define sack_fsopenEx(a,b,c,d,fsi) sack_fopenEx(a,b,c, fsi)
 #endif
 			if( l.next_fsi )
 			{

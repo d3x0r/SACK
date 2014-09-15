@@ -1538,7 +1538,7 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 			const char *tmpname = filename;
 #endif
 			lprintf( "Movie to connect %s", tmpname );
-			if( !KWconnectMovie( tmpname ) )
+			if( 0 ) //!KWconnectMovie( tmpname ) )
 			{
 				lprintf( WIDE("Movie %s is %p"), filename, file->ffmpeg_buffer );
 				do
