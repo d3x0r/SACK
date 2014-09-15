@@ -2,6 +2,7 @@
 set( project sack_widgets ) 
 
 set(SOURCES 
+   chat/scrollable_chat_list.c
    banner/banner.c 
    keypad/buttons.c 
    keypad/keypad_control.c 
