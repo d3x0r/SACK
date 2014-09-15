@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
+if( POLICY CMP0037 )
+	cmake_policy(SET CMP0037 OLD)
+endif( POLICY CMP0037 )
 
 set( Project sack.InterShell )
 
