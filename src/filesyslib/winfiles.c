@@ -59,6 +59,7 @@ static struct winfile_local_tag {
 
 static void UpdateLocalDataPath( void )
 {
+#ifdef _WIN32
 	TEXTCHAR path[MAX_PATH];
 	TEXTCHAR *realpath;
 	int len;
@@ -75,6 +76,10 @@ static void UpdateLocalDataPath( void )
 		Deallocate( TEXTSTR, l.data_file_root );
 	l.data_file_root = realpath;
 	MakePath( l.data_file_root );
+#else
+	l.data_file_root = ".";
+
+#endif
 }
 
 void sack_set_common_data_producer( CTEXTSTR name )
@@ -101,9 +106,6 @@ static void LocalInit( void )
 			l.flags.bInitialized = 1;
 			l.flags.bLogOpenClose = 0;
 			{
-				TEXTCHAR path[MAX_PATH];
-				TEXTCHAR *realpath;
-				int len;
 #ifdef _WIN32
             sack_set_common_data_producer( WIDE( "Freedom Collective" ) );
             sack_set_common_data_application( GetProgramName() );
@@ -111,11 +113,6 @@ static void LocalInit( void )
 #else
 				l.data_file_root = StrDup( WIDE( "~" ) );
 #endif
-				/*
-				l.data_file_root = NewArray( TEXTCHAR
-					, len = ( StrLen( path )) + 2 ) );
-				snprintf( l.data_file_root, len, "%s/%s", path, GetProgramName() );
-				*/
 			}
 		}
 	}
