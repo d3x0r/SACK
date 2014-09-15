@@ -103,13 +103,13 @@ SFF_DIRECTORY  = 1, // is a directory...
 
 /* Extended external file system interface to be able to use external file systems */
 struct file_system_interface {
-	void* (__cdecl *open)(const char *);                                                  //filename
-	int (__cdecl *close)(void *);                                                 //file *
-	size_t (__cdecl *read)(char *, size_t, void *);                    //file *, buffer, length (to read)
-	size_t (__cdecl *write)(void*,const char *, size_t);                    //file *, buffer, length (to write)
-	size_t (__cdecl *seek)( void *, size_t, int whence);
-	void  (__cdecl *truncate)( void *);
-	void (__cdecl *unlink)( void *);
+	void* (CPROC *open)(const char *);                                                  //filename
+	int (CPROC *close)(void *);                                                 //file *
+	size_t (CPROC *read)(char *, size_t, void *);                    //file *, buffer, length (to read)
+	size_t (CPROC *write)(void*,const char *, size_t);                    //file *, buffer, length (to write)
+	size_t (CPROC *seek)( void *, size_t, int whence);
+	void  (CPROC *truncate)( void *);
+	void (CPROC *unlink)( void *);
 };
 
 /* \ \ 

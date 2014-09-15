@@ -594,7 +594,9 @@ TYPELIB_PROC  LOGICAL TYPELIB_CALLTYPE      IsQueueEmpty     ( PLINKQUEUE *pplq 
 /* Gets the number of elements current in the queue. */
 TYPELIB_PROC  INDEX TYPELIB_CALLTYPE        GetQueueLength   ( PLINKQUEUE plq );
 // get a PLINKQUEUE element at index
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE      PeekQueueEx    ( PLINKQUEUE plq, INDEX idx );
+//  If idx < 0 then count from the end of the queue, otherwise count from the start of the queue
+// start of the queue is the next element to be dequeue, end of the queue is the last element added to the queue.
+TYPELIB_PROC  POINTER TYPELIB_CALLTYPE      PeekQueueEx    ( PLINKQUEUE plq, int idx );
 /* Can be used to look at the next element in the queue without
    removing it from the queue. PeekQueueEx allows you to specify
    an index of an item in the queue to get.                      */

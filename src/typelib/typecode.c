@@ -979,27 +979,45 @@ retry_lock:
 }
 
 //--------------------------------------------------------------------------
- POINTER  PeekQueueEx	 ( PLINKQUEUE plq, INDEX idx )
+POINTER  PeekQueueEx	 ( PLINKQUEUE plq, int idx )
 {
-	INDEX top;
-	if( idx == INVALID_INDEX )
-		return NULL;
+	int top;
 	if( !plq )
 		return NULL;
-	for( top = plq->Bottom
-		 ; idx != INVALID_INDEX && top != plq->Top
-		 ; )
+	if( idx < 0 )
 	{
-		idx--;
-		if( idx != INVALID_INDEX )
+		for( top = plq->Top
+			 ; idx && top != plq->Bottom
+			  ; )
 		{
-			top++;
-			if( (top)>=plq->Cnt)
-				top=(top)-plq->Cnt;
+			idx++;
+			if( idx )
+			{
+				top--;
+				if( (top)< 0)
+					top = (top) + plq->Cnt;
+			}
 		}
+		if( idx == 0 )
+			return plq->pNode[top];
 	}
-	if( idx == INVALID_INDEX )
-		return plq->pNode[top];
+	else
+	{
+		for( top = plq->Bottom
+			 ; idx != INVALID_INDEX && top != plq->Top
+			  ; )
+		{
+			idx--;
+			if( idx != INVALID_INDEX )
+			{
+				top++;
+				if( (top)>=plq->Cnt)
+					top=(top)-plq->Cnt;
+			}
+		}
+		if( idx == INVALID_INDEX )
+			return plq->pNode[top];
+	}
 	return NULL;
 }
 
