@@ -1092,7 +1092,7 @@ int  sack_fclose ( FILE *file_file )
 	struct file *file;
 	file = FindFileByFILE( file_file );
 	if( file->fsi )
-		return file->fsi->read( (char*)buffer, size * count, file_file );
+		return file->fsi->read( file_file, (char*)buffer, size * count );
 	return fread( buffer, size, count, file_file );
 }
  size_t  sack_fwrite ( CPOINTER buffer, size_t size, int count,FILE *file_file )
