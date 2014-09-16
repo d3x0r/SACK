@@ -105,7 +105,7 @@ SFF_DIRECTORY  = 1, // is a directory...
 struct file_system_interface {
 	void* (CPROC *open)(const char *);                                                  //filename
 	int (CPROC *close)(void *);                                                 //file *
-	size_t (CPROC *read)(char *, size_t, void *);                    //file *, buffer, length (to read)
+	size_t (CPROC *read)(void *,char *, size_t);                    //file *, buffer, length (to read)
 	size_t (CPROC *write)(void*,const char *, size_t);                    //file *, buffer, length (to write)
 	size_t (CPROC *seek)( void *, size_t, int whence);
 	void  (CPROC *truncate)( void *);
