@@ -11,7 +11,7 @@
 #include "plasma.h"
 #include "grid_reader.h" 
 
-#define patch  257
+#define patch  1025
 //1025  
 //257
 
@@ -168,8 +168,8 @@ static void ComputeRoughness( struct slider_panel *panel )
 			base = base / 10;
 	}
 	roughness = (RCOORD)base * (RCOORD)l.digits;
-	roughness = roughness / 512 * patch ;
-	PlasmaSetRoughness( l.plasma, roughness, l.horz_r_scale );
+	roughness = ( roughness / 512 )/* * patch*/;
+	PlasmaSetGlobalRoughness( l.plasma, roughness, l.horz_r_scale );
 	{
 		TEXTCHAR val[25];
 		snprintf( val, 25, "%d", l.digits );
@@ -265,7 +265,7 @@ SaneWinMain( argc, argv )
 	SetMouseHandler( l.render, Mouse, 0 );
 
 
-	l.grid_reader = GridReader_Open( "c:/storage/maps/nevada_gis/usa_elevation/usa1_alt" );
+	//l.grid_reader = GridReader_Open( "c:/storage/maps/nevada_gis/usa_elevation/usa1_alt" );
 
 
 	{
@@ -276,7 +276,7 @@ SaneWinMain( argc, argv )
 	coords[1] = 0.0;
 	coords[2] = 0.0;
 	coords[3] = 1.0;
-	l.plasma = PlasmaCreate( coords, patch * 2, patch, patch );
+	l.plasma = PlasmaCreate( coords, 0.5/*patch * 2*/, patch, patch );
 	UpdateDisplay( l.render );
 	//RestoreDisplay( l.render );
 

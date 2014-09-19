@@ -7,5 +7,8 @@ RCOORD *PlasmaGetSurface( struct plasma_patch *plasma );
 RCOORD *PlasmaReadSurface( struct plasma_patch *plasma, int x_ofs, int y_ofs, int smoothing );
 
 void PlasmaRender( struct plasma_patch *plasma, RCOORD seed[4] );
+// set the roughness of a specific patch...
 void PlasmaSetRoughness( struct plasma_patch *plasma, RCOORD roughness, RCOORD horiz_rough );
+// set the roughness of all patches.
+void PlasmaSetGlobalRoughness( struct plasma_patch *plasma, RCOORD roughness, RCOORD horiz_rough );
 
