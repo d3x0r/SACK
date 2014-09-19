@@ -3017,7 +3017,7 @@ WM_DROPFILES
 					lprintf( "triggered to draw too soon!" );
 				l.flags.bPostedInvalidate = 0;
 			}
-			else
+			else if( l.invalidated_window )
 				lprintf( " failed %d %p %p", l.flags.bPostedInvalidate, l.invalidated_window, hVideo );
 			//InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
 		}
