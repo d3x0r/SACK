@@ -46,11 +46,15 @@ struct plasma_state
 {
 	size_t stride, rows;
 	RCOORD *read_map;  // this is the map used to retun the current state.
-
+	struct plasma_clip {
+		RCOORD top, bottom;
+	} clip;
 	size_t map_width, map_height;
 	int root_x, root_y; // where 0, 0 is...
 	struct plasma_patch **world_map;
+	RCOORD *world_height_map;
 };
+RCOORD *PlasmaReadSurface( struct plasma_patch *patch_root, int x, int y, int smoothing, int force_scaling );
 
 void PlasmaFill2( struct plasma_patch *plasma, RCOORD *map, struct grid *here )
 {
@@ -68,8 +72,11 @@ void PlasmaFill2( struct plasma_patch *plasma, RCOORD *map, struct grid *here )
 
 #define mid(a,b) (((a)+(b))/2)
 
-	if( !pdq_todo )
+	if( !pdq_todo || ( pdq_todo->Cnt < ((rows*stride)/4) ) )
+	{
+		DeleteDataQueue( &pdq_todo );
 		pdq_todo = CreateLargeDataQueueEx( sizeof( struct grid ), rows*stride/4, rows*stride/64 DBG_SRC );
+	}
 
 	do
 	{
@@ -81,8 +88,9 @@ void PlasmaFill2( struct plasma_patch *plasma, RCOORD *map, struct grid *here )
 
 		if( ( mx != here->x ) && ( my != here->y ) )
 		{
-			RCOORD del1 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
-			RCOORD area = ( sqrt( ( ( here->x2 - here->x )*( here->x2 - here->x ) + ( here->y2 - here->y )*( here->y2 - here->y )) ) / ( plasma->area_scalar ) );
+			RCOORD del1 = ( ( SRG_GetEntropy( plasma->entropy, 13, FALSE ) / (RCOORD)( 1 << 13 ) ) - 0.5 );
+			//RCOORD del1 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
+			RCOORD area = ( sqrt( ( ( here->x2 - here->x )*( here->x2 - here->x ) + ( here->y2 - here->y )*( here->y2 - here->y )) ) * ( plasma->area_scalar ) );
 			RCOORD avg = ( map[here->x + here->y*stride] + map[here->x2 + here->y*stride]
 							 + map[here->x + here->y2*stride] + map[here->x2 + here->y2*stride] ) / 4;
 			//avg += ( map[here->x + my*stride] + map[here->x2 + my*stride]
@@ -206,9 +214,9 @@ void PlasmaFill2( struct plasma_patch *plasma, RCOORD *map, struct grid *here )
 		}
 		if( mx != here->x )
 		{
-			RCOORD del1 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
-			RCOORD del2 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
-			RCOORD area = ( mx - here->x ) / ( plasma->horiz_area_scalar );
+			RCOORD del1 = ( ( SRG_GetEntropy( plasma->entropy, 13, FALSE ) / (RCOORD)( 1 << 13 ) ) - 0.5 );
+			RCOORD del2 = ( ( SRG_GetEntropy( plasma->entropy, 13, FALSE ) / (RCOORD)( 1 << 13 ) ) - 0.5 );
+			RCOORD area = ( mx - here->x ) * ( plasma->horiz_area_scalar );
 			if( !here->skip_top && !( here->y == 0 && plasma->as_top ) )
 			{
 				//lprintf( "set point  %d,%d", mx, here->y );
@@ -234,14 +242,14 @@ void PlasmaFill2( struct plasma_patch *plasma, RCOORD *map, struct grid *here )
 				if( this_point < plasma->min_height )
 					plasma->min_height = this_point;
 			}
-			else
-				lprintf( "Skip point %d,%d  %g", here->y2, mx, map[mx + here->y2 * stride] );
+			//else
+				//lprintf( "Skip point %d,%d  %g", here->y2, mx, map[mx + here->y2 * stride] );
 		}
 		if( my != here->y )
 		{
-			RCOORD del1 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
-			RCOORD del2 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
-			RCOORD area = ( my - here->y ) / ( plasma->horiz_area_scalar );
+			RCOORD del1 = ( ( SRG_GetEntropy( plasma->entropy, 13, FALSE ) / (RCOORD)( 1 << 13 ) ) - 0.5 );
+			RCOORD del2 = ( ( SRG_GetEntropy( plasma->entropy, 13, FALSE ) / (RCOORD)( 1 << 13 ) ) - 0.5 );
+			RCOORD area = ( my - here->y ) * ( plasma->horiz_area_scalar );
 
 			if( !here->skip_left && !( here->x == 0 && plasma->as_left ) )
 			{
@@ -273,191 +281,11 @@ void PlasmaFill2( struct plasma_patch *plasma, RCOORD *map, struct grid *here )
 	while( DequeData( &pdq_todo, &real_here ) );
 	//DeleteDataQueue( &pdq_todo );
 	// x to mx and mx to x2 need to be done...
-}
-
-void PlasmaFill( struct plasma_patch *plasma, RCOORD *map, struct grid *here )
-{
-	int mx, my;
-	struct grid next;
-	size_t stride = plasma->plasma->stride;
-	size_t rows = plasma->plasma->rows;
-	RCOORD del;
-	RCOORD center;
-	RCOORD this_point;
-	mx = ( here->x2 + here->x ) / 2;
-	my = ( here->y2 + here->y ) / 2;
-
-	if( ( mx != here->x ) && ( my != here->y ) )
 	{
-		RCOORD del1 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
-		RCOORD area = ( sqrt( ( ( here->x2 - here->x )*( here->x2 - here->x ) + ( here->y2 - here->y )*( here->y2 - here->y )) ) / ( plasma->area_scalar ) );
-		RCOORD avg = ( map[here->x + here->y*stride] + map[here->x2 + here->y*stride]
-						 + map[here->x + here->y2*stride] + map[here->x2 + here->y2*stride] ) / 4;
-		//avg += ( map[here->x + my*stride] + map[here->x2 + my*stride]
-		//				 + map[mx + here->y*stride] + map[mx + here->y2*stride] ) / 4;
-		//avg /= 2;
-		//lprintf( "Set point %d,%d = %g (%g) %g", del1, mx, my, map[mx + my * stride], avg );
-		center 
-			= this_point
-			= map[mx + my * stride] = avg + ( area *  del1 );
-		/*
-		if( map[mx + my * stride] > 1.0 )
-			map[mx + my * stride] = 1.0;
-		if( map[mx + my * stride] < 0.0 )
-			map[mx + my * stride] = 0.0;
-		*/
-			if( this_point > plasma->max_height )
-				plasma->max_height = this_point;
-			if( this_point < plasma->min_height )
-				plasma->min_height = this_point;
-	}
-	else 
-		if( mx != here->x )
-			center = ( map[here->x + here->y*stride] + map[here->x2 + here->y*stride] ) / 2;
-		else
-			center = ( map[here->x + here->y*stride] + map[here->x + here->y2*stride] ) / 2;
-
-	if( mx != here->x )
-	{
-		RCOORD del1 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
-		RCOORD del2 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
-		RCOORD area = ( mx - here->x ) / ( plasma->horiz_area_scalar );
-		if( !here->skip_top )
-		{
-			this_point
-				= map[mx + here->y * stride] 
-				= ( map[here->x + here->y*stride] + map[here->x2 + here->y*stride] + center ) / 3
-					+ area * del1;
-			/*
-			if( map[mx + here->y * stride] > 1.0 )
-				map[mx + here->y * stride] = 1.0;
-			if( map[mx + here->y * stride] < 0.0 )
-				map[mx + here->y * stride] = 0.0;
-				*/
-			if( this_point > plasma->max_height )
-				plasma->max_height = this_point;
-			if( this_point < plasma->min_height )
-				plasma->min_height = this_point;
-		}
-
-		this_point
-				= map[mx + here->y2 * stride] 
-			= ( map[here->x + here->y2*stride] + map[here->x2 + here->y2*stride] + center ) / 3
-			+ area * del2;
-		/*
-		if( map[mx + here->y2 * stride] > 1.0 )
-			map[mx + here->y2 * stride] = 1.0;
-		if( map[mx + here->y2 * stride] < 0.0 )
-			map[mx + here->y2 * stride] = 0.0;
-			*/
-			if( this_point > plasma->max_height )
-				plasma->max_height = this_point;
-			if( this_point < plasma->min_height )
-				plasma->min_height = this_point;
-	}
-	if( my != here->y )
-	{
-		RCOORD del1 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
-		RCOORD del2 = ( ( SRG_GetEntropy( plasma->entropy, 7, FALSE ) / 128.0 ) - 0.5 );
-		RCOORD area = ( my - here->y ) / ( plasma->horiz_area_scalar );
-		if( !here->skip_left )
-		{
-			this_point
-				= map[here->x + my * stride] = ( map[here->x + here->y*stride] + map[here->x + here->y2*stride] + center ) / 3
-				+ area * del1;
-			/*
-			if( map[here->x + my * stride] > 1.0 )
-				map[here->x + my * stride] = 1.0;
-			if( map[here->x + my * stride] < 0.0 )
-				map[here->x + my * stride] = 0.0;
-				*/
-			if( this_point > plasma->max_height )
-				plasma->max_height = this_point;
-			if( this_point < plasma->min_height )
-				plasma->min_height = this_point;
-		}
-		this_point
-				= map[here->x2 + my * stride] = ( map[here->x2 + here->y*stride] + map[here->x2 + here->y2*stride] + center ) / 3
-			+ area * del2;
-		/*
-		if( map[here->x2 + my * stride] > 1.0 )
-			map[here->x2 + my * stride] = 1.0;
-		if( map[here->x2 + my * stride] < 0.0 )
-			map[here->x2 + my * stride] = 0.0;
-			*/
-			if( this_point > plasma->max_height )
-				plasma->max_height = this_point;
-			if( this_point < plasma->min_height )
-				plasma->min_height = this_point;
-	}
-
-	// x to mx and mx to x2 need to be done...
-	if( ( mx != here->x ) && ( my != here->y ) )
-	{
-		next.x = here->x;
-		next.y = here->y;
-		next.x2 = mx;
-		next.y2 = my;
-		next.skip_left = here->skip_left;
-		next.skip_top = here->skip_top;
-		PlasmaFill( plasma, map, &next );
-		next.x = mx;
-		next.y = here->y;
-		next.x2 = here->x2;
-		next.y2 = my;
-		next.skip_left = 1;
-		next.skip_top = here->skip_top;
-		PlasmaFill( plasma, map, &next );
-		next.x = here->x;
-		next.y = my;
-		next.x2 = mx;
-		next.y2 = here->y2;
-		next.skip_left = here->skip_left;
-		next.skip_top = 1;
-		PlasmaFill( plasma, map, &next );
-		next.x = mx;
-		next.y = my;
-		next.x2 = here->x2;
-		next.y2 = here->y2;
-		next.skip_left = 1;
-		next.skip_top = 1;
-		PlasmaFill( plasma, map, &next );
-	}
-	else if( mx != here->x )
-	{
-		next.x = here->x;
-		next.y = here->y;
-		next.x2 = mx;
-		next.y2 = here->y2;
-		next.skip_left = here->skip_left;
-		next.skip_top = here->skip_top;
-		PlasmaFill( plasma, map, &next );
-		next.x = mx;
-		next.y = here->y;
-		next.x2 = here->x2;
-		next.y2 = here->y2;
-		next.skip_top = here->skip_top;
-		next.skip_left = 1;
-		PlasmaFill( plasma, map, &next );
-	}
-	else if( my != here->y )
-	{
-		next.x = here->x;
-		next.y = here->y;
-		next.x2 = here->x2;
-		next.y2 = my;
-		next.skip_left = here->skip_left;
-		next.skip_top = here->skip_top;
-		PlasmaFill( plasma, map, &next );
-		next.x = here->x;
-		next.y = my;
-		next.x2 = here->x2;
-		next.y2 = here->y2;
-		next.skip_top = 1;
-		next.skip_left = here->skip_left;
-		PlasmaFill( plasma, map, &next );
+		lprintf( "done..." );
 	}
 }
+
 
 static void FeedRandom( PTRSZVAL psvPlasma, POINTER *salt, size_t *salt_size )
 {
@@ -483,6 +311,20 @@ void PlasmaRender( struct plasma_patch *plasma, RCOORD *seed )
 	size_t stride = plasma->plasma->stride;
 	size_t rows = plasma->plasma->rows;
 	//RCOORD *map2 =  NewArray( RCOORD, stride * plasma->rows );
+	if( !seed )
+	{
+		struct plasma_state *ps = plasma->plasma;
+		int x, y;
+		for( x = 0; x < ps->map_width; x++ )
+			for( y = 0; y < ps->map_height; y++ )
+			{
+				struct plasma_patch * here;
+				if( here = ps->world_map[ ( x ) + ( y ) * ps->map_width] )
+					PlasmaRender( here, here->corners );
+			}
+			return;
+	}
+
 	if( plasma->entopy_state )
 	{
 		SRG_RestoreState( plasma->entropy, plasma->entopy_state );
@@ -540,7 +382,6 @@ void PlasmaRender( struct plasma_patch *plasma, RCOORD *seed )
 		
 	}
 
-	//PlasmaFill( plasma, map1, &next );
 	PlasmaFill2( plasma, plasma->map1, &next );
 
 }
@@ -586,7 +427,7 @@ struct plasma_patch *PlasmaCreatePatch( struct plasma_state *map, RCOORD seed[4]
 		*/
 	}
 
-	plasma->entropy = SRG_CreateEntropy( FeedRandom, (PTRSZVAL)plasma );
+	plasma->entropy = SRG_CreateEntropy2( FeedRandom, (PTRSZVAL)plasma );
 
 
 	//if( initial_render )
@@ -600,25 +441,58 @@ struct plasma_patch *PlasmaCreateEx( RCOORD seed[4], RCOORD roughness, int width
 	struct plasma_state *plasma = New( struct plasma_state );
 	struct plasma_patch *patch;
 
+	plasma->map_height = 32;
+	plasma->map_width = 32;
+
+	plasma->root_x = 0;
+	plasma->root_y = 0;
+	plasma->stride = plasma->map_width;
+	plasma->rows = plasma->map_height;
+	plasma->read_map =  NewArray( RCOORD, plasma->stride * plasma->rows );
+	patch = PlasmaCreatePatch( plasma, seed, 5 );
+	PlasmaRender( patch, patch->corners );
+	plasma->world_map = &patch;
+	plasma->map_width = 1;
+	plasma->map_height = 1;
+	plasma->clip.top = patch->max_height;
+	plasma->clip.bottom = patch->min_height;
+	plasma->world_height_map = PlasmaReadSurface( patch, 0, 0, 0, 1 );
+	// don't release read_map;
+	Release( patch->map1 );
+	Release( patch->map );
+	Release( patch );
+
+	plasma->map_height = 20;
+	plasma->map_width = 20;
 	plasma->stride = width;
 	plasma->rows = height;
+	// make a new read map, the first is actually world_height_map for corner seeds.
 	plasma->read_map =  NewArray( RCOORD, plasma->stride * plasma->rows );
-	plasma->map_height = 10;
-	plasma->map_width = 10;
 
 	plasma->world_map = NewArray( struct plasma_patch *, plasma->map_height * plasma->map_width );
 	MemSet( plasma->world_map, 0, sizeof( POINTER ) * plasma->map_height * plasma->map_width );
-	patch = PlasmaCreatePatch( plasma, seed, roughness );
+	{
+		RCOORD map_seed[4];
+		map_seed[0] = plasma->world_height_map[plasma->map_height/2 * plasma->map_width + plasma->map_width/ 2];
+		map_seed[1] = plasma->world_height_map[plasma->map_height/2 * plasma->map_width + (1+plasma->map_width/ 2)];
+		map_seed[2] = plasma->world_height_map[(1+plasma->map_height/2) * plasma->map_width + plasma->map_width/ 2];
+		map_seed[3] = plasma->world_height_map[(1+plasma->map_height/2) * plasma->map_width + (1+plasma->map_width/ 2)];
+		patch = PlasmaCreatePatch( plasma, map_seed, roughness );
+	}
 
-	plasma->root_x = 5;
-	plasma->root_y = 5;
+	plasma->root_x = plasma->map_height / 2;
+	plasma->root_y = plasma->map_width / 2;
 	patch->x = 0;
 	patch->y = 0;
 
 	plasma->world_map[ ( plasma->root_x + patch->x ) + ( plasma->root_y + patch->y ) * plasma->map_width ] = patch;
 
-	if( initial_render )
+	//if( initial_render )
+	{
 		PlasmaRender( patch, patch->corners );
+		plasma->clip.top = patch->max_height;
+		plasma->clip.bottom = patch->min_height;
+	}
 
 	return patch;
 }
@@ -718,31 +592,31 @@ struct plasma_patch *PlasmaExtend( struct plasma_patch *plasma, int in_direction
 		if( plasma->as_right )
 			return plasma->as_right;
 		new_seed[0] = plasma->corners[1];
-		new_seed[1] = seed[0];
+		new_seed[1] = plasma->plasma->world_height_map[ ( plasma->x + plasma->plasma->root_x + 1 ) + (plasma->y + plasma->plasma->root_y) * plasma->plasma->map_width ];
 		new_seed[2] = plasma->corners[3];
-		new_seed[3] = seed[1];
+		new_seed[3] = plasma->plasma->world_height_map[ ( plasma->x + plasma->plasma->root_x + 1 ) + (plasma->y + plasma->plasma->root_y + 1) * plasma->plasma->map_width ];
 		break;
 	case 1: // to the bottom
 		if( plasma->as_bottom )
 			return plasma->as_bottom;
 		new_seed[0] = plasma->corners[2];
 		new_seed[1] = plasma->corners[3];
-		new_seed[2] = seed[0];
-		new_seed[3] = seed[1];
+		new_seed[2] = plasma->plasma->world_height_map[ ( plasma->x + plasma->plasma->root_x ) + (plasma->y + plasma->plasma->root_y + 1) * plasma->plasma->map_width ];
+		new_seed[3] = plasma->plasma->world_height_map[ ( plasma->x + plasma->plasma->root_x + 1 ) + (plasma->y + plasma->plasma->root_y + 1) * plasma->plasma->map_width ];
 		break;
 	case 2: // to the left
 		if( plasma->as_left )
 			return plasma->as_left;
-		new_seed[0] = seed[0];
+		new_seed[0] = plasma->plasma->world_height_map[ ( plasma->x + plasma->plasma->root_x - 1) + (plasma->y + plasma->plasma->root_y) * plasma->plasma->map_width ];
 		new_seed[1] = plasma->corners[0];
-		new_seed[2] = seed[1];
+		new_seed[2] = plasma->plasma->world_height_map[ ( plasma->x + plasma->plasma->root_x - 1) + (plasma->y + plasma->plasma->root_y + 1) * plasma->plasma->map_width ];
 		new_seed[3] = plasma->corners[2];
 		break;
 	case 3: // to the top
 		if( plasma->as_top )
 			return plasma->as_top;
-		new_seed[0] = seed[0];
-		new_seed[1] = seed[1];
+		new_seed[0] = plasma->plasma->world_height_map[ ( plasma->x + plasma->plasma->root_x ) + (plasma->y + plasma->plasma->root_y-1) * plasma->plasma->map_width ];
+		new_seed[1] = plasma->plasma->world_height_map[ ( plasma->x + plasma->plasma->root_x + 1 ) + (plasma->y + plasma->plasma->root_y-1) * plasma->plasma->map_width ];
 		new_seed[2] = plasma->corners[0];
 		new_seed[3] = plasma->corners[1];
 		break;
@@ -797,14 +671,19 @@ RCOORD *PlasmaGetSurface( struct plasma_patch *plasma )
 	return plasma->map;
 }
 
-
-RCOORD GetMapData( struct plasma_patch *patch, int x, int y, int smoothing, int force_scaling )
+#ifdef _MSC_VER
+__inline 
+#endif
+	RCOORD GetMapData( struct plasma_patch *patch, int x, int y, int smoothing, int force_scaling )
 {
 		RCOORD input = patch->map1[ x + y * patch->plasma->stride ];
+		RCOORD top = patch->plasma->clip.top;// patch->_max_height;
+		RCOORD bottom = patch->plasma->clip.bottom; // patch->_min_height;
+		//lprintf( "patch %p (%d,%d) = %g", patch, x, y, input );
 		if( force_scaling /*( patch->min_height < patch->_min_height || patch->max_height > patch->_max_height )*/ )
 		{
 			int tries = 0;
-				LOGICAL updated;
+			LOGICAL updated;
 			do
 				{
 					tries++;
@@ -814,19 +693,20 @@ RCOORD GetMapData( struct plasma_patch *patch, int x, int y, int smoothing, int 
 						break;
 					}
 					updated  = FALSE;
-					if( input > patch->_max_height )
+					if( input > top )
 					{
 						// 
-						input = patch->_max_height - ( input - patch->_max_height );
+						input = top - ( input - top );
 						updated = TRUE;
 					}
-					else if( input < patch->_min_height )
+					else if( input < bottom )
 					{
-						input = patch->_min_height - ( input - patch->_min_height );
+						input = bottom - ( input - bottom );
 						updated = TRUE;
 					}
 				}
 				while( updated );
+				input = ( input - bottom ) / ( top - bottom );
 				if( smoothing == 0 )
 				{
 				// need to specify a copy mode.
@@ -907,8 +787,8 @@ RCOORD *PlasmaReadSurface( struct plasma_patch *patch_root, int x, int y, int sm
 	int sec_x = (x +del_x) / (int)plasma->stride;
 	int sec_y = -(y +del_y) / (int)plasma->rows;
 
-	int ofs_x = (x-1) % plasma->stride;
-	int ofs_y = (y-1) % plasma->rows;
+	int ofs_x = (x) % plasma->stride;
+	int ofs_y = (y) % plasma->rows;
 	int out_x, out_y;
 	lprintf( "start at %d,%d  offset in first: %d,%d  sec: %d,%d", x, y, ofs_x, ofs_y, sec_x, sec_y );
 
@@ -950,6 +830,12 @@ RCOORD *PlasmaReadSurface( struct plasma_patch *patch_root, int x, int y, int sm
 				seed[1] = 0.5;
 				patch = PlasmaExtend( patch, 3, seed, patch_root->area_scalar );
 			}
+			patch = GetMapCoord( plasma, sec_x, sec_y );
+			if( !patch )
+			{
+				lprintf( "Failed to get the patch... %d,%d", sec_x, sec_y );
+				return NULL;
+			}
 		}
 		while( !( patch = GetMapCoord( plasma, sec_x, sec_y ) ) );
 		first_patch = patch;
@@ -962,58 +848,64 @@ RCOORD *PlasmaReadSurface( struct plasma_patch *patch_root, int x, int y, int sm
 			plasma->read_map[ ( out_x - ofs_x ) + ( out_y - ofs_y ) * plasma->stride] 
 				= GetMapData( patch, out_x, out_y, smoothing, force_scaling );
 		}
-
-	patch = GetMapCoord( plasma, sec_x + 1, sec_y );
-	if( !patch )
+	if( ofs_x && ( ( plasma->root_x + sec_x + 1 ) < plasma->map_width ) )
 	{
-		RCOORD seed[2];
-		seed[0] = 0.5;
-		seed[1] = 0.5;
-		patch = PlasmaExtend( first_patch, 0, seed, first_patch->area_scalar );
-	}
-	lprintf( "patch is %d,%d", patch->x, patch->y ) ;
-	if( patch )
-	for( out_x = 0; out_x < ofs_x; out_x++ )
-		for( out_y = ofs_y; out_y < plasma->rows; out_y++ )
+		patch = GetMapCoord( plasma, sec_x + 1, sec_y );
+		if( !patch )
 		{
-			plasma->read_map[ ( out_x + ( plasma->stride - ofs_x ) ) + ( out_y - ofs_y ) * plasma->stride] 
-				= GetMapData( patch, out_x, out_y, smoothing, force_scaling );
+			RCOORD seed[2];
+			seed[0] = 0.5;
+			seed[1] = 0.5;
+			patch = PlasmaExtend( first_patch, 0, seed, first_patch->area_scalar );
 		}
-
-	patch = GetMapCoord( plasma, sec_x, sec_y - 1 );
-	if( !patch )
+		lprintf( "patch is %d,%d", patch->x, patch->y ) ;
+		if( patch )
+		for( out_x = 0; out_x < ofs_x; out_x++ )
+			for( out_y = ofs_y; out_y < plasma->rows; out_y++ )
+			{
+				plasma->read_map[ ( out_x + ( plasma->stride - ofs_x ) ) + ( out_y - ofs_y ) * plasma->stride] 
+					= GetMapData( patch, out_x, out_y, smoothing, force_scaling );
+			}
+	}
+	if( ( plasma->root_y + sec_y - 1 ) >= 0 )
 	{
-		RCOORD seed[2];
-		seed[0] = 0.5;
-		seed[1] = 0.5;
-		patch = PlasmaExtend( first_patch, 1, seed, first_patch->area_scalar );
-	}
-	lprintf( "patch is %d,%d", patch->x, patch->y ) ;
-	if( patch )
-	for( out_x = ofs_x; out_x < plasma->stride; out_x++ )
-		for( out_y = 0; out_y < ofs_y; out_y++ )
+		patch = GetMapCoord( plasma, sec_x, sec_y - 1 );
+		if( !patch )
 		{
-			plasma->read_map[ ( out_x - ofs_x ) + ( out_y + ( plasma->rows - ofs_y ) ) * plasma->stride] 
-				= GetMapData( patch, out_x, out_y, smoothing, force_scaling );
+			RCOORD seed[2];
+			seed[0] = 0.5;
+			seed[1] = 0.5;
+			patch = PlasmaExtend( first_patch, 1, seed, first_patch->area_scalar );
 		}
+		lprintf( "patch is %d,%d", patch->x, patch->y ) ;
+		if( patch )
+		for( out_x = ofs_x; out_x < plasma->stride; out_x++ )
+			for( out_y = 0; out_y < ofs_y; out_y++ )
+			{
+				plasma->read_map[ ( out_x - ofs_x ) + ( out_y + ( plasma->rows - ofs_y ) ) * plasma->stride] 
+					= GetMapData( patch, out_x, out_y, smoothing, force_scaling );
+			}
+	}
 	last_patch = patch;
-	patch = GetMapCoord( plasma, sec_x + 1, sec_y - 1 );
-	if( !patch )
+	if( ( ( plasma->root_x + sec_x + 1 ) < plasma->map_width ) && ( ( plasma->root_y + sec_y - 1 ) >= 0 ) )
 	{
-		RCOORD seed[2];
-		seed[0] = 0.5;
-		seed[1] = 0.5;
-		patch = PlasmaExtend( last_patch, 0, seed, first_patch->area_scalar );
-	}
-	lprintf( "patch is %d,%d", patch->x, patch->y ) ;
-	if( patch )
-	for( out_x = 0; out_x < ofs_x; out_x++ )
-		for( out_y = 0; out_y < ofs_y; out_y++ )
+		patch = GetMapCoord( plasma, sec_x + 1, sec_y - 1 );
+		if( !patch )
 		{
-			plasma->read_map[ ( out_x + ( plasma->stride - ofs_x ) ) + ( out_y + ( plasma->rows - ofs_y ) ) * plasma->stride] 
-				= GetMapData( patch, out_x, out_y, smoothing, force_scaling );
+			RCOORD seed[2];
+			seed[0] = 0.5;
+			seed[1] = 0.5;
+			patch = PlasmaExtend( last_patch, 0, seed, first_patch->area_scalar );
 		}
-
+		lprintf( "patch is %d,%d", patch->x, patch->y ) ;
+		if( patch )
+		for( out_x = 0; out_x < ofs_x; out_x++ )
+			for( out_y = 0; out_y < ofs_y; out_y++ )
+			{
+				plasma->read_map[ ( out_x + ( plasma->stride - ofs_x ) ) + ( out_y + ( plasma->rows - ofs_y ) ) * plasma->stride] 
+					= GetMapData( patch, out_x, out_y, smoothing, force_scaling );
+			}
+	}
 	return plasma->read_map;
 }
 
@@ -1021,6 +913,24 @@ void PlasmaSetRoughness( struct plasma_patch *plasma, RCOORD roughness, RCOORD h
 {
 	plasma->area_scalar = roughness;
 	plasma->horiz_area_scalar = roughness * horiz_rough;
+}
+
+void PlasmaSetGlobalRoughness( struct plasma_patch *plasma, RCOORD roughness, RCOORD horiz_rough )
+{
+	struct plasma_state *state = plasma->plasma;
+	int x, y;
+	struct plasma_patch **here = state->world_map;
+
+	for( y = 0; y < state->map_height; y++ )
+		for( x = 0; x < state->map_width; x++ )
+		{
+			if( here[0] )
+			{
+				(*here)->area_scalar = roughness;
+				(*here)->horiz_area_scalar = roughness;
+			}
+			here++;
+		}
 }
 
 
