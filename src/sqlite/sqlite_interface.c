@@ -8,7 +8,10 @@
 #include "../SQLlib/sqlstruc.h"
 #include "3.7.16.2/sqlite3.h"
 
-static void set_open_filesystem_interface( struct file_system_interface *fsi );
+#define LOG_OPERATIONS
+
+SQL_NAMESPACE
+static void InitVFS( CTEXTSTR name, struct file_system_interface *fsi );
 
 struct sqlite_interface my_sqlite_interface = {
 	sqlite3_result_text
@@ -31,7 +34,7 @@ struct sqlite_interface my_sqlite_interface = {
 														 , sqlite3_column_count
                                            , sqlite3_config
 															 , sqlite3_db_config
-															 , set_open_filesystem_interface
+															 , InitVFS
 };
 
 
@@ -45,20 +48,21 @@ struct my_file_data
 	int locktype;
 };
 
+struct my_sqlite3_vfs
+{
+	sqlite3_vfs vfs;
+	struct file_system_interface *fsi;
+};
+
 #define l local_sqlite_interface
 
 struct local_data {
 	int volume;
 	struct karaway_interface* kwe;
-	struct file_system_interface *next_fsi;
+	PLIST registered_vfs;
 } local_sqlite_interface;
 
 //typedef struct sqlite3_io_methods sqlite3_io_methods;
-
-void set_open_filesystem_interface( struct file_system_interface *fsi )
-{
-	l.next_fsi = fsi;
-}
 
 
 int xClose(sqlite3_file*file)
@@ -66,7 +70,9 @@ int xClose(sqlite3_file*file)
 	struct my_file_data *my_file = (struct my_file_data*)file;
 	if( my_file->file )
 		sack_fclose( my_file->file );
-	//lprintf( "Close %s", my_file->filename );
+#ifdef LOG_OPERATIONS
+	lprintf( "Close %s", my_file->filename );
+#endif
 	return SQLITE_OK;
 }
 
@@ -74,7 +80,9 @@ int xRead(sqlite3_file*file, void*buffer, int iAmt, sqlite3_int64 iOfst)
 {
 	struct my_file_data *my_file = (struct my_file_data*)file;
 	size_t actual;
-	//lprintf( "read %s %d  %d", my_file->filename, iAmt, iOfst );
+#ifdef LOG_OPERATIONS
+	lprintf( "read %s %d  %d", my_file->filename, iAmt, iOfst );
+#endif
 	sack_fseek( my_file->file, (size_t)iOfst, SEEK_SET );
 	if( ( actual = sack_fread( buffer, 1, iAmt, my_file->file ) ) == iAmt )
 		return SQLITE_OK;
@@ -88,7 +96,9 @@ int xWrite(sqlite3_file*file, const void*buffer, int iAmt, sqlite3_int64 iOfst)
 {
 	struct my_file_data *my_file = (struct my_file_data*)file;
 	size_t actual;
-	//lprintf( "Write %s %d  %d", my_file->filename, iAmt, iOfst );
+#ifdef LOG_OPERATIONS
+	lprintf( "Write %s %d  %d", my_file->filename, iAmt, iOfst );
+#endif
 
 	sack_fseek( my_file->file, (size_t)iOfst, SEEK_SET );
 	if( iAmt == ( actual = sack_fwrite( buffer, 1, iAmt, my_file->file ) ) )
@@ -106,7 +116,9 @@ int xTruncate(sqlite3_file*file, sqlite3_int64 size)
 int xSync(sqlite3_file*file, int flags)
 {
 	struct my_file_data *my_file = (struct my_file_data*)file;
-	//lprintf( "Sync on %s", my_file->filename );
+#ifdef LOG_OPERATIONS
+	lprintf( "Sync on %s", my_file->filename );
+#endif
 	sack_fflush( my_file->file );
 	/* noop */
 	return SQLITE_OK;
@@ -115,13 +127,10 @@ int xSync(sqlite3_file*file, int flags)
 int xFileSize(sqlite3_file*file, sqlite3_int64 *pSize)
 {
 	struct my_file_data *my_file = (struct my_file_data*)file;
-	size_t here = sack_ftell( my_file->file );
-	size_t length;
-	/* !!! Missing Method!!! */
-	sack_fseek( my_file->file, 0, SEEK_END );
-	length = sack_ftell( my_file->file );
-	sack_fseek( my_file->file, here, SEEK_SET );
-	(*pSize) = length;
+	(*pSize) = sack_fsize( my_file->file );
+#ifdef LOG_OPERATIONS
+	lprintf( "Get File size result of %s %d", my_file->filename, (*pSize) );
+#endif
 	return SQLITE_OK;
 
 }
@@ -189,7 +198,9 @@ int xCheckReservedLock(sqlite3_file*file, int *pResOut)
 int xFileControl(sqlite3_file*file, int op, void *pArg)
 {
 	struct my_file_data *my_file = (struct my_file_data*)file;
-	//lprintf( WIDE("file control op: %d %p"), op, pArg );
+#ifdef LOG_OPERATIONS
+	lprintf( WIDE("file control op: %d %p"), op, pArg );
+#endif
 	switch( op )
 	{
 	case SQLITE_FCNTL_LOCKSTATE:
@@ -276,11 +287,14 @@ struct sqlite3_io_methods my_methods = { 1
 int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 			 int flags, int *pOutFlags)
 {
+	struct my_sqlite3_vfs *my_vfs = (struct my_sqlite3_vfs *)vfs;
 	struct my_file_data *my_file = (struct my_file_data*)file;
 	file->pMethods = &my_methods;
 	if( zName == NULL )
 		zName = "sql.tmp";
-	//lprintf( "OPen file: %s", zName );
+#ifdef LOG_OPERATIONS
+	lprintf( "Open file: %s (vfs:%s)", zName, vfs->zName );
+#endif
 	/* also open the file... */
 	{
 		//int hResult = KWloadVolume( "core.volume" );
@@ -295,10 +309,9 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 #define sack_fsopen(a,b,c,d) sack_fopen(a,b,c)
 #define sack_fsopenEx(a,b,c,d,fsi) sack_fopenEx(a,b,c, fsi)
 #endif
-			if( l.next_fsi )
+			if( my_vfs->fsi )
 			{
-				my_file->file = sack_fsopenEx( 0, zName, "rb+", _SH_DENYNO, l.next_fsi );//KWfopen( zName );
-				l.next_fsi = NULL; // clear this, next open neeeds a new one.
+				my_file->file = sack_fsopenEx( 0, zName, "rb+", _SH_DENYNO, my_vfs->fsi );//KWfopen( zName );
 				if( my_file->file )
 				{
 					InitializeCriticalSec( &my_file->cs );
@@ -325,8 +338,14 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 
 int xDelete(sqlite3_vfs*vfs, const char *zName, int syncDir)
 {
-	//lprintf( "Never implemented delete on %s", zName );
-	sack_unlink( 0, zName );
+	struct my_sqlite3_vfs *my_vfs = (struct my_sqlite3_vfs *)vfs;
+#ifdef LOG_OPERATIONS
+	lprintf( "delete on %s (%s:%p)", zName, vfs->zName, my_vfs->fsi );
+#endif
+	if( my_vfs->fsi )
+		my_vfs->fsi->unlink( zName );
+	else
+		sack_unlink( 0, zName );
 	return SQLITE_OK;
 }
 
@@ -358,7 +377,9 @@ static int xAccess(
        || flags==SQLITE_ACCESS_READWRITE    /* access(zPath, R_OK|W_OK) 
   );
   */
-  //lprintf( "Access on %s", zPath );
+#ifdef LOG_OPERATIONS
+  lprintf( "Access on %s", zPath );
+#endif
   if( flags==SQLITE_ACCESS_READWRITE ) eAccess = R_OK|W_OK;
   if( flags==SQLITE_ACCESS_READ )      eAccess = R_OK;
 
@@ -390,34 +411,50 @@ static int xFullPathname(
 	Release( path );
 	return SQLITE_OK;
 }
-static void DoInitVFS( void )
+
+void InitVFS( CTEXTSTR name, struct file_system_interface *fsi )
 {
-	sqlite3_vfs *default_vfs = sqlite3_vfs_find(NULL);
+	struct my_sqlite3_vfs *vfs;
+	INDEX idx;
+	LIST_FORALL( l.registered_vfs, idx, struct my_sqlite3_vfs *, vfs )
+	{
+		if( StrCaseCmp( vfs->vfs.zName, name ) == 0 )
+			return;
+	}
 	//lprintf( WIDE("getting interface...") );
 	{
-		static sqlite3_vfs new_vfs;
-		MemCpy( &new_vfs, default_vfs, sizeof( new_vfs ) );
-		new_vfs.pAppData = 0;
-		new_vfs.szOsFile = sizeof( struct my_file_data );
-		new_vfs.zName = "sack";
-		new_vfs.xOpen = xOpen;
-		new_vfs.xDelete = xDelete;
-		new_vfs.xAccess = xAccess;
-		new_vfs.xFullPathname = xFullPathname;
-		if( sqlite3_vfs_register( &new_vfs, 0 ) )
+		sqlite3_vfs *default_vfs = sqlite3_vfs_find(NULL);
+		struct my_sqlite3_vfs *new_vfs;
+		new_vfs = New( struct my_sqlite3_vfs );
+		MemCpy( &new_vfs->vfs, default_vfs, sizeof( sqlite3_vfs ) );
+		new_vfs->vfs.pAppData = 0;
+		new_vfs->vfs.szOsFile = sizeof( struct my_file_data );
+		new_vfs->vfs.zName = CStrDup( name );
+		new_vfs->vfs.xOpen = xOpen;
+		new_vfs->vfs.xDelete = xDelete;
+		new_vfs->vfs.xAccess = xAccess;
+		new_vfs->vfs.xFullPathname = xFullPathname;
+		new_vfs->fsi = fsi;
+		if( sqlite3_vfs_register( &new_vfs->vfs, 0 ) )
 		{
 
 			//lprintf( WIDE("error registering my interface") );
 		}
+		AddLink( &l.registered_vfs, new_vfs );
 		//int sqlite3_vfs_unregister(sqlite3_vfs*);
 	}
+}
+
+static void DoInitVFS( void )
+{
+	InitVFS( "sack", NULL );	
 }
 
 
 static POINTER CPROC GetSQLiteInterface( void )
 {
 	//RealSQLiteInterface._global_font_data = GetGlobalFonts();
-   //sqlite3_enable_shared_cache( 1 );
+	//sqlite3_enable_shared_cache( 1 );
 	DoInitVFS();
 	return &my_sqlite_interface;
 }
@@ -438,3 +475,4 @@ PUBLIC( void, AtLeastOneExport )( void )
 {
 }
 #endif
+SQL_NAMESPACE_END

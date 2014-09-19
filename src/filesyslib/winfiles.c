@@ -1043,16 +1043,39 @@ FILE*  sack_fsopen( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mod
 	return sack_fsopenEx( group, filename, opts, share_mode, NULL );
 }
 
+size_t sack_fsize ( FILE *file_file )
+{
+	struct file *file;
+	file = FindFileByFILE( file_file );
+	if( file && file->fsi )
+		return file->fsi->size( file_file );
+	{
+		size_t here = ftell( file_file );
+		size_t length;
+		fseek( file_file, 0, SEEK_END );
+		length = ftell( file_file );
+		fseek( file_file, here, SEEK_SET );
+		return length;
+	}
+}
+
 size_t sack_ftell ( FILE *file_file )
 {
 	struct file *file;
 	file = FindFileByFILE( file_file );
+	if( file && file->fsi )
+		return file->fsi->seek( file_file, 0, SEEK_CUR );
 	return ftell( file_file );
 }
 
 size_t  sack_fseek ( FILE *file_file, size_t pos, int whence )
 {
-
+	struct file *file;
+	file = FindFileByFILE( file_file );
+	if( file && file->fsi )
+	{
+		return file->fsi->seek( file_file, pos, whence );
+	}
 	if( fseek( file_file, pos, whence ) )
 		return -1;
 	//struct file *file = FindFileByFILE( file_file );
@@ -1061,6 +1084,10 @@ size_t  sack_fseek ( FILE *file_file, size_t pos, int whence )
 
 int  sack_fflush ( FILE *file_file )
 {
+	struct file *file;
+	file = FindFileByFILE( file_file );
+	if( file && file->fsi )
+		return 0;
 	return fflush( file_file );
 }
 
@@ -1136,9 +1163,9 @@ int  sack_rename ( CTEXTSTR file_source, CTEXTSTR new_name )
 }
 
 
-_32 GetSizeofFile( TEXTCHAR *name, P_32 unused )
+size_t GetSizeofFile( TEXTCHAR *name, P_32 unused )
 {
-	_32 size;
+	size_t size;
 #ifdef __LINUX__
 	int hFile = open( name,		  // open MYFILE.TXT
 							 O_RDONLY );			 // open for reading
@@ -1155,11 +1182,13 @@ _32 GetSizeofFile( TEXTCHAR *name, P_32 unused )
 	if( hFile != INVALID_HANDLE_VALUE )
 	{
 		size = GetFileSize( hFile, unused );
+		if( sizeof( size ) > 4  && unused )
+			size |= (_64)(*unused) << 32;
 		CloseHandle( hFile );
 		return size;
 	}
 	else
-		return (_32)-1;
+		return (size_t)-1;
 #endif
 }
 

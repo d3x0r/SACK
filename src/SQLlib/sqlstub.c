@@ -1173,6 +1173,8 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 							tmpvfs = NewArray( TEXTCHAR, ( vfs_end - odbc->info.pDSN ) + 1 );
 							tmpvfsvfs = NewArray( TEXTCHAR, ( vfs_vfs_end - vfs_end ) + 1 );
 							StrCpyEx( tmpvfs, odbc->info.pDSN + 1, vfs_end - odbc->info.pDSN );
+							StrCpyEx( tmpvfsvfs, odbc->info.pDSN + 1, vfs_vfs_end - odbc->info.pDSN );
+							vfs_name = CStrDup( tmpvfsvfs );
 							StrCpyEx( tmpvfsvfs, vfs_end + 1, vfs_vfs_end - vfs_end );
 						}
 						else
@@ -1180,8 +1182,8 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 							tmpvfsvfs = NULL;
 							tmpvfs = NewArray( TEXTCHAR, ( vfs_vfs_end - odbc->info.pDSN ) + 1 );
 							StrCpyEx( tmpvfs, odbc->info.pDSN + 1, vfs_vfs_end - odbc->info.pDSN );
+							vfs_name = CStrDup( tmpvfs );
 						}
-						vfs_name = CStrDup( tmpvfs );
 						Deallocate( TEXTCHAR*, tmpvfs );
 					}
 					else
@@ -1192,7 +1194,8 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 					}
 
 					tmp = CStrDup( tmp_name );
-					sqlite_iface->set_open_filesystem_interface( sack_get_filesystem_interface( tmpvfsvfs ) );
+					if( vfs_name )
+						sqlite_iface->InitVFS( vfs_name, sack_get_filesystem_interface( tmpvfsvfs ) );
 					rc3 = sqlite3_open_v2( tmp, &odbc->db, SQLITE_OPEN_READWRITE, vfs_name );
 					Deallocate( char *, vfs_name );
 				}

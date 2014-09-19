@@ -103,13 +103,16 @@ SFF_DIRECTORY  = 1, // is a directory...
 
 /* Extended external file system interface to be able to use external file systems */
 struct file_system_interface {
-	void* (CPROC *open)(const char *);                                                  //filename
+	void* (CPROC *open)(const TEXTCHAR *);                                                  //filename
 	int (CPROC *close)(void *);                                                 //file *
 	size_t (CPROC *read)(void *,char *, size_t);                    //file *, buffer, length (to read)
 	size_t (CPROC *write)(void*,const char *, size_t);                    //file *, buffer, length (to write)
 	size_t (CPROC *seek)( void *, size_t, int whence);
 	void  (CPROC *truncate)( void *);
-	void (CPROC *unlink)( void *);
+	void (CPROC *unlink)( const TEXTCHAR *);
+	size_t (CPROC *size)( void *); // get file size
+
+	// ftell can be done with seek( file, 0, SEEK_CUR );
 };
 
 /* \ \ 
@@ -247,7 +250,7 @@ FILESYS_PROC LOGICAL FILESYS_API SetFileLength( CTEXTSTR path, size_t length );
    Returns
    \Returns the size of the file. or -1 if the file did not
    exist.                                                   */
-FILESYS_PROC  _32 FILESYS_API  GetSizeofFile ( TEXTCHAR *name, P_32 unused );
+FILESYS_PROC  size_t FILESYS_API  GetSizeofFile ( TEXTCHAR *name, P_32 unused );
 #ifndef __ANDROID__
 /* An extended function, which returns a _64 bit time
    appropriate for the current platform. This is meant to
@@ -338,6 +341,7 @@ FILESYS_PROC  void FILESYS_API sack_register_filesystem_interface( CTEXTSTR name
 FILESYS_PROC  int FILESYS_API  sack_fclose ( FILE *file_file );
 FILESYS_PROC  size_t FILESYS_API  sack_fseek ( FILE *file_file, size_t pos, int whence );
 FILESYS_PROC  size_t FILESYS_API  sack_ftell ( FILE *file_file );
+FILESYS_PROC  size_t FILESYS_API  sack_fsize ( FILE *file_file );
 FILESYS_PROC  size_t FILESYS_API  sack_fread ( POINTER buffer, size_t size, int count,FILE *file_file );
 FILESYS_PROC  size_t FILESYS_API  sack_fwrite ( CPOINTER buffer, size_t size, int count,FILE *file_file );
 FILESYS_PROC  TEXTSTR FILESYS_API  sack_fgets ( TEXTSTR  buffer, size_t size,FILE *file_file );
