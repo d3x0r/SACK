@@ -1540,8 +1540,8 @@ z = (Qyx-Qxy)*s
 */
 	RCOORD t = pt->m[0][0] + pt->m[1][1] + pt->m[2][2];
 	RCOORD r = sqrt(1+t);
-	RCOORD s = 0.5/r;
-	quat[0] = 0.5*r;
+	RCOORD s = ((RCOORD)0.5)/r;
+	quat[0] = ((RCOORD)0.5)*r;
 	quat[1] = (pt->m[2][1]-pt->m[1][2])*s;
 	quat[2] = (pt->m[0][2]-pt->m[2][0])*s;
 	quat[3] = (pt->m[1][0]-pt->m[0][1])*s;
