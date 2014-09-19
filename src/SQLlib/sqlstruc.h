@@ -203,6 +203,8 @@ PTREEROOT GetTableCache( PODBC odbc, CTEXTSTR tablename );
 CTEXTSTR GetKeyOfName(PODBC odbc, CTEXTSTR table,CTEXTSTR name);
 int OpenSQL( DBG_VOIDPASS );
 
+
+
 #ifdef USE_SQLITE_INTERFACE
 #  if defined( __WATCOMC__ ) && !defined( BUILDS_INTERFACE ) && ( __WATCOMC__ < 1300 )
 #    define FIXREF
@@ -264,7 +266,8 @@ struct sqlite_interface
 	int (FIXREF2*sqlite3_column_count)(sqlite3_stmt *pStmt);
 	int (FIXREF2*sqlite3_config)(int,...);
 	int (FIXREF2*sqlite3_db_config)(sqlite3*, int op, ...);
-	void (*set_open_filesystem_interface)( struct file_system_interface *fsi );
+	// allow full definition of a VFS including the FS interface
+	void (*InitVFS)( CTEXTSTR name, struct file_system_interface *fsi );
 };
 
 #ifdef USE_SQLITE_INTERFACE
