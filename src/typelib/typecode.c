@@ -986,17 +986,15 @@ POINTER  PeekQueueEx	 ( PLINKQUEUE plq, int idx )
 		return NULL;
 	if( idx < 0 )
 	{
-		for( top = plq->Top
+		idx++;
+		for( top = (plq->Top - 1)
 			 ; idx && top != plq->Bottom
 			  ; )
 		{
 			idx++;
-			if( idx )
-			{
-				top--;
-				if( (top)< 0)
-					top = (top) + plq->Cnt;
-			}
+			top--;
+			if( (top)< 0)
+				top = (top) + plq->Cnt;
 		}
 		if( idx == 0 )
 			return plq->pNode[top];
