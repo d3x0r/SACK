@@ -1268,10 +1268,14 @@ int CountLinesSpanned( PHISTORY_BROWSER phbr, PTEXT countseg )
 
 				if( ( nChar + text_size ) > colsize )
 				{
+					_32 _nShown = nShown;
 					// this is the wrapping condition...
 					while( nShown < nLen )
 					{
 						nShown += ComputeToShow( colsize, &col_offset, countseg, nLen, nChar, nShown, phbr );
+						if( ( nShown == _nShown ) && ( nShown < nLen ) )
+							nShown++;
+						_nShown = nShown;
 						if( nShown < nLen )
 						{
 							nLines++;
@@ -1774,6 +1778,8 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 							// nShow is now the number of characters we can show.
 							//lprintf( "Segment is %d", GetTextSize( pText ) );
 							nShow = ComputeToShow( phbr->nWidth, &col_offset, pText, nLen, nChar, nShown, phbr );
+							if( nShow == 0 && nShown < nLen )
+								nShow = 1;
 							nShown += nShow;
 							nChar += nShow;
 							if( nShown < nLen )
