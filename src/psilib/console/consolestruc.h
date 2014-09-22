@@ -7,14 +7,6 @@
 #endif
 #endif
 
-#ifdef BCC16
-#ifdef CORECON_SOURCE
-#define CORECON_PROC(type,name) type STDPROC _export name
-#else
-#define CORECON_PROC(type,name) type STDPROC name
-#endif
-#else
-#if !defined(__STATIC__) && !defined(__UNIX__)
 #ifdef CORECON_SOURCE
 #define CORECON_NPROC(type,name) EXPORT_METHOD type name
 #define CORECON_PROC(type,name) EXPORT_METHOD type CPROC name
@@ -25,18 +17,6 @@
 #define CORECON_PROC(type,name) IMPORT_METHOD type CPROC name
 // for defining variables.
 #define CORECON_EXPORT(type,name) IMPORT_METHOD type name
-#endif
-#else
-#ifdef CORECON_SOURCE
-#define CORECON_PROC(type,name) type CPROC name
-#define CORECON_NPROC(type,name) type name
-#define CORECON_EXPORT(type,name) type name
-#else
-#define CORECON_PROC(type,name) extern type CPROC name
-#define CORECON_NPROC(type,name) extern type name
-#define CORECON_EXPORT(type,name) extern type name
-#endif
-#endif
 #endif
 
 #include <stdhdrs.h>

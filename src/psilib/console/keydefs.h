@@ -97,7 +97,7 @@ CORECON_PROC( int, KeyBind )( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters );
 CORECON_PROC( int, KeyUnBind )( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters );
 #endif
 CORECON_PROC(int, PSI_DoStroke )( PCONSOLE_INFO pdp, PTEXT stroke );
-CORECON_PROC( void, PSI_KeyPressHandler )( PCONSOLE_INFO pdp
+void PSI_KeyPressHandler( PCONSOLE_INFO pdp
 												 , _8 key_index
 												 , _8 mod
 												 , PTEXT characters

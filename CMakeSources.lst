@@ -260,6 +260,9 @@ set( PSI_MORE_CONTROLS
   ${SOURCES_ROOT}src/psilib/console/regaccess.c
   ${SOURCES_ROOT}src/psilib/console/WinLogic.c
   ${SOURCES_ROOT}src/psilib/console/console_block_writer.c
+  ${SOURCES_ROOT}src/psilib/console/history.h
+  ${SOURCES_ROOT}src/psilib/console/histstruct.h
+  ${SOURCES_ROOT}src/psilib/console/consolestruc.h
 )
 
 
