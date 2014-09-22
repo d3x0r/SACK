@@ -1162,7 +1162,7 @@ _32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nO
 			// will wrap forcably.
 			// show as much fo this....
 			// well.. have to figure out which character will still fit....
-			for( nSpace = nShown; nSpace < nLen; nSpace++ )
+			for( nSpace = nShown; nSpace <= nLen; nSpace++ )
 			{
 				phbr->measureString( phbr->psvMeasure, GetText( segment ) + nShown
 					, nSpace - nShown, &nSegSize, &nSegHeight );
@@ -1175,7 +1175,7 @@ _32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nO
 					break;
 				}
 			}
-			if( nSpace == nLen )
+			if( nSpace > nLen )
 			{
 				// it didn't fit, but now it fits?!
 				lprintf( WIDE("This should be a segfault or something") );
