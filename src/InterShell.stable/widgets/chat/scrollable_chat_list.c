@@ -1,10 +1,10 @@
 #ifndef FORCE_NO_INTERFACE
 #define USE_IMAGE_INTERFACE l.pii
-#define USE_RENDER_INTERFACE l.pri
+#define USE_RENDER_INTERFACE l.pdi
 #endif
 #define USES_INTERSHELL_INTERFACE
 #define DEFINES_INTERSHELL_INTERFACE
-
+#define CHAT_CONTROL_MAIN_SOURCE
 #include <stdhdrs.h>
 #include <controls.h>
 #include <psi.h>
@@ -15,6 +15,8 @@
 
 #include "../../intershell_registry.h"
 #include "../../intershell_export.h"
+
+#include "chat_control.h" 
 
 #define CONTROL_NAME WIDE("Scrollable Message List")
 
@@ -42,23 +44,7 @@ typedef struct chat_message_tag
 } CHAT_MESSAGE;
 typedef struct chat_message_tag *PCHAT_MESSAGE;
 
-typedef struct chat_list_tag
-{
-	PLINKQUEUE messages; //
-	int first_button;
-	int control_offset;
-	_32 first_x, first_y, _b;
-	struct {
-		int message_top; // working variable used while drawing
-	} display;
-	struct {
-		BIT_FIELD begin_button : 1;
-		BIT_FIELD checked_drag : 1;
-		BIT_FIELD long_vertical_drag : 1;
-		BIT_FIELD long_horizontal_drag : 1;
-	} flags;
-} CHAT_LIST;
-typedef struct chat_list_tag *PCHAT_LIST;
+
 
 enum {
 	SEGMENT_TOP_LEFT
@@ -73,43 +59,6 @@ enum {
 	  // border segment index's
 };
 
-#define l local_scollable_list_data
-static struct scollable_list
-{
-	PIMAGE_INTERFACE pii;
-	PRENDER_INTERFACE pdi;
-	CTEXTSTR decoration_name;
-	Image decoration;
-	struct {
-		S_32 back_x, back_y;
-		_32 back_w, back_h;
-		S_32 arrow_x, arrow_y;
-		_32 arrow_w, arrow_h;
-		S_32 arrow_x_offset, arrow_y_offset;
-		S_32 div_x1, div_x2;
-		S_32 div_y1, div_y2;
-		Image BorderSegment[9];
-		Image arrow;
-	} sent;
-	struct {
-		S_32 back_x, back_y;
-		_32 back_w, back_h;
-		S_32 arrow_x, arrow_y;
-		_32 arrow_w, arrow_h;
-		S_32 arrow_x_offset, arrow_y_offset;
-		S_32 div_x1, div_x2;
-		S_32 div_y1, div_y2;
-		Image BorderSegment[9];
-		Image arrow;
-	} received;
-	struct {
-		BIT_FIELD sent_justification : 2;
-		BIT_FIELD received_justification : 2;
-		BIT_FIELD sent_text_justification : 2;
-		BIT_FIELD received_text_justification : 2;
-	} flags;
-	int side_pad;
-} l;
 
 EasyRegisterControlWithBorder( CONTROL_NAME, sizeof( PCHAT_LIST ), BORDER_NONE );
 
@@ -525,11 +474,16 @@ void Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 	}
 }
 
-int MeasureFrameWidth( Image window, S_32 *left, S_32 *right, LOGICAL received )
+int MeasureFrameWidth( Image window, S_32 *left, S_32 *right, LOGICAL received, LOGICAL complete )
 {
 	if( received )
 	{
-		if( l.flags.received_justification == 0 )
+		if( !complete )
+		{
+			(*left) = l.side_pad; // center? what is 2?
+			(*right) = window->width - l.side_pad;
+		}
+		else if( l.flags.received_justification == 0 )
 		{
 			(*left) = l.side_pad;
 			(*right) = window->width - ( l.side_pad + l.received.arrow_w ) - l.received.arrow_x_offset;
@@ -547,7 +501,12 @@ int MeasureFrameWidth( Image window, S_32 *left, S_32 *right, LOGICAL received )
 	}
 	else
 	{
-		if( l.flags.sent_justification == 0 )
+		if( !complete )
+		{
+			(*left) = l.side_pad; // center? what is 2?
+			(*right) = window->width - l.side_pad;
+		}
+		else if( l.flags.sent_justification == 0 )
 		{
 			(*left) = l.side_pad - l.sent.arrow_x_offset;
 			(*right) = window->width - ( l.side_pad + l.sent.arrow_w ) - l.sent.arrow_x_offset;
@@ -565,12 +524,12 @@ int MeasureFrameWidth( Image window, S_32 *left, S_32 *right, LOGICAL received )
 	}
 }
 
-void DrawMessageFrame( Image window, int y, int height, LOGICAL received )
+void DrawMessageFrame( Image window, int y, int height, LOGICAL received, LOGICAL complete )
 {
 	S_32 x_offset_left;
 	S_32 x_offset_right;
 
-	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, received );
+	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, received, complete );
 	if( received )
 	{
 		BlotScaledImageSizedToAlpha( window, l.received.BorderSegment[SEGMENT_TOP]
@@ -621,18 +580,20 @@ void DrawMessageFrame( Image window, int y, int height, LOGICAL received )
 						  , x_offset_right - ( l.received.BorderSegment[SEGMENT_RIGHT]->width )
 						  , y + height - l.received.BorderSegment[SEGMENT_BOTTOM]->height
 						  , ALPHA_TRANSPARENT );
+		if( complete )
+		{
+			if( l.flags.received_justification == 0 )
+				x_offset_left = window->width - l.received.arrow_w + l.received.arrow_x_offset;
+			else if( l.flags.received_justification == 1 )
+				x_offset_left = l.side_pad;
+			else if( l.flags.received_justification == 2 )
+				x_offset_left = 0; // center? what is 2?
 
-		if( l.flags.received_justification == 0 )
-			x_offset_left = window->width - l.received.arrow_w + l.received.arrow_x_offset;
-		else if( l.flags.received_justification == 1 )
-			x_offset_left = l.side_pad;
-		else if( l.flags.received_justification == 2 )
-			x_offset_left = 0; // center? what is 2?
-
-		BlotImageAlpha( window, l.received.arrow
-						  , x_offset_left
-						  , l.received.arrow_y_offset + ( y + height ) - ( l.received.BorderSegment[SEGMENT_BOTTOM]->height + l.received.arrow_h )
-						  , ALPHA_TRANSPARENT );
+			BlotImageAlpha( window, l.received.arrow
+							  , x_offset_left
+							  , l.received.arrow_y_offset + ( y + height ) - ( l.received.BorderSegment[SEGMENT_BOTTOM]->height + l.received.arrow_h )
+							  , ALPHA_TRANSPARENT );
+		}
 	}
 	else
 	{
@@ -682,18 +643,20 @@ void DrawMessageFrame( Image window, int y, int height, LOGICAL received )
 						  , x_offset_right - ( l.sent.BorderSegment[SEGMENT_RIGHT]->width )
 						  , y + height - l.sent.BorderSegment[SEGMENT_BOTTOM]->height
 						  , ALPHA_TRANSPARENT );
-
-		if( l.flags.sent_justification == 0 )
-			x_offset_left = l.sent.arrow_x_offset + window->width - ( l.side_pad + l.sent.arrow_w );
-		else if( l.flags.sent_justification == 1 )
-			x_offset_left = l.side_pad + l.sent.arrow_x_offset;
-		else if( l.flags.sent_justification == 2 )
-			x_offset_left = 0; // center? what is 2?
-		BlotImageAlpha( window, l.sent.arrow
-						  , x_offset_left
-						  , l.sent.arrow_y_offset + ( y + height ) - ( l.sent.BorderSegment[SEGMENT_BOTTOM]->height + l.sent.arrow_h )
-						  //, l.sent.arrow->width, l.sent.arrow->height
-						  , ALPHA_TRANSPARENT );
+		if( complete )
+		{
+			if( l.flags.sent_justification == 0 )
+				x_offset_left = l.sent.arrow_x_offset + window->width - ( l.side_pad + l.sent.arrow_w );
+			else if( l.flags.sent_justification == 1 )
+				x_offset_left = l.side_pad + l.sent.arrow_x_offset;
+			else if( l.flags.sent_justification == 2 )
+				x_offset_left = 0; // center? what is 2?
+			BlotImageAlpha( window, l.sent.arrow
+							  , x_offset_left
+							  , l.sent.arrow_y_offset + ( y + height ) - ( l.sent.BorderSegment[SEGMENT_BOTTOM]->height + l.sent.arrow_h )
+							  //, l.sent.arrow->width, l.sent.arrow->height
+							  , ALPHA_TRANSPARENT );
+		}
 	}
 }
 
@@ -705,7 +668,7 @@ void DrawAMessage( Image window, PCHAT_LIST list, PCHAT_MESSAGE msg )
 	S_32 x_offset_left, x_offset_right;	
 	S_32 frame_height;
 
-	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !msg->sent );
+	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !msg->sent, TRUE );
 	if( msg->sent )
 		width = ( x_offset_right - x_offset_left ) 
 		- ( l.sent.BorderSegment[SEGMENT_LEFT]->width 
@@ -730,7 +693,7 @@ void DrawAMessage( Image window, PCHAT_LIST list, PCHAT_MESSAGE msg )
 
 	list->display.message_top -= msg->message_y;
 
-	DrawMessageFrame( window, list->display.message_top, frame_height, !msg->sent );
+	DrawMessageFrame( window, list->display.message_top, frame_height, !msg->sent, 1 );
 	if( msg->sent )
 	{
 		PutStringFontEx( window, x_offset_left + l.sent.BorderSegment[SEGMENT_LEFT]->width
@@ -762,7 +725,6 @@ static void DrawMessages( PCHAT_LIST list, Image window )
 {
 	int message_idx;
 	PCHAT_MESSAGE msg;
-	list->display.message_top = window->height + list->control_offset;
 	for( message_idx = -1; msg = PeekQueueEx( list->messages, message_idx ); message_idx-- )
 	{
 		if( msg->formatted_text && 
@@ -780,15 +742,13 @@ static void DrawMessages( PCHAT_LIST list, Image window )
 	}
 }
 
+
 static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list = (*ppList);
-	CHAT_MESSAGE msg;
 	Image window = GetControlSurface( pc );
-	msg.text = "some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow...";
-	msg.formatted_text = NULL;
-	msg.sent = 0;
+	int lines, skip_lines;
 
 	if( !list )
 	{
@@ -796,8 +756,63 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 		return 1;
 	}
 	ClearImageTo( window, BASE_COLOR_WHITE );
-	DrawMessages( list, window );
 
+
+	{
+		int command_height;
+		skip_lines = 0;
+		lines = CountDisplayedLines( list->phb_Input );
+		if( !lines )
+			lines = 1;
+		if( lines > 3 )
+		{
+			skip_lines = lines - 3;
+			lines = 3;
+		}
+		list->nFontHeight = GetFontHeight( GetCommonFont( pc )  );
+		list->command_height = list->nFontHeight * lines 
+			+ l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
+			
+		DrawMessageFrame( window
+			, window->height - ( list->command_height + l.side_pad )
+			, list->command_height
+			, 0
+			, 0 );
+
+
+		{
+			int nLine;
+			DISPLAYED_LINE *pCurrentLine;
+			PDATALIST *ppCurrentLineInfo;
+			ppCurrentLineInfo = GetDisplayInfo( list->phb_Input );
+			for( nLine = 0; nLine < 3; nLine ++ )
+			{
+				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
+				if( !pCurrentLine )
+				{
+		#ifdef DEBUG_HISTORY_RENDER
+					lprintf( WIDE("No such line... %d"), nLine );
+		#endif
+					break;
+				}
+				if( pCurrentLine->start )
+				{
+					RECT upd;
+					RenderTextLine( list, window, pCurrentLine, &upd
+						, nLine
+						, GetCommonFont( pc )
+						, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight )
+						, l.side_pad + l.sent.BorderSegment[SEGMENT_TOP]->height
+						, l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width
+						, FALSE
+						, FALSE );  // cursor; to know where to draw the mark...
+				}
+			}
+		}
+	}
+	ResizeImage( list->message_window, window->width, window->height - ( list->command_height + l.side_pad * 2 /* above and below input*/ ) );
+	list->display.message_top = list->message_window->height + list->control_offset;
+	DrawMessages( list, list->message_window );
 	return 1;
 }
 
@@ -863,12 +878,30 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 	return 1;
 }
 
+static void CPROC PSIMeasureString( PTRSZVAL psv, CTEXTSTR s, int nShow, _32 *w, _32 *h )
+{
+	PSI_CONTROL pc = (PSI_CONTROL)psv;
+	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
+	PCHAT_LIST list = (*ppList);
+	SFTFont font = GetCommonFont( pc );
+	list->nFontHeight = GetFontHeight( font );
+	GetStringSizeFontEx( s, nShow, w, h, font );
+}
 
 static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
+	PCHAT_LIST list;
 	(*ppList) = New( CHAT_LIST );
 	MemSet( (*ppList), 0, sizeof( CHAT_LIST ) );
+	list = (*ppList);
+	list->message_window = MakeSubImage( GetControlSurface( pc ), 0, 0, 1, 1 );
+		list->pHistory = PSI_CreateHistoryRegion();
+		list->phlc_Input = PSI_CreateHistoryCursor( list->pHistory );
+		list->phb_Input = PSI_CreateHistoryBrowser( list->pHistory, PSIMeasureString, (PTRSZVAL)pc );
+		list->CommandInfo = CreateUserInputBuffer();
+		SetBrowserLines( list->phb_Input, 3 );
+		list->colors.crText = BASE_COLOR_BLACK;
 
 	Chat_EnqueMessage( pc, 0, NULL, NULL, "1) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow..." );
 	Chat_EnqueMessage( pc, 0, NULL, NULL, "2) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow..." );
@@ -882,7 +915,7 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	return 1;
 }
 
-static int OnCreateControl( INTERSHELL_CONTROL_NAME )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
+static PTRSZVAL OnCreateControl( INTERSHELL_CONTROL_NAME )( PSI_CONTROL parent, S_32 x, S_32 y, _32 w, _32 h )
 {
 	PSI_CONTROL pc = MakeNamedControl( parent, CONTROL_NAME, x, y, w,h, -1 );
 
@@ -894,12 +927,62 @@ static PSI_CONTROL OnGetControl( INTERSHELL_CONTROL_NAME )( PTRSZVAL psv )
 	return (PSI_CONTROL)psv;
 }
 
-static void OnSizeCommon( CONTROL_NAME )( PSI_CONTROL pc )
+static void OnSizeCommon( CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begin_sizing )
+{
+	if( !begin_sizing )
+	{
+		PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
+		PCHAT_LIST list = (*ppList);
+		ReformatMessages( list );
+	}
+}
+
+
+
+static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list = (*ppList);
-	ReformatMessages( list );
-}
+	//PCONSOLE_INFO list = (PCONSOLE_INFO)GetCommonUserData( pc );
+	// this must here gather keystrokes and pass them forward into the
+	// opened sentience...
+	if( list )
+	{
+		TEXTCHAR character = GetKeyText( key );
+		DECLTEXT( stroke, WIDE(" ") ); // single character ...
+//cpg27dec2006 list\psicon.c(232): Warning! W202: Symbol 'bOutput' has been defined, but not referenced
+//cpg27dec2006 		int bOutput = FALSE;
+		//Log1( "Key: %08x", key );
+//cpg27dec2006 list\psicon.c(234): Warning! W202: Symbol 'mod' has been defined, but not referenced
+//cpg27dec2006		int mod = KEYMOD_NORMAL;
+		if( !list ) // not a valid window handle/device path
+			return 0;
+		//EnterCriticalSec( &list->Lock );
 
+		// here is where we evaluate the curent keystroke....
+		if( character )
+		{
+			stroke.data.data[0] = character;
+			stroke.data.size = 1;
+		}
+		else
+			stroke.data.size = 0;
+		{
+			PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
+			PCHAT_LIST chat_control = (*ppList);
+			Image window = GetControlSurface( pc );
+			list->phb_Input->nColumns = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
+			list->phb_Input->nWidth = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
+		}
+
+		if( key & KEY_PRESSED )
+		{
+			Widget_KeyPressHandler( list, (_8)(KEY_CODE(key)&0xFF), (_8)KEY_MOD(key), (PTEXT)&stroke );
+			SmudgeCommon( pc );
+		}
+		//LeaveCriticalSec( &list->Lock );
+	}
+	return 1;
+}
 
 
