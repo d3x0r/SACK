@@ -50,7 +50,7 @@ static struct json_context_object *WebSockInitReplyJson( enum proxy_message_id m
 	switch( message )
 	{
 	case PMID_ClientSessionId :
-		json_add_object_member( cto_data, WIDE("client_id"), ofs = 0, JSON_Element_CharArray, 0 );
+		json_add_object_member( cto_data, WIDE("client_id"), ofs = 0, JSON_Element_String, 0 );
 		break;
 	case PMID_Reply_OpenDisplayAboveUnderSizedAt:
 		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
@@ -118,6 +118,16 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof( PTRSZVAL), JSON_Element_Unsigned_Integer_32, 0 );
 		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
 		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = ofs + sizeof(_32), JSON_Element_PTRSZVAL, 0 );
+		break;
+	case PMID_Move_Image:
+		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof( PTRSZVAL), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(_32), JSON_Element_Integer_32, 0 );
+		break;
+	case PMID_Size_Image:
+		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof( PTRSZVAL), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
 		break;
 	case PMID_MakeSubImage:
 		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
@@ -202,7 +212,7 @@ static TEXTSTR Encode64Image( P_8 buf, LOGICAL bmp, size_t length, size_t *outsi
 	return real_output;
 }
 
-static P_8 EncodeImage( Image image, LOGICAL bmp, size_t *outsize )
+static P_8 EncodeImage( int ID, Image image, LOGICAL bmp, size_t *outsize )
 {
 	if( !bmp )
 	{
@@ -216,7 +226,7 @@ static P_8 EncodeImage( Image image, LOGICAL bmp, size_t *outsize )
 					TEXTCHAR tmpname[32];
 					static int n;
 					FILE *out;
-					snprintf( tmpname, 32, "blah%d.png", n++ );
+					snprintf( tmpname, 32, "blah%d.png", ID );
 					out = fopen( tmpname, "wb" );
 					fwrite( buf, 1, *outsize, out );
 					fclose( out );
@@ -291,13 +301,13 @@ static void ClearDirtyFlag( PVPImage image )
 
 
 
-static void SendTCPMessageV( PCLIENT pc, LOGICAL websock, enum proxy_message_id message, ... );
-static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id message, va_list args )
+static void SendTCPMessageV( struct server_socket_state *state, LOGICAL websock, enum proxy_message_id message, ... );
+static void SendTCPMessage( struct server_socket_state *state, LOGICAL websock, enum proxy_message_id message, va_list args )
 {
 	TEXTSTR json_msg;
 	struct json_context_object *cto;
 	size_t sendlen;
-	struct server_socket_state *state = (struct server_socket_state *)GetNetworkLong( pc, 0 );
+	//struct server_socket_state *state = (struct server_socket_state *)GetNetworkLong( pc, 0 );
 	struct common_message *outmsg;
 	// often used; sometimes unused...
 	PVPRENDER render;
@@ -323,11 +333,11 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			if( websock )
 			{
 				json_msg = json_build_message( cto, msg );
-				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
+				WebSocketSendText( state->pc, json_msg, StrLen( json_msg ) );
 				Release( json_msg );
 			}
 			else
-				SendTCP( pc, msg, sendlen );
+				SendTCP( state->pc, msg, sendlen );
 			Release( msg );
 		}
 		break;
@@ -340,11 +350,11 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			if( websock )
 			{
 				json_msg = json_build_message( cto, msg );
-				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
+				WebSocketSendText( state->pc, json_msg, StrLen( json_msg ) );
 				Release( json_msg );
 			}
 			else
-				SendTCP( pc, msg, sendlen );
+				SendTCP( state->pc, msg, sendlen );
 			Release( msg );
 		}
 		break;
@@ -358,11 +368,11 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			if( websock )
 			{
 				json_msg = json_build_message( cto, msg + 4 );
-				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
+				WebSocketSendText( state->pc, json_msg, StrLen( json_msg ) );
 				Release( json_msg );
 			}
 			else
-				SendTCP( pc, msg, sendlen );
+				SendTCP( state->pc, msg, sendlen );
 			Release( msg );
 		}
 		break;
@@ -372,7 +382,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct opendisplay_data ) ) );
 			((_32*)msg)[0] = (_32)(sendlen - 4);
 			msg[4] = message;
-
+			render->flags.open = 1;
 			((struct opendisplay_data*)(msg+5))->x = render->x;
 			((struct opendisplay_data*)(msg+5))->y = render->y;
 			((struct opendisplay_data*)(msg+5))->w = render->w;
@@ -392,11 +402,17 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			if( websock )
 			{
 				json_msg = json_build_message( cto, msg + 4 );
-				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
+				WebSocketSendText( state->pc, json_msg, StrLen( json_msg ) );
 				Release( json_msg );
+				{
+					while( json_msg = DequeLink( &state->pending_operations ) )
+					{
+						WebSocketSendText( state->pc, json_msg, StrLen( json_msg ) );
+					}
+				}
 			}
 			else
-				SendTCP( pc, msg, sendlen );
+				SendTCP( state->pc, msg, sendlen );
 			Release( msg );
 		}
 		break;
@@ -410,11 +426,11 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 				if( websock )
 				{
 					json_msg = json_build_message( cto, msg + 4 );
-					WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
+					WebSocketSendText( state->pc, json_msg, StrLen( json_msg ) );
 					Release( json_msg );
 				}
 				else
-					SendTCP( pc, msg, sendlen );
+					SendTCP( state->pc, msg, sendlen );
 			Release( msg );
 		}
 		break;
@@ -432,19 +448,65 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			if( websock )
 			{
 				json_msg = json_build_message( cto, msg + 4 );
-				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
+				WebSocketSendText( state->pc, json_msg, StrLen( json_msg ) );
 				Release( json_msg );
 			}
 			else
-				SendTCP( pc, msg, sendlen );
+				SendTCP( state->pc, msg, sendlen );
+			Release( msg );
+		}
+		break;
+	case PMID_Move_Image : 
+		{
+			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct make_image_data ) ) );
+			image = va_arg( args, PVPImage );
+			((_32*)msg)[0] = (_32)(sendlen - 4);
+			outmsg = (struct common_message*)(msg + 4);
+			outmsg->message_id = message;
+			outmsg->data.move_image.x = image->x;
+			outmsg->data.move_image.y = image->y;
+			outmsg->data.make_image.server_image_id = image->id;
+
+			if( websock )
+			{
+				json_msg = json_build_message( cto, outmsg );
+				WebSocketSendText( state->pc, json_msg, StrLen( json_msg ) );
+				Release( json_msg );
+			}
+			else
+				SendTCP( state->pc, msg, sendlen );
+			Release( msg );
+		}
+		break;
+	case PMID_Size_Image : 
+		{
+			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct make_image_data ) ) );
+			image = va_arg( args, PVPImage );
+			((_32*)msg)[0] = (_32)(sendlen - 4);
+			outmsg = (struct common_message*)(msg + 4);
+			outmsg->message_id = message;
+			outmsg->data.size_image.w = image->w;
+			outmsg->data.size_image.h = image->h;
+			outmsg->data.make_image.server_image_id = image->id;
+
+			if( websock )
+			{
+				json_msg = json_build_message( cto, outmsg );
+				WebSocketSendText( state->pc, json_msg, StrLen( json_msg ) );
+				Release( json_msg );
+			}
+			else
+				SendTCP( state->pc, msg, sendlen );
 			Release( msg );
 		}
 		break;
 	case PMID_MakeImage:
 		{
+			LOGICAL send_data;
 			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct make_image_data ) ) );
 			image = va_arg( args, PVPImage );
 			render = va_arg( args, PVPRENDER );
+			send_data = va_arg( args, LOGICAL );
 			((_32*)msg)[0] = (_32)(sendlen - 4);
 			outmsg = (struct common_message*)(msg + 4);
 			outmsg->message_id = message;
@@ -456,15 +518,14 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			if( websock )
 			{
 				json_msg = json_build_message( cto, outmsg );
-				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
+				WebSocketSendText( state->pc, json_msg, StrLen( json_msg ) );
 				Release( json_msg );
 			}
 			else
-				SendTCP( pc, msg, sendlen );
+				SendTCP( state->pc, msg, sendlen );
 			Release( msg );
-			if( image->render_id == INVALID_INDEX )
-				//if( image->flags.bUsed )
-					SendTCPMessageV( pc, websock, PMID_ImageData, image );
+			if( image->render_id == INVALID_INDEX && send_data )
+				SendTCPMessageV( state, websock, PMID_ImageData, image );
 		}
 		break;
 	case PMID_MakeSubImage:
@@ -480,15 +541,15 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			outmsg->data.make_subimage.h = image->h;
 			outmsg->data.make_subimage.server_image_id = image->id;
 			outmsg->data.make_subimage.server_parent_image_id = image->parent?image->parent->id:INVALID_INDEX;
-
+			lprintf( "Make image %d on %d", image->id, outmsg->data.make_subimage.server_parent_image_id );
 			if( websock )
 			{
 				json_msg = json_build_message( cto, outmsg );
-				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
+				WebSocketSendText( state->pc, json_msg, StrLen( json_msg ) );
 				Release( json_msg );
 			}
 			else
-				SendTCP( pc, msg, sendlen );
+				SendTCP( state->pc, msg, sendlen );
 			Release( msg );
 		}
 		break;
@@ -503,7 +564,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			while( image && image->parent ) 
 				image = image->parent;
 			ClearDirtyFlag( image );
-			raw_image = EncodeImage( image->image, FALSE, &outlen );
+			raw_image = EncodeImage( image->id, image->image, FALSE, &outlen );
 			if( websock )
 			{
 				encoded_image = Encode64Image( raw_image, FALSE, outlen, &outlen );
@@ -526,15 +587,15 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			outmsg->message_id = message;
 			outmsg->data.image_data.server_image_id = image->id;
 			// include nul in copy
-			//lprintf( "Send Image %p %d ", image, image->id );
+			lprintf( "Send Image data %p %d ", image, image->id );
 			if( websock )
 			{
 				json_msg = json_build_message( cto, outmsg );
-				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
+				WebSocketSendText( state->pc, json_msg, StrLen( json_msg ) );
 				Release( json_msg );
 			}
 			else
-				SendTCP( pc, msg, sendlen );
+				SendTCP( state->pc, msg, sendlen );
 			Release( msg );
 		}
 		break;
@@ -543,27 +604,33 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 
 }
 
-void SendTCPMessageV( PCLIENT pc, LOGICAL websock, enum proxy_message_id message, ... )
+void SendTCPMessageV( struct server_socket_state *state, LOGICAL websock, enum proxy_message_id message, ... )
 {
 	va_list args;
 	va_start( args, message );
-	SendTCPMessage( pc, websock, message, args );
+	SendTCPMessage( state, websock, message, args );
 }
 
 void InvokeNewDisplay( struct vidlib_proxy_application *app )
 {
-	void (CPROC *NewDisplayConnected)(struct vidlib_proxy_application *);
+	void (CPROC *NewDisplayConnected)(struct vidlib_proxy_application *,struct vidlib_proxy_application_local ***);
 	PCLASSROOT data = NULL;
 	PCLASSROOT event_root = GetClassRootEx( WIDE( "/sack/render/remote display" ), WIDE( "connect" ) );
 	CTEXTSTR name;
+	DumpRegisteredNamesFrom( WIDE( "/sack/render" ) );
 	for( name = GetFirstRegisteredName( event_root, &data );
 		 name;
 		  name = GetNextRegisteredName( &data ) )
 	{
-		NewDisplayConnected = GetRegisteredProcedureExx( data,(CTEXTSTR)NULL,void,"new_display_connected",(struct vidlib_proxy_application *));
+		struct vidlib_proxy_application_instance *inst = New( struct vidlib_proxy_application_instance );
+		NewDisplayConnected = GetRegisteredProcedureExx( data,(CTEXTSTR)name,void,"new_display_connect",(struct vidlib_proxy_application *,struct vidlib_proxy_application_local***));
 		if( NewDisplayConnected )
 		{
-			NewDisplayConnected( app );
+			inst->ppLocal = NULL;
+			NewDisplayConnected( app, &inst->ppLocal );
+			if( inst->ppLocal )
+				inst->pLocal = (*inst->ppLocal); // save the current local instance....
+			AddLink( &app->local_instances, inst );
 		}
 	}
 }
@@ -573,19 +640,31 @@ static void SendClientMessage( enum proxy_message_id message, ... )
 {
 	va_list args;
 	va_start( args, message );
-	SendTCPMessage( ThreadNetworkState.app->pc, ThreadNetworkState.app->websock, message, args );
+	SendTCPMessage( ThreadNetworkState.app, ThreadNetworkState.app->websock, message, args );
 }
 
 static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 {
 	struct server_socket_state *state = (struct server_socket_state *)GetNetworkLong( pc, 0 );
 	ThreadNetworkState.app = state;
+	{
+		INDEX idx; 
+		struct vidlib_proxy_application_instance *inst;
+		LIST_FORALL( state->application_instance->local_instances, idx, struct vidlib_proxy_application_instance *, inst )
+		{
+			if( inst->ppLocal )
+			{
+				(*inst->ppLocal) = inst->pLocal;
+			}
+		}
+	}
+
 	if( !buffer )
 	{
 		lprintf( "init read" );
 		state->flags.get_length = 1;
 		state->buffer = NewArray( _8, 2048 );
-		SetNetworkLong( pc, 0, (PTRSZVAL)state );
+		//SetNetworkLong( pc, 0, (PTRSZVAL)state );
 	}
 	else
 	{
@@ -614,7 +693,7 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 						                                 , msg->data.mouse_event.server_render_id );
 					if( render && render->redraw )
 						render->redraw( render->psv_redraw, (PRENDERER)render );
-					SendTCPMessageV( pc, FALSE, PMID_Flush_Draw, render );
+					SendTCPMessageV( state, FALSE, PMID_Flush_Draw, render );
 				}
 				break;
 			case PMID_Event_Mouse:
@@ -660,62 +739,69 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 	}
 }
 
-static void SendInitialImage( PCLIENT pc, LOGICAL websock, PLIST *sent, PVPImage image )
+static void SendInitialImage( struct server_socket_state*state, LOGICAL websock, PLIST *sent, PVPImage image )
 {
 	if( image->parent )
 	{
 		if( FindLink( sent, image->parent ) == INVALID_INDEX )
 		{
-			SendInitialImage( pc, websock, sent, image->parent );
+			SendInitialImage(state, websock, sent, image->parent );
 		}
-		SendTCPMessageV( pc, websock, PMID_MakeSubImage, image );
+		SendTCPMessageV( state, websock, PMID_MakeSubImage, image );
 	}
 	else
-		SendTCPMessageV( pc, websock, PMID_MakeImage, image, image->render_id );
+		SendTCPMessageV( state, websock, PMID_MakeImage, image, image->render_id );
 	AddLink( sent,  image );
 }
 
-static void SendInitialMessages( PCLIENT pc )
+
+static void SendInitalWebSockMessages( struct server_socket_state *state )
 {
-	struct server_socket_state *state = (struct server_socket_state *)GetNetworkLong( pc, 0 );
+
+	EnterCriticalSec( &l.message_formatter );
+
 	if( l.application_title )
-		SendTCPMessageV( pc, FALSE, PMID_SetApplicationTitle );
+		SendTCPMessageV( state, TRUE, PMID_SetApplicationTitle );
 	{
 		INDEX idx;
 		PVPRENDER render;
 		LIST_FORALL( state->application_instance->renderers, idx, PVPRENDER, render )
 		{
-			SendTCPMessageV( pc, FALSE, PMID_OpenDisplayAboveUnderSizedAt, render );
+			SendTCPMessageV( state, TRUE, PMID_OpenDisplayAboveUnderSizedAt, render );
 		}
+
 		{
 			PLIST sent = NULL;
 			INDEX idx;
 			PVPImage image;
 			LIST_FORALL( state->application_instance->images, idx, PVPImage, image )
 			{
-				//lprintf( "Send Image %p(%d)", image, image->id );
-				SendInitialImage( pc, FALSE, &sent, image );
+				SendInitialImage( state, TRUE, &sent, image );
 			}
 			LIST_FORALL( sent, idx, PVPImage, image )
 			{
-				if( image->buffer && image->sendlen )
+				if( image->websock_buffer && image->websock_sendlen )
 				{
-					SendTCP( pc, image->buffer, image->sendlen );
+					image->websock_buffer[image->websock_sendlen] = ']';
+					WebSocketSendText( state->pc, image->websock_buffer, image->websock_sendlen + 1 );
 				}
 			}
 			DeleteList( &sent );
 		}
 		LIST_FORALL( state->application_instance->renderers, idx, PVPRENDER, render )
 		{
-			SendTCPMessageV( pc, FALSE, PMID_Flush_Draw, render );
+			SendTCPMessageV( state, FALSE, PMID_Flush_Draw, render );
 		}
 	}
+	LeaveCriticalSec( &l.message_formatter );
 }
+
 
 static void CPROC Connected( PCLIENT pcServer, PCLIENT pcNew )
 {
 	struct server_socket_state *client = New( struct server_socket_state );
 	SetNetworkLong( pcNew, 0, (PTRSZVAL)client );
+	client->pending_operations = NULL;
 	client->pc = pcNew;
 	client->websock = FALSE;
 	client->application_instance = New( struct vidlib_proxy_application );
@@ -732,49 +818,13 @@ static void CPROC Connected( PCLIENT pcServer, PCLIENT pcNew )
 
 }
 
-static void SendInitalWebSockMessages( PCLIENT pc )
-{
-	struct server_socket_state *state = (struct server_socket_state *)GetNetworkLong( pc, 0 );
-	
-	EnterCriticalSec( &l.message_formatter );
-
-	if( l.application_title )
-		SendTCPMessageV( pc, TRUE, PMID_SetApplicationTitle );
-	{
-		INDEX idx;
-		PVPRENDER render;
-		LIST_FORALL( state->application_instance->renderers, idx, PVPRENDER, render )
-		{
-			SendTCPMessageV( pc, TRUE, PMID_OpenDisplayAboveUnderSizedAt, render );
-		}
-
-		{
-			PLIST sent = NULL;
-			INDEX idx;
-			PVPImage image;
-			LIST_FORALL( state->application_instance->images, idx, PVPImage, image )
-			{
-				SendInitialImage( pc, TRUE, &sent, image );
-			}
-			LIST_FORALL( sent, idx, PVPImage, image )
-			{
-				if( image->websock_buffer && image->websock_sendlen )
-				{
-					image->websock_buffer[image->websock_sendlen] = ']';
-					WebSocketSendText( pc, image->websock_buffer, image->websock_sendlen + 1 );
-				}
-			}
-			DeleteList( &sent );
-		}
-	}
-	LeaveCriticalSec( &l.message_formatter );
-}
-
 static PTRSZVAL WebSockOpen( PCLIENT pc, PTRSZVAL psv )
 {
 	struct server_socket_state *client = New( struct server_socket_state );
+	client->pending_operations = NULL;
 	client->pc = pc;
 	client->websock = TRUE;
+	client->application_instance = NULL;
 	AddLink( &l.clients, client );
 	return (PTRSZVAL)client;
 }
@@ -808,7 +858,7 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 		}
 		else
 		{
-			if( !client->application_instance )
+			if( client->application_instance )
 			{
 				lprintf( "Fataility; instance already identified" );
 				RemoveClient( pc );
@@ -828,19 +878,13 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 				if( app )
 				{
 					client->application_instance = app;
-					SendInitialMessages( pc );
+					SendInitalWebSockMessages( client );
 				}
 				else
 				{
 					client->application_instance = New( struct vidlib_proxy_application );
 					MemSet( client->application_instance, 0, sizeof( struct vidlib_proxy_application ) );
 					client->application_instance->client_id = StrDup( message->data.client_ident.client_id );
-					{
-						struct json_context_object *cto;
-						cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlatColor );
-						if( !cto )
-							cto = WebSockInitJson( PMID_ClientSessionId );
-					}
 
 					InvokeNewDisplay( client->application_instance );
 					AddLink( &l.applications, client->application_instance );
@@ -921,6 +965,11 @@ static LOGICAL CPROC VidlibProxy_RequiresDrawAll( void )
 	// force application to mostly draw itself...
 	return FALSE;
 }
+static LOGICAL CPROC SACK_Vidlib_RenderIsInstanced( void )
+{
+	// force application to mostly draw itself...
+	return FALSE;
+}
 
 static LOGICAL CPROC VidlibProxy_AllowsAnyThreadToUpdate( void )
 {
@@ -950,7 +999,7 @@ static void CPROC VidlibProxy_SetDisplaySize		( _32 width, _32 height )
 }
 
 
-static PVPImage Internal_MakeImageFileEx ( INDEX iRender, _32 Width, _32 Height DBG_PASS)
+static PVPImage Internal_MakeImageFileEx ( INDEX iRender, _32 Width, _32 Height, INDEX client_id DBG_PASS)
 {
 	PVPImage image = New( struct vidlib_proxy_image );
 	MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
@@ -966,7 +1015,7 @@ static PVPImage Internal_MakeImageFileEx ( INDEX iRender, _32 Width, _32 Height 
 	image->id = FindLink( &ThreadNetworkState.app->application_instance->images, image );
 	//lprintf( "%p(%p) is %d", image, image->image, image->id );
 	//lprintf( "Make proxy image %p %d(%d,%d)", image, image->id, Width, Height );
-	SendClientMessage( PMID_MakeImage, image, iRender );
+	SendClientMessage( PMID_MakeImage, image, iRender, FALSE );
 	return image;
 }
 
@@ -984,15 +1033,15 @@ static PVPImage WrapImageFile( Image native )
 	image->id = FindLink( &ThreadNetworkState.app->application_instance->images, image );
 	//lprintf( "%p(%p) is %d", image, image->image, image->id );
 	//lprintf( "Make wrapped proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
-	SendClientMessage( PMID_MakeImage, image, INVALID_INDEX );
-	SendClientMessage( PMID_ImageData, image );
+	SendClientMessage( PMID_MakeImage, image, INVALID_INDEX, TRUE );
+	//SendClientMessage( PMID_ImageData, image );
 	return image;
 }
 
 
 static Image CPROC VidlibProxy_MakeImageFileEx (_32 Width, _32 Height DBG_PASS)
 {
-	return (Image)Internal_MakeImageFileEx( INVALID_INDEX, Width, Height DBG_RELAY );
+	return (Image)Internal_MakeImageFileEx( INVALID_INDEX, Width, Height, INVALID_INDEX DBG_RELAY );
 }
 
 
@@ -1010,7 +1059,7 @@ static PRENDERER CPROC VidlibProxy_OpenDisplayAboveUnderSizedAt( _32 attributes,
 	Renderer->attributes = attributes;
 	Renderer->above = (PVPRENDER)above;
 	Renderer->under = (PVPRENDER)under;
-	Renderer->image = Internal_MakeImageFileEx( Renderer->id, width, height DBG_SRC );
+	Renderer->image = Internal_MakeImageFileEx( Renderer->id, width, height, INVALID_INDEX DBG_SRC );
 	
 	SendClientMessage( PMID_OpenDisplayAboveUnderSizedAt, Renderer );
 	return (PRENDERER)Renderer;
@@ -1534,12 +1583,18 @@ static RENDER_INTERFACE ProxyInterface = {
 												, SACK_Vidlib_ShowInputDevice
 												, SACK_Vidlib_HideInputDevice
 												, VidlibProxy_AllowsAnyThreadToUpdate
+												, NULL/* SetFullscreen */
+												, NULL /* syspend system sleep */
+												 , SACK_Vidlib_RenderIsInstanced
 };
 
 static void InitProxyInterface( void )
 {
-	ProxyInterface._RequiresDrawAll = VidlibProxy_RequiresDrawAll;
+	// used to have to do this...
+	//ProxyInterface._RequiresDrawAll = VidlibProxy_RequiresDrawAll;
 }
+
+
 
 static RENDER3D_INTERFACE Proxy3dInterface = {
 	NULL
@@ -1566,13 +1621,13 @@ static Image CPROC VidlibProxy_BuildImageFileEx ( PCOLOR pc, _32 width, _32 heig
 	//SendClientMessage( PMID_MakeImageFile, image );
 	AddLink( &ThreadNetworkState.app->application_instance->images, image );
 	image->id = FindLink( &ThreadNetworkState.app->application_instance->images, image );
-	SendClientMessage( PMID_MakeImage, image );
+	SendClientMessage( PMID_MakeImage, image, INVALID_INDEX, FALSE );
 	//lprintf( "%p(%p) is %d", image, image->image, image->id );
 	//lprintf( "Make built proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
 	return (Image)image;
 }
 
-static Image CPROC VidlibProxy_MakeSubImageEx  ( Image pImage, S_32 x, S_32 y, _32 width, _32 height DBG_PASS )
+static Image CPROC Internal_MakeSubImage( PVPImage pImage, S_32 x, S_32 y, _32 width, _32 height, INDEX _id DBG_PASS )
 {
 	PVPImage image = New( struct vidlib_proxy_image );
 	MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
@@ -1592,8 +1647,16 @@ static Image CPROC VidlibProxy_MakeSubImageEx  ( Image pImage, S_32 x, S_32 y, _
 		image->next->prior = image;
 	((PVPImage)pImage)->child = image;
 
-	AddLink( &ThreadNetworkState.app->application_instance->images, image );
-	image->id = FindLink( &ThreadNetworkState.app->application_instance->images, image );
+	if( _id == INVALID_INDEX )
+	{
+		AddLink( &ThreadNetworkState.app->application_instance->images, image );
+		image->id = FindLink( &ThreadNetworkState.app->application_instance->images, image );
+	}
+	else
+	{
+		image->id = _id;
+		SetLink( &ThreadNetworkState.app->application_instance->images, _id, image );
+	}
 	//lprintf( "%p(%p) is %d", image, image->image, image->id );
 	//lprintf( "Make sub proxy image %p %d(%d,%d)  on %p %d", image, image->id, image->w, image->w, ((PVPImage)pImage), ((PVPImage)pImage)->id  );
 	// don't really need to make this; if it needs to be updated to the client it will be handled later
@@ -1602,6 +1665,10 @@ static Image CPROC VidlibProxy_MakeSubImageEx  ( Image pImage, S_32 x, S_32 y, _
 	return (Image)image;
 }
 
+static Image CPROC VidlibProxy_MakeSubImageEx  ( Image pImage, S_32 x, S_32 y, _32 width, _32 height DBG_PASS )
+{
+	return Internal_MakeSubImage( (PVPImage)pImage, x, y, width, height, INVALID_INDEX DBG_RELAY );
+}
 static Image CPROC VidlibProxy_RemakeImageEx	 ( Image pImage, PCOLOR pc, _32 width, _32 height DBG_PASS)
 {
 	PVPImage image;
@@ -1637,10 +1704,10 @@ static Image CPROC VidlibProxy_LoadImageFileFromGroupEx( INDEX group, CTEXTSTR f
 	}
 	image->render_id = INVALID_INDEX;
 	// don't really need to make this; if it needs to be updated to the client it will be handled later
-	SendClientMessage( PMID_MakeImage, image );
-	SendClientMessage( PMID_ImageData, image );
 	AddLink( &ThreadNetworkState.app->application_instance->images, image );
 	image->id = FindLink( &ThreadNetworkState.app->application_instance->images, image );
+
+	SendClientMessage( PMID_MakeImage, image, INVALID_INDEX, TRUE );
 	//lprintf( "%p(%p) is %d", image, image->image, image->id );
 	//lprintf( "loaded proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
 	return (Image)image;
@@ -1659,6 +1726,7 @@ static void CPROC VidlibProxy_ResizeImageEx	  ( Image pImage, S_32 width, S_32 h
 	image->w = width;
 	image->h = height;
 	l.real_interface->_ResizeImageEx( image->image, width, height DBG_RELAY );
+	SendClientMessage( PMID_Size_Image, image );
 }
 
 static void CPROC VidlibProxy_MoveImage			( Image pImage, S_32 x, S_32 y )
@@ -1669,6 +1737,8 @@ static void CPROC VidlibProxy_MoveImage			( Image pImage, S_32 x, S_32 y )
 		image->x = x;
 		image->y = y;
 		l.real_interface->_MoveImage( image->image, x, y );
+
+		SendClientMessage( PMID_Move_Image, image );
 	}
 }
 
@@ -1694,7 +1764,7 @@ P_8 GetMessageBuf( PVPImage image, size_t size )
 	return resultbuf + 4;
 }
 
-static void AppendJSON( PVPImage image, TEXTSTR msg, POINTER outmsg, size_t sendlen )
+static void AppendJSON( PVPImage image, TEXTSTR msg, POINTER outmsg, size_t sendlen, LOGICAL queue )
 {
 	size_t size = StrLen( msg );
 	if( (image->websock_buf_avail ) < (size + image->websock_sendlen + 2 ) )
@@ -1723,15 +1793,16 @@ static void AppendJSON( PVPImage image, TEXTSTR msg, POINTER outmsg, size_t send
 	image->websock_sendlen += size;
 
 	{
-		INDEX idx;
-		struct server_socket_state *client;
-		LIST_FORALL( l.clients, idx, struct server_socket_state*, client )
+		struct server_socket_state *state = ThreadNetworkState.app;
+		if( state->websock )
 		{
-			if( client->websock )
-				WebSocketSendText( client->pc, msg, StrLen( msg ) );
+			if( queue )
+				EnqueLink( &ThreadNetworkState.app->pending_operations, msg );
 			else
-				SendTCP( client->pc, outmsg, sendlen );
+				WebSocketSendText( state->pc, msg, StrLen( msg ) );
 		}
+		else
+			SendTCP( state->pc, outmsg, sendlen );
 	}
 }
 
@@ -1795,7 +1866,7 @@ static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w
 		}
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
-			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
+			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen, FALSE );
 			Release( json_msg );
 		}
 		LeaveCriticalSec( &l.message_formatter );
@@ -1856,7 +1927,7 @@ static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32
 		}
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
-			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
+			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen, FALSE );
 			Release( json_msg );
 		}
 		LeaveCriticalSec( &l.message_formatter );
@@ -1941,6 +2012,8 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 					ys += ((PVPImage)pIF)->y;
 					pIF = (Image)(((PVPImage)pIF)->parent);
 				}
+				((PVPImage)pIF)->image->reverse_interface = &ProxyImageInterface;
+				((PVPImage)pIF)->image->reverse_interface_instance = (POINTER)pIF;
 				shaded_image = l.real_interface->_GetTintedImage( ((PVPImage)pIF)->image, va_arg( args, CDATA ) );
 				if( !shaded_image->reverse_interface )
 				{
@@ -1990,10 +2063,26 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 		outmsg->data.blot_image.xs = xs;
 		outmsg->data.blot_image.ys = ys;
 		outmsg->data.blot_image.server_image_id = image->id;
+		if( ((PVPImage)pIF)->image->flags & IF_FLAG_UPDATED )
+				SendClientMessage( PMID_ImageData, ((PVPImage)pIF) );
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
-			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
-			Release( json_msg );
+			if( image->render_id != INVALID_INDEX )
+			{
+				PVPRENDER r = GetLink( &ThreadNetworkState.app->application_instance->renderers, image->render_id );
+				if( !r || !r->flags.open )
+					AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen, TRUE );
+				else
+				{
+					AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen, FALSE );
+					Release( json_msg );
+				}
+			}
+			else
+			{
+				AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen, FALSE );
+				Release( json_msg );
+			}
 		}
 		LeaveCriticalSec( &l.message_formatter );
 	}
@@ -2013,7 +2102,7 @@ static void CPROC VidlibProxy_BlotImageEx	  ( Image pDest, Image pIF, S_32 x, S_
 	va_list args;
 	va_start( args, method );
 	VidlibProxy_BlotImageSizedEx( pDest, pIF, x, y, 0, 0
-					, pIF->width, pIF->height
+					, ((PVPImage)pIF)->w, ((PVPImage)pIF)->h
 					, nTransparent
 					, method, va_arg( args, CDATA ), va_arg( args, CDATA ), va_arg( args, CDATA ) ); 
 }
@@ -2038,8 +2127,8 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 		int errx, erry;
 		if( !((PVPImage)pifSrc)->image )
 			return;
-		if( ( xd > ( pifDest->x + pifDest->width ) )
-			|| ( yd > ( pifDest->y + pifDest->height ) )
+		if( ( xd > ( image->x + image->w ) )
+			|| ( yd > ( image->y + image->h ) )
 			|| ( ( xd + (signed)wd ) < 0/*pifDest->x*/ )
 			|| ( ( yd + (signed)hd ) < 0/*pifDest->y*/ ) )
 		{
@@ -2061,7 +2150,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 		{
 			int x = xd;
 			int w = 0;
-			while( x < pifDest->x )
+			while( x < image->x )
 			{
 				errx += (signed)dws;
 				while( errx >= 0 )
@@ -2075,7 +2164,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 			}
 			xd = x;
 
-			while( x < pifDest->width && SUS_GT( w, int, wd, _32 ) )
+			while( x < image->w && SUS_GT( w, int, wd, _32 ) )
 			{
 				errx += (signed)dws;
 				while( errx >= 0 )
@@ -2089,11 +2178,11 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 		}
 		//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
 		//		 xs, ys, ws, hs, xd, yd, wd, hd );
-		if( ( yd < 0 ) || ( yd +(S_32)(hd&0x7FFFFFFF) ) > pifDest->height )
+		if( ( yd < 0 ) || ( yd +(S_32)(hd&0x7FFFFFFF) ) > image->h )
 		{
 			int y = yd;
 			int h = 0;
-			while( yd < pifDest->y )
+			while( yd < image->y )
 			{
 				erry += (signed)dhs;
 				while( erry >= 0 )
@@ -2105,7 +2194,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 				hd--;
 				y++;
 			}
-			while( y < pifDest->height && h < (int)hd )
+			while( y < image->h && h < (int)hd )
 			{
 				erry += (signed)dhs;
 				while( erry >= 0 )
@@ -2137,7 +2226,9 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 			if( ((PVPImage)pifSrc)->image->flags & IF_FLAG_UPDATED )
 				SendClientMessage( PMID_ImageData, pifSrc );
 			SetImageUsed( (PVPImage)pifSrc );
+
 			outmsg->data.blot_scaled_image.image_id = ((PVPImage)pifSrc)->id;
+			lprintf( "copy source image ID : %d", ((PVPImage)pifSrc)->id );
 			break;
 		case BLOT_SHADED:
 			{
@@ -2151,6 +2242,8 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 					ys += ((PVPImage)pifSrc)->y;
 					pifSrc = (Image)(((PVPImage)pifSrc)->parent);
 				}
+				((PVPImage)pifSrc)->image->reverse_interface = &ProxyImageInterface;
+				((PVPImage)pifSrc)->image->reverse_interface_instance = (POINTER)pifSrc;
 				shaded_image = l.real_interface->_GetTintedImage( ((PVPImage)pifSrc)->image, va_arg( args, CDATA ) );
 				if( !shaded_image->reverse_interface )
 				{
@@ -2210,8 +2303,24 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 		outmsg->data.blot_scaled_image.server_image_id = image->id;
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
-			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
-			Release( json_msg );
+			if( image->render_id != INVALID_INDEX )
+			{
+				PVPRENDER r = GetLink( &ThreadNetworkState.app->application_instance->renderers, image->render_id );
+				if( !r || !r->flags.open )
+				{
+					AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen, TRUE );
+				}
+				else
+				{
+					AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen, FALSE );
+					Release( json_msg );
+				}
+			}
+			else
+			{
+				AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen, FALSE );
+				Release( json_msg );
+			}
 		}
 		LeaveCriticalSec( &l.message_formatter );
 	}
@@ -2237,9 +2346,9 @@ static void CPROC VidlibProxy_MarkImageDirty ( Image pImage )
 		P_8 encoded_image;
 	
 		if( ((PVPImage)pImage)->parent )
-			encoded_image = EncodeImage( ((PVPImage)pImage)->parent->image, FALSE, &outlen );
+			encoded_image = EncodeImage( ((PVPImage)pImage)->id, ((PVPImage)pImage)->parent->image, FALSE, &outlen );
 		else
-			encoded_image = EncodeImage( ((PVPImage)pImage)->image, FALSE, &outlen );
+			encoded_image = EncodeImage( ((PVPImage)pImage)->id, ((PVPImage)pImage)->image, FALSE, &outlen );
 		Release( encoded_image );
 	}
 }
@@ -2308,8 +2417,24 @@ DIMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, S_32 x, S_32 y, S_32 xto, S_3
 		outmsg->data.line.color = color;
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
-			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
-			Release( json_msg );
+			if( image->render_id != INVALID_INDEX )
+			{
+				PVPRENDER r = GetLink( &ThreadNetworkState.app->application_instance->renderers, image->render_id );
+				if( !r || !r->flags.open )
+				{
+					AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen, TRUE );
+				}
+				else
+				{
+					AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen, FALSE );
+					Release( json_msg );
+				}
+			}
+			else
+			{
+				AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen, FALSE );
+				Release( json_msg );
+			}
 		}
 		LeaveCriticalSec( &l.message_formatter );
 	}
@@ -2804,6 +2929,30 @@ static LOGICAL CPROC VidlibProxy_IsImageTargetFinal( Image image )
 	return 0;
 }
 
+// new image instance, which is the same as the old...
+// need to hold image memory
+static Image CPROC VidlibProxy_ReuseImage( Image pif )
+{
+	PVPImage image = (PVPImage)pif;
+	if( !image->parent )
+	{
+		image->image->flags |= IF_FLAG_UPDATED;
+		SetLink( &ThreadNetworkState.app->application_instance->images, image->id, image );
+		SendClientMessage( PMID_MakeImage, image, image->render_id, (image->render_id==INVALID_INDEX)?TRUE:FALSE );
+		return pif;
+	}
+	else
+	{
+		PVPImage id_parent = (PVPImage)GetLink( &ThreadNetworkState.app->application_instance->images, image->parent->id ) ;
+		if( !id_parent )
+		{
+			id_parent = (PVPImage)VidlibProxy_ReuseImage( (Image)image->parent );
+		}
+		SetLink( &ThreadNetworkState.app->application_instance->images, image->id, image );
+		SendClientMessage( PMID_MakeSubImage, image );
+		return pif;
+	}
+}
 
 static void InitImageInterface( void )
 {
@@ -2850,6 +2999,7 @@ static void InitImageInterface( void )
 	ProxyImageInterface._GetGlobalFonts = l.real_interface->_GetGlobalFonts;
 	ProxyImageInterface._InternalRenderFontFile = l.real_interface->_InternalRenderFontFile;
 	ProxyImageInterface._InternalRenderFont = l.real_interface->_InternalRenderFont;
+	ProxyImageInterface._ReuseImage = VidlibProxy_ReuseImage;
 }
 
 static IMAGE_3D_INTERFACE Proxy3dImageInterface = {
@@ -2906,7 +3056,7 @@ PRIORITY_PRELOAD( RegisterProxyInterface, VIDLIB_PRELOAD_PRIORITY )
 #endif
 	l.real_interface = (PIMAGE_INTERFACE)GetInterface( WIDE( "sack.image" ) );
 
-	InitProxyInterface();
+	//InitProxyInterface();
 	// needs sack.image loaded before; fonts are passed to this
 	InitImageInterface();
 

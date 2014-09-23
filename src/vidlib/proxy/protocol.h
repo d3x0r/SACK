@@ -116,6 +116,18 @@ PREFIX_PACKED struct mouse_event_data
 	_32 b;
 } PACKED;
 
+PREFIX_PACKED struct move_image_data
+{
+	PTRSZVAL server_render_id;
+	S_32 x, y;
+} PACKED;
+
+PREFIX_PACKED struct size_image_data
+{
+	PTRSZVAL server_render_id;
+	_32 w, h;
+} PACKED;
+
 PREFIX_PACKED struct key_event_data
 {
 	PTRSZVAL server_render_id;
@@ -146,6 +158,8 @@ PREFIX_PACKED struct common_message {
 		struct close_display_data close_display;
 		struct move_size_display_data  move_size_display;
 		struct client_identification_data client_ident;
+		struct move_image_data move_image;
+		struct size_image_data size_image;
 		MSGBLOCK( open_display_reply,  PTRSZVAL server_display_id; PTRSZVAL client_display_id; );
 	} data;
 } PACKED;
@@ -188,6 +202,8 @@ enum proxy_message_id{
 							, PMID_Flush_Draw // 17 swap buffers... update display... commit changes....
 							, PMID_MoveSizeDisplay // 18 change display position/size
 							, PMID_Event_Redraw // 19 Client side has lost the screen, and needs a draw
+							, PMID_Move_Image // 20 
+							, PMID_Size_Image // 21 
 							, PMID_
 
 							, PMID_LAST_PROXY_MESSAGE
