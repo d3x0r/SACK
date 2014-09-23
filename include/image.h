@@ -1878,6 +1878,12 @@ IMAGE_PROC_PTR( Image, GetTintedImage )( Image child_image, CDATA color );
 IMAGE_PROC_PTR( Image, GetShadedImage )( Image child_image, CDATA red, CDATA green, CDATA blue );
 // test for IF_FLAG_FINAL_RENDER (non physical surface/prevent local copy-restore)
 IMAGE_PROC_PTR( LOGICAL, IsImageTargetFinal )( Image image );
+
+// use image data to create a clone of the image for the new application instance...
+// this is used when a common image resource is used for all application instances
+// it should be triggered during onconnect.
+// it is a new image instance that should be used for future app references...
+IMAGE_PROC_PTR( Image, ReuseImage )( Image image );
 } IMAGE_INTERFACE, *PIMAGE_INTERFACE;
 
 
@@ -2006,7 +2012,7 @@ IMAGE_PROC_PTR( LOGICAL, IsImageTargetFinal )( Image image );
 #define Render3dText                   PROC_ALIAS( Render3dText )
 #define DumpFontFile                   PROC_ALIAS( DumpFontFile )
 #define IsImageTargetFinal                   PROC_ALIAS( IsImageTargetFinal )
-
+#define ReuseImage                      PROC_ALIAS( ReuseImage )
 //#define global_font_data         (*PROC_ALIAS(global_font_data))
 #endif
 

@@ -265,7 +265,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, s
 					/// single packet, final...
 					//LogBinary( websock->fragment_collection, websock->fragment_collection_length );
 					if( websock->on_event )
-						websock->on_event( pc, websock->psv_on, websock->fragment_collection, websock->fragment_collection_length );
+						websock->on_event( pc, websock->psv_open, websock->fragment_collection, websock->fragment_collection_length );
 					websock->fragment_collection_length = 0;
 					break;
 				case 0x08: // close

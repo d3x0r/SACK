@@ -333,7 +333,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 						SendTCP( pc, output, GetTextSize( value ) );
 					}
 					if( socket->input_state.on_open )
-						socket->input_state.on_open( pc, socket->input_state.psv_on );
+						socket->input_state.psv_open = socket->input_state.on_open( pc, socket->input_state.psv_on );
 
 					EndHttp( socket->http_state );
 					socket->flags.initial_handshake_done = 1;

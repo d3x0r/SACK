@@ -37,52 +37,6 @@ IMAGE_NAMESPACE
 
 //---------------------------------------------------------------------------
 
-#if 0
-void  CPROC cSetColor( PCDATA po, int oo, int w, int h, CDATA color )
-{
-   oo /= 4;
-   {
-      int r;
-      r = 0;
-      while( r < h )
-      {
-         int col;
-         col = 0;
-         while( col < w )
-         {
-            *(CDATA*)po = color;
-            po++;
-            col++;
-         }
-         po += oo;
-         r++;
-      }
-   }
-}
-
-void  CPROC cSetColorAlpha( PCDATA po, int oo, int w, int h, CDATA color )
-{
-   int alpha = AlphaVal(color);
-   oo /= 4;
-   {
-      int r;
-      r = 0;
-      while( r < h )
-      {
-         int col;
-         col = 0;
-         while( col < w )
-         {
-            *po = DOALPHA( *po, color, alpha );
-            po++;
-            col++;
-         }
-         po += oo;
-         r++;
-      }
-   }
-}
-#endif
 
 void CPROC MarkImageUpdated( Image child_image )
 {

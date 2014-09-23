@@ -40,6 +40,7 @@ struct web_socket_input_state
 	web_socket_opened on_open;
 	web_socket_error on_error;
 	PTRSZVAL psv_on;
+	PTRSZVAL psv_open; // result of the open, to pass to read
 
 };
 
