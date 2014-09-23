@@ -54,6 +54,12 @@ PREFIX_PACKED struct unmake_image_data
 	PTRSZVAL server_image_id;
 } PACKED;
 
+PREFIX_PACKED struct client_identification_data
+{
+	// what the server calls this image; for all further draw ops
+	CTEXTSTR client_id;
+} PACKED;
+
 PREFIX_PACKED struct make_subimage_data 
 {
 	PTRSZVAL server_image_id;
@@ -139,6 +145,7 @@ PREFIX_PACKED struct common_message {
 		struct unmake_image_data unmake_image;
 		struct close_display_data close_display;
 		struct move_size_display_data  move_size_display;
+		struct client_identification_data client_ident;
 		MSGBLOCK( open_display_reply,  PTRSZVAL server_display_id; PTRSZVAL client_display_id; );
 	} data;
 } PACKED;

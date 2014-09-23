@@ -725,7 +725,7 @@ static int StrSubst (const char * in, const char * pat, const char * rep, const 
 }
 
 // Provide missing math routines for MSVC.
-#if _MSC_VER < 1700
+#if _MSC_VER < 1800
 static double round (double val) {
   if (val < 0.0)
      return (ceil (val - 0.5));

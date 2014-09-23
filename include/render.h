@@ -1831,6 +1831,8 @@ typedef int check_this_variable;
 #define OnDisplayResume(name) \
 	__DefineRegistryMethod(WIDE("sack/render/android"),OnDisplayResume,WIDE("display"),name,WIDE("on_display_resume"),void,(void),__LINE__)
 
+#define OnDisplayConnect(name) \
+	__DefineRegistryMethod(WIDE("/sack/render/remote_display"),OnDisplayConnect,WIDE("connect"),name,WIDE("new_display_connected"),void,(void),__LINE__)
 
 
 RENDER_NAMESPACE_END
