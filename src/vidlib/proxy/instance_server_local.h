@@ -30,14 +30,41 @@ typedef struct vidlib_proxy_image
 	size_t websock_buf_avail;
 } *PVPImage;
 
+typedef struct vidlib_proxy_application
+{
+	PLIST renderers;
+	PLIST images;
+	TEXTSTR client_id; // client identification... arbitrary length data
+} *PVP_APPLICATION;
+
 struct server_socket_state
 {
 	struct server_socket_flags {
-		BIT_FIELD get_length : 1;
+		BIT_FIELD get_length : 1; // read is for next message length
 	} flags;
 	POINTER buffer;
 	int read_length;
+	LOGICAL websock;
+	PCLIENT pc;
+	PVP_APPLICATION application_instance;
 };
+
+#if defined( _MSC_VER )
+#define HAS_TLS 1
+#define ThreadLocal static __declspec(thread)
+#endif
+#if defined( __GNUC__ )
+#define HAS_TLS 1
+#define ThreadLocal static __thread
+#endif
+
+#if HAS_TLS
+ThreadLocal struct my_network_state_info {
+	struct server_socket_state *app;
+	PTHREAD pThread;
+	THREAD_ID nThread;
+} ThreadNetworkState;
+#endif
 
 typedef struct vidlib_proxy_renderer
 {
@@ -60,17 +87,7 @@ typedef struct vidlib_proxy_renderer
 	PTRSZVAL psv_redraw;
 } *PVPRENDER;
 
-struct server_proxy_client
-{
-	PCLIENT pc;
-	LOGICAL websock;
-};
 
-typedef struct vidlib_proxy_application
-{
-	PLIST renderers;
-	PLIST images;
-} *PVP_APPLICATION;
 
 #define l vidlib_proxy_server_local
 struct vidlib_proxy_local
@@ -78,6 +95,7 @@ struct vidlib_proxy_local
 	PCLIENT listener;
 	PCLIENT web_listener;
 	PLIST clients; // list of struct server_proxy_client
+	PLIST applications; // application instance may be reconnected
 	TEXTSTR application_title;
 	struct json_context *json_context;
 	struct json_context *json_reply_context; // shorter list to search for input messages
@@ -86,6 +104,9 @@ struct vidlib_proxy_local
 	_8 key_states[256];
 	CRITICALSECTION message_formatter;
 } l;
+
+void InvokeNewDisplay( struct vidlib_proxy_application * );
+
 
 CTEXTSTR SACK_Vidlib_GetKeyText( int pressed, int key_index, int *used );
 void SACK_Vidlib_ProcessKeyState( int pressed, int key_index, int *used );

@@ -7,7 +7,7 @@ win32 alias service options sack_sql_options
 option default /DEFAULT/System Settings/Enable System Mapping=1
 OPTION DEFAULT /DEFAULT/System Settings/Map INI Local/comports.ini=1
 #option default SACK/Video Render/360 view = 1
-option default sack/vidlib/use interface = ${INTERFACE_TARGET}
+option default sack/vidlib/use interface = windows
 
 if sack/vidlib/use interface == headless
 module bag.image.dll
@@ -15,6 +15,14 @@ module bag.video.proxy.server.dll
 
 alias service render sack.render.proxy.server
 alias service image sack.image.proxy.server
+endif
+
+if sack/vidlib/use interface == headless.instanced
+module bag.image.dll
+module bag.video.proxy.server.instance.dll
+
+alias service render sack.render.proxy.instance.server
+alias service image sack.image.proxy.instance.server
 endif
 
 if sack/vidlib/use interface == message
