@@ -190,7 +190,8 @@ enum proxy_message_id{
 							, PMID_GetRenderTransform = PMID_LAST_PROXY_MESSAGE
 							, PMID_ClipPoints
 							, PMID_GetViewVolume
-							, 
+							
 
-
+							, PMID_ClientSessionId = 100 // multi-instance serve, get unique client ID
+							,
 };
