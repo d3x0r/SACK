@@ -259,7 +259,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 		{
 			if( background )
 				pImage->reverse_interface->_BlatColorAlpha( (Image)pImage->reverse_interface_instance, xd_back, yd_back, pchar->width, UseFont->height, background );
-			pImage->reverse_interface->_BlotImageSizedEx( (Image)pImage->reverse_interface_instance, pifSrc, xd, yd, xs, ys, pchar->cell->real_width, pchar->cell->real_height, TRUE, BLOT_SHADED|orientation, color );
+				pImage->reverse_interface->_BlotImageSizedEx( (Image)pImage->reverse_interface_instance, pifSrc, xd, yd, xs, ys, pchar->cell->real_width, pchar->cell->real_height, TRUE, BLOT_SHADED|orientation, color );
 		}
 		else
 		{

@@ -73,6 +73,8 @@ typedef struct global_tag
 	SFTFont default_font;
 }PSI_GLOBAL;
 
+
+
 enum {
 	SEGMENT_TOP_LEFT
 	  , SEGMENT_TOP

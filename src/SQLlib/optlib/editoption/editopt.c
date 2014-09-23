@@ -1,4 +1,5 @@
-//#define DEFINE_DEFAULT_RENDER_INTERFACE
+// need to check if is instanced.
+#define DEFINE_DEFAULT_RENDER_INTERFACE
 #include <controls.h>
 #include <idle.h>
 #include <sqlgetoption.h>
@@ -39,10 +40,30 @@ typedef struct node_data_tag
 	PLISTITEM pli_fake;
 } NODE_DATA, *PNODE_DATA;
 
-static POPTION_TREE tree;
-static PNODE_DATA last_node;
-static POPTION_TREE_NODE last_option;
-static TEXTCHAR last_value[256];
+static struct instance_local
+{
+	POPTION_TREE tree;
+	PNODE_DATA last_node;
+	POPTION_TREE_NODE last_option;
+	TEXTCHAR last_value[256];
+	int done1;
+	int done2;
+	int done3;
+};
+
+#if defined( _MSC_VER )
+#define HAS_TLS 1
+#define ThreadLocal static __declspec(thread)
+#endif
+#if defined( __GNUC__ )
+#define HAS_TLS 1
+#define ThreadLocal static __thread
+#endif
+
+#if HAS_TLS
+ThreadLocal struct instance_local *option_thread;
+#define l (*option_thread)
+#endif
 
 int CPROC FillList( PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags );
 
@@ -132,14 +153,14 @@ static void CPROC OptionSelectionChanged( PTRSZVAL psvUser, PCONTROL pc, PLISTIT
 {
 	static TEXTCHAR buffer[4096];
 	PNODE_DATA pnd = (PNODE_DATA)GetItemData( hli );
-	last_option = pnd->ID_Option;
-	last_node = pnd;
+	l.last_option = pnd->ID_Option;
+	l.last_node = pnd;
 	if( pnd->option_text )
 	{
 		if( !pnd->ID_Option )
 			pnd->ID_Option = GetOptionIndexExx( (PODBC)psvUser, NULL, NULL, pnd->option_text, NULL, FALSE DBG_SRC );
 		GetOptionStringValueEx( (PODBC)psvUser, pnd->ID_Option, buffer, sizeof( buffer ) DBG_SRC );
-		StrCpyEx( last_value, buffer, sizeof(last_value)/sizeof(last_value[0]) );
+		StrCpyEx( l.last_value, buffer, sizeof(l.last_value)/sizeof(l.last_value[0]) );
 		SetCommonText( GetNearControl( pc, EDT_OPTIONVALUE ), buffer );
 	}
 	else
@@ -148,13 +169,13 @@ static void CPROC OptionSelectionChanged( PTRSZVAL psvUser, PCONTROL pc, PLISTIT
 		{
 			lprintf( WIDE("Set value to real value.") );
 			GetOptionStringValueEx( (PODBC)psvUser, pnd->ID_Value, buffer, sizeof( buffer ) DBG_SRC );
-			StrCpyEx( last_value, buffer, sizeof(last_value)/sizeof(last_value[0]) );
+			StrCpyEx( l.last_value, buffer, sizeof(l.last_value)/sizeof(l.last_value[0]) );
 			SetCommonText( GetNearControl( pc, EDT_OPTIONVALUE ), buffer );
 		}
 		else
 		{
 			lprintf( WIDE("Set to blank value - no value on branch.") );
-			last_value[0] = 0;
+			l.last_value[0] = 0;
 			SetCommonText( GetNearControl( pc, EDT_OPTIONVALUE ), WIDE("") );
 		}
 	}
@@ -162,14 +183,14 @@ static void CPROC OptionSelectionChanged( PTRSZVAL psvUser, PCONTROL pc, PLISTIT
 
 static void CPROC UpdateValue( PTRSZVAL psv, PCOMMON pc )
 {
-	if( last_node )
+	if( l.last_node )
 	{
 		TEXTCHAR value[256];
 		GetControlText( GetNearControl( pc, EDT_OPTIONVALUE ), value, sizeof(value) );
-		if( StrCmp( value, last_value ) != 0 )
+		if( StrCmp( value, l.last_value ) != 0 )
 		{
 			POPTION_TREE tree = GetOptionTreeExxx( (PODBC)psv, NULL DBG_SRC );
-			SetOptionStringValue( tree, last_node->ID_Option, value );
+			SetOptionStringValue( tree, l.last_node->ID_Option, value );
 		}
 	}
 }
@@ -178,17 +199,17 @@ static void CPROC ResetButton( PTRSZVAL psv, PCOMMON pc )
 {
 	ResetList( GetNearControl( pc, LST_OPTIONMAP ) );
 	ResetOptionMap( (PODBC)psv );
-	last_option = NULL;
+	l.last_option = NULL;
 	InitOptionList( (PODBC)psv, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
 }
 
 static void CPROC DeleteBranch( PTRSZVAL psv, PCOMMON pc )
 {
-	if( last_option )
-		DeleteOption( last_option );
+	if( l.last_option )
+		DeleteOption( l.last_option );
 	ResetList( GetNearControl( pc, LST_OPTIONMAP ) );
 	ResetOptionMap( (PODBC)psv );
-	last_option = NULL;
+	l.last_option = NULL;
 	InitOptionList( (PODBC)psv, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
 }
 
@@ -199,11 +220,11 @@ static void CPROC CopyBranch( PTRSZVAL psv, PCOMMON pc )
 	//GetCurrentSelection( );
 	if( SimpleUserQuery( result, sizeof( result ), WIDE("Enter New Branch Name"), GetFrame( pc ) ) )
 	{
-		DuplicateOption( last_option, result );
+		DuplicateOption( l.last_option, result );
 	}
 	ResetList( GetNearControl( pc, LST_OPTIONMAP ) );
 	ResetOptionMap( (PODBC)psv );
-	last_option = NULL;
+	l.last_option = NULL;
 	InitOptionList( (PODBC)psv, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
 }
 
@@ -214,11 +235,11 @@ static void CPROC CreateEntry( PTRSZVAL psv, PCOMMON pc )
 	//GetCurrentSelection( );
 	if( SimpleUserQuery( result, sizeof( result ), WIDE("Enter New Branch Name"), GetFrame( pc ) ) )
 	{
-		GetOptionIndexExx( (PODBC)psv, last_option, result, NULL, NULL, TRUE DBG_SRC );
-		//DuplicateOption( last_option, result );
+		GetOptionIndexExx( (PODBC)psv, l.last_option, result, NULL, NULL, TRUE DBG_SRC );
+		//DuplicateOption( l.last_option, result );
 		ResetList( GetNearControl( pc, LST_OPTIONMAP ) );
 		ResetOptionMap( (PODBC)psv );
-		last_option = NULL;
+		l.last_option = NULL;
 		InitOptionList( (PODBC)psv, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
 	}
 }
@@ -312,6 +333,34 @@ static void CPROC FindEntry( PTRSZVAL psv, PCOMMON pc )
 	}
 }
 
+static void OnDisplayConnect( WIDE( "EditOption Display" ) )( struct app * app, struct app_local***local )
+{
+	PSI_CONTROL frame;
+	if( option_thread )
+	{
+		lprintf( "Reinit" );
+		option_thread = New( struct instance_local );
+		MemSet( option_thread, 0, sizeof( option_thread ) );
+		(*local) = (struct app_local**)&option_thread;
+
+		frame = CreateOptionFrame( NULL, TRUE, &l.done1 );
+		InitOptionList( NULL, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
+		DisplayFrame( frame );
+	}
+	else
+	{
+		option_thread = New( struct instance_local );
+		MemSet( option_thread, 0, sizeof( option_thread ) );
+		(*local) = (struct app_local**)&option_thread;
+
+		frame = CreateOptionFrame( NULL, TRUE, &l.done1 );
+		InitOptionList( NULL, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
+		DisplayFrame( frame );
+	}
+		//CommonWait( frame );
+		//DestroyFrame( &frame );
+}
+
 #ifdef EDITOPTION_PLUGIN
 PUBLIC( int, EditOptions )
 #else
@@ -325,12 +374,24 @@ int EditOptions
 		odbc = GetOptionODBC( NULL, 0 );
 
 	//if( !frame )
-	frame = CreateOptionFrame( odbc, TRUE, &done );
-	InitOptionList( odbc, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
+	if( !RenderIsInstanced() )
+	{
+		option_thread = New( struct instance_local );
+		MemSet( option_thread, 0, sizeof( option_thread ) );
+		frame = CreateOptionFrame( odbc, TRUE, &done );
+		InitOptionList( odbc, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
 
-	DisplayFrame( frame );
-	CommonWait( frame );
-	DestroyFrame( &frame );
+		DisplayFrame( frame );
+		CommonWait( frame );
+		DestroyFrame( &frame );
+	}
+	else
+	{
+		while( 1 )
+		{
+			WakeableSleep( 1000000 );
+		}
+	}
 	return 1;
 }
 

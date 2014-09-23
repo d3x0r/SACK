@@ -578,6 +578,19 @@ void TryLoadingFrameImage( void )
 	}
 }
 
+static void OnDisplayConnect( WIDE( "@00 PSI Core" ) )( struct app*app, struct app_local ***pppLocal )
+{
+	if( g.BorderImage )
+	{
+		int n;
+		ReuseImage( g.BorderImage );
+		for( n = 0; n < 9; n++ )
+		{
+			ReuseImage( g.BorderSegment[n] );
+		}
+	}
+}
+
 // this can be run very late...
 PRELOAD( DefaultControlStartup )
 {

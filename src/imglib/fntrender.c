@@ -8,6 +8,20 @@
 #include <ft2build.h>
 #ifdef FT_BEGIN_HEADER
 
+#ifdef _OPENGL_DRIVER
+#  if defined( USE_GLES )
+#    include <GLES/gl.h>
+#  elif defined( USE_GLES2 )
+//#include <GLES/gl.h>
+#    include <GLES2/gl2.h>
+#  else
+#    define USE_OPENGL
+// why do we need this anyway?
+#    include <GL/glew.h>
+#    include <GL/gl.h>         // Header File For The OpenGL32 Library
+#  endif
+#endif
+
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
@@ -20,6 +34,10 @@
 #include <image.h>
 #include "fntglobal.h"
 #include <controls.h>
+#define REQUIRE_GLUINT
+
+#include "image_common.h"
+#include <render.h> // need definition for OnDisplayConnect to redownload font
 
 IMAGE_NAMESPACE
 
@@ -109,7 +127,7 @@ int PrintChar( int bits, int charnum, PCHARACTER character, int height )
 
 	{
 		int line, bit;
-	   	char *dataline;
+			char *dataline;
 		data = (char*)character->data;
 		for(line = character->ascent;
 			 line >= character->descent;
@@ -267,7 +285,7 @@ void DumpFontFile( CTEXTSTR name, SFTFont font_to_dump )
 				{
 					PCHARACTER character;
 					void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx );
-               InternalRenderFontCharacter( NULL, font_to_dump, charid );
+					InternalRenderFontCharacter( NULL, font_to_dump, charid );
 					character = font->character[charid];
 					if( character )
 						PrintChar( (font->flags&3) == FONT_FLAG_8BIT?8
@@ -277,7 +295,7 @@ void DumpFontFile( CTEXTSTR name, SFTFont font_to_dump )
 				}
 			}
 			PrintFontTable( font->name, font );
-         PrintFooter();
+			PrintFooter();
 			sack_fclose( output );
 		}
 	}
@@ -292,7 +310,7 @@ struct font_renderer_tag {
 	S_16 nWidth;
 	S_16 nHeight;
 	FRACTION width_scale;
-   FRACTION height_scale;
+	FRACTION height_scale;
 	_32 flags; // whether to render 1(0/1), 2(2), 8(3) bits, ...
 	POINTER ResultData; // data that was resulted for creating this font.
 	size_t ResultDataLen;
@@ -304,21 +322,58 @@ struct font_renderer_tag {
 	PFONT font;
 	TEXTCHAR fontname[256];
 
-   int max_ascent;
-   int min_descent;
+	int max_ascent;
+	int min_descent;
 	// -- - - - -- - - This bit of structure is for character renedering to an image which is downloaded for bitmap fonts
-   //
+	//
 	// full surface, contains all characters.  Starts as 3 times the first character (9x vertical and horizontal)
-   // after that it is expanded 2x (4x total, 2x horizontal 2x rows )
+	// after that it is expanded 2x (4x total, 2x horizontal 2x rows )
 	Image surface;
-   int nLinesUsed;
-   int nLinesAvail;
+	int nLinesUsed;
+	int nLinesAvail;
 	int *pLineStarts; // counts highest character in a line, each line walks across
-   PCHARACTER *ppCharacterLineStarts; // beginning of chain of characters on this image.
+	PCHARACTER *ppCharacterLineStarts; // beginning of chain of characters on this image.
+	PIMAGE_INTERFACE reverse_interface;
 } ;
 typedef struct font_renderer_tag FONT_RENDERER;
 
 static PLIST fonts;
+
+static void OnDisplayConnect( WIDE( "@00 Image Core" ) )( struct app*app, struct app_local ***pppLocal )
+{
+	INDEX idx;
+	PFONT_RENDERER renderer;
+	LIST_FORALL( fonts, idx, PFONT_RENDERER, renderer )
+	{
+		int n;
+		renderer->reverse_interface->_ReuseImage( (Image)renderer->surface );
+		for( n = 0; n < renderer->nLinesAvail; n++ )
+		{
+			PCHARACTER check = renderer->ppCharacterLineStarts[n];
+			while( check )
+			{
+				renderer->reverse_interface->_ReuseImage( (Image)check->cell );
+				check = check->next_in_line;
+			}
+		}
+	}
+	{
+		POINTER node;
+		for( node = (Image)GetLeastNode( image_common_local.tint_cache ); 
+			node; 
+			node = (Image)GetGreaterNode( image_common_local.tint_cache ) )
+		{
+			struct shade_cache_image *ci = ( struct shade_cache_image *)node;
+			struct shade_cache_element *ce;
+			INDEX idx2;
+			LIST_FORALL( ci->elements, idx2, struct shade_cache_element *, ce )
+			{
+				ce->image->reverse_interface->_ReuseImage( (Image)ce->image->reverse_interface_instance );
+			}
+		}
+	}
+}
+
 
 //-------------------------------------------------------------------------
 
@@ -328,6 +383,7 @@ void UpdateRendererImage( Image image, PFONT_RENDERER renderer, int char_width, 
 	{
 		if( image->reverse_interface )
 		{
+			renderer->reverse_interface = image->reverse_interface;
 			renderer->surface = image->reverse_interface->_MakeImageFileEx( char_width * 3, char_height * 3 DBG_SRC );
 			image->reverse_interface->_BlatColor(renderer->surface,0,0,(renderer->surface)->width,(renderer->surface)->height, 0 );
 		}
@@ -382,7 +438,7 @@ Image AllocateCharacterSpace( Image target_image, PFONT_RENDERER renderer, PCHAR
 		last_line_top = 0;
 		for( line = 0; line < renderer->nLinesUsed; line++ )
 		{
-         //lprintf( "Is %d in %d?", height, (renderer->pLineStarts[line]) );
+			//lprintf( "Is %d in %d?", height, (renderer->pLineStarts[line]) );
 			if( height <= ( renderer->pLineStarts[line] ) )
 			{
 				// fits within the current line height...
@@ -398,7 +454,7 @@ Image AllocateCharacterSpace( Image target_image, PFONT_RENDERER renderer, PCHAR
 				}
 				if( ( new_line_start + character->width + 2 ) <= renderer->surface->real_width )
 				{
-               //lprintf( "Fits in this line, create at %d,%d   %d width", new_line_start + 1, last_line_top + 1
+					//lprintf( "Fits in this line, create at %d,%d   %d width", new_line_start + 1, last_line_top + 1
 					//										, character->width );
 					check->next_in_line = character;
 					if( target_image->reverse_interface )
@@ -588,7 +644,7 @@ void RenderMonoChar( PFONT font
 		character->size = bitmap->width;
 		//charleft = charleft;
 		//charheight = CEIL( metrics->height );
-      //if( 0 )
+		//if( 0 )
 		//lprintf( WIDE("(%")_size_f WIDE("(%c)) Character parameters: %d %d %d %d %d")
 		//		 , idx, (char)(idx< 32 ? ' ':idx)
 		//		 , character->width
@@ -744,7 +800,7 @@ void RenderGreyChar( PFONT font
 						 , _32 bits // 2 or 8
 						 )
 {
-   //lprintf( WIDE("Rending char %d bits %d"), idx, bits );
+	//lprintf( WIDE("Rending char %d bits %d"), idx, bits );
 	/*
 	 Log2( WIDE("Character: %d(%c)"), idx, idx>32&&idx<127?idx:0 );
 	 //Log1( WIDE("Font Height %d"), font->height );
@@ -758,7 +814,7 @@ void RenderGreyChar( PFONT font
 	Log2( WIDE("Metrics: height %d bearing Y %d"), metrics->height, metrics->horiBearingY );
 	Log2( WIDE("Metrics: width %d bearing X %d"), metrics->width, metrics->horiBearingX );
 	Log2( WIDE("Metrics: advance %d %d"), metrics->horiAdvance, metrics->vertAdvance );
-   */
+	*/
 	if( bitmap->width > 1000 ||
 	    bitmap->width < 0 ||
 	    bitmap->rows > 1000 ||
@@ -1202,7 +1258,7 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 						if( 0 )
 							lprintf( WIDE("Result baseline %c(%d %x) %d  %d   %d,%d"), idx?idx:' ', idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
 					}
-               if( 0 )
+					if( 0 )
 							lprintf( WIDE("Result baseline %c(%d %x) %d  %d  %d  %d   %d,%d")
 								, idx?idx:' ', idx, idx
 								, ascent, descent
@@ -1449,7 +1505,7 @@ SFTFont RenderScaledFontData( PFONTDATA pfd, PFRACTION width_scale, PFRACTION he
 		CTEXTSTR name3 = name2 + StrLen( name2 ) + 1;
 
 
-      // picked from the current cache... otherwise search for it in this cache.
+		// picked from the current cache... otherwise search for it in this cache.
 		if( pfd->cachefile_time == fontcachetime ||
 			RecheckCache( name1/*fname(pfd->names)*/, &pfd->nFamily
 							, name2/*sname(pfd->names)*/, &pfd->nStyle
@@ -1637,7 +1693,7 @@ SFTFont RenderFontFileScaledEx( CTEXTSTR file, _32 width, _32 height, PFRACTION 
 		size_t chars;
 		PRENDER_FONTDATA pResult = NewPlus( RENDER_FONTDATA, (*size) =
 																			  (chars = strlen( file ) + 1)*sizeof(TEXTCHAR) );
-      (*size) += sizeof( RENDER_FONTDATA );
+		(*size) += sizeof( RENDER_FONTDATA );
 		pResult->magic = MAGIC_RENDER_FONT;
 		pResult->nHeight = height;
 		pResult->nWidth = width;
@@ -1651,7 +1707,7 @@ SFTFont RenderFontFileScaledEx( CTEXTSTR file, _32 width, _32 height, PFRACTION 
 #undef RenderFontFileEx
 SFTFont RenderFontFileEx( CTEXTSTR file, _32 width, _32 height, _32 flags, size_t * size, POINTER *pFontData )
 {
-   return RenderFontFileScaledEx( file, width, height, NULL, NULL, flags, size, pFontData );
+	return RenderFontFileScaledEx( file, width, height, NULL, NULL, flags, size, pFontData );
 }
 
 #undef RenderFontFile
@@ -1687,8 +1743,8 @@ SFTFont RenderScaledFontEx( CTEXTSTR name, _32 width, _32 height, PFRACTION widt
 			size_t chars;
 			PRENDER_FONTDATA pResult = NewPlus( RENDER_FONTDATA, (*pnFontDataSize)
 																					= 
-															    (chars = strlen( name ) + 1)*sizeof(TEXTCHAR) );
-         (*pnFontDataSize) += sizeof( RENDER_FONTDATA );
+																 (chars = strlen( name ) + 1)*sizeof(TEXTCHAR) );
+			(*pnFontDataSize) += sizeof( RENDER_FONTDATA );
 			pResult->magic = MAGIC_RENDER_FONT;
 			pResult->nHeight = height;
 			pResult->nWidth = width;
@@ -1710,7 +1766,7 @@ SFTFont RenderScaledFontEx( CTEXTSTR name, _32 width, _32 height, PFRACTION widt
 		size_t chars;
 		PRENDER_FONTDATA pResult = NewPlus( RENDER_FONTDATA, (*pnFontDataSize) =
 																			   (chars = strlen( name ) + 1)*sizeof(TEXTCHAR) );
-      (*pnFontDataSize) += sizeof( RENDER_FONTDATA );
+		(*pnFontDataSize) += sizeof( RENDER_FONTDATA );
 		pResult->magic = MAGIC_RENDER_FONT;
 		pResult->nHeight = height;
 		pResult->nWidth = width;

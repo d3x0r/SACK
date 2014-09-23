@@ -1599,6 +1599,7 @@ struct render_interface_tag
 		/* like full screen, some applications may want to
        enable owning the screen... (media player) */
       RENDER_PROC_PTR( void, SuspendSystemSleep )( int bool_suspend_enable );
+	RENDER_PROC_PTR( LOGICAL, RenderIsInstanced )( void );
 };
 
 #ifdef DEFINE_DEFAULT_RENDER_INTERFACE
@@ -1733,6 +1734,7 @@ typedef int check_this_variable;
 
 #define SetDisplayFullScreen    REND_PROC_ALIAS_VOID( SetDisplayFullScreen )
 #define SuspendSystemSleep      REND_PROC_ALIAS_VOID( SuspendSystemSleep )
+#define RenderIsInstanced()       (USE_RENDER_INTERFACE)?((USE_RENDER_INTERFACE)->_RenderIsInstanced()):0
 #endif
 
 	_INTERFACE_NAMESPACE_END
@@ -1832,7 +1834,10 @@ typedef int check_this_variable;
 	__DefineRegistryMethod(WIDE("sack/render/android"),OnDisplayResume,WIDE("display"),name,WIDE("on_display_resume"),void,(void),__LINE__)
 
 #define OnDisplayConnect(name) \
-	__DefineRegistryMethod(WIDE("/sack/render/remote_display"),OnDisplayConnect,WIDE("connect"),name,WIDE("new_display_connected"),void,(void),__LINE__)
+	__DefineRegistryMethod(WIDE("/sack/render/remote display"),OnDisplayConnect,WIDE("connect"),name,WIDE("new_display_connect"),void,(struct app*app, struct app_local ***),__LINE__)
+
+#define OnDisplayConnected(name) \
+	__DefineRegistryMethod(WIDE("/sack/render/remote display"),OnDisplayConnect,WIDE("connect"),name,WIDE("new_display_connected"),void,(struct app*app),__LINE__)
 
 
 RENDER_NAMESPACE_END
