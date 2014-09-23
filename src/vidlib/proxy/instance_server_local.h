@@ -35,7 +35,14 @@ typedef struct vidlib_proxy_application
 	PLIST renderers;
 	PLIST images;
 	TEXTSTR client_id; // client identification... arbitrary length data
+	PLIST local_instances;
 } *PVP_APPLICATION;
+
+typedef struct vidlib_proxy_application_instance
+{
+	struct vidlib_proxy_application_local **ppLocal;
+	struct vidlib_proxy_application_local *pLocal; 
+} *PVP_APPLICATION_INSTANCE;
 
 struct server_socket_state
 {
@@ -46,6 +53,7 @@ struct server_socket_state
 	int read_length;
 	LOGICAL websock;
 	PCLIENT pc;
+	PLINKQUEUE pending_operations; // hold draws until the frame is shown for early draw
 	PVP_APPLICATION application_instance;
 };
 
@@ -77,6 +85,7 @@ typedef struct vidlib_proxy_renderer
 	struct vidlib_proxy_renderer_flags
 	{
 		BIT_FIELD hidden : 1;
+		BIT_FIELD open : 1;
 	} flags;
 	INDEX id;
 	MouseCallback mouse_callback;

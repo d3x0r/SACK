@@ -62,6 +62,10 @@ function OpenServer()
      ws.onopen = function()
      {
         // Web Socket is connected, send data using send()
+        ws.send( JSON.stringify( { MsgID: 100 /* PMID_ClientIdentification */,
+        				 data : { client_id:createGuid() } 
+        			} 
+                                ) );
      };
     
 	var b = 0;
@@ -112,7 +116,7 @@ function OpenServer()
 			  continue;
 			if( ( x - canvas.offsetLeft ) > canvas.offsetWidth || ( y - canvas.offsetTop ) > canvas.offsetHeight )
 			  continue;
-			console.log( "canvas thing" + canvas.offsetLeft );
+			//console.log( "canvas thing" + canvas.offsetLeft );
 			x -= canvas.offsetLeft;
 			y -= canvas.offsetTop;
 			b |= 1 << ( event.which - 1 );
@@ -261,6 +265,7 @@ function OpenServer()
 			{
 				image.image = new Image();
 			}
+                        //console.log( "image made is " + msg.data.server_image_id + " and render " + msg.data.server_render_id );
 			image.server_render_id = msg.data.server_render_id;
 			image.server_id = msg.data.server_image_id;
 			image.width = msg.data.width;
@@ -270,6 +275,7 @@ function OpenServer()
 		case 7: // PMID_MakeSubImage
 			image_list.push( image = new proxy_image() );
 			image.server_id = msg.data.server_image_id;
+                       //console.log( "subimage made is " + msg.data.server_image_id + " on " + msg.data.server_parent_image_id + " At " + msg.data.x + "," + msg.data.y+" by " + msg.data.width + "," + msg.data.height);
 			image.x = msg.data.x;
 			image.y = msg.data.y;
 			image.width = msg.data.width;
@@ -285,6 +291,18 @@ function OpenServer()
 			}
 			
 			break;
+        	case 20: // PMID_Move_Image
+			image = find_image( msg.data.server_image_id );
+			image.x = msg.data.x;
+			image.y = msg.data.y;
+                	
+                	break;
+        	case 21: // PMID_Size_Image
+			image = find_image( msg.data.server_image_id );
+			image.width = msg.data.width;
+			image.height = msg.data.height;
+                	
+                	break;
         case 8: // PMID_BlatColor
         case 9: // PMID_BlatColorAlpha
 			image = find_image( msg.data.server_image_id );
@@ -333,6 +351,7 @@ function OpenServer()
 				parent_src_image = parent_src_image.parent;
 			}
 			render = parent_image.renderer;
+			//console.log( "direct image " + msg.data.image_id + " " + parent_src_image  + " render " + parent_image.renderer + "of image " + parent_image.server_id + " imagesrc " + parent_src_image.image) ;
 			var ctx= render.canvas.getContext("2d");
 
 			switch( msg.data.orientation )
@@ -367,7 +386,6 @@ function OpenServer()
 			ofs_y = 0;
 			ofs_xs = 0;
 			ofs_ys = 0;
-			//console.log( "scaled image " + msg.data.image_id + " " + parent_src_image );
 			while( parent_image.parent != null )
 			{
 				ofs_x += parent_image.x;
@@ -383,8 +401,11 @@ function OpenServer()
 			}
 			
 			render = parent_image.renderer;
+			//console.log( "scaled image " + msg.data.image_id + " " + parent_src_image  + " render " + parent_image.renderer + "of image " + parent_image.server_id + " imagesrc " + parent_src_image.image) ;
+                        
 			var ctx= render.canvas.getContext("2d");
-			source_image = find_image( msg.data.image_id );
+			//source_image = find_image( msg.data.image_id );
+                        
 			ctx.drawImage( parent_src_image.image
 				, ofs_xs + msg.data.xs, ofs_ys + msg.data.ys 
 				, msg.data.ws, msg.data.hs
