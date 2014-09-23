@@ -5120,7 +5120,7 @@ void RestoreDisplayEx(PVIDEO hVideo DBG_PASS )
 					break;
 				}
 			{
-				if( ( GetCurrentThreadId () == l.dwThreadID ) && isthread )
+				if( ( GetCurrentThreadId () != l.dwThreadID ) && !isthread )
 				{
 #if defined( OTHER_EVENTS_HERE )
 					if( l.flags.bLogMessages )
