@@ -84,7 +84,7 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 void SetCursorLine( PHISTORY_LINE_CURSOR cursor, int nLine );
 // set total number of lines...
 void SetCursorLines( PHISTORY_LINE_CURSOR cursor, int nLines );
-void SetBrowserLines( PHISTORY_BROWSER cursor, int nLines );
+CORECON_PROC( void, SetBrowserLines )( PHISTORY_BROWSER cursor, int nLines );
 
 // get column position
 int GetCursorColumn( PHISTORY_LINE_CURSOR cursor );
@@ -107,7 +107,7 @@ _32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nO
 int CountLinesSpanned( PHISTORY_BROWSER phb, PTEXT countseg );
 int SkipSomeLines( PHISTORY_BROWSER phb, PTEXT countseg, int lines );
 
-void BuildDisplayInfoLines( PHISTORY_BROWSER phlc );
+CORECON_PROC( void, BuildDisplayInfoLines )( PHISTORY_BROWSER phlc );
 
 
 #ifdef __DEKWARE_PLUGIN__
@@ -120,13 +120,13 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
                     , int *command_end
 						  );
 #endif
-PDATALIST *GetDisplayInfo( PHISTORY_BROWSER phbr );
+CORECON_PROC( PDATALIST *,GetDisplayInfo )( PHISTORY_BROWSER phbr );
 void GetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, PS_32 x, PS_32 y );
 void SetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, S_32 x, S_32 y );
 void PSI_SetHistoryPageLines( PHISTORY_BROWSER phbr, _32 nLines );
 _32 GetBrowserDistance( PHISTORY_BROWSER phbr );
 void ResetHistoryBrowser( PHISTORY_BROWSER phbr );
-int CountDisplayedLines( PHISTORY_BROWSER phbr );
+CORECON_PROC( int, CountDisplayedLines) ( PHISTORY_BROWSER phbr );
 
 
 void SetHistoryBackingFile( PHISTORY_REGION phr, FILE *file );
