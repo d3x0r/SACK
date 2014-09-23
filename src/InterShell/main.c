@@ -2993,14 +2993,14 @@ static int OnDrawCommon( WIDE( "Menu Canvas" ) )( PSI_CONTROL pf )
 		//lprintf( WIDE( "--- AM DRAWING BACKGROUND" ) );
 		// update the canvas's dimensions...
 		////////-s-s-s-s
-		if( (( canvas->width != surface->width )&& canvas->width ) ||
-			(( canvas->height != surface->height )&& canvas->height ) )
+		if( (( canvas->location.width != surface->width )&& canvas->location.width ) ||
+			(( canvas->location.height != surface->height )&& canvas->location.height ) )
 		{
 			INDEX idx;
 			PMENU_BUTTON button;
 			INDEX idx_page;
 			PPAGE_DATA page;
-			lprintf( WIDE("Display size changed.... %d,%d to %d,%d"),canvas->width, canvas->height, surface->width, surface->height  );
+			lprintf( WIDE("Display size changed.... %d,%d to %d,%d"),canvas->location.width, canvas->location.height, surface->width, surface->height  );
 
 			if( canvas->edit_glare )
 			{
@@ -3009,8 +3009,8 @@ static int OnDrawCommon( WIDE( "Menu Canvas" ) )( PSI_CONTROL pf )
 				GetDisplayPosition( current_page->renderer, &x, &y, &w, &h );
 				MoveSizeDisplay( canvas->edit_glare, x, y, w, h );
 			}
-			canvas->width = surface->width;
-			canvas->height = surface->height;
+			canvas->location.width = surface->width;
+			canvas->location.height = surface->height;
 			// just update the numerator, the denomintor is the same.
 			canvas->width_scale.numerator =  surface->width;
 			canvas->height_scale.numerator = surface->height;
@@ -4651,6 +4651,10 @@ void DisplayMenuCanvas( PPAGE_DATA page, PRENDERER under, _32 width, _32 height,
 					SizeFrame( pc_canvas, width, height );
 				if( c_x != x || c_y != y )
 					MoveFrame( pc_canvas, x, y );
+				canvas->location->x = x;
+				canvas->location->y = y;
+				canvas->location->width = width;
+				canvas->location->height = height;
 			}
 #ifndef NO_TOUCH
 			lprintf( WIDE("Overriding touch handler, this is deprecated, and should get it as a control event instead of from renderer") );

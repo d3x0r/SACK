@@ -77,6 +77,10 @@ struct page_data
 		int overflow_y;
 	} grid;
 
+	struct {
+		int x, y;
+		int delta_x, delta_y;
+	} offset;
 
 };
 typedef struct page_data PAGE_DATA;

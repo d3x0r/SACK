@@ -98,6 +98,16 @@ struct CanvasData {
 		BIT_FIELD bButtonProcessing : 1;
 		BIT_FIELD wide_aspect : 1; // use wide aspect controls
 		BIT_FIELD bUseSingleFrame : 1; // classic mode where all controls are realy on same surface
+
+		// I dunno... this could be an enum or something for a switch()...
+		BIT_FIELD bAnimateFromRight: 1;
+		BIT_FIELD bAnimateFromLeft: 1;
+		BIT_FIELD bAnimateFromTop: 1;
+		BIT_FIELD bAnimateFromBottom: 1;
+		BIT_FIELD bAnimateFromBack: 1;
+		BIT_FIELD bAnimateFromFront: 1;
+		// set to accept that want_active_page has been setup....
+		BIT_FIELD bMovingPages : 1; 
 	} flags;
 	struct {
 		int _x, _y;
@@ -118,6 +128,7 @@ struct CanvasData {
 
 	PLIST deleted_pages; // PPAGE_DATA no longer listed in pages... Undelete(?)
 
+	PPAGE_DATA want_active_page;
 	PPAGE_DATA active_page; // mostly for tracking active if bUseSingleFrame
 
 	// once upon a time there was only one page, and this is that page...
@@ -139,7 +150,15 @@ struct CanvasData {
 	FRACTION width_scale, height_scale;
 	// this is maintained for simplicity...
 	// it's a convenience for the PARTX, etc macros below.
-	_32 width, height;
+	struct canvas_location {
+		S_32 x, y;
+		_32 width, height;
+	} location;
+
+	struct page_animation_state {
+		_32 start_tick;
+		_32 target_delta;
+	} page_animation;
 	// each canvas can have a different stting of partsx and partsy
 	//_32 nPartsX, nPartsY;  // finest granulatity of control placement
 
@@ -261,9 +280,9 @@ typedef struct global_tag
 #define _COMPUTEPARTOFY( canvas,y, parts )  ((y)*parts / ((canvas)->height) )
 
 	// helps to compute X coordinate of a part
-#define _COMPUTEX( canvas,npart, parts )  ( ( ( ( (PART_RESOLUTION) * (npart) ) ) * ((canvas)->width) ) / ((parts)*PART_RESOLUTION) )
+#define _COMPUTEX( canvas,npart, parts )  ( ( ( ( (PART_RESOLUTION) * (npart) ) ) * ((canvas)->location.width) ) / ((parts)*PART_RESOLUTION) )
 	// helps to compute Y coordinate of a part
-#define _COMPUTEY( canvas,npart, parts )  ( ( ( ( (PART_RESOLUTION) * (npart) ) ) * ((canvas)->height) ) / ((parts)*PART_RESOLUTION) )
+#define _COMPUTEY( canvas,npart, parts )  ( ( ( ( (PART_RESOLUTION) * (npart) ) ) * ((canvas)->location.height) ) / ((parts)*PART_RESOLUTION) )
 
 //#define _MODX( canvas,npart, parts )  ( ( ( ( (PART_RESOLUTION) * npart ) ) * ((canvas)->width) ) % ((parts)*PART_RESOLUTION) )
 //#define _MODY( canvas,npart, parts )  ( ( ( ( (PART_RESOLUTION) * npart ) ) * ((canvas)->height) ) % ((parts)*PART_RESOLUTION) )

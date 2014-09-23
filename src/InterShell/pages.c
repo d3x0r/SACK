@@ -190,6 +190,63 @@ void ClearPageList( PCanvasData canvas )
 
 //-------------------------------------------------------------------------
 
+static PTRSZVAL CPROC PageAnimationThread( PTHREAD thread )
+{
+	PCanvasData canvas = (PCanvasData)GetThreadParam( thread );
+	while( 1 )
+	{
+		if( canvas->want_active_page )
+		{
+			if( canvas->flags.bMovingPages )
+			{
+				_32 now = timeGetTime();
+				int totalx  = ( now - canvas->page_animation.start_tick ) * canvas->location.width / canvas->page_animation.target_delta;
+				int totaly  = ( now - canvas->page_animation.start_tick ) * canvas->location.height / canvas->page_animation.target_delta;
+				if( total > canvas->location.widdth )
+					total = canvas->location.x;
+			}
+			else
+			{
+				canvas->flags.bMovingPages = 1;
+				canvas->page_animation.start_tick = timeGetTime();
+				canvas->page_animation.target_tick = canvas->page_animation.start_tick + 1000;
+				if( canvas->flags.bAnimateFromLeft )
+				{
+					canvas->want_active_page->offset.x = -canvas->location.width;
+					canvas->want_active_page->offset.y = 0;
+					canvas->want_active_page->offset.delta_x = 1;
+					canvas->want_active_page->offset.delta_y = 0;
+					canvas->active_page->offset.delta_x = 1;
+					canvas->active_page->offset.delta_y = 0;
+				}
+				if( canvas->flags.bAnimateFromRight )
+				{
+					canvas->want_active_page->offset.x = canvas->location.width;
+					canvas->want_active_page->offset.y = 0;
+					canvas->want_active_page->offset.delta_x = -1;
+					canvas->want_active_page->offset.delta_y = 0;
+					canvas->active_page->offset.delta_x = -1;
+					canvas->active_page->offset.delta_y = 0;
+				}
+				if( canvas->flags.bAnimateFromFront || canvas->flags.bAnimateFromBack )
+				{
+					canvas->want_active_page->offset.x = 0;
+					canvas->want_active_page->offset.y = 0;
+					canvas->want_active_page->offset.delta_x = -1;
+					canvas->want_active_page->offset.delta_y = 0;
+					canvas->active_page->offset.delta_x = -1;
+					canvas->active_page->offset.delta_y = 0;
+				}
+			}
+		}
+		WakeableSleep( 2500 );
+	}
+	return 0;
+}
+
+
+//-------------------------------------------------------------------------
+
 int InvokePageChange( PCanvasData canvas )
 {
 	CTEXTSTR name;
