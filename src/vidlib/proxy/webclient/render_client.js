@@ -197,6 +197,27 @@ function OpenServer()
 		}
 	}
 	
+        function OrphanSubImage( image )
+        {
+        	if( image.prior != null )
+                	image.prior.next = image.next;
+                else
+                	image.parent.child = image.next;
+        	if( image.next != null )
+                	image.next.prior = image.prior;
+                image.parent = null;
+                image.next = null;
+                image.prior = null;
+                
+        }
+
+	function AdoptSubImage( parent, orphan )
+        {
+        	orphan.parent = parent;
+               	orphan.next = parent.child;
+                parent.child = orphan;
+        }
+        
 	function HandleMessage( msg )
 	{
 		//console.log( "message:" + msg.MsgID );
@@ -265,7 +286,7 @@ function OpenServer()
 			{
 				image.image = new Image();
 			}
-                        //console.log( "image made is " + msg.data.server_image_id + " and render " + msg.data.server_render_id );
+                     //console.log( "image made is " + msg.data.server_image_id + " and render " + msg.data.server_render_id );
 			image.server_render_id = msg.data.server_render_id;
 			image.server_id = msg.data.server_image_id;
 			image.width = msg.data.width;
@@ -275,7 +296,7 @@ function OpenServer()
 		case 7: // PMID_MakeSubImage
 			image_list.push( image = new proxy_image() );
 			image.server_id = msg.data.server_image_id;
-                       //console.log( "subimage made is " + msg.data.server_image_id + " on " + msg.data.server_parent_image_id + " At " + msg.data.x + "," + msg.data.y+" by " + msg.data.width + "," + msg.data.height);
+                     //console.log( "subimage made is " + msg.data.server_image_id + " on " + msg.data.server_parent_image_id + " At " + msg.data.x + "," + msg.data.y+" by " + msg.data.width + "," + msg.data.height);
 			image.x = msg.data.x;
 			image.y = msg.data.y;
 			image.width = msg.data.width;
@@ -303,6 +324,19 @@ function OpenServer()
 			image.height = msg.data.height;
                 	
                 	break;
+                case 22: // PMID_TransferSubImages
+                	image_to = find_image( msg.data.image_to_id );
+                	image_from = find_image( msg.data.image_from_id );
+                    console.log( "transfer " + msg.data.image_from_id + " to " + msg.data.image_to_id  );
+                        while( tmp = image_from.child )
+			{
+				// moving a child allows it to keep all of it's children too?
+				// I think this is broken in that case; Orphan removes from the family entirely?
+				OrphanSubImage( tmp );
+				AdoptSubImage( image_to, tmp );
+			}
+
+                	break;
         case 8: // PMID_BlatColor
         case 9: // PMID_BlatColorAlpha
 			image = find_image( msg.data.server_image_id );
@@ -315,6 +349,7 @@ function OpenServer()
 				ofs_y += parent_image.y;
 				parent_image = parent_image.parent;
 			}
+        	    //console.log( "render id is " + parent_image.server_id + " + " + msg.data.server_image_id );
 			render = parent_image.renderer;
 			var ctx= render.canvas.getContext("2d");
 			ctx.fillStyle=msg.data.color;
@@ -322,12 +357,16 @@ function OpenServer()
 			break;
 		case 10: // PMID_ImageData
 			image = find_image( msg.data.server_image_id );	
-			//console.log( "Updated image source.... "  + msg.data.server_image_id );
+		    //console.log( "Updated image source.... "  + msg.data.server_image_id );
+                       {
 			if( image.on_document )
 				document.body.removeChild(image.image);
+                        }
 			image.image.src = msg.data.data;
-			image.on_document = true;
-			//document.body.appendChild(image.image);
+                        {
+			image.on_document = false;
+			document.body.appendChild(image.image);
+                        }
 			break;
 		case 11: // PMID_BlotImageSizedTo
 			image = find_image( msg.data.server_image_id );

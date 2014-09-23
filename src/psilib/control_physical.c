@@ -70,11 +70,10 @@ void GetCurrentDisplaySurface( PPHYSICAL_DEVICE device )
 	if( pc->Window != newsurface )
 	{
 		pc->flags.bDirty = 1;
-		OrphanSubImage( surface );
+		TransferSubImages( newsurface, pc->Window );
 		if( pc->Window )
 			UnmakeImageFile( pc->Window );
 		pc->Window = newsurface;
-		AdoptSubImage( pc->Window, surface );
 	}
 	if( pc->Window->width != pc->rect.width )
 	{

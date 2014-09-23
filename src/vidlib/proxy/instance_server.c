@@ -93,6 +93,10 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 	case PMID_SetApplicationTitle:
 		json_add_object_member( cto_data, WIDE("title"), 0, JSON_Element_CharArray, 0 );
 		break;
+	case PMID_TransferSubImages:
+		json_add_object_member( cto_data, WIDE("image_to_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("image_from_id"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL, 0 );
+		break;
 	case PMID_OpenDisplayAboveUnderSizedAt:
 		json_add_object_member( cto_data, WIDE("x"), ofs = 0, JSON_Element_Integer_32, 0 );
 		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
@@ -1614,6 +1618,7 @@ static Image CPROC VidlibProxy_BuildImageFileEx ( PCOLOR pc, _32 width, _32 heig
 	PVPImage image = New( struct vidlib_proxy_image );
 	MemSet( image, 0, sizeof( struct vidlib_proxy_image ) );
 	//lprintf( "CRITICAL; BuildImageFile is not possible" );
+	image->render_id = INVALID_INDEX;
 	image->w = width;
 	image->h = height;
 	image->image = l.real_interface->_BuildImageFileEx( pc, width, height DBG_RELAY );
@@ -2671,6 +2676,26 @@ static void CPROC VidlibProxy_TransferSubImages( Image pImageTo, Image pImageFro
 		// I think this is broken in that case; Orphan removes from the family entirely?
 		VidlibProxy_OrphanSubImage( (Image)tmp );
 		VidlibProxy_AdoptSubImage( (Image)pImageTo, (Image)tmp );
+	}
+	{
+		struct json_context_object *cto;
+		struct common_message *outmsg;
+		size_t sendlen;
+		EnterCriticalSec( &l.message_formatter );
+		cto = (struct json_context_object *)GetLink( &l.messages, PMID_TransferSubImages );
+		if( !cto )
+			cto = WebSockInitJson( PMID_TransferSubImages );
+
+		outmsg = (struct common_message*)GetMessageBuf( pImageTo, sendlen = ( 4 + 1 + sizeof( struct transfer_sub_image_data ) ) );
+		outmsg->message_id = PMID_TransferSubImages;
+		outmsg->data.transfer_sub_image.image_from_id = ((PVPImage)pImageFrom)->id;
+		outmsg->data.transfer_sub_image.image_to_id = ((PVPImage)pImageTo)->id;
+		{
+			TEXTSTR json_msg = json_build_message( cto, outmsg );
+			AppendJSON( ((PVPImage)pImageTo), json_msg, ((P_8)outmsg)-4, sendlen, FALSE );
+			Release( json_msg );
+		}
+		LeaveCriticalSec( &l.message_formatter );
 	}
 }
 
