@@ -1,0 +1,336 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<center><font size=+3><u>Message Service Interface</u></font></center>
+<p>Message service library provides a method to register services, and 
+request services by name.  Names are completely arbitrary, other than
+the fact that they are nul terminated strings.  
+
+<h2>Include</h2>
+#include &lt;msgclient.h&gt;<br>
+related headers which maybe interesting to browse - msgprotocol.h
+
+<h2>Project Location</h2>
+<table>
+<tr><td>src/msgsvr/client</td><td>The service library</td></tr>
+<tr><td>src/msgsvr/server</td><td>The service manager project</td></tr>
+<tr><td>src/msgsvr/client/client_server</td><td>Simple application using message library to register a server - requires msgsvr to be active</td></tr>
+<tr><td>src/msgsvr/client/client_client</td><td>Simple application using message library to request a service - requires msgsvr to be active</td></tr>
+</table>
+
+<h2>Library</h2>
+msgclient
+
+<h2>Required Libraries</h2>
+<a href="memlib.html">shmem</a><br>
+<a href="syslog.html">syslog</a><br>
+<a href="containers.html">containers</a><br>
+
+<h2>Types</h2>
+<table border=1>
+<tr><td>TYPE</td><td>Usage</td></tr>
+<tr><td>server_function_table</td><td>server_function_table _your_table_name[] = { ServerFunctionEntry(function_name),.... }</td></tr>
+<tr><td>server_message_handler</td><td>A user defined function of the type <br>
+int CPROC server_message_handler( _32 SourceRouteID, _32 MsgID
+				, _32 *params, _32 param_length
+				, _32 *result, _32 *result_length );<br>
+</table>
+
+
+<h2>Routines</h2>
+<menu>
+<hr>
+<h3><table><tr><td><h3>_32 RegisterServiceEx</td><td><h3>( char *name</td></tr>
+                                   <tr><td><h3></td><td><h3>, server_function_table functions</td></tr>
+                                   <tr><td><h3></td><td><h3>, int entries</td></tr>
+                                   <tr><td><h3></td><td><h3>, server_message_handler event_handler )</td></tr></table></h3>
+<h5>also referenced by these macros</h5>
+<h4>
+<menu>
+RegisterService(name,function_table, number of entries )
+<menu>
+Registers a service, specifying a function table, and count of entries in that table.
+</menu>
+RegisterServiceHandler( name, handler )
+<menu>
+Registers a service, specifying a messag handler function instead of a table of functions.
+</menu>
+</menu>
+</h4>
+<menu>
+Registers a service, by name.  Result is a unique base message ID which should
+be used to send messages later.  An application may register both a message handler
+and a message table.  The handler is first called with the method, if it results
+failure(0), then if there is a function in the table of functions to call, that 
+is invoked.
+
+<br><br>
+<table>
+<col><col width="70%">
+<tr><td>name</td><td>Name of the service to register.</td></tr>
+<tr><td>functions</td><td>An array of service_table_function structures.  May be passed as NULL for no table.</td></tr>
+<tr><td>entries</td><td>The count of entries in the table.  This is often expressable as  ( sizeof(table)/sizeof( server_function_table ) )</td></tr>
+<tr><td>handler</td><td>A function to handle the messages.  May be NULL for no function.</td></tr>
+</table>
+</menu>
+</menu>
+</menu>
+
+<menu>
+<hr>
+<h3><table><tr><td><h3>void CloseMessageService</td><td><h3>( void )</td></tr></table></h3>
+</h3>
+<menu>
+Close the message service, releasing all resources, and issuing disconnects
+to services that had been requested.  This is also done if the process exit()'s... which
+means a clean, volentary exit... (either returning from main, or issuing an exit)
+<br><br>
+</menu>
+</menu>
+<br><br>
+
+<menu>
+<hr>
+<h3><table><tr><td><h3>int ProcessClientMessages</td><td><h3>( void )</td></tr></table></h3>
+</h3>
+<menu>
+If the application needs to wait a significant amount of time while processing
+a message from another process, this can be called to handle other messages which
+may be queued.  This is also registered as an IdleProc, and will be invoked
+if Idle() is invoked.  (this is the preferred method, cause then all threads which
+have idle procs get a chance to process: timers, network, msgserver, display...)
+<br><br>
+</menu>
+</menu>
+<br><br>
+
+<menu>
+<hr>
+<h3><table><tr><td><h3>_32 LoadService</td><td><h3>( char *name</td></tr>
+  <tr><td></td><td><h3>, EventHandlerFunction func )</table></h3>
+</h3>
+<menu>
+	int CPROC EventHandlerFunction(_32 MsgID
+                                , _32*params
+                                , _32 paramlen)
+<menu>
+  <li>MsgID - the message that the server sent as an event(no response required).
+  <li>params - the message content
+  <li>paramlen - the size of the params region, in bytes.
+</menu>
+</menu>
+<br>
+<menu>
+Requests a service.  Result is a base message ID... which should be added
+to all message IDs sent to this service.  If the result is 0, the service
+was not available, or for some reason failed to be available.
+<br><br>
+</menu>
+</menu>
+<br><br>
+
+
+<menu>
+<hr>
+<h3><table><tr><td><h3>_32 LoadServiceEx</td><td><h3>( char *name</td></tr>
+  <tr><td></td><td><h3>, EventHandlerFunctionEx func )</table></h3>
+</h3>
+<menu>
+	int CPROC EventHandlerFunctionEx(_32 SourceID
+        			, _32 MsgID
+                                , _32*params
+                                , _32 paramlen)
+<menu>
+  <li>SourceID - the ID that the message came from... can be used somewhere
+  <li>MsgID - the message that the server sent as an event(no response required).
+  <li>params - the message content
+  <li>paramlen - the size of the params region, in bytes.
+</menu>
+</menu>
+<br>
+<menu>
+Requests a service.  Result is a base message ID... which should be added
+to all message IDs sent to this service.  If the result is 0, the service
+was not available, or for some reason failed to be available.  This takes
+a extended version of the event handler function that is passed the SourceID.
+<br><br>
+</menu>
+</menu>
+<br><br>
+
+
+<menu>
+<hr>
+<h3><table><tr><td><h3>void UnloadService</td><td><h3>( _32 MsgBase )</td></tr></table></h3>
+</h3>
+<menu>
+Disconnects from a service, identified by the base Message ID (the result from
+LoadService or LoadServiceEx).  Sends a disconnect to the server.
+<br><br>
+</menu>
+</menu>
+<br><br>
+
+<menu>
+<hr>
+<h3><table><tr><td><h3>int TransactServerMultiMessage</td>
+	     <td><h3>( _32 MsgOut</td></tr>
+<tr><td></td><td><h3>, _32 buffers</td></tr>
+<tr><td></td><td><h3>, _32 MsgIn</td></tr>
+<tr><td></td><td><h3>, _32 BufferIn</td></tr>
+<tr><td></td><td><h3>, _32 *LengthIn</td></tr>
+<tr><td></td><td><h3>, ... )</td></tr>
+</table></h3>
+</h3>
+<menu>
+Send a request to a service, and wait for the result.  This is THE function,
+all other functions are wrappers for simpler cases of this.  The result of
+this function is FALSE on failure, otherwise it's success... 
+If MsgIn, BufferIn, and LengthIn are all NULL, this function does not wait
+for a result, and behaves as a SendServerMessage...
+<br>
+<br>
+<table>
+<tr><td>MsgOut</td><td>Message/command ID.  This is often a value enumerated
+from 0, which results in being the index of the function in the table of 
+message handling functions registered by the service.  This value then has
+the server's unique MsgBase added to it, so that the message is routed to the
+correct place...</td></tr>
+<tr><td>buffers</td><td>Count of buffer pairs sent as variable arguments at the
+end of these arguments</td></tr>
+<tr><td>MsgId</td><td>The address of a _32 type variable which receives the
+response message ID from the server (should be MsgOut or'd with SERVER_SUCCESS or
+SERVER_FAILURE).   May be NULL.</td></tr>
+<tr><td>BufferIn</td><td>Pointer to a buffer to accept responce data from
+the service. May be NULL if no data is expected from the result</td></tr>
+<tr><td>LengthIn</td><td>Pointer to a _32 type variable which receives the
+size of the buffer returned.  (also, this value is the maximum size of the buffer
+which allows the library to protect the application from data overrun.)</td></tr>
+</td></tr>
+<tr><td>...</td><td>Varaible arguments at the end are pairs of (POINTER data, _32 length).</td></tr>
+</table>
+<br>
+</menu>
+</menu>
+<br><br>
+
+<menu>
+<hr>
+<h3><table><tr><td><h3>int SendMultiServiceEvent</td>
+	     <td><h3>( _32 client_pid</td></tr>
+<tr><td></td><td><h3>, _32 event_id</td></tr>
+<tr><td></td><td><h3>, _32 parts</td></tr>
+<tr><td></td><td><h3>, ... )</td></tr>
+</table></h3>
+</h3>
+<menu>
+Send an event from a service to a client.
+<br>
+<br>
+<table>
+<tr><td>client_pid</td><td>The server recieves a process identifier of clients
+when they connect, and while they send messages... this is the ID which the
+server should send to specify which client gets the event.</td></tr>
+<tr><td>event_id</td><td>Message ID to send to the client.  This message needs
+to be biased with the value returned from RegisterService (the registered service 
+base message ID).</td></tr>
+<tr><td>parts</td><td>count of (POINTER,_32 length) parameters passed as variable parameters.</td></tr>
+<tr><td>...</td><td>Varaible arguments at the end are pairs of ( [POINTER data, _32 length], [], ... )</td></tr>
+</table>
+<br>
+</menu>
+</menu>
+<br><br>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<hr>
+<h2>SPECIAL USAGE FUNCTIONS</h2>
+These functions are meant for internal usage really, only, however,
+some creative application may be able to use these.<br><br>
+
+
+
+<menu>
+<hr>
+<h3><table><tr><td><h3>int TransactRoutedServerMultiMessageEx</td>
+	     <td><h3>( _32 RouteID</td></tr>
+<tr><td></td><td><h3>, _32 MsgOut</td></tr>
+<tr><td></td><td><h3>, _32 buffers</td></tr>
+<tr><td></td><td><h3>, _32 MsgIn</td></tr>
+<tr><td></td><td><h3>, _32 BufferIn</td></tr>
+<tr><td></td><td><h3>, _32 *LengthIn</td></tr>
+<tr><td></td><td><h3>, _32 timeout</td></tr>
+<tr><td></td><td><h3>, ... )</td></tr>
+</table></h3>
+</h3>
+<menu>
+Send a request to a service, and wait for the result.  This is THE function,
+all other functions are wrappers for simpler cases of this.  The result of
+this function is FALSE on failure, otherwise it's success... 
+If MsgIn, BufferIn, and LengthIn are all NULL, this function does not wait
+for a result, and behaves as a SendServerMessage...
+<br>
+<br>
+<table>
+<tr><td>RouteID</td><td>Magic number from event messages... this is NOT the 
+value returned from LoadService.</td></tr>
+<tr><td>MsgOut</td><td>Message/command ID.  This is often a value enumerated
+from 0, which results in being the index of the function in the table of 
+message handling functions registered by the service.  This value then has
+the server's unique MsgBase added to it, so that the message is routed to the
+correct place... (maybe this only applies for non-RouteID functions...</td></tr>
+<tr><td>buffers</td><td>Count of buffer pairs sent as variable arguments at the
+end of these arguments</td></tr>
+<tr><td>MsgId</td><td>The address of a _32 type variable which receives the
+response message ID from the server (should be MsgOut or'd with SERVER_SUCCESS or
+SERVER_FAILURE).   May be NULL.</td></tr>
+<tr><td>BufferIn</td><td>Pointer to a buffer to accept responce data from
+the service. May be NULL if no data is expected from the result</td></tr>
+<tr><td>LengthIn</td><td>Pointer to a _32 type variable which receives the
+size of the buffer returned.  (also, this value is the maximum size of the buffer
+which allows the library to protect the application from data overrun.)</td></tr>
+<tr><td>timeout</td><td>A different timeout from the default, specified in milliseconds.
+If 0, the default timeout is used (2 seconds for Debug mode, and 200ms for release mode)
+</td></tr>
+<tr><td>...</td><td>Varaible arguments at the end are pairs of (POINTER data, _32 length).</td></tr>
+</table>
+<br>
+</menu>
+</menu>
+<br><br>
+
+
+<menu>
+<hr>
+<h3><table><tr><td><h3>int ProbeClientAlive</td><td><h3>( _32 RouteID )</td></tr></table></h3>
+</h3>
+<menu>
+Requests of a specific client it's alive status... This is also an extra-short
+transaction... the client has a short time to respond with it's health.  FALSE 
+indicates that the client is no longer alive, otherwise it is alive.
+<br><br>
+</menu>
+</menu>
+<br><br>
+
+
+</BODY>
+</HTML>

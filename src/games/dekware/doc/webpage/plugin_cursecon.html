@@ -1,0 +1,57 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<FONT size=+3><center>Curses Console</center></font><br>
+<a href="plugins.html" OnMouseOver="window.status='Other plugins';return true" OnMouseOut="window.status=''">Return to Plugins</A><br>
+<center><u>Devices</u></center>
+<menu>
+   cursecon
+   <menu>
+      No additional parameters are required to invoke a console parser.
+   </menu>
+   example: /command "cursecon"<br>
+   
+</menu>
+	
+<center><u>Additional Commands</u></center>
+	<menu> 
+		No Commands
+	</menu>
+
+<center><u>Additional Methods</u></center>
+<menu>
+   HISTORY 
+   <menu>
+   	Shows the current number of lines in the history buffer.
+   </menu><br>
+   KEYBIND
+   <menu>
+   	Provided as compatibility to windows console, but this functionality
+   	is severely limited in Unix, and does not bind to keys.
+   
+   </menu><br>
+   KEYUNBIND
+   <menu>
+   	See Keybind.  This method allows the user to undefine a key's definition.
+   </menu><br>
+   MODE <direct/line>
+   <menu>
+   	Changes the command entry mode between direct (no line buffer portion)
+   	and line (command line separate).
+   </menu><br>
+   REFRESH
+   <menu>
+   	This will redraw the screen, if it should become corrupt.
+   </menu><br>
+   SETCOLOR [foreground] [background]
+   <menu>
+      Sets the default and current color of the display to the foreground
+      and background specified.  If the background color is omitted, the
+      current background is used, and only the foreground color changes.
+      Possible colors: black, blue, green, cyan, red, brown, magenta, grey,
+      darkgrey, lightblue, lightgreen, lightcyan, lightred, lightmagenta,
+      yellow, white.
+   </menu><br>
+</menu>
+</BODY>
+</HTML>

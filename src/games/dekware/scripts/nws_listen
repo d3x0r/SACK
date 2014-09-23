@@ -1,0 +1,27 @@
+/create room
+/wake room
+/grab room
+/drop room
+/enter room
+
+/create nexus
+/wake nexus
+/tell nexus /leave # place self outside...
+//dest say
+//mac say ...
+//tell nexus /echo %%me says, \"%%...\"
+//endmac
+
+/enter nexus
+/create InPort
+/wake InPort
+/tell InPort /leave
+
+#---------- description of listen connection and beginning script
+//command tcpserver 51716
+//mac accept 
+//leave
+//endmac
+
+/leave
+

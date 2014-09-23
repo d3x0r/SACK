@@ -1,0 +1,20 @@
+/decl lastrescue 
+/dest rescue
+/mac rescue who
+.:grabs the collar of %who...
+.resc %who
+/decl lastrescue %who
+/endmac
+
+/mac resc who
+/rescue %who
+/endmac
+
+/trigger crea rescfail You fail the rescue.
+.pemote hand slipped off the collar of %lastrescue...
+/endmac
+
+/trigger crea rescuegood Banzai! To the rescue...
+.say Gotcha!
+/endmac
+

@@ -1,0 +1,88 @@
+<HTML>
+<HEAD></HEAD>
+<BODY BGCOLOR=#413425 text=#DFD1C3 ALINK=#CCFFCC LINK=#FFCCFF VLINK=#99A9CA>
+<p><a href="objects.html">Return to Object Page</a>
+<P>In the beginning there is nothing.&nbsp;  Only The Void.&nbsp;
+Out of the void the first
+sentience is created.&nbsp; The first sentient object is called 'MOOSE'.&nbsp;
+This is an acronym standing
+for "Master Operator Of System Entities".&nbsp;
+This first object, aware and able to process commands, is assigned to a(the)
+console device, is an avatar in the nothingness.
+You can create more objects.&nbsp; The command /create
+followed by a one or more things to create, will create all the objects
+specified.&nbsp; If the name contains spaces or punctuation, quotes
+may be put around it.
+<P>/create shelf two three "A small green book"
+<P>Results in MOOSE holding three objects called 'one', 'two', 'three' and
+'A small green book'.&nbsp; All objects which are created start within
+the object creating them.
+<P>/grab shelf two
+<P>Moves the objects, 'shelf' and 'two', from inventory (contents),
+and attaches them to the active object.&nbsp;  An attached
+object can be considered held.&nbsp; 
+<P>/drop shelf
+<P>Detaches the object 'shelf' and puts it in the room you are currently in.&nbsp;
+The command prompt indicates [&lt;your current location&gt;/&lt;object you are acting as&gt;].
+<P>/look
+<p>shows objects near you.  First the room name is shown, next things that are
+near you in the same room are listed, followed by objects attached to the
+room you are in.&nbsp; Objects which are attached to your room are considered
+rooms near here.
+<p>/inventory
+<p>Many commands can be shortened to the least amount of characters which 
+would make it different from all other commands, ie INV for inventory.&nbsp;
+This command displays objects being held and objects contained by the current
+active object.
+<p>/enter shelf
+<p>Enter allows you to go within an object.&nbsp; Valid targets to be entered
+are things in the same room, or attached to the current room.
+<p>/grab "A small green book"<BR>
+/drop "A small green book"<br>
+/leave
+<p>Leave exits the the current room and enters the object containing the 
+current room.&nbsp; Enter and Leave are the only methods an object may
+move itself.&nbsp; An active object may be grabbed, dropped, or stored by
+another active object, thereby changing its location...
+<p>/rename two "Another book"
+<p>Once an object is created, it can be renamed...&nbsp;  
+<p>/describe shelf A sturdy oak shelf for books.
+<p>Describe allows you to add more description to created objects and 
+comments for macros.  
+<p>/enter shelf<br>
+/drop "Another Book"<br>
+/leave
+<p>Now /look shows there is a shelf in the room. 
+<p>/look shelf
+<p>Shows the shelf, its description, and the things which are attached to or
+held by the shelf.<br>
+<menu>
+shelf<br>
+A sturdy oak shelf for books.<br>
+shelf is holding: Nothing.
+</menu>
+<p>/look in shelf
+<p>Looking IN an object shows the objects which it holds.&nbsp; It does not
+show it's name, or description.<br>
+<menu>shelf contains: A small green book, Another book.</menu>
+<p>/destroy three
+<p>A long time ago MOOSE created an object three, which remained contained 
+within.&nbsp; Since we do not need this object, it would be handy to remove
+it from existance.&nbsp; DESTROY is what is needed.&nbsp;  This command only
+destroys all objects (or macros) listed - any contents or attached objects are dropped
+into the object containing the object destroyed... dropped into the same 
+room.
+<p>This concludes information about the objects.  Object creation; modification -
+ by rename and describe; destruction, manipulation -
+ grab, store and drop; relocation - enter, leave;
+ browsing - look, look in and inventory; and a quick introduction to aware
+ objects.&nbsp; For further informatin, consult the command reference, or
+ the scripting reference.&nbsp;
+
+ <p><p>There are more methods of manipulating objects... Attach, Detach, Join...
+ these are still under development, as they have not benn entirely nessecary...
+ Information on these commands may be found in the Command Reference...
+<p><a href="objects.html">Return to Object Page</a>
+
+</BODY>
+</HTML>

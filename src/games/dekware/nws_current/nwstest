@@ -1,0 +1,15 @@
+
+
+
+/create filebot
+/wake filebot
+/tell filebot /leave
+/tell filebot /decl filelist dir.lst
+/tell filebot /script filebot.mac
+
+/connect localhost:51716
+
+/mac pfile file
+/send /pfile %file
+/tell filebot /next
+/endmac

@@ -1,0 +1,138 @@
+
+/decl player Decker
+/decl curbet 1000
+/decl minbet 1000
+/decl maxbet 500000
+/decl lastbust false
+
+/trigger dest bet
+/trigger create bet The Dealer shuffles the cards.
+.bet %curbet
+/decl lastbust false
+/endmac
+
+/trigger create card "&dealto gets the <&card> for a total of &total 
+/compare %dealto like %player
+/if success
+	/compare %total lessthan 17
+   /if success
+   	.card
+   /endif
+/endif
+/endmac
+
+/trigger create card2 "&dealto is dealt &cardset for a total of &total 
+/compare %dealto like %player
+/if success
+	/compare %total lessthan 17
+   /if success
+   	.card
+   /endif
+/endif
+/endmac
+
+/trigger crea newcard "&dealto gets the <&card> for a total of &total ."
+/compare %dealto like %player
+/if success
+	/compare %total lessthan 17
+   /if success
+   	.card
+   /endif
+/endif
+/endmac
+
+/macro winmac
+	/decl curbet %minbet
+/endmac
+
+/trigger dest wins
+/trigger crea wins  "&dealto wins &amount."
+/compare %dealto is %player
+/if success
+	/winmac
+/endif
+/endmac
+
+/trigger dest win21
+/trigger create win21 &dealto has blackjack, and wins &amount.
+/compare %dealto is %player
+/if success
+	/winmac
+/endif
+/endmac
+
+/mac losemac
+	/compare %lastbust is true
+   /if success
+      /return
+   /endif
+	/incre %curbet %curbet
+   /compare %curbet morethan %maxbet
+   /if success
+   	/decl curbet %maxbet
+   /endif
+/endmac
+
+/trigger crea loses "&dealto loses &amount."
+/compare %dealto like %player
+/if success
+	/losemac
+/endif
+/endmac
+
+/trigger creat busted "&dealto is busted."
+/compare %dealto like %player
+/if success
+	/losemac	
+	/decl lastbust true
+/endif
+/endmac
+
+/decl curgold 0
+/trigger dest curgold
+/trigger crea curgold You have scored &curexp exp, and have &curgold gold coins.
+/decl in %me curgold %curgold
+/endmac
+
+/mac SetMinBet
+/compare %curgold is 0
+/if success
+	.score
+   /return
+/endif
+/compare %curgold morethan 937500
+/if success
+	/decl minbet 62500
+/else
+	/decl minbet %curgold
+   /divide %minbet 2
+   /divide %minbet 2
+   /divide %minbet 2
+   /divide %minbet 2
+
+/endif
+/endif
+
+/endmac
+
+/mac endplay
+/trigger opt bet dis
+/trigger opt busted dis
+/trigger opt loses dis
+/trigger opt win21 dis
+/trigger opt wins dis
+/trigger opt newcard dis
+/trigger opt card dis
+/trigger opt card2 dis
+/endmac
+
+/mac beginplay
+/trigger opt bet en
+/trigger opt busted en
+/trigger opt loses en
+/trigger opt win21 en
+/trigger opt wins en
+/trigger opt newcard en
+/trigger opt card en
+/trigger opt card2 en
+/endmac

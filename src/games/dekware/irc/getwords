@@ -1,0 +1,17 @@
+/mac getwords
+   /decl word
+   /label top
+      /getword %word
+      /if success
+         /echo word: %word
+         /decl word
+      /else
+         /compare connected
+         /if fail
+            /goto done
+         /endif
+      /endif
+   /goto top
+/label done
+/echo done?! how?!
+/endmac

@@ -1,0 +1,120 @@
+
+/decl wmode  dual
+/decl primary sword
+/decl secondary sword
+
+/decl cloaked false 	#left this way from last rent...
+
+
+/mac `
+	. get %primary
+/endmac
+/mac 1
+	. get %secondary
+/endmac
+/mac 2
+	. wield %primary
+/endmac
+/mac 3
+	. wield %secondary sec
+/endmac
+
+/mac 4
+   /1
+   /3
+/endmac
+
+/mac 5
+	/`
+	/1
+	/2
+	/3
+/endmac
+
+
+/mac s
+   /compare %wmode is dual
+   /if success
+		. she %primary
+		. she %secondary
+   /else
+   . she %primary
+   /endif
+   /cloak
+/endmac
+
+/mac e
+	uncloak
+   compare %wmode is dual
+   if success
+		. draw %primary
+      compare %primary is %secondary 
+      if success
+			. draw 2.%secondary sec
+      else
+     		. draw %secondary sec
+      endif
+   else
+   . draw %primary
+   endif
+/endmac
+
+/mac cloak
+compare %cloaked is true
+if fail
+	. cloak
+	decl cloaked true
+endif
+/endmac
+
+/mac uncloak
+compare %cloaked is true
+if success
+	. uncloak
+	decl cloaked false
+endif
+/endmac
+
+/mac opencloak
+compare %cloaked is true
+if success
+	. uncloak
+endif
+/endmac
+
+/mac closecloak
+/compare %cloaked is true
+/if success
+	. cloak
+/endif
+/endmac
+
+/mac dual
+	/compare %wmode is dual
+	/if fail
+		/decl wmode dual
+      .remove shield
+      .put shield dragon-sack
+      /compare %primary is %secondary
+      /if success
+			. draw 2.%secondary sec
+      /else
+			. draw %secondary sec
+		/endif
+	/endif
+/endmac
+
+/mac single
+	/compare %wmode is single
+	/if fail
+		/decl wmode single
+      /compare %primary is %secondary
+      /if success
+			. she 2.%secondary
+      /else
+			. she %secondary
+      /endif
+      .get shield dragon-sack
+		.wear shield
+	/endif
+/endmac

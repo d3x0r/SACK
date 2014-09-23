@@ -1,0 +1,38 @@
+
+
+ifndef DEST
+DEST=$(DEFAULT_DEST)
+endif
+
+MODE=$(if $(filter $(DEST),static_release release),RELEASE,DEBUG)
+
+CDEBUG_FLAGS=-d2 -s -D_DEBUG 
+CRELEASE_FLAGS=-ox
+CFLAGS=$(C$(MODE)_FLAGS) -D__WINTIME__
+
+LDDEBUG_FLAGS=debug all
+LDRELEASE_FLAGS=
+LDFLAGS=$(LD$(MODE)_FLAGS)
+
+RINTDEST=$(DEST)-$(COMPILER)
+
+.PHONY: all
+all: $(SACK_BASE)/makefiles/$(RINTDEST)/zerostamp.exe
+
+.PHONY:distclean
+distclean:
+	rm *.obj
+	rm *.err
+	rm zerostamp.exe
+
+%.obj: %.c
+	@wcc386 $(CFLAGS) -zq -fo=$@ $<
+
+OBJS = zerostamp.obj
+$(SACK_BASE)/makefiles/$(RINTDEST)/zerostamp.exe: $(OBJS)
+	@wlink option quiet system nt option caseexact $(LDFLAGS) name $@ file {$(OBJS)}
+
+$(OBJS): makefile.wc
+
+makefile.wc: ;
+

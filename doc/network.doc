@@ -1,0 +1,348 @@
+// New C++ interface to library - documented towards the end!
+
+/common/src/netlib (memory/sharemem/libnetlib)
+
+This library supports Network Communication ... 
+
+#include "network.h" // located on /common/include
+
+This library handles queueing of long writes and reads from the network
+and provides the application program with the ability specify callback
+methods when operations are complete.
+
+The terminology of PCLIENT is a pointer to a client.  A client may
+be a server connection or a connection which connects to a server, 
+it's a network client, and does not matter whether it is a server
+or client... sorry for any confusion this may cause...
+
+To begin using the network library
+---------------------------------------
+   int NetworkStart( void );
+
+      This routine is actually an alias for NetworkWait( NULL, 0, 0 );
+      
+      return - 0 if the library could not initialize.
+               non-zero(TRUE) if either it started, or was already 
+               started, indicates that the network library is ready 
+               to be used.
+
+   int NetworkWait(HWND hWndNotify,WORD wClients,int wUserData )
+
+      hWndNotify - the handle of a window which the network 
+                   layer may notify using NETWORK_MESSAGE.  This 
+                   Message is documented further down.  
+      wClients   - allows you to specify the maximun number of 
+                   connections (client and server) which may be 
+                   used at a time.  If the library was declared with
+                   STATIC_DATA set, this will never be more than 256.  
+                   If 0 is specified - 16 clients is the default.
+      wUserData  - Number of addtional bytes of data which each
+                   client may have for use with Get/SetNetworkLong().
+
+      return - 0 if the library could not initialize.
+               non-zero(TRUE) if either it started, or was already 
+               started, indicates that the network library is ready 
+               to be used.
+
+To stop using the network Library
+--------------------------------------
+   int NetworkQuit(void)
+      This routine us used to terminate any pending threads
+      and close any outstanding connections.  This routine
+      is not nessecary to be called, but is a nice thing to do.
+
+To test to see if the network is active
+---------------------------------------
+   int NetworkAlive( void )
+      returns TRUE if the network thread is still active and 
+      returns FALSE if the network thread is NOT active..
+
+
+Creating a network Address
+---------------------------------------
+   SOCKADDR *CreateRemote(LPSTR lpName,WORD nHisPort);
+      This routine takes a text name, and a port number, and 
+      creates an address from it.  Valid names are "www.ip.net"
+      or "12.53.251.23" or "localhost" or any name which may 
+      refer to an IP address.  The port number specifies
+      the number to be part of the address returned.
+      May return NULL if the name was not known, or if there
+      are no more address structures... (STATIC_DATA defined)
+
+   SOCKADDR *CreateLocal(WORD nMyPort);
+      This will create an address which refers to all available
+      incoming IPs at the specified port.  For instance you may
+      want a HTTP server to listen at port 80 on all IPs of 
+      this computer.
+
+	SOCKADDR *CreateAddress( char *name )
+		This is unimplemented but shall take the address text in the form
+		of (IP:PORT) and translate into a sockaddr.  ports may be specified
+		as either numeric - or as a service name.
+
+   void ReleaseAddress(SOCKADDR *lpsaAddr);
+      When you are done with the address, it is a very good
+      idea to realease it.  If the library was built with
+      STATIC_DATA, this is a limited resource.
+
+
+Creating a Server 
+-----------------------------------------
+   PCLIENT OpenTCPListenerAddrEx( SOCKADDR *
+                                , cNotifyCallback NotifyCallback );                                 
+   #define OpenTCPListenerAddr( pAddr ) OpenTCPListenerAddrEx( paddr, NULL )
+
+      This creates a server port listening on the specified SOCKADDR *.
+      This address may have been gotten using One of the fore mentioned
+      address creation methods.  The NotifyCallack specifies a routine
+      to be called when a new connection is accepted. (See notify Callback
+      below )
+
+
+   PCLIENT OpenTCPListenerEx( WORD wPort, cNotifyCallback NotifyCallback );
+   #define OpenTCPListener( wPort )    OpenTCPListenerEx( wPort, NULL )
+
+      This routine is the same as using CreateLocal( wPort ) and calling
+      OpenTCPListenerAddrEx.... 
+      
+
+
+   NotifyCallback( PCLIENT pServer, PCLIENT pNew ) 
+
+      the first parameter to the notify callback is the pointer 
+      to the client structure returned by this call...      
+      The second parameter is the NEW client structure - the 
+      newly accepted connection... Should refer to the ECHO demo
+      program to see some operations that might be done....
+
+
+Creating a Client
+-----------------------------------------
+   PCLIENT OpenTCPClientEx( LPSTR, WORD, cReadComplete,
+                            cCloseCallback, cWriteComplete );
+   PCLIENT OpenTCPClientExx(LPSTR lpName,WORD wPort,
+                            cReadComplete  pReadComplete,
+                            cCloseCallback CloseCallback,
+                            cWriteComplete WriteComplete,
+                            cNotifyCallback pConnectComplete );
+   PCLIENT OpenTCPClientAddrExx(SOCKADDR *lpAddr, 
+                               cReadComplete  pReadComplete,
+                               cCloseCallback CloseCallback,
+                               cWriteComplete WriteComplete,
+                               cNotifyCallback pConnectComplete );
+   PCLIENT OpenTCPClientAddrEx(SOCKADDR *, cReadComplete,
+                               cCloseCallback, cWriteComplete );
+
+   These routines are all very similar... They allow you to
+   open a client by ( "name", nPort) or by a SOCKADDR you have
+   created... the Exx versions support an additional callback
+   pConnectComplete - which is called when the connection is 
+   actually completed, and does not block until the connection 
+   completes.  If this pConnectComplete is NULL or is not 
+   used in the function, these all block until the connection
+   completes.
+
+   pReadComplete
+       void ReadComplete( PCLIENT pThis, char *buffer, int nSize )
+         This routine is called when a read has completed.  
+         This routine is not called until a read has actually 
+         completed.  If the read was specified as a STREAM read, 
+         any data available will complete the read, otherwise
+         the FULL size of the read specified must be copmleted
+         before this will be called.
+
+   pWriteComplete
+       void WriteComplete( PCLIENT pThis, char *buffer, nSize )
+         This routine has completed sending data....
+         
+   pCloseCallback
+      void CloseCallback( PCLIENT pThis )
+         This client is closing... the other side reset, the other
+         side closed, some other error caused a failure...
+         This is called from within ReleaseClient - you do NOT
+         have to release this client - it WILL be closed
+         when you return from this - it is merely a notice for
+         you to free any OTHER associated resources...   
+   
+	pConnectComplete
+		void ConnecComplete( PCLIENT pThis, int error );
+		  This is called when the client actually finishes the connect.
+		  If there was an error during the connection, then error is non zero
+		  and the pThis should be removed (closed).
+
+Set, Clear, or Modify the callbacks defined on a Client
+---------------------------------------------
+   After a client is created, using the above methods, these
+   may be used to set certain callbacks associated ...
+   void SetNetworkWriteComplete( PCLIENT, cWriteComplete );
+   void SetNetworkReadComplete( PCLIENT, cReadComplete );
+   void SetNetworkCloseCallback( PCLIENT, cCloseCallback );
+
+Reading and Writing Data
+------------------------------------------
+   BOOL TCPDrain( PCLIENT lpClient, int nLength );
+      This routine will read data from a client for (n bytes)
+      but just throws away the data... rare usage, but may be
+      used if you want to ignore a known length of the incoming
+      stream.
+            
+	int doReadEx(PCLIENT lpClient,POINTER lpBuffer,int nBytes, LOGICAL bIsStream);
+		#define ReadStream(pc,pBuf,nSize) doReadEx( pc, pBuf, nSize, TRUE )
+		#define doRead(pc,pBuf,nSize) doReadEx(pc, pBuf, nSize, FALSE )
+		#define ReadTCP ReadStream 
+		#define ReadTCPMsg doRead
+
+      This queues a read on a TCP connection.   
+
+      If the flag bIsStream is set - then the readcomplete callback will be
+      called if any data has been received.  Otherwise, the readcomplete
+      callback will only be called when the entire length of data is received.
+
+      A 0(zero) byte read results in an immediate call to the read complete
+      routine.
+
+
+   BOOL doTCPWrite(PCLIENT lpClient,PBYTE lpBuffer,int nLen, int bLongMessage);
+      #define SendTCP(c,p,s) doTCPWrite(c,p,s,FALSE );
+      #define SendTCPMsg(c,p,s) doTCPWrite( c,p,s,TRUE );
+	
+      This queues a write on a TCP connection.
+
+	   if the parameter bLongMessage is set - the network layer may/will hold
+	   the current buffer pointer, and continue to send it (used for LONG sends).
+	   If that parameter is not set - then the network layer will allocate a 
+	   block and copy the current buffer into it - so the client is free to use
+	   the message buffer always after return.
+
+
+Closing a clinet connection
+------------------------------------------
+   void RemoveClientEx( PCLIENT lpClient, BOOL bBlockNofity
+                      , BOOL bLinger, LPSTR pFile, int nLine );
+   #define RemoveClient(c) RemoveClientEx(c, FALSE, FALSE )
+   #define RemoveClientEx(c,b,l) RemoveClientEx(c,b,l,__FILE__,__LINE__)
+
+   Example: RemoveClient( pc ); // typical...
+
+   This closes a connection - the simplest form is RemoveClient( pClinet ).
+   Other options allow you to specify to bLinger - that is wait for
+   any unsent data to send, and unread data to finish reading... 
+   Also can block the notify... that is - do not call the CloseCallback()
+   function defined for this client... also do not generate a message
+   to hWndNotify specified at network initialization.
+   
+
+Getting and Setting other information on a connection
+-------------------------------------------
+#define GNL_IP (-1)   
+#define GNL_PORT (-2)
+void SetNetworkLong(PCLIENT lpClient,int nLong,DWORD dwValue);
+void SetNetworkWord(PCLIENT lpClient,int nLong,WORD wValue);
+DWORD GetNetworkLong(PCLIENT lpClient,int nLong);
+WORD GetNetworkWord(PCLIENT lpClient,int nWord);
+
+
+Working with UDP Sockets
+-------------------------------------------
+These are old - am unsure of their reliability - 
+need to test these further before writing definitive
+documentation... you may be able to figure them out
+from their name.....
+
+void FillPingBuffer( PBYTE lpBuffer );
+BOOL OpenUDPResponder(WORD wPort);
+void CloseUDPRespond(void);
+BOOL OpenUDPPinger(WORD wSrcPort,WORD wDestPort,WORD wTimes);
+void UDPPing(void);
+void CloseUDPPing(void);
+
+Setting up a UDP Listening agent
+--------------------------------------------
+PCLIENT ServeUDP( LPSTR pAddr, WORD wPort, 
+                  cReadCompleteEx pReadComplete,
+                  cCloseCallback Close);
+PCLIENT ServeUDPAddr( SOCKADDR *pAddr, 
+                     cReadCompleteEx pReadComplete,
+                     cCloseCallback Close);
+
+Setting up a UDP Sending/receive agent (address listen, address send)
+--------------------------------------------
+PCLIENT ConnectUDP( LPSTR , WORD , 
+                    LPSTR, WORD, 
+                    cReadCompleteEx,
+                    cCloseCallback );
+PCLIENT ConnectUDPAddr( SOCKADDR *sa, 
+                        SOCKADDR *saTo, 
+                    cReadCompleteEx pReadComplete,
+                    cCloseCallback Close );
+BOOL ReconnectUDP( PCLIENT pc, LPSTR pToAddr, WORD wPort );
+
+Sending on UDP
+---------------------------------------------
+BOOL SendUDPEx( PCLIENT pc, PBYTE pBuf, int nSize, SOCKADDR *sa );
+#define SendUDP(pc,pbuf,size) SendUDPEx( pc, pbuf, size, NULL )
+
+Reading on UDP
+---------------------------------------------
+int doUDPRead( PCLIENT pc, PBYTE lpBuffer, int nBytes );
+#define ReadUDP doUDPRead
+
+
+
+
+OTHER FUNCTIONS in the network library 
+---------------------------------------------
+  PING will only work on a windows based host at the moment...
+  could/should be ported to use linux also
+//----- PING.C ------
+BOOL DoPing( LPCSTR pstrHost, 
+             int maxTTL, 
+             DWORD dwTime, 
+             int nCount, 
+             LPSTR pResult, 
+             BOOL bRDNS,
+             void (*ResultCallback)( DWORD dwIP, char *name, int min, int max, int avg, int drop, int hops ) );
+
+   WHOIS is just a TCP connection using CreateTCPClient, and should
+   work on any platform...
+//----- WHOIS.C -----
+BOOL DoWhois( char *pHost, char *pServer, char *pResult );
+
+
+      
+C++ Interface
+----------------------------------------------
+
+NETWORK class allows quick prototyping of network applications.
+
+NETWORK net;
+net.Connect( char *name, _16 port, ... );
+net.Connect( SOCKADDR *sa, ... );
+	Optional Parameters - see above documentation
+	-------------------------
+      void ReadComplete( PCLIENT pThis, char *buffer, int nSize );
+      void CloseCallback( PCLIENT pThis );
+      void WriteComplete( PCLIENT pThis, char *buffer, nSize );
+		void NewConnection( PCLIENT pThis, int error );
+
+These connect functions take optional parameters for the callbacks
+specified above for OpenTCPClient.
+
+net.Listen( _16 port, ... );
+net.Listen( SOCKADDR *sa, ... );
+   optional parameter
+   --------------------------
+   	void NotifyCallback( PCLIENT pServer, PCLIENT pNew );
+	
+This takes one optional paramter for a callback to be used when a 
+new client actually connects.
+
+net.MakeUDP() - unfinished - should alias appropriate sends/opens to UDP based
+open/send/receive.  
+
+net.Write( POINTER buffer, int length );
+net.WriteLong( POINTER buffer, int length );
+
+net.Read( POINTER buffer, int length );
+net.ReadMsg( POINTER buffer, int length );
+

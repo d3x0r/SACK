@@ -1,0 +1,21 @@
+/mac hide_output
+/dest testyy
+/endmac
+/hide_output
+
+/mac testyy
+/open out file __write vlc.bat
+.e:/tools/vlc/vlc %base_path/PlayTest.m3u
+/close out
+
+/open sysc system vlc.bat
+/open ansi ansi inbound newline
+/on close_process
+/VidTestContinue
+/tell %me /endmac
+#/open de2 debug inbound
+/endmac
+
+/testyy
+
+

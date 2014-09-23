@@ -1,0 +1,1 @@
+add_plugin( text.filter.nex filters textfilter )
