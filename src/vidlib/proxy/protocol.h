@@ -24,6 +24,11 @@ PREFIX_PACKED struct close_display_data
 	PTRSZVAL server_display_id;
 } PACKED;
 
+PREFIX_PACKED struct transfer_sub_image_data
+{
+	PTRSZVAL image_to_id;
+	PTRSZVAL image_from_id;
+} PACKED;
 
 PREFIX_PACKED struct move_size_display_data
 {
@@ -160,6 +165,7 @@ PREFIX_PACKED struct common_message {
 		struct client_identification_data client_ident;
 		struct move_image_data move_image;
 		struct size_image_data size_image;
+		struct transfer_sub_image_data transfer_sub_image;
 		MSGBLOCK( open_display_reply,  PTRSZVAL server_display_id; PTRSZVAL client_display_id; );
 	} data;
 } PACKED;
@@ -204,6 +210,7 @@ enum proxy_message_id{
 							, PMID_Event_Redraw // 19 Client side has lost the screen, and needs a draw
 							, PMID_Move_Image // 20 
 							, PMID_Size_Image // 21 
+							, PMID_TransferSubImages // 22 just allow the client to do the full moves instead of peices and parts.
 							, PMID_
 
 							, PMID_LAST_PROXY_MESSAGE

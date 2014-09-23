@@ -1970,6 +1970,7 @@ IMAGE_PROC_PTR( Image, ReuseImage )( Image image );
 #define LoadFont                           PROC_ALIAS(LoadFont )
 #define UnloadFont                         PROC_ALIAS(UnloadFont )
 #define ColorAverage                       PPROC_ALIAS(ColorAverage)
+#define TransferSubImages                  PROC_ALIAS(TransferSubImages)
 #define SyncImage                          PROC_ALIAS(SyncImage )
 #define IntersectRectangle                 PROC_ALIAS(IntersectRectangle)
 #define MergeRectangle                     PROC_ALIAS(MergeRectangle)
