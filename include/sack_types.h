@@ -1226,6 +1226,10 @@ SACK_NAMESPACE
 #  define c_32fx  "x"
 #  define c_32fX  "X"
 #  define c_32fs  "d"
+#  define c_64f    "llu"
+#  define c_64fx   "llx"
+#  define c_64fX   "llX"
+#  define c_64fs   "lld"
 
 #endif
 
