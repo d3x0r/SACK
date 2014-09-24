@@ -1734,7 +1734,7 @@ typedef int check_this_variable;
 
 #define SetDisplayFullScreen    REND_PROC_ALIAS_VOID( SetDisplayFullScreen )
 #define SuspendSystemSleep      REND_PROC_ALIAS_VOID( SuspendSystemSleep )
-#define RenderIsInstanced()       (USE_RENDER_INTERFACE)?((USE_RENDER_INTERFACE)->_RenderIsInstanced()):0
+#define RenderIsInstanced()       ((USE_RENDER_INTERFACE)?((USE_RENDER_INTERFACE)->_RenderIsInstanced)?(USE_RENDER_INTERFACE)->_RenderIsInstanced():0:0)
 #endif
 
 	_INTERFACE_NAMESPACE_END

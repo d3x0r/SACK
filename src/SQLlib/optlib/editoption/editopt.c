@@ -65,6 +65,9 @@ ThreadLocal struct instance_local *option_thread;
 #define l (*option_thread)
 #endif
 
+// to support older interface
+struct instance_local *default_local;
+
 int CPROC FillList( PTRSZVAL psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flags );
 
 void CPROC ListItem( PTRSZVAL psv, PCOMMON pc, PLISTITEM pli )
@@ -153,6 +156,8 @@ static void CPROC OptionSelectionChanged( PTRSZVAL psvUser, PCONTROL pc, PLISTIT
 {
 	static TEXTCHAR buffer[4096];
 	PNODE_DATA pnd = (PNODE_DATA)GetItemData( hli );
+	if( !option_thread )
+		option_thread = default_local;
 	l.last_option = pnd->ID_Option;
 	l.last_node = pnd;
 	if( pnd->option_text )
@@ -336,29 +341,13 @@ static void CPROC FindEntry( PTRSZVAL psv, PCOMMON pc )
 static void OnDisplayConnect( WIDE( "EditOption Display" ) )( struct app * app, struct app_local***local )
 {
 	PSI_CONTROL frame;
-	if( option_thread )
-	{
-		lprintf( "Reinit" );
-		option_thread = New( struct instance_local );
-		MemSet( option_thread, 0, sizeof( option_thread ) );
-		(*local) = (struct app_local**)&option_thread;
+	option_thread = New( struct instance_local );
+	MemSet( option_thread, 0, sizeof( option_thread ) );
+	(*local) = (struct app_local**)&option_thread;
 
-		frame = CreateOptionFrame( NULL, TRUE, &l.done1 );
-		InitOptionList( NULL, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
-		DisplayFrame( frame );
-	}
-	else
-	{
-		option_thread = New( struct instance_local );
-		MemSet( option_thread, 0, sizeof( option_thread ) );
-		(*local) = (struct app_local**)&option_thread;
-
-		frame = CreateOptionFrame( NULL, TRUE, &l.done1 );
-		InitOptionList( NULL, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
-		DisplayFrame( frame );
-	}
-		//CommonWait( frame );
-		//DestroyFrame( &frame );
+	frame = CreateOptionFrame( NULL, TRUE, &l.done1 );
+	InitOptionList( GetOptionODBC( NULL, 0 ), GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
+	DisplayFrame( frame );
 }
 
 #ifdef EDITOPTION_PLUGIN
@@ -376,7 +365,7 @@ int EditOptions
 	//if( !frame )
 	if( !RenderIsInstanced() )
 	{
-		option_thread = New( struct instance_local );
+		default_local = option_thread = New( struct instance_local );
 		MemSet( option_thread, 0, sizeof( option_thread ) );
 		frame = CreateOptionFrame( odbc, TRUE, &done );
 		InitOptionList( odbc, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );

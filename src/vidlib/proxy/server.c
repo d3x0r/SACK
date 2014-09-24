@@ -92,6 +92,10 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 	case PMID_SetApplicationTitle:
 		json_add_object_member( cto_data, WIDE("title"), 0, JSON_Element_CharArray, 0 );
 		break;
+	case PMID_TransferSubImages:
+		json_add_object_member( cto_data, WIDE("image_to_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("image_from_id"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL, 0 );
+		break;
 	case PMID_OpenDisplayAboveUnderSizedAt:
 		json_add_object_member( cto_data, WIDE("x"), ofs = 0, JSON_Element_Integer_32, 0 );
 		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
@@ -117,6 +121,16 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof( PTRSZVAL), JSON_Element_Unsigned_Integer_32, 0 );
 		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
 		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = ofs + sizeof(_32), JSON_Element_PTRSZVAL, 0 );
+		break;
+	case PMID_Move_Image:
+		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof( PTRSZVAL), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(_32), JSON_Element_Integer_32, 0 );
+		break;
+	case PMID_Size_Image:
+		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof( PTRSZVAL), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
 		break;
 	case PMID_MakeSubImage:
 		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
@@ -430,6 +444,50 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			if( websock )
 			{
 				json_msg = json_build_message( cto, msg + 4 );
+				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
+				Release( json_msg );
+			}
+			else
+				SendTCP( pc, msg, sendlen );
+			Release( msg );
+		}
+		break;
+	case PMID_Move_Image : 
+		{
+			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct make_image_data ) ) );
+			image = va_arg( args, PVPImage );
+			((_32*)msg)[0] = (_32)(sendlen - 4);
+			outmsg = (struct common_message*)(msg + 4);
+			outmsg->message_id = message;
+			outmsg->data.move_image.x = image->x;
+			outmsg->data.move_image.y = image->y;
+			outmsg->data.make_image.server_image_id = image->id;
+
+			if( websock )
+			{
+				json_msg = json_build_message( cto, outmsg );
+				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
+				Release( json_msg );
+			}
+			else
+				SendTCP( pc, msg, sendlen );
+			Release( msg );
+		}
+		break;
+	case PMID_Size_Image : 
+		{
+			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct make_image_data ) ) );
+			image = va_arg( args, PVPImage );
+			((_32*)msg)[0] = (_32)(sendlen - 4);
+			outmsg = (struct common_message*)(msg + 4);
+			outmsg->message_id = message;
+			outmsg->data.size_image.w = image->w;
+			outmsg->data.size_image.h = image->h;
+			outmsg->data.make_image.server_image_id = image->id;
+
+			if( websock )
+			{
+				json_msg = json_build_message( cto, outmsg );
 				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
 				Release( json_msg );
 			}
@@ -1574,6 +1632,7 @@ static void CPROC VidlibProxy_ResizeImageEx	  ( Image pImage, S_32 width, S_32 h
 	image->w = width;
 	image->h = height;
 	l.real_interface->_ResizeImageEx( image->image, width, height DBG_RELAY );
+	SendClientMessage( PMID_Size_Image, image );
 }
 
 static void CPROC VidlibProxy_MoveImage			( Image pImage, S_32 x, S_32 y )
@@ -1584,6 +1643,7 @@ static void CPROC VidlibProxy_MoveImage			( Image pImage, S_32 x, S_32 y )
 		image->x = x;
 		image->y = y;
 		l.real_interface->_MoveImage( image->image, x, y );
+		SendClientMessage( PMID_Move_Image, image );
 	}
 }
 
@@ -1856,6 +1916,8 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 					ys += ((PVPImage)pIF)->y;
 					pIF = (Image)(((PVPImage)pIF)->parent);
 				}
+				((PVPImage)pIF)->image->reverse_interface = &ProxyImageInterface;
+				((PVPImage)pIF)->image->reverse_interface_instance = (POINTER)pIF;
 				shaded_image = l.real_interface->_GetTintedImage( ((PVPImage)pIF)->image, va_arg( args, CDATA ) );
 				if( !shaded_image->reverse_interface )
 				{
@@ -1928,7 +1990,7 @@ static void CPROC VidlibProxy_BlotImageEx	  ( Image pDest, Image pIF, S_32 x, S_
 	va_list args;
 	va_start( args, method );
 	VidlibProxy_BlotImageSizedEx( pDest, pIF, x, y, 0, 0
-					, pIF->width, pIF->height
+					, ((PVPImage)pIF)->w, ((PVPImage)pIF)->h
 					, nTransparent
 					, method, va_arg( args, CDATA ), va_arg( args, CDATA ), va_arg( args, CDATA ) ); 
 }
@@ -1953,8 +2015,8 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 		int errx, erry;
 		if( !((PVPImage)pifSrc)->image )
 			return;
-		if( ( xd > ( pifDest->x + pifDest->width ) )
-			|| ( yd > ( pifDest->y + pifDest->height ) )
+		if( ( xd > ( image->x + image->w ) )
+			|| ( yd > ( image->y + image->h ) )
 			|| ( ( xd + (signed)wd ) < 0/*pifDest->x*/ )
 			|| ( ( yd + (signed)hd ) < 0/*pifDest->y*/ ) )
 		{
@@ -1976,7 +2038,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 		{
 			int x = xd;
 			int w = 0;
-			while( x < pifDest->x )
+			while( x < image->x )
 			{
 				errx += (signed)dws;
 				while( errx >= 0 )
@@ -1990,7 +2052,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 			}
 			xd = x;
 
-			while( x < pifDest->width && SUS_GT( w, int, wd, _32 ) )
+			while( x < image->w && SUS_GT( w, int, wd, _32 ) )
 			{
 				errx += (signed)dws;
 				while( errx >= 0 )
@@ -2004,11 +2066,11 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 		}
 		//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
 		//		 xs, ys, ws, hs, xd, yd, wd, hd );
-		if( ( yd < 0 ) || ( yd +(S_32)(hd&0x7FFFFFFF) ) > pifDest->height )
+		if( ( yd < 0 ) || ( yd +(S_32)(hd&0x7FFFFFFF) ) > image->h )
 		{
 			int y = yd;
 			int h = 0;
-			while( yd < pifDest->y )
+			while( yd < image->y )
 			{
 				erry += (signed)dhs;
 				while( erry >= 0 )
@@ -2020,7 +2082,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 				hd--;
 				y++;
 			}
-			while( y < pifDest->height && h < (int)hd )
+			while( y < image->h && h < (int)hd )
 			{
 				erry += (signed)dhs;
 				while( erry >= 0 )
@@ -2066,6 +2128,8 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 					ys += ((PVPImage)pifSrc)->y;
 					pifSrc = (Image)(((PVPImage)pifSrc)->parent);
 				}
+				((PVPImage)pifSrc)->image->reverse_interface = &ProxyImageInterface;
+				((PVPImage)pifSrc)->image->reverse_interface_instance = (POINTER)pifSrc;
 				shaded_image = l.real_interface->_GetTintedImage( ((PVPImage)pifSrc)->image, va_arg( args, CDATA ) );
 				if( !shaded_image->reverse_interface )
 				{
@@ -2096,6 +2160,8 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 					ys += ((PVPImage)pifSrc)->y;
 					pifSrc = (Image)(((PVPImage)pifSrc)->parent);
 				}
+				((PVPImage)pifSrc)->image->reverse_interface = &ProxyImageInterface;
+				((PVPImage)pifSrc)->image->reverse_interface_instance = (POINTER)pifSrc;
 				shaded_image = l.real_interface->_GetShadedImage( ((PVPImage)pifSrc)->image, va_arg( args, CDATA ), va_arg( args, CDATA ), va_arg( args, CDATA ) );
 				if( !shaded_image->reverse_interface )
 				{
@@ -2461,6 +2527,26 @@ static void CPROC VidlibProxy_TransferSubImages( Image pImageTo, Image pImageFro
 		// I think this is broken in that case; Orphan removes from the family entirely?
 		VidlibProxy_OrphanSubImage( (Image)tmp );
 		VidlibProxy_AdoptSubImage( (Image)pImageTo, (Image)tmp );
+	}
+	{
+		struct json_context_object *cto;
+		struct common_message *outmsg;
+		size_t sendlen;
+		EnterCriticalSec( &l.message_formatter );
+		cto = (struct json_context_object *)GetLink( &l.messages, PMID_TransferSubImages );
+		if( !cto )
+			cto = WebSockInitJson( PMID_TransferSubImages );
+
+		outmsg = (struct common_message*)GetMessageBuf( pImageTo, sendlen = ( 4 + 1 + sizeof( struct transfer_sub_image_data ) ) );
+		outmsg->message_id = PMID_TransferSubImages;
+		outmsg->data.transfer_sub_image.image_from_id = ((PVPImage)pImageFrom)->id;
+		outmsg->data.transfer_sub_image.image_to_id = ((PVPImage)pImageTo)->id;
+		{
+			TEXTSTR json_msg = json_build_message( cto, outmsg );
+			AppendJSON( ((PVPImage)pImageTo), json_msg, ((P_8)outmsg)-4, sendlen, FALSE );
+			Release( json_msg );
+		}
+		LeaveCriticalSec( &l.message_formatter );
 	}
 }
 

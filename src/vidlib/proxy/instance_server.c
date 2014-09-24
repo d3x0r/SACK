@@ -2279,6 +2279,8 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 					ys += ((PVPImage)pifSrc)->y;
 					pifSrc = (Image)(((PVPImage)pifSrc)->parent);
 				}
+				((PVPImage)pifSrc)->image->reverse_interface = &ProxyImageInterface;
+				((PVPImage)pifSrc)->image->reverse_interface_instance = (POINTER)pifSrc;
 				shaded_image = l.real_interface->_GetShadedImage( ((PVPImage)pifSrc)->image, va_arg( args, CDATA ), va_arg( args, CDATA ), va_arg( args, CDATA ) );
 				if( !shaded_image->reverse_interface )
 				{
@@ -2686,7 +2688,7 @@ static void CPROC VidlibProxy_TransferSubImages( Image pImageTo, Image pImageFro
 		if( !cto )
 			cto = WebSockInitJson( PMID_TransferSubImages );
 
-		outmsg = (struct common_message*)GetMessageBuf( pImageTo, sendlen = ( 4 + 1 + sizeof( struct transfer_sub_image_data ) ) );
+		outmsg = (struct common_message*)GetMessageBuf( (PVPImage)pImageTo, sendlen = ( 4 + 1 + sizeof( struct transfer_sub_image_data ) ) );
 		outmsg->message_id = PMID_TransferSubImages;
 		outmsg->data.transfer_sub_image.image_from_id = ((PVPImage)pImageFrom)->id;
 		outmsg->data.transfer_sub_image.image_to_id = ((PVPImage)pImageTo)->id;
