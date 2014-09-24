@@ -63,7 +63,7 @@ function OpenServer()
      {
         // Web Socket is connected, send data using send()
         ws.send( JSON.stringify( { MsgID: 100 /* PMID_ClientIdentification */,
-        				 data : { client_id:createGuid() } 
+        				 data : { client_id:"apple"/*createGuid()*/ } 
         			} 
                                 ) );
      };
@@ -258,7 +258,7 @@ function OpenServer()
 				{
 					if( image_list[i].server_render_id == render.server_id )
 					{
-						console.log( "Fixed image reference" );
+						//console.log( "Fixed image reference" );
 						image_list[i].image = null;
 						image_list[i].renderer = render;
 					}
@@ -327,7 +327,7 @@ function OpenServer()
                 case 22: // PMID_TransferSubImages
                 	image_to = find_image( msg.data.image_to_id );
                 	image_from = find_image( msg.data.image_from_id );
-                    console.log( "transfer " + msg.data.image_from_id + " to " + msg.data.image_to_id  );
+                    //console.log( "transfer " + msg.data.image_from_id + " to " + msg.data.image_to_id  );
                         while( tmp = image_from.child )
 			{
 				// moving a child allows it to keep all of it's children too?
@@ -358,15 +358,15 @@ function OpenServer()
 		case 10: // PMID_ImageData
 			image = find_image( msg.data.server_image_id );	
 		    //console.log( "Updated image source.... "  + msg.data.server_image_id );
-                       {
-			if( image.on_document )
-				document.body.removeChild(image.image);
-                        }
+                        //{
+			//if( image.on_document )
+			//	document.body.removeChild(image.image);
+                        //}
 			image.image.src = msg.data.data;
-                        {
-			image.on_document = false;
-			document.body.appendChild(image.image);
-                        }
+                        //{
+			//  image.on_document = false;
+			//  document.body.appendChild(image.image);
+                        //}
 			break;
 		case 11: // PMID_BlotImageSizedTo
 			image = find_image( msg.data.server_image_id );
