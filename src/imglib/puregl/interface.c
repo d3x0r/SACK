@@ -148,6 +148,9 @@ IMAGE_INTERFACE RealImageInterface = {
                                      , Render3dImage
 
                                      , DumpFontFile
+									 , Render3dText
+									 , TransferSubImages
+									 , 
 };
 
 #undef GetImageInterface
