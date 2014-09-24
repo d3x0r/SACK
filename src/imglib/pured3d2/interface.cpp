@@ -141,6 +141,18 @@ IMAGE_INTERFACE RealImageInterface = {
 												 , SetImageRotation
 												 , RotateImageAbout
                                      , MarkImageUpdated
+                                     , DumpFontCache // DumpFontCache
+                                     , RerenderFont  // RerenderFont
+
+												 , NULL//ReloadD3DTexture
+												 , NULL//ReloadD3DShadedTexture
+												 , NULL//ReloadD3DMultiShadedTexture
+												 , NULL//SetImageTransformRelation
+                                     , NULL//Render3dImage
+
+                                     , DumpFontFile
+									 , NULL//Render3dText
+									 , TransferSubImages
 };
 
 #undef GetImageInterface

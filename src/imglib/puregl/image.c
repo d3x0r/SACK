@@ -967,6 +967,52 @@ void Render3dImage( Image pifSrc, PCVECTOR o, LOGICAL render_pixel_scaled )
 }
 
 
+void Render3dText( CTEXTSTR string, int characters, CDATA color, SFTFont font, PCVECTOR o, LOGICAL render_pixel_scaled )
+{
+	static struct ImageFile_tag output;
+	VECTOR o_tmp;
+	VECTOR offset;
+	RCOORD tmp_del = 1.0;
+	RCOORD distance;
+	VECTOR tmp_distance;
+	if( !output.transform )
+	{
+		output.transform = CreateTransform();
+		output.flags = IF_FLAG_FINAL_RENDER;
+	}
+
+	// closed loop to get the top imgae size.
+	//lprintf( WIDE( "use regular texture %p (%d,%d)" ), pifSrc, pifSrc->width, pifSrc->height );
+	GetStringSizeFontEx( string, characters, &output.real_width, &output.real_height, font );
+	SetImageTransformRelation( &output, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
+	ApplyRotationT( l.camera, output.transform, VectorConst_I );
+	{
+		// the render3dimage has advnatege of supplying the output coordinates
+		// so the plane stretches in the right ways...
+		if( render_pixel_scaled  )
+		{
+			
+			sub( tmp_distance, o, GetOrigin( l.camera ) );
+			tmp_del = dotproduct( tmp_distance, GetAxis( l.camera, vForward ) );
+			// no point, it's behind the camera.
+			if( tmp_del < 1.0 )
+				return;
+			tmp_del = l.glActiveSurface->identity_depth[0] / tmp_del;
+			Scale( output.transform, tmp_del
+						,  tmp_del, tmp_del
+						);
+			
+		}
+	}
+	offset[vForward] = 0;
+	offset[vRight] = -output.real_width/2;
+	offset[vUp] = -output.real_height/2;
+	scale( offset, offset, 1/tmp_del );
+	addscaled( o_tmp, offset, o, 1/(tmp_del) );
+	TranslateV( output.transform, o_tmp );
+	PutStringFontEx( &output, 0, 0, color, 0, string, characters, font );
+}
+
 
 void InitShader( void )
 {
