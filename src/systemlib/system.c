@@ -145,8 +145,12 @@ void OSALOT_AppendEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 		oldpath = NewArray( TEXTCHAR, oldlen = ( GetEnvironmentVariable( name, NULL, 0 ) + 1 ) );
 		GetEnvironmentVariable( name, oldpath, oldlen );
 	}
-	newpath = NewArray( TEXTCHAR, length = (_32)(strlen( oldpath ) + 2 + strlen(value)) );
+	newpath = NewArray( TEXTCHAR, length = (_32)(StrLen( oldpath ) + 2 + StrLen(value)) );
+#  ifdef UNICODE
+	snwprintf( newpath, length, WIDE("%s;%s"), oldpath, value );
+#  else
 	snprintf( newpath, length, WIDE("%s;%s"), oldpath, value );
+#  endif
 	SetEnvironmentVariable( name, newpath );
 	ReleaseEx( newpath DBG_SRC );
 	ReleaseEx( oldpath DBG_SRC );
@@ -190,8 +194,12 @@ void OSALOT_PrependEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 		oldpath = NewArray( TEXTCHAR, oldlen = ( GetEnvironmentVariable( name, NULL, 0 ) + 1 ) );
 		GetEnvironmentVariable( name, oldpath, oldlen );
 	}
-	newpath = NewArray( TEXTCHAR, length = (_32)(strlen( oldpath ) + 2 + strlen(value)) );
+	newpath = NewArray( TEXTCHAR, length = (_32)(StrLen( oldpath ) + 2 + StrLen(value)) );
+#  ifdef UNICODE
+	snwprintf( newpath, length, WIDE("%s;%s"), value, oldpath );
+#  else
 	snprintf( newpath, length, WIDE("%s;%s"), value, oldpath );
+#  endif
 	SetEnvironmentVariable( name, newpath );
 	ReleaseEx( newpath DBG_SRC );
 	ReleaseEx( oldpath DBG_SRC );
@@ -406,7 +414,7 @@ static void CPROC SetupSystemServices( POINTER mem, PTRSZVAL size )
 			oldpath = getenv( "LD_LIBRARY_PATH" );
 			if( oldpath )
 			{
-				newpath = NewArray( char, (_32)((oldpath?strlen( oldpath ):0) + 2 + strlen((*init_l).load_path)) );
+				newpath = NewArray( char, (_32)((oldpath?StrLen( oldpath ):0) + 2 + StrLen((*init_l).load_path)) );
 				sprintf( newpath, WIDE("%s:%s"), (*init_l).load_path
 						 , oldpath );
 				setenv( WIDE("LD_LIBRARY_PATH"), newpath, 1 );
@@ -419,7 +427,7 @@ static void CPROC SetupSystemServices( POINTER mem, PTRSZVAL size )
 			oldpath = getenv( "PATH" );
 			if( oldpath )
 			{
-				newpath = NewArray( char, (_32)((oldpath?strlen( oldpath ):0) + 2 + strlen((*init_l).load_path)) );
+				newpath = NewArray( char, (_32)((oldpath?StrLen( oldpath ):0) + 2 + StrLen((*init_l).load_path)) );
 				sprintf( newpath, WIDE("%s:%s"), (*init_l).load_path
 						 , oldpath );
 				setenv( WIDE("PATH"), newpath, 1 );
@@ -831,7 +839,7 @@ DWORD GetExplorerProcessID()
 		do
 		{
 			//lprintf( WIDE( "Thing is %s" ), pe32.szExeFile );
-			if(!strcmp(pe32.szExeFile,process_find))
+			if(!StrCmp(pe32.szExeFile,process_find))
 			{
 				//MessageBox(0,pe32.szExeFile,WIDE( "test" ),0);
 				temp = pe32.th32ProcessID;
@@ -1091,7 +1099,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchProgramEx )( CTEXTSTR program, CTEXTSTR path, PCT
 		/* restore quotes around parameters with spaces */
 		if( args[0][0] == 0 )
 			vtprintf( pvt, WIDE(" \"\"" ) );
-		else if( strchr( args[0], ' ' ) )
+		else if( StrChr( args[0], ' ' ) )
 			vtprintf( pvt, WIDE(" \"%s\"" ), args[0] );
 		else
 			vtprintf( pvt, WIDE(" %s"), args[0] );
@@ -1424,7 +1432,11 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 #endif
 			{
 				TEXTCHAR tmpname[128];
+#ifdef UNICODE
+				snwprintf( tmpname, sizeof( tmpname ), WIDE("_%s"), funcname );
+#else
 				snprintf( tmpname, sizeof( tmpname ), WIDE("_%s"), funcname );
+#endif
 #ifdef __cplusplus_cli
 				char *procname = CStrDup( tmpname );
 				if( l.flags.bLog )

@@ -377,12 +377,14 @@ size_t CStrLen( char const*const s )
 #ifdef _UNICODE
 char *  CStrDupEx ( CTEXTSTR original DBG_PASS )
 {
-   return WcharConvertEx( original DBG_RELAY );
+	return WcharConvertEx( original DBG_RELAY );
 }
 
 TEXTSTR  DupCStrEx ( const char * original DBG_PASS )
 {
-   return CharWConvertEx( original DBG_RELAY );
+	if( original )
+		return CharWConvertEx( original DBG_RELAY );
+	return NULL;
 }
 #else
 

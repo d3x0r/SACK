@@ -167,7 +167,7 @@ static PTRSZVAL CPROC SetBackgroundImage( PTRSZVAL psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, image_name );
 	l.decoration_name = StrDup( image_name );
-	l.decoration = LoadImageFile( image_name );
+	l.decoration = LoadImageFileFromGroup( 0, image_name );
 	return psv;
 }
 

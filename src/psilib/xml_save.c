@@ -174,7 +174,7 @@ int SaveXMLFrame( PSI_CONTROL frame, CTEXTSTR file )
 		PTEXT text;
 		context.vt = VarTextCreateExx( 10000, 5000 );
 		if( !ext )
-			ext = current_context->name + strlen( current_context->name );
+			ext = current_context->name + StrLen( current_context->name );
 		current_context->nChildren++;
 		vtprintf( context.vt, WIDE("%*.*s.%d-%d-child-%d%s")
 				  , ext - current_context->name

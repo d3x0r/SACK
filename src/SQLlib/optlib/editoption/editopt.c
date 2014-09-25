@@ -338,12 +338,12 @@ static void CPROC FindEntry( PTRSZVAL psv, PCOMMON pc )
 	}
 }
 
-static void OnDisplayConnect( WIDE( "EditOption Display" ) )( struct app * app, struct app_local***local )
+static void OnDisplayConnect( WIDE( "EditOption Display" ) )( struct display_app * app, struct display_app_local***local )
 {
 	PSI_CONTROL frame;
 	option_thread = New( struct instance_local );
 	MemSet( option_thread, 0, sizeof( option_thread ) );
-	(*local) = (struct app_local**)&option_thread;
+	(*local) = (struct display_app_local**)&option_thread;
 
 	frame = CreateOptionFrame( NULL, TRUE, &l.done1 );
 	InitOptionList( GetOptionODBC( NULL, 0 ), GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
@@ -388,24 +388,31 @@ int EditOptions
 SaneWinMain( argc, argv )
 {
 	PODBC o = NULL;
+#ifdef UNICODE
+	TEXTSTR arg1 = (argc > 1)?DupCStr( argv[1] ):NULL;
+	TEXTSTR arg2 = (argc > 2)?DupCStr( argv[2] ):NULL;
+#else
+	char *arg1 = (argc > 1)?argv[1]:NULL;
+	char *arg2 = (argc > 2)?argv[2]:NULL;
+#endif
 	if( argc > 1 )
 	{
 		int arg_ofs = 0;
-		if( argv[1][0] == '-' && argv[1][1] == 'o' )
+		if( arg1[0] == '-' && arg1[1] == 'o' )
 		{
-			o = GetOptionODBC( argv[2], 1 );
+			o = GetOptionODBC( arg2, 1 );
 		}
-		else if( argv[1][0] == '-' && argv[1][1] == 'n' )
+		else if( arg1[0] == '-' && arg1[1] == 'n' )
 		{
-			o = GetOptionODBC( argv[2], 4 );
+			o = GetOptionODBC( arg2, 4 );
 		}
-		else if( argv[1][0] == '-' && argv[1][1] == '2' )
+		else if( arg1[0] == '-' && arg1[1] == '2' )
 		{
-			o = GetOptionODBC( argv[2], 2 );
+			o = GetOptionODBC( arg2, 2 );
 		}
 		else
 		{
-			o = GetOptionODBC( argv[1], 2 );
+			o = GetOptionODBC( arg1, 2 );
 		}
 	}
 	else

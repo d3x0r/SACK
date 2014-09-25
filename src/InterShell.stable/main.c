@@ -5153,7 +5153,7 @@ PMENU_BUTTON InterShell_GetCurrentlyCreatingButton( void )
 static void CPROC MyHandleSQLFeedback( CTEXTSTR message )
 {
 	lprintf( WIDE("SQLMessage %s"), message );
-	Banner2NoWaitAlpha( message );
+	//Banner2NoWaitAlpha( message );
 }
 
 

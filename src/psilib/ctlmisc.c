@@ -52,7 +52,7 @@ PSI_PROC( void, SimpleMessageBox )( PCOMMON parent, CTEXTSTR title, CTEXTSTR con
 	} while( end[0] );
 	//AddExitButton( msg, &done );
 	AddCommonButtons( msg, NULL, &okay );
-	lprintf("show message box" ); 
+	lprintf( WIDE("show message box") );
 	DisplayFrame( msg );
 	CommonWait( msg );
 	DestroyFrame( &msg );
@@ -73,7 +73,7 @@ int SimpleUserQuery( TEXTSTR result, int reslen, CTEXTSTR question, PCOMMON pAbo
 	GetMousePosition( &mouse_x, &mouse_y );
 	MoveFrame( pf, mouse_x - 140, mouse_y - 30 );
 	SetCommonFocus( edit );
-	lprintf( "Show query...." );
+	lprintf( WIDE("Show query....") );
 	DisplayFrame( pf );
 	CommonWait( pf );
 	if( Okay )

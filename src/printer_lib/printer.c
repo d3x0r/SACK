@@ -65,7 +65,7 @@ static void InitPrinter( struct printer_context *context )
 	if( context->hdc )
 	{
 		context->di.cbSize = sizeof(DOCINFO);
-		context->di.lpszDocName = "PrintIt";
+		context->di.lpszDocName = WIDE("PrintIt");
 		context->di.lpszOutput = (LPTSTR) NULL;
 		context->di.lpszDatatype = (LPTSTR) NULL;
 		context->di.fwType = 0;
@@ -73,7 +73,7 @@ static void InitPrinter( struct printer_context *context )
 			int nError = StartDoc(context->hdc, &context->di);
 			if (nError == SP_ERROR)
 			{
-				lprintf("Error - please check printer.");
+				lprintf( WIDE("Error - please check printer.") );
 				// Handle the error intelligently
 				DeleteDC( context->hdc );
 				Release( context );

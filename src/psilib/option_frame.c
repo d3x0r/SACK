@@ -65,13 +65,13 @@ size_t _SQLPromptINIValue(			 CTEXTSTR lpszSection,
 	GetControlText( GetControl( frame, 124 ), lpszReturnBuffer, cbReturnBuffer );
 	//CryptoWritePrivateProfileString( lpszSection, lpszEntry, lpszReturnBuffer, hg_file[file].file_name );
     DestroyFrame( &frame );
-	return strlen( lpszReturnBuffer );
+	return StrLen( lpszReturnBuffer );
 	}
 	else
 #endif
 	{
 		StrCpyEx( lpszReturnBuffer, lpszDefault, cbReturnBuffer );
 	}
-	return strlen( lpszReturnBuffer );
+	return StrLen( lpszReturnBuffer );
 }
 

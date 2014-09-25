@@ -747,10 +747,10 @@ SFTFont PickScaledFontWithUpdate( S_32 x, S_32 y
 					{
 						size_t l1, l2, l3, l4;
 						size_t resultsize = sizeof(FONTDATA)
-							+ (l1=strlen( fdData.pFontEntry->name ))
-							+ (l2=strlen( fdData.pFontStyle->name ))
-							+ (l3=strlen( fdData.pSizeFile->path ))
-							+ (l4=strlen( fdData.pSizeFile->file ))
+							+ (l1=StrLen( fdData.pFontEntry->name ))
+							+ (l2=StrLen( fdData.pFontStyle->name ))
+							+ (l3=StrLen( fdData.pSizeFile->path ))
+							+ (l4=StrLen( fdData.pSizeFile->file ))
 							+ 4, offset;
 						PFONTDATA pResult = (PFONTDATA)Allocate( resultsize );
 						pResult->magic = MAGIC_PICK_FONT;
@@ -789,7 +789,7 @@ SFTFont PickScaledFontWithUpdate( S_32 x, S_32 y
 					{
                   size_t chars;
 						size_t resultsize = sizeof(RENDER_FONTDATA)
-							+ (chars=strlen( fdData.filename ) + 1)*sizeof(TEXTCHAR);
+							+ (chars=StrLen( fdData.filename ) + 1)*sizeof(TEXTCHAR);
 						PRENDER_FONTDATA pResult = (PRENDER_FONTDATA)Allocate( resultsize );
 						pResult->magic = MAGIC_RENDER_FONT;
 						StrCpyEx( pResult->filename, fdData.filename, chars );

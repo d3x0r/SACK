@@ -1379,7 +1379,10 @@ AL_API ALvoid AL_APIENTRY alSource3f(ALuint source, ALenum param, ALfloat value1
         alSetError(Context, AL_INVALID_ENUM);
     else
     {
-        ALfloat fvals[3] = { value1, value2, value3 };
+		 ALfloat fvals[3];// = { value1, value2, value3 };
+       fvals[0] = value1;
+       fvals[1] = value2;
+       fvals[2] = value3;
         SetSourcefv(Source, Context, param, fvals);
     }
 
@@ -1442,7 +1445,10 @@ AL_API ALvoid AL_APIENTRY alSource3dSOFT(ALuint source, ALenum param, ALdouble v
         alSetError(Context, AL_INVALID_ENUM);
     else
     {
-        ALfloat fvals[3] = { (ALfloat)value1, (ALfloat)value2, (ALfloat)value3 };
+		 ALfloat fvals[3];// = { (ALfloat)value1, (ALfloat)value2, (ALfloat)value3 };
+       fvals[0] = value1;
+       fvals[1] = value2;
+       fvals[2] = value3;
         SetSourcefv(Source, Context, param, fvals);
     }
 
@@ -1510,7 +1516,10 @@ AL_API void AL_APIENTRY alSource3i(ALuint source, ALenum param, ALint value1, AL
         alSetError(Context, AL_INVALID_ENUM);
     else
     {
-        ALint ivals[3] = { value1, value2, value3 };
+		 ALint ivals[3];
+		 ivals[0] = value1;
+		 ivals[1] = value2;
+		 ivals[2] = value3;
         SetSourceiv(Source, Context, param, ivals);
     }
 
@@ -1570,7 +1579,10 @@ AL_API void AL_APIENTRY alSource3i64SOFT(ALuint source, ALenum param, ALint64SOF
         alSetError(Context, AL_INVALID_ENUM);
     else
     {
-        ALint64SOFT i64vals[3] = { value1, value2, value3 };
+		 ALint64SOFT i64vals[3];// = { value1, value2, value3 };
+       i64vals[0] = value1;
+       i64vals[1] = value2;
+       i64vals[2] = value3;
         SetSourcei64v(Source, Context, param, i64vals);
     }
 

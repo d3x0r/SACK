@@ -339,7 +339,7 @@ typedef struct font_renderer_tag FONT_RENDERER;
 
 static PLIST fonts;
 
-static void OnDisplayConnect( WIDE( "@00 Image Core" ) )( struct app*app, struct app_local ***pppLocal )
+static void OnDisplayConnect( WIDE( "@00 Image Core" ) )( struct display_app*app, struct display_app_local ***pppLocal )
 {
 	INDEX idx;
 	PFONT_RENDERER renderer;
@@ -1078,14 +1078,18 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 	if( !renderer->font->character[idx] )
 	{
 		FT_Face face = renderer->face;
+		FT_Error status;
 		int glyph_index = FT_Get_Char_Index( face, (FT_ULong)idx );
+		if( glyph_index < 0 )
+			return;
 		//lprintf( WIDE("Character %d is glyph %d"), idx, glyph_index );
-		FT_Load_Glyph( face
+		status = FT_Load_Glyph( face
 						 , glyph_index
 						 , 0
 						 // | FT_LOAD_FORCE_AUTOHINT
 						 );
-
+		if( status )
+			return;
 		//lprintf( "advance and height... %d %d", ( face->glyph->linearVertAdvance>>16 ), renderer->font->height );
 		if( ( face->glyph->linearVertAdvance>>16 ) > renderer->font->height )
 		{
@@ -1175,14 +1179,19 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 	int error;
 
 	{
+		int charcount;
 		if( !renderer->font )
 		{
 			//lprintf( WIDE("Need font resource (once)") );
-			renderer->font = NewPlus( FONT, 255 * sizeof(PCHARACTER) );
+#ifdef UNICODE
+			renderer->font = NewPlus( FONT, (charcount=65535) * sizeof(PCHARACTER) );
+#else
+			renderer->font = NewPlus( FONT, (charcount=255) * sizeof(PCHARACTER) );
+#endif
 			// this is okay it's a kludge so some other code worked magically
 			// it's redundant and should be dleete...
 			renderer->ResultFont = (SFTFont)renderer->font;
-			MemSet( renderer->font, 0, sizeof( FONT )+ 255 * sizeof(PCHARACTER) );
+			MemSet( renderer->font, 0, sizeof( FONT )+ charcount * sizeof(PCHARACTER) );
 		}
 
 		{
@@ -1194,7 +1203,7 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 			renderer->max_ascent = 0;
 			renderer->min_descent = 0;
 
-			font->characters = 256;
+			font->characters = charcount + 1;
 			font->baseline = 0;
 			if( ( renderer->flags & 3 ) == 3 )
 				font->flags = FONT_FLAG_8BIT;
@@ -1224,11 +1233,13 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 			font->height = 0; //CEIL(face->size->metrics.height);
 			font->name = StrDup( renderer->fontname );
 			InternalRenderFontCharacter( renderer, NULL, 0 );
-			for( idx = 0; idx < 256; idx++ )
+			for( idx = 0; idx < charcount + 1; idx++ )
 			{
 				FT_Face face = renderer->face;
 				int glyph_index = FT_Get_Char_Index( face, (FT_ULong)idx );
 				//lprintf( WIDE("Character %d is glyph %d"), idx, glyph_index );
+				if( glyph_index < 0 )
+					continue;
 				FT_Load_Glyph( face
 								 , glyph_index
 								 , 0
@@ -1491,8 +1502,8 @@ int RecheckCache( CTEXTSTR entry, _32 *pe
 SFTFont RenderScaledFontData( PFONTDATA pfd, PFRACTION width_scale, PFRACTION height_scale )
 {
 #define fname(base) base
-#define sname(base) fname(base) + (strlen(base)+1)
-#define fsname(base) sname(base) + strlen(sname(base)+1)
+#define sname(base) fname(base) + (StrLen(base)+1)
+#define fsname(base) sname(base) + StrLen(sname(base)+1)
 	extern _64 fontcachetime;
 	if( !pfd )
 		return NULL;
@@ -1692,7 +1703,7 @@ SFTFont RenderFontFileScaledEx( CTEXTSTR file, _32 width, _32 height, PFRACTION 
 	{
 		size_t chars;
 		PRENDER_FONTDATA pResult = NewPlus( RENDER_FONTDATA, (*size) =
-																			  (chars = strlen( file ) + 1)*sizeof(TEXTCHAR) );
+																			  (chars = StrLen( file ) + 1)*sizeof(TEXTCHAR) );
 		(*size) += sizeof( RENDER_FONTDATA );
 		pResult->magic = MAGIC_RENDER_FONT;
 		pResult->nHeight = height;
@@ -1743,7 +1754,7 @@ SFTFont RenderScaledFontEx( CTEXTSTR name, _32 width, _32 height, PFRACTION widt
 			size_t chars;
 			PRENDER_FONTDATA pResult = NewPlus( RENDER_FONTDATA, (*pnFontDataSize)
 																					= 
-																 (chars = strlen( name ) + 1)*sizeof(TEXTCHAR) );
+																 (chars = StrLen( name ) + 1)*sizeof(TEXTCHAR) );
 			(*pnFontDataSize) += sizeof( RENDER_FONTDATA );
 			pResult->magic = MAGIC_RENDER_FONT;
 			pResult->nHeight = height;
@@ -1765,7 +1776,7 @@ SFTFont RenderScaledFontEx( CTEXTSTR name, _32 width, _32 height, PFRACTION widt
 	{
 		size_t chars;
 		PRENDER_FONTDATA pResult = NewPlus( RENDER_FONTDATA, (*pnFontDataSize) =
-																			   (chars = strlen( name ) + 1)*sizeof(TEXTCHAR) );
+																			   (chars = StrLen( name ) + 1)*sizeof(TEXTCHAR) );
 		(*pnFontDataSize) += sizeof( RENDER_FONTDATA );
 		pResult->magic = MAGIC_RENDER_FONT;
 		pResult->nHeight = height;

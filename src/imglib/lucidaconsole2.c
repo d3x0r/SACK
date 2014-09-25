@@ -3412,7 +3412,7 @@ static struct{ char s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13]; 
                   XXX_____} };
 
 
-struct { unsigned short height, baseline, chars; unsigned char flags, junk;
+struct { unsigned short height, baseline;unsigned int chars; unsigned char flags, junk;
          char *fontname;
          PCHARACTER character[256]; }
 #ifdef __cplusplus

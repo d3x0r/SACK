@@ -132,9 +132,11 @@ static __inline void aluNormalize(ALfloat *inVector)
 
 static __inline ALvoid aluMatrixVector(ALfloat *vector, ALfloat w, ALfloat (*RESTRICT matrix)[4])
 {
-    ALfloat temp[4] = {
-        vector[0], vector[1], vector[2], w
-    };
+	ALfloat temp[4];// = {        vector[0], vector[1], vector[2], w    };
+   temp[0] = vector[0];
+   temp[1] = vector[1];
+   temp[2] = vector[2];
+   temp[3] = w;
 
     vector[0] = temp[0]*matrix[0][0] + temp[1]*matrix[1][0] + temp[2]*matrix[2][0] + temp[3]*matrix[3][0];
     vector[1] = temp[0]*matrix[0][1] + temp[1]*matrix[1][1] + temp[2]*matrix[2][1] + temp[3]*matrix[3][1];

@@ -324,7 +324,11 @@ typedef struct myfinddata {
 				StrCpyEx( findmask(pInfo), mask, MAX_PATH_NAME );
 			}
 		}
+#ifdef UNICODE
+		snwprintf( findmask, sizeof(findmask), WIDE("%s/*"), findbasename(pInfo) );
+#else
 		snprintf( findmask, sizeof(findmask), WIDE("%s/*"), findbasename(pInfo) );
+#endif
 		findhandle(pInfo) = findfirst( findmask, finddata(pInfo) );
 		if( findhandle(pInfo) == -1 )
 		{
@@ -358,11 +362,11 @@ typedef struct myfinddata {
 		}
 	}
 #ifdef UNDER_CE
-	if( !strcmp( WIDE("."), finddata(pInfo)->cFileName ) ||
-       !strcmp( WIDE(".."), finddata(pInfo)->cFileName ) )
+	if( !StrCmp( WIDE("."), finddata(pInfo)->cFileName ) ||
+       !StrCmp( WIDE(".."), finddata(pInfo)->cFileName ) )
 #else
-   if( !strcmp( WIDE("."), finddata(pInfo)->name ) ||
-       !strcmp( WIDE(".."), finddata(pInfo)->name ) )
+   if( !StrCmp( WIDE("."), finddata(pInfo)->name ) ||
+       !StrCmp( WIDE(".."), finddata(pInfo)->name ) )
 #endif
 		goto getnext;
 
@@ -371,7 +375,11 @@ typedef struct myfinddata {
 #ifdef UNDER_CE
 		snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), finddata(pInfo)->cFileName );
 #else
+#  ifdef UNICODE
+		snwprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), finddata(pInfo)->name );
+#  else
 		snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), finddata(pInfo)->name );
+#  endif
 #endif
 	}
 	else
@@ -384,10 +392,17 @@ typedef struct myfinddata {
 					  , pData->prior?WIDE( "/" ):WIDE( "" )
 					  , finddata(pInfo)->cFileName );
 #else
+#  ifdef UNICODE
+			snwprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s")
+					  , pData->prior?pData->prior->buffer:WIDE( "" )
+					  , pData->prior?WIDE( "/" ):WIDE( "" )
+					  , finddata(pInfo)->name );
+#  else
 			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s")
 					  , pData->prior?pData->prior->buffer:WIDE( "" )
 					  , pData->prior?WIDE( "/" ):WIDE( "" )
 					  , finddata(pInfo)->name );
+#  endif
 #endif
 		}
 		else
@@ -395,7 +410,11 @@ typedef struct myfinddata {
 #ifdef UNDER_CE
 			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), finddata(pInfo)->cFileName );
 #else
+#  ifdef UNICODE
+			snwprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), finddata(pInfo)->name );
+#  else
 			snprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), finddata(pInfo)->name );
+#  endif
 #endif
 		}
 	}
@@ -428,7 +447,11 @@ typedef struct myfinddata {
 #ifdef UNDER_CE
 				ofs = snprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename(pInfo), finddata(pInfo)->cFileName );
 #else
+#  ifdef UNICODE
+				ofs = snwprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename(pInfo), finddata(pInfo)->name );
+#  else
 				ofs = snprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename(pInfo), finddata(pInfo)->name );
+#  endif
 #endif
 				processed |= ScanFilesEx( tmpbuf, findmask( pInfo ), (POINTER*)pData, Process, flags, psvUser, TRUE );
 			}

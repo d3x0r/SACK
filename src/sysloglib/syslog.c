@@ -14,7 +14,7 @@
  *
  */
 #define COMPUTE_CPU_FREQUENCY
-
+#define NO_UNICODE_C
 //#undef UNICODE
 
 #ifdef __LCC__
@@ -369,7 +369,7 @@ void SetDefaultName( CTEXTSTR path, CTEXTSTR name, CTEXTSTR extra )
 		filename = StrDup( name );
 	}
 	if( !filepath )
-		filepath = ExpandPath( "*" );
+		filepath = ExpandPath( WIDE("*") );
 	if( !filename )
       filename = StrDup( GetProgramName() );
 	// this has to come from C heap.. my init isn't done yet probably and
@@ -994,7 +994,7 @@ static void SyslogdSystemLog( const TEXTCHAR *message )
 	}
 	if( l.hSyslogdSock != INVALID_SOCKET )
 	{
-		if( send( l.hSyslogdSock, message, strlen( message ), 0 ) == 0 )
+		if( send( l.hSyslogdSock, message, StrLen( message ), 0 ) == 0 )
 		{
 			//fprintf( stderr, "failed..." );
 			closesocket( l.hSyslogdSock );
@@ -1051,13 +1051,12 @@ static void FileSystemLog( CTEXTSTR message )
 	if( l.file )
 	{
 #ifdef UNICODE
-      char *tmp = CStrDup( message );
-		fputs( tmp, l.file );
-		Release( tmp );
+		fputws( message, l.file );
+		fputws( WIDE("\n"), l.file );
 #else
-      fputs( message, l.file );
-#endif
+		fputs( message, l.file );
 		fputs( "\n", l.file );
+#endif
 		fflush( l.file );
 	}
 }
@@ -1155,7 +1154,7 @@ void DoSystemLog( const TEXTCHAR *buffer )
 				{
 				if( flags.bLogOpenBackup )
 				{
-					BackupFile( gFilename, (int)strlen( gFilename ), 1 );
+					BackupFile( gFilename, (int)StrLen( gFilename ), 1 );
 				}
 				else if( flags.bLogOpenAppend )
 #if  _MSC_VER >=1600 
@@ -1263,7 +1262,7 @@ void SystemLogFL( const TEXTCHAR *message FILELINE_PASS )
 	{
 #ifndef _LOG_FULL_FILE_NAMES
 		CTEXTSTR p;
-		for( p = pFile + strlen(pFile) -1;p > pFile;p-- )
+		for( p = pFile + StrLen(pFile) -1;p > pFile;p-- )
 			if( p[0] == '/' || p[0] == '\\' )
 			{
 				pFile = p+1;break;
@@ -1320,7 +1319,7 @@ void SystemLogEx ( const TEXTCHAR *message DBG_PASS )
 	if( pFile )
 	{
 		CTEXTSTR p;
-		for( p = pFile + (pFile?strlen(pFile) -1:0);p > pFile;p-- )
+		for( p = pFile + (pFile?StrLen(pFile) -1:0);p > pFile;p-- )
 			if( p[0] == '/' || p[0] == '\\' )
 			{
 				pFile = p+1;break;
@@ -1529,7 +1528,7 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 					if( IsBadReadPtr( pFile, 2 ) )
                   pFile = WIDE("(Unloaded file?)");
 #ifndef _LOG_FULL_FILE_NAMES
-				for( p = pFile + strlen(pFile) -1;p > pFile;p-- )
+				for( p = pFile + StrLen(pFile) -1;p > pFile;p-- )
 					if( p[0] == '/' || p[0] == '\\' )
 					{
 						pFile = p+1;break;
@@ -1546,7 +1545,11 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 				ofs += StrLen( buffer + ofs );
 #endif
 			}
+#ifdef UNICODE
+			vswprintf( buffer + ofs, 4095 - ofs, format, args );
+#else
 			vsnprintf( buffer + ofs, 4095 - ofs, format, args );
+#endif
 			// okay, so even the above is unsafe, because Micro$oft has
 			// decreed to be stupid.
 			buffer[4095] = 0;

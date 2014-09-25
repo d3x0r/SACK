@@ -1,4 +1,8 @@
 #include <stdhdrs.h>
+#ifdef __WATCOMC__
+// definition of SH_DENYNO
+#include <share.h>
+#endif
 #include <procreg.h>
 #include <deadstart.h>
 #ifndef USE_SQLITE_INTERFACE
@@ -309,6 +313,8 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 #define sack_fsopen(a,b,c,d) sack_fopen(a,b,c)
 #define sack_fsopenEx(a,b,c,d,fsi) sack_fopenEx(a,b,c, fsi)
 #endif
+
+
 			if( my_vfs->fsi )
 			{
 				my_file->file = sack_fsopenEx( 0, zName, "rb+", _SH_DENYNO, my_vfs->fsi );//KWfopen( zName );
@@ -447,7 +453,7 @@ void InitVFS( CTEXTSTR name, struct file_system_interface *fsi )
 
 static void DoInitVFS( void )
 {
-	InitVFS( "sack", NULL );	
+	InitVFS( WIDE("sack"), NULL );	
 }
 
 

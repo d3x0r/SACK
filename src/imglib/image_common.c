@@ -1628,7 +1628,7 @@ Image GetShadedImage( Image child_image, CDATA red, CDATA green, CDATA blue )
 			ce->b = blue;
 			ce->age = timeGetTime();
 			ce->flags.inverted = 0;
-			BlotImageSizedEx( ce->image, ci->image, 0, 0, 0, 0, image->real_width, image->real_height, 0, BLOT_MULTISHADE, red, green, blue );
+			BlotImageSizedEx( ce->image, ci->image, 0, 0, 0, 0, image->real_width, image->real_height, ALPHA_TRANSPARENT, BLOT_MULTISHADE, red, green, blue );
 			//ReloadOpenGlTexture( ce->image, 0 );
 			AddLink( &ci->elements, ce );
 			return ce->image;

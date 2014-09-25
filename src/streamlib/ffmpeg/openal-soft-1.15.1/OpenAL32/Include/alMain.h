@@ -227,7 +227,8 @@ static __inline int ExchangeInt(volatile int *ptr, int newval)
     union {
         volatile int *i;
         volatile LONG *l;
-    } u = { ptr };
+	 } u;
+	 u.i = ptr;
     return InterlockedExchange(u.l, newval);
 }
 static __inline void *ExchangePtr(XchgPtr *ptr, void *newval)
@@ -239,7 +240,8 @@ static __inline ALboolean CompExchangeInt(volatile int *ptr, int oldval, int new
     union {
         volatile int *i;
         volatile LONG *l;
-    } u = { ptr };
+	 } u;
+	 u.i = ptr;
     return InterlockedCompareExchange(u.l, newval, oldval) == oldval;
 }
 static __inline ALboolean CompExchangePtr(XchgPtr *ptr, void *oldval, void *newval)
