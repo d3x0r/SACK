@@ -36,7 +36,7 @@ typedef struct edit {
 #define LEFT_SIDE_PAD 2
 //---------------------------------------------------------------------------
 
-CTEXTSTR GetString( PEDIT pe, CTEXTSTR text, size_t length )
+static CTEXTSTR GetString( PEDIT pe, CTEXTSTR text, size_t length )
 {
 	static size_t lastlen;
 	static TEXTCHAR *temp;
@@ -69,45 +69,88 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 	SFTFont font;
 	size_t ofs;
 	int x, CursX;
-	LOGICAL string_fits = FALSE;
 	CTEXTSTR caption_text = GetText( pc->caption.text);
 	CTEXTSTR output_string;
+	int *stringsize;
 
 	_32 height;
 	BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor(pc)[EDIT_BACKGROUND] );
 	//ClearImageTo( pc->Surface, basecolor(pc)[EDIT_BACKGROUND] );
 	font = GetFrameFont( pc );
 	// should probably figure some way to center the text vertical also...
-	pe->MaxShowLen = GetMaxStringLengthFont( pc->surface_rect.width, font );
-	
-	if( ( pe->nCaptionUsed - pe->Start ) < pe->MaxShowLen )
+	stringsize = NewArray( int, pe->nCaptionUsed + 1 );
 	{
-		// and don't move start, it's good where it's at...
-		string_fits = TRUE;
-		//pe->Start = 0;
-		//pe->MaxShowLen = pe->nCaptionUsed - pe->Start;
-	}
-	if( ( (pe->cursor_pos-pe->Start) > (pe->MaxShowLen - 3) ) )
-	{
-		pe->Start = pe->cursor_pos - (pe->MaxShowLen - 3);
-	}
-	else if( (pe->cursor_pos-pe->Start) < ( 5 ) )
-	{
-		if( pe->cursor_pos > 5 )
+		int n;
+		if( pe->flags.bPassword )
 		{
-			pe->Start = pe->cursor_pos - ( 5 );
+			_32 w, h;
+			GetStringSizeFontEx( WIDE("*"), 1, &w, &h, font );
+			for( n= 0; n < pe->nCaptionUsed; n++ )
+			{
+				stringsize[n] = w * n;
+			}
+			height = h;
 		}
 		else
-			pe->Start = 0;
+		{
+			_32 w, h;
+			for( n = 0; n <= pe->nCaptionUsed; n++ )
+			{
+				stringsize[n] = GetStringSizeFontEx(caption_text, n, &w, &h, font );
+				//lprintf( WIDE("size at %d = %d"), n, stringsize[n] );
+			}
+			height = h;
+		}	
 	}
-	else
 	{
-		// Start position is good, cursor is in the visible part of the line...
-		//pe->Start = 0;
+		int n;
+		int	start_pos = (pe->Start?stringsize[pe->Start-1]:0);
+		if( pe->cursor_pos )
+		{
+			// current
+			if( ( stringsize[ pe->cursor_pos - 1 ] 
+			     - start_pos ) < 0 )
+			{
+				//lprintf( WIDE( "cursor is off the left..." ) );
+				pe->Start = pe->cursor_pos - 1;
+			}
+			if( ( stringsize[ pe->cursor_pos ] 
+			     - start_pos ) 
+					 >= ( ( pc->surface_rect.width * 4 ) / 5 )  )
+			{
+				//lprintf( WIDE( "cursor is off the right..." ) );
+				for( n = pe->cursor_pos; n; n-- )
+				{
+					if( ( stringsize[pe->cursor_pos] - stringsize[n] ) > ((pc->surface_rect.width *4)/ 5) )
+					{
+						//lprintf( WIDE( "New start : %d" ), pe->Start );
+						pe->Start = n+1;
+						break;
+					}
+				}
+			}
+		}
+		else
+		{
+			pe->Start = 0;
+		}
+		start_pos = (pe->Start?stringsize[pe->Start-1]:0);
+		pe->MaxShowLen = pe->nCaptionUsed;
+		for( n = pe->Start; n <= pe->nCaptionUsed; n++ )
+		{
+			if( ( stringsize[n] - start_pos ) > pc->surface_rect.width )
+			{
+				pe->MaxShowLen = ( n - 1 ) - pe->Start;
+				break;
+			}
+		}
+		//lprintf( WIDE("Max is %d %d"), pe->MaxShowLen, pe->Start );
 	}
-	//lprintf( "drawing %d,%d,%d,%d", pe->Start, pe->cursor_pos, pe->MaxShowLen, string_fits );
+	//pe->MaxShowLen = GetMaxStringLengthFont( pc->surface_rect.width, font );
+	
+	//lprintf( WIDE("drawing %d,%d,%d,%d"), pe->Start, pe->cursor_pos, pe->MaxShowLen );
 	output_string = GetString( pe, caption_text + pe->Start, pe->cursor_pos-pe->Start );
-	CursX = GetStringSizeFontEx( output_string, pe->cursor_pos-pe->Start, NULL, &height, font );
+	CursX = (pe->cursor_pos?stringsize[pe->cursor_pos]:0) - (pe->Start?stringsize[pe->Start]:0);
 	if( USS_LTE( height, _32, pc->Surface->height, int ) )
 		pe->top_side_pad = (pc->Surface->height - height) / 2;
 	else
@@ -223,7 +266,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
 	LOGICAL moving_left, moving_right;
 	SFTFont font = GetCommonFont( pc );
 	//lprintf( WIDE("Edit mosue: %d %d %X"), x, y, b );
-	GetStringSize( GetText(pc->caption.text), &width, &height );
+	GetStringSizeFont( GetText(pc->caption.text), &width, &height, font );
 	// how to find the line/character we're interested in....
 	cy = (y - pe->top_side_pad) / height;
 	if( x < LEFT_SIDE_PAD )
@@ -440,24 +483,37 @@ static void Paste( PEDIT pe, PTEXT *caption )
 {
 	if( OpenClipboard(NULL) )
 	{
-		_32 format;
+		_32 format = 0;
 		// successful open...
-		format = EnumClipboardFormats( 0 );
+		format = EnumClipboardFormats( format );
 		if( pe->flags.bSelectSet )
 			CutEditText( pe, caption );
 		while( format )
 		{
+			if( format == CF_UNICODETEXT )
+			{
+				HANDLE hData = GetClipboardData( CF_UNICODETEXT );
+				wchar_t *pData = (wchar_t*)GlobalLock( hData );
+				{
+					while( pData && pData[0] )
+					{
+						InsertAChar( pe, caption, pData[0] );
+						pData++;
+					}
+				}
+				break;
+			}
 			if( format == CF_TEXT )
 			{
 				HANDLE hData = GetClipboardData( CF_TEXT );
-					 char *pData = (char*)GlobalLock( hData );
-					 {
-						 while( pData && pData[0] )
-						 {
-							 InsertAChar( pe, caption, pData[0] );
-							 pData++;
-						 }
-					 }
+				char *pData = (char*)GlobalLock( hData );
+				{
+					while( pData && pData[0] )
+					{
+						InsertAChar( pe, caption, pData[0] );
+						pData++;
+					}
+				}
 				break;
 			}
 			format = EnumClipboardFormats( format );

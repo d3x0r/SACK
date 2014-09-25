@@ -428,7 +428,8 @@ void GetMyInterface( void )
 		_32 w, h;
 		GetFileGroup( WIDE( "Resources" ), WIDE( "@/../Resources" ) );
 		GetDisplaySize( &w, &h );
-		g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/rod.ttf"), 20, 20, NULL, NULL, 0*2/*FONT_FLAG_8BIT*/, NULL, NULL );
+		//g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/rod.ttf"), 20, 20, NULL, NULL, 0*2/*FONT_FLAG_8BIT*/, NULL, NULL );
+		g.default_font = RenderFontFileScaledEx( WIDE("arial.ttf"), 20, 20, NULL, NULL, 0*2/*FONT_FLAG_8BIT*/, NULL, NULL );
 	}
 #endif
 }
@@ -578,7 +579,7 @@ void TryLoadingFrameImage( void )
 	}
 }
 
-static void OnDisplayConnect( WIDE( "@00 PSI Core" ) )( struct app*app, struct app_local ***pppLocal )
+static void OnDisplayConnect( WIDE( "@00 PSI Core" ) )( struct display_app*app, struct display_app_local ***pppLocal )
 {
 	if( g.BorderImage )
 	{
@@ -4343,7 +4344,7 @@ PSI_PROC( void, CommonWait)( PSI_CONTROL pc ) // perhaps give a callback for wit
 				&& !( ( pcbd->done_value )?( *pcbd->done_value ):0 )
 			  )
 		{
-			lprintf( "not done..." );
+			lprintf( WIDE("not done...") );
 			if( !Idle() )
 			{
 				lprintf( WIDE("Sleeping forever, cause I'm not doing anything else..>") );

@@ -921,7 +921,7 @@ PSI_PROC( PMENUITEM, AppendPopupItem )( PMENU pm, int type, PTRSZVAL dwID, CPOIN
 		{
          int len;
 			pmi->flags.bHasText = TRUE;
-			pmi->data.text.text = NewArray( TEXTCHAR, ( len = ( pmi->data.text.textlen = strlen( (TEXTSTR)pData ) ) + 1));
+			pmi->data.text.text = NewArray( TEXTCHAR, ( len = ( pmi->data.text.textlen = StrLen( (TEXTSTR)pData ) ) + 1));
 			StrCpyEx( pmi->data.text.text, (CTEXTSTR)pData, len );
 		}
 		if( type & MF_POPUP )

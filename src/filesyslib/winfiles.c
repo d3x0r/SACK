@@ -66,18 +66,18 @@ static void UpdateLocalDataPath( void )
 
 	SHGetFolderPath( NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, path );
 	realpath = NewArray( TEXTCHAR, len = StrLen( path )
-							  + StrLen( l.producer?l.producer:"" )
-							  + StrLen( l.application?l.application:"" ) + 3 ); // worse case +3
-	snprintf( realpath, len, "%s%s%s%s%s", path
-			  , l.producer?"/":"", l.producer?l.producer:""
-			  , l.application?"/":"", l.application?l.application:""
+							  + StrLen( l.producer?l.producer:WIDE("") )
+							  + StrLen( l.application?l.application:WIDE("") ) + 3 ); // worse case +3
+	snprintf( realpath, len, WIDE("%s%s%s%s%s"), path
+			  , l.producer?WIDE("/"):WIDE(""), l.producer?l.producer:WIDE("")
+			  , l.application?WIDE("/"):WIDE(""), l.application?l.application:WIDE("")
 			  );
 	if( l.data_file_root )
 		Deallocate( TEXTSTR, l.data_file_root );
 	l.data_file_root = realpath;
 	MakePath( l.data_file_root );
 #else
-	l.data_file_root = ".";
+	l.data_file_root = StrDup( WIDE(".") );
 
 #endif
 }
@@ -536,7 +536,15 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 		lprintf( WIDE( "Open File: [%s]" ), file->fullname );
 #ifdef __LINUX__
 #  undef open
-	handle = open( file->fullname, opts );
+	{
+#ifdef UNICODE
+		char *tmpfile = CStrDup( file->fullname );
+		handle = open( tmpfile, opts );
+      Deallocate( char *, tmpfile );
+#else
+		handle = open( file->fullname, opts );
+#endif
+	}
 	if( l.flags.bLogOpenClose )
 		lprintf( WIDE( "open %s %d %d" ), file->fullname, handle, opts );
 #else
@@ -826,7 +834,13 @@ int sack_unlink( INDEX group, CTEXTSTR filename )
 #ifdef __LINUX__
 	int okay;
 	TEXTSTR tmp = PrependBasePath( group, NULL, filename );
+#ifdef UNICODE
+	char *tmpname = CStrDup( tmp );
+	okay = unlink( tmpname );
+   Deallocate( char*, tmpname );
+#else
 	okay = unlink( filename );
+#endif
 	Deallocate( TEXTCHAR*, tmp );
 	return !okay; // unlink returns TRUE is 0, else error...
 #else
@@ -843,7 +857,13 @@ int sack_rmdir( INDEX group, CTEXTSTR filename )
 #ifdef __LINUX__
 	int okay;
 	TEXTSTR tmp = PrependBasePath( group, NULL, filename );
+#ifdef UNICODE
+	char *tmpname = CStrDup( tmp );
+	okay = rmdir( tmpname );
+   Deallocate( char*, tmpname );
+#else
 	okay = rmdir( filename );
+#endif
 	Deallocate( TEXTCHAR*, tmp );
 	return !okay; // unlink returns TRUE is 0, else error...
 #else
@@ -941,14 +961,30 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 	}
 	else
 	{
-#ifdef UNICODE
-		handle = _wfopen( file->fullname, opts );
+#ifdef __LINUX__
+#  ifdef UNICODE
+		char *tmpname = CStrDup( file->fullname );
+		char *tmpopts = CStrDup( opts );
+		handle = fopen( tmpname, tmpopts );
+		Deallocate( char*, tmpname );
+		Deallocate( char*, tmpopts );
+#  else
+      handle = _wfopen( tmpname, opts );
+#  endif
 #else
-#ifdef _STRSAFE_H_INCLUDED_
+#  ifdef _STRSAFE_H_INCLUDED_
+#    ifdef UNICODE
+		char *tmpname = CStrDup( file->fullname );
+		char *tmpopts = CStrDup( opts );
+		fopen_s( &handle, tmpname, tmpopts );
+		Deallocate( char*, tmpname );
+		Deallocate( char*, tmpopts );
+#    else
 		fopen_s( &handle, file->fullname, opts );
-#else
+#    endif
+#  else
 		handle = fopen( file->fullname, opts );
-#endif
+#  endif
 #endif
 	}
 	if( !handle )
@@ -1012,14 +1048,30 @@ FILE*  sack_fsopenEx( INDEX group
 	}
 	else
 	{
-#ifdef UNICODE
-		handle = _wfopen( file->fullname, opts );
+#ifdef __LINUX__
+#  ifdef UNICODE
+		char *tmpname = CStrDup( file->fullname );
+		char *tmpopts = CStrDup( opts );
+		handle = fopen( tmpname, tmpopts );
+		Deallocate( char*, tmpname );
+		Deallocate( char*, tmpopts );
+#  else
+		handle = _wfopen( tmpname, opts );
+#  endif
 #else
-#ifdef _STRSAFE_H_INCLUDED_
+#  ifdef _STRSAFE_H_INCLUDED_
+#     ifdef UNICODE
+		char *tmpname = CStrDup( file->fullname );
+		char *tmpopts = CStrDup( opts );
+		handle = _fsopen( tmpname, tmpopts, share_mode );
+		Deallocate( char*, tmpname );
+		Deallocate( char*, tmpopts );
+#     else
 		handle = _fsopen( file->fullname, opts, share_mode );
-#else
+#     endif
+#  else
 		handle = fopen( file->fullname, opts );
-#endif
+#  endif
 #endif
 	}
 	if( !handle )
@@ -1155,7 +1207,17 @@ int  sack_rename ( CTEXTSTR file_source, CTEXTSTR new_name )
 #ifdef WIN32
 	status = MoveFile( tmp_src, tmp_dst );
 #else
+#  ifdef UNICODE
+	{
+		char *tmpnames = CStrDup( tmp_src );
+		char *tmpnamed = CStrDup( tmp_dst );
+		status = rename( tmpnames, tmpnamed );
+		Deallocate( char*, tmpnames );
+		Deallocate( char*, tmpnamed );
+	}
+#  else
 	status = rename( tmp_src, tmp_dst );
+#  endif
 #endif
 	Deallocate( TEXTSTR, tmp_src );
 	Deallocate( TEXTSTR, tmp_dst );
@@ -1167,8 +1229,15 @@ size_t GetSizeofFile( TEXTCHAR *name, P_32 unused )
 {
 	size_t size;
 #ifdef __LINUX__
+#  ifdef UNICODE
+   char *tmpname = CStrDup( name );
+	int hFile = open( tmpname,		  // open MYFILE.TXT
+						  O_RDONLY );			 // open for reading
+	Deallocate( char*, tmpname );
+#  else
 	int hFile = open( name,		  // open MYFILE.TXT
-							 O_RDONLY );			 // open for reading
+						  O_RDONLY );			 // open for reading
+#  endif
 	if( hFile >= 0 )
 	{
 		size = lseek( hFile, 0, SEEK_END );
@@ -1204,8 +1273,15 @@ _32 GetFileTimeAndSize( CTEXTSTR name
 	_32 size;
 	_32 extra_size;
 #ifdef __LINUX__
+#  ifdef UNICODE
+   char *tmpname = CStrDup( name );
+	int hFile = open( tmpname,		  // open MYFILE.TXT
+						  O_RDONLY );			 // open for reading
+	Deallocate( char*, tmpname );
+#  else
 	int hFile = open( name,		  // open MYFILE.TXT
-							 O_RDONLY );			 // open for reading
+						  O_RDONLY );			 // open for reading
+#  endif
 	if( hFile >= 0 )
 	{
 		size = lseek( hFile, 0, SEEK_END );

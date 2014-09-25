@@ -405,7 +405,7 @@ int SetRegistryString( CTEXTSTR pProduct, CTEXTSTR pKey,
    return SetRegistryItem( HKEY_LOCAL_MACHINE, KEY_PREFIX,
                            pProduct, pKey, 
                            REG_SZ,
-                           pValue, strlen( pValue ) );
+                           pValue, StrLen( pValue ) );
 }
 
 //-----------------------------------------------------------
@@ -428,7 +428,7 @@ int SetLocalRegistryString( CTEXTSTR pProduct, CTEXTSTR pKey,
    return SetRegistryItem( HKEY_CURRENT_USER, KEY_PREFIX,
                            pProduct, pKey, 
                            REG_SZ,
-                           pValue, strlen( pValue ) );
+                           pValue, StrLen( pValue ) );
 }
 //-----------------------------------------------------------
 

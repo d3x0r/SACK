@@ -3172,7 +3172,7 @@ static struct{ char s, w, o, j; short a, d; EXTRA_STRUCT unsigned char data[24];
 
 
 
-struct { unsigned short height, baseline, chars; unsigned char flags, junk;
+struct { unsigned short height, baseline; unsigned int chars; unsigned char flags, junk;
          const TEXTCHAR *fontname;
          PCHARACTER character[256]; } 
 #ifdef __cplusplus

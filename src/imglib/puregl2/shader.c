@@ -336,7 +336,11 @@ int CompileShaderEx( PImageShaderTracker tracker
 		int n;
 		for( n = 0; n < nAttribs; n++ )
 		{
+#ifdef UNICODE
+			lprintf( WIDE("Bind Attrib Location: %d %S"), attrib_order[n].n, attrib_order[n].name );
+#else
 			lprintf( WIDE("Bind Attrib Location: %d %s"), attrib_order[n].n, attrib_order[n].name );
+#endif
 			glBindAttribLocation(tracker->glProgramId, attrib_order[n].n, attrib_order[n].name );
 			CheckErrf( WIDE("bind attrib location") );
 		}

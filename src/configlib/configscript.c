@@ -723,6 +723,8 @@ static PTEXT get_line(PCONFIG_HANDLER pch /*FOLD00*/
 								one_more_read = 1;
 							}
 						}
+						else
+							one_more_read = 0;
 					}
 					else
 					{

@@ -1214,12 +1214,18 @@ static __inline ALbyte3 EncodeByte3(ALint val)
 {
     if(IS_LITTLE_ENDIAN)
     {
-        ALbyte3 ret = {{ val, val>>8, val>>16 }};
+		 ALbyte3 ret;
+		 ret.b[0] = val;
+		 ret.b[1] = val>>8;
+		 ret.b[2] = val>>16;
         return ret;
     }
     else
     {
-        ALbyte3 ret = {{ val>>16, val>>8, val }};
+        ALbyte3 ret;// = {{ val>>16, val>>8, val }};
+		 ret.b[0] = val>>16;
+		 ret.b[1] = val>>8;
+		 ret.b[2] = val;
         return ret;
     }
 }
@@ -1235,12 +1241,18 @@ static __inline ALubyte3 EncodeUByte3(ALint val)
 {
     if(IS_LITTLE_ENDIAN)
     {
-        ALubyte3 ret = {{ val, val>>8, val>>16 }};
+        ALubyte3 ret;// = {{ val, val>>8, val>>16 }};
+		 ret.b[0] = val;
+		 ret.b[1] = val>>8;
+		 ret.b[2] = val>>16;
         return ret;
     }
     else
     {
-        ALubyte3 ret = {{ val>>16, val>>8, val }};
+        ALubyte3 ret;// = {{ val>>16, val>>8, val }};
+		 ret.b[0] = val>>16;
+		 ret.b[1] = val>>8;
+		 ret.b[2] = val;
         return ret;
     }
 }

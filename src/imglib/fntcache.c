@@ -286,7 +286,7 @@ PDICT_ENTRY AddDictEntry( PTREEROOT *root, CTEXTSTR name )
 											, MyStrCmp
 											, DestroyDictEntry );
 
-	len = strlen( name );
+	len = StrLen( name );
 	pde = NewPlus( DICT_ENTRY, len*sizeof(pde->word[0]));
 	StrCpyEx( pde->word, name, len + 1 );
 	if( !AddBinaryNode( *root, pde, (PTRSZVAL)pde->word ) )
@@ -839,28 +839,28 @@ void OutputFontCache( void )
 	{
 		for( size = 0, pde = (PDICT_ENTRY)GetLeastNode( build.pPaths );
 	        pde;
-			  (size += strlen( pde->word ) + 1), pde = (PDICT_ENTRY)GetGreaterNode( build.pPaths ) );
+			  (size += StrLen( pde->word ) + 1), pde = (PDICT_ENTRY)GetGreaterNode( build.pPaths ) );
 		fprintf( out, WIDE("%%@%") _32f WIDE(",%") _size_f WIDE("\n"), GetNodeCount( build.pPaths ), size );
 	}
 	if( build.pFamilies )
 	{
 		for( size = 0, pde = (PDICT_ENTRY)GetLeastNode( build.pFamilies );
    	     pde;
-			  (size += strlen( pde->word ) + 1),pde = (PDICT_ENTRY)GetGreaterNode( build.pFamilies ) );
+			  (size += StrLen( pde->word ) + 1),pde = (PDICT_ENTRY)GetGreaterNode( build.pFamilies ) );
 		fprintf( out, WIDE("%%$%") _32f WIDE(",%") _size_f WIDE("\n"), GetNodeCount( build.pFamilies ), size );
 	}
 	if( build.pStyles )
 	{
 		for( size = 0,pde = (PDICT_ENTRY)GetLeastNode( build.pStyles );
    	     pde;
-			  (size += strlen( pde->word ) + 1),pde = (PDICT_ENTRY)GetGreaterNode( build.pStyles ) );
+			  (size += StrLen( pde->word ) + 1),pde = (PDICT_ENTRY)GetGreaterNode( build.pStyles ) );
 	   fprintf( out, WIDE("%%*%") _32f WIDE(",%") _size_f WIDE("\n"), GetNodeCount( build.pStyles ), size );
 	}
 	if( build.pFiles )
 	{
 		for( size = 0,pde = (PDICT_ENTRY)GetLeastNode( build.pFiles );
    	     pde;
-			  (size += strlen( pde->word ) + 1),pde = (PDICT_ENTRY)GetGreaterNode( build.pFiles ) );
+			  (size += StrLen( pde->word ) + 1),pde = (PDICT_ENTRY)GetGreaterNode( build.pFiles ) );
 	   fprintf( out, WIDE("%%&%") _32f WIDE(",%") _size_f WIDE("\n"), GetNodeCount( build.pFiles ), size );
 	}
 
@@ -1364,7 +1364,7 @@ void BuildFontCache( void )
 #endif
             {
 		size_t len;
-		TEXTSTR tmp = NewArray( TEXTCHAR, len = strlen( name ) + 10 );
+		TEXTSTR tmp = NewArray( TEXTCHAR, len = StrLen( name ) + 10 );
 		snprintf( tmp, len * sizeof( TEXTCHAR ), WIDE( "%s\\fonts" ), name );
 		while( ScanFiles( tmp, WIDE("*.ttf\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
 							 , ListFontFile, SFF_SUBCURSE, 0 ) );
@@ -1491,7 +1491,7 @@ void LoadAllFonts( void )
 			PFONT_STYLE pfs;
 			PAPP_SIZE_FILE  psfCurrent;
 			buf = fgets_buf;
-			len = strlen( buf );
+			len = StrLen( buf );
 			buf[len-1] = 0; // kill \n on line.
 			//Log2( WIDE("Process: (%d)%s"), ++line, buf );
 			switch( buf[0] )
@@ -1565,28 +1565,28 @@ void LoadAllFonts( void )
 			case '@':
 				{
 					build.pPathList[PathID] = build.pPathNames + PathOfs;
-					PathOfs += (len=strlen( buf + 1 ) + 1);
+					PathOfs += (len=StrLen( buf + 1 ) + 1);
 					StrCpyEx( build.pPathList[PathID++], buf + 1, len );
 				}
 				break;
 			case '$':
 				{
 					build.pFamilyList[FamilyID] = build.pFamilyNames + FamilyOfs;
-					FamilyOfs += (len=strlen( buf + 1 ) + 1);
+					FamilyOfs += (len=StrLen( buf + 1 ) + 1);
 					StrCpyEx( build.pFamilyList[FamilyID++], buf + 1, len );
 				}
 				break;
 			case '*':
 				{
 					build.pStyleList[StyleID] = build.pStyleNames + StyleOfs;
-					StyleOfs += (len=strlen( buf + 1 ) + 1);
+					StyleOfs += (len=StrLen( buf + 1 ) + 1);
 					StrCpyEx( build.pStyleList[StyleID++], buf + 1, len );
 				}
 				break;
 			case '&':
 				{
 					build.pFileList[FileID] = build.pFileNames + FileOfs;
-					FileOfs += (len=strlen( buf + 1 ) + 1);
+					FileOfs += (len=StrLen( buf + 1 ) + 1);
 					StrCpyEx( build.pFileList[FileID++], buf + 1, len );
 				}
 				break;

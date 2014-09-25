@@ -12,7 +12,7 @@ extern "C" {
 typedef struct {
     ALfloat coeff;
 #ifndef _MSC_VER
-    ALfloat history[0];
+    ALfloat history[];
 #else
     ALfloat history[1];
 #endif

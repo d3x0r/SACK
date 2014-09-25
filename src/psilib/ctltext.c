@@ -151,7 +151,7 @@ CAPTIONED_CONTROL_PROC_DEF( STATIC_TEXT, TEXTCONTROL, TextControl, (int attr) )
 
 PSI_PROC( void, SetTextControlColors )( PCONTROL pc, CDATA fore, CDATA back )
 {
-   ValidatedControlData( PTEXTCONTROL, STATIC_TEXT, ptc, pc );
+	ValidatedControlData( PTEXTCONTROL, STATIC_TEXT, ptc, pc );
 	if( (!ptc) )
 		return;	
 	if( fore )
@@ -160,7 +160,7 @@ PSI_PROC( void, SetTextControlColors )( PCONTROL pc, CDATA fore, CDATA back )
 		ptc->foreground = basecolor(pc)[TEXTCOLOR];
 
 	// if we don't allow the application to set the background to OFF
-   // then it can't just be floating transparency text....
+	// then it can't just be floating transparency text....
 	//if( back )
 		ptc->background = back;
 	//else
@@ -321,12 +321,12 @@ LOGICAL SetControlTextOffset( PSI_CONTROL pc, int offset )
 #include <psi.h>
 CONTROL_REGISTRATION
 text_control = { STATIC_TEXT_NAME
-					, { {73, 21}, sizeof( TEXTCONTROL ), BORDER_NONE}
-					, InitTextControl// init
+               , { {73, 21}, sizeof( TEXTCONTROL ), BORDER_NONE}
+               , InitTextControl// init
                , NULL
-					, NULL //_DrawTextControl
-					, NULL
-					, NULL
+               , NULL //_DrawTextControl
+               , NULL
+               , NULL
 };
 
 PRIORITY_PRELOAD( register_text, PSI_PRELOAD_PRIORITY ) {

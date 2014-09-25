@@ -243,7 +243,7 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 	g.bLogCritical = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Log critical sections" ), g.bLogCritical, TRUE );
 	g.bLogAllocate = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Enable Logging" ), g.bLogAllocate, TRUE );
 	if( g.bLogAllocate )
-		lprintf( "Memory allocate logging enabled." );
+		lprintf( WIDE("Memory allocate logging enabled.") );
 	g.bLogAllocateWithHold = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Enable Logging Holds" ), g.bLogAllocateWithHold, TRUE );
 	//USE_CUSTOM_ALLOCER = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Custom Allocator" ), USE_CUSTOM_ALLOCER, TRUE );
 	g.bDisableDebug = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/Memory Library/Disable Debug" ), !USE_DEBUG_LOGGING, TRUE );
@@ -1095,14 +1095,14 @@ PTRSZVAL GetFileSize( int fd )
                int ret;
 					if( !(*dwSize ) )
 					{
-						lprintf( "Region didn't exist... and no size... return" );
+						lprintf( WIDE("Region didn't exist... and no size... return") );
                   return NULL;
 					}
-					lprintf( "Shared region didn't already exist...: %s", filename );
+					lprintf( WIDE("Shared region didn't already exist...: %s"), filename );
 					fd = open("/dev/ashmem", O_RDWR);
 					if( fd < 0 )
 					{
-                  lprintf( "Failed to open core device..." );
+                  lprintf( WIDE("Failed to open core device...") );
 						return NULL;
 					}
 					if( bCreated )
@@ -1111,14 +1111,14 @@ PTRSZVAL GetFileSize( int fd )
 					ret = ioctl(fd, ASHMEM_SET_NAME, filename + 12 ); // skip 11 for the "/dev/ashmem/"
 					if (ret < 0)
 					{
-						lprintf( "Failed to set the name of ashmem region: %s", filename + 12 );
+						lprintf( WIDE("Failed to set the name of ashmem region: %s"), filename + 12 );
 						//							goto error;
 					}
 
 					ret = ioctl(fd, ASHMEM_SET_SIZE, (*dwSize) );
 					if (ret < 0)
 					{
-						lprintf( "Failed to set IOCTL size to %d", (*dwSize) );
+						lprintf( WIDE("Failed to set IOCTL size to %d"), (*dwSize) );
 						//goto error;
 					}
                /*
@@ -2768,7 +2768,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 								CTEXTSTR file = BLOCK_FILE(pc);
 #ifdef _WIN32
 								if( IsBadReadPtr( file, 4 ) )
-									file = "(corrupt)";
+									file = WIDE("(corrupt)");
 #endif
 								_xlprintf( 2, file, BLOCK_LINE(pc) )( WIDE("Application overflowed allocated memory.") );
 							}

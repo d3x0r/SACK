@@ -983,7 +983,7 @@ LOGICAL GetOptionIntValue( POPTION_TREE_NODE optval, int *result_value DBG_PASS 
 		if( value[0] == 'y' || value[0] == 'Y' || ( value[0] == 't' || value[0] == 'T' ) )
 			*result_value = 1;
 		else
-			*result_value = atoi( value );
+			*result_value = IntCreateFromText( value );
 		return TRUE;
 	}
 	return FALSE;
@@ -1592,7 +1592,7 @@ SQLGETOPTION_PROC( S_32, SACK_GetPrivateProfileIntExx )( PODBC odbc, CTEXTSTR pS
 	{
 		if( buffer[0] == 'Y' || buffer[0] == 'y' )
 			return 1;
-		return atoi( buffer );
+		return IntCreateFromText( buffer );
 	}
 	return nDefault;
 }
@@ -1888,7 +1888,7 @@ SQLGETOPTION_PROC( CTEXTSTR, GetSystemID )( void )
 {
 #ifndef __NO_NETWORK__
 	static TEXTCHAR result[12];
-   snprintf( result, 12, "%"_size_f, GetSystemIndex( GetSystemName() ) );
+	snprintf( result, 12, WIDE("%")_size_f, GetSystemIndex( GetSystemName() ) );
 	return result;
 #else
 	{

@@ -104,10 +104,16 @@ function OpenServer()
 	
 	function mousedown(event)
 	{
-		var x = event.clientX;
-		var y = event.clientY;
+		var x = event.pageX;
+		var y = event.pageY;
+                if( !x && !y )
+                {
+			x = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+			y = event.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+                }
 
 		var n;
+	    // console.log( "out " + x + " and " + y + " renders " + render_list.length );
 		for( n = 0; n < render_list.length; n++ )
 		{
 			var render = render_list[n];
@@ -119,6 +125,7 @@ function OpenServer()
 			//console.log( "canvas thing" + canvas.offsetLeft );
 			x -= canvas.offsetLeft;
 			y -= canvas.offsetTop;
+                     //console.log( "corrected xy = " + x + "," +  y );
 			b |= 1 << ( event.which - 1 );
 			ws.send( JSON.stringify( 
 					{
@@ -136,8 +143,13 @@ function OpenServer()
 	}
 	function mouseup(event)
 	{
-		var x = event.clientX;
-		var y = event.clientY;
+		var x = event.pageX;
+		var y = event.pageY;
+                if( !x && !y )
+                {
+			x = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+			y = event.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+                }
 
 		var n;
 		for( n = 0; n < render_list.length; n++ )
@@ -167,9 +179,14 @@ function OpenServer()
 	}
 	function mousemove(event)
 	{
-		var x = event.clientX;
-		var y = event.clientY;
-		//console.log( "out " + x + " and " + y + " renders " + render_list.length );
+		var x = event.pageX;
+		var y = event.pageY;
+                if( !x && !y )
+                {
+			x = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+			y = event.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+                }
+	     //console.log( "out " + x + " and " + y + " renders " + render_list.length );
 
 		var n;
 		
@@ -182,6 +199,7 @@ function OpenServer()
 			  continue;
 			x -= canvas.offsetLeft;
 			y -= canvas.offsetTop;
+                     //console.log( "corrected xy = " + x + "," +  y );
 			last_mouse_down = render_list[n];
 			ws.send( JSON.stringify( 
 					{
@@ -274,10 +292,10 @@ function OpenServer()
 				}
 			}
 	        break;
-        case 4: // PMID_CloseDisplay
-        	var canvas = document.getElementById("Render" + msg.data.server_render_id);
-        	document.body.removeChild( canvas );
-        	break;
+	        case 4: // PMID_CloseDisplay
+        		var canvas = document.getElementById("Render" + msg.data.server_render_id);
+        		document.body.removeChild( canvas );
+	        	break;
 		case 6: // PMID_MakeImage
 			var canvas = null;
 			canvas = find_render( msg.data.server_render_id );			
@@ -286,7 +304,7 @@ function OpenServer()
 			{
 				image.image = new Image();
 			}
-                     //console.log( "image made is " + msg.data.server_image_id + " and render " + msg.data.server_render_id );
+                     console.log( "image made is " + msg.data.server_image_id + " and render " + msg.data.server_render_id );
 			image.server_render_id = msg.data.server_render_id;
 			image.server_id = msg.data.server_image_id;
 			image.width = msg.data.width;
@@ -296,7 +314,7 @@ function OpenServer()
 		case 7: // PMID_MakeSubImage
 			image_list.push( image = new proxy_image() );
 			image.server_id = msg.data.server_image_id;
-                     //console.log( "subimage made is " + msg.data.server_image_id + " on " + msg.data.server_parent_image_id + " At " + msg.data.x + "," + msg.data.y+" by " + msg.data.width + "," + msg.data.height);
+                     console.log( "subimage made is " + msg.data.server_image_id + " on " + msg.data.server_parent_image_id + " At " + msg.data.x + "," + msg.data.y+" by " + msg.data.width + "," + msg.data.height);
 			image.x = msg.data.x;
 			image.y = msg.data.y;
 			image.width = msg.data.width;
@@ -327,7 +345,7 @@ function OpenServer()
                 case 22: // PMID_TransferSubImages
                 	image_to = find_image( msg.data.image_to_id );
                 	image_from = find_image( msg.data.image_from_id );
-                    //console.log( "transfer " + msg.data.image_from_id + " to " + msg.data.image_to_id  );
+                    console.log( "transfer " + msg.data.image_from_id + " to " + msg.data.image_to_id  );
                         while( tmp = image_from.child )
 			{
 				// moving a child allows it to keep all of it's children too?
@@ -358,15 +376,15 @@ function OpenServer()
 		case 10: // PMID_ImageData
 			image = find_image( msg.data.server_image_id );	
 		    //console.log( "Updated image source.... "  + msg.data.server_image_id );
-                        //{
-			//if( image.on_document )
-			//	document.body.removeChild(image.image);
-                        //}
+                        {
+			if( image.on_document )
+				document.body.removeChild(image.image);
+                        }
 			image.image.src = msg.data.data;
-                        //{
-			//  image.on_document = false;
-			//  document.body.appendChild(image.image);
-                        //}
+                        {
+			  image.on_document = true;
+			  document.body.appendChild(image.image);
+                        }
 			break;
 		case 11: // PMID_BlotImageSizedTo
 			image = find_image( msg.data.server_image_id );

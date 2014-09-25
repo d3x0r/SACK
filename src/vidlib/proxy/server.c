@@ -28,7 +28,7 @@ static IMAGE_INTERFACE ProxyImageInterface;
 
 static void FormatColor( PVARTEXT pvt, CPOINTER data )
 {
-	vtprintf( pvt, "\"rgba(%u,%u,%u,%g)\""
+	vtprintf( pvt, WIDE("\"rgba(%u,%u,%u,%g)\"")
 		, ((*(PCDATA)data) >> 16) & 0xFF
 		, ((*(PCDATA)data) >> 8) & 0xFF
 		, ((*(PCDATA)data) >> 0) & 0xFF 
@@ -192,13 +192,13 @@ static void encodeblock( unsigned char in[3], char out[4], size_t len )
 
 static TEXTSTR Encode64Image( P_8 buf, LOGICAL bmp, size_t length, size_t *outsize )
 {
-	TEXTSTR real_output;
+	char * real_output;
 
 	real_output = NewArray( char, 22 + ( length * 4 / 3 ) + 1 );
 	if( bmp )
-		StrCpy( real_output, "data:image/bmp;base64," );
+		strcpy( real_output, "data:image/bmp;base64," );
 	else
-		StrCpy( real_output, "data:image/png;base64," );
+		strcpy( real_output, "data:image/png;base64," );
 	{
 		size_t n;
 		for( n = 0; n < (length)/3; n++ )
@@ -1947,7 +1947,12 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 					ys += ((PVPImage)pIF)->y;
 					pIF = (Image)(((PVPImage)pIF)->parent);
 				}
-				shaded_image = l.real_interface->_GetShadedImage( ((PVPImage)pIF)->image, va_arg( args, CDATA ), va_arg( args, CDATA ), va_arg( args, CDATA ) );
+				{
+					CDATA a = va_arg( args, CDATA );
+					CDATA b = va_arg( args, CDATA );
+					CDATA c = va_arg( args, CDATA );
+					shaded_image = l.real_interface->_GetShadedImage( ((PVPImage)pIF)->image, a,b,c );
+				}
 				if( !shaded_image->reverse_interface )
 				{
 					// new image, and we need to reverse track it....
@@ -2162,7 +2167,12 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 				}
 				((PVPImage)pifSrc)->image->reverse_interface = &ProxyImageInterface;
 				((PVPImage)pifSrc)->image->reverse_interface_instance = (POINTER)pifSrc;
-				shaded_image = l.real_interface->_GetShadedImage( ((PVPImage)pifSrc)->image, va_arg( args, CDATA ), va_arg( args, CDATA ), va_arg( args, CDATA ) );
+				{
+					CDATA a = va_arg( args, CDATA );
+					CDATA b = va_arg( args, CDATA );
+					CDATA c = va_arg( args, CDATA );
+					shaded_image = l.real_interface->_GetShadedImage( ((PVPImage)pifSrc)->image, a,b,c );
+				}
 				if( !shaded_image->reverse_interface )
 				{
 					// new image, and we need to reverse track it....

@@ -1272,13 +1272,13 @@ void PutStringFontEx( ImageFile *pImage
 	{
 		while( Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
 		{
-			if( *(unsigned char*)pc == '\n' )
+			if( (*pc) == '\n' )
 			{
 				y += font->height;
 				x = _x;
 			}
 			else
-				x += _PutCharacterFont( pImage, x, y, color, background, *(unsigned char*)pc, font );
+				x += _PutCharacterFont( pImage, x, y, color, background, *pc, font );
 		}
 	}
 	return;// x;
@@ -1412,8 +1412,8 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 		// application commands should be non-printed.
 		while( Step( &pString, &nLen, &tmp1, &tmp1, &tmp1, &tmp1 ) )
 		{
-			character = (*(unsigned char*)pString) & 0xFF;
-			if( *pString == '\n' )
+			character = pString[0];
+			if( character == '\n' )
 			{
 				*height += UseFont->height;
 				if( *width > max_width )
