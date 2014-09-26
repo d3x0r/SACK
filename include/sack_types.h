@@ -12,6 +12,15 @@
 #include <stdint.h>
 //#endif
 
+//#define USE_SACK_CUSTOM_MEMORY_ALLOCATION
+// this has to be a compile option (option from cmake)
+#ifdef USE_SACK_CUSTOM_MEMORY_ALLOCATION
+#define USE_CUSTOM_ALLOCER 1
+#else
+#define USE_CUSTOM_ALLOCER 0
+#endif
+
+
 #ifdef _MSC_VER
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x501
@@ -648,7 +657,7 @@ typedef int pid_t;
 
 // drop out these debug relay paramters for managed code...
 // we're going to have the full call frame managed and known...
-#ifndef _DEBUG //&& !defined( __NO_WIN32API__ )
+#if !defined( _DEBUG ) && !defined( _DEBUG_INFO )
 #  if defined( __LINUX__ ) && !defined( __PPCCPP__ )
 //#warning "Setting DBG_PASS and DBG_FORWARD to be ignored." 
 #  else
@@ -1231,6 +1240,16 @@ SACK_NAMESPACE
 #  define c_64fX   "llX"
 #  define c_64fs   "lld"
 
+#endif
+
+#if defined( UNICODE )
+#  define _cstring_f WIDE("S")
+#  define _string_f WIDE("s")
+#  define _ustring_f WIDE("s")
+#else
+#  define _cstring_f WIDE("s")
+#  define _string_f WIDE("s")
+#  define _ustring_f WIDE("S")
 #endif
 
 #if defined( __64__ )

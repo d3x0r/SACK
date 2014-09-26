@@ -63,6 +63,9 @@ static struct instance_local
 #if HAS_TLS
 ThreadLocal struct instance_local *option_thread;
 #define l (*option_thread)
+#else
+struct instance_local *option_thread;
+#define l (*option_thread)
 #endif
 
 // to support older interface
@@ -389,8 +392,8 @@ SaneWinMain( argc, argv )
 {
 	PODBC o = NULL;
 #ifdef UNICODE
-	TEXTSTR arg1 = (argc > 1)?DupCStr( argv[1] ):NULL;
-	TEXTSTR arg2 = (argc > 2)?DupCStr( argv[2] ):NULL;
+	TEXTSTR arg1 = (argc > 1)?argv[1]:NULL;
+	TEXTSTR arg2 = (argc > 2)?argv[2]:NULL;
 #else
 	char *arg1 = (argc > 1)?argv[1]:NULL;
 	char *arg2 = (argc > 2)?argv[2]:NULL;

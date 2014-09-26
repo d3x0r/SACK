@@ -21,6 +21,20 @@ extern "C" {
  #define ALC_APIENTRY
 #endif
 
+#ifdef __WATCOMC__
+#define cosf  cos
+#define powf  pow
+#define log10f log10
+#define sqrtf sqrt
+#define sinf  sin
+#define tanf tan
+#define atanf atan
+#define atan2f atan2
+#define fabsf fabs
+#define asinf  asin
+#define acosf  acos
+#define floorf floor
+#endif
 
 /** Deprecated macro. */
 #define ALCAPI                                   ALC_API

@@ -98,7 +98,6 @@ static void ChopDecorations( void )
 			l.received.BorderSegment[SEGMENT_CENTER] = MakeSubImage( l.decoration
 																		 , l.received.back_x + BorderWidth, BorderHeight
 																		 , MiddleSegmentWidth, MiddleSegmentHeight );
-			SetBaseColor( NORMAL, getpixel( l.received.BorderSegment[SEGMENT_CENTER], 0, 0 ) );
 			l.received.BorderSegment[SEGMENT_RIGHT] = MakeSubImage( l.decoration
 																		, l.received.back_x + BorderWidth + MiddleSegmentWidth, BorderHeight
 																		, BorderWidth2, MiddleSegmentHeight );
@@ -142,7 +141,6 @@ static void ChopDecorations( void )
 			l.sent.BorderSegment[SEGMENT_CENTER] = MakeSubImage( l.decoration
 																		 , l.sent.back_x + BorderWidth, BorderHeight
 																		 , MiddleSegmentWidth, MiddleSegmentHeight );
-			SetBaseColor( NORMAL, getpixel( l.sent.BorderSegment[SEGMENT_CENTER], 0, 0 ) );
 			l.sent.BorderSegment[SEGMENT_RIGHT] = MakeSubImage( l.decoration
 																		, l.sent.back_x + BorderWidth + MiddleSegmentWidth, BorderHeight
 																		, BorderWidth2, MiddleSegmentHeight );

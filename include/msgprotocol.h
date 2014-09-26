@@ -218,13 +218,13 @@ typedef int (CPROC *server_function)( PSERVICE_ROUTE route, _32 *params, size_t 
 										 , _32 *result, size_t *result_length );
 
 typedef struct server_function_entry_tag{
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 	CTEXTSTR name;
 #endif
 	server_function function;
 } SERVER_FUNCTION;
 
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 #define ServerFunctionEntry(name) { _WIDE(#name), name }
 #else
 #define ServerFunctionEntry(name) { name }

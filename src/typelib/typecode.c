@@ -24,7 +24,15 @@
 #include <sack_types.h>
 #include <timers.h>
 
-
+#ifndef USE_CUSTOM_ALLOCER
+#define USE_SACK_CUSTOM_MEMORY_ALLOCATION
+// this has to be a compile option (option from cmake)
+#ifdef USE_SACK_CUSTOM_MEMORY_ALLOCATION
+#define USE_CUSTOM_ALLOCER 1
+#else
+#define USE_CUSTOM_ALLOCER 0
+#endif
+#endif
 
 #ifdef __cplusplus
 namespace sack {
@@ -692,9 +700,9 @@ void DeleteDataStackEx( PDATASTACK *pds DBG_PASS )
 static struct link_queue_local_data
 {
 	volatile _32 lock;
-#if !USE_CUSTOM_ALLOCER
+//#if !USE_CUSTOM_ALLOCER
 	volatile PTHREAD thread;
-#endif
+//#endif
 } s_link_queue_local, *_link_queue_local;
 
 #define link_queue_local  ((_link_queue_local)?(*_link_queue_local):(s_link_queue_local))

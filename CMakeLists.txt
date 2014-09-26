@@ -402,10 +402,12 @@ include( CMakeExternal.txt )
 endif()
 
 
-set(  CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG" )
-set(  CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -D_DEBUG" )
-set(  CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG" )
-set(  CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -D_DEBUG" )
+set(  CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -D_DEBUG_INFO" )
+# visual studio headers change with _DEBUG defined... so it can't be release with _DEBUG defined
+set(  CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -D_DEBUG_INFO" )
+set(  CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG -D_DEBUG_INFO" )
+# visual studio headers change with _DEBUG defined... so it can't be release with _DEBUG defined
+set(  CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -D_DEBUG_INFO" )
 
 # here, blank/empty is as good as saying 'here'
 SET( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/ )
@@ -1220,9 +1222,7 @@ endif( NOT __QNX__ AND NOT __ANDROID__ )
   #endif( NOT WIN8_SDK OR ( WIN8_SDK STREQUAL "/registry" ) )
 
 if( NOT __NO_NETWORK__ )
-  if( NOT BUILD_UNICODE )
-    add_subdirectory( src/vidlib/proxy )
-  endif( NOT BUILD_UNICODE )
+  add_subdirectory( src/vidlib/proxy )
 endif( NOT __NO_NETWORK__ )
   add_subdirectory( src/vidlib/puregl2 )
 

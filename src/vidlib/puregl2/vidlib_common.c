@@ -490,7 +490,7 @@ void LoadOptions( void )
 			default_camera = (struct display_camera *)GetLink( &l.cameras, 1 );
 			//lprintf( "Retrieve default as %p", default_camera );
 		}
-		lprintf( "Set default to %p", default_camera );
+		lprintf( WIDE("Set default to %p"), default_camera );
 		SetLink( &l.cameras, 0, default_camera );
 	}
 	{
@@ -568,7 +568,7 @@ void LoadOptions( void )
 			default_camera = (struct display_camera *)GetLink( &l.cameras, 1 );
 			//lprintf( "Retrieve default as %p", default_camera );
 		}
-		lprintf( "Set default to %p", default_camera );
+		lprintf( WIDE("Set default to %p"), default_camera );
 		SetLink( &l.cameras, 0, default_camera );
 	}
 	l.flags.bLogMessageDispatch = 0;
@@ -582,7 +582,7 @@ void LoadOptions( void )
 	if( !l.origin )
 	{
 		static MATRIX m;
-		lprintf( "Init camera" );
+		lprintf( WIDE("Init camera") );
 		l.origin = CreateNamedTransform( WIDE("render.camera") );
 
 		Translate( l.origin, l.scale * average_width/2, l.scale * average_height/2, l.scale * average_height/2 );
@@ -744,7 +744,7 @@ void OpenCamera( struct display_camera *camera )
 		// extra init iterates through registered plugins and
 		// loads their initial callbacks; the actual OnIni3d() has many more params
 		camera->flags.init= 0; // make sure we do first setup on context...
-		lprintf( "Invoke init on camera (should be a valid device by here?" );
+		lprintf( WIDE("Invoke init on camera (should be a valid device by here?") );
 		InvokeExtraInit( camera, camera->origin_camera );
 
 		// first draw allows loading textures and shaders; so reset that we did a first draw.

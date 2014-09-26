@@ -77,7 +77,7 @@ CLIENTMSG_PROC(int, SendMultiServiceEventPairsEx)( PSERVICE_ROUTE RouteID, _32 e
 
 }
 
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 static struct {
 	CTEXTSTR pFile;
 	int nLine;
@@ -98,7 +98,7 @@ CLIENTMSG_PROC(int, SendMultiServiceEvent)( PSERVICE_ROUTE RouteID, _32 event
 		pairs[n].buffer = va_arg( args, POINTER );
 		pairs[n].len = va_arg( args, _32 );
 	}
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 	status = SendMultiServiceEventPairsEx( RouteID, event, parts, pairs, nextsmmse.pFile, nextsmmse.nLine );
 #else
 	status = SendMultiServiceEventPairsEx( RouteID, event, parts, pairs );
@@ -109,7 +109,7 @@ CLIENTMSG_PROC(int, SendMultiServiceEvent)( PSERVICE_ROUTE RouteID, _32 event
 
 CLIENTMSG_PROC(SendMultiServiceEventProto, SendMultiServiceEventEx)( DBG_VOIDPASS )
 {
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 	nextsmmse.pFile = pFile;
 	nextsmmse.nLine = nLine;
 #endif

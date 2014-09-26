@@ -800,9 +800,9 @@ static struct sound_device *getSoundDevice( struct ffmpeg_file * file )
 		sound_device->alc_device = openal.alcOpenDevice( NULL );
 		if( 0 )
 		{
-			ALboolean enumeration;
+			ALCboolean enumeration;
 
-			enumeration = openal.alcIsExtensionPresent(NULL, WIDE("ALC_ENUMERATION_EXT"));
+			enumeration = openal.alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT");
 			if (enumeration == AL_FALSE)
 			{
 				lprintf( WIDE("Failed to be able to enum..") );
@@ -1052,30 +1052,30 @@ static void EnableAudioOutput( struct ffmpeg_file * file )
 	if( file->pAudioCodecCtx->channels == 2 )
 	{
       lprintf( WIDE("Stereo format") );
-		ffmpeg.av_opt_set_int(file->audio_converter, WIDE("in_channel_layout"),  AV_CH_LAYOUT_STEREO, 1 );
+		ffmpeg.av_opt_set_int(file->audio_converter, "in_channel_layout",  AV_CH_LAYOUT_STEREO, 1 );
 	}
 	else if( file->pAudioCodecCtx->channels == 4 )
 	{
       lprintf( WIDE("quad input format, using Stereo format") );
-		ffmpeg.av_opt_set_int(file->audio_converter, WIDE("in_channel_layout"),  AV_CH_LAYOUT_STEREO, 1 );
+		ffmpeg.av_opt_set_int(file->audio_converter, "in_channel_layout",  AV_CH_LAYOUT_STEREO, 1 );
 	}
 	else if( file->pAudioCodecCtx->channels == 1 )
 	{
-		ffmpeg.av_opt_set_int(file->audio_converter, WIDE("in_channel_layout"),  AV_CH_LAYOUT_MONO, 1 );
+		ffmpeg.av_opt_set_int(file->audio_converter, "in_channel_layout",  AV_CH_LAYOUT_MONO, 1 );
 	}
 	else if( file->pAudioCodecCtx->channels == 6 )
-		ffmpeg.av_opt_set_int(file->audio_converter, WIDE("in_channel_layout"),  AV_CH_LAYOUT_5POINT1, 1 );
+		ffmpeg.av_opt_set_int(file->audio_converter, "in_channel_layout",  AV_CH_LAYOUT_5POINT1, 1 );
 	else
-		ffmpeg.av_opt_set_int(file->audio_converter, WIDE("in_channel_layout"),  file->pAudioCodecCtx->channel_layout, 1 );
+		ffmpeg.av_opt_set_int(file->audio_converter, "in_channel_layout",  file->pAudioCodecCtx->channel_layout, 1 );
 
 
 	if( file->use_channels == 2 )
-		ffmpeg.av_opt_set_int(file->audio_converter, WIDE("out_channel_layout"), AV_CH_LAYOUT_STEREO,  1);
+		ffmpeg.av_opt_set_int(file->audio_converter, ("out_channel_layout"), AV_CH_LAYOUT_STEREO,  1);
 	else
-		ffmpeg.av_opt_set_int(file->audio_converter, WIDE("out_channel_layout"), AV_CH_LAYOUT_MONO,  1);
+		ffmpeg.av_opt_set_int(file->audio_converter, ("out_channel_layout"), AV_CH_LAYOUT_MONO,  1);
 
-	ffmpeg.av_opt_set_int(file->audio_converter, WIDE("in_sample_rate"),     file->pAudioCodecCtx->sample_rate,                0);
-	ffmpeg.av_opt_set_int(file->audio_converter, WIDE("out_sample_rate"),    file->pAudioCodecCtx->sample_rate,                0);
+	ffmpeg.av_opt_set_int(file->audio_converter, ("in_sample_rate"),     file->pAudioCodecCtx->sample_rate,                0);
+	ffmpeg.av_opt_set_int(file->audio_converter, ("out_sample_rate"),    file->pAudioCodecCtx->sample_rate,                0);
 	//DebugBreak();
 	lprintf( WIDE("Sample rate is %d"), file->pAudioCodecCtx->sample_rate );
 	lprintf( WIDE("codec is : %d %d"), file->pAudioCodecCtx->codec_id, CODEC_ID_MP3 );
@@ -1084,20 +1084,20 @@ static void EnableAudioOutput( struct ffmpeg_file * file )
 	if(file->pAudioCodecCtx->codec_id == CODEC_ID_MP3 )
 	{
 		//ffmpeg.av_opt_set_sample_fmt(file->audio_converter, WIDE("in_sample_fmt"),  AV_SAMPLE_FMT_S16, 0);
-		ffmpeg.av_opt_set_sample_fmt(file->audio_converter, WIDE("in_sample_fmt"),  AV_SAMPLE_FMT_S16P, 0);
+		ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  AV_SAMPLE_FMT_S16P, 0);
 		//ffmpeg.av_opt_set_sample_fmt(file->audio_converter, WIDE("in_sample_fmt"),  AV_SAMPLE_FMT_U8, 0);
 		//ffmpeg.av_opt_set_sample_fmt(file->audio_converter, WIDE("in_sample_fmt"),  AV_SAMPLE_FMT_U8P, 0);
 		//ffmpeg.av_opt_set_sample_fmt(file->audio_converter, WIDE("in_sample_fmt"),  AV_SAMPLE_FMT_FLTP, 0);
 		//ffmpeg.av_opt_set_sample_fmt(file->audio_converter, WIDE("in_sample_fmt"),  AV_SAMPLE_FMT_FLT, 0);
 	}
    else if( file->pAudioCodecCtx->codec_id, AV_CODEC_ID_AAC )
-		ffmpeg.av_opt_set_sample_fmt(file->audio_converter, WIDE("in_sample_fmt"),  AV_SAMPLE_FMT_FLTP, 0);
+		ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  AV_SAMPLE_FMT_FLTP, 0);
    else if( file->pAudioCodecCtx->codec_id, AV_CODEC_ID_AC3 )
-		ffmpeg.av_opt_set_sample_fmt(file->audio_converter, WIDE("in_sample_fmt"),  AV_SAMPLE_FMT_S16P, 0);
+		ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  AV_SAMPLE_FMT_S16P, 0);
 	else
 
-		ffmpeg.av_opt_set_sample_fmt(file->audio_converter, WIDE("in_sample_fmt"),  file->pAudioCodecCtx->sample_fmt, 0);
-	ffmpeg.av_opt_set_sample_fmt(file->audio_converter, WIDE("out_sample_fmt"), AV_SAMPLE_FMT_S16,  0);
+		ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  file->pAudioCodecCtx->sample_fmt, 0);
+	ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "out_sample_fmt", AV_SAMPLE_FMT_S16,  0);
 	lprintf( WIDE("Init swr") );
 	ffmpeg.swr_init( file->audio_converter );
 
@@ -1791,7 +1791,7 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 				{
 					if( file->pVideoCodecCtx->time_base.num == 1 && file->pVideoCodecCtx->time_base.den > 50000 )
 					{
-						lprintf( "Excessive divisor..." );
+						lprintf( WIDE("Excessive divisor...") );
 						file->flags.force_pkt_pts_in_ms = 1;
 					}
 				}
@@ -2056,7 +2056,7 @@ static PTRSZVAL CPROC ProcessAudioFrame( PTHREAD thread )
 								//DebugBreak();
 							}
 	#ifdef DEBUG_AUDIO_PACKET_READ
-							lprintf( "release audio buffer.. %p", buffer->samplebuf );
+							lprintf( WIDE("release audio buffer.. %p"), buffer->samplebuf );
 	#endif
 							ffmpeg.av_free( buffer->samplebuf );
 							//LogTime(file, FALSE, WIDE("audio deque"), 1 DBG_SRC );
@@ -2192,7 +2192,7 @@ static PTRSZVAL CPROC ProcessAudioFrame( PTHREAD thread )
 			else
 			{
 				// already have enough playing... don't technically need any
-				lprintf( "Clear need audio frame" );
+				lprintf( WIDE("Clear need audio frame") );
 				file->flags.need_audio_frame = 0;
 				//file->audioSamples / file->pAudioCodecCtx->sample_rate
 				if( !packet )
@@ -2409,7 +2409,7 @@ static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
 				}
 				if( file->flags.clear_pending_video )
 				{
-					lprintf( "Skipping frame that was already held." );
+					lprintf( WIDE("Skipping frame that was already held.") );
 					file->flags.clear_pending_video = 0;
 					continue;
 				}
@@ -2718,7 +2718,7 @@ static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
 					*/
 				file->videoFrame = 0;// (file->seek_position * (file->pFormatCtx->duration/1000) * file->pVideoCodecCtx->time_base.den) / ( 1000LL * file->pVideoCodecCtx->ticks_per_frame * file->pVideoCodecCtx->time_base.num * (1000000000LL)  );
 				file->audioSamplesPlayed = 0;//file->seek_position * file->pFormatCtx->duration * file->pAudioCodecCtx->sample_rate / 1000000000;
-				lprintf( "---------- Set Start Time -------------" );
+				lprintf( WIDE("---------- Set Start Time -------------") );
 				file->media_start_time = ffmpeg.av_gettime();
 				//file->pFo
 				if( file->flags.was_playing || file->seek_position )
@@ -2746,7 +2746,7 @@ static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
 						if( file->video_ended )
 							file->video_ended( file->psvEndedParam );
 					}
-					lprintf( "Seek was in error; flag no more packets." );
+					lprintf( WIDE("Seek was in error; flag no more packets.") );
 					file->flags.no_more_packets = 1;
 					continue;  // go back to the top
 				}
@@ -2764,18 +2764,18 @@ static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
 			{
 				// loop around to go to sleep
 				// a seek might enable playing again...
-				lprintf( "packet reader; no more packets." );
+				lprintf( WIDE("packet reader; no more packets.") );
 				while( ( !file->flags.need_video_frame || file->video_packets ) 
 					|| ( !file->flags.need_audio_frame || file->out_of_queue ) )
 				{
-					lprintf( "waiting for video and audio to end.... %d %d %d %d", file->flags.need_video_frame, file->video_packets,  file->flags.need_audio_frame, file->out_of_queue );
+					lprintf( WIDE("waiting for video and audio to end.... %d %d %d %d"), file->flags.need_video_frame, file->video_packets,  file->flags.need_audio_frame, file->out_of_queue );
 					WakeableSleep( 10 );
 				}
-				lprintf( "threads are both like empty" );
+				lprintf( WIDE("threads are both like empty") );
 				file->flags.no_more_packets = 1;
 				if( !file->flags.sent_end_event )
 				{
-					lprintf( "Send end event..." );
+					lprintf( WIDE("Send end event...") );
 					file->flags.sent_end_event = 1;
 					if( file->video_ended )
 						file->video_ended( file->psvEndedParam );
@@ -2819,7 +2819,7 @@ static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
 				{
 					if( file->audio_packets > l.default_outstanding_audio )
 					{
-						lprintf( "Clear need audio frame" );
+						lprintf( WIDE("Clear need audio frame") );
 						file->flags.need_audio_frame = 0;
 					}
 					if( file->audioThread )
@@ -2841,7 +2841,7 @@ static PTRSZVAL CPROC ProcessFrames( PTHREAD thread )
 			else
 			{
 #ifdef DEBUG_LOW_LEVEL_PACKET_READ
-				lprintf( "Call free packet.." );
+				lprintf( WIDE("Call free packet..") );
 #endif
 				ffmpeg.av_free_packet(packet);
 				file->free_packets++;
@@ -3012,7 +3012,7 @@ void ffmpeg_PauseFile( struct ffmpeg_file *file )
 void ffmpeg_SeekFile( struct ffmpeg_file *file, S_64 target_time )
 {
 	int was_paused = file->flags.paused;
-	lprintf( "Do Seek to %"_64fs, target_time );
+	lprintf( WIDE("Do Seek to %")_64fs, target_time );
 	if( !file->readThread )
 	{
 		file->flags.paused = 1;
