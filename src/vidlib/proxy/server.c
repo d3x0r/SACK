@@ -1,4 +1,5 @@
 #define NEED_REAL_IMAGE_STRUCTURE
+#define NO_UNICODE_C
 #include <imglib/imagestruct.h>
 
 #include <render.h>
@@ -190,7 +191,7 @@ static void encodeblock( unsigned char in[3], char out[4], size_t len )
 	out[3] = (len > 2 ? base64[ in[2] & 0x3f ] : 0);
 }
 
-static TEXTSTR Encode64Image( P_8 buf, LOGICAL bmp, size_t length, size_t *outsize )
+static char *Encode64Image( P_8 buf, LOGICAL bmp, size_t length, size_t *outsize )
 {
 	char * real_output;
 
@@ -226,7 +227,7 @@ static P_8 EncodeImage( Image image, LOGICAL bmp, size_t *outsize )
 			{
 				if( 1 )
 				{
-					TEXTCHAR tmpname[32];
+					char tmpname[32];
 					static int n;
 					FILE *out;
 					snprintf( tmpname, 32, "blah%d.png", n++ );
@@ -272,7 +273,7 @@ static P_8 EncodeImage( Image image, LOGICAL bmp, size_t *outsize )
 
 		if( 0 )
 		{
-			TEXTCHAR tmpname[32];
+			char tmpname[32];
 			static int n;
 			FILE *out;
 			snprintf( tmpname, 32, "blah%d.bmp", n++ );
@@ -289,13 +290,13 @@ static P_8 EncodeImage( Image image, LOGICAL bmp, size_t *outsize )
 
 static void ClearDirtyFlag( PVPImage image )
 {
-	//lprintf( "Clear dirty on %p  (%p) %08x", image, (image)?image->image:NULL, image?image->image->flags:0 );
+	//lprintf( WIDE("Clear dirty on %p  (%p) %08x"), image, (image)?image->image:NULL, image?image->image->flags:0 );
 	for( ; image; image = image->next )
 	{
 		if( image->image )
 		{
 			image->image->flags &= ~IF_FLAG_UPDATED;
-			//lprintf( "Clear dirty on %08x", (image)?(image)->image->flags:0 );
+			//lprintf( WIDE("Clear dirty on %08x"), (image)?(image)->image->flags:0 );
 		}
 		if( image->child )
 			ClearDirtyFlag( image->child );
@@ -551,7 +552,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 	case PMID_ImageData:
 		{
 			P_8 raw_image;
-			TEXTSTR encoded_image;
+			char * encoded_image;
 			size_t outlen;
 			image = va_arg( args, PVPImage );
 			if( !image->image )
@@ -582,7 +583,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			outmsg->message_id = message;
 			outmsg->data.image_data.server_image_id = image->id;
 			// include nul in copy
-			//lprintf( "Send Image %p %d ", image, image->id );
+			//lprintf( WIDE("Send Image %p %d "), image, image->id );
 			if( websock )
 			{
 				json_msg = json_build_message( cto, outmsg );
@@ -623,7 +624,7 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 	struct server_socket_state *state;
 	if( !buffer )
 	{
-		lprintf( "init read" );
+		lprintf( WIDE("init read") );
 		state = New(struct server_socket_state);
 		MemSet( state, 0, sizeof( struct server_socket_state ) );
 		state->flags.get_length = 1;
@@ -635,14 +636,14 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 		state = (struct server_socket_state*)GetNetworkLong( pc, 0 );
 		if( state->flags.get_length )
 		{
-			//lprintf( "length is %d", state->read_length );
+			//lprintf( WIDE("length is %d"), state->read_length );
 			if( state->read_length < 2048 )
 			{
 				state->flags.get_length = 0;
 			}
 			else
 			{
-				lprintf( "Message is too long to read..." );
+				lprintf( WIDE("Message is too long to read...") );
 			}
 		}
 		else
@@ -691,12 +692,12 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 	}
 	if( state->flags.get_length )
 	{
-		//lprintf( "Read next length..." );
+		//lprintf( WIDE("Read next length...") );
 		ReadTCPMsg( pc, &state->read_length, 4 );
 	}
 	else
 	{
-		//lprintf( "read message %d", state->read_length );
+		//lprintf( WIDE("read message %d"), state->read_length );
 		ReadTCPMsg( pc, state->buffer, state->read_length );
 	}
 }
@@ -814,7 +815,7 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 	POINTER msg = NULL;
 	struct server_proxy_client *client= (struct server_proxy_client *)psv;
 	struct json_context_object *json_object;
-	lprintf( "Received:%*.*s", msglen,msglen,buffer );
+	//lprintf( WIDE("Received:%*.*") _cstring_f, msglen,msglen,buffer );
 	if( json_parse_message( l.json_reply_context, buffer, msglen, &json_object, &msg ) )
 	{
 		struct common_message *message = (struct common_message *)msg;
@@ -848,7 +849,7 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 				}
 #if defined( __LINUX__ )
             // windows doesn't need this translation
-				lprintf( "so.... do the state..." );
+				lprintf( WIDE("so.... do the state...") );
 				SACK_Vidlib_ProcessKeyState( message->data.key_event.pressed, message->data.key_event.key, &used );
 #endif
 				if( !used && render && render->key_callback )
@@ -860,7 +861,7 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 		json_dispose_message( json_object,  msg );
 	}
 	else
-		lprintf( "Failed to reverse map message..." );
+		lprintf( WIDE("Failed to reverse map message...") );
 }
 
 
@@ -869,8 +870,8 @@ static void InitService( void )
 	if( !l.listener )
 	{
 		NetworkStart();
-		l.listener = OpenTCPListenerAddrEx( CreateSockAddress( "0.0.0.0", 4241 ), Connected );
-		l.web_listener = WebSocketCreate( "ws://0.0.0.0:4240/Sack/Vidlib/Proxy"
+		l.listener = OpenTCPListenerAddrEx( CreateSockAddress( WIDE("0.0.0.0"), 4241 ), Connected );
+		l.web_listener = WebSocketCreate( WIDE("ws://0.0.0.0:4240/Sack/Vidlib/Proxy")
 													, WebSockOpen
 													, WebSockEvent
 													, WebSockClose
@@ -911,15 +912,15 @@ static void CPROC VidlibProxy_SetApplicationTitle( CTEXTSTR title )
 static void CPROC VidlibProxy_GetDisplaySize( _32 *width, _32 *height )
 {
 	if( width )
-		(*width) = SACK_GetProfileInt( "SACK/Vidlib", "Default Display Width", 1024 );
+		(*width) = SACK_GetProfileInt( WIDE("SACK/Vidlib"), WIDE("Default Display Width"), 1024 );
 	if( height )
-		(*height) = SACK_GetProfileInt( "SACK/Vidlib", "Default Display Height", 768 );
+		(*height) = SACK_GetProfileInt( WIDE("SACK/Vidlib"), WIDE("Default Display Height"), 768 );
 }
 
 static void CPROC VidlibProxy_SetDisplaySize		( _32 width, _32 height )
 {
-	SACK_WriteProfileInt( "SACK/Vidlib", "Default Display Width", width );
-	SACK_WriteProfileInt( "SACK/Vidlib", "Default Display Height", height );
+	SACK_WriteProfileInt( WIDE("SACK/Vidlib"), WIDE("Default Display Width"), width );
+	SACK_WriteProfileInt( WIDE("SACK/Vidlib"), WIDE("Default Display Height"), height );
 }
 
 
@@ -1127,7 +1128,7 @@ static void CPROC VidlibProxy_MoveSizeDisplayRel( PRENDERER r
 
 static void CPROC VidlibProxy_PutDisplayAbove		( PRENDERER r, PRENDERER above )
 {
-	lprintf( "window ordering is not implemented" );
+	lprintf( WIDE("window ordering is not implemented") );
 }
 
 static Image CPROC VidlibProxy_GetDisplayImage( PRENDERER r )
@@ -1585,14 +1586,14 @@ static Image CPROC VidlibProxy_RemakeImageEx	 ( Image pImage, PCOLOR pc, _32 wid
 		image->render_id = INVALID_INDEX;
 		AddLink( &l.images, image );
 	}
-	//lprintf( "CRITICAL; RemakeImageFile is not possible" );
+	//lprintf( WIDE("CRITICAL; RemakeImageFile is not possible") );
 	image->w = width;
 	image->h = height;
 	image->image = l.real_interface->_RemakeImageEx( image->image, pc, width, height DBG_RELAY );
 	image->image->reverse_interface = &ProxyImageInterface;
 	image->image->reverse_interface_instance = image;
 	image->id = FindLink( &l.images, image );
-	//lprintf( "%p(%p) is %d", image, image->image, image->id );
+	//lprintf( WIDE("%p(%p) is %d"), image, image->image, image->id );
 	return (Image)image;
 }
 
@@ -1614,8 +1615,8 @@ static Image CPROC VidlibProxy_LoadImageFileFromGroupEx( INDEX group, CTEXTSTR f
 	SendClientMessage( PMID_ImageData, image );
 	AddLink( &l.images, image );
 	image->id = FindLink( &l.images, image );
-	//lprintf( "%p(%p) is %d", image, image->image, image->id );
-	//lprintf( "loaded proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
+	//lprintf( WIDE("%p(%p) is %d"), image, image->image, image->id );
+	//lprintf( WIDE("loaded proxy image %p %d(%d,%d)"), image, image->id, image->w, image->w );
 	return (Image)image;
 }
 
@@ -2047,7 +2048,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 		// ok - how to figure out how to do this
 		// need to update the position and width to be within the 
 		// the bounds of pifDest....
-		//	lprintf(" begin scaled output..." );
+		//	lprintf( WIDE(" begin scaled output...") );
 		errx = -(signed)dwd;
 		erry = -(signed)dhd;
 
@@ -2156,7 +2157,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 				if( !shaded_image->reverse_interface )
 				{
 					// new image, and we need to reverse track it....
-					lprintf( "wrap shaded image for %p %d", ((PVPImage)pifSrc), ((PVPImage)pifSrc)->id );
+					lprintf( WIDE("wrap shaded image for %p %d"), ((PVPImage)pifSrc), ((PVPImage)pifSrc)->id );
 					actual_image = WrapImageFile( shaded_image );
 				}
 				else
@@ -2237,7 +2238,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 static void CPROC VidlibProxy_MarkImageDirty ( Image pImage )
 {
 	// this library tracks the IF_FLAG_UPDATED which is set by native routine;native routine marks child and all parents.
-	//lprintf( "Mark image %p dirty", pImage );
+	//lprintf( WIDE("Mark image %p dirty"), pImage );
 	l.real_interface->_MarkImageDirty( ((PVPImage)pImage)->image );
 	if( 0 )
 	{
@@ -2564,13 +2565,13 @@ static void CPROC VidlibProxy_TransferSubImages( Image pImageTo, Image pImageFro
 		if( !cto )
 			cto = WebSockInitJson( PMID_TransferSubImages );
 
-		outmsg = (struct common_message*)GetMessageBuf( pImageTo, sendlen = ( 4 + 1 + sizeof( struct transfer_sub_image_data ) ) );
+		outmsg = (struct common_message*)GetMessageBuf( (PVPImage)pImageTo, sendlen = ( 4 + 1 + sizeof( struct transfer_sub_image_data ) ) );
 		outmsg->message_id = PMID_TransferSubImages;
 		outmsg->data.transfer_sub_image.image_from_id = ((PVPImage)pImageFrom)->id;
 		outmsg->data.transfer_sub_image.image_to_id = ((PVPImage)pImageTo)->id;
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
-			AppendJSON( ((PVPImage)pImageTo), json_msg, ((P_8)outmsg)-4, sendlen, FALSE );
+			AppendJSON( ((PVPImage)pImageTo), json_msg, ((P_8)outmsg)-4, sendlen );
 			Release( json_msg );
 		}
 		LeaveCriticalSec( &l.message_formatter );
@@ -2930,7 +2931,7 @@ PRIORITY_PRELOAD( RegisterProxyInterface, VIDLIB_PRELOAD_PRIORITY )
 	RegisterInterface( WIDE( "sack.render.proxy.server" ), GetProxyDisplayInterface, DropProxyDisplayInterface );
 	RegisterInterface( WIDE( "sack.render.3d.proxy.server" ), Get3dProxyDisplayInterface, Drop3dProxyDisplayInterface );
 #ifdef _WIN32
-	LoadFunction( "bag.image.dll", NULL );
+	LoadFunction( WIDE("bag.image.dll"), NULL );
 #endif
 	l.real_interface = (PIMAGE_INTERFACE)GetInterface( WIDE( "sack.image" ) );
 

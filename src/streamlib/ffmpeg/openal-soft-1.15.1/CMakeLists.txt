@@ -831,7 +831,7 @@ IF(UTILS)
     TARGET_LINK_LIBRARIES(openal-info ${LIBNAME})
 
     ADD_EXECUTABLE(makehrtf utils/makehrtf.c)
-    IF(HAVE_LIBM)
+    IF(HAVE_LIBM AND GCC)
         TARGET_LINK_LIBRARIES(makehrtf m)
     ENDIF()
 

@@ -152,7 +152,7 @@ SYSLOG_PROC  void SYSLOG_API  LogBinaryEx ( P_8 buffer, size_t size DBG_PASS );
 SYSLOG_PROC  void SYSLOG_API  LogBinary ( P_8 buffer, size_t size );
 // logging level defaults to 1000 which is log everything
 SYSLOG_PROC  void SYSLOG_API  SetSystemLoggingLevel ( _32 nLevel );
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 /* Log a binary buffer. Logs lines representing 16 bytes of data
    at a time. The hex of each byte in a buffer followed by the
    text is logged.

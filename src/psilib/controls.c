@@ -429,7 +429,8 @@ void GetMyInterface( void )
 		GetFileGroup( WIDE( "Resources" ), WIDE( "@/../Resources" ) );
 		GetDisplaySize( &w, &h );
 		//g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/rod.ttf"), 20, 20, NULL, NULL, 0*2/*FONT_FLAG_8BIT*/, NULL, NULL );
-		g.default_font = RenderFontFileScaledEx( WIDE("arial.ttf"), 20, 20, NULL, NULL, 0*2/*FONT_FLAG_8BIT*/, NULL, NULL );
+		g.default_font = RenderFontFileScaledEx( WIDE("rod.ttf"), 18, 18, NULL, NULL, 0/*FONT_FLAG_8BIT*/, NULL, NULL );
+		//g.default_font = RenderFontFileScaledEx( WIDE("comic.ttf"), 18, 18, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 	}
 #endif
 }
@@ -642,21 +643,21 @@ PSI_PROC( void, AlignBaseToWindows )( void )
 		GetMyInterface();
 #define Swap(i)    ( (tmp = i),( sys_r = ((tmp) & 0xFF)), (sys_g = ((tmp>>8) & 0xFF)),(sys_b = ((tmp >>16) & 0xFF)),(sys_a = 0xFF),AColor(sys_r,sys_g,sys_b,sys_a) )
 	g.flags.system_color_set = 1;
-	 defaultcolor[HIGHLIGHT        ] =  Swap(GetSysColor( COLOR_3DHIGHLIGHT));
+	 g.defaultcolors[HIGHLIGHT        ] =  Swap(GetSysColor( COLOR_3DHIGHLIGHT));
 	//if( !g.BorderImage )
-	defaultcolor[NORMAL           ] =  Swap(GetSysColor(COLOR_3DFACE ));
-	defaultcolor[SHADE            ] =  Swap(GetSysColor(COLOR_3DSHADOW ));
-	defaultcolor[SHADOW           ] =  Swap(GetSysColor(COLOR_3DDKSHADOW ));
-	defaultcolor[TEXTCOLOR        ] =  Swap(GetSysColor(COLOR_BTNTEXT ));
-	defaultcolor[CAPTION          ] =  Swap(GetSysColor(COLOR_ACTIVECAPTION ));
-	defaultcolor[CAPTIONTEXTCOLOR] =  Swap(GetSysColor( COLOR_CAPTIONTEXT));
-	defaultcolor[INACTIVECAPTION ] =  Swap(GetSysColor(COLOR_INACTIVECAPTION ));    
-	defaultcolor[INACTIVECAPTIONTEXTCOLOR]=Swap(GetSysColor(COLOR_INACTIVECAPTIONTEXT ));
-	defaultcolor[SELECT_BACK      ] =  Swap(GetSysColor(COLOR_HIGHLIGHT ));
-	defaultcolor[SELECT_TEXT      ] =  Swap(GetSysColor(COLOR_HIGHLIGHTTEXT ));
-	defaultcolor[EDIT_BACKGROUND ] =  Swap(GetSysColor(COLOR_WINDOW ));
-	defaultcolor[EDIT_TEXT       ] =  Swap(GetSysColor(COLOR_WINDOWTEXT ));
-	defaultcolor[SCROLLBAR_BACK  ] =  Swap(GetSysColor(COLOR_SCROLLBAR ));
+	g.defaultcolors[NORMAL           ] =  Swap(GetSysColor(COLOR_3DFACE ));
+	g.defaultcolors[SHADE            ] =  Swap(GetSysColor(COLOR_3DSHADOW ));
+	g.defaultcolors[SHADOW           ] =  Swap(GetSysColor(COLOR_3DDKSHADOW ));
+	g.defaultcolors[TEXTCOLOR        ] =  Swap(GetSysColor(COLOR_BTNTEXT ));
+	g.defaultcolors[CAPTION          ] =  Swap(GetSysColor(COLOR_ACTIVECAPTION ));
+	g.defaultcolors[CAPTIONTEXTCOLOR] =  Swap(GetSysColor( COLOR_CAPTIONTEXT));
+	g.defaultcolors[INACTIVECAPTION ] =  Swap(GetSysColor(COLOR_INACTIVECAPTION ));    
+	g.defaultcolors[INACTIVECAPTIONTEXTCOLOR]=Swap(GetSysColor(COLOR_INACTIVECAPTIONTEXT ));
+	g.defaultcolors[SELECT_BACK      ] =  Swap(GetSysColor(COLOR_HIGHLIGHT ));
+	g.defaultcolors[SELECT_TEXT      ] =  Swap(GetSysColor(COLOR_HIGHLIGHTTEXT ));
+	g.defaultcolors[EDIT_BACKGROUND ] =  Swap(GetSysColor(COLOR_WINDOW ));
+	g.defaultcolors[EDIT_TEXT       ] =  Swap(GetSysColor(COLOR_WINDOWTEXT ));
+	g.defaultcolors[SCROLLBAR_BACK  ] =  Swap(GetSysColor(COLOR_SCROLLBAR ));
 #endif
     // No base to set to - KDE/Gnome/E/?
 }
@@ -665,20 +666,20 @@ PSI_PROC( void, AlignBaseToWindows )( void )
 
 PSI_PROC( void, SetBaseColor )( INDEX idx, CDATA c )
 {
-	//Log3( WIDE("Color %d was %08X and is now %08X"), idx, defaultcolor[idx], c );
-	defaultcolor[idx] = c;
+	Log3( WIDE("Color %d was %08X and is now %08X"), idx, defaultcolor[idx], c );
+	g.defaultcolors[idx] = c;
 }
 
 PSI_PROC( CDATA, GetBaseColor )( INDEX idx )
 {
-	return defaultcolor[idx] ;
+	return g.defaultcolors[idx] ;
 }
 
 //---------------------------------------------------------------------------
 
 PSI_PROC( void, SetControlColor )( PSI_CONTROL pc, INDEX idx, CDATA c )
 {
-	//Log3( WIDE("Color %d was %08X and is now %08X"), idx, basecolor(pc)[idx], c );
+	Log3( WIDE("Color %d was %08X and is now %08X"), idx, basecolor(pc)[idx], c );
 	if( pc )
 	{
 		if( basecolor(pc) == g.defaultcolors )

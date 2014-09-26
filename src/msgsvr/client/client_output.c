@@ -348,7 +348,7 @@ CLIENTMSG_PROC( int, TransactServerMultiMessage )( PSERVICE_ROUTE RouteID, MSGID
 		handler->LastMsgID = MsgOut;
 		break;
 	}
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 	if( !( PrivateSendTransactionResponseMultiMessageEx( RouteID, MsgOut, buffers
 																	, pairs
 																	, next_transact.pFile, next_transact.nLine

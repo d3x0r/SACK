@@ -33,6 +33,7 @@ install_default_dest( ${PROJECT} )
        COMPILER_DEFINITIONS TARGET_LABEL=bag_video_proxyy_server 
    )
 
+if( NOT WATCOM )  #need thread local support.
 set( PROJECT bag.video.proxy.instance.server )
 if( UNIX )
 set( MORE_SOURCES keymap_linux.c )
@@ -43,6 +44,7 @@ install_default_dest( ${PROJECT} )
   SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES	FOLDER "Video Renderer"   
        COMPILER_DEFINITIONS TARGET_LABEL=bag_video_proxyy_instance_server 
    )
+endif( NOT WATCOM )  #need thread local support.
    
 set( PROJECT bag.video.proxy.client )
 add_program( ${PROJECT} WIN32 client.c )

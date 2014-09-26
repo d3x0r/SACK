@@ -257,7 +257,7 @@
 #      define SaneWinMain(a,b) int main( int a, char **argv_real ) { int n; TEXTCHAR **b; b = NewArray( TEXTSTR, a + 1 ); for( n = 0; n < a; n++ ) b[n] = DupCharToText( argv_real[n] ); b[n] = NULL; {
 #      define EndSaneWinMain() } }
 #    else
-#      define SaneWinMain(a,b) int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmdShow ) { int a; TEXTCHAR **b; ParseIntoArgs( GetCommandLine(), &a, &b ); {
+#      define SaneWinMain(a,b) int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, TEXTSTR lpCmdLine, int nCmdShow ) { int a; TEXTCHAR **b; ParseIntoArgs( GetCommandLine(), &a, &b ); {
 #      define EndSaneWinMain() } }
 #    endif
 #  else

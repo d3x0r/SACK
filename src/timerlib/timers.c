@@ -110,7 +110,7 @@ struct timer_tag
 	_32 ID;
 	void (CPROC*callback)(PTRSZVAL user);
 	PTRSZVAL userdata;
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 	CTEXTSTR pFile;
 	int nLine;
 #endif
@@ -1920,7 +1920,7 @@ static int CPROC ProcessTimers( PTRSZVAL psvForce )
 #ifdef __LINUX__
 				TimerWakeableSleep( g.last_sleep );
 #else
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 				WakeableSleepEx( g.last_sleep, timer->pFile, timer->nLine );
 #else
 				WakeableSleepEx( g.last_sleep );

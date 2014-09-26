@@ -60,7 +60,7 @@ PRELOAD( loginfo )
 		fclose( input[3] );
 }
 
-#if defined( __CMAKE_VERSION__ ) && ( __CMAKE_VERSION__ < 2081003 )
+#if defined( __CMAKE_VERSION__ ) && ( __CMAKE_VERSION__ < 2081003 ) || defined( __WATCOMC__ )
 // cmake + watcom link failure fix
 PUBLIC( void, ExportThis )( void )
 {

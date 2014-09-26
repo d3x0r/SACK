@@ -1030,15 +1030,19 @@ static ALvoid UpdateEchoLine(ALfloat reverbGain, ALfloat lateGain, ALfloat echoT
 // Update the early and late 3D panning gains.
 static ALvoid Update3DPanning(const ALCdevice *Device, const ALfloat *ReflectionsPan, const ALfloat *LateReverbPan, ALfloat Gain, ALverbState *State)
 {
-    ALfloat earlyPan[3] = { ReflectionsPan[0], ReflectionsPan[1],
-                            ReflectionsPan[2] };
-    ALfloat latePan[3] = { LateReverbPan[0], LateReverbPan[1],
-                           LateReverbPan[2] };
+	ALfloat earlyPan[3];
+	ALfloat latePan[3];
     ALfloat ambientGain;
     ALfloat dirGain;
     ALfloat length;
     ALuint index;
+	 latePan[0] = LateReverbPan[0];
+	 latePan[1] = LateReverbPan[1];
+    latePan[2] = LateReverbPan[2];
 
+	earlyPan[0] = ReflectionsPan[0];
+	earlyPan[1] = ReflectionsPan[1];
+	earlyPan[2] = ReflectionsPan[2];
     Gain *= ReverbBoost;
 
     /* Attenuate reverb according to its coverage (dirGain=0 will give

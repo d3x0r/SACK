@@ -181,8 +181,8 @@ static void New4FixOrphanedBranches( void )
 
 	SQLQuery( og.Option, WIDE( "select count(*) from " ) OPTION_MAP, &result2 );
 	// expand the options list to max extent real quickk....
-	SetLink( &options, IntCreateFromText( result2 ) + 1, 0 );
-	SetLink( &options2, IntCreateFromText( result2 ) + 1, 0 );
+	SetLink( &options, (PTRSZVAL)IntCreateFromText( result2 ) + 1, 0 );
+	SetLink( &options2, (PTRSZVAL)IntCreateFromText( result2 ) + 1, 0 );
 
 	for( SQLRecordQuery( og.Option, WIDE( "select option_id,parent_option_id from " )OPTION4_MAP, NULL, &result, NULL );
 		  result;

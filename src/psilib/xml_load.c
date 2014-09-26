@@ -193,7 +193,7 @@ static struct {
 	CTEXTSTR pFile;
 	_32 nLine;
 } current_loading;
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 void * MyAllocate( size_t s ) { return AllocateEx( s, current_loading.pFile, current_loading.nLine ); }
 #else
 void * MyAllocate( size_t s ) { return AllocateEx( s ); }

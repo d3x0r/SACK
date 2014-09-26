@@ -35,7 +35,8 @@
 
 #include "alMain.h"
 
-#ifdef _WIN32_IE
+#ifdef _WIN32
+#include <shellapi.h>
 #include <shlobj.h>
 #endif
 

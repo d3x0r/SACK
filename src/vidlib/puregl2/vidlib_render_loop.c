@@ -454,13 +454,13 @@ LOGICAL ProcessGLDraw( LOGICAL draw_all )
 	if( !l.flags.bUpdateWanted )
 	{
 		if( l.flags.bLogRenderTiming )
-			lprintf( "Check if a render surface wants to draw..." );
+			lprintf( WIDE("Check if a render surface wants to draw...") );
 		// set l.flags.bUpdateWanted for window surfaces.
 		WantRender3D();
 	}
 	else
 		if( l.flags.bLogRenderTiming )
-			lprintf( "Update is wanted already..." );
+			lprintf( WIDE("Update is wanted already...") );
 
 	if( draw_all || l.flags.bUpdateWanted )
 	{
@@ -472,7 +472,7 @@ LOGICAL ProcessGLDraw( LOGICAL draw_all )
 			if( !idx )
 				continue;
 			if( l.flags.bLogRenderTiming )
-				lprintf( "draw a camera %p", camera );
+				lprintf( WIDE("draw a camera %p"), camera );
 			drawCamera( camera );
 		}
 		l.flags.bUpdateWanted = 0;

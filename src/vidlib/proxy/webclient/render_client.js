@@ -236,6 +236,16 @@ function OpenServer()
                 parent.child = orphan;
         }
         
+        var start = null;
+        function step(timestamp) {
+     		//var progress;
+		//if (start === null) start = timestamp;
+		//progress = timestamp - start;
+		//d.style.left = Math.min(progress/10, 200) + "px";
+		//if (progress < 2000) {
+		//	requestAnimationFrame(step);
+	}
+        
 	function HandleMessage( msg )
 	{
 		//console.log( "message:" + msg.MsgID );
@@ -492,7 +502,9 @@ function OpenServer()
 			ctx.lineTo( ofs_x + msg.data.x2, ofs_y + msg.data.y2 );
 			ctx.stroke();
 			break;
-		
+		case 17: // PMID_Flush_Draw
+                	window.requestAnimationFrame(step)
+                	break;
         }
 	};
 

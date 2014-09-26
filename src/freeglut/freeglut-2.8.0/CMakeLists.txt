@@ -36,4 +36,4 @@ SET( GLUT_SOURCES
 	src/freeglut_window
 )
 
-add_library( freeglut ${GLUT_SOURCES} )
+add_library( freeglut SHARED ${GLUT_SOURCES} )
