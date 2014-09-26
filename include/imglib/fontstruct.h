@@ -45,7 +45,7 @@ typedef struct font_tag
    _16 baseline;
 	/* if 0 - characters will be 1 - old font - please compensate
      for change.... */
-	_16 characters;
+	_32 characters;
    _8 flags;
    _8 junk;
    TEXTCHAR *name;

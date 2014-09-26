@@ -376,15 +376,15 @@ function OpenServer()
 		case 10: // PMID_ImageData
 			image = find_image( msg.data.server_image_id );	
 		    //console.log( "Updated image source.... "  + msg.data.server_image_id );
-                        {
-			if( image.on_document )
-				document.body.removeChild(image.image);
-                        }
+                        //{
+			//if( image.on_document )
+			//	document.body.removeChild(image.image);
+                        //}
 			image.image.src = msg.data.data;
-                        {
-			  image.on_document = true;
-			  document.body.appendChild(image.image);
-                        }
+                        //{
+			//  image.on_document = true;
+			//  document.body.appendChild(image.image);
+                        //}
 			break;
 		case 11: // PMID_BlotImageSizedTo
 			image = find_image( msg.data.server_image_id );

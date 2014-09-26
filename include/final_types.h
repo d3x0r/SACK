@@ -37,9 +37,10 @@
 // linux also translates 'i' to 'case' in typelib.h
 #  define stricmp          wcsicmp
 #  define strnicmp         wcsnicmp
-#  define strlen           mbrlen
+//#  define strlen           mbrlen
 #endif
 #  define strlen           wcslen
+
 #ifdef WIN32
 #  define stat(a,b)        _wstat(a,b)
 #else

@@ -1202,8 +1202,8 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 				return NULL;
 			renderer->max_ascent = 0;
 			renderer->min_descent = 0;
-
-			font->characters = charcount + 1;
+			if( !font->characters )
+				font->characters = charcount + 1;
 			font->baseline = 0;
 			if( ( renderer->flags & 3 ) == 3 )
 				font->flags = FONT_FLAG_8BIT;
@@ -1233,7 +1233,7 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 			font->height = 0; //CEIL(face->size->metrics.height);
 			font->name = StrDup( renderer->fontname );
 			InternalRenderFontCharacter( renderer, NULL, 0 );
-			for( idx = 0; idx < charcount + 1; idx++ )
+			for( idx = 0; idx < font->characters; idx++ )
 			{
 				FT_Face face = renderer->face;
 				int glyph_index = FT_Get_Char_Index( face, (FT_ULong)idx );
