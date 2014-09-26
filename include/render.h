@@ -1833,11 +1833,14 @@ typedef int check_this_variable;
 #define OnDisplayResume(name) \
 	__DefineRegistryMethod(WIDE("sack/render/android"),OnDisplayResume,WIDE("display"),name,WIDE("on_display_resume"),void,(void),__LINE__)
 
+	struct display_app;
+	struct display_app_local;
+
 #define OnDisplayConnect(name) \
-	__DefineRegistryMethod(WIDE("/sack/render/remote display"),OnDisplayConnect,WIDE("connect"),name,WIDE("new_display_connect"),void,(struct app*app, struct app_local ***),__LINE__)
+	__DefineRegistryMethod(WIDE("/sack/render/remote display"),OnDisplayConnect,WIDE("connect"),name,WIDE("new_display_connect"),void,(struct display_app*app, struct display_app_local ***),__LINE__)
 
 #define OnDisplayConnected(name) \
-	__DefineRegistryMethod(WIDE("/sack/render/remote display"),OnDisplayConnect,WIDE("connect"),name,WIDE("new_display_connected"),void,(struct app*app),__LINE__)
+	__DefineRegistryMethod(WIDE("/sack/render/remote display"),OnDisplayConnect,WIDE("connect"),name,WIDE("new_display_connected"),void,(struct display_app*app),__LINE__)
 
 
 RENDER_NAMESPACE_END

@@ -1722,6 +1722,18 @@ static LOGICAL FixArea( IMAGE_RECTANGLE *result, IMAGE_RECTANGLE *source, PVPIma
 	return l.real_interface->_IntersectRectangle( result, source, &r2 );
 }
 
+static void ClearImageBuffers( PVPImage image )
+{
+	while( image )
+	{
+		image->websock_sendlen = 0;
+		image->sendlen = 0;
+		if( image->child )
+			ClearImageBuffers( image->child );
+		image = image->next;
+	}
+}
+
 static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 {
 	if( ((PVPImage)pifDest)->render_id != INVALID_INDEX )
@@ -1748,8 +1760,7 @@ static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w
 
 		if( w == image->w && h == image->h )
 		{
-			image->websock_sendlen = 0;
-			image->sendlen = 0;
+			ClearImageBuffers( image );
 		}
 
 		outmsg = (struct common_message*)GetMessageBuf( image, sendlen=( 4 + 1 + sizeof( struct blatcolor_data ) ) );
@@ -1807,8 +1818,9 @@ static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32
 			return;
 		}
 		EnterCriticalSec( &l.message_formatter );
-		if( w == image->w && h == image->h )
+		if( w == image->w && h == image->h && l.real_interface->_GetAlphaValue( color ) == 255 )
 		{
+			ClearImageBuffers( image );
 			image->websock_sendlen = 0;
 			image->sendlen = 0;
 		}
@@ -2050,12 +2062,11 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 				{
 					errx -= (signed)dwd;
 					ws--;
-					xs++;
 				}
+				xd++;
 				wd--;
 				x++;
 			}
-			xd = x;
 
 			while( x < image->w && SUS_GT( w, int, wd, _32 ) )
 			{
@@ -2063,8 +2074,9 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 				while( errx >= 0 )
 				{
 					errx -= (signed)dwd;
-					w++;
+					ws++;
 				}
+				w++;
 				x++;
 			}
 			wd = w;
@@ -2075,6 +2087,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 		{
 			int y = yd;
 			int h = 0;
+			//lprintf( WIDE( "height fix : %d %d %d %d" ), yd, hd, image->y, image->h );
 			while( yd < image->y )
 			{
 				erry += (signed)dhs;
@@ -2082,24 +2095,28 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 				{
 					erry -= (signed)dhd;
 					hs--;
-					yd++;
 				}
+				yd++;
 				hd--;
 				y++;
 			}
+			//lprintf( WIDE( "height fix : %d %d %d %d" ), y, yd, hd, hs );
+			hs = 0;
 			while( y < image->h && h < (int)hd )
 			{
 				erry += (signed)dhs;
 				while( erry >= 0 )
 				{
 					erry -= (signed)dhd;
-					h++;
+					hs++;
 				}
+				h++;
 				y++;
 			}
+			//lprintf( WIDE( "height fix : %d %d %d" ), y, h, hs );
 			hd = h;
 		}
-
+		//lprintf( WIDE( "------------------------ " ) );
 		EnterCriticalSec( &l.message_formatter );
 		cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlotScaledImageSizedTo );
 		if( !cto )
