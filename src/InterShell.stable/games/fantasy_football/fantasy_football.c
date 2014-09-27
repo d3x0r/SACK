@@ -536,7 +536,7 @@ static void OnLoadCommon( WIDE( "Fantasy Football" ) )( PCONFIG_HANDLER pch )
 
 
 
-static void EndScoreboard( PTRSZVAL psv )
+static void CPROC EndScoreboard( PTRSZVAL psv )
 {
 	// do nothing...
 	ffl.scoreboard.tick_draw = 0; 
@@ -551,7 +551,7 @@ static void EndScoreboard( PTRSZVAL psv )
 	*/
 }
 
-static void RestartAttract( PTRSZVAL psv )
+static void CPROC RestartAttract( PTRSZVAL psv )
 {
 	struct attract_control *ac = (struct attract_control *)psv;
 	if( ac->file )
@@ -563,7 +563,7 @@ static void RestartAttract( PTRSZVAL psv )
 }
 
 // helmet animation ended
-static void EndGridCell( PTRSZVAL psv )
+static void CPROC EndGridCell( PTRSZVAL psv )
 {
 	struct game_cell_control *gcc = (struct game_cell_control *)psv;
 	gcc->playing = FALSE;
@@ -574,7 +574,7 @@ static void EndGridCell( PTRSZVAL psv )
 
 }
 
-static void EndGridCellSound( PTRSZVAL psv )
+static void CPROC EndGridCellSound( PTRSZVAL psv )
 {
 	//struct game_cell_control *gcc = (struct game_cell_control *)psv;
 	//gcc->playing = FALSE;
@@ -914,7 +914,7 @@ static void OnHideCommon( WIDE("FF_Scoreboard") )( PSI_CONTROL pc )
 	ffmpeg_PauseFile( ac->file );
 }
 
-static void NextPage( PTRSZVAL psv )
+static void CPROC NextPage( PTRSZVAL psv )
 {
 	struct attract_control *ac = (struct attract_control *)psv;
 	ShellSetCurrentPage( GetCommonParent( ac->pc ), "Game Grid" );

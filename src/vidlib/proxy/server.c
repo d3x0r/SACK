@@ -8,6 +8,9 @@
 #include <sqlgetoption.h>
 #include <html5.websocket.h>
 #include <json_emitter.h>
+
+#include <zlib.h>
+
 #include "server_local.h"
 
 IMAGE_NAMESPACE
@@ -551,6 +554,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 		break;
 	case PMID_ImageData:
 		{
+			_32 offset = 0;
 			P_8 raw_image;
 			char * encoded_image;
 			size_t outlen;
@@ -561,29 +565,51 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 				image = image->parent;
 			ClearDirtyFlag( image );
 			raw_image = EncodeImage( image->image, FALSE, &outlen );
+			if( outlen > (16000-5) && !websock )
+			{
+				lprintf( "need to send image in parts : %d", outlen );
+				msg = NewArray( _8, 16004 );
+				outmsg = (struct common_message*)(msg + 4);
+
+				while( outlen > (16000-5) )
+				{
+					MemCpy( outmsg->data.image_data.data, raw_image + offset, 16000 - 5/*header size, msgid,imgid*/ );
+
+					((_32*)msg)[0] = (_32)(16000);
+					outmsg = (struct common_message*)(msg + 4);
+					outmsg->message_id = offset?PMID_ImageDataFragMore:PMID_ImageDataFrag;
+					outmsg->data.image_data.server_image_id = image->id;
+					lprintf( WIDE("Send Image %p %d  %d"), image, image->id, sendlen );
+					SendTCP( pc, msg, 16004 );
+               outlen -= (16000 - 5);
+               offset += (16000 - 5);
+				}
+            sendlen = ( 4 + 1 + sizeof( struct image_data_data ) - 1 + outlen );
+			}
+			else
+			{
+				msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct image_data_data ) - 1 + outlen ) );
+				outmsg = (struct common_message*)(msg + 4);
+			}
+
 			if( websock )
 			{
 				encoded_image = Encode64Image( raw_image, FALSE, outlen, &outlen );
-				if( outlen < 200 )
-				{
-					int a = 3;
-				}
 				msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct image_data_data ) + outlen ) );
 				outmsg = (struct common_message*)(msg + 4);
 				MemCpy( outmsg->data.image_data.data, encoded_image, outlen );
 			}
 			else
 			{
-				msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct image_data_data ) - 1 + outlen ) );
-				outmsg = (struct common_message*)(msg + 4);
-				MemCpy( outmsg->data.image_data.data, raw_image, outlen );
+            lprintf( "outlen = %d", outlen );
+				MemCpy( outmsg->data.image_data.data, raw_image + offset, outlen );
 			}
 			((_32*)msg)[0] = (_32)(sendlen - 4);
 			outmsg = (struct common_message*)(msg + 4);
 			outmsg->message_id = message;
 			outmsg->data.image_data.server_image_id = image->id;
 			// include nul in copy
-			//lprintf( WIDE("Send Image %p %d "), image, image->id );
+			lprintf( WIDE("Send Image %p %d  %d"), image, image->id, sendlen );
 			if( websock )
 			{
 				json_msg = json_build_message( cto, outmsg );
@@ -607,6 +633,67 @@ void SendTCPMessageV( PCLIENT pc, LOGICAL websock, enum proxy_message_id message
 	SendTCPMessage( pc, websock, message, args );
 }
 
+static void SendInitialImage( PCLIENT pc, LOGICAL websock, PLIST *sent, PVPImage image, LOGICAL send )
+{
+	if( image->parent )
+	{
+		if( FindLink( sent, image->parent ) == INVALID_INDEX )
+		{
+			SendInitialImage( pc, websock, sent, image->parent, send );
+		}
+      if( send )
+			SendTCPMessageV( pc, websock, PMID_MakeSubImage, image );
+	}
+	else if( send )
+		SendTCPMessageV( pc, websock, PMID_MakeImage, image, image->render_id );
+	AddLink( sent,  image );
+}
+
+static void SendImageBuffers( PCLIENT pcNew, int send_websock, int send_initial )
+{
+		{
+			PLIST sent = NULL;
+			INDEX idx;
+			PVPImage image;
+			LIST_FORALL( l.images, idx, PVPImage, image )
+			{
+				//lprintf( "Send Image %p(%d)", image, image->id );
+				SendInitialImage( pcNew, send_websock, &sent, image, send_initial );
+			}
+			LIST_FORALL( sent, idx, PVPImage, image )
+			{
+				if( send_websock )
+				{
+					if( image->websock_buffer && image->websock_sendlen )
+					{
+						//lprintf( "Send image %p %p %d", image, image->websock_buffer, image->websock_sendlen );
+						image->websock_buffer[image->websock_sendlen] = ']';
+						{
+							//char *output = NewArray( _8, image->websock_sendlen + 1 );
+							//uLongf destlen = image->websock_sendlen + 1;
+
+							//compress2( output, &destlen, image->websock_buffer, image->websock_sendlen, Z_BEST_COMPRESSION );
+							//lprintf("would have only been %d", destlen );
+                     //Release( output );
+						}
+						WebSocketSendText( pcNew, image->websock_buffer, image->websock_sendlen + 1 );
+					}
+				}
+				else
+				{
+					if( image->buffer && image->sendlen )
+					{
+						//lprintf( "Send image %p %p %d", image, image->buffer, image->sendlen );
+						SendTCP( pcNew, image->buffer, image->sendlen );
+					}
+				}
+			}
+			DeleteList( &sent );
+		}
+}
+
+
+
 static void SendClientMessage( enum proxy_message_id message, ... )
 {
 	INDEX idx;
@@ -615,6 +702,10 @@ static void SendClientMessage( enum proxy_message_id message, ... )
 	{
 		va_list args;
 		va_start( args, message );
+		if( message == PMID_Flush_Draw )
+		{
+			SendImageBuffers( client->pc, client->websock, FALSE );
+		}
 		SendTCPMessage( client->pc, client->websock, message, args );
 	}
 }
@@ -702,21 +793,6 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 	}
 }
 
-static void SendInitialImage( PCLIENT pc, LOGICAL websock, PLIST *sent, PVPImage image )
-{
-	if( image->parent )
-	{
-		if( FindLink( sent, image->parent ) == INVALID_INDEX )
-		{
-			SendInitialImage( pc, websock, sent, image->parent );
-		}
-		SendTCPMessageV( pc, websock, PMID_MakeSubImage, image );
-	}
-	else
-		SendTCPMessageV( pc, websock, PMID_MakeImage, image, image->render_id );
-	AddLink( sent,  image );
-}
-
 static void CPROC Connected( PCLIENT pcServer, PCLIENT pcNew )
 {
 	struct server_proxy_client *client = New( struct server_proxy_client );
@@ -735,24 +811,7 @@ static void CPROC Connected( PCLIENT pcServer, PCLIENT pcNew )
 		{
 			SendTCPMessageV( pcNew, FALSE, PMID_OpenDisplayAboveUnderSizedAt, render );
 		}
-		{
-			PLIST sent = NULL;
-			INDEX idx;
-			PVPImage image;
-			LIST_FORALL( l.images, idx, PVPImage, image )
-			{
-				//lprintf( "Send Image %p(%d)", image, image->id );
-				SendInitialImage( pcNew, FALSE, &sent, image );
-			}
-			LIST_FORALL( sent, idx, PVPImage, image )
-			{
-				if( image->buffer && image->sendlen )
-				{
-					SendTCP( pcNew, image->buffer, image->sendlen );
-				}
-			}
-			DeleteList( &sent );
-		}
+      SendImageBuffers( pcNew, FALSE, TRUE );
 		LIST_FORALL( l.renderers, idx, PVPRENDER, render )
 		{
 			SendTCPMessageV( pcNew, FALSE, PMID_Flush_Draw, render );
@@ -779,13 +838,14 @@ static PTRSZVAL WebSockOpen( PCLIENT pc, PTRSZVAL psv )
 			SendTCPMessageV( pc, TRUE, PMID_OpenDisplayAboveUnderSizedAt, render );
 		}
 
+      SendImageBuffers( pc, TRUE, TRUE );
 		{
 			PLIST sent = NULL;
 			INDEX idx;
 			PVPImage image;
 			LIST_FORALL( l.images, idx, PVPImage, image )
 			{
-				SendInitialImage( pc, TRUE, &sent, image );
+				SendInitialImage( pc, TRUE, &sent, image, TRUE );
 			}
 			LIST_FORALL( sent, idx, PVPImage, image )
 			{
@@ -1012,12 +1072,12 @@ static  void CPROC VidlibProxy_UnmakeImageFileEx( Image pif DBG_PASS )
 		PVPImage image = (PVPImage)pif;
 		SendClientMessage( PMID_UnmakeImage, pif );
 		//lprintf( "UNMake proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
-		SetLink( &l.images, ((PVPImage)pif)->id, NULL );
-		if( ((PVPImage)pif)->image->reverse_interface )
+		SetLink( &l.images, image->id, NULL );
+		if( image->image->reverse_interface )
 		{
-			((PVPImage)pif)->image->reverse_interface = NULL;
-			((PVPImage)pif)->image->reverse_interface_instance = 0;
-			l.real_interface->_UnmakeImageFileEx( ((PVPImage)pif)->image DBG_RELAY );
+			image->image->reverse_interface = NULL;
+			image->image->reverse_interface_instance = 0;
+			l.real_interface->_UnmakeImageFileEx( image->image DBG_RELAY );
 		}
 		Release( pif );
 	}
@@ -1034,12 +1094,14 @@ static void CPROC  VidlibProxy_CloseDisplay ( PRENDERER Renderer )
 static void CPROC VidlibProxy_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y, _32 width, _32 height DBG_PASS )
 {
 	// no-op; it will ahve already displayed(?)
+	//SendImageBuffers( pc );
 	SendClientMessage( PMID_Flush_Draw, r );
 }
 
 static void CPROC VidlibProxy_UpdateDisplayEx( PRENDERER r DBG_PASS)
 {
 	// no-op; it will ahve already displayed(?)
+   //SendImageBuffers( pcNew );
 	SendClientMessage( PMID_Flush_Draw, r );
 
 }
@@ -1357,6 +1419,7 @@ static LOGICAL CPROC VidlibProxy_IsDisplayHidden( PRENDERER r )
 #ifdef WIN32
 static HWND CPROC VidlibProxy_GetNativeHandle( PRENDERER r )
 {
+   return (HWND)NULL;
 }
 #endif
 
@@ -1698,6 +1761,7 @@ static void AppendJSON( PVPImage image, TEXTSTR msg, POINTER outmsg, size_t send
 	MemCpy( image->websock_buffer + image->websock_sendlen, msg, size );
 	image->websock_sendlen += size;
 
+   if( 0 )
 	{
 		INDEX idx;
 		struct server_proxy_client *client;

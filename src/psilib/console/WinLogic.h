@@ -44,6 +44,9 @@ CORECON_PROC(int, PSI_ConvertXYToLineCol )( PCONSOLE_INFO pdp
                               , int *line, int *col );
 //CORECON_PROC(void, DoRenderHistory )( PCONSOLE_INFO pdp, int bHistoryStart );
 CORECON_PROC(int, PSI_UpdateHistory )( PCONSOLE_INFO pdp );
+int GetCharFromLine( PCONSOLE_INFO console, _32 cols
+						, PDISPLAYED_LINE pLine
+						, int nChar, TEXTCHAR *result );
 //------------------------------------------------------------------
 // reflective definitions - these need to exist in the real project...
 

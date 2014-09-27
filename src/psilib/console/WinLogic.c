@@ -714,7 +714,7 @@ void PSI_ConsoleCalculate( PCONSOLE_INFO pdp )
 
 	pdp->nWidth = pdp->rArea.right - pdp->rArea.left;
 	pdp->nHeight = pdp->rArea.bottom - pdp->rArea.top;
-	if( pdp->nWidth <= 0 || pdp->nHeight <= 0 )
+	if( pdp->nWidth &0x80000000 || pdp->nHeight &0x80000000 )
 	{
 		pdp->nWidth = 0;
 		pdp->nHeight = 0;
@@ -895,12 +895,13 @@ TEXTCHAR *PSI_GetDataFromBlock( PCONSOLE_INFO pdp )
 	INDEX col_end = pdp->mark_end.col + 1;
 	int bBlock = FALSE;
 	// 2 characters to stuff in \r\n on newline.
-	TEXTCHAR *result = NewArray( TEXTCHAR, ( ( line_start - line_end ) + 1 ) * (pdp->nColumns + 2) );
+	TEXTCHAR *result = NewArray( TEXTCHAR, ( ( line_start - line_end ) + 1 ) * (col_end + 2) );
 	INDEX ofs = 0;
 	int line, col;
 	int first_char = TRUE;
 	int first = TRUE;
 	int _priorline;
+   lprintf( "allocated something crazy like %d,%d  %d %p",line_start - line_end, pdp->nColumns,  ( ( line_start - line_end ) + 1 ) * (pdp->nColumns + 2) ,  result );
 	for( col = col_start, line = line_start
 		; line >= line_end
 		 ; line--, (col = bBlock)?col_start:0 )

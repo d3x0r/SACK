@@ -168,7 +168,7 @@ static LOGICAL PrestoreMessage( struct common_message *msg, size_t size )
 // server...
 void HandleMessage( PCLIENT pc, struct common_message*msg, size_t size )
 {
-	//lprintf( "handle message %d on %d", msg->message_id, msg->data.unmake_image.server_image_id  );
+	lprintf( "handle message %d on %d", msg->message_id, msg->data.unmake_image.server_image_id  );
 	if( !pc || !PrestoreMessage( msg, size ) )
 	switch( msg->message_id )
 	{
@@ -317,11 +317,69 @@ void HandleMessage( PCLIENT pc, struct common_message*msg, size_t size )
 			struct client_proxy_image *image = (struct client_proxy_image *)GetLink( &l.images, msg->data.blatcolor.server_image_id );
 			if( image->image )
 				UnmakeImageFile( image->image );
-			// reloadimage sorta
-			// could include the math; the message header is 1 byte (subtract from size)
-			// the image-data_data contains one byte, and that needs to (not subtract from size) 
-			// so thats +0 to sizeof image_data_data
-			image->image = DecodeMemoryToImage( msg->data.image_data.data, size - ( sizeof( struct image_data_data ) ) );
+			if( image->in_buflen )
+			{
+            lprintf( "already had some data collected... %d %d", image->in_buflen, image->in_buf_avail );
+				if( ( image->in_buflen + size ) > image->in_buf_avail )
+				{
+					_8 *newbuf = NewArray( _8, image->in_buflen + size );
+					MemCpy( newbuf, image->in_buffer, image->in_buflen );
+					MemCpy( newbuf + image->in_buflen, msg->data.image_data.data, size - ( sizeof( struct image_data_data ) ) );
+					image->in_buf_avail = image->in_buflen + size;
+					Release( image->in_buffer );
+					image->in_buffer = newbuf;
+				}
+				else
+				{
+               lprintf( "buffer is already big enough to hold this..." );
+				}
+            image->in_buflen += size - ( sizeof( struct image_data_data ) );
+				image->image = DecodeMemoryToImage( image->in_buffer, image->in_buflen );
+			}
+			else
+			{
+				// reloadimage sorta
+				// could include the math; the message header is 1 byte (subtract from size)
+				// the image-data_data contains one byte, and that needs to (not subtract from size)
+				// so thats +0 to sizeof image_data_data
+				image->image = DecodeMemoryToImage( msg->data.image_data.data, size - ( sizeof( struct image_data_data ) ) );
+			}
+		}
+		break;
+	case PMID_ImageDataFrag: // 23 - transfer local image data to client
+		{
+			struct client_proxy_image *image = (struct client_proxy_image *)GetLink( &l.images, msg->data.blatcolor.server_image_id );
+			if( image->image )
+			{
+				UnmakeImageFile( image->image );
+				image->image = NULL;
+			}
+         image->in_buflen = 0;
+			if( ( image->in_buflen + size ) > image->in_buf_avail )
+			{
+				_8 *newbuf = NewArray( _8, image->in_buflen + size );
+				MemCpy( newbuf, image->in_buffer, image->in_buflen );
+				MemCpy( newbuf + image->in_buflen, msg->data.image_data.data, size - ( sizeof( struct image_data_data ) ) );
+            image->in_buf_avail = image->in_buflen + size;
+            Release( image->in_buffer );
+            image->in_buffer = newbuf;
+			}
+         image->in_buflen += size - ( sizeof( struct image_data_data ) );
+		}
+		break;
+	case PMID_ImageDataFragMore: // 23 - transfer local image data to client
+		{
+			struct client_proxy_image *image = (struct client_proxy_image *)GetLink( &l.images, msg->data.blatcolor.server_image_id );
+			if( ( image->in_buflen + size ) > image->in_buf_avail )
+			{
+				_8 *newbuf = NewArray( _8, image->in_buflen + size );
+				MemCpy( newbuf, image->in_buffer, image->in_buflen );
+				MemCpy( newbuf + image->in_buflen, msg->data.image_data.data, size - ( sizeof( struct image_data_data ) ) );
+            image->in_buf_avail = image->in_buflen + size;
+            Release( image->in_buffer );
+            image->in_buffer = newbuf;
+			}
+         image->in_buflen += size - ( sizeof( struct image_data_data ) );
 		}
 		break;
 	case PMID_BlotImageSizedTo:  // 11
@@ -420,7 +478,7 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 		state = (struct client_socket_state*)GetNetworkLong( pc, 0 );
 		if( state->flags.get_length )
 		{
-			//lprintf( "length is %d", state->read_length );
+			lprintf( "length is %d", state->read_length );
 			if( state->read_length < 16024 )
 			{
 				state->flags.get_length = 0;
@@ -444,7 +502,7 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 	}
 	else
 	{
-		//lprintf( "read message %d byte(s)", state->read_length );
+		lprintf( "read message %d byte(s)", state->read_length );
 		ReadTCPMsg( pc, state->buffer, state->read_length );
 	}
 }
