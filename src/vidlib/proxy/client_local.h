@@ -23,6 +23,10 @@ struct client_proxy_image
 	P_8 buffer;
 	size_t sendlen;
 	size_t buf_avail;
+
+	P_8 in_buffer;
+	size_t in_buflen;
+	size_t in_buf_avail;
 };
 
 struct client_socket_state

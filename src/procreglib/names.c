@@ -260,7 +260,7 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 			// otherwise it will be single threaded?
 			if( procreg_local_private_data.flags.enable_critical_sections )
 			{
-#if !USE_CUSTOM_ALLOCER
+#if USE_CUSTOM_ALLOCER
 				LeaveCriticalSec( &l.csName );
 #else
 				l.simple_lock = 0;

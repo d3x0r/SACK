@@ -602,7 +602,7 @@ int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, i
 		banner->basecolor = basecolor?basecolor:AColor( 0x13, 0x53, 0x93, 0x40 );
 		//		GetDisplaySize( &banner_local.w, &banner_local.h );
 		{
-			TEXTSTR result;
+			TEXTSTR result = NULL;
 			TEXTSTR skip_newline;
 			FormatTextToBlock( text, &result, 30, 20 );
          // formatter returns a newline at the start of the block (first line doesn't have NO_RETURN flag probably...)
@@ -646,7 +646,7 @@ int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, i
 		}
 		bUpdateLocked = TRUE;
 		{
-			TEXTSTR result;
+			TEXTSTR result = NULL;
 			TEXTSTR skip_newline;
 			FormatTextToBlock( text, &result, 30, 20 );
          // formatter returns a newline at the start of the block (first line doesn't have NO_RETURN flag probably...)
@@ -813,7 +813,7 @@ void SetBanner2Text( PBANNER banner, TEXTCHAR *text )
 	}
 	if( banner )
 	{
-		TEXTSTR result;
+		TEXTSTR result = NULL;
 		TEXTSTR skip_newline;
 		FormatTextToBlock( text, &result, 30, 20 );
 		// formatter returns a newline at the start of the block (first line doesn't have NO_RETURN flag probably...)

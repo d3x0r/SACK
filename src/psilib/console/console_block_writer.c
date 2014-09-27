@@ -147,21 +147,51 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 
 	console->CurrentLineInfo =
 		console->CurrentMarkInfo = &console->pCurrentDisplay->DisplayLineInfo;
-	console->mark_start.row = ((*pixel_height) - 1);
-	console->mark_start.col = 0;
-	console->mark_end.row = 0;
-	console->mark_end.col = (*pixel_width) - 1;
+
+	if( font )
+	{
+      int len;
+		int maxlen = 0;
+		int lines = 1;
+		PDISPLAYED_LINE pdl;
+		for( lines = 0; pdl = (PDISPLAYED_LINE)GetDataItem( console->CurrentMarkInfo, lines ) ; lines++ )
+		{
+         len = pdl->nToShow;
+				if( pdl->nToShow > maxlen )
+					maxlen = len;
+         lprintf( "line %d len %d", lines, len );
+			if( len == 0 )
+            break;
+		}
+      lprintf( "measured block in characters %d,%d", maxlen, lines );
+		console->mark_start.row = lines;
+		console->mark_start.col = 0;
+		console->mark_end.row = 0;
+		console->mark_end.col = maxlen + 1;
+	}
+	else
+	{
+		console->mark_start.row = ((*pixel_height) - 1);
+		console->mark_start.col = 0;
+		console->mark_end.row = 0;
+		console->mark_end.col = (*pixel_width) - 1;
+	}
 
 	block = PSI_GetDataFromBlock( console );
+	if( *output )
+	{
+		lprintf( "Release %p", (*output ) );
+      DebugBreak();
+		Deallocate( char *, (*output) );
+	}
 	(*output) = block;
 	if( font )
 	{
 		_32 width, height;
 		GetStringSizeFont( (*output), &width, &height, font );
 		(*pixel_width) = width;
-      (*pixel_height) = height;
+		(*pixel_height) = height;
 	}
-
 	PSI_DestroyHistoryBrowser( console->pCurrentDisplay );
 	PSI_DestroyHistoryCursor( console->pCursor );
 	PSI_DestroyHistoryRegion( console->pHistory );

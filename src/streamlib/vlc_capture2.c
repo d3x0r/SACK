@@ -8,13 +8,13 @@
 #include <network.h>
 #include <timers.h>
 #include <sqlgetoption.h>
-#include "../InterShell/vlc_hook/vlcint.h"
+#include "../InterShell.stable/vlc_hook/vlcint.h"
 #define USES_INTERSHELL_INTERFACE
 #define DEFINES_INTERSHELL_INTERFACE
 #define SetButtonText InterShell_SetButtonText
-#include "../InterShell/intershell_registry.h"
-#include "../InterShell/intershell_export.h"
-#include "../InterShell/widgets/keypad/keypad/keypad.h"
+#include "../InterShell.stable/intershell_registry.h"
+#include "../InterShell.stable/intershell_export.h"
+#include "../InterShell.stable/widgets/keypad/keypad/keypad.h"
 
 #ifdef __LINUX__
 #define INVALID_HANDLE_VALUE -1

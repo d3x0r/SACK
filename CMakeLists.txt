@@ -16,11 +16,11 @@ if( ${CMAKE_GENERATOR} MATCHES "Watcom WMake" )
 
  set( ExtraFlags "${ExtraFlags} /fp5 /fpi87" )
  # this flag is for build dll?  emit DllRuntime startup link 
- #set( LibraryExtraFlags "-bd" )
+ set( LibraryExtraFlags "-bd" )
  set( ConsoleProgramExtraFlags "-bc" )
  set( WindowsProgramExtraFlags "-bg" )
- STRING( REPLACE "library clbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES_INIT ${CMAKE_C_STANDARD_LIBRARIES_INIT} )
- STRING( REPLACE "library plbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES_INIT ${CMAKE_C_STANDARD_LIBRARIES_INIT} )
+ #STRING( REPLACE "library clbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES_INIT ${CMAKE_C_STANDARD_LIBRARIES_INIT} )
+ #STRING( REPLACE "library plbrdll.lib" "" CMAKE_C_STANDARD_LIBRARIES_INIT ${CMAKE_C_STANDARD_LIBRARIES_INIT} )
  add_definitions( "-D__CMAKE_VERSION__=(${CMAKE_MAJOR_VERSION}*1000000+${CMAKE_MINOR_VERSION}*10000+${CMAKE_PATCH_VERSION}*100+${CMAKE_TWEAK_VERSION})" )
 endif( ${CMAKE_GENERATOR} MATCHES "Watcom WMake" )
 

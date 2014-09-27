@@ -1838,7 +1838,7 @@ static void SendApplicationDraw( PVIDEO hVideo )
 		__try
 		{
 			//try
-#elif defined( __WATCOMC__ )
+#elif 0 && defined( __WATCOMC__ )
 #ifndef __cplusplus
 			_try
 			{
@@ -1864,7 +1864,7 @@ static void SendApplicationDraw( PVIDEO hVideo )
 				lprintf( WIDE( "Caught exception in video output window" ) );
 				;
 			}
-#elif defined( __WATCOMC__ )
+#elif 0 && defined( __WATCOMC__ )
 #ifndef __cplusplus
 		}
 		_except( EXCEPTION_EXECUTE_HANDLER )

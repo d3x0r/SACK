@@ -110,7 +110,7 @@ static void CPROC VideoEndedCallback( PTRSZVAL psv )
 	SuspendSystemSleep( 0 );
 }
 
-static PTRSZVAL LoadMovieThread( PTHREAD thread )
+static PTRSZVAL CPROC LoadMovieThread( PTHREAD thread )
 {
 	PTRSZVAL psv_button = GetThreadParam( thread );
 	struct my_button *me = ( struct my_button *)psv_button;

@@ -211,6 +211,8 @@ enum proxy_message_id{
 							, PMID_Move_Image // 20 
 							, PMID_Size_Image // 21 
 							, PMID_TransferSubImages // 22 just allow the client to do the full moves instead of peices and parts.
+							, PMID_ImageDataFrag // 23 - transfer local image data to client
+							, PMID_ImageDataFragMore // 24 - transfer local image data to client
 							, PMID_
 
 							, PMID_LAST_PROXY_MESSAGE
