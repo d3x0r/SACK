@@ -81,11 +81,13 @@ PSI_PROC( int, FrameBorderXOfs )( PSI_CONTROL pc, _32 BorderType )
 		 {
           return g.BorderWidth;
 		 }
+       /*
 		 if( BorderType & BORDER_RESIZABLE )
 		 {
 			 return 8;
 		 }
 		 else
+       */
 			 return g.BorderImage?g.BorderHeight:4;
 	 case BORDER_THINNER:
 		 return 2;
@@ -117,9 +119,9 @@ PSI_PROC( int, FrameBorderX )( PSI_CONTROL pc, _32 BorderType )
 		 {
           return g.BorderWidth*2;
 		 }
-        if( BorderType & BORDER_RESIZABLE )
-            return 16;
-        else
+        //if( BorderType & BORDER_RESIZABLE )
+        //    return 16;
+        //else
             return g.BorderImage?g.BorderWidth * 2:8;
     case BORDER_THINNER:
       return 4;
@@ -174,9 +176,9 @@ PSI_PROC( int, FrameBorderYOfs )( PSI_CONTROL pc, _32 BorderType, CTEXTSTR capti
 		{
 			return result + g.BorderHeight;
 		}
-		if( BorderType & BORDER_RESIZABLE )
-			return result + 8;
-		else
+		//if( BorderType & BORDER_RESIZABLE )
+		//	return result + 8;
+		//else
 			return result + ( ( (g.BorderImage?g.BorderHeight:4)* 3 ) / 4 );
 	case BORDER_THINNER:
 		return result + 2;
@@ -211,11 +213,11 @@ PSI_PROC( int, FrameBorderY )( PSI_CONTROL pc, _32 BorderType, CTEXTSTR caption 
 		{
 			return result + g.BorderHeight*2;
 		}
-		if( BorderType & BORDER_RESIZABLE )
-		{
-			return result + 16;
-		}
-		else
+		//if( BorderType & BORDER_RESIZABLE )
+		//{
+		//	return result + 16;
+		//}
+		//else
 		{
 			return result + ((g.BorderImage?g.BorderHeight:4) * 7 / 4 );
 		}
@@ -714,6 +716,7 @@ void CPROC SetDrawBorder( PSI_CONTROL pc )
 		pc->DrawBorder = NULL;
 		break;
 	case BORDER_NORMAL:
+      /*
 		if( pc->BorderType & BORDER_RESIZABLE )
 		{
 			if( pc->BorderType & BORDER_INVERT )
@@ -722,6 +725,7 @@ void CPROC SetDrawBorder( PSI_CONTROL pc )
 				pc->DrawBorder = DrawThickFrame;
 		}
 		else
+      */
 		{
 			if( pc->BorderType & BORDER_INVERT )
 				pc->DrawBorder = DrawNormalFrameInverted;

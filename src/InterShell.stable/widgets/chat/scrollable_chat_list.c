@@ -755,7 +755,7 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	}
 	ClearImageTo( window, BASE_COLOR_WHITE );
 
-
+	if( l.decoration )
 	{
 		int command_height;
 		skip_lines = 0;
@@ -808,9 +808,14 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 			}
 		}
 	}
-	ResizeImage( list->message_window, window->width, window->height - ( list->command_height + l.side_pad * 2 /* above and below input*/ ) );
-	list->display.message_top = list->message_window->height + list->control_offset;
-	DrawMessages( list, list->message_window );
+
+	if( l.decoration )
+	{
+
+		ResizeImage( list->message_window, window->width, window->height - ( list->command_height + l.side_pad * 2 /* above and below input*/ ) );
+		list->display.message_top = list->message_window->height + list->control_offset;
+		DrawMessages( list, list->message_window );
+	}
 	return 1;
 }
 
@@ -931,7 +936,9 @@ static void OnSizeCommon( CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begin_sizing )
 	{
 		PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 		PCHAT_LIST list = (*ppList);
-		ReformatMessages( list );
+		// get a size during create... and data is not inited into teh control yet.
+		if( list )
+			ReformatMessages( list );
 	}
 }
 
@@ -953,7 +960,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 		//Log1( "Key: %08x", key );
 //cpg27dec2006 list\psicon.c(234): Warning! W202: Symbol 'mod' has been defined, but not referenced
 //cpg27dec2006		int mod = KEYMOD_NORMAL;
-		if( !list ) // not a valid window handle/device path
+		if( !list || !l.decoration ) // not a valid window handle/device path
 			return 0;
 		//EnterCriticalSec( &list->Lock );
 
