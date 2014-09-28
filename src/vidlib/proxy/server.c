@@ -662,6 +662,12 @@ static void SendImageBuffers( PCLIENT pcNew, int send_websock, int send_initial 
 			}
 			LIST_FORALL( sent, idx, PVPImage, image )
 			{
+				if( !send_initial && !( image->image->flags & IF_FLAG_UPDATED ) )
+					continue;
+				if( !send_initial )
+				{
+					image->image->flags &= ~IF_FLAG_UPDATED;
+				}
 				if( send_websock )
 				{
 					if( image->websock_buffer && image->websock_sendlen )
@@ -674,7 +680,7 @@ static void SendImageBuffers( PCLIENT pcNew, int send_websock, int send_initial 
 
 							//compress2( output, &destlen, image->websock_buffer, image->websock_sendlen, Z_BEST_COMPRESSION );
 							//lprintf("would have only been %d", destlen );
-                     //Release( output );
+							//Release( output );
 						}
 						WebSocketSendText( pcNew, image->websock_buffer, image->websock_sendlen + 1 );
 					}
@@ -958,7 +964,7 @@ static LOGICAL CPROC VidlibProxy_RequiresDrawAll( void )
 
 static LOGICAL CPROC VidlibProxy_AllowsAnyThreadToUpdate( void )
 {
-	return FALSE;
+	return TRUE;
 }
 
 static void CPROC VidlibProxy_SetApplicationTitle( CTEXTSTR title )
@@ -1789,13 +1795,16 @@ static LOGICAL FixArea( IMAGE_RECTANGLE *result, IMAGE_RECTANGLE *source, PVPIma
 
 static void ClearImageBuffers( PVPImage image )
 {
-	while( image )
+	//while( image )
 	{
 		image->websock_sendlen = 0;
 		image->sendlen = 0;
 		if( image->child )
-			ClearImageBuffers( image->child );
-		image = image->next;
+		{
+			PVPImage child;
+			for( child = image->child; child; child = child->next )
+				ClearImageBuffers( child );
+		}
 	}
 }
 
@@ -1886,8 +1895,6 @@ static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32
 		if( w == image->w && h == image->h && l.real_interface->_GetAlphaValue( color ) == 255 )
 		{
 			ClearImageBuffers( image );
-			image->websock_sendlen = 0;
-			image->sendlen = 0;
 		}
 
 		outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct blatcolor_data ) ) );
@@ -2390,6 +2397,7 @@ DIMAGE_DATA_PROC( void,do_line,	  ( Image pifDest, S_32 x, S_32 y, S_32 xto, S_3
 	{
 		l.real_interface->_do_line[0]( image->image, x, y, xto, yto, color );
 	}
+	((PVPImage)pifDest)->image->flags |= IF_FLAG_UPDATED;
 }
 
 DIMAGE_DATA_PROC( void,do_lineAlpha,( Image pBuffer, S_32 x, S_32 y, S_32 xto, S_32 yto, CDATA color))
@@ -2436,42 +2444,50 @@ static _32 CPROC VidlibProxy_GetStringSizeFontEx( CTEXTSTR pString, size_t len, 
 static void CPROC VidlibProxy_PutCharacterFont		  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
 	l.real_interface->_PutCharacterFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
+	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
 }
 
 static void CPROC VidlibProxy_PutCharacterVerticalFont( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
 	l.real_interface->_PutCharacterVerticalFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
+	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
 }
 
 static void CPROC VidlibProxy_PutCharacterInvertFont  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
 	l.real_interface->_PutCharacterInvertFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
+	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
 }
 
 static void CPROC VidlibProxy_PutCharacterVerticalInvertFont( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
 	l.real_interface->_PutCharacterVerticalInvertFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
+	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
 }
 
 static void CPROC VidlibProxy_PutStringFontEx  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background
 												, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
 	l.real_interface->_PutStringFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
+	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
 }
 
 static void CPROC VidlibProxy_PutStringVerticalFontEx		( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
 	l.real_interface->_PutStringVerticalFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
+	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
 }
 
 static void CPROC VidlibProxy_PutStringInvertFontEx		  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
 	l.real_interface->_PutStringInvertFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
+	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
 }
 
 static void CPROC VidlibProxy_PutStringInvertVerticalFontEx( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
 	l.real_interface->_PutStringInvertVerticalFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
+	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
 }
 
 static _32 CPROC VidlibProxy_GetMaxStringLengthFont( _32 width, SFTFont UseFont )

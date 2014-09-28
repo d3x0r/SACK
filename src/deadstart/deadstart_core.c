@@ -735,6 +735,7 @@ LOGICAL IsRootDeadstartComplete( void )
 #endif
 }
 
+#ifndef __WATCOMC__
 #if !defined( __cplusplus_cli )
 #if !defined( NO_DEADSTART_DLLMAIN ) && !defined( BUILD_PORTABLE_EXECUTABLE )
 #  if !defined( __LINUX__ ) && !defined( __GNUC__ )
@@ -760,5 +761,5 @@ void RootDestructor( void )
 #  endif
 #endif
 #endif
-
+#endif
 SACK_DEADSTART_NAMESPACE_END

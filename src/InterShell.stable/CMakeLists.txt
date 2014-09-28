@@ -32,7 +32,9 @@ else( NOT MAKING_SACK_CORE )
 
 endif( NOT MAKING_SACK_CORE )
 
-
+if( WIN32 AND WATCOM )
+add_definitions( -DWIN32 )
+endif( WIN32 and WATCOM )
 add_definitions( -DINTERSHELL_CORE_BUILD )
 
 set( BUILD_INTERSHELL 1 )
@@ -136,7 +138,7 @@ if( NOT __ARM__ )
 add_subdirectory( vlc_hook )
 add_subdirectory( ../streamlib/InterShell __/streamlib )
   if( NOT __64__ AND NOT __CLR__ AND NOT BUILD_UNICODE )
-    add_subdirectory( usbpulse100 )
+    #add_subdirectory( usbpulse100 )
   endif( NOT __64__ AND NOT __CLR__ AND NOT BUILD_UNICODE )
 endif()
 if( NOT __ANDROID__ )

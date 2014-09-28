@@ -166,7 +166,7 @@ static void CPROC OptionSelectionChanged( PTRSZVAL psvUser, PCONTROL pc, PLISTIT
 	if( pnd->option_text )
 	{
 		if( !pnd->ID_Option )
-			pnd->ID_Option = GetOptionIndexExx( (PODBC)psvUser, NULL, NULL, pnd->option_text, NULL, FALSE DBG_SRC );
+			pnd->ID_Option = GetOptionIndexExx( (PODBC)psvUser, NULL, NULL, NULL, pnd->option_text, NULL, FALSE DBG_SRC );
 		GetOptionStringValueEx( (PODBC)psvUser, pnd->ID_Option, buffer, sizeof( buffer ) DBG_SRC );
 		StrCpyEx( l.last_value, buffer, sizeof(l.last_value)/sizeof(l.last_value[0]) );
 		SetCommonText( GetNearControl( pc, EDT_OPTIONVALUE ), buffer );
@@ -243,7 +243,7 @@ static void CPROC CreateEntry( PTRSZVAL psv, PCOMMON pc )
 	//GetCurrentSelection( );
 	if( SimpleUserQuery( result, sizeof( result ), WIDE("Enter New Branch Name"), GetFrame( pc ) ) )
 	{
-		GetOptionIndexExx( (PODBC)psv, l.last_option, result, NULL, NULL, TRUE DBG_SRC );
+		GetOptionIndexExx( (PODBC)psv, l.last_option, NULL, result, NULL, NULL, TRUE DBG_SRC );
 		//DuplicateOption( l.last_option, result );
 		ResetList( GetNearControl( pc, LST_OPTIONMAP ) );
 		ResetOptionMap( (PODBC)psv );

@@ -478,7 +478,7 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 		state = (struct client_socket_state*)GetNetworkLong( pc, 0 );
 		if( state->flags.get_length )
 		{
-			lprintf( "length is %d", state->read_length );
+			//lprintf( "length is %d", state->read_length );
 			if( state->read_length < 16024 )
 			{
 				state->flags.get_length = 0;
@@ -502,7 +502,7 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 	}
 	else
 	{
-		lprintf( "read message %d byte(s)", state->read_length );
+		//lprintf( "read message %d byte(s)", state->read_length );
 		ReadTCPMsg( pc, state->buffer, state->read_length );
 	}
 }
