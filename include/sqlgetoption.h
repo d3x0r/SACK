@@ -110,6 +110,14 @@ SQLGETOPTION_PROC( int, SACK_WriteProfileBlobOdbc )( PODBC odbc, CTEXTSTR pSecti
 /* <combinewith sack::sql::options::SACK_WritePrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@LOGICAL>
    
    \ \                                                                                                            */
+SQLGETOPTION_PROC( int, SACK_WritePrivateProfileBlob )( CTEXTSTR pSection, CTEXTSTR pOptname, TEXTCHAR *pBuffer, size_t nBuffer, CTEXTSTR app );
+/* <combinewith sack::sql::options::SACK_WritePrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@LOGICAL>
+   
+   \ \                                                                                                            */
+SQLGETOPTION_PROC( int, SACK_WritePrivateProfileBlobOdbc )( PODBC odbc, CTEXTSTR pSection, CTEXTSTR pOptname, TEXTCHAR *pBuffer, size_t nBuffer,  CTEXTSTR app);
+/* <combinewith sack::sql::options::SACK_WritePrivateProfileStringEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@LOGICAL>
+   
+   \ \                                                                                                            */
 SQLGETOPTION_PROC( S_32, SACK_WriteProfileInt )( CTEXTSTR pSection, CTEXTSTR pName, S_32 value );
 
 
@@ -188,7 +196,7 @@ SQLGETOPTION_PROC( void, BeginBatchUpdate )( void );
 SQLGETOPTION_PROC( void, EndBatchUpdate )( void );
 
 SQLGETOPTION_PROC( POPTION_TREE_NODE, GetOptionIndexEx )( POPTION_TREE_NODE parent, const TEXTCHAR *file, const TEXTCHAR *pBranch, const TEXTCHAR *pValue, int bCreate DBG_PASS );
-SQLGETOPTION_PROC( POPTION_TREE_NODE, GetOptionIndexExx )( PODBC odbc, POPTION_TREE_NODE parent, const TEXTCHAR *file, const TEXTCHAR *pBranch, const TEXTCHAR *pValue, int bCreate DBG_PASS );
+SQLGETOPTION_PROC( POPTION_TREE_NODE, GetOptionIndexExx )( PODBC odbc, POPTION_TREE_NODE parent, CTEXTSTR program, const TEXTCHAR *file, const TEXTCHAR *pBranch, const TEXTCHAR *pValue, int bCreate DBG_PASS );
 #define GetOptionIndex(p,f,b,v) GetOptionIndexEx( p,f,b,v,FALSE DBG_SRC )
 SQLGETOPTION_PROC( size_t, GetOptionStringValueEx )( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *buffer, size_t len DBG_PASS );
 SQLGETOPTION_PROC( size_t, GetOptionStringValue )( POPTION_TREE_NODE optval, TEXTCHAR *buffer, size_t len );

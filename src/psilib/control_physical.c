@@ -541,7 +541,7 @@ void CPROC FrameRestore( PTRSZVAL psv )
 {
 	PPHYSICAL_DEVICE pf = (PPHYSICAL_DEVICE)psv;
 	PSI_CONTROL pc = pf->common;
-   InvokeControlRevealed( pc );
+	InvokeControlRevealed( pc );
 }
 
 //---------------------------------------------------------------------------

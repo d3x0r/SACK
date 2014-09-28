@@ -19,7 +19,7 @@ struct crossfade_app_tracker
 	CTEXTSTR classname;
 	S_32 last_x, last_y;
 	_32 last_w, last_h;
-#ifdef WIN32
+#ifdef _WIN32
 	HWND hWnd;
 #endif
 	struct {

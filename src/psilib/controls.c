@@ -9,7 +9,7 @@
 #include <interface.h>
 #include <procreg.h>
 #define CONTROL_BASE
-#define LOCK_TEST 1
+#define LOCK_TEST 0
 // this is a FUN flag! this turns on
 // background state capture for all controls...
 // builds in the required function of get/restore
@@ -1830,7 +1830,7 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 				// from a different place... this one only needs to
 				// worry aobut child region borders after telling them to
 				// draw - to enforce cleanest bordering...
-				if( g.flags.always_draw || pc->parent )
+				if( g.flags.always_draw || ( pc->parent && !pc->parent->flags.children_cleaned ) )
 					if( pc->DrawBorder )  // and initial?
 					{
 #ifdef DEBUG_BORDER_DRAWING

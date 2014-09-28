@@ -412,13 +412,14 @@ void ResetOptionMap( PODBC odbc )
 #define OPTION_ROOT_VALUE 0
 
 static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE parent
+														 , const TEXTCHAR *program_override
 														 , const TEXTCHAR *file
 														 , const TEXTCHAR *pBranch
 														 , const TEXTCHAR *pValue
 														 , int bCreate, int bIKnowItDoesntExist DBG_PASS )
 {
-	static const TEXTCHAR *_program = NULL;
-	static size_t _program_length = 0;
+	const TEXTCHAR *_program = program_override;
+	size_t _program_length = _program?StrLen( _program ): NULL;
 	const TEXTCHAR *program = NULL;
 	static const TEXTCHAR *_system = NULL;
 	const TEXTCHAR *system = NULL;
@@ -646,14 +647,14 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 	return parent;
 }
 
-POPTION_TREE_NODE GetOptionIndexExx( PODBC odbc, POPTION_TREE_NODE parent, const TEXTCHAR *file, const TEXTCHAR *pBranch, const TEXTCHAR *pValue, int bCreate DBG_PASS )
+POPTION_TREE_NODE GetOptionIndexExx( PODBC odbc, POPTION_TREE_NODE parent, CTEXTSTR program, const TEXTCHAR *file, const TEXTCHAR *pBranch, const TEXTCHAR *pValue, int bCreate DBG_PASS )
 {
-   return GetOptionIndexExxx( odbc, parent, file, pBranch, pValue, bCreate, FALSE DBG_RELAY );
+   return GetOptionIndexExxx( odbc, parent, program, file, pBranch, pValue, bCreate, FALSE DBG_RELAY );
 }
 
 POPTION_TREE_NODE GetOptionIndexEx( POPTION_TREE_NODE parent, const TEXTCHAR *file, const TEXTCHAR *pBranch, const TEXTCHAR *pValue, int bCreate DBG_PASS )
 {
-   return GetOptionIndexExxx( og.Option, parent, file, pBranch, pValue, bCreate, FALSE DBG_RELAY );
+   return GetOptionIndexExxx( og.Option, parent, NULL, file, pBranch, pValue, bCreate, FALSE DBG_RELAY );
 }
 //------------------------------------------------------------------------
 
@@ -1398,7 +1399,7 @@ static CTEXTSTR CPROC ResolveININame( PODBC odbc, CTEXTSTR pSection, TEXTCHAR *b
 						//lprintf( "FILE is not mapped entirly, check enumerated options..." );
 						snprintf( buf, 128, WIDE("System Settings/Map INI Local Masks/%s"), pINIFile );
 						//lprintf( "buf is %s", buf );
-						node = GetOptionIndexExxx( odbc, NULL, DEFAULT_PUBLIC_KEY, NULL, buf, TRUE, FALSE DBG_SRC );
+						node = GetOptionIndexExxx( odbc, NULL, DEFAULT_PUBLIC_KEY, NULL, NULL, buf, TRUE, FALSE DBG_SRC );
 						if( node )
 						{
 							//lprintf( "Node is %p?", node );
@@ -1474,7 +1475,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 		// maybe do an if( l.flags.bLogOptionsRead )
 		if( global_sqlstub_data->flags.bLogOptionConnection )
 			_lprintf(DBG_RELAY)( WIDE( "Getting option {%s}[%s]%s=%s" ), pINIFile, pSection, pOptname, pDefaultbuf );
-		opt_node = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, pINIFile, pSection, pOptname, FALSE DBG_RELAY );
+		opt_node = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, NULL, pINIFile, pSection, pOptname, FALSE DBG_RELAY );
 		if( !opt_node )
 		{
 			// this actually implies to delete the entry... but since it doesn't exist no worries...
@@ -1499,7 +1500,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 					pBuffer[0] = 0;
 			}
 			// create the option branch since it doesn't exist...
-			opt_node = GetOptionIndexExxx( odbc, OPTION_ROOT_VALUE, pINIFile, pSection, pOptname, TRUE, TRUE DBG_RELAY );
+			opt_node = GetOptionIndexExxx( odbc, OPTION_ROOT_VALUE, NULL, pINIFile, pSection, pOptname, TRUE, TRUE DBG_RELAY );
 			{
 				int x;
 				if( SetOptionStringValue( GetOptionTreeExxx( odbc, NULL DBG_SRC ), opt_node, pBuffer ) )
@@ -1634,7 +1635,7 @@ SQLGETOPTION_PROC( int, SACK_GetProfileBlobOdbc )( PODBC odbc, CTEXTSTR pSection
 #ifdef DETAILED_LOGGING
 	lprintf( WIDE( "Only single odbc available here." ) );
 #endif
-	optval = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, NULL, pSection, pOptname, FALSE DBG_SRC );
+	optval = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, NULL, NULL, pSection, pOptname, FALSE DBG_SRC );
 	if( !optval )
 	{
 		return FALSE;
@@ -1677,7 +1678,7 @@ SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateOptionStringEx )( PODBC odbc, CTEXT
       TEXTCHAR buf[128];
       pINIFile = ResolveININame( odbc, pSection, buf, pINIFile );
 	}
-	optval = GetOptionIndexExxx( odbc, NULL, pINIFile, pSection, pName, TRUE, FALSE DBG_SRC );
+	optval = GetOptionIndexExxx( odbc, NULL, NULL, pINIFile, pSection, pName, TRUE, FALSE DBG_SRC );
 	if( !optval )
 	{
 		lprintf( WIDE("Creation of path failed!") );
@@ -1749,10 +1750,10 @@ SQLGETOPTION_PROC( S_32, SACK_WriteProfileInt )( CTEXTSTR pSection, CTEXTSTR pNa
 	return SACK_WritePrivateProfileInt( pSection, pName, value, NULL );
 }
 
-SQLGETOPTION_PROC( int, SACK_WriteProfileBlobOdbc )( PODBC odbc, CTEXTSTR pSection, CTEXTSTR pOptname, TEXTCHAR *pBuffer, size_t nBuffer )
+SQLGETOPTION_PROC( int, SACK_WritePrivateProfileBlobOdbc )( PODBC odbc, CTEXTSTR pSection, CTEXTSTR pOptname, TEXTCHAR *pBuffer, size_t nBuffer, CTEXTSTR app )
 {
 	POPTION_TREE_NODE optval;
-	optval = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, NULL, pSection, pOptname, TRUE DBG_SRC );
+	optval = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, app, NULL, pSection, pOptname, TRUE DBG_SRC );
 	if( !optval )
 	{
 		lprintf( WIDE("Creation of path failed!") );
@@ -1767,9 +1768,20 @@ SQLGETOPTION_PROC( int, SACK_WriteProfileBlobOdbc )( PODBC odbc, CTEXTSTR pSecti
 }
 
 
+SQLGETOPTION_PROC( int, SACK_WritePrivateProfileBlob )( CTEXTSTR pSection, CTEXTSTR pOptname, TEXTCHAR *pBuffer, size_t nBuffer, CTEXTSTR app )
+{
+	return SACK_WritePrivateProfileBlobOdbc( og.Option, pSection, pOptname, pBuffer, nBuffer, app );
+}
+
+SQLGETOPTION_PROC( int, SACK_WriteProfileBlobOdbc )( PODBC odbc, CTEXTSTR pSection, CTEXTSTR pOptname, TEXTCHAR *pBuffer, size_t nBuffer )
+{
+   return SACK_WritePrivateProfileBlobOdbc( odbc, pSection, pOptname, pBuffer, nBuffer, NULL );
+}
+
+
 SQLGETOPTION_PROC( int, SACK_WriteProfileBlob )( CTEXTSTR pSection, CTEXTSTR pOptname, TEXTCHAR *pBuffer, size_t nBuffer )
 {
-   return SACK_WriteProfileBlobOdbc( og.Option, pSection, pOptname, pBuffer, nBuffer );
+   return SACK_WritePrivateProfileBlobOdbc( og.Option, pSection, pOptname, pBuffer, nBuffer, NULL );
 }
 
 //------------------------------------------------------------------------
