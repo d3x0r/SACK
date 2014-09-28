@@ -1648,7 +1648,9 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 			return result;
 		}
 	}
-	if( IsMouseInCurrent( pc
+	if( !pf->flags.bSizing 
+		&& !pf->flags.bDragging
+		&& IsMouseInCurrent( pc
 							  , x - pf->CurrentBias.x
 							  , y - pf->CurrentBias.y
 							  , pf->CurrentBias.flags.bias_is_surface
@@ -1706,7 +1708,8 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 		if( (S_64)x < pc->surface_rect.x ||
 			 (S_64)y < pc->surface_rect.y ||
 			 (S_64)x > pc->surface_rect.x + pc->surface_rect.width ||
-			 (S_64)y > pc->surface_rect.y + pc->surface_rect.height )
+			 (S_64)y > pc->surface_rect.y + pc->surface_rect.height ||
+			 pf->flags.bSizing || pf->flags.bDragging )
 		{
 			// it's on the frame of this frame (redunant eh?)
 			//lprintf( WIDE("Outside the surface, on border or frame... invoke frame handler.") );

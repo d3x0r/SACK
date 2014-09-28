@@ -4747,7 +4747,11 @@ RENDER_PROC (void, MoveSizeDisplay) (PVIDEO hVideo, S_32 x, S_32 y, S_32 w,
 				, hVideo->pWindowPos.y
 				, hVideo->flags.bFull ?cx:(cx+l.WindowBorder_X)
 				, hVideo->flags.bFull ?cy:(cy + l.WindowBorder_Y)
-				 , SWP_NOZORDER|SWP_NOACTIVATE );
+				 , SWP_NOZORDER|SWP_NOACTIVATE|moveflags );
+	if( hVideo->flags.bLayeredWindow && !(moveflags & SWP_NOSIZE ) )
+	{
+		SendApplicationDraw( hVideo );
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -4756,6 +4760,11 @@ RENDER_PROC (void, MoveSizeDisplayRel) (PVIDEO hVideo, S_32 delx, S_32 dely,
 													 S_32 delw, S_32 delh)
 {
 	S_32 cx, cy;
+	UINT moveflags = 0;
+	if( !( delx || dely ) )
+		moveflags |= SWP_NOMOVE;
+	if( !( delw || delh ) )
+		moveflags |= SWP_NOSIZE;
 	hVideo->pWindowPos.x += delx;
 	hVideo->pWindowPos.y += dely;
 	cx = (hVideo->pWindowPos.cx += delw);
@@ -4773,7 +4782,11 @@ RENDER_PROC (void, MoveSizeDisplayRel) (PVIDEO hVideo, S_32 delx, S_32 dely,
 					 , hVideo->pWindowPos.y
 				, hVideo->flags.bFull ?cx:(cx+l.WindowBorder_X)
 				, hVideo->flags.bFull ?cy:(cy + l.WindowBorder_Y)
-				, SWP_NOZORDER );
+				, SWP_NOZORDER | moveflags );
+	if( hVideo->flags.bLayeredWindow && !(moveflags & SWP_NOSIZE ) )
+	{
+		SendApplicationDraw( hVideo );
+	}
 }
 
 //----------------------------------------------------------------------------

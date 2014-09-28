@@ -2089,9 +2089,8 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 #  ifndef UNDER_CE
 	if( !pch->file && !absolute_path )
 	{
-		CTEXTSTR workpath = OSALOT_GetEnvironmentVariable( WIDE( "MY_WORK_PATH" ) );
 		TEXTCHAR pathname[255];
-		snprintf( pathname, sizeof( pathname ), WIDE("%s/%s"), workpath, name );
+		snprintf( pathname, sizeof( pathname ), WIDE("./%s"), name );
 #	ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
 #	endif
@@ -2099,9 +2098,8 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 	}
 	if( !pch->file && !absolute_path )
 	{
-		CTEXTSTR workpath = OSALOT_GetEnvironmentVariable( WIDE( "MY_LOAD_PATH" ) );
 		TEXTCHAR pathname[255];
-		snprintf( pathname, sizeof( pathname ), WIDE("%s/%s"), workpath, name );
+		snprintf( pathname, sizeof( pathname ), WIDE("@/%s"), name );
 #	ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
 #	endif
