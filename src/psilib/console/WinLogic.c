@@ -852,7 +852,7 @@ int GetCharFromLine( PCONSOLE_INFO console, _32 cols
 		{
 			// nOfs is the column position to start at...
 			// nShown is the amount of the first segment shown.
-			nLen = ComputeToShow( cols, &col_offset, pText, GetTextSize( pText ), nOfs, nShown, console->pCurrentDisplay );
+			nLen = pLine->nToShow ;// ComputeToShow( cols, &col_offset, pText, GetTextSize( pText ), nOfs, nShown, console->pCurrentDisplay );
 			//nLen = GetTextSize( pText );
 			if( nChar < pText->format.position.offset.spaces )
 			{
@@ -901,7 +901,7 @@ TEXTCHAR *PSI_GetDataFromBlock( PCONSOLE_INFO pdp )
 	int first_char = TRUE;
 	int first = TRUE;
 	int _priorline;
-   lprintf( "allocated something crazy like %d,%d  %d %p",line_start - line_end, pdp->nColumns,  ( ( line_start - line_end ) + 1 ) * (pdp->nColumns + 2) ,  result );
+	//lprintf( "allocated something crazy like %d,%d  %d %p",line_start - line_end, pdp->nColumns,  ( ( line_start - line_end ) + 1 ) * (pdp->nColumns + 2) ,  result );
 	for( col = col_start, line = line_start
 		; line >= line_end
 		 ; line--, (col = bBlock)?col_start:0 )

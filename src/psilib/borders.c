@@ -637,6 +637,19 @@ void DrawFrameCaption( PSI_CONTROL pc )
 					  , w, xofs, h
 					  , basecolor(pc)[SHADE] );
 		}
+		if( pc->device && ( pc->BorderType & BORDER_CAPTION_CLOSE_BUTTON ) )
+		{
+			if( pc->device->flags.bCloseButtonPressed )
+			{
+				if( g.StopButtonPressed )
+					BlotScaledImageSizedToAlpha( pc->Window, g.StopButtonPressed, w - (h-xofs), xofs + 1, (h-xofs) - 2, (h-xofs) - 2, ALPHA_TRANSPARENT );
+			}
+			else
+			{
+				if( g.StopButton )
+					BlotScaledImageSizedToAlpha( pc->Window, g.StopButton, w - (h-xofs), xofs + 1, (h-xofs) - 2, (h-xofs) - 2, ALPHA_TRANSPARENT );
+			}
+		}
 	}
 	//lprintf( WIDE("Is anything going to output this to the window?") );
 }

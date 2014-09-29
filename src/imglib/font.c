@@ -1007,6 +1007,7 @@ static _32 FilterMenuStrings( ImageFile *pImage
 
 static LOGICAL Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_original, CDATA *fore, CDATA *back )
 {
+	//lprintf( "Step (%s[%*.*s])", (*pc), nLen,nLen, (*pc) );
 	if( !fore_original[0] && !back_original[0] )
 	{
 		// This serves as a initial condition.  If the colors were 0 and 0, then make them not zero.

@@ -222,6 +222,7 @@ struct physical_device_interface
 		BIT_FIELD bNoUpdate : 1; // don't call update function...
 		BIT_FIELD bCaptured : 1; // frame owns mouse, control behaving as frame wants all mouse events.
 		BIT_FIELD bApplicationOwned : 1; // current owns was set by application, do not auto disown.
+		BIT_FIELD bCloseButtonPressed : 1;
 	}flags;
 	EDIT_STATE EditState;
 	//PRENDERER pActImg;
@@ -603,6 +604,7 @@ void DeleteWaitEx( PSI_CONTROL *pc DBG_PASS );
 _MOUSE_NAMESPACE_END
 USE_MOUSE_NAMESPACE
 
+void DrawFrameCaption( PSI_CONTROL pc );
 
 PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER pActImg, PSI_CONTROL under );
 void TryLoadingFrameImage( void );
