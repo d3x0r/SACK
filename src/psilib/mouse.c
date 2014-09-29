@@ -774,6 +774,8 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 			}
 #endif
 			MoveDisplay( pf->pActImg, dx, dy );
+			if( pc->Move )
+				pc->Move( pc, FALSE );
 			return TRUE;
 		}
 		else if( pf->flags.bSizing )

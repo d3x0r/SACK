@@ -81,13 +81,13 @@ PSI_PROC( int, FrameBorderXOfs )( PSI_CONTROL pc, _32 BorderType )
 		 {
           return g.BorderWidth;
 		 }
-       /*
+		 /*
 		 if( BorderType & BORDER_RESIZABLE )
 		 {
 			 return 8;
 		 }
 		 else
-       */
+		 */
 			 return g.BorderImage?g.BorderHeight:4;
 	 case BORDER_THINNER:
 		 return 2;
@@ -119,9 +119,11 @@ PSI_PROC( int, FrameBorderX )( PSI_CONTROL pc, _32 BorderType )
 		 {
           return g.BorderWidth*2;
 		 }
-        //if( BorderType & BORDER_RESIZABLE )
-        //    return 16;
-        //else
+		 /*
+        if( BorderType & BORDER_RESIZABLE )
+            return 16;
+        else
+		*/
             return g.BorderImage?g.BorderWidth * 2:8;
     case BORDER_THINNER:
       return 4;
@@ -176,9 +178,11 @@ PSI_PROC( int, FrameBorderYOfs )( PSI_CONTROL pc, _32 BorderType, CTEXTSTR capti
 		{
 			return result + g.BorderHeight;
 		}
-		//if( BorderType & BORDER_RESIZABLE )
-		//	return result + 8;
-		//else
+		/*
+		if( BorderType & BORDER_RESIZABLE )
+			return result + 8;
+		else
+		*/
 			return result + ( ( (g.BorderImage?g.BorderHeight:4)* 3 ) / 4 );
 	case BORDER_THINNER:
 		return result + 2;
@@ -213,11 +217,13 @@ PSI_PROC( int, FrameBorderY )( PSI_CONTROL pc, _32 BorderType, CTEXTSTR caption 
 		{
 			return result + g.BorderHeight*2;
 		}
-		//if( BorderType & BORDER_RESIZABLE )
-		//{
-		//	return result + 16;
-		//}
-		//else
+		/*
+		if( BorderType & BORDER_RESIZABLE )
+		{
+			return result + 16;
+		}
+		else
+		*/
 		{
 			return result + ((g.BorderImage?g.BorderHeight:4) * 7 / 4 );
 		}
@@ -716,7 +722,7 @@ void CPROC SetDrawBorder( PSI_CONTROL pc )
 		pc->DrawBorder = NULL;
 		break;
 	case BORDER_NORMAL:
-      /*
+		/*
 		if( pc->BorderType & BORDER_RESIZABLE )
 		{
 			if( pc->BorderType & BORDER_INVERT )
@@ -725,7 +731,7 @@ void CPROC SetDrawBorder( PSI_CONTROL pc )
 				pc->DrawBorder = DrawThickFrame;
 		}
 		else
-      */
+		*/
 		{
 			if( pc->BorderType & BORDER_INVERT )
 				pc->DrawBorder = DrawNormalFrameInverted;
@@ -806,6 +812,8 @@ void UpdateSurface( PSI_CONTROL pc )
 {
 	_32 border;
 	_32 width, height;
+	LOGICAL size_changed = FALSE;
+	LOGICAL pos_changed = FALSE;
 	//xlprintf(2100)( "Update Surface... %p  %08x", pc, pc->BorderType );
 	border = pc->BorderType;
 	width = pc->rect.width;
@@ -814,18 +822,39 @@ void UpdateSurface( PSI_CONTROL pc )
 	{
 		int left, top, right,bottom;
 		pc->BorderMeasureProc( pc, &left, &top, &right, &bottom );
+		if( pc->surface_rect.x != left || pc->surface_rect.y != top )
+		{
 
-		pc->surface_rect.x = left;
-		pc->surface_rect.y = top;
-		pc->surface_rect.width = width - right;
-		pc->surface_rect.height = height - bottom;
+			pc->surface_rect.x = left;
+			pc->surface_rect.y = top;
+			pos_changed = TRUE;
+		}
+		if( ( pc->surface_rect.width != (width - right) ) || ( pc->surface_rect.height != (height-bottom) ) )
+		{
+			pc->surface_rect.width = width - right;
+			pc->surface_rect.height = height - bottom;
+			size_changed = TRUE;
+		}
 	}
 	else
 	{
-		pc->surface_rect.x = FrameBorderXOfs(pc, border);
-		pc->surface_rect.y = FrameBorderYOfs(pc, border, GetText(pc->caption.text));
-		pc->surface_rect.width = width - FrameBorderX(pc, border);
-		pc->surface_rect.height = height - FrameBorderY(pc, border, GetText(pc->caption.text));
+		int left, top, right,bottom;
+		left = FrameBorderXOfs(pc, border);
+		top = FrameBorderYOfs(pc, border, GetText(pc->caption.text));
+		right = FrameBorderX(pc, border);
+		bottom = FrameBorderY(pc, border, GetText(pc->caption.text));
+		if( pc->surface_rect.x != left || pc->surface_rect.y != top )
+		{
+			pc->surface_rect.x = left;
+			pc->surface_rect.y = top;
+			pos_changed = TRUE;
+		}
+		if( ( pc->surface_rect.width != (width - right) ) || ( pc->surface_rect.height != (height-bottom) ) )
+		{
+			pc->surface_rect.width = width - right;
+			pc->surface_rect.height = height - bottom;
+			size_changed = TRUE;
+		}
 	}
 	if( pc->Surface )
 	{
@@ -848,6 +877,16 @@ void UpdateSurface( PSI_CONTROL pc )
 										  , pc->surface_rect.width
 										  , pc->surface_rect.height );
 		//lprintf( WIDE("Resulting surface is %p in %p"), pc->Surface, pc->Window );
+	}
+	if( pos_changed )
+	{
+		//if( pc-> )
+		//pc->Move( pc, FALSE );
+	}
+	if( size_changed && pc->Surface )
+	{
+		if( pc->Resize )
+			pc->Resize( pc, FALSE );
 	}
 }
 

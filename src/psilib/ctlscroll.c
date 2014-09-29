@@ -530,7 +530,7 @@ static void OnSizeCommon( SCROLLBAR_CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begi
 			MoveSizeCommon( psb->pcBottomButton, pc->rect.width - pc->rect.height, 0
 							  , pc->rect.height, pc->rect.height );
 		}
-		else
+		else if( psb->surface )
 		{
 			MoveImage( psb->surface, 0, pc->rect.width );
 			ResizeImage( psb->surface
