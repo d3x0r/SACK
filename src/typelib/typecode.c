@@ -391,7 +391,7 @@ POINTER SetDataItemEx( PDATALIST *ppdl, INDEX idx, POINTER data DBG_PASS )
 		return NULL;
 	if( idx >= (*ppdl)->Avail )
 	{
-		ExpandDataListEx( ppdl, (idx-(*ppdl)->Avail)+4 DBG_RELAY );
+		ExpandDataListEx( ppdl, (idx-(*ppdl)->Avail)+32 DBG_RELAY );
 	}
 	p = (*ppdl)->data + ( (*ppdl)->Size * idx );
 	MemCpy( p, data, (*ppdl)->Size );

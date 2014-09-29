@@ -44,6 +44,7 @@ typedef struct chat_list_tag
 			// current working parameters...
 			CDATA crText;
 			CDATA crBack;
+			CDATA background_color;
 		} colors;
 
 } CHAT_LIST;

@@ -133,6 +133,7 @@ typedef void (CPROC*_ChangeFocus)       ( struct common_control_frame *, LOGICAL
 /* \Internal event callback definition. Called when a control is
 		being resized. Width or height changing.                      */
 typedef void (CPROC*_Resize)            ( struct common_control_frame *, LOGICAL bSizing );
+typedef void (CPROC*_Move)            ( struct common_control_frame *, LOGICAL bSizing );
 typedef void (CPROC*_Rescale)            ( struct common_control_frame * );
 /* \Internal event callback definition. Called when the
 	control's position (x,y) is changing.                */
@@ -474,6 +475,7 @@ typedef struct common_control_frame
 	DeclSingleMethod( ChangeFocus );
 	// also declare a method above of the same name...
 	DeclSingleMethod( Resize );
+	DeclSingleMethod( Move );
 	DeclSingleMethod( Rescale );
 	//DeclSingleMethod( PosChanging );
 	DeclSingleMethod( BeginEdit );

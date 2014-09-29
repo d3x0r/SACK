@@ -415,21 +415,23 @@ void GetMyInterface( void )
 				g.flags.allow_threaded_draw = AllowsAnyThreadToUpdate();
 	}
 #ifdef __ANDROID__
+	if( !g.default_font )
 	{
 		_32 w, h;
 		GetDisplaySize( &w, &h );
-      if( h > w )
+		if( h > w )
 			g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/MyriadPro.ttf"), w / 34, h / 48, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
-      else
+		else
 			g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/MyriadPro.ttf"), w / 58, h / 32, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 	}
 #else
+	if( !g.default_font )
 	{
 		_32 w, h;
 		GetFileGroup( WIDE( "Resources" ), WIDE( "@/../Resources" ) );
 		GetDisplaySize( &w, &h );
 		//g.default_font = RenderFontFileScaledEx( WIDE("%resources%/fonts/rod.ttf"), 20, 20, NULL, NULL, 0*2/*FONT_FLAG_8BIT*/, NULL, NULL );
-		g.default_font = RenderFontFileScaledEx( WIDE("rod.ttf"), 18, 18, NULL, NULL, 0/*FONT_FLAG_8BIT*/, NULL, NULL );
+		g.default_font = RenderFontFileScaledEx( WIDE("rod.ttf"), 18, 18, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 		//g.default_font = RenderFontFileScaledEx( WIDE("comic.ttf"), 18, 18, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 	}
 #endif
@@ -2445,6 +2447,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	pc->ChangeFocus    = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("focus_changed"),(PSI_CONTROL,LOGICAL));
 	pc->AddedControl   = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("add_control"),(PSI_CONTROL,PSI_CONTROL));
 	pc->Resize         = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("resize"),(PSI_CONTROL,LOGICAL));
+	pc->Move         = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("position_changing"),(PSI_CONTROL,LOGICAL));
 	pc->Rescale        = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("rescale"),(PSI_CONTROL));
 	pc->BorderDrawProc = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("border_draw"),(PSI_CONTROL,Image));
 	if( pc->BorderDrawProc )
@@ -3148,9 +3151,9 @@ void ApplyRescaleChild( PSI_CONTROL pc, PFRACTION scalex, PFRACTION scaley )
 
 void ApplyRescale( PSI_CONTROL pc )
 {
-	while( pc && !pc->flags.bScaled )
-		pc = pc->parent;
-	if( pc )
+	//while( pc && !pc->flags.bScaled )
+	//	pc = pc->parent;
+	if( pc && pc->flags.bScaled )
 	{
 		//if( 0 )
 #ifdef DEBUG_SCALING
@@ -3316,10 +3319,13 @@ PSI_PROC( void, MoveSizeCommon )( PSI_CONTROL pc, S_32 x, S_32 y, _32 width, _32
 			return;
 		{
 			PSI_CONTROL pf = GetParentControl( pc );
-			x = ScaleValue( &pf->scalex, x );
-			y = ScaleValue( &pf->scaley, y );
-			width = ScaleValue( &pf->scalex, width );
-			height = ScaleValue( &pf->scaley, height );
+			if( pf )
+			{
+				x = ScaleValue( &pf->scalex, x );
+				y = ScaleValue( &pf->scaley, y );
+				width = ScaleValue( &pf->scalex, width );
+				height = ScaleValue( &pf->scaley, height );
+			}
 		}
 		if( pf )
 		{
@@ -4702,10 +4708,17 @@ PSI_PROC( void, GetFramePosition )( PSI_CONTROL pf, S_32 *x, S_32 *y )
 {
 	if( pf )
 	{
+		PPHYSICAL_DEVICE pfd = pf->device;
+		//ValidatedControlData( PFRAME, CONTROL_FRAME, pf, pcf );
+		if( pfd )
+		{
+			GetDisplayPosition( pfd->pActImg, x, y, NULL, NULL );
+			return;
+		}
 		if( x )
 			(*x) = pf->original_rect.x;
-	if( y )
-		(*y) = pf->original_rect.y;
+		if( y )
+			(*y) = pf->original_rect.y;
 	}
 }
 
@@ -4715,6 +4728,15 @@ PSI_PROC( void, GetFrameSize )( PSI_CONTROL pf, _32 *w, _32 *h )
 {
 	if( pf )
 	{
+		PPHYSICAL_DEVICE pfd = pf->device;
+		//ValidatedControlData( PFRAME, CONTROL_FRAME, pf, pcf );
+		if( pfd )
+		{
+			GetDisplayPosition( pfd->pActImg, NULL, NULL, w, h );
+			(*w) -= FrameBorderX( pf, pf->BorderType );
+			(*h) -= FrameBorderY( pf, pf->BorderType, GetText( pf->caption.text ) );
+			return;
+		}
 		if( w )
 			(*w) = pf->original_rect.width;
 		if( h )

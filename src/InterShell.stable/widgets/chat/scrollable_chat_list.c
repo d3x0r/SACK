@@ -314,8 +314,7 @@ static PTRSZVAL CPROC SetSidePad( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-
-static void OnLoadCommon( WIDE( "Chat Control" ) )( PCONFIG_HANDLER pch )
+void ScrollableChatControl_AddConfigurationMethods( PCONFIG_HANDLER pch )
 {
 	AddConfigurationMethod( pch, "Chat Control Background Image=%m", SetBackgroundImage );
 	AddConfigurationMethod( pch, "Chat Control Sent Arrow Area=%i,%i %i,%i", SetSentArrowArea );
@@ -333,11 +332,17 @@ static void OnLoadCommon( WIDE( "Chat Control" ) )( PCONFIG_HANDLER pch )
 	AddConfigurationMethod( pch, "Chat Control Received Arrow Offset=%i,%i", SetReceiveArrowOffset );
 }
 
-static void OnFinishInit( WIDE( "Chat Control" ) )( PSI_CONTROL canvas )
+
+static void OnLoadCommon( WIDE( "Chat Control" ) )( PCONFIG_HANDLER pch )
+{
+	ScrollableChatControl_AddConfigurationMethods( pch );
+}
+
+static void SetupDefaultConfig( void )
 {
 	if( !l.decoration && !l.decoration_name )
 	{
-		l.decoration_name = WIDE("images/chat-decoration.png");
+		l.decoration_name = WIDE("chat-decoration.png");
 		l.decoration = LoadImageFile( l.decoration_name );
 
 		l.side_pad = 5;
@@ -375,6 +380,11 @@ static void OnFinishInit( WIDE( "Chat Control" ) )( PSI_CONTROL canvas )
 		l.flags.received_text_justification = 0;
 	}
 	ChopDecorations( );
+}
+
+static void OnFinishInit( WIDE( "Chat Control" ) )( PSI_CONTROL canvas )
+{
+	SetupDefaultConfig();
 }
 
 static void OnSaveCommon( WIDE( "Chat Control" ) )( FILE *file )
@@ -753,7 +763,8 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 		ClearImageTo( window, BASE_COLOR_BLUE );
 		return 1;
 	}
-	ClearImageTo( window, BASE_COLOR_WHITE );
+	if( list->colors.background_color )
+		ClearImageTo( window, list->colors.background_color);
 
 	if( l.decoration )
 	{
@@ -895,9 +906,11 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list;
+	SetupDefaultConfig();
 	(*ppList) = New( CHAT_LIST );
 	MemSet( (*ppList), 0, sizeof( CHAT_LIST ) );
 	list = (*ppList);
+	//list->colors.background_color = BASE_COLOR_WHITE;
 	list->message_window = MakeSubImage( GetControlSurface( pc ), 0, 0, 1, 1 );
 		list->pHistory = PSI_CreateHistoryRegion();
 		list->phlc_Input = PSI_CreateHistoryCursor( list->pHistory );
