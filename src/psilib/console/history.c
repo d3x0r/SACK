@@ -1133,6 +1133,7 @@ _32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nO
 		{
 			if( text[nSpace] == ' ' ) 
 			{
+				//lprintf( "measure string until space... %s (%s)", text, text + nSpace );
 				phbr->measureString( phbr->psvMeasure, GetText( segment ) + nShown
 					, nSpace - nShown, &nSegSize, &nSegHeight );
 				if( ( (*col_offset) + nSegSize  ) < colsize )
@@ -1902,7 +1903,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 		lprintf( WIDE("No column defined for browser! please Fix me!") );
 	//clear_remaining_lines:
 	//lprintf( "Clearning lines %d to %d", nLinesShown, nLineCount );
-	if( nLinesShown < nLineCount )
+	if( 0 && nLinesShown < nLineCount )
 	{
 		DISPLAYED_LINE dl;
 		dl.nLine = 0; // minus 1 since it was auto incremented already
@@ -1915,7 +1916,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 			// going to begin a new line...
 			// setup the line info for the new line...
 			//lprintf( "Adding line to display: %p (%d) %d", dl.start, dl.nOfs, dl.nLine );
-			//lprintf( "Set line %d", nLinesShown  );
+			lprintf( "Set line %d", nLinesShown  );
 			SetDataItem( CurrentLineInfo
 						  , nLinesShown
 						  , &dl );

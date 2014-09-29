@@ -156,14 +156,14 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 		PDISPLAYED_LINE pdl;
 		for( lines = 0; pdl = (PDISPLAYED_LINE)GetDataItem( console->CurrentMarkInfo, lines ) ; lines++ )
 		{
-         len = pdl->nToShow;
-				if( pdl->nToShow > maxlen )
-					maxlen = len;
-         lprintf( "line %d len %d", lines, len );
+			len = pdl->nToShow;
+			if( pdl->nToShow > maxlen )
+				maxlen = len;
+			//lprintf( "line %d len %d", lines, len );
 			if( len == 0 )
             break;
 		}
-      lprintf( "measured block in characters %d,%d", maxlen, lines );
+		//lprintf( "measured block in characters %d,%d", maxlen, lines );
 		console->mark_start.row = lines;
 		console->mark_start.col = 0;
 		console->mark_end.row = 0;

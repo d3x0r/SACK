@@ -495,6 +495,7 @@ enum BorderOptionTypes {
  BORDER_FIXED         =  0x8000, // scale does not apply to coordinates... otherwise it will be... by default controls are scalable.
 
  BORDER_NO_EXTRA_INIT =        0x010000, // control is private to psi library(used for scrollbars in listboxes, etc) and as such does not call 'extra init'
+ BORDER_CAPTION_CLOSE_BUTTON =  0x20000, //add a close button to the caption bar (has to have text, and a caption)
 };
 
 // these are the indexes for base color

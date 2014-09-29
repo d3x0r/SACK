@@ -533,7 +533,27 @@ void TryLoadingFrameImage( void )
 {
 	if( g.flags.system_color_set )
 		return;
-	if( !g.BorderImage )
+	if( !g.StopButton )
+	{
+		TEXTCHAR buffer[256];
+#ifndef __NO_OPTIONS__
+		SACK_GetProfileStringEx( GetProgramName(), WIDE( "SACK/PSI/Frame close button image" ), WIDE("stop_button.png"), buffer, sizeof( buffer ), TRUE );
+#else
+		StrCpy( buffer, WIDE("stop_button.png") );
+#endif
+		g.StopButton = LoadImageFileFromGroup( GetFileGroup( WIDE( "Images" ), WIDE( "./images" ) ), buffer );
+	}
+	if( !g.StopButtonPressed )
+	{
+		TEXTCHAR buffer[256];
+#ifndef __NO_OPTIONS__
+		SACK_GetProfileStringEx( GetProgramName(), WIDE( "SACK/PSI/Frame close button pressed image" ), WIDE("stop_button_pressed.png"), buffer, sizeof( buffer ), TRUE );
+#else
+		StrCpy( buffer, WIDE("stop_button_pressed.png") );
+#endif
+		g.StopButtonPressed = LoadImageFileFromGroup( GetFileGroup( WIDE( "Images" ), WIDE( "./images" ) ), buffer );
+	}
+ 	if( !g.BorderImage )
 	{
 		TEXTCHAR buffer[256];
 #ifndef __NO_OPTIONS__
@@ -2551,7 +2571,7 @@ PSI_PROC( PSI_CONTROL, CreateFrame )( CTEXTSTR caption
 								DBG_SRC );
 	if( !(BorderTypeFlags & BORDER_WITHIN ) )
 		pc->parent = hAbove;
-	SetCommonBorder( pc, BorderTypeFlags|((BorderTypeFlags & BORDER_WITHIN)?0:BORDER_FRAME) );
+	SetCommonBorder( pc, BorderTypeFlags|BORDER_CAPTION_CLOSE_BUTTON|((BorderTypeFlags & BORDER_WITHIN)?0:BORDER_FRAME) );
 	//lprintf( WIDE("FRAME is %p"), pc );
 	return pc;
 }
