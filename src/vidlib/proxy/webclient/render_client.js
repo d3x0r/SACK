@@ -254,7 +254,7 @@ function OpenServer()
         
 	function HandleMessage( msg )
 	{
-		//console.log( "message:" + msg.MsgID );
+     //console.log( "message:" + msg.MsgID );
      	switch( msg.MsgID )
         {
         case 0: // PMID_Version
@@ -513,22 +513,43 @@ function OpenServer()
                 	break;
                 case 25 : // PMID_DawBlockBegin
                 	
-                	block = new zip.Data64URIReader( msg.data.data );
-                        block.init( function() { console.log( "init done?" ); } );
-                        block.readUint8Array( 0, msg.data.length, function(text){ 
-                        		console.log( text ); 
-                        	
-                        	} );
+                               dataStart = msg.data.data.indexOf(",") + 1;
+                               //console.log( "string is " + msg.data.data.substring(dataStart) );
+                               bytes = atob( msg.data.data.substring(dataStart) );
+                               
+                               var i;
+                               var dataBuffer, dataArray;
+			       dataBuffer = new ArrayBuffer(bytes.length);
+			       dataArray = new Uint8Array(dataBuffer);
                                 
-                        console.log( "no zip.createzip??" );
-                        ader = new zip.createZipReader( block, function(reader) {console.log( "success?"); } );
-                        console.log( "no zip.inflage?" );
-                        block.inflate( block, null, 0, msg.data.length
-                                , function() {console.log("end");}
-                        	, function() {console.log("error");}
-                                , function() {console.log("writeerror ");} );
-                        //console.log( output );
-                	//msg.data.data
+                               for (i = 0; i < bytes.length; i++)
+				 dataArray[i] = bytes.charCodeAt(i);
+
+                               //console.log( "bytes is " + bytes.length + dataArray );
+	                        var inflate = new Zlib.Inflate(dataArray);
+                                var output = inflate.decompress();
+                                
+                                var str = "";
+				for(var i = 0; i < output.length; i += 1) {
+			       		str += String.fromCharCode(output[i]);
+				}
+                                //console.log( "success? " + str );
+                                
+		        	var msg = JSON.parse(str);
+		       		//console.log( "msg " + msg );
+				if(  Object.prototype.toString.call(msg) === '[object Array]' )
+				{ 
+					var m;
+                        	        //console.log( "have messages... " + msg.length );
+					for( m = 0; m < msg.length; m++ )
+	                                {
+		                                //console.log( "message: " + msg[m].MsgID );
+						HandleMessage( msg[m] );
+	                                }
+				}
+				else
+					HandleMessage( msg );
+                                
                 	break;
         }
 	};
@@ -538,6 +559,7 @@ function OpenServer()
      ws.onmessage = function (evt) 
      { 
 		//console.log( evt.data );
+                //console.log( "message : " + evt.data );
         	var msg = JSON.parse(evt.data);
         
 		if(  Object.prototype.toString.call(msg) === '[object Array]' )
