@@ -743,6 +743,67 @@ static void SendInitialImage( PCLIENT pc, LOGICAL websock, PLIST *sent, PVPImage
 	AddLink( sent,  image );
 }
 
+static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
+{
+	if( image->websock_buffer && image->websock_sendlen )
+	{
+		//lprintf( "Send image %p %p %d", image, image->websock_buffer, image->websock_sendlen );
+		image->websock_buffer[image->websock_sendlen] = ']';
+						
+		{
+			_8 *msg;
+			struct common_message *outmsg;
+			char * encoded_data;
+			Bytef *output = NewArray( Bytef, image->websock_sendlen + 1 );
+			size_t sendlen;
+			size_t outlen;
+			uLongf destlen = image->websock_sendlen + 1;
+
+			encoded_data = Decode64Binary( "W3siTXNnSUQiOjIyLCJkYXRhIjp7ImltYWdlX3RvX2lkIjo2MiwiaW1hZ2VfZnJvbV9pZCI6NDR9fV0="
+						, 0
+						, StrLen( "W3siTXNnSUQiOjIyLCJkYXRhIjp7ImltYWdlX3RvX2lkIjo2MiwiaW1hZ2VfZnJvbV9pZCI6NDR9fV0=" )
+						, &outlen );
+			//encoded_data = Encode64Image( "application/zip", image->websock_buffer, TRUE, image->websock_sendlen + 1, &outlen );
+			compress2( output, &destlen, image->websock_buffer, image->websock_sendlen + 1, Z_BEST_COMPRESSION );
+
+			encoded_data = Encode64Image( "application/zip", output, TRUE, destlen, &outlen );
+			
+			lprintf("would have only been %d and is %d but really %d"
+				, image->websock_sendlen + 1
+				, destlen
+				, outlen
+				);
+			//LogBinary( image->websock_buffer, image->websock_sendlen );
+			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct draw_block_data ) + outlen ) );
+			outmsg = (struct common_message*)(msg + 4);
+			MemCpy( outmsg->data.draw_block.data, encoded_data, outlen );
+			Release( encoded_data );
+
+			((_32*)msg)[0] = (_32)(sendlen - 4);
+			outmsg = (struct common_message*)(msg + 4);
+			outmsg->message_id = PMID_DrawBlock;
+			outmsg->data.draw_block.server_image_id = image->id;
+			outmsg->data.draw_block.length = destlen;
+			// include nul in copy
+			lprintf( WIDE("Send Image %p %d  %d"), image, image->id, sendlen );
+			{
+				TEXTSTR json_msg;
+				struct json_context_object *cto;
+				cto = (struct json_context_object *)GetLink( &l.messages, outmsg->message_id );
+				if( !cto )
+					cto = WebSockInitJson( outmsg->message_id );
+				json_msg = json_build_message( cto, outmsg );
+				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
+				Release( output );
+				Release( json_msg );
+			}
+			Release( msg );
+		}
+
+		//WebSocketSendText( pcNew, image->websock_buffer, image->websock_sendlen + 1 );
+	}
+}
+
 static void SendImageBuffers( PCLIENT pcNew, int send_websock, int send_initial )
 {
 		{
@@ -764,57 +825,7 @@ static void SendImageBuffers( PCLIENT pcNew, int send_websock, int send_initial 
 				}
 				if( send_websock )
 				{
-					if( image->websock_buffer && image->websock_sendlen )
-					{
-						//lprintf( "Send image %p %p %d", image, image->websock_buffer, image->websock_sendlen );
-						image->websock_buffer[image->websock_sendlen] = ']';
-						
-						{
-							_8 *msg;
-							struct common_message *outmsg;
-							char * encoded_data;
-							char *output = NewArray( _8, image->websock_sendlen + 1 );
-							size_t sendlen;
-							size_t outlen;
-							uLongf destlen = image->websock_sendlen + 1;
-
-							encoded_data = Decode64Binary( "W3siTXNnSUQiOjIyLCJkYXRhIjp7ImltYWdlX3RvX2lkIjo2MiwiaW1hZ2VfZnJvbV9pZCI6NDR9fV0="
-										, 0
-										, StrLen( "W3siTXNnSUQiOjIyLCJkYXRhIjp7ImltYWdlX3RvX2lkIjo2MiwiaW1hZ2VfZnJvbV9pZCI6NDR9fV0=" )
-										, &outlen );
-							//encoded_data = Encode64Image( "application/zip", image->websock_buffer, TRUE, image->websock_sendlen + 1, &outlen );
-							compress2( output, &destlen, image->websock_buffer, image->websock_sendlen, Z_BEST_COMPRESSION );
-							lprintf("would have only been %d", destlen );
-
-							encoded_data = Encode64Image( "application/zip", output, TRUE, destlen, &outlen );
-							msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct draw_block_data ) + outlen ) );
-							outmsg = (struct common_message*)(msg + 4);
-							MemCpy( outmsg->data.draw_block.data, encoded_data, outlen );
-							Release( encoded_data );
-
-							((_32*)msg)[0] = (_32)(sendlen - 4);
-							outmsg = (struct common_message*)(msg + 4);
-							outmsg->message_id = PMID_DrawBlock;
-							outmsg->data.draw_block.server_image_id = image->id;
-							outmsg->data.draw_block.length = destlen;
-							// include nul in copy
-							lprintf( WIDE("Send Image %p %d  %d"), image, image->id, sendlen );
-							{
-								TEXTSTR json_msg;
-								struct json_context_object *cto;
-								cto = (struct json_context_object *)GetLink( &l.messages, outmsg->message_id );
-								if( !cto )
-									cto = WebSockInitJson( outmsg->message_id );
-								json_msg = json_build_message( cto, outmsg );
-								WebSocketSendText( pcNew, json_msg, StrLen( json_msg ) );
-								Release( output );
-								Release( json_msg );
-							}
-							Release( msg );
-						}
-
-						//WebSocketSendText( pcNew, image->websock_buffer, image->websock_sendlen + 1 );
-					}
+					SendCompressedBuffer( pcNew, image );
 				}
 				else
 				{
@@ -975,7 +986,7 @@ static PTRSZVAL WebSockOpen( PCLIENT pc, PTRSZVAL psv )
 			SendTCPMessageV( pc, TRUE, PMID_OpenDisplayAboveUnderSizedAt, render );
 		}
 
-      SendImageBuffers( pc, TRUE, TRUE );
+		SendImageBuffers( pc, TRUE, TRUE );
 		{
 			PLIST sent = NULL;
 			INDEX idx;
@@ -986,11 +997,7 @@ static PTRSZVAL WebSockOpen( PCLIENT pc, PTRSZVAL psv )
 			}
 			LIST_FORALL( sent, idx, PVPImage, image )
 			{
-				if( image->websock_buffer && image->websock_sendlen )
-				{
-					image->websock_buffer[image->websock_sendlen] = ']';
-					WebSocketSendText( pc, image->websock_buffer, image->websock_sendlen + 1 );
-				}
+				SendCompressedBuffer( pc, image );
 			}
 			DeleteList( &sent );
 		}
@@ -1898,7 +1905,7 @@ static void AppendJSON( PVPImage image, TEXTSTR msg, POINTER outmsg, size_t send
 	MemCpy( image->websock_buffer + image->websock_sendlen, msg, size );
 	image->websock_sendlen += size;
 
-   if( 0 )
+	if( 0 )
 	{
 		INDEX idx;
 		struct server_proxy_client *client;
@@ -2782,7 +2789,20 @@ static void CPROC VidlibProxy_TransferSubImages( Image pImageTo, Image pImageFro
 		outmsg->data.transfer_sub_image.image_to_id = ((PVPImage)pImageTo)->id;
 		{
 			TEXTSTR json_msg = json_build_message( cto, outmsg );
-			AppendJSON( ((PVPImage)pImageTo), json_msg, ((P_8)outmsg)-4, sendlen );
+			{
+				{
+					INDEX idx;
+					struct server_proxy_client *client;
+					LIST_FORALL( l.clients, idx, struct server_proxy_client*, client )
+					{
+						if( client->websock )
+							WebSocketSendText( client->pc, json_msg, StrLen( json_msg ) );
+						else
+							SendTCP( client->pc, outmsg, sendlen );
+					}
+				}
+				//AppendJSON( ((PVPImage)pImageTo), json_msg, ((P_8)outmsg)-4, sendlen );
+			}
 			Release( json_msg );
 		}
 		LeaveCriticalSec( &l.message_formatter );
