@@ -74,13 +74,21 @@ struct json_context *json_create_context( void )
 
 void json_begin_object( struct json_context *context, CTEXTSTR name )
 {
-	if( context->levels && name )
-		vtprintf( context->pvt, WIDE("%*.*s\"%s\":{\n")
-				  , context->levels, context->levels, tab_filler
-				  , name );
+	if( context->human_readable )
+		if( context->levels && name )
+			vtprintf( context->pvt, WIDE("%*.*s\"%s\":{\n")
+					  , context->levels, context->levels, tab_filler
+					  , name );
+		else
+			vtprintf( context->pvt, WIDE("%*.*s{\n")
+					  , context->levels, context->levels, tab_filler );
 	else
-		vtprintf( context->pvt, WIDE("%*.*s{\n")
-				  , context->levels, context->levels, tab_filler );
+		if( context->levels && name )
+			vtprintf( context->pvt, WIDE("\"%s\":{")
+					  , name );
+		else
+			VarTextAddCharacter( context->pvt, '{' );
+
 	context->levels++;
 }
 
@@ -90,21 +98,31 @@ void json_begin_object( struct json_context *context, CTEXTSTR name )
 void json_end_object( struct json_context *context )
 {
 	context->levels--;
-	vtprintf( context->pvt, WIDE("%*.*s}\n")
-			  , context->levels, context->levels, tab_filler );
+	if( context->human_readable )
+		vtprintf( context->pvt, WIDE("%*.*s}\n")
+				  , context->levels, context->levels, tab_filler );
+	else
+		VarTextAddCharacter( context->pvt, '}');
 }
 
 //----------------------------------------------------------------------------------------------
 
 void json_begin_array( struct json_context *context, CTEXTSTR name )
 {
-	if( context->levels && name )
-		vtprintf( context->pvt, WIDE("%*.*s\"%s\":[\n")
-				  , context->levels, context->levels, tab_filler
-				  , name );
+	if( context->human_readable )
+		if( context->levels && name )
+			vtprintf( context->pvt, WIDE("%*.*s\"%s\":[\n")
+					  , context->levels, context->levels, tab_filler
+					  , name );
+		else
+			vtprintf( context->pvt, WIDE("%*.*s[\n")
+					  , context->levels, context->levels, tab_filler );
 	else
-		vtprintf( context->pvt, WIDE("%*.*s[\n")
-				  , context->levels, context->levels, tab_filler );
+		if( context->levels && name )
+			vtprintf( context->pvt, WIDE("\"%s\":[")
+					  , name );
+		else
+			VarTextAddCharacter( context->pvt, '[');
 	context->levels++;
 }
 
@@ -114,86 +132,130 @@ void json_begin_array( struct json_context *context, CTEXTSTR name )
 void json_end_array( struct json_context *context )
 {
 	context->levels--;
-	vtprintf( context->pvt, WIDE("%*.*s]\n")
-			  , context->levels, context->levels, tab_filler );
+	if( context->human_readable )
+		vtprintf( context->pvt, WIDE("%*.*s]\n")
+				  , context->levels, context->levels, tab_filler );
+	else
+		VarTextAddCharacter( context->pvt, ']');
 }
 
 //----------------------------------------------------------------------------------------------
 
 void json_add_value( struct json_context *context, CTEXTSTR name, CTEXTSTR value )
 {
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":\"%s\"\n")
-			  , context->levels, context->levels, tab_filler
-			  , name, value );
+	if( context->human_readable )
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":\"%s\"\n")
+				  , context->levels, context->levels, tab_filler
+				  , name, value );
+	else
+		vtprintf( context->pvt, WIDE("\"%s\":\"%s\"")
+				  , name, value );
 }
 
 //----------------------------------------------------------------------------------------------
 
 void json_add_int_64_value( struct json_context *context, CTEXTSTR name, S_64 value )
 {
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _64fs WIDE("\n")
-			  , context->levels, context->levels, tab_filler
-			  , name, value );
+	if( context->human_readable )
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _64fs WIDE("\n")
+				  , context->levels, context->levels, tab_filler
+				  , name, value );
+	else
+		vtprintf( context->pvt, WIDE("\"%s\":%") _64fs
+				  , name, value );
 }
 
 void json_add_int_32_value( struct json_context *context, CTEXTSTR name, S_32 value )
 {
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _32fs WIDE("\n")
-			  , context->levels, context->levels, tab_filler
-			  , name, value );
+	if( context->human_readable )
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _32fs WIDE("\n")
+				  , context->levels, context->levels, tab_filler
+				  , name, value );
+	else
+		vtprintf( context->pvt, WIDE("\"%s\":%") _32fs 
+				  , name, value );
 }
 
 void json_add_int_16_value( struct json_context *context, CTEXTSTR name, S_16 value )
 {
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _16fs WIDE("\n")
-			  , context->levels, context->levels, tab_filler
-			  , name, value );
+	if( context->human_readable )
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _16fs WIDE("\n")
+				  , context->levels, context->levels, tab_filler
+				  , name, value );
+	else
+		vtprintf( context->pvt, WIDE("\"%s\":%") _16fs
+				  , name, value );
 }
 
 void json_add_int_8_value( struct json_context *context, CTEXTSTR name, S_8 value )
 {
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _8fs WIDE("\n")
-			  , context->levels, context->levels, tab_filler
-			  , name, value );
+	if( context->human_readable )
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _8fs WIDE("\n")
+				  , context->levels, context->levels, tab_filler
+				  , name, value );
+	else
+		vtprintf( context->pvt, WIDE("\"%s\":%") _8fs
+				  , name, value );
 }
 
 //----------------------------------------------------------------------------------------------
 
 void json_add_uint_64_value( struct json_context *context, CTEXTSTR name, _64 value )
 {
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _64f WIDE("\n")
-			  , context->levels, context->levels, tab_filler
-			  , name, value );
+	if( context->human_readable )
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _64f WIDE("\n")
+				  , context->levels, context->levels, tab_filler
+				  , name, value );
+	else
+		vtprintf( context->pvt, WIDE("\"%s\":%") _64f 
+				  , name, value );
 }
 
 void json_add_uint_32_value( struct json_context *context, CTEXTSTR name, _32 value )
 {
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _32f WIDE("\n")
-			  , context->levels, context->levels, tab_filler
-			  , name, value );
+	if( context->human_readable )
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _32f WIDE("\n")
+				  , context->levels, context->levels, tab_filler
+				  , name, value );
+	else
+		vtprintf( context->pvt, WIDE("\"%s\":%") _32f 
+				  , name, value );
 }
 
 void json_add_uint_16_value( struct json_context *context, CTEXTSTR name, _16 value )
 {
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _16f WIDE("\n")
-			  , context->levels, context->levels, tab_filler
-			  , name, value );
+	if( context->human_readable )
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _16f WIDE("\n")
+				  , context->levels, context->levels, tab_filler
+				  , name, value );
+	else
+		vtprintf( context->pvt, WIDE("\"%s\":%") _16f
+				  , name, value );
 }
 
 void json_add_uint_8_value( struct json_context *context, CTEXTSTR name, _8 value )
 {
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _8f WIDE("\n")
-			  , context->levels, context->levels, tab_filler
-			  , name, value );
+	if( context->human_readable )
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":%") _8f WIDE("\n")
+				  , context->levels, context->levels, tab_filler
+				  , name, value );
+	else
+		vtprintf( context->pvt, WIDE("\"%s\":%") _8f 
+				  , name, value );
 }
 
 //----------------------------------------------------------------------------------------------
 
 void json_add_float_value( struct json_context *context, CTEXTSTR name, double value )
 {
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":%g\n")
-			  , context->levels, context->levels, tab_filler
-			  , name, value );
+	if( context->human_readable )
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":%g\n")
+				  , context->levels, context->levels, tab_filler
+				  , name, value );
+	else
+		vtprintf( context->pvt, WIDE("\"%s\":%g")
+				  , name, value );
+
 }
 
 //----------------------------------------------------------------------------------------------
@@ -201,12 +263,23 @@ void json_add_float_value( struct json_context *context, CTEXTSTR name, double v
 void json_add_value_array( struct json_context *context, CTEXTSTR name, CTEXTSTR* pValue, size_t nValues )
 {
 	size_t n;
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
-			  , context->levels, context->levels, tab_filler
-			  , name );
-	for( n = 0; n < nValues; n++ )
-		vtprintf( context->pvt, WIDE("%s%s"), (n==0)?WIDE(""):WIDE(","), pValue[nValues] );
-	vtprintf( context->pvt, WIDE("]\n") );
+	if( context->human_readable )
+	{
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
+				  , context->levels, context->levels, tab_filler
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%s"), (n==0)?WIDE(""):WIDE(","), pValue[nValues] );
+		vtprintf( context->pvt, WIDE("]\n") );
+	}
+	else
+	{
+		vtprintf( context->pvt, WIDE("\"%s\":[")
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%s"), (n==0)?WIDE(""):WIDE(","), pValue[nValues] );
+		VarTextAddCharacter( context->pvt, ']' );
+	}
 }
 
 //----------------------------------------------------------------------------------------------
@@ -214,12 +287,23 @@ void json_add_value_array( struct json_context *context, CTEXTSTR name, CTEXTSTR
 void json_add_int_64_value_array( struct json_context *context, CTEXTSTR name, S_64* pValues, size_t nValues )
 {
 	size_t n;
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
-			  , context->levels, context->levels, tab_filler
-			  , name );
-	for( n = 0; n < nValues; n++ )
-		vtprintf( context->pvt, WIDE("%s%") _64fs, (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
-	vtprintf( context->pvt, WIDE("]\n") );
+	if( context->human_readable )
+	{
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
+				  , context->levels, context->levels, tab_filler
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%") _64fs, (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		vtprintf( context->pvt, WIDE("]\n") );
+	}
+	else
+	{
+		vtprintf( context->pvt, WIDE("\"%s\":[")
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%") _64fs, (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		VarTextAddCharacter( context->pvt, ']' );
+	}
 }
 
 //----------------------------------------------------------------------------------------------
@@ -227,12 +311,23 @@ void json_add_int_64_value_array( struct json_context *context, CTEXTSTR name, S
 void json_add_int_32_value_array( struct json_context *context, CTEXTSTR name, S_32* pValues, size_t nValues )
 {
 	size_t n;
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
-			  , context->levels, context->levels, tab_filler
-			  , name );
-	for( n = 0; n < nValues; n++ )
-		vtprintf( context->pvt, WIDE("%s%") _32fs, (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
-	vtprintf( context->pvt, WIDE("]\n") );
+	if( context->human_readable )
+	{
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
+				  , context->levels, context->levels, tab_filler
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%") _32fs, (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		vtprintf( context->pvt, WIDE("]\n") );
+	}
+	else
+	{
+		vtprintf( context->pvt, WIDE("\"%s\":[")
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%") _32fs, (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		VarTextAddCharacter( context->pvt, ']' );
+	}
 }
 
 //----------------------------------------------------------------------------------------------
@@ -240,12 +335,23 @@ void json_add_int_32_value_array( struct json_context *context, CTEXTSTR name, S
 void json_add_int_16_value_array( struct json_context *context, CTEXTSTR name, S_16* pValues, size_t nValues )
 {
 	size_t n;
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
-			  , context->levels, context->levels, tab_filler
-			  , name );
-	for( n = 0; n < nValues; n++ )
-		vtprintf( context->pvt, WIDE("%s%d"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
-	vtprintf( context->pvt, WIDE("]\n") );
+	if( context->human_readable )
+	{
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
+				  , context->levels, context->levels, tab_filler
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%d"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		vtprintf( context->pvt, WIDE("]\n") );
+	}
+	else
+	{
+		vtprintf( context->pvt, WIDE("\"%s\":[")
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%d"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		VarTextAddCharacter( context->pvt, ']' );
+	}
 }
 
 //----------------------------------------------------------------------------------------------
@@ -253,12 +359,23 @@ void json_add_int_16_value_array( struct json_context *context, CTEXTSTR name, S
 void json_add_int_8_value_array( struct json_context *context, CTEXTSTR name, S_8* pValues, size_t nValues )
 {
 	size_t n;
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
-			  , context->levels, context->levels, tab_filler
-			  , name );
-	for( n = 0; n < nValues; n++ )
-		vtprintf( context->pvt, WIDE("%s%d"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
-	vtprintf( context->pvt, WIDE("]\n") );
+	if( context->human_readable )
+	{
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
+				  , context->levels, context->levels, tab_filler
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%d"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		vtprintf( context->pvt, WIDE("]\n") );
+	}
+	else
+	{
+		vtprintf( context->pvt, WIDE("\"%s\":[")
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%d"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		VarTextAddCharacter( context->pvt, ']' );
+	}
 }
 
 //----------------------------------------------------------------------------------------------
@@ -266,12 +383,23 @@ void json_add_int_8_value_array( struct json_context *context, CTEXTSTR name, S_
 void json_add_uint_64_value_array( struct json_context *context, CTEXTSTR name, _64* pValues, size_t nValues )
 {
 	size_t n;
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
-			  , context->levels, context->levels, tab_filler
-			  , name );
-	for( n = 0; n < nValues; n++ )
-		vtprintf( context->pvt, WIDE("%s%") _64f, (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
-	vtprintf( context->pvt, WIDE("]\n") );
+	if( context->human_readable )
+	{
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
+				  , context->levels, context->levels, tab_filler
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%") _64f, (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		vtprintf( context->pvt, WIDE("]\n") );
+	}
+	else
+	{
+		vtprintf( context->pvt, WIDE("\"%s\":[")
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%") _64f, (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		VarTextAddCharacter( context->pvt, ']' );
+	}
 }
 
 //----------------------------------------------------------------------------------------------
@@ -279,12 +407,23 @@ void json_add_uint_64_value_array( struct json_context *context, CTEXTSTR name, 
 void json_add_uint_32_value_array( struct json_context *context, CTEXTSTR name, _32* pValues, size_t nValues )
 {
 	size_t n;
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
-			  , context->levels, context->levels, tab_filler
-			  , name );
-	for( n = 0; n < nValues; n++ )
-		vtprintf( context->pvt, WIDE("%s%") _32f, (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
-	vtprintf( context->pvt, WIDE("]\n") );
+	if( context->human_readable )
+	{
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
+				  , context->levels, context->levels, tab_filler
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%") _32f, (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		vtprintf( context->pvt, WIDE("]\n") );
+	}
+	else
+	{
+		vtprintf( context->pvt, WIDE("\"%s\":[")
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%") _32f, (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		VarTextAddCharacter( context->pvt, ']' );
+	}
 }
 
 //----------------------------------------------------------------------------------------------
@@ -292,12 +431,23 @@ void json_add_uint_32_value_array( struct json_context *context, CTEXTSTR name, 
 void json_add_uint_16_value_array( struct json_context *context, CTEXTSTR name, _16* pValues, size_t nValues )
 {
 	size_t n;
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
-			  , context->levels, context->levels, tab_filler
-			  , name );
-	for( n = 0; n < nValues; n++ )
-		vtprintf( context->pvt, WIDE("%s%d"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
-	vtprintf( context->pvt, WIDE("]\n") );
+	if( context->human_readable )
+	{
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
+				  , context->levels, context->levels, tab_filler
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%d"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		vtprintf( context->pvt, WIDE("]\n") );
+	}
+	else
+	{
+		vtprintf( context->pvt, WIDE("\"%s\":[")
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%d"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		VarTextAddCharacter( context->pvt, ']' );
+	}
 }
 
 //----------------------------------------------------------------------------------------------
@@ -305,12 +455,23 @@ void json_add_uint_16_value_array( struct json_context *context, CTEXTSTR name, 
 void json_add_uint_8_value_array( struct json_context *context, CTEXTSTR name, _8* pValues, size_t nValues )
 {
 	size_t n;
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
-			  , context->levels, context->levels, tab_filler
-			  , name );
-	for( n = 0; n < nValues; n++ )
-		vtprintf( context->pvt, WIDE("%s%d"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
-	vtprintf( context->pvt, WIDE("]\n") );
+	if( context->human_readable )
+	{
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
+				  , context->levels, context->levels, tab_filler
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%d"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		vtprintf( context->pvt, WIDE("]\n") );
+	}
+	else
+	{
+		vtprintf( context->pvt, WIDE("\"%s\":[")
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%d"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		VarTextAddCharacter( context->pvt, ']' );
+	}
 }
 
 //----------------------------------------------------------------------------------------------
@@ -318,12 +479,23 @@ void json_add_uint_8_value_array( struct json_context *context, CTEXTSTR name, _
 void json_add_int_array( struct json_context *context, CTEXTSTR name, int* pValues, size_t nValues )
 {
 	size_t n;
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
-			  , context->levels, context->levels, tab_filler
-			  , name );
-	for( n = 0; n < nValues; n++ )
-		vtprintf( context->pvt, WIDE("%s%d"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
-	vtprintf( context->pvt, WIDE("]\n") );
+	if( context->human_readable )
+	{
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
+				  , context->levels, context->levels, tab_filler
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%d"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		vtprintf( context->pvt, WIDE("]\n") );
+	}
+	else
+	{
+		vtprintf( context->pvt, WIDE("\"%s\":[")
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%d"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		VarTextAddCharacter( context->pvt, ']' );
+	}
 }
 
 //----------------------------------------------------------------------------------------------
@@ -331,12 +503,24 @@ void json_add_int_array( struct json_context *context, CTEXTSTR name, int* pValu
 void json_add_float_value_array( struct json_context *context, CTEXTSTR name, float* pValues, size_t nValues )
 {
 	size_t n;
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
-			  , context->levels, context->levels, tab_filler
-			  , name );
-	for( n = 0; n < nValues; n++ )
-		vtprintf( context->pvt, WIDE("%s%g"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
-	vtprintf( context->pvt, WIDE("]\n") );
+	if( context->human_readable )
+	{
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
+				  , context->levels, context->levels, tab_filler
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%g"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		vtprintf( context->pvt, WIDE("]\n") );
+	}
+	else
+	{
+		vtprintf( context->pvt, WIDE("\"%s\":[")
+				  , context->levels, context->levels, tab_filler
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%g"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		VarTextAddCharacter( context->pvt, ']' );
+	}
 }
 
 //----------------------------------------------------------------------------------------------
@@ -344,12 +528,23 @@ void json_add_float_value_array( struct json_context *context, CTEXTSTR name, fl
 void json_add_double_value_array( struct json_context *context, CTEXTSTR name, double* pValues, size_t nValues )
 {
 	size_t n;
-	vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
-			  , context->levels, context->levels, tab_filler
-			  , name );
-	for( n = 0; n < nValues; n++ )
-		vtprintf( context->pvt, WIDE("%s%g"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
-	vtprintf( context->pvt, WIDE("]\n") );
+	if( context->human_readable )
+	{
+		vtprintf( context->pvt, WIDE("%*.*s\"%s\":[")
+				  , context->levels, context->levels, tab_filler
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%g"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		vtprintf( context->pvt, WIDE("]\n") );
+	}
+	else
+	{
+		vtprintf( context->pvt, WIDE("\"%s\":[")
+				  , name );
+		for( n = 0; n < nValues; n++ )
+			vtprintf( context->pvt, WIDE("%s%g"), (n==0)?WIDE(""):WIDE(","), pValues[nValues] );
+		VarTextAddCharacter( context->pvt, ']' );
+	}
 }
 
 //----------------------------------------------------------------------------------------------

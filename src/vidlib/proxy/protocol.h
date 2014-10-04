@@ -53,6 +53,14 @@ PREFIX_PACKED struct image_data_data
 	_8 data[1];
 } PACKED;
 
+PREFIX_PACKED struct draw_block_data 
+{
+	// what the server calls this image; for all further draw ops
+	PTRSZVAL server_image_id;
+	PTRSZVAL length;
+	_8 data[1];
+} PACKED;
+
 PREFIX_PACKED struct unmake_image_data
 {
 	// what the server calls this image; for all further draw ops
@@ -166,6 +174,7 @@ PREFIX_PACKED struct common_message {
 		struct move_image_data move_image;
 		struct size_image_data size_image;
 		struct transfer_sub_image_data transfer_sub_image;
+		struct draw_block_data draw_block;
 		MSGBLOCK( open_display_reply,  PTRSZVAL server_display_id; PTRSZVAL client_display_id; );
 	} data;
 } PACKED;
@@ -213,6 +222,7 @@ enum proxy_message_id{
 							, PMID_TransferSubImages // 22 just allow the client to do the full moves instead of peices and parts.
 							, PMID_ImageDataFrag // 23 - transfer local image data to client
 							, PMID_ImageDataFragMore // 24 - transfer local image data to client
+							, PMID_DrawBlock
 							, PMID_
 
 							, PMID_LAST_PROXY_MESSAGE

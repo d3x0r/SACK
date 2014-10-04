@@ -70,6 +70,7 @@ struct scollable_list_local
 		S_32 div_y1, div_y2;
 		Image BorderSegment[9];
 		Image arrow;
+		CDATA text_color;
 	} sent;
 	struct {
 		S_32 back_x, back_y;
@@ -81,6 +82,7 @@ struct scollable_list_local
 		S_32 div_y1, div_y2;
 		Image BorderSegment[9];
 		Image arrow;
+		CDATA text_color;
 	} received;
 	struct {
 		BIT_FIELD sent_justification : 2;
@@ -88,6 +90,7 @@ struct scollable_list_local
 		BIT_FIELD sent_text_justification : 2;
 		BIT_FIELD received_text_justification : 2;
 	} flags;
+
 	int side_pad;
 } l;
 

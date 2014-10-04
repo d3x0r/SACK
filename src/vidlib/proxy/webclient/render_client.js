@@ -1,3 +1,5 @@
+
+
 function render_surface( remote_id, canvas )
 {
 	this.server_id = remote_id;
@@ -26,7 +28,7 @@ function OpenServer()
 	var ws= WebSocketTest()
 	if( ws == undefined )
 		return;
-     
+
 	var image_list = [];
 	var render_list = []; 
 
@@ -62,6 +64,10 @@ function OpenServer()
      ws.onopen = function()
      {
         // Web Socket is connected, send data using send()
+        
+        // debug btoa (atob)
+	//console.log( "output : " + btoa("[{\"MsgID\":22,\"data\":{\"image_to_id\":62,\"image_from_id\":44}}]") );
+     
         ws.send( JSON.stringify( { MsgID: 100 /* PMID_ClientIdentification */,
         				 data : { client_id:"apple"/*createGuid()*/ } 
         			} 
@@ -314,7 +320,7 @@ function OpenServer()
 			{
 				image.image = new Image();
 			}
-                     console.log( "image made is " + msg.data.server_image_id + " and render " + msg.data.server_render_id );
+                     //console.log( "image made is " + msg.data.server_image_id + " and render " + msg.data.server_render_id );
 			image.server_render_id = msg.data.server_render_id;
 			image.server_id = msg.data.server_image_id;
 			image.width = msg.data.width;
@@ -324,7 +330,7 @@ function OpenServer()
 		case 7: // PMID_MakeSubImage
 			image_list.push( image = new proxy_image() );
 			image.server_id = msg.data.server_image_id;
-                     console.log( "subimage made is " + msg.data.server_image_id + " on " + msg.data.server_parent_image_id + " At " + msg.data.x + "," + msg.data.y+" by " + msg.data.width + "," + msg.data.height);
+                     //console.log( "subimage made is " + msg.data.server_image_id + " on " + msg.data.server_parent_image_id + " At " + msg.data.x + "," + msg.data.y+" by " + msg.data.width + "," + msg.data.height);
 			image.x = msg.data.x;
 			image.y = msg.data.y;
 			image.width = msg.data.width;
@@ -505,6 +511,25 @@ function OpenServer()
 		case 17: // PMID_Flush_Draw
                 	window.requestAnimationFrame(step)
                 	break;
+                case 25 : // PMID_DawBlockBegin
+                	
+                	block = new zip.Data64URIReader( msg.data.data );
+                        block.init( function() { console.log( "init done?" ); } );
+                        block.readUint8Array( 0, msg.data.length, function(text){ 
+                        		console.log( text ); 
+                        	
+                        	} );
+                                
+                        console.log( "no zip.createzip??" );
+                        ader = new zip.createZipReader( block, function(reader) {console.log( "success?"); } );
+                        console.log( "no zip.inflage?" );
+                        block.inflate( block, null, 0, msg.data.length
+                                , function() {console.log("end");}
+                        	, function() {console.log("error");}
+                                , function() {console.log("writeerror ");} );
+                        //console.log( output );
+                	//msg.data.data
+                	break;
         }
 	};
 
@@ -513,7 +538,8 @@ function OpenServer()
      ws.onmessage = function (evt) 
      { 
 		//console.log( evt.data );
-        var msg = JSON.parse(evt.data);
+        	var msg = JSON.parse(evt.data);
+        
 		if(  Object.prototype.toString.call(msg) === '[object Array]' )
 		{ 
 			var m;

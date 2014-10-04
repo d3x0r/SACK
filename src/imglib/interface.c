@@ -156,6 +156,8 @@ IMAGE_INTERFACE RealImageInterface = {
 									 , GetTintedImage
 									, GetShadedImage 
 									, IsImageTargetFinal
+									, NULL
+									, PutStringFontExx
 };
 
 #undef GetImageInterface

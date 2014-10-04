@@ -1021,6 +1021,8 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
       font :        the font to use. NULL use an internal default
                     font.                                         */
    IMAGE_PROC  void IMAGE_API PutStringFontEx              ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
+   /* justification 0 is left, 1 is right, 2 is center */
+   IMAGE_PROC  void IMAGE_API PutStringFontExx              ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font, int justication, _32 _width );
    /* Outputs a string in the specified font, from the specified
       point, text is drawn from the point down, with the characters
       aligned with the top to the right; it goes down from the
@@ -1884,6 +1886,11 @@ IMAGE_PROC_PTR( LOGICAL, IsImageTargetFinal )( Image image );
 // it should be triggered during onconnect.
 // it is a new image instance that should be used for future app references...
 IMAGE_PROC_PTR( Image, ReuseImage )( Image image );
+IMAGE_PROC_PTR( void, PutStringFontExx )( Image pImage
+											 , S_32 x, S_32 y
+											 , CDATA color, CDATA background
+											 , CTEXTSTR pc, size_t nLen, SFTFont font, int justification, _32 _width );
+
 } IMAGE_INTERFACE, *PIMAGE_INTERFACE;
 
 
@@ -1961,6 +1968,7 @@ IMAGE_PROC_PTR( Image, ReuseImage )( Image image );
 #define PutCharacterVerticalFont           PROC_ALIAS(PutCharacterVerticalFont )
 #define PutCharacterInvertFont             PROC_ALIAS(PutCharacterInvertFont )
 #define PutCharacterVerticalInvertFont     PROC_ALIAS(PutCharacterVerticalInvertFont )
+#define PutStringFontExx                   PROC_ALIAS(PutStringFontExx)
 #define PutStringFontEx                    PROC_ALIAS(PutStringFontEx )
 #define PutStringVerticalFontEx            PROC_ALIAS(PutStringVerticalFontEx )
 #define PutStringInvertFontEx              PROC_ALIAS(PutStringInvertFontEx )

@@ -1616,7 +1616,7 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 #if LOCK_TEST
 		PPHYSICAL_DEVICE device = GetFrame( pc )->device;
 #endif
-		if( pc->parent )
+		if( pc->parent && !pc->device )
 		{
 			// okay surface rect of parent should be considered as 0,0.
 			if( SUS_GT( pc->rect.x, IMAGE_COORDINATE, pc->parent->surface_rect.width, IMAGE_SIZE_COORDINATE )
@@ -2565,13 +2565,19 @@ PSI_PROC( PSI_CONTROL, CreateFrame )( CTEXTSTR caption
 							  , w, h
 							  , -1
 							  , caption
-							  , BorderTypeFlags
+							  , BorderTypeFlags	
 							  , NULL
 							  , NULL
 								DBG_SRC );
 	if( !(BorderTypeFlags & BORDER_WITHIN ) )
 		pc->parent = hAbove;
-	SetCommonBorder( pc, BorderTypeFlags|BORDER_CAPTION_CLOSE_BUTTON|((BorderTypeFlags & BORDER_WITHIN)?0:BORDER_FRAME) );
+	SetCommonBorder( pc, BorderTypeFlags
+				| (( BorderTypeFlags & BORDER_CAPTION_NO_CLOSE_BUTTON )?0:BORDER_CAPTION_CLOSE_BUTTON)
+				| ((BorderTypeFlags & BORDER_WITHIN)?0:BORDER_FRAME) 
+				);
+
+	// init close button here.
+	AddCaptionButton( pc, NULL, NULL, NULL );
 	//lprintf( WIDE("FRAME is %p"), pc );
 	return pc;
 }
@@ -2729,6 +2735,7 @@ PSI_PROC( void, DisplayFrameOverOnUnder )( PSI_CONTROL pc, PSI_CONTROL over, PRE
 
 			//Initial prevents all updates in all ways.  So here we're showing, we have a device, 
 			// and we should be allowed to draw - right? that's what initial is?
+
 			pc->flags.bInitial = FALSE;
 			if( g.flags.bLogDebugUpdate )
 				lprintf( WIDE( "inital was set to false...." ) );

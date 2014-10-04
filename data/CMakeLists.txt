@@ -21,13 +21,14 @@ ${CMAKE_CURRENT_SOURCE_DIR}/frame2.png
 ${CMAKE_CURRENT_SOURCE_DIR}/frame2a.png
 ${CMAKE_CURRENT_SOURCE_DIR}/stop_button.png
 ${CMAKE_CURRENT_SOURCE_DIR}/stop_button_pressed.png
+${CMAKE_CURRENT_SOURCE_DIR}/settings.png
+${CMAKE_CURRENT_SOURCE_DIR}/settings_pressed.png
 ${CMAKE_CURRENT_SOURCE_DIR}/stop_button-glow.png
 ${CMAKE_CURRENT_SOURCE_DIR}/sky.jpg
 ${CMAKE_CURRENT_SOURCE_DIR}/dial2a.png
 ${CMAKE_CURRENT_SOURCE_DIR}/dial2.png
 ${CMAKE_CURRENT_SOURCE_DIR}/dial1a.png
-${CMAKE_CURRENT_SOURCE_DIR}/dial1.png
-)
+${CMAKE_CURRENT_SOURCE_DIR}/dial1.png )
 
 INSTALL( 
   FILES

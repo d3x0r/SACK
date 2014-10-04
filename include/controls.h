@@ -494,8 +494,9 @@ enum BorderOptionTypes {
  BORDER_FRAME         =  0x4000, // marks controls which were done with 'create frame', and without BORDER_WITHIN
  BORDER_FIXED         =  0x8000, // scale does not apply to coordinates... otherwise it will be... by default controls are scalable.
 
- BORDER_NO_EXTRA_INIT =        0x010000, // control is private to psi library(used for scrollbars in listboxes, etc) and as such does not call 'extra init'
- BORDER_CAPTION_CLOSE_BUTTON =  0x20000, //add a close button to the caption bar (has to have text, and a caption)
+ BORDER_NO_EXTRA_INIT           =  0x010000, // control is private to psi library(used for scrollbars in listboxes, etc) and as such does not call 'extra init'
+ BORDER_CAPTION_CLOSE_BUTTON    =  0x020000, //add a close button to the caption bar (has to have text, and a caption)
+ BORDER_CAPTION_NO_CLOSE_BUTTON =  0x040000, //do not allow a close button on the caption bar (has to have text, and a caption)
 };
 
 // these are the indexes for base color
@@ -995,6 +996,8 @@ PSI_PROC( void, SetCommonFocus)( PSI_CONTROL pc );
 PSI_PROC( void, EnableControl)( PSI_CONTROL pc, int bEnable );
 PSI_PROC( int, IsControlFocused )( PSI_CONTROL pc );
 PSI_PROC( int, IsControlEnabled)( PSI_CONTROL pc );
+
+PSI_PROC( void, AddCaptionButton )( PSI_CONTROL frame, Image normal, Image pressed, void (CPROC*event)(PSI_CONTROL) );
 /*
 
 

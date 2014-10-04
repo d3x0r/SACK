@@ -39,6 +39,7 @@ typedef struct chat_message_tag
 	TEXTSTR formatted_text;
 	size_t formatted_text_len;
 	int formatted_height;
+	_32 max_width; // how wide the formatted message was
 	int message_y;
 	LOGICAL sent; // if not sent, is received message - determine justification and decoration
 } CHAT_MESSAGE;
@@ -346,6 +347,7 @@ static void SetupDefaultConfig( void )
 		l.decoration = LoadImageFile( l.decoration_name );
 
 		l.side_pad = 5;
+		l.sent.text_color = BASE_COLOR_BLACK;
 		l.sent.back_x = 0;
 		l.sent.back_y = 0;
 		l.sent.back_w = 73;
@@ -362,6 +364,7 @@ static void SetupDefaultConfig( void )
 		l.sent.arrow_y_offset = -10;
 		l.flags.sent_justification = 0;
 		l.flags.sent_text_justification = 1;
+		l.received.text_color = BASE_COLOR_BLACK;
 		l.received.back_x = 83;
 		l.received.back_y = 0;
 		l.received.back_w = 76;
@@ -532,7 +535,7 @@ int MeasureFrameWidth( Image window, S_32 *left, S_32 *right, LOGICAL received, 
 	}
 }
 
-void DrawMessageFrame( Image window, int y, int height, LOGICAL received, LOGICAL complete )
+void DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL received, LOGICAL complete )
 {
 	S_32 x_offset_left;
 	S_32 x_offset_right;
@@ -544,48 +547,53 @@ void DrawMessageFrame( Image window, int y, int height, LOGICAL received, LOGICA
 											, x_offset_left + l.received.BorderSegment[SEGMENT_LEFT]->width
 											, y
 											, ( x_offset_right - x_offset_left ) - ( l.received.BorderSegment[SEGMENT_LEFT]->width
-																	 + l.received.BorderSegment[SEGMENT_RIGHT]->width )
+																	 + l.received.BorderSegment[SEGMENT_RIGHT]->width
+																	 + inset )
 											, l.received.BorderSegment[SEGMENT_TOP]->height
 											, ALPHA_TRANSPARENT );
 		BlotScaledImageSizedToAlpha( window, l.received.BorderSegment[SEGMENT_CENTER]
 											, x_offset_left + l.received.BorderSegment[SEGMENT_LEFT]->width
 											, y + l.received.BorderSegment[SEGMENT_TOP]->height
 											, ( x_offset_right - x_offset_left ) - ( l.received.BorderSegment[SEGMENT_LEFT]->width
-																	 + l.received.BorderSegment[SEGMENT_RIGHT]->width )
+																	 + l.received.BorderSegment[SEGMENT_RIGHT]->width
+																	 + inset
+																	 )
 											, height - ( l.received.BorderSegment[SEGMENT_TOP]->height
 															+ l.received.BorderSegment[SEGMENT_BOTTOM]->height )
 											, ALPHA_TRANSPARENT );
 		BlotScaledImageSizedToAlpha( window, l.received.BorderSegment[SEGMENT_BOTTOM]
-											, x_offset_left + l.received.BorderSegment[SEGMENT_LEFT]->width, y + height - l.received.BorderSegment[SEGMENT_BOTTOM]->height
+											, x_offset_left + l.received.BorderSegment[SEGMENT_LEFT]->width
+											, y + height - l.received.BorderSegment[SEGMENT_BOTTOM]->height
 											, ( x_offset_right - x_offset_left ) - ( l.received.BorderSegment[SEGMENT_LEFT]->width
-																	 + l.received.BorderSegment[SEGMENT_RIGHT]->width )
+																	 + l.received.BorderSegment[SEGMENT_RIGHT]->width
+																	 + inset)
 											, l.received.BorderSegment[SEGMENT_TOP]->height
 											, ALPHA_TRANSPARENT );
 		BlotScaledImageSizedToAlpha( window, l.received.BorderSegment[SEGMENT_LEFT]
-											, x_offset_left 
+											, x_offset_left
 											, y + l.received.BorderSegment[SEGMENT_TOP]->height
 											, l.received.BorderSegment[SEGMENT_LEFT]->width
 											, height - ( l.received.BorderSegment[SEGMENT_TOP]->height + l.received.BorderSegment[SEGMENT_BOTTOM]->height )
 											, ALPHA_TRANSPARENT );
 		BlotScaledImageSizedToAlpha( window, l.received.BorderSegment[SEGMENT_RIGHT]
-											, (x_offset_right )-( l.received.BorderSegment[SEGMENT_RIGHT]->width )
+											, (x_offset_right )-( l.received.BorderSegment[SEGMENT_RIGHT]->width+ inset )
 											, y + l.received.BorderSegment[SEGMENT_TOP]->height
 											, l.received.BorderSegment[SEGMENT_RIGHT]->width
 											, height - ( l.received.BorderSegment[SEGMENT_TOP]->height
 															+ l.received.BorderSegment[SEGMENT_BOTTOM]->height )
 											, ALPHA_TRANSPARENT );
 		BlotImageAlpha( window, l.received.BorderSegment[SEGMENT_TOP_LEFT]
-						  , x_offset_left , y
+						  , x_offset_left, y
 						  , ALPHA_TRANSPARENT );
 		BlotImageAlpha( window, l.received.BorderSegment[SEGMENT_TOP_RIGHT]
-							  , x_offset_right - ( l.received.BorderSegment[SEGMENT_RIGHT]->width )
+							  , x_offset_right - ( l.received.BorderSegment[SEGMENT_RIGHT]->width+ inset )
 							  , y
 						  , ALPHA_TRANSPARENT );
 		BlotImageAlpha( window, l.received.BorderSegment[SEGMENT_BOTTOM_LEFT]
 						  , x_offset_left , y + height - l.received.BorderSegment[SEGMENT_BOTTOM]->height
 						  , ALPHA_TRANSPARENT );
 		BlotImageAlpha( window, l.received.BorderSegment[SEGMENT_BOTTOM_RIGHT]
-						  , x_offset_right - ( l.received.BorderSegment[SEGMENT_RIGHT]->width )
+						  , x_offset_right - ( l.received.BorderSegment[SEGMENT_RIGHT]->width+ inset )
 						  , y + height - l.received.BorderSegment[SEGMENT_BOTTOM]->height
 						  , ALPHA_TRANSPARENT );
 		if( complete )
@@ -606,20 +614,23 @@ void DrawMessageFrame( Image window, int y, int height, LOGICAL received, LOGICA
 	else
 	{
 		BlotScaledImageSizedToAlpha( window, l.sent.BorderSegment[SEGMENT_TOP]
-											, x_offset_left + l.sent.BorderSegment[SEGMENT_LEFT]->width, y
+											, x_offset_left + l.sent.BorderSegment[SEGMENT_LEFT]->width+ inset
+												, y
 											, ( x_offset_right - x_offset_left ) - ( l.sent.BorderSegment[SEGMENT_LEFT]->width
-																	 + l.sent.BorderSegment[SEGMENT_RIGHT]->width ) , l.sent.BorderSegment[SEGMENT_TOP]->height
+																	 + l.sent.BorderSegment[SEGMENT_RIGHT]->width 
+																	 + inset) , l.sent.BorderSegment[SEGMENT_TOP]->height
 											, ALPHA_TRANSPARENT );
 		BlotScaledImageSizedToAlpha( window, l.sent.BorderSegment[SEGMENT_BOTTOM]
-											, x_offset_left + l.sent.BorderSegment[SEGMENT_LEFT]->width
+											, x_offset_left + l.sent.BorderSegment[SEGMENT_LEFT]->width+ inset
 												, y + height - l.sent.BorderSegment[SEGMENT_BOTTOM]->height
 											, x_offset_right - x_offset_left -( 
 																	  l.sent.BorderSegment[SEGMENT_LEFT]->width
-																	 + l.sent.BorderSegment[SEGMENT_RIGHT]->width )
+																	 + l.sent.BorderSegment[SEGMENT_RIGHT]->width
+																	 + inset)
 											, l.sent.BorderSegment[SEGMENT_TOP]->height
 											, ALPHA_TRANSPARENT );
 		BlotScaledImageSizedToAlpha( window, l.sent.BorderSegment[SEGMENT_LEFT]
-											, x_offset_left
+											, x_offset_left+ inset
 											, y + l.sent.BorderSegment[SEGMENT_TOP]->height
 											, l.sent.BorderSegment[SEGMENT_LEFT]->width
 											, height - ( l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height )
@@ -631,21 +642,22 @@ void DrawMessageFrame( Image window, int y, int height, LOGICAL received, LOGICA
 											, height - ( l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height )
 											, ALPHA_TRANSPARENT );
 		BlotScaledImageSizedToAlpha( window, l.sent.BorderSegment[SEGMENT_CENTER]
-											, x_offset_left + l.sent.BorderSegment[SEGMENT_LEFT]->width
+											, x_offset_left + l.sent.BorderSegment[SEGMENT_LEFT]->width+ inset
 											, y + l.sent.BorderSegment[SEGMENT_TOP]->height
 											, ( x_offset_right - x_offset_left ) - ( l.sent.BorderSegment[SEGMENT_LEFT]->width
-																	 + l.sent.BorderSegment[SEGMENT_RIGHT]->width )
+																	 + l.sent.BorderSegment[SEGMENT_RIGHT]->width
+																	 + inset)
 											, height - ( l.sent.BorderSegment[SEGMENT_TOP]->height
 															+ l.sent.BorderSegment[SEGMENT_BOTTOM]->height )
 											, ALPHA_TRANSPARENT );
 		BlotImageAlpha( window, l.sent.BorderSegment[SEGMENT_TOP_LEFT]
-						  , x_offset_left, y
+						  , x_offset_left + inset, y
 						  , ALPHA_TRANSPARENT );
 		BlotImageAlpha( window, l.sent.BorderSegment[SEGMENT_TOP_RIGHT]
 						  , x_offset_right - ( l.sent.BorderSegment[SEGMENT_RIGHT]->width ), y
 						  , ALPHA_TRANSPARENT );
 		BlotImageAlpha( window, l.sent.BorderSegment[SEGMENT_BOTTOM_LEFT]
-						  , x_offset_left, y + height - l.sent.BorderSegment[SEGMENT_BOTTOM]->height
+						  , x_offset_left + inset, y + height - l.sent.BorderSegment[SEGMENT_BOTTOM]->height
 						  , ALPHA_TRANSPARENT );
 		BlotImageAlpha( window, l.sent.BorderSegment[SEGMENT_BOTTOM_RIGHT]
 						  , x_offset_right - ( l.sent.BorderSegment[SEGMENT_RIGHT]->width )
@@ -688,33 +700,40 @@ void DrawAMessage( Image window, PCHAT_LIST list, PCHAT_MESSAGE msg )
 	
 	if( !msg->formatted_text )
 	{
-		int max_width = width;
+		int max_width = width - ((msg->sent)?l.sent.arrow_w:l.received.arrow_w);
 		int max_height = 9999;
 		FormatTextToBlockEx( msg->text, &msg->formatted_text, &max_width, &max_height, GetDefaultFont() );
 		msg->formatted_text_len = StrLen( msg->formatted_text );
 		msg->formatted_height = max_height;
+		msg->max_width = max_width;
 		frame_height = msg->formatted_height + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height ;
+		lprintf( "update message_y = %d", ( l.side_pad + frame_height ) );
 		msg->message_y = ( l.side_pad + frame_height );
 	}
 	else
 		frame_height = msg->formatted_height + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height ;
-
+	lprintf( "update next top by %d", msg->message_y );
 	list->display.message_top -= msg->message_y;
 
-	DrawMessageFrame( window, list->display.message_top, frame_height, !msg->sent, 1 );
+	DrawMessageFrame( window, list->display.message_top, frame_height
+		, ( x_offset_right - x_offset_left ) - msg->max_width 
+		, !msg->sent, TRUE );
 	if( msg->sent )
 	{
-		PutStringFontEx( window, x_offset_left + l.sent.BorderSegment[SEGMENT_LEFT]->width
+		PutStringFontExx( window, x_offset_left + l.sent.BorderSegment[SEGMENT_LEFT]->width 
+								+ ( ( x_offset_right - x_offset_left ) 
+								- ( 
+									+ msg->max_width ) )
 						, list->display.message_top + l.received.BorderSegment[SEGMENT_TOP]->height
-						, BASE_COLOR_BLACK, 0
-						, msg->formatted_text, msg->formatted_text_len, NULL );
+						, l.sent.text_color, 0
+						, msg->formatted_text, msg->formatted_text_len, NULL, 0, msg->max_width );
 	}
 	else
 	{
-		PutStringFontEx( window, x_offset_left + l.received.BorderSegment[SEGMENT_LEFT]->width
+		PutStringFontExx( window, x_offset_left + l.received.BorderSegment[SEGMENT_LEFT]->width
 						, list->display.message_top + l.received.BorderSegment[SEGMENT_TOP]->height
-						, BASE_COLOR_BLACK, 0
-						, msg->formatted_text, msg->formatted_text_len, NULL );
+						, l.received.text_color, 0
+						, msg->formatted_text, msg->formatted_text_len, NULL, 0, msg->max_width );
 	}
 }
 
@@ -733,20 +752,27 @@ static void DrawMessages( PCHAT_LIST list, Image window )
 {
 	int message_idx;
 	PCHAT_MESSAGE msg;
+	lprintf( "BEgin draw messages..." );
 	for( message_idx = -1; msg = PeekQueueEx( list->messages, message_idx ); message_idx-- )
 	{
+		lprintf( "check message %d", message_idx );
 		if( msg->formatted_text && 
-			 ( ( list->display.message_top - msg->message_y ) > window->height ) )
+			 ( ( list->display.message_top - msg->message_y ) >= window->height ) )
 		{
+			lprintf( "have to skip message..." );
 			list->display.message_top -= msg->message_y;
 			continue;
 		}
+		lprintf( "formatted : %d %d  %d", msg->formatted_text, list->display.message_top, msg->message_y );
 		if( !msg->formatted_text || 
 			 ( ( ( list->display.message_top - msg->message_y ) < window->height )
 			&& (list->display.message_top > l.side_pad ) ) )
 			DrawAMessage( window, list, msg );
 		if( list->display.message_top < l.side_pad )
+		{
+			lprintf( "Done." );
 			break;
+		}
 	}
 }
 
@@ -786,7 +812,8 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 			, window->height - ( list->command_height + l.side_pad )
 			, list->command_height
 			, 0
-			, 0 );
+			, FALSE
+			, FALSE );
 
 
 		{
@@ -880,6 +907,27 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 				list->control_offset += ( y - list->first_y );
 				if( list->control_offset < 0 )
 					list->control_offset = 0;
+				else
+				{
+					int last_message_y = 0;
+					int tmp_top = list->message_window->height + list->control_offset;
+					int message_idx;
+					int total_offset = 0;
+					PCHAT_MESSAGE msg;
+					for( message_idx = -1; msg = PeekQueueEx( list->messages, message_idx ); message_idx-- )
+					{
+						// never displayed the message.
+						if( !msg->formatted_text )
+							break;
+						last_message_y = msg->message_y;
+						tmp_top -= msg->message_y;
+						total_offset += msg->message_y;
+					}
+					if( !msg && ( tmp_top > 0 ) )
+					{
+						list->control_offset = total_offset - list->message_window->height;
+					}
+				}
 				list->first_y = y;
 				SmudgeCommon( pc );
 			}

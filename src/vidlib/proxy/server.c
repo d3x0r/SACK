@@ -173,6 +173,11 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
 		json_add_object_member( cto_data, WIDE("data"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_CharArray, 0 );
 		break;
+	case PMID_DrawBlock:
+		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("length"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("data"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_CharArray, 0 );
+		break;
 	case PMID_DrawLine:
 		json_add_object_member( cto_data, WIDE("server_image_id"), ofs, JSON_Element_PTRSZVAL, 0 );
 		json_add_object_member( cto_data, WIDE("x1"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Integer_32, 0 );
@@ -189,32 +194,74 @@ static const char *base64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy
 static void encodeblock( unsigned char in[3], char out[4], size_t len )
 {
 	out[0] = base64[ in[0] >> 2 ];
-	out[1] = base64[ ((in[0] & 0x03) << 4) | ((in[1] & 0xf0) >> 4) ];
-	out[2] = (len > 1 ? base64[ ((in[1] & 0x0f) << 2) | ((in[2] & 0xc0) >> 6) ] : 0);
-	out[3] = (len > 2 ? base64[ in[2] & 0x3f ] : 0);
+	out[1] = base64[ ((in[0] & 0x03) << 4) | ( ( len > 0 ) ? ((in[1] & 0xf0) >> 4) : 0 ) ];
+	out[2] = (len > 1 ? base64[ ((in[1] & 0x0f) << 2) | ( ( len > 2 ) ? ((in[2] & 0xc0) >> 6) : 0 ) ] : base64[64]);
+	out[3] = (len > 2 ? base64[ in[2] & 0x3f ] : base64[64]);
 }
 
-static char *Encode64Image( P_8 buf, LOGICAL bmp, size_t length, size_t *outsize )
+static void decodeblock( unsigned char in[4], char out[3], size_t len )
+{
+	const char *index[4];
+	int n;
+	for( n = 0; n < 4; n++ )
+	{
+		index[n] = strchr( base64, in[n] );
+		//if( ( index[n] - base64 ) == 64 )
+		//	last_byte = 1;
+	}
+	//if( 
+	out[0] = ( index[0] - base64 ) << 2 | ( index[1] - base64 ) >> 4;
+	out[1] = ( index[1] - base64 ) << 4 | ( ( ( index[2] - base64 ) >> 2 ) & 0x0f );
+	out[2] = ( index[2] - base64 ) << 6 | ( ( index[3] - base64 ) & 0x3F );
+	//out[] = (len > 2 ? base64[ in[2] & 0x3f ] : 0);
+}
+
+static char *Encode64Image( CTEXTSTR mime, P_8 buf, LOGICAL bmp, size_t length, size_t *outsize )
 {
 	char * real_output;
-
-	real_output = NewArray( char, 22 + ( length * 4 / 3 ) + 1 );
-	if( bmp )
-		strcpy( real_output, "data:image/bmp;base64," );
-	else
-		strcpy( real_output, "data:image/png;base64," );
+	int mimelen = StrLen( mime );
+	real_output = NewArray( char, 13 + mimelen + ( ( length * 4 + 2) / 3 ) + 1 + 1 + 1 + (bmp?1:0) );
+	snprintf( real_output, 13 + mimelen, "data:%s;base64,", mime );
+	//if( bmp )
+	//	strcpy( real_output, "data:image/bmp;base64," );
+	//else
+	//	strcpy( real_output, "data:image/png;base64," );
 	{
 		size_t n;
-		for( n = 0; n < (length)/3; n++ )
+		for( n = 0; n < (length+2)/3; n++ )
 		{
 			size_t blocklen;
 			blocklen = length - n*3;
 			if( blocklen > 3 )
-			blocklen = 3;
-			encodeblock( ((P_8)buf) + n * 3, real_output + 22 + n*4, blocklen );
+				blocklen = 3;
+			encodeblock( ((P_8)buf) + n * 3, real_output + 13 + mimelen + n*4, blocklen );
 		}
-		(*outsize) = 22 + n*4 + 1;
-		real_output[22 + n*4] = 0;
+		(*outsize) = 13 + mimelen + n*4 + 1;
+		real_output[13 + mimelen + n*4] = 0;
+	}
+	return real_output;
+}
+
+static char *Decode64Binary( P_8 buf, LOGICAL bmp, size_t length, size_t *outsize )
+{
+	char * real_output;
+	real_output = NewArray( char, ( ( ( length + 1 ) * 3 ) / 4 ) + 1 );
+	//snprintf( real_output, 13 + mimelen, "data:%s;base64,", mime );
+	//if( bmp )
+	//	strcpy( real_output, "data:image/bmp;base64," );
+	//else
+	//	strcpy( real_output, "data:image/png;base64," );
+	{
+		size_t n;
+		for( n = 0; n < (length+3)/4; n++ )
+		{
+			size_t blocklen;
+			blocklen = length - n*4;
+			if( blocklen > 4 )
+				blocklen = 4;
+			decodeblock( ((P_8)buf) + n * 4, real_output + n*3, blocklen );
+		}
+		real_output[n*3] = 0;
 	}
 	return real_output;
 }
@@ -594,6 +641,52 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 
 			if( websock )
 			{
+				encoded_image = Encode64Image( "image/png", raw_image, FALSE, outlen, &outlen );
+				msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct image_data_data ) + outlen ) );
+				outmsg = (struct common_message*)(msg + 4);
+				MemCpy( outmsg->data.image_data.data, encoded_image, outlen );
+			}
+			else
+			{
+            lprintf( "outlen = %d", outlen );
+				MemCpy( outmsg->data.image_data.data, raw_image + offset, outlen );
+			}
+			((_32*)msg)[0] = (_32)(sendlen - 4);
+			outmsg = (struct common_message*)(msg + 4);
+			outmsg->message_id = message;
+			outmsg->data.image_data.server_image_id = image->id;
+			// include nul in copy
+			lprintf( WIDE("Send Image %p %d  %d"), image, image->id, sendlen );
+			if( websock )
+			{
+				json_msg = json_build_message( cto, outmsg );
+				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
+				Release( json_msg );
+			}
+			else
+				SendTCP( pc, msg, sendlen );
+			Release( msg );
+		}
+		break;
+		/*
+		 *** this is actual the main message send....
+       ** mostly looks like an image_data message...
+	case PMID_DrawBlock:
+		{
+			_32 offset = 0;
+			P_8 raw_image;
+			char * encoded_image;
+			size_t outlen;
+			image = va_arg( args, PVPImage );
+			if( !image->image )
+				break;
+			while( image && image->parent ) 
+				image = image->parent;
+			ClearDirtyFlag( image );
+			raw_image = EncodeImage( image->image, FALSE, &outlen );
+
+			if( websock )
+			{
 				encoded_image = Encode64Image( raw_image, FALSE, outlen, &outlen );
 				msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct image_data_data ) + outlen ) );
 				outmsg = (struct common_message*)(msg + 4);
@@ -621,6 +714,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			Release( msg );
 		}
 		break;
+      */
 	}
 	LeaveCriticalSec( &l.message_formatter );
 
@@ -674,15 +768,52 @@ static void SendImageBuffers( PCLIENT pcNew, int send_websock, int send_initial 
 					{
 						//lprintf( "Send image %p %p %d", image, image->websock_buffer, image->websock_sendlen );
 						image->websock_buffer[image->websock_sendlen] = ']';
+						
 						{
-							//char *output = NewArray( _8, image->websock_sendlen + 1 );
-							//uLongf destlen = image->websock_sendlen + 1;
+							_8 *msg;
+							struct common_message *outmsg;
+							char * encoded_data;
+							char *output = NewArray( _8, image->websock_sendlen + 1 );
+							size_t sendlen;
+							size_t outlen;
+							uLongf destlen = image->websock_sendlen + 1;
 
-							//compress2( output, &destlen, image->websock_buffer, image->websock_sendlen, Z_BEST_COMPRESSION );
-							//lprintf("would have only been %d", destlen );
-							//Release( output );
+							encoded_data = Decode64Binary( "W3siTXNnSUQiOjIyLCJkYXRhIjp7ImltYWdlX3RvX2lkIjo2MiwiaW1hZ2VfZnJvbV9pZCI6NDR9fV0="
+										, 0
+										, StrLen( "W3siTXNnSUQiOjIyLCJkYXRhIjp7ImltYWdlX3RvX2lkIjo2MiwiaW1hZ2VfZnJvbV9pZCI6NDR9fV0=" )
+										, &outlen );
+							//encoded_data = Encode64Image( "application/zip", image->websock_buffer, TRUE, image->websock_sendlen + 1, &outlen );
+							compress2( output, &destlen, image->websock_buffer, image->websock_sendlen, Z_BEST_COMPRESSION );
+							lprintf("would have only been %d", destlen );
+
+							encoded_data = Encode64Image( "application/zip", output, TRUE, destlen, &outlen );
+							msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct draw_block_data ) + outlen ) );
+							outmsg = (struct common_message*)(msg + 4);
+							MemCpy( outmsg->data.draw_block.data, encoded_data, outlen );
+							Release( encoded_data );
+
+							((_32*)msg)[0] = (_32)(sendlen - 4);
+							outmsg = (struct common_message*)(msg + 4);
+							outmsg->message_id = PMID_DrawBlock;
+							outmsg->data.draw_block.server_image_id = image->id;
+							outmsg->data.draw_block.length = destlen;
+							// include nul in copy
+							lprintf( WIDE("Send Image %p %d  %d"), image, image->id, sendlen );
+							{
+								TEXTSTR json_msg;
+								struct json_context_object *cto;
+								cto = (struct json_context_object *)GetLink( &l.messages, outmsg->message_id );
+								if( !cto )
+									cto = WebSockInitJson( outmsg->message_id );
+								json_msg = json_build_message( cto, outmsg );
+								WebSocketSendText( pcNew, json_msg, StrLen( json_msg ) );
+								Release( output );
+								Release( json_msg );
+							}
+							Release( msg );
 						}
-						WebSocketSendText( pcNew, image->websock_buffer, image->websock_sendlen + 1 );
+
+						//WebSocketSendText( pcNew, image->websock_buffer, image->websock_sendlen + 1 );
 					}
 				}
 				else

@@ -36,6 +36,19 @@ ENDIF()
 set( CMAKE_MAKE_PROGRAM ${REAL_CMAKE_MAKE_PROGRAM} )
 set( CMAKE_VS_PLATFORM_TOOLSET v110_xp )
 endif( MSVC11 )
+if( MSVC12 )
+IF(NOT CMAKE_CROSSCOMPILING)
+  FIND_PROGRAM(REAL_CMAKE_MAKE_PROGRAM
+    NAMES MSBuild
+    HINTS
+    [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\12.0\\Setup\\VS;ProductDir]
+    "$ENV{SYSTEMROOT}/Microsoft.NET/Framework/[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\12.0;CLR Version]/"
+    "c:/WINDOWS/Microsoft.NET/Framework/[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\12.0;CLR Version]/"
+    "$ENV{SYSTEMROOT}/Microsoft.NET/Framework/[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VCExpress\\12.0;CLR Version]/")
+ENDIF()
+set( CMAKE_MAKE_PROGRAM ${REAL_CMAKE_MAKE_PROGRAM} )
+set( CMAKE_VS_PLATFORM_TOOLSET v110_xp )
+endif( MSVC12 )
 
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
 			${CMAKE_CONFIGURATION_TYPES} Debug Delease RelWithDebInfo MinSizeRel )

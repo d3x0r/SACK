@@ -731,7 +731,10 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 	PSI_CONTROL pc = pf->common;
 	extern void DumpFrameContents( PSI_CONTROL pc );
 	int result = 0;
+	int caption_height = CaptionHeight( pc, GetText( pc->caption.text ) );
+	int frame_height = FrameBorderYOfs( pc, pc->BorderType, NULL );
 	//DumpFrameContents( pc );
+	lprintf( "FFM" );
 #if defined DETAILED_MOUSE_DEBUG //|| defined EDIT_MOUSE_DEBUG
 	if( g.flags.bLogDetailedMouse )
 		lprintf( WIDE("Mouse Event: %p %d %d %d"), pf, x, y, b );
@@ -758,37 +761,41 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 		if( g.flags.bLogDetailedMouse )
 			lprintf( WIDE("Continued down on left button") );
 #endif
-			if( pc->BorderType & BORDER_CAPTION_CLOSE_BUTTON )
+		lprintf( "continued mouse down..." );
+		if( pc->pressed_caption_button )
+		{
+			if( ( x < pc->pressed_caption_button->offset )
+				|| ( y >= ( frame_height + caption_height ) )
+				|| ( y < frame_height ) 
+				|| ( x > ( pc->pressed_caption_button->offset + ( caption_height ) ) )
+				)
 			{
-				int clear_press = 0;
-				int frame_size = FrameBorderYOfs( pc, pc->BorderType, NULL );
-				int caption_height = CaptionHeight( pc, GetText( pc->caption.text ) );
-				lprintf( "mouse test %d %d %d", y, pc->surface_rect.y, frame_size );
-				if( ( y < ( pc->surface_rect.y - 1 ) ) && ( y > frame_size ) )
+				lprintf( "outside of button..." );
+				if( pc->pressed_caption_button->is_pressed )
 				{
-					if( ( x < ( pc->surface_rect.width + pc->surface_rect.x ) )
-						&& ( x > ( pc->surface_rect.width - ( caption_height - frame_size ) ) ) ) // left side edge
-					{
-					}
-					else
-						clear_press = 1;
+					pc->pressed_caption_button->is_pressed = 0;
+					DrawFrameCaption( pc );
+					UpdateDisplayPortion( pf->pActImg
+												, pc->surface_rect.x, 0
+												, pc->surface_rect.width
+												, pc->surface_rect.y );
 				}
-				else
-				{
-					clear_press = 1;
-				}
-				if( clear_press )
-						if( pf->flags.bCloseButtonPressed )
-						{
-							pf->flags.bCloseButtonPressed = 0;
-							DrawFrameCaption( pc );
-							UpdateDisplayPortion( pf->pActImg
-														, pc->surface_rect.x, 0
-														, pc->surface_rect.width
-														, pc->surface_rect.y );
-						}
 			}
-		if( pf->flags.bDragging )
+			else
+			{
+				lprintf( "inside of button..." );
+				if( !pc->pressed_caption_button->is_pressed )
+				{
+					pc->pressed_caption_button->is_pressed = 1;
+					DrawFrameCaption( pc );
+					UpdateDisplayPortion( pf->pActImg
+												, pc->surface_rect.x, 0
+												, pc->surface_rect.width
+												, pc->surface_rect.y );
+				}
+			}
+		}
+		else if( pf->flags.bDragging )
 		{
 			S_32 winx, winy;
 			int dx;
@@ -874,13 +881,13 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 			//SmudgeCommon( pc );
 			return TRUE;
 		}
-		 else
-		 {
+		else
+		{
 #ifdef DETAILED_MOUSE_DEBUG
-			 if( g.flags.bLogDetailedMouse )
-				 lprintf( WIDE("Not moving, not sizing, pass mouse through...") );
+			if( g.flags.bLogDetailedMouse )
+				lprintf( WIDE("Not moving, not sizing, pass mouse through...") );
 #endif
-			 InvokeResultingMethod( result, pc, _MouseMethod, (pc
+			InvokeResultingMethod( result, pc, _MouseMethod, (pc
 														, x - pc->surface_rect.x
 														, y - pc->surface_rect.y
 														, b ) );
@@ -902,22 +909,41 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 		}
 		else
 		{
-			if( pc->BorderType & BORDER_CAPTION_CLOSE_BUTTON )
+			INDEX idx;
+			PCAPTION_BUTTON button;
+			if( ( x < ( pc->surface_rect.x + pc->surface_rect.width ) ) // left side edge
+				&& ( y > frame_height ) // left side edge
+				&& ( y < ( caption_height + frame_height ) ) )
 			{
-				int caption_height = CaptionHeight( pc, GetText( pc->caption.text ) );
-				if( x > ( pc->surface_rect.width - caption_height ) ) // left side edge
+				LIST_FORALL( pc->caption_buttons, idx, PCAPTION_BUTTON, button )
 				{
-					if( pf->flags.bCloseButtonPressed )
+					if( x > button->offset )
 					{
-						pf->flags.bCloseButtonPressed = 0;
-						DrawFrameCaption( pc );
-						UpdateDisplayPortion( pf->pActImg
-													, pc->surface_rect.x, 0
-													, pc->surface_rect.width
-													, pc->surface_rect.y );
-						BAG_Exit( (int)'psix');
+						if( pc->pressed_caption_button && pc->pressed_caption_button == button )
+						{
+							button->is_pressed = FALSE;
+							DrawFrameCaption( pc );
+							UpdateDisplayPortion( pf->pActImg
+														, pc->surface_rect.x, 0
+														, pc->surface_rect.width
+														, pc->surface_rect.y );
+							button->pressed_event( pc );
+						}
 					}
 				}
+			}
+			if( pc->pressed_caption_button )
+			{
+				if( pc->pressed_caption_button->pressed )
+				{
+					pc->pressed_caption_button->is_pressed = FALSE;
+					DrawFrameCaption( pc );
+					UpdateDisplayPortion( pf->pActImg
+												, pc->surface_rect.x, 0
+												, pc->surface_rect.width
+												, pc->surface_rect.y );
+				}
+				pc->pressed_caption_button = NULL;
 			}
 		}
 		 pf->flags.bDragging = 0;
@@ -930,14 +956,16 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 	else if( !(pf->_b & MK_LBUTTON )
 				&& ( b & MK_LBUTTON ) ) // check first down on dialog to drag
 	{
+		int caption_height = CaptionHeight( pc, GetText( pc->caption.text ) );
+		int frame_height = FrameBorderYOfs( pc, pc->BorderType, NULL );
+
 		 //Log( WIDE("No control, and last state was not pressed.") );
 #ifdef DETAILED_MOUSE_DEBUG
 		if( g.flags.bLogDetailedMouse )
 			lprintf( WIDE("First left down (%d,%d) %08x"), x, y , b );
 #endif
-		 if( pc->BorderType & BORDER_RESIZABLE )
-		 {
-			 int caption_height = CaptionHeight( pc, GetText( pc->caption.text ) );
+		if( pc->BorderType & BORDER_RESIZABLE )
+		{
 				pf->_x = x;
 				pf->_y = y;
 				if( y < pc->surface_rect.y )
@@ -1005,24 +1033,31 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 							}
 							else // center bottom edge
 							{
-		                       int on_button = 0;
+								int on_button = 0;
 #ifdef DETAILED_MOUSE_DEBUG
 								if( g.flags.bLogDetailedMouse )
 									Log( WIDE("Setting drag frame on caption") );
 #endif
-								if( pc->BorderType & BORDER_CAPTION_CLOSE_BUTTON )
+								if( !on_button && pc->caption_buttons )
 								{
-									int caption_height = CaptionHeight( pc, GetText( pc->caption.text ) );
-									int skip_y = FrameBorderYOfs( pc, pc->BorderType, NULL );
-									if( x > ( pc->surface_rect.width - (caption_height -skip_y) ) ) // left side edge
+									PCAPTION_BUTTON button;
+									INDEX idx;
+									LIST_FORALL( pc->caption_buttons, idx, PCAPTION_BUTTON, button )
 									{
-										on_button = 1;
-										if( !pf->flags.bCloseButtonPressed )
+										if( x > button->offset )
 										{
-											pf->flags.bCloseButtonPressed = 1;
+											on_button = TRUE;
+											break;
+										}
+									}
+									if( button )
+									{
+										if( !button->is_pressed )
+										{
+											pc->pressed_caption_button = button;
+											button->is_pressed = TRUE;
 											DrawFrameCaption( pc );
-											UpdateDisplayPortion( pf->pActImg
-																		, pc->surface_rect.x, 0
+											UpdateDisplayPortion( pf->pActImg, pc->surface_rect.x, 0
 																		, pc->surface_rect.width
 																		, pc->surface_rect.y );
 										}
@@ -1108,85 +1143,99 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 																	 , b ) );
 					}
 				}
-		 }
-		 else
-		 {
-				if( ( (S_64)y >= pc->surface_rect.y )
-					&& ( (S_64)y < ( pc->surface_rect.y
-									 + pc->surface_rect.height ) ) // bottom side...
-					&& ( (S_64)x >= pc->surface_rect.x ) // left side edge
-					&& ( (S_64)x < ( pc->surface_rect.x
-									 + pc->surface_rect.width ) ) )// right side edge
-				{
-					// if within the surface, then forward to the real mouse proc...
+		}
+		else
+		{
+			if( ( (S_64)y >= pc->surface_rect.y )
+				&& ( (S_64)y < ( pc->surface_rect.y
+									+ pc->surface_rect.height ) ) // bottom side...
+				&& ( (S_64)x >= pc->surface_rect.x ) // left side edge
+				&& ( (S_64)x < ( pc->surface_rect.x
+									+ pc->surface_rect.width ) ) )// right side edge
+			{
+				// if within the surface, then forward to the real mouse proc...
 #ifdef DETAILED_MOUSE_DEBUG
-					if( g.flags.bLogDetailedMouse )
-						lprintf( WIDE("dispatching mouse to frame mouse method %d,%d biased %d,%d"), x, y
-								, pc->surface_rect.x
-								, pc->surface_rect.y );
+				if( g.flags.bLogDetailedMouse )
+					lprintf( WIDE("dispatching mouse to frame mouse method %d,%d biased %d,%d"), x, y
+							, pc->surface_rect.x
+							, pc->surface_rect.y );
 #endif
-					if( bCallOriginal )
-						InvokeResultingMethod( result, pc, _MouseMethod, (pc
-																, x - pc->surface_rect.x
-																, y - pc->surface_rect.y
-																, b ) );
-				}
-				else
+				if( bCallOriginal )
+					InvokeResultingMethod( result, pc, _MouseMethod, (pc
+															, x - pc->surface_rect.x
+															, y - pc->surface_rect.y
+															, b ) );
+			}
+			else
+			{
+				PCAPTION_BUTTON button = NULL;
+				if( ( y > frame_height )
+					&& ( y < ( frame_height + caption_height ) )
+					&& ( x < ( pc->surface_rect.x + pc->surface_rect.width ) ) 
+					)
 				{
-		                       int on_button = 0;
-#ifdef DETAILED_MOUSE_DEBUG
-								if( g.flags.bLogDetailedMouse )
-									Log( WIDE("Setting drag frame on caption") );
-#endif
-					if( pc->BorderType & BORDER_CAPTION_CLOSE_BUTTON )
+					INDEX idx;
+					LIST_FORALL( pc->caption_buttons, idx, PCAPTION_BUTTON, button )
 					{
-						int caption_height = CaptionHeight( pc, GetText( pc->caption.text ) );
-						int skip_y = FrameBorderYOfs( pc, pc->BorderType, NULL );
-						if( x > ( pc->surface_rect.width - (caption_height -skip_y) ) ) // left side edge
+						if( x > button->offset )
 						{
-							on_button = 1;
-							if( !pf->flags.bCloseButtonPressed )
-							{
-								pf->flags.bCloseButtonPressed = 1;
-								DrawFrameCaption( pc );
-								UpdateDisplayPortion( pf->pActImg
-															, pc->surface_rect.x, 0
-															, pc->surface_rect.width
-															, pc->surface_rect.y );
-							}
+							break;
 						}
 					}
-					if( !on_button && !( pc->BorderType & BORDER_NOMOVE ) && pc->device )
+					if( button )
 					{
-						// otherwise set dragging... hmm
+						pc->pressed_caption_button = button;
+						button->is_pressed = TRUE;
+						DrawFrameCaption( pc );
+						UpdateDisplayPortion( pf->pActImg, pc->surface_rect.x, 0
+													, pc->surface_rect.width
+													, pc->surface_rect.y );
+					}
+				}
+				if( !button && !( pc->BorderType & BORDER_NOMOVE ) && pc->device )
+				{
+					// otherwise set dragging... hmm
 #ifdef DETAILED_MOUSE_DEBUG
-						if( g.flags.bLogDetailedMouse )
-							lprintf( WIDE("Set drag on frame to %d,%d"), x, y );
+					if( g.flags.bLogDetailedMouse )
+						lprintf( WIDE("Set drag on frame to %d,%d"), x, y );
 #endif
-						pf->_x = x;
-						pf->_y = y;
-						pf->flags.bDragging = TRUE;
-						pf->drag_x = x;
-						pf->drag_y = y;
-						result = 1;
+					pf->_x = x;
+					pf->_y = y;
+					pf->flags.bDragging = TRUE;
+					pf->drag_x = x;
+					pf->drag_y = y;
+					result = 1;
 				}
 			}
 		}
 	}
 	else // unhandled mouse button transition/state
 	{
-		if( pc->BorderType & BORDER_CAPTION_CLOSE_BUTTON )
+		int on_button = 0;
+#ifdef DETAILED_MOUSE_DEBUG
+		if( g.flags.bLogDetailedMouse )
+			Log( WIDE("release button drag frame on caption") );
+#endif
+		if( !on_button && pc->caption_buttons )
 		{
-			int caption_height = CaptionHeight( pc, GetText( pc->caption.text ) );
-			if( x > pc->surface_rect.width - caption_height ) // left side edge
+			PCAPTION_BUTTON button;
+			INDEX idx;
+			LIST_FORALL( pc->caption_buttons, idx, PCAPTION_BUTTON, button )
 			{
-				//on_button = 1;
-				if( pf->flags.bCloseButtonPressed )
+				if( x > button->offset )
 				{
-					pf->flags.bCloseButtonPressed = 0;
+					on_button = TRUE;
+					break;
+				}
+			}
+			if( button )
+			{
+				if( !button->is_pressed )
+				{
+					pc->pressed_caption_button = button;
+					button->is_pressed = TRUE;
 					DrawFrameCaption( pc );
-					UpdateDisplayPortion( pf->pActImg
-												, pc->surface_rect.x, 0
+					UpdateDisplayPortion( pf->pActImg, pc->surface_rect.x, 0
 												, pc->surface_rect.width
 												, pc->surface_rect.y );
 				}
@@ -1772,7 +1821,7 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 	}
 	if( !pf->flags.bSizing 
 		&& !pf->flags.bDragging
-		&& !pf->flags.bCloseButtonPressed
+		&& !pc->pressed_caption_button
 		&& IsMouseInCurrent( pc
 							 , x - pf->CurrentBias.x
 							 , y - pf->CurrentBias.y
@@ -1832,7 +1881,7 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 			(S_64)y < pc->surface_rect.y ||
 			(S_64)x > pc->surface_rect.x + pc->surface_rect.width ||
 			(S_64)y > pc->surface_rect.y + pc->surface_rect.height ||
-			pf->flags.bSizing || pf->flags.bDragging || pf->flags.bCloseButtonPressed )
+			pf->flags.bSizing || pf->flags.bDragging || pc->pressed_caption_button )
 		{
 			// it's on the frame of this frame (redunant eh?)
 			//lprintf( WIDE("Outside the surface, on border or frame... invoke frame handler.") );
