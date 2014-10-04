@@ -47,6 +47,11 @@ endif()
 if( MAKE_RCOORD_SINGLE )
 		FILE( APPEND ${FILEOUT} "add_definitions( -DMAKE_RCOORD_SINGLE )\n" )
 endif()
+
+if( CMAKE_VS_PLATFORM_TOOLSET )
+		FILE( APPEND ${FILEOUT} "set( CMAKE_VS_PLATFORM_TOOLSET ${CMAKE_VS_PLATFORM_TOOLSET} )\n" )
+endif( CMAKE_VS_PLATFORM_TOOLSET )
+
 if( MSVC )
 		# transmit disable of snprintf insecurity
 		FILE( APPEND ${FILEOUT} "add_definitions( -wd4996 )\n" )

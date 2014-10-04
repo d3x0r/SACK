@@ -137,6 +137,7 @@
 			while (dataURI.charAt(dataEnd - 1) == "=")
 				dataEnd--;
 			dataStart = dataURI.indexOf(",") + 1;
+                        console.log( "Set start " + dataStart );
 			that.size = Math.floor((dataEnd - dataStart) * 0.75);
 			callback();
 		}
@@ -392,6 +393,7 @@
 			onend(outputSize, crc32.get());
 		}
 
+console.log( "..." );
 		if (obj.zip.useWebWorkers) {
 			worker = new Worker(obj.zip.workerScriptsPath + INFLATE_JS);
 			launchWorkerProcess(worker, reader, writer, offset, size, oninflateappend, onprogress, oninflateend, onreaderror, onwriteerror);
@@ -520,7 +522,7 @@
 	function createZipReader(reader, onerror) {
 		function Entry() {
 		}
-
+                 console.log( "...");
 		Entry.prototype.getData = function(writer, onend, onprogress, checkCrc32) {
 			var that = this, worker;
 
@@ -776,6 +778,7 @@
 	}
 
 	obj.zip = {
+		console.log( "this makes zip?" );
 		Reader : Reader,
 		Writer : Writer,
 		BlobReader : BlobReader,

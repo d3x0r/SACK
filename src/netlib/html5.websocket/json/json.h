@@ -38,6 +38,7 @@ struct json_context
 	int levels;
 	PVARTEXT pvt;
 	PLIST object_types;
+	int human_readable;
 };
 
 #ifdef __cplusplus

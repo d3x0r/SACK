@@ -276,8 +276,8 @@ void DumpFontFile( CTEXTSTR name, SFTFont font_to_dump )
 		output = sack_fopen( 0, name, WIDE("wt") );
 		if( output )
 		{
-			PrintLeadin(  (font->flags&3)==1?2
-							: (font->flags&3)==2?8
+			PrintLeadin(  (font->flags&3)==FONT_FLAG_2BIT?2
+							: (font->flags&3)==FONT_FLAG_8BIT?8
 							: 1 );
 			{
 				int charid;
@@ -535,7 +535,7 @@ Image AllocateCharacterSpaceByFont( Image image, SFTFont font, PCHARACTER charac
 			MemSet( renderer, 0, sizeof( FONT_RENDERER ) );
 			renderer->nWidth = (S_16)0;
 			renderer->nHeight = (S_16)0;
-			renderer->flags = 0;
+			renderer->flags = 0 | FONT_FLAG_MONO;
 			renderer->file = NULL;
 			renderer->font = font;
 			AddLink( &fonts, renderer );
@@ -787,8 +787,8 @@ void RenderMonoChar( PFONT font
 
 
 #define GREY_MASK(buf,n)  ((bits==2)?(\
-	(((buf[n]&0xE0)?2:0)|   \
-	 ((buf[n]&0x3F)?1:0))       \
+	  (((buf[n]&0xE0)?2:0)   \
+	  |((buf[n]&0x0F)?1:0))       \
 	):(buf[n]))
 
 void RenderGreyChar( PFONT font
@@ -1106,7 +1106,7 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 			{
 			case FT_GLYPH_FORMAT_OUTLINE:
 				//Log( WIDE("Outline render glyph....") );
-				if( (( renderer->flags & 3 )<2) )
+				if( (( renderer->flags & 3 )<1) )
 					FT_Render_Glyph( face->glyph, FT_RENDER_MODE_MONO );
 				else
 					FT_Render_Glyph( face->glyph, FT_RENDER_MODE_NORMAL );
@@ -1127,7 +1127,7 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 					 Log3( WIDE("bitmap height: %d ascent: %d descent: %d"), face->height>>6, face->ascender>>6, face->descender>>6);
 					 */
 				//Log( WIDE("Bitmap") );
-				if( ( renderer->flags & 3 )<2 )
+				if( ( renderer->flags & 3 ) == 0 )
 				{
 					RenderMonoChar( renderer->font
 								 , idx
@@ -1145,7 +1145,7 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 									  , &face->glyph->metrics
 									  , face->glyph->bitmap_left // left offset?
 									  , face->glyph->linearHoriAdvance>>16
-									  , ((renderer->flags & 3)==3)?8:2 );
+									  , ((renderer->flags & 3)>=2)?8:2 );
 				}
 				break;
 			//case FT_GLYPH_FORMAT_COMPOSITE:
@@ -1205,20 +1205,7 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 			if( !font->characters )
 				font->characters = charcount + 1;
 			font->baseline = 0;
-			if( ( renderer->flags & 3 ) == 3 )
-				font->flags = FONT_FLAG_8BIT;
-			else if( ( renderer->flags & 3 ) == 2 )
-				font->flags = FONT_FLAG_2BIT;
-			else
-				font->flags = FONT_FLAG_MONO;
-			// default rendering for one-to-one pixel sizes.
-			/*
-			 error = FT_Set_Char_Size( face
-			 , nWidth << 6
-			 , nHeight << 6
-			 , 96
-			 , 96 );
-			 */
+			font->flags = ( renderer->flags & 3 );
 			if( 0 )
 				lprintf( WIDE("Setting pixel size %d %d"), ScaleValue( &renderer->width_scale, renderer->nWidth )
 						 , ScaleValue( &renderer->height_scale, renderer->nHeight ) );

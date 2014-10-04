@@ -544,6 +544,7 @@ void DrawFrameCaption( PSI_CONTROL pc )
 	if( ( pc->BorderType & BORDER_TYPE ) == BORDER_NONE ) return;
 	{
 		int h, w;
+		_32 button_left;
 		_32 width, height;
 		_32 xofs = ( ( FrameBorderXOfs(pc, pc->BorderType) ) );
 		h = CaptionHeight( pc, pc?GetText(pc->caption.text):NULL ) - 1;
@@ -637,17 +638,27 @@ void DrawFrameCaption( PSI_CONTROL pc )
 					  , w, xofs, h
 					  , basecolor(pc)[SHADE] );
 		}
-		if( pc->device && ( pc->BorderType & BORDER_CAPTION_CLOSE_BUTTON ) )
+
+		button_left = w - (h-xofs);
+		if( pc->device )
 		{
-			if( pc->device->flags.bCloseButtonPressed )
+			PPHYSICAL_DEVICE pf = pc->device;
+			INDEX idx;
+			PCAPTION_BUTTON button;
+			LIST_FORALL( pc->caption_buttons, idx, PCAPTION_BUTTON, button )
 			{
-				if( g.StopButtonPressed )
-					BlotScaledImageSizedToAlpha( pc->Window, g.StopButtonPressed, w - (h-xofs), xofs + 1, (h-xofs) - 2, (h-xofs) - 2, ALPHA_TRANSPARENT );
-			}
-			else
-			{
-				if( g.StopButton )
-					BlotScaledImageSizedToAlpha( pc->Window, g.StopButton, w - (h-xofs), xofs + 1, (h-xofs) - 2, (h-xofs) - 2, ALPHA_TRANSPARENT );
+				button->offset = button_left;
+				if( button->is_pressed )
+				{
+					if( button->pressed )
+						BlotScaledImageSizedToAlpha( pc->Window, button->pressed, button_left, xofs + 1, (h-xofs) - 2, (h-xofs) - 2, ALPHA_TRANSPARENT );
+				}
+				else
+				{
+					if( button->normal )
+						BlotScaledImageSizedToAlpha( pc->Window, button->normal, button_left, xofs + 1, (h-xofs) - 2, (h-xofs) - 2, ALPHA_TRANSPARENT );
+				}
+				button_left -= ( h - xofs );
 			}
 		}
 	}
@@ -761,37 +772,37 @@ void CPROC SetDrawBorder( PSI_CONTROL pc )
 
 			}
 		}
-	break;
+		break;
 	case BORDER_THINNER:
 		if( pc->BorderType & BORDER_INVERT )
 			pc->DrawBorder = DrawThinnerFrameInverted;
 		else
 			pc->DrawBorder = DrawThinnerFrame;
-	break;
+		break;
 	case BORDER_THIN:
 		if( pc->BorderType & BORDER_INVERT )
 			pc->DrawBorder = DrawThinFrameInverted;
 		else
 			pc->DrawBorder = DrawThinFrame;
-	break;
+		break;
 	case BORDER_THICK_DENT:
 		if( pc->BorderType & BORDER_INVERT )
 			pc->DrawBorder = DrawThickDentInverted;
 		else
 			pc->DrawBorder = DrawThickDent;
-	break;
+		break;
 	case BORDER_DENT:
 		if( pc->BorderType & BORDER_INVERT )
 			pc->DrawBorder = DrawDentInverted;
 		else
 			pc->DrawBorder = DrawDent;
-	break;
+		break;
 	case BORDER_THIN_DENT:
 		if( pc->BorderType & BORDER_INVERT )
 			pc->DrawBorder = DrawThinDentInverted;
 		else
 			pc->DrawBorder = DrawThinDent;
-	break;
+		break;
 	}
 	//if( !pc->nType )
 	//{

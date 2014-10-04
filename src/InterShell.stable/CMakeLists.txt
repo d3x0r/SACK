@@ -34,7 +34,7 @@ endif( NOT MAKING_SACK_CORE )
 
 if( WIN32 AND WATCOM )
 add_definitions( -DWIN32 )
-endif( WIN32 and WATCOM )
+endif( WIN32 AND WATCOM )
 add_definitions( -DINTERSHELL_CORE_BUILD )
 
 set( BUILD_INTERSHELL 1 )

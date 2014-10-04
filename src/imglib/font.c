@@ -1285,6 +1285,65 @@ void PutStringFontEx( ImageFile *pImage
 	return;// x;
 }
 
+void PutStringFontExx( ImageFile *pImage
+											 , S_32 x, S_32 y
+											 , CDATA color, CDATA background
+											 , CTEXTSTR pc, size_t nLen, PFONT font, int justification, _32 _width )
+{
+	_32 length = 0;
+	_32 _x = x;
+	CDATA tmp1 = 0;
+	CDATA tmp2 = 0;
+	CTEXTSTR start = pc;
+	if( !font )
+		font = &DEFAULTFONT;
+	if( !pImage || !pc ) return;// x;
+	{
+		if( justification )
+		{
+			start = pc;
+			while( Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
+			{
+				PCHARACTER pchar;
+				pchar = font->character[ (*pc) ];
+				if( (*pc) == '\n' )
+				{
+					if( justification == 2 )				
+						x = ( _x + _width ) - length;
+					else
+						x = ( ( _x + _width ) - length ) / 2;
+					while( start != pc )
+					{
+						x += _PutCharacterFont( pImage, x, y, color, background, *start, font );
+						start++;
+					}
+					start++;
+					y += font->height;
+					length = 0;
+				}
+				else
+				{
+					length += pchar->width;
+				}
+			}
+		}
+		else
+		{
+			while( Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
+			{
+				if( (*pc) == '\n' )
+				{
+					y += font->height;
+					x = _x;
+				}
+				else
+					x += _PutCharacterFont( pImage, x, y, color, background, *pc, font );
+			}
+		}
+	}
+	return;// x;
+}
+
 void PutStringInvertFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, PFONT font )
 {
 	_32 _x = x;

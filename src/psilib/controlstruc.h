@@ -206,6 +206,17 @@ struct edit_state_tag {
 typedef struct edit_state_tag EDIT_STATE;
 typedef struct edit_state_tag *PEDIT_STATE;
 
+struct physical_device_caption_button
+{
+	Image normal;
+	Image pressed;
+	void (CPROC*pressed_event)( PSI_CONTROL pc );
+	LOGICAL is_pressed;
+	_32 offset;
+};
+typedef struct physical_device_caption_button CAPTION_BUTTON;
+typedef struct physical_device_caption_button *PCAPTION_BUTTON;
+
 struct physical_device_interface
 {
 //DOM-IGNORE-BEGIN
@@ -222,7 +233,6 @@ struct physical_device_interface
 		BIT_FIELD bNoUpdate : 1; // don't call update function...
 		BIT_FIELD bCaptured : 1; // frame owns mouse, control behaving as frame wants all mouse events.
 		BIT_FIELD bApplicationOwned : 1; // current owns was set by application, do not auto disown.
-		BIT_FIELD bCloseButtonPressed : 1;
 	}flags;
 	EDIT_STATE EditState;
 	//PRENDERER pActImg;
@@ -393,6 +403,8 @@ typedef struct common_control_frame
 		BIT_FIELD bDirectUpdating : 1;
 		// this is set when BorderType is not the same as the inital border type
 		BIT_FIELD bSetBorderType : 1;
+		// set when the close button has been added to caption_buttons (standardized)
+		BIT_FIELD bCloseButtonAdded : 1;
 	} flags;
 
 
@@ -495,6 +507,8 @@ typedef struct common_control_frame
 	CDATA *basecolors;
 	/* when registered this gets set as where the control's events and rtti are registered.
 		 This will seperate /psi/control and /psi++/control without other flags to switch on */
+	PLIST caption_buttons;  // extra controls that are stuffed on the caption bar.
+	PCAPTION_BUTTON pressed_caption_button;  // the current button pressed
 	PCLASSROOT class_root; 
 	int nExtra; // size above common required...
 } FR_CT_COMMON, *PCONTROL;
