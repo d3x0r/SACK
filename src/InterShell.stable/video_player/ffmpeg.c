@@ -270,7 +270,7 @@ static void OnKeyPressEvent( WIDE( "Test Video Player Stop" ) )( PTRSZVAL psv_bu
 	}
 }
 
-static void OnDisplayPause( "Video Player" )( void )
+static void OnDisplayPause( WIDE("Video Player") )( void )
 {
 	struct ffmpeg_file * file;
 	INDEX idx;
@@ -279,7 +279,7 @@ static void OnDisplayPause( "Video Player" )( void )
 		ffmpeg_PauseFile( file );
 }
 
-static void OnDisplayResume( "Video Player" )( void )
+static void OnDisplayResume( WIDE("Video Player") )( void )
 {
 	struct ffmpeg_file * file;
 	INDEX idx;

@@ -258,6 +258,13 @@ struct sqlite_interface
 	  int nByte,              
 	  sqlite3_stmt **ppStmt,  
 	  const char **pzTail     );
+	int (FIXREF2*sqlite3_prepare16_v2)(
+		  sqlite3 *db,            /* Database handle */
+		  const void *zSql,       /* SQL statement, UTF-16 encoded */
+		  int nByte,              /* Maximum length of zSql in bytes. */
+		  sqlite3_stmt **ppStmt,  /* OUT: Statement handle */
+		  const void **pzTail     /* OUT: Pointer to unused portion of zSql */
+		);
 	int (FIXREF2*sqlite3_step)(sqlite3_stmt *);
 	const char* (FIXREF2*sqlite3_column_name)(sqlite3_stmt *pStmt, int col);
 	const unsigned char* (FIXREF*sqlite3_column_text)(sqlite3_stmt *pStmt, int col);
@@ -295,6 +302,7 @@ PRIORITY_PRELOAD( LoadSQLiteInterface, SQL_PRELOAD_PRIORITY-1 )
 #    define sqlite3_close                (FIXDEREF2 (sqlite_iface->sqlite3_close))
 #    define sqlite3_close_v2             (FIXDEREF2 (sqlite_iface->sqlite3_close_v2))
 #    define sqlite3_prepare_v2           (FIXDEREF2 (sqlite_iface->sqlite3_prepare_v2))
+#    define sqlite3_prepare16_v2         (FIXDEREF2 (sqlite_iface->sqlite3_prepare16_v2))
 #    define sqlite3_step                 (FIXDEREF2 (sqlite_iface->sqlite3_step))
 #    define sqlite3_column_name          (FIXDEREF2 (sqlite_iface->sqlite3_column_name))
 #    define sqlite3_column_text          (FIXDEREF (sqlite_iface->sqlite3_column_text))

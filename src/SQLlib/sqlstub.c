@@ -11,7 +11,6 @@
 //#define LOG_ACTUAL_CONNECTION
 //#define LOG_COLLECTOR_STATES
 //#define LOG_EVERYTHING
-
 #define SQLLIB_SOURCE
 #define DO_LOGGING
 #ifdef USE_SQLITE_INTERFACE
@@ -2319,20 +2318,24 @@ int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 	{
 		int result_code = WM_SQL_RESULT_SUCCESS;
 		int rc3;
-		const char *tail;
+		const TEXTCHAR *tail;
 		char *tmp_cmd;
 	retry:
 		odbc->last_command_tick = timeGetTime();
 		tmp_cmd = DupTextToChar( GetText( cmd ) );
 		// can get back what was not used when parsing...
+#ifdef UNICODE
+		rc3 = sqlite3_prepare16_v2( odbc->db, (void*)GetText( cmd ), (int)(GetTextSize( cmd )) * sizeof( TEXTCHAR ), &collection->stmt, (const void**)&tail );
+#else
 		rc3 = sqlite3_prepare_v2( odbc->db, tmp_cmd, (int)(GetTextSize( cmd )), &collection->stmt, &tail );
+#endif
 		if( rc3 )
 		{
 			TEXTSTR tmp_delete;
 			TEXTSTR str_error = DupCharToText( sqlite3_errmsg(odbc->db) );
-			_lprintf(DBG_RELAY)( WIDE( "Result of prepare failed? %s at char %")_size_f WIDE("[%s] in [%s]" ), str_error, tail - tmp_cmd, tmp_delete = DupCharToText( tail ), GetText(cmd) );
+			_lprintf(DBG_RELAY)( WIDE( "Result of prepare failed? %s at char %")_size_f WIDE("[%s] in [%s]" ), str_error, tail - GetText( cmd ), tail, GetText(cmd) );
 			vtprintf( collection->pvt_errorinfo, str_error );
-			Release( tmp_delete );
+			//Release( tmp_delete );
 			Release( str_error );
 			Release( tmp_cmd );
 			if( EnsureLogOpen(odbc ) )
@@ -2766,10 +2769,10 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 
 			// after initial, and clear, these sizes will be NULL
 			// otherwise, it's for getting a result against the current query.
-         // the next query will have cleared these to NULL;
+			// the next query will have cleared these to NULL;
 			if( !collection->coltypes )
 			{
-            //lprintf( "making types for %d columns", collection->columns + 1 );
+	            //lprintf( "making types for %d columns", collection->columns + 1 );
 				collection->coltypes = NewArray( SQLSMALLINT, ( collection->columns + 1 ) );
 			}
 			if( !collection->colsizes )
@@ -3406,9 +3409,13 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 	if( odbc->flags.bSQLite_native )
 	{
 		char *sql_query = CStrDup( query );
-		const char *tail;
+		const TEXTCHAR *tail;
 		// can get back what was not used when parsing...
-		rc3 = sqlite3_prepare_v2( odbc->db, sql_query, (int)(querylen), &collection->stmt, &tail );
+#ifdef UNICODE
+		rc3 = sqlite3_prepare16_v2( odbc->db, (void*)query, (int)(querylen) * sizeof( TEXTCHAR ), &collection->stmt, (const void**)&tail );
+#else
+		rc3 = sqlite3_prepare_v2( odbc->db, query, (int)(querylen), &collection->stmt, &tail );
+#endif
 		if( rc3 )
 		{
 			TEXTSTR tmp_at;
@@ -3420,7 +3427,7 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 			if( StrCaseCmpEx( str_error, WIDE( "no such table" ), 13 ) == 0 )
 				vtprintf( collection->pvt_errorinfo, WIDE( "(S0002)" ) );
 			vtprintf( collection->pvt_errorinfo, WIDE( "%s" ), str_error );
-			_lprintf(DBG_RELAY)( WIDE( "Result of prepare failed? %s at-or near char %")_size_f WIDE("[%s] in [%s]" ), str_error, tail - sql_query, tmp_at = DupCharToText( tail ), query );
+			_lprintf(DBG_RELAY)( WIDE( "Result of prepare failed? %s at-or near char %")_size_f WIDE("[%s] in [%s]" ), str_error, tail - query, tail, query );
 			Deallocate( TEXTSTR, tmp_at );
 			Deallocate( TEXTSTR, str_error );
 			if( EnsureLogOpen(odbc ) )

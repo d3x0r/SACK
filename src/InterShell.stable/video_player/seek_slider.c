@@ -82,7 +82,7 @@ static void CPROC OnSliderUpdateProc(PTRSZVAL psv, PSI_CONTROL pc, int val)
 static CTEXTSTR GetCurrentValueString( PTRSZVAL psv )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
-	snprintf( info->value, 32, "%"_32fs".%"_32fs"%%", info->current / 10000, info->current % 10000 );
+	snprintf( info->value, 32, WIDE("%")_32fs WIDE(".%")_32fs WIDE("%%"), info->current / 10000, info->current % 10000 );
 	return info->value;
 }
 
@@ -229,7 +229,7 @@ static PTRSZVAL OnConfigureControl( CONTROL_NAME )( PTRSZVAL psv, PSI_CONTROL pa
 }
 
 
-static void OnSaveControl( WIDE( CONTROL_NAME ) )( FILE *file,PTRSZVAL psv )
+static void OnSaveControl( CONTROL_NAME )( FILE *file,PTRSZVAL psv )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	fprintf( file, WIDE("Seek Slider color=$%02X%02X%02X%02X\n")
@@ -324,7 +324,7 @@ static PTRSZVAL CPROC SetSliderCurrentValue( PTRSZVAL psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( WIDE( CONTROL_NAME ) )( PCONFIG_HANDLER pch, PTRSZVAL psv )
+static void OnLoadControl( CONTROL_NAME )( PCONFIG_HANDLER pch, PTRSZVAL psv )
 {
 	AddConfigurationMethod( pch, WIDE("Seek Slider color=%c"), ReloadSliderColor );
 	AddConfigurationMethod( pch, WIDE("Seek Slider back color=%c"), ReloadSliderBackColor );
