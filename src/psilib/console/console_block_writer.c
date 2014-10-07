@@ -180,9 +180,9 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 	block = PSI_GetDataFromBlock( console );
 	if( *output )
 	{
-		lprintf( "Release %p", (*output ) );
-      DebugBreak();
-		Deallocate( char *, (*output) );
+		//lprintf( "Release %p", (*output ) );
+		//DebugBreak();
+		Deallocate( TEXTCHAR *, (*output) );
 	}
 	(*output) = block;
 	if( font )

@@ -1916,7 +1916,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 			// going to begin a new line...
 			// setup the line info for the new line...
 			//lprintf( "Adding line to display: %p (%d) %d", dl.start, dl.nOfs, dl.nLine );
-			lprintf( "Set line %d", nLinesShown  );
+			//lprintf( WIDE("Set line %d"), nLinesShown  );
 			SetDataItem( CurrentLineInfo
 						  , nLinesShown
 						  , &dl );
