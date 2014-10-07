@@ -1115,7 +1115,7 @@ LOGICAL BOARD::Load( PODBC odbc, CTEXTSTR boardname )
 				//(PLAYER)this->LayerPool->forall( CheckIsLayer, iLayer );
 				if( !pl )
 				{
-					pl = new(&LayerPool,&LayerDataPool) LAYER( odbc, peices, (INDEX)atoi(results[0]) );
+					pl = new(&LayerPool,&LayerDataPool) LAYER( odbc, peices, iLayer );
 				}
 			}
 		}

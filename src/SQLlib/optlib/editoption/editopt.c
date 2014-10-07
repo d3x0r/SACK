@@ -191,6 +191,8 @@ static void CPROC OptionSelectionChanged( PTRSZVAL psvUser, PCONTROL pc, PLISTIT
 
 static void CPROC UpdateValue( PTRSZVAL psv, PCOMMON pc )
 {
+	if( !option_thread )
+		option_thread = default_local;
 	if( l.last_node )
 	{
 		TEXTCHAR value[256];
@@ -369,7 +371,7 @@ int EditOptions
 	if( !RenderIsInstanced() )
 	{
 		default_local = option_thread = New( struct instance_local );
-		MemSet( option_thread, 0, sizeof( option_thread ) );
+		MemSet( option_thread, 0, sizeof( option_thread[0] ) );
 		frame = CreateOptionFrame( odbc, TRUE, &done );
 		InitOptionList( odbc, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
 

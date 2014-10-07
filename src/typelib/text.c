@@ -2710,15 +2710,51 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 #else
 	int err;
 #endif
+	char  tmp[2];
 	char    *ch;
+	char    *_ch;
+	const wchar_t *_wch = wch;
 	sizeInBytes = (len + 1);
 	err = 0;
-	ch = NewArray( char, sizeInBytes);
 #if defined( _MSC_VER )
-	err = wcstombs_s(&convertedChars, 
-                    ch, sizeInBytes,
-						  wch, len );
+	_ch = ch = tmp;
+	{
+		int n;
+		for( n = 0; n < len; n++ )
+		{
+			err = wcstombs_s(&convertedChars, 
+							ch, 2/*sizeInBytes*/,
+								  wch, 1 );
+			if( err == 42 )
+			{
+				sizeInBytes += 2;
+			}
+			wch++;
+		}
+	}
+	wch = _wch;
+	_ch = ch = NewArray( char, sizeInBytes);
+	{
+		int n;
+		for( n = 0; n < len; n++ )
+		{
+			err = wcstombs_s(&convertedChars, 
+							ch, 2/*sizeInBytes*/,
+								  wch, 1 );
+			if( err == 42 )
+			{
+				(*ch++) = 0xE0 | ((unsigned char*)wch)[1] >> 4; 
+				(*ch++) = 0x80 | ( ( ((unsigned char*)wch)[1] & 0xF ) << 2 ) | ( ( ((unsigned char*)wch)[0] ) >> 6 );
+				(*ch++) = 0x80 |  ( ((unsigned char*)wch)[0] & 0x3F );
+			}
+			else
+				ch++;
+			wch++;
+		}
+		ch = _ch;
+	}
 #else
+	_ch = ch = NewArray( char, sizeInBytes);
 	convertedChars = wcstombs( ch, wch, sizeInBytes);
 	err = ( convertedChars == -1 );
 #endif
@@ -2737,7 +2773,7 @@ char * WcharConvertEx ( const wchar_t *wch DBG_PASS )
 
 wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 {
-	// Conversion to char* :
+	// Conversion to wchar_t* :
 	// Can just convert wchar_t* to char* using one of the 
 	// conversion functions such as: 
 	// WideCharToMultiByte()
@@ -2751,13 +2787,44 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 	int err;
 #endif
 	wchar_t   *ch;
+	wchar_t   *_ch;
 	sizeInBytes = ((len + 1) * sizeof( char ) );
 	err = 0;
-	ch = NewArray( wchar_t, sizeInBytes);
+	_ch = ch = NewArray( wchar_t, sizeInBytes);
 #if defined( _MSC_VER )
-	err = mbstowcs_s(&convertedChars, 
-                    ch, sizeInBytes,
-						  wch, sizeInBytes * sizeof( wchar_t ) );
+	{
+		int n;
+		for( n = 0; n < len; n++ )
+		{
+			if( ( wch[0] & 0xF0 ) == 0xE0 )
+			{
+				ch[0] = ( ( (wchar_t)wch[0] & 0xF ) << 12 ) | ( ( (wchar_t)wch[1] & 0x3F ) << 6 ) | ( (wchar_t)wch[2] & 0x3f );
+				wch += 3;
+			}
+			else
+			{
+				err = mbstowcs_s(&convertedChars, 
+								ch, sizeof( wchar_t ),
+									  wch, 1 );
+				if( err == 42 )
+				{
+					if( wch[0] & 0xF0 == 0xE0 )
+					{
+						ch[0] = ( ( (wchar_t)wch[0] & 0xF ) << 12 ) | ( ( (wchar_t)wch[1] & 0x3F ) << 6 ) | ( (wchar_t)wch[2] & 0x3f );
+						wch += 3;
+					}
+					else
+					{
+						lprintf( WIDE("unhandled unicode conversion") );
+					}
+				}
+				else
+					wch++;
+			}
+			ch++;
+		}
+		ch = _ch;
+	}
 #else
 	convertedChars = mbstowcs( ch, wch, sizeInBytes);
    err = ( convertedChars == -1 );
