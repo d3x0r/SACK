@@ -734,7 +734,7 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 	int caption_height = CaptionHeight( pc, GetText( pc->caption.text ) );
 	int frame_height = FrameBorderYOfs( pc, pc->BorderType, NULL );
 	//DumpFrameContents( pc );
-	lprintf( "FFM" );
+	lprintf( WIDE("FFM") );
 #if defined DETAILED_MOUSE_DEBUG //|| defined EDIT_MOUSE_DEBUG
 	if( g.flags.bLogDetailedMouse )
 		lprintf( WIDE("Mouse Event: %p %d %d %d"), pf, x, y, b );
@@ -761,7 +761,7 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 		if( g.flags.bLogDetailedMouse )
 			lprintf( WIDE("Continued down on left button") );
 #endif
-		lprintf( "continued mouse down..." );
+		lprintf( WIDE("continued mouse down...") );
 		if( pc->pressed_caption_button )
 		{
 			if( ( x < pc->pressed_caption_button->offset )
@@ -770,7 +770,7 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 				|| ( x > ( pc->pressed_caption_button->offset + ( caption_height ) ) )
 				)
 			{
-				lprintf( "outside of button..." );
+				lprintf( WIDE("outside of button...") );
 				if( pc->pressed_caption_button->is_pressed )
 				{
 					pc->pressed_caption_button->is_pressed = 0;
@@ -783,7 +783,7 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 			}
 			else
 			{
-				lprintf( "inside of button..." );
+				lprintf( WIDE("inside of button...") );
 				if( !pc->pressed_caption_button->is_pressed )
 				{
 					pc->pressed_caption_button->is_pressed = 1;

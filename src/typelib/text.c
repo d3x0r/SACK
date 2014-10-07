@@ -12,6 +12,9 @@
  * see also - include/typelib.h
  *
  */
+#ifdef _UNICODE
+#define _INCLUDE_NLS
+#endif
 #define NO_UNICODE_C
 #include <stdhdrs.h>
 #include <deadstart.h>
@@ -2734,6 +2737,9 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 	}
 	wch = _wch;
 	_ch = ch = NewArray( char, sizeInBytes);
+	if( !WideCharToMultiByte( 65001/*CP_UTF8*/, 0, wch, len + 1, ch, sizeInBytes, 0, 0 ) )
+		;
+
 	{
 		int n;
 		for( n = 0; n < len; n++ )
@@ -2743,9 +2749,22 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 								  wch, 1 );
 			if( err == 42 )
 			{
-				(*ch++) = 0xE0 | ((unsigned char*)wch)[1] >> 4; 
-				(*ch++) = 0x80 | ( ( ((unsigned char*)wch)[1] & 0xF ) << 2 ) | ( ( ((unsigned char*)wch)[0] ) >> 6 );
-				(*ch++) = 0x80 |  ( ((unsigned char*)wch)[0] & 0x3F );
+				/*if( !( wch[0] & 0xFF80 ) )
+				{
+					(*ch++) = 0 | ( ((unsigned char*)wch)[0] & 0x7F );
+				}
+				else */
+				if( !( wch[0] & 0xF800 ) )
+				{
+					(*ch++) = 0xC0 | ( ( ((unsigned char*)wch)[1] & 0x7 ) << 2 ) | ( ( ((unsigned char*)wch)[0] ) >> 6 ); 
+					(*ch++) = 0x80 | ( ((unsigned char*)wch)[0] & 0x3F );
+				}
+				else
+				{
+					(*ch++) = 0xE0 | ((unsigned char*)wch)[1] >> 4; 
+					(*ch++) = 0x80 | ( ( ((unsigned char*)wch)[1] & 0xF ) << 2 ) | ( ( ((unsigned char*)wch)[0] ) >> 6 );
+					(*ch++) = 0x80 |  ( ((unsigned char*)wch)[0] & 0x3F );
+				}
 			}
 			else
 				ch++;
@@ -2796,7 +2815,12 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 		int n;
 		for( n = 0; n < len; n++ )
 		{
-			if( ( wch[0] & 0xF0 ) == 0xE0 )
+			if( ( wch[0] & 0xE0 ) == 0xC0 )
+			{
+				ch[0] = ( ( (wchar_t)wch[0] & 0x1F ) << 6 ) | ( (wchar_t)wch[1] & 0x3f );
+				wch += 2;
+			}
+			else if( ( wch[0] & 0xF0 ) == 0xE0 )
 			{
 				ch[0] = ( ( (wchar_t)wch[0] & 0xF ) << 12 ) | ( ( (wchar_t)wch[1] & 0x3F ) << 6 ) | ( (wchar_t)wch[2] & 0x3f );
 				wch += 3;

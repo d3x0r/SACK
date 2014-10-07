@@ -30,6 +30,7 @@ struct sqlite_interface my_sqlite_interface = {
 														 , sqlite3_close
 														 , sqlite3_close_v2
                                            , sqlite3_prepare_v2
+                                           , sqlite3_prepare16_v2
                                            , sqlite3_step
                                            , sqlite3_column_name
                                            , sqlite3_column_text
