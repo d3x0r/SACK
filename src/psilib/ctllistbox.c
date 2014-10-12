@@ -847,9 +847,11 @@ static int OnMouseCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y
 															, pli
 															, pli->flags.bOpen );
 							// restore prior disable state...
+							// this sends a smudge if needed.
 							DisableUpdateListBox( pc, bDisable );
 						}
-						SmudgeCommon( pc );
+						else
+							SmudgeCommon( pc );
 						UpdateScrollForList( pc );
 						goto record_prior_state;
 					}

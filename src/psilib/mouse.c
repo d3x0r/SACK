@@ -287,8 +287,8 @@ void SetCommonFocus( PSI_CONTROL pc )
 		//ValidatedControlData( PFRAME, CONTROL_FRAME, pf, GetFrame( pc ) );
 		// don't allow THIS focus routine to focus the frame
 		// as a control...
-		//if( pf )
-		//	ForceDisplayFocus( pf->pActImg );
+		if( pf )
+			ForceDisplayFocus( pf->pActImg );
 #ifdef DEBUG_FOCUS
 		lprintf( WIDE("Set common focus... to control %p (%d)"), pc, pc->nType );
 #endif

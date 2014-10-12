@@ -1890,7 +1890,9 @@ IMAGE_PROC_PTR( void, PutStringFontExx )( Image pImage
 											 , S_32 x, S_32 y
 											 , CDATA color, CDATA background
 											 , CTEXTSTR pc, size_t nLen, SFTFont font, int justification, _32 _width );
-
+// sometimes it's not possible to use blatcolor to clear an imate...
+// sometimes its parent is not redrawn?
+IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
 } IMAGE_INTERFACE, *PIMAGE_INTERFACE;
 
 
@@ -2021,7 +2023,8 @@ IMAGE_PROC_PTR( void, PutStringFontExx )( Image pImage
 #define Render3dText                   PROC_ALIAS( Render3dText )
 #define DumpFontFile                   PROC_ALIAS( DumpFontFile )
 #define IsImageTargetFinal                   PROC_ALIAS( IsImageTargetFinal )
-#define ReuseImage                      PROC_ALIAS( ReuseImage )
+#define ReuseImage                      if((USE_IMAGE_INTERFACE)->_ReuseImage) PROC_ALIAS( ReuseImage )
+#define ResetImageBuffers                      if((USE_IMAGE_INTERFACE)->_ResetImageBuffers) PROC_ALIAS( ResetImageBuffers )
 //#define global_font_data         (*PROC_ALIAS(global_font_data))
 #endif
 

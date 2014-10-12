@@ -2123,6 +2123,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 					DebugBreak();
 				}
 #endif
+
 				free( pc );
 				return NULL;
 			}

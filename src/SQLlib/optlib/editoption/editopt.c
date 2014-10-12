@@ -15,6 +15,13 @@
 #define EDT_OPTIONVALUE 1001
 #define LST_OPTIONMAP 1000
 
+struct query_params 
+{
+	PSI_CONTROL pc;
+	TEXTSTR result;
+};
+
+
 typedef struct list_fill_tag
 {
 	struct {
@@ -223,35 +230,53 @@ static void CPROC DeleteBranch( PTRSZVAL psv, PCOMMON pc )
 	InitOptionList( (PODBC)psv, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
 }
 
-static void CPROC CopyBranch( PTRSZVAL psv, PCOMMON pc )
+static void CPROC CopyBranchQueryResult( PTRSZVAL psv, LOGICAL success )
 {
-	TEXTCHAR result[256];
-	// there's a current state already ...
-	//GetCurrentSelection( );
-	if( SimpleUserQuery( result, sizeof( result ), WIDE("Enter New Branch Name"), GetFrame( pc ) ) )
-	{
-		DuplicateOption( l.last_option, result );
-	}
-	ResetList( GetNearControl( pc, LST_OPTIONMAP ) );
+	struct query_params  *params = (struct query_params  *)psv;
+	if( success )
+		DuplicateOption( l.last_option, params->result );
+	ResetList( GetNearControl( params->pc, LST_OPTIONMAP ) );
 	ResetOptionMap( (PODBC)psv );
 	l.last_option = NULL;
-	InitOptionList( (PODBC)psv, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
+	InitOptionList( (PODBC)psv, GetNearControl( params->pc, LST_OPTIONMAP ), LST_OPTIONMAP );
+}
+
+static void CPROC CopyBranch( PTRSZVAL psv, PCOMMON pc )
+{
+	struct query_params  *params = New( struct query_params );
+	params->pc = pc;
+	params->result = NewArray( TEXTCHAR, 256 );
+
+	// there's a current state already ...
+	//GetCurrentSelection( );
+	SimpleUserQueryEx( params->result, 256, WIDE("Enter New Branch Name"), GetFrame( pc ), CopyBranchQueryResult, (PTRSZVAL)params );
+}
+
+static void CPROC CreateEntryQueryResult( PTRSZVAL psv, LOGICAL success )
+{
+	struct query_params  *params = (struct query_params  *)psv;
+	if( success )
+	{
+		GetOptionIndexExx( (PODBC)psv, l.last_option, NULL, params->result, NULL, NULL, TRUE DBG_SRC );
+		//DuplicateOption( l.last_option, result );
+		ResetList( GetNearControl( params->pc, LST_OPTIONMAP ) );
+		ResetOptionMap( (PODBC)psv );
+		l.last_option = NULL;
+		InitOptionList( (PODBC)psv, GetNearControl( params->pc, LST_OPTIONMAP ), LST_OPTIONMAP );
+	}
+	Release( params->result );
+	Release( params );
 }
 
 static void CPROC CreateEntry( PTRSZVAL psv, PCOMMON pc )
 {
-	TEXTCHAR result[256];
+	struct query_params  *params = New( struct query_params );
+	params->pc = pc;
+	params->result = NewArray( TEXTCHAR, 256 );
+
 	// there's a current state already ...
 	//GetCurrentSelection( );
-	if( SimpleUserQuery( result, sizeof( result ), WIDE("Enter New Branch Name"), GetFrame( pc ) ) )
-	{
-		GetOptionIndexExx( (PODBC)psv, l.last_option, NULL, result, NULL, NULL, TRUE DBG_SRC );
-		//DuplicateOption( l.last_option, result );
-		ResetList( GetNearControl( pc, LST_OPTIONMAP ) );
-		ResetOptionMap( (PODBC)psv );
-		l.last_option = NULL;
-		InitOptionList( (PODBC)psv, GetNearControl( pc, LST_OPTIONMAP ), LST_OPTIONMAP );
-	}
+	SimpleUserQueryEx( params->result, 256, WIDE("Enter New Branch Name"), GetFrame( pc ), CreateEntryQueryResult, (PTRSZVAL)params );
 }
 
 static void CPROC FindEntry( PTRSZVAL psv, PCOMMON pc );
@@ -293,12 +318,16 @@ static PSI_CONTROL CreateOptionFrame( PODBC odbc, LOGICAL tree, int *done )
 	return frame;
 }
 
-static void CPROC FindEntry( PTRSZVAL psv, PCOMMON pc )
+struct find_entry_external {
+	TEXTSTR result;
+	PSI_CONTROL frame;
+};
+
+static void CPROC FindEntryResult( PTRSZVAL psv, LOGICAL success )
 {
-	TEXTCHAR result[256];
-	// there's a current state already ...
-	//GetCurrentSelection( );
-	if( SimpleUserQuery( result, sizeof( result ), WIDE("Enter Option Name to Find"), GetFrame( pc ) ) )
+	struct find_entry_external *params = (struct find_entry_external*)psv;
+	TEXTSTR result = params->result;
+	if( success )
 	{
 		CTEXTSTR name;
 		INDEX idx;
@@ -307,7 +336,9 @@ static void CPROC FindEntry( PTRSZVAL psv, PCOMMON pc )
 		FindOptions( (PODBC)psv, &options, result );
 		if( !options )
 		{
-			SimpleMessageBox( NULL, WIDE("No Options Found"), WIDE("Could not find any matching options") );
+			SimpleMessageBox( params->frame, WIDE("No Options Found"), WIDE("Could not find any matching options") );
+			Release( params->result );
+			Release( params );
 			return;
 		}
 		LIST_FORALL( options, idx, CTEXTSTR, name )
@@ -336,11 +367,23 @@ static void CPROC FindEntry( PTRSZVAL psv, PCOMMON pc )
 			}
 			//InitOptionList( odbc, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
 			DisplayFrame( frame );
-			CommonWait( frame );
-			DestroyFrame( &frame );
+			//CommonWait( frame );
+			//DestroyFrame( &frame );
 		}
-
 	}
+	Release( params->result );
+	Release( params );
+}
+
+static void CPROC FindEntry( PTRSZVAL psv, PCOMMON pc )
+{
+	struct find_entry_external *params = New( struct find_entry_external );
+	params->frame = GetFrame( pc );
+	params->result = NewArray( TEXTCHAR, 256 );//[256];
+	// there's a current state already ...
+	//GetCurrentSelection( );
+	SimpleUserQueryEx( params->result, 256, WIDE("Enter Option Name to Find"), GetFrame( pc )
+							, FindEntryResult, (PTRSZVAL)params );
 }
 
 static void OnDisplayConnect( WIDE( "EditOption Display" ) )( struct display_app * app, struct display_app_local***local )

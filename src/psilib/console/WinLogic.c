@@ -391,7 +391,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 	if( pdp->SetCurrentColor )
 		pdp->SetCurrentColor( pdp, COLOR_COMMAND, NULL );//pdp->crCommand, pdp->crCommandBackground );
 
-	nCursorPos = GetCommandCursor( pdp->pCurrentDisplay
+	nCursorPos = GetCommandCursor( pdp->pCurrentDisplay, NULL
 											, pdp->CommandInfo
 											, pdp->flags.bDirect
 											, pdp->flags.bWrapCommand
@@ -646,8 +646,8 @@ void WinLogicCalculateHistory( PCONSOLE_INFO pdp )
 		SetBrowserLines( pdp->pCurrentDisplay, pdp->nLines );
 	}
 	if( pdp->pHistoryDisplay )
-		BuildDisplayInfoLines( pdp->pHistoryDisplay );
-	BuildDisplayInfoLines( pdp->pCurrentDisplay );
+		BuildDisplayInfoLines( pdp->pHistoryDisplay, NULL );
+	BuildDisplayInfoLines( pdp->pCurrentDisplay, NULL );
 }
 
 //----------------------------------------------------------------------------
@@ -665,7 +665,7 @@ void PSI_RenderConsole( PCONSOLE_INFO pdp )
 	if( !(pdp->flags.bDirect && pdp->flags.bCharMode) )
 		PSI_RenderCommandLine( pdp, &upd );
 
-	BuildDisplayInfoLines( pdp->pCurrentDisplay );
+	BuildDisplayInfoLines( pdp->pCurrentDisplay, NULL );
 	if( pdp->nHistoryLineStart )
 	{
 		//lprintf( WIDE("no history rende? %d"), pdp->flags.bNoHistoryRender );
@@ -1131,7 +1131,7 @@ void PSI_WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 		pdp->pCommandDisplay->pBlock->pLines[0].nLineLength = LineLengthExEx( pdp->CommandInfo->CollectionBuffer, FALSE, 8, NULL );
 		pdp->pCommandDisplay->pBlock->pLines[0].pLine = pdp->CommandInfo->CollectionBuffer;
 		if( !pdp->flags.bDirect && pdp->flags.bWrapCommand )
-			BuildDisplayInfoLines( pdp->pCommandDisplay );
+			BuildDisplayInfoLines( pdp->pCommandDisplay, NULL );
 	}
 
 	LeaveCriticalSec( &pdp->Lock );
@@ -1153,7 +1153,7 @@ int PSI_UpdateHistory( PCONSOLE_INFO pdp )
 			, pdp->nHistoryPercent
 			, ( pdp->nLines * ( 3 - pdp->nHistoryPercent ) / 4 ) );
 	EnterCriticalSec( &pdp->Lock );
-	if( GetBrowserDistance( pdp->pHistoryDisplay ) >
+	if( GetBrowserDistance( pdp->pHistoryDisplay, NULL ) >
 		( pdp->nLines * ( 3 - pdp->nHistoryPercent ) / 4 ) )
 	{
 		if( !pdp->flags.bHistoryShow )
@@ -1172,7 +1172,7 @@ int PSI_UpdateHistory( PCONSOLE_INFO pdp )
 			upd.flags.bHasContent = 0;
 			upd.flags.bTmpRect = 0;
 			MemSet( &upd.cs, 0, sizeof( upd.cs ) );
-			BuildDisplayInfoLines( pdp->pHistoryDisplay );
+			BuildDisplayInfoLines( pdp->pHistoryDisplay, NULL );
 			//lprintf( WIDE("ALready showing history?!") );
 			DoRenderHistory(pdp, TRUE, &upd);
 

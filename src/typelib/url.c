@@ -356,8 +356,18 @@ struct url_data * SACK_URLParse( CTEXTSTR url )
 	default:
 		if( outchar )
 		{
-			outbuf[outchar] = 0;
-			lprintf( WIDE("Unused output: [%s]"), outbuf );
+			if( state == PARSE_STATE_COLLECT_RESOURCE_NAME )
+			{
+				outbuf[outchar] = 0;
+				outchar = 0;
+				AppendBuffer( &data->resource_path, WIDE("/"), outbuf );
+				state = PARSE_STATE_COLLECT_RESOURCE_NAME;
+			}
+			else
+			{
+				outbuf[outchar] = 0;
+				lprintf( WIDE("Unused output: state %d [%s]"), state, outbuf );
+			}
 		}
 		break;
 	}

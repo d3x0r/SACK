@@ -37,7 +37,7 @@ target_link_libraries( ${project} winmm )
 endif( WIN32 )
 
 SET( WIDGET_SDK
-  include/banner.h include/buttons.h include/keypad.h
+  include/banner.h include/buttons.h include/keypad.h chat/chat_control.h
 )
 
 INSTALL( 
@@ -54,4 +54,6 @@ INSTALL(
   DESTINATION
     ${SACK_BASE}/include/SACK/widgets )
 endif( INSTALL_TO_SACK_SDK )
+
+INSTALL( FILES chat/chat-decoration.png DESTINATION resources/images )
 

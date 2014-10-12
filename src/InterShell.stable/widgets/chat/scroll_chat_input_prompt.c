@@ -7,7 +7,7 @@
 #include <stdhdrs.h>
 #include <image.h>
 
-#include "chat_control.h" 
+#include "chat_control_internal.h" 
 
 
 static CDATA crColorTableText[16];

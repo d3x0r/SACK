@@ -23,6 +23,12 @@ ${CMAKE_CURRENT_SOURCE_DIR}/stop_button.png
 ${CMAKE_CURRENT_SOURCE_DIR}/stop_button_pressed.png
 ${CMAKE_CURRENT_SOURCE_DIR}/settings.png
 ${CMAKE_CURRENT_SOURCE_DIR}/settings_pressed.png
+${CMAKE_CURRENT_SOURCE_DIR}/logout_normal.png
+${CMAKE_CURRENT_SOURCE_DIR}/logout_pressed.png
+${CMAKE_CURRENT_SOURCE_DIR}/contact_normal.png
+${CMAKE_CURRENT_SOURCE_DIR}/contact_pressed.png
+${CMAKE_CURRENT_SOURCE_DIR}/messages_normal.png
+${CMAKE_CURRENT_SOURCE_DIR}/messages_pressed.png
 ${CMAKE_CURRENT_SOURCE_DIR}/stop_button-glow.png
 ${CMAKE_CURRENT_SOURCE_DIR}/sky.jpg
 ${CMAKE_CURRENT_SOURCE_DIR}/dial2a.png

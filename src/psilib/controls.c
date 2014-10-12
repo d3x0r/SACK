@@ -69,7 +69,10 @@ PSI_NAMESPACE
 
 #include "resource.h"
 
+#ifdef BLAT_COLOR_UPDATE_PORTION
+// was for testing blotting regions... 
   CDATA TESTCOLOR;
+#endif
 typedef struct resource_names
 {
 	_32 resource_name_id;
@@ -411,8 +414,11 @@ void GetMyInterface( void )
 			lprintf( WIDE("Fail render load once...") );
 		}
 		else
+		{
 			if( !(g.flags.always_draw = RequiresDrawAll()) )
 				g.flags.allow_threaded_draw = AllowsAnyThreadToUpdate();
+			g.flags.allow_copy_from_render = VidlibRenderAllowsCopy();
+		}
 	}
 #ifdef __ANDROID__
 	if( !g.default_font )
@@ -607,6 +613,8 @@ static void OnDisplayConnect( WIDE( "@00 PSI Core" ) )( struct display_app*app, 
 	if( g.BorderImage )
 	{
 		int n;
+		ReuseImage( g.StopButton );
+		ReuseImage( g.StopButtonPressed );
 		ReuseImage( g.BorderImage );
 		for( n = 0; n < 9; n++ )
 		{
@@ -764,7 +772,7 @@ void FixFrameFocus( PPHYSICAL_DEVICE pf, int dir )
 						((!pcCurrent->flags.bDisable) ||
 						 (pcCurrent == pcStart )))
 					{
-						if( pcCurrent != pcStart )
+						if( pcStart && pcCurrent != pcStart )
 							SetCommonFocus( pcCurrent );
 						break;
 					}
@@ -1187,7 +1195,9 @@ static void DoUpdateFrame( PSI_CONTROL pc
 			if( g.flags.bLogDebugUpdate )
 				lprintf( WIDE( "stepping to parent, assuming I'm copying my surface, so update appropriately" ) );
 #endif
+#ifdef BLAT_COLOR_UPDATE_PORTION
 			TESTCOLOR=SetAlpha( BASE_COLOR_BLUE, 128 );
+#endif
 			DoUpdateFrame( pc->parent
 							 , (pc->parent->device?0:pc->parent->rect.x) + pc->parent->surface_rect.x + x
 							 , (pc->parent->device?0:pc->parent->rect.y) + pc->parent->surface_rect.y + y
@@ -1553,7 +1563,7 @@ void SetUpdateRegionEx( PSI_CONTROL pc, S_32 rx, S_32 ry, _32 rw, _32 rh DBG_PAS
 Image CopyOriginalSurfaceEx( PCONTROL pc, Image use_image DBG_PASS )
 {
 	Image copy;
-	if( !pc )
+	if( !pc || !g.flags.allow_copy_from_render )
 	{
 		return NULL;
 	}
@@ -1699,12 +1709,13 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 							 , pc->flags.bParentCleaned
 							 , pc->flags.bTransparent );
 #endif
-				if( !g.flags.always_draw && !IsImageTargetFinal( pc->Window ) )
+				if( !g.flags.always_draw && !IsImageTargetFinal( pc->Window ) && g.flags.allow_copy_from_render )
 				{
 					if( ( ((pc->parent&&!pc->device) && pc->parent->flags.bDirty ) || pc->flags.bParentCleaned ) && pc->flags.bTransparent )//&& pc->flags.bFirstCleaning )
 					{
 						Image OldSurface;
 						OldSurface = CopyOriginalSurface( pc, pc->OriginalSurface );
+
 						if( OldSurface )
 						{
 #ifdef DEBUG_UPDAATE_DRAW
@@ -1762,7 +1773,10 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 #endif
 					return;
 				}
-				if( pc->flags.bTransparent && !pc->flags.bParentCleaned && (pc->parent&&!pc->device) )
+				if( pc->flags.bTransparent 
+					&& !pc->flags.bParentCleaned 
+					&& (pc->parent&&!pc->device)
+					)
 				{
 #ifdef DEBUG_UPDAATE_DRAW
 					if( g.flags.bLogDebugUpdate )
@@ -1792,7 +1806,10 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 					{
 						//lprintf( WIDE( "COPYING SURFACE HERE!?" ) );
 						// we should be drawing when the parent does his thing...
-						pc->OriginalSurface = CopyOriginalSurface( pc, pc->OriginalSurface );
+						if( g.flags.allow_copy_from_render )
+							pc->OriginalSurface = CopyOriginalSurface( pc, pc->OriginalSurface );
+						else
+							pc->OriginalSurface = NULL;
 					}
 				}
 
@@ -1808,6 +1825,7 @@ static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int 
 						LockRenderer( device->pActImg );
 #endif
 					// this causes a lock in that layer.?
+					ResetImageBuffers( pc->Surface, FALSE );	
 					InvokeDrawMethod( pc, _DrawThySelf, ( pc ) );
 
 				}
@@ -2077,9 +2095,10 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 		if( device )
 		{
 			AddLink( &device->pending_dirty_controls, pc );
-			if( !g.flags.sent_redraw )
+			if( !device->flags.sent_redraw )
 			{
-				g.flags.sent_redraw = 1;
+				//lprintf( WIDE("Send redraw to self.... draw controls in pending_dirty_controls") );
+				device->flags.sent_redraw = 1;
 				Redraw( device->pActImg );
 			}
 		}
@@ -2271,7 +2290,9 @@ PSI_PROC( void, UpdateCommonEx )( PSI_CONTROL pc, int bDraw DBG_PASS )
 				if( g.flags.bLogDebugUpdate )
 					lprintf( WIDE("Updated all commons? flush display %d,%d  %d,%d"), upd.x,upd.y, upd.width, upd.height );
 #endif
+#ifdef BLAT_COLOR_UPDATE_PORTION
 				TESTCOLOR=SetAlpha( BASE_COLOR_GREEN, 0x80 );
+#endif
 				DoUpdateFrame( frame
 								 , upd.x, upd.y
 								 , upd.width, upd.height
@@ -2865,6 +2886,7 @@ PSI_PROC( void, HideCommon )( PSI_CONTROL pc )
 		{
 			//pc->parent->InUse++;
 			//lprintf( WIDE("Added one to use..") );
+			ResetImageBuffers( pc->Window, FALSE );	
 			if( pc->flags.bTransparent && pc->OriginalSurface )
 			{
 #ifdef DEBUG_UPDAATE_DRAW
@@ -2894,12 +2916,24 @@ PSI_PROC( void, HideCommon )( PSI_CONTROL pc )
 						if( g.flags.bLogDebugUpdate )
 							lprintf( WIDE( "Flushing this button to the display..." ) );
 #endif
+#ifdef BLAT_COLOR_UPDATE_PORTION
 						TESTCOLOR=SetAlpha( BASE_COLOR_YELLOW, 0x20 );
+#endif
+						/*
 						DoUpdateFrame( pc
 										 , pc->rect.x, pc->rect.y
 										 , pc->rect.width, pc->rect.height
 										 , TRUE
 										  DBG_SRC );
+						*/
+						DoUpdateFrame( pc->parent
+							 , (pc->parent->device?0:pc->parent->rect.x) + pc->parent->surface_rect.x + pc->rect.x
+							 , (pc->parent->device?0:pc->parent->rect.y) + pc->parent->surface_rect.y + pc->rect.y
+							 , pc->rect.width, pc->rect.height
+							 , FALSE
+							  DBG_SRC
+							 );
+
 					}
 				}
 				else if( pc->OriginalSurface )
@@ -3150,7 +3184,7 @@ void ApplyRescaleChild( PSI_CONTROL pc, PFRACTION scalex, PFRACTION scaley )
 			TEXTCHAR tmp2[32];
 			sLogFraction( tmp, scalex );
 			sLogFraction( tmp2, scaley );
-			lprintf( "updating scaled value %p(%s), X is %s Y is %s", pc, pc->pTypeName, tmp, tmp2 );
+			lprintf( WIDE("updating scaled value %p(%s), X is %s Y is %s"), pc, pc->pTypeName, tmp, tmp2 );
 		}
 #endif
 		// if it has no children yet, then resize it according to the new scale...
@@ -3346,7 +3380,7 @@ PSI_PROC( void, MoveSizeCommon )( PSI_CONTROL pc, S_32 x, S_32 y, _32 width, _32
 			return;
 		{
 			PSI_CONTROL pf = GetParentControl( pc );
-			if( pf )
+			if( pf && !(pc->BorderType & BORDER_FIXED))
 			{
 				x = ScaleValue( &pf->scalex, x );
 				y = ScaleValue( &pf->scaley, y );

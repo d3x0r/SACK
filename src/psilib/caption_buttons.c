@@ -33,7 +33,7 @@ static void CPROC StopThisProgram( PSI_CONTROL pc )
 
 //---------------------------------------------------------------------------
 
-void AddCaptionButton( PSI_CONTROL frame, Image normal, Image pressed, void (CPROC*event)(PSI_CONTROL) )
+PCAPTION_BUTTON AddCaptionButton( PSI_CONTROL frame, Image normal, Image pressed, void (CPROC*event)(PSI_CONTROL) )
 {
 	if( !( frame->BorderType & BORDER_CAPTION_NO_CLOSE_BUTTON ) )
 	{
@@ -55,6 +55,22 @@ void AddCaptionButton( PSI_CONTROL frame, Image normal, Image pressed, void (CPR
 	}
 }
 
+
+void HideCaptionButton ( struct physical_device_caption_button *caption_button )
+{
+	if( caption_button )
+	{
+		caption_button->flags.hidden = TRUE;
+		
+	}
+}
+void ShowCaptionButton ( struct physical_device_caption_button *caption_button )
+{
+	if( caption_button )
+	{
+		caption_button->flags.hidden = FALSE;
+	}
+}
 //---------------------------------------------------------------------------
 
 

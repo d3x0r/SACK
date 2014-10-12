@@ -243,6 +243,10 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, s
 			// if there was no data, then there's nothing to demask
 			if( websock->fragment_collection )
 			{
+				if( websock->fragment_collection_length >= websock->fragment_collection_avail )
+				{
+					int a  =3 ;;
+				}
 				websock->fragment_collection[websock->fragment_collection_length++]
 					= msg[n] ^ websock->mask_key[(websock->fragment_collection_index++) % 4];
 			}
@@ -295,7 +299,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, P_8 msg, s
 						websock->flags.closed = 1;
 					}
 					if( websock->on_close )
-						websock->on_close( pc, websock->psv_on );
+						websock->on_close( pc, websock->psv_open );
 					websock->fragment_collection_length = 0;
 					break;
 				case 0x09: // ping
@@ -330,7 +334,7 @@ void WebSocketPing( PCLIENT pc, _32 timeout )
 	_32 target = start_at + timeout;
 	_32 now;
 	struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 2 );
-   struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
+	struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
 	SendWebSocketMessage( pc, 9, 1, output->flags.expect_masking, NULL, 0 );
 
 	while( !input_state->flags.received_pong
@@ -346,7 +350,16 @@ void WebSocketSendText( PCLIENT pc, POINTER buffer, size_t length ) // UTF8 RFC3
 	struct web_socket_output_state *output = (struct web_socket_output_state *)GetNetworkLong(pc, 1);
 	if( output )
 	{
+#ifdef _UNICODE
+		char *outbuf = WcharConvertExx( (CTEXTSTR)buffer, length DBG_SRC );
+		int real_len = CStrLen( outbuf );
+		//lprintf( WIDE( "send %s"), buffer );
+		SendWebSocketMessage( pc, output->flags.sent_type?0:1, 1, output->flags.expect_masking, (P_8)outbuf, length );
+		Deallocate( char *, outbuf );
+#else
 		SendWebSocketMessage( pc, output->flags.sent_type?0:1, 1, output->flags.expect_masking, (P_8)buffer, length );
+#endif
+
 		output->flags.sent_type = 0;
 	}
 }

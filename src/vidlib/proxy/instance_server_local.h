@@ -69,6 +69,9 @@ struct server_socket_state
 #if HAS_TLS
 ThreadLocal struct my_network_state_info {
 	struct server_socket_state *app;
+	struct {
+		BIT_FIELD during_connect : 1;
+	} flags;
 	PTHREAD pThread;
 	THREAD_ID nThread;
 } ThreadNetworkState;
@@ -86,6 +89,10 @@ typedef struct vidlib_proxy_renderer
 	{
 		BIT_FIELD hidden : 1;
 		BIT_FIELD open : 1;
+		BIT_FIELD did_first_mouse : 1;
+		BIT_FIELD pending_mouse : 1;
+		BIT_FIELD consume_mouse : 1;  // set to consume mouse events... otherwise we have to dispatch them.
+		BIT_FIELD closed : 1;
 	} flags;
 	INDEX id;
 	MouseCallback mouse_callback;
@@ -94,6 +101,8 @@ typedef struct vidlib_proxy_renderer
 	PTRSZVAL psv_key_callback;
 	RedrawCallback redraw;
 	PTRSZVAL psv_redraw;
+	_32 _b;
+	S_32 mouse_x, mouse_y;
 } *PVPRENDER;
 
 

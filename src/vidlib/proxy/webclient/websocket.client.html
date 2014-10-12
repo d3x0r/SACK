@@ -25,7 +25,11 @@
 <script src="render_client.js"> </script>
 
 <script type="text/javascript">
-   OpenServer();
+   function DoOpenServer()
+   {
+       OpenServer( "control_canvas" );
+   }
+   DoOpenServer();
 </script>
 
 </HEAD>
@@ -34,10 +38,13 @@
 <BODY bgcolor = "#404040" >
 
 <div id="sse">
-   <a href="javascript:OpenServer()">Reconnect</a>                                      <br>
+   <a href="javascript:DoOpenServer()">Reconnect</a>                                      <br>
    <a href="https://developer.mozilla.org/en/WebSockets/Writing_WebSocket_client_applications">More Information</a><br>
    
 </div>
+
+
+<canvas id="control_canvas" width="1024" height="768"></canvas>
 
 </BODY>
 

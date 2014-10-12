@@ -823,6 +823,7 @@ void CPROC SetDrawBorder( PSI_CONTROL pc )
 #ifdef DEBUG_BORDER_DRAWING
 			lprintf( "Calling drawing of the border" );
 #endif
+			ResetImageBuffers( pc->Window, TRUE );	
 			pc->DrawBorder( pc );
 		}
 		if( pc->device )
@@ -921,6 +922,10 @@ PSI_PROC( void, SetCommonBorderEx )( PSI_CONTROL pc, _32 BorderType DBG_PASS )
 	{
 		pc->BorderType = BorderType;
 		pc->flags.bSetBorderType = 1;
+		if( BorderType & BORDER_FIXED )
+		{
+			MoveSizeCommon( pc, pc->original_rect.x, pc->original_rect.y, pc->original_rect.width, pc->original_rect.height );
+		}
 	}
 	// this is also called when the surface changes....
 	SetDrawBorder( pc );

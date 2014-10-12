@@ -1111,7 +1111,7 @@ _32 ComputeNextOffset( PTEXT segment, _32 nShown )
 
 //----------------------------------------------------------------------------
 
-_32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nOfs, _32 nShown, PHISTORY_BROWSER phbr )
+_32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nOfs, _32 nShown, PHISTORY_BROWSER phbr, SFTFont font )
 {
 	_32 nShow = nLen - nShown;
 	_32 nLenSize, nLenHeight;
@@ -1119,7 +1119,7 @@ _32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nO
 	// then length to show, compute wrapping point.
 	//lprintf( "Compute to show: %d (%d)%s %d %d", cols, GetTextSize( segment ), GetText( segment ), nOfs, nShown );
 	phbr->measureString( phbr->psvMeasure, GetText( segment ) + nShown
-		, nLen - nShown, &nLenSize, &nLenHeight );
+		, nLen - nShown, &nLenSize, &nLenHeight, font );
 
 	if( ( nLenSize + (*col_offset ) ) > colsize )
 	{
@@ -1135,7 +1135,7 @@ _32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nO
 			{
 				//lprintf( "measure string until space... %s (%s)", text, text + nSpace );
 				phbr->measureString( phbr->psvMeasure, GetText( segment ) + nShown
-					, nSpace - nShown, &nSegSize, &nSegHeight );
+					, nSpace - nShown, &nSegSize, &nSegHeight, font );
 				if( ( (*col_offset) + nSegSize  ) < colsize )
 				{
 					good_space_size = nSegSize;
@@ -1166,7 +1166,7 @@ _32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nO
 			for( nSpace = nShown; nSpace <= nLen; nSpace++ )
 			{
 				phbr->measureString( phbr->psvMeasure, GetText( segment ) + nShown
-					, nSpace - nShown, &nSegSize, &nSegHeight );
+					, nSpace - nShown, &nSegSize, &nSegHeight, font );
 				if( ( (*col_offset) + nSegSize  ) < colsize )
 					;
 				else
@@ -1194,7 +1194,7 @@ _32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nO
 
 //----------------------------------------------------------------------------
 
-int SkipSomeLines( PHISTORY_BROWSER phbr, PTEXT countseg, int lines )
+int SkipSomeLines( PHISTORY_BROWSER phbr, SFTFont font, PTEXT countseg, int lines )
 {
 	_32 colsize = phbr->nWidth;
 	// always spans at least one line.
@@ -1217,14 +1217,14 @@ int SkipSomeLines( PHISTORY_BROWSER phbr, PTEXT countseg, int lines )
 			{
 				_32 text_size;
 				_32 text_lines;
-				phbr->measureString( phbr->psvMeasure, GetText( countseg ), nLen, &text_size, &text_lines );
+				phbr->measureString( phbr->psvMeasure, GetText( countseg ), nLen, &text_size, &text_lines, NULL );
 
 				if( ( col_offset + text_size ) > colsize )
 				{
 					// this is the wrapping condition...
 					while( nShown < nLen )
 					{
-						nShown += ComputeToShow( colsize, &col_offset, countseg, nLen, nChar, nShown, phbr );
+						nShown += ComputeToShow( colsize, &col_offset, countseg, nLen, nChar, nShown, phbr, NULL );
 						if( nShown < nLen )
 						{
 							nLines++;
@@ -1246,7 +1246,7 @@ int SkipSomeLines( PHISTORY_BROWSER phbr, PTEXT countseg, int lines )
 //----------------------------------------------------------------------------
 
 // colsize is the size of space the line can take up
-int CountLinesSpanned( PHISTORY_BROWSER phbr, PTEXT countseg )
+int CountLinesSpanned( PHISTORY_BROWSER phbr, PTEXT countseg, SFTFont font )
 {
 	// always spans at least one line.
 	_32 colsize = phbr->nWidth;
@@ -1265,7 +1265,7 @@ int CountLinesSpanned( PHISTORY_BROWSER phbr, PTEXT countseg )
 			{
 				_32 text_size;
 				_32 text_lines;
-				phbr->measureString( phbr->psvMeasure, GetText( countseg ), nLen, &text_size, &text_lines );
+				phbr->measureString( phbr->psvMeasure, GetText( countseg ), nLen, &text_size, &text_lines, font );
 
 				if( ( nChar + text_size ) > colsize )
 				{
@@ -1273,7 +1273,7 @@ int CountLinesSpanned( PHISTORY_BROWSER phbr, PTEXT countseg )
 					// this is the wrapping condition...
 					while( nShown < nLen )
 					{
-						nShown += ComputeToShow( colsize, &col_offset, countseg, nLen, nChar, nShown, phbr );
+						nShown += ComputeToShow( colsize, &col_offset, countseg, nLen, nChar, nShown, phbr, font );
 						if( ( nShown == _nShown ) && ( nShown < nLen ) )
 							nShown++;
 						_nShown = nShown;
@@ -1301,7 +1301,7 @@ int CountLinesSpanned( PHISTORY_BROWSER phbr, PTEXT countseg )
 //----------------------------------------------------------------------------
 
 // nOffset is number of lines to move...
-int AlignHistory( PHISTORY_BROWSER phbr, S_32 nOffset )
+int AlignHistory( PHISTORY_BROWSER phbr, S_32 nOffset, SFTFont font )
 {
 	int result = UPDATE_NOTHING;
 	//lprintf( "--------------- ALIGN HISTORY -------------" );
@@ -1336,7 +1336,7 @@ int AlignHistory( PHISTORY_BROWSER phbr, S_32 nOffset )
 				int n;
 				phbr->nLine--;
 				n = CountLinesSpanned( phbr
-					, phbr->pBlock->pLines[phbr->nLine-1].pLine );
+					, phbr->pBlock->pLines[phbr->nLine-1].pLine, font );
 				//lprintf( "total span is what ? %d", n );
 				if( n )
 					phbr->nOffset = n-1;
@@ -1383,7 +1383,7 @@ int AlignHistory( PHISTORY_BROWSER phbr, S_32 nOffset )
 				( nOffset > 0 ) )
 		{
 			n = CountLinesSpanned( phbr
-				, phbr->pBlock->pLines[phbr->nLine-1].pLine );
+				, phbr->pBlock->pLines[phbr->nLine-1].pLine, font );
 			//lprintf( "fixing forward motion offset: %d this spans %d", nOffset, n );
 			if( n - phbr->nOffset > nOffset )
 			{
@@ -1447,7 +1447,7 @@ int AlignHistory( PHISTORY_BROWSER phbr, S_32 nOffset )
 }
 //----------------------------------------------------------------------------
 
-_32 GetBrowserDistance( PHISTORY_BROWSER phbr )
+_32 GetBrowserDistance( PHISTORY_BROWSER phbr, SFTFont font )
 {
 	INDEX nLines = 0; // count of lines...
 	PHISTORYBLOCK pHistory;
@@ -1459,7 +1459,7 @@ _32 GetBrowserDistance( PHISTORY_BROWSER phbr )
 		for( ; n < pHistory->nLinesUsed; n++ )
 		{
 			nLines += CountLinesSpanned( phbr
-				, pHistory->pLines[n].pLine );
+				, pHistory->pLines[n].pLine, font );
 		}
 	}
 	lprintf( WIDE("Browser is %")_size_f WIDE(" lines from end..."), nLines );
@@ -1470,13 +1470,14 @@ _32 GetBrowserDistance( PHISTORY_BROWSER phbr )
 
 int MoveHistoryCursor( PHISTORY_BROWSER browser, int amount )
 {
-	AlignHistory( browser, amount );
+	AlignHistory( browser, amount, NULL );
 	return UPDATE_HISTORY;
 }
 
 //----------------------------------------------------------------------------
 // return the x position of the visible cursor
 int GetCommandCursor( PHISTORY_BROWSER phbr
+					 , SFTFont font
 						  , PUSER_INPUT_BUFFER CommandInfo
 						  , int bEndOfStream
 						, int bWrapCommand
@@ -1529,9 +1530,9 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 	if( bWrapCommand )
 	{
 		if( !bEndOfStream )
-			lines = CountLinesSpanned( phbr, pCmd );
+			lines = CountLinesSpanned( phbr, pCmd, font );
 		else
-			lines = CountLinesSpanned( phbr, pCmd );
+			lines = CountLinesSpanned( phbr, pCmd, font );
 	}
 	else
 	{
@@ -1562,7 +1563,7 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 	while( pCmd )
 	{
 		_32 width, height;
-		phbr->measureString( phbr->psvMeasure, GetText( pCmd ), GetTextSize( pCmd ), &width, &height );
+		phbr->measureString( phbr->psvMeasure, GetText( pCmd ), GetTextSize( pCmd ), &width, &height, NULL );
 		if( ( width + tmp_end ) > phbr->nWidth )
 		{
 			// not all of the string fits on the line....
@@ -1666,7 +1667,7 @@ int CountDisplayedLines( PHISTORY_BROWSER phbr )
 	return used;
 }
 
-void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
+void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, SFTFont font )
 //void BuildDisplayInfoLines( PHISTORY_LINE_CURSOR phlc )
 {
 	int nLines, nLinesShown = 0, nChar;
@@ -1718,7 +1719,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 				int nShow;
 				int nWrapped = 0;
 
-				nLines = CountLinesSpanned( phbr, pText );
+				nLines = CountLinesSpanned( phbr, pText, font );
 				// after counting the first (last visible) line
 				// figure out how much we need to overflow to show the
 				// last partial line...
@@ -1778,7 +1779,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 						{
 							// nShow is now the number of characters we can show.
 							//lprintf( "Segment is %d", GetTextSize( pText ) );
-							nShow = ComputeToShow( phbr->nWidth, &col_offset, pText, nLen, nChar, nShown, phbr );
+							nShow = ComputeToShow( phbr->nWidth, &col_offset, pText, nLen, nChar, nShown, phbr, font );
 							if( nShow == 0 && nShown < nLen )
 								nShow = 1;
 							nShown += nShow;

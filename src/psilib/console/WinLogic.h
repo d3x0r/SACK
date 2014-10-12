@@ -63,7 +63,7 @@ typedef struct penging_rectangle_tag
 
 
 void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region );	
-void CPROC PSIMeasureString( PTRSZVAL psvConsole, CTEXTSTR s, int nShown, _32 *w, _32 *h );
+void CPROC PSIMeasureString( PTRSZVAL psvConsole, CTEXTSTR s, int nShown, _32 *w, _32 *h, SFTFont font );
 
 PSI_CONSOLE_NAMESPACE_END
 

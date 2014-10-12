@@ -3034,6 +3034,10 @@ WM_DROPFILES
 	case WM_SYSCOMMAND:
 		switch (wParam)
 		{
+		case SC_KEYMENU:
+			if( lParam != ' ' )
+				return 0;
+			break;
 		case SC_CLOSE:
 
 			//DestroyWindow( hWnd );
@@ -3255,7 +3259,7 @@ WM_DROPFILES
 #ifdef UNDER_CE
 #define WINDOW_STYLE 0
 #else
-#define WINDOW_STYLE (WS_OVERLAPPEDWINDOW)
+#define WINDOW_STYLE (WS_SYSMENU|WS_OVERLAPPEDWINDOW)
 #endif
 
 RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (PVIDEO hVideo, int x, int y,
@@ -3349,7 +3353,7 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (PVIDEO hVideo, int x, int y,
 									  , (LPSTR)l.aClass
 #endif
 									  , (l.gpTitle&&l.gpTitle[0])?l.gpTitle:hVideo->pTitle
-									  , (hVideo->hWndContainer)?WS_CHILD:(hVideo->flags.bFull ? (WS_POPUP) : (WINDOW_STYLE))
+									  , (hVideo->hWndContainer)?WS_CHILD:(hVideo->flags.bFull ? (WS_SYSMENU|WS_POPUP) : (WINDOW_STYLE))
 									  , x, y
 									  , hVideo->flags.bFull ?wx:(wx + l.WindowBorder_X)
 									  , hVideo->flags.bFull ?wy:(wy + l.WindowBorder_Y)

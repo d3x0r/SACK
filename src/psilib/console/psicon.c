@@ -698,10 +698,10 @@ PRELOAD(RegisterConsole)
 }
 
 
-void CPROC PSIMeasureString( PTRSZVAL psvConsole, CTEXTSTR s, int nShow, _32 *w, _32 *h )
+void CPROC PSIMeasureString( PTRSZVAL psvConsole, CTEXTSTR s, int nShow, _32 *w, _32 *h, SFTFont font )
 {
 	PCONSOLE_INFO console = (PCONSOLE_INFO)psvConsole;
-	GetStringSizeFontEx( s, nShow, w, h, GetCommonFont( console->psicon.frame ) );
+	GetStringSizeFontEx( s, nShow, w, h, font?font:GetCommonFont( console->psicon.frame ) );
 }
 
 //----------------------------------------------------------------------------

@@ -1,5 +1,4 @@
 #define NEED_REAL_IMAGE_STRUCTURE
-#define NO_UNICODE_C
 #include <imglib/imagestruct.h>
 
 #include <render.h>
@@ -113,6 +112,9 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 	case PMID_CloseDisplay:
 		json_add_object_member( cto_data, WIDE("server_render_id"), 0, JSON_Element_PTRSZVAL, 0 );
 		break;
+	case PMID_Flush_Draw:
+		json_add_object_member( cto_data, WIDE("server_render_id"), 0, JSON_Element_PTRSZVAL, 0 );
+		break;
 	case PMID_MoveSizeDisplay:
 		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
 		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Integer_32, 0 );
@@ -191,7 +193,7 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 }
 
 static const char *base64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-static void encodeblock( unsigned char in[3], char out[4], size_t len )
+static void encodeblock( unsigned char in[3], TEXTCHAR out[4], size_t len )
 {
 	out[0] = base64[ in[0] >> 2 ];
 	out[1] = base64[ ((in[0] & 0x03) << 4) | ( ( len > 0 ) ? ((in[1] & 0xf0) >> 4) : 0 ) ];
@@ -218,10 +220,10 @@ static void decodeblock( unsigned char in[4], char out[3], size_t len )
 
 static char *Encode64Image( CTEXTSTR mime, P_8 buf, LOGICAL bmp, size_t length, size_t *outsize )
 {
-	char * real_output;
+	TEXTCHAR * real_output;
 	int mimelen = StrLen( mime );
-	real_output = NewArray( char, 13 + mimelen + ( ( length * 4 + 2) / 3 ) + 1 + 1 + 1 + (bmp?1:0) );
-	snprintf( real_output, 13 + mimelen, "data:%s;base64,", mime );
+	real_output = NewArray( TEXTCHAR, 13 + mimelen + ( ( length * 4 + 2) / 3 ) + 1 + 1 + 1 + (bmp?1:0) );
+	snprintf( real_output, 13 + mimelen, WIDE("data:%s;base64,"), mime );
 	//if( bmp )
 	//	strcpy( real_output, "data:image/bmp;base64," );
 	//else
@@ -446,11 +448,11 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			if( render->above )
 				((struct opendisplay_data*)(msg+5))->over = render->above->id;
 			else
-				((struct opendisplay_data*)(msg+5))->over = 0;
+				((struct opendisplay_data*)(msg+5))->over = INVALID_INDEX;
 			if( render->under )
 				((struct opendisplay_data*)(msg+5))->under = render->under->id;
 			else
-				((struct opendisplay_data*)(msg+5))->under = 0;
+				((struct opendisplay_data*)(msg+5))->under = INVALID_INDEX;
 
 			if( websock )
 			{
@@ -614,7 +616,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			raw_image = EncodeImage( image->image, FALSE, &outlen );
 			if( outlen > (16000-5) && !websock )
 			{
-				lprintf( "need to send image in parts : %d", outlen );
+				lprintf( WIDE( "need to send image in parts : %d" ), outlen );
 				msg = NewArray( _8, 16004 );
 				outmsg = (struct common_message*)(msg + 4);
 
@@ -628,10 +630,10 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 					outmsg->data.image_data.server_image_id = image->id;
 					lprintf( WIDE("Send Image %p %d  %d"), image, image->id, sendlen );
 					SendTCP( pc, msg, 16004 );
-               outlen -= (16000 - 5);
-               offset += (16000 - 5);
+					outlen -= (16000 - 5);
+					offset += (16000 - 5);
 				}
-            sendlen = ( 4 + 1 + sizeof( struct image_data_data ) - 1 + outlen );
+				sendlen = ( 4 + 1 + sizeof( struct image_data_data ) - 1 + outlen );
 			}
 			else
 			{
@@ -641,15 +643,15 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 
 			if( websock )
 			{
-				encoded_image = Encode64Image( "image/png", raw_image, FALSE, outlen, &outlen );
-				msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct image_data_data ) + outlen ) );
+				encoded_image = Encode64Image( WIDE("image/png"), raw_image, FALSE, outlen, &outlen );
+				msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct image_data_data ) + outlen * sizeof( TEXTCHAR ) ) );
 				outmsg = (struct common_message*)(msg + 4);
-				MemCpy( outmsg->data.image_data.data, encoded_image, outlen );
+				MemCpy( outmsg->data.image_data.data, encoded_image, outlen * sizeof( TEXTCHAR ) );
 			}
 			else
 			{
-            lprintf( "outlen = %d", outlen );
-				MemCpy( outmsg->data.image_data.data, raw_image + offset, outlen );
+				lprintf( WIDE("outlen = %d"), outlen );
+				MemCpy( outmsg->data.image_data.data, raw_image + offset, outlen * sizeof( TEXTCHAR ) );
 			}
 			((_32*)msg)[0] = (_32)(sendlen - 4);
 			outmsg = (struct common_message*)(msg + 4);
@@ -735,10 +737,10 @@ static void SendInitialImage( PCLIENT pc, LOGICAL websock, PLIST *sent, PVPImage
 		{
 			SendInitialImage( pc, websock, sent, image->parent, send );
 		}
-      if( send )
+		if( pc && send )
 			SendTCPMessageV( pc, websock, PMID_MakeSubImage, image );
 	}
-	else if( send )
+	else if( pc && send )
 		SendTCPMessageV( pc, websock, PMID_MakeImage, image, image->render_id );
 	AddLink( sent,  image );
 }
@@ -749,7 +751,11 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 	{
 		//lprintf( "Send image %p %p %d", image, image->websock_buffer, image->websock_sendlen );
 		image->websock_buffer[image->websock_sendlen] = ']';
-						
+#ifdef _UNICODE
+		image->websock_buffer[image->websock_sendlen+1] = 0;
+		image->websock_buffer[image->websock_sendlen+2] = 0;
+		image->websock_buffer[image->websock_sendlen+3] = 0;
+#endif						
 		{
 			_8 *msg;
 			struct common_message *outmsg;
@@ -758,25 +764,28 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 			size_t sendlen;
 			size_t outlen;
 			uLongf destlen = image->websock_sendlen + 1;
-
-			encoded_data = Decode64Binary( "W3siTXNnSUQiOjIyLCJkYXRhIjp7ImltYWdlX3RvX2lkIjo2MiwiaW1hZ2VfZnJvbV9pZCI6NDR9fV0="
-						, 0
-						, StrLen( "W3siTXNnSUQiOjIyLCJkYXRhIjp7ImltYWdlX3RvX2lkIjo2MiwiaW1hZ2VfZnJvbV9pZCI6NDR9fV0=" )
-						, &outlen );
-			//encoded_data = Encode64Image( "application/zip", image->websock_buffer, TRUE, image->websock_sendlen + 1, &outlen );
+#ifdef _UNICODE
+			encoded_data = CStrDup( image->websock_buffer );
+			// do not include the NULL...
+			//lprintf( WIDE("Encode buffer (%d):%s"),  CStrLen( encoded_data ), image->websock_buffer );
+			compress2( output, &destlen, encoded_data, CStrLen( encoded_data ), Z_BEST_COMPRESSION );
+			Deallocate( char *, encoded_data );
+#else
+			// this is includnig the close ] of the buffer to this state...
 			compress2( output, &destlen, image->websock_buffer, image->websock_sendlen + 1, Z_BEST_COMPRESSION );
+#endif
 
-			encoded_data = Encode64Image( "application/zip", output, TRUE, destlen, &outlen );
+			encoded_data = Encode64Image( WIDE("application/zip"), output, TRUE, destlen, &outlen );
 			
-			lprintf("would have only been %d and is %d but really %d"
+			lprintf( WIDE("would have only been %d and is %d but really %d")
 				, image->websock_sendlen + 1
 				, destlen
 				, outlen
 				);
 			//LogBinary( image->websock_buffer, image->websock_sendlen );
-			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct draw_block_data ) + outlen ) );
+			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct draw_block_data ) + outlen * sizeof( TEXTCHAR ) ) );
 			outmsg = (struct common_message*)(msg + 4);
-			MemCpy( outmsg->data.draw_block.data, encoded_data, outlen );
+			MemCpy( outmsg->data.draw_block.data, encoded_data, outlen * sizeof( TEXTCHAR ) );
 			Release( encoded_data );
 
 			((_32*)msg)[0] = (_32)(sendlen - 4);
@@ -810,6 +819,7 @@ static void SendImageBuffers( PCLIENT pcNew, int send_websock, int send_initial 
 			PLIST sent = NULL;
 			INDEX idx;
 			PVPImage image;
+			// this sorts the images to draw... so parent buffers are flushed before child buffers
 			LIST_FORALL( l.images, idx, PVPImage, image )
 			{
 				//lprintf( "Send Image %p(%d)", image, image->id );
@@ -823,17 +833,32 @@ static void SendImageBuffers( PCLIENT pcNew, int send_websock, int send_initial 
 				{
 					image->image->flags &= ~IF_FLAG_UPDATED;
 				}
-				if( send_websock )
+				if( !pcNew )
 				{
-					SendCompressedBuffer( pcNew, image );
+					INDEX idx;
+					struct server_proxy_client* client;
+					LIST_FORALL( l.clients, idx, struct server_proxy_client*, client )
+					{
+						if( client->websock )
+							SendCompressedBuffer( client->pc, image );
+						else
+							if( image->buffer && image->sendlen )
+							{
+								//lprintf( "Send image %p %p %d", image, image->buffer, image->sendlen );
+								SendTCP( pcNew, image->buffer, image->sendlen );
+							}
+					}
 				}
 				else
 				{
-					if( image->buffer && image->sendlen )
-					{
-						//lprintf( "Send image %p %p %d", image, image->buffer, image->sendlen );
-						SendTCP( pcNew, image->buffer, image->sendlen );
-					}
+					if( send_websock )
+						SendCompressedBuffer( pcNew, image );
+					else
+						if( image->buffer && image->sendlen )
+						{
+							//lprintf( "Send image %p %p %d", image, image->buffer, image->sendlen );
+							SendTCP( pcNew, image->buffer, image->sendlen );
+						}
 				}
 			}
 			DeleteList( &sent );
@@ -846,14 +871,18 @@ static void SendClientMessage( enum proxy_message_id message, ... )
 {
 	INDEX idx;
 	struct server_proxy_client *client;
+	va_list args;
+	va_list tmpargs;
+	va_start( args, message );
+	va_start( tmpargs, message );
+	if( message == PMID_Flush_Draw )
+	{
+		PVPRENDER render = va_arg( tmpargs, PVPRENDER );
+		render->flags.consume_mouse = 1;
+		SendImageBuffers( NULL, FALSE, FALSE );
+	}
 	LIST_FORALL( l.clients, idx, struct server_proxy_client*, client )
 	{
-		va_list args;
-		va_start( args, message );
-		if( message == PMID_Flush_Draw )
-		{
-			SendImageBuffers( client->pc, client->websock, FALSE );
-		}
 		SendTCPMessage( client->pc, client->websock, message, args );
 	}
 }
@@ -901,12 +930,26 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 				break;
 			case PMID_Event_Mouse:
 				{
+					int do_mouse = 0;
 					PVPRENDER render = (PVPRENDER)GetLink( &l.renderers, msg->data.mouse_event.server_render_id );
-					if( render && render->mouse_callback )
+					if( !render->flags.did_first_mouse )
+					{
+						do_mouse = 1;
+						render->flags.did_first_mouse = 1;
+					}
+					else if( render->_b != msg->data.mouse_event.b )
+					{
+						do_mouse = 1;
+					}
+
+					if( do_mouse && render && render->mouse_callback )
+					{
 						render->mouse_callback( render->psv_mouse_callback
 												, msg->data.mouse_event.x
 												, msg->data.mouse_event.y
 												, msg->data.mouse_event.b );
+						render->_b = msg->data.mouse_event.b;
+					}
 				}
 				break;
 			case PMID_Event_Key:
@@ -959,7 +1002,7 @@ static void CPROC Connected( PCLIENT pcServer, PCLIENT pcNew )
 		{
 			SendTCPMessageV( pcNew, FALSE, PMID_OpenDisplayAboveUnderSizedAt, render );
 		}
-      SendImageBuffers( pcNew, FALSE, TRUE );
+		SendImageBuffers( pcNew, FALSE, TRUE );
 		LIST_FORALL( l.renderers, idx, PVPRENDER, render )
 		{
 			SendTCPMessageV( pcNew, FALSE, PMID_Flush_Draw, render );
@@ -1008,6 +1051,9 @@ static PTRSZVAL WebSockOpen( PCLIENT pc, PTRSZVAL psv )
 
 static void WebSockClose( PCLIENT pc, PTRSZVAL psv )
 {
+	struct server_proxy_client *client= (struct server_proxy_client *)psv;
+	DeleteLink( &l.clients, client );
+	Deallocate( struct server_proxy_client *, client );
 }
 
 static void WebSockError( PCLIENT pc, PTRSZVAL psv, int error )
@@ -1019,8 +1065,13 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 	POINTER msg = NULL;
 	struct server_proxy_client *client= (struct server_proxy_client *)psv;
 	struct json_context_object *json_object;
+#ifdef _UNICODE
+	CTEXTSTR buf = CharWConvertExx( buffer, msglen DBG_SRC );
+	if( json_parse_message( l.json_reply_context, buf, msglen, &json_object, &msg ) )
 	//lprintf( WIDE("Received:%*.*") _cstring_f, msglen,msglen,buffer );
+#else
 	if( json_parse_message( l.json_reply_context, buffer, msglen, &json_object, &msg ) )
+#endif
 	{
 		struct common_message *message = (struct common_message *)msg;
 		switch( message->message_id )
@@ -1031,11 +1082,54 @@ static void WebSockEvent( PCLIENT pc, PTRSZVAL psv, POINTER buffer, int msglen )
 				SetLink( &render->remote_render_id, FindLink( &l.clients, client ), message->data.open_display_reply.client_display_id );
 			}
 			break;
+		case PMID_Event_Flush_Finished:
+			{
+				PVPRENDER render = (PVPRENDER)GetLink( &l.renderers, message->data.flush_event.server_render_id );
+				if( render )
+				{
+					if( render->flags.pending_mouse )
+					{
+						if( render->mouse_callback )
+						{
+							render->mouse_callback( render->psv_mouse_callback, render->mouse_x, render->mouse_y, render->_b);
+						}
+						render->flags.pending_mouse = 0;
+					}
+					render->flags.consume_mouse = 0;
+				}
+			}
+			break;
 		case PMID_Event_Mouse:
 			{
+				int do_mouse = 0;
 				PVPRENDER render = (PVPRENDER)GetLink( &l.renderers, message->data.mouse_event.server_render_id );
-				if( render && render->mouse_callback )
+				if( render && !render->flags.did_first_mouse )
+				{
+					do_mouse = 1;
+					render->flags.did_first_mouse = 1;
+				}
+				else if( render )
+				{
+					if( render->_b != message->data.mouse_event.b )
+					{
+						do_mouse = 1;
+					}
+					else if( render->flags.consume_mouse )
+					{
+						render->flags.pending_mouse = TRUE;
+						render->mouse_x = message->data.mouse_event.x;
+						render->mouse_y = message->data.mouse_event.y;
+					}
+					else
+					{
+						do_mouse = 1;
+					}
+				}
+				if( do_mouse && render && render->mouse_callback )
+				{
 					render->mouse_callback( render->psv_mouse_callback, message->data.mouse_event.x, message->data.mouse_event.y, message->data.mouse_event.b );
+					render->_b = message->data.mouse_event.b;
+				}
 			}
 			break;
 		case PMID_Event_Key:
@@ -1232,14 +1326,16 @@ static void CPROC  VidlibProxy_CloseDisplay ( PRENDERER Renderer )
 	VidlibProxy_UnmakeImageFileEx( (Image)(((PVPRENDER)Renderer)->image) DBG_SRC );
 	SendClientMessage( PMID_CloseDisplay, Renderer );
 	DeleteLink( &l.renderers, Renderer );
-	Release( Renderer );
+	((PVPRENDER)Renderer)->flags.closed = TRUE;
+	//Release( Renderer );
 }
 
 static void CPROC VidlibProxy_UpdateDisplayPortionEx( PRENDERER r, S_32 x, S_32 y, _32 width, _32 height DBG_PASS )
 {
 	// no-op; it will ahve already displayed(?)
 	//SendImageBuffers( pc );
-	SendClientMessage( PMID_Flush_Draw, r );
+	if( !((PVPRENDER)r)->flags.doing_redraw )
+		SendClientMessage( PMID_Flush_Draw, r );
 }
 
 static void CPROC VidlibProxy_UpdateDisplayEx( PRENDERER r DBG_PASS)
@@ -1474,6 +1570,7 @@ static void CPROC VidlibProxy_RestoreDisplay  ( PRENDERER r )
 
 static void CPROC VidlibProxy_ForceDisplayFocus ( PRENDERER r )
 {
+	l.focused = (struct vidlib_proxy_renderer*)r;
 }
 
 static void CPROC VidlibProxy_ForceDisplayFront( PRENDERER r )
@@ -1541,8 +1638,11 @@ static void CPROC VidlibProxy_SetDisplayNoMouse( PRENDERER r, int bNoMouse )
 static void CPROC VidlibProxy_Redraw( PRENDERER r )
 {
 	PVPRENDER render = (PVPRENDER)r;
+	render->flags.doing_redraw = 1;
 	if( render->redraw )
 		render->redraw( render->psv_redraw, (PRENDERER)render );
+	render->flags.doing_redraw = 0;
+	render->flags.consume_mouse = 1;
 	SendClientMessage( PMID_Flush_Draw, render );
 }
 
@@ -1619,6 +1719,11 @@ static void CPROC VidlibProxy_SetRestoreHandler  ( PRENDERER r, HideAndRestoreCa
 static void CPROC VidlibProxy_RestoreDisplayEx ( PRENDERER r DBG_PASS )
 {
 	((PVPRENDER)r)->redraw( ((PVPRENDER)r)->psv_redraw, r );
+}
+
+static LOGICAL CPROC SACK_Vidlib_VidlibRenderAllowsCopy( void )
+{
+	return FALSE;
 }
 
 // android extension
@@ -1715,6 +1820,11 @@ static RENDER_INTERFACE ProxyInterface = {
 												, SACK_Vidlib_ShowInputDevice
 												, SACK_Vidlib_HideInputDevice
 												, VidlibProxy_AllowsAnyThreadToUpdate
+												, NULL /* Set display full screen */
+												, NULL /* syspend system sleep */
+												 , NULL /*SACK_Vidlib_RenderIsInstanced */
+												 , SACK_Vidlib_VidlibRenderAllowsCopy
+
 };
 
 static void InitProxyInterface( void )
@@ -1880,10 +1990,14 @@ P_8 GetMessageBuf( PVPImage image, size_t size )
 static void AppendJSON( PVPImage image, TEXTSTR msg, POINTER outmsg, size_t sendlen )
 {
 	size_t size = StrLen( msg );
-	if( (image->websock_buf_avail ) < (size + image->websock_sendlen + 2 ) )
+	if( (image->websock_buf_avail ) < (size * sizeof( TEXTCHAR ) + image->websock_sendlen + 10 ) )
 	{
 		P_8 newbuf;
-		image->websock_buf_avail += size + 256;
+		image->websock_buf_avail += size * sizeof( TEXTCHAR ) + 256;
+		if( image->websock_buf_avail > 40000 )
+		{
+			int a = 3;
+		}
 		newbuf = NewArray( _8, image->websock_buf_avail );
 		if( image->websock_buffer )
 		{
@@ -1896,14 +2010,22 @@ static void AppendJSON( PVPImage image, TEXTSTR msg, POINTER outmsg, size_t send
 	{
 		image->websock_buffer[0] = '[';
 		image->websock_sendlen++;
+#ifdef _UNICODE
+		image->websock_buffer[image->websock_sendlen] = 0;
+		image->websock_sendlen++;
+#endif
 	}
 	else
 	{
 		image->websock_buffer[image->websock_sendlen] = ',';
 		image->websock_sendlen++;
+#ifdef _UNICODE
+		image->websock_buffer[image->websock_sendlen] = 0;
+		image->websock_sendlen++;
+#endif
 	}
-	MemCpy( image->websock_buffer + image->websock_sendlen, msg, size );
-	image->websock_sendlen += size;
+	MemCpy( image->websock_buffer + image->websock_sendlen, msg, size * sizeof( TEXTCHAR ) );
+	image->websock_sendlen += size * sizeof( TEXTCHAR );
 
 	if( 0 )
 	{
@@ -1931,17 +2053,24 @@ static LOGICAL FixArea( IMAGE_RECTANGLE *result, IMAGE_RECTANGLE *source, PVPIma
 	return l.real_interface->_IntersectRectangle( result, source, &r2 );
 }
 
-static void ClearImageBuffers( PVPImage image )
+static void VidlibProxy_ResetImageBuffers( PVPImage image )
+{
+	image->websock_sendlen = 0;
+	image->sendlen = 0;
+}
+
+
+static void ClearImageBuffers( PVPImage image, LOGICAL image_only )
 {
 	//while( image )
 	{
 		image->websock_sendlen = 0;
 		image->sendlen = 0;
-		if( image->child )
+		if( !image_only && image->child )
 		{
 			PVPImage child;
 			for( child = image->child; child; child = child->next )
-				ClearImageBuffers( child );
+				ClearImageBuffers( child, 0 );
 		}
 	}
 }
@@ -1972,7 +2101,7 @@ static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w
 
 		if( w == image->w && h == image->h )
 		{
-			ClearImageBuffers( image );
+			ClearImageBuffers( image, 0 );
 		}
 
 		outmsg = (struct common_message*)GetMessageBuf( image, sendlen=( 4 + 1 + sizeof( struct blatcolor_data ) ) );
@@ -1996,8 +2125,8 @@ static void CPROC VidlibProxy_BlatColor	  ( Image pifDest, S_32 x, S_32 y, _32 w
 			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
 			Release( json_msg );
 		}
+		((PVPImage)pifDest)->image->flags |= IF_FLAG_UPDATED;
 		LeaveCriticalSec( &l.message_formatter );
-
 	}
 	else
 	{
@@ -2032,7 +2161,7 @@ static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32
 		EnterCriticalSec( &l.message_formatter );
 		if( w == image->w && h == image->h && l.real_interface->_GetAlphaValue( color ) == 255 )
 		{
-			ClearImageBuffers( image );
+			ClearImageBuffers( image, 0 );
 		}
 
 		outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct blatcolor_data ) ) );
@@ -2056,6 +2185,7 @@ static void CPROC VidlibProxy_BlatColorAlpha( Image pifDest, S_32 x, S_32 y, _32
 			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
 			Release( json_msg );
 		}
+		((PVPImage)pifDest)->image->flags |= IF_FLAG_UPDATED;
 		LeaveCriticalSec( &l.message_formatter );
 	}
 	else
@@ -2199,6 +2329,7 @@ static void CPROC VidlibProxy_BlotImageSizedEx( Image pDest, Image pIF, S_32 x, 
 			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
 			Release( json_msg );
 		}
+		((PVPImage)image)->image->flags |= IF_FLAG_UPDATED;
 		LeaveCriticalSec( &l.message_formatter );
 	}
 	else
@@ -2326,6 +2457,8 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 			//lprintf( WIDE( "height fix : %d %d %d" ), y, h, hs );
 			hd = h;
 		}
+		if( !wd || !hd )
+			return;
 		//lprintf( WIDE( "------------------------ " ) );
 		EnterCriticalSec( &l.message_formatter );
 		cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlotScaledImageSizedTo );
@@ -2431,6 +2564,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 			AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
 			Release( json_msg );
 		}
+		((PVPImage)image)->image->flags |= IF_FLAG_UPDATED;
 		LeaveCriticalSec( &l.message_formatter );
 	}
 	else
@@ -2600,6 +2734,13 @@ static void CPROC VidlibProxy_PutCharacterInvertFont  ( Image pImage, S_32 x, S_
 static void CPROC VidlibProxy_PutCharacterVerticalInvertFont( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
 	l.real_interface->_PutCharacterVerticalInvertFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
+	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
+}
+
+static void CPROC VidlibProxy_PutStringFontExx  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background
+												, CTEXTSTR pc, size_t nLen, SFTFont font, int justification, _32 right )
+{
+	l.real_interface->_PutStringFontExx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font, justification, right );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
 }
 
@@ -3110,6 +3251,8 @@ static void InitImageInterface( void )
 	ProxyImageInterface._GetGlobalFonts = l.real_interface->_GetGlobalFonts;
 	ProxyImageInterface._InternalRenderFontFile = l.real_interface->_InternalRenderFontFile;
 	ProxyImageInterface._InternalRenderFont = l.real_interface->_InternalRenderFont;
+	ProxyImageInterface._PutStringFontExx = VidlibProxy_PutStringFontExx;
+	ProxyImageInterface._ResetImageBuffers = (void(*)(Image,LOGICAL))ClearImageBuffers;
 }
 
 static IMAGE_3D_INTERFACE Proxy3dImageInterface = {
@@ -3177,6 +3320,7 @@ PRIORITY_PRELOAD( RegisterProxyInterface, VIDLIB_PRELOAD_PRIORITY )
 	// sends will be initialized on-demand
 	//WebSockInitReplyJson( PMID_Reply_OpenDisplayAboveUnderSizedAt );
 	WebSockInitReplyJson( PMID_Event_Mouse );
+	WebSockInitReplyJson( PMID_Event_Flush_Finished );
 	WebSockInitReplyJson( PMID_Event_Key );
 }
 

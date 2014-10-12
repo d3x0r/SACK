@@ -215,7 +215,11 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 	{
 		HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
 		int result;
-		TEXTSTR tmp = DupCharToText( (const char*)buffer );
+#ifdef _UNICODE
+		TEXTSTR tmp = CharWConvertExx( (const char*)buffer, length DBG_SRC );
+#else
+		TEXTSTR tmp = buffer;
+#endif
 		//LogBinary( buffer, length );
 		if( !socket->flags.initial_handshake_done )
 		{

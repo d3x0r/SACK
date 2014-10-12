@@ -16,7 +16,7 @@ struct BlockFormatter
 };
 
 
-static void CPROC AsciiMeasureString( PTRSZVAL psvConsole, CTEXTSTR s, int nShow, _32 *w, _32 *h )
+static void CPROC AsciiMeasureString( PTRSZVAL psvConsole, CTEXTSTR s, int nShow, _32 *w, _32 *h, SFTFont font )
 {
 	struct BlockFormatter *block = (struct BlockFormatter*)psvConsole;
 #ifndef __NO_GUI__
@@ -143,14 +143,14 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 	// make sure we think we're showing the top 5 lines, not top 0
 
 	//console->pCurrentDisplay->nOffset = char_height - 1;
-	BuildDisplayInfoLines( console->pCurrentDisplay );
+	BuildDisplayInfoLines( console->pCurrentDisplay, font );
 
 	console->CurrentLineInfo =
 		console->CurrentMarkInfo = &console->pCurrentDisplay->DisplayLineInfo;
 
 	if( font )
 	{
-      int len;
+		INDEX len;
 		int maxlen = 0;
 		int lines = 1;
 		PDISPLAYED_LINE pdl;

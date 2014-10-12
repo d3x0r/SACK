@@ -16,12 +16,14 @@
 #include "../../intershell_registry.h"
 #include "../../intershell_export.h"
 
-#include "chat_control.h" 
+#include "chat_control_internal.h" 
+#include "chat_control.h"
 
 #define CONTROL_NAME WIDE("Scrollable Message List")
 
 #define INTERSHELL_CONTROL_NAME WIDE("Intershell/test/Scrollable Message List")
 
+/*
 typedef struct chat_time_tag
 {
 	_8 hr,mn,sc;
@@ -29,7 +31,7 @@ typedef struct chat_time_tag
 	_16 year;
 } CHAT_TIME;
 typedef struct chat_time_tag *PCHAT_TIME;
-
+*/
 
 typedef struct chat_message_tag
 {
@@ -73,7 +75,7 @@ PRELOAD( GetInterfaces )
 static void ChopDecorations( void )
 {
 	{
-		if( l.decoration )
+		if( l.decoration && !l.received.BorderSegment[SEGMENT_TOP_LEFT] )
 		{
 			int MiddleSegmentWidth, MiddleSegmentHeight;
 			_32 BorderWidth = l.received.div_x1 - l.received.back_x;
@@ -116,7 +118,13 @@ static void ChopDecorations( void )
 																						, BorderWidth2, BorderHeight );
 			l.received.arrow = MakeSubImage( l.decoration, l.received.arrow_x, l.received.arrow_y, l.received.arrow_w, l.received.arrow_h );
 		}
-		if( l.decoration )
+		else
+		{
+			int n;
+			for( n = 0; n < 9; n++ )
+				ReuseImage( l.received.BorderSegment[n] );
+		}
+		if( l.decoration && !l.sent.BorderSegment[SEGMENT_TOP_LEFT] )
 		{
 			int MiddleSegmentWidth, MiddleSegmentHeight;
 			_32 BorderWidth = l.sent.div_x1 - l.sent.back_x;
@@ -158,6 +166,12 @@ static void ChopDecorations( void )
 																				 , l.sent.back_x + BorderWidth + MiddleSegmentWidth, l.sent.back_y + BorderHeight + MiddleSegmentHeight
 																				 , BorderWidth2, BorderHeight );
 			l.sent.arrow = MakeSubImage( l.decoration, l.sent.arrow_x, l.sent.arrow_y, l.sent.arrow_w, l.sent.arrow_h );
+		}
+		else
+		{
+			int n;
+			for( n = 0; n < 9; n++ )
+				ReuseImage( l.sent.BorderSegment[n] );
 		}
 	}
 }
@@ -317,20 +331,20 @@ static PTRSZVAL CPROC SetSidePad( PTRSZVAL psv, arg_list args )
 
 void ScrollableChatControl_AddConfigurationMethods( PCONFIG_HANDLER pch )
 {
-	AddConfigurationMethod( pch, "Chat Control Background Image=%m", SetBackgroundImage );
-	AddConfigurationMethod( pch, "Chat Control Sent Arrow Area=%i,%i %i,%i", SetSentArrowArea );
-	AddConfigurationMethod( pch, "Chat Control Received Arrow Area=%i,%i %i,%i", SetReceiveArrowArea );
-	AddConfigurationMethod( pch, "Chat Control Sent Background Area=%i,%i %i,%i", SetSentBackgroundArea );
-	AddConfigurationMethod( pch, "Chat Control Received Background Area=%i,%i %i,%i", SetReceiveBackgroundArea );
-	AddConfigurationMethod( pch, "Chat Control Sent Background Dividers=%i,%i,%i,%i", SetSentBackgroundDividers );
-	AddConfigurationMethod( pch, "Chat Control Received Background Dividers=%i,%i,%i,%i", SetReceiveBackgroundDividers );
-	AddConfigurationMethod( pch, "Chat Control Sent Decoration Justification=%i", SetSentJustification );
-	AddConfigurationMethod( pch, "Chat Control Received Decoration Justification=%i", SetReceiveJustification );
-	AddConfigurationMethod( pch, "Chat Control Sent Text Justification=%i", SetSentTextJustification );
-	AddConfigurationMethod( pch, "Chat Control Received Text Justification=%i", SetReceiveTextJustification );
-	AddConfigurationMethod( pch, "Chat Control Side Pad = %i", SetSidePad );
-	AddConfigurationMethod( pch, "Chat Control Sent Arrow Offset=%i,%i", SetSentArrowOffset );
-	AddConfigurationMethod( pch, "Chat Control Received Arrow Offset=%i,%i", SetReceiveArrowOffset );
+	AddConfigurationMethod( pch, WIDE("Chat Control Background Image=%m"), SetBackgroundImage );
+	AddConfigurationMethod( pch, WIDE("Chat Control Sent Arrow Area=%i,%i %i,%i"), SetSentArrowArea );
+	AddConfigurationMethod( pch, WIDE("Chat Control Received Arrow Area=%i,%i %i,%i"), SetReceiveArrowArea );
+	AddConfigurationMethod( pch, WIDE("Chat Control Sent Background Area=%i,%i %i,%i"), SetSentBackgroundArea );
+	AddConfigurationMethod( pch, WIDE("Chat Control Received Background Area=%i,%i %i,%i"), SetReceiveBackgroundArea );
+	AddConfigurationMethod( pch, WIDE("Chat Control Sent Background Dividers=%i,%i,%i,%i"), SetSentBackgroundDividers );
+	AddConfigurationMethod( pch, WIDE("Chat Control Received Background Dividers=%i,%i,%i,%i"), SetReceiveBackgroundDividers );
+	AddConfigurationMethod( pch, WIDE("Chat Control Sent Decoration Justification=%i"), SetSentJustification );
+	AddConfigurationMethod( pch, WIDE("Chat Control Received Decoration Justification=%i"), SetReceiveJustification );
+	AddConfigurationMethod( pch, WIDE("Chat Control Sent Text Justification=%i"), SetSentTextJustification );
+	AddConfigurationMethod( pch, WIDE("Chat Control Received Text Justification=%i"), SetReceiveTextJustification );
+	AddConfigurationMethod( pch, WIDE("Chat Control Side Pad = %i"), SetSidePad );
+	AddConfigurationMethod( pch, WIDE("Chat Control Sent Arrow Offset=%i,%i"), SetSentArrowOffset );
+	AddConfigurationMethod( pch, WIDE("Chat Control Received Arrow Offset=%i,%i"), SetReceiveArrowOffset );
 }
 
 
@@ -362,6 +376,7 @@ static void SetupDefaultConfig( void )
 		l.sent.div_y2 = 9 + 57;
 		l.sent.arrow_x_offset = -2;
 		l.sent.arrow_y_offset = -10;
+		//l.sent.font = RenderFontFileScaledEx( WIDE("msyh.ttf"), 18, 18, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 		l.flags.sent_justification = 0;
 		l.flags.sent_text_justification = 1;
 		l.received.text_color = BASE_COLOR_BLACK;
@@ -379,9 +394,12 @@ static void SetupDefaultConfig( void )
 		l.received.div_x2 = 92 + 52;
 		l.received.div_y1 = 9;
 		l.received.div_y2 = 9 + 59;
+		//l.received.font = l.sent.font;
 		l.flags.received_justification = 1;
 		l.flags.received_text_justification = 0;
 	}
+	else
+		ReuseImage( l.decoration );
 	ChopDecorations( );
 }
 
@@ -393,70 +411,79 @@ static void OnFinishInit( WIDE( "Chat Control" ) )( PSI_CONTROL canvas )
 static void OnSaveCommon( WIDE( "Chat Control" ) )( FILE *file )
 {
 
-	fprintf( file, "%sChat Control Sent Arrow Area=%d,%d %u,%u\n"
+	fprintf( file, WIDE("%sChat Control Sent Arrow Area=%d,%d %u,%u\n")
 			 , InterShell_GetSaveIndent()
 			 , l.sent.arrow_x
 			 , l.sent.arrow_y
 			 , l.sent.arrow_w
 			 , l.sent.arrow_h );
-	fprintf( file, "%sChat Control Sent Arrow Offset=%d,%d\n"
+	fprintf( file, WIDE("%sChat Control Sent Arrow Offset=%d,%d\n")
 			 , InterShell_GetSaveIndent()
 			 , l.sent.arrow_x_offset
 			 , l.sent.arrow_y_offset );
 
-	fprintf( file, "%sChat Control Received Arrow Area=%d,%d %u,%u\n"
+	fprintf( file, WIDE("%sChat Control Received Arrow Area=%d,%d %u,%u\n")
 			 , InterShell_GetSaveIndent()
 			 , l.received.arrow_x
 			 , l.received.arrow_y
 			 , l.received.arrow_w
 			 , l.received.arrow_h );
-	fprintf( file, "%sChat Control Received Arrow Offset=%d,%d\n"
+	fprintf( file, WIDE("%sChat Control Received Arrow Offset=%d,%d\n")
 			 , InterShell_GetSaveIndent()
 			 , l.received.arrow_x_offset
 			 , l.received.arrow_y_offset );
 
-	fprintf( file, "%sChat Control Sent Background Area=%d,%d %u,%u\n"
+	fprintf( file, WIDE("%sChat Control Sent Background Area=%d,%d %u,%u\n")
 			 , InterShell_GetSaveIndent()
 			 , l.sent.back_x
 			 , l.sent.back_y
 			 , l.sent.back_w
 			 , l.sent.back_h );
-	fprintf( file, "%sChat Control Received Background Area=%d,%d %u,%u\n"
+	fprintf( file, WIDE("%sChat Control Received Background Area=%d,%d %u,%u\n")
 			 , InterShell_GetSaveIndent()
 			 , l.received.back_x
 			 , l.received.back_y
 			 , l.received.back_w
 			 , l.received.back_h );
-	fprintf( file, "%sChat Control Sent Background Dividers=%d,%d,%d,%d\n"
+	fprintf( file, WIDE("%sChat Control Sent Background Dividers=%d,%d,%d,%d\n")
 			 , InterShell_GetSaveIndent()
 			 , l.sent.div_x1
 			 , l.sent.div_x2
 			 , l.sent.div_y1
 			 , l.sent.div_y2 );
-	fprintf( file, "%sChat Control Received Background Dividers=%d,%d,%d,%d\n"
+	fprintf( file, WIDE("%sChat Control Received Background Dividers=%d,%d,%d,%d\n")
 			 , InterShell_GetSaveIndent()
 			 , l.received.div_x1
 			 , l.received.div_x2
 			 , l.received.div_y1
 			 , l.received.div_y2 );
-   fprintf( file, "%sChat Control Background Image=%s\n"
+   fprintf( file, WIDE("%sChat Control Background Image=%s\n")
 			 , InterShell_GetSaveIndent()
 			 , l.decoration_name );
-   fprintf( file, "%sChat Control Side Pad=%d\n"
+   fprintf( file, WIDE("%sChat Control Side Pad=%d\n")
 			 , InterShell_GetSaveIndent()
 			 , l.side_pad );
-   fprintf( file, "%sChat Control Received Decoration Justification=%d\n"
+   fprintf( file, WIDE("%sChat Control Received Decoration Justification=%d\n")
 			 , InterShell_GetSaveIndent()
 			, l.flags.received_justification );
-   fprintf( file, "%sChat Control Sent Decoration Justification=%d\n"
+   fprintf( file, WIDE("%sChat Control Sent Decoration Justification=%d\n")
 			 , InterShell_GetSaveIndent()
 			, l.flags.sent_justification );
-   fprintf( file, "%sChat Control Received Text Justification=%d\n"
+   fprintf( file, WIDE("%sChat Control Received Text Justification=%d\n")
 			 , InterShell_GetSaveIndent()
 			, l.flags.received_text_justification );
-   fprintf( file, "%sChat Control Sent Text Justification=%d\n"
+   fprintf( file, WIDE("%sChat Control Sent Text Justification=%d\n")
 			 , InterShell_GetSaveIndent()
 			, l.flags.sent_text_justification );
+}
+
+
+void Chat_SetMessageInputHandler( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVAL psv, PTEXT text ), PTRSZVAL psv )
+{
+	PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
+	PCHAT_LIST chat_control = (*ppList);
+	chat_control->InputData = Handler;
+	chat_control->psvInputData = psv;
 }
 
 
@@ -485,7 +512,7 @@ void Chat_EnqueMessage( PSI_CONTROL pc, LOGICAL sent
 	}
 }
 
-int MeasureFrameWidth( Image window, S_32 *left, S_32 *right, LOGICAL received, LOGICAL complete )
+void MeasureFrameWidth( Image window, S_32 *left, S_32 *right, LOGICAL received, LOGICAL complete )
 {
 	if( received )
 	{
@@ -539,7 +566,7 @@ void DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL recei
 {
 	S_32 x_offset_left;
 	S_32 x_offset_right;
-
+	lprintf( WIDE("Draw at %d   %d  bias %d") , y, height, inset );
 	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, received, complete );
 	if( received )
 	{
@@ -629,18 +656,21 @@ void DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL recei
 																	 + inset)
 											, l.sent.BorderSegment[SEGMENT_TOP]->height
 											, ALPHA_TRANSPARENT );
+		if( height - ( l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) )
 		BlotScaledImageSizedToAlpha( window, l.sent.BorderSegment[SEGMENT_LEFT]
 											, x_offset_left+ inset
 											, y + l.sent.BorderSegment[SEGMENT_TOP]->height
 											, l.sent.BorderSegment[SEGMENT_LEFT]->width
 											, height - ( l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height )
 											, ALPHA_TRANSPARENT );
+		if( height - ( l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) )
 		BlotScaledImageSizedToAlpha( window, l.sent.BorderSegment[SEGMENT_RIGHT]
 											, x_offset_right - ( l.sent.BorderSegment[SEGMENT_RIGHT]->width  )
 											, y + l.sent.BorderSegment[SEGMENT_TOP]->height
 											, l.sent.BorderSegment[SEGMENT_RIGHT]->width
 											, height - ( l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height )
 											, ALPHA_TRANSPARENT );
+		if( height - ( l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) )
 		BlotScaledImageSizedToAlpha( window, l.sent.BorderSegment[SEGMENT_CENTER]
 											, x_offset_left + l.sent.BorderSegment[SEGMENT_LEFT]->width+ inset
 											, y + l.sent.BorderSegment[SEGMENT_TOP]->height
@@ -687,53 +717,63 @@ void DrawAMessage( Image window, PCHAT_LIST list, PCHAT_MESSAGE msg )
 	_32 width ;
 	S_32 x_offset_left, x_offset_right;	
 	S_32 frame_height;
-
+	S_32 _x_offset_left, _x_offset_right;	
 	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !msg->sent, TRUE );
+	_x_offset_left = x_offset_left;
+	_x_offset_right = x_offset_right;
 	if( msg->sent )
-		width = ( x_offset_right - x_offset_left ) 
-		- ( l.sent.BorderSegment[SEGMENT_LEFT]->width 
-			+ l.sent.BorderSegment[SEGMENT_RIGHT]->width ) ;
+	{
+		x_offset_left += l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.arrow_w + l.sent.arrow_x_offset;
+		x_offset_right -= l.sent.BorderSegment[SEGMENT_RIGHT]->width;
+		width = ( x_offset_right - x_offset_left ) ;
+		  //- ( l.sent.BorderSegment[SEGMENT_LEFT]->width 
+		//	+ l.sent.BorderSegment[SEGMENT_RIGHT]->width ) ;
+	}
 	else
-		width = ( x_offset_right - x_offset_left ) 
-		- ( l.received.BorderSegment[SEGMENT_LEFT]->width 
-			+ l.received.BorderSegment[SEGMENT_RIGHT]->width ) ;
-	
+	{
+		x_offset_left += l.received.BorderSegment[SEGMENT_LEFT]->width ;
+		x_offset_right -= ( l.received.BorderSegment[SEGMENT_RIGHT]->width + l.received.arrow_w + l.received.arrow_x_offset ); 
+		width = ( x_offset_right - x_offset_left ) ;
+			//- ( l.received.BorderSegment[SEGMENT_LEFT]->width 
+			//+ l.received.BorderSegment[SEGMENT_RIGHT]->width ) ;
+	}
 	if( !msg->formatted_text )
 	{
-		int max_width = width - ((msg->sent)?l.sent.arrow_w:l.received.arrow_w);
+		int max_width = width;// - ((msg->sent)?l.sent.arrow_w:l.received.arrow_w);
 		int max_height = 9999;
-		FormatTextToBlockEx( msg->text, &msg->formatted_text, &max_width, &max_height, GetDefaultFont() );
+		FormatTextToBlockEx( msg->text, &msg->formatted_text, &max_width, &max_height, list->sent_font );
 		msg->formatted_text_len = StrLen( msg->formatted_text );
 		msg->formatted_height = max_height;
 		msg->max_width = max_width;
 		frame_height = msg->formatted_height + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height ;
-		lprintf( "update message_y = %d", ( l.side_pad + frame_height ) );
+		//lprintf( WIDE("update message_y = %d"), ( l.side_pad + frame_height ) );
 		msg->message_y = ( l.side_pad + frame_height );
 	}
 	else
 		frame_height = msg->formatted_height + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height ;
-	lprintf( "update next top by %d", msg->message_y );
+	//lprintf( WIDE("update next top by %d"), msg->message_y );
 	list->display.message_top -= msg->message_y;
 
 	DrawMessageFrame( window, list->display.message_top, frame_height
-		, ( x_offset_right - x_offset_left ) - msg->max_width 
+		, ( x_offset_right - x_offset_left
+		    ) - ( msg->max_width - 10 ) 
 		, !msg->sent, TRUE );
 	if( msg->sent )
 	{
-		PutStringFontExx( window, x_offset_left + l.sent.BorderSegment[SEGMENT_LEFT]->width 
+		PutStringFontExx( window, x_offset_left 
 								+ ( ( x_offset_right - x_offset_left ) 
 								- ( 
 									+ msg->max_width ) )
 						, list->display.message_top + l.received.BorderSegment[SEGMENT_TOP]->height
 						, l.sent.text_color, 0
-						, msg->formatted_text, msg->formatted_text_len, NULL, 0, msg->max_width );
+						, msg->formatted_text, msg->formatted_text_len, list->received_font, 0, msg->max_width );
 	}
 	else
 	{
-		PutStringFontExx( window, x_offset_left + l.received.BorderSegment[SEGMENT_LEFT]->width
+		PutStringFontExx( window, x_offset_left 
 						, list->display.message_top + l.received.BorderSegment[SEGMENT_TOP]->height
 						, l.received.text_color, 0
-						, msg->formatted_text, msg->formatted_text_len, NULL, 0, msg->max_width );
+						, msg->formatted_text, msg->formatted_text_len, list->received_font, 0, msg->max_width );
 	}
 }
 
@@ -741,7 +781,7 @@ static void ReformatMessages( PCHAT_LIST list )
 {
 	int message_idx;
 	PCHAT_MESSAGE msg;
-	for( message_idx = -1; msg = PeekQueueEx( list->messages, message_idx ); message_idx-- )
+	for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( list->messages, message_idx ); message_idx-- )
 	{
 		Deallocate( TEXTSTR, msg->formatted_text );
 		msg->formatted_text = NULL;
@@ -752,30 +792,34 @@ static void DrawMessages( PCHAT_LIST list, Image window )
 {
 	int message_idx;
 	PCHAT_MESSAGE msg;
-	lprintf( "BEgin draw messages..." );
-	for( message_idx = -1; msg = PeekQueueEx( list->messages, message_idx ); message_idx-- )
+	lprintf( WIDE("BEgin draw messages...") );
+	for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( list->messages, message_idx ); message_idx-- )
 	{
-		lprintf( "check message %d", message_idx );
+		//lprintf( "check message %d", message_idx );
 		if( msg->formatted_text && 
 			 ( ( list->display.message_top - msg->message_y ) >= window->height ) )
 		{
-			lprintf( "have to skip message..." );
+			lprintf( WIDE("have to skip message...") );
 			list->display.message_top -= msg->message_y;
 			continue;
 		}
-		lprintf( "formatted : %d %d  %d", msg->formatted_text, list->display.message_top, msg->message_y );
+		//lprintf( "formatted : %d %d  %d", msg->formatted_text, list->display.message_top, msg->message_y );
 		if( !msg->formatted_text || 
 			 ( ( ( list->display.message_top - msg->message_y ) < window->height )
 			&& (list->display.message_top > l.side_pad ) ) )
 			DrawAMessage( window, list, msg );
 		if( list->display.message_top < l.side_pad )
 		{
-			lprintf( "Done." );
+			lprintf( WIDE("Done.") );
 			break;
 		}
 	}
 }
 
+static void OnDisplayConnect( WIDE("@chat resources") )( struct display_app*app, struct display_app_local ***pppLocal )
+{
+	SetupDefaultConfig();	
+}
 
 static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 {
@@ -794,7 +838,6 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 
 	if( l.decoration )
 	{
-		int command_height;
 		skip_lines = 0;
 		lines = CountDisplayedLines( list->phb_Input );
 		if( !lines )
@@ -804,7 +847,7 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 			skip_lines = lines - 3;
 			lines = 3;
 		}
-		list->nFontHeight = GetFontHeight( GetCommonFont( pc )  );
+		list->nFontHeight = GetFontHeight( list->sent_font );
 		list->command_height = list->nFontHeight * lines 
 			+ l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
 			
@@ -836,7 +879,7 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 					RECT upd;
 					RenderTextLine( list, window, pCurrentLine, &upd
 						, nLine
-						, GetCommonFont( pc )
+						, list->sent_font
 						, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight )
 						, l.side_pad + l.sent.BorderSegment[SEGMENT_TOP]->height
 						, l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width
@@ -904,7 +947,9 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 		{
 			if( list->flags.long_vertical_drag )
 			{
+				_32 original_offset = list->control_offset;
 				list->control_offset += ( y - list->first_y );
+				lprintf( WIDE("adjust position by %d"), ( y - list->first_y ) );
 				if( list->control_offset < 0 )
 					list->control_offset = 0;
 				else
@@ -914,7 +959,7 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 					int message_idx;
 					int total_offset = 0;
 					PCHAT_MESSAGE msg;
-					for( message_idx = -1; msg = PeekQueueEx( list->messages, message_idx ); message_idx-- )
+					for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( list->messages, message_idx ); message_idx-- )
 					{
 						// never displayed the message.
 						if( !msg->formatted_text )
@@ -923,13 +968,14 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 						tmp_top -= msg->message_y;
 						total_offset += msg->message_y;
 					}
-					if( !msg && ( tmp_top > 0 ) )
+					if( !msg && ( tmp_top > ( list->message_window->height - last_message_y ) ) )
 					{
-						list->control_offset = total_offset - list->message_window->height;
+						list->control_offset = total_offset - last_message_y;//list->message_window->height;
 					}
 				}
 				list->first_y = y;
-				SmudgeCommon( pc );
+				if( list->control_offset != original_offset )
+					SmudgeCommon( pc );
 			}
 		}
 	}
@@ -940,12 +986,12 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 	return 1;
 }
 
-static void CPROC PSIMeasureString( PTRSZVAL psv, CTEXTSTR s, int nShow, _32 *w, _32 *h )
+static void CPROC PSIMeasureString( PTRSZVAL psv, CTEXTSTR s, int nShow, _32 *w, _32 *h, SFTFont font )
 {
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list = (*ppList);
-	SFTFont font = GetCommonFont( pc );
+	//SFTFont font = list->GetCommonFont( pc );
 	list->nFontHeight = GetFontHeight( font );
 	GetStringSizeFontEx( s, nShow, w, h, font );
 }
@@ -954,10 +1000,14 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list;
-	SetupDefaultConfig();
+	//SetupDefaultConfig();
 	(*ppList) = New( CHAT_LIST );
 	MemSet( (*ppList), 0, sizeof( CHAT_LIST ) );
 	list = (*ppList);
+	list->sent_font 
+		= list->received_font
+		= list->input_font 
+		= RenderFontFileScaledEx( WIDE("msyh.ttf"), 18, 18, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 	//list->colors.background_color = BASE_COLOR_WHITE;
 	list->message_window = MakeSubImage( GetControlSurface( pc ), 0, 0, 1, 1 );
 		list->pHistory = PSI_CreateHistoryRegion();
@@ -967,15 +1017,15 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 		SetBrowserLines( list->phb_Input, 3 );
 		list->colors.crText = BASE_COLOR_BLACK;
 
-	Chat_EnqueMessage( pc, 0, NULL, NULL, "1) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow..." );
-	Chat_EnqueMessage( pc, 0, NULL, NULL, "2) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow..." );
-	Chat_EnqueMessage( pc, 1, NULL, NULL, "3) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow..." );
-	Chat_EnqueMessage( pc, 0, NULL, NULL, "4) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow..." );
-	Chat_EnqueMessage( pc, 1, NULL, NULL, "5) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow..." );
-	Chat_EnqueMessage( pc, 0, NULL, NULL, "(no67) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow..." );
-	Chat_EnqueMessage( pc, 1, NULL, NULL, "8) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow..." );
-	Chat_EnqueMessage( pc, 1, NULL, NULL, "9) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow..." );
-	Chat_EnqueMessage( pc, 0, NULL, NULL, "10) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow..." );
+	//Chat_EnqueMessage( pc, 0, NULL, NULL, WIDE("1) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow...") );
+	//Chat_EnqueMessage( pc, 0, NULL, NULL, WIDE("2) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow...") );
+	//Chat_EnqueMessage( pc, 1, NULL, NULL, WIDE("3) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow...") );
+	//Chat_EnqueMessage( pc, 0, NULL, NULL, WIDE("4) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow...") );
+	//Chat_EnqueMessage( pc, 1, NULL, NULL, WIDE("5) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow...") );
+	//Chat_EnqueMessage( pc, 0, NULL, NULL, WIDE("(no67) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow...") );
+	//Chat_EnqueMessage( pc, 1, NULL, NULL, WIDE("8) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow...") );
+	//Chat_EnqueMessage( pc, 1, NULL, NULL, WIDE("9) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow...") );
+	//Chat_EnqueMessage( pc, 0, NULL, NULL, WIDE("10) some test text here\nwith full support of color and\n inline fonts?\n... Need a very very long line... mary had a little lamb its fleece was white as snow...") );
 	return 1;
 }
 
@@ -999,7 +1049,14 @@ static void OnSizeCommon( CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begin_sizing )
 		PCHAT_LIST list = (*ppList);
 		// get a size during create... and data is not inited into teh control yet.
 		if( list )
+		{
+			Image window = GetControlSurface( pc );
+			// fix input
+			list->phb_Input->nColumns = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
+			list->phb_Input->nWidth = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
+			BuildDisplayInfoLines( list->phb_Input, list->input_font );
 			ReformatMessages( list );
+		}
 	}
 }
 
@@ -1016,11 +1073,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 	{
 		TEXTCHAR character = GetKeyText( key );
 		DECLTEXT( stroke, WIDE(" ") ); // single character ...
-//cpg27dec2006 list\psicon.c(232): Warning! W202: Symbol 'bOutput' has been defined, but not referenced
-//cpg27dec2006 		int bOutput = FALSE;
 		//Log1( "Key: %08x", key );
-//cpg27dec2006 list\psicon.c(234): Warning! W202: Symbol 'mod' has been defined, but not referenced
-//cpg27dec2006		int mod = KEYMOD_NORMAL;
 		if( !list || !l.decoration ) // not a valid window handle/device path
 			return 0;
 		//EnterCriticalSec( &list->Lock );
@@ -1034,9 +1087,8 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, _32 key )
 		else
 			stroke.data.size = 0;
 		{
-			PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
-			PCHAT_LIST chat_control = (*ppList);
 			Image window = GetControlSurface( pc );
+			//SetBrowserColumns( list->phb_Input, ... );
 			list->phb_Input->nColumns = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
 			list->phb_Input->nWidth = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
 		}
