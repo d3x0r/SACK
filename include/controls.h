@@ -997,7 +997,9 @@ PSI_PROC( void, EnableControl)( PSI_CONTROL pc, int bEnable );
 PSI_PROC( int, IsControlFocused )( PSI_CONTROL pc );
 PSI_PROC( int, IsControlEnabled)( PSI_CONTROL pc );
 
-PSI_PROC( void, AddCaptionButton )( PSI_CONTROL frame, Image normal, Image pressed, void (CPROC*event)(PSI_CONTROL) );
+PSI_PROC( struct physical_device_caption_button *, AddCaptionButton )( PSI_CONTROL frame, Image normal, Image pressed, void (CPROC*event)(PSI_CONTROL) );
+PSI_PROC( void, HideCaptionButton )( struct physical_device_caption_button * );
+PSI_PROC( void, ShowCaptionButton )( struct physical_device_caption_button * );
 /*
 
 
@@ -2034,6 +2036,9 @@ PSI_PROC( void, SimpleMessageBox )( PSI_CONTROL parent, CTEXTSTR title, CTEXTSTR
 // result is the address of a user buffer to read into, reslen is the size of that buffer.
 // question is put above the question... pAbove is the window which this one should be placed above (lock-stacked)
 PSI_PROC( int, SimpleUserQuery )( TEXTSTR result, int reslen, CTEXTSTR question, PSI_CONTROL pAbove );
+PSI_PROC( int, SimpleUserQueryEx )( TEXTSTR result, int reslen, CTEXTSTR question, PSI_CONTROL pAbove
+								   , void (CPROC*query_success_callback)(PTRSZVAL, LOGICAL)
+								   , PTRSZVAL query_user_data );
 
 PSI_PROC( void, RegisterResource )( CTEXTSTR appname, CTEXTSTR resource_name, int ID, int resource_name_range, CTEXTSTR type_name );
 // assuming one uses a

@@ -346,7 +346,9 @@ static void OnDisplayConnect( WIDE( "@00 Image Core" ) )( struct display_app*app
 	LIST_FORALL( fonts, idx, PFONT_RENDERER, renderer )
 	{
 		int n;
-		renderer->reverse_interface->_ReuseImage( (Image)renderer->surface );
+		// this isn't set until an image is created to reuse..
+		if( renderer->reverse_interface )
+			renderer->reverse_interface->_ReuseImage( (Image)renderer->surface );
 		for( n = 0; n < renderer->nLinesAvail; n++ )
 		{
 			PCHARACTER check = renderer->ppCharacterLineStarts[n];

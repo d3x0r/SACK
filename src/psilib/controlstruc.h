@@ -213,6 +213,9 @@ struct physical_device_caption_button
 	void (CPROC*pressed_event)( PSI_CONTROL pc );
 	LOGICAL is_pressed;
 	_32 offset;
+	struct {
+		BIT_FIELD hidden : 1;
+	} flags;
 };
 typedef struct physical_device_caption_button CAPTION_BUTTON;
 typedef struct physical_device_caption_button *PCAPTION_BUTTON;
@@ -233,6 +236,7 @@ struct physical_device_interface
 		BIT_FIELD bNoUpdate : 1; // don't call update function...
 		BIT_FIELD bCaptured : 1; // frame owns mouse, control behaving as frame wants all mouse events.
 		BIT_FIELD bApplicationOwned : 1; // current owns was set by application, do not auto disown.
+		BIT_FIELD sent_redraw : 1; // stops sending multiple redraw events....
 	}flags;
 	EDIT_STATE EditState;
 	//PRENDERER pActImg;

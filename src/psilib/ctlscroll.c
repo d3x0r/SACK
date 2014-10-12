@@ -73,8 +73,8 @@ static int CPROC RenderScrollBar( PCONTROL pc )
 	
 	   if( psb->scrollflags.bHorizontal )
 	   {
-	   	if( psb->max )
-	   	{
+	   		if( psb->max )
+	   		{
 				top = ( psb->width * top ) / psb->max;
 				bottom = ( (psb->width - 1) * bottom ) / psb->max;
 			}
@@ -89,8 +89,8 @@ static int CPROC RenderScrollBar( PCONTROL pc )
 	   }
 	   else
 	   {
-	   	if( psb->max )
-	   	{
+	   		if( psb->max )
+	   		{
 				top = ( psb->height * top ) / psb->max;
 				bottom = ( (psb->height - 1) * bottom ) / psb->max;
 			}	
@@ -107,7 +107,7 @@ static int CPROC RenderScrollBar( PCONTROL pc )
 		psb->top = top;
 		psb->bottom = bottom;
 
-      DrawThinFrameInverted( pc );
+		DrawThinFrameInverted( pc );
 
 		if( psb->scrollflags.bHorizontal )
 		{
@@ -125,7 +125,7 @@ static int CPROC RenderScrollBar( PCONTROL pc )
 		}
 
 	}
-   return 1;
+	return 1;
 }
 
 //---------------------------------------------------------------------------
@@ -140,17 +140,17 @@ void MoveScrollBar( PCONTROL pc, int type )
 		{
 		case UPD_1UP:
 			if( psb->current )
-            psb->current--;
+				psb->current--;
 			break;
 		case UPD_1DOWN:
 			if( ( psb->current + psb->range ) < psb->max )
-            psb->current++;
+				psb->current++;
 			break;
 		case UPD_RANGEUP:
-         if( psb->current > psb->range )
+			if( psb->current > psb->range )
 				psb->current -= psb->range;
 			else
-            psb->current = 0;
+				psb->current = 0;
 			break;
 		case UPD_RANGEDOWN:
 			psb->current += psb->range;
@@ -161,7 +161,7 @@ void MoveScrollBar( PCONTROL pc, int type )
 		}
 		if( psb->UpdatedPos )
 			psb->UpdatedPos( psb->psvUpdate, type, psb->current );
-      SmudgeCommon(pc);
+		SmudgeCommon(pc);
 	}
 }
 
@@ -254,8 +254,8 @@ static int CPROC ScrollBarMouse( PCONTROL pc, S_32 x, S_32 y, _32 b )
 				}
 				else // was on the thumb...
 				{
-		         psb->grabbed_x = x - psb->top; // top/left *shrug*
-	   	      psb->grabbed_y = y - psb->top;
+					psb->grabbed_x = x - psb->top; // top/left *shrug*
+	   				psb->grabbed_y = y - psb->top;
 					psb->scrollflags.bDragging = TRUE;
 				}
 			}
@@ -381,9 +381,11 @@ static void CPROC DrawLeftButton( PTRSZVAL psv, PCONTROL pc )
 
 void SetScrollParams( PCONTROL pc, int min, int cur, int range, int max )
 {
-   ValidatedControlData( PSCROLLBAR, SCROLLBAR_CONTROL, psb, pc );
+	int diffs = 0;
+	ValidatedControlData( PSCROLLBAR, SCROLLBAR_CONTROL, psb, pc );
 	if( psb )
 	{
+		int full_range = 0;
 		if( max < min )
 		{
 			int tmp;
@@ -391,12 +393,40 @@ void SetScrollParams( PCONTROL pc, int min, int cur, int range, int max )
 			min = max;
 			max = tmp;
 		}
-		psb->min = min;
-		psb->max = max;
-		psb->current = cur;
-		psb->range = range;
+		if( psb->range == ( psb->max - psb->min ) )
+			full_range = 1;
+		if( psb->min != min )
+		{
+			diffs++;
+			psb->min = min;
+		}
+		if( psb->max != max )
+		{
+			diffs++;
+			psb->max = max;
+		}
+		if( psb->range != range )
+		{
+			diffs++;
+			psb->range = range;
+		}
+		if( diffs && full_range)
+		{
+			if( psb->range == ( psb->max - psb->min ) )
+			{
+				full_range = 1;
+				diffs = 0;
+			}
+		}
+		if( psb->current != cur)
+		{
+			if( !full_range )
+				diffs++;
+			psb->current = cur;
+		}
 		//Log( WIDE("Set scroll params - therefore render") );
-      SmudgeCommon(pc);
+		if( diffs )
+			SmudgeCommon(pc);
 	}
 }
 

@@ -2737,8 +2737,8 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 	}
 	wch = _wch;
 	_ch = ch = NewArray( char, sizeInBytes);
-	if( !WideCharToMultiByte( 65001/*CP_UTF8*/, 0, wch, len + 1, ch, sizeInBytes, 0, 0 ) )
-		;
+	//if( !WideCharToMultiByte( 65001/*CP_UTF8*/, 0, wch, len + 1, ch, sizeInBytes, 0, 0 ) )
+	//	;
 
 	{
 		int n;
@@ -2759,7 +2759,54 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 					(*ch++) = 0xC0 | ( ( ((unsigned char*)wch)[1] & 0x7 ) << 2 ) | ( ( ((unsigned char*)wch)[0] ) >> 6 ); 
 					(*ch++) = 0x80 | ( ((unsigned char*)wch)[0] & 0x3F );
 				}
-				else
+				if( ( ( wch[0] & 0xFC00 ) >= 0xD800 )
+					&& ( ( wch[0] & 0xFC00 ) <= 0xDF00 ) )
+				{
+					_32 longer_value;
+					longer_value = 0x10000 + ( ( ( wch[0] & 0x3ff ) << 10 ) | ( ( wch[1] & 0x3ff ) ) );
+					if( !(longer_value & 0xFFFF ) )
+					{
+						// 16 bit encoding (shouldn't be hit 
+						(*ch++) = 0xE0 | ( longer_value >> 12 );
+						(*ch++) = 0x80 | ( ( longer_value >> 6 ) & 0x3f );
+						(*ch++) = 0x80 | ( ( longer_value >> 0 ) & 0x3f );
+					}
+					else if( !( longer_value & 0xFFE00000 ) )
+					{
+						// 21 bit encoding ... 
+						(*ch++) = 0xF0 | ( longer_value >> 18 );
+						(*ch++) = 0x80 | ( ( longer_value >> 12 ) & 0x3f );
+						(*ch++) = 0x80 | ( ( longer_value >> 6 ) & 0x3f );
+						(*ch++) = 0x80 | ( ( longer_value >> 0 ) & 0x3f );
+					}
+					/*  ** functionally removed from spec .....
+					else if( !( longer_value & 0xFC000000 ) )
+					{
+						(*ch++) = 0xF8 | ( longer_value >> 24 );
+						(*ch++) = 0x80 | ( ( longer_value >> 18 ) & 0x3f );
+						(*ch++) = 0x80 | ( ( longer_value >> 12 ) & 0x3f );
+						(*ch++) = 0x80 | ( ( longer_value >> 6 ) & 0x3f );
+						(*ch++) = 0x80 | ( ( longer_value >> 0 ) & 0x3f );
+					}
+					else  if( !( longer_value & 0x80000000 ) )
+					{
+						// 31 bit encode
+						(*ch++) = 0xFC | ( longer_value >> 30 );
+						(*ch++) = 0x80 | ( ( longer_value >> 24 ) & 0x3f );
+						(*ch++) = 0x80 | ( ( longer_value >> 18 ) & 0x3f );
+						(*ch++) = 0x80 | ( ( longer_value >> 12 ) & 0x3f );
+						(*ch++) = 0x80 | ( ( longer_value >> 6 ) & 0x3f );
+						(*ch++) = 0x80 | ( ( longer_value >> 0 ) & 0x3f );
+					}
+					*/
+					else
+					{
+						// too long to encode.
+					}
+				}
+
+				else if( !( wch[0] & 0xF000 ) )
+
 				{
 					(*ch++) = 0xE0 | ((unsigned char*)wch)[1] >> 4; 
 					(*ch++) = 0x80 | ( ( ((unsigned char*)wch)[1] & 0xF ) << 2 ) | ( ( ((unsigned char*)wch)[0] ) >> 6 );

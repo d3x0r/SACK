@@ -1,3 +1,4 @@
+#define CORECON_SOURCE
 #define NO_LOGGING
 #define KEYS_DEFINED
 #include <stdhdrs.h>
@@ -6,7 +7,7 @@
 // command line update....
 //#include "WinLogic.h"
 
-#include "chat_control.h"
+#include "chat_control_internal.h"
 
 
 extern int myTypeID;
@@ -1362,53 +1363,19 @@ int Widget_DoStroke( PCHAT_LIST list, PTEXT stroke )
          default:
          normal_process:
             {
-               PTEXT pLine;
-#if 0
-               if( pdp->flags.bDirect && pdp->flags.bCharMode )
-               {
-                  PTEXT newseg = TextDuplicate( stroke, FALSE );
-                  if( stroke->data.data[0] == '\r' )
-                  {
-                     newseg->flags &= ~TF_NORETURN;
-                     newseg->data.size = 0;
-                  }
-                  else
-							newseg->flags |= TF_NORETURN;
-#ifdef __DEKWARE_PLUGIN__
-						newseg->flags |= TF_RELAY; // just pipe it through to the final output...
-                  // direct mode is REALLY direct.
-						EnqueLink( &pdp->common.Input, newseg );
-#else
-//						EnqueLink( &pdp->Input, newseg );
-#endif
-                  i = stroke->data.size;
-                  break;
-               }
-               else
-#endif
-               {
-						if( ( pLine =
-							  GatherUserInput( list->CommandInfo
-												, (PTEXT)&key ) ) )
-                  {
+				PTEXT pLine;
+				{
+					if( ( pLine =
+							GatherUserInput( list->CommandInfo
+											, (PTEXT)&key ) ) )
+					{
                      // I dunno - maybe we shouldn't enque the
                      // command... maybe we should count on whatever
                      // the destination is to echo it
                      // or - perhaps this should be another
                      // option only effective while bDirect...
-#if 0
-                     if( pdp->flags.bDirect && !pdp->flags.bNoLocalEcho )
-                     {
-                        PTEXT pEcho;
-                        pEcho = BuildLine( pLine );
-                        pEcho->data.size--; // trim the last character (probably cr)
-								pEcho->flags |= TF_NORETURN;
-                        PSI_WinLogicWriteEx( pdp, pEcho, 1 );
-                        lprintf( "Should this local echo be marked somehow?" );
-                        //pdp->History.flags.bEnqueuedLocalEcho = 1;
-                        //pdp->flags.bLastEnqueCommand = TRUE;
-						}
-#endif
+					if( list->InputData )
+						  list->InputData( list->psvInputData, pLine );
                   }
                   else // didn't get a linefeed... so.. safe echo
                   {
@@ -1441,7 +1408,7 @@ void Widget_WinLogicDoStroke( PCHAT_LIST list, PTEXT stroke )
 		list->phb_Input->pBlock->pLines[0].nLineLength = LineLengthExEx( list->CommandInfo->CollectionBuffer, FALSE, 8, NULL );
 		list->phb_Input->pBlock->pLines[0].pLine = list->CommandInfo->CollectionBuffer;
 		//if( !pdp->flags.bDirect && pdp->flags.bWrapCommand )
-		BuildDisplayInfoLines( list->phb_Input );
+		BuildDisplayInfoLines( list->phb_Input, list->input_font );
 	}
 
 }
@@ -1547,6 +1514,7 @@ void Widget_KeyPressHandler( PCHAT_LIST list
 				upd.flags.bHasContent = 0;
 				upd.flags.bTmpRect = 1;
 				//PSI_RenderCommandLine( pdp, &upd );
+				/*
 				{
 					RECT r;
 					r.left = upd.x;
@@ -1555,6 +1523,7 @@ void Widget_KeyPressHandler( PCHAT_LIST list
 					r.bottom = upd.y + upd.height;
 					//pdp->Update( pdp, &r );
 				}
+				*/
 			}
 
 			bOutput = TRUE;
@@ -1585,100 +1554,3 @@ void Widget_KeyPressHandler( PCHAT_LIST list
 
 //----------------------------------------------------------------------------
 
-// $Log: keydefs.c,v $
-// Revision 1.37  2005/08/08 15:24:12  d3x0r
-// Move updated rectangle struct to common space.  Improved curses console handling....
-//
-// Revision 1.36  2005/04/22 18:34:09  d3x0r
-// Fix CPROC declaration of keystroke paste handler.
-//
-// Revision 1.35  2005/04/15 07:28:39  d3x0r
-// Okay this all seems to work sufficicnetly - disabled logging entirely.
-//
-// Revision 1.34  2005/02/24 00:47:14  d3x0r
-// Updated vc projects - use $(SACK_BASE) refernece instead of hard coded path.  Also ported to studio 2003
-//
-// Revision 1.33  2005/01/28 09:53:34  d3x0r
-// Okay all forms of graphical interface work on windows platform with appropriate updates
-//
-// Revision 1.32  2005/01/27 17:31:37  d3x0r
-// psicon works now, added some locks to protect multiple accesses to datapath (render/update_write)
-//
-// Revision 1.31  2005/01/26 20:00:01  d3x0r
-// Okay - need to do something about partial updates - such as command typing should only update that affected area of the screen...
-//
-// Revision 1.30  2005/01/23 04:07:57  d3x0r
-// Hmm somehow between display rendering stopped working.
-//
-// Revision 1.29  2005/01/20 06:10:19  d3x0r
-// One down, 3 to convert... concore library should serve to encapsulate drawing logic and history code...
-//
-// Revision 1.28  2004/09/29 09:31:32  d3x0r
-//  Added support to make page breaks on output.  Fixed up some minor issues with scrollback distances
-//
-// Revision 1.27  2004/09/27 16:06:17  d3x0r
-// Checkpoint - all seems well.
-//
-// Revision 1.26  2004/09/23 09:53:33  d3x0r
-// Looks like it's in a usable state for windows... perhaps an alpha/beta to be released soon.
-//
-// Revision 1.25  2004/09/09 13:41:04  d3x0r
-// works much better passing correct structures...
-//
-// Revision 1.24  2004/08/13 09:29:50  d3x0r
-// checkpoint
-//
-// Revision 1.23  2004/07/30 14:08:40  d3x0r
-// More tinkering...
-//
-// Revision 1.22  2004/06/12 08:42:34  d3x0r
-// Well it initializes, first character causes failure... all windows targets build...
-//
-// Revision 1.21  2004/06/10 22:11:00  d3x0r
-// more progress...
-//
-// Revision 1.20  2004/06/08 00:23:26  d3x0r
-// Display and history combing proceeding...
-//
-// Revision 1.19  2004/05/14 18:35:40  d3x0r
-// Checkpoint
-//
-// Revision 1.18  2004/05/13 23:35:07  d3x0r
-// checkpoint
-//
-// Revision 1.17  2004/05/12 10:05:11  d3x0r
-// checkpoint
-//
-// Revision 1.16  2003/12/10 21:59:51  panther
-// Remove all LIST_ENDFORALL
-//
-// Revision 1.15  2003/11/08 00:09:41  panther
-// fixes for VarText abstraction
-//
-// Revision 1.14  2003/04/17 06:40:32  panther
-// More merging of wincon/psicon.  Should nearly have the renderer totally seperate now from the logic
-//
-// Revision 1.13  2003/03/28 12:16:29  panther
-// Fix some minor issues with PSI interface
-//
-// Revision 1.12  2003/03/26 02:31:19  panther
-// Windows keydefs - use HandleKeyDown not KeyDown
-//
-// Revision 1.11  2003/03/26 02:08:59  panther
-// And cleanup FindMyDataPath more migration of handling options
-//
-// Revision 1.10  2003/03/26 02:05:21  panther
-// begin updating option handlers to real option handlers
-//
-// Revision 1.9  2003/03/26 01:42:24  panther
-// Update each section implicitly by drawing it.
-//
-// Revision 1.8  2003/03/26 01:08:20  panther
-// Fix CVS conflict error.  Clean some warnings with typecasting
-//
-// Revision 1.7  2003/03/26 00:44:17  panther
-// Enable mouse.  Perform updates to display.  Misc.
-//
-// Revision 1.6  2003/03/25 08:59:02  panther
-// Added CVS logging
-//

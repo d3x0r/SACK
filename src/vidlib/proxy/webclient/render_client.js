@@ -23,7 +23,7 @@ function proxy_image()
 	var server_render_id; // the image may be created before the renderer...
 }
 
-function OpenServer()
+function OpenServer( canvas_name )
 {
 	var ws= WebSocketTest()
 	if( ws == undefined )
@@ -31,6 +31,17 @@ function OpenServer()
 
 	var image_list = [];
 	var render_list = []; 
+
+	function remove_render( render )
+        {
+        	var new_render_list = [];
+                for( n = 0; n < render_list.length; n++ )
+                {
+                	if( render_list[n] == render )
+	                        continue;
+                        new_render_list.push( render_list[n] );
+                }
+        }
 
 	function find_image( server_id )
 	{
@@ -69,7 +80,7 @@ function OpenServer()
 	//console.log( "output : " + btoa("[{\"MsgID\":22,\"data\":{\"image_to_id\":62,\"image_from_id\":44}}]") );
      
         ws.send( JSON.stringify( { MsgID: 100 /* PMID_ClientIdentification */,
-        				 data : { client_id:"apple"/*createGuid()*/ } 
+        				 data : { client_id:"apple" + createGuid() } 
         			} 
                                 ) );
      };
@@ -78,9 +89,11 @@ function OpenServer()
 	var last_mouse_down = null;
 	function keydown(event)
 	{
-		//if( last_mosue_down )
-		console.debug(  event  );
-            ws.send( JSON.stringify( 
+		    console.debug(  event  );
+		if( last_mouse_down )
+                {
+                
+	            ws.send( JSON.stringify( 
 					{
                        	MsgID:16 /*PMID_Event_Key*/,
 						data: {
@@ -89,12 +102,16 @@ function OpenServer()
 							pressed: 1
 						}
 					} )  );
-		
+            		event.preventDefault();
+		 }
 	}
 
 	function keyup(event)
 	{
 		console.debug( event );
+                if( last_mouse_down )  // focus
+                {
+            		event.preventDefault();
 		ws.send( JSON.stringify( 
 					{
                        	MsgID:16 /*PMID_Event_Key*/,
@@ -104,7 +121,7 @@ function OpenServer()
 							pressed: 0
 						}
 					} )  );
-		
+		 }
 	}
 
 	
@@ -119,7 +136,7 @@ function OpenServer()
                 }
 
 		var n;
-	    // console.log( "out " + x + " and " + y + " renders " + render_list.length );
+	     console.log( "md:out " + x + " and " + y + " renders " + render_list.length );
 		for( n = 0; n < render_list.length; n++ )
 		{
 			var render = render_list[n];
@@ -131,7 +148,7 @@ function OpenServer()
 			//console.log( "canvas thing" + canvas.offsetLeft );
 			x -= canvas.offsetLeft;
 			y -= canvas.offsetTop;
-                     //console.log( "corrected xy = " + x + "," +  y );
+                     console.log( "corrected xy = " + x + "," +  y + " on " + render.server_id );
 			b |= 1 << ( event.which - 1 );
 			ws.send( JSON.stringify( 
 					{
@@ -192,13 +209,14 @@ function OpenServer()
 			x = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
 			y = event.clientY + document.body.scrollTop + document.documentElement.scrollTop;
                 }
-	     //console.log( "out " + x + " and " + y + " renders " + render_list.length );
+	     console.log( "mm:out " + x + " and " + y + " renders " + render_list.length );
 
 		var n;
-		
+		last_mouse_down = null;
 		for( n = 0; n < render_list.length; n++ )
 		{
-			var canvas = render_list[n].canvas;
+			var render = render_list[n];
+			var canvas = render.canvas;
 			if( x < canvas.offsetLeft || y < canvas.offsetTop )
 			  continue;
 			if( ( x - canvas.offsetLeft ) > canvas.offsetWidth || ( y - canvas.offsetTop ) > canvas.offsetHeight )
@@ -206,7 +224,11 @@ function OpenServer()
 			x -= canvas.offsetLeft;
 			y -= canvas.offsetTop;
                      //console.log( "corrected xy = " + x + "," +  y );
+                     
+                     
 			last_mouse_down = render_list[n];
+                        
+                        
 			ws.send( JSON.stringify( 
 					{
                        	MsgID:15 /*PMID_Event_Mouse*/,
@@ -254,7 +276,14 @@ function OpenServer()
         
 	function HandleMessage( msg )
 	{
-     //console.log( "message:" + msg.MsgID );
+              /*
+        	if( ( msg.MsgID != 13 ) 
+                	&& ( msg.MsgID != 11 ) 
+                	&& ( msg.MsgID != 6 )  // makeimage
+                        && ( msg.MsgID != 7 )  // make sub image
+	        	)              
+		     console.log( "message:" + msg.MsgID );
+              */
      	switch( msg.MsgID )
         {
         case 0: // PMID_Version
@@ -265,28 +294,44 @@ function OpenServer()
         	break;
         case 3: // PMID_OpenDisplayAboveUnderSizedAt
            //ws.send(JSON.stringify(new Buffer(fs.readFileSync('./frame_border.png'), 'binary').toString('base64')));
-        	var canvas = document.getElementById("Render" + msg.data.server_render_id);
+           console.log( "looking for canvas:" + "sack.proxy.Render" + msg.data.server_render_id );
+        	var canvas = document.getElementById("sack.proxy.Render" + msg.data.server_render_id);
 
 			// IE doesn't have document.contains
-			if( 1 )//window.attachEvent || !document.contains( canvas ) )
+			if( !canvas )//window.attachEvent || !document.contains( canvas ) )
 			{
-				canvas = document.createElement('canvas');
-				canvas.tabindex = 1;
-				canvas.id     = "Render" + msg.data.server_render_id;
-				canvas.width  = msg.data.width;
-				canvas.height = msg.data.height;
-				canvas.style.zIndex   = 8;
-				canvas.style.position = "absolute";
-				canvas.style.border   = "1px solid";
-
+                        	var added = 0;
+                                if( msg.data.server_render_id == 0 )
+                                {
+	                                console.log( "check for " + canvas_name );
+					canvas = document.getElementById(canvas_name);//createElement('canvas');
+                                }
+                                if( !canvas )
+                                {
+                                	console.log( "creating new render" );
+                                	added = 1;
+                                	canvas = document.createElement('canvas')
+					canvas.tabindex = 1;
+					canvas.id     = "sack.proxy.Render" + msg.data.server_render_id;
+					canvas.width  = msg.data.width;
+					canvas.height = msg.data.height;
+					canvas.style.zIndex   = 8;
+					canvas.style.position = "relative";
+					canvas.style.border   = "1px solid";
+                                        console.log( "adding " + canvas.id );
+					document.body.appendChild(canvas);
+        			}
+                                else
+                                	if( canvas.tabindex == 0 )
+	                                        canvas.tabindex = 1;
 				canvas.addEventListener("mousedown", mousedown, false);
 				canvas.addEventListener("mouseup", mouseup, false);
 				canvas.addEventListener("mousemove", mousemove, false);
 				document.addEventListener("keydown", keydown, false);
 				document.addEventListener("keyup", keyup, false);
 			
-				document.body.appendChild(canvas);
 				render_list.push( render = new render_surface( msg.data.server_render_id, canvas ) );
+                                render.added = added;
 				var i;
 				for( i = 0; i < image_list.length; i++ )
 				{
@@ -300,17 +345,38 @@ function OpenServer()
 			}
 			else
 			{
-				//console.log( "render already exists:" + render_list.length );
+				console.log( "render already exists:" + render_list.length );
 				if( find_render( msg.data.server_render_id ) == null )
 				{
-				    //console.log( "Internal tracking didn't have the control." );
+				    console.log( "Internal tracking didn't have the control." );
+				canvas.addEventListener("mousedown", mousedown, false);
+				canvas.addEventListener("mouseup", mouseup, false);
+				canvas.addEventListener("mousemove", mousemove, false);
+				document.addEventListener("keydown", keydown, false);
+				document.addEventListener("keyup", keyup, false);
 					render_list.push( render = new render_surface( msg.data.server_render_id, canvas ) );
 				}
 			}
 	        break;
 	        case 4: // PMID_CloseDisplay
-        		var canvas = document.getElementById("Render" + msg.data.server_render_id);
-        		document.body.removeChild( canvas );
+                	var render = find_render( msg.data.server_render_id );
+                        if( !render )
+                        {
+	                        console.log( "already closed?" );
+        	                break;
+                        }
+                        if( render.added )
+                        {
+                        console.log( "try remove : " + render.canvas.id );
+				document.body.removeChild( render.canvas );
+                        }
+                        else
+                        {
+				var ctx= render.canvas.getContext("2d");
+                                ctx.clearRect(0, 0, render.canvas.width, render.canvas.height );
+                        }       
+                        remove_render( render );
+                        //render_list.pop( render );
 	        	break;
 		case 6: // PMID_MakeImage
 			var canvas = null;
@@ -320,7 +386,7 @@ function OpenServer()
 			{
 				image.image = new Image();
 			}
-                     //console.log( "image made is " + msg.data.server_image_id + " and render " + msg.data.server_render_id );
+                    console.log( "image made is " + msg.data.server_image_id + " and render " + msg.data.server_render_id );
 			image.server_render_id = msg.data.server_render_id;
 			image.server_id = msg.data.server_image_id;
 			image.width = msg.data.width;
@@ -330,7 +396,7 @@ function OpenServer()
 		case 7: // PMID_MakeSubImage
 			image_list.push( image = new proxy_image() );
 			image.server_id = msg.data.server_image_id;
-                     //console.log( "subimage made is " + msg.data.server_image_id + " on " + msg.data.server_parent_image_id + " At " + msg.data.x + "," + msg.data.y+" by " + msg.data.width + "," + msg.data.height);
+                    console.log( "subimage made is " + msg.data.server_image_id + " on " + msg.data.server_parent_image_id + " At " + msg.data.x + "," + msg.data.y+" by " + msg.data.width + "," + msg.data.height);
 			image.x = msg.data.x;
 			image.y = msg.data.y;
 			image.width = msg.data.width;
@@ -383,7 +449,7 @@ function OpenServer()
 				ofs_y += parent_image.y;
 				parent_image = parent_image.parent;
 			}
-        	    //console.log( "render id is " + parent_image.server_id + " + " + msg.data.server_image_id );
+        	    //console.log( "render id is " + parent_image.renderer.canvas.id + "   " + parent_image.server_id + " + " + msg.data.server_image_id );
 			render = parent_image.renderer;
 			var ctx= render.canvas.getContext("2d");
 			ctx.fillStyle=msg.data.color;
@@ -391,11 +457,12 @@ function OpenServer()
 			break;
 		case 10: // PMID_ImageData
 			image = find_image( msg.data.server_image_id );	
-		    //console.log( "Updated image source.... "  + msg.data.server_image_id );
+		    console.log( "Updated image source.... "  + msg.data.server_image_id );
                         //{
 			//if( image.on_document )
 			//	document.body.removeChild(image.image);
                         //}
+                        if( image.image )
 			image.image.src = msg.data.data;
                         //{
 			//  image.on_document = true;
@@ -410,6 +477,7 @@ function OpenServer()
 			ofs_y = 0;
 			ofs_xs = 0;
 			ofs_ys = 0;
+                console.log( "source image is " + src_image + " + " + msg.data.server_image_id  + " " + msg.data.x + "," + msg.data.y );
 			while( parent_image.parent != null )
 			{
 				ofs_x += parent_image.x;
@@ -419,12 +487,18 @@ function OpenServer()
 			
 			while( parent_src_image.parent != null )
 			{
+                           //console.log( "image step to " + parent_src_image.parent.server_id );
 				ofs_xs += parent_src_image.x;
 				ofs_ys += parent_src_image.y;
 				parent_src_image = parent_src_image.parent;
 			}
+                        if( parent_src_image.image == null )
+                        {
+                            console.log( "blot from render to image; not supported." + parent_src_image.image + " " + parent_src_image.server_id + " " + msg.data.server_image_id );
+                        	break;
+                        }
 			render = parent_image.renderer;
-			//console.log( "direct image " + msg.data.image_id + " " + parent_src_image  + " render " + parent_image.renderer + "of image " + parent_image.server_id + " imagesrc " + parent_src_image.image) ;
+		    //console.log( "direct image " + msg.data.image_id + " " + parent_src_image  + " render " + parent_image.renderer + "of image " + parent_image.server_id + " imagesrc " + parent_src_image.image) ;
 			var ctx= render.canvas.getContext("2d");
 
 			switch( msg.data.orientation )
@@ -470,15 +544,26 @@ function OpenServer()
 			{
 				ofs_xs += parent_src_image.x;
 				ofs_ys += parent_src_image.y;
+                                if( parent_src_image.parent == parent_src_image)
+                                {
+                                   console.log( "broken image " + msg.data.image_id + " " + parent_src_image.image_id );
+                                   break;
+                                }
 				parent_src_image = parent_src_image.parent;
 			}
 			
+                        if( !parent_src_image.image )
+                        {
+                        	console.log( "scaled blot from render to image; not supported." 
+                                		+ parent_src_image.render_id );
+                        	break;
+                        }
 			render = parent_image.renderer;
-			//console.log( "scaled image " + msg.data.image_id + " " + parent_src_image  + " render " + parent_image.renderer + "of image " + parent_image.server_id + " imagesrc " + parent_src_image.image) ;
+		    //console.log( "scaled image " + msg.data.image_id + " " + parent_src_image.image  + " render " + parent_image.renderer + "of image " + parent_image.server_id + " imagesrc " + parent_src_image.image) ;
                         
 			var ctx= render.canvas.getContext("2d");
 			//source_image = find_image( msg.data.image_id );
-                        
+					                        
 			ctx.drawImage( parent_src_image.image
 				, ofs_xs + msg.data.xs, ofs_ys + msg.data.ys 
 				, msg.data.ws, msg.data.hs
@@ -509,12 +594,20 @@ function OpenServer()
 			ctx.stroke();
 			break;
 		case 17: // PMID_Flush_Draw
+                     console.log( "Flush draws on " + msg.data.server_render_id );
+                       // consider enable mouse send here?
                 	window.requestAnimationFrame(step)
+                        ws.send( JSON.stringify( { MsgID: 26 /* PMID_Event_Flush_Finished */ 
+					       , data: {
+							server_render_id:msg.data.server_render_id
+                                                      }
+                                                  }
+                                ) );
                 	break;
                 case 25 : // PMID_DawBlockBegin
                 	
                                dataStart = msg.data.data.indexOf(",") + 1;
-                               //console.log( "string is " + msg.data.data.substring(dataStart) );
+                            //console.log( "string is " + msg.data.data.substring(dataStart) );
                                bytes = atob( msg.data.data.substring(dataStart) );
                                
                                var i;
@@ -525,15 +618,16 @@ function OpenServer()
                                for (i = 0; i < bytes.length; i++)
 				 dataArray[i] = bytes.charCodeAt(i);
 
-                               //console.log( "bytes is " + bytes.length + dataArray );
+                            //console.log( "bytes is :" + bytes.length + dataArray );
 	                        var inflate = new Zlib.Inflate(dataArray);
                                 var output = inflate.decompress();
                                 
                                 var str = "";
 				for(var i = 0; i < output.length; i += 1) {
-			       		str += String.fromCharCode(output[i]);
+      			       		str += String.fromCharCode(output[i]);
 				}
-                                //console.log( "success? " + str );
+                            //console.log( "lengths " + output.length + " and " + msg.data.length );
+                            //console.log( "success? " + str );
                                 
 		        	var msg = JSON.parse(str);
 		       		//console.log( "msg " + msg );
@@ -558,8 +652,7 @@ function OpenServer()
 	
      ws.onmessage = function (evt) 
      { 
-		//console.log( evt.data );
-                //console.log( "message : " + evt.data );
+            //console.log( "message : " + evt.data );
         	var msg = JSON.parse(evt.data);
         
 		if(  Object.prototype.toString.call(msg) === '[object Array]' )
@@ -576,7 +669,19 @@ function OpenServer()
         // websocket is closed.
         //alert("Connection is closed... (closing window)" + evt.data ); 
       	for (var i = 0; i < render_list.length; i++) {
-               	document.body.removeChild( render_list[i].canvas );
+        	if( render_list[i].added )
+	               	document.body.removeChild( render_list[i].canvas );
+                else
+                {
+			render = render_list[i];
+			var ctx= render.canvas.getContext("2d");
+			ctx.clearRect(0, 0, render.canvas.width, render.canvas.height );
+				render.canvas.removeEventListener("mousedown", mousedown, false);
+				render.canvas.removeEventListener("mouseup", mouseup, false);
+				render.canvas.removeEventListener("mousemove", mousemove, false);
+				document.removeEventListener("keydown", keydown, false);
+				document.removeEventListener("keyup", keyup, false);
+                }
         }
        
      };

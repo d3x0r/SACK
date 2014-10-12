@@ -60,28 +60,100 @@ PSI_PROC( void, SimpleMessageBox )( PCOMMON parent, CTEXTSTR title, CTEXTSTR con
 
 int SimpleUserQuery( TEXTSTR result, int reslen, CTEXTSTR question, PCOMMON pAbove )
 {
-	PCOMMON pf, pc;
-	PCONTROL edit;
+	return SimpleUserQueryEx( result, reslen, question, pAbove, NULL, 0 );
+}
+
+struct user_query_info{
+	PSI_CONTROL pf; // frame
+	PSI_CONTROL edit;
+	int Done;
+	int Okay;
+	void (CPROC*query_success)(PTRSZVAL,LOGICAL);
+	PTRSZVAL query_user_data;
+	TEXTSTR result;
+	int reslen;
+};
+
+static void query_success_trigger( void )
+{
+	//struct user_query_info *query_state = (struct user_query_info*)GetCommonUserData( pc );
+
+}
+
+static void CPROC OkayClicked( PTRSZVAL psv, PSI_CONTROL pc )
+{
+	struct user_query_info *query_state = (struct user_query_info *)psv;
+	query_state->Okay = 1;
+	query_state->Done = 1;
+	GetControlText( query_state->edit, query_state->result, query_state->reslen );
+	if( query_state->query_success )
+	{
+		query_state->query_success( query_state->query_user_data, TRUE );
+	}
+	Release( query_state->result );
+	Release( query_state );
+}
+
+static void CPROC CancelClicked( PTRSZVAL psv, PSI_CONTROL pc )
+{
+	struct user_query_info *query_state = (struct user_query_info *)psv;
+	query_state->Done = 1;
+	if( query_state->query_success )
+	{
+		query_state->query_success( query_state->query_user_data, FALSE );
+
+	}
+	DestroyFrame( &query_state->pf );
+	Release( query_state->result );
+	Release( query_state );
+}
+
+int SimpleUserQueryEx( TEXTSTR result, int reslen, CTEXTSTR question, PSI_CONTROL pAbove, void (CPROC*query_success_callback)(PTRSZVAL, LOGICAL), PTRSZVAL query_user_data )
+{
+	PSI_CONTROL pf, pc;
+	struct user_query_info *query_state = New( struct user_query_info );
 	S_32 mouse_x, mouse_y;
 
-	int Done = FALSE, Okay = FALSE;
+	//int Done = FALSE, Okay = FALSE;
 	pf = CreateFrame( NULL, 0, 0, 280, 65, 0, pAbove );
+	SetCommonUserData( pf, (PTRSZVAL)query_state );
+	query_state->pf = pf;
+	query_state->Done = FALSE;
+	query_state->Okay = FALSE;
+	query_state->result = result;
+	query_state->reslen = reslen;
 	pc = MakeTextControl( pf, 5, 2, 320, 18, TXT_STATIC, question, TEXT_NORMAL );
 
-	edit = MakeEditControl( pf, 5, 23, 270, 14, TXT_STATIC, NULL, 0 );
-	AddCommonButtons( pf, &Done, &Okay );
+	query_state->edit = MakeEditControl( pf, 5, 23, 270, 14, TXT_STATIC, NULL, 0 );
+	AddCommonButtons( pf, &query_state->Done, &query_state->Okay );
+	SetButtonPushMethod( GetControl( pf, IDOK ), OkayClicked, (PTRSZVAL)query_state );
+	SetButtonPushMethod( GetControl( pf, IDCANCEL ), CancelClicked, (PTRSZVAL)query_state );
 	GetMousePosition( &mouse_x, &mouse_y );
 	MoveFrame( pf, mouse_x - 140, mouse_y - 30 );
-	SetCommonFocus( edit );
+	SetCommonFocus( query_state->edit );
 	lprintf( WIDE("Show query....") );
 	DisplayFrame( pf );
-	CommonWait( pf );
-	if( Okay )
+
+	if( !query_success_callback )
 	{
-		GetControlText( edit, result, reslen );
+		int okay;
+		CommonWait( pf );
+		if( query_state->Okay )
+		{
+			GetControlText( query_state->edit, result, reslen );
+		}
+		DestroyFrame( &pf );
+		okay = query_state->Okay;
+		Release( query_state );
+		return okay;
 	}
-	DestroyFrame( &pf );
-	return Okay;
+	else
+	{
+		query_state->query_success = query_success_callback;
+		query_state->query_user_data = query_user_data;
+		return 0;
+	}
+
 }
 
 void RegisterResource( CTEXTSTR appname, CTEXTSTR resource_name, int resource_name_id, int resource_name_range, CTEXTSTR type_name )

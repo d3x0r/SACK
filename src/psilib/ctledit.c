@@ -85,7 +85,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 		{
 			_32 w, h;
 			GetStringSizeFontEx( WIDE("*"), 1, &w, &h, font );
-			for( n= 0; n < pe->nCaptionUsed; n++ )
+			for( n= 0; n <= pe->nCaptionUsed; n++ )
 			{
 				stringsize[n] = w * n;
 			}
@@ -280,6 +280,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
 		//cx = ( x - LEFT_SIDE_PAD ) / characters...
 		// so given any font - variable size, we have to figure out which
 		// character is on this line...
+		if( len > pe->Start )
 		for( cx = 1; ( cx <= ( len - pe->Start ) ); cx++ )
 		{
 			if( GetStringSizeFontEx( caption_text + pe->Start, cx, &width, NULL, font ) )

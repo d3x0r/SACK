@@ -1600,6 +1600,7 @@ struct render_interface_tag
        enable owning the screen... (media player) */
       RENDER_PROC_PTR( void, SuspendSystemSleep )( int bool_suspend_enable );
 	RENDER_PROC_PTR( LOGICAL, RenderIsInstanced )( void );
+	RENDER_PROC_PTR( LOGICAL, VidlibRenderAllowsCopy )( void );
 };
 
 #ifdef DEFINE_DEFAULT_RENDER_INTERFACE
@@ -1683,7 +1684,8 @@ typedef int check_this_variable;
 #define SetMouseHandler           REND_PROC_ALIAS(SetMouseHandler)
 #define SetHideHandler           REND_PROC_ALIAS(SetHideHandler)
 #define SetRestoreHandler           REND_PROC_ALIAS(SetRestoreHandler)
-#define AllowsAnyThreadToUpdate           REND_PROC_ALIAS(AllowsAnyThreadToUpdate)
+#define AllowsAnyThreadToUpdate()          ((USE_RENDER_INTERFACE)?((USE_RENDER_INTERFACE)->_AllowsAnyThreadToUpdate)?(USE_RENDER_INTERFACE)->_AllowsAnyThreadToUpdate():1:1)
+#define VidlibRenderAllowsCopy()        ((USE_RENDER_INTERFACE)?((USE_RENDER_INTERFACE)->_VidlibRenderAllowsCopy)?(USE_RENDER_INTERFACE)->_VidlibRenderAllowsCopy():1:1)
 #ifndef __LINUX__
 #define SetTouchHandler           REND_PROC_ALIAS(SetTouchHandler)
 #endif
@@ -1836,9 +1838,22 @@ typedef int check_this_variable;
 	struct display_app;
 	struct display_app_local;
 
+	// static void OnDisplayConnect( WIDE("") )( struct display_app*app, struct display_app_local ***pppLocal )
+	//  app is a unique handle to the display instance.  Can be used as a key to locate resources for the display 
+	//  pppLocal is ... ugly.  
+	//  ThreadLocal struct instance_local *_thread_local;
+	//  static void OnDisplayConnect( WIDE("") )( struct display_app*app, struct display_app_local ***pppLocal )
+	//  {
+	//    	_thread_local = New( struct instance_local );
+	//      MemSet( option_thread, 0, sizeof( option_thread ) );
+	//      (*local) = (struct display_app_local**)&option_thread;
+	//       //... init local here
+	//  }
+	//
 #define OnDisplayConnect(name) \
 	__DefineRegistryMethod(WIDE("/sack/render/remote display"),OnDisplayConnect,WIDE("connect"),name,WIDE("new_display_connect"),void,(struct display_app*app, struct display_app_local ***),__LINE__)
 
+	// unimplemented.
 #define OnDisplayConnected(name) \
 	__DefineRegistryMethod(WIDE("/sack/render/remote display"),OnDisplayConnect,WIDE("connect"),name,WIDE("new_display_connected"),void,(struct display_app*app),__LINE__)
 

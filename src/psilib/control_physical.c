@@ -115,8 +115,8 @@ static void CPROC FrameRedraw( PTRSZVAL psvFrame, PRENDERER psvSelf )
 	_32 update = 0;
 	PSI_CONTROL pc;
 	//lprintf( WIDE("frame %p"), pf );
-		
 	pc = pf->common;
+	//ResetImageBuffers( pc->Window );
 	if( !pc ) // might (and probalby isn't) attached to anything yet.
 	{
 #ifdef DEBUG_UPDAATE_DRAW
@@ -240,7 +240,8 @@ static void CPROC FrameRedraw( PTRSZVAL psvFrame, PRENDERER psvSelf )
 				}
 			}
 			while( updated );
-			g.flags.sent_redraw = 0;
+			//lprintf( WIDE("done with with receiving sent redraw") );
+			pf->flags.sent_redraw = 0;
 		}
 		else
 		{

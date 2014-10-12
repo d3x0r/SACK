@@ -61,16 +61,16 @@ typedef struct global_tag
 		BIT_FIELD bLogSuperDetailedMouse : 1;
 		BIT_FIELD bLogKeyEvents : 1;
 		BIT_FIELD allow_threaded_draw : 1;
-		BIT_FIELD sent_redraw : 1; // stops sending multiple redraw events....
 		BIT_FIELD system_color_set : 1; // don't use fancy border... unless it's also set externally
+		BIT_FIELD allow_copy_from_render : 1;
 	} flags;
 	CDATA *defaultcolors;
 	S_32 BorderWidth;
 	S_32 BorderHeight;
 	Image BorderImage;
 	Image BorderSegment[9]; // really 8, but symetry is kept
-   Image StopButton;
-   Image StopButtonPressed;
+	Image StopButton;
+	Image StopButtonPressed;
 	PLIST shown_frames;
 	SFTFont default_font;
 }PSI_GLOBAL;

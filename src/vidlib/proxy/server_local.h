@@ -50,6 +50,11 @@ typedef struct vidlib_proxy_renderer
 	struct vidlib_proxy_renderer_flags
 	{
 		BIT_FIELD hidden : 1;
+		BIT_FIELD doing_redraw : 1;
+		BIT_FIELD did_first_mouse : 1;
+		BIT_FIELD pending_mouse : 1;
+		BIT_FIELD consume_mouse : 1;  // set to consume mouse events... otherwise we have to dispatch them.
+		BIT_FIELD closed : 1;
 	} flags;
 	INDEX id;
 	MouseCallback mouse_callback;
@@ -58,6 +63,9 @@ typedef struct vidlib_proxy_renderer
 	PTRSZVAL psv_key_callback;
 	RedrawCallback redraw;
 	PTRSZVAL psv_redraw;
+	_32 _b;
+	S_32 mouse_x, mouse_y;
+
 } *PVPRENDER;
 
 struct server_proxy_client
@@ -79,6 +87,7 @@ struct vidlib_proxy_local
 	PLIST messages;   // json message formats
 	PIMAGE_INTERFACE real_interface;
 	_8 key_states[256];
+	struct vidlib_proxy_renderer *focused;
 	CRITICALSECTION message_formatter;
 } l;
 

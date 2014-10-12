@@ -129,6 +129,11 @@ PREFIX_PACKED struct mouse_event_data
 	_32 b;
 } PACKED;
 
+PREFIX_PACKED struct flush_event_data
+{
+	PTRSZVAL server_render_id;
+} PACKED;
+
 PREFIX_PACKED struct move_image_data
 {
 	PTRSZVAL server_render_id;
@@ -166,6 +171,7 @@ PREFIX_PACKED struct common_message {
 		struct blot_scaled_image_data blot_scaled_image;
 		struct line_data line;
 		struct mouse_event_data mouse_event;
+		struct flush_event_data flush_event;
 		struct key_event_data key_event;
 		struct unmake_image_data unmake_image;
 		struct close_display_data close_display;
@@ -222,7 +228,8 @@ enum proxy_message_id{
 							, PMID_TransferSubImages // 22 just allow the client to do the full moves instead of peices and parts.
 							, PMID_ImageDataFrag // 23 - transfer local image data to client
 							, PMID_ImageDataFragMore // 24 - transfer local image data to client
-							, PMID_DrawBlock
+							, PMID_DrawBlock   // 25 - this is a compressed block of an array of draw commands
+							, PMID_Event_Flush_Finished // 26 - response from server when flush is handled (flush mouse)
 							, PMID_
 
 							, PMID_LAST_PROXY_MESSAGE

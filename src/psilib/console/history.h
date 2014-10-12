@@ -17,7 +17,7 @@ PSI_CONSOLE_NAMESPACE
 #define STRUC_PREFIX(n) n
 #endif
 
-typedef void (CPROC *MeasureString )( PTRSZVAL /*PCONSOLE_INFO*/ console, CTEXTSTR s, int nShow, _32 *w, _32 *h );
+typedef void (CPROC *MeasureString )( PTRSZVAL /*PCONSOLE_INFO*/ console, CTEXTSTR s, int nShow, _32 *w, _32 *h, SFTFont font );
 	
 typedef struct STRUC_PREFIX(history_line_tag) TEXTLINE, *PTEXTLINE;
 typedef struct STRUC_PREFIX(history_block_link_tag) HISTORY_BLOCK_LINK, *PHISTORY_BLOCK_LINK;
@@ -72,6 +72,7 @@ int FixCommandCursor( PHISTORY_BROWSER pht, PUSER_INPUT_BUFFER CommandInfo
 int GetCursorLine( PHISTORY_LINE_CURSOR cursor );
 
 int GetCommandCursor( PHISTORY_BROWSER phbr
+					 , SFTFont font
 						  , PUSER_INPUT_BUFFER CommandInfo
 						  , int bEndOfStream
 						, int bWrapCommand
@@ -103,11 +104,10 @@ int MoveHistoryCursor( PHISTORY_BROWSER phbr, int amount );
 
 _32 ComputeNextOffset( PTEXT segment, _32 nShown );
 //int ComputeToShow( _32 cols, PTEXT segment, int nOfs, int nShown );
-_32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nOfs, _32 nShown, PHISTORY_BROWSER phbr );
-int CountLinesSpanned( PHISTORY_BROWSER phb, PTEXT countseg );
-int SkipSomeLines( PHISTORY_BROWSER phb, PTEXT countseg, int lines );
+_32 ComputeToShow( _32 colsize, _32 *col_offset, PTEXT segment, _32 nLen, _32 nOfs, _32 nShown, PHISTORY_BROWSER phbr, SFTFont font );
+int CountLinesSpanned( PHISTORY_BROWSER phb, PTEXT countseg, SFTFont font );
 
-CORECON_PROC( void, BuildDisplayInfoLines )( PHISTORY_BROWSER phlc );
+CORECON_PROC( void, BuildDisplayInfoLines )( PHISTORY_BROWSER phlc, SFTFont font );
 
 
 #ifdef __DEKWARE_PLUGIN__
@@ -124,7 +124,7 @@ CORECON_PROC( PDATALIST *,GetDisplayInfo )( PHISTORY_BROWSER phbr );
 void GetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, PS_32 x, PS_32 y );
 void SetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, S_32 x, S_32 y );
 void PSI_SetHistoryPageLines( PHISTORY_BROWSER phbr, _32 nLines );
-_32 GetBrowserDistance( PHISTORY_BROWSER phbr );
+_32 GetBrowserDistance( PHISTORY_BROWSER phbr, SFTFont font );
 void ResetHistoryBrowser( PHISTORY_BROWSER phbr );
 CORECON_PROC( int, CountDisplayedLines) ( PHISTORY_BROWSER phbr );
 
