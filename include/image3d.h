@@ -39,7 +39,7 @@ typedef struct image_3d_interface_tag
 	IMAGE_PROC_PTR( void, SetShaderAppendTristrip )( PImageShaderTracker tarcker, void (CPROC*AppendTristrip)( PImageShaderTracker tracker, int triangles,PTRSZVAL,va_list args ) );
 	// same parameters as the enable...
 	IMAGE_PROC_PTR( void, AppendShaderTristrip )( PImageShaderTracker tracker, int triangles, ... );
-	IMAGE_PROC_PTR( void, SetShaderFlush )( PImageShaderTracker tarcker, void (CPROC*Flush)( PImageShaderTracker tracker, PTRSZVAL ) );
+	IMAGE_PROC_PTR( void, SetShaderFlush )( PImageShaderTracker tarcker, void (CPROC*Flush)( PImageShaderTracker tracker, PTRSZVAL, PTRSZVAL, int, int ) );
 
 
 } IMAGE_3D_INTERFACE, *PIMAGE_3D_INTERFACE;
