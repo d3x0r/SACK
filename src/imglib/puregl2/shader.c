@@ -71,10 +71,26 @@ void FlushShaders( struct glSurfaceData *glSurface )
 {
 	struct image_shader_op *op;
 	INDEX idx;
+	int depth_enabled = 0;
 	LIST_FORALL( glSurface->shader_local.shader_operations, idx, struct image_shader_op *, op )
 	{
 		lprintf( WIDE( "Shader %") _string_f WIDE( " %d -> %d  %d" ), op->tracker->name, op->from, op->to, op->to - op->from );
-
+		if( op->depth_enabled )
+		{
+			if( !depth_enabled )
+			{
+				depth_enabled = 1;
+				glEnable( GL_DEPTH_TEST );
+			}
+		}
+		else
+		{
+			if( depth_enabled )
+			{
+				depth_enabled = 0;
+				glDisable( GL_DEPTH_TEST );
+			}
+		}
 		if( op->tracker->Flush )
 			op->tracker->Flush( op->tracker, op->tracker->psv_userdata, op->psvKey, op->from, op->to );
 		Release( op );
@@ -464,7 +480,9 @@ static void ExpandShaderBuffer( struct shader_buffer *buffer )
 // and how much of those shaders are used in order...
 void AppendShaderData( PImageShaderTracker tracker, PTRSZVAL psvKey, struct shader_buffer *buffer, float *data )
 {
-	//lprintf( WIDE("append to %p %p"), tracker, psvKey );
+	GLboolean depth_value;
+	glGetBooleanv( GL_DEPTH_TEST, &depth_value );
+	//lprintf( WIDE("append to %p %p  %d"), tracker, psvKey, depth_value );
 	if( !l.glActiveSurface->shader_local.last_operation )
 	{
 		l.glActiveSurface->shader_local.last_operation = New( struct image_shader_op );
@@ -472,10 +490,13 @@ void AppendShaderData( PImageShaderTracker tracker, PTRSZVAL psvKey, struct shad
 		l.glActiveSurface->shader_local.last_operation->psvKey = psvKey;
 		l.glActiveSurface->shader_local.last_operation->from = 0;
 		l.glActiveSurface->shader_local.last_operation->to = 0;
+		l.glActiveSurface->shader_local.last_operation->depth_enabled = depth_value;
 		AddLink( &l.glActiveSurface->shader_local.shader_operations, l.glActiveSurface->shader_local.last_operation );
 	}
 	else if( l.glActiveSurface->shader_local.last_operation->tracker == tracker && 
-			 l.glActiveSurface->shader_local.last_operation->psvKey == psvKey )
+			 l.glActiveSurface->shader_local.last_operation->psvKey == psvKey && 
+			 l.glActiveSurface->shader_local.last_operation->depth_enabled == depth_value
+			 )
 	{
 		// last operation is just being extended.
 	}
@@ -495,6 +516,7 @@ void AppendShaderData( PImageShaderTracker tracker, PTRSZVAL psvKey, struct shad
 		l.glActiveSurface->shader_local.last_operation->psvKey = psvKey;
 		l.glActiveSurface->shader_local.last_operation->from = found_use?found_use->to : 0;
 		l.glActiveSurface->shader_local.last_operation->to = found_use?found_use->to : 0;
+		l.glActiveSurface->shader_local.last_operation->depth_enabled = depth_value;
 		AddLink( &l.glActiveSurface->shader_local.shader_operations, l.glActiveSurface->shader_local.last_operation );
 	}
 	if( buffer->used == buffer->avail )
