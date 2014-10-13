@@ -84,6 +84,7 @@ struct image_shader_op
 	PTRSZVAL psvKey;
 	int from;
 	int to;
+	int depth_enabled;
 };
 
 PImageShaderTracker CPROC GetShader( CTEXTSTR name, PTRSZVAL (*)(PImageShaderTracker,PTRSZVAL) );
