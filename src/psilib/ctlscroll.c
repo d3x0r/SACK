@@ -362,7 +362,7 @@ static void CPROC DrawLeftButton( PTRSZVAL psv, PCONTROL pc )
 	if( surface )
 	{
 		int cx = pc->surface_rect.width/2
-	, cy = pc->surface_rect.height/2;
+			, cy = pc->surface_rect.height/2;
       // hmm hope clearimage uses a blatalpha..
       BlatColorAlpha( surface, 0, 0, surface->width, surface->height, basecolor(pc)[NORMAL] );
 		if( IsButtonPressed( pc ) )
