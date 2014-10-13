@@ -13,7 +13,7 @@
 #define CheckErr()  				{    \
 					GLenum err = glGetError();  \
 					if( err )                   \
-						lprintf( WIDE("err=%d (%s)"),err, gluErrorString( err ) ); \
+						lprintf( WIDE("err=%d (%") _cstring_f WIDE(")"),err, gluErrorString( err ) ); \
 				}                               
 #define CheckErrf(f,...)  				{    \
 					GLenum err = glGetError();  \
@@ -41,6 +41,14 @@
 
 #include <image3d.h>
 
+struct shader_buffer {
+	float *data;
+	int dimensions;
+	int used;
+	int avail;
+	int expand_by;
+};
+
 IMAGE_NAMESPACE
 typedef struct image_shader_tracker ImageShaderTracker;
 
@@ -63,14 +71,15 @@ struct image_shader_tracker
 	int projection;
 	int worldview;
 	int modelview;
+	PTRSZVAL (CPROC*Init)( PImageShaderTracker, PTRSZVAL psv );
 	PTRSZVAL psv_userdata;
-   void (CPROC*Init)( PImageShaderTracker );
 	void (CPROC*Enable)( PImageShaderTracker,PTRSZVAL,va_list);
+	void (CPROC*AppendTristrip )( PImageShaderTracker,int triangles,PTRSZVAL,va_list);
+	void (CPROC*Flush)( PImageShaderTracker tracker, PTRSZVAL );
 };
 
 
-PImageShaderTracker CPROC GetShader( CTEXTSTR name, void (*)(PImageShaderTracker) );
-void CPROC  SetShaderEnable( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker, PTRSZVAL, va_list args ), PTRSZVAL psv );
+PImageShaderTracker CPROC GetShader( CTEXTSTR name, PTRSZVAL (*)(PImageShaderTracker,PTRSZVAL) );
 void CPROC SetShaderModelView( PImageShaderTracker tracker, RCOORD *matrix );
 
 int CPROC CompileShaderEx( PImageShaderTracker shader, char const *const *vertex_code, int vert_blocks, char const*const*frag_code, int frag_blocks, struct image_shader_attribute_order *, int nAttribs );
@@ -81,20 +90,32 @@ void CPROC EnableShader( PImageShaderTracker shader, ... );
 
 
 // verts and a single color
-void InitSuperSimpleShader( PImageShaderTracker tracker );
+PTRSZVAL InitSuperSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv );
 
 // verts, texture verts and a single texture
-void InitSimpleTextureShader( PImageShaderTracker tracker );
+PTRSZVAL InitSimpleTextureShader( PImageShaderTracker tracker, PTRSZVAL );
 
 // verts, texture_verts, texture and a single texture
-void InitSimpleShadedTextureShader( PImageShaderTracker tracker );
+PTRSZVAL InitSimpleShadedTextureShader( PImageShaderTracker tracker, PTRSZVAL psv );
 
 //
-void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker );
+PTRSZVAL InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker, PTRSZVAL psv );
 
 void DumpAttribs( PImageShaderTracker tracker, int program );
 
 void CloseShaders( struct glSurfaceData *glSurface );
+void FlushShaders( struct glSurfaceData *glSurface );
+
+struct shader_buffer *CreateBuffer( int dimensions, int start_size, int expand_by );
+void AppendShaderData( struct shader_buffer *buffer, float *data );
+
+void CPROC  SetShaderEnable( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker, PTRSZVAL, va_list args ) );
+void CPROC  SetShaderFlush( PImageShaderTracker tracker, void (CPROC*FlushShader)( PImageShaderTracker tracker, PTRSZVAL ) );
+void  SetShaderAppendTristrip( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker, int triangles, PTRSZVAL,va_list args ) );
+void AppendShaderTristripQuad( PImageShaderTracker tracker, ... );
+void AppendShaderTristrip( PImageShaderTracker tracker, int triangles, ... );
+
+
 
 IMAGE_NAMESPACE_END
 #endif

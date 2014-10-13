@@ -77,7 +77,7 @@ static void CPROC SimpleMultiShadedTextureEnable( PImageShaderTracker tracker, P
 	float *g_color = va_arg( args, float *);
 	float *b_color = va_arg( args, float *);
 
-	struct private_mst_shader_data *data = (struct private_mst_shader_data *)tracker->psv_userdata;
+	struct private_mst_shader_data *data = (struct private_mst_shader_data *)psv;
 
 	glEnableVertexAttribArray(0);	CheckErr();
 	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );  
@@ -108,15 +108,15 @@ static void CPROC SimpleMultiShadedTextureEnable( PImageShaderTracker tracker, P
 }
 
 
-void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
+PTRSZVAL InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker, PTRSZVAL psv_data )
 {
 	GLint result;
 	const char *v_codeblocks[2];
 	const char *p_codeblocks[2];
-	struct private_mst_shader_data *data = New( struct private_mst_shader_data );
+	struct private_mst_shader_data *data = (struct private_mst_shader_data *)psv_data;
 	struct image_shader_attribute_order attribs[] = { { 0, "vPosition" }, { 1, "in_TexCoord" } };
 
-	SetShaderEnable( tracker, SimpleMultiShadedTextureEnable, (PTRSZVAL)data );
+	SetShaderEnable( tracker, SimpleMultiShadedTextureEnable );
 
 	if( result = glGetError() )
 	{
@@ -129,6 +129,10 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 	p_codeblocks[1] = NULL;
 	if( CompileShaderEx( tracker, v_codeblocks, 1, p_codeblocks, 1, attribs, 2 ) )
 	{
+		if( !data )
+		{
+			data = New( struct private_mst_shader_data );
+		}
 		data->r_color_attrib = glGetUniformLocation(tracker->glProgramId, "multishade_r" );
 		CheckErr();
 		data->g_color_attrib = glGetUniformLocation(tracker->glProgramId, "multishade_g" );
@@ -139,6 +143,7 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 		CheckErr();
 		data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
 		CheckErr();
+		return (PTRSZVAL)data;
 	}
 }
 

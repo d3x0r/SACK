@@ -7,7 +7,7 @@
 
 IMAGE_NAMESPACE
 
-PImageShaderTracker GetShader( CTEXTSTR name, void (CPROC*Init)(PImageShaderTracker) )
+PImageShaderTracker GetShader( CTEXTSTR name, PTRSZVAL (CPROC*Init)(PImageShaderTracker,PTRSZVAL) )
 {
 	PImageShaderTracker tracker;
 	INDEX idx;
@@ -24,6 +24,8 @@ PImageShaderTracker GetShader( CTEXTSTR name, void (CPROC*Init)(PImageShaderTrac
 		MemSet( tracker, 0, sizeof( ImageShaderTracker ));
 		tracker->name = StrDup( name );
 		tracker->Init = Init;
+		if( tracker->Init )
+			tracker->psv_userdata = tracker->Init( tracker, tracker->psv_userdata );
 		//if( Init )
 		//	Init( tracker );
 		AddLink( &l.glActiveSurface->shaders, tracker );
@@ -32,12 +34,21 @@ PImageShaderTracker GetShader( CTEXTSTR name, void (CPROC*Init)(PImageShaderTrac
 	return NULL;
 }
 
+
 void  SetShaderEnable( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker, PTRSZVAL,va_list args ), PTRSZVAL psv )
 {
-	tracker->psv_userdata = psv;
 	tracker->Enable = EnableShader;
 }
 
+void  SetShaderAppendTristrip( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker, int triangles, PTRSZVAL,va_list args ) )
+{
+	tracker->AppendTristrip = EnableShader;
+}
+
+void CPROC  SetShaderFlush( PImageShaderTracker tracker, void (CPROC*FlushShader)( PImageShaderTracker tracker, PTRSZVAL ) )
+{
+	tracker->Flush = FlushShader;
+}
 
 void CloseShaders( struct glSurfaceData *glSurface )
 {
@@ -56,7 +67,16 @@ void CloseShaders( struct glSurfaceData *glSurface )
 	}
 }
 
-
+void FlushShaders( struct glSurfaceData *glSurface )
+{
+	PImageShaderTracker tracker;
+	INDEX idx;
+	LIST_FORALL( glSurface->shaders, idx, PImageShaderTracker, tracker )
+	{
+		if( tracker->Flush )
+			tracker->Flush( tracker, tracker->psv_userdata );
+	}
+}
 
 void ClearShaders( void )
 {
@@ -82,7 +102,7 @@ void EnableShader( PImageShaderTracker tracker, ... )
 			return;
 		}
 		if( tracker->Init )
-			tracker->Init( tracker );
+			tracker->psv_userdata = tracker->Init( tracker, tracker->psv_userdata );
 		if( !tracker->glProgramId )
 		{
 			lprintf( WIDE("Shader initialization failed to produce a program; marking shader broken so we don't retry") );
@@ -97,8 +117,8 @@ void EnableShader( PImageShaderTracker tracker, ... )
 
 	if( tracker->flags.set_modelview )
 	{
-		glUseProgram( tracker->glProgramId );
-		CheckErr();
+		//glUseProgram( tracker->glProgramId );
+		//CheckErr();
 		//lprintf( "Set modelview (identity)" );
 		glUniformMatrix4fv( tracker->modelview, 1, GL_FALSE, (float const*)VectorConst_I );
 		CheckErr();
@@ -129,6 +149,34 @@ void EnableShader( PImageShaderTracker tracker, ... )
 		tracker->Enable( tracker, tracker->psv_userdata, args );
 	}
 }
+
+
+void AppendShaderTristripQuad( PImageShaderTracker tracker, ... )
+{
+	if( !tracker )
+		return;
+
+	if( tracker->AppendTristrip )
+	{
+		va_list args;
+		va_start( args, tracker );
+		tracker->AppendTristrip( tracker, 2, tracker->psv_userdata, args );
+	}
+}
+
+void AppendShaderTristrip( PImageShaderTracker tracker, int triangles, ... )
+{
+	if( !tracker )
+		return;
+
+	if( tracker->AppendTristrip )
+	{
+		va_list args;
+		va_start( args, tracker );
+		tracker->AppendTristrip( tracker, triangles, tracker->psv_userdata, args );
+	}
+}
+
 
 
 static void SetupCommon( PImageShaderTracker tracker )
@@ -172,7 +220,7 @@ void DumpAttribs( PImageShaderTracker tracker, int program )
 
 		glGetActiveAttrib( program, n, 64, &length, &size, &type, tmp );
 		index = glGetAttribLocation(program, tmp );
-		lprintf( WIDE("attribute [%s] %d %d %d"), tmp, index, size, type );
+		lprintf( WIDE("attribute [%") _cstring_f WIDE("] %d %d %d"), tmp, index, size, type );
 	}
 
 	glGetProgramiv( program, GL_ACTIVE_UNIFORMS, &m );
@@ -183,7 +231,7 @@ void DumpAttribs( PImageShaderTracker tracker, int program )
 		int size;
 		unsigned int type;
 		glGetActiveUniform( program, n, 64, &length, &size, &type, tmp );
-		lprintf( WIDE("uniform [%s] %d %d"), tmp, size, type );
+		lprintf( WIDE("uniform [%")_cstring_f  WIDE("] %d %d"), tmp, size, type );
 	}
 }
 
@@ -249,7 +297,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 			glGetInfoLogARB(tracker->glVertexProgramId, length, &final, buffer);
 #endif
 			//Convert our buffer into a string.
-			lprintf( WIDE("message: (%d of %d)%s"),  final, length, buffer );
+			lprintf( WIDE("message: (%d of %d)%s"),  final, length, DupCStr(buffer) );
 
 
 			if (final > length)
@@ -353,14 +401,14 @@ int CompileShaderEx( PImageShaderTracker tracker
 	CheckErr();
 	SetupCommon( tracker );
 
-	//DumpAttribs( tracker, tracker->glProgramId );
+	DumpAttribs( tracker, tracker->glProgramId );
 	return tracker->glProgramId;
 }
 
 
 int CompileShader( PImageShaderTracker tracker, char const*const*vertex_code, int vertex_blocks, char const*const* frag_code, int frag_blocks )
 {
-   return CompileShaderEx( tracker, vertex_code, vertex_blocks, frag_code, frag_blocks, NULL, 0 );
+	return CompileShaderEx( tracker, vertex_code, vertex_blocks, frag_code, frag_blocks, NULL, 0 );
 }
 
 void SetShaderModelView( PImageShaderTracker tracker, RCOORD *matrix )
@@ -375,6 +423,46 @@ void SetShaderModelView( PImageShaderTracker tracker, RCOORD *matrix )
 
 		//tracker->flags.set_modelview = 1;
 	}
+}
+
+struct shader_buffer *CreateBuffer( int dimensions, int start_size, int expand_by )
+{
+	struct shader_buffer *buffer = New( struct shader_buffer );
+	if( !start_size )
+		start_size = 16;
+	if( !dimensions )
+		dimensions = 3;
+	buffer->used = 0;
+	buffer->dimensions = dimensions;
+	buffer->avail = start_size;
+	buffer->expand_by = expand_by;
+	buffer->data = NewArray( float, buffer->dimensions * buffer->avail );
+	return buffer;
+}
+
+void ExpandShaderBuffer( struct shader_buffer *buffer )
+{
+	float *newbuf;
+	int new_size;
+	if( buffer->expand_by )
+		new_size = buffer->avail + buffer->expand_by;
+	else
+		new_size = buffer->avail * 2;
+	newbuf = NewArray( float, buffer->dimensions * new_size );
+	MemCpy( newbuf, buffer->data, sizeof( float ) * buffer->dimensions * buffer->avail );
+	Release( buffer->data );
+	buffer->avail = new_size;
+	buffer->data = newbuf;
+}
+
+void AppendShaderData( struct shader_buffer *buffer, float *data )
+{
+	if( buffer->used == buffer->avail )
+		ExpandShaderBuffer( buffer );
+	MemCpy( buffer->data + buffer->dimensions * buffer->used
+			, data
+			, sizeof( float ) * buffer->dimensions );
+	buffer->used++;
 }
 
 IMAGE_NAMESPACE_END

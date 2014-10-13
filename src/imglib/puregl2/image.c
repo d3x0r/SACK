@@ -161,8 +161,8 @@ static void OnClose3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psvInit )
 	struct glSurfaceData *glSurface = (struct glSurfaceData *)psvInit;
 	//lprintf( WIDE("cleaning up shaders here...") );
 	CloseShaders( glSurface );
-   //lprintf( WIDE("and we release textures; so they can be recreated") );
-   ReleaseTextures( glSurface );
+	//lprintf( WIDE("and we release textures; so they can be recreated") );
+	ReleaseTextures( glSurface );
 }
 
 static void OnBeginDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psvInit, PTRANSFORM camera )
@@ -170,13 +170,18 @@ static void OnBeginDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psvIni
 	l.glActiveSurface = (struct glSurfaceData *)psvInit;
 	l.glImageIndex = l.glActiveSurface->index;
 	l.camera = camera;
-   //PrintMatrixEx( "camera", (POINTER)camera DBG_SRC );
+	//PrintMatrixEx( "camera", (POINTER)camera DBG_SRC );
 	l.flags.projection_read = 0;
 	l.flags.worldview_read = 0;
    // reset matrix settings
 	ClearShaders();
 }
 
+static void OnDraw3d( WIDE( "@00 PUREGL Image Library" ) )( PTRSZVAL psvInit )
+{
+	struct glSurfaceData *glSurface = (struct glSurfaceData *)psvInit;
+	FlushShaders( glSurface );
+}
 
 int ReloadOpenGlTexture( Image child_image, int option )
 {
@@ -444,10 +449,10 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 		scale( v[vi][2], v[vi][2], l.scale );
 		scale( v[vi][3], v[vi][3], l.scale );
 
-		EnableShader( l.simple_shader, v[vi], _color );
-		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+		AppendShaderTristripQuad( l.simple_shader, v[vi], _color );
+		//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 		CheckErr();
-      if( 0)
+		if( 0)
 		{
 			int n;
 			for( n = 0; n < 4; n++ )
@@ -461,7 +466,7 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 		// start at origin on destination....
 		if( pifDest->flags & IF_FLAG_INVERTED )
 			oo = 4*( (-(S_32)w) - pifDest->pwidth);     // w is how much we can copy...
-      else
+		else
 			oo = 4*(pifDest->pwidth - w);     // w is how much we can copy...
 		po = IMG_ADDRESS(pifDest,x,y);
 		//oo = 4*(pifDest->pwidth - w);     // w is how much we can copy...
@@ -570,9 +575,9 @@ void  BlatColorAlpha ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color 
 		scale( v[vi][2], v[vi][2], l.scale );
 		scale( v[vi][3], v[vi][3], l.scale );
 
-		EnableShader( GetShader( WIDE("Simple Shader"), NULL ), v[vi], _color );
-		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
-		CheckErr();
+		AppendShaderTristripQuad( GetShader( WIDE("Simple Shader"), NULL ), v[vi], _color );
+		//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+		//CheckErr();
 	}
 	else
 	{

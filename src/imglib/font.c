@@ -553,12 +553,12 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 #  ifdef PURE_OPENGL2_ENABLED
 			if( background )
 			{
-				EnableShader( GetShader( WIDE("Simple Shader"), NULL ), v2[vi], _back_color );
-				glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+				AppendShaderTristripQuad( GetShader( WIDE("Simple Shader"), NULL ), v2[vi], _back_color );
+				//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 			}
 
-			EnableShader( GetShader( WIDE("Simple Shaded Texture"), NULL ), v[vi], pifSrc->glActiveSurface, texture_v, _color );
-			glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+			AppendShaderTristripQuad( GetShader( WIDE("Simple Shaded Texture"), NULL ), v[vi], pifSrc->glActiveSurface, texture_v, _color );
+			//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 			// Back Face
 #  endif  // ifdef OPENGL2
 #endif
