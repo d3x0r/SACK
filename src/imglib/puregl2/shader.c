@@ -45,7 +45,7 @@ void  SetShaderAppendTristrip( PImageShaderTracker tracker, void (CPROC*EnableSh
 	tracker->AppendTristrip = EnableShader;
 }
 
-void CPROC  SetShaderFlush( PImageShaderTracker tracker, void (CPROC*FlushShader)( PImageShaderTracker tracker, PTRSZVAL ) )
+void CPROC  SetShaderFlush( PImageShaderTracker tracker, void (CPROC*FlushShader)( PImageShaderTracker tracker, PTRSZVAL, PTRSZVAL, int, int  ) )
 {
 	tracker->Flush = FlushShader;
 }
@@ -69,13 +69,18 @@ void CloseShaders( struct glSurfaceData *glSurface )
 
 void FlushShaders( struct glSurfaceData *glSurface )
 {
-	PImageShaderTracker tracker;
+	struct image_shader_op *op;
 	INDEX idx;
-	LIST_FORALL( glSurface->shaders, idx, PImageShaderTracker, tracker )
+	LIST_FORALL( glSurface->shader_local.shader_operations, idx, struct image_shader_op *, op )
 	{
-		if( tracker->Flush )
-			tracker->Flush( tracker, tracker->psv_userdata );
+		lprintf( WIDE( "Shader %") _string_f WIDE( " %d -> %d  %d" ), op->tracker->name, op->from, op->to, op->to - op->from );
+
+		if( op->tracker->Flush )
+			op->tracker->Flush( op->tracker, op->tracker->psv_userdata, op->psvKey, op->from, op->to );
+		Release( op );
+		SetLink( &glSurface->shader_local.shader_operations, idx, 0 );
 	}
+	glSurface->shader_local.last_operation = NULL;
 }
 
 void ClearShaders( void )
@@ -425,7 +430,7 @@ void SetShaderModelView( PImageShaderTracker tracker, RCOORD *matrix )
 	}
 }
 
-struct shader_buffer *CreateBuffer( int dimensions, int start_size, int expand_by )
+struct shader_buffer *CreateShaderBuffer( int dimensions, int start_size, int expand_by )
 {
 	struct shader_buffer *buffer = New( struct shader_buffer );
 	if( !start_size )
@@ -440,7 +445,7 @@ struct shader_buffer *CreateBuffer( int dimensions, int start_size, int expand_b
 	return buffer;
 }
 
-void ExpandShaderBuffer( struct shader_buffer *buffer )
+static void ExpandShaderBuffer( struct shader_buffer *buffer )
 {
 	float *newbuf;
 	int new_size;
@@ -455,14 +460,60 @@ void ExpandShaderBuffer( struct shader_buffer *buffer )
 	buffer->data = newbuf;
 }
 
-void AppendShaderData( struct shader_buffer *buffer, float *data )
+// this also builds a list of which shaders
+// and how much of those shaders are used in order...
+void AppendShaderData( PImageShaderTracker tracker, PTRSZVAL psvKey, struct shader_buffer *buffer, float *data )
 {
+	//lprintf( WIDE("append to %p %p"), tracker, psvKey );
+	if( !l.glActiveSurface->shader_local.last_operation )
+	{
+		l.glActiveSurface->shader_local.last_operation = New( struct image_shader_op );
+		l.glActiveSurface->shader_local.last_operation->tracker = tracker;
+		l.glActiveSurface->shader_local.last_operation->psvKey = psvKey;
+		l.glActiveSurface->shader_local.last_operation->from = 0;
+		l.glActiveSurface->shader_local.last_operation->to = 0;
+		AddLink( &l.glActiveSurface->shader_local.shader_operations, l.glActiveSurface->shader_local.last_operation );
+	}
+	else if( l.glActiveSurface->shader_local.last_operation->tracker == tracker && 
+			 l.glActiveSurface->shader_local.last_operation->psvKey == psvKey )
+	{
+		// last operation is just being extended.
+	}
+	else
+	{
+		INDEX idx;
+		struct image_shader_op *last_use;
+		struct image_shader_op *found_use = NULL;
+		LIST_FORALL( l.glActiveSurface->shader_local.shader_operations, idx, struct image_shader_op *, last_use )
+		{
+			// if it's found, have to keep going, because we want to find the last one
+			if( last_use->tracker == tracker && last_use->psvKey == psvKey )
+				found_use = last_use;
+		}
+		l.glActiveSurface->shader_local.last_operation = New( struct image_shader_op );
+		l.glActiveSurface->shader_local.last_operation->tracker = tracker;
+		l.glActiveSurface->shader_local.last_operation->psvKey = psvKey;
+		l.glActiveSurface->shader_local.last_operation->from = found_use?found_use->to : 0;
+		l.glActiveSurface->shader_local.last_operation->to = found_use?found_use->to : 0;
+		AddLink( &l.glActiveSurface->shader_local.shader_operations, l.glActiveSurface->shader_local.last_operation );
+	}
 	if( buffer->used == buffer->avail )
 		ExpandShaderBuffer( buffer );
+	//lprintf( WIDE( "Set position %p" ), buffer->data + buffer->dimensions * buffer->used );
 	MemCpy( buffer->data + buffer->dimensions * buffer->used
 			, data
 			, sizeof( float ) * buffer->dimensions );
 	buffer->used++;
+	// only increment when the point buffer is referenced
+	//if( l.glActiveSurface->shader_local.last_operation->point_buffer == buffer )
+	l.glActiveSurface->shader_local.last_operation->to = buffer->used;
+	/*
+	lprintf( WIDE("%") _string_f WIDE(" buffer %p %p is used %d(%d)  %d" )
+					, tracker->name
+					, buffer, buffer->data
+					, buffer->used, buffer->avail
+					, l.glActiveSurface->shader_local.last_operation->to );
+	*/
 }
 
 IMAGE_NAMESPACE_END

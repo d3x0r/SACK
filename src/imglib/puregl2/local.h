@@ -38,7 +38,13 @@ struct glSurfaceData
 		} flags;
 		GLuint inverse_shader;
 	} shader;
-   PLIST shaders;
+	PLIST shaders;
+	struct {
+		PLIST shader_operations;
+		struct image_shader_op *last_operation;
+	} shader_local;
+
+
 };
 
 #ifndef IMAGE_LIBRARY_SOURCE_MAIN

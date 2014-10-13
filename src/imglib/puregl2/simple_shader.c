@@ -47,30 +47,21 @@ struct simple_shader_data
 	struct shader_buffer *vert_color;
 };
 
-void CPROC SimpleShader_Enable( PImageShaderTracker tracker, PTRSZVAL psv, va_list args )
-{
-	//float *verts = va_arg( args, float * );
-	//float *color = va_arg( args, float * );
-
-	//glEnableVertexAttribArray(0);
-	//glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, verts );
-	//CheckErr();
-	//glUniform4fv( psv, 1, color );
-	//CheckErr();
-}
-
-void CPROC SimpleShader_Flush( PImageShaderTracker tracker, PTRSZVAL psv )
+void CPROC SimpleShader_Flush( PImageShaderTracker tracker, PTRSZVAL psv, PTRSZVAL psvKey, int from, int to )
 {
 	struct simple_shader_data *data = (struct simple_shader_data *)psv;
 	EnableShader( tracker );
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
+	glDisableVertexAttribArray(2);
+
 	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, data->vert_pos->data );
 	glVertexAttribPointer( 1, 4, GL_FLOAT, FALSE, 0, data->vert_color->data );
+	//lprintf( WIDE("Set data %p %p  %d,%d"), data->vert_pos->data, data->vert_color->data, from,to );
 	//CheckErr();
 	//glUniform4fv( psv, 1, color );
 	//CheckErr();
-	glDrawArrays( GL_TRIANGLES, 0, data->vert_pos->used );
+	glDrawArrays( GL_TRIANGLES, from, to- from);
 	CheckErr();
 	data->vert_pos->used = 0;
 	data->vert_color->used = 0;
@@ -90,23 +81,23 @@ void CPROC SimpleShader_AppendTristrip( PImageShaderTracker tracker, int triangl
 			// 2,3,4
 			// 4,5,6
 			// 0, 2, 4, 6
-			AppendShaderData( data->vert_pos, verts + ( tri +  0 ) * 3 );
-			AppendShaderData( data->vert_color, color);
-			AppendShaderData( data->vert_pos, verts + ( tri + 1 ) * 3 );
-			AppendShaderData( data->vert_color, color);
-			AppendShaderData( data->vert_pos, verts + ( tri + 2 ) * 3 );
-			AppendShaderData( data->vert_color, color);
+			AppendShaderData( tracker, (PTRSZVAL)data->vert_pos, data->vert_pos, verts + ( tri +  0 ) * 3 );
+			AppendShaderData( tracker, (PTRSZVAL)data->vert_pos, data->vert_color, color);
+			AppendShaderData( tracker, (PTRSZVAL)data->vert_pos, data->vert_pos, verts + ( tri + 1 ) * 3 );
+			AppendShaderData( tracker, (PTRSZVAL)data->vert_pos, data->vert_color, color);
+			AppendShaderData( tracker, (PTRSZVAL)data->vert_pos, data->vert_pos, verts + ( tri + 2 ) * 3 );
+			AppendShaderData( tracker, (PTRSZVAL)data->vert_pos, data->vert_color, color);
 		}
 		else
 		{
 			// 2,1,3
 			// 4,3,5
-			AppendShaderData( data->vert_pos, verts + ( (tri-1) + 2 ) * 3 );
-			AppendShaderData( data->vert_color, color);
-			AppendShaderData( data->vert_pos, verts + ( (tri-1) + 1 ) * 3 );
-			AppendShaderData( data->vert_color, color);
-			AppendShaderData( data->vert_pos, verts + ( (tri-1) + 3 ) * 3 );
-			AppendShaderData( data->vert_color, color);
+			AppendShaderData( tracker, (PTRSZVAL)data->vert_pos, data->vert_pos, verts + ( (tri-1) + 2 ) * 3 );
+			AppendShaderData( tracker, (PTRSZVAL)data->vert_pos, data->vert_color, color);
+			AppendShaderData( tracker, (PTRSZVAL)data->vert_pos, data->vert_pos, verts + ( (tri-1) + 1 ) * 3 );
+			AppendShaderData( tracker, (PTRSZVAL)data->vert_pos, data->vert_color, color);
+			AppendShaderData( tracker, (PTRSZVAL)data->vert_pos, data->vert_pos, verts + ( (tri-1) + 3 ) * 3 );
+			AppendShaderData( tracker, (PTRSZVAL)data->vert_pos, data->vert_color, color);
 		}
 	}
 }
@@ -120,26 +111,26 @@ PTRSZVAL InitSuperSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv )
 {
 	const char *v_codeblocks[2];
 	const char *p_codeblocks[2];
-	int color_attrib;
-
+	
 	v_codeblocks[0] = gles_simple_v_shader;
 	v_codeblocks[1] = NULL;
 	p_codeblocks[0] = gles_simple_p_shader;
 	p_codeblocks[1] = NULL;
 	if( CompileShader( tracker, v_codeblocks, 1, p_codeblocks, 1 ) )
 	{
-		struct simple_shader_data *data = psv;
+		struct simple_shader_data *data = (struct simple_shader_data *)psv;
 		if( data == NULL )
 			data = New( struct simple_shader_data );
 		data->color_attrib = glGetUniformLocation(tracker->glProgramId, "in_Color" );
-		data->vert_pos = CreateBuffer( 3, 8, 16 );
-		data->vert_color = CreateBuffer( 4, 8, 16 );
+		data->vert_pos = CreateShaderBuffer( 3, 8, 16 );
+		data->vert_color = CreateShaderBuffer( 4, 8, 16 );
 
-		SetShaderEnable( tracker, SimpleShader_Enable );
+		///SetShaderEnable( tracker, SimpleShader_Enable );
 		SetShaderFlush( tracker, SimpleShader_Flush );
 		SetShaderAppendTristrip( tracker, SimpleShader_AppendTristrip );
 		return (PTRSZVAL)data;
 	}
+	return 0;
 }
 
 IMAGE_NAMESPACE_END
