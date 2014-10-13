@@ -125,8 +125,8 @@ void CPROC do_linec( ImageFile *pImage, int x1, int y1
 		scale( v[vi][2], v[vi][2], l.scale );
 		scale( v[vi][3], v[vi][3], l.scale );
 
-		EnableShader( GetShader( WIDE("Simple Shader"), NULL ), v[vi], _color );
-		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+		AppendShaderTristripQuad( GetShader( WIDE("Simple Shader"), NULL ), v[vi], _color );
+		//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 		CheckErr();
 
 		/**///glVertex3dv(v[vi][0]);	// Bottom Left Of The Texture and Quad
@@ -283,9 +283,10 @@ void CPROC do_lineAlphac( ImageFile *pImage, int x1, int y1
 		scale( v[vi][2], v[vi][2], l.scale );
 		scale( v[vi][3], v[vi][3], l.scale );
 
-		EnableShader( GetShader( WIDE("Simple Shader"), NULL ), v[vi], _color );
-		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
-		CheckErr();
+		AppendShaderTristripQuad( GetShader( WIDE("Simple Shader"), NULL ), v[vi], _color );
+		//EnableShader( GetShader( WIDE("Simple Shader"), NULL ), v[vi], _color );
+		//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+		//CheckErr();
 
 		/**///glVertex3dv(v[vi][0]);	// Bottom Left Of The Texture and Quad
 		/**///glVertex3dv(v[vi][1]);	// Bottom Right Of The Texture and Quad

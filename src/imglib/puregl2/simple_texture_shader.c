@@ -48,33 +48,66 @@ static const char *gles_simple_v_shader_shaded_texture =
 	"precision mediump int;\n"
      "attribute vec4 vPosition;\n" 
 	  "attribute vec2 in_texCoord;\n" 
+	  "attribute vec4 in_Color;\n"
 	  "uniform mat4 modelView;\n" 
 	  "uniform mat4 worldView;\n" 
 	  "uniform mat4 Projection;\n" 
 	  "varying vec2 out_texCoord;\n" 
+	  "varying vec4 out_Color;\n" 
 	  "\n" 
     "void main() {\n"
     "  gl_Position = Projection * worldView * modelView * vPosition;\n" 
 	  " out_texCoord = in_texCoord;\n" 
+	  " out_Color = in_Color;\n" 
     "}"; 
 
 static const char *gles_simple_p_shader_shaded_texture =
     // "precision mediump float;\n" 
    "precision mediump float;\n"
 	"precision mediump int;\n"
-	 "uniform vec4 in_Color;\n" 
+	 " varying vec4 out_Color;\n" 
 	 " varying vec2 out_texCoord;\n" 
 	 " uniform sampler2D tex;\n" 
 	 "void main() {\n"
-	 "   gl_FragColor = in_Color * texture2D( tex, out_texCoord );\n"
+	 "   gl_FragColor = out_Color * texture2D( tex, out_texCoord );\n"
      "}\n" ;
 
+struct private_shader_texture_data
+{
+	int texture;
+	struct shader_buffer *vert_pos;
+	struct shader_buffer *vert_color;
+	struct shader_buffer *vert_texture_uv;
+};
 
 struct private_shader_data
 {
+	int color_attrib;
 	int texture_attrib;
 	int texture;
+	PLIST vert_data;
 };
+
+static struct private_shader_texture_data *GetImageBuffer( struct private_shader_data *data, int image )
+{
+	INDEX idx;
+	struct private_shader_texture_data *texture;
+	LIST_FORALL( data->vert_data, idx, struct private_shader_texture_data *, texture )
+	{
+		if( texture->texture == image )
+			break;
+	}
+	if( !texture )
+	{
+		texture = New( struct private_shader_texture_data );
+		texture->texture = image;
+		texture->vert_pos = CreateBuffer( 3, 8, 16 );
+		texture->vert_color = CreateBuffer( 4, 8, 16 );
+		texture->vert_texture_uv = CreateBuffer( 2, 8, 16 );
+		AddLink( &data->vert_data, texture );
+	}
+	return texture;
+}
 
 static void CPROC SimpleTextureEnable( PImageShaderTracker tracker, PTRSZVAL psv_userdata, va_list args )
 {
@@ -99,14 +132,14 @@ static void CPROC SimpleTextureEnable( PImageShaderTracker tracker, PTRSZVAL psv
 	CheckErr();
 }
 
-void InitSimpleTextureShader( PImageShaderTracker tracker )
+PTRSZVAL InitSimpleTextureShader( PImageShaderTracker tracker, PTRSZVAL psv_data )
 {
 	const char *v_codeblocks[2];
 	const char *p_codeblocks[2];
-	struct private_shader_data *data = New( struct private_shader_data );
-	struct image_shader_attribute_order attribs[] = { { 0, "vPosition" }, { 1, "in_TexCoord" } };
+	struct private_shader_data *data = (struct private_shader_data *)psv_data;
+	struct image_shader_attribute_order attribs[] = { { 0, "vPosition" }, { 1, "in_TexCoord" }, { 2, "in_color" } };
 
-	SetShaderEnable( tracker, SimpleTextureEnable, (PTRSZVAL)data );
+	SetShaderEnable( tracker, SimpleTextureEnable );
 
 	v_codeblocks[0] = gles_simple_v_shader;
 	v_codeblocks[1] = NULL;
@@ -114,14 +147,21 @@ void InitSimpleTextureShader( PImageShaderTracker tracker )
 	p_codeblocks[1] = NULL;
 	if( CompileShaderEx( tracker, v_codeblocks, 1, p_codeblocks, 1, attribs, 2 ) )
 	{
+		if( !data )
+		{
+			data = New( struct private_shader_data );
+		}
 		data->texture = glGetUniformLocation(tracker->glProgramId, "tex");
 		data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
+		data->color_attrib =  glGetAttribLocation(tracker->glProgramId, "in_color" );
+		return (PTRSZVAL)data;
 	}
-
+	return 0;
 }
 
 static void CPROC SimpleTextureEnable2( PImageShaderTracker tracker, PTRSZVAL psv, va_list args )
 {
+	/*
 	float *verts = va_arg( args, float *);
 	int texture = va_arg( args, int );
 	float *texture_verts = va_arg( args, float *);
@@ -150,21 +190,107 @@ static void CPROC SimpleTextureEnable2( PImageShaderTracker tracker, PTRSZVAL ps
 	CheckErr();
 
 	CheckErr();
-	glUniform4fv( tracker->color_attrib, 1, color );
+	glUniform4fv( data->color_attrib, 1, color );
 	CheckErr();
-
+	*/
 
 }
 
+static void CPROC SimpleTextureFlush2( PImageShaderTracker tracker, PTRSZVAL psv )
+{
+	//float *verts = va_arg( args, float *);
+	//int texture = va_arg( args, int );
+	//float *texture_verts = va_arg( args, float *);
+	//float *color = va_arg( args, float *);
 
-void InitSimpleShadedTextureShader( PImageShaderTracker tracker )
+	struct private_shader_data *data = (struct private_shader_data *)psv;
+	INDEX idx;
+	struct private_shader_texture_data *texture;
+	glEnableVertexAttribArray(0);	CheckErr();
+	glEnableVertexAttribArray(data->texture_attrib);	CheckErr();
+	glEnableVertexAttribArray(2);	CheckErr();
+	EnableShader( tracker );
+	LIST_FORALL( data->vert_data, idx, struct private_shader_texture_data *, texture )
+	{
+		glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, texture->vert_pos->data );  
+		CheckErr();
+		glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, texture->vert_texture_uv->data );  
+		CheckErr();
+		glVertexAttribPointer( data->color_attrib, 4, GL_FLOAT, FALSE, 0, texture->vert_color->data );  
+		CheckErr();
+
+		glUniform1i(data->texture, 0); //Texture unit 0 is for base images.
+
+		//When rendering an objectwith this program.
+		glActiveTexture(GL_TEXTURE0 + 0);
+		CheckErr();
+		glBindTexture(GL_TEXTURE_2D+0, texture->texture);
+		CheckErr();
+		glUniform1i( data->texture, 0 );
+		CheckErr();
+		//glBindSampler(0, linearFiltering);
+		CheckErr();
+		glDrawArrays( GL_TRIANGLES, 0, texture->vert_pos->used );
+		texture->vert_pos->used = 0;
+		texture->vert_color->used = 0;
+		texture->vert_texture_uv->used = 0;
+	}
+}
+
+void CPROC SimpleTexture_AppendTristrip( PImageShaderTracker tracker, int triangles, PTRSZVAL psv, va_list args )
+{
+	struct private_shader_data *data = (struct private_shader_data *)psv;
+	float *verts = va_arg( args, float *);
+	int texture = va_arg( args, int );
+	float *texture_verts = va_arg( args, float *);
+	float *color = va_arg( args, float *);
+	int tri;
+	struct private_shader_texture_data *text_buffer = GetImageBuffer( data, texture );
+	for( tri = 0; tri < triangles; tri++ )
+	{
+		if( !( tri & 1 ) )
+		{
+			// 0,1,2 
+			// 2,3,4
+			// 4,5,6
+			// 0, 2, 4, 6
+			AppendShaderData( text_buffer->vert_pos, verts + ( tri +  0 ) * 3 );
+			AppendShaderData( text_buffer->vert_color, color);
+			AppendShaderData( text_buffer->vert_texture_uv, texture_verts + 2 * (tri + 0 ));
+			AppendShaderData( text_buffer->vert_pos, verts + ( tri + 1 ) * 3 );
+			AppendShaderData( text_buffer->vert_color, color);
+			AppendShaderData( text_buffer->vert_texture_uv, texture_verts + 2 * (tri + 1 ));
+			AppendShaderData( text_buffer->vert_pos, verts + ( tri + 2 ) * 3 );
+			AppendShaderData( text_buffer->vert_color, color);
+			AppendShaderData( text_buffer->vert_texture_uv, texture_verts + 2 * (tri + 2 ));
+		}
+		else
+		{
+			// 2,1,3
+			// 4,3,5
+			AppendShaderData( text_buffer->vert_pos, verts + ( (tri-1) + 2 ) * 3 );
+			AppendShaderData( text_buffer->vert_color, color);
+			AppendShaderData( text_buffer->vert_texture_uv, texture_verts + 2 * ((tri-1) + 2 ));
+			AppendShaderData( text_buffer->vert_pos, verts + ( (tri-1) + 1 ) * 3 );
+			AppendShaderData( text_buffer->vert_color, color);
+			AppendShaderData( text_buffer->vert_texture_uv, texture_verts + 2 * ((tri-1) + 1 ));
+			AppendShaderData( text_buffer->vert_pos, verts + ( (tri-1) + 3 ) * 3 );
+			AppendShaderData( text_buffer->vert_color, color);
+			AppendShaderData( text_buffer->vert_texture_uv, texture_verts + 2 * ((tri-1) + 3 ));
+		}
+	}
+}
+
+PTRSZVAL InitSimpleShadedTextureShader( PImageShaderTracker tracker, PTRSZVAL psv )
 {
 	const char *v_codeblocks[2];
 	const char *p_codeblocks[2];
-	struct private_shader_data *data = New( struct private_shader_data );
+	struct private_shader_data *data = (struct private_shader_data *)psv;
 	struct image_shader_attribute_order attribs[] = { { 0, "vPosition" }, { 1, "in_TexCoord" }, { 2, "in_Color" } };
 
-	SetShaderEnable( tracker, SimpleTextureEnable2, (PTRSZVAL)data );
+	SetShaderEnable( tracker, SimpleTextureEnable2 );
+	SetShaderAppendTristrip( tracker, SimpleTexture_AppendTristrip );
+	SetShaderFlush( tracker, SimpleTextureFlush2 );
 
 	v_codeblocks[0] = gles_simple_v_shader_shaded_texture;
 	v_codeblocks[1] = NULL;
@@ -173,10 +299,17 @@ void InitSimpleShadedTextureShader( PImageShaderTracker tracker )
 
 	if( CompileShaderEx( tracker, v_codeblocks, 1, p_codeblocks, 1, attribs, 3 ) )
 	{
-		tracker->color_attrib = glGetUniformLocation(tracker->glProgramId, "in_Color" );
-		data->texture = glGetUniformLocation(tracker->glProgramId, "tex");
+		if( !data )
+		{
+			data = New( struct private_shader_data );
+			data->vert_data = NULL;
+		}
+		data->color_attrib = glGetAttribLocation(tracker->glProgramId, "in_Color" );
 		data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
+		data->texture = glGetUniformLocation(tracker->glProgramId, "tex");
+		return (PTRSZVAL)data;
 	}
+	return 0;
 }
 
 IMAGE_NAMESPACE_END

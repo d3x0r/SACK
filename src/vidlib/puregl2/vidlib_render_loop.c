@@ -133,16 +133,16 @@ void Render3D( struct display_camera *camera )
 
 		LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
 		{
-         //lprintf( "Check plugin on camera %p %p", reference, camera );
+			//lprintf( "Check plugin on camera %p %p", reference, camera );
 			if( !reference->flags.did_first_draw )
 			{
-            //lprintf( "first draw..." );
+				//lprintf( "first draw..." );
 				first_draw = 1;
 				reference->flags.did_first_draw = 1;
 			}
 			else
 			{
-            //lprintf( "skipping first draw" );
+				//lprintf( "skipping first draw" );
 				first_draw = 0;
 			}
 

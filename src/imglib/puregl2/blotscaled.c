@@ -608,7 +608,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 
 			if( method == BLOT_COPY )
 			{
-				EnableShader( GetShader( WIDE("Simple Texture"), NULL ), v[vi], pifSrc->glActiveSurface, texture_v );
+				AppendShaderTristripQuad( GetShader( WIDE("Simple Texture"), NULL ), v[vi], pifSrc->glActiveSurface, texture_v );
 			}
 			else if( method == BLOT_SHADED )
 			{
@@ -619,7 +619,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				_color[2] = BlueVal( tmp ) / 255.0f;
 				_color[3] = AlphaVal( tmp ) / 255.0f;
 
-				EnableShader( GetShader( WIDE("Simple Shaded Texture"), NULL ), v[vi], pifSrc->glActiveSurface, texture_v, _color );
+				AppendShaderTristripQuad( GetShader( WIDE("Simple Shaded Texture"), NULL ), v[vi], pifSrc->glActiveSurface, texture_v, _color );
 			}
 			else if( method == BLOT_MULTISHADE )
 			{
@@ -642,7 +642,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				b_color[2] = BlueVal( b ) / 255.0f;
 				b_color[3] = AlphaVal( b ) / 255.0f;
 
-				EnableShader( GetShader( WIDE("Simple MultiShaded Texture"), NULL ), v[vi], pifSrc->glActiveSurface, texture_v, r_color, g_color, b_color );
+				AppendShaderTristripQuad( GetShader( WIDE("Simple MultiShaded Texture"), NULL ), v[vi], pifSrc->glActiveSurface, texture_v, r_color, g_color, b_color );
 			}
 			else if( method == BLOT_INVERTED )
 			{
@@ -666,7 +666,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				}
 			}
 
-			glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+			//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 		}
 	}
 	else
