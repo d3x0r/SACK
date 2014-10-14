@@ -2730,7 +2730,19 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 								  wch, 1 );
 			if( err == 42 )
 			{
-				sizeInBytes += 2;
+				if( !( wch[0] & 0xF800 ) )
+					sizeInBytes += 1;
+				else if( ( ( wch[0] & 0xFC00 ) >= 0xD800 )
+					&& ( ( wch[0] & 0xFC00 ) <= 0xDF00 ) )
+				{
+					int longer_value = 0x10000 + ( ( ( wch[0] & 0x3ff ) << 10 ) | ( ( wch[1] & 0x3ff ) ) );
+					if( !(longer_value & 0xFFFF ) )
+						sizeInBytes+= 3;
+					else
+						sizeInBytes+= 4;
+				}
+				else if( !( wch[0] & 0xF000 ) )
+					sizeInBytes += 2;
 			}
 			wch++;
 		}
@@ -2759,7 +2771,7 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 					(*ch++) = 0xC0 | ( ( ((unsigned char*)wch)[1] & 0x7 ) << 2 ) | ( ( ((unsigned char*)wch)[0] ) >> 6 ); 
 					(*ch++) = 0x80 | ( ((unsigned char*)wch)[0] & 0x3F );
 				}
-				if( ( ( wch[0] & 0xFC00 ) >= 0xD800 )
+				else if( ( ( wch[0] & 0xFC00 ) >= 0xD800 )
 					&& ( ( wch[0] & 0xFC00 ) <= 0xDF00 ) )
 				{
 					_32 longer_value;

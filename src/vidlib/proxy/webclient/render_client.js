@@ -31,6 +31,7 @@ function OpenServer( canvas_name )
 
 	var image_list = [];
 	var render_list = []; 
+	var font_list = [];
 
 	function remove_render( render )
         {
@@ -71,13 +72,28 @@ function OpenServer( canvas_name )
 		return null;
 	}	
 	 
+	function find_font( server_id )
+	{
+		if( server_id < 0 )
+			return null;
+		var idx;
+		for( idx = 0; idx < font_list.length; idx++ )
+		{
+			//console.log( "is " + font_list[idx].server_id +"=="+ server_id + " ?" );
+			if( font_list[idx].server_id == server_id )
+				return font_list[idx];
+		}	
+		console.log( "did not find font " + server_id );		
+		return null;
+	}	
+	
  
      ws.onopen = function()
      {
         // Web Socket is connected, send data using send()
         
         // debug btoa (atob)
-	//console.log( "output : " + btoa("[{\"MsgID\":22,\"data\":{\"image_to_id\":62,\"image_from_id\":44}}]") );
+		//console.log( "output : " + btoa("[{\"MsgID\":22,\"data\":{\"image_to_id\":62,\"image_from_id\":44}}]") );
      
         ws.send( JSON.stringify( { MsgID: 100 /* PMID_ClientIdentification */,
         				 data : { client_id:"apple" + createGuid() } 
@@ -209,7 +225,7 @@ function OpenServer( canvas_name )
 			x = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
 			y = event.clientY + document.body.scrollTop + document.documentElement.scrollTop;
                 }
-	     console.log( "mm:out " + x + " and " + y + " renders " + render_list.length );
+	     //console.log( "mm:out " + x + " and " + y + " renders " + render_list.length );
 
 		var n;
 		last_mouse_down = null;
@@ -645,6 +661,48 @@ function OpenServer( canvas_name )
 					HandleMessage( msg );
                                 
                 	break;
+                case 27: // PMID_FontData
+					font = find_font( msg.data.server_font_id );
+					if( font == null )
+					{
+						console.log( "create font" );
+						font_list.push( font = new string_font() );
+						font.server_id = msg.data.server_font_id;
+					}
+					else
+						console.log( "updating existing font" );
+					font.baseline = msg.data.baseline;
+					font.characters = msg.data.data;
+					font.character_index = [];
+					font.height = msg.data.height;
+					font.image = find_image( msg.data.image_id );
+					console.log( "font recovery character image is " + font.image + " ID " + font.server_id );
+					for( i = 0; i < font.characters.length; i++ )
+					{
+						//console.log( "recover character " + font.characters[i].c );
+						font.character_index[font.characters[i].c] = font.characters[i];
+					}
+                	break;
+                case 28: // PMID_PutString
+						image = parent_image = find_image( msg.data.server_image_id );
+						ofs_x = 0;
+						ofs_y = 0;
+						
+						while( parent_image.parent != null )
+						{
+							ofs_x += parent_image.x;
+							ofs_y += parent_image.y;
+							parent_image = parent_image.parent;
+						}
+                	putString(  parent_image
+                        		, ofs_x + msg.data.x, ofs_y + msg.data.y
+                                        , msg.data.color, msg.data.background
+                                        , msg.data.string
+                                        , find_font( msg.data.font_id )
+                                        , msg.data.orientation
+                                        , msg.data.justification
+                                        , msg.data.width );
+	                break;
         }
 	};
 

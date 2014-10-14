@@ -1,5 +1,7 @@
+#define NO_UNICODE_C
 #define NEED_REAL_IMAGE_STRUCTURE
 #include <imglib/imagestruct.h>
+#include <imglib/fontstruct.h>
 
 #include <render.h>
 #include <render3d.h>
@@ -155,6 +157,38 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
 		json_add_object_member_user_routine( cto_data, WIDE("color"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
 		break;
+	case PMID_PutString:
+		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("orientation"), ofs = ofs + sizeof(int), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("justification"), ofs = ofs + sizeof(int), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(S_32), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("font_id"), ofs = ofs + sizeof(_32), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member_user_routine( cto_data, WIDE("color"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
+		json_add_object_member_user_routine( cto_data, WIDE("background"), ofs = ofs + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
+		json_add_object_member( cto_data, WIDE("string"), ofs = ofs + sizeof( _32 ), JSON_Element_CharArray, 0 );
+		break;
+	case PMID_FontData:
+		json_add_object_member( cto_data, WIDE("server_font_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, WIDE("baseline"), ofs = ofs + sizeof( PTRSZVAL ), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof( _32 ), JSON_Element_Unsigned_Integer_32, 0 );
+		//json_add_object_member( cto_data, WIDE("characters"), ofs = ofs + sizeof(PTRSZVAL), JSON_Element_Integer_32, 0 );
+		{
+			int ofs_inner;
+			struct json_context_object *cto_data_member;
+			cto_data_member = json_add_object_member_list( cto_data, WIDE("data"), ofs = ofs + sizeof(_32), 0, 0 );
+			json_add_object_member( cto_data_member, WIDE("c"), ofs_inner = 0, JSON_Element_Integer_32, 0 );
+			json_add_object_member( cto_data_member, WIDE("x"), ofs_inner = ofs_inner + sizeof(_32), JSON_Element_Integer_32, 0 );
+			json_add_object_member( cto_data_member, WIDE("y"), ofs_inner = ofs_inner + sizeof(S_32), JSON_Element_Integer_32, 0 );
+			json_add_object_member( cto_data_member, WIDE("w"), ofs_inner = ofs_inner + sizeof(S_32), JSON_Element_Integer_32, 0 );
+			json_add_object_member( cto_data_member, WIDE("h"), ofs_inner = ofs_inner + sizeof(_32), JSON_Element_Unsigned_Integer_32, 0 );
+			json_add_object_member( cto_data_member, WIDE("a"), ofs_inner = ofs_inner + sizeof(_32), JSON_Element_Integer_32, 0 );
+			cto_data_member = json_add_object_member_list( cto_data, WIDE("colors"), ofs = ofs + sizeof(PLIST), 0, 0 );
+			json_add_object_member( cto_data_member, WIDE("color"), ofs_inner = 0, JSON_Element_Unsigned_Integer_32, 0 );
+			json_add_object_member( cto_data, WIDE("image_id"), ofs = ofs + sizeof(PLIST), JSON_Element_PTRSZVAL, 0 );
+		}
+		break;
 	case PMID_BlotScaledImageSizedTo:
 	case PMID_BlotImageSizedTo:
 		json_add_object_member( cto_data, WIDE("server_image_id"), ofs, JSON_Element_PTRSZVAL, 0 );
@@ -218,12 +252,12 @@ static void decodeblock( unsigned char in[4], char out[3], size_t len )
 	//out[] = (len > 2 ? base64[ in[2] & 0x3f ] : 0);
 }
 
-static char *Encode64Image( CTEXTSTR mime, P_8 buf, LOGICAL bmp, size_t length, size_t *outsize )
+static TEXTCHAR *Encode64Image( CTEXTSTR mime, P_8 buf, LOGICAL bmp, size_t length, size_t *outsize )
 {
 	TEXTCHAR * real_output;
-	int mimelen = StrLen( mime );
+	size_t mimelen = StrLen( mime );
 	real_output = NewArray( TEXTCHAR, 13 + mimelen + ( ( length * 4 + 2) / 3 ) + 1 + 1 + 1 + (bmp?1:0) );
-	snprintf( real_output, 13 + mimelen, WIDE("data:%s;base64,"), mime );
+	tnprintf( real_output, 13 + mimelen, WIDE("data:%s;base64,"), mime );
 	//if( bmp )
 	//	strcpy( real_output, "data:image/bmp;base64," );
 	//else
@@ -399,7 +433,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 	case PMID_SetApplicationTitle:
 		{
 			msg = NewArray( _8, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
-			StrCpy( msg + 1, l.application_title );
+			StrCpy( (TEXTSTR)(msg + 1), l.application_title );
 			((_32*)msg)[0] = (_32)(sendlen - 4);
 			msg[4] = message;
 			if( websock )
@@ -605,7 +639,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 		{
 			_32 offset = 0;
 			P_8 raw_image;
-			char * encoded_image;
+			TEXTCHAR * encoded_image;
 			size_t outlen;
 			image = va_arg( args, PVPImage );
 			if( !image->image )
@@ -628,7 +662,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 					outmsg = (struct common_message*)(msg + 4);
 					outmsg->message_id = offset?PMID_ImageDataFragMore:PMID_ImageDataFrag;
 					outmsg->data.image_data.server_image_id = image->id;
-					lprintf( WIDE("Send Image %p %d  %d"), image, image->id, sendlen );
+					lprintf( WIDE("Send Image %p %d  %d"), image, image->id, ((_32*)msg)[0] );
 					SendTCP( pc, msg, 16004 );
 					outlen -= (16000 - 5);
 					offset += (16000 - 5);
@@ -717,6 +751,104 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 		}
 		break;
       */
+	case PMID_FontData:
+		{
+			SFTFont font = va_arg( args, SFTFont );
+
+			int n;
+			int chars = 0;
+			struct common_message *outmsg;
+			PVPImage SourceImage;
+			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct font_data_data ) ) );
+			outmsg = (struct common_message*)(msg + 4);
+			outmsg->message_id = PMID_FontData;
+			outmsg->data.font_data.image_id = INVALID_INDEX;
+			outmsg->data.font_data.server_font_id = FindLink( &l.fonts, font );
+			outmsg->data.font_data.baseline = font->baseline;
+			outmsg->data.font_data.height = font->height;
+			outmsg->data.font_data.characters = NULL;
+			outmsg->data.font_data.colors = NULL;
+			for( n = 0; n < font->characters; n++ )
+			{
+				if( font->character[n] && font->character[n]->cell )
+				{
+					struct font_character_data *char_data = New( struct font_character_data );
+					AddLink( &outmsg->data.font_data.characters, char_data );
+					char_data->character = n;
+					char_data->ascent = font->character[n]->ascent;
+					if( outmsg->data.font_data.image_id == INVALID_INDEX )
+					{
+						outmsg->data.font_data.image_id = FindLink( &l.images, ((PVPImage)font->character[n]->cell)->parent );
+					}
+					char_data->x = font->character[n]->cell->real_x;
+					char_data->y = font->character[n]->cell->real_y;
+					// image width and character width are equivalent.
+					char_data->w = font->character[n]->cell->real_width;
+					char_data->h = font->character[n]->cell->real_height;
+					//if( !SourceImage )
+				//		SourceImage = l.real_interface->_GetTintedImage( font->character[])->image, color );
+				}
+			}
+			if( websock )
+			{
+				json_msg = json_build_message( cto, outmsg );
+				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
+				Release( json_msg );
+			}
+			DeleteList( &outmsg->data.font_data.characters );
+			DeleteList( &outmsg->data.font_data.colors );
+			Release( msg );
+		}
+		break;
+	case PMID_PutString:
+		{
+			PVPImage image = va_arg( args, PVPImage );
+			S_32 x = va_arg( args, S_32 );
+			S_32 y = va_arg( args, S_32 );
+			CDATA color = va_arg( args, _32 );
+			CDATA background = va_arg( args, _32 );
+			TEXTCHAR *string = va_arg( args, TEXTCHAR * );
+			size_t nChars = va_arg( args, _32 );
+			SFTFont font = va_arg( args, SFTFont );
+			int orientation = va_arg( args, int );
+			int justification = va_arg( args, int );
+			_32 right = va_arg( args, _32 );
+			//_8 *msg;
+			//size_t sendlen;
+			//struct common_message *outmsg;
+		#ifdef _UNICODE
+			//char *output = WcharConvertExx( string, nChars DBG_SRC );
+		#else
+			//char *output = pc;
+		#endif
+			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct put_string_data ) + ( nChars + 1 ) * sizeof( TEXTCHAR ) ) );
+			((_32*)msg)[0] = (_32)(sendlen - 4);
+			outmsg = (struct common_message*)(msg + 4);
+			outmsg->data.put_string.server_image_id = image->id;
+			outmsg->data.put_string.foreground_color = color;
+			outmsg->data.put_string.background_color = background;
+			outmsg->data.put_string.orientation = orientation;
+			outmsg->data.put_string.justification = justification;
+			outmsg->data.put_string.width = right;
+			outmsg->data.put_string.server_font_id = FindLink( &l.fonts, font );
+			MemCpy( outmsg->data.put_string.string, string, nChars * sizeof( TEXTCHAR ) );
+			outmsg->data.put_string.string[nChars] = 0;
+			//strcpy( outmsg->data.put_string.string, string );
+			outmsg->data.put_string.x = x;
+			outmsg->data.put_string.y = y;
+			outmsg->message_id = message;
+			if( websock )
+			{
+				json_msg = json_build_message( cto, outmsg );
+				WebSocketSendText( pc, json_msg, StrLen( json_msg ) );
+				Release( json_msg );
+			}
+			else
+				SendTCP( pc, msg, sendlen );
+			Release( msg );
+		}
+		break;
+
 	}
 	LeaveCriticalSec( &l.message_formatter );
 
@@ -745,6 +877,8 @@ static void SendInitialImage( PCLIENT pc, LOGICAL websock, PLIST *sent, PVPImage
 	AddLink( sent,  image );
 }
 
+
+
 static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 {
 	if( image->websock_buffer && image->websock_sendlen )
@@ -759,23 +893,24 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 		{
 			_8 *msg;
 			struct common_message *outmsg;
+			TEXTCHAR * text_encoded_data;
 			char * encoded_data;
 			Bytef *output = NewArray( Bytef, image->websock_sendlen + 1 );
 			size_t sendlen;
 			size_t outlen;
 			uLongf destlen = image->websock_sendlen + 1;
 #ifdef _UNICODE
-			encoded_data = CStrDup( image->websock_buffer );
+			encoded_data = CStrDup( (CTEXTSTR)image->websock_buffer );
 			// do not include the NULL...
 			//lprintf( WIDE("Encode buffer (%d):%s"),  CStrLen( encoded_data ), image->websock_buffer );
-			compress2( output, &destlen, encoded_data, CStrLen( encoded_data ), Z_BEST_COMPRESSION );
+			compress2( output, &destlen, (Bytef*)encoded_data, CStrLen( encoded_data ), Z_BEST_COMPRESSION );
 			Deallocate( char *, encoded_data );
 #else
 			// this is includnig the close ] of the buffer to this state...
 			compress2( output, &destlen, image->websock_buffer, image->websock_sendlen + 1, Z_BEST_COMPRESSION );
 #endif
 
-			encoded_data = Encode64Image( WIDE("application/zip"), output, TRUE, destlen, &outlen );
+			text_encoded_data = Encode64Image( WIDE("application/zip"), output, TRUE, destlen, &outlen );
 			
 			lprintf( WIDE("would have only been %d and is %d but really %d")
 				, image->websock_sendlen + 1
@@ -785,8 +920,8 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 			//LogBinary( image->websock_buffer, image->websock_sendlen );
 			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct draw_block_data ) + outlen * sizeof( TEXTCHAR ) ) );
 			outmsg = (struct common_message*)(msg + 4);
-			MemCpy( outmsg->data.draw_block.data, encoded_data, outlen * sizeof( TEXTCHAR ) );
-			Release( encoded_data );
+			MemCpy( outmsg->data.draw_block.data, text_encoded_data, outlen * sizeof( TEXTCHAR ) );
+			Release( text_encoded_data );
 
 			((_32*)msg)[0] = (_32)(sendlen - 4);
 			outmsg = (struct common_message*)(msg + 4);
@@ -825,6 +960,17 @@ static void SendImageBuffers( PCLIENT pcNew, int send_websock, int send_initial 
 				//lprintf( "Send Image %p(%d)", image, image->id );
 				SendInitialImage( pcNew, send_websock, &sent, image, send_initial );
 			}
+
+			if( send_initial )
+			{
+				SFTFont font;
+				INDEX idx;
+				LIST_FORALL( l.fonts, idx, SFTFont, font )
+				{
+					SendTCPMessageV( pcNew, TRUE, PMID_FontData, font );
+				}
+			}
+
 			LIST_FORALL( sent, idx, PVPImage, image )
 			{
 				if( !send_initial && !( image->image->flags & IF_FLAG_UPDATED ) )
@@ -1030,20 +1176,6 @@ static PTRSZVAL WebSockOpen( PCLIENT pc, PTRSZVAL psv )
 		}
 
 		SendImageBuffers( pc, TRUE, TRUE );
-		{
-			PLIST sent = NULL;
-			INDEX idx;
-			PVPImage image;
-			LIST_FORALL( l.images, idx, PVPImage, image )
-			{
-				SendInitialImage( pc, TRUE, &sent, image, TRUE );
-			}
-			LIST_FORALL( sent, idx, PVPImage, image )
-			{
-				SendCompressedBuffer( pc, image );
-			}
-			DeleteList( &sent );
-		}
 	}
 	LeaveCriticalSec( &l.message_formatter );
 	return (PTRSZVAL)client;
@@ -2715,58 +2847,136 @@ static _32 CPROC VidlibProxy_GetStringSizeFontEx( CTEXTSTR pString, size_t len, 
 
 static void CPROC VidlibProxy_PutCharacterFont		  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
+	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
 	l.real_interface->_PutCharacterFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
 }
 
 static void CPROC VidlibProxy_PutCharacterVerticalFont( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
+	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
 	l.real_interface->_PutCharacterVerticalFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
 }
 
 static void CPROC VidlibProxy_PutCharacterInvertFont  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
+	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
 	l.real_interface->_PutCharacterInvertFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
 }
 
 static void CPROC VidlibProxy_PutCharacterVerticalInvertFont( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
+	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
 	l.real_interface->_PutCharacterVerticalInvertFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
+}
+
+
+static void VidlibProxy_SendPutString( PVPImage pImage, S_32 x, S_32 y, CDATA color, CDATA background
+												, CTEXTSTR pc, size_t nLen, SFTFont font, int orientation, int justification, _32 right )
+{
+	if( font && ( font->flags & FONT_FLAG_UPDATED ) )
+	{
+		if( FindLink( &l.fonts, font ) == INVALID_INDEX )
+		{
+			AddLink( &l.fonts, font );
+		}
+		SendClientMessage( PMID_FontData, font );
+		font->flags &= ~FONT_FLAG_UPDATED;
+	}
+	{
+		if( ((PVPImage)pImage)->render_id != INVALID_INDEX )
+		{
+			struct json_context_object *cto;
+			PVPImage image = (PVPImage)pImage;
+			struct common_message *outmsg;
+			size_t sendlen;
+			EnterCriticalSec( &l.message_formatter );
+			cto = (struct json_context_object *)GetLink( &l.messages, PMID_PutString );
+			if( !cto )
+				cto = WebSockInitJson( PMID_PutString );
+
+			{
+				//_8 *msg;
+				//size_t sendlen;
+				//struct common_message *outmsg;
+			#ifdef _UNICODE
+				//char *output = WcharConvertExx( string, nChars DBG_SRC );
+			#else
+				//char *output = pc;
+			#endif
+				outmsg = (struct common_message*)GetMessageBuf( image, sendlen = ( 4 + 1 + sizeof( struct put_string_data ) + ( nLen + 1 ) * sizeof( TEXTCHAR ) ) );
+				outmsg->message_id = PMID_PutString;
+				outmsg->data.put_string.server_image_id = image->id;
+				outmsg->data.put_string.foreground_color = color;
+				outmsg->data.put_string.background_color = background;
+				outmsg->data.put_string.orientation = orientation;
+				outmsg->data.put_string.justification = justification;
+				outmsg->data.put_string.width = right;
+				outmsg->data.put_string.server_font_id = FindLink( &l.fonts, font );
+				MemCpy( outmsg->data.put_string.string, pc, nLen * sizeof( TEXTCHAR ) );
+				outmsg->data.put_string.string[nLen] = 0;
+				//strcpy( outmsg->data.put_string.string, string );
+				outmsg->data.put_string.x = x;
+				outmsg->data.put_string.y = y;
+			}
+
+
+			{
+				TEXTSTR json_msg = json_build_message( cto, outmsg );
+				AppendJSON( image, json_msg, ((P_8)outmsg)-4, sendlen );
+				Release( json_msg );
+			}
+			((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
+
+			LeaveCriticalSec( &l.message_formatter );
+		}
+	}
+	//SendClientMessage( PMID_PutString, pImage, x, y, color, background, pc, nLen, font, orientation, justification, right );
 }
 
 static void CPROC VidlibProxy_PutStringFontExx  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background
 												, CTEXTSTR pc, size_t nLen, SFTFont font, int justification, _32 right )
 {
+	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
 	l.real_interface->_PutStringFontExx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font, justification, right );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
+	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, color, background, pc, nLen, font, 0, justification, right );
 }
 
 static void CPROC VidlibProxy_PutStringFontEx  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background
 												, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
+	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
 	l.real_interface->_PutStringFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
+	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, color, background, pc, nLen, font, 0, 0, 0 );
 }
 
 static void CPROC VidlibProxy_PutStringVerticalFontEx		( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
+	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
 	l.real_interface->_PutStringVerticalFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
+	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, color, background, pc, nLen, font, 1, 0, 0 );
 }
 
 static void CPROC VidlibProxy_PutStringInvertFontEx		  ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
+	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
 	l.real_interface->_PutStringInvertFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
+	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, color, background, pc, nLen, font, 2, 0, 0 );
 }
 
 static void CPROC VidlibProxy_PutStringInvertVerticalFontEx( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
+	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
 	l.real_interface->_PutStringInvertVerticalFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
+	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, color, background, pc, nLen, font, 3, 0, 0 );
 }
 
 static _32 CPROC VidlibProxy_GetMaxStringLengthFont( _32 width, SFTFont UseFont )

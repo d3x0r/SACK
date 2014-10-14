@@ -1,3 +1,4 @@
+#define NO_UNICODE_C
 #define NEED_REAL_IMAGE_STRUCTURE
 #include <imglib/imagestruct.h>
 
@@ -201,12 +202,12 @@ static void encodeblock( unsigned char in[3], TEXTCHAR out[4], size_t len )
 	out[3] = (len > 2 ? base64[ in[2] & 0x3f ] : base64[64]);
 }
 
-static char *Encode64Image( CTEXTSTR mime, P_8 buf, LOGICAL bmp, size_t length, size_t *outsize )
+static TEXTCHAR *Encode64Image( CTEXTSTR mime, P_8 buf, LOGICAL bmp, size_t length, size_t *outsize )
 {
 	TEXTCHAR * real_output;
-	int mimelen = StrLen( mime );
+	size_t mimelen = StrLen( mime );
 	real_output = NewArray( TEXTCHAR, 13 + mimelen + ( ( length * 4 + 2) / 3 ) + 1 + 1 + 1 + (bmp?1:0) );
-	snprintf( real_output, 13 + mimelen, WIDE("data:%s;base64,"), mime );
+	tnprintf( real_output, 13 + mimelen, WIDE("data:%s;base64,"), mime );
 	//if( bmp )
 	//	strcpy( real_output, "data:image/bmp;base64," );
 	//else
@@ -227,7 +228,7 @@ static char *Encode64Image( CTEXTSTR mime, P_8 buf, LOGICAL bmp, size_t length, 
 	return real_output;
 }
 
-static P_8 EncodeImage( int ID, Image image, LOGICAL bmp, size_t *outsize )
+static P_8 EncodeImage( size_t ID, Image image, LOGICAL bmp, size_t *outsize )
 {
 	if( !bmp )
 	{
@@ -241,7 +242,7 @@ static P_8 EncodeImage( int ID, Image image, LOGICAL bmp, size_t *outsize )
 					TEXTCHAR tmpname[32];
 					static int n;
 					FILE *out;
-					snprintf( tmpname, 32, WIDE("blah%d.png"), ID );
+					tnprintf( tmpname, 32, WIDE("blah%d.png"), ID );
 					out = sack_fopen( 0, tmpname, WIDE("wb") );
 					fwrite( buf, 1, *outsize, out );
 					fclose( out );
@@ -287,7 +288,7 @@ static P_8 EncodeImage( int ID, Image image, LOGICAL bmp, size_t *outsize )
 			TEXTCHAR tmpname[32];
 			static int n;
 			FILE *out;
-			snprintf( tmpname, 32, WIDE("blah%d.bmp"), n++ );
+			tnprintf( tmpname, 32, WIDE("blah%d.bmp"), n++ );
 			out = sack_fopen( 0, tmpname, WIDE("wb") );
 			fwrite( header, 1, length, out );
 			fclose( out );
@@ -359,7 +360,7 @@ static void SendTCPMessage( struct server_socket_state *state, LOGICAL websock, 
 	case PMID_SetApplicationTitle:
 		{
 			msg = NewArray( _8, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
-			StrCpy( msg + 1, l.application_title );
+			StrCpy( (TEXTSTR)(msg + 1), l.application_title );
 			((_32*)msg)[0] = (_32)(sendlen - 4);
 			msg[4] = message;
 			if( websock )
@@ -572,7 +573,7 @@ static void SendTCPMessage( struct server_socket_state *state, LOGICAL websock, 
 		{
 			_32 offset = 0;
 			P_8 raw_image;
-			char * encoded_image;
+			TEXTCHAR * encoded_image;
 			size_t outlen;
 			image = va_arg( args, PVPImage );
 			if( !image->image )
@@ -595,7 +596,7 @@ static void SendTCPMessage( struct server_socket_state *state, LOGICAL websock, 
 					outmsg = (struct common_message*)(msg + 4);
 					outmsg->message_id = offset?PMID_ImageDataFragMore:PMID_ImageDataFrag;
 					outmsg->data.image_data.server_image_id = image->id;
-					lprintf( WIDE("Send Image %p %d  %d"), image, image->id, sendlen );
+					lprintf( WIDE("Send Image %p %d  %d"), image, image->id, (((_32*)msg)[0] + 4) );
 					SendTCP( state->pc, msg, 16004 );
 					outlen -= (16000 - 5);
 					offset += (16000 - 5);
@@ -689,13 +690,14 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 		{
 			_8 *msg;
 			struct common_message *outmsg;
+			TEXTCHAR *text_encoded_data;
 			char * encoded_data;
 			Bytef *output = NewArray( Bytef, image->websock_sendlen + 1 );
 			size_t sendlen;
 			size_t outlen;
 			uLongf destlen = image->websock_sendlen + 1;
 #ifdef _UNICODE
-			encoded_data = CStrDup( image->websock_buffer );
+			encoded_data = CStrDup( (CTEXTSTR)image->websock_buffer );
 			// do not include the NULL...
 			compress2( output, &destlen, encoded_data, CStrLen( encoded_data ), Z_BEST_COMPRESSION );
 			Deallocate( char *, encoded_data );
@@ -704,7 +706,7 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 			compress2( output, &destlen, image->websock_buffer, image->websock_sendlen + 1, Z_BEST_COMPRESSION );
 #endif
 
-			encoded_data = Encode64Image( WIDE("application/zip"), output, TRUE, destlen, &outlen );
+			text_encoded_data = Encode64Image( WIDE("application/zip"), output, TRUE, destlen, &outlen );
 			
 			lprintf( WIDE("would have only been %d and is %d but really %d")
 				, image->websock_sendlen + 1
@@ -714,8 +716,8 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 			//LogBinary( image->websock_buffer, image->websock_sendlen );
 			msg = NewArray( _8, sendlen = ( 4 + 1 + sizeof( struct draw_block_data ) + outlen * sizeof( TEXTCHAR ) ) );
 			outmsg = (struct common_message*)(msg + 4);
-			MemCpy( outmsg->data.draw_block.data, encoded_data, outlen * sizeof( TEXTCHAR ) );
-			Release( encoded_data );
+			MemCpy( outmsg->data.draw_block.data, text_encoded_data, outlen * sizeof( TEXTCHAR ) );
+			Release( text_encoded_data );
 
 			((_32*)msg)[0] = (_32)(sendlen - 4);
 			outmsg = (struct common_message*)(msg + 4);
@@ -1463,7 +1465,7 @@ static void CPROC VidlibProxy_MoveSizeDisplayRel( PRENDERER r
 
 static void CPROC VidlibProxy_PutDisplayAbove		( PRENDERER r, PRENDERER above )
 {
-	lprintf( "window ordering is not implemented" );
+	lprintf( WIDE("window ordering is not implemented") );
 }
 
 static Image CPROC VidlibProxy_GetDisplayImage( PRENDERER r )
@@ -2025,7 +2027,7 @@ P_8 GetMessageBuf( PVPImage image, size_t size )
 		image->buffer = newbuf;
 	}
 	resultbuf = image->buffer + image->sendlen;
-	((_32*)resultbuf)[0] = size - 4;
+	((_32*)resultbuf)[0] = (_32)(size - 4);
 	image->sendlen += size;
 
 	return resultbuf + 4;
