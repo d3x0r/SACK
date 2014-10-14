@@ -82,6 +82,7 @@ struct vidlib_proxy_local
 	TEXTSTR application_title;
 	PLIST renderers;
 	PLIST images;
+	PLIST fonts;
 	struct json_context *json_context;
 	struct json_context *json_reply_context; // shorter list to search for input messages
 	PLIST messages;   // json message formats

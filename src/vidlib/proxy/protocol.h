@@ -61,6 +61,20 @@ PREFIX_PACKED struct draw_block_data
 	_8 data[1];
 } PACKED;
 
+PREFIX_PACKED struct put_string_data 
+{
+	// what the server calls this image; for all further draw ops
+	PTRSZVAL server_image_id;
+	S_32 x, y;
+	int orientation; // vertical/invert
+	int justification;
+	S_32 width;
+	PTRSZVAL server_font_id;
+	_32 foreground_color;
+	_32 background_color;
+	TEXTCHAR string[1];
+} PACKED;
+
 PREFIX_PACKED struct unmake_image_data
 {
 	// what the server calls this image; for all further draw ops
@@ -153,6 +167,33 @@ PREFIX_PACKED struct key_event_data
 	_32 pressed;
 } PACKED;
 
+PREFIX_PACKED struct font_character_data
+{
+	_32 character;
+	S_32 x, y;
+	_32 w, h;
+	S_32 ascent;
+} PACKED;
+
+PREFIX_PACKED struct font_color_image_data
+{
+	PTRSZVAL server_image_id;
+	_32 color;
+} PACKED;
+
+PREFIX_PACKED struct font_data_data
+{
+	PTRSZVAL server_font_id;
+	S_32 baseline;
+	_32 height;
+	/* these translate to JSON easily... but bad for a network structure. */
+	PLIST characters; // list of font_character_data
+	PLIST colors;   // list of font_color_image_data
+	PTRSZVAL image_id;
+} PACKED;
+
+
+
 PREFIX_PACKED struct common_message {
 	_8 message_id;
 	union
@@ -181,6 +222,8 @@ PREFIX_PACKED struct common_message {
 		struct size_image_data size_image;
 		struct transfer_sub_image_data transfer_sub_image;
 		struct draw_block_data draw_block;
+		struct put_string_data put_string;
+		struct font_data_data font_data;
 		MSGBLOCK( open_display_reply,  PTRSZVAL server_display_id; PTRSZVAL client_display_id; );
 	} data;
 } PACKED;
@@ -230,6 +273,8 @@ enum proxy_message_id{
 							, PMID_ImageDataFragMore // 24 - transfer local image data to client
 							, PMID_DrawBlock   // 25 - this is a compressed block of an array of draw commands
 							, PMID_Event_Flush_Finished // 26 - response from server when flush is handled (flush mouse)
+							, PMID_FontData // 27 - font data
+							, PMID_PutString // 28 - put out a string; with given font data
 							, PMID_
 
 							, PMID_LAST_PROXY_MESSAGE

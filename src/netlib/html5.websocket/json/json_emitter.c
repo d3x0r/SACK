@@ -154,6 +154,23 @@ void json_add_value( struct json_context *context, CTEXTSTR name, CTEXTSTR value
 
 //----------------------------------------------------------------------------------------------
 
+void json_add_list_value( struct json_context_object *object, struct json_context *context, CTEXTSTR name, PLIST values )
+{
+	INDEX idx;
+	POINTER p;
+	int first = 1;
+	vtprintf( context->pvt, WIDE( "\"%s\":[" ), name );
+	LIST_FORALL( values, idx, POINTER, p )
+	{
+		if( !first )
+			vtprintf( context->pvt, WIDE( "," ) );
+		else
+			first = 0;
+		json_build_message( object, p );
+	}
+	vtprintf( context->pvt, WIDE( "]" ) );
+}
+
 void json_add_int_64_value( struct json_context *context, CTEXTSTR name, S_64 value )
 {
 	if( context->human_readable )
@@ -883,6 +900,8 @@ struct json_context_object *json_add_object_member_list( struct json_context_obj
 	member->content_type = content_type;
 	member->count = 0;
 	member->count_offset = offsetof( LIST, Cnt );
+	member->object = json_create_object( context, 0 );
+	member->object->flags.keep_phrase = TRUE;
 	AddLink( &object->members, member );
 	if( member->object )
 		return member->object;
@@ -973,6 +992,17 @@ TEXTSTR json_build_message( struct json_context_object *object
 		n++;
 		switch( member->type )
 		{
+		default:
+			lprintf( WIDE("Unhandled json_emitter type: %d"), member->type );
+			break;
+		case JSON_Element_List:
+			//if( member->count )
+			//	;
+			//else if( member->count_offset != JSON_NO_OFFSET )
+			//	;
+			//else
+				json_add_list_value( member->object, context, member->name, *(PLIST*)(((PTRSZVAL)msg)+member->offset) );
+			break;
 		case JSON_Element_Integer_64:
 			if( member->count )
 				json_add_int_64_value_array( context, member->name, (S_64*)(((PTRSZVAL)msg)+member->offset), member->count );

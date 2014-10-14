@@ -1989,6 +1989,8 @@ IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
 #define GetImageAuxRect                    PROC_ALIAS(GetImageAuxRect)
 #define OrphanSubImage                     PROC_ALIAS(OrphanSubImage)
 #define GetGlobalFonts                     PROC_ALIAS(GetGlobalFonts)
+#define GetTintedImage                     PROC_ALIAS(GetTintedImage)
+#define GetShadedImage                     PROC_ALIAS(GetShadedImage)
 #define AdoptSubImage                      PROC_ALIAS(AdoptSubImage)
 
 #define MakeSpriteImageFileEx   PROC_ALIAS(MakeSpriteImageFileEx)

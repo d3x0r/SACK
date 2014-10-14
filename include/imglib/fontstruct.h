@@ -58,6 +58,7 @@ enum FontFlags {
 	FONT_FLAG_8BIT = 2,
 	FONT_FLAG_ITALIC = 0x10,
    FONT_FLAG_BOLD   = 0x20,
+   FONT_FLAG_UPDATED = 0x40, // a character has been added to it since this was last cleared
 };
 
 typedef struct font_renderer_tag *PFONT_RENDERER;

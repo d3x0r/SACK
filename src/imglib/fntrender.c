@@ -598,6 +598,7 @@ void RenderMonoChar( PFONT font
 		char *data, *chartop;
 		//lprintf( "character %c(%d) is %dx%d = %d", idx, idx, bitmap->width, bitmap->rows, ( bitmap->rows
 		//											* ((bitmap->width+7)/8) ) );
+		font->flags |= FONT_FLAG_UPDATED;
 		font->character[idx] = character;
 		font->character[idx]->next_in_line = NULL;
 		font->character[idx]->cell = NULL;
@@ -840,6 +841,7 @@ void RenderGreyChar( PFONT font
 		//lprintf( "character %c(%d) is %dx%d = %d", idx, idx, bitmap->width, bitmap->rows, ( bitmap->rows
 		//											  * (bitmap->width+(bits==8?0:bits==2?3:7)/(8/bits)) )
 		//										  + 512 );
+		font->flags |= FONT_FLAG_UPDATED;
 		font->character[idx] = character;
 		font->character[idx]->next_in_line = NULL;
 		font->character[idx]->cell = NULL;
