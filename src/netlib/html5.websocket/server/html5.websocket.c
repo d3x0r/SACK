@@ -218,7 +218,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 #ifdef _UNICODE
 		TEXTSTR tmp = CharWConvertExx( (const char*)buffer, length DBG_SRC );
 #else
-		TEXTSTR tmp = buffer;
+		TEXTSTR tmp = (TEXTSTR)buffer;
 #endif
 		//LogBinary( buffer, length );
 		if( !socket->flags.initial_handshake_done )

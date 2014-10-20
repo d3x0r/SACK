@@ -59,7 +59,7 @@ void InitPerspective( void )
 
 }
 
-void InitShader( PImageShaderTracker tracker )
+void InitShader( PImageShaderTracker tracker, PTRSZVAL psv_old )
 {
 	const char *simple_color_vertex_source = 
 		"struct VS_INPUT { float4 pos : POSITION; float4 in_Color: COLOR0; };\n"

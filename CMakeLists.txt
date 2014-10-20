@@ -649,7 +649,9 @@ set( SACK_PLUSPLUS_SOURCES
     ${BASE_SOURCES} 
     ${SNPRINTF_SOURCES}
     ${ODBC_SOURCES}
-    ${GENX_SOURCES})
+    ${GENX_SOURCES}
+    ${BAG_SQLITE_INTERFACE}
+	)
 
 
 
@@ -907,28 +909,25 @@ SET( LINK_LIBRARIES "" )
 endif( __WINDOWS_ARM_CE__ )
 
 set( SACK_PLUSPLUS_SOURCES 
-  #${FIRST_GCC_LIBRARY_SOURCE} 
     ${BASE_SOURCES} 
     ${SNPRINTF_SOURCES}
     ${ODBC_SOURCES}
     ${GENX_SOURCES}
-  #${LAST_GCC_LIBRARY_SOURCE} 
+    ${BAG_SQLITE_INTERFACE}
 )
 
 if( NOT __NO_CPLUSPLUS )
 if( NOT FORCE_CXX )
 set( cplusplus_sources )
-COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} include/sha1.h include/md5.h )
+COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} src/sqlite/3.7.16.2/sqlite3.h include/sha1.h include/md5.h )
 if( NEED_UUID )
 COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} src/uuid-1.6.2/uuid.h )
 endif( NEED_UUID )
 
 set( cplusplus_sources 
-  #${FIRST_GCC_LIBRARY_SOURCE} 
     ${plusplus_header_dup}
     ${cplusplus_sources} 
     ${VECTLIB_PLUSPLUS_SOURCES}
-  #${LAST_GCC_LIBRARY_SOURCE} 
 )
 
 set( psi_cplusplus_sources )
