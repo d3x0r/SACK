@@ -219,9 +219,6 @@ SET_SOURCE_FILES_PROPERTIES( ${OPTION_SOURCE} PROPERTIES
 		FOLDER "Source Files\\Option Library" )
 endif( NOT __NO_OPTIONS__ )
 
-  if( FORCE_CXX )
-set_source_files_properties(${BAG_SQLITE_INTERFACE} PROPERTIES LANGUAGE CXX )
-  endif( FORCE_CXX )
 
 endif( NOT __NO_ODBC__ OR USE_SQLITE )
 

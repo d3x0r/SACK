@@ -52,7 +52,9 @@ PCAPTION_BUTTON AddCaptionButton( PSI_CONTROL frame, Image normal, Image pressed
 		button->pressed_event = event;
 		button->is_pressed = FALSE;
 		AddLink( &frame->caption_buttons, button );
+		return button;
 	}
+	return NULL;
 }
 
 

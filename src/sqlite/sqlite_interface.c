@@ -244,10 +244,11 @@ int xDeviceCharacteristics(sqlite3_file*file)
 
   int xShmMap(sqlite3_file*file, int iPg, int pgsz, int a, void volatile**b)
   {
-
+	  return 0;
   }
   int xShmLock(sqlite3_file*file, int offset, int n, int flags)
   {
+	  return 0;
   }
 
   void xShmBarrier(sqlite3_file*file)
@@ -256,6 +257,7 @@ int xDeviceCharacteristics(sqlite3_file*file)
 
   int xShmUnmap(sqlite3_file*file, int deleteFlag)
   {
+	  return 0;
   }
 
 
