@@ -358,6 +358,11 @@ add_executable( ${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} )
 target_link_libraries( ${PROJECT_NAME} M:/SDL2-2.0.3/build/output/lib/SDL2.lib squirrel sqstdlib )
 
 install_default_dest( ${PROJECT_NAME} )
+install( DIRECTORY gui DESTINATION bin )
+install( DIRECTORY VoxelTypes DESTINATION bin )
+install( DIRECTORY Sound DESTINATION bin )
+install( DIRECTORY Misc DESTINATION bin )
+install( FILES randomnum.dat DESTINATION bin )
 
 target_link_libraries( ${PROJECT_NAME} ${SACK_PLATFORM_LIBRARIES} ${SACK_LIBRARIES} glew imm32 version glu32 )
 
