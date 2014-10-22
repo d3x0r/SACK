@@ -222,7 +222,7 @@ void ZFileSectorLoader::MakeTasks()
   while ( (Sector = EjectedSectorList->PullFromList()) )
   {
     RequestTag.Remove(Sector->Pos_x, Sector->Pos_y, Sector->Pos_z);
-    //printf("Deleted : %lx, %lu L2 Start:%lu End:%lu nEntries:%lu\n", Sector,++debug_deletecount,EjectedSectorList->debug_getstart(),EjectedSectorList->debug_GetEnd(),EjectedSectorList->debug_GetnEntries() );
+    printf("Deleted : %lx, %lu L2 Start:%lu End:%lu nEntries:%lu\n", Sector,++debug_deletecount,EjectedSectorList->debug_getstart(),EjectedSectorList->debug_GetEnd(),EjectedSectorList->debug_GetnEntries() );
     if (COMPILEOPTION_ALLOWSAVE)
     {
 #if COMPILEOPTION_SAVEONLYMODIFIED==1

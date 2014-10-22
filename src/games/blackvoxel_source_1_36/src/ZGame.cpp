@@ -700,6 +700,27 @@ void ZGame::SaveWorld(  )
     Stream.Close();
     FileStream.Close();
   }
+
+  {
+    ZVoxelSector * Sector, * NewSector;
+
+	Sector = World->SectorList;
+
+	  while (Sector)
+	  {
+		NewSector = Sector->GlobalList_Next;
+		if (COMPILEOPTION_ALLOWSAVE)
+		{
+	#if COMPILEOPTION_SAVEONLYMODIFIED==1
+		  if (Sector->IsMustBeSaved())
+	#endif
+		  {
+			Sector->Save(UniverseNum);
+		  }
+		}
+		Sector = NewSector;
+	  }
+  }
 /*
   // Inventory Saving
   char Buffer[1024];

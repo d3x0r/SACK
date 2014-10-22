@@ -24,6 +24,7 @@
  */
 
 #include "ZSectorSphere.h"
+#include "z/ZGlobal_Settings.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -111,9 +112,9 @@ void ZSectorSphere::Init(Long Render_Distance_h, Long Render_Distance_v)
         SectorList[Offset].x = x;
         SectorList[Offset].y = y;
         SectorList[Offset].z = z;
-        dist_x = ((double) ((((ELong)x) << 12) ));
-        dist_y = ((double) ((((ELong)y) << 14) ));
-        dist_z = ((double) ((((ELong)z) << 12) ));
+        dist_x = ((double) ((((ELong)x) << ( 	GlobalSettings.VoxelBlockSizeBits + 4 )) ));
+        dist_y = ((double) ((((ELong)y) << ( 	GlobalSettings.VoxelBlockSizeBits + 6 )) ));
+        dist_z = ((double) ((((ELong)z) << ( 	GlobalSettings.VoxelBlockSizeBits + 4 )) ));
         SectorList[Offset].SectorDistance = sqrt( dist_x * dist_x + dist_y * dist_y + dist_z * dist_z );
         Offset++;
       }

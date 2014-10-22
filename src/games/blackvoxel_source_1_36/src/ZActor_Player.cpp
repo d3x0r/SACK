@@ -81,13 +81,15 @@ void ZActor_Player::Init(bool Death)
   // Initial position and view direction
   ViewDirection.translate( 425, 0, 1975 );
   //ViewDirection.origin().x = 425.0; ViewDirection.origin().y = 0.0; ViewDirection.origin().z = 1975.0;
-  //ViewDirection.pitch = 0.0; ViewDirection.roll = 0.0; ViewDirection.yaw = 0.0;
+  ViewDirection.RotateYaw( 180 );
+	ViewDirection.RotateRoll( -ViewDirection.roll() ); // just double make sure we're standing upright
+	//ViewDirection.pitch = 0.0; ViewDirection.roll = 0.0; ViewDirection.yaw = 0.0;
   Velocity = 0.0;
   Deplacement = 0.0;
 
   // Camera settings.
 
-  EyesPosition.x = 0; EyesPosition.y = 256.0 * 1.75 ; EyesPosition.z = 0.0; // Old eye y = 450
+  EyesPosition.x = 0; EyesPosition.y = 256 * 1.75 ; EyesPosition.z = 0.0; // Old eye y = 450
 
   Camera.orientation = ViewDirection;
   Camera.orientation.translate( EyesPosition.x, EyesPosition.y, EyesPosition.z );
@@ -955,19 +957,25 @@ void ZActor_Player::DoPhysic_Plane(double CycleTime)
   if ( (!PlaneEngineOn) || PlaneSpeed < 4000.0 || (!PlaneTakenOff)  )
   {
     double Gravity, CubeY;
-	CubeY = ViewDirection.origin().y / 256.0;
+	CubeY = ViewDirection.origin().y / GlobalSettings.VoxelBlockSize;
     if      (CubeY > 10000.0 && CubeY < 15000.0) { Gravity = 5.0 - (( (CubeY-10000.0) * (CubeY-10000.0)) / 5000000.0); } //5000000.0;
     else if (CubeY <= 10000.0) { Gravity = 5.0; }
     else                       { Gravity = 0.0; }
 
     Velocity.y -= (10.0 - LocationDensity) * Gravity * CapedCycleTime * ((PlaneTakenOff || IsOnGround) ? 1.0 : 10.0);
-    if (PlaneToohighAlt && ViewDirection.origin().y > 256000.0 ) {if (Velocity.y < -250.0)  Velocity.y = -250*256.0; }
-    else                                           {if (Velocity.y < -50*256.0) Velocity.y = -50*256.0; }
+    if (PlaneToohighAlt && ViewDirection.origin().y > 256000.0 ) 
+	{
+		if (Velocity.y < -250.0)  Velocity.y = -250*GlobalSettings.VoxelBlockSize; 
+	}
+    else                                           
+	{
+		if (Velocity.y < -50*GlobalSettings.VoxelBlockSize) Velocity.y = -50*GlobalSettings.VoxelBlockSize; 
+	}
   }
 
   // If going too high, something nasty will happens
 
-  if (ViewDirection.origin().y > (5000.0 * 256.0) && (!PlaneToohighAlt) )
+  if (ViewDirection.origin().y > (5000.0 * GlobalSettings.VoxelBlockSize) && (!PlaneToohighAlt) )
   {
     PlaneToohighAlt = true;
     PlaneEngineThrust = 0.0;
@@ -978,7 +986,7 @@ void ZActor_Player::DoPhysic_Plane(double CycleTime)
   }
   if (PlaneToohighAlt)
   {
-    if (ViewDirection.origin().y > (500.0 * 256.0) )
+    if (ViewDirection.origin().y > (500.0 * GlobalSettings.VoxelBlockSize) )
 	{
 		Camera.ColoredVision.Activate= true; 
 		Camera.ColoredVision.Red = 0.8; 
@@ -992,7 +1000,7 @@ void ZActor_Player::DoPhysic_Plane(double CycleTime)
     if (PlaneFreeFallCounter > 1000.0)
     {
       PlaneFreeFallMessage = "FALL WARNING : ALTITUDE ";
-      PlaneFreeFallMessage << ((Long)(floor(ViewDirection.origin().y/256.0)));
+      PlaneFreeFallMessage << ((Long)(floor(ViewDirection.origin().y/GlobalSettings.VoxelBlockSize)));
       PlaneFreeFallCounter = 0.0;
       GameEnv->GameWindow_Advertising->Advertise(PlaneFreeFallMessage.String ,ZGameWindow_Advertising::VISIBILITY_LOW,0,800.0, 400.0 );
     }
@@ -1003,7 +1011,7 @@ void ZActor_Player::DoPhysic_Plane(double CycleTime)
   Test_T1++; if (Test_T1 > 100 )
   {
     Test_T1 = 0;
-    printf("Speed : %lf Pitch: %lf Thrust:%lf Altitude:%lf IsOnGround:%d TakenOff:%d Gravity:%d CycleTime %lf\n", PlaneSpeed, ViewDirection.pitch, PlaneEngineThrust, ViewDirection.origin().y / 256.0, IsOnGround, PlaneTakenOff, GravityApplied, CycleTime);
+    printf("Speed : %lf Pitch: %lf Thrust:%lf Altitude:%lf IsOnGround:%d TakenOff:%d Gravity:%d CycleTime %lf\n", PlaneSpeed, ViewDirection.pitch, PlaneEngineThrust, ViewDirection.origin().y / GlobalSettings.VoxelBlockSize, IsOnGround, PlaneTakenOff, GravityApplied, CycleTime);
   }
 */
   // Velocity to displacement.
@@ -1095,7 +1103,7 @@ void ZActor_Player::DoPhysic_Plane(double CycleTime)
 //
       ViewDirection.origin() = NewLocation;
 	  Camera.orientation = ViewDirection;
-	  Camera.orientation.translate_rel(  0.0,  128.0,  0.0 );
+	  Camera.orientation.translate_rel(  0.0,  (GlobalSettings.VoxelBlockSize/2),  0.0 );
 //
       Deplacement = 0.0;
       Continue = false;
@@ -1303,9 +1311,379 @@ void ZActor_Player::DoPhysic_Plane_Old(double CycleTime)
 
 
 
+int ZVoxelRef::ForEachVoxel(  ZVoxelWorld * World, ZVoxelRef *v1, ZVoxelRef *v2, int (*f)(ZVoxelRef *v) )
+{
+	if( !v1 || !v2 )
+		return 0;
+	int del_x = v2->x - v1->x;
+	int del_y = v2->y - v1->y;
+	int del_z = v2->z - v1->z;
+	int abs_x = del_x<0?-del_x:del_x;
+	int abs_y = del_y<0?-del_y:del_y;
+	int abs_z = del_z<0?-del_z:del_z;
+	if( del_x )
+	{
+		if( del_y )
+		{
+			if( del_z )
+			{
+				if( abs_x > abs_y || ( abs_z > abs_y ) )
+				{
+					if( abs_z > abs_x )
+					{
+						// z is longest path
+						int erry = -abs_z/2;
+						int errx = -abs_z/2;
+						int incy = del_y<0?-1:1;
+						int incx = del_x<0?-1:1;
+						int incz = del_z<0?-1:1;
+						{
+							int x = v1->x;
+							int y = v1->y;
+							for( int z = v1->z + incz; z != v2->z; z += incz )
+							{
+								errx += abs_x;
+								if( errx > 0 )
+								{
+									errx -= abs_z;
+									x += incx;
+								}
+								erry += abs_y;
+								if( erry > 0 )
+								{
+									erry -= abs_z;
+									y += incy;
+								}
+								{
+									int val;
+									ZVoxelRef *v = World->GetVoxelRef( x, y, z );
+									val = f( v );
+									if( val )
+										return val;
+								}
+							}
+						}
+					}
+					else
+					{
+						// x is longest.
+						int erry = -abs_x/2;
+						int errz = -abs_x/2;
+						int incy = del_y<0?-1:1;
+						int incx = del_x<0?-1:1;
+						int incz = del_z<0?-1:1;
+						{
+							int y = v1->y;
+							int z = v1->z;
+							for( int x = v1->x + incx; x != v2->x; x += incx )
+							{
+								errz += abs_z;
+								if( errz > 0 )
+								{
+									errz -= abs_x;
+									z += incx;
+								}
+								erry += abs_y;
+								if( erry > 0 )
+								{
+									erry -= abs_x;
+									y += incy;
+								}
+								{
+									int val;
+									ZVoxelRef *v = World->GetVoxelRef( x, y, z );
+									val = f( v );
+									if( val )
+										return val;
+								}
+							}
+						}
+					}
+				}
+				else
+				{
+					// y is longest.
+					int errx = -abs_y/2;
+					int errz = -abs_y/2;
+					int incy = del_y<0?-1:1;
+					int incx = del_x<0?-1:1;
+					int incz = del_z<0?-1:1;
+					{
+						int x = v1->x;
+						int z = v1->x;
+						for( int y = v1->y + incy; y != v2->y; y += incy )
+						{
+							errx += abs_x;
+							if( errx > 0 )
+							{
+								errx -= abs_y;
+								x += incx;
+							}
+							errz += abs_z;
+							if( errz > 0 )
+							{
+								errz -= abs_y;
+								z += incz;
+							}
+							{
+								int val;
+								ZVoxelRef *v = World->GetVoxelRef( x, y, z );
+								val = f( v );
+								if( val )
+									return val;
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				// z is constant
+				if( abs_x > abs_y )
+				{
+					// x is longest
+					int erry = -abs_x/2;
+					int incy = del_y<0?-1:1;
+					int incx = del_x<0?-1:1;
+					{
+						int y = v1->y;
+						int z = v1->z;
+						for( int x = v1->x + incx; x != v2->x; x += incx )
+						{
+							erry += abs_y;
+							if( erry > 0 )
+							{
+								erry -= abs_x;
+								y += incy;
+							}
+							{
+								int val;
+								ZVoxelRef *v = World->GetVoxelRef( x, y, z );
+								val = f( v );
+								if( val )
+									return val;
+							}
+						}
+					}
+				}
+				else
+				{
+					// y is longest.
+					int errx = -abs_y/2;
+					int incy = del_y<0?-1:1;
+					int incx = del_x<0?-1:1;
+					// z is longest path
+					{
+						int x = v1->x;
+						int z = v1->x;
+						for( int y = v1->y + incy; y != v2->y; y += incy )
+						{
+							errx += abs_x;
+							if( errx > 0 )
+							{
+								errx -= abs_y;
+								x += incx;
+							}
+							{
+								int val;
+								ZVoxelRef *v = World->GetVoxelRef( x, y, z );
+								val = f( v );
+								if( val )
+									return val;
+							}
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			if( del_z )
+			{
+				if( abs_x > abs_z )
+				{
+					// x is longest.
+					int errz = -abs_x/2;
+					int incx = del_x<0?-1:1;
+					int incz = del_z<0?-1:1;
+					{
+						int y = v1->y;
+						int z = v1->z;
+						for( int x = v1->x + incx; x != v2->x; x += incx )
+						{
+							errz += abs_z;
+							if( errz > 0 )
+							{
+								errz -= abs_x;
+								z += incx;
+							}
+							{
+								int val;
+								ZVoxelRef *v = World->GetVoxelRef( x, y, z );
+								val = f( v );
+								if( val )
+									return val;
+							}
+						}
+					}
+				}
+				else
+				{
+					// z is longest path
+					int errx = -abs_z/2;
+					int incx = del_x<0?-1:1;
+					int incz = del_z<0?-1:1;
+					{
+						int x = v1->x;
+						int y = v1->y;
+						for( int z = v1->z + incz; z != v2->z; z += incz )
+						{
+							errx += abs_x;
+							if( errx > 0 )
+							{
+								errx -= abs_z;
+								x += incx;
+							}
+							{
+								int val;
+								ZVoxelRef *v = World->GetVoxelRef( x, y, z );
+								val = f( v );
+								if( val )
+									return val;
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				// x is only changing.
+				int incx = del_x<0?-1:1;
+				for( int x = v1->x + incx; x != v2->x; x += incx )
+				{
+					int val;
+					ZVoxelRef *v = World->GetVoxelRef( x, v1->y, v1->z );
+					val = f( v );
+					if( val )
+						return val;
+				}
+			}
+		}
+	}
+	else
+	{
+		if( del_y )
+		{
+			if( del_z )
+			{
+				if( abs_y > abs_z )
+				{
+					// y is longest.
+					int errz = -abs_y/2;
+					int incy = del_y<0?-1:1;
+					int incz = del_z<0?-1:1;
+					{
+						int x = v1->x;
+						int z = v1->x;
+						for( int y = v1->y + incy; y != v2->y; y += incy )
+						{
+							errz += abs_z;
+							if( errz > 0 )
+							{
+								errz -= abs_y;
+								z += incz;
+							}
+							{
+								int val;
+								ZVoxelRef *v = World->GetVoxelRef( x, y, z );
+								val = f( v );
+								if( val )
+									return val;
+							}
+						}
+					}
+				}
+				else
+				{
+					// z is longest path
+					int erry = -abs_z/2;
+					int incy = del_y<0?-1:1;
+					int incz = del_z<0?-1:1;
+					{
+						int x = v1->x;
+						int y = v1->y;
+						for( int z = v1->z + incz; z != v2->z; z += incz )
+						{
+							erry += abs_y;
+							if( erry > 0 )
+							{
+								erry -= abs_z;
+								y += incy;
+							}
+							{
+								int val;
+								ZVoxelRef *v = World->GetVoxelRef( x, y, z );
+								val = f( v );
+								if( val )
+									return val;
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				// no del_x, no del_z
+				// y is only changing.
+				int incy = del_y<0?-1:1;
+				for( int y = v1->y + incy; y != v2->y; y += incy )
+				{
+					int val;
+					ZVoxelRef *v = World->GetVoxelRef( v1->x, y, v1->z );
+					val = f( v );
+					if( val )
+						return val;
+				}
+			}
+		}
+		else
+		{
+			// no del_x, no del_y...
+			if( del_z )
+			{
+				if( del_z > 0 )
+					for( int z = v1->z + 1; z < v2->z; z++ )
+					{
+						int val;
+						ZVoxelRef *v = World->GetVoxelRef( v1->x, v1->y, z );
+						val = f( v );
+						if( val )
+							return val;
+					}
+				else
+					for( int z = v2->z + 1; z < v1->z; z++ )
+					{
+						int val;
+						ZVoxelRef *v = World->GetVoxelRef( v1->x, v1->y, z );
+						val = f( v );
+						if( val )
+							return val;
+					}
 
+			}
+			else
+			{
+				// no delta diff, nothing to do.
+			}
+		}
+	}
+	return 0;
+}
 
-
+int TestIsEmpty( ZVoxelRef *v )
+{
+	return !v->VoxelTypeManager->VoxelTable[v->VoxelType]->Is_PlayerCanPassThrough;
+}
 
 
 void ZActor_Player::DoPhysic_GroundPlayer(double CycleTime)
@@ -1315,6 +1693,7 @@ void ZActor_Player::DoPhysic_GroundPlayer(double CycleTime)
   ZVector3d P[32];
   Bool PEnable[32];
   bool PInvert[32];
+  ZVoxelRef *RealVoxel[32];
   UShort Voxel[32];
   bool   IsEmpty[32];
   ZVoxelType * VoxelType[32];
@@ -1358,6 +1737,9 @@ void ZActor_Player::DoPhysic_GroundPlayer(double CycleTime)
 
   // Define Detection points
 
+  // front p[0], p[1], p[0],p[12], p[1], p[13], p[12], p[13] 
+  // back p[0], p[1], p[0],p[12], p[1], p[13], p[12], p[13] 
+
   P[0] = ViewDirection.origin() + ZVector3d(-75.0,+0.0,+75.0);
   P[1] = ViewDirection.origin() + ZVector3d(+75.0,+0.0,+75.0);
   P[2] = ViewDirection.origin() + ZVector3d(+75.0,+0.0,-75.0);
@@ -1378,7 +1760,7 @@ void ZActor_Player::DoPhysic_GroundPlayer(double CycleTime)
   P[14] = ViewDirection.origin() + ZVector3d(+75.0,+475.0,-75.0);
   P[15] = ViewDirection.origin() + ZVector3d(-75.0,+475.0,-75.0);
 
-  P[16] = ViewDirection.origin() + ZVector3d(-70.0,-5.0,-70.0); // # Detection points behind the player
+  P[16] = ViewDirection.origin() + ZVector3d(-70.0,-5.0,-70.0); // # Detection points below the player
   P[17] = ViewDirection.origin() + ZVector3d(+70.0,-5.0,-70.0); // # Used for Anti-Fall.
   P[18] = ViewDirection.origin() + ZVector3d(+70.0,-5.0,+70.0); // #
   P[19] = ViewDirection.origin() + ZVector3d(-70.0,-5.0,+70.0); // #
@@ -1393,12 +1775,17 @@ void ZActor_Player::DoPhysic_GroundPlayer(double CycleTime)
   World = PhysicsEngine->World;
   for (i=0;i<24;i++)
   {
-    Voxel[i]     = World->GetVoxelPlayerCoord(P[i].x,P[i].y,P[i].z);
+    RealVoxel[i]     = World->GetVoxelRefPlayerCoord(P[i].x,P[i].y,P[i].z);
+    Voxel[i]     = RealVoxel[i]?RealVoxel[i]->Sector->Data[RealVoxel[i]->Offset]:0;
     VoxelType[i] = GameEnv->VoxelTypeManager.VoxelTable[Voxel[i]];
     IsEmpty[i]   = VoxelType[i]->Is_PlayerCanPassThrough;
   }
 
   // Detect player is on ground
+  int space_empty;
+  space_empty = ZVoxelRef::ForEachVoxel( World, RealVoxel[16], RealVoxel[17], TestIsEmpty );
+  if( !space_empty )
+	  space_empty = ZVoxelRef::ForEachVoxel( World, RealVoxel[16], RealVoxel[17], TestIsEmpty );
 
   if ( IsEmpty[16] && IsEmpty[17] && IsEmpty[18] && IsEmpty[19] ) IsOnGround = false;
   else                                                            IsOnGround = true;
@@ -1499,7 +1886,7 @@ void ZActor_Player::DoPhysic_GroundPlayer(double CycleTime)
 
     // The gravity...
     double Gravity, CubeY;
-    CubeY = ViewDirection.origin().y / 256.0;
+    CubeY = ViewDirection.origin().y / GlobalSettings.VoxelBlockSize;
     if      (CubeY > 10000.0 && CubeY < 15000.0) { Gravity = 5.0 - (( (CubeY-10000.0) * (CubeY-10000.0)) / 5000000.0); } //5000000.0;
     else if (CubeY <= 10000.0) { Gravity = 5.0; }
     else                       { Gravity = 0.0; }
@@ -1741,10 +2128,10 @@ void ZActor_Player::DoPhysic_SupermanPlayer(double CycleTime)
   P[2] = ViewDirection.origin() + ZVector3d(+75.0,+0.0,-75.0);
   P[3] = ViewDirection.origin() + ZVector3d(-75.0,+0.0,-75.0);
 
-  P[4] = ViewDirection.origin() + ZVector3d(-75.0,+128.0,+75.0);
-  P[5] = ViewDirection.origin() + ZVector3d(+75.0,+128.0,+75.0);
-  P[6] = ViewDirection.origin() + ZVector3d(+75.0,+128.0,-75.0);
-  P[7] = ViewDirection.origin() + ZVector3d(-75.0,+128.0,-75.0);
+  P[4] = ViewDirection.origin() + ZVector3d(-75.0,+(128.0),+75.0);
+  P[5] = ViewDirection.origin() + ZVector3d(+75.0,+(128.0),+75.0);
+  P[6] = ViewDirection.origin() + ZVector3d(+75.0,+(128.0),-75.0);
+  P[7] = ViewDirection.origin() + ZVector3d(-75.0,+(128.0),-75.0);
 
   P[8] = ViewDirection.origin() + ZVector3d(-75.0,+384.0,+75.0);
   P[9] = ViewDirection.origin() + ZVector3d(+75.0,+384.0,+75.0);
@@ -2151,7 +2538,7 @@ void ZActor_Player::Action_GoRightStraff()
              // ViewDirection.yaw+=0.1; if (ViewDirection.yaw >360.0) ViewDirection.yaw-= 360.0;
              break;
      case 2: if (IsDead) return;
-             if (!PlaneEngineOn && ((!PlaneToohighAlt) || ViewDirection.origin().y < 250.0 * 256.0) )
+             if (!PlaneEngineOn && ((!PlaneToohighAlt) || ViewDirection.origin().y < 250.0 * GlobalSettings.VoxelBlockSize) )
              {
                PlaneEngineOn = true;
                PlaneEngineThrust = 0.0;
@@ -2243,7 +2630,7 @@ void ZActor_Player::Start_Riding(Long x, Long y, Long z)
 
                  ZVector3d NewPlayerLocation;
                  GameEnv->World->Convert_Coords_VoxelToPlayer(x,y,z,NewPlayerLocation.x,NewPlayerLocation.y, NewPlayerLocation.z);
-                 NewPlayerLocation.x += 128.0; NewPlayerLocation.z += 128.0;
+                 NewPlayerLocation.x += (GlobalSettings.VoxelBlockSize/2); NewPlayerLocation.z += (GlobalSettings.VoxelBlockSize/2);
                  ViewDirection.origin() = NewPlayerLocation;
 
                  break;
@@ -2268,7 +2655,7 @@ void ZActor_Player::Stop_Riding()
       Riding_VoxelInfo = 0;
       Riding_IsRiding = false;
 
-      ViewDirection.origin().y += 256.0;
+      ViewDirection.origin().y += GlobalSettings.VoxelBlockSize;
       ActorMode = 0;
     }
   }
@@ -2298,6 +2685,6 @@ void ZActor_Player::Event_DeadlyFall()
   GameEnv->Sound->PlaySound(1);
   IsDead = true;
   DeathChronometer = 10000.0;
-  ViewDirection.origin().y -= 256.0;
+  ViewDirection.origin().y -= GlobalSettings.VoxelBlockSize;
 }
 

@@ -289,7 +289,7 @@ class ZGame
   ZRender_Basic        * Basic_Renderer;
   ZSound               * Sound;
 
-
+  int   VoxelBlockSize;
   // Jeu proprement dit
 
   ZGame_Events         * Game_Events;
