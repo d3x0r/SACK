@@ -334,7 +334,7 @@ private:
    add( vaxis2, v2, v1 );
 }
 
-
+public:
 	inline void ApplyInverseRotation( ZVector3d *dest, ZVector3d *src )
 	{
 		#define i 0
@@ -353,7 +353,25 @@ private:
 				 m[i][vForward] * src->z;
 		#undef i
 	}
-
+	inline void ApplyInverseRotation( ZVector3d &dest, ZVector3d &src )
+	{
+		#define i 0
+		dest.x = m[i][vRight]   * src.x +
+				 m[i][vUp]      * src.y +
+				 m[i][vForward] * src.z;
+		#undef i
+		#define i 1
+		dest.y = m[i][vRight]   * src.x +
+				 m[i][vUp]      * src.y +
+				 m[i][vForward] * src.z;
+		#undef i
+		#define i 2
+		dest.z = m[i][vRight]   * src.x +
+				 m[i][vUp]      * src.y +
+				 m[i][vForward] * src.z;
+		#undef i
+	}
+private:
 	inline void Invert( double v[3] )
 	{
 		v[0] = -v[0];

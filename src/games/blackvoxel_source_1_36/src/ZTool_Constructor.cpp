@@ -92,7 +92,7 @@ bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
 					 VoxelLocation VLoc;
                      if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x, Actor->PointedVoxel.PredPointedVoxel.y, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
 						 VLoc.Sector ->Flag_HighPriorityRefresh = true;
-
+					 if( 0 )
 					 {
 						 Long dx = Actor->PointedVoxel.PredPointedVoxel.x - Actor->PointedVoxel.PointedVoxel.x;
 						 Long dy = Actor->PointedVoxel.PredPointedVoxel.y - Actor->PointedVoxel.PointedVoxel.y;

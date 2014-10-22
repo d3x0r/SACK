@@ -193,23 +193,23 @@ void ZActorPhysicEngine::DoPhysic(UELong FrameTime)
       P[6] = World->GetVoxelPlayerCoord(NewLocation.x+75.0,NewLocation.y+500.0, NewLocation.z - 75.0);
       P[7] = World->GetVoxelPlayerCoord(NewLocation.x-75.0,NewLocation.y+500.0, NewLocation.z - 75.0);
 
-      P[8] = World->GetVoxelPlayerCoord(NewLocation.x+85.0,NewLocation.y+128.0, NewLocation.z + 90.0);
-      P[9] = World->GetVoxelPlayerCoord(NewLocation.x-85.0,NewLocation.y+128.0, NewLocation.z + 90.0);
+      P[8] = World->GetVoxelPlayerCoord(NewLocation.x+85.0,NewLocation.y+(GlobalSettings.VoxelBlockSize/2), NewLocation.z + 90.0);
+      P[9] = World->GetVoxelPlayerCoord(NewLocation.x-85.0,NewLocation.y+(GlobalSettings.VoxelBlockSize/2), NewLocation.z + 90.0);
       P[10] = World->GetVoxelPlayerCoord(NewLocation.x+85.0,NewLocation.y+384.0, NewLocation.z + 90.0);
       P[11] = World->GetVoxelPlayerCoord(NewLocation.x-85.0,NewLocation.y+384.0, NewLocation.z + 90.0);
 
-      P[12] = World->GetVoxelPlayerCoord(NewLocation.x+90.0,NewLocation.y+128.0, NewLocation.z + 85.0);
-      P[13] = World->GetVoxelPlayerCoord(NewLocation.x+90.0,NewLocation.y+128.0, NewLocation.z - 85.0);
+      P[12] = World->GetVoxelPlayerCoord(NewLocation.x+90.0,NewLocation.y+(GlobalSettings.VoxelBlockSize/2), NewLocation.z + 85.0);
+      P[13] = World->GetVoxelPlayerCoord(NewLocation.x+90.0,NewLocation.y+(GlobalSettings.VoxelBlockSize/2), NewLocation.z - 85.0);
       P[14] = World->GetVoxelPlayerCoord(NewLocation.x+90.0,NewLocation.y+384.0, NewLocation.z + 85.0);
       P[15] = World->GetVoxelPlayerCoord(NewLocation.x+90.0,NewLocation.y+384.0, NewLocation.z - 85.0);
 
-      P[16] = World->GetVoxelPlayerCoord(NewLocation.x+85.0,NewLocation.y+128.0, NewLocation.z - 90.0);
-      P[17] = World->GetVoxelPlayerCoord(NewLocation.x-85.0,NewLocation.y+128.0, NewLocation.z - 90.0);
+      P[16] = World->GetVoxelPlayerCoord(NewLocation.x+85.0,NewLocation.y+(GlobalSettings.VoxelBlockSize/2), NewLocation.z - 90.0);
+      P[17] = World->GetVoxelPlayerCoord(NewLocation.x-85.0,NewLocation.y+(GlobalSettings.VoxelBlockSize/2), NewLocation.z - 90.0);
       P[18] = World->GetVoxelPlayerCoord(NewLocation.x+85.0,NewLocation.y+384.0, NewLocation.z - 90.0);
       P[19] = World->GetVoxelPlayerCoord(NewLocation.x-85.0,NewLocation.y+384.0, NewLocation.z - 90.0);
 
-      P[20] = World->GetVoxelPlayerCoord(NewLocation.x-90.0,NewLocation.y+128.0, NewLocation.z + 85.0);
-      P[21] = World->GetVoxelPlayerCoord(NewLocation.x-90.0,NewLocation.y+128.0, NewLocation.z - 85.0);
+      P[20] = World->GetVoxelPlayerCoord(NewLocation.x-90.0,NewLocation.y+(GlobalSettings.VoxelBlockSize/2), NewLocation.z + 85.0);
+      P[21] = World->GetVoxelPlayerCoord(NewLocation.x-90.0,NewLocation.y+(GlobalSettings.VoxelBlockSize/2), NewLocation.z - 85.0);
       P[22] = World->GetVoxelPlayerCoord(NewLocation.x-90.0,NewLocation.y+384.0, NewLocation.z + 85.0);
       P[23] = World->GetVoxelPlayerCoord(NewLocation.x-90.0,NewLocation.y+384.0, NewLocation.z - 85.0);
 
@@ -225,7 +225,7 @@ void ZActorPhysicEngine::DoPhysic(UELong FrameTime)
       if ( (Actor->Velocity.y < 0.0) && ( ( P[0]!=0 ) || (P[1]!=0) || (P[2]!=0) || (P[3]!=0) ) )
       {
         Actor->Velocity.y = 0.0;
-        NewLocation.y = (double)(((ELong)(NewLocation.y + 128.0)) & 0xFFFFFFFFFFFFFF00LL);
+        NewLocation.y = (double)(((ELong)(NewLocation.y + (GlobalSettings.VoxelBlockSize/2))) & 0xFFFFFFFFFFFFFF00LL);
         //Actor->JumpDebounce=0;
       }
       // Collision on top side
@@ -233,7 +233,7 @@ void ZActorPhysicEngine::DoPhysic(UELong FrameTime)
       if ( (Actor->Velocity.y > 0.0) && ( ( P[4]!=0 ) || (P[5]!=0) || (P[6]!=0) || (P[7]!=0) ) )
       {
         Actor->Velocity.y = 0.0;
-        NewLocation.y = (double)(((ELong)(NewLocation.y + 128.0)) & 0xFFFFFFFFFFFFFF00LL);
+        NewLocation.y = (double)(((ELong)(NewLocation.y + (GlobalSettings.VoxelBlockSize/2))) & 0xFFFFFFFFFFFFFF00LL);
       }
 
       if ( (NewLocation.z > Actor->Location.z ) && ( (P[8]!=0)  || (P[9]!=0)  || P[10]!=0 || P[11]!=0 )) NewLocation.z = Actor->Location.z;
@@ -249,7 +249,7 @@ void ZActorPhysicEngine::DoPhysic(UELong FrameTime)
         // Collision on Face side
         if ( (NewLocation.z > Actor->Location.z ) && ( ( P[8]!=0 ) || (P[9]!=0) || (P[10]!=0) || (P[11]!=0) ) )
         {
-          NewLocation.z = ((double)(((ELong)(NewLocation.z + 128.0)) & 0xFFFFFFFFFFFFFF00LL)) - 85.0;
+          NewLocation.z = ((double)(((ELong)(NewLocation.z + (GlobalSettings.VoxelBlockSize/2))) & 0xFFFFFFFFFFFFFF00LL)) - 85.0;
           Actor->Velocity.z = 0.0;
         }
 
@@ -257,7 +257,7 @@ void ZActorPhysicEngine::DoPhysic(UELong FrameTime)
 
         if ( (NewLocation.z < Actor->Location.z ) && (  ( P[16]!=0 ) || (P[17]!=0) || (P[18]!=0) || (P[19]!=0) ) )
         {
-          NewLocation.z = ((double)(((ELong)(NewLocation.z + 128.0)) & 0xFFFFFFFFFFFFFF00LL)) + 85.0;
+          NewLocation.z = ((double)(((ELong)(NewLocation.z + (GlobalSettings.VoxelBlockSize/2))) & 0xFFFFFFFFFFFFFF00LL)) + 85.0;
           Actor->Velocity.z = 0.0;
         }
       }
@@ -266,7 +266,7 @@ void ZActorPhysicEngine::DoPhysic(UELong FrameTime)
         // Collision on Left side
         if ( (NewLocation.x < Actor->Location.x ) && ( ( P[20]!=0 ) || (P[21]!=0) || (P[22]!=0) || (P[23]!=0) ) )
         {
-          NewLocation.x = ((double)(((ELong)(NewLocation.x + 128.0)) & 0xFFFFFFFFFFFFFF00LL)) + 85.0;
+          NewLocation.x = ((double)(((ELong)(NewLocation.x + (GlobalSettings.VoxelBlockSize/2))) & 0xFFFFFFFFFFFFFF00LL)) + 85.0;
           Actor->Velocity.x = 0.0;
         }
 
@@ -274,7 +274,7 @@ void ZActorPhysicEngine::DoPhysic(UELong FrameTime)
 
         if ( (NewLocation.x > Actor->Location.x ) && (  ( P[12]!=0 ) || (P[13]!=0) || (P[14]!=0) || (P[15]!=0) ) )
         {
-          NewLocation.x = ((double)(((ELong)(NewLocation.x + 128.0)) & 0xFFFFFFFFFFFFFF00LL)) - 85.0;
+          NewLocation.x = ((double)(((ELong)(NewLocation.x + (GlobalSettings.VoxelBlockSize/2))) & 0xFFFFFFFFFFFFFF00LL)) - 85.0;
           Actor->Velocity.x = 0.0;
         }
       }
@@ -536,7 +536,7 @@ void ZActor::DoPhysic(UELong FrameTime)
 
     // The gravity...
     double Gravity, CubeY;
-    CubeY = ViewDirection.origin().y / 256.0;
+    CubeY = ViewDirection.origin().y / GlobalSettings.VoxelBlockSize;
     if      (CubeY > 10000.0 && CubeY < 15000.0) { Gravity = 5.0 - (( (CubeY-10000.0) * (CubeY-10000.0)) / 5000000.0); } //5000000.0;
     else if (CubeY <= 10000.0) { Gravity = 5.0; }
     else                       { Gravity = 0.0; }

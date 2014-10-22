@@ -321,7 +321,7 @@ void ZGame_Events::Process_StillEvents()
       }
     }
 
-	if (Keyboard_Matrix[SDLK_KP8 & 0xFF] && COMPILEOPTION_DEBUGFACILITY)       { ZVector3d Position; Position = 0.0; Position.y = 6000.0 * 256.0; Actor->SetPosition(Position); }
+	if (Keyboard_Matrix[SDLK_KP8 & 0xFF] && COMPILEOPTION_DEBUGFACILITY)       { ZVector3d Position; Position = 0.0; Position.y = 6000.0 * GlobalSettings.VoxelBlockSize; Actor->SetPosition(Position); }
 	if (Keyboard_Matrix[SDLK_KP7 & 0xFF] && COMPILEOPTION_DEBUGFACILITY)
     {
       //GameEnv->Sound->PlaySound(1);
@@ -688,7 +688,7 @@ void ZGame_Events::Process_StillEvents()
     }
 
     //if ( Keyboard_Matrix[SDLK_w] )                                       { Actor->Action_GoDown(GameEnv->Time_GameLoop  * 1.5); }
-	if (Keyboard_Matrix[SDLK_g & 0xFF] && COMPILEOPTION_DEBUGFACILITY)                                       { Actor->Velocity.y = 15000.0; }
+	if (Keyboard_Matrix[SDLK_g & 0xFF] && COMPILEOPTION_DEBUGFACILITY)                                       { Actor->Velocity.y = 10000.0; }
 	if (Keyboard_Matrix[SDLK_KP_PLUS & 0xFF] && COMPILEOPTION_DEBUGFACILITY)
     {
 		if (Keyboard_Matrix[SDLK_LSHIFT & 0xFF]) { for (ULong i = 0; i<10; i++) Actor->Action_NextBuildingMaterial(); }
@@ -826,9 +826,9 @@ void ZGame_Events::Process_StillEvents()
 
       Actor = GameEnv->PhysicEngine->GetSelectedActor();
 
-      Position.x = Actor->ViewDirection.origin().x/256.0; Position.y = Actor->ViewDirection.origin().y/256.0; Position.z = Actor->ViewDirection.origin().z/256.0;
+      Position.x = Actor->ViewDirection.origin().x/GlobalSettings.VoxelBlockSize; Position.y = Actor->ViewDirection.origin().y/GlobalSettings.VoxelBlockSize; Position.z = Actor->ViewDirection.origin().z/GlobalSettings.VoxelBlockSize;
       Sector.x = Position.x >> 4; Sector.y = Position.y >> 6; Sector.z = Position.z >> 4;
-      Zone.x = Position.x >> 8; Zone.y = 0; Zone.z = Position.z >> 8;
+      Zone.x = Position.x >> GlobalSettings.VoxelBlockSizeBits; Zone.y = 0; Zone.z = Position.z >> GlobalSettings.VoxelBlockSizeBits;
 
       printf("Pos (%ld,%ld,%ld) Sector (%ld,%ld,%ld) Zone (%ld,%ld,%ld)\n",(UNum)Position.x,(UNum)Position.y,(UNum)Position.z,(UNum)Sector.x,(UNum)Sector.y,(UNum)Sector.z,(UNum)Zone.x,(UNum)Zone.y,(UNum)Zone.z);
     }

@@ -110,7 +110,7 @@
 #endif
 
 #include "ZType_ZMatrix.h" 
-#include "ZType_ZQuaternion.h" 
+//#include "ZType_ZQuaternion.h" 
 #ifndef Z_ZTYPE_ZPOLAR3D_H
 #  include "ZType_ZPolar3d.h"
 #endif

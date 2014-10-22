@@ -669,8 +669,8 @@ double ZWorldGenesis::GetHeightMap(Long Absolute_x, Long Absolute_z)
 
   //Absolute_x -= 128;
   //Absolute_z -= 128;
-  MapX = ((Absolute_x) >> 8) + 64;
-  MapZ = ((Absolute_z) >> 8) + 64;
+  MapX = ((Absolute_x) >> GlobalSettings.VoxelBlockSizeBits) + 64;
+  MapZ = ((Absolute_z) >> GlobalSettings.VoxelBlockSizeBits) + 64;
   RemainX = (Absolute_x) & 255;
   RemainZ = (Absolute_z) & 255;
   Coef1   = ((double)RemainX) / 255.0;
@@ -759,7 +759,12 @@ void ZWorldGenesis::GenerateZone_WaterLands(ZVoxelSector * VoxelSector, Long Hei
   SectorStart.x = (VoxelSector->Pos_x << ZVOXELBLOCSHIFT_X) & 255;
   SectorStart.z = (VoxelSector->Pos_z << ZVOXELBLOCSHIFT_Z) & 255;
   SectorStart.y = (VoxelSector->Pos_y << ZVOXELBLOCSHIFT_Y);
-
+  if( Sector_y >= 0 )
+  {
+	  memset( VoxelSector->Data, 0, VoxelSector->DataSize * sizeof( short ) );
+	  memset( VoxelSector->OtherInfos, 0, VoxelSector->DataSize * sizeof( ZMemSize ) );
+	return;
+  }
   VoxelSector->Flag_IsActiveVoxels = true;
 
   for (z=0 ; z<ZVOXELBLOCSIZE_Z ; z++)
@@ -767,8 +772,8 @@ void ZWorldGenesis::GenerateZone_WaterLands(ZVoxelSector * VoxelSector, Long Hei
     {
       ULong sx = (Sector_x << ZVOXELBLOCSHIFT_X) + x;
       ULong sz = (Sector_z << ZVOXELBLOCSHIFT_Z) + z;
-      ULong rx = sx >> 4; double Coef1 = (sx % 16) * (1.0 / 16.0);
-      ULong rz = sz >> 4; double Coef2 = (sz % 16) * (1.0 / 16.0);
+      ULong rx = sx >> ZVOXELBLOCSHIFT_Z; double Coef1 = (sx % 16) * (1.0 / 16.0);
+      ULong rz = sz >> ZVOXELBLOCSHIFT_Z; double Coef2 = (sz % 16) * (1.0 / 16.0);
 
       P1 = (RandomGen.GetNumber(rx) + RandomGen.GetNumber(rz) ) % 30 ;
       P2 = (RandomGen.GetNumber(rx+1) + RandomGen.GetNumber(rz) ) % 30 ;

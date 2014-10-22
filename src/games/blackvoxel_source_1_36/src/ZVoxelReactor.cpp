@@ -1660,7 +1660,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                             Location = &GameEnv->PhysicEngine->GetSelectedActor()->Location;
 
                             NewLocation = *Location;
-                            NewLocation.z -= 256.0;
+                            NewLocation.z -= GlobalSettings.VoxelBlockSize;
                             GameEnv->PhysicEngine->GetSelectedActor()->SetPosition(NewLocation);
 
                             break;
@@ -2126,7 +2126,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                              VoxelCoords.x = RSx + x; VoxelCoords.y = RSy + y; VoxelCoords.z = RSz + z;
                              World->Convert_Coords_VoxelToPlayer( &VoxelCoords, &VoxelLocation );
-                             VoxelLocation.x += 128.0;VoxelLocation.z += 128.0;VoxelLocation.y += 128.0;
+                             VoxelLocation.x += (GlobalSettings.VoxelBlockSize/2);VoxelLocation.z += (GlobalSettings.VoxelBlockSize/2);VoxelLocation.y += (GlobalSettings.VoxelBlockSize/2);
                              Distance = VoxelLocation.Distance(PlayerLocation);
                              if (Distance < 4096.0)
                              {
