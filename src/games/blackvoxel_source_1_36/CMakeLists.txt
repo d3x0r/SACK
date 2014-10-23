@@ -338,7 +338,6 @@ src/z/ZTypes.h
 src/z/ZType_ZMatrix.h
 src/z/ZType_ZPolar3d.h
 src/z/ZType_ZPolar3d_CrossFunc.h
-src/z/ZType_ZQuaternion.h
 src/z/ZType_ZVector3d.h
 src/z/ZType_ZVector3d_CrossFunc.h
 src/z/ZType_ZVector3L.h
