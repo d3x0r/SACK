@@ -148,6 +148,9 @@
 #  include "ZOs_Specific_Various.h"
 #endif
 
+#ifndef Z_ZTEST_PARTS_H
+#  include "Z0Test_Parts.h"
+#endif
 
 ZGame * Ge;
 double FrameTime;
@@ -170,6 +173,13 @@ SaneWinMain( argc, argv )
   // Start
 
     printf ("Starting BlackVoxel...\n");
+
+  // Test Code
+
+  #if DEVELOPPEMENT_ON == 1
+    //ZTest_Parts TestParts;
+    //if (!TestParts.RunTestCode()) exit(0);
+  #endif
 
   // Game main object
 

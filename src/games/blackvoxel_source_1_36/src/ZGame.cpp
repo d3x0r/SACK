@@ -186,8 +186,30 @@ bool ZGame::Init_GraphicMode(ZLog * InitLog)
 
   // Compute Hardware Resolution
 
-  if (Settings_Hardware->Setting_Resolution_h == 0 && Settings_Hardware->Setting_Resolution_v == 0) { HardwareResolution.x = DesktopResolution.x;  HardwareResolution.y = DesktopResolution.y; }
-  else                                                                                              { HardwareResolution.x = Settings_Hardware->Setting_Resolution_h; HardwareResolution.y = Settings_Hardware->Setting_Resolution_v; }
+  if (Settings_Hardware->Setting_Resolution_h == 0 && Settings_Hardware->Setting_Resolution_v == 0)
+  {
+    HardwareResolution.x = DesktopResolution.x;
+    HardwareResolution.y = DesktopResolution.y;
+  }
+  else
+  {
+    HardwareResolution.x = Settings_Hardware->Setting_Resolution_h;
+    HardwareResolution.y = Settings_Hardware->Setting_Resolution_v;
+  }
+  // Fix problem with vertical resolution mode
+
+  if (DesktopResolution.x < DesktopResolution.y)
+  {
+    if ( Settings_Hardware->Setting_FullScreen )
+    {
+      Flags &= ~ SDL_FULLSCREEN;
+    }
+    if (Settings_Hardware->Setting_Resolution_h == 0 && Settings_Hardware->Setting_Resolution_v == 0)
+    {
+      HardwareResolution.x = DesktopResolution.x;
+      HardwareResolution.y = (Long)(((double)DesktopResolution.x) / 1.77);
+    }
+  }
 
 
   // Starting video mode
