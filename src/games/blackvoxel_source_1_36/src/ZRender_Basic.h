@@ -43,6 +43,7 @@
 #  include "ZRender_Sorter.h"
 #endif
 
+#include "ZActor_Player.h"
 
 extern GLuint TextureName[1024];
 
@@ -81,6 +82,7 @@ class ZRender_Basic
     ZTextureManager  * TextureManager;
 
     ZCamera     * Camera;
+	ZActor      * Actor;  // where the camera came from really...
     ZRayCast_out * PointedVoxel;
     ZRadius_Zoning RadiusZones;
 
@@ -162,6 +164,8 @@ class ZRender_Basic
 
     void SetWorld           ( ZVoxelWorld * World );
     void SetCamera          ( ZCamera * Camera );
+	void SetActor           ( ZActor * Actor );
+
     void SetVoxelTypeManager( ZVoxelTypeManager * Manager );
     void SetTextureManager  ( ZTextureManager * Manager ) { this->TextureManager = Manager; }
     void SetPointedVoxel    ( ZRayCast_out * Pvoxel)         { this->PointedVoxel = Pvoxel; }

@@ -335,8 +335,18 @@ void ZActor_Player::Action_MouseButtonClick(ULong Button)
 {
   UShort ToolNum;
   ZTool * Tool;
-
   if (IsDead) return;
+
+  if( Button == 3 && GameEnv->EventManager.Is_KeyPressed( SDLK_LSHIFT, 0 ) )
+  {
+	  VoxelSelectDistance++;
+	  return;
+  }
+  if( Button == 4 && GameEnv->EventManager.Is_KeyPressed( SDLK_LSHIFT, 0 ) )
+  {
+	  VoxelSelectDistance--;
+	  return;
+  }
 
   ToolNum = Inventory->GetSlotRef(ZInventory::Tools_StartSlot)->VoxelType;
   Tool = PhysicsEngine->GetToolManager()->GetTool(ToolNum);

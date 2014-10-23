@@ -54,6 +54,36 @@ bool ZEventManager::ProcessEvents()
                         break;
 
                              break;
+	  case SDL_MOUSEWHEEL: 
+		  {
+			  // event.wheel.which  // which mouse ID
+			  int absx = event.wheel.x < 0?-event.wheel.x:event.wheel.x;
+			  int absy = event.wheel.y < 0?-event.wheel.y:event.wheel.y;
+			  int x, y;
+			  for( x = 0; x < absx; x++ )
+			  {
+					if ((Item = ConsumerList.GetFirst()))
+					do
+					{
+						if( event.wheel.x < 0 )
+							((ZEventConsumer *)Item->Object)->MouseButtonClick( 7, MouseX, MouseY);
+						else
+							((ZEventConsumer *)Item->Object)->MouseButtonClick( 6, MouseX, MouseY);
+					} while((Item = ConsumerList.GetNext(Item)));
+			  }
+			  for( y = 0; y < absy; y++ )
+			  {
+					if ((Item = ConsumerList.GetFirst()))
+					do
+					{
+						if( event.wheel.y < 0 )
+							((ZEventConsumer *)Item->Object)->MouseButtonClick( 5, MouseX, MouseY);
+						else
+							((ZEventConsumer *)Item->Object)->MouseButtonClick( 4, MouseX, MouseY);
+					} while((Item = ConsumerList.GetNext(Item)));
+			  }
+		  }
+		  break;
 	  case SDL_MOUSEMOTION: MouseX = event.motion.x; MouseY = event.motion.y;
                             if ((Item = ConsumerList.GetFirst()))
                             do
