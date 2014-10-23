@@ -1004,7 +1004,7 @@ void ZVoxelWorld::SetVoxel_WithCullingUpdate2(Long x, Long y, Long z, UShort Vox
 
 	bool ZVoxelWorld::RayCast_Vector(ZMatrix & Pos, const ZVector3d & Vector, const ZRayCast_in * In, ZRayCast_out * Out, bool InvertCollision )
 {
-	return RayCast_Vector( ZVector3d(Pos.x(), Pos.y(), Pos.z() ), Vector, In, Out, InvertCollision );
+	return RayCast_Vector( Pos.origin(), Vector, In, Out, InvertCollision );
 }
 
 bool ZVoxelWorld::RayCast_Vector(const ZVector3d & Pos, const ZVector3d & Vector, const ZRayCast_in * In, ZRayCast_out * Out, bool InvertCollision )
@@ -1013,8 +1013,12 @@ bool ZVoxelWorld::RayCast_Vector(const ZVector3d & Pos, const ZVector3d & Vector
   ZVector4d Offset_h, Offset_v, Offset_s;
   ZVector3d Norm_h, Norm_v, Norm_s;
   ZVector4d Collision_h, Collision_v, Collision_s;
-  Long ActualCube_x,ActualCube_y,ActualCube_z;
-  Long NewCube_x,NewCube_y,NewCube_z;
+  Long ActualCube_x_h,ActualCube_y_h,ActualCube_z_h;
+  Long ActualCube_x_v,ActualCube_y_v,ActualCube_z_v;
+  Long ActualCube_x_s,ActualCube_y_s,ActualCube_z_s;
+  Long NewCube_x_h,NewCube_y_h,NewCube_z_h;
+  Long NewCube_x_v,NewCube_y_v,NewCube_z_v;
+  Long NewCube_x_s,NewCube_y_s,NewCube_z_s;
   bool Collide_X, Collide_Y, Collide_Z;
   ULong i;
   UByte Face_h, Face_s,Face_v;
@@ -1026,8 +1030,8 @@ bool ZVoxelWorld::RayCast_Vector(const ZVector3d & Pos, const ZVector3d & Vector
   double Vector_Len;
 
   // Normalize input vector.
-  Vector_Len = sqrt( Vector.x * Vector.x + Vector.y * Vector.y + Vector.z * Vector.z);
-  Norm = Vector / Vector_Len;
+  //Vector_Len = sqrt( Vector.x * Vector.x + Vector.y * Vector.y + Vector.z * Vector.z);
+  Norm = Vector;// / Vector_Len;
 
   // Norm = Vector;
 
@@ -1177,22 +1181,26 @@ bool ZVoxelWorld::RayCast_Vector(const ZVector3d & Pos, const ZVector3d & Vector
     {
       if (Match_h==0 && Collision_h.w < MinW)
       {
-        ActualCube_x = (Long)floor((Collision_h.x - Norm_h.x) / GlobalSettings.VoxelBlockSize); ActualCube_y = (Long)floor((Collision_h.y - Norm_h.y) / GlobalSettings.VoxelBlockSize); ActualCube_z = (Long)floor((Collision_h.z - Norm_h.z) / GlobalSettings.VoxelBlockSize);
-        NewCube_x = (Long)floor((Collision_h.x) / GlobalSettings.VoxelBlockSize); NewCube_y = (Long)floor((Collision_h.y) / GlobalSettings.VoxelBlockSize); NewCube_z = (Long)floor((Collision_h.z) / GlobalSettings.VoxelBlockSize);
+        ActualCube_x_h = (Long)floor((Collision_h.x - Norm_h.x) / GlobalSettings.VoxelBlockSize); 
+		ActualCube_y_h = (Long)floor((Collision_h.y - Norm_h.y) / GlobalSettings.VoxelBlockSize); 
+		ActualCube_z_h = (Long)floor((Collision_h.z - Norm_h.z) / GlobalSettings.VoxelBlockSize);
+        NewCube_x_h = (Long)floor((Collision_h.x) / GlobalSettings.VoxelBlockSize); 
+		NewCube_y_h = (Long)floor((Collision_h.y) / GlobalSettings.VoxelBlockSize); 
+		NewCube_z_h = (Long)floor((Collision_h.z) / GlobalSettings.VoxelBlockSize);
         //ActualCube_x = (Long)floor((Collision_h.x - Norm_h.x) / GlobalSettings.VoxelBlockSize); ActualCube_y = (Long)floor((Collision_h.y - Norm_h.y) / GlobalSettings.VoxelBlockSize); ActualCube_z = (Long)floor((Collision_h.z - Norm_h.z) / GlobalSettings.VoxelBlockSize);
         //NewCube_x = (Long)floor((Collision_h.x + Norm_h.x) / GlobalSettings.VoxelBlockSize); NewCube_y = (Long)floor((Collision_h.y + Norm_h.y) / GlobalSettings.VoxelBlockSize); NewCube_z = (Long)floor((Collision_h.z + Norm_h.z) / GlobalSettings.VoxelBlockSize);
-        if (Face_h == 3) NewCube_x--;
+        if (Face_h == 3) NewCube_x_h--;
 
-        VoxelType = GetVoxel       ( NewCube_x, NewCube_y, NewCube_z);
+        VoxelType = GetVoxel       ( NewCube_x_h, NewCube_y_h, NewCube_z_h);
 
         if (!VoxelTypeManager->VoxelTable[VoxelType]->Is_PlayerCanPassThrough ^ InvertCollision)
         {
-          Out->PredPointedVoxel.x = ActualCube_x; Out->PredPointedVoxel.y = ActualCube_y; Out->PredPointedVoxel.z = ActualCube_z;
-          Out->PointedVoxel.x = NewCube_x; Out->PointedVoxel.y = NewCube_y; Out->PointedVoxel.z = NewCube_z;
+          Out->PredPointedVoxel.x = ActualCube_x_h; Out->PredPointedVoxel.y = ActualCube_y_h; Out->PredPointedVoxel.z = ActualCube_z_h;
+          Out->PointedVoxel.x = NewCube_x_h; Out->PointedVoxel.y = NewCube_y_h; Out->PointedVoxel.z = NewCube_z_h;
           Out->CollisionPoint.x = Collision_h.x; Out->CollisionPoint.y = Collision_h.y; Out->CollisionPoint.z = Collision_h.z; Out->CollisionDistance = Collision_h.w;
           Out->CollisionAxe = 0; Out->CollisionFace = Face_h;
           Out->PointInCubeFace.x = fmod(Out->CollisionPoint.z, GlobalSettings.VoxelBlockSize); Out->PointInCubeFace.y = fmod(Out->CollisionPoint.y, GlobalSettings.VoxelBlockSize);
-          //printf(" MATCH_H: %lf (%ld %ld %ld) C:%ld\n",Collision_h.w, NewCube_x, NewCube_y, NewCube_z, Cycle);
+          //printf(" MATCH_H: %lf (%ld %ld %ld) C:%ld\n",Collision_h.w, NewCube_x_h, NewCube_y_h, NewCube_z_h, Cycle);
           Match_h = Cycle;
           MinW = Collision_h.w;
         }
@@ -1205,23 +1213,23 @@ bool ZVoxelWorld::RayCast_Vector(const ZVector3d & Pos, const ZVector3d & Vector
     {
       if (Match_s == 0 && Collision_s.w < MinW)
       {
-        ActualCube_x = (Long)floor((Collision_s.x - Norm_s.x) / GlobalSettings.VoxelBlockSize); ActualCube_y = (Long)floor((Collision_s.y - Norm_s.y) / GlobalSettings.VoxelBlockSize); ActualCube_z = (Long)floor((Collision_s.z - Norm_s.z) / GlobalSettings.VoxelBlockSize);
-        NewCube_x = (Long)floor((Collision_s.x) / GlobalSettings.VoxelBlockSize); NewCube_y = (Long)floor((Collision_s.y) / GlobalSettings.VoxelBlockSize); NewCube_z = (Long)floor((Collision_s.z) / GlobalSettings.VoxelBlockSize);
-        //ActualCube_x = (Long)floor((Collision_s.x - Norm_s.x) / GlobalSettings.VoxelBlockSize); ActualCube_y = (Long)floor((Collision_s.y - Norm_s.y) / GlobalSettings.VoxelBlockSize); ActualCube_z = (Long)floor((Collision_s.z - Norm_s.z) / GlobalSettings.VoxelBlockSize);
-        //NewCube_x = (Long)floor((Collision_s.x + Norm_s.x) / GlobalSettings.VoxelBlockSize); NewCube_y = (Long)floor((Collision_s.y + Norm_s.y) / GlobalSettings.VoxelBlockSize); NewCube_z = (Long)floor((Collision_s.z + Norm_s.z) / GlobalSettings.VoxelBlockSize);
-        if (Face_s == 1) NewCube_z--;
+        ActualCube_x_s = (Long)floor((Collision_s.x - Norm_s.x) / GlobalSettings.VoxelBlockSize); ActualCube_y_s = (Long)floor((Collision_s.y - Norm_s.y) / GlobalSettings.VoxelBlockSize); ActualCube_z_s = (Long)floor((Collision_s.z - Norm_s.z) / GlobalSettings.VoxelBlockSize);
+        NewCube_x_s = (Long)floor((Collision_s.x) / GlobalSettings.VoxelBlockSize); NewCube_y_s = (Long)floor((Collision_s.y) / GlobalSettings.VoxelBlockSize); NewCube_z_s = (Long)floor((Collision_s.z) / GlobalSettings.VoxelBlockSize);
+        //ActualCube_x_s = (Long)floor((Collision_s.x - Norm_s.x) / GlobalSettings.VoxelBlockSize); ActualCube_y_s = (Long)floor((Collision_s.y - Norm_s.y) / GlobalSettings.VoxelBlockSize); ActualCube_z_s = (Long)floor((Collision_s.z - Norm_s.z) / GlobalSettings.VoxelBlockSize);
+        //NewCube_x_s = (Long)floor((Collision_s.x + Norm_s.x) / GlobalSettings.VoxelBlockSize); NewCube_y_s = (Long)floor((Collision_s.y + Norm_s.y) / GlobalSettings.VoxelBlockSize); NewCube_z_s = (Long)floor((Collision_s.z + Norm_s.z) / GlobalSettings.VoxelBlockSize);
+        if (Face_s == 1) NewCube_z_s--;
 
-        VoxelType = GetVoxel       ( NewCube_x, NewCube_y, NewCube_z);
+        VoxelType = GetVoxel       ( NewCube_x_s, NewCube_y_s, NewCube_z_s);
 
         if (!VoxelTypeManager->VoxelTable[VoxelType]->Is_PlayerCanPassThrough ^ InvertCollision)
         {
-          Out->PredPointedVoxel.x = ActualCube_x; Out->PredPointedVoxel.y = ActualCube_y; Out->PredPointedVoxel.z = ActualCube_z;
-          Out->PointedVoxel.x = NewCube_x; Out->PointedVoxel.y = NewCube_y; Out->PointedVoxel.z = NewCube_z;
+          Out->PredPointedVoxel.x = ActualCube_x_s; Out->PredPointedVoxel.y = ActualCube_y_s; Out->PredPointedVoxel.z = ActualCube_z_s;
+          Out->PointedVoxel.x = NewCube_x_s; Out->PointedVoxel.y = NewCube_y_s; Out->PointedVoxel.z = NewCube_z_s;
           Out->CollisionPoint.x = Collision_s.x; Out->CollisionPoint.y = Collision_s.y; Out->CollisionPoint.z = Collision_s.z; Out->CollisionDistance = Collision_s.w;
           Out->CollisionAxe = 2; Out->CollisionFace = Face_s;
           Out->PointInCubeFace.x = fmod(Out->CollisionPoint.x, GlobalSettings.VoxelBlockSize); Out->PointInCubeFace.y = fmod(Out->CollisionPoint.y, GlobalSettings.VoxelBlockSize);
 
-          //printf(" MATCH_S: %lf (%ld %ld %ld) C:%ld\n",Collision_s.w, NewCube_x, NewCube_y, NewCube_z, Cycle);
+          //printf(" MATCH_S: %lf (%ld %ld %ld) C:%ld\n",Collision_s.w, NewCube_x_s, NewCube_y_s, NewCube_z_s, Cycle);
           Match_s = Cycle;
           MinW = Collision_s.w;
         }
@@ -1234,23 +1242,23 @@ bool ZVoxelWorld::RayCast_Vector(const ZVector3d & Pos, const ZVector3d & Vector
     {
       if (Match_v==0 && Collision_v.w < MinW)
       {
-        ActualCube_x = (Long)floor((Collision_v.x - Norm_v.x) / GlobalSettings.VoxelBlockSize);   ActualCube_y = (Long)floor((Collision_v.y - Norm_v.y) / GlobalSettings.VoxelBlockSize);   ActualCube_z = (Long)floor((Collision_v.z - Norm_v.z) / GlobalSettings.VoxelBlockSize);
-        NewCube_x = (Long)floor((Collision_v.x) / GlobalSettings.VoxelBlockSize); NewCube_y = (Long)floor((Collision_v.y) / GlobalSettings.VoxelBlockSize); NewCube_z = (Long)floor((Collision_v.z) / GlobalSettings.VoxelBlockSize);
-        //ActualCube_x = (Long)floor((Collision_v.x - Norm_v.x) / GlobalSettings.VoxelBlockSize);   ActualCube_y = (Long)floor((Collision_v.y - Norm_v.y) / GlobalSettings.VoxelBlockSize);   ActualCube_z = (Long)floor((Collision_v.z - Norm_v.z) / GlobalSettings.VoxelBlockSize);
-        //NewCube_x = (Long)floor((Collision_v.x + Norm_v.x) / GlobalSettings.VoxelBlockSize); NewCube_y = (Long)floor((Collision_v.y + Norm_v.y) / GlobalSettings.VoxelBlockSize); NewCube_z = (Long)floor((Collision_v.z + Norm_v.z) / GlobalSettings.VoxelBlockSize);
-        if (Face_v == 4) NewCube_y--;
+        ActualCube_x_v = (Long)floor((Collision_v.x - Norm_v.x) / GlobalSettings.VoxelBlockSize);   ActualCube_y_v = (Long)floor((Collision_v.y - Norm_v.y) / GlobalSettings.VoxelBlockSize);   ActualCube_z_v = (Long)floor((Collision_v.z - Norm_v.z) / GlobalSettings.VoxelBlockSize);
+        NewCube_x_v = (Long)floor((Collision_v.x) / GlobalSettings.VoxelBlockSize); NewCube_y_v = (Long)floor((Collision_v.y) / GlobalSettings.VoxelBlockSize); NewCube_z_v = (Long)floor((Collision_v.z) / GlobalSettings.VoxelBlockSize);
+        //ActualCube_x_v = (Long)floor((Collision_v.x - Norm_v.x) / GlobalSettings.VoxelBlockSize);   ActualCube_y_v = (Long)floor((Collision_v.y - Norm_v.y) / GlobalSettings.VoxelBlockSize);   ActualCube_z_v = (Long)floor((Collision_v.z - Norm_v.z) / GlobalSettings.VoxelBlockSize);
+        //NewCube_x_v = (Long)floor((Collision_v.x + Norm_v.x) / GlobalSettings.VoxelBlockSize); NewCube_y_v = (Long)floor((Collision_v.y + Norm_v.y) / GlobalSettings.VoxelBlockSize); NewCube_z_v = (Long)floor((Collision_v.z + Norm_v.z) / GlobalSettings.VoxelBlockSize);
+        if (Face_v == 4) NewCube_y_v--;
 
-        VoxelType = GetVoxel       ( NewCube_x, NewCube_y, NewCube_z);
+        VoxelType = GetVoxel       ( NewCube_x_v, NewCube_y_v, NewCube_z_v);
 
         if (!VoxelTypeManager->VoxelTable[VoxelType]->Is_PlayerCanPassThrough ^ InvertCollision)
         {
-          Out->PredPointedVoxel.x = ActualCube_x; Out->PredPointedVoxel.y = ActualCube_y; Out->PredPointedVoxel.z = ActualCube_z;
-          Out->PointedVoxel.x = NewCube_x; Out->PointedVoxel.y = NewCube_y; Out->PointedVoxel.z = NewCube_z;
+          Out->PointedVoxel.x = NewCube_x_v; Out->PointedVoxel.y = NewCube_y_v; Out->PointedVoxel.z = NewCube_z_v;
           Out->CollisionPoint.x = Collision_v.x; Out->CollisionPoint.y = Collision_v.y; Out->CollisionPoint.z = Collision_v.z; Out->CollisionDistance = Collision_v.w;
+          Out->PredPointedVoxel.x = ActualCube_x_v; Out->PredPointedVoxel.y = ActualCube_y_v; Out->PredPointedVoxel.z = ActualCube_z_v;
           Out->CollisionAxe = 1; Out->CollisionFace = Face_v;
           Out->PointInCubeFace.x = fmod(Out->CollisionPoint.x, GlobalSettings.VoxelBlockSize); Out->PointInCubeFace.y = fmod(Out->CollisionPoint.z, GlobalSettings.VoxelBlockSize);
 
-          //printf(" MATCH_V: %lf (%ld %ld %ld) C:%ld\n",Collision_v.w, NewCube_x, NewCube_y, NewCube_z,Cycle );
+          //printf(" MATCH_V: %lf (%ld %ld %ld) C:%ld\n",Collision_v.w, NewCube_x_v, NewCube_y_v, NewCube_z_v,Cycle );
           Match_v = Cycle;
           MinW = Collision_v.w;
         }
@@ -1269,6 +1277,44 @@ bool ZVoxelWorld::RayCast_Vector(const ZVector3d & Pos, const ZVector3d & Vector
 	  if (Collide_Z)
 		  Collision_s.x += Offset_s.x; Collision_s.y += Offset_s.y; Collision_s.z += Offset_s.z; Collision_s.w += Offset_s.w;
     Cycle ++;
+  }
+  // compute it as a delta and revert this change :/
+  if( 0 )
+  {
+	  if( (!Collide_Y && Collide_X ) || ( Collide_Y && Collide_X && ( Collision_h.w < Collision_v.w ) ) )
+	  {
+		  if( Collide_Z && Collision_h.w < Collision_s.w )
+		  {
+			  Out->PredPointedVoxel.x = ActualCube_x_h; Out->PredPointedVoxel.y = ActualCube_y_h; Out->PredPointedVoxel.z = ActualCube_z_h;
+			  Out->PointedVoxel.x = NewCube_x_h; Out->PointedVoxel.y = NewCube_y_h; Out->PointedVoxel.z = NewCube_z_h;
+		  }
+		  else
+		  {
+			  if( ( Collide_Z && !Collide_Y) || ( Collide_Z && Collide_Y && Collision_s.w < Collision_v.w ) )
+			  {
+				  Out->PredPointedVoxel.x = ActualCube_x_s; Out->PredPointedVoxel.y = ActualCube_y_s; Out->PredPointedVoxel.z = ActualCube_z_s;
+				  Out->PointedVoxel.x = NewCube_x_s; Out->PointedVoxel.y = NewCube_y_s; Out->PointedVoxel.z = NewCube_z_s;
+			  }
+			  else
+			  {
+				  Out->PredPointedVoxel.x = ActualCube_x_h; Out->PredPointedVoxel.y = ActualCube_y_h; Out->PredPointedVoxel.z = ActualCube_z_h;
+				  Out->PointedVoxel.x = NewCube_x_h; Out->PointedVoxel.y = NewCube_y_h; Out->PointedVoxel.z = NewCube_z_h;
+			  }
+		  }
+	  }
+	  else
+	  {
+		if( ( Collide_Z && !Collide_Y ) || ( Collide_Y && Collide_Z && Collision_s.w < Collision_v.w ) )
+		{
+			Out->PredPointedVoxel.x = ActualCube_x_s; Out->PredPointedVoxel.y = ActualCube_y_s; Out->PredPointedVoxel.z = ActualCube_z_s;
+			Out->PointedVoxel.x = NewCube_x_s; Out->PointedVoxel.y = NewCube_y_s; Out->PointedVoxel.z = NewCube_z_s;
+		}
+		else if( Collide_Y ) 
+		{
+			Out->PredPointedVoxel.x = ActualCube_x_v; Out->PredPointedVoxel.y = ActualCube_y_v; Out->PredPointedVoxel.z = ActualCube_z_v;
+			Out->PointedVoxel.x = NewCube_x_v; Out->PointedVoxel.y = NewCube_y_v; Out->PointedVoxel.z = NewCube_z_v;
+		}
+	  }
   }
   Out->Collided = false;
   Out->CollisionAxe = 0;
