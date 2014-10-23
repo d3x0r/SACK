@@ -2884,6 +2884,14 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 				ch[0] = ( ( (wchar_t)wch[0] & 0xF ) << 12 ) | ( ( (wchar_t)wch[1] & 0x3F ) << 6 ) | ( (wchar_t)wch[2] & 0x3f );
 				wch += 3;
 			}
+			else if( ( wch[0] & 0xF0 ) == 0xF0 )
+			{
+				ch[0] = ( ( (wchar_t)wch[0] & 0x7 ) << 18 ) 
+						| ( ( (wchar_t)wch[1] & 0x3F ) << 12 ) 
+						| ( (wchar_t)wch[2] & 0x3f ) << 6
+						| ( (wchar_t)wch[3] & 0x3f );
+				wch += 3;
+			}
 			else
 			{
 				err = mbstowcs_s(&convertedChars, 

@@ -1187,11 +1187,7 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 		if( !renderer->font )
 		{
 			//lprintf( WIDE("Need font resource (once)") );
-#ifdef UNICODE
 			renderer->font = NewPlus( FONT, (charcount=65535) * sizeof(PCHARACTER) );
-#else
-			renderer->font = NewPlus( FONT, (charcount=255) * sizeof(PCHARACTER) );
-#endif
 			// this is okay it's a kludge so some other code worked magically
 			// it's redundant and should be dleete...
 			renderer->ResultFont = (SFTFont)renderer->font;

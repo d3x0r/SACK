@@ -183,7 +183,7 @@ SACK_NAMESPACE
 #define BASE_COLOR_WHITE         Color( 255, 255, 255 )
 #define BASE_COLOR_ORANGE        Color( 204,96,7 )
 #define BASE_COLOR_NICE_ORANGE   Color( 0xE9, 0x7D, 0x26 )
-#define BASE_COLOR_PURPLE        0xFF7A117C
+#define BASE_COLOR_PURPLE        Color( 0x7A, 0x11, 0x7C )
 #ifdef __cplusplus
 
 }; // 	namespace image {

@@ -61,7 +61,7 @@ static TEXTCHAR maxbase2[] = WIDE("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 static struct {
 	CDATA color;
 	CTEXTSTR name;
-}color_defs[4];
+}color_defs[21];
 
 #ifdef __cplusplus
 	namespace default_font {
@@ -803,7 +803,7 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 				for( col = 0; col < pchar->width; col++ )
 					CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col), background );
 			}
-			for( ; line <= UseFont->baseline - pchar->descent ; line++ )
+			for(; line <= UseFont->baseline - pchar->descent; line++ )
 			{
 				dataline = data;
 				col = 0;
@@ -811,11 +811,11 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 					CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col), background );
 				for( bit = 0; bit < size; col++, bit++ )
 					CharPlotAlphax( pImage, StepX(x,col,line), StepY(y,line,col), CharDatax( data, bit ), color, background );
-				for( ; col < width; col++ )
+				for(; col < width; col++ )
 					CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col),background );
 				data += inc;
 			}
-			for( ; line < UseFont->height; line++ )
+			for(; line < UseFont->height; line++ )
 			{
 				for( col = 0; col < pchar->width; col++ )
 					CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col), background );
@@ -836,9 +836,9 @@ static _32 PutCharacterFontX ( ImageFile *pImage
 			}
 			else
 			{
-				y += ( UseFont->baseline - pchar->ascent ) ;
+				y += ( UseFont->baseline - pchar->ascent );
 				line = 0;//UseFont->baseline - pchar->ascent;
-				line_target =  pchar->ascent - pchar->descent ;//(UseFont->baseline - pchar->ascent) + ( UseFont->baseline - pchar->descent );
+				line_target =  pchar->ascent - pchar->descent;//(UseFont->baseline - pchar->ascent) + ( UseFont->baseline - pchar->descent );
 			}
 			for(;
 				 line <= line_target;
@@ -1004,10 +1004,103 @@ static _32 FilterMenuStrings( ImageFile *pImage
 }
 */
 
-
-static LOGICAL Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_original, CDATA *fore, CDATA *back )
+static unsigned int GetUtfChar( CTEXTSTR *from )
 {
+	unsigned int result = (*from)[0];
+#ifdef _UNICODE
+	if( ( ( (*from)[0] & 0xFC00 ) >= 0xD800 )
+		&& ( ( (*from)[0] & 0xFC00 ) <= 0xDF00 ) )
+	{
+		result = 0x10000 + ( ( ( (*from)[0] & 0x3ff ) << 10 ) | ( ( (*from)[1] & 0x3ff ) ) );
+		(*from) += 2;
+	}
+	else 
+	{
+		(*from)++;
+	}
+#else
+	if( (*from)[0] * 0x80 )
+	{
+		if( ( (*from)[0] & 0xE0 ) == 0xC0 )
+		{
+			if( ( (*from)[1] & 0xC0 ) == 0x80 )
+			{
+				result = ( ( (unsigned int)(*from)[0] & 0x1F ) << 6 ) | ( (unsigned int)(*from)[1] & 0x3f );
+				(*from) += 2;
+			}
+			else
+			{
+				lprintf( "a 2 byte code with improper continuation encodings following it was found." );
+				(*from)++;
+			}
+		}
+		else if( ( (*from)[0] & 0xF0 ) == 0xE0 )
+		{
+			if( ( ( (*from)[1] & 0xC0 ) == 0x80 ) && ( ( (*from)[2] & 0xC0 ) == 0x80 ) )
+			{
+				result = ( ( (unsigned int)(*from)[0] & 0xF ) << 12 ) | ( ( (unsigned int)(*from)[1] & 0x3F ) << 6 ) | ( (unsigned int)(*from)[2] & 0x3f );
+				(*from) += 3;
+			}
+			else
+			{
+				lprintf( "a 3 byte code with improper continuation encodings following it was found." );
+				(*from)++;
+			}
+		}
+		else if( ( (*from)[0] & 0xF8 ) == 0xF0 )
+		{
+			if( ( ( (*from)[1] & 0xC0 ) == 0x80 ) && ( ( (*from)[2] & 0xC0 ) == 0x80 ) && ( ( (*from)[3] & 0xC0 ) == 0x80 ) )
+			{
+				result =   ( ( (unsigned int)(*from)[0] & 0x7 ) << 18 ) 
+						| ( ( (unsigned int)(*from)[1] & 0x3F ) << 12 )
+						| ( ( (unsigned int)(*from)[2] & 0x3f ) << 6 )
+						| ( (unsigned int)(*from)[3] & 0x3f );
+				(*from) += 4;
+			}
+			else
+			{
+				lprintf( "a 4 byte code with improper continuation encodings following it was found." );
+				(*from)++;
+			}
+		}
+		else if( ( (*from)[0] & 0xC0 ) == 0x80 )
+		{
+			// things like 0x9F, 0x9A is OK; is a single byte character, is a unicode application escape 
+			//lprintf( "a continuation encoding was found." );
+			result = (*from)[0];
+			(*from)++;
+		}
+		else
+		{
+			result = (*from)[0];
+			(*from)++;
+		}
+	}
+	else
+	{
+		result = (*from)[0];
+		(*from)++;
+	}
+#endif
+	return result;
+}
+
+
+// Return the integer character from the string
+// using utf-8 or utf-16 decoding appropriately.  No more extended-ascii.
+
+static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_original, CDATA *fore, CDATA *back )
+{
+	CTEXTSTR *_pc = pc;
+	int ch;
 	//lprintf( "Step (%s[%*.*s])", (*pc), nLen,nLen, (*pc) );
+	if( !*nLen )
+		return 0;
+
+	ch = GetUtfChar( pc );
+	(*nLen) -= pc - _pc;
+	_pc = pc;
+
 	if( !fore_original[0] && !back_original[0] )
 	{
 		// This serves as a initial condition.  If the colors were 0 and 0, then make them not zero.
@@ -1020,19 +1113,20 @@ static LOGICAL Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *ba
 	else
 	{
 		// if not the first invoke, move to next character first.
-		(*pc)++;
-		(*nLen)--;
+		//(*pc)++;
+		//(*nLen)--;
 	}
-	if( *(unsigned char*)(*pc) && (*nLen) )
+	if( ch )
 	{
-		while( (*(*pc)) == WIDE('\x9F') )
+		while( ch == WIDE('\x9F') )
 		{
-			while( (*(*pc)) && (*(*pc)) != WIDE( '\x9C' ) )
+			while( ch && ( ch != WIDE( '\x9C' ) ) )
 			{
 				int code;
-				(*pc)++;
-				(*nLen)--;
-				switch( code = (*pc)[0] )
+				ch = GetUtfChar( pc );
+				(*nLen) -= pc - _pc;
+				_pc = pc;
+				switch( code = ch )
 				{
 				case 'r':
 				case 'R':
@@ -1049,13 +1143,14 @@ static LOGICAL Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *ba
 				case 'b':
 				case 'F':
 				case 'f':
-					(*pc)++;
-					(*nLen)--;
-					if( (*(*pc)) == '$' )
+					ch = GetUtfChar( pc );
+					(*nLen) -= pc - _pc;
+					_pc = pc;
+					if( ch == '$' )
 					{
 						_32 accum = 0;
-						CTEXTSTR digit;
-						digit = (*pc) + 1;
+						CTEXTSTR digit = (*pc);
+						ch = GetUtfChar( &digit );
 						//lprintf( WIDE("COlor testing: %s"), digit );
 						// less than or equal - have to count the $
 						while( digit && digit[0] && ( ( digit - (*pc) ) <= 8 ) )
@@ -1063,12 +1158,12 @@ static LOGICAL Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *ba
 							int n;
 							CTEXTSTR p;
 							n = 16;
-							p = strchr( maxbase1, digit[0] );
+							p = strchr( maxbase1, ch );
 							if( p )
 								n = (_32)(p-maxbase1);
 							else
 							{
-								p = strchr( maxbase2, digit[0] );
+								p = strchr( maxbase2, ch );
 								if( p )
 									n = (_32)(p-maxbase2);
 							}
@@ -1079,7 +1174,7 @@ static LOGICAL Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *ba
 							}
 							else
 								break;
-							digit++;
+							ch = GetUtfChar( &digit );
 						}
 						if( ( digit - (*pc) ) < 6 )
 						{
@@ -1107,8 +1202,8 @@ static LOGICAL Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *ba
 						//		, pce->data[0].Color
 						//		, RedVal( pce->data[0].Color ), GreenVal(pce->data[0].Color), BlueVal(pce->data[0].Color) );
 
-						(*nLen) -= ( digit - (*pc) ) - 1;
-						(*pc) = digit - 1;
+						//(*nLen) -= ( digit - (*pc) ) - 1;
+						//(*pc) = digit - 1;
 
 						if( code == 'b' || code == 'B' )
 							back[0] = accum;
@@ -1199,7 +1294,7 @@ static LOGICAL Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *ba
 			}
 
 			// if the string ended...
-			if( !(*(*pc)) )
+			if( !ch )
 			{
 				// this is done.  There's nothing left... command with no data is bad form, but not illegal.
 				return FALSE;
@@ -1207,14 +1302,13 @@ static LOGICAL Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *ba
 			else  // pc is now on the stop command, advance one....
 			{
 				// this is in a loop, and the next character may be another command....
-				(*pc)++;
-				(*nLen)--;
+				ch = GetUtfChar( pc );
+				(*nLen) -= pc - _pc;
+				_pc = pc;
 			}
 		}
-		return TRUE;
 	}
-	else
-		return FALSE;
+	return ch;
 }
 
 void PutStringVerticalFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, PFONT font )
@@ -1222,18 +1316,19 @@ void PutStringVerticalFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CD
 	_32 _y = y;
 	CDATA tmp1 = 0;
 	CDATA tmp2 = 0;
+	int ch;
 	if( !font )
 		font = &DEFAULTFONT;
 	if( !pImage || !pc ) return;// y;
-	while( Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
+	while( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
 	{
-		if( *(unsigned char*)pc == '\n' )
+		if( ch == '\n' )
 		{
 			x -= font->height;
 			y = _y;
 		}
 		else
-			y += _PutCharacterVerticalFont( pImage, x, y, color, background, *(unsigned char*)pc, font );
+			y += _PutCharacterVerticalFont( pImage, x, y, color, background, ch, font );
 	}
 	return;// y;
 }
@@ -1243,18 +1338,19 @@ void PutStringInvertVerticalFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA col
 	_32 _y = y;
 	CDATA tmp1 = 0;
 	CDATA tmp2 = 0;
+	int ch;
 	if( !font )
 		font = &DEFAULTFONT;
 	if( !pImage || !pc ) return;// y;
-	while( Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
+	while( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
 	{
-		if( *(unsigned char*)pc == '\n' )
+		if( ch == '\n' )
 		{
 			x += font->height;
 			y = _y;
 		}
 		else
-			y -= _PutCharacterVerticalInvertFont( pImage, x, y, color, background, *(unsigned char*)pc, font );
+			y -= _PutCharacterVerticalInvertFont( pImage, x, y, color, background, ch, font );
 	}
 	return;// y;
 }
@@ -1267,19 +1363,20 @@ void PutStringFontEx( ImageFile *pImage
 	_32 _x = x;
 	CDATA tmp1 = 0;
 	CDATA tmp2 = 0;
+	int ch;
 	if( !font )
 		font = &DEFAULTFONT;
 	if( !pImage || !pc ) return;// x;
 	{
-		while( Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
+		while( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
 		{
-			if( (*pc) == '\n' )
+			if( ch == '\n' )
 			{
 				y += font->height;
 				x = _x;
 			}
 			else
-				x += _PutCharacterFont( pImage, x, y, color, background, *pc, font );
+				x += _PutCharacterFont( pImage, x, y, color, background, ch, font );
 		}
 	}
 	return;// x;
@@ -1301,12 +1398,13 @@ void PutStringFontExx( ImageFile *pImage
 	{
 		if( justification )
 		{
+			int ch;
 			start = pc;
-			while( Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
+			while( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
 			{
 				PCHARACTER pchar;
-				pchar = font->character[ (*pc) ];
-				if( (*pc) == '\n' )
+				pchar = font->character[ ch ];
+				if( ch == '\n' )
 				{
 					if( justification == 2 )				
 						x = ( _x + _width ) - length;
@@ -1314,8 +1412,8 @@ void PutStringFontExx( ImageFile *pImage
 						x = ( ( _x + _width ) - length ) / 2;
 					while( start != pc )
 					{
-						x += _PutCharacterFont( pImage, x, y, color, background, *start, font );
-						start++;
+						int ch2 = GetUtfChar( &start );
+						x += _PutCharacterFont( pImage, x, y, color, background, ch2, font );
 					}
 					start++;
 					y += font->height;
@@ -1329,15 +1427,16 @@ void PutStringFontExx( ImageFile *pImage
 		}
 		else
 		{
-			while( Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
+			int ch;
+			while( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
 			{
-				if( (*pc) == '\n' )
+				if( ch == '\n' )
 				{
 					y += font->height;
 					x = _x;
 				}
 				else
-					x += _PutCharacterFont( pImage, x, y, color, background, *pc, font );
+					x += _PutCharacterFont( pImage, x, y, color, background, ch, font );
 			}
 		}
 	}
@@ -1349,18 +1448,19 @@ void PutStringInvertFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDAT
 	_32 _x = x;
 	CDATA tmp1 = 0;
 	CDATA tmp2 = 0;
+	int ch;
 	if( !font )
 		font = &DEFAULTFONT;
 	if( !pImage || !pc ) return;// x;
-	while( Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
+	while( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
 	{
-		if( *(unsigned char*)pc == '\n' )
+		if( ch == '\n' )
 		{
 			y -= font->height;
 			x = _x;
 		}
 		else
-			x -= _PutCharacterInvertFont( pImage, x, y, color, background, *(unsigned char*)pc, font );
+			x -= _PutCharacterInvertFont( pImage, x, y, color, background, ch, font );
 	}
 	return;// x;
 }
@@ -1370,23 +1470,24 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 	int bUnderline;
 	CDATA tmp1 = 0;
 	CDATA tmp2 = 0;
+	int ch;
 	if( !UseFont )
 		UseFont = &DEFAULTFONT;
 	bUnderline = FALSE;
-	while( Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
+	while( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
 	{
 		int w;
 		bUnderline = FALSE;
-		if( *(unsigned char*)pc == '&' )
+		if( ch == '&' )
 		{
 			bUnderline = TRUE;
-			pc++;
-			if( *(unsigned char*)pc == '&' )
+			ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background );
+			if( ch == '&' )
 				bUnderline = FALSE;
 		}
-		if( !(*(unsigned char*)pc) ) // just in case '&' was end of string...
+		if( !ch ) // just in case '&' was end of string...
 			break;
-		w = _PutCharacterFont( pImage, x, y, color, background, *(unsigned char*)pc, UseFont );
+		w = _PutCharacterFont( pImage, x, y, color, background, ch, UseFont );
 		if( bUnderline )
 			do_line( pImage, x, y + UseFont->height -1,
 								  x + w, y + UseFont->height -1, color );
@@ -1399,6 +1500,7 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 {
 	int _width;
 	CDATA tmp1 = 0;
+	int ch;
 	if( !font )
 		font = &DEFAULTFONT;
 	if( height )
@@ -1406,18 +1508,17 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 	if( !width )
 		width = &_width;
 	*width = 0;
-	while( Step( &string, &len, &tmp1, &tmp1, &tmp1, &tmp1 ) )
+	while( ch = Step( &string, &len, &tmp1, &tmp1, &tmp1, &tmp1 ) )
 	{
-		if( *(unsigned char*)string == '&' )
+		if( ch == '&' )
 		{
-			string++;
-			len--;
-			if( !*(unsigned char*)string )
+			ch = Step( &string, &len, &tmp1, &tmp1, &tmp1, &tmp1 );
+			if( !ch )
 				break;
 		}
-		if( !font->character[*(unsigned char*)string] )
-			InternalRenderFontCharacter( NULL, font, *(unsigned char*)string );
-		*width += font->character[*(unsigned char*)string]->width;
+		if( !font->character[ch] )
+			InternalRenderFontCharacter( NULL, font, ch );
+		*width += font->character[ch]->width;
 	}
 	return *width;
 }
@@ -1470,9 +1571,8 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 		// color is irrelavent, safe to use a 0 initialized variable...
 		// Step serves to do some computation and work to update colors, but also to step application commands
 		// application commands should be non-printed.
-		while( Step( &pString, &nLen, &tmp1, &tmp1, &tmp1, &tmp1 ) )
+		while( character = Step( &pString, &nLen, &tmp1, &tmp1, &tmp1, &tmp1 ) )
 		{
-			character = pString[0];
 			if( character == '\n' )
 			{
 				*height += UseFont->height;
@@ -1482,9 +1582,9 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 			}
 			else if( !chars[character] )
 			{
-				InternalRenderFontCharacter(  NULL, UseFont, *(unsigned char*)pString );
+				InternalRenderFontCharacter(  NULL, UseFont, character );
 			}
-			if( chars[character] )
+			if( ( character < UseFont->characters ) && chars[character] )
 				*width += chars[character]->width;
 		}
 	}
@@ -1525,9 +1625,10 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 	chars = UseFont->character;
 	if( pString )
 	{
-		while( Step( &pString, &nLen, &tmp1, &tmp1, &tmp1, &tmp1 ) )
+		int ch;
+		while( ch = Step( &pString, &nLen, &tmp1, &tmp1, &tmp1, &tmp1 ) )
 		{
-			if( *pString == '\n' )
+			if( ch == '\n' )
 			{
 				maxheight = 0;
 				*height += UseFont->height;
@@ -1535,15 +1636,15 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 					max_width = *width;
 				*width = 0;
 			}
-			else if( !chars[*(unsigned char*)pString] )
+			else if( !chars[ch] )
 			{
-				InternalRenderFontCharacter(  NULL, UseFont, *(unsigned char*)pString );
+				InternalRenderFontCharacter(  NULL, UseFont, ch );
 			}
-			if( chars[*(unsigned char*)pString] )
+			if( chars[ch] )
 			{
-				*width += chars[*(unsigned char*)pString]->width;
-				if( SUS_GT( (UseFont->baseline - chars[*(unsigned char*)pString]->descent ),S_32,maxheight,_32) )
-					maxheight = UseFont->baseline - chars[*(unsigned char*)pString]->descent;
+				*width += chars[ch]->width;
+				if( SUS_GT( (UseFont->baseline - chars[ch]->descent ),S_32,maxheight,_32) )
+					maxheight = UseFont->baseline - chars[ch]->descent;
 			}
 		}
 		if( charheight )
@@ -1586,14 +1687,51 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 
 PRELOAD( InitColorDefaults )
 {
-		color_defs[0].color = BASE_COLOR_BLACK;
-		color_defs[0].name = WIDE("black");
-		color_defs[1].color = BASE_COLOR_BLUE;
-		color_defs[1].name = WIDE("blue");
-		color_defs[2].color = BASE_COLOR_GREEN;
-		color_defs[2].name = WIDE("green");
-		color_defs[3].color = BASE_COLOR_RED;
-		color_defs[3].name = WIDE("red");		
+	int n;
+	color_defs[0].color = BASE_COLOR_BLACK;
+	color_defs[0].name = WIDE("black");
+	color_defs[1].color = BASE_COLOR_BLUE;
+	color_defs[1].name = WIDE("blue");
+	color_defs[2].color = BASE_COLOR_GREEN;
+	color_defs[2].name = WIDE("green");
+	color_defs[3].color = BASE_COLOR_RED;
+	color_defs[3].name = WIDE("red");		
+	n = 4;
+	color_defs[n].name = WIDE("dark blue");		
+	color_defs[n++].color = BASE_COLOR_DARKBLUE; 
+	color_defs[n].name = WIDE("cyan");		
+	color_defs[n++].color = BASE_COLOR_CYAN; 
+	color_defs[n].name = WIDE("brown");		
+	color_defs[n++].color = BASE_COLOR_BROWN;
+	color_defs[n].name = WIDE("brown");		
+	color_defs[n++].color = BASE_COLOR_LIGHTBROWN;
+	color_defs[n].name = WIDE("light brown");		
+	color_defs[n++].color =BASE_COLOR_MAGENTA;
+	color_defs[n].name = WIDE("magenta");		
+	color_defs[n++].color =BASE_COLOR_LIGHTGREY;
+	color_defs[n].name = WIDE("light grey");		
+	color_defs[n++].color =BASE_COLOR_DARKGREY;
+	color_defs[n].name = WIDE("dark grey");		
+	color_defs[n++].color =BASE_COLOR_LIGHTBLUE;
+	color_defs[n].name = WIDE("light blue");		
+	color_defs[n++].color =BASE_COLOR_LIGHTGREEN;
+	color_defs[n].name = WIDE("light green");		
+	color_defs[n++].color =BASE_COLOR_LIGHTCYAN;
+	color_defs[n].name = WIDE("light cyan");		
+	color_defs[n++].color =BASE_COLOR_LIGHTRED;
+	color_defs[n].name = WIDE("light red");		
+	color_defs[n++].color =BASE_COLOR_LIGHTMAGENTA;
+	color_defs[n].name = WIDE("light magenta");		
+	color_defs[n++].color =BASE_COLOR_YELLOW;
+	color_defs[n].name = WIDE("yellow");		
+	color_defs[n++].color =BASE_COLOR_WHITE;
+	color_defs[n].name = WIDE("white");		
+	color_defs[n++].color =BASE_COLOR_ORANGE;
+	color_defs[n].name = WIDE("orange");		
+	color_defs[n++].color =BASE_COLOR_NICE_ORANGE;
+	color_defs[n].name = WIDE("purple");		
+	color_defs[n++].color =BASE_COLOR_PURPLE;
+
 }
 
 IMAGE_NAMESPACE_END
