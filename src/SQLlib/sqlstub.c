@@ -1195,10 +1195,12 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 					tmp = CStrDup( tmp_name );
 					if( vfs_name )
 					{
+#ifdef USE_SQLITE_INTERFACE
 #ifdef UNICODE
 						sqlite_iface->InitVFS( DupCStr( vfs_name ), sack_get_filesystem_interface( tmpvfsvfs ) );
 #else
 						sqlite_iface->InitVFS( vfs_name, sack_get_filesystem_interface( tmpvfsvfs ) );
+#endif
 #endif
 					}
 					rc3 = sqlite3_open_v2( tmp, &odbc->db, SQLITE_OPEN_READWRITE, vfs_name );

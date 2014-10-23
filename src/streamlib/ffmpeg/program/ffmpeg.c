@@ -24,11 +24,11 @@ struct GetDisplayParams
 
 static int CPROC myKeyProc( PTRSZVAL dwUser, _32 key )
 {
-   lprintf( "key..." );
+	//lprintf( "key..." );
 	if( IsKeyPressed( key ) && ( KEY_CODE( key ) == KEY_SPACE ) )
 	{
 		struct my_button *media = (struct my_button *)dwUser;
-      lprintf( "magic key..." );
+		//lprintf( "magic key..." );
 		if( media->flags.showing_panel )
 		{
 			media->flags.showing_panel = 0;
@@ -160,7 +160,7 @@ static void OnDisplayResume( "Video Player" )( void )
 
 static void ReloadPlayed( void )
 {
-	FILE *file = sack_fopen( 0, "playlist.m3u", "rt" );
+	FILE *file = sack_fopen( 0, "*/playlist.m3u", "rt" );
 	if( file )
 	{
 		TEXTCHAR buf[256];
@@ -187,7 +187,7 @@ static void SavePlayed( CTEXTSTR newname )
 	}
 	if( !name )
 	{
-		FILE *file = sack_fopen( 0, "playlist.m3u", "wt" );
+		FILE *file = sack_fopen( 0, "*/playlist.m3u", "wt" );
 		if( file )
 		{
 			fprintf( file, "%s\n", newname );
@@ -216,10 +216,10 @@ SaneWinMain( argc, argv )
 			{
 				while( fgets( buf, 256, file ) )
 				{
-               buf[strlen(buf)-1] = 0;
+					buf[strlen(buf)-1] = 0;
 
 					l.stopped = 0;
-               lprintf( "start newvideo...");
+					//lprintf( "start newvideo...");
 					video = PlayVideo( buf );
 					l.main_thread = MakeThread();
 					while( !l.stopped )
@@ -238,9 +238,9 @@ SaneWinMain( argc, argv )
 			if( argv[n][1] == 'd' )
 			{
 				n++;
-            l.full_display = atoi( argv[n] );
+				l.full_display = atoi( argv[n] );
 			}
-         continue;
+			continue;
 		}
 		{
 			SavePlayed( argv[n] );
@@ -252,7 +252,7 @@ SaneWinMain( argc, argv )
 			}
 		}
 	}
-   return 0;
+	return 0;
 }
 EndSaneWinMain()
 #endif

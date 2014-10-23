@@ -23,7 +23,11 @@ if( WIN32 )
     set( ffmpeg_libraries avcodec-56.dll avdevice-56.dll avfilter-5.dll avformat-56.dll avutil-54.dll postproc-53.dll swresample-1.dll swscale-3.dll )
     #set( openal_libraries OpenAL32.dll )
   endif( __64__ )
+# portable projects won't need this anyway.
+if( MAKING_SACK_CORE )
   add_subdirectory( ${FFMPEG_SOURCES_ROOT}openal-soft-1.15.1 openal )
+endif( MAKING_SACK_CORE )
+
 endif( WIN32 )
 
 if( __ANDROID__ )
@@ -32,7 +36,10 @@ if( __ANDROID__ )
 #  set( openal_libraries libopenal.so )
 #  set( openal_libraries libOpenSLES.so )
 
+# portable projects won't need this anyway.
+if( MAKING_SACK_CORE )
   add_subdirectory( ${FFMPEG_SOURCES_ROOT}openal-soft-1.15.1 openal )
+endif( MAKING_SACK_CORE )
 
 endif( __ANDROID__ )
 

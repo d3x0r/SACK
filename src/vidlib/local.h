@@ -43,6 +43,7 @@ extern
 		BIT_FIELD bLogRegister : 1;
 		BIT_FIELD bLogFocus : 1;
 		BIT_FIELD bLogWrites : 1; // log when surfaces are written to real space
+		BIT_FIELD bLogDisplayEnumTest : 1;
 		BIT_FIELD bThreadCreated : 1;
 		BIT_FIELD bPostedInvalidate : 1;
 		BIT_FIELD bLogKeyEvent : 1;
