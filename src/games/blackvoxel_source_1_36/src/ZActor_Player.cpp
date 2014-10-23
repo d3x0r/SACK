@@ -2019,8 +2019,8 @@ void ZActor_Player::DoPhysic_GroundPlayer(double CycleTime)
       if (PEnable[i]) // (PEnable[i])
       {
         bool ret;
-        if (PInvert[i]) ret = World->RayCast_Vector_special(P[i],Dep , &In, &(Out[i]), PInvert[i]); // If anti fall points, use special routine and invert empty/full detection.
-        else            ret = World->RayCast_Vector(P[i],Dep , &In, &(Out[i]), PInvert[i]);         // Normal points.
+        if (PInvert[i]) ret = World->RayCast_Vector_special(P[i],Dep/DepLen , &In, &(Out[i]), PInvert[i]); // If anti fall points, use special routine and invert empty/full detection.
+		else            ret = World->RayCast_Vector(P[i],Dep/DepLen , &In, &(Out[i]), PInvert[i]);         // Normal points.
 
         if (ret)
         {

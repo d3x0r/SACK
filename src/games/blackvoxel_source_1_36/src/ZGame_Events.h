@@ -83,8 +83,8 @@ class ZGame_Events : public ZEventConsumer
     {
       bool IsPressed;
 
-      IsPressed = Keyboard_Matrix[KeyCode] ? true : false;
-      if (Reset) Keyboard_Matrix[KeyCode] = 0;
+      IsPressed = Keyboard_Matrix[KeyCode&0xFF] ? true : false;
+      if (Reset) Keyboard_Matrix[KeyCode&0xFF] = 0;
       return IsPressed;
     }
     bool Is_MouseButtonPressed(UShort ButtonCode, bool Reset)

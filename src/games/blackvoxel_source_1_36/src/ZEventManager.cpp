@@ -36,6 +36,7 @@ bool ZEventManager::ProcessEvents()
   {
     switch( event.type )
     {
+//		case SDL_MOUSE
       case SDL_KEYDOWN: Keyboard_Matrix[event.key.keysym.sym & 0xFF] = 1;
                         if ((Item = ConsumerList.GetFirst()))
                           do

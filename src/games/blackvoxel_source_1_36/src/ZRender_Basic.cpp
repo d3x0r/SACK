@@ -519,9 +519,25 @@ void ZRender_Basic::Render()
       if (PointedVoxel->CollisionDistance < In.MaxDetectionDistance)
       {
         PointedVoxel->Collided = true;
-        if (BvProp_DisplayVoxelSelector) Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,1.0,1.0 );
+        if (BvProp_DisplayVoxelSelector) 
+			Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,1.0,1.0 );
       }
-      else PointedVoxel->Collided = false;
+	  else
+	  {
+		  ZVector3d a = Camera->orientation.origin() +
+			Camera->orientation.z_axis() * ( GlobalSettings.VoxelBlockSize * -6 );
+		  //In.MaxCubeIterations = 6;
+
+		  ZVoxelRef *v = World->GetVoxelRefPlayerCoord( a.x, a.y, a.z );
+			//World->RayCast_Vector(Camera->orientation, Tmp, &In, PointedVoxel);
+			PointedVoxel->PredPointedVoxel.x = v->x;
+			PointedVoxel->PredPointedVoxel.y = v->y;
+			PointedVoxel->PredPointedVoxel.z = v->z;
+			delete v ;
+		  PointedVoxel->Collided = true;
+        if (BvProp_DisplayVoxelSelector) 
+			Render_VoxelSelector( &PointedVoxel->PredPointedVoxel, 0.2,1.0,0.1 );
+	  }
     }
 
 

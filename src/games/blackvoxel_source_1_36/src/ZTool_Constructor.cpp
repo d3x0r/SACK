@@ -205,6 +205,7 @@ bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
              }
              break;
       case 3: // Mouse scroll down
+			//if( 
              Actor->Inventory->Select_PreviousItem();
 
              // printf("Selected : %ld : %s\n", Actor->Inventory->GetActualItemSlotNum(), GameEnv->VoxelTypeManager.VoxelTable[Actor->Inventory->GetActualItemSlot()->VoxelType]->VoxelTypeName.String);

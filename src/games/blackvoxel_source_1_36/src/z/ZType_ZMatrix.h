@@ -49,9 +49,15 @@ public:
 	{
 		return m[1];
 	}
+	/*
 	inline double * z_axis( void )
 	{
 		return m[2];
+	}
+	*/
+	inline ZVector3d & z_axis( void )
+	{
+		return (ZVector3d &)m[2];
 	}
 
 	inline ZVector3d _2d_forward( void )
