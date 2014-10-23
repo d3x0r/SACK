@@ -41,6 +41,7 @@ inline ZVector3d::ZVector3d( const ZPolar3d & Polar)
   z = Polar.Len * cos(Polar.yaw / 57.295779506);
 }
 
+
 inline ZVector3d & ZVector3d::operator = (const ZVector3L & Vect3L)
 {
   x = (double)Vect3L.x;
@@ -48,6 +49,7 @@ inline ZVector3d & ZVector3d::operator = (const ZVector3L & Vect3L)
   z = (double)Vect3L.z;
   return(*this);
 }
+
 
 inline ZVector3d ZVector3d::operator + (const ZPolar3d & Polar) const
 {
@@ -132,26 +134,26 @@ inline ZVector3d & ZVector3d::operator /= (const ZPolar3d & Polar)
 inline ZVector3d & ZVector3d::operator = (const ZPolar3d & Polar)
 {
   //double xp,yp;
-  /*
-  x = Polar.Len * sin(Polar.yaw / 57.295779506) * cos(Polar.pitch / 57.295779506);
-  y = Polar.Len * sin(Polar.yaw / 57.295779506) * sin(Polar.pitch / 57.295779506);
-  z = Polar.Len * cos(Polar.yaw / 57.295779506);
-  */
+
+//  x = Polar.Len * sin(Polar.yaw / 57.295779506) * cos(Polar.pitch / 57.295779506);
+//  y = Polar.Len * sin(Polar.yaw / 57.295779506) * sin(Polar.pitch / 57.295779506);
+//  z = Polar.Len * cos(Polar.yaw / 57.295779506);
+
 
 
   x = Polar.Len * sin(Polar.yaw / 57.295779506) * cos(Polar.pitch / 57.295779506);
   y = Polar.Len * sin(Polar.pitch / 57.295779506);
   z = Polar.Len * cos(Polar.yaw / 57.295779506) * cos(Polar.pitch / 57.295779506);
-/*
-  xp = Polar.Len * sin(Polar.yaw / 57.295779506) * cos(Polar.pitch / 57.295779506) * cos( Polar.roll / 57.295779506);
-  yp = Polar.Len * sin(Polar.pitch / 57.295779506) * cos(Polar.roll / 57.295779506);
-  z = Polar.Len * cos(Polar.yaw / 57.295779506) * cos(Polar.pitch / 57.295779506);
+
+//  xp = Polar.Len * sin(Polar.yaw / 57.295779506) * cos(Polar.pitch / 57.295779506) * cos( Polar.roll / 57.295779506);
+//  yp = Polar.Len * sin(Polar.pitch / 57.295779506) * cos(Polar.roll / 57.295779506);
+//  z = Polar.Len * cos(Polar.yaw / 57.295779506) * cos(Polar.pitch / 57.295779506);
 
   // Z axis rotation
 
-  x = xp*cos(Polar.roll / 57.295779506) - yp*sin(Polar.roll / 57.295779506);
-  y = xp*sin(Polar.roll / 57.295779506) + yp*cos(Polar.roll / 57.295779506);
-*/
+//  x = xp*cos(Polar.roll / 57.295779506) - yp*sin(Polar.roll / 57.295779506);
+//  y = xp*sin(Polar.roll / 57.295779506) + yp*cos(Polar.roll / 57.295779506);
+
   return(*this);
 }
 

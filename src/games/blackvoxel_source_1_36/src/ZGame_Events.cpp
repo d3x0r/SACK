@@ -58,15 +58,15 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
   {
     // Keyboard mouse emulation
 
-    case SDLK_c:  { Mouse_Matrix[1] = true; Actor->Action_MouseButtonClick(0); break; }
-    case SDLK_v:  { Mouse_Matrix[2] = true; Actor->Action_MouseButtonClick(1); break; }
-    case SDLK_b:  { Mouse_Matrix[3] = true; Actor->Action_MouseButtonClick(2); break; }
-    case SDLK_x:  { Mouse_Matrix[4] = true; Actor->Action_MouseButtonClick(3); break; }
-    case SDLK_n:  { Mouse_Matrix[5] = true; Actor->Action_MouseButtonClick(4); break; }
+    case SDLK_c&0xFF :  { Mouse_Matrix[1] = true; Actor->Action_MouseButtonClick(0); break; }
+    case SDLK_v&0xFF :  { Mouse_Matrix[2] = true; Actor->Action_MouseButtonClick(1); break; }
+    case SDLK_b&0xFF :  { Mouse_Matrix[3] = true; Actor->Action_MouseButtonClick(2); break; }
+    case SDLK_x&0xFF :  { Mouse_Matrix[4] = true; Actor->Action_MouseButtonClick(3); break; }
+    case SDLK_n&0xFF :  { Mouse_Matrix[5] = true; Actor->Action_MouseButtonClick(4); break; }
 
     // This will Save/Load player position and state (Debug only).
 
-    case SDLK_p:
+	case SDLK_p & 0xFF:
                   if (COMPILEOPTION_DEBUGFACILITY)
                   {
                     if (Keyboard_Matrix[SDLK_LSHIFT])
@@ -111,13 +111,13 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
 
     // J and K keys are used in school mode for getting "content pages".
 
-    case SDLK_j:
-    case SDLK_k:
+	case SDLK_j & 0xFF:
+	case SDLK_k & 0xFF:
                   {
                     if (!GameEnv->Settings_Hardware->Experimental_LearningMode) break;
                     ULong SlotNum = 20;
                     ZInventory * Inv = Actor->Inventory;
-                    if (KeySym==SDLK_k) Actor->LearningModePage ++;
+					if (KeySym == SDLK_k & 0xFF) Actor->LearningModePage++;
                     else                {if((Actor->LearningModePage--)==0) Actor->LearningModePage = 2; }
 
                     switch (Actor->LearningModePage)
@@ -178,12 +178,15 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
 
     // Programmable robot kill switch...
 
-    case SDLK_u:  GameEnv->Stop_Programmable_Robots = true; break;
+    case SDLK_u&0xFF :  GameEnv->Stop_Programmable_Robots = true; break;
 
     // THE "FEAR KEY" : Always the best way to destroy your world...
-
-    case SDLK_F10:
-                  if ( Keyboard_Matrix[SDLK_LSHIFT])
+	case SDLK_F6 & 0xFF:
+			GameEnv->GameWindow_Advertising->Advertise("Saving....", ZGameWindow_Advertising::VISIBILITY_HIGH,0,1000,500);
+			GameEnv->SaveWorld( );
+			break;
+	case SDLK_F10 & 0xFF:
+                  if ( Keyboard_Matrix[SDLK_LSHIFT&0xFF])
                   {
                     if (!GameEnv->GameEventSequencer->SlotIsEventAttached(1))
                     {
@@ -207,12 +210,12 @@ Bool ZGame_Events::KeyUp( UShort KeySym )
 
   switch(KeySym)
   {
-    case SDLK_c:  { Mouse_Matrix[1] = false; Actor->Action_MouseButtonRelease(0); break; }
-    case SDLK_v:  { Mouse_Matrix[2] = false; Actor->Action_MouseButtonRelease(1); break; }
-    case SDLK_b:  { Mouse_Matrix[3] = false; Actor->Action_MouseButtonRelease(2); break; }
-    case SDLK_x:  { Mouse_Matrix[4] = false; Actor->Action_MouseButtonRelease(3); break; }
-    case SDLK_n:  { Mouse_Matrix[5] = false; Actor->Action_MouseButtonRelease(4); break; }
-    case SDLK_u:  { GameEnv->Stop_Programmable_Robots = false; break; }
+    case SDLK_c&0xFF :  { Mouse_Matrix[1] = false; Actor->Action_MouseButtonRelease(0); break; }
+    case SDLK_v&0xFF :  { Mouse_Matrix[2] = false; Actor->Action_MouseButtonRelease(1); break; }
+    case SDLK_b&0xFF :  { Mouse_Matrix[3] = false; Actor->Action_MouseButtonRelease(2); break; }
+    case SDLK_x&0xFF :  { Mouse_Matrix[4] = false; Actor->Action_MouseButtonRelease(3); break; }
+    case SDLK_n&0xFF :  { Mouse_Matrix[5] = false; Actor->Action_MouseButtonRelease(4); break; }
+    case SDLK_u&0xFF :  { GameEnv->Stop_Programmable_Robots = false; break; }
 
   }
   return(true);
@@ -284,7 +287,7 @@ void ZGame_Events::Process_StillEvents()
   if (Actor)
   {
 
-    if ( Keyboard_Matrix[SDLK_LSHIFT] || Keyboard_Matrix[SDLK_CAPSLOCK] ){ Actor->Flag_ActivateAntiFall = true; }
+	  if (Keyboard_Matrix[SDLK_LSHIFT & 0xFF] || Keyboard_Matrix[SDLK_CAPSLOCK & 0xFF]){ Actor->Flag_ActivateAntiFall = true; }
     else                                                                 { Actor->Flag_ActivateAntiFall = false; }
     if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveLeft] )      { Actor->Action_GoLeftStraff(); }
     if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveRight] )     { Actor->Action_GoRightStraff(); }
@@ -297,30 +300,34 @@ void ZGame_Events::Process_StillEvents()
     //if ( Keyboard_Matrix[SDLK_a] )                                     { Actor->Action_GoUp(GameEnv->Time_GameLoop  * 1.5); }
     if ( Keyboard_Matrix[SDLK_h] && COMPILEOPTION_DEBUGFACILITY )        { Actor->Action_GoFastForward(500.0); }
     if ( Keyboard_Matrix[SDLK_DELETE] && !COMPILEOPTION_DEBUGFACILITY ) { Actor->LifePoints = 0.0; }
-    if ( Keyboard_Matrix[SDLK_KP0] && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))       { Actor->Action_SetActorMode(0);}
-    if ( Keyboard_Matrix[SDLK_KP1] && COMPILEOPTION_DEBUGFACILITY)       { Actor->Action_SetActorMode(1);}
-    if ( Keyboard_Matrix[SDLK_KP2] && COMPILEOPTION_DEBUGFACILITY)       { Actor->Action_SetActorMode(2);}
-    if ( Keyboard_Matrix[SDLK_KP3] && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))       { Actor->Action_SetActorMode(3);}
-    if ( Keyboard_Matrix[SDLK_KP4] && COMPILEOPTION_DEBUGFACILITY)       { Actor->Action_SetActorMode(4);}
-    if ( Keyboard_Matrix[SDLK_KP5] && COMPILEOPTION_DEBUGFACILITY)
+	if (Keyboard_Matrix[SDLK_KP0 & 0xFF] && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))       { Actor->Action_SetActorMode(0); }
+	if (Keyboard_Matrix[SDLK_KP1 & 0xFF] && COMPILEOPTION_DEBUGFACILITY)       { Actor->Action_SetActorMode(1); }
+	if (Keyboard_Matrix[SDLK_KP2 & 0xFF] && COMPILEOPTION_DEBUGFACILITY)       { Actor->Action_SetActorMode(2); }
+	if (Keyboard_Matrix[SDLK_KP3 & 0xFF] && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))       { Actor->Action_SetActorMode(3); }
+	if (Keyboard_Matrix[SDLK_KP4 & 0xFF] && COMPILEOPTION_DEBUGFACILITY)       { Actor->Action_SetActorMode(4); }
+	if (Keyboard_Matrix[SDLK_KP5 & 0xFF] && COMPILEOPTION_DEBUGFACILITY)
     {
-      if (!Keyboard_Matrix[SDLK_LSHIFT])
+		if (!Keyboard_Matrix[SDLK_LSHIFT & 0xFF])
       {
-        ZVector3d Position; Position = 0.0; Position.y = 2048000*1.0 ; Actor->SetPosition(Position); Actor->ViewDirection.pitch = 360.0 - 90.0; Actor->ViewDirection.roll = 0.0; Actor->ViewDirection.yaw = 0.0;
+        ZVector3d Position; Position = 0.0; Position.y = 2048000*1.0 ; Actor->SetPosition(Position); 
+
+		Actor->ViewDirection.RotateAbsolute( 0, 360.0 - 90.0, 0 ); 
       }
       else
       {
-        ZVector3d Position; Position = 0.0; Actor->SetPosition(Position); Actor->ViewDirection.pitch =0.0; Actor->ViewDirection.roll = 0.0; Actor->ViewDirection.yaw = 0.0;
+        ZVector3d Position; Position = 0.0;
+		Actor->SetPosition(Position); 
+		Actor->ViewDirection.RotateAbsolute( 0, 0, 0 ); 
       }
     }
 
-    if ( Keyboard_Matrix[SDLK_KP8] && COMPILEOPTION_DEBUGFACILITY)       { ZVector3d Position; Position = 0.0; Position.y = 6000.0 * 256.0; Actor->SetPosition(Position); }
-    if ( Keyboard_Matrix[SDLK_KP7] && COMPILEOPTION_DEBUGFACILITY)
+	if (Keyboard_Matrix[SDLK_KP8 & 0xFF] && COMPILEOPTION_DEBUGFACILITY)       { ZVector3d Position; Position = 0.0; Position.y = 6000.0 * GlobalSettings.VoxelBlockSize; Actor->SetPosition(Position); }
+	if (Keyboard_Matrix[SDLK_KP7 & 0xFF] && COMPILEOPTION_DEBUGFACILITY)
     {
       //GameEnv->Sound->PlaySound(1);
       GameEnv->Sound->Start_PlaySound(1,false,0.125,0);
-      Keyboard_Matrix[SDLK_KP7] = 0;
-      printf("x,y,z : %lf,%lf,%lf\n",Actor->Location.x, Actor->Location.y, Actor->Location.z);
+	  Keyboard_Matrix[SDLK_KP7 & 0xFF] = 0;
+	  printf("x,y,z : %lf,%lf,%lf\n",Actor->ViewDirection.origin().x, Actor->ViewDirection.origin().y, Actor->ViewDirection.origin().z);
 
       {
         UShort VoxelType;
@@ -584,33 +591,58 @@ void ZGame_Events::Process_StillEvents()
         Inventory = Actor->Inventory;
         if (Inventory!=0)
         {
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,99,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,100,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,101,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,102,4096);
           // Inventory->SetSlot(c++,89,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,90,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,52,4096);
           // Inventory->SetSlot(c++,91,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,87,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,92,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,85,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,88,4096);
+			Inventory->FindFreeSlot( c );
           // Inventory->SetSlot(c++,93,4096);
           Inventory->SetSlot(c++,94,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,95,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,84,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,97,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,98,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,49,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,96,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,108,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,107,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,0,0);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,103,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,104,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,105,4096);
+			Inventory->FindFreeSlot( c );
           Inventory->SetSlot(c++,106,4096);
+		  /*
           Inventory->SetSlot(c++,0,0);
           Inventory->SetSlot(c++,0,0);
           Inventory->SetSlot(c++,0,0);
@@ -629,7 +661,7 @@ void ZGame_Events::Process_StillEvents()
           Inventory->SetSlot(c++,0,0);
           Inventory->SetSlot(c++,0,0);
           Inventory->SetSlot(c++,0,0);
-
+		  */
           c = 40;
           Inventory->SetSlot(c++,77,1);
           Inventory->SetSlot(c++,75,1);
@@ -638,6 +670,7 @@ void ZGame_Events::Process_StillEvents()
           Inventory->SetSlot(c++,78,1);
           Inventory->SetSlot(c++,79,1);
           c = 50;
+		  /*
           Inventory->SetSlot(c++,0,0);
           Inventory->SetSlot(c++,0,0);
           Inventory->SetSlot(c++,0,0);
@@ -648,32 +681,32 @@ void ZGame_Events::Process_StillEvents()
           Inventory->SetSlot(c++,0,0);
           Inventory->SetSlot(c++,0,0);
           Inventory->SetSlot(c++,0,0);
-
+		  */
         }
 
       }
     }
 
     //if ( Keyboard_Matrix[SDLK_w] )                                       { Actor->Action_GoDown(GameEnv->Time_GameLoop  * 1.5); }
-    if ( Keyboard_Matrix[SDLK_g] && COMPILEOPTION_DEBUGFACILITY )                                       { Actor->Velocity.y = 15000.0; }
-    if ( Keyboard_Matrix[SDLK_KP_PLUS] && COMPILEOPTION_DEBUGFACILITY)
+	if (Keyboard_Matrix[SDLK_g & 0xFF] && COMPILEOPTION_DEBUGFACILITY)                                       { Actor->Velocity.y = 10000.0; }
+	if (Keyboard_Matrix[SDLK_KP_PLUS & 0xFF] && COMPILEOPTION_DEBUGFACILITY)
     {
-      if ( Keyboard_Matrix[SDLK_LSHIFT] ) {for (ULong i=0;i<10;i++) Actor->Action_NextBuildingMaterial();}
+		if (Keyboard_Matrix[SDLK_LSHIFT & 0xFF]) { for (ULong i = 0; i<10; i++) Actor->Action_NextBuildingMaterial(); }
       else                                Actor->Action_NextBuildingMaterial();
-      Keyboard_Matrix[SDLK_KP_PLUS] = 0;
+	  Keyboard_Matrix[SDLK_KP_PLUS & 0xFF] = 0;
     }
-    if ( Keyboard_Matrix[SDLK_KP_MINUS] && COMPILEOPTION_DEBUGFACILITY)
+	if (Keyboard_Matrix[SDLK_KP_MINUS & 0xFF] && COMPILEOPTION_DEBUGFACILITY)
     {
-      if ( Keyboard_Matrix[SDLK_LSHIFT] ) {for (ULong i=0;i<10;i++) Actor->Action_PrevBuildingMaterial();}
+		if (Keyboard_Matrix[SDLK_LSHIFT & 0xFF]) { for (ULong i = 0; i<10; i++) Actor->Action_PrevBuildingMaterial(); }
       Actor->Action_PrevBuildingMaterial();
       Keyboard_Matrix[SDLK_KP_MINUS] = 0;
     }
-    if ( Keyboard_Matrix[SDLK_t] && COMPILEOPTION_DEBUGFACILITY )        { ZInventory::Entry * Entry = Actor->Inventory->GetSlotRef(Actor->Inventory->GetActualItemSlotNum()); Entry->VoxelType = Actor->BuildingMaterial; Entry->Quantity = 8192*1; }
-    if ( Keyboard_Matrix[SDLK_F1] )   { SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE); }
-    if ( Keyboard_Matrix[SDLK_F2] )   { SDL_WM_GrabInput(SDL_GRAB_ON); SDL_ShowCursor(SDL_DISABLE); }
-    if ( Keyboard_Matrix[SDLK_F3] && COMPILEOPTION_DEBUGFACILITY )   { SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_DISABLE); }
-    if ( Keyboard_Matrix[SDLK_F5] )   { GameEnv->World->Save(); }
-    if ( Keyboard_Matrix[SDLK_F4] )
+	if (Keyboard_Matrix[SDLK_t & 0xFF] && COMPILEOPTION_DEBUGFACILITY)        { ZInventory::Entry * Entry = Actor->Inventory->GetSlotRef(Actor->Inventory->GetActualItemSlotNum()); Entry->VoxelType = Actor->BuildingMaterial; Entry->Quantity = 8192 * 1; }
+	if (Keyboard_Matrix[SDLK_F1 & 0xFF])   { SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE); }
+	if (Keyboard_Matrix[SDLK_F2 & 0xFF])   { SDL_WM_GrabInput(SDL_GRAB_ON); SDL_ShowCursor(SDL_DISABLE); }
+	if (Keyboard_Matrix[SDLK_F3 & 0xFF] && COMPILEOPTION_DEBUGFACILITY)   { SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_DISABLE); }
+	if (Keyboard_Matrix[SDLK_F5 & 0xFF])   { GameEnv->World->Save(); }
+	if (Keyboard_Matrix[SDLK_F4 & 0xFF])
     {
       ZString Infos;
       Long x,y,z;
@@ -696,22 +729,22 @@ void ZGame_Events::Process_StillEvents()
         printf("%s\n",Infos.String);
       }
 
-      Keyboard_Matrix[SDLK_F4] = 0;
+	  Keyboard_Matrix[SDLK_F4 & 0xFF] = 0;
     }
 
 
-    if ( Keyboard_Matrix[SDLK_F6] )
+	if (Keyboard_Matrix[SDLK_F6 & 0xFF])
     {
-      Keyboard_Matrix[SDLK_F6] = 0;
+		Keyboard_Matrix[SDLK_F6 & 0xFF] = 0;
       GameEnv->Basic_Renderer->BvProp_DisplayCrossHair = ! GameEnv->Basic_Renderer->BvProp_DisplayCrossHair;
       GameEnv->Basic_Renderer->BvProp_DisplayVoxelSelector = GameEnv->Basic_Renderer->BvProp_DisplayCrossHair;
 
       /* GameEnv->World->Purge(89); */
     }
-    if ( Keyboard_Matrix[SDLK_F9] && COMPILEOPTION_DEBUGFACILITY )   { /* GameEnv->World->Load();*/ }
-    if ( Keyboard_Matrix[SDLK_F7] && COMPILEOPTION_DEBUGFACILITY )
+	if (Keyboard_Matrix[SDLK_F9 & 0xFF] && COMPILEOPTION_DEBUGFACILITY)   { /* GameEnv->World->Load();*/ }
+	if (Keyboard_Matrix[SDLK_F7 & 0xFF] && COMPILEOPTION_DEBUGFACILITY)
     {
-      Keyboard_Matrix[SDLK_F7]=0;
+		Keyboard_Matrix[SDLK_F7 & 0xFF] = 0;
 
       GameEnv->World->Purge(85);
 
@@ -784,7 +817,7 @@ void ZGame_Events::Process_StillEvents()
         }
       }
     }
-    if ( Keyboard_Matrix[SDLK_F8] )
+	if (Keyboard_Matrix[SDLK_F8 & 0xFF])
     {
       ZActor * Actor;
       ZVector3L Position;
@@ -793,15 +826,15 @@ void ZGame_Events::Process_StillEvents()
 
       Actor = GameEnv->PhysicEngine->GetSelectedActor();
 
-      Position.x = Actor->Location.x/256.0; Position.y = Actor->Location.y/256.0; Position.z = Actor->Location.z/256.0;
+      Position.x = Actor->ViewDirection.origin().x/GlobalSettings.VoxelBlockSize; Position.y = Actor->ViewDirection.origin().y/GlobalSettings.VoxelBlockSize; Position.z = Actor->ViewDirection.origin().z/GlobalSettings.VoxelBlockSize;
       Sector.x = Position.x >> 4; Sector.y = Position.y >> 6; Sector.z = Position.z >> 4;
-      Zone.x = Position.x >> 8; Zone.y = 0; Zone.z = Position.z >> 8;
+      Zone.x = Position.x >> GlobalSettings.VoxelBlockSizeBits; Zone.y = 0; Zone.z = Position.z >> GlobalSettings.VoxelBlockSizeBits;
 
       printf("Pos (%ld,%ld,%ld) Sector (%ld,%ld,%ld) Zone (%ld,%ld,%ld)\n",(UNum)Position.x,(UNum)Position.y,(UNum)Position.z,(UNum)Sector.x,(UNum)Sector.y,(UNum)Sector.z,(UNum)Zone.x,(UNum)Zone.y,(UNum)Zone.z);
     }
-    if ( Keyboard_Matrix[SDLK_ESCAPE] )  { SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE); GameEnv->Game_Run = false; }
+	if (Keyboard_Matrix[SDLK_ESCAPE & 0xFF])  { SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE); GameEnv->Game_Run = false; }
 
-    if ( Keyboard_Matrix[SDLK_F11] )
+	if (Keyboard_Matrix[SDLK_F11 & 0xFF])
     {
       printf("Sectors in Memory:%lu ", (UNum)GameEnv->World->Info_GetSectorsInMemory()); //World.Info_PrintHashStats();
       // Needs GL_NVX_gpu_memory_info extension
@@ -810,15 +843,15 @@ void ZGame_Events::Process_StillEvents()
       GLint Total_Memory = 0;
       glGetIntegerv(/*GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX*/ 0x9048,&Total_Memory);
       printf("GPU MEMORY (Ko) Free/Total/Used: %d/%d/%d\n",Availlable_VRam, Total_Memory, Total_Memory - Availlable_VRam  );
-      Keyboard_Matrix[SDLK_F11]=0;
+      Keyboard_Matrix[SDLK_F11 & 0xFF]=0;
     }
 
 
 
-    if (Keyboard_Matrix[SDLK_i])
+	if (Keyboard_Matrix[SDLK_i & 0xFF])
     {
 
-      Keyboard_Matrix[SDLK_i] = 0;
+		Keyboard_Matrix[SDLK_i & 0xFF] = 0;
 
 
       if      (GameEnv->GameWindow_Storage->Is_Shown()) {GameEnv->GameWindow_Storage->Hide();}
@@ -833,25 +866,25 @@ void ZGame_Events::Process_StillEvents()
       }
     }
 
-    if (Keyboard_Matrix[SDLK_F12])
+	if (Keyboard_Matrix[SDLK_F12 & 0xFF])
     {
-      Keyboard_Matrix[SDLK_F12] = 0;
+		Keyboard_Matrix[SDLK_F12 & 0xFF] = 0;
 
       if (GameEnv->GameWindow_DisplayInfos->Is_Shown()) { GameEnv->GameWindow_DisplayInfos->Hide(); }
       else                                              { GameEnv->GameWindow_DisplayInfos->Show(); }
     }
 
-    if (Keyboard_Matrix[SDLK_o] && 0)
+	if (Keyboard_Matrix[SDLK_o & 0xFF] && 0)
     {
-      Keyboard_Matrix[SDLK_o] = 0;
+		Keyboard_Matrix[SDLK_o & 0xFF] = 0;
       GameEnv->VoxelTypeBar->SetGameEnv(GameEnv);
       if (GameEnv->VoxelTypeBar->Is_Shown()) GameEnv->VoxelTypeBar->Hide();
       else                                   GameEnv->VoxelTypeBar->Show();
     }
 
-    if (Keyboard_Matrix[SDLK_y] && 0)
+	if (Keyboard_Matrix[SDLK_y & 0xFF] && 0)
     {
-      Keyboard_Matrix[SDLK_y] = 0;
+		Keyboard_Matrix[SDLK_y & 0xFF] = 0;
 
       //GameEnv->GameWindow_Advertising->SetCompletion(50.0f);
       GameEnv->GameWindow_Advertising->Advertise("Test 1",ZGameWindow_Advertising::VISIBILITY_HIGH,0,5000.0, 2000.0);
@@ -869,36 +902,36 @@ void ZGame_Events::Process_StillEvents()
       // else                                   GameEnv->GameWindow_Advertising->Show();
     }
 
-    if (Keyboard_Matrix[SDLK_END] && COMPILEOPTION_DEBUGFACILITY)
+	if (Keyboard_Matrix[SDLK_END & 0xFF] && COMPILEOPTION_DEBUGFACILITY)
     {
-      Keyboard_Matrix[SDLK_END] = 0;
+		Keyboard_Matrix[SDLK_END & 0xFF] = 0;
       GameEnv->Enable_MVI = false;
     }
-    if (Keyboard_Matrix[SDLK_HOME] && COMPILEOPTION_DEBUGFACILITY)
+	if (Keyboard_Matrix[SDLK_HOME & 0xFF] && COMPILEOPTION_DEBUGFACILITY)
     {
-      Keyboard_Matrix[SDLK_HOME] = 0;
+		Keyboard_Matrix[SDLK_HOME & 0xFF] = 0;
       GameEnv->Enable_MVI = true;
     }
 
-    if (Keyboard_Matrix[SDLK_PAGEDOWN] && COMPILEOPTION_DEBUGFACILITY)
+	if (Keyboard_Matrix[SDLK_PAGEDOWN & 0xFF] && COMPILEOPTION_DEBUGFACILITY)
     {
-      Keyboard_Matrix[SDLK_PAGEDOWN] = 0;
+		Keyboard_Matrix[SDLK_PAGEDOWN & 0xFF] = 0;
       GameEnv->Enable_NewSectorRendering = false;
     }
-    if (Keyboard_Matrix[SDLK_PAGEUP] && COMPILEOPTION_DEBUGFACILITY)
+	if (Keyboard_Matrix[SDLK_PAGEUP & 0xFF] && COMPILEOPTION_DEBUGFACILITY)
     {
-      Keyboard_Matrix[SDLK_PAGEUP] = 0;
+		Keyboard_Matrix[SDLK_PAGEUP & 0xFF] = 0;
       GameEnv->Enable_NewSectorRendering = true;
     }
 
-    if (Keyboard_Matrix[SDLK_DELETE] && COMPILEOPTION_DEBUGFACILITY)
+	if (Keyboard_Matrix[SDLK_DELETE & 0xFF] && COMPILEOPTION_DEBUGFACILITY)
     {
-      Keyboard_Matrix[SDLK_DELETE] = 0;
+		Keyboard_Matrix[SDLK_DELETE & 0xFF] = 0;
       GameEnv->Enable_LoadNewSector = false;
     }
-    if (Keyboard_Matrix[SDLK_INSERT] && COMPILEOPTION_DEBUGFACILITY)
+	if (Keyboard_Matrix[SDLK_INSERT & 0xFF] && COMPILEOPTION_DEBUGFACILITY)
     {
-      Keyboard_Matrix[SDLK_INSERT] = 0;
+		Keyboard_Matrix[SDLK_INSERT & 0xFF] = 0;
       GameEnv->Enable_LoadNewSector = true;
     }
 
@@ -906,11 +939,11 @@ void ZGame_Events::Process_StillEvents()
 
 
     // Paste Clipboard
-    if (!Keyboard_Matrix[SDLK_LSHIFT])
+	if (!Keyboard_Matrix[SDLK_LSHIFT & 0xFF])
     {
-      if (Keyboard_Matrix[SDLK_KP_MULTIPLY] && COMPILEOPTION_DEBUGFACILITY)
+		if (Keyboard_Matrix[SDLK_KP_MULTIPLY & 0xFF] && COMPILEOPTION_DEBUGFACILITY)
       {
-        Keyboard_Matrix[SDLK_KP_MULTIPLY] = 0;
+			Keyboard_Matrix[SDLK_KP_MULTIPLY & 0xFF] = 0;
 
         if (GameEnv->PointList.GetPositionCount() >= 1)
         {
@@ -932,9 +965,9 @@ void ZGame_Events::Process_StillEvents()
     {
     // Test routine for sector blit functions.
 
-      if (Keyboard_Matrix[SDLK_KP_MULTIPLY] && COMPILEOPTION_DEBUGFACILITY)
+		if (Keyboard_Matrix[SDLK_KP_MULTIPLY & 0xFF] && COMPILEOPTION_DEBUGFACILITY)
       {
-        Keyboard_Matrix[SDLK_KP_MULTIPLY] = 0;
+			Keyboard_Matrix[SDLK_KP_MULTIPLY & 0xFF] = 0;
 
         if (GameEnv->PointList.GetPositionCount() >= 1)
         {
@@ -971,11 +1004,11 @@ void ZGame_Events::Process_StillEvents()
 
     // Start Point, End Point, Handle Point
 
-    if (Keyboard_Matrix[SDLK_KP_DIVIDE] && COMPILEOPTION_DEBUGFACILITY)
+	if (Keyboard_Matrix[SDLK_KP_DIVIDE & 0xFF] && COMPILEOPTION_DEBUGFACILITY)
     {
 
 
-      Keyboard_Matrix[SDLK_KP_DIVIDE] = 0;
+		Keyboard_Matrix[SDLK_KP_DIVIDE & 0xFF] = 0;
 
       if (GameEnv->PointList.GetPositionCount() >= 3)
       {

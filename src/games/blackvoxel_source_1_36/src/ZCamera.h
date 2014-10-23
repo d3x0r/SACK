@@ -31,8 +31,23 @@ class ZCamera
 {
   public:
 
-    double x,y,z;
-    double Yaw, Pitch, Roll;
+    //double x,y,z;
+    //double Yaw, Pitch, Roll;
+	ZMatrix orientation;
+
+	inline double x()
+	{
+		return orientation.x();
+	}
+	inline double y()
+	{
+		return orientation.y();
+	}
+	inline double z()
+	{
+		return orientation.z();
+	}
+
     struct
     {
       bool   Activate;

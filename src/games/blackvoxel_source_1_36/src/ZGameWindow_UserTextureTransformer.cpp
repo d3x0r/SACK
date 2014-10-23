@@ -26,7 +26,6 @@
 #include "ZGameWindow_UserTextureTransformer.h"
 #include "ZGame.h"
 #include "ZActorPhysics.h"
-#include "SDL/SDL.h"
 
 void ZGameWindow_UserTextureTransformer::Show()
 {
@@ -178,7 +177,8 @@ void ZGameWindow_UserTextureTransformer::Show()
 
   SDL_ShowCursor(SDL_ENABLE);
   SDL_WM_GrabInput(SDL_GRAB_OFF);
-  SDL_WarpMouse((Uint16)(MainWindow_Pos.x + MainWindow_Size.x / 2.0f),(Uint16)(MainWindow_Pos.y + MainWindow_Size.y / 2.0f));
+  //SDL_WarpMouse((Uint16)(MainWindow_Pos.x + MainWindow_Size.x / 2.0f),(Uint16)(MainWindow_Pos.y + MainWindow_Size.y / 2.0f));
+  SDL_WarpMouseInWindow(GameEnv->screen, (Uint16)(MainWindow_Size.x / 2.0f), (Uint16)(MainWindow_Size.y / 2.0f));
   GameEnv->Game_Events->SetDisableMouseEvents();
   Flag_Shown = true;
 }
@@ -191,6 +191,15 @@ void ZGameWindow_UserTextureTransformer::Hide()
 
   GameEnv->Game_Events->SetEnableMouseEvents();
   Flag_Shown = false;
+}
+
+Bool ZGameWindow_UserTextureTransformer::KeyDown(UShort KeySym)
+{
+	if (KeySym & 0xFF == SDL_SCANCODE_ESCAPE)
+	{
+		Hide();
+	}
+	return true;
 }
 
 Bool ZGameWindow_UserTextureTransformer::MouseButtonClick  (UShort nButton, Short Absolute_x, Short Absolute_y)

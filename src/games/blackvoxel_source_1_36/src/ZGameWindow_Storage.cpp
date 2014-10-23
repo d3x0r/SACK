@@ -33,7 +33,6 @@
 #include "ZGameWindow_Storage.h"
 #include "ZGame.h"
 #include "ZActorPhysics.h"
-#include "SDL/SDL.h"
 
 void ZGameWindow_Storage::Show()
 {
@@ -138,7 +137,8 @@ void ZGameWindow_Storage::Show()
 
   SDL_ShowCursor(SDL_ENABLE);
   SDL_WM_GrabInput(SDL_GRAB_OFF);
-  SDL_WarpMouse((Uint16)(MainWindow_Pos.x + MainWindow_Size.x / 2.0f),(Uint16)(MainWindow_Pos.y + MainWindow_Size.y / 2.0f));
+  //SDL_WarpMouse((Uint16)(MainWindow_Pos.x + MainWindow_Size.x / 2.0f),(Uint16)(MainWindow_Pos.y + MainWindow_Size.y / 2.0f));
+  SDL_WarpMouseInWindow(GameEnv->screen, (Uint16)(MainWindow_Size.x / 2.0f), (Uint16)(MainWindow_Size.y / 2.0f));
   GameEnv->Game_Events->SetDisableMouseEvents();
   Flag_Shown = true;
 }

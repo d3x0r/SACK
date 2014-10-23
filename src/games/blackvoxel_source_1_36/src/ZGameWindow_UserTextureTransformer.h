@@ -133,6 +133,7 @@ class ZGameWindow_UserTextureTransformer : public ZFrame
   // Overloaded events
 
   virtual Bool MouseButtonClick  (UShort nButton, Short Absolute_x, Short Absolute_y);
+  virtual Bool KeyDown(UShort KeySym);
 
 
 

@@ -48,7 +48,6 @@ bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
              {
                ZInventory::Entry * InventorySlot;
                UShort VoxelType;
-               VoxelLocation VLoc;
                //ULong  OtherInfos;
                ZVector3d VoxelCenter, VoxelDistance;
                bool IsOnGround;;
@@ -58,7 +57,7 @@ bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
                bool NotTooClose;
                NotTooClose = true;
                Actor->PointedVoxel.PredPointedVoxel.GetVoxelCenterCoords(&VoxelCenter);
-               VoxelDistance = VoxelCenter - Actor->Location;
+               VoxelDistance = VoxelCenter - Actor->ViewDirection.origin();
                //printf("VoxelDistance : %lf,%lf,%lf\n", VoxelDistance.x, VoxelDistance.y, VoxelDistance.z);
                if (VoxelDistance.y < 512.0 && VoxelDistance.y > -127.0)
                {
@@ -90,7 +89,67 @@ bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
 
                      // new
 
-                     if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x, Actor->PointedVoxel.PredPointedVoxel.y, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) VLoc.Sector ->Flag_HighPriorityRefresh = true;
+					 VoxelLocation VLoc;
+                     if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x, Actor->PointedVoxel.PredPointedVoxel.y, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+						 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+					 if( 0 )
+					 {
+						 Long dx = Actor->PointedVoxel.PredPointedVoxel.x - Actor->PointedVoxel.PointedVoxel.x;
+						 Long dy = Actor->PointedVoxel.PredPointedVoxel.y - Actor->PointedVoxel.PointedVoxel.y;
+						 Long dz = Actor->PointedVoxel.PredPointedVoxel.z - Actor->PointedVoxel.PointedVoxel.z;
+						 if( dx )
+						 {
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x + dx * 3, Actor->PointedVoxel.PredPointedVoxel.y, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x + dx * 3 + 1, Actor->PointedVoxel.PredPointedVoxel.y, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x + dx * 3 - 1, Actor->PointedVoxel.PredPointedVoxel.y, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x + dx * 3, Actor->PointedVoxel.PredPointedVoxel.y + 1, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x + dx * 3, Actor->PointedVoxel.PredPointedVoxel.y - 1, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x + dx * 3, Actor->PointedVoxel.PredPointedVoxel.y, Actor->PointedVoxel.PredPointedVoxel.z + 1, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x + dx * 3, Actor->PointedVoxel.PredPointedVoxel.y, Actor->PointedVoxel.PredPointedVoxel.z - 1, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+						 }
+						 if( dy )
+						 {
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x, Actor->PointedVoxel.PredPointedVoxel.y + dy * 3, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x + 1, Actor->PointedVoxel.PredPointedVoxel.y + dy * 3, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x - 1, Actor->PointedVoxel.PredPointedVoxel.y + dy * 3, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x, Actor->PointedVoxel.PredPointedVoxel.y + 1 + dy * 3, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x, Actor->PointedVoxel.PredPointedVoxel.y - 1 + dy * 3, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x, Actor->PointedVoxel.PredPointedVoxel.y + 0 + dy * 3, Actor->PointedVoxel.PredPointedVoxel.z + 1, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x, Actor->PointedVoxel.PredPointedVoxel.y + 0 + dy * 3, Actor->PointedVoxel.PredPointedVoxel.z - 1, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+						 }
+						 if( dz )
+						 {
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x, Actor->PointedVoxel.PredPointedVoxel.y, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x + 1, Actor->PointedVoxel.PredPointedVoxel.y, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x - 1, Actor->PointedVoxel.PredPointedVoxel.y, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x, Actor->PointedVoxel.PredPointedVoxel.y + 1, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x, Actor->PointedVoxel.PredPointedVoxel.y - 1, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x, Actor->PointedVoxel.PredPointedVoxel.y + 0, Actor->PointedVoxel.PredPointedVoxel.z + 1, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+			                 if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x, Actor->PointedVoxel.PredPointedVoxel.y + 0, Actor->PointedVoxel.PredPointedVoxel.z - 1, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) 
+								 VLoc.Sector ->Flag_HighPriorityRefresh = true;
+						 }
+					 }
+
                      GameEnv->Sound->PlaySound(7);
                    }
                  }
@@ -146,6 +205,7 @@ bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
              }
              break;
       case 3: // Mouse scroll down
+			//if( 
              Actor->Inventory->Select_PreviousItem();
 
              // printf("Selected : %ld : %s\n", Actor->Inventory->GetActualItemSlotNum(), GameEnv->VoxelTypeManager.VoxelTable[Actor->Inventory->GetActualItemSlot()->VoxelType]->VoxelTypeName.String);
@@ -218,7 +278,6 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
   {
     UShort Voxel;
     ZVoxelType * VoxelType;
-    VoxelLocation VLoc;
 
     // Get actualy pointed voxel
 
@@ -260,7 +319,9 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
       Mining_MaterialResistanceCounter =10000.0;
       if(Actor->Inventory->StoreBlocks(Voxel,1))
       {
-        if ( GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PointedVoxel.x, Actor->PointedVoxel.PointedVoxel.y, Actor->PointedVoxel.PointedVoxel.z,0,ZVoxelSector::CHANGE_CRITICAL,true,&VLoc) ) VLoc.Sector->Flag_HighPriorityRefresh = true;
+	    VoxelLocation VLoc;
+        if ( GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PointedVoxel.x, Actor->PointedVoxel.PointedVoxel.y, Actor->PointedVoxel.PointedVoxel.z,0,ZVoxelSector::CHANGE_CRITICAL,true,&VLoc) ) 
+			VLoc.Sector->Flag_HighPriorityRefresh = true;
       }
       #if COMPILEOPTION_FNX_SOUNDS_1 == 1
       GameEnv->Sound->PlaySound(6);

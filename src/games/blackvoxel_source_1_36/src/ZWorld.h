@@ -34,6 +34,8 @@
 #  include "z/ZTypes.h"
 #endif
 
+#include "z/ZGlobal_Settings.h"
+
 #ifndef Z_ZGENERAL_OBJECT_H
 #  include "z/ZGeneralObject.h"
 #endif
@@ -53,6 +55,7 @@
 #ifndef Z_ZVOXELSECTOR_H
 #  include "ZVoxelSector.h"
 #endif
+#include "z/ZType_ZVoxelRef.h"
 
 #ifndef Z_ZSECTORLOADER_H
 #  include "ZSectorLoader.h"
@@ -164,10 +167,12 @@ class ZVoxelWorld : public ZObject
     inline bool   GetVoxelLocation(VoxelLocation * OutLocation, const ZVector3L * Coords);
 
 
+    inline ZVoxelRef *GetVoxelRef(Long x, Long y, Long z);        // Get the voxel at the specified location. Fail with the "voxel not defined" voxeltype 65535 if the sector not in memory.
     inline UShort GetVoxel(Long x, Long y, Long z);        // Get the voxel at the specified location. Fail with the "voxel not defined" voxeltype 65535 if the sector not in memory.
     inline UShort GetVoxel(ZVector3L * Coords);            // Idem but take coords in another form.
     inline UShort GetVoxel_Secure(Long x, Long y, Long z); // Secure version doesn't fail if sector not loaded. The sector is loaded or created if needed.
     inline UShort GetVoxelExt(Long x, Long y, Long z, ZMemSize & OtherInfos);
+    inline ZVoxelRef *GetVoxelRefPlayerCoord(double x, double y, double z);
     inline UShort GetVoxelPlayerCoord(double x, double y, double z);
     inline UShort GetVoxelPlayerCoord_Secure(double x, double y, double z);
 
@@ -178,7 +183,11 @@ class ZVoxelWorld : public ZObject
     static inline void Convert_Location_ToCoords(VoxelLocation * InLoc, ZVector3L * OutCoords);
 
     bool RayCast(const ZRayCast_in * In, ZRayCast_out * Out );
-    bool RayCast_Vector(const ZVector3d & Pos, const ZVector3d & Vector, const ZRayCast_in * In, ZRayCast_out * Out, bool InvertCollision = false );
+	bool RayCast_Vector(const ZVector3d & Pos, const ZVector3d & Vector, const ZRayCast_in * In, ZRayCast_out * Out, bool InvertCollision );
+
+    bool RayCast_Vector( ZMatrix & Pos, const ZVector3d & Vector, const ZRayCast_in * In, ZRayCast_out * Out, bool InvertCollision = false );
+	bool ZVoxelWorld::RayCast_Vector2(const ZVector3d & Pos, const ZVector3d & Vector, const ZRayCast_in * In, ZRayCast_out * Out, bool InvertCollision );
+
     bool RayCast_Vector_special(const ZVector3d & Pos, const ZVector3d & Vector, const ZRayCast_in * In, ZRayCast_out * Out, bool InvertCollision = false );
 
     bool RayCast2(double x, double y, double z, double yaw, double pitch, double roll, ZVoxelCoords & PointedCube, ZVoxelCoords CubeBeforePointed  );
@@ -342,14 +351,24 @@ class ZVoxelWorld : public ZObject
 
 };
 
+inline ZVoxelRef *ZVoxelWorld::GetVoxelRefPlayerCoord(double x, double y, double z)
+{
+  ELong lx,ly,lz;
+
+  lx = (((ELong)x) >> GlobalSettings.VoxelBlockSizeBits);
+  ly = (((ELong)y) >> GlobalSettings.VoxelBlockSizeBits);
+  lz = (((ELong)z) >> GlobalSettings.VoxelBlockSizeBits);
+
+  return( GetVoxelRef ((Long)lx,(Long)ly,(Long)lz) );
+}
 
 inline UShort ZVoxelWorld::GetVoxelPlayerCoord(double x, double y, double z)
 {
   ELong lx,ly,lz;
 
-  lx = (((ELong)x) >> 8);
-  ly = (((ELong)y) >> 8);
-  lz = (((ELong)z) >> 8);
+  lx = (((ELong)x) >> GlobalSettings.VoxelBlockSizeBits);
+  ly = (((ELong)y) >> GlobalSettings.VoxelBlockSizeBits);
+  lz = (((ELong)z) >> GlobalSettings.VoxelBlockSizeBits);
 
   return( GetVoxel ((Long)lx,(Long)ly,(Long)lz) );
 }
@@ -358,39 +377,39 @@ inline UShort ZVoxelWorld::GetVoxelPlayerCoord_Secure(double x, double y, double
 {
   ELong lx,ly,lz;
 
-  lx = (((ELong)x) >> 8);
-  ly = (((ELong)y) >> 8);
-  lz = (((ELong)z) >> 8);
+  lx = (((ELong)x) >> GlobalSettings.VoxelBlockSizeBits);
+  ly = (((ELong)y) >> GlobalSettings.VoxelBlockSizeBits);
+  lz = (((ELong)z) >> GlobalSettings.VoxelBlockSizeBits);
 
   return( GetVoxel_Secure ((Long)lx,(Long)ly,(Long)lz) );
 }
 
 inline void ZVoxelWorld::Convert_Coords_PlayerToVoxel(double Px,double Py, double Pz, Long & Vx, Long & Vy, Long & Vz)
 {
-  Vx = (Long)(((ELong)Px) >> 8);
-  Vy = (Long)(((ELong)Py) >> 8);
-  Vz = (Long)(((ELong)Pz) >> 8);
+  Vx = (Long)(((ELong)Px) >> GlobalSettings.VoxelBlockSizeBits);
+  Vy = (Long)(((ELong)Py) >> GlobalSettings.VoxelBlockSizeBits);
+  Vz = (Long)(((ELong)Pz) >> GlobalSettings.VoxelBlockSizeBits);
 }
 
 inline void ZVoxelWorld::Convert_Coords_PlayerToVoxel( const ZVector3d * PlayerCoords, ZVector3L * VoxelCoords)
 {
-  VoxelCoords->x = (Long)(((ELong)PlayerCoords->x) >> 8);
-  VoxelCoords->y = (Long)(((ELong)PlayerCoords->y) >> 8);
-  VoxelCoords->z = (Long)(((ELong)PlayerCoords->z) >> 8);
+  VoxelCoords->x = (Long)(((ELong)PlayerCoords->x) >> GlobalSettings.VoxelBlockSizeBits);
+  VoxelCoords->y = (Long)(((ELong)PlayerCoords->y) >> GlobalSettings.VoxelBlockSizeBits);
+  VoxelCoords->z = (Long)(((ELong)PlayerCoords->z) >> GlobalSettings.VoxelBlockSizeBits);
 }
 
 inline void ZVoxelWorld::Convert_Coords_VoxelToPlayer( Long Vx, Long Vy, Long Vz, double &Px, double &Py, double &Pz )
 {
-  Px = ((ELong)Vx) << 8;
-  Py = ((ELong)Vy) << 8;
-  Pz = ((ELong)Vz) << 8;
+	Px = ((ELong)Vx) << GlobalSettings.VoxelBlockSizeBits;
+  Py = ((ELong)Vy) << GlobalSettings.VoxelBlockSizeBits;
+  Pz = ((ELong)Vz) << GlobalSettings.VoxelBlockSizeBits;
 }
 
 inline void ZVoxelWorld::Convert_Coords_VoxelToPlayer( const ZVector3L * VoxelCoords, ZVector3d * PlayerCoords )
 {
-  PlayerCoords->x = ((ELong)VoxelCoords->x) << 8;
-  PlayerCoords->y = ((ELong)VoxelCoords->y) << 8;
-  PlayerCoords->z = ((ELong)VoxelCoords->z) << 8;
+  PlayerCoords->x = ((ELong)VoxelCoords->x) << GlobalSettings.VoxelBlockSizeBits;
+  PlayerCoords->y = ((ELong)VoxelCoords->y) << GlobalSettings.VoxelBlockSizeBits;
+  PlayerCoords->z = ((ELong)VoxelCoords->z) << GlobalSettings.VoxelBlockSizeBits;
 }
 
 inline bool ZVoxelWorld::GetVoxelLocation(VoxelLocation * OutLocation, Long x, Long y, Long z)
@@ -422,6 +441,23 @@ inline void ZVoxelWorld::Convert_Location_ToCoords(VoxelLocation * InLoc, ZVecto
   OutCoords->x = (InLoc->Sector->Pos_x << ZVOXELBLOCSHIFT_X) + ((InLoc->Offset & (ZVOXELBLOCMASK_X << (ZVOXELBLOCSHIFT_Y))) >> ZVOXELBLOCSHIFT_Y);
   OutCoords->y = (InLoc->Sector->Pos_y << ZVOXELBLOCSHIFT_Y) + (InLoc->Offset & (ZVOXELBLOCMASK_Y));
   OutCoords->z = (InLoc->Sector->Pos_z << ZVOXELBLOCSHIFT_Z) + ((InLoc->Offset & (ZVOXELBLOCMASK_X << (ZVOXELBLOCSHIFT_Y + ZVOXELBLOCSHIFT_X))) >> (ZVOXELBLOCSHIFT_Y + ZVOXELBLOCSHIFT_X));
+}
+
+
+inline ZVoxelRef *ZVoxelWorld::GetVoxelRef(Long x, Long y, Long z)
+{
+  ZVoxelSector * Sector;
+  Long Offset;
+
+  Sector = FindSector( x>>ZVOXELBLOCSHIFT_X , y>>ZVOXELBLOCSHIFT_Y , z>>ZVOXELBLOCSHIFT_Z );
+
+  if (!Sector) return NULL;
+
+  Offset =  (y & ZVOXELBLOCMASK_Y)
+         + ((x & ZVOXELBLOCMASK_X) <<  ZVOXELBLOCSHIFT_Y )
+         + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y + ZVOXELBLOCSHIFT_X));
+
+  return new ZVoxelRef( this, VoxelTypeManager, x, y, z, Sector, Offset );
 }
 
 

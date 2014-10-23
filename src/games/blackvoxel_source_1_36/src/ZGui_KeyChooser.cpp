@@ -24,7 +24,7 @@
  */
 
 #include "ZGui_KeyChooser.h"
-#include "SDL/SDL.h"
+#include "SDL2/SDL.h"
 #include <GL/glew.h>
 
 
@@ -33,7 +33,7 @@ Bool ZFrame_KeyChooser::KeyDown( UShort KeySym )
   ZVector2f Size;
   Actual_KeySet = KeySym;
   // DisplayText = (ULong)KeySym;
-  DisplayText = SDL_GetKeyName((SDLKey)KeySym);
+  DisplayText = SDL_GetKeyName((SDL_Keycode)KeySym);
   DisplayText.MakeUpper();
   Text.SetDisplayText(DisplayText.String);
   Text.GetTextDisplaySize(&Size);
@@ -51,7 +51,7 @@ void ZFrame_KeyChooser::SetKey(UShort Key)
 
   Actual_KeySet = Key;
 
-  DisplayText = SDL_GetKeyName((SDLKey)Key);
+  DisplayText = SDL_GetKeyName((SDL_Keycode)Key);
   DisplayText.MakeUpper();
   Text.SetDisplayText(DisplayText.String);
   Text.GetTextDisplaySize(&Size);

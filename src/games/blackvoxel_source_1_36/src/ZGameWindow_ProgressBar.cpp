@@ -27,7 +27,6 @@
 
 #include "ZGame.h"
 #include "ZActorPhysics.h"
-#include "SDL/SDL.h"
 
 void ZGameWindow_ProgressBar::Show()
 {

@@ -24,7 +24,7 @@
  */
 
 #include "ZSectorStreamLoader.h"
-#include "SDL/SDL.h"
+#include "SDL2/SDL.h"
 
 ULong debug_deletecount = 0;
 
@@ -130,7 +130,7 @@ ZFileSectorLoader::~ZFileSectorLoader()
 bool ZFileSectorLoader::Init()
 {
   ThreadContinue = true;
-  Thread = (SDL_Thread * )SDL_CreateThread(thread_func, this);
+  Thread = (SDL_Thread * )SDL_CreateThread(thread_func, "thread_func", this);
   if (!SectorCreator.LoadTemplateImages()) return(false);
   return(true);
 }
@@ -222,7 +222,7 @@ void ZFileSectorLoader::MakeTasks()
   while ( (Sector = EjectedSectorList->PullFromList()) )
   {
     RequestTag.Remove(Sector->Pos_x, Sector->Pos_y, Sector->Pos_z);
-    //printf("Deleted : %lx, %lu L2 Start:%lu End:%lu nEntries:%lu\n", Sector,++debug_deletecount,EjectedSectorList->debug_getstart(),EjectedSectorList->debug_GetEnd(),EjectedSectorList->debug_GetnEntries() );
+    printf("Deleted : %lx, %lu L2 Start:%lu End:%lu nEntries:%lu\n", Sector,++debug_deletecount,EjectedSectorList->debug_getstart(),EjectedSectorList->debug_GetEnd(),EjectedSectorList->debug_GetnEntries() );
     if (COMPILEOPTION_ALLOWSAVE)
     {
 #if COMPILEOPTION_SAVEONLYMODIFIED==1

@@ -79,7 +79,7 @@ ULong ZScreen_Options_Display::ProcessScreen(ZGame * GameEnv)
   Res = new ZResolution; Res->Resolution_x = 640; Res->Resolution_y = 480; Res->Name = "640*480"; Resolution_Array.Add(*Res);
 
   // Add the SDL resolutions.
-
+#if 0
   {
     SDL_Rect** modes;
 
@@ -108,7 +108,7 @@ ULong ZScreen_Options_Display::ProcessScreen(ZGame * GameEnv)
     }
     // printf("Resolution Bureau : %lu x %lu\n",(UNum)GameEnv->DesktopResolution.x, (UNum)GameEnv->DesktopResolution.y);
   }
-
+#endif
   // Add the desktop resolution
 
   Found = false;
@@ -299,8 +299,9 @@ ULong ZScreen_Options_Display::ProcessScreen(ZGame * GameEnv)
       if (Frame_Save.Is_MouseClick()) { Loop = false; }
 
       GameEnv->GuiManager.Render();
-      SDL_GL_SwapBuffers( );
-      SDL_Delay(10);
+      //SDL_GL_SwapBuffers( );
+	  SDL_GL_SwapWindow(GameEnv->screen);
+	  SDL_Delay(10);
 
     }
     GameEnv->GuiManager.RemoveAllFrames();

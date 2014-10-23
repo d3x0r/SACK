@@ -19,7 +19,6 @@
 #include <GL/glew.h>
 #include <math.h>
 #include <stdio.h>
-#include "SDL/SDL.h"
 
 #  include "ZRender_Basic.h"
 
@@ -92,14 +91,14 @@ void ZRender_Basic::Render_VoxelSelector(ZVoxelCoords * SelectedVoxel, float r, 
 
 
         ZVector3f P1,P2,P3,P4,P5,P6,P7,P8;
-        P1.x = SelectedVoxel->x * 256.0f + 0.0f;   P1.y = SelectedVoxel->y * 256.0f + 0.0f;   P1.z = SelectedVoxel->z * 256.0f + 0.0f;
-        P2.x = SelectedVoxel->x * 256.0f + 0.0f;   P2.y = SelectedVoxel->y * 256.0f + 0.0f;   P2.z = SelectedVoxel->z * 256.0f + 256.0f;
-        P3.x = SelectedVoxel->x * 256.0f + 256.0f; P3.y = SelectedVoxel->y * 256.0f + 0.0f;   P3.z = SelectedVoxel->z * 256.0f + 256.0f;
-        P4.x = SelectedVoxel->x * 256.0f + 256.0f; P4.y = SelectedVoxel->y * 256.0f + 0.0f;   P4.z = SelectedVoxel->z * 256.0f + 0.0f;
-        P5.x = SelectedVoxel->x * 256.0f + 0.0f;   P5.y = SelectedVoxel->y * 256.0f + 256.0f; P5.z = SelectedVoxel->z * 256.0f + 0.0f;
-        P6.x = SelectedVoxel->x * 256.0f + 0.0f;   P6.y = SelectedVoxel->y * 256.0f + 256.0f; P6.z = SelectedVoxel->z * 256.0f + 256.0f;
-        P7.x = SelectedVoxel->x * 256.0f + 256.0f; P7.y = SelectedVoxel->y * 256.0f + 256.0f; P7.z = SelectedVoxel->z * 256.0f + 256.0f;
-        P8.x = SelectedVoxel->x * 256.0f + 256.0f; P8.y = SelectedVoxel->y * 256.0f + 256.0f; P8.z = SelectedVoxel->z * 256.0f + 0.0f;
+        P1.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + 0.0f;   P1.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + 0.0f;   P1.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + 0.0f;
+        P2.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + 0.0f;   P2.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + 0.0f;   P2.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize;
+        P3.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P3.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + 0.0f;   P3.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize;
+        P4.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P4.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + 0.0f;   P4.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + 0.0f;
+        P5.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + 0.0f;   P5.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P5.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + 0.0f;
+        P6.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + 0.0f;   P6.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P6.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize;
+        P7.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P7.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P7.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize;
+        P8.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P8.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P8.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + 0.0f;
 */
 
         glDisable(GL_TEXTURE_2D);
@@ -109,14 +108,14 @@ void ZRender_Basic::Render_VoxelSelector(ZVoxelCoords * SelectedVoxel, float r, 
         //      PointedCube.z = 0;
 
               ZVector3f P1,P2,P3,P4,P5,P6,P7,P8;
-              P1.x = SelectedVoxel->x * 256.0f + 0.0f;   P1.y = SelectedVoxel->y * 256.0f + 0.0f; P1.z = SelectedVoxel->z * 256.0f + 0.0f;
-              P2.x = SelectedVoxel->x * 256.0f + 0.0f;   P2.y = SelectedVoxel->y * 256.0f + 0.0f; P2.z = SelectedVoxel->z * 256.0f + 256.0f;
-              P3.x = SelectedVoxel->x * 256.0f + 256.0f; P3.y = SelectedVoxel->y * 256.0f + 0.0f; P3.z = SelectedVoxel->z * 256.0f + 256.0f;
-              P4.x = SelectedVoxel->x * 256.0f + 256.0f; P4.y = SelectedVoxel->y * 256.0f + 0.0f; P4.z = SelectedVoxel->z * 256.0f + 0.0f;
-              P5.x = SelectedVoxel->x * 256.0f + 0.0f;   P5.y = SelectedVoxel->y * 256.0f + 256.0f; P5.z = SelectedVoxel->z * 256.0f + 0.0f;
-              P6.x = SelectedVoxel->x * 256.0f + 0.0f;   P6.y = SelectedVoxel->y * 256.0f + 256.0f; P6.z = SelectedVoxel->z * 256.0f + 256.0f;
-              P7.x = SelectedVoxel->x * 256.0f + 256.0f; P7.y = SelectedVoxel->y * 256.0f + 256.0f; P7.z = SelectedVoxel->z * 256.0f + 256.0f;
-              P8.x = SelectedVoxel->x * 256.0f + 256.0f; P8.y = SelectedVoxel->y * 256.0f + 256.0f; P8.z = SelectedVoxel->z * 256.0f + 0.0f;
+              P1.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + 0.0f;   P1.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + 0.0f; P1.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + 0.0f;
+              P2.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + 0.0f;   P2.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + 0.0f; P2.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize;
+              P3.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P3.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + 0.0f; P3.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize;
+              P4.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P4.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + 0.0f; P4.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + 0.0f;
+              P5.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + 0.0f;   P5.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P5.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + 0.0f;
+              P6.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + 0.0f;   P6.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P6.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize;
+              P7.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P7.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P7.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize;
+              P8.x = SelectedVoxel->x * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P8.y = SelectedVoxel->y * GlobalSettings.VoxelBlockSize + GlobalSettings.VoxelBlockSize; P8.z = SelectedVoxel->z * GlobalSettings.VoxelBlockSize + 0.0f;
 
 
               glDisable(GL_TEXTURE_2D);
@@ -214,10 +213,10 @@ void ZRender_Basic::Render()
 
   // Precomputing values for faster math
 
-  ZVector3d::ZTransformParam FastCamParameters;
+  //ZVector3d::ZTransformParam FastCamParameters;
 
-  FastCamParameters.SetRotation(-Camera->Yaw, Camera->Pitch, Camera->Roll);
-  FastCamParameters.SetTranslation(-Camera->x, -Camera->y, -Camera->z);
+  //FastCamParameters.SetRotation(Camera->orientation);
+  //FastCamParameters.SetTranslation(-Camera->x, -Camera->y, -Camera->z);
 
 
    // Update per cycle.
@@ -276,12 +275,13 @@ void ZRender_Basic::Render()
   // Objects of the world are translated and rotated to position camera at the right place.
 
     glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glRotatef(-Camera->Roll  , 0.0, 0.0, 1.0);
-    glRotatef(-Camera->Pitch , 1.0, 0.0, 0.0);
-    glRotatef(180-Camera->Yaw, 0.0, 1.0, 0.0);
+    //glLoadIdentity();
+	glLoadMatrixd( Camera->orientation.glMatrix() );
+    //glRotatef(-Camera->Roll  , 0.0, 0.0, 1.0);
+    //glRotatef(-Camera->Pitch , 1.0, 0.0, 0.0);
+    //glRotatef(180-Camera->Yaw, 0.0, 1.0, 0.0);
 
-    glTranslatef(-(float)Camera->x,-(float)Camera->y,-(float)Camera->z);
+    //glTranslatef(-(float)Camera->x,-(float)Camera->y,-(float)Camera->z);
 
   // Clearing FrameBuffer and Z-Buffer
 
@@ -301,9 +301,9 @@ void ZRender_Basic::Render()
 
   // Transforming Camera coords to sector coords. One Voxel is 256 observer units. One sector is 16x16x32.
 
-    Sector_x = (ELong)Camera->x >> 12;
-    Sector_y = (ELong)Camera->y >> 14;
-    Sector_z = (ELong)Camera->z >> 12;
+    Sector_x = (ELong)Camera->x() >> ( 	GlobalSettings.VoxelBlockSizeBits + 4 );
+    Sector_y = (ELong)Camera->y() >> ( 	GlobalSettings.VoxelBlockSizeBits + 6 );
+    Sector_z = (ELong)Camera->z() >> ( 	GlobalSettings.VoxelBlockSizeBits + 4 );
 
 
     // Start_x = Sector_x - hRenderRadius; End_x = Sector_x + hRenderRadius;
@@ -339,19 +339,19 @@ void ZRender_Basic::Render()
           ZVector3d Cv, Cv2;
           bool SectorVisible;
 
-          Cv.x = (double) ( ((ELong)x) << 12 );
-          Cv.y = (double) ( ((ELong)y) << 14 );
-          Cv.z = (double) ( ((ELong)z) << 12 );
+          Cv.x = (double) ( ((ELong)x) << ( 	GlobalSettings.VoxelBlockSizeBits + 4 ) );
+          Cv.y = (double) ( ((ELong)y) << ( 	GlobalSettings.VoxelBlockSizeBits + 6 ) );
+          Cv.z = (double) ( ((ELong)z) << ( 	GlobalSettings.VoxelBlockSizeBits + 4 ) );
 
           SectorVisible = false;
-          Cv2.x = (0 * ZVOXELBLOCSIZE_X * 256.0); Cv2.y = (0 * ZVOXELBLOCSIZE_Y * 256.0); Cv2.z = (0 * ZVOXELBLOCSIZE_Z * 256.0); Cv2 += Cv ; SectorVisible |= Is_PointVisible(&FastCamParameters, &Cv2);
-          Cv2.x = (1 * ZVOXELBLOCSIZE_X * 256.0); Cv2.y = (0 * ZVOXELBLOCSIZE_Y * 256.0); Cv2.z = (0 * ZVOXELBLOCSIZE_Z * 256.0); Cv2 += Cv ; SectorVisible |= Is_PointVisible(&FastCamParameters, &Cv2);
-          Cv2.x = (1 * ZVOXELBLOCSIZE_X * 256.0); Cv2.y = (0 * ZVOXELBLOCSIZE_Y * 256.0); Cv2.z = (1 * ZVOXELBLOCSIZE_Z * 256.0); Cv2 += Cv ; SectorVisible |= Is_PointVisible(&FastCamParameters, &Cv2);
-          Cv2.x = (0 * ZVOXELBLOCSIZE_X * 256.0); Cv2.y = (0 * ZVOXELBLOCSIZE_Y * 256.0); Cv2.z = (1 * ZVOXELBLOCSIZE_Z * 256.0); Cv2 += Cv ; SectorVisible |= Is_PointVisible(&FastCamParameters, &Cv2);
-          Cv2.x = (0 * ZVOXELBLOCSIZE_X * 256.0); Cv2.y = (1 * ZVOXELBLOCSIZE_Y * 256.0); Cv2.z = (0 * ZVOXELBLOCSIZE_Z * 256.0); Cv2 += Cv ; SectorVisible |= Is_PointVisible(&FastCamParameters, &Cv2);
-          Cv2.x = (1 * ZVOXELBLOCSIZE_X * 256.0); Cv2.y = (1 * ZVOXELBLOCSIZE_Y * 256.0); Cv2.z = (0 * ZVOXELBLOCSIZE_Z * 256.0); Cv2 += Cv ; SectorVisible |= Is_PointVisible(&FastCamParameters, &Cv2);
-          Cv2.x = (1 * ZVOXELBLOCSIZE_X * 256.0); Cv2.y = (1 * ZVOXELBLOCSIZE_Y * 256.0); Cv2.z = (1 * ZVOXELBLOCSIZE_Z * 256.0); Cv2 += Cv ; SectorVisible |= Is_PointVisible(&FastCamParameters, &Cv2);
-          Cv2.x = (0 * ZVOXELBLOCSIZE_X * 256.0); Cv2.y = (1 * ZVOXELBLOCSIZE_Y * 256.0); Cv2.z = (1 * ZVOXELBLOCSIZE_Z * 256.0); Cv2 += Cv ; SectorVisible |= Is_PointVisible(&FastCamParameters, &Cv2);
+          Cv2.x = (0 * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize); Cv2.y = (0 * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize); Cv2.z = (0 * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize); Cv2 += Cv ; SectorVisible |= Is_PointVisible(Camera->orientation, &Cv2);
+          Cv2.x = (1 * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize); Cv2.y = (0 * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize); Cv2.z = (0 * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize); Cv2 += Cv ; SectorVisible |= Is_PointVisible(Camera->orientation, &Cv2);
+          Cv2.x = (1 * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize); Cv2.y = (0 * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize); Cv2.z = (1 * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize); Cv2 += Cv ; SectorVisible |= Is_PointVisible(Camera->orientation, &Cv2);
+          Cv2.x = (0 * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize); Cv2.y = (0 * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize); Cv2.z = (1 * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize); Cv2 += Cv ; SectorVisible |= Is_PointVisible(Camera->orientation, &Cv2);
+          Cv2.x = (0 * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize); Cv2.y = (1 * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize); Cv2.z = (0 * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize); Cv2 += Cv ; SectorVisible |= Is_PointVisible(Camera->orientation, &Cv2);
+          Cv2.x = (1 * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize); Cv2.y = (1 * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize); Cv2.z = (0 * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize); Cv2 += Cv ; SectorVisible |= Is_PointVisible(Camera->orientation, &Cv2);
+          Cv2.x = (1 * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize); Cv2.y = (1 * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize); Cv2.z = (1 * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize); Cv2 += Cv ; SectorVisible |= Is_PointVisible(Camera->orientation, &Cv2);
+          Cv2.x = (0 * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize); Cv2.y = (1 * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize); Cv2.z = (1 * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize); Cv2 += Cv ; SectorVisible |= Is_PointVisible(Camera->orientation, &Cv2);
 
           Sector = World->FindSector(x,y,z);
           Priority      = RadiusZones.GetZone(x-Sector_x,y-Sector_y,z-Sector_z);
@@ -494,34 +494,50 @@ void ZRender_Basic::Render()
     // Debug ****************************************************
 
     ZVector3d Norm, Tmp;
-    Norm.x = 0; Norm.y = 0; Norm.z = 1;
-
+    Norm.x = 0; Norm.y = 0; Norm.z = -1;
+	Camera->orientation.ApplyRotation( Tmp, Norm );
     // X axis rotation
-    Tmp.y = Norm.y * cos(-Camera->Pitch/57.295779513) - Norm.z * sin(-Camera->Pitch/57.295779513);
-    Tmp.z = Norm.y * sin(-Camera->Pitch/57.295779513) + Norm.z * cos(-Camera->Pitch/57.295779513);
-    Norm.y = Tmp.y; Norm.z = Tmp.z;
+    //Tmp.y = Norm.y * cos(-Camera->Pitch/57.295779513) - Norm.z * sin(-Camera->Pitch/57.295779513);
+    //Tmp.z = Norm.y * sin(-Camera->Pitch/57.295779513) + Norm.z * cos(-Camera->Pitch/57.295779513);
+    //Norm.y = Tmp.y; Norm.z = Tmp.z;
     // Y axis rotation
-    Tmp.x = Norm.z*sin(Camera->Yaw/57.295779513) + Norm.x * cos(Camera->Yaw/57.295779513);
-    Tmp.z = Norm.z*cos(Camera->Yaw/57.295779513) - Norm.x * sin(Camera->Yaw/57.295779513);
-    Norm.x = Tmp.x; Norm.z = Tmp.z;
-    Norm.y = Tmp.y;
+    //Tmp.x = Norm.z*sin(Camera->Yaw/57.295779513) + Norm.x * cos(Camera->Yaw/57.295779513);
+    //Tmp.z = Norm.z*cos(Camera->Yaw/57.295779513) - Norm.x * sin(Camera->Yaw/57.295779513);
+    //Norm.x = Tmp.x; Norm.z = Tmp.z;
+    //Norm.y = Tmp.y;
     // printf("Norm(%lf %lf %lf)\n",Norm.x,Norm.y,Norm.z);
 
     In.MaxCubeIterations = 150;
     In.MaxDetectionDistance = 1536;//1000000.0;
 
-    ZVector3d CamPoint(Camera->x,Camera->y,Camera->z);
+    ZVector3d CamPoint(Camera->x(),Camera->y(),Camera->z());
     ZVector3d Zp;
     Zp = PointedVoxel->CollisionPoint; Zp.y = PointedVoxel->CollisionPoint.y + 100.0;
 
-    if (World->RayCast_Vector(ZVector3d(Camera->x,Camera->y,Camera->z),Norm , &In, PointedVoxel))
+    if (World->RayCast_Vector(Camera->orientation, Tmp, &In, PointedVoxel))
     {
       if (PointedVoxel->CollisionDistance < In.MaxDetectionDistance)
       {
         PointedVoxel->Collided = true;
-        if (BvProp_DisplayVoxelSelector) Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,1.0,1.0 );
+        if (BvProp_DisplayVoxelSelector) 
+			Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,1.0,1.0 );
       }
-      else PointedVoxel->Collided = false;
+	  else
+	  {
+		  ZVector3d a = Camera->orientation.origin() +
+			Camera->orientation.z_axis() * ( GlobalSettings.VoxelBlockSize * -6 );
+		  //In.MaxCubeIterations = 6;
+
+		  ZVoxelRef *v = World->GetVoxelRefPlayerCoord( a.x, a.y, a.z );
+			//World->RayCast_Vector(Camera->orientation, Tmp, &In, PointedVoxel);
+			PointedVoxel->PredPointedVoxel.x = v->x;
+			PointedVoxel->PredPointedVoxel.y = v->y;
+			PointedVoxel->PredPointedVoxel.z = v->z;
+			delete v ;
+		  PointedVoxel->Collided = true;
+        if (BvProp_DisplayVoxelSelector) 
+			Render_VoxelSelector( &PointedVoxel->PredPointedVoxel, 0.2,1.0,0.1 );
+	  }
     }
 
 
@@ -635,9 +651,9 @@ void ZRender_Basic::RenderSector2(ZVoxelSector * Sector)
   float cubx, cuby, cubz;
   Long Sector_Display_x, Sector_Display_y, Sector_Display_z;
 
-  Sector_Display_x = Sector->Pos_x * Sector->Size_x * 256;
-  Sector_Display_y = Sector->Pos_y * Sector->Size_y * 256;
-  Sector_Display_z = Sector->Pos_z * Sector->Size_z * 256;
+  Sector_Display_x = Sector->Pos_x * Sector->Size_x * GlobalSettings.VoxelBlockSize;
+  Sector_Display_y = Sector->Pos_y * Sector->Size_y * GlobalSettings.VoxelBlockSize;
+  Sector_Display_z = Sector->Pos_z * Sector->Size_z * GlobalSettings.VoxelBlockSize;
 
 
   for ( z=0 ; z < Sector->Size_z ; z++ )
@@ -662,9 +678,9 @@ void ZRender_Basic::RenderSector2(ZVoxelSector * Sector)
             case 2: FlankText = TextureName[2]; TopText = TextureName[2]; break;
           }
 
-          cubx = (float)(x*256 + Sector_Display_x);
-          cuby = (float)(y*256 + Sector_Display_y);
-          cubz = (float)(z*256 + Sector_Display_z);
+          cubx = (float)(x*GlobalSettings.VoxelBlockSize + Sector_Display_x);
+          cuby = (float)(y*GlobalSettings.VoxelBlockSize + Sector_Display_y);
+          cubz = (float)(z*GlobalSettings.VoxelBlockSize + Sector_Display_z);
 
           if (info & DRAWFACE_FLANK) glBindTexture(GL_TEXTURE_2D,FlankText);
 
@@ -673,9 +689,9 @@ void ZRender_Basic::RenderSector2(ZVoxelSector * Sector)
           {
             glBegin(GL_POLYGON);
               glTexCoord2f(0.0,0.0); glVertex3f(cubx, cuby, cubz );
-              glTexCoord2f(1.0,0.0); glVertex3f(cubx , cuby, cubz + 256.0);
-              glTexCoord2f(1.0,1.0); glVertex3f(cubx , cuby +256.0, cubz + 256.0);
-              glTexCoord2f(0.0,1.0); glVertex3f(cubx , cuby +256.0, cubz);
+              glTexCoord2f(1.0,0.0); glVertex3f(cubx , cuby, cubz + GlobalSettings.VoxelBlockSize);
+              glTexCoord2f(1.0,1.0); glVertex3f(cubx , cuby +GlobalSettings.VoxelBlockSize, cubz + GlobalSettings.VoxelBlockSize);
+              glTexCoord2f(0.0,1.0); glVertex3f(cubx , cuby +GlobalSettings.VoxelBlockSize, cubz);
             glEnd();
           }
 
@@ -683,10 +699,10 @@ void ZRender_Basic::RenderSector2(ZVoxelSector * Sector)
           if (info & DRAWFACE_RIGHT)
           {
             glBegin(GL_POLYGON);
-              glTexCoord2f(0.0,0.0); glVertex3f(cubx + 256.0 , cuby, cubz );
-              glTexCoord2f(1.0,0.0); glVertex3f(cubx + 256.0, cuby, cubz + 256.0);
-              glTexCoord2f(1.0,1.0); glVertex3f(cubx + 256.0, cuby +256.0, cubz + 256.0);
-              glTexCoord2f(0.0,1.0); glVertex3f(cubx + 256.0, cuby +256.0, cubz);
+              glTexCoord2f(0.0,0.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize , cuby, cubz );
+              glTexCoord2f(1.0,0.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby, cubz + GlobalSettings.VoxelBlockSize);
+              glTexCoord2f(1.0,1.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby +GlobalSettings.VoxelBlockSize, cubz + GlobalSettings.VoxelBlockSize);
+              glTexCoord2f(0.0,1.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby +GlobalSettings.VoxelBlockSize, cubz);
             glEnd();
           }
 
@@ -695,9 +711,9 @@ void ZRender_Basic::RenderSector2(ZVoxelSector * Sector)
           {
             glBegin(GL_POLYGON);
               glTexCoord2f(0.0,0.0); glVertex3f(cubx, cuby, cubz);
-              glTexCoord2f(1.0,0.0); glVertex3f(cubx + 256.0, cuby, cubz);
-              glTexCoord2f(1.0,1.0); glVertex3f(cubx + 256.0, cuby +256.0, cubz);
-              glTexCoord2f(0.0,1.0); glVertex3f(cubx , cuby +256.0, cubz);
+              glTexCoord2f(1.0,0.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby, cubz);
+              glTexCoord2f(1.0,1.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby +GlobalSettings.VoxelBlockSize, cubz);
+              glTexCoord2f(0.0,1.0); glVertex3f(cubx , cuby +GlobalSettings.VoxelBlockSize, cubz);
             glEnd();
           }
 
@@ -705,10 +721,10 @@ void ZRender_Basic::RenderSector2(ZVoxelSector * Sector)
           if (info & DRAWFACE_BEHIND)
           {
             glBegin(GL_POLYGON);
-              glTexCoord2f(0.0,0.0); glVertex3f(cubx, cuby, cubz + 256.0);
-              glTexCoord2f(1.0,0.0); glVertex3f(cubx + 256.0, cuby, cubz + 256.0);
-              glTexCoord2f(1.0,1.0); glVertex3f(cubx + 256.0, cuby +256.0, cubz + 256.0);
-              glTexCoord2f(0.0,1.0); glVertex3f(cubx , cuby +256.0, cubz + 256.0);
+              glTexCoord2f(0.0,0.0); glVertex3f(cubx, cuby, cubz + GlobalSettings.VoxelBlockSize);
+              glTexCoord2f(1.0,0.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby, cubz + GlobalSettings.VoxelBlockSize);
+              glTexCoord2f(1.0,1.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby +GlobalSettings.VoxelBlockSize, cubz + GlobalSettings.VoxelBlockSize);
+              glTexCoord2f(0.0,1.0); glVertex3f(cubx , cuby +GlobalSettings.VoxelBlockSize, cubz + GlobalSettings.VoxelBlockSize);
             glEnd();
           }
 
@@ -718,10 +734,10 @@ void ZRender_Basic::RenderSector2(ZVoxelSector * Sector)
           if (info & DRAWFACE_ABOVE)
           {
             glBegin(GL_POLYGON);
-              glTexCoord2f(0.0,0.0); glVertex3f(cubx , cuby  + 256.0, cubz);
-              glTexCoord2f(1.0,0.0); glVertex3f(cubx + 256.0, cuby  + 256.0, cubz);
-              glTexCoord2f(1.0,1.0); glVertex3f(cubx + 256.0, cuby  + 256.0, cubz +256.0);
-              glTexCoord2f(0.0,1.0); glVertex3f(cubx, cuby  + 256.0 ,cubz +256.0);
+              glTexCoord2f(0.0,0.0); glVertex3f(cubx , cuby  + GlobalSettings.VoxelBlockSize, cubz);
+              glTexCoord2f(1.0,0.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby  + GlobalSettings.VoxelBlockSize, cubz);
+              glTexCoord2f(1.0,1.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby  + GlobalSettings.VoxelBlockSize, cubz +GlobalSettings.VoxelBlockSize);
+              glTexCoord2f(0.0,1.0); glVertex3f(cubx, cuby  + GlobalSettings.VoxelBlockSize ,cubz +GlobalSettings.VoxelBlockSize);
             glEnd();
           }
 
@@ -730,9 +746,9 @@ void ZRender_Basic::RenderSector2(ZVoxelSector * Sector)
          {
            glBegin(GL_POLYGON);
              glTexCoord2f(0.0,0.0); glVertex3f(cubx, cuby, cubz);
-             glTexCoord2f(1.0,0.0); glVertex3f(cubx + 256.0, cuby, cubz);
-             glTexCoord2f(1.0,1.0); glVertex3f(cubx + 256.0, cuby, cubz +256.0);
-             glTexCoord2f(0.0,1.0); glVertex3f(cubx, cuby,cubz +256.0);
+             glTexCoord2f(1.0,0.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby, cubz);
+             glTexCoord2f(1.0,1.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby, cubz +GlobalSettings.VoxelBlockSize);
+             glTexCoord2f(0.0,1.0); glVertex3f(cubx, cuby,cubz +GlobalSettings.VoxelBlockSize);
            glEnd();
           }
         }
@@ -887,9 +903,9 @@ void ZRender_Basic::MakeSectorRenderingData(ZVoxelSector * Sector)
 
   if (Sector->Flag_Render_Dirty || 1 )
   {
-    Sector_Display_x = Sector->Pos_x * Sector->Size_x * 256;
-    Sector_Display_y = Sector->Pos_y * Sector->Size_y * 256;
-    Sector_Display_z = Sector->Pos_z * Sector->Size_z * 256;
+    Sector_Display_x = Sector->Pos_x * Sector->Size_x * GlobalSettings.VoxelBlockSize;
+    Sector_Display_y = Sector->Pos_y * Sector->Size_y * GlobalSettings.VoxelBlockSize;
+    Sector_Display_z = Sector->Pos_z * Sector->Size_z * GlobalSettings.VoxelBlockSize;
 
     Sector->Flag_Void_Regular = true;
     Sector->Flag_Void_Transparent = true;
@@ -929,20 +945,20 @@ void ZRender_Basic::MakeSectorRenderingData(ZVoxelSector * Sector)
               // glTexEnvf(0x8500 /* TEXTURE_FILTER_CONTROL_EXT */, 0x8501 /* TEXTURE_LOD_BIAS_EXT */,VoxelTypeManager->VoxelTable[cube]->TextureLodBias);
               if (cube != prevcube) glBindTexture(GL_TEXTURE_2D, VoxelTypeManager->VoxelTable[cube]->OpenGl_TextureRef);
               prevcube = cube;
-              cubx = (float)(x*256 + Sector_Display_x);
-              cuby = (float)(y*256 + Sector_Display_y);
-              cubz = (float)(z*256 + Sector_Display_z);
+              cubx = (float)(x*GlobalSettings.VoxelBlockSize + Sector_Display_x);
+              cuby = (float)(y*GlobalSettings.VoxelBlockSize + Sector_Display_y);
+              cubz = (float)(z*GlobalSettings.VoxelBlockSize + Sector_Display_z);
 
               if (VoxelTypeTable[cube]->DrawInfo & ZVOXEL_DRAWINFO_SPECIALRENDERING ) {VoxelTypeTable[cube]->SpecialRender(cubx,cuby,cubz); continue; }
 
               P0.x = cubx;           P0.y = cuby;          P0.z = cubz;
-              P1.x = cubx + 256.0f;  P1.y = cuby;          P1.z = cubz;
-              P2.x = cubx + 256.0f;  P2.y = cuby;          P2.z = cubz+256.0f;
-              P3.x = cubx;           P3.y = cuby;          P3.z = cubz+256.0f;
-              P4.x = cubx;           P4.y = cuby + 256.0f; P4.z = cubz;
-              P5.x = cubx + 256.0f;  P5.y = cuby + 256.0f; P5.z = cubz;
-              P6.x = cubx + 256.0f;  P6.y = cuby + 256.0f; P6.z = cubz + 256.0f;
-              P7.x = cubx;           P7.y = cuby + 256.0f; P7.z = cubz + 256.0f;
+              P1.x = cubx + GlobalSettings.VoxelBlockSize;  P1.y = cuby;          P1.z = cubz;
+              P2.x = cubx + GlobalSettings.VoxelBlockSize;  P2.y = cuby;          P2.z = cubz+GlobalSettings.VoxelBlockSize;
+              P3.x = cubx;           P3.y = cuby;          P3.z = cubz+GlobalSettings.VoxelBlockSize;
+              P4.x = cubx;           P4.y = cuby + GlobalSettings.VoxelBlockSize; P4.z = cubz;
+              P5.x = cubx + GlobalSettings.VoxelBlockSize;  P5.y = cuby + GlobalSettings.VoxelBlockSize; P5.z = cubz;
+              P6.x = cubx + GlobalSettings.VoxelBlockSize;  P6.y = cuby + GlobalSettings.VoxelBlockSize; P6.z = cubz + GlobalSettings.VoxelBlockSize;
+              P7.x = cubx;           P7.y = cuby + GlobalSettings.VoxelBlockSize; P7.z = cubz + GlobalSettings.VoxelBlockSize;
 
               //Left
               if (info & DRAWFACE_LEFT)
@@ -1119,9 +1135,9 @@ void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
 
   // Computing Sector Display coordinates;
 
-  Sector_Display_x = (Sector->Pos_x * Sector->Size_x) << 8;
-  Sector_Display_y = (Sector->Pos_y * Sector->Size_y) << 8;
-  Sector_Display_z = (Sector->Pos_z * Sector->Size_z) << 8;
+  Sector_Display_x = (Sector->Pos_x * Sector->Size_x) << GlobalSettings.VoxelBlockSizeBits;
+  Sector_Display_y = (Sector->Pos_y * Sector->Size_y) << GlobalSettings.VoxelBlockSizeBits;
+  Sector_Display_z = (Sector->Pos_z * Sector->Size_z) << GlobalSettings.VoxelBlockSizeBits;
 
   for (Pass=0; Pass<2; Pass++)
   {
@@ -1162,20 +1178,20 @@ void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
         // glTexEnvf(0x8500 /* TEXTURE_FILTER_CONTROL_EXT */, 0x8501 /* TEXTURE_LOD_BIAS_EXT */,VoxelTypeManager->VoxelTable[VoxelType]->TextureLodBias);
         if (VoxelType != prevVoxelType) glBindTexture(GL_TEXTURE_2D, VoxelTypeManager->VoxelTable[VoxelType]->OpenGl_TextureRef);
         prevVoxelType = VoxelType;
-        cubx = (float)(x*256 + Sector_Display_x);
-        cuby = (float)(y*256 + Sector_Display_y);
-        cubz = (float)(z*256 + Sector_Display_z);
+        cubx = (float)(x*GlobalSettings.VoxelBlockSize + Sector_Display_x);
+        cuby = (float)(y*GlobalSettings.VoxelBlockSize + Sector_Display_y);
+        cubz = (float)(z*GlobalSettings.VoxelBlockSize + Sector_Display_z);
 
         if (VoxelTypeTable[VoxelType]->DrawInfo & ZVOXEL_DRAWINFO_SPECIALRENDERING ) {VoxelTypeTable[VoxelType]->SpecialRender(cubx,cuby,cubz); continue; }
 
         P0.x = cubx;           P0.y = cuby;          P0.z = cubz;
-        P1.x = cubx + 256.0f;  P1.y = cuby;          P1.z = cubz;
-        P2.x = cubx + 256.0f;  P2.y = cuby;          P2.z = cubz+256.0f;
-        P3.x = cubx;           P3.y = cuby;          P3.z = cubz+256.0f;
-        P4.x = cubx;           P4.y = cuby + 256.0f; P4.z = cubz;
-        P5.x = cubx + 256.0f;  P5.y = cuby + 256.0f; P5.z = cubz;
-        P6.x = cubx + 256.0f;  P6.y = cuby + 256.0f; P6.z = cubz + 256.0f;
-        P7.x = cubx;           P7.y = cuby + 256.0f; P7.z = cubz + 256.0f;
+        P1.x = cubx + GlobalSettings.VoxelBlockSize;  P1.y = cuby;          P1.z = cubz;
+        P2.x = cubx + GlobalSettings.VoxelBlockSize;  P2.y = cuby;          P2.z = cubz+GlobalSettings.VoxelBlockSize;
+        P3.x = cubx;           P3.y = cuby;          P3.z = cubz+GlobalSettings.VoxelBlockSize;
+        P4.x = cubx;           P4.y = cuby + GlobalSettings.VoxelBlockSize; P4.z = cubz;
+        P5.x = cubx + GlobalSettings.VoxelBlockSize;  P5.y = cuby + GlobalSettings.VoxelBlockSize; P5.z = cubz;
+        P6.x = cubx + GlobalSettings.VoxelBlockSize;  P6.y = cuby + GlobalSettings.VoxelBlockSize; P6.z = cubz + GlobalSettings.VoxelBlockSize;
+        P7.x = cubx;           P7.y = cuby + GlobalSettings.VoxelBlockSize; P7.z = cubz + GlobalSettings.VoxelBlockSize;
 
         //Left
         if (info & DRAWFACE_LEFT)

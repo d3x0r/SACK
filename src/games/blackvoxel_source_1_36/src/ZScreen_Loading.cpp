@@ -28,7 +28,9 @@
 
 ULong ZScreen_Loading::ProcessScreen(ZGame * GameEnv)
 {
-  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); SDL_GL_SwapBuffers( );
+  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); 
+  SDL_GL_SwapWindow(GameEnv->screen);
+  //SDL_GL_SwapBuffers( );
   GameEnv->GuiManager.RemoveAllFrames();
 
   ZFrame_FontFrame Frame_Loading;
@@ -45,7 +47,8 @@ ULong ZScreen_Loading::ProcessScreen(ZGame * GameEnv)
     //TitleBackground.AddFrame(&Frame_PlayGame);
     GameEnv->GuiManager.AddFrame(&Frame_Loading);
   GameEnv->GuiManager.Render();
-  SDL_GL_SwapBuffers( );
+  //SDL_GL_SwapBuffers( );
+  SDL_GL_SwapWindow(GameEnv->screen);
   SDL_Delay(10);
   GameEnv->GuiManager.RemoveAllFrames();
 

@@ -204,17 +204,15 @@ class ZRender_Basic
 
     // void RenderSector2(ZVoxelSector * Sector);
 
-    inline bool Is_PointVisible(ZVector3d::ZTransformParam * TransformParam, ZVector3d * const Point)
+    inline bool Is_PointVisible(ZMatrix &TransformParam, ZVector3d * const Point)
     {
       ZVector3d Cv;
+	  ZVector3d Cv2 = *Point - TransformParam.origin();
       bool Visible;
-
-      Cv = *Point;
+	  TransformParam.ApplyInverseRotation( Cv, Cv2 );
 
       // Translation and Rotation
-
-
-      Cv.Transform(TransformParam);
+      //Cv.Transform(TransformParam);
 
       // Projection
 
@@ -224,7 +222,7 @@ class ZRender_Basic
       // Visibility test
 
       Visible = (
-                     (Cv.z > 0.0)
+                     (Cv.z < 0.0)
                   && (Cv.x < Frustum_CullingLimit && Cv.x >-Frustum_CullingLimit) // Number replaced by Frustum_CullingLimit was 50.0
                   && (Cv.y < Frustum_CullingLimit && Cv.y >-Frustum_CullingLimit) //
                 );

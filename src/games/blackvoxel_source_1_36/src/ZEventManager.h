@@ -53,6 +53,7 @@ class ZEventTable
 class ZEventConsumer : public ZObject
 {
   public:
+#undef KeyDown
     virtual Bool KeyDown( UShort KeySym )  = 0;
     virtual Bool KeyUp( UShort KeySym )    = 0;
     virtual Bool MouseMove ( Short Relative_x, Short Relative_y, UShort Absolute_x, UShort Absolute_y) = 0;

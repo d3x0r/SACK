@@ -40,7 +40,9 @@ ULong ZScreen_SlotSelection::ProcessScreen(ZGame * GameEnv)
 
       // Effacer l'écran
 
-      glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); SDL_GL_SwapBuffers( );
+      glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); 
+	  SDL_GL_SwapWindow(GameEnv->screen);
+	  //SDL_GL_SwapBuffers();
 
       // Régler la transparence
 
@@ -191,7 +193,8 @@ ULong ZScreen_SlotSelection::ProcessScreen(ZGame * GameEnv)
 
           // On montre à l'utilisateur ce qui a été rendu
 
-          SDL_GL_SwapBuffers();
+          //SDL_GL_SwapBuffers();
+		  SDL_GL_SwapWindow(GameEnv->screen);
 
           // On met le programme en pause pendant 10 millièmes de seconde
 

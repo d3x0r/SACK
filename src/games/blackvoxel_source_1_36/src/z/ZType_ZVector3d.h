@@ -73,6 +73,21 @@ class ZVector3d
     z = Vec3d.z;
   }
 
+  inline double Length( void )
+  {
+	  return sqrt( x*x + y*y + z*z );
+  }
+  inline void Normalize( void )
+  {
+	  double l = Length();
+	  if( l > 0 || l < 0 )
+	  {
+		  x = x/l;
+		  y = y/l;
+		  z = z/l;
+	  }
+  }
+
   inline ZVector3d operator + (const ZVector3d & Vec3d) const
   {
     ZVector3d Result;
@@ -311,6 +326,10 @@ class ZVector3d
     return(true);
   }
 
+  inline operator double* ()
+  {
+	  return &x;
+  }
 
   inline ZVector3d & Rotate( double yaw, double pitch, double roll)
   {
@@ -336,12 +355,16 @@ class ZVector3d
 
     return(*this);
   }
-
+  class ZMatrix;
   class ZTransformParam
   {
     public:
       double Sin_Yaw, Cos_Yaw, Sin_Pitch, Cos_Pitch, Sin_Roll, Cos_Roll;
       double Translate_x,Translate_y, Translate_z;
+	  inline void SetRotation( ZMatrix &m )
+	  {
+
+	  }
       inline void SetRotation(double Yaw, double Pitch, double Roll)
       {
         double radconv = 57.295779513;

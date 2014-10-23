@@ -145,8 +145,10 @@ void ZSound::mixaudio(void *unused, Uint8 *stream, int len)
 
     nSounds++;
   }
-
+  
   // if (nSounds) for (i=0;i<Buffer_Len/2;i++) ((Short *)stream) [i] = (Short)(SoundBuffer[i]/nSounds );
-  if (nSounds) for (i=0;i<Buffer_Len/2;i++) ((Short *)stream) [i] = (Short)(SoundBuffer[i] );
+  if (nSounds) for (i = 0; i < Buffer_Len / 2; i++) ((Short *)stream)[i] = (Short)(SoundBuffer[i]);
+  else
+	  memset(stream, 0, len);
 
 }

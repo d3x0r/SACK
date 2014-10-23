@@ -169,6 +169,7 @@ class ZStream_SpecialRamStream
     for (i=0;i<ZoneLen;i++) Buffer[Pointer++]= ((char*)Zone)[i];
   }
 
+#undef PutString
   inline void PutString(char const * String)
   {
     char c;

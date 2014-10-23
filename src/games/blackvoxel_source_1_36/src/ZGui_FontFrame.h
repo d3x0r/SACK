@@ -45,7 +45,11 @@ class ZFrame_FontFrame : public ZFrame
     ZTileStyle * TileStyle;
   public:
 
-    ZFrame_FontFrame()         {FrameType = MulticharConst('T','E','X','T');TileStyle = 0; TextToDisplay = (char *)""; }
+    ZFrame_FontFrame()         {
+			FrameType = MulticharConst('T','E','X','T');
+			TileStyle = 0; 
+			TextToDisplay = (char *)"";
+	}
     virtual void  SetDisplayText(char const * TextToDisplay)   { this->TextToDisplay = (char *)TextToDisplay; }
     virtual void  SetStyle      (ZTileStyle * TileStyle) { this->TileStyle = TileStyle;         }
     virtual void GetTextDisplaySize(ZVector2f * OutSize);
