@@ -51,9 +51,9 @@ class ZGame_Events : public ZEventConsumer
     {
       ULong i;
       Keyboard_Matrix = new UByte[1024];
-      Mouse_Matrix    = new bool[128];
+      Mouse_Matrix    = new bool[12]; 
       for (i=0;i<1024;i++) Keyboard_Matrix[i] = 0;
-      for (i=0;i<128;i++)  Mouse_Matrix[i] = false;
+      for (i=0;i<12;i++)  Mouse_Matrix[i] = false;
       EnableMouseEvents = true;
       EventManager = 0;
       GameEnv = 0;

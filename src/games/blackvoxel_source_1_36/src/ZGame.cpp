@@ -836,7 +836,9 @@ bool ZGame::Start_RendererSettings()
 {
   Basic_Renderer->SetRenderSectorRadius(Settings_Hardware->RenderingDistance_Horizontal,Settings_Hardware->RenderingDistance_Vertical);
   Basic_Renderer->SetWorld(World);
-  Basic_Renderer->SetCamera(&PhysicEngine->GetSelectedActor()->Camera);
+  Basic_Renderer->SetActor(PhysicEngine->GetSelectedActor());
+  //Basic_Renderer->SetCamera(&PhysicEngine->GetSelectedActor()->Camera);
+
   Basic_Renderer->SetPointedVoxel(&PhysicEngine->GetSelectedActor()->PointedVoxel);
   Basic_Renderer->SetViewportResolution(ScreenResolution);
   Basic_Renderer->SetPixelAspectRatio(Settings_Hardware->PixelAspectRatio);

@@ -78,6 +78,7 @@ class ZActor
     bool      Flag_ActivateAntiFall;
     bool      KeepControlOnJumping;
     bool      IsDead;
+	int       VoxelSelectDistance;
     bool      IsOnGround;
     Bool      TakesGravity;
     ULong     JumpDebounce;

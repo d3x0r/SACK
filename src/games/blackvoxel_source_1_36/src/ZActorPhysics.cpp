@@ -36,7 +36,7 @@ ZActor::ZActor()
 {
   ULong i;
   Next = Pred = 0;
-
+  VoxelSelectDistance = 6;
   Velocity.x = Velocity.y = Velocity.z = 0.0;
   Deplacement.x = Deplacement.y = Deplacement.z = 0.0;
   //Location.x = Location.y = Location.z = 0.0;

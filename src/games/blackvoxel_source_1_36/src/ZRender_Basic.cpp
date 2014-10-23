@@ -45,6 +45,12 @@ void ZRender_Basic::SetCamera( ZCamera * Camera )
   this->Camera = Camera;
 }
 
+void ZRender_Basic::SetActor( ZActor * Actor )
+{
+  this->Actor = Actor;
+  this->Camera = &Actor->Camera;
+}
+
 void ZRender_Basic::SetVoxelTypeManager( ZVoxelTypeManager * Manager )
 {
   VoxelTypeManager = Manager;
@@ -525,7 +531,7 @@ void ZRender_Basic::Render()
 	  else
 	  {
 		  ZVector3d a = Camera->orientation.origin() +
-			Camera->orientation.z_axis() * ( GlobalSettings.VoxelBlockSize * -6 );
+			  Camera->orientation.z_axis() * ( GlobalSettings.VoxelBlockSize * -(Actor->VoxelSelectDistance) );
 		  //In.MaxCubeIterations = 6;
 
 		  ZVoxelRef *v = World->GetVoxelRefPlayerCoord( a.x, a.y, a.z );
