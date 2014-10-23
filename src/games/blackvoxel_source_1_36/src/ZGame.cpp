@@ -202,7 +202,9 @@ bool ZGame::Init_GraphicMode(ZLog * InitLog)
   {
     if ( Settings_Hardware->Setting_FullScreen )
     {
+#ifdef SDL1
       Flags &= ~ SDL_FULLSCREEN;
+#endif
     }
     if (Settings_Hardware->Setting_Resolution_h == 0 && Settings_Hardware->Setting_Resolution_v == 0)
     {
