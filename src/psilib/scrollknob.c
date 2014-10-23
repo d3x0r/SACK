@@ -117,27 +117,31 @@ static int OnMouseCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc, S_32 x, S_
 		knob->flags.draw_update_arc = 0;
 		if( b & MK_LBUTTON )
 		{
-			int forward = arc - knob->last_arc;
-			int backward = knob->last_arc - arc;
-			if( forward < 0 )
-				forward += 12;
-			if( backward < 0 )
-				backward += 12;
-			if( forward < backward )
+			if( ( knob->delta_arc + arc ) != knob->last_arc )
 			{
-				if( knob->event_handler )
-               knob->event_handler( knob->psvEvent, forward );
-			}
-			else
-			{
-				if( knob->event_handler )
-               knob->event_handler( knob->psvEvent, -backward );
-			}
-			if( knob->last_arc != ( knob->delta_arc + arc ) % 12 )
-			{
-				knob->last_arc = ( knob->delta_arc + arc ) % 12;
-				// no motion, no reason to update
-				knob->flags.draw_update_arc = 1;
+				int forward = ( knob->delta_arc + arc ) - knob->last_arc;
+				int backward = knob->last_arc - ( knob->delta_arc + arc );
+				if( forward < 0 )
+					forward += 12;
+				if( backward < 0 )
+					backward += 12;
+				//lprintf( "arc : %d last:%d for: %d bak: %d", arc, knob->last_arc, forward, backward );
+				if( forward < backward )
+				{
+					if( knob->event_handler )
+						knob->event_handler( knob->psvEvent, forward );
+				}
+				else
+				{
+					if( knob->event_handler )
+						knob->event_handler( knob->psvEvent, -backward );
+				}
+				if( knob->last_arc != ( knob->delta_arc + arc ) % 12 )
+				{
+					knob->last_arc = ( knob->delta_arc + arc ) % 12;
+					// no motion, no reason to update
+					knob->flags.draw_update_arc = 1;
+				}
 			}
 		}
 		else
@@ -151,13 +155,13 @@ static int OnMouseCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc, S_32 x, S_
 		if( b & MK_LBUTTON )
 		{
 			knob->_b |= MK_LBUTTON;
-         knob->delta_arc = knob->last_arc - arc;
+			knob->delta_arc = knob->last_arc - arc;
 			knob->last_arc = ( knob->delta_arc + arc ) % 12;
 			knob->flags.draw_update_arc = 0;
 		}
 		else
 		{
-         // mouse was not down, entering control....
+			// mouse was not down, entering control....
 			knob->_first_arc = arc;
 			knob->flags.draw_update_arc = 0;
 		}

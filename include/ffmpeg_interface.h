@@ -85,6 +85,10 @@ FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI ffmpeg_PauseFile( struct ffmpeg
 // per-epic  (percent)
 FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI ffmpeg_SeekFile( struct ffmpeg_file *file, S_64 perepic );
 
+// adjust video offset... provides ability to adjust tracking externally.
+// frames is the number of frames to delay or retard the video stream.
+FFMPEG_INTERFACE_EXPORT void FFMPEG_INTERFACEAPI ffmpeg_AdjustVideo( struct ffmpeg_file *file, int frames );
+
 _FFMPEG_INTERFACE_NAMESPACE_END
 SACK_NAMESPACE_END
 #ifdef __cplusplus
