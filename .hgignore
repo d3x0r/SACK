@@ -25,6 +25,7 @@ static_release-.*$
 \.ipch$
 \.orig$
 \.rej$
+/.git/
 /.svn/
 [Ss]ql.[Cc]onfig$
 [Ss]ql.[Ll]og$
