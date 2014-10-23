@@ -151,6 +151,7 @@ typedef struct HVIDEO_tag
 	PKEYDEFINE KeyDefs;
 	CRITICALSECTION cs;
 	struct ImageFile_tag *pImage;
+	struct ImageFile_tag *pImageLayeredStretch;
 	TEXTCHAR *pTitle; // window title... need this if we draw manually anyhow
 	// this is the thread that created the hwndoutput (events get dispatched to this.)
 	PTHREAD pThreadWnd;

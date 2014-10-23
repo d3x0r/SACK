@@ -669,7 +669,7 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 								if( hVideo->flags.bFullScreen && !hVideo->flags.bNotFullScreen )
 								{
 
-                           _32 w;
+									_32 w;
 									_32 h;
 									S_32 x, y;
 									w =  hVideo->pImage->width * hVideo->full_screen.width / hVideo->pImage->width;
@@ -680,7 +680,7 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 										h =  hVideo->pImage->height * hVideo->full_screen.height / hVideo->pImage->height;
 									}
 									y = ( hVideo->full_screen.height - h ) / 2;
-                           x = ( hVideo->full_screen.width - w ) / 2;
+									x = ( hVideo->full_screen.width - w ) / 2;
 									StretchBlt ((HDC)hVideo->hDCOutput, x, y, w, h,//hVideo->full_screen.width, hVideo->full_screen.height,
 										(HDC)hVideo->hDCBitmap, 0, 0, hVideo->pImage->width, hVideo->pImage->height, SRCCOPY);
 								}
@@ -1028,10 +1028,18 @@ Image CreateImageDIB( _32 w, _32 h, Image original, HBITMAP *phBM, HDC *pHDC)
 BOOL CreateDrawingSurface (PVIDEO hVideo)
 {
 	HBITMAP hBmNew = NULL;
+	int resize_surface  = 0;
 	// can use handle from memory allocation level.....
 	if (!hVideo)			// wait......
 		return FALSE;
+	
 	if( !( hVideo->flags.bFullScreen && !hVideo->flags.bNotFullScreen ) || !hVideo->pImage )
+		resize_surface = 1;
+	if( hVideo->flags.bLayeredWindow && hVideo->flags.bFullScreen )
+	{
+		resize_surface = 1;
+	}
+	if( resize_surface )
 	{
 		BITMAPINFO bmInfo;
 		// the color array.
@@ -1081,9 +1089,18 @@ BOOL CreateDrawingSurface (PVIDEO hVideo)
 		}
 		//lprintf( "Remake Image to %p %dx%d", pBuffer, bmInfo.bmiHeader.biWidth,
 		//		  bmInfo.bmiHeader.biHeight );
-		hVideo->pImage =
-			RemakeImage( hVideo->pImage, pBuffer, bmInfo.bmiHeader.biWidth,
-							 bmInfo.bmiHeader.biHeight);
+		if( hVideo->flags.bLayeredWindow && hVideo->flags.bFullScreen )
+		{
+			if (!hVideo->pImageLayeredStretch) // first time ONLY...
+				hVideo->hDCBitmap = CreateCompatibleDC ((HDC)hVideo->hDCOutput);
+			hVideo->pImageLayeredStretch =
+				RemakeImage( hVideo->pImageLayeredStretch, pBuffer, bmInfo.bmiHeader.biWidth,
+								 bmInfo.bmiHeader.biHeight);
+		}
+		else
+			hVideo->pImage =
+				RemakeImage( hVideo->pImage, pBuffer, bmInfo.bmiHeader.biWidth,
+								 bmInfo.bmiHeader.biHeight);
 
 		if (!hVideo->hDCBitmap) // first time ONLY...
 			hVideo->hDCBitmap = CreateCompatibleDC ((HDC)hVideo->hDCOutput);
@@ -3773,7 +3790,9 @@ static void HandleMessage (MSG Msg)
 	else if( Msg.message == (WM_USER_SHOW_WINDOW ) )
 	{
 		PVIDEO hVideo = (PVIDEO)Msg.lParam;
+#ifdef LOG_SHOW_HIDE
 		lprintf( WIDE( "Handling SHOW_WINDOW message! %p" ), Msg.lParam );
+#endif
 		//ShowWindow( ((PVIDEO)Msg.lParam)->hWndOutput, SW_RESTORE );
 		//lprintf( WIDE( "Handling SHOW_WINDOW message! %p" ), Msg.lParam );
 		if( hVideo->flags.bTopmost )
@@ -3967,6 +3986,7 @@ static void VideoLoadOptions( void )
 #endif
 		l.flags.bLayeredWindowDefault = 0;
 	l.flags.bLogWrites = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Log Video Output" ), 0, TRUE );
+	l.flags.bLogDisplayEnumTest = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Log Display Enumeration" ), 0, TRUE );
 	l.flags.bUseLLKeyhook = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Use Low Level Keyhook" ), 0, TRUE );
 	DropOptionODBC( option );
 #else
@@ -4142,12 +4162,24 @@ void CPROC Vidlib_SetDisplayFullScreen( PRENDERER hVideo, int target_display )
 	{
 		if( !hVideo->flags.bFullScreen )
 		{
+
 			hVideo->flags.bFullScreen = TRUE;
 			hVideo->full_screen.target_display = target_display;
 			GetDisplaySizeEx( target_display, &hVideo->full_screen.x, &hVideo->full_screen.y
 					, &hVideo->full_screen.width, &hVideo->full_screen.height );
-			MoveSizeDisplay( hVideo, hVideo->full_screen.x, hVideo->full_screen.y
-					, hVideo->full_screen.width, hVideo->full_screen.height );
+			{
+				int w =  hVideo->pImage->width * hVideo->full_screen.width / hVideo->pImage->width;
+				int h =  hVideo->pImage->height * hVideo->full_screen.width / hVideo->pImage->width;
+				if( h > hVideo->full_screen.height )
+				{
+					w =  hVideo->pImage->width * hVideo->full_screen.height / hVideo->pImage->height;
+					h =  hVideo->pImage->height * hVideo->full_screen.height / hVideo->pImage->height;
+				}
+				MoveSizeDisplay( hVideo
+						, hVideo->full_screen.x + (( hVideo->full_screen.width - w ) / 2)
+						, hVideo->full_screen.y + (( hVideo->full_screen.height - h ) / 2)
+						, w, h );
+			}
 		}
 	}
 }
@@ -4191,8 +4223,19 @@ static int CPROC DefaultMouse( PRENDERER r, S_32 x, S_32 y, _32 b )
 							mouse_first_click_tick_changed = tick;
 							GetDisplaySizeEx( r->full_screen.target_display, &r->full_screen.x, &r->full_screen.y
 									, &r->full_screen.width, &r->full_screen.height );
-							MoveSizeDisplay( r, r->full_screen.x, r->full_screen.y
-									, r->full_screen.width, r->full_screen.height );
+							{
+								int w =  r->pImage->width * r->full_screen.width / r->pImage->width;
+								int h =  r->pImage->height * r->full_screen.width / r->pImage->width;
+								if( h > r->full_screen.height )
+								{
+									w =  r->pImage->width * r->full_screen.height / r->pImage->height;
+									h =  r->pImage->height * r->full_screen.height / r->pImage->height;
+								}
+								MoveSizeDisplay( r
+										, r->full_screen.x + (( r->full_screen.width - w ) / 2)
+										, r->full_screen.y + (( r->full_screen.height - h ) / 2)
+										, w, h );
+							}
 						}
 						//LeaveCriticalSec( &l.cs_update );
 						//AndroidANW_Redraw( (PRENDERER)r );
@@ -4800,7 +4843,13 @@ RENDER_PROC (void, UpdateDisplayEx) (PVIDEO hVideo DBG_PASS )
 	// copy hVideo->lpBuffer to hVideo->hDCOutput
 	if (hVideo && hVideo->hWndOutput && hVideo->hBm)
 	{
-		UpdateDisplayPortionEx (hVideo, 0, 0, 0, 0 DBG_RELAY);
+		if( hVideo->flags.bLayeredWindow && hVideo->flags.bFullScreen )
+		{
+			BlotScaledImage( hVideo->pImageLayeredStretch, hVideo->pImage, 0, 0 );
+			UpdateDisplayPortionEx (hVideo, 0, 0, hVideo->pImageLayeredStretch->width, hVideo->pImageLayeredStretch->height DBG_RELAY);
+		}
+		else
+			UpdateDisplayPortionEx (hVideo, 0, 0, 0, 0 DBG_RELAY);
 	}
 	return;
 }
@@ -5231,13 +5280,15 @@ RENDER_PROC (void, GetDisplaySizeEx) ( int nDisplay
 				{
 					if( EnumDisplaySettings( dev.DeviceName, ENUM_CURRENT_SETTINGS, &dm ) )
 					{
-						lprintf( WIDE( "display %s is at %d,%d %dx%d" ), dev.DeviceName, dm.dmPosition.x, dm.dmPosition.y, dm.dmPelsWidth, dm.dmPelsHeight );
+						if( l.flags.bLogDisplayEnumTest )
+							lprintf( WIDE( "display %s is at %d,%d %dx%d" ), dev.DeviceName, dm.dmPosition.x, dm.dmPosition.y, dm.dmPelsWidth, dm.dmPelsHeight );
 					}
 					//else
 					//	lprintf( WIDE( "Found display name, but enum current settings failed? %s %d" ), teststring, GetLastError() );
 					if( StrCaseCmp( teststring, dev.DeviceName ) == 0 )
 					{
-						lprintf( WIDE( "[%s] might be [%s]" ), teststring, dev.DeviceName );
+						if( l.flags.bLogDisplayEnumTest )
+							lprintf( WIDE( "[%s] might be [%s]" ), teststring, dev.DeviceName );
 						if( EnumDisplaySettings( dev.DeviceName, ENUM_CURRENT_SETTINGS, &dm ) )
 						{
 							if( x )

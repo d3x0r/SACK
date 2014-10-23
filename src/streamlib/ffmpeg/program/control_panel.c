@@ -15,11 +15,11 @@ struct media_control_panel
 
 	PSI_CONTROL panel;
 	PSI_CONTROL knob;
-   Image knob_image;
+	Image knob_image;
 	PSI_CONTROL stop_button;
 	PSI_CONTROL pause_button;
 	PSI_CONTROL seek_slider;
-   PSI_CONTROL progress;
+	PSI_CONTROL progress;
 
 };
 
@@ -36,6 +36,29 @@ static int OnCreateCommon( MyName )( PSI_CONTROL pc )
       AddLink( &l.controls, media );
 	}
    return 1;
+}
+
+static int OnDrawCommon( MyName )( PSI_CONTROL pc )
+{
+	ClearImageTo( GetControlSurface( pc ), BASE_COLOR_BLACK );
+	return 1;
+}
+
+static int OnMouseCommon( MyName )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b )
+{
+	static int _b;
+	static int _x, _y;
+	if( b && !_b )
+	{
+		_x = x;
+		_y = y;
+	}
+	if( b && _b )
+	{
+		MoveCommonRel( pc, x - _x, y - _y );
+	}
+	_b = b;
+	return 1;
 }
 
 void HideMediaPanel( struct my_button *media )

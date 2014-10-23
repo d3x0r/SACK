@@ -46,7 +46,10 @@ static int OnMouseCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc, S_32 x, S_
 	PScrollKnob knob = ControlData( PScrollKnob, pc );
 	int arc;
 	_32 w, h;
-	GetFrameSize( pc, &w, &h );
+	Image surface;
+	surface = GetControlSurface( pc );
+	w = surface->width;
+	h = surface->height;
 	x = x - (w/2);
 	y = y - (h/2);
 	// center deadzone
@@ -178,12 +181,19 @@ static int OnDrawCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc )
 			return 1;
 		}
 		ClearImageTo( surface, 0x1000001 );
-		rotate_scaled_sprite( surface
-								  , knob->knob_sprite
-								  , ( ( 0x100000000LL/12 ) * knob->last_arc ) - knob->zero_angle
-								  , knob->width_scale
-								  , knob->height_scale
-								  );
+		{
+			_32 image_width, image_height;
+			GetImageSize( knob->knob_image, &image_width, &image_height );
+			knob->width_scale = 0x10000 * surface->width / image_width;
+			knob->height_scale = 0x10000 * surface->height / image_height;
+			SetSpritePosition( knob->knob_sprite, surface->width  / 2, surface->height / 2 );
+			rotate_scaled_sprite( surface
+									  , knob->knob_sprite
+									  , ( ( 0x100000000LL/12 ) * knob->last_arc ) - knob->zero_angle
+									  , knob->width_scale
+									  , knob->height_scale
+									  );
+		}
 	}
 	return 1;
 }
