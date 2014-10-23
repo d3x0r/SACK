@@ -16,11 +16,35 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+/*******************************************************************************
+*                                                                              *
+*                         GNU GPL V3 Free Software                             *
+*                                                                              *
+*  (C) 1997-2011 Laurent Thiebaut & Olivia Merle                               *
+*                                                                              *
+*  This file is part of EXecutePage.                                           *
+*                                                                              *
+*  EXecutePage is free software: you can redistribute it and/or modify         *
+*  it under the terms of the GNU General Public License as published by        *
+*  the Free Software Foundation, either version 3 of the License, or           *
+*  (at your option) any later version.                                         *
+*                                                                              *
+*  NodeKiller is distributed in the hope that it will be useful,               *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of              *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the               *
+*  GNU General Public License for more details.                                *
+*                                                                              *
+*  You should have received a copy of the GNU General Public License           *
+*  along with EXecutePage.  If not, see <http://www.gnu.org/licenses/>.        *
+*                                                                              *
+*******************************************************************************/
 
 #ifndef Z_ZTYPES_H
 #define Z_ZTYPES_H
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 //#ifndef Z_ZTYPES_H
 //#  include "ZTypes.h"
 //#endif
@@ -62,6 +86,7 @@
   class ZVector3L;
 
   typedef struct { double x,y,z,w; } ZVector4d;
+  static const ZVector4d zvec_zero;
   typedef struct { double x,y; } ZVector2d;
   typedef struct { float  x,y,z; } ZVector3f;
   typedef struct { float  x,y; }   ZVector2f;
@@ -73,13 +98,19 @@
   typedef struct { double Start, End; } ZRect1d;
   typedef struct { ZVector2d Start, End; } ZLineCoords;
 
-#define MANUAL_BREAKPOINT  asm volatile ("int3;")
+#ifdef _WIN32
+#define MANUAL_BREAKPOINT  DebugBreak()
+#else
+#defie MANUAL_BREAKPOINT  asm volatile ("int3;")
+#endif
   // User defined complex class types.
 
 #ifndef Z_ZTYPE_ZVECTOR3D_H
 #  include "ZType_ZVector3d.h"
 #endif
 
+#include "ZType_ZMatrix.h" 
+//#include "ZType_ZQuaternion.h" 
 #ifndef Z_ZTYPE_ZPOLAR3D_H
 #  include "ZType_ZPolar3d.h"
 #endif
@@ -87,7 +118,6 @@
 #ifndef Z_TYPE_ZVECTOR3L_H
 #  include "ZType_ZVector3L.h"
 #endif
-
   // User defined class cross functions and aftermath code needed to be declared after main classes.
 
 #ifndef Z_ZTYPE_ZVECTOR3D_CROSSFUNC_H

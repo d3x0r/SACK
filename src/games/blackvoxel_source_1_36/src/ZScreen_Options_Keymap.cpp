@@ -56,7 +56,7 @@ ULong ZScreen_Options_Keymap::ProcessScreen(ZGame * GameEnv)
     Pos.y += Size.y + GameEnv->ScreenResolution.y * 0.10f;
     Pos.y += 32.0f + 16.0f;
 
-  ULong NumLines = 8;
+  const ULong NumLines = 8;
   ZFrame_KeyChooser KeyChooser[NumLines];
   ZFrame_FontFrame  KeyTitle[NumLines];
   ZVector2f         Position[NumLines];
@@ -124,8 +124,9 @@ ULong ZScreen_Options_Keymap::ProcessScreen(ZGame * GameEnv)
       if (Frame_Save.Is_MouseClick()) { Loop = false; }
 
       GameEnv->GuiManager.Render();
-      SDL_GL_SwapBuffers( );
-      SDL_Delay(10);
+      //SDL_GL_SwapBuffers( );
+	  SDL_GL_SwapWindow(GameEnv->screen);
+	  SDL_Delay(10);
 
     }
     GameEnv->GuiManager.RemoveAllFrames();

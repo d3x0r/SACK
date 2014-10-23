@@ -65,11 +65,11 @@ class ZActor
     ZActor * Next;
     ZActor * Pred;
     ZActorPhysicEngine * PhysicsEngine;
-    ZVector3d Location;        // The player position.
+    //ZVector3d Location;        // The player position.
     ZVector3d Location_Old;    // The old player position.
     ZVector3d Velocity;        // Player velocity
     ZVector3d Deplacement;     // Deplacement is legs movement speed.
-    ZPolar3d  ViewDirection;   // Player viewing and displacement Direction.
+    ZMatrix   ViewDirection;   // Player viewing and displacement Direction.
     ZVector3d EyesPosition;    // Player Eyes relative to the foot center.
     double    DammageThreshold;
     double    LifePoints;
@@ -104,7 +104,7 @@ class ZActor
     virtual void Init(bool Death=false) {}
     virtual void TakeDammage(double Dammage);
     virtual void SetPosition( ZVector3d &NewLocation );
-    virtual void GetPosition( ZVector3L &BlocLocation ) {BlocLocation.x = ((Long)Location.x) >> 8; BlocLocation.y = ((Long)Location.y) >> 8; BlocLocation.z = ((Long)Location.z) >> 8; }
+	virtual void GetPosition( ZVector3L &BlocLocation ) {BlocLocation.x = ((Long)ViewDirection.x()) >> 8; BlocLocation.y = ((Long)ViewDirection.y()) >> 8; BlocLocation.z = ((Long)ViewDirection.z()) >> 8; }
     virtual void Action_SetActorMode(ULong ActorMode) {};
     virtual void SetGameEnv(ZGame * GameEnv) { this->GameEnv = GameEnv; }
     virtual bool Save( ZStream_SpecialRamStream * OutStream ) {return(true);}

@@ -143,7 +143,7 @@ ULong ZScreen_Options_Sound::ProcessScreen(ZGame * GameEnv)
       if (Frame_Save.Is_MouseClick()) { Loop = false; }
 
       GameEnv->GuiManager.Render();
-      SDL_GL_SwapBuffers( );
+      SDL_GL_SwapWindow( GameEnv->screen );
       SDL_Delay(10);
 
     }

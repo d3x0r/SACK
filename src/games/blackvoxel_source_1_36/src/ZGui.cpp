@@ -27,7 +27,7 @@
 #include <GL/glew.h>
 #include <math.h>
 #include <stdio.h>
-#include "SDL/SDL.h"
+#include "SDL2/SDL.h"
 
 ZGraphicUserManager::ZGraphicUserManager()
 {

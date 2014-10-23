@@ -24,7 +24,7 @@
  */
 
 #include "ZVoxelProcessor.h"
-#include "SDL/SDL.h"
+#include "SDL2/SDL.h"
 
 #ifndef Z_ZGAME_H
 #  include "ZGame.h"

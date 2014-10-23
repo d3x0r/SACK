@@ -1285,8 +1285,8 @@ void ZVoxelSector::Draw_safe_VoxelLine2( ZRect3L_2 * LineCoords, ZRect1d * Thick
   Dy = LineCoords->ey - LineCoords->sy;
   Dz = LineCoords->ez - LineCoords->sz;
 
-  TempMax = (fabs(Dx) > fabs(Dy)) ? fabs(Dx) : fabs(Dy);
-  NumSteps = (TempMax > fabs(Dz)) ? TempMax : fabs(Dz);
+  TempMax = (fabs((double)Dx) > fabs((double)Dy)) ? fabs((double)Dx) : fabs((double)Dy);
+  NumSteps = (TempMax > fabs((double)Dz)) ? TempMax : fabs((double)Dz);
   if (NumSteps<=0) Draw_safe_SetVoxel(LineCoords->sx, LineCoords->sy, LineCoords->sz, VoxelType);
 
   x = LineCoords->sx; y = LineCoords->sy; z = LineCoords->sz; Thick = Thickness->Start;
@@ -1336,8 +1336,8 @@ void ZVoxelSector::Draw_safe_VoxelLine( ZRect3L * LineCoords, ZRect1d * Thicknes
   Dy = LineCoords->End.y - LineCoords->Start.y;
   Dz = LineCoords->End.z - LineCoords->Start.z;
 
-  TempMax = (fabs(Dx) > fabs(Dy)) ? fabs(Dx) : fabs(Dy);
-  NumSteps = (TempMax > fabs(Dz)) ? TempMax : fabs(Dz);
+  TempMax = (fabs((double)Dx) > fabs((double)Dy)) ? fabs((double)Dx) : fabs((double)Dy);
+  NumSteps = (TempMax > fabs((double)Dz)) ? TempMax : fabs((double)Dz);
   if (NumSteps<=0) Draw_safe_SetVoxel(LineCoords->Start.x, LineCoords->Start.y, LineCoords->Start.z, VoxelType);
 
   x = LineCoords->Start.x; y = LineCoords->Start.y; z = LineCoords->Start.z; Thick = Thickness->Start;
@@ -1369,8 +1369,8 @@ void ZVoxelSector::Draw_safe_VoxelLine_TickCtl( ZRect3L * LineCoords, double * T
   Dy = LineCoords->End.y - LineCoords->Start.y;
   Dz = LineCoords->End.z - LineCoords->Start.z;
 
-  TempMax = (fabs(Dx) > fabs(Dy)) ? fabs(Dx) : fabs(Dy);
-  NumSteps = (TempMax > fabs(Dz)) ? TempMax : fabs(Dz);
+  TempMax = (fabs((double)Dx) > fabs((double)Dy)) ? fabs((double)Dx) : fabs((double)Dy);
+  NumSteps = (TempMax > fabs((double)Dz)) ? TempMax : fabs((double)Dz);
   if (NumSteps<=0) Draw_safe_SetVoxel(LineCoords->Start.x, LineCoords->Start.y, LineCoords->Start.z, VoxelType);
 
   x = LineCoords->Start.x; y = LineCoords->Start.y; z = LineCoords->Start.z;

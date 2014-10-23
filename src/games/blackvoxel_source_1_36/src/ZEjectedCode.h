@@ -237,9 +237,9 @@ void KeyHandler (ZGame & GameEnv)
   if ( Keyboard_Matrix[SDLK_F8])
   {
     ELong lx,ly,lz;
-    lx = (floor(Actor->Location.x / 256.0 / 16.0));
-    ly = (floor(Actor->Location.y / 256.0 / 16.0));
-    lz = (floor(Actor->Location.z / 256.0 / 16.0));
+    lx = (floor(Actor->Location.x / GlobalSettings.VoxelBlockSize / 16.0));
+    ly = (floor(Actor->Location.y / GlobalSettings.VoxelBlockSize / 16.0));
+    lz = (floor(Actor->Location.z / GlobalSettings.VoxelBlockSize / 16.0));
     Long f_x,f_y,f_z;
 
     f_x = lx ;
@@ -248,7 +248,7 @@ void KeyHandler (ZGame & GameEnv)
 
 //      World.FindSector( f_x,f_y,f_z )->DebugOutFCInfo("outfc.txt");
 //      World.FindSector( f_x,f_y,f_z )->DebugOut("out.txt");
-    printf("Sector : %ld %ld %ld : %lf,%lf,%lf\n",f_x,f_y,f_z, floor(Actor->Location.x / 256.0), floor(Actor->Location.y / 256.0), floor(Actor->Location.z / 256.0));
+    printf("Sector : %ld %ld %ld : %lf,%lf,%lf\n",f_x,f_y,f_z, floor(Actor->Location.x / GlobalSettings.VoxelBlockSize), floor(Actor->Location.y / GlobalSettings.VoxelBlockSize), floor(Actor->Location.z / GlobalSettings.VoxelBlockSize));
 
     Keyboard_Matrix[SDLK_F8] = 0;
   }
@@ -258,9 +258,9 @@ void KeyHandler (ZGame & GameEnv)
   if ( Keyboard_Matrix[SDLK_F7])
   {
     ELong lx,ly,lz;
-    lx = (floor(Actor->Location.x / 256.0 / 16.0));
-    ly = (floor(Actor->Location.y / 256.0 / 16.0));
-    lz = (floor(Actor->Location.z / 256.0 / 16.0));
+    lx = (floor(Actor->Location.x / GlobalSettings.VoxelBlockSize / 16.0));
+    ly = (floor(Actor->Location.y / GlobalSettings.VoxelBlockSize / 16.0));
+    lz = (floor(Actor->Location.z / GlobalSettings.VoxelBlockSize / 16.0));
     Long f_x,f_y,f_z;
 
     f_x = lx ;

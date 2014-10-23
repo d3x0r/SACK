@@ -23,11 +23,17 @@
  *      Author: laurent
  */
 
+#define INCLUDED_SOCKET_LIBRARY
+#define LOGGING_MACROS_DEFINED
+#include <stdhdrs.h>
+#define DEFINE_DEFAULT_RENDER_INTERFACE
+#include <render.h>
+
 #include "ZGame.h"
 #include <GL/glew.h>
 #include <math.h>
 #include <stdio.h>
-#include "SDL/SDL.h"
+#include <SDL2/SDL.h>
 #include <GL/glew.h>
 #include "ZRender_Basic.h"
 
@@ -133,20 +139,24 @@ bool ZGame::Init_GraphicMode(ZLog * InitLog)
   SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 
   // Getting system info
-
+#if SDL1
   const SDL_VideoInfo* info = NULL;
   info = SDL_GetVideoInfo( );
   DesktopResolution.x = info->current_w;
   DesktopResolution.y = info->current_h;
+#else
+  DesktopResolution.x = 1024;
+  DesktopResolution.y = 768;
+#endif
 
-  LogMsg << "Info : SDL Infos [current_w:"<<info->current_w<<"][current_h:"<<info->current_h<<"][BitsPerPixel:"<<info->vfmt->BitsPerPixel<<"]";
+  //LogMsg << "Info : SDL Infos [current_w:"<<info->current_w<<"][current_h:"<<info->current_h<<"][BitsPerPixel:"<<info->vfmt->BitsPerPixel<<"]";
   InitLog->Log(3, ZLog::IMINFO, LogMsg);
 
   // Flags like Fullscreen attributes
 
-  Uint32 Flags = SDL_OPENGL;
-  if (Settings_Hardware->Setting_FullScreen) Flags |= SDL_FULLSCREEN;
-  // else                                    Flags |= SDL_RESIZABLE;
+  //Uint32 Flags = SDL_OPENGL;
+  //if (Settings_Hardware->Setting_FullScreen) Flags |= SDL_FULLSCREEN;
+  //// else                                    Flags |= SDL_RESIZABLE;
 
   // §§§ Todo : Write better code.
   // Windows High DPI Quick Workaround in automatic mode.
@@ -155,6 +165,12 @@ bool ZGame::Init_GraphicMode(ZLog * InitLog)
   // Doing a better work will need some interface rework and experimentations with high DPI screens we don't have at this time.
   // Note we use a bad way for detection as compiling also lacking windows 8 headers at this time.
 
+  {
+	  _32 w, h;
+	  GetDisplaySize(&w, &h);
+	  DesktopResolution.x = w;
+	  DesktopResolution.y = h;
+  }
 #ifdef ZENV_OS_WINDOWS
   if ( (DesktopResolution.x >= 2560 && DesktopResolution.y >= 1600) &&
        (Settings_Hardware->Setting_Resolution_h == 0 && Settings_Hardware->Setting_Resolution_v == 0))
@@ -164,42 +180,27 @@ bool ZGame::Init_GraphicMode(ZLog * InitLog)
     DesktopResolution.y >>= 1;
 
     // Force windowed mode because full screen is broken with windows GUI scalling.
-    Flags &= ~ SDL_FULLSCREEN;
+    //Flags &= ~ SDL_FULLSCREEN;
   }
 #endif
 
   // Compute Hardware Resolution
 
-  if (Settings_Hardware->Setting_Resolution_h == 0 && Settings_Hardware->Setting_Resolution_v == 0)
-  {
-    HardwareResolution.x = DesktopResolution.x;
-    HardwareResolution.y = DesktopResolution.y;
-  }
-  else
-  {
-    HardwareResolution.x = Settings_Hardware->Setting_Resolution_h;
-    HardwareResolution.y = Settings_Hardware->Setting_Resolution_v;
-  }
+  if (Settings_Hardware->Setting_Resolution_h == 0 && Settings_Hardware->Setting_Resolution_v == 0) { HardwareResolution.x = DesktopResolution.x;  HardwareResolution.y = DesktopResolution.y; }
+  else                                                                                              { HardwareResolution.x = Settings_Hardware->Setting_Resolution_h; HardwareResolution.y = Settings_Hardware->Setting_Resolution_v; }
 
-  // Fix problem with vertical resolution mode
-
-  if (DesktopResolution.x < DesktopResolution.y)
-  {
-    if ( Settings_Hardware->Setting_FullScreen )
-    {
-      Flags &= ~ SDL_FULLSCREEN;
-    }
-    if (Settings_Hardware->Setting_Resolution_h == 0 && Settings_Hardware->Setting_Resolution_v == 0)
-    {
-      HardwareResolution.x = DesktopResolution.x;
-      HardwareResolution.y = (Long)(((double)DesktopResolution.x) / 1.77);
-    }
-  }
 
   // Starting video mode
 
+#ifdef SDL1
   SDL_WM_SetCaption("BlackVoxel", NULL);
-  screen = SDL_SetVideoMode(HardwareResolution.x, HardwareResolution.y, 32, Flags ); if ( screen == NULL ) { ZString ErrorMsg; ErrorMsg << "*** ERROR : SDL library : Unable to init display mode [" << SDL_GetError() << "]"; InitLog->Log(4, ZLog::FAIL, ErrorMsg); return(false); }
+  screen = SDL_SetVideoMode(HardwareResolution.x, HardwareResolution.y, 32, Flags); if (screen == NULL) { ZString ErrorMsg; ErrorMsg << "*** ERROR : SDL library : Unable to init display mode [" << SDL_GetError() << "]"; InitLog->Log(4, ZLog::FAIL, ErrorMsg); return(false); }
+#else
+  screen = SDL_CreateWindow("BlackVoxel", 0, 0, HardwareResolution.x, HardwareResolution.y, SDL_WINDOW_OPENGL);
+  {
+	  SDL_GLContext context = SDL_GL_CreateContext(screen);
+  }
+#endif
 
   // Setting OpenGl ViewPort
 
@@ -678,22 +679,17 @@ bool ZGame::Start_PhysicEngine()
   return(true);
 }
 
-bool ZGame::End_PhysicEngine()
+void ZGame::SaveWorld(  )
 {
   ZStream_SpecialRamStream Stream;
   ZStream_File FileStream;
-  ZString FileName, UNum;
-
-  // Save Physic engine actors
-
+  ZString FileName;
   if (COMPILEOPTION_USEHOMEDIRSTORAGE)
   {
     FileName = ZStream_File::Get_Directory_UserData();
     FileName.AddToPath(COMPILEOPTION_SAVEFOLDERNAME);
   }
-  UNum = UniverseNum;
-#if COMPILEOPTION_ALLOWSAVEPLAYERSTATE == 1
-  FileName.AddToPath("Universes").AddToPath(UNum).AddToPath("PlayerInfo.dat");
+  FileName.AddToPath("Universes").AddToPath((ZString)UniverseNum).AddToPath("PlayerInfo.dat");
   FileStream.SetFileName(FileName.String);
   if (FileStream.OpenWrite())
   {
@@ -704,13 +700,44 @@ bool ZGame::End_PhysicEngine()
     Stream.Close();
     FileStream.Close();
   }
-#endif
+
+  {
+    ZVoxelSector * Sector, * NewSector;
+
+	Sector = World->SectorList;
+
+	  while (Sector)
+	  {
+		NewSector = Sector->GlobalList_Next;
+		if (COMPILEOPTION_ALLOWSAVE)
+		{
+	#if COMPILEOPTION_SAVEONLYMODIFIED==1
+		  if (Sector->IsMustBeSaved())
+	#endif
+		  {
+			Sector->Save(UniverseNum);
+		  }
+		}
+		Sector = NewSector;
+	  }
+  }
 /*
   // Inventory Saving
   char Buffer[1024];
   sprintf(Buffer, "%s/%ld/PlayerInfo.dat", UniverseNum);
   PhysicEngine->GetSelectedActor()->Inventory->Save(Buffer);
 */
+
+}
+
+bool ZGame::End_PhysicEngine()
+{
+
+  // Save Physic engine actors
+
+#if COMPILEOPTION_ALLOWSAVEPLAYERSTATE == 1
+  //SaveWorld( );
+#endif
 
 
   if (PhysicEngine) delete PhysicEngine;

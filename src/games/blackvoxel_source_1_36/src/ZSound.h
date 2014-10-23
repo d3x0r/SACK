@@ -29,6 +29,9 @@
 // #ifndef Z_ZSOUND_H
 // #  include "ZSound.h"
 // #endif
+#define INCLUDED_SOCKET_LIBRARY
+#define LOGGING_MACROS_DEFINED
+#include <stdhdrs.h>
 
 #ifndef Z_ZTYPES_H
 #  include "z/ZTypes.h"
@@ -39,7 +42,7 @@
 #endif
 
 #ifndef _SDL_audio_h
-#  include <SDL/SDL_audio.h>
+#  include <SDL2/SDL_audio.h>
 #endif
 
 #ifndef A_COMPILESETTINGS_H
@@ -84,7 +87,6 @@ class ZSound
       double FrequencyVar;
       double DPos;
     };
-
     static Sound * PlayingSoundList;
 
     bool SoundActivated;

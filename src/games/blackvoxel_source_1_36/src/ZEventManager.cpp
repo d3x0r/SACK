@@ -25,7 +25,7 @@
 
 
 #  include "ZEventManager.h"
-#include "SDL/SDL.h"
+#include <SDL2/SDL.h>
 
 bool ZEventManager::ProcessEvents()
 {
@@ -36,24 +36,25 @@ bool ZEventManager::ProcessEvents()
   {
     switch( event.type )
     {
-      case SDL_KEYDOWN: Keyboard_Matrix[event.key.keysym.sym] = 1;
+//		case SDL_MOUSE
+      case SDL_KEYDOWN: Keyboard_Matrix[event.key.keysym.sym & 0xFF] = 1;
                         if ((Item = ConsumerList.GetFirst()))
                           do
                           {
-                            ((ZEventConsumer *)Item->Object)->KeyDown( event.key.keysym.sym);
+							((ZEventConsumer *)Item->Object)->KeyDown(event.key.keysym.sym & 0xFF);
                           } while((Item = ConsumerList.GetNext(Item)));
                         break;
 
-      case SDL_KEYUP:   Keyboard_Matrix[event.key.keysym.sym] = 0;
+	  case SDL_KEYUP:   Keyboard_Matrix[event.key.keysym.sym & 0xFF] = 0;
                         if ((Item = ConsumerList.GetFirst()))
                           do
                           {
-                            ((ZEventConsumer *)Item->Object)->KeyUp( event.key.keysym.sym);
+							((ZEventConsumer *)Item->Object)->KeyUp(event.key.keysym.sym & 0xFF);
                           } while((Item = ConsumerList.GetNext(Item)));
                         break;
 
                              break;
-      case SDL_MOUSEMOTION: MouseX = event.motion.x; MouseY = event.motion.y;
+	  case SDL_MOUSEMOTION: MouseX = event.motion.x; MouseY = event.motion.y;
                             if ((Item = ConsumerList.GetFirst()))
                             do
                             {

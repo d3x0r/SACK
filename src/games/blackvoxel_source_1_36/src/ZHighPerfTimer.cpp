@@ -24,7 +24,9 @@
  */
 
 #include "ZHighPerfTimer.h"
+#ifndef _WIN32
 #include <sys/time.h>
+#endif
 
 #ifndef A_COMPILESETTINGS_H
 #  include "ACompileSettings.h"

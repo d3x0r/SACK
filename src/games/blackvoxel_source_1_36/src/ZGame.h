@@ -35,8 +35,25 @@
 #endif
 
 #ifndef _SDL_H
-#  include "SDL/SDL.h"
+#  include <SDL2/SDL.h>
 #endif
+
+#define SDL_WM_GrabInput SDL_SetRelativeMouseMode
+#define SDL_GRAB_ON SDL_TRUE
+#define SDL_GRAB_OFF SDL_FALSE
+#define SDL_WarpMouse SDL_WarpMouseGlobal
+#define SDLK_KP0 SDLK_KP_0
+#define SDLK_KP1 SDLK_KP_1
+#define SDLK_KP2 SDLK_KP_2
+#define SDLK_KP3 SDLK_KP_3
+#define SDLK_KP4 SDLK_KP_4
+#define SDLK_KP5 SDLK_KP_5
+#define SDLK_KP6 SDLK_KP_6
+#define SDLK_KP7 SDLK_KP_7
+#define SDLK_KP8 SDLK_KP_8
+#define SDLK_KP9 SDLK_KP_9
+#define SDL_GL_SwapBuffers()             SDL_GL_SwapWindow( GameEnv->screen )
+
 
 #ifndef Z_ZVOXELTYPE_H
 #  include "ZVoxelType.h"
@@ -272,7 +289,7 @@ class ZGame
   ZRender_Basic        * Basic_Renderer;
   ZSound               * Sound;
 
-
+  int   VoxelBlockSize;
   // Jeu proprement dit
 
   ZGame_Events         * Game_Events;
@@ -323,7 +340,11 @@ class ZGame
 
   // Screen Informations
 
+#ifdef SDL1
   SDL_Surface * screen;
+#else
+  SDL_Window * screen;
+#endif
   ZVector2L ScreenResolution;   // Taille réelle de la zone d'affichage.
   ZVector2L HardwareResolution; // Resolution qui est demandée à SDL.
   ZVector2L DesktopResolution;  // Résolution du bureau.
@@ -389,6 +410,8 @@ class ZGame
   bool End_Game_Events();
   bool End_World();
   bool End_PhysicEngine();
+  void SaveWorld();
+
   bool End_SectorLoader();
   bool End_VoxelProcessor();
   bool End_RendererSettings();
@@ -524,11 +547,9 @@ class ZGame
     World->GetVoxelLocation( &Loc, Vx.x, Vx.y, Vx.z-5 );
     Loc.Sector->Flag_HighPriorityRefresh = true;
 */
-    Location = &PhysicEngine->GetSelectedActor()->Location;
-
-    NewLocation = *Location;
+	PhysicEngine->GetSelectedActor()->ViewDirection.get_origin( NewLocation );
     NewLocation.z -= 256.0;
-    PhysicEngine->GetSelectedActor()->SetPosition(NewLocation);
+	PhysicEngine->GetSelectedActor()->ViewDirection.translate(NewLocation);
   }
 
 

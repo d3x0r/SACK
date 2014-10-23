@@ -22,8 +22,9 @@
  *  Created on: 21 juin 2011
  *      Author: laurent
  */
-
+#ifdef ZENV_OS_LINUX
 #include <dirent.h>
+#endif
 #include <stdio.h>
 #include "ZWorldConvert.h"
 #include "z/ZString.h"

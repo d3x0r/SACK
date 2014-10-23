@@ -76,7 +76,7 @@
 #endif
 
 #ifndef _SDL_thread_h
-#  include "SDL/SDL_thread.h"
+#  include "SDL2/SDL_thread.h"
 #endif
 
 #ifndef Z_ZWORLDGENESIS_H

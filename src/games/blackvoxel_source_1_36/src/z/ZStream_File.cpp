@@ -26,7 +26,9 @@
 #include "ZStream_File.h"
 #include <stdio.h>
 #include <string.h>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 #ifdef ZENV_OS_LINUX
 #  include "stdlib.h"

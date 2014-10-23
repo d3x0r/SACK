@@ -21,9 +21,9 @@
     #include <time.h>
     #include <GL/glew.h>
 // #include <GL/gl.h>
-    #include <GL/glext.h>
+   // #include <GL/glext.h>
    // #include <GL/glut.h>
-    #include "SDL/SDL.h"
+    #include <SDL2/SDL.h>
     #include "z/ZTypes.h"
     #include "bmploader.h"
 
@@ -148,10 +148,6 @@
 #  include "ZOs_Specific_Various.h"
 #endif
 
-#ifndef Z_ZTEST_PARTS_H
-#  include "Z0Test_Parts.h"
-#endif
-
 
 ZGame * Ge;
 double FrameTime;
@@ -159,8 +155,8 @@ double FrameTime;
 
 
 
-
-int main(int argc, char *argv[])
+SaneWinMain( argc, argv )
+//int main(int argc, char *argv[])
 {
   ULong Result;
   bool StartGame;
@@ -174,13 +170,6 @@ int main(int argc, char *argv[])
   // Start
 
     printf ("Starting BlackVoxel...\n");
-
-  // Test Code
-
-  #if DEVELOPPEMENT_ON == 1
-    //ZTest_Parts TestParts;
-    //if (!TestParts.RunTestCode()) exit(0);
-  #endif
 
   // Game main object
 
@@ -207,7 +196,7 @@ int main(int argc, char *argv[])
 
       // ***************************************** Main Title Screen ****************************************************
 
-      SDL_ShowCursor(SDL_ENABLE);
+      //SDL_ShowCursor(SDL_ENABLE);
       SDL_WM_GrabInput(SDL_GRAB_OFF);
 
       ZScreen_Main Screen_Main;
@@ -281,7 +270,7 @@ int main(int argc, char *argv[])
           if (!COMPILEOPTION_NOMOUSECAPTURE)
           {
             SDL_ShowCursor(SDL_DISABLE);
-            SDL_WM_GrabInput(SDL_GRAB_ON);
+			SDL_WM_GrabInput(SDL_GRAB_ON);
           }
 
           // Pre-Gameloop Initialisations.
@@ -322,7 +311,7 @@ int main(int argc, char *argv[])
 
             ZActor * Actor;
             Actor = GameEnv.PhysicEngine->GetSelectedActor();
-            GameEnv.VoxelProcessor->SetPlayerPosition(Actor->Location.x,Actor->Location.y,Actor->Location.z);
+            GameEnv.VoxelProcessor->SetPlayerPosition(Actor->ViewDirection.x(),Actor->ViewDirection.y(),Actor->ViewDirection.z());
 
             // Sector Ejection processing.
 
@@ -343,7 +332,7 @@ int main(int argc, char *argv[])
 
             // Swapping OpenGL Surfaces.
 
-            SDL_GL_SwapBuffers( );
+            SDL_GL_SwapWindow( GameEnv.screen );
 
             // Game Events.
 
@@ -372,6 +361,13 @@ int main(int argc, char *argv[])
 
                 As = "FPS: "; As << (ULong)( 1000.0 / FrameTime) << " FTM: " << FrameTime;
                 GameEnv.GameWindow_DisplayInfos->SetText(&As);
+				As = "Direction: "; 
+				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.yaw(); 
+				As<<  " " ;
+				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.pitch(); 
+				As<<  " " ;
+				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.roll(); 
+				GameEnv.GameWindow_DisplayInfos->SetText2( &As );
               }
             }
           }
@@ -401,5 +397,6 @@ int main(int argc, char *argv[])
 
       return 0;
     }
+	EndSaneWinMain()
 
 

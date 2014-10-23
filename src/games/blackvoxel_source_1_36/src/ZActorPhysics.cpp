@@ -26,7 +26,7 @@
 #include "ZActorPhysics.h"
 #include <math.h>
 #include <stdio.h>
-#include "SDL/SDL.h"
+#include <SDL2/SDL.h>
 #include "ZHighPerfTimer.h"
 
 #include "ZVoxelType.h"
@@ -37,10 +37,10 @@ ZActor::ZActor()
   ULong i;
   Next = Pred = 0;
 
-  Location.x = Location.y = Location.z = 0.0;
   Velocity.x = Velocity.y = Velocity.z = 0.0;
   Deplacement.x = Deplacement.y = Deplacement.z = 0.0;
-  ViewDirection.yaw = ViewDirection.pitch = ViewDirection.roll = ViewDirection.Len = 0.0;
+  //Location.x = Location.y = Location.z = 0.0;
+  //ViewDirection.yaw = ViewDirection.pitch = ViewDirection.roll = ViewDirection.Len = 0.0;
   CollideWithVoxels = false;
   CollideWithActors = false;
   Flag_ActivateAntiFall = false;
@@ -76,11 +76,13 @@ void ZActor::TakeDammage(double Dammage)
   if (LifePoints < 0) {LifePoints = 0;}
 }
 
+
 void ZActor::SetPosition( ZVector3d &NewLocation )
 {
-  Location.x = NewLocation.x;
-  Location.y = NewLocation.y;
-  Location.z = NewLocation.z;
+	ViewDirection.translate( NewLocation );
+  //Location.x = NewLocation.x;
+  //Location.y = NewLocation.y;
+  //Location.z = NewLocation.z;
 }
 
 
@@ -191,23 +193,23 @@ void ZActorPhysicEngine::DoPhysic(UELong FrameTime)
       P[6] = World->GetVoxelPlayerCoord(NewLocation.x+75.0,NewLocation.y+500.0, NewLocation.z - 75.0);
       P[7] = World->GetVoxelPlayerCoord(NewLocation.x-75.0,NewLocation.y+500.0, NewLocation.z - 75.0);
 
-      P[8] = World->GetVoxelPlayerCoord(NewLocation.x+85.0,NewLocation.y+128.0, NewLocation.z + 90.0);
-      P[9] = World->GetVoxelPlayerCoord(NewLocation.x-85.0,NewLocation.y+128.0, NewLocation.z + 90.0);
+      P[8] = World->GetVoxelPlayerCoord(NewLocation.x+85.0,NewLocation.y+(GlobalSettings.VoxelBlockSize/2), NewLocation.z + 90.0);
+      P[9] = World->GetVoxelPlayerCoord(NewLocation.x-85.0,NewLocation.y+(GlobalSettings.VoxelBlockSize/2), NewLocation.z + 90.0);
       P[10] = World->GetVoxelPlayerCoord(NewLocation.x+85.0,NewLocation.y+384.0, NewLocation.z + 90.0);
       P[11] = World->GetVoxelPlayerCoord(NewLocation.x-85.0,NewLocation.y+384.0, NewLocation.z + 90.0);
 
-      P[12] = World->GetVoxelPlayerCoord(NewLocation.x+90.0,NewLocation.y+128.0, NewLocation.z + 85.0);
-      P[13] = World->GetVoxelPlayerCoord(NewLocation.x+90.0,NewLocation.y+128.0, NewLocation.z - 85.0);
+      P[12] = World->GetVoxelPlayerCoord(NewLocation.x+90.0,NewLocation.y+(GlobalSettings.VoxelBlockSize/2), NewLocation.z + 85.0);
+      P[13] = World->GetVoxelPlayerCoord(NewLocation.x+90.0,NewLocation.y+(GlobalSettings.VoxelBlockSize/2), NewLocation.z - 85.0);
       P[14] = World->GetVoxelPlayerCoord(NewLocation.x+90.0,NewLocation.y+384.0, NewLocation.z + 85.0);
       P[15] = World->GetVoxelPlayerCoord(NewLocation.x+90.0,NewLocation.y+384.0, NewLocation.z - 85.0);
 
-      P[16] = World->GetVoxelPlayerCoord(NewLocation.x+85.0,NewLocation.y+128.0, NewLocation.z - 90.0);
-      P[17] = World->GetVoxelPlayerCoord(NewLocation.x-85.0,NewLocation.y+128.0, NewLocation.z - 90.0);
+      P[16] = World->GetVoxelPlayerCoord(NewLocation.x+85.0,NewLocation.y+(GlobalSettings.VoxelBlockSize/2), NewLocation.z - 90.0);
+      P[17] = World->GetVoxelPlayerCoord(NewLocation.x-85.0,NewLocation.y+(GlobalSettings.VoxelBlockSize/2), NewLocation.z - 90.0);
       P[18] = World->GetVoxelPlayerCoord(NewLocation.x+85.0,NewLocation.y+384.0, NewLocation.z - 90.0);
       P[19] = World->GetVoxelPlayerCoord(NewLocation.x-85.0,NewLocation.y+384.0, NewLocation.z - 90.0);
 
-      P[20] = World->GetVoxelPlayerCoord(NewLocation.x-90.0,NewLocation.y+128.0, NewLocation.z + 85.0);
-      P[21] = World->GetVoxelPlayerCoord(NewLocation.x-90.0,NewLocation.y+128.0, NewLocation.z - 85.0);
+      P[20] = World->GetVoxelPlayerCoord(NewLocation.x-90.0,NewLocation.y+(GlobalSettings.VoxelBlockSize/2), NewLocation.z + 85.0);
+      P[21] = World->GetVoxelPlayerCoord(NewLocation.x-90.0,NewLocation.y+(GlobalSettings.VoxelBlockSize/2), NewLocation.z - 85.0);
       P[22] = World->GetVoxelPlayerCoord(NewLocation.x-90.0,NewLocation.y+384.0, NewLocation.z + 85.0);
       P[23] = World->GetVoxelPlayerCoord(NewLocation.x-90.0,NewLocation.y+384.0, NewLocation.z - 85.0);
 
@@ -223,7 +225,7 @@ void ZActorPhysicEngine::DoPhysic(UELong FrameTime)
       if ( (Actor->Velocity.y < 0.0) && ( ( P[0]!=0 ) || (P[1]!=0) || (P[2]!=0) || (P[3]!=0) ) )
       {
         Actor->Velocity.y = 0.0;
-        NewLocation.y = (double)(((ELong)(NewLocation.y + 128.0)) & 0xFFFFFFFFFFFFFF00LL);
+        NewLocation.y = (double)(((ELong)(NewLocation.y + (GlobalSettings.VoxelBlockSize/2))) & 0xFFFFFFFFFFFFFF00LL);
         //Actor->JumpDebounce=0;
       }
       // Collision on top side
@@ -231,7 +233,7 @@ void ZActorPhysicEngine::DoPhysic(UELong FrameTime)
       if ( (Actor->Velocity.y > 0.0) && ( ( P[4]!=0 ) || (P[5]!=0) || (P[6]!=0) || (P[7]!=0) ) )
       {
         Actor->Velocity.y = 0.0;
-        NewLocation.y = (double)(((ELong)(NewLocation.y + 128.0)) & 0xFFFFFFFFFFFFFF00LL);
+        NewLocation.y = (double)(((ELong)(NewLocation.y + (GlobalSettings.VoxelBlockSize/2))) & 0xFFFFFFFFFFFFFF00LL);
       }
 
       if ( (NewLocation.z > Actor->Location.z ) && ( (P[8]!=0)  || (P[9]!=0)  || P[10]!=0 || P[11]!=0 )) NewLocation.z = Actor->Location.z;
@@ -247,7 +249,7 @@ void ZActorPhysicEngine::DoPhysic(UELong FrameTime)
         // Collision on Face side
         if ( (NewLocation.z > Actor->Location.z ) && ( ( P[8]!=0 ) || (P[9]!=0) || (P[10]!=0) || (P[11]!=0) ) )
         {
-          NewLocation.z = ((double)(((ELong)(NewLocation.z + 128.0)) & 0xFFFFFFFFFFFFFF00LL)) - 85.0;
+          NewLocation.z = ((double)(((ELong)(NewLocation.z + (GlobalSettings.VoxelBlockSize/2))) & 0xFFFFFFFFFFFFFF00LL)) - 85.0;
           Actor->Velocity.z = 0.0;
         }
 
@@ -255,7 +257,7 @@ void ZActorPhysicEngine::DoPhysic(UELong FrameTime)
 
         if ( (NewLocation.z < Actor->Location.z ) && (  ( P[16]!=0 ) || (P[17]!=0) || (P[18]!=0) || (P[19]!=0) ) )
         {
-          NewLocation.z = ((double)(((ELong)(NewLocation.z + 128.0)) & 0xFFFFFFFFFFFFFF00LL)) + 85.0;
+          NewLocation.z = ((double)(((ELong)(NewLocation.z + (GlobalSettings.VoxelBlockSize/2))) & 0xFFFFFFFFFFFFFF00LL)) + 85.0;
           Actor->Velocity.z = 0.0;
         }
       }
@@ -264,7 +266,7 @@ void ZActorPhysicEngine::DoPhysic(UELong FrameTime)
         // Collision on Left side
         if ( (NewLocation.x < Actor->Location.x ) && ( ( P[20]!=0 ) || (P[21]!=0) || (P[22]!=0) || (P[23]!=0) ) )
         {
-          NewLocation.x = ((double)(((ELong)(NewLocation.x + 128.0)) & 0xFFFFFFFFFFFFFF00LL)) + 85.0;
+          NewLocation.x = ((double)(((ELong)(NewLocation.x + (GlobalSettings.VoxelBlockSize/2))) & 0xFFFFFFFFFFFFFF00LL)) + 85.0;
           Actor->Velocity.x = 0.0;
         }
 
@@ -272,7 +274,7 @@ void ZActorPhysicEngine::DoPhysic(UELong FrameTime)
 
         if ( (NewLocation.x > Actor->Location.x ) && (  ( P[12]!=0 ) || (P[13]!=0) || (P[14]!=0) || (P[15]!=0) ) )
         {
-          NewLocation.x = ((double)(((ELong)(NewLocation.x + 128.0)) & 0xFFFFFFFFFFFFFF00LL)) - 85.0;
+          NewLocation.x = ((double)(((ELong)(NewLocation.x + (GlobalSettings.VoxelBlockSize/2))) & 0xFFFFFFFFFFFFFF00LL)) - 85.0;
           Actor->Velocity.x = 0.0;
         }
       }
@@ -376,35 +378,35 @@ void ZActor::DoPhysic(UELong FrameTime)
 
   // Define Detection points
 
-  P[0] = Location + ZVector3d(-75.0,+0.0,+75.0);
-  P[1] = Location + ZVector3d(+75.0,+0.0,+75.0);
-  P[2] = Location + ZVector3d(+75.0,+0.0,-75.0);
-  P[3] = Location + ZVector3d(-75.0,+0.0,-75.0);
+  P[0] = ViewDirection.origin() + ZVector3d(-75.0,+0.0,+75.0);
+  P[1] = ViewDirection.origin() + ZVector3d(+75.0,+0.0,+75.0);
+  P[2] = ViewDirection.origin() + ZVector3d(+75.0,+0.0,-75.0);
+  P[3] = ViewDirection.origin() + ZVector3d(-75.0,+0.0,-75.0);
 
-  P[4] = Location + ZVector3d(-75.0,+128.0,+75.0);
-  P[5] = Location + ZVector3d(+75.0,+128.0,+75.0);
-  P[6] = Location + ZVector3d(+75.0,+128.0,-75.0);
-  P[7] = Location + ZVector3d(-75.0,+128.0,-75.0);
+  P[4] = ViewDirection.origin() + ZVector3d(-75.0,+128.0,+75.0);
+  P[5] = ViewDirection.origin() + ZVector3d(+75.0,+128.0,+75.0);
+  P[6] = ViewDirection.origin() + ZVector3d(+75.0,+128.0,-75.0);
+  P[7] = ViewDirection.origin() + ZVector3d(-75.0,+128.0,-75.0);
 
-  P[8] = Location + ZVector3d(-75.0,+384.0,+75.0);
-  P[9] = Location + ZVector3d(+75.0,+384.0,+75.0);
-  P[10] = Location + ZVector3d(+75.0,+384.0,-75.0);
-  P[11] = Location + ZVector3d(-75.0,+384.0,-75.0);
+  P[8] = ViewDirection.origin() + ZVector3d(-75.0,+384.0,+75.0);
+  P[9] = ViewDirection.origin() + ZVector3d(+75.0,+384.0,+75.0);
+  P[10] = ViewDirection.origin() + ZVector3d(+75.0,+384.0,-75.0);
+  P[11] = ViewDirection.origin() + ZVector3d(-75.0,+384.0,-75.0);
 
-  P[12] = Location + ZVector3d(-75.0,+500.0,+75.0);
-  P[13] = Location + ZVector3d(+75.0,+500.0,+75.0);
-  P[14] = Location + ZVector3d(+75.0,+500.0,-75.0);
-  P[15] = Location + ZVector3d(-75.0,+500.0,-75.0);
+  P[12] = ViewDirection.origin() + ZVector3d(-75.0,+500.0,+75.0);
+  P[13] = ViewDirection.origin() + ZVector3d(+75.0,+500.0,+75.0);
+  P[14] = ViewDirection.origin() + ZVector3d(+75.0,+500.0,-75.0);
+  P[15] = ViewDirection.origin() + ZVector3d(-75.0,+500.0,-75.0);
 
-  P[16] = Location + ZVector3d(-70.0,-5.0,-70.0); // # Detection points behind the player
-  P[17] = Location + ZVector3d(+70.0,-5.0,-70.0); // # Used for Anti-Fall.
-  P[18] = Location + ZVector3d(+70.0,-5.0,+70.0); // #
-  P[19] = Location + ZVector3d(-70.0,-5.0,+70.0); // #
+  P[16] = ViewDirection.origin() + ZVector3d(-70.0,-5.0,-70.0); // # Detection points behind the player
+  P[17] = ViewDirection.origin() + ZVector3d(+70.0,-5.0,-70.0); // # Used for Anti-Fall.
+  P[18] = ViewDirection.origin() + ZVector3d(+70.0,-5.0,+70.0); // #
+  P[19] = ViewDirection.origin() + ZVector3d(-70.0,-5.0,+70.0); // #
 
-  P[20] = Location + ZVector3d(0,-5,0);  // # Detection point are only for voxel
-  P[21] = Location + ZVector3d(0,0,0);   // #
-  P[22] = Location + ZVector3d(0,128,0); // #
-  P[23] = Location + ZVector3d(0,384,0); // #
+  P[20] = ViewDirection.origin() + ZVector3d(0,-5,0);  // # Detection point are only for voxel
+  P[21] = ViewDirection.origin() + ZVector3d(0,0,0);   // #
+  P[22] = ViewDirection.origin() + ZVector3d(0,128,0); // #
+  P[23] = ViewDirection.origin() + ZVector3d(0,384,0); // #
 
   // Get the Voxel Informations
 
@@ -534,7 +536,7 @@ void ZActor::DoPhysic(UELong FrameTime)
 
     // The gravity...
     double Gravity, CubeY;
-    CubeY = Location.y / 256.0;
+    CubeY = ViewDirection.origin().y / GlobalSettings.VoxelBlockSize;
     if      (CubeY > 10000.0 && CubeY < 15000.0) { Gravity = 5.0 - (( (CubeY-10000.0) * (CubeY-10000.0)) / 5000000.0); } //5000000.0;
     else if (CubeY <= 10000.0) { Gravity = 5.0; }
     else                       { Gravity = 0.0; }
@@ -698,9 +700,7 @@ void ZActor::DoPhysic(UELong FrameTime)
     {
       ZVector3d NewLocation;
 
-      NewLocation = Location + Dep;
-
-
+      NewLocation = ViewDirection.origin() + Dep;
 
         SetPosition( NewLocation );
         Deplacement = 0.0;

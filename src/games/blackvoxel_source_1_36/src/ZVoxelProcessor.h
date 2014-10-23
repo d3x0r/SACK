@@ -47,7 +47,7 @@
 #endif
 
 #ifndef _SDL_thread_h
-#  include "SDL/SDL_thread.h"
+#  include "SDL2/SDL_thread.h"
 #endif
 
 #ifndef A_COMPILESETTINGS_H
@@ -120,19 +120,19 @@ class ZVoxelProcessor : public ZObject
       Player_Position.x = x;
       Player_Position.y = y;
       Player_Position.z = z;
-      Player_Sector.x = (Long) (x/4096.0);
-      Player_Sector.y = (Long) (y/16384.0);
-      Player_Sector.z = (Long) (z/4096.0);
-      Player_Voxel.x = (Long)  (x/256.0);
-      Player_Voxel.y = (Long)  (y/256.0);
-      Player_Voxel.z = (Long)  (z/256.0);
+	  Player_Sector.x = (Long) (x/(GlobalSettings.VoxelBlockSize * 16.0));
+      Player_Sector.y = (Long) (y/(GlobalSettings.VoxelBlockSize * 64.0));
+      Player_Sector.z = (Long) (z/(GlobalSettings.VoxelBlockSize * 16.0));
+      Player_Voxel.x = (Long)  (x/GlobalSettings.VoxelBlockSize);
+      Player_Voxel.y = (Long)  (y/GlobalSettings.VoxelBlockSize);
+      Player_Voxel.z = (Long)  (z/GlobalSettings.VoxelBlockSize);
     }
 
     void Start()
     {
       VoxelReactor.Init(this->GameEnv);
       ThreadContinue = true;
-      Thread = (SDL_Thread * )SDL_CreateThread(thread_func, this);
+      Thread = (SDL_Thread * )SDL_CreateThread(thread_func, "thread_func", this);
     }
 
     void End()

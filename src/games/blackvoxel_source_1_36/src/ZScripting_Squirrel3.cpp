@@ -151,7 +151,7 @@ SQInteger function_GetGameTime(HSQUIRRELVM v)
   // RetVal = ZHighPerfTimer::GetActualTime() / 1000;
 
   S = (ZStoreSq3 *)sq_getforeignptr(v);
-  RetVal = (SQInteger)(S->GameEnv->PhysicEngine->GetSelectedActor()->Time_TotalGameTime / 1000LLU);
+  RetVal = (SQInteger)(S->GameEnv->PhysicEngine->GetSelectedActor()->Time_TotalGameTime / 1000ULL);
 
   sq_pushinteger(v,RetVal);
   return(1);
@@ -660,21 +660,21 @@ SQInteger function_GetInfo(HSQUIRRELVM v)
   switch (DataType)
   {
     case 0: sq_pushinteger(v,24); break;
-    case 1: sq_pushfloat(v, (SQFloat)S->GameEnv->PhysicEngine->GetSelectedActor()->Location.x );  break;
-    case 2: sq_pushfloat(v, (SQFloat)S->GameEnv->PhysicEngine->GetSelectedActor()->Location.y );  break;
-    case 3: sq_pushfloat(v, (SQFloat)S->GameEnv->PhysicEngine->GetSelectedActor()->Location.z );  break;
-    case 4: sq_pushinteger(v, (SQInteger)  (Long)(((ELong) S->GameEnv->PhysicEngine->GetSelectedActor()->Location.x ) >> 8) );  break;
-    case 5: sq_pushinteger(v, (SQInteger)  (Long)(((ELong) S->GameEnv->PhysicEngine->GetSelectedActor()->Location.y ) >> 8) );  break;
-    case 6: sq_pushinteger(v, (SQInteger)  (Long)(((ELong) S->GameEnv->PhysicEngine->GetSelectedActor()->Location.z ) >> 8) );  break;
-    case 7: sq_pushfloat(v, (SQFloat)S->GameEnv->PhysicEngine->GetSelectedActor()->ViewDirection.yaw * 0.017453293 );  break;
-    case 8: sq_pushfloat(v, (SQFloat)S->GameEnv->PhysicEngine->GetSelectedActor()->ViewDirection.pitch * 0.017453293);  break;
-    case 9: sq_pushfloat(v, (SQFloat)S->GameEnv->PhysicEngine->GetSelectedActor()->ViewDirection.roll * 0.017453293);  break;
-    case 11: {ZActor * Actor = S->GameEnv->PhysicEngine->GetSelectedActor(); sq_pushfloat(v, (SQFloat)(Actor->Location.x + Actor->EyesPosition.x) ); } break;
-    case 12: {ZActor * Actor = S->GameEnv->PhysicEngine->GetSelectedActor(); sq_pushfloat(v, (SQFloat)(Actor->Location.y + Actor->EyesPosition.y) ); } break;
-    case 13: {ZActor * Actor = S->GameEnv->PhysicEngine->GetSelectedActor(); sq_pushfloat(v, (SQFloat)(Actor->Location.z + Actor->EyesPosition.z) ); } break;
-    case 14: {ZActor * Actor = S->GameEnv->PhysicEngine->GetSelectedActor(); sq_pushinteger(v, (SQInteger) (Long)(((ELong) (Actor->Location.x + Actor->EyesPosition.x) ) >> 8) ); } break;
-    case 15: {ZActor * Actor = S->GameEnv->PhysicEngine->GetSelectedActor(); sq_pushinteger(v, (SQInteger) (Long)(((ELong) (Actor->Location.y + Actor->EyesPosition.y) ) >> 8) ); } break;
-    case 16: {ZActor * Actor = S->GameEnv->PhysicEngine->GetSelectedActor(); sq_pushinteger(v, (SQInteger) (Long)(((ELong) (Actor->Location.z + Actor->EyesPosition.z) ) >> 8) ); } break;
+    case 1: sq_pushfloat(v, (SQFloat)S->GameEnv->PhysicEngine->GetSelectedActor()->ViewDirection.x() );  break;
+    case 2: sq_pushfloat(v, (SQFloat)S->GameEnv->PhysicEngine->GetSelectedActor()->ViewDirection.y() );  break;
+    case 3: sq_pushfloat(v, (SQFloat)S->GameEnv->PhysicEngine->GetSelectedActor()->ViewDirection.z() );  break;
+    case 4: sq_pushinteger(v, (SQInteger)  (Long)(((ELong) S->GameEnv->PhysicEngine->GetSelectedActor()->ViewDirection.x() ) >> GlobalSettings.VoxelBlockSizeBits) );  break;
+    case 5: sq_pushinteger(v, (SQInteger)  (Long)(((ELong) S->GameEnv->PhysicEngine->GetSelectedActor()->ViewDirection.y() ) >> GlobalSettings.VoxelBlockSizeBits) );  break;
+    case 6: sq_pushinteger(v, (SQInteger)  (Long)(((ELong) S->GameEnv->PhysicEngine->GetSelectedActor()->ViewDirection.z() ) >> GlobalSettings.VoxelBlockSizeBits) );  break;
+    case 7: sq_pushfloat(v, (SQFloat)S->GameEnv->PhysicEngine->GetSelectedActor()->ViewDirection.yaw() * 0.017453293 );  break;
+    case 8: sq_pushfloat(v, (SQFloat)S->GameEnv->PhysicEngine->GetSelectedActor()->ViewDirection.pitch() * 0.017453293);  break;
+    case 9: sq_pushfloat(v, (SQFloat)S->GameEnv->PhysicEngine->GetSelectedActor()->ViewDirection.roll() * 0.017453293);  break;
+    case 11: {ZActor * Actor = S->GameEnv->PhysicEngine->GetSelectedActor(); sq_pushfloat(v, (SQFloat)(Actor->ViewDirection.x() + Actor->EyesPosition.x) ); } break;
+    case 12: {ZActor * Actor = S->GameEnv->PhysicEngine->GetSelectedActor(); sq_pushfloat(v, (SQFloat)(Actor->ViewDirection.y() + Actor->EyesPosition.y) ); } break;
+    case 13: {ZActor * Actor = S->GameEnv->PhysicEngine->GetSelectedActor(); sq_pushfloat(v, (SQFloat)(Actor->ViewDirection.z() + Actor->EyesPosition.z) ); } break;
+    case 14: {ZActor * Actor = S->GameEnv->PhysicEngine->GetSelectedActor(); sq_pushinteger(v, (SQInteger) (Long)(((ELong) (Actor->ViewDirection.x() + Actor->EyesPosition.x) ) >> GlobalSettings.VoxelBlockSizeBits) ); } break;
+    case 15: {ZActor * Actor = S->GameEnv->PhysicEngine->GetSelectedActor(); sq_pushinteger(v, (SQInteger) (Long)(((ELong) (Actor->ViewDirection.y() + Actor->EyesPosition.y) ) >> GlobalSettings.VoxelBlockSizeBits) ); } break;
+    case 16: {ZActor * Actor = S->GameEnv->PhysicEngine->GetSelectedActor(); sq_pushinteger(v, (SQInteger) (Long)(((ELong) (Actor->ViewDirection.z() + Actor->EyesPosition.z) ) >> GlobalSettings.VoxelBlockSizeBits) ); } break;
     case 17: sq_pushfloat(v, (SQFloat)S->GameEnv->PhysicEngine->GetSelectedActor()->Velocity.x );  break;
     case 18: sq_pushfloat(v, (SQFloat)S->GameEnv->PhysicEngine->GetSelectedActor()->Velocity.y );  break;
     case 19: sq_pushfloat(v, (SQFloat)S->GameEnv->PhysicEngine->GetSelectedActor()->Velocity.z );  break;
@@ -785,7 +785,7 @@ SQInteger function_MovePlayer(HSQUIRRELVM v)
 
   // Move the player.
 
-  PlayerPos = S->GameEnv->PhysicEngine->GetSelectedActor()->Location;
+  PlayerPos = S->GameEnv->PhysicEngine->GetSelectedActor()->ViewDirection.origin();
   PlayerPos.x += x; PlayerPos.y +=y; PlayerPos.z +=z;
   S->GameEnv->PhysicEngine->GetSelectedActor()->SetPosition(PlayerPos);
 

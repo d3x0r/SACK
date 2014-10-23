@@ -29,7 +29,6 @@
 
 #include "ZGame.h"
 #include "ZActorPhysics.h"
-#include "SDL/SDL.h"
 
 void ZGameWindow_Programmable::Show()
 {
@@ -187,8 +186,12 @@ void ZGameWindow_Programmable::Show()
 
 
   SDL_ShowCursor(SDL_ENABLE);
+#ifdef SDL1
   SDL_WM_GrabInput(SDL_GRAB_OFF);
   SDL_WarpMouse((Uint16)(MainWindow_Pos.x + MainWindow_Size.x / 2.0f),(Uint16)(MainWindow_Pos.y + MainWindow_Size.y / 2.0f));
+#else
+  SDL_SetRelativeMouseMode(SDL_FALSE);
+#endif
   GameEnv->Game_Events->SetDisableMouseEvents();
   Flag_Shown = true;
 }
@@ -197,7 +200,11 @@ void ZGameWindow_Programmable::Hide()
 {
   GameEnv->GuiManager.RemoveFrame(MainWindow);
   SDL_ShowCursor(SDL_DISABLE);
+#ifdef SDL1
   SDL_WM_GrabInput(SDL_GRAB_ON);
+#else
+  SDL_SetRelativeMouseMode(SDL_TRUE);
+#endif
   GameEnv->Game_Events->SetEnableMouseEvents();
   Flag_Shown = false;
 }

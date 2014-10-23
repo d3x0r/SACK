@@ -56,8 +56,10 @@ class ZGameWindow_DisplayInfos
     bool    Flag_Shown;
 
     ZFrame_FontFrame Infos;
+    ZFrame_FontFrame Infos2;
 
     ZString Text_Infos;
+    ZString Text_Infos2;
 
   public:
 
@@ -79,6 +81,11 @@ class ZGameWindow_DisplayInfos
   {
     this->Text_Infos = *TextToDisplay;
     Infos.SetDisplayText(Text_Infos.String);
+  }
+  void SetText2(ZString * TextToDisplay)
+  {
+    this->Text_Infos2 = *TextToDisplay;
+    Infos.SetDisplayText(Text_Infos2.String);
   }
 
   void Hide();
