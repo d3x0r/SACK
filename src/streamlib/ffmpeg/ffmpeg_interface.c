@@ -357,7 +357,7 @@ struct ffmpeg_file
 	int64_t video_next_pts_time;
 	int64_t video_current_pts_time;
 	int64_t video_current_pts;
-
+	int64_t video_adjust_ticks;
 	int64_t audio_current_pts_time;
 	int64_t audio_current_pts;
 
@@ -1915,12 +1915,14 @@ static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, i
 		{
 			// track video to itself...
 			file->video_current_pts_time = file->media_start_time + video_time;
-			file->video_next_pts_time = file->media_start_time + video_time_now;
+			//file->video_next_pts_time = file->media_start_time + video_time_now + ( video_time_tick * file->video_adjust_ticks );
 
 			//file->video_current_pts_time = file->media_start_time + video_time * 1000;;
 
 			file->video_next_pts_time = file->media_start_time + ( video_time_now )
-				+ ( ( video_time_in_audio_frames - file->audioSamplesPlayed ) * 1000LL ) / file->pAudioCodecCtx->sample_rate;
+				+ ( ( video_time_in_audio_frames - file->audioSamplesPlayed ) * 1000LL ) / file->pAudioCodecCtx->sample_rate
+				+ ( video_time_tick * file->video_adjust_ticks )
+				;
 
 			// delta in ms....
 			 //lprintf( WIDE("something %")_64fs , (  ( video_time_in_audio_frames - file->audioSamplesPlayed ) * 1000LL ) / file->pAudioCodecCtx->sample_rate );
@@ -3101,6 +3103,13 @@ void ffmpeg_StopFile( struct ffmpeg_file *file )
 		if( file->video_ended )
 			file->video_ended( file->psvEndedParam );
 	}
+}
+
+void ffmpeg_AdjustVideo( struct ffmpeg_file *file, int frames )
+{
+	//lprintf( "Frame adjust: %d", frames );
+
+	file->video_adjust_ticks -= frames;
 }
 
 _FFMPEG_INTERFACE_NAMESPACE_END
