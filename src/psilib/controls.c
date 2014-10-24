@@ -696,7 +696,7 @@ PSI_PROC( void, AlignBaseToWindows )( void )
 
 PSI_PROC( void, SetBaseColor )( INDEX idx, CDATA c )
 {
-	Log3( WIDE("Color %d was %08X and is now %08X"), idx, defaultcolor[idx], c );
+	//lprintf( WIDE("Color %d was %08X and is now %08X"), idx, defaultcolor[idx], c );
 	g.defaultcolors[idx] = c;
 }
 
@@ -709,7 +709,7 @@ PSI_PROC( CDATA, GetBaseColor )( INDEX idx )
 
 PSI_PROC( void, SetControlColor )( PSI_CONTROL pc, INDEX idx, CDATA c )
 {
-	Log3( WIDE("Color %d was %08X and is now %08X"), idx, basecolor(pc)[idx], c );
+	//lprintf( WIDE("Color %d was %08X and is now %08X"), idx, basecolor(pc)[idx], c );
 	if( pc )
 	{
 		if( basecolor(pc) == g.defaultcolors )

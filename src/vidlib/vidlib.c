@@ -358,7 +358,7 @@ void IssueUpdateLayeredEx( PVIDEO hVideo, LOGICAL bContent, S_32 x, S_32 y, _32 
 																	, bContent?(HDC)hVideo->hDCOutput:NULL
 																	, bContent?&topPos:NULL
 																	, bContent?&size:NULL
-																	, bContent?hVideo->hDCBitmap:NULL
+																	, bContent?(hVideo->flags.bLayeredWindow&&hVideo->flags.bFullScreen && !hVideo->flags.bNotFullScreen)?(HDC)hVideo->hDCBitmapFullScreen:hVideo->hDCBitmap:NULL
 																	, bContent?&pointSource:NULL
 																	, 0 // color key
 																	, &blend
@@ -1091,38 +1091,57 @@ BOOL CreateDrawingSurface (PVIDEO hVideo)
 		//		  bmInfo.bmiHeader.biHeight );
 		if( hVideo->flags.bLayeredWindow && hVideo->flags.bFullScreen )
 		{
-			if (!hVideo->pImageLayeredStretch) // first time ONLY...
-				hVideo->hDCBitmap = CreateCompatibleDC ((HDC)hVideo->hDCOutput);
 			hVideo->pImageLayeredStretch =
 				RemakeImage( hVideo->pImageLayeredStretch, pBuffer, bmInfo.bmiHeader.biWidth,
 								 bmInfo.bmiHeader.biHeight);
+			if (!hVideo->hDCBitmapFullScreen) 
+				hVideo->hDCBitmapFullScreen = CreateCompatibleDC ((HDC)hVideo->hDCOutput);
+			hVideo->hOldBitmapFullScreen = SelectObject ((HDC)hVideo->hDCBitmapFullScreen, hBmNew);
+			if (hVideo->hBmFullScreen && hVideo->hWndOutput)
+			{
+				// if we had an old one, we'll want to delete it.
+				if (SelectObject( (HDC)hVideo->hDCBitmapFullScreen, hBmNew ) != hVideo->hBmFullScreen)
+				{
+					Log (WIDE( "Hmm Somewhere we lost track of which bitmap is selected?! bitmap resource not released" ));
+				}
+				else
+				{
+					// delete the prior one, we have a new one.
+					DeleteObject (hVideo->hBmFullScreen);
+				}
+			}
+			else // first time through hBm will be NULL... so we save the original bitmap for the display.
+				hVideo->hOldBitmapFullScreen = SelectObject ((HDC)hVideo->hDCBitmapFullScreen, hBmNew);
+			// okay and now this is the bitmap to use for output
+			hVideo->hBmFullScreen = hBmNew;
 		}
 		else
+		{
 			hVideo->pImage =
 				RemakeImage( hVideo->pImage, pBuffer, bmInfo.bmiHeader.biWidth,
 								 bmInfo.bmiHeader.biHeight);
-
-		if (!hVideo->hDCBitmap) // first time ONLY...
-			hVideo->hDCBitmap = CreateCompatibleDC ((HDC)hVideo->hDCOutput);
-
-		if (hVideo->hBm && hVideo->hWndOutput)
-		{
-			// if we had an old one, we'll want to delete it.
-			if (SelectObject( (HDC)hVideo->hDCBitmap, hBmNew ) != hVideo->hBm)
-			{
-				Log (WIDE( "Hmm Somewhere we lost track of which bitmap is selected?! bitmap resource not released" ));
-			}
-			else
-			{
-				// delete the prior one, we have a new one.
-				DeleteObject (hVideo->hBm);
-			}
-		}
-		else // first time through hBm will be NULL... so we save the original bitmap for the display.
+			if (!hVideo->hDCBitmap) // first time ONLY...
+				hVideo->hDCBitmap = CreateCompatibleDC ((HDC)hVideo->hDCOutput);
 			hVideo->hOldBitmap = SelectObject ((HDC)hVideo->hDCBitmap, hBmNew);
+			if (hVideo->hBm && hVideo->hWndOutput)
+			{
+				// if we had an old one, we'll want to delete it.
+				if (SelectObject( (HDC)hVideo->hDCBitmap, hBmNew ) != hVideo->hBm)
+				{
+					Log (WIDE( "Hmm Somewhere we lost track of which bitmap is selected?! bitmap resource not released" ));
+				}
+				else
+				{
+					// delete the prior one, we have a new one.
+					DeleteObject (hVideo->hBm);
+				}
+			}
+			else // first time through hBm will be NULL... so we save the original bitmap for the display.
+				hVideo->hOldBitmap = SelectObject ((HDC)hVideo->hDCBitmap, hBmNew);
+			// okay and now this is the bitmap to use for output
+			hVideo->hBm = hBmNew;
+		}
 
-		// okay and now this is the bitmap to use for output
-		hVideo->hBm = hBmNew;
 	}
 
 
@@ -4843,9 +4862,11 @@ RENDER_PROC (void, UpdateDisplayEx) (PVIDEO hVideo DBG_PASS )
 	// copy hVideo->lpBuffer to hVideo->hDCOutput
 	if (hVideo && hVideo->hWndOutput && hVideo->hBm)
 	{
-		if( hVideo->flags.bLayeredWindow && hVideo->flags.bFullScreen )
+		if( hVideo->flags.bLayeredWindow && hVideo->flags.bFullScreen  && !hVideo->flags.bNotFullScreen )
 		{
-			BlotScaledImage( hVideo->pImageLayeredStretch, hVideo->pImage, 0, 0 );
+			//BlotScaledImage( hVideo->pImageLayeredStretch, hVideo->pImage, 0, 0 );
+			StretchBlt ((HDC)hVideo->hDCBitmapFullScreen, 0, 0, hVideo->pImageLayeredStretch->width, hVideo->pImageLayeredStretch->height,
+										(HDC)hVideo->hDCBitmap, 0, 0, hVideo->pImage->width, hVideo->pImage->height, SRCCOPY);
 			UpdateDisplayPortionEx (hVideo, 0, 0, hVideo->pImageLayeredStretch->width, hVideo->pImageLayeredStretch->height DBG_RELAY);
 		}
 		else

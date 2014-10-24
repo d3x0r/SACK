@@ -203,7 +203,10 @@ typedef struct HVIDEO_tag
 #ifdef _WIN32
 #  ifndef _OPENGL_DRIVER
 	HBITMAP hBm;
+	HBITMAP hBmFullScreen;
 	HDC hDCBitmap; // hdcMem
+	HDC hDCBitmapFullScreen; // hdcMem
+	/* used for OpenGL Output buffering; not sure it's required...*/
 	HDC hDCFakeWindow;
 	HDC hDCFakeBitmap; // compatible dc with window, not the window, and selected bitmap
 	HBITMAP hOldFakeBm;
@@ -292,6 +295,7 @@ typedef struct HVIDEO_tag
 	
 
 	void *hOldBitmap;
+	void *hOldBitmapFullScreen;
 
 #ifdef _OPENGL_ENABLED
 	HGLRC	hRC;	 // Permanent Rendering Context
