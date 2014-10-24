@@ -139,7 +139,7 @@ static struct fmpeg_interface
 	declare_func( int, av_samples_get_buffer_size, (int *linesize, int nb_channels, int nb_samples,
                                enum AVSampleFormat sample_fmt, int align) );
 	declare_func( struct SwrContext *, swr_alloc, (void) );
-   declare_func( int, av_get_channel_layout_nb_channels, (uint64_t channel_layout) );
+	declare_func( int, av_get_channel_layout_nb_channels, (uint64_t channel_layout) );
 
 	declare_func( int, av_opt_set       ,(void *obj, const char *name, const char *val, int search_flags));
 	declare_func( int, av_opt_set_int   ,(void *obj, const char *name, int64_t     val, int search_flags));
@@ -2412,15 +2412,19 @@ static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
 					//	file->pVideoFrame->pkt_pts = 3000 * (file->videoFrame+1);//->coded_picture_number);
 				}
 				file->flags.allow_tick = 1;
+#ifdef DEBUG_VIDEO_PACKET_READ
 				if( file->flags.paused )
 					lprintf( WIDE("Begin with a new frame...") );
+#endif
 			pause_wait:
 				while( file->flags.paused )
 				{
 					//Image out_surface = GetDisplayImage( file->output );
 					file->flags.using_video_frame = 0;
 					file->flags.video_paused = 1;
+#ifdef DEBUG_VIDEO_PACKET_READ
 					lprintf( WIDE("Begin pause wait (video)") );
+#endif
 					WakeableSleep( SLEEP_FOREVER );
 					if( file->flags.close_processing )
 						goto video_done;
@@ -2435,7 +2439,9 @@ static PTRSZVAL CPROC ProcessVideoFrame( PTHREAD thread )
 				}
 				if( file->flags.clear_pending_video )
 				{
+#ifdef DEBUG_VIDEO_PACKET_READ
 					lprintf( WIDE("Skipping frame that was already held.") );
+#endif
 					file->flags.clear_pending_video = 0;
 					continue;
 				}
@@ -3016,7 +3022,21 @@ void ffmpeg_UnloadFile( struct ffmpeg_file *file )
 
 void ffmpeg_PlayFile( struct ffmpeg_file *file )
 {
-	file->flags.paused = 0;
+	if( file->flags.paused )
+	{
+		S_64 video_time_now = ( file->videoFrame ) * 1000000LL *  file->pVideoCodecCtx->ticks_per_frame * file->pVideoCodecCtx->time_base.num / file->pVideoCodecCtx->time_base.den;
+		S_64 audio_time_pending_1000_tick = 1000 * 1000 * 1000 / file->pAudioCodecCtx->sample_rate;
+		S_64 video_time_in_audio_frames	= 1000 * video_time_now / audio_time_pending_1000_tick;
+		S_64 audio_time_now = ( ( video_time_in_audio_frames - file->audioSamplesPlayed ) * 1000LL ) / file->pAudioCodecCtx->sample_rate;
+		S_64 video_time_tick = ( 1000LL ) * 1000LL *  file->pVideoCodecCtx->ticks_per_frame * (_64)file->pVideoCodecCtx->time_base.num / (_64)file->pVideoCodecCtx->time_base.den;
+		S_64 frame_tick_adjust =  ( video_time_tick * file->video_adjust_ticks );
+
+		file->media_start_time = ffmpeg.av_gettime();// - ( video_time_now + audio_time_now + frame_tick_adjust );
+		file->videoFrame = 0;
+		file->audioSamplesPlayed = 0;
+
+		file->flags.paused = 0;
+	}
 	if( !file->readThread )
 	{
 		//lprintf( WIDE("and... play the file...") );
