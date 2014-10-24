@@ -1399,6 +1399,7 @@ endif( NOT __ANDROID__ AND NOT __NO_MSGSVR__ )
 if( WIN32 )
    add_subdirectory( src/utils/application_delay )
 endif( WIN32 )
+   add_subdirectory( src/utils/debugger_lockout )
    add_subdirectory( src/salty_random_generator )
 if( NOT UNIX )
   #   This doesn't build under watcom either...
