@@ -174,7 +174,7 @@
 #endif
 
 
-class ZRender_Basic;
+class ZRender_Interface;
 
 class ZGame
 {
@@ -286,7 +286,7 @@ class ZGame
   ZVoxelTypeManager    VoxelTypeManager;
   ZEventManager        EventManager;
   ZTileSetStyles       * TileSetStyles;
-  ZRender_Basic        * Basic_Renderer;
+  ZRender_Interface    * Basic_Renderer;
   ZSound               * Sound;
 
   int   VoxelBlockSize;

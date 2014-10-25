@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef Z_ZRENDER_BASIC_H
-#define Z_ZRENDER_BASIC_H
+#ifndef Z_ZRENDER_INTERFACE_H
+#define Z_ZRENDER_INTERFACE_H
 
 //#ifndef Z_ZRENDER_BASIC_H
 //#  include "ZRender_Basic.h"
@@ -44,25 +44,25 @@
 #endif
 
 #include "ZActor_Player.h"
-#include "ZRender_Interface.h"
+
 extern GLuint TextureName[1024];
 
 
-/*
-class ZRender_basic_displaydata : public ZObject
+
+class ZRender_Interface_displaydata : public ZObject
 {
   public:
     GLint DisplayList_Regular;
     GLint DisplayList_Transparent;
 
 
-    ZRender_basic_displaydata()
+    ZRender_Interface_displaydata()
     {
       DisplayList_Regular = 0;
       DisplayList_Transparent = 0;
 
     }
-    ~ZRender_basic_displaydata()
+    ~ZRender_Interface_displaydata()
     {
       if (DisplayList_Regular)     glDeleteLists(DisplayList_Regular, 1);
       DisplayList_Regular = 0;
@@ -71,13 +71,11 @@ class ZRender_basic_displaydata : public ZObject
     }
 
 };
-*/
 
 class ZGame;
 
-class ZRender_Basic : public ZRender_Interface
+class ZRender_Interface
 {
-	/*
   protected:
     ZVoxelWorld * World;
     ZVoxelTypeManager * VoxelTypeManager;
@@ -129,9 +127,8 @@ class ZRender_Basic : public ZRender_Interface
     bool  BvProp_DisplayVoxelSelector;
 
     ZRender_Sorter RenderSorter;
-	*/
-public:
-    ZRender_Basic()
+
+    ZRender_Interface()
     {
       hRenderRadius = 1;  // 8
       vRenderRadius = 1;  // 3
@@ -164,7 +161,7 @@ public:
       Aspect_Ratio = 0.0;
       Frustum_CullingLimit = 0.0;
     }
-#if 0
+
     void SetWorld           ( ZVoxelWorld * World );
     void SetCamera          ( ZCamera * Camera );
 	void SetActor           ( ZActor * Actor );
@@ -190,13 +187,10 @@ public:
 	void EmitFaces				( ZVoxelType ** VoxelTypeTable, UShort &VoxelType, UShort &prevVoxelType, ULong info
 							  , Long x, Long y, Long z
 							  , Long Sector_Display_x, Long Sector_Display_y, Long Sector_Display_z );
-#endif
-private:
     void MakeSectorRenderingData(ZVoxelSector * Sector);
     void MakeSectorRenderingData_Sorted(ZVoxelSector * Sector);
-public:
-    void Render();
-#if 0
+    virtual void Render() = 0;
+
     void SetRenderSectorRadius(Long Horizontal, Long Vertical)
     {
       hRenderRadius = Horizontal;
@@ -248,7 +242,7 @@ public:
 
 
     void ComputeAndSetAspectRatio(double VerticalFOV, double PixelAspectRatio, ZVector2L & ViewportResolution);
-#endif
+
 };
 
 

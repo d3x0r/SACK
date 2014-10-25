@@ -35,7 +35,9 @@
 #endif
 
 #ifndef Z_ZRENDER_BASIC_H
+#  include "ZRender_Interface.h"
 #  include "ZRender_Basic.h"
+#  include "ZRender_Smooth.h"
 #endif
 
 #ifndef Z_ZWORLD_STAT_H
