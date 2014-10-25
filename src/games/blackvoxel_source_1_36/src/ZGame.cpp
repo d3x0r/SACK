@@ -496,6 +496,8 @@ bool ZGame::Init_Renderer(ZLog * InitLog)
   InitLog->Log(1, ZLog::INFO, "Starting : Renderer Init");
   //ZRender_Basic Basic_Renderer;
 
+
+  //Basic_Renderer = new ZRender_Basic;
   Basic_Renderer = new ZRender_Smooth;
 
   Basic_Renderer->SetGameEnv(this);
