@@ -58,25 +58,75 @@
 #define ZVOXELBLOCMASK_Y 0x3f
 #define ZVOXELBLOCMASK_Z 0xf
 
-#define DRAWFACE_LEFT   1
-#define DRAWFACE_RIGHT  2
-#define DRAWFACE_AHEAD  4
-#define DRAWFACE_BEHIND 8
-#define DRAWFACE_ABOVE  16
-#define DRAWFACE_BELOW  32
-#define DRAWFACE_ALL    (DRAWFACE_LEFT | DRAWFACE_RIGHT | DRAWFACE_AHEAD | DRAWFACE_BEHIND | DRAWFACE_ABOVE | DRAWFACE_BELOW )
-#define DRAWFACE_NONE   0
-#define DRAWFACE_FLANK  (DRAWFACE_LEFT | DRAWFACE_RIGHT | DRAWFACE_AHEAD | DRAWFACE_BEHIND)
-#define DRAWFACE_UD     (DRAWFACE_ABOVE | DRAWFACE_BELOW)
+// 14 bits requires for position
+// 18 bits left
+// 0x3FFF
+enum FACEDRAW_Operations
+{
+DRAWFACE_LEFT    = 0x00001
+,DRAWFACE_RIGHT  = 0x00002
+,DRAWFACE_AHEAD  = 0x00004
+,DRAWFACE_BEHIND = 0x00008
+,DRAWFACE_ABOVE  = 0x00010
+,DRAWFACE_BELOW  = 0x00020
+,DRAWFACE_LEFT_HAS_ABOVE   = 0x00000400
+,DRAWFACE_LEFT_HAS_BELOW   = 0x00000800
+,DRAWFACE_LEFT_HAS_AHEAD   = 0x00001000
+,DRAWFACE_LEFT_HAS_BEHIND  = 0x00002000
+,DRAWFACE_RIGHT_HAS_ABOVE  = 0x00004000
+,DRAWFACE_RIGHT_HAS_BELOW  = 0x00008000
+,DRAWFACE_RIGHT_HAS_AHEAD  = 0x00010000
+,DRAWFACE_RIGHT_HAS_BEHIND = 0x00020000
+,DRAWFACE_ABOVE_HAS_LEFT   = DRAWFACE_LEFT_HAS_ABOVE
+,DRAWFACE_ABOVE_HAS_RIGHT  = DRAWFACE_RIGHT_HAS_ABOVE
+,DRAWFACE_ABOVE_HAS_AHEAD  = 0x00040000
+,DRAWFACE_ABOVE_HAS_BEHIND = 0x00080000
+,DRAWFACE_BELOW_HAS_LEFT   = DRAWFACE_LEFT_HAS_BELOW
+,DRAWFACE_BELOW_HAS_RIGHT  = DRAWFACE_RIGHT_HAS_BELOW
+,DRAWFACE_BELOW_HAS_AHEAD  = 0x00100000
+,DRAWFACE_BELOW_HAS_BEHIND = 0x00200000
+,DRAWFACE_AHEAD_HAS_LEFT   = DRAWFACE_LEFT_HAS_AHEAD
+,DRAWFACE_AHEAD_HAS_RIGHT  = DRAWFACE_RIGHT_HAS_AHEAD
+,DRAWFACE_AHEAD_HAS_ABOVE  = DRAWFACE_ABOVE_HAS_AHEAD
+,DRAWFACE_AHEAD_HAS_BELOW  = DRAWFACE_BELOW_HAS_AHEAD
+,DRAWFACE_BEHIND_HAS_LEFT  = DRAWFACE_LEFT_HAS_BEHIND
+,DRAWFACE_BEHIND_HAS_RIGHT = DRAWFACE_RIGHT_HAS_BEHIND
+,DRAWFACE_BEHIND_HAS_ABOVE = DRAWFACE_ABOVE_HAS_BEHIND
+,DRAWFACE_BEHIND_HAS_BELOW = DRAWFACE_BELOW_HAS_BEHIND
 
-#define VOXEL_LEFT 0
-#define VOXEL_RIGHT 1
-#define VOXEL_INFRONT 2
-#define VOXEL_BEHIND  3
-#define VOXEL_ABOVE   4
-#define VOXEL_BELOW   5
-#define VOXEL_INCENTER 6
 
+,DRAWFACE_ALL    = (DRAWFACE_LEFT | DRAWFACE_RIGHT | DRAWFACE_AHEAD | DRAWFACE_BEHIND | DRAWFACE_ABOVE | DRAWFACE_BELOW )
+,DRAWFACE_NONE   = 0x00000
+,DRAWFACE_FLANK  = (DRAWFACE_LEFT | DRAWFACE_RIGHT | DRAWFACE_AHEAD | DRAWFACE_BEHIND)
+,DRAWFACE_UD     = (DRAWFACE_ABOVE | DRAWFACE_BELOW)
+,DRAWFACE_ALL_BITS = 0x3FFFFF
+};
+
+enum RelativeVoxelOrds
+{
+    VOXEL_LEFT     //0
+   , VOXEL_RIGHT //1
+   , VOXEL_INFRONT //2
+   , VOXEL_BEHIND  //3
+   , VOXEL_ABOVE   //4
+   , VOXEL_BELOW   //5
+
+   , VOXEL_LEFT_ABOVE //6
+   , VOXEL_RIGHT_ABOVE //7
+   , VOXEL_INFRONT_ABOVE //8
+   , VOXEL_BEHIND_ABOVE  //9
+   , VOXEL_ABOVE_AHEAD   //10
+   , VOXEL_BELOW_AHEAD   //11
+
+   , VOXEL_LEFT_BELOW //12
+   , VOXEL_RIGHT_BELOW //13
+   , VOXEL_INFRONT_BELOW //14
+   , VOXEL_BEHIND_BELOW  //15
+   , VOXEL_ABOVE_BEHIND   //16
+   , VOXEL_BELOW_BEHIND   //17
+
+   , VOXEL_INCENTER //18
+};
 
 class ZVoxelTypeManager;
 class ZLightSpeedRandom;
@@ -141,12 +191,12 @@ class ZVoxelSector : public ZObject
     bool Flag_NeedSortedRendering; // Activate new rendering code for better speed in some zones.
 
     //bool Flag_NeedPartialCulling;
-    UByte PartialCulling;
+	ULong PartialCulling;
 
     // Data stored by block
     ZMemSize DataSize;
     UShort    * Data;
-    UByte     * FaceCulling;
+    ULong     * FaceCulling;
     ZMemSize  * OtherInfos; // Informations autres
     UShort    * TempInfos;  // Température des voxels
     ZObject   * DisplayData;
@@ -169,11 +219,11 @@ protected:
 
     void Compress_Short_RLE(UShort * Data, void * Stream);
     void Compress_OtherInfos_RLE(ZMemSize * Data, UShort * VoxelData, void * Stream);
-    void Compress_FaceCulling_RLE(UByte * Data, void  * Stream);
+    void Compress_FaceCulling_RLE(ULong * Data, void  * Stream);
     void Compress_Temperatures_RLE(UShort * Data, void  * Stream);
 
     bool Decompress_Short_RLE(UShort * Data, void * Stream);
-    bool Decompress_FaceCulling_RLE(UByte * Data, void * Stream);
+    bool Decompress_FaceCulling_RLE(ULong * Data, void * Stream);
     bool Decompress_OtherInfos_RLE(ZMemSize * Data, void * Stream);
     bool Decompress_Temperatures_RLE(UShort * Data, void * Stream);
 public:

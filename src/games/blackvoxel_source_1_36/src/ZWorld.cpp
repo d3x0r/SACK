@@ -272,12 +272,66 @@ void ZVoxelWorld::ProcessNewLoadedSectors()
 
       // Partial face culing for adjacent sectors
 
-      AdjSector = FindSector(Sector->Pos_x-1, Sector->Pos_y, Sector->Pos_z); if (AdjSector) { AdjSector->PartialCulling |= DRAWFACE_LEFT;}
-      AdjSector = FindSector(Sector->Pos_x+1, Sector->Pos_y, Sector->Pos_z); if (AdjSector) { AdjSector->PartialCulling |= DRAWFACE_RIGHT;}
-      AdjSector = FindSector(Sector->Pos_x, Sector->Pos_y, Sector->Pos_z-1); if (AdjSector) { AdjSector->PartialCulling |= DRAWFACE_AHEAD;}
-      AdjSector = FindSector(Sector->Pos_x, Sector->Pos_y, Sector->Pos_z+1); if (AdjSector) { AdjSector->PartialCulling |= DRAWFACE_BEHIND;}
-      AdjSector = FindSector(Sector->Pos_x, Sector->Pos_y-1, Sector->Pos_z); if (AdjSector) { AdjSector->PartialCulling |= DRAWFACE_BELOW;}
-      AdjSector = FindSector(Sector->Pos_x, Sector->Pos_y+1, Sector->Pos_z); if (AdjSector) { AdjSector->PartialCulling |= DRAWFACE_ABOVE;}
+      AdjSector = FindSector(Sector->Pos_x-1, Sector->Pos_y, Sector->Pos_z); 
+	  if (AdjSector) { AdjSector->PartialCulling |= DRAWFACE_LEFT;}
+      AdjSector = FindSector(Sector->Pos_x+1, Sector->Pos_y, Sector->Pos_z); 
+	  if (AdjSector) { AdjSector->PartialCulling |= DRAWFACE_RIGHT;}
+      AdjSector = FindSector(Sector->Pos_x, Sector->Pos_y, Sector->Pos_z-1); 
+	  if (AdjSector) { AdjSector->PartialCulling |= DRAWFACE_AHEAD;}
+      AdjSector = FindSector(Sector->Pos_x, Sector->Pos_y, Sector->Pos_z+1); 
+	  if (AdjSector) { AdjSector->PartialCulling |= DRAWFACE_BEHIND;}
+      AdjSector = FindSector(Sector->Pos_x, Sector->Pos_y-1, Sector->Pos_z); 
+	  if (AdjSector) { AdjSector->PartialCulling |= DRAWFACE_BELOW;}
+      AdjSector = FindSector(Sector->Pos_x, Sector->Pos_y+1, Sector->Pos_z); 
+	  if (AdjSector) { AdjSector->PartialCulling |= DRAWFACE_ABOVE;}
+
+	  // ----   left 
+      AdjSector = FindSector(Sector->Pos_x-1, Sector->Pos_y, Sector->Pos_z-1); 
+	  if (AdjSector) 
+		  Sector->PartialCulling |= DRAWFACE_LEFT_HAS_AHEAD;
+
+      AdjSector = FindSector(Sector->Pos_x-1, Sector->Pos_y, Sector->Pos_z+1); 
+	  if (AdjSector) 
+		  Sector->PartialCulling |= DRAWFACE_LEFT_HAS_BEHIND;
+
+      AdjSector = FindSector(Sector->Pos_x-1, Sector->Pos_y+1, Sector->Pos_z); 
+	  if (AdjSector) 
+		  Sector->PartialCulling |= DRAWFACE_LEFT_HAS_ABOVE;
+
+      AdjSector = FindSector(Sector->Pos_x-1, Sector->Pos_y-1, Sector->Pos_z); 
+	  if (AdjSector) 
+		  Sector->PartialCulling |= DRAWFACE_LEFT_HAS_BELOW;
+
+	  // ----   left 
+      AdjSector = FindSector(Sector->Pos_x+1, Sector->Pos_y, Sector->Pos_z-1); 
+	  if (AdjSector) 
+		  Sector->PartialCulling |= DRAWFACE_RIGHT_HAS_AHEAD;
+
+      AdjSector = FindSector(Sector->Pos_x+1, Sector->Pos_y, Sector->Pos_z+1); 
+	  if (AdjSector) 
+		  Sector->PartialCulling |= DRAWFACE_RIGHT_HAS_BEHIND;
+
+      AdjSector = FindSector(Sector->Pos_x+1, Sector->Pos_y+1, Sector->Pos_z); 
+	  if (AdjSector) 
+		  Sector->PartialCulling |= DRAWFACE_RIGHT_HAS_ABOVE;
+      AdjSector = FindSector(Sector->Pos_x+1, Sector->Pos_y-1, Sector->Pos_z); 
+	  if (AdjSector) 
+		  Sector->PartialCulling |= DRAWFACE_RIGHT_HAS_BELOW;
+
+  	  // ----   below
+	  AdjSector = FindSector(Sector->Pos_x, Sector->Pos_y-1, Sector->Pos_z-1); 
+	  if (AdjSector) 
+		  Sector->PartialCulling |= DRAWFACE_BELOW_HAS_AHEAD;
+      AdjSector = FindSector(Sector->Pos_x, Sector->Pos_y-1, Sector->Pos_z+1); 
+	  if (AdjSector) 
+		  Sector->PartialCulling |= DRAWFACE_BELOW_HAS_BEHIND;
+  	  // ----   above
+      AdjSector = FindSector(Sector->Pos_x, Sector->Pos_y+1, Sector->Pos_z-1); 
+	  if (AdjSector) 
+		  Sector->PartialCulling |= DRAWFACE_ABOVE_HAS_AHEAD;
+      AdjSector = FindSector(Sector->Pos_x, Sector->Pos_y+1, Sector->Pos_z+1); 
+	  if (AdjSector) 
+		  Sector->PartialCulling |= DRAWFACE_ABOVE_HAS_BEHIND;
 
     }
     else { delete Sector; printf("Loading already used sector***\n"); }
@@ -2270,12 +2324,12 @@ UShort IntFaceStateTable[][8] =
 
 bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort VoxelValue, UByte ImportanceFactor, bool CreateExtension, VoxelLocation * Location)
 {
-  UShort * Voxel_Address[7];
-  ULong  Offset[7];
-  UByte * FaceCulling_Address[7];
-  UShort VoxelState[7];
+  UShort * Voxel_Address[19];
+  ULong  Offset[19];
+  ULong * FaceCulling_Address[19];
+  UShort VoxelState[19];
   UShort Voxel;
-  ZVoxelSector * Sector[7];
+  ZVoxelSector * Sector[19];
   ZVoxelType ** VoxelTypeTable;
   ZVoxelType * VoxelType;
 
@@ -2287,13 +2341,25 @@ bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort Voxe
 
   // Fetching sectors
 
+  if ( 0== (Sector[VOXEL_INCENTER]= FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y)     >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) return(false);
   if ( 0== (Sector[VOXEL_LEFT]    = FindSector( (x-1) >> ZVOXELBLOCSHIFT_X , (y)     >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_LEFT]    = this->WorkingScratchSector;
   if ( 0== (Sector[VOXEL_RIGHT]   = FindSector( (x+1) >> ZVOXELBLOCSHIFT_X , (y)     >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_RIGHT]   = this->WorkingScratchSector;
   if ( 0== (Sector[VOXEL_INFRONT] = FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y)     >> ZVOXELBLOCSHIFT_Y , (z-1) >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_INFRONT] = this->WorkingScratchSector;
   if ( 0== (Sector[VOXEL_BEHIND]  = FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y)     >> ZVOXELBLOCSHIFT_Y , (z+1) >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_BEHIND]  = this->WorkingScratchSector;
   if ( 0== (Sector[VOXEL_ABOVE]   = FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y + 1) >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_ABOVE]   = this->WorkingScratchSector;
   if ( 0== (Sector[VOXEL_BELOW]   = FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y - 1) >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_BELOW]   = this->WorkingScratchSector;
-  if ( 0== (Sector[VOXEL_INCENTER]= FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y)     >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) return(false);
+  if ( 0== (Sector[VOXEL_LEFT_ABOVE]    = FindSector( (x-1) >> ZVOXELBLOCSHIFT_X , (y+1)     >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_LEFT_ABOVE]    = this->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_RIGHT_ABOVE]   = FindSector( (x+1) >> ZVOXELBLOCSHIFT_X , (y+1)     >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_RIGHT_ABOVE]   = this->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_INFRONT_ABOVE] = FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y+1)     >> ZVOXELBLOCSHIFT_Y , (z-1) >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_INFRONT_ABOVE] = this->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_BEHIND_ABOVE]  = FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y+1)     >> ZVOXELBLOCSHIFT_Y , (z+1) >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_BEHIND_ABOVE]  = this->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_ABOVE_AHEAD]   = FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y + 1) >> ZVOXELBLOCSHIFT_Y , (z-1)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_ABOVE_AHEAD]   = this->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_BELOW_AHEAD]   = FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y - 1) >> ZVOXELBLOCSHIFT_Y , (z-1)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_BELOW_AHEAD]   = this->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_LEFT_BELOW]    = FindSector( (x-1) >> ZVOXELBLOCSHIFT_X , (y-1)     >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_LEFT_BELOW]    = this->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_RIGHT_BELOW]   = FindSector( (x+1) >> ZVOXELBLOCSHIFT_X , (y-1)     >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_RIGHT_BELOW]   = this->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_INFRONT_BELOW] = FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y-1)     >> ZVOXELBLOCSHIFT_Y , (z-1) >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_INFRONT_BELOW] = this->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_BEHIND_BELOW]  = FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y-1)     >> ZVOXELBLOCSHIFT_Y , (z+1) >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_BEHIND_BELOW]  = this->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_ABOVE_BEHIND]   = FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y + 1) >> ZVOXELBLOCSHIFT_Y , (z+1)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_ABOVE_BEHIND]   = this->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_BELOW_BEHIND]   = FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y - 1) >> ZVOXELBLOCSHIFT_Y , (z+1)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_BELOW_BEHIND]   = this->WorkingScratchSector;
 
   // Computing memory offsets from sector start
 
@@ -2303,20 +2369,38 @@ bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort Voxe
   Offset[VOXEL_BEHIND]   = (y & ZVOXELBLOCMASK_Y)       + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z + 1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
   Offset[VOXEL_ABOVE]    = ((y + 1) & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
   Offset[VOXEL_BELOW]    = ((y - 1) & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_LEFT_ABOVE]     = ((y + 1) & ZVOXELBLOCMASK_Y)       + ( ((x - 1) & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y ) + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_RIGHT_ABOVE]    = ((y + 1) & ZVOXELBLOCMASK_Y)       + ( ((x + 1) & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y ) + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_INFRONT_ABOVE]  = ((y + 1) & ZVOXELBLOCMASK_Y)       + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z - 1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_BEHIND_ABOVE]   = ((y + 1) & ZVOXELBLOCMASK_Y)       + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z + 1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_ABOVE_AHEAD]    = ((y + 1) & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z-1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_BELOW_AHEAD]    = ((y - 1) & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z-1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_LEFT_BELOW]     = ((y - 1) & ZVOXELBLOCMASK_Y)       + ( ((x - 1) & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y ) + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_RIGHT_BELOW]    = ((y - 1) & ZVOXELBLOCMASK_Y)       + ( ((x + 1) & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y ) + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_INFRONT_BELOW]  = ((y - 1) & ZVOXELBLOCMASK_Y)       + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z - 1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_BEHIND_BELOW]   = ((y - 1) & ZVOXELBLOCMASK_Y)       + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z + 1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_ABOVE_BEHIND]    = ((y + 1) & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z+1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_BELOW_BEHIND]    = ((y - 1) & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z+1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
   Offset[VOXEL_INCENTER] = (y & ZVOXELBLOCMASK_Y)       + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
 
   // Computing absolute memory pointer of blocks
-
-  Voxel_Address[VOXEL_LEFT]     = Sector[VOXEL_LEFT]->Data + Offset[VOXEL_LEFT];
+  for( int i = 0; i < 19; i++ )
+  {
+	Voxel_Address[i]     = Sector[i]->Data + Offset[i];
+    FaceCulling_Address[i]     = Sector[i]->FaceCulling + Offset[i];
+    Voxel = *Voxel_Address[i];    VoxelType = VoxelTypeTable[Voxel];
+      VoxelState[i] = ((Voxel==0) ? 1 : 0) | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
+  }
+  /*
   Voxel_Address[VOXEL_RIGHT]    = Sector[VOXEL_RIGHT]->Data + Offset[VOXEL_RIGHT];
   Voxel_Address[VOXEL_INFRONT]  = Sector[VOXEL_INFRONT]->Data + Offset[VOXEL_INFRONT];
   Voxel_Address[VOXEL_BEHIND]   = Sector[VOXEL_BEHIND]->Data + Offset[VOXEL_BEHIND];
   Voxel_Address[VOXEL_ABOVE]    = Sector[VOXEL_ABOVE]->Data + Offset[VOXEL_ABOVE];
   Voxel_Address[VOXEL_BELOW]    = Sector[VOXEL_BELOW]->Data + Offset[VOXEL_BELOW];
   Voxel_Address[VOXEL_INCENTER] = Sector[VOXEL_INCENTER]->Data + Offset[VOXEL_INCENTER];
-
+  */
   // Computing absolute
-
+  /*
   FaceCulling_Address[VOXEL_LEFT]     = Sector[VOXEL_LEFT]->FaceCulling + Offset[VOXEL_LEFT];
   FaceCulling_Address[VOXEL_RIGHT]    = Sector[VOXEL_RIGHT]->FaceCulling + Offset[VOXEL_RIGHT];
   FaceCulling_Address[VOXEL_INFRONT]  = Sector[VOXEL_INFRONT]->FaceCulling + Offset[VOXEL_INFRONT];
@@ -2324,9 +2408,10 @@ bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort Voxe
   FaceCulling_Address[VOXEL_ABOVE]    = Sector[VOXEL_ABOVE]->FaceCulling + Offset[VOXEL_ABOVE];
   FaceCulling_Address[VOXEL_BELOW]    = Sector[VOXEL_BELOW]->FaceCulling + Offset[VOXEL_BELOW];
   FaceCulling_Address[VOXEL_INCENTER] = Sector[VOXEL_INCENTER]->FaceCulling + Offset[VOXEL_INCENTER];
-
+  */
   // Fetching Voxels and computing voxel state
 
+  /*
   Voxel = *Voxel_Address[VOXEL_LEFT];    VoxelType = VoxelTypeTable[Voxel];
     VoxelState[VOXEL_LEFT] = ((Voxel==0) ? 1 : 0) | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
   Voxel = *Voxel_Address[VOXEL_RIGHT];   VoxelType = VoxelTypeTable[Voxel];
@@ -2339,7 +2424,7 @@ bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort Voxe
     VoxelState[VOXEL_ABOVE] = ((Voxel==0) ? 1 : 0) | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
   Voxel = *Voxel_Address[VOXEL_BELOW];   VoxelType = VoxelTypeTable[Voxel];
     VoxelState[VOXEL_BELOW] = ((Voxel==0) ? 1 : 0) | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
-
+  */
   // Delete Old voxel extended informations if any
 
   Voxel = *Voxel_Address[VOXEL_INCENTER];
@@ -2388,21 +2473,38 @@ bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort Voxe
                                          | (IntFaceState[VoxelState[VOXEL_INFRONT]] & DRAWFACE_AHEAD)
                                          | (IntFaceState[VoxelState[VOXEL_BEHIND]]  & DRAWFACE_BEHIND)
                                          | (IntFaceState[VoxelState[VOXEL_ABOVE]]   & DRAWFACE_ABOVE)
-                                         | (IntFaceState[VoxelState[VOXEL_BELOW]]   & DRAWFACE_BELOW);
+                                         | (IntFaceState[VoxelState[VOXEL_BELOW]]   & DRAWFACE_BELOW)
+										 | (IntFaceState[VoxelState[VOXEL_LEFT_ABOVE]]   & DRAWFACE_LEFT_HAS_ABOVE)
+                                         | (IntFaceState[VoxelState[VOXEL_RIGHT_ABOVE]]   & DRAWFACE_RIGHT_HAS_ABOVE)
+                                         | (IntFaceState[VoxelState[VOXEL_INFRONT_ABOVE]] & DRAWFACE_AHEAD_HAS_ABOVE)
+                                         | (IntFaceState[VoxelState[VOXEL_BEHIND_ABOVE]]  & DRAWFACE_BEHIND_HAS_ABOVE)
+                                         | (IntFaceState[VoxelState[VOXEL_ABOVE_AHEAD]]   & DRAWFACE_ABOVE_HAS_AHEAD)
+                                         | (IntFaceState[VoxelState[VOXEL_BELOW_AHEAD]]   & DRAWFACE_BELOW_HAS_AHEAD)
+										 | (IntFaceState[VoxelState[VOXEL_LEFT_BELOW]]   & DRAWFACE_LEFT_HAS_BELOW)
+                                         | (IntFaceState[VoxelState[VOXEL_RIGHT_BELOW]]   & DRAWFACE_RIGHT_HAS_BELOW)
+                                         | (IntFaceState[VoxelState[VOXEL_INFRONT_BELOW]] & DRAWFACE_AHEAD_HAS_BELOW)
+                                         | (IntFaceState[VoxelState[VOXEL_BEHIND_BELOW]]  & DRAWFACE_BEHIND_HAS_BELOW)
+                                         | (IntFaceState[VoxelState[VOXEL_ABOVE_BEHIND]]   & DRAWFACE_ABOVE_HAS_BEHIND)
+                                         | (IntFaceState[VoxelState[VOXEL_BELOW_BEHIND]]   & DRAWFACE_BELOW_HAS_BEHIND)
+										 ;
 
   // Computing face culling for nearboring voxels faces touching center voxel.
 
-  *FaceCulling_Address[VOXEL_LEFT]    &= 255 ^ DRAWFACE_RIGHT;  *FaceCulling_Address[VOXEL_LEFT]    |= ExtFaceState[ VoxelState[VOXEL_LEFT]   ]  & DRAWFACE_RIGHT;
-  *FaceCulling_Address[VOXEL_RIGHT]   &= 255 ^ DRAWFACE_LEFT;   *FaceCulling_Address[VOXEL_RIGHT]   |= ExtFaceState[ VoxelState[VOXEL_RIGHT]  ]  & DRAWFACE_LEFT;
-  *FaceCulling_Address[VOXEL_INFRONT] &= 255 ^ DRAWFACE_BEHIND; *FaceCulling_Address[VOXEL_INFRONT] |= ExtFaceState[ VoxelState[VOXEL_INFRONT]]  & DRAWFACE_BEHIND;
-  *FaceCulling_Address[VOXEL_BEHIND]  &= 255 ^ DRAWFACE_AHEAD;  *FaceCulling_Address[VOXEL_BEHIND]  |= ExtFaceState[ VoxelState[VOXEL_BEHIND] ]  & DRAWFACE_AHEAD;
-  *FaceCulling_Address[VOXEL_ABOVE]   &= 255 ^ DRAWFACE_BELOW;  *FaceCulling_Address[VOXEL_ABOVE]   |= ExtFaceState[ VoxelState[VOXEL_ABOVE]  ]  & DRAWFACE_BELOW;
-  *FaceCulling_Address[VOXEL_BELOW]   &= 255 ^ DRAWFACE_ABOVE;  *FaceCulling_Address[VOXEL_BELOW]   |= ExtFaceState[ VoxelState[VOXEL_BELOW]  ]  & DRAWFACE_ABOVE;
+  *FaceCulling_Address[VOXEL_LEFT]    &= DRAWFACE_ALL_BITS ^ DRAWFACE_RIGHT;  *FaceCulling_Address[VOXEL_LEFT]    |= ExtFaceState[ VoxelState[VOXEL_LEFT]   ]  & DRAWFACE_RIGHT;
+  *FaceCulling_Address[VOXEL_RIGHT]   &= DRAWFACE_ALL_BITS ^ DRAWFACE_LEFT;   *FaceCulling_Address[VOXEL_RIGHT]   |= ExtFaceState[ VoxelState[VOXEL_RIGHT]  ]  & DRAWFACE_LEFT;
+  *FaceCulling_Address[VOXEL_INFRONT] &= DRAWFACE_ALL_BITS ^ DRAWFACE_BEHIND; *FaceCulling_Address[VOXEL_INFRONT] |= ExtFaceState[ VoxelState[VOXEL_INFRONT]]  & DRAWFACE_BEHIND;
+  *FaceCulling_Address[VOXEL_BEHIND]  &= DRAWFACE_ALL_BITS ^ DRAWFACE_AHEAD;  *FaceCulling_Address[VOXEL_BEHIND]  |= ExtFaceState[ VoxelState[VOXEL_BEHIND] ]  & DRAWFACE_AHEAD;
+  *FaceCulling_Address[VOXEL_ABOVE]   &= DRAWFACE_ALL_BITS ^ DRAWFACE_BELOW;  *FaceCulling_Address[VOXEL_ABOVE]   |= ExtFaceState[ VoxelState[VOXEL_ABOVE]  ]  & DRAWFACE_BELOW;
+  *FaceCulling_Address[VOXEL_BELOW]   &= DRAWFACE_ALL_BITS ^ DRAWFACE_ABOVE;  *FaceCulling_Address[VOXEL_BELOW]   |= ExtFaceState[ VoxelState[VOXEL_BELOW]  ]  & DRAWFACE_ABOVE;
 
   // printf("State[Center]:%x [Left]%x [Right]%x [INFRONT]%x [BEHIND]%x [ABOVE]%x [BELOW]%x\n",VoxelState[VOXEL_INCENTER],VoxelState[VOXEL_LEFT],VoxelState[VOXEL_RIGHT],VoxelState[VOXEL_INFRONT],VoxelState[VOXEL_BEHIND],VoxelState[VOXEL_ABOVE],VoxelState[VOXEL_BELOW]);
 
   // Updating sector status rendering flag status
-
+  for( int i = 0; i < 19; i++ )
+  {
+	Sector[i]->Flag_Render_Dirty = true;
+  }
+  /*
   Sector[VOXEL_INCENTER]->Flag_Render_Dirty = true;
   Sector[VOXEL_LEFT    ]->Flag_Render_Dirty = true;
   Sector[VOXEL_RIGHT   ]->Flag_Render_Dirty = true;
@@ -2410,6 +2512,8 @@ bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort Voxe
   Sector[VOXEL_BEHIND  ]->Flag_Render_Dirty = true;
   Sector[VOXEL_ABOVE   ]->Flag_Render_Dirty = true;
   Sector[VOXEL_BELOW   ]->Flag_Render_Dirty = true;
+  */
+
   //Sector[VOXEL_INCENTER]->Flag_Void_Regular = false;
   //Sector[VOXEL_LEFT    ]->Flag_Void_Regular = false;
   //Sector[VOXEL_RIGHT   ]->Flag_Void_Regular = false;
@@ -2521,7 +2625,7 @@ ULong ZVoxelWorld::SectorUpdateFaceCulling_Partial(Long x, Long y, Long z, UByte
   ULong i, CuledFaces;
   ULong Off_Ip, Off_In, Off_Op , Off_Out, Off_Aux;
   UShort * VoxelData_In, * VoxelData_Out;
-  UByte  * VoxelFC_In;
+  ULong * VoxelFC_In;
 
   UByte FaceState;
 
@@ -3119,6 +3223,7 @@ bool ZVoxelWorld::RayCast_Vector_special(const ZVector3d & Pos, const ZVector3d 
     Collision_h.x += Offset_h.x; Collision_h.y += Offset_h.y; Collision_h.z += Offset_h.z; Collision_h.w += Offset_h.w;
     if (Collide_Y)
     Collision_v.x += Offset_v.x; Collision_v.y += Offset_v.y; Collision_v.z += Offset_v.z; Collision_v.w += Offset_v.w;
+	if( Collide_Z )
     Collision_s.x += Offset_s.x; Collision_s.y += Offset_s.y; Collision_s.z += Offset_s.z; Collision_s.w += Offset_s.w;
     Cycle ++;
     if (DeferArmed) Armed = true;

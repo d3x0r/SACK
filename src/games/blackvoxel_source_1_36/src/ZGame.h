@@ -520,7 +520,7 @@ class ZGame
   {
     ZVector3L VoxelCoords, Vx;
     VoxelLocation Loc;
-    ZVector3d * Location, NewLocation;
+    ZVector3d  NewLocation;
 
     if (ShipCenter.x == 0 && ShipCenter.y == 0 && ShipCenter.z == 0) return;
     VoxelCoords = ShipCenter;

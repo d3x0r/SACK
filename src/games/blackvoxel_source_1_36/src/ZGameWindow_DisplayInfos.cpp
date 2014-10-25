@@ -59,11 +59,11 @@ void ZGameWindow_DisplayInfos::Show()
    // Inventory main title
 
   Infos2.SetStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_1));
-  Infos2.SetDisplayText(Text_Infos.String);
+  Infos2.SetDisplayText(Text_Infos2.String);
   Infos2.SetPosition(10.0f,20.0f);
   Infos2.SetSize(MainWindow_Size.x, MainWindow_Size.y);
   Infos2.SetColor(255.0f,255.0f,255.0f);
-  MainWindow.AddFrame(&Infos);
+  MainWindow.AddFrame(&Infos2);
 
   Flag_Shown = true;
 }

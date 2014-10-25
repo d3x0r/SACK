@@ -85,7 +85,7 @@ class ZGameWindow_DisplayInfos
   void SetText2(ZString * TextToDisplay)
   {
     this->Text_Infos2 = *TextToDisplay;
-    Infos.SetDisplayText(Text_Infos2.String);
+    Infos2.SetDisplayText(Text_Infos2.String);
   }
 
   void Hide();

@@ -66,7 +66,7 @@ ZVoxelSector::ZVoxelSector() : ModifTracker(ZVOXELBLOCSIZE_X * ZVOXELBLOCSIZE_Y 
   DataSize = Size_x * Size_y * Size_z;
   DisplayData = 0;
   Data        = new UShort[DataSize];
-  FaceCulling = new UByte [DataSize];
+  FaceCulling = new ULong [DataSize];
   OtherInfos  = new ZMemSize[DataSize];
   TempInfos   = new UShort[DataSize];
 
@@ -88,7 +88,7 @@ ZVoxelSector::ZVoxelSector( const ZVoxelSector &Sector)
   DataSize = Sector.Size_x * Sector.Size_y * Sector.Size_z;
 
   Data        = new UShort[DataSize];
-  FaceCulling = new UByte [DataSize];
+  FaceCulling = new ULong [DataSize];
   OtherInfos  = new ZMemSize[DataSize];
   TempInfos   = new UShort[DataSize];
 
@@ -145,7 +145,7 @@ ZVoxelSector::ZVoxelSector(Long Size_x, Long Size_y, Long Size_z)
   if (DataSize>0)
   {
     Data        = new UShort[DataSize];
-    FaceCulling = new UByte [DataSize];
+    FaceCulling = new ULong [DataSize];
     OtherInfos  = new ZMemSize [DataSize];
     TempInfos   = new UShort[DataSize];
   }
@@ -186,7 +186,7 @@ void ZVoxelSector::ChangeSize(Long Size_x, Long Size_y, Long Size_z)
   DisplayData = 0;
 
   Data        = new UShort[DataSize];
-  FaceCulling = new UByte [DataSize];
+  FaceCulling = new ULong [DataSize];
   OtherInfos  = new ZMemSize [DataSize];
   TempInfos   = new UShort[DataSize];
 
@@ -961,7 +961,7 @@ void ZVoxelSector::Compress_OtherInfos_RLE(ZMemSize * Data, UShort * VoxelData, 
   }
 }
 
-void ZVoxelSector::Compress_FaceCulling_RLE(UByte * Data, void  * Stream)
+void ZVoxelSector::Compress_FaceCulling_RLE(ULong * Data, void  * Stream)
 {
   ZStream_SpecialRamStream * Rs = (ZStream_SpecialRamStream *)Stream;
   UByte MagicToken = 0xFF;
@@ -1089,7 +1089,7 @@ bool ZVoxelSector::Decompress_Short_RLE(UShort * Data, void * Stream)
   return(true);
 }
 
-bool ZVoxelSector::Decompress_FaceCulling_RLE(UByte * Data, void * Stream)
+bool ZVoxelSector::Decompress_FaceCulling_RLE(ULong * Data, void * Stream)
 {
   ZStream_SpecialRamStream * Rs = (ZStream_SpecialRamStream *)Stream;
   UByte MagicToken = 0xFF;
