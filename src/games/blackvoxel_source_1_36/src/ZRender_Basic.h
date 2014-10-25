@@ -48,7 +48,8 @@
 extern GLuint TextureName[1024];
 
 
-/*
+
+#if 0
 class ZRender_basic_displaydata : public ZObject
 {
   public:
@@ -71,13 +72,13 @@ class ZRender_basic_displaydata : public ZObject
     }
 
 };
-*/
+#endif
 
 class ZGame;
 
 class ZRender_Basic : public ZRender_Interface
 {
-	/*
+#if 0
   protected:
     ZVoxelWorld * World;
     ZVoxelTypeManager * VoxelTypeManager;
@@ -129,7 +130,7 @@ class ZRender_Basic : public ZRender_Interface
     bool  BvProp_DisplayVoxelSelector;
 
     ZRender_Sorter RenderSorter;
-	*/
+#endif
 public:
     ZRender_Basic()
     {
@@ -187,9 +188,6 @@ public:
 
     void Render_DebugLine       ( ZVector3d & Start, ZVector3d & End);
     void Render_VoxelSelector   (ZVoxelCoords * SelectedVoxel, float r, float g, float b);
-	void EmitFaces				( ZVoxelType ** VoxelTypeTable, UShort &VoxelType, UShort &prevVoxelType, ULong info
-							  , Long x, Long y, Long z
-							  , Long Sector_Display_x, Long Sector_Display_y, Long Sector_Display_z );
 #endif
 private:
     void MakeSectorRenderingData(ZVoxelSector * Sector);

@@ -48,10 +48,7 @@ void ZRender_Basic::SetCamera( ZCamera * Camera )
 void ZRender_Basic::SetActor( ZActor * Actor )
 {
   this->Actor = Actor;
-  if( Actor )
-	this->Camera = &Actor->Camera;
-  else
-	  this->Camera = NULL;
+  this->Camera = &Actor->Camera;
 }
 
 void ZRender_Basic::SetVoxelTypeManager( ZVoxelTypeManager * Manager )
@@ -190,8 +187,8 @@ void ZRender_Basic::Render_VoxelSelector(ZVoxelCoords * SelectedVoxel, float r, 
         glEnable(GL_TEXTURE_2D);
 
 }
-
 #endif
+
 
 void ZRender_Basic::Render()
 {
@@ -418,7 +415,7 @@ void ZRender_Basic::Render()
             if (   Sector->Flag_IsVisibleAtLastRendering
                 && (!Sector->Flag_Void_Regular)
                 && (Sector->DisplayData != 0)
-				&& (((ZRender_Interface_displaydata *)Sector->DisplayData)->DisplayList_Regular != 0)
+                && (((ZRender_Interface_displaydata *)Sector->DisplayData)->DisplayList_Regular != 0)
                 )
               {
 
@@ -768,6 +765,7 @@ void ZRender_Basic::RenderSector2(ZVoxelSector * Sector)
   }
 }
 */
+#if 0
 Bool ZRender_Basic::LoadVoxelTexturesToGPU()
 {
   ULong i;
@@ -886,769 +884,7 @@ Bool ZRender_Basic::LoadTexturesToGPU()
 
   return(true);
 }
-
-
-#define TC_S0_P0_X 0.0
-#define TC_S0_P0_Y       0.25
-#define TC_S0_P4_X 0.25
-#define TC_S0_P4_Y       0.25
-#define TC_S0_P5_X 0.25   
-#define TC_S0_P5_Y       0.50
-#define TC_S0_P1_X 0.0
-#define TC_S0_P1_Y       0.50
-#define TC_S1_P0_X 0.25
-#define TC_S1_P0_Y 0.0
-#define TC_S1_P3_X 0.50
-#define TC_S1_P3_Y 0.0
-#define TC_S1_P7_X 0.50
-#define TC_S1_P7_Y 0.25
-#define TC_S1_P4_X 0.25
-#define TC_S1_P4_Y 0.25
-#define TC_S2_P2_X 0.50
-#define TC_S2_P2_Y 0.75
-#define TC_S2_P6_X 0.50 
-#define TC_S2_P6_Y 0.50
-#define TC_S2_P5_X 0.25
-#define TC_S2_P5_Y 0.50
-#define TC_S2_P1_X 0.25 
-#define TC_S2_P1_Y 0.75
-#define TC_S3_P7_X 0.50
-#define TC_S3_P7_Y 0.25
-#define TC_S3_P3_X 0.75
-#define TC_S3_P3_Y 0.25
-#define TC_S3_P2_X 0.75
-#define TC_S3_P2_Y 0.50
-#define TC_S3_P6_X 0.50
-#define TC_S3_P6_Y 0.50
-#define TC_S4_P4_X 0.25
-#define TC_S4_P4_Y 0.25
-#define TC_S4_P7_X 0.50
-#define TC_S4_P7_Y 0.25
-#define TC_S4_P6_X 0.50
-#define TC_S4_P6_Y 0.50
-#define TC_S4_P5_X 0.25
-#define TC_S4_P5_Y 0.50
-#define TC_S5_P0_X 1.0
-#define TC_S5_P0_Y 0.25
-#define TC_S5_P1_X 1.0
-#define TC_S5_P1_Y 0.50
-#define TC_S5_P2_X 0.75
-#define TC_S5_P2_Y 0.50
-#define TC_S5_P3_X 0.75
-#define TC_S5_P3_Y 0.25
-//		glTRI( 5,0,1,2,3 );
-#define glTRI_normal(s,a,b,c,d)             glTexCoord2f(TC_S##s##_P##a##_X,TC_S##s##_P##a##_Y); glVertex3f(P##a.x, P##a.y, P##a.z );  \
-	glTexCoord2f(TC_S##s##_P##b##_X,TC_S##s##_P##b##_Y);  glVertex3f(P##b.x, P##b.y, P##b.z );        \
-	glTexCoord2f(TC_S##s##_P##d##_X,TC_S##s##_P##d##_Y);  glVertex3f(P##d.x, P##d.y, P##d.z );        \
-           glTexCoord2f(TC_S##s##_P##d##_X,TC_S##s##_P##d##_Y);  glVertex3f(P##d.x, P##d.y, P##d.z ); \
-           glTexCoord2f(TC_S##s##_P##b##_X,TC_S##s##_P##b##_Y); glVertex3f(P##b.x, P##b.y, P##b.z );  \
-		   glTexCoord2f(TC_S##s##_P##c##_X,TC_S##s##_P##c##_Y); glVertex3f(P##c.x, P##c.y, P##c.z );
-
-#define glTRI_except(s,a,b,c,d,e,f,g,h)             glTexCoord2f(TC_S##s##_P##a##_X,TC_S##s##_P##a##_Y); glVertex3f(P##e.x, P##e.y, P##e.z );  \
-	glTexCoord2f(TC_S##s##_P##b##_X,TC_S##s##_P##b##_Y);  glVertex3f(P##f.x, P##f.y, P##f.z );        \
-	glTexCoord2f(TC_S##s##_P##d##_X,TC_S##s##_P##d##_Y);  glVertex3f(P##h.x, P##h.y, P##h.z );        \
-           glTexCoord2f(TC_S##s##_P##d##_X,TC_S##s##_P##d##_Y);  glVertex3f(P##h.x, P##h.y, P##h.z ); \
-           glTexCoord2f(TC_S##s##_P##b##_X,TC_S##s##_P##b##_Y); glVertex3f(P##f.x, P##f.y, P##f.z );  \
-		   glTexCoord2f(TC_S##s##_P##c##_X,TC_S##s##_P##c##_Y); glVertex3f(P##g.x, P##g.y, P##g.z );
-
-void ZRender_Basic::EmitFaces( ZVoxelType ** VoxelTypeTable, UShort &VoxelType, UShort &prevVoxelType, ULong info
-							  , Long x, Long y, Long z
-							  , Long Sector_Display_x, Long Sector_Display_y, Long Sector_Display_z )
-{
-  ZVector3f P0,P1,P2,P3,P4,P5,P6,P7;
-  float cubx, cuby, cubz;
-	        // Offset = y + ( x << ZVOXELBLOCSHIFT_Y )+ (z << (ZVOXELBLOCSHIFT_Y + ZVOXELBLOCSHIFT_X));
-
-        // glTexEnvf(0x8500 /* TEXTURE_FILTER_CONTROL_EXT */, 0x8501 /* TEXTURE_LOD_BIAS_EXT */,VoxelTypeManager->VoxelTable[VoxelType]->TextureLodBias);
-        if (VoxelType != prevVoxelType) glBindTexture(GL_TEXTURE_2D, VoxelTypeManager->VoxelTable[VoxelType]->OpenGl_TextureRef);
-        prevVoxelType = VoxelType;
-        cubx = (float)(x*GlobalSettings.VoxelBlockSize + Sector_Display_x);
-        cuby = (float)(y*GlobalSettings.VoxelBlockSize + Sector_Display_y);
-        cubz = (float)(z*GlobalSettings.VoxelBlockSize + Sector_Display_z);
-
-        if (VoxelTypeTable[VoxelType]->DrawInfo & ZVOXEL_DRAWINFO_SPECIALRENDERING ) 
-		{
-			VoxelTypeTable[VoxelType]->SpecialRender(cubx,cuby,cubz); 
-			return; 
-		}
-
-        P0.x = cubx;           P0.y = cuby;          P0.z = cubz;
-        P1.x = cubx + GlobalSettings.VoxelBlockSize;  P1.y = cuby;          P1.z = cubz;
-        P2.x = cubx + GlobalSettings.VoxelBlockSize;  P2.y = cuby;          P2.z = cubz+GlobalSettings.VoxelBlockSize;
-        P3.x = cubx;           P3.y = cuby;          P3.z = cubz+GlobalSettings.VoxelBlockSize;
-        P4.x = cubx;           P4.y = cuby + GlobalSettings.VoxelBlockSize; P4.z = cubz;
-        P5.x = cubx + GlobalSettings.VoxelBlockSize;  P5.y = cuby + GlobalSettings.VoxelBlockSize; P5.z = cubz;
-        P6.x = cubx + GlobalSettings.VoxelBlockSize;  P6.y = cuby + GlobalSettings.VoxelBlockSize; P6.z = cubz + GlobalSettings.VoxelBlockSize;
-        P7.x = cubx;           P7.y = cuby + GlobalSettings.VoxelBlockSize; P7.z = cubz + GlobalSettings.VoxelBlockSize;
-
-
-		// if it's otherwise entirely covered...
-	  if( !( info & ( DRAWFACE_ALL ) )
-		 &&( !( info & ( DRAWFACE_BEHIND_HAS_ABOVE | DRAWFACE_LEFT_HAS_ABOVE ) )
-		 || !( info & ( DRAWFACE_AHEAD_HAS_ABOVE | DRAWFACE_LEFT_HAS_ABOVE ) )
-		 || !( info & ( DRAWFACE_BEHIND_HAS_ABOVE | DRAWFACE_RIGHT_HAS_ABOVE ) )
-		 || !( info & ( DRAWFACE_AHEAD_HAS_ABOVE | DRAWFACE_RIGHT_HAS_ABOVE ) ) )
-		  )
-	  {
-		  //info |= DRAWFACE_ABOVE;
-	  }
-
-#if 1
-			  if( ( info & DRAWFACE_ALL ) == (DRAWFACE_LEFT|DRAWFACE_ABOVE|DRAWFACE_AHEAD ) )
-			  {
-				  if( info & ( DRAWFACE_BELOW_HAS_LEFT | DRAWFACE_BELOW_HAS_AHEAD ) )
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						
-						glBegin(GL_TRIANGLES);
-							glTRI_except( 4, 4, 7, 6, 5, 0, 3, 6, 1 );
-						glEnd();
-						
-						Stat_FaceTop++;
-				  }
-				  else
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.25); glVertex3f(P3.x, P3.y, P3.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P6.x, P6.y, P6.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P1.x, P1.y, P1.z );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-			  }
-			  else if( ( info & DRAWFACE_ALL ) == (DRAWFACE_LEFT|DRAWFACE_BELOW|DRAWFACE_AHEAD ) )
-			  {
-				  if( info & ( DRAWFACE_ABOVE_HAS_LEFT | DRAWFACE_ABOVE_HAS_AHEAD ) )
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-							glTRI_except( 5, 0, 1, 2, 3, 4, 5, 2, 7 );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-				  else
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.25); glVertex3f(P7.x, P7.y, P7.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P5.x, P6.y, P5.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P2.x, P1.y, P2.z );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-			  }
-			  else if( ( info & DRAWFACE_ALL ) == (DRAWFACE_RIGHT|DRAWFACE_ABOVE|DRAWFACE_AHEAD ) )
-			  {
-				  if( info & ( DRAWFACE_BELOW_HAS_RIGHT | DRAWFACE_BELOW_HAS_AHEAD ) )
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-							glTRI_except( 4, 4, 7, 6, 5, 0, 7, 2, 1 );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-				  else
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.25); glVertex3f(P7.x, P7.y, P7.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P2.x, P2.y, P2.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-			  }
-			  else if( ( info & DRAWFACE_ALL ) == (DRAWFACE_RIGHT|DRAWFACE_BELOW|DRAWFACE_AHEAD ) )
-			  {
-				  if( info & ( DRAWFACE_ABOVE_HAS_LEFT | DRAWFACE_ABOVE_HAS_AHEAD ) )
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-	  							glTRI_except( 5, 0, 1, 2, 3, 0, 5, 6, 3 );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-				  else
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P4.x, P4.y, P4.z );
-						  glTexCoord2f(0.25,0.25); glVertex3f(P6.x, P6.y, P6.z );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-			  }
-			  else if( ( info & DRAWFACE_ALL ) == (DRAWFACE_LEFT|DRAWFACE_ABOVE|DRAWFACE_BEHIND ) )
-			  {
-				  if( info & ( DRAWFACE_BELOW_HAS_LEFT | DRAWFACE_BELOW_HAS_BEHIND ) )
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-	  					  glTRI_except( 4, 4, 7, 6, 5, 0, 3, 2, 5 );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-				  else if( info & ( DRAWFACE_BELOW_HAS_AHEAD  ) )
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-	  					  glTRI_except( 4, 4, 7, 6, 5, 4, 0, 2, 5 );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-				  else
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.25); glVertex3f(P0.x, P0.y, P0.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P2.x, P2.y, P2.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P5.x, P5.y, P5.z );
-						glEnd();
-				  }
-						Stat_FaceTop++;
-			  }
-			  else if( ( info & DRAWFACE_ALL ) == (DRAWFACE_LEFT|DRAWFACE_BELOW|DRAWFACE_BEHIND ) )
-			  {
-				  if( info & ( DRAWFACE_BELOW_HAS_LEFT | DRAWFACE_BELOW_HAS_BEHIND ) )
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-	  					  glTRI_except( 5, 0, 1, 2, 3, 4, 1, 6, 7 );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-				  else
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.25); glVertex3f(P1.x, P1.y, P1.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P6.x, P6.y, P6.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P4.x, P4.y, P4.z );
-						glEnd();
-
-					Stat_FaceTop++;
-				  }
-			  }
-			  else if( ( info & DRAWFACE_ALL ) == (DRAWFACE_RIGHT|DRAWFACE_ABOVE|DRAWFACE_BEHIND ) )
-			  {
-				  if( info & ( DRAWFACE_BELOW_HAS_LEFT | DRAWFACE_BELOW_HAS_BEHIND ) )
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-	  					  glTRI_except( 4, 4, 7, 6, 5, 4, 3, 2, 1 );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-				  else
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.25); glVertex3f(P4.x, P4.y, P4.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P1.x, P1.y, P1.z );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-			  }
-			  else if( ( info & DRAWFACE_ALL ) == (DRAWFACE_RIGHT|DRAWFACE_BELOW|DRAWFACE_BEHIND ) )
-			  {
-				  if( info & ( DRAWFACE_BELOW_HAS_LEFT | DRAWFACE_BELOW_HAS_BEHIND ) )
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-	  					  glTRI_except( 5, 0, 1, 2, 3, 0, 5, 6, 7 );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-				  else
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P5.x, P5.y, P5.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P7.x, P7.y, P7.z );
-						  glTexCoord2f(0.25,0.25); glVertex3f(P0.x, P0.y, P0.z );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-			  }
-			  else 
 #endif
-#if 1
-			  if( ( info & DRAWFACE_ALL ) == (DRAWFACE_LEFT|DRAWFACE_ABOVE ) )
-			  {
-				  if( ( info & (DRAWFACE_AHEAD_HAS_ABOVE|DRAWFACE_ABOVE_HAS_LEFT|DRAWFACE_BEHIND_HAS_ABOVE|DRAWFACE_BELOW_HAS_LEFT) ) 
-					  == (DRAWFACE_AHEAD_HAS_ABOVE|DRAWFACE_ABOVE_HAS_LEFT|DRAWFACE_BEHIND_HAS_ABOVE|DRAWFACE_BELOW_HAS_LEFT) )
-				  {
-					  goto default_draw;
-				  }
-				  else if( ( info & (DRAWFACE_AHEAD_HAS_ABOVE|DRAWFACE_AHEAD_HAS_LEFT) ) == (DRAWFACE_AHEAD_HAS_ABOVE|DRAWFACE_AHEAD_HAS_LEFT) )
-				  {
-					glBegin(GL_TRIANGLES);
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P4.x, P4.y, P4.z );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P5.x, P5.y, P5.z );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P4.x, P4.y, P4.z );
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P6.x, P6.y, P6.z );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P5.x, P5.y, P5.z );
-
-						glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-						glTexCoord2f(0.25,0.25); glVertex3f(P6.x, P6.y, P6.z );
-					glEnd();
-				  }
-				  else if( ( info & (DRAWFACE_BEHIND_HAS_ABOVE|DRAWFACE_BEHIND_HAS_LEFT) ) == (DRAWFACE_BEHIND_HAS_ABOVE|DRAWFACE_BEHIND_HAS_LEFT) )
-				  {
-					glBegin(GL_TRIANGLES);
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P4.x, P4.y, P4.z );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P5.x, P5.y, P5.z );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P4.x, P4.y, P4.z );
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P6.x, P6.y, P6.z );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P5.x, P5.y, P5.z );
-
-						glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-						glTexCoord2f(0.25,0.25); glVertex3f(P6.x, P6.y, P6.z );
-					glEnd();
-				  }
-				  else 
-				  
-				  {
-
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-   						  glTRI_except( 4,4,7,6,5,0,3,6,5 );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-			  }
-              else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_RIGHT|DRAWFACE_ABOVE ) )
-			  {
-				  if( ( ( info & (DRAWFACE_AHEAD_HAS_ABOVE|DRAWFACE_AHEAD_HAS_RIGHT|DRAWFACE_BEHIND_HAS_ABOVE|DRAWFACE_BEHIND_HAS_RIGHT) )
-					  == (DRAWFACE_AHEAD_HAS_ABOVE|DRAWFACE_AHEAD_HAS_RIGHT|DRAWFACE_BEHIND_HAS_ABOVE|DRAWFACE_BEHIND_HAS_RIGHT) ) )
-				  {
-					  goto default_draw;
-				  }
-				  else if( ( info & (DRAWFACE_AHEAD_HAS_ABOVE|DRAWFACE_AHEAD_HAS_RIGHT) ) == (DRAWFACE_AHEAD_HAS_ABOVE|DRAWFACE_AHEAD_HAS_RIGHT) )
-				  {
-					glBegin(GL_TRIANGLES);
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P4.x, P4.y, P4.z );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P5.x, P5.y, P5.z );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P4.x, P4.y, P4.z );
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P6.x, P6.y, P6.z );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P5.x, P5.y, P5.z );
-
-						glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-						glTexCoord2f(0.25,0.25); glVertex3f(P6.x, P6.y, P6.z );
-					glEnd();
-				  }
-				  else if( ( info & (DRAWFACE_BEHIND_HAS_ABOVE|DRAWFACE_BEHIND_HAS_RIGHT) ) == (DRAWFACE_BEHIND_HAS_ABOVE|DRAWFACE_BEHIND_HAS_RIGHT) )
-				  {
-					glBegin(GL_TRIANGLES);
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P4.x, P4.y, P4.z );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P5.x, P5.y, P5.z );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P4.x, P4.y, P4.z );
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P6.x, P6.y, P6.z );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P5.x, P5.y, P5.z );
-
-						glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-						glTexCoord2f(0.25,0.25); glVertex3f(P6.x, P6.y, P6.z );
-					glEnd();
-				  }
-				  else 
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-   						  glTRI_except( 4,4,7,6,5,4,7,2,1 );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-			  }
-			  else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_AHEAD|DRAWFACE_ABOVE ) )
-			  {
-                Stat_RenderDrawFaces++;
-				Stat_FaceFront++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.25); glVertex3f(P0.x, P0.y, P0.z );
-                  glTexCoord2f(0.25,0.0);  glVertex3f(P7.x, P7.y, P7.z );
-                  glTexCoord2f(0.50,0.0);  glVertex3f(P6.x, P6.y, P6.z );
-                  glTexCoord2f(0.50,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-                  glTexCoord2f(0.50,0.25); glVertex3f(P6.x, P6.y, P6.z );
-                  glTexCoord2f(0.25,0.25); glVertex3f(P1.x, P1.y, P1.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else 
-#endif
-				  if( ( info & DRAWFACE_ALL )  == (DRAWFACE_BEHIND|DRAWFACE_ABOVE ) )
-			  {
-				  if( info & ( DRAWFACE_LEFT_HAS_ABOVE | DRAWFACE_LEFT_HAS_BEHIND ) )
-				  {
-					  if( info & ( DRAWFACE_RIGHT_HAS_ABOVE | DRAWFACE_RIGHT_HAS_BEHIND ) )
-						  goto default_draw;
-						Stat_RenderDrawFaces++;
-						Stat_FaceRight++;
-						glBegin(GL_TRIANGLES);
-
-						  glTexCoord2f(0.50,0.50);  glVertex3f(P3.x, P3.y, P3.z );
-						  glTexCoord2f(0.25,0.50); glVertex3f(P2.x, P2.y, P2.z );
-						  glTexCoord2f(0.50,0.75);  glVertex3f(P6.x, P6.y, P6.z );
-						  glTexCoord2f(0.50,0.50);  glVertex3f(P4.x, P4.y, P4.z );
-						  glTexCoord2f(0.25,0.50); glVertex3f(P3.x, P3.y, P3.z );
-						  glTexCoord2f(0.50,0.75);  glVertex3f(P6.x, P6.y, P6.z );
-						  glTexCoord2f(0.25,0.75); glVertex3f(P4.x, P4.y, P4.z );
-						  glTexCoord2f(0.50,0.75);  glVertex3f(P6.x, P6.y, P6.z );
-						  glTexCoord2f(0.25,0.50); glVertex3f(P5.x, P5.y, P5.z );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-				  else 	if( info & ( DRAWFACE_RIGHT_HAS_ABOVE | DRAWFACE_RIGHT_HAS_BEHIND ) )
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceRight++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.50,0.50);  glVertex3f(P3.x, P3.y, P3.z );
-						  glTexCoord2f(0.25,0.50); glVertex3f(P2.x, P2.y, P2.z );
-						  glTexCoord2f(0.50,0.75);  glVertex3f(P6.x, P6.y, P6.z );
-						  glTexCoord2f(0.50,0.50);  glVertex3f(P4.x, P4.y, P4.z );
-						  glTexCoord2f(0.25,0.50); glVertex3f(P3.x, P3.y, P3.z );
-						  glTexCoord2f(0.50,0.75);  glVertex3f(P6.x, P6.y, P6.z );
-						  glTexCoord2f(0.25,0.75); glVertex3f(P4.x, P4.y, P4.z );
-						  glTexCoord2f(0.50,0.75);  glVertex3f(P6.x, P6.y, P6.z );
-						  glTexCoord2f(0.25,0.50); glVertex3f(P5.x, P5.y, P5.z );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-				  else
-				  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceRight++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P3.x, P3.y, P3.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P5.x, P5.y, P5.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                glEnd();
-
-                Stat_FaceTop++;
-				  }
-			  }
-#if 1
-              else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_LEFT|DRAWFACE_BELOW ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceLeft++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P7.x, P7.y, P7.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P1.x, P1.y, P1.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_RIGHT|DRAWFACE_BELOW ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceLeft++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.50); glVertex3f(P3.x, P3.y, P3.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P5.x, P5.y, P5.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P6.x, P6.y, P6.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P3.x, P3.y, P3.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P0.x, P0.y, P0.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P5.x, P5.y, P5.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_AHEAD|DRAWFACE_BELOW ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceFront++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P3.x, P3.y, P3.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P5.x, P5.y, P5.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_BEHIND|DRAWFACE_BELOW ) )
-			  {
-                Stat_RenderDrawFaces++;
-				Stat_FaceBack++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.50); glVertex3f(P7.x, P7.y, P7.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P0.x, P0.y, P0.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P6.x, P6.y, P6.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P1.x, P1.y, P1.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P0.x, P0.y, P0.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P6.x, P6.y, P6.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_LEFT|DRAWFACE_AHEAD ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceLeft++;
-                glBegin(GL_TRIANGLES);
-				glTRI_except( 1, 0, 3, 7, 4, 1, 3, 7, 5 );
-                glEnd();
-                Stat_FaceTop++;
-
-			  }
-              else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_RIGHT|DRAWFACE_AHEAD ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceLeft++;
-                glBegin(GL_TRIANGLES);
-				glTRI_except( 2, 6, 2, 1, 5, 6, 2, 0, 4 );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_LEFT|DRAWFACE_BEHIND ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceLeft++;
-                glBegin(GL_TRIANGLES);
-				glTRI_except( 1, 0, 3, 7, 4, 0, 2, 6, 4 );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_RIGHT|DRAWFACE_BEHIND ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceLeft++;
-                glBegin(GL_TRIANGLES);
-				glTRI_except( 2, 6, 2, 1, 5, 7, 3, 1, 5 );
-                glEnd();
-
-                Stat_FaceTop++;
-
-	}
-#endif
-    else 
-	{
-	default_draw:
-				//Left
-				if (info & DRAWFACE_LEFT)
-				{
-				  Stat_RenderDrawFaces++;
-				  Stat_FaceLeft++;
-				  glBegin(GL_TRIANGLES);
-					glTRI_normal( 1,0,3,7,4 );
-				  glEnd();
-				}
-
-				// Right
-				if (info & DRAWFACE_RIGHT)
-				{
-				  Stat_RenderDrawFaces++;
-				  Stat_FaceRight++;
-				  glBegin(GL_TRIANGLES);
-					glTRI_normal( 2,6,2,1,5 );
-				  glEnd();
-				}
-
-				//Front
-				if (info & DRAWFACE_AHEAD)
-				{
-				  Stat_RenderDrawFaces++;
-				  Stat_FaceFront++;
-				  glBegin(GL_TRIANGLES);
-					glTRI_normal( 0,4,5,1,0 );
-				  glEnd();
-				}
-
-				//Back
-				if (info & DRAWFACE_BEHIND)
-				{
-				  Stat_RenderDrawFaces++;
-				  Stat_FaceBack++;
-				  glBegin(GL_TRIANGLES);
-					glTRI_normal( 3,2,6,7,3 );
-				  glEnd();
-				}
-
-				// Top
-				if (info & DRAWFACE_ABOVE)
-				{
-					if( ( ( info & ( DRAWFACE_LEFT_HAS_ABOVE | DRAWFACE_RIGHT_HAS_ABOVE | DRAWFACE_AHEAD_HAS_ABOVE | DRAWFACE_BEHIND_HAS_ABOVE ) )
-						== ( DRAWFACE_LEFT_HAS_ABOVE | DRAWFACE_RIGHT_HAS_ABOVE | DRAWFACE_AHEAD_HAS_ABOVE | DRAWFACE_BEHIND_HAS_ABOVE )  )
-					   || ( ( info & ( DRAWFACE_LEFT | DRAWFACE_RIGHT | DRAWFACE_AHEAD | DRAWFACE_BEHIND ) )
-						== ( DRAWFACE_LEFT | DRAWFACE_RIGHT | DRAWFACE_AHEAD | DRAWFACE_BEHIND ) )  )
-					{
-						goto normal_flat_top;
-					}
-					else if( !( info & ( DRAWFACE_BEHIND_HAS_ABOVE | DRAWFACE_LEFT_HAS_BEHIND | DRAWFACE_LEFT_HAS_ABOVE ) )
-						&& ( info & ( DRAWFACE_LEFT_HAS_AHEAD | DRAWFACE_RIGHT_HAS_AHEAD | DRAWFACE_RIGHT_HAS_BEHIND ) ) 
-						== ( DRAWFACE_LEFT_HAS_AHEAD | DRAWFACE_RIGHT_HAS_AHEAD | DRAWFACE_RIGHT_HAS_BEHIND ) )
-					{
-						goto top_right_back_diagonal;
-					}
-					else if( !(info & DRAWFACE_LEFT_HAS_BEHIND ) )
-					{
-						top_right_back_diagonal:
-						  Stat_RenderDrawFaces++;
-						  Stat_FaceTop++;
-						  glBegin(GL_TRIANGLES);
-							glTexCoord2f(0.25,0.25); glVertex3f(P4.x, P4.y, P4.z );
-							glTexCoord2f(0.50,0.25);  glVertex3f(P6.x, P6.y, P6.z );
-							glTexCoord2f(0.25,0.50);  glVertex3f(P5.x, P5.y, P5.z );
-							glTexCoord2f(0.25,0.50);  glVertex3f(P4.x, P4.y, P4.z );
-							glTexCoord2f(0.50,0.25); glVertex3f(P3.x, P3.y, P3.z );
-							glTexCoord2f(0.50,0.50); glVertex3f(P6.x, P6.y, P6.z );
-						  glEnd();
-					}
-					else if( !(info & DRAWFACE_RIGHT_HAS_BEHIND ) )
-					{
-						  Stat_RenderDrawFaces++;
-						  Stat_FaceTop++;
-						  glBegin(GL_TRIANGLES);
-							glTexCoord2f(0.50,0.25);  glVertex3f(P7.x, P7.y, P7.z );
-							glTexCoord2f(0.25,0.25); glVertex3f(P2.x, P2.y, P2.z );
-							glTexCoord2f(0.25,0.50);  glVertex3f(P5.x, P5.y, P5.z );
-							glTexCoord2f(0.50,0.25); glVertex3f(P4.x, P4.y, P4.z );
-							glTexCoord2f(0.25,0.50);  glVertex3f(P7.x, P7.y, P7.z );
-							glTexCoord2f(0.50,0.50); glVertex3f(P5.x, P5.y, P5.z );
-						  glEnd();
-					}
-					else if( !(info & DRAWFACE_LEFT_HAS_AHEAD ) )
-					{
-						  Stat_RenderDrawFaces++;
-						  Stat_FaceTop++;
-						  glBegin(GL_TRIANGLES);
-							glTexCoord2f(0.25,0.50);  glVertex3f(P5.x, P5.y, P5.z );
-							glTexCoord2f(0.50,0.25);  glVertex3f(P7.x, P7.y, P7.z );
-							glTexCoord2f(0.25,0.25); glVertex3f(P6.x, P6.y, P6.z );
-							glTexCoord2f(0.50,0.25); glVertex3f(P0.x, P0.y, P0.z );
-							glTexCoord2f(0.25,0.50);  glVertex3f(P7.x, P7.y, P7.z );
-							glTexCoord2f(0.50,0.50); glVertex3f(P5.x, P5.y, P5.z );
-						  glEnd();
-					}
-					else if( !(info & DRAWFACE_RIGHT_HAS_AHEAD ) )
-					{
-						  Stat_RenderDrawFaces++;
-						  Stat_FaceTop++;
-						  glBegin(GL_TRIANGLES);
-							glTexCoord2f(0.25,0.25); glVertex3f(P4.x, P4.y, P4.z );
-							glTexCoord2f(0.50,0.25);  glVertex3f(P7.x, P7.y, P7.z );
-							glTexCoord2f(0.25,0.50);  glVertex3f(P6.x, P6.y, P6.z );
-							glTexCoord2f(0.25,0.50);  glVertex3f(P1.x, P1.y, P1.z );
-							glTexCoord2f(0.50,0.50); glVertex3f(P4.x, P4.y, P4.z );
-							glTexCoord2f(0.50,0.25); glVertex3f(P6.x, P6.y, P6.z );
-						  glEnd();
-					}
-					else
-					{
-						normal_flat_top:
-					  Stat_RenderDrawFaces++;
-					  Stat_FaceTop++;
-					  glBegin(GL_TRIANGLES);
-						glTRI_normal( 4,4,7,6,5 );
-					  glEnd();
-					}
-				}
-
-			   // Bottom
-			   if (info & DRAWFACE_BELOW)
-			   {
-				 Stat_RenderDrawFaces++;
-				 Stat_FaceBottom++;
-				 glBegin(GL_TRIANGLES);
-					glTRI_normal( 5,0,1,2,3 );
-				 glEnd();
-			}
-   }
-}
-
-
 
 void ZRender_Basic::MakeSectorRenderingData(ZVoxelSector * Sector)
 {
@@ -1657,6 +893,7 @@ void ZRender_Basic::MakeSectorRenderingData(ZVoxelSector * Sector)
   UShort cube, prevcube;
 
   ULong Offset;
+  float cubx, cuby, cubz;
   Long Sector_Display_x, Sector_Display_y, Sector_Display_z;
   ZRender_Interface_displaydata * DisplayData;
   ULong Pass;
@@ -1713,8 +950,6 @@ void ZRender_Basic::MakeSectorRenderingData(ZVoxelSector * Sector)
 
             if (Draw)
             {
-				EmitFaces( VoxelTypeTable, cube, prevcube, info, x, y, z, Sector_Display_x, Sector_Display_y, Sector_Display_z );
-#if 0
               // glTexEnvf(0x8500 /* TEXTURE_FILTER_CONTROL_EXT */, 0x8501 /* TEXTURE_LOD_BIAS_EXT */,VoxelTypeManager->VoxelTable[cube]->TextureLodBias);
               if (cube != prevcube) glBindTexture(GL_TEXTURE_2D, VoxelTypeManager->VoxelTable[cube]->OpenGl_TextureRef);
               prevcube = cube;
@@ -1722,11 +957,7 @@ void ZRender_Basic::MakeSectorRenderingData(ZVoxelSector * Sector)
               cuby = (float)(y*GlobalSettings.VoxelBlockSize + Sector_Display_y);
               cubz = (float)(z*GlobalSettings.VoxelBlockSize + Sector_Display_z);
 
-              if (VoxelTypeTable[cube]->DrawInfo & ZVOXEL_DRAWINFO_SPECIALRENDERING ) 
-			  {
-				  VoxelTypeTable[cube]->SpecialRender(cubx,cuby,cubz); 
-				  continue; 
-			  }
+              if (VoxelTypeTable[cube]->DrawInfo & ZVOXEL_DRAWINFO_SPECIALRENDERING ) {VoxelTypeTable[cube]->SpecialRender(cubx,cuby,cubz); continue; }
 
               P0.x = cubx;           P0.y = cuby;          P0.z = cubz;
               P1.x = cubx + GlobalSettings.VoxelBlockSize;  P1.y = cuby;          P1.z = cubz;
@@ -1738,138 +969,7 @@ void ZRender_Basic::MakeSectorRenderingData(ZVoxelSector * Sector)
               P7.x = cubx;           P7.y = cuby + GlobalSettings.VoxelBlockSize; P7.z = cubz + GlobalSettings.VoxelBlockSize;
 
               //Left
-			  if( info == (DRAWFACE_LEFT|DRAWFACE_ABOVE ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceLeft++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.25); glVertex3f(P5.x, P5.y, P5.z );
-                  glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-                  glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-                  glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-                  glTexCoord2f(0.50,0.25); glVertex3f(P6.x, P6.y, P6.z );
-                  glTexCoord2f(0.25,0.25); glVertex3f(P5.x, P5.y, P5.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( info == (DRAWFACE_RIGHT|DRAWFACE_ABOVE ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceLeft++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P7.x, P7.y, P7.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P1.x, P1.y, P1.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-			  else if( info == (DRAWFACE_AHEAD|DRAWFACE_ABOVE ) )
-			  {
-                Stat_RenderDrawFaces++;
-				Stat_FaceFront++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.25); glVertex3f(P0.x, P0.y, P0.z );
-                  glTexCoord2f(0.25,0.0);  glVertex3f(P7.x, P7.y, P7.z );
-                  glTexCoord2f(0.50,0.0);  glVertex3f(P6.x, P6.y, P6.z );
-                  glTexCoord2f(0.50,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-                  glTexCoord2f(0.50,0.25); glVertex3f(P6.x, P6.y, P6.z );
-                  glTexCoord2f(0.25,0.25); glVertex3f(P1.x, P1.y, P1.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( info == (DRAWFACE_BEHIND|DRAWFACE_ABOVE ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceRight++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P3.x, P3.y, P3.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P5.x, P5.y, P5.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( info == (DRAWFACE_LEFT|DRAWFACE_BELOW ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceLeft++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P7.x, P7.y, P7.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P1.x, P1.y, P1.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( info == (DRAWFACE_RIGHT|DRAWFACE_BELOW ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceLeft++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.50); glVertex3f(P3.x, P3.y, P3.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P5.x, P5.y, P5.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P6.x, P6.y, P6.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P3.x, P3.y, P3.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P0.x, P0.y, P0.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P5.x, P5.y, P5.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( info == (DRAWFACE_AHEAD|DRAWFACE_BELOW ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceFront++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P3.x, P3.y, P3.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P5.x, P5.y, P5.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( info == (DRAWFACE_BEHIND|DRAWFACE_BELOW ) )
-			  {
-                Stat_RenderDrawFaces++;
-				Stat_FaceBack++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.50); glVertex3f(P7.x, P7.y, P7.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P0.x, P0.y, P0.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P6.x, P6.y, P6.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P1.x, P1.y, P1.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P0.x, P0.y, P0.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P6.x, P6.y, P6.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else 
-
-			  {
-				  if (info & DRAWFACE_LEFT)
+              if (info & DRAWFACE_LEFT)
               {
                 Stat_RenderDrawFaces++;
                 Stat_FaceLeft++;
@@ -1958,8 +1058,8 @@ void ZRender_Basic::MakeSectorRenderingData(ZVoxelSector * Sector)
                glEnd();
               }
             }
-#endif
-			}
+
+
           }
         }
       }
@@ -2076,14 +1176,17 @@ void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
 
         // Unpacking voxel infos
 
-        info = Pck & ( ( 1 << (64 - ( ZVOXELBLOCSHIFT_X+ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_Z ) ) ) - 1 );
+          info = Pck & ( ( 1 << (64 - ( ZVOXELBLOCSHIFT_X+ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_Z ) ) ) - 1 );
         z    = (Pck >> (64-(ZVOXELBLOCSHIFT_X+ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_Z))) & ZVOXELBLOCMASK_Z;
         y    = (Pck >> (64-(ZVOXELBLOCSHIFT_X+ZVOXELBLOCSHIFT_Y))) & ZVOXELBLOCMASK_Y;
         x    = (Pck >> (64-(ZVOXELBLOCSHIFT_X))) & ZVOXELBLOCMASK_X;
+		//info = Pck & 0xFF;
+        //z    = Pck >> 8 & 0xFF;
+        //y    = Pck >> 16 & 0xFF;
+        //x    = Pck >> 24 & 0xFF;
 
         // Offset = y + ( x << ZVOXELBLOCSHIFT_Y )+ (z << (ZVOXELBLOCSHIFT_Y + ZVOXELBLOCSHIFT_X));
-		EmitFaces( VoxelTypeTable, VoxelType, prevVoxelType, info, x, y, z, Sector_Display_x, Sector_Display_y, Sector_Display_z );
-#if 0
+
         // glTexEnvf(0x8500 /* TEXTURE_FILTER_CONTROL_EXT */, 0x8501 /* TEXTURE_LOD_BIAS_EXT */,VoxelTypeManager->VoxelTable[VoxelType]->TextureLodBias);
         if (VoxelType != prevVoxelType) glBindTexture(GL_TEXTURE_2D, VoxelTypeManager->VoxelTable[VoxelType]->OpenGl_TextureRef);
         prevVoxelType = VoxelType;
@@ -2102,445 +1205,18 @@ void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
         P6.x = cubx + GlobalSettings.VoxelBlockSize;  P6.y = cuby + GlobalSettings.VoxelBlockSize; P6.z = cubz + GlobalSettings.VoxelBlockSize;
         P7.x = cubx;           P7.y = cuby + GlobalSettings.VoxelBlockSize; P7.z = cubz + GlobalSettings.VoxelBlockSize;
 
-
-		// if it's otherwise entirely covered...
-	  if( !( info & ( DRAWFACE_ALL ) )
-		 &&( !( info & ( DRAWFACE_BEHIND_HAS_ABOVE | DRAWFACE_LEFT_HAS_ABOVE ) )
-		 || !( info & ( DRAWFACE_AHEAD_HAS_ABOVE | DRAWFACE_LEFT_HAS_ABOVE ) )
-		 || !( info & ( DRAWFACE_BEHIND_HAS_ABOVE | DRAWFACE_RIGHT_HAS_ABOVE ) )
-		 || !( info & ( DRAWFACE_AHEAD_HAS_ABOVE | DRAWFACE_RIGHT_HAS_ABOVE ) ) )
-		  )
-	  {
-		  info |= DRAWFACE_ABOVE;
-	  }
-
-
-			  if( ( info & DRAWFACE_ALL ) == (DRAWFACE_LEFT|DRAWFACE_ABOVE|DRAWFACE_AHEAD ) )
-			  {
-				  if( info & ( DRAWFACE_BELOW_HAS_LEFT | DRAWFACE_BELOW_HAS_AHEAD ) )
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.25); glVertex3f(P3.x, P3.y, P3.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P6.x, P6.y, P6.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						  glTexCoord2f(0.25,0.25); glVertex3f(P0.x, P0.y, P0.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P6.x, P6.y, P6.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P1.x, P1.y, P1.z );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-				  else
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.25); glVertex3f(P3.x, P3.y, P3.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P6.x, P6.y, P6.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P1.x, P1.y, P1.z );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-			  }
-			  else if( ( info & DRAWFACE_ALL ) == (DRAWFACE_LEFT|DRAWFACE_BELOW|DRAWFACE_AHEAD ) )
-			  {
-				  if( info & ( DRAWFACE_ABOVE_HAS_LEFT | DRAWFACE_ABOVE_HAS_AHEAD ) )
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.25); glVertex3f(P7.x, P7.y, P7.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P4.x, P4.y, P4.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P2.x, P1.y, P2.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P5.x, P6.y, P5.z );
-						  glTexCoord2f(0.25,0.25); glVertex3f(P4.x, P4.y, P4.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P2.x, P1.y, P2.z );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-				  else
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.25); glVertex3f(P7.x, P7.y, P7.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P5.x, P6.y, P5.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P2.x, P1.y, P2.z );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-			  }
-			  else if( ( info & DRAWFACE_ALL ) == (DRAWFACE_RIGHT|DRAWFACE_ABOVE|DRAWFACE_AHEAD ) )
-			  {
-				  if( info & ( DRAWFACE_BELOW_HAS_RIGHT | DRAWFACE_BELOW_HAS_AHEAD ) )
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.25); glVertex3f(P7.x, P7.y, P7.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P1.x, P1.y, P1.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						  glTexCoord2f(0.25,0.25); glVertex3f(P7.x, P7.y, P7.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P2.x, P2.y, P2.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P1.x, P1.y, P1.z );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-				  else
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.25); glVertex3f(P7.x, P7.y, P7.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P2.x, P2.y, P2.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-			  }
-			  else if( ( info & DRAWFACE_ALL ) == (DRAWFACE_RIGHT|DRAWFACE_BELOW|DRAWFACE_AHEAD ) )
-			  {
-				  if( info & ( DRAWFACE_ABOVE_HAS_LEFT | DRAWFACE_ABOVE_HAS_AHEAD ) )
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.25); glVertex3f(P7.x, P7.y, P7.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P4.x, P4.y, P4.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P2.x, P1.y, P2.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P5.x, P6.y, P5.z );
-						  glTexCoord2f(0.25,0.25); glVertex3f(P4.x, P4.y, P4.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P2.x, P1.y, P2.z );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-				  else
-				  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P4.x, P4.y, P4.z );
-						  glTexCoord2f(0.25,0.25); glVertex3f(P6.x, P6.y, P6.z );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-			  }
-			  else if( ( info & DRAWFACE_ALL ) == (DRAWFACE_LEFT|DRAWFACE_ABOVE|DRAWFACE_BEHIND ) )
-			  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.25); glVertex3f(P0.x, P0.y, P0.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P2.x, P2.y, P2.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P5.x, P5.y, P5.z );
-						glEnd();
-
-						Stat_FaceTop++;
-			  }
-			  else if( ( info & DRAWFACE_ALL ) == (DRAWFACE_LEFT|DRAWFACE_BELOW|DRAWFACE_BEHIND ) )
-			  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.25); glVertex3f(P1.x, P1.y, P1.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P6.x, P6.y, P6.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P4.x, P4.y, P4.z );
-						glEnd();
-
-						Stat_FaceTop++;
-			  }
-			  else if( ( info & DRAWFACE_ALL ) == (DRAWFACE_RIGHT|DRAWFACE_ABOVE|DRAWFACE_BEHIND ) )
-			  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.25); glVertex3f(P4.x, P4.y, P4.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P1.x, P1.y, P1.z );
-						glEnd();
-
-						Stat_FaceTop++;
-			  }
-			  else if( ( info & DRAWFACE_ALL ) == (DRAWFACE_RIGHT|DRAWFACE_BELOW|DRAWFACE_BEHIND ) )
-			  {
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P5.x, P5.y, P5.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P7.x, P7.y, P7.z );
-						  glTexCoord2f(0.25,0.25); glVertex3f(P0.x, P0.y, P0.z );
-						glEnd();
-
-						Stat_FaceTop++;
-			  }
-			  else if( ( info & DRAWFACE_ALL ) == (DRAWFACE_LEFT|DRAWFACE_ABOVE ) )
-			  {
-				  if( ( ( info & (DRAWFACE_AHEAD_HAS_ABOVE|DRAWFACE_AHEAD_HAS_LEFT) ) )
-				     && ( ( info & ( DRAWFACE_BEHIND_HAS_ABOVE|DRAWFACE_BEHIND_HAS_LEFT) ) ) )
-				  {
-					  goto default_draw;
-				  }
-				  else if( ( info & (DRAWFACE_AHEAD_HAS_ABOVE|DRAWFACE_AHEAD_HAS_LEFT) ) )
-				  {
-					glBegin(GL_TRIANGLES);
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P4.x, P4.y, P4.z );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P5.x, P5.y, P5.z );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P4.x, P4.y, P4.z );
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P6.x, P6.y, P6.z );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P5.x, P5.y, P5.z );
-
-						glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-						glTexCoord2f(0.25,0.25); glVertex3f(P6.x, P6.y, P6.z );
-					glEnd();
-				  }
-				  else if( ( info & (DRAWFACE_BEHIND_HAS_ABOVE|DRAWFACE_BEHIND_HAS_LEFT) ) )
-				  {
-					glBegin(GL_TRIANGLES);
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P4.x, P4.y, P4.z );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P5.x, P5.y, P5.z );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P4.x, P4.y, P4.z );
-						glTexCoord2f(0.25,0.25); glVertex3f((P0.x+P6.x)/2, (P0.y+P6.y)/2, (P0.z+P6.z)/2 );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P6.x, P6.y, P6.z );
-						glTexCoord2f(0.25,0.0);  glVertex3f(P5.x, P5.y, P5.z );
-
-						glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-						glTexCoord2f(0.25,0.25); glVertex3f(P6.x, P6.y, P6.z );
-					glEnd();
-				  }
-				  else 
-				  {
-
-						Stat_RenderDrawFaces++;
-						Stat_FaceLeft++;
-						glBegin(GL_TRIANGLES);
-						  glTexCoord2f(0.25,0.25); glVertex3f(P5.x, P5.y, P5.z );
-						  glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-						  glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-						  glTexCoord2f(0.50,0.25); glVertex3f(P6.x, P6.y, P6.z );
-						  glTexCoord2f(0.25,0.25); glVertex3f(P5.x, P5.y, P5.z );
-						glEnd();
-
-						Stat_FaceTop++;
-				  }
-			  }
-              else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_RIGHT|DRAWFACE_ABOVE ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceLeft++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P7.x, P7.y, P7.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P1.x, P1.y, P1.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-			  else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_AHEAD|DRAWFACE_ABOVE ) )
-			  {
-                Stat_RenderDrawFaces++;
-				Stat_FaceFront++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.25); glVertex3f(P0.x, P0.y, P0.z );
-                  glTexCoord2f(0.25,0.0);  glVertex3f(P7.x, P7.y, P7.z );
-                  glTexCoord2f(0.50,0.0);  glVertex3f(P6.x, P6.y, P6.z );
-                  glTexCoord2f(0.50,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-                  glTexCoord2f(0.50,0.25); glVertex3f(P6.x, P6.y, P6.z );
-                  glTexCoord2f(0.25,0.25); glVertex3f(P1.x, P1.y, P1.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_BEHIND|DRAWFACE_ABOVE ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceRight++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P3.x, P3.y, P3.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P5.x, P5.y, P5.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_LEFT|DRAWFACE_BELOW ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceLeft++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P7.x, P7.y, P7.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P1.x, P1.y, P1.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_RIGHT|DRAWFACE_BELOW ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceLeft++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.50); glVertex3f(P3.x, P3.y, P3.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P5.x, P5.y, P5.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P6.x, P6.y, P6.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P3.x, P3.y, P3.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P0.x, P0.y, P0.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P5.x, P5.y, P5.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_AHEAD|DRAWFACE_BELOW ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceFront++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P3.x, P3.y, P3.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P5.x, P5.y, P5.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_BEHIND|DRAWFACE_BELOW ) )
-			  {
-                Stat_RenderDrawFaces++;
-				Stat_FaceBack++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.50); glVertex3f(P7.x, P7.y, P7.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P0.x, P0.y, P0.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P6.x, P6.y, P6.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P1.x, P1.y, P1.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P0.x, P0.y, P0.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P6.x, P6.y, P6.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_LEFT|DRAWFACE_AHEAD ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceLeft++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.75); glVertex3f(P1.x, P1.y, P1.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P3.x, P3.y, P3.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P7.x, P7.y, P7.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P1.x, P1.y, P1.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P7.x, P7.y, P7.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P5.x, P5.y, P5.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_RIGHT|DRAWFACE_AHEAD ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceLeft++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P6.x, P6.y, P6.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P0.x, P0.y, P0.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P0.x, P0.y, P0.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P6.x, P6.y, P6.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_LEFT|DRAWFACE_BEHIND ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceLeft++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P0.x, P0.y, P0.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P6.x, P6.y, P6.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P4.x, P4.y, P4.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else if( ( info & DRAWFACE_ALL )  == (DRAWFACE_RIGHT|DRAWFACE_BEHIND ) )
-			  {
-                Stat_RenderDrawFaces++;
-                Stat_FaceLeft++;
-                glBegin(GL_TRIANGLES);
-                  glTexCoord2f(0.50,0.50);  glVertex3f(P7.x, P7.y, P7.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P3.x, P3.y, P3.z );
-                  glTexCoord2f(0.25,0.75); glVertex3f(P1.x, P1.y, P1.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P7.x, P7.y, P7.z );
-                  glTexCoord2f(0.50,0.75);  glVertex3f(P1.x, P1.y, P1.z );
-                  glTexCoord2f(0.25,0.50); glVertex3f(P5.x, P5.y, P5.z );
-                glEnd();
-
-                Stat_FaceTop++;
-
-			  }
-              else 
-			  {
-	default_draw:
         //Left
         if (info & DRAWFACE_LEFT)
         {
           Stat_RenderDrawFaces++;
           Stat_FaceLeft++;
           glBegin(GL_TRIANGLES);
-            glTRI_normal( 1,0,3,7,4 );
-            //glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
-            //glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-            //glTexCoord2f(0.25,0.25); glVertex3f(P4.x, P4.y, P4.z );
-            //glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
-            //glTexCoord2f(0.50,0.25); glVertex3f(P7.x, P7.y, P7.z );
-            //glTexCoord2f(0.25,0.25); glVertex3f(P4.x, P4.y, P4.z );
+            glTexCoord2f(0.25,0.25); glVertex3f(P4.x, P4.y, P4.z );
+            glTexCoord2f(0.25,0.0);  glVertex3f(P0.x, P0.y, P0.z );
+            glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
+            glTexCoord2f(0.50,0.0);  glVertex3f(P3.x, P3.y, P3.z );
+            glTexCoord2f(0.50,0.25); glVertex3f(P7.x, P7.y, P7.z );
+            glTexCoord2f(0.25,0.25); glVertex3f(P4.x, P4.y, P4.z );
           glEnd();
         }
 
@@ -2550,13 +1226,12 @@ void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
           Stat_RenderDrawFaces++;
           Stat_FaceRight++;
           glBegin(GL_TRIANGLES);
-            glTRI_normal( 2,6,2,1,5 );
-            //glTexCoord2f(0.50,0.50);  glVertex3f(P6.x, P6.y, P6.z );
-            //glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-            //glTexCoord2f(0.25,0.50); glVertex3f(P5.x, P5.y, P5.z );
-            //glTexCoord2f(0.25,0.50); glVertex3f(P5.x, P5.y, P5.z );
-            //glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
-            //glTexCoord2f(0.25,0.75); glVertex3f(P1.x, P1.y, P1.z );
+            glTexCoord2f(0.25,0.50); glVertex3f(P5.x, P5.y, P5.z );
+            glTexCoord2f(0.50,0.50);  glVertex3f(P6.x, P6.y, P6.z );
+            glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
+            glTexCoord2f(0.50,0.75);  glVertex3f(P2.x, P2.y, P2.z );
+            glTexCoord2f(0.25,0.75); glVertex3f(P1.x, P1.y, P1.z );
+            glTexCoord2f(0.25,0.50); glVertex3f(P5.x, P5.y, P5.z );
           glEnd();
         }
 
@@ -2566,13 +1241,12 @@ void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
           Stat_RenderDrawFaces++;
           Stat_FaceFront++;
           glBegin(GL_TRIANGLES);
-            glTRI_normal( 0,4,5,1,0 );
-            //glTexCoord2f(0.25,0.25);  glVertex3f(P4.x, P4.y, P4.z );
-            //glTexCoord2f(0.25,0.50);  glVertex3f(P5.x, P5.y, P5.z );
-            //glTexCoord2f(0.0,0.25); glVertex3f(P0.x, P0.y, P0.z );
-            //glTexCoord2f(0.0,0.25); glVertex3f(P0.x, P0.y, P0.z );
-            //glTexCoord2f(0.25,0.50);  glVertex3f(P5.x, P5.y, P5.z );
-            //glTexCoord2f(0.0,0.50); glVertex3f(P1.x, P1.y, P1.z );
+            glTexCoord2f(0.0,0.25); glVertex3f(P0.x, P0.y, P0.z );
+            glTexCoord2f(0.25,0.25);  glVertex3f(P4.x, P4.y, P4.z );
+            glTexCoord2f(0.25,0.50);  glVertex3f(P5.x, P5.y, P5.z );
+            glTexCoord2f(0.25,0.50);  glVertex3f(P5.x, P5.y, P5.z );
+            glTexCoord2f(0.0,0.50); glVertex3f(P1.x, P1.y, P1.z );
+            glTexCoord2f(0.0,0.25); glVertex3f(P0.x, P0.y, P0.z );
           glEnd();
         }
 
@@ -2582,100 +1256,28 @@ void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
           Stat_RenderDrawFaces++;
           Stat_FaceBack++;
           glBegin(GL_TRIANGLES);
-            glTRI_normal( 3,2,6,7,3 );
-            //glTexCoord2f(0.75,0.50); glVertex3f(P2.x, P2.y, P2.z );
-            //glTexCoord2f(0.50,0.50);  glVertex3f(P6.x, P6.y, P6.z );
-            //glTexCoord2f(0.75,0.25);  glVertex3f(P3.x, P3.y, P3.z );
-            //glTexCoord2f(0.75,0.25);  glVertex3f(P3.x, P3.y, P3.z );
-            //glTexCoord2f(0.50,0.50); glVertex3f(P6.x, P6.y, P6.z );
-            //glTexCoord2f(0.50,0.25); glVertex3f(P7.x, P7.y, P7.z );
+            glTexCoord2f(0.75,0.50); glVertex3f(P2.x, P2.y, P2.z );
+            glTexCoord2f(0.50,0.50);  glVertex3f(P6.x, P6.y, P6.z );
+            glTexCoord2f(0.75,0.25);  glVertex3f(P3.x, P3.y, P3.z );
+            glTexCoord2f(0.75,0.25);  glVertex3f(P3.x, P3.y, P3.z );
+            glTexCoord2f(0.50,0.50); glVertex3f(P6.x, P6.y, P6.z );
+            glTexCoord2f(0.50,0.25); glVertex3f(P7.x, P7.y, P7.z );
           glEnd();
         }
 
         // Top
         if (info & DRAWFACE_ABOVE)
         {
-			if( ( ( info & ( DRAWFACE_LEFT_HAS_ABOVE | DRAWFACE_RIGHT_HAS_ABOVE | DRAWFACE_AHEAD_HAS_ABOVE | DRAWFACE_BEHIND_HAS_ABOVE ) )
-				== ( DRAWFACE_LEFT_HAS_ABOVE | DRAWFACE_RIGHT_HAS_ABOVE | DRAWFACE_AHEAD_HAS_ABOVE | DRAWFACE_BEHIND_HAS_ABOVE )  )
-			   || ( ( info & ( DRAWFACE_LEFT | DRAWFACE_RIGHT | DRAWFACE_AHEAD | DRAWFACE_BEHIND ) )
-				== ( DRAWFACE_LEFT | DRAWFACE_RIGHT | DRAWFACE_AHEAD | DRAWFACE_BEHIND ) )  )
-			{
-				goto normal_flat_top;
-			}
-			else if( !( info & DRAWFACE_LEFT_HAS_BEHIND )
-				&& ( info & ( DRAWFACE_LEFT_HAS_AHEAD | DRAWFACE_RIGHT_HAS_AHEAD | DRAWFACE_RIGHT_HAS_BEHIND ) ) 
-				== ( DRAWFACE_LEFT_HAS_AHEAD | DRAWFACE_RIGHT_HAS_AHEAD | DRAWFACE_RIGHT_HAS_BEHIND ) )
-			{
-				goto top_right_back_diagonal;
-			}
-			else if( !(info & DRAWFACE_LEFT_HAS_BEHIND ) )
-			{
-				top_right_back_diagonal:
-				  Stat_RenderDrawFaces++;
-				  Stat_FaceTop++;
-				  glBegin(GL_TRIANGLES);
-					glTexCoord2f(0.25,0.25); glVertex3f(P4.x, P4.y, P4.z );
-					glTexCoord2f(0.50,0.25);  glVertex3f(P6.x, P6.y, P6.z );
-					glTexCoord2f(0.25,0.50);  glVertex3f(P5.x, P5.y, P5.z );
-					glTexCoord2f(0.25,0.50);  glVertex3f(P4.x, P4.y, P4.z );
-					glTexCoord2f(0.50,0.25); glVertex3f(P3.x, P3.y, P3.z );
-					glTexCoord2f(0.50,0.50); glVertex3f(P6.x, P6.y, P6.z );
-				  glEnd();
-			}
-			else if( !(info & DRAWFACE_RIGHT_HAS_BEHIND ) )
-			{
-				  Stat_RenderDrawFaces++;
-				  Stat_FaceTop++;
-				  glBegin(GL_TRIANGLES);
-					glTexCoord2f(0.50,0.25);  glVertex3f(P7.x, P7.y, P7.z );
-					glTexCoord2f(0.25,0.25); glVertex3f(P2.x, P2.y, P2.z );
-					glTexCoord2f(0.25,0.50);  glVertex3f(P5.x, P5.y, P5.z );
-					glTexCoord2f(0.50,0.25); glVertex3f(P4.x, P4.y, P4.z );
-					glTexCoord2f(0.25,0.50);  glVertex3f(P7.x, P7.y, P7.z );
-					glTexCoord2f(0.50,0.50); glVertex3f(P5.x, P5.y, P5.z );
-				  glEnd();
-			}
-			else if( !(info & DRAWFACE_LEFT_HAS_AHEAD ) )
-			{
-				  Stat_RenderDrawFaces++;
-				  Stat_FaceTop++;
-				  glBegin(GL_TRIANGLES);
-					glTexCoord2f(0.25,0.50);  glVertex3f(P5.x, P5.y, P5.z );
-					glTexCoord2f(0.50,0.25);  glVertex3f(P7.x, P7.y, P7.z );
-					glTexCoord2f(0.25,0.25); glVertex3f(P6.x, P6.y, P6.z );
-					glTexCoord2f(0.50,0.25); glVertex3f(P0.x, P0.y, P0.z );
-					glTexCoord2f(0.25,0.50);  glVertex3f(P7.x, P7.y, P7.z );
-					glTexCoord2f(0.50,0.50); glVertex3f(P5.x, P5.y, P5.z );
-				  glEnd();
-			}
-			else if( !(info & DRAWFACE_RIGHT_HAS_AHEAD ) )
-			{
-				  Stat_RenderDrawFaces++;
-				  Stat_FaceTop++;
-				  glBegin(GL_TRIANGLES);
-					glTexCoord2f(0.25,0.25); glVertex3f(P4.x, P4.y, P4.z );
-					glTexCoord2f(0.50,0.25);  glVertex3f(P7.x, P7.y, P7.z );
-					glTexCoord2f(0.25,0.50);  glVertex3f(P6.x, P6.y, P6.z );
-					glTexCoord2f(0.25,0.50);  glVertex3f(P1.x, P1.y, P1.z );
-					glTexCoord2f(0.50,0.50); glVertex3f(P4.x, P4.y, P4.z );
-					glTexCoord2f(0.50,0.25); glVertex3f(P6.x, P6.y, P6.z );
-				  glEnd();
-			}
-			else
-			{
-				normal_flat_top:
           Stat_RenderDrawFaces++;
           Stat_FaceTop++;
           glBegin(GL_TRIANGLES);
-			glTRI_normal( 4,4,7,6,5 );
-            //glTexCoord2f(0.25,0.25); glVertex3f(P4.x, P4.y, P4.z );
-            //glTexCoord2f(0.50,0.25);  glVertex3f(P7.x, P7.y, P7.z );
-            //glTexCoord2f(0.25,0.50);  glVertex3f(P5.x, P5.y, P5.z );
-            //glTexCoord2f(0.25,0.50);  glVertex3f(P5.x, P5.y, P5.z );
-            //glTexCoord2f(0.50,0.25); glVertex3f(P7.x, P7.y, P7.z );
-            //glTexCoord2f(0.50,0.50); glVertex3f(P6.x, P6.y, P6.z );
+            glTexCoord2f(0.25,0.25); glVertex3f(P4.x, P4.y, P4.z );
+            glTexCoord2f(0.50,0.25);  glVertex3f(P7.x, P7.y, P7.z );
+            glTexCoord2f(0.25,0.50);  glVertex3f(P5.x, P5.y, P5.z );
+            glTexCoord2f(0.25,0.50);  glVertex3f(P5.x, P5.y, P5.z );
+            glTexCoord2f(0.50,0.25); glVertex3f(P7.x, P7.y, P7.z );
+            glTexCoord2f(0.50,0.50); glVertex3f(P6.x, P6.y, P6.z );
           glEnd();
-			}
         }
 
        // Bottom
@@ -2684,17 +1286,15 @@ void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
          Stat_RenderDrawFaces++;
          Stat_FaceBottom++;
          glBegin(GL_TRIANGLES);
-			glTRI_normal( 5,0,1,2,3 );
-           //glTexCoord2f(1.0,0.25); glVertex3f(P0.x, P0.y, P0.z );
-           //glTexCoord2f(1.0,0.50);  glVertex3f(P1.x, P1.y, P1.z );
-           //glTexCoord2f(0.75,0.25);  glVertex3f(P3.x, P3.y, P3.z );
-           //glTexCoord2f(0.75,0.25);  glVertex3f(P3.x, P3.y, P3.z );
-           //glTexCoord2f(1.0,0.50); glVertex3f(P1.x, P1.y, P1.z );
-           //glTexCoord2f(0.75,0.50); glVertex3f(P2.x, P2.y, P2.z );
+           glTexCoord2f(1.0,0.25); glVertex3f(P0.x, P0.y, P0.z );
+           glTexCoord2f(1.0,0.50);  glVertex3f(P1.x, P1.y, P1.z );
+           glTexCoord2f(0.75,0.25);  glVertex3f(P3.x, P3.y, P3.z );
+           glTexCoord2f(0.75,0.25);  glVertex3f(P3.x, P3.y, P3.z );
+           glTexCoord2f(1.0,0.50); glVertex3f(P1.x, P1.y, P1.z );
+           glTexCoord2f(0.75,0.50); glVertex3f(P2.x, P2.y, P2.z );
          glEnd();
         }
-	   }
-#endif
+
 
       }
     }
@@ -2726,5 +1326,5 @@ void ZRender_Basic::ComputeAndSetAspectRatio(double VerticalFOV, double PixelAsp
   glFrustum(Frustum_H, -Frustum_H, -Frustum_V, Frustum_V, FocusDistance, 1000000.0); // Official Way
 
 }
-
 #endif
+
