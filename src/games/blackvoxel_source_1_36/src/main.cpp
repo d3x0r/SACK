@@ -36,7 +36,9 @@
 #  include "ZVoxelType.h"
 #endif
 
+    #include "ZRender_Interface.h"
     #include "ZRender_Basic.h"
+    #include "ZRender_Smooth.h"
     #include "ZActorPhysics.h"
     #include "ZActor_Player.h"
 

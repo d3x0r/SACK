@@ -89,7 +89,9 @@ src/ZInclusionProbabilizer.cpp
 src/ZInventory.cpp
 src/ZLog.cpp
 src/ZOs_Specific_Various.cpp
+src/ZRender_Interface.cpp
 src/ZRender_Basic.cpp
+src/ZRender_Smooth.cpp
 src/ZScreen_ChooseOption.cpp
 src/ZScreen_Loading.cpp
 src/ZScreen_Main.cpp
@@ -241,7 +243,9 @@ src/ZOs_Specific_Various.h
 src/ZPlayer.h
 src/ZPointList.h
 src/ZRandom_MakeGoodNumbers.h
+src/ZRender_Interface.h
 src/ZRender_Basic.h
+src/ZRender_Smooth.h
 src/ZRender_Sorter.h
 src/ZScreen_ChooseOption.h
 src/ZScreen_Loading.h

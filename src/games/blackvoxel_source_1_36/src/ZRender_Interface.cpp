@@ -20,7 +20,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#  include "ZRender_Basic.h"
+#  include "ZRender_Interface.h"
 
 #ifndef Z_ZHIGHPERFTIMER_H
 #  include "ZHighPerfTimer.h"
@@ -34,18 +34,18 @@
 #  include "ZGameStat.h"
 #endif
 
-#if 0
-void ZRender_Basic::SetWorld( ZVoxelWorld * World )
+
+void ZRender_Interface::SetWorld( ZVoxelWorld * World )
 {
   this->World = World;
 }
 
-void ZRender_Basic::SetCamera( ZCamera * Camera )
+void ZRender_Interface::SetCamera( ZCamera * Camera )
 {
   this->Camera = Camera;
 }
 
-void ZRender_Basic::SetActor( ZActor * Actor )
+void ZRender_Interface::SetActor( ZActor * Actor )
 {
   this->Actor = Actor;
   if( Actor )
@@ -54,19 +54,19 @@ void ZRender_Basic::SetActor( ZActor * Actor )
 	  this->Camera = NULL;
 }
 
-void ZRender_Basic::SetVoxelTypeManager( ZVoxelTypeManager * Manager )
+void ZRender_Interface::SetVoxelTypeManager( ZVoxelTypeManager * Manager )
 {
   VoxelTypeManager = Manager;
 }
 
-void ZRender_Basic::Init()
+void ZRender_Interface::Init()
 {
   RadiusZones.SetSize(17,7,17);
   // RadiusZones.DrawZones( 5.0, 3.5, 3.0, 2.0 );
   // RadiusZones.DebugOut();
 }
 
-void ZRender_Basic::Render_DebugLine( ZVector3d & Start, ZVector3d & End)
+void ZRender_Interface::Render_DebugLine( ZVector3d & Start, ZVector3d & End)
 {
 
 
@@ -90,7 +90,7 @@ void ZRender_Basic::Render_DebugLine( ZVector3d & Start, ZVector3d & End)
   glEnable(GL_TEXTURE_2D);
 }
 
-void ZRender_Basic::Render_VoxelSelector(ZVoxelCoords * SelectedVoxel, float r, float g, float b)
+void ZRender_Interface::Render_VoxelSelector(ZVoxelCoords * SelectedVoxel, float r, float g, float b)
 {
 
   //      PointedCube.x = 1;
@@ -191,584 +191,9 @@ void ZRender_Basic::Render_VoxelSelector(ZVoxelCoords * SelectedVoxel, float r, 
 
 }
 
-#endif
 
-void ZRender_Basic::Render()
-{
 
-  ZHighPerfTimer Timer;
-#if COMPILEOPTION_FINETIMINGTRACKING == 1
-  ZHighPerfTimer Timer_SectorRefresh;
-  ULong Time;
-#endif
-  ULong RenderedSectors;
-  Long i;
-
-   Timer.Start();
-
-   Stat_RenderDrawFaces = 0;
-   Stat_FaceTop = 0;
-   Stat_FaceBottom = 0;
-   Stat_FaceLeft = 0;
-   Stat_FaceRight = 0;
-   Stat_FaceFront = 0;
-   Stat_FaceBack = 0;
-
- // Stats reset
-
-   ZGameStat * Stat = GameEnv->GameStat;
-
-
-
-  // Precomputing values for faster math
-
-  //ZVector3d::ZTransformParam FastCamParameters;
-
-  //FastCamParameters.SetRotation(Camera->orientation);
-  //FastCamParameters.SetTranslation(-Camera->x, -Camera->y, -Camera->z);
-
-
-   // Update per cycle.
-   ULong UpdatePerCycle = 2;
-   ULong n;
-
-
-   if (Stat_RefreshWaitingSectorCount < 50) UpdatePerCycle = 1;
-   if (Stat_RefreshWaitingSectorCount < 500) UpdatePerCycle = 2;
-   else if (Stat->SectorRefresh_TotalTime <32) UpdatePerCycle = 5;
-   Stat_RefreshWaitingSectorCount = 0;
-
-   // Stat Reset
-
-   Stat->SectorRefresh_Count = 0;
-   Stat->SectorRefresh_TotalTime = 0;
-   Stat->SectorRefresh_MinTime = 0;
-   Stat->SectorRefresh_MaxTime = 0;
-   Stat->SectorRender_Count = 0;
-   Stat->SectorRender_TotalTime = 0;
-   Stat->SectorRefresh_Waiting = 0;
-
-   // Renderwaiting system
-
-   for (i=0;i<64;i++) RefreshToDo[i] = 0;
-   for (i=63;i>0;i--)
-   {
-     n = RefreshWaiters[i];
-     if (n>UpdatePerCycle) n = UpdatePerCycle;
-     UpdatePerCycle -= n;
-     RefreshToDo[i] = n;
-   }
-   RefreshToDo[0] = UpdatePerCycle;
-
-   for (i=0;i<64;i++) RefreshWaiters[i]=0;
-
-  // Computing Frustum and Setting up Projection
-
-   Aspect_Ratio = ((double)ViewportResolution.x / (double)ViewportResolution.y) * PixelAspectRatio;
-   if (VerticalFOV < 5.0 ) VerticalFOV = 5.0;
-   if (VerticalFOV > 160.0 ) VerticalFOV = 160.0;
-   Frustum_V = tan(VerticalFOV / 2.0 * 0.017453293) * FocusDistance;
-   Frustum_H = Frustum_V * Aspect_Ratio;
-
-   Frustum_CullingLimit = ((Frustum_H > Frustum_V) ? Frustum_H : Frustum_V) * Optimisation_FCullingFactor;
-
-
-   glMatrixMode(GL_PROJECTION);
-   glLoadIdentity();
-   glFrustum(Frustum_H, -Frustum_H, -Frustum_V, Frustum_V, FocusDistance, 1000000.0); // Official Way
-// glFrustum(50.0, -50.0, -31.0, 31.0, 50.0, 1000000.0); // Official Way
-
-    // glFrustum(165.0, -165.0, -31.0, 31.0, 50.0, 1000000.0); // Eyefinity setting.
-
-
-  // Objects of the world are translated and rotated to position camera at the right place.
-
-    glMatrixMode(GL_MODELVIEW);
-    //glLoadIdentity();
-	glLoadMatrixd( Camera->orientation.glMatrix() );
-    //glRotatef(-Camera->Roll  , 0.0, 0.0, 1.0);
-    //glRotatef(-Camera->Pitch , 1.0, 0.0, 0.0);
-    //glRotatef(180-Camera->Yaw, 0.0, 1.0, 0.0);
-
-    //glTranslatef(-(float)Camera->x,-(float)Camera->y,-(float)Camera->z);
-
-  // Clearing FrameBuffer and Z-Buffer
-
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    glAlphaFunc(GL_GREATER, 0.2);
-    glEnable(GL_ALPHA_TEST);
-
-    // Long Start_x,Start_y,Start_z;
-    Long Sector_x,Sector_y, Sector_z;
-    // Long End_x, End_y, End_z;
-    Long x,y,z;
-
-    ZVoxelSector * Sector;
-    Long Priority, PriorityBoost;
-    ULong Sector_Refresh_Count;
-
-
-  // Transforming Camera coords to sector coords. One Voxel is 256 observer units. One sector is 16x16x32.
-
-    Sector_x = (ELong)Camera->x() >> ( 	GlobalSettings.VoxelBlockSizeBits + 4 );
-    Sector_y = (ELong)Camera->y() >> ( 	GlobalSettings.VoxelBlockSizeBits + 6 );
-    Sector_z = (ELong)Camera->z() >> ( 	GlobalSettings.VoxelBlockSizeBits + 4 );
-
-
-    // Start_x = Sector_x - hRenderRadius; End_x = Sector_x + hRenderRadius;
-    // Start_y = Sector_y - vRenderRadius; End_y = Sector_y + vRenderRadius;
-    // Start_z = Sector_z - hRenderRadius; End_z = Sector_z + hRenderRadius;
-
-  // Rendering loop
-
-    // printf("x: %lf, y: %lf, z: %lf Pitch: %lf Yaw: %lf \n",Camera->x, Camera->y, Camera->z, Camera->Pitch, Camera->Yaw);
-
-  // Preparation and first rendering pass
-
-    RenderedSectors = 0;
-    Sector_Refresh_Count = 0;
-    ZVector3d Cv, Cv2;
-    ZSectorSphere::ZSphereEntry * SectorSphereEntry;
-    ULong SectorsToProcess = SectorSphere.GetEntryCount();
-
-    for (ULong Entry=0; Entry<SectorsToProcess; Entry++ )
-    {
-      SectorSphereEntry = SectorSphere.GetEntry(Entry);
-
-      x = SectorSphereEntry->x + Sector_x;
-      y = SectorSphereEntry->y + Sector_y;
-      z = SectorSphereEntry->z + Sector_z;
-
-      // for (x = Start_x ; x <= End_x ; x++)
-      // for (y = Start_y; y <= End_y ; y++)
-      // for (z = Start_z; z <= End_z ; z++)
-
-          // try to see if sector is visible
-
-          ZVector3d Cv, Cv2;
-          bool SectorVisible;
-
-          Cv.x = (double) ( ((ELong)x) << ( 	GlobalSettings.VoxelBlockSizeBits + 4 ) );
-          Cv.y = (double) ( ((ELong)y) << ( 	GlobalSettings.VoxelBlockSizeBits + 6 ) );
-          Cv.z = (double) ( ((ELong)z) << ( 	GlobalSettings.VoxelBlockSizeBits + 4 ) );
-
-          SectorVisible = false;
-          Cv2.x = (0 * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize); Cv2.y = (0 * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize); Cv2.z = (0 * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize); Cv2 += Cv ; SectorVisible |= Is_PointVisible(Camera->orientation, &Cv2);
-          Cv2.x = (1 * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize); Cv2.y = (0 * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize); Cv2.z = (0 * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize); Cv2 += Cv ; SectorVisible |= Is_PointVisible(Camera->orientation, &Cv2);
-          Cv2.x = (1 * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize); Cv2.y = (0 * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize); Cv2.z = (1 * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize); Cv2 += Cv ; SectorVisible |= Is_PointVisible(Camera->orientation, &Cv2);
-          Cv2.x = (0 * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize); Cv2.y = (0 * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize); Cv2.z = (1 * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize); Cv2 += Cv ; SectorVisible |= Is_PointVisible(Camera->orientation, &Cv2);
-          Cv2.x = (0 * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize); Cv2.y = (1 * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize); Cv2.z = (0 * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize); Cv2 += Cv ; SectorVisible |= Is_PointVisible(Camera->orientation, &Cv2);
-          Cv2.x = (1 * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize); Cv2.y = (1 * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize); Cv2.z = (0 * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize); Cv2 += Cv ; SectorVisible |= Is_PointVisible(Camera->orientation, &Cv2);
-          Cv2.x = (1 * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize); Cv2.y = (1 * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize); Cv2.z = (1 * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize); Cv2 += Cv ; SectorVisible |= Is_PointVisible(Camera->orientation, &Cv2);
-          Cv2.x = (0 * ZVOXELBLOCSIZE_X * GlobalSettings.VoxelBlockSize); Cv2.y = (1 * ZVOXELBLOCSIZE_Y * GlobalSettings.VoxelBlockSize); Cv2.z = (1 * ZVOXELBLOCSIZE_Z * GlobalSettings.VoxelBlockSize); Cv2 += Cv ; SectorVisible |= Is_PointVisible(Camera->orientation, &Cv2);
-
-          Sector = World->FindSector(x,y,z);
-          Priority      = RadiusZones.GetZone(x-Sector_x,y-Sector_y,z-Sector_z);
-          PriorityBoost = (SectorVisible && Priority <= 2) ? 1 : 0;
-          // Go = true;
-
-          if (Sector)
-          {
-            Sector->Flag_IsVisibleAtLastRendering = SectorVisible || Priority>=4;
-            // Display lists preparation
-            if (Sector->Flag_Render_Dirty && GameEnv->Enable_NewSectorRendering)
-            {
-              if (Sector->Flag_IsDebug)
-              {
-                printf("Debug\n");
-                //Sector->Flag_IsDebug = false;
-              }
-
-              // if (Sector_Refresh_Count < 5 || Priority==4)
-              if ((RefreshToDo[Sector->RefreshWaitCount]) || Sector->Flag_HighPriorityRefresh )
-              {
-
-                #if COMPILEOPTION_FINETIMINGTRACKING == 1
-                  Timer_SectorRefresh.Start();
-                #endif
-
-                RefreshToDo[Sector->RefreshWaitCount]--;
-                Sector->Flag_HighPriorityRefresh = false;
-
-                if (Sector->Flag_NeedSortedRendering) MakeSectorRenderingData_Sorted(Sector);
-                else                                  MakeSectorRenderingData(Sector);
-
-                Sector_Refresh_Count++;
-                Sector->RefreshWaitCount = 0;
-                Stat->SectorRefresh_Count++;
-
-                #if COMPILEOPTION_FINETIMINGTRACKING == 1
-                  Timer_SectorRefresh.End(); Time = Timer_SectorRefresh.GetResult(); Stat->SectorRefresh_TotalTime += Time; if (Time < Stat->SectorRefresh_MinTime ) Stat->SectorRefresh_MinTime = Time; if (Time > Stat->SectorRefresh_MaxTime ) Stat->SectorRefresh_MaxTime = Time;
-                #endif
-              }
-              else
-              {
-                Sector->RefreshWaitCount++;
-                if (Sector->RefreshWaitCount > 31) Sector->RefreshWaitCount = 31;
-                if (Priority==4) Sector->RefreshWaitCount++;
-                RefreshWaiters[Sector->RefreshWaitCount]++;
-                Stat_RefreshWaitingSectorCount++;
-                Stat->SectorRefresh_Waiting++;
-              }
-
-            }
-
-
-            // Rendering first pass
-            if (   Sector->Flag_IsVisibleAtLastRendering
-                && (!Sector->Flag_Void_Regular)
-                && (Sector->DisplayData != 0)
-				&& (((ZRender_Interface_displaydata *)Sector->DisplayData)->DisplayList_Regular != 0)
-                )
-              {
-
-                #if COMPILEOPTION_FINETIMINGTRACKING == 1
-                Timer_SectorRefresh.Start();
-                #endif
-
-                glCallList( ((ZRender_Interface_displaydata *)Sector->DisplayData)->DisplayList_Regular );
-                Stat->SectorRender_Count++;RenderedSectors++;
-
-                #if COMPILEOPTION_FINETIMINGTRACKING == 1
-                Timer_SectorRefresh.End(); Time = Timer_SectorRefresh.GetResult(); Stat->SectorRender_TotalTime += Time;
-                #endif
-              }
-          }
-          else
-          {
-            if (GameEnv->Enable_LoadNewSector) World->RequestSector(x,y,z,Priority + PriorityBoost );
-          }
-
-    }
-
-  // Second pass rendering
-
-
-    glDepthMask(GL_FALSE);
-
-    SectorsToProcess = SectorSphere.GetEntryCount();
-
-    for (ULong Entry=0; Entry<SectorsToProcess; Entry++ )
-    {
-      SectorSphereEntry = SectorSphere.GetEntry(Entry);
-
-      x = SectorSphereEntry->x + Sector_x;
-      y = SectorSphereEntry->y + Sector_y;
-      z = SectorSphereEntry->z + Sector_z;
-
-       Sector = World->FindSector(x,y,z);
-          // printf("Sector : %ld %ld %ld %lu\n", x, y, z, (ULong)(Sector != 0));9
-          if (Sector)
-          {
-            if (  Sector->Flag_IsVisibleAtLastRendering
-               && (!Sector->Flag_Void_Transparent)
-               && (Sector->DisplayData != 0)
-               && (((ZRender_Interface_displaydata *)Sector->DisplayData)->DisplayList_Transparent != 0)
-               )
-            {
-              #if COMPILEOPTION_FINETIMINGTRACKING == 1
-                Timer_SectorRefresh.Start();
-              #endif
-
-              glCallList( ((ZRender_Interface_displaydata *)Sector->DisplayData)->DisplayList_Transparent );
-              Stat->SectorRender_Count++;
-
-              #if COMPILEOPTION_FINETIMINGTRACKING == 1
-                Timer_SectorRefresh.End(); Time = Timer_SectorRefresh.GetResult(); Stat->SectorRender_TotalTime += Time;
-              #endif
-            }
-
-          }
-    }
-    glDepthMask(GL_TRUE);
-
-
-    // ***************************
-    // Cube designation
-    // ***************************
-
-    ZRayCast_in In;
-
-    In.Camera = Camera;
-    In.MaxCubeIterations = 150;
-    In.PlaneCubeDiff = 100;
-    In.MaxDetectionDistance = 30000.0;
-
- //   if (World->RayCast( &In, PointedVoxel ))
- //   {
-      // Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,1.0,1.0 );
-      //Render_VoxelSelector( &PointedVoxel->PredPointedVoxel, 1.0, 0.0, 0.0);
-//    }
-
-    // Debug ****************************************************
-
-    ZVector3d Norm, Tmp;
-    Norm.x = 0; Norm.y = 0; Norm.z = -1;
-	Camera->orientation.ApplyRotation( Tmp, Norm );
-    // X axis rotation
-    //Tmp.y = Norm.y * cos(-Camera->Pitch/57.295779513) - Norm.z * sin(-Camera->Pitch/57.295779513);
-    //Tmp.z = Norm.y * sin(-Camera->Pitch/57.295779513) + Norm.z * cos(-Camera->Pitch/57.295779513);
-    //Norm.y = Tmp.y; Norm.z = Tmp.z;
-    // Y axis rotation
-    //Tmp.x = Norm.z*sin(Camera->Yaw/57.295779513) + Norm.x * cos(Camera->Yaw/57.295779513);
-    //Tmp.z = Norm.z*cos(Camera->Yaw/57.295779513) - Norm.x * sin(Camera->Yaw/57.295779513);
-    //Norm.x = Tmp.x; Norm.z = Tmp.z;
-    //Norm.y = Tmp.y;
-    // printf("Norm(%lf %lf %lf)\n",Norm.x,Norm.y,Norm.z);
-
-    In.MaxCubeIterations = 150;
-    In.MaxDetectionDistance = 1536;//1000000.0;
-
-    ZVector3d CamPoint(Camera->x(),Camera->y(),Camera->z());
-    ZVector3d Zp;
-    Zp = PointedVoxel->CollisionPoint; Zp.y = PointedVoxel->CollisionPoint.y + 100.0;
-
-    if (World->RayCast_Vector(Camera->orientation, Tmp, &In, PointedVoxel))
-    {
-      if (PointedVoxel->CollisionDistance < In.MaxDetectionDistance)
-      {
-        PointedVoxel->Collided = true;
-        if (BvProp_DisplayVoxelSelector) 
-			Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,1.0,1.0 );
-      }
-	  else
-	  {
-		  ZVector3d a = Camera->orientation.origin() +
-			  Camera->orientation.z_axis() * ( GlobalSettings.VoxelBlockSize * -(Actor->VoxelSelectDistance) );
-		  //In.MaxCubeIterations = 6;
-
-		  ZVoxelRef *v = World->GetVoxelRefPlayerCoord( a.x, a.y, a.z );
-			//World->RayCast_Vector(Camera->orientation, Tmp, &In, PointedVoxel);
-			PointedVoxel->PredPointedVoxel.x = v->x;
-			PointedVoxel->PredPointedVoxel.y = v->y;
-			PointedVoxel->PredPointedVoxel.z = v->z;
-			delete v ;
-		  PointedVoxel->Collided = true;
-        if (BvProp_DisplayVoxelSelector) 
-			Render_VoxelSelector( &PointedVoxel->PredPointedVoxel, 0.2,1.0,0.1 );
-	  }
-    }
-
-
-    // ***************************
-    // Réticule
-    // ***************************
-
-
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    gluOrtho2D(0, 1440, 900.0 , 0.0);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    if (BvProp_CrossHairType==1 && BvProp_DisplayCrossHair)
-    {
-      glDisable(GL_TEXTURE_2D);
-      glBegin(GL_POLYGON);
-        glColor3f(1.0,1.0,1.0);
-        glVertex3f(720.0f-1.0f, 450.0f-20.0f , 0.0f);
-        glVertex3f(720.0f+1.0f, 450.0f-20.0f , 0.0f);
-        glVertex3f(720.0f+1.0f, 450.0f-10.0f , 0.0f);
-        glVertex3f(720.0f-1.0f, 450.0f-10.0f , 0.0f);
-      glEnd();
-
-      glBegin(GL_POLYGON);
-        glColor3f(1.0,1.0,1.0);
-        glVertex3f(720.0f-1.0f, 450.0f+10.0f , 0.0f);
-        glVertex3f(720.0f+1.0f, 450.0f+10.0f , 0.0f);
-        glVertex3f(720.0f+1.0f, 450.0f+20.0f , 0.0f);
-        glVertex3f(720.0f-1.0f, 450.0f+20.0f , 0.0f);
-      glEnd();
-
-      glBegin(GL_POLYGON);
-        glColor3f(1.0,1.0,1.0);
-        glVertex3f(720.0f-20.0f, 450.0f-1.0f , 0.0f);
-        glVertex3f(720.0f-10.0f, 450.0f-1.0f , 0.0f);
-        glVertex3f(720.0f-10.0f, 450.0f+1.0f , 0.0f);
-        glVertex3f(720.0f-20.0f, 450.0f+1.0f , 0.0f);
-      glEnd();
-
-      glBegin(GL_POLYGON);
-        glColor3f(1.0,1.0,1.0);
-        glVertex3f(720.0f+20.0f, 450.0f+1.0f , 0.0f);
-        glVertex3f(720.0f+10.0f, 450.0f+1.0f , 0.0f);
-        glVertex3f(720.0f+10.0f, 450.0f-1.0f , 0.0f);
-        glVertex3f(720.0f+20.0f, 450.0f-1.0f , 0.0f);
-      glEnd();
-
-      glColor3f(1.0,1.0,1.0);
-      glEnable(GL_TEXTURE_2D);
-    }
-
-    // Voile coloré
-
-    if (Camera->ColoredVision.Activate)
-    {
-      glDisable(GL_TEXTURE_2D);
-      glDisable(GL_DEPTH_TEST);
-      glColor4f(Camera->ColoredVision.Red,Camera->ColoredVision.Green,Camera->ColoredVision.Blue,Camera->ColoredVision.Opacity);
-      glBegin(GL_POLYGON);
-        glVertex3f(0.0f   , 0.0f   , 0.0f);
-        glVertex3f(1440.0f, 0.0f   , 0.0f);
-        glVertex3f(1440.0f, 900.0f , 0.0f);
-        glVertex3f(0.0f   , 900.0f , 0.0f);
-      glEnd();
-      glColor3f(1.0,1.0,1.0);
-      glEnable(GL_TEXTURE_2D);
-      glEnable(GL_DEPTH_TEST);
-    }
-
-/*
-    if (Camera->ColoredVision.Activate)
-    {
-      glDisable(GL_TEXTURE_2D);
-      glDisable(GL_DEPTH_TEST);
-      glColor4f(Camera->ColoredVision.Red,Camera->ColoredVision.Green,Camera->ColoredVision.Blue,Camera->ColoredVision.Opacity);
-      glBegin(GL_POLYGON);
-        glVertex3f(0.0f   , 0.0f   , 0.0f);
-        glVertex3f(1440.0f, 0.0f   , 0.0f);
-        glVertex3f(1440.0f, 900.0f , 0.0f);
-        glVertex3f(0.0f   , 900.0f , 0.0f);
-      glEnd();
-      glColor3f(1.0,1.0,1.0);
-      glEnable(GL_TEXTURE_2D);
-      glEnable(GL_DEPTH_TEST);
-    }
-*/
-
-
-
-    Timer.End();
-
-    /*printf("Frame Time : %lu Rend Sects: %lu Draw Faces :%lu Top:%lu Bot:%lu Le:%lu Ri:%lu Front:%lu Back:%lu\n",Timer.GetResult(), RenderedSectors, Stat_RenderDrawFaces, Stat_FaceTop, Stat_FaceBottom,
-           Stat_FaceLeft,Stat_FaceRight,Stat_FaceFront,Stat_FaceBack);*/
-
-    //printf("RenderedSectors : %lu\n",RenderedSectors);
-    //SDL_GL_SwapBuffers( );
-}
-
-/*
-void ZRender_Basic::RenderSector2(ZVoxelSector * Sector)
-{
-  Long x,y,z;
-  ULong info;
-  UShort cube;
-  ULong FlankText, TopText;
-  ULong Offset;
-  float cubx, cuby, cubz;
-  Long Sector_Display_x, Sector_Display_y, Sector_Display_z;
-
-  Sector_Display_x = Sector->Pos_x * Sector->Size_x * GlobalSettings.VoxelBlockSize;
-  Sector_Display_y = Sector->Pos_y * Sector->Size_y * GlobalSettings.VoxelBlockSize;
-  Sector_Display_z = Sector->Pos_z * Sector->Size_z * GlobalSettings.VoxelBlockSize;
-
-
-  for ( z=0 ; z < Sector->Size_z ; z++ )
-  {
-    for ( x=0 ; x < Sector->Size_x ; x++ )
-    {
-      for ( y=0 ; y < Sector->Size_y ; y++ )
-      {
-        Offset = y + ( x*Sector->Size_y )+ (z * (Sector->Size_y*Sector->Size_x));
-        cube = Sector->Data[Offset];
-
-        // info = 65535;
-        info = Sector->FaceCulling[Offset];
-
-        //if (Sector->Pos_y<0) cub0.0e = 1;
-
-        if (cube>0 && info != DRAWFACE_NONE)
-        {
-          switch (cube)
-          {
-            case 1: FlankText = TextureName[0]; TopText = TextureName[1]; break;
-            case 2: FlankText = TextureName[2]; TopText = TextureName[2]; break;
-          }
-
-          cubx = (float)(x*GlobalSettings.VoxelBlockSize + Sector_Display_x);
-          cuby = (float)(y*GlobalSettings.VoxelBlockSize + Sector_Display_y);
-          cubz = (float)(z*GlobalSettings.VoxelBlockSize + Sector_Display_z);
-
-          if (info & DRAWFACE_FLANK) glBindTexture(GL_TEXTURE_2D,FlankText);
-
-          //Left
-          if (info & DRAWFACE_LEFT)
-          {
-            glBegin(GL_POLYGON);
-              glTexCoord2f(0.0,0.0); glVertex3f(cubx, cuby, cubz );
-              glTexCoord2f(1.0,0.0); glVertex3f(cubx , cuby, cubz + GlobalSettings.VoxelBlockSize);
-              glTexCoord2f(1.0,1.0); glVertex3f(cubx , cuby +GlobalSettings.VoxelBlockSize, cubz + GlobalSettings.VoxelBlockSize);
-              glTexCoord2f(0.0,1.0); glVertex3f(cubx , cuby +GlobalSettings.VoxelBlockSize, cubz);
-            glEnd();
-          }
-
-          // Right
-          if (info & DRAWFACE_RIGHT)
-          {
-            glBegin(GL_POLYGON);
-              glTexCoord2f(0.0,0.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize , cuby, cubz );
-              glTexCoord2f(1.0,0.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby, cubz + GlobalSettings.VoxelBlockSize);
-              glTexCoord2f(1.0,1.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby +GlobalSettings.VoxelBlockSize, cubz + GlobalSettings.VoxelBlockSize);
-              glTexCoord2f(0.0,1.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby +GlobalSettings.VoxelBlockSize, cubz);
-            glEnd();
-          }
-
-          //Front
-          if (info & DRAWFACE_AHEAD)
-          {
-            glBegin(GL_POLYGON);
-              glTexCoord2f(0.0,0.0); glVertex3f(cubx, cuby, cubz);
-              glTexCoord2f(1.0,0.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby, cubz);
-              glTexCoord2f(1.0,1.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby +GlobalSettings.VoxelBlockSize, cubz);
-              glTexCoord2f(0.0,1.0); glVertex3f(cubx , cuby +GlobalSettings.VoxelBlockSize, cubz);
-            glEnd();
-          }
-
-          //Back
-          if (info & DRAWFACE_BEHIND)
-          {
-            glBegin(GL_POLYGON);
-              glTexCoord2f(0.0,0.0); glVertex3f(cubx, cuby, cubz + GlobalSettings.VoxelBlockSize);
-              glTexCoord2f(1.0,0.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby, cubz + GlobalSettings.VoxelBlockSize);
-              glTexCoord2f(1.0,1.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby +GlobalSettings.VoxelBlockSize, cubz + GlobalSettings.VoxelBlockSize);
-              glTexCoord2f(0.0,1.0); glVertex3f(cubx , cuby +GlobalSettings.VoxelBlockSize, cubz + GlobalSettings.VoxelBlockSize);
-            glEnd();
-          }
-
-          if (info & DRAWFACE_UD) glBindTexture(GL_TEXTURE_2D,TopText);
-
-          // Top
-          if (info & DRAWFACE_ABOVE)
-          {
-            glBegin(GL_POLYGON);
-              glTexCoord2f(0.0,0.0); glVertex3f(cubx , cuby  + GlobalSettings.VoxelBlockSize, cubz);
-              glTexCoord2f(1.0,0.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby  + GlobalSettings.VoxelBlockSize, cubz);
-              glTexCoord2f(1.0,1.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby  + GlobalSettings.VoxelBlockSize, cubz +GlobalSettings.VoxelBlockSize);
-              glTexCoord2f(0.0,1.0); glVertex3f(cubx, cuby  + GlobalSettings.VoxelBlockSize ,cubz +GlobalSettings.VoxelBlockSize);
-            glEnd();
-          }
-
-         // Bottom
-         if (info & DRAWFACE_BELOW)
-         {
-           glBegin(GL_POLYGON);
-             glTexCoord2f(0.0,0.0); glVertex3f(cubx, cuby, cubz);
-             glTexCoord2f(1.0,0.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby, cubz);
-             glTexCoord2f(1.0,1.0); glVertex3f(cubx + GlobalSettings.VoxelBlockSize, cuby, cubz +GlobalSettings.VoxelBlockSize);
-             glTexCoord2f(0.0,1.0); glVertex3f(cubx, cuby,cubz +GlobalSettings.VoxelBlockSize);
-           glEnd();
-          }
-        }
-
-
-      }
-    }
-  }
-}
-*/
-Bool ZRender_Basic::LoadVoxelTexturesToGPU()
+Bool ZRender_Interface::LoadVoxelTexturesToGPU()
 {
   ULong i;
   ZVoxelType * VoxelType;
@@ -818,7 +243,7 @@ Bool ZRender_Basic::LoadVoxelTexturesToGPU()
   return(true);
 }
 
-void ZRender_Basic::FreeDisplayData(ZVoxelSector * Sector)
+void ZRender_Interface::FreeDisplayData(ZVoxelSector * Sector)
 {
   ZRender_Interface_displaydata * DisplayData;
 
@@ -840,7 +265,7 @@ void ZRender_Basic::FreeDisplayData(ZVoxelSector * Sector)
   }
 }
 
-Bool ZRender_Basic::LoadTexturesToGPU()
+Bool ZRender_Interface::LoadTexturesToGPU()
 {
   ULong i;
   ULong TextureCount;
@@ -951,7 +376,7 @@ Bool ZRender_Basic::LoadTexturesToGPU()
            glTexCoord2f(TC_S##s##_P##b##_X,TC_S##s##_P##b##_Y); glVertex3f(P##f.x, P##f.y, P##f.z );  \
 		   glTexCoord2f(TC_S##s##_P##c##_X,TC_S##s##_P##c##_Y); glVertex3f(P##g.x, P##g.y, P##g.z );
 
-void ZRender_Basic::EmitFaces( ZVoxelType ** VoxelTypeTable, UShort &VoxelType, UShort &prevVoxelType, ULong info
+void ZRender_Interface::EmitFaces( ZVoxelType ** VoxelTypeTable, UShort &VoxelType, UShort &prevVoxelType, ULong info
 							  , Long x, Long y, Long z
 							  , Long Sector_Display_x, Long Sector_Display_y, Long Sector_Display_z )
 {
@@ -1650,7 +1075,7 @@ void ZRender_Basic::EmitFaces( ZVoxelType ** VoxelTypeTable, UShort &VoxelType, 
 
 
 
-void ZRender_Basic::MakeSectorRenderingData(ZVoxelSector * Sector)
+void ZRender_Interface::MakeSectorRenderingData(ZVoxelSector * Sector)
 {
   Long x,y,z;
   ULong info;
@@ -1996,7 +1421,7 @@ void ZRender_Basic::MakeSectorRenderingData(ZVoxelSector * Sector)
 
 
 
-void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
+void ZRender_Interface::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
 {
   Long x,y,z;
   ULong info, i;
@@ -2702,8 +2127,8 @@ void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
   }
 }
 
-#if 0
-void ZRender_Basic::ComputeAndSetAspectRatio(double VerticalFOV, double PixelAspectRatio, ZVector2L & ViewportResolution)
+
+void ZRender_Interface::ComputeAndSetAspectRatio(double VerticalFOV, double PixelAspectRatio, ZVector2L & ViewportResolution)
 {
   double FocusDistance = 50.0;
   VerticalFOV = 63.597825649;
@@ -2727,4 +2152,3 @@ void ZRender_Basic::ComputeAndSetAspectRatio(double VerticalFOV, double PixelAsp
 
 }
 
-#endif

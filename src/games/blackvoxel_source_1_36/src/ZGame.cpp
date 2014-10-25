@@ -35,7 +35,9 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
+#include "ZRender_Interface.h"
 #include "ZRender_Basic.h"
+#include "ZRender_Smooth.h"
 
 #ifndef Z_ZSTREAMS_FILE_H
 #  include "z/ZStream_File.h"
@@ -494,7 +496,7 @@ bool ZGame::Init_Renderer(ZLog * InitLog)
   InitLog->Log(1, ZLog::INFO, "Starting : Renderer Init");
   //ZRender_Basic Basic_Renderer;
 
-  Basic_Renderer = new ZRender_Basic;
+  Basic_Renderer = new ZRender_Smooth;
 
   Basic_Renderer->SetGameEnv(this);
   Basic_Renderer->Init();

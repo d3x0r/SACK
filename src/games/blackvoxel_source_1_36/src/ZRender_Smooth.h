@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef Z_ZRENDER_BASIC_H
-#define Z_ZRENDER_BASIC_H
+#ifndef Z_ZRENDER_SMOOTH_H
+#define Z_ZRENDER_SMOOTH_H
 
 //#ifndef Z_ZRENDER_BASIC_H
 //#  include "ZRender_Basic.h"
@@ -72,12 +72,11 @@ class ZRender_basic_displaydata : public ZObject
 
 };
 */
-
 class ZGame;
 
-class ZRender_Basic : public ZRender_Interface
+class ZRender_Smooth: public ZRender_Interface
 {
-	/*
+#if 0
   protected:
     ZVoxelWorld * World;
     ZVoxelTypeManager * VoxelTypeManager;
@@ -129,9 +128,9 @@ class ZRender_Basic : public ZRender_Interface
     bool  BvProp_DisplayVoxelSelector;
 
     ZRender_Sorter RenderSorter;
-	*/
+#endif
 public:
-    ZRender_Basic()
+    ZRender_Smooth()
     {
       hRenderRadius = 1;  // 8
       vRenderRadius = 1;  // 3
@@ -187,11 +186,11 @@ public:
 
     void Render_DebugLine       ( ZVector3d & Start, ZVector3d & End);
     void Render_VoxelSelector   (ZVoxelCoords * SelectedVoxel, float r, float g, float b);
+#endif
+private:
 	void EmitFaces				( ZVoxelType ** VoxelTypeTable, UShort &VoxelType, UShort &prevVoxelType, ULong info
 							  , Long x, Long y, Long z
 							  , Long Sector_Display_x, Long Sector_Display_y, Long Sector_Display_z );
-#endif
-private:
     void MakeSectorRenderingData(ZVoxelSector * Sector);
     void MakeSectorRenderingData_Sorted(ZVoxelSector * Sector);
 public:
