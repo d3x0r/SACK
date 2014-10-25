@@ -89,13 +89,13 @@ static void CPROC pause_pushed( PTRSZVAL psvPanel, PSI_CONTROL pc )
 	{
 		panel->flags.playing = 0;
 		ffmpeg_PauseFile( panel->media->file );
-		SetControlText( panel->pause_button, WIDE( "play" ) );
+		SetControlText( panel->pause_button, WIDE( "Play" ) );
 	}
 	else
 	{
 		panel->flags.playing = 1;
 		ffmpeg_PlayFile( panel->media->file );
-		SetControlText( panel->pause_button, WIDE( "pause" ) );
+		SetControlText( panel->pause_button, WIDE( "Pause" ) );
 	}
 }
 
