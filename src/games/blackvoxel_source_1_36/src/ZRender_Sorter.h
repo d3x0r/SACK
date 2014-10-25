@@ -29,7 +29,7 @@
 //#ifndef Z_ZRENDER_SORTER_H
 //#  include "ZRender_Sorter.h"
 //#endif
-
+#include <SDL2/SDL.h>
 #ifndef Z_ZVOXELSECTOR_H
 #  include "ZVoxelSector.h"
 #endif
@@ -41,7 +41,7 @@ class ZRender_Sorter
     class RenderEntry
     {
       public:
-        ULong PackedInfos;
+        uint64_t PackedInfos;
     };
 
 
@@ -104,12 +104,46 @@ class ZRender_Sorter
   }
 
 
-  inline void AddVoxel(const UShort VoxelType, const Long x, const Long y, const Long z, const UByte CullingInfos)
+  inline void AddVoxel(const UShort VoxelType, const Long x, const Long y, const Long z, ULong CullingInfos)
   {
     RenderBucket * Bucket;
 
     if (!VoxelType) return;
-    if (CullingInfos == DRAWFACE_NONE) return;
+#if 0
+	//GameEnv->VoxelTable
+	 if( VoxelType != 85 
+		 && VoxelType != 86
+		 && VoxelType != 89 
+		 && !( CullingInfos & ( DRAWFACE_ALL ) ) 
+		 && ( ( CullingInfos & 0x3FFC0 ) != 0x3FFC0  )
+		 && ( x > 0 ) && ( x < (ZVOXELBLOCSIZE_X-1) )
+		 && ( y > 0 ) && ( y < (ZVOXELBLOCSIZE_Y-1) )
+		 && ( z > 0 ) && ( z < (ZVOXELBLOCSIZE_Z-1) ) 
+		 )
+	 {
+		 if( !( CullingInfos & ( DRAWFACE_BEHIND_HAS_ABOVE | DRAWFACE_LEFT_HAS_ABOVE | DRAWFACE_AHEAD_HAS_ABOVE | DRAWFACE_RIGHT_HAS_ABOVE ) )
+			 //|| !( CullingInfos & ( DRAWFACE_BEHIND_HAS_ABOVE | DRAWFACE_RIGHT_HAS_ABOVE ) )
+			 //|| !( CullingInfos & ( DRAWFACE_AHEAD_HAS_ABOVE | DRAWFACE_RIGHT_HAS_ABOVE ) ) 
+			 )
+			CullingInfos |= DRAWFACE_ABOVE;
+		 if( !( CullingInfos & ( DRAWFACE_BEHIND_HAS_BELOW | DRAWFACE_LEFT_HAS_BELOW | DRAWFACE_AHEAD_HAS_BELOW | DRAWFACE_RIGHT_HAS_BELOW ) )
+			 )
+			CullingInfos |= DRAWFACE_BELOW;
+		 if( !( CullingInfos & ( DRAWFACE_BEHIND_HAS_LEFT | DRAWFACE_ABOVE_HAS_LEFT | DRAWFACE_AHEAD_HAS_LEFT | DRAWFACE_BELOW_HAS_LEFT ) )
+			 )
+			CullingInfos |= DRAWFACE_LEFT;
+		 if( !( CullingInfos & ( DRAWFACE_BEHIND_HAS_RIGHT | DRAWFACE_ABOVE_HAS_RIGHT | DRAWFACE_AHEAD_HAS_RIGHT | DRAWFACE_BELOW_HAS_RIGHT ) )
+			 )
+			CullingInfos |= DRAWFACE_RIGHT;
+		 if( !( CullingInfos & ( DRAWFACE_ABOVE_HAS_AHEAD | DRAWFACE_LEFT_HAS_AHEAD | DRAWFACE_BELOW_HAS_AHEAD | DRAWFACE_RIGHT_HAS_AHEAD ) )
+			 )
+			CullingInfos |= DRAWFACE_AHEAD;
+		 if( !( CullingInfos & ( DRAWFACE_ABOVE_HAS_BEHIND | DRAWFACE_LEFT_HAS_BEHIND | DRAWFACE_BELOW_HAS_BEHIND | DRAWFACE_RIGHT_HAS_BEHIND ) )
+			 )
+			CullingInfos |= DRAWFACE_BEHIND;
+	 }
+#endif
+    if ( (CullingInfos &DRAWFACE_ALL) == DRAWFACE_NONE) return;
     if ( BucketHash[VoxelType].CycleNum != CycleNum )
     {
       if (!BucketTable[UsedBuckets]) BucketTable[UsedBuckets] = new RenderBucket();
@@ -123,9 +157,9 @@ class ZRender_Sorter
       Bucket = BucketHash[VoxelType].Bucket;
     }
 
-    register ULong PackedInfos;
+    register uint64_t PackedInfos;
 
-    PackedInfos =  ( ( ( ( (x << 8) | y) << 8) | z) << 8 ) | CullingInfos;
+    PackedInfos =  ( ( ( ( ((uint64_t)x << (ZVOXELBLOCSHIFT_Y) | (uint64_t)y) << ZVOXELBLOCSHIFT_Z) | (uint64_t)z) << (64-(ZVOXELBLOCSHIFT_X+ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_Z)) ) ) | CullingInfos;
     Bucket->RenderTable[Bucket->VoxelCount++].PackedInfos = PackedInfos;
   }
 

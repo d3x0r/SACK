@@ -851,6 +851,7 @@ bool ZGame::End_RendererSettings()
 {
   Basic_Renderer->SetWorld(0);
   Basic_Renderer->SetCamera(0);
+  Basic_Renderer->SetActor(0);
   Basic_Renderer->SetPointedVoxel(0);
   Initialized_RendererSettings = false;
   return(false);

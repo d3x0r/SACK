@@ -103,13 +103,13 @@ void ZVoxelProcessor::MakeSectorTasks(ZVoxelSector * Sector)
 
   // **************************** Sector face culling ***********************
 
-  ULong CullingResult;
+  uint64_t CullingResult;
 
   if (Sector->PartialCulling)
   {
     CullingResult = World->SectorUpdateFaceCulling_Partial(Sector->Pos_x, Sector->Pos_y, Sector->Pos_z, Sector->PartialCulling );
-    Sector->PartialCulling ^= CullingResult;
-    Sector->PartialCulling &= (DRAWFACE_ABOVE | DRAWFACE_BELOW | DRAWFACE_LEFT | DRAWFACE_RIGHT | DRAWFACE_AHEAD | DRAWFACE_BEHIND);
+    Sector->PartialCulling ^= CullingResult & (DRAWFACE_ABOVE | DRAWFACE_BELOW | DRAWFACE_LEFT | DRAWFACE_RIGHT | DRAWFACE_AHEAD | DRAWFACE_BEHIND);
+    //Sector->PartialCulling &= (DRAWFACE_ABOVE | DRAWFACE_BELOW | DRAWFACE_LEFT | DRAWFACE_RIGHT | DRAWFACE_AHEAD | DRAWFACE_BEHIND);
     if (CullingResult) Sector->Flag_Render_Dirty = true;
     // printf("Cull %ld,%ld,%ld :%lx (%lx)\n", Sector->Pos_x, Sector->Pos_y, Sector->Pos_z, CullingResult, (ULong)Sector->PartialCulling);
   }
