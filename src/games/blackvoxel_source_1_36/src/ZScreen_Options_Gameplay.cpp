@@ -45,7 +45,7 @@ ULong ZScreen_Options_Game::ProcessScreen(ZGame * GameEnv)
     Frame_MainTitle.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
     Frame_MainTitle.GetTextDisplaySize(&Size);
     Frame_MainTitle.SetPosition(GameEnv->ScreenResolution.x / 2.0f - Size.x / 2.0f , Pos.y );
-    Frame_MainTitle.SetSize(Size.x + 1.0,Size.y);
+    Frame_MainTitle.SetSize(Size.x + 1.0f,Size.y);
     Frame_MainTitle.TextureNum = 3;
     GameEnv->GuiManager.AddFrame(&Frame_MainTitle);
     Pos.y += Size.y + GameEnv->ScreenResolution.y * 0.10f;

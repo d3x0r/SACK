@@ -107,9 +107,11 @@ struct ZRayCast_out
 
 class ZVoxelWorld : public ZObject
 {
+public:
     ZVoxelSector * WorkingFullSector;
     ZVoxelSector * WorkingEmptySector;
     ZVoxelSector * WorkingScratchSector;
+private:
 	ZGame        * GameEnv;
   public:
     ZSectorRingList * SectorEjectList;
@@ -458,7 +460,7 @@ inline ZVoxelRef *ZVoxelWorld::GetVoxelRef(Long x, Long y, Long z)
          + ((x & ZVOXELBLOCMASK_X) <<  ZVOXELBLOCSHIFT_Y )
          + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y + ZVOXELBLOCSHIFT_X));
 
-  return new ZVoxelRef( this, VoxelTypeManager, x, y, z, Sector->Data[Offset], Offset );
+  return new ZVoxelRef( this, VoxelTypeManager, x, y, z, Sector, Sector->Data[Offset], Offset );
 }
 
 

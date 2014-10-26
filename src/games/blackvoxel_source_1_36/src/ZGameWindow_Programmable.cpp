@@ -99,7 +99,7 @@ void ZGameWindow_Programmable::Show()
   RobotProgramLoad.SetDisplayText(Text_RobotProgramLoad.String);
   RobotProgramLoad.SetTextStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_2));
   RobotProgramLoad.GetEffectiveDisplaySize(&Size);
-  RobotProgramLoad.SetPosition(Rp.x,Rp.y + (32.0 - Size.y / 2.0f));
+  RobotProgramLoad.SetPosition(Rp.x,Rp.y + (32.0f - Size.y / 2.0f));
   RobotProgramLoad.SetSize(Size.x,Size.y);
   //GetButton.SetColor(1.0f,0.0f,0.0f);
   MainWindow->AddFrame(&RobotProgramLoad);
@@ -217,7 +217,7 @@ Bool ZGameWindow_Programmable::MouseButtonClick  (UShort nButton, Short Absolute
   if (RobotProgramLoad.Is_MouseClick(true))
   {
     // VoxelExtension->SetScriptNum(floor(RobotProgramNum.GetValue()));
-    VoxelExtension->CompileAndRunScript(ZVoxelExtension_Programmable::CONTEXT_PROGRAMCHANGE, floor(RobotProgramNum.GetValue()));
+    VoxelExtension->CompileAndRunScript(ZVoxelExtension_Programmable::CONTEXT_PROGRAMCHANGE, (ULong)floor(RobotProgramNum.GetValue()));
   }
   return (Res);
 }

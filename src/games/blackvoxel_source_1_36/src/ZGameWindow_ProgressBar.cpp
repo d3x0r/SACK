@@ -39,7 +39,7 @@ void ZGameWindow_ProgressBar::Show()
   ZVector2f MainWindow_Pos,MainWindow_Size;
   MainWindow_Size.x = 200.0f; MainWindow_Size.y = 15.0f;
   MainWindow_Pos.x = ((float)GameEnv->ScreenResolution.x / 2.0f - MainWindow_Size.x/2.0f);
-  MainWindow_Pos.y = ((float)GameEnv->ScreenResolution.y *0.98 - (MainWindow_Size.y));
+  MainWindow_Pos.y = ((float)GameEnv->ScreenResolution.y *0.98f - (MainWindow_Size.y));
 
   MainWindow.SetPosition( MainWindow_Pos.x, MainWindow_Pos.y);
   MainWindow.SetSize(MainWindow_Size.x,MainWindow_Size.y);

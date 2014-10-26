@@ -220,7 +220,7 @@ Bool ZGameWindow_Sequencer::MouseButtonClick  (UShort nButton, Short Absolute_x,
 
   if (OutputNum.Is_ChoiceChanged(true))
   {
-    VoxelExtension_Sequencer->OutputLocation = floor(OutputNum.GetValue());
+    VoxelExtension_Sequencer->OutputLocation = (ULong)floor(OutputNum.GetValue());
     if (VoxelExtension_Sequencer->OutputLocation > 5) VoxelExtension_Sequencer->OutputLocation =5;
   }
   return (Res);

@@ -38,6 +38,7 @@
 
 void ZRender_Interface::SetWorld( ZVoxelWorld * World )
 {
+	this->voxelCuller->SetWorld( World );
   this->World = World;
 }
 

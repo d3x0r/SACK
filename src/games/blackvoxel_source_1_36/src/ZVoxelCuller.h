@@ -17,10 +17,16 @@ class ZVoxelSector;
 class ZVoxelCuller
 {
 protected:
-   ZVoxelWorld &world;
+   ZVoxelWorld *world;
 public:
-	ZVoxelCuller( ZVoxelWorld &world ): world( world )
+	ZVoxelCuller( ZVoxelWorld *world )
 	{
+		this->world = world;
+	}
+
+	void SetWorld( ZVoxelWorld *world )
+	{
+		this->world = world;
 	}
 
 	virtual void InitFaceCullData( ZVoxelSector *sector ) = 0;
@@ -34,6 +40,8 @@ public:
 
 	virtual ULong getFaceCulling( ZVoxelSector *Sector, int offset ) = 0;
 	virtual void setFaceCulling( ZVoxelSector *Sector, int offset, ULong value ) = 0;
+	virtual bool Decompress_RLE(ZVoxelSector *Sector, void * Stream) = 0;
+	virtual void Compress_RLE(ZVoxelSector *Sector, void * Stream) = 0;
 
 
 };

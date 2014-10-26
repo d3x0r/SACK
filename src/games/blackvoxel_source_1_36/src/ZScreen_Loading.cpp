@@ -38,8 +38,8 @@ ULong ZScreen_Loading::ProcessScreen(ZGame * GameEnv)
     Frame_Loading.SetDisplayText((char *)"LOADING...");
     Frame_Loading.SetStyle(GameEnv->TileSetStyles->GetStyle(1));
     Frame_Loading.GetTextDisplaySize(&Loading_Size);
-    Frame_Loading.SetPosition(GameEnv->ScreenResolution.x / 2.0 - Loading_Size.x / 2.0, GameEnv->ScreenResolution.y / 2.0 - Loading_Size.y / 2.0 );
-    Frame_Loading.SetSize(Loading_Size.x+1.0,Loading_Size.y);
+    Frame_Loading.SetPosition(GameEnv->ScreenResolution.x / 2.0f - Loading_Size.x / 2.0f, GameEnv->ScreenResolution.y / 2.0f - Loading_Size.y / 2.0f );
+    Frame_Loading.SetSize(Loading_Size.x+1.0f,Loading_Size.y);
     Frame_Loading.SetZPosition(49.0f);
 
     Frame_Loading.TextureNum = 3;

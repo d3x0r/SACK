@@ -54,7 +54,7 @@ class ZGame;
 class ZVoxelCuller_Smooth: public ZVoxelCuller
 {
 public:
-	ZVoxelCuller_Smooth( ZVoxelWorld *world ) : ZVoxelCuller( *world )
+	ZVoxelCuller_Smooth( ZVoxelWorld *world ) : ZVoxelCuller( world )
 	{
 	}
 	 void InitFaceCullData( ZVoxelSector *sector );
@@ -67,6 +67,8 @@ public:
 	 void CullSingleVoxel( ZVoxelSector *sector, int x, int y, int z );
  	ULong getFaceCulling( ZVoxelSector *Sector, int offset );
 	void setFaceCulling( ZVoxelSector *Sector, int offset, ULong value );
+	bool Decompress_RLE(ZVoxelSector *Sector,  void * Stream);
+	void Compress_RLE(ZVoxelSector *Sector,  void  * Stream);
 
 };
 

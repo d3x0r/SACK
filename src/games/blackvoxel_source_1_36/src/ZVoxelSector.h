@@ -134,6 +134,8 @@ class ZLightSpeedRandom;
 
 class ZVoxelSector : public ZObject
 {
+	void ZVoxelSector::DefaultInit( void );
+
   public:
     static ULong SectorsInMemory;
 
@@ -212,6 +214,7 @@ class ZVoxelSector : public ZObject
     ULong LowRefresh_Mask;
 
     ZVoxelSector();
+	ZVoxelSector( ZVoxelCuller *culler );
     ZVoxelSector( const ZVoxelSector &Sector);
     ZVoxelSector(Long Size_x, Long Size_y, Long Size_z);
     ~ZVoxelSector();
@@ -224,13 +227,11 @@ protected:
 
     void Compress_Short_RLE(UShort * Data, void * Stream);
     void Compress_OtherInfos_RLE(ZMemSize * Data, UShort * VoxelData, void * Stream);
-    void Compress_FaceCulling_RLE(ULong * Data, void  * Stream);
-    void Compress_FaceCulling_RLE(UByte * Data, void  * Stream);
+    //void Compress_FaceCulling_RLE(UByte * Data, void  * Stream);
     void Compress_Temperatures_RLE(UShort * Data, void  * Stream);
 
     bool Decompress_Short_RLE(UShort * Data, void * Stream);
-    bool Decompress_FaceCulling_RLE(ULong * Data, void * Stream);
-    bool Decompress_FaceCulling_RLE(UByte * Data, void * Stream);
+    //bool Decompress_FaceCulling_RLE(UByte * Data, void * Stream);
     bool Decompress_OtherInfos_RLE(ZMemSize * Data, void * Stream);
     bool Decompress_Temperatures_RLE(UShort * Data, void * Stream);
 public:

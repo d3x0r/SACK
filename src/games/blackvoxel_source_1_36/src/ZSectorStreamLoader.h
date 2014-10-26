@@ -97,6 +97,7 @@ class ZWorldGenesis;
 
 class ZFileSectorLoader : public ZSectorLoader
 {
+public:
     static UByte STableX[];
     static UByte STableZ[];
     static UByte STableY[];
@@ -104,6 +105,7 @@ class ZFileSectorLoader : public ZSectorLoader
     static UShort OfTableY [];
     static UShort OfTableX [];
     static UShort OfTableZ [];
+private:
 	ZGame *GameEnv;
   protected:
     void * Thread;

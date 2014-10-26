@@ -497,8 +497,8 @@ bool ZGame::Init_Renderer(ZLog * InitLog)
   //ZRender_Basic Basic_Renderer;
 
 
-  //Basic_Renderer = new ZRender_Basic;
-  Basic_Renderer = new ZRender_Smooth( World );
+  Basic_Renderer = new ZRender_Basic( World );
+  //Basic_Renderer = new ZRender_Smooth( World );
 
   Basic_Renderer->SetGameEnv(this);
   Basic_Renderer->Init();
@@ -626,6 +626,7 @@ bool ZGame::Start_World()
 {
   World = new ZVoxelWorld( this );
   if (!World) return(false);
+  Basic_Renderer->SetWorld( World );
 
   World->SetUniverseNum(UniverseNum);
   World->SetVoxelTypeManager(&VoxelTypeManager);

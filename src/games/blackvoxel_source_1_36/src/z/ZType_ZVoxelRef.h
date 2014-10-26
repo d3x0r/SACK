@@ -13,7 +13,7 @@ public:
 	UShort VoxelType;
 	ZVoxelWorld *World;
 	ZVoxelTypeManager *VoxelTypeManager;
-	ZVoxelRef( ZVoxelWorld *world, ZVoxelTypeManager *vtm, long x, long y, long z, UShort VoxelType, int offset )
+	ZVoxelRef( ZVoxelWorld *world, ZVoxelTypeManager *vtm, long x, long y, long z, ZVoxelSector *Sector, UShort VoxelType, int offset )
 	{
 		this->x = x;
 		this->y = y;
