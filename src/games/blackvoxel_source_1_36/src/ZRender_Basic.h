@@ -50,10 +50,10 @@ extern GLuint TextureName[1024];
 
 class ZGame;
 
-class ZVoxelCuller_Basic: ZVoxelCuller
+class ZVoxelCuller_Basic: public ZVoxelCuller
 {
 public:
-	ZVoxelCuller_Basic( ZVoxelWorld *world ) : ZVoxelCuller( *world )
+	ZVoxelCuller_Basic( ZVoxelWorld *world ) : ZVoxelCuller( world )
 	{
 	}
 	 void InitFaceCullData( ZVoxelSector *sector );
@@ -66,6 +66,8 @@ public:
 	 void CullSingleVoxel( ZVoxelSector *sector, int x, int y, int z );
  	ULong getFaceCulling( ZVoxelSector *Sector, int offset );
 	void setFaceCulling( ZVoxelSector *Sector, int offset, ULong value );
+	bool Decompress_RLE( ZVoxelSector *Sector,  void * Stream);
+	void Compress_RLE( ZVoxelSector *Sector,  void  * Stream);
 
 };
 
@@ -73,8 +75,10 @@ public:
 class ZRender_Basic : public ZRender_Interface
 {
 public:
-    ZRender_Basic()
+    ZRender_Basic( ZVoxelWorld *world )
     {
+		this->World = world;
+		voxelCuller = new ZVoxelCuller_Basic( world );
       hRenderRadius = 1;  // 8
       vRenderRadius = 1;  // 3
       World = 0;
@@ -110,9 +114,10 @@ private:
     void MakeSectorRenderingData(ZVoxelSector * Sector);
     void MakeSectorRenderingData_Sorted(ZVoxelSector * Sector);
 public:
-	void SetupCulling( ZVoxelSector *Sector );
-	void CullSectorInternal( ZVoxelSector *Sector );
-	void CullMatingSectors( ZVoxelSector *Sector );
+	 ZVoxelCuller *GetCuller( void )
+	 {
+       return voxelCuller;
+	 }
 
     void Render();
 };

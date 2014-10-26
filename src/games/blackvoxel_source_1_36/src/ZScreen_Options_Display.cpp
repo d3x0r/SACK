@@ -49,7 +49,7 @@ ULong ZScreen_Options_Display::ProcessScreen(ZGame * GameEnv)
 {
   ZVector2f Size;
   ZVector2f Pos;
-  ULong i,j;
+  ULong i;
   ULong Count;
   bool Found;
 
@@ -193,7 +193,7 @@ ULong ZScreen_Options_Display::ProcessScreen(ZGame * GameEnv)
     Frame_MainTitle.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
     Frame_MainTitle.GetTextDisplaySize(&Size);
     Frame_MainTitle.SetPosition(GameEnv->ScreenResolution.x / 2.0f - Size.x / 2.0f , Pos.y );
-    Frame_MainTitle.SetSize(Size.x + 1.0,Size.y);
+    Frame_MainTitle.SetSize(Size.x + 1.0f,Size.y);
     Frame_MainTitle.TextureNum = 3;
     GameEnv->GuiManager.AddFrame(&Frame_MainTitle);
     Pos.y += Size.y + GameEnv->ScreenResolution.y * 0.10f;
@@ -256,7 +256,7 @@ ULong ZScreen_Options_Display::ProcessScreen(ZGame * GameEnv)
     Frame_Save.SetDisplayText("SAVE");
     Frame_Save.GetTextDisplaySize(&Size);
     //Frame_Save.SetPosition(GameEnv->ScreenResolution.x * 0.9f - Size.x -1.0f, GameEnv->ScreenResolution.y * 0.9f - Size.y);
-    Frame_Save.SetPosition(GameEnv->ScreenResolution.x * 0.05, GameEnv->ScreenResolution.y * 0.9f - Size.y);
+    Frame_Save.SetPosition(GameEnv->ScreenResolution.x * 0.05f, GameEnv->ScreenResolution.y * 0.9f - Size.y);
 
     Frame_Save.SetSize(Size.x + 1.0f, Size.y);
     GameEnv->GuiManager.AddFrame(&Frame_Save);

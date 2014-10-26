@@ -311,7 +311,7 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
     Mining_MaterialResistanceCounter -= this->ToolForce[VoxelType->MiningType] * FrameTime;
 
     // printf("Resistance :%lf\n",Mining_MaterialResistanceCounter);
-    GameEnv->GameProgressBar->SetCompletion( (100.0 / VoxelType->MiningHardness) * (VoxelType->MiningHardness - Mining_MaterialResistanceCounter)   );
+    GameEnv->GameProgressBar->SetCompletion( (100.0f / VoxelType->MiningHardness) * (VoxelType->MiningHardness - Mining_MaterialResistanceCounter)   );
     // Ok, it's breaking
 
     if (Mining_MaterialResistanceCounter < 0.0)

@@ -43,7 +43,7 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
         Frame_MainTitle.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
         Frame_MainTitle.GetTextDisplaySize(&Size);
         Frame_MainTitle.SetPosition(GameEnv->ScreenResolution.x / 2.0f - Size.x / 2.0f , GameEnv->ScreenResolution.y / 10.0f );
-        Frame_MainTitle.SetSize(Size.x + 1.0,Size.y);
+        Frame_MainTitle.SetSize(Size.x + 1.0f,Size.y);
         Frame_MainTitle.TextureNum = 3;
         GameEnv->GuiManager.AddFrame(&Frame_MainTitle);
         Pos.y += Size.y*1.10f;
@@ -52,7 +52,7 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
         FrameSize.x = GameEnv->ScreenResolution.x / 2.0f;
         FrameSize.y = GameEnv->ScreenResolution.y / 10.0f;
         Frame_1.SetTexture(5);
-        Frame_1.SetPosition( GameEnv->ScreenResolution.x / 4.0f, (GameEnv->ScreenResolution.y / 2.0  ) - 2.0* (GameEnv->ScreenResolution.y/10.0f) );
+        Frame_1.SetPosition( GameEnv->ScreenResolution.x / 4.0f, (GameEnv->ScreenResolution.y / 2.0f  ) - 2.0f* (GameEnv->ScreenResolution.y/10.0f) );
         Frame_1.SetSize(FrameSize.x, FrameSize.y );
         GameEnv->GuiManager.AddFrame(&Frame_1);
 
@@ -68,7 +68,7 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
         FrameSize.x = GameEnv->ScreenResolution.x / 2.0f;
         FrameSize.y = GameEnv->ScreenResolution.y / 10.0f;
         Frame_2.SetTexture(5);
-        Frame_2.SetPosition( GameEnv->ScreenResolution.x / 4.0f, (GameEnv->ScreenResolution.y / 2.0  ) - 1.0* (GameEnv->ScreenResolution.y/10.0f) );
+        Frame_2.SetPosition( GameEnv->ScreenResolution.x / 4.0f, (GameEnv->ScreenResolution.y / 2.0f ) - 1.0f* (GameEnv->ScreenResolution.y/10.0f) );
         Frame_2.SetSize(FrameSize.x, FrameSize.y );
         GameEnv->GuiManager.AddFrame(&Frame_2);
 
@@ -84,7 +84,7 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
           FrameSize.x = GameEnv->ScreenResolution.x / 2.0f;
           FrameSize.y = GameEnv->ScreenResolution.y / 10.0f;
           Frame_3.SetTexture(5);
-          Frame_3.SetPosition( GameEnv->ScreenResolution.x / 4.0f, (GameEnv->ScreenResolution.y / 2.0  ) - 0.0* (GameEnv->ScreenResolution.y/10.0f) );
+          Frame_3.SetPosition( GameEnv->ScreenResolution.x / 4.0f, (GameEnv->ScreenResolution.y / 2.0f  ) - 0.0f* (GameEnv->ScreenResolution.y/10.0f) );
           Frame_3.SetSize(FrameSize.x, FrameSize.y );
           GameEnv->GuiManager.AddFrame(&Frame_3);
 
@@ -100,7 +100,7 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
           FrameSize.x = GameEnv->ScreenResolution.x / 2.0f;
           FrameSize.y = GameEnv->ScreenResolution.y / 10.0f;
           Frame_4.SetTexture(5);
-          Frame_4.SetPosition( GameEnv->ScreenResolution.x / 4.0f, (GameEnv->ScreenResolution.y / 2.0  ) + 1.0* (GameEnv->ScreenResolution.y/10.0f) );
+          Frame_4.SetPosition( GameEnv->ScreenResolution.x / 4.0f, (GameEnv->ScreenResolution.y / 2.0f  ) + 1.0f* (GameEnv->ScreenResolution.y/10.0f) );
           Frame_4.SetSize(FrameSize.x, FrameSize.y );
           GameEnv->GuiManager.AddFrame(&Frame_4);
 
@@ -116,7 +116,7 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
 
            Quit.SetTileSet(GameEnv->GuiTileset);
            Quit.SetTile(4);
-           Quit.SetPosition( GameEnv->ScreenResolution.x * 0.75  ,(GameEnv->ScreenResolution.y / 2.0  ) + 1.5* (GameEnv->ScreenResolution.y/10.0f));
+           Quit.SetPosition( GameEnv->ScreenResolution.x * 0.75f  ,(GameEnv->ScreenResolution.y / 2.0f  ) + 1.5f* (GameEnv->ScreenResolution.y/10.0f));
            Quit.SetSize(32.0f,32.0f);
            GameEnv->GuiManager.AddFrame(&Quit);
 

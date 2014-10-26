@@ -147,7 +147,9 @@ bool ZFileSectorLoader::LoadSector(Long x, Long y, Long z)
   if ( !RequestTag.find(x,y,z) )
   {
     NewSector = SectorRecycling->PullFromList(); // Try recycling some old used sector.
-    if (!NewSector) {NewSector = new ZVoxelSector; }
+    if (!NewSector) {
+		NewSector = new ZVoxelSector( GameEnv->Basic_Renderer->GetCuller() ); 
+	}
 
     TryLoad = true;
     do

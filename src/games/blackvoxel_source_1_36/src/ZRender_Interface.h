@@ -56,7 +56,6 @@ class ZRender_Interface_displaydata : public ZObject
     GLint DisplayList_Regular;
     GLint DisplayList_Transparent;
 
-
     ZRender_Interface_displaydata()
     {
       DisplayList_Regular = 0;

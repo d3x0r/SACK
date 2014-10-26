@@ -37,7 +37,7 @@ ULong ZScreen_Message::ProcessScreen(ZGame * GameEnv)
 
   ZFrame Background;
     Background.SetPosition(0,0);
-    Background.SetSize( GameEnv->ScreenResolution.x, GameEnv->ScreenResolution.y );
+    Background.SetSize( (float)GameEnv->ScreenResolution.x, (float)GameEnv->ScreenResolution.y );
     Background.SetTexture(13);
     Background.SetZPosition(50.0f);
     GameEnv->GuiManager.AddFrame(&Background);
@@ -47,8 +47,8 @@ ULong ZScreen_Message::ProcessScreen(ZGame * GameEnv)
     Frame_Proceed.SetDisplayText(ProceedString.String);
     Frame_Proceed.SetStyle(GameEnv->TileSetStyles->GetStyle(1));
     Frame_Proceed.GetTextDisplaySize(&Frame_Size);
-    Frame_Proceed.SetPosition(GameEnv->ScreenResolution.x / 2.0 - Frame_Size.x / 2.0, GameEnv->ScreenResolution.y * 0.95 - Frame_Size.y );
-    Frame_Proceed.SetSize(Frame_Size.x+1.0,Frame_Size.y);
+    Frame_Proceed.SetPosition(GameEnv->ScreenResolution.x / 2.0f - Frame_Size.x / 2.0f, GameEnv->ScreenResolution.y * 0.95f - Frame_Size.y );
+    Frame_Proceed.SetSize(Frame_Size.x+1.0f,Frame_Size.y);
     Frame_Proceed.SetZPosition(49.0f);
     Frame_Proceed.TextureNum = 3;
     Background.AddFrame(&Frame_Proceed);
@@ -58,7 +58,7 @@ ULong ZScreen_Message::ProcessScreen(ZGame * GameEnv)
   for (Loop = true; Loop; )
   {
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    glAlphaFunc(GL_GREATER, 0.2);
+    glAlphaFunc(GL_GREATER, 0.2f);
     glEnable(GL_ALPHA_TEST);
     glEnable(GL_TEXTURE_2D);
     Loop = GameEnv->EventManager.ProcessEvents();

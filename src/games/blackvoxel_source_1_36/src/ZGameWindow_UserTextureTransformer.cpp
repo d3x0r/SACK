@@ -103,7 +103,7 @@ void ZGameWindow_UserTextureTransformer::Show()
   GetButton.SetDisplayText(Text_Get.String);
   GetButton.SetTextStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_2));
   GetButton.GetEffectiveDisplaySize(&Size2);
-  GetButton.SetPosition(Rp.x,Rp.y + (32.0 - Size2.y / 2.0f));
+  GetButton.SetPosition(Rp.x,Rp.y + (32.0f - Size2.y / 2.0f));
   GetButton.SetSize(Size2.x,Size2.y);
   //GetButton.SetColor(1.0f,0.0f,0.0f);
   this->AddFrame(&GetButton);
@@ -195,7 +195,7 @@ void ZGameWindow_UserTextureTransformer::Hide()
 
 Bool ZGameWindow_UserTextureTransformer::KeyDown(UShort KeySym)
 {
-	if (KeySym & 0xFF == SDL_SCANCODE_ESCAPE)
+	if( (KeySym & 0xFF) == SDL_SCANCODE_ESCAPE)
 	{
 		Hide();
 	}

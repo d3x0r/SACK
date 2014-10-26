@@ -47,12 +47,95 @@ void ZVoxelCuller_Smooth::InitFaceCullData( ZVoxelSector *Sector )
 {
 	Sector->Culler = this;
 	Sector->Culling = new ULong[Sector->DataSize];
+	memset( Sector->Culling, 0, sizeof( ULong ) * Sector->DataSize );
 }
 void ZVoxelCuller_Smooth::CullSector( ZVoxelSector *Sector, bool internal )
 {
 }
 void ZVoxelCuller_Smooth::CullSingleVoxel( ZVoxelSector *Sector, int x, int y, int z )
 {
+}
+
+bool ZVoxelCuller_Smooth::Decompress_RLE(ZVoxelSector *Sector,  void * Stream)
+{
+	UByte *Data = (UByte*)Sector->Culling;
+  ZStream_SpecialRamStream * Rs = (ZStream_SpecialRamStream *)Stream;
+  UByte MagicToken = 0xFF;
+  ULong Actual;
+  ULong Pointer;
+  UShort nRepeat;
+
+  Pointer = 0;
+  while (Pointer<Sector->DataSize)
+  {
+    if (!Rs->Get(Actual)) return(false);
+    if (Actual == MagicToken)
+    {
+      if (!Rs->Get(Actual))  return(false);
+      if (!Rs->Get(nRepeat)) return(false);
+      if ( ((ULong)nRepeat) > (Sector->DataSize - Pointer))
+      {
+        return(false);
+      }
+
+      while (nRepeat--) {Data[Pointer++] = Actual;}
+    }
+    else
+    {
+      Data[Pointer++] = Actual;
+    }
+  }
+
+  return(true);
+}
+
+void ZVoxelCuller_Smooth::Compress_RLE(ZVoxelSector *Sector, void  * Stream)
+{
+  ZStream_SpecialRamStream * Rs = (ZStream_SpecialRamStream *)Stream;
+  UByte MagicToken = 0xFF;
+  ULong *Data = (ULong*)Sector->Culling;
+  ULong Last, Actual;
+  ULong Point = 0;
+  ULong SameCount = 0;
+  ULong i;
+  bool Continue;
+
+  Last = Data[Point++];
+
+  Continue = true;
+  while (Continue)
+  {
+    if (Point != Sector->DataSize) {Actual = Data[Point++]; }
+    else                   {Actual = Last - 1; Continue = false; }
+    if (Last == Actual)
+    {
+      SameCount ++;
+    }
+    else
+    {
+      if (SameCount)
+      {
+        if (SameCount < 3)
+        {
+          if   (Last == MagicToken) { Rs->Put(MagicToken); Rs->Put(MagicToken); Rs->Put((UShort)(SameCount+1)); }
+          else                 { for (i=0;i<=SameCount;i++) Rs->Put(Last); }
+        }
+        else
+        {
+          Rs->Put(MagicToken);
+          Rs->Put(Last);
+          Rs->Put((UShort)(SameCount+1));
+        }
+        SameCount = 0;
+      }
+      else
+      {
+        if (Last == MagicToken) {Rs->Put(MagicToken); Rs->Put(Last); Rs->Put((UShort)1); }
+        else               {Rs->Put(Last);}
+      }
+    }
+    Last = Actual;
+  }
 }
 
 
