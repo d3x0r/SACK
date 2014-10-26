@@ -388,20 +388,23 @@ void ZFileSectorLoader::LimitedUpdateFaceCulling(ZVoxelSector * Sector )
           info |= ( Vt[4]->Draw_FullVoxelOpacity || (TransparentVoxel && Vt[4]->Draw_TransparentRendering) ) ? 0 : DRAWFACE_BELOW;
           info |= ( Vt[5]->Draw_FullVoxelOpacity || (TransparentVoxel && Vt[5]->Draw_TransparentRendering) ) ? 0 : DRAWFACE_ABOVE;
 
-		  //if( info & DRAWFACE_AHEAD )
-		  info |= ( Vt[6]->Draw_FullVoxelOpacity )?DRAWFACE_BELOW_HAS_AHEAD:0;
-		  info |= ( Vt[7]->Draw_FullVoxelOpacity )?DRAWFACE_BELOW_HAS_BEHIND:0;
-		  info |= ( Vt[8]->Draw_FullVoxelOpacity )?DRAWFACE_ABOVE_HAS_AHEAD:0;
-		  info |= ( Vt[9]->Draw_FullVoxelOpacity )?DRAWFACE_ABOVE_HAS_BEHIND:0;
-		  info |= ( Vt[10]->Draw_FullVoxelOpacity )?DRAWFACE_BELOW_HAS_LEFT:0;
-		  info |= ( Vt[11]->Draw_FullVoxelOpacity )?DRAWFACE_BELOW_HAS_RIGHT:0;
-		  info |= ( Vt[12]->Draw_FullVoxelOpacity )?DRAWFACE_ABOVE_HAS_LEFT:0;
-		  info |= ( Vt[13]->Draw_FullVoxelOpacity )?DRAWFACE_ABOVE_HAS_RIGHT:0;
+		  if( Temp )
+		  {
+			  //if( info & DRAWFACE_AHEAD )
+			  info |= ( Vt[6]->Draw_FullVoxelOpacity )?DRAWFACE_BELOW_HAS_AHEAD:0;
+			  info |= ( Vt[7]->Draw_FullVoxelOpacity )?DRAWFACE_BELOW_HAS_BEHIND:0;
+			  info |= ( Vt[8]->Draw_FullVoxelOpacity )?DRAWFACE_ABOVE_HAS_AHEAD:0;
+			  info |= ( Vt[9]->Draw_FullVoxelOpacity )?DRAWFACE_ABOVE_HAS_BEHIND:0;
+			  info |= ( Vt[10]->Draw_FullVoxelOpacity )?DRAWFACE_BELOW_HAS_LEFT:0;
+			  info |= ( Vt[11]->Draw_FullVoxelOpacity )?DRAWFACE_BELOW_HAS_RIGHT:0;
+			  info |= ( Vt[12]->Draw_FullVoxelOpacity )?DRAWFACE_ABOVE_HAS_LEFT:0;
+			  info |= ( Vt[13]->Draw_FullVoxelOpacity )?DRAWFACE_ABOVE_HAS_RIGHT:0;
 
-		  info |= ( Vt[14]->Draw_FullVoxelOpacity )?DRAWFACE_LEFT_HAS_AHEAD:0;
-		  info |= ( Vt[15]->Draw_FullVoxelOpacity )?DRAWFACE_RIGHT_HAS_AHEAD:0;
-		  info |= ( Vt[16]->Draw_FullVoxelOpacity )?DRAWFACE_LEFT_HAS_BEHIND:0;
-		  info |= ( Vt[17]->Draw_FullVoxelOpacity )?DRAWFACE_RIGHT_HAS_BEHIND:0;
+			  info |= ( Vt[14]->Draw_FullVoxelOpacity )?DRAWFACE_LEFT_HAS_AHEAD:0;
+			  info |= ( Vt[15]->Draw_FullVoxelOpacity )?DRAWFACE_RIGHT_HAS_AHEAD:0;
+			  info |= ( Vt[16]->Draw_FullVoxelOpacity )?DRAWFACE_LEFT_HAS_BEHIND:0;
+			  info |= ( Vt[17]->Draw_FullVoxelOpacity )?DRAWFACE_RIGHT_HAS_BEHIND:0;
+		  }
         }
 
         // if ( (y==-1) && (yc==63) ) info = 255;
