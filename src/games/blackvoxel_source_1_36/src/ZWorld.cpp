@@ -20,6 +20,7 @@
 #include "stdio.h"
 #include "math.h"
 #include <SDL2/SDL.h>
+#include "ZGame.h"
 // Sector deblocking coordinates
 
 UByte STableX[] = {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2};
@@ -49,10 +50,10 @@ UShort OfTableZ []= {  15*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_X,
                        0 *ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_X};
 
 
-ZVoxelWorld::ZVoxelWorld()
+ZVoxelWorld::ZVoxelWorld( ZGame *GameEnv )
 {
   ZMemSize i;
-
+  this->GameEnv = GameEnv;
   SectorEjectList = new ZSectorRingList(256*256*32/*65536*/);
 
   SectorTable = 0;
@@ -66,10 +67,13 @@ ZVoxelWorld::ZVoxelWorld()
   for(i=0;i<TableSize;i++) SectorTable[i]=0;
 
   WorkingFullSector    = new ZVoxelSector;
+  GameEnv->Basic_Renderer->GetCuller()->InitFaceCullData( WorkingFullSector );
   WorkingFullSector->Fill(0x0001);
   WorkingEmptySector   = new ZVoxelSector;
+  GameEnv->Basic_Renderer->GetCuller()->InitFaceCullData( WorkingEmptySector );
   WorkingEmptySector->Fill(0);
   WorkingScratchSector = new ZVoxelSector;
+  GameEnv->Basic_Renderer->GetCuller()->InitFaceCullData( WorkingEmptySector );
 
   SectorLoader = 0;
   SectorList = 0;
@@ -271,7 +275,6 @@ void ZVoxelWorld::ProcessNewLoadedSectors()
       //printf("AddSector: %ld,%ld,%ld\n",Sector->Pos_x, Sector->Pos_y, Sector->Pos_z);
 
       // Partial face culing for adjacent sectors
-
       AdjSector = FindSector(Sector->Pos_x-1, Sector->Pos_y, Sector->Pos_z); 
 	  if (AdjSector) { AdjSector->PartialCulling |= DRAWFACE_LEFT;}
       AdjSector = FindSector(Sector->Pos_x+1, Sector->Pos_y, Sector->Pos_z); 
@@ -446,11 +449,11 @@ void ZVoxelWorld::WorldUpdateFaceCulling()
 
   while (Sector)
   {
-    SectorUpdateFaceCulling(Sector->Pos_x, Sector->Pos_y, Sector->Pos_z );
+    //SectorUpdateFaceCulling(Sector->Pos_x, Sector->Pos_y, Sector->Pos_z );
     Sector = Sector->GlobalList_Next;
   }
 }
-
+#if 0
 void ZVoxelWorld::SectorUpdateFaceCulling2(Long x, Long y, Long z, bool Isolated)
 {
   ZVoxelSector * SectorTable[27];
@@ -614,7 +617,7 @@ void ZVoxelWorld::SectorUpdateFaceCulling2(Long x, Long y, Long z, bool Isolated
 
         // Write face culling info to face culling table
 
-        SectorTable[0]->FaceCulling[OfTableX[xp]+OfTableY[yp]+OfTableZ[zp]] = info;
+        SectorTable[0]->setFaceCulling(OfTableX[xp]+OfTableY[yp]+OfTableZ[zp], info );
 
       }
     }
@@ -622,7 +625,7 @@ void ZVoxelWorld::SectorUpdateFaceCulling2(Long x, Long y, Long z, bool Isolated
 
 }
 
-
+#endif
 
 
 bool ZVoxelWorld::RayCast2(double x, double y, double z, double yaw, double pitch, double roll, ZVoxelCoords & PointedCube, ZVoxelCoords CubeBeforePointed  )
@@ -2388,7 +2391,7 @@ bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort Voxe
   for( int i = 0; i < 19; i++ )
   {
 	Voxel_Address[i]     = Sector[i]->Data + Offset[i];
-    FaceCulling_Address[i]     = Sector[i]->FaceCulling + Offset[i];
+    //FaceCulling_Address[i]     = Sector[i]->FaceCulling + Offset[i];
     Voxel = *Voxel_Address[i];    VoxelType = VoxelTypeTable[Voxel];
       VoxelState[i] = ( (Voxel==0) ? 1 : 0) 
 		     | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) 
@@ -2610,7 +2613,7 @@ bool ZVoxelWorld::Old_Load()
   while(Sector)
   {
     if (!Sector->Old_Load(UniverseNum)) Result = false;
-    SectorUpdateFaceCulling(Sector->Pos_x,Sector->Pos_y,Sector->Pos_z,false);
+    //SectorUpdateFaceCulling(Sector->Pos_x,Sector->Pos_y,Sector->Pos_z,false);
     Sector->Flag_NeedFullCulling = true;
     Sector=Sector->GlobalList_Next;
   }
@@ -2618,7 +2621,7 @@ bool ZVoxelWorld::Old_Load()
   Sector = SectorList;
   while(Sector)
   {
-    SectorUpdateFaceCulling(Sector->Pos_x,Sector->Pos_y,Sector->Pos_z,false);
+    //SectorUpdateFaceCulling(Sector->Pos_x,Sector->Pos_y,Sector->Pos_z,false);
     Sector=Sector->GlobalList_Next;
   }
 
@@ -2626,6 +2629,7 @@ bool ZVoxelWorld::Old_Load()
 
 }
 
+#if 0
 ULong ZVoxelWorld::SectorUpdateFaceCulling_Partial(Long x, Long y, Long z, UByte FacesToDraw, bool Isolated)
 {
   ZVoxelSector * SectorTable[27];
@@ -2837,9 +2841,10 @@ ULong ZVoxelWorld::SectorUpdateFaceCulling_Partial(Long x, Long y, Long z, UByte
 
   return(CuledFaces);
 }
+#endif
 
 
-
+#if 0
 void ZVoxelWorld::SectorUpdateFaceCulling(Long x, Long y, Long z, bool Isolated)
 {
   ZVoxelSector * SectorTable[27];
@@ -2977,14 +2982,14 @@ void ZVoxelWorld::SectorUpdateFaceCulling(Long x, Long y, Long z, bool Isolated)
 
         // Write face culling info to face culling table
 
-        SectorTable[0]->FaceCulling[OfTableX[xp]+OfTableY[yp]+OfTableZ[zp]] = info;
+        SectorTable[0]->setFaceCulling(OfTableX[xp]+OfTableY[yp]+OfTableZ[zp], info );
 
       }
     }
   }
 
 }
-
+#endif
 // The quad sampling version has been developped for cornering deplacement
 
 

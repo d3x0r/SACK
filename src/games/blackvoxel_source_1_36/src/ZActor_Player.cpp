@@ -1202,10 +1202,7 @@ void ZActor_Player::DoPhysic_Plane_Old(double CycleTime)
   //ZPolar3d Direction = ViewDirection;
   ZVector3d CDir;
   //Direction.Len = 1.0;
-  CDir = ViewDirection.z_axis();
-  CDir.x *= -1;
-  CDir.y *= -1;
-  CDir.z *= -1;
+  CDir = ViewDirection.z_axis() * -1;
   Velocity = CDir * 10 * 400.0;
 
   // Deplacement computation

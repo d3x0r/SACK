@@ -35,6 +35,7 @@
 #endif
 
 
+
 void ZRender_Interface::SetWorld( ZVoxelWorld * World )
 {
   this->World = World;

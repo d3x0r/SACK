@@ -44,17 +44,17 @@
 
 inline ZVector3L & ZVector3L::operator = (const ZVector3d & Vec3d)
 {
-  x = Vec3d.x;
-  y = Vec3d.y;
-  z = Vec3d.z;
+  x = (Long)Vec3d.x;
+  y = (Long)Vec3d.y;
+  z = (Long)Vec3d.z;
   return(*this);
 }
 
 inline ZVector3L::ZVector3L ( const ZVector3d & Vec3d )
 {
-  x = Vec3d.x;
-  y = Vec3d.y;
-  z = Vec3d.z;
+  x = (Long)Vec3d.x;
+  y = (Long)Vec3d.y;
+  z = (Long)Vec3d.z;
 }
 
 #endif /* Z_ZTYPE_ZVECTOR3L_CROSSFUNC_H */

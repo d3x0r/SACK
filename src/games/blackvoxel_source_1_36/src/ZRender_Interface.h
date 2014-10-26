@@ -44,7 +44,8 @@
 #endif
 
 #include "ZActor_Player.h"
-
+#include "ZVoxelCuller.h"
+#include "GL/glew.h"
 extern GLuint TextureName[1024];
 
 
@@ -114,7 +115,7 @@ class ZRender_Interface
     double Frustum_H;
     double Aspect_Ratio;
     double Frustum_CullingLimit;
-
+    ZVoxelCuller *voxelCuller;
 
   public:
 
@@ -190,6 +191,9 @@ class ZRender_Interface
     void MakeSectorRenderingData(ZVoxelSector * Sector);
     void MakeSectorRenderingData_Sorted(ZVoxelSector * Sector);
     virtual void Render() = 0;
+	virtual ZVoxelCuller *GetCuller( ) = 0;
+
+
 
     void SetRenderSectorRadius(Long Horizontal, Long Vertical)
     {

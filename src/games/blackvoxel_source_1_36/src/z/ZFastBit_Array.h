@@ -59,7 +59,7 @@ class ZFastBit_Array_64k
 
     inline void Set(UShort Index, bool Data)
     {
-      UByte Remain;
+      UShort Remain;
       ULong Offset;
       Remain = Index;
       Offset = Index >> 5;
@@ -70,12 +70,12 @@ class ZFastBit_Array_64k
 
     inline bool Get(UShort Index)
     {
-      register UByte Remain;
+      register UShort Remain;
       register ULong Offset;
       Remain = Index;
       Offset = Index >> 5;
       Remain &= 0x1f;
-      return( Storage[Offset] & (1<<Remain) );
+      return ( Storage[Offset] & (1<<Remain) ) != 0;
     }
 };
 

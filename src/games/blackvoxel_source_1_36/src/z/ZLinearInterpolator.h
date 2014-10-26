@@ -69,8 +69,8 @@ class ZLinearInterpolator
 
       TablePos = (Position-Start) * Factor;
 
-      P1 = floor(TablePos);
-      P2 = ceil(TablePos);
+      P1 = (ULong)floor(TablePos);
+      P2 = (ULong)ceil(TablePos);
       FracPos = TablePos - (double)(ULong)(TablePos);
       if (P2>=nValues) P2 = nValues-1;
 

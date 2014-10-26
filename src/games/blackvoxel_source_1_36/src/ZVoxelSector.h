@@ -46,6 +46,7 @@
 #  include "ZSector_ModifTracker.h"
 #endif
 
+#include "ZVoxelCuller.h"
 
 
 #define ZVOXELBLOCSIZE_X 16
@@ -198,7 +199,9 @@ class ZVoxelSector : public ZObject
     ZMemSize DataSize;
     UShort    * Data;
 	//UByte     * ShortFaceCulling;
-    ULong     * FaceCulling;
+    //ULong     * FaceCulling;
+	ZVoxelCuller *Culler;
+	void      * Culling;
     ZMemSize  * OtherInfos; // Informations autres
     UShort    * TempInfos;  // Température des voxels
     ZObject   * DisplayData;
@@ -341,7 +344,7 @@ public:
     inline bool IsMustBeSaved()
     {
 
-      bool IsModified = /*(Flag_IsModified & CHANGE_BITSECTORMODIFIED) && */ (Flag_IsModified & CHANGE_SAVEMASK );
+      bool IsModified = /*(Flag_IsModified & CHANGE_BITSECTORMODIFIED) && */ (Flag_IsModified & CHANGE_SAVEMASK ) != 0;
 
       return( IsModified ); // Save only if sector is modified AND if modifications are rated important enough.
     }

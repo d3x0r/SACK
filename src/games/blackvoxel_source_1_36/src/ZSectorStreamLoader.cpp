@@ -78,16 +78,20 @@ ZSectorLoader::~ZSectorLoader()
 {
 }
 
-ZFileSectorLoader::ZFileSectorLoader()
+ZFileSectorLoader::ZFileSectorLoader( ZGame *GameEnv )
 {
+	this->GameEnv = GameEnv;
+	SectorCreator = new ZWorldGenesis( GameEnv );
   ReadySectorList   = new ZSectorRingList(1024*1024);
   EjectedSectorList = new ZSectorRingList(1024*1024);
   SectorRecycling   = new ZSectorRingList(1024*1024);
   VoxelTypeManager = 0;
   UniverseNum = 1;
   WorkingEmptySector = new ZVoxelSector;
+  GameEnv->Basic_Renderer->GetCuller()->InitFaceCullData( WorkingEmptySector );
   WorkingEmptySector->Fill(0);
   WorkingFullSector = new ZVoxelSector;
+  GameEnv->Basic_Renderer->GetCuller()->InitFaceCullData( WorkingFullSector );
   WorkingFullSector->Fill(1);
   Thread = 0;
   ThreadContinue = false;
@@ -131,7 +135,7 @@ bool ZFileSectorLoader::Init()
 {
   ThreadContinue = true;
   Thread = (SDL_Thread * )SDL_CreateThread(thread_func, "thread_func", this);
-  if (!SectorCreator.LoadTemplateImages()) return(false);
+  if (!SectorCreator->LoadTemplateImages()) return(false);
   return(true);
 }
 
@@ -167,7 +171,7 @@ bool ZFileSectorLoader::LoadSector(Long x, Long y, Long z)
       }
       else
       {
-        SectorCreator.GenerateSector(NewSector);
+        SectorCreator->GenerateSector(NewSector);
       }
     } while (Redo);
 
@@ -417,7 +421,7 @@ void ZFileSectorLoader::LimitedUpdateFaceCulling(ZVoxelSector * Sector )
         */
         // Write face culling info to face culling table
 
-        SectorTable[0]->FaceCulling[OfTableX[xp]+OfTableY[yp]+OfTableZ[zp]] = info;
+        SectorTable[0]->Culler->setFaceCulling(SectorTable[0], OfTableX[xp]+OfTableY[yp]+OfTableZ[zp], info );
 
       }
     }
@@ -436,6 +440,6 @@ void ZFileSectorLoader::NoDrawFaceCulling(ZVoxelSector * Sector )
 
   for (i=0;i < (ZVOXELBLOCSIZE_X * ZVOXELBLOCSIZE_Y * ZVOXELBLOCSIZE_Z); i++)
   {
-    Sector->FaceCulling[i] = DRAWFACE_NONE;
+    Sector->Culler->setFaceCulling(Sector, i, DRAWFACE_NONE );
   }
 }

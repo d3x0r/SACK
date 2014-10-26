@@ -13,7 +13,7 @@ public:
 	UShort VoxelType;
 	ZVoxelWorld *World;
 	ZVoxelTypeManager *VoxelTypeManager;
-	ZVoxelRef( ZVoxelWorld *world, ZVoxelTypeManager *vtm, long x, long y, long z, ZVoxelSector *Sector, int offset )
+	ZVoxelRef( ZVoxelWorld *world, ZVoxelTypeManager *vtm, long x, long y, long z, UShort VoxelType, int offset )
 	{
 		this->x = x;
 		this->y = y;
@@ -21,7 +21,7 @@ public:
 		this->Sector = Sector;
 		this->Offset = offset;
 		this->World = world;
-		VoxelType = Sector->Data[Offset];
+		this->VoxelType = VoxelType;
 		VoxelTypeManager = vtm;
 	}
 	static int ForEachVoxel( ZVoxelWorld * World, ZVoxelRef *v1, ZVoxelRef *v2, int (*f)(ZVoxelRef *v) );

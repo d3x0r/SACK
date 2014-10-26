@@ -639,7 +639,7 @@ void ZActor::DoPhysic(UELong FrameTime)
 
 
   In.Camera = 0;
-  In.MaxCubeIterations = ceil(DepLen / 256)+5; // 6;
+  In.MaxCubeIterations = (Long)ceil(DepLen / 256)+5; // 6;
   In.PlaneCubeDiff = In.MaxCubeIterations - 3;
   In.MaxDetectionDistance = 3000000.0;
   double DistanceMin;

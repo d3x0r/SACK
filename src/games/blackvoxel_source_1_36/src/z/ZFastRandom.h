@@ -30,6 +30,8 @@
 // #  include "ZFastRandom.h"
 // #endif
 
+#pragma warning( disable : 4146 )
+
 #ifndef Z_ZTYPES_H
 #  include "ZTypes.h"
 #endif
@@ -186,5 +188,6 @@ class ZLightSpeedRandom
     }
 };
 
+#pragma warning( default  : 4146 )
 
 #endif /* Z_ZFASTRANDOM_H */

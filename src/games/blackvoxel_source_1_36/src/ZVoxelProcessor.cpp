@@ -103,6 +103,7 @@ void ZVoxelProcessor::MakeSectorTasks(ZVoxelSector * Sector)
 
   // **************************** Sector face culling ***********************
 
+#if 0
   uint64_t CullingResult;
 
   if (Sector->PartialCulling)
@@ -113,7 +114,7 @@ void ZVoxelProcessor::MakeSectorTasks(ZVoxelSector * Sector)
     if (CullingResult) Sector->Flag_Render_Dirty = true;
     // printf("Cull %ld,%ld,%ld :%lx (%lx)\n", Sector->Pos_x, Sector->Pos_y, Sector->Pos_z, CullingResult, (ULong)Sector->PartialCulling);
   }
-
+#endif
   // **************************** Egmy Scattering ****************************
 
   if (GameEnv->GameEventSequencer->SlotIsActivated(1))
