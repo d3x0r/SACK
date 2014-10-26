@@ -191,11 +191,13 @@ class ZVoxelSector : public ZObject
     bool Flag_NeedSortedRendering; // Activate new rendering code for better speed in some zones.
 
     //bool Flag_NeedPartialCulling;
+	//UByte PartialCulling;
 	ULong PartialCulling;
 
     // Data stored by block
     ZMemSize DataSize;
     UShort    * Data;
+	//UByte     * ShortFaceCulling;
     ULong     * FaceCulling;
     ZMemSize  * OtherInfos; // Informations autres
     UShort    * TempInfos;  // Température des voxels
@@ -220,10 +222,12 @@ protected:
     void Compress_Short_RLE(UShort * Data, void * Stream);
     void Compress_OtherInfos_RLE(ZMemSize * Data, UShort * VoxelData, void * Stream);
     void Compress_FaceCulling_RLE(ULong * Data, void  * Stream);
+    void Compress_FaceCulling_RLE(UByte * Data, void  * Stream);
     void Compress_Temperatures_RLE(UShort * Data, void  * Stream);
 
     bool Decompress_Short_RLE(UShort * Data, void * Stream);
     bool Decompress_FaceCulling_RLE(ULong * Data, void * Stream);
+    bool Decompress_FaceCulling_RLE(UByte * Data, void * Stream);
     bool Decompress_OtherInfos_RLE(ZMemSize * Data, void * Stream);
     bool Decompress_Temperatures_RLE(UShort * Data, void * Stream);
 public:
@@ -304,7 +308,7 @@ public:
       for ( i=0 ; i<DataSize ; i++ )
       {
         Data[i] = VoxelType;
-        FaceCulling[i] = 255;
+        //FaceCulling[i] = 0x3FFFFF;
       }
     }
 

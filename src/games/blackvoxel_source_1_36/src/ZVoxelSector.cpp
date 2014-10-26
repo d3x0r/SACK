@@ -89,6 +89,14 @@ ZVoxelSector::ZVoxelSector( const ZVoxelSector &Sector)
 
   Data        = new UShort[DataSize];
   FaceCulling = new ULong [DataSize];
+  {
+      ZMemSize i;
+
+      for ( i=0 ; i<DataSize ; i++ )
+      {
+        FaceCulling[i] = 0x3FFFFF;
+      }
+  }
   OtherInfos  = new ZMemSize[DataSize];
   TempInfos   = new UShort[DataSize];
 
@@ -961,6 +969,54 @@ void ZVoxelSector::Compress_OtherInfos_RLE(ZMemSize * Data, UShort * VoxelData, 
   }
 }
 
+void ZVoxelSector::Compress_FaceCulling_RLE(UByte * Data, void  * Stream)
+{
+  ZStream_SpecialRamStream * Rs = (ZStream_SpecialRamStream *)Stream;
+  UByte MagicToken = 0xFF;
+  UByte Last, Actual;
+  ULong Point = 0;
+  ULong SameCount = 0;
+  ULong i;
+  bool Continue;
+
+  Last = OtherInfos[Point++];
+
+  Continue = true;
+  while (Continue)
+  {
+    if (Point != DataSize) {Actual = OtherInfos[Point++]; }
+    else                   {Actual = Last - 1; Continue = false; }
+    if (Last == Actual)
+    {
+      SameCount ++;
+    }
+    else
+    {
+      if (SameCount)
+      {
+        if (SameCount < 3)
+        {
+          if   (Last == MagicToken) { Rs->Put(MagicToken); Rs->Put(MagicToken); Rs->Put((UShort)(SameCount+1)); }
+          else                 { for (i=0;i<=SameCount;i++) Rs->Put(Last); }
+        }
+        else
+        {
+          Rs->Put(MagicToken);
+          Rs->Put(Last);
+          Rs->Put((UShort)(SameCount+1));
+        }
+        SameCount = 0;
+      }
+      else
+      {
+        if (Last == MagicToken) {Rs->Put(MagicToken); Rs->Put(Last); Rs->Put((UShort)1); }
+        else               {Rs->Put(Last);}
+      }
+    }
+    Last = Actual;
+  }
+}
+
 void ZVoxelSector::Compress_FaceCulling_RLE(ULong * Data, void  * Stream)
 {
   ZStream_SpecialRamStream * Rs = (ZStream_SpecialRamStream *)Stream;
@@ -1090,6 +1146,38 @@ bool ZVoxelSector::Decompress_Short_RLE(UShort * Data, void * Stream)
 }
 
 bool ZVoxelSector::Decompress_FaceCulling_RLE(ULong * Data, void * Stream)
+{
+  ZStream_SpecialRamStream * Rs = (ZStream_SpecialRamStream *)Stream;
+  UByte MagicToken = 0xFF;
+  UByte Actual;
+  ULong Pointer;
+  UShort nRepeat;
+
+  Pointer = 0;
+  while (Pointer<DataSize)
+  {
+    if (!Rs->Get(Actual)) return(false);
+    if (Actual == MagicToken)
+    {
+      if (!Rs->Get(Actual))  return(false);
+      if (!Rs->Get(nRepeat)) return(false);
+      if ( ((ULong)nRepeat) > (DataSize - Pointer))
+      {
+        return(false);
+      }
+
+      while (nRepeat--) {Data[Pointer++] = Actual;}
+    }
+    else
+    {
+      Data[Pointer++] = Actual;
+    }
+  }
+
+  return(true);
+}
+
+bool ZVoxelSector::Decompress_FaceCulling_RLE(UByte * Data, void * Stream)
 {
   ZStream_SpecialRamStream * Rs = (ZStream_SpecialRamStream *)Stream;
   UByte MagicToken = 0xFF;
