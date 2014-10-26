@@ -59,6 +59,13 @@ class ZGame;
 class ZStream_SpecialRamStream;
 class ZFabInfos;
 class ZVoxelTypeManager;
+class ZVoxelSector;
+struct VoxelLocation
+{
+  ZVoxelSector * Sector;
+  ULong          Offset;
+};
+
 
 class ZVoxelType
 {

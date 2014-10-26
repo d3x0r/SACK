@@ -112,13 +112,6 @@
 
 typedef struct { ZVector3L Start, End; } ZRect3L;
 
-class ZVoxelSector;
-struct VoxelLocation
-{
-  ZVoxelSector * Sector;
-  ULong          Offset;
-};
-
 class ZVoxelCoords
 {
     public:

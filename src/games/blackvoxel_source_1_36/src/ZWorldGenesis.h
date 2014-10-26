@@ -58,6 +58,7 @@
 #  include "z/ZString.h"
 #endif
 
+#include "ZGame.h"
 //ifndef Z_ZGENERICCANVA_H
 //  include "z/ZGenericCanva.h"
 //endif
@@ -107,16 +108,7 @@ class ZWorldGenesis
     ZVoxelSector Template_Vegetation_3;
     ZVoxelSector * TreeTable[16];
 
-    ZWorldGenesis()
-    {
-      ULong i;
-      // char to num
-      for (i=0;i<256;i++) ConvCN[i]=0;
-      for (i=0;i<=9;i++)  ConvCN[i+'0']=i;
-      for (i=0;i<26;i++)  ConvCN[i+'A']=10+i;
-      for (i=0;i<26;i++)  ConvCN[i+'a']=36+i;
-    }
-
+    ZWorldGenesis( ZGame *GameEnv );
     ~ZWorldGenesis()
     {
 
@@ -159,7 +151,7 @@ class ZWorldGenesis
                     double P3 = (RandomGen.GetNumber(rx) + RandomGen.GetNumber(rz+1) ) % 30 ;
                     double P4 = (RandomGen.GetNumber(rx+1) + RandomGen.GetNumber(rz+1) ) % 30 ;
 
-                    Long height = Interpolation_2d(P1,P2,P3,P4,Coef1,Coef2) - 15 + BlackWoods_Level;
+                    Long height = (Long)Interpolation_2d(P1,P2,P3,P4,Coef1,Coef2) - 15 + BlackWoods_Level;
                     return(height);
                   }
                   break;
@@ -168,7 +160,7 @@ class ZWorldGenesis
                     Long height;
                     double P1,P2,P3,P4;
 
-                    height = GetHeightMap(x , z) * 16;
+                    height = (Long)GetHeightMap(x , z) * 16;
 
                     ULong sx = (SecPos_x << ZVOXELBLOCSHIFT_X) + (x & ZVOXELBLOCMASK_X);
                     ULong sz = (SecPos_z << ZVOXELBLOCSHIFT_Z) + (z & ZVOXELBLOCMASK_Z);
@@ -180,9 +172,9 @@ class ZWorldGenesis
                     P3 = (RandomGen.GetNumber(rx) + RandomGen.GetNumber(rz+1) ) % 30 ;
                     P4 = (RandomGen.GetNumber(rx+1) + RandomGen.GetNumber(rz+1) ) % 30 ;
 
-                    Long height2 = Interpolation_2d(P1 + height,P2+height,P3+height,P4+height,Coef1,Coef2) - 15 ;
+                    Long height2 = (Long)Interpolation_2d(P1 + height,P2+height,P3+height,P4+height,Coef1,Coef2) - 15 ;
 
-                    if (height < 16.0) height2*= height / 16.0;
+                    if (height < 16) height2*= height / 16;
                     height = height2;
                     return(height);
                   }

@@ -113,7 +113,7 @@ class ZSectorModifTracker
       Remain = Index;
       Offset = Index >> 5;
       Remain &= 0x1f;
-      return( Storage[Offset] & (1<<Remain) );
+      return ( Storage[Offset] & (1<<Remain) ) != 0;
     }
 
 };

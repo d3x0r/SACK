@@ -44,94 +44,38 @@
 #endif
 
 #include "ZActor_Player.h"
+
 #include "ZRender_Interface.h"
+
 extern GLuint TextureName[1024];
 
+class ZGame;
 
-/*
-class ZRender_basic_displaydata : public ZObject
+class ZVoxelCuller_Smooth: public ZVoxelCuller
 {
-  public:
-    GLint DisplayList_Regular;
-    GLint DisplayList_Transparent;
+public:
+	ZVoxelCuller_Smooth( ZVoxelWorld *world ) : ZVoxelCuller( *world )
+	{
+	}
+	 void InitFaceCullData( ZVoxelSector *sector );
 
+   // if not internal, then is meant to cull the outside edges of the sector
+	 void CullSector( ZVoxelSector *sector, bool internal );
+	// void CullSectorInternal( ZVoxelSector *sector );
+	// void CullSectorEdges( ZVoxelSector *sector );
 
-    ZRender_basic_displaydata()
-    {
-      DisplayList_Regular = 0;
-      DisplayList_Transparent = 0;
-
-    }
-    ~ZRender_basic_displaydata()
-    {
-      if (DisplayList_Regular)     glDeleteLists(DisplayList_Regular, 1);
-      DisplayList_Regular = 0;
-      if (DisplayList_Transparent) glDeleteLists(DisplayList_Transparent, 1);
-      DisplayList_Transparent = 0;
-    }
+	 void CullSingleVoxel( ZVoxelSector *sector, int x, int y, int z );
+ 	ULong getFaceCulling( ZVoxelSector *Sector, int offset );
+	void setFaceCulling( ZVoxelSector *Sector, int offset, ULong value );
 
 };
-*/
-class ZGame;
 
 class ZRender_Smooth: public ZRender_Interface
 {
-#if 0
-  protected:
-    ZVoxelWorld * World;
-    ZVoxelTypeManager * VoxelTypeManager;
-    ZTextureManager  * TextureManager;
-
-    ZCamera     * Camera;
-	ZActor      * Actor;  // where the camera came from really...
-    ZRayCast_out * PointedVoxel;
-    ZRadius_Zoning RadiusZones;
-
-    Long hRenderRadius;
-    Long vRenderRadius;
-
-    ULong Stat_RenderDrawFaces;
-    ULong Stat_FaceTop;
-    ULong Stat_FaceBottom;
-    ULong Stat_FaceLeft;
-    ULong Stat_FaceRight;
-    ULong Stat_FaceFront;
-    ULong Stat_FaceBack;
-
-    ULong Stat_RefreshWaitingSectorCount;
-    Long RefreshWaiters[64];
-    Long RefreshToDo[64];
-
-    // Display Dimension and aspect ratio
-
-    ZVector2L ViewportResolution;
-    double    VerticalFOV;
-    double    FocusDistance;
-    double    PixelAspectRatio;
-    double    Optimisation_FCullingFactor;
-
-    // Computed by render()
-    double Frustum_V;
-    double Frustum_H;
-    double Aspect_Ratio;
-    double Frustum_CullingLimit;
-
-
-  public:
-
-    ZGame * GameEnv;
-
-    ZSectorSphere SectorSphere;
-
-    ULong BvProp_CrossHairType;
-    bool  BvProp_DisplayCrossHair;
-    bool  BvProp_DisplayVoxelSelector;
-
-    ZRender_Sorter RenderSorter;
-#endif
 public:
-    ZRender_Smooth()
-    {
+    ZRender_Smooth( ZVoxelWorld *world )
+	{
+      voxelCuller = new ZVoxelCuller_Smooth( world );
       hRenderRadius = 1;  // 8
       vRenderRadius = 1;  // 3
       World = 0;
@@ -163,30 +107,6 @@ public:
       Aspect_Ratio = 0.0;
       Frustum_CullingLimit = 0.0;
     }
-#if 0
-    void SetWorld           ( ZVoxelWorld * World );
-    void SetCamera          ( ZCamera * Camera );
-	void SetActor           ( ZActor * Actor );
-
-    void SetVoxelTypeManager( ZVoxelTypeManager * Manager );
-    void SetTextureManager  ( ZTextureManager * Manager ) { this->TextureManager = Manager; }
-    void SetPointedVoxel    ( ZRayCast_out * Pvoxel)         { this->PointedVoxel = Pvoxel; }
-    void SetViewportResolution(ZVector2L &Resolution) { ViewportResolution = Resolution; }
-    void SetVerticalFOV(double VFov)                  { VerticalFOV = VFov; }
-    void SetPixelAspectRatio(double AspectRatio = 1.0){ PixelAspectRatio = AspectRatio; }
-    void SetSectorCullingOptimisationFactor(double CullingOptimisationFactor = 1.0) { Optimisation_FCullingFactor = CullingOptimisationFactor; }
-
-
-
-    void Init();
-    void Cleanup() { }
-    Bool LoadVoxelTexturesToGPU();
-    Bool LoadTexturesToGPU();
-
-
-    void Render_DebugLine       ( ZVector3d & Start, ZVector3d & End);
-    void Render_VoxelSelector   (ZVoxelCoords * SelectedVoxel, float r, float g, float b);
-#endif
 private:
 	void EmitFaces				( ZVoxelType ** VoxelTypeTable, UShort &VoxelType, UShort &prevVoxelType, ULong info
 							  , Long x, Long y, Long z
@@ -195,60 +115,12 @@ private:
     void MakeSectorRenderingData_Sorted(ZVoxelSector * Sector);
 public:
     void Render();
-#if 0
-    void SetRenderSectorRadius(Long Horizontal, Long Vertical)
-    {
-      hRenderRadius = Horizontal;
-      vRenderRadius = Vertical;
-      RadiusZones.SetSize(hRenderRadius * 2 + 1, vRenderRadius * 2 + 1,hRenderRadius * 2 + 1);
-      // RadiusZones.DrawZones( 5.0, 3.5, 3.0, 2.0 );
-      RadiusZones.DrawZones(5.0,1);
-      RadiusZones.DrawZones(3.5,2);
-      RadiusZones.DrawZones(3.0,3);
-      RadiusZones.DrawZones(2.0,4);
-      //RadiusZones.DebugOut();
-      SectorSphere.Init(Horizontal, Vertical);
-    }
-
-    void SetGameEnv( ZGame * GameEnv ) { this->GameEnv = GameEnv;  }
-
-    void FreeDisplayData(ZVoxelSector * Sector);
-
-    // void RenderSector2(ZVoxelSector * Sector);
-
-    inline bool Is_PointVisible(ZMatrix &TransformParam, ZVector3d * const Point)
-    {
-      ZVector3d Cv;
-	  ZVector3d Cv2 = *Point - TransformParam.origin();
-      bool Visible;
-	  TransformParam.ApplyInverseRotation( Cv, Cv2 );
-
-      // Translation and Rotation
-      //Cv.Transform(TransformParam);
-
-      // Projection
-
-      Cv.x = Cv.x / Cv.z * FocusDistance;  // Number replaced by FocusDistance was 50.0
-      Cv.y = Cv.y / Cv.z * FocusDistance;
-
-      // Visibility test
-
-      Visible = (
-                     (Cv.z < 0.0)
-                  && (Cv.x < Frustum_CullingLimit && Cv.x >-Frustum_CullingLimit) // Number replaced by Frustum_CullingLimit was 50.0
-                  && (Cv.y < Frustum_CullingLimit && Cv.y >-Frustum_CullingLimit) //
-                );
-
-      return(Visible);
-    }
-
-
-
-
-
-    void ComputeAndSetAspectRatio(double VerticalFOV, double PixelAspectRatio, ZVector2L & ViewportResolution);
-#endif
+	 ZVoxelCuller *GetCuller( void )
+	 {
+       return voxelCuller;
+	 }
 };
+
 
 
 #endif

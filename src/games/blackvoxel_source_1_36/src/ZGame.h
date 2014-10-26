@@ -173,8 +173,10 @@
 #  include "ZGameEventSequencer.h"
 #endif
 
+#include "ZRender_Interface.h"
+//class ZRender_Interface;
 
-class ZRender_Interface;
+class ZFileSectorLoader;
 
 class ZGame
 {

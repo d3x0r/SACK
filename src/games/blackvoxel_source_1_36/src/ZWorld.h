@@ -110,7 +110,7 @@ class ZVoxelWorld : public ZObject
     ZVoxelSector * WorkingFullSector;
     ZVoxelSector * WorkingEmptySector;
     ZVoxelSector * WorkingScratchSector;
-
+	ZGame        * GameEnv;
   public:
     ZSectorRingList * SectorEjectList;
   public:
@@ -124,11 +124,11 @@ class ZVoxelWorld : public ZObject
     ULong Size_x;
     ULong Size_y;
     ULong Size_z;
-
+	ZMatrix orientation;
     ULong UniverseNum;
 
 
-    ZVoxelWorld();
+    ZVoxelWorld(ZGame *game);
     ~ZVoxelWorld();
 
     void           SetVoxelTypeManager( ZVoxelTypeManager * Manager );
@@ -192,9 +192,9 @@ class ZVoxelWorld : public ZObject
 
     bool RayCast2(double x, double y, double z, double yaw, double pitch, double roll, ZVoxelCoords & PointedCube, ZVoxelCoords CubeBeforePointed  );
 
-    void SectorUpdateFaceCulling(Long x, Long y, Long z, bool Isolated = false);
-    void SectorUpdateFaceCulling2(Long x, Long y, Long z, bool Isolated = false); // Old
-    ULong SectorUpdateFaceCulling_Partial(Long x, Long y, Long z, UByte FacesToDraw, bool Isolated = false);
+    //void SectorUpdateFaceCulling(Long x, Long y, Long z, bool Isolated = false);
+    //void SectorUpdateFaceCulling2(Long x, Long y, Long z, bool Isolated = false); // Old
+    //ULong SectorUpdateFaceCulling_Partial(Long x, Long y, Long z, UByte FacesToDraw, bool Isolated = false);
 
     void WorldUpdateFaceCulling();
 
@@ -287,7 +287,8 @@ class ZVoxelWorld : public ZObject
               NewSector->OtherInfos[Offset] = (ZMemSize)Extension->GetNewCopy();
             } else NewSector->OtherInfos[Offset]  = Loc.Sector->OtherInfos[Loc.Offset];
             NewSector->TempInfos[Offset]   = Loc.Sector->TempInfos[Loc.Offset];
-            NewSector->FaceCulling[Offset] = Loc.Sector->FaceCulling[Loc.Offset];
+			NewSector->Culler->setFaceCulling(NewSector
+				, Offset, Loc.Sector->Culler->getFaceCulling(Loc.Sector, Loc.Offset) );
           }
         }
       }
@@ -341,7 +342,7 @@ class ZVoxelWorld : public ZObject
 
       for (i=1;i<TableOffset;i++)
       {
-        SectorUpdateFaceCulling(SectorTable[i]->Pos_x,SectorTable[i]->Pos_y, SectorTable[i]->Pos_z,false);
+        //SectorUpdateFaceCulling(SectorTable[i]->Pos_x,SectorTable[i]->Pos_y, SectorTable[i]->Pos_z,false);
         SectorTable[i]->Flag_Render_Dirty = true;
       }
 
@@ -400,16 +401,16 @@ inline void ZVoxelWorld::Convert_Coords_PlayerToVoxel( const ZVector3d * PlayerC
 
 inline void ZVoxelWorld::Convert_Coords_VoxelToPlayer( Long Vx, Long Vy, Long Vz, double &Px, double &Py, double &Pz )
 {
-	Px = ((ELong)Vx) << GlobalSettings.VoxelBlockSizeBits;
-  Py = ((ELong)Vy) << GlobalSettings.VoxelBlockSizeBits;
-  Pz = ((ELong)Vz) << GlobalSettings.VoxelBlockSizeBits;
+	Px = (double)(((ELong)Vx) << GlobalSettings.VoxelBlockSizeBits);
+  Py = (double)(((ELong)Vy) << GlobalSettings.VoxelBlockSizeBits);
+  Pz = (double)(((ELong)Vz) << GlobalSettings.VoxelBlockSizeBits);
 }
 
 inline void ZVoxelWorld::Convert_Coords_VoxelToPlayer( const ZVector3L * VoxelCoords, ZVector3d * PlayerCoords )
 {
-  PlayerCoords->x = ((ELong)VoxelCoords->x) << GlobalSettings.VoxelBlockSizeBits;
-  PlayerCoords->y = ((ELong)VoxelCoords->y) << GlobalSettings.VoxelBlockSizeBits;
-  PlayerCoords->z = ((ELong)VoxelCoords->z) << GlobalSettings.VoxelBlockSizeBits;
+  PlayerCoords->x = (double)(((ELong)VoxelCoords->x) << GlobalSettings.VoxelBlockSizeBits);
+  PlayerCoords->y = (double)(((ELong)VoxelCoords->y) << GlobalSettings.VoxelBlockSizeBits);
+  PlayerCoords->z = (double)(((ELong)VoxelCoords->z) << GlobalSettings.VoxelBlockSizeBits);
 }
 
 inline bool ZVoxelWorld::GetVoxelLocation(VoxelLocation * OutLocation, Long x, Long y, Long z)
@@ -457,7 +458,7 @@ inline ZVoxelRef *ZVoxelWorld::GetVoxelRef(Long x, Long y, Long z)
          + ((x & ZVOXELBLOCMASK_X) <<  ZVOXELBLOCSHIFT_Y )
          + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y + ZVOXELBLOCSHIFT_X));
 
-  return new ZVoxelRef( this, VoxelTypeManager, x, y, z, Sector, Offset );
+  return new ZVoxelRef( this, VoxelTypeManager, x, y, z, Sector->Data[Offset], Offset );
 }
 
 

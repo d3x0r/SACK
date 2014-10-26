@@ -68,7 +68,7 @@ class ZMemPool_Optimized : public ZMemoryPool
         for (i=0,Index = 0, Size=1;i<65536;i++)
         {
           if (i>Size) {Index++; Size+=Size;}
-          BitPosTable[i] = Index;
+          BitPosTable[i] = (char)(Index&0xFF);
         }
       }
     }

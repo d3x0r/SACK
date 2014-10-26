@@ -313,7 +313,7 @@ bool ZGame::Init_GuiManager(ZLog * InitLog)
 
   GuiManager.SetTextureManager(&TextureManager);
   GuiManager.SetEventManager(&EventManager);
-  GuiManager.SetScreenDimensions(0,0,ScreenResolution.x,ScreenResolution.y);
+  GuiManager.SetScreenDimensions(0,0,(float)ScreenResolution.x,(float)ScreenResolution.y);
   EventManager.AddConsumer_ToTail(&GuiManager);
 
   Initialized_GuiManager = true;
@@ -498,7 +498,7 @@ bool ZGame::Init_Renderer(ZLog * InitLog)
 
 
   //Basic_Renderer = new ZRender_Basic;
-  Basic_Renderer = new ZRender_Smooth;
+  Basic_Renderer = new ZRender_Smooth( World );
 
   Basic_Renderer->SetGameEnv(this);
   Basic_Renderer->Init();
@@ -624,7 +624,7 @@ bool ZGame::End_WorldInfo()
 
 bool ZGame::Start_World()
 {
-  World = new ZVoxelWorld;
+  World = new ZVoxelWorld( this );
   if (!World) return(false);
 
   World->SetUniverseNum(UniverseNum);
@@ -776,7 +776,7 @@ bool ZGame::End_PhysicEngine()
 
 bool ZGame::Start_SectorLoader()
 {
-  SectorLoader = new ZFileSectorLoader;
+  SectorLoader = new ZFileSectorLoader( this );
   if (!SectorLoader) return(false);
   SectorLoader->SetVoxelTypeManager(&VoxelTypeManager);
   SectorLoader->SetUniverseNum(UniverseNum);

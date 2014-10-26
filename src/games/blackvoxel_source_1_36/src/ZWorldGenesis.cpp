@@ -659,6 +659,20 @@ const char * ZWorldGenesis::HeightMap_New[] =
 
 
 
+    ZWorldGenesis::ZWorldGenesis( ZGame *GameEnv )
+    {
+      ULong i;
+	  GameEnv->Basic_Renderer->GetCuller()->InitFaceCullData( &T3dTemplate_1 );
+	  GameEnv->Basic_Renderer->GetCuller()->InitFaceCullData( &T3dTemplate_2 );
+	  GameEnv->Basic_Renderer->GetCuller()->InitFaceCullData( &Template_Vegetation_1 );
+	  GameEnv->Basic_Renderer->GetCuller()->InitFaceCullData( &Template_Vegetation_2 );
+	  GameEnv->Basic_Renderer->GetCuller()->InitFaceCullData( &Template_Vegetation_3 );
+      // char to num
+      for (i=0;i<256;i++) ConvCN[i]=0;
+      for (i=0;i<=9;i++)  ConvCN[i+'0']=i;
+      for (i=0;i<26;i++)  ConvCN[i+'A']=10+i;
+      for (i=0;i<26;i++)  ConvCN[i+'a']=36+i;
+    }
 
 
 double ZWorldGenesis::GetHeightMap(Long Absolute_x, Long Absolute_z)

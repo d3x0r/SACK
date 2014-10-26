@@ -66,7 +66,7 @@ ZVoxelSector::ZVoxelSector() : ModifTracker(ZVOXELBLOCSIZE_X * ZVOXELBLOCSIZE_Y 
   DataSize = Size_x * Size_y * Size_z;
   DisplayData = 0;
   Data        = new UShort[DataSize];
-  FaceCulling = new ULong [DataSize];
+  //FaceCulling = new ULong [DataSize];
   OtherInfos  = new ZMemSize[DataSize];
   TempInfos   = new UShort[DataSize];
 
@@ -88,7 +88,8 @@ ZVoxelSector::ZVoxelSector( const ZVoxelSector &Sector)
   DataSize = Sector.Size_x * Sector.Size_y * Sector.Size_z;
 
   Data        = new UShort[DataSize];
-  FaceCulling = new ULong [DataSize];
+#if 0
+  //FaceCulling = new ULong [DataSize];
   {
       ZMemSize i;
 
@@ -97,11 +98,12 @@ ZVoxelSector::ZVoxelSector( const ZVoxelSector &Sector)
         FaceCulling[i] = 0x3FFFFF;
       }
   }
+#endif
   OtherInfos  = new ZMemSize[DataSize];
   TempInfos   = new UShort[DataSize];
 
   memcpy(Data, Sector.Data, DataSize << 1 );
-  memcpy(FaceCulling, Sector.FaceCulling, DataSize);
+  //memcpy(FaceCulling, Sector.FaceCulling, DataSize);
   memcpy(OtherInfos, Sector.OtherInfos, DataSize * sizeof(ZMemSize));
   memcpy(TempInfos, Sector.TempInfos, DataSize << 2);
 
@@ -153,14 +155,14 @@ ZVoxelSector::ZVoxelSector(Long Size_x, Long Size_y, Long Size_z)
   if (DataSize>0)
   {
     Data        = new UShort[DataSize];
-    FaceCulling = new ULong [DataSize];
+    //FaceCulling = new ULong [DataSize];
     OtherInfos  = new ZMemSize [DataSize];
     TempInfos   = new UShort[DataSize];
   }
   else
   {
     Data        = 0;
-    FaceCulling = 0;
+    Culling = 0;
     OtherInfos  = 0;
     TempInfos   = 0;
   }
@@ -180,8 +182,8 @@ void ZVoxelSector::ChangeSize(Long Size_x, Long Size_y, Long Size_z)
   ULong i;
 
   if (Data)        {delete [] Data;        Data = 0;        }
-  if (FaceCulling) {delete [] FaceCulling; FaceCulling = 0; }
-  if (DisplayData) {delete DisplayData; DisplayData = 0;    }
+  if (Culling)     {delete [] Culling;     Culling = 0; }
+  if (DisplayData) {delete DisplayData;    DisplayData = 0;    }
   if (OtherInfos)  {delete [] OtherInfos;  OtherInfos  = 0; }
   if (TempInfos)   {delete [] TempInfos;   TempInfos   = 0; }
 
@@ -194,12 +196,12 @@ void ZVoxelSector::ChangeSize(Long Size_x, Long Size_y, Long Size_z)
   DisplayData = 0;
 
   Data        = new UShort[DataSize];
-  FaceCulling = new ULong [DataSize];
+  //FaceCulling = new ULong [DataSize];
   OtherInfos  = new ZMemSize [DataSize];
   TempInfos   = new UShort[DataSize];
 
   for(i=0;i<DataSize;i++) Data[i] = 0;
-  for(i=0;i<DataSize;i++) FaceCulling[i] = 0;
+  //for(i=0;i<DataSize;i++) FaceCulling[i] = 0;
   for(i=0;i<DataSize;i++) OtherInfos[i] = 0;
   for (i=0;i<DataSize;i++) TempInfos[i] = 273+20;
 }
@@ -278,8 +280,8 @@ ZVoxelSector::~ZVoxelSector()
   // Delete memory zones
 
   if (Data)        {delete [] Data;        Data = 0;        }
-  if (FaceCulling) {delete [] FaceCulling; FaceCulling = 0; }
-  if (DisplayData) {delete DisplayData; DisplayData = 0;    }
+  if (Culling)     {delete [] Culling;     Culling = 0;     }
+  if (DisplayData) {delete DisplayData;    DisplayData = 0; }
   if (OtherInfos)  {delete [] OtherInfos;  OtherInfos  = 0; }
   if (TempInfos)   {delete [] TempInfos;   TempInfos   = 0; }
 
@@ -436,7 +438,7 @@ Bool ZVoxelSector::Save(ULong UniverseNum, char const * OptFileName)
   Rs.Put(0xA600DBEDu);
   StartLen = Rs.GetActualBufferLen();
   Rs.Put((UShort)1); // Version
-  Compress_FaceCulling_RLE(FaceCulling, &Rs);
+//  Compress_FaceCulling_RLE(FaceCulling, &Rs);
   *Size = Rs.GetActualBufferLen() - StartLen;
   Rs.FlushBuffer();
 
@@ -625,7 +627,8 @@ Bool ZVoxelSector::Load(ULong UniverseNum, char const * OptFileName)
         Ok&= Rs.Get(Size_x);
         Ok&= Rs.Get(Size_y);
         Ok&= Rs.Get(Size_z);
-        if ( (Size_x != this->Size_x) || (Size_y != this->Size_y) || (Size_z != this->Size_z)) ChangeSize(Size_x,Size_y,Size_z);
+        if ( (Size_x != this->Size_x) || (Size_y != this->Size_y) || (Size_z != this->Size_z)) 
+			ChangeSize(Size_x,Size_y,Size_z);
         if (Section_Version >= 4)
         {
           Ok&= Rs.Get(Handle_x);
@@ -679,7 +682,7 @@ Bool ZVoxelSector::Load(ULong UniverseNum, char const * OptFileName)
       Ok = Rs.Get(Section_Len);
       Ok&= Rs.Get(Section_Version);
       if (!Ok) { printf("Sector Loading Error (%ld,%ld,%ld): Can't read VOXEL DATA section informations.\n", (UNum)Pos_x,(UNum)Pos_y,(UNum)Pos_z); Rs.Close(); InStream.Close(); return(false); }
-      if (!Decompress_FaceCulling_RLE(FaceCulling,&Rs)) { printf("Sector Loading Error (%ld,%ld,%ld): Can't read and decompress FACE CULLING section data.\n", (UNum)Pos_x,(UNum)Pos_y,(UNum)Pos_z); Rs.Close(); InStream.Close(); return(false); }
+      //if (!Decompress_FaceCulling_RLE(FaceCulling,&Rs)) { printf("Sector Loading Error (%ld,%ld,%ld): Can't read and decompress FACE CULLING section data.\n", (UNum)Pos_x,(UNum)Pos_y,(UNum)Pos_z); Rs.Close(); InStream.Close(); return(false); }
     }
     else if (SectionName == "OTHERINF")
     {
@@ -852,7 +855,7 @@ void ZVoxelSector::DebugOutFCInfo( const char * FileName )
     {
       for ( x=0 ; x<Size_z ; x++ )
       {
-        Voxel = this->FaceCulling[ y + ( x*Size_y )+ (z * (Size_y*Size_x)) ];
+        Voxel = this->Culler->getFaceCulling( this, y + ( x*Size_y )+ (z * (Size_y*Size_x)) );
         Car = Voxel + 'A';
         fputc(Car, fp);
       }
