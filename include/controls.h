@@ -520,16 +520,16 @@ enum ControlColorTypes {
 // buttons...
 #define TXT_STATIC -1
 #ifndef IDOK
-#define IDOK BTN_OKAY
+#  define IDOK BTN_OKAY
 #endif
+
 #ifndef IDCANCEL
-#define IDCANCEL BTN_CANCEL
+#  define IDCANCEL BTN_CANCEL
 #endif
-#ifdef __LINUX__
-#ifndef PSI_SOURCE
-#define BTN_OKAY   1
-#define BTN_CANCEL 2
-#endif
+
+#ifndef BTN_OKAY
+#  define BTN_OKAY   1
+#  define BTN_CANCEL 2
 #endif
 
 #ifdef __cplusplus
