@@ -969,7 +969,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		Deallocate( char*, tmpname );
 		Deallocate( char*, tmpopts );
 #  else
-      handle = _wfopen( tmpname, opts );
+      handle = fopen( file->fullname, opts );
 #  endif
 #else
 #  ifdef _STRSAFE_H_INCLUDED_
@@ -1056,7 +1056,7 @@ FILE*  sack_fsopenEx( INDEX group
 		Deallocate( char*, tmpname );
 		Deallocate( char*, tmpopts );
 #  else
-		handle = _wfopen( tmpname, opts );
+		handle = fopen( file->fullname, opts );
 #  endif
 #else
 #  ifdef _STRSAFE_H_INCLUDED_

@@ -25,6 +25,8 @@ if( WIN32 )
   endif( __64__ )
 # portable projects won't need this anyway.
 if( MAKING_SACK_CORE )
+  set( UTILS OFF)
+  set( EXAMPLES OFF)
   add_subdirectory( ${FFMPEG_SOURCES_ROOT}openal-soft-1.15.1 openal )
 endif( MAKING_SACK_CORE )
 

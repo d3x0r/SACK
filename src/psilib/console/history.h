@@ -60,7 +60,7 @@ CORECON_PROC( void, PSI_SetHistoryDefaultBackground )( PHISTORY_LINE_CURSOR phc,
 
 //int BeginHistory( PHISTORY_LINE_CURSOR cursor );
 // adjust history by offset...
-int AlignHistory( PHISTORY_BROWSER cursor, S_32 nOffset );
+int AlignHistory( PHISTORY_BROWSER cursor, S_32 nOffset, SFTFont font );
 int HistoryNearEnd( PHISTORY_BROWSER cursor, int nLines );
 // this takes into account typing a command, and recording a macro plus the dekware object prmopt...
 int FixCommandCursor( PHISTORY_BROWSER pht, PUSER_INPUT_BUFFER CommandInfo
