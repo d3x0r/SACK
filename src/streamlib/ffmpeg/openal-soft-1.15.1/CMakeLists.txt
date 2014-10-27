@@ -78,9 +78,9 @@ OPTION(DLOPEN  "Check for the dlopen API for loading optional libs"  ON)
 
 OPTION(WERROR  "Treat compile warnings as errors"      OFF)
 
-OPTION(UTILS  "Build and install utility programs"  ON)
+OPTION(UTILS  "Build and install utility programs"  ${UTILS})
 
-OPTION(EXAMPLES  "Build and install example programs"  ON)
+OPTION(EXAMPLES  "Build and install example programs"  ${EXAMPLES})
 
 OPTION(ALSOFT_CONFIG "Install alsoft.conf sample configuration file" ON)
 

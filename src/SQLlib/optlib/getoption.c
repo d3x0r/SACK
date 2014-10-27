@@ -419,7 +419,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 														 , int bCreate, int bIKnowItDoesntExist DBG_PASS )
 {
 	const TEXTCHAR *_program = program_override;
-	size_t _program_length = _program?StrLen( _program ): NULL;
+	size_t _program_length = _program?StrLen( _program ):0;
 	const TEXTCHAR *program = NULL;
 	static const TEXTCHAR *_system = NULL;
 	const TEXTCHAR *system = NULL;
