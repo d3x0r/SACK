@@ -172,7 +172,7 @@ IF(MSVC)
         ENDFOREACH(flag_var)
     ENDIF()
 ELSE()
-    if( GCC )
+    if( CMAKE_COMPILER_IS_GNUCC )
       ADD_DEFINITIONS(-Winline -Wall)
       CHECK_C_COMPILER_FLAG(-Wextra HAVE_W_EXTRA)
     IF(HAVE_W_EXTRA)
@@ -198,7 +198,7 @@ ELSE()
 
     CHECK_C_SOURCE_COMPILES("int foo() __attribute__((destructor));
                              int main() {return 0;}" HAVE_GCC_DESTRUCTOR)
-    endif( GCC )
+    endif( CMAKE_COMPILER_IS_GNUCC )
 ENDIF()
 
 # Set visibility/export options if available
