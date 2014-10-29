@@ -159,9 +159,6 @@ IMAGE_INTERFACE RealImageInterface = {
 									, NULL
 									, PutStringFontExx
 									, NULL  // reset image buffers... proxy layer
-									, GetDisplayableCharacterCount
-									, GetDisplayableCharactersAtCount
-									, GetDisplayableCharacterBytes
 };
 
 #undef GetImageInterface

@@ -89,8 +89,12 @@ static void CPROC OkayClicked( PTRSZVAL psv, PSI_CONTROL pc )
 	if( query_state->query_success )
 	{
 		query_state->query_success( query_state->query_user_data, TRUE );
+		{
+			PSI_CONTROL pf = GetFrame( pc );
+			DestroyFrame( &pf );
+		}
 	}
-	Release( query_state->result );
+	//Release( query_state->result );
 	Release( query_state );
 }
 
@@ -101,10 +105,12 @@ static void CPROC CancelClicked( PTRSZVAL psv, PSI_CONTROL pc )
 	if( query_state->query_success )
 	{
 		query_state->query_success( query_state->query_user_data, FALSE );
-
+		{
+			PSI_CONTROL pf = GetFrame( pc );
+			DestroyFrame( &pf );
+		}
 	}
-	DestroyFrame( &query_state->pf );
-	Release( query_state->result );
+	//Release( query_state->result );
 	Release( query_state );
 }
 
@@ -130,9 +136,9 @@ int SimpleUserQueryEx( TEXTSTR result, int reslen, CTEXTSTR question, PSI_CONTRO
 	SetButtonPushMethod( GetControl( pf, IDCANCEL ), CancelClicked, (PTRSZVAL)query_state );
 	GetMousePosition( &mouse_x, &mouse_y );
 	MoveFrame( pf, mouse_x - 140, mouse_y - 30 );
-	SetCommonFocus( query_state->edit );
-	lprintf( WIDE("Show query....") );
+	//lprintf( WIDE("Show query....") );
 	DisplayFrame( pf );
+	SetCommonFocus( query_state->edit );
 
 	if( !query_success_callback )
 	{

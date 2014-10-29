@@ -167,6 +167,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 	// if something is selected...
 	if( pe->nCaptionUsed )
 	{
+		size_t nBytes;
 		CTEXTSTR tmp;
 		CTEXTSTR string;
 		string = GetString( pe, GetText( pc->caption.text), pe->nCaptionUsed );
@@ -182,7 +183,6 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 			do
 			{
 				size_t nLen;
-				size_t nBytes;
 				// translate characters into *'s if password
 				//lprintf( WIDE("%d %d %d"), Start, pe->select_start, pe->select_end );
 				if( !pe->flags.bSelectSet || ( Start < pe->select_start ) )
@@ -196,8 +196,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 					//lprintf( WIDE("Showing %d of string in normal color before select..."), nLen );
 					PutStringFontEx( pc->Surface, x, pe->top_side_pad
 											 , basecolor(pc)[EDIT_TEXT], basecolor(pc)[EDIT_BACKGROUND]
-									, GetDisplayableCharactersAtCount( tmp, Start )
-										, nBytes, font );
+									, tmp, nBytes, font );
 					x += GetStringSizeFontEx( tmp, nBytes, NULL, NULL, font );
 				}
 				else if( Start > pe->select_end ) // beyond the end of the display
@@ -234,13 +233,14 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 		else
 		{
 			tmp = GetDisplayableCharactersAtCount( string, pe->Start );
+			nBytes = GetDisplayableCharacterBytes( tmp, pe->MaxShowLen );
 			PutStringFontEx( pc->Surface, x, pe->top_side_pad
 								, basecolor(pc)[EDIT_TEXT], basecolor(pc)[EDIT_BACKGROUND]
 								, tmp
-								, pe->MaxShowLen
+								, nBytes
 								, font
 								);
-			x += GetStringSizeFontEx( tmp, pe->MaxShowLen, NULL, NULL, font );
+			x += GetStringSizeFontEx( tmp, nBytes, NULL, NULL, font );
 		}
 	}
 	//else
@@ -275,7 +275,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
 {
 	static int _b;
 	ValidatedControlData( PEDIT, EDIT_FIELD, pe, pc );
-	size_t cx, cy;
+	int cx, cy;
 	int found = 0;
 	size_t len = pc->caption.text ? GetTextSize( pc->caption.text ) : 0;
 	_32 width, _width = 0, height;
@@ -288,7 +288,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
 	if( x < LEFT_SIDE_PAD )
 	{
 		found = 1;
-		cx = 0;
+		cx = -1;
 	}
 	else
 	{
@@ -337,17 +337,20 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
 	moving_left = 0;
 	moving_right = 0;
 	if( b & MK_LBUTTON )
-		if( pe->cursor_pos != (cx+pe->Start) )
-		{
-			// this updates the current cursor position.
-			// this works very well.... (now)
-			if( pe->cursor_pos > (cx+pe->Start) )
-				moving_left = 1;
-			else
-				moving_right = 1;
-			pe->cursor_pos = cx + pe->Start;
-			SmudgeCommon( pc );
-		}
+	{
+		if( (cx+(int)pe->Start) >= 0 )
+			if( pe->cursor_pos != (cx+pe->Start) )
+			{
+				// this updates the current cursor position.
+				// this works very well.... (now)
+				if( pe->cursor_pos > (cx+pe->Start) )
+					moving_left = 1;
+				else
+					moving_right = 1;
+				pe->cursor_pos = cx + pe->Start;
+				SmudgeCommon( pc );
+			}
+	}
 	{
 		//lprintf( WIDE("current character: %d %d"), cx, cy );
 	}
@@ -360,16 +363,17 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
 			// we're not really moving, we just started...
 			pe->flags.bSelectSet = 0;
 			moving_left = moving_right = 0;
-			if( (cx + pe->Start) < len )
-			{
-				//lprintf( WIDE("Setting select start, end at %d,%d,%d"), cx + pe->Start, cx, pe->Start );
-				pe->select_anchor = cx + pe->Start;
-			}
-			else
-			{
-				//lprintf( WIDE("Setting select start, end at %d,%d"), len-1, len-1 );
-				pe->select_anchor = len;
-			}
+			if( (cx+(int)pe->Start) >= 0 )
+				if( (cx + pe->Start) < len )
+				{
+					//lprintf( WIDE("Setting select start, end at %d,%d,%d"), cx + pe->Start, cx, pe->Start );
+					pe->select_anchor = cx + pe->Start;
+				}
+				else
+				{
+					//lprintf( WIDE("Setting select start, end at %d,%d"), len-1, len-1 );
+					pe->select_anchor = len;
+				}
 			//lprintf( WIDE("--- Setting begin and end... hmm first button I guess Select...") );
 			SmudgeCommon( pc );
 		}
@@ -378,18 +382,19 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
 			//lprintf( WIDE("still have that mouse button down.... %d,%d,%d"), moving_left, moving_right, cx );
 			if( moving_left || moving_right )
 			{
-				if( (cx+pe->Start) < pe->select_anchor )
-				{
-					pe->flags.bSelectSet = 1;
-					pe->select_start = cx + pe->Start;
-					pe->select_end = pe->select_anchor - 1;
-				}
-				else
-				{
-					pe->flags.bSelectSet = 1;
-					pe->select_end = cx + pe->Start;
-					pe->select_start = pe->select_anchor;
-				}
+				if( (cx+(int)pe->Start) >= 0 )
+					if( (cx+pe->Start) < pe->select_anchor )
+					{
+						pe->flags.bSelectSet = 1;
+						pe->select_start = cx + pe->Start;
+						pe->select_end = pe->select_anchor - 1;
+					}
+					else
+					{
+						pe->flags.bSelectSet = 1;
+						pe->select_end = cx + pe->Start;
+						pe->select_start = pe->select_anchor;
+					}
 				SmudgeCommon( pc );
 			}
 		}
@@ -464,6 +469,7 @@ void TypeIntoEditControl( PSI_CONTROL pc, CTEXTSTR text )
 	if( pc )
 	{
 		int start_pos = pe->cursor_pos_byte;
+		pe->cursor_pos_byte = GetDisplayableCharacterBytes( GetText( pc->caption.text ), pe->cursor_pos );
 		while( text[0] )
 		{
 			InsertAChar( pe, &pc->caption.text, text[0] );
@@ -521,6 +527,7 @@ static void Paste( PEDIT pe, PTEXT *caption )
 			if( format == CF_UNICODETEXT )
 				get_unicode = 1;
 		format = EnumClipboardFormats( format );
+		pe->cursor_pos_byte = GetDisplayableCharacterBytes( GetText( *caption ), pe->cursor_pos );
 		if( pe->flags.bSelectSet )
 			CutEditText( pe, caption );
 		while( format )
@@ -707,7 +714,7 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, _32 key )
 		case KEY_RIGHT:
 			{
 				size_t oldpos = pe->cursor_pos;
-				if( pe->cursor_pos < pe->nCaptionUsed )
+				if( pe->cursor_pos < pe->nCaptionDisplayableChars )
 				{
 					pe->cursor_pos++;
 					if( !(key & KEY_SHIFT_DOWN ) )
@@ -742,6 +749,8 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, _32 key )
 					}
 					SmudgeCommon( pc );
 				}
+				else
+					pe->cursor_pos = pe->nCaptionDisplayableChars;
 				used_key = 1;
 				break;
 			}
@@ -864,7 +873,9 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, _32 key )
 					ch = 0;
 				if( pe->flags.bSelectSet )
 					CutEditText( pe, &pc->caption.text );
+				pe->cursor_pos_byte = GetDisplayableCharacterBytes( GetText( pc->caption.text ), pe->cursor_pos );
 				InsertAChar( pe, &pc->caption.text, ch );
+				pe->cursor_pos = GetDisplayableCharacterCount( GetText( pc->caption.text ), pe->cursor_pos_byte );
 				SmudgeCommon( pc );
 				//printf( WIDE("Key: %d(%c)\n"), ch,ch );
 				used_key = 1;

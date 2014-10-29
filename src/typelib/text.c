@@ -3004,6 +3004,178 @@ LOGICAL ParseStringVector( CTEXTSTR data, CTEXTSTR **pData, int *nData )
 	return FALSE;
 }
 
+unsigned int GetUtfChar( CTEXTSTR *from )
+{
+	unsigned int result = (unsigned char)(*from)[0];
+	if( !result ) return result;
+#ifdef _UNICODE
+	if( ( ( (*from)[0] & 0xFC00 ) >= 0xD800 )
+		&& ( ( (*from)[0] & 0xFC00 ) <= 0xDF00 ) )
+	{
+		result = 0x10000 + ( ( ( (*from)[0] & 0x3ff ) << 10 ) | ( ( (*from)[1] & 0x3ff ) ) );
+		(*from) += 2;
+	}
+	else 
+	{
+		(*from)++;
+	}
+#else
+	if( (*from)[0] * 0x80 )
+	{
+		if( ( (*from)[0] & 0xE0 ) == 0xC0 )
+		{
+			if( ( (*from)[1] & 0xC0 ) == 0x80 )
+			{
+				result = ( ( (unsigned int)(*from)[0] & 0x1F ) << 6 ) | ( (unsigned int)(*from)[1] & 0x3f );
+				(*from) += 2;
+			}
+			else
+			{
+				result = 0;
+				lprintf( "a 2 byte code with improper continuation encodings following it was found." );
+				(*from)++;
+			}
+		}
+		else if( ( (*from)[0] & 0xF0 ) == 0xE0 )
+		{
+			if( ( ( (*from)[1] & 0xC0 ) == 0x80 ) && ( ( (*from)[2] & 0xC0 ) == 0x80 ) )
+			{
+				result = ( ( (unsigned int)(*from)[0] & 0xF ) << 12 ) | ( ( (unsigned int)(*from)[1] & 0x3F ) << 6 ) | ( (unsigned int)(*from)[2] & 0x3f );
+				(*from) += 3;
+			}
+			else
+			{
+				result = 0;
+				lprintf( "a 3 byte code with improper continuation encodings following it was found." );
+				(*from)++;
+			}
+		}
+		else if( ( (*from)[0] & 0xF8 ) == 0xF0 )
+		{
+			if( ( ( (*from)[1] & 0xC0 ) == 0x80 ) && ( ( (*from)[2] & 0xC0 ) == 0x80 ) && ( ( (*from)[3] & 0xC0 ) == 0x80 ) )
+			{
+				result =   ( ( (unsigned int)(*from)[0] & 0x7 ) << 18 ) 
+						| ( ( (unsigned int)(*from)[1] & 0x3F ) << 12 )
+						| ( ( (unsigned int)(*from)[2] & 0x3f ) << 6 )
+						| ( (unsigned int)(*from)[3] & 0x3f );
+				(*from) += 4;
+			}
+			else
+			{
+				result = 0;
+				lprintf( "a 4 byte code with improper continuation encodings following it was found." );
+				(*from)++;
+			}
+		}
+		else if( ( (*from)[0] & 0xC0 ) == 0x80 )
+		{
+			// things like 0x9F, 0x9A is OK; is a single byte character, is a unicode application escape 
+			//lprintf( "a continuation encoding was found." );
+			result = (*from)[0];
+			(*from)++;
+		}
+		else
+		{
+			result = (*from)[0];
+			(*from)++;
+		}
+	}
+	else
+	{
+		result = (*from)[0];
+		(*from)++;
+	}
+#endif
+	return result;
+}
+
+
+// Return the integer character from the string
+// using utf-8 or utf-16 decoding appropriately.  No more extended-ascii.
+
+static int Step( CTEXTSTR *pc, size_t *nLen )
+{
+	CTEXTSTR _pc = (*pc);
+	int ch;
+	//lprintf( "Step (%s[%*.*s])", (*pc), nLen,nLen, (*pc) );
+	if( nLen && !*nLen )
+		return 0;
+
+	ch = GetUtfChar( pc );
+	if( ch & 0xFFE00000 )
+		DebugBreak();
+	if( nLen )
+		(*nLen) -= (*pc) - _pc;
+	_pc = (*pc);
+
+	if( ch )
+	{
+		while( ch == WIDE('\x9F') )
+		{
+			while( ch && ( ch != WIDE( '\x9C' ) ) )
+			{
+				int code;
+				ch = GetUtfChar( pc );
+				if( nLen )
+					(*nLen) -= (*pc) - _pc;
+				_pc = (*pc);
+			}
+
+			// if the string ended...
+			if( !ch )
+			{
+				// this is done.  There's nothing left... command with no data is bad form, but not illegal.
+				return FALSE;
+			}
+			else  // pc is now on the stop command, advance one....
+			{
+				// this is in a loop, and the next character may be another command....
+				ch = GetUtfChar( pc );
+				if( nLen )
+					(*nLen) -= (*pc) - _pc;
+				_pc = (*pc);
+			}
+		}
+	}
+	return ch;
+}
+
+size_t GetDisplayableCharacterBytes( CTEXTSTR string, size_t character_count )
+{
+	CTEXTSTR original = string;
+	int ch;
+	while( character_count && 
+		( ch = Step( &string, NULL ) ) )
+	{
+		character_count--;
+	}
+	return string - original;
+}
+
+size_t GetDisplayableCharacterCount( CTEXTSTR string, size_t max_bytes )
+{
+	int ch;
+	size_t count = 0;
+	while( ch = Step( &string, &max_bytes ) )
+	{
+		count++;
+	}
+	return count;
+}
+
+CTEXTSTR GetDisplayableCharactersAtCount( CTEXTSTR string, size_t nLen )
+{
+	int ch;
+	size_t count = 0;
+	while( nLen > 0 && 
+		 ( ch = Step( &string, NULL ) ) )
+	{
+		nLen--;
+	}
+	return string;
+}
+
+
 LOGICAL ParseIntVector( CTEXTSTR data, int **pData, int *nData )
 {
 	if( !data[0] )

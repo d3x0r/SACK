@@ -406,16 +406,17 @@ static int CPROC FrameKeyProc( PTRSZVAL psvFrame, _32 key )
 		}
 		else if( pf->pFocus )
 		{
+			PSI_CONTROL keep_focus = pf->pFocus;
 			//if( pf->pFocus->KeyProc )
 			//	pf->pFocus->KeyProc( pf->pFocus->psvKey, key );
-			AddUse( pf->pFocus );
+			AddUse( keep_focus );
 			if( g.flags.bLogKeyEvents )
-				lprintf( WIDE("invoking control focus use...%p %p %s"), pf, pf->pFocus, pf->pFocus->pTypeName );
+				lprintf( WIDE("invoking control focus use...%p %p %s"), pf, keep_focus, keep_focus->pTypeName );
 			//	lprintf( WIDE("dispatch a key event to focused contro... ") );
-			InvokeResultingMethod( result, pf->pFocus, _KeyProc, ( pf->pFocus, key ) );
+			InvokeResultingMethod( result, keep_focus, _KeyProc, ( pf->pFocus, key ) );
 			if( g.flags.bLogKeyEvents )
 				lprintf( WIDE("Result was %d"), result );
-			DeleteUse( pf->pFocus );
+			DeleteUse( keep_focus );
 		}
 	}
 	// passed the key to the child window first...
@@ -577,7 +578,7 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 							if( IsMeOrInMe( parent->device->pFocus, pc ) )
 							{
 								//lprintf( "!!!!!!!!!!!! FIXED THE FOCUS!!!!!!!!!!" );
-								parent->device->pFocus = NULL;
+								//parent->device->pFocus = NULL;
 								break;
 							}
 						}

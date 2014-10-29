@@ -434,7 +434,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 		if( ( StrCaseCmp( file, DEFAULT_PUBLIC_KEY ) != 0 )
 			|| ( StrCaseCmpEx( pBranch, _program, _program_length ) != 0 ) )
 		{
-         program = file;
+			program = file;
 			file = _program;
 		}
 		else
