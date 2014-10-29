@@ -173,7 +173,7 @@ static void CPROC OptionSelectionChanged( PTRSZVAL psvUser, PCONTROL pc, PLISTIT
 	if( pnd->option_text )
 	{
 		if( !pnd->ID_Option )
-			pnd->ID_Option = GetOptionIndexExx( (PODBC)psvUser, NULL, NULL, NULL, pnd->option_text, NULL, FALSE DBG_SRC );
+			pnd->ID_Option = GetOptionIndexExx( (PODBC)psvUser, NULL, pnd->option_text, NULL, NULL, NULL, FALSE DBG_SRC );
 		GetOptionStringValueEx( (PODBC)psvUser, pnd->ID_Option, buffer, sizeof( buffer ) DBG_SRC );
 		StrCpyEx( l.last_value, buffer, sizeof(l.last_value)/sizeof(l.last_value[0]) );
 		SetCommonText( GetNearControl( pc, EDT_OPTIONVALUE ), buffer );
@@ -321,6 +321,7 @@ static PSI_CONTROL CreateOptionFrame( PODBC odbc, LOGICAL tree, int *done )
 struct find_entry_external {
 	TEXTSTR result;
 	PSI_CONTROL frame;
+	PODBC odbc;
 };
 
 static void CPROC FindEntryResult( PTRSZVAL psv, LOGICAL success )
@@ -333,7 +334,7 @@ static void CPROC FindEntryResult( PTRSZVAL psv, LOGICAL success )
 		INDEX idx;
 		PLIST options = NULL;
 		// this is a magic function.
-		FindOptions( (PODBC)psv, &options, result );
+		FindOptions( params->odbc, &options, result );
 		if( !options )
 		{
 			SimpleMessageBox( params->frame, WIDE("No Options Found"), WIDE("Could not find any matching options") );
@@ -348,7 +349,7 @@ static void CPROC FindEntryResult( PTRSZVAL psv, LOGICAL success )
 
 		{
 			int done = 0;
-			PSI_CONTROL frame = CreateOptionFrame( (PODBC)psv, FALSE, &done );
+			PSI_CONTROL frame = CreateOptionFrame( params->odbc, FALSE, &done );
 			PSI_CONTROL list = GetControl( frame, LST_OPTIONMAP );
 			LIST_FORALL( options, idx, CTEXTSTR, name )
 			{
@@ -367,8 +368,8 @@ static void CPROC FindEntryResult( PTRSZVAL psv, LOGICAL success )
 			}
 			//InitOptionList( odbc, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
 			DisplayFrame( frame );
-			//CommonWait( frame );
-			//DestroyFrame( &frame );
+			CommonWait( frame );
+			DestroyFrame( &frame );
 		}
 	}
 	Release( params->result );
@@ -380,6 +381,7 @@ static void CPROC FindEntry( PTRSZVAL psv, PCOMMON pc )
 	struct find_entry_external *params = New( struct find_entry_external );
 	params->frame = GetFrame( pc );
 	params->result = NewArray( TEXTCHAR, 256 );//[256];
+	params->odbc = (PODBC)psv;
 	// there's a current state already ...
 	//GetCurrentSelection( );
 	SimpleUserQueryEx( params->result, 256, WIDE("Enter Option Name to Find"), GetFrame( pc )

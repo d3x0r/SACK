@@ -2402,6 +2402,12 @@ TYPELIB_PROC  PTEXT TYPELIB_CALLTYPE  FlattenLine ( PTEXT pLine );
    for loop wrapper.                                          */
 #define FORALLTEXT(start,var)  for(var=start;var; var=NEXTLINE(var))
 
+TYPELIB_PROC unsigned int TYPELIB_CALLTYPE GetUtfChar( CTEXTSTR *from );
+
+TYPELIB_PROC size_t TYPELIB_CALLTYPE GetDisplayableCharacterCount( CTEXTSTR string, size_t max_bytes );
+TYPELIB_PROC CTEXTSTR TYPELIB_CALLTYPE GetDisplayableCharactersAtCount( CTEXTSTR string, size_t character_index );
+TYPELIB_PROC size_t TYPELIB_CALLTYPE  GetDisplayableCharacterBytes( CTEXTSTR string, size_t character_count );
+
 /* You Must Deallocate the result */
 TYPELIB_PROC  char * TYPELIB_CALLTYPE  WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS );
 

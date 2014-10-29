@@ -3980,7 +3980,8 @@ void DestroyCommonExx( PSI_CONTROL *ppc, int level DBG_PASS )
 				SmudgeCommon( pc->parent );
 			pc->parent = NULL;
 		}
-		if( !pc->InUse && !pc->InWait )
+
+		if( !ChildInUse( pc, 0 ) && !pc->InWait )
 		{
 			level++;
 			AddUse( pc );
@@ -4324,7 +4325,7 @@ PSI_PROC( PSI_CONTROL, GetFrame )( PSI_CONTROL pc )
 {
 	while( pc )
 	{
-		if( (!pc->parent || (pc->device)) && !pc->flags.bDestroy )
+		if( (!pc->parent || (pc->device) || (!pc->Window->pParent) ) && !pc->flags.bDestroy )
 			return pc;
 		pc = pc->parent;
 	}
@@ -4429,10 +4430,10 @@ PSI_PROC( void, CommonWait)( PSI_CONTROL pc ) // perhaps give a callback for wit
 				&& !( ( pcbd->done_value )?( *pcbd->done_value ):0 )
 			  )
 		{
-			lprintf( WIDE("not done...") );
+			//lprintf( WIDE("not done...") );
 			if( !Idle() )
 			{
-				lprintf( WIDE("Sleeping forever, cause I'm not doing anything else..>") );
+				//lprintf( WIDE("Sleeping forever, cause I'm not doing anything else...") );
 				WakeableSleep( SLEEP_FOREVER );
 			}
 			else
