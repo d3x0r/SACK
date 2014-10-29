@@ -1091,15 +1091,15 @@ static unsigned int GetUtfChar( CTEXTSTR *from )
 
 static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_original, CDATA *fore, CDATA *back )
 {
-	CTEXTSTR *_pc = pc;
+	CTEXTSTR _pc = (*pc);
 	int ch;
 	//lprintf( "Step (%s[%*.*s])", (*pc), nLen,nLen, (*pc) );
 	if( !*nLen )
 		return 0;
 
 	ch = GetUtfChar( pc );
-	(*nLen) -= pc - _pc;
-	_pc = pc;
+	(*nLen) -= (*pc) - _pc;
+	_pc = (*pc);
 
 	if( !fore_original[0] && !back_original[0] )
 	{
@@ -1124,8 +1124,8 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 			{
 				int code;
 				ch = GetUtfChar( pc );
-				(*nLen) -= pc - _pc;
-				_pc = pc;
+				(*nLen) -= (*pc) - _pc;
+				_pc = (*pc);
 				switch( code = ch )
 				{
 				case 'r':
@@ -1144,8 +1144,8 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 				case 'F':
 				case 'f':
 					ch = GetUtfChar( pc );
-					(*nLen) -= pc - _pc;
-					_pc = pc;
+					(*nLen) -= (*pc) - _pc;
+					_pc = (*pc);
 					if( ch == '$' )
 					{
 						_32 accum = 0;
@@ -1303,8 +1303,8 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 			{
 				// this is in a loop, and the next character may be another command....
 				ch = GetUtfChar( pc );
-				(*nLen) -= pc - _pc;
-				_pc = pc;
+				(*nLen) -= (*pc) - _pc;
+				_pc = (*pc);
 			}
 		}
 	}

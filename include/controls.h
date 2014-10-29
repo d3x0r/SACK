@@ -1852,7 +1852,7 @@ PSI_PROC( void *,GetPopupData)( PMENU pm, int item );
 /* Add a new item to a popup menu
    Parameters
    pm :     menu to add items to
-   type :   type of the item (MF_TEXT,MF_POPUP, MF_SEPARATOR ?) 
+   type :   type of the item (MF_STRING,MF_POPUP, MF_SEPARATOR ?) 
    dwID :   ID of item. (PMENU of a popup menu if it's a popup
             item)
    pData :  text data of the item (unless separator)             */

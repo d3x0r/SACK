@@ -37,7 +37,7 @@ typedef struct chat_message_tag
 {
 	CHAT_TIME received_time; // the time the message was received
 	CHAT_TIME sent_time; // the time the message was sent
-	CTEXTSTR text;
+	TEXTSTR text;
 	TEXTSTR formatted_text;
 	size_t formatted_text_len;
 	int formatted_height;
@@ -484,6 +484,21 @@ void Chat_SetMessageInputHandler( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVA
 	PCHAT_LIST chat_control = (*ppList);
 	chat_control->InputData = Handler;
 	chat_control->psvInputData = psv;
+}
+
+void Chat_ClearMessages( PSI_CONTROL pc )
+{
+	PCHAT_LIST *ppList = (ControlData( PCHAT_LIST*, pc ));
+	PCHAT_LIST chat_control = (*ppList);
+	if( chat_control )
+	{
+		PCHAT_MESSAGE pcm;
+		while( pcm = (PCHAT_MESSAGE)DequeLink( &chat_control->messages ) )
+		{
+			Release( pcm->text );
+			Release( pcm );
+		}
+	}
 }
 
 
@@ -1000,7 +1015,7 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 {
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list;
-	//SetupDefaultConfig();
+	SetupDefaultConfig();
 	(*ppList) = New( CHAT_LIST );
 	MemSet( (*ppList), 0, sizeof( CHAT_LIST ) );
 	list = (*ppList);
@@ -1052,8 +1067,11 @@ static void OnSizeCommon( CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begin_sizing )
 		{
 			Image window = GetControlSurface( pc );
 			// fix input
-			list->phb_Input->nColumns = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
-			list->phb_Input->nWidth = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
+			if( l.sent.BorderSegment[SEGMENT_LEFT] )
+			{
+				list->phb_Input->nColumns = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
+				list->phb_Input->nWidth = window->width - ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width );
+			}
 			BuildDisplayInfoLines( list->phb_Input, list->input_font );
 			ReformatMessages( list );
 		}
