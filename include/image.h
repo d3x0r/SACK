@@ -1039,6 +1039,11 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
       font :        the font to use. NULL use an internal default
                     font.                                           */
    IMAGE_PROC  void IMAGE_API PutStringVerticalFontEx      ( Image pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
+   IMAGE_PROC size_t IMAGE_API  GetDisplayableCharacterCount( CTEXTSTR string, size_t max_bytes );
+   IMAGE_PROC size_t IMAGE_API  GetDisplayableCharacterBytes( CTEXTSTR string, size_t character_count );
+
+   IMAGE_PROC CTEXTSTR IMAGE_API GetDisplayableCharactersAtCount( CTEXTSTR string, size_t character_count );
+
    /* Outputs a string in the specified font, from the specified
       point, text is drawn upside down, and goes to the left from
       the point. the point becomes the bottom right of the
@@ -1893,6 +1898,10 @@ IMAGE_PROC_PTR( void, PutStringFontExx )( Image pImage
 // sometimes it's not possible to use blatcolor to clear an imate...
 // sometimes its parent is not redrawn?
 IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
+IMAGE_PROC_PTR( size_t, GetDisplayableCharacterCount )( CTEXTSTR string, size_t max_bytes );
+IMAGE_PROC_PTR( CTEXTSTR, GetDisplayableCharactersAtCount )( CTEXTSTR string, size_t character_index );
+ IMAGE_PROC_PTR( size_t,  GetDisplayableCharacterBytes )( CTEXTSTR string, size_t character_count );
+
 } IMAGE_INTERFACE, *PIMAGE_INTERFACE;
 
 
@@ -2001,6 +2010,9 @@ IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
 #define BlotSprite              PROC_ALIAS(BlotSprite)
 #define SetSpritePosition  PROC_ALIAS(  SetSpritePosition )
 #define SetSpriteHotspot  PROC_ALIAS(  SetSpriteHotspot )
+#define GetDisplayableCharactersAtCount PROC_ALIAS( GetDisplayableCharactersAtCount )
+#define GetDisplayableCharacterCount PROC_ALIAS( GetDisplayableCharacterCount )
+#define GetDisplayableCharacterBytes PROC_ALIAS( GetDisplayableCharacterBytes )
 
 #define InternalRenderFont          PROC_ALIAS(InternalRenderFont)
 #define InternalRenderFontFile      PROC_ALIAS(InternalRenderFontFile)

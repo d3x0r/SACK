@@ -25,9 +25,11 @@ typedef struct edit {
 	}flags;
 	TEXTCHAR *content; // our quick and dirty buffer...
 	size_t nCaptionSize, nCaptionUsed;
+	size_t nCaptionDisplayableChars;
 	int top_side_pad;
 	size_t Start; // first character in edit control
 	size_t cursor_pos; // cursor position
+	size_t cursor_pos_byte; // cursor position
 	size_t MaxShowLen;
 	size_t select_anchor;
 	size_t select_start, select_end;
@@ -96,7 +98,9 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 			_32 w, h;
 			for( n = 0; n <= pe->nCaptionUsed; n++ )
 			{
-				stringsize[n] = GetStringSizeFontEx(caption_text, n, &w, &h, font );
+				stringsize[n] = GetStringSizeFontEx(caption_text
+					, GetDisplayableCharacterBytes( caption_text, n)
+					, &w, &h, font );
 				//lprintf( WIDE("size at %d = %d"), n, stringsize[n] );
 			}
 			height = h;
@@ -135,7 +139,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 			pe->Start = 0;
 		}
 		start_pos = (pe->Start?stringsize[pe->Start-1]:0);
-		pe->MaxShowLen = pe->nCaptionUsed;
+		pe->MaxShowLen = GetDisplayableCharacterCount( caption_text, -1 );
 		for( n = pe->Start; n <= pe->nCaptionUsed; n++ )
 		{
 			if( ( stringsize[n] - start_pos ) > pc->surface_rect.width )
@@ -164,6 +168,8 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 	if( pe->nCaptionUsed )
 	{
 		CTEXTSTR tmp;
+		CTEXTSTR string;
+		string = GetString( pe, GetText( pc->caption.text), pe->nCaptionUsed );
 		//lprintf( WIDE("Caption used... %d %d %d")
 		//		 , pc->flags.bFocused
 		//		 , pe->select_start
@@ -176,6 +182,8 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 			do
 			{
 				size_t nLen;
+				size_t nBytes;
+				// translate characters into *'s if password
 				//lprintf( WIDE("%d %d %d"), Start, pe->select_start, pe->select_end );
 				if( !pe->flags.bSelectSet || ( Start < pe->select_start ) )
 				{
@@ -183,20 +191,25 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 						nLen = pe->select_start - Start;
 					else
 						nLen = pe->MaxShowLen - ofs;
+					tmp = GetDisplayableCharactersAtCount( string, Start );
+					nBytes = GetDisplayableCharacterBytes( tmp, nLen );
 					//lprintf( WIDE("Showing %d of string in normal color before select..."), nLen );
 					PutStringFontEx( pc->Surface, x, pe->top_side_pad
 											 , basecolor(pc)[EDIT_TEXT], basecolor(pc)[EDIT_BACKGROUND]
-										, tmp = GetString( pe, GetText( pc->caption.text) + Start, nLen ), nLen, font );
-					x += GetStringSizeFontEx( tmp, nLen, NULL, NULL, font );
+									, GetDisplayableCharactersAtCount( tmp, Start )
+										, nBytes, font );
+					x += GetStringSizeFontEx( tmp, nBytes, NULL, NULL, font );
 				}
 				else if( Start > pe->select_end ) // beyond the end of the display
 				{
+					tmp = GetDisplayableCharactersAtCount( string, Start );
 					nLen = pe->MaxShowLen - ofs;
 					//lprintf( WIDE("Showing %d of string in normal color after select..."), nLen );
+					nBytes = GetDisplayableCharacterBytes( tmp, nLen );
 					PutStringFontEx( pc->Surface, x, pe->top_side_pad
 											 , basecolor(pc)[EDIT_TEXT], basecolor(pc)[EDIT_BACKGROUND]
-											 , tmp = GetString( pe, GetText( pc->caption.text) + Start, nLen ), nLen, font );
-					x += GetStringSizeFontEx( tmp, nLen, NULL, NULL, font );
+											 , tmp, nBytes, font );
+					x += GetStringSizeFontEx( tmp, nBytes, NULL, NULL, font );
 				}
 				else // start is IN select start to select end...
 				{
@@ -207,10 +220,12 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 					else
 						nLen = pe->MaxShowLen - ofs;
 					//lprintf( WIDE("Showing %d of string in selected color..."), nLen );
+					tmp = GetDisplayableCharactersAtCount( string, Start );
+					nBytes = GetDisplayableCharacterBytes( tmp, nLen );
 					PutStringFontEx( pc->Surface, x, pe->top_side_pad
 											 , basecolor(pc)[SELECT_TEXT], basecolor(pc)[SELECT_BACK]
-											 , tmp = GetString( pe, GetText( pc->caption.text) + Start, nLen ), nLen, font );
-					x += GetStringSizeFontEx( tmp, nLen, NULL, NULL, font );
+											 , tmp, nBytes, font );
+					x += GetStringSizeFontEx( tmp, nBytes, NULL, NULL, font );
 				}
 				Start += nLen;
 				ofs += nLen;
@@ -218,9 +233,10 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 		}
 		else
 		{
+			tmp = GetDisplayableCharactersAtCount( string, pe->Start );
 			PutStringFontEx( pc->Surface, x, pe->top_side_pad
 								, basecolor(pc)[EDIT_TEXT], basecolor(pc)[EDIT_BACKGROUND]
-								, tmp = GetString( pe, GetText( pc->caption.text) + pe->Start, pe->MaxShowLen )
+								, tmp
 								, pe->MaxShowLen
 								, font
 								);
@@ -281,29 +297,33 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32
 		// so given any font - variable size, we have to figure out which
 		// character is on this line...
 		if( len > pe->Start )
-		for( cx = 1; ( cx <= ( len - pe->Start ) ); cx++ )
 		{
-			if( GetStringSizeFontEx( caption_text + pe->Start, cx, &width, NULL, font ) )
+			CTEXTSTR tmp_offset_caption_text = GetDisplayableCharactersAtCount( caption_text, pe->Start );
+			for( cx = 1; ( cx <= ( len - pe->Start ) ); cx++ )
 			{
-				//lprintf( WIDE("is %*.*s(%d) more than %d?")
-				//		 , cx,cx,GetText(pc->caption.text)
-				//		 , width
-				//		 , x );
-				if( USS_GT(( width + LEFT_SIDE_PAD ),_32, x,S_32) )
+				if( GetStringSizeFontEx( tmp_offset_caption_text
+								, GetDisplayableCharacterBytes( tmp_offset_caption_text, cx ), &width, NULL, font ) )
 				{
-					// left 1/3 of the currnet character sets the cursor to the left
-					// of the character, otherwise cursor is set on(after) the
-					// current character.
-					// OOP! - previously this test was backwards resulting in seemingly
-					// very erratic cursor behavior..
-					if( ((width+LEFT_SIDE_PAD)-x) > (width - _width)/3 )
-						cx = cx-1;
-					//lprintf( WIDE("Why yes, yes it is.") );
-					found = 1;
-					break;
+					//lprintf( WIDE("is %*.*s(%d) more than %d?")
+					//		 , cx,cx,GetText(pc->caption.text)
+					//		 , width
+					//		 , x );
+					if( USS_GT(( width + LEFT_SIDE_PAD ),_32, x,S_32) )
+					{
+						// left 1/3 of the currnet character sets the cursor to the left
+						// of the character, otherwise cursor is set on(after) the
+						// current character.
+						// OOP! - previously this test was backwards resulting in seemingly
+						// very erratic cursor behavior..
+						if( ((width+LEFT_SIDE_PAD)-x) > (width - _width)/3 )
+							cx = cx-1;
+						//lprintf( WIDE("Why yes, yes it is.") );
+						found = 1;
+						break;
+					}
 				}
+				_width = width;
 			}
-			_width = width;
 		}
 	}
 	// cx will be strlen + 1 if past end
@@ -401,6 +421,7 @@ void CutEditText( PEDIT pe, PTEXT *caption )
 				SetTextSize( *caption, pe->nCaptionUsed );
 				GetText( *caption )[pe->select_start] = 0;
 			}
+			pe->nCaptionDisplayableChars = GetDisplayableCharacterCount( GetText( *caption ), -1 );
 			pe->cursor_pos = pe->select_start;
 		}
 	}
@@ -409,11 +430,11 @@ void CutEditText( PEDIT pe, PTEXT *caption )
 
 static void InsertAChar( PEDIT pe, PTEXT *caption, TEXTCHAR ch )
 {
-	if( (pe->nCaptionUsed+1) >= pe->nCaptionSize )
+	if( (pe->nCaptionUsed) >= pe->nCaptionSize )
 	{
 		PTEXT newtext;
 		pe->nCaptionSize += 16;
-		newtext = SegCreate( pe->nCaptionSize );
+		newtext = SegCreate( pe->nCaptionSize + 1 );
 		StrCpyEx( GetText( newtext ), GetText( *caption )
 				 , (pe->nCaptionUsed+1) ); // include the NULL, the buffer will be large enough.
 		SetTextSize( newtext, pe->nCaptionUsed );
@@ -423,14 +444,16 @@ static void InsertAChar( PEDIT pe, PTEXT *caption, TEXTCHAR ch )
 	}
 	{
 		size_t n;
+		size_t cursor_bytes = pe->cursor_pos_byte;
 		pe->nCaptionUsed++;
-		for( n = pe->nCaptionUsed; ( n > pe->cursor_pos ); n-- )
+		for( n = pe->nCaptionUsed; ( n > cursor_bytes ); n-- )
 		{
 			GetText( *caption )[n] =
 				GetText( *caption )[n-1];
 		}
-		GetText( *caption )[pe->cursor_pos] = ch;
-		pe->cursor_pos++;
+		GetText( *caption )[pe->cursor_pos_byte] = ch;
+		pe->nCaptionDisplayableChars = GetDisplayableCharacterCount( GetText( *caption ), -1 );
+		pe->cursor_pos_byte++;
 	}
 	SetTextSize( *caption, pe->nCaptionUsed );
 }
@@ -440,11 +463,14 @@ void TypeIntoEditControl( PSI_CONTROL pc, CTEXTSTR text )
 	ValidatedControlData( PEDIT, EDIT_FIELD, pe, pc );
 	if( pc )
 	{
+		int start_pos = pe->cursor_pos_byte;
 		while( text[0] )
 		{
 			InsertAChar( pe, &pc->caption.text, text[0] );
 			text++;
 		}
+		pe->cursor_pos += GetDisplayableCharacterCount( GetText( pc->caption.text ) + start_pos
+			, pe->cursor_pos_byte - start_pos );
 	}
 	SmudgeCommon( pc );
 }
@@ -454,6 +480,8 @@ void TypeIntoEditControl( PSI_CONTROL pc, CTEXTSTR text )
 #ifdef _WIN32
 static void GetMarkedText( PEDIT pe, PTEXT *caption, TEXTCHAR *buffer, size_t nSize )
 {
+	CTEXTSTR tmp;
+	size_t bytes;
 	if( pe->flags.bSelectSet )
 	{
 		if( USS_GT( nSize, size_t, (pe->select_end - pe->select_start) + 1, int ) )
@@ -464,17 +492,19 @@ static void GetMarkedText( PEDIT pe, PTEXT *caption, TEXTCHAR *buffer, size_t nS
 			nSize--; // leave room for the nul.
 
 		// otherwise nSize is maximal copy or correct amount to copy
+		tmp = GetDisplayableCharactersAtCount( GetText( *caption ), pe->select_start );
 		MemCpy( buffer
-				, GetText( *caption ) + pe->select_start
-				, nSize );
-		buffer[nSize] = 0; // set nul terminator.
+			, tmp
+				, bytes = GetDisplayableCharacterBytes( tmp, nSize ) );
+		buffer[bytes] = 0; // set nul terminator.
 	}
 	else
 	{
+		tmp = GetDisplayableCharactersAtCount( GetText( *caption ), pe->select_start );
 		MemCpy( buffer
 				, GetText( *caption ) + pe->select_start
-				, nSize );
-		buffer[nSize-1] = 0; // set nul terminator.
+				, bytes = GetDisplayableCharacterBytes( tmp, nSize )  );
+		buffer[bytes] = 0; // set nul terminator.
 	}
 }
 
@@ -485,7 +515,11 @@ static void Paste( PEDIT pe, PTEXT *caption )
 	if( OpenClipboard(NULL) )
 	{
 		_32 format = 0;
+		LOGICAL get_unicode = 0;
 		// successful open...
+		for( format = EnumClipboardFormats( format ); format; format =  EnumClipboardFormats( format ) )
+			if( format == CF_UNICODETEXT )
+				get_unicode = 1;
 		format = EnumClipboardFormats( format );
 		if( pe->flags.bSelectSet )
 			CutEditText( pe, caption );
@@ -496,15 +530,20 @@ static void Paste( PEDIT pe, PTEXT *caption )
 				HANDLE hData = GetClipboardData( CF_UNICODETEXT );
 				wchar_t *pData = (wchar_t*)GlobalLock( hData );
 				{
-					while( pData && pData[0] )
+					TEXTCHAR *_utf_8;
+					TEXTCHAR *utf_8 = WcharConvert( pData );
+					_utf_8 = utf_8;
+					while( utf_8 && utf_8[0] )
 					{
-						InsertAChar( pe, caption, pData[0] );
-						pData++;
+						InsertAChar( pe, caption, utf_8[0] );
+						utf_8++;
 					}
+					pe->cursor_pos_byte = GetDisplayableCharacterBytes( GetText( *caption ), pe->cursor_pos );
+					Release( _utf_8 );
 				}
 				break;
 			}
-			if( format == CF_TEXT )
+			if( format == CF_TEXT && !get_unicode )
 			{
 				HANDLE hData = GetClipboardData( CF_TEXT );
 				char *pData = (char*)GlobalLock( hData );
@@ -514,6 +553,8 @@ static void Paste( PEDIT pe, PTEXT *caption )
 						InsertAChar( pe, caption, pData[0] );
 						pData++;
 					}
+					pe->cursor_pos_byte = GetDisplayableCharacterBytes( GetText( *caption ), pe->cursor_pos );
+
 				}
 				break;
 			}
@@ -538,7 +579,28 @@ static void Copy( PEDIT pe, PTEXT *caption )
 	if( data[0] && OpenClipboard(NULL) )
 	{
 		size_t nLen = strlen( data ) + 1;
-		HGLOBAL mem = GlobalAlloc( 
+		HGLOBAL mem;
+		EmptyClipboard();
+		{
+			wchar_t *unicode = CharWConvert( data );
+			int c;
+			HGLOBAL mem;
+			for( c = 0; unicode[c]; c++ );
+			mem = GlobalAlloc( 
+	#ifndef _ARM_
+				GMEM_MOVEABLE
+	#else
+					0
+	#endif
+				, (c+1) * sizeof( wchar_t ) );
+			MemCpy( GlobalLock( mem ), unicode, (c+1) * sizeof( wchar_t ) );
+			GlobalUnlock( mem );
+			SetClipboardData( CF_UNICODETEXT, mem );
+			//GlobalFree( mem );
+
+		}
+
+		mem = GlobalAlloc( 
 #ifndef _ARM_
 			GMEM_MOVEABLE
 #else
@@ -547,10 +609,8 @@ static void Copy( PEDIT pe, PTEXT *caption )
 			, nLen );
 		MemCpy( GlobalLock( mem ), data, nLen );
 		GlobalUnlock( mem );
-		EmptyClipboard();
 		SetClipboardData( CF_TEXT, mem );
-		CloseClipboard();
-		GlobalFree( mem );
+		//GlobalFree( mem );	CloseClipboard();
 	}
 #endif
 }
@@ -708,13 +768,13 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, _32 key )
 						pe->select_start = pe->cursor_pos;
 					}
 				}
-				pe->select_end = pe->nCaptionUsed-1;
+				pe->select_end = pe->nCaptionDisplayableChars-1;
 			}
 			else
 			{
 				pe->flags.bSelectSet = 0;
 			}
-			pe->cursor_pos = pe->nCaptionUsed;
+			pe->cursor_pos = pe->nCaptionDisplayableChars;
 			SmudgeCommon( pc );
 			used_key = 1;
 			break;
@@ -852,17 +912,20 @@ static void OnChangeCaption( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 		SetTextSize( pc->caption.text, 0 );
 	}
 	if( GetTextSize( pc->caption.text ) )
-		pe->cursor_pos = GetTextSize( pc->caption.text );
+		pe->cursor_pos = 0;//GetDisplayableCharacterCount( GetText( pc->caption.text ) );
 	else
 		pe->cursor_pos = 0;
 
-	pe->nCaptionSize = pe->cursor_pos+1;
-	pe->nCaptionUsed = pe->nCaptionSize-1;
+	pe->nCaptionSize = GetTextSize( pc->caption.text );
+	pe->nCaptionUsed = pe->nCaptionSize;
+	pe->nCaptionDisplayableChars = GetDisplayableCharacterCount( GetText( pc->caption.text ), -1 );
 
+	// cursor set at end of line, but set position of string at 0...
+	// select 
 	pe->Start = 0;
 	pe->flags.bSelectSet = 1;
 	pe->select_start = 0;
-	pe->select_end = pe->nCaptionUsed-1;
+	pe->select_end = pe->nCaptionDisplayableChars-1;
 	
 	SmudgeCommon(pc);
 }
@@ -884,7 +947,7 @@ static int OnCommonFocus( EDIT_FIELD_NAME )( PCONTROL pc, LOGICAL bFocused )
 		pe->flags.bFocused = bFocused;
 		if( pe->flags.bFocused )
 		{
-			size_t len = pc->caption.text ? GetTextSize( pc->caption.text ) : 0;
+			size_t len = pc->caption.text ? GetDisplayableCharacterCount( GetText( pc->caption.text ), -1 ) : 0;
 			pe->flags.bSelectSet = 1;
 			pe->select_start = 0;
 			pe->select_end = len - 1;
