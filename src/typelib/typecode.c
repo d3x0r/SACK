@@ -995,7 +995,7 @@ POINTER  PeekQueueEx	 ( PLINKQUEUE plq, int idx )
 	if( idx < 0 )
 	{
 		idx++;
-		for( top = (plq->Top - 1)
+		for( top = plq->Top?(plq->Top - 1):(plq->Cnt-1)
 			 ; idx && top != plq->Bottom
 			  ; )
 		{

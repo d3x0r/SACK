@@ -1367,7 +1367,7 @@ try_another_default:
 			else
 				SetFraction( renderer->height_scale, 1, 1 );
 			renderer->flags = flags;
-			renderer->file = ExpandPath( file );
+			renderer->file = StrDup( file );
 			AddLink( &fonts, renderer );
 		}
 		else

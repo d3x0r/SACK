@@ -19,3 +19,4 @@ CHAT_CONTROL_PROC( void, Chat_EnqueMessage )( PSI_CONTROL pc, LOGICAL sent
 							 , PCHAT_TIME sent_time
 							 , PCHAT_TIME received_time
 							 , CTEXTSTR text );
+CHAT_CONTROL_PROC( void, Chat_ClearMessages )( PSI_CONTROL pc );

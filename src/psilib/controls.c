@@ -2126,6 +2126,13 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 								 );
 #endif
 					pc->flags.bDirty = 1;
+					{
+						PSI_CONTROL child;
+						for( child = pc->child; child; child = child->next )
+						{
+							child->flags.bParentCleaned = 0; // has now drawn itself, and we must assume that it's not clean.
+						}
+					}
 					return;
 				}
 			}
@@ -3438,9 +3445,19 @@ PSI_PROC( PSI_CONTROL, GetControl )( PSI_CONTROL pContainer, int ID )
 	pc = pContainer->child;
 	while( pc )
 	{
-		if( pc->nID == ID )
+		if( !pc->flags.bHidden && pc->nID == ID )
 			break;
 		pc = pc->next;
+	}
+	if( !pc )
+	{
+		pc = pContainer->child;
+		while( pc )
+		{
+			if( !pc->flags.bHidden && pc->nID == ID )
+				break;
+			pc = pc->next;
+		}
 	}
 	return pc;
 }

@@ -116,7 +116,7 @@ static void InitBannerFrame( void )
 #endif
 		banner_local.font = RenderFontFile( font
 													 , banner_local.w / 30, ( ( banner_local.w * 1080 ) / 1920 ) / 20
-									  , 3 );
+									  , 2 );
 		if( !banner_local.font )
 		{
 #ifndef __NO_OPTIONS__
@@ -126,12 +126,12 @@ static void InitBannerFrame( void )
 #endif
 			banner_local.font = RenderFontFile( font
 										  , banner_local.w / 30, ( ( banner_local.w * 1080 ) / 1920 ) / 20
-														 , 3 );
+														 , 2 );
 		}
 
 		banner_local.explorer_font = RenderFontFile( font
 									  , banner_local.w / 60, ( ( banner_local.w * 1080 ) / 1920 ) / 40
-									  , 3 );
+									  , 2 );
 		banner_local.flags.bInited = TRUE;
 	}
 }
