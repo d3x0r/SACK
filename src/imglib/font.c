@@ -1006,7 +1006,8 @@ static _32 FilterMenuStrings( ImageFile *pImage
 
 static unsigned int GetUtfChar( CTEXTSTR *from )
 {
-	unsigned int result = (*from)[0];
+	unsigned int result = (unsigned char)(*from)[0];
+	if( !result ) return result;
 #ifdef _UNICODE
 	if( ( ( (*from)[0] & 0xFC00 ) >= 0xD800 )
 		&& ( ( (*from)[0] & 0xFC00 ) <= 0xDF00 ) )
@@ -1030,6 +1031,7 @@ static unsigned int GetUtfChar( CTEXTSTR *from )
 			}
 			else
 			{
+				result = 0;
 				lprintf( "a 2 byte code with improper continuation encodings following it was found." );
 				(*from)++;
 			}
@@ -1043,6 +1045,7 @@ static unsigned int GetUtfChar( CTEXTSTR *from )
 			}
 			else
 			{
+				result = 0;
 				lprintf( "a 3 byte code with improper continuation encodings following it was found." );
 				(*from)++;
 			}
@@ -1059,6 +1062,7 @@ static unsigned int GetUtfChar( CTEXTSTR *from )
 			}
 			else
 			{
+				result = 0;
 				lprintf( "a 4 byte code with improper continuation encodings following it was found." );
 				(*from)++;
 			}
@@ -1094,14 +1098,17 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 	CTEXTSTR _pc = (*pc);
 	int ch;
 	//lprintf( "Step (%s[%*.*s])", (*pc), nLen,nLen, (*pc) );
-	if( !*nLen )
+	if( nLen && !*nLen )
 		return 0;
 
 	ch = GetUtfChar( pc );
-	(*nLen) -= (*pc) - _pc;
+	if( ch & 0xFFE00000 )
+		DebugBreak();
+	if( nLen )
+		(*nLen) -= (*pc) - _pc;
 	_pc = (*pc);
 
-	if( !fore_original[0] && !back_original[0] )
+	if( fore_original && back_original && !fore_original[0] && !back_original[0] )
 	{
 		// This serves as a initial condition.  If the colors were 0 and 0, then make them not zero.
 		// Anything that's 0 alpha will still be effectively 0.
@@ -1126,6 +1133,7 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 				ch = GetUtfChar( pc );
 				(*nLen) -= (*pc) - _pc;
 				_pc = (*pc);
+				if( fore_original && back_original && fore && back )
 				switch( code = ch )
 				{
 				case 'r':
@@ -1303,7 +1311,8 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 			{
 				// this is in a loop, and the next character may be another command....
 				ch = GetUtfChar( pc );
-				(*nLen) -= (*pc) - _pc;
+				if( nLen )
+					(*nLen) -= (*pc) - _pc;
 				_pc = (*pc);
 			}
 		}
@@ -1311,6 +1320,40 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 	return ch;
 }
 
+size_t GetDisplayableCharacterBytes( CTEXTSTR string, size_t character_count )
+{
+	CTEXTSTR original = string;
+	int ch;
+	while( character_count && 
+		( ch = Step( &string, NULL, NULL, NULL, NULL, NULL ) ) )
+	{
+		character_count--;
+	}
+	return string - original;
+}
+
+size_t GetDisplayableCharacterCount( CTEXTSTR string, size_t max_bytes )
+{
+	int ch;
+	size_t count = 0;
+	while( ch = Step( &string, &max_bytes, NULL, NULL, NULL, NULL ) )
+	{
+		count++;
+	}
+	return count;
+}
+
+CTEXTSTR GetDisplayableCharactersAtCount( CTEXTSTR string, size_t nLen )
+{
+	int ch;
+	size_t count = 0;
+	while( nLen > 0 && 
+		 ( ch = Step( &string, NULL, NULL, NULL, NULL, NULL ) ) )
+	{
+		nLen--;
+	}
+	return string;
+}
 void PutStringVerticalFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, PFONT font )
 {
 	_32 _y = y;
@@ -1573,6 +1616,8 @@ _32 PutMenuStringFontEx( ImageFile *pImage, S_32 x, S_32 y, CDATA color, CDATA b
 		// application commands should be non-printed.
 		while( character = Step( &pString, &nLen, &tmp1, &tmp1, &tmp1, &tmp1 ) )
 		{
+			if( ( nLen & ( (size_t)1 << ( sizeof( nLen ) * CHAR_BIT - 1 ) ) ) )
+				break;
 			if( character == '\n' )
 			{
 				*height += UseFont->height;

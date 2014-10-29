@@ -2717,7 +2717,7 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 	char    *ch;
 	char    *_ch;
 	const wchar_t *_wch = wch;
-	sizeInBytes = (len + 1);
+	sizeInBytes = 1; // start with 1 for the ending nul
 	err = 0;
 #if defined( _MSC_VER )
 	_ch = ch = tmp;
@@ -2725,26 +2725,26 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 		int n;
 		for( n = 0; n < len; n++ )
 		{
-			err = wcstombs_s(&convertedChars, 
-							ch, 2/*sizeInBytes*/,
-								  wch, 1 );
-			if( err == 42 )
+			if( !( wch[0] & 0xFF80 ) )
+				sizeInBytes++;
+			else if( !( wch[0] & 0xF800 ) )
+				sizeInBytes += 2;
+			else if( ( ( wch[0] & 0xFC00 ) >= 0xD800 )
+				&& ( ( wch[0] & 0xFC00 ) <= 0xDF00 ) )
 			{
-				if( !( wch[0] & 0xF800 ) )
-					sizeInBytes += 1;
-				else if( ( ( wch[0] & 0xFC00 ) >= 0xD800 )
-					&& ( ( wch[0] & 0xFC00 ) <= 0xDF00 ) )
-				{
-					int longer_value = 0x10000 + ( ( ( wch[0] & 0x3ff ) << 10 ) | ( ( wch[1] & 0x3ff ) ) );
-					if( !(longer_value & 0xFFFF ) )
-						sizeInBytes+= 3;
-					else
-						sizeInBytes+= 4;
-				}
-				else if( !( wch[0] & 0xF000 ) )
-					sizeInBytes += 2;
+				int longer_value = 0x10000 + ( ( ( wch[0] & 0x3ff ) << 10 ) | ( ( wch[1] & 0x3ff ) ) );
+				if( !(longer_value & 0xFFFF ) )
+					sizeInBytes+= 4;
+				else
+					sizeInBytes+= 5;
 			}
-			wch++;
+			else if( !( wch[0] & 0xF000 ) )
+				sizeInBytes += 3;
+			else 
+			{
+				// just encode the 16 bits as it is.
+				sizeInBytes+= 3;
+			}
 		}
 	}
 	wch = _wch;
@@ -2756,17 +2756,21 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 		int n;
 		for( n = 0; n < len; n++ )
 		{
-			err = wcstombs_s(&convertedChars, 
-							ch, 2/*sizeInBytes*/,
-								  wch, 1 );
-			if( err == 42 )
+			//err = wcstombs_s(&convertedChars, 
+		//					ch, 2/*sizeInBytes*/,
+		//						  wch, 1 );
+			//if( err == 42 )
 			{
 				/*if( !( wch[0] & 0xFF80 ) )
 				{
 					(*ch++) = 0 | ( ((unsigned char*)wch)[0] & 0x7F );
 				}
 				else */
-				if( !( wch[0] & 0xF800 ) )
+				if( !( wch[0] & 0xFF80 ) )
+				{
+					(*ch++) = ((unsigned char*)wch)[0];
+				}
+				else if( !( wch[0] & 0xF800 ) )
 				{
 					(*ch++) = 0xC0 | ( ( ((unsigned char*)wch)[1] & 0x7 ) << 2 ) | ( ( ((unsigned char*)wch)[0] ) >> 6 ); 
 					(*ch++) = 0x80 | ( ((unsigned char*)wch)[0] & 0x3F );
@@ -2776,6 +2780,7 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 				{
 					_32 longer_value;
 					longer_value = 0x10000 + ( ( ( wch[0] & 0x3ff ) << 10 ) | ( ( wch[1] & 0x3ff ) ) );
+					wch++;
 					if( !(longer_value & 0xFFFF ) )
 					{
 						// 16 bit encoding (shouldn't be hit 
@@ -2824,13 +2829,20 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 					(*ch++) = 0x80 | ( ( ((unsigned char*)wch)[1] & 0xF ) << 2 ) | ( ( ((unsigned char*)wch)[0] ) >> 6 );
 					(*ch++) = 0x80 |  ( ((unsigned char*)wch)[0] & 0x3F );
 				}
+				else
+				{
+						(*ch++) = 0xE0 | (  wch[0] >> 12 );
+						(*ch++) = 0x80 | ( (  wch[0] >> 6 ) & 0x3f );
+						(*ch++) = 0x80 | ( (  wch[0] >> 0 ) & 0x3f );
+				}
 			}
-			else
-				ch++;
+			//else
+			//	ch++;
 			wch++;
 		}
-		ch = _ch;
 	}
+	(*ch) = 0;
+	ch = _ch;
 #else
 	_ch = ch = NewArray( char, sizeInBytes);
 	convertedChars = wcstombs( ch, wch, sizeInBytes);

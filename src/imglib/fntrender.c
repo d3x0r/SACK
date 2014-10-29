@@ -216,10 +216,10 @@ int PrintChar( int bits, int charnum, PCHARACTER character, int height )
 void PrintFontTable( CTEXTSTR name, PFONT font )
 {
 	int idx;
-	int i, maxwidth;
+	_32 i, maxwidth;
 	idx = 0;
 	maxwidth = 0;
-	for( i = 0; i < 256; i++ )
+	for( i = 0; i < font->characters; i++ )
 	{
 		if( font->character[i] )
 			if( font->character[i]->width > maxwidth )
@@ -227,22 +227,24 @@ void PrintFontTable( CTEXTSTR name, PFONT font )
 	}
 	fprintf( output, WIDE("struct { unsigned short height, baseline, chars; unsigned char flags, junk;\n")
 				WIDE("         char *fontname;\n")
-			  WIDE("         PCHARACTER character[256]; }\n")
+			  WIDE("         PCHARACTER character[%d]; }\n")
 			  WIDE("#ifdef __cplusplus\n")
 			  WIDE( "       ___%s\n")
 			  WIDE("#else\n")
 			  WIDE( "       __%s\n")
 			  WIDE("#endif\n")
-			  WIDE( "= { \n%d, %d, 256, %d, 0, \"%s\", {")
+			  WIDE( "= { \n%d, %d, %d, %d, 0, \"%s\", {")
+			  , font->characters
 				, name
 			 , name
 				, font->height 
 				, font->baseline
+				, font->characters
 				, font->flags
            , name
 				);
 
-	for( i = 0; i < 256; i++ )
+	for( i = 0; i < font->characters; i++ )
 	{
 		if( font->character[i] )
 			fprintf( output, WIDE(" %c(PCHARACTER)&_char_%d\n"), (i)?',':' ', i );
@@ -280,8 +282,8 @@ void DumpFontFile( CTEXTSTR name, SFTFont font_to_dump )
 							: (font->flags&3)==FONT_FLAG_8BIT?8
 							: 1 );
 			{
-				int charid;
-				for	( charid = 0; charid < 256; charid++ )
+				_32 charid;
+				for	( charid = 0; charid < font_to_dump->characters; charid++ )
 				{
 					PCHARACTER character;
 					void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx );
@@ -1094,6 +1096,100 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 						 );
 		if( status )
 			return;
+
+				{
+					int ascent = CEIL(face->glyph->metrics.horiBearingY);
+					int descent;
+					if( face->glyph->metrics.height )
+					{
+						descent = -CEIL(face->glyph->metrics.height - face->glyph->metrics.horiBearingY) + 1;
+					}
+					else
+					{
+						descent = CEIL( face->glyph->metrics.horiBearingY ) /*- font->height + */ + 1;
+					}
+
+					// done when the font is initially loaded
+					// loading face characteristics shouldn't matter
+					if( ascent > renderer->max_ascent )
+					{
+						renderer->max_ascent = ascent;
+						renderer->font->baseline = renderer->max_ascent +
+							( ( renderer->font->height
+								- ( renderer->max_ascent - renderer->min_descent ) )
+							 / 2 );
+						if( 0 )
+							lprintf( WIDE("Result baseline %c(%d %x) %d  %d   %d,%d"), idx?idx:' ', idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+					}
+					if( 0 )
+							lprintf( WIDE("Result baseline %c(%d %x) %d  %d  %d  %d   %d,%d")
+								, idx?idx:' ', idx, idx
+								, ascent, descent
+								, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+					if( descent < renderer->min_descent )
+					{
+						renderer->min_descent = descent;
+						renderer->font->baseline = renderer->max_ascent +
+							( ( renderer->font->height
+								- ( renderer->max_ascent - renderer->min_descent ) )
+							 / 2 );
+						if( 0 )
+							lprintf( WIDE("Result baseline %c(%d %x) %d  %d   %d,%d"), idx, idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+					}
+				}
+				{
+					if( ( face->glyph->linearVertAdvance>>16 ) > renderer->font->height )
+					{
+						renderer->font->height = (short)(face->glyph->linearVertAdvance>>16);
+						renderer->font->baseline = renderer->max_ascent +
+							( ( renderer->font->height
+								- ( renderer->max_ascent - renderer->min_descent ) )
+							 / 2 );
+						if( 0 )
+							lprintf( WIDE("Result baseline %d   %d,%d"), renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+
+					}
+				}
+				{
+					int ascent = CEIL(face->glyph->metrics.horiBearingY);
+					int descent;
+					if( face->glyph->metrics.height )
+					{
+						descent = -CEIL(face->glyph->metrics.height - face->glyph->metrics.horiBearingY) + 1;
+					}
+					else
+					{
+						descent = CEIL( face->glyph->metrics.horiBearingY ) /*- font->height + */ + 1;
+					}
+
+					// done when the font is initially loaded
+					// loading face characteristics shouldn't matter
+					if( ascent > renderer->max_ascent )
+					{
+						renderer->max_ascent = ascent;
+						renderer->font->baseline = renderer->max_ascent +
+							( ( renderer->font->height
+								- ( renderer->max_ascent - renderer->min_descent ) )
+							 / 2 );
+						if( 0 )
+							lprintf( WIDE("Result baseline %c(%d %x) %d  %d   %d,%d"), idx?idx:' ', idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+					}
+					if( 0 )
+							lprintf( WIDE("Result baseline %c(%d %x) %d  %d  %d  %d   %d,%d")
+								, idx?idx:' ', idx, idx
+								, ascent, descent
+								, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+					if( descent < renderer->min_descent )
+					{
+						renderer->min_descent = descent;
+						renderer->font->baseline = renderer->max_ascent +
+							( ( renderer->font->height
+								- ( renderer->max_ascent - renderer->min_descent ) )
+							 / 2 );
+						if( 0 )
+							lprintf( WIDE("Result baseline %c(%d %x) %d  %d   %d,%d"), idx, idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+					}
+				}
 		//lprintf( "advance and height... %d %d", ( face->glyph->linearVertAdvance>>16 ), renderer->font->height );
 		if( ( face->glyph->linearVertAdvance>>16 ) > renderer->font->height )
 		{
@@ -1161,10 +1257,10 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 				break;
 			}
 		}
-		for( idx = 0; idx < 256; idx++ )
+		for( idx = 0; idx < renderer->font->characters; idx++ )
 			if( renderer->font->character[idx] )
 				break;
-		if( idx == 256 )
+		if( idx == renderer->font->characters )
 		{
 			renderer->ResultFont = NULL;
 		}
@@ -1220,6 +1316,7 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 			font->height = 0; //CEIL(face->size->metrics.height);
 			font->name = StrDup( renderer->fontname );
 			InternalRenderFontCharacter( renderer, NULL, 0 );
+			if( 0 )
 			for( idx = 0; idx < font->characters; idx++ )
 			{
 				FT_Face face = renderer->face;
@@ -1232,6 +1329,60 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 								 , 0
 								  | FT_LOAD_FORCE_AUTOHINT
 								 );
+
+				{
+					int ascent = CEIL(face->glyph->metrics.horiBearingY);
+					int descent;
+					if( face->glyph->metrics.height )
+					{
+						descent = -CEIL(face->glyph->metrics.height - face->glyph->metrics.horiBearingY) + 1;
+					}
+					else
+					{
+						descent = CEIL( face->glyph->metrics.horiBearingY ) /*- font->height + */ + 1;
+					}
+
+					// done when the font is initially loaded
+					// loading face characteristics shouldn't matter
+					if( ascent > renderer->max_ascent )
+					{
+						renderer->max_ascent = ascent;
+						renderer->font->baseline = renderer->max_ascent +
+							( ( renderer->font->height
+								- ( renderer->max_ascent - renderer->min_descent ) )
+							 / 2 );
+						if( 0 )
+							lprintf( WIDE("Result baseline %c(%d %x) %d  %d   %d,%d"), idx?idx:' ', idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+					}
+					if( 0 )
+							lprintf( WIDE("Result baseline %c(%d %x) %d  %d  %d  %d   %d,%d")
+								, idx?idx:' ', idx, idx
+								, ascent, descent
+								, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+					if( descent < renderer->min_descent )
+					{
+						renderer->min_descent = descent;
+						renderer->font->baseline = renderer->max_ascent +
+							( ( renderer->font->height
+								- ( renderer->max_ascent - renderer->min_descent ) )
+							 / 2 );
+						if( 0 )
+							lprintf( WIDE("Result baseline %c(%d %x) %d  %d   %d,%d"), idx, idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+					}
+				}
+				{
+					if( ( face->glyph->linearVertAdvance>>16 ) > renderer->font->height )
+					{
+						renderer->font->height = (short)(face->glyph->linearVertAdvance>>16);
+						renderer->font->baseline = renderer->max_ascent +
+							( ( renderer->font->height
+								- ( renderer->max_ascent - renderer->min_descent ) )
+							 / 2 );
+						if( 0 )
+							lprintf( WIDE("Result baseline %d   %d,%d"), renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+
+					}
+				}
 				{
 					int ascent = CEIL(face->glyph->metrics.horiBearingY);
 					int descent;
@@ -1817,8 +1968,8 @@ void RerenderFont( SFTFont font, S_32 width, S_32 height, PFRACTION width_scale,
 	{
 		if( renderer->font == font )
 		{
-			int n;
-			for( n = 0; n < 256; n++ )
+			_32 n;
+			for( n = 0; n < font->characters; n++ )
 			{
 				if( renderer->font->character[n] )
 				{
