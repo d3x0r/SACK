@@ -646,16 +646,57 @@ LOGICAL sack_iset_eof ( INDEX file_handle )
 
 }
 
+struct file *FindFileByFILE( FILE *file_file )
+{
+	struct file *file;
+	INDEX idx;
+	EnterCriticalSec( &l.cs_files );
+	LIST_FORALL( l.files, idx, struct file *, file )
+	{
+		INDEX idx2;
+		FILE *check;
+		LIST_FORALL( file->files, idx2, FILE *, check )
+		{
+			if( check == file_file )
+				break;
+		}
+		if( check )
+			break;
+	}
+	LeaveCriticalSec( &l.cs_files );
+	return file;
+}
+
 LOGICAL sack_set_eof ( HANDLE file_handle )
 {
-	HANDLE *holder = (HANDLE*)GetLink( &l.handles, (INDEX)file_handle );
-	HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
+	struct file *file;
+	file = FindFileByFILE( (FILE*)file_handle );
+	if( file )
+	{
+		if( file->fsi )
+		{
+			file->fsi->truncate( file_handle );
+			lprintf( "result is %d", file->fsi->size( file_handle ) );
+		}
+		else
+		{
 #ifdef _WIN32
-	return SetEndOfFile( handle );
 #else
-	return ftruncate( handle, lseek( handle, 0, SEEK_CUR ) );
+			truncate( file->fullname, sack_ftell( (FILE*)file_handle );
 #endif
-
+		}
+		return TRUE;
+	}
+	else
+	{
+		HANDLE *holder = (HANDLE*)GetLink( &l.handles, (INDEX)file_handle );
+		HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
+#ifdef _WIN32
+		return SetEndOfFile( handle );
+#else
+		return ftruncate( handle, lseek( handle, 0, SEEK_CUR ) );
+#endif
+	}
 }
 
 
@@ -875,27 +916,6 @@ int sack_rmdir( INDEX group, CTEXTSTR filename )
 #endif
 }
 
-struct file *FindFileByFILE( FILE *file_file )
-{
-	struct file *file;
-	INDEX idx;
-	EnterCriticalSec( &l.cs_files );
-	LIST_FORALL( l.files, idx, struct file *, file )
-	{
-		INDEX idx2;
-		FILE *check;
-		LIST_FORALL( file->files, idx2, FILE *, check )
-		{
-			if( check == file_file )
-				break;
-		}
-		if( check )
-			break;
-	}
-	LeaveCriticalSec( &l.cs_files );
-	return file;
-}
-
 #undef open
 #undef fopen
 
@@ -929,7 +949,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		file->name = StrDup( filename );
 		file->fsi = fsi;
 		tmpname = ExpandPath( filename );
-		if( !IsAbsolutePath( tmpname ) )
+		if( !fsi && !IsAbsolutePath( tmpname ) )
 		{
 			file->fullname = PrependBasePath( group, filegroup, tmpname );
 			Deallocate( TEXTCHAR*, tmpname );
@@ -1139,7 +1159,13 @@ int  sack_fflush ( FILE *file_file )
 	struct file *file;
 	file = FindFileByFILE( file_file );
 	if( file && file->fsi )
+	{
+		DeleteLink( &file->files, file_file );
+		file->fsi->close( file_file );
+		file_file = (FILE*)file->fsi->open( file->fullname );
+		AddLink( &file->files, file_file );
 		return 0;
+	}
 	return fflush( file_file );
 }
 

@@ -108,7 +108,7 @@ static void CPROC SimpleMultiShadedTextureEnable( PImageShaderTracker tracker, P
 }
 
 
-PTRSZVAL InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker, PTRSZVAL psv_data )
+void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker, PTRSZVAL psv_data )
 {
 	GLint result;
 	const char *v_codeblocks[2];
@@ -143,7 +143,7 @@ PTRSZVAL InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker, PTRSZV
 		CheckErr();
 		data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
 		CheckErr();
-		return (PTRSZVAL)data;
+		//return (PTRSZVAL)data;
 	}
 }
 

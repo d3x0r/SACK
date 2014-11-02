@@ -1,4 +1,6 @@
-
+#ifndef CHAT_CONTROL_DEFINED
+#define CHAT_CONTROL_DEFINED
+#include <psi.h>
 
 #ifndef CHAT_CONTROL_SOURCE
 #define CHAT_CONTROL_PROC(a,b) EXPORT_METHOD a b
@@ -20,3 +22,4 @@ CHAT_CONTROL_PROC( void, Chat_EnqueMessage )( PSI_CONTROL pc, LOGICAL sent
 							 , PCHAT_TIME received_time
 							 , CTEXTSTR text );
 CHAT_CONTROL_PROC( void, Chat_ClearMessages )( PSI_CONTROL pc );
+#endif

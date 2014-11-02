@@ -51,6 +51,7 @@ struct my_file_data
 	CRITICALSECTION cs;
 	TEXTSTR filename;
 	int locktype;
+	struct file_system_interface *fsi;
 };
 
 struct my_sqlite3_vfs
@@ -90,8 +91,13 @@ int xRead(sqlite3_file*file, void*buffer, int iAmt, sqlite3_int64 iOfst)
 #endif
 	sack_fseek( my_file->file, (size_t)iOfst, SEEK_SET );
 	if( ( actual = sack_fread( buffer, 1, iAmt, my_file->file ) ) == iAmt )
+	{
+#ifdef LOG_OPERATIONS
+		LogBinary( buffer, iAmt );
+#endif
 		return SQLITE_OK;
-	//lprintf( "Errono : %d", errno );
+	}
+	lprintf( "Errno : %d", errno );
 	MemSet( ((char*)buffer)+actual, 0, iAmt - actual );
 	return SQLITE_IOERR_SHORT_READ;
 
@@ -102,19 +108,51 @@ int xWrite(sqlite3_file*file, const void*buffer, int iAmt, sqlite3_int64 iOfst)
 	struct my_file_data *my_file = (struct my_file_data*)file;
 	size_t actual;
 #ifdef LOG_OPERATIONS
-	lprintf( "Write %s %d  %d", my_file->filename, iAmt, iOfst );
+	lprintf( "Write %s %d at %d", my_file->filename, iAmt, iOfst );
+	LogBinary( buffer, iAmt );
 #endif
-
+	{
+		size_t filesize = sack_fsize( my_file->file );
+		if( filesize < iOfst )
+		{
+			static unsigned char *filler;
+			if( !filler )
+			{
+				filler = NewArray( unsigned char, 512 );
+				MemSet( filler, 0, 512 );
+			}
+			sack_fseek( my_file->file, 0, SEEK_END );
+			while( filesize < iOfst )
+			{
+				if( ( iOfst - filesize ) >= 512 )
+				{
+					sack_fwrite( filler, 1, 512, my_file->file );
+					filesize += 512;
+				}
+				else
+				{
+					sack_fwrite( filler, 1, ( iOfst - filesize ), my_file->file );
+					filesize += ( iOfst - filesize );
+				}
+			}
+		}
+	}
 	sack_fseek( my_file->file, (size_t)iOfst, SEEK_SET );
+
 	if( iAmt == ( actual = sack_fwrite( buffer, 1, iAmt, my_file->file ) ) )
+	{
+		lprintf( "file is now %d", sack_fsize( my_file->file ) );
 		return SQLITE_OK;
+	}
 	return SQLITE_IOERR_WRITE;
 }
 
 int xTruncate(sqlite3_file*file, sqlite3_int64 size)
 {
 	struct my_file_data *my_file = (struct my_file_data*)file;
-	SetFileLength( my_file->filename, (size_t)size );
+	sack_fseek( my_file->file, size, SEEK_SET );
+	sack_set_eof( my_file->file );
+	//SetFileLength( my_file->filename, (size_t)size );
 	return SQLITE_OK;
 }
 
@@ -124,7 +162,13 @@ int xSync(sqlite3_file*file, int flags)
 #ifdef LOG_OPERATIONS
 	lprintf( "Sync on %s", my_file->filename );
 #endif
-	sack_fflush( my_file->file );
+	if( my_file->fsi )
+	{
+		sack_fclose( my_file->file );
+		my_file->file = sack_fsopenEx( 0, my_file->filename, "rb+", _SH_DENYNO, my_file->fsi  );
+	}
+	else
+		sack_fflush( my_file->file );
 	/* noop */
 	return SQLITE_OK;
 }
@@ -297,6 +341,7 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 	struct my_sqlite3_vfs *my_vfs = (struct my_sqlite3_vfs *)vfs;
 	struct my_file_data *my_file = (struct my_file_data*)file;
 	file->pMethods = &my_methods;
+	my_file->fsi = my_vfs->fsi;
 	if( zName == NULL )
 		zName = "sql.tmp";
 #ifdef LOG_OPERATIONS
@@ -378,23 +423,59 @@ static int xAccess(
   int flags, 
   int *pResOut
 ){
-  int rc;                         /* access() return code */
-  int eAccess = F_OK;             /* Second argument to access() */
-  /*
-  assert( flags==SQLITE_ACCESS_EXISTS       /* access(zPath, F_OK) 
+	struct my_sqlite3_vfs *my_vfs = (struct my_sqlite3_vfs *)pVfs;
+	int rc = 0;                         /* access() return code */
+	int eAccess = F_OK;             /* Second argument to access() */
+	/*
+	assert( flags==SQLITE_ACCESS_EXISTS       /* access(zPath, F_OK) 
        || flags==SQLITE_ACCESS_READ         /* access(zPath, R_OK) 
        || flags==SQLITE_ACCESS_READWRITE    /* access(zPath, R_OK|W_OK) 
   );
   */
 #ifdef LOG_OPERATIONS
-  lprintf( "Access on %s", zPath );
+	//lprintf( "Open file: %s (vfs:%s)", zName, vfs->zName );
+	lprintf( "Access on %s %s", zPath, pVfs->zName );
 #endif
-  if( flags==SQLITE_ACCESS_READWRITE ) eAccess = R_OK|W_OK;
-  if( flags==SQLITE_ACCESS_READ )      eAccess = R_OK;
+	if( flags==SQLITE_ACCESS_READWRITE ) eAccess = R_OK|W_OK;
+	if( flags==SQLITE_ACCESS_READ )			eAccess = R_OK;
+	//if( flags & SQLITE_ACCESS_EXISTS )
+	{
+		FILE *tmp;
 
-  rc = access(zPath, eAccess);
-  *pResOut = (rc==0);
-  return SQLITE_OK;
+		if( tmp = sack_fopenEx( 0, zPath, "rb", my_vfs->fsi ) )
+		{
+			if( sack_fsize( tmp ) )
+			{
+#ifdef LOG_OPERATIONS
+				//lprintf( "Open file: %s (vfs:%s)", zName, vfs->zName );
+				lprintf( "Access on %s %s = yes;exists", zPath, pVfs->zName );
+#endif
+				rc = 0;
+			}
+			else
+			{
+#ifdef LOG_OPERATIONS
+				//lprintf( "Open file: %s (vfs:%s)", zName, vfs->zName );
+				lprintf( "Access on %s %s = no;exists", zPath, pVfs->zName );
+#endif
+				rc = -1;
+			}
+			sack_fclose( tmp );
+			//rc = 0;		
+		}
+		else
+		{
+#ifdef LOG_OPERATIONS
+			//lprintf( "Open file: %s (vfs:%s)", zName, vfs->zName );
+			lprintf( "Access on %s %s = no path", zPath, pVfs->zName );
+#endif
+			rc = -1;
+		}
+	}
+
+	//rc = sack_access(zPath, eAccess);
+	*pResOut = (rc==0);
+	return SQLITE_OK;
 }
 
 /*

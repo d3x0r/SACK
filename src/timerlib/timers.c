@@ -204,7 +204,7 @@ static struct {
 	PLIST thread_events;
 } *global_timer_structure;// = { 1000 };
 
-#if defined( _MSC_VER )
+#if defined( _MSC_VER ) || defined( __WATCOMC__ )
 #define HAS_TLS 1
 #define ThreadLocal static __declspec(thread)
 #endif

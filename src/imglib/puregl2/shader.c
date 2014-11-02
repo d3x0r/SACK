@@ -7,7 +7,7 @@
 
 IMAGE_NAMESPACE
 
-PImageShaderTracker GetShader( CTEXTSTR name, PTRSZVAL (CPROC*Init)(PImageShaderTracker,PTRSZVAL) )
+PImageShaderTracker GetShader( CTEXTSTR name, void (CPROC*Init)(PImageShaderTracker,PTRSZVAL) )
 {
 	PImageShaderTracker tracker;
 	INDEX idx;
@@ -25,7 +25,8 @@ PImageShaderTracker GetShader( CTEXTSTR name, PTRSZVAL (CPROC*Init)(PImageShader
 		tracker->name = StrDup( name );
 		tracker->Init = Init;
 		if( tracker->Init )
-			tracker->psv_userdata = tracker->Init( tracker, tracker->psv_userdata );
+			//tracker->psv_userdata =
+				tracker->Init( tracker, tracker->psv_userdata );
 		//if( Init )
 		//	Init( tracker );
 		AddLink( &l.glActiveSurface->shaders, tracker );
@@ -35,7 +36,7 @@ PImageShaderTracker GetShader( CTEXTSTR name, PTRSZVAL (CPROC*Init)(PImageShader
 }
 
 
-void  SetShaderEnable( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker, PTRSZVAL,va_list args ), PTRSZVAL psv )
+void  SetShaderEnable( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker, PTRSZVAL,va_list args ) )
 {
 	tracker->Enable = EnableShader;
 }
@@ -123,7 +124,7 @@ void EnableShader( PImageShaderTracker tracker, ... )
 			return;
 		}
 		if( tracker->Init )
-			tracker->psv_userdata = tracker->Init( tracker, tracker->psv_userdata );
+			tracker->Init( tracker, tracker->psv_userdata );
 		if( !tracker->glProgramId )
 		{
 			lprintf( WIDE("Shader initialization failed to produce a program; marking shader broken so we don't retry") );

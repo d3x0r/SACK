@@ -205,7 +205,7 @@ void CPROC SimpleTexture_AppendTristrip( PImageShaderTracker tracker, int triang
 	}
 }
 
-PTRSZVAL InitSimpleTextureShader( PImageShaderTracker tracker, PTRSZVAL psv_data )
+void InitSimpleTextureShader( PImageShaderTracker tracker, PTRSZVAL psv_data )
 {
 	const char *v_codeblocks[2];
 	const char *p_codeblocks[2];
@@ -230,9 +230,9 @@ PTRSZVAL InitSimpleTextureShader( PImageShaderTracker tracker, PTRSZVAL psv_data
 		data->texture = glGetUniformLocation(tracker->glProgramId, "tex");
 		data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
 		data->color_attrib =  glGetAttribLocation(tracker->glProgramId, "in_color" );
-		return (PTRSZVAL)data;
+		//return (PTRSZVAL)data;
 	}
-	return 0;
+	//return 0;
 }
 
 static void CPROC SimpleTextureEnable2( PImageShaderTracker tracker, PTRSZVAL psv, va_list args )
@@ -355,7 +355,7 @@ void CPROC SimpleTexture_AppendTristrip2( PImageShaderTracker tracker, int trian
 	}
 }
 
-PTRSZVAL InitSimpleShadedTextureShader( PImageShaderTracker tracker, PTRSZVAL psv )
+void InitSimpleShadedTextureShader( PImageShaderTracker tracker, PTRSZVAL psv )
 {
 	const char *v_codeblocks[2];
 	const char *p_codeblocks[2];
@@ -381,9 +381,9 @@ PTRSZVAL InitSimpleShadedTextureShader( PImageShaderTracker tracker, PTRSZVAL ps
 		data->color_attrib = glGetAttribLocation(tracker->glProgramId, "in_Color" );
 		data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
 		data->texture = glGetUniformLocation(tracker->glProgramId, "tex");
-		return (PTRSZVAL)data;
+		//return (PTRSZVAL)data;
 	}
-	return 0;
+  // return 0;
 }
 
 IMAGE_NAMESPACE_END

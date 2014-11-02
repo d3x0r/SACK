@@ -58,7 +58,7 @@ LOGGING_NAMESPACE
 #endif
 
 // Add thread local storage for next lprintf file/line...
-#if defined( _MSC_VER )
+#if defined( _MSC_VER ) || defined( __WATCOMC__ )
 #define HAS_TLS 1
 #define ThreadLocal static __declspec(thread)
 #endif

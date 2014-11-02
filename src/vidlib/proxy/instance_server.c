@@ -3377,7 +3377,7 @@ static void InitImageInterface( void )
 	InstanceProxyImageInterface._InternalRenderFont = l.real_interface->_InternalRenderFont;
 	InstanceProxyImageInterface._ReuseImage = VidlibProxy_ReuseImage;
 	InstanceProxyImageInterface._PutStringFontExx = VidlibProxy_PutStringFontExx;
-	InstanceProxyImageInterface._ResetImageBuffers = (void(*)(Image,LOGICAL))ClearImageBuffers;
+	InstanceProxyImageInterface._ResetImageBuffers = (void(CPROC*)(Image,LOGICAL))ClearImageBuffers;
 }
 
 static IMAGE_3D_INTERFACE Proxy3dImageInterface = {

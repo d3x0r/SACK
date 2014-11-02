@@ -406,6 +406,7 @@ static int CPROC FrameKeyProc( PTRSZVAL psvFrame, _32 key )
 		}
 		else if( pf->pFocus )
 		{
+			// pf can get deleted during the key event, the frame will be locked
 			PSI_CONTROL keep_focus = pf->pFocus;
 			//if( pf->pFocus->KeyProc )
 			//	pf->pFocus->KeyProc( pf->pFocus->psvKey, key );
@@ -413,7 +414,7 @@ static int CPROC FrameKeyProc( PTRSZVAL psvFrame, _32 key )
 			if( g.flags.bLogKeyEvents )
 				lprintf( WIDE("invoking control focus use...%p %p %s"), pf, keep_focus, keep_focus->pTypeName );
 			//	lprintf( WIDE("dispatch a key event to focused contro... ") );
-			InvokeResultingMethod( result, keep_focus, _KeyProc, ( pf->pFocus, key ) );
+			InvokeResultingMethod( result, keep_focus, _KeyProc, ( keep_focus, key ) );
 			if( g.flags.bLogKeyEvents )
 				lprintf( WIDE("Result was %d"), result );
 			DeleteUse( keep_focus );

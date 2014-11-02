@@ -107,7 +107,7 @@ void CPROC SimpleShader_AppendTristripQuad( PImageShaderTracker tracker, int tri
 	SimpleShader_AppendTristrip( tracker, 2, psv, args );
 }
 
-PTRSZVAL InitSuperSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv )
+void InitSuperSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv )
 {
 	const char *v_codeblocks[2];
 	const char *p_codeblocks[2];
@@ -128,9 +128,9 @@ PTRSZVAL InitSuperSimpleShader( PImageShaderTracker tracker, PTRSZVAL psv )
 		///SetShaderEnable( tracker, SimpleShader_Enable );
 		SetShaderFlush( tracker, SimpleShader_Flush );
 		SetShaderAppendTristrip( tracker, SimpleShader_AppendTristrip );
-		return (PTRSZVAL)data;
+		//return (PTRSZVAL)data;
 	}
-	return 0;
+	//return 0;
 }
 
 IMAGE_NAMESPACE_END
