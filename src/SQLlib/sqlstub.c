@@ -2747,7 +2747,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			{
 			case SQLITE_BUSY:
 				lprintf( WIDE("Database busy, waiting...") );
-            WakeableSleep( 25 );
+				WakeableSleep( 25 );
 				goto retry;
 			case SQLITE_LOCKED:
 				lprintf( WIDE("Database locked, waiting...") );
@@ -2757,9 +2757,12 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			case SQLITE_ROW:
 			case SQLITE_DONE:
             break;
+			case SQLITE_CORRUPT:
+				lprintf( "Database is corrupt: %s", sqlite3_errmsg(odbc->db ) );
+				break;
 			default:
-				lprintf( WIDE("Step status :%d"), rc3 );
-            break;
+				lprintf( WIDE("Step status %d:%s"), rc3, sqlite3_errmsg(odbc->db ) );
+				break;
 			}
 		}
 #endif

@@ -57,7 +57,7 @@ struct server_socket_state
 	PVP_APPLICATION application_instance;
 };
 
-#if defined( _MSC_VER )
+#if defined( _MSC_VER ) || defined( __WATCOMC__ )
 #define HAS_TLS 1
 #define ThreadLocal static __declspec(thread)
 #endif
