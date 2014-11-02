@@ -1,6 +1,6 @@
 
 set( project sack_widgets ) 
-
+INCLUDE_DIRECTORIES( include )
 set(SOURCES 
    chat/scrollable_chat_list.c
    chat/scroll_chat_input_prompt.c
@@ -37,7 +37,7 @@ target_link_libraries( ${project} winmm )
 endif( WIN32 )
 
 SET( WIDGET_SDK
-  include/banner.h include/buttons.h include/keypad.h chat/chat_control.h
+  include/banner.h include/buttons.h include/keypad.h include/chat_control.h
 )
 
 INSTALL( 

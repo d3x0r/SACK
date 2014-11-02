@@ -34,8 +34,8 @@ target_link_libraries( ${project} winmm )
 endif( WIN32 )
 
 SET( WIDGET_SDK
-  include/banner.h include/buttons.h include/keypad.h
-)
+include/banner.h include/buttons.h include/keypad.h
+include/chat_control.h )
 
 INSTALL( 
   FILES

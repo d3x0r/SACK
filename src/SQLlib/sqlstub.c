@@ -3423,7 +3423,6 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 #endif
 		if( rc3 )
 		{
-			TEXTSTR tmp_at;
 			const char *tmp;
 			TEXTSTR str_error;
 			//DebugBreak();
@@ -3433,7 +3432,6 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS )
 				vtprintf( collection->pvt_errorinfo, WIDE( "(S0002)" ) );
 			vtprintf( collection->pvt_errorinfo, WIDE( "%s" ), str_error );
 			_lprintf(DBG_RELAY)( WIDE( "Result of prepare failed? %s at-or near char %")_size_f WIDE("[%s] in [%s]" ), str_error, tail - query, tail, query );
-			Deallocate( TEXTSTR, tmp_at );
 			Deallocate( TEXTSTR, str_error );
 			if( EnsureLogOpen(odbc ) )
 			{
