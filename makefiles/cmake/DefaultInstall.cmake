@@ -1,4 +1,4 @@
-
+cmake_policy( SET CMP0026 OLD )
 if( NOT( CMAKE_MAJOR_VERSION LESS 3 ) )
 set( CMAKE_PLATFORM_NO_SONAME_SUPPORT ON )
 endif( NOT( CMAKE_MAJOR_VERSION LESS 3 ) )
@@ -36,12 +36,31 @@ SET( HEADER_INSTALL_PREFIX include )
 SET( DATA_INSTALL_PREFIX resources )
 
 macro( install_default_dest )
+    if( WATCOM20 )
+        set( OTHER )
+	foreach( lib ${ARGV} )
+           get_property( filepath TARGET ${lib} PROPERTY LOCATION )
+           string( REPLACE ".dll" ".sym" filepath ${filepath} )
+           string( REPLACE ".exe" ".sym" filepath ${filepath} )
+           #if( NOT ${filepath} MATCHES ".sym" )
+           #   set( filepath ${filepath}.sym )
+	   #endif()
+           set( OTHER ${OTHER} ${filepath} )
+        endforeach()
+        #message( "OUT: ${OTHER}" )
+    endif( WATCOM20 )
    if( TARGET_BINARY_PATH )
+	install( FILES ${OTHER}
+		DESTINATION ${BINARY_OUTPUT_DIR}/${TARGET_BINARY_PATH}
+		 )
 	install( TARGETS ${ARGV}
 		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}/${TARGET_BINARY_PATH}
 		LIBRARY DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR}/${TARGET_BINARY_PATH}
 		ARCHIVE DESTINATION lib )
    else( TARGET_BINARY_PATH )
+	install( FILES ${OTHER}
+		DESTINATION ${BINARY_OUTPUT_DIR}
+		 )
 	install( TARGETS ${ARGV}
 		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}
 		LIBRARY DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR}
@@ -50,12 +69,31 @@ macro( install_default_dest )
 endmacro( install_default_dest )
 
 macro( install_mode_dest )
+    if( WATCOM20 )
+        set( OTHER )
+	foreach( lib ${ARGV} )
+           get_property( filepath TARGET ${lib} PROPERTY LOCATION )
+           string( REPLACE ".dll" ".sym" filepath ${filepath} )
+           string( REPLACE ".exe" ".sym" filepath ${filepath} )
+           #if( NOT ${filepath} MATCHES ".sym" )
+           #   set( filepath ${filepath}.sym )
+	   #endif()
+           set( OTHER ${OTHER} ${filepath} )
+        endforeach()
+        #message( "OUT: ${OTHER}" )
+    endif( WATCOM20 )
     if( __LINUX64__ )
+	install( FILES ${OTHER}
+		DESTINATION ${BINARY_OUTPUT_DIR}
+		 )
 	install( TARGETS ${ARGV}
 		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}
 		LIBRARY DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR}
 		ARCHIVE DESTINATION lib64 )
     else( __LINUX64__ )
+	install( FILES ${OTHER}
+		DESTINATION ${BINARY_OUTPUT_DIR}
+		 )
 	install( TARGETS ${ARGV}
 		RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}
 		LIBRARY DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR}
@@ -100,6 +138,22 @@ if( __ANDROID__ )
 	)
 else( __ANDROID__ )
   if( WIN32 )
+    if( WATCOM20 )
+        set( OTHER )
+	foreach( lib ${proj} )
+           get_property( filepath TARGET ${lib} PROPERTY LOCATION )
+           string( REPLACE ".dll" ".sym" filepath ${filepath} )
+           string( REPLACE ".exe" ".sym" filepath ${filepath} )
+           #if( NOT ${filepath} MATCHES ".sym" )
+           #   set( filepath ${filepath}.sym )
+	   #endif()
+           set( OTHER ${OTHER} ${filepath} )
+        endforeach()
+        message( "OUT: ${OTHER}" )
+	install( FILES ${OTHER}
+		DESTINATION ${BINARY_OUTPUT_DIR}
+		 )
+    endif( WATCOM20 )
     if( __CLR__ )
       install( TARGETS ${proj} RUNTIME DESTINATION ./${project_target} 
 	)

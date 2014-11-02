@@ -17,7 +17,7 @@ typedef struct chat_time_tag
 } CHAT_TIME;
 typedef struct chat_time_tag *PCHAT_TIME;
 
-CHAT_CONTROL_PROC( void, Chat_SetMessageInputHandler )( PSI_CONTROL pc, void (*Handler)( PTRSZVAL psv, PTEXT input ), PTRSZVAL psv );
+CHAT_CONTROL_PROC( void, Chat_SetMessageInputHandler )( PSI_CONTROL pc, void (CPROC *Handler)( PTRSZVAL psv, PTEXT input ), PTRSZVAL psv );
 CHAT_CONTROL_PROC( void, Chat_EnqueMessage )( PSI_CONTROL pc, LOGICAL sent
 							 , PCHAT_TIME sent_time
 							 , PCHAT_TIME received_time

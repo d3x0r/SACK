@@ -185,7 +185,6 @@ void FormatTextToBlockEx( CTEXTSTR input, TEXTSTR *output, int* pixel_width, int
 		Deallocate( TEXTCHAR *, (*output) );
 	}
 	(*output) = block;
-	if( font )
 	{
 		_32 width, height;
 		GetStringSizeFont( (*output), &width, &height, font );
