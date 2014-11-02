@@ -108,7 +108,7 @@ public:
 private:
 	ZGame *GameEnv;
   protected:
-    void * Thread;
+    void * Thread[6];
     Bool   ThreadContinue;
 
     ZSectorRequestRingList RequestList[8];

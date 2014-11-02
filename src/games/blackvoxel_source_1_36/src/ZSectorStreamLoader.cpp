@@ -93,7 +93,7 @@ ZFileSectorLoader::ZFileSectorLoader( ZGame *GameEnv )
   WorkingFullSector = new ZVoxelSector;
   GameEnv->Basic_Renderer->GetCuller()->InitFaceCullData( WorkingFullSector );
   WorkingFullSector->Fill(1);
-  Thread = 0;
+  Thread[0] = 0;
   ThreadContinue = false;
 }
 
@@ -134,7 +134,7 @@ ZFileSectorLoader::~ZFileSectorLoader()
 bool ZFileSectorLoader::Init()
 {
   ThreadContinue = true;
-  Thread = (SDL_Thread * )SDL_CreateThread(thread_func, "thread_func", this);
+  Thread[0] = (SDL_Thread * )SDL_CreateThread(thread_func, "thread_func", this);
   if (!SectorCreator->LoadTemplateImages()) return(false);
   return(true);
 }

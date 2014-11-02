@@ -73,7 +73,7 @@ ZVoxelWorld::ZVoxelWorld( ZGame *GameEnv )
   GameEnv->Basic_Renderer->GetCuller()->InitFaceCullData( WorkingEmptySector );
   WorkingEmptySector->Fill(0);
   WorkingScratchSector = new ZVoxelSector;
-  GameEnv->Basic_Renderer->GetCuller()->InitFaceCullData( WorkingEmptySector );
+  GameEnv->Basic_Renderer->GetCuller()->InitFaceCullData( WorkingScratchSector );
 
   SectorLoader = 0;
   SectorList = 0;
@@ -2331,7 +2331,7 @@ bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort Voxe
 {
   UShort * Voxel_Address[19];
   ULong  Offset[19];
-  ULong * FaceCulling_Address[19];
+  UByte * FaceCulling_Address[19];
   UShort VoxelState[19];
   UShort Voxel;
   ZVoxelSector * Sector[19];
@@ -2392,7 +2392,7 @@ bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort Voxe
   for( int i = 0; i < 19; i++ )
   {
 	Voxel_Address[i]     = Sector[i]->Data + Offset[i];
-    //FaceCulling_Address[i]     = Sector[i]->FaceCulling + Offset[i];
+	FaceCulling_Address[i]     = (UByte*)Sector[i]->Culling + Offset[i];
     Voxel = *Voxel_Address[i];    VoxelType = VoxelTypeTable[Voxel];
       VoxelState[i] = ( (Voxel==0) ? 1 : 0) 
 		     | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) 

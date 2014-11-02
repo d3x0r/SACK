@@ -76,7 +76,7 @@ class ZVoxelProcessor : public ZObject
     ZVoxelWorld * World;
     ZActorPhysicEngine * PhysicEngine;
     bool ThreadContinue;
-    void * Thread;
+    void * Thread[6];
     ZGame * GameEnv;
     ZVoxelReactor VoxelReactor;
     ZEgmyScatter  EgmyScatter;
@@ -101,7 +101,7 @@ class ZVoxelProcessor : public ZObject
       World = 0;
       PhysicEngine = 0;
       SectorEjectDistance = 1000000.0;
-      Thread = 0;
+      Thread[0] = 0;
       ThreadContinue = false;
       GameEnv = 0;
     }
@@ -132,13 +132,16 @@ class ZVoxelProcessor : public ZObject
     {
       VoxelReactor.Init(this->GameEnv);
       ThreadContinue = true;
-      Thread = (SDL_Thread * )SDL_CreateThread(thread_func, "thread_func", this);
+      Thread[0] = (SDL_Thread * )SDL_CreateThread(thread_func, "thread_func", this);
+      //Thread[1] = (SDL_Thread * )SDL_CreateThread(thread_func, "thread_func", this);
+      //Thread[2] = (SDL_Thread * )SDL_CreateThread(thread_func, "thread_func", this);
+      //Thread[3] = (SDL_Thread * )SDL_CreateThread(thread_func, "thread_func", this);
     }
 
     void End()
     {
       ThreadContinue = false;
-      if (Thread) SDL_WaitThread((SDL_Thread*)Thread, NULL);
+      if (Thread[0]) SDL_WaitThread((SDL_Thread*)Thread[0], NULL);
     }
 };
 
