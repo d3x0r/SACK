@@ -2128,7 +2128,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                              World->Convert_Coords_VoxelToPlayer( &VoxelCoords, &VoxelLocation );
                              VoxelLocation.x += (GlobalSettings.VoxelBlockSize/2);VoxelLocation.z += (GlobalSettings.VoxelBlockSize/2);VoxelLocation.y += (GlobalSettings.VoxelBlockSize/2);
                              Distance = VoxelLocation.Distance(PlayerLocation);
-                             if (Distance < 4096.0)
+                             if (Distance < GlobalSettings.VoxelBlockSize * 6.0 /*4096.0*/)
                              {
                                IsLowActivityVoxels = false;
                                IsActiveVoxels = true;

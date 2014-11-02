@@ -38,16 +38,65 @@ public:
 		m[2][2] = 1;
 		m[3][3] = 1;
 	}
-	 double pitch( void );
-	 double yaw( void );
-	double roll( void );
+
+	inline double pitch( void )
+	{
+		if( ( m[2][2] > 0.707 ) )
+			return atan2( m[2][1], m[2][2] ) * (360 / (2*3.14159)); 
+		else if( ( m[2][2] < -0.707 ) )
+			return atan2( m[2][1], -m[2][2] ) * (360 / (2*3.14159)); 
+		else
+			if( m[2][0] < 0 )
+				return atan2( m[2][1], -m[2][0] ) * (360 / (2*3.14159)); 
+			else
+				return atan2( m[2][1], m[2][0] ) * (360 / (2*3.14159)); 
+
+
+		return atan2( -m[2][1], sqrt( 1-m[2][1] * m[2][1]) ) * (360 / (2*3.14159)); 
+		// sohcah toa  
+		return asin( m[0][2] ) * (360 / (2*3.14159));
+	}
+	inline double yaw( void )
+	{
+		if( m[2][1] < 0.707 && m[2][1] > -0.707 )
+		{
+			return atan2( m[2][0], m[2][2] ) * (360 / (2*3.14159)); 
+		}
+		else
+		{
+			if( m[1][2] < 0 )
+				return atan2( m[1][0], m[1][2] ) * (360 / (2*3.14159)); 
+			else
+				return atan2( m[1][0], m[1][2] ) * (360 / (2*3.14159)); 
+		}
+		// sohcah toa  
+		//return atan2( m[0][1], m[0][0] ) * (360 / (2*3.14159)); 
+		return asin( m[0][2] ) * (360 / (2*3.14159));
+	}
+
+	inline double roll( void )
+	{
+		// sohcah toa  
+		if( ( m[0][0] > 0.707 ) )
+			return atan2( m[0][1], m[0][0] ) * (360 / (2*3.14159)); 
+		else if( ( m[0][0] < -0.707 ) )
+			return atan2( m[0][1], -m[0][0] ) * (360 / (2*3.14159)); 
+		else
+			if( m[0][2] < 0 )
+				return atan2( m[0][1], -m[0][2] ) * (360 / (2*3.14159)); 
+			else
+				return atan2( m[0][1], m[0][2] ) * (360 / (2*3.14159)); 
+
+		return asin( m[0][1] ) * (360 / (2*3.14159));
+	}
+
 	inline double * x_axis( void )
 	{
 		return m[0];
 	}
-	inline double * y_axis( void )
+	inline ZVector3d &y_axis( void )
 	{
-		return m[1];
+		return (ZVector3d &)m[1];
 	}
 	/*
 	inline double * z_axis( void )
@@ -79,6 +128,15 @@ public:
 		return result;
 	}
 
+	inline ZVector3d _2d_left( void )
+	{
+		ZVector3d result = _2d_forward();
+		double tmp;
+		tmp = result.x;
+		result.x = result.z;
+		result.z = -tmp;
+		return result;
+	}
 	inline void ApplyRotation( ZVector3d &dest, ZVector3d &src )
 	{
 	   #define i 0
