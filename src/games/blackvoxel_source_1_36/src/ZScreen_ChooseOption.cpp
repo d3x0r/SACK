@@ -33,12 +33,15 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
       ZString As;
       bool Loop;
 
+	  if( GameEnv->prior_page_up != GameEnv->page_up )
+	  {
+		  GameEnv->prior_page_up = GameEnv->page_up;
+		  
       Pos.x = 0.0f; Pos.y = 0.0f;
       GameEnv->GuiManager.RemoveAllFrames();
 
       // Frames on screen
 
-      ZFrame_FontFrame Frame_MainTitle;
         Frame_MainTitle.SetDisplayText((char *)"SETTINGS");
         Frame_MainTitle.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
         Frame_MainTitle.GetTextDisplaySize(&Size);
@@ -48,7 +51,6 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
         GameEnv->GuiManager.AddFrame(&Frame_MainTitle);
         Pos.y += Size.y*1.10f;
 
-      ZFrame Frame_1;
         FrameSize.x = GameEnv->ScreenResolution.x / 2.0f;
         FrameSize.y = GameEnv->ScreenResolution.y / 10.0f;
         Frame_1.SetTexture(5);
@@ -56,7 +58,6 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
         Frame_1.SetSize(FrameSize.x, FrameSize.y );
         GameEnv->GuiManager.AddFrame(&Frame_1);
 
-      ZFrame_FontFrame FontFrame_1;
         FontFrame_1.SetDisplayText("DISPLAY");
         FontFrame_1.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
         FontFrame_1.GetTextDisplaySize(&Size);
@@ -64,7 +65,6 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
         FontFrame_1.SetSize(Size.x + 1.0f, Size.y);
         Frame_1.AddFrame(&FontFrame_1);
 
-      ZFrame Frame_2;
         FrameSize.x = GameEnv->ScreenResolution.x / 2.0f;
         FrameSize.y = GameEnv->ScreenResolution.y / 10.0f;
         Frame_2.SetTexture(5);
@@ -72,7 +72,6 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
         Frame_2.SetSize(FrameSize.x, FrameSize.y );
         GameEnv->GuiManager.AddFrame(&Frame_2);
 
-      ZFrame_FontFrame FontFrame_2;
         FontFrame_2.SetDisplayText("SOUND");
         FontFrame_2.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
         FontFrame_2.GetTextDisplaySize(&Size);
@@ -80,7 +79,6 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
         FontFrame_2.SetSize(Size.x + 1.0f, Size.y);
         Frame_2.AddFrame(&FontFrame_2);
 
-        ZFrame Frame_3;
           FrameSize.x = GameEnv->ScreenResolution.x / 2.0f;
           FrameSize.y = GameEnv->ScreenResolution.y / 10.0f;
           Frame_3.SetTexture(5);
@@ -88,7 +86,6 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
           Frame_3.SetSize(FrameSize.x, FrameSize.y );
           GameEnv->GuiManager.AddFrame(&Frame_3);
 
-        ZFrame_FontFrame FontFrame_3;
           FontFrame_3.SetDisplayText("GAMEPLAY");
           FontFrame_3.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
           FontFrame_3.GetTextDisplaySize(&Size);
@@ -96,7 +93,6 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
           FontFrame_3.SetSize(Size.x + 1.0f, Size.y);
           Frame_3.AddFrame(&FontFrame_3);
 
-        ZFrame Frame_4;
           FrameSize.x = GameEnv->ScreenResolution.x / 2.0f;
           FrameSize.y = GameEnv->ScreenResolution.y / 10.0f;
           Frame_4.SetTexture(5);
@@ -104,7 +100,6 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
           Frame_4.SetSize(FrameSize.x, FrameSize.y );
           GameEnv->GuiManager.AddFrame(&Frame_4);
 
-        ZFrame_FontFrame FontFrame_4;
           FontFrame_4.SetDisplayText("KEYMAP");
           FontFrame_4.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
           FontFrame_4.GetTextDisplaySize(&Size);
@@ -112,7 +107,6 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
           FontFrame_4.SetSize(Size.x + 1.0f, Size.y);
           Frame_4.AddFrame(&FontFrame_4);
 
-         ZTileFrame Quit;
 
            Quit.SetTileSet(GameEnv->GuiTileset);
            Quit.SetTile(4);
@@ -120,11 +114,11 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
            Quit.SetSize(32.0f,32.0f);
            GameEnv->GuiManager.AddFrame(&Quit);
 
-
-        for (Loop = true; Loop; )
+	  }
+       // for (Loop = true; Loop; )
         {
-          glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-          Loop = GameEnv->EventManager.ProcessEvents();
+         // glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+         // Loop = GameEnv->EventManager.ProcessEvents();
 
 
           if (Frame_MainTitle.Is_MouseClick()) exit(0);
@@ -146,10 +140,10 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
           if (Quit.Is_MouseClick())    {ResultCode = CHOICE_QUIT;    Loop=false;}
 
           GameEnv->GuiManager.Render();
-          SDL_GL_SwapWindow( GameEnv->screen );
-          SDL_Delay(10);
+          //SDL_GL_SwapWindow( GameEnv->screen );
+          //SDL_Delay(10);
         }
 
-        GameEnv->GuiManager.RemoveAllFrames();
+        //GameEnv->GuiManager.RemoveAllFrames();
         return(0);
 }

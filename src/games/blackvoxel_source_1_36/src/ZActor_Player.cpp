@@ -219,7 +219,7 @@ void ZActor_Player::Action_MouseMove(Long Delta_x, Long Delta_y)
 
     MouseRatio = GameEnv->Settings_Hardware->Setting_MouseFactor;
 
-	ViewDirection.Rotate( Delta_x/(3*MouseRatio), -Delta_y/(3*MouseRatio), 0 );
+	ViewDirection.Rotate( -Delta_x/(3*MouseRatio), -Delta_y/(3*MouseRatio), 0 );
 	/*
     ViewDirection.yaw+=Delta_x/(3*MouseRatio);
     if (ViewDirection.yaw >= 360.0) ViewDirection.yaw -= 360.0;
@@ -238,7 +238,7 @@ void ZActor_Player::Action_MouseMove(Long Delta_x, Long Delta_y)
     */
 //    printf("Pitch: %lf\n", ViewDirection.pitch);
 
-	Camera.orientation = ViewDirection;
+	//Camera.orientation = ViewDirection;
 	/*
     Camera.Yaw = ViewDirection.yaw;
     Camera.Pitch = ViewDirection.pitch;
@@ -280,7 +280,7 @@ void ZActor_Player::Action_MouseMove(Long Delta_x, Long Delta_y)
     // ViewDirection.yaw = 0.0;
 
 
-	Camera.orientation = ViewDirection;
+	//Camera.orientation = ViewDirection;
   }
 
 
@@ -328,6 +328,7 @@ void ZActor_Player::Action_MouseMove(Long Delta_x, Long Delta_y)
   }
 
   Camera.orientation = ViewDirection;
+  Camera.orientation.origin() += EyesPosition;
   
 }
 
@@ -2436,7 +2437,7 @@ void ZActor_Player::DoPhysic_SupermanPlayer(double CycleTime)
 
 void ZActor_Player::Action_GoFastForward(double speed)
 {
-	Deplacement = Deplacement - ( ViewDirection._2d_forward() * speed );
+	Deplacement = Deplacement + ( ViewDirection._2d_forward() * speed );
   //Deplacement.x -= ViewDirection._2d_forward()[0]*speed;
   //Deplacement.y -= ViewDirection._2d_forward()[1]*speed;
   //Deplacement.z -= ViewDirection._2d_forward()[2]*speed;
@@ -2447,7 +2448,7 @@ void ZActor_Player::Action_GoForward()
   switch (ActorMode)
   {
     case 0:
-	   	Deplacement = Deplacement - ( ViewDirection._2d_forward() * Speed_Walk );
+	   	Deplacement = Deplacement + ( ViewDirection._2d_forward() * Speed_Walk );
           //Deplacement.x -= ViewDirection._2d_forward()[0]*Speed_Walk;
            //  Deplacement.y -= ViewDirection._2d_forward()[1]*Speed_Walk;
            //  Deplacement.z -= ViewDirection._2d_forward()[2]*Speed_Walk;
@@ -2480,7 +2481,7 @@ void ZActor_Player::Action_GoBackward()
   switch (ActorMode)
   {
     case 0:
-	   	Deplacement = Deplacement + ( ViewDirection._2d_forward() * Speed_Walk );
+	   	Deplacement = Deplacement - ( ViewDirection._2d_forward() * Speed_Walk );
 		//Deplacement.x += ViewDirection.z_axis()[0]*Speed_Walk;
 		//Deplacement.y += ViewDirection.z_axis()[1]*Speed_Walk;
          //   Deplacement.z += ViewDirection.z_axis()[2]*Speed_Walk;
@@ -2512,7 +2513,7 @@ void ZActor_Player::Action_GoLeftStraff()
   switch (ActorMode)
   {
     case 0:
-	   	Deplacement = Deplacement + ( ViewDirection._2d_left() * Speed_Walk );
+	   	Deplacement = Deplacement - ( ViewDirection._2d_left() * Speed_Walk );
             //Deplacement.x += ViewDirection._2d_forward()[2]*Speed_Walk;
             //Deplacement.y += ViewDirection._2d_forward()[1]*Speed_Walk;
             //Deplacement.z -= ViewDirection._2d_forward()[0]*Speed_Walk;
@@ -2545,7 +2546,7 @@ void ZActor_Player::Action_GoRightStraff()
   switch (ActorMode)
   {
      case 0:
-  	   	Deplacement = Deplacement - ( ViewDirection._2d_left() * Speed_Walk );
+  	   	Deplacement = Deplacement + ( ViewDirection._2d_left() * Speed_Walk );
           //Deplacement.x -= ViewDirection._2d_forward()[2]*Speed_Walk;
           //  Deplacement.y -= ViewDirection._2d_forward()[1]*Speed_Walk;
            // Deplacement.z += ViewDirection._2d_forward()[0]*Speed_Walk;

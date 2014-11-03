@@ -302,13 +302,13 @@ void KeyHandler (ZGame & GameEnv)
   if ( Keyboard_Matrix[SDLK_m] ) {SpecialValue4 -= 1; printf("SV4: %ld\n",SpecialValue4); }
 */
 
-  if ( Keyboard_Matrix[SDLK_n] )  { SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE); }
-  if ( Keyboard_Matrix[SDLK_F2] ) { SDL_WM_GrabInput(SDL_GRAB_ON); SDL_ShowCursor(SDL_DISABLE); }
-  if ( Keyboard_Matrix[SDLK_F1] ) { SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE); }
+  if ( Keyboard_Matrix[SDLK_n] )  {GameEnv->MouseRelative = false; SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE); }
+  if ( Keyboard_Matrix[SDLK_F2] ) {GameEnv->MouseRelative = true;  SDL_WM_GrabInput(SDL_GRAB_ON); SDL_ShowCursor(SDL_DISABLE); }
+  if ( Keyboard_Matrix[SDLK_F1] ) {GameEnv->MouseRelative = false;  SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE); }
   //if ( Keyboard_Matrix[SDLK_F5] ) { World.Save(); }
   //if ( Keyboard_Matrix[SDLK_F9] ) { World.Load(); }
 
-  if ( Keyboard_Matrix[SDLK_F12] )  { SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE); exit(0); }
+  if ( Keyboard_Matrix[SDLK_F12] )  { GameEnv->MouseRelative = false; SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE); exit(0); }
   //int fps = 1000 / RenderTime;
   if ( Keyboard_Matrix[SDLK_r] ) { printf("nCubes : %ld  Render Time: %lu ms Trans : %ld PureRend : %ld x:%lf y:%lf z:%lf \n", nCubesDisplayed, RenderTime, Time_Transform, Time_PureRender, Player.x, Player.y, Player.z );}
 

@@ -64,7 +64,7 @@ class ZEventConsumer : public ZObject
 
 class ZEventManager
 {
-  protected:
+	public://protected:
     ZList ConsumerList;
   public:
     // Actual state

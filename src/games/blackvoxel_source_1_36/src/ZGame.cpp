@@ -428,8 +428,8 @@ bool ZGame::Init_VoxelTypeManager(ZLog * InitLog)
 {
   ZString Msg;
   InitLog->Log(1, ZLog::INFO, "Starting : VoxelTypeManager Init");
-  if (!Initialized_GraphicMode)    {ZString Err ="Can't init VoxelTypeManager : GraphicMode init not completed"; InitLog->Log(3, ZLog::FAIL, Err); return(false);}
-  if (!Initialized_Glew)           {ZString Err ="Can't init VoxelTypeManager : Glew init not completed"; InitLog->Log(4, ZLog::FAIL, Err); return(false);}
+  //if (!Initialized_GraphicMode)    {ZString Err ="Can't init VoxelTypeManager : GraphicMode init not completed"; InitLog->Log(3, ZLog::FAIL, Err); return(false);}
+  //if (!Initialized_Glew)           {ZString Err ="Can't init VoxelTypeManager : Glew init not completed"; InitLog->Log(4, ZLog::FAIL, Err); return(false);}
   VoxelTypeManager.SetGameEnv(this);
   if (!VoxelTypeManager.LoadVoxelTypes()) { ZString Err ="Can't init VoxelTypeManager."; InitLog->Log(5, ZLog::FAIL, Err); return(false); }
   Msg.Clear() << "Loaded " << VoxelTypeManager.GetTexturesCount() << " Voxel Textures."; InitLog->Log(6, ZLog::INFO, Msg);

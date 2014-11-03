@@ -1273,8 +1273,8 @@ static void BeginVisPersp( struct display_camera *camera )
 	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 	glLoadIdentity();									// Reset The Projection Matrix
 	MygluPerspective(90.0f,camera->aspect,1.0f,30000.0f);
-	glGetFloatv( GL_PROJECTION_MATRIX, (GLfloat*)l.fProjection );
-	PrintMatrix( l.fProjection );
+	//glGetFloatv( GL_PROJECTION_MATRIX, (GLfloat*)l.fProjection );
+	//PrintMatrix( l.fProjection );
 	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 }
 
@@ -1304,7 +1304,7 @@ static int InitGL( struct display_camera *camera )										// All Setup For Ope
  
 		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
  
-		BeginVisPersp( camera );
+		//BeginVisPersp( camera );
 		lprintf( WIDE("First GL Init Done.") );
 		camera->flags.init = 1;
 		camera->hVidCore->flags.bReady = TRUE;
@@ -1351,7 +1351,8 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 					reference->FirstDraw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("FirstDraw3d"),(PTRSZVAL));
 					reference->ExtraDraw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("ExtraBeginDraw3d"),(PTRSZVAL,PTRANSFORM));
 					reference->Draw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("ExtraDraw3d"),(PTRSZVAL));
-					reference->Mouse3d = GetRegisteredProcedureExx( GetClassRoot( WIDE("sack/render/puregl/mouse3d") ),(CTEXTSTR)name,LOGICAL,WIDE("ExtraMouse3d"),(PTRSZVAL,PRAY,_32));
+					reference->Mouse3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,LOGICAL,WIDE("ExtraMouse3d"),(PTRSZVAL,PRAY,S_32,S_32,_32));
+					reference->Key3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,LOGICAL,WIDE("ExtraKey3d"),(PTRSZVAL,_32));
 				}
 
 				AddLink( &camera->plugins, reference );
@@ -1616,6 +1617,7 @@ static void RenderGL( struct display_camera *camera )
 		break;
 	}
 
+	BeginVisPersp( camera );
 	GetGLCameraMatrix( camera->origin_camera, camera->hVidCore->fModelView );
 	glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
 
@@ -3364,7 +3366,7 @@ static int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 			{
 				if( ref->Mouse3d )
 				{
-					used = ref->Mouse3d( ref->psv, &camera->mouse_ray, b );
+					used = ref->Mouse3d( ref->psv, &camera->mouse_ray, x, y, b );
 					if( used )
 						break;
 				}
@@ -3441,6 +3443,40 @@ static int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 	return used;
 }
 
+int CPROC OpenGLKey( PTRSZVAL psv, _32 keycode )
+{
+	struct display_camera *camera = (struct display_camera *)psv;
+	int used = 0;
+	PRENDERER check = NULL;
+	INDEX idx;
+	struct plugin_reference *ref;
+	if( l.hPluginKeyCapture )
+	{
+		used = l.hPluginKeyCapture->Key3d( l.hPluginKeyCapture->psv, keycode );
+		if( !used )
+			l.hPluginKeyCapture = NULL;
+		else
+			return 1;
+	}
+
+	LIST_FORALL( camera->plugins, idx, struct plugin_reference *, ref )
+	{
+		if( ref->Key3d )
+		{
+			used = ref->Key3d( ref->psv, keycode );
+			if( used )
+			{
+				// if a thing uses a key, lock to that plugin for future keys until it doesn't want a key
+				// (thing like a chat module, first key would lock to it, and it could claim all events;
+				// maybe should implement an interface to manually clear this
+				l.hPluginKeyCapture = ref;
+				break;
+			}
+		}
+	}
+	return used;
+}
+
 
 static void HandleMessage (MSG Msg);
 
@@ -3502,9 +3538,12 @@ static struct display_camera *OpenCameras( void )
 			lprintf( WIDE( "Created Real window...Stuff.. %d,%d %dx%d" ),x,y,w,h );
 	#endif
 			camera->hVidCore = New( VIDEO );
+			AddLink( &l.pActiveList, camera->hVidCore );
 			MemSet (camera->hVidCore, 0, sizeof (VIDEO));
 			InitializeCriticalSec( &camera->hVidCore->cs );
 			camera->hVidCore->camera = camera;
+			camera->hVidCore->pKeyProc = OpenGLKey;
+			camera->hVidCore->dwKeyData = (PTRSZVAL)camera;
 			camera->hVidCore->pMouseCallback = OpenGLMouse;
 			camera->hVidCore->dwMouseData = (PTRSZVAL)camera;
 			camera->identity_depth = camera->w/2;
@@ -4803,7 +4842,15 @@ void  SetMousePosition (PVIDEO hVid, S_32 x, S_32 y)
 	{
 		int newx, newy;
 		lprintf( WIDE("TAGHERE") );
-		InverseOpenGLMouse( hVid->camera, hVid, (RCOORD)x, (RCOORD)y, &newx, &newy );
+		if( hVid )
+		{
+			InverseOpenGLMouse( hVid->camera, hVid, (RCOORD)x, (RCOORD)y, &newx, &newy );
+		}
+		else
+		{
+			newx = x;
+			newy = y;
+		}
 		lprintf( WIDE("%d,%d became %d,%d"), x, y, newx, newy );
 		SetCursorPos( newx, newy );
 	}

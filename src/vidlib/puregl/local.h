@@ -68,8 +68,9 @@ struct plugin_reference
 	void (CPROC *FirstDraw3d)(PTRSZVAL);
 	void (CPROC *ExtraDraw3d)(PTRSZVAL,PTRANSFORM camera);
 	void (CPROC *Draw3d)(PTRSZVAL);
-	LOGICAL (CPROC *Mouse3d)(PTRSZVAL,PRAY,_32);
+	LOGICAL (CPROC *Mouse3d)(PTRSZVAL,PRAY,S_32,S_32,_32);
    void (CPROC *ExtraClose3d)(PTRSZVAL);
+   LOGICAL (CPROC *Key3d)(PTRSZVAL,_32);
 };
 
 struct display_camera
@@ -177,6 +178,7 @@ extern
 	PVIDEO hVidVirtualFocused;   // this is the virtual window (application surface) with focus
 	PVIDEO hCaptured;
 	PVIDEO hCapturedPrior; // to track reset when unused mouse event happens on a layered frame
+   struct plugin_reference *hPluginKeyCapture; // used to track focus of key events to plugin modules
 	// kbd.key == KeyboardState
 	KEYBOARD kbd;
 	_32 dwMsgBase;

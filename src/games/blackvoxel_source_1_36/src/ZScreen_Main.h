@@ -44,8 +44,21 @@
 
 class ZScreen_Main : public ZScreen
 {
+private:
+	  ZFrame TitleBackground;
+  ZFrame Title;
+    ZVector2f Title_Size;
+  ZFrame_FontFrame Frame_Version;
+    ZVector2f Version_Size;
+  ZFrame_FontFrame Frame_PlayGame;
+    ZVector2f PlayGame_Size;
+  ZFrame_FontFrame Frame_Options;
+    ZVector2f Options_Size;
+  ZFrame_FontFrame Frame_Quit;
+    ZVector2f Frame_Size;
+
   public:
-    enum { CHOICE_QUIT, CHOICE_OPTIONS, CHOICE_PLAYGAME};
+    enum { CHOICE_QUIT, CHOICE_OPTIONS, CHOICE_PLAYGAME, CHOICE_NONE };
 
     virtual ULong ProcessScreen(ZGame * GameEnv);
 };

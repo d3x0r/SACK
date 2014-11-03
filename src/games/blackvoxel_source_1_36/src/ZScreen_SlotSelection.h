@@ -44,6 +44,18 @@
 
 class ZScreen_SlotSelection : public ZScreen
 {
+      ZFrame Slot[16];
+      ZFrame_FontFrame SlotTitle[16];
+      ZFrame_FontFrame SlotStatus[16];
+      ZString SlotString[16];
+      ZString StatusString[16];
+      bool    SlotUsed[16];
+      ZString FileName;
+      FILE * fh;
+      ZString Directory;
+	        ZFrame LogoBlackvoxel;
+      ZFrame_FontFrame Frame_MainTitle;
+
   public:
     ZScreen_SlotSelection() { ChoosedSlot = 0; }
     enum {CHOICE_RETURN=0};

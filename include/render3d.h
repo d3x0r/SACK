@@ -93,14 +93,14 @@ typedef struct render_3d_interface_tag
 #define OnDraw3d(name) \
 	__DefineRegistryMethod(WIDE("sack/render/puregl"),Draw3d,WIDE("draw3d"),name,WIDE("ExtraDraw3d"),void,(PTRSZVAL psvUser),__LINE__)
 
-// static LOGICAL OnMouse3d( "Virtuality" )( PTRSZVAL psvInit, PRAY mouse, _32 b )
+// static LOGICAL OnMouse3d( "Virtuality" )( PTRSZVAL psvInit, PRAY mouse, S_32 x, S_32 y, _32 b )
 // this is a real mouse event that is in a display that you returned non 0 during Init3d.
 // PRAY is the line represenging the point that the user has the mouse over at the moemnt.
 // mouse buttons are passed. for mouse state (may also be key state)
 // return FALSE if you did not use the mouse.
 // return TRUE if you did, and therefore the event is used and noonne else should make two things happen...
 #define OnMouse3d(name) \
-	__DefineRegistryMethod(WIDE("sack/render/puregl"),Mouse3d,WIDE("draw3d"),name,WIDE("ExtraMouse3d"),LOGICAL,(PTRSZVAL psvUser, PRAY mouse_ray, _32 b),__LINE__)
+	__DefineRegistryMethod(WIDE("sack/render/puregl"),Mouse3d,WIDE("draw3d"),name,WIDE("ExtraMouse3d"),LOGICAL,(PTRSZVAL psvUser, PRAY mouse_ray, S_32 x, S_32 y, _32 b),__LINE__)
 
 // static LOGICAL OnKey3d( "Virtuality" )( PTRSZVAL psvInit, _32 key )
 // this is a real key event that is in a display that you returned non 0 during Init3d.

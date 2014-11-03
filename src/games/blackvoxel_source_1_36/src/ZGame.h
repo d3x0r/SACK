@@ -178,6 +178,19 @@
 
 class ZFileSectorLoader;
 
+enum GamePages {
+
+PAGE_MAIN_MENU 
+, PAGE_SETTINGS 
+, PAGE_SELECT_UNIVERSE 
+, PAGE_LOADING_SCREEN 
+, PAGE_SETTINGS_DISPLAY 
+, PAGE_SETTINGS_SOUND
+, PAGE_SETTINGS_MOUSE
+, PAGE_SETTINGS_KEYMAP
+, PAGE_GAME_WORLD_1
+};
+
 class ZGame
 {
   public:
@@ -227,6 +240,11 @@ class ZGame
              GameWindow_Inventory = 0;
              GameWindow_DisplayInfos = 0;
              GameProgressBar = 0;
+
+			 page_up = PAGE_MAIN_MENU;
+			 prior_page_up = -1;
+			 //Menu_Up = false;
+			 //OptionScreen_Up = false;
              Game_Run = false;
              screen = 0;
              GameWindow_Advertising = 0;
@@ -277,7 +295,9 @@ class ZGame
 
 
   // Game Loop continue flag
-
+  bool Mouse_relative;
+  int page_up;
+  int prior_page_up;
   bool Game_Run;
 
   // Game objects
@@ -430,15 +450,15 @@ class ZGame
     result = Init_UserDataStorage(InitLog.Sec(1000));    if (!result) return(false);
     result = Init_Settings(InitLog.Sec(1010));           if (!result) return(false);
     result = Init_SDL(InitLog.Sec(1020));                if (!result) return(false);
-    result = Init_GraphicMode(InitLog.Sec(1030));        if (!result) return(false);
-    result = Init_Glew(InitLog.Sec(1040));               if (!result) return(false);
+    //result = Init_GraphicMode(InitLog.Sec(1030));        if (!result) return(false);
+    //result = Init_Glew(InitLog.Sec(1040));               if (!result) return(false);
     result = Init_VoxelTypeManager(InitLog.Sec(1050));   if (!result) return(false);
     result = Init_TextureManager(InitLog.Sec(1060));     if (!result) return(false);
-    result = Init_OpenGLGameSettings(InitLog.Sec(1070)); if (!result) return(false);
+    //result = Init_OpenGLGameSettings(InitLog.Sec(1070)); if (!result) return(false);
     result = Init_EventManager(InitLog.Sec(1080));       if (!result) return(false);
-    result = Init_GuiManager(InitLog.Sec(1090));         if (!result) return(false);
-    result = Init_TileSetsAndFonts(InitLog.Sec(1100));   if (!result) return(false);
-    result = Init_Renderer(InitLog.Sec(1110));           if (!result) return(false);
+    //result = Init_GuiManager(InitLog.Sec(1090));         if (!result) return(false);
+    //result = Init_TileSetsAndFonts(InitLog.Sec(1100));   if (!result) return(false);
+    //result = Init_Renderer(InitLog.Sec(1110));           if (!result) return(false);
     result = Init_Sound(InitLog.Sec(1120));              if (!result) return(false);
     return(true);
   }

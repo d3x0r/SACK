@@ -80,8 +80,9 @@ class ZRender_Interface
     ZVoxelWorld * World;
     ZVoxelTypeManager * VoxelTypeManager;
     ZTextureManager  * TextureManager;
-
+public:
     ZCamera     * Camera;
+protected:
 	ZActor      * Actor;  // where the camera came from really...
     ZRayCast_out * PointedVoxel;
     ZRadius_Zoning RadiusZones;
@@ -189,7 +190,7 @@ class ZRender_Interface
 							  , Long Sector_Display_x, Long Sector_Display_y, Long Sector_Display_z );
     void MakeSectorRenderingData(ZVoxelSector * Sector);
     void MakeSectorRenderingData_Sorted(ZVoxelSector * Sector);
-    virtual void Render() = 0;
+    virtual void Render( bool use_external_matrix ) = 0;
 	virtual ZVoxelCuller *GetCuller( ) = 0;
 
 
@@ -219,6 +220,7 @@ class ZRender_Interface
       ZVector3d Cv;
 	  ZVector3d Cv2 = *Point - TransformParam.origin();
       bool Visible;
+
 	  TransformParam.ApplyInverseRotation( Cv, Cv2 );
 
       // Translation and Rotation
@@ -232,7 +234,7 @@ class ZRender_Interface
       // Visibility test
 
       Visible = (
-                     (Cv.z < 0.0)
+                     (Cv.z > 0.0)
                   && (Cv.x < Frustum_CullingLimit && Cv.x >-Frustum_CullingLimit) // Number replaced by Frustum_CullingLimit was 50.0
                   && (Cv.y < Frustum_CullingLimit && Cv.y >-Frustum_CullingLimit) //
                 );

@@ -229,11 +229,14 @@ Bool ZGame_Events::MouseMove ( Short Relative_x, Short Relative_y, UShort Absolu
 
   if (EnableMouseEvents)
   {
-    Actor = GameEnv->PhysicEngine->GetSelectedActor();
-    if (Actor)
-    {
-      Actor->Action_MouseMove( Relative_x, Relative_y);
-    }
+	  if( GameEnv->PhysicEngine )
+	  {
+			Actor = GameEnv->PhysicEngine->GetSelectedActor();
+			if (Actor)
+			{
+			  Actor->Action_MouseMove( Relative_x, Relative_y);
+			}
+	  }
   }
   return(true);
 }
@@ -263,11 +266,14 @@ Bool ZGame_Events::MouseButtonRelease(UShort nButton, Short Absolute_x, Short Ab
 
   if (EnableMouseEvents)
   {
-    Actor = GameEnv->PhysicEngine->GetSelectedActor();
-    if (Actor)
-    {
-      Actor->Action_MouseButtonRelease( nButton - 1);
-    }
+	  if( GameEnv->PhysicEngine )
+	  {
+			Actor = GameEnv->PhysicEngine->GetSelectedActor();
+			if (Actor)
+			{
+				Actor->Action_MouseButtonRelease( nButton - 1);
+			}
+	  }
   }
   return(true);
 }
@@ -704,8 +710,8 @@ void ZGame_Events::Process_StillEvents()
       Keyboard_Matrix[SDLK_KP_MINUS] = 0;
     }
 	if (Keyboard_Matrix[SDLK_t & 0xFF] && COMPILEOPTION_DEBUGFACILITY)        { ZInventory::Entry * Entry = Actor->Inventory->GetSlotRef(Actor->Inventory->GetActualItemSlotNum()); Entry->VoxelType = Actor->BuildingMaterial; Entry->Quantity = 8192 * 1; }
-	if (Keyboard_Matrix[SDLK_F1 & 0xFF])   { SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE); }
-	if (Keyboard_Matrix[SDLK_F2 & 0xFF])   { SDL_WM_GrabInput(SDL_GRAB_ON); SDL_ShowCursor(SDL_DISABLE); }
+	if (Keyboard_Matrix[SDLK_F1 & 0xFF])   {GameEnv->Mouse_relative = false;  SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE); }
+	if (Keyboard_Matrix[SDLK_F2 & 0xFF])   {GameEnv->Mouse_relative = true;  SDL_WM_GrabInput(SDL_GRAB_ON); SDL_ShowCursor(SDL_DISABLE); }
 	if (Keyboard_Matrix[SDLK_F3 & 0xFF] && COMPILEOPTION_DEBUGFACILITY)   { SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_DISABLE); }
 	if (Keyboard_Matrix[SDLK_F5 & 0xFF])   { GameEnv->World->Save(); }
 	if (Keyboard_Matrix[SDLK_F4 & 0xFF])

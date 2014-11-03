@@ -39,9 +39,11 @@ ULong ZScreen_SlotSelection::ProcessScreen(ZGame * GameEnv)
       ULong ChoosedSlot=0;
 
       // Effacer l'écran
-
-      glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); 
-	  SDL_GL_SwapWindow(GameEnv->screen);
+	  if( GameEnv->prior_page_up != GameEnv->page_up )
+	  {
+		   GameEnv->prior_page_up = GameEnv->page_up;
+      //glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ); 
+	  //SDL_GL_SwapWindow(GameEnv->screen);
 	  //SDL_GL_SwapBuffers();
 
       // Régler la transparence
@@ -66,7 +68,6 @@ ULong ZScreen_SlotSelection::ProcessScreen(ZGame * GameEnv)
 
       // Définition du titre
 
-      ZFrame LogoBlackvoxel;
       Size.y = GameEnv->ScreenResolution.y * 0.1f;
       Size.x = Size.y * 10.0f;
       LogoBlackvoxel.SetPosition(GameEnv->ScreenResolution.x / 2.0f - Size.x/2.0f, GameEnv->ScreenResolution.y *0.01f);
@@ -76,7 +77,6 @@ ULong ZScreen_SlotSelection::ProcessScreen(ZGame * GameEnv)
 
       // Définition et réglage du sous-titre
 
-      ZFrame_FontFrame Frame_MainTitle;
       Frame_MainTitle.SetDisplayText((char *)"GAME UNIVERSE SELECTION");
       Frame_MainTitle.SetStyle(GameEnv->TileSetStyles->GetStyle(1));
       Frame_MainTitle.GetTextDisplaySize(&Size);
@@ -88,15 +88,6 @@ ULong ZScreen_SlotSelection::ProcessScreen(ZGame * GameEnv)
 
       // Définition des variables et objets utilisés pour la suite
 
-      ZFrame Slot[16];
-      ZFrame_FontFrame SlotTitle[16];
-      ZFrame_FontFrame SlotStatus[16];
-      ZString SlotString[16];
-      ZString StatusString[16];
-      bool    SlotUsed[16];
-      ZString FileName;
-      FILE * fh;
-      ZString Directory;
 
       // Récupération du chemin du répertoire de stockage des univers
 
@@ -165,18 +156,18 @@ ULong ZScreen_SlotSelection::ProcessScreen(ZGame * GameEnv)
         // else            SlotStatus[i].SetColor(0.5f,0.5f,0.5f);
         Slot[i].AddFrame(&SlotStatus[i]);
       }
-
+	  }
       // Boucle d'affichage et de gestion des évènements
 
-        for (Loop = true; Loop; )
+       // for (Loop = true; Loop; )
         {
           // Effacer l'écran
 
-          glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+         // glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
           // Gérer les évènements entrants (clics, déplacemets souris, frappe clavier)
 
-          Loop = GameEnv->EventManager.ProcessEvents();
+          //Loop = GameEnv->EventManager.ProcessEvents();
 
           // Détecter les actions de l'utilisateur sur chaque boite slot univers et prendre les actions appropriées
 
@@ -194,16 +185,16 @@ ULong ZScreen_SlotSelection::ProcessScreen(ZGame * GameEnv)
           // On montre à l'utilisateur ce qui a été rendu
 
           //SDL_GL_SwapBuffers();
-		  SDL_GL_SwapWindow(GameEnv->screen);
+		  //SDL_GL_SwapWindow(GameEnv->screen);
 
           // On met le programme en pause pendant 10 millièmes de seconde
 
-          SDL_Delay(10);
+          //SDL_Delay(10);
         }
 
         // Enlever toutes les boites de l'affichage
 
-        GameEnv->GuiManager.RemoveAllFrames();
+        //GameEnv->GuiManager.RemoveAllFrames();
 
         // Retourner à l'appelant et lui donner le numéro de l'univers choisis
 
