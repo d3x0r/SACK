@@ -30,20 +30,19 @@ ULong ZScreen_Message::ProcessScreen(ZGame * GameEnv)
 {
 
   bool Loop;
-
+  if( GameEnv->prior_page_up != GameEnv->page_up )
+  {
+	  GameEnv->prior_page_up = GameEnv->page_up;
   GameEnv->GuiManager.RemoveAllFrames();
 
   ProceedString = "Press space bar to proceed";
 
-  ZFrame Background;
     Background.SetPosition(0,0);
     Background.SetSize( (float)GameEnv->ScreenResolution.x, (float)GameEnv->ScreenResolution.y );
     Background.SetTexture(13);
     Background.SetZPosition(50.0f);
     GameEnv->GuiManager.AddFrame(&Background);
 
-  ZFrame_FontFrame Frame_Proceed;
-    ZVector2f Frame_Size;
     Frame_Proceed.SetDisplayText(ProceedString.String);
     Frame_Proceed.SetStyle(GameEnv->TileSetStyles->GetStyle(1));
     Frame_Proceed.GetTextDisplaySize(&Frame_Size);
@@ -53,27 +52,26 @@ ULong ZScreen_Message::ProcessScreen(ZGame * GameEnv)
     Frame_Proceed.TextureNum = 3;
     Background.AddFrame(&Frame_Proceed);
     Frame_Proceed.Show(true);
-
-  ULong Timer = 400;
-  for (Loop = true; Loop; )
+  }
+  //for (Loop = true; Loop; )
   {
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     glAlphaFunc(GL_GREATER, 0.2f);
     glEnable(GL_ALPHA_TEST);
     glEnable(GL_TEXTURE_2D);
-    Loop = GameEnv->EventManager.ProcessEvents();
+    //Loop = GameEnv->EventManager.ProcessEvents();
 
     if (Timer) Timer-=1;
     else Frame_Proceed.Show(true);
 
     if (GameEnv->EventManager.Is_KeyPressed(SDLK_SPACE,1)) Loop = false;
 
-    GameEnv->GuiManager.Render();
+    //GameEnv->GuiManager.Render();
     //SDL_GL_SwapBuffers();
-	SDL_GL_SwapWindow(GameEnv->screen);
-	SDL_Delay(10);
+	//SDL_GL_SwapWindow(GameEnv->screen);
+	//SDL_Delay(10);
   }
-  GameEnv->GuiManager.RemoveAllFrames();
+  //GameEnv->GuiManager.RemoveAllFrames();
   return(ResultCode);
 }
 

@@ -195,7 +195,7 @@ void ZRender_Interface::Render_VoxelSelector(ZVoxelCoords * SelectedVoxel, float
 
 
 
-Bool ZRender_Interface::LoadVoxelTexturesToGPU()
+Bool ZRender_Interface::LoadVoxelTexturesToGPU(PTRSZVAL psvInit)
 {
   ULong i;
   ZVoxelType * VoxelType;
@@ -206,8 +206,8 @@ Bool ZRender_Interface::LoadVoxelTexturesToGPU()
     {
       if (VoxelType->MainTexture)
       {
-        glGenTextures(1,&VoxelType->OpenGl_TextureRef);
-        glBindTexture(GL_TEXTURE_2D,VoxelType->OpenGl_TextureRef);
+        glGenTextures(1,&VoxelType->OpenGl_TextureRef[psvInit]);
+        glBindTexture(GL_TEXTURE_2D,VoxelType->OpenGl_TextureRef[psvInit]);
         /*
         glTexImage2D (GL_TEXTURE_2D,      //Type : texture 2D
                       0,                 //Mipmap : none
@@ -255,19 +255,19 @@ void ZRender_Interface::FreeDisplayData(ZVoxelSector * Sector)
   {
     if (DisplayData->DisplayList_Regular)
     {
-      glDeleteLists (DisplayData->DisplayList_Regular,1);
-      DisplayData->DisplayList_Regular = 0;
+		glDeleteLists (DisplayData->DisplayList_Regular[current_gl_camera],1);
+      DisplayData->DisplayList_Regular[current_gl_camera] = 0;
     }
     if (DisplayData->DisplayList_Transparent)
     {
-      glDeleteLists (DisplayData->DisplayList_Transparent,1);
-      DisplayData->DisplayList_Transparent = 0;
+      glDeleteLists (DisplayData->DisplayList_Transparent[current_gl_camera],1);
+      DisplayData->DisplayList_Transparent[current_gl_camera] = 0;
     }
     delete DisplayData;
   }
 }
 
-Bool ZRender_Interface::LoadTexturesToGPU()
+Bool ZRender_Interface::LoadTexturesToGPU(PTRSZVAL psvInit)
 {
   ULong i;
   ULong TextureCount;
@@ -281,8 +281,8 @@ Bool ZRender_Interface::LoadTexturesToGPU()
   {
     if ((Entry = TextureManager->GetTextureEntry(i)))
     {
-      glGenTextures(1,&Entry->OpenGl_TextureRef);
-      glBindTexture(GL_TEXTURE_2D,Entry->OpenGl_TextureRef);
+      glGenTextures(1,&Entry->OpenGl_TextureRef[psvInit]);
+	  glBindTexture(GL_TEXTURE_2D,Entry->OpenGl_TextureRef[current_gl_camera]);
       if (Entry->LinearInterpolation)
       {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // GL_LINEAR GL_NEAREST

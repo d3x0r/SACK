@@ -130,7 +130,10 @@ ZVoxelSector::ZVoxelSector( const ZVoxelSector &Sector)
 
   Flag_Void_Regular             = Sector.Flag_Void_Regular;
   Flag_Void_Transparent         = Sector.Flag_Void_Transparent;
-  Flag_Render_Dirty             = Sector.Flag_Render_Dirty;
+  for( int r = 0; r < 6; r++ )
+  {
+	Flag_Render_Dirty[r]            = Sector.Flag_Render_Dirty[r];
+  }
   Flag_HighPriorityRefresh      = Sector.Flag_HighPriorityRefresh;
   Flag_IsVisibleAtLastRendering = Sector.Flag_IsVisibleAtLastRendering;
   Flag_DeletePending            = Sector.Flag_DeletePending;
@@ -230,7 +233,8 @@ void ZVoxelSector::InitSector()
   for(i=0;i<DataSize;i++) OtherInfos[i] = 0;
   for (i=0;i<DataSize;i++) TempInfos[i] = 273+20;
 
-  Flag_Render_Dirty = true;
+  for( int r = 0; r < 6; r++ )
+	Flag_Render_Dirty[r] = true;
   Flag_HighPriorityRefresh = false;
   Flag_Void_Regular = true;
   Flag_Void_Transparent = true;

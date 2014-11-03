@@ -271,7 +271,9 @@ void ZVoxelWorld::ProcessNewLoadedSectors()
 
       Sector->Flag_Void_Regular = false;
       Sector->Flag_Void_Transparent = false;
-      Sector->Flag_Render_Dirty = true;
+
+        for( int r = 0; r < 6; r++ )
+			Sector->Flag_Render_Dirty[r] = true;
       //printf("AddSector: %ld,%ld,%ld\n",Sector->Pos_x, Sector->Pos_y, Sector->Pos_z);
 
       // Partial face culing for adjacent sectors
@@ -2517,7 +2519,8 @@ bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort Voxe
   // Updating sector status rendering flag status
   for( int i = 0; i < 19; i++ )
   {
-	Sector[i]->Flag_Render_Dirty = true;
+	  for( int r = 0; r < 6; r++ )
+			Sector[i]->Flag_Render_Dirty[r] = true;
   }
   /*
   Sector[VOXEL_INCENTER]->Flag_Render_Dirty = true;
@@ -2562,7 +2565,8 @@ void ZVoxelWorld::Purge(UShort VoxelType)
   for (Sector = SectorList; (Sector) ; Sector = Sector->GlobalList_Next )
   {
     Sector->Purge(VoxelType);
-    Sector->Flag_Render_Dirty = true;
+	  for( int r = 0; r < 6; r++ )
+		Sector->Flag_Render_Dirty[r] = true;
   }
 }
 

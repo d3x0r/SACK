@@ -4841,17 +4841,21 @@ void  SetMousePosition (PVIDEO hVid, S_32 x, S_32 y)
 	if( !hVid )
 	{
 		int newx, newy;
-		lprintf( WIDE("TAGHERE") );
+		hVid = l.mouse_last_vid;
+			
+		//lprintf( WIDE("TAGHERE") );
 		if( hVid )
 		{
-			InverseOpenGLMouse( hVid->camera, hVid, (RCOORD)x, (RCOORD)y, &newx, &newy );
+			//InverseOpenGLMouse( hVid->camera, hVid, (RCOORD)x, (RCOORD)y, &newx, &newy );
+			newx = x + hVid->pWindowPos.x;
+			newy = y + hVid->pWindowPos.y;
 		}
 		else
 		{
 			newx = x;
 			newy = y;
 		}
-		lprintf( WIDE("%d,%d became %d,%d"), x, y, newx, newy );
+		//lprintf( WIDE("%d,%d became %d,%d"), x, y, newx, newy );
 		SetCursorPos( newx, newy );
 	}
 	else

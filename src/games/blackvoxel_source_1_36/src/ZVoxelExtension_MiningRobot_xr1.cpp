@@ -216,7 +216,8 @@ void ZVoxelExtension_MiningRobot_xr1::Robot_Move( ZVector3L * Pos, ZGame * GameE
                 VoxelLocation Loc;
                 World->GetVoxelLocation( &Loc, Pos->x, Pos->y,Pos->z);
                 Loc.Sector->Data[Loc.Offset] = 159;
-                Loc.Sector->Flag_Render_Dirty = true;
+				for( int r = 0; r < 6; r++ )
+					Loc.Sector->Flag_Render_Dirty[6] = true;
                 //Loc.Sector->Flag_Void_Regular = false;
                 //Loc.Sector->Flag_Void_Transparent = false;
                 State = 5; break;

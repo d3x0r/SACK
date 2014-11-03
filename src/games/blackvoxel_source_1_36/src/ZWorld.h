@@ -345,7 +345,8 @@ private:
       for (i=1;i<TableOffset;i++)
       {
         //SectorUpdateFaceCulling(SectorTable[i]->Pos_x,SectorTable[i]->Pos_y, SectorTable[i]->Pos_z,false);
-        SectorTable[i]->Flag_Render_Dirty = true;
+		  for( int r = 0; r < 6; r++ )
+			SectorTable[i]->Flag_Render_Dirty[r] = true;
       }
 
 

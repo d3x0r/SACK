@@ -48,20 +48,22 @@ class ZTexture_Entry : public ZObject
   public:
     ZBitmapImage * Texture;
     bool           LinearInterpolation;
-    unsigned int   OpenGl_TextureRef;
+    unsigned int   OpenGl_TextureRef[6];
 
     ZTexture_Entry()
     {
       Texture = 0;
       LinearInterpolation = 0;
-      OpenGl_TextureRef = 0;
+	  for( int i = 0; i < 6; i++ )
+		OpenGl_TextureRef[i] = 0;
     }
     ~ZTexture_Entry()
     {
       if (Texture) delete Texture;
       Texture = 0;
       LinearInterpolation = 0;
-      OpenGl_TextureRef = 0;
+	  for( int i = 0; i < 6; i++ )
+		OpenGl_TextureRef[i] = 0;
     }
 };
 

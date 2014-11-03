@@ -83,7 +83,7 @@ class ZVoxelType
 //
     UShort VoxelType;
     ZBitmapImage * MainTexture;
-    unsigned int   OpenGl_TextureRef;
+    unsigned int   OpenGl_TextureRef[6];
 
     bool Is_NoType; // Defined if this is a default "No type" Entry;
     bool Is_UserTypeTransformable;     // Can be used to make user blocks. Very rare blocs must avoid that.

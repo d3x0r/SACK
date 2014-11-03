@@ -166,7 +166,8 @@ double FrameTime;
 
 static PTRSZVAL OnInit3d( "BlackVoxel" )(PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
-	return 1;
+	Ge->display_index++;
+	return Ge->display_index;
 }
 
 static void OnFirstDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
@@ -186,7 +187,7 @@ static void OnFirstDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
 		result = Ge->Init_TileSetsAndFonts(Ge->InitLog.Sec(1100));   if (!result) return;
     
 	}
-	result = Ge->Init_Renderer(Ge->InitLog.Sec(1110));           
+	result = Ge->Init_Renderer(Ge->InitLog.Sec(1110), psvInit );           
 	//if (!result) return(false);
 }
 
@@ -197,6 +198,7 @@ static void OnBeginDraw3d("BlackVoxel")( PTRSZVAL psvInit, PTRANSFORM camera )
 	for( n = 0; n < 16; n++ )
 		((float*)camera)[n] = Ge->Basic_Renderer->Camera->orientation.m[0][n];
 	//Set Ge->Basic_Renderer->Camera->orientation.quat();
+	Ge->Basic_Renderer->current_gl_camera = psvInit - 1;
 }
 
 			ZScreen_ChooseOption Screen_ChooseOption;
@@ -283,13 +285,16 @@ static void OnDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
 		// Rendering
 		if( Ge && Ge->Basic_Renderer )
 		{
+	if( psvInit == 2 );
             Ge->GameWindow_Advertising->Advertising_Actions((double)FrameTime);
+	if( psvInit == 2 );
             Ge->ToolManager->ProcessAndDisplay();
 				Ge->Basic_Renderer->Render( true );
 		//if( Ge && Ge->Gui )
-				Ge->GuiManager.Render();
 		}
 	}
+	if( psvInit == 1 )
+	Ge->GuiManager.Render( psvInit - 1 );
 }
 
 static LOGICAL OnKey3d( "BlackVoxel" )( PTRSZVAL psvInit, _32 key )
@@ -586,7 +591,7 @@ SaneWinMain( argc, argv )
 
             // Rendering
 				GameEnv.Basic_Renderer->Render( false );
-				GameEnv.GuiManager.Render();
+				GameEnv.GuiManager.Render( 0 );
 
 				// Swapping OpenGL Surfaces.
 

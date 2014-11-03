@@ -32,7 +32,7 @@
 
 
 
-void ZFrame_FontFrame::Render2(Frame_Dimensions * ParentPosition)
+void ZFrame_FontFrame::Render2(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit )
 {
   Frame_Dimensions Position;
 
@@ -62,7 +62,7 @@ void ZFrame_FontFrame::Render2(Frame_Dimensions * ParentPosition)
       float xLim = Position.Position_x + Position.Width - FontSize_h;
       float yLim = Position.Position_y + Position.Height - FontSize_v;
 
-      TextureRef = GuiManager->TextureManager->GetTextureEntry(this->TextureNum)->OpenGl_TextureRef;
+      TextureRef = GuiManager->TextureManager->GetTextureEntry(this->TextureNum)->OpenGl_TextureRef[psvInit];
       glBindTexture(GL_TEXTURE_2D,TextureRef );
       for (i=0;(c=TextToDisplay[i]);i++)
       {
@@ -101,7 +101,7 @@ void ZFrame_FontFrame::Render2(Frame_Dimensions * ParentPosition)
       while (Item)
       {
         Frame = (ZFrame *)Item->GetObject();
-        if (Frame) Frame->Render(&Position);
+        if (Frame) Frame->Render(&Position, psvInit);
 
         Item = SubFrameList.GetNext(Item);
       }
@@ -130,7 +130,7 @@ void ZFrame_FontFrame::GetTextDisplaySize(ZVector2f * OutSize)
 
 
 
-void ZFrame_FontFrame::Render(Frame_Dimensions * ParentPosition)
+void ZFrame_FontFrame::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
 {
 
   ZListItem * Item;
@@ -148,7 +148,7 @@ void ZFrame_FontFrame::Render(Frame_Dimensions * ParentPosition)
     {
       if (TileStyle)
         if (TileStyle->TileSet)
-          TileStyle->TileSet->RenderFont(TileStyle, &EffectivePosition, this->TextToDisplay, &DrawColor );
+          TileStyle->TileSet->RenderFont(psvInit,TileStyle, &EffectivePosition, this->TextToDisplay, &DrawColor );
     }
 
 
@@ -162,7 +162,7 @@ void ZFrame_FontFrame::Render(Frame_Dimensions * ParentPosition)
       while (Item)
       {
         Frame = (ZFrame *)Item->GetObject();
-        if (Frame) Frame->Render(&EffectivePosition);
+        if (Frame) Frame->Render(&EffectivePosition, psvInit);
 
         Item = SubFrameList.GetNext(Item);
       }

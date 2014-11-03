@@ -26,7 +26,7 @@
 #include "ZGui_PanelTextButton.h"
 #include <GL/glew.h>
 
-void ZPanelTextButton::Render(Frame_Dimensions * ParentPosition)
+void ZPanelTextButton::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit )
 {
 
   ZVector3f P1,P2,P3,P4;
@@ -64,7 +64,7 @@ void ZPanelTextButton::Render(Frame_Dimensions * ParentPosition)
       P3.x = EffectivePosition.Position_x + EffectivePosition.Width ; P3.y = EffectivePosition.Position_y + EffectivePosition.Height; P3.z = EffectivePosition.Position_z + EffectivePosition.Depth;
       P4.x = EffectivePosition.Position_x; P4.y = EffectivePosition.Position_y + EffectivePosition.Height; P4.z = EffectivePosition.Position_z + EffectivePosition.Depth;
 
-      ULong TextureRef = GuiManager->TextureManager->GetTextureEntry(this->TextureNum)->OpenGl_TextureRef;
+      ULong TextureRef = GuiManager->TextureManager->GetTextureEntry(this->TextureNum)->OpenGl_TextureRef[psvInit];
       glBindTexture(GL_TEXTURE_2D,TextureRef );
 
       SliceWidth = EffectivePosition.Height * 0.25f;
@@ -130,7 +130,7 @@ void ZPanelTextButton::Render(Frame_Dimensions * ParentPosition)
       while (Item)
       {
         Frame = (ZFrame *)Item->GetObject();
-        if (Frame) Frame->Render(&EffectivePosition);
+        if (Frame) Frame->Render(&EffectivePosition, psvInit );
 
         Item = SubFrameList.GetNext(Item);
       }

@@ -179,7 +179,7 @@ class ZVoxelSector : public ZObject
 
     bool Flag_Void_Regular;
     bool Flag_Void_Transparent;
-    bool Flag_Render_Dirty;
+    bool Flag_Render_Dirty[6];
     bool Flag_HighPriorityRefresh;
     bool Flag_IsVisibleAtLastRendering;
     bool Flag_DeletePending;
