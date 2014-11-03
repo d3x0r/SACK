@@ -27,7 +27,7 @@
 #include <GL/glew.h>
 #include "ZGui_InventoryBox.h"
 
-void ZVoxelViewBox::Render(Frame_Dimensions * ParentPosition)
+void ZVoxelViewBox::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
 {
 
   ZVector3f TopLeft, BottomRight;
@@ -70,7 +70,7 @@ void ZVoxelViewBox::Render(Frame_Dimensions * ParentPosition)
 
 
       // Render
-      if (*VoxelType!=0) glBindTexture(GL_TEXTURE_2D,VoxelTypeManager->VoxelTable[*VoxelType]->OpenGl_TextureRef);
+      if (*VoxelType!=0) glBindTexture(GL_TEXTURE_2D,VoxelTypeManager->VoxelTable[*VoxelType]->OpenGl_TextureRef[psvInit-1]);
       else               glBindTexture(GL_TEXTURE_2D,0);
       if ((*VoxelType)) glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
       else              glColor4f(0.7f, 0.7f, 0.7f, 0.9f);
@@ -94,7 +94,7 @@ void ZVoxelViewBox::Render(Frame_Dimensions * ParentPosition)
       while (Item)
       {
         Frame = (ZFrame *)Item->GetObject();
-        if (Frame) Frame->Render(&EffectivePosition);
+        if (Frame) Frame->Render(&EffectivePosition, psvInit );
 
         Item = SubFrameList.GetNext(Item);
       }

@@ -26,7 +26,7 @@
 #include "ZGui_TileFrame.h"
 
 
-void ZTileFrame::Render(Frame_Dimensions * ParentPosition)
+void ZTileFrame::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
 {
 
   ZVector3f TopLeft, BottomRight;
@@ -53,7 +53,7 @@ void ZTileFrame::Render(Frame_Dimensions * ParentPosition)
       BottomRight.x = EffectivePosition.Position_x + EffectivePosition.Width;
       BottomRight.y = EffectivePosition.Position_y + EffectivePosition.Height;
       BottomRight.z = EffectivePosition.Position_z;
-      if (TileSet) TileSet->RenderTile(&TopLeft, &BottomRight, Tile, &DrawColor);
+      if (TileSet) TileSet->RenderTile(psvInit, &TopLeft, &BottomRight, Tile, &DrawColor);
     }
 
 
@@ -66,7 +66,7 @@ void ZTileFrame::Render(Frame_Dimensions * ParentPosition)
       while (Item)
       {
         Frame = (ZFrame *)Item->GetObject();
-        if (Frame) Frame->Render(&EffectivePosition);
+        if (Frame) Frame->Render(&EffectivePosition, psvInit);
 
         Item = SubFrameList.GetNext(Item);
       }

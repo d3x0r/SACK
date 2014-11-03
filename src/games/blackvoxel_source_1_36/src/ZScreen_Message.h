@@ -44,8 +44,16 @@
 
 class ZScreen_Message : public ZScreen
 {
+  ZFrame_FontFrame Frame_Proceed;
+    ZVector2f Frame_Size;
+  ZFrame Background;
+  ULong Timer;
     ZString ProceedString;
   public:
+	  ZScreen_Message()
+	  {
+		  Timer = 400;
+	  }
     virtual ULong ProcessScreen(ZGame * GameEnv);
 };
 

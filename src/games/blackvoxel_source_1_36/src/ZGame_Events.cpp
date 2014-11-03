@@ -817,7 +817,8 @@ void ZGame_Events::Process_StillEvents()
           {
             //GameEnv->World->SectorUpdateFaceCulling(x,y,z,false);
             Sector = GameEnv->World->FindSector(x,y,z);
-            Sector->Flag_Render_Dirty = true;
+			for( int r = 0;r < 6; r++ )
+				Sector->Flag_Render_Dirty[r] = true;
             Sector->Flag_Void_Regular = true;
             Sector->Flag_Void_Transparent = true;
           }
@@ -1002,7 +1003,8 @@ void ZGame_Events::Process_StillEvents()
 
           //GameEnv->World->SectorUpdateFaceCulling(Loc.Sector->Pos_x, Loc.Sector->Pos_y, Loc.Sector->Pos_z , false);
 
-          Loc.Sector->Flag_Render_Dirty = true;
+		  for( int r = 0; r < 6; r++ )
+			Loc.Sector->Flag_Render_Dirty[r] = true;
           Loc.Sector->Flag_IsDebug = true;
 
         }

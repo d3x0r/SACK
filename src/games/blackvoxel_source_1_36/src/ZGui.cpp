@@ -234,7 +234,7 @@ Bool ZGraphicUserManager::MouseButtonRelease(UShort nButton, Short Absolute_x, S
   return true;
 }
 
-void ZGraphicUserManager::Render()
+void ZGraphicUserManager::Render( PTRSZVAL psvInit )
 {
   Frame_Dimensions Dimensions;
 
@@ -259,10 +259,10 @@ void ZGraphicUserManager::Render()
 
   //glEnable (GL_BLEND); glBlendFunc (GL_SRC_ALPHA, GL_SRC_ALPHA);
   //glEnable (GL_BLEND); glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  FirstFrame->Render(&Dimensions);
+  FirstFrame->Render(&Dimensions, psvInit);
 }
 
-void ZFrame::Render(Frame_Dimensions * ParentPosition)
+void ZFrame::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
 {
 
   ZVector3f P1,P2,P3,P4;
@@ -291,7 +291,7 @@ void ZFrame::Render(Frame_Dimensions * ParentPosition)
       P3.x = EffectivePosition.Position_x + EffectivePosition.Width ; P3.y = EffectivePosition.Position_y + EffectivePosition.Height; P3.z = EffectivePosition.Position_z + EffectivePosition.Depth;
       P4.x = EffectivePosition.Position_x; P4.y = EffectivePosition.Position_y + EffectivePosition.Height; P4.z = EffectivePosition.Position_z + EffectivePosition.Depth;
 
-      ULong TextureRef = GuiManager->TextureManager->GetTextureEntry(this->TextureNum)->OpenGl_TextureRef;
+      ULong TextureRef = GuiManager->TextureManager->GetTextureEntry(this->TextureNum)->OpenGl_TextureRef[psvInit];
       glBindTexture(GL_TEXTURE_2D,TextureRef );
       glBegin(GL_TRIANGLES);
         glColor3f(DrawColor.r, DrawColor.v, DrawColor.b);
@@ -314,7 +314,7 @@ void ZFrame::Render(Frame_Dimensions * ParentPosition)
       while (Item)
       {
         Frame = (ZFrame *)Item->GetObject();
-        if (Frame) Frame->Render(&EffectivePosition);
+        if (Frame) Frame->Render(&EffectivePosition, psvInit);
 
         Item = SubFrameList.GetNext(Item);
       }

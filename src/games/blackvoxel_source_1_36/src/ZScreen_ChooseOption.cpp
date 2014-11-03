@@ -139,7 +139,6 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
           if (Frame_4.Is_MouseClick()) {ResultCode = CHOICE_KEYMAP;  Loop=false;}
           if (Quit.Is_MouseClick())    {ResultCode = CHOICE_QUIT;    Loop=false;}
 
-          GameEnv->GuiManager.Render();
           //SDL_GL_SwapWindow( GameEnv->screen );
           //SDL_Delay(10);
         }

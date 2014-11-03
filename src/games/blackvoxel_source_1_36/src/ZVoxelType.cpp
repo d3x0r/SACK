@@ -95,7 +95,8 @@ ZVoxelType::ZVoxelType(UShort VoxelType)
   BvProp_EgmyT1Resistant = false;
   LiquidDensity = 0.0;
   BlastResistance = 1;
-  OpenGl_TextureRef = 0;
+  for( int i = 0; i < sizeof( OpenGl_TextureRef ) / sizeof( int ); i++ )
+	OpenGl_TextureRef[i] = 0;
   GameEnv = 0;
   FabInfos = 0;
   Documentation_PageNum = 0;

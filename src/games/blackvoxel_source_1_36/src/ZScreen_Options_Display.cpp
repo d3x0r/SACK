@@ -47,17 +47,9 @@ int ZScreen_Options_Display::ResolutionCompare(ZObject * Object_1, ZObject * Obj
 
 ULong ZScreen_Options_Display::ProcessScreen(ZGame * GameEnv)
 {
-  ZVector2f Size;
-  ZVector2f Pos;
-  ULong i;
-  ULong Count;
-  bool Found;
-
-  ZResolution * Res;
-  ZObjectArray Resolution_Array;
 
   // Add standard Resolutions.
-
+/*
   Res = new ZResolution; Res->Resolution_x = 0; Res->Resolution_y = 0; Res->Name = "Automatic"; Resolution_Array.Add(*Res);
   Res = new ZResolution; Res->Resolution_x = 800; Res->Resolution_y = 600; Res->Name = "800*600"; Resolution_Array.Add(*Res);
   Res = new ZResolution; Res->Resolution_x = 1024; Res->Resolution_y = 600; Res->Name = "1024*600"; Resolution_Array.Add(*Res);
@@ -77,7 +69,7 @@ ULong ZScreen_Options_Display::ProcessScreen(ZGame * GameEnv)
   Res = new ZResolution; Res->Resolution_x = 1920; Res->Resolution_y = 1080; Res->Name = "1920*1080"; Resolution_Array.Add(*Res);
   Res = new ZResolution; Res->Resolution_x = 1920; Res->Resolution_y = 1200; Res->Name = "1920*1200"; Resolution_Array.Add(*Res);
   Res = new ZResolution; Res->Resolution_x = 640; Res->Resolution_y = 480; Res->Name = "640*480"; Resolution_Array.Add(*Res);
-
+  */
   // Add the SDL resolutions.
 #if 0
   {
@@ -276,10 +268,10 @@ ULong ZScreen_Options_Display::ProcessScreen(ZGame * GameEnv)
 
 
 
-    for (bool Loop = true; Loop; )
+    //for (bool Loop = true; Loop; )
     {
-      glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-      Loop = GameEnv->EventManager.ProcessEvents();
+      //glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+      //Loop = GameEnv->EventManager.ProcessEvents();
 
       // if (Frame_MainTitle.Is_MouseClick()) {Loop = false; GameEnv->Settings_Hardware->Save(); exit(0); }
       if (Frame_ChooseRes.Is_ChoiceChanged())
@@ -296,17 +288,17 @@ ULong ZScreen_Options_Display::ProcessScreen(ZGame * GameEnv)
         else                              { GameEnv->Settings_Hardware->Setting_FullScreen = false; }
       }
 
-      if (Frame_Save.Is_MouseClick()) { Loop = false; }
+      //if (Frame_Save.Is_MouseClick()) { Loop = false; }
 
-      GameEnv->GuiManager.Render();
+      //GameEnv->GuiManager.Render();
       //SDL_GL_SwapBuffers( );
-	  SDL_GL_SwapWindow(GameEnv->screen);
-	  SDL_Delay(10);
+	  //SDL_GL_SwapWindow(GameEnv->screen);
+	  //SDL_Delay(10);
 
     }
-    GameEnv->GuiManager.RemoveAllFrames();
+    //GameEnv->GuiManager.RemoveAllFrames();
 
-    GameEnv->Settings_Hardware->Save();
+    //GameEnv->Settings_Hardware->Save();
 
   return(0);
 }

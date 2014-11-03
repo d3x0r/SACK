@@ -247,6 +247,7 @@ class ZGame
 			 //OptionScreen_Up = false;
              Game_Run = false;
              screen = 0;
+			 display_index = 0;
              GameWindow_Advertising = 0;
              Sound = 0;
              GameWindow_UserTextureTransformer = 0;
@@ -367,6 +368,7 @@ class ZGame
 #else
   SDL_Window * screen;
 #endif
+  int display_index;
   ZVector2L ScreenResolution;   // Taille réelle de la zone d'affichage.
   ZVector2L HardwareResolution; // Resolution qui est demandée à SDL.
   ZVector2L DesktopResolution;  // Résolution du bureau.
@@ -396,7 +398,7 @@ class ZGame
   bool Init_EventManager(ZLog * InitLog);
   bool Init_GuiManager(ZLog * InitLog);
   bool Init_TileSetsAndFonts(ZLog * InitLog);
-  bool Init_Renderer(ZLog * InitLog);
+  bool Init_Renderer(ZLog * InitLog, PTRSZVAL psvInit );
   bool Init_Sound(ZLog * InitLog);
 
   bool Cleanup_UserDataStorage(ZLog * InitLog);

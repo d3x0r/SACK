@@ -180,7 +180,7 @@ ULong ZScreen_SlotSelection::ProcessScreen(ZGame * GameEnv)
 
           // Demander au gestionnaire de boite d'effectuer le rendu graphique
 
-          GameEnv->GuiManager.Render();
+          //GameEnv->GuiManager.Render(  );
 
           // On montre à l'utilisateur ce qui a été rendu
 

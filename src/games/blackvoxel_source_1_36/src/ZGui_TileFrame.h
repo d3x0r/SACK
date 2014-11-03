@@ -49,7 +49,7 @@ class ZTileFrame : public ZFrame
     virtual void SetTileSet( ZTileSet * TileSet ) { this->TileSet = TileSet; }
     virtual void SetTile( UByte Tile ) { this->Tile = Tile; }
 
-    virtual void Render(Frame_Dimensions * ParentPosition);
+    virtual void Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit);
 };
 
 #endif /* Z_ZGUI_TILEFRAME_H */

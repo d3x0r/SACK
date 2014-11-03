@@ -987,7 +987,8 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                           IsActiveVoxels = true;
                           {
                             IsDebug = true;
-                            Sector->Flag_Render_Dirty = true;
+							  for( int r = 0; r < 6; r++ )
+								Sector->Flag_Render_Dirty[r] = true;
                             break;
                           }
                   case 94:  // Pompe à liquide T1

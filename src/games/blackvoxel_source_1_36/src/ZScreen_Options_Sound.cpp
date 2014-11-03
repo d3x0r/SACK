@@ -142,14 +142,14 @@ ULong ZScreen_Options_Sound::ProcessScreen(ZGame * GameEnv)
 
       if (Frame_Save.Is_MouseClick()) { Loop = false; }
 
-      GameEnv->GuiManager.Render();
-      SDL_GL_SwapWindow( GameEnv->screen );
-      SDL_Delay(10);
+      //GameEnv->GuiManager.Render();
+      //SDL_GL_SwapWindow( GameEnv->screen );
+      //SDL_Delay(10);
 
     }
-    GameEnv->GuiManager.RemoveAllFrames();
+    //GameEnv->GuiManager.RemoveAllFrames();
 
-    GameEnv->Settings_Hardware->Save();
+    //GameEnv->Settings_Hardware->Save();
 
   return(CHOICE_QUIT);
 }

@@ -48,7 +48,7 @@ ULong ZScreen_Loading::ProcessScreen(ZGame * GameEnv)
     //TitleBackground.AddFrame(&Frame_PlayGame);
     GameEnv->GuiManager.AddFrame(&Frame_Loading);
 	}
-  GameEnv->GuiManager.Render();
+  //GameEnv->GuiManager.Render();
   //SDL_GL_SwapBuffers( );
   //SDL_GL_SwapWindow(GameEnv->screen);
   //SDL_Delay(10);

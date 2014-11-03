@@ -25,7 +25,7 @@
 
 #include "ZGui_ProgressBar.h"
 
-void ZFrame_ProgressBar::Render(Frame_Dimensions * ParentPosition)
+void ZFrame_ProgressBar::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit )
 {
 
   ZVector3f TopLeft, BottomRight, BarBottomRight;
@@ -59,7 +59,7 @@ void ZFrame_ProgressBar::Render(Frame_Dimensions * ParentPosition)
       if (TileSet)
       {
         //TopLeft.z -= 1.0f;
-        TileSet->RenderTile(&TopLeft, &BarBottomRight, 10, &DrawColor );
+        TileSet->RenderTile(psvInit, &TopLeft, &BarBottomRight, 10, &DrawColor );
 
         //TileSet->RenderTile(&TopLeft, &BottomRight, 8, &DrawColor);
       }
@@ -75,7 +75,7 @@ void ZFrame_ProgressBar::Render(Frame_Dimensions * ParentPosition)
       while (Item)
       {
         Frame = (ZFrame *)Item->GetObject();
-        if (Frame) Frame->Render(&EffectivePosition);
+        if (Frame) Frame->Render(&EffectivePosition, psvInit);
 
         Item = SubFrameList.GetNext(Item);
       }

@@ -52,7 +52,7 @@ class ZFrame_ProgressBar : public ZFrame
 
     void SetCompletion(float Completion) {this->Factor = Completion;}
     virtual void SetTileSet( ZTileSet * TileSet ) { this->TileSet = TileSet; }
-    virtual void Render(Frame_Dimensions * ParentPosition);
+    virtual void Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit );
 
 };
 

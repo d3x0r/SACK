@@ -97,7 +97,7 @@
       return(Image->GetPixel(Image_x,Image_y));
     }
 
-    void ZTileSet::RenderTile( ZVector3f * TopLeft, ZVector3f * BottomRight, UByte TileNum, ZColor3f * Color)
+    void ZTileSet::RenderTile( PTRSZVAL psvInit, ZVector3f * TopLeft, ZVector3f * BottomRight, UByte TileNum, ZColor3f * Color)
     {
       TileCoord * Coord;
 
@@ -105,7 +105,7 @@
 
       if(!Color) Color = &DefaultDrawColor;
 
-      glBindTexture(GL_TEXTURE_2D,TextureManager->GetTextureEntry(TextureNum)->OpenGl_TextureRef );
+      glBindTexture(GL_TEXTURE_2D,TextureManager->GetTextureEntry(TextureNum)->OpenGl_TextureRef[psvInit] );
       glColor3f(Color->r, Color->v, Color->b);
       glBegin(GL_TRIANGLES);
        glTexCoord2f(Coord->TopLeft_x      , Coord->TopLeft_y     ); glVertex3f(TopLeft->x    , TopLeft->y , TopLeft->z);
@@ -118,7 +118,7 @@
     }
 
 
-    void ZTileSet::RenderFont(ZTileStyle const * TileStyle , ZBox3f const * DrawBox, char const * TextToRender, ZColor3f * Color=0)
+    void ZTileSet::RenderFont(PTRSZVAL psvInit, ZTileStyle const * TileStyle , ZBox3f const * DrawBox, char const * TextToRender, ZColor3f * Color=0)
     {
       float x,y, xp,yp, DimX, DimY, LimitX;// LimitY;
       ZColor3f DrawColor;
@@ -136,7 +136,7 @@
       LimitX = x + DrawBox->Width ;
       //LimitY = y + DrawBox->Height;
 
-      glBindTexture(GL_TEXTURE_2D,TextureManager->GetTextureEntry(TileSet->TextureNum)->OpenGl_TextureRef );
+      glBindTexture(GL_TEXTURE_2D,TextureManager->GetTextureEntry(TileSet->TextureNum)->OpenGl_TextureRef[psvInit] );
       glColor3f(Color->r, Color->v, Color->b);
       for (i=0; (c = (UByte)(TextToRender[i])) ;i++)
       {

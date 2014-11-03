@@ -27,7 +27,7 @@
 #include <GL/glew.h>
 #include "SDL2/SDL.h"
 
-void ZInventoryBox::Render(Frame_Dimensions * ParentPosition)
+void ZInventoryBox::Render(Frame_Dimensions * ParentPosition, PTRSZVAL psvInit)
 {
 
   ZVector3f TopLeft, BottomRight;
@@ -70,7 +70,7 @@ void ZInventoryBox::Render(Frame_Dimensions * ParentPosition)
 
 
       // Render
-      if (*VoxelType!=0) glBindTexture(GL_TEXTURE_2D,VoxelTypeManager->VoxelTable[*VoxelType]->OpenGl_TextureRef);
+      if (*VoxelType!=0) glBindTexture(GL_TEXTURE_2D,VoxelTypeManager->VoxelTable[*VoxelType]->OpenGl_TextureRef[psvInit]);
       else               glBindTexture(GL_TEXTURE_2D,0);
       if ((*VoxelType)) glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
       else              glColor4f(0.4f, 0.4f, 0.4f, 0.6f); //  glColor4f(0.7f, 0.7f, 0.7f, 0.9f);
@@ -108,12 +108,12 @@ void ZInventoryBox::Render(Frame_Dimensions * ParentPosition)
         ZColor3f BkColor;
         Color.r = 255.0f; Color.v = 255.0f; Color.b = 255.0f;
         BkColor.r = 0.0f; BkColor.v = 0.0f; BkColor.b = 0.0f;
-        TileStyle->TileSet->RenderFont(TileStyle, &FontBox, QuantityText.String, &Color );
+        TileStyle->TileSet->RenderFont(psvInit, TileStyle, &FontBox, QuantityText.String, &Color );
         FontBox.Position_z -= 1.0f;
         FontBox.Position_x -= 1.0f;
         FontBox.Position_y -= 1.0f;
 
-        TileStyle->TileSet->RenderFont(TileStyle, &FontBox, QuantityText.String, &BkColor );
+        TileStyle->TileSet->RenderFont(psvInit, TileStyle, &FontBox, QuantityText.String, &BkColor );
       }
     }
 
@@ -127,7 +127,7 @@ void ZInventoryBox::Render(Frame_Dimensions * ParentPosition)
       while (Item)
       {
         Frame = (ZFrame *)Item->GetObject();
-        if (Frame) Frame->Render(&EffectivePosition);
+		if (Frame) Frame->Render(&EffectivePosition, psvInit);
 
         Item = SubFrameList.GetNext(Item);
       }

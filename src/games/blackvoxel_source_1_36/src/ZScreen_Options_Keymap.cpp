@@ -123,15 +123,15 @@ ULong ZScreen_Options_Keymap::ProcessScreen(ZGame * GameEnv)
 
       if (Frame_Save.Is_MouseClick()) { Loop = false; }
 
-      GameEnv->GuiManager.Render();
+      //GameEnv->GuiManager.Render();
       //SDL_GL_SwapBuffers( );
-	  SDL_GL_SwapWindow(GameEnv->screen);
-	  SDL_Delay(10);
+	  //SDL_GL_SwapWindow(GameEnv->screen);
+	  //SDL_Delay(10);
 
     }
-    GameEnv->GuiManager.RemoveAllFrames();
+    //GameEnv->GuiManager.RemoveAllFrames();
 
-    GameEnv->Settings_Hardware->Save();
+    //GameEnv->Settings_Hardware->Save();
 
   return(CHOICE_QUIT);
 }
