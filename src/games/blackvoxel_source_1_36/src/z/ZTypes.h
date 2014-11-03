@@ -20,6 +20,15 @@
 #ifndef Z_ZTYPES_H
 #define Z_ZTYPES_H
 
+#define INCLUDED_SOCKET_LIBRARY
+#define LOGGING_MACROS_DEFINED
+#define FIX_RELEASE_COM_COLLISION
+#define MAKE_RCOORD_SINGLE
+#include <stdhdrs.h>
+#define DEFINE_DEFAULT_RENDER_INTERFACE
+#include <render.h>
+#include <render3d.h>
+
 #ifdef _WIN32
 #include <Windows.h>
 #endif

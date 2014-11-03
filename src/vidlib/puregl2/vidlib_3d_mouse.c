@@ -412,7 +412,7 @@ int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 			{
 				if( ref->Mouse3d )
 				{
-					used = ref->Mouse3d( ref->psv, &camera->mouse_ray, b );
+					used = ref->Mouse3d( ref->psv, &camera->mouse_ray, x, y, b );
 					if( used )
 						break;
 				}

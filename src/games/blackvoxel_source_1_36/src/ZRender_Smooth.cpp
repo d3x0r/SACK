@@ -140,7 +140,7 @@ void ZVoxelCuller_Smooth::Compress_RLE(ZVoxelSector *Sector, void  * Stream)
 
 
 
-void ZRender_Smooth::Render()
+void ZRender_Smooth::Render( bool use_external_matrix )
 {
 
   ZHighPerfTimer Timer;

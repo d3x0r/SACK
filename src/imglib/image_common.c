@@ -684,7 +684,7 @@ static void SmearFlag( Image image, int flag )
 					UnmakeImageFileEx( ce->image DBG_RELAY );
 					Deallocate( struct shade_cache_element*, ce );
 				}
-				DeleteList( &ci->elements );
+				DeleteListEx( &ci->elements DBG_SRC );
 				RemoveBinaryNode( image_common_local.tint_cache, ci, (PTRSZVAL)pif );
 				Deallocate( struct shade_cache_image *, ci );
 			}
@@ -702,7 +702,7 @@ static void SmearFlag( Image image, int flag )
 					UnmakeImageFileEx( ce->image DBG_RELAY );
 					Deallocate( struct shade_cache_element*, ce );
 				}
-				DeleteList( &ci->elements );
+				DeleteListEx( &ci->elements DBG_SRC );
 				RemoveBinaryNode( image_common_local.tint_cache, ci, (PTRSZVAL)pif );
 				Deallocate( struct shade_cache_image *, ci );
 			}

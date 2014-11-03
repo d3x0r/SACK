@@ -192,6 +192,7 @@ void ZGameWindow_Programmable::Show()
 #else
   SDL_SetRelativeMouseMode(SDL_FALSE);
 #endif
+  GameEnv->Mouse_relative = false; 
   GameEnv->Game_Events->SetDisableMouseEvents();
   Flag_Shown = true;
 }
@@ -205,6 +206,7 @@ void ZGameWindow_Programmable::Hide()
 #else
   SDL_SetRelativeMouseMode(SDL_TRUE);
 #endif
+  GameEnv->Mouse_relative = true; 
   GameEnv->Game_Events->SetEnableMouseEvents();
   Flag_Shown = false;
 }

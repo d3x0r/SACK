@@ -26,23 +26,22 @@
 #include "ZScreen_Main.h"
 #include <GL/glew.h>
 
-ULong ZScreen_Main::ProcessScreen(ZGame * GameEnv)
+ULong ZScreen_Main::ProcessScreen(ZGame * GameEnv )
 {
 
   bool Loop;
+  if( GameEnv->prior_page_up != GameEnv->page_up )
+  {
+	  GameEnv->prior_page_up = GameEnv->page_up;
+	  GameEnv->GuiManager.RemoveAllFrames();
 
-  GameEnv->GuiManager.RemoveAllFrames();
 
-
-  ZFrame TitleBackground;
     TitleBackground.SetPosition(0,0);
     TitleBackground.SetSize( (float)GameEnv->ScreenResolution.x, (float)GameEnv->ScreenResolution.y );
     TitleBackground.SetTexture(0);
     TitleBackground.SetZPosition(50.0f);
     GameEnv->GuiManager.AddFrame(&TitleBackground);
 
-  ZFrame Title;
-    ZVector2f Title_Size;
     Title_Size.x = 1000.0f; Title_Size.y = 100.0f;
     Title.SetPosition(GameEnv->ScreenResolution.x / 2.0f - Title_Size.x / 2.0f , GameEnv->ScreenResolution.y / 8.0f );
     Title.SetSize(Title_Size.x,Title_Size.y);
@@ -50,8 +49,6 @@ ULong ZScreen_Main::ProcessScreen(ZGame * GameEnv)
     Title.SetZPosition(49.0f);
     TitleBackground.AddFrame(&Title);
 
-  ZFrame_FontFrame Frame_Version;
-    ZVector2f Version_Size;
     Version_Size.x = 53.0*8.0; Version_Size.y = 8.0;
     Frame_Version.SetPosition(GameEnv->ScreenResolution.x - Version_Size.x , GameEnv->ScreenResolution.y - Version_Size.y );
     Frame_Version.SetSize(53.0*8.0+1.0,100.0);
@@ -61,8 +58,6 @@ ULong ZScreen_Main::ProcessScreen(ZGame * GameEnv)
     Frame_Version.SetStyle(GameEnv->TileSetStyles->GetStyle(0));
     TitleBackground.AddFrame(&Frame_Version);
 
-  ZFrame_FontFrame Frame_PlayGame;
-    ZVector2f PlayGame_Size;
     PlayGame_Size.x = 9.0*32.0 + 1.0; PlayGame_Size.y = 8.0*4.0;
     Frame_PlayGame.SetPosition(GameEnv->ScreenResolution.x / 2.0f - PlayGame_Size.x / 2.0f, GameEnv->ScreenResolution.y / 1.64f - 32.0f );
     Frame_PlayGame.SetSize(PlayGame_Size.x+128.0f,PlayGame_Size.y);
@@ -71,9 +66,8 @@ ULong ZScreen_Main::ProcessScreen(ZGame * GameEnv)
     Frame_PlayGame.TextureNum = 3;
     Frame_PlayGame.SetStyle(GameEnv->TileSetStyles->GetStyle(1));
     TitleBackground.AddFrame(&Frame_PlayGame);
-  ZFrame_FontFrame Frame_Options;
-    ZVector2f Options_Size;
-    Frame_Options.SetDisplayText((char *)"OPTIONS");
+
+	Frame_Options.SetDisplayText((char *)"OPTIONS");
     Frame_Options.SetStyle(GameEnv->TileSetStyles->GetStyle(1));
     Frame_Options.GetTextDisplaySize(&Options_Size);
     Frame_Options.SetPosition(GameEnv->ScreenResolution.x / 2.0f - Options_Size.x / 2.0f, GameEnv->ScreenResolution.y / 1.64f + 32.0f );
@@ -84,8 +78,6 @@ ULong ZScreen_Main::ProcessScreen(ZGame * GameEnv)
 
     TitleBackground.AddFrame(&Frame_Options);
 
-  ZFrame_FontFrame Frame_Quit;
-    ZVector2f Frame_Size;
     Frame_Quit.SetDisplayText((char *)"QUIT");
     Frame_Quit.SetStyle(GameEnv->TileSetStyles->GetStyle(1));
     Frame_Quit.GetTextDisplaySize(&Frame_Size);
@@ -97,15 +89,17 @@ ULong ZScreen_Main::ProcessScreen(ZGame * GameEnv)
 
     TitleBackground.AddFrame(&Frame_Quit);
   //printf("FrameAdress : %lx\n",(unsigned int)&Frame_PlayGame);
-
-  for (Loop = true; Loop; )
+  }
+//  for (Loop = true; Loop; )
   {
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+  //  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     glAlphaFunc(GL_GREATER, 0.2f);
     glEnable(GL_ALPHA_TEST);
     glEnable(GL_TEXTURE_2D);
-    Loop = GameEnv->EventManager.ProcessEvents();
+    //Loop = GameEnv->EventManager.ProcessEvents();
+	Loop = true;
 
+	ResultCode = CHOICE_NONE;
     if (Frame_PlayGame.Is_MouseIn() )   { Frame_PlayGame.SetColor(0.5f,0.5f,1.0f); }
     if (Frame_PlayGame.Is_MouseOut())   { Frame_PlayGame.SetColor(1.0f,1.0f,1.0f); }
     if (Frame_Options.Is_MouseIn() )    { Frame_Options.SetColor(0.5f,0.5f,1.0f); }
@@ -116,11 +110,16 @@ ULong ZScreen_Main::ProcessScreen(ZGame * GameEnv)
     if (Frame_Options.Is_MouseClick())  {Loop = false; ResultCode = CHOICE_OPTIONS; }
     if (Frame_Quit.Is_MouseClick())     {Loop = false; ResultCode = CHOICE_QUIT; }
     GameEnv->GuiManager.Render();
+	/*
     //SDL_GL_SwapBuffers( );
 	SDL_GL_SwapWindow(GameEnv->screen);
 	SDL_Delay(10);
-
+	*/
   }
-  GameEnv->GuiManager.RemoveAllFrames();
+
+  //if( !GameEnv->Menu_Up )
+  //	  GameEnv->GuiManager.RemoveAllFrames();
+  
+
   return(ResultCode);
 }

@@ -155,9 +155,231 @@
 #endif
 
 ZGame * Ge;
+ZScreen_Main *pSM;
+bool *pSM_Continue;
+bool *pStartGame;
+bool *pGameContinue;
+
 double FrameTime;
 
 
+
+static PTRSZVAL OnInit3d( "BlackVoxel" )(PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+{
+	return 1;
+}
+
+static void OnFirstDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
+{
+	int result;
+	//result = Init_GraphicMode(InitLog.Sec(1030));        if (!result) return;//(false);
+	{
+		_32 w, h;
+		GetDisplaySize( &w, &h );
+		Ge->HardwareResolution.x
+			= Ge->ScreenResolution.x = w;
+		Ge->HardwareResolution.y 
+			= Ge->ScreenResolution.y = h;
+		Ge->Initialized_GraphicMode = true;
+		Ge->Init_Glew( Ge->InitLog.Sec(1040) );
+	    result = Ge->Init_GuiManager(Ge->InitLog.Sec(1090));         if (!result) return;
+		result = Ge->Init_TileSetsAndFonts(Ge->InitLog.Sec(1100));   if (!result) return;
+    
+	}
+	result = Ge->Init_Renderer(Ge->InitLog.Sec(1110));           
+	//if (!result) return(false);
+}
+
+static void OnBeginDraw3d("BlackVoxel")( PTRSZVAL psvInit, PTRANSFORM camera )
+{
+	int n;
+	if( Ge->Basic_Renderer->Camera )
+	for( n = 0; n < 16; n++ )
+		((float*)camera)[n] = Ge->Basic_Renderer->Camera->orientation.m[0][n];
+	//Set Ge->Basic_Renderer->Camera->orientation.quat();
+}
+
+			ZScreen_ChooseOption Screen_ChooseOption;
+          ZScreen_SlotSelection Screen_SlotSelection;
+		          ZScreen_Loading Screen_Loading;
+ ZScreen_Options_Display Screen_Options_Display;
+ ZScreen_Options_Sound Screen_Options_Sound;    
+ ZScreen_Options_Game Screen_Options_Mouse;     
+ZScreen_Options_Keymap Screen_Options_Keymap;   
+
+static void OnDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
+{
+	ULong Result;
+	switch( Ge->page_up )
+	{
+	case 0:
+        Result = pSM->ProcessScreen(Ge);
+        switch(Result)
+        {
+          case ZScreen_Main::CHOICE_QUIT:     // Quit the game
+
+                                              (*pGameContinue) = false;
+                                              (*pStartGame) = false;
+                                              (*pSM_Continue) = false;
+                                              break;
+
+          case ZScreen_Main::CHOICE_OPTIONS:  // Option Section
+												Ge->page_up = PAGE_SETTINGS;
+                                              break;
+
+          case ZScreen_Main::CHOICE_PLAYGAME: // Play the game
+                                              (*pSM_Continue) = false;
+											  Ge->page_up = PAGE_SELECT_UNIVERSE;
+								  				
+
+                                              break;
+        }
+		break;
+	case PAGE_SETTINGS:
+		{
+			Screen_ChooseOption.ProcessScreen(Ge);
+			switch( Screen_ChooseOption.ResultCode )
+			{
+			case ZScreen_ChooseOption::CHOICE_QUIT:  { Ge->page_up = PAGE_MAIN_MENU; break; }
+			case ZScreen_ChooseOption::CHOICE_DISPLAY:  { Ge->page_up = PAGE_SETTINGS_DISPLAY; break; }
+				case ZScreen_ChooseOption::CHOICE_SOUND:    { Ge->page_up = PAGE_SETTINGS_SOUND;   break; }
+				case ZScreen_ChooseOption::CHOICE_MOUSE:    {Ge->page_up = PAGE_SETTINGS_MOUSE;  break; }
+				case ZScreen_ChooseOption::CHOICE_KEYMAP:  {Ge->page_up = PAGE_SETTINGS_KEYMAP;  break; }
+			}
+		}
+		break;
+	case PAGE_SETTINGS_DISPLAY:
+		 { Screen_Options_Display.ProcessScreen(Ge); break; }
+	case PAGE_SETTINGS_SOUND:
+		 { Screen_Options_Sound.ProcessScreen(Ge);   break; }
+	case PAGE_SETTINGS_MOUSE:
+		 {Screen_Options_Mouse.ProcessScreen(Ge);   break; }
+	case PAGE_SETTINGS_KEYMAP:
+		{  Screen_Options_Keymap.ProcessScreen(Ge);  break; }
+	case PAGE_GAME_WORLD_1:
+		if( Ge->prior_page_up != Ge->page_up )
+		{
+			Ge->prior_page_up = Ge->page_up;
+			Ge->GuiManager.RemoveAllFrames();
+		}
+		break;
+	case PAGE_SELECT_UNIVERSE:
+
+          Ge->UniverseNum = Screen_SlotSelection.ProcessScreen(Ge);
+		  if( Ge->UniverseNum )
+			  Ge->page_up = PAGE_LOADING_SCREEN;
+		break;
+	case PAGE_LOADING_SCREEN:
+
+          Screen_Loading.ProcessScreen(Ge);
+           (*pStartGame) = true;
+
+		break;
+	}
+
+
+	if( Ge->Game_Run  )
+	{
+		// Rendering
+		if( Ge && Ge->Basic_Renderer )
+		{
+            Ge->GameWindow_Advertising->Advertising_Actions((double)FrameTime);
+            Ge->ToolManager->ProcessAndDisplay();
+				Ge->Basic_Renderer->Render( true );
+		//if( Ge && Ge->Gui )
+				Ge->GuiManager.Render();
+		}
+	}
+}
+
+static LOGICAL OnKey3d( "BlackVoxel" )( PTRSZVAL psvInit, _32 key )
+{
+	bool used = false;
+		  ZListItem * Item;
+			if( ( KEY_CODE( key ) >= 'A' && KEY_CODE( key )<= 'Z' ) )
+				key |= 0x20;
+			else if( KEY_CODE(key) >= KEY_F1 && KEY_CODE(key) <= KEY_F12 )
+			{
+				key += (  SDL_SCANCODE_F1 - KEY_F1);
+			}
+			if ((Item = Ge->EventManager.ConsumerList.GetFirst()))
+			do
+			{
+				if( key & KEY_PRESSED )
+					used = ((ZEventConsumer *)Item->Object)->KeyDown( KEY_CODE( key ) );
+				else
+					used = ((ZEventConsumer *)Item->Object)->KeyUp( KEY_CODE( key ) );
+
+			} while((Item = Ge->EventManager.ConsumerList.GetNext(Item)));
+			return used;
+}
+
+static LOGICAL OnMouse3d( "BlackVoxel" )( PTRSZVAL psvInit, PRAY mouse_ray, S_32 MouseX, S_32 MouseY, _32 b ) 
+{
+	//Ge->EventManager.ConsumerList
+	{
+		  ZListItem * Item;
+
+		  static int in_mouse;
+			static S_32 _x, _y;
+			static _32 _b;
+			int delx, dely;
+			if( in_mouse )
+				return 0;
+			in_mouse = 1;
+			delx = _x - MouseX;
+			dely = _y - MouseY;
+			_x = MouseX;
+			_y = MouseY;
+			if ((Item = Ge->EventManager.ConsumerList.GetFirst()))
+			do
+			{
+				if( delx || dely )
+				{
+					((ZEventConsumer *)Item->Object)->MouseMove(delx, dely, MouseX,MouseY);
+				}
+
+				if( b & MK_SCROLL_LEFT )
+							((ZEventConsumer *)Item->Object)->MouseButtonClick( 7, MouseX, MouseY);
+				if( b & MK_SCROLL_RIGHT )
+							((ZEventConsumer *)Item->Object)->MouseButtonClick( 6, MouseX, MouseY);
+				if( b & MK_SCROLL_UP )
+							((ZEventConsumer *)Item->Object)->MouseButtonClick( 4, MouseX, MouseY);
+				if( b & MK_SCROLL_DOWN )
+							((ZEventConsumer *)Item->Object)->MouseButtonClick( 5, MouseX, MouseY);
+
+
+				if( ( b & MK_LBUTTON ) && !( _b & MK_LBUTTON ) )
+					((ZEventConsumer *)Item->Object)->MouseButtonClick( 1, MouseX, MouseY );
+				if( ( b & MK_RBUTTON ) && !( _b & MK_RBUTTON ) )
+					((ZEventConsumer *)Item->Object)->MouseButtonClick( 3, MouseX, MouseY );
+				if( ( b & MK_MBUTTON ) && !( _b & MK_MBUTTON ) )
+					((ZEventConsumer *)Item->Object)->MouseButtonClick( 2, MouseX, MouseY );
+
+				if( !( b & MK_LBUTTON ) && ( _b & MK_LBUTTON ) )
+					((ZEventConsumer *)Item->Object)->MouseButtonRelease( 1, MouseX, MouseY );
+				if( !( b & MK_RBUTTON ) && ( _b & MK_RBUTTON ) )
+					((ZEventConsumer *)Item->Object)->MouseButtonRelease( 3, MouseX, MouseY );
+				if( !( b & MK_MBUTTON ) && ( _b & MK_MBUTTON ) )
+					((ZEventConsumer *)Item->Object)->MouseButtonRelease( 2, MouseX, MouseY );
+
+			} while((Item = Ge->EventManager.ConsumerList.GetNext(Item)));
+			if( Ge->Mouse_relative )
+			{
+				SetMousePosition( NULL, _x = Ge->ScreenResolution.x/2, _y = Ge->ScreenResolution.y/2 );
+			}
+			else
+			{
+				_x = MouseX;
+				_y = MouseY;
+			}
+			_b = b;
+			in_mouse = 0;
+	}
+
+
+	return 0;
+}
 
 
 SaneWinMain( argc, argv )
@@ -165,8 +387,7 @@ SaneWinMain( argc, argv )
 {
   ULong Result;
   bool StartGame;
-
-  // Windows Terminal Fix
+  pStartGame = &StartGame;
 
   #ifdef ZENV_OS_WINDOWS
     Windows_DisplayConsole();
@@ -186,12 +407,16 @@ SaneWinMain( argc, argv )
   // Game main object
 
     ZGame GameEnv;
+
     Ge = &GameEnv;
 
+	bool use_external_render = true;
   // Main Game Object Initialisation
 
     if (!GameEnv.Init()) return(-10);
 
+  // Windows Terminal Fix
+  RestoreDisplayEx( NULL DBG_SRC );
   // Debug output for manufacturing compositions
 
     #if COMPILEOPTION_FABDATABASEOUTPUT == 1
@@ -200,6 +425,8 @@ SaneWinMain( argc, argv )
     #endif
 
   // Game Menu Loop
+	  bool GameContinue;
+	  pGameContinue = &GameContinue;
 
     for ( bool GameContinue = true; GameContinue ; )
     {
@@ -209,47 +436,59 @@ SaneWinMain( argc, argv )
       // ***************************************** Main Title Screen ****************************************************
 
       //SDL_ShowCursor(SDL_ENABLE);
+	  GameEnv.Mouse_relative = false;
       SDL_WM_GrabInput(SDL_GRAB_OFF);
 
       ZScreen_Main Screen_Main;
+	  bool ScreenTitle_Continue = true;
+	  pSM = &Screen_Main;
+	  pSM_Continue = &ScreenTitle_Continue;
 
-      for ( bool ScreenTitle_Continue = true; ScreenTitle_Continue ; )
+	  for ( ScreenTitle_Continue = true; !GameEnv.UniverseNum || !StartGame || ScreenTitle_Continue ; )
       {
         // Display Main Screen and wait user choice;
+		  if( use_external_render )
+		  {
+			  MSG msg;
+				if( PeekMessage(&msg, NULL, 0, 0, PM_REMOVE ) )
+					DispatchMessage(&msg);
+		  }
+		  else
+		  {
+			Result = Screen_Main.ProcessScreen(&GameEnv);
 
-        Result = Screen_Main.ProcessScreen(&GameEnv);
+			switch(Result)
+			{
+			  case ZScreen_Main::CHOICE_QUIT:     // Quit the game
 
-        switch(Result)
-        {
-          case ZScreen_Main::CHOICE_QUIT:     // Quit the game
+												  GameContinue = false;
+												  StartGame = false;
+												  ScreenTitle_Continue = false;
+												  break;
 
-                                              GameContinue = false;
-                                              StartGame = false;
-                                              ScreenTitle_Continue = false;
-                                              break;
+			  case ZScreen_Main::CHOICE_OPTIONS:  // Option Section
+												  {
+													ZScreen_ChooseOption Screen_ChooseOption;
+													do
+													{
+													  Screen_ChooseOption.ProcessScreen(&GameEnv);
+													  switch( Screen_ChooseOption.ResultCode )
+													  {
+														case ZScreen_ChooseOption::CHOICE_DISPLAY:  { ZScreen_Options_Display Screen_Options_Display; Screen_Options_Display.ProcessScreen(&GameEnv); break; }
+														case ZScreen_ChooseOption::CHOICE_SOUND:    { ZScreen_Options_Sound Screen_Options_Sound;     Screen_Options_Sound.ProcessScreen(&GameEnv);   break; }
+														case ZScreen_ChooseOption::CHOICE_MOUSE:    { ZScreen_Options_Game Screen_Options_Mouse;     Screen_Options_Mouse.ProcessScreen(&GameEnv);   break; }
+														case ZScreen_ChooseOption::CHOICE_KEYMAP:  { ZScreen_Options_Keymap Screen_Options_Keymap;    Screen_Options_Keymap.ProcessScreen(&GameEnv);  break; }
+													  }
+													} while (Screen_ChooseOption.ResultCode != ZScreen_ChooseOption::CHOICE_QUIT);
+												  }
+												  break;
 
-          case ZScreen_Main::CHOICE_OPTIONS:  // Option Section
-                                              {
-                                                ZScreen_ChooseOption Screen_ChooseOption;
-                                                do
-                                                {
-                                                  Screen_ChooseOption.ProcessScreen(&GameEnv);
-                                                  switch( Screen_ChooseOption.ResultCode )
-                                                  {
-                                                    case ZScreen_ChooseOption::CHOICE_DISPLAY:  { ZScreen_Options_Display Screen_Options_Display; Screen_Options_Display.ProcessScreen(&GameEnv); break; }
-                                                    case ZScreen_ChooseOption::CHOICE_SOUND:    { ZScreen_Options_Sound Screen_Options_Sound;     Screen_Options_Sound.ProcessScreen(&GameEnv);   break; }
-                                                    case ZScreen_ChooseOption::CHOICE_MOUSE:    { ZScreen_Options_Game Screen_Options_Mouse;     Screen_Options_Mouse.ProcessScreen(&GameEnv);   break; }
-                                                    case ZScreen_ChooseOption::CHOICE_KEYMAP:  { ZScreen_Options_Keymap Screen_Options_Keymap;    Screen_Options_Keymap.ProcessScreen(&GameEnv);  break; }
-                                                  }
-                                                } while (Screen_ChooseOption.ResultCode != ZScreen_ChooseOption::CHOICE_QUIT);
-                                              }
-                                              break;
-
-          case ZScreen_Main::CHOICE_PLAYGAME: // Play the game
-                                              StartGame = true;
-                                              ScreenTitle_Continue = false;
-                                              break;
-        }
+			  case ZScreen_Main::CHOICE_PLAYGAME: // Play the game
+												  StartGame = true;
+												  ScreenTitle_Continue = false;
+												  break;
+			}
+		  }
       }
 
 
@@ -259,6 +498,8 @@ SaneWinMain( argc, argv )
       if (StartGame)
       {
 
+		  if( !use_external_render )
+		  {
         // ****************************** Slot Selection screen ******************************
 
           ZScreen_SlotSelection Screen_SlotSelection;
@@ -272,7 +513,7 @@ SaneWinMain( argc, argv )
           Screen_Loading.ProcessScreen(&GameEnv);
 
           //     ***************************** THE GAME ******************************
-
+		  }
           // Starting procedure
 
           if (!GameEnv.Start_Game()) {printf("Start Game Failled\n"); exit(0);}
@@ -283,6 +524,7 @@ SaneWinMain( argc, argv )
           {
             SDL_ShowCursor(SDL_DISABLE);
 			SDL_WM_GrabInput(SDL_GRAB_ON);
+			  GameEnv.Mouse_relative = true;
           }
 
           // Pre-Gameloop Initialisations.
@@ -299,6 +541,8 @@ SaneWinMain( argc, argv )
 
           GameEnv.Game_Run = true;
           GameEnv.Time_FrameTime = 20;
+		  GameEnv.page_up = PAGE_GAME_WORLD_1;
+		  GameEnv.Mouse_relative = true;
           while (GameEnv.Game_Run)
           {
 //            Time_Start = SDL_GetTicks();
@@ -306,7 +550,7 @@ SaneWinMain( argc, argv )
 
             // Process Input events (Mouse, Keyboard)
 
-            GameEnv.EventManager.ProcessEvents();       // Process incoming events.
+            //GameEnv.EventManager.ProcessEvents();       // Process incoming events.
             GameEnv.Game_Events->Process_StillEvents(); // Process repeating checked events.
 
             // Process incoming sectors from the make/load working thread
@@ -329,6 +573,9 @@ SaneWinMain( argc, argv )
 
             GameEnv.World->ProcessOldEjectedSectors();
 
+
+			if( !use_external_render )
+			{
             // Advertising messages
 
             GameEnv.GameWindow_Advertising->Advertising_Actions((double)FrameTime);
@@ -338,13 +585,15 @@ SaneWinMain( argc, argv )
             GameEnv.ToolManager->ProcessAndDisplay();
 
             // Rendering
+				GameEnv.Basic_Renderer->Render( false );
+				GameEnv.GuiManager.Render();
 
-            GameEnv.Basic_Renderer->Render();
-            GameEnv.GuiManager.Render();
+				// Swapping OpenGL Surfaces.
 
-            // Swapping OpenGL Surfaces.
-
-            SDL_GL_SwapWindow( GameEnv.screen );
+				SDL_GL_SwapWindow( GameEnv.screen );
+			}
+			else
+				WakeableSleep( 50 );
 
             // Game Events.
 
@@ -379,6 +628,8 @@ SaneWinMain( argc, argv )
 				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.pitch(); 
 				As<<  " " ;
 				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.roll(); 
+				As<<  " " ;
+				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.m[0][0]; 
 				GameEnv.GameWindow_DisplayInfos->SetText2( &As );
               }
             }

@@ -229,7 +229,9 @@ TYPELIB_PROC  PTRSZVAL TYPELIB_CALLTYPE     ForAllLinks    ( PLIST *pList, ForPr
 /* <combine sack::containers::list::DeleteListEx@PLIST *plist>
    
    \ \                                                         */
-#define DeleteList(p)      ( DeleteListEx( (p) DBG_SRC ) )
+#ifndef FIX_RELEASE_COM_COLLISION
+#  define DeleteList(p)      ( DeleteListEx( (p) DBG_SRC ) )
+#endif
 /* Adds a pointer to a user object to a list.
    Example
    <code lang="c++">

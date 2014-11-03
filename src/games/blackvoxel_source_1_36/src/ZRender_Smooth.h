@@ -116,7 +116,7 @@ private:
     void MakeSectorRenderingData(ZVoxelSector * Sector);
     void MakeSectorRenderingData_Sorted(ZVoxelSector * Sector);
 public:
-    void Render();
+    void Render( bool use_external_matrix );
 	 ZVoxelCuller *GetCuller( void )
 	 {
        return voxelCuller;

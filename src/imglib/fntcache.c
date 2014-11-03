@@ -211,18 +211,18 @@ void CPROC DestroyFontEntry( PFONT_ENTRY pfe, TEXTCHAR *key )
 			{
 				Deallocate( PSIZES, size );
 			}
-			DeleteList( &psf->sizes );
+			DeleteListEx( &psf->sizes DBG_SRC );
 			LIST_FORALL( psf->pAlternate, idx, PALT_SIZE_FILE, pasf )
 			{
 				Deallocate( PALT_SIZE_FILE, pasf );
 			}
-			DeleteList( &psf->pAlternate );
+			DeleteListEx( &psf->pAlternate DBG_SRC );
 			Deallocate( PSIZE_FILE, psf );
 		}
-		DeleteList( &pfs->files );
+		DeleteListEx( &pfs->files DBG_SRC );
 		Deallocate( PFONT_STYLE, pfs );
 	}
-	DeleteList( &pfe->styles );
+	DeleteListEx( &pfe->styles DBG_SRC );
 	Deallocate( PFONT_ENTRY, pfe );
 }
 

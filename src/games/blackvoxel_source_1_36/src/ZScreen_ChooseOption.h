@@ -60,6 +60,18 @@
 
 class ZScreen_ChooseOption : public ZScreen
 {
+	      ZFrame_FontFrame Frame_MainTitle;
+      ZFrame Frame_1;
+      ZFrame_FontFrame FontFrame_1;
+      ZFrame Frame_2;
+      ZFrame_FontFrame FontFrame_2;
+
+      ZFrame Frame_3;
+      ZFrame_FontFrame FontFrame_3;
+        ZFrame Frame_4;
+        ZFrame_FontFrame FontFrame_4;
+         ZTileFrame Quit;
+
   public:
     enum {CHOICE_QUIT, CHOICE_DISPLAY, CHOICE_SOUND, CHOICE_MOUSE, CHOICE_KEYMAP};
     virtual ULong ProcessScreen(ZGame * GameEnv);

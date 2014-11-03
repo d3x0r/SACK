@@ -44,6 +44,9 @@
 
 class ZScreen_Loading: public ZScreen
 {
+	  ZFrame_FontFrame Frame_Loading;
+    ZVector2f Loading_Size;
+
   public:
     // enum {};
     virtual ULong ProcessScreen(ZGame * GameEnv);

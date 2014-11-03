@@ -747,7 +747,7 @@ bool SetVoxel_WithCullingUpdate(ZVoxelWorld *world, ZVoxelSector *sector, Long x
 
 
 
-void ZRender_Basic::Render()
+void ZRender_Basic::Render( bool use_external_matrix )
 {
 
   ZHighPerfTimer Timer;
@@ -772,7 +772,8 @@ void ZRender_Basic::Render()
 
    ZGameStat * Stat = GameEnv->GameStat;
 
-
+   if( !Stat )
+	   return;
 
   // Precomputing values for faster math
 
@@ -826,10 +827,12 @@ void ZRender_Basic::Render()
 
    Frustum_CullingLimit = ((Frustum_H > Frustum_V) ? Frustum_H : Frustum_V) * Optimisation_FCullingFactor;
 
-
-   glMatrixMode(GL_PROJECTION);
-   glLoadIdentity();
-   glFrustum(Frustum_H, -Frustum_H, -Frustum_V, Frustum_V, FocusDistance, 1000000.0); // Official Way
+   if( !use_external_matrix )
+   {
+	   glMatrixMode(GL_PROJECTION);
+	   glLoadIdentity();
+	   glFrustum(Frustum_H, -Frustum_H, -Frustum_V, Frustum_V, FocusDistance, 1000000.0); // Official Way
+   }
 // glFrustum(50.0, -50.0, -31.0, 31.0, 50.0, 1000000.0); // Official Way
 
     // glFrustum(165.0, -165.0, -31.0, 31.0, 50.0, 1000000.0); // Eyefinity setting.
@@ -837,6 +840,8 @@ void ZRender_Basic::Render()
 
   // Objects of the world are translated and rotated to position camera at the right place.
 
+   if( !use_external_matrix )
+   {
     glMatrixMode(GL_MODELVIEW);
     //glLoadIdentity();
 	glLoadMatrixd( Camera->orientation.glMatrix() );
@@ -847,8 +852,9 @@ void ZRender_Basic::Render()
     //glTranslatef(-(float)Camera->x,-(float)Camera->y,-(float)Camera->z);
 
   // Clearing FrameBuffer and Z-Buffer
-
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+   }
+
     glAlphaFunc(GL_GREATER, 0.2);
     glEnable(GL_ALPHA_TEST);
 
@@ -981,6 +987,8 @@ void ZRender_Basic::Render()
                 #endif
 
                 glCallList( ((ZRender_Interface_displaydata *)Sector->DisplayData)->DisplayList_Regular );
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror: %d\n", x );}
                 Stat->SectorRender_Count++;RenderedSectors++;
 
                 #if COMPILEOPTION_FINETIMINGTRACKING == 1
@@ -1025,6 +1033,8 @@ void ZRender_Basic::Render()
               #endif
 
               glCallList( ((ZRender_Interface_displaydata *)Sector->DisplayData)->DisplayList_Transparent );
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror: %d\n", x );}
               Stat->SectorRender_Count++;
 
               #if COMPILEOPTION_FINETIMINGTRACKING == 1
@@ -1057,7 +1067,7 @@ void ZRender_Basic::Render()
     // Debug ****************************************************
 
     ZVector3d Norm, Tmp;
-    Norm.x = 0; Norm.y = 0; Norm.z = -1;
+    Norm.x = 0; Norm.y = 0; Norm.z = 1;
 	Camera->orientation.ApplyRotation( Tmp, Norm );
     // X axis rotation
     //Tmp.y = Norm.y * cos(-Camera->Pitch/57.295779513) - Norm.z * sin(-Camera->Pitch/57.295779513);
@@ -1073,7 +1083,7 @@ void ZRender_Basic::Render()
     In.MaxCubeIterations = 150;
     In.MaxDetectionDistance = 1536;//1000000.0;
 
-    ZVector3d CamPoint(Camera->x(),Camera->y(),Camera->z());
+    //ZVector3d CamPoint(Camera->x(),Camera->y(),Camera->z());
     ZVector3d Zp;
     Zp = PointedVoxel->CollisionPoint; Zp.y = PointedVoxel->CollisionPoint.y + 100.0;
 
@@ -1088,7 +1098,7 @@ void ZRender_Basic::Render()
 	  else
 	  {
 		  ZVector3d a = Camera->orientation.origin() +
-			  Camera->orientation.z_axis() * ( GlobalSettings.VoxelBlockSize * -(Actor->VoxelSelectDistance) );
+			  Camera->orientation.z_axis() * ( GlobalSettings.VoxelBlockSize * (Actor->VoxelSelectDistance) );
 		  //In.MaxCubeIterations = 6;
 
 		  ZVoxelRef *v = World->GetVoxelRefPlayerCoord( a.x, a.y, a.z );
@@ -1270,6 +1280,9 @@ void ZRender_Basic::MakeSectorRenderingData(ZVoxelSector * Sector)
             {
               // glTexEnvf(0x8500 /* TEXTURE_FILTER_CONTROL_EXT */, 0x8501 /* TEXTURE_LOD_BIAS_EXT */,VoxelTypeManager->VoxelTable[cube]->TextureLodBias);
               if (cube != prevcube) glBindTexture(GL_TEXTURE_2D, VoxelTypeManager->VoxelTable[cube]->OpenGl_TextureRef);
+			  				{ int x; if( x = glGetError() ) 
+					printf( "glerror: %d\n", x );}
+
               prevcube = cube;
               cubx = (float)(x*GlobalSettings.VoxelBlockSize + Sector_Display_x);
               cuby = (float)(y*GlobalSettings.VoxelBlockSize + Sector_Display_y);
@@ -1439,7 +1452,8 @@ void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
   // Render sorter action
 
   RenderSorter.ProcessSector(Sector);
-  if (!RenderSorter.GetBucketCount()) return;
+  if (!RenderSorter.GetBucketCount()) 
+	  return;
 
   // Check what blocktypes
 
@@ -1507,6 +1521,8 @@ void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
 
         // glTexEnvf(0x8500 /* TEXTURE_FILTER_CONTROL_EXT */, 0x8501 /* TEXTURE_LOD_BIAS_EXT */,VoxelTypeManager->VoxelTable[VoxelType]->TextureLodBias);
         if (VoxelType != prevVoxelType) glBindTexture(GL_TEXTURE_2D, VoxelTypeManager->VoxelTable[VoxelType]->OpenGl_TextureRef);
+			  				{ int x; if( x = glGetError() ) 
+					printf( "glerror: %d\n", x );}
         prevVoxelType = VoxelType;
         cubx = (float)(x*GlobalSettings.VoxelBlockSize + Sector_Display_x);
         cuby = (float)(y*GlobalSettings.VoxelBlockSize + Sector_Display_y);

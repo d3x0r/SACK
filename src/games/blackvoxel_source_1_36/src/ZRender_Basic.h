@@ -119,7 +119,7 @@ public:
        return voxelCuller;
 	 }
 
-    void Render();
+    void Render( bool use_external_matrix );
 };
 
 
