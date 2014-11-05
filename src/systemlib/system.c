@@ -1632,7 +1632,7 @@ CTEXTSTR GetProgramName( void )
 #ifdef __ANDROID__
 	return program_name;
 #else
-	if( !local_systemlib || l.filename )
+	if( !local_systemlib || !l.filename )
 	{
 		SystemInit();
 		if( !l.filename )
