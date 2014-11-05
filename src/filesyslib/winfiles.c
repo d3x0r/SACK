@@ -1160,11 +1160,12 @@ int  sack_fflush ( FILE *file_file )
 	file = FindFileByFILE( file_file );
 	if( file && file->fsi )
 	{
-		DeleteLink( &file->files, file_file );
-		file->fsi->close( file_file );
-		file_file = (FILE*)file->fsi->open( file->fullname );
-		AddLink( &file->files, file_file );
-		return 0;
+		return file->fsi->flush( file_file );
+		//DeleteLink( &file->files, file_file );
+		//file->fsi->close( file_file );
+		//file_file = (FILE*)file->fsi->open( file->fullname );
+		//AddLink( &file->files, file_file );
+		//return 0;
 	}
 	return fflush( file_file );
 }
@@ -1204,7 +1205,7 @@ int  sack_fclose ( FILE *file_file )
 {
 	struct file *file;
 	file = FindFileByFILE( file_file );
-	if( file->fsi )
+	if( file && file->fsi )
 		return file->fsi->write( file_file, (const char*)buffer, size * count );
 	return fwrite( (POINTER)buffer, size, count, file_file );
 }

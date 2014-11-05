@@ -220,7 +220,7 @@ POBJECT TestMouseObject( POBJECT po, PRAY mouse, PFACET *face, PVECTOR vmin, RCO
 }
 
 
-static LOGICAL OnMouse3d( WIDE("Virtuality") )( PTRSZVAL psvView, PRAY mouse, _32 b )
+static LOGICAL OnMouse3d( WIDE("Virtuality") )( PTRSZVAL psvView, PRAY mouse, S_32 x, S_32 y, _32 b )
 //int CPROC ViewMouse( PTRSZVAL dwView, S_32 x, S_32 y, _32 b )
 {
    VIEW *v = (VIEW*)psvView;

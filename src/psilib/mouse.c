@@ -457,20 +457,40 @@ void ReleaseCommonUse( PSI_CONTROL pc )
 
 
 //---------------------------------------------------------------------------
-
+#ifdef __cplusplus 
+}
+#endif
 void OwnCommonMouse( PSI_CONTROL pc, int bOwn )
 {
 	PSI_CONTROL pfc = GetFrame( pc );
 	PPHYSICAL_DEVICE pf = pfc->device;
-#ifdef DETAILED_MOUSE_DEBUG
-	if( g.flags.bLogDetailedMouse )
+//#ifdef DETAILED_MOUSE_DEBUG
+//	if( g.flags.bLogDetailedMouse )
 		lprintf( WIDE( "Own Common Mouse called on %p %s" ), pc, bOwn?WIDE( "OWN" ):WIDE( "release" ) );
-#endif
-	pf->pCurrent = pc;
-	pf->flags.bCurrentOwns = bOwn;
-	pf->flags.bApplicationOwned = bOwn;
+//#endif
+	if( pf )
+	{
+		if( ( !bOwn && ( pf->flags.bCurrentOwns ) )
+			|| ( bOwn && !( pf->flags.bCurrentOwns ) ) )
+		{
+			lprintf( WIDE( "Own Common Mouse performed on %p %s" ), pc, bOwn?WIDE( "OWN" ):WIDE( "release" ) );
+			pf->pCurrent = pc;
+			pf->flags.bCurrentOwns = bOwn;
+			pf->flags.bApplicationOwned = bOwn;
+			OwnMouse( pf->pActImg, bOwn );
+		}
+		else if( bOwn && ( pf->pCurrent != pc ) )
+		{
+			lprintf( "overlapping mouse own" );
+			OwnCommonMouse( pf->pCurrent, FALSE );
+			OwnCommonMouse( pc, TRUE );
+		}
+	}
 }
 
+#ifdef __cplusplus 
+namespace _mouse {
+#endif
 //---------------------------------------------------------------------------
 
 void AddWaitEx( PSI_CONTROL pc DBG_PASS )
@@ -648,7 +668,8 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 					lprintf( WIDE("Setting focus...") );
 #endif
 				SetCommonFocus( pc );
-				pf->flags.bCurrentOwns = TRUE;
+				OwnCommonMouse( pc, TRUE );
+				//pf->flags.bCurrentOwns = TRUE;
 			}
 			// and now - what about editing controls?
 			// now that we have the mouse within a current
@@ -899,6 +920,7 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 		if( g.flags.bLogDetailedMouse )
 			lprintf( WIDE("left is not down...") );
 #endif
+		OwnCommonMouse( pc, 0 );
 		if( ( x > pc->surface_rect.x && x < ( pc->surface_rect.x + pc->surface_rect.width ) )
 			&& ( y > pc->surface_rect.y && y < ( pc->surface_rect.y + pc->surface_rect.height ) ) )
 		{
@@ -960,6 +982,7 @@ int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, S_32 x, S_32 y, _32 b, int bCall
 		int frame_height = FrameBorderYOfs( pc, pc->BorderType, NULL );
 
 		 //Log( WIDE("No control, and last state was not pressed.") );
+		OwnCommonMouse( pc, 1 );
 #ifdef DETAILED_MOUSE_DEBUG
 		if( g.flags.bLogDetailedMouse )
 			lprintf( WIDE("First left down (%d,%d) %08x"), x, y , b );
@@ -1645,15 +1668,13 @@ int IsMouseInCurrent( PSI_CONTROL pfc, S_32 x, S_32 y, _32 is_surface, _32 b )
 						lprintf( WIDE("Found a control %p"), pc );
 #endif
 				}
+#ifdef DETAILED_MOUSE_DEBUG
 				else
 				{
-#ifdef DETAILED_MOUSE_DEBUG
 					if( g.flags.bLogDetailedMouse )
-						lprintf( WIDE("no control found...") );
-#endif
-					//if( pf->common->BorderType & BORDER_WANTMOUSE )
-					//InvokeMouseMethod( pfc, x, y, b );
+						lprintf( WIDE("no sub-control found...") );
 				}
+#endif
 			}
 			else
 			{
@@ -1794,30 +1815,28 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 			lprintf( WIDE( "Current owns flag is set?" ) );
 #endif
 		result = InvokeMouseMethod( pc, x, y, b );
-		pf = pc->device;
-		if( pf && !pf->flags.bApplicationOwned && BREAK_LASTBUTTON( b, pf->_b ) )
+		if( pf = pc->device )
 		{
+			if( pf->flags.bApplicationOwned && BREAK_LASTBUTTON( b, pf->_b ) )
+			{
 #ifdef DETAILED_MOUSE_DEBUG
-			if( g.flags.bLogDetailedMouse )
-				lprintf( WIDE("Well current no longer owns mouse..") );
+				if( g.flags.bLogDetailedMouse )
+					lprintf( WIDE("Well current no longer owns mouse..") );
 #endif
-			pf->flags.bCurrentOwns = FALSE;
+				OwnCommonMouse( pc, FALSE );
+			}
+			else
+			{
+#ifdef DETAILED_MOUSE_DEBUG
+				if( g.flags.bLogDetailedMouse )
+					lprintf( WIDE("Returning early... still owned...") );
+#endif
+			}
 			pf->_b = b;
-			// no longer owned, but event was already dispatched.
-			DeleteUse( pc );
-			return result;
 		}
-		else
-		{
-#ifdef DETAILED_MOUSE_DEBUG
-			if( g.flags.bLogDetailedMouse )
-				lprintf( WIDE("Returning early... still owned...") );
-#endif
-			if( pf )
-				pf->_b = b;
-			DeleteUse( pc );
-			return result;
-		}
+		// no longer owned, but event was already dispatched.
+		DeleteUse( pc );
+		return result;
 	}
 	if( !pf->flags.bSizing 
 		&& !pf->flags.bDragging
@@ -1845,7 +1864,8 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 				lprintf( WIDE("Setting current owns...") );
 			}
 #endif
-			pf->flags.bCurrentOwns = TRUE;
+			OwnCommonMouse( pf->pCurrent, TRUE );
+			//pf->flags.bCurrentOwns = TRUE;
 			SetCommonFocus( pf->pCurrent );
 		}
 	retry1:
@@ -1918,7 +1938,8 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 					if( g.flags.bLogDetailedMouse )
 						lprintf( WIDE("Setting current owns...") );
 #endif
-					pf->flags.bCurrentOwns = TRUE;
+					OwnCommonMouse( pc, TRUE );
+					//pf->flags.bCurrentOwns = TRUE;
 					SetCommonFocus( pf->pCurrent );
 				}
 			retry:
@@ -1977,7 +1998,8 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 					if( g.flags.bLogDetailedMouse )
 						lprintf( WIDE("Setting current owns...") );
 #endif
-					pf->flags.bCurrentOwns = TRUE;
+					OwnCommonMouse( pc, TRUE );
+					//pf->flags.bCurrentOwns = TRUE;
 					SetCommonFocus( pf->pCurrent );
 				}
 			retry3:

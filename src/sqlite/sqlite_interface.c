@@ -162,13 +162,7 @@ int xSync(sqlite3_file*file, int flags)
 #ifdef LOG_OPERATIONS
 	lprintf( "Sync on %s", my_file->filename );
 #endif
-	if( my_file->fsi )
-	{
-		sack_fclose( my_file->file );
-		my_file->file = sack_fsopenEx( 0, my_file->filename, "rb+", _SH_DENYNO, my_file->fsi  );
-	}
-	else
-		sack_fflush( my_file->file );
+	sack_fflush( my_file->file );
 	/* noop */
 	return SQLITE_OK;
 }

@@ -74,7 +74,7 @@
 #endif
 
 // this is safe to leave on.
-#define LOG_ORDERING_REFOCUS
+//#define LOG_ORDERING_REFOCUS
 
 //#define LOG_MOUSE_EVENTS
 //#define LOG_RECT_UPDATE
@@ -366,7 +366,7 @@ LOGICAL CreateDrawingSurface (PVIDEO hVideo)
 
 	lprintf( WIDE( "Set transform at %d,%d" ), hVideo->pWindowPos.x, hVideo->pWindowPos.y );
 	Translate( hVideo->transform, hVideo->pWindowPos.x, hVideo->pWindowPos.y, 0 );
-
+	RotateAbs( hVideo->transform, 0, 0, M_PI );
 	// additionally indicate that this is a GL render point
 	hVideo->pImage->flags |= IF_FLAG_FINAL_RENDER;
 	return TRUE;
@@ -407,10 +407,14 @@ void DoDestroy (PVIDEO hVideo)
 		//hVideo->flags.bReady = FALSE;
       // unlink from the stack of windows...
 		UnlinkVideo (hVideo);
-		if( l.hCaptured == hVideo )
+		if( l.hCapturedMousePhysical == hVideo )
 		{
 			l.hCapturedPrior = NULL;
-			l.hCaptured = NULL;
+			l.hCapturedMousePhysical = NULL;
+		}
+		if( l.hCapturedMouseLogical = hVideo )
+		{
+			l.hCapturedMouseLogical = NULL;
 		}
 		//Log (WIDE( "Cleared hVideo - is NOW !bReady" ));
 		if( !hVideo->flags.event_dispatched )
@@ -1621,11 +1625,8 @@ static void RenderGL( struct display_camera *camera )
 	GetGLCameraMatrix( camera->origin_camera, camera->hVidCore->fModelView );
 	glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
 
-	LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
-	{
-		if( reference->Draw3d )
-			reference->Draw3d( reference->psv );
-	}
+	//BeginVisPersp( camera );
+	//glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
 
 	for( hVideo = l.bottom; hVideo; hVideo = hVideo->pBelow )
 	{
@@ -1650,7 +1651,6 @@ static void RenderGL( struct display_camera *camera )
 		// should clear stensil buffer here so we can do remaining drawing only on polygon that's visible.
 		ClearImageTo( hVideo->pImage, 0 );
 		glDisable(GL_DEPTH_TEST);							// Enables Depth Testing
-
 		if( hVideo->pRedrawCallback )
 			hVideo->pRedrawCallback( hVideo->dwRedrawData, (PRENDERER)hVideo );
 
@@ -1664,7 +1664,15 @@ static void RenderGL( struct display_camera *camera )
 		}
 		// allow draw3d code to assume depth testing
 		glEnable( GL_DEPTH_TEST );
+		glColor3d( 1.0, 1.0, 1.0 );
 	}
+
+	LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
+	{
+		if( reference->Draw3d )
+			reference->Draw3d( reference->psv );
+	}
+
 
 	if( l.flags.bLogRenderTiming )
 		lprintf( WIDE("Done external drawing") );
@@ -2454,7 +2462,7 @@ WM_DROPFILES
 		{
 			Return 0;
 		}
-		if( l.hCaptured )
+		if( l.hCapturedMousePhysical )
 		{
 #ifdef LOG_MOUSE_EVENTS
 			lprintf( WIDE("Captured mouse already - don't do anything?") );
@@ -2467,13 +2475,13 @@ WM_DROPFILES
 #ifdef LOG_MOUSE_EVENTS
 				lprintf( WIDE("Auto owning mouse to surface which had the mouse clicked DOWN.") );
 #endif
-				if( !l.hCaptured )
+				if( !l.hCapturedMousePhysical )
 					SetCapture( hWnd );
 			}
 			else if( ( (l.mouse_b & (MK_LBUTTON|MK_RBUTTON|MK_MBUTTON)) == 0 ) )
 			{
 				//lprintf( WIDE("Auto release mouse from surface which had the mouse unclicked.") );
-				if( !l.hCaptured )
+				if( !l.hCapturedMousePhysical )
 					ReleaseCapture();
 			}
 		}
@@ -2485,8 +2493,8 @@ WM_DROPFILES
 #ifdef LOG_MOUSE_EVENTS
 			lprintf( WIDE("Mouse position %d,%d"), p.x, p.y );
 #endif
-			p.x -= (dx =(l.hCaptured?l.hCaptured:hVideo)->cursor_bias.x);
-			p.y -= (dy=(l.hCaptured?l.hCaptured:hVideo)->cursor_bias.y);
+			p.x -= (dx =(l.hCapturedMousePhysical?l.hCapturedMousePhysical:hVideo)->cursor_bias.x);
+			p.y -= (dy=(l.hCapturedMousePhysical?l.hCapturedMousePhysical:hVideo)->cursor_bias.y);
 #ifdef LOG_MOUSE_EVENTS
 			lprintf( WIDE("Mouse position results %d,%d %d,%d"), dx, dy, p.x, p.y );
 #endif
@@ -2542,11 +2550,11 @@ WM_DROPFILES
 #endif
 			}
 			l.mouse_last_vid = hVideo;
+#ifdef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
 			msg[0] = (_32)(l.hCaptured?l.hCaptured:hVideo);
 			msg[1] = l.mouse_x;
 			msg[2] = l.mouse_y;
 			msg[3] = l.mouse_b;
-#ifdef USE_IPC_MESSAGE_QUEUE_TO_GATHER_EVENTS
 #ifdef LOG_MOUSE_EVENTS
 			lprintf( WIDE("Generate mouse message %p(%p?) %d %d,%08x %d+%d=%d"), l.hCaptured, hVideo, l.mouse_x, l.mouse_y, l.mouse_b, l.dwMsgBase, MSG_MouseMethod, l.dwMsgBase + MSG_MouseMethod );
 #endif
@@ -3359,26 +3367,13 @@ static int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 	{
 		UpdateMouseRay( camera );
 
-		{
-			INDEX idx;
-			struct plugin_reference *ref;
-			LIST_FORALL( camera->plugins, idx, struct plugin_reference *, ref )
-			{
-				if( ref->Mouse3d )
-				{
-					used = ref->Mouse3d( ref->psv, &camera->mouse_ray, x, y, b );
-					if( used )
-						break;
-				}
-			}
-		}
 
 		if( !used )
 		for( check = l.top; check ;check = check->pAbove)
 		{
 			VECTOR target_point;
-			if( l.hCaptured )
-				if( check != l.hCaptured )
+			if( l.hCapturedMouseLogical )
+				if( check != l.hCapturedMouseLogical )
 					continue;
 			if( check->flags.bHidden || (!check->flags.bShown) )
 				continue;
@@ -3418,7 +3413,7 @@ static int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 				 //  	 , check->pWindowPos.x+ check->pWindowPos.cx
 				 //  	 , check->pWindowPos.y+ check->pWindowPos.cy );
 
-				if( check == l.hCaptured ||
+				if( check == l.hCapturedMouseLogical ||
 					( ( newx >= 0 && newx < (check->pWindowPos.cx ) )
 					 && ( newy >= 0 && newy < (check->pWindowPos.cy ) ) ) )
 				{
@@ -3426,7 +3421,6 @@ static int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 					{
 						if( l.flags.bLogMouseEvent )
 							lprintf( WIDE("Sent Mouse Proper. %d,%d %08x"), newx, newy, l.mouse_b );
-						//InverseOpenGLMouse( camera, check, newx, newy, NULL, NULL );
 						l.current_mouse_event_camera = camera;
 						used = check->pMouseCallback( check->dwMouseData
 													, newx
@@ -3436,6 +3430,21 @@ static int CPROC OpenGLMouse( PTRSZVAL psvMouse, S_32 x, S_32 y, _32 b )
 						if( used )
 							break;
 					}
+				}
+			}
+		}
+		if( !used )
+		{
+			INDEX idx;
+			struct plugin_reference *ref;
+			LIST_FORALL( camera->plugins, idx, struct plugin_reference *, ref )
+			{
+				if( ref->Mouse3d )
+				{
+					//lprintf( "send mouse : %d %d", x, y );
+					used = ref->Mouse3d( ref->psv, &camera->mouse_ray, x, y, b );
+					if( used )
+						break;
 				}
 			}
 		}
@@ -4751,12 +4760,12 @@ void  MoveDisplay (PVIDEO hVideo, S_32 x, S_32 y)
 		{
 			hVideo->pWindowPos.x = x;
 			hVideo->pWindowPos.y = y;
-			Translate( hVideo->transform, x, y, 0.0 );
-			if( hVideo->flags.bShown )
-			{
+			Translate( hVideo->transform, -x, -y, 0.0 );
+			//if( hVideo->flags.bShown )
+			//{
 				// layered window requires layered output to be called to move the display.
-				UpdateDisplay( hVideo );
-			}
+			//	UpdateDisplay( hVideo );
+			//}
 		}
 	}
 }
@@ -5081,10 +5090,15 @@ void  HideDisplay (PVIDEO hVideo)
 //#endif
 	if( hVideo )
 	{
-		if( l.hCaptured == hVideo )
+		if( l.hCapturedMouseLogical == hVideo )
 		{
 			l.hCapturedPrior = NULL;
-			l.hCaptured = NULL;
+			l.hCapturedMouseLogical = NULL;
+		}
+		if( l.hCapturedMousePhysical == hVideo )
+		{
+			l.hCapturedPrior = NULL;
+			l.hCapturedMousePhysical = NULL;
 		}
 		hVideo->flags.bHidden = 1;
 		if( hVideo->pHideCallback )
@@ -5208,6 +5222,12 @@ void  GetDisplaySize (_32 * width, _32 * height)
 		struct display_camera * camera;
 		LIST_FORALL( l.cameras, idx, struct display_camera *, camera )
 		{	
+			if( (struct display_camera*)1 == camera )
+			{
+				Relinquish();
+				idx == -1;
+				continue;
+			}
 			if( width )
 				(*width) = camera->w;
 			if( height )
@@ -5233,13 +5253,21 @@ void  GetDisplayPosition (PVIDEO hVid, S_32 * x, S_32 * y,
 	{
 		int posx = 0;
 		int posy = 0;
+		if( hVid && ( hVid->hWndOutput != (HWND)1 ) )
 		{
 			WINDOWINFO wi;
 			wi.cbSize = sizeof( wi);
 			
-			GetWindowInfo( hVid->hWndOutput, &wi ); 
-			posx += wi.rcClient.left;
-			posy += wi.rcClient.top;
+			if( GetWindowInfo( hVid->hWndOutput, &wi ) )
+			{
+				posx += wi.rcClient.left;
+				posy += wi.rcClient.top;
+			}
+		}
+		else
+		{
+			posx = hVid->pWindowPos.x;
+			posy = hVid->pWindowPos.y;
 		}
 		if (x)
 			*x = posx;
@@ -5307,42 +5335,59 @@ void  OwnMouseEx (PVIDEO hVideo, _32 own DBG_PASS)
 {
 	if (own)
 	{
-		lprintf( WIDE("Capture is set on %p"),hVideo );
-		if( !l.hCaptured )
+		if( !hVideo )
 		{
-			l.hCaptured = hVideo;
+			hVideo = l.mouse_last_vid;
+			l.hCapturedMousePhysical = hVideo;
 			hVideo->flags.bCaptured = 1;
 			SetCapture (hVideo->hWndOutput);
 		}
 		else
 		{
-			if( l.hCaptured != hVideo )
+			lprintf( WIDE("Capture is set on %p"),hVideo );
+			if( !l.hCapturedMouseLogical )
 			{
-				lprintf( WIDE("Another window now wants to capture the mouse... the prior window will ahve the capture stolen.") );
-				l.hCaptured = hVideo;
+				l.hCapturedMouseLogical = hVideo;
 				hVideo->flags.bCaptured = 1;
-				SetCapture (hVideo->hWndOutput);
 			}
 			else
 			{
-				if( !hVideo->flags.bCaptured )
+				if( l.hCapturedMouseLogical != hVideo )
 				{
-					lprintf( WIDE("This should NEVER happen!") );
-               *(int*)0 = 0;
+					lprintf( WIDE("Another window now wants to capture the mouse... the prior window will ahve the capture stolen.") );
+					l.hCapturedMouseLogical = hVideo;
+					hVideo->flags.bCaptured = 1;
+					SetCapture (hVideo->hWndOutput);
 				}
-				// should already have the capture...
+				else
+				{
+					if( !hVideo->flags.bCaptured )
+					{
+						lprintf( WIDE("This should NEVER happen!") );
+						*(int*)0 = 0;
+					}
+					// should already have the capture...
+				}
 			}
 		}
 	}
 	else
 	{
-		if( l.hCaptured == hVideo )
+		if( !hVideo )
 		{
-			lprintf( WIDE("No more capture.") );
-			//ReleaseCapture ();
-			hVideo->flags.bCaptured = 0;
-			l.hCapturedPrior = NULL;
-			l.hCaptured = NULL;
+			l.hCapturedMousePhysical = NULL;
+			ReleaseCapture();
+		}
+		else
+		{
+			if( l.hCapturedMouseLogical == hVideo )
+			{
+				//lprintf( WIDE("No more capture.") );
+				//ReleaseCapture ();
+				hVideo->flags.bCaptured = 0;
+				l.hCapturedPrior = NULL;
+				l.hCapturedMouseLogical = NULL;
+			}
 		}
 	}
 }

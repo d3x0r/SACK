@@ -176,7 +176,8 @@ extern
 	PVIDEO hVideoPool;      // linked list of active windows
 	PVIDEO hVidPhysicalFocused;  // this is the physical renderer with focus
 	PVIDEO hVidVirtualFocused;   // this is the virtual window (application surface) with focus
-	PVIDEO hCaptured;
+	PVIDEO hCapturedMousePhysical;
+	PVIDEO hCapturedMouseLogical;
 	PVIDEO hCapturedPrior; // to track reset when unused mouse event happens on a layered frame
    struct plugin_reference *hPluginKeyCapture; // used to track focus of key events to plugin modules
 	// kbd.key == KeyboardState
