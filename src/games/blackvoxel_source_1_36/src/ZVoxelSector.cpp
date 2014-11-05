@@ -229,6 +229,7 @@ void ZVoxelSector::InitSector()
   ZoneVersion = 0;
   GeneratorVersion = 0;
   RingNum = 65535;
+  Culling = 0;
 
   for(i=0;i<DataSize;i++) OtherInfos[i] = 0;
   for (i=0;i<DataSize;i++) TempInfos[i] = 273+20;

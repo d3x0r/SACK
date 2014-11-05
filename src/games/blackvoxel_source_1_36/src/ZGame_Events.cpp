@@ -71,7 +71,7 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
 	case SDLK_p & 0xFF:
                   if (COMPILEOPTION_DEBUGFACILITY)
                   {
-                    if (Keyboard_Matrix[SDLK_LSHIFT])
+                    if (Keyboard_Matrix[SDLK_LSHIFT &0xFF])
                     {
                       ZStream_SpecialRamStream RamStream;
                       ZStream_File             OutStream;

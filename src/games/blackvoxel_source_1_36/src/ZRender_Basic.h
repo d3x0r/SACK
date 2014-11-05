@@ -59,11 +59,11 @@ public:
 	 void InitFaceCullData( ZVoxelSector *sector );
 
    // if not internal, then is meant to cull the outside edges of the sector
-	 void CullSector( ZVoxelSector *sector, bool internal );
+	 void CullSector( ZVoxelSector *sector, bool internal, int interesting_faces );
 	// void CullSectorInternal( ZVoxelSector *sector );
 	// void CullSectorEdges( ZVoxelSector *sector );
 
-	 void CullSingleVoxel( ZVoxelSector *sector, int x, int y, int z );
+	 void CullSingleVoxel( int x, int y, int z );
  	ULong getFaceCulling( ZVoxelSector *Sector, int offset );
 	void setFaceCulling( ZVoxelSector *Sector, int offset, ULong value );
 	bool Decompress_RLE( ZVoxelSector *Sector,  void * Stream);

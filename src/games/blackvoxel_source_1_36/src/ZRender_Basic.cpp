@@ -50,6 +50,225 @@ void ZVoxelCuller_Basic::InitFaceCullData( ZVoxelSector *Sector )
 	memset( Sector->Culling, 0, sizeof( UByte ) * Sector->DataSize );
 }
 
+
+
+static UShort ExtFaceStateTable[][8] =
+{
+  { // State 0: Clear = no FullOpaque = no TranspRend = no
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 1: Clear = yes FullOpaque = no TranspRend = no
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend =  Long Sector_x,Sector_y,Sector_z; 1
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 2: Clear = no FullOpaque = yes TranspRend = no
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    0   , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    0   , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    0   , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 3 : Clear = yes FullOpaque = yes TranspRend = no
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 4 : Clear = no FullOpaque = no TranspRend = yes
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    0   , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    0   , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 5: Clear = yes FullOpaque = no TranspRend = yes
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 6: Clear = no FullOpaque = yes TranspRend = yes
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    0   , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    0   , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 7: Clear = yes FullOpaque = yes TranspRend = yes
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  }
+};
+
+static UShort IntFaceStateTable[][8] =
+{
+  { // State 0: Clear = no FullOpaque = no TranspRend = no
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 1: Clear = yes FullOpaque = no TranspRend = no
+    0   , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    0   , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    0   , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    0   , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 2: Clear = no FullOpaque = yes TranspRend = no
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    0   , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 3 : Clear = yes FullOpaque = yes TranspRend = no
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 4 : Clear = no FullOpaque = no TranspRend = yes
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    0   , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    0   , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 5: Clear = yes FullOpaque = no TranspRend = yes
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 6: Clear = no FullOpaque = yes TranspRend = yes
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 7: Clear = yes FullOpaque = yes TranspRend = yes
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  }
+};
+
+
 void SectorUpdateFaceCulling(ZVoxelWorld *world, ZVoxelSector *Sector, bool Isolated)
 {
   ZVoxelSector * SectorTable[27];
@@ -169,8 +388,7 @@ void SectorUpdateFaceCulling(ZVoxelWorld *world, ZVoxelSector *Sector, bool Isol
         info = 0;
         if (BlocMatrix[1][4] > 0)
         {
-			extern UShort IntFaceStateTable[][8];
-
+			
           MainVoxelDrawInfo = VoxelTypeTable[BlocMatrix[1][4]]->DrawInfo;
           UShort * SubTable = (UShort *)&IntFaceStateTable[MainVoxelDrawInfo];
 
@@ -217,7 +435,7 @@ ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, 
   UByte * VoxelFC_In;
   int x, y, z;
   UByte FaceState;
-  extern UShort IntFaceStateTable[][8];
+  //extern UShort IntFaceStateTable[][8];
 
   x = Sector->Pos_x;
   y = Sector->Pos_y;
@@ -417,11 +635,18 @@ ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, 
       }
       CuledFaces |= DRAWFACE_BEHIND;
     }
+    Sector->PartialCulling ^= CuledFaces & (DRAWFACE_ABOVE | DRAWFACE_BELOW | DRAWFACE_LEFT | DRAWFACE_RIGHT | DRAWFACE_AHEAD | DRAWFACE_BEHIND);
+    Sector->PartialCulling &= (DRAWFACE_ABOVE | DRAWFACE_BELOW | DRAWFACE_LEFT | DRAWFACE_RIGHT | DRAWFACE_AHEAD | DRAWFACE_BEHIND);
+    if (CuledFaces) 
+	{
+		for( int r = 0; r < 6; r++ )
+			Sector->Flag_Render_Dirty[r] = true;
+	}
 
   return(CuledFaces);
 }
 
-void ZVoxelCuller_Basic::CullSector( ZVoxelSector *Sector, bool internal )
+void ZVoxelCuller_Basic::CullSector( ZVoxelSector *Sector, bool internal, int interesting_faces )
 {
 	if( internal )
 	{
@@ -429,11 +654,126 @@ void ZVoxelCuller_Basic::CullSector( ZVoxelSector *Sector, bool internal )
 	}
 	else
 	{
+		SectorUpdateFaceCulling_Partial( world, Sector, interesting_faces, false );
+
 	}
 }
 
-void ZVoxelCuller_Basic::CullSingleVoxel( ZVoxelSector *Sector, int x, int y, int z )
+
+
+
+void ZVoxelCuller_Basic::CullSingleVoxel( int x, int y, int z )
 {
+
+//bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort VoxelValue, UByte ImportanceFactor, bool CreateExtension, VoxelLocation * Location)
+//{
+  UShort * Voxel_Address[19];
+  ULong  Offset[19];
+  UByte * FaceCulling_Address[19];
+  UShort VoxelState[19];
+  UShort Voxel;
+  ZVoxelSector * Sector[19];
+  ZVoxelType ** VoxelTypeTable;
+  ZVoxelType * VoxelType;
+
+  UShort * ExtFaceState;
+  UShort * IntFaceState;
+  ZMemSize OtherInfos;
+
+  VoxelTypeTable = world->VoxelTypeManager->VoxelTable;
+
+  // Fetching sectors
+
+  if ( 0== (Sector[VOXEL_INCENTER]= world->FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y)     >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) return;
+  if ( 0== (Sector[VOXEL_LEFT]    = world->FindSector( (x-1) >> ZVOXELBLOCSHIFT_X , (y)     >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_LEFT]    = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_RIGHT]   = world->FindSector( (x+1) >> ZVOXELBLOCSHIFT_X , (y)     >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_RIGHT]   = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_INFRONT] = world->FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y)     >> ZVOXELBLOCSHIFT_Y , (z-1) >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_INFRONT] = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_BEHIND]  = world->FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y)     >> ZVOXELBLOCSHIFT_Y , (z+1) >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_BEHIND]  = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_ABOVE]   = world->FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y + 1) >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_ABOVE]   = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_BELOW]   = world->FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y - 1) >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_BELOW]   = world->WorkingScratchSector;
+
+  // Computing memory offsets from sector start
+
+  Offset[VOXEL_LEFT]     = (y & ZVOXELBLOCMASK_Y)       + ( ((x - 1) & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y ) + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_RIGHT]    = (y & ZVOXELBLOCMASK_Y)       + ( ((x + 1) & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y ) + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_INFRONT]  = (y & ZVOXELBLOCMASK_Y)       + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z - 1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_BEHIND]   = (y & ZVOXELBLOCMASK_Y)       + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z + 1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_ABOVE]    = ((y + 1) & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_BELOW]    = ((y - 1) & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_INCENTER] = (y & ZVOXELBLOCMASK_Y)       + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+
+  // Computing absolute memory pointer of blocks
+  for( int i = 0; i < 6; i++ )
+  {
+	Voxel_Address[i]     = Sector[i]->Data + Offset[i];
+	FaceCulling_Address[i]     = (UByte*)Sector[i]->Culling + Offset[i];
+    Voxel = *Voxel_Address[i];    VoxelType = VoxelTypeTable[Voxel];
+      VoxelState[i] = ( (Voxel==0) ? 1 : 0) 
+		     | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) 
+			 | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
+  }
+	Voxel_Address[VOXEL_INCENTER]     = Sector[VOXEL_INCENTER]->Data + Offset[VOXEL_INCENTER];
+	FaceCulling_Address[VOXEL_INCENTER]     = (UByte*)Sector[VOXEL_INCENTER]->Culling + Offset[VOXEL_INCENTER];
+    Voxel = *Voxel_Address[VOXEL_INCENTER];    VoxelType = VoxelTypeTable[Voxel];
+      VoxelState[VOXEL_INCENTER] = ( (Voxel==0) ? 1 : 0) 
+		     | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) 
+			 | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
+
+  Voxel = *Voxel_Address[VOXEL_INCENTER];
+  OtherInfos = *(Sector[VOXEL_INCENTER]->OtherInfos + Offset[VOXEL_INCENTER]);
+
+  if (OtherInfos)
+  {
+    VoxelType = VoxelTypeTable[Voxel];
+    if (VoxelType->Is_HasAllocatedMemoryExtension) VoxelType->DeleteVoxelExtension(OtherInfos);
+  }
+
+  // Storing Extension
+
+  VoxelType = VoxelTypeTable[*Voxel_Address[VOXEL_INCENTER]];
+
+  // Storing Voxel
+
+  if (VoxelTypeTable[*Voxel_Address[VOXEL_INCENTER]]->Is_Active) Sector[VOXEL_INCENTER]->Flag_IsActiveVoxels = true;
+
+  // Getting case subtables.
+
+  ExtFaceState = &ExtFaceStateTable[VoxelState[VOXEL_INCENTER]][0];
+  IntFaceState = &IntFaceStateTable[VoxelState[VOXEL_INCENTER]][0];
+
+  // Computing face culling for center main stored voxel.
+
+  *FaceCulling_Address[VOXEL_INCENTER] =   (IntFaceState[VoxelState[VOXEL_LEFT]]   & DRAWFACE_LEFT)
+                                         | (IntFaceState[VoxelState[VOXEL_RIGHT]]   & DRAWFACE_RIGHT)
+                                         | (IntFaceState[VoxelState[VOXEL_INFRONT]] & DRAWFACE_AHEAD)
+                                         | (IntFaceState[VoxelState[VOXEL_BEHIND]]  & DRAWFACE_BEHIND)
+                                         | (IntFaceState[VoxelState[VOXEL_ABOVE]]   & DRAWFACE_ABOVE)
+                                         | (IntFaceState[VoxelState[VOXEL_BELOW]]   & DRAWFACE_BELOW)
+										 ;
+
+  // Computing face culling for nearboring voxels faces touching center voxel.
+
+  *FaceCulling_Address[VOXEL_LEFT]    &= DRAWFACE_ALL_BITS ^ DRAWFACE_RIGHT;  *FaceCulling_Address[VOXEL_LEFT]    |= ExtFaceState[ VoxelState[VOXEL_LEFT]   ]  & DRAWFACE_RIGHT;
+  *FaceCulling_Address[VOXEL_RIGHT]   &= DRAWFACE_ALL_BITS ^ DRAWFACE_LEFT;   *FaceCulling_Address[VOXEL_RIGHT]   |= ExtFaceState[ VoxelState[VOXEL_RIGHT]  ]  & DRAWFACE_LEFT;
+  *FaceCulling_Address[VOXEL_INFRONT] &= DRAWFACE_ALL_BITS ^ DRAWFACE_BEHIND; *FaceCulling_Address[VOXEL_INFRONT] |= ExtFaceState[ VoxelState[VOXEL_INFRONT]]  & DRAWFACE_BEHIND;
+  *FaceCulling_Address[VOXEL_BEHIND]  &= DRAWFACE_ALL_BITS ^ DRAWFACE_AHEAD;  *FaceCulling_Address[VOXEL_BEHIND]  |= ExtFaceState[ VoxelState[VOXEL_BEHIND] ]  & DRAWFACE_AHEAD;
+  *FaceCulling_Address[VOXEL_ABOVE]   &= DRAWFACE_ALL_BITS ^ DRAWFACE_BELOW;  *FaceCulling_Address[VOXEL_ABOVE]   |= ExtFaceState[ VoxelState[VOXEL_ABOVE]  ]  & DRAWFACE_BELOW;
+  *FaceCulling_Address[VOXEL_BELOW]   &= DRAWFACE_ALL_BITS ^ DRAWFACE_ABOVE;  *FaceCulling_Address[VOXEL_BELOW]   |= ExtFaceState[ VoxelState[VOXEL_BELOW]  ]  & DRAWFACE_ABOVE;
+
+  // printf("State[Center]:%x [Left]%x [Right]%x [INFRONT]%x [BEHIND]%x [ABOVE]%x [BELOW]%x\n",VoxelState[VOXEL_INCENTER],VoxelState[VOXEL_LEFT],VoxelState[VOXEL_RIGHT],VoxelState[VOXEL_INFRONT],VoxelState[VOXEL_BEHIND],VoxelState[VOXEL_ABOVE],VoxelState[VOXEL_BELOW]);
+
+  // Updating sector status rendering flag status
+  for( int i = 0; i < 6; i++ )
+  {
+	  for( int r = 0; r < 6; r++ )
+			Sector[i]->Flag_Render_Dirty[r] = true;
+  }
+  {
+	  int i = VOXEL_INCENTER;
+	  for( int r = 0; r < 6; r++ )
+			Sector[i]->Flag_Render_Dirty[r] = true;
+  }
+
 }
 
 bool ZVoxelCuller_Basic::Decompress_RLE(ZVoxelSector *Sector,  void * Stream)
@@ -532,8 +872,6 @@ bool SetVoxel_WithCullingUpdate(ZVoxelWorld *world, ZVoxelSector *sector, Long x
   UShort * ExtFaceState;
   UShort * IntFaceState;
   ZMemSize OtherInfos;
-	extern UShort ExtFaceStateTable[][8];
-	extern UShort IntFaceStateTable[][8];
   VoxelTypeTable = world->VoxelTypeManager->VoxelTable;
 
   // Fetching sectors
@@ -820,29 +1158,25 @@ void ZRender_Basic::Render( bool use_external_matrix )
 
   // Computing Frustum and Setting up Projection
 
-   Aspect_Ratio = ((double)ViewportResolution.x / (double)ViewportResolution.y) * PixelAspectRatio;
-   if (VerticalFOV < 5.0 ) VerticalFOV = 5.0;
-   if (VerticalFOV > 160.0 ) VerticalFOV = 160.0;
-   Frustum_V = tan(VerticalFOV / 2.0 * 0.017453293) * FocusDistance;
-   Frustum_H = Frustum_V * Aspect_Ratio;
-
-   Frustum_CullingLimit = ((Frustum_H > Frustum_V) ? Frustum_H : Frustum_V) * Optimisation_FCullingFactor;
+   //Frustum_CullingLimit = ((Frustum_H > Frustum_V) ? Frustum_H : Frustum_V) * Optimisation_FCullingFactor;
 
    if( !use_external_matrix )
    {
 	   glMatrixMode(GL_PROJECTION);
 	   glLoadIdentity();
-	   glFrustum(Frustum_H, -Frustum_H, -Frustum_V, Frustum_V, FocusDistance, 1000000.0); // Official Way
-   }
-// glFrustum(50.0, -50.0, -31.0, 31.0, 50.0, 1000000.0); // Official Way
 
-    // glFrustum(165.0, -165.0, -31.0, 31.0, 50.0, 1000000.0); // Eyefinity setting.
+	   Aspect_Ratio = ((double)ViewportResolution.x / (double)ViewportResolution.y) * PixelAspectRatio;
+	   if (VerticalFOV < 5.0 ) VerticalFOV = 5.0;
+	   if (VerticalFOV > 160.0 ) VerticalFOV = 160.0;
+		Frustum_V = tan(VerticalFOV / 2.0 * 0.017453293) * FocusDistance;
+		Frustum_H = Frustum_V * Aspect_Ratio;
+	   glFrustum(Frustum_H, -Frustum_H, -Frustum_V, Frustum_V, FocusDistance, 1000000.0); // Official Way
+		// glFrustum(50.0, -50.0, -31.0, 31.0, 50.0, 1000000.0); // Official Way
+		// glFrustum(165.0, -165.0, -31.0, 31.0, 50.0, 1000000.0); // Eyefinity setting.
 
 
   // Objects of the world are translated and rotated to position camera at the right place.
 
-   if( !use_external_matrix )
-   {
     glMatrixMode(GL_MODELVIEW);
     //glLoadIdentity();
 	glLoadMatrixd( Camera->orientation.glMatrix() );
@@ -856,8 +1190,10 @@ void ZRender_Basic::Render( bool use_external_matrix )
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
    }
 
-    glAlphaFunc(GL_GREATER, 0.2);
-    glEnable(GL_ALPHA_TEST);
+    //glAlphaFunc(GL_GREATER, 0.2);
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
+    //glEnable(GL_ALPHA_TEST);
 
     // Long Start_x,Start_y,Start_z;
     Long Sector_x,Sector_y, Sector_z;
@@ -979,17 +1315,19 @@ void ZRender_Basic::Render( bool use_external_matrix )
             if (   Sector->Flag_IsVisibleAtLastRendering
                 && (!Sector->Flag_Void_Regular)
                 && (Sector->DisplayData != 0)
-                && (((ZRender_Interface_displaydata *)Sector->DisplayData)->DisplayList_Regular != 0)
+                && (((ZRender_Interface_displaydata *)Sector->DisplayData)->DisplayList_Regular[current_gl_camera] != 0)
                 )
               {
 
                 #if COMPILEOPTION_FINETIMINGTRACKING == 1
                 Timer_SectorRefresh.Start();
                 #endif
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
 
                 glCallList( ((ZRender_Interface_displaydata *)Sector->DisplayData)->DisplayList_Regular[current_gl_camera] );
 				{ int x; if( x = glGetError() ) 
-					printf( "glerror: %d\n", x );}
+					printf( "glerror(%d): %d\n", __LINE__, x );}
                 Stat->SectorRender_Count++;RenderedSectors++;
 
                 #if COMPILEOPTION_FINETIMINGTRACKING == 1
@@ -1035,7 +1373,7 @@ void ZRender_Basic::Render( bool use_external_matrix )
 
               glCallList( ((ZRender_Interface_displaydata *)Sector->DisplayData)->DisplayList_Transparent[current_gl_camera] );
 				{ int x; if( x = glGetError() ) 
-					printf( "glerror: %d\n", x );}
+					printf( "glerror(%d): %d\n", __LINE__, x );}
               Stat->SectorRender_Count++;
 
               #if COMPILEOPTION_FINETIMINGTRACKING == 1
@@ -1127,6 +1465,8 @@ void ZRender_Basic::Render( bool use_external_matrix )
     gluOrtho2D(0, 1440, 900.0 , 0.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
 
     if (BvProp_CrossHairType==1 && BvProp_DisplayCrossHair)
     {
@@ -1138,6 +1478,8 @@ void ZRender_Basic::Render( bool use_external_matrix )
         glVertex3f(720.0f+1.0f, 450.0f-10.0f , 0.0f);
         glVertex3f(720.0f-1.0f, 450.0f-10.0f , 0.0f);
       glEnd();
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
 
       glBegin(GL_POLYGON);
         glColor3f(1.0,1.0,1.0);
@@ -1167,6 +1509,8 @@ void ZRender_Basic::Render( bool use_external_matrix )
       glEnable(GL_TEXTURE_2D);
     }
 
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
     // Voile coloré
 
     if (Camera->ColoredVision.Activate)
@@ -1184,6 +1528,8 @@ void ZRender_Basic::Render( bool use_external_matrix )
       glEnable(GL_TEXTURE_2D);
       glEnable(GL_DEPTH_TEST);
     }
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
 
 /*
     if (Camera->ColoredVision.Activate)
@@ -1281,8 +1627,8 @@ void ZRender_Basic::MakeSectorRenderingData(ZVoxelSector * Sector)
             {
               // glTexEnvf(0x8500 /* TEXTURE_FILTER_CONTROL_EXT */, 0x8501 /* TEXTURE_LOD_BIAS_EXT */,VoxelTypeManager->VoxelTable[cube]->TextureLodBias);
               if (cube != prevcube) glBindTexture(GL_TEXTURE_2D, VoxelTypeManager->VoxelTable[cube]->OpenGl_TextureRef[current_gl_camera]);
-			  				{ int x; if( x = glGetError() ) 
-					printf( "glerror: %d\n", x );}
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
 
               prevcube = cube;
               cubx = (float)(x*GlobalSettings.VoxelBlockSize + Sector_Display_x);
@@ -1314,6 +1660,8 @@ void ZRender_Basic::MakeSectorRenderingData(ZVoxelSector * Sector)
                   glTexCoord2f(0.25,0.25); glVertex3f(P4.x, P4.y, P4.z );
                 glEnd();
               }
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
 
               // Right
               if (info & DRAWFACE_RIGHT)
@@ -1330,6 +1678,8 @@ void ZRender_Basic::MakeSectorRenderingData(ZVoxelSector * Sector)
                 glEnd();
               }
 
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
               //Front
               if (info & DRAWFACE_AHEAD)
               {
@@ -1345,6 +1695,8 @@ void ZRender_Basic::MakeSectorRenderingData(ZVoxelSector * Sector)
                 glEnd();
               }
 
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
               //Back
               if (info & DRAWFACE_BEHIND)
               {
@@ -1360,6 +1712,8 @@ void ZRender_Basic::MakeSectorRenderingData(ZVoxelSector * Sector)
                 glEnd();
               }
 
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
               // Top
               if (info & DRAWFACE_ABOVE)
               {
@@ -1374,6 +1728,8 @@ void ZRender_Basic::MakeSectorRenderingData(ZVoxelSector * Sector)
                   glTexCoord2f(0.50,0.50); glVertex3f(P6.x, P6.y, P6.z );
                 glEnd();
               }
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
 
              // Bottom
              if (info & DRAWFACE_BELOW)
@@ -1391,11 +1747,15 @@ void ZRender_Basic::MakeSectorRenderingData(ZVoxelSector * Sector)
               }
             }
 
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
 
           }
         }
       }
       glEndList();
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
 
       // if in the first pass, the sector has no transparent block, the second pass is cancelled.
 
@@ -1523,7 +1883,7 @@ void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
         // glTexEnvf(0x8500 /* TEXTURE_FILTER_CONTROL_EXT */, 0x8501 /* TEXTURE_LOD_BIAS_EXT */,VoxelTypeManager->VoxelTable[VoxelType]->TextureLodBias);
 		if (VoxelType != prevVoxelType) glBindTexture(GL_TEXTURE_2D, VoxelTypeManager->VoxelTable[VoxelType]->OpenGl_TextureRef[current_gl_camera]);
 			  				{ int x; if( x = glGetError() ) 
-					printf( "glerror: %d\n", x );}
+					printf( "glerror(%d): %d\n", __LINE__, x );}
         prevVoxelType = VoxelType;
         cubx = (float)(x*GlobalSettings.VoxelBlockSize + Sector_Display_x);
         cuby = (float)(y*GlobalSettings.VoxelBlockSize + Sector_Display_y);
@@ -1554,6 +1914,8 @@ void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
             glTexCoord2f(0.25,0.25); glVertex3f(P4.x, P4.y, P4.z );
           glEnd();
         }
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
 
         // Right
         if (info & DRAWFACE_RIGHT)
@@ -1569,6 +1931,8 @@ void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
             glTexCoord2f(0.25,0.50); glVertex3f(P5.x, P5.y, P5.z );
           glEnd();
         }
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
 
         //Front
         if (info & DRAWFACE_AHEAD)
@@ -1584,6 +1948,8 @@ void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
             glTexCoord2f(0.0,0.25); glVertex3f(P0.x, P0.y, P0.z );
           glEnd();
         }
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
 
         //Back
         if (info & DRAWFACE_BEHIND)
@@ -1599,6 +1965,8 @@ void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
             glTexCoord2f(0.50,0.25); glVertex3f(P7.x, P7.y, P7.z );
           glEnd();
         }
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
 
         // Top
         if (info & DRAWFACE_ABOVE)
@@ -1614,6 +1982,8 @@ void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
             glTexCoord2f(0.50,0.50); glVertex3f(P6.x, P6.y, P6.z );
           glEnd();
         }
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
 
        // Bottom
        if (info & DRAWFACE_BELOW)
@@ -1629,11 +1999,15 @@ void ZRender_Basic::MakeSectorRenderingData_Sorted(ZVoxelSector * Sector)
            glTexCoord2f(0.75,0.50); glVertex3f(P2.x, P2.y, P2.z );
          glEnd();
         }
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
 
 
       }
     }
     glEndList();
+				{ int x; if( x = glGetError() ) 
+					printf( "glerror(%d): %d\n", __LINE__, x );}
   }
 }
 

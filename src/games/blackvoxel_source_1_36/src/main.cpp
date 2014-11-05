@@ -16,6 +16,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <CRTDBG.H>
+#include <logging.h>
+#include <pssql.h>
     #include <stdio.h>
     #include <stdlib.h>
     #include <time.h>
@@ -167,6 +170,7 @@ double FrameTime;
 static PTRSZVAL OnInit3d( "BlackVoxel" )(PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	Ge->display_index++;
+	Ge->sack_camera[Ge->display_index-1] = camera;
 	return Ge->display_index;
 }
 
@@ -195,8 +199,12 @@ static void OnBeginDraw3d("BlackVoxel")( PTRSZVAL psvInit, PTRANSFORM camera )
 {
 	int n;
 	if( Ge->Basic_Renderer->Camera )
-	for( n = 0; n < 16; n++ )
-		((float*)camera)[n] = Ge->Basic_Renderer->Camera->orientation.m[0][n];
+	{
+		for( n = 0; n < 16; n++ )
+			((float*)camera)[n] = Ge->Basic_Renderer->Camera->orientation.m[0][n];
+		for( n = 0; n < 16; n++ )
+			((float*)(Ge->sack_camera[psvInit-1]))[n] = Ge->Basic_Renderer->Camera->orientation.m[0][n];
+	}
 	//Set Ge->Basic_Renderer->Camera->orientation.quat();
 	Ge->Basic_Renderer->current_gl_camera = psvInit - 1;
 }
@@ -212,6 +220,12 @@ ZScreen_Options_Keymap Screen_Options_Keymap;
 static void OnDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
 {
 	ULong Result;
+	if( psvInit == 1 )
+	{
+		if( !Ge->frames )
+ 			Ge->frame_start = timeGetTime();
+		Ge->frames++;
+	}
 	switch( Ge->page_up )
 	{
 	case 0:
@@ -223,6 +237,7 @@ static void OnDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
                                               (*pGameContinue) = false;
                                               (*pStartGame) = false;
                                               (*pSM_Continue) = false;
+											  exit(0);
                                               break;
 
           case ZScreen_Main::CHOICE_OPTIONS:  // Option Section
@@ -371,12 +386,22 @@ static LOGICAL OnMouse3d( "BlackVoxel" )( PTRSZVAL psvInit, PRAY mouse_ray, S_32
 			} while((Item = Ge->EventManager.ConsumerList.GetNext(Item)));
 			if( Ge->Mouse_relative )
 			{
+				if( !Ge->Mouse_captured )
+				{
+					Ge->Mouse_captured = true;
+					OwnMouse( NULL, TRUE );
+				}
 				SetMousePosition( NULL, _x = Ge->ScreenResolution.x/2, _y = Ge->ScreenResolution.y/2 );
 			}
 			else
 			{
 				_x = MouseX;
 				_y = MouseY;
+				if( Ge->Mouse_captured )
+				{
+					Ge->Mouse_captured = false;
+					OwnMouse( NULL, FALSE );
+				}
 			}
 			_b = b;
 			in_mouse = 0;
@@ -385,7 +410,19 @@ static LOGICAL OnMouse3d( "BlackVoxel" )( PTRSZVAL psvInit, PRAY mouse_ray, S_32
 
 	return 0;
 }
-
+int CPROC YourAllocHook(int nAllocType, void *pvData,
+        size_t nSize, int nBlockUse, long lRequest,
+        const unsigned char * szFileName, int nLine )
+{
+	static int logging;
+	if( !logging )
+	{
+		logging = 1;
+	lprintf( "%s(%d): alloc %d %p %d", szFileName, nLine, nAllocType, pvData, nSize );
+	logging = 0;
+	}
+	return TRUE;
+}
 
 SaneWinMain( argc, argv )
 //int main(int argc, char *argv[])
@@ -397,7 +434,8 @@ SaneWinMain( argc, argv )
   #ifdef ZENV_OS_WINDOWS
     Windows_DisplayConsole();
   #endif
-
+	InvokeDeadstart();
+	//_CrtSetAllocHook( YourAllocHook );
   // Start
 
     printf ("Starting BlackVoxel...\n");
@@ -469,6 +507,7 @@ SaneWinMain( argc, argv )
 												  GameContinue = false;
 												  StartGame = false;
 												  ScreenTitle_Continue = false;
+												  exit(0);
 												  break;
 
 			  case ZScreen_Main::CHOICE_OPTIONS:  // Option Section
@@ -532,6 +571,12 @@ SaneWinMain( argc, argv )
 			  GameEnv.Mouse_relative = true;
           }
 
+	{
+		int (*EditOptions)( PODBC );
+		EditOptions = (int(*)(PODBC))LoadFunction( "EditOptions.plugin", "EditOptions" );
+		EditOptions(NULL);
+
+	}
           // Pre-Gameloop Initialisations.
 
           FrameTime = 20.0;
@@ -625,7 +670,9 @@ SaneWinMain( argc, argv )
                 ReadableDisplayCounter = 0.0;
                 ZString As;
 
-                As = "FPS: "; As << (ULong)( 1000.0 / FrameTime) << " FTM: " << FrameTime;
+				As = "FPS: "; As << (ULong)( 1000.0 * Ge->frames / ( timeGetTime() - Ge->frame_start )) << " FTM: " << FrameTime;
+				Ge->frame_start = timeGetTime();
+				Ge->frames = 0;
                 GameEnv.GameWindow_DisplayInfos->SetText(&As);
 				As = "Direction: "; 
 				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.yaw(); 
@@ -636,6 +683,15 @@ SaneWinMain( argc, argv )
 				As<<  " " ;
 				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.m[0][0]; 
 				GameEnv.GameWindow_DisplayInfos->SetText2( &As );
+				As = "Origin: "; 
+				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.origin().x; 
+				As<<  " " ;
+				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.origin().y; 
+				As<<  " " ;
+				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.origin().z; 
+				As<<  " " ;
+				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.m[0][0]; 
+				GameEnv.GameWindow_DisplayInfos->SetText3( &As );
               }
             }
           }

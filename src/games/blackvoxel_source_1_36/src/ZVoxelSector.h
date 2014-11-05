@@ -238,7 +238,7 @@ public:
 
     void SetVoxelTypeManager(ZVoxelTypeManager * VoxelTypeManager) { this->VoxelTypeManager = VoxelTypeManager; }
 
-    void ReinitSector() { CleanupSector(); InitSector(); }
+    void ReinitSector() { CleanupSector(); InitSector(); Culler->InitFaceCullData( this ); }
     void SetPos(Long x, Long y, Long z)
     {
       this->Pos_x = x;
