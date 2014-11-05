@@ -1794,6 +1794,10 @@ void ZActor_Player::DoPhysic_GroundPlayer(double CycleTime)
   space_empty = ZVoxelRef::ForEachVoxel( World, RealVoxel[16], RealVoxel[17], TestIsEmpty );
   if( !space_empty )
 	  space_empty = ZVoxelRef::ForEachVoxel( World, RealVoxel[16], RealVoxel[17], TestIsEmpty );
+   for (i=0;i<24;i++)
+  {
+    delete RealVoxel[i];
+  }
 
   if ( IsEmpty[16] && IsEmpty[17] && IsEmpty[18] && IsEmpty[19] ) IsOnGround = false;
   else                                                            IsOnGround = true;
@@ -1854,6 +1858,7 @@ void ZActor_Player::DoPhysic_GroundPlayer(double CycleTime)
       Event_Death();
 
     }
+
     return;
   }
 
@@ -2009,7 +2014,9 @@ void ZActor_Player::DoPhysic_GroundPlayer(double CycleTime)
   // ****
 
   Continue = true;
-  if ( (Dep.x == 0) && (Dep.y == 0) && (Dep.z == 0.0) ) { Continue = false; return; }
+  if ( (Dep.x == 0) && (Dep.y == 0) && (Dep.z == 0.0) ) { Continue = false; 
+
+	return; }
 
   // printf("Loc: %lf %lf %lf\n",ViewDirection.origin().x,ViewDirection.origin().y,ViewDirection.origin().z);
 
@@ -2081,6 +2088,7 @@ void ZActor_Player::DoPhysic_GroundPlayer(double CycleTime)
   else               {if (WalkSoundHandle != 0) { GameEnv->Sound->Stop_PlaySound(WalkSoundHandle); WalkSoundHandle = 0; }}
 
   #endif
+
 }
 
 void ZActor_Player::DoPhysic_SupermanPlayer(double CycleTime)
@@ -2457,7 +2465,10 @@ void ZActor_Player::Action_GoForward()
     case 1:
              // ViewDirection.pitch+=0.1; if (ViewDirection.pitch >=360.0) ViewDirection.pitch-= 360.0;
              break;
-    case 2:  if (IsDead) return;
+    case 2:  if (IsDead) 
+			 {
+				 return;
+			 }
              if (PlaneEngineOn)
              {
                PlaneEngineThrust += 50.0 * GameEnv->Time_GameLoop;

@@ -166,7 +166,7 @@ bool ZFileSectorLoader::LoadSector(Long x, Long y, Long z)
         {
           if (COMPILEOPTION_ALLOWSAVE) NewSector->DeleteSave(UniverseNum);
           NewSector->ReinitSector();
-          Redo = true;
+		  Redo = true;
           TryLoad = false;
           continue;
         }
@@ -267,7 +267,7 @@ ZVoxelSector * ZFileSectorLoader::GetRequested()
 void ZFileSectorLoader::Cleanup()
 {
   ThreadContinue = false;
-  if (Thread) SDL_WaitThread((SDL_Thread*)Thread, NULL);
+  if (Thread) SDL_WaitThread((SDL_Thread*)Thread[0], NULL);
 }
 
 void ZFileSectorLoader::LimitedUpdateFaceCulling(ZVoxelSector * Sector )

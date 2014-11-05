@@ -64,6 +64,14 @@ void ZGameWindow_DisplayInfos::Show()
   Infos2.SetSize(MainWindow_Size.x, MainWindow_Size.y);
   Infos2.SetColor(255.0f,255.0f,255.0f);
   MainWindow.AddFrame(&Infos2);
+   // Inventory main title
+
+  Infos3.SetStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_1));
+  Infos3.SetDisplayText(Text_Infos3.String);
+  Infos3.SetPosition(10.0f,30.0f);
+  Infos3.SetSize(MainWindow_Size.x, MainWindow_Size.y);
+  Infos3.SetColor(255.0f,255.0f,255.0f);
+  MainWindow.AddFrame(&Infos3);
 
   Flag_Shown = true;
 }

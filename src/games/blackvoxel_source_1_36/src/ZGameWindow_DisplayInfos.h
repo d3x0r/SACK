@@ -57,9 +57,11 @@ class ZGameWindow_DisplayInfos
 
     ZFrame_FontFrame Infos;
     ZFrame_FontFrame Infos2;
+    ZFrame_FontFrame Infos3;
 
     ZString Text_Infos;
     ZString Text_Infos2;
+    ZString Text_Infos3;
 
   public:
 
@@ -86,6 +88,11 @@ class ZGameWindow_DisplayInfos
   {
     this->Text_Infos2 = *TextToDisplay;
     Infos2.SetDisplayText(Text_Infos2.String);
+  }
+  void SetText3(ZString * TextToDisplay)
+  {
+    this->Text_Infos3 = *TextToDisplay;
+    Infos3.SetDisplayText(Text_Infos3.String);
   }
 
   void Hide();

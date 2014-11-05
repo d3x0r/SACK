@@ -47,7 +47,7 @@ class ZLog
     ZStream * Stream;
   public:
     enum TInfoType {FAIL, INFO, IMINFO}; // IMINFO = Important info.
-
+#undef Log
     void Log(ULong MessageID, TInfoType InfoType, const char * String);
     void Log(ULong MessageID, TInfoType InfoType, ZString & String);
 

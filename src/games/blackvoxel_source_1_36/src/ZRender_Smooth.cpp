@@ -49,11 +49,369 @@ void ZVoxelCuller_Smooth::InitFaceCullData( ZVoxelSector *Sector )
 	Sector->Culling = new ULong[Sector->DataSize];
 	memset( Sector->Culling, 0, sizeof( ULong ) * Sector->DataSize );
 }
-void ZVoxelCuller_Smooth::CullSector( ZVoxelSector *Sector, bool internal )
+void ZVoxelCuller_Smooth::CullSector( ZVoxelSector *Sector, bool internal, int interesting_faces )
 {
 }
-void ZVoxelCuller_Smooth::CullSingleVoxel( ZVoxelSector *Sector, int x, int y, int z )
+
+
+
+static UShort ExtFaceStateTable[][8] =
 {
+  { // State 0: Clear = no FullOpaque = no TranspRend = no
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 1: Clear = yes FullOpaque = no TranspRend = no
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend =  Long Sector_x,Sector_y,Sector_z; 1
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 2: Clear = no FullOpaque = yes TranspRend = no
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    0   , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    0   , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    0   , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 3 : Clear = yes FullOpaque = yes TranspRend = no
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 4 : Clear = no FullOpaque = no TranspRend = yes
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    0   , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    0   , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 5: Clear = yes FullOpaque = no TranspRend = yes
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 6: Clear = no FullOpaque = yes TranspRend = yes
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    0   , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    0   , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 7: Clear = yes FullOpaque = yes TranspRend = yes
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  }
+};
+
+static UShort IntFaceStateTable[][8] =
+{
+  { // State 0: Clear = no FullOpaque = no TranspRend = no
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 1: Clear = yes FullOpaque = no TranspRend = no
+    0   , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    0   , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    0   , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    0   , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    0   , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 2: Clear = no FullOpaque = yes TranspRend = no
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    0   , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 3 : Clear = yes FullOpaque = yes TranspRend = no
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 4 : Clear = no FullOpaque = no TranspRend = yes
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    0   , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    0   , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 5: Clear = yes FullOpaque = no TranspRend = yes
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 6: Clear = no FullOpaque = yes TranspRend = yes
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  },
+  { // State 7: Clear = yes FullOpaque = yes TranspRend = yes
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 0
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 0
+
+    255 , // Clear = 0 FullOpaque = 0 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 0 TranspRend = 1
+
+    255 , // Clear = 0 FullOpaque = 1 TranspRend = 1
+    255 , // Clear = 1 FullOpaque = 1 TranspRend = 1
+  }
+};
+
+
+void ZVoxelCuller_Smooth::CullSingleVoxel( int x, int y, int z )
+{
+//bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort VoxelValue, UByte ImportanceFactor, bool CreateExtension, VoxelLocation * Location)
+//{
+  UShort * Voxel_Address[19];
+  ULong  Offset[19];
+  ULong * FaceCulling_Address[19];
+  UShort VoxelState[19];
+  UShort Voxel;
+  ZVoxelSector * Sector[19];
+  ZVoxelType ** VoxelTypeTable;
+  ZVoxelType * VoxelType;
+
+  UShort * ExtFaceState;
+  UShort * IntFaceState;
+  ZMemSize OtherInfos;
+
+  VoxelTypeTable = world->VoxelTypeManager->VoxelTable;
+
+  // Fetching sectors
+
+  if ( 0== (Sector[VOXEL_INCENTER]= world->FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y)     >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) return;
+  if ( 0== (Sector[VOXEL_LEFT]    = world->FindSector( (x-1) >> ZVOXELBLOCSHIFT_X , (y)     >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_LEFT]    = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_RIGHT]   = world->FindSector( (x+1) >> ZVOXELBLOCSHIFT_X , (y)     >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_RIGHT]   = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_INFRONT] = world->FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y)     >> ZVOXELBLOCSHIFT_Y , (z-1) >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_INFRONT] = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_BEHIND]  = world->FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y)     >> ZVOXELBLOCSHIFT_Y , (z+1) >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_BEHIND]  = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_ABOVE]   = world->FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y + 1) >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_ABOVE]   = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_BELOW]   = world->FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y - 1) >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_BELOW]   = world->WorkingScratchSector;
+
+  if ( 0== (Sector[VOXEL_LEFT_ABOVE]    = world->FindSector( (x-1) >> ZVOXELBLOCSHIFT_X , (y+1)     >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_LEFT_ABOVE]    = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_RIGHT_ABOVE]   = world->FindSector( (x+1) >> ZVOXELBLOCSHIFT_X , (y+1)     >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_RIGHT_ABOVE]   = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_INFRONT_ABOVE] = world->FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y+1)     >> ZVOXELBLOCSHIFT_Y , (z-1) >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_INFRONT_ABOVE] = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_BEHIND_ABOVE]  = world->FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y+1)     >> ZVOXELBLOCSHIFT_Y , (z+1) >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_BEHIND_ABOVE]  = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_ABOVE_AHEAD]   = world->FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y + 1) >> ZVOXELBLOCSHIFT_Y , (z-1)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_ABOVE_AHEAD]   = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_BELOW_AHEAD]   = world->FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y - 1) >> ZVOXELBLOCSHIFT_Y , (z-1)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_BELOW_AHEAD]   = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_LEFT_BELOW]    = world->FindSector( (x-1) >> ZVOXELBLOCSHIFT_X , (y-1)     >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_LEFT_BELOW]    = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_RIGHT_BELOW]   = world->FindSector( (x+1) >> ZVOXELBLOCSHIFT_X , (y-1)     >> ZVOXELBLOCSHIFT_Y , (z)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_RIGHT_BELOW]   = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_INFRONT_BELOW] = world->FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y-1)     >> ZVOXELBLOCSHIFT_Y , (z-1) >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_INFRONT_BELOW] = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_BEHIND_BELOW]  = world->FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y-1)     >> ZVOXELBLOCSHIFT_Y , (z+1) >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_BEHIND_BELOW]  = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_ABOVE_BEHIND]   = world->FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y + 1) >> ZVOXELBLOCSHIFT_Y , (z+1)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_ABOVE_BEHIND]   = world->WorkingScratchSector;
+  if ( 0== (Sector[VOXEL_BELOW_BEHIND]   = world->FindSector( (x)   >> ZVOXELBLOCSHIFT_X , (y - 1) >> ZVOXELBLOCSHIFT_Y , (z+1)   >> ZVOXELBLOCSHIFT_Z ) ) ) Sector[VOXEL_BELOW_BEHIND]   = world->WorkingScratchSector;
+
+  // Computing memory offsets from sector start
+
+  Offset[VOXEL_LEFT]     = (y & ZVOXELBLOCMASK_Y)       + ( ((x - 1) & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y ) + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_RIGHT]    = (y & ZVOXELBLOCMASK_Y)       + ( ((x + 1) & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y ) + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_INFRONT]  = (y & ZVOXELBLOCMASK_Y)       + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z - 1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_BEHIND]   = (y & ZVOXELBLOCMASK_Y)       + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z + 1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_ABOVE]    = ((y + 1) & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_BELOW]    = ((y - 1) & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_LEFT_ABOVE]     = ((y + 1) & ZVOXELBLOCMASK_Y)       + ( ((x - 1) & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y ) + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_RIGHT_ABOVE]    = ((y + 1) & ZVOXELBLOCMASK_Y)       + ( ((x + 1) & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y ) + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_INFRONT_ABOVE]  = ((y + 1) & ZVOXELBLOCMASK_Y)       + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z - 1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_BEHIND_ABOVE]   = ((y + 1) & ZVOXELBLOCMASK_Y)       + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z + 1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_ABOVE_AHEAD]    = ((y + 1) & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z-1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_BELOW_AHEAD]    = ((y - 1) & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z-1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_LEFT_BELOW]     = ((y - 1) & ZVOXELBLOCMASK_Y)       + ( ((x - 1) & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y ) + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_RIGHT_BELOW]    = ((y - 1) & ZVOXELBLOCMASK_Y)       + ( ((x + 1) & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y ) + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_INFRONT_BELOW]  = ((y - 1) & ZVOXELBLOCMASK_Y)       + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z - 1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_BEHIND_BELOW]   = ((y - 1) & ZVOXELBLOCMASK_Y)       + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z + 1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_ABOVE_BEHIND]    = ((y + 1) & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z+1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_BELOW_BEHIND]    = ((y - 1) & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + (((z+1) & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+  Offset[VOXEL_INCENTER] = (y & ZVOXELBLOCMASK_Y)       + ( (x & ZVOXELBLOCMASK_X)<<ZVOXELBLOCSHIFT_Y )       + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X));
+
+  // Computing absolute memory pointer of blocks
+  for( int i = 0; i < 19; i++ )
+  {
+	Voxel_Address[i]     = Sector[i]->Data + Offset[i];
+	FaceCulling_Address[i]     = (ULong*)Sector[i]->Culling + Offset[i];
+    Voxel = *Voxel_Address[i];    VoxelType = VoxelTypeTable[Voxel];
+      VoxelState[i] = ( (Voxel==0) ? 1 : 0) 
+		     | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) 
+			 | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
+  }
+
+  Voxel = *Voxel_Address[VOXEL_INCENTER];
+  OtherInfos = *(Sector[VOXEL_INCENTER]->OtherInfos + Offset[VOXEL_INCENTER]);
+
+  if (OtherInfos)
+  {
+    VoxelType = VoxelTypeTable[Voxel];
+    if (VoxelType->Is_HasAllocatedMemoryExtension) VoxelType->DeleteVoxelExtension(OtherInfos);
+  }
+
+  // Storing Extension
+
+  VoxelType = VoxelTypeTable[*Voxel_Address[VOXEL_INCENTER]];
+
+  // Getting case subtables.
+
+  ExtFaceState = &ExtFaceStateTable[VoxelState[VOXEL_INCENTER]][0];
+  IntFaceState = &IntFaceStateTable[VoxelState[VOXEL_INCENTER]][0];
+
+  // Computing face culling for center main stored voxel.
+
+  *FaceCulling_Address[VOXEL_INCENTER] =   (IntFaceState[VoxelState[VOXEL_LEFT]]   & DRAWFACE_LEFT)
+                                         | (IntFaceState[VoxelState[VOXEL_RIGHT]]   & DRAWFACE_RIGHT)
+                                         | (IntFaceState[VoxelState[VOXEL_INFRONT]] & DRAWFACE_AHEAD)
+                                         | (IntFaceState[VoxelState[VOXEL_BEHIND]]  & DRAWFACE_BEHIND)
+                                         | (IntFaceState[VoxelState[VOXEL_ABOVE]]   & DRAWFACE_ABOVE)
+                                         | (IntFaceState[VoxelState[VOXEL_BELOW]]   & DRAWFACE_BELOW)
+										 | (IntFaceState[VoxelState[VOXEL_LEFT_ABOVE]]   & DRAWFACE_LEFT_HAS_ABOVE)
+                                         | (IntFaceState[VoxelState[VOXEL_RIGHT_ABOVE]]   & DRAWFACE_RIGHT_HAS_ABOVE)
+                                         | (IntFaceState[VoxelState[VOXEL_INFRONT_ABOVE]] & DRAWFACE_AHEAD_HAS_ABOVE)
+                                         | (IntFaceState[VoxelState[VOXEL_BEHIND_ABOVE]]  & DRAWFACE_BEHIND_HAS_ABOVE)
+                                         | (IntFaceState[VoxelState[VOXEL_ABOVE_AHEAD]]   & DRAWFACE_ABOVE_HAS_AHEAD)
+                                         | (IntFaceState[VoxelState[VOXEL_BELOW_AHEAD]]   & DRAWFACE_BELOW_HAS_AHEAD)
+										 | (IntFaceState[VoxelState[VOXEL_LEFT_BELOW]]   & DRAWFACE_LEFT_HAS_BELOW)
+                                         | (IntFaceState[VoxelState[VOXEL_RIGHT_BELOW]]   & DRAWFACE_RIGHT_HAS_BELOW)
+                                         | (IntFaceState[VoxelState[VOXEL_INFRONT_BELOW]] & DRAWFACE_AHEAD_HAS_BELOW)
+                                         | (IntFaceState[VoxelState[VOXEL_BEHIND_BELOW]]  & DRAWFACE_BEHIND_HAS_BELOW)
+                                         | (IntFaceState[VoxelState[VOXEL_ABOVE_BEHIND]]   & DRAWFACE_ABOVE_HAS_BEHIND)
+                                         | (IntFaceState[VoxelState[VOXEL_BELOW_BEHIND]]   & DRAWFACE_BELOW_HAS_BEHIND)
+										 ;
+
+  // Computing face culling for nearboring voxels faces touching center voxel.
+
+  *FaceCulling_Address[VOXEL_LEFT]    &= DRAWFACE_ALL_BITS ^ DRAWFACE_RIGHT;  *FaceCulling_Address[VOXEL_LEFT]    |= ExtFaceState[ VoxelState[VOXEL_LEFT]   ]  & DRAWFACE_RIGHT;
+  *FaceCulling_Address[VOXEL_RIGHT]   &= DRAWFACE_ALL_BITS ^ DRAWFACE_LEFT;   *FaceCulling_Address[VOXEL_RIGHT]   |= ExtFaceState[ VoxelState[VOXEL_RIGHT]  ]  & DRAWFACE_LEFT;
+  *FaceCulling_Address[VOXEL_INFRONT] &= DRAWFACE_ALL_BITS ^ DRAWFACE_BEHIND; *FaceCulling_Address[VOXEL_INFRONT] |= ExtFaceState[ VoxelState[VOXEL_INFRONT]]  & DRAWFACE_BEHIND;
+  *FaceCulling_Address[VOXEL_BEHIND]  &= DRAWFACE_ALL_BITS ^ DRAWFACE_AHEAD;  *FaceCulling_Address[VOXEL_BEHIND]  |= ExtFaceState[ VoxelState[VOXEL_BEHIND] ]  & DRAWFACE_AHEAD;
+  *FaceCulling_Address[VOXEL_ABOVE]   &= DRAWFACE_ALL_BITS ^ DRAWFACE_BELOW;  *FaceCulling_Address[VOXEL_ABOVE]   |= ExtFaceState[ VoxelState[VOXEL_ABOVE]  ]  & DRAWFACE_BELOW;
+  *FaceCulling_Address[VOXEL_BELOW]   &= DRAWFACE_ALL_BITS ^ DRAWFACE_ABOVE;  *FaceCulling_Address[VOXEL_BELOW]   |= ExtFaceState[ VoxelState[VOXEL_BELOW]  ]  & DRAWFACE_ABOVE;
+
+
+  *FaceCulling_Address[VOXEL_LEFT_ABOVE]    &= DRAWFACE_ALL_BITS ^ DRAWFACE_RIGHT;  *FaceCulling_Address[VOXEL_LEFT]    |= ExtFaceState[ VoxelState[VOXEL_LEFT]   ]  & DRAWFACE_RIGHT;
+  *FaceCulling_Address[VOXEL_RIGHT_ABOVE]   &= DRAWFACE_ALL_BITS ^ DRAWFACE_LEFT;   *FaceCulling_Address[VOXEL_RIGHT]   |= ExtFaceState[ VoxelState[VOXEL_RIGHT]  ]  & DRAWFACE_LEFT;
+  *FaceCulling_Address[VOXEL_INFRONT_ABOVE] &= DRAWFACE_ALL_BITS ^ DRAWFACE_BEHIND; *FaceCulling_Address[VOXEL_INFRONT] |= ExtFaceState[ VoxelState[VOXEL_INFRONT]]  & DRAWFACE_BEHIND;
+  *FaceCulling_Address[VOXEL_BEHIND_ABOVE]  &= DRAWFACE_ALL_BITS ^ DRAWFACE_AHEAD;  *FaceCulling_Address[VOXEL_BEHIND]  |= ExtFaceState[ VoxelState[VOXEL_BEHIND] ]  & DRAWFACE_AHEAD;
+  *FaceCulling_Address[VOXEL_ABOVE_AHEAD]   &= DRAWFACE_ALL_BITS ^ DRAWFACE_BELOW;  *FaceCulling_Address[VOXEL_ABOVE]   |= ExtFaceState[ VoxelState[VOXEL_ABOVE]  ]  & DRAWFACE_BELOW;
+  *FaceCulling_Address[VOXEL_BELOW_AHEAD]   &= DRAWFACE_ALL_BITS ^ DRAWFACE_ABOVE;  *FaceCulling_Address[VOXEL_BELOW]   |= ExtFaceState[ VoxelState[VOXEL_BELOW]  ]  & DRAWFACE_ABOVE;
+
+  // printf("State[Center]:%x [Left]%x [Right]%x [INFRONT]%x [BEHIND]%x [ABOVE]%x [BELOW]%x\n",VoxelState[VOXEL_INCENTER],VoxelState[VOXEL_LEFT],VoxelState[VOXEL_RIGHT],VoxelState[VOXEL_INFRONT],VoxelState[VOXEL_BEHIND],VoxelState[VOXEL_ABOVE],VoxelState[VOXEL_BELOW]);
+  // Updating sector status rendering flag status
+  for( int i = 0; i < 19; i++ )
+  {
+	  for( int r = 0; r < 6; r++ )
+			Sector[i]->Flag_Render_Dirty[r] = true;
+  }
+
 }
 
 bool ZVoxelCuller_Smooth::Decompress_RLE(ZVoxelSector *Sector,  void * Stream)
