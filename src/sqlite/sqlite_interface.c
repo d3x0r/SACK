@@ -12,7 +12,7 @@
 #include "../SQLlib/sqlstruc.h"
 #include "3.7.16.2/sqlite3.h"
 
-#define LOG_OPERATIONS
+//#define LOG_OPERATIONS
 
 SQL_NAMESPACE
 static void InitVFS( CTEXTSTR name, struct file_system_interface *fsi );
@@ -141,7 +141,9 @@ int xWrite(sqlite3_file*file, const void*buffer, int iAmt, sqlite3_int64 iOfst)
 
 	if( iAmt == ( actual = sack_fwrite( buffer, 1, iAmt, my_file->file ) ) )
 	{
+#ifdef LOG_OPERATIONS
 		lprintf( "file is now %d", sack_fsize( my_file->file ) );
+#endif
 		return SQLITE_OK;
 	}
 	return SQLITE_IOERR_WRITE;
