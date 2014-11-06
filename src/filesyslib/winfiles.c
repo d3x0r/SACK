@@ -1206,7 +1206,14 @@ int  sack_fclose ( FILE *file_file )
 	struct file *file;
 	file = FindFileByFILE( file_file );
 	if( file && file->fsi )
-		return file->fsi->write( file_file, (const char*)buffer, size * count );
+	{
+		size_t result;
+		POINTER dupbuf = malloc( size*count );
+		memcpy( dupbuf, buffer, size*count );
+		result = file->fsi->write( file_file, (const char*)dupbuf, size * count );
+		Deallocate( POINTER, dupbuf );
+		return result;
+	}
 	return fwrite( (POINTER)buffer, size, count, file_file );
 }
 
