@@ -162,6 +162,9 @@ ZScreen_Main *pSM;
 bool *pSM_Continue;
 bool *pStartGame;
 bool *pGameContinue;
+ZHighPerfTimer Timer;
+ZHighPerfTimer PhysicsTimer;
+double ReadableDisplayCounter = 0.0;
 
 double FrameTime;
 
@@ -197,14 +200,6 @@ static void OnFirstDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
 
 static void OnBeginDraw3d("BlackVoxel")( PTRSZVAL psvInit, PTRANSFORM camera )
 {
-	int n;
-	if( Ge->Basic_Renderer->Camera )
-	{
-		for( n = 0; n < 16; n++ )
-			((float*)camera)[n] = Ge->Basic_Renderer->Camera->orientation.m[0][n];
-		for( n = 0; n < 16; n++ )
-			((float*)(Ge->sack_camera[psvInit-1]))[n] = Ge->Basic_Renderer->Camera->orientation.m[0][n];
-	}
 	//Set Ge->Basic_Renderer->Camera->orientation.quat();
 	Ge->Basic_Renderer->current_gl_camera = psvInit - 1;
 }
@@ -217,6 +212,85 @@ static void OnBeginDraw3d("BlackVoxel")( PTRSZVAL psvInit, PTRANSFORM camera )
  ZScreen_Options_Sound Screen_Options_Sound;    
  ZScreen_Options_Game Screen_Options_Mouse;     
 ZScreen_Options_Keymap Screen_Options_Keymap;   
+
+static LOGICAL OnUpdate3d( "BlackVoxel" )( PTRANSFORM origin )
+{
+	Timer.Start();
+
+	if( Ge->PhysicEngine )
+	{
+		// Game Events.
+
+		Ge->GameEventSequencer->ProcessEvents(Ge->PhysicEngine->GetSelectedActor()->Time_TotalGameTime);
+		
+		PhysicsTimer.End();
+		FrameTime = Ge->Time_GameLoop = PhysicsTimer.GetResult() / 1000.0;
+		Ge->Time_FrameTime = PhysicsTimer.GetResult();
+		if (Ge->Time_GameLoop > 64.0) Ge->Time_GameLoop = 64.0; // Game cannot make too long frames because inaccuracy. In this case, game must slow down.
+		Ge->Time_GameElapsedTime += Ge->Time_FrameTime;
+		Ge->PhysicEngine->DoPhysic(Ge->Time_FrameTime);
+
+        // Voxel Processor Get Player Position.
+		if( Ge->VoxelProcessor )
+		{
+			ZActor * Actor;
+			Actor = Ge->PhysicEngine->GetSelectedActor();
+			Ge->VoxelProcessor->SetPlayerPosition(Actor->ViewDirection.x(),Actor->ViewDirection.y(),Actor->ViewDirection.z());
+		}
+		Ge->GameStat->FrameTime = (ULong) FrameTime;
+		Ge->GameStat->DoLogRecord();
+
+		PhysicsTimer.Start();
+	}
+	if( Ge->Basic_Renderer )
+	{
+		if( Ge->Basic_Renderer->Camera )
+		{
+			for( int n = 0; n < 16; n++ )
+				((float*)origin)[n] = Ge->Basic_Renderer->Camera->orientation.m[0][n];
+			//for( n = 0; n < 16; n++ )
+			//	((float*)(Ge->sack_camera[psvInit-1]))[n] = Ge->Basic_Renderer->Camera->orientation.m[0][n];
+		}
+				ReadableDisplayCounter += FrameTime;
+				if (Ge->GameWindow_DisplayInfos
+					&& Ge->VoxelProcessor
+					&& Ge->GameWindow_DisplayInfos->Is_Shown() )
+				{
+				  if (ReadableDisplayCounter > 500.0)
+				  {
+					ReadableDisplayCounter = 0.0;
+					ZString As;
+
+					As = "FPS: "; As << (ULong)( 1000.0 * Ge->frames / ( timeGetTime() - Ge->frame_start )) << " FTM: " << FrameTime;
+					As << " MVI Time: " << Ge->VoxelProcessor->Timer.GetResult() / 1000.0; 
+					As << " PT: " << PhysicsTimer.GetResult() / 1000.0;  
+					Ge->frame_start = timeGetTime();
+					Ge->frames = 0;
+					Ge->GameWindow_DisplayInfos->SetText(&As);
+					As = "Direction: "; 
+					As << Ge->PhysicEngine->GetSelectedActor()->Camera.orientation.yaw(); 
+					As<<  " " ;
+					As << Ge->PhysicEngine->GetSelectedActor()->Camera.orientation.pitch(); 
+					As<<  " " ;
+					As << Ge->PhysicEngine->GetSelectedActor()->Camera.orientation.roll(); 
+					As<<  " " ;
+					As << Ge->PhysicEngine->GetSelectedActor()->Camera.orientation.m[0][0]; 
+					Ge->GameWindow_DisplayInfos->SetText2( &As );
+					As = "Origin: "; 
+					As << Ge->PhysicEngine->GetSelectedActor()->Camera.orientation.origin().x; 
+					As<<  " " ;
+					As << Ge->PhysicEngine->GetSelectedActor()->Camera.orientation.origin().y; 
+					As<<  " " ;
+					As << Ge->PhysicEngine->GetSelectedActor()->Camera.orientation.origin().z; 
+					As<<  " " ;
+					As << Ge->PhysicEngine->GetSelectedActor()->Camera.orientation.m[0][0]; 
+					Ge->GameWindow_DisplayInfos->SetText3( &As );
+				  }
+				}
+
+	}
+	return TRUE;
+}
 
 static void OnDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
 {
@@ -323,6 +397,8 @@ static void OnDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
 	}
 	if( psvInit == 1 )
 	Ge->GuiManager.Render( psvInit - 1 );
+	            Timer.End();
+
 }
 
 static LOGICAL OnKey3d( "BlackVoxel" )( PTRSZVAL psvInit, _32 key )
@@ -593,10 +669,8 @@ SaneWinMain( argc, argv )
           // Pre-Gameloop Initialisations.
 
           FrameTime = 20.0;
-          ULong MoveShipCounter = 0;
+          //ULong MoveShipCounter = 0;
           GameEnv.Time_FrameTime = 20000;
-          ZHighPerfTimer Timer;
-          double ReadableDisplayCounter = 0.0;
           GameEnv.GameEventSequencer->SetGameTime(GameEnv.PhysicEngine->GetSelectedActor()->Time_TotalGameTime);
 
 
@@ -609,7 +683,7 @@ SaneWinMain( argc, argv )
           while (GameEnv.Game_Run)
           {
 //            Time_Start = SDL_GetTicks();
-            Timer.Start();
+            //Timer.Start();
 
             // Process Input events (Mouse, Keyboard)
 
@@ -623,14 +697,19 @@ SaneWinMain( argc, argv )
             // if (MoveShipCounter>125 ) {GameEnv.MoveShip(); MoveShipCounter = 0; }
 
             // Player physics
+			if( !use_external_render )
+			{
 
-            GameEnv.PhysicEngine->DoPhysic(GameEnv.Time_FrameTime);
+	            GameEnv.PhysicEngine->DoPhysic(GameEnv.Time_FrameTime);
 
-            // Voxel Processor Get Player Position.
+				// Voxel Processor Get Player Position.
+			
+				ZActor * Actor;
+				Actor = GameEnv.PhysicEngine->GetSelectedActor();
+				GameEnv.VoxelProcessor->SetPlayerPosition(Actor->ViewDirection.x(),Actor->ViewDirection.y(),Actor->ViewDirection.z());
 
-            ZActor * Actor;
-            Actor = GameEnv.PhysicEngine->GetSelectedActor();
-            GameEnv.VoxelProcessor->SetPlayerPosition(Actor->ViewDirection.x(),Actor->ViewDirection.y(),Actor->ViewDirection.z());
+			}
+
 
             // Sector Ejection processing.
 
@@ -639,15 +718,15 @@ SaneWinMain( argc, argv )
 
 			if( !use_external_render )
 			{
-            // Advertising messages
+				// Advertising messages
 
-            GameEnv.GameWindow_Advertising->Advertising_Actions((double)FrameTime);
+				GameEnv.GameWindow_Advertising->Advertising_Actions((double)FrameTime);
 
-            // Tool activation and desactivation
+				// Tool activation and desactivation
 
-            GameEnv.ToolManager->ProcessAndDisplay();
+				GameEnv.ToolManager->ProcessAndDisplay();
 
-            // Rendering
+				// Rendering
 				GameEnv.Basic_Renderer->Render( false );
 				GameEnv.GuiManager.Render( 0 );
 
@@ -656,56 +735,63 @@ SaneWinMain( argc, argv )
 				SDL_GL_SwapWindow( GameEnv.screen );
 			}
 			else
-				WakeableSleep( 50 );
+			{
+				WakeableSleep( 10 );
+			}
 
-            // Game Events.
-
-            GameEnv.GameEventSequencer->ProcessEvents(GameEnv.PhysicEngine->GetSelectedActor()->Time_TotalGameTime);
 
             // Time Functions
 
-            Timer.End();
-            FrameTime = GameEnv.Time_GameLoop = Timer.GetResult() / 1000.0;
-            GameEnv.Time_FrameTime = Timer.GetResult();
-            GameEnv.Time_GameElapsedTime += GameEnv.Time_FrameTime;
-            if (GameEnv.Time_GameLoop > 64.0) GameEnv.Time_GameLoop = 64.0; // Game cannot make too long frames because inaccuracy. In this case, game must slow down.
-            GameEnv.GameStat->FrameTime = (ULong) FrameTime;
-            GameEnv.GameStat->DoLogRecord();
-            MoveShipCounter += FrameTime;
 
+			if( !use_external_render )
+			{
+				// Game Events.
+
+				GameEnv.GameEventSequencer->ProcessEvents(GameEnv.PhysicEngine->GetSelectedActor()->Time_TotalGameTime);
+	            Timer.End();
+				FrameTime = GameEnv.Time_GameLoop = Timer.GetResult() / 1000.0;
+				GameEnv.Time_FrameTime = Timer.GetResult();
+				GameEnv.Time_GameElapsedTime += GameEnv.Time_FrameTime;
+				if (GameEnv.Time_GameLoop > 64.0) GameEnv.Time_GameLoop = 64.0; // Game cannot make too long frames because inaccuracy. In this case, game must slow down.
+				GameEnv.GameStat->FrameTime = (ULong) FrameTime;
+				GameEnv.GameStat->DoLogRecord();
+            //MoveShipCounter += FrameTime;
             // Frametime Display;
 
-            ReadableDisplayCounter += FrameTime;
-            if (GameEnv.GameWindow_DisplayInfos->Is_Shown() )
-            {
-              if (ReadableDisplayCounter > 500.0)
-              {
-                ReadableDisplayCounter = 0.0;
-                ZString As;
+				ReadableDisplayCounter += FrameTime;
+				if (GameEnv.GameWindow_DisplayInfos->Is_Shown() )
+				{
+				  if (ReadableDisplayCounter > 500.0)
+				  {
+					ReadableDisplayCounter = 0.0;
+					ZString As;
 
-				As = "FPS: "; As << (ULong)( 1000.0 * Ge->frames / ( timeGetTime() - Ge->frame_start )) << " FTM: " << FrameTime;
-				Ge->frame_start = timeGetTime();
-				Ge->frames = 0;
-                GameEnv.GameWindow_DisplayInfos->SetText(&As);
-				As = "Direction: "; 
-				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.yaw(); 
-				As<<  " " ;
-				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.pitch(); 
-				As<<  " " ;
-				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.roll(); 
-				As<<  " " ;
-				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.m[0][0]; 
-				GameEnv.GameWindow_DisplayInfos->SetText2( &As );
-				As = "Origin: "; 
-				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.origin().x; 
-				As<<  " " ;
-				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.origin().y; 
-				As<<  " " ;
-				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.origin().z; 
-				As<<  " " ;
-				As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.m[0][0]; 
-				GameEnv.GameWindow_DisplayInfos->SetText3( &As );
-              }
+					As = "FPS: "; As << (ULong)( 1000.0 * Ge->frames / ( timeGetTime() - Ge->frame_start )) << " FTM: " << FrameTime;
+					As << " MVI Time: " << Ge->VoxelProcessor->Timer.GetResult() / 1000.0; 
+					As << " PT: " << PhysicsTimer.GetResult() / 1000.0;  
+					Ge->frame_start = timeGetTime();
+					Ge->frames = 0;
+					GameEnv.GameWindow_DisplayInfos->SetText(&As);
+					As = "Direction: "; 
+					As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.yaw(); 
+					As<<  " " ;
+					As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.pitch(); 
+					As<<  " " ;
+					As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.roll(); 
+					As<<  " " ;
+					As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.m[0][0]; 
+					GameEnv.GameWindow_DisplayInfos->SetText2( &As );
+					As = "Origin: "; 
+					As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.origin().x; 
+					As<<  " " ;
+					As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.origin().y; 
+					As<<  " " ;
+					As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.origin().z; 
+					As<<  " " ;
+					As << GameEnv.PhysicEngine->GetSelectedActor()->Camera.orientation.m[0][0]; 
+					GameEnv.GameWindow_DisplayInfos->SetText3( &As );
+				  }
+				}
             }
           }
 

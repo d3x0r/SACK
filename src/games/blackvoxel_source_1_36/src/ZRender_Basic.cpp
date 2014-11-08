@@ -680,7 +680,8 @@ void ZVoxelCuller_Basic::CullSingleVoxel( int x, int y, int z )
 
   UShort * ExtFaceState;
   UShort * IntFaceState;
-  ZMemSize OtherInfos;
+  	//if( !world ) 
+//		return;// false;
 
   VoxelTypeTable = world->VoxelTypeManager->VoxelTable;
 
@@ -722,13 +723,6 @@ void ZVoxelCuller_Basic::CullSingleVoxel( int x, int y, int z )
 			 | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
 
   Voxel = *Voxel_Address[VOXEL_INCENTER];
-  OtherInfos = *(Sector[VOXEL_INCENTER]->OtherInfos + Offset[VOXEL_INCENTER]);
-
-  if (OtherInfos)
-  {
-    VoxelType = VoxelTypeTable[Voxel];
-    if (VoxelType->Is_HasAllocatedMemoryExtension) VoxelType->DeleteVoxelExtension(OtherInfos);
-  }
 
   // Storing Extension
 

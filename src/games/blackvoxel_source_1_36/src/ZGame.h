@@ -500,8 +500,8 @@ class ZGame
   bool End_Game()
   {
     if (Initialized_GameWindows)       End_GameWindows();
-    if (Initialized_RendererSettings)  End_RendererSettings();
     if (Initialized_VoxelProcessor)    End_VoxelProcessor();
+    if (Initialized_RendererSettings)  End_RendererSettings();
     if (Initialized_SectorLoader)      End_SectorLoader();
     if (Initialized_PhysicEngine)      End_PhysicEngine();
     if (Initialized_ToolManager)       End_ToolManager();
