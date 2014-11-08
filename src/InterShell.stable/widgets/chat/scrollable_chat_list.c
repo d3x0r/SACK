@@ -581,7 +581,7 @@ void DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL recei
 {
 	S_32 x_offset_left;
 	S_32 x_offset_right;
-	lprintf( WIDE("Draw at %d   %d  bias %d") , y, height, inset );
+	//lprintf( WIDE("Draw at %d   %d  bias %d") , y, height, inset );
 	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, received, complete );
 	if( received )
 	{
@@ -807,14 +807,14 @@ static void DrawMessages( PCHAT_LIST list, Image window )
 {
 	int message_idx;
 	PCHAT_MESSAGE msg;
-	lprintf( WIDE("BEgin draw messages...") );
+	//lprintf( WIDE("BEgin draw messages...") );
 	for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( list->messages, message_idx ); message_idx-- )
 	{
 		//lprintf( "check message %d", message_idx );
 		if( msg->formatted_text && 
 			 ( ( list->display.message_top - msg->message_y ) >= window->height ) )
 		{
-			lprintf( WIDE("have to skip message...") );
+			//lprintf( WIDE("have to skip message...") );
 			list->display.message_top -= msg->message_y;
 			continue;
 		}
@@ -964,7 +964,7 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, S_32 x, S_32 y, _32 b 
 			{
 				_32 original_offset = list->control_offset;
 				list->control_offset += ( y - list->first_y );
-				lprintf( WIDE("adjust position by %d"), ( y - list->first_y ) );
+				//lprintf( WIDE("adjust position by %d"), ( y - list->first_y ) );
 				if( list->control_offset < 0 )
 					list->control_offset = 0;
 				else

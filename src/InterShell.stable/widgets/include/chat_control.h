@@ -11,9 +11,9 @@
 
 typedef struct chat_time_tag
 {
-	_8 hr,mn,sc;
-	_8 mo,dy;
-	_16 year;
+	_16 ms;
+	_8 sc,mn,hr,dy,mo;
+	_16 yr;
 } CHAT_TIME;
 typedef struct chat_time_tag *PCHAT_TIME;
 
