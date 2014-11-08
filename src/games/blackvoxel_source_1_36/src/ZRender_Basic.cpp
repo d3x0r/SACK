@@ -648,6 +648,8 @@ ULong SectorUpdateFaceCulling_Partial(ZVoxelWorld *world, ZVoxelSector *Sector, 
 
 void ZVoxelCuller_Basic::CullSector( ZVoxelSector *Sector, bool internal, int interesting_faces )
 {
+	if( !world ) 
+		return;// false;
 	if( internal )
 	{
 		SectorUpdateFaceCulling( world, Sector, false );

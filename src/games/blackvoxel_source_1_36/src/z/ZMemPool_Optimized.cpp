@@ -28,11 +28,7 @@
 
 #ifndef __GNUC__
 // __64__ needs to be defined in Build (make/Cmake) scripts.
-#  ifdef __64__
-#    define __sync_bool_compare_and_swap(a,b,c) InterlockedCompareExchange64((__int64*)a,(__int64)b,(__int64)c)
-#  else
-#    define __sync_bool_compare_and_swap(a,b,c) InterlockedCompareExchange(a,b,c)
-#  endif
+#    define __sync_bool_compare_and_swap(a,b,c) (InterlockedCompareExchangePointer((void*volatile*)a,c,b), (*a)==(c))
 #endif
 
 bool ZMemPool_Optimized::Initialized = false;
@@ -56,14 +52,6 @@ void * ZMemPool_Optimized::AllocMem( const ZMemSize Size, ZMemSize & NewSize)
   {
     if ( (NewBlock = MemTable[BitPosition] ))
     {
-#ifndef __GCC__
-#ifdef __64__
-	#define __sync_bool_compare_and_swap(a,b,c) InterlockedCompareExchange64((__int64*)a,(__int64)b,(__int64)c)
-#else
-	#define __sync_bool_compare_and_swap(a,b,c) InterlockedCompareExchange(a,b,c)
-#endif
-
-#endif
       if (__sync_bool_compare_and_swap(&MemTable[BitPosition],NewBlock,NewBlock->Next))
 	  {
         return((void *) (((char *)NewBlock) + 16));

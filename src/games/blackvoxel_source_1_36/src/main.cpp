@@ -212,6 +212,7 @@ static void OnBeginDraw3d("BlackVoxel")( PTRSZVAL psvInit, PTRANSFORM camera )
 			ZScreen_ChooseOption Screen_ChooseOption;
           ZScreen_SlotSelection Screen_SlotSelection;
 		          ZScreen_Loading Screen_Loading;
+          ZScreen_Saving Screen_Saving;
  ZScreen_Options_Display Screen_Options_Display;
  ZScreen_Options_Sound Screen_Options_Sound;    
  ZScreen_Options_Game Screen_Options_Mouse;     
@@ -264,6 +265,9 @@ static void OnDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
 				case ZScreen_ChooseOption::CHOICE_KEYMAP:  {Ge->page_up = PAGE_SETTINGS_KEYMAP;  break; }
 			}
 		}
+		break;
+	case PAGE_SAVE_GAME:
+          Screen_Saving.ProcessScreen(Ge);
 		break;
 	case PAGE_SETTINGS_DISPLAY:
 		 { if( Screen_Options_Display.ProcessScreen(Ge) == ZScreen_ChooseOption::CHOICE_QUIT )
@@ -706,14 +710,15 @@ SaneWinMain( argc, argv )
           }
 
           // Display screen "Saving game".
-
-          ZScreen_Saving Screen_Saving;
-          Screen_Saving.ProcessScreen(&GameEnv);
+		  GameEnv.page_up = PAGE_SAVE_GAME;
+		  while( GameEnv.prior_page_up != PAGE_SAVE_GAME )
+			  Relinquish();
 
           // Save game and cleanup all the mess before returning to title screen
 
           GameEnv.Basic_Renderer->Cleanup();
           GameEnv.End_Game();
+		  GameEnv.page_up = PAGE_MAIN_MENU;
         }
 
         // Relooping to the title screen

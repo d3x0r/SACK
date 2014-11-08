@@ -72,6 +72,8 @@ class test {};
 
 class ZVoxelProcessor : public ZObject
 {
+  public:
+	bool ThreadProcessing; // set when thread is dispatched processing
   protected:
     ZVoxelWorld * World;
     ZActorPhysicEngine * PhysicEngine;
@@ -141,7 +143,10 @@ class ZVoxelProcessor : public ZObject
     void End()
     {
       ThreadContinue = false;
+	  while( ThreadProcessing )
+			  Relinquish();
       if (Thread[0]) SDL_WaitThread((SDL_Thread*)Thread[0], NULL);
+
     }
 };
 

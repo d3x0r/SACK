@@ -98,8 +98,12 @@ class ZList
 
     inline void Remove(ZListItem * ListItem)
     {
-      ListItem->Next->Prev = ListItem->Prev;
-      ListItem->Prev->Next = ListItem->Next;
+		if( ListItem->Next )
+		{
+			ListItem->Next->Prev = ListItem->Prev;
+		}
+      if( ListItem->Prev )
+		  ListItem->Prev->Next = ListItem->Next;
       ListItem->Next = 0;
       ListItem->Prev = 0;
       MemPool->FreeMem(ListItem);
