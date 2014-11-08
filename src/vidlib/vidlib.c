@@ -3699,7 +3699,8 @@ void HandleDestroyMessage( PVIDEO hVidDestroy )
 #ifdef LOG_DESTRUCTION
 		lprintf( WIDE("------------ DESTROY! -----------") );
 #endif
- 		DestroyWindow (hVidDestroy->hWndOutput);
+		if( hVidDestroy->hWndOutput )
+ 			DestroyWindow (hVidDestroy->hWndOutput);
 		//UnlinkVideo (hVidDestroy);
 #ifdef LOG_DESTRUCTION
 		lprintf( WIDE("From destroy") );
@@ -5447,7 +5448,7 @@ RENDER_PROC (void, OwnMouseEx) (PVIDEO hVideo, _32 own DBG_PASS)
 {
 	if (own)
 	{
-		lprintf( WIDE("Capture is set on %p"),hVideo );
+		//lprintf( WIDE("Capture is set on %p"),hVideo );
 		if( !l.hCaptured )
 		{
 			l.hCaptured = hVideo;
@@ -5478,7 +5479,7 @@ RENDER_PROC (void, OwnMouseEx) (PVIDEO hVideo, _32 own DBG_PASS)
 	{
 		if( l.hCaptured == hVideo )
 		{
-			lprintf( WIDE("No more capture.") );
+			//lprintf( WIDE("No more capture.") );
 			//ReleaseCapture ();
 			hVideo->flags.bCaptured = 0;
 			l.hCapturedPrior = NULL;

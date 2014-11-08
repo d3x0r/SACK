@@ -939,7 +939,7 @@ void ScaleCoords( PSI_CONTROL pc, PS_32 a, PS_32 b );
 
 // bOwn sets the ownership of mouse events to a control, where it remains
 // until released.  Some other control has no way to steal it.
-PSI_PROC( void, OwnCommonMouse)( PSI_CONTROL pc, int bOwn );
+//PSI_PROC( void, OwnCommonMouse)( PSI_CONTROL pc, int bOwn );
 
 //PSI_PROC void SetDefaultOkayID( PSI_CONTROL pFrame, int nID );
 //PSI_PROC void SetDefaultCancelID( PSI_CONTROL pFrame, int nID );

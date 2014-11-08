@@ -460,28 +460,31 @@ void ReleaseCommonUse( PSI_CONTROL pc )
 #ifdef __cplusplus 
 }
 #endif
-void OwnCommonMouse( PSI_CONTROL pc, int bOwn )
+static void OwnCommonMouse( PSI_CONTROL pc, int bOwn )
+//static void OwnCommonMouseEx( PSI_CONTROL pc, int bOwn DBG_PASS)
+//#define OwnCommonMouse(pc,own) OwnCommonMouseEx( pc,own DBG_SRC )
 {
 	PSI_CONTROL pfc = GetFrame( pc );
 	PPHYSICAL_DEVICE pf = pfc->device;
 //#ifdef DETAILED_MOUSE_DEBUG
 //	if( g.flags.bLogDetailedMouse )
-		lprintf( WIDE( "Own Common Mouse called on %p %s" ), pc, bOwn?WIDE( "OWN" ):WIDE( "release" ) );
+//		lprintf( WIDE( "Own Common Mouse called on %p %s" ), pc, bOwn?WIDE( "OWN" ):WIDE( "release" ) );
 //#endif
 	if( pf )
 	{
 		if( ( !bOwn && ( pf->flags.bCurrentOwns ) )
 			|| ( bOwn && !( pf->flags.bCurrentOwns ) ) )
 		{
-			lprintf( WIDE( "Own Common Mouse performed on %p %s" ), pc, bOwn?WIDE( "OWN" ):WIDE( "release" ) );
-			pf->pCurrent = pc;
+			//_lprintf(DBG_VOIDRELAY)( WIDE( "Own Common Mouse performed on %p %s" ), pc, bOwn?WIDE( "OWN" ):WIDE( "release" ) );
+			if( bOwn )
+				pf->pCurrent = pc;
 			pf->flags.bCurrentOwns = bOwn;
 			pf->flags.bApplicationOwned = bOwn;
 			OwnMouse( pf->pActImg, bOwn );
 		}
 		else if( bOwn && ( pf->pCurrent != pc ) )
 		{
-			lprintf( "overlapping mouse own" );
+			//_lprintf(DBG_VOIDRELAY)( "overlapping mouse own" );
 			OwnCommonMouse( pf->pCurrent, FALSE );
 			OwnCommonMouse( pc, TRUE );
 		}
@@ -1823,7 +1826,7 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 				if( g.flags.bLogDetailedMouse )
 					lprintf( WIDE("Well current no longer owns mouse..") );
 #endif
-				OwnCommonMouse( pc, FALSE );
+ 				OwnCommonMouse( pc, FALSE );
 			}
 			else
 			{
@@ -1838,6 +1841,8 @@ int CPROC AltFrameMouse( PTRSZVAL psvCommon, S_32 x, S_32 y, _32 b )
 		DeleteUse( pc );
 		return result;
 	}
+	if( g.flags.bLogDetailedMouse )
+		lprintf( "to test %d,%d  %d,%d", x, y, pf->CurrentBias.x, pf->CurrentBias.y );
 	if( !pf->flags.bSizing 
 		&& !pf->flags.bDragging
 		&& !pc->pressed_caption_button

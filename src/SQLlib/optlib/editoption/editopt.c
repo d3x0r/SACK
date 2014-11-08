@@ -421,8 +421,10 @@ int EditOptions
 		InitOptionList( odbc, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
 
 		DisplayFrame( frame );
-		//CommonWait( frame );
-		//DestroyFrame( &frame );
+#ifndef EDITOPTION_PLUGIN
+		CommonWait( frame );
+		DestroyFrame( &frame );
+#endif
 	}
 	else
 	{
