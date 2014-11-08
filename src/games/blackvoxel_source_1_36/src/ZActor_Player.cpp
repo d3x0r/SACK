@@ -197,10 +197,6 @@ void ZActor_Player::SetPosition( ZVector3d &NewLocation )
 
 	if( ActorMode == 0 )  // make sure we're standing up.
 		ViewDirection.RotateRoll( -ViewDirection.roll() );
-	else
-	{
-		int a = 3;
-	}
   Camera.orientation = ViewDirection;//.orientation;
   Camera.orientation.translate_rel( EyesPosition.x, EyesPosition.y,EyesPosition.z );
   //Camera.orientation.RotateRoll( -Camera.orientation.roll() );
