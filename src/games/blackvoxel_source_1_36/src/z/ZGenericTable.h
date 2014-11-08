@@ -55,6 +55,13 @@ class ZGenericTable
       return(true);
     }
 
+    inline bool CreateNew(ZMemSize & ElementIndex)
+    {
+      if (ElementCount >= TableLen) return(false);
+      ElementIndex = ElementCount++;
+      return(true);
+    }
+
     inline Type * GetElement(ZMemSize TablePos)
     {
       return( &Table[TablePos] );
