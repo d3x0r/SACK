@@ -27,7 +27,6 @@
 #include <stdio.h>
 
 #ifndef __GNUC__
-// __64__ needs to be defined in Build (make/Cmake) scripts.
 #    define __sync_bool_compare_and_swap(a,b,c) (InterlockedCompareExchangePointer((void*volatile*)a,c,b), (*a)==(c))
 #endif
 
