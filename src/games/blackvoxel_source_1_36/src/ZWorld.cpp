@@ -2324,7 +2324,7 @@ bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort Voxe
   if (OtherInfos)
   {
     VoxelType = VoxelTypeTable[Voxel];
-    if (VoxelType->Is_HasAllocatedMemoryExtension) VoxelType->DeleteVoxelExtension(OtherInfos);
+    if (VoxelType->Is_HasAllocatedMemoryExtension) VoxelType->DeleteVoxelExtension(OtherInfos + Offset[VOXEL_INCENTER]);
   }
 
   // Storing Extension

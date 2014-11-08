@@ -171,6 +171,11 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
                               Inv->SetSlot(SlotNum++, 8, 8192);
                               Inv->SetSlot(SlotNum++, 9, 8192);
                               Inv->SetSlot(SlotNum++,10, 8192);
+                              Inv->SetSlot(SlotNum++, 236, 8192);
+                              Inv->SetSlot(SlotNum++, 237, 8192);
+                              Inv->SetSlot(SlotNum++, 238, 8192);
+                              Inv->SetSlot(SlotNum++, 239, 8192);
+                              Inv->SetSlot(SlotNum++,240, 8192);
                               while(SlotNum<40) Inv->SetSlot(SlotNum++, 0, 0);
                               break;
                     }
@@ -468,13 +473,13 @@ void ZGame_Events::Process_StillEvents()
           Inventory->SetSlot(c++,76,1);
           Inventory->SetSlot(c++,78,1);
           Inventory->SetSlot(c++,79,1);
-          c = 50;
-          Inventory->SetSlot(c++,0,0);
-          Inventory->SetSlot(c++,0,0);
-          Inventory->SetSlot(c++,0,0);
-          Inventory->SetSlot(c++,0,0);
-          Inventory->SetSlot(c++,0,0);
-          Inventory->SetSlot(c++,0,0);
+          c = 0;
+          Inventory->SetSlot(c++,236,100);
+          Inventory->SetSlot(c++,237,100);
+          Inventory->SetSlot(c++,238,100);
+          Inventory->SetSlot(c++,239,100);
+          Inventory->SetSlot(c++,240,100);
+          Inventory->SetSlot(c++,241,100);
           Inventory->SetSlot(c++,0,0);
           Inventory->SetSlot(c++,0,0);
           Inventory->SetSlot(c++,0,0);
