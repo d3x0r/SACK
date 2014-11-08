@@ -74,7 +74,6 @@
   class ZVector3L;
 
   typedef struct { double x,y,z,w; } ZVector4d;
-  static const ZVector4d zvec_zero;
   typedef struct { double x,y; } ZVector2d;
   typedef struct { float  x,y,z; } ZVector3f;
   typedef struct { float  x,y; }   ZVector2f;
@@ -97,8 +96,6 @@
 #  include "ZType_ZVector3d.h"
 #endif
 
-#include "ZType_ZMatrix.h" 
-//#include "ZType_ZQuaternion.h" 
 #ifndef Z_ZTYPE_ZPOLAR3D_H
 #  include "ZType_ZPolar3d.h"
 #endif
