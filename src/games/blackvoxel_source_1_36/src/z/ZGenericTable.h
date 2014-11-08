@@ -46,6 +46,8 @@ class ZGenericTable
 
     inline ZGenericTable() { ElementCount = 0; }
 
+    inline void Clear() { ElementCount = 0; }
+
     inline bool AddToTable( Type * Element )
     {
       if (ElementCount >= TableLen) return(false);
