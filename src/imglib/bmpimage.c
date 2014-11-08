@@ -316,6 +316,22 @@ static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, P_8 data )
       pColor = data;
       switch( pbm->biBitCount )
       {
+	  case 32:
+         for( y = 0; y < h; y++ )
+         {
+            for( x = 0; x < w; x++ )
+				{
+					//((P_32)pif->image)[y*w+x] |= 0xFF000000;
+					if( bGLColorMode )
+					{
+						((P_32)pif->image)[y*w+x] = GLColor((*(_32*)&pColor[x*4]) );
+					}
+					else
+						((P_32)pif->image)[y*w+x] = (*(_32*)&pColor[x*4]);
+				}
+            pColor += ( ( w * 4 ) );
+         }
+         break;
       case 24:
          for( y = 0; y < h; y++ )
          {
