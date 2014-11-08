@@ -882,7 +882,10 @@ bool ZGame::Start_GameWindows()
 
 bool ZGame::End_GameWindows()
 {
-  GuiManager.RemoveAllFrames();
+	// saving should be the screen up, and don't remove his frames.
+	while( prior_page_up != page_up )
+		Relinquish();
+  //GuiManager.RemoveAllFrames();
   if (VoxelTypeBar) delete VoxelTypeBar;
   VoxelTypeBar = 0;
   if (GameWindow_Storage) delete GameWindow_Storage;
