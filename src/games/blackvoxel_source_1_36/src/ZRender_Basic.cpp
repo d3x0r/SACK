@@ -736,7 +736,7 @@ void ZVoxelCuller_Basic::CullSingleVoxel( int x, int y, int z )
 
   // Storing Voxel
 
-  if (VoxelTypeTable[*Voxel_Address[VOXEL_INCENTER]]->Is_Active) Sector[VOXEL_INCENTER]->Flag_IsActiveVoxels = true;
+  if (VoxelType->Is_Active) Sector[VOXEL_INCENTER]->Flag_IsActiveVoxels = true;
 
   // Getting case subtables.
 

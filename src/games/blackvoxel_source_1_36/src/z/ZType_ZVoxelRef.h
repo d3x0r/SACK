@@ -2,7 +2,7 @@
 #define ZVOXEL_REF_DEFINED
 
 #include "ZVoxelSector.h"
-
+#include "../ZVoxelExtension.h"
 class ZVoxelWorld;
 class ZVoxelRef
 {
@@ -13,7 +13,8 @@ public:
 	UShort VoxelType;
 	ZVoxelWorld *World;
 	ZVoxelTypeManager *VoxelTypeManager;
-	ZVoxelRef( ZVoxelWorld *world, ZVoxelTypeManager *vtm, long x, long y, long z, ZVoxelSector *Sector, UShort VoxelType, int offset )
+	ZVoxelExtension *VoxelExtension;
+	ZVoxelRef( ZVoxelWorld *world, ZVoxelTypeManager *vtm, long x = 0, long y = 0, long z = 0, ZVoxelSector *Sector=NULL, UShort VoxelType = 0, int offset = 0 )
 	{
 		this->x = x;
 		this->y = y;
