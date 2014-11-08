@@ -228,7 +228,7 @@ Bool ZRender_Interface::LoadVoxelTexturesToGPU(PTRSZVAL psvInit)
             GL_RGBA8,          //Format : RGBA
             VoxelType->MainTexture->Width,         //Width
             VoxelType->MainTexture->Height,        //Height
-            GL_BGRA,    //Format : RGBA
+            GL_RGBA,//BGRA,    //Format : RGBA
             GL_UNSIGNED_BYTE,   //Type des couleurs
             (GLubyte *)VoxelType->MainTexture->BitmapMemory//Addresse de l'image
            );
@@ -298,7 +298,7 @@ Bool ZRender_Interface::LoadTexturesToGPU(PTRSZVAL psvInit)
           GL_RGBA8,          //Format : RGBA
           Entry->Texture->Width,         //Width
           Entry->Texture->Height,        //Height
-          GL_BGRA,    //Format : RGBA
+          GL_RGBA,//GL_BGRA,    //Format : RGBA
           GL_UNSIGNED_BYTE,   //Type des couleurs
           (GLubyte *)Entry->Texture->BitmapMemory//Addresse de l'image
          );

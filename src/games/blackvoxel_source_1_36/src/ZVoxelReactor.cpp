@@ -468,18 +468,29 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
       Long RSx = Sector->Pos_x << ZVOXELBLOCSHIFT_X;
       Long RSy = Sector->Pos_y << ZVOXELBLOCSHIFT_Y;
       Long RSz = Sector->Pos_z << ZVOXELBLOCSHIFT_Z;
+	  ZVoxelRef ref(World,VoxelTypeManager, 0,0,0,Sector );
 
       for (z = 0; z < ZVOXELBLOCSIZE_Z; z++)
         for (x = 0; x < ZVOXELBLOCSIZE_X; x++)
           for (y = 0; y < ZVOXELBLOCSIZE_Y; y++)
           {
-            VoxelType = *(VoxelP);
+			VoxelType = *(VoxelP);
             if (ActiveTable->Get(VoxelType))
             {
               if (!Sector->ModifTracker.Get( MainOffset ) ) // If voxel is already processed, don't process it once more in the same cycle.
               {
                 switch(VoxelType)
                 {
+				default:
+					  ref.x = x; ref.y = y; ref.z = z;
+					  ref.Offset = VoxelP - DisplayData;
+					  ref.VoxelType = VoxelType;
+
+                    IsActiveVoxels = true;
+					ref.VoxelExtension = (ZVoxelExtension*)Sector->OtherInfos[MainOffset];
+                    //St[i]->ModifTracker.Set(SecondaryOffset[i]);
+					VoxelTypeManager->VoxelTable[VoxelType]->React( ref, LastLoopTime);
+					break;
                   /*
                   case 47:
                           {

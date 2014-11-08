@@ -82,8 +82,23 @@
       }
     }
 
+    bool ZBitmapImage::LoadAny( const char * FileName )
+    {
+		Image image = LoadImageFile( FileName );
+		if( image )
+		{
+			CreateBitmap(image->width, image->height, 32);
+			MemCpy( BitmapMemory, image->image, 4 * (image->width * image->height ) );
+			UnmakeImageFile( image );
+			return true;
+		}
+		return false;
+	}	
+
     bool ZBitmapImage::LoadBMP( const char * FileName )
     {
+		if( LoadAny( FileName ) )
+			return true;
       FILE * fh;
       char   Buffer[4096];
       UShort MagicNumber;

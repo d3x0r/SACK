@@ -29,6 +29,7 @@
 // #ifndef Z_ZVOXELTYPE_H
 // #  include "ZVoxelType.h"
 // #endif
+#include "z/ZType_ZVoxelRef.h"
 
 #ifndef Z_BITMAP_IMAGE_H
 #  include "z/ZBitmapImage.h"
@@ -182,6 +183,8 @@ class ZVoxelType
     virtual bool  Interface_GetInfoDoc(ULong InfoNum, ULong DocType, ZVar * Out) { return(false); }
     virtual bool  Interface_SetInfo(VoxelLocation * VLoc, ULong InfoNum, ZVar * In)  { return(false); }
     virtual void  GetBlockInformations(VoxelLocation * DestLocation, ZString & Infos) { return; }
+
+	virtual void  React( const ZVoxelRef &self, double tick ) { return; }
 };
 
 

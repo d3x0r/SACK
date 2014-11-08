@@ -112,28 +112,32 @@ ZVoxelType::~ZVoxelType()
 Bool ZVoxelType::LoadTexture()
 {
   ZBitmapImage * Image;
-
+	int attempt;
   // Get the right folder path
-
-  ZString FileSpec,FileName;
-  if (VoxelType<32768)
-  {
-    FileName << "voxeltexture_" << (ULong)VoxelType << ".bmp";
-    FileSpec.AddToPath(COMPILEOPTION_DATAFILESPATH).AddToPath("VoxelTypes").AddToPath(FileName);
-  }
-  else
-  {
-    FileName << "voxeltexture_" << (ULong)(VoxelType - 32767) << ".bmp";
-    if (COMPILEOPTION_USEHOMEDIRSTORAGE) { FileSpec = ZStream_File::Get_Directory_UserData(); FileSpec.AddToPath(COMPILEOPTION_SAVEFOLDERNAME); }
-    FileSpec.AddToPath("UserTextures");
-    FileSpec.AddToPath(FileName);
-  }
-
-//  if (VoxelType<32768) sprintf(Buffer, "VoxelTypes/voxeltexture_%u.bmp", VoxelType);
-//  else                 sprintf(Buffer, "UserTextures/voxeltexture_%u.bmp", VoxelType-32767);
-
   Image = new ZBitmapImage();
-  if (!Image->LoadBMP(FileSpec.String)) { delete Image; return(false); }
+	for( attempt = 0; attempt < 2; attempt++ )
+	{
+	  ZString FileSpec,FileName;
+	  if (VoxelType<32768)
+	  {
+		FileName << "voxeltexture_" << (ULong)VoxelType << (attempt==1?".bmp":".png");
+		FileSpec.AddToPath(COMPILEOPTION_DATAFILESPATH).AddToPath("VoxelTypes").AddToPath(FileName);
+	  }
+	  else
+	  {
+		FileName << "voxeltexture_" << (ULong)(VoxelType - 32767) << (attempt==1?".bmp":".png");
+		if (COMPILEOPTION_USEHOMEDIRSTORAGE) { FileSpec = ZStream_File::Get_Directory_UserData(); FileSpec.AddToPath(COMPILEOPTION_SAVEFOLDERNAME); }
+		FileSpec.AddToPath("UserTextures");
+		FileSpec.AddToPath(FileName);
+	  }
+
+	//  if (VoxelType<32768) sprintf(Buffer, "VoxelTypes/voxeltexture_%u.bmp", VoxelType);
+	//  else                 sprintf(Buffer, "UserTextures/voxeltexture_%u.bmp", VoxelType-32767);
+
+	  if (Image->LoadBMP(FileSpec.String)) { break; }
+	}
+	if( attempt == 2 ) { delete Image; return false; }
+
   #if COMPILEOPTION_LOWRESTEXTURING==1
   if (Image->Width > 128) Image->ReduceSize();
   #endif
