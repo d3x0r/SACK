@@ -47,12 +47,16 @@ void * ZMemPool_Optimized::AllocMem( const ZMemSize Size, ZMemSize & NewSize)
   {
     if ( (NewBlock = MemTable[BitPosition] ))
     {
-#ifdef __GCC__
-      if (__sync_bool_compare_and_swap(&MemTable[BitPosition],NewBlock,NewBlock->Next))
+#ifndef __GCC__
+#ifdef __64__
+	#define __sync_bool_compare_and_swap(a,b,c) InterlockedCompareExchange64((__int64*)a,(__int64)b,(__int64)c)
 #else
-		if( (MemTable[BitPosition] == NewBlock) ? (MemTable[BitPosition]=NewBlock->Next),1:0)
+	#define __sync_bool_compare_and_swap(a,b,c) InterlockedCompareExchange(a,b,c)
 #endif
-		  {
+
+#endif
+      if (__sync_bool_compare_and_swap(&MemTable[BitPosition],NewBlock,NewBlock->Next))
+	  {
         return((void *) (((char *)NewBlock) + 16));
       }
     }
@@ -85,11 +89,7 @@ void * ZMemPool_Optimized::AllocMem( const ZMemSize Size )
   {
     if ( (NewBlock = MemTable[BitPosition] ))
     {
-#ifdef __GCC__
       if (__sync_bool_compare_and_swap(&MemTable[BitPosition],NewBlock,NewBlock->Next))
-#else
-		if ((MemTable[BitPosition] == NewBlock) ? (MemTable[BitPosition] = NewBlock->Next), 1 : 0)
-#endif
       {
         return((void *) (((char *)NewBlock) + 16));
       }
@@ -119,10 +119,6 @@ void ZMemPool_Optimized::FreeMem( void * Block )
   {
     MemBlock->Next = MemTable[Index];
 
-#ifdef __GCC__
   } while(! __sync_bool_compare_and_swap( &MemTable[Index] , MemBlock->Next , MemBlock ));
-#else
-  } while (!((MemTable[Index] == MemBlock->Next) ? (MemTable[Index] = MemBlock), 1 : 0));
-#endif
 
 }

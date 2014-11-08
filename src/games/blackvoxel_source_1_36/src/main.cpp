@@ -266,13 +266,22 @@ static void OnDraw3d( "BlackVoxel" )( PTRSZVAL psvInit )
 		}
 		break;
 	case PAGE_SETTINGS_DISPLAY:
-		 { Screen_Options_Display.ProcessScreen(Ge); break; }
+		 { if( Screen_Options_Display.ProcessScreen(Ge) == ZScreen_ChooseOption::CHOICE_QUIT )
+				Ge->page_up = PAGE_MAIN_MENU; 
+		 break; }
 	case PAGE_SETTINGS_SOUND:
-		 { Screen_Options_Sound.ProcessScreen(Ge);   break; }
+		 { if( Screen_Options_Sound.ProcessScreen(Ge) == ZScreen_ChooseOption::CHOICE_QUIT )
+				Ge->page_up = PAGE_MAIN_MENU; 
+		   break; }
 	case PAGE_SETTINGS_MOUSE:
-		 {Screen_Options_Mouse.ProcessScreen(Ge);   break; }
+		 {if( Screen_Options_Mouse.ProcessScreen(Ge) == ZScreen_ChooseOption::CHOICE_QUIT )
+				Ge->page_up = PAGE_MAIN_MENU; 
+		   break; }
 	case PAGE_SETTINGS_KEYMAP:
-		{  Screen_Options_Keymap.ProcessScreen(Ge);  break; }
+		{  if( Screen_Options_Keymap.ProcessScreen(Ge) == ZScreen_ChooseOption::CHOICE_QUIT )
+				Ge->page_up = PAGE_MAIN_MENU; 
+			break; 
+		}
 	case PAGE_GAME_WORLD_1:
 		if( Ge->prior_page_up != Ge->page_up )
 		{

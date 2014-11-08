@@ -60,10 +60,17 @@
 
 class ZScreen_Options_Sound : public ZScreen
 {
+	  ZFrame_FontFrame Frame_MainTitle;
+  ZFrame_FontFrame Frame_TitleSoundEnable;
+  ZFrame_CheckBox Frame_SoundEnable;
+  ZFrame_FontFrame Frame_TitleSoundVolume;
+  ZFrame_NumericChoiceBox Frame_SoundVolume;
+  ZFrame_FontFrame Frame_Save;
+
   protected:
 
   public:
-    enum { CHOICE_QUIT };
+    enum { CHOICE_QUIT, CHOICE_NONE  };
 
     virtual ULong ProcessScreen(ZGame * GameEnv);
 };

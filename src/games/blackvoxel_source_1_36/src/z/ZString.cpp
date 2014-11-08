@@ -29,7 +29,7 @@
 
 //ZBasicMemoryPool ZStringBasicMemoryPool;
 
-ZMemPool_Optimized ZStringBasicMemoryPool;
+ZMemPool_Optimized *ZStringBasicMemoryPool;
 
 ZMemoryPool * ZStringCurrentMemoryPool=0;
 
@@ -192,7 +192,12 @@ double ZString::GetDouble()
 
 ZString::ZString()
 {
-  if (ZStringCurrentMemoryPool == 0) ZStringCurrentMemoryPool = &ZStringBasicMemoryPool;
+  if (ZStringCurrentMemoryPool == 0) 
+  {
+	  if( ZStringBasicMemoryPool == 0 )
+		  ZStringBasicMemoryPool = new ZMemPool_Optimized();
+	  ZStringCurrentMemoryPool = ZStringBasicMemoryPool;
+  }
   MemPool = ZStringCurrentMemoryPool;
 
   String = (char *)"";
@@ -212,7 +217,12 @@ ZString::ZString( const char * SourceString )
 {
   ZMemSize i, StrLen;
 
-  if (ZStringCurrentMemoryPool == 0) ZStringCurrentMemoryPool = &ZStringBasicMemoryPool;
+  if (ZStringCurrentMemoryPool == 0) 
+  {
+	  if( ZStringBasicMemoryPool == 0 )
+		  ZStringBasicMemoryPool = new ZMemPool_Optimized();
+	  ZStringCurrentMemoryPool = ZStringBasicMemoryPool;
+  }
   MemPool = ZStringCurrentMemoryPool;
 
   MemLen = 0;
@@ -232,7 +242,12 @@ ZString::ZString( const ZString & Str )
 {
   ZMemSize i;
 
-  if (ZStringCurrentMemoryPool == 0) ZStringCurrentMemoryPool = &ZStringBasicMemoryPool;
+  if (ZStringCurrentMemoryPool == 0) 
+  {
+	  if( ZStringBasicMemoryPool == 0 )
+		  ZStringBasicMemoryPool = new ZMemPool_Optimized();
+	  ZStringCurrentMemoryPool = ZStringBasicMemoryPool;
+  }
   MemPool = ZStringCurrentMemoryPool;
 
   MemLen = 0;
@@ -248,7 +263,12 @@ ZString::ZString( const ZString & Str )
 
 ZString::ZString( const float Number )
 {
-  if (ZStringCurrentMemoryPool == 0) ZStringCurrentMemoryPool = &ZStringBasicMemoryPool;
+  if (ZStringCurrentMemoryPool == 0) 
+  {
+	  if( ZStringBasicMemoryPool == 0 )
+		  ZStringBasicMemoryPool = new ZMemPool_Optimized();
+	  ZStringCurrentMemoryPool = ZStringBasicMemoryPool;
+  }
   MemPool = ZStringCurrentMemoryPool;
 
   MemLen = 0;
@@ -264,7 +284,12 @@ ZString::ZString( const float Number )
 
 ZString::ZString( const ULong Number )
 {
-  if (ZStringCurrentMemoryPool == 0) ZStringCurrentMemoryPool = &ZStringBasicMemoryPool;
+  if (ZStringCurrentMemoryPool == 0) 
+  {
+	  if( ZStringBasicMemoryPool == 0 )
+		  ZStringBasicMemoryPool = new ZMemPool_Optimized();
+	  ZStringCurrentMemoryPool = ZStringBasicMemoryPool;
+  }
   MemPool = ZStringCurrentMemoryPool;
   MemLen = 0;
   Settings.Display_TrailZero = 1;
@@ -276,7 +301,12 @@ ZString::ZString( const ULong Number )
 
 ZString::ZString( const Long Number )
 {
-  if (ZStringCurrentMemoryPool == 0) ZStringCurrentMemoryPool = &ZStringBasicMemoryPool;
+  if (ZStringCurrentMemoryPool == 0) 
+  {
+	  if( ZStringBasicMemoryPool == 0 )
+		  ZStringBasicMemoryPool = new ZMemPool_Optimized();
+	  ZStringCurrentMemoryPool = ZStringBasicMemoryPool;
+  }
   MemPool = ZStringCurrentMemoryPool;
 
   MemLen = 0;

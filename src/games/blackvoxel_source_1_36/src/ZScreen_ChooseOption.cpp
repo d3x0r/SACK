@@ -36,7 +36,7 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
 	  if( GameEnv->prior_page_up != GameEnv->page_up )
 	  {
 		  GameEnv->prior_page_up = GameEnv->page_up;
-		  
+		  ResultCode = -1;
       Pos.x = 0.0f; Pos.y = 0.0f;
       GameEnv->GuiManager.RemoveAllFrames();
 
