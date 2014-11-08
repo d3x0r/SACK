@@ -191,6 +191,16 @@ class ZStream_SpecialRamStream
     return((UShort *)&Buffer[Pointer]);
   }
 
+  inline ZMemSize GetPos()
+  {
+    return(Pointer);
+  }
+
+  inline void SetPos(ZMemSize Pos)
+  {
+    Pointer = Pos;
+  }
+
   inline ULong GetActualBufferLen()
   {
     return(Pointer);
@@ -309,6 +319,8 @@ class ZStream_SpecialRamStream
     ReadCount = 0;
     Pointer = 0;
   }
+
+
 
 };
 
