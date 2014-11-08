@@ -73,7 +73,7 @@ class ZScreen_ChooseOption : public ZScreen
          ZTileFrame Quit;
 
   public:
-    enum {CHOICE_QUIT, CHOICE_DISPLAY, CHOICE_SOUND, CHOICE_MOUSE, CHOICE_KEYMAP};
+    enum {CHOICE_QUIT, CHOICE_DISPLAY, CHOICE_SOUND, CHOICE_MOUSE, CHOICE_KEYMAP, CHOICE_NONE};
     virtual ULong ProcessScreen(ZGame * GameEnv);
 };
 

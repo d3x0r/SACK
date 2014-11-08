@@ -33,6 +33,9 @@ ULong ZScreen_Options_Keymap::ProcessScreen(ZGame * GameEnv)
   ZVector2f Start;
   ULong i;
 
+  if( GameEnv->prior_page_up != GameEnv->page_up )
+  {
+	  GameEnv->prior_page_up = GameEnv->page_up;
   Start.x = GameEnv->ScreenResolution.x * 0.05f;
   Start.y = GameEnv->ScreenResolution.y * 0.05f;
 
@@ -45,7 +48,6 @@ ULong ZScreen_Options_Keymap::ProcessScreen(ZGame * GameEnv)
 
   // Frames on screen
 
-  ZFrame_FontFrame Frame_MainTitle;
     Frame_MainTitle.SetDisplayText((char *)"KEYMAP SETTINGS ");
     Frame_MainTitle.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
     Frame_MainTitle.GetTextDisplaySize(&Size);
@@ -56,12 +58,6 @@ ULong ZScreen_Options_Keymap::ProcessScreen(ZGame * GameEnv)
     Pos.y += Size.y + GameEnv->ScreenResolution.y * 0.10f;
     Pos.y += 32.0f + 16.0f;
 
-  const ULong NumLines = 8;
-  ZFrame_KeyChooser KeyChooser[NumLines];
-  ZFrame_FontFrame  KeyTitle[NumLines];
-  ZVector2f         Position[NumLines];
-  char const *            Title[NumLines];
-  UShort * Value[NumLines];
 
   Title[0] = "MOVE FORWARD";   Value[0] = &GameEnv->Settings_Hardware->Setting_Key_MoveForward;
   Title[1] = "MOVE BACKWARD";  Value[1] = &GameEnv->Settings_Hardware->Setting_Key_MoveBackward;
@@ -101,19 +97,18 @@ ULong ZScreen_Options_Keymap::ProcessScreen(ZGame * GameEnv)
   for (i=0;i<NumLines;i++) { KeyChooser[i].SetPosition(Position[i].x + MaxTitleWidth + GameEnv->ScreenResolution.x / 15.0f,Position[i].y + Size.y /2.0f - Size2.y/2.0f); }
 
 
-  ZFrame_FontFrame Frame_Save;
     Frame_Save.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
     Frame_Save.SetDisplayText("SAVE");
     Frame_Save.GetTextDisplaySize(&Size);
     Frame_Save.SetPosition(GameEnv->ScreenResolution.x * 0.9f - Size.x -1.0f, GameEnv->ScreenResolution.y * 0.9f - Size.y);
     Frame_Save.SetSize(Size.x + 1.0f, Size.y);
     GameEnv->GuiManager.AddFrame(&Frame_Save);
+}
 
-
-    for (bool Loop = true; Loop; )
+    //for (bool Loop = true; Loop; )
     {
-      glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-      Loop = GameEnv->EventManager.ProcessEvents();
+      //glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+      //Loop = GameEnv->EventManager.ProcessEvents();
 
       // if (Frame_MainTitle.Is_MouseClick()) {Loop = false; GameEnv->Settings_Hardware->Save(); exit(0); }
 
@@ -121,7 +116,7 @@ ULong ZScreen_Options_Keymap::ProcessScreen(ZGame * GameEnv)
 
 
 
-      if (Frame_Save.Is_MouseClick()) { Loop = false; }
+      if (Frame_Save.Is_MouseClick()) { return CHOICE_QUIT; }
 
       //GameEnv->GuiManager.Render();
       //SDL_GL_SwapBuffers( );
@@ -133,5 +128,5 @@ ULong ZScreen_Options_Keymap::ProcessScreen(ZGame * GameEnv)
 
     //GameEnv->Settings_Hardware->Save();
 
-  return(CHOICE_QUIT);
+  return -1;
 }

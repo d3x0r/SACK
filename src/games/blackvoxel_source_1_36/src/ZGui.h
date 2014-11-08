@@ -77,7 +77,7 @@ class ZScreen : public ZObject
   public:
     ULong ResultCode;
 
-     ZScreen() {ResultCode = 0;}
+     ZScreen() {ResultCode = -1;}
     virtual ~ZScreen() {}
     virtual ULong ProcessScreen(ZGame * Game) = 0;
 };

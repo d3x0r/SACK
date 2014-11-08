@@ -42,12 +42,14 @@ ULong ZScreen_Options_Sound::ProcessScreen(ZGame * GameEnv)
 
   // Clear Screen
 
-  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+  //glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+  if( GameEnv->prior_page_up != GameEnv->page_up )
+  {
+	  GameEnv->prior_page_up = GameEnv->page_up;
   GameEnv->GuiManager.RemoveAllFrames();
 
   // Frames on screen
 
-  ZFrame_FontFrame Frame_MainTitle;
     Frame_MainTitle.SetDisplayText((char *)"SOUND SETTINGS");
     Frame_MainTitle.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
     Frame_MainTitle.GetTextDisplaySize(&Size);
@@ -60,7 +62,6 @@ ULong ZScreen_Options_Sound::ProcessScreen(ZGame * GameEnv)
     Pos.y += 32.0f + 16.0f;
 
   Pos.x = 0.0;
-  ZFrame_FontFrame Frame_TitleSoundEnable;
     Frame_TitleSoundEnable.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
     Frame_TitleSoundEnable.SetDisplayText("ENABLE SOUND  ");
     Frame_TitleSoundEnable.GetTextDisplaySize(&Size);
@@ -69,7 +70,6 @@ ULong ZScreen_Options_Sound::ProcessScreen(ZGame * GameEnv)
     GameEnv->GuiManager.AddFrame(&Frame_TitleSoundEnable);
     Pos.x += Size.x;
 
-  ZFrame_CheckBox Frame_SoundEnable;
     Frame_SoundEnable.SetGUITileset(GameEnv->GuiTileset);
     Frame_SoundEnable.SetPosition(Pos.x , Pos.y);
     Frame_SoundEnable.SetSize(32.0f,32.0f);
@@ -79,7 +79,6 @@ ULong ZScreen_Options_Sound::ProcessScreen(ZGame * GameEnv)
 
 
   Pos.x = 0.0;
-  ZFrame_FontFrame Frame_TitleSoundVolume;
     Frame_TitleSoundVolume.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
     Frame_TitleSoundVolume.SetDisplayText("SOUND VOLUME  ");
     Frame_TitleSoundVolume.GetTextDisplaySize(&Size);
@@ -88,7 +87,6 @@ ULong ZScreen_Options_Sound::ProcessScreen(ZGame * GameEnv)
     GameEnv->GuiManager.AddFrame(&Frame_TitleSoundVolume);
     Pos.x += Size.x;
 
-  ZFrame_NumericChoiceBox Frame_SoundVolume;
     Frame_SoundVolume.SetFontTileStyle(GameEnv->TileSetStyles->GetStyle(2));
     Frame_SoundVolume.SetGUITileset(GameEnv->GuiTileset);
     Frame_SoundVolume.SetPosition(Pos.x , Pos.y);
@@ -98,14 +96,12 @@ ULong ZScreen_Options_Sound::ProcessScreen(ZGame * GameEnv)
     GameEnv->GuiManager.AddFrame(&Frame_SoundVolume);
     Pos.y += 32.0f + GameEnv->ScreenResolution.y * 0.20f;
 
-  ZFrame_FontFrame Frame_Save;
     Frame_Save.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
     Frame_Save.SetDisplayText("SAVE");
     Frame_Save.GetTextDisplaySize(&Size);
     Frame_Save.SetPosition(GameEnv->ScreenResolution.x * 0.9f - Size.x -1.0f, GameEnv->ScreenResolution.y * 0.9f - Size.y);
     Frame_Save.SetSize(Size.x + 1.0f, Size.y);
     GameEnv->GuiManager.AddFrame(&Frame_Save);
-
 
 /*
   ZFrame_NumericChoiceBox Frame_NBox;
@@ -118,13 +114,13 @@ ULong ZScreen_Options_Sound::ProcessScreen(ZGame * GameEnv)
     GameEnv->GuiManager.AddFrame(&Frame_NBox);
     Pos.y += 32.0f + 16.0f;
 */
+  }
 
 
-
-    for (bool Loop = true; Loop; )
+    //for (bool Loop = true; Loop; )
     {
-      glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-      Loop = GameEnv->EventManager.ProcessEvents();
+      //glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+      //Loop = GameEnv->EventManager.ProcessEvents();
 
       // if (Frame_MainTitle.Is_MouseClick()) {Loop = false; GameEnv->Settings_Hardware->Save(); exit(0); }
 
@@ -140,7 +136,7 @@ ULong ZScreen_Options_Sound::ProcessScreen(ZGame * GameEnv)
         GameEnv->Settings_Hardware->Setting_SoundVolume = Frame_SoundVolume.GetValue();
       }
 
-      if (Frame_Save.Is_MouseClick()) { Loop = false; }
+      if (Frame_Save.Is_MouseClick()) { return CHOICE_QUIT; }
 
       //GameEnv->GuiManager.Render();
       //SDL_GL_SwapWindow( GameEnv->screen );
@@ -151,5 +147,5 @@ ULong ZScreen_Options_Sound::ProcessScreen(ZGame * GameEnv)
 
     //GameEnv->Settings_Hardware->Save();
 
-  return(CHOICE_QUIT);
+  return(CHOICE_NONE);
 }

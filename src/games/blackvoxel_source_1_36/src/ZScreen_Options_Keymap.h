@@ -65,6 +65,15 @@
 
 class ZScreen_Options_Keymap : public ZScreen
 {
+	  ZFrame_FontFrame Frame_MainTitle;
+  static const ULong NumLines = 8;
+  ZFrame_KeyChooser KeyChooser[NumLines];
+  ZFrame_FontFrame  KeyTitle[NumLines];
+  ZVector2f         Position[NumLines];
+  char const *            Title[NumLines];
+  UShort * Value[NumLines];
+  ZFrame_FontFrame Frame_Save;
+
   protected:
 
   public:
