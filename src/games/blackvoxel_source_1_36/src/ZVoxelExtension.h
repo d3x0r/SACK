@@ -47,9 +47,21 @@ class ZVoxelExtension
 
 
 
-  enum ExtensionTypes { Extension_None = 0,Extension_Storage=1, Extension_UserTextureTransformer = 2, Extension_PlaneZ1 = 3, Extension_TransformationMachine = 4,
-                        Extension_Programmable = 5, Extension_FusionElement = 6, Extension_BlastFurnace = 7, Extension_MiningRobot_xr1 = 8,
-                        Extension_Sequencer = 9, Extension_Egmy_T1 = 10 };
+  enum ExtensionTypes { Extension_None = 0
+	  ,Extension_Storage=1
+	  , Extension_UserTextureTransformer = 2
+	  , Extension_PlaneZ1 = 3
+	  , Extension_TransformationMachine = 4
+	  , Extension_Programmable = 5
+	  , Extension_FusionElement = 6
+	  , Extension_BlastFurnace = 7
+	  , Extension_MiningRobot_xr1 = 8
+		,Extension_Sequencer = 9
+		, Extension_Egmy_T1 = 10 
+		, Extension_FertileGround 
+		, Extension_Food
+		, Extension_Animal
+  };
 
   virtual ULong GetExtensionID() {return(0);}
   virtual bool Save(ZStream_SpecialRamStream * Stream)=0;

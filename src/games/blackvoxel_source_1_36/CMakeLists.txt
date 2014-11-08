@@ -6,8 +6,7 @@ cmake_minimum_required(VERSION 2.8)
 
 PROJECT( blackvoxel )
 
-set( SDL_SDK_ROOT_PATH M:/SDL2-2.0.3/build/output )
-set(SDL_SDK_ROOT_PATH ${SDL_SDK_ROOT_PATH} CACHE STRING "SDL SDK Root" )
+set(SDL_SDK_ROOT_PATH M:/SDL2-2.0.3/build-x64/output CACHE STRING "SDL SDK Root" )
 
 if( NOT SACK_SDK_ROOT_PATH )
 GET_FILENAME_COMPONENT(SACK_SDK_ROOT_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Freedom Collective\\SACK;Install_Dir]" ABSOLUTE CACHE)
@@ -94,6 +93,9 @@ src/ZVoxelSector.cpp
 src/ZVoxelType.cpp
 src/ZVoxelTypeManager.cpp
 src/ZVoxelType_BlastFurnace.cpp
+src/ZVoxelType_Food.cpp
+src/ZVoxelType_FertileGround.cpp
+src/ZVoxelType_Animal.cpp
 src/ZVoxelType_Concrete.cpp
 src/ZVoxelType_Egmy_T1.cpp
 src/ZVoxelType_FabMachine.cpp
@@ -116,26 +118,6 @@ src/ZWorldGenesis.cpp
 src/ZWorldInfo.cpp
 src/ZWorld_Stat.cpp
 
-#src/sc_Squirrel3/sqstdlib/sqstdaux.cpp
-#src/sc_Squirrel3/sqstdlib/sqstdblob.cpp
-#src/sc_Squirrel3/sqstdlib/sqstdio.cpp
-#src/sc_Squirrel3/sqstdlib/sqstdmath.cpp
-#src/sc_Squirrel3/sqstdlib/sqstdrex.cpp
-#src/sc_Squirrel3/sqstdlib/sqstdstream.cpp
-#src/sc_Squirrel3/sqstdlib/sqstdstring.cpp
-#src/sc_Squirrel3/sqstdlib/sqstdsystem.cpp
-#src/sc_Squirrel3/squirrel/sqapi.cpp
-#src/sc_Squirrel3/squirrel/sqbaselib.cpp
-#src/sc_Squirrel3/squirrel/sqclass.cpp
-#src/sc_Squirrel3/squirrel/sqcompiler.cpp
-#src/sc_Squirrel3/squirrel/sqdebug.cpp
-#src/sc_Squirrel3/squirrel/sqfuncstate.cpp
-#src/sc_Squirrel3/squirrel/sqlexer.cpp
-#src/sc_Squirrel3/squirrel/sqmem.cpp
-#src/sc_Squirrel3/squirrel/sqobject.cpp
-#src/sc_Squirrel3/squirrel/sqstate.cpp
-#src/sc_Squirrel3/squirrel/sqtable.cpp
-#src/sc_Squirrel3/squirrel/sqvm.cpp
 src/z/ZGlobal_Settings.cpp
 src/z/ZType_ZMatrix.cpp
 src/z/ZBitmapImage.cpp
@@ -263,6 +245,9 @@ src/ZVoxelSector.h
 src/ZVoxelType.h
 src/ZVoxelTypeManager.h
 src/ZVoxelType_BlastFurnace.h
+src/ZVoxelType_Food.h
+src/ZVoxelType_FertileGround.h
+src/ZVoxelType_Animal.h
 src/ZVoxelType_Concrete.h
 src/ZVoxelType_Egmy_T1.h
 src/ZVoxelType_FabMachine.h
@@ -314,7 +299,9 @@ src/z/ZType_ZVector3d.h
 src/z/ZType_ZVector3d_CrossFunc.h
 src/z/ZType_ZVector3L.h
 src/z/ZType_ZVector3L_CrossFunc.h
-src/z/ZVar.h )
+src/z/ZVar.h 
+
+)
 
 SOURCE_GROUP(Headers FILES ${HEADERS})
 OPTION( COMPILEOPTION_ALLOWSAVEPLAYERSTATE "Allow Save Player State" ON )

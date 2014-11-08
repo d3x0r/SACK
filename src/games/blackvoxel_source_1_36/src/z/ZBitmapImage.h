@@ -156,6 +156,7 @@ class ZBitmapImage : public ZGeneralObject
 
 
 
+    bool LoadAny( const char * FileName );
     bool LoadBMP( const char * FileName );
 };
 
