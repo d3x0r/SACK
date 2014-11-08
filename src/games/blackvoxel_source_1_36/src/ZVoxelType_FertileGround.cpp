@@ -34,10 +34,10 @@
 
 ZVoxelExtension * ZVoxelType_FertileGround::CreateVoxelExtension(bool IsLoadingPhase)
 {
-  ZVoxelExtension * NewVoxelExtension = 0;
+  ZVoxelExtension_FertileGround * NewVoxelExtension = 0;
 
   NewVoxelExtension = new ZVoxelExtension_FertileGround;
-  
+  NewVoxelExtension->time_since_spawn = ( ( -rand() * 2000.0 ) / RAND_MAX );
   return (NewVoxelExtension);
 }
 

@@ -82,8 +82,9 @@ class ZVoxelProcessor : public ZObject
     ZGame * GameEnv;
     ZVoxelReactor VoxelReactor;
     ZEgmyScatter  EgmyScatter;
+public:
     ZHighPerfTimer Timer;
-
+protected:
 
     static int thread_func(void * Data);
 
@@ -119,6 +120,8 @@ class ZVoxelProcessor : public ZObject
 
     void SetPlayerPosition(double x,double y, double z)
     {
+		if( Player_Position )
+		{
       Player_Position.x = x;
       Player_Position.y = y;
       Player_Position.z = z;
@@ -128,6 +131,7 @@ class ZVoxelProcessor : public ZObject
       Player_Voxel.x = (Long)  (x/GlobalSettings.VoxelBlockSize);
       Player_Voxel.y = (Long)  (y/GlobalSettings.VoxelBlockSize);
       Player_Voxel.z = (Long)  (z/GlobalSettings.VoxelBlockSize);
+		}
     }
 
     void Start()

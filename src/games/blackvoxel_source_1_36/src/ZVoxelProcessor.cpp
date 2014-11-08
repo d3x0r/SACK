@@ -73,7 +73,7 @@ void ZVoxelProcessor::MakeTasks()
   if (GameEnv->Enable_MVI) VoxelReactor.ProcessSectors( ((double)Timer.GetResult()) / 1000.0 );
   // printf("Processed: %lu Sectors\n", cnt);
 	if( ThreadContinue )
-	  SDL_Delay(100); // 2
+	  SDL_Delay(20); // 2
   //SDL_Delay(200); // 2
   Timer.End();
 }
