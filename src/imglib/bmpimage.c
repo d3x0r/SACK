@@ -298,11 +298,13 @@ static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, P_8 data )
 	}
    pif = MakeImageFile( w = pbm->biWidth,
                         h = pbm->biHeight );
+   /*
 	lprintf( WIDE("Load bitmamp image: %d by %d %d bits (%s) (%08x=%08x)"), w, h, pbm->biBitCount
 			 , bGLColorMode?"GL Color":"Native Colors"
 			 , 0x12345678
            , GLColor( 0x12345678)
 			 );
+	*/
    if( pif )
    {
 		dwPalette = (P_32)(((P_8)pbm) + pbm->biSize);
