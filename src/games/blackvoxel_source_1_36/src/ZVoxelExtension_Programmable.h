@@ -93,7 +93,7 @@ class ZVoxelExtension_Programmable : public ZVoxelExtension
 
     virtual ULong GetExtensionID()
     {
-      return( MulticharConst('P','R','O','G') );
+      return( ZVoxelExtension::ExtensionCharCodes[Extension_Programmable] );
     }
 
     virtual bool Save(ZStream_SpecialRamStream * Stream);

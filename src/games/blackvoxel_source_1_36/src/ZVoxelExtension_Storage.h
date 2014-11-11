@@ -61,7 +61,7 @@ class ZVoxelExtension_Storage : public ZVoxelExtension
 
   virtual ULong GetExtensionID()
   {
-    return( MulticharConst('S','T','O','R') );
+    return( ZVoxelExtension::ExtensionCharCodes[Extension_Storage] );
   }
 
   virtual bool Save(ZStream_SpecialRamStream * Stream)

@@ -80,7 +80,7 @@ class ZVoxelExtension_FusionElement : public ZVoxelExtension
 
   virtual ULong GetExtensionID()
   {
-    return( MulticharConst('F','U','S','E') );
+    return( ZVoxelExtension::ExtensionCharCodes[Extension_FusionElement] );
   }
 
   virtual bool Save(ZStream_SpecialRamStream * Stream)

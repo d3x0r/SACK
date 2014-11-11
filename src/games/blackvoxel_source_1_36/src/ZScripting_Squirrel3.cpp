@@ -412,7 +412,7 @@ SQInteger function_PlaceVoxel3D(HSQUIRRELVM v)
   if (!S->GameEnv->World->GetVoxelLocation(&Loc, &NewLocation)) { sq_pushbool(v,SQFalse); return(1); };
 
   // Get The voxel at the location and see if we can replace it.
-  OldVoxelType = Loc.Sector->Data[Loc.Offset];
+  OldVoxelType = Loc.Sector->Data[Loc.Offset].Data;
   OldVoxelTypeInfo = S->GameEnv->VoxelTypeManager.VoxelTable[OldVoxelType];
   if (OldVoxelTypeInfo->BvProp_PrRobotReplaceMinLevel > S->Extension->RobotLevel) { sq_pushbool(v,SQFalse); return(1); };
 
@@ -499,7 +499,7 @@ SQInteger function_PickVoxel3D(HSQUIRRELVM v)
   if (!S->GameEnv->World->GetVoxelLocation(&Loc, &NewLocation)) { sq_pushbool(v,SQFalse); return(1); };
 
   // Get The voxel at the location and see if we can pick it.
-  VoxelType     = Loc.Sector->Data[Loc.Offset];
+  VoxelType     = Loc.Sector->Data[Loc.Offset].Data;
   VoxelTypeInfo = S->GameEnv->VoxelTypeManager.VoxelTable[VoxelType];
   if (VoxelTypeInfo->BvProp_XrRobotPickMinLevel > S->Extension->RobotLevel) { sq_pushbool(v,SQFalse); return(1); };
 
@@ -552,13 +552,13 @@ SQInteger function_MoveVoxel3D(HSQUIRRELVM v)
 
   // Get The voxel at the destination location and see if we can replace it.
   if (!S->GameEnv->World->GetVoxelLocation(&LocDest, &DestLocation)) { sq_pushbool(v,SQFalse); return(1); };
-  DestVoxelType = LocDest.Sector->Data[LocDest.Offset];
+  DestVoxelType = LocDest.Sector->Data[LocDest.Offset].Data;
   DestVoxelTypeInfo = S->GameEnv->VoxelTypeManager.VoxelTable[DestVoxelType];
   if (DestVoxelTypeInfo->BvProp_PrRobotReplaceMinLevel > S->Extension->RobotLevel) { sq_pushbool(v,SQFalse); return(1); };
 
   // Get The voxel at the source location and see if we can move it.
   if (!S->GameEnv->World->GetVoxelLocation(&LocSource, &SourceLocation)) { sq_pushbool(v,SQFalse); return(1); };
-  SourceVoxelType = LocSource.Sector->Data[LocSource.Offset];
+  SourceVoxelType = LocSource.Sector->Data[LocSource.Offset].Data;
   SourceVoxelTypeInfo = S->GameEnv->VoxelTypeManager.VoxelTable[SourceVoxelType];
   if (SourceVoxelTypeInfo->BvProp_PrRobotMoveMinLevel > S->Extension->RobotLevel) { sq_pushbool(v,SQFalse); return(1); };
 
@@ -637,7 +637,7 @@ SQInteger function_Look3D(HSQUIRRELVM v)
 
   // Look at the position and find the voxel
   if (!S->GameEnv->World->GetVoxelLocation( &Loc, &NewLocation )) {sq_pushinteger(v, -1 );return(1);}
-  VoxelType = Loc.Sector->Data[Loc.Offset];
+  VoxelType = Loc.Sector->Data[Loc.Offset].Data;
 
   sq_pushinteger(v,(SQInteger)VoxelType);
   return(1);
@@ -939,7 +939,7 @@ SQInteger function_PushVoxelTo(HSQUIRRELVM v)
   if (!Found) { sq_pushbool(v,SQFalse); return(1); }
 
   S->GameEnv->World->GetVoxelLocation(&Loc, NewLocation.x, NewLocation.y, NewLocation.z );
-  if (1!=S->GameEnv->VoxelTypeManager.VoxelTable[ Loc.Sector->Data[Loc.Offset] ]->Interface_PushBlock_Push(&Loc,InVal2,1)) { sq_pushbool(v,SQFalse); return(1); };
+  if (1!=S->GameEnv->VoxelTypeManager.VoxelTable[ Loc.Sector->Data[Loc.Offset].Data ]->Interface_PushBlock_Push(&Loc,InVal2,1)) { sq_pushbool(v,SQFalse); return(1); };
   S->Extension->VoxelQuantity[SlotNum]--; if (S->Extension->VoxelQuantity[SlotNum] == 0) S->Extension->VoxelType[SlotNum] = 0;
 
   sq_pushbool(v,SQTrue);
@@ -980,7 +980,7 @@ SQInteger function_PullVoxelFrom(HSQUIRRELVM v)
   if (!Found) { sq_pushbool(v,SQFalse); return(1); }
 
   S->GameEnv->World->GetVoxelLocation(&Loc, NewLocation.x, NewLocation.y, NewLocation.z );
-  if (1!=S->GameEnv->VoxelTypeManager.VoxelTable[ Loc.Sector->Data[Loc.Offset] ]->Interface_PushBlock_Pull(&Loc,&VoxelType,1)) { sq_pushbool(v,SQFalse); return(1); };
+  if (1!=S->GameEnv->VoxelTypeManager.VoxelTable[ Loc.Sector->Data[Loc.Offset].Data ]->Interface_PushBlock_Pull(&Loc,&VoxelType,1)) { sq_pushbool(v,SQFalse); return(1); };
   S->Extension->StoreBlocks(VoxelType,1);
   sq_pushbool(v,SQTrue);
   return(1);
@@ -1214,7 +1214,7 @@ SQInteger function_voxel_getinfo(HSQUIRRELVM v)
 
   // Get the Voxel type
 
-  VoxelType = Loc.Sector->Data[Loc.Offset];
+  VoxelType = Loc.Sector->Data[Loc.Offset].Data;
 
   // Call getinfo interface
 
@@ -1263,7 +1263,7 @@ SQInteger function_voxel_setinfo(HSQUIRRELVM v)
 
   // Get the Voxel type
 
-  VoxelType = Loc.Sector->Data[Loc.Offset];
+  VoxelType = Loc.Sector->Data[Loc.Offset].Data;
 
   // Call getinfo interface
 

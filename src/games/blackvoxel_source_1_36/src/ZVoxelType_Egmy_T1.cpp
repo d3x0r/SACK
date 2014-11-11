@@ -49,7 +49,7 @@ void ZVoxelType_Egmy_T1::GetBlockInformations(VoxelLocation * DestLocation, ZStr
 {
   ZVoxelExtension_Egmy_T1 * Ext;
 
-  Ext = (ZVoxelExtension_Egmy_T1 * )DestLocation->Sector->OtherInfos[DestLocation->Offset];
+  Ext = (ZVoxelExtension_Egmy_T1 * )DestLocation->Sector->Data[DestLocation->Offset].OtherInfos;
 
   Infos << "Loc :" << Ext->TargetLocation.x << "," << Ext->TargetLocation.y << "," << Ext->TargetLocation.z << Infos.NewLine();
   Infos << "TargetVoxelType :" << Ext->TargetVoxelType << Infos.NewLine();

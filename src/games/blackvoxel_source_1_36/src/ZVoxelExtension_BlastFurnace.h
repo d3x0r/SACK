@@ -56,7 +56,7 @@ class ZVoxelExtension_BlastFurnace : public ZVoxelExtension
 
   virtual ULong GetExtensionID()
   {
-    return( MulticharConst('B','F','U','R') );
+    return( ZVoxelExtension::ExtensionCharCodes[Extension_BlastFurnace] );
   }
 
   virtual bool Save(ZStream_SpecialRamStream * Stream)

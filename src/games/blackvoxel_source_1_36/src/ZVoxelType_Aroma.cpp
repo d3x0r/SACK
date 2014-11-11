@@ -17,33 +17,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
- * ZVoxelType_FertileGorund.cpp
+ * ZVoxelType_Aroma.cpp
  *
  *  Created on: 4 févr. 2013
  *      Author: laurent
  */
 
-#ifndef Z_VOXELTYPE_FERTILEGROUND_H
-#  include "ZVoxelType_FertileGround.h"
+#ifndef Z_VOXELTYPE_AROMA_H
+#  include "ZVoxelType_Aroma.h"
 #endif
 
-#ifndef Z_ZVOXELEXTENSION_FERTILEGROUND_H
-#  include "ZVoxelExtension_FertileGround.h"
+#ifndef Z_ZVOXELEXTENSION_AROMA_H
+#  include "ZVoxelExtension_Aroma.h"
 #endif
 
 
-ZVoxelExtension * ZVoxelType_FertileGround::CreateVoxelExtension(bool IsLoadingPhase)
+ZVoxelExtension * ZVoxelType_Aroma::CreateVoxelExtension(bool IsLoadingPhase)
 {
-  ZVoxelExtension_FertileGround * NewVoxelExtension = 0;
+  ZVoxelExtension_Aroma * NewVoxelExtension = 0;
 
-  NewVoxelExtension = new ZVoxelExtension_FertileGround;
+  NewVoxelExtension = new ZVoxelExtension_Aroma;
   NewVoxelExtension->time_since_spawn = ( ( -rand() * 2000.0 ) / RAND_MAX );
   return (NewVoxelExtension);
 }
 
-void ZVoxelType_FertileGround::React( const ZVoxelRef &self, double tick )
+void ZVoxelType_Aroma::React( const ZVoxelRef &self, double tick )
 {
-	ZVoxelExtension_FertileGround *instance = (ZVoxelExtension_FertileGround *)self.VoxelExtension;
+	ZVoxelExtension_Aroma *instance = (ZVoxelExtension_Aroma *)self.VoxelExtension;
 	instance->time_since_spawn += tick;
 	if( instance->time_since_spawn > 1000 )
 	{

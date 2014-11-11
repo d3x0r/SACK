@@ -57,7 +57,7 @@ ULong ZVoxelType_PlaneZ1::Interface_PushBlock_Push( VoxelLocation * DestLocation
 {
   ZVoxelExtension_Storage * Ext_Storage;
 
-  Ext_Storage = (ZVoxelExtension_Storage *)DestLocation->Sector->OtherInfos[DestLocation->Offset];
+  Ext_Storage = (ZVoxelExtension_Storage *)DestLocation->Sector->Data[DestLocation->Offset].OtherInfos;
 
   if (Ext_Storage)
   {

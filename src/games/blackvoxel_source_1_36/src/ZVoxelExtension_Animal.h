@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
- * ZVoxelExtension_BlastFurnace.h
+ * ZVoxelExtension_Animal.h
  *
  *  Created on: 4 févr. 2013
  *      Author: laurent
@@ -27,7 +27,7 @@
 #define Z_ZVOXELEXTENSION_ANIMAL_H
 
 //#ifndef Z_ZVOXELEXTENSION_BLASTFURNACE_H
-//#  include "ZVoxelExtension_BlastFurnace.h"
+//#  include "ZVoxelExtension_Animal.h"
 //#endif
 
 #ifndef Z_ZVOXELEXTENSION_H
@@ -42,7 +42,7 @@ class ZVoxelExtension_Animal : public ZVoxelExtension
 
   ZVoxelExtension_Animal()
   {
-    ExtensionType = Extension_BlastFurnace;
+    ExtensionType = Extension_Animal;
 
     Quantity_Carbon   = 0.0;
   }
@@ -56,7 +56,7 @@ class ZVoxelExtension_Animal : public ZVoxelExtension
 
   virtual ULong GetExtensionID()
   {
-    return( MulticharConst('B','A','N','I') );
+    return( ZVoxelExtension::ExtensionCharCodes[Extension_Animal] );
   }
 
   virtual bool Save(ZStream_SpecialRamStream * Stream)

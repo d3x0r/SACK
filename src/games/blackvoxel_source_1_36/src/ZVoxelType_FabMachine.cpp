@@ -53,7 +53,7 @@ void ZVoxelType_FabMachine::GetBlockInformations(VoxelLocation * DestLocation, Z
   ULong i, Quantity;
   UShort VoxelType;
 
-  Ext = (ZVoxelExtension_FabMachine * )DestLocation->Sector->OtherInfos[DestLocation->Offset];
+  Ext = (ZVoxelExtension_FabMachine * )DestLocation->Sector->Data[DestLocation->Offset].OtherInfos;
 
   for (i=0;i< ZVoxelExtension_FabMachine::Storage_NumSlots;i++ )
   {

@@ -61,7 +61,12 @@ class ZVoxelExtension
 		, Extension_FertileGround 
 		, Extension_Food
 		, Extension_Animal
+		, Extension_Aroma
+		, Extension_AromaGenerator
+		, Extension_Count
   };
+
+  static ULong ExtensionCharCodes[Extension_Count];
 
   virtual ULong GetExtensionID() {return(0);}
   virtual bool Save(ZStream_SpecialRamStream * Stream)=0;
@@ -71,7 +76,6 @@ class ZVoxelExtension
 
   virtual ~ZVoxelExtension() {}
 };
-
 
 
 #endif /* Z_ZVOXELEXTENSION_H */

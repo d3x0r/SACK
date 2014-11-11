@@ -775,9 +775,9 @@ void ZWorldGenesis::GenerateZone_WaterLands(ZVoxelSector * VoxelSector, Long Hei
   SectorStart.y = (VoxelSector->Pos_y << ZVOXELBLOCSHIFT_Y);
   if( Sector_y >= 0 )
   {
-	  memset( VoxelSector->Data, 0, VoxelSector->DataSize * sizeof( short ) );
-	  memset( VoxelSector->OtherInfos, 0, VoxelSector->DataSize * sizeof( ZMemSize ) );
-	return;
+	  memset( VoxelSector->Data, 0, VoxelSector->DataSize * sizeof( VoxelSector->Data[0] ) );
+	  //memset( VoxelSector->OtherInfos, 0, VoxelSector->DataSize * sizeof( ZMemSize ) );
+	  return;
   }
   VoxelSector->Flag_IsActiveVoxels = true;
 
@@ -1116,9 +1116,9 @@ void ZWorldGenesis::AddTreeOn(ZVoxelSector * Sector, ZVoxelSector ** TemplateTab
     for (x=0;x<ZVOXELBLOCSIZE_X; x++)
       for (y=0;y<ZVOXELBLOCSIZE_Y; y++)
       {
-        if (Sector->Data[i] == VoxelType &&  y<60 && (Rnd =RandomGen.GetNumber(i))<200000000) //100000000
+        if (Sector->Data[i].Data == VoxelType &&  y<60 && (Rnd =RandomGen.GetNumber(i))<200000000) //100000000
         {
-          if (Sector->Data[i+1]==0)
+          if (Sector->Data[i+1].Data==0)
           {
             Template = TemplateTable[Rnd % ModelCount];
             Pos.x = x - Template->Handle_x; Pos.y = y+1 - Template->Handle_y; Pos.z = z - Template->Handle_z;
@@ -1546,7 +1546,8 @@ void ZWorldGenesis::GenerateZone_Flat(ZVoxelSector * VoxelSector, Long Sector_x,
   ULong i, RandomSeed, RandomNumber;
   UShort TypeTable[ZVOXELBLOCSIZE_Y];
   bool   MineralInclude[ZVOXELBLOCSIZE_Y];
-  UShort Type, * Data = VoxelSector->Data;
+  ZVoxelSector::VoxelData * Data = VoxelSector->Data;
+  UShort Type;
 
   VoxelSector->Flag_Void_Transparent = true;
   VoxelSector->Flag_Void_Regular     = true;
@@ -1576,7 +1577,7 @@ void ZWorldGenesis::GenerateZone_Flat(ZVoxelSector * VoxelSector, Long Sector_x,
   UShort LastMineral = 0;
   for (i=0;i< (ZVOXELBLOCSIZE_X*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_Z) ;i++)
   {
-    Data[i] = TypeTable[ i & ZVOXELBLOCMASK_Y ];
+    Data[i].Data = TypeTable[ i & ZVOXELBLOCMASK_Y ];
     if (MineralInclude[i & ZVOXELBLOCMASK_Y])
     {
       RandomNumber = RandomGen.GetNumber((i) + RandomSeed);
@@ -1610,7 +1611,7 @@ void ZWorldGenesis::GenerateZone_Flat(ZVoxelSector * VoxelSector, Long Sector_x,
         switch(LastMineral)
         {
           default:
-            if ((RandomNumber & 3)!=0) Data[i] = LastMineral;
+            if ((RandomNumber & 3)!=0) Data[i].Data = LastMineral;
             else                       LastMineral = 0;
             break;
         }
@@ -1657,7 +1658,8 @@ void ZWorldGenesis::GenerateZone_Flat2(ZVoxelSector * VoxelSector, Long HeightOf
   UShort TypeTable[ZVOXELBLOCSIZE_Y];
   bool   MineralInclude[ZVOXELBLOCSIZE_Y];
 
-  UShort Type, * Data = VoxelSector->Data;
+  UShort Type;
+  ZVoxelSector::VoxelData * Data = VoxelSector->Data;
 
   VoxelSector->Flag_Void_Transparent = true;
   VoxelSector->Flag_Void_Regular     = true;
@@ -1868,7 +1870,7 @@ void ZWorldGenesis::GenerateZone_Flat2(ZVoxelSector * VoxelSector, Long HeightOf
   // If sector is void, fill it more quickly
   if (VoxelSector->Flag_Void_Regular)
   {
-    for (i=0; i < (ZVOXELBLOCSIZE_X*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_Z) ; i++) Data[i]=0;
+    for (i=0; i < (ZVOXELBLOCSIZE_X*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_Z) ; i++) Data[i].Data=0;
     return;
   }
 
@@ -1880,7 +1882,7 @@ void ZWorldGenesis::GenerateZone_Flat2(ZVoxelSector * VoxelSector, Long HeightOf
 
   for (i=0;i< (ZVOXELBLOCSIZE_X*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_Z) ;i++)
   {
-    Data[i] = TypeTable[ i & ZVOXELBLOCMASK_Y ];
+    Data[i].Data = TypeTable[ i & ZVOXELBLOCMASK_Y ];
     if (MineralInclude[i & ZVOXELBLOCMASK_Y])
     {
       RandomNumber = RandomGen.GetNumber((i) + RandomSeed);
@@ -1889,12 +1891,12 @@ void ZWorldGenesis::GenerateZone_Flat2(ZVoxelSector * VoxelSector, Long HeightOf
         RandomNumber = RandomGen.GetNumber((i + 8) + RandomSeed);
 
         Num = Probabilizer.GetTypeNum(RandomNumber);
-        Data[i] = LastMineral = Probabilizer.GetVoxelType(Num);
+        Data[i].Data = LastMineral = Probabilizer.GetVoxelType(Num);
       }
       else if (LastMineral!=0)
       {
         RepeatChance = Probabilizer.GetRepeatChance(Num);
-        if ((RandomNumber & RepeatChance )!=0) Data[i] = LastMineral;
+        if ((RandomNumber & RepeatChance )!=0) Data[i].Data = LastMineral;
         else                                   LastMineral = 0;
       }
       // LastMineral = 0;
@@ -1925,7 +1927,8 @@ void ZWorldGenesis::GenerateZone_FlatAcidResistant(ZVoxelSector * VoxelSector, L
   UShort TypeTable[ZVOXELBLOCSIZE_Y];
   bool   MineralInclude[ZVOXELBLOCSIZE_Y];
 
-  UShort Type, * Data = VoxelSector->Data;
+  UShort Type;
+  ZVoxelSector::VoxelData * Data = VoxelSector->Data;
 
   VoxelSector->Flag_Void_Transparent = true;
   VoxelSector->Flag_Void_Regular     = true;
@@ -1984,7 +1987,7 @@ void ZWorldGenesis::GenerateZone_FlatAcidResistant(ZVoxelSector * VoxelSector, L
   // If sector is void, fill it more quickly
   if (VoxelSector->Flag_Void_Regular)
   {
-    for (i=0; i < (ZVOXELBLOCSIZE_X*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_Z) ; i++) Data[i]=0;
+    for (i=0; i < (ZVOXELBLOCSIZE_X*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_Z) ; i++) Data[i].Data=0;
     return;
   }
 
@@ -1996,7 +1999,7 @@ void ZWorldGenesis::GenerateZone_FlatAcidResistant(ZVoxelSector * VoxelSector, L
 
   for (i=0;i< (ZVOXELBLOCSIZE_X*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_Z) ;i++)
   {
-    Data[i] = TypeTable[ i & ZVOXELBLOCMASK_Y ];
+    Data[i].Data = TypeTable[ i & ZVOXELBLOCMASK_Y ];
     if (MineralInclude[i & ZVOXELBLOCMASK_Y])
     {
       RandomNumber = RandomGen.GetNumber((i) + RandomSeed);
@@ -2005,12 +2008,12 @@ void ZWorldGenesis::GenerateZone_FlatAcidResistant(ZVoxelSector * VoxelSector, L
         RandomNumber = RandomGen.GetNumber((i + 8) + RandomSeed);
 
         Num = Probabilizer.GetTypeNum(RandomNumber);
-        Data[i] = LastMineral = Probabilizer.GetVoxelType(Num);
+        Data[i].Data = LastMineral = Probabilizer.GetVoxelType(Num);
       }
       else if (LastMineral!=0)
       {
         RepeatChance = Probabilizer.GetRepeatChance(Num);
-        if ((RandomNumber & RepeatChance )!=0) Data[i] = LastMineral;
+        if ((RandomNumber & RepeatChance )!=0) Data[i].Data = LastMineral;
         else                                   LastMineral = 0;
       }
       // LastMineral = 0;
@@ -2022,7 +2025,7 @@ void ZWorldGenesis::GenerateZone_DustField(ZVoxelSector * VoxelSector, Long Sect
 {
   ULong RandomSeed;
 
-  UShort * Data, * DataEnd;
+  ZVoxelSector::VoxelData * Data, * DataEnd;
 
 
   RandomSeed = (RandomGen.GetNumber(Sector_x & ZLIGHTSPEEDRANDOM_LENMASK ) ^ RandomGen.GetNumber(Sector_y & ZLIGHTSPEEDRANDOM_LENMASK) ^ RandomGen.GetNumber(Sector_z & ZLIGHTSPEEDRANDOM_LENMASK)) & ZLIGHTSPEEDRANDOM_LENMASK;
@@ -2030,7 +2033,7 @@ void ZWorldGenesis::GenerateZone_DustField(ZVoxelSector * VoxelSector, Long Sect
 
   for (Data = VoxelSector->Data, DataEnd = Data + (ZVOXELBLOCSIZE_X*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_Z) ; Data < DataEnd; Data++)
   {
-    *Data = (RandomGen.GetNumber() & 1023 ) ? 0 : 203; // 255
+	Data->Data = (RandomGen.GetNumber() & 1023 ) ? 0 : 203; // 255
   }
 
 }

@@ -117,7 +117,7 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
 	case SDLK_k & 0xFF:
                   {
                     if (!GameEnv->Settings_Hardware->Experimental_LearningMode) break;
-                    ULong SlotNum = 20;
+                    ULong SlotNum = 15;
                     ZInventory * Inv = Actor->Inventory;
 					if (KeySym == (SDLK_k & 0xFF)) Actor->LearningModePage++;
                     else                {if((Actor->LearningModePage--)==0) Actor->LearningModePage = 2; }
@@ -176,6 +176,10 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
                               Inv->SetSlot(SlotNum++, 238, 8192);
                               Inv->SetSlot(SlotNum++, 239, 8192);
                               Inv->SetSlot(SlotNum++,240, 8192);
+                              Inv->SetSlot(SlotNum++,241, 8192);
+                              Inv->SetSlot(SlotNum++,242, 8192);
+                              Inv->SetSlot(SlotNum++,243, 8192);
+                              Inv->SetSlot(SlotNum++,244, 8192);
                               while(SlotNum<40) Inv->SetSlot(SlotNum++, 0, 0);
                               break;
                     }
@@ -735,8 +739,8 @@ void ZGame_Events::Process_StillEvents()
       VoxelLocation Loc;
       if (GameEnv->World->GetVoxelLocation(&Loc, x,y,z))
       {
-        printf("Voxel Name : %s\n", GameEnv->VoxelTypeManager.VoxelTable[ Loc.Sector->Data[Loc.Offset] ]->VoxelTypeName.String);
-        GameEnv->VoxelTypeManager.VoxelTable[ Loc.Sector->Data[Loc.Offset] ]->GetBlockInformations( &Loc, Infos );
+        printf("Voxel Name : %s\n", GameEnv->VoxelTypeManager.VoxelTable[ Loc.Sector->Data[Loc.Offset].Data ]->VoxelTypeName.String);
+        GameEnv->VoxelTypeManager.VoxelTable[ Loc.Sector->Data[Loc.Offset].Data ]->GetBlockInformations( &Loc, Infos );
         printf("Sector Location : %d,%d,%d\n", Loc.Sector->Pos_x , Loc.Sector->Pos_y, Loc.Sector->Pos_z);
         printf("Zone Coords : %d,%d\n",(((Loc.Sector->Pos_x) >> 4) + 32 +1 ), (((Loc.Sector->Pos_z) >> 4) + 32 +1 ));
         printf("%s\n",Infos.String);

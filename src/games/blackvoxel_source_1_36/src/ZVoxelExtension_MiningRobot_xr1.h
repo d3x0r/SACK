@@ -93,7 +93,7 @@ class ZVoxelExtension_MiningRobot_xr1 : public ZVoxelExtension
 
   virtual ULong GetExtensionID()
   {
-    return( MulticharConst('M','R','X','1') );
+    return( ZVoxelExtension::ExtensionCharCodes[Extension_MiningRobot_xr1] );
   }
 
   virtual bool Save(ZStream_SpecialRamStream * Stream);

@@ -48,7 +48,7 @@ void  ZVoxelType_Concrete::GetBlockInformations(VoxelLocation * DestLocation, ZS
   ZVoxelExtensionType_VoxelFluid * VoxelInfo;
   UShort   Pressure;
 
-  VoxelInfo = (ZVoxelExtensionType_VoxelFluid *)&DestLocation->Sector->OtherInfos[DestLocation->Offset];
+  VoxelInfo = (ZVoxelExtensionType_VoxelFluid *)&DestLocation->Sector->Data[DestLocation->Offset].OtherInfos;
 
   Pressure = VoxelInfo->Pressure;
 

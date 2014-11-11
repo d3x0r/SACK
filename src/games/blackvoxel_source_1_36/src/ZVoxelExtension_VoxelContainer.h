@@ -17,50 +17,63 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
- * ZVoxelExtension_Food.h
+ * ZVoxelExtension_VoxelContainer.h
  *
- *  Created on: 4 févr. 2013
- *      Author: laurent
+ *  Created on: 10 nov 2014
+ *      Author: d3x0r
  */
 
-#ifndef Z_ZVOXELEXTENSION_FOOD_H
-#define Z_ZVOXELEXTENSION_FOOD_H
-
-//#ifndef Z_ZVOXELEXTENSION_BLASTFURNACE_H
-//#  include "ZVoxelExtension_Food.h"
-//#endif
+#ifndef Z_ZVOXELEXTENSION_VOXELCONTAINER_H
+#define Z_ZVOXELEXTENSION_VOXELCONTAINER_H
 
 #ifndef Z_ZVOXELEXTENSION_H
 #  include "ZVoxelExtension.h"
 #endif
 
-class ZVoxelExtension_Food : public ZVoxelExtension
+class ZVoxelExtension_VoxelContainer : public ZVoxelExtension
 {
+	class ZFreeVoxel
+	{
+		UShort VoxelType;
+		ZMemSize  OtherInfos;
+	};
+	class ZVoxelPool : public ZBasicMemoryPool
+	{
+#define MAXZFreeVoxelSPERSET 256
+		DeclareSet( ZFreeVoxel, VoxelPool );
+		ZFreeVoxel *GetFreeVoxel( UShort voxelType )
+		{
+			ZFreeVoxel *result = GetFromSet( ZFreeVoxel, &VoxelPool ); 
+		}
+		void DropFreeVoxel( ZFreeVoxel *voxel )
+		{
+			ZFreeVoxel *result = DeleteFromSet( ZFreeVoxel, &VoxelPool ); 
+		}
+	};
   public:
-    double Quantity_Carbon;
+    ZFreeVoxel *voxels;
   public:
 
-  ZVoxelExtension_Food()
+  ZVoxelExtension_VoxelContainer()
   {
-    ExtensionType = Extension_Food;
-
-    Quantity_Carbon   = 0.0;
   }
 
   virtual ZVoxelExtension * GetNewCopy()
   {
-    ZVoxelExtension_Food * NewCopy;
-    NewCopy = new ZVoxelExtension_Food(*this);
+    ZVoxelExtension_VoxelContainer * NewCopy;
+    NewCopy = new ZVoxelExtension_VoxelContainer(*this);
     return(NewCopy);
   }
 
   virtual ULong GetExtensionID()
   {
-    return( ZVoxelExtension::ExtensionCharCodes[Extension_Food] );
+    return( MulticharConst('B','C','O','N') );
   }
 
   virtual bool Save(ZStream_SpecialRamStream * Stream)
   {
+	  base->Save( Stream );
+	  /*
     ULong * ExtensionSize;
     ULong   StartLen;
 
@@ -74,12 +87,13 @@ class ZVoxelExtension_Food : public ZVoxelExtension
     Stream->Put(Quantity_Carbon);
 
     *ExtensionSize = Stream->GetActualBufferLen() - StartLen;
-
+	*/
     return(true);
   }
 
   virtual bool Load(ZStream_SpecialRamStream * Stream)
   {
+	  /*
     bool Ok;
     ULong  ExtensionSize;
     UShort ExtensionVersion;
@@ -95,8 +109,10 @@ class ZVoxelExtension_Food : public ZVoxelExtension
     Stream->Get(Quantity_Carbon);
 
     return(Ok);
+	*/
+	  return true;
   }
 
 };
 
-#endif /* ZVOXELEXTENSION_BLASTFURNACE_H_ */
+#endif /* Z_ZVOXELEXTENSION_VOXELCONTAINER_H */
