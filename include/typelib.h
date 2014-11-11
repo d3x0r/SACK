@@ -1069,7 +1069,7 @@ TYPELIB_PROC  POINTER  TYPELIB_CALLTYPE GetFromSetEx( GENERICSET **pSet, int set
    Parameters
    name :  name of type the set contains.
    pSet :  pointer to a set to get an element from.                                */
-#define GetFromSet( name, pset ) (P##name)GetFromSeta( (GENERICSET**)(pset), sizeof( name##SET ), sizeof( name ), MAX##name##SPERSET )
+#define GetFromSet( name, pset ) (name*)GetFromSeta( (GENERICSET**)(pset), sizeof( name##SET ), sizeof( name ), MAX##name##SPERSET )
 
 /* \ \ 
    Parameters
@@ -1089,7 +1089,7 @@ TYPELIB_PROC  PGENERICSET  TYPELIB_CALLTYPE GetFromSetPoolEx( GENERICSET **pSetS
 /* <combine sack::containers::sets::GetFromSetPoolEx@GENERICSET **@int@int@int@GENERICSET **@int@int@int maxcnt>
    
    \ \                                                                                                           */
-#define GetFromSetPool( name, pool, pset ) (P##name)GetFromSetPoola( (GENERICSET**)(pool)    \
+#define GetFromSetPool( name, pool, pset ) (name*)GetFromSetPoola( (GENERICSET**)(pool)    \
 	, sizeof( name##SETSET ), sizeof( name##SET ), MAX##name##SETSPERSET\
 	, (GENERICSET**)(pset), sizeof( name##SET ), sizeof( name ), MAX##name##SPERSET )
 
@@ -1108,7 +1108,7 @@ TYPELIB_PROC  POINTER  TYPELIB_CALLTYPE GetSetMemberEx( GENERICSET **pSet, INDEX
 /* <combine sack::containers::sets::GetSetMemberEx@GENERICSET **@INDEX@int@int@int maxcnt>
    
    \ \                                                                                     */
-#define GetSetMember( name, pset, member ) ((P##name)GetSetMembera( (GENERICSET**)(pset), (member), sizeof( name##SET ), sizeof( name ), MAX##name##SPERSET ))
+#define GetSetMember( name, pset, member ) ((name*)GetSetMembera( (GENERICSET**)(pset), (member), sizeof( name##SET ), sizeof( name ), MAX##name##SPERSET ))
 
 /* \ \ 
    Parameters
@@ -1125,7 +1125,7 @@ TYPELIB_PROC  POINTER  TYPELIB_CALLTYPE GetUsedSetMemberEx( GENERICSET **pSet, I
 /* <combine sack::containers::sets::GetUsedSetMemberEx@GENERICSET **@INDEX@int@int@int maxcnt>
    
    \ \                                                                                         */
-#define GetUsedSetMember( name, pset, member ) ((P##name)GetUsedSetMembera( (GENERICSET**)(pset), (member), sizeof( name##SET ), sizeof( name ), MAX##name##SPERSET ))
+#define GetUsedSetMember( name, pset, member ) ((name*)GetUsedSetMembera( (GENERICSET**)(pset), (member), sizeof( name##SET ), sizeof( name ), MAX##name##SPERSET ))
 
 TYPELIB_PROC  INDEX TYPELIB_CALLTYPE  GetMemberIndex(GENERICSET **set, POINTER unit, int unitsize, int max );
 /* Gets the index of a member passed as a pointer.
@@ -1288,11 +1288,11 @@ TYPELIB_PROC  PTRSZVAL TYPELIB_CALLTYPE  ForEachSetMember ( GENERICSET *pSet, in
 	pool = NULL;                               \
 	}    \
 	~name##set_tag() { DeleteSet( &pool ); } \
-	P##name grab() { return (P##name)GetFromSetEx( &pool, set_size, element_size, element_cnt DBG_SRC ); } \
-	P##name grab(INDEX member) { return (P##name)GetSetMemberEx( &pool, member, set_size, element_size, element_cnt DBG_SRC ); } \
-	P##name get(INDEX member) { return (this)?(P##name)GetUsedSetMemberEx( &pool, member, set_size, element_size, element_cnt DBG_SRC ):(NULL); } \
-	void drop( P##name member ) { DeleteFromSetEx( pool, (POINTER)member, element_size, element_cnt ); } \
-	int valid( P##name member ) { return MemberValidInSetEx( pool, (POINTER)member, element_size, element_cnt ); } \
+	name* grab() { return (name*)GetFromSetEx( &pool, set_size, element_size, element_cnt DBG_SRC ); } \
+	name* grab(INDEX member) { return (name*)GetSetMemberEx( &pool, member, set_size, element_size, element_cnt DBG_SRC ); } \
+	name* get(INDEX member) { return (this)?(name*)GetUsedSetMemberEx( &pool, member, set_size, element_size, element_cnt DBG_SRC ):(NULL); } \
+	void drop( name* member ) { DeleteFromSetEx( pool, (POINTER)member, element_size, element_cnt ); } \
+	int valid( name* member ) { return MemberValidInSetEx( pool, (POINTER)member, element_size, element_cnt ); } \
 	PTRSZVAL forall( FAISCallback f, PTRSZVAL psv ) { if( this ) return _ForAllInSet( pool, element_size, element_cnt, f, psv ); else return 0; } \
 	};       \
 	typedef struct name##set_tag *P##name##SET, name##SET;        

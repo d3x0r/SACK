@@ -302,8 +302,8 @@ void ZVoxelReactor::VoxelFluid_ComputeVolumePressure_Recurse(ZVector3L * Locatio
 
   // Get infos from the voxel
 
-  VoxelType = Loc.Sector->Data[Loc.Offset];
-  Ext = (ZVoxelExtensionType_VoxelFluid *)&Loc.Sector->OtherInfos[Loc.Offset];
+  VoxelType = Loc.Sector->Data[Loc.Offset].Data;
+  Ext = (ZVoxelExtensionType_VoxelFluid *)&Loc.Sector->Data[Loc.Offset].OtherInfos;
 
   // If voxeltype is not of the required type, stop with it
 
@@ -344,8 +344,8 @@ void ZVoxelReactor::VoxelFluid_SetVolumePressure_Recurse(ZVector3L * Location, Z
 
   // Get infos from the voxel
 
-  VoxelType = Loc.Sector->Data[Loc.Offset];
-  Ext = (ZVoxelExtensionType_VoxelFluid *)&Loc.Sector->OtherInfos[Loc.Offset];
+  VoxelType = Loc.Sector->Data[Loc.Offset].Data;
+  Ext = (ZVoxelExtensionType_VoxelFluid *)&Loc.Sector->Data[Loc.Offset].OtherInfos;
 
   // If voxeltype is not of the required type, stop with it
 
@@ -457,7 +457,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
           }
 
       // Make the sector table
-      register UShort * DisplayData, * VoxelP;
+		register ZVoxelSector::VoxelData * DisplayData, * VoxelP;
       VoxelP = DisplayData = Sector->Data;
       ZFastBit_Array_64k * ActiveTable = VoxelTypeManager->ActiveTable;
       bool                 IsActiveVoxels = false;
@@ -468,13 +468,15 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
       Long RSx = Sector->Pos_x << ZVOXELBLOCSHIFT_X;
       Long RSy = Sector->Pos_y << ZVOXELBLOCSHIFT_Y;
       Long RSz = Sector->Pos_z << ZVOXELBLOCSHIFT_Z;
-	  ZVoxelRef ref(World,VoxelTypeManager, 0,0,0,Sector );
-
+	  ZVoxelRef ref;
+	  ref.World = World;
+	  ref.VoxelTypeManager = VoxelTypeManager;
+	  ref.Sector = Sector;
       for (z = 0; z < ZVOXELBLOCSIZE_Z; z++)
         for (x = 0; x < ZVOXELBLOCSIZE_X; x++)
           for (y = 0; y < ZVOXELBLOCSIZE_Y; y++)
           {
-			VoxelType = *(VoxelP);
+			VoxelType = (*VoxelP).Data;
             if (ActiveTable->Get(VoxelType))
             {
               if (!Sector->ModifTracker.Get( MainOffset ) ) // If voxel is already processed, don't process it once more in the same cycle.
@@ -483,11 +485,11 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                 {
 				default:
 					  ref.x = x; ref.y = y; ref.z = z;
-					  ref.Offset = VoxelP - DisplayData;
+					  ref.Offset = MainOffset;
 					  ref.VoxelType = VoxelType;
 
                     IsActiveVoxels = true;
-					ref.VoxelExtension = (ZVoxelExtension*)Sector->OtherInfos[MainOffset];
+					ref.VoxelExtension = (ZVoxelExtension*)Sector->Data[MainOffset].OtherInfos;
                     //St[i]->ModifTracker.Set(SecondaryOffset[i]);
 					VoxelTypeManager->VoxelTable[VoxelType]->React( ref, LastLoopTime);
 					break;
@@ -533,7 +535,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                             // Test if we can fall downward
                               i=0;
-                              cx = x+1 ; cy = y ; cz = z+1; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                              cx = x+1 ; cy = y ; cz = z+1; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                               if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_Water)
                               {
                                 World->SetVoxel_WithCullingUpdate(RSx + x, RSy + y-1, RSz + z, 84, ZVoxelSector::CHANGE_IMPORTANT);
@@ -543,8 +545,8 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                               }
                               for(i=0,j=4,vCount=0;i<4;i++,j++)
                               {
-                                cx = x+bft[i].x ; cy = y+bft[i].y ; cz = z+bft[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
-                                cx = x+bft[j].x ; cy = y+bft[j].y ; cz = z+bft[j].z ; SecondaryOffset[j] = If_x[cx]+If_y[cy]+If_z[cz];St[j] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[j] = &St[j]->Data[ SecondaryOffset[j] ];
+                                cx = x+bft[i].x ; cy = y+bft[i].y ; cz = z+bft[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
+                                cx = x+bft[j].x ; cy = y+bft[j].y ; cz = z+bft[j].z ; SecondaryOffset[j] = If_x[cx]+If_y[cy]+If_z[cz];St[j] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[j] = &St[j]->Data[ SecondaryOffset[j] ].Data;
                                 if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_Water && VoxelTypeManager->VoxelTable[*Vp[j]]->Is_CanBeReplacedBy_Water) {vCount++; DirEn[i]=true;}
                                 else DirEn[i]=false;
                               }
@@ -569,7 +571,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
 
                   case  85:
-                          // Eau qui coule.
+                          // Eau qui coule. Flowing water.
                           IsActiveVoxels = true;
                           {
                             ZVoxelSector * St[32];
@@ -581,7 +583,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                             // Test if we can fall downward
                               i=0;
-                              cx = x+1 ; cy = y ; cz = z+1; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                              cx = x+1 ; cy = y ; cz = z+1; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                               if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_Water)
                               {
                                 World->SetVoxel_WithCullingUpdate(RSx + x, RSy + y-1, RSz + z, 85, ZVoxelSector::CHANGE_UNIMPORTANT);
@@ -591,8 +593,8 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                               }
                               for(i=0,j=4,vCount=0,WaveCount=0;i<4;i++,j++)
                               {
-                                cx = x+bft[i].x ; cy = y+bft[i].y ; cz = z+bft[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
-                                cx = x+bft[j].x ; cy = y+bft[j].y ; cz = z+bft[j].z ; SecondaryOffset[j] = If_x[cx]+If_y[cy]+If_z[cz];St[j] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[j] = &St[j]->Data[ SecondaryOffset[j] ];
+                                cx = x+bft[i].x ; cy = y+bft[i].y ; cz = z+bft[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
+                                cx = x+bft[j].x ; cy = y+bft[j].y ; cz = z+bft[j].z ; SecondaryOffset[j] = If_x[cx]+If_y[cy]+If_z[cz];St[j] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[j] = &St[j]->Data[ SecondaryOffset[j] ].Data;
                                 if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_Water && VoxelTypeManager->VoxelTable[*Vp[j]]->Is_CanBeReplacedBy_Water) {vCount++; DirEn[i]=true;}
                                 else DirEn[i]=false;
                                 if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_Water) {WaveCount++;WaveDirEn[i] = true;}
@@ -647,7 +649,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                               // Test if we can fall downward
                                 i=0;
-                                cx = x+1 ; cy = y ; cz = z+1; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                                cx = x+1 ; cy = y ; cz = z+1; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                                 if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_GreenAcid)
                                 {
                                   World->SetVoxel_WithCullingUpdate(RSx + x, RSy + y-1, RSz + z, 86, ZVoxelSector::CHANGE_UNIMPORTANT);
@@ -657,7 +659,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                 }
 
                                 // Fetch Voxels for all 10 Voxels arounds
-                                for (i=0;i<10;i++) { cx = x+bft6[i].x ; cy = y+bft6[i].y ; cz = z+bft6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ]; }
+                                for (i=0;i<10;i++) { cx = x+bft6[i].x ; cy = y+bft6[i].y ; cz = z+bft6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data; }
 
 
                                 for(i=0,j=6,FallCount=SnoopCount=GrindCount=0 ; i<4 ; i++,j++)
@@ -758,11 +760,11 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                             // Test if we can fall downward
                               i=0;
-                              cx = x+1 ; cy = y ; cz = z+1; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                              cx = x+1 ; cy = y ; cz = z+1; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
 
                               for(i=0;i<6;i++)
                               {
-                                cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                                cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                                 if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_Water)
                                 {
                                   World->SetVoxel_WithCullingUpdate(RSx + x + bp6[i].x-1, RSy + y + bp6[i].y - 1, RSz + z + bp6[i].z-1 , 85, ZVoxelSector::CHANGE_UNIMPORTANT);
@@ -786,7 +788,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                               for(i=0;i<6;i++)
                               {
-                                cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                                cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                                 if (*Vp[i]==85)
                                 {
                                   // if (!St[i]->ModifTracker.Get(SecondaryOffset[i]))
@@ -814,16 +816,16 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                               // If it reaches end of life destroy it...
 
-                              if ( Sector->OtherInfos[MainOffset] == 0 )
+                              if ( Sector->Data[MainOffset].OtherInfos == 0 )
                               {
                                 World->SetVoxel_WithCullingUpdate(RSx + x, RSy + y, RSz + z, 0, ZVoxelSector::CHANGE_UNIMPORTANT);
                               }
-                              else Sector->OtherInfos[MainOffset]--;
+                              else Sector->Data[MainOffset].OtherInfos--;
 
                               // Fetch Voxels for all 6 Voxels arounds main.
                               for (i=MoveCount=0;i<6;i++)
                               {
-                                cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                                cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                                 MoveCount += 1 & ( MoveEn[i] = VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_MustardGaz );
                               }
                               if (MoveCount == 6) { MoveEn[3] = false; MoveCount--; }
@@ -899,7 +901,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                               // Fetch Voxels for all 6 Voxels arounds main.
                               for (i=TriggerCount=0;i<6;i++)
                               {
-                                cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                                cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                                 TriggerCount += 1 & ( VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanTriggerBomb
                                     && (!St[i]->ModifTracker.Get(SecondaryOffset[i]))   ); //
                               }
@@ -907,7 +909,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                               if ((TriggerCount))
                               {
                                 if (!World->SetVoxel_WithCullingUpdate(RSx + x, RSy + y, RSz + z, 91, ZVoxelSector::CHANGE_IMPORTANT,true, & VxLoc)) break;
-                                VxLoc.Sector->OtherInfos[VxLoc.Offset] = ((ULong)BlastPower) | ( (ULong)LifeTime << 16 );
+								VxLoc.Sector->Data[VxLoc.Offset].OtherInfos = ((ULong)BlastPower) | ( (ULong)LifeTime << 16 );
                               }
 
                               break;
@@ -932,8 +934,8 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                               // Unpack data
 
-                              BlastPower = (Short)(Sector->OtherInfos[MainOffset] & 0xffff );
-                              LifeTime   = (UShort)(Sector->OtherInfos[MainOffset] >> 16 & 0xffff);
+                              BlastPower = (Short)(Sector->Data[MainOffset].OtherInfos & 0xffff );
+                              LifeTime   = (UShort)(Sector->Data[MainOffset].OtherInfos >> 16 & 0xffff);
 
                               // If Lifetime is elapsed, kill this voxel
 
@@ -941,12 +943,12 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                               // Repack data with decreased lifetime counter
 
-                              Sector->OtherInfos[MainOffset] = ((ULong)BlastPower) | ( (ULong)(LifeTime-1) << 16 );
+                              Sector->Data[MainOffset].OtherInfos = ((ULong)BlastPower) | ( (ULong)(LifeTime-1) << 16 );
 
                               // Fetch Voxels for all 6 Voxels arounds main.
                               for (i=MoveCount=0;i<6;i++)
                               {
-                                cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                                cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                                 MoveCount += 1 & ( MoveEn[i] = VoxelTypeManager->VoxelTable[*Vp[i]]->BlastResistance <= BlastPower );
                               }
 
@@ -959,7 +961,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                   if (!j)
                                   {
                                     if (!World->SetVoxel_WithCullingUpdate(RSx + x + bp6[i].x - 1, RSy + y + bp6[i].y - 1, RSz + z + bp6[i].z - 1 ,91, ZVoxelSector::CHANGE_IMPORTANT , true, &VxLoc)) break;
-                                    VxLoc.Sector->OtherInfos[VxLoc.Offset] = ((ULong)BlastPower - 1) | ( ((ULong)(LifeTime-4)) << 16 );
+                                    VxLoc.Sector->Data[VxLoc.Offset].OtherInfos = ((ULong)BlastPower - 1) | ( ((ULong)(LifeTime-4)) << 16 );
                                     St[i]->ModifTracker.Set(SecondaryOffset[i]);
                                     break;
                                   }
@@ -980,11 +982,11 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                             register Long cx,cy,cz;
 
                               i=0;
-                              cx = x+1 ; cy = y ; cz = z+1; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                              cx = x+1 ; cy = y ; cz = z+1; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
 
                               for(i=0;i<6;i++)
                               {
-                                cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                                cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                                 if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_Water)
                                 {
                                   World->SetVoxel_WithCullingUpdate(RSx + x + bp6[i].x-1, RSy + y + bp6[i].y - 1, RSz + z + bp6[i].z-1 , 86, ZVoxelSector::CHANGE_UNIMPORTANT);
@@ -1018,7 +1020,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                             Pumpable_Count = Pushable_Count = 0;
                             for(i=0;i<6;i++)
                             {
-                              cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                              cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                               if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_Pumpable_ByPump_T1)  { Pumpable[Pumpable_Count++] = i; }
                               if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_Interface_PushBlock) { Pushable[Pushable_Count++] = i; }
                             }
@@ -1058,7 +1060,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                             Pumpable_Count = Pushable_Count = 0;
                             for(i=0;i<6;i++)
                             {
-                              cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                              cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                               if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_Pumpable_ByPump_T2)  { Pumpable[Pumpable_Count++] = i; }
                               if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_Interface_PushBlock) { Pushable[Pushable_Count++] = i; }
                             }
@@ -1097,11 +1099,11 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                             for(i=0;i<6;i++)
                             {
-                              cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                              cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                               if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_Interface_PushBlock)
                               {
                                 Opposite = BlocOpposite[i];
-                                cx = x+bp6[Opposite].x ; cy = y+bp6[Opposite].y ; cz = z+bp6[Opposite].z ; SecondaryOffset[Opposite] = If_x[cx]+If_y[cy]+If_z[cz];St[Opposite] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[Opposite] = &St[Opposite]->Data[ SecondaryOffset[Opposite] ];
+                                cx = x+bp6[Opposite].x ; cy = y+bp6[Opposite].y ; cz = z+bp6[Opposite].z ; SecondaryOffset[Opposite] = If_x[cx]+If_y[cy]+If_z[cz];St[Opposite] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[Opposite] = &St[Opposite]->Data[ SecondaryOffset[Opposite] ].Data;
                                 if (VoxelTypeManager->VoxelTable[*Vp[Opposite]]->Is_Loadable_ByLoader_L1 && ( (!St[Opposite]->ModifTracker.Get(SecondaryOffset[Opposite]) || ( VoxelTypeManager->VoxelTable[*Vp[Opposite]]->BvProp_FastMoving) ) ))
                                 {
                                   VInfo.Sector = St[i];
@@ -1138,11 +1140,11 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                             for(i=0;i<6;i++)
                             {
-                              cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                              cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                               if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_Interface_PullBlock)
                               {
                                 Opposite = BlocOpposite[i];
-                                cx = x+bp6[Opposite].x ; cy = y+bp6[Opposite].y ; cz = z+bp6[Opposite].z ; SecondaryOffset[Opposite] = If_x[cx]+If_y[cy]+If_z[cz];St[Opposite] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[Opposite] = &St[Opposite]->Data[ SecondaryOffset[Opposite] ];
+                                cx = x+bp6[Opposite].x ; cy = y+bp6[Opposite].y ; cz = z+bp6[Opposite].z ; SecondaryOffset[Opposite] = If_x[cx]+If_y[cy]+If_z[cz];St[Opposite] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[Opposite] = &St[Opposite]->Data[ SecondaryOffset[Opposite] ].Data;
                                 if (*Vp[Opposite]==0)
                                 {
                                   VInfo.Sector = St[i];
@@ -1159,7 +1161,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                 {
                                   if (World->GetVoxelLocation(&VInfo2, RSx+x+bp6[Opposite].x+bp6[Opposite].x - 2 ,RSy+y+bp6[Opposite].y+bp6[Opposite].y - 2 ,RSz+z+bp6[Opposite].z+bp6[Opposite].z - 2))
                                   {
-                                    VoxelType2 = VInfo2.Sector->Data[VInfo2.Offset];
+                                    VoxelType2 = VInfo2.Sector->Data[VInfo2.Offset].Data;
                                     //VoxelType = World->GetVoxel( RSx+x+bp6[Opposite].x+bp6[Opposite].x - 2 ,RSy+y+bp6[Opposite].y+bp6[Opposite].y - 2 ,RSz+z+bp6[Opposite].z+bp6[Opposite].z - 2 );
                                     if (VoxelTypeManager->VoxelTable[VoxelType2]->Is_Interface_PushBlock)
                                     {
@@ -1210,7 +1212,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                             cx = x+1 ; cy = y+2 ; cz = z+1 ;
                             SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];
                             St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ];
-                            Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                            Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
 
                             if (VoxelTypeManager->VoxelTable[*Vp[i]]->BvProp_MoveableByTreadmill && !St[i]->ModifTracker.Get(SecondaryOffset[i]))
                             {
@@ -1219,7 +1221,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                               cx = x+1 ; cy = y+2 ; cz = z+2 ;
                               SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];
                               St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ];
-                              Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                              Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
 
                               if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_PlayerCanPassThrough)
                               {
@@ -1250,7 +1252,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                             cx = x+1 ; cy = y+2 ; cz = z+1 ;
                             SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];
                             St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ];
-                            Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                            Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
 
                             if (VoxelTypeManager->VoxelTable[*Vp[i]]->BvProp_MoveableByTreadmill && !St[i]->ModifTracker.Get(SecondaryOffset[i]))
                             {
@@ -1259,7 +1261,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                               cx = x+1 ; cy = y+2 ; cz = z ;
                               SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];
                               St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ];
-                              Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                              Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
 
                               if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_PlayerCanPassThrough)
                               {
@@ -1290,7 +1292,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                             cx = x+1 ; cy = y+2 ; cz = z+1 ;
                             SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];
                             St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ];
-                            Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                            Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
 
                             if (VoxelTypeManager->VoxelTable[*Vp[i]]->BvProp_MoveableByTreadmill && !St[i]->ModifTracker.Get(SecondaryOffset[i]))
                             {
@@ -1299,7 +1301,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                               cx = x ; cy = y+2 ; cz = z+1 ;
                               SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];
                               St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ];
-                              Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                              Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
 
                               if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_PlayerCanPassThrough)
                               {
@@ -1330,7 +1332,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                             cx = x+1 ; cy = y+2 ; cz = z+1 ;
                             SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];
                             St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ];
-                            Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                            Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
 
                             if (VoxelTypeManager->VoxelTable[*Vp[i]]->BvProp_MoveableByTreadmill && !St[i]->ModifTracker.Get(SecondaryOffset[i]))
                             {
@@ -1339,7 +1341,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                               cx = x+2 ; cy = y+2 ; cz = z+1 ;
                               SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];
                               St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ];
-                              Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                              Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
 
                               if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_PlayerCanPassThrough)
                               {
@@ -1364,13 +1366,13 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                             register Long cx,cy,cz;
 
-                            Ext = (ZVoxelExtension_MotherMachine *)Sector->OtherInfos[MainOffset];
+                            Ext = (ZVoxelExtension_MotherMachine *)Sector->Data[MainOffset].OtherInfos;
                             switch (Ext->MachineState )
                             {
                               case 0:
                                       for(i=0;i<6;i++)
                                       {
-                                        cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                                        cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                                         VoxelType2 = *Vp[i];
                                         if ( VoxelType2 == 1 || VoxelType2 == 26 || VoxelType2==74 )
                                         {
@@ -1499,7 +1501,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
 
                             register Long cx,cy,cz;
-                            Ext = (ZVoxelExtension_FabMachine *)Sector->OtherInfos[MainOffset];
+                            Ext = (ZVoxelExtension_FabMachine *)Sector->Data[MainOffset].OtherInfos;
                             Fab = VoxelTypeManager->VoxelTable[VoxelType]->FabInfos;
                             for (bool Reloop = true; Reloop;)
                             {
@@ -1511,7 +1513,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                         {
                                           if (i==2) continue;
                                           // Fetch voxel around.
-                                          cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                                          cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                                           VoxelType2 = *Vp[i];
 
                                           // Only take a voxel if it has not moved.
@@ -1571,7 +1573,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                         break;
                                 case 1: // Voxel output state;
                                         Opposite = BlocOpposite[Ext->LastInDirection];
-                                        cx = x+bp6[Opposite].x ; cy = y+bp6[Opposite].y ; cz = z+bp6[Opposite].z ; SecondaryOffset[Opposite] = If_x[cx]+If_y[cy]+If_z[cz]; St[Opposite] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[Opposite] = &St[Opposite]->Data[ SecondaryOffset[Opposite] ];
+                                        cx = x+bp6[Opposite].x ; cy = y+bp6[Opposite].y ; cz = z+bp6[Opposite].z ; SecondaryOffset[Opposite] = If_x[cx]+If_y[cy]+If_z[cz]; St[Opposite] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[Opposite] = &St[Opposite]->Data[ SecondaryOffset[Opposite] ].Data;
                                         if (VoxelTypeManager->VoxelTable[*Vp[Opposite]]->Is_PlayerCanPassThrough)
                                         {
                                           for( j=0, TransformationFound=false ; j < ZVoxelExtension_FabMachine::Output_NumSlots ; j++ )
@@ -1590,7 +1592,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                 case 2: // Ext->MachineState = 0; break;
                                         bool NoBloc;
                                         Opposite = BlocOpposite[Ext->LastInDirection];
-                                        cx = x+bp6[Opposite].x ; cy = y+bp6[Opposite].y ; cz = z+bp6[Opposite].z ; SecondaryOffset[Opposite] = If_x[cx]+If_y[cy]+If_z[cz]; St[Opposite] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[Opposite] = &St[Opposite]->Data[ SecondaryOffset[Opposite] ];
+                                        cx = x+bp6[Opposite].x ; cy = y+bp6[Opposite].y ; cz = z+bp6[Opposite].z ; SecondaryOffset[Opposite] = If_x[cx]+If_y[cy]+If_z[cz]; St[Opposite] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[Opposite] = &St[Opposite]->Data[ SecondaryOffset[Opposite] ].Data;
                                         NoBloc = true;
                                         if (VoxelTypeManager->VoxelTable[*Vp[Opposite]]->Is_PlayerCanPassThrough)
                                         {
@@ -1631,7 +1633,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                             ZVoxelExtension_Programmable * Ext;
 
                             VoxelCoords.x = RSx + x; VoxelCoords.y = RSy + y; VoxelCoords.z = RSz + z;
-                            Ext = (ZVoxelExtension_Programmable *)Sector->OtherInfos[MainOffset];
+                            Ext = (ZVoxelExtension_Programmable *)Sector->Data[MainOffset].OtherInfos;
                             Ext->SetVoxelPosition(&VoxelCoords);
                             Ext->SetGameEnv(GameEnv);
                             if (Ext->IsCompiledOk() & Ext->IsAllowedToRun)
@@ -1695,7 +1697,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                             ZVoxelExtension_FusionElement * Ext2;
                             VoxelLocation Loc;
 
-                            Ext = (ZVoxelExtension_BlastFurnace *)Sector->OtherInfos[MainOffset];
+                            Ext = (ZVoxelExtension_BlastFurnace *)Sector->Data[MainOffset].OtherInfos;
 
 
                             register Long cx,cy,cz;
@@ -1703,7 +1705,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                             for (i=0, Cont=true; i<6 && Cont ; i++)
                             {
-                              cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                              cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
 
                               switch (*Vp[i])
                               {
@@ -1719,7 +1721,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                            if (World->SetVoxel_WithCullingUpdate(RSx + x + bp6[Opposite].x - 1, RSy + y + bp6[Opposite].y - 1 , RSz + z + bp6[Opposite].z - 1 , 115, ZVoxelSector::CHANGE_CRITICAL,true,&Loc ))
                                            {
                                              Loc.Sector->ModifTracker.Set(Loc.Offset);
-                                             Ext2 = (ZVoxelExtension_FusionElement *)Loc.Sector->OtherInfos[Loc.Offset];
+                                             Ext2 = (ZVoxelExtension_FusionElement *)Loc.Sector->Data[Loc.Offset].OtherInfos;
                                              Ext2->Quantity[ZVoxelExtension_FusionElement::Material_Carbon] = Ext->Quantity_Carbon;
                                              Ext2->Quantity[ZVoxelExtension_FusionElement::Material_Iron] = 100.0 - Ext->Quantity_Carbon;
                                              Ext2->Temperature = 1500.0;
@@ -1735,7 +1737,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                            if (World->SetVoxel_WithCullingUpdate(RSx + x + bp6[Opposite].x - 1, RSy + y + bp6[Opposite].y - 1 , RSz + z + bp6[Opposite].z - 1 , 115, ZVoxelSector::CHANGE_CRITICAL,true,&Loc ))
                                            {
                                              Loc.Sector->ModifTracker.Set(Loc.Offset);
-                                             Ext2 = (ZVoxelExtension_FusionElement *)Loc.Sector->OtherInfos[Loc.Offset];
+                                             Ext2 = (ZVoxelExtension_FusionElement *)Loc.Sector->Data[Loc.Offset].OtherInfos;
                                              Ext2->Quantity[ZVoxelExtension_FusionElement::Material_Carbon] = Ext->Quantity_Carbon;
                                              Ext2->Quantity[ZVoxelExtension_FusionElement::Material_Chrome] = 100.0 - Ext->Quantity_Carbon;
                                              Ext2->Temperature = 1500.0;
@@ -1751,7 +1753,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                            if (World->SetVoxel_WithCullingUpdate(RSx + x + bp6[Opposite].x - 1, RSy + y + bp6[Opposite].y - 1 , RSz + z + bp6[Opposite].z - 1 , 115, ZVoxelSector::CHANGE_CRITICAL,true,&Loc ))
                                            {
                                              Loc.Sector->ModifTracker.Set(Loc.Offset);
-                                             Ext2 = (ZVoxelExtension_FusionElement *)Loc.Sector->OtherInfos[Loc.Offset];
+                                             Ext2 = (ZVoxelExtension_FusionElement *)Loc.Sector->Data[Loc.Offset].OtherInfos;
                                              Ext2->Quantity[ZVoxelExtension_FusionElement::Material_Carbon] = Ext->Quantity_Carbon;
                                              Ext2->Quantity[ZVoxelExtension_FusionElement::Material_Nickel] = 100.0 - Ext->Quantity_Carbon;
                                              Ext2->Temperature = 1500.0;
@@ -1768,7 +1770,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                           if (World->SetVoxel_WithCullingUpdate(RSx + x + bp6[Opposite].x - 1, RSy + y + bp6[Opposite].y - 1 , RSz + z + bp6[Opposite].z - 1 , 115, ZVoxelSector::CHANGE_CRITICAL,true,&Loc ))
                                           {
                                             Loc.Sector->ModifTracker.Set(Loc.Offset);
-                                            Ext2 = (ZVoxelExtension_FusionElement *)Loc.Sector->OtherInfos[Loc.Offset];
+                                            Ext2 = (ZVoxelExtension_FusionElement *)Loc.Sector->Data[Loc.Offset].OtherInfos;
                                             Ext2->Quantity[ZVoxelExtension_FusionElement::Material_Carbon] = Ext->Quantity_Carbon;
                                             Ext2->Quantity[ZVoxelExtension_FusionElement::Material_Copper] = 100.0 - Ext->Quantity_Carbon;
                                             Ext2->Temperature = 1500.0;
@@ -1784,7 +1786,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                           if (World->SetVoxel_WithCullingUpdate(RSx + x + bp6[Opposite].x - 1, RSy + y + bp6[Opposite].y - 1 , RSz + z + bp6[Opposite].z - 1 , 115, ZVoxelSector::CHANGE_CRITICAL,true,&Loc ))
                                           {
                                             Loc.Sector->ModifTracker.Set(Loc.Offset);
-                                            Ext2 = (ZVoxelExtension_FusionElement *)Loc.Sector->OtherInfos[Loc.Offset];
+                                            Ext2 = (ZVoxelExtension_FusionElement *)Loc.Sector->Data[Loc.Offset].OtherInfos;
                                             Ext2->Quantity[ZVoxelExtension_FusionElement::Material_Carbon] = Ext->Quantity_Carbon;
                                             Ext2->Quantity[ZVoxelExtension_FusionElement::Material_Titanium] = 100.0 - Ext->Quantity_Carbon;
                                             Ext2->Temperature = 1500.0;
@@ -1800,7 +1802,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                           if (World->SetVoxel_WithCullingUpdate(RSx + x + bp6[Opposite].x - 1, RSy + y + bp6[Opposite].y - 1 , RSz + z + bp6[Opposite].z - 1 , 115, ZVoxelSector::CHANGE_CRITICAL,true,&Loc ))
                                           {
                                             Loc.Sector->ModifTracker.Set(Loc.Offset);
-                                            Ext2 = (ZVoxelExtension_FusionElement *)Loc.Sector->OtherInfos[Loc.Offset];
+                                            Ext2 = (ZVoxelExtension_FusionElement *)Loc.Sector->Data[Loc.Offset].OtherInfos;
                                             Ext2->Quantity[ZVoxelExtension_FusionElement::Material_Carbon] = Ext->Quantity_Carbon;
                                             Ext2->Quantity[ZVoxelExtension_FusionElement::Material_Tin] = 100.0 - Ext->Quantity_Carbon;
                                             Ext2->Temperature = 1500.0;
@@ -1816,7 +1818,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                           if (World->SetVoxel_WithCullingUpdate(RSx + x + bp6[Opposite].x - 1, RSy + y + bp6[Opposite].y - 1 , RSz + z + bp6[Opposite].z - 1 , 115, ZVoxelSector::CHANGE_CRITICAL,true,&Loc ))
                                           {
                                             Loc.Sector->ModifTracker.Set(Loc.Offset);
-                                            Ext2 = (ZVoxelExtension_FusionElement *)Loc.Sector->OtherInfos[Loc.Offset];
+                                            Ext2 = (ZVoxelExtension_FusionElement *)Loc.Sector->Data[Loc.Offset].OtherInfos;
                                             Ext2->Quantity[ZVoxelExtension_FusionElement::Material_Carbon] = Ext->Quantity_Carbon;
                                             Ext2->Quantity[ZVoxelExtension_FusionElement::Material_Lead] = 100.0 - Ext->Quantity_Carbon;
                                             Ext2->Temperature = 1500.0;
@@ -1832,7 +1834,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                           if (World->SetVoxel_WithCullingUpdate(RSx + x + bp6[Opposite].x - 1, RSy + y + bp6[Opposite].y - 1 , RSz + z + bp6[Opposite].z - 1 , 115, ZVoxelSector::CHANGE_CRITICAL,true,&Loc ))
                                           {
                                             Loc.Sector->ModifTracker.Set(Loc.Offset);
-                                            Ext2 = (ZVoxelExtension_FusionElement *)Loc.Sector->OtherInfos[Loc.Offset];
+                                            Ext2 = (ZVoxelExtension_FusionElement *)Loc.Sector->Data[Loc.Offset].OtherInfos;
                                             Ext2->Quantity[ZVoxelExtension_FusionElement::Material_Carbon] = Ext->Quantity_Carbon;
                                             Ext2->Quantity[ZVoxelExtension_FusionElement::Material_Aluminium] = 100.0 - Ext->Quantity_Carbon;
                                             Ext2->Temperature = 1500.0;
@@ -1859,7 +1861,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                      register Long cx,cy,cz;
 
                      ZVoxelExtension_FusionElement * Ext, * Ext2;
-                     Ext = (ZVoxelExtension_FusionElement *)Sector->OtherInfos[MainOffset];
+                     Ext = (ZVoxelExtension_FusionElement *)Sector->Data[MainOffset].OtherInfos;
 
                      // Refroidissement Naturel. Se fait au bout de 5 minutes.
 
@@ -1874,13 +1876,13 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                      // Blending
                      for (i=0, GetOut = false;i<6;i++)
                      {
-                       cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                       cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
 
                        switch (*Vp[i] )
                        {
 
                          case 115: // Another Fusion bloc, if yes, we blend.
-                                   Ext2= (ZVoxelExtension_FusionElement *)St[i]->OtherInfos[ SecondaryOffset[i] ];
+                                   Ext2= (ZVoxelExtension_FusionElement *)St[i]->Data[ SecondaryOffset[i] ].OtherInfos;
                                    Ext->Blend(Ext2);
                                    break;
                          case 85:  // Water, we cool down and transform.
@@ -1895,7 +1897,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                      // Test if we can fall downward
                        i=0;
-                       cx = x+1 ; cy = y ; cz = z+1; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                       cx = x+1 ; cy = y ; cz = z+1; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                        if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_Water)
                        {
                          World->MoveVoxel(RSx + x, RSy + y, RSz + z, RSx + x, RSy + y-1, RSz + z, 0, ZVoxelSector::CHANGE_CRITICAL );
@@ -1906,8 +1908,8 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                        }
                        for(i=0,j=4,vCount=0;i<4;i++,j++)
                        {
-                         cx = x+bft[i].x ; cy = y+bft[i].y ; cz = z+bft[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
-                         cx = x+bft[j].x ; cy = y+bft[j].y ; cz = z+bft[j].z ; SecondaryOffset[j] = If_x[cx]+If_y[cy]+If_z[cz];St[j] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[j] = &St[j]->Data[ SecondaryOffset[j] ];
+                         cx = x+bft[i].x ; cy = y+bft[i].y ; cz = z+bft[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
+                         cx = x+bft[j].x ; cy = y+bft[j].y ; cz = z+bft[j].z ; SecondaryOffset[j] = If_x[cx]+If_y[cy]+If_z[cz];St[j] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[j] = &St[j]->Data[ SecondaryOffset[j] ].Data;
                          if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_Water && VoxelTypeManager->VoxelTable[*Vp[j]]->Is_CanBeReplacedBy_Water) {vCount++; DirEn[i]=true;}
                          else DirEn[i]=false;
                        }
@@ -1951,13 +1953,13 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                      Long cx,cy,cz;
 
                      VoxelCoords.x = RSx + x; VoxelCoords.y = RSy + y; VoxelCoords.z = RSz + z;
-                     Ext = (ZVoxelExtension_MiningRobot_xr1 *)Sector->OtherInfos[MainOffset];
+                     Ext = (ZVoxelExtension_MiningRobot_xr1 *)Sector->Data[MainOffset].OtherInfos;
 
                      if (!Ext->State)
                      {
                        for (i=0, Found = false ;i<4 && (!Found) ;i++)
                        {
-                         cx = x+xbp6[i].x ; cy = y+xbp6[i].y ; cz = z+xbp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                         cx = x+xbp6[i].x ; cy = y+xbp6[i].y ; cz = z+xbp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                          Voxel = *Vp[i];
                          if (VoxelTypeManager->VoxelTable[Voxel]->Is_Interface_PushBlock)
                          {
@@ -1996,7 +1998,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                                register Long cx,cy,cz;
 
-                               Ext = (ZVoxelExtension_Sequencer *)Sector->OtherInfos[MainOffset];
+                               Ext = (ZVoxelExtension_Sequencer *)Sector->Data[MainOffset].OtherInfos;
 
                                switch (Ext->Mode)
                                {
@@ -2027,7 +2029,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                          for (i=0, CheckQuantities = false;i<6;i++)
                                          {
                                            if (i == Ext->OutputLocation ) continue; // Don't input at the output position.
-                                           cx = x+xbp6[i].x ; cy = y+xbp6[i].y ; cz = z+xbp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                                           cx = x+xbp6[i].x ; cy = y+xbp6[i].y ; cz = z+xbp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
 
                                            if (AllowedVoxels.FindElement(Vp[i],&Index) && (!St[i]->ModifTracker.Get(SecondaryOffset[i])))
                                            {
@@ -2098,7 +2100,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                            // If we found an end mark, terminate sequence and swith to output mode.
                                            if (VoxelToOutput == 199 && Ext->VoxelQuantity[Ext->SequencePosition] > 0) { Ext->Mode = 0; Ext->SequencePosition = 0; Ext->PositionRemain = 0; break; }
 
-                                           cx = x+xbp6[Ext->OutputLocation].x ; cy = y+xbp6[Ext->OutputLocation].y ; cz = z+xbp6[Ext->OutputLocation].z ; SecondaryOffset[Ext->OutputLocation] = If_x[cx]+If_y[cy]+If_z[cz];St[Ext->OutputLocation] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[Ext->OutputLocation] = &St[Ext->OutputLocation]->Data[ SecondaryOffset[Ext->OutputLocation] ];
+                                           cx = x+xbp6[Ext->OutputLocation].x ; cy = y+xbp6[Ext->OutputLocation].y ; cz = z+xbp6[Ext->OutputLocation].z ; SecondaryOffset[Ext->OutputLocation] = If_x[cx]+If_y[cy]+If_z[cz];St[Ext->OutputLocation] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[Ext->OutputLocation] = &St[Ext->OutputLocation]->Data[ SecondaryOffset[Ext->OutputLocation] ].Data;
                                            if (*Vp[Ext->OutputLocation] !=0) break; // If position is not free, wait for it to be.
 
                                            if (Ext->FindSlot(VoxelToOutput, i))
@@ -2145,7 +2147,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                IsLowActivityVoxels = false;
                                IsActiveVoxels = true;
                                World->SetVoxel_WithCullingUpdate(VoxelCoords.x, VoxelCoords.y - 1 , VoxelCoords.z , 201, ZVoxelSector::CHANGE_UNIMPORTANT, true, &Loc);
-                               // Loc.Sector->OtherInfos[Loc.Offset] = 128;
+                               // Loc.Sector->Data[Loc.Offset].OtherInfos = 128;
                                if (FireMineTime) FireMineTime += 20;
                                else              FireMineTime =  64;
                                // printf("Distance %lf\n", Distance );
@@ -2176,13 +2178,13 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                              else
                              for (i=0;i<6;i++)
                              {
-                               cx = x+xbp6[i].x ; cy = y+xbp6[i].y ; cz = z+xbp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                               cx = x+xbp6[i].x ; cy = y+xbp6[i].y ; cz = z+xbp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
 
                                if (! VoxelTypeManager->VoxelTable[*Vp[i]]->BvProp_AtomicFireResistant)
                                {
                                  World->SetVoxel_WithCullingUpdate(RSx + x + xbp6[i].x-1, RSy + y + xbp6[i].y - 1, RSz + z + xbp6[i].z-1 , 201, ZVoxelSector::CHANGE_UNIMPORTANT);
                                  St[i]->ModifTracker.Set(SecondaryOffset[i]);
-                                 // Loc.Sector->OtherInfos[Loc.Offset] = RemainingLifeTime-3;
+                                 // Loc.Sector->Data[Loc.Offset].OtherInfos = RemainingLifeTime-3;
                                }
                              }
                            }
@@ -2204,7 +2206,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                            // Test if we can fall downward
                              i=0;
-                             cx = x + 1 ; cy = y ; cz = z + 1; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz]; St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                             cx = x + 1 ; cy = y ; cz = z + 1; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz]; St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                              if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_Water)
                              {
                                World->SetVoxel_WithCullingUpdate(RSx + x, RSy + y-1, RSz + z, 202, ZVoxelSector::CHANGE_UNIMPORTANT);
@@ -2214,7 +2216,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                              }
                              for(i=0, DirCode=0;i<4;i++)
                              {
-                               cx = x+bft[i].x ; cy = y+bft[i].y ; cz = z+bft[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                               cx = x+bft[i].x ; cy = y+bft[i].y ; cz = z+bft[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                                DirCode = (DirCode << 1) | (1 & (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_Water));
                              }
                              if (!DirCode) break;
@@ -2242,10 +2244,10 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                              // Extract values stored in extension
 
-                             OtherInfos = Sector->OtherInfos[MainOffset];
+                             OtherInfos = Sector->Data[MainOffset].OtherInfos;
                              Dir_In = (UByte)((OtherInfos >> 4)  & 0xf);
                              Dir_Out= (UByte)(OtherInfos & 0xf);
-                             LockedVoxel = (Sector->OtherInfos[MainOffset] >> 16) & 0xffff;
+                             LockedVoxel = (Sector->Data[MainOffset].OtherInfos >> 16) & 0xffff;
 
                              // If directions are not fixed, try doing it.
 
@@ -2253,9 +2255,9 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                              {
                                for(i=0;i<6;i++)
                                {
-                                 cx = x+xbp6[i].x ; cy = y+xbp6[i].y ; cz = z+xbp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
-                                 if (*Vp[i] == 205) { Sector->OtherInfos[MainOffset] = (Sector->OtherInfos[MainOffset] & 0xffffffff0f) | ((i << 4 ) & 0xf0); }
-                                 if (*Vp[i] == 206) { Sector->OtherInfos[MainOffset] = (Sector->OtherInfos[MainOffset] & 0xfffffffff0) | (i & 0xf); }
+                                 cx = x+xbp6[i].x ; cy = y+xbp6[i].y ; cz = z+xbp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
+                                 if (*Vp[i] == 205) { Sector->Data[MainOffset].OtherInfos = (Sector->Data[MainOffset].OtherInfos & 0xffffffff0f) | ((i << 4 ) & 0xf0); }
+                                 if (*Vp[i] == 206) { Sector->Data[MainOffset].OtherInfos = (Sector->Data[MainOffset].OtherInfos & 0xfffffffff0) | (i & 0xf); }
 
                                }
                                break;
@@ -2264,7 +2266,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                              // Fetch the Dir_In Voxel
 
                              i = Dir_In;
-                             cx = x+xbp6[i].x ; cy = y+xbp6[i].y ; cz = z+xbp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                             cx = x+xbp6[i].x ; cy = y+xbp6[i].y ; cz = z+xbp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
 
                              // If the VoxelType to process is not fixed, try doing it.
 
@@ -2272,7 +2274,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                              {
                                if ( (*Vp[i] != 205) && (*Vp[i] != 206) )
                                {
-                                 Sector->OtherInfos[MainOffset] = (Sector->OtherInfos[MainOffset] & 0x0000ffff) | ( (*Vp[i] << 16) & 0xffff0000);
+                                 Sector->Data[MainOffset].OtherInfos = (Sector->Data[MainOffset].OtherInfos & 0x0000ffff) | ( (*Vp[i] << 16) & 0xffff0000);
                                }
                                break;
                              }
@@ -2280,7 +2282,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                              // Fetch the voxel at the output
 
                              j = Dir_Out;
-                             cx = x+xbp6[j].x ; cy = y+xbp6[j].y ; cz = z+xbp6[j].z ; SecondaryOffset[j] = If_x[cx]+If_y[cy]+If_z[cz];St[j] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[j] = &St[j]->Data[ SecondaryOffset[j] ];
+                             cx = x+xbp6[j].x ; cy = y+xbp6[j].y ; cz = z+xbp6[j].z ; SecondaryOffset[j] = If_x[cx]+If_y[cy]+If_z[cz];St[j] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[j] = &St[j]->Data[ SecondaryOffset[j] ].Data;
 
                              // Test if output is free and input is from the matching type
 
@@ -2309,7 +2311,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                              // Extract values stored in extension
 
-                             OtherInfos = Sector->OtherInfos[MainOffset];
+                             OtherInfos = Sector->Data[MainOffset].OtherInfos;
                              Dir_In = (UByte)((OtherInfos >> 4)  & 0xf);
                              Dir_Out= (UByte)(OtherInfos & 0xf);
 
@@ -2319,9 +2321,9 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                              {
                                for(i=0;i<6;i++)
                                {
-                                 cx = x+xbp6[i].x ; cy = y+xbp6[i].y ; cz = z+xbp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
-                                 if (*Vp[i] == 205) { Sector->OtherInfos[MainOffset] = (Sector->OtherInfos[MainOffset] & 0xffffffff0f) | ((i << 4 ) & 0xf0); }
-                                 if (*Vp[i] == 206) { Sector->OtherInfos[MainOffset] = (Sector->OtherInfos[MainOffset] & 0xfffffffff0) | (i & 0xf); }
+                                 cx = x+xbp6[i].x ; cy = y+xbp6[i].y ; cz = z+xbp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
+                                 if (*Vp[i] == 205) { Sector->Data[MainOffset].OtherInfos = (Sector->Data[MainOffset].OtherInfos & 0xffffffff0f) | ((i << 4 ) & 0xf0); }
+                                 if (*Vp[i] == 206) { Sector->Data[MainOffset].OtherInfos = (Sector->Data[MainOffset].OtherInfos & 0xfffffffff0) | (i & 0xf); }
                                }
                                break;
                              }
@@ -2329,12 +2331,12 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                              // Fetch the Dir_In Voxel
 
                              i = Dir_In;
-                             cx = x+xbp6[i].x ; cy = y+xbp6[i].y ; cz = z+xbp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                             cx = x+xbp6[i].x ; cy = y+xbp6[i].y ; cz = z+xbp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
 
                             // Fetch the voxel at the output
 
                              j = Dir_Out;
-                             cx = x+xbp6[j].x ; cy = y+xbp6[j].y ; cz = z+xbp6[j].z ; SecondaryOffset[j] = If_x[cx]+If_y[cy]+If_z[cz];St[j] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[j] = &St[j]->Data[ SecondaryOffset[j] ];
+                             cx = x+xbp6[j].x ; cy = y+xbp6[j].y ; cz = z+xbp6[j].z ; SecondaryOffset[j] = If_x[cx]+If_y[cy]+If_z[cz];St[j] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[j] = &St[j]->Data[ SecondaryOffset[j] ].Data;
 
                              // Test if output is free and input is from the matching type
 
@@ -2362,7 +2364,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                              ULong i;
 
                              VoxelCoords.x = RSx + x; VoxelCoords.y = RSy + y; VoxelCoords.z = RSz + z;
-                             Ext = (ZVoxelExtension_Egmy_T1 *)Sector->OtherInfos[MainOffset];
+                             Ext = (ZVoxelExtension_Egmy_T1 *)Sector->Data[MainOffset].OtherInfos;
 
                              // If no target acquired, try to get one.
 
@@ -2435,7 +2437,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                              if (Ext->EvasionMode && DepCount == 0) { Ext->EvasionMode = false; break; }
 
                              i=0;
-                             cx = x + Displacement.x + 1 ; cy = y+Displacement.y+1 ; cz = z+Displacement.z+1 ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                             cx = x + Displacement.x + 1 ; cy = y+Displacement.y+1 ; cz = z+Displacement.z+1 ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                              Destination = VoxelCoords; Destination += Displacement;
                              if (*Vp[i] == 65535) {break;}
                              VoxelRecord = VoxelTypeManager->VoxelTable[*Vp[i]];
@@ -2487,7 +2489,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                              }
                              Test++;
 
-                             Ext = (ZVoxelExtensionType_VoxelFluid *)&Sector->OtherInfos[MainOffset];
+                             Ext = (ZVoxelExtensionType_VoxelFluid *)&Sector->Data[MainOffset].OtherInfos;
 
                              VoxelCoords.x = RSx + x; VoxelCoords.y = RSy + y; VoxelCoords.z = RSz + z;
 
@@ -2521,7 +2523,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                              }
 
                              // Extract field from the voxel info.
-                             Info = Sector->OtherInfos[MainOffset];
+                             Info = Sector->Data[MainOffset].OtherInfos;
                              Pressure = Info & 0xffff;
                              Distance = Info >> 16;
 
@@ -2532,7 +2534,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                              bool isnonassigned;
                              for (i=0;i<6;i++)
                              {
-                               cx = x+xbp6[i].x ; cy = y+xbp6[i].y ; cz = z+xbp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                               cx = x+xbp6[i].x ; cy = y+xbp6[i].y ; cz = z+xbp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                                CanGo[i] = (Vp[i] == 0);
                                if (*Vp[i] == 235)
                                {
@@ -2548,13 +2550,13 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                              Info  = ((ZMemSize)MaxPressure) & 0xFFFF;
                              Info |= ((ZMemSize)MaxDistance) << 16;
-                             Sector->OtherInfos[MainOffset] = Info;
+                             Sector->Data[MainOffset].OtherInfos = Info;
 
 
 
                              for(i=0,j=4, DirCode=0;i<4;i++,j++)
                              {
-                               cx = x+bft[i].x ; cy = y+bft[i].y ; cz = z+bft[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                               cx = x+bft[i].x ; cy = y+bft[i].y ; cz = z+bft[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
                                Pressure = 0;
                                if (*Vp[i] == 235)
                                cx = x+bft[j].x ; cy = y+bft[j].y ; cz = z+bft[j].z ; SecondaryOffset[j] = If_x[cx]+If_y[cy]+If_z[cz];St[j] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[j] = &St[j]->Data[ SecondaryOffset[j] ];

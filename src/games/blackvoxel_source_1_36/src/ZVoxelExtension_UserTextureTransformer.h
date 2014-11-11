@@ -62,7 +62,7 @@ class ZVoxelExtension_UserTextureTransformer : public ZVoxelExtension
 
   virtual ULong GetExtensionID()
   {
-    return( MulticharConst('U','T','T','R') );
+    return(ZVoxelExtension::ExtensionCharCodes[Extension_UserTextureTransformer] );
   }
 
   virtual bool Save(ZStream_SpecialRamStream * Stream)

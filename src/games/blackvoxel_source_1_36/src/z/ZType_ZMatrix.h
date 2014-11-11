@@ -543,7 +543,7 @@ public:
 	{
 		return (ZVector3d&)m[3];
 	}
-	void RotateAbsolute( double yaw, double pitch, double roll )
+	inline void RotateAbsolute( double yaw, double pitch, double roll )
 	{
 		   double rcos[3]; // cos(rx), cos(ry), cos(rz)
 			double rcosf[3]; // cos[2]*cos[1], cos[2]*cos[0], cos[1]*cos[0]
@@ -562,7 +562,7 @@ public:
 			  ( rcosf[2] = ( rcos[1] ) * ( rcos[0] ) );
 
 	}
-	void Rotate( double yaw, double pitch, double roll )
+	inline void Rotate( double yaw, double pitch, double roll )
 	{ // depends on Scale function....
 	   //if( !motion )
 		//   CreateTransformMotion( pt );

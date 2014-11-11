@@ -411,6 +411,10 @@ static LOGICAL OnKey3d( "BlackVoxel" )( PTRSZVAL psvInit, _32 key )
 			{
 				key += (  SDL_SCANCODE_F1 - KEY_F1);
 			}
+			else if( KEY_CODE(key) == KEY_LSHIFT )
+			{
+				key += ( SDL_SCANCODE_LSHIFT - KEY_LSHIFT );
+			}
 			if ((Item = Ge->EventManager.ConsumerList.GetFirst()))
 			do
 			{

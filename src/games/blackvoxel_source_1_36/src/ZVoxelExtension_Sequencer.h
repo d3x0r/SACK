@@ -73,7 +73,7 @@ class ZVoxelExtension_Sequencer : public ZVoxelExtension
 
   virtual ULong GetExtensionID()
   {
-    return( MulticharConst('S','E','Q','U') );
+    return( ZVoxelExtension::ExtensionCharCodes[Extension_Sequencer] );
   }
 
   virtual bool Save(ZStream_SpecialRamStream * Stream)

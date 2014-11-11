@@ -17,46 +17,45 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
- * ZVoxelExtension_Food.h
+ * ZVoxelExtension_Aroma.h
  *
  *  Created on: 4 févr. 2013
  *      Author: laurent
  */
 
-#ifndef Z_ZVOXELEXTENSION_FOOD_H
-#define Z_ZVOXELEXTENSION_FOOD_H
+#ifndef Z_ZVOXELEXTENSION_AROMA_H
+#define Z_ZVOXELEXTENSION_AROMA_H
 
 //#ifndef Z_ZVOXELEXTENSION_BLASTFURNACE_H
-//#  include "ZVoxelExtension_Food.h"
+//#  include "ZVoxelExtension_Aroma.h"
 //#endif
 
 #ifndef Z_ZVOXELEXTENSION_H
 #  include "ZVoxelExtension.h"
 #endif
 
-class ZVoxelExtension_Food : public ZVoxelExtension
+class ZVoxelExtension_Aroma : public ZVoxelExtension
 {
   public:
-    double Quantity_Carbon;
-  public:
+    double time_since_spawn;
 
-  ZVoxelExtension_Food()
+  ZVoxelExtension_Aroma()
   {
-    ExtensionType = Extension_Food;
-
-    Quantity_Carbon   = 0.0;
+    ExtensionType = Extension_Aroma;
+	time_since_spawn = rand() * 1000.0 / RAND_MAX;
+    //Quantity_Carbon   = 0.0;
   }
 
   virtual ZVoxelExtension * GetNewCopy()
   {
-    ZVoxelExtension_Food * NewCopy;
-    NewCopy = new ZVoxelExtension_Food(*this);
+    ZVoxelExtension_Aroma * NewCopy;
+    NewCopy = new ZVoxelExtension_Aroma(*this);
     return(NewCopy);
   }
 
   virtual ULong GetExtensionID()
   {
-    return( ZVoxelExtension::ExtensionCharCodes[Extension_Food] );
+    return( ZVoxelExtension::ExtensionCharCodes[Extension_Aroma] );
   }
 
   virtual bool Save(ZStream_SpecialRamStream * Stream)
@@ -71,7 +70,7 @@ class ZVoxelExtension_Food : public ZVoxelExtension
 
     // Storage informations.
 
-    Stream->Put(Quantity_Carbon);
+    //Stream->Put(Quantity_Carbon);
 
     *ExtensionSize = Stream->GetActualBufferLen() - StartLen;
 
@@ -92,7 +91,7 @@ class ZVoxelExtension_Food : public ZVoxelExtension
 
     if (ExtensionVersion!=1) { ExtensionSize-=2; for(ZMemSize i=0;i<ExtensionSize;i++) Ok = Stream->Get(Temp_Byte); if (Ok) return(true); else return(false);}
 
-    Stream->Get(Quantity_Carbon);
+    //Stream->Get(Quantity_Carbon);
 
     return(Ok);
   }

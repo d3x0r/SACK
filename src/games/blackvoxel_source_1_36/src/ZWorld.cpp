@@ -354,7 +354,7 @@ void ZVoxelSector::DebugOut( const char * FileName )
     {
       for ( x=0 ; x<Size_z ; x++ )
       {
-        Voxel = Data[ y + ( x*Size_y )+ (z * (Size_y*Size_x)) ];
+        Voxel = Data[ y + ( x*Size_y )+ (z * (Size_y*Size_x)) ].Data;
         if (Voxel == 0) Car = '.';
         else if (Voxel == 1) Car = '#';
         else Car = '@';
@@ -2282,7 +2282,7 @@ UShort IntFaceStateTable[][8] =
 
 bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort VoxelValue, UByte ImportanceFactor, bool CreateExtension, VoxelLocation * Location)
 {
-  UShort * Voxel_Address[19];
+	ZVoxelSector::VoxelData * Voxel_Address[19];
   ULong  Offset[19];
   UShort VoxelState[19];
   UShort Voxel;
@@ -2308,7 +2308,7 @@ bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort Voxe
   {
 	  int i = VOXEL_INCENTER; 
 	Voxel_Address[i]     = Sector[i]->Data + Offset[i];
-    Voxel = *Voxel_Address[i];    VoxelType = VoxelTypeTable[Voxel];
+    Voxel = Voxel_Address[i]->Data;    VoxelType = VoxelTypeTable[Voxel];
       VoxelState[i] = ( (Voxel==0) ? 1 : 0) 
 		     | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) 
 			 | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
@@ -2318,13 +2318,13 @@ bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort Voxe
 
   // Delete Old voxel extended informations if any
 
-  Voxel = *Voxel_Address[VOXEL_INCENTER];
-  OtherInfos = *(Sector[VOXEL_INCENTER]->OtherInfos + Offset[VOXEL_INCENTER]);
+  Voxel = Voxel_Address[VOXEL_INCENTER]->Data;
+  OtherInfos = Sector[VOXEL_INCENTER]->Data[Offset[VOXEL_INCENTER]].OtherInfos;
 
   if (OtherInfos)
   {
     VoxelType = VoxelTypeTable[Voxel];
-    if (VoxelType->Is_HasAllocatedMemoryExtension) VoxelType->DeleteVoxelExtension(OtherInfos + Offset[VOXEL_INCENTER]);
+    if (VoxelType->Is_HasAllocatedMemoryExtension) VoxelType->DeleteVoxelExtension(OtherInfos);
   }
 
   // Storing Extension
@@ -2332,13 +2332,13 @@ bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort Voxe
   VoxelType = VoxelTypeTable[VoxelValue];
   if (CreateExtension)
   {
-    *Voxel_Address[VOXEL_INCENTER] = 0; // Temporary set to 0 to prevent VoxelReactor for crashing while loading the wrong extension.
-    *(Sector[VOXEL_INCENTER]->OtherInfos + Offset[VOXEL_INCENTER]) =(ZMemSize)VoxelType->CreateVoxelExtension();
+    Voxel_Address[VOXEL_INCENTER]->Data = 0; // Temporary set to 0 to prevent VoxelReactor for crashing while loading the wrong extension.
+    (*(Sector[VOXEL_INCENTER]->Data + Offset[VOXEL_INCENTER])).OtherInfos =(ZMemSize)VoxelType->CreateVoxelExtension();
   }
 
   // Storing Voxel
 
-  *Voxel_Address[VOXEL_INCENTER] = VoxelValue;
+  Voxel_Address[VOXEL_INCENTER]->Data = VoxelValue;
   VoxelState[VOXEL_INCENTER] = ((VoxelValue==0) ? 1 : 0) | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
 
 	if (VoxelTypeTable[VoxelValue]->Is_Active) Sector[VOXEL_INCENTER]->Flag_IsActiveVoxels = true;

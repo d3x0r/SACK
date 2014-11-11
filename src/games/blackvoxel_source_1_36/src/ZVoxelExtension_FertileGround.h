@@ -55,7 +55,7 @@ class ZVoxelExtension_FertileGround : public ZVoxelExtension
 
   virtual ULong GetExtensionID()
   {
-    return( MulticharConst('B','F','G','R') );
+    return( ZVoxelExtension::ExtensionCharCodes[Extension_FertileGround] );
   }
 
   virtual bool Save(ZStream_SpecialRamStream * Stream)

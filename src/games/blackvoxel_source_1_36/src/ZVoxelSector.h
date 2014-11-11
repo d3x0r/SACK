@@ -46,6 +46,7 @@
 #  include "ZSector_ModifTracker.h"
 #endif
 
+
 #include "ZVoxelCuller.h"
 
 
@@ -199,14 +200,19 @@ class ZVoxelSector : public ZObject
 
     // Data stored by block
     ZMemSize DataSize;
-    UShort    * Data;
-	//UByte     * ShortFaceCulling;
-    //ULong     * FaceCulling;
+	class VoxelData {
+	public:
+		UShort Data;
+		UShort TempInfos;
+		ZMemSize OtherInfos;
+	};
+	VoxelData *Data;
+    //UShort    * Data;
 	ZVoxelCuller *Culler;
 	void      * Culling;
-    ZMemSize  * OtherInfos; // Informations autres
-    UShort    * TempInfos;  // Température des voxels
-    ZObject   * DisplayData;
+    //ZMemSize  * OtherInfos; // Informations autres
+    //UShort    * TempInfos;  // Température des voxels
+	ZObject *  DisplayData;
     ZSectorModifTracker ModifTracker;
 
     ULong RefreshWaitCount;
@@ -225,15 +231,15 @@ protected:
 
     void CleanupSector(); //
 
-    void Compress_Short_RLE(UShort * Data, void * Stream);
-    void Compress_OtherInfos_RLE(ZMemSize * Data, UShort * VoxelData, void * Stream);
+    void Compress_Short_RLE(VoxelData * Data, void * Stream);
+    void Compress_OtherInfos_RLE(VoxelData * Data, VoxelData * VoxelData, void * Stream);
     //void Compress_FaceCulling_RLE(UByte * Data, void  * Stream);
-    void Compress_Temperatures_RLE(UShort * Data, void  * Stream);
+    void Compress_Temperatures_RLE(VoxelData * Data, void  * Stream);
 
-    bool Decompress_Short_RLE(UShort * Data, void * Stream);
+    bool Decompress_Short_RLE(VoxelData * Data, void * Stream);
     //bool Decompress_FaceCulling_RLE(UByte * Data, void * Stream);
-    bool Decompress_OtherInfos_RLE(ZMemSize * Data, void * Stream);
-    bool Decompress_Temperatures_RLE(UShort * Data, void * Stream);
+    bool Decompress_OtherInfos_RLE(VoxelData * Data, void * Stream);
+    bool Decompress_Temperatures_RLE(VoxelData * Data, void * Stream);
 public:
 
     void SetVoxelTypeManager(ZVoxelTypeManager * VoxelTypeManager) { this->VoxelTypeManager = VoxelTypeManager; }
@@ -264,8 +270,8 @@ public:
       Long Offset;
 
       Offset = (y & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)*Size_y )+ ((z & ZVOXELBLOCMASK_Z) * (Size_y*Size_x));
-      Data[Offset] = CubeValue;
-      OtherInfos[Offset]=0;
+      Data[Offset].Data = CubeValue;
+      Data[Offset].OtherInfos=0;
     }
 
     inline void SetCube_WithExtension(Long x, Long y, Long z, UShort CubeValue, ZMemSize Extension)
@@ -273,8 +279,8 @@ public:
       Long Offset;
 
       Offset = (y & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)*Size_y )+ ((z & ZVOXELBLOCMASK_Z) * (Size_y*Size_x));
-      Data[Offset] = CubeValue;
-      OtherInfos[Offset]= Extension;
+      Data[Offset].Data = CubeValue;
+      Data[Offset].OtherInfos = Extension;
     }
 
     UShort GetCube(Long x, Long y, Long z)
@@ -282,7 +288,7 @@ public:
       Long Offset;
 
       Offset = (y & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)*Size_y )+ ((z & ZVOXELBLOCMASK_Z) * (Size_y*Size_x));
-      return(Data[Offset]);
+      return(Data[Offset].Data);
     }
 
     void MakeSector()
@@ -311,7 +317,7 @@ public:
 
       for ( i=0 ; i<DataSize ; i++ )
       {
-        Data[i] = VoxelType;
+        Data[i].Data = VoxelType;
         //FaceCulling[i] = 0x3FFFFF;
       }
     }

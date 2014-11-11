@@ -60,7 +60,7 @@ class ZVoxelExtension_PlaneZ1 : public ZVoxelExtension
 
   virtual ULong GetExtensionID()
   {
-    return( MulticharConst('P','L','Z','1') );
+	  return( ZVoxelExtension::ExtensionCharCodes[Extension_PlaneZ1] );
   }
 
   virtual bool Save(ZStream_SpecialRamStream * Stream)

@@ -92,7 +92,7 @@ ULong ZVoxelType_Programmable::Interface_PushBlock_Push( VoxelLocation * DestLoc
 {
   ZVoxelExtension_Programmable * Ext_Storage;
 
-  Ext_Storage = (ZVoxelExtension_Programmable *)DestLocation->Sector->OtherInfos[DestLocation->Offset];
+  Ext_Storage = (ZVoxelExtension_Programmable *)DestLocation->Sector->Data[DestLocation->Offset].OtherInfos;
 
   if (Ext_Storage)
   {
@@ -107,7 +107,7 @@ ULong ZVoxelType_Programmable::Interface_PushBlock_Pull( VoxelLocation * DestLoc
 {
   ZVoxelExtension_Programmable * Ext_Storage;
   ULong SlotNum;
-  Ext_Storage = (ZVoxelExtension_Programmable *)DestLocation->Sector->OtherInfos[DestLocation->Offset];
+  Ext_Storage = (ZVoxelExtension_Programmable *)DestLocation->Sector->Data[DestLocation->Offset].OtherInfos;
 
   if (Ext_Storage)
   {
@@ -124,7 +124,7 @@ ULong ZVoxelType_Programmable::Interface_PushBlock_PullTest( VoxelLocation * Des
 {
   ZVoxelExtension_Programmable * Ext_Storage;
   ULong SlotNum;
-  Ext_Storage = (ZVoxelExtension_Programmable *)DestLocation->Sector->OtherInfos[DestLocation->Offset];
+  Ext_Storage = (ZVoxelExtension_Programmable *)DestLocation->Sector->Data[DestLocation->Offset].OtherInfos;
 
   if (Ext_Storage)
   {

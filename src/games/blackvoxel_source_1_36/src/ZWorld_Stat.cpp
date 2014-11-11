@@ -49,7 +49,7 @@ void ZWorld_Stat::Get_Stat_DistanceToMineForVoxelType(UShort VoxelType)
 
   while (true)
   {
-    Voxel = Sector->Data[i];
+    Voxel = Sector->Data[i].Data;
     if (Voxel == VoxelType)
     {
       if (Distance >= StatZoneSize) Distance = StatZoneSize-1;
@@ -66,7 +66,7 @@ void ZWorld_Stat::Get_Stat_DistanceToMineForVoxelType(UShort VoxelType)
       {
         Sector = Sector->GlobalList_Next;
         if (!Sector) break;
-        for (i=0;i<ZVOXELBLOCSIZE_X*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_Z;i++) {if (Sector->Data[i]!=0) {Repeat = false; break;} }
+        for (i=0;i<ZVOXELBLOCSIZE_X*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_Z;i++) {if (Sector->Data[i].Data!=0) {Repeat = false; break;} }
       } while (Repeat);
       if (!Sector) break;
 

@@ -61,7 +61,7 @@ class ZVoxelExtension_Egmy_T1 : public ZVoxelExtension
 
   virtual ULong GetExtensionID()
   {
-    return( MulticharConst('E','M','Y','1') );
+    return( ZVoxelExtension::ExtensionCharCodes[Extension_Egmy_T1]  );
   }
 
   virtual bool Save(ZStream_SpecialRamStream * Stream)

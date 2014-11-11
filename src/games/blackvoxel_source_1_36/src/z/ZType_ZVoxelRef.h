@@ -14,6 +14,10 @@ public:
 	ZVoxelWorld *World;
 	ZVoxelTypeManager *VoxelTypeManager;
 	ZVoxelExtension *VoxelExtension;
+	ZVoxelRef()
+	{
+	}
+	/*
 	ZVoxelRef( ZVoxelWorld *world, ZVoxelTypeManager *vtm, long x = 0, long y = 0, long z = 0, ZVoxelSector *Sector=NULL, UShort VoxelType = 0, int offset = 0 )
 	{
 		this->x = x;
@@ -25,7 +29,8 @@ public:
 		this->VoxelType = VoxelType;
 		VoxelTypeManager = vtm;
 	}
-	static int ForEachVoxel( ZVoxelWorld * World, ZVoxelRef *v1, ZVoxelRef *v2, int (*f)(ZVoxelRef *v) );
+	*/
+	static int ForEachVoxel( ZVoxelWorld * World, ZVoxelRef *v1, ZVoxelRef *v2, int (*f)(ZVoxelRef *v), bool not_zero );
 
 };
 

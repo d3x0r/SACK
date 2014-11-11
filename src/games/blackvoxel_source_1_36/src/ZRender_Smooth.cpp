@@ -276,7 +276,7 @@ void ZVoxelCuller_Smooth::CullSingleVoxel( int x, int y, int z )
 {
 //bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort VoxelValue, UByte ImportanceFactor, bool CreateExtension, VoxelLocation * Location)
 //{
-  UShort * Voxel_Address[19];
+	ZVoxelSector::VoxelData * Voxel_Address[19];
   ULong  Offset[19];
   ULong * FaceCulling_Address[19];
   UShort VoxelState[19];
@@ -341,14 +341,14 @@ void ZVoxelCuller_Smooth::CullSingleVoxel( int x, int y, int z )
   {
 	Voxel_Address[i]     = Sector[i]->Data + Offset[i];
 	FaceCulling_Address[i]     = (ULong*)Sector[i]->Culling + Offset[i];
-    Voxel = *Voxel_Address[i];    VoxelType = VoxelTypeTable[Voxel];
+    Voxel = Voxel_Address[i]->Data;    VoxelType = VoxelTypeTable[Voxel];
       VoxelState[i] = ( (Voxel==0) ? 1 : 0) 
 		     | ( VoxelType->Draw_FullVoxelOpacity ? 2 : 0 ) 
 			 | ( VoxelType->Draw_TransparentRendering ? 4 : 0 );
   }
 
-  Voxel = *Voxel_Address[VOXEL_INCENTER];
-  OtherInfos = *(Sector[VOXEL_INCENTER]->OtherInfos + Offset[VOXEL_INCENTER]);
+  Voxel = Voxel_Address[VOXEL_INCENTER]->Data;
+  OtherInfos = Sector[VOXEL_INCENTER]->Data[Offset[VOXEL_INCENTER]].OtherInfos;
 
   if (OtherInfos)
   {
@@ -358,7 +358,7 @@ void ZVoxelCuller_Smooth::CullSingleVoxel( int x, int y, int z )
 
   // Storing Extension
 
-  VoxelType = VoxelTypeTable[*Voxel_Address[VOXEL_INCENTER]];
+  VoxelType = VoxelTypeTable[Voxel_Address[VOXEL_INCENTER]->Data];
 
   // Getting case subtables.
 
@@ -842,13 +842,15 @@ void ZRender_Smooth::Render( bool use_external_matrix )
 			  Camera->orientation.z_axis() * ( GlobalSettings.VoxelBlockSize * -(Actor->VoxelSelectDistance) );
 		  //In.MaxCubeIterations = 6;
 
-		  ZVoxelRef *v = World->GetVoxelRefPlayerCoord( a.x, a.y, a.z );
+		  ZVoxelRef v ;
+			  if( World->GetVoxelRefPlayerCoord( v, a.x, a.y, a.z ) )
+			  {
 			//World->RayCast_Vector(Camera->orientation, Tmp, &In, PointedVoxel);
-			PointedVoxel->PredPointedVoxel.x = v->x;
-			PointedVoxel->PredPointedVoxel.y = v->y;
-			PointedVoxel->PredPointedVoxel.z = v->z;
-			delete v ;
-		  PointedVoxel->Collided = true;
+			PointedVoxel->PredPointedVoxel.x = v.x + v.Sector->Pos_x;
+			PointedVoxel->PredPointedVoxel.y = v.y + v.Sector->Pos_y;
+			PointedVoxel->PredPointedVoxel.z = v.z + v.Sector->Pos_z;
+			PointedVoxel->Collided = true;
+			  }
         if (BvProp_DisplayVoxelSelector) 
 			Render_VoxelSelector( &PointedVoxel->PredPointedVoxel, 0.2,1.0,0.1 );
 	  }
@@ -1857,7 +1859,7 @@ void ZRender_Smooth::MakeSectorRenderingData(ZVoxelSector * Sector)
           for ( y=0 ; y < Sector->Size_y ; y++ )
           {
             Offset = y + ( x*Sector->Size_y )+ (z * (Sector->Size_y*Sector->Size_x));
-            cube = Sector->Data[Offset];
+            cube = Sector->Data[Offset].Data;
             info = ((ULong*)Sector->Culling)[Offset];
 
 

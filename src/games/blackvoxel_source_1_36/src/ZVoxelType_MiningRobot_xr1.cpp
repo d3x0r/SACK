@@ -49,7 +49,7 @@ void ZVoxelType_MiningRobot_xr1::GetBlockInformations(VoxelLocation * DestLocati
   ZVoxelExtension_MiningRobot_xr1 * Ext;
   ULong i;
 
-  Ext = (ZVoxelExtension_MiningRobot_xr1 * )DestLocation->Sector->OtherInfos[DestLocation->Offset];
+  Ext = (ZVoxelExtension_MiningRobot_xr1 * )DestLocation->Sector->Data[DestLocation->Offset].OtherInfos;
 
   Infos << "Storage Location : " << Ext->StorageLocation.x << "," << Ext->StorageLocation.y << "," << Ext->StorageLocation.z << Infos.NewLine();
   Infos << "Direction : " << Ext->Dir.x << "," << Ext->Dir.z << Infos.NewLine();
@@ -81,7 +81,7 @@ ULong ZVoxelType_MiningRobot_xr1::Interface_PushBlock_Pull( VoxelLocation * Dest
 {
   ZVoxelExtension_MiningRobot_xr1 * Ext_Storage;
   ULong SlotNum;
-  Ext_Storage = (ZVoxelExtension_MiningRobot_xr1 *)DestLocation->Sector->OtherInfos[DestLocation->Offset];
+  Ext_Storage = (ZVoxelExtension_MiningRobot_xr1 *)DestLocation->Sector->Data[DestLocation->Offset].OtherInfos;
 
   if (Ext_Storage)
   {
@@ -98,7 +98,7 @@ ULong ZVoxelType_MiningRobot_xr1::Interface_PushBlock_PullTest( VoxelLocation * 
 {
   ZVoxelExtension_MiningRobot_xr1 * Ext_Storage;
   ULong SlotNum;
-  Ext_Storage = (ZVoxelExtension_MiningRobot_xr1 *)DestLocation->Sector->OtherInfos[DestLocation->Offset];
+  Ext_Storage = (ZVoxelExtension_MiningRobot_xr1 *)DestLocation->Sector->Data[DestLocation->Offset].OtherInfos;
 
   if (Ext_Storage)
   {

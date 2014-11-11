@@ -46,6 +46,8 @@
 #include "ZVoxelType_FertileGround.h"
 #include "ZVoxelType_Food.h"
 #include "ZVoxelType_Animal.h"
+#include "ZVoxelType_AromaGenerator.h"
+#include "ZVoxelType_Aroma.h"
 
 #ifndef Z_ZVOXELTYPE_LIGHTTRANSMITTER_H
 #  include "ZVoxelType_LightTransmitter.h"
@@ -1629,7 +1631,9 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
 	  case 239: VoxelType = new ZVoxelType_FertileGround(i); break;
 	  case 240: VoxelType = new ZVoxelType_Animal(i); break;
 	  case 241: VoxelType = new ZVoxelType_Animal(i); break;
-
+	  case 242: VoxelType = new ZVoxelType_Aroma(i); break;
+	  case 243: VoxelType = new ZVoxelType_AromaGenerator(i); break;
+	  case 244: VoxelType = new ZVoxelType_Aroma(i); break;
       default:  VoxelType = new ZVoxelType(i);                       break;
     }
 

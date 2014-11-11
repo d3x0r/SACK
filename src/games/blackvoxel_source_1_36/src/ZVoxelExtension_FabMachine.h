@@ -68,7 +68,7 @@ class ZVoxelExtension_FabMachine : public ZVoxelExtension
 
   virtual ULong GetExtensionID()
   {
-    return( MulticharConst('F','M','C','H') );
+    return( ZVoxelExtension::ExtensionCharCodes[Extension_TransformationMachine] );
   }
 
   virtual bool Save(ZStream_SpecialRamStream * Stream);

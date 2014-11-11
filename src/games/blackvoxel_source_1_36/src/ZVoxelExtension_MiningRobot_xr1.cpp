@@ -215,7 +215,7 @@ void ZVoxelExtension_MiningRobot_xr1::Robot_Move( ZVector3L * Pos, ZGame * GameE
               {
                 VoxelLocation Loc;
                 World->GetVoxelLocation( &Loc, Pos->x, Pos->y,Pos->z);
-                Loc.Sector->Data[Loc.Offset] = 159;
+                Loc.Sector->Data[Loc.Offset].Data = 159;
 				for( int r = 0; r < 6; r++ )
 					Loc.Sector->Flag_Render_Dirty[6] = true;
                 //Loc.Sector->Flag_Void_Regular = false;
@@ -240,7 +240,7 @@ void ZVoxelExtension_MiningRobot_xr1::Robot_Move( ZVector3L * Pos, ZGame * GameE
                 VoxelLocation Loc;
                 ULong Slot;
                 if (!World->GetVoxelLocation(&Loc, StorageLocation.x, StorageLocation.y, StorageLocation.z)) break;
-                VoxelType = Loc.Sector->Data[Loc.Offset];
+                VoxelType = Loc.Sector->Data[Loc.Offset].Data;
                 if (!GameEnv->VoxelTypeManager.VoxelTable[VoxelType]->Is_Interface_PushBlock) { State = 6; break; }
                 if ( ((ULong)-1) != (Slot = FindFirstUsedBlock()))
                 {
