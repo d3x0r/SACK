@@ -42,7 +42,7 @@ class ZVoxelExtension_Aroma : public ZVoxelExtension
   ZVoxelExtension_Aroma()
   {
     ExtensionType = Extension_Aroma;
-	time_since_spawn = rand() * 1000.0 / RAND_MAX;
+	time_since_spawn = 0;
     //Quantity_Carbon   = 0.0;
   }
 

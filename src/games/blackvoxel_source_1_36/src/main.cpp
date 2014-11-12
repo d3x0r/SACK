@@ -511,7 +511,7 @@ int CPROC YourAllocHook(int nAllocType, void *pvData,
 	if( !logging )
 	{
 		logging = 1;
-	lprintf( "%s(%d): alloc %d %p %d", szFileName, nLine, nAllocType, pvData, nSize );
+	lprintf( "%s(%d): alloc %d %p %d %ld", szFileName, nLine, nAllocType, pvData, nSize, lRequest );
 	logging = 0;
 	}
 	return TRUE;

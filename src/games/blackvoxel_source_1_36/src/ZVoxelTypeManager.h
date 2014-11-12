@@ -108,6 +108,7 @@ class ZVoxelTypeManager : public ZObject
       }
       VoxelTable[TypeNum] = VoxelType;
       if (VoxelType) VoxelType->VoxelType = TypeNum;
+	  VoxelType->VoxelTypeManager = this;
       ActiveTable->Set(TypeNum,VoxelType->Is_Active);
     }
 

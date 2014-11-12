@@ -59,9 +59,83 @@
 #  include "z/ZGenericTable.h"
 #endif
 
+#include <salty_generator.h>
+ZLightSpeedRandom ZVoxelReactor::Random;
+random_context *ZVoxelReactor::Random2;
+ZVoxelSector * ZVoxelReactor::DummySector;
+UByte ZVoxelReactor::Of_x[ZVOXELBLOCSIZE_X+2];
+UByte ZVoxelReactor::Of_y[ZVOXELBLOCSIZE_Y+2];
+UByte ZVoxelReactor::Of_z[ZVOXELBLOCSIZE_Z+2];
+ULong ZVoxelReactor::If_x[ZVOXELBLOCSIZE_X+2];
+ULong ZVoxelReactor::If_y[ZVOXELBLOCSIZE_Y+2];
+ULong ZVoxelReactor::If_z[ZVOXELBLOCSIZE_Z+2];
 
 
+ZVoxelReactor::ZBlocPos ZVoxelReactor::bfta[26] =
+{
+    {0,0,0},
+    {1,0,0},
+    {2,0,0},
+    {0,0,1},
+    {1,0,1},
+    {2,0,1},
+    {0,0,2},
+    {1,0,2},
+    {2,0,2},
 
+    {0,1,0},
+    {1,1,0},
+    {2,1,0},
+    {0,1,1},
+   // {1,1,1}, self
+    {2,1,1},
+    {0,1,2},
+    {1,1,2},
+    {2,1,2},
+
+    {0,2,0},
+    {1,2,0},
+    {2,2,0},
+    {0,2,1},
+    {1,2,1},
+    {2,2,1},
+    {0,2,2},
+    {1,2,2},
+    {2,2,2},
+};
+
+ZVoxelReactor::ZBlocPos ZVoxelReactor::bfts[18] =
+{
+    //{0,0,0},
+    {1,0,0},
+    //{2,0,0},
+    {0,0,1},
+    {1,0,1},
+    {2,0,1},
+    //{0,0,2},
+    {1,0,2},
+    //{2,0,2},
+
+    {0,1,0},
+    {1,1,0},
+    {2,1,0},
+    {0,1,1},
+   // {1,1,1}, self
+    {2,1,1},
+    {0,1,2},
+    {1,1,2},
+    {2,1,2},
+
+    //{0,2,0},
+    {1,2,0},
+    //{2,2,0},
+    {0,2,1},
+    {1,2,1},
+    {2,2,1},
+    //{0,2,2},
+    {1,2,2},
+    //{2,2,2},
+};
 
 ZVoxelReactor::ZBlocPos ZVoxelReactor::bp6[6] =
 {
@@ -83,7 +157,25 @@ ZVoxelReactor::ZBlocPos ZVoxelReactor::xbp6[6] = // Les 4 autours et ensuite cel
     { 1, 0, 1 }  // 5 = Under the robot.
 };
 
-ZVoxelReactor::ZBlocPosN ZVoxelReactor::xbp6_nc[6] = // Meme chose que xnp6 mais avec range -1,1 au lieu de 0,2.
+ZVoxelReactor::ZBlocPos ZVoxelReactor::xbp6_opposing[6] = // same as xbp6, but ^1 to index yeilds opposing direction
+{
+    { 1, 1, 2 }, // 0 = Front of the robot.
+    { 1, 1, 0 }, // 2 = Back of the robot.
+    { 2, 1, 1 }, // 1 = Right of the robot.
+    { 0, 1, 1 }, // 3 = Left of the robot.
+    { 1, 2, 1 }, // 4 = Above the robot.
+    { 1, 0, 1 }  // 5 = Under the robot.
+};
+ZVoxelReactor::ZBlocPos ZVoxelReactor::xbp6_opposing_escape[6][5] = // same as xbp6, but ^1 to index yeilds opposing direction
+{
+	{{ 1, 1, 2 },{ 2, 2, 2 },{ 2, 0, 2 },{ 0, 2, 2 },{ 0, 0, 2 }}, // 0 = Front of the robot.
+    {{ 1, 1, 0 },{ 2, 2, 0 },{ 2, 0, 0 },{ 0, 2, 0 },{ 0, 0, 0 }}, // 2 = Back of the robot.
+    {{ 2, 1, 1 },{ 2, 2, 2 },{ 2, 2, 0 },{ 2, 0, 2 },{ 2, 0, 0 }}, // 1 = Right of the robot.
+    {{ 0, 1, 1 },{ 0, 2, 2 },{ 0, 2, 0 },{ 0, 0, 2 },{ 0, 0, 0 }}, // 3 = Left of the robot.
+    {{ 1, 2, 1 },{ 2, 2, 2 },{ 2, 2, 0 },{ 0, 2, 2 },{ 0, 2, 0 }}, // 4 = Above the robot.
+    {{ 1, 0, 1 },{ 2, 0, 2 },{ 2, 0, 0 },{ 0, 0, 2 },{ 0, 0, 0 }}  // 5 = Under the robot.
+};
+ZVoxelReactor::ZBlocPosN ZVoxelReactor::xbp6_nc[6] = // Meme chose que xnp6 mais avec range -1,1 au lieu de 0,2.(Same thing but with xnp6 Range -1.1 instead of 0.2.)
 {
     { 0, 0, 1 }, // 0 = Front of the robot.
     { 1, 0, 0 }, // 1 = Right of the robot.
@@ -93,7 +185,7 @@ ZVoxelReactor::ZBlocPosN ZVoxelReactor::xbp6_nc[6] = // Meme chose que xnp6 mais
     { 0,-1, 0 }  // 5 = Under the robot.
 };
 
-ZVoxelReactor::ZBlocPos ZVoxelReactor::bft[8] = // Les 4 autours et les 4 sur l'étage d'en dessous
+ZVoxelReactor::ZBlocPos ZVoxelReactor::bft[8] = // Les 4 autours et les 4 sur l'étage d'en dessous (Around 4 and 4 on the floor below)
 {
     {2,1,1},
     {0,1,1},
@@ -105,7 +197,7 @@ ZVoxelReactor::ZBlocPos ZVoxelReactor::bft[8] = // Les 4 autours et les 4 sur l'
     {1,0,0}
 };
 
-ZVoxelReactor::ZBlocPos ZVoxelReactor::bft6[10] = // Les 6 autours et les 4 de la rangée du dessous.
+ZVoxelReactor::ZBlocPos ZVoxelReactor::bft6[10] = // Les 6 autours et les 4 de la rangée du dessous. (Around 6 and 4 in the row below.)
 {
     {2,1,1},
     {0,1,1},
@@ -162,6 +254,7 @@ ZVoxelReactor::ZBlocPos ZVoxelReactor::bft[8] = // Les 4 autours et les 4 sur l'
     {0 , -1}, 3
 };
 */
+
 ZVoxelReactor::ZVoxelReactor()
 {
   ULong i;
@@ -176,13 +269,17 @@ ZVoxelReactor::ZVoxelReactor()
 
   ActiveTable = new ULong[2048];
 
+  if( !Random2 )
+  {
+	  // one-time inits for static members.
+	  Random2 = SRG_CreateEntropy2( NULL, 0 );
+	Random.Init(0);
   // Dummy Sector
 
   DummySector = new ZVoxelSector();
   DummySector->Fill(0xFFFF);
 
   // Multiplexing Sector Tables for fast access to voxels
-
   Of_x[0]=0; Of_x[ZVOXELBLOCSIZE_X+1]=2;for (i=1;i<=ZVOXELBLOCSIZE_X;i++) Of_x[i]=1;
   Of_y[0]=0; Of_y[ZVOXELBLOCSIZE_Y+1]=8;for (i=1;i<=ZVOXELBLOCSIZE_Y;i++) Of_y[i]=4;
   Of_z[0]=0; Of_z[ZVOXELBLOCSIZE_Z+1]=32;for (i=1;i<=ZVOXELBLOCSIZE_Z;i++) Of_z[i]=16;
@@ -199,23 +296,21 @@ ZVoxelReactor::ZVoxelReactor()
   If_z[ZVOXELBLOCSIZE_Z+1]=0;
   for (i=0;i<ZVOXELBLOCSIZE_Z;i++) If_z[i+1]=i*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_X;
 
+  }
 
   // FireMine
   FireMineTime = 0;
   //
 
-  Random.Init(0);
-
   // Reaction table
-  ReactionTable = new ZVoxelReaction * [65536];
-  for (i=0;i<65536;i++) ReactionTable[i]=0;
+	ReactionTable = new ZVoxelReaction * [65536];
+	  for (i=0;i<65536;i++) ReactionTable[i]=0;
 
-  // Green acid reaction
-  ReactionTable[86] = new ZVoxelReaction(89,0);
-  // ReactionTable[86]->SetReaction(1,10,10);
+	  // Green acid reaction
+	  ReactionTable[86] = new ZVoxelReaction(89,0);
+	  // ReactionTable[86]->SetReaction(1,10,10);
 
-
-
+  
   //ReactionTable[86]->Set(1,10);
 }
 
@@ -483,6 +578,8 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
               {
                 switch(VoxelType)
                 {
+				case 0:
+					break;
 				default:
 					  ref.x = x; ref.y = y; ref.z = z;
 					  ref.Offset = MainOffset;
@@ -490,8 +587,8 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                     IsActiveVoxels = true;
 					ref.VoxelExtension = (ZVoxelExtension*)Sector->Data[MainOffset].OtherInfos;
-                    //St[i]->ModifTracker.Set(SecondaryOffset[i]);
-					VoxelTypeManager->VoxelTable[VoxelType]->React( ref, LastLoopTime);
+					//St[i]->ModifTracker.Set(SecondaryOffset[i]);
+					IsActiveVoxels = VoxelTypeManager->VoxelTable[VoxelType]->React( ref, LastLoopTime);
 					break;
                   /*
                   case 47:

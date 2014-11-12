@@ -31,6 +31,7 @@
 #  include "ZVoxelExtension_AromaGenerator.h"
 #endif
 
+#include "ZVoxelReactor.h"
 
 ZVoxelExtension * ZVoxelType_AromaGenerator::CreateVoxelExtension(bool IsLoadingPhase)
 {
@@ -41,25 +42,39 @@ ZVoxelExtension * ZVoxelType_AromaGenerator::CreateVoxelExtension(bool IsLoading
   return (NewVoxelExtension);
 }
 
-void ZVoxelType_AromaGenerator::React( const ZVoxelRef &self, double tick )
+bool ZVoxelType_AromaGenerator::React( const ZVoxelRef &self, double tick )
 {
 	ZVoxelExtension_AromaGenerator *instance = (ZVoxelExtension_AromaGenerator *)self.VoxelExtension;
+	int spawned = 0;
 	instance->time_since_spawn += tick;
-	if( instance->time_since_spawn > 1000 )
+	//lprintf( "tick is %g", tick );
+	while( instance->time_since_spawn > 25 )
 	{
 		    Long RSx = self.Sector->Pos_x << ZVOXELBLOCSHIFT_X;
 			Long RSy = self.Sector->Pos_y << ZVOXELBLOCSHIFT_Y;
 			Long RSz = self.Sector->Pos_z << ZVOXELBLOCSHIFT_Z;
 
-		UShort above = self.World->GetVoxel( RSx +self.x, RSy +self.y+1, RSz +self.z );
-		if( above == 0 )
+		//UShort above = self.World->GetVoxel( RSx +self.x, RSy +self.y+1, RSz +self.z );
+		//if( above == 0 )
 		{
-			// set some green plant life.
-			self.World->SetVoxel_WithCullingUpdate(RSx + self.x , RSy + self.y + 1, RSz + self.z , 236, ZVoxelSector::CHANGE_CRITICAL);                                         
+			ULong number = SRG_GetEntropy( ZVoxelReactor::Random2, 5, 0 );
+			number = number % 27;
+			if( number != 13 )
+			{ int x, y, z;
+				// add an aroma
+				UShort next = self.World->GetVoxel( x = RSx +self.x + ( number % 3 - 1 ), y = RSy +self.y+1+ ( (number / 3) % 3 - 1 ), z = RSz +self.z + ( (number / 9) % 3 - 1 ) );
+				if( VoxelTypeManager->VoxelTable[next]->Is_CanBeReplacedBy_Water) 
+				{
+					self.World->SetVoxel_WithCullingUpdate(x, y, z, (self.x & 1)/*SRG_GetEntropy( ZVoxelReactor::Random2, 1, 0 )*/?242:244, ZVoxelSector::CHANGE_CRITICAL);                                         
+					spawned++;
+				}
+			}
 		}
-		instance->time_since_spawn = 0;
+		//lprintf( "Setting %p to 0", &instance->time_since_spawn );
+		instance->time_since_spawn -= 25;
 	}
 	//lprintf( "Ground react at %g", tick );
+	return true;
 }
 
 
