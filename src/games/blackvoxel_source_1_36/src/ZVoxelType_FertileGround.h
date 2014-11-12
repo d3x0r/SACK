@@ -51,7 +51,7 @@ class ZVoxelType_FertileGround : public ZVoxelType
 
     // The user click the activation button(Middle) on the voxel to activate special functions.
     //virtual void  UserAction_Activate(ZMemSize VoxelInfo, Long x, Long y, Long z) {}
-	virtual void React( const ZVoxelRef &self, double tick );
+	virtual bool React( const ZVoxelRef &self, double tick );
 };
 
 

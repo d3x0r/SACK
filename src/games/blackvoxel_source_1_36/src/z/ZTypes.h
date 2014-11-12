@@ -41,6 +41,11 @@
 #  include <math.h>
 #endif
 
+//#ifdef _MSC_VER
+//#include <crtdbg.h>
+//#define new  new( _CLIENT_BLOCK, __FILE__, __LINE__)
+//#endif
+
 // OS CONFIGURATION
 
 #ifdef __linux__

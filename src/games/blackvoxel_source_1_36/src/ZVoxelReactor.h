@@ -71,6 +71,7 @@
 #  include "ZEgmyTargetManager.h"
 #endif
 
+#include <salty_generator.h>
 
 class ZGame;
 
@@ -78,8 +79,12 @@ struct ZonePressure;
 
 class ZVoxelReactor
 {
+  public:
+    static ZLightSpeedRandom Random;
+	static random_context *ZVoxelReactor::Random2;
+
+    static ZVoxelSector * DummySector;
   protected:
-    ZLightSpeedRandom Random;
     ZVector3d PlayerPosition;
     ZGame * GameEnv;
     ZVoxelWorld * World;
@@ -87,36 +92,40 @@ class ZVoxelReactor
     ZEgmyTargetManager    EgmyWaveManager;
     ULong               CycleNum;
 
-    ZVoxelSector * DummySector;
 
     ZVoxelReaction ** ReactionTable;
 
   public:
     class ZBlocPos { public: UByte x; UByte y; UByte z; };
     class ZBlocPosN{ public: Byte x;  Byte y;  Byte z; };
-
+	static ZBlocPos bfta[26];  // bloc flow table (air)
+	static ZBlocPos bfts[18];  // bloc flow table (smoothing)
     static ZBlocPos  bp6[6];   // Bloc positions with 6 slots around main cube.
     static ZBlocPos  bft[8];   // Bloc fall test positions with 4 slots around and 4 slots under;
     static ZBlocPos  bft6[10]; // Bloc fall test positions with 6 slots around main cube and 4 slots under (Special case for acid).
     static UByte     BlocOpposite[6];
     static ZBlocPosN nbp6[6];
     static ZBlocPos  xbp6[6];  // Bloc positions with 6 slots around main cube. ( New standardised robot order.).
+    static ZBlocPos  xbp6_opposing[6];  // Bloc positions with 6 slots around main cube. ( New standardised robot order.).
+    static ZBlocPos  xbp6_opposing_escape[6][5];  // Bloc positions with 6 slots around main cube. ( New standardised robot order.).
+	
     static ZBlocPosN xbp6_nc[6];// same as xbp6 with -1,+1 range
 
-  protected:
+  public:
 
     // Fast computing offsets;
-    UByte Of_x[ZVOXELBLOCSIZE_X+2];
-    UByte Of_y[ZVOXELBLOCSIZE_Y+2];
-    UByte Of_z[ZVOXELBLOCSIZE_Z+2];
-    ULong If_x[ZVOXELBLOCSIZE_X+2];
-    ULong If_y[ZVOXELBLOCSIZE_Y+2];
-    ULong If_z[ZVOXELBLOCSIZE_Z+2];
+    static UByte Of_x[ZVOXELBLOCSIZE_X+2];
+    static UByte Of_y[ZVOXELBLOCSIZE_Y+2];
+    static UByte Of_z[ZVOXELBLOCSIZE_Z+2];
+    static ULong If_x[ZVOXELBLOCSIZE_X+2];
+    static ULong If_y[ZVOXELBLOCSIZE_Y+2];
+    static ULong If_z[ZVOXELBLOCSIZE_Z+2];
 
     // DirCodes
 
     static UByte DirCodeTable[16];
 
+  protected:
 
     ULong * ActiveTable;
 

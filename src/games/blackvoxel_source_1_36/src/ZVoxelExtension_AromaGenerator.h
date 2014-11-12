@@ -42,8 +42,6 @@ class ZVoxelExtension_AromaGenerator : public ZVoxelExtension
   ZVoxelExtension_AromaGenerator()
   {
     ExtensionType = Extension_AromaGenerator;
-	time_since_spawn = rand() * 1000.0 / RAND_MAX;
-    //Quantity_Carbon   = 0.0;
   }
 
   virtual ZVoxelExtension * GetNewCopy()

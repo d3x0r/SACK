@@ -41,6 +41,7 @@ class ZVoxelType_AromaGenerator : public ZVoxelType
     ZVoxelType_AromaGenerator(ULong VoxelType) : ZVoxelType(VoxelType)
     {
       Is_VoxelExtension = true;
+	  Is_CanBeReplacedBy_Water = false;
       Is_HasAllocatedMemoryExtension = true;
     }
 
@@ -51,7 +52,7 @@ class ZVoxelType_AromaGenerator : public ZVoxelType
 
     // The user click the activation button(Middle) on the voxel to activate special functions.
     //virtual void  UserAction_Activate(ZMemSize VoxelInfo, Long x, Long y, Long z) {}
-	virtual void React( const ZVoxelRef &self, double tick );
+	virtual bool React( const ZVoxelRef &self, double tick );
 };
 
 

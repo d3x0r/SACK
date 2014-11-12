@@ -72,8 +72,8 @@ class ZVoxelType
 {
   protected:
     ZGame * GameEnv;
-    ZVoxelTypeManager * VoxelTypeManager;
   public:
+    ZVoxelTypeManager * VoxelTypeManager;
     ZString VoxelTypeName;
     //UByte CanPassThrough;
 // Obsoleted
@@ -184,7 +184,7 @@ class ZVoxelType
     virtual bool  Interface_SetInfo(VoxelLocation * VLoc, ULong InfoNum, ZVar * In)  { return(false); }
     virtual void  GetBlockInformations(VoxelLocation * DestLocation, ZString & Infos) { return; }
 
-	virtual void  React( const ZVoxelRef &self, double tick ) { return; }
+	virtual bool  React( const ZVoxelRef &self, double tick ) { return false; }
 };
 
 
