@@ -155,6 +155,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 	//lprintf( WIDE("drawing %d,%d,%d,%d"), pe->Start, pe->cursor_pos, pe->MaxShowLen );
 	output_string = GetString( pe, caption_text + pe->Start, pe->cursor_pos-pe->Start );
 	CursX = (pe->cursor_pos?stringsize[pe->cursor_pos]:0) - (pe->Start?stringsize[pe->Start]:0);
+	Release( stringsize );
 	if( USS_LTE( height, _32, pc->Surface->height, int ) )
 		pe->top_side_pad = (pc->Surface->height - height) / 2;
 	else
