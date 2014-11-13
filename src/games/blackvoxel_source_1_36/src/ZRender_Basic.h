@@ -63,6 +63,7 @@ public:
 	// void CullSectorInternal( ZVoxelSector *sector );
 	// void CullSectorEdges( ZVoxelSector *sector );
 
+	void CullSingleVoxel( ZVoxelSector *_Sector, ULong Offset );
 	 void CullSingleVoxel( int x, int y, int z );
  	ULong getFaceCulling( ZVoxelSector *Sector, int offset );
 	void setFaceCulling( ZVoxelSector *Sector, int offset, ULong value );

@@ -154,6 +154,7 @@ private:
 
     void SetVoxel(Long x, Long y, Long z, UShort VoxelValue);
     bool SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort VoxelValue, UByte ImportanceFactor, bool CreateExtension = true, VoxelLocation * Location = 0);
+	bool SetVoxel_WithCullingUpdate(ZVoxelSector *_Sector, ULong offset, UShort VoxelValue, UByte ImportanceFactor, bool CreateExtension, VoxelLocation * Location = 0);
     //bool SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort VoxelValue, bool ImportanceFactor, bool CreateExtension = true, VoxelLocation * Location = 0);
     inline bool MoveVoxel(Long Sx, Long Sy, Long Sz, Long Ex, Long Ey, Long Ez, UShort ReplacementVoxel, UByte ImportanceFactor);
     inline bool MoveVoxel(ZVector3L * SCoords, ZVector3L * DCoords, UShort ReplacementVoxel, UByte ImportanceFactor);

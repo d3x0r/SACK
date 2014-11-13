@@ -272,6 +272,10 @@ static UShort IntFaceStateTable[][8] =
 };
 
 
+void ZVoxelCuller_Smooth::CullSingleVoxel( ZVoxelSector *_Sector, ULong Offset )
+{
+}
+
 void ZVoxelCuller_Smooth::CullSingleVoxel( int x, int y, int z )
 {
 //bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort VoxelValue, UByte ImportanceFactor, bool CreateExtension, VoxelLocation * Location)
