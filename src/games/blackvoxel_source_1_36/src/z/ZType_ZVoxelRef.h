@@ -10,6 +10,7 @@ public:
 	ZVoxelSector * Sector;
 	int Offset;
 	int x, y, z;
+	int wx, wy, wz;
 	UShort VoxelType;
 	ZVoxelWorld *World;
 	ZVoxelTypeManager *VoxelTypeManager;

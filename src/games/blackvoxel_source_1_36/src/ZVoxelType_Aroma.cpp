@@ -47,72 +47,53 @@ bool ZVoxelType_Aroma::React( const ZVoxelRef &self, double tick )
 	instance->time_since_spawn += tick;
 	if( instance->time_since_spawn > 12000 )
 	{
-		    Long RSx = self.Sector->Pos_x << ZVOXELBLOCSHIFT_X;
-			Long RSy = self.Sector->Pos_y << ZVOXELBLOCSHIFT_Y;
-			Long RSz = self.Sector->Pos_z << ZVOXELBLOCSHIFT_Z;
-
-		self.World->SetVoxel_WithCullingUpdate(RSx + self.x, RSy + self.y, RSz + self.z, 0, ZVoxelSector::CHANGE_UNIMPORTANT);
+		self.World->SetVoxel_WithCullingUpdate(self.wx, self.wy, self.wz, 0, ZVoxelSector::CHANGE_UNIMPORTANT);
 		return false;
 	}
     // Eau qui coule. Flowing water.
     {
-    ZVoxelSector * St[32];
+    ZVoxelSector * St[27];
     UShort * Vp[32];
-    UShort  Vp2[32];
-    ULong SecondaryOffset[32];
+    UShort  Vp2;
+    ULong SecondaryOffset[27];
     ULong PrefSecondaryOffset[6][5];
     ULong i,vCount,j, vPrefCount;
     bool  DirEn[6];
     bool  PrefDirEn[6][5];
-    register Long cx,cy,cz;
-		    Long RSx = self.Sector->Pos_x << ZVOXELBLOCSHIFT_X;
-			Long RSy = self.Sector->Pos_y << ZVOXELBLOCSHIFT_Y;
-			Long RSz = self.Sector->Pos_z << ZVOXELBLOCSHIFT_Z;
+    //register Long cx,cy,cz;
 
 	  Long Sx,Sy,Sz;
-	  ZVoxelSector * SectorTable[64];
-      Sx = self.Sector->Pos_x - 1;
-      Sy = self.Sector->Pos_y - 1;
-      Sz = self.Sector->Pos_z - 1;
-
-	  if( self.Sector->Pos_x == 0 || self.Sector->Pos_y == 0 || self.Sector->Pos_z == 0 
-		  || self.Sector->Pos_x == (ZVOXELBLOCSIZE_X-1) || self.Sector->Pos_y == (ZVOXELBLOCSIZE_Y-1) || self.Sector->Pos_z == (ZVOXELBLOCSIZE_Z-1) )
+	  //ZVoxelSector * SectorTable[64];
+	  //Sx = self.Sector->Pos_x - 1;
+      //Sy = self.Sector->Pos_y - 1;
+      //Sz = self.Sector->Pos_z - 1;
+	  ZVoxelReactor::GetVoxelRefs( self, St, SecondaryOffset );
+	if( 0 )	  
 	  {
-		  for (int x = 0; x <= 2; x++)
-			for (int y = 0; y <= 2; y++)
-			  for (int z = 0; z <= 2; z++)
-			  {
-				ULong MainOffset = x + (y << 2) + (z << 4);
-				if (!(SectorTable[MainOffset] = self.World->FindSector(Sx + x, Sy + y, Sz + z))) SectorTable[MainOffset] = ZVoxelReactor::DummySector;
-			  }
-	  }
-	  else
-	  {
-		  for (int x = 0; x <= 2; x++)
-			for (int y = 0; y <= 2; y++)
-			  for (int z = 0; z <= 2; z++)
-			  {
-				ULong MainOffset = x + (y << 2) + (z << 4);
-				SectorTable[MainOffset] = self.Sector;
-			  }
-
+		  int n;
+		  lprintf( "-------- Secondary Offset Translation ----------" );
+		  for( n = 0; n < 27; n++ )
+			  lprintf( " %08x   %d  %d  %d", SecondaryOffset[n]
+						, (SecondaryOffset[n]>>ZVOXELBLOCSHIFT_Y ) & ZVOXELBLOCMASK_X
+						, (SecondaryOffset[n]>>0 ) & ZVOXELBLOCMASK_Y
+						, (SecondaryOffset[n]>>(ZVOXELBLOCSHIFT_Y+ZVOXELBLOCSHIFT_X) ) & ZVOXELBLOCMASK_Z );
 	  }
 	  memset( PrefDirEn, 0, sizeof( PrefDirEn ) );
+
         for(i=0,vCount=0,vPrefCount=0;i<6;i++)
         {
 			j = i ^ 1;
-			cx = self.x+ZVoxelReactor::xbp6_opposing[i].x ; cy = self.y+ZVoxelReactor::xbp6_opposing[i].y ; cz = self.z+ZVoxelReactor::xbp6_opposing[i].z ; 
-			SecondaryOffset[i] = ZVoxelReactor::If_x[cx]+ZVoxelReactor::If_y[cy]+ZVoxelReactor::If_z[cz];St[i] = SectorTable[ ZVoxelReactor::Of_x[cx] + ZVoxelReactor::Of_y[cy] + ZVoxelReactor::Of_z[cz] ]; 
-			Vp[i] = &St[i]->Data[ SecondaryOffset[i] ].Data;
+
+			Vp[i] = &St[i+1]->Data[ SecondaryOffset[i+1] ].Data;
 			if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_Water) {vCount++; DirEn[i]=true;}
 			else DirEn[i]=false;
+
 			if( *Vp[i] == self.VoxelType )
 			for( int k = 0; k < 5; k++ )
 			{
-				cx = self.x+ZVoxelReactor::xbp6_opposing_escape[j][k].x ; cy = self.y+ZVoxelReactor::xbp6_opposing_escape[j][k].y ; cz = self.z+ZVoxelReactor::xbp6_opposing_escape[j][k].z ; 
-				PrefSecondaryOffset[j][k] = ZVoxelReactor::If_x[cx]+ZVoxelReactor::If_y[cy]+ZVoxelReactor::If_z[cz];St[j] = SectorTable[ ZVoxelReactor::Of_x[cx] + ZVoxelReactor::Of_y[cy] + ZVoxelReactor::Of_z[cz] ]; 
-				Vp2[j] = St[j]->Data[ PrefSecondaryOffset[j][k] ].Data;
-				if ( VoxelTypeManager->VoxelTable[Vp2[j]]->Is_CanBeReplacedBy_Water) {vPrefCount++; PrefDirEn[j][k]=true;}
+				PrefSecondaryOffset[j][k] = SecondaryOffset[ZVoxelReactor::x6_opposing_escape[j][k]];
+				Vp2 = St[ZVoxelReactor::x6_opposing_escape[j][k]]->Data[ PrefSecondaryOffset[j][k] ].Data;
+				if ( VoxelTypeManager->VoxelTable[Vp2]->Is_CanBeReplacedBy_Water) {vPrefCount++; PrefDirEn[j][k]=true;}
 			}
         }
 
@@ -129,12 +110,12 @@ bool ZVoxelType_Aroma::React( const ZVoxelRef &self, double tick )
 					if (PrefDirEn[i][k]) j--;
 					if (!j)
 					{
-						self.World->SetVoxel_WithCullingUpdate(RSx + self.x + ZVoxelReactor::xbp6_opposing_escape[i][k].x-1
-							, RSy + self.y + ZVoxelReactor::xbp6_opposing_escape[i][k].y-1
-							, RSz + self.z + ZVoxelReactor::xbp6_opposing_escape[i][k].z-1
+						self.World->SetVoxel_WithCullingUpdate(self.wx + ZVoxelReactor::xbp6_opposing_escape[i][k].x-1
+							, self.wy + ZVoxelReactor::xbp6_opposing_escape[i][k].y-1
+							, self.wz + ZVoxelReactor::xbp6_opposing_escape[i][k].z-1
 							, self.VoxelType, ZVoxelSector::CHANGE_UNIMPORTANT);
-						self.World->SetVoxel_WithCullingUpdate(RSx + self.x, RSy + self.y, RSz + self.z, 0, ZVoxelSector::CHANGE_UNIMPORTANT);
-						St[i]->ModifTracker.Set(PrefSecondaryOffset[i][k]);
+						self.World->SetVoxel_WithCullingUpdate(self.wx, self.wy, self.wz, 0, ZVoxelSector::CHANGE_UNIMPORTANT);
+						St[ZVoxelReactor::x6_opposing_escape[i][k]]->ModifTracker.Set(PrefSecondaryOffset[i][k]);
 						break;
 					}
 				}
@@ -152,9 +133,9 @@ bool ZVoxelType_Aroma::React( const ZVoxelRef &self, double tick )
 				if (DirEn[i]) j--;
 				if (!j)
 				{
-				self.World->SetVoxel_WithCullingUpdate(RSx + self.x + ZVoxelReactor::xbp6_opposing[i].x-1, RSy + self.y + ZVoxelReactor::xbp6_opposing[i].y-1, RSz + self.z + ZVoxelReactor::xbp6_opposing[i].z-1, self.VoxelType, ZVoxelSector::CHANGE_UNIMPORTANT);
-				self.World->SetVoxel_WithCullingUpdate(RSx + self.x, RSy + self.y, RSz + self.z, 0, ZVoxelSector::CHANGE_UNIMPORTANT);
-				St[i]->ModifTracker.Set(SecondaryOffset[i]);
+				self.World->SetVoxel_WithCullingUpdate(self.wx + ZVoxelReactor::xbp6_opposing[i].x-1, self.wy + ZVoxelReactor::xbp6_opposing[i].y-1, self.wz + ZVoxelReactor::xbp6_opposing[i].z-1, self.VoxelType, ZVoxelSector::CHANGE_UNIMPORTANT);
+				self.World->SetVoxel_WithCullingUpdate(self.wx, self.wy, self.wz, 0, ZVoxelSector::CHANGE_UNIMPORTANT);
+				St[i+1]->ModifTracker.Set(SecondaryOffset[i+1]);
 				break;
 				}
 			}

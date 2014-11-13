@@ -52,9 +52,186 @@
 
 ULong  ZVoxelSector::SectorsInMemory = 0;
 
+ULong ZVoxelSector::RelativeVoxelOffsets_Unwrapped[];
+ULong ZVoxelSector::RelativeVoxelOffsets_Wrapped[];
+int ZVoxelSector::VoxelSectorReactorMapTemp[] = { 
+	VOXEL_LEFT_BELOW_BEHIND
+	, VOXEL_BELOW_BEHIND
+	, VOXEL_RIGHT_BELOW_BEHIND
+	, 0
+	, VOXEL_LEFT_BEHIND
+	, VOXEL_BEHIND
+	, VOXEL_RIGHT_BEHIND
+	, 0
+	, VOXEL_LEFT_ABOVE_BEHIND
+	, VOXEL_ABOVE_BEHIND
+	, VOXEL_RIGHT_ABOVE_BEHIND
+	, 0
+	, 0, 0, 0, 0
+	, VOXEL_LEFT_BELOW
+	, VOXEL_BELOW
+	, VOXEL_RIGHT_BELOW
+	, 0
+	, VOXEL_LEFT
+	, VOXEL_INCENTER
+	, VOXEL_RIGHT
+	, 0
+	, VOXEL_LEFT_ABOVE
+	, VOXEL_ABOVE
+	, VOXEL_RIGHT_ABOVE
+	, 0
+	, 0, 0, 0, 0
+	, VOXEL_LEFT_BELOW_AHEAD
+	, VOXEL_BELOW_AHEAD
+	, VOXEL_RIGHT_BELOW_AHEAD
+	, 0
+	, VOXEL_LEFT_AHEAD
+	, VOXEL_AHEAD
+	, VOXEL_RIGHT_AHEAD
+	, 0
+	, VOXEL_LEFT_ABOVE_AHEAD
+	, VOXEL_ABOVE_AHEAD
+	, VOXEL_RIGHT_ABOVE_AHEAD
+	, 0
+	, 0, 0, 0, 0
+};
+
+
+const int ZVoxelSector::VoxelFaceGroups[6][9] = { {  VOXEL_LEFT,
+			VOXEL_LEFT_ABOVE,
+			VOXEL_LEFT_BELOW,
+			VOXEL_LEFT_AHEAD,
+			VOXEL_LEFT_BEHIND,
+			VOXEL_LEFT_ABOVE_AHEAD,
+			VOXEL_LEFT_ABOVE_BEHIND,
+			VOXEL_LEFT_BELOW_AHEAD,
+			VOXEL_LEFT_BELOW_BEHIND},
+
+			{ VOXEL_RIGHT,
+			 VOXEL_RIGHT_ABOVE,
+			 VOXEL_RIGHT_BELOW,
+			 VOXEL_RIGHT_AHEAD,
+			 VOXEL_RIGHT_BEHIND,
+			 VOXEL_RIGHT_ABOVE_AHEAD,
+			 VOXEL_RIGHT_ABOVE_BEHIND,
+			 VOXEL_RIGHT_BELOW_AHEAD,
+			 VOXEL_RIGHT_BELOW_BEHIND },
+			{ VOXEL_AHEAD,
+			VOXEL_AHEAD_ABOVE,
+			VOXEL_AHEAD_BELOW,
+			VOXEL_AHEAD_LEFT,
+			VOXEL_AHEAD_RIGHT,
+			VOXEL_AHEAD_ABOVE_LEFT,
+			VOXEL_AHEAD_ABOVE_RIGHT,
+			VOXEL_AHEAD_BELOW_LEFT,
+			VOXEL_AHEAD_BELOW_RIGHT } ,
+			{ VOXEL_BEHIND,
+			VOXEL_BEHIND_ABOVE,
+			VOXEL_BEHIND_BELOW,
+			VOXEL_BEHIND_LEFT,
+			VOXEL_BEHIND_RIGHT,
+			VOXEL_BEHIND_ABOVE_LEFT,
+			VOXEL_BEHIND_ABOVE_RIGHT,
+			VOXEL_BEHIND_BELOW_LEFT,
+			VOXEL_BEHIND_BELOW_RIGHT } ,
+			 { VOXEL_ABOVE,
+			 VOXEL_ABOVE_LEFT,
+			 VOXEL_ABOVE_RIGHT,
+			 VOXEL_ABOVE_AHEAD,
+			 VOXEL_ABOVE_BEHIND,
+			 VOXEL_ABOVE_LEFT_AHEAD,
+			 VOXEL_ABOVE_LEFT_BEHIND,
+			 VOXEL_ABOVE_RIGHT_AHEAD,
+			 VOXEL_ABOVE_RIGHT_BEHIND },
+
+			 { VOXEL_BELOW,
+			 VOXEL_BELOW_LEFT,
+			 VOXEL_BELOW_RIGHT,
+			 VOXEL_BELOW_AHEAD,
+			 VOXEL_BELOW_BEHIND,
+			 VOXEL_BELOW_LEFT_AHEAD,
+			 VOXEL_BELOW_LEFT_BEHIND,
+			 VOXEL_BELOW_RIGHT_AHEAD,
+			 VOXEL_BELOW_RIGHT_BEHIND } ,
+
+};
+
 
 void ZVoxelSector::DefaultInit( void )
 {
+	if( !RelativeVoxelOffsets_Unwrapped[1] )
+	{
+			// these should have been done in-line... but forgot; and it became long serial code 
+#define OffsetDelta(x,y,z)  ( ((x)*ZVOXELBLOCSIZE_Y) + (y) + ((z)*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_X) )
+#define OffsetDeltaWrapped(x,y,z)  ( (( ((x)>0?(-(ZVOXELBLOCSIZE_X-1)):(x)<0?(ZVOXELBLOCSIZE_X-1):0) )*ZVOXELBLOCSIZE_Y) \
+	           + (( ((y)>0?(-(ZVOXELBLOCSIZE_Y-1)):(y)<0?(ZVOXELBLOCSIZE_Y-1):0) ))   \
+			   + ((( ((z)>0?(-(ZVOXELBLOCSIZE_Z-1)):(z)<0?(ZVOXELBLOCSIZE_Z-1):0) ))*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_X) )
+
+			RelativeVoxelOffsets_Unwrapped[VOXEL_LEFT] = OffsetDelta( -1, 0, 0 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_RIGHT] = OffsetDelta( 1, 0, 0 );
+
+			// x not on bound, y not on bound.
+			RelativeVoxelOffsets_Unwrapped[VOXEL_ABOVE] = OffsetDelta( 0, 1, 0 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_BELOW] = OffsetDelta( 0, -1, 0 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_LEFT_ABOVE] = OffsetDelta( -1, 1, 0 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_LEFT_BELOW] = OffsetDelta( -1, -1, 0 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_RIGHT_ABOVE] = OffsetDelta( 1, 1, 0 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_RIGHT_BELOW] = OffsetDelta( 1, -1, 0 );
+
+			RelativeVoxelOffsets_Unwrapped[VOXEL_AHEAD] = OffsetDelta( 0, 0, 1 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_BEHIND] = OffsetDelta( 0, 0, -1 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_AHEAD_LEFT] = OffsetDelta( -1, 0, 1 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_AHEAD_RIGHT] = OffsetDelta( 1, 0, 1 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_BEHIND_LEFT] = OffsetDelta( -1, 0, -1 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_BEHIND_RIGHT] = OffsetDelta( 1, 0, -1 );
+
+			RelativeVoxelOffsets_Unwrapped[VOXEL_ABOVE_AHEAD] = OffsetDelta( 0, 1, 1 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_ABOVE_BEHIND] = OffsetDelta( 0, 1, -1 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_BELOW_AHEAD] = OffsetDelta( 0, -1, 1 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_BELOW_BEHIND] = OffsetDelta( 0, -1, -1 );
+
+			RelativeVoxelOffsets_Unwrapped[VOXEL_LEFT_ABOVE_AHEAD] = OffsetDelta( -1, 1, 1 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_LEFT_BELOW_AHEAD] = OffsetDelta( -1, -1, 1 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_RIGHT_ABOVE_AHEAD] = OffsetDelta( 1, 1, 1 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_RIGHT_BELOW_AHEAD] = OffsetDelta( 1, -1, 1 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_LEFT_ABOVE_BEHIND] = OffsetDelta( -1, 1, -1 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_LEFT_BELOW_BEHIND] = OffsetDelta( -1, -1, -1 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_RIGHT_ABOVE_BEHIND] = OffsetDelta( 1, 1, -1 );
+			RelativeVoxelOffsets_Unwrapped[VOXEL_RIGHT_BELOW_BEHIND] = OffsetDelta( 1, -1, -1 );
+
+			RelativeVoxelOffsets_Wrapped[VOXEL_LEFT] = OffsetDeltaWrapped( -1, 0, 0 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_RIGHT] = OffsetDeltaWrapped( 1, 0, 0 );
+			// x not on bound, y not on bound.
+			RelativeVoxelOffsets_Wrapped[VOXEL_ABOVE] = OffsetDeltaWrapped( 0, 1, 0 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_BELOW] = OffsetDeltaWrapped( 0, -1, 0 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_LEFT_ABOVE] = OffsetDeltaWrapped( -1, 1, 0 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_LEFT_BELOW] = OffsetDeltaWrapped( -1, -1, 0 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_RIGHT_ABOVE] = OffsetDeltaWrapped( 1, 1, 0 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_RIGHT_BELOW] = OffsetDeltaWrapped( 1, -1, 0 );
+
+			RelativeVoxelOffsets_Wrapped[VOXEL_AHEAD] = OffsetDeltaWrapped( 0, 0, 1 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_BEHIND] = OffsetDeltaWrapped( 0, 0, -1 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_AHEAD_LEFT] = OffsetDeltaWrapped( -1, 0, 1 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_AHEAD_RIGHT] = OffsetDeltaWrapped( 1, 0, 1 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_BEHIND_LEFT] = OffsetDeltaWrapped( -1, 0, -1 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_BEHIND_RIGHT] = OffsetDeltaWrapped( 1, 0, -1 );
+
+			RelativeVoxelOffsets_Wrapped[VOXEL_ABOVE_AHEAD] = OffsetDeltaWrapped( 0, 1, 1 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_ABOVE_BEHIND] = OffsetDeltaWrapped( 0, 1, -1 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_BELOW_AHEAD] = OffsetDeltaWrapped( 0, -1, 1 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_BELOW_BEHIND] = OffsetDeltaWrapped( 0, -1, -1 );
+
+			RelativeVoxelOffsets_Wrapped[VOXEL_LEFT_ABOVE_AHEAD] = OffsetDeltaWrapped( -1, 1, 1 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_LEFT_BELOW_AHEAD] = OffsetDeltaWrapped( -1, -1, 1 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_RIGHT_ABOVE_AHEAD] = OffsetDeltaWrapped( 1, 1, 1 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_RIGHT_BELOW_AHEAD] = OffsetDeltaWrapped( 1, -1, 1 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_LEFT_ABOVE_BEHIND] = OffsetDeltaWrapped( -1, 1, -1 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_LEFT_BELOW_BEHIND] = OffsetDeltaWrapped( -1, -1, -1 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_RIGHT_ABOVE_BEHIND] = OffsetDeltaWrapped( 1, -1, -1 );
+			RelativeVoxelOffsets_Wrapped[VOXEL_RIGHT_BELOW_BEHIND] = OffsetDeltaWrapped( 1, -1, -1 );
+
+
+	}
   VoxelTypeManager = 0;
   Size_x = 16;
   Size_y = 64;
